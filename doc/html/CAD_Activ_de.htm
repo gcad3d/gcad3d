@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>CAD_Activ_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+____________________________________________________________________________
+<B>Checkbox Interaction:</B>
+
+
+Jedes CAD-Objekt kann mit einer Funktion verbunden werden.
+Bei Selektion dieses Objekts wird die Funktion dann ausgeführt.
+
+
+  AUS: Interaktionen werden nicht ausgeführt.
+
+  EIN: Interaktion werden ausgeführt;
+       es können nur Objekte mit Interaktion selektiert werden.
+
+
+Interaktionen benutzen den Kennbuchstaben "I".
+
+
+
+
+
+
+____________________________________________________________________________
+<a name="F0"></a>
+  <h2>Interact.connect</h2>
+Ein CAD-Objekt mit einer Interaktion verbinden.
+  Bei Selektion des CAD-Objekts (Ankerobjekts) wird
+  die Interaktion ausgelöst.
+  Ankerobjekt: jedes beliebige Objekt.
+
+Beispiele für Interaktionen sind:
+ - Ein Folgemodell laden (wie HTM-HREF; LDMOD)
+ - Viewposition wechseln (Ansicht ändern, VIEW)
+ - Ein Plugin-Programm (DLL) starten / ausführen (EXECM)
+ - einen Zahlenwert modifizieren (MODVAL)
+ - Eine bereits definierte Interaktion für anderes Objekt benutzen
+
+
+  connect object      ein vorhandenes Ankerobjekt selektieren
+  command             Befehlstext; siehe unten
+
+
+
+Command:
+  - Ein Modell laden:
+      LOAD "symbol.Verzeichnis/Modelname"
+  - Den Viewport verändern:
+      VIEW {viewPortDaten}
+      Mit Insert/ViewPort (oder Alt-Shift-V) kann man
+      die aktuellen Viewport-Daten generieren.
+  - Ein Plugin-Programm (DLL) starten / ausführen:
+      EXECM {DLL-Name}
+  - Einen Zahlenwert (zB. Variable 20) modifizieren:
+      MODVAL V20
+    Den Y-Wert (den 2. Wert) von Punkt P25 modifizieren (P25=P(100 200 0)):
+      MODVAL P25 1
+  - Eine bereits definierte Interaktion I20 auch für dieses Ankerobjekt benutzen
+      I20
+
+
+
+
+Format Interaktion:
+I# = {anchor-object} {command}
+
+
+
+Beispiele:
+
+V20=10
+P20=P(0 0 0)
+C20=P20 V20
+# info only
+N21=TAG P(10 0 10) "sel. circ to mod. radius"
+# modify radius of C20
+I21=C20 "MODVAL V20"
+# modify z-value of P20
+N20=TAG P(10 0) 0 "modify-z-of-P20"
+I20=N20 "MODVAL P20 2"
+#
+
+
+
+
+I1 = M1 "VIEW ...."
+# Bei Selektion von Model1 wird der angegebene Viewport aktiviert.
+
+I2 = N20 "LDMOD "Data/Assy_H86""
+# Bei Selektion von Text 20 wird Model Assy_H86 geladen.
+
+I3 = N20 "EXECM tst3"
+# Bei Selektion von Note 20 wird Plugin-Programm tst3.so gestartet.
+
+# Die gleiche Interaktion für ein weiteres Objekt aktivieren - Beispiel:
+  I20 = N20 "VIEW ..."
+  # Bei Selektion von N20 Ansicht ändern
+  I21 = N21 I20
+  # Auch bei Selektion von Objekt N21 die gleiche Interaktion I20 ausführen.
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>
+

@@ -1,0 +1,287 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>CAD_CV_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<PRE>
+
+CAD functions for Splines (Curves)
+<A HREF="CAD_using_en.htm">See operation CAD ..</A>
+<A NAME="F0"></A>
+See also codes for curves
+Shortcut key is S (Spline)
+Polygon
+Ellipse
+Clothoid (spiral-form curve)
+Contour (compound curve)
+
+
+
+
+____________________________________________________________________________
+
+<p><a name="F0"></a></p>
+<h2>S Ellipse Center,AxisEndPoint,Point</h2>
+Ellipse from center, end point main axis, point on ellipse.
+
+  Center               <a href="CAD_input_en.htm#P">centerpoint</a>
+  EndPoint MajorAxis   endpoint of the main axis
+  Point on Ell.        a point on the ellipse
+
+
+Example:
+S1=ELL P(100 0) P(150 0) P(100 20)
+
+
+
+<p><a name="F1"></a></p>
+<h2>S Ellipse Center Axes [EndPoints]   ELL</h2>
+Limited ellipse from center, vector main axis, vector to point on ellipse.
+
+  Center               <a href="CAD_input_en.htm#_PT_">centerpoint</a>
+  MajorAxis (VEC)      <a href="CAD_input_en.htm#_Vec_">Vector</a> to the endpoint of the main axis
+  Axis (VEC)           <a href="CAD_input_en.htm#_Vec_">Vector</a> to a point on the ellipse
+  [StartPoint]         Optional: startpoint of ellipse.
+  [EndPoint]           Optional: endpoint
+
+Example:
+# Vectors + length and endpoints
+S1=ELL P(0 0) D(DX 100) D(DY 80) P(100 0) P(-100 0)
+
+
+
+
+<p><a name="F3"></a></p>
+<h2>S Polygon &lt; Points...                      POL</h2>
+Polygon from points
+
+2D-Polygon from points:
+S# = POL2, 2D-point1, 2D-point2, &lt;2D-point3, ...2D-pointN&gt;
+
+Example:
+P20 = 10.10
+S20 = POL2, P20, P(10.0) P(20.10) P(30.30)
+
+3D-Polygon from points:
+S#= POL, point1, point2, &lt;point3, ...pointN&gt;
+
+Example:
+P20 = P(10.10)
+P21 = P(20,20,15)
+P22 = P(25.20)
+S24 = POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)
+
+
+
+<p><a name="F4"></a></p>
+<h2>S Polygon &lt; Rectangle                      REC</h2>
+Parallelogram from a corner and 2 vectors:
+  CornerPoint     lower left point
+  DX              horizontal vector; you can add the length
+  DY              vertical vector; you can add the length
+
+Example:
+S20 = REC P(100 0 0) D(50 0 0) D(DY 12)
+
+
+
+<p><a name="F5"></a></p>
+<h2>S BSpline &lt; Points...                      BSP</h2>
+B-Spline from points
+  S-bsp = BSP {points} [,degree] [,CTRL]
+    CTRL - whether the defined points are transit points or check points.
+
+  Example:
+  P20 = P(78.9)
+  P21 = P(66.28)
+  P22 = P(44,9,25)
+  P23 = P(9.12)
+  P24 = P(6.34)
+  # B-Spline from Points
+  S20 = BSP, P20, P21, P22, P23, P24
+
+
+<B>Tangential to a line:</B>  (CTRL must be active !)
+  The spline is tangential to the lines defined by the first two and 
+  last two points.
+
+Example:
+P21=P(-737.37375 -42.08754 0)
+L20=P21 P(-13.468014 335.016819 0)
+P22=P(L20 0.5)
+L21=P(-457.912466 -159.932652 0) P(390.572397 -149.831643 0)
+S20=BSP  P22 P(L20 0.6) P(-70.7 119 0) P(-67 -58 0) P(L21 0.6) P(L21 0.7) CTRL
+P23=P(L21 MOD(2))
+
+
+
+<!--
+<p><a name="F7"></a></p>
+<h2>S BSpline &lt; Polygon...                     BSP</h2>
+B-Spline from polygon:
+  S-bsp = BSP S-polygon [,degree] [,CTRL]
+    CTRL - whether the defined points are transit points or check points.
+
+Example:
+# Poly from points
+P20 = P(78.9)
+P21 = P(66.28)
+P22 = P(44,9,25)
+P23 = P(9.12)
+P24 = P(6.34)
+# Poly ← Points
+S20 = POL, P20, P21, P22, P23, P24
+# BSpl &lt;- Poly
+S21 = BSP, S20
+-->
+
+
+
+<p><a name="F6"></a></p>
+<h2>S BSpline &lt; convert & join objects                    BSP1</h2>
+Convert and connect one or more objects into a B-Spline curve,
+ with or without rounding.
+
+Input elements:  Points, lines, arcs,
+                 polygons, ellipses, clothoids or B-Spline-curves.
+
+smoothFactor: 0 = no rounding, max. 1.
+                  only for polygons:
+                    -1 = no rounding
+                     0 = through points,
+                     1 = through controlpoints.
+
+
+Example:
+# convert polygon into B-Spline-curve
+S21=BSP1 S20
+# Connect Linie20 and Linie21 to a curve with rounding.
+S20 = BSP1 L20 L21 0.1
+
+Example Model see sample_curv_bsp_join1.gcad
+  
+
+
+<p><a name="F7"></a></p>
+<h2>S Clothoid (spiral-form curve)             CLOT</h2>
+    Clothoid spiral-form curve: generate (a planar spiral through Fresnel-Integral).
+    StartPoint                  starting point
+    StartVector                 launch direction (vector or angle)
+    Angle                       difference angle from direction towards the end point, positive is clockwise (CW), negative is counter-clockwise (CCW).
+    StartRadius                 radius at the starting point, or 0 for infinite
+    EndRadius                   radius at the end point, or 0 for infinite
+    [Z-Axis]                    normal vector, optional.
+
+Auxiliary functions to create a clothoidal spiral-form curve
+   Creation of the start point with &quot;PT cartes&quot;
+     Select the end of the previous element.
+   Generating the start vector &quot;VEC tangent&quot;
+     Select the end of the previous element and the previous element. With &quot;OK&quot;, the discharge (outlet) vector will be generated.
+
+Example:
+S20 = CLOT P(0 0 0) ANG(0) ANG(30) 0 10
+
+Example Model see sample_cloth1.gcad
+
+Export of a clothoidal spiral-form curve:
+   DXF: Issue as POLYLINE.
+   IGES: Issue as Entity 106 (Copious Data, Form 12 = 3D polygon).
+
+
+
+<p><a name="F2"></a></p>
+  <h2>S connection-lines &lt; Points...             MSH</h2>
+Creates connection-lines between points (e.g. for schematics).
+Position and direction of the connection-line can be defined
+  (select "Line")
+Connection-lines can have relative distances to themselves
+  (select line and key "distance")
+
+  Points
+    select all points
+
+  Vector/Line
+    None: mid-line vertical, between first / last point.
+    Define the direction of the mid-line:
+      select a line or key direction (eg DX or DY)
+      Distance: none.
+    Define the direction and position of the mid-line:
+      select a line or select point and direction
+      and key Distance (0 = exactly through line)
+
+  Distance
+    key offset from line
+    None: mid-line between first / last point.
+
+
+Examplemodel sample_connLn1.gcad
+
+Example:
+P21=P(-1.94 -1.26 0)
+P22=P(-1.69 0.15 0)
+P24=P(9.05 -3.25 0)
+P25=P(4.86 -2.46 0)
+# 
+# connection-line P21-P25
+S20=MSH U(P21 P25) 
+# connection-line P22-P24 with a distance of 0.2 to connection-line S20
+S23=MSH U(P22 P24) L(S20 MOD(3)) VAL(.2)
+# connection-line through line outside
+P26=P(0 -5)
+P27=P(1 -6)
+S23=MSH U(P26 P27) L(P(6 0) DY) VAL(0)
+
+
+
+
+<p><a name="F8"></a></p>
+<h2>S Contour(CCV) &lt;- PT/LN/CIR/CRV            CCV</h2>
+Contour (&quot;Composite (compound, concatenated) curve&quot; - CCV)
+A contour consists of the elements of points, lines, circles, curves.
+The outline should start at a point and end at a point.
+The rotational direction (CW or CCW) is defined following circles and curves.
+
+Lines and arcs are automatically connected with normal elements;
+Points are directly connected;
+Intersections between elements are automatically formed.
+
+Format:
+S# = CCV {contour elements}
+Example:
+C20 = P(39.26) VAL (22)
+S20 = CCV P(7.25) C20 CW P(35.58)
+
+
+A 2D composite curve from 2D polygon
+A 2D composite curve consists of circles/lines
+
+S# = CCV2, 2D polygon, tolerance
+
+Example:
+P20 = P(78.9)
+P21 = P(66.28)
+P22 = P(44,9,25)
+P23 = P(9.12)
+P24 = P(6.34)
+# Poly from Points
+DRAW OFF
+S20 = POL, P20, P21, P22, P23, P24
+# BSpline from Poly
+DRAW ON
+S21 = BSP, S20, 2
+# Poly from BSpline
+DRAW OFF
+S22 = POL, S21, 0.05
+# 2DPoly from Poly
+DRAW OFF
+S23 = POL2 S22 R22 0.05
+# 2DCircle/Line from 2DPoly
+DRAW ON
+S24 = CCV2 S23 0.05
+
+
+</PRE>
+</BODY>
+</HTML>

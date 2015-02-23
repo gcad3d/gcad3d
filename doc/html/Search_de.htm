@@ -1,0 +1,148 @@
+<HTML>
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+ <TITLE>Search_de.htm</TITLE>
+ <meta name="CHANGED" content="2013-09-02">
+ <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Search/Name</h2>
+  Aktivieren mit Checkbox "Search/Name" oder mit Ctrl-F
+    Deaktivieren mit Checkbox "Search/Name" oder das Fenster löschen.
+
+  Die Funktion ermöglicht:
+  - Anzeige einer Liste aller Objekte eines bestimmen Typs
+  - Filtern der Objekte der List nach Name/Info ("Searchpattern")
+  - Anzeige aller von einem Objekt abhängigen Objekte ("childs")
+  - Anzeige aller das Objekt erzeugenden Objekte ("parents")
+  - Objekt anzeigen (Linke Maustaste)
+  - Erzeugen/Ändern von Objektname/ObjektInfo (Rechte Maustaste/modify-name)
+  - Objekt analysieren (Rechte Maustaste/analyze)
+  im CAD-Modus zusätzlich:
+  - Objekt ändern (Rechte Maustaste/edit-object)
+  - Objekt löschen (Rechte Maustaste/delete-object)
+  - Objekt in die CAD-Eingabefelder übernehmen (Rechte Maustaste/copy-to-Model)
+
+
+
+_________________________________________________________________________
+
+<h3>has infotext (Filtertext) :</h3>
+ Es werden alle Objekte aus der Liste ausgefiltert, deren Namensfeld
+  den Filtertext enthält.
+ Geben Sie einen Teil der zu suchenden Info ein; "search/update".
+ Es kann nach mehreren Wortmustern gefiltert werden;
+   die Filterworte müssen durch Leerzeichen getrennt werden.
+   Reihenfolge egal; Groß-Kleinschreibung egal, Verknüpfung oder.
+
+Beispiel:
+ "zval height"  es werden alle Objekte angezeigt, deren Name
+ "zval" oder "height" enthält.
+  
+
+<h3>not:</h3>
+ Es werden alle Objekte angezeigt, deren Name die Filtertexte
+ NICHT enthält.
+  
+
+<h3>ignore case:</h3>
+ Groß/Kleinschreibung beachten.
+
+
+_________________________________________________________________________
+
+<h3>childs of:</h3>
+ Eingabe einer Objekt-ID; es werden  alle von diesem Objekt
+ abhängigen Objekte angezeigt.
+
+
+<h3>parents of:</h3>
+ Eingabe einer Objekt-ID; es werden  alle von diesem Objekt
+ abhängigen Objekte angezeigt.
+
+
+
+Beispiel childs/parents:
+
+Programmcode:
+V20=VAL(110) # Dist.1
+P20=P(-53 305 V20)
+P21=P(-63 188 0)
+P22=P21 Z(V20)
+L20=P20 P22 # Line
+P23=P20 P22
+
+Eingabe von "P22":
+Childs  of P22:  L20 P23
+Parents of P22:  P21 V20
+
+Childs  of L20:  -
+Parents of L20:  P20 V20 P22 P21
+
+
+
+_________________________________________________________________________
+
+<h3>new</h3>
+immer neue Liste (und Gruppe) erstellen;
+
+
+<h3>add</h3>
+zur bestehenden Liste (und Gruppe) zufügen.
+
+
+<h3>Group</h3>
+alle Objecte auch als Gruppe ausgeben (siehe <a href="GROUP_de.htm">GROUP</a>).
+
+<h3>search/update</h3>
+ Liste neu befüllen.
+
+
+____________________________________________________________________________
+
+<h3>Linke Maustaste in Liste:</h3>
+ Anzeige des Objekts (hilite).
+ Variablen: es wird der Inhalt ausgedruckt.
+ Vektoren: werden in der Bildschirmmitte dargestellt.
+
+
+
+<h3>Rechte Maustaste in Liste:</h3>
+ Popup-Menü:
+
+ <b>copy-to-Model</b>
+ Nur CAD,MAN.
+ Die ObjektID (zB "P20") wird in das momentan aktive CAD-Eingabefeld übernommen.
+
+ <b>edit-object</b>
+ Nur CAD,MAN.
+ Aufruf der Funktion "Objekt modifizieren".
+
+ <b>delete-object</b>
+ Nur CAD,MAN.
+ Aufruf der Funktion "Objekt löschen".
+
+ <b>modify-name</b>
+ Eingabe/Modifikation des Feldes Objektname/Info.
+
+ <b>analyze-object</b>
+ Objektparameter im ObjectViewer anzeigen.
+
+
+
+____________________________________________________________________________
+
+  <b>Speicherung des Objektzusatzinformationen (Name/Info) im Modelcode:</b>
+  Objektzusatzinformationen werden als Kommentar an das Ende der
+  Zeile mit dem Objektcode eingefügt.
+  Trennzeichen sind " #" (ein Leerzeichen und ein '#').
+  Beispiel:  
+  "P20=0,0,0 # Origin Nullpunkt BasisLayer"  
+   
+
+____________________________________________________________________________
+</PRE>
+</HTML>

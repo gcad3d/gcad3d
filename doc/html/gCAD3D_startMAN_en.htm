@@ -1,0 +1,94 @@
+<HTML>
+<HEAD>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <TITLE>gCAD3D_startMAN_en.htm</TITLE>
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<h2>Using function MAN:</h2>
+  Mainfunction MAN (manual).
+  All objectcodes will be displayed in a editwindow.
+  The codes can be created / modified / deleted with the editor.
+  The grafic represetation is displayed immediately in the graficwindow.
+
+
+<B>Enable function MAN:</B>
+ Select the MAN checkbox.
+
+
+____________________________________________________________________________
+<B>Creating objects:</B>
+ Create the codelines in the editwindow,
+   Conclusion with RETURN key or right mouse button.
+   The line will be worked, resulting objects are displayed.
+
+ A codeline for a graphic object consists of:
+   objectname = parameters.   Example point:
+   P10 = P(100 100 0)
+   Codedefinitions see <a href="CAD_Base_en.htm#Codes">gCAD3D-Codes</a> 
+
+
+ New object names can be produced with the Alt-key and the object character;
+   Alt-P produces the text "P20 =" (line must be empty).
+   Further: Alt-L line, Alt-C circle, Alt-S curve etc..
+
+ Associated geometrical objects (points, outlines) can be selected.
+  The objectname of the selected object is added in the editwindow.
+  No object ("indicate"): the cursorposition at the constructionplane
+    is added as a pointobject.
+
+  Parametric definitions for points are produced only in the mode CAD.
+
+
+
+_____________________________________________________________________________
+<b>Modifying / deleting objects:</b>
+
+  Activate the codeline:
+  - click into the codeline  or
+  - go up / down with the cursorkeys
+
+  Modify or delete the codeline in the editwindow.
+
+  At each time one can re-establish each programstate with
+    the cursor key up/down.
+
+  EditFunctions:
+   Text select (with mouse or SHIFT cursor);
+   Copy selected text: Ctrl-C  or
+   Delete and Copy selected text: Ctrl-X
+   Paste text: Ctrl-V
+
+  Go back to the end of the model:
+  - with key Escape
+  - or with the button "END".
+  - or go down with the cursorkeys
+
+
+
+___________________________________________________________________________
+<b>Searching for objects:</b>
+
+  Select the object with the right mousebutton; use function "edit"
+    (the active line in the editor must be empty).
+  The cursor in the editwindow will be placed in the codeline
+    belonging to the object.
+
+____________________________________________________________________________
+<b>STEP - Button</b>
+  Execute the codelines in single-step-mode.
+  
+
+
+<b>END - Button</b>
+  Execute the complete code.
+  Interrupt the process with the Esc-key.
+
+
+
+</PRE>
+</HTML>
+

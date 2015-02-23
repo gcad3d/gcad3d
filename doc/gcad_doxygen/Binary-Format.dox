@@ -1,0 +1,1597 @@
+/*! \page pag_bdm Binary-Format
+../gcad_doxygen/Binary-Format.dox
+
+
+
+\ref Datenmodelle<br>
+  &nbsp;&nbsp; \ref ComplexObject<br>
+  &nbsp;&nbsp; \ref Vector<br>
+  &nbsp;&nbsp; \ref Point<br>
+  &nbsp;&nbsp; \ref Line<br>
+  &nbsp;&nbsp; \ref Circle<br>
+  &nbsp;&nbsp; \ref Ellipse<br>
+  &nbsp;&nbsp; \ref Plane<br>
+  &nbsp;&nbsp; \ref Textnote<br>
+  &nbsp;&nbsp; \ref Dimensions<br>
+  &nbsp;&nbsp; \ref Bitmaps<br>
+  &nbsp;&nbsp; \ref Curves<br>
+  &nbsp;&nbsp; \ref Surfaces<br>
+  &nbsp;&nbsp; \ref Bodies<br>
+  &nbsp;&nbsp; \ref Models<br>
+  &nbsp;&nbsp; \ref BinaryMesh<br>
+  &nbsp;&nbsp; \ref Transformation<br>
+\ref DynamicDataArea<br>
+\ref PermanentAttributeList<br>
+\ref DisplayList<br>
+\ref BasicModelList<br>
+\ref ModelReferenceList<br>
+\ref BasicTexureList<br>
+\ref TextureReferenceList<br>
+\ref TexturedSurfaces<br>
+
+
+<hr>
+
+
+
+////////////////////////////////////////////////////////////////////
+\section Datenmodelle
+////////////////////////////////////////////////////////////////////
+Definition der Datenstructs siehe ../ut/ut_geo.h.
+
+
+
+_________________________________________________________________________
+\subsection ComplexObject
+\code
+
+Es gibt typenspezifische Strukturen -
+  (Point, Line, Circ, Vector, CurvPoly, CurvBSpl ..)
+
+Es gibt ein Containerobjekt: die struct ObjGX.
+
+In der DB werden alle Kurven und Flaechen (S,A) als
+  ObjGX-Strukturen gespeichert (retourniert);
+  Punkte, Linien, Kreise, Vektoren .. werden direkt (mit ihrer
+  typenspezifischen Struktur) gespeichert und retourniert.
+
+
+
+
+Inhalte einer struct ObjGX:
+
+  typ    die Bedeutung der Daten im Feld <data>
+  form   die Struktur der Daten im Feld <data>
+         Typ_PT: data ist (Point*).
+         Typ_Index: data ist keine Adresse, sondern direkt die Zahl (long)
+         Typ_Int4: data ist keine Adresse, sondern direkt die Zahl (long)
+  siz    Anzahl der Datenrecords in data
+  data   die Daten als struct vom typ <form> Anzahl <siz>
+         z.B: siz=10; form=Typ_PT: data=(Point*)PointArray[10]
+         
+ 
+Beispiele ObjGX:
+  typenspezifische DB-Speicherbereiche:
+    .typ=Typ_PT;    .form=Typ_Index; .siz=1;     .data=(int)DB-index_of_obj
+    .typ=Typ_LN;    .form=Typ_LN;    .siz=1;     .data=address_of_(Line*)
+    .typ=Typ_CVPLG; .form=Typ_CVPLG; .siz=1;     .data=(CurvPoly*)
+    .typ=Typ_CVCCV; .form=Typ_CVCCV; .siz=3;     .data=(CurvCCV[3])
+
+  keine typenspezifischen DB-Speicherbereiche:
+    .typ=Typ_Typ;  .form=Typ_Int4;  .siz=1;            .data=(int)typ
+
+
+Laden mit DB-Typ und DB-Index:
+  statt:
+    ox.form  = Typ_Index;
+    ox.typ   = dbTyp;
+    ox->data = (void*)dbInd;
+  besser (inline):
+OGX_SET_INDEX (dbTyp, dbInd, ox);
+
+
+Functions see \ref Get_ComplexObject
+
+
+Funktionen:
+  DB_store_obj
+  DB_store_stru
+  UTO_isol__         duplicate/isolate object (resolve Links)
+  UTRA_app_oTab
+  
+  UTO_dump__
+  UTO_dump_s_
+
+  UTO_ck_oTyp        is typ a data-struct or a complexObject
+  UTO_siz_stru       get size of struct
+  AP_typ_2_bastyp    get groupCode 
+
+UTO_rec_set             einen Record schreiben
+UTO_copy_0              duplicate obj (oGX-tree; keep data-pointers)
+UTO_reloc_obj           relocate obj (oGX-tree)
+
+UTO_copy_tab            ObjGX-Table (rekursiv) kopieren
+UTO_copy_stru           copy struct (ohne resolve - nicht recursiv)
+UTO_obj_save            Obj (nur struct) speichern (copy -> Memspc)
+UTO_obj_2_mem           Ein Obj seriell in einen Speicherbereich ablegen.
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Vector
+\ref ut_geo_const.h               Constant Vectors<br>
+\code
+
+
+
+
+Examples:
+  Vector    v1={1.0, 0.0, 0.0};           // Typ_VC
+
+  UT3D_vc_3db
+
+  GR_Disp_vc
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Point
+\code
+
+
+------------------
+2D-Point
+------------------
+
+Point2  pt2D;
+  pt2D.x     = (double) X-Coord
+  pt2D.y     = (double) Y-Coord
+
+ObjGX  ox1;
+  ox1.typ   = Typ_PT
+  ox1.form  = Typ_PT2
+  ox1.siz   = 1
+  ox1.data  = (void*)&pt2D
+
+
+
+------------------
+3D-Point
+------------------
+
+Point   pt3D;
+  pt3D.x     = (double) X-Coord
+  pt3D.y     = (double) Y-Coord
+  pt3D.z     = (double) Z-Coord
+
+ObjGX  ox1;
+  ox1.typ   = Typ_PT
+  ox1.form  = Typ_PT
+  ox1.siz   = 1
+  ox1.data  = (void*)&pt3D
+
+
+oder:
+  ox1.typ   = Typ_PT
+  ox1.form  = Typ_Index
+  ox1.siz   = 1
+  ox1.data  = (void*)(long)DB_index;
+
+
+oder:
+  ox1.typ   = Typ_PT
+  ox1.form  = Typ_Txt
+  ox1.siz   = 1
+  ox1.data  = (void*)"P(0 0)"
+
+
+
+Examples:
+  Point     pt1;        // Typ_PT
+
+  Point     pt1={1.0, 0.0, 0.0};
+
+  UT3D_pt_3db
+
+  GL_DrawPoint (&dli, 0, pt1);
+
+see also
+  GL_DrawSymB (&dli, 2, SYM_TRI_S, p1);    // red triangle
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Line
+\code
+
+
+
+------------------
+2D-Line
+------------------
+
+Line2  ln2D;
+  ln2D.p1   = (Point2) Startpunkt
+  ln2D.p2   = (Point2) Endpunkt
+
+ObjGX  ox1;
+  ox1.typ   = Typ_LN
+  ox1.form  = Typ_LN2
+  ox1.siz   = 1
+  ox1.data  = (void*)&ln2D
+
+
+
+
+------------------
+3D-Line
+------------------
+
+Line   ln3D;
+  ln3D.p1   = (Point) Startpunkt
+  ln3D.p2   = (Point) Endpunkt
+
+
+ObjGX  ox1;
+  ox1.typ   = Typ_LN
+  ox1.form  = Typ_LN
+  ox1.siz   = 1
+  ox1.data  = (void*)&ln3D
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Circle
+\code
+
+
+------------------
+2D-Circle
+------------------
+
+Circ2  ci2D;
+  ci2D.p1   = (Point2) Startpunkt
+  ci2D.p2   = (Point2) Endpunkt
+  ci2D.pc   = (Point2) Mittelpunkt
+  ci2D.rad  = (double) Radius
+
+ObjGX  ox1;
+  ox1.typ   = Typ_CI
+  ox1.form  = Typ_CI2
+  ox1.siz   = 1
+  ox1.data  = (void*)&ci2D
+
+
+
+
+
+
+------------------
+3D-Circle
+------------------
+Circ   ci3D;
+  ci3D.p1   = (Point) Startpunkt
+  ci3D.p2   = (Point) Endpunkt
+  ci3D.pc   = (Point) Mittelpunkt
+  ci3D.rad  = (double) Radius
+  ci3D.vz   = (Vector) Achsrichtung
+
+// size = 104
+
+
+ObjGX  ox1;
+  ox1.typ   = Typ_CI
+  ox1.form  = Typ_CI
+  ox1.siz   = 1
+  ox1.data  = (void*)&ci3D
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Ellipse
+\code
+
+
+------------------
+3D-Ellipse
+------------------
+
+CurvElli ell1;
+  ell1.p1   = (Point) Startpunkt
+  ell1.p2   = (Point) Endpunkt
+  ell1.pc   = (Point) Mittelpunkt
+  ell1.vz   = (Vector) Z-Achsrichtung
+  ell1.va   = (Vector) Richtung und Groesse Hauptachse
+  ell1.vb   = (Vector) Richtung und Groesse Nebenachse
+
+// Typ  = Typ_CVELL
+// size = 148 Byte
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Plane
+\code
+
+
+------------------
+Plane
+------------------
+Plane   pln;
+  pln.po   = (Point)  Nullpunkt
+  pln.vx   = (Vector) X-Vektor
+  pln.vy   = (Vector) Y-Vektor
+  pln.vz   = (Vector) Z-Vektor
+  pln.p    = (double) Achsrichtung
+
+ObjGX  ox1;
+  ox1.typ   = Typ_PLN
+  ox1.form  = Typ_PLN
+  ox1.siz   = 1
+  ox1.data  = (void*)&pln
+
+
+Examples:
+  Plane     pln1;    // Typ_PLN
+
+  UT3D_pl_ptvc
+
+  GR_Disp_pln
+  GL_DrawSymV3
+
+  int      i1, ips, lnAtt, iTyp;
+  long     dli;
+  double   scl;
+  Point    *pto;
+  Vector   *vcn;
+  Plane    pl1;
+
+  // plane from oroginPoint & normalVector
+  UT3D_pl_ptvc (&pl1, &pto, &UT3D_VECTOR_X);
+
+
+  // display
+  lnAtt = 9;          // lineAttribute, see DL_InitAttRec
+  iTyp = 1;           // 1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis;
+  scl = 1.;
+  GL_DrawSymVX (&dli, lnAtt, &pl1, iTyp, scl);
+
+
+  // create a complexObj
+  OGX_SET_OBJ (&ox1, Typ_PLN, Typ_PLN, 1, &pl1);
+
+
+\endcode
+_________________________________________________________________________
+\subsection Textnote
+\code
+
+
+------------------
+Textnote / 3D-Text
+------------------
+ObjGX (typ=Typ_Note; form=Typ_GTXT|Typ_Dim3; data=(GText*))
+
+
+GText     tx1
+  tx1.pt    = (Point) der linke untere Startpunkt
+  tx1.size  = (double) Texthoehe; bei Bitmap-Notes -1; Defaulthoehe: 0.
+  tx1.dir   = (double) Richtung; horizontal = 0.
+  txt1.txt  = (char*)
+
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Dimensions
+\code
+
+
+-----------------------
+Dimensions:
+-----------------------
+ObjGX (typ=Typ_Note; form=Typ_Dimen; data=(Dimen*))
+
+
+Dimen dim1
+  dim1.p1   = (Point) Maszpunkt 1
+  dim1.p2   = (Point) Maszpunkt 2
+  dim1.p3   = (Point) Textposition
+  dim1.a1   = (float) Winkel Maszlinie/ Textblock in Degree
+  dim1.a2   = (float)
+  dim1.dtyp = (char)
+  dim1.hd   = (char) heads: 0=none, 1=<, 2=>, 3=/, 4=X; Default is 12
+  dim1.ld   = (char) lines: 0=none, 1=line; Default is 11
+  dim1.txt  = (char*) Zusatztext
+
+
+  LinearMasz:
+    dtyp = 0
+    p1 = Maszpunkt 1
+    p2 = Maszpunkt 2
+    p3 = Textposition
+    a1 = Winkel Maszlinie/ Textblock in Grad
+    hd, ld (Def = 12 11)
+    txt
+
+
+  DurchmesserMasz:
+    dtyp = 1
+    hd < 10 = Radiusmasz; else Durchmessermasz.
+    p1 = Kreis-Center
+    p2 = Punkt am Kreis
+    p3 = Textposition
+    a1 = Winkel Maszlinie/ Textblock in Grad
+    a2 = Radius
+    hd   (Def = 12)
+    txt
+
+
+  RadiusMasz:
+    dtyp = 2
+    hd < 10 = Radiusmasz; else Durchmessermasz.
+    p1 = Kreis-Center
+    p2 = Punkt am Kreis
+    p3 = Textposition
+    a1 = Winkel Maszlinie/ Textblock in Grad
+    a2 = Radius
+    hd   (Def = 1)
+    txt
+
+
+  WinkelMasz:
+    dtyp = 3
+    p1 = Maszpunkt 1
+    p2 = Maszpunkt 2
+    p3 = Textposition
+    a1 = Winkel Hilfslinie 1
+    a2 = Winkel Hilfslinie 2
+    hd, ld (Def = 12 11)
+    txt
+        Maszlinie-1:  p1-a1
+        Maszlinie-2:  p2-a2
+        Die Maszlinien liegen CCW !
+        a1,a2 zeigen von Schnittpunkt der Maszlinien nach aussen !
+
+
+ Leader:
+    dtyp = 21
+    p1 = Startpunkt (PfeilPos.)
+    p2 = Endpunkt1
+    p3 = Endpunkt2 (wenn x-Wert != UT_DB_LEER)
+    a1 = Winkel Textblock
+    hd   (Def = 1)
+    txt
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Bitmaps
+\code
+
+
+-----------------------
+Tags (Bitmap):           
+-----------------------
+ObjGX (typ=Typ_Note; form=Typ_ATXT|Typ_Tag; data=(AText*))
+
+
+AText     tag
+  tag.typ    = (int) 0=Text, 1=Image, 2=Label-Block, 3=Label-Kreis
+  tag.col    = (int) Farbe fuer Label; -1=kein Label
+  tag.ltyp   = (int) Linetyp Leaderline; -1=keine Leaderline.
+  tag.p1     = (Point) Textblock-/Imageposition (links Mitte)
+  tag.p2     = (Point) Startpunkt Leaderline.
+  tag.txt    = (char*) Text/ImageFilename
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Curves
+\ref Polygon<br>
+\ref Splines (B-Spl., Polynom-Spl., Bezier-Spl.)<br>
+\ref CCV<br>
+\code
+
+
+\endcode
+_________________________________________________________________________
+\subsubsection Polygon
+\code
+
+
+-----------------------
+Curve-2D-Polygon:                       APT_decode_pol2
+-----------------------
+
+Point2 pa[iNr]  die PolygonPunkte; meist via memspc55
+
+
+ObjGX     cv1
+  cv1.typ   = Typ_CVPOL2
+  cv1.form  = Typ_PT2
+  cv1.siz   = Anzahl Punkte
+  cv1.data  = (Point(2)*)pa=PolygonPunkte[siz]
+
+
+
+
+
+-----------------------
+Curve-3D-Polygon:                         APT_decode_pol
+-----------------------
+
+ObjGX     cv1
+
+  cv1.typ   = Typ_CVPOL
+  cv1.form  = Typ_CVPOL              [Typ_PT]
+  cv1.siz   = 1                      [pointNr]
+  cv1.data  = (CurvPoly*)cvPlg;      [(Point*)]
+
+.....................
+  CurvPoly    *cvPlg;
+  Point       *pTab;
+  int         ptNr;
+  double      vo, v1, *vTab;
+
+  cvPlg = cv1.data;
+  pTab  = cvPlg->cpTab;        // cornerpoints
+  ptNr  = cvPlg->ptNr;         // number of points
+  v0    = cvPlg->v0;           // startparameter (length absolut)
+  v1    = cvPlg->v1;           // endparameter (length absolut)
+  vTab  = cvPlg->lvTab;        // parameters at cornerpoints (length absolut)
+
+
+ 
+  (Point*) -> (CurvPoly*):   UT3D_plg_pta()
+
+
+Examples:
+
+  // polygon from array of points
+  GL_DrawPoly (&dli, iAtt, pNr, pa1);
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsubsection Splines
+\code
+
+
+-----------------------
+Curve - Polynom.Spline                  APT_decode_psp3
+-----------------------
+
+
+polynom_d3  Polynome
+
+
+ObjGX     cv1
+  cv1.typ   = Typ_CVPSP3
+  cv1.form  = Typ_Polynom3
+  cv1.siz   = Anzahl Polynome
+  cv1.data  = (polynom_d3*)=Polynome[siz]
+
+
+
+
+
+
+-----------------------
+Curve - B-Spline                        APT_decode_bsp
+-----------------------
+
+
+CurvBSpl  bSpl
+  bSpl.ptNr  = (int) nr of controlpoints
+  bSpl.deg   = (int) degree
+  bSpl.v0    = (double) curve start parameter
+  bSpl.v1    = (double) curve end parameter
+  bSpl.kvTab = (double*) knotvalues[ptNr + deg + 1]
+  bSpl.cpTab = (Point*) controlpoints[ptNr]
+
+
+ObjGX     cv1
+  cv1.typ   = Typ_CVBSP;
+  cv1.form  = Typ_CVBSP;
+  cv1.siz   = 1
+  cv1.data  = (CurvBSpl*)=bSpl
+
+
+Examples:
+
+  int deg = 2;
+  int iTyp = 0; //0=Standard; 1=optimized;
+  Memspc   wrkSeg, tmpSeg;
+  CurvBSpl cv1;
+  ObjGX    o1;
+
+
+  // curveObj from points
+  UME_init (&wrkSeg, memspc101, sizeof(memspc101));
+  UME_init (&tmpSeg, memspc201, sizeof(memspc201));
+  irc = UCBS_BspCrvPts (&cv1, &wrkSeg, pNr, pta, deg, iTyp, &tmpSeg);
+  if(irc < 0) { printf("***** UCBS_BspCrvPts %d\n"); continue; }
+
+  OGX_SET_OBJ (&o1, Typ_CVBSP, Typ_CVBSP, 1, &cv1);
+
+
+
+
+
+
+-----------------------
+Curve - BezierCurve                      APT_decode_bsp
+-----------------------
+
+
+CurvBez  cvBez
+  bSpl.ptNr  = nr of controlpoints
+  bSpl.cpTab = (Point*) controlpoints[ptNr]
+
+// ptNr  ... number of control points; degree = (ptNr - 1)
+// size = 8 Byte
+
+
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsubsection CCV
+\code
+
+
+
+-----------------------
+Curve - CCV
+-----------------------
+../ut/ut_ccv.c              CCV (concatenated curves, struct CurvCCV)
+
+
+ObjGX     cv1
+  cv1.typ   = Typ_CVCCV;
+  cv1.form  = Typ_CVCCV;
+  cv1.siz   = nr of subCurves
+  cv1.data  = (CurvCCV*)=array of subCurves (trimmedCurves)
+
+
+Example decode ccv:
+
+
+  int    typ, i1, rNr;
+  long   dbi;
+  char   obj1[OBJ_SIZ_MAX];
+  void   *o1, *o2;
+
+  // get curve S20 (a CCV) from DB
+  typ = Typ_CV;
+  dbi = 20L;
+
+  typ = DB_GetObjDat (&o1, &rNr, typ, dbi);
+    printf(" typ=%d nr=%d\n",typ,rNr);
+
+  o2 = o1;
+  for(i1=0; i1<rNr; ++i1) {
+    UT3D_stru_dump(typ, o2, " o2");
+    if(typ == Typ_CVCCV) {
+      // change trimmedCurve into standardCurve
+      UTO_cv_cvtrm (&typ1, obj1, NULL, o2);
+      UT3D_stru_dump(typ1, obj1, " ccv-o2");
+    }
+    o2 += UTO_siz_stru (typ); // next subObj
+  }
+
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Surfaces
+\code
+
+
+Functions:
+UTO_ck_surfTyp      returns surfSubTyp
+SUR_ck_typ          returns details of surf
+
+
+
+------------------------------------------------
+                   Surfaces:
+------------------------------------------------
+
+
+Tesselated surfaces (not perforated):
+  Typ_SURCIR 
+  Typ_SURSTRIP
+
+
+Supportsurfaces (not trimmed, not perforated):
+  Typ_SURRU   (ruled, extrusion) 
+  Typ_SURRV   (revolved, sweep) 
+  Typ_SURBSP  (B-spline, loft) 
+  Typ_SURRBSP (rat.B-spline) 
+
+
+Planar Trimmed-Perforated-Surface:
+    (has a outer-boundary and 0-n inner-boundaries):
+  Typ_SUR
+
+Trimmed-Perforated-Surface with Supportsurface:
+    (has a Supportsurface, outer-boundary and 0-n inner-boundaries):
+  Typ_SURTPS
+
+
+Other:
+  Typ_SURPTAB
+  Typ_SURMSH
+  Typ_SURHAT
+
+
+------------------------------------------------
+
+
+
+
+
+
+---------------------
+Schraffierte Flaeche:
+---------------------
+
+ObjGX    os1;
+  os1->typ   = Typ_SURHAT;
+  os1->form  = Typ_SURHAT;
+  os1->siz   = 1;
+  os1->data  = (SurHat*)hat;
+
+
+Offen:
+  SurHat dzt ohne Inseln; ev wie Typ_SURTPS (Aussengrenze & Inseln)
+
+
+
+
+
+
+
+------------------------------------------------
+Surface-RCIR
+------------
+Pretesselated surface.
+Functions: OGX_GET_INDEX
+
+ObjGX    os1;
+  os1.typ  = Typ_SURCIR
+  os1.form = Typ_ObjGX
+  os1.siz  = nr-of-points
+  os1.data = (ObjGX*)opt=db-points
+
+      opt.typ  = Typ_PT;
+      opt.form = Typ_Index;
+      opt.siz  = 1
+      opt.data = (long*)=DB-index of point
+
+
+
+
+------------------------------------------------
+Surface-RSTRIP
+--------------
+Pretesselated surface.
+Functions: OGX_GET_INDEX
+
+
+ObjGX    os1;
+  os1.typ  = Typ_SURSTRIP
+  os1.form = Typ_SURSTRIP
+  os1.siz  = 1
+  os1.data = (SurStripe*)sus
+
+    sus.ptUNr = nr of points per stripe
+    sus.ptVNr = nr of stripes
+    sus.pTab  = (ObjGX*)opt=db-points
+
+      opt.typ  = Typ_PT;
+      opt.form = Typ_Index;
+      opt.siz  = 1
+      opt.data = (long*)=DB-index of point
+
+
+
+
+
+
+============================================================================
+
+Planar Trimmed-Perforated-Surface:
+    (has a outer-boundary and 0-n inner-boundaries):
+ (ObjGX) typ  = Typ_SUR;
+         form = Typ_ObjGX;
+         siz  = Anzahl von ObjGX in data
+         data = (ObjGX[0])=Aussenkontur (Kreis, Polygon, CCV)
+                [(ObjGX[1-n])=Lochkonturen]
+or
+         data = (ObjGX[0]) typ=Typ_Typ; form=Typ_Int4; data=Typ_SURPLN;
+                (ObjGX[1])=Aussenkontur (Kreis, Polygon, CCV)
+                [(ObjGX[2-n])=Lochkonturen]
+
+
+
+============================================================================
+Ruled Surface, support-surface - not trimmed, not perforated:
+  Extrusion-surface;
+ (ObjGX) typ  = Typ_SURRU;
+         form = Typ_ObjGX;
+         siz  = 2
+         data = (ObjGX[2]) ObjGX[0]=contour
+                           ObjGX[1]=extrusion-vector
+
+
+============================================================================
+Revolved Surface, Spherical surface,
+  support-surface - not trimmed, not perforated:
+ (ObjGX) typ  = Typ_SURRV;
+         form = Typ_SURRV;
+         siz  = 1
+         data = (SurRev*)RevolvedSurface
+
+
+// RevolvedSurf Typ_SURRV
+typedef struct {double ang1, ang2, v0, v1;
+                long indCen, indCov;  short typCen, typCov; }       SurRev;
+// indCen = DB-Ind of Centerline
+// typCen = typ of Centerline (dzt nur Typ_LN)
+// indCov = DB-Ind of contour(-cover)element
+// typCov = typ of contourelement
+// ang1   = starting angle in rad
+// ang2   = ending angle in rad
+// v0,v1  = start/end-parameters of contour; for all types of contour 0-1
+
+
+Functions:
+  TSU_tr_init_
+  TSU_DrawSurTRV
+
+
+============================================================================
+Sweep Surface,
+  support-surface - not trimmed, not perforated:
+ (ObjGX) typ  = Typ_SURSWP;
+         form = Typ_SURSWP;
+         siz  = 1
+         data = (SurSwp*)SweepSurf
+
+
+// indPath  DB-index path
+// typPath  typ of path (Typ_LN ..)
+// indCov   DB-index contour(-cover)element
+// typCov   typ of contourelement (Typ_CI ..)
+// u0,u1    start/end-parameters of path; for all types of contour 0-1
+// v0,v1    start/end-parameters of contour; for all types of contour 0-1
+// dir      direction; 0=CCW, 1=CW.
+
+
+Functions:
+  // TSU_tr_init_
+  // TSU_DrawSurTRV
+
+
+============================================================================
+Loft Surface, B-Spline-Surface,
+  support-surface - not trimmed, not perforated:
+ (ObjGX) typ  = Typ_SURBSP;
+         form = Typ_SURBSP;
+         siz  = 1
+         data = (SurBSpl*)
+
+
+============================================================================
+Flaeche mit Supportflaeche, getrimmt, gelocht:
+ (ObjGX) typ  = Typ_SURTPS
+         form = Typ_ObjGX;
+         siz  = Anzahl von ObjGX in data
+         data = (ObjGX[0])=Stuetzflaeche (CON/TOR/SRU/SRV/SBS)
+                           typ=Typ_SUR; form=Typ_Index
+                [(ObjGX[1])=Aussenkontur (unbegrenzt: Stuetzflaeche)
+                [(ObjGX[2-n])=Lochkonturen]]
+
+
+---------------------------------------------------------------
+Flaeche von PunkteTabelle (A=PTAB)           Func: APT_decode_msh_p
+ (ObjGX) typ  = Typ_SURPTAB
+         form = Typ_NULL
+         siz  = 0
+         data = NULL
+
+
+---------------------------------------------------------------
+Flaeche von Mesh                             Func: APT_decode_msh__
+ (ObjGX) typ  = Typ_SURMSH
+         form = Typ_Index;
+         siz  = 1
+         data = (long) Index of suface of its PTAB
+
+
+
+
+
+
+------------------------------------------------------
+GL_Surface     (bestehend aus fertig tesselierten planaren Patches)
+  (ObjGX) typ  = Typ_GL_Sur;
+          form = Typ_ObjGX;
+          siz  = nr of planar patches + Colors
+          data = PlanarPatches
+
+  (ObjGX) typ  = Typ_GL_PP;          (planar patch)
+          form = Typ_ObjGX;
+          siz  = nr of contours (first obj is Z-vector)
+          data = Normalvektor und Contours
+
+  (ObjGX) typ  = Typ_PT;          (Contour)
+          form = Typ_PT;
+          siz  = nr of points
+          aux  = GL-Typ; 4=GL_TRIANGLES 5=GL_TRIANGLE_STRIP 6=GL_TRIANGLE_FAN
+                         16=GL_TRIANGLE_NPFAN
+          data = *Point[siz]      (geschlossenes Polygon)
+
+
+  (ObjGX) typ  = Typ_Typ;          (start of new surface)
+          form = Typ_Int4;
+          siz  = 1
+          data = (long) SurfTyp; zB Typ_SURPLN ..
+
+
+
+Funktionen:
+ GL_Disp_sur        Darstellung eines einzelnen Data-record.
+ UTO_dump_f_        dump tesselated data
+
+// Beispiel: 210=Typ_GL_Sur; 211=Typ_GL_PP;
+//           143=Typ_ObjGX;  5=Typ_VC; 2=Typ_PT ..
+//    typ-form-siz-dat
+//    210 143 2 a1
+// a1   211 143 3 a2
+//      211 143 4 a3
+// a2     5 5 1 a4
+//        2 2 5 a5
+//        2 2 5 a6
+// a3     5 5 1 a7
+//        2 2 5 a8
+//        2 2 5 a9
+//        2 2 5 a10
+// a4 (struct VC)
+// a5 (struct PT * 5)
+// ....
+
+Version ohne Normalvektoren und Colour fuer Intersect:
+//    210 143 2 a1
+// a1   211 2 8 a2
+//      211 2 5 a3
+// a2 (strut PT * 8)
+// a3 (strut PT * 5)
+
+
+
+
+---------------------------------------------------------------
+Konische/Toroide Flaeche; ungetrimmt, ungelocht:      UNUSED
+ (ObjGX) typ  = Typ_SUR;
+         form = Typ_ObjGX;
+         siz  = Anzahl von ObjGX in data
+         data = (ObjGX[0])=Stuetzflaeche; typ=Typ_SOL (Conus/Torus)
+
+
+
+
+============================================================================
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Bodies
+\code
+
+
+
+------------
+Body-BREP      closed shell
+------------
+
+SurBnd   sba[]
+  sba[i].suID = surface-ID (DB-index A)
+  sba[i].seNr = nr of EDGSURs
+  sba[i].sea  = *EDGSUR
+
+
+ObjGX     ox1
+  ox1.typ     = Typ_BREP;
+  ox1.form    = Typ_SURBND;
+  ox1.siz     = sbaNr;          // nr of SurBnd's
+  ox1.data    = (SurBnd*)&sba;  // table of SurBnd's
+
+
+
+
+
+
+------------
+Body-Sphere    Kugel
+------------
+
+Sphere     sph
+  sph.pc     = (Point)  Centerpoint
+  sph.rad    = (double) Radius
+
+ObjGX     ox1
+  ox1.typ    = Typ_SPH;
+  ox1.form   = Typ_SPH;
+  ox1.siz    = 1;
+  ox1.data   = (Sphere*)&sph;
+
+
+
+
+
+
+
+------------
+Body-Cone           Konus, Zylinder ..
+------------
+
+Conus     con
+  con.pl     = (Plane)  Achsensystem als (pl.po ist Center-bottom)
+  con.r1     = (double) Radius bottom
+  con.r2     = (double) Radius top
+  sph.h      = (double) Hoehe  (height)
+
+ObjGX     ox1
+  ox1.typ    = Typ_CON;
+  ox1.form   = Typ_CON;
+  ox1.siz    = 1;
+  ox1.data   = (Conus*)&con;
+
+
+
+
+
+
+------------
+Body-Torus       
+------------
+
+Torus     tor
+  tor.pl     = (Plane)  Achsensystem als (pl.po ist Center)
+  tor.r1     = (double) Radius of outermost circle
+  tor.r2     = (double) Radius of torusring (Querschnitt)
+
+ObjGX     ox1
+  ox1.typ    = Typ_TOR;
+  ox1.form   = Typ_TOR;
+  ox1.siz    = 1;
+  ox1.data   = (Torus*)&tor;
+
+
+
+
+
+
+------------
+Body-PRISM
+------------
+
+ObjGX     ox2[2]
+  ox2[1].typ    = Typ_CIR   oder Typ_CV (ex S=REC..)
+  ox2[1].form   = Typ_Index;
+  ox2[1].data   = (void*)&ci1;
+
+  ox2[2].typ    = Typ_CIR od Typ_PT od Typ_VAR od Typ_VC
+  ox2[2].form   = Typ_Index;
+  ox2[2].data   = (void*)data entspr. typ
+
+
+
+ObjGX     ox1
+  ox1.typ    = Typ_SOL;
+  ox1.form   = Typ_ObjGX;
+  ox1.siz    = 2;
+  ox1.data   = (void*)&ox2;
+
+
+
+
+============================================================================
+
+\endcode
+_________________________________________________________________________
+\subsection Models
+\code
+
+
+---------------
+Model-Reference
+---------------
+
+ModelRef   mr1;
+  mr1.mnam
+  mr1.modNr  = modelnumber of ModelBas-obj. (DB_get_ModNr())
+  mr1.scl
+  mr1.po     = position of ditto
+  mr1.vx
+  mr1.vz
+
+
+
+
+
+ObjGX     ox1
+  ox1.typ    = Typ_Model;
+  ox1.form   = Typ_Model;
+  ox1.siz    = 1;
+  ox1.data   = (void*)&mr1;
+
+
+
+
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection BinaryMesh
+\code
+
+
+============================================================================
+------------
+BinaryMesh:
+------------
+
+Topmost record: type ObjGX
+  keeps n surfaces (surface is a ObjGX-record where typ=Typ_GL_PP)
+  typ    Typ_GL_Sur
+  form   Typ_ObjGX (form of records in data)
+  data   array of surfs
+  siz    nr of surfs
+
+Surface-record (type ObjGX):
+  can have planar-patches, normal-vectors, color, texture.
+   normal-vector: typ=Typ_VC, form=Typ_VC, data=Vector
+   color: typ=Typ_Color, form=Typ_Int4, data=ColRGB (see OGX_SET_COLOR)
+
+PlanarPatch:   (face)
+  typ    Typ_PT
+  form   Typ_PT (form of records in data)
+  data   array of points
+  siz    nr of points
+  aux    structure of data; eg GL_TRIANGLES|GL_TRIANGLE_FAN|..
+
+
+
+Functions:
+  GL_DrawSur
+  TSU_Init, TSU_store
+  OGX_siz__            // get total size of bMsh
+  OGX_oxm_copy_ox      // serialize bMsh (copy objects & data into single memspc)
+  OGX_deloc__          // delocate
+  UME_write__          // write into file
+  UME_read__           // read from file
+  OGX_reloc__          // relocate
+  TSU_exp__ TSU_exp_Open TSU_exp_sur  // export bMesh
+  TSU_tsu2tria__ TSU_tsu2tria_rec     // intersect INT_intplsur|INT_intsursur
+ TSU_imp_tess       load file > mem
+ TSU_DrawSurTess    Darstellung gesamtes BinaryModel
+ GL_Disp_sur        Darstellung eines einzelnen Data-record.
+ UTO_dump_f_        structured dump of a BinaryModel
+
+
+Derzeit nur fuer die Mockup-Models.
+Enthaelt abwechselnd SizeDefinition-Record, ObjGX-Struktur,  dann wieder
+  SizeDefinition-Record, ObjGX-Struktur.
+Am Ende steht statt dem naechsten SizeDefinition-Record ein Schlussrecord.
+Decodierfunktion UTO_dump_f_
+Wird ein BinaryModel in eine Datei geschrieben, so wird zusaetzlich als erster
+ Record ein AdressRecord geschrieben.
+
+
+AdressRecord (nur in Datei):
+  add.typ    = Typ_Address
+  add.form   = Typ_Data
+  add.siz    = 1;
+  add.data   = address of first data-record (for relocation)
+               (nur size of data; ohne add- u rfi-Record)
+
+SizeDefinition-Record:
+ObjGX  rsz
+  rsz.typ    = Typ_Size
+  rsz.form   = Typ_Int4
+  rsz.siz    = 1;
+  rsz.data   = (long)size of following Data-record in byte
+
+Data-records:
+  ..
+
+TerminationRecord rfi:
+  used only for filed meshes
+ObjGX  rfi
+  rfi.typ    = Typ_Done
+  rfi.form   = Typ_ObjGX
+  rfi.siz    = 1;
+  rfi.data   = NULL
+
+
+
+
+
+\endcode
+_________________________________________________________________________
+\subsection Transformation
+\code
+
+
+============================================================================
+---------------
+Transformation:
+---------------
+
+ObjGX     tr1
+  ox1.typ    = Typ_Tra;
+  ox1.form   = Typ_VC (Translation) oder Typ_TraRot (Rotation)
+  ox1.siz    = 1;
+  ox1.data   = (Vector*) fuer Translation oder (TraRot*) f. Rotation
+
+
+TraRot    rr1
+  rr1.ma     = (Mat_4x3) ma; Drehpunkt ist ma[0][3], ma[1][3], ma[2][3]
+  rr1.vz     = (Vector) Drehachse
+  rr1.angr   = (double) Drehwinkel in Grad
+
+
+
+
+
+
+\endcode
+\section DynamicDataArea
+\code
+
+================================================================= 
+DynamicDataArea
+================================================================= 
+
+In every model the first block is the DynamicDataArea;
+  it ends with the line ":DYNAMIC_DATA".
+The DynamicDataArea can have the following commands:
+
+
+MODSIZ ..
+DEFTX ..
+DEFCOL ..
+VIEW ..
+CONST_PL ..
+GATAB
+..
+ENDGATAB
+:DYNAMIC_DATA
+
+
+
+
+GATAB starts the grafic-attributes-table;
+
+Grafic-Attributes-Records for surfaces:
+
+<ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
+ H  hidden
+ C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
+ T  transparent; 0=not, 1=50% transparent, 2=full transparent
+ S  symbolic; 0=not, 1=symbolic display 
+ X  textured surface; Format:
+    X"<Image>",X-scale,Y-Scale,X-Offset,Y-Offset,RotAng[,X-vec,Z-Vec]
+      <Image>  consists of "<symbolPath>/<imagefilename>"
+      Offsets are Values from 0-1
+      RotAng in degree
+
+
+
+Grafic-Attributes-Records for Lines, Curves:
+
+<ObjectID> [T#]
+ H  hide
+ T  index Linetyp; 2=dash, 3=dashDot.
+
+
+
+
+Example DynamicDataArea:
+
+
+# DefaultColor
+DEFCOL 224 224 242
+GATAB
+# Linetype; 2=dash, 3=dashDot.
+L20 T2
+L21 T3
+# color green, semiTransparent
+A20 C00ff00 T1
+# textures
+A21 X"Data/sample_Stein1.bmp",5,5,0,0,15
+A22 X"Data/sample_Ziegel1.bmp",5,5,0,0,0
+ENDGATAB
+:DYNAMIC_DATA
+# here starts geometric-object-space
+L20=P(0 0 0) P(50 0 0)
+L21=P(0 0 0) P(50 50 0)
+S20=REC P(50 0 0) D(50 0 0) D(0 50 0)
+S21=REC P(50 0 0) D(0 50 0) D(0 0 20)
+S22=REC P(50 50 0) D(50 0 0) D(0 50 0)
+A20=S20
+A21=S21
+A22=S22
+
+
+
+\endcode
+\section PermanentAttributeList
+\code
+
+
+================================================================= 
+PermanentAttributeList
+================================================================= 
+
+// PermanentAttributRecord
+typedef struct {long ind;
+                unsigned long iatt;
+                unsigned lay:16, typ:8,
+                         unused:7, disp:1;}                         ObjAtt;
+// typ    DB-Typ
+// ind    DB-Index
+// iatt   for typ=LN/AC/Curve: LineTypNr.
+//        for typ=TAG/IMG: sx/sy
+//        for typ=Surf/Model: ColRGB
+// disp   0=normal; 1=hidden
+// oNam   objectname; not yet impl.
+// size = 12
+
+
+../xa/xa_ga.c:
+ObjAtt  *GA_ObjTab=NULL;         // die PermanentAttributeTable
+int     GA_recNr=0;              // die aktuelle Anzahl von Records
+
+
+ 
+Die DispList enthaelt alle fuers Display erforderlichen Infos
+  (Color, Texture, symbolic-yes/no usw).
+Die DispList wird bei RUN neu generiert, die GA_ObjTab ist permanent.
+ Die GA_ObjTab ist eine Kopie, die erforderlich ist um den DL-Record
+  wieder zu erzeugen.
+In der DispList gibt es keine Info ob ein zugehoeriger GA_ObjTab-Record
+  existiert.
+
+
+Nur fuer typ=Surf/Model:    GA_ObjTab[i].iatt   ist eine ColRGB;
+
+// Typ_Color
+typedef struct {unsigned cr:8, cg:8, cb:8,
+                  unused:3, vtra:2, vsym:1, vtex:1, color:1;}       ColRGB;
+// vtra   view transparent; 0=not, 1=25% transparent, 2=50%, 3=75%
+// vtex   has texture; 0=not, 1=yes; (cr+cg+cb) = textureRefNr
+// vsym   view normal (0,shaded) or symbolic (1,wireframeboundary)
+// color  0=color not active; 1=color from cr/cg/cb
+// size = 4
+
+
+
+
+\endcode
+\section DisplayList
+\code
+
+================================================================= 
+DisplayList
+================================================================= 
+
+
+// typedef struct {long ind; int lNr; short refInd, attInd;
+typedef struct {long ind, lNr;
+                unsigned long iatt;
+                unsigned modInd:16, typ:8,
+                         disp:1,  pick:1,  hili:1,  dim:1,
+                         grp_1:1, temp:1,  unvis:1, sPar:1;}        DL_Att;
+// lNr    APTlineNr.
+// typ    DB-Typ
+// ind    DB-Index
+// refInd 2d_to_3d_Ind
+// modInd ModelNr
+// iatt   for typ=LN/AC/Curve: LineTypNr.
+//        for typ=TAG/IMG: sx/sy
+//        for typ=Surf/Model: ColRGB
+//        in Parent-state DL-index of child
+// disp, hili:
+//        normal = ((disp == 0)&&(hili == 1))
+//        hilite = ((disp == 1)&&(hili == 0))
+//        hidden = ((disp == 1)&&(hili == 1))
+// pick   0=unpickable, 1=pickable
+// unvis  0=visible; 1=obj does not have graph. representation
+// sPar   0=independent; 1=Parent-state is active.
+// grp_1  0=belongs to active Group, 1=not
+// size = 16
+
+
+
+../gr/ut_DL.c:
+DL_Att     *GR_ObjTab;      // die DisplayList
+long       GR_TAB_IND;      // naechster freier Index
+
+
+Nur fuer typ=Surf/Model:    GR_ObjTab[i].iatt   ist eine ColRGB;
+  genauso wie bei PermanentAttributeList. For iatt see PermanentAttributeList.
+
+
+
+
+
+\endcode
+\section BasicModelList
+\code
+
+================================================================= 
+BasicModelList
+================================================================= 
+
+// Typ_SubModel
+typedef struct {char *mnam; Point po; long DLind, DLsiz;
+                short typ, seqNr;}                                  ModelBas;
+// po    .. origin
+// DLind .. ind of first obj in DL
+// DLsiz .. nr of objects in DL
+
+
+../db/ut_DB.c:
+static ModelBas   *mdb_dyn;
+static long DYN_MB_IND
+
+
+
+\endcode
+\section ModelReferenceList
+\code
+
+================================================================= 
+ModelReferenceList
+================================================================= 
+
+// Typ_Model
+typedef struct {char *mnam; int modNr; double scl;
+                Point po; Vector vx, vz;}                           ModelRef;
+// modNr .. modelnumber of ModelBas-obj. (DB_get_ModNr())
+// po    .. position of ditto
+
+
+../db/ut_DB.c:
+static ModelRef   *mdr_tab;
+long APT_MR_IND
+
+
+
+\endcode
+\section BasicTexureList
+\code
+
+================================================================= 
+BasicTexureList
+================================================================= 
+
+// Typ_TEXB
+typedef struct {long dli; char *fnam;
+                short xSiz, ySiz, texNr, keep;}                     TexBas;
+// dli          DispListindex of the Texture
+// texNr        (OpenGL-) TextureNr
+// keep         0=do not keep texture; 1=keep.
+// fnam         Filename (symbolicPath/Filename) of the Texturefile
+// xSiz, ySiz   size of the Texure in pixels
+
+
+
+../xa/xa_tex.c:
+static TexBas *TexBasTab;
+static int    TexBasNr;           // next free index
+
+
+
+
+\endcode
+\section TextureReferenceList
+\code
+
+================================================================= 
+TextureReferenceList
+================================================================= 
+
+// Typ_TEXR
+typedef struct {long ibas; float uscx, uscy, udx, udy, uar;
+                float scx, scy, dx, dy; Vector vx, vy;}             TexRef;
+// ibas         index of the Base-Texure
+// uscx uscy    User-defined-scale in X- and Y-direction;
+// udx  udy     User-defined-offset of texture; 0-1
+// uar          User-defined-rotationAngle for texture in degree
+// scx scy      scale in X- and Y-direction;
+// dx, dy       offset of texture; 0-1
+// vx, vy       X- and Y-vector of textureplane
+
+
+../xa/xa_tex.c:
+static TexRef *TexRefTab;
+static int    TexRefNr;           // next free index
+
+Ist ebenfalls permanent wie die PermanentAttributeList und die BasicTexureList;
+beim Exit wird die GATAB daraus generiert.
+
+
+
+\endcode
+\section TexturedSurfaces
+\code
+
+
+
+================================================================= 
+TexturedSurfaces:
+================================================================= 
+
+
+-) DispList-Record:                         (typ=DL_Att, tab=GR_ObjTab)
+   typ,ind = DB-Typ/Index
+
+-) PermanentAttribute-Record:               (typ=ObjAtt, tab=GA_ObjTab)
+   typ,ind = DB-Typ/Index
+   iatt is ColRGB; vtex=1 indicates texture; cr+cg+cb=TextureReference-Index.
+
+-) TextureReference-Record:                 (typ=TexRef, tab=TexRefTab)
+   ibas=BasicTexture-Index
+
+-) BasicTexture-Record:                     (typ=TexBas; tab=TexBasTab)
+
+
+
+  GA_hasTexture()
+  GA_getTexRefInd()
+  Tex_getRef()
+  Tex_getBas__()
+
+
+
+\endcode
+*/

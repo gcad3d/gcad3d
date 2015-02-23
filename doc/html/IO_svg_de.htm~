@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>Using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+
+____________________________________________________________________________
+<b>Export SVG</b>
+
+Es werden folgende Objekttypen exportiert:
+  Punkte, alle Kurvenformen, Vermaszung.
+
+Noch nicht unterstützt:
+- subModelle
+- Flächen
+- Images (Bitmaps)
+
+
+____________________________________________________________________________
+</HTML>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="AUTHOR" CONTENT="David Young">
+	<META NAME="CREATED" CONTENT="20091101;7512800">
+	<META NAME="CHANGEDBY" CONTENT="David Young">
+	<META NAME="CHANGED" CONTENT="20091101;7522600">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-GB" DIR="LTR">
+<PRE>
+________________________________________________________________________
+<h2>Plugins:</h2>
+
+  Plugins are load modules, compiled (Language C or other).
+  Plugins can use all internal functions.
+  System-neutral user interfaces can be created with the GUI-Tool "C-Kit-GUI".
+
+
+Activate a plugin: "Plugin/Select-Start" (oder Ctrl-P).
+
+The load-modules are in directory
+  {baseDir}/bin                   (Microsoft) or
+  {baseDir}/binLinux32            (Linux).
+
+
+Plugins create standard codes. All codes are stored in the model.
+Plugins do not have specific commands (like processors).
+Plugins can be unloaded, recompiled and reloaded at run time.
+
+
+
+
+  <a href="#P_1">Installing the Linux development kit </a>
+  <a href="#P_2">Installing the development package for MS-Windows </a>
+  <a href="#P_3">Development - Documentation </a>
+  <a href="#P_4">Creation of new plugins </a>
+
+
+
+
+________________________________________________________________________
+<p><a name="P_1"></a></p>
+<h2>Installing Linux development kit:</h2>
+ Package name is gCAD3D-devel-1.28.tar.gz. 
+
+Required software packages: 
+  gcc-4 .. - Compiler 
+  libgtk+2.0_0-devel-..    - Compiler 
+  libgtk +2.0 _0-devel-..  - for Gtk functions 
+  libgtkglarea2.0-devel-.. - for OpenGL functions 
+
+ Move package to base directory for installation: You have to copy
+it into the gCAD3D basic installation directory; 
+ the base directory is normally ~ 
+  mv gCAD3D-devel-1.28.tar.gz ~/gCAD3D/. 
+  cd ~/gCAD3D 
+
+ Uncompress package (makes gCAD3D1.26.tar): 
+  gunzip gCAD3D-devel-1.28.tar.gz 
+
+ Inspect content of package: 
+  tar tvf gCAD3D-devel-1.28.tar 
+
+ Extract package: 
+  tar xvf gCAD3D-devel-1.28.tar
+
+
+
+________________________________________________________________________
+<p><a name="P_2"></a></p>
+<h2>Installing the development package for MS-Windows:</h2>
+ Package name is gCAD3D-devel-1.26.zip. 
+
+Required software packages:
+  a compiler, such as Visual Studio Express. 
+
+ The package contains - - 
+  - all necessary Gtk+ include files and libs, 
+  - GTK toolbox with examples (sources and makefiles) 
+  - some gCAD3D-demo -plugins (sources and makefiles) 
+  - all include files gCAD3D 
+
+
+ You have to copy it into the gCAD3D basic installation directory,
+
+ the base directory is normally &quot;C:\Program Files\gCAD3D&quot;
+   or &quot;C:\Program Files\gCAD3D&quot; 
+   Unpack the zipfile. 
+
+
+
+ You will need a command shell with the correct compiler environment 
+  For VC8 you can use the Visual Studio Command Window or cmd.exe plus: 
+   &quot;C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat&quot; 
+
+  For VC9 (Visual Studio 2008) you can use: 
+   &quot;C:\Program Files\Microsoft Visual Studio 9.0\VC\vcvarsall.bat&quot; x86 
+   test it with &quot;cl /?&quot;. 
+
+
+
+ Test link of a test program or add-on library: 
+  open command shell (CMD.EXE ) 
+  cd C:\Program Files\gCAD3D\gtk
+  nmake-f tst_gtk0.nmak 
+
+
+
+ Runtime link: 
+  start gCAD3D from command shell (CMD.EXE) to see messages 
+  activate checkbox Options / compile_DLL 's in gCAD3D, 
+  activate a DDL (select &quot;DemoXX&quot; in upper right) 
+  the selected DLL will be compiled, linked, started 
+  (see text window for errors)
+
+
+
+________________________________________________________________________
+<p><a name="P_3"></a></p>
+<h2>Development - Documentation:</h2>
+<b>Linux:</b>
+  Display from a command shell: 
+  firefox ~/gCAD3D/devdoc/index.htm 
+
+
+<b>MS-Windows:</b>
+  Start from a command shell: 
+   cd C:\Program Files\gCAD3D\xa 
+   hh ..\devdoc\index.htm
+
+
+
+________________________________________________________________________
+<p><a name="P_4"></a></p>
+<h2>Creation of new plug-ins:</h2>
+
+ The required compiler must be installed.
+ A source program ({progname}.c) and a Link job ({progname}.mak) are required
+  (MS-Win: {progname}.nmak). 
+
+ Examples: {baseDir}/Demo*.c, Demo*.mak  (MS: Demo*.nmak).
+
+
+ With "Options/compile_DLLs" on, a plugin is unloaded at runtime,
+ recompiled, relinked and reloaded. 
+
+ Documentation:
+ <a href="http://www.gcad3d.org/devdoc/pag_pd1.htm">pag_pd1.htm</a>
+ or devdoc/pag_pd1.htm in the development-package.
+
+
+
+________________________________________________________________________
+ Send bug reports, suggestions for improvements to
+support@gcad3d.org
+
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<meta name="generator" content="Bluefish 1.0.7">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="David Young">
+	<META NAME="CHANGED" CONTENT="20090927;9062300">
+	<META NAME="CHANGEDBY" CONTENT="David Young">
+</HEAD>
+<BODY LANG="en-GB" DIR="LTR">
+<PRE>
+
+<h2>First steps - documentation to gCAD3D - VRML</h2>
+
+
+
+Author:
+  Franz Reiter
+  franz.reiter@cadcam.co.at
+  http://www.gCAD3D.org
+
+
+
+-------------------------------------------------------------------------
+
+Contents:
+ Making of Vrml Models
+ Loading of Vrml Models 
+ Positioning Vrml Models
+ Store vrml assembly
+
+
+
+
+
+-------------------------------------------------------------------------
+<b> Making of Vrml Models</b>
+-------------------------------------------------------------------------
+
+ Load or make a Model.
+
+ Export all surfaces of the model with the function:
+ File / save Model as / VRML1 / SAVE
+ All surfaces (also from subModels) are exported.
+ Points and curves are not exported at present yet.
+ Models, which are loaded already as Mockup models (vrml) can at present
+ not be reExported. 
+
+
+
+-------------------------------------------------------------------------
+ <b>Loading of Vrml Models</b>
+-------------------------------------------------------------------------
+
+ Possibly delete Modelspace:
+ File / new 
+
+ Load several VRML1-Models:
+ File / INSERT / select wrl-Model
+
+ For each loaded VRML1-Modell a line similar to the following is generated:
+ M1=&quot;SymDir/ModelName.wrl&quot; P(0 0 0)
+ (view with Dump / SOURCE or in the mode MAN)
+
+
+
+-------------------------------------------------------------------------
+ <b>Positioning Vrml Models</b>
+------------------------------------------------------------------------- 
+
+ Positioning with CAD:
+   preselect S/M/DEL, select Model, Modify Button or right mouse button.
+   Modify Position, Z and/or x axis.
+   Preview with Tab-key or cursor a field more deeply.
+   Store with Ok Button or right mouse button.
+   Exit Button for leaving the Modify mode.
+   Definiton of the axles:
+     Default for Z-axis is DZ; (DX DY DIX DIY or D())
+   The model can be positioned also by a reference system
+     (a Plane - PLN - &quot;R&quot;).
+
+ CAD Analyze: For the selection of points with Mockup-models use
+   Select / PT &lt;-- Vertex
+
+
+ Positioning with MAN:
+   Modify the code line; Format:
+   M # = &quot;SymPfad/Modelname&quot; position [ Scale ] [ z-vector [ x-vector ] ]
+   Example:
+   M20=&quot;Data/Niet1.dat&quot; P(100 0) 0,5 DZ DIY
+   The model is shifted 100,0 units, turned then by 90 degrees.
+  
+   A function for interactive positioning of subModels to a
+   contact position is to be made.
+
+
+-------------------------------------------------------------------------
+ <b>Store vrml assembly</b>
+-------------------------------------------------------------------------
+
+ Store at present only in native format .dat:
+ File / save Model as / native / key new fileName: e.g. Assy1.dat
+
+
+
+
+-------------------------------------------------------------------------
+
+ All further information in the documentation.
+</PRE>
+</BODY>
+</HTML>

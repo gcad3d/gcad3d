@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>Using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+
+____________________________________________________________________________
+<h2>Gruppe (Group)</h2>
+  Alle Elemente der Gruppe werden als Hilite-Objekte dargestellt.
+  Die Anzahl von Objekten in der Gruppe wird links oben
+    als "Group #" angezeigt. 
+
+
+<h3>Gruppe erstellen:</h3>
+  Eine Gruppe von Objekten mit der Maus auswählen:
+    Linke Maustaste drücken und gedrückt halten,
+      die Maus ziehen. Alle Objekte im daraus entstehenden
+      Rechteck werden in die Gruppe aufgenommen.
+
+  Gruppe aus allen existierenden Objekten bilden:
+    Menü Group / "add all objects to group"  oder Strg-A
+
+
+
+<h3>Gruppe modifizieren:</h3>
+  Einzelne Objekte zur Gruppe zufügen:
+    Objekt mit der linken Maustaste auswählen
+
+  Einzelne Objekte aus der Gruppe entfernen:
+    Objekt mit der linken Maustaste nochmals auswählen
+
+  Alle Objekte eines bestimmten Typs aus der Gruppe entfernen:
+    Ein Objekt mit der rechten Maustaste auswählen, Option
+      "remove all of this type from group" wählen.
+
+
+
+<h3>Gruppe benutzen:</h3>
+  Alle Elemente der Gruppe ausblenden
+    Rechte Maustaste: "Gruppe ausblenden" oder
+    Menü "Group" / "hide all objects of group"
+
+  Alle Elemente der Gruppe löschen.
+    Rechte Maustaste: "Gruppe löschen."             oder
+    Menü "Group" / "delete all objects of group"    oder Entf-Taste
+
+  Alle Elemente der Gruppe als neues Modell in eine Datei ausgeben:
+    Format native (.gcad)
+   Menü "Group" / "save group -> File"
+
+
+
+<h3>Gruppe auflösen:</h3>
+  Die Gruppe deaktivieen:
+    Rechte Maustaste - "Gruppe auflösen"  oder
+    Menü "Group" / "clear Group"          oder Esc-Taste.
+
+
+____________________________________________________________________________
+</HTML>

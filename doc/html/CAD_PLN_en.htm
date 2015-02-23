@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<meta name="generator" content="Bluefish 1.0.7">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="David Young">
+	<META NAME="CHANGED" CONTENT="20090920;8273900">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<PRE>
+
+
+<A HREF="CAD_using_en.htm">See operating CAD</A>
+
+<h2>CAD functions for planes and axis systems:</h2>
+
+Planes and axis systems use the shortcut letter R.
+
+Pre-defined planes are:
+RZ             Basis level XY (Z=0)
+RY             Level XZ       (Y=0)
+RX             Level YZ       (X=0)
+
+
+
+
+____________________________________________________________________________
+<p><A NAME="F0"></A></p>
+
+<h2>PLN Z-Axis [X-Axis]</h2>
+Plane from Z-Axis (normal vector),
+  optional origin, X-Axis or point on x-axis, offset along z-axis.
+
+  [Origin]          optional;
+  Z-Axis            enter DX or DY or DZ or a vektor;
+                    (the Z-axis of the new plane)
+  [X-Axis]          optional: the new X-axis; DX or DY or DZ
+                    or a defined vector or a point on the new x-axis.
+  [offset Z-axis]   optional: distance of the new origin along the
+                    new z-axis
+
+
+
+Examples:
+# Plane normal to the Z-axis, with distance.
+R1=PERP DZ 100
+# Plane normal to the Z-axis, through point.
+R2=PERP P(0 0 100) DZ
+# Plane in point p1; normal to the absolute X-axis;
+#   new X-axis direction of absolute Z-axis;
+#   distance 10 into direction of new Z-axis.
+P1=P(100 0 0)
+R3=PERP P1 DX DZ 50
+
+# Level from origin, normal vector and a point on the x-axis of the new plane
+R11 = PERP P(100 100 100) D(0 0 1) P(101 100 100)
+
+
+R12=PERP P(100 150 0) D(ANG(90) ANG(45))
+
+<!--
+Define a normal plane on the X-axis by entering a point or the X distance.
+A plane is defined parallel to the YZ plane.
+  The new X-axis corresponds to the Y-axis,
+  The new Y-axis corresponds to the Z-axis.
+  The new Z-axis corresponds to the X-axis.
+  The plane is displayed at the X-axis (Y=0, Z=0).
+   
+
+Example:
+R1=DX 100
+R2=DX P(100 0 0)
+R2=X(100)
+
+
+<p><A NAME="F1"></A></p>
+<h2>PLN Y-normal</h2>
+Define a normal plane on the Y-axis by entering a point or the Y distance.
+A plane is defined parallel to the XZ plane.
+  The new X-axis corresponds to the X-axis,
+  The new Y-axis corresponds to the Z-axis.
+  The new Z-axis corresponds to the main Y-axis.
+  The plane is displayed at the Y-axis (X=0, Z=0).
+
+Example:
+R1=DY 100
+R2=DY P(0 100 0)
+R5=Y(100)
+
+
+<p><A NAME="F2"></A></p>
+<h2>PLN Z-normal</h2>
+Define a normal plane on the Z-axis by entering a point or the Z distance.
+A plane is defined parallel to the XY plane,
+  All axis directions are the same as the main axis system RZ.
+  The distance is on the Z-axis.
+  The plane is displayed at the Z-axis (X=0, Y=0).
+
+Example:
+R1=DZ 100
+R2=DZ P(0 0 100)
+R5=Z(100)
+-->
+
+
+
+<p><A NAME="F1"></A></p>
+<h2>PLN X-Axis [Y-Axis]</h2>
+Plane from X-Axis,
+  optional origin, Y-Axis or point on y-axis, offset along z-axis.
+
+  [Origin]          optional;
+  X-Axis            <a href="CAD_Base_en.htm#D">Vector</a> or point on the new X-axis
+  [Y-Axis]          optional: <a href="CAD_Base_en.htm#D">Vector</a> or point on the new y-axis
+  [offset Z-axis]   optional: distance of the new origin along the
+                    new z-axis
+
+
+Examples:
+# origin, X-axis, Y-axis.
+R12=P(100 100 100) D(1 0 0) D(0 1 0)
+
+# Level/reference system through three 3D points;
+#  po = the origin,
+#  px = a point on the x-axis of the new plane
+#  pt = a point in the plane (must not be on the line po-px).
+R4 = P(100 100 100) P(101,100,100) P(100,101,100)
+
+R20=P(100 100 25) DX DY
+R10 = P(100 100 100) DZ
+R11 = P(100 100 100) D(0 0 1) P (101 100 100)
+R13 = P(100 100 100) L(P(0 0 0) P(0 0 100))
+
+
+
+<!--
+<p><A NAME="F5"></A>
+<h2>PLN PT X-Axis VEC_in_Plane</h2>
+Plane of origin X-Axis Vector Vector_in_the_plane
+   X-Axis Vector: The direction of the X-axis of the new plane;
+   Vector_in_the_plane: Another vector in the new plane.
+
+Example:
+R12 = P(100 100 100) D(1 0 0) D(0 1 0)
+R20 = P(100 100 25) DX DY
+
+
+
+<p><A NAME="F6"></A></p>
+<h2>PLN PT PT PT</h2>
+Plane/reference system by the three 3D points po px pt;
+   Po = the origin point,
+   Px = a point on the x-axis of the new plane,
+   Pt = a point in the plane (which must not be in line with po-px)
+
+Example:
+R4 = P(100 100 100) P(101 100 100) P(100 101 100)
+-->
+
+
+
+<p><A NAME="F2"></A></p>
+<h2>PLN PT  Plane</h2>
+Moving of a plane/reference system (the axes will remain),
+  optional the new origin, offset along z-axis.
+
+  [Origin]          optional; the new orgin
+  Refsys            plane to be moved 
+  [offset Z-axis]   optional: distance of the new origin along the z-axis
+
+
+Example:
+R21=P(100 100 50) R20
+R21=R20 10
+
+
+
+____________________________________________________________________________
+<h2>MAN functions for planes and axis systems (further functions):</h2>
+
+Plane parallel to the XY plane, all axis directions are the same as
+  the main axis. The distance on the Z-axis is specified.
+  R = Z (Z_distance)
+R5 = Z(100)
+
+
+Plane parallel to the YZ plane, and the new X-axis corresponds
+  to the 3D Y-axis, the new Y-axis corresponds to the 3D Z-axis.
+  The new Z-axis is the axis-X.
+  R = X(X_distance)
+
+
+Plane parallel to the XZ plane, and the new X-axis corresponds to the
+  3D X-axis,
+  The new Y-axis corresponds to the 3D Z-axis.
+  The new Z-axis is the axis-Y.
+  R = Y(Y_distance)
+
+
+
+
+
+
+
+____________________________________________________________________________
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,27 @@
+#! /bin/sh
+
+# script for cscope
+
+
+# set EDITOR = name of script-file with editor-call
+# echo "vim -N -u ~/.vimrc $*" > ~/vim.sh
+#EDITOR=~/vim/vi
+EDITOR=/mnt/serv1/Linux/bin/vi
+export EDITOR
+
+
+# get OS (eg "Linux32")
+bitNr=`getconf LONG_BIT`
+OS=Linux${bitNr}
+#echo ${OS}
+
+
+# create list of sourcefiles in file srcFiles
+make -f gcad3d.mak srclst
+#cat srcFiles
+
+# start
+cscope -i srcFiles
+
+exit
+#

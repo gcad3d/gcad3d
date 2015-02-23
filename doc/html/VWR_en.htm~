@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>Using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<h2>Mainfunction VWR (Viewer)</h2>
+  The objects are displayed but cannot be modified.
+
+
+____________________________________________________________________________
+<h2>Mousefunctions</h2>
+
+  <b>Left mousebutton:</b>
+    select object or indicate position.
+    With Ctrl-key pressed: suppress object-selection 
+      (do 3D-Rotation (see below) or start selection of group)
+
+  <b>Right mousebutton:</b>
+    select object AND call one of the functions for that object.
+    With Ctrl-key pressed: suppress object-selection 
+      (activate a function when a group exists)
+
+  <b>Select group:</b>
+    press Ctrl-key (and keep pressed); 
+    press left mousebutton (and keep pressed);
+    Maus ziehen.
+
+
+
+____________________________________________________________________________
+<h2>Graphics</h2>
+How to move, zoom, rotate the view:
+
+
+
+
+<b>Moving</b>                                 with Shift drag
+   Press (and hold) the shift-key and move the mouse.
+   No mouse button.
+
+
+<b>Zoom in/out</b>                         with Control + Shift drag
+   Press and hold the Shift-key and the Ctrl-key and move the mouse.
+   Moving from left to right causes the image to enlarge.
+
+
+<b>3D rotation</b>                                    with Ctrl drag
+   Press (and hold) the Ctrl-key and move the mouse.
+   Horizontal movement of the mouse rotates the part in the image
+     plane (the center of rotation is always the screen center).
+   Vertical movement of the mouse tilts the part in the image
+     plane.
+
+
+<p><a name="RotCen"></a></p>
+<b>Define the display center:</b>
+   Enable checkbox <i>RotCen</i> and select the new center
+     - Select a vertex or
+     - Select a free point (Ctrl drag, pick then a red point)
+
+   The currently active layer for interactive rotation is
+     indicated by a yellow rectangle.
+   The Z-plane of the view can also be set by entering the new
+     Z-value in the box (next to the button STEP);
+     conclude with a return.
+
+
+<b>Scal.All - Button:</b>
+   Display all objects (sets focus and zoom).
+
+
+<b>Scal.Fix - Button:</b>
+   Setting a fixed, pre-enlargement,
+   according to the value of MODSIZ (approximate maximum size
+     of the model).
+   Change MODSIZ by function MODSIZ Standards/Tolerances/Modelsize,
+     or by Command MODSIZ {value}
+
+
+<b>Define representation accuracy for circles, ellipses, curves:</b>
+    Standards/Tolerances (in the menu bar above)
+    Change the Modelsize, 'Modify'.
+      This will automatically derive the tolerances and
+      the whole model is immediately recalculated.
+
+    The Modelsize directly affects all tolerances;
+     - The poligonalisation-tolerance
+     - Identical-point tolerance
+     - The Model size in the export of mockup models (eg VRML)
+
+
+<b>Predefined views:</b>
+
+
+TopView   - top view  (view X-Y)
+FrontView - side view (view X-Z)
+SideView  - side view (view Y-Z)
+AxoView   - Axonometric View
+
+
+Hiding individual objects: see box Hide, View
+Hiding objects Group: see box Hide, View
+
+____________________________________________________________________________
+
+
+</PRE>
+</BODY>
+</HTML>

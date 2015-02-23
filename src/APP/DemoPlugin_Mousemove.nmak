@@ -1,0 +1,12 @@
+# nmake -f DemoPlugin_Mousemove.nmak
+
+
+DLLNAM = DemoPlugin_Mousemove
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+	../xa/DemoPlugin_Mousemove.c
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

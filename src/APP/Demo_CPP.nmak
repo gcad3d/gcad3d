@@ -1,0 +1,30 @@
+# nmake -f Demo_CPP.nmak "OS=MS32"
+# 
+
+
+DLLNAM = Demo_CPP
+
+OBJ1 = Demo_CPP.obj
+
+#SRCTYP = cpp
+#SRC1 =\
+#	../xa/Demo_CPP.cpp
+#!include gCAD_DLL.nmak
+
+# get OUTDIR
+!include "..\xa\outdir.nmak"
+
+
+
+default:	$(OBJ1)
+	@echo ====================== Link ======================
+	link $(OBJ1) gCAD3D.lib /DLL  /out:$(DLLNAM).dll
+	move/y $(DLLNAM).dll $(OUTDIR)/plugins/.
+
+
+.cpp.obj:
+	@echo ================= Comp $@ ========================
+	$(CC) -c /EHsc $<
+
+
+########################### EOF #######################

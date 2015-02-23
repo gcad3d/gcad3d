@@ -1,0 +1,1003 @@
+//   Undo-Window-Funktions.             RF 2002-05-22
+/*
+ *
+ * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *
+-----------------------------------------------------
+TODO:
+  ..
+
+-----------------------------------------------------
+Modifications:
+  ..
+
+-----------------------------------------------------
+*/
+#ifdef globTag
+ void UNDO(){}
+#endif
+/*!
+\file  ../xa/xa_undo.c
+\brief undo-functions 
+\code
+=====================================================
+List_functions_start:
+
+UNDO_init1
+UNDO_init2
+UNDO_clear         clear all groups
+UNDO_lock
+
+UNDO_grp_add       add new group to undoTab
+UNDO_chg_add       save line-modified-record
+UNDO_chg_ins       increment all linenumbers > lNr
+
+UNDO_grp_undo      delete;  --actGrp;
+UNDO_grp_redo      restore; ++actGrp;
+UNDO_grp_del       delete actGrp
+UNDO_grp_res       restore active grp
+UNDO_ln_del        delete line
+UNDO_ln_res        restore line
+
+UNDO_grpNr_recNr   get groupNr from recordnr
+UNDO_recNr_grpNr   get recordNr from groupNr
+UNDO_grp_ck        test if group already exists in undoTab
+UNDO_grp_upd       delete all following groups after actGrp
+UNDO_upd_bt        update buttons
+UNDO_upd_lb        update Label
+
+UNDO_dump
+
+List_functions_end:
+=====================================================
+
+\endcode *//*----------------------------------------
+
+
+
+
+undoTab:
+  grpNr    first obj of grp has grpNr=0; second obj of grp has grpNr=1 ..
+  lNr      sourceLineNr
+  u1       'a'=active; 'd'=deleted
+  u2       '1'=1-line-record; '2'=change-record(consists of 2 lines)
+
+
+int grp_act  index of active group; this group is the next undo-group;
+             grp_add changes it to last group.
+             -1: no more grp for undo;
+             redo: ++grp_act.
+
+
+---------------------------
+Change-Records:
+  A change-record has 1 undo-records but 2 sourceLines.
+  .lNr is the new sourceLine; .u2='2'; the correponding old sourceLine is the
+    line before.
+  .u1 ('a' or 'd') refers to the new line.
+  The sourceLine before .lNr must be treated in reverse.
+  Create change records by "MODIFY point".
+
+
+---------------------------
+Workflow:
+// add undo-record:
+UNDO_grp_add
+
+
+// delete:
+UNDO_grp_add
+UNDO_grp_del
+
+
+// Undo-Button:
+UNDO_grp_undo    
+  UNDO_grp_del
+  UNDO_grp_res
+
+
+// Redo-Button:
+UNDO_grp_redo    
+
+
+
+---------------------------
+UNDO-Tests:
+- add new obj; delete ..
+- delete single obj; restore ..
+- delete group of obj's; restore ..
+- modify single obj (move point); restore ..
+- modify obj (CAD-Edit); restore ..
+
+
+*/
+
+#ifdef _MSC_VER
+#include "MS_Def0.h"
+#endif
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../ut/ut_geo.h"
+#include "../ut/ut_txt.h"
+#include "../ut/ut_txfil.h"
+#include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_os.h"               // OS_get_ico_dir
+#include "../ut/ut_TX.h"               // TX_Print
+
+#include "../gui/gui__.h"         // incl. /gui/gui_types.h /gui/gui_base.h
+
+// #include "../gr/ut_UI.h"               // UI_FuncSet
+
+#include "../xa/xa.h"                        // AP_STAT
+#include "../xa/xa_ui.h"
+#include "../xa/xa_undo.h"
+
+
+#define   TRUE 1
+#define   FALSE 0
+
+
+
+
+static MemObj  wUndo, btUndo, btRedo;
+
+typedef struct {long lNr; short grpNr; char u1, u2; }            undoObj;
+
+typedef_MemTab(undoObj);
+
+static MemTab(undoObj) undoTab = MemTab_empty;
+
+static int actGrp;
+
+
+//================================================================
+// EXTERNALS:
+
+// aus xa.h:
+extern AP_STAT   AP_stat;
+
+
+
+
+//================================================================
+  int UNDO_lock (int mode) {
+//================================================================
+// 0=lock; 1=unlock
+// see also UI_func_stat_set__ (APF_UNDO)
+
+
+  if(mode == 0) {     // lock
+    GUI_set_enable (&btUndo, FALSE);
+    GUI_set_enable (&btRedo, FALSE);
+
+
+  } else {            // unlock
+    UNDO_upd_bt ();
+
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_init1 (MemObj *parent) {
+//================================================================
+// delete all undoRecords.
+
+
+  // printf("UNDO_init1 \n");
+
+
+  // if(undoTab == NULL) undoTab = malloc (sizeof(undoObj) * 100);
+  MemTab_ini (&undoTab, sizeof(undoObj), Typ_Group, 100);
+
+
+  // create Label wUndo
+  wUndo = GUI_label__ (parent, "  0", "r");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_init2 (MemObj *parent) {
+//================================================================
+// delete all undoRecords.
+
+  char   fn[128];
+
+
+  // printf("UNDO_init2 \n");
+
+
+  sprintf (fn, "%sArrowl.png", OS_get_ico_dir());
+  btUndo = GUI_button_img (parent, fn, UI_menCB, (void*)"ObjDelete", "e");
+    MSG_Tip ("MMundo");
+
+
+  sprintf (fn, "%sArrowr.png", OS_get_ico_dir());
+  btRedo = GUI_button_img (parent, fn, UI_menCB, (void*)"ObjRestore", "e");
+    MSG_Tip ("MMredo");
+
+
+  // deaktivieren
+  UNDO_lock (0);
+
+  actGrp = -1;
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_add (long lNr, int grpNr) {
+//================================================================
+/// \code
+/// add sourceObj to do/undo-list 
+/// for delete:  call UNDO_grp_del() after UNDO_grp_add().
+/// for restore: call UNDO_grp_res() after UNDO_grp_add().
+/// Input:
+///   lNr       lineNr of sourceObj
+///   grpNr     0 for first obj to add to list, 1 for second ..
+/// \endcode
+
+// iUpd    0=update display; 1=do not update display (yet)
+// UNDO_upd__ ();     // update buttons necessary !
+// was UI_undo_add_
+
+
+
+
+
+  long      ld;
+  undoObj   o1;
+
+
+  // printf("---------UNDO_grp_add %ld %d\n",lNr,grpNr);
+  // UNDO_dump ();
+
+
+  // test if group already exists in undoTab; yes: delete.
+  UNDO_grp_ck (lNr);
+    // UNDO_dump ();
+
+
+/*
+  // delete all following groups
+  undoTab.rNr = UNDO_grp_upd ();
+    // UNDO_dump ();
+*/
+
+
+  // add new record to undoTab
+  o1.lNr   = lNr;
+  o1.grpNr = grpNr;
+  o1.u1    = 'a';
+  o1.u2    = '1';
+  MemTab_sav (&undoTab, &ld, &o1, 1);
+
+
+  // for groupheaderrecord: make this new group = active group
+  if(grpNr == 0) {
+    actGrp = UNDO_grpNr_recNr (undoTab.rNr - 1);
+  }
+
+
+    // printf("============== exit UNDO_grp_add =========\n");
+    // UNDO_dump ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_recNr_grpNr (int iGrp) {
+//================================================================
+// get recordNr from groupNr
+
+  int    i1, ig, ir;
+
+  // printf("UNDO_recNr_grpNr %d\n",actGrp);
+    
+  ig = 0;
+  ir = undoTab.rNr;
+  for(i1 = 0; i1 < undoTab.rNr; ++i1) {
+    if(undoTab.data[i1].grpNr != 0) continue;
+    if(ig == iGrp) {ir = i1; break; }
+    ++ig;
+  }
+  
+    // printf("ex UNDO_recNr_grpNr ir=%d ig=%d\n",ir,iGrp);
+
+  return ir;
+
+}
+
+
+//================================================================
+  int UNDO_grpNr_recNr (int iRec) {
+//================================================================
+// get groupNr from recordnr
+
+  int    i1, ig;
+
+  // printf("UNDO_grpNr_recNr %d\n",undoTab.rNr);
+
+  if(undoTab.rNr < 1) return -1;
+
+  ig = -1;
+  for(i1 = 0; i1 < undoTab.rNr; ++i1) {
+    if(undoTab.data[i1].grpNr != 0) continue;
+    ++ig;
+    if(i1 == iRec) break;
+  }
+
+    // printf("ex UNDO_grpNr_recNr %d ir=%d\n",ig,iRec);
+
+  return ig;
+
+}
+
+
+//================================================================
+  int UNDO_grp_ck (long lNr) {
+//================================================================
+// test if group already exists in undoTab
+// if-yes: delete group. (find first obj of this group ..)
+
+  int   i1, i2, ii, ig;
+
+
+  // printf("UNDO_grp_ck %d\n",lNr);
+  // UNDO_dump ();
+// return 0;  // test
+
+  ig = -1;
+  for(i1=0; i1 < undoTab.rNr; ++i1) {
+    if(undoTab.data[i1].grpNr == 0) ++ig;
+    if(undoTab.data[i1].lNr != lNr) continue;
+    goto L_find_0;
+  }
+  return 0;
+
+
+  //----------------------------------------------------------------
+  // obj exists in undoTab; find its recordIndex with grpNr=0
+  L_find_0:
+  if(i1 < 0) {printf("*** UNDO_grp_ck E001\n"); return -1;}
+  if(undoTab.data[i1].grpNr != 0) { --i1; goto L_find_0;}
+    // printf(" rNr=%d i1=%d\n",undoTab.rNr,i1);
+
+
+  //----------------------------------------------------------------
+  // find i2 = nr of records of this group
+  for(i2 = i1 + 1; i2 < undoTab.rNr; ++i2) {
+    if(undoTab.data[i2].grpNr != 0) continue;
+    break;
+  }
+  i2 -= i1;
+    // printf(" rNr=%d i1=%d i2=%d\n",undoTab.rNr,i1,i2);
+
+
+
+  //----------------------------------------------------------------
+  // delete this group (i2 records; first=i1).
+  MemTab_del (&undoTab, i1, i2);
+
+  // if actGrp has been deleted: --actGrp
+  if(actGrp >= ig) --actGrp;
+
+
+  // printf(" dump after _grp_ck:\n");
+  // UNDO_dump ();
+
+  // printf("-------- ex UNDO_grp_ck %d\n",lNr);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_undo () {
+//================================================================
+/// Ctrl-Z pressed or Undo-Button pressed ..
+
+
+  int   ii;
+
+
+  // printf("UNDO_grp_undo %d\n",actGrp);
+
+
+  // do CAD-undo;
+  if(IE_undo() >= 0) return 0;
+
+
+  //----------------------------------------------------------------
+  // undo
+  if(actGrp < 0) {
+    TX_Print ("***** undo-group is empty ..");
+    return 0;
+  }
+
+  UI_block__ (1, 1, 1);  // block UI
+
+  // get startIndex of actGrp
+  ii = UNDO_recNr_grpNr (actGrp);
+
+  if(undoTab.data[ii].u1 == 'a') {
+    UNDO_grp_del ();
+    // actGrp = UNDO_ind_undo ();              // --actGrp;
+    if(actGrp >= 0) --actGrp;
+
+  } else {
+    UNDO_grp_res ();
+    // do NOT change actGrp - cannot go back because objs are reactivated;
+    // maybe older obj depends on this obj! Example: P20,P21,L20=P20,P21.
+    // Del-P20(and L20); Undo(restore L20,P20;Undo(Del-P20. ERROR! L20 depends!)
+  }
+
+
+  UI_mcl_update ();                       // update Search/Name
+
+  UI_block__ (0, 0, 0);                   // reset UI
+
+  UNDO_upd_bt ();                         // update buttons
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_redo () {
+//================================================================
+/// CB Redo-Button
+
+  int   ii;
+
+
+  // printf("UNDO_grp_redo %d\n",actGrp);
+
+
+  ++actGrp;
+  ii = UNDO_grpNr_recNr(UT_INT_MAX);
+  if(ii < actGrp) actGrp = ii;
+    // printf(" actGrp=%d\n",actGrp);
+
+
+  if(actGrp < 0) {
+    TX_Print ("***** redo-group is empty ..");
+    return 0;
+  }
+
+  UI_block__ (1, 1, 1);  // block UI
+
+
+  // get startIndex of actGrp
+  ii = UNDO_recNr_grpNr (actGrp);
+
+
+  if(undoTab.data[ii].u1 == 'a') {
+    UNDO_grp_del ();
+
+  } else {
+    UNDO_grp_res ();
+  }
+
+  UI_mcl_update ();                       // update Search/Name
+
+  UI_block__ (0, 0, 0);                   // reset UI
+
+  UNDO_upd_bt ();                         // update buttons
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_del () {
+//================================================================
+// UNDO_grp_del     delete last active grp & update display
+
+// was UI_undo_do(1)
+
+  int      typ, ll, ii, iNr;
+  long     dbi, lNr, lnMin=UT_INT_MAX;
+  char     *lPos;
+
+
+  // printf("======================= UNDO_grp_del actGrp=%d\n",actGrp);
+  // UNDO_dump ();
+
+
+  // UNDO_upd_bt ();  // fix buttons
+  // UNDO_upd_lb ();  // fix label
+
+
+  // skip this in Applications
+/*
+  // printf(" APP_act=%d\n",AP_stat.APP_act);
+  if(AP_stat.APP_stat > 0) {
+    TX_Print(" ****** undo / redo not supported in UserApplication *****");
+    return 0;
+  }
+*/
+
+  WC_set_obj_stat (0);          // CAD: perm.
+
+
+  // get recordNr from groupNr
+  ii = UNDO_recNr_grpNr (actGrp);
+  if(ii < 0) return -1;
+    // printf(" ii=%d\n",ii);
+
+  iNr = 0;
+
+
+
+  //----------------------------------------------------------------
+  // delete obj from undoTab[ii]
+  L_nxt:
+  ++iNr;
+
+  lNr = undoTab.data[ii].lNr;
+    // printf(" lNr=%ld\n",lNr);
+
+  UNDO_ln_del (lNr);  // delete line
+
+  undoTab.data[ii].u1 = 'd';     // set group(Member)=deleted
+
+
+  // test if this is a change-record
+  if(undoTab.data[ii].u2 == '2') {
+    // ii is a change-record; delete line (lNr+1).
+    UNDO_ln_res (lNr-1, ii);
+    lnMin = lNr;
+    goto L_update;
+  }
+
+
+  // test if there are more groupMembers
+  ++ii;
+  lnMin = IMIN (lNr, lnMin);     // get lowest lNr
+  
+  if(ii >= undoTab.rNr) goto L_update;
+  if(undoTab.data[ii].grpNr == 0) goto L_update;
+  goto L_nxt;
+
+
+
+  //----------------------------------------------------------------
+  L_update:
+    // printf(" iNr=%d\n",iNr);
+  TX_Print ("- remove %d objects ..",iNr);
+
+  APED_update__ (lnMin);         // update display
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_res () {
+//================================================================
+// UNDO_grp_res    restore active grp
+
+// was UI_undo_do(0) APED_undo_do
+
+
+  int      typ, ll, ii, iNr;
+  long     dbi, lNr, lnMin=UT_INT_MAX;
+  char     *lPos;
+
+
+  // printf("====================UNDO_grp_res %d\n",actGrp);
+  // UNDO_dump ();
+
+
+  // skip this in Applications
+  // printf(" APP_act=%d\n",AP_stat.APP_act);
+  if(AP_stat.APP_stat > 0) {
+    TX_Print(" ****** undo / redo not supported in UserApplication *****");
+    return 0;
+  }
+
+
+  WC_set_obj_stat (0);          // CAD: perm.
+
+
+  // get undoTab-ind
+  ii = UNDO_recNr_grpNr (actGrp);
+  if(ii < 0) return -1;
+
+  iNr = 0;
+    // printf(" ii=%d\n",ii);
+
+
+
+  //----------------------------------------------------------------
+  // restore obj from undoTab[ii]
+  L_nxt:
+  ++iNr;
+
+  lNr = undoTab.data[ii].lNr;
+    // printf(" lNr=%d\n",lNr);
+
+  UNDO_ln_res (lNr);  // restore line
+
+
+  undoTab.data[ii].u1 = 'a';     // set group=restored
+
+
+  // test if this is a change-record
+  if(undoTab.data[ii].u2 == '2') {
+    // ii is a change-record; delete line (lNr+1).
+    UNDO_ln_del (lNr-1, ii);
+    lnMin = lNr;
+    goto L_update;
+  }
+
+
+  // test if there are more groupMembers
+  ++ii;
+  lnMin = IMIN (lNr, lnMin);     // get lowest lNr
+
+  if(ii >= undoTab.rNr) goto L_update;
+  if(undoTab.data[ii].grpNr == 0) goto L_update;
+  goto L_nxt;
+
+
+
+  //----------------------------------------------------------------
+  L_update:
+    // printf(" iNr=%d\n",iNr);
+  TX_Print ("- restore %d objects ..",iNr);
+
+
+  APED_update__ (lnMin);           // update display
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_ln_res (long lNr) {
+//================================================================
+// delete line (lNr+1).
+
+
+  int      typ;
+  long     dbi, ll;
+  char     *lPos;
+
+
+  // printf("UNDO_ln_res %ld\n",lNr);
+
+
+  lPos = UTF_GetLinNr (NULL, &ll, lNr);
+  if(!lPos) {printf("*** UNDO_ln_res E001\n"); return -1;}
+
+
+  // remove first char; add ' ' as last char
+  UTF_comment_line (lPos, 0, "_");
+
+  // // TX_Print("Line %d (%12.12s) restored",lNr,lPos);
+  // i1 = sprintf (mem_cbuf1, "Line %d (", lNr);
+  // i2 = UTX_cp_Line(&mem_cbuf1[i1], &cpn, lPos, 16) + i1;
+  // strcat(&mem_cbuf1[i2], ") restored");
+  // TX_Print(mem_cbuf1);
+
+
+  APED_dbo_oid (&typ, &dbi, lPos);
+  if(typ == Typ_Error) {printf("*** UNDO_ln_res E002\n"); return -1;}
+    // printf(" typ=%d dbi=%d\n",typ,dbi);
+
+  Brw_obj_upd (typ, dbi, 0);     // update Brw-window
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_ln_del (long lNr) {
+//================================================================
+// delete line (lNr+1).
+
+
+  int      typ;
+  long     dbi, ll;
+  char     *lPos;
+
+
+  // printf("UNDO_ln_del %ld\n",lNr);
+  // UTF_dump__ ();
+
+
+  lPos = UTF_GetLinNr (NULL, &ll, lNr);
+  if(!lPos) {printf("*** UNDO_ln_del E001\n"); return -1;}
+    // printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
+
+
+  APED_dbo_oid (&typ, &dbi, lPos);
+  if(typ == Typ_Error) {printf("*** UNDO_ln_del E002\n"); return -1;}
+    // printf(" typ=%d dbi=%d\n",typ,dbi);
+
+
+  // delete line
+  UTF_comment_line (lPos, 1, "_");
+
+  // i1 = sprintf (mem_cbuf1, "Line %d (", lNr);
+  // i2 = UTX_cp_Line(&mem_cbuf1[i1], &cpn, lPos+1, 16) + i1;
+  // strcat(&mem_cbuf1[i2], ") deleted; Ctrl-Y to restore");
+  // TX_Print(mem_cbuf1);
+
+
+  // DB_Delete (typ, dbi);          // delete obj in DB
+  // problematisch; DB-Pos wird später wiederverwendet;
+  // Obj-restore: nun ist DB-Pos doppelt verwendet ..
+
+
+  Brw_obj_upd (typ, dbi, 1);     // update Brw-window
+
+  // printf(" ex UNDO_ln_del:\n");
+  // UNDO_dump ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_chg_add (long lNr, int grpNr) {
+//================================================================
+// UNDO_chg_add     save line-modified-record
+// lnr is a line already deleted;
+// lnr+1 is a line newly added, having the same type+dbi.
+// save lNr+1 !
+
+  long      ld;
+  undoObj   o1;
+
+
+  // printf("UNDO_chg_add %d %d\n",lNr,grpNr);
+
+
+  // delete all following groups
+  undoTab.rNr = UNDO_grp_upd ();
+  // undoTab.rNr = actGrp + 1;
+
+
+  // increment all linenumbers > lNr 
+  // ( a new line has been inserted !
+  UNDO_chg_ins (lNr+1);
+  
+  
+  // test if group already exists in undoTab
+  UNDO_grp_ck (lNr+1);
+  
+  
+  // add obj to undoTab
+  o1.lNr   = lNr + 1;
+  o1.grpNr = grpNr;
+  o1.u1    = 'a';
+  o1.u2    = '2';
+  MemTab_sav (&undoTab, &ld, &o1, 1);
+
+  actGrp = undoTab.rNr - 1;
+
+
+  // fix buttons
+  UNDO_upd_bt ();
+
+  // fix label
+  UNDO_upd_lb ();
+
+
+  // UNDO_dump ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_chg_ins (long newLnr) {
+//================================================================
+// increment all linenumbers > lNr 
+// ( a new line has been inserted !
+
+  int    i1;
+
+
+  // printf("UNDO_grp_del %d\n",newLnr);
+
+  for(i1=0; i1 < undoTab.rNr; ++i1) {
+    if(undoTab.data[i1].lNr < newLnr) continue;
+    undoTab.data[i1].lNr += 1;
+  }
+
+  return 0;
+
+}  
+  
+
+//================================================================
+  int UNDO_clear () {
+//================================================================
+
+  // printf("UNDO_clear \n");
+
+  MemTab_clear (&undoTab);
+
+  actGrp = -1;
+
+  UNDO_upd_bt ();          // fix buttons
+  UNDO_upd_lb ();          // fix label
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_upd () {
+//================================================================
+// UNDO_grp_upd       delete all following groups after actGrp
+// returns first free recordnumber after group <actGrp>
+
+  int    i1, ig;
+
+  // printf("UNDO_grp_upd %d\n",actGrp);
+
+
+  for(i1 = actGrp+1; i1 < undoTab.rNr; ++i1) {
+    if(undoTab.data[i1].grpNr != 0) continue;
+    break;
+  }
+    // printf("ex UNDO_grp_upd %d\n",i1);
+  return i1;
+
+}
+
+
+//================================================================
+  int UNDO_upd__ () {
+//================================================================
+// fix buttons & label
+ 
+  // printf("UNDO_upd__ \n");
+
+    // fix buttons
+    UNDO_upd_bt ();
+    // fix label
+    UNDO_upd_lb ();
+
+  return 0;
+
+}
+  
+
+//====================================================================
+  int UNDO_upd_bt () {
+//====================================================================
+// update buttons
+
+  int    i1, iUndo, iRedo;    // TRUE, FALSE
+
+
+  // printf("UNDO_upd_bt %d\n",actGrp);
+  // UNDO_dump ();
+
+
+  iUndo = FALSE;
+  iRedo = FALSE;
+
+  if(undoTab.rNr < 1) goto L_disp;
+
+
+  // fix undo (delete)
+  if(actGrp >= 0) iUndo = TRUE;
+
+
+  // fix redo (restore)
+  // test if next record is free
+  i1 = UNDO_grpNr_recNr(UT_INT_MAX);
+  if(actGrp < i1) iRedo = TRUE;              // T=1
+    // printf(" i1=%d iRedo=%d\n",i1,iRedo);
+
+
+  L_disp:
+    // printf(" iUndo=%d iRedo=%d\n",iUndo,iRedo);
+  GUI_set_enable (&btUndo, iUndo);
+  GUI_set_enable (&btRedo, iRedo);
+
+
+  return 0;
+
+}
+
+
+//====================================================================
+  int UNDO_upd_lb () {
+//====================================================================
+/// display Label
+
+  int  i1;
+  char cBuf[32];
+
+
+  i1 = undoTab.rNr;
+
+  // sprintf(cBuf, "Undo   %d",undo_lNr);
+  sprintf(cBuf, "  %d",i1);
+               //012345
+
+
+  // if(i1 > 0) {
+    // if(undo_lact == UNDO_RESTORE) cBuf[5] = 'R';
+    // else cBuf[5] = 'D';
+  // }
+
+  GUI_label_mod (&wUndo, cBuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_dump () {
+//================================================================
+/// dump delTab
+
+  int          i1, iNr;
+  undoObj      *oTab, *o1;
+
+
+  MemTab_load ((void**)&oTab, &iNr, (MemTab*)&undoTab);
+
+  printf("--------- UNDO_dump actGrp=%d rNr=%d\n",actGrp,iNr);
+
+  for(i1=0; i1 < iNr; ++i1) {
+    o1 = &oTab[i1];
+    printf("undoTab[%d] lNr=%ld grpNr=%d u1=%c u2=%c\n",i1,
+        o1->lNr,o1->grpNr,o1->u1,o1->u2);
+  }
+
+
+  return 0;
+
+}
+
+
+// EOF

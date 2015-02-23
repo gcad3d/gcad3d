@@ -1,0 +1,414 @@
+<HTML>
+<HEAD>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
+  <TITLE>CAD_examples_de.htm</TITLE>
+  <meta name="author" content="Franz Reiter">
+  <META NAME="CREATED" CONTENT="20091101;6335200">
+  <META NAME="CHANGED" CONTENT="20111004">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+Erste Schritte - Dokumentation  zu gCAD3D  - CAD
+
+<h2>Hauptfunktion CAD</h2>
+  Interaktives Erzeugen/ Modifizieren von CAD-Objekten.
+  Die Checkbox CAD selektieren.
+
+
+<a href="VWR_de.htm#view">Die Ansicht verschieben, zoomen, verdrehen</a>
+<a href="CAD_using_de.htm">Bedienung der Funktion CAD</a>
+
+
+<b>Create objects:</b>
+ <a href="#Wk">WireframeElemente konstruieren</a>
+ <a href="#Fk">Flächen konstruieren</a>
+ <a href="#CrCCV1">Zusammengesetzte Kurve (CCV) erzeugen</a>
+ <a href="#Zk">Zylinder/Prismen konstruieren</a>
+ <a href="#Ae">Assembly erstellen</a>
+ <a href="#Bl">Bitmap laden</a>
+ <a href="#A">Activity</a>
+
+<b>Modify objects:</b>
+ <a href="#ModMovP1">Punkte verschieben</a>
+ <a href="#ModCut1">Linie begrenzen</a>
+ <a href="#ModMir1">Linie spiegeln</a>
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="Wk"></a></p>
+<b>WireframeElemente konstruieren</b>
+
+
+Ein Langloch konstruieren:
+Hauptmodule CAD selektieren;
+
+CAD-Funktion "CIR Cen Radius" selektieren;
+Mittelpunkt definieren (linke Maustaste im Grafikfenster),
+Eingabefeld Radius: Radius eingeben,
+mit Cursor-down-Taste oder Tab-Taste (nicht mit Return-Taste)
+  zum nächsten Eingabfeld;
+Eingabefeld Z-Achs-Vektor (DZ ist vorgewählt);
+Es wird der Kreis nun angezeigt;
+
+Modifizieren: 
+ Esc-Taste löscht den Inhalt des Eingabefeldes;
+ Cursor-down-Taste: neue Voransicht des Objekts.
+
+Speichern des Objekts:
+ Das fertige Objekt mit OK-Button, Return-Taste oder rechter Maustaste erzeugen.
+ Der ObjectCode (Text) kann mit Funktion MAN im Editfenster kontrolliert werden.
+
+
+Einen zweiten, danebenliegender Kreis erzeugen.
+
+
+Tangenten an die 2 Kreise erzeugen:
+
+CAD-Funktion "LN tangent" selektieren;
+die beiden Kreise selektieren,
+Seite korrigieren: mit Bild-down-Taste wird die nächste Variante
+  vorgewählt; mit Bild-up-Taste wieder zurück.
+Objekt speichern.
+
+
+Die Kreise begrenzen:
+
+CAD-Funktion "CUT (trim) obj" selektieren
+ den zu begrenzenden Kreis selektieren
+ die 1. Linie, die begrenzt, selektieren
+ die 2. Linie, die begrenzt, selektieren
+ Seite korrigieren: mit Bild-down-Taste wird die nächste Variante
+   vorgewählt; mit Bild-up-Taste wieder zurück.
+ Objekt speichern.
+
+
+Abspeichern des Modells:
+ File / save Model as / gcad
+ Test1 (in das untere Eingabefester) eingeben, Button SAVE
+
+Das Modell wird als Datei Test1.dat im aktiven Ausgabeverzeichnis abgespeichert.
+Sie können diese Datei mit jedem Texteditor ansehen / modifizieren.
+
+
+Exportieren  als DXF:
+ File / save Model as / DXF ..
+
+
+
+
+____________________________________________________________________________
+<p><a name="Fk"></a></p>
+<b>Flächen konstruieren</b>
+
+
+Dazu ist die Aussenkontur erforderlich.
+Innerhalb der Aussenkontur können sich Innenkonturen (Löcher) befinden.
+
+Die Konturen müssen geschlossen sein.
+Als Kontur kann verwendet werden: Kreis, Ellipse,
+  geschlossenes Polygon und geschlossene CCV.
+
+Konturen erzeugen:
+  Erzeugen Sie einen Kreis
+  und in diesem Kreis einen weiteren Kreis (ein Loch)
+
+Fläche erzeugen:
+ Selektieren Sie CAD-Funktion "A planar Surface"
+ Selektieren Sie die Aussenkontur, dann die Innenkonturen.
+ Objekt speichern (rechte Maustaste).
+
+Exportieren als VRML:
+ Flächen können als VRML abgespeichert werden;
+ File / save Model as / VRML2  oder VRML1
+
+
+
+__________________________________________
+<p><a name="CrCCV1"></a></p>
+<b>Zusammengesetzte Kurve (CCV) erzeugen</b>
+
+Es können mehrere verschiedene Kurventypen zu einer Kontur zusammgefasst werden.
+Die Teilkurven müssen nicht begrenzt werden.
+Als erstes und als letztes Eingabeelement sind Punkte erforderlich,
+innerhalb der Kontur können Zwischenpunkte gesetzt werden.
+
+CAD-Funktion "S Contour(CCV)"
+ Selektieren Sie den Startpunkt
+ Selektieren Sie der Reihe nach alle Konturelemente.
+   Fehlselektionen löschen: mit "Delete"-Button im LineEdit-Fenster.
+   Richtung umdrehen (zB Kreis): "CW" selektieren (im LineEdit-Fenster)
+ Selektieren Sie den Endpunkt
+ Objekt speichern (rechte Maustaste).
+
+
+Siehe auch <a href="CAD_CV_de.htm#F10">CAD-CCV</a>
+
+
+____________________________________________________________________________
+<p><a name="Zk"></a></p>
+<b>Zylinder/Prismen konstruieren</b>
+
+
+Fuer Prismen ist (wie fuer die Fläche) eine geschlossene Kontur erforderlich.
+
+CAD-Funktion "B Prism Base Thick"
+Kontur (zB S20) selektieren;
+Thickness eingeben ("50") oder
+Z-Vektor eingeben ("D(0 0 50)") oder
+eine Punkt definieren ("P(0 0 100)") - generiert einen Kegel.
+
+ Voranzeige mit Cursor-down-Taste,
+ Objekt speichern (rechte Maustaste).
+
+
+
+
+____________________________________________________________________________
+<p><a name="Ae"></a></p>
+<b>Assembly erstellen</b>
+
+
+Ein Assembly besteht aus geladenen und positionierten Submodels.
+
+Ein Submodell kann positioniert werden durch:
+  - Nullpunkt [ und eine X- und Z-Achse ]  oder
+  - Nullpunkt und ein Referenzsystem  (eine Plane (PLN, "R"))
+
+
+Modelspace löschen:
+File / New.
+
+
+
+
+Externe Modelle (Native Models (.gcad), Mockup-Models (.wrl, .obj))
+ laden / positionieren:
+
+ CAD-Funktion "M ext.Model Filename Pos"
+ Eingabe 'Filename': mittlere Maustaste (im Grafikfenster) druecken,
+   eine Modeldatei selektieren;
+ oder - wenn das Model bereits geladen ist - Model selektieren.
+ Position (ins Eingabefeld 'Position' klicken oder Cursor-down-taste):
+   Position im Grafikfenster mit linker Maustaste anzeigen
+     oder eingeben - zB. "P(100 100 100)"
+ Z-Achse (optional):
+   Default ist "DZ" (muss eingegeben werden, wenn eine X-Achse definiert wird).
+   Alle Texteingaben ohne Hochkommas !
+ X-Achse (optional):
+   Default ist DX; "DY" dreht das Modell um 90 Grad,
+   "D(1 1 0)" (eine Vektorangabe) dreht um 45 Grad.
+ Objekt speichern (rechte Maustaste).
+
+
+Native Models in das aktive Modell laden:
+ subModels / load subModel from File
+   das gewünschte subModel laden
+   (wird als internes Model angelegt, ist noch nicht sichtbar)
+
+
+Internes Model positionieren:
+ CAD / 'M int.Model'
+   'Submodel': mittlere Maustaste (im Grafikfenster) - Model selektieren
+   ..
+
+
+Step,Iges,Dxf-Modelle als subModelle laden:
+ Müssen derzeit zuerst direkt geladen werden (File / Open Model)
+ dann im native Format (.gcad) abgespeichert werden;
+ können nun als subModelle geladen werden mit:
+ subModels / load subModel from File.
+
+
+
+____________________________________________________________________________
+<p><a name="Bl"></a></p>
+<b>Bitmap laden</b>
+
+
+Bitmaps können gleichzeitig mit 3D-Objekten dargestellt werden;
+Bitmaps werden immer normal zur Ansichtsfläche dargestellt.
+Es können Files mit den Formaten .JPG und .BMP importiert werden.
+
+
+
+Bitmap laden:
+ CAD-Funktion  'N Image Pos Filname' selektieren
+ 'Point Image':
+   die linke untere Position der Bitmap angeben
+ 'StartPoint Line'    optional:
+   soll eine Verbindungslinie zum Bild erzeugt werden:
+   den Startpunkt der Verbindungslinie selektieren
+ 'Linetyp'             optional:
+   1=voll, 2=strichl, 3=strichpunkt.
+ 'Filename'
+   mittlere Maustaste - unkomprimierte .bmp-Datei selektieren
+ 'Scale'               optional:
+   0.2                 Bild wird auf 20 % verkleinert
+
+ Anzeigen mit Cursor-down-Taste.
+ Abspeichern mit rechte Maustaste.
+
+   
+Wird kein Scale (oder Wert 0) definiert, so wird die Bitmap dynamisch skaliert.
+Wird ein Maßstab angegeben, so wird dieser Maßstab fixiert.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="A"></a></p>
+<b>Activity</b>
+
+
+Jedes CAD-Objekt kann mit einer Interaktion verbunden werden; zB:
+  - Viewposition wechseln (auf eine vordefinierte Ansicht wechseln)
+  - ein vordefiniertes Folgemodell laden (wie HTM-HREF)
+  - ein Zusatzprogamm (DLL) starten
+
+Interaktion ist im Modus VWR aktiv, im Modus CAD und MAN inaktiv.
+  (in CAD oder MAN aktivieren mit Options/Interaction).
+
+
+Activity 'Ansichtsposition ändern' erzeugen:
+ CAD-Funktion 'Interact connect' selektieren
+ 'connect object':
+    selektieren sie das Objekt, bei dessen Sektion die Viewposition 
+      verändert werden soll; zB eine Bitmap.
+ 'command':
+    stellen Sie nun die gewuenschte Viewposition her (zoom, pan ..)
+    Selektieren Sie nun Insert/Viewport (aus dem oberen Menuebalken);
+    - die Viewparameter werden in das Eingabefeld geschrieben.
+ Abspeichern mit rechte Maustaste.
+
+
+Activity Testen:
+  Hauptmodus VWR, das Objekt selektieren.
+
+
+
+Activity 'Ein Folgemodell laden' erzeugen:
+CAD-Funktion 'Interact connect' selektieren
+ 'connect object':
+    selektieren sie das Objekt, bei dessen Sektion die Viewposition 
+      verändert werden soll
+ 'command' - eingeben:
+    LDMOD Data/sample_mod_blech1.gcad
+ Objekt speichern (rechte Maustaste).
+ 
+
+  Es wurde folgender Programmcode generiert:
+  I20=N20 "LDMOD Data/sample_mod_blech1.gcad"
+    (das Modell "Data/Test1.dat" wird bei Selektion von N20 geladen).
+
+Vor dem Test speichern mit File /save Model oder Ctrl-S.
+
+
+
+Activity 'Zusatzprogramm starten' erzeugen:
+  Folgendes 'command' - eingeben:
+    EXECM DemoKondensatorplatte
+
+  Es wird die Porgrammbibliothek DemoKondensatorplatte.so (.dll in MS-Win)
+  geladen und die Funktion gCad_main gestartet.
+  Details siehe ../doc/gCAD3D_prog_de.txt.
+
+
+Siehe auch Modell sample_activ_1.dat
+
+
+____________________________________________________________________________
+
+ Ein Schild mit dem Text "Exit" erzeugen
+ (wird nachfolgend mit der Funktion 'Folgemodell laden' verknuepft.
+CAD-Funktion 'N TAG typ, Line, text' selektieren
+ 'Typ+Farbe'
+   "23" eingeben (ohne Hochkommas, macht einen Block, gruen; Details siehe Doku)
+ 'TextPoint'
+   linken mittleren des Textblocks definieren
+ 'StartPoint' Line' und 'Linetyp'
+   bleibt leer - keine Verbindungslinie
+ 'Text'
+   "Exit" eingeben (ohne Hochkommas).
+ Anzeigen mit Cursor-down-Taste.
+ Abspeichern mit rechte Maustaste.
+
+
+____________________________________________________________________________
+<p><a name="ModMovP1"></a></p>
+<b>Punkte verschieben</b>
+
+Die aktive CAD-Funktion mit Esc-Taste beenden
+  (wenn Eingabefelder nicht leer sind, mehrmals Esc drücken)
+
+
+Einzelnen Punkt verschieben:
+  den Punkt mit der rechten Maustaste selektieren,
+  Funktion "Punkte verschieben" wählen,
+  die Maus verschieben, die neue Position wählen (linke Maustaste),
+  speichern mit rechter Maustaste.
+
+
+Punkte einer Linie oder einer Kurve verschieben:
+  die Linie oder Kurve mit der rechten Maustaste selektieren,
+  einen Punkt (gelbes Rechteck) mit der rechten Maustaste selektieren,
+  die Maus verschieben, die neue Position wählen (linke Maustaste),
+  einen anderen Punkt selektieren oder speichern mit rechter Maustaste.
+
+Genaueres siehe  <a href="PED_de.htm">PED_de.htm</a>
+
+
+
+____________________________________________________________________________
+<p><a name="ModCut1"></a></p>
+<b>Linie begrenzen</b>
+
+- 2 sich kreuzende Linien erzeugen:
+  CAD-Funktion "LN PT PT",
+    2 Punkte angeben,
+    rechte Maustaste.
+
+- Schnittpunkt erzeugen:
+  CAD-Funktion "INT(intersect)",
+    beide Linien selektieren,
+    rechte Maustaste.
+
+- Linie begrenzen:
+  CAD-Funktion "CUT(trim)",
+    Linie selektieren,
+    Begrenzungspunkt selektieren,
+    wenn erforderlich, andere Lösungsvariante:
+      in das Feld "[solutionNr]" klicken,
+      Taste PageDown ("Bild") drücken (2 - mal),
+    rechte Maustaste.
+
+
+____________________________________________________________________________
+<p><a name="ModMir1"></a></p>
+<b>Linie spiegeln</b>
+
+- Spiegelebene erzeugen:
+  CAD-Funktion "PLN PT Z-Axis",
+    den Nullpunkt der Ebene definieren,
+    Z-Achse definieren (selektieren oder "DY" eingeben),
+    rechte Maustaste.
+
+
+- Linie spiegeln:
+  CAD-Funktion "Mirror obj",
+    die Linie selektieren,
+    die Spiegelebene selektieren,
+    rechte Maustaste.
+  
+
+
+____________________________________________________________________________
+
+</PRE>
+</BODY>
+</HTML>

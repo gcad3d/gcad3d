@@ -1,0 +1,395 @@
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>RemoteControl_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+Letzte Änderung: 2013-02-25
+
+<h2>RemoteControl gCAD3D</h2>
+
+<A HREF='#rc1'>Was ist RemoteControl</A>
+
+<A HREF='#PRI'>PRINT</A>(text)          // Text im CAD-Ausgabefenster anzeigen
+<A HREF='#ADD'>ADD</A>(code)            // CAD-Objekte speichern und anzeigen
+<A HREF='#ADF'>ADDFILE</A>(filNam)      // CAD-Objekte aus Datei speichern und anzeigen
+<A HREF='#MODI'>MOD</A>(code)            // CAD-Objekte modifizieren, anzeigen
+NEW                  // das gesamte Modell löschen
+MODSIZ(newsize)      // Modellgrößen ändern
+END                  // gesamtes Modell neu anzeigen
+
+<A HREF='#SYM'>GETSYMDIR</A>(sym)       // liefert den absoluten Pfad des Verzeichnisses <sym>
+<A HREF='#SYM'>SETSYMDIR</A>(sym,path)  // speichert neues symbolisches Verzeichnis
+<A HREF='#SYM'>DELSYMDIR</A>(sym)       // löscht symbolisches Verzeichnis <sym>
+
+<A HREF='#LOA'>LOAD</A>(modelname)      // löschen und neues Modell laden (native,step,iges,dxf ..)
+<A HREF='#LSM'>LOADSM</A>(submodel)     // Submodell laden (muss natives Modell (.gcad) sein)
+
+<A HREF='#SAV'>SAVE</A>                 // Modell mit aktuellem Modellnamen speichern
+<A HREF='#SAV'>SAVE</A>(new_modelname)  // Modell mit anderem Modellnamen speichern
+
+ZOOMALL              // Zoomfaktor automatisch
+<A HREF='#VIE'>VIEW</A>(center, scale, rotAng, tiltAng)  // Ansicht ändern
+<A HREF='#SHO'>SHOW</A>(obj,off)        // Object unsichtbar machen
+<A HREF='#SHO'>SHOW</A>(obj)            // Object sichtbar machen
+<A HREF='#ATL'>ATTL</A>(linetypNr,objects) // Linientype ändern
+<A HREF='#ATS'>ATTS</A>("code",objects) // Flächenattribute ändern (Farbe, Texture, Symbolisch)
+<A HREF='#LDT'>LOADTEX</A>(texFilNam)   // Texturdatei (Bild) laden
+
+ERRCLR               // Fehlercode abfragen / löschen; 0=OK
+GETMODSIZ            // aktuelle Modellgröße abfragen
+<A HREF='#GOI'>GETOBJINDNXT</A>(P)      // nächsten freien Objektindex abfragen
+<A HREF='#GLN'>GETLNR</A>               // aktuelle Zeilennummer abfragen
+<A HREF='#DFO'>DELFOLL</A>(lnr)         // alle Objekte ab Zeile <lnr> löschen
+<A HREF='#USE'>USER</A>                 // Objekt von Anweder abfragen; Selektion / Abbruch (Esc.)
+<A HREF='#DUM'>DUMP</A>(list)           // Ausgabe einer List in das Konsolfenster
+<A HREF='#MODE'>MODE</A>(widget,off|on)  // Ein/Ausblenden von CAD-Fenstern; Browser, Menü, Toolbars ..
+
+
+__________________________________________________________________________
+<p><a name="rc1"></a></p>
+<b>Was ist RemoteControl</b>
+
+Mit RemoteControl kann gCAD3D programmgesteuert bedient werden.
+Es können alle Programmiersprachen benutzt werden; auch skript-shells.
+Es werden 2 Pipes (Linux; MS-Windows: Files) zur Ein- und Ausgabe benutzt.
+Die Eingabe und die Ausgabe erfolgt mit Textcodes, nicht binär.
+
+Linux:
+  Die Eingabepipe ist ${HOME}/gCAD3D/tmp/CTRLpin
+  die Ausgabepipe ist ${HOME}/gCAD3D/tmp/CTRLpout
+Windows:
+  Eingabe über %APPDATA%\gCAD3D\tmp\CTRLpin
+  Ausgabe nach %APPDATA%\gCAD3D\tmp\CTRLpout
+
+
+Mit einem normalen Terminalprogramm (Linux: xterm oder gnome-terminal; MS-Windows: cmd)
+können Kommandos an gcad geschickt werden (zB. aktives Modell löschen):
+Linux:
+  echo 'new' > ~/gCAD3D/tmp/CTRLpin
+MS-Windows:
+  echo new>"%APPDATA%\gCAD3D\tmp\CTRLpin"
+
+
+Eine Befehlsdatei (mehrere Befehle) schicken:
+ - put the following 6 lines into  file t1.dat:
+new
+add(P1=P(100 0 0))
+add(C1=P1 50)
+#eof
+
+Datei schicken:
+Linux:
+  cat t1.dat > ~/gCAD3D/tmp/CTRLpin
+MS_Windows:
+  copy t1.dat "%APPDATA%\gCAD3D\tmp\CTRLpin"
+
+
+Empfang der Ausgaben von gcad (zB Anzeige der Ausgabe in einem Terminalfenster):
+Linux (Verbindung bleibt bestehen):
+  cat  ~/gCAD3D/tmp/CTRLpout
+MS-Windows (Datei wird nach jedem RemoteCommand neu erstellt):
+  type %APPDATA%\gCAD3D\tmp\CTRLpout
+
+Gcad sendet nach jedem Kommando zumindest ein Neue-Zeile-Zeichen
+  (newline, Ascii 10).
+
+
+Wenn das Programm über "Remote/ Select-Start" aktivierbar sein soll:
+  Kopieren Sie das Start-script in Verzeichnis <binDir>/remote/.
+  Kopieren Sie das Executable in Verzeichnis <binDir>.
+
+
+
+<b>Programmierbeispiele:</b>
+VB.Net (MS-Windows): <A HREF="../../prg/Demo1gCadRemoteControl.zip">Demo1gCadRemoteControl.zip</A>
+Java (Linux): <A HREF="../../prg/DemoRC1.java">DemoRC1.java</A>
+
+Alle folgenden angeführten Beispiele sind Linux-Beispiele.
+
+
+Bitte senden Sie verbesserte Programme oder Programme für andere
+  Programmiersprachen an
+  support at gcad3d.org
+
+
+__________________________________________________________________________
+<p><a name="PRI"></a></p>
+PRINT(text)          // Text im CAD-Ausgabefenster anzeigen
+
+Objekte (Punkte, Vektoren, Variablen) werden dekodiert; die Werte
+  werden angezeigt.
+
+Beispiel:
+echo 'print("TestPrint 1")' > ~/gCAD3D/tmp/CTRLpin
+# Anzeige der Koordinaten von Punkt P1 und Vektor D1:
+echo 'print("P1 = ",P1," D1 = ",D1)' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="GLN"></a></p>
+<p><a name="DFO"></a></p>
+GETLNR               // aktuelle Zeilennummer abfragen
+DELFOLL(lnr)         // alle Objekte ab Zeile <lnr> löschen
+
+# die Zeilennummer von GETLNR kann später mit DELFOLL zum Löschen der
+#   danach erzeugten Objekte benutzt werden.
+
+
+__________________________________________________________________________
+<p><a name="GOI"></a></p>
+GETOBJINDNXT(typ)     // nächsten freien Objektindex abfragen
+
+
+# Beispiel: nächsten freien DB-index für Punkte abfragen:
+echo 'GETOBJINDNXT(P)' > ~/gCAD3D/tmp/CTRLpin
+# Siehe Liste <a href="CAD_Base_de.htm#Codeletters">Objekttypen</a>
+
+
+__________________________________________________________________________
+
+
+__________________________________________________________________________
+<p><a name="ADD"></a></p>
+ADD(code)            // CAD-Objekte speichern und anzeigen
+
+# Code: ein gcad-ObjektText; siehe <a href="CAD_Base_de.htm#Codes">Codes</a>
+# zB Punkt erzeugen mit:
+echo 'add(P1=P(100 0 20))' > ~/gCAD3D/tmp/CTRLpin
+
+__________________________________________________________________________
+<p><a name="ADF"></a></p>
+ADDFILE(filNam)      // CAD-Objekte aus Datei speichern und anzeigen
+
+echo 'addfile("t1")' > ~/gCAD3D/tmp/CTRLpin
+
+Beispiel für Datei t1:
+MODE(MEN,off)
+MODE(BRW,off)
+MODE(BAR1,off)
+MODE(BAR2,off)
+new
+add(P1=P(100 0 0))
+add(C1=P1 50)
+zoomall
+#eof
+
+
+__________________________________________________________________________
+<p><a name="MODI"></a></p>
+MOD(code)            // CAD-Objekte modifizieren, anzeigen
+
+
+Beispiel:
+echo 'MOD(V1=70)' > ~/gCAD3D/tmp/CTRLpin
+
+# Ändern der Zeile "V1=50" im Code (siehe unten) und Update der Variablen V1 
+# und des Kreises C1.
+
+P1=P(100 100 0)
+V1=50
+C1=P1 V1
+
+
+__________________________________________________________________________
+<p><a name="SYM"></a></p>
+GETSYMDIR(sym)       // liefert den absoluten Pfad des Verzeichnisses <sym>
+SETSYMDIR(sym,path)  // speichert neues symbolisches Verzeichnis
+DELSYMDIR(sym)       // löscht symbolisches Verzeichnis <sym>
+
+
+# Abfrage des (absoluten) Pfades des Symbols "Data"
+echo 'GETSYMDIR("Data")' > ~/gCAD3D/tmp/CTRLpin
+
+# Neues Symbol "myPath" auf Verzeichnis "/tmp/gcad/" setzen.
+echo 'SETSYMDIR("myPath","/tmp/gcad/")' > ~/gCAD3D/tmp/CTRLpin
+
+# Symbol "myPath" löschen:
+echo 'DELSYMDIR("myPath")' > ~/gCAD3D/tmp/CTRLpin
+
+# Fehler löschen:
+echo 'ERRCLR' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="LOA"></a></p>
+LOAD(modelname)      // löschen und neues Modell laden (native,step,iges,dxf ..)
+
+
+Modell laden; Dateiname kann symbolisch, relativ oder absolut sein.
+
+# Beispiel symbolischer Dateiname:
+echo 'load("Data/sample_area1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+# Beispiel relativer Dateiname: (verwendet das aktuelle symbolische Verzeichnis):
+echo 'load("../dat/sample_area2.gcad")' > ~/gCAD3D/tmp/CTRLpin
+# Beispiel absoluter Dateiname:
+echo 'load("/tmp/test1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+
+
+echo 'MODSIZ(10000)' > ~/gCAD3D/tmp/CTRLpin
+echo 'END' > ~/gCAD3D/tmp/CTRLpin
+
+
+<p><a name="LSM"></a></p>
+LOADSM(submodel)     // Submodell laden (muss natives Modell (.gcad) sein)
+
+# Submodelle müssen in einem Verzeichnis mit Symbol liegen.
+# Siehe SETSYMDIR.
+# Beispiel Submodelle laden, positionieren:
+echo 'new' > ~/gCAD3D/tmp/CTRLpin
+echo 'loadsm("Data/sample_mod_blech1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+echo 'loadsm("Data/sample_mod_screw1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+echo 'loadsm("Data/sample_mod_nut1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+echo 'add(M20="sample_mod_blech1" P(0 10 0))' > ~/gCAD3D/tmp/CTRLpin
+echo 'add(M21="sample_mod_screw1" P(30 36.5 67))' > ~/gCAD3D/tmp/CTRLpin
+echo 'add(M22="sample_mod_nut1" P(36 36.5 67))' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="SAV"></a></p>
+SAVE                 // Modell mit aktuellem Modellnamen speichern
+SAVE(new_modelname)  // Modell mit anderem Modellnamen speichern
+
+# Aktives Modell als "test1.gcad" im symbolischen Verzeichnis "Data" speichern.
+# Siehe SETSYMDIR.
+echo 'save("Data/test1.gcad")' > ~/gCAD3D/tmp/CTRLpin
+
+# speichern.
+echo 'save' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="VIE"></a></p>
+VIEW(center, scale, rotAng, tiltAng)  // Ansicht ändern
+
+# Ansichts-maßstab ändern:
+echo 'view(0.25)' > ~/gCAD3D/tmp/CTRLpin
+
+# Ansicht über Verdrehwinkel und Kippwinkel ändern (in Grad)
+echo 'view(ang(45) ang(30))' > ~/gCAD3D/tmp/CTRLpin
+
+# Ansicht verschieben (Bildschirmittelpunkt ändern):
+echo 'view(P(38 49 7))' > ~/gCAD3D/tmp/CTRLpin
+
+__________________________________________________________________________
+<p><a name="SHO"></a></p>
+SHOW(obj,off)        // Object unsichtbar machen
+SHOW(obj)            // Object sichtbar machen
+
+
+# Linie L21 unsichtbar machen
+echo 'show(L21,off)' > ~/gCAD3D/tmp/CTRLpin
+
+# Linie L21 sichtbar machen
+echo 'show(L21)' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="DUM"></a></p>
+DUMP(list)           // Ausgabe einer List in das Konsolfenster
+
+DUMP("GA")           // Ausgabe der Liste der graf. Attribute
+DUMP("DL")           // Ausgabe Display-Liste
+DUMP("AT")           // Ausgabe Linietypentabelle
+DUMP("TX")           // Ausgabe Texturen
+DUMP("SD")           // Ausgabe aller symbolischen Verzeichnisse
+
+# Ausgabe der Liste der graf. Attribute
+echo 'DUMP("GA")' > ~/gCAD3D/tmp/CTRLpin
+
+
+
+__________________________________________________________________________
+<p><a name="MODE"></a></p>
+MODE(widget,off|on)      // Ein/Ausblenden von CAD-Fenstern; Browser, Menü, Toolbars ..
+
+# Menü aus
+echo 'MODE(MEN,off)' > ~/gCAD3D/tmp/CTRLpin
+
+# Brwowser aus
+echo 'MODE(BRW,off)' > ~/gCAD3D/tmp/CTRLpin
+
+# Balken oben aus
+echo 'MODE(BAR1,off)' > ~/gCAD3D/tmp/CTRLpin
+
+# Nachrichtenfenster unten aus
+echo 'MODE(BAR2,off)' > ~/gCAD3D/tmp/CTRLpin
+
+# Nachrichtenfenster unten wieder Ein.
+echo 'MODE(BAR2,on)' > ~/gCAD3D/tmp/CTRLpin
+
+
+
+__________________________________________________________________________
+<p><a name="ATL"></a></p>
+ATTL(linetypNr,objects)             // Linientype ändern
+
+
+# Linientypen 0 - 12 sind vordefiniert in Datei ~/gCAD3D/cfg/ltyp.rc
+# See <a href="Settings_de.htm#Linetypes">Defaultsettings</a>
+
+# Linientyp = 8 setzen für L21 und L22
+echo 'ATTL(8,L21,L22)' > ~/gCAD3D/tmp/CTRLpin
+
+# Linientyp ändern/erzeugen (G<linienTypNr> = Farbe,Linientyp,Dicke)
+# Linientyp G13 erzeugen: grün, Volllinie, Dicke = 4 mit:
+echo 'add(G13=3,0,4))' > ~/gCAD3D/tmp/CTRLpin
+
+# Linientyp = 13 setzen für L21 and L22
+echo 'ATTL(13,L21,L22)' > ~/gCAD3D/tmp/CTRLpin
+
+
+
+__________________________________________________________________________
+<p><a name="ATS"></a></p>
+ATTS("code",objects)           // Flächenattribute ändern (Farbe, Textur, Symbolisch)
+
+
+Beispiel:
+# Typ der Fläche A21 auf Symbolisch ändern (nicht schattiert)
+echo 'ATTS("S" A21)' > ~/gCAD3D/tmp/CTRLpin
+
+# auf Standardfarbe zurücksetzen
+echo 'ATTS("C" A21)' > ~/gCAD3D/tmp/CTRLpin
+
+# Farbe grün setzen (Rot-Anteil-0, Grün-Anteil-255, Blau-Anteil-0)
+echo 'ATTS("C00ff00" A21)' > ~/gCAD3D/tmp/CTRLpin
+
+# Transparent setzen (T0=normal, T1=halb transparent, T2=voll transparent)
+echo 'ATTS("T2" A21)' > ~/gCAD3D/tmp/CTRLpin
+
+<p><a name="LDT"></a></p>
+# Textur laden und aktiv setzen.
+# Texturen müssen in einem Verzeichnis mit Symbol liegen.
+echo 'LOADTEX("DIR_BMP/Ziegel1.bmp")' > ~/gCAD3D/tmp/CTRLpin
+
+# Texture auf Fläche A21 aufbringen; hor./vert. Maßstab auf "0.5,0.5".
+# ATTS("X<Maßstab>,<Offsets>,<Winkel>",Objekte) // aktive Textur aufbringen
+echo 'ATTS("X0.5,0.5" A21)' > ~/gCAD3D/tmp/CTRLpin
+
+
+__________________________________________________________________________
+<p><a name="USE"></a></p>
+USER                                // Objekt von Anweder abfragen; Selektion / Abbruch (Esc.)
+
+
+# vom Anwender ein Objekt auswählen lassen
+echo 'USER' > ~/gCAD3D/tmp/CTRLpin
+# liefert "SEL(P(-3.244327 -10.077265 0.000000))"  bei Positionsanzeige
+# liefert "SEL(C16)"                               bei Auswahl von Objekt C16
+# liefert "SEL()"                                  bei Escape-Taste gedrückt
+
+
+
+</PRE>
+</BODY>
+</HTML>
+
+
+</PRE>
+</BODY>
+</HTML>
+

@@ -1,0 +1,47 @@
+# new words: add ID-s in xa_msg.h
+ Ja 
+Abbrechen
+Speichern
+Einfügen
+Löschen
+#5
+Ändern
+Fertig
+Hilfe
+Länge
+aktivieren
+#10
+verschieben
+Editieren
+umbenennen
+subModell erzeugen
+anzeigen
+#15
+ausblenden
+schattieren
+analysieren
+Punkte verschieben
+wiederherstellen
+#20
+Filtertext
+Textur
+Öffnen
+Gruppe auflösen
+Gruppe ausblenden
+#25
+Gruppe löschen
+zur Gruppe zufügen
+aus Gruppe entfernen
+alle dieses Typs aus Gruppe entfernen
+alle anderen Typen aus Gruppe entfernen
+#30
+update
+alle
+ Nein
+Fehler
+in Eingabefeld kopieren
+#35
+suche Eltern-Objekte
+suche Kind-Objekte
+Objektname ändern
+#EOF

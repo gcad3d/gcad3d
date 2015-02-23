@@ -1,0 +1,255 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>Settings_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<p><a name="Standards"></a></p>
+
+<a href="#Settings">Einstellungen</a>
+
+<a href="Using_de.htm#Options">Options</a>
+
+<a href="#Tolerances">Standards / Tolerances</a>
+<a href="#Text">Standards / Text</a>
+<a href="#stdcol">Standards / Color</a>
+<a href="#Linetypes">Standards / Linetypes</a>
+<a href="#ModelDirectories">Standards / Directories</a>
+
+Standards / Directories              Ändern des HTML-Browsers (für Help)
+Standards / Editor                   Ändern des Texteditors (für Directories)
+
+<a href="#Start">Programmstart</a>
+<a href="#Directories">Directories</a>
+
+
+
+____________________________________________________________________________
+<p><a name="Settings"></a></p>
+<h2>Einstellungen:</h2>
+
+Div. Voreinstellungen (Print-Befehl, Browser) werden aus Datei {base}/cfg/xa.rc
+  eingelesen.
+
+Standardpfade:
+  Verzeichnisse auf die zB mit File/Open zugegrifen werden soll sind in
+  die Datei {base}/xa/dir.lst einzutragen
+   (Format: "symbolischerPfadname /vollerPfadname/").
+  Die interaktive Funktion dazu ist Standards/Directories.
+
+Standardwerte für Z-Buffersize, Modelsize, Textsizes befinden sich
+  in Datei {base}/xa/gCAD3D.rc.
+Die interaktiven Funktionen dazu sind Standards/Tolerances und Standards/Text.
+
+Die Setup-Datei für die Postscript-Ausgabe ist {base}/xa/psv.setup.
+
+
+____________________________________________________________________________
+<p><a name="Tolerances"></a></p>
+<h2>Standards / Tolerances</h2>
+
+Einstellung der (maximalen) Modelsize.
+Es werden automatisch die Toleranzen davon abgeleitet.
+
+<b>Modify</b>
+ Das gesamte Modell wird sofort neu berechnet.
+
+<b>Reset</b>
+ Es werden die (in Datei <base>/xa/gCAD3D.rc) verdefinierten Werte geladen.
+
+
+
+Die Raumgrösse (Standardwert ist 500 mm) wird zum Errechnen von Toleranzen benutzt
+  (Kurvendarstellung, Identische-Punkte-Toleranz usw).
+  Raumgrösse ändern auf 10m:
+MODSIZ 10000
+
+Der Standardwert befindet sich in der Datei {base}/xa/gCAD3D.rc.
+
+
+
+____________________________________________________________________________
+<p><a name="Text"></a></p>
+<h2>Standards / Text</h2>
+
+Es können die Default-Textgrößen und ein Skalierungsfaktor definiert werden.
+Die Default-Textgröße bei Notes wird aktiv, wenn keine explizite Textgröße definiert ist.
+
+<b>Modify</b>
+ Das gesamte Modell wird sofort neu berechnet.
+
+<b>Reset</b>
+ Es werden die (in Datei <base>/xa/gCAD3D.rc) vordefinierten Werte geladen.
+
+
+Die Schriftgröße für Texte und Vermaßung wird definiert durch
+DEFTX {Textsiz> {DimTextSiz} {TextGeneralScale} {AnzahlNachkommstellen}
+oder interaktiv in Standards/Text.
+Die Standardwerte befinden sich in der Datei {base}/xa/gCAD3D.rc.
+
+
+____________________________________________________________________________
+<p><a name="stdcol"></a></p>
+<h2>Standards / Color</h2>
+  Standardfarbe definieren.
+
+
+
+____________________________________________________________________________
+<p><a name="Linetypes"></a></p>
+<h2>Standards / Linetypes:</h2>
+
+Im Verzeichnis {base}/cfg/ltyp.rc befindet sich die Linientypentabelle.
+  Default ist ~/gCAD3D/cfg/ltyp.rc.
+
+Es wird der Systemeditor mit dieser Datei aufgerufen,
+  es können zusätzliche Linientypen (bis dzt max 45) definiert werden.
+
+Diese Tabelle ist für alle momentan geladenen Submodelle gültig.
+Diese Tabelle wird nicht mit den Modellen abgespeichert;
+  im Modell wird nur der Tabellenindex gespeichert.
+
+
+Standardinhalt der Datei ltyp.rc:
+
+
+  0 000  0  1         // Normal            Typ_Att_PT
+  1 116  0  1         // text blue         Typ_Att_def
+  2 000  2  1         // dashed            Typ_Att_go
+  3 000  1  1         // dash-dot          Typ_Att_rp
+  4 755  0  1         // faces1 thick1     Typ_Att_Fac
+  5 116  3  2         // faces2 thick1     Typ_Att_Fac1
+  6 555  0  1         // faces3 thick1     Typ_Att_Fac2
+  7 990  0  3         // yellow thick3     Typ_Att_Symb
+  8 090  0  3         // green  thick3     Typ_Att_hili
+  9 822  0  4         // hilite thick4     Typ_Att_hili1
+ 10 447  0  1         // dimmed thick4     Typ_Att_dim
+ 11 000  0  4         // black  thick4     Typ_Att_top1
+ 12 900  2  2         // red dashed thick2 Typ_Att_top2
+#
+# Format: indexNr colour lineTyp lineThick // comment
+#
+#   colour     3 digits; red, green, blue.
+#              900 = red,   090 = green, 009 = blue;
+#              000 = black; 999 = white, 990 = yellow ..
+#   lineTyp:   0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
+#              2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
+#   lineThick: 1-6, thickness in pixels
+
+
+
+Beispiel:
+Linientyp 2  (G2): schwarz, dünn,strichliert; in Datei ltyp.rc mit:
+2 0 2 1   Index 2,
+          Farbe Standard (0=schwarz),
+          Linetyp strichliert (2),
+          Liniendicke Standard (1=dünn)).
+
+Aktivierung im Modus MAN:
+G2=0 2 1
+
+
+
+____________________________________________________________________________
+<p><a name="ModelDirectories"></a></p>
+<h2>Standards / Directories</h2>
+
+Alle Verzeichnisse, auf die mit File/OpenModel zugegriffen werden soll,
+  müssen hier definiert werden.
+  Im File/OpenModel - Dialog kann mit dem Button "&lt;&lt;---" das Verzeichnis
+  gewechselt werden.
+ 
+Es muss für jedes Verzeichnis eine symbolische Bezeichnug definiert werden;
+  diese kann frei gewählt werden.
+  
+
+Es wird der Systemeditor mit Datei {base}/xa/dir.lst aufgerufen.
+  Achtung: Zugriffsrecht für Schreiben erforderlich.
+
+Beispiel Unix:
+Data     /usr/home/gCAD3D/dat/
+IGS      /mnt/win_d/gCAD3D/Models/igs/
+
+Beispiel MS-Windows:
+Data     F:\Programme\gCAD3D\dat\
+IGS      F:\Models\gCAD3D\igs\
+CD0      D:\
+
+Das symbolische Verzeichnis '.' wird durch das momentan aktive Verzeichnis ersetzt
+(z.B. um Texturen aus dem gleichen Verzeichnis wie das native Model zu laden).
+
+
+
+____________________________________________________________________________
+<p><a name="Start"></a></p>
+<h2>Programmstart / Startparameter:</h2>
+
+<b>Programmstart:</b>
+  Es wird automatisch Modell {base}/tmp/Model eingelesen.
+  Submodels haben die Dateinamen {base}/tmp/Model_{submodelName}.
+  Sie können diese Dateien durch beliebige Vorlaufprogramme erstellen.
+  Datei {base}/tmp/Model wird am Programmende automat. erstellt.
+  
+  
+
+<b>Startparameter:</b>
+Beim Start koennen folgende Parameter angegeben werden:
+  new               // Standardmodell NICHT laden
+  load              // load Model; filename is the following Parameter.
+  defLoad           // das Default-Modell laden;  erfolgt sonst automatisch 
+                    // nach dem Abarbeiten der Startparameter.
+  reLoad            // das temporäre Modell laden (nach Programmabsturz)
+  run               // nach defLoad Model abarbeiten (vor exit)
+  comp              // compile DLL's - Checkbox aktivieren
+  exit              // normaler Programmstop (mit sichern)
+  mode_cad          // Starten im Modus CAD.
+  mode_man          // Starten im Modus Manuell.
+  noTB              // kein Toolbar
+  noMB              // kein Meldungsfenster
+  noBrw             // kein BrowserWindow
+
+Nicht definierte Parameter:
+  {Dateiname}.{Filetyp}
+  
+  Filetyp .gcad, .dxf, .igs, .stp, .bmp. .jpg:
+                    //  Modell (Bild) laden. Dateiname muss komplett sein.
+                    
+  Kein Filetyp:     //  Plugin (DLL, shared library) mit diesem Namen starten;
+    
+
+<i>Beispiele:</i>
+./gCAD3D new
+  Starten ohne das Standardmodell zu laden
+
+
+./gCAD3D load sample_activ_1.gcad noTB noMB
+  Modell sample_activ_1 aus dem zuletzt benutzen Verzeichnis (DirIn) laden,
+  Toolbar und Meldungsfenster ausblenden
+ 
+ 
+./gCAD3D comp defLoad tst3
+  dynam. Kompilieren EIN, Standardmodell laden und
+  DLL (shared library) tst3 laden und starten
+
+ 
+____________________________________________________________________________
+<p><a name="Directories"></a></p>
+<h2>Programmverzeichnisse:</h2>
+
+
+Standard:
+es werden alle Verzeichnisse unter ${HOME}/gCAD3D/ angelegt.
+
+Die Programmverzeichnisse können im Startscript gCAD3D.sh 
+angepasst werden.
+
+
+____________________________________________________________________________
+
+
+
+</PRE>
+</HTML>

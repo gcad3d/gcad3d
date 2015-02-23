@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>CAD_using_en.htm</TITLE>
+	<META NAME="CREATED" CONTENT="20090803; David Young">
+	<META NAME="CHANGED" CONTENT="20091018; David Young">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+
+<PRE>
+
+
+<a href="#mainFuncs">CAD functions</a>
+<a href="#using">using CAD</a>
+<a href="VWR_en.htm">operating display</a>
+
+
+<hr>
+<h2><a name="mainFuncs">CAD functions</a></h2>
+
+<a href="CAD_PT_en.htm"><B>Points</B></a>
+<a href="CAD_LN_en.htm"><B>Lines</B></a>
+<a href="CAD_AC_en.htm"><B>Circles</B></a>
+<a href="CAD_PLN_en.htm"><B>Planes</B></a>
+<a href="CAD_Vec_en.htm"><B>Vectors</B></a>
+<a href="CAD_Var_en.htm"><B>Variables</B></a>
+<a href="CAD_CV_en.htm"><B>Curves (Ellipse,Polygon,Spline,Clothoid,Contour)</B></a>
+<a href="CAD_SUR_en.htm"><B>Surfaces</B></a>
+<a href="CAD_SOL_en.htm"><B>Bodies</B></a>
+<a href="CAD_TxtG_en.htm"><B>Text,Dimensions</B></a>
+<a href="CAD_Model_en.htm"><B>Submodels</B></a>
+  Internal models, external models, catalog parts.
+<a href="CAD_Tra_en.htm"><B>Transformations</B></a>
+  Define translation, rotation definieren (do not apply yet)
+<a href="CAD_Modify_en.htm"><B>Trim,intersect,move,rotate,project,mirror</B></a>
+<B><a href="CAD_Activ_en.htm">Interactions</a> <a href="CAD_Joint_en.htm">Joints</a></B>
+  Interactions: connect geometric object with function. Selecting the object activates the function.
+  Joints: connecting points between models.
+<a href="CAD_Ace_en.htm"><B>Konstruktionsebene</B></a>
+  Select plane as new construction plane.
+
+
+
+
+<hr>
+<h2>Using function CAD:</h2>
+  Mainfuncion CAD.
+  Interactive creation and modification of objectcodes.
+
+
+
+<B>Enable function CAD:</B>
+ Select the CAD checkbox. 
+
+
+<b>Button Help CAD:</b>
+  Information about CAD (this file).
+
+
+<b>Button Help Func:</b>
+  Information about the selected function;
+    eg for function Points - "PT cartes"
+
+
+<b>Button Help Input:</b>
+  Information about the present active inputfield
+    (how the necessary inputdata can be provided).
+
+
+
+____________________________________________________________________________
+<B>Creating objects:</B> 
+
+ You have to select a CAD function. Example: 
+    &quot;PT cartes&quot; creates a point,
+    &quot;LN PT PT&quot;  creates a line from point to point. 
+
+  All required fields are now displayed.
+  The entries are made by selecting, indicating or the keyboard.
+  Indicate: activate the left mouse button at the appropriate position.
+  Close your inputs with the Tab key.
+
+  When all the necessary entries are made, the item is displayed. 
+  All input values can still be changed,
+  using the Tab key updates the display.
+  Use the Esc key to clear a previously filled-in field. 
+
+  The object will be stored and created with the OK button
+  or with the Enter key (&quot;Return&quot;)
+  or with the right mouse button.
+
+  When entering vectors, variables or modifiers,
+  use the PageUp or PageDown buttons to select one of the existing values. 
+
+  Cancel the active function:
+  - select other CAD - function or
+  - key esc or
+  - select the Cancel - button
+
+
+
+<B>Modifying objects:</B> 
+  Finish the active CAD-function with the Esc-key.
+    (several times if inputfields are not empty).
+
+  Select the the geometric object with the right mousebutton,
+  function "edit". The appropriate function is called and all parameters
+    are entered in the input boxes.
+  As an active CAD mode &quot;MODIFY&quot; is displayed.
+
+  Modify the parameters (see "Creating objects" above).
+
+  The modified object must be stored:
+  - with the "OK-button
+  - or with the right mousebutton.
+
+  Go back to the end of the model, into CAD mode &quot;ADD&quot; (append):
+  - with key Escape
+  - or with the button "Cancel".
+
+
+
+<B>Deleting objects:</B> 
+  Finish the active CAD-function with the Esc-key.
+    (several times if inputfields are not empty).
+
+
+ <I>To delete the most recently created object:</I>
+  Use Ctr-Z or the UNDO-button (red arrow to the left)
+  Restoring objects: use Ctrl-Y or the REDO-button (green arrow to the right)
+
+
+ <I>To delete a particular object:</I> 
+  Select the geometric object with the right mousebutten,
+  use function "Delete".
+
+  The selected object and all dependent objects are deleted !
+
+
+ <i>Delete a group of objects:</i>
+  see <a href="GROUP_en.htm">"Gruppe"</a>
+
+
+ <I>Remove all deleted objects permanent:</I> 
+  Use key &quot;F4&quot; (Modify/APT-Clean).
+
+
+
+<B>Searching for objects:</B> 
+  Use checkbox <A HREF="Search_en.htm">&quot;Search/Name&quot;</A> 
+
+
+<B>Additional functions for selection of objects:</B> 
+ In Menu "Select" there are the following auxiliary functions:
+  get position of cursor on construction-plane
+  get position of cursor on selected object
+  get parametric position of cursor on selected object
+  get parentObject
+
+
+<B>LineEdit Box:</B> 
+  When entering contours / points chains,
+  by setting the cursor position (clicking into the text window),
+  the graphics are displayed up to this cursorposition. 
+
+
+</PRE>
+</BODY>
+</HTML>

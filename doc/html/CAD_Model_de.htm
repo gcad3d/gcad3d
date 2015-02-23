@@ -1,0 +1,108 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Model_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+
+<h2>CAD-Funktionen für Modelle:</h2>
+
+
+siehe auch <a href="gCAD3D_basics_de.htm#MMS_int">Interne Modelle</a> / <a href="gCAD3D_basics_de.htm#MMS_ext">Externe Modelle</a>
+siehe auch <a href="CAD_Base_de.htm#M">Codes für Modelle</a>
+
+Modelle benutzen den Kennbuchstaben M
+
+
+
+____________________________________________________________________________
+<p><a name="F0"></a></p>
+<h2>M internal Model</h2>
+Ein internes Submodel positionieren.
+  (Alle exportierten Objekte des Submodel werden automatisch importiert.
+   Der Text einer importierten Note wird neu abgfragt.)
+
+
+Submodel
+  - Auswahl eines Submodels aus Liste (oder durch mittlere Maustaste)
+  - oder durch Selektion eines bereits vorhandenen Submodels
+  
+Position,Orientation
+  <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
+
+[Scale]: Vergrösserungsmaßstab; Default ist 1
+
+
+Beispiele:
+# Internes Submodell "SM1", 45 Grad um Z-Achse gedreht, Scale=2
+M20="SM1" R(P(100 0) 45) VAL(2)
+
+
+
+____________________________________________________________________________
+<p><a name="F1"></a></p>
+<h2>M external Model</h2>
+Ein externes Submodel positionieren.
+  (Externe Submodels sind Modelfiles).
+  
+Submodel
+  - Auswahl eines Submodels aus Liste (oder durch mittlere Maustaste)
+  - oder durch Selektion eines bereits vorhandenen Submodels
+
+  Modelname: siehe <a href="CAD_Base_de.htm#symFnam">Symbolische Dateibezeichnungen.</a>
+
+
+Position,Orientation
+  <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
+
+[Scale]: Vergrösserungsmaßstab; Default ist 1
+
+
+Beispiel externes Model:
+M20="Data/Niet1.dat" R(P(100 0) DIY) VAL(0.5)
+
+Beispiel Mockup-Model:
+M21="Data/clocktwr.wrl" R(P(0 0 0) R20)
+
+
+Externe Modelle können dzt nur GCAD-Code oder Mockup-Modelle
+  (zB WRL STL, OBJ) beinhalten.
+Externe Modelle können dzt keine internen oder externen Submodelle beinhalten.
+
+
+
+____________________________________________________________________________
+<p><a name="F2"></a></p>
+<h2>M CatalogPart</h2>
+  
+Einen Katalogteil positionieren.
+  Siehe auch <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
+  Siehe auch <a href="Catalog_de.htm">Codes für Normteile</a>.
+  
+  
+CatalogPart
+  - Auswahl eines Katalogteil aus Liste (oder durch mittlere Maustaste)
+  - oder durch Selektion eines bereits vorhandenen Katalogteils.
+
+  Der CatalogPartname besteht aus Katalogname / Teilename; siehe <a href="Catalog_de.htm">Catalog</a>.
+
+
+Position,Orientation
+  <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
+
+[Scale]: Vergrösserungsmaßstab; Default ist 1
+
+
+  
+Beispiel Katalogteil:
+M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>

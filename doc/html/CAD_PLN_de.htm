@@ -1,0 +1,200 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_PLN_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<A HREF="CAD_using_en.htm">See operation function CAD ..</A>
+
+<h2>CAD-Funktionen für Ebene/Achsensystem:</h2>
+
+Ebenen / Achsensysteme benutzen den Kennbuchstaben R.
+
+Vordefinierte Ebenen sind:
+RZ             Basisebene XY (Z=0)
+RY             Ebene XZ      (Y=0)
+RX             Ebene YZ      (X=0)
+
+
+
+
+____________________________________________________________________________
+<p><a name="F0"></a></p>
+<h2>PLN Z-Axis [X-Axis]</h2>
+Ebene aus Z-Achse (Normalvektor),
+  optional Nullpunkt, X-Achse oder Punkt auf der X-Achse, Abstand auf Z-Achse.
+
+  [Origin]          optional: Nullpunkt
+  Z-Axis            DX oder DY oder DZ oder einen definierten Vektor definieren
+                    (die Z-Achse der neuen Ebene)
+  [X-Axis]          optional: die neue X-Achse; DX oder DY oder DZ
+                    oder einen definierten Vektor angeben
+                    oder ein Punkt auf der neuen X-Achse.
+  [offset Z-axis]   optional: den Abstand vom Nullpunkt der Ebene 
+                    (in Richtung Z-Achse / Normalvector) angeben.
+
+Beispiel:
+# Ebene normal auf die Z-Achse; mit Abstand.
+R1=PERP DZ 100
+# Ebene normal auf die Z-Achse; durch Punkt.
+R2=PERP P(50 0 100) DZ
+# Ebene im Punkt p1; normal auf absolute X-Achse;
+#   neue X-Achse in Richtung absolute Z-Achse;
+#   Abstand 10 in Richtung neuer Z-Achse.
+P1=P(100 0 0)
+R3=PERP P1 DX DZ 50
+
+# Ebene aus Nullpunkt, Normalvektor und einem Punkt auf der X-Achse der neuen Ebene
+R11=PERP P(100 100 100) D(0 0 1) P(100 101 100)
+
+R12=PERP P(100 150 0) D(ANG(90) ANG(45))
+
+<!--
+Ebene normal auf die X-Achse durch Eingabe eines Punktes oder des X-Abstandes.
+Ebene parallel zur Y-Z-Ebene; die neue X-Achse entspricht der 3D-Y-Achse,
+  die neue Y-Achse entspricht der 3D-Z-Achse.
+  Die neue Z-Achse entspricht der Hauptachse -X.
+  Die Ebene wird auf der X-Achse (Y=0, Z=0) dargestellt.
+
+Beispiel:
+R1=DX 100
+R2=DX P(100 0 0)
+R2=X(100)
+
+
+<p><a name="F1"></a></p>
+  <h2>PLN Y-normal</h2>
+Ebene normal auf die Y-Achse durch Eingabe eines Punktes oder des Y-Abstandes.
+Ebene parallel zur X-Z-Ebene; die neue X-Achse entspricht der 3D-X-Achse,
+  die neue Y-Achse entspricht der 3D-Z-Achse.
+  Die neue Z-Achse entspricht der Hauptachse -Y.
+  Die Ebene wird auf der Y-Achse (X=0, Z=0) dargestellt.
+
+Beispiel:
+R1=DY 100
+R2=DY P(0 100 0)
+R5=Y(100)
+
+
+<p><a name="F2"></a></p>
+  <h2>PLN Z-normal</h2>
+Ebene normal auf die Z-Achse durch Eingabe eines Punktes oder des Z-Abstandes.
+Ebene ist parallel zur X-Y-Ebene,
+  alle Achsenrichtungen sind hier gleich wie beim Hauptachsensystem RZ.
+  Der Abstand auf der Z-Achse wird angegeben.
+  Die Ebene wird auf der Z-Achse (X=0, Y=0) dargestellt.
+  
+Beispiel:
+R1=DZ 100
+R2=DZ P(0 0 100)
+R5=Z(100)
+
+
+<p><a name="F3"></a></p>
+  <h2>PLN PT  Z-Axis  [PT_X-Axis]</h2>
+Ebene aus <a href="CAD_Base_de.htm#P">Nullpunkt</a> Z-AchsVektor [X-Achs-Punkt]
+  Z-AchsVektor: der <a href="CAD_Base_de.htm#D">Normalvektor</a> der Ebene 
+  X-Achs-Punkt: ein Punkt auf der X-Achse der neuen Ebene;
+
+Beispiele:
+R10=P(100 100 100) DZ
+R11=P(100 100 100) D(0 0 1) P(101 100 100)
+R12=P154 D(ANG(90) ANG(45))
+R13=P(100 100 100) L(P(0 0 0) P(0 0 100))
+-->
+
+
+
+
+<p><a name="F1"></a></p>
+<h2>PLN X-Axis [Y-Axis]</h2>
+Ebene aus X-Achse,
+  optional Nullpunkt, Y-Achse oder Punkt auf der Y-Achse, Abstand auf Z-Achse.
+
+  [Origin]        optional: Nullpunkt
+  X-Axis          <a href="CAD_Base_de.htm#D">Vektor</a> oder Punkt auf der neuen X-Achse;
+  [Y-Axis]        optional: <a href="CAD_Base_de.htm#D">Vektor</a> oder Punkt in der neuen XY-Ebene.
+  [offset Z-axis] optional: den Abstand vom Nullpunkt der Ebene
+                  (in Richtung Z-Achse / Normalvector) angeben.
+
+
+Beispiel:
+# Nullpunkt, X-Achse, Y-Achse.
+R12=P(100 100 100) D(1 0 0) D(0 1 0)
+
+# Ebene/Referenzsystem durch drei 3D-Punkte;  R# = po, px, pt
+# po = der Nullpunkt,
+# px = ein Punkt auf der X-Achse der neuen Ebene,
+# pt = ein Punkt in der Ebene (der nicht in einer Linie mit po - px liegen darf).
+R4=P(100 100 100) P(101,100,100) P(100,101,100)
+
+R20=P(100 100 25) DX DY
+R10 = P(100 100 100) DZ
+R11 = P(100 100 100) D(0 0 1) P (101 100 100)
+R13 = P(100 100 100) L(P(0 0 0) P(0 0 100))
+
+
+
+
+<p><a name="F2"></a></p>
+<h2>PLN PT  Plane</h2>
+Ebene/Referenzsystem verschieben (die Achsrichtungen bleiben)
+  optional neuer Nullpunkt, Abstand des neuen Nullpunktes auf der Z-Achse.
+
+
+  [Origin]        optional: der neue Nullpunkt
+  Refsys          Ebene - diese Ebene wird verschoben
+  [offset Z-axis] optional: der Abstand vom Nullpunkt der Basisebene
+                  (in Richtung Z-Achse / Normalvector)
+
+
+
+Beispiel:
+R21=P(100 100 50) R20
+R21=R20 10
+
+
+
+
+
+<!--
+<p><a name="F6"></a></p>
+  <h2>PLN PT  PT  PT</h2>
+Ebene/Referenzsystem durch die drei 3D-Punkte po px pt;
+  po = der <a href="CAD_Base_de.htm#P">Nullpunkt</a>,
+  px = ein Punkt auf der X-Achse der neuen Ebene,
+  pt = ein Punkt in der Ebene (darf nicht in einer Linie mit po - px liegen)
+
+Beispiel:
+R4=P(100 100 100) P(101,100,100) P(100,101,100)
+-->
+
+
+____________________________________________________________________________
+<h2>MAN-Funktionen für Ebene/Achsensystem (weitere Funktionen):</h2>
+
+Ebene parallel zur X-Y-Ebene, alle Achsenrichtungen sind hier gleich wie
+  bei der Hauptachse. Der Abstand auf der Z-Achse wird angegeben.
+  R = Z(Z_Abstand)
+R5=Z(100)
+
+
+Ebene parallel zur Y-Z-Ebene; die neue X-Achse entspricht der 3D-Y-Achse,
+  die neue Y-Achse entspricht der 3D-Z-Achse. Die neue Z-Achse entspricht der Hauptachse -X.
+  R = X(X_Abstand)
+
+
+Ebene parallel zur X-Z-Ebene; die neue X-Achse entspricht der 3D-X-Achse,
+  die neue Y-Achse entspricht der 3D-Z-Achse.
+  Die neue Z-Achse entspricht der Hauptachse -Y.
+  R = Y(Y_Abstand)
+
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>

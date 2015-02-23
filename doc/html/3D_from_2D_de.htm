@@ -1,0 +1,222 @@
+<HTML>
+<HEAD>
+  <TITLE>3D_from_2D_de.htm</TITLE>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+  <meta name="date" content="2011-05-14T11:35:32+0200">
+  <style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Dokumentation Anwendung 3D_from_2D</h2>
+
+Die Anwendung ermöglicht das Erzeugen von 3D-Kurven durch Selektion von
+  Punkten auf Pixelbildern.
+Aus den 3D-Kurven können mit CAD-Standardfunktionen 3D-Flächen erzeugt werden.
+Es sind 1 oder 2 oder 3 Ansichtsbilder erforderlich.
+Die Ansichtsbilder (Formate .jpg oder .bmp) sollten eine Asicht von oben
+und / oder eine seitliche Ansicht oder eine Ansicht von vorne darstellen.
+
+
+<b>Programmaufruf:</b>
+    Starten der UserApplikation "3Dfrom2D"
+     - in der Liste der Zusatzanwendungen selektieren oder
+     - wenn Applikation zuvor aktiv war: starten mit Strg-P.
+
+<b>Beenden der Applikation:</b>
+  Schaltfläche "Exit"  oder Strg + Esc.
+  Es werden alle Daten an das CAD-Modell übergeben.
+
+
+________________________________________________________________
+
+Setup:
+  Draufsicht / Seitenansicht / Vorderansicht
+  Scale
+  Offset
+  Angle
+  X-lines
+  Y-lines
+  Z-lines
+
+
+2D to 3D:
+  import CAD-point
+  import CAD-plane
+  Point
+  Polygon
+  Spline
+  Circle                   noch nicht implementiert
+  Plane
+
+
+3D
+  Delete
+  MirrXZ
+  MirrYZ
+
+
+
+________________________________________________________________
+<h2>Setup:</h2>
+
+Vorarbeiten:
+  - Bilder (jpg's) von ein, zwei oder 3 Rissen.
+  - Fotos müssen entzerrt werden
+    Bearbeiten der Bilder zB mit Gimp:
+    - Entzerren mit: Werkzeuge/Transformation/Perspektive
+    - Zuschneiden mit: Werkzeuge/Transformation/Zuschneiden
+  - 90-Grad Drehungen sollten mit dem Bildbearbeitungsprogramm gemacht werden
+    Gimp: Bild/Transformation/um 90 Grad drehen
+  - Sehr große Fotos (mehr als 4000 Pixel - abhängig von der Grafikkarte)
+    sollten mit einem Bildbearbeitungsprogramm verkleinert werden.
+
+
+  <b>Draufsicht / Seitenansicht / Vorderansicht</b>
+    Definition der Bilder (Auswahl aus Dateiliste).
+    Draufsicht: enthält horizontale X-Achse, vertikale Y-Achse.
+    Seitenansicht: enthält horizontale X-Achse, vertikale Z-Achse.
+      Liegt oberhalb der Draufsicht.
+    Vorderansicht: enthält horizontale Z-Achse, vertikale Y-Achse.
+      Liegt rechts neben der Draufsicht.
+  
+    ^ Z                 
+    |-----+            
+    |Seite|    X       
+    +-----+---->       
+
+    ^ Y                ^ Y
+    |-----+            |------+
+    |Drauf|    X       |Vorder|    Z
+    +-----+---->       +------+---->
+  
+    Nach der Definition der Ansichtsbilder müssen die Nullpunkte der
+    drei Basisachsen definiert werden -
+    - in die Ansichtsbilder klicken,
+      nochmals klicken zur Definition horizontal oder vertikal.
+    Es werden die Basisebenen als rote Linien angezeigt.
+  
+  
+  <b>X-lines</b>
+    Erzeugen von ein oder zwei horizontalen Hilfslinien in
+    Draufsicht oder Seitenansicht.  Esc = letzte löschen.
+  
+  
+  <b>Y-lines</b>
+    Erzeugen von ein oder zwei vertikalen Hilfslinien in
+    Draufsicht oder Seitenansicht.  Esc = letzte löschen.
+  
+  
+  <b>Z-lines</b>
+    Erzeugen von ein oder zwei Hilfslinien in
+    Seitenansicht oder Vorderansicht.  Esc = letzte löschen.
+
+
+  <b>Scale</b>
+    Selektieren Sie das zur Ansicht gehörige Eingabefenster;
+      verändern der Werte mit den Cursortasten hinauf / hinunter.
+  
+  
+  <b>Offset</b>
+    Selektieren Sie das zur Ansicht gehörige Eingabefenster;
+      verändern der Werte mit den Cursortasten links / rechts oder
+      hinauf / hinunter.
+  
+  
+  <b>Angle</b>
+    Selektieren Sie das zur Ansicht gehörige Eingabefenster;
+      verändern der Werte mit den Cursortasten links / rechts.
+  
+  
+
+________________________________________________________________
+<h2>2D to 3D:</h2>
+  Erzeugen von Objekten. Diese werden im 2D-Raum angezeigt und
+  beim Verlassen der Applikation in den 3D-Raum kopiert.
+
+
+  <b>import CAD-point</b>
+    Erzeugt 2D-Punkte von Punkten oder Endpunkten von Kurven.
+    Diese können dann zum Erzeugen von Kurven benutzt werden.
+    Selektieren sie einen CAD-Punkt oder eine CAD-Kurve.
+
+
+  <b>import CAD-plane</b>
+    Erzeugt 2D-Ebenen von 3D-CAD-Ebenen. 
+    Diese kann dann zum Erzeugen von Kurven benutzt werden.
+    Selektieren sie eine CAD-Ebene.
+
+
+  <b>Plane</b>
+    Erzeugen Sie zuerst alle Ebenen, auf denen Kurven oder
+      gemeinsame Punkte liegen
+    Ebenen werden als rote Linien dargestellt.
+    Erzeugen einer Ebene durch Selektion von 2 Punkten in einer Ansicht;
+      der zweite Punkt dient zur Definition horizontal oder vertikal.
+    Draufsicht    - horizontal:  eine X-Z-Ebene.
+    Draufsicht    - vertikal:    eine Y-Z-Ebene.
+    Seitenansicht - horizontal:  eine X-Y-Ebene.
+    Seitenansicht - vertikal:    eine Y-Z-Ebene.
+    Vorderansicht - horizontal:  eine X-Z-Ebene.
+    Vorderansicht - vertikal:    eine X-Y-Ebene.
+    Esc löscht zuletzt erzeugten Ebene.
+
+
+  <b>Point</b>
+    Sollen mehrere Kurven einen gemeinsamen Punkt benutzen, sollte
+      zuerst der Punkt erzeugt werden; diesen Punkt dann
+      beim Erzeugen der Kurve benutzen.
+    Selektieren Sie den Punkt in 2 verschiedenen Ansichten.
+    Wenn der Punkt auf einer Ebene liegt, selektieren Sie die Ebene
+      für die zweite Ansicht (2D-Ebene oder CAD-Ebene).
+    Esc löscht zuletzt erzeugten Punkt.
+
+
+  <b>Polygon</b>
+  <b>Spline</b>
+    Selektieren Sie alle Punkte der Kurve in einer Ansicht, dann
+      (in verkehrter Reihenfolge) in einer anderen Ansicht. 
+    Esc löscht den zuletzt selektierten Punkt.
+    Wenn ein Punkt außerhalb eines Fotos liegt: die Position auf der
+    entsprechenden Höhe im zugehörigen Foto anzeigen.
+    Wenn ein Punkt auf einer Ebene liegt, sollte die Ebene selektiert werden.
+    Wenn die gesamte Kurve aus einer Ebene liegt, selektieren Sie die Ebene
+      für die zweite Ansicht (2D-Ebene oder CAD-Ebene).
+
+  
+  <b>Circle</b>     noch nicht implementiert
+  
+  
+________________________________________________________________
+<h2>3D:</h2>
+  Voranzeige aller bisher erzeugten Objekte im 3D-Raum.
+
+
+  <b>Delete</b>
+    Löschen von 2D-Objekten.
+    Selektieren Sie das Objekt.
+  
+  
+  <b>MirrXZ</b>
+    Spiegeln eines Objekts um die X-Z-Ebene.
+    Selektieren Sie das Objekt.
+  
+  
+  <b>MirrYZ</b>
+    Spiegeln eines Objekts um die Y-Z-Ebene.
+    Selektieren Sie das Objekt.
+
+
+
+
+________________________________________________________________
+Senden Sie Fehlerberichte, Verbesserungsvorschläge an
+support@gcad3d.org
+
+________________________________________________________________
+
+
+
+</PRE>
+</HTML>

@@ -1,0 +1,136 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_LN_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+<h2>CAD-Funktionen Linien</h2>
+
+
+siehe auch <a href="CAD_Base_de.htm#L">Codes Linien</a>
+siehe auch <a href="CAD_Base_de.htm#L_Copy">Linie aus Kopierfunktion</a>
+
+Linien benutzen den Kennbuchstaben L ("Line").
+
+
+
+
+
+<p><a name="F0"></a></p>
+  <h2>LN PT  PT</h2>
+Linie zwischen 2 <a href="CAD_input_de.htm#_PT_">Punkten</a>
+
+  Startpt           <a href="CAD_input_de.htm#_PT_">Startpunkt</a> der Linie.
+  Endpt             <a href="CAD_input_de.htm#_PT_">Endpunkt</a> der Linie.
+  [unlimited]       <a href="CAD_input_de.htm#_ModUNL_">begrenzt / unbegrenzt</a>
+
+Beispiel:
+L1=P1 P(100 100)
+
+
+
+<p><a name="F1"></a></p>
+  <h2>LN parallel</h2>
+Linie parallel zu Linie / Vektor, durch einen Punkt.
+  Der Punkt kann verschoben werden.
+
+  Direction         Richtung der Linie als <a href="CAD_input_de.htm#_Vec_">Vektor</a>
+  [BasePoint]       ein <a href="CAD_input_de.htm#_PT_">Punkt</a> der Linie.
+  [X-offset]        <a href="CAD_input_de.htm#_DistX_">X-Abstand</a> vom Punkt
+  [Y-offset]
+  [Z-offset]
+  [unlimited]       <a href="CAD_input_de.htm#_ModUNL_">begrenzt / unbegrenzt</a>
+
+Beispiel:
+# parellel zur X-Achse, mit Y-Offset:
+L2=DX Y(10)
+
+
+
+<p><a name="F2"></a></p>
+  <h2>LN PT Direct. [Length,Rot.Angle,TiltAngle]</h2>
+Linie durch Punkt, parallel zu Vektor (Linie);
+   gedreht in der Konstuktionsebene oder normal dazu.
+
+  Point             ein <a href="CAD_input_de.htm#_PT_">Punkt</a> der Linie.
+  Direction         Richtung - <a href="CAD_input_de.htm#_Vec_">Vektor</a>
+  [Length]          Länge, optional.
+  [Angle-Rot.]      <a href="CAD_Base_de.htm#ANGR">Drehwinkel</a> in der Konstruktionsebene
+  [Angle-Tilt]      <a href="CAD_Base_de.htm#ANGT">Kippwinkel</a> normal zur Konstruktionsebene
+  [unlimited]       <a href="CAD_input_de.htm#_ModUNL_">begrenzt / unbegrenzt</a>
+
+
+Beispiele:
+Linie durch Punkt mit fixem Winkel
+L3=P1 ANG(45)
+
+Linie durch Punkt parallel zu Linie L1
+L4=P1 D(L1)
+
+Linie durch P1 parallel zu L1 90 Grad in der Konstruktionsebene gedreht:
+L4=P1 D(L1) ANG(90)
+
+
+
+<p><a name="F3"></a></p>
+  <h2>LN LN Dist.          (parall)</h2>
+Linie parallel zu Linie mit Abstand.
+
+  parall to Line   Basislinie (Richtung)
+  Dist.            Normalabstand der Line von der Basislinie
+  [Position]       keine Angabe: links;
+                   1, 2 seitlich rechts / links; 3, 4 oben / unten
+
+Beispiel:
+Parallel zu L1, im Abstand 10, Seite oben:
+L8=L1 VAL(10) MOD(3)
+
+
+
+<p><a name="F4"></a></p>
+  <h2>LN LN LN [Rotate Tilt] (mid)</h2>
+Linie als Mittellinie / Winkelhalbierende, zusätzlich drehen.
+  Die Linie geht als Winkelhalbierende durch den Schnittpunkt;
+  ist bei parallelen Linien eine Mittellinie.
+
+  Line 1            Linie 1
+  Line 2            Linie 2
+  [Angle-Rot.]      <a href="CAD_Base_de.htm#ANGR">Drehwinkel</a> in der Konstruktionsebene
+  [Angle-Tilt]      <a href="CAD_Base_de.htm#ANGT">Kippwinkel</a> normal zur Konstruktionsebene
+
+Beispiel:
+Linie als Winkelhalbierende von L1, l2
+L9=L1 L2
+
+Linie als Winkelhalbierende, um 90 Grad gedreht
+L9=L1 L2 ANG(90)
+
+
+
+<p><a name="F5"></a></p>
+<h2>LN tangent to line/circ/curve",            "TNG"</h2>
+Es wird eine tangentiale Line an 2 lineare Objekte erzeugt.
+Eingabeobjekte können sein:
+ Punkte, Kreise, Kurven.
+
+Wenn ein Objekt eine Linie oder ein Vektor ist:
+  Tangente mit fixer Richtung erzeugen (parallel zu Linie/Vektor).
+
+
+Beispiel:
+# Line tangential an Kreis, parallel zu Linie.
+L1=C1 D(L1) MOD(1)
+
+# Linie tangential an 2 Kreise
+L5=C1 C2 MOD(1)
+
+
+
+</PRE>
+</HTML>

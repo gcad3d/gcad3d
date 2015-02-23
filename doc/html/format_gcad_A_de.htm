@@ -1,0 +1,281 @@
+
+
+
+
+<HTML>
+<HEAD>
+  <TITLE>CAD_Base_de.htm</TITLE>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+  <meta name="description" content="gCAD3D-Format-Spezifikation">
+  <meta name="keywords" content="3D CAD-Format Spezifikation">
+  <meta name="date" content="2011-11-28T10:46:45+0100">
+  <meta name="author" content="Franz Reiter">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<h2>
+<B>NOT UP_TO_DATE; use ../doc/html/format_gcad_A_en.htm</B>
+</h2>
+
+____________________________________________________________________________
+<p><a name="A"></a></p>
+<h2>Flächen</h2>
+Kennbuchstabe der Flächen ist A (Area).
+____________________________________________________________________________
+
+siehe auch <a href="CAD_SUR_de.htm">CAD-Funktionen Flächen</a>
+
+
+
+Unbegrenzte Flächen:
+  <a href="#KF">Kugelfläche</a>
+  <a href="#ZF">Zylinderfläche</a>
+  <a href="#RF">Rotationsfläche</a>
+  <a href="#RS">Regelfläche</a>
+  <a href="#FF">Freiformfläche</a>
+
+Begrenzte <a href="#PF">planare Fläche</a> mit Inseln:
+- Erzeugen der Aussenrandkurve
+- Optional: erzeugen der Inseln (Löcher)
+- begrenzte planare Fläche erzeugen aus Aussenrandkurve [Inseln]
+
+
+Begrenzte <a href="#TSF">Fläche auf Stützfläche</a> mit Inseln:
+- Erzeugen der Aussenrandkurve
+- Optional: erzeugen der Inseln (Löcher)
+- Erzeugen der Stützfläche (supporting surface, unbegrenzt)
+- begrenzte Fläche erzeugen aus Stützfläche, Aussenrandkurve [Inseln]
+
+
+<a href="#HAT">Schraffierte Fläche</a>
+
+
+Flächen für Mockup-Modelle:
+  <a href="#RCIR">Fächerfläche</a>
+  <a href="#RSTRIP">Streifenfläche</a>
+
+
+
+
+
+____________________________________________________________________________
+<a name="PF"></a>
+<b>Standardformate Planare Fläche:</b>
+
+  Planare Fläche, getrimmt, ungelocht oder gelocht:
+  A = Randkurve [Inseln ...]
+  Randkurve, Inseln: ein Kreis, eine Ellipse, ein geschlossener B-Spline oder
+    eine geschlossene CCV (S=CCV ..).
+
+# Beispiel Planare Fläche:
+P20=P(-120 -160)
+# Die Randkurve:
+S20=CCV P20 P(233 -186) P(223 -95) P(104 -81) P(135 134) P(-122 162) P20
+# die planare Fläche:
+A20=S20
+
+
+# Kreisfläche mit Insel:
+C29=P(-252.2 -580.9 0) VAL(12)
+C28=P(-255.9 -606.8 0) VAL(66)
+A20=C28 C29
+
+
+
+
+
+
+<a name="RS"></a>
+<b>Standardformate Regelfläche:</b>
+
+  Ruled Surface aus zwei Grundelementen (PT/LN/AC/CV)
+  A#=SRU Objekt1 Objekt2
+L20=P(0 -10 20) P(0 10 20)
+C20=ARC P(0 -10) P(0 10) P(0 0)
+A20=SRU C20 L20
+
+
+  Ruled Surface aus Grundelement und Vektor:
+L30=P(0 -10 20) P(0 10 20)
+D30=D(10 10 60)
+A30=SRU L30 D30
+
+
+
+<a name="ZF"></a>
+<b>Standardformate Zylinderfläche:</b>
+
+A = CYL Achse Radius drehWinkel1 drehWinkel2 Hoehe1 Hoehe2
+  Achse        Linie od Kreis od Ebene od PT+PT od PT+LN od PT+VC
+  Radius        KeyIn Radius oder Punkt.
+  drehWinkel1  KeyIn Startwinkel (Def = 0) oder Punkt.
+  drehWinkel2  KeyIn Endwinkel (Def = 360) oder Punkt.
+  Hoehe1      KeyIn Hoehe (ab position; Def = 0) oder Punkt.
+  Hoehe2      KeyIn Hoehe (ab position) oder Punkt.
+
+R22=P(105 129.2 0) D(1 1 1)
+A22=CYL R22 12 0 360 0 30
+
+
+
+<a name="KF"></a>
+<b>Standardformate Kugelfläche:</b>
+
+A = SPH Achse Radius [drehWinkel1 drehWinkel2 [HoeheWinkel1 HoeheWinkel2]]
+  Kugelflaeche; Parameter wie Zylinderflaeche.
+  Achse       Linie od Kreis od Ebene od PT+PT od PT+LN od PT+VC
+  Radius       KeyIn Radius oder Punkt.
+  drehWinkel1  KeyIn Startwinkel (Def = 0) oder Punkt.
+  drehWinkel2  KeyIn Endwinkel (Def = 360) oder Punkt.
+  HoeheWinkel1 KeyIn Startwinkel (Def = 0) oder Punkt.
+  HoeheWinkel2 KeyIn Endwinkel (Def = 180) oder Punkt.
+
+P20=P(68 68.9 0)
+A21=SPH R(P20) 12
+
+
+
+
+<a name="RF"></a>
+<b>Standardformate Rotationsfläche:</b>
+
+  A= SRV Achse [Kontur drehWinkel1 drehWinkel2 [Hoehe1 Hoehe2]]
+  Achse        Linie od Kreis od Ebene od PT+PT od PT+LN od PT+VC
+  Kontur       Linie, Kreis od. B-Spline.
+  drehWinkel1  KeyIn Startwinkel (Def = 0) oder Punkt.
+  drehWinkel2  KeyIn Endwinkel (Def = 360) oder Punkt.
+  Hoehe1       KeyIn Startparameter (Def = 0.) oder Punkt.
+  Hoehe2       KeyIn Endparameter (Def = 1.) oder Punkt.
+  
+  Der Startpunkt des Konturelementes liegt in Winkelposition 0 Grad;
+  die Drehrichtung ist CCW.
+
+L20=P(20 0) P(20 20)
+L21=P(50 0) P(40 20)
+A20=SRV L20 L21 270 0
+
+
+
+<a name="FF"></a>
+<b>Standardformate Freiformfläche (B-Spline-Fläche):</b>
+A#=BSP,pt1Nr,pt2Nr,degree1,degree2,controlpoints,knotvector1,knotvector2
+  pt1Nr = Anzahl von Kontrollpunkten in Richtung 1
+  pt2Nr = Anzahl von Kontrollpunkten in Richtung 2
+  degree1 = Grad der B-Splinekurven in Richtung 1
+  controlpoints: die Kontrollpunkte; Anzahl = pt1Nr * pt2Nr, 3 Werte (X/Y/Z).
+  knotvector1: die Abstandsparameter fuer Richtung 1; Anz. = pt1Nr + degree1 + 1
+
+
+
+
+<a name="TSF"></a>
+<b>Fläche auf Stützfläche mit Inseln:</b>
+
+  Formate:
+  A = FSUB Stützfläche Randkurve [Inseln ...]
+    
+  Stützfläche:
+    Es ist immer eine Stützfläche erforderlich.
+    kann sein: Regelfläche (SRU) oder B-Splinefläche (BSP) oder
+    Fläche auf Kegel (konisch) oder Fläche auf eine Solid-körper (B=CON ..) oder
+    Fläche auf Torus (Kreisring; B=TOR ..).
+  
+  Randkurve, Inseln:
+    ein Kreis, eine Ellipse, ein geschlossener B-Spline oder
+    eine geschlossene CCV (S=CCV ..).
+    Die Randkurve muss sich auf der Stützfläche befinden.
+    Ist die Aussenkontur mit der Begrenzung der Stützfläche ident,
+    kann die Stützfläche auch als Randkurve angegeben werden.
+  
+  A = FSUB A S             // Stützfläche  (SRU, BSP) getrimmt
+  A = FSUB A S S           // Stützfläche  getrimmt und 1 Loch
+  A = FSUB A A S           // Stützfläche nicht getrimmt, 1 Loch
+  
+  A = FSUB B               // Konus od. Torus (unbegrenzt, ungelocht)
+  A = FSUB B S             // getrimmt
+  A = FSUB B S S           // getrimmt, gelocht
+  A = FSUB B B S           // ungetrimmt, gelocht
+  
+# Beispiel Konusfläche:
+P20=P(100 0 0)
+P21=P(200 0 0)
+P22=P20 Y(120)
+P23=P21 Y(60)
+P24=P20 P22 ANG(135) DX
+P25=P21 P23 ANG(135) dx
+C20=ARC P23 P25 P21 dx
+C21=ARC P22 P24 P20 dx
+# Der Grundkörper:
+B20=CON C21 C20
+# Die Randkurve:
+S20=CCV P23 P22 C21 P24 P25 C20 P23
+# Die Konusfläche:
+A20=FSUB B20 S20
+#
+
+
+
+<a name="RCIR"></a>
+<b>Fächerfläche</b>
+
+  Kreisähnliche Fläche aus 3 - n Punkten;
+  Vom ersten Punkt gehen alle Strahlen aus (zB Kreismittelpunkt).
+  A#=RCIR,P#,P#,P#<,P#>
+  
+P20=P(5, -2)
+P21=P(9, -1)
+P22=P(8, 3)
+A20=RCIR,P20,P21,P22,P(4 3)
+
+
+
+<a name="RSTRIP"></a>
+<b>Streifenfläche</b>
+
+  Streifenförmige Fläche aus 1-n Streifen.
+
+  A#=RSTRIP,ptNr,P#,P#,P#<,P#>
+  Jeder Streifen besteht aus zwei Reihen von je {ptNr} Punkten.
+  Mindestanzahl von Punkten ist 2 * ptNr.
+  Für 2 Streifen sind (3*ptNr) Punkte erforderlich.
+
+P20=P(2 0)
+P21=P(4 0)
+P22=P(6 0)
+P23=P(8 0)
+
+P30=P(2 0 5)
+P31=P(4 1 5)
+P32=P(6 1 5)
+P33=P(8 0 5)
+
+A21=RSTRIP,4, P20,P21,P22,P23, P30,P31,P32,P33
+
+
+
+<a name="HAT"></a>
+<b>Schraffierte Fläche:</b>
+
+  Schraffur / Hatch:
+  A# = HAT Kontur Abstand Richtung
+  Richtung = Schraffurwinkel in Grad
+
+P20=P(-500 500)
+S21=CCV P20 P(400 900) P(400 300) P20
+A20=HAT S21 VAL(50) VAL(45)
+
+
+  Derzeit noch keine Import / Export - Funktion für Schraffuren.
+  Derzeit noch keine Funktion für gelochte Schraffuren.
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

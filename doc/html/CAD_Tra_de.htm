@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Tra_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+
+<h2>CAD-Funktionen zur Definition von Transformationen:</h2>
+
+
+siehe auch <a href="CAD_Modify_de.htm#F2">CAD-Funktionen zum Benutzen von Transformationen</a>
+siehe auch <a href="CAD_Base_de.htm#T">Codes für Transformationen</a>
+
+Transformationen benutzen den Kennbuchstaben T
+
+____________________________________________________________________________
+
+Funktionen zur Definition einer Transformation:
+
+<a name="F0"></a>
+  <h2>TRafo transl</h2>
+Definition einer Verschiebung (Translation)
+  (Anwendung mit den <a href="CAD_Modify_de.htm">Modify-Funktionen</a>)
+
+T=TRA TranslationsRichtung [Vektorlänge]
+  <a href="CAD_Base_de.htm#D">TranslationsRichtung</a>
+
+Beispiel:
+T20=DZ VAL(100)
+# Translation in Richtung Z um 100 mm
+
+
+
+<a name="F1"></a>
+  <h2>TRafo rot        ROT</h2>
+Definition einer Rotation
+  (Anwendung mit den <a href="CAD_Modify_de.htm">Modify-Funktionen</a>)
+
+T=ROT DrehAchse DrehWinkel
+  <a href="CAD_Base_de.htm#D">DrehAchse</a>: Punkt und Vektor ("P20 DZ") oder Line ...
+  DrehWinkel: in Grad
+
+Beispiel:
+T20=ROT L20 ANG(30)
+# Definition einer 30-Grad-Rotation um Linie L20
+
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>

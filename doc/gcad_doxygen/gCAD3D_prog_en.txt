@@ -1,0 +1,1765 @@
+NOT UP-TO-DATE (see german version)
+
+
+Programming information for gCAD3D 2004-10-10 As translated (very roughly 
+indeed!) from the original German by David Burke ( davidrjburke <at> 
+hotmail.com) available in Ver. 0.86 Release
+
+This is Version 0.0.3, 24th of October 2004 with permission of the Copyright 
+holder.
+Please note: I have tried to keep this file line for line synced with the 
+original German one so compare the two if my translation is wrong and send 
+me a snippet of your translated piece with line numbers for possible 
+inclusion. (Note well: Use at own risk!!)
+
+
+
+
+Author:
+  Franz Reiter and others
+  franz.reiter@cadcam.co.at
+  http://www.gCAD3D.org
+
+
+Licese:
+  gCAD3D is freeware
+  may be used for any purposes free of costs
+  may be copied and distributed without restrictions
+  no restrictions for AddOn-Software (Plugins, DDL's)
+
+
+  THERE IS NO WARRANTY FOR THE PROGRAM.
+  THE ENTIRE RISK IS WITH YOU.
+
+
+
+
+
+
+
+=================================================================
+contents:
+
+Listings
+Startup/debugging
+Userprograms/Plugins
+  function mode
+  fuction structure
+  function dialogue
+  functions user interactions
+  object generatation
+  object delete
+  Subroutine handling
+  graphical attributes
+  objects analysis
+  output functions
+  basic functions
+  global data fields
+MEMORY functions
+Data models
+
+
+
+
+
+=================================================================
+Listings:
+=================================================================
+
+
+tmp 			temp-files;  is created in $HOME.
+
+doc 			documentation files
+xa 			main source files,makefiles, documentation.
+gr 			OpenGL driver, DispList
+ci 			Command interpreter
+gtk 			gtk-toolBox
+ut 			Geometry utilities (basic functions)
+dat 			sample models
+
+
+
+Files in $HOME/tmp:
+tmp/xa.rc           settings
+tmp/xa.apt          model-backupfile
+tmp/view.dat        last Viewer-settings, binary
+
+
+
+
+
+
+
+===============================================================
+Startup/debugging
+===============================================================
+
+----------------
+Setup files:
+----------------
+
+<base>/xa/psv.setup
+  The setup file for the Postscript interpreter.
+
+<base>/xa/xa.rc
+GTK resources file.  Fontgroesse..
+
+< base>/xa/gCAD3D.rc
+  currently only z-Buffersize.
+
+< base>/tmp/xa.rc
+  Div. pre-setting (print command, Browser).
+  With program stop one overwrites.
+
+< base>/tmp/Model *
+  The CAD Model worked on last.
+  With program stop one overwrites.
+
+
+
+
+The automatic Startup model delete: ??
+  rm../tmp/Model *
+
+
+When starting the following parameters can be indicated:
+new		// init Modelspace
+load		// load Model;  file name is the following parameter.
+igi		// Iges import;  file name is the following parameter.
+exit		// normal
+
+program stop (with secure) not defined parameters are interpreted as DDL 
+which can be started.
+Example:
+gCAD3D new load../dat/sample_area_pln1.dat test DLL
+(load Model../dat/sample_area_pln1.dat, then testDLL.so start).
+
+
+
+
+-----------------
+Startup-process:
+-----------------
+If directory <base>/tmp does not exist, it is created.
+File <base>/tmp/xa.rc is created (print-command, default directory, ..)
+The list of plugins is created (ls  <base>/xa/*.so > <base>/tmp/Dll.lst)
+Modelfile <base>/tmp/Model is loaded.
+  Install: cp <base>/dat/xx.dat <base>/tmp/Model
+  There is a bug if no startup-model exists; select button AxoView, stop
+  (tmp/Model is written) and restart).
+
+
+
+
+------------
+Debugging:
+------------
+Debug DLL:
+  In file../.gdbinit write:
+    break AP_debug_dll _
+    (before each DLL call, OS_debug_dll_() is called).
+  start gCAD3D with the debugger
+    gdb../gCAD3D
+    activating you the debug DLL.
+    If debugger stops now, the debug DLL is loaded;  with e.g.
+    break dll_func_name
+    can be stopped the debugger then in the desired DLL routine.
+
+Debug main module:
+  At the end of the Startup Function  AP_debug__() called (= stop in 
+Debug-Mode)
+    (in gdbinit is to stand:  "BREAK AP_debug __")
+AP_debug __ is also called with key sequence alt SHIFT x.
+
+
+
+Starting parameters for debugging purposes:
+comp		// activate check box "compile DLL's"
+crashEx		// Sofortausstieg - without
+AP_test		// run func. AP_test__() call of Func.
+
+
+call of function AP_test __ also by the key sequence CTRL + SHIFTS + T
+call of function crashEx also by the key sequence CTRL + SHIFTS + X
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:  	Function mode
+===============================================================
+
+
+At the beginning of the program all DLL's (so Files) in the listing is 
+looked for
+  xa and indicated in the menu.
+  (cd xa;  LS * so)
+
+
+Selection of a menu line implies:
+  - unload momentarily active DLL (call of (int)gCad_fini())
+  - compile and link of the selected DLL (the Makefile of the same name is 
+implemented;
+    Options/compileDLL in addition activate).
+  - shop of the again generated DLL (dlopen)
+  - start of the user program (call of (int)gCad_main())
+
+
+User programs can again be linked and loaded thus automatically at run-time.
+
+
+
+Activate/deactivate the automatic compiling/link procedure:
+  Menu option "option/compile DLLs" activate.
+
+  See sample programs DemoPlugin*.c.
+
+
+
+Deactivate the programs by deletion of the associated so-files
+  (rm DemoPlugin_Create.so).
+
+
+The first link procedure must be started manually;  only already existing 
+DLL's
+  (so-Files) is indicated.
+  (make fDemoPlugin_xxx.mak)
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:  Structure of function
+===============================================================
+
+The program must contain the at least following functions:
+
+// myProg.c:
+int gCad_main () { }	// with the program start called
+int gCad_fini () { }	// when unloading the DLL one calls.
+
+
+Link job provide:
+  cp DemoPlugin_Hili.mak myProg.mak
+  In myProg.mak now "DemoPlugin_Hili" through "myProg" replace.
+
+  The link job with first time manually start through:
+  make f myProg.mak
+  (it myProg.so produced).
+
+
+  gCAD3D now start again; in user program list right down can be started now 
+myProg.
+  To the dynamic Compile&Link Options/Compile must be activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:  		Dialogue functions
+===============================================================
+
+  Information text in the info. window of the main program spend:
+  void TX_Print (char * txt...);
+
+  Error message in the info. window of the main program spend (with BEEP):
+  void TX_Error (char * txt...);
+
+
+
+
+
+  // Example:
+  TX_Print("Prog. myProg:  Run No. %d", iNr);
+
+
+  Own dialogue windows with gtk directly or the functions of the gtk Toolbox
+  (gtk/ut_gtk.h).  Examples for it gtk/tst_*.c.
+
+
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:  		User interactions
+===============================================================
+
+
+  It know the keyboard entries and the selection events of 
+application-Prague-ram to
+  be requested.
+
+
+
+
+  // Definiton of the prototypes for the input functions:
+  int  my_selection_callback (int src, long dl_ind);
+  int my_keyIn_callback (key int);
+
+
+  // Selection events on own function reroute
+  AP_UserSelection_get(my_selection_callback);
+
+
+  // Keyboard entries on own function reroute
+  AP_UserKeyIn_get (my_keyIn_callback);
+
+
+  // Return of the keyboard entries to the main program
+  AP_UserKeyIn_reset ();
+
+
+  // Return of the selection function to the main program
+  AP_UserSelection_reset ();
+
+
+  // Function for the receipt of the selection.  One supplies:
+  // src - which mouse button (TYP_EvMouseL = links)
+  // dl_ind - the index of the selected object in the display list.
+  		Index -1 = no object selected.
+  int my_selection_callback (int src, long dl_ind) {
+    if(src != TYP_EvMouseL) return 0;  // skip all but left mousebutton.
+    if(dl_ind < 0) return 0;           //skip indicate..
+  }
+
+
+
+  // function for the receipt of the keyboard entries.
+  int my_keyIn_callback (key int) {
+    if(key == ' q ')..
+  }
+
+
+
+
+
+
+=================================================================
+  Object 		Generation
+=================================================================
+
+
+  All information (geometry and treatment of numerical controls) exclusively
+  as ASCII texts are stored and in the Editor represented.
+
+
+  The processing of these instruction codes ("RUN") generates entries in
+  the Database (DB) and/or in the display list (DL).
+
+
+  All entries of the DL are handed over at OpenGL (represented).
+
+
+  All objects, which are to be represented, receive an entry in the DL.
+    The DL entries can be queried with DL_GetAtt, one receive thereby the
+    type of object, the index and count.  Attributes.
+    The DL-Index is sequentially assigned (see GL_GetActInd).
+
+
+  Of objects, which are stored in the Database, can from the railways 
+geometr. ?????
+  Characteristics to be queried (see DB_GetObjGX).
+
+
+  Permanent objects are stored in the Database.
+    With each program run ("RUN") by each object a DB entry and a DL entry 
+are produced.
+    Example:  "P12=100 100" in the Editor produces a
+    permanent object point with the index 12.
+
+
+
+  Dynamic objects are likewise stored in the DB and in the DL;
+    the DB-Index is however sequentially assigned.
+    Geometry characteristics can be queried from the DB.
+    Dynamic objects are deleted with RUN.
+
+
+  Temporary elements are not stored in the DB.
+    Temporary elements can be produced only by C-programs (not by text 
+codes).
+    Only the DL record can be queried.
+    With "RUN" all temporary elements are deleted.
+
+
+
+
+
+
+
+----------------------------------------
+Permanent objects produce - variant 1:
+----------------------------------------
+
+
+// a text in the text window rear-adds, implement then.
+ED_add_Line ("P1=100 100");
+
+
+
+
+
+----------------------------------------
+Permanent objects produce - variant 2:
+----------------------------------------
+
+// faster method (for many text lines)
+
+long ind;
+
+UTF_clear delete the Hauptprog _ ();
+
+// Zwischenbuffer delete
+UTF_clear1 ();
+
+
+// query the next free DB-Index
+ind = DB_QueryNxtInd (Typ_PT,20);
+// the next free POINT index is returned the delivery here.
+// The search is begun with index 20.
+// to be queried D=Typ_VC, P=Typ_PT, L=Typ_LN, C=Typ_CI,
+// S=Typ_CV, know A=Typ_SUR, B=Typ_SOL, R=Typ_PLN, N=Typ_GTXT, V=Typ_VAR.
+
+// "causes text line to the Zwischenbuffer ??
+  UTF_add1_line ("p1=100 100 );
+
+// Or text line generate:
+sprintf(cbuf, "P%d=%f %f", ind, xCoord, yCoord);
+UTF_add1_line(cbuf);
+
+
+// Zwischenbuffer in the text window rear-add ??
+UTF_insert1(1);
+UI_AP(UI_FuncSet, UID_WinEdit, ZERO);
+
+
+// implement entire program (= End Button operate)
+UI_butCB (ZERO,(void*)"butEND") ;
+
+
+
+
+
+----------------------------------------
+Permanent objects produce - variant 3:
+----------------------------------------
+
+   // ComplexObjekt (to ObjGX, see data models) to produce,
+   // ComplexObjekt in text umwanden,
+   // text according to above variant 1 or 2 to store.
+
+
+   // Example:
+   int 		IRC;
+   long 	pt_ind;
+   Point2 	pt21;
+   ObjGX	ox1;
+   char BUF[512 ];
+
+
+   pt21.x=100.;  pt21.y=100.;
+
+
+   // ComplexObject (to ObjGX, seedata models) to produce
+   ox1.typ = Typ_PT2;
+   ox1.form = Typ_PT2;
+   ox1.siz = 1;
+   ox1.data = (void*)&pt21;
+
+
+
+   // the function Object initialize - > text (the next free
+   // index pointers search):
+   ACP_obj_2_txt (NULL, 0, NULL, 0);
+   // objInd=-1 is indicated in the following, then the next free index is 
+used
+   // also a fixer index can be defined
+   // (e.g. with DB_QueryNxtInd to search).
+
+
+
+   // ComplexObject in text umwanden (text is spent - > BUF) ??
+   pt_ind = -1;
+   // 512 = max. size of cBUF
+   irc = AP_obj_2_txt (cBUF, 512, &ox1, pt_ind);
+   if(irc < 0) return irc;
+
+
+   // add & execute line
+   ED_add_Line (cBUF);
+
+
+
+
+
+
+----------------------------------------
+Temporary elements create:
+----------------------------------------
+
+Functions for test announcements:
+
+# include "../gr/ut_UI.h "// SYM..
+
+typ:  SYM_STAR_S (Strern small) SYM_TRI_S (triangle) SYM_TRI_B (largely)
+att:  0=Default, 1=sw, 2=rot 3=green 4=bl
+attSurf:  1=3=11 = blue, 2=12=13 = red, 8 = green, 5 = yellow
+          6 = light-grey 4=10 = light blue, 9 = light red 0=7 = dark-blue
+mode: 0="standidised", 1=protects quantity
+
+
+GR_Disp_pt2 (Point2 * pt1, int type, int att);    // a 2D-Punkt
+GR_Disp_pt (POINT * pt1, int type, int att);      // a 3D-Punkt
+GR_Disp_tx (POINT * pt1, char * txt, int att);    // texts
+GR_Disp_txi (Point *pt1, int ii, int att);       // Text-Integer
+GR_Disp_p2Tab (int ptNr, Point2 * p2Tab, int type, int att); // 2D-Point 
+table
+GR_Disp_pTab (int ptNr, POINT * pTab, int type, int att);    // 3D-Point 
+table
+GR_Disp_vc (Vector * vc1, POINT * pt1, int att, int mode);   // a vector
+  GR_Disp_ln (Line *ln1, int att);                           // Line
+  GR_Disp_ac (Circ *ci1, int att);                           // Circle
+GR_Disp_cv (POINT * pta, int ptnr, int att);                 // 3D-Polygon
+GR_Disp_cv2 (Point2 * pta, int ptnr, int att);               // 2D-Polygon
+GR_Disp_pln (Plane *pl1, int att);                           // Plane
+GR_Disp_pol (CurvPoly *pol, int att);                        // PolygonCurve
+  GR_Disp_ell (CurvElli *el1, int att);                      // Ellipse
+
+
+GR_Disp_fan (Point *ps, Point *pa1, Point *pa2, int pNr, int att);
+  // Example: pNr=3.
+  //                a23
+  //              /  |
+  //           a22  /|
+  //         / /|  / |
+  //      a21 / | /  |
+  //     / |/   |/   |
+  //   ps--a11--a12--a13
+
+
+  // BSP-Curve
+  GR_Disp_bsp (CurvBSpl *bspl, int att, Memspc *workSeg);
+
+// Bezier-Curve
+  GR_Disp_bez (CurvBez *bez, int att, Memspc *workSeg);
+
+  // planar (no holes in it, not perforated) surface:
+  GR_Disp_spu (int ptNr, Point *pTab, int attSurf);
+
+  // BSP-Surf
+  GR_Disp_sbsp (int ptUNr, int ptVNr,  Point *pTab, int att);
+
+  // boundingBox
+  GR_Disp_box (Point *p1, Point *p2, int att);
+
+
+
+Attribute index attI:  see "count attributes".
+
+
+  // temporary ones.  Objects are only indicated to the entire after the new 
+drawing
+  // display list;  after producing the objects:
+  DL_Redraw ();
+
+
+
+
+  // 2D-Bitmap-Symbol (fixed size, always in plan view).
+  // SYM_TRI_S		triangle small
+  // SYM_TRI_B 		square filled
+  // SYM_STAR_S 	star small
+  APT_disp_SymB(SYM_TRI_S, (int)attI, (Point*)&pos);
+
+
+
+
+  // 3D-Symbol 	     (fixed on a surface, but fixes size)
+  // SYM_TRIANG 	triangle
+  // SYM_SQUARE 	square
+  // SYM_PLANE 		square yellow filled
+  // SYM_CROSS 		cross
+  // SYM_CROSS1 	cross (similar shears)
+  // SYM_AXIS 		axle system with x, y, z-indication
+  // SYM_AXIS1 		axle system
+  APT_disp_SymV1(SYM_TRIANG, (int)attI, (Point*)&pos, (double)scale);
+
+
+
+  // 3D-Symbole (fixed on a surface, with defined direction, fixes size)
+  // SYM_ARROH heads of the arrow (without shank)
+  APT_disp_SymV2 (SYM_ARROH, 1, &pt1, &pt2, 1.);  // head only at pt1 !
+
+
+
+  // 3D-Symbol (position, direction, fixes size)
+  // SYM_ARROW 		arrow (position of the shaft end, not the point)
+  // SYM_SQUARE 	level (center, z-vector)
+  APT_disp_SymV3 (SYM_ARROW, (int)attI,
+                  (Point*)&pos, (Vector*)&Richtung, (double)scale);
+
+
+
+  long dli = -1;
+  GR_DrawLine (&dli, Typ_Att_hili1, (Line*)ln);
+
+
+
+  // All temporary objects delete:
+  GL_temp_delete ();
+
+
+
+
+----------------------------------------
+Dynamic/temporary elements create:
+----------------------------------------
+
+
+  Attribute index attI:  see "count attributes".
+
+
+  ind > 0 - Object is stored normally in DB;  ind = DB-Index.
+            Object can be queried from DB;
+	    Object is deleted with RUN.
+
+  ind = 0 - Object is stored in DB;  the DB-Index is assigned automatically.
+            Object can be queried from DB;  the DB-Index can be read only 
+from the
+	    DL-Record (or with GL_GetActInd);
+	    Object is deleted with RUN.
+	    Retour - ind is negative (dynamic object).
+
+  ind < 0 - Object is not stored in DB. Temporary object.
+
+
+
+  GR_CrePoint ((long*)ind, (int)attI, (Point*)&point3D);
+
+  GR_CreLine ((long*)ind, (int)attI, (Line*)&ln1);
+
+  GR_CreCirc ((long*)ind, (int)attI, (Circ*)&ci1);
+
+
+  // 3D-Polygon
+  GR_CrePoly ((long*)ind, (int)attI,(int)AnzahlPunkte, 
+(Point*)&Punktetabelle);
+
+
+  // Bitmap-Text (fixes size, always in plan view).
+  GR_CreTxtA ((long*)ind, (int)attI, (Point*)&pos, (char*)Text);
+
+
+  // 3D-Text
+  GR_CreTxtG ((long*)ind, (int)attI, (Point*)&pos, (double)Size,
+              (double)Verdrehwinkel, (char*)Text);
+
+
+
+
+  // Ditto:  a certain number of DL objects duplicate;
+  // the objects can be shifted, turned and reflected.  A Ditto occupies
+  // only one DL record.
+  GR_CreDitto ((long*)ind, (Point*)&Position,(double)Verdrehwinkel,
+               (char)Mirrorflag, (Ditto*)&dit1);
+  // Mirrorflag: Reflection around one level by the Ditto zero point.
+  // ' ' = no reflection,
+  // 'X' = around x-z-plane reflect,
+  // 'Y' = around y-z-plane reflect.
+  // 'Z' = around XY plane reflect.
+
+  // Example Ditto (see also DemoPlugin_Create.c):
+  long id1;
+  Ditto dit1;
+  // stores the starting index in the DL
+  dit1.ind = GL_GetActInd();
+  ... // Objects generate (as Ditto to be then duplicated)
+  // the turning center of the Ditto to define
+  dit1.po = (Point)Ditto_Nullpunkt;
+  // number of DL objects of the Ditto define
+  dit1.siz = GL_GetActInd()
+   // -1: store in dynamic area in DB;
+   //Objects not in DB store. Temporary object
+   idl = -1;
+   GR_CreDitto (&id1, &pt1,  (, ' ', &dit1);
+
+
+
+
+
+
+
+................. Surfaces.......................
+
+For surfaces should as attI Typ_Att_Fac1 or Typ_Att_Fac2 to be used.
+
+
+
+
+  // Polygon surfaces.  The surface is represented by points
+  // next to one another from the point table "extent" from triangles,
+  // every triangele consists of the point "center" and of two
+  //.  GR_CreTriaFan ((long*)ind, (int)attI, (Point*)&Punkt_Zentrum,
+		      (int)AnzahlUmfangspunkte, (Point*)Punktetabelle_Umfang);
+
+
+
+  // Strip surface.  One or more strips are indicated.
+  // The strips are defined by polygone at 2 edges.
+  // All strips must have equivalent peripheral points.
+  // E.G.:  5 strips next to one another to ever 10 points;  there is 
+necessary
+  // 6 x 10 points;  Number amounts of = 10, number amounts of = 6.
+  // (chain = a Randpolygon).
+  GR_CreTriaStrip ((long*)ind,(int)attI,
+                    (int)AnzahlKetten, (Point*)&Punktetabelle 
+int)AnzahlPunkte);
+
+
+
+
+  // Cylinder surface.  Centers, radii.
+  GR_CreCyl ((long*)ind, (int)attI,
+             (Point*)&Mittelpunkt1, (Point*)&Mittelpunkt2,
+	     (double)Radius1,       (double)Radius2);
+
+
+
+
+// Annulus surface.  Center, Z_Vektor, radius inside and outside.
+GR_CreDisk((long*)ind, (int)attI,
+             (Point*)&Mittelpunkt, (Vector*)&Z_Vektor,
+             (double)Radius_innen, (double)Radius_aussen);
+
+
+
+
+
+Dynamic objects are only indicated to the entire after the new drawing
+  // display list:
+  DL_Redraw ();
+
+
+
+
+
+
+
+
+=================================================================
+Objects delete
+=================================================================
+
+
+  // deleted objects only after the new drawing of the entire
+  // display list are not any longer indicated:
+  DL_Redraw ();
+
+
+
+  // (only delete representation)
+  GL_Del0 ((long)DispListIndex) deletes individual object;
+
+
+
+  // All objects starting from a certain display list index delete;
+  // (thus the entire range can be used again).
+  GL_Delete ((long)DispListStartIndex);
+
+
+
+
+  // empty Undo list
+  UI_undo_clear () ;
+
+
+
+  // all temporarly deleted lines remove (and empty Undo list)
+  // (temporarly deleted lines begin with "_")
+  AP_APT_clean ();
+
+
+
+  // Clear all  (delete entire display; Button Clear)
+  UI_GR_view (NULL, (void*)"ClrView");
+
+
+  // Entire text file deletes (Function File/New)
+  UI_menCB (NULL, "new");
+
+
+
+
+
+
+=================================================================
+Sub model handling
+=================================================================
+
+The Model number is stored in the DL for each Obj in modInd:
+Objects with Model number 0-n lie in a Submodel;
+Objects with Model number -1 lie in the active Model.
+
+
+  ModelBas * mdr;
+
+  dla = DL_GetAtt(DL Index);  // get DL-record
+  model_nr = dla.modInd;      // -1=active Model, 0-n=Submodel
+
+  // the BasicModelRecord of a Submodels get
+  mdr = DB_get_ModBas (dla.modInd);
+  // mdr >mnam is now the Modelname of the Submodel.
+
+
+
+
+
+
+
+
+
+=================================================================
+Count Attributes
+=================================================================
+
+
+  - Attr_Hilite
+  - Attr_Display
+  - Attr_Pick
+  - Create_new_Attr
+
+
+  // each change the count.  Attributes becomes only visible after the new 
+drawing
+  // the entire display list:
+  DL_Redraw ();
+
+
+
+  =============== Attr_Hilite ==================================
+
+  // hilite individual object
+  GL_HiliObj((long)DispListIndex);
+
+
+  individual object
+  GL_UnHiliObj ((long)DispListIndex);
+
+
+  // unhilite;  all objects
+  GL_UnHiliObj (-1L);
+
+
+
+
+  =============== Attr_Display ==================================
+
+  // individual object fade out
+  DL_disp_set((long)DispListIndex, OFF);
+
+
+
+
+  =============== Attr_Pick =====================================
+
+  set to not pickable:
+  DL_pick_set ((long)DispListIndex, ON);
+
+  Inquiries whether pickable:
+  i1 = DL_GetPick((long)DispListIndex);    // OFF = yes, ON = no.
+
+
+
+
+  =============== Create_new_Attr ===============================
+
+  attribute index attI:
+    Default values are:
+      0 = black, thickness 4 (f. points).
+      1 = default color, continuous line, thinly;
+      2 = red, continuous line, thickness 2.
+      3 = blue, semicolon, thickness 2.
+      4 = blue, surface.
+
+    Complete list see Colour docs "colors, line types, line strengths".
+
+    // a new count.  Attribute produce:
+    DL_InitAttRec((int)AttributIndex, (int)Colour, (int)Linetyp, 
+(int)Thickness);
+    // Colour:  2=rot, 3=green, 4=blue
+    // Linetype:  0=continuous, 1 = -., 2 = - -, 3 = --
+    // Thickness: 1-6
+    // Example:  Attribute 20 = blue, spaced_dashes, thickness 3:
+    DL_InitAttRec(20, 4, 2, 3);
+
+
+
+
+
+
+
+
+=================================================================
+Objects analyze
+=================================================================
+
+
+  // The DispListIndex of the object selected last query:
+  UI_GR_GetdlInd (&dli);
+
+
+  // the display list index produced of the object of the last query
+  (long)DisplayListIndex = GL_GetActInd ();
+
+
+  // the display list index of an object look for
+  (long)DisplayListIndex = DL_find_obj ((int) objTyp, (long)objInd);
+
+
+
+  // read a display list entry in
+  DL_Att dlRec;
+  dlRec = DL_GetAtt((long)DisplayListIndex);
+  // dlRec.modInd 	Modelindex;  -1 = active Model;  0-n = Submodel.
+  // dlRec.typ 		Objecttype;  e.g. Typ_PT
+  // dlRec.ind 		DB-Index;  long.
+  // dlRec.refInd 	index of the associated transformation.
+  // dlRec.attInd 	index of the associated attribute (Linetype)
+  // dlRec.lay		LayerNr.
+  // dlRec.disp 	visibility;  ON or OFF.
+  // dlRec.hili 	Hilite;  ON or OFF.
+  // dlRec.dim 		darkened;  ON or OFF.
+  // dlRec.pick 	pick selection;  ON or OFF.
+  // dlRec.grp..  	Group affiliation;  yet does not use.
+
+
+
+
+  // an object stored in the DB is picked out (example see below):
+  (ObjGX)obj = DB_GetObjGX ((int)obj_typ, (long)DB_Index);
+  //   P      L      C      S      R       ?        A       M
+  // Typ_PT/Typ_LN/Typ_CI/Typ_CV/Typ_PLN/Typ_ATXT/Typ_SUR/Typ_SubModel
+
+
+  // Example Curve S20 read in:
+  ObjGX    ox1;
+  CurvBSpl *cv1;
+  ox1 = DB_GetObjGX (Typ_CV, 20L);
+  UT3D_stru_dump (Typ_ObjGX, &ox1, "Obj S20");
+  if(ox1.form == Typ_CVBSP) {
+    cv1 = ox1.data;
+    UT3D_stru_dump (Typ_CVBSP, cv1, "B-Spl S20");
+  } else ..
+
+
+
+
+  // Example entire display list analyze:
+  int 		apt_typ;
+  long 		dlNr, dl_ind, apt_ind;
+  DL_Att	dla;
+  ObjGX 	ox1;
+  POINT 	*pt1;
+  CurvBSpl 	*bs1;
+
+  // number of objects in display list query
+  dlNr = GL_Get_DLind();
+
+  for(dl_ind=0;  dl_ind<dlNr;  ++dl_ind) {
+
+    // a display list record get
+    dla = DL_GetAtt(dl_ind);
+
+    // if object is not in active model: cannot get it from DB.
+    if(dla.modInd > = 0) continue;
+
+    apt_typ = dla.typ;  // Objecttype
+    apt_ind = dla.ind;  // Objectindex in the DB
+
+    // get the associated object index from the DB
+    ox1 = DB_GetObjGX(apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    // it is one point -
+    if(ox1.form == Typ_PT) {
+      pt1 = (Point*)ox1.data;
+
+      // it is a b-Spline -
+      } else if(ox1.form == Typ_CVBSP) {
+        bs1 = (CurvBSpl*)ox1.data;
+
+      }
+
+
+      ...
+   }
+
+
+
+
+
+
+
+   // code for test of an object structure:
+   UT3D_stru_dump (int type, void * DATA, char *txt...);
+   UT3D_stru_dump (Typ_PT, &pTab[i1 ], "Point[%d]=", i1);
+
+
+
+
+
+
+
+
+=================================================================
+Input / Output functions
+=================================================================
+
+
+
+  // Implementing End Button (process the entire text program)
+  // entire program implement (= End Button operate)
+  UI_butCB (ZERO, (void*)"butEND");
+
+
+
+
+  // all objects in the Igesformat export AP_ExportIges ("myFilename");
+
+
+
+
+
+
+
+
+=================================================================
+Basic Functions
+=================================================================
+
+
+// (installation specific) the basis listing select
+(char*)Basisverzeichnis = OS_get_bas_dir ();
+
+
+
+
+
+  UT2D _.. 		2D-Geometry functions 		ut/ut_geo.h
+  UT3D _..		3D-Geometry functions 		ut/ut_geo.h
+  UTX _.. 		text auxiliary functions 	ut/ut_txt.h
+  UTF _.. 		Editor <-> memory 		ut/ut_txfil.h
+  OS _.. 		operating system routines	ut/ut_os.h
+
+
+  more to still to document.....
+
+
+
+
+=================================================================
+Global data fields
+=================================================================
+
+// ext out xa.c:
+extern 	char 	WC_modnam[128 ]; //  the Modelname
+extern	char	WC_modact[128 ];
+extern	int	WC_modnr;
+
+extern	char 	AP_printer[80 ];
+extern	char 	AP_browser[64 ];
+extern	char 	AP_dir_open[128 ];
+extern	char 	AP_lang[4 ];  	// EN od de ???
+
+extern	double	cvApp_tol;  	// deviation from original curve
+extern	double 	APT_ModSiz;  	// externally key act SHIFT int;
+
+extern	int	KeyStatShift;
+extern	int	KeyStatCtrl;
+
+
+
+
+
+
+
+=================================================================
+Memory functions
+=================================================================
+
+In../xa/xa_mem.h several MEMORY blocks are defined, which can be used under
+normal conditions.
+
+
+
+----------------------------------------------------------------
+Functions with the object Memspc (defines in../ut/ut_geo.h):
+
+  typedef struct {void *start; void *next; void *end;}  Memspc;
+
+
+  Functions:
+  UME_init 		Pointer start (and next) on the begin field set.
+  UME_save 		Data in the field rear-add;  the internal
+       pointer next is set on the next free position in the field.
+       Return code is the initial position of the data in the field;
+       if field too small, then ZERO is returned.
+  UME_reserve
+
+  UME_add (Memspc * memSpc, int osiz)
+    place in the Memspc reserve.
+
+  UME_ck_free (Memspc * memSpc)
+    supplies to free space with to Memspc
+
+  UME_reset (Memspc * memSpc, void * new start)
+    occupied place puts back (make smaller)
+    Corresponds:  memSpc >next = new start;
+
+
+
+Example:  Produce for a RuledSurface from 2 lines (ln1, ln2).
+
+  LINE		ln1, ln2;
+  char 		memd[300 ];
+  ObjGX 	ox1, oxTab[2 ];
+  Memspc 	oxData;
+
+
+
+  ln1 =..
+  ln2 =..
+
+  // init data space
+  UME_init (&oxData, memd, sizeof(memd));
+
+
+  // the two Lines - > memd copies
+  oxTab[0].typ = Typ_LN;
+  oxTab[0].form = Typ_LN;
+  oxTab[0].data = UME_save (&oxData, &ln1, sizeof(Line));
+
+  oxTab[1].typ = Typ_LN;
+  oxTab[1].form = Typ_LN;
+  oxTab[1].data = UME_save (&oxData, &ln2, sizeof(Line));
+
+
+  // Obj.  SUR develop
+  ox1.typ = Typ_SURRU;
+  ox1.form = Typ_ObjGX;
+  ox1.siz = 2;
+  ox1.data = oxTab;
+
+  // represent
+  GR_DrawSur (&ox1, 2, 1L); // 2=Colour, 1L=temp.  Obj
+
+
+
+
+
+
+----------------------------------------------------------------
+Example:  a neutral char field loaded with objects
+(these are standard - C - functions!)
+
+  Point 	p1,p2,p3,p4;
+  char 		obj1[150 ], obj2[150 ];
+
+  ..
+
+  ((Line*)obj1)->p1 = p1;
+  ((Line*)obj1)->p2 = p2;
+  ((Line*)obj2)->p1 = p3;
+  ((Line*)obj2)->p2 = p4;
+
+
+
+
+
+
+
+
+=================================================================
+Data models:
+=================================================================
+
+
+Definition of the Datenstructs see../ut/ut_geo.h.
+
+
+
+
+Contents of one ObjGX struct:
+
+  typ	the type of the data in the field < DATA >
+  form  the structure of the data in the field < DATA >
+        Typ_Index:  DATA is direct no address, but the number (long)
+	of Typ_PT:  DATA is (Point*).
+  siz   size of the data record
+  data  the data is a struct of the type < form > number < siz >
+        e.g.:  siz=10;  form=Typ_PT: data=(Point*)PointArray[10 ]
+
+
+
+
+
+
+
+-----------------
+2D-Point
+-----------------
+
+Point2 pt2D;
+  pt2D.x 	= (double) X-Coord
+  pt2D.y 	= (double) Y-Coord
+
+  ObjGX ox1;
+    ox1.typ 	= Typ_PT
+    ox1.form 	= Typ_PT2
+    ox1.siz 	= 1
+    ox1.data 	= (void*)&pt2D
+
+
+
+-----------------
+3D-Point
+-----------------
+
+POINT pt3D;
+  pt3D.x 	= (double) X-Coord
+  pt3D.y 	= (double) Y-Coord
+  pt3D.z 	= (double) z-Coord
+
+ObjGX ox1;
+  ox1.typ 	= Typ_PT
+  ox1.form	= Typ_PT
+  ox1.siz 	= 1
+  ox1.data 	= (void*)&pt3D
+
+or:
+  ox1.typ 	= Typ_PT
+  ox1.form 	= Typ_Index
+  ox1.siz 	= 1
+  ox1.data 	= (void*)(long)DB_index;
+
+or:
+  ox1.typ 	= Typ_PT
+  ox1.form 	= Typ_Txt
+  ox1.siz 	= 1
+  ox1.data 	= (void*)"P(0 0)"
+
+
+
+
+
+
+
+
+
+-----------------
+2D-Line
+-----------------
+
+Line2 ln2D;
+  ln2D.p1 	= (Point2) starting point
+  ln2D.p2	= (Point2) end point
+
+ObjGX ox1;
+  ox1.typ 	= Typ_LN
+  ox1.form 	= Typ_LN2
+  ox1.siz 	= 1 ox1.data = (void*)&ln2D
+
+
+
+
+
+-----------------
+3D-Line
+-----------------
+
+LINE ln3D;
+  ln3D.p1 	= (POINT) starting point
+  ln3D.p2 	= (POINT) end point
+
+
+ObjGX ox1;
+  ox1.typ 	= Typ_LN
+  ox1.form 	= Typ_LN
+  ox1.siz 	= 1
+  ox1.data 	=(void*)&ln3D
+
+
+
+
+
+
+-----------------
+2D-Circle
+-----------------
+
+Circ2 ci2D;
+  ci2D.p1	= (Point2) starting point
+  ci2D.p2 	= (Point2) end point
+  ci2D.pc 	= (Point2) center point
+  ci2D.rad 	= (double) radius
+
+ObjGX ox1;
+  ox1.typ 	= Typ_CI
+  ox1.form 	= Typ_CI2
+  ox1.siz 	= 1
+  ox1.data = (void*)&ci2D
+
+
+
+
+
+
+
+-----------------
+3D-Circle
+-----------------
+
+Circ ci3D;
+  ci3D.p1 	= (POINT) starting point
+  ci3D.p2 	= (POINT) end point
+  ci3D.pc 	= (POINT) center point
+  ci3D.rad 	= (double) radius
+  ci3D.vz 	= (Vector) direction
+
+  // size = 104
+
+ObjGX ox1;
+  ox1.typ 	= Typ_CI
+  ox1.form 	= Typ_CI
+  ox1.siz 	= 1
+  ox1.data 	= (void*)&ci3D
+
+
+
+
+-----------------
+3D-Ellipse
+-----------------
+
+CurvElli ell1;
+  ell1.p1 	= (POINT) starting point
+  ell1.p2 	= (POINT) end point
+  ell1.pc 	= (POINT) center point
+  ell1.vz 	= (Vector) Z-direction ??
+  ell1.va 	= (Vector) direction and size of centerline ??
+  ell1.vb 	= (Vector) direction and size of secondary axis ??
+
+// type = Typ_CVELL
+// size = 148 BYTE
+
+
+
+
+
+-----------------
+Plane
+-----------------
+
+Plane pln;
+  pln.po 	= (POINT) zero point
+  pln.vx 	= (Vector) X-vector
+  pln.vy 	= (Vector) Y-vector
+  pln.vz	= (Vector) Z-vector
+  pln.p 	= (double) of direction ??
+
+ObjGX ox1;
+  ox1.typ 	= Typ_PLN
+  ox1.form 	= Typ_PLN
+  ox1.siz 	= 1
+  ox1.data 	= (void*)&pln
+
+
+
+
+
+-----------------
+Text/3D-Text
+-----------------
+
+GText tx1
+  tx1.pt 	= (POINT) the left lower starting point
+  tx1.size 	= (double) text height;  with Notes -1.
+  tx1.dir 	= (double) direction;  horizontal = 0.
+  txt1.txt 	= (char *)
+
+ObjGX ox1 	(or as before ObjG;  is to be replaced ??)
+  ox1.typ 	= Typ_GTXT (Typ_ATXT)
+  ox1.form 	= Typ_GTXT
+  ox1.siz 	= to 1
+  ox1.data 	= (void*)&tx1
+
+
+
+
+
+
+
+----------------------
+Curve-2D-Polygon:  			APT_decode_pol2
+----------------------
+
+Point2 pa[iNr ] 	the PolygonPoint;  usually via memspc55 ??
+
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVPOL2
+  cv1.form 	= Typ_PT2
+  cv1.siz 	= number of points
+  cv1.data 	= (Point(2)*)pa=PolygonPoint[siz ]
+
+
+
+
+
+----------------------
+Curve-3D-Polygon:  			APT_decode_pol
+----------------------
+
+ObjGX cv1
+
+  cv1.typ 	= Typ_CVPOL
+  cv1.form 	= Typ_CVPOL
+  cv1.siz 	= 1
+  cv1.data 	= (CurvPoly*)cvPlg;
+
+.....................
+  CurvPoly 	*cvPlg;
+  POINT 	*pTab;
+  int		ptNr;
+
+  cvPlg 	= cv1.data;
+  pTab 		= cvPlg >cpTab;  // point table
+  ptNr 		= cvPlg >ptNr;   // number of points
+
+
+
+
+
+
+
+----------------------
+Curve - Polynomial Spline 		APT_decode_psp3
+----------------------
+
+polynom_d3 of polynomials
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVPSP3
+  cv1.form 	= Typ_Polynom3
+  cv1.siz 	= number of polynomials
+  cv1.data 	= (polynom_d3*)=Polynome[siz ]
+
+
+
+
+
+
+
+
+----------------------
+Curve - b-Spline 			APT_decode_bsp
+----------------------
+
+CurvBSpl bSpl
+  bSpl.ptNr 	= (int) number of control points
+  bSpl.deg 	= (int) degree
+  bSpl.v0 	= (doubles) curve start parameter
+  bSpl.v1 	= (double) curve end parameter
+  bSpl.kvTab 	= (double*) knotvalues[ptNr + deg + 1 ]
+  bSpl.cpTab 	= (Point*) controlpoints[ptNr ]
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVBSP;
+  cv1.form 	= Typ_CVBSP;
+  cv1.siz 	= 1
+  cv1.data 	= (CurvBSpl*)=bSpl
+
+
+
+
+
+
+
+----------------------
+Curve - BezierCurve 			APT_decode_bsp
+----------------------
+
+CurvBez cvBez
+  bSpl.ptNr 	= number of control points
+  bSpl.cpTab	= (POINT*) controlpoints[ptNr ]
+
+// ptNr... number of control points;  degree = (ptNr - 1)
+// size = 8 byte
+
+
+
+
+
+
+
+
+
+----------------------
+Curve - 2d-CCV 				APT_decode_ccv2
+----------------------
+
+In (in DB) via:
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVCCV2;
+  cv1.form 	= Typ_ObjG2;
+  cv1.siz 	= number of partial curves
+  cv1.data 	= (ObjG2*)=2D-Object
+
+Out (of DB_GetCurv) as:
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVCCV2;
+  cv1.form 	= Typ_ObjGX;
+  cv1.siz 	= number of partial curves
+  cv1.data 	= (ObjGX*)=2D-Object[siz ]
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------
+Curve - CCV 				APT_decode_ccv
+----------------------
+
+
+
+ObjGX cv1
+  cv1.typ 	= Typ_CVCCV;
+  cv1.form 	= Typ_ObjGX;
+  cv1.siz 	= number of partial curves
+  cv1.data   	= (ObjGX*)=ContureObject
+
+
+
+
+
+
+------------------------------------------------
+                   Surfaces:
+------------------------------------------------
+
+
+
+
+-----------------------
+Surface RCIR
+-----------------------
+
+long iTab[ptNr]  // table of indexed points (the APT-Index)
+
+
+ObjGX ox1;
+  ox1.typ 	= Typ_SURCIR
+  ox1.form 	= Typ_Index or Typ_PT
+  ox1.siz 	= (long)ptNr;
+  ox1.data 	= (long*)iTab (typ=Typ_Index) or (Point*)pa (typ=Typ_PT);
+
+
+
+
+
+
+
+
+----------------------
+Surface RSTRIP
+----------------------
+
+
+
+ObjGX ox1;
+  ox1.typ 	= Typ_SURSTRIP
+  ox1.form 	= Typ_SURSTRIP
+  ox1.siz 	= 1;
+  ox1.data 	= (SurStripe*)stripe
+
+
+
+
+
+
+
+============================================================================
+
+  Planar Surface;  trimmed;  trimmed/punched:
+  (ObjGX) type = Typ_SUR;
+          form = Typ_ObjGX;
+	  siz = number of ObjGX in DATA
+	  data = (ObjGX[0 ]) typ=Typ_Typ;  form=Typ_SURPLN
+	  (ObjGX[1])=Outer contour
+	  [(ObjGX[2-n])=Hole outlines]
+
+
+Conical/Toroidial Surface;  un-trimmed, no holes:
+  (ObjGX) typ  = Typ_SUR;
+          form = Typ_ObjGX;
+	  siz  = number of ObjGX in DATA
+	  data = (ObjGX[0])=Supporting surface;  typ=Typ_SOL (Conus/Torus)
+
+
+Ruled Surface, SURRU (un-trimmed, no holes):
+  (ObjGX) typ  = Typ_SURRU;
+          form = Typ_ObjGX;
+	  data = (ObjGX[2])Edge curves
+
+
+Revolved Surface, un-trimmed, no holes:
+(ObjGX) typ  = Typ_SURRV;
+         form = Typ_SURRV;
+         data = (SurRev)RevolvedSurface
+
+
+B-Spline-Surface, SURBSP (un-trimmed, no holes):
+  (ObjGX) typ  = Typ_SURBSP;
+          form = Typ_SURBSP;
+	  data = (* SurBSpl)
+
+
+Surface with support surface, un-trimmed, no holes):
+  (ObjGX) typ  = Typ_SUR
+         form = Typ_ObjGX;
+	 siz  = number of ObjGX in DATA
+	 data = (ObjGX[0])=Supporting surface  (CON/TOR/SRU/SRV/SBS)
+	        [(ObjGX[1])=Outer contour
+		[(ObjGX[2-n])=Hole outlines ] ]
+
+
+
+
+
+------------------------------------------------------
+GL_Surface     (consisting of finished tesselated planar Patches)
+  (ObjGX) typ  = Typ_GL_Surf;
+          form = Typ_ObjGX;
+          siz  = nr of planar patches
+          data = PlanarPatches
+
+  (ObjGX) typ  = Typ_GL_PP;          (planar patch)
+          form = Typ_ObjGX;
+          siz  = nr of contours (first obj is Z-vector)
+          data = Normal vector and Contours
+
+  (ObjGX) typ  = Typ_PT;          (Contour)
+          form = Typ_PT;
+          siz  = nr of points
+          data = *Point[siz]      (closed Polygon)
+
+
+
+
+
+
+============================================================================
+
+
+---------------------
+Body PRISM
+---------------------
+
+ObjGX ox2[2 ]
+  ox2[1].typ 	= Typ_CIR;
+  ox2[1].form 	= Typ_Index;
+  ox2[1].data 	= (void*)&ci1;
+
+  ox2[2].typ 	= Typ_CIR or Typ_PT or Typ_VAR;
+  ox2[2].form 	= Typ_Index;
+  ox2[2].data 	= (void*)&ci1 or &pt or &Height(double); ??
+
+
+
+ObjGX ox1
+  ox1.typ 	= Typ_SOL;
+  ox1.form 	= Typ_PRISM;
+  ox1.siz 	= 2;
+  ox1.data 	= (void*)&ox2;
+
+
+
+
+============================================================================
+
+
+----------------------
+Model Reference 			APT_decode_ccv
+----------------------
+
+ModelRef mr1;
+  mr1.mnam
+  mr1.modNr 		= modelnumber OF ModelBas-obj. (DB_get_ModNr())
+  mr1.scl
+  mr1.po 		= position of ditto
+  mr1.vx
+  mr1.vz
+
+
+
+
+
+ObjGX ox1
+  ox1.typ 	= Typ_Model;
+  ox1.form 	= Typ_Model;
+  ox1.siz 	= 1;
+  ox1.data 	= (void*)&mr1;
+
+
+
+
+
+
+
+---------------
+Transformation:
+---------------
+
+ObjGX     tr1
+  ox1.typ    = Typ_Model;
+  ox1.form   = Typ_TraTra (Translation) of Typ_TraRot (Rotation)
+  ox1.siz    = 1;
+  ox1.data   = (Vector*) for Translation of (TraRot*) f. Rotation
+
+
+TraRot    rr1
+  rr1.ma     = (Mat_4x3) ma; Fulcrum is ma[0][3], ma[1][3], ma[2][3]
+  rr1.vz     = (Vector) Axis of rotation
+  rr1.angr   = (double) Angle of rotation in degrees
+
+
+
+========================= eof ==================================
+
+
+

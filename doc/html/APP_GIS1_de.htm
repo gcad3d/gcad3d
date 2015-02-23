@@ -1,0 +1,215 @@
+<HTML>
+<HEAD>
+  <TITLE>APP_GIS1_de.htm</TITLE>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+  <meta name="description" content="GIS Applikation Spezifikation">
+  <meta name="keywords" content="GIS CivilEngineering">
+  <meta name="date" content="2011-01-23T09:51:20+0100">
+  <meta name="author" content="fwork">
+  <style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Dokumention Anwendung GIS1</h2>
+Version 2.0 vom 2011-01-17
+
+<b>Programmaufruf:</b>
+    Starten der UserApplikation "APP_GIS1"
+     - in der Liste der Zusatzanwendungen selektieren oder
+     - wenn Applikation zuvor aktiv war: starten mit Strg-P. 
+
+<b>Beenden der Applikation:</b>
+  Schaltfläche "Exit".
+  Es werden alle Daten an das CAD-Modell übergeben.
+
+
+
+
+
+<A HREF='#fAux'>Hilfsfunktionen</A>
+<A HREF='#edit'>Punkte / Fläche modifizieren </A>
+<A HREF='#proj'>Objekte auf Fläche projizieren</A>
+<A HREF='#edge'>Grenzen, Bruchkanten definieren</A>
+<A HREF='#Todo'>Offene Funktionen</A>
+
+
+
+____________________________________________________________________________
+<p><a name="fAux"></a></p>
+
+<h3>Punkte aus einer Ascii-Datei laden.</h3>
+  Menüfunktion "File / Import Points from File"
+  Je ein Punkt pro Dateizeile.
+  Das erste Wort mit Punkt (Dezimalpunkt, ".") wird als X-Koordinate 
+    verwendet; die beiden folgenden Worte als Y- und Z-Koordinate.
+  Zusatztexte (Worte vor oder nach den Koordinaten) werden derzeit
+    noch nicht verwendet.
+  
+  Beispiel:
+    importieren Sie Datei "sample_gispoints1.txt"
+      ("ImportPoints"; Filtertext "gis")
+    mit Button "Scal.All" neu skalieren
+    "create Mesh" erzeugt das Netz
+    "Exit" übergibt die Daten an das Modell
+    File/save Model as/VRML2   erzeugt WRL-Daten.
+
+  
+<h3>Punkte in eine Ascii-Datei ausgeben.</h3>
+  Menüfunktion "File / ExportPoints"
+  Die Koordinaten der Punkte der momentan aktiven Punktflaeche werden
+  in eine Datei ausgegeben.
+  Derzeit werden keine Zusatztexte ausgegeben.
+
+
+<h3>Anzeige der Koordinaten aller Punkte der aktiven GIS-Fläche:</h3>
+  Menüfunktion "Tools / dump all points"
+  Es wird eine HTML-Datei {tempDir}/tmp.htm erzeugt und angezeigt.
+
+
+<h3>Anzeige einer Liste aller Kanten der aktiven GIS-Fläche:</h3>
+  Menüfunktion "Tools / dump all edgelines"
+  Es wird eine HTML-Datei {tempDir}/tmp.htm erzeugt und angezeigt.
+
+
+<h3>Ausdruck der aktuellen Ansicht erzeugen:</h3>
+  Menüfunktion "Tools / print"
+
+
+____________________________________________________________________________
+<p><a name="edit"></a></p>
+<h2>Funktion "edit"</h2>
+
+
+<h3>GIS-Punkte neu erzeugen:</h3>
+  - mit der linken Maustaste Position wählen oder
+  - einen existierenden CAD-Punkt selektieren oder
+  - die Koordinaten in die Eingabefelder X, Y, Z eingeben; Schaltfläche "AddPt.".
+
+
+<h3>GIS-Punkt modifizieren:</h3>
+  Der aktive (zuletzt selektierte) Punkt wird verändert;
+  Schaltfläche "Mod.Pt.";
+  es werden die Koordinaten der Eingabefelder X, Y, Z  übernommen.
+
+
+<h3>Alle GIS-Punkte verschieben:</h3>
+  Menüfunktion "Tools / move all points"
+  Geben Sie den Offset ein.
+
+
+<h3>GIS-Punkte löschen:</h3>
+  einzeln oder als Gruppe selektieren, Schaltfläche "Delete".
+
+
+<h3>Mehrere aufeinanderfolgende Punkte löschen.</h3>
+  Menüfunktion "Tools / delete range of points"
+  Punktnummern des ersten und letzten Punktes eingeben.
+
+
+<h3>GIS-Kante löschen:</h3>
+  selektieren, Schaltfläche "Delete".
+
+
+<h3>Netz löschen:</h3>
+  selektieren, Schaltfläche "Delete".
+
+
+<h3>Netz neu berechnen:</h3>
+  Schaltfläche "create Mesh".
+
+
+<h3>Netzgrenze bereinigen:</h3>
+  Menüfunktion "Tools / remove outer zone"
+  Automatisches Entfernen von Dreiecken mit zu langen Seitenkanten
+
+
+<h3>Wechsel der aktiven Fläche:</h3>
+  Auswählen aus der Liste der geladenen Flächen (ganz links).
+  Es kann nur die aktive Fläche modifiziert werden.
+
+
+<h3>Neue Fläche erzeugen:</h3>
+  Wenn keine GIS-Fläche im Modell enthalten ist, wird beim Start der Funktion
+  automatisch eine neue (leere) GIS-Fläche erzeugt.
+  Mit dieser Funktion wird eine weitere, neue GIS-Fläche erzeugt:
+  Menüfunktion "Tools / create new surface"
+
+
+<h3>Aktive Fläche und alle ihre Punkte löschen:</h3>
+  Menüfunktion "Tools / delete active mesh and all points"
+  Die momentan aktive GIS-Fläche sowie alle zugehörigen Punkte werden gelöscht.
+
+
+
+
+____________________________________________________________________________
+<p><a name="proj"></a></p>
+<h2>Funktion "prj -> Mesh"</h2>
+Punkte / Kurven auf das Netz projizieren.
+
+<h3>Punkt auf das Netz projizieren und GIS-Punkt erzeugen:</h3>
+  - Position anzeigen (linke Maustaste) oder
+  - CAD-Punkt selektieren
+
+
+<h3>Kurven auf das Netz projizieren:</h3>
+  CAD-Kurve selektieren; es wird eine weitere CAD-Kurve erzeugt.
+  ACHTUNG: die Kurve muss sich innerhalb des Netzes befinden !      (TODO)
+
+
+____________________________________________________________________________
+<p><a name="edge"></a></p>
+<h2>Funktion "create Edge"</h2>
+Netzgrenzen außen (OuterBoundary) erzeugen,
+Netzgrenzen innen (Loch, InnerBoundary) erzeugen,
+Bruchkanten (EdgeLine) erzeugen.
+
+Zuerst den Kantenverlauf definieren, dann den Kantentyp wählen.
+
+
+  Den Kantenverlauf definieren durch -
+  - Selektion von GIS-Punkten oder
+  - Kurve selektieren. Die erforderlichen GIS-Punkte werden erzeugt.
+
+  ACHTUNG:
+  - Kantenlinien dürfen sich nicht überkreuzen;
+  - Kantenlinien dürfen Aussen- und Innengrenzen nicht kreuzen.    (TODO)
+
+
+____________________________________________________________________________
+
+
+Wenn erforderlich Modelsize anpassen:
+  (Standards/Tolerances/Modelsize=15000,Modify,Exit).
+
+
+
+<b>Programmfiles:</b>
+  APP_GIS1 ist ein Zusatzprogramm zu gCAD3D.
+  Die Quellcodedatei ist ../GIS1/APP_GIS1.c
+  Die Lizenz für Programm APP_GIS1 ist GPL.
+
+  Bitte berichten Sie Probleme/Korrekturen an
+  franz.reiter@cadcam.co.at
+
+
+
+
+____________________________________________________________________________
+<p><a name="Todo"></a></p>
+<h2>Offene Funktionen:</h2>
+<b>LandXML-Import:</b>
+	- Bruchkanten importieren
+	- void-area (Lochinnengrenzen) importieren
+	
+<b>LandXM-Export erstellen	</b>
+
+
+<b>undo / restore für Löschfunktionen</b>
+
+
+
+</PRE>
+</HTML>

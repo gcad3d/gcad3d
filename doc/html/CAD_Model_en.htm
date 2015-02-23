@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>CAD_Model_en.htm</TITLE>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<A HREF="CAD_using_en.htm">See operation CAD</A>
+
+<h2>CAD-Functions for Models:</h2>
+
+<A HREF="CAD_Base_en.htm#M">CAD functions for Models</A>
+
+See models - Internal / External Models 
+See also codes for models
+
+see also <a href="gCAD3D_basics_en.htm#MMS_int">Internal Models</a> / <a href="gCAD3D_basics_en.htm#MMS_ext">External Models</a>
+see also <a href="CAD_Base_en.htm#M">Codes for Models</a>
+
+
+
+Models use keycode  M
+
+
+____________________________________________________________________________
+<p><a name="F0"></a></p>
+<h2>M int.Model Submodel Pos [Vec/Refsys]</h2>
+Positioning an internal sub-model
+  (all exported objects of the submodel (its joints) will be imported.
+   Text of imported notes will be queried newly.)
+
+
+Submodel
+  - Select a sub-model from list (or use middle-mousebutton)
+  - or select an existing sub-model
+  
+Position,Orientation
+  <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
+
+[Scale]:   magnifying scale; default is 1
+ 
+
+Examples:
+# Internal Submodel "SM1", rotated 45 degree around z-axis, scale=2
+M20="SM1" R(P(100 0) 45) VAL(2)
+
+
+
+____________________________________________________________________________
+<p><a name="F1"></a></p>
+<h2>M ext.Model Filename Pos [Vec/Refsys]</h2>
+Positioning an external sub-model
+
+Submodel
+  - Select a sub-model from list (or use middle-mousebutton)
+  - or select an existing sub-model
+
+  Modelname: see <a href="CAD_Base_en.htm#symFnam">Symbolic filenames.</a>
+
+
+Position,Orientation
+  <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
+
+[Scale]:   magnifying scale; default is 1
+  
+
+Example of an external model:
+ M20 = &quot;Data/Niet1.dat&quot; R(P(100 0) DIY) VAL(0.5)
+
+Example of a WRL triangle-mesh model:
+ M21 = &quot;Data/clocktwr.wrl&quot; R(P(0 0 0) R20)
+
+
+
+At the moment you can use the following file formats for external sub-models:
+   GCAD, WRL, STL, OBJ.  You cannot use DXF, IGS, STP yet.
+At the moment external sub-models cannot have internal or external sub-models.
+ 
+ 
+ 
+____________________________________________________________________________
+<p><a name="F2"></a></p>
+<h2>M CatalogModel Pos [Vec/Refsys]</h2>
+Positioning an Catalog-Part
+
+
+CatalogPart
+  - Select a catalogPart from list (or use middle-mousebutton)
+  - or select an existing catalogPart
+
+  The catalogPartname consists of catalog name, part name; see <a href="Catalog_en.htm">Catalog</a>.
+
+
+Position,Orientation
+  <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
+
+[Scale]:   magnifying scale; default is 1
+  
+
+
+Example external Model:
+M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
+
+
+____________________________________________________________________________
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,108 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>CAD_PT_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+<h2>Joints</h2>
+Joints sind Objekte, die von Submodellen an das übergeordnete Model
+  exportiert werden.
+Joints benutzen den Kennbuchstaben J.
+  
+Anwendungen für Joints:
+
+  <i>Schaltbilder (Elektrik, Hydraulik, Pneumatik)</i>
+       Importieren von Punkten als Anschlusspunkte (<a href='#JP1'>Beispiel</a>)
+       Text - wird für jede Submodellreferenz neu abgefragt (<a href='#JN1'>Beispiel</a>Beispiel)
+  
+  <i>Kinematik</i>
+    NOCH NICHT IMPLEMENTIERT.
+  
+  <i>Animationspfade, Cameradrives</i>
+    NOCH NICHT IMPLEMENTIERT.
+  
+
+
+
+
+<hr>
+<p><a name='JP1'></a></p>
+<h3>Joints auf Punkten:</h3>
+  Der zugehörige Punkt wird beim Einfügen dieses Model als Submodel
+    neu erzeugt - der Punkt wird im übergeordneten Model importiert.
+  Anwendungsbeispiel:
+    Das aktuelle Model ist ein elektrischer Widerstand;
+    die Anschlusspunkte werden als Joints definiert.
+    Beim Einfügen des Widerstandes als Submodell werden an den
+    Anschlusspunkten automatisch normale Punkte erzeugt.
+    Siehe Modell sample_DiagEl1.gcad.
+    
+
+<hr>
+<p><a name='JN1'></a></p>
+<h3>Joints auf Notes:</h3>
+  Damit kann der Text der zugehörigen Note modifiziert werden -
+    der Text wird beim Einfügen dieses Model als Submodel neu abgefragt.
+  Anwendungsbeispiel:
+    Das aktuelle Model ist ein elektrischer Widerstand;
+    eine Note mit dem Widerstandswert wird als Joint definiert.
+    Beim Einfügen dieses Models muß der Widerstandswert neu definiert werden.
+    Siehe Modell sample_DiagEl1.gcad.
+  
+
+
+
+
+<h2>CAD-Funktionen Joints:</h2>
+
+<hr>
+<p><a name='F1'></a></p>
+ <h2>Joint-export</h2>
+Ein Objekt des aktuellen Model als Joint exportieren.
+
+<b>joint-object:</b>
+derzeit nur <a href='#JP1'>Punkt</a> oder <a href='#JN1'>Note</a>.
+
+<b>Ausgabe:</b>
+J1 = P20
+
+
+<hr>
+<p><a name='F2'></a></p>
+ <h2>Joint-import</h2>
+ Ein Objekt eines Submodel importieren.
+ Das Submodel-Objekt muss mit Joint-export exportiert worden sein.
+
+ <b>Achtung:</b> alle exportierten Objekte eines Submodel werden beim Einfügen
+   eines Submodel (<a href="CAD_Model_de.htm#F0">M int.Model Submodel</a>) automatisch importiert !
+ 
+ Diese interaktive Funktion ist nur also zur Modifikation
+   von Joint-imports erforderlich.
+
+<b>Submodel:</b>
+  aus welchem Submodel das Joint-Objekt importiert werden soll.
+  
+<b>Joint:</b>
+  J#  (der Joint im Submodel)
+
+<b>Text</b>
+  nur für Note-Joints: der Text, der den Originaltext ersetzt.
+
+
+
+<b>Ausgabe:</b>
+P20 = IMP M20 P20
+N20 = IMP M20 N20 "neuer Text"
+
+
+
+</PRE>
+</BODY>
+</HTML>
+

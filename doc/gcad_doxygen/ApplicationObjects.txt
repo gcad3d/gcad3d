@@ -1,0 +1,86 @@
+../dox/ApplicationObjects.dox
+<h2>ApplicationObjects</h2>
+
+
+
+
+
+Darstellung von Applikationsspezifischen Objekten in Zusatzanwendungen.
+Die Funktion zur Darstellung des Objekts liegt in der Zusatzanwendung.
+Die Funktion hat Zugriff auf OpenGL.
+Die Objekte sind somit nur mit der Zusatzanwendung darstellbar.
+
+ApplicationObjects werden nicht in der Datenbasis gespeichert,
+  sie müssen als ApplicationData gespeichert werden oder normalen
+  Standardobjekten hinterlegt werden.
+
+ApplicationObjects in der DispList: (DL_Att .)
+  alle:                .typ   Typ_APPOBJ.
+  Objekttypspezifisch: .iatt; zB. subTyp; 0=point, 1=line, 2=image ..
+  Objektspezifisch:    .ind;  zB. ID, ObjNr.
+
+
+
+
+Funktionen:
+AP_UserAppObjNamTab         // provide names for application-objects
+  // wie diese Objects in der Multi-SelektionsListe angezeigt werden ..
+
+
+Beispiele:
+APP_GIS1 gis_DrawPoint gis_DrawEL gis_EL_disp gis_sel_CB
+
+
+
+
+
+
+Examples:
+#define APPTYP_XY 0
+#define APPTYP_XZ 1
+
+  static APP_OBJ_NAM appObjNamTab[]={
+    {"XY-Obj",  APPTYP_XY},   // 0
+    {"XZ-Obj",  APPTYP_XZ},   // 1
+    {"",-1}
+  };
+
+
+  long   id, dli;
+
+
+// create App-Obj:
+  id = 123;
+  // test if App-Obj with this id already exists in the DispList
+  dli = DL_find_APPOBJ (id, APPTYP_PT);
+  if(dli >= 0) DL_SetInd (dli);       // modify (do not create new DL-Record)
+  dli = DL_StoreObj (Typ_APPOBJ, id, APPTYP_XY); // create/modify DL-Record
+  GL_DrawSymB (&id, 2, SYM_TRI_S, &p1);          // red triangle
+
+
+
+// Test for App-Obj:
+  dla = DL_GetAtt(dli);
+  if(dla.typ == Typ_APPOBJ) ..
+
+// Test subTyp of App-Obj:
+  if(dla.iatt == APPTYP_XY) ..
+
+// get ID of App-Obj:
+  id = dla.ind;
+  if(id == 123) ..
+
+// find App-Obj:
+  id = 123;
+  dli = DL_find_APPOBJ (id, APPTYP_XY);
+  // delete App-Obj
+  if(dli >= 0) GL_Del0 (dli);
+
+// delete all App-Obj's of typ APPTYP_XY:
+  GL_Del_om (Typ_APPOBJ, -1L, APPTYP_XY);
+
+  GL_Regen1 ();           // reset DL
+
+
+
+

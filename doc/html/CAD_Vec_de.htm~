@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Vec_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+<h2>CAD-Funktionen Vektoren</h2>
+
+siehe auch <a href="CAD_Base_de.htm#D">Codes Vektoren</a>
+siehe auch <a href="CAD_Base_de.htm#D_Copy">Vektor aus Kopierfunktion</a>
+
+Vektoren benutzen den Kennbuchstaben D ("Direction").
+
+
+<hr>
+<a name="F0"></a>
+<h2>VEC cartes, from linear objs</h2>
+Vektor erzeugen.
+
+- Eingabe eines Vektors mit der Tastatur:
+  - Kartesisch (X/Y/Z-Komponenten): zB "0 0 1" (ein Z-Vektor)
+
+- Selektion von Linie oder Polygonsegment oder Polygonsegment aus CCV
+  oder Ebene oder planaren Fläche.
+
+- Auswahl eines Standardvektors
+  - aus den rechts unten dargestellten Vektoren
+  - Eingabe mit der Tastatur (DX oder DY oder DZ oder invers dazu DIX DIY DIZ)
+
+- Auswahl eines definierten Vektors
+  - durch die PageUp/PageDown(Bild)-Tasten;
+  - aus dem ObjektBrowser (links)
+  - Eingabe mit der Tastatur (zB "D12")
+
+
+Optional:
+  Definition der Vektorlänge
+  Richtung verkehrt ("REV"; auch mit PageDown-Taste)
+
+Standardvekoren sind DX DY DZ DIX DIY DIZ.
+
+Beispiele:
+D3=D(0.7 0 0.7) 100
+
+
+
+
+
+<a name="F1"></a>
+<h2>VEC polar      (Angles Length)</h2>
+Definition Vektor durch <a href="CAD_Base_de.htm#ANGR">Drehwinkel</a> <a href="CAD_Base_de.htm#ANGT">[Kippwinkel]</a> [Vektorlänge] [REVers]
+
+   Angle-Rot:  Drehung um die Z-Achse der aktiven Konstruktionebene,
+   Angle-Tilt: Drehung (Kippen) um die neue Y-Achse.
+
+Beispiel:
+D22=ANG(90) ANG(30)
+
+
+<a name="F2"></a>
+<h2>VEC objects</h2>
+Parallel- oder Normalvektor von existierenden Objekten.
+
+Optional für alle Vektoren:
+  Definition der Vektorlänge
+  Richtung verkehrt ("REV"; auch mit PageDown-Taste)
+
+
+<b>Parallelvektor:</b>
+  Vektor als Strecke zwischen 2 <a href="CAD_Base_de.htm#P">Punkten</a>; Länge optional.
+
+  Vektor als Tangente durch einen Punkt an eine Kurve:
+    einen Kreis oder Ellipse oder B-Spline oder Klothoide selektieren -
+    und einen Punkt auf dieser Kurve
+    
+  Vektor parallel zur Hauptachse (U-Richtung):
+    (derzeit nur für Ebene, B-SplineFläche)
+    Ebene: ergibt X-Achse der Ebene.
+    Fläche: Richtung der Isoparametrischen Kurve U
+    Modifier "PARL" aktivieren.
+
+  Vektor parallel zur V-Achse (normal zur Hauptachse U):
+    (derzeit nur für Ebene, B-SplineFläche)
+    Ebene: ergibt Y-Achse der Ebene.
+    Fläche: Richtung der Isoparametrischen Kurve V
+    Modifier "CX" aktivieren.
+
+
+<b>Normalvektor:</b>
+  Normalvektor auf Kreis oder Ebene oder Ellipse
+
+  Normalvektor auf Fläche (derzeit nur B-SplineFläche)
+    eine Fläche selektieren -
+    und einen Punkt auf dieser Fläche
+
+  Normalvektor auf 2 lineare Segmente (<a href="CAD_Base_de.htm#D">Vektor</a> oder <a href="CAD_Base_de.htm#L">Linie</a>):
+    3 Punkte           (normal auf Ebene durch 3 Punkte)
+    Punkt, Linie       (normal auf Ebene durch Punkt, Linie)
+    2 Linien           (normal auf Ebene durch 2 Linien)
+    Das Ergebnis (der Normalvektor) ist das Kreuzprodukt von 2 Eingabevektoren. 
+
+
+  
+
+
+Beispiele:
+# Normalvektor von Kreis C20
+D20=C20
+
+# Tangentialvektor an einen Kreis.
+D21=C20 P(C20 0.2)
+
+# Vektor als Strecke zwischen den Punkten P1 P2; Länge 100.
+D5=P1 P2 VAL(100)
+
+# Normalvektor auf Linie L20:
+D20=L20 DZ
+
+# X-Achs-Vektor der Ebene R20
+D20=R20 PARL
+
+
+
+<hr>
+Die folgenden Befehle koennen derzeit nur manuell erzeugt werden:
+
+<h2>Vektor-Multiplikation / Divison</h2>
+D21 = D20 * 2
+D22 = D20 / 2
+
+
+
+
+</PRE>
+</HTML>

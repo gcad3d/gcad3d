@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY>
+<PRE>
+
+Erste Schritte - Dokumentation  zu gCAD3D - NC
+
+____________________________________________________________________________
+
+NC-Programme müssen dzt im Modus MAN erstellt werden;
+ siehe dazu Help / getting-started MAN.
+
+ Die NC-Worte (RP, (STOP FED COOL INSERT ..)) müssen dzt mit der Tastatur
+   eingegeben werden.
+ Mit Alt-F wird "FROM", mit Alt-W wird "WORK" erzeugt.
+ Zugehörige geometrische Objekte (Punkte, Konturen) können selektiert werden.
+ Abschluss mit Returntaste oder rechter Maustaste.
+ Zu jeder Zeit kann man mit der Cursortaste hinauf/hinunter jeden
+   Programmzustand wiederherstellen.
+
+
+Es sind Rohteilkontur, Startpunkte und Bearbeitungskonturen mit CAD oder MAN
+ zu erstellen.
+
+# Beispiel:
+# Startpunkte:
+P20=P(100 100)
+P21=P(200 100)
+P22=P(50,50)
+P23=P(85 140 0)
+P24=P(120 140 0)
+P25=P(250 95 0)
+P26=P(260 100)
+P27=P(225 150)
+# Part (Rohteil)
+S20=REC P22 D(260 0 0) D(0 128 0)
+# Konturen:
+S21=CCV  P23 P(92 140 0) P(95 150 0) P(100 150 0) P(103 140 0) P(110 140 0)
+S22=CCV  P24 P(140 140 0) P(130 160 0) P24
+
+# Definition untere Konturebene
+ZSUR1 0
+# definition obere Konturebene
+ZSUR2 50
+
+# Start ohne Tool
+TL 0
+# Definition des BearbeitungsStartpunktes;
+# es wird ein Dreick dargestellt.
+FROM P22
+# Rapid-Verfahrweg:
+# Wird strich-punktiert dargestellt, relativ mit "RPR <dx> <dy>"
+RP P20
+# Werzeugwechselbefehl:
+TL 1
+# Kontur (CCV, "S") an der momentanen Position bearbeiten:
+WORK CUT S21
+WORK CUT S21
+# Lineare Bearbeitung (Darstellung als Fläche):
+# Relative Lineare Bearbeitung: "WORK PR <dx> <dy>"
+WORK P21
+TL 0
+RPR 25 0
+TL 1
+# Kreis bearbeiten:
+# Radius Startrichtung Umfahrungswinkel Ausfahrstrecke
+WORK CUT_CIR 12 0 360 0
+TL 0
+RP  P27
+TL 1
+# Pocketzyklus Kreis - Radius_aussen Radius_Bohrloch
+WORK POCK_CIR 12 5
+TL 0
+# Startpunkt Pocket (innerhalb Kontur)
+RP P26
+TL 1
+# Definition Randabstand Schnittabstand
+POCKET 1 3
+# Pocket-Zyklus; Kontur, KonturStartpunkt.
+WORK POCK S22 P25
+# KonturFinish
+WORK P25
+WORK CUT S22
+TL 0
+RP P22
+#
+
+
+____________________________________________________________________________
+Der NC-Prozessor ist eine Makroprogramminterpreter;
+  die Makroprogramme befinden sich im Verzeichnis {base}/wc/*.mac.
+  Makroprogramme bestehen aus Ascii-Texten zur:
+  - Implementierung jeder beliebigen Bearbeitungsstrategie
+  - Kombinierte Zyklen (zB Vorschnitte, Nachschnitte, Trennen)
+  - Erzeugung von parametrierten Konturteilen (zB. Langloch ..)
+  - Standard - ISO - Postprozessor
+
+____________________________________________________________________________
+</PRE>
+</HTML>

@@ -1,0 +1,128 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>Textures_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+
+<h2>Diese Funktion wurde durch Funktion TextureEditor ersetzt.
+Selektieren sie die Fläche mit der rechten Maustaste,
+selektieren Sie "Textur".</h2>
+
+
+
+
+<h2>Texturen</h2>
+
+Für Texturen können JPG- und BMP-Files verwendet werden.
+
+Texturen können für 2D-Tags verwendet werden
+Texturen können auf Surfaces aufgebracht werden ..
+
+
+<b>Texturen für 2D-Tags:  </b>
+  Ein Bild wird immer normal zum Betrachter dargestellt.
+  Interaktive Funktion: <a href="CAD_TxtG_de.htm#F11">CAD / N-Image</a>
+ 
+ 
+ 
+<b>Texturen für Surfaces:</b>
+  Interaktive Funktion: Modify / SurfaceTexture.
+  Texturen können auf folgende Surfaces aufgebracht werden:
+  - planare Flächen
+  - Meshes.
+  Die Textur kann skaliert, verschoben und gedreht werden (<a href="#F1">modifizieren</a>).
+  Maßstab und Offset können für x und y getrennt definiert werden.
+  Bearbeiten der Bilder fuer die Texturen zB mit Gimp:
+    - Entzerren mit: Werkzeuge/Transformation/Perspektive
+    - Zuschneiden mit: Werkzeuge/Transformation/Zuschneiden
+    - Skalieren mit: Bild/Bild skalieren
+      Fuer durchschnittliche Qualitaet: einen Meter auf ca 100 Pixel skalieren.
+
+
+
+<hr>
+<b>Load Texture from File</b>
+ Eine Textur aus einer Datei laden und aktivieren:
+ Selektieren Sie eine JPG- oder BMP-Datei;
+ der Texturname wird nun als aktive Textur angezeigt.
+
+
+<b>activate Texture from Surf</b>
+ Eine bereits verwendete Textur aktivieren:
+ Selektieren sie eine Fläche mit Textur.
+   (unhilite Textur (nur im Mode VWR): rechte Maustaste)
+ Es werden nun Textur und Fläche aktiviert.
+ Sie können nun die Textur <a href="#F1">modifizieren</a> -
+ oder auf eine andere Fläche aufbringen.
+
+
+<b>apply active Texture</b>
+ Die aktive Textur auf eine Fläche aufbringen.
+ Selektieren Sie eine Surface.
+ 
+
+<b>remove Texture</b>
+ Textur von Fläche entfernen.
+ Selektieren Sie eine Surface mit Textur.
+
+
+<b>fit Size</b>
+  Ein: das Bild wird auf die Grösse der Fläche skaliert
+  Aus: das Bild wird in Originalgrösse auf die Fläche montiert
+
+
+<b>Reload</b>
+  Das Bild für die aktive Textur wird neu geladen.
+  (wenn zB ein bereits geladenes Bild verändert wurde ..)
+
+
+
+<hr>
+<p><a name="F1"></a></p>
+<b>Scale - Offest - RotAng / Textur modifizieren:</b>
+
+- Scale X/Y  (Skalieren Textur; Cursortasten)
+- Offset X/Y (Verschieben Textur; Cursortasten)
+- RotAng (Verdrehwinkel in Grad; Cursor-Links/Rechts)
+
+Veränderung der Werte über die Tastatur: Update mit der Return-Taste.
+Veränderund der Werte mit den Cursortasten: Update erfolgt dynamisch.
+Nächstes Eingabefeld mit der Tab-Taste.
+
+
+
+<hr>
+Anhand eines Foto soll Masze analysiert werden:
+  Das Foto entzerren.
+  Eine Flaeche mit der genauen Groesse des Fotos machen;
+    Wenn auf dem Foto eine Flaeche von 3 x 5 m dargestellt ist,
+    soll eine Rechteckflaeche von 3x5 erzeugt werden (in Z=0)
+      S20=REC P(0 0 0) D(5 0 0) D(0 3 0)
+      A20=S20
+  Textur applizieren.
+  Punkte setzen (Select / PT -- Position)
+  Punkte messen (Analyze Dist).
+
+
+
+<b>Offen / ToDo:</b>
+  Export von Texturen nach VRML, ...
+  Unterstützung von 16-bit-displays
+  Transparente Texturen ..
+  Billboards ..
+
+
+
+
+<hr>
+Senden sie Fehlerberichte, Verbesserungsvorschlaege
+  an franz.reiter@cadcam.co.at
+
+
+</PRE>
+</HTML>

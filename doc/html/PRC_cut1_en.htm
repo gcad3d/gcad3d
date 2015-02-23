@@ -1,0 +1,239 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>PRC_cut1_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+<h2>Process PRC_cut1</h2>
+PRC_cut1 is a 2.5-D NC-Processor,
+
+Postprocessors: G-Code and others (optional).
+
+
+____________________________________________________________________________
+<A HREF='#ALL'>Basics</A>
+<A HREF='#TLC'>Toolcommands</A>
+<A HREF='#WRK'>Processing_functions</A>
+<A HREF='#ZAX'>Z-Axis-Control</A>
+<A HREF='#AUX'>Auxiliary_functions</A>
+<A HREF='#EXA'>Example</A>
+
+<A HREF='#G-Code'>Postprocessor G-Code</A>
+<A HREF='#GCAD3D-APT'>GCAD3D-APT</A>
+
+
+____________________________________________________________________________
+<p><a name="ALL"></a></p>
+<B>Basics</B>
+
+
+-) Create all geometric objects to be processed with mode CAD or MAN
+  or load model "sample_PRC_cut1_1"
+
+-) Create new process: "Process/Create",
+  Processname "proc1", Processor PRC_cut1.
+
+-) Activate process:
+  in browser-window, select proc1 with right mousebutton "aktivate".
+
+-) Define startposition:
+  in grafic-window, right mousebutton: "FROM";
+    (in edit-window wird "FROM" ausgegeben)
+  in grafic-window select point with left mousebutton (eg P27)
+    (in edit-window the point is added)
+  Finish line:
+    in grafic-window, right mousebutton: "OK" or
+    in edit-window with enter-key.
+
+-) Define rapid-movement:
+  in grafic-window, right mousebutton: "RP";
+  in grafic-window select point with left mousebutton (eg P23)
+  Finish line.
+    (in edit-window "RP P23" is displayed)
+
+-) Define machining-commands:
+  in grafic-window, right mousebutton: "GO";
+  in grafic-window select a garfic object (line, circle curve)
+    with the left mousebutton (eg S21)
+  Finish line.
+    (in edit-window "GO S21" is displayed)
+
+-) Start postprocessor:
+  in toolbar "PRC_cut1" (below grafic-window,) select postprocessor "G-Code"
+  This creates the APT-Code (file ~/gCAD3D/tmp/nc.apt) and the NC-program
+    (file ~/gCAD3D/tmp/nc.iso).
+
+-) Exit: select button "Exit" in toolbar "PRC_cut1".
+
+
+
+Do not remove line "PROCESS {prozessName} PRC_cut1" !
+Most NC-Commands (STOP FED COOL INSERT ..) have to be entered with the keyboard.
+Associated geometrical objects (points, outlines) can be selected.
+  Conclusion with RETURN key or right mouse button.
+At each time one can re-establish each programstate with the cursor key up/down.
+
+
+See also: <A HREF='gCAD3D_startMAN_de.htm'>Using_the_editor</A>
+
+
+____________________________________________________________________________
+<p><a name="TLC"></a></p>
+<B>Toolcommands</B>
+TL 0
+  unload tool.
+
+
+TL 1
+  toolchangecommand (with toolnumber).
+  No definition: default "TL 1" is used.
+
+
+TEC toolNr radius [height]
+  Definition of tool-radius and tool-length.
+  Tool-radius and tool-length are used for display.
+  radius (tool-radius-radius); Angabe 0: facial-surface is not displayed.
+  height (tool-length); keine Angabe: processing-path is not displayed.
+
+Example:
+# Tool 1: Radius=10, length=50.
+TEC 1 10 50
+# Tool 2: Radius=0; display path as line, not as surface:
+TEC 2 0
+
+
+____________________________________________________________________________
+<p><a name="WRK"></a></p>
+<B>Processing_functions</B>
+
+FROM FromPosition
+  Set the given position as startpoint.
+  This instruction should only be given once in a process.
+  Example:  "FROM 100,100" or "FROM P20"
+  Output: "FROM koordinaten"
+  Display: a triangle.
+
+
+RP Position
+  rapid-movement absolut.
+  Output: "RP", "G1 coordinates"
+  Display: without tool: yellow line; with tool: red line.
+
+RPR X-distance,Y-distance[,Z-distance]
+  rapid-movement relativ.
+  Example: "RPR 100 0"
+  Output: "RP", "G1 coordinates"
+
+
+
+GO Geom.Obj
+  Machining. Define one ore more geometric objects (lines, circles, curves).
+  Example: "GO P10 L20 S20"
+  Output: G1- or G2- or G3-records.
+  Display: surface or blue linie/curve (if Radius is 0)
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="ZAX"></a></p>
+<B>Z-Axis-Control</B>
+
+ZSUR1 <Z-Wert>
+  Z-level of machining surface
+  This value is added to all Z-values.
+
+
+CLEAR <Z-Wert>
+  Safety-distance (Clearence).
+  For all RAPID-movements this value is added.
+
+
+
+____________________________________________________________________________
+<p><a name="AUX"></a></p>
+<B>Auxiliary_functions</B>
+
+COOL ON / OFF
+  Coolant.
+  Will be copied into the NC-program.
+
+FED <Feedrate>
+  Will be copied into the NC-program.
+
+INS <text>
+  INSERT. Text will be copied into the NC-program
+
+STOP <parameter>
+  Will be copied into the NC-program.
+  STOP      - for M00
+  STOP 1    - for M01
+
+
+Auxiliary functions are displayed at the corresponding position.
+
+	
+____________________________________________________________________________
+<p><a name="EXA"></a></p>
+<B>Example</B>
+
+
+<B>Example Process cut1:</B>
+
+Load model sample_PRC_cut1_1.gcad (File/OpenModel "sample_PRC_cut1_1.gcad")
+Activate procDemo1 ("procDemo1","activate" in browser with right mousebutton)
+Start prozessor (select Postproc. "none");
+Check output-file ~/gCAD3D/tmp/nc.apt;
+finish with Button "Exit".
+
+
+____________________________________________________________________________
+<p><a name="GCAD3D-APT"></a></p>
+<B>GCAD3D-APT</B>
+APT-Code, created by processor PRC_cut1.
+Is written into file ~/gCAD3D/tmp/nc.apt.
+The postprocessors read this file.
+
+<p><a name="G-Code"></a></p>
+<B>Postprozessor G-Code</B>
+Creates the NC-program in file ~/gCAD3D/tmp/nc.iso.
+
+
+
+GCAD3D-APT                     G-Code
+
+$$ Kommentar                   -
+FROM {position}                G92 {position}
+RP                             -
+G1 {position}                  G0 (nach RP) oder G1
+G2                             G2
+G3                             G3
+TL 1                           T1
+
+STOP                           M00
+STOP 1                         M01
+
+COOL ON / OFF                  M07 / M09
+FED {Vorschubwert}             F{Vorschubwert}
+INS {text}                     {text}
+
+FINI                           -
+
+
+
+
+
+G0,G1  Coordinates of endpoint: X,Y,Z absolut
+
+G2,G3  Coordinates of endpoint: X,Y,Z absolut
+       Coordinates of circle-center: I,J,K absolut
+
+
+____________________________________________________________________________
+</PRE>
+</BODY>
+</HTML>

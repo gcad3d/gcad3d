@@ -1,0 +1,12 @@
+# nmake -f DemoAnim1.nmak "OS=MS64"
+
+DLLNAM = DemoAnim1
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+ ../xa/DemoAnim1.c\
+
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

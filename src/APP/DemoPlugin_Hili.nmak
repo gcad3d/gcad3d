@@ -1,0 +1,12 @@
+# nmake -f DemoPlugin_Hili.nmak
+
+
+DLLNAM = DemoPlugin_Hili
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+	../xa/DemoPlugin_Hili.c
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

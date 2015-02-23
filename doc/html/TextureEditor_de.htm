@@ -1,0 +1,121 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>Textures_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>TextureEditor</h2>
+
+  Texturen können auf folgende Flächen aufgebracht werden:
+  - planare Flächen
+  - Meshes.
+ 
+ Vorarbeiten:
+   Bearbeiten der Bilder fuer die Texturen zB mit Gimp:
+   - Entzerren mit: Werkzeuge/Transformation/Perspektive
+   - Zuschneiden mit: Werkzeuge/Transformation/Zuschneiden
+   - Skalieren mit: Bild/Bild skalieren
+     Für automatisches Skalieren sollte das Bild auf 100 Pixel
+      pro Meter skaliert werden (siehe "fixe Grösse").
+
+
+
+Aufruf TextureEditor:
+  eine Fläche mit der rechten Maustaste selektieren - "Textur". 
+  Beenden mit Esc-Taste, Return-Taste oder rechter Maustaste.
+
+
+
+  Die Textur kann im TextureEditor mit der Maus verschoben,
+    skaliert und gedreht werden. (Im TextureEditor sind
+    die normalen Anzeigefunktionen zum Verschiehen und Verdrehen
+    der Anzeige blockiert).
+    Verschieben: Shift-Taste gedrückt halten, Maus verschieben.
+    Zoomen: Shift-Taste und Strg-Taste gedrückt halten, Maus verschieben.
+    Drehen: Strg-Taste gedrückt halten, Maus verschieben.
+ 
+ 
+ 
+<hr>
+<b>Bild laden</b>
+ Eine Textur aus einer Datei laden und aktivieren:
+ Selektieren Sie eine JPG- oder BMP-Datei;
+ der Texturname wird nun als aktive Textur angezeigt und
+ auf die aktive Fläche aufgebracht.
+
+
+<i>Eine bereits verwendete Textur aktivieren:</i>
+ Selektieren sie eine Fläche mit Textur.
+ Es wird nun diese Textur auf die momentan aktive
+ Fläche aufgebracht.
+ 
+
+
+
+<b>neu laden</b>
+  Das Bild für die aktive Textur wird neu geladen.
+  (wenn zB ein bereits geladenes Bild verändert wurde ..)
+
+
+
+<b>vertikal spiegeln</b>
+
+
+
+<b>horizontal spiegeln</b>
+
+
+
+<b>entfernen</b>
+ Textur von der aktiven Fläche entfernen.
+
+
+<b>einpassen</b>
+  Das Bild wird so skaliert, dass es optimal auf die Fläche passt.
+    
+
+
+<b>fixe Grösse</b>
+  Das Bild wird so skaliert, dass 1 m der Fläche von 100 Pixeln
+  abgedeckt wird.
+  Beipiel Steinplatte, 100 cm X 50 cm:
+    das Bild sollte 100 x 50 Pixel haben;
+    eine Fläche von 5 x 2 Einheiten (meter) zeigt 5 x 5 Plattenhaben;
+    eine Fläche von 5 x 2 Einheiten (meter) zeigt 5 x 5 Platten.
+
+
+
+
+<hr>
+Beispiel:
+  Eine Fläche erzeugen:
+    Wenn auf dem Foto eine Flaeche von 3 x 5 m dargestellt ist,
+    soll eine Rechteckflaeche von 3x5 erzeugt werden (in Z=0)
+      S20=REC P(0 0 0) D(5 0 0) D(0 3 0)
+      A20=S20
+  Textur applizieren.
+  Punkte setzen (Select / PT -- Position)
+  Punkte messen (Analyze Dist).
+
+
+
+<b>Offen / ToDo:</b>
+  Export von Texturen nach VRML, ...
+  Unterstützung von 16-bit-displays
+  Transparente Texturen ..
+  Billboards ..
+
+
+
+
+<hr>
+Senden sie Fehlerberichte, Verbesserungsvorschläge
+  an franz.reiter@cadcam.co.at
+
+
+</PRE>
+</HTML>

@@ -1,0 +1,22 @@
+#! /bin/sh
+
+echo "preinst gcad3d "
+
+
+# check libGL.so.1
+libInf=`ldconfig -p | grep "libGL.so.1"`
+if [ -z "$libInf" ]; then
+  zenity --warning --text="OpenGL-Installation - \n\
+  libGL.so.1 does not exist ! ?"
+fi
+
+
+## check libGLU.so.1
+libInf=`ldconfig -p | grep "libGL.so.1"`
+if [ -z "$libInf" ]; then
+  zenity --warning --text="OpenGL-Installation - \n\
+  libGLU.so.1 does not exist ! ?"
+fi
+
+
+exit 0

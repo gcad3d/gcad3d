@@ -1,0 +1,10 @@
+# nmake -f DemoAssy1.nmak
+
+DLLNAM = DemoAssy1
+
+SRC1 =\
+ ../xa/DemoAssy1.c
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

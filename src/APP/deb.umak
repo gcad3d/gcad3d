@@ -1,0 +1,12 @@
+# Debug 1=Debug-ON
+#       2=Distribute;DebugOFF
+
+include deb.mak
+
+ifeq "$(DEB)" "1"
+  CPDEB = -DDEB -ggdb -pg
+endif
+
+# LKDEB = -rdynamic $(GUILK) -ggdb -pg ../libxa_test.so -Wl,-rpath .
+
+#

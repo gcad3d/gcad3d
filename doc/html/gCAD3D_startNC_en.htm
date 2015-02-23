@@ -1,0 +1,99 @@
+<HTML>
+<HEAD>
+</HEAD>
+<BODY>
+<PRE>
+
+<h2>First steps - documentation to gCAD3D - NC</h2>
+
+
+
+-------------------------------------------------------------------------
+
+Numerical control programs must be made at present in the mode MAN;
+ see in addition Help / getting started  MAN.
+
+ The numerical control words (RP, (STOP FED COOL INSERT.)) must be entered
+ at present with the keyboard.
+
+ With Alt-F "FROM", with Alt-W "WORK" is produced.
+ Associated geometrical objects (points, outlines) can be selected.
+ Conclusion with RETURN key or right mouse button.
+ At each time one can re-establish each programstate with the cursor key up/down.
+
+ You have to provide the partContour, starting points and workingContours
+   with CAD or MAN.
+
+# Example:
+# start points:
+P20=P(100 100)
+P21=P(200 100)
+P22=P(50,50)
+P23=P(85 140 0)
+P24=P(120 140 0)
+P25=P(250 95 0)
+P26=P(260 100)
+P27=P(225 150)
+# partContour
+S20=REC P22 D(260 0 0) D(0 128 0)
+# workingContours
+S21=CCV  P23 P(92 140 0) P(95 150 0) P(100 150 0) P(103 140 0) P(110 140 0)
+S22=CCV  P24 P(140 140 0) P(130 160 0) P24
+
+# definition lower level
+ZSUR1 0
+# definition upper level
+ZSUR2 50
+# start without Tool
+TL 0
+# definition of the starting point;
+# represented by a triangle
+FROM P22
+# rapid path:
+# is dash-dotted represented, relative with "RPR" RP P20
+RP P20
+# toolchange instruction
+TL 1
+# work contour (CCV, "S") at the momentary position:
+WORK CUT S21
+WORK CUT S21
+# linear treatment (representation as surface):
+# relative linear treatment: "WORK PR <dx> <dy>"
+WORK P21
+TL 0
+RPR 25 0
+TL 1
+# work circular:
+# radius startingdirection circular-angle driving-out-distance
+WORK CUT_CIR 12 0 360 0
+TL 0
+RP  P27
+TL 1
+# circular pocket cycle:   outer-radius inner-radius
+WORK POCK_CIR 12 5
+TL 0
+# starting point pocket (within outline) RP P26 tl 1
+RP P26
+TL 1
+# definition edge-distance cut-distance
+POCKET 1 3
+# pocket cycle: Outline, outline-starting point
+WORK POCK S22 P25
+# finish contour
+WORK P25
+WORK CUT S22
+TL 0
+RP P22
+#
+
+
+
+-------------------------------------------------------------------------
+
+ All further information in the documentation.
+
+
+
+</PRE>
+</HTML>
+

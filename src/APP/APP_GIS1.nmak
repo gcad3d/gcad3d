@@ -1,0 +1,15 @@
+# nmake -f APP_GIS1.nmak "OS=MS32"
+
+
+DLLNAM = APP_GIS1
+
+
+SRC1 =\
+  ../GIS1/APP_GIS1.c
+
+
+!include "ogl.nmak"
+!include "gCAD_DLL.nmak"
+
+
+################### EOF #########################

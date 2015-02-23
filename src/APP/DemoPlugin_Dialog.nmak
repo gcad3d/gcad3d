@@ -1,0 +1,12 @@
+# nmake -f DemoPlugin_Dialog.nmak
+
+
+DLLNAM = DemoPlugin_Dialog
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+	../xa/DemoPlugin_Dialog.c
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

@@ -1,0 +1,191 @@
+       gCAD3D naming conventions                   ../dox/NamingConventions.txt
+
+------------------------------------------------------------------------------
+FunktionsNamesgebung:
+
+ A functionname can have this parts:
+ <FNC-Group>_<outputObj>_<Functyp>_<inputObjects>_<ZusatzInfos>
+
+FNC-Groups: UT2D
+            UT3D
+            UTI UTP
+            UTX MEM ..
+            UME ..
+output:     pt ln ...
+            entfaellt bei Testfunktionen - sofort Functyp ck od comp
+Functyp     int proj ..
+input       pt 2pt  ..
+
+
+
+<outputObjs> / <inputObjs> ------------------------------------
+  Elementtypen:
+
+ pt    Point, Typ_PT
+ npt   table of points = PointArray = Polygon; was pta
+ inpt  indexed polygon (index table to table of points)
+ vc    Vector, Typ_VC
+ vc1   Vector with length=1 (normalized)
+ ln    Line, Typ_LN
+ plg   CurvPoly, Typ_CVPOL, Polygon mit Laengenparametertabelle)
+ polc  (closed Polygon)
+ cv    Curve; for polygon use npt;
+ ncv   Array of curves;  was cva
+ ci    Circ; Typ_CI, ac,  trimmed-circle
+ ell   CurvElli, Typ_CVELL, Ellipse
+ pl    Plane, Typ_PLN; Ebene.
+ sph   Sphere, Typ_SPH, Kugel.
+ bez   CurvBez, Typ_CVBEZ, Bezier-curve.
+ clt   CurvClot, Typ_CVCLOT, clothoid-curve.
+ cbsp  CurvBSpl, Typ_CVBSP, B-Spline-Curve; was bspl
+ ccon  Conic-Curve; hyperbola|parabola.
+ pspl  Typ_CVPSP3, Polynom.Spline.
+ bnd   boundary; curve, closed.
+ crv   linear object; LN,CI,EL,CV
+ sur   Surface (all types)
+ sru   RuledSurface, Typ_SURRU.
+ srv   RevolvedSurface, Typ_SURRV.
+ sbsp  SurBSpl, Typ_SURBSP, B-SplineSurface.
+ spu   Surf-planar-unperforated;  spp Surf-planar-perforated.
+ sus   SurStd, StandardSurface.
+ Tes   tesselated surface (openGlSurface)
+ box   Box Tri (box besser -> bbox (boundingBox))
+ tria  Triangle
+ rbox  rectangleBox; Viereck)
+ edg   Edge (Kante)
+ fac   Fac3, Typ_Fac3: Face; 3 int's (pointIndices)
+ -"-   FacNf  Face with its NeigbourFaces
+ msh   Typ_SURMSH, Mesh
+ mdr   ReferenceModel Ditto
+ mdb   BasicModel
+
+ ox   Complex-Object                     ObjGX
+ oid  ObjectID                           string       (of DB-object eg "P20")
+ onam object-name                        string (eg: onam="height" for oid=V20)
+ ccv  Concatenated-Curve (ObjGX)
+ crv  linear object; LN,CI,EL,CV ..      typ+struct
+ sur  planimetric obj; plane, surf       typ+struct
+ obj,ost  object-structure; any object   typ+struct
+ dbo  DB-object; any obj                 typ+dbInd
+ ato  atomic-object; any obj             austyp/austab (int/double)
+ src  Source-object (text)
+
+Line = linesegment (2 points, both sides limited (lnLL)
+Ray  = 1 point and 1 vector; limited on one side (lnLU).
+       both sides unlimited  (lnUU) ?
+
+ side     side (before behind above below), int
+ sidPerp  side  before or behind perpendic. Line/Plane
+ par    parameter, native (eg knotValue) or normalized (0-1)
+ par1   parameter, normalized (0-1)
+ parvc  parameter of point on vector
+ parln  parameter of point on line
+ parci  parameter of point on circ
+ parbsp (parameter of point on B-SplineCurve)
+ parsbsp (parameter of point on B-SplineSurface)
+ len   (length)       slen (signed length)
+ sr    sense of rotation
+ ar    Area
+ angr  Angle-Radians
+ angd  Angle-Degrees
+ rd    Radius
+ bp    BackPlane; XY, XZ, ZY
+ hbp   Hoehenwert einer BackPlane
+ gcp   gravity-center-point (Schwerpunkt)
+
+<property>
+ clo   closed (curve)
+ perp    = Orthogonal (Normal)
+ par     = parallel
+ on      = auf
+ in      = zwischen between
+ mid
+ near
+ equ     = identisch
+ norm    = normieren
+ div     = teilen (divide)
+ orient    ausrichten
+
+
+<Functyp> ------------------------------------
+  get   
+  set
+  add
+  cpy     copy
+  sub     subtract
+  mult    multiply
+  ev      evaluate (parameter)
+  perp    perpendicular = senkrecht/lotrecht/normal   nor
+  int     intersect
+  ipl     interpolate
+  lim     limits (endpoints), limited
+  unl(im) unlimited
+  dec     decode
+  find    find
+  prj     Projektion proj
+  inv     invertieren (umdrehen)
+  cnvt    convert
+  mir     mirror gespiegelt
+  rot     drehen, verdreht
+  tr tra  Translation
+  trk     Translation kartesisch (x, y);
+  trv     Translation Vectoriell (vector, length);
+  trp     Translation polar (angle, length);
+  tri     Triangle, Dreiecksberechnung
+  tng     Tangente, tangential
+  std     Standard (characteristic-points,)
+
+  Funktionen:
+        Keine Funktionsangabe bei Umwandlungen
+        get, set, init ..
+        ins, del       (insert)
+  swap
+        ck      = allg. Testfunktionen
+        fix     = allgem. Korrekturen
+        len     = Laengenberechnung,   lenq = SquareLen (len*len)
+                  slen=signed len, nlen =lenght of a normal ..
+
+---------------------------------------------------------------------------
+ mem   memory-space, struct Memspc
+ str   (string, terminiert mit \0)
+ strLF (string, terminiert mit LF !)
+ ind   index (int, long)
+ db    = doublezahl            ndb     = table of doubles
+ i     int4;                   ni      = table of int4
+ m2    3x2-Matrix;
+ m3    4x3-Matrix;
+ m4    4x4-Matrix;
+
+---------------------------------------------------------------------------
+  Testfunktionen:
+    XXX_test_xxx
+    werden ex Src ausgeblendet mit
+    #ifdef globTag
+       int XXX_test_xxx ()  {}
+    #endif
+
+---------------------------------------------------------------------------
+Returncodes:
+ 0 (meistens !) OK
+>0 OK mit Zusatzinfo
+<0 Error mit Zusatzinfo
+
+
+
+
+---------------------------------------------------------------------------
+VariablenNamesgebung:
+1.char: typ i=int d=double t=text
+            p=PT v=VC c=CI l=LN s=Curv o=ObjGX m=Memspc 
+2.char: Datentypinfo; kann beim DefaultTyp fehlen.
+        DefaultTyp fuer int=i4, double=d8, char=t1
+        p=pointer d=data <ziffer>=size f=function
+3.-  Beschreibung; der erste Character ist Uppercase !
+Beispiel:
+ int    i1, *ip1,  iNr;   short  i2Typ (Int-2Byte)
+ double d1, *dp1,  dSum;
+ char   t1, *tp1,  tdBuf1[256]
+
+
+
+---------------------------------------------------------------------------

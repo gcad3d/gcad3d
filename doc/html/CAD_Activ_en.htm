@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>CAD_Activ_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<A HREF="CAD_using_en.htm">See operating CAD ..</A>
+
+____________________________________________________________________________
+
+<B>Checkbox Interaction:</B>
+
+Every CAD object can be connected with a function.
+Selection of the object starts the function.
+
+  OFF: Interaction will not be done.
+
+  ON:  Interaction will be done.
+       You can select only objects with interaction.
+
+
+Identification code for Interactions is letter "I".
+
+
+
+
+
+____________________________________________________________________________
+<A NAME="F0"></A>
+<h2>Interact.connect</h2>
+Connect a CAD object with an interaction.
+   Selecting the CAD objects (Anchor object) triggers the interaction.
+   anchor-object can be any object.
+
+Examples of interactions are:
+  - Load a model (such as HTM-HREF; LDMOD)
+  - Change the View position (Change view VIEW)
+  - Start/Run a plug-in program (DLL) (EXECM)
+  - modify a numeric value (MODVAL)
+  - use already defined interaction for another object
+
+
+  connect object      select an existing anchor-object
+  command             commantext, see below
+
+
+
+command:
+   - Load a model:
+       LOAD &quot;SymbolicDirectory/Model Name&quot;
+   - Viewport change:
+       VIEW (ViewPortData)
+       With Insert/View port (or Alt-Shift-V) you can generate
+       the current viewport data.
+   - Starting a Plug-in Program (DLL):
+       EXECM {DLL-Name}
+   - Modify a numeric value (eg. variable 20):
+       MODVAL V20
+     modify the y-value (the second value) of point P25 (P25=P(100 200 0))
+       MODVAL P25 1
+   - use already defined interaction I20 for new anchor-object
+       I20
+
+
+
+Interaction Format:
+I# = {anchor-object} {command}
+
+
+Examples:
+
+V20=10
+P20=P(0 0 0)
+C20=P20 V20
+# info only
+N21=TAG P(10 0 10) "sel. circ to mod. radius"
+# modify radius of C20
+I21=C20 "MODVAL V20"
+# modify z-value of P20
+N20=TAG P(10 0) 0 "modify-z-of-P20"
+I20=N20 "MODVAL P20 2"
+#
+
+
+
+
+
+# Selecting Model1 activates the specified port view.
+I1 = M1 &quot;VIEW ...&quot;
+
+# Selection of text 20 loads the model Assy_H86.
+I2 = N20 &quot;LDMOD&quot; Data/Assy_H86 &quot;&quot;
+
+# Selecting Note 20 starts the plug-in program tst3.so.
+I3 = N20 &quot;EXECM tst3&quot;
+
+# using same interaction for another object:
+I20 = N20 'VIEW ... &quot;
+I21 = N21 I20
+
+
+
+
+</PRE>
+</BODY>
+</HTML>
+

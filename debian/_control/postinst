@@ -1,0 +1,43 @@
+#! /bin/sh
+
+echo "postinst gcad3d"
+
+PKGNAM=gCAD3D
+
+
+osVer=`getconf LONG_BIT`
+gcad_dir_bin=/usr/lib/gCAD3D/binLinux${osVer}
+echo "gcad_dir_bin: $gcad_dir_bin"
+
+# create link for active gui-dll
+libInf=`ldconfig -p | grep "libgtk-x11-2"`
+echo "gtk2-libs: $libInf"
+if [ ! -z "$libInf" ]; then
+  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
+fi
+libInf=`ldconfig -p | grep "libgtk-3"`
+echo "gtk3-libs: $libInf"
+if [ ! -z "$libInf" ]; then
+  ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
+fi
+
+
+
+# install menu on freedesktop:
+if [ ! -z "`which xdg-desktop-menu`" ]; then
+  echo "install gCAD3D in freedesktop - menu Applications/Graphics .."
+  xdg-desktop-menu install --novendor /usr/share/gcad3d/${PKGNAM}.desktop
+fi
+
+
+iVar=`which update-menus`
+if [ ! -z "$iVar" ]; then
+  echo "update-menus .."
+  update-menus
+fi
+
+
+echo "Done."
+echo "Start program with \"gcad3d\" or from Graphics-menu or select its icon."
+
+exit 0

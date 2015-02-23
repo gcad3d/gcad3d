@@ -1,0 +1,245 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Modify_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+<h2>CAD - Funktionen für Geometrische Modifikationen:</h2>
+ Trennen; Begrenzen            (CUT, Trim)
+ Schnittpunkte, Schnittkurven  (INTersect)
+ Transformationen              (Verschieben, Drehen (TRA))
+ Projektion                    (Project)
+ Spiegeln                      (Mirror)
+
+
+
+
+<p><a name="F0"></a></p>
+  <h2>CUT (trim) obj          CUT</h2>
+Lineare Elemente (Linien, Kurven) trennen / begrenzen.
+     mit einem oder zwei Schneidelementen trennen.
+
+Achtung: derzeit nur für Kurven, noch nicht für Flächen/Solids und CCV's.
+
+<b>CUT obj Schneidelement (Schneidelement2) (Variante)</b>
+
+<b>obj:</b> dieses Element wird verändert (verkleinert).
+     Ist ein Objekt bereits getrimmt, wird auch das ursprüngliche Objekt
+     in der Selektionsliste angezeigt.
+<b>Schneidelement:</b> mit diesem Element wird aufgetrennt;
+     ein (optional zwei) Element(e); z.B. Punkte.
+     Für Kurven sind auch Parameterwerte (0 - 1) möglich.
+<b>Variante:</b> welches der Ergebniselemente gespeichert wird;
+     alle weiteren werden verworfen.
+     Ändern mit der PageUp/PageDown-Taste.
+     Keine Angabe oder "1": erstes Ergebnisobjekt.
+
+Beispiel:
+L20=P(-60 30 0) P(20 70 0)
+C20=P(-14 40 0) VAL(32) DZ
+C20=CUT C20 L20 L20
+# Kreis C20 wird an beiden Enden begrenzt (getrimmt).
+
+
+Parameterwerte als Schneidelemente:
+S21=CUT S20 0.33 0.66
+
+
+
+
+<p><a name="F1"></a></p>
+  <h2>INT (intersect) obj     INT</h2>
+Erzeugen von Schnittpunkten / Schnittkurven.
+
+
+<b>ErgebnisObjekt = INT Obj1 Obj2 [Variante] [POL]</b>
+
+  Obj1: Objekt 1
+     Kurve oder Fläche. Weiter mit Tab-Taste.
+  Obj2: Objekt 2
+     Kurve oder Fläche.
+     Für Kurven sind auch Parameterwerte (0 - 1) möglich.
+  Variante: welches der Ergebniselemente gespeichert wird;
+     alle weiteren werden verworfen.
+     Ändern mit der PageUp/PageDown-Taste.
+     Keine Angabe oder "1": erstes Ergebnisobjekt (Punkt oder Kurve).
+  POL: nur für Kurven als Ergebnis:
+     es wird Polygon statt Spline ausgeben (Default ist Spline)
+
+
+# Beispiel Intersection:
+P20=P(-62.5 -63.7 0)
+S20=CCV P20 P(-20 -70) P(-40 -15) P20
+A20=S20
+#
+P21=P(-60 -110 20)
+P22=P(S20 MOD(2) 1)
+S21=POL P21 P20 P22 P21
+A21=S21
+#
+R20=X(-35)
+#
+# ein Gruppe von Flaechen:
+S22=INT U(A20 A21) R20 POL
+
+
+# Schnittpunkte von Schnitt Linie x Flaeche:
+P1=INT L1 A1
+
+# Schnittkurve von Schnitt Kurve X Flaeche:
+
+# Schnittkurve von Schnitt Flaeche x Flaeche:
+S1=INT A1 A2
+
+
+
+<p><a name="F2"></a></p>
+  <h2>TRAnslate obj (VC)      TRA</h2>
+Ein Objekt verschieben (Translation)
+
+ErgebnisObjekt = TRA Obj_to_move Vektor [Länge]
+  TRA Obj_to_move: dieses Objekt wird verschoben
+  <a href="CAD_Base_de.htm#D">Vektor</a>
+  
+Derzeit werden immer neue Objekte angelegt.  
+Offen: die Verschiebeung nicht parametrisch, sondern permanent ausgeben
+  (das Basisobjekt ändern).
+
+
+# Objekte um einen Vektor verschieben (REV: Gegenrichtung).
+# obj=TRA obj vec/traVC [REV]
+P20=P(100,0,0)
+P21=TRA P20 D(0 0 100)
+
+T20=D(10 10 10)
+P22=TRA P21 T20
+# traVC (T20 im Beispiel): siehe Transformation
+
+
+
+<p><a name="F3"></a></p>
+  <h2>TRAnslate obj (PLN)     TRA</h2>
+Ein Objekt in ein anderes Referenzsystem transportieren.
+  Als Referenzsystem kann jede Ebene benutzt werden.
+
+ErgebnisObjekt = TRA Objekt Referenzsystem [REV]
+  <a href="CAD_Base_de.htm#R">Referenzsystem</a>
+  REV: Objekt aus einem Referenzsystem zurück in die Hauptlage transportieren.
+
+Beispiel:
+R20=P(100 100 25) D(-1 0 2)
+L20=P(100 100 25) P(100 120 25)
+# Linie L20 in das Refsys R20 transportieren
+L21=TRA L20 R20
+# Linie zurück in die Hauptlage transportieren.
+L22=TRA L21 R20 REV
+
+
+
+<p><a name="F4"></a></p>
+  <h2>TRAnsform obj (Tra)     TRA</h2>
+Transformation von Objekten (Verschieben, Drehen).
+Die <a href="CAD_Tra_de.htm">Transformation</a> muss vorher definiert worden sein !  
+  
+ErgebnisObjekt = TRA Objekt Transformation
+  Transformation:  auswählen zB mit PageUp/Pagedown-Taste
+
+Translation:
+P20=P(100 0 0)
+# Translation in Richtung Z um 100 mm
+T20=DZ VAL(100)
+P21=TRA P20 T20
+
+Rotation:
+P20=P(100 0 0)
+# Definition einer 30-Grad-Rotation um Linie L20
+L20=P(50 0 0) P(50 0 10)
+T20=ROT L20 ANG(90)
+# P20 drehen.
+P21=TRA P20 T20
+
+
+
+<p><a name="F5"></a></p>
+  <h2>Project obj      PRJ</h2>
+Punkte oder Lineare Elemente (Linien, Kreise, Kurven) auf andere
+  lineare Elemente oder auf Flächen projizieren.
+
+
+ErgebnisObjekt = PRJ Objekt Zielobjekt [Richtung] [Lösungsvariante]
+
+
+Objekt:           dieses Objekt wird projiziert
+Zielobjekt:       auf welches Objekt projiziert wird (zB Ebene)
+Richtung:         Projektionsrichtung, Vektor; keine Angabe: Normalprojektion.
+Lösungsvariante:  1-n, Bild-Taste.
+
+
+
+Beispiel:
+P21=PRJ P20 R20
+# Punkt P20 wird in Normalrichtung auf die Ebene R20 projiziert.
+
+S20=PRJ S20 R20 D20
+# Kurve S20 wird in Richtung D20 auf die Ebene R20 projiziert.
+
+
+
+<p><a name="F6"></a></p>
+  <h2>Mirror about line       MIR</h2>
+Objekte um eine Line spiegeln.
+  Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
+
+ErgebnisObjekt = MIR Objekt Linie
+
+
+Beispiel:
+S20=MIR S20 L20
+# Kurve S20 wird um die Linie L20 gespiegelt.
+
+
+
+<p><a name="F7"></a></p>
+  <h2>Mirror about plane      MIR</h2>
+Objekte um eine Ebene spiegeln.
+  Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
+
+ErgebnisObjekt = MIR Objekt Ebene
+
+
+Beispiel:
+S20=MIR S20 R20
+# Kurve S20 wird um die Ebene R20 gespiegelt.
+
+
+
+<p><a name="F8"></a></p>
+  <h2>ISOparametric Curve from Surf         ISO</h2>
+
+Isoparametrische Kurve aus einer Flaeche extrahieren.
+Dzt nur B-SplineFlaeche, Punkteingabe statt Parameterwert noch nicht implementiert
+
+Eingaben:
+Flaeche
+Parameterwert (0 - 1)
+Optional: Richtung.
+  Keine Angabe: LaengsRichtung; "CX" definiert QuerRichtung.
+  (Modifier CX = across; Default = along)
+
+
+
+S=ISO surf parameter/point {directionU/V}
+
+Beispiel:
+# Querschnittkurve in der Mitte der Surface A20:
+S20=ISO A20 .5 CX
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>

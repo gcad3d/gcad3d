@@ -1,0 +1,212 @@
+<HTML>
+<HEAD>
+  <TITLE>APP_GIS1_de.htm</TITLE>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+  <meta name="description" content="GIS Applikation Spezifikation">
+  <meta name="keywords" content="GIS CivilEngineering">
+  <meta name="date" content="2012-04-22T18:13:09+0100">
+  <meta name="author" content="sm">
+  <META NAME="CHANGEDBY" CONTENT="David Young">
+  <META NAME="CHANGED" CONTENT="20090906;17143200">
+  <META NAME="CREATED" CONTENT="200703250">
+  <style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+<h2>Documention Application GIS1</h2>
+Version 2.0 - 2011-01-17
+
+<b> program call: </b>
+    Start the user application "APP_GIS1"
+      - Select from the list of add-on applications or
+      - if application was active before: start with Ctrl-P
+
+
+<b> termination of the application: </b>
+  Exit button.
+  It will pass all data to the CAD model.
+
+
+
+<A HREF='#fAux'>toolbox</A>
+<A HREF='#edit'>modify points, surfaces</A>
+<A HREF='#proj'>project objects to surface</A>
+<A HREF='#edge'>define boundaries, breaklines</A>
+<A HREF='#Todo'>ToDo</A>
+
+
+
+____________________________________________________________________________
+<p><a name="fAux"></a></p>
+
+<h3>Import points from ascii-file:</h3>
+  One point per Line.
+  The first word that contains a dot (Decimalpoint, &quot;.&quot;) is used
+  for the X-Coordinate; the following two words are used for the
+  Y- and Z-Coordinates.
+  Additional textinfos (Words before or after the Coordinates)
+  are not used at the moment.
+
+  Example:
+    import file &quot;sample_gispoints1.txt&quot;,
+      (&quot;ImportPoints&quot;; Filtertext &quot;gis&quot;)
+    rescale model with button &quot;Scal.All&quot;
+    &quot;create Mesh&quot; to create/display the TIN
+    &quot;Exit&quot; to transfer date to model
+    File/save Model as/VRML2 to create a WRL file.
+
+
+<h3>Export points into ASCII file:</h3>
+  Menu item "File / Export points"
+  The Coordinates of the Points of the active Point-surface are
+  written out into a file.
+  At the moment no additional textinfos are written.
+
+
+<h3>Display the coordinates of all points of the active GIS Area:</h3>
+  Menu item "Tools / dump all points"
+  HTML file {tempDir}/tmp.htm is generated and displayed.
+
+
+<h3>Display a list of all edges of the active GIS Area:</h3>
+  Menu item "Tools / dump all edge lines"
+  HTML file {tempDir}/tmp.htm is generated and displayed.
+
+
+<h3>print the current view:</h3>
+  Menu item "Tools / print"
+
+
+____________________________________________________________________________
+<p><a name="edit"></a></p>
+<h2>"Edit" - modify points, surfaces</h2>
+
+<h3> Create new GIS-points: </h3>
+  - indicate position with the left mouse button or
+  - Select an existing CAD-point or
+  - Enter the coordinates into the fields X, Y, Z; button "AddPt.".
+
+
+<h3> Move GIS-point: </h3>
+  The active (last selected) point is moved;
+  using the coordinates of the fields X, Y, Z;
+  Button "Mod.Pt.".
+
+
+<h3> Move all GIS-points: </h3>
+  Menu item "Tools / move all points"
+  Enter the offset.
+
+
+<h3> Delete GIS-points: </h3>
+  select them individually or as a group, "Delete" button.
+
+
+<h3> Delete a range of consequent points: </h3>
+  Menu item "Tools / delete range of points"
+  Type the Point numbers of the first and last point.
+
+
+<h3> Delete GIS-edge: </h3>
+  Select edge, button "Delete".
+
+
+<h3> Delete network: </h3>
+  Select network (A), button "Delete".
+
+
+<h3> Recalculate network: </h3>
+  Button "create mesh".
+
+
+<h3> Clean up network boundary: </h3>
+  Menu item "Tools / remove outer zone"
+  Automatic removal of triangles with too long sides.
+
+
+<h3> Changing the active surface: </h3>
+  Select from the list of loaded areas (far left).
+  Only the active area can be modified.
+
+
+<h3> Create new surface: </h3>
+  If no GIS area is included in the model, the start of the function
+  automatically generates a new (empty) GIS area.
+  With this feature, another new GIS area is generated:
+  Menu item "Tools / create new surface"
+
+
+<h3> Delete active area and all of their points: </h3>
+  Menu item "Tools / delete active mesh and all points"
+  The currently active GIS area and all of its points will be deleted.
+
+
+
+
+____________________________________________________________________________
+<p><a name="proj"></a></p>
+<h2>"prj -> Mesh" - project objects to surface</h2>
+
+<h3> Project point onto the net and generate GIS-point: </h3>
+  - indicate position (left mousebutton) or
+  - select CAD-point
+
+
+<h3> Project curves on the Net: </h3>
+  select CAD-curve, another CAD-curve is created.
+  Attention: the curve must be located within the Network!   (TODO)
+
+
+
+____________________________________________________________________________
+<p><a name="edge"></a></p>
+<h2>"create Edge" - define boundaries, breaklines</h2>
+create outer Network boundaries outside,
+create inner Network boundaries (holes, void areas),
+create breaklines (edges).
+
+First define the edgeline, then select the edgetype.
+
+  define consecutive edges by -
+  - select GIS points or
+  - select curve. The required GIS-points are generated.
+
+  CAUTION:
+  - Edge lines may not cross;
+  - breaklines may not cross outer and inner boundaries. (TODO)
+
+
+
+____________________________________________________________________________
+
+
+If necessary adjust Model Size:
+  (Standards / Tolerances / model size = 15000, Modify, Exit).
+
+
+
+<b> Program Files: </b>
+  APP_GIS1 is a supplementary program to gCAD3D.
+  The source code file is ../GIS1/APP_GIS1.c
+  The APP_GIS1 license program is GPL.
+
+  Please report problems / corrections to
+  franz.reiter @ cadcam.co.at
+
+
+____________________________________________________________________________
+<p><a name="Todo"></a></p>
+<h2> TODO: </h2>
+<b> LandXML import: </b>
+  - Import breaklines
+  - Import Void-area (hole inside Borders)
+
+<b> LandXM create export </b>
+
+
+<b> undo / restore for deleted objects </b>
+
+
+
+</PRE>
+</HTML>

@@ -1,0 +1,651 @@
+/*! \page pag_pf ProgramFlow 
+../gcad_doxygen/ProgramFlow.dox
+
+<pre>
+\ref Startup
+\ref Workflow
+\ref Events
+
+\ref Errorhandling-Tests
+\ref Constants
+
+\ref Standards-Tolerences-Modelsize
+\ref Transformations
+\ref Source-EDitor
+\ref Interaction
+\ref cursorPosition
+\ref Views
+\ref ViewPlane
+\ref ConstructionPlane
+
+\ref DB-functions
+
+\ref Textures
+\ref Tesselate
+
+\ref CAD
+\ref NC
+\ref NC-Wcut
+
+\ref IGES
+\ref DXF
+\ref VRML
+
+\ref DL-OpenGL
+\ref DLLs
+\ref Plotten
+</pre>
+
+
+<hr>
+
+
+
+
+
+
+\section DB-functions
+<pre>
+\ref ut_DB.c                                            (DB_)
+\ref ut_dbo.c   handle database-objects (typ, DB-index) (DBO_)
+</pre>
+\code
+
+UTO_get_DB          get DB-data-struct from typ, DB-index
+DB_get_PT,LN,VC,CI
+DB_GetCurv,Sur,Sol
+DB_GetObjGX         returns a ObjGX of a object stored in DB
+UTO_obj_getp        returns data-struct from ObjGX
+
+DB_GetObjGX
+DB_GetPoint
+DB_StorePoint
+DB_QueryNxtInd
+DB_GetDynInd
+
+
+
+
+\endcode
+\section Constants
+<pre>
+\ref ut_const.h        Basic constants math.
+\ref ut_tol_const.h    Basic constants tolereances.
+\ref ut_geo_const.h    Basic constants geometry.
+</pre>
+\code
+\endcode
+
+
+
+
+\section Transformations
+<pre>
+see also \ref ut_transform.c  (UTRA_)
+see also \ref ConstructionPlane
+</pre>
+\code
+
+UTRA_m3_inirot     transformation from rotationaxis and angle 
+UTRA_def__         define transformation
+UTRA_app_pt        apply all defined Transformations to a point
+UTRA_app_vc        apply all defined Transformations to a Vector
+UTRA_app__ UTRA_app_oTab UTRA_app_obj
+
+UTO_obj_apptra      apply Tra; creat new struct. in:Struct; preload trMat.
+UTO_obj_tra         ruft UTO_stru_tra; in: oGX u Mat_4x3
+UTO_stru_tra        apply Tra; generiert neue oGX; in: oGX u Mat_4x3
+UTO_pt_tratra
+UTO_pt_trarot
+
+UT2D_pt_traptm2
+UT2D_vc_travcm2
+UT3D_pt_traptm3
+UT3D_pt_rotptm3
+UT3D_pt_traptm4
+UT3D_vc_travcm3
+UT3D_vc_travcm4
+
+
+
+\endcode \section Standards-Tolerences-Modelsize
+\code
+
+WC_ask_ModSiz        get APT_ModSiz
+WC_Init_Modsiz       set APT_ModSiz
+ WC_Init_Tol         deduct tolerances from APT_ModSiz   <<<<<<<<<<<<<<
+UI_WinToler          window for setting tolerances ..
+ GL_InitModelSize
+
+
+
+
+\endcode
+\section Views
+\code
+APT_work_PrgCmd          do "VIEW" source
+GL_View_get              returns active viewData
+GL_View_set              set viewData
+GL_View_dump             dump viewData
+UI_GR_view               save/restore viewData
+
+
+
+
+
+\endcode
+\section ViewPlane
+see also \ref cursorPosition
+\code
+GL_GetViewPos            compute cursorPosition in userCoords on GL_view_pln
+
+// Viewplane (active displayplane with the GL-RotationCenterpoint GL_cen)
+//   Always parall. to X-Y-Plane.
+static Plane  GL_view_pln;
+
+
+
+
+
+
+\endcode
+\section ConstructionPlane
+<pre>
+see also \ref Transformations
+see also \ref xa.c
+</pre>
+\code
+
+Plane     WC_sur_act;    the ConstructionPlane; in xa.c
+int       WC_sur_ind;    DB-Index of the ActiveConstrPlane; 0=none.
+double    WC_sur_Z;      the active Z-Offset to the ConstructionPlane
+char WC_ConstPl_Z[16];   displayed name_of_Constr.Plane; is "DZ" or "R20"
+
+Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
+Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
+
+
+Functions ConstrPlane:
+DL_setRefSys
+  NC_setRefsys
+    GL_SetConstrPln
+DL_GetTrInd
+UTRA_pt_ucs2wcs     point from constructionplane (relativ) to absolut (UCS -> WCS)
+UTRA_pt_wcs2ucs     point from absolut to relativ (constructionplane) (WCS -> UCS)
+
+UI_sur_act_CB1      interactive setting of ConstructionPlane
+ GL_SetConstrPln    GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
+ UI_Set_ConstPl_Z   write Label name_of_Constr.Plane
+AP_Set_ConstPl_Z    write Label name_of_Constr.Plane
+UI_suract_keyIn     mode=2: set & display WC_sur_Z
+AP_Get_ConstPl_Z    gives ConstPLn as text or Z-vec
+AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
+
+
+
+
+\endcode
+
+
+
+<hr>
+\section Errorhandling-Tests
+
+<pre>
+see also Messages / \ref Direct-Messages
+</pre>
+
+\code
+
+AP_errStat_get
+AP_errStat_set      raise / reset error
+AP_errStat_reset
+AP_errText_set
+
+
+AP_debug__          Alt shift x
+AP_test__           Testfunction in core; activate by Ctl shift T
+                    exit durch Ctl shift X
+
+
+\endcode
+
+
+<hr>
+\section Startup
+\code
+
+main             xa_main.c      search ":/main (" 
+  UI_win_main                   create window
+
+UI_GL_draw__                    Redraw-CB of OpenGL
+  AP_init__                     only 1. call
+    AP_work__                   work startup-parameters
+
+
+ED_work_END
+  ED_work_CurSet             ruecksetzen od. bis new ln abarbeiten ..
+    ED_Run
+
+
+
+
+
+
+\endcode \section Workflow
+<pre>
+\ref NC_Main.c   CommandInterpreter - main
+</pre>
+\code
+
+UI_AP                         UserInterface; 
+UI_menCB                      Callback f File/new ...
+UI_butCB                      Callback fuer Menufuncs, Buttons, ...
+  ED_work_END
+   ED_work_CurSet
+    ED_Run
+     ED_Read_Line
+     WC_Work__                subModel
+     WC_Work1                 ========= HauptEntry in NC_Main.c ==========
+      APT_work_def            DefinitionLine abarbeiten (decode, draw)
+        APED_dbo_oid          Typ und Index der Zielvariable bestimmen
+        APT_decode_ausdr      Eingabezeile zerteilen (1. Decodierstufe)
+          APT_decode_func     decode SIN() X() D() ANG() P() L() ..
+            APT_decode_inp    2.Decodierstufe
+        APT_store_obj         decode APT-object, store object.
+          APT_decode_var
+          APT_decode_pt 
+          APT_decode_ln 
+          APT_decode_ci       APT_DrawCirc
+          APT_decode_ell
+          APT_decode_pol
+          APT_decode_bsp
+          APT_decode_ccv
+            AP_cont_nxt       Kontursucher ..
+          APT_decode_pln1     Plane/Refsys
+          APT_decode_pln2     Plane   R = PERP ..
+          APT_decode_sbsp     decode b-spline-surf
+          APT_decode_sur
+            APT_decode_srv
+            APT_decode_s_sph
+            APT_decode_s_cyl
+            APT_decode_s_con
+          APT_decode_sol
+            APT_decode_bsph   Sphere
+            APT_decode_bcon   CONUS
+            APT_decode_btor   TORUS
+            APT_decode_btor   PRISM
+          APT_trim_obj        LN|CI|CV = CUT ..
+          DB_StoreCurv
+        APT_Draw__
+         DB_GetCurv
+         APT_DrawCurv          APT_DrawCirc
+          GL_DrawPoly2D         GR_DrawCirc
+          GL_DrawPoly
+         APT_DrawPln
+         APT_DrawSur
+          GR_DrawSur
+           TSU_DrawSurT_
+            TSU_DrawSurTRU     Ruled Surface
+            TSU_DrawSurTRV     Revolved Surface
+            TSU_DrawSurTS      ungetrimmte/ungelochte Planare Flaeche
+            TSU_DrawSurTC      getrimmte/gelochte Complex-Flaeche (Typ_SURTPS)
+            TSU_DrawSurTP      getrimmte/gelochte Planare Flaechen
+             GL_DrawSur
+              GL_Surf_Ini
+              GL_Disp_sur
+         APT_DrawSol
+          GR_CreSol__
+           GL_disp_prism
+      APT_work_PrgCmd         Programming-Function (goto, call, WORK, if ...)
+      APT_work_NCCmd          FROM TL ..
+      APT_do_auxCmd           T1;G20;R0 ..
+      APT_wcut_line           nur if (APT_workmode == Typ_nc_cut) ?
+      APT_drill_line          nur if (APT_workmode == Typ_nc_cut) ?
+
+
+\endcode
+Workflow CAD:
+\code
+// activate new subMenu:
+IE_cad_init2   // activate new mainMenu
+IE_cad_init1   // activate new subMenu
+
+// activate new inputField:
+IE_cad_InpIn__
+
+// receive Input from user:
+IE_cad_sel1
+
+// test content of all inputFields:
+IE_cad_test1
+
+// finish cad-object:
+IE_cad_OK
+
+
+UI_CB_hide                    Hide - Funktion
+  DL_disp_set
+UI_CB_view                    View - Funktion
+  GA_hide__                   hidden-Elements-Tabelle bearbeiten
+
+
+
+
+\endcode \section Events
+\code
+
+------------------- GUI-events 
+  UI_GR_Select1
+    GL_sel_sel
+    UI_GR_Select2             callback von GUI_Popup (Liste der sel.Obj)
+     UI_GR_Select_work1       work GR_Sel_Filter 3-7
+      UI_GR_Select_work2      work  hide,view,SM or call
+       IE_cad_sel1            CAD-report sel.
+       ED_add_Text            MAN
+  UI_GR_view_set_Z
+  UI_GR_Indicate
+OMN_CB_popup                  callback of popup-menu
+UI_CursorWait UI_ChangeCursor UI_ResetCursor
+
+------------------- OpenGL-Events:
+UI_GL_draw__                  Redraw whole scene
+UI_GL_move__                  mouseMoveCallback from Grafic-window
+UI_GL_mouse__                 mouseButtonCallback from Grafic-window
+UI_GL_keys__                  KeybCallback from Grafic-window
+
+Brw_CB_sel                    MouseButtonCallback from Browser-window
+EDI_CB__                      KeybCallback from Editor-window
+
+
+
+
+\endcode
+\section Source-EDitor
+<pre>
+functions for MAN-editor - not memory:
+\ref xa_ed.c      Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
+\ref xa_edi__.c   Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
+GUI_edi_*()        GUI-EditorFunctions
+
+
+functions for memory (MAN & CAD) - not editor:
+\ref xa_ed_mem.c  ApplicSpecficFunctions APT-Textfunctions im Memory APED_
+\ref ut_txfil.c   Textfunctions im Memory                            UTF_
+
+
+create/modify textlines:
+\ref xa_src.c     check, modify, convert source-objects (text)       SRC_
+
+
+other:
+\ref xa_cad_ed.c  CAD-GroupEditor                                    IE_ed1_
+
+</pre>
+\code
+
+ED_work_END                   Button END = alles abarbeiten
+
+TX_Print                      ut_ui_TX.c
+  TX_Write
+    GUI_Tx_wri                ../gtk/ut_gtk2tx.c
+      GUI_Tx_add
+
+
+
+
+\endcode
+\section CAD
+\code
+
+UI_cad                        Hauptmenue aufbauen
+IE_cad_p_CB                   PointMenueEintrag selected ..
+IE_activate                   nach Select obj: entspr. menu aktivieren.
+ IE_decode_Ln                 Inputtzeile in (Typen, Worte) zerlegen
+ IE_txt2par1                  decode textline -> subgroup (nach SM)
+ IE_cad_sel1                  Selektion wird gemeldet, decodiert, eingearbeitet.
+  IE_cad_test1                test ob alle Eingaben vorh;
+                                ja:decode Felder, exec txt, activate OK.
+ IE_cad_OK                    OK-Butt.pressed: clear Inputboxen,Zeile->Datei
+
+
+
+\endcode \section Interaction 
+\code
+
+APT_decode_Activ
+DB_StoreActiv
+UI_menCB "Iact"    ckb_Iact
+UI_GR_ButtonPress
+ UI_GR_Select1
+  DL_IactSelect
+   DB_QueryActiv
+
+ACT_ck_act
+
+
+
+
+\endcode \section NC 
+\code
+
+APT_work_PrgCmd
+ APT_wcut_ln1                 CUT P
+ NC_up_Work_                  CUT S
+ NC_up_Pock_                  POCK
+ Pock_CUT_CIRC                CUT_CIR
+ Pock_POCK_CIRC               POCK_CIR
+
+
+
+
+\endcode \section NC-Wcut 
+\code
+
+UI_wcg__                      gesamtes Panel generieren
+UI_wcg_init_                  erster Start
+UI_wcg_CBcont                 Auswahl einer Kontur
+ UI_wcg_InitBuf               Text -> aus_typ,aus_tab;
+  wcg_decode__                abarbeiten
+   AP_cont_nxt                Kontur -> oxInpU (memspc)
+   wcg_decode_APT             Konikinfos -> deTab
+   wcg_CreCutAll              Ausgabeelemente -> oxOutU/O[oxOutNr]
+    wcg_CreCutCyl
+    wcg_CreCutCon
+    wcg_CreCutCpx
+     wcg_cpx_break
+      wcg_cpx_teilen
+  wcg_OutDrawAll              Ausgabeobjekte anzeigen.
+   GR_DrawSur                 dzt werden Typ_SURRU einzeln ausgegeben
+UI_wcg_InitProc               Konikinfos anzeigen
+UI_wcg_UpdateProc             Konikinfos aus menue uebernehmen (OK-Butt.)
+UI_wcg_askExit                beenden
+ UI_wcg_CB_ExitDia            beenden
+  UI_wcg_SaveOK               Progr -> Editwin
+   wcg_encode__               das aktuelle APT-prog -> memspc54
+
+
+
+........ NC-Tech ........
+APT_wcut_line                 eine NC-Bearbeitungszeile decodieren
+UI_wcTec__                    Window aufbauen
+UI_wcTec_Init1                erster Start
+ UI_wcTec_find_tec
+NC_up_Work_                   WORK CUT ..
+NC_up_Pock_
+
+
+
+
+\endcode \section IGES 
+\code
+
+UI_menCB "open"
+UI_open__
+AP_Import__ ("xa_ige_r", "IGE_r__", cbuf);
+AP_Mod_load
+AP_ImportIges
+ IGE_r__                      Mainentry in ../exp/ige_r.c
+  IGE_r_D__
+  IGE_r_P__
+   IGE_r_work__               abarbeiten
+  IGE_r_work_1                subfigs, dann main abarbeiten
+   IGE_r_work_2               ein Obj ausgeben
+    IGE_r_128
+  AP_obj_2_txt
+  UTF_add2_line
+
+UI_expIgeCB
+ AP_ExportIges__
+  AP_ExportIges_Model
+   IGE_w_rec
+     IGE_w_mat
+       IGE_w_P_ELL
+ 
+
+
+
+\endcode \section DXF 
+<pre>
+\ref dxf_r.c        ../exp/dxf_r.c  Import DXF-functions        (dxfr_)
+\ref dxf_w.c        ../exp/dxf_w.c  Export DXF-functions        (dxfw_)
+</pre>
+\code
+
+UI_menCB "impDxf/expDxf"
+DXF_r__
+  dxfr_init            get txsiz,dimsiz,$EXT..
+    dxfr_head__
+  dxfr_rec__
+  dxfr_rec__           read obj 
+  AP_obj_2_txt         create code, write > mem_cbuf1
+  UTF_insert1          add to mem
+AP_ExportDxf
+  dxfw_rec
+
+
+
+
+
+\endcode \section VRML 
+\code
+
+wrl_readTess__                wrl_ut.c          Import
+
+TSU_exp__                     ../gr/tess_ut.c   Export
+ TSU_exp_sur
+
+
+
+\endcode
+\section Textures
+<pre>
+\ref ui_tex.c                  // ModifyTexturesWindow
+\ref xa_tex.c                  // Texture-Utility-Functions.
+\ref gru.c                     // OpenGl-Texture-Utility-Functions.
+</pre>
+\code
+
+
+UI_Tex__
+
+  GL_Tex_Load
+    bmp_load
+
+GR_DrawSur
+ TSU_DrawSurT_ > TSU_DrawSurTP , TSU_DrawSurTRU
+ GL_DrawSur
+  GRU_tex_pos1          compute texture-parameters (vectors, scale)
+   TSU_get_vec
+   GRU_tex_rec
+   GRU_tex_pos9
+  GL_Tex_Ini            apply texture
+   glTexGendv (GL_S,      apply horizontal vector vs
+   glTexGendv (GL_T,      apply vertical vector vt
+   glRotatef              apply rotation
+   glScalef               apply scale
+   glTranslatef           apply offset ...
+
+
+
+
+
+\endcode
+\section Tesselate 
+\code
+
+APT_DrawSur
+ GR_DrawSur
+  TSU_DrawSurT_
+   TSU_DrawSurTC              getrimmte/gelochte Flaeche
+    TSU_tr_init_
+    TSU_DrawSurTBox
+     GLT_comm_work
+     GLT_diff_work
+
+
+
+
+\endcode
+\section cursorPosition
+\code
+
+GL_set_viewPlnPos       GL_actUsrPos, on  viewPlane    (GL_GetViewPos)
+GR_set_constPlnPos      GR_CurUk, on constructionPlane (GL_GetConstrPos)
+
+UI_GR_get_actPos_       return the active cursorPosition as string "<x> <y> <z>"
+
+GL_GetActSelPos         Coords of last selectionPoint on viewPlane
+UI_GR_get_actPosA       get current curPos in userCoords on constructionPlane
+
+GL_Get_Cen              screencenter in userCoords
+GL_get_Scale
+GL_GetEyeLn             Sichtstrahl (Point & Vector) retournieren
+GL_GetEyeX
+
+UI_GR_SelVert           get vertext nearest to cursor
+
+
+
+\endcode
+\section DL-OpenGL 
+\code
+
+DL_ReScale__                  Rescale rescale ScalAll
+DL_InitAttTab                 Def.Attributtabelle laden
+DL_DumpObjTab                 dump DispList
+
+GL_DrawLine                   ../gr/ut_GL.c
+GL_DrawTxtG                   ../gr/ut_GL.c
+GL_Redraw                     redraw DL
+
+
+
+
+\endcode
+\section DLLs
+see also \ref xa_dll.c  (DLL_)
+\code
+
+                              xa_dll.c
+UI_DllLst_read                fill list of userprograms (DLL's)
+UI_DllLst_CB                  DLL by user selected ..
+AP_exec_dll                   start plugin
+
+
+
+
+\endcode
+\section Plotten
+\code
+
+ UI_WinPrint1
+  AP_print__                  ../exp/prt_w.c
+   AP_print_work2
+
+
+\endcode
+
+
+
+*/

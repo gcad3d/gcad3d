@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>Browser_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<h2>Bedienung Browser</h2>
+
+In den Betriebsarten VWR und CAD befindet sich links neben dem Grafikfenster
+  das Browserfenster.
+  - hier werden alle Objekte des Modells dargestellt;
+  - zu allen Objekten kann (ebenso wie im Grafikfenster, mit der rechten
+    Maustaste) ein objektspezifisches Menü erzeugt werden.
+  
+  
+
+<b>Darstellung:</b>
+
+  Der erste Knoten ist das Hauptmodell,
+  alle internen Submodelle werden darunter dargestellt.
+  
+  Unter dem Modellnamen werden die Objektgruppen des Modells
+  angezeigt; mit der rechten Maustaste können die Objektgruppen
+  geöffnet und auch wieder geschlossen werden.
+
+  Rechte Maustaste im leeren Teil des Browserfenster:
+  Menü: "neues Submodell erzeugen" und "Hilfe zu Browserfenster".
+
+
+</PRE>
+</BODY>
+</HTML>
+

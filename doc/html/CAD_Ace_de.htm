@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Ace_de.htm</TITLE>
+<style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+CAD-Funktionen:
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+<h1>Active CAD-Environment</h1>
+
+
+
+<a name="F0"></a>
+  <h2>Active ConstructionPlane</h2>
+Definition der ab nun gueltigen Konstruktionsebene -
+  (eines Userkoordinatensytems, UCS).
+  Zur Definition kann eine Standardebene oder eine zuvor definierte Ebene
+    benutzt werden. (Standardebenen: RX oder RY oder RZ).
+    (siehe CAD-PLN, <a href="CAD_PLN_de.htm">Definition Ebenen</a>)
+  Der Nullpunkt der gewaehlten Ebene ist der neue Koordinatennullpunkt.
+  Auf die Konstruktionsebene bezogen sind ab jetzt:
+  - Koordinatenangaben
+  - angezeigte Positionen 
+
+  Die Anzeige der Mausposition kann relativ oder absolut erfolgen;
+    relativ: (Default-) die Koordinaten im neuen Koordinatensystem;
+    absolut: alle Koordinaten auf den absoluten Nullpunkt bezogen.
+  Umschalten mit den Radiobuttons "rel" und "abs" neben der Anzeige
+    der Mausposition.
+
+  Ruecksetzen auf das absolute Koordinatensystem: <a href="CAD_Ace_de.htm#F1">Reset ConstrPlane</a>
+
+Beispiel:
+R20=P(100 0 0) DZ DY
+# Nullpunkt in 100,0,0; neue X-Achse in 0,10,0
+R20
+# Aktivieren als neues UserKoordinatensystem.
+...
+
+Siehe auch Beispielmodell sample_ucs1.gcad
+
+
+
+<a name="F1"></a>
+  <h2>Reset ConstrPlane</h2>
+Ruecksetzen auf das absolute Koordinatensystem.
+
+Ebene 0 definiert das absolute Koordinatensystem;
+  es wird Ausgabecode "R0" erzeugt.
+
+
+
+
+
+</PRE>
+</HTML>

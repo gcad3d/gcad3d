@@ -1,0 +1,288 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+<a href="CAD_using_en.htm">See operating CAD ..</a>
+
+
+<h2>CAD Functions for Notes / Dimensions</h2>
+
+see also <a href="CAD_Base_de.htm#N">Notes / Dimensions</a>
+
+Notes / Dimensions use keycode N.
+
+
+
+
+<a name="F0"></a>
+  <h2>N DIM  hor/vert/parall.     DIM</h2>
+Linear Dimensional 2D
+
+N = # DIM Point1 Point2 Text [Angle Marrows Mlines "AdditionalText"]
+
+   <a href="CAD_Base_en.htm#P">DimPoint 1</a> - measuring point 1
+   <a href="CAD_Base_en.htm#P">DimPoint 2</a> - measuring point 2
+   <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
+   <a href="CAD_Base_en.htm#D">[Direct.]</a> - 0 = Horizontal, 90 = Vertical; no indication: parallel.
+   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="CAD_Base_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+P1 = P (100 100)
+P2 = P (200 200)
+N1 = DIM P1 P2 150 50 ANG (0) "[+ 0.2"
+N2 = DIM P1 P2 250150 ANG (90)
+N3 = DIM P1 P2 100 180
+
+
+
+<a name="F1"></a>
+  <h2>N DIM3 X/Y/Z/parl           DIM3</h2>
+3D-Measuring
+
+N # = DIM3 Point1 Point2 TextPoint [DimPlane] ["AdditionalText"]
+
+   <a href="CAD_Base_en.htm#P">Point 1</a> - measuring point 1
+   <a href="CAD_Base_en.htm#P">Point 2</a> - measuring point 2
+   <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
+   DimPlane:   change with PageUp- / PageDown-key
+     X or Y or Z or no ( 'P' = default = parallel)
+     No DimPlane: the text level goes through the Point1 and Point2
+       And is normal to the viewer.
+     X - the distance from Point1 to Point2 on the X axis measured;
+         The Texblock lies in the XY or XZ-plane.
+     Y - the distance from Point1 to Point2 on the Y axis measured;
+         The Texblock lies in the XY or YZ-plane.
+     Z - the distance from Point1 to Point2 on the Z-axis measured;
+         The Texblock lies in the YZ or XZ-plane.
+     The dimension-text will be placed on a plane facing toward the viewer.
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+N20=DIM3 P20 P21 P(3642.685238 2645.94839 1690.14704) "Z1"
+
+
+
+<a name="F2"></a>
+  <h2>N DIM  Angle                DIMA</h2>
+
+Angles 2D
+
+N = # DIMA Point1 Direction1 Point2 Direction2 Text Point [Marrows Mlines "AdditionalText"]
+The measure line (arc) is counter-clockwise (CCW).
+
+  <a href="CAD_Base_en.htm#P">DimPoint1/2</a> - define the starting points of the Measure guides,
+  <a href="CAD_Base_en.htm#D">Direct1/2</a> - define the directions of measure guides.
+     (Must be away from the text block to the intersection of the stock guides showing !)
+     If necessary invert the direction by adding " REV" manually
+     i.e. "D(L20) REV"
+   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="CAD_Base_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+L20 = P (330 100 0) P (380 130 0)
+P20 = P (400 100 0)
+N20 = DIMA P20 ANG (0) P (L20 MOD (2)) ANG (L20) P (444 128 0)
+N20 = DIMA P20 ANG (L20) P21 ANG (L21) P22 12 11 [+ 0.5 "
+
+
+
+<a name="F3"></a>
+  <h2>N DIM  Dmr                  DIMD</h2>
+Diameter Measurements 2D
+
+N = # DIM Circle TextPoint [Marrows "AdditionalText"]
+
+   <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
+   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+# Outside:
+C20 = P (-200 100) 12
+P28 = P (-175 70)
+N31 = DIMD C20 P28 "[+0.5"
+
+
+
+<a name="F4"></a>
+  <h2>N DIM  Radius               DIMR</h2>
+Radius level 2D
+
+N = # DIM Circle TextPoint [Marrows "AdditionalText"]
+
+   <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
+   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+# Outside:
+C20 = P (-200 100) 12
+P27 = P (-175 125)
+N30 = DIMR C20 P27 "[+0.5"
+# Inside:
+C21 = P (-200 200) 32
+P29 = P (-210 190)
+N32 = DIMR C21 P29 "[+0.5"
+
+
+
+<a name="F5"></a>
+  <h2>N PointPos,LN               LDRP</h2>
+Output of 3D coordinates of a point with 3D-Auxiliary line.
+
+The  X/Y/Z-coordinates of a point will be displayed in the XY-plane.
+A line from the point to the TextPosition will be drawn.
+
+N = LDRP TextPosition [Point] [LineType] ["AdditionalText"]
+
+   TextPosition - position of the text block
+   Point - Issue of X / Y / Z-coordinate this point;
+   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+
+Example: position of a point with 3 decimal places to spend:
+N20 = LDRP P (50 50 50) P (10 10 0.12345) "[3"
+
+
+
+<a name="F6"></a>
+  <h2>N Text</h2>
+3 D-Text with variable size, direction and special characters.
+  (See also <a href="#F9">2D-Text.</a>)
+
+N# = TextPosition Size [Direction] Text
+
+   TextPosition: position of the text block
+   [TextSize]: text size; scalable, according to the standards / text.
+   [TextAngle(Deg.)]: Direction of textblock (angle); default is 0 degrees.
+   <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+# "Angle 60 (degrees character) &lt;"+0,123" {superscript} "0.5"{superscript}"
+N20=P(100 0) "angle 60 [g [/+0,123[\-0.5"
+
+
+
+Example:
+N10 = P5 "text to point P5"
+N11 = P (100100) 10 ANG (15) "Text Size 10, toward 15 degrees"
+
+
+
+<a name="F7"></a>
+  <h2>N Text,LN                   LDR</h2>
+Text with 1 or 2 2D-auxiliary lines, with or without arrow icon.
+
+Auxiliary line 2 (optional) from EndPoint-1 to EndPoint-2,
+  the text is on the endpoint of the auxiliary lines.
+Auxiliary line and circle (currently) always in the XY-Plane.
+
+N = LDR StartingPoint EndPoint1 [EndPoint2] [TextAngle] [ArrowType] [AdditionalText]
+
+  <a href="CAD_Base_de.htm#P">Startpoint Line</a>: The starting point of the auxiliary line 1
+  EndPoint-1: endpoint of the auxiliary line 1 = starting point of the auxiliary line 2
+  [EndPoint-2]: endpoint of the auxiliary line 2
+  <a href="CAD_Base_en.htm#NMP">[ArrowTyp 0-4]</a>: Arrowtype; a digit; default = automatic
+  <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+N21 = P LDR (50 10 0) P (100 50 0) ANG (0) 0 "abc"
+
+
+
+<a name="F8"></a>
+  <h2>N Text,LN,Circle            LDRC</h2>
+Text with a circle and 2D-auxiliary line.
+
+A circle is created, text is placed inside.
+From the circle to StartPoint-Line a line is created.
+Line and circle are on the XY-Plane.
+
+N = LDRC TextPosition [StartPoint Line] [LineType] [Text]
+
+  TextPosition -  position of text and circle.
+  [StartPoint Line]: Line from TextPosition to this point.
+  LineType - unsupported
+  <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+
+Example:
+N22 = LDRC P (150 50 50) P (100 10 0) "P21"
+
+
+
+<a name="F9"></a>
+  <h2>N TextTag,LN                TAG</h2>
+2 D-Text with or without textblock, with or without auxiliary line.
+  (See also <a href="#F6">3D-Text.</a>)
+Fixed text size, always in top view.
+
+N = TAG TextPosition [ScheduledStartingPoint] [Color] Text
+
+   TextPosition: position of the text block
+   [StartPoint Line]: ScheduledStartingPoint (Guide)
+   <a href="CAD_Base_de.htm#iCol">color</a>: Color of the text block (no indication: text only, no Block)
+   Text: as a special sign of 2D-Text are currently only "[n" (Line separator).
+
+
+Example:
+N23 = TAG P(150 50 50) P(100 10 0) "P21"
+N24 = TAG P(250 50 50) P (200 0 0) VAL(7) "N24 [nP25"
+
+
+
+<a name="F10"></a>
+  <h2>N Symbol                    LDRS</h2>
+A symbol or a vector.
+
+N = LDRS SymbolPosition [SymbolType] [Color] [EndpointVector]
+
+   <a href="CAD_Base_en.htm#P">SymbolPosition</a>
+   [SymbolType] -
+     0 = star small,
+     1 = small triangle
+     2 = small circle
+     3 = large rectangle
+     4 = normalized vector (always the same length)
+     5 = vector (with correct length)
+   [color]
+   [EndpointVector] - only for SymbolType 4 and 5
+
+Example:
+N25 = LDRS P(350 50 50) 1 2
+
+
+
+<a name="F11"></a>
+  <h2>N Image Pos. Image-Filename   IMG</h2>
+Displays Images (pixel image).
+The images are always normal to the viewer, with a fixed size or automatic scaling.
+Supported Filetypes: JPG and BMP.
+
+N# = IMG ImagePosition [StartPointLine] [Linetyp] Filename [Scale]
+
+ <a href="CAD_Base_en.htm#P">ImagePosition</a>: point for the lower left position of the image
+ [StartPoint Line]: the startpoint of a connecting line to the lower left image position
+ [Linetyp]:  -1 = no connecting line.
+ Filename: the file name of a imagefile (.jpg oder .bmp).
+   The middle mouse button in the graphics window activates the file dialog box.
+   The directory is a Symbol Path Name (See Symbolic File Names).
+ [Scale]: if not defined (or value of 0), then the bitmap will be dynamically scaled.
+   If a scale is given, it will be in fixed scale (No dynamic scaling).
+
+Example:
+N32 = IMG P(500 0 0) "Data/sample_bmp1.bmp" VAL(0.5)
+N20 = IMG P(0 0 0) "Data/Bild1.bmp"
+# Displays Windows Bitmap at path Data/Bild1.bmp
+
+No exporting of bitmaps.
+
+
+
+</PRE>
+</HTML>
+

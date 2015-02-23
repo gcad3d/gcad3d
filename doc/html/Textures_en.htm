@@ -1,0 +1,133 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Appli_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+<h2>This functions is replaced by Function TextureEditor.
+Select surface with right mousebutton - select "Texture".</h2>
+
+
+
+<h2>Textures</h2>
+
+
+ For textures can JPG and BMP files can be used.
+
+ Textures can be used for 2D-tags
+ Textures can be applied to Surfaces
+
+
+<b>2D textures for tags:</b>
+  A picture is display always normal to the viewer.
+  Interactive activation: <a href="CAD_TxtG_de.htm#F11">CAD / N-Image</a>
+
+
+
+<b>Textures for Surfaces:</b>
+ Interactive activation: Modify / Surface Texture.
+ Textures can be applied to the following types of Surfaces:
+  - Planar surfaces
+  - Meshes.
+   The texture can be scaled, moved and rotated activation(<a href="#F1">modifiy</a>).
+   Scale and offset for x and y separately defined.
+  Imagecorrection eg with Gimp:
+  - remove distortion: Tools/transformation/perspectiv
+  - crop image: Tools/transformation/crop
+  - scale image: Image/Image scale
+    For normal quality scale one meter to 100 pixels
+
+
+<hr>
+<b>Load texture from File</b>
+ Load and activate a texture from a file:
+ Select a JPG or BMP file;
+ the texture name is now displayed as active texture.
+
+
+
+<b>activate Texture from Surf</b>
+  Activate a already used texture :
+  Select a textured surface.
+    (unhilite texture (in mode VWR only): right mousebutton)
+  Texture and Surface will be activated.
+    You can now <a href="#F1">modifiy</a> the texture -
+    or apply it another surface.
+
+
+
+<b>apply active Texture</b>
+ Applies the active texture on a surface.
+ Select a surface.
+
+
+
+<b>Remove Texture</b>
+  Removes the texture of a surface.
+  Select a textured surface.
+
+
+
+<b>fit Size</b>
+  On:  scales the image to the size of the surface
+  Off: the image is applied with its original size
+
+
+
+<b>Reload</b>
+  Reloads the image of the active texture.
+  (if eg. an image already loaded has been modified ..)
+  
+
+
+<hr>
+<p><a name="F1"></a></p>
+<b>Scale - Offest - RotAng / Modify Texture:</b>
+
+ - Scale X / Y (Scale texture; cursor keys)
+ - Offset X / Y (moving texture; cursor keys)
+ - RotAng (torsion in degrees; Cursor-left/right)
+
+  Modify the values with the keyboard: update with the return button.
+  Modify the values with the cursor keys: updated dynamically.
+  Next entry with the Tab key.
+
+
+<hr>
+Analyze dimensions from a photo:
+  
+Using a photo size should be analyzed:
+  Equalize the photo.
+  Create a surface from a rectangle (in Z=0) with the size of the photo;
+  If the photo displays a area of 3 x 5 meters:
+      S20=REC P(0 0 0) D(5 0 0) D(0 3 0)
+      A20=S20
+  Apply the texture.
+  Set points  (Select / PT -- Position)
+  Measure between points (Analyze Dist).
+
+
+
+
+<b>Open / ToDo:</b>
+ Export of textures with VRML ..
+ Support of 16-bit-display
+ Transparent textures ..
+ Billboards ..
+
+
+
+<hr>
+Send bugreports and suggestions for improvement
+  to franz.reiter@cadcam.co.at
+
+
+
+
+</ PRE>
+</ HTML>

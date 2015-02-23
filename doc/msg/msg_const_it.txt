@@ -1,0 +1,45 @@
+# Nuove parole: Aggiungi ID-s in xa_msg.h
+OK
+Annulla
+Salva
+Inserisci
+Elimina
+Modifica
+Esci
+Aiuto
+lunghezza
+Attiva
+# 10
+Sposta
+Modifica
+Rinomina
+Crea un sottomodello
+visualizza
+nascondi
+ombrato
+ispeziona le proprietà
+sposta i punti
+ripristina
+# 20
+testo filtro
+texture
+apri
+annulla la selezione gruppo
+nascondi il gruppo
+#25
+cancella il gruppo
+aggiungi al gruppo
+rimuovi dal gruppo
+rimuovi tutti gli oggetti di questo tipo dal gruppo
+rimuovi tutti gli oggetti di altri tipi dal gruppo
+#30
+aggiorna
+tutto
+ no
+Errore
+copy into entry
+#35
+find parent-objects
+find child-objects
+modify object-name
+#eof

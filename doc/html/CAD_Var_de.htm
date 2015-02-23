@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Var_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+<h2>CAD-Funktionen Variable:</h2>
+
+
+siehe auch <a href="CAD_Base_de.htm#V">Codes Variable</a>
+
+Variable benutzen den Kennbuchstaben V.
+
+Implizite Definition durch die Funktion VAL().
+  Beispiel: VAL(P20 P21)  - ergibt den Abstand zwischen 2 Punkten.
+
+Variable werden temporär als horizontale Linie angezeigt;
+  die Länge entspricht dem Wert.
+
+
+
+____________________________________________________________________________
+<p><a name="F0"></a></p>
+  <h2>V Variable - Value</h2>
+- Direktzuweisung einer <a href="CAD_Base_de.htm#V">Variablen</a>
+
+- mit Pageup / PageDown-Taste eine definierte Variable auswählen.
+
+
+
+<p><a name="F1"></a></p>
+  <h2>V X/Y/Z-part PT|VC</h2>
+Den X- oder Y- oder Z-Anteil eines Punktes oder Vektors kopieren.
+
+# die X-Koordinate eines Punktes kopieren
+V20 = X(P20)
+
+
+
+
+<p><a name="F2"></a></p>
+  <h2>V PT-PT Dist.[Direction]</h2>
+ <a href="CAD_Base_de.htm#V">Variable</a> = Länge zwischen 2 Punkten [in Richtung]
+
+[Direction]   optional; keine Angabe: direkte Länge zwischen 2 Punkten
+              Abstand entlang eines Vektors: Definition eines <a href="CAD_Base_de.htm#D">Vektors</a>
+
+Beispiel:
+V20 = P20 P21
+# Differenzabstand von Punkt P20 bis P21 in Richtung Z:
+V21=P20 P21 DZ
+
+
+
+<p><a name="F3"></a></p>
+  <h2>V LN      length</h2>
+ <a href="CAD_Base_de.htm#V">Variable</a> = Länge einer Strecke
+
+V20 = L20
+
+
+
+<p><a name="F4"></a></p>
+  <h2>V PT - LN Perp.Dist</h2>
+ <a href="CAD_Base_de.htm#V">Variable</a> = Normalabstand eines Punktes von einer Strecke
+
+V20 = P20 L20
+
+
+
+<p><a name="F5"></a></p>
+  <h2>V CIR     Radius</h2>
+ <a href="CAD_Base_de.htm#V">Variable</a> = Radius eines Kreises
+ 
+V20 = C20
+
+
+</PRE>
+</HTML>

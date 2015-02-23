@@ -1,0 +1,54 @@
+# OpenGL for MS-VC
+# OGLLIB: OpenGL32.lib und /Glu32.lib
+# get SRCGLB GLBCP GLBLIB
+
+
+
+
+ogl_dir = $(WINDOWSSDKDIR)
+#ogl_dir = ../MS_ogl/
+
+ogl_inc_dir = "$(ogl_dir)Include"
+
+
+#-----------------------------------------------------
+# MS32:
+!if "$(OS)"=="MS32"
+
+
+ogl_lib_dir = $(ogl_dir)Lib
+#ogl_lib_dir = H:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+
+OGLLIB =\
+ "$(ogl_lib_dir)\OpenGL32.lib"\
+ "$(ogl_lib_dir)\Glu32.lib"\
+ "$(ogl_lib_dir)\Gdi32.lib"
+
+!endif
+
+
+#-----------------------------------------------------
+# MS64:
+!if "$(OS)"=="MS64"
+
+ogl_lib_dir = $(ogl_dir)Lib\x64
+
+OGLLIB =\
+ "$(ogl_lib_dir)\OpenGL32.lib"\
+ "$(ogl_lib_dir)\Glu32.lib"\
+ "$(ogl_lib_dir)\Gdi32.lib"
+
+!endif
+
+
+
+#gl_dir = C:\Programme\Microsoft Platform SDK for Windows Server 2003 R2
+## GL_VERSION_1_1 only !
+#gl_inc_dir = "$(gl_dir)\Include"
+#gl_lib_dir = $(gl_dir)\Lib
+## GL_VERSION_1_2
+##gl_inc_dir = X:\Devel\dev\gCAD3D\Mesa_MS
+##gl_lib_dir = X:\Devel\dev\gCAD3D\Mesa_MS
+
+
+# EOF

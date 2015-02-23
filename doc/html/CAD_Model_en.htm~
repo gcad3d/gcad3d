@@ -1,0 +1,143 @@
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>CAD_Model_en.htm</TITLE>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<A HREF="CAD_Base_en.htm">See operation CAD</A>
+
+<h2>CAD-Functions for Models:</h2>
+
+<A HREF="CAD_Base_en.htm#M">CAD functions for Models</A>
+
+See models - Internal / External Models 
+See also codes for models
+
+see also <a href="gCAD3D_basics_en.htm#MMS_int">Internal Models</a> / <a href="gCAD3D_basics_en.htm#MMS_ext">External Models</a>
+see also <a href="CAD_Base_en.htm#M">Codes for Models</a>
+
+
+
+Models use keycode  M
+
+____________________________________________________________________________
+<p><a name="F0"></a></p>
+<h2>M int.Model Submodel Pos [Vec/Refsys]</h2>
+Positioning an internal sub-model
+
+
+Sub-model
+  Select a sub-model from list (use middle-mousebutton)
+  or select an existing sub-model
+  
+ Position
+  <a href="CAD_Base_de.htm#P">Position</a>: the origin of the sub-model
+  
+  
+ [Scale]: default is 1
+ 
+ 
+ Orientation vector by Z-vector, or by Z-vector and X-vector, or by an X-axis system [Z-vector [X-vector]]: Alignment 
+ RefSys: Orientation
+ M # = &quot;(sub-modelName)&quot; Position [Scale] [Z-vector [X-vector]] 
+ M # = &quot;(sub-modelName)&quot; Position [Scale] [RefSys]
+
+==not on web 090913
+ sub-modelName: The name of the selected sub-model
+ Position: the origin point of the selected sub-model
+ Scale: magnifying scale; default is 1 
+ [Z-vector [X-vector]] orientation 
+ Refsys: Strand 
+end not on web==
+
+ Example of an internal sub-model:
+ M20 = &quot;sub-model1&quot; P(100 0) 
+
+
+
+
+____________________________________________________________________________
+<p><a name="F1"></a></p>
+<h2>M ext.Model Filename Pos [Vec/Refsys]</h2>
+
+
+M ext.Model File Name Pos [Vec / Refsys] 
+Positioning an external sub-model
+Sub-model
+ Select a sub-model from list (use MMB) or select an existing sub-model
+  Model name: see Symbolic file name
+ Position
+  Position: the origin of the sub-model
+ Scale: default is 1
+ Orientation vector by Z-vector, or Z-vector and X-vector, or by an X-axis system [Z-vector [X-vector]]: Alignment 
+ RefSys: Orientation
+ M # = &quot;(ModelName)&quot; Position [Scale] [Z-vector [X-vector]]
+ M # = &quot;(ModelName)&quot; Position [Scale] [RefSys]
+
+==not on web 090913
+ ModelName: The name of the sub-model
+ Position: The origin point of the sub-model
+ Scale: default is 1
+ [Z-vector [X-vector]] orientation
+ Refsys: Strand
+end not on web==
+
+ Example of an external model:
+ M20 = &quot;Data/Niet1.dat&quot; P(100 0) 0.5 DZ DY
+
+ Example of a WRL triangle-mesh model:
+ M21 = &quot;Data/clocktwr.wrl&quot; P(0 0 0) R20
+
+ External models can currently only be gcad (native) or triangle-mesh models, but no internal or external sub-models can be included.
+
+==not on web 090913
+ At the moment you can use the following file formats for external sub-models:
+   WRL, STL, OBJ, GCAD.
+ You cannot use DXF, IGS, STP yet.
+end not on web==
+
+ External sub-models are not internally cached.
+
+ 
+ 
+ 
+ ____________________________________________________________________________
+<p><a name="F2"></a></p>
+<h2>M CatalogModel Pos [Vec/Refsys]</h2>
+
+
+ 
+ 
+Catalog Model M Pos [Vec / Refsys]
+ Parts Catalog: a list of available catalogs is displayed with the middle mouse button.
+ The &lt;&lt;--- button will display a list of available catalogs 
+ or select an existing sub-model
+ The catalog consists of catalog name, part name; see Catalog
+ Position: the origin point of sub-models 
+
+ Scale: default is 1
+
+ [Z-vector [X-vector]] alignment
+ Refsys: orientation
+ M # = {Parts Catalog} Position [Scale] [Z-Axis / RefSys [X-Axis]]
+
+==not on web 090913
+ Part Catalog: a list of available catalogs is displayed With the middle mouse button.
+ Position: the origin point of sub-models 
+ Scale: default is 1
+ [Z-vector [X-vector]] orientation
+ Refsys: Strand 
+end not on web==
+
+ External Model example: (Schrauben = Screws)
+ M22 = CTLG &quot;Schrauben/SKS_10x30&quot; P20 VAL(1)
+
+
+
+____________________________________________________________________________
+</PRE>
+</BODY>
+</HTML>

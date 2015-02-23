@@ -1,0 +1,146 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<a href="#mainFuncs">CAD-Hauptfunktionen</a>
+<a href="#using">Bedienung CAD</a>
+<a href="VWR_de.htm">Bedienung Anzeige</a>
+
+
+<hr>
+<h2><a name="using">Bedienung Funktion CAD:</a></h2>
+
+  Hauptfunktion CAD.
+  Interaktives Erzeugen / Modifizieren der Objektcodes.
+
+
+ 
+<b>Aktivieren der Funktion CAD:</b>
+   Die Checkbox CAD selektieren.
+
+ 
+<b>Button Help CAD:</b>
+  Hilfe zu CAD (diese Datei).
+
+
+<b>Button Help Func:</b>
+  Hilfe zur momentan aktiven CAD-Funktion;
+    zB zur Funktion Punkte - "PT cartes"
+
+
+<b>Button Help Input:</b>
+  Hilfe zum momentan aktiven Eingabefeld
+    (wie das erforderliche Eingabeobjekt erzeugt werden kann).
+
+
+
+
+____________________________________________________________________________
+<b>Erzeugen von Objekten:</b>
+  Selektieren sie eine CAD-Funktion. Beispiel:
+    "PT cartes"   erzeugt eine Punkt,
+    "LN PT PT"    erzeugt eine Linie von Punkt zu Punkt.
+
+  Es werden nun alle erforderlichen Eingabefelder angezeigt;
+  die Eingaben erfolgen durch Selektion, Indicate  oder mit der Tastatur.
+  Indicate: Anzeige einer Position mit der linken Maustaste.
+  Schliessen Sie Tastatureingaben mit der Tab-Taste ab.
+
+  Sind alle erforderlichen Eingaben gemacht, wird das Element angezeigt. 
+  Alle Eingabewerte können noch verändert werden,
+  mit der Tab-Taste wird die Anzeige sofort korrigiert.
+  Mit der Esc-Taste wird das zuvor belegte Eingabefeld gelöscht.
+
+  Mit dem OK-Button oder der Eingabetaste ("Return") oder mit der
+  rechten Maustaste wird das Objekt gespeichert und erzeugt.
+
+  Bei der Eingabe von Vektoren, Variablen oder Modifikatoren können Sie
+  mit Hilfe der PageUp  oder PageDown - Tasten aus den vorhandenen Werten
+  auswählen.
+
+  Abbrechen einer Funktion:
+  - andere CAD-Funktion selektieren oder
+  - Esc - Taste oder
+  - Button "Cancel"
+
+ 
+ 
+<b>Modifizieren von Objekten:</b>
+  Beenden Sie die aktive CAD-Funktion mit der Esc-Taste
+    (mehrmals Esc wenn Eingabefelder nicht leer sind)
+
+  Selektieren Sie das zu ändernde Objekt mit der rechten Maustaste,
+    Funktion "Edit".  Es wird die erzeugende CAD-Funktion gerufen
+    und alle erzeugenden Parameter in die Eingabeboxen eingetragen.
+    Als aktiver CAD-Modus wird nun  "MODIFY" angezeigt.
+
+  Modifizieren Sie die Parameter (siehe Erzeugen von Objekten, weiter oben).
+
+  Das modifizierte Objekt muss gespeichert werden:
+    - mit dem "OK"-Button 
+    - oder mit der rechten Maustaste
+
+  Zurück an das Programmende, in den CAD-Modus "CREATE" (hintanfügen):
+    - mit Taste Esc
+    - oder mit Button "Cancel" 
+
+ 
+
+<b>Löschen von Objekten:</b>
+  Beenden Sie die aktive CAD-Funktion mit der Esc-Taste
+    (mehrmals Esc wenn Eingabefelder nicht leer sind)
+
+
+ <i>Das zuletzt erzeugte Objekt löschen:</i>
+   Ctr-Z oder Undo-Button (roter Pfeil nach links)
+   Wiederherstellen: Ctrl-Y oder Redo-Button  (grüner Pfeil nach rechts).
+
+
+ <i>Ein bestimmtes Objekt löschen:</i>
+  Selektieren Sie das zu ändernde Objekt mit der rechten Maustaste,
+    Funktion "Löschen".
+
+  Es werden auch alle vom selektierten Objekt abhängigen Objekte gelöscht !
+
+
+ <i>Eine Gruppe von Objekten löschen:</i>
+  Siehe <a href="GROUP_de.htm">"Gruppe"</a>
+
+
+ <i>Entfernen aller gelöschten Zeilen:</i>
+   Taste "F4"   (Modify / APT-Clean).
+
+ 
+
+<b>Suchen von Objekten:</b>
+  Mit Checkbox <a href="Search_de.htm">"Search/Name"</a>
+ 
+ 
+<b>Zusatzfunktionen zur Selektion von Objekten:</b>
+ Im Menü "Select" gibt es folgende Hilfsfunktionen:
+  get position of cursor on construction-plane
+  get position of cursor on selected object
+  get parametric position of cursor on selected object
+  get parentObject
+
+ 
+
+<b>LineEdit-Box:</b>
+ bei Eingabe von Konturen / Punkteketten -
+ durch setzen der Cursorposition (ins Textfenster klicken)
+ wird die Grafik bis zur Cursorposition dargestellt.
+ 
+ 
+<hr>
+<h2><a name="mainFuncs">CAD-Hauptfunktionen</a></h2>
+
+ 
+</PRE>
+</BODY>
+</HTML>

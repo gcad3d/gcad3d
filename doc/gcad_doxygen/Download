@@ -1,0 +1,24 @@
+/*! \page Download
+<pre>
+<h2>Download gCAD3D</h2>
+
+
+<br>
+<b>Install from git-repository:</b>
+// start commandline (eg gnome-terminal)
+\verbatim
+cd
+mkdir devel
+cd devel
+git clone https://github.com/gcad3d/gcad3d
+\endverbatim
+
+
+
+<br>
+<b>Download-package Linux: / MS-Windows:</b>
+from gcad3d.org:
+<A HREF="../../gcad3d_V<VERSION>.zip">gcad3d_V<VERSION>.zip</A>
+
+</pre>
+*/

@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Appli_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<h2>TextureEditor</h2>
+
+ Textures can be applied to the following types of Surfaces:
+  - Planar surfaces
+  - Meshes.
+  
+  
+Preparatory work:  
+  Prepare the Images; eg with Gimp:
+  - remove distortion: Tools/transformation/perspectiv
+  - crop image: Tools/transformation/crop
+  - scale image: Image/Image scale
+    For automatic scaling you should scale the image to 100 pixels per meter
+      (see "fixed size")
+
+
+Activation of the TextureEditor:
+  select a surface with the right mousebutton, select - "Texture".
+  Exit with Esc-key or return-key or right mousebutton. 
+
+
+
+  While the TextureEditor is active, you can move, scale and rotate
+  the active texture with the mouse.
+  The normal displayfunctions (moving and scaling the display with
+  the mouse) are not active.
+  Move: move the mouse with the Shift-key pressed.
+  Scale: move the mouse with the Shift-key and the Ctrl-key pressed.
+  Rotate: move the mouse with the Ctrl-key pressed.
+
+
+<hr>
+<b>Load texture from File</b>
+ Load and activate a texture from a file:
+ Select a JPG or BMP file;
+ the texture name is now displayed as active texture
+ and applied to the active surface.
+
+
+<i>activate a Texture already in use:</i>
+  Select a textured surface.
+   the texture will be activated
+   and applied to the active surface.
+
+
+
+<b>Reload</b>
+  Reloads the image of the active texture.
+  (if eg. an image already loaded has been modified ..)
+  
+
+<b>mirror vertical</b>
+
+
+<b>mirror horizontal</b>
+
+
+<b>Remove Texture</b>
+  Removes the texture of a surface.
+
+
+<b>fit into</b>
+  scales the image to the size of the surface
+
+
+<b>fixed Size</b>
+  100 pixels of the scaled image will cover 1 meter of the surface.
+  Example: a tile has 100 cm x 50 cm;
+    the Image should have 100 x 50 pixels;
+    a surface of 5 x 2 units will have 5 x 4 tiles.
+
+
+
+<hr>
+<p><a name="F1"></a></p>
+<b>Scale - Offest - RotAng / Modify Texture:</b>
+
+ - Scale X / Y (Scale texture; cursor keys)
+ - Offset X / Y (moving texture; cursor keys)
+ - RotAng (torsion in degrees; Cursor-left/right)
+
+  Modify the values with the keyboard: update with the return button.
+  Modify the values with the cursor keys: updated dynamically.
+  Next entry with the Tab key.
+
+
+<hr>
+Analyze dimensions from a photo:
+  Equalize the photo.
+  Create a surface from a rectangle (in Z=0) with the size of the photo;
+  If the photo displays a area of 3 x 5 meters:
+      S20=REC P(0 0 0) D(5 0 0) D(0 3 0)
+      A20=S20
+  Apply the texture.
+  Set points  (Select / PT -- Position)
+  Measure between points (Analyze Dist).
+
+
+
+
+<b>Open / ToDo:</b>
+ Export of textures with VRML ..
+ Support of 16-bit-display
+ Transparent textures ..
+ Billboards ..
+
+
+
+<hr>
+Send bugreports and suggestions for improvement
+  to franz.reiter@cadcam.co.at
+
+
+
+
+</ PRE>
+</ HTML>

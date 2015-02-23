@@ -1,0 +1,61 @@
+# use mit nmake -f G-Code.nmak
+# 1. Parameter = inputfilename
+# ./G-Code /home/fwork/gCAD3D/tmp/nc.apt
+
+
+EXENAM  = G-Code
+
+
+OBJ1 =\
+  G-Code.obj\
+
+
+# Sourcen; bei denen keine Abhaengigkeit erforderlich ist.
+OBJ2 =\
+  pp_ut.obj\
+
+
+#  ../../ut/ut_os_aix.o
+
+
+#BITS := $(shell getconf LONG_BIT)
+#ifeq "$(BITS)" "32"
+#OS = ..\binMS32
+#else
+#OS := ..\binMS64
+#endif
+#OUTDIR = ${HOME}/bin$(OS)
+OUTDIR = ..\..\binMS32
+
+
+#ADDLIBS = -lm
+
+# Sourcefileliste fuers tagfile
+#SRC1 = ${OBJ1:.obj=.c}
+#SRC2 = ${OBJ2:.obj=.c}
+
+
+#CXFLG = -O0 -g3 -Wall
+CXFLG = /nologo /Od
+
+#LKFLG = -lm
+
+
+$(EXENAM): $(OBJ1) $(OBJ2)
+	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(LKFLG)
+#	ctags --excmd=number -f ut.tag $(SRC2)
+	copy/y $(EXENAM).exe $(OUTDIR)\plugins\cut1\.
+
+
+# vi holt fuer Alt f (grep) damit seine Sourcefileliste
+SRCLST:
+	@echo $(SRC1) $(SRC2)
+
+
+.c.o:
+	$(CC) -c $(CXFLG) $<
+	if test $(@D) != "."; then mv $(@F) $@; fi
+#	ctags -f $*.tag $<
+
+
+# EOF

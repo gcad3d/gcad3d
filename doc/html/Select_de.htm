@@ -1,0 +1,37 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>Select_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Funktionen Menü Select:</h2>
+
+
+<B>get point = position of cursor on construction-plane</B>
+  Bei der nachfolgenden Selektion wird der Punkt auf der
+  Konstruktionsebene geliefert.
+
+
+<B>get point = (parametric) position of cursor on object</B>
+  Bei der nachfolgenden Selektion wird der (parametrische) Punkt
+  auf dem selektierten Objekt geliefert.
+
+  Wird z.B. der Startpunkt einer Linie selektiert, ist das Ergebnis:
+  P(L20 MOD(1))
+
+
+<B>get line = segment of polygon / contour</B>
+  Bei der nachfolgenden Selektion wird eine Linie geliefert.
+  Die Linie wird aus dem selektierten Polygon oder der Kontur extrahiert.
+
+  Das 2. Teilsegment eines Polygons:
+  L(S20 MOD(2))
+
+
+</PRE>
+</BODY>
+</HTML>

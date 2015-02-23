@@ -1,0 +1,265 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>gCAD3D_basics_de.htm</TITLE>
+<style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+
+  <a href="gCAD3D_feat_de.htm">Features</a>
+
+  <a href="gCAD3D_princ_de.htm">Funktionsbeschreibung</a>
+
+  <a href="#L1">Was gCAD3D kann / nicht kann</a>
+  
+  <a href="#L3">Hauptfunktionen VWR / MAN /CAD</a>
+  
+  <a href="CAD_Base_de.htm#Codes">Codes - Formate</a>
+
+  <a href="#MMS">MultiModelsupport</a>
+  
+  <a href="CAD_Activ_de.htm">Interaktionen</a>
+  
+  <a href="#L2">Speicherformate</a>
+  
+  <a href="AddOn_de.htm">Zusatzprogrammierung</a>
+  
+  <a href="#DF">Funktionen für Dokumentationen</a>
+  
+  <a href="#EG">Entwicklungsgeschichte gCAD3D</a>
+  
+  <a href="#GC_DEL">gCAD3D löschen</a>
+  
+  <a href="RemoteControl_de.htm">RemoteControl</a>
+
+
+
+
+
+
+__________________________________________________________________________
+<p><a name="L1"></a></p>
+<b>Was gCAD3D kann / nicht kann</b>
+__________________________________________________________________________
+
+Was gCAD3D kann:
+ Importieren und darstellen von Iges-,Step- Wireframe- und Solidobjekten
+ WireframeElemente konstruieren, modifizieren
+ Flächen konstruieren
+ Einfache Solidkörper konstruieren
+ Assembly erstellenAnwenderprogramme
+ Export von WireframeElementen als dxf, Iges.
+ Export von Flaechen als VRML-1, VRML-2, obj, tw. Iges.
+
+
+Was gCAD3D noch nicht kann:
+ komplexe Solidkoerper erstellen, modifizieren
+
+
+
+
+__________________________________________________________________________
+<p><a name="L2"></a></p>
+<b>Speicherformate</b>
+__________________________________________________________________________
+Alle Objekte werden immer in analytischer Form mit allen
+  Definitionsparametern gespeichert.
+  
+Alle Objekte werden intern als Ascii-Text gespeichert.
+
+Das Dateiformat .gcad ist identisch mit dem internen Format
+  (Ascii-Text, analytische Form).
+
+Die Objekte können auch als Mockup-Elemente ausgegeben werden;
+  tesseliert; dadurch beschleunigtes Laden bei Assemblies,
+  jedoch keine Parametrik mehr.
+  
+Analytische Ausgabeformate: .gcad, .iges.
+
+Mockup-Ausgabeformate: VRML-1, VRML-2, obj, tess.
+
+
+<A HREF='CAD_Base_de.htm#fmtf'>Dateiformat</A>
+<a href="CAD_Base_de.htm#fmtsub">Dateiformate der subModelle</a>
+
+
+
+__________________________________________________________________________
+<p><a name="L3"></a></p>
+<b>Hauptfunktionen VWR / MAN /CAD</b>
+__________________________________________________________________________
+Es gibt 3 HauptFunktionen:
+
+VWR  Viewer
+     Die Objekte werden dargestellt, können nicht modifiziert / gelöscht werden.
+
+MAN  Manuell
+     Die Objektcodes werden in einem Editfenster dargestellt;
+     können mit einem Editor erzeugt / modifiziert / gelöscht werden.
+     Die Darstellung erfolgt simultan im Grafikfenster.
+
+CAD  interaktives Erzeugen/ Modifizieren
+
+
+
+
+
+
+
+__________________________________________________________________________
+<p><a name="MMS"></a></p>
+<b>MultiModelsupport</b>
+__________________________________________________________________________
+
+
+Ein Modell kann aus beliebig vielen Modellen (subModels) bestehen.
+Ein subModel kann im Modell gespeichert sein (ein <a href="#MMS_int">internes subModel</a>)
+oder aus einer Datei importiert sein (<a href="#MMS_ext">externes subModel</a>).
+
+
+
+<p><a name="MMS_int"></a></p>
+<b>Interne Submodels</b>
+
+Die Modelbezeichnung darf keinen Pfad (und kein Pfadtrennzeichen "/" oder "\") enthalten.
+Während der Bearbeitung werden Submodelle in <base>/tmp/Mode_{submodelname} zwischengespeichert.
+Alle internen Submodels werden im Modelfile abgespeichert.
+
+
+<i>Erzeugen von Submodels:</i>
+- subModels / move main --> new submodel
+    alle Objekte des aktiven Mainmodel in ein Submodel umkopieren.
+    
+- subModels / create new submodel
+    Ein neues Submodel anlegen und aktivieren.
+    
+- subModels / load submodel from file
+    Ein natives Model aus einer Datei in eine neues Submodel laden.
+
+
+<i>Benutzen von internen Submodels im CAD-Modus:</i>
+  mit der Funktion 'M-int.Modell'
+
+Auswahl eines Submodels aus Liste (durch mittlere Maustaste)
+  oder durch Selektion eines bereits vorhandenen Submodels;
+  Position definieren.
+
+
+<i>Benutzen von internen Submodels im MAN-Modus:</i>
+  durch Key-In von zB:
+M20="subModel1" P(0 0 0) DZ DIY
+
+
+
+
+
+
+<p><a name="MMS_ext"></a></p>
+<b>Externe Submodels</b>
+
+Für diese Models muss es eine (externe) Modelldatei geben.
+Die Modellbezeichnung muss einen symbolischen Pfad enthalten.
+Die Modelldatei muss in einem Verzeichnis liegen, das über ein Symbol angesprochen werden kann.
+Siehe Symbolische Dateibezeichnungen.
+Externe Modelle dürfen dzt nur Mockup-Modelle (zB WRL), jedoch keine internen oder externen Submodelle beinhalten !
+Externe Submodels werden nicht intern zwischengespeichert.
+
+
+<i>Benutzen von externen Submodels im CAD-Modus:</i>
+  mit der Funktion 'M-ext.Modell'
+
+Auswahl eines Submodels aus Liste (mittlere Maustaste im Grafikfenster)
+  oder durch Selektion eines bereits vorhandenen Submodels;
+  Position definieren.
+
+
+<i>Benutzen von externen Submodels im MAN-Modus:</i>
+  durch Key-In von zB:
+M20="Data/Mod1.gcad" P(0 0 0) DZ DIY
+
+
+
+
+
+
+__________________________________________________________________________
+<p><a name="DF"></a></p>
+<b>Funktionen für Dokumentationen:</b>
+__________________________________________________________________________
+
+ - Darstellung von 2D-Zeichnungen, 3D-Modellen und Fotos (Bitmaps)
+     im gleichen Darstellungsraum.
+  
+ - alle Darstellungen können dynamisch generiert werden
+
+ - alle Darstellungsobjekte können mit Interaktionen verbunden werden
+
+
+
+__________________________________________________________________________
+<p><a name="EG"></a></p>
+<b>Entwicklungsgeschichte gCAD3D</b>
+__________________________________________________________________________
+
+
+1995  Erste Version mit Namen xcad; nur für Linux und AIX.
+      Grafik und Anwenderinterface mit X11.
+1998  Erste Version mit Namen gcad.
+      Grafik mit OpenGL (Mesa), Anwenderinterface mit GTK.
+      Der Name entspricht der abgekürzten Version von GTK-CAD.
+      Linzenz war bis ca 2000 GPL.
+1999  wurde gcad auf gCAD3D umbenannt
+      (seit ca. 1998 existierte auch ein gcad von Inigo Serna Robledo)
+2003  CAD-Modul neu.
+      Auf MS-Windows portiert.
+2005  Step-Import.
+2006  Texturen.
+2007  Normteile (Catalog).
+2008  Scriptprogamme gcap.
+2010  64-bit-Version Linux.
+2011  neutrales GUI-Interface, Gtk3-Interface
+2012  Debian-packages
+2013  RemoteControl, Processes.
+
+
+
+
+__________________________________________________________________________
+<p><a name="GC_DEL"></a></p>
+<b>gCAD3D löschen</b>
+
+
+<b>Linux:</b>
+  Wurde gCAD3D mit einem Paketmanager installiert (zB ein debian-Paket),
+  sollte es auch mit diesem Paketmanager gelöscht werden.
+
+
+  oder manuell:
+  rm -rf ~/gCAD3D
+  Alle Dateien befinden sich im Verzeichnis ~/gCAD3D/.
+
+  Siehe auch <A HREF="InstNonDeb_en.htm">InstNonDeb_en.htm</A>
+
+
+
+<b>MS-Windows:</b>
+  Verwenden Sie Systemsteuerung/Software/Entfernen
+  
+  oder
+  Verwenden Sie das Programm UnInstall aus dem gCAD3D - Hauptmenü
+    
+  oder manuell:
+  Löschen Sie Verzeichnis {Installationsverzeichnis}\gCAD3D
+  gCAD3D benutzt die Windows-Registry nicht,
+  alle Dateien befinden sich im Verzeichnis {Installationsverzeichnis}\gCAD3D.
+    (Installationsverzeichnis ist meist C:\Programme).
+
+
+__________________________________________________________________________
+
+
+</PRE>
+</HTML>

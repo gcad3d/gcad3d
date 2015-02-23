@@ -1,0 +1,243 @@
+gCAD3D
+
+provides functions for -
+      import and export of cad-models and pictures (bitmaps)
+      creation of geometrical objects
+      NC-working, direct and programcontrolled
+      preparation of data (building contours ..)
+      analysis of data
+      all objects can be connected with interactions
+      add-on-programs (plugins)
+      remote control
+
+
+The creation of geometrical elements / NC-programs can be done by -
+      interactively generated geometrical objects or
+      manually generated command texts or by
+      import modules (Dxf, Iges, Step ..) or by
+      data file created by external program or by
+      special import processors (user programs)
+
+
+Interactions connect to geometric objects can -
+      load models (like HTML - HREF)
+      activate userprograms (plugins)
+      modify the view
+      modify modelparameters dynamically
+
+
+The data can be exported from the program by -
+      export modules ((Dxf, Iges, Vrml, Svg ..)
+      Standard - ISO - post processor
+      specialized export functions (user programs)
+      the system format APT3D (ASCII text format)
+
+
+The program interface makes possible -
+      The creation and analysis of geometry Objects
+      interactive dialogue functions (selections..)
+      automatic compiling, link and reload at execution time
+
+
+
+
+__________________________________________________________________
+Linux Prerequisites:
+
+  for modifications of gCAD3D:
+    gcc, ctags.
+
+
+  for modifications of the gui-system C-KIT-GUI-GTK:
+    gcc, Gtk-development-files (libgtk2.0-dev or libgtk-3-dev),
+      OpenGL-development-files (eg mesa-common-dev).
+      Installation of gtk3-development-files; eg for debian-os:
+        sudo apt-get install libgtk-3-0-dev
+        Optional:
+        sudo apt-get install libgtk-3-0-doc
+        sudo apt-get install gtk-3-examples
+
+
+  for modification of the documentation:
+    doxygen
+
+
+  for building debian-package:
+    fakeroot, lintian
+
+
+__________________________________________________________________
+Linux Install from git-repository:
+
+// start commandline (eg gnome-terminal)
+cd
+mkdir devel
+cd devel
+git clone https://github.com/gcad3d/gcad3d
+// get all files into ~/devel/gcad3d/*
+
+
+__________________________________________________________________
+Linux Install from tarfile:
+
+// start commandline (eg gnome-terminal)
+cd
+mkdir devel
+mkdir binLinux32
+mkdir binLinux64
+mkdir binMS32
+cd devel
+cp xxx/gcad3d-*-Linux.tar.gz .
+unzip gcad3d_V*.zip
+// get all files into ~/devel/gcad3d/*
+
+
+_____________________________________
+Linux Build:
+
+cd ~/devel/gcad3d/src/APP
+
+// change gtk-version (VGUI):
+vi ../options.mak
+
+// (re)Create the gui-lib
+make -f gcad_gui__.mak
+
+// set new gcad-version (modify gcad_version, gcad_date; create xa/gcad_version.h)
+cd ~/devel/gcad3d/src
+./NEW_VERSION.sh
+
+// (re)Create gCAD3D
+make -f gcad3d.mak
+
+// (re)Create all core-dll's
+make -f gcad3d.mak all
+
+// (re)Create all demo-plugins
+make -f gcad3d.mak allDemos
+
+
+// ReCreate gcad development documentation:
+cd ~/devel/gcad3d/doc
+./gcad_doxygen.sh
+
+// view documentation:
+xdg-open ~/devel/gcad3d/doc/gcad/index.htm
+
+// create debian-package (binary, gCAD3D-#.##-bin-amd64.deb)
+cd ~/devel/gcad3d/debian
+./pack_deb.sh
+
+
+// create source-package (gCAD3D-#.##-src.zip)
+cd ~/devel/gcad3d
+./pack_src.sh
+
+
+DEVELOPMENT:
+cd ~/devel/gcad3d/src/APP
+./do help
+
+
+DEVELOPMENT-TOOLS-TAGFILES:
+  If you are using vim: jump into functions with tagfiles:
+  in directory APP_tests tagfiles can be used with vim.
+
+  Add in .vimrc:
+  let tagfiles = system("ls -m *.tag |sed \"s/ //g\"")
+  "echo tagfiles
+  let &tags = substitute(tagfiles, "\n", "", "g")
+
+  Using tagfiles:
+  cd ~/devel/gcad3d/src/APP
+  vi -t UME_init
+  or use "Ctr-R" inside vim with cursor over function, Ctrl-O = back.
+
+
+DEVELOPMENT-TOOLS-CSCOPE:
+  Use cscope with:
+  cd ~/devel/gcad3d/src/APP
+  ./ed
+    update EDITOR in file ~/devel/gcad3d/src/APP/ed.
+
+
+__________________________________________________________________
+Linux Uninstall:
+cd ~/devel
+rm -rf gcad3d
+
+
+
+
+
+==================================================================
+MS-Windows
+==================================================================
+Prerequisites:
+
+  for using C-KIT-GUI-GTK:
+    MS-C-Compiler (gcc or MS-Visual-C (C++, Express))
+  for using C-KIT-GUI-GTK with OpenGL:
+    OpenGL32.lib, Glu32.lib (Microsoft SDKs)
+  for modifications of C-KIT-GUI-GTK:
+    the package contains all development-files;
+    optional: get the gtk-dokumentation from www.gtk.org.
+
+
+MS-Windows Install (Win-XP Win7 Win8):
+  The registry is never affected / modified.
+
+Create new directory %HOMEDRIVE%%HOMEPATH%/devel
+  Using a commandshell (cmd):
+  %HOMEDRIVE%       // activate the homedrive
+  cd %HOMEPATH%     // goto homepath
+  mkdir devel       // create new directory
+  cd devel          // goto %HOMEPATH%/devel
+
+Extract C-KIT-GUI-GTK-*.**-MS.zip into this directory
+  Using a commandshell (cmd):
+  unzip ckitgui_V*.zip
+
+
+Rebuild  library / examples:
+  // You will need a commandshell with the correct compiler-environment.
+  // You can use the Visual-Studio-Commandwindow or cmd.exe;  e.g. for VC8:
+  "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
+  // or for VC10 - start a commandwindow with:
+  %comspec% /k ""C:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"" x86
+  // Test MS-compiler with:
+  cl /?
+
+
+ReCreate the shared library:
+  %HOMEDRIVE%                     // activate the homedrive
+  cd %HOMEPATH%\devel\ckitgui\src\APP
+  nmake -f ckitgui.nmak
+  // reCreate and start testprogs
+  nmake -f hello-world.nmak
+  nmake -f tst_gui1.nmak
+  nmake -f tst_gui2.nmak
+
+
+// view documentation:
+  cd %HOMEPATH%\devel\ckitgui
+  hh doc\gui\index.htm
+
+
+
+MS-Windows Uninstall:
+cd
+rmdir/s %HOMEDRIVE%%HOMEPATH%\devel\ckitgui
+
+
+
+
+
+__________________________________________________________________
+History:
+
+V0.62 / 2015-02-05 changes for git. RF.
+
+
+// EOF
+

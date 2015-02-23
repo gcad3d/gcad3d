@@ -1,0 +1,187 @@
+#!/bin/bash
+# help usage                        ./do h 
+# Development-Start gcad3d          ./do
+
+
+# if test -f WinIsLast.lock; then
+#   rm -rf WinIsLast.lock
+#   cp -f dirx.lst ~/gCAD3D/cfg/dir.lst
+#   cp -f dirw.lst ~/gCAD3D/cfg/dir.lst
+# fi
+
+
+# bits; 32|64
+osVer=`getconf LONG_BIT` 
+echo $osVer
+
+
+
+if test "$1" = "help"; then
+  echo "./do complete          # do all following"
+  echo "./do delete            # delete all objects"
+  echo "./do guiinit           # change gui-version"
+  echo "./do gui               # rebuild xa_gui_gtk-*.so"
+  echo "./do c                 # compile & link core"
+  echo "./do all               # compile & link corelibs"
+  echo "./do allDemos          # compile & link demos"
+  echo "./do                   # start"
+  echo "./do d                 # start with debugger"
+  exit 0
+fi
+
+
+
+if test "$1" = "complete"; then
+  ./del_obj.sh
+  make -f gcad_gui__.mak
+  make -f gcad3d.mak
+  make -f gcad3d.mak all
+  make -f gcad3d.mak allDemos
+  exit 0
+fi
+
+
+if test "$1" = "delete"; then
+  ./del_obj.sh
+  exit 0
+fi
+
+
+if test "$1" = "guiinit"; then
+  vi ../options.mak
+  make -f gcad_gui__.mak delete
+  exit 0
+fi
+
+
+if test "$1" = "gui"; then
+  make -f gcad_gui__.mak
+  exit 0
+fi
+
+
+if test "$1" = "c"; then
+  make -f gcad3d.mak
+  exit 0
+fi
+
+
+if test "$1" = "all"; then
+  make -f gcad3d.mak all
+  exit 0
+fi
+
+
+if test "$1" = "allDemos"; then
+  make -f gcad3d.mak allDemos
+  exit 0
+fi
+
+
+
+
+if test "$1" = "guiinit"; then
+  ./gui_init.sh
+  exit 0
+fi
+
+
+if test "$1" = "gui"; then
+  make -f xa_gui_gtk.mak
+  make link -f gui_util.mak
+  exit 0
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+#=================================================================
+
+LOCAL=${HOME}/devel/gcad3d
+# Init-process: /gCAD3D/ will be added to ${LOCAL}; then 
+#   mkdir ${LOCAL}/gCAD3D
+#   mkdir ${LOCAL}/gCAD3D/tmp       // runtime-temp-files !
+#   unpack examples.gz into ${LOCAL}/gCAD3D (create cfg, dat, ..)
+#   
+
+
+#export UBUNTU_MENUPROXY=
+
+
+if test "${OSTYPE}" = "linux-gnu"; then
+  echo " Linux .."
+
+# executables (shared-libs ..)
+# export gcad_dir_bin=${LOCAL}/gCAD3D/binLinux${osVer}/
+  export gcad_dir_bin=${LOCAL}/binLinux${osVer}/
+  export LD_LIBRARY_PATH=${gcad_dir_bin}
+
+# icons,
+  export gcad_dir_ico=${LOCAL}/icons/
+
+# def is /usr/share/gcad3d/
+  export gcad_dir_local=${LOCAL}/
+
+# html and msg-files
+  export gcad_dir_doc=${LOCAL}/doc/
+#/usr/share/doc/gcad3d/msg
+
+
+
+  exeNam=${gcad_dir_bin}gCAD3D
+
+
+
+
+#-----------------------------------------------------
+# d = debug
+if test "$1" = "d"; then
+  gdb ${exeNam} $* -x gCAD3D.gdb
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+#-----------------------------------------------------
+# init = copy dirx.lst -> ?
+elif test "$1" = "init"; then
+  cp -f dirx.lst ~/gCAD3D/cfg/dir.lst
+  exit 0
+
+#-----------------------------------------------------
+fi
+
+echo "normal start .."
+# i = Init (nach MS_Windows)
+#if test "$1" = "i"; then
+#fi
+  
+#./gCAD3D.sh $*
+${exeNam} $*
+exit
+
+
+
+#----------------------------------------------------
+elif test "$OSTYPE" = "msys"; then
+  cp -f dirw.lst dir.lst
+  #cp -f xa.rc_MS ../tmp\xa.rc
+  cd ..
+  gdb binMS32/gCAD3D.exe $*
+
+
+#-----------------------------------------------------
+else
+  echo "OPSYS" $OSTYPE " not supported .."
+  exit -1
+fi
+
+
+# EOF

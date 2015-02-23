@@ -1,0 +1,14 @@
+# make -f Demosimple.mak
+
+
+DLLNAM = Demosimple
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+	../xa/Demosimple.c
+
+#DIRSRC1 := ../xa/
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

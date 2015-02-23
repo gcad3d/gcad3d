@@ -1,0 +1,13 @@
+# nmake -f PRC_Demo1.nmak "OS=MS32"
+
+#DLLNAM = plugins/PRC_Demo1
+DLLNAM = PRC_Demo1
+
+SRC1 =\
+ ../prc/prc_Demo1__.c\
+
+DIRSRC1 = ../prc/
+
+!include gCAD_DLL.nmak
+
+########################### EOF #######################

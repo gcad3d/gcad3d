@@ -1,0 +1,125 @@
+/*! \page pag_Messages Messages
+../gcad_doxygen/Messages.dox
+<h2>Messages Doku</h2>
+
+
+<pre>
+\ref Direct-Messages
+\ref Dump-object-functions
+\ref Debug-functions
+
+\ref xa_msg.c            Application-Messages, Standard-Messages, Constant-Messages
+\ref xa_msg.h            integer-constants for Constant-Messages
+
+
+See also ProgramFlow / \ref Errorhandling-Tests
+
+
+
+Tools for manipulating the language-files:
+
+save the lang.files: ./lang_save.csh
+edit files:          ./lang_ed.csh
+find a keyword:      ./lang_find.csh keyWd 
+modify keyword       /mnt/serv1/Linux/bin/changeall old new files
+modify line          ./lang_line keyWd "line words .."
+delete Line          ./lang_del.csh keyWd
+insert Line          ./lang_ins.csh keyWd_before new line words ..
+
+
+Examples Messages:
+  strcpy(s1,  MSG_const__(MSG_cancel));  // "Cancel");
+  p1 = MSG_get_str ("CADSUR");
+
+</pre>
+
+
+
+
+
+<hr>
+\section Direct-Messages
+
+<pre>
+\ref ut_ui_TX.c         TX_* messages
+</pre>
+
+\code
+TX_Error            display message and raise error    ../xa/ut_ui_TX.c
+TX_Print            display message
+GUI_Tx_rmLast       remove last messageline
+
+\endcode
+
+
+
+
+
+
+<hr>
+\section Dump-object-functions
+\code
+
+UT3D_stru_dump      dump struct -> debug-window
+DBO_dump__          dump DB-object -> debug-window
+UTO_dump__          dump ObjGX + Inhalt
+UTO_dump_s_         dump ObjGX - structured display
+tess_dump_f_        dump tesselated (sizeRec, Typ_GL_Sur-Recs ..)
+UI_dump_obj         dump DB-object  into file & display with browser
+UTO_dump_obj        dump struct -> UT3D_stru_dump
+AP_obj_analyze      replace by UT3D_stru_dump (see IE_analyz__)
+UME_dump            disp. fre space of Memspc
+GR_Disp_pTab        disp. temp. obj
+
+UTF_dump__          disp. memory (sourcetext Alt shift s)
+DB_dump_stat        disp DB-statistics (Alt shift o)
+APT_dump_itab       dump EditorLine->DL-Hilfsliste
+
+AP_dump_statPg      dump active subModel, active lineNr
+DB_dump_ModBas      dump Basemodels (Alt shift m)
+DB_dump_ModRef      dump Submodels (Alt shift r)
+DB_dump__           dump DB
+DL_DumpObjTab       Dump DL (Alt D (shift d!))
+GA_dump__           Dump permanentAttributeList (Alt shift g)
+WC_actPos_dump      dump NC-Records (Alt shift n)
+
+UTX_dump_cnl        disp. textStrings (UTX_dump_c__ UTX_dump__)
+
+
+\endcode
+
+
+\section Debug-functions
+<hr>
+\code
+
+
+#include "../xa/xa.h"                  // printd
+
+  // start debugging (following prints -> debug-file)
+  AP_deb_stat (1);
+
+
+  // print into debug-file
+  printd (" debugfile = %sdebug.dat\n",OS_get_tmp_dir());
+
+
+  // block of debug-messages
+#ifdef DEB
+    for(i1=0;i1<i1; ++i1)
+      printd("tab[%d]=%d\n",i1,ia[i1]);
+#endif
+
+
+  // stop debugging (following prints -> console)
+  AP_deb_stat (0);
+
+  printd (" this text will be skipped ..\n");
+
+  // check debugfile: vi ~/gCAD3D/tmp/debug.dat
+
+
+\endcode
+
+
+*/

@@ -1,0 +1,428 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_Appli_de.htm</TITLE>
+<style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+Applications sind Scriptprogramme (direkt ausführbar).
+
+
+<h2>Funktionen Menü Applications:</h2>
+
+
+
+
+<b>Applications/Start</b>
+  Auswahl und Start des aktiven Programmes.
+    Auswahl eines Programms:
+      Verzeichnis: {baseDir}/prg
+      Dateityp:    .gcap
+  Das zuletzt ausgewählte Programm kann mit Ctrl-P direkt gestartt werden.
+
+
+Jedes Programm erhält automatisch ein Eingabefenster;
+  jedes Eingabefenster erhält automatisch 3 Buttons:
+  einen Update-, einen Cancel- und einen OK-Button.
+
+  <b>Update-Button: </b> (auch Rechte-Maustaste):
+    das Programm wird abgearbeitet, aber nicht gespeichert.
+  <b>Cancel-Button:</b>
+    Programm abbrechen.
+  <b>OK-Button:</b>  (auch Ctrl-Rechte-Maustaste):
+    Programm abarbeiten, alle nicht-internen Objekte an das
+    Hauptprogramm uebergeben.
+
+
+
+<b>Applications/Edit</b>
+  Startet einen Texteditor fuer das aktive Programm.
+  Weiter siehe "Allgemeine Programmstruktur"
+  Das zuletzt ausgewählte Programm kann mit Ctrl-E direkt editiert werden.
+
+
+
+<b>Applications/Create</b>
+  Ein neues Programm erzeugen.
+
+  Verzeichnis/Dateiname der Programmfiles:
+  {baseDir}/prg/{Programmname}.gcap
+  
+  Das Programm-Verzeichnis kann dzt nur in Datei
+  "{baseDir}/cfg/xa.rc"
+  gesetzt / verändert werden.
+
+
+
+
+____________________________________________________________________________
+<b>Vorgangsweise neues Programm erzeugen / testen:</b>
+  Ein leeres Programm erzeugen (Create Application);
+  Programmcode einfügen (zB Beispielcode); speichern (KEDit: Ctrl-S);
+  Programm starten (mit Ctrl-P);  Cancel od OK.
+
+
+
+____________________________________________________________________________
+<b>Allgemeine Programmstruktur:</b>
+
+
+
+<i># Block Declarationen</i>
+INTERN ..
+# Siehe INTERN.
+DLG ..
+# Mit den DLG-Codes (Dialog) koennen Eingabefelder in das Eingabefenster
+# gesetzte werden.  Siehe Definition Eingabefenster.
+
+
+<i># Block DLG-Variablen initialisieren</i>
+# Alle in Eingabefeldern ("DLG ..") verwendete Variablen muessen
+# hier deklariert werden.
+# Damit werden auch die Startwerte der Eingabefelder vorgegeben.
+..
+
+
+<i># Block ProgramCode</i>
+..
+
+
+
+
+
+____________________________________________________________________________
+<b>Programmcodes:</b>
+
+
+<b>Kommentar</b>
+Das Zeichen # als erstes Zeichen einer Zeile definiert eine Kommentarzeile.
+Zeilen mit # am Beginn existieren nur im Programm (.gcap); 
+Zeilen mit ## am Beginn werden in das Hauptprogramm (.gcad) kopiert.
+# comment with one # exists only in program;
+# comment with two ## is copied -&gt; Model
+
+   
+<b>Testausgaben von Texten / Variableninhalten:</b>
+# (nur zu Testzwecken im Meldungsfenster)
+PRI "Text"
+PRI "Punkt1 =" P1                 
+PRI "Var 1 =" V1
+
+
+
+<b>Verzweigen, unbedingter Sprungbefehl.</b>
+JUMP Labelname
+..
+:Labelname 
+# Das Sprungziel. Achtung: muss auch betreffend 
+# Gross / Kleinschreibung völlig ident sein.
+
+
+
+
+
+<b>Bedingte Verzweigung mit if</b>
+if Wert Bedingung Wert ; JUMP Labelname
+ Es gibt folgende Bedingungen: 
+  EQ      gleich,
+  NE      nicht gleich,
+  LT      kleiner,
+  GT      groesser,
+  L_E     kleiner oder gleich,
+  G_E     groesser oder gleich.
+
+# Beispiel
+V20=10
+:Next
+PRI "Var 20 =",V20
+V20=V20+10
+IF V20 LT 55 ; JUMP Next
+ 
+
+
+
+<b>V{#}=NEW({objTyp},{startIndex})</b>
+  Liefert die nächste freie Objektnummer
+  objTyp: V (Variable), P (Punkt), L (Linie), C (Kreis), D (Vektor),
+          S (Kurve), A (Fläche)
+
+  Beispiel:
+  V1=NEW(P,20)
+  # Liefert die erste freie Punktnummer ab Index 20 nach Variable-1.
+  # Anwendung siehe Auswertungsfunktion (Spitze Klammern)
+
+
+
+
+<b>Auswertungsfunktion (spitze Klammern)</b>
+Ein zwischen spitzen Klammern befindlicher Ausdruck wird durch sein
+Ergebnis ersetzt. Es werden Variablen, Punkte und Vektoren evaluiert.
+        Ausgabe:
+&lt;V#&gt;    der Zahlenwert (Inhalt der Variablen)
+&lt;P#&gt;    P(xCoord yCoord zCoord)
+&lt;D#&gt;    D(xCoord yCoord zCoord)
+
+
+Beispiele:
+ V1=10
+ V2=20
+ P&lt;V1&gt;=P(&lt;V2&gt; 0 0)
+ergibt:
+ P10=P(20 0 0)
+
+ P11=P(&lt;X(P10)+1&gt; 0 0)
+ergibt:
+ P11=P(21 0 0)
+  (Funktion X(P10) extrahiert die X-Koordinate aus Punkt P10).
+
+ D10=DZ
+ D11=D(0 0 &lt;Z(D10)&gt;)
+ergibt:
+ D11=P(0 0 1)
+  (Funktion Z(D10) extrahiert die Z-Koordinate aus Vektor D10).
+
+
+
+
+<b>DEBUG ON¦OFF</b>
+  ON: Anzeige von Testausgaben;
+  weiter zur nächsten Programmzeile muss mit der Esc-Taste.
+   
+
+<b>EXIT</b>
+  Beendet das Programm.
+
+
+
+
+<b>INTERN {Bereich ..}</b>
+Definition von Variablen, die nur fuer programminterne Berechnungen
+ benoetigt werden und bei OK nicht in das Hauptmodell exportiert
+ werden sollen.
+ INTERN muss im ersten Programmteil (Declarations) stehen.
+
+Beispiel:
+ INTERN P1-P20 P50 V1-V20 V33 L1-L3
+ # Alle Punkte von P1 bis P20 sowie Punkt P50 (usw..)
+ # werden nur intern benutzt; keine Ausgabe in das Hauptmodell.
+
+
+
+
+
+____________________________________________________________________________
+<b>Definition Eingabefenster:</b>
+
+# Horizontale Trennlinie:
+DLG ---
+
+# Anzeige Zusatzinformationen:
+DLG TXT "{InfoText}"
+
+
+# Input von Zahlenwerten in numer. Variablen V:
+DLG V{#} "{InfoText}" {Feldbreite}
+# Infotext wird neben dem Eingabefenster angezeigt.
+
+
+# Input von Punkten in Punktvariablen P:
+DLG P{#} "{InfoText}" {Feldbreite}
+
+
+# Input von Vektoren in Vektorvariablen D:
+DLG D{#} "{InfoText}" {Feldbreite}
+
+
+# Auswahl Checkbox
+DLG CKB V{#} "{InfoText}"
+
+
+# Auswahl Radiobox
+DLG RDB V{#} "{InfoText}"
+# Radioboxen sind Checkboxen, die sich gegenseitig ausschliessen,
+# sie haben die gleiche Ausgabevariable.
+
+
+
+
+Beispiele:
+
+# Text
+DLG TXT Test EingabeFenster
+
+# Eingabefelder für Variable, Punkt
+DLG V1 "Length - " 150
+DLG P1 "Position " 150
+DLG ---
+
+# Checkbox
+DLG CKB V2 "export"
+DLG ---
+
+# 3 Radioboxen
+DLG RDB V3 "Point"
+DLG RDB V3 "Line"
+DLG RDB V3 "Circ"
+
+
+# Voreinstellung: Circ.
+V3=3
+
+# V2 enthält 1 wenn "export" aktiv ist
+#            0 wenn "export" nicht aktiv ist
+
+# V3 enthält 1 wenn "Point" aktiv ist
+#            2 wenn "Circ" aktiv ist.
+
+
+
+
+
+____________________________________________________________________________
+<b>Tastenzuordnung:</b>
+Ctrl P    startet zuletzt ausgefuehrtes Programm;
+
+Ctrl E    startet zuletzt ausgefuehrtes Programm;
+
+Esc: go into previous Eingabefeld;
+     während Programmablauf: den Ablauf stoppen.
+     im Debugmode: weiter mit nächster Programmzeile.
+     
+Tab: nächstes Eingabefeld.
+
+Rechte-Maustaste: loest Update aus;
+
+Ctrl-Rechte-Maustaste: loest OK aus;
+
+
+
+____________________________________________________________________________
+<b>Beispielprogramme:</b>
+
+
+# Example get value from user and export to model with new/unused ID.
+
+# do not export V1 - V19
+INTERN V1-19
+
+# setup dialog-window
+DLG TXT Test1
+DLG V1 "TestVar"
+
+# init the dialog-variable
+V1=10
+
+# get a new, uniq variable-ID
+V2=NEW(V,20)
+
+# export the value from the dialog-window with a new ID
+# add an object-name (use it for filtering)
+V&lt;V2&gt;=&lt;V1&gt; # Length XX
+
+PRI "new var V" &lt;V2&gt; "=" &lt;V1&gt;
+
+EXIT
+
+
+____________________________________________________________________________
+#------------------ Declarations-----------------
+# do not export V1,V2 (internal use only)
+INTERN V1-2
+DLG TXT Test CheckBox
+DLG V1 "X-Coord - " 60
+DLG CKB V2 "Point"
+DLG CKB V2 "Circ"
+
+#------------------ Init Variables --------------
+V1=10
+# preSet 1="Point", 2="Circ"
+V2=1
+
+#------------------ ProgramCode -----------------
+if V2 eq 2; jump L_Circ
+P1=P(&lt;V1&gt; 0 0)
+PRI "V2=" V2
+EXIT
+
+:L_Circ
+C1=P(&lt;V1&gt; 0 0) 2
+#
+
+
+____________________________________________________________________________
+## create single chain of points
+
+#------------------ Declarations-----------------
+# do not export the following variables with OK:
+INTERN P1 V1-10 D1
+
+# put textlines into the panel 
+DLG TXT             Create linear point-pattern.
+DLG TXT Select or indicate Startpoint;
+DLG TXT Give offset (X-offset,y-offset,z-offset)
+DLG TXT Define nr of points;
+DLG TXT Update: Button or right mousebutton
+DLG TXT   in the mainWindow;
+DLG TXT OK: button or Crtl-Right mousebutton.
+
+# get Startpoint from user into P1;
+# inputfieldsize 150
+DLG P1 " Startpoint " 150
+
+# get pointoffset from user
+# Offset must be a Vektor (3 values !)
+DLG D1 " OffsetVec." 150
+
+# get nr of points from user
+DLG V1 " nr of points" 150
+
+#-------- init all dialog-variables----------
+P1=P(0 0 0)
+D1=D(10 0 0)
+V1=3
+
+#----------programCode ---------
+#DEBUG ON
+
+# get a new pointindex for the outputpoints
+# beginning with index 5 (preserve P1)
+V2=NEW(P,5)
+# init pointCounter
+V3=0
+
+# decode the startpoint
+V4=X(P1)
+V5=Y(P1)
+V6=Z(P1)
+
+# decode the offsetVector
+V7=X(D1)
+V8=Y(D1)
+V9=Z(D1)
+
+
+:Next
+# incr counter
+V3=V3+1
+# add offset
+V4=V4+V7
+V5=V5+V8
+V6=V6+V9
+# create point with next index v2
+P&lt;V2&gt;=P(&lt;V4&gt; &lt;V5&gt; &lt;V6&gt;)
+# increment pointindex
+V2=V2+1
+if V3 lt V1 ; jump Next
+
+#
+
+
+____________________________________________________________________________
+Senden sie Fehlerberichte, Verbesserungsvorschläge
+  an franz.reiter@cadcam.co.at
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY>
+<PRE>
+
+
+<h2>Hauptfunktion VWR (Viewer)</h2>
+  Die Objekte werden dargestellt, können aber nicht modifiziert werden.
+
+
+____________________________________________________________________________
+<h2>Mausfunktionen</h2>
+
+  <b>Linke Maustaste:</b>
+    ein Objekt selektieren oder eine Positon anzeigen.
+    Mit gedrückter Strg-Taste: Objektselektion unterdrücken
+      (3D-Rotation (siehe unten) oder Gruppenselektion starten)
+
+  <b>Rechte Maustaste:</b>
+    ein Objekt selektieren UND eine zugehörige Funktion rufen
+    Mit gedrückter Strg-Taste: Objektselektion unterdrücken
+      (Funktionen zu existierender Gruppe aktivieren)
+
+  <b>Gruppe selektieren:</b>
+    Strg-Taste drücken (und gedrückt halten); 
+    Linke Maustaste drücken (und gedrückt halten);
+    Maus ziehen.
+
+
+
+____________________________________________________________________________
+<h2>Grafikfunktionen</h2>
+Wie kann man die Ansicht verschieben, vergrößern, verkleinern, verdrehen:
+
+
+
+<b>Verschieben</b>                            mit Shift Drag
+  die Shift - Taste drücken (und gedrückt halten) und die Maus verschieben.
+  Keine Maustaste drücken.
+
+
+<b>Vergrößern / Verkleinern</b>               mit Control + Shift + Drag
+  die Shift-Taste und die Strg-Taste drücken (und gedrückt halten)
+  und die Maus verschieben.
+  Von links nach rechts verschieben bewirkt ein Vergrössern.
+
+
+<b>3D-Rotation</b>                            mit Ctrl Drag
+  Die Strg - Taste drücken (und gedrückt halten) und die Maus verschieben.
+  Horizontales verschieben der Maus dreht den Teil in der Bildebene.
+  (der Drehmittelpunkt ist immer automatisch der Bildschirmmittelpunkt).
+  Vertikales verschieben der Maus kippt den Teil in der Bildebene.
+
+
+<p><a name="RotCen"></a></p>
+<b>Darstellungs-Mittelpunkt definieren:</b>
+  Checkbox <i>RotCen</i> aktivieren und den neuen Mittelpunkt selektieren
+    - einen Vertex selektieren oder
+    - einen freien Punkt selektieren (Ctrl Drag, dann einen der roten
+      Punkte selektieren)
+
+  Die momentan aktive Ebene für das interaktive Drehen wird durch
+    ein gelbes Rechteck angezeigt.
+    Diese Z-Ebene der Ansicht kann auch durch Eingabe des neuen Z-Wertes
+    in das Eingabefeld (neben dem Button STEP) gesetzt werden;
+    mit Return abschliessen.
+
+
+<b>Scal.All - Button:</b>
+  Alle Objekte darstellen (Mittelpunkt und Vergrößerung setzen).
+
+
+<b>Scal.Fix - Button:</b>
+  Einstellen einer fixen, vordefinierten Vergrösserung,
+  entsprechend dem Wert MODSIZ (ungefähre Maximalgröße des Modells).
+  Änderung MODSIZ durch Funktion Standards / Tolerances
+  oder durch Command MODSIZ <wert>
+
+
+<b>Darstellungs-Genauigkeit fuer Kreise, Ellipsen, Kurven definieren:</b>
+   Standards/Tolerances  (im Menuebalken oben)
+   Modelsize aendern, 'Modify'.
+     Es werden automatisch die Toleranzen abgeleitet und 
+     das gesamte Modell wird sofort neu berechnet.
+
+
+   Die Modellgroesse beeinflusst direkt alle Toleranzen;
+    - die Sehnentoleranz,
+    - die Identische-Punkte-Toleranz
+    - die Modellgroesse beim Export von Mockup-Modellen (zB VRML)
+
+
+<b>vordefinierte Ansichten:</b>
+
+TopView   - Draufsicht    (Ansicht X-Y)
+FrontView - Seitenansicht (Ansicht X-Z)
+SideView  - Seitenansicht (Ansicht Y-Z)
+AxoView   - Axonometrische Ansicht
+
+
+
+Ausblenden von einzelnen Objekten: siehe <a href="Using_de.htm#Hide">Checkbox Hide, View</a>
+Ausblenden von Objektengruppen: siehe <a href="Using_de.htm#Display">Checkbox Hide, View</a>
+
+
+
+____________________________________________________________________________
+
+
+</PRE>
+</BODY>
+</HTML>

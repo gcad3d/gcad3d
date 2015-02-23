@@ -1,0 +1,7 @@
+#
+
+#ifeq "$(OS)" "MS32" | "MS64"
+SRCOS = ../ut/ut_os_w32.c
+# ../lic/ut_lic_w32.c
+
+# eof

@@ -1,0 +1,1856 @@
+/*! \page pag_pd1 Programminginfos
+\verbatim
+../gcad_doxygen/Programminginfos.dox
+
+Programminginfos for gCAD3D                       2007-10-17
+
+
+
+
+
+Author:
+  Franz Reiter
+  franz.reiter@cadcam.co.at
+  http://www.gCAD3D.org
+
+
+Licese:
+  gCAD3D is freeware
+  may be used for any purposes free of costs
+  may be copied and distributed without restrictions
+  no restrictions for AddOn-Software (Plugins, DDL's)
+
+
+  THERE IS NO WARRANTY FOR THE PROGRAM.
+  THE ENTIRE RISK IS WITH YOU.
+
+
+
+
+
+
+
+================================================================= 
+Inhalt:
+
+Verzeichnisse
+Startup
+  Setup-Files
+  Startparameter
+  Files im temp-Directory
+Debugging
+Userprograms/Plugins
+  Funktionsweise
+    Control
+    Output
+    Keyboard-Input
+    Selektionen
+    Errorhandling
+    Beispielprogramm
+  Funktionsaufbau
+  Dialogfunktionen
+  Userinteraktionen
+  Objekte_generieren
+    Temporaere_Elemente_erzeugen                  GR_Disp_XX
+  Objekte loeschen
+  Verzeichnisdefinition
+  Submodelhandling
+  Graf.Attribute
+
+  DispList_analysieren
+  DB_analysieren
+
+  Ein-Ausgabefunktionen                           "END"
+  Basisfunktionen                                 UT2D_x UT3D_x OS_X ..
+  Transformationen
+  Globale Datenfelder
+gCad_Batch
+Testfunktionen                                    dump_...
+Memoryfunktionen
+
+
+
+
+=================================================================
+Verzeichnisse:
+=================================================================
+
+
+tmp                 temp-files; is created in $HOME.
+
+doc                 Dokumentation-files
+xa                  main-sourcefiles, makefiles, Doku.
+bin                 Dll's (.so-files)
+gr                  OpenGL-driver, DispList
+ci                  CommandInterpreter
+gtk                 gtk-toolBox
+ut                  Geom.utilities (Basisfunktionen)
+dat                 samplemodels
+
+
+
+Files in $HOME/tmp:
+tmp/xa.rc           settings
+tmp/Model           model-backupfile
+tmp/Model_*         Submodels
+
+
+
+
+
+
+
+===============================================================
+Startup
+===============================================================
+
+---------------
+Setup-Files:
+---------------
+
+<base>/xa/psv.setup
+  Die Setup-Datei für die Postscript-Ausgabe.
+
+<base>/xa/xa.rc
+ GTK-Ressource-File. Fontgroesse ..
+
+<base>/xa/gCAD3D.rc
+ Defaults fuer Z-Buffersize, Modelsize, Textsizes.
+
+<base>/xa/ltyp.rc
+ Defaults fuer Linetypes; diese Datei wird nach ../tmp kopiert.
+
+<base>/tmp/xa.rc
+ Div. Voreinstellungen (Print-Befehl, Browser).
+ Wird bei Programmstop ueberschrieben.
+
+<base>/tmp/Model
+ das zuletzt bearbeitete CAD-Model.
+ Wird bei Programmstop ueberschrieben.
+
+
+
+
+Das automatische Startupmodel loeschen:
+rm ../tmp/Model
+
+
+---------------
+Startparameter:
+---------------
+Beim Start koennen folgende Parameter angegeben werden:
+new               // init Modelspace
+load              // load Model; filename is the following Parameter.
+defLoad           // das Default-Modell laden;  erfolgt sonst erst nach dem
+                  // Abarbeiten der Startparameter.
+run               // nach defLoad Model abarbeiten (vor exit)
+comp              // compile DLL's - Checkbox aktivieren
+igi               // Iges-Import; filename is the following Parameter.
+exit              // normaler Programmstop (mit sichern)
+mode_cad          // Starten im Modus CAD.
+mode_man          // Starten im Modus Manuell.
+noTB              // no Toolbar
+noMB              // no MessageBar
+<Filename>.dxf    // Import DXF-Modelfile (new)
+<Filename>.igs    // Import Iges-Modelfile (new)
+
+
+Nicht definierte Parameter werden als zu startende DLL interpretiert.
+Beispiel:
+gCAD3D new load ../dat/sample_area_pln1.dat testDLL
+(Load Model ../dat/sample_area_pln1.dat, dann ../bin/testDLL.so starten).
+
+
+
+
+-----------------
+Startup-process:
+-----------------
+If directory <base>/tmp does not exist, it is created.
+File <base>/tmp/xa.rc is created (print-command, default directory, ..)
+The list of plugins is created (ls  <base>/bin/*.so > <base>/tmp/Dll.lst)
+Modelfile <base>/tmp/Model is loaded.
+
+
+
+
+------------------------
+Files im temp-Directory
+------------------------
+
+Im temp-Directory werden folgede Files angelegt:
+
+ Model
+ Mod.lst         eine Liste aller internen subModels
+ Model_<subModelname>
+ Exp_<subModelname>    subModel im zuletzt exportierten Format
+ M#A#.msh              binary; Mesh-Faces & Edgelines.
+ M#A#.ptab             binary; Mesh-points.
+ <subModelname>.tess   externes Mockup-subMoldel (zB wrl, stl)
+
+ Catalog.lst     eine Liste aller existierenden CatalogFiles
+ catParts.act    der Filename des momentan aktiven CatalogFile
+ catParts.lst    die PartList des momentan aktiven CatalogFile
+
+ Dll.lst         <base>/<bin>/*.so  (*.dll)
+ lstd.dat, lst0.dat, lst1.dat   AuxiliaryFiles des ListSelectDialogs.
+ tmp.html        Ausgabedatei der Funktion Dump
+ xxx.write       ParameterUebergabefiles, nativer gcad-code.
+
+ DB.dat          Database of active Model, binary.
+
+
+
+
+
+
+
+
+
+
+===============================================================
+Debugging
+===============================================================
+Debuggen einer DLL:
+  In Datei ../.gdbinit  schreiben:
+  break OS_debug_dll_
+    (unmittelbar nach Eintritt in die DLL wird Func. OS_debug_dll_() gerufen).
+
+ gCAD3D mit dem Debugger starten
+   gdb ../gCAD3D
+   Aktivieren Sie die DLL.
+   Wenn Debugger nun stoppt, ist die DLL geladen; mit
+   break <dll_func_name>
+   kann der Debugger dann in der gewuenschten DLL-Routine gestoppt werden.
+
+
+Debuggen Hauptmodul:
+  In .gdbinit: break AP_debug__
+  Am Ende des Startup wird Func. AP_debug__() gerufen (= stop im Debug-Modus)
+
+  Stop in einer bestimmten Funktion mit AP_debug__();
+
+  Auch mit Keysequenz Alt shift x wird AP_debug__ gerufen.
+
+
+
+Startparameter fuer Debuggingzwecke:
+comp              // activate Checkbox "compile DLL's"
+crashEx           // Sofortausstieg - ohne sichern
+AP_test__         // run func. AP_test__()
+
+
+Aufruf von Func. AP_test__ auch durch die Tastenfolge Alt + Shift + T
+Aufruf von Func. crashEx   auch durch die Tastenfolge Alt + Shift + X
+
+
+Dump DisplayList                 DL_DumpObjTab      Alt + Shift + D
+
+
+
+
+
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:        Funktionsweise
+===============================================================
+
+
+ Am Programmbeginn werden alle DLL's (.so-Files) im Verzeichnis bin gesucht
+   und im Menü angezeigt.
+   (cd bin; ls *.so)
+
+
+ Selektion einer Menüzeile impliziert:
+  - entladen einer momentan aktiven DLL (Aufruf von (int)gCad_fini())
+  - kompilieren und Linken der selektierten DLL (es wird das gleichnamige
+    Makefile ausgefuehrt; Options/compileDLL dazu aktivieren).
+  - Laden der neu generierten DLL (dlopen)
+  - Start des Userprogramms (Aufruf von (int)gCad_main())
+
+
+ Userprogramme koennen also automatisch zur Laufzeit neu gelinkt und geladen
+   werden.
+
+
+ Aktivieren/Deaktivieren des automatischen Kompilier/Linkvorgangs:
+   Menuepunkt "Options / compile DLLs" aktivieren.
+
+
+ Siehe Beispielprogramme  DemoPlugin*.c.
+
+
+ Deaktivieren der Programme durch Löschen der zugehörigen so-Files
+   (rm DemoPlugin_Create.so).
+
+
+ Der erste Linkvorgang muss manuell gestartet werden; es werden nur
+   bereits vorhandene DLL's (.so-Files) angezeigt.
+   (make -f DemoPlugin_xxx.mak)
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:        Funktionsaufbau
+===============================================================
+
+Das Programm muss mindestens folgende Funktionen enthalten:
+
+// myProg.c:
+int gCad_main () {}  // wird beim Programmstart gerufen
+int gCad_fini () {}  // wird beim Entladen der DLL gerufen.
+
+
+Linkjob erstellen:
+ cp DemoPlugin_Hili.mak myProg.mak
+ In myProg.mak nun "DemoPlugin_Hili" durch "myProg" ersetzen.
+
+ Den Linkjob beim ersten mal manuell starten durch:
+ make -f myProg.mak
+ (es wird myProg.so erzeugt).
+
+
+ gCAD3D nun neu starten; in Userprogrammliste rechts unten kann nun myProg
+ gestartet werden. Zum dynamischen Compile&Link muss Options/Compile aktiviert
+ werden.
+
+
+
+Erforderliche Files:
+  gCAD3D.def
+  gCAD3D.lib
+
+
+
+//--------------------------------------------------------
+// Program Header:
+
+// nur Windows:
+#ifdef _MSC_VER
+#include <windows.h>
+// #include <time.h>                // for time_t
+#endif
+
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>              // for ...
+
+
+
+// nur Windows:
+#ifdef _MSC_VER
+#include <time.h>                // for time_t
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
+
+
+#include "../ut/ut_geo.h"              // Point ...
+
+// private, static vars, protypes, functions ..
+
+//--------------------------------------------------------
+
+
+Errormessage:
+cannot open dyn. Lib. xx.so
+
+Unresolved external datafields; test with:
+nm -u xx.so
+objdump -R xx.so | grep GLOB_DAT
+
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:        Dialogfunktionen
+===============================================================
+
+
+
+  Eigene Dialogfenster mit gtk direkt oder den Funktionen
+  der gtk-Toolbox (gtk/ut_gtk.h).  Beispiele dazu gtk/tst_*.c.
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:        Errorhandling
+===============================================================
+
+  // Informationstext im Infofenster des Hauptprogrammes ausgeben:
+  void TX_Print (char* txt, ...);
+
+  // Fehlertext im Infofenster des Hauptprogrammes ausgeben (mit Beep):
+  // aktivieren des ErrorStatus:
+  void TX_Error (char* txt, ...);
+
+
+  // Beispiel:
+  TX_Print("Prog. myProg: Durchlauf Nr. %d",iNr);
+
+
+  // Fehlerspeicher intern:  AP_stat.errStat
+  // LineNr in der der Fehler auftrat: AP_stat.errLn
+
+
+  // reset Error:
+  AP_errStat_set (0);
+
+
+
+
+
+===============================================================
+Userprograms/Plugins:        Userinteraktionen
+===============================================================
+
+
+  Es koennen die Tastatureingaben und die Selektions-Ereignisse
+  vom Anwendungspragramm angefordert werden.
+
+
+
+
+
+  //----------------------------------------------------------------
+  // Example:
+  // prototypes fuer user-functions (selection-callback, keyIn-callback):
+  int my_selection_callback (int src, long dl_ind);
+  int my_key_CB (int key) {
+
+
+  int gCad_main () {
+    // Selektions-Ereignisse auf eigene Funktion umleiten
+    // attach selections to function my_selection_callback
+    AP_UserSelection_get (my_selection_callback);
+    // attach KeyIn to function my_key_CB
+    AP_UserKeyIn_get (my_key_CB);
+    ..
+  }
+
+
+  int gCad_fini () {
+    // dll being unloaded - reset Input, kill all open windows !
+    AP_User_reset ();              // close application; reset input.
+  }
+
+
+  // die callback-Funktion fuer die Selektions-Ereignisse:
+  int my_selection_callback (int src, long dl_ind) {
+    // src - welche Maustaste. TYP_EvMouseL = linke, TYP_EvMouseM, TYP_EvMouseR
+    // dl_ind - der Index des selektierten Objekts in der Displayliste.
+    // int my_selection_callback (int src, long dl_ind) {...}
+
+    Point  pt1;
+    DL_Att att1;
+
+    // exit m. rechter maustaste
+    if(src != TYP_EvMouseL) {
+      gCad_fini();
+      return 0;
+    }
+
+    if(dl_ind == -2) {           // Vertex selektiert (UI_GR_Sel_Filter (2))
+      UI_GR_SelVert (&pt1);i     // Vertexposition holen
+      UT3D_stru_dump (Typ_PT, &pt1, "VertexPos=");
+
+
+    } else if(dl_ind == -1) {    // indicate; kein Objekt selektiert.
+      pt1 = GL_GetViewPos ();    // get curr. cursorposition as Point
+      UT3D_stru_dump (Typ_PT, &pt1, "indicatedPos=");
+      printf("%s\n",UI_GR_get_actPos_());  // get curPos as string "<x> <y> <z>"
+
+
+    } else {                     // User hat ein Objekt selektiert;
+      att1 = DL_GetAtt(dl_ind);  // die Attribute holen
+      printf("selected objectTyp =  %d\n",att1.typ);
+      printf("DB-Index of selected object = %d\n",att1.ind);
+    }
+    
+  }
+
+
+  // Funktion zum Empfang der Tastatureingaben.
+  int my_key_CB (int key) {
+    // input = keycode
+
+    switch (key) {
+      case GDK_Escape:  // erfordert #include <gdk/gdkkeysyms.h>
+        gCad_fini ();
+        break;
+
+      case 'q':
+        gCad_fini ();
+        break;
+    }
+  }
+
+
+
+
+  //----------------------------------------------------------------
+  //------------ Control --------------------------------------------
+  GL_tstFuncs (0);       // save dispListIndex
+  ...                    // draw new (temporary) objects
+  GL_tstFuncs (1);       // delete DispList from stored Position
+
+  GR_Disp_message (0);   // 0=TestMessages off, 1=On (Default=On)
+
+  UI_wait_Esc ();        // Wait for pressing the Esc-Key in grafic-window
+
+  GUI_update__ (); DL_Redraw (); usleep(500000);
+
+
+
+
+  //------------ Output --------------------------------------------
+  Grafik: see "Temporaere_Elemente_erzeugen"
+
+  Text:
+  for(i1=0; i1<10; ++i1) {
+    if(i1 > 0) GUI_Tx_rmLast ();           // remove previous TX_Print
+    TX_Print ("LoopCnt i1 = %d",i1);       // print into TextWindow
+    OS_Wait (500);                         // wait in ms
+  }
+
+
+  //----------------------------------------------------------------
+  // predefine vertex-selection (1=indicate, 2=vertex)
+  // Es wird das Objekt-Hiliting deaktiviert.
+  // 1: indicate Cursorposition;
+  //    die Cursorposition mit GL_GetViewPos holen.
+  // 2: select Vertex;
+  //    die Vertexposition mit UI_GR_SelVert holen.
+  UI_GR_Sel_Filter (2);
+
+
+
+
+
+
+APP_Help (char *fNam);
+
+
+// File-Open-Dialog:
+APP_Open (char *wTit, void *funcNam);
+
+
+// File-Save-Dialog:
+APP_Save (char *wTit, char *defNam, void *funcNam);
+
+
+
+
+
+================================================================= 
+  Objekte_generieren
+================================================================= 
+
+
+ Alle Informationen (Geometrie und NC-Bearbeitung) werden 
+ ausschliesslich als Ascii-Texte gespeichert und im Editfenster dargestellt.
+
+
+ Die Abarbeitung dieser Befehlscodes ("END") generiert Eintraege in der
+  Database (DB) und / oder in der Displayliste (DL).
+
+
+ Alle Eintraege der DL werden an OpenGL uebergeben (dargestellt).
+
+
+ Alle Objekte, die dargestellt werden sollen, erhalten einen Eintrag in der DL.
+   Die DL-Eintraege koennen mit DL_GetAtt abgefragt werden,
+   man erhaelt damit den Objekttyp, den DB-Index und graf. Attribute.
+   Der DL-Index wird fortlaufend vergeben (siehe GL_GetActInd).
+   
+
+ Von Objekten, die in der DB gespeichert sind, koennen aus der DB die
+   geometr. Eigenschaften abgefragt werden (siehe DB_GetObjGX).
+
+
+ Permanente Objekte werden in der DB gespeichert.
+  Bei jedem Programmdurchlauf ("END") werden von jedem Objekt ein DB-Eintrag
+  und ein DL-Eintrag erzeugt.
+  Beispiel: "P12=100 100" im Editfenster erzeugt ein 
+  permanentes Objekt Punkt mit dem DB-Index 12.
+
+
+ Dynamische Objekte werden ebenfalls in der DB und in der DL gespeichert;
+   der DB-Index wird jedoch fortlaufend vergeben.
+   Die geometr. Eigenschaften koennen aus der DB abgefragt werden.
+
+
+ Temporaere Elemente werden nicht in der DB gespeichert.
+   Temporaere Elemente koennen nur durch C-Programme (nicht durch
+   Textcodes) erzeugt werden.
+   Es kann nur der DL-Record abgefragt werden.
+
+
+ Den momentanen Status des DB speichern:
+   DB_set_state (0);
+ Die DB zuruecksetzen:
+   es werden alle in der Zwischenzeit erzeugten Objekte in der DB geloescht !
+   DB_set_state (1);
+   Die DisplayListe wird damit nicht zurueckgesetzt.
+     (Siehe GL_GetActInd/GL_Delete).
+
+
+
+ -----------------------------------------
+ Permanente Objekte erzeugen - Variante 1:
+ -----------------------------------------
+
+
+  // Einen Text im Textfenster hintanfuegen, dann ausfuehren.
+  ED_add_Line ("P1=100 100");
+  
+
+
+
+
+ -----------------------------------------
+ Permanente Objekte erzeugen - Variante 2:
+ -----------------------------------------
+ 
+  // schnellere Methode (fuer viele Textzeilen)
+
+  long ind;
+
+  // das Hauptprog loeschen
+  UTF_clear_ ();
+
+  // Zwischenbuffer loeschen
+  UTF_clear1 ();
+
+  // den naechsten freien DB-Index abfragen
+  ind = DB_QueryNxtInd (Typ_PT, 20);
+  // hier wird der naechste freie Point-Index zurueckgeliefert.
+  // Die Suche wird bei Index 20 begonnen.
+  // Abgefragt werden koennen D=Typ_VC, P=Typ_PT, L=Typ_LN, C=Typ_CI,
+  // S=Typ_CV, A=Typ_SUR, B=Typ_SOL, R=Typ_PLN, N=Typ_GTXT, V=Typ_VAR.
+
+  // Textzeile dem Zwischenbuffer zufuegen
+  UTF_add1_line ("p1=100 100");
+  
+  // oder Textzeile generieren:
+  sprintf(cbuf, "P%d=%f %f",ind,xCoord,yCoord);
+  UTF_add1_line (cbuf);
+
+  
+  // Zwischenbuffer im Textfenster hintanfuegen
+  UTF_insert1(-1);
+  UI_AP (UI_FuncSet, UID_WinEdit, NULL);
+
+
+  // gesamtes Programm ausfuehren (= END-Button betaetigen)
+  UI_butCB (NULL, (void*)"butEND");
+
+
+
+
+
+ -----------------------------------------
+ Permanente Objekte erzeugen - Variante 3:
+ -----------------------------------------
+
+  // ComplexObjekt (ObjGX, siehe Datenmodelle) erzeugen,
+  // ComplexObjekt in Text umwanden,
+  // Text entsprechend obiger Variante 1 oder 2 abspeichern.
+
+
+  // Beispiel: 
+  int    irc, typ;
+  long   pt_ind;
+  Point2 pt21;
+  ObjGX  ox1;
+  char   cBuf[512];
+
+
+  pt21.x=100.; pt21.y=100.;
+  
+
+  // ComplexObjekt (ObjGX, siehe Datenmodelle) erzeugen
+  OGX_SET_OBJ (&ox1, Typ_PT2, Typ_PT2, 1, &pt21);
+
+    - entspricht den folgenden Zeilen:
+      ox1.typ  = Typ_PT2;
+      ox1.form = Typ_PT2;
+      ox1.siz  = 1;
+      ox1.data = (void*)&pt21;
+      
+
+
+
+  // initialisieren der Funktion Object -> Text (die naechsten freien 
+  // Indexpointer suchen):
+  AP_obj_2_txt (NULL, 0, NULL, 0);
+  // Wird nachfolgend objInd=-1 angegeben, so wird der naechste freie Index
+  // benutzt.
+  // Es kann auch ein fixer Index definiert werden
+  //   (zB mit DB_QueryNxtInd suchen).
+
+
+  // ComplexObjekt in Text umwanden (Text wird -> cBuf ausgegeben)
+  pt_ind = -1;
+  // 512 = max. size of cBuf
+  irc = AP_obj_2_txt (cBuf, 512, &ox1, pt_ind);
+  if(irc < 0) return irc;
+
+  AP_obj_2_txt_query (&typ, &ind);  // get typ and index of created obj
+
+  // add & execute line
+  ED_add_Line (cBuf);
+
+
+
+
+
+
+ -----------------------------------------
+ Temporaere_Elemente_erzeugen:
+ -----------------------------------------
+
+
+ Funktionen fuer Testanzeigen: 
+
+   see also GL_tstFuncs GR_Disp_message
+
+
+
+Example:
+  #include  "../gr/ut_UI.h"            // SYM..
+  Point   p1={10,0,0};
+  long  dli;
+  GR_Disp_pt (&pt1, SYM_STAR_S, 2);           // creates temp.obj red circle
+  DL_Redraw ();                               // update display
+  dli = GL_GetInd_temp ();                    // get DL-index of circle
+  ..
+  GL_temp_Delete (dli);                       // delete the circle
+  GL_temp_delete ();                          // or delete all temp objects
+  DL_Redraw ();                               // update display
+  ..
+
+
+
+
+
+
+  GR_Disp_pt2 (Point2 *pt1, int typ, int att);  // ein 2D-Punkt
+  GR_Disp_pt (Point *pt1, int typ, int att);    // ein 3D-Punkt
+
+  GR_Disp_tx (Point *pt1, char *txt, int att);  // Texte
+  GR_Disp_txi (Point *pt1, int ii, int att);    // Text-Integer
+  GR_Disp_p2Tab (int ptNr, Point2 *p2Tab, int typ, int att); // 2D-Punktetabelle
+  GR_Disp_pTab (int ptNr, Point *pTab, int typ, int att);    // 3D-Punktetabelle
+  GR_Disp_vc (Vector *vc1, Point *pt1, int att, int mode);   // ein Vektor
+  GR_Disp_ln (Line *ln1, int att);                           // Linie
+  GR_Disp_ac (Circ *ci1, int att);                           // Kreis
+  GR_Disp_cv (Point *pta, int ptnr, int att);                // 3D-Polygon
+  GR_Disp_cv2 (Point2 *pta, int ptnr, int att);              // 2D-Polygon
+
+  GR_Disp_pln (Plane *pl1, int att);                         // Plane
+  GR_Disp_axis (Plane *pl1, int att, int typ);
+     // typ: bit1=Plane, bit2=axisSystem; bit3=axisSystem with x,y,z-char's
+  GR_Disp_pol (CurvPoly *pol, int att);                      // PolygonCurve
+  GR_Disp_ell (CurvElli *el1, int att);                      // Ellipse
+
+
+  GR_Disp_fan (Point *ps, Point *pa1, Point *pa2, int pNr, int att);
+  // Beispiel: pNr=3.
+  //                a23
+  //              /  |
+  //           a22  /|
+  //         / /|  / |
+  //      a21 / | /  |
+  //     / |/   |/   |
+  //   ps--a11--a12--a13
+
+
+  // BSP-Curve
+  GR_Disp_bsp (CurvBSpl *bspl, int att, Memspc *workSeg);
+
+  // Bezier-Curve
+  GR_Disp_bez (CurvBez *bez, int att, Memspc *workSeg);
+
+  // planare ungelochte Flaeche:
+  GR_Disp_spu (int ptNr, Point *pTab, int attSurf);
+
+  // BSP-Surf
+  GR_Disp_sbsp (int ptUNr, int ptVNr,  Point *pTab, int att);
+
+  // boundingBox
+  GR_Disp_box (Point *p1, Point *p2, int att);
+
+  // Standard-Surface (Stuetzflaeche, getrimmt/gelocht):
+  GR_Disp_sur ((ObjGX*)o1, (int)attSurf);
+
+
+  // Display ObjGX-struct-obejct.
+  UTO_obj_Disp__ ((ObjGX*)o1, (Memspc*)wrkSpc, (int)attSurf [,(int)typ])
+    wrkSpc nzr fuer BSPL-Curves, else NULL
+    typ nur fuer Point-objects
+
+
+
+
+  --------------------------------------------------------
+  typ:  SYM_STAR_S (Stern klein) SYM_TRI_S (Dreieck) SYM_TRI_B (gross)
+        SYM_CIR_S  (Kreis klein)
+  att:  0=Default, 1=sw, 2=rot 3=gruen 4=bl
+  attSurf: 1=3=11=blau, 2=12=13=rot, 8=gruen, 5=gelb
+           6=hellgrau  4=10=hellblau, 9=hellrot 0=7=dunkelblau
+  mode: 0="normiert", 1=wahre Groesse
+  
+  Attributindex attI: siehe "Graf.Attribute".
+
+
+
+
+  // 2D-Bitmap-Symbole (fixe Groesse, immer in Draufsicht).
+  // SYM_TRI_S      Dreieck klein
+  // SYM_TRI_B      Viereck gefuellt
+  // SYM_STAR_S     Stern klein
+  APT_disp_SymB (SYM_TRI_S,  (int)attI, (Point*)&pos);
+
+
+
+
+  // 3D-Symbole (auf eine Fläche fixiert, aber fixe Groesse)
+  // SYM_TRIANG   Dreieck
+  // SYM_SQUARE   Viereck
+  // SYM_PLANE    Viereck gelb gefuellt
+  // SYM_CROSS    Kreuz
+  // SYM_CROSS1   Kreuz (aehnlich Schere)
+  // SYM_AXIS     Achsensystem mit x,y,z-Zeichen
+  // SYM_AXIS1    Achsensystem
+  APT_disp_SymV1 (SYM_TRIANG, (int)attI, (Point*)&pos, (double)scale);
+
+
+
+  // 3D-Symbole (auf eine Fläche fixiert, mit definierter Richtung, fixe Groesse)
+  // SYM_ARROH    Pfeilspitzen (2D, ohne Schaft)
+  APT_disp_SymV2 (SYM_ARROH, 1, &pt1, &pt2, 1.);  // head only at pt1 !
+
+
+  // SYM_ARRO3H   Pfeilspitzen (3D, ohne Schaft)
+  APT_disp_SymV3 (SYM_ARRO3H, Typ_Att_Symb, &pt1, &vc1, 1.);
+
+  // 3D-Symbole (Position,Richtung, fixe Groesse)
+  // SYM_ARROW    Pfeil (Position des Schaftendes, nicht der Spitze)
+  // SYM_SQUARE   Ebene (Mittelpunkt, Z-Vektor)
+  APT_disp_SymV3 (SYM_ARROW, (int)attI,
+                  (Point*)&pos, (Vector*)&Richtung, (double)scale);
+
+
+
+  long   dli = -1;
+  GR_DrawLine (&dli, Typ_Att_hili1, (Line*)ln);
+
+
+  // Temporaere. Objekte werden erst nach dem Neuzeichnen der gesamten
+  // Displayliste angezeigt; nach dem Erzeugen der Objekte:
+  DL_Redraw ();
+
+
+
+  // alle temporaeren Objekte loeschen:
+  GL_temp_delete ();
+
+
+
+
+----------------------------------
+DirectDraw temporary elements:
+----------------------------------
+DispListpositions (DL_Ind_tmp+1 - DL_base_font1-1) are reserved for
+  temporary elements (at the moment 2-31).
+This positions can be filled directly or by using DL-index -1 (this uses
+  the next free temp-index).
+
+
+Direkt erzeugen mit den GL-Funktionen, zB:
+  GL_DrawSymB
+  GL_DrawSymV3
+  GL_DrawPoly  usw ..
+
+Index abfragen mit:
+  (long)ind = GL_GetInd_temp ();
+
+Einzeln loeschen mit:
+  GL_temp_Delete (ind);
+
+Alle loeschen mit:
+  GL_temp_delete ();
+
+Example:
+  Point  pt1={0,0,0};
+  long dli = -1;                              // DispListIndex temp.
+  GL_DrawSymB (&dli, 2, SYM_CIR_S, &pt1);     // create temp. circle
+  dli = GL_GetInd_temp ();                    // get DL-index of circle
+  DL_Redraw ();                               // Redraw
+  ..
+  GL_temp_Delete (dli);                       // delete the circle
+  ..
+
+
+
+
+
+
+
+
+
+ -----------------------------------------
+ Dynamische / temporaere Elemente erzeugen:
+ -----------------------------------------
+
+
+  Attributindex attI: siehe "Graf.Attribute".
+
+
+  ind > 0 - Objekt wird normal in DB gespeichert; ind = DB-Index.
+            Objekt kann aus DB abgefragt werden;
+            Objekt wird bei RUN geloescht.
+
+  ind = 0 - Objekt wird in DB gespeichert; der DB-Index wird automat. vergeben.
+            Objekt kann aus DB abgefragt werden; der DB-Index kann nur aus dem
+            DL-Record gelesen werden (oder mit GL_GetActInd);
+            Objekt wird bei RUN geloescht.
+            Retour - ind ist negativ (dynamisches Objekt).
+
+  ind < 0 - Objekt wird nicht in DB gespeichert. Temporaeres Objekt.
+
+
+
+  GR_CrePoint ((long*)ind, (int)attI, (Point*)&point3D);
+
+  GR_CreLine ((long*)ind, (int)attI, (Line*)&ln1);
+
+  GR_CreCirc ((long*)ind, (int)attI, (Circ*)&ci1);
+
+
+  // 3D-Polygon
+  GR_CrePoly ((long*)ind, (int)attI, (int)AnzahlPunkte, (Point*)&Punktetabelle);
+
+
+  // Bitmap-Text (fixe Groesse, immer in Draufsicht).
+  GR_CreTxtA ((long*)ind, (int)attI, (Point*)&pos, (char*)Text);
+
+
+  // 3D-Text
+  GR_CreTxtG ((long*)ind, (int)attI, (Point*)&pos, (double)Size,
+              (double)Verdrehwinkel, (char*)Text);
+
+
+  
+
+  // Ditto: eine bestimmte Anzahl von DL-Objekten duplizieren; dabei koennen
+  // die Objekte verschoben, gedreht und gespiegelt werden. Eine Ditto belegt
+  // nur einen einzigen DL-Record.
+  GR_CreDitto ((long*)ind, (Point*)&Position, (double)Verdrehwinkel,
+               (char)Mirrorflag, (Ditto*)&dit1);
+  // Mirrorflag: Spiegelung um eine Ebene durch den Ditto-Nullpunkt.
+  // ' '=keine Spiegelung,
+  // 'X'= um X-Z-plane spiegeln,
+  // 'Y'= um Y-Z-plane spiegeln.
+  // 'Z'= um X-Y-plane spiegeln.
+
+  // Beispiel Ditto (siehe auch DemoPlugin_Create.c):
+  long    id1;
+  Ditto   dit1;
+  // den Startindex in der DL speichern
+  dit1.ind = GL_GetActInd();
+  ...  // Objekte generieren (die dann als Ditto dupliziert werden)
+  // den Drehmittelpunkt des Ditto definieren
+  dit1.po = (Point)Ditto_Nullpunkt;
+  // Anzahl DL-Objekte des Ditto definieren
+  dit1.siz = GL_GetActInd() - dit1.ind;
+  // -1: store in dynamic area in DB;
+  // Objekt nicht in DB speichern. Temporaeres Objekt.
+  id1 = -1;
+  GR_CreDitto (&id1, &pt1,  (, ' ', &dit1);
+
+
+
+
+
+
+
+  ................. Flaechen .......................
+
+  Fuer Flaechen sollten als attI Typ_Att_Fac1 od. Typ_Att_Fac2 verwendet
+    werden.
+
+
+
+  // Polygonflaeche. Die Flaeche wird aus Dreiecken dargestellt,
+  // jedes der Dreiecke besteht aus dem Punkt "Zentrum" und aus zwei
+  // nebeneinanderliegenden Punkten aus der Punktetabelle "Umfang".
+  GR_CreTriaFan ((long*)ind, (int)attI, (Point*)&Punkt_Zentrum,
+                 (int)AnzahlUmfangspunkte, (Point*)Punktetabelle_Umfang);
+
+
+
+  // Streifenflaeche. Es werden ein oder mehrere Streifen angezeigt.
+  // Die Streifen werden durch Polygone an 2 Raendern definiert.
+  // Alle Streifen muessen gleichviele Randpunkte haben.
+  // Z.B: 5 nebeneinanderliegende Streifen zu je 10 Punkten; es sind
+  // 6 x 10 Punkte erforderlich; AnzahlPunkte = 10, AnzahlKetten = 6.
+  // (Kette = ein Randpolygon).
+  GR_CreTriaStrip ((long*)ind, (int)attI, 
+                   (int)AnzahlPunkte,(int)AnzahlKetten,(Point*)&Punktetabelle);
+
+
+
+
+  // Zylinderflaeche.  Mittelpunkte, Radien.
+  GR_CreCyl ((long*)ind, (int)attI,
+             (Point*)&Mittelpunkt1, (Point*)&Mittelpunkt2,
+             (double)Radius1,       (double)Radius2);
+
+
+
+
+  // Kreisringflaeche. Mittelpunkt, Z_Vektor, Radius innen u. aussen.
+  GR_CreDisk ((long*)ind, (int)attI,
+              (Point*)&Mittelpunkt, (Vector*)&Z_Vektor,
+              (double)Radius_innen, (double)Radius_aussen);
+
+
+
+
+
+  // Dynam. Objekte werden erst nach dem Neuzeichnen der gesamten
+  // Displayliste angezeigt:
+  DL_Redraw ();
+
+
+
+
+
+
+
+
+================================================================= 
+  Objekte loeschen
+================================================================= 
+
+
+  // Geloeschte Objekte werden erst nach dem Neuzeichnen der gesamten
+  // Displayliste nicht mehr angezeigt:
+  DL_Redraw ();
+
+
+
+  // einzelnes Objekt loeschen (nur Darstellung loeschen)
+  GL_Del0 ((long)DispListIndex);
+
+
+
+  // Temporaere Objekte aus der Displayliste loeschen:
+  // alle Objekte ab einem bestimmten Displaylistenindex loeschen;
+  // (dadurch kann der gesamte Bereich wieder verwendet werden).
+  GL_Delete ((long)DispListStartIndex);
+
+    Beispiel:
+      (long)il = GL_GetActInd ();        // get last DispListIndex
+      ++il;                              // keep last obj
+      GR_Disp_pt (&pt1, SYM_STAR_S, 2);  // create temp. Symbol(s)
+      .. // create other temp objects, check this objects ..
+      GL_Delete (il);                    // delete all temp objects
+
+
+
+
+  // Undo-Liste entleeren
+  UI_undo_clear ();
+
+
+
+  // alle temporaer geloeschten Zeilen entfernen (und Undo-Liste entleeren)
+  // (temporaer geloeschten Zeilen beginnen mit "_")
+  AP_APT_clean ();
+
+
+
+  // Clear all (gesamtes Display loeschen; Button Clear)
+  UI_GR_view (NULL, (void*)"ClrView");
+
+
+  // Das gesamte Textfile loeschen (Funktion File/New)
+  UI_menCB (NULL, "new");
+
+
+
+
+
+
+================================================================= 
+Verzeichnisdefinition
+================================================================= 
+
+Verzeichnisse fuer Models, Externe_Submodels und Bitmaps muessen
+als Symbole definiert werden.
+
+Alle symbolischen Pfade sind in Datei xa/dir.lst definiert.
+Inderaktiv definieren mit "Standards/Directories".
+
+
+  // change symbolic_path --> real_path:
+  Mod_get_path (real_path, symbolic_path);
+
+
+  // change real_path --> symbolic_path:
+  Mod_sym_get2 (symbolic_path, real_path);
+
+
+
+
+================================================================= 
+  Submodelhandling
+================================================================= 
+Siehe auch "Files im temp-Directory"
+
+Die Modelnummer wird in der DL fuer jedes Obj in modInd gespeichert:
+Objekte mit Modelnummer 0-n liegen in einem Submodel; 
+Objekte mit Modelnummer -1 liegen im aktiven Model.
+
+  
+  ModelBas  *mdr;
+
+  dla = DL_GetAtt(DL-Index);  // get DL-Record
+  model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
+
+  // den BasicModelRecord eines Submodels holen
+  mdr = DB_get_ModBas (dla.modInd);
+  // mdr->mnam ist nun der Modelname des Submodel.
+
+
+
+
+
+
+
+
+
+================================================================= 
+  Graf.Attribute
+================================================================= 
+Analysieren: see DL_GetAtt
+
+
+- Attr_Hilite 
+- Attr_Display
+- Attr_Pick
+- Create_new_Attr
+
+
+  // Jede Aenderung der Graf. Attribute wird erst nach dem Neuzeichnen
+  // der gesamten Displayliste sichtbar:
+  DL_Redraw ();
+
+
+
+  =============== Attr_Hilite  ==================================
+
+  // hilite einzelnes Objekt
+  GL_HiliObj ((long)DispListIndex);
+
+
+  // unhilite einzelnes Objekt
+  GL_UnHiliObj ((long)DispListIndex);
+
+
+  // unhilite alle Objekte
+  GL_UnHiliObj (-1L);
+
+
+
+
+  =============== Attr_Display ==================================
+
+  // einzelnes Objekt ausblenden
+  DL_disp_set ((long)DispListIndex, OFF);
+
+
+
+
+  =============== Attr_Pick =====================================
+
+  Set to not pickable:
+    DL_pick_set ((long)DispListIndex, ON);
+
+  Abfragen ob pickable:
+    i1 = DL_GetPick((long)DispListIndex);   // OFF = ja, ON = Nein.
+
+
+
+
+  =============== Create_new_Attr ===============================
+
+  Defaultwerte siehe Hauptdoku "Farben, Linientypen, Strichstärken".
+
+
+  // ein neues graf. Attribut erzeugen:
+  DL_InitAttRec ((int)AttributIndex,(int)Farbe,(int)Linetyp,(int)Dicke);
+  // Farbe:   2=rot, 3=gruen, 4=blau
+  // Linetyp: 0=voll, 1=-., 2=- -, 3=--
+  // Dicke:   1-6
+  // Beispiel: Attribut 20 = blau, strichliert, Dicke 3:
+  DL_InitAttRec (20,    4, 2, 3);
+
+
+
+
+
+
+
+
+
+=================================================================
+  DispList_analysieren
+=================================================================
+  Quicktest: Alt+Shift+D
+
+
+
+
+  // den Displaylistenindex des zuletzt erzeugten Objekts abfragen
+  (long)DisplayListIndex = GL_GetActInd ();
+
+
+
+  // den Displaylistenindex eines Objekts suchen
+  (long)DisplayListIndex = DL_find_obj ((int) objTyp, (long)objInd);
+
+
+
+  // Den DispListIndex des zuletzt selektierten Objekts abfragen:
+  UI_GR_GetdlInd ((long*)dli);
+
+
+
+
+  // einen Displaylisteneintrag einlesen
+  DL_Att dlRec;
+  dlRec = DL_GetAtt((long)DisplayListIndex);
+  // dlRec.modInd       Modelindex; -1 = active Model; 0-n = Submodel.
+  // dlRec.typ          Objekttyp; zB Typ_PT
+  // dlRec.ind          DB-Index; long.
+  // dlRec.refInd       Index der zugehoerigen Transformation.
+  // dlRec.attInd       Index des zugehoerigen Attributs (Linetyp)
+  // dlRec.lay          LayerNr.
+  // dlRec.disp         Sichtbarkeit; ON od OFF.
+  // dlRec.hili         Hilite; ON od OFF.
+  // dlRec.dim          Abgedunkelt; ON od OFF.
+  // dlRec.pick         Selektierbarkeit; ON od OFF.
+  // dlRec.grp..        Gruppenzugehoerigkeit; noch nicht benutzt.
+
+
+
+
+
+
+================================================================= 
+  DB_analysieren
+================================================================= 
+  Quicktest: Alt+Shift+O
+
+
+  DB_Stat();      // print Statistics
+  DB_dump__ ();   // beware ..
+  DB_QueryDef     // check if obj defined ..
+  DB_QueryLastInd // letzten definierten Index holen
+  DB_QueryNxtInd  // nächsten freien Index retournieren
+
+
+
+  // die folgende Funktion liefert alle DB-Obj als ObjGX:
+  // (Beispiel siehe unten)
+  (ObjGX)obj = DB_GetObjGX ((int)obj_typ, (long)DB_Index);
+  // obj_typ   Buchstabe  
+     Typ_PT         P            Point
+     Typ_LN         L            Line
+     Typ_CI         C / A        Circle
+     Typ_CV         S            Curve (Ellipse, olygon, CCV, ...)
+     Typ_PLN        R            Plane / refSys
+     Typ_ATXT       N            Note, Dimension, ..
+     Typ_SUR        A            Surface, Face, ..
+     Typ_SubModel   M            Model, Submodel ..
+
+
+
+
+  // Variable: Typ=Typ_VAR         maxInd=APT_VR_SIZ
+  (double)d = DB_GetVar ((long)ind);
+
+
+  // Point:      Typ=Typ_PT      maxInd=APT_PT_SIZ
+  // dynam. Points (index < 0):  maxInd=DYN_PT_SIZ
+  (Point)pt = DB_GetPoint ((long)ind);
+  (Point*)pt = DB_get_PT ((long)ind);
+  DB_QueryPoint  // find point
+
+
+  // Line:     Typ=Typ_LN        maxInd=APT_LN_SIZ
+  // dynam. Lines  (index < 0):  maxInd=DYN_LN_SIZ
+  (Line)ln = DB_GetLine ((long)ind);
+  (Line*)ln = DB_get_LN ((long)ind);
+  DB_QueryLine
+
+  
+  // Vector:   Typ=Typ_VC         maxInd=APT_VC_SIZ
+  (Vector*)vc = DB_get_VC ((long)ind);
+  (Vector)vc = DB_GetVector ((long)ind);
+  DB_FindVector
+
+
+  // Circle:   Typ=Typ_CI         maxInd=APT_CI_SIZ
+  (Circ*)ci = DB_get_CI ((long)ind);
+  (Circ)ci = DB_GetCirc ((long)ind);
+  DB_QueryCirc
+
+
+  // Curve:    Typ=Typ_CV         maxInd=APT_CV_SIZ
+  // Curves sind generell als struct ObjGX gespeichert !
+  (ObjGX*)cv = DB_GetCurv ((long)ind);
+    // Kurventyp ist cv->typ
+  DB_QueryCurv
+  (void*)cv = DB_get_CV ((int*)ityp, (long)ind);
+    // liefert Typ und Adresse der struct; nicht brauchbar fuer CCV!
+
+
+  // Text:     Typ=Typ_GTXT      maxInd=APT_TX_SIZ
+  (ObjGX*)tx = DB_GetGTxt ((long)ind);
+
+
+  // Plane:    Typ=Typ_PLN       maxInd=APT_PL_SIZ
+  (Plane*) = DB_get_PLN ((long)ind);
+  DB_CkRef
+  DB_GetRef
+
+
+
+  // Flaeche:   Typ=Typ_SUR     maxInd=APT_SU_SIZ
+  (ObjGX*)o1 = DB_GetSur ((long)dbInd, 0);
+  if(o1->typ == Typ_Error)  ..
+
+
+
+  // Solid:  Typ=Typ_SOL       maxInd=APT_SO_SIZ
+  (ObjGX*)sol = DB_GetSol ((long)ind);
+
+
+
+  // Transformation:                  maxInd=APT_TR_SIZ
+  (ObjGX*)tr = DB_GetTra ((long)ind);
+
+
+  DB_get_ModRef
+  DB_list_ModBas
+  DB_get_ModBas
+  DB_get_ModNr
+  
+
+
+
+
+  //----------------------------------------------------------------
+
+  // Beispiel Kurve S20 einlesen:
+  ObjGX    ox1;
+  CurvBSpl *cv1;
+  ox1 = DB_GetObjGX (Typ_CV, 20L);
+  UT3D_stru_dump (Typ_ObjGX, &ox1, "Obj S20");
+  if(ox1.form == Typ_CVBSP) {
+    cv1 = ox1.data;
+    UT3D_stru_dump (Typ_CVBSP, cv1, "B-Spl S20");
+  } else ..
+
+
+
+
+  // Beispiel gesamte Displayliste analysieren:
+  int       apt_typ;
+  long      dlNr, dl_ind, apt_ind;
+  DL_Att    dla;
+  ObjGX     ox1;
+  Point     *pt1;
+  CurvBSpl  *bs1;
+
+  // Anzahl Objekte in Displayliste abfragen
+  dlNr = GL_Get_DLind();
+
+  for(dl_ind=0; dl_ind<dlNr; ++dl_ind) {
+
+    // einen Displaylistenrecord holen
+    dla = DL_GetAtt(dl_ind);
+
+    // if object is not in active model: cannot get it from DB.
+    if(dla.modInd >= 0) continue;
+
+    apt_typ = dla.typ;   // Objekttyp
+    apt_ind = dla.ind;   // Objektindex in der DB
+
+    // das zugehoerige Objekt aus der DB holen
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    // ist es ein Punkt -
+    if(ox1.form == Typ_PT) {
+      pt1 = (Point*)ox1.data;
+
+    // ist es ein B-Spline -
+    } else if(ox1.form == Typ_CVBSP) {
+      bs1 = (CurvBSpl*)ox1.data;
+
+    }
+
+
+
+    ...
+  }
+
+
+
+
+
+
+  // Testausgabe einer Objektstruktur:
+  UT3D_stru_dump (int typ, void *data, char *txt, ...);
+  UT3D_stru_dump (Typ_PT, &pTab[i1], "Point[%d]=",i1);
+
+
+
+
+
+
+================================================================= 
+  Ein-Ausgabefunktionen
+================================================================= 
+
+
+
+  // Ausfuehren END-Button (das gesamte Textprogramm abarbeiten)
+  // gesamtes Programm ausfuehren (= END-Button betaetigen)
+  UI_butCB (NULL, (void*)"butEND");
+
+
+
+
+  // alle Objekte im Igesformat exportieren
+  AP_ExportIges__ ("myFilename");
+
+
+
+
+
+
+
+================================================================= 
+Basisfunktionen
+================================================================= 
+
+
+  // das (installatiosnspezifische) Basisverzeichnis auslesen
+  (char*)Basisverzeichnis = OS_get_bas_dir ();
+  
+
+
+
+
+  UT2D_..            2D-Geometriefunktionen         ut/ut_geo.h
+  UT3D_..            3D-Geometriefunktionen         ut/ut_geo.h
+  UTX_..             Texthilfsfunktionen            ut/ut_txt.h
+  UTF_..             Editor <-> memory              ut/ut_txfil.h
+  OS_..              operating-system-routines      ut/ut_os.h
+
+
+  Sind noch zu dokumentieren .....
+
+
+
+
+
+
+================================================================= 
+  Transformationen
+================================================================= 
+
+
+--------------------------------------------------------
+Objekte verschieben:  (Objekt aus Typ+Datastruct)
+--------------------------------------------------------
+
+  Vector vc1;
+
+  vc1 = <Verschiebevektor>;
+
+  UTRA_def__ (1, Typ_VC, &vc1);
+  goto L_tra_app;
+      
+
+
+--------------------------------------------------------
+Objekte drehen:      (Objekt aus Typ+Datastruct)
+--------------------------------------------------------
+
+  int      oTyp;
+  TraRot   dRot;
+  Point    ptr;
+  char     obji[OBJ_SIZ_MAX];
+  char     objo[OBJ_SIZ_MAX];
+
+
+  (Line*)obji = ..  // obj to modify
+  
+  // Rotationsachse setzen
+  ptr = <RotationOrigin>
+  dRot.vz = UT3D_VECTOR_Z;
+
+  // Winkel
+  dRot.angr = RAD_180;
+
+  // Matrix ma erzeugen; 
+  UT3D_m3_inirot (dRot.ma, &ptr, &dRot.vz, dRot.angr);
+    UT3D_stru_dump (Typ_TraRot, &dRot, "TraRot:\n");
+
+  // Rot-Matrix laden ..
+  UTRA_def__ (1, Typ_TraRot, &dRot);
+
+  // apply Transformation to obji
+  L_tra_app:
+  oSiz = OBJ_SIZ_MAX;
+  UTRA_app__ (objo, &oSiz, oTyp, 1, obji, memSeg);
+
+    // disply modified obj ..
+    GR_Disp_ost (objo, oTyp, memSeg, 9);
+
+
+
+
+
+
+
+================================================================= 
+  Globale Datenfelder
+================================================================= 
+
+// ext aus xa.c:
+extern  char  WC_modnam[128];  // der Modelname
+extern  char  WC_modact[128];
+extern  int   WC_modnr;
+
+extern char   AP_printer[80];
+extern char   AP_browser[64];
+extern char   AP_dir_open[128];
+extern char   AP_lang[4];                   // en od de
+
+extern double APT_ModSiz;       // Modelsize; Basiswert fuer Toleranzberechnung
+extern double UT_TOL_pt         // Tolerance identical points
+extern double UT_TOL_ln         // Tolerance minimal lineLength
+extern double UT_TOL_cv         // Toleranz max. Abweichung Berechnung Kurven
+extern double UT_DISP_cv        // Toleranz max. Abweichung Darstellung Kurven
+
+extern int    KeyStatShift;
+extern int    KeyStatCtrl;
+
+
+
+extern Plane  WC_sur_act;       // act. constr.plane
+int AP_Set_ConstPl_Z (Vector *vc); // get Z-vector of act. constr.plane
+
+
+
+
+================================================================
+gCad_Batch
+================================================================
+Nicht frei verfuegbar.
+
+Siehe Proj. Unfold.
+
+Der Batch-Kernmodul ruft nach der Initailisierung die
+  Userapplikation via: "gCAD_Batch (paranz, argv);".
+
+
+Beispiel:
+
+int gCAD_Batch (int paranz, char* argv[]) {
+
+  AP_ImportIg1 ("0,0,0", 1, "xx.igs"); // load Model
+  ED_work_END (0);                     // work ... (Model -> DB)
+  ..                                   // work ...
+
+  // Testfunctions:
+  UTF_dump__ ();                       // disp. memory (text)
+  Mod_sav__ ("../dat/xx.dat");         // save as native Dat-File
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+================================================================
+Testfunktionen                                    dump_...
+================================================================
+per Keys:
+  (Alt + Shift + <key>  !!!)
+  Alt D      DL_DumpObjTab          disp DispList
+  Alt G      GA_dump__();           disp PermanentAttributeTable
+  Alt M      DB_dump_ModBas ();     disp BaseModels
+  Alt N      WC_actPos_dump ();     disp NC-Records
+  Alt R      DB_dump_ModRef ();     disp subModels
+  Alt X      AP_debug__ ();
+  Alt O      DB_dump_stat ();       disp DB-statistics (O-bjects)
+  Alt S      UTF_dump__ ();         disp source
+  Alt T      Tex_dump__(NULL);      disp TextureTables
+
+
+
+
+UT3D_stru_dump      disp. struct
+
+UTO_dump__          dump ObjGX + Inhalt
+UTO_dump_s_         dump ObjGX - structured display
+UTO_dump_f_         dump tesselated (sizeRec, Typ_GL_Sur-Recs ..)
+AP_obj_analyze      replace by UT3D_stru_dump (see IE_analyz__)
+UME_dump            disp. fre space of Memspc
+UTF_dump__          disp. memory (text)
+GR_Disp_pTab        disp. temp. obj
+DB_dump_ModBas      // Basemodels
+DB_dump_ModRef      // subModels
+DB_dump__           // dump DB
+DL_DumpObjTab       // Dump DL (Alt D (shift d!))
+APT_dump_itab       // dump EditorLine->DL-Hilfsliste
+GA_dump__();        // Dump PermanentAttributeTable
+UTX_dump_*          disp. textStrings
+
+
+
+
+
+
+================================================================
+Memoryfunktionen
+================================================================
+
+
+In dynamic Libraries koennen Memory-Bloecke aus ../xa/xa_mem.h
+  benutzt werden;  werden aber auch teilweise von DisplayFunktionen
+  (GR_Disp_p..) benutzt (= geloescht); ist noch zu dokumentieren ..
+
+
+
+-----------------------------------------------------------------
+Usage of MemTabs:   ATTEMTION: "UME_mTab_" changed into "MemTab_"
+
+............
+typedef struct {long vInd; char rTyp, vTyp;} FormVar;
+
+typedef_MemTab(FormVar);
+
+FormVar fRec1;
+static  MemTab(FormVar) FormTab;
+
+
+  // init
+  // 0=typeInfo; 
+  // 100=nr of records to malloc/increase
+  MemTab_ini (&FormTab, sizeof(FormVar), 0, 100);
+
+
+  // save 1 record
+  long  l1;  
+  MemTab_sav (&FormTab, &ld, &fRec1, 1);
+  if(FormTab.data == NULL) goto L_EOM;
+
+  // see MemTab_ins MemTab_del MemTab_mod
+
+
+  // access data: get 1 record starting with record # 2
+  MemTab_get (&fRec1, &FormTab, 2, 1);
+  // or get 1 record direct out of tab.data:
+  fRec1 = *((FormVar*)FormTab.data[ind]);
+  printf(" %c %d\n",FormTab.data[ind].vTyp,FormTab.data[ind].vInd);
+
+
+  // FormTab.rNr    nr of used records
+  // FormTab.rMax   malloced nr of records 
+  
+
+  // reset; keep memSpace
+  MemTab_clear (&FormTab);    // FormTab.rNr = 0;
+
+
+  MemTab_free (&FormTab);     // free memSpace
+
+
+
+
+
+-----------------------------------------------------------------
+Funktionen mit dem Objekt Memspc (definiert in ../ut/ut_geo.h):
+
+  typedef struct {void *start; void *next; void *end;}  Memspc;
+
+  Funktionen:
+    UME_init
+        Pointer start (und next) auf den Feldanfang setzen.
+
+    UME_save
+        Daten im Feld hintanfuegen; es wird der interne
+        Pointer next auf die naechste freie Position im Feld gesetzt.
+        Returncode ist die Startposition der Daten im Feld; wenn Feld
+        zu klein, wird NULL retourniert.
+
+    UME_reserve
+        Memspace an ein Datenfeld uebergeben. Es wird die Adresse
+        geliefert und Speicherplatz reserviert (wie UME_connect+UME_add).
+
+    UME_connect (void* DatenfeldPosition, Memspc* memSpc)
+        Aktuelle Memspace-Adresse an ein Datenfeld uebergeben.
+        Entspricht  DatenfeldPosition = memSpc->next;
+        Definition der Feldgroesse spaeter mit UME_add.
+
+    UME_add (Memspc* memSpc, int osiz)
+        Platz im Memspc reservieren.
+
+    UME_ck_free (Memspc* memSpc)
+        liefert freien Space in Memspc
+
+    UME_release (void* DatenfeldPosition, Memspc* memSpc)
+        belegten Platz zuruecksetzen (verkleinern)
+        Entspricht: memSpc->next = DatenfeldPosition;
+
+    UME_reset 
+        wie UME_release
+
+
+
+-----------------------------------------------------------------
+Beispiele fuer dynamic Libraries:
+
+Beispiel: Erzeugen einer RuledSurface aus 2 Linien (ln1, ln2).
+
+  Line      ln1, ln2;
+  char      memd[300];
+  ObjGX     ox1, oxTab[2];
+  Memspc    oxData;
+
+  ln1 = ..
+  ln2 = ..
+
+  // init Dataspace
+  UME_init (&oxData, memd, sizeof(memd));
+
+  // die beiden Lines -> memd kopieren
+  oxTab[0].typ  = Typ_LN;
+  oxTab[0].form = Typ_LN;
+  oxTab[0].data = UME_save (&oxData, &ln1, sizeof(Line));
+
+  oxTab[1].typ  = Typ_LN;
+  oxTab[1].form = Typ_LN;
+  oxTab[1].data = UME_save (&oxData, &ln2, sizeof(Line));
+
+  // Obj. SUR aufbauen
+  ox1.typ   = Typ_SURRU;
+  ox1.form  = Typ_ObjGX;
+  ox1.siz   = 2;
+  ox1.data  = oxTab;
+
+  // darstellen
+  GR_DrawSur (&ox1, 2, -1L);  // 2=Colour, -1L=temp. Obj
+
+
+
+
+
+// Beispiel neues Memorysegment definieren und nutzen:
+#include "../ut/ut_geo.h"               // Memspc
+#include "../ut/ut_TX.h"                // TX_Error
+#include "../ut/ut_umem.h"
+
+  ..
+  char     memspc51[50000];
+  Memspc   memSeg1;
+  void     *memPos1;
+  long     *iTab;
+  ..
+  UME_init (&memSeg1, memspc51, sizeof(memspc51));
+  memPos1 = memSeg1.next;   // save actual memStartPos
+  iTab = memSeg1.next;                    // give space to iTab
+  // reserve spc for iNr long's (increments memSeg1.next !)
+  irc = UME_add (&memSeg1, iNr * sizeof(long));
+  if(irc < 0) return -1;  // not enough memSpc available ..
+  ..
+  iSiz = UME_ck_free (&memSeg1);          // query free size in bytes
+  ..
+  memSeg1.next = memPos1;                 // give back iTab-space
+
+
+
+
+
+-----------------------------------------------------------------
+Beispiele fuer Kernel-Functions:
+
+In APT_store_obj() stehen 2 vordefinierte Memory-Segmente zur Verfuegung:
+ APTSpcTmp und APTSpcObj
+   APTSpcObj ist fuer das Ausgabeobjekt und seine Bestandteile
+     (zB cpTab und kvTab einer zu erzeugenden BSpl-Curve)
+   APTSpcTmp ist fuer temporaere Berechnungen.
+
+  this memspaces can be accessed directly (must not be defined in the
+  function-interfaces);
+  This memspaces can be used recursive, since you may only use UME_add,
+  not UME_init again !
+
+
+Funktionen siehe ../ut/ut_umem.c
+
+
+// Beispiel get mem from APTSpcTmp and free it
+// (inside Kernel-function APT_store_obj())
+  extern Memspc  APTSpcTmp;
+  ..
+  void     *memPos1;
+  long     *iTab;
+  ..
+  memPos1 = APTSpcTmp.next;                 // save actual memStartPos
+  iTab = APTSpcTmp.next;                    // give space to iTab
+  // reserve spc for iNr long's (increments memSeg1.next !)
+  irc = UME_add (&APTSpcTmp, iNr * sizeof(long));
+  if(irc < 0) return -1;                    // not enough memSpc available ..
+  ..
+  iSiz = UME_ck_free (&APTSpcTmp);          // query free size in bytes
+  ..
+  APTSpcTmp.next = memPos1;                 // give back iTab-space
+
+
+
+
+\endverbatim
+*/
+
+//======================= EOF ==================================

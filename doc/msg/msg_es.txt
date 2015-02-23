@@ -1,0 +1,395 @@
+MM0 Funcions pantalla:\
+\ jugada: Mayús + arrastre con el ratón (no empuje MouseButtons)\
+\ girar: Ctrl + arrastre con el ratón\
+\ Zoom: Mayús + Ctrl + arrastre con el ratón
+
+MMclear Modelspace claro
+MMmock sólo OBJ-modelos; SOBRE: el modelo de importación; OFF: el modelo de carga, modificar y exportación no es posible.
+MMsave guardar nativa (. GCAD-format)
+MMcomp comprimir modelos nativos (. GCAD) con gzip (. Gcaz)
+MMfDel borrar el archivo
+MMfRen cambiar el nombre de archivo
+MMfCpy copia de archivos
+MMfPrt Imprimir 
+MMexit salida de Programa
+MMsma activar submodelo mainmodel u otros
+MMsmcp Mainmodel mover en submodelo
+MMsmcr submodelo crear nuevos
+MMsmsf guardar el submodelo activa en el archivo
+MMsmlf Modelfile carga como submodelo
+MMsmre cambiar el nombre del submodelo de activos
+MMsmde eliminar el submodelo activos
+MMsmmp modificar la posición de un submodelo de
+
+MMopBnd Edgelines pantalla ON / OFF
+MMopDll compilar y vincular los programas de extensión antes de empezar; ON / OFF
+MMopInt activar interacciones; ON / OFF
+MMopTb1 pantalla MainToolBar (por encima de Grafic); ON / OFF
+MMopTb2 pantalla MessageToolBar (por debajo de Grafic); ON / OFF
+MMopBrw pantalla Objectbrowser (a la izquierda del grafico); ON / OFF
+
+MMdsps Guardar vista activa
+MMdspsr restaurar almacenados ver y guardar la vista activa
+MMdspr restaurar almacenados vista
+
+MMdspon Objectnames pantalla y (de trabajo)-direcciones
+MMdspdir display direction of curves
+MMdsppt Puntos de pantalla (P) de encendido / apagado  (only in VWR)
+MMdsppl Planos de pantalla (R) de encendido / apagado  (only in VWR)
+MMdspso pantalla Sólidos (Esfera / Cono / Torus / cubos) sombreada o alambre
+
+MMstTol definir Modelsize y tolerancias
+MMstTxl Tamaño de letra para definir Notas y Dimensiones
+MMstCol definir predeterminado-Modelcolor
+MMstLty definir Tipos de Línea (Color-Lintyp-LineThick) para las líneas / Circs / Curvas de
+MMstDir definir Modeldirectories
+MMstBrw definir navegador para obtener ayuda y / o documentación
+MMstEdi definir Editor
+
+MMmdMsi set size and tolerances of model
+MMmdMdp modificar la posición de un submodelo de
+MMmdCvC Las curvas de cambio en los círculos
+MMmdLty cambio Linetyp (color, Linetyp, LineThick) de las líneas / Circs / Curvas de
+MMmdSst cambio SurfaceStyle a la sombra o simbólica (alambre)
+MMmdSco cambio de color de la superficie de color activo)
+MMmdpsr hacer superficie transparente
+MMmdStx hacer superficie texturada
+MMmdOnm mostrar una lista de objetos de
+MMmdDel eliminar objetos
+MMmdEdi modificar inputfield activa con systemEditor / F3
+MMmdCln quitar todas las líneas permanentes suprimido / F4
+MMmdDlo deshacer (suprimir la última operación, Ctrl-Z)
+MMmdRlo rehacer (última operación de restauración; Ctrl-Y)
+
+MMinVpt dar ViewportParameters (en la interacción abierta)
+MMinTxt MAN: textBuffer pasta después de borrar o Ctrl X
+
+MMsePcp dar las coordenadas del cursor en la construcción-en el plano siguiente selección
+MMsePop dar punto paramétrico de cursor en el objeto seleccionado en la siguiente selección
+MMseLoO get line from a segment of a polygon or countour at next selection
+
+MMgrAdd obj añadir al grupo, retire del Grupo, si ya está seleccionado
+MMgrSav guardar todos los objetos de grupo en el archivo (nativo)
+MMcaMod standardparts Modificar
+MMcaCre Crear nuevo Catálogo de standardparts
+Eliminar MMcaDel Catálogo de standardparts
+De carga MMapSta y la aplicación de inicio (script)
+MMapEdi editar la aplicación activa
+MMapCre Crear nueva aplicación de
+MMapDel aplicación de eliminación
+
+MMbtgo regenerar todos los objetos hasta el objeto activo
+MMbtstp recrear objeto activo
+MMbtend regenerar todos los objetos
+MMenZva establecer el valor de z de la viewplane activos
+MMcbRot definir la rotación de centro de rotación interactivo
+MMcbHid no se muestran los objetos seleccionados
+MMcbVie volver a mostrar los objetos ocultos
+MMcb3dv inhibir 3D de rotación; ON / OFF
+MMcbSha Pantalla de superficies sombreadas o alambre
+MMrbRel display cursorposition on the active constructionplane
+MMrbAbs display cursorposition on the active constructionplane as absolute coordinates
+
+MMbtTop Topview (X-Y)
+MMbtFro Frontview (X-Z)
+MMbtSid Sideview (Y-Z)
+MMbtAxo Ver axonométrica
+MMbtSca calcular la escala y viewcenter automático
+MMbtScf mostrar un espacio de ~ 6000 x 6000 x 6000 mm
+MMbtVwpt save / restore current viewport (Ctr-V, Ctrl-CursorRight)
+
+MMrbVwr Visor
+MMrbNCw no activa
+MMrbCad CAD interactiva de objetos-Editor
+MMcbSN objeto de la búsqueda, añadir / modificar objetos nombre de
+MMrbMan el modo manual (crear / modificar objetos con editor de texto)
+MMcbMD Buscar / Modificar / Eliminar obj (Ctrl + leftMouseButt o Ctrl-F)
+MMundo deshacer (suprimir la última operación, Ctrl-Z)
+MMredo rehacer (última operación de restauración; Ctrl-Y)
+
+RotCen definir la rotación nuevo centro: \
+\ - Seleccione (existentes) vértice o - \
+\ - Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
+ViewOn mostrar los objetos ocultos, seleccionar objetos para mostrar
+HideOn seleccionar objetos para ocultar
+CAD_On CAD seleccione Función / select object con mouseb derecha.
+MAN_On Punto nuevo: Alt-P; nueva línea: right_mousebutton; ..
+MD_On objeto de seleccionar / clave ObjID de entrar / salir: mouseb Ctrl derecha.
+
+CADPT Puntos
+CADLN Líneas
+CADCI Círculos
+CADPLN Planes
+CADVC Vectores
+CADVAR Variables
+CADCV curvas (elipse, polígono, spline, Clotoide, Contorno (curva compuesta))
+CADSUR Superficies
+CADSOL Cuerpos
+CADDIM Texto, Dimensiones
+CADMDL Submodelos
+CADTR Transformaciones
+CADCUT Trim, mover, rotar, proyecto, espejo
+CADINT Interactios, joints
+CADANA Analizar
+CADCP Constructionplane
+
+CADname Objektname / info (búsqueda con "Buscar / Nombre")
+CADhelpCAD display a Help-text how to use CAD in a html-browserwindow
+CADhelpFunc display a Help-text for active Function in a html-browserwindow
+CADhelpInput display a Help-text for active inputfield in html-browserwindow
+CADexit cancel function. Does not save active object. Edit-mode: Cancel twice, right mousebutton  - edit.
+CADsave guardar obj activa., Obj siguiente GOTO. Derecho mousebutton, Enterkey.
+
+PT_cartes__parametric__offset Punto; offsetvalues [Seleccionar o la tecla, para X / Y / Z]
+PT_polar polares, relativ; Basepoint, Rotationangle (eje z), [Tiltangle (plano xy),] Distancia
+PT_translate Punto de mover; Basepoint, Dirección, [a distancia], [NormalDistance]
+PT_rotate rotar punto; Centerpoint, StartPosition, Angulo [eje]
+PT_endpoints_center_focus___ characteristic points (center-, start-, end-; focus for ellipses, cornerpoints for polygons, splines)
+PT_Mid_Cornerpoint_PT_PT__VC_ midpoint or cornerpoint of 2 points
+PT_parametric_on_LN_CIR_CRV_SUR punto de parámetro (s) en Línea / Circle / Curva / Superficie
+
+LN_PT__PT línea entre 2 puntos
+LN_parallel Line parallel tu line/vector
+LN_PT_Direct__Length_Rot_Angle_TiltAngle_ línea por el punto y la dirección, longitud [,] [Rot.Angle (eje z),] [TiltAngle (plano xy)]
+LN_LN_Dist____________parall_ línea paralela a la línea, a distancia, la posición (1-4).
+LN_LN_LN__Rot_Angle_TiltAngle___mid_ Line = línea media; [girar en intersectionpoint: Rotationangle (eje z), [Tiltangle (plano xy)]
+LN_tangent_to_line_circ_curve line tangential to 2 objects (point/direction/circle/ellipse/bspline)
+
+CIR_Cen_Radius__Z_Axis_ círculo de centro, radio [eje]
+CIR_Cen_Tang círculo del centro, tangente al punto / línea / círculo
+CIR_Tang_Tang_Radius Círculo tangente a dos elementos, con un radio fijo
+CIR_Tang_Tang_Tang círculo tangencial a 3 elementos
+ARC_Cen_Ang1_Ang2_Radius Circ.Arc por el centro, el ángulo de inicio, el ángulo final y el radio
+ARC_Cen_PT_Angle Circ.Arc por el centro, punto de inicio y ángulo de apertura
+ARC_PT_PT_Radius Circ.Arc por el punto de partida, punto final y el radio
+ARC_PT_Tang_Radius__Angle_ Circ.Arc por el punto de partida, la dirección de inicio y radio [ángulo de apertura]
+ARC_PT_PT_Cen Circ.Arc por el punto de partida, punto final, centro de
+ARC_PT_PT_PT Circ.Arc en 3 puntos en el arco
+
+PLN_Z_Axis__X_Axis_ Plane from origin, Z-axis (normalvector), [x-axis-vector or point on x-axis]
+PLN_X_Axis__Y_Axis_ Plane from origin, X-axisvector, [y-axis-vector or point on y-axis]
+PLN_PT_Plane Plane parallel to Plane, new origin or offset along z-axis.
+
+VEC_cartes__polar Vector from line or vector or cartes. [length] [REV (turn)]
+VEC_polar_______Angles_Length_ Vector desde Rot.Angle (eje z), [TiltAngle (plano xy)] [largo] [REV (vuelta)]
+VEC_from_objects Vector = tangente a la curva (Circ / Elipse / B-spline / Clotoide) desde el punto de la curva de
+
+V_Variable___Value Variable de valor
+V_X_Y_Z_part_PT_VC Variable de V_X_Y_Z_part_PT_VC de X-Y-Z-o parte de un punto o vector.
+V_PT_PT_Dist__Direction_ = longitud variable entre 2 puntos [direction -vector]
+V_LN___Length Variable = longitud de una línea de
+V_PT___LN_Perp_Dist_ Variable = distancia normal de un punto a un objeto lineal
+V_CIR__Radius Variable = radio de un círculo
+
+S_Ellipse_Center_AxisEndPoint_Point del centro de la elipse, el punto final del eje principal, punto de elipse
+S_Ellipse_Center_Axes__EndPoints_ elipse eje principal (limitado) del centro, vector, vector eje secundario, el punto de partida, punto final
+S_Polygon___Points___ polígono de puntos de
+S_Polygon___Rectangle paralelogramo de cornerpoint y 2 vectores de
+S_BSpline___Points___ B-Spline de puntos; [CTRL (controlpoints / a través de los puntos)]
+S_BSpline___Polygon___ B-Spline de polígono; [CTRL (controlpoints / a través de los puntos)]
+S_BSpline___convert___join_obj_s B-Spline = unir (conectar) las líneas / circs / B-splines
+S_Clotoid Clotoide de StartPoint, StartVector, Angulo, StartRadius, EndRadius [Z-Axis]
+S_connection_lines___Points___ connecting lines between points
+S_Contour_CCV_____PT_LN_CIR_CRV Contorno (curva compuesta - CCV) de StartPoint, curvas, punto final. Automática de intersección y recorte.
+
+A_Planar_Surf__trim_punch_ superficie plana de la frontera (círculo / polígono / contorno) [islas (círculo / polígono / contorno)]
+A_Spheric_Surf__Axis_Rad__ superficie esférica del eje, radio [ángulo x1, x2] [ángulo y1, y2]
+A_Cylinder_Surf__Axis_Rad__ superficie Cylindrcal del eje, radio [ángulo x1, x2] [ángulo y1, y2]
+A_Revolved_Surf__Axis_Contour_ Revuelto superficie del eje, contourline (línea / círculo / B-spline), [startAngle] [endangle] height1 (parámetro o punto), altura2 (parámetro o punto),
+A_Extrusion_Surf__Contour_Vec_ Superficie reglada del elemento lineal (línea / círculo / B-spline) y vector
+A_Sweep_Surf__Contour_Path_ surface from path (spine) and contour (eg pipe)
+A_Loft_Surf__Curves_across_ superficie de forma libre de sectioncurves vertical (línea / círculo / B-spline)
+A_Loft_Surf__Curves_along_across_ superficie de forma libre de sectioncurves horizontal y vertical (línea / círculo / B-spline)
+A_supported_trimmed_punched Superficie recortada de superficie de apoyo, boundarycurve [islas ...]
+A_Hatch___Schraffur superficie Nacido de boundarycurve, linedistance, ángulo.
+
+B_Conus_PT_PT_R_R Cono de 2 puntos y 2 radios de
+B_Conus_Circ_height_radius Cone from from circle, height and radius
+B_Torus_Axis_R_R Torus de eje central, el radio interior y exterior de radio
+B_Torus_Axis_CI Torus del eje y el círculo
+B_Sphere_Center_radius Esfera de centro, radio / punto / círculo
+B_Prism_Base_Thick_Point_Cone_ Prisma de la zona inferior (círculo / polígono / perfil) y el grosor / Point
+B_Prism_Base_Vec Prisma de la zona inferior (círculo / polígono / contorno) y vector
+
+N_DIM__hor_vert_parall_ dimensión lineal 2D
+N_DIM3_X_Y_Z_parl dimensión lineal en 3D
+N_DIM__Angle dimensión ángulo 2D
+N_DIM__Dmr Diámetro dimensión 2D
+N_DIM__Radius dimensión Radio 2D
+N_PointPos_LN 3D coordenadas de un punto con leaderline
+N_Text 3D-Texto con tamaño variable, dirección y caracteres especiales.
+N_Text_LN de texto con 1 o 2 2D-leaderlines, [con punta de flecha]
+N_Text_LN_Circle de texto con un círculo y 2D-leaderline
+N_TextTag_LN 2D-textblock [con leaderline]
+N_Symbol Símbolo (0-5, star/triangle/circle/rectangle/arrow1/arrow2)
+N_Image_Pos_Filename Imagen (normal para el espectador, la escala fija o dinámica)
+
+M_internal_Model Submodelo interior , la posición, la escala [orientación]
+M_external_Model Submodelo externa, la posición, la escala [orientación]
+M_CatalogPart Standardpart, la posición, la escala [orientación]
+
+TRafo_transl Traducción de la dirección [largo]
+TRafo_rot de rotación del eje, el ángulo de
+
+CUT__trim__obj Trim elementos lineales (línea / curva) con uno o dos elementos de corte
+INT__intersect__obj Intersectionpoint o la curva de intersección de 2 elementos de
+TRAnslate_obj__VC_ Elemento se mueven a lo largo de vector [largo]
+TRAnslate_obj__PLN_ mover un objeto a un sistema de referencia diferentes (avión) [TRA - transformación invertido]
+TRAnsform_obj__Tra_ verschieben Objekt (Verschiebung) drehen Oder (Verdrehung)
+Project_obj__Prj_ elemento del proyecto en una superficie de
+Mirror_about_line Mirror: reflect objects across line
+Mirror_about_plane espejo: reflejar los objetos a través de avión
+ISOparametric_Curve_from_Surf extracto de la curva de la superficie (de paramtere (s)); [CX (a través, por defecto =)]
+
+Interact_connect objeto de contactar con la interacción
+Joint_export export object (point or text)
+Joint_import import object (point or text) from submodel
+
+Analyze_Point_Posi_ Muestra las coordenadas del punto
+Analyze_Obj_ tipo de objeto de visualización y coordina
+Analyze_Dist__PT_PT Medidas la distancia entre 2 puntos
+Analyze_Dist__PT_Obj Medidas la distancia normal entre el punto - objeto
+Analyze_Vertex Muestra las coordenadas de un vértice (en 3D muestra de punto)
+
+ActiveConstrPlane activar constructionplane de avión
+Reset_ConstrPlane Constructionplane reset (activar estándar de sistema de coordenadas)
+
+Typ_Val número Val / RePág / PgDwn / Sel LN (Len.) / Sel Cir (Radio)
+Typ_PT Sel PT (en obj) / Indicar PT / coords clave
+Typ_LN Sel LN
+Typ_AC Sel CIR
+Typ_VC Vector: número RePág / Dwn / D [I] X / Y / Z / dy dx [dz] ANG (AX) [ANG (AZ)]; Sel LN/CIR/Elli/Surf/PLN/PT + PT / "REV" (a su vez )
+Typ_CV Sel CRV
+Typ_CVCCV Sel CCV
+Typ_CVPOL Sel Polígono
+Typ_XVal número X-Val; Sel PT
+Typ_YVal número Y-Val; Sel PT
+Typ_ZVal número Z-Val; Sel PT
+Typ_Angle Ángulo: Key Val (grados); Sel LN / PT-PT; número RePág / DWN
+Typ_PLN Sel PLN; número PgDwn (ConstrPln)
+Typ_SOL Sel Conus / Torus
+Typ_goPrim Sel PT / LN / CIR
+Typ_lFig Sel LN / CIR / CRV
+Typ_goGeom Sel Objeto
+Typ_goGeo1 Sel LN / CIR / CRV / PLN
+Typ_goGeo2 Sel Circ o elipse
+Typ_goGeo3 Sel PT / LN / CIR / CRV, CW / CCW
+Typ_goGeo4 Sel VC / LN / PLN
+Typ_goGeo5 Sel CIR / ELL / CCV
+Typ_goGeo6 número de ángulo (grados); Sel Vec / LN para la dirección; ReversButton
+Typ_goGeo7 número Val (ángulo de grado); Sel PT
+Typ_goGeo8 número Val; Sel PT
+Typ_goAxis Sel LN / CIR / PLN / PT + PT / PT + LN / PT + CV (RePág) / PT + PLN
+Typ_goRadius número Radius; Sel PT / Cir
+Typ_goGeoSUSU Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
+Typ_Tra número RePág / DWN (Transformación seleccione)
+Typ_modAux número RePág / DWN
+Typ_mod1 número RePág / DWN (selecciona versiones alternativas)
+Typ_modCWCCW ReversButton; RePág / Dwn; número \ "CW \" (sentido horario)
+Typ_modCTRL número RePág / PgDwn ("Ctrl" = Controlpoints)
+Typ_modREV número RePág / PgDwn ("REV" = inverso)
+Typ_modCX ey RePág / PgDwn ("CX" = en)
+Typ_modUnlim Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_Txt enter text / key PgUp / PgDwn
+Typ_String número de Texto / Modificar-Edit
+TYP_FilNam número Nombre del archivo / Mousebutt medio. (F5 = FileList) / sel.Model
+Typ_CtlgPart número de catálogo / Parte / Mousebutt medio. (F5 = FileList) / sel.CatalogPart
+Typ_Model número Modelname / sel.Model
+Typ_SubModel número Modelname / Mousebutt medio. (F5) / sel.Model
+Typ_Str_Dir1 número X / Y / Z / P / RePág / DWN
+Typ_Val_symTyp número 0 (Estrella) 1 (Tria.) 2 (Circ) 3 (Rec.)
+Typ_Joint key joint / select joint
+Typ_apDat número de solicitud de datos específicos
+Typ_Group Sel obj de añadir al grupo, salir con Tab-clave
+
+XAesc Cancelado por el usuario (tecla Esc)
+VC0 no Vektors definida ..
+VR0 ninguna variable definida ..
+
+FILT02 Pointfilter Vertex
+FILT03 dar la posición del cursor en una selección de obj ..
+FILT05 agrega las siguientes selecciones / keyIn al grupo, el grupo final con ficha número
+FILT06 Línea seleccione | Circ | Curva de modificar ..
+FILT07 Surf seleccionar modificar ..
+FILT13 Surf seleccione para eliminar la textura
+FILT14 Surf seleccionar a aplicar la textura
+FILT15 Surf seleccionar para cargar la textura
+FILT16 modificar la posición: seleccione submodelo
+FILT18 dar paramétrico punto de la próxima seleccionado obj ..
+FILT19 eine Linie als Teilsegment eines Polygons oder einer Kontur liefern ..
+
+DIR_NEW nuevo directorio seleccione (no aparece el símbolo existe)
+DIR_SYM directorio seleccione simbólica (de símbolo existente)
+
+PEDnopt objeto no tiene puntos de muebles ..
+PEDnrpt Objeto tiene %% puntos de muebles ..
+PEDsav guardar las modificaciones (ri.Mousebutt.)
+PEDcanc cancelar modificaciones (tecla Esc)
+PEDlink Romper vínculo a %% obj?
+PEDmod1 dar avión o vector / SEL. (punto cuadrado amarillo, Sym-#) / Borrar / Insertar / salida (ri.Mousebutt.)
+PEDmod2 dar avión o vector / SEL. (punto cuadrado amarillo, Sym-#) / salida (ri.Mousebutt.)
+PEDmod3 Guardar (ri.Mousebutt.) O Cancelar (tecla Esc)
+PEDmov Punto de mover (mueva el mouse), - fin con botón derecho del ratón ..
+PEDdel Suprímase el punto: seleccione el punto (cuadrado amarillo, Sym-#) para borrar / modificar / salida (ri.Mousebutt.)
+PEDins punto de inserción: Seleccionar la posición de la curva - dónde insertar el punto / Eliminar / Modificar / (salida ri.Mousebutt.)
+PEDine *** ERROR: insertposition seleccionar en la curva de activos ..
+PEDerrSel *** ERROR: No se puede utilizar el objeto seleccionado ..
+PEDe1 *** ERROR: PointEditor es activo ..
+PEDe2 *** ERROR: No se puede analizar Avión / Vector
+PEDe3 *** ERROR: No se puede insertar el punto ..
+
+TED_no ninguna de ellas se activa
+TED_ldf la imagen de carga
+TED_ldn recarga
+TED_rem quitar
+TED_miy espejo vertical
+TED_mix espejo horizontal
+TED_sz1 encajar en
+TED_sz2 tamaño fijo
+TED_can reset and exit (Esc-key)
+TED_end save and exit (Return-key)
+
+UIWTms Modelsize. All following values will be recomputed.
+UIWTcv max. deviation for curves (tolerance for approximation curve -> polygon)
+UIWTdi max. display-deviation for circles, curves
+UIWTsm set only for the active model or apply to all subModels
+UIWTmo activate the modelsize / tolerance from above
+UIWTre reset all values to default (modelsize 500)
+
+MMcbMea measure between 2 points
+Meas_in Measure: select 2 points; end with right mousebutton.
+LST_err1 list overflow; enter text for filter
+SEL_fnam select or key filename
+SEL_sDir Give symbolic pathname for dir.  %%
+SEL_ko Object  %%  cannot be used ..
+OVER_fil overwrite file  %%
+OVER_mdl overwrite submodel  %%
+NOEX_fil file  %%  does not exist
+NOEX_mdl subModel  %%  does not exist
+NOEX_dir directory  %%  does not exist
+ModColIn define new Color, then select surface ..
+ModTraIn define 50% or 80%, then select surface or body ..
+ModSstIn define new surfacestyle, then select surface or body ..
+ModLtyIn define new linetype, then select line or curve ..
+CADinit OK or right mousebtton or Enter-key; Abort: Cancel or Esc-key.
+
+SN_New create new group (from complete model)
+SN_Add add to active group (from complete model)
+SN_Rem remove from active group
+SN_TxtNot search all objects [NOT] containing infotext
+SN_DepNot search all objects [NOT] depending from object "depends"
+
+ERRCAD0 ERROR: function CAD must be active ..
+pluginErr0 rebuild not possible - compiler or linker not found.
+pluginErr1 Error in plugin  %% ; terminated.
+FileOp opening file  %%
+SAVusm Save unused submodel  %%  ?
+
+ED1CW last input clockwise
+ED1CCW last input counterclockwise
+ED1MOD+ select next solution-variant
+ED1MOD- select previous solution-variant
+ED1<<< one input back (before inserting)
+ED1>>> one input forward (after inserting)
+
+EOF

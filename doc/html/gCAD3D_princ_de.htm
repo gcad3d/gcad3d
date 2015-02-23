@@ -1,0 +1,137 @@
+<HTML>^
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>gCAD3D_princ_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+<h2>Funktionsweise gCAD3D</h2>
+
+
+Objektdaten werden nicht binär sondern als Asciitexte gespeichert
+  (wie zB HTML oder XML).
+  Die Modelfiles (.gcad) können also mit jedem Editor
+    erstellt / modifiziert werden.
+
+Die Verarbeitung erfolgt sequentiell durch einen Interpreter.
+
+Kurven und Flächen (Ellipsen, Ruled und Revolved Surfaces)
+  werden nicht in Splines / NURBS umgewandelt,
+  sondern analytisch bearbeitet und auch in Orignalform exportiert / gespeichert.
+
+
+Programmiersprache: C
+Grafik:             OpenGL mit GLU
+GUI:                GTK
+
+
+Module:
+  CommandInterpreter (CI):
+    Sourceobjekte (Ascii-text) in binäre Objekte umwandeln.
+  DataBase           (DB):
+    Binärobjekte zwischenspeichern.
+  DisplayListe       (DL):
+    Link zu OpenGL und Statusinfo für alle visualisierten Binärobjekte
+  Displayfunktionen  (GL)
+    OpenGL-Funktionen
+
+Importmodule:
+  Alle importierten Objekte werden direkt in gcad-Sourceobjekte umgewandelt.
+
+
+
+
+
+<hr>
+Grafikprogramme mit Interpretern:
+APT
+Varkon  
+OpenSCAD 
+geogebra
+
+
+
+===============================================================================
+APT
+===============================================================================
+http://de.wikipedia.org/wiki/Automatically_Programmed_Tools
+
+
+
+  APT-Programm    (Ascii)
+NC-Prozessor      (APT,MiniAPT,APL-APT,Compact,Elan,Fapt,Exapt ..)
+  CLDATA-File     (binär)
+Postprocessor
+  NC-Programm     (Ascii)
+Werkzeugmaschine
+
+Beispiel:
+
+P0=POINT/X0,Y0
+P1=POINT/X1,Y1
+L1=LINE/P0,P1 $$ Linie durch Punkte P0 und P1
+GOTO/P0
+GOTO/P1
+RAPID $$ Eilgang ein
+GODLTA/20 $$ um 20 mm in Z-Richtung abheben
+
+
+
+===============================================================================
+Varkon
+===============================================================================
+http://varkon.sourceforge.net/
+Interaktives GUI.
+Source (Generic Model) .mbs-files.
+Precompiled Objects (Bytecode, still parametric) .mbo-files.
+Binary modelcode .res-files
+
+Beispiel:
+
+GLOBAL MODULE rhombe_param ();
+    constant VECTOR o = vec(0,0,0);
+    constant VECTOR a = vec(0,1,0);
+    constant VECTOR b = vec(1,0,0);
+BEGINMODULE
+    b_plane(#1, o, o+a, o+a+b, o+b);
+ENDMODULE
+
+
+
+===============================================================================
+OpenSCAD
+===============================================================================
+http://www.openscad.org/
+3D-compiler, creating solid 3D CAD objects.
+Kein interaktives GUI.
+
+
+Beispiel:
+
+circle(r = 10);
+rotate([90,0,0]) polygon( points=[[0,0],[2,1],[1,2],[1,3],[3,4],[0,5]] );
+
+
+
+===============================================================================
+geogebra
+===============================================================================
+http://www.geogebra.org/
+Erstellung und Berechnung mathematischer Figuren.
+2D, interaktives GUI. XML-Ausgabe.
+
+<element type="point" label="M">
+  <show object="true" label="true"/>
+  <objColor r="64" g="64" b="64" alpha="0.0"/>
+  <layer val="0"/>
+  <labelMode val="0"/>
+  <coords x="6.376968920104962" y="3.2416919162734166" z="1.0"/>
+  <pointSize val="3"/>
+</element>
+
+
+</PRE>
+</BODY>
+</HTML>
+

@@ -1,0 +1,6 @@
+?package(gcad3d):\
+       needs="x11"\
+       section="Applications/Graphics"\
+       title="gCAD3D"\
+       command="/usr/bin/gcad3d"\
+       icon="/usr/share/gcad3d/icons/gCAD3D.xpm"

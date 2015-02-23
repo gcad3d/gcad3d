@@ -1,0 +1,148 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+Erste Schritte - Dokumentation  zu gCAD3D - VRML
+
+Inhalt:
+
+Erzeugen von VRML-Models
+
+Laden von VRML-Models
+
+Positionieren von VRML-Models
+
+Abspeichern des VRML-Assembly
+
+
+
+
+--------------------------------------------------------------------------
+Erzeugen von VRML-Models
+--------------------------------------------------------------------------
+
+  Laden oder erzeugen Sie ein Model.
+
+  Exportieren aller Flächen des Modells mit der Funktion:
+  File / save Model as / VRML1 / SAVE
+
+    Es werden alle Flächen (auch aus subModellen) exportiert.
+    Punkte und Kurven werden dzt noch nicht exportiert.
+
+    Modelle, die bereits als Mockup-Modelle geladen sind (VRML) können dzt
+    nicht reExportiert werden.
+
+
+
+
+--------------------------------------------------------------------------
+Laden von VRML-Models
+--------------------------------------------------------------------------
+
+  Eventuell Modelspace loeschen:
+  File / New
+
+  Laden mehrerer VRML1-Modelle:
+  File / Insert / select wrl-Model
+
+
+  Für jedes geladene VRML1-Modell wird etwa folgende Zeile generiert:
+  M1="SymDir/ModelName.wrl" P(0 0 0)
+  (sichtbar mit Dump / Source oder im Modus MAN)
+
+
+
+
+......................................................
+Submodels laden - CAD-Funktion:
+Die CAD-Funktion kann dzt nur native Modelle laden (Filetyp .dat);
+  (manuell (siehe weiter unten) koennen Mockup-Modelle (.wrl) geladen werden).
+CAD-Funktion "M ext.Model Filename Pos"
+ Eingabe 'Filename': mittlere Maustaste (im Grafikfenster) druecken,
+   eine Modeldatei selektieren;
+   oder - wenn das Model bereits geladen ist - Model selektieren.
+ Position (ins Eingabefeld 'Position' klicken oder Cursor-down-taste):
+   Position im Grafikfenster mit linker Maustaste anzeigen
+     oder KeyIn; zB. als "P(100 100 100)"
+ Z-Achse (optional):
+   Default ist "DZ" (muss eingegeben werden, wenn eine X-Achse definiert wird).
+   Alle Texteingaben ohne Hochkommas !
+ X-Achse (optional):
+   Default ist DX; "DY" dreht das Modell um 90 Grad,
+   "D(1 1 0)" (eine Vektorangabe) dreht um 45 Grad.
+ Abspeichern: rechte Maustaste.
+
+
+Submodels laden - manuell:
+Mockup-Modelle (VRML1=.wrl) muessen dzt manuell geladen werden:
+File / Insert / VRML-datei auswaehlen.
+Es wird folgende Eingabezeile generiert:
+M1="DATA/Test1.wrl" P(0 0 0)
+Im Hauptmodus MAN kann nun die Position / die Achsen gesetzt werden.
+M1="DATA/Test1.wrl" P(100 0 0) DZ DY
+verschiebt um 100 mm und dreht um 90 Grad.
+
+
+
+
+
+
+--------------------------------------------------------------------------
+Positionieren von VRML-Models
+--------------------------------------------------------------------------
+
+  Positionieren mit CAD:
+    S/M/DEL vorwaehlen, Model selektieren, Modify-Button oder rechte Maustaste.
+    Position, Z bzw X-Achse modifizieren.
+    Preview mit Tab oder Cursor ein Feld tiefer.
+    Abspeichern mit OK-Button oder rechter Maustaste.  
+    Exit-Button zum Verlassen des Modify-Modus.
+  
+    Definiton der Achsen:
+      Default fuer Z-Achse ist DZ; (DX DY DIX DIY oder D(<x> <y> <z>))
+    Das Modell kann auch durch ein Referenzsystem (eine Plane PLN, "R")
+      positioniert werden.
+
+    CAD-Analyze:  Zur Selektion von Punkten muss man bei Mockup-Modellen
+      Select / PT <-- Vertex
+      benutzen.
+
+
+  Positionieren mit MAN:
+    Modifizieren der Codezeile; Format:
+    M# = "SymPfad/Modelname" Position [Scale] [Z-Vektor [X-Vektor] ]
+    Beispiel:
+    M20="Data/Niet1.dat" P(100 0) 0.5 DZ DIY
+    Das Modell wird um 100,0 Einheiten verschoben,
+      dann um 90 Grad gedreht.
+
+
+
+  Eine Funktion zum interaktiven Positionieren von subModellen bis zu
+  einer Kontaktposition ist zu machen.
+
+
+
+--------------------------------------------------------------------------
+Abspeichern des VRML-Assembly
+--------------------------------------------------------------------------
+
+  Abspeichern dzt nur im native Format .dat:
+
+  File / save Model as / native / key new Filename: zB. Assy1.dat
+
+
+
+--------------------------------------------------------------------------
+
+
+
+Alle weiteren Informationen in der Dokumentation.
+
+
+</PRE>
+</HTML>

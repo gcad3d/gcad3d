@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_SOL_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<A HREF="CAD_using_en.htm">See operation function CAD ..</A>
+
+
+<h2>CAD-Funktionen für Solids:</h2>
+
+
+siehe auch <a href="CAD_Base_de.htm#B">Codes für Solids</a>
+
+
+Kennbuchstabe der Solids ist B (Body).
+
+Konus
+Torus
+Kugel
+Prisma
+
+
+<p><a name="F0"></a></p>
+  <h2>B Conus PT/PT/R/R                CON</h2>
+Konischer Körper (Kegel) aus 2 <a href="CAD_Base_de.htm#P">Punkten</a> und 2 Radien
+  Punkte: die Mittelpunkte der Kreise
+
+Format:
+B2=CON Mittelpunkt_1 Mittelpunkt_2 Radius_1 Radius_2
+
+Beispiel:
+B20=CON P(0 0 0) P(100 0 0) VAL(60) VAL(40)
+
+
+
+
+<p><a name="F1"></a></p>
+  <h2>B Conus Circ,height,radius       CON</h2>
+Konischer Körper (Kegel) aus Kreis, Höhe und Radius - oben.
+
+
+Beispiel:
+C20=P(0 0 0) VAL(100) DX
+B20=CON C20 VAL(200) VAL(60)
+
+
+
+<p><a name="F2"></a></p>
+  <h2>B Torus Axis/R/R                 TOR</h2>
+Torus (Kreisring) aus <a href="CAD_Base_de.htm#P">Mittelpunkt,</a> <a href="CAD_Base_de.htm#D">Achse</a> Radius_Hauptkreis Radius_Nebenkreis
+  Radius_Hauptkreis ist ganz an der Aussenseite; ist also immer positiv.
+
+
+B#=TOR L C     // Achse Aussenkreis
+B#=TOR C C     // Hauptkreis Aussenkreis
+B#=TOR R C     // Basisebene Aussenkreis
+
+Beispiel:
+B20=TOR P(0 0 0) DZ VAL(100) VAL(25)
+
+
+
+
+<p><a name="F3"></a></p>
+  <h2>B Torus Axis/CI                  TOR</h2>
+Torus (Kreisring) aus <a href="CAD_Base_de.htm#D">Achse</a> Kreis
+  Kreis: Querschnittskreis
+  
+Beispiel:
+C20=P(100 0 0) VAL(25) DY
+B20=TOR P(0 0 0) DZ C20
+
+
+
+<p><a name="F4"></a></p>
+  <h2>B Sphere Center,radius           SPH</h2>
+Kugel aus <a href="CAD_Base_de.htm#P">Mittelpunkt,</a> Radius/Punkt/Kreis
+  Punkt: Radius aus Abstand Mittelpunkt - Punkt
+  Kreis: es wird nur der Radius übernommen
+
+# Mittelpunkt - Radius
+B1=SPH P(0 0 0) 12
+# Kugel aus Kreis:
+C1=P(0 0 0) 12
+B2=SPH C1
+
+
+
+<p><a name="F5"></a></p>
+  <h2>B Prism Base Thick/Point(Cone)   PRISM</h2>
+Prisma aus Basisfläche und Dicke/Punkt
+  Basisflaeche: geschlossenes Polygon (planar) / Kreis /Ellipse
+  <a href="CAD_Base_de.htm#P">Punkt</a> - als gegenüberliegende Fläche; konisches Prisma.
+  
+
+B=PRISM planare_Basisflaeche Vektor/Point/Dicke
+
+Beispiel:
+# Prisma aus Kreis mit Dicke (Zylinderhöhe)
+C20=P(289 -20.8 0) VAL(125) DZ
+B20=PRISM C20 25
+
+# Prisma konisch aus Polygon
+P20=P(768 -457 0)
+S20=POL P20 P(930 -474 0) P(1029 -251 0) P(971 -246 0) P(891 -412 0) P(801 -407 0) P20
+B21=PRISM S20|  P(900 -500 200)
+
+
+
+<p><a name="F6"></a></p>
+  <h2>B Prism Base Vec                 PRISM</h2>
+Prisma aus Basisfläche und <a href="CAD_Base_de.htm#D">Vektor</a>
+  Basisflaeche: geschlossenes Polygon (planar) / Kreis /Ellipse
+  
+Beispiel:
+# Prisma aus Parallelogram und Vektor
+S20=REC P(100 0 0) D(50 0 0) D(0 12 0)
+B20=PRISM S20 D(0 0 10)
+
+
+
+</PRE>
+</HTML>

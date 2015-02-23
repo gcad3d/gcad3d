@@ -1,0 +1,226 @@
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>CAD_PT_de.htm</TITLE>
+	<meta name="generator" content="Bluefish 1.0.7">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="David Young">
+	<META NAME="CHANGED" CONTENT="20090920;9293800">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<PRE>
+<A HREF="CAD_using_en.htm">See operating CAD manual</A>
+
+
+Points
+
+Points use the shortcut letter P (&quot;Point&quot;).
+
+See also:
+Codes points  
+Points from copy function
+
+
+
+<p><a name="F0"></a></p>
+ <h2>PT cartes</h2>
+Creating points
+  Absolute:
+   - key coordinates into field BasePoint (eg &quot;10,10,0&quot;)
+   - indicate position (left mouse button)
+   - select object; the point and the parametric value for the selected
+       position is generated
+  Relative:
+   - select the base point and put the values for the offset distance
+       into the fields DX/DY/DZ. 
+  Parametric:
+   - selecting a curve or surface creates a parametric point
+
+ Example :
+ Specifying an absolute 2D point.
+   P1 = P(10,20) 
+ Specifying an absolute 3D point.
+   P2 = P(10,20,30) 
+ Specifying a relative point (at a distance 10,10 from P2) 
+   P3 = P2, X(10), Y(10) 
+
+
+
+<p><a name="F1"></a></p>
+  <h2>PT polar</h2>
+ Create polar or relative points.
+
+ P# = BasePoint, RotationAngle, [Tilt Angle,] Distance 
+   Base point
+   Angle:
+     The rotation axis is around the Z-axis of the active construction plane.
+     The second rotation (tilt) is normal to the Z-axis.
+
+ Example:
+ P5 = P4, ANG(90), 25 
+
+
+
+<p><a name="F2"></a></p>
+  <h2>PT translate</h2>
+ Translate a point
+
+P# = Base Point, Direction, [Distance,] [Normal Distance] 
+
+  <a href="CAD_Base_en.htm#P">Point</a>:  Basepoint
+  <a href="CAD_Base_en.htm#D">Direction</a>:  Vector.
+  [Dist.]:   Distance - into direction "Direction"
+  [Dis.Normal]:  Distance - normal to "Direction" (in the construction plane).
+
+Examples:
+Translate point P1 relative to the vector D1.
+ P2 = P1, D1 
+
+Translate point P1 in the direction of the vector D1 at a distance of 12.
+ P2 = P1, D1, 12 
+
+Translate a point along a line given by 2 points (P1, P2) with a certain distance:
+  Point: select P1.
+  Direction: select P1 and P2.
+  Dist: enter distance.
+  P3=P1,D(P1,P2),distance.
+
+Create opposite point of 2 points:
+  Point: select midpoint.
+  Direction: select midpoint and endpoint, add  "REV".
+  P25=P20 D(P20 P21 REV)
+
+P2 = P1, D(L1), distance, normal distance 
+Translate a point along a line. The distance is in the direction of the line. 
+ The normal direction is normal to the line used.
+ P1 = P1, D(L1), VAL(100), VAL(50) 
+ P1 is on the extended line of L1, 100 mm in distance.
+ It will move 50 mm in the direction of the normal extended from L1. 
+
+
+
+<p><a name="F3"></a></p>
+  <h2>PT rotate</h2>
+ Rotate a Point (center, the starting position, angle) 
+ Example:
+ P3 = P1, P2, ANG(180) 
+ # P2 is turned 180 degrees around P1.
+s
+
+
+<p><a name="F4"></a></p>
+  <h2>PT endpoints center focus ..</h2>
+Create the characteristic points of an object.
+
+             MOD(1)      MOD(2)    MOD(3)       MOD(4)        MOD(5)
+  Line:    startpoint, endpoint  midpoint.
+  Circle:  startpoint, endpoint, centerpoint.
+  Ellipse: startpoint, endpoint, centerpoint, focuspoint-1, focucpoint-2.
+  Plane:   origin.
+
+  Polygon: all cornerpoints
+  Spline:  all controlpoints
+
+
+Beispiele:
+# center of circle:
+P6=C1
+# endpoint of line:
+P5=L1 MOD(2)
+
+
+
+<p><a name="F5"></a></p>
+  <h2>PT Mid/Cornerpoint  PT - PT</h2>
+Create a midpoint or a cornerpoint.
+  2 points given:
+    the midpoint is created.
+
+  2 points and a vector (eg "DX") given:
+    point1 is projected onto the line point2 - vector.
+
+# Midpoint (without vector)
+P3=P1,P2
+# Cornerpoint
+P3=P(0 0 0) P(100 100 0) DX
+
+
+
+<p><a name="FX7"></a></p>
+  <h2>PT intersect  LN/CIR/CRV/PLN</h2>
+
+ Create a point at the intersection of two objects
+
+ # Intersection of a line with another line 
+ P4 = L1 L2
+
+ # Intersection a circle and a line 
+ P5 = L1 C1 page
+
+# Intersection of 2 circles 
+P6 = C1 C2 side
+
+# Intersection Line X Plane|RuledSurface
+P6=L10 R20
+P6=INT L10 R20
+
+
+
+<p><a name="FX8"></a></p>
+  <h2>PT Proj. PT -> LN/CIR/CRV/PLN</h2>
+Project a point perpendicular onto an object.
+  Object: line,circle,polgon,ellipsis,b-spline,plane
+  Version: (1-n, PageUp/dwn-key)
+
+ # Project Point onto Line:
+ P2 = P1, L1
+ # Line defined by Point + Vector:
+ P3=P2 P1 DX
+ # projects P2 onto Line P1-DX (horizontal, unlimited, through P1)
+
+ # project Point onto circle
+ # The standard solution is the nearer point.
+ P7 = P1 C1 MOD(2) 
+   MOD(2) defines the distant point.
+
+ # Projection of the point P10 to the plane R1.
+ P11 = P10 R1 
+
+ # Point on curve project.
+ P11 = P1 S10 MOD(1) 
+   P1-P11 now form a normal to S10 at point P11.
+   MOD (1) =-first solution.
+
+
+<p><a name="FX9"></a></p>
+  <h2>PT Proj. PT along VC -> PLN</h2>
+ Projects a point along a vector onto a plane. 
+
+Example:
+R20=P(50 0 0) D(1 0 1)
+D20=D(1 0 1)
+P28=P(10 0 0) D20 R20
+  
+
+
+<p><a name="F6"></a></p>
+  <h2>PT parametric on LN/CIR/CRV/SUR</h2>
+Create a point on Line / Circle / Curve / Surface using parameter/s.
+
+Parameters field is 0 to 1; 0.5 defines the middle.
+
+Surfaces (RuledSurface, RevolvedSurface or B-SplineSurface):
+ Two parameters are required (U and V), along and across the direction.
+
+
+Example:
+ # Center of a line:
+ P23 = C20 VAL(.5)
+
+# Point on surface, U-value, V-value; range is 0 - 1 !
+P1=A1 0.5 0.5
+
+
+</PRE>
+</BODY>
+</HTML>

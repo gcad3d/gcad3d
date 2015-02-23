@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+<h2>Catalog</h2>
+
+ CATALOG - This function is used to generate standard parts.
+ After selecting a standard part (Part Catalog) from a norm part of the standard library can be part of a submodel.
+
+Using standard-parts:
+ In "CAD" main function mode, select the function "Submodels/M CatalogPart".
+ Select a standard part or a standard parts catalog.
+ Select position, selekt OK to save.
+ The following line of code is generated : M # = CTLG
+
+
+Catalog-parts are based on a model (filetyp .gcad) and
+  a list of values (filetyp .ctlg).
+  Both files are text (not binary).
+
+Catalog-part-files (filetyp .ctlg) are in the symbolic directory "CATALOG".
+  Change it with "Standards/Directories".
+
+
+____________________________________________________________________________
+<b> Modify Catalog</b>
+ This allows to add additional Parts in an existing parts-catalog.
+ Select a standard part library, then with a modification editor.
+
+ All standard parts libraries are located in directory {CATALOG}.
+ A standard part library is a text file.
+ The file name must have extention ".ctlg"
+
+ Each line of a standard part library defines a standard part.
+ The lines starting with '#' are comment lines.
+ The standard definition of a part consists of:
+   Part (name), (Symbolic Model Base Directory / Base Model Name), (Parameters)
+   Part Name:
+     The name of the standard part, max. 64 characters.
+   Symbolic Model Base Directory:
+     The symbolic path of the base model; see Standards / Directories 
+   Base Model name:
+     The base model (Type. Gcad) 
+   Parameters: 
+     Any gCAD3D parameters are separated by semi-colons ';'
+     These codes are in the base model by "CALL CTLG" loaded.
+
+ Example standard part library Schrau.ctlg in symDir CATALOG: 
+ #================================================= 
+ # SKS: Hexagonal Screws; 
+ # V20 = NennDmr; V21 = Key Width; V22 = Head Thickness; V23 = Length
+ SKS_6x30; Schrau / SKS; V20 = 6; V21 = 10; V22 = 5; V23 = 30; 
+ SKS_10x30; Schrau / SKS; V20 = 10; V21 = 17; V22 = 8; V23 = 30; 
+ #================================================= 
+ # SB: Discs 
+ # V20 = innerDmr; V21 = outerDmr; V22 = Thickness 
+ SB_6; Schrau / SB; V20 = 6.4; V21 = 12; V22 = 1.8; 
+ SB_10; Schrau / SB; V20 = 10.5; V21 = 21; V22 = 2.5; 
+ # End of file 
+
+ Example base model SB.gcad:
+ Disc #
+ # V20 = innerDmr 
+ # V21 = outerDmr 
+ # V22 = thickness 
+ V20 = 6.4 
+ V21 = 12 
+ V22 = 1.8 
+ CALL CTLG 
+
+# Override the variables V20, V21, and V22.
+ V23 = V20 / 2 
+ V24 = V21 / 2 
+ C20 = P (0 0 0) VAL (V23) 
+ C21 = P (0 0 0) VAL (V24) DR 
+ C22 = P (0 0 V22) VAL (V23) 
+ C23 = P (0 0 V22) VAL (V24) DR 
+ A20 = C21 C20
+ A21 = C23 C22
+ A22 = CYL L (P (0 0 0) DR) VAL (V24) 03600 V22
+#
+
+# Schrau(be) ist the german word for Screw
+
+
+<b>Create Catalog</b>
+ Creates a new standard part library.
+ The file name is freely selectable.
+
+
+<b>Delete Catalog</b>
+ Deleting a standard part library.
+
+
+
+</PRE>
+</HTML>

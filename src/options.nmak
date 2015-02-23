@@ -1,0 +1,21 @@
+# options.nmak
+
+# Version GTK; gtk2 or gtk3
+VGUI = gtk2_MS
+#VGUI = gtk3   MS not yet ..
+
+
+
+# do not modify ....
+#BITS = $(shell getconf LONG_BIT)  MS ?
+BITS = 32
+
+!if "$(BITS)"=="32"
+OS = MS32
+!else
+OS = MS64
+!endif
+
+OUTDIR = ..\..\bin$(OS)
+
+# eof

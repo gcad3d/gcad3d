@@ -1,0 +1,34 @@
+#! /bin/sh
+
+echo "prerm"
+
+PKGNAM=gCAD3D
+
+
+# remove menu on freedesktop:
+if [ ! -z "`which xdg-desktop-menu`" ]; then
+  echo xdg-desktop-menu uninstall ${PKGNAM}.desktop
+  xdg-desktop-menu uninstall ${PKGNAM}.desktop
+fi
+
+
+rm -rf /usr/lib/gCAD3D
+rm -rf /usr/share/gcad3d
+rm -rf /usr/share/doc/gcad3d
+rm -rf /usr/share/menu/gcad3d
+
+
+echo "******************************"
+echo "*** REMOVE ~/gCAD3D manually !"
+echo "******************************"
+
+
+## prerm cannot call update-menus !
+#iVar=`which update-menus`
+#if [ ! -z "$iVar" ]; then
+#  echo "update-menus .."
+#  update-menus
+#fi
+
+
+exit 0

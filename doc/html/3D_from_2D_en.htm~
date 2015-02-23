@@ -1,0 +1,219 @@
+<HTML>
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+ <TITLE>Search_en.htm</TITLE>
+ <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<h2>Documentation application 3D_from_2D</h2>
+
+
+The application allows you to create 3D curves by selecting
+  Points on pixel images.
+3-D surfaces can be generated from the 3D curves with CAD standard-functions.
+There are 1 or 2 or 3 view images required.
+The view images (formats. .jpg or .bmp) should have a view from above
+and / or a side-view or front-view.
+
+
+<b>Program call:</b>
+    Start the user application "3Dfrom2D"
+     - Select from the list of additional applications or
+     - If application was active before: start with Ctrl-P.
+
+<b>Exit the application:</b>
+  Exit button or Ctrl + Esc.
+  All data will be passed to the CAD model.
+
+
+________________________________________________________________
+
+Setup:
+  Top-view / Side-view / Front-view
+  Scale
+  Offset
+  Angle
+  X-lines
+  Y-lines
+  Z-lines
+
+
+2D to 3D:
+  import CAD Point
+  import CAD-plane
+  Point
+  Polygon
+  Spline
+  Circle                           not yet implemented
+  Plane
+
+
+3D
+  Delete
+  MirrXZ
+  MirrYZ
+
+
+
+________________________________________________________________
+<b>Setup:</b>
+
+
+to prepare:
+  - Images (jpg's) of one, two or three views.
+  - Photos must be equalized
+    Editing images with Gimp for example:
+    - Equalizing with: Tools / Transform / Perspective
+    - Cut with: Tools / Transform / Crop
+  - 90-degree turns should be made with the image editing program
+    Gimp: Image / Transform / Rotate 90 degrees
+  - Very large photos (over 4000 pixels - depending on the graphics card)
+    should be reduced with an image editing program.
+
+
+  <b>Top / Side / Front View</b>
+    Definition of images (selected from file list).
+    Top view: contains horizontal X-axis, vertical y-axis.
+    Side view: contains horizontal X-axis, vertical Z-axis.
+      Located above the top view.
+    Front view: Z-axis has horizontal, vertical Y-axis.
+      If the right of the top view.
+  
+    ^ Z
+    |-----+
+    | Side |   X
+    +-----+---->
+
+    ^ Y ^ Y
+    |-----+          |------+
+    | Top |    X     | front | Z
+    +-----+---->     +------+---->
+  
+    After the definition of the view images, the zero points of the
+    three basic axes must be defined -
+    - Click into view images, 
+      click again to indicate horizontal or vertical.
+    The base levels will be shown as red lines.
+  
+  
+  <b>X-lines</b>
+    Generating one or two horizontal guides in
+    Top view or side view. Esc = Delete last.
+  
+  
+  <b>Y-lines</b>
+    Generating one or two vertical guides in
+    Top view or side view. Esc = Delete last.
+  
+  
+  <b>Z-lines</b>
+    Generating one or two guidelines in
+    Side view or front view. Esc = Delete last.
+
+
+  <b>Scale</b>
+    Select the input corresponding to the view;
+      change the values with the cursor keys up / down.
+  
+  
+  <b>Offset</b>
+    Select the input corresponding to the view;
+      change the values with the cursorkeys left / right or
+      up / down.
+  
+  
+  <b>Angle</b>
+    Select the input corresponding to the view window;
+      change the values with the cursorkeys left / right.
+  
+  
+
+________________________________________________________________
+<h2>2D to 3D:</h2>
+  Create objects. Objects will be displayed in 2D-space;
+    when the application exits all objects will be copied into 3D-space.
+
+
+  <b>import CAD Point</b>
+    Creates 2D-points of points or end points of curves.
+    Use it to generate curves.
+    Select a CAD-point or CAD-curve.
+
+
+  <b>import CAD-plane</b>
+    Generates 2D-planes  of 3D-CAD-planes
+    Use it to generate curves.
+    Select a CAD plane.
+
+
+  <b>Plane</b>
+    First create all planes at which curves or
+      common points are located.
+    Planes are shown as red lines.
+    Create a plane through the selection of 2 points in one view;
+      The second point is used to define horizontal or vertical.
+    Top view - horizontal: an X-Z plane.
+    Top view - vertical: a Y-Z plane.
+    Side view - horizontal: an X-Y plane.
+    Side view - vertical: a Y-Z plane.
+    Front view - horizontal: an X-Z plane.
+    Front view - vertical: an X-Y plane.
+    Esc clears last created level.
+
+
+  <b>Point</b>
+    If several curves have a common point, first this point
+      should be created; afterwards use this point.
+    Select the point in 2 different views.
+    If the point is on a plane, select the plane
+      for the second view (2D-plane or CAD-plane).
+    Esc clears last point created.
+
+
+  <b>Polygon</b>
+  <b>Spline</b>
+    Select all points of the curve in a view, then
+      (In reverse order) in a different view.
+    Esc clears the last selected point.
+    If an item is out of a photo: indicate the position in the
+    corresponding height inside the photo.
+    If a point is on a plane, the plane should be selected.
+    If the entire curve lies in a plane, select the plane
+      for the second view (2D-plane or CAD-plane).
+
+  
+  <b>Circle</b>                not yet implemented
+  
+  
+________________________________________________________________
+<h2>3D:</h2>
+  Preview of all up to now created objects in 3D-space.
+
+
+
+  <b>Delete</b>
+    Delete 2D objects.
+    Select the object.
+  
+  
+  <b>MirrXZ</b>
+    Flip an object around the X-Z plane.
+    Select the object.
+  
+  
+  <b>MirrYZ</b>
+    Flip an object around the Y-Z plane.
+    Select the object.
+
+
+
+________________________________________________________________
+Send bug reports, suggestions for improvements to
+support@gcad3d.org
+
+________________________________________________________________
+</PRE>
+</HTML>

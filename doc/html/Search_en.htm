@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+ <TITLE>Search_en.htm</TITLE>
+ <meta name="CHANGED" content="2013-09-02">
+ <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+<h2>Search/Name</h2>
+  Activate the checkbox "Search/Name" or key Ctrl-F
+    Disactivate with checkbox "Search/Name" or delete window.
+
+  The function allows you to:
+  - Display a list of all objects of a certain type
+  - Filter the list of objects by name / info (Searchpattern)
+  - Display all objects depending on an object ("childs")
+  - Display all objects used for creating an object ("parents")
+  - highlight object (Left Mousebutton)
+  - Create/Edit Objectname/Objectinfo (Right Mousebutton/modify-name)
+  - analyze object (Right Mousebutton)
+  in mode CAD additional:
+  - modify object (Right Mousebutton/edit-object)
+  - delete object (Right Mousebutton/delete-object)
+  - copy objectID into CAD inputfield (Right Mousebutton/copy-to-model)
+
+
+
+_________________________________________________________________________
+
+<h3>has infotext (Searchpattern):</h3>
+  All objects whose objectName contains the searchpattern,
+    are removed.
+  Enter a part of the objectName to be searched; "search/update".
+  Filtering for more than one searchpatterns:
+  separate the words by blanks, words are not case-sensitive.
+  The order is not important, OR is used for all filterwords.
+
+Example:
+ "Zval height" -t displays all objects whose name contains
+ "Zval" or "height"
+
+
+<h3>not:</h3>
+ Displays all objects whose name does NOT contain one of the filterwords
+
+
+<h3>ignore case:</h3>
+ Respect upper/lowercase.
+
+
+
+_________________________________________________________________________
+
+<h3>childs of:</h3>
+ Key-in the ID of an object; all objects depending on this
+ object will be displayed.
+
+
+<h3>parents of:</h3>
+ Key-in the ID of an object; all objects used for creating this object
+ ("parents") will be displayed.
+
+
+Example childs/parents:
+
+Programmcode:
+V20=VAL(110) # Dist.1
+P20=P(-53 305 V20)
+P21=P(-63 188 0)
+P22=P21 Z(V20)
+L20=P20 P22 # Line
+P23=P20 P22
+
+Key-in "P22":
+Childs  of P22:  L20 P23
+Parents of P22:  P21 V20
+
+Childs  of L20:  -
+Parents of L20:  P20 V20 P22 P21
+
+
+
+_________________________________________________________________________
+<h3>new</h3>
+create always new list (and group).
+
+
+<h3>add</h3>
+ add to the existing list (and group).
+
+
+<h3>Group</h3>
+add all objects also to group (see <a href="GROUP_en.htm">GROUP</a>).
+
+
+<h3>search/update</h3>
+ start filling list
+
+
+
+____________________________________________________________________________
+
+<h3>Left Mousebutton in list:</h3>
+ Displays the object (highlighted)
+ Variables: the value is printed.
+ Vectors: are displayed in the center of the screen.
+    
+
+<h3>Right Mousebutton in list:</h3>
+ Pop-up menu:
+    
+ <b>copy-to-Model</b> 
+ CAD,MAN only.
+ Puts the ObjectID (eg "P20") into the currently active CAD input-field.
+    
+ <b>edit-object</b>
+ CAD,MAN only.
+ activates object-modification.
+
+ <b>delete-object</b>
+ CAD,MAN only.
+ activates object-deletion.
+
+ <b>modify-name</b>
+ Input / modification of the objectname/Info.
+
+ <b>analyze-object</b>
+ Display parameters of object in ObjectViewer.
+
+
+
+____________________________________________________________________________
+
+  <b>Storing of the objectName/Info in the Model Code:</b>
+  The objectInfo is inserted as a comment at the end of the Line.
+  Delimiter is " #" (a space and a '#').
+  Example:
+  "P20=0,0,0 # Origin Nullpunkt BaseLayer"
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>

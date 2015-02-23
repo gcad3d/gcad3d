@@ -1,0 +1,68 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>Using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+____________________________________________________________________________
+<h2>Group</h2>
+
+  The number of objects in the group is displayed
+    in the upper left corner as "Group #".
+  All objects of the group will be hilited.
+
+
+<h3>create group:</h3>
+  <b>Select a group of objects with the mouse:</b>
+    press the left mousebutton, keep it pressed and drag mouse.
+    All objects inside the rectangle will be included in
+      the group.
+
+  <b>Add all existing objects to group:</b>
+    Menu Group / "add all objects to group"             or Ctrl-A
+    put all objects into group
+
+
+<h3>modify group:</h3>
+  <b>add single objects to group:</b>
+    select object
+
+  <b>remove single objects from group:</b>
+    select object again
+
+  <b>remove all objects of certain type from group:</b>
+    select one object with the right mousebutton, select option
+    "remove all of this type from group"
+
+
+
+<h3>use group:</h3>
+  <b>hide all objects of group:</b>
+    objects in group will not be displayed -
+    Right mousebutton or menu Group: "hide group"
+
+    Redisplay this objects: select checkbox "View" in the mainToolbar;
+      select objects to display ..
+
+  <b>delete all objects of group:</b>
+    Right mousebutton or menu Group: "delete group"   or Delete-key
+
+  <b>save all objects of group into modelfile:</b>
+    native format (.gcad)
+    Menu Group / "save group -> File"
+
+
+<h3>clear group:</h3>
+  Deactivate group:
+    Right mousebutton or menu Group: "clear group"   or Esc-key.
+
+
+
+
+____________________________________________________________________________
+</HTML>

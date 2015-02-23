@@ -1,0 +1,306 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_TxtG_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+<a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
+
+
+
+<h2>CAD-Funktionen für Notes / Dimensions:</h2>
+
+siehe auch <a href="CAD_Base_de.htm#N">Codes für Notes / Dimensions</a>
+
+Notes / Dimensions benutzen den Kennbuchstaben N.
+
+
+
+<p><a name="F0"></a></p>
+  <h2>N DIM  hor/vert/parall.     DIM</h2>
+Linearmaß 2D
+
+N# = DIM Punkt1 Punkt2 Textpunkt [Winkel Maßpfeile Maßlinien "Zusatztext"]
+
+  <a href="CAD_Base_de.htm#P">DimPoint 1</a> - Maßpunkt1
+  <a href="CAD_Base_de.htm#P">DimPoint 2</a> - Maßpunkt2
+  <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maßtext (Mitte, unten).
+  <a href="CAD_Base_de.htm#D">[Direct.]</a>  - Richtung, Winkel: 0=Horizontal, 90=Vertikal; keine Angabe: Parallelmaß.
+  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maßpfeile; 2 Ziffern
+  <a href="CAD_Base_de.htm#NMH">[Guides 0-1 0-1]</a>: Maßhilfslinien; 2 Ziffern
+  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  
+Beispiel:
+P1=P(100 100)
+P2=P(200 200)
+N1=DIM P1 P2 150 50 ANG(0) "[+ 0.2"
+N2=DIM P1 P2 250 150 ANG(90)
+N3=DIM P1 P2 100 180
+
+
+
+
+<p><a name="F1"></a></p>
+  <h2>N DIM3 X/Y/Z/parl           DIM3</h2>
+3D-Maß
+
+N# = DIM3 Punkt1 Punkt2 Textpunkt [DimPlane] ["Zusatztext"]
+
+  <a href="CAD_Base_de.htm#P">DimPoint 1</a> - Maßpunkt1
+  <a href="CAD_Base_de.htm#P">DimPoint 2</a> - Maßpunkt2
+  <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maßtext (Mitte, unten).
+  DimPlane: mit PageUp/PageDown - Taste verändern 
+    X oder Y oder Z oder keine ('P' = Default = parallel)
+    keine DimPlane: die Textebene geht durch die Punkt1 p1 und p2
+      und liegt normal zum Betrachter.
+    X:  es wird der Abstand von p1-p2 auf der X-Achse vermaßt;
+        der Texblock liegt in der X-Y oder X-Z-Ebene.
+    Y:  es wird der Abstand von p1-p2 auf der Y-Achse vermaßt;
+        der Texblock liegt in der X-Y oder Y-Z-Ebene.
+    Z:  es wird der Abstand von p1-p2 auf der Z-Achse vermaßt;
+        der Texblock liegt in der Y-Z oder X-Z-Ebene.
+    Für alle Maßtexte wird jene Textebene ausgewaehlt, die rechtwinkeliger
+      zum Betrachter liegt.
+  <a href="CAD_Base_de.htm#TSZ">Zusatztext</a> mit Sonderzeichen (zB. "[+ 0.2").
+
+Beispiel:
+N20=DIM3 P20 P21 P(3642.685238 2645.94839 1690.14704) "Z1"
+
+
+
+<p><a name="F2"></a></p>
+  <h2>N DIM  Angle                DIMA</h2>
+Winkelmaß 2D
+
+N# = DIMA Punkt1 Richtg1 Punkt2 Richtg2 Textpunkt [Maßpfeile Maßlinien "Zusatztext"]
+Die Maßlinie (ein Kreisbogen) wird im Gegenuhrzeigersinn (CCW) angelegt.
+
+  <a href="CAD_Base_de.htm#P">DimPoint1/2</a> definieren die Startpunkte der Maßhilfslinien,
+  <a href="CAD_Base_de.htm#D">Direct1/2</a> definieren die Richtungen der Maßhilfslinien.
+    (müssen weg vom Textblock - zum Schnittpunkt der Maßhilfslinien zeigen !)
+    Umdrehen der Richtung durch "REV"; zB: D(L20) REV
+    (wenn erforderlich " REV" manuell zufügen !)
+  <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maßtext (Mitte, unten).
+  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maßpfeile; 2 Ziffern
+  <a href="CAD_Base_de.htm#NMH">[Guides 0-1 0-1]</a>: Maßhilfslinien; 2 Ziffern
+  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+
+Beispiel:
+L20=P(330 100 0) P(380 130 0)
+P20=P(400 100 0)
+N20=DIMA P20 ANG(0) P(L20 MOD(2)) ANG(L20) P(444 128 0)
+
+N20=DIMA P20 ANG(L20) P21 ANG(L21) P22 12 11 "[+ 0.5"
+
+
+
+<p><a name="F3"></a></p>
+  <h2>N DIM  Dmr                  DIMD</h2>
+Durchmessermaß 2D
+
+N# = DIM Kreis Textpunkt [Mpfeile "Zusatztext"]
+
+  Circle  - der Kreis
+  <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maßtext (Mitte, unten).
+  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a> - Maßpfeile; 2 Ziffern
+  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+
+
+Beispiel:
+# außen:
+C20=P(-200 100) 12
+P28=P(-175 70)
+N31=DIMD C20 P28 "[+0.5"
+
+
+
+<p><a name="F4"></a></p>
+  <h2>N DIM  Radius               DIMR</h2>
+Radiusmaß 2D
+
+N# = DIM Kreis Textpunkt [Maßpfeil "Zusatztext"]
+
+  Circle  - der Kreis
+  <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maßtext (Mitte, unten).
+  <a href="CAD_Base_de.htm#NMP">[ArrowTyp 0-4]</a> - Maßpfeil; eine Ziffer; Default = automatisch
+  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+
+
+Beispiel:
+# außen:
+C20=P(-200 100) 12
+P27=P(-175 125)
+N30=DIMR C20 P27 "[+0.5"
+# innen:
+C21=P(-200 200) 32
+P29=P(-210 190)
+N32=DIMR C21 P29 "[+0.5"
+
+
+
+<p><a name="F5"></a></p>
+  <h2>N PointPos,LN               LDRP</h2>
+Ausgabe der 3D-Koordinaten eines Punktes (Kote) mit 3D-Hilfslinie.
+
+Der Text (die X/Y/Z-Kordinaten eines Punktes) wird in der X-Y-Ebene
+  in Richtung der X-Achse als Vektortext mit Sonderzeichen erstellt.
+Es wird eine Hilfslinie von {Punkt} nach {TextPosition} erzeugt.
+
+N=LDRP TextPosition [Punkt] [Linetyp] ["ZusatzText"]
+
+  TextPosition: Position Textblock
+  <a href="CAD_Base_de.htm#P">Punkt</a>: Ausgabe der X/Y/Z-Kordinaten dieses Punktes;
+  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+ 
+Beispiel: Position eines Punktes mit 3 Nachkommastellen ausgeben:
+N20 = LDRP P(50 50 50) P(10 10 0.12345) "[3"
+
+
+
+<p><a name="F6"></a></p>
+  <h2>N Text</h2>
+3D-Text mit variabler Grösse, Richtung und Sonderzeichen.
+  (Siehe auch <a href="#F9">2D-Text.</a>)
+
+N# = TextPosition Size [Richtung] Text
+
+  TextPosition: Position Textblock
+  [TextSize]: Textgröße; skalierbar, entsprechend den Standards/Text.
+  [TextAngle(Deg.)]: Winkel des Textblocks in Grad; Defaultrichtung ist 0 Grad.
+  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+
+Beispiel:
+# "Winkel 60 {Gradzeichen} &lt;"+0.123" {hochgestellt} "0.5"{tiefgestellt}"
+N20=P(100 0) "Winkel 60[g [/+0.123[\-0.5"
+
+
+Beispiel:
+N10=P5 "Text an Punkt P5"
+N11=P(100 100) 10 ANG(15) "Text Size 10, Richtung 15 Grad"
+
+
+
+<p><a name="F7"></a></p>
+  <h2>N Text,LN                   LDR</h2>
+Text mit 1 od 2 2D-Hilfslinien; mit oder ohne Pfeilsymbol.
+
+Hilfslinie 2 (optional) von EndPoint-1 bis EndPoint-2,
+  der Text befindet sich am Ende der Hilfslinien.
+Hilfslinien und Text sind (dzt) immer in der XY-Ebene.
+
+N=LDR StartpunktLinie EndPunkt1 [EndPunkt2] [Textwinkel] [PfeilTyp] [Text]
+
+  <a href="CAD_Base_de.htm#P">Startpoint Line</a>: Startpunkt der Hilfslinie 1
+  EndPoint-1: Endpunkt der Hilfslinie 1 = Startpunkt der Hilfslinie 2
+  [EndPoint-2]: Endpunkt der Hilfslinie 2
+  [TextAngle(Deg.)]: Winkel des Textblocks in Grad; Defaultrichtung ist 0 Grad.
+  <a href="CAD_Base_de.htm#NMP">[ArrowTyp 0-4]</a>: Pfeiltyp; eine Ziffer; Default = automatisch
+  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+  
+
+Beispiel:
+N21=LDR P(50 10 0) P(100 50 0) ANG(0) 0 "abc"
+
+
+
+<p><a name="F8"></a></p>
+  <h2>N Text,LN,Circle            LDRC</h2>
+Text mit Kreis und 2D-Hilfslinie.
+
+Es wird ein Kreis erzeugt, in dem Text ausgegeben wird.
+Vom Kreis weg wird eine Line erzeugt (optional).
+Hilfslinie und Kreis sind (dzt) in der XY-Ebene.
+
+N=LDRC TextPosition [Endpunkt Linie] [Linetyp] [Text]
+
+  TextPosition:  Position von Text und Kreis.
+  [StartPoint Line]:  Line von TextPosition bis zu diesem Punkt.
+  [Linetyp]: nicht benutzt.
+  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+
+Beispiel:
+N22=LDRC P(150 50 50) P(100 10 0)  "P21"
+
+  
+
+<p><a name="F9"></a></p>
+  <h2>N TextTag,LN                TAG</h2>
+2D-Text mit oder ohne Textblock, mit oder ohne Hilfslinie.
+  (Siehe auch <a href="#F6">3D-Text.</a>)
+Fixe Textgröße, immer in Draufsicht.
+
+N=TAG TextPosition [Linienstartpunkt] [Farbe] Text
+
+  TextPosition: Position Textblock
+  [StartPoint Line]: Line von TextPosition bis zu diesem Punkt.
+  <a href="CAD_Base_de.htm#iCol">color</a>: Textblockfarbe (keine Angabe: nur Text, kein Block)
+  Text: als Sonderzeichen für 2D-Texte sind derzeit nur "[n" 
+    (Zeilentrennzeichen) verfügbar.
+    
+
+Beispiel:
+N23=TAG P(150 50 50) P(100 10 0)  "P21"
+N24=TAG P(250 50 50) P(200 0 0) VAL(7) "N24[nP25"
+
+
+
+<p><a name="F10"></a></p>
+  <h2>N Symbol                    LDRS</h2>
+Ein Symbol oder einen Vektor darstellen.
+
+N=LDRS SymbolPosition [symbolTyp] [Farbe] [Endpoint Vector]
+
+  <a href="CAD_Base_de.htm#P">SymbolPosition</a>
+  [symbolTyp]: 
+     0 = Stern klein,
+     1 = Dreieck klein
+     2 = Kreis klein
+     3 = Rechteck gross
+     4 = Vektor normiert (immer gleich lang)
+     5 = Vektor (mit korrekter Länge)
+  [<a href="CAD_Base_de.htm#iCol">color</a>]:  Farbe
+  [Endpoint_Vector]:  Endpunkt des Vektor (nur fuer symbolTyp 4 und 5).
+
+Beispiel:
+N25=LDRS P(350 50 50) 1 2
+
+
+
+<p><a name="F11"></a></p>
+  <h2>N Image Pos. Image-Filename   IMG</h2>
+Eine Abbildung (ein Pixelbild) darstellen. Immer normal zum Betrachter.
+  Mit fixer Grösse oder automatisch skalierend.
+  Bildformate: JPG oder BMP.
+
+N# = IMG Bildposition [Startpunkt_Linie] [Linientyp] Filename [Scale]
+
+  <a href="CAD_Base_de.htm#P">ImagePosition</a>: linke untere Bildposition
+  [StartPoint Line]:  der Startpunkt einer Verbindungslinie zur linken unteren Bildposition
+  [Linetyp]:  -1 = keine Verbindungslinie.
+  Filename: der Dateiname einer Bilddatei (.jpg oder .bmp).
+    Aktivieren des Filedialog mit der mittleren Maustaste im Grafikfenster.
+    Das Verzeichnis ist als Symbol zu definieren (Siehe Symbolische Dateibezeichnungen).
+  [Scale]: wird kein Scale (oder Wert 0) definiert, so wird die Bitmap dynamisch skaliert.
+    Wird ein Maßstab angegeben, so wird dieser Maßstab fixiert
+    (kein dynamisches skalieren).
+      
+Beispiel:
+N32=IMG P(500 0 0) "Data/sample_bmp1.bmp" VAL(0.5)
+
+Beispiel:
+N20=IMG P(0 0 0) "Data/Bild1.bmp"
+# Windows-Bitmap {Data}/Bild1.bmp wird dargestellt.
+
+Kein Export von Bitmaps.
+
+
+
+
+
+
+
+
+</PRE>
+</HTML>

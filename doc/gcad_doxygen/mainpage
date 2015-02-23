@@ -1,0 +1,32 @@
+//--------- Hauptgruppe "Related Pages" --------------
+
+/*! \mainpage
+
+\version V.<VERSION>
+
+\date <DATE>
+
+
+\image html gcad1.jpg
+
+<pre>
+
+Homepage: <A HREF="http://www.gCAD3D.org/doc/gcad/index.htm"> www.gCAD3D.org/gCAD3D</A>
+
+License:
+
+  gCAD3D is GPLv3, see <A HREF="../../LICENSE_GPLv3.txt">GPLv3.txt</A>
+
+
+  See Related Pages: 
+    \ref Introduction
+    \ref TODO
+    \ref Download
+
+
+</pre>
+*/
+
+
+
+// EOF

@@ -1,0 +1,632 @@
+____________________________________________________________________________
+Der NC-Prozessor ist eine Makroprogramminterpreter;
+  die Makroprogramme befinden sich im Verzeichnis {base}/wc/*.mac.
+  Makroprogramme bestehen aus Ascii-Texten zur:
+  - Implementierung jeder beliebigen Bearbeitungsstrategie
+  - Kombinierte Zyklen (zB Vorschnitte, Nachschnitte, Trennen)
+  - Erzeugung von parametrierten Konturteilen (zB. Langloch ..)
+  - Standard - ISO - Postprozessor
+
+ NC-Bearbeitungsfunktionen
+
+
+Die aktuelle Position kann jederzeit über den Punkt P0 abgefragt
+  und somit später wiederbenutzt werden.
+
+
+TL 1
+  Werzeugwechselbefehl (mit Werzeugnummer);
+TL 0
+  das Werkzeug entladen.
+  Ausgabe: unverändert.
+
+
+
+
+
+FROM FromPunkt
+
+  Definiert die angegebene Position als Startpunkt eines Konturprogrammes.
+  Darstellung: ein Dreieck.
+  Diese Anweisung darf nur einmal im Hauptprogramm und einmali
+   in jedem Geometrieunterprog. definiert werden.
+  Beispiel:  "FROM 100,100" oder "FROM P20"
+  Ausgabe: "FROM koordinaten"
+
+
+RP Punkt
+  Rapid - Verfahranweisung absolut.
+  Darstellung: oben blau / strichliert, unten rot.
+  Ausgabe: "RP", "G1 koordinaten"
+
+RPR X-Abstand,Y-Abstand
+  Rapid - Verfahranweisung relativ.
+  Beispiel: "RPR 100 0"
+  Ausgabe: "RP", "G1 koordinaten"
+
+
+
+WORK position
+  Direktverfahranweisung über Angabe von Koordinaten oder eines APT-Punktes.
+  Beispiel: "WORK P10" oder "WORK P(100 100)"
+  Ausgabe: "G1 koordinaten"
+
+
+
+POCKET Randabstand Schnittabstand
+  Definiert die Parameter für nachfolgende Pocketzyklen.
+
+
+
+WORK Beabeitungtyp UnterprogrammName [Parameter]
+  Aufruf Geometrieunterprogramm an der momentanen Position.
+  Die Startposition ist also vorher mit "RP .."  od. "P1" anzufahren.
+  Konturen können in Unterprogrammen (GEO) abgelegt und mit WORK mehrfach aufgerufen werden.
+
+  Bearbeitungstypen:
+    CUT KonturName [Parameter]
+    REV KonturName [Parameter]
+    SEP_CUT KonturName [Parameter]
+    SEP_REV KonturName [Parameter]
+    POCK KonturName KonturStartpunkt
+    CUT_CIR Radius Startrichtung Umfahrungswinkel Ausfahrstrecke [Stopwinkel]
+    POCK_CIR Radius_aussen Radius_Bohrloch [Mittelpunkt]
+
+  Pocketzyklen siehe auch POCKET-Befehl.
+
+  KonturName:  muss dzt ein Polygon oder eine CCV sein. Siehe Beispiele.
+
+  Parameter:
+    <winkelwert>             Verdrehen. Direkt den Winkel angeben.
+    xmir                     um die X-Achse spiegeln
+    ymir                     um die Y-Achse spiegeln
+
+  Beispiel:
+    Macro S20 um X gespiegelt, um 30 Grad gedreht an der momentanen Position
+      abarbeiten.
+    Wird gespiegelt und gedreht, so wird zuerst die Spiegelung,
+      dann die Drehung ausgeführt.
+  WORK S20 30 XMIR
+
+  SEP_ sind Trennschnitte (es wird automatisch ein Konturprogramm erzeugt,
+    das eine offene Kontur schliesst).
+
+  Die Position nach dem Unterprogramm kann über den Punkt P0 abgefragt
+    und so später wiederverwendet werden.
+
+
+WORK Beabeitungtyp "Dateiname"
+  Ein in einer Datei befindliches Unterprogramm ausführen.
+  Das Unterprogramm ist ohne GEO und END abzuspeichern.
+  Derzeit kann in solchen Unterprogrammen nicht in ein weiteres Unterprogramm
+    verzweigt werden.
+
+
+Beispiele:
+
+S2=BSP P(2,1) P(1,1) P(0,0) P(-1,1) P(-2,1)
+S3=CCV S2
+ZSUR2 1
+FROM 16 -2
+RP 16 0
+WORK CUT S3
+WORK P(10 0)
+
+NC-Hilfsfunktionen
+
+Funktionen, die an den Postprozessor weitergegeben werden:
+
+mch <machine>
+
+pn <Partname>
+
+stop
+
+osp
+operational stop
+osp on / off
+
+TL RI
+Tool right, G42
+
+TL LE
+Tool left, G41
+
+TL OFF
+Werzeugkorrektur aus, G40
+
+zsur1 <Z-Wert>
+Definiert den Abstand der unteren Werkstückebene
+
+von der Z=0 - Ebene.
+zsur2 <Z-Wert>
+obere Werkstückebene
+zsur2
+Die obere Werkstückebene wird zur aktiven Ebene definiert
+
+"M01"
+Insert
+"(Stop ",x(p0),y(p0),")"
+
+tcpos < Punkt>
+Def. Werkzeugwechselpunkt
+
+clear <Z-Wert>
+Clearence
+
+deep <Z-Wert>
+cycle off
+nur off
+
+TL 0
+Werkzeug entladen
+
+TL 1
+Werkzeug Nr. 1 laden
+
+INL "Text"
+Insert Line; es wird eine eigene Zeile ausgegeben.
+Auch bei allen Insert - Versionen kann Text zusammengesetzt werden.
+
+INS "G40 "
+Insert to start of line;
+
+am Zeilenanfang (der nächstfolgenden Zeile) einfügen.
+INE " F12.5"
+
+Insert to end of line;
+am Zeileende (der nächstfolgenden Zeile) einfügen.
+
+
+
+<P ALIGN=CENTER><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Version
+0.0.1 2003-10-24</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>CADCAM -
+Services Franz Reiter</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>www.gCAD3D.org</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><A HREF="#Arbeitsablauf"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Arbeitsablauf</FONT></FONT></A></P>
+<P><A HREF="#Bedienung NC-WCUT"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Bedienung
+NC-Wcut</FONT></FONT></A></P>
+<P><A HREF="#Bedienung NC-Tech"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Bedienung
+NC-Tech</FONT></FONT></A></P>
+<P><A HREF="#Liste NC-Befehle"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Liste
+NC-Befehle</FONT></FONT></A></P>
+<P><A HREF="#Installation"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Installation</FONT></FONT></A></P>
+<P><A HREF="#Lizenz"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Lizenz</FONT></FONT></A></P>
+<P><A HREF="#Zusatzprogramme"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Zusatzprogramme</FONT></FONT></A></P>
+<P><A HREF="#Support"><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Support</FONT></FONT></A></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Arbeitsablauf"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Arbeitsablauf:</B></U></FONT></FONT></P>
+<P><BR><BR>
+</P>
+<OL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Laden,
+	Importieren oder Neuerstellen eines Programmes (File / New, Open,
+	Import)<BR>END - Button: es wird das gesamte Programm, beginnend in
+	der ersten Zeile, bis zum Dateiende abgearbeitet. Dadurch wird auch
+	die Geometrie dargestellt.</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Konturelemente
+	erzeugen (CAD / P, L, S ..)<BR>CAD-Funktion w&auml;hlen, Parameter
+	definieren, OK.</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Konturen
+	bilden (CAD / S Contour; Ergebnis: &quot;S20=CCV ....&quot;)<BR>Startpunkt,
+	Konturelemente, Endpunkt, OK.</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Konische
+	Konturen mit NC-Wcut generieren (Ergebnis: A20=...)<BR>Siehe
+	NC-Wcut.</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>NC-Programm
+	erzeugen.<BR>Siehe NC-Tech.</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Speichern
+	/ Exportieren des Programmes.<BR>File / Save (as): es wird im
+	APT-Textformat gespeichert.<BR>File / Export: w&auml;hlen Sie das
+	entsprechende Ausgabeformat.</FONT></FONT></P>
+</OL>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Bedienung NC-WCUT"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Bedienung
+NC-WCUT</B></U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Vorarbeiten:</U></I></FONT></FONT></P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Konturelemente
+erzeugen (CAD / P, L, S ..)<BR>Konturen bilden (CAD / S Contour;
+Ergebnis: &quot;S20=CCV ....&quot;)</FONT></FONT></P>
+<P STYLE="margin-left: 2cm"><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>NC-Wcut</U></I></FONT></FONT></P>
+<P STYLE="font-style: normal; text-decoration: none"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>F&uuml;r
+zylindrische Konturen ist dieser Programmteil nicht erforderlich
+(weiter NC-Tech).</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><B>NewProg</B>
+selektieren; <B>addContour</B> &quot;S20&quot; selektieren.</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Oder eine
+bereits vorhandene Contour (z.B &quot;A20&quot;) aus Liste <B>Program</B>
+selektieren.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Neues
+Programm:</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Nun wird
+die ausgew&auml;hlte Kontur als zylindrische Kontur angezeigt.</FONT></FONT></P>
+<UL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Mit
+	den Buttons prev / next auf das aktuelle Konturelement zustellen;</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Nun
+	die f&uuml;r die zum Element gehoerigen Parameter eingeben</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Mit OK
+	aktivieren.</FONT></FONT></P>
+</UL>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Konische
+Kontur (CONIC):</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Auslenkung
+(Pitch), als Winkelwert in Grad (Angle) oder als relativer Abstand
+von der Basiskontur (Dist),<BR>Radiustyp Conic oder Cylindric (die
+Radien auf beiden Ebenen sind ident) oder Radiusdefinition durch
+Zahlenwert (Value).</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Offset-Kontur
+(OFFSET):</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Die
+Oberkontur wird durch den relativen Abstand zur Basiskontur (DX, DY)
+definiert. </FONT></FONT>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Complexe
+Kontur (COMPLEX):</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Beim ersten
+Start Oberkontur selektieren<BR>Es werden automatisch mehrere
+Standardmarkers erzeugt.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Neuen
+Marker erzeugen:</FONT></FONT></P>
+<UL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>mit
+	prev/next auf den unteren Markerpunkt zustellen,</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Checkbox
+	Marker selektieren,</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>den
+	oberen Markerpunkt selektieren.</FONT></FONT></P>
+	<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Marker
+	loeschen: Markerlinie selektieren (im normalen Eingabemodus -
+	Checkbutton Marker ist nicht aktiv)</FONT></FONT></P>
+</UL>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><I>Exit:<BR></I></U>die
+fertige Kontur abspeichern NC-Wcut beenden.<BR>Die Schneidgeometrie
+wird als z.B &quot;A20=SKWC ..&quot; gespeichert.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><I>DelProg:<BR></I></U>Es
+wird die gesamte Schneidgeometrie geloescht.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Bedienung NC-Tech"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Bedienung
+NC-Tech</B></U></FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Vorarbeiten:</U></I></FONT></FONT></P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Konturelemente
+erzeugen (CAD / P, L, S ..)<BR>Konturen bilden (CAD / S Contour;
+Ergebnis: &quot;S20=CCV ....&quot;)<BR>Konische Konturen mit NC-Wcut
+generieren (Ergebnis: A20=...)</FONT></FONT></P>
+<P STYLE="margin-left: 2cm"><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>1)
+Makrobibliotheke definieren</U></I></FONT></FONT></P>
+<P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Sind
+noch keine Makroprogramme geladen (Liste <B>Work</B> ist leer), so
+muss am Beginn eine Makrobibliothek geladen werden.</FONT></FONT></P>
+<P STYLE="margin-left: 2cm; font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Die
+Liste <B>TEC</B> zeigt eine Liste aller vorhandenen Makrobibliotheken
+(*.mac).<BR>Die Makrobibliotheken befinden sich im Verzeichnis
+&lt;base&gt;\wc\*.mac);<BR>eine Makrobibliothek enth&auml;lt:</FONT></FONT></P>
+<UL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Makroprogramme
+	(&quot;MAC CUTname&quot;; angezeigt wird &bdquo;name&ldquo;)</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Standardwerte
+	f&uuml;r den PP (zB TOL_POLY 0.0075, BRK_ACLN ON, TL RI usw)</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>die
+	Programmstrategie (Anzahl Nachschnitte)</FONT></FONT></P>
+</UL>
+<P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Eine
+selektierte Makrobibliothek wird sofort &uuml;bernommen, die darin
+enthaltenen Makroprogramme werden in der Liste <B>Work</B> angezeigt)</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>2)
+NC-Programmnamen definieren</U></I></FONT></FONT></P>
+<P STYLE="font-style: normal; font-weight: medium; text-decoration: none">
+<FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Definition
+eines neuen NC-Programms (<B>NewProg</B>) oder ausw&auml;hlen eines
+NC-Programms aus der Liste <B>Program</B>.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>3)
+Programmablauf definieren</U></I></FONT></FONT></P>
+<UL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Ausw&auml;hlen
+	eine Makroprogrammes aus Liste <B>Work</B>. Im Infofenster ganz
+	unten wird eine Funktionsbeschreibung angezeigt.</FONT></FONT></P>
+	<LI><P><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Definition
+	der f&uuml;r dieses Makro erforderlichen Parameter (Cursor, wenn
+	erforderlich, in das entsprechende Eingabefeld setzen; Punkte /
+	Kreise / Contour selektieren)</FONT></FONT>.</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Abspeichern
+	des Zyklus durch <B>OK</B> oder rechte Maustaste</FONT></FONT></P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Ver&auml;ndern
+	von Zyklen: mit <B>prev / next</B> auf den Zyklus zustellen, dann
+	die Werte korrigieren, abspeichern (OK oder rechte Maustaste).</FONT></FONT></P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>L&ouml;schen
+	eines Zyklus: <B>DEL</B>. </FONT></FONT>
+	</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Einf&uuml;gen
+	eines Zyklus (vor den momentan aktiven Zyklus): <B>INS</B>. </FONT></FONT>
+	</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Darstellen
+	des gesamten NC-Programms mit <B>RUN</B>. </FONT></FONT>
+	</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Eine
+	Liste aller aktiven Zyklen erzeugen und anzeigen mit <B>List</B>. </FONT></FONT>
+	</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Postprozessor
+	starten mit <B>PP</B>. </FONT></FONT>
+	</P>
+	<LI><P STYLE="font-weight: medium"><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Mit
+	<B>DelProg</B> kann das gesamte NC-Programm gel&ouml;scht werden.</FONT></FONT></P>
+</UL>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Liste NC-Befehle"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Liste
+NC-Befehle</B></U></FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>#
+Teilehoehe:</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>ZSUR2 25</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2># Toleranz
+zum Polygonalisieren von Kurven (B-Splines, Ellipsen):<BR>TOL_POLY
+&lt;Toleranzwert&gt;</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>#MODE
+DISP_AC &lt;Sehnentoleranz Kreis&gt;</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2># Draht
+einf&auml;deln<BR>T1</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2># Draht
+abschneiden<BR>T0</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>FROM
+&lt;Startpunkt&gt;</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>RP
+&lt;point&gt;<BR>RPR dx,dy</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>P2 oder P(x
+y)<BR>PR dx,dy</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>AR
+&lt;Endpkt_rel&gt; &lt;Mittelpkt_rel&gt; [&lt;Drehrichtung&gt;]</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>A &lt;Endpkt&gt;
+&lt;Mittelpkt&gt; [&lt;Drehrichtung&gt;]</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK POCK
+A21</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK CUT
+A20 [&lt;Verdrehwinkel&gt; XMIR / YMIR]</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK REV
+A20</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK
+CUT_CIR &lt;Radius &lt;Startrichtung&gt; &lt;Umfahrungswinkel&gt;
+&lt;Ausfahrstrecke&gt; [Stopwinkel]</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK
+CUT_CIR 3 0 320 1</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>POCK_CIR
+&lt;UP-Name&gt; &lt;Radius_aussen&gt; &lt;Radius_Bohrloch&gt;
+&lt;Mittelpunkt&gt;</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>WORK
+POCK_CIR 3 1</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Weitere
+NC-Input Funktionen:</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>PN ## ##
+Partno</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>INL</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>INS</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>INE text</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>OSP</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>TEC</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>ZSUR2</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>MODSIZ</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><I><U>Hilfsfunktionen:</U></I></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>(bewirken
+keine direkte Ausgaben):</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>TOL_POLY
+0.0075</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>BRK_ACLN ON</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Installation"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Installation:</B></U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Bei der
+Installation werden keinerlei Eintr&auml;ge in die Registry
+vorgenommen.<BR>Das gesamte Programmpaket kann also zu 100% wieder
+entfernt werden.</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Es werden
+bei der Installation keine Systemprogramme (DLL's) in den
+Systemverzeichnissen abgelegt, wodurch jedweder Einfluss auf andere
+Programme und Funktionen ausgeschlossen ist.</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Das
+Entfernen des Programmpaketes erfolgt durch Funktion 2 des
+Installationsprogrammes.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U>Installation
+Drucker:</U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Derzeit
+werden folgende Druckerformate direkt erstellt:</FONT></FONT></P>
+<UL>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Postscript</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>PCL5</FONT></FONT></P>
+	<LI><P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>HP-GL.</FONT></FONT></P>
+</UL>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Weitere
+Druckertreiber werden durch das Softwarepaket Ghostscript zur
+Verf&uuml;gung gestellt.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Befehle zum
+direkt-ausdrucken:<BR>Print (Standarddrucker)<BR>Print /D:lpt2 (net
+use, freigeben, net view <A HREF="file://./">\\hostname</A>)<BR>lpr
+..<BR>copy ..</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U>Zusatzprodukte
+zum Ausdrucken:</U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>F&uuml;r
+Voransicht von Ausdrucken und f&uuml;r
+nicht-Postscript-Drucker:<BR>gs703w32.exe (Ghostscript)<BR>gsv41w32.exe
+(Ghostview)</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif">Die
+Laufzeitbibliotheken von Gtk (im gCAD3D-Basisverzeichnis)
+sind:<BR>libgtk-0.dll<BR>libgdk-0.dll<BR><A HREF="http://libglib-2.0-0.dll/">libglib-2.0-0.dll</A><BR><A HREF="http://libgmodule-2.0-0.dll/">libgmodule-2.0-0.dll</A><BR>iconv.dll<BR>intl.dll</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Lizenz"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Lizenz</B></U></FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Beim Start
+von gCAD wird die Rechnerbezeichnung (8 Zeichen) ausgegeben.<BR>Diese
+Bezeichnung ist zum generieren der Lizenzcodes erforderlich.<BR>Der
+Lizenzcode wird als Datei gCAD3D.lic ins Basisverzeichnis kopiert (im
+gleichen Verzeichnis ist auch gCAD3D.exe).</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Zusatzprogramme"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Zusatzprogramme</B></U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Zus&auml;tzlich
+zu den Standardprogrammen (Importfilter, Postprozessoren) k&ouml;nnen
+eigene Import- /Exportfunktionen angekoppelt werden.</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Weitere
+Zusatzfunktionen:<BR>- zur &Uuml;bertragen von Dateien (Ascii / Bin&auml;r
+&uuml;ber serielle Schnittstelle)</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Support"></A><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2><U><B>Support:</B></U></FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Support
+erhalten Sie durch Ihren Programmlieferanten bzw durch Fa.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>CADCAM -
+Services Franz Reiter</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT SIZE=2><FONT FACE="Helvetica, Arial, sans-serif"><A HREF="http://www.gCAD3D.org/">http://www.gCAD3D.org</A><BR><A HREF="mailto:franz.reiter@cadcam.co.at">franz.reiter@cadcam.co.at</A><BR></FONT></FONT><BR><BR>
+</P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Tel. 0043
+699 1020 2284</FONT></FONT></P>
+<P><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>bzw aus
+&Ouml;sterreich: 0699 1020 2284.</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P ALIGN=CENTER><FONT FACE="Helvetica, Arial, sans-serif"><FONT SIZE=2>Ende
+Dokumentation gCAD3D-WCUT</FONT></FONT></P>
+<HR>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

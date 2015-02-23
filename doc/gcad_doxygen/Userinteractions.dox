@@ -1,0 +1,145 @@
+/*! \page Userinteractions
+
+
+<pre>
+\ref Selections
+\ref Block_Input         block, unblock functions
+\ref Group               object-group
+</pre>
+
+________________________________________________________________________________
+\section Selections
+<pre>
+\ref xa_sele.c            selection functions
+</pre>
+
+\code
+
+sele_set__         init and set selectionfilter
+sele_set_types     add additional objecttypes to selectionfilter
+
+
+
+Example:
+
+int gCad_main () {
+
+  // attach grafic selections to function my_sel_CB
+  AP_UserSelection_get (my_sel_CB);
+
+  // enable selection of Typ_APPOBJ only
+  sele_set__ (Typ_APPOBJ);
+
+
+  // or enable selection of all types
+  sele_set__ (Typ_goGeom);
+
+
+  // or enable multiple selectiontypes
+  sele_set_types (Typ_VAR, 
+                      Typ_Val,
+                      Typ_LN,               // Length
+                      Typ_CI,               // Radius 
+                      0); 
+
+
+  // or enable only point
+  sele_set__ (Typ_PT);
+
+
+  // enable selection of point on ConstrPln
+  sele_setNoConstrPln ();
+
+
+  // attach keyboard-callback to function my_key_CB
+  AP_UserKeyIn_get (my_key_CB);
+
+
+}
+
+
+//----------------------------------------------------------------
+// callback-Funktion for the selections:
+#include "../gr/ut_DL.h"               // DL_GetAtt
+#include "../ut/ut_geo.h"              // Point, TYP_EvMouseL ..
+
+int my_sel_CB (int src, long dli) {
+
+  int    typ;
+  long   dbi;
+  char   *selNam;
+  Point  p1;
+  DL_Att att1;
+
+
+  if(src == GUI_MouseR) {
+    gCad_fini ();
+    return 0;
+  }
+
+  UI_GR_get_selNam (&typ, &dbi, &selNam);
+    printf(" typ=%d dbi=%ld nam=|%s|\n",typ,dbi,selNam);
+
+  if(!typ) {
+    TX_Print(".. select object (line or curve ...)");
+    return 0;    // indicate but object wanted
+  }
+
+  // get pointPosition on object
+  sele_get_selPos (&p1);
+
+  att1 = DL_GetAtt(dl_ind);  // get the dispListRecord
+    printf("selected objectTyp =  %d\n",att1.typ);
+    printf("DB-Index of selected object = %d\n",att1.ind);
+
+  // see DevDoc ResolveObjects/Get_DispListObject \ref Get_DispListObject
+  ..
+  return 0;
+}
+
+
+//----------------------------------------------------------------
+// callback-Funktion for keyboard-input:
+int my_key_CB (int key) {
+
+  switch (key) {
+
+    case GUI_KeyEsc:
+    case 'q':
+      gCad_fini ();
+  }
+
+  return 0;
+
+}
+
+
+
+
+
+\endcode
+________________________________________________________________________________
+\section Block_Input
+\code
+
+UI_block__                block / unblock Functions, Input, Cursor
+UI_block_input            block / unblock keystrokes & grafic_selections
+UI_block_group            block / unblock groupSelections
+
+UI_GR_block               UNUSED
+UI_block_glEvents         UNUSED
+
+
+\endcode
+________________________________________________________________________________
+\section Group
+\code
+
+  Grp_Clear (0); // clear group
+
+  Grp_add (typ, dbi, -2L,  1);
+
+  Grp_upd (0);  // Redraw & update GrpNr-label
+
+\endcode
+*/

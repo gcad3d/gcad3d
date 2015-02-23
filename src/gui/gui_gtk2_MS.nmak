@@ -1,0 +1,53 @@
+# GUICP GUILIBS SRCGUI OBJGUI
+
+SRCGUI =\
+ ..\gui\gui_base.c\
+ ..\gui_gtk2_MS\gtk_base.c\
+ ..\gui_gtk2_MS\gtk_button.c\
+ ..\gui_gtk2_MS\gtk_lists.c\
+ ..\gui_gtk2_MS\gtk_ed1.c\
+ ..\gui_gtk2_MS\gtk_entry.c\
+ ..\gui_gtk2_MS\gtk_menu.c\
+ ..\gui_gtk2_MS\gtk_label.c\
+ ..\gui_gtk2_MS\gtk_image.c\
+ ..\gui_gtk2_MS\gtk_dlg_std.c\
+ ..\gui_gtk2_MS\gtk_container.c\
+ ..\gui_gtk2_MS\gtk_multichoice.c\
+ ..\gui_gtk2_MS\gtk_msgWin.c\
+ ..\gui_gtk2_MS\gtk_dlg_files.c\
+ ..\gui_gtk2_MS\gtk_tree_it.c\
+ ..\gui_gtk2_MS\gtk_opengl.c
+
+
+#-------------------------------------------
+OBJGUI = $(SRCGUI:.c=.obj)
+OBJGUI = $(OBJGUI:/=\)
+
+
+
+#-------------------------------------------
+gtk_bas_dir  = $(OUTDIR)
+gtk_inc_dir =\
+      /I $(gtk_bas_dir)\include\gtk-2.0\
+      /I $(gtk_bas_dir)\include\glib-2.0\
+      /I $(gtk_bas_dir)\include\cairo\
+      /I $(gtk_bas_dir)\include\pango-1.0\
+      /I $(gtk_bas_dir)\include\atk-1.0\
+      /I $(gtk_bas_dir)\include\gdk-pixbuf-2.0\
+      /I $(gtk_bas_dir)\include
+
+GUICP  = -Dgtk2 $(gtk_inc_dir)
+
+
+#-------------------------------------------
+gtk_lib_dir  = $(gtk_bas_dir)\lib
+
+LIBGUI = $(gtk_lib_dir)\gtk-win32-2.0.lib\
+         $(gtk_lib_dir)\gdk-win32-2.0.lib\
+         $(gtk_lib_dir)\gdk_pixbuf-2.0.lib\
+         $(gtk_lib_dir)\glib-2.0.lib\
+         $(gtk_lib_dir)\gobject-2.0.lib\
+         $(OUTDIR)\libgui_$(VGUI).lib
+
+
+# eof

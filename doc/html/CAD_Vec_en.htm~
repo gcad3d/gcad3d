@@ -1,0 +1,203 @@
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+  <TITLE>CAD_Vec_en.htm</TITLE>
+  <meta name="author" content="Franz Reiter">
+  <META NAME="CREATED" CONTENT="20091101;6335200">
+  <META NAME="CHANGED" CONTENT="20111004">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+<a href="CAD_using_en.htm">See operating CAD</a>
+
+
+<h1>Vectors</h1>
+
+
+Vectors define a direction and do not have a position.
+
+Vectors use the identification letter D ("Direction").
+
+There are the following standard vectors:
+  DX DY DZ
+  corresponding to the absolute directions
+
+  DIX DIY DIZ
+  corresponding to the reverse absolute directions
+
+
+Display of Vectors:
+- Vectors are only temporarly represented;
+- standard-vectors are displayed in the lower right corner
+- scan through defined vectors with the PageUp or PageDown button
+- Standardized vectors (with length 1) as dashed line, otherwise as full line.
+
+
+Define a vector:
+- select a line or 2 points or a polygon
+- select a circle or plane (normal-vector)
+- select one of the standard-vectors from the vectors displayed in
+    the lower right corner. 
+- select a defined vector with the PageUp or PageDown button
+- key in vector:
+  standard-vector DX or DY or DZ or DIX or DIY or DIZ
+  or defined-vector eg "D12"
+  or the x/y/z-coordinates; eg "D(0 0 1)" defines a Z-vector
+  or one or two angles; eg "D(ANG(45))" or "D(ANG(45) ANG(45))"
+
+
+<u>Example:</u>
+# Vector 1 = direction negative X-Achse
+D1=DIX
+# Vektor 2 = into direction x=1, y=1 in the XY-plane
+D2=D(1 1 0)
+
+
+
+<p><a name="Copy"></a></p>
+  <h2>Vectors from Copyfunction</h2>
+Objectselections create this formats:
+
+# Vector from Line:
+D(L{nr})
+<u>Example:</u>
+L20=P(0 0 0) P(100 10 0)
+D20=D(L20)
+
+
+# Vector from Polygonsegment
+# or Vector from Line in CCV:
+D({obj} MOD({SegmentNummer}))
+
+
+# Vector on circle, B-Spline, clothoid, ellipse:
+ D#={C#|S#}) {lpar})
+<u>Example:</u>
+# Vector on circle:
+C20=P(0 0 0) 12
+D20=D(C20 0.5)
+
+
+# Vector from Line in CCV
+# or Vector from Polygonsegment in CCV:
+P({obj} MOD({CCV-SegmentNummer}) MOD({SegmentNummer}))
+
+
+<u>Example:</u>
+# Vector from 1.Segment of CCV S26 (a Line):
+P(S26 MOD(1))
+
+
+
+<hr>
+<a name="F0"></a>
+<h2>VEC cartes</h2>
+Definition by entering the components of the axis (eg "0 0 1")
+Or input of a standard vector (eg "DX")
+Or a defined vector (eg "D20"; with Page Down key)
+Or selection of a line or polygonsegment (or polygonsegment in CCV)
+  or plane or plain surface.
+
+Optional:
+   Definition of vector length
+   Reverse Direction ("REV"; with Page Down key)
+
+Standardvectors are DX DY DZ DIX DIY DIZ.
+
+Examples:
+D3 = D (0.7 0 0.7) 100
+
+
+
+<a name="F1"></a>
+<h2>VEC polar      (Angles Length)</h2>
+By definition vector rotation angle [tilting angle] [vector length] [REVers]
+
+   Angle-Rot:  rotation around the z-axis of the active construction-plane,
+   Angle-Tilt: rotation (tilt) around the new y-axis.
+
+
+
+
+
+<a name="F2"></a>
+<h2>VEC objects</h2>
+Vectors parallel or right-angled to existing objects.
+
+Optionalfor all vectors:
+   Definition of vector length
+   Reverse Direction ("REV"; with Page Down key)
+
+
+<b>Parallelvector:</b>
+  Vektor als Strecke zwischen 2 <a href="CAD_Base_de.htm#P">Punkten</a>; Länge optional.
+
+  Vector tangential to curve through point on this curve:
+    select circle or ellipse or B-Spline or Clothoid and -
+    point on this curve
+
+  Vector parallel to main-axis (U-direction):
+    (until now only for plane, B-SplineSurface)
+    Plane: result is the X-axis of the plane.
+    Surface: direction of the isoparametric U-curve
+    Use Modifier "PARL"
+
+  Vector parallel to V-axis (only for plane, surface)               
+    (until now only for plane, B-SplineSurface)
+    Plane: result is the Y-axis of the plane.
+    Surface: direction of the isoparametric V-curve
+    Use Modifier "CX"
+
+<b>Normalvector:</b>
+  Normalvector for circle or plane or ellipsis
+  
+  Normalvector surface (until now only B-SplineSurface)
+    select surface and -
+    point on this surface
+
+  Normalvector to 2 lineare Segments(<a href="CAD_Base_de.htm#D">Vector</a> oder <a href="CAD_Base_en.htm#L">line</a>):
+    3 points
+    point, line
+    2 lines
+    The result (the normal vector) is the cross product of 2 input vectors.
+
+
+
+Examples:
+
+# Normalvector to circle
+D20=C20
+
+# Tangentialvector to circle
+D21=C20 P(C20 0.2)
+
+# Vector between points P1, P2; length 100.
+D5=P1 P2 VAL(100)
+
+# Normalvector to line L20:
+D20=L20 DZ
+
+# X-axis-Vector of plane R20
+D20=R20 PARL
+
+
+
+
+<hr>
+The following commands must be produced manually:
+
+<h2>Vector-Multiplication / Divison</h2>
+D21 = D20 * 2
+D22 = D20 / 2
+
+
+
+
+
+
+</PRE>
+</HTML>

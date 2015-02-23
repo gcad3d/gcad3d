@@ -1,0 +1,84 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+CAD functions:
+<a href="CAD_using_en.htm">See operating CAD ..</a>
+
+see also <a href="CAD_Base_en.htm#V">Codes Variables</a>
+
+Variables use shortcut key V.
+
+Implicit definition of variables by function VAL():
+  Example: VAL(P20 P21)  - the distance between 2 points.
+
+Variables are temporarily displayed as horzontal lines;
+  the length indicates the value.
+
+
+<a name="F0"></a>
+  <h2>V Variable - Value</h2>
+V - variable value
+Direct allocation of a variable
+
+With Pageup / Page Down key a defined variable.
+
+
+
+<a name="F1"></a>
+  <h2>V X/Y/Z-part PT|VC</h2>
+  get the X- or Y- or Z-part of a point or of a Vector.
+
+# extract the x-coordinate of a point
+V20 = X(P20)
+
+
+
+<a name="F2"></a>
+  <h2>V PT-PT Dist.[Direction]</h2>
+  <a href="CAD_Base_en.htm#V">Variable</a> = length between 2 points [into direction]
+
+[Direction]   optional; keine Angabe: direct length between 2 points.
+              Distance along a vector: define a <a href="CAD_Base_en.htm#D">vector</a>
+
+Example:
+V20 = P20 P21
+# distance from point P20 to point P21 into direction Z:
+V21=P20 P21 DZ
+
+
+
+<a name="F3"></a>
+  <h2>V LN      length</h2>
+V LN Length
+  Variable = length of a Distance
+
+V20 = L20
+
+
+
+<a name="F4"></a>
+  <h2>V PT - LN Perp.Dist</h2>
+PT-V LN normal distance
+  Variable = Normal distance of a point from a distance
+
+V20 = P20 L20
+
+
+
+<a name="F5"></a>
+  <h2>V CIR     Radius</h2>
+  Variable = radius of a circle
+
+V20 = C20
+
+
+
+</PRE>
+</HTML>
+

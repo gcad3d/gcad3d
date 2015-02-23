@@ -1,0 +1,186 @@
+/*! \page pag_Temp-Objects Temp-Objects
+../gcad_doxygen/Temp-Objects.dox
+<h2>Temporäre Objekte Doku</h2>
+
+<pre>
+\ref Dynamic-DB-Objects
+\ref Temp-objects-in-temp-space-of-DisplList
+\ref normal-Temp-objects
+\ref Display-temp-object-functions
+
+
+
+
+Alt+Shift+d      dump DL                    DL_DumpObjTab
+
+
+</pre>
+________________________________________________________________________________
+\section Temp-objects-in-temp-space-of-DisplList
+\code
+
+TempDLobjects are not permanent (they are not stored in the DataBase)
+TempDLobjects are visible (they have a record in the OpenGL-DispList,
+  but not in the application-DispList).
+TempDLobjs cannot be hilited.
+GL-DispListpositions (1 - DL_base_font1-1) are reserved for
+  temporary elements.
+This positions can be filled directly or by using DL-index -1
+  (this gives the next free temp-index).
+  // dli = -1  returns next free ind in temp-area of dispList;
+  // dli < -1  fixed index in temp-area of dispList;
+
+
+// Use next free dispListindex:
+  dli = -1;
+// or get the next free index for direct use:
+  dli = GL_GetInd_temp ();
+
+// Use direkt-draw-functions:
+  GL_DrawSymB
+  GL_DrawSymV3
+  GL_DrawPoly  usw ..
+
+// Get the Index used by last draw-function:
+  dli = GL_temp_GetInd ();
+  
+// delete a single object with:
+  GL_temp_Delete (ind);
+
+// delete all temp. objects with:
+  GL_temp_delete ();
+
+
+Example:
+  Point  pt1={0,0,0};
+  long dli = -1;                              // DispListIndex temp.
+  GL_DrawSymB (&dli, 2, SYM_CIR_S, &pt1);     // create temp. circle
+  dli = GL_temp_GetInd ();                    // get DL-index of circle
+  // DL_Redraw ();                               // Redraw
+  ..
+  GL_temp_Delete (dli);                       // delete the circle
+  ..
+
+  // use directly fixed temporary index 2 (2-DL_base_font1):
+  long dli = -2;                              // DispListIndex temp.
+  GL_DrawPoly (&dli, 1, pNr, pa);
+  ..
+  GL_temp_Delete (-2L);                      // delete
+
+
+
+\endcode
+________________________________________________________________________________
+\section Dynamic-DB-Objects
+\code
+    - Dynamic-DB-Objects do not have a source-object (ascii-text)
+    - are not visible - do not have a disp-list-record
+    - are stored in the DB; have a temporary (negative) DB-index
+    - temp-DB-objects can be removed with DB_dyn__()
+
+  long  dynPti, dbi;
+  Point pt1 = {12.0, 0.4,  0.0};
+
+  dynPti = DB_dyn__ (0, Typ_PT, 0L);    // save state of dyn-points
+  DB_dump_stat ();
+
+  dbi = DB_StorePoint (-1L, &pt1);      // store dynamic obj in DB.
+    printf(" dyn.ind=%ld\n",dbi);       // returns DB-index
+  DB_dump_stat ();
+
+  // use point ..
+  pt1 = DB_GetPoint (dbi);
+  UT3D_stru_dump(Typ_PT, DB_get_PT(dbi), "dyn pt");
+
+  // remove dynamic point(s)
+  DB_dyn__ (2, Typ_PT, dynPti);      // reset state of dyn-points
+  DB_dump_stat ();
+
+
+
+\endcode
+________________________________________________________________________________
+\section normal-Temp-objects
+\code
+
+TempObjects are visible (they have a record in the DispList).
+TempObjects are not permanent (they are not stored in the DataBase)
+
+normal-Temp-objects use the next free position in the DispList.
+
+
+// Use drawing-functions GR_Disp_..
+  GR_Disp_pt (&p2, SYM_STAR_S, 2);            // creates temp.obj red circle
+  DL_Redraw ();                               // update display
+  
+  
+// get DispList-Index of last created obj  
+  dli = GL_GetActInd ();
+
+
+// delete single object
+  GL_Del0 (dli);
+
+// or delete this dl-record and all following records ..
+  GL_Delete (dli);
+
+
+
+
+Example:
+  #include  "../gr/ut_UI.h"            // SYM..
+  Point   p1={10,0,0};
+  long  dli;
+  GR_Disp_pt (&pt1, SYM_STAR_S, 2);           // creates temp.obj red circle
+  DL_Redraw ();                               // update display
+  dli = GL_GetInd_temp ();                    // get DL-index of circle
+  ..
+  GL_Delete (dli);                            // delete obj and all following
+  ..
+
+
+\endcode
+________________________________________________________________________________
+\section Display-temp-object-functions
+\code
+
+GR_Disp_obj           tempDisp obj from typ+struct
+GR_Disp_dbo           tempDisp obj from typ+dbInd
+GR_Disp_ox            temp. display of ObjGX-structs
+
+GR_Disp_pt,-vc,-vc2,-ln,-ac,-bsp,-pln
+GR_Disp_txi         disp integer-chars
+GR_Disp_box         disp 3D-boundingBox from 2 points
+UI_disp_Pos         temporary display position (red circle)
+UI_disp_vec1
+UI_disp_tra
+GL_DrawAngA                       draw angle with arrowhead
+GR_Disp_axis  GL_DrawSymVX        display plane / axisSystem
+UI_disp_pln_oid        hilite plane from objID (disp RX RY RZ)
+UI_disp_joint UI_disp_activ     display objName as text
+
+APT_Draw__
+APT_disp_ln
+DL_disp_hili
+GL_disp_cone
+
+
+Function-groups:
+
+ APT_disp       without dli, store obj as temp-DB-obj, call APT_Draw
+ APT_Draw       In: DB-index, dli = DL_StoreObj(DB-index), call GR_Draw
+
+ GR_Disp        without dli, use (dli = -1), call GR_Draw
+ GR_Draw        In: dli, call GL_Draw; (APT_2d_to_3d_Mat unused)
+
+ GL_Draw        In: dli; GL-ini, GL-disp, GL-end
+ GL_Disp        GL-disp (without GL-ini, GL-end.
+
+ UI_disp        using dli=DLI_TMP; display preview
+
+
+
+\endcode
+____________________________________________________________________________
+
+*/

@@ -1,0 +1,701 @@
+Neu in Version 1.44 / 2010-02-13
+
+New:
+- VRML-2-Import (no Animations, textures not yet)
+- tooltips and messages spanish/french/italian
+
+Bugfixes:
+- STEP-Import: bug in STP_r_alloc_tab fixed
+- Startup-problem with textured models fixed
+- problem translate-object-by-vector fixed
+
+Anzahl Programmzeilen   308621
+Anzahl Funktionen         3217
+
+
+
+
+===========================================================================
+Neu in Version 1.42 / 2010-01-15
+
+New:
+- all tooltips internationalized (de / en)
+- CAD: PointEditor (move points of curves (lines, polygons, splines ..),
+       all depending objects are updated dynamically)
+- decode and view objects with popup-menu-function "inspect" (right mouse-button)
+
+Bugfixes:
+- import OBJ-Files (Wavefront): support for newer Format (blender, SweetHome3D)
+- CAD: Undo and Redo completely rewritten.
+
+
+Anzahl Programmzeilen   308621
+Anzahl Funktionen         3217
+
+
+
+===========================================================================
+Neu in Version 1.40 / 2009-11-13
+
+New:
+- Browserwindow (treeview of all objects) 
+- object-specific popup-menus for selections (with the right mouse-button)
+    in the Graficwindow and in the Browserwindow 
+
+Bugfixes:
+- STEP-Import: bug in STP_r_alloc_tab fixed
+- Startup-problem with textured models fixed
+- problem translate-object-by-vector fixed
+
+
+Anzahl Programmzeilen   302033
+Anzahl Funktionen         3117
+
+
+
+===========================================================================
+Neu in Version 1.34 / 2009-09-08
+
+Bugfixes:
+- Linux: using libgtkglext (before libgtkglarea)
+
+
+Anzahl Programmzeilen   289249
+Anzahl Funktionen         3010
+
+
+
+===========================================================================
+Neu in Version 1.32 / 2009-08-29
+
+New:
+- CAD: select-options with middle mousebutton
+- redefine Help-Browser, Editor (Menu / Standards)
+
+Bugfixes:
+- CAD: INTersect and CUT completely rewritten.
+
+
+Anzahl Programmzeilen   295548
+Anzahl Funktionen         3032
+
+
+
+
+===========================================================================
+Neu in Version 1.30 / 2009-07-15
+
+Bugfixes:
+- DXF-Import completely rewritten.
+- italian docu - partially
+
+
+Anzahl Programmzeilen   289249
+Anzahl Funktionen         3010
+
+
+
+
+===========================================================================
+Neu in Version 1.28 / 2009-06-03
+
+
+New:
+- new userdocumentation (only german - not yet translated)
+- new developer-documentation (with Doxygen, english)
+
+Bugfixes:
+- memory leak fixed
+
+
+Anzahl Programmzeilen   264235
+Anzahl Funktionen         3001
+
+
+
+
+===========================================================================
+Neu in Version 1.26 / 2009-03-05
+
+New:
+- CAD: create parametric points at selection of surface
+- MS-Win: Portierung auf Express-2008-Compiler (VC9)
+
+Bugfixes:
+- segment-faults at startup fixed for Puppy-Linux
+
+Anzahl Programmzeilen   261093
+Anzahl Funktionen         3002
+
+
+
+
+===========================================================================
+Neu in Version 1.24 / 2008-11-13
+
+neu:
+- curve from intersection surface x surface (CAD/INT intersect)
+
+Bugfixes:
+- formulaInterpreter: problem with "((" fixed
+- bug "cannot support textures" fixed
+- bug export subModels as VRML-1 and VRML-2 fixed
+
+Anzahl Programmzeilen   259451
+Anzahl Funktionen         3002
+
+
+
+
+===========================================================================
+Neu in Version 1.2 / 2008-10-09
+
+neu:
+- CAD-Search/Name: objectList for all kinds of objects
+- objectList: define name or info for object; search for names/infos
+- objectList: search for names/infos (filter objects)
+- popup-menu in objectList (right mousebutton)
+    (modify name, modify object, delete object)
+
+Bugfixes:
+- CAD-Modify/Delete: display depending Lines fixed
+
+Anzahl Programmzeilen   257561
+Anzahl Funktionen         3125
+
+
+
+
+===========================================================================
+Neu in Version 1.18 / 2008-09-07
+
+neu:
+- use jpg-images for textures,
+- intercative modification of scale/position of textures
+    (see Help / Textures)
+- MS-Win: new GTK-Version 2.12;
+
+Anzahl Programmzeilen   255966
+Anzahl Funktionen         2961
+
+
+
+
+
+===========================================================================
+Neu in Version 1.16 / 2008-08-12
+
+neu:
+- Anwendungsprogramme mit Eingabeformularen (siehe Help/Application)
+  Applicationprogramming with Inputforms (see Help/Application)
+
+Anzahl Programmzeilen   253393
+Anzahl Funktionen         2925
+
+
+
+
+===========================================================================
+Neu in Version 1.146 / 2008-06-04
+
+neu:
+- CAD: Project objects along vector onto plane (Project obj)
+- FormulaInterpreter: new functions ASIN ACOS ATAN
+- FormulaInterpreter: new function 'raise to power' with ^
+
+Bugfixes:
+- CAD: Circle "C = ARC point point radius" korrigiert
+- FormulaInterpreter rewritten,  operatorpriority corrected
+- import Landmark-XML: point-not-defined bug fixed.
+
+Anzahl Programmzeilen   249310
+Anzahl Funktionen         2862
+
+
+
+
+===========================================================================
+Neu in Version 1.144 / 2008-03-01
+
+neu:
+- Userapplication APP_GIS1 with the following functions:
+- GIS-function: import, modify, export Ascii-GIS-pointfiles
+- GIS-function: create mesh ("TIN") from points
+
+Anzahl Programmzeilen   245249
+Anzahl Funktionen         2800
+
+
+
+
+===========================================================================
+Neu in Version 1.142 / 2008-01-18
+
+neu:
+- Documentation translated into English
+- OpenGL-Viewer: speed with large meshes improved
+- First Animation/Kinematik-Demoprogram (plugin)
+- tested with Mandrake-2008 Ubuntu-7.10 OpenSuse-10.3
+
+Anzahl Programmzeilen   241468
+Anzahl Funktionen         2735
+
+
+
+
+===========================================================================
+Neu in Version 1.14 / 2007-12-04
+
+neue Funktionen:
+- CAD: Circle tangential to 3 Objects
+- Documentation translated into English (~ 50 %)
+- Development-Package: Functionheaders & Description (see DevelTools.txt)
+
+Bugfixes:
+- CAD: Circle tangential to 2 Objects + Radius rewritten
+
+Anzahl Programmzeilen   240265
+Anzahl Funktionen         2735
+
+
+
+
+===========================================================================
+Neu in Version 1.12 / 2007-10-20
+
+neue Funktionen:
+- import Mesh from Landmark-XML-Files
+- create Clothoid-Curve
+  (see CAD - "S Clotoid" - Help)
+- compress/decompress native modelfiles (with gzip)
+- 1-n Objekte zu B-Splinekurve verbinden
+  (see CAD - "S BSpline < join obj's" - Help)
+- Circ from startpoint, tangent and radius
+  (see CAD - "ARC PT Tang Radius Angle" - Help)
+- Vectors tangential to curves
+  (see CAD - "VEC tangent. (Circ, Elli, Bsp, Cloth) - Help"
+- import mesh from Landmark.xml - files
+
+Bugfixes:
+- Iges-Import-Bug with Qmax/Qflex3D-files fixed
+- VRML2-Export-Bug with big surfaces fixed
+- DXF-Import-Bug limiting to 10000 input-objects fixed.
+
+Anzahl Programmzeilen   236640
+Anzahl Funktionen         2703
+
+
+
+
+===========================================================================
+Neu in Version 1.100 / 2007-09-01
+
+
+
+neue Funktionen:
+- Delete/Restore-Funktionen neu implementiert
+  (Ctrl-Z = Delete,  Ctrl-Y = Restore)
+- Konstruktionsebene (ConstructionPlane, UserCoordinateSystem) neu in CAD
+  (CAD - "PLN ..", "ActiveConstrPlane", "Reset ConstrPlane")
+- B-SplineKurven exact durch Definitionspunkte
+  (CAD - "S BSpline < Points...")
+- Freiformflaechen durch Querschnittkurven
+  (CAD - "A BSplSur < Curves across")
+- Freiformflaechen durch Laengs- und Querschnittkurven
+  (CAD - "A BSplSur < Curves along/across")
+- Freiformflaechen durch 4 oder 3 Randkurven
+  (CAD - "A BSplSur < Curves along/across")
+- B-SplineKurven aus isoparametrischen Flaechenkurven
+  (CAD - "ISOparametric Curve from Surf" (Menu CUT..))
+- Projektion Punkt auf Freiformflaeche
+  (CAD - "PT Proj. PT -> LN/CIR/CRV/PLN/SUR")
+- Schnittpunkt Linie / Freiformflaeche
+  (CAD - "PT intersect  LN/CIR/CRV/PLN/SUR")
+
+Anzahl Programmzeilen   232442
+Anzahl Funktionen         2638
+
+
+
+===========================================================================
+Neu in Version 1.084 / 2007-07-07
+
+geändert:
+- Iges-Import from AutoDesk-Inventor
+
+
+
+===========================================================================
+Neu in Version 1.082 / 2007-06-17
+
+geändert:Butt
+- Fehler bei CATALOG korrigiert
+
+
+
+===========================================================================
+Neu in Version 1.08 / 2007-05-08
+
+neue Funktionen:
+- Normteilbibliotheksfunktionen Catalog (Catalog_de.htm)
+- Modify subModelPosition (Translate/Rotate/Surface-to-Surface)
+- Export im Format STL; subModels werden exploded (f. Blender)
+- WRL-Export: es werden auch Mockup-subModels (wrl,stl,..) exportiert
+- neue Funktion WRITE/CALL zur Erzeugung von Parametrikmodellen (gCAD3D_de.htm)
+- neue Konstante Variablen (RAD_1 SR_3 .. siehe Doku Variablen)
+- Linuxversion nun mit gcc4.1.1
+Fehlerkorrekturen:
+- Fehler bei JUMP in subModels korr.
+- alle DLL's (.so) nun im Unterverzeichnis bin
+
+Anzahl Programmzeilen   238692
+Anzahl Funktionen         2556
+
+
+
+===========================================================================
+Neu in Version 1.06 / 2007-03-27
+
+neue Funktionen:
+- Import STL-Files (Ascii)
+- neue interaktive Help-Funktion fuer CAD
+- Dateityp ".dat" fuer das native Format geaendert in ".gcad"
+- Samplemodell fuer texturierte Flaechen.
+- Fehler MS-Win CAD-GruppenEingabe korrigiert
+- MS-Win: Portierung auf Express-2005-Compiler (VC8)
+- MS-Win: Portierung auf GTK-Version 2.10
+
+Anzahl Programmzeilen   216576
+Anzahl Funktionen         2624
+
+
+
+===========================================================================
+Neu in Version 1.04 / 2007-01-01
+
+neue Funktionen:
+- Intersection Surface X Plane
+- KeyIn Objektname bei Dump/Obj und Group/Add
+- Linux: erste Version mit Installer gxInstall.
+- Fehlerkorrekturen.
+
+Anzahl Programmzeilen   211651
+Anzahl Funktionen         2487
+
+
+
+===========================================================================
+Neu in Version 1.02 / 2006-09-13
+
+neue Funktionen:
+- Texturen auf Flaechen legen
+- VRML2-Export (VRML-97; noch keine Texturen, noch kein VRML2-Import)
+- DXF-out: Flaechen werden als 3DFACE's exportiert (nicht subModels)
+- interaktiv Farbe und Transparenz fuer Flaechen setzen
+- neues Objekt 3D-Dimension (NOTE N DIM3)
+- neues Objekt Note mit 3D-Punktkoordinaten (N PointPos; N=LDRP)
+- neues Objekt Note mit Kreis (N Text,LN,Circle; N=LDRC)
+- neues Objekt Symbol Stern, .. Vektoren (N Symbol; N=LDRS)
+
+geändert:
+- BlockNote (N=TAG); Parameterreihenfolge geaendert.
+
+Anzahl Programmzeilen   209117
+Anzahl Funktionen         2635
+
+
+
+=========================================================================
+Neu in Version 1.00 / 2006-05-10
+
+neue Funktionen:
+- CAD: Linetyp interaktiv modifizieren
+- CAD: SurfaceStyle (shaded od. symbolic)  interaktiv modifizieren
+- CAD: Parametrische Definition für Punkte auf Line,Circ, Curve.
+- CAD: Parametrische Definition für Segmente von Polygon, CCV.
+- VRML1-Export von Submodellen (Assemblies)
+
+geändert:
+- Displayprobleme bei modifizierten Elementen (CUT ..) korrigiert
+- NC-Replay-Fehler korrigiert.
+- STEP-Import: Fehler bei sehr grossen Modellen korrigiert
+
+Anzahl Programmzeilen   201785
+Anzahl Funktionen         2547
+
+
+
+
+==========================================================================
+Neu in Version 0.98 / 2006-02-24
+
+neue Funktionen:
+- STEP-Import: Assemblies und Rational-B-SplineCurves/Surfaces;
+- VRML1-Export: Assemblies (subModels).
+- Interaktiv: Gruppe bilden und (native) exportieren.
+- Interaktiv: Circ - neue Funktionen
+
+geändert:
+- Keyword MOCK obsolet
+- Fehlerkorrekturen ..
+
+Anzahl Programmzeilen   197887
+Anzahl Funktionen         2528
+
+
+
+
+==========================================================================
+Neu in Version 0.96 / 2005-11-10
+
+neue Funktionen:
+- STEP-Import (ISO-10303-21 - AP203/AP214). Getestet mit CATIA-V4 und CATIA-V5.
+  Noch nicht unterstützt: Rational-B-SplineCurves.
+- CAD-Funktion Prisma (Solid)
+
+geändert:
+- VRML1: Problem zu grosse Importmodelle korr.
+- Fehlerkorrekturen bei Tesselate und Export VRML1.
+
+Anzahl Programmzeilen   182424
+Anzahl Funktionen         2349
+
+
+
+==========================================================================
+Neu in Version 0.94 / 2005-06-17:
+
+Korrigiert 2005-08-08:
+- MS-Win: Fehler bei Installation in Verzeichnisse mit blanks im Namen
+
+neue Funktionen:
+- MS-Win: NISI-Installer
+- Parallelogramm  (S=RECT vec1 vec2)
+- Solids: Kugel (B=SPH center radius)
+- Solids: Prisma von Parallelogramm (B=PRISM parallelogramm vektor)
+- VRML1: Sphere und Cone.
+
+geändert:
+- Linux: GTK+2 (bisher GTK+1.2); gtkglarea statisch gelinkt.
+- MS-Win: GTK+2 + GtkGLExt (bisher GTK+1.2 + gtkglarea)
+- Fehlerkorrektur bei Import VRML1 und Import Iges
+- Fehlerkorrektur bei NC (siehe Modell sample_nc0.dat)
+
+Anzahl Programmzeilen   165485
+Anzahl Funktionen         2151
+
+
+
+
+==========================================================================
+Neu in Version 0.93 / 2005-05-11:
+
+neue Funktionen:
+- Symbole als selektierbare Objekte (N=TAG ..)
+
+geändert:
+- Fehlerkorrektur bei Import VRML1 und Import Iges
+- Fehlerkorrektur bei Import Bitmaps (padding)
+- Fehlerkorrektur bei Export Mockup (VRML1, OBJ, TESS)
+
+Anzahl Programmzeilen   163254
+Anzahl Funktionen         2080
+
+
+
+
+==========================================================================
+Neu in Version 0.92 / 2005-04-11:
+
+neue Funktionen:
+- Import/Export von VRML-1-Files als Mockup-Modelle (nur FaceSets)
+- Import/Export von WaveFront-OBJ-Files (nur Faces)
+- Interaktionen können mit allen Darstellungsobjekten verbunden werden
+- Interaktion Modellaufruf (wie HTML - HREF)
+- Interaktion Programmaufruf (Plugin starten)
+- Interaktion Ansichtsposition (Viewport) verändern
+- Transformation von Kurven und Flächen (Translation, Rotation, Transformation)
+- Transformation in anderes Referenzsystem
+- Transformation aus Referenzsystem in das Hauptachsensystem
+- Darstellung von Bitmaps (nur uncompressed BMP-Files)
+- Toolbar und Messagebar können ausgeblendet werden (Vollbild)
+
+geändert:
+- Aufbau der Flächen vom Typ_SURCIR und Typ_SURSTRIP
+- Bitmap-Notes; "N#=TXA .." ersetzt durch "N#=TAG 0 .."
+
+Anzahl Programmzeilen   160773
+Anzahl Funktionen         2060
+
+
+
+==========================================================================
+Neu in Version 0.90 / 2004-12-30:
+
+neue Funktionen:
+- Iges/Dxf-Modelle können als Startparameter angegeben werden (aus Filebrowser)
+- neuer Funktionsmodul "Viewer"
+- File/Open: DXF/IGS - Modelle werden nun automatisch importiert.
+- Dimensions fertiggestellt (Linear-, Winkel-, Radiusvermaßung)
+- Texte: Sonderzeichen, Textsize nun in den Defaults.
+- CAD-Funktion Suchen/Löschen/Modifizieren verbessert
+- CAD: direkte Selektion von Objektendpunkten, Polygonpunkten ..
+- DXF-Import von LWPOLYLINE u DIMENSION u MTEXT
+- neue Kreisdefinition:Circ = Mittelpunkt Startpunkt Drehwinkel Z-Achse
+
+geändert:
+- Definition Alfatext   (N#=TXA <Position> <Text>    -    TXA kommt dazu)
+- Kreisdefinition Circ = Mittelpunkt Radius:    -   Z-Achsvektor hinzu ("DZ").
+- struct Dimen: char dtyp zu.
+
+
+
+Noch nicht implementierte Funktionen:
+- Erzeugen von B-Spline Flächen (dzt nur via Import Iges)
+- Funktionen zur Erzeugung von Schnittkurven von Flächen
+- gelochte Schraffuren
+- Zeichnungsableitung 2D -> 3D
+
+
+Anzahl Programmzeilen   147630
+Anzahl Funktionen         1907
+
+
+
+
+==========================================================================
+Neu in Version 0.86 / 2004-10-10:
+
+
+neue Funktionen:
+- Viewer: Mittelpunkt für 3D-Rotation durch Selektion eines beliebigen Vertex
+- CAD: RevolutionSurfaces (Rotationsflächen)
+- CAD: Funktion CUT (trimmen von linearen Elementen)
+- CAD: Funktion TRANSLATE (verschieben / drehen von linearen Elementen)
+- CAD: Funktion PROJECT (lineare Elemente auf Ebene projizieren)
+- CAD: Funktion MIRROR (lineare Elemente um Ebene spiegeln)
+- CAD: Analysefunktionen (Objekt dekodieren,  Abstand / Normalabstand messen)
+- Iges-Import: Getrimmte, gelochte RuledSurfaces (144 - 118) und
+               getrimmte, gelochte RevolutionSurfaces (144 - 120).
+- Iges-Export: B-Spline Flächen Ent. 128 und Rev.Surfaces, Ent. 120.
+- DXF-Export: Ellipsen und B-Spline-Kurven werden als POLYLINE ausgegeben.
+
+
+geaendert:
+- Objekttyp "T" zur Definition geometr. Transformationen (war ToolDef).
+- struct Circ: Oeffnungswinkel ango zugefuegt
+
+
+Anzahl Programmzeilen   140173
+Anzahl Funktionen         1808
+
+
+
+==========================================================================
+Neu in Version 0.84 / 2004-07-08:
+
+neue Funktionen:
+- begrenzte, gelochte Flaechen mit Stuetzflaeche (Ruled, B-Spline,
+  Konisch Toroid).
+
+
+geaendert:
+- Definition f. gelochte planare Flächen
+
+
+Anzahl Programmzeilen   126304
+Anzahl Funktionen         1734
+
+
+
+==========================================================================
+Neu in Version 0.82 / 2004-04-30:
+
+neue Funktionen:
+- Planare gelochte Flaechen aus CIRC / Ellipse / B-Spline / CCV (A = FSUB)
+- Iges-Import u. Export von planaren gelochten Flaechen (Ent. 144,142,102)
+- automatisches Vergroessern aller Datenfelder (realloc)
+- automatisches Laden von Modellen / Programmen (durch Startparameter)
+
+
+geaendert:
+- Alle zur Entwicklung von Zusatzprogrammen erforderlichen Files in
+  Paket -devel- ausgelagert.
+
+
+Anzahl Programmzeilen   123107
+Anzahl Funktionen         1579
+
+
+
+
+
+==========================================================================
+Neu in Version 0.80 / 2004-02-02:
+
+neue Funktionen:
+- interne und externe Submodels
+- Konstruktionsebene frei definierbar
+- neue Iges-Import-Elemente 118,122,144,308,408
+- neue Iges-Export-Elemente 118,308,408
+- RuledSurface aus Grundelement und Vektor
+
+
+geaendert:
+- Startupfile nun <base>tmp/Model_ (war <base>tmp/xa.apt)
+- File/Open nur auf Verzeichnisse in Datei <base>/xa/dir.lst
+- Definition Torus abgeaendert
+
+
+Anzahl Programmzeilen   117749
+Anzahl Funktionen         1509
+
+
+
+
+
+==========================================================================
+Neu in Version 0.77 / 2003-11-14:
+
+Neue Plattform MS-Windows.
+
+neue Funktionen:
+- neue Printertreiber (Postscript(Vektoren), PCL5(via GL), HPGL).
+
+Programming:
+- neues Beispiel Postprozessor (DemoPostProc.*, mit Sourcecode).
+- struct Ellipse geaendert in struct CurvElli (VC98\include\wingdi.h) !!
+- struct Polygon geaendert in struct CurvPoly (VC98\include\wingdi.h) !!
+
+
+
+==========================================================================
+Neu in Version 0.74 / 2003-09-15:
+
+- CAD_Interface fuer planare Flaechen, Flaeche auf Konus, Flaeche auf Torus
+- CAD-Interface fuer die Objekte Konus, Torus.
+- Darstellung getrimmter Flaechen durch integrierte Dreieckszerlegung
+  (Tesselation) fuer planare Flaechen, Flaechen auf Konus, Flaechen auf Torus.
+- Auswahlmenue (Popup) bei Selektion graf. Objekte, wenn mehrere Objekte
+  genau uebereinander liegen.
+- CAD-Interface fuer neue Funktion Schraffur (Menue Flaechen - S)
+- Eingabefenster f. div. Toleranzwerte (Standard/Tolerances)
+- Definition Drehmittelpunkt (ViewZ) verbessert.
+- Fehler beim Resolv Contours korr.
+- Lizenzhinweis LGPL entfernt (Sourcecode nur teilweise frei)
+
+
+
+
+==========================================================================
+Neu in Version 0.72 / 2003-08-04:
+
+- Schnittpunkte Circ/B-Spline, Circ/Ellipse, Ellipse/Ellipse, Ellipse/B-Spline.
+- interaktives Objekt Polygon (im Menü Kurven - S)
+- proj. PT -> Polygon, Tangente an Polygon
+- Schnittpunkte Polygon - Line, Circle, Ellipse, B-Spline, Polygon.
+- Kreise: Bei Vollkreisen mit Z-Vektor nach -Z nun Z-Vektor immer nach +Z
+  (dadurch alte Konturen aus V0.70 tw. defekt)
+
+
+================================== EOF ====================================

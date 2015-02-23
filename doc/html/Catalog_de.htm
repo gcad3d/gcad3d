@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>CAD_PT_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Codes für Normteile</h2>
+
+  
+ 
+Die Funktion CATALOG dient zum Erzeugen / Modifizieren von Normteilen.
+  Siehe <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
+
+Benutzung von Normteilen:
+  In der CAD-Funktion "Submodelle/M CatalogPart" können die
+    Normteile benutzt werden.
+  Nach Auswahl eines Normteil (CatalogPart) aus einer Normteilbibliothek
+    kann der Normteil wie ein subModel positioniert werden.
+  Siehe <a href="CAD_Model_de.htm#F2">CAD-Funktionen für Normteile</a>.
+
+
+  Basis der Normteile sind ein Modell (Dateityp .gcad) und
+    eine Tabelle von Werten (Dateityp .ctlg).
+  Beide Files sind Texte (nicht binär).
+
+  Normteile liegen im symbolischen Verzeichnis "CATALOG".
+    Verzeichnis ändern mit "Standards/Directories".
+
+
+____________________________________________________________________________
+<a name="Adm"></a>
+<b>Modify Catalog</b>
+Damit können zusätzliche Parts in einem Catalog erzeugt werden.
+Auswahl der Normteilbibliothek, dann Modifikation mit einem
+Texteditor.
+
+Alle Normteilbibliotheken befinden sich im Verzeichnis {CATALOG}.
+Eine Normteilbibliothek ist eine Textdatei,
+der Dateiname ist frei wählbar, der Dateityp muss .ctlg sein.
+  
+Jede Zeile einer Normteilbibliothek definiert einen Normteil;
+Zeilen die mit '#' beginnen sind Kommentarzeilen.
+Die Normteildefinition besteht aus:
+{Partname};{SymbolicBaseModelDirectory/BaseModelName};{Parameters}
+Partname:
+  die Bezeichnung des Normteiles; max. 64 Zeichen.
+SymbolicBaseModelDirectory:
+  der symbolische Pfad des Basismodells; siehe Standards/Directories
+BaseModelName:
+  das Basismodell (Typ .gcad)
+Parameters:
+  beliebige gcad-Codes, getrennt durch ';'.
+  Diese Codes werden im Basismodell durch "CALL CTLG" geladen.
+
+
+Beispiel Normteilbibliothek Schrau.ctlg im symDir CATALOG:
+#=================================================
+# SKS: Sechskantschrauben;
+#      V20=NennDmr;V21=Schluesselweite;V22=Kopfdicke;V23=Schaftlaenge
+SKS_6x30;Schrau/SKS;V20=6;V21=10;V22=5;V23=30;
+SKS_10x30;Schrau/SKS;V20=10;V21=17;V22=8;V23=30;
+#=================================================
+# SB: Scheiben
+#     V20=innenDmr;V21=aussenDmr;V22=Dicke
+SB_6;Schrau/SB;V20=6.4;V21=12;V22=1.8;
+SB_10;Schrau/SB;V20=10.5;V21=21;V22=2.5;
+# end of file
+
+
+Beispiel Basismodell SB.gcad:
+# Scheibe
+# V20=innenDmr
+# V21=aussenDmr
+# V22=Dicke
+V20=6.4
+V21=12
+V22=1.8
+CALL CTLG
+# überschreibt die Variablen V20,V21 und V22.
+V23=V20/2
+V24=V21/2
+C20=P(0 0 0) VAL(V23)
+C21=P(0 0 0) VAL(V24) DZ
+C22=P(0 0 V22) VAL(V23)
+C23=P(0 0 V22) VAL(V24) DZ
+A20=C21 C20
+A21=C23 C22
+A22=CYL L(P(0 0 0) DZ) VAL(V24) 0 360 0 V22
+#
+
+
+
+<b>Create Catalog</b>
+Erzeugen einer neuen Normteilbibliothek.
+Der Dateiname ist frei wählbar.
+
+
+<b>Delete Catalog</b>
+Löschen einer Normteilbibliothek.
+
+
+</PRE>
+</HTML>

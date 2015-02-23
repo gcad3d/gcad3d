@@ -1,0 +1,116 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+CAD functions:
+<a href="CAD_using_en.htm">See operating CAD ..</a>
+
+see also <a href="CAD_Base_en.htm#V">Codes Variables</a>
+
+Bodies use shortcut key B.
+
+
+
+<a name="F0"></a>
+  <h2>B Conus PT/PT/R/R                CON</h2>
+Conical body (cone) from 2 points and 2 radii
+   Points: the epicenters of the circles
+
+Format:
+B2 = CON Point1 Point2 Radius1 Radius2
+
+Example:
+B20 = CON P (0 0 0) P (100 0 0) VAL (60) VAL (40)
+
+
+
+<a name="F1"></a>
+  <h2>B Conus Circ,height,radius       CON</h2>
+Conical body (cone) from circle, height and radius at top.
+
+
+Example:
+C20 = P (0 0 0) VAL(100) DX
+B20 = CON C20 VAL(200) VAL(60)
+
+
+
+<a name="F2"></a>
+  <h2>B Torus Axis/R/R                 TOR</h2>
+Torus (circular ring) from central axis, outer circle radius and inner circle radius
+   Outer circle radius is on the outside and is always positive.
+
+B # = TOR LC / / Axle outer circle
+B # = TOR CC / / Main outer circle circle
+B # = TOR RC / / Basic level outer circle
+
+Example:
+B20 = TOR P (0 0 0) DR VAL (100) VAL (25)
+
+
+
+<a name="F3"></a>
+  <h2>B Torus Axis/CI                  TOR</h2>
+Torus (circular ring) from axis circle
+   Region: Horizontal circle
+
+Example:
+C20 = P (100 0 0) VAL (25) DY
+B20 = TOR P (0 0 0) DR C20
+
+
+
+<a name="F4"></a>
+  <h2>B Sphere Center,radius           SPH</h2>
+Sphere center, radius / item / region
+   Point: distance radius from center point
+   Region: only over the radius
+
+# Focal radius
+B1 = SPH P (0 0 0) 12
+
+# Sphere from region:
+C1 = P (0 0 0) 12
+B2 = SPH C1
+
+
+<a name="F5"></a>
+  <h2>B Prism Base Thick/Point(Cone)   PRISM</h2>
+Prism from base area and thickness / Point
+   Base Area: closed polygon (planar) / Circle / Ellipse
+   As a point opposite surface; conical prism.
+
+B = PRISM PlanarBaseSurface Vector / Point / Thickness
+
+Example:
+# Prism circle with a thickness of (cylinder height)
+C20 = P (289 -20.8 0) VAL (125) DR
+B20 = PRISM C20 25
+
+# Prism cone from Polygon
+P20 = P (768 -457 0)
+S20 = POL P20 P (930 -474 0) P (1029 -251 0) P (971 -246 0) P (891 -412 0) P (801 -407 0) P20
+B21 = PRISM S20 | P (900 -500 200)
+
+
+
+<a name="F6"></a>
+  <h2>B Prism Base Vec                 PRISM</h2>
+Prism from base area and vector
+   Base Area: closed polygon (planar) / Circle / Ellipse
+
+Example:
+# Prism of parallelogram and vector
+S20 = P REC (100 0 0) D (50 0 0) D (0 12 0)
+B20 = PRISM S20 D (0 0 10)
+
+
+
+</PRE>
+</HTML>
+

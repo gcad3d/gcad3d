@@ -1,0 +1,4523 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>gCAD3D_de.htm</TITLE>
+	<meta name="generator" content="Bluefish 1.0.5">
+	<meta name="author" content="fwork">
+	<META NAME="CREATED" CONTENT="20031112;9434893">
+	<META NAME="CHANGED" CONTENT="20070902;20151300">
+	<STYLE TYPE="text/css">
+	<!--
+		TD P { color: #000000; font-family: "Helvetica"; font-size: 14pt; font-weight: medium }
+		H1 { color: #000000; font-family: "Helvetica"; font-size: 32pt; font-weight: medium }
+		P { color: #000000; font-family: "Helvetica"; font-size: 14pt; font-weight: medium }
+		H3 { color: #000000; font-family: "Helvetica"; font-size: 16pt; font-weight: medium }
+		H4 { color: #000000; font-family: "Helvetica"; font-weight: medium }
+		BLOCKQUOTE { color: #000000; font-family: "Helvetica"; font-size: 14pt; font-weight: medium }
+		PRE { color: #000000 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" DIR="LTR">
+<P><BR><BR>
+</P>
+<H1><FONT FACE="helvetica, arial, sans-serif">gCAD3D</FONT></H1>
+
+
+
+<P><BR><FONT FACE="helvetica, arial, sans-serif">Version 1.18   /  2008-09-07</FONT></P>
+
+
+<BR><BR><BR><BR>
+
+<P><B>Allgemeines</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Lizenz"><B>Lizenz&nbsp;</B></A>
+	</FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Funktionsweise"><B><FONT FACE="helvetica, arial, sans-serif">Funktionsweise</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Einstellungen__Standards"><B><FONT FACE="helvetica, arial, sans-serif">Einstellungen
+	/ Standards</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Erste_Schritte"><B>Erste
+	Schritte</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Fehler__Offene_Punkte"><B>Fehler
+	/ Offene Punkte</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Versionsinfos_"><B><FONT FACE="helvetica, arial, sans-serif">Versionsinfos</FONT></B></A></P>
+	<LI><P><A HREF="#Support"><B><FONT FACE="helvetica, arial, sans-serif">Autoren
+	/ Support</FONT></B></A></P>
+</UL>
+<P><B>Viewer / Grafikfunktionen</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Ansicht_verschieben_vergr%F6%DFern_drehen"><B>Ansicht
+	verschieben, vergr&ouml;&szlig;ern, drehen</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Z-Ebene_der_Ansicht_definieren"><B>Z-Ebene
+	der Ansicht definieren</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#vordefinierte_Ansichten"><B>vordefinierte
+	Ansichten</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Display_-_Men%FC"><B><FONT FACE="helvetica, arial, sans-serif">Display
+	-Men&uuml;</FONT></B></A></P>
+	<LI><P><A HREF="#Hide__View"><B><FONT FACE="helvetica, arial, sans-serif">Hide
+	/ View</FONT></B></A></P>
+</UL>
+<P><B>Ein-/Ausgabefunktionen</B></P>
+<UL>
+<B><H3>
+	<LI><A HREF="#Open__Save_">Open / Save Model</A>
+	<LI><A HREF="#compress_native_models">compress native models</A>
+	<LI><A HREF="#File__Export_NC-ISO">Export	NC-ISO</A>
+	<LI><A HREF="#Print">Print</A>
+<H3></B>
+</UL>
+<P><B>Funktionen VWR / CAD / MAN</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#GO_-_STEP_-_END"><B>GO
+	- STEP - END</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="CAD_Ace_de.htm#F0"><B><FONT FACE="helvetica, arial, sans-serif">Konstruktionsebene	ConstPln</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Funktionen_VWR"><B><FONT FACE="helvetica, arial, sans-serif">Funktionen	VWR</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Funktionen_CAD"><B><FONT FACE="helvetica, arial, sans-serif">Funktionen	CAD</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Funktionen_Man"><B><FONT FACE="helvetica, arial, sans-serif">Funktionen	MAN</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Funktionen_SMDEL_"><B><FONT FACE="helvetica, arial, sans-serif">Suchen	Messen L&ouml;schen S/M/DEL</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#ANALYZE_-_Funktionen:"><B><FONT FACE="helvetica, arial, sans-serif">Analyze</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Modify"><B><FONT FACE="helvetica, arial, sans-serif">Modify	(Surface-Style / Color / Transparenz / Texture)</FONT></B></A></P>
+</UL>
+<P><B>NC-Funktionen</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Funktionen_NC"><B>Funktionen
+	NC</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Funktionen_DE_GEO"><B>Funktionen
+	NC-Wcut</B></A> </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Funktionen_DE_TEC_"><B>Funktionen
+	NC-Tech</B></A> </FONT>
+	</P>
+</UL>
+<P><B>MultiModelsupport</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Interne_Submodels_"><B><FONT FACE="helvetica, arial, sans-serif">Interne
+	Submodels</FONT></B></A></P>
+	<LI><P><A HREF="#Models"><B><FONT FACE="helvetica, arial, sans-serif">Externe
+	Submodels</FONT></B></A></P>
+</UL>
+<P><B>Programmfunktionen</B></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Format"><B>Format</B></A>
+	</FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Geom.Definitionen"><B><FONT FACE="helvetica, arial, sans-serif">Geom.Definitionen</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Interaktionen_"><B><FONT FACE="helvetica, arial, sans-serif">Interaktionen</FONT></B></A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Graf._Attribute"><B>Graf.
+	Attribute</B></A> </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Programmierumgebung"><B>Programmierumgebung</B></A>
+	</FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#NC-Bearbeitungsfunktionen"><B><FONT FACE="helvetica, arial, sans-serif">NC-Bearbeitungsfunktionen</FONT></B></A></P>
+	<LI><P><A HREF="#APT-Hilfsfunktionen"><B><FONT FACE="helvetica, arial, sans-serif">NC-Hilfsfunktionen</FONT></B></A></P>
+</UL>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Lizenz"></A><FONT FACE="helvetica, arial, sans-serif">Lizenz</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">gCAD3D ist kostenlos
+(Freeware).<BR>gCAD3D darf ohne Einschr&auml;nkung f&uuml;r private
+und kommerzielle Zwecke genutzt werden.<BR>gCAD3D darf kopiert und
+weitergegeben werden.<BR>Zusatzprogramme zu gCAD3D (DLL's)
+unterliegen keiner Einschr&auml;nkung von gCAD3D.<BR><BR>JEDE HAFTUNG
+WIRD AUSGESCHLOSSEN.<BR>JEDE GEW&Auml;HRLEISTUNG WIRD
+AUSGESCHLOSSEN.<BR></FONT><BR><BR>
+</P>
+<BLOCKQUOTE><FONT FACE="helvetica, arial, sans-serif">Copyright (C)
+1999-2007 CADCAM-Services Franz
+Reiter<BR>http://www.gCAD3D.org<BR>franz.reiter@cadcam.co.at</FONT></BLOCKQUOTE>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><BR><BR>
+</P>
+<H3><A NAME="Funktionsweise"></A><FONT FACE="helvetica, arial, sans-serif">Funktionsweise
+</FONT>
+</H3>
+<P><FONT FACE="helvetica, arial, sans-serif">gCAD3D verf&uuml;gt &uuml;ber</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">eigene
+	Import-/Exportprogramme, </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">einen
+	integrierten 3D-OpenGL-Viewer, </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">einen
+	Programminterpreter f&uuml;r Geometrie und NC-Bearbeitung in 3D, </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">einen
+	eigenen integrierten NC-Prozessor </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">ein
+	Programminterface f&uuml;r Anwenderseitige Zusatzprogramme (Plugins)</FONT></P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Die Erzeugung
+der Geometrie / des NC-Programmes erfolgt &uuml;ber -</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">interaktiv
+	erzeugte geometrische Objekte oder </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">manuell
+	erzeugte Befehlestexte oder den </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Importmodule
+	(Dxf, Iges, Step ..) oder durch einen </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">per
+	Programm erzeugten Datenbestand oder durch </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">spezielle
+	Importprozessoren (Anwenderprogramme) </FONT>
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Der Programminterpreter
+bietet die Funktionen zur</FONT></P>
+<UL>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Erzeugung der
+	geometrische Objekte</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">NC-Bearbeitung,
+	direkt und programmgesteuert</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Aufbereitung der
+	Daten (Konturbildung ..)</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Analyse der Daten</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Programmierfunktionen
+	</FONT>
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">F&uuml;r Dokumentationen
+existieren folgende Funktionen:</FONT></P>
+<UL>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Darstellung von
+	2D-Zeichnungen, 3D-Modellen und Fotos (Bitmaps)<BR>im gleichen
+	Darstellungsraum.</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">alle Darstellungen
+	k&ouml;nnen dynamisch generiert werden</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">alle
+	Darstellungsobjekte k&ouml;nnen mit Interaktionen verbunden werden</FONT></P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Mit Modellobjekten
+verkn&uuml;pfte Interaktionen erm&ouml;glichen:</FONT></P>
+<UL>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Modellaufrufe (wie
+	HTML - HREF)</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Programmaufrufe
+	(Plugins starten)</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Ansichtsposition
+	(Viewport) ver&auml;ndern</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">dynamisches
+	Ver&auml;ndern der Modellparameter</FONT></P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Der NC-Prozessor ist
+eine Makroprogramminterpreter; die Makroprogramme befinden sich im
+Verzeichnis &lt;base&gt;/wc/*.mac. Makroprogramme bestehen aus
+Ascii-Texten zur: </FONT>
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Implementierung
+	jeder beliebigen Bearbeitungsstrategie</FONT></P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Kombinierte
+	Zyklen (zB Vorschnitte, Nachschnitte, Trennen)</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Erzeugung von
+	parametrierten Konturteilen (zB. Langloch ..)</FONT></P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Die Ausgabe der
+Daten erfolgt &uuml;ber den -</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">einen
+	Exportmodul (Dxf, Iges)</FONT></P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Standard
+	- ISO - Postprozessor </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">spezialisierte
+	Exportfunktionen (Anwenderprogramme) </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">das systemeigene
+	Format APT3D (Ascii-Textformat) </FONT>
+	</P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Programmintern
+werden&nbsp; ausschliesslich die im Editorfenster befindlichen
+Textdaten gespeichert und bearbeitet.<BR>Die Darstellung wird
+ausschliesslich aus diesen Textcodes generiert.<BR>Analytische Kurven
+und Fl&auml;chen (Ellipsen, Ruled und Revolved Surfaces) werden NICHT
+in Splines / NURBS umgewandelt sondern immer analytisch bearbeitet
+und auch in Orignalform exportiert / gespeichert.<BR><BR>Das
+Programminterface erm&ouml;glicht -</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Erzeugen
+	und Analysieren geometr. Objekte </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">interaktive
+	Dialogfunktionen (Selektionen ..) </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">automatisches
+	Kompilieren und Linken zur Programmlaufzeit </FONT>
+	</P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif">Detailinformationen dazu
+befinden sich in Datei xa/gCAD3D_prog_de.txt.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Automatisierung:</U></B><BR>gCAD3D
+kann automatisch ein Modell laden oder ein Plugin-Programm starten;
+die dazu erforderlichen Startparameter sind in Datei
+gCAD3D_prog_de.txt, Kapitel Startup
+dokumentiert.<BR><BR><BR><B><U>Programmstart:</U></B><BR>Beim
+Programmstart wird automatisch Modell &lt;base&gt;tmp/Model
+eingelesen. Submodels haben die Dateinamen
+&lt;base&gt;tmp/Model_&lt;submodelname&gt;.<BR>Sie k&ouml;nnen diese
+Dateien durch beliebige Vorlaufprogramme erstellen.<BR>Datei
+&lt;base&gt;tmp/Model wird am Programmende automat. erstellt.</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><BR><BR>
+</P>
+<P><A NAME="Einstellungen__Standards"></A><FONT FACE="helvetica, arial, sans-serif"><B>Einstellungen
+/ Standards</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><A HREF="#Einstellungen:"><B>Einstellungen</B></A></FONT></P>
+<P><A HREF="#Standards__Tolerances"><B><FONT FACE="helvetica, arial, sans-serif">Standards
+/ Tolerances</FONT></B></A></P>
+<P><A HREF="#Standards__Text"><FONT FACE="helvetica, arial, sans-serif"><B>Standards</B>
+<B>/ Text</B></FONT></A></P>
+<P><A HREF="#Standards__Directories"><FONT FACE="helvetica, arial, sans-serif"><B>Standards</B>
+<B>/ Directories</B></FONT></A></P>
+<P><A HREF="#Standards__Linetypes"><B><FONT FACE="helvetica, arial, sans-serif">Standards
+/ Linetypes</FONT></B></A></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><A NAME="Einstellungen:"></A><FONT FACE="helvetica, arial, sans-serif"><B>Einstellungen:<BR><BR></B>Div.
+Voreinstellungen (Print-Befehl, Browser) werden aus Datei
+&lt;base&gt;/tmp/xa.rc eingelesen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Fontgr&ouml;sse kann
+in Datei &lt;base&gt;/xa/xa.rc ver&auml;ndert werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Verzeichnisse auf die zB
+mit File/Open zugegrifen werden soll sind in die Datei
+&lt;base&gt;/xa/dir.lst einzutragen (Format: &quot;symbolischerPfadname
+/vollerPfadname/&quot;). <BR>Die interaktive Funktion dazu ist
+<B>Standards/Directories</B> (Schreibrecht ?)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Standardwerte f&uuml;r
+Z-Buffersize, Modelsize, Textsizes befinden sich in Datei
+&lt;base&gt;/xa/gCAD3D.rc.<BR>Die interaktiven Funktionen dazu sind
+<B>Standards/Tolerances</B> und <B>Standards/Text.</B> </FONT>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Setup-Datei f&uuml;r
+die Postscript-Ausgabe ist &lt;base&gt;/xa/psv.setup.</FONT></P>
+<P>&nbsp;</P>
+<HR>
+<P><A NAME="Standards__Tolerances"></A><FONT FACE="helvetica, arial, sans-serif"><B>Standards
+/ Tolerances</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Einstellung der
+(maximalen) Modelsize. Es werden automatisch die Toleranzen davon
+abgeleitet.<BR><B><I><BR>Modify</I></B><BR>&nbsp;Das gesamte Modell
+wird sofort neu berechnet.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><I>Reset</I></B><BR>&nbsp;Es
+werden die (in Datei &lt;base&gt;/xa/gCAD3D.rc) verdefinierten Werte
+geladen.</FONT></P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Standards__Text"></A><FONT FACE="helvetica, arial, sans-serif"><B>Standards
+/ Text</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Es k&ouml;nnen die
+Default-Textgr&ouml;&szlig;en und ein Skalierungsfaktor definiert
+werden.<BR>Die Default-Textgr&ouml;&szlig;e bei Notes wird aktiv,
+wenn keine explizite Textgr&ouml;&szlig;e definiert ist.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><I>Modify<BR></I></B>&nbsp;<I>Das
+gesamte Modell wird sofort neu berechnet.</I></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><I>Reset</I></B><BR>&nbsp;Es
+werden die (in Datei &lt;base&gt;/xa/gCAD3D.rc) verdefinierten Werte
+geladen.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<HR>
+<P><A NAME="Standards__Directories"></A><FONT FACE="helvetica, arial, sans-serif"><B>Standards
+/ Directories</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Alle Verzeichnisse, auf
+die mit File/OpenModel zugegriffen werden soll, m&uuml;ssen hier
+definiert werden.<BR>Es muss f&uuml;r jedes Verzeichnis eine
+symbolische Bezeichnug definiert werden (kann frei gew&auml;hlt
+werden).<BR>Beim Laden von Modellen innerhalb der Programme muss das
+Symbol verwendet werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Es wird der Systemeditor
+mit Datei &lt;base&gt;/xa/dir.lst aufgerufen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Im File/OpenModel -
+Dialog kann mit dem Button &quot;&lt;&lt;---&quot; das Verzeichnis
+gewechselt werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><I>Beispiel
+Unix:</I><BR>Data&nbsp;&nbsp;&nbsp;&nbsp;
+/usr/home/gCAD3D/dat/<BR>IGS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+/mnt/win_d/gCAD3D/Models/igs/</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><I>Beispiel
+MS-Windows:</I><BR>Data&nbsp;&nbsp;&nbsp;&nbsp;
+F:\Programme\gCAD3D\dat\<BR>IGS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+F:\Models\gCAD3D\igs\<BR>CD0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; D:\</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Das symbolische
+Verzeichnis '.' wird durch das momentan aktive Verzeichnis
+ersetzt<BR>
+(z.B. um Texturen aus dem gleichen Verzeichnis wie das native Model zu laden).</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Standards__Linetypes"></A><B>Standards / Linetypes</B></P>
+<P>Im Verzeichnis &lt;base&gt;/tmp/ltyp.rc befindet sich die
+Linientypentabelle.<BR>Die Originaldatei ist &lt;base&gt;/xa/ltyp.rc.</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Es wird der Systemeditor
+mit dieser Datei aufgerufen, es k&ouml;nnen zus&auml;tzliche
+Linientypen (bis dzt max 50) definiert werden. </FONT>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Diese Tabelle ist f&uuml;r
+alle momentan geladenen Submodelle g&uuml;ltig.<BR>Diese Tabelle wird
+nicht mit den Modellen abgespeichert; im Modell wird nur der
+Tabellenindex gespeichert.</FONT></P>
+<P>Beispiel:<BR>Die Objekte L20 und L21 sind
+d&uuml;nn,strichliert:<BR>Linetyp 2 (G2) ist definiert in Datei
+ltyp.rc mit:<BR>2 0 2 1 &nbsp; (Index 2, Farbe Standard (0=schwarz),
+Linetyp strichliert (2), Liniendicke Standard (1=d&uuml;nn)).</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Erste_Schritte"></A><FONT FACE="helvetica, arial, sans-serif"><B>Erste
+Schritte</B></FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">-
+Laden sie ein Modell (File / Open Model / sample1.gcad, OK).<BR><BR><BR>-
+<B>END</B> - Button:</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Es
+wird das gesamte Programm, beginnend in der ersten Zeile,&nbsp; bis
+zum Dateiende abgearbeitet. Dadurch erst wird auch die Geometrie
+dargestellt.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>-
+<B>Scal.All</B> - Button:</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Vergr&ouml;&szlig;erung
+und Darstellungsmittelpunkt werden optimiert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Weiter mit
+<A HREF="#Ansicht_verschieben_vergr%F6%DFern_drehen">Ansicht
+verschieben, vergr&ouml;ssern, drehen.</A><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Fehler__Offene_Punkte"></A><FONT FACE="helvetica, arial, sans-serif"><B>Fehler
+/ Offene Punkte</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>- Funktionen zur
+Erzeugung von Kreisen tangential an Polygon, Ellipse, Spline
+fehlen.<BR>&nbsp;&nbsp;&nbsp; (Kreise k&ouml;nnen dzt nur tangential
+an Linien und Kreise erzeugt werden).</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Funktionen zur
+Erzeugung von Kreisen tangential an drei Objekte fehlen.<BR>&nbsp;&nbsp;&nbsp;
+(dzt nur Kreis durch 3 Punkte).</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Funktionen zur
+Erzeugung von Tangenten an Ellipse und B-Spline fehlen noch.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Curve = Intersection
+Surface X Surface fehlt noch.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Project und Mirror dzt
+nur f&uuml;r einzelne Objekte, nicht f&uuml;r CCV (dzt nur
+Translate).</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Zur Modifikation von
+B-Splines ist ein interaktiver Editor zu erstellen</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Transformation von
+3D-Text: werden dzt immer in die X-Y-Ebene gesetzt.<BR><BR>- NC:
+NC-Bearbeitungen werden grafisch noch nicht ins aktive Referenzsystem
+transformiert.<BR><BR>- NC-Funktionen f&uuml;r Submodels
+(NC-Unterprogramme) noch nicht fertig implementiert</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Funktionen zur
+Erzeugung von Schnittkurven von Fl&auml;chen noch nicht fertig
+implem.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">-&nbsp; Funktion zum
+interaktiven Positionieren von subModellen bis zu einer
+Kontaktposition</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Zeichnungsableitung 2D
+-&gt; 3D noch nicht implementiert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- bei Schraffuren keine
+Inseln m&ouml;glich</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">- Die
+Programmierschnittstellen sind nur teilweise dokumentiert.</FONT></P>
+<P><BR><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Support"></A><FONT FACE="helvetica, arial, sans-serif"><B>Autoren
+/ Support</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><U>Autoren:</U> </FONT>
+</P>
+<TABLE WIDTH=100% CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P><B>Franz Reiter</B><BR>UserInterface, gtk-Interface,
+			OpenGL-Interface, Integration.</P>
+		</TD>
+		<TD>
+			<P>franz.reiter@cadcam.co.at 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P><B>Thomas Backmeister</B><BR>Alle Spline- und
+			Bezier-Funktionen,<BR>subDivisionSurfaces (coming soon ..) 
+			</P>
+		</TD>
+		<TD>
+			<P>t.backmeister @ gmx.at</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><B>Karl Sauer</B><BR>Wertvolle Tips zur Konturverarbeitung</P>
+		</TD>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>Vielen Dank auch den Entwicklungsteams von Gtk, Mesa, Vim,
+Gcc und Gdb. <BR><BR>Prim&auml;re Entwicklungsplattform ist Linux;<BR>&nbsp;
+jede Version wird nach MS-Windows portiert. <BR><BR>Wenn Sie zu
+weiteren Funktionen oder zur Dokumentation beitragen m&ouml;chten,
+schicken Sie bitte eine Mail an franz.reiter@cadcam.co.at. 
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Ansicht_verschieben_vergr&ouml;&szlig;ern_drehen"></A><FONT FACE="helvetica, arial, sans-serif"><B>Ansicht
+verschieben, vergr&ouml;&szlig;ern, drehen</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><B>Verschieben</B><BR>der
+gesamten Grafik durch Dr&uuml;cken der Shifttaste und verschieben der
+Maus.<BR>(Halten Sie die Shifttaste gedr&uuml;ckt, keine Maustaste
+dr&uuml;cken).<BR><BR><BR><B>3D-Rotation</B><BR>der gesamten Grafik
+durch Dr&uuml;cken der Controltaste (&quot;Strg&quot;) und
+verschieben der Maus.<BR>Horizontales verschieben der Maus dreht den
+Teil um seine Z-Achse.<BR>Der Drehmittelpunkt ist immer automatisch
+der Bildschirmmittelpunkt.<BR>Vertikales verschieben der Maus kippt
+den Teil in der Bildebene.<BR>Siehe: <A HREF="#Z-Ebene_der_Ansicht_definieren">Bestimmen
+der Z-Ebene der Drehung</A>.<BR><BR><BR><B>Vergr&ouml;&szlig;ern /
+Verkleinern</B><BR>der gesamten Grafik durch Dr&uuml;cken der
+Shifttaste und der Controltaste.<BR>Von oben nach unten verschieben
+bewirkt ein Vergr&ouml;ssern.<BR><BR><BR><B>Scal.All</B> -
+Button:<BR>bewirkt ein Zur&uuml;cksetzen der Grafikverschiebung und
+Vergr&ouml;&szlig;erung auf einen optimalen Wert.<BR>Es werden die
+Vergr&ouml;sserung und der Darstellungsmittelpunkt automatisch
+berechnet.<BR><BR><BR><B>Scal.Fix</B> - Button:<BR>Einstellen einer
+fixen, vordefinierten Vergr&ouml;sserung, entsprechend dem Wert
+MODSIZ (ungef&auml;hre Maximalgr&ouml;&szlig;e des Modells).
+Standardwert ist 500 mm.<BR>&Auml;nderung MODSIZ durch Funktion
+Standards / Tolerances oder durch Command<BR>MODSIZ &lt;wert&gt;<BR><BR><BR><B>Clear</B>
+- Button:<BR>Zum L&ouml;schen der gesamten Grafik. Es k&ouml;nnen nun
+im STEP - Mode einzelne Objekte dargestellt werden; <BR><BR><BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="Z-Ebene_der_Ansicht_definieren"></A><FONT FACE="helvetica, arial, sans-serif"><B>Z-Ebene
+der Ansicht definieren</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Die momentan aktive
+Ebene f&uuml;r das interaktive Drehen wird durch ein gelbes Rechteck
+angezeigt.<BR>Ver&auml;ndern durch:</FONT></P>
+<UL>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Selektion eines
+	Vertexpunktes als neuen Mittelpunkt (Vertices sind Polygonpunkte,
+	alle Kurven / Kreise werden als Polygone dargestellt. Linien jedoch
+	haben nur an den Endpunkten Vertices). &nbsp;&nbsp; Oder -</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">Eingabe des neuen
+	Z-Wertes in das Z-Eingabefeld (neben den Ausgabefeldern f&uuml;r die
+	aktuelle Cursorposition, mit Return abschliessen) oder:</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">selektieren der
+	neuen Darstellungsebene:<BR>Schieben Sie jenen Punkt, um den nun
+	gedreht werden soll, genau in die Bildschirmmitte.<BR>Checkbutton
+	<B>RotCen </B>aktivieren.<BR>Nun Ansicht drehen; der rote Punkt in
+	der&nbsp;Bildschirmmitte wird zu einer Kette von Punkten.<BR>Nun
+	jenen roten Punkt ausw&auml;hlen, der dem gew&uuml;nschten Drehpunkt
+	am n&auml;chsten liegt.</FONT></P>
+	<P></P>
+</UL>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Darstellungsebene
+(erkennbar durch ein gelbes Rechteck) wird verschoben, die Drehachse
+f&uuml;r das interaktive Drehen wird in die definierte Ebene
+verlegt.<BR><BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="vordefinierte_Ansichten"></A><FONT FACE="helvetica, arial, sans-serif"><B>vordefinierte
+Ansichten</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>TopView</B> -
+Draufsicht (Ansicht X-Y)<BR><B>FrontView</B> - Seitenansicht (Ansicht
+X-Z)<BR><B>SideView</B> - Seitenansicht (Ansicht Y-Z)<BR><B>AxoView</B>
+- Axonometrische Ansicht<BR><BR><B><BR></B></FONT><BR><BR>
+</P>
+<H3><A NAME="Display_-_Men&uuml;"></A><FONT FACE="helvetica, arial, sans-serif"><B>Display
+- Men&uuml; </B></FONT>
+</H3>
+<P><FONT FACE="helvetica, arial, sans-serif">
+<B>Names:<BR></B>
+&nbsp; Darstellung der Namenstexte
+der Elemente; also zB &quot;P20&quot;.<BR>&nbsp; Darstellung der
+Richtung aller Bearbeitungswege durch Richtungspfeile.<BR><BR><B>NC-Text:</B><BR>&nbsp;
+Darstellung der NC-Hilfsfunktionen (als Text) an den jeweiligen
+Positionen.<BR>&nbsp; Dargestellt werden z.B. alle Insert-Texte,
+STOP, ....<BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="Hide__View"></A><FONT FACE="helvetica, arial, sans-serif"><B>Hide
+/ View</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Hide:</B> es werden
+beliebige graf. Objekte ausgeblendet.<BR><B><BR>View:</B> es werden
+nur alle momentan ausgeblendeten Elemente angezeigt; selektieren Sie
+Elemente, die wieder dargestellt werden sollen. <BR><BR><BR><BR><BR><BR></FONT><BR><BR>
+</P>
+
+
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="compress_native_models"></A><B>compress_native_models</B></H3>
+<PRE>
+Der Dateityp unkomprimierter Dateien ist .gcad;
+Der Dateityp komprimierter Dateien ist .gcaz.
+Die Komprimierung erfolgt mit "gzip -qc {unkompr.} &gt; {kompr.}"
+Die DeKomprimierung erfolgt mit "gzip -dqc {kompr.} &gt; {unkompr.}"
+Somit kann man in Unix und MS-Windows Modelle auch mit der
+Standardfunktion gzip komprimieren / dekomprimieren.
+
+Die Kompressionsrate ist etwa 70 %.
+
+------------------
+the filetype for uncompressed files is .gcad;
+the filetype for the compressed files is .gcaz;
+compression is done with "gzip -qc <fnFrom> > <fnTo>"
+decompression is done with "gzip -dqc <fnFrom> > <fnTo>"
+This works for Unix and MS-Win and you can compress and
+decompress the models at any time without a cad-system.
+
+The compressionrate is around 70 percent.
+
+
+
+</PRE>
+
+
+
+
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Open__Save_"></A><FONT FACE="helvetica, arial, sans-serif"><B>Open
+/ Save Model</B></FONT></H3>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>File / New</B><BR>Modelspace
+und alle Submodelspaces l&ouml;schen.</FONT></P>
+<P><B><FONT FACE="helvetica, arial, sans-serif"><BR>File / Open
+Model<BR></FONT></B><SPAN STYLE="font-weight: medium"><FONT FACE="helvetica, arial, sans-serif">Laden
+oder importieren eines Modells. Dateien werden <SPAN STYLE="font-weight: medium">entsprechend
+dem Filetyp</SPAN></FONT></SPAN><FONT FACE="helvetica, arial, sans-serif"><B>
+</B><SPAN STYLE="font-weight: medium">automatisch umgewandelt,<BR>f&uuml;r
+Mockup-Modelle und Bitmaps wird ein&nbsp; Import-Befehl
+generiert.<BR>Verzeichnis: siehe <A HREF="#Standards__Directories">Standards/
+Directories.</A></SPAN></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Import__Export_-_DXF">Import
+/ Export DXF</A><BR><A HREF="#Import__Export_-_Iges">Import / Export
+Iges</A><BR><A HREF="#Import_Step">Import Step</A><BR>Import STL
+(Ascii)<BR>Import 3DS<BR>Import LWO</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Mockup-Modelle:</U><BR>Mockup-Modelle
+sind fertig tesselierte Modelle, die besonders schnell importiert
+werden.<BR>Ein Modell kann als Mockup-Modell in den Formaten VRML-1
+oder WaveFront-OBJ oder TESS importiert / exportiert werden. Ein
+Mockup-Modell selbst kann nicht mehr exportiert
+werden.<BR>Mockup-Modelle k&ouml;nnen nur aus Verzeichnissen, die mit
+einem symbolischen Pfad definiert sind, importiert werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Import__Export_VRML-1">Import
+/ Export VRML-1</A><BR><A HREF="#Export_VRML-2">Export VRML-2
+(VRML-97)</A><BR><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Import__Export_WaveFront-OBJ">Import
+/ Export WaveFront-OBJ</A><BR><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Import__Export_TESS">Import
+/ Export TESS</A></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Bitmap-Modelle:<BR></U>Damit
+k&ouml;nnen Pixel-Images in den 3D-Raum geladen werden.</FONT></P>
+<P><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Import_Bitmap"><FONT FACE="helvetica, arial, sans-serif">Import
+Bitmaps</FONT></A></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>File / Open Model new
+Dir</B><BR>Laden eines Modells aus einem allgemeinen
+Verzeichnis.<BR>Nach der Dateiauswahl wird&nbsp; ein symbolischer
+Pfadname abgefragt, der dann bei den Standardverzeichnissen
+eingetragen wird.<BR>Verzeichnis: siehe <A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Standards__Directories">Standards/
+Directories.</A></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>File /
+Insert:<BR></B><SPAN STYLE="font-weight: medium">SubModelle werden
+nicht gel&ouml;scht.<BR>Mockup-Modelle (wrl): Es wird ein
+entsprechender Ladebefehl zugef&uuml;gt.<BR>Iges,Step-Modelle: <SPAN STYLE="font-weight: medium">die
+Modelld<SPAN STYLE="font-weight: medium">aten werden an das
+bestehende Modell zugef&uuml;gt.</SPAN></SPAN><BR><SPAN STYLE="font-weight: medium">Native
+Modelle (.gcad): werden derzeit als Hauptmodell geladen.<BR>&nbsp;
+Mehrere native Modelle laden:<BR>&nbsp; &nbsp; Insert, dann
+subModels/move_main_--&gt;_new-subModel, internes subModel
+positionieren.</SPAN></SPAN></FONT></P>
+<P STYLE="font-weight: medium"><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P STYLE="font-weight: medium"><FONT FACE="helvetica, arial, sans-serif"><B>Import
+Mockup native</B><BR><U>Schalterstellung EIN:</U> das nachfolgend
+geladene Modell (dzt nur OBJ) wird als native Modell geladen.<BR>Damit
+kann es wieder zB als WRL oder TESS exportiert
+werden.<BR><U><BR>Schalterstellung AUS:</U> (Standard) Nachfolgend
+wird ein obj-Modell als Mockup-Modell geladen (wird somit besonders
+schnell galden, kann aber nicht mehr ver&auml;ndert / exportiert
+werden).</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><SPAN STYLE="font-weight: medium"><BR></SPAN><B>Save
+Model<BR></B><SPAN STYLE="font-weight: medium">abspeichern (nur
+native) mit dem aktuellen Modelnamen.<BR>F&uuml;r <SPAN STYLE="font-weight: medium">native
+Daten sollte <SPAN STYLE="font-weight: medium">Dateiendung .gcad
+verwendet werden.<BR>Native Daten sind die im Editfenster angezeigten
+Texte).</SPAN></SPAN></SPAN></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Save Model
+as<BR></B><SPAN STYLE="font-weight: medium">abspeichern mit einem
+neuen Modelnamen. <SPAN STYLE="font-weight: medium">Das Format wird
+entsprechend dem Filetyp gew&auml;hlt.<BR>Bereits tesselierte Modelle
+(Mockups) k&ouml;nnen nicht mehr tesseliert werden.<BR>Es wird das
+Hauptmodell mit allen internen Submodellen gespeichert.</SPAN></SPAN></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Save Model new
+Dir<BR></B>abspeichern in einem allgemeinen Verzeichnis.</FONT></P>
+<P><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Import__Export_-_DXF"></A><FONT FACE="helvetica, arial, sans-serif"><B>Import
+/ Export - DXF</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Liste der unterst&uuml;tzten
+DXF - Objekttypen:</FONT></P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<P><I>Typ</I></P>
+		</TD>
+		<TD>
+			<P><I>Import</I></P>
+		</TD>
+		<TD>
+			<P><I>Export</I></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>POINT</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>VERTEX</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>LINE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>CIRCLE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>ARC</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>POLYLINE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>3DLINE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>TEXT</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>3DFACE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>DIMENSION</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>HATCH</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>ELLIPSE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>LWPOLYLINE</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>MTEXT</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>BLOCK/INSERT 
+			</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+		<TD>
+			<P>-</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Ellipsen und
+B-Spline-Kurven werden als POLYLINE ausgegeben.<BR><BR>Gedimmte
+(&quot;DIM&quot;) und mit DRAW OFF ausgeblendete Objekte werden nicht
+exportiert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Export: es werden die
+tesselierten Surfaces als 3DFACE's ausgegeben.<BR>&nbsp; &nbsp;
+(Anzahl 3-Ecke: Standards/Tolerances).<BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="Import__Export_-_Iges"></A><FONT FACE="helvetica, arial, sans-serif"><B>Import
+/ Export - Iges</B></FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Liste
+der unterst&uuml;tzten Iges - Objekttypen:</FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<P><I>Typ</I></P>
+		</TD>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P><I>Import</I></P>
+		</TD>
+		<TD>
+			<P><I>Export</I></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Punkt 
+			</P>
+		</TD>
+		<TD>
+			<P>116 &nbsp; 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Linie 
+			</P>
+		</TD>
+		<TD>
+			<P>110 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Kreis 
+			</P>
+		</TD>
+		<TD>
+			<P>100 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Par.Spline 
+			</P>
+		</TD>
+		<TD>
+			<P>112 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>B-Spl.Kurve 
+			</P>
+		</TD>
+		<TD>
+			<P>126 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>B-Spl.Fl&auml;che &nbsp; 
+			</P>
+		</TD>
+		<TD>
+			<P>128 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Polylines 
+			</P>
+		</TD>
+		<TD>
+			<P>106 Form 11,12 &nbsp; 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>CompositeCurve 
+			</P>
+		</TD>
+		<TD>
+			<P>102 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Text 
+			</P>
+		</TD>
+		<TD>
+			<P>212 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Ebene 
+			</P>
+		</TD>
+		<TD>
+			<P>108 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Ellipse 
+			</P>
+		</TD>
+		<TD>
+			<P>104 Form 1 
+			</P>
+		</TD>
+		<TD>
+			<P>X4 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Subfig.Def. 
+			</P>
+		</TD>
+		<TD>
+			<P>308 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>Subfig.Ref. 
+			</P>
+		</TD>
+		<TD>
+			<P>408 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>RuledSurface 
+			</P>
+		</TD>
+		<TD>
+			<P>118 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>Rev.Surface 
+			</P>
+		</TD>
+		<TD>
+			<P>120 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>Zylinderfl&auml;che 
+			</P>
+		</TD>
+		<TD>
+			<P>122 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>5)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>CurveOnSurf 
+			</P>
+		</TD>
+		<TD>
+			<P>142 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TrimmedSurf. 
+			</P>
+		</TD>
+		<TD>
+			<P>144 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+		<TD>
+			<P>X 
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>X4&nbsp;&nbsp;&nbsp;
+dzt noch nicht: Hyperbel, Parabel (Form 2, 3).<BR>5)&nbsp;&nbsp;&nbsp;
+Ausgabe als Rev.Surf oder RuledSurf.</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Getestet mit CATIA-V4
+und CATIA-V5 (V5: Subfigures werden aufgel&ouml;st
+(kopiert)).<BR>Referenzen auf Externe SubModels werden noch nicht
+exportiert.<BR>Gedimmte (&quot;DIM&quot;) und mit DRAW OFF
+ausgeblendete Objekte werden nicht exportiert.<BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="Import_Step"></A><FONT FACE="helvetica, arial, sans-serif">Import
+Step</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Es k&ouml;nnen STEP
+ISO-10303-21 - AP203 - AP214 - Files importiert werden.<BR>Die
+Import-Funktionen basieren nicht auf den Express-Funktionen.<BR>Getestet
+mit CATIA-V4 und CATIA-V5.</FONT></P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Import__Export_VRML-1"></A><FONT FACE="helvetica, arial, sans-serif">Import
+/ Export VRML-1</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">VRML-1-Modelle werden
+als Mockups (Modell nicht ver&auml;nderbar) importiert / exportiert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>EXPORT:<BR>&nbsp;-
+kann Assemblies (subModels) exportieren<BR>&nbsp;- kann
+Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren</FONT></P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Export_VRML-2"></A><FONT FACE="helvetica, arial, sans-serif">Export
+VRML-2&nbsp; (VRML-97)</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">
+- kann Assemblies(subModels) exportieren<BR>
+- kann Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren<BR>
+- kann Texturen noch nicht exportieren</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Import__Export_WaveFront-OBJ"></A><FONT FACE="helvetica, arial, sans-serif">Import
+/ Export WaveFront-OBJ</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Es werden derzeit nur
+OBJ-Ascii-Dateien importiert / exportiert.<BR>OBJ-Dateien k&ouml;nnen
+als Modelle (ver&auml;nderbar) und Mockup-Modelle (nicht ver&auml;nderbar)
+geladen werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Es werden nur die
+folgenden Objekttypen importiert / exportiert:<BR>v&nbsp;&nbsp;&nbsp;
+(Vertices)<BR>f&nbsp;&nbsp;&nbsp;&nbsp; (Faces)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>EXPORT:<BR>&nbsp;-
+kann dzt exportierte Submodelle nicht positionieren<BR>&nbsp;- kann
+Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren</FONT></P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Import__Export_TESS"></A><FONT FACE="helvetica, arial, sans-serif">Import
+/ Export TESS</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Es werden die Bin&auml;rdaten
+der fertig tesselierten Fl&auml;chen in eine Datei mit Dateityp .tess
+ausgegeben (also nur Mockup-Modelldaten).<BR>Beschreibung Dateiformat
+in Datei gCAD3D_prog_de.txt.<BR>Demo-Programm folgt.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">EXPORT:<BR>&nbsp;- kann
+dzt nur single Models (keine subModels) exportieren<BR>&nbsp;- kann
+Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Import_Bitmap"></A><FONT FACE="helvetica, arial, sans-serif">Import
+Bitmap</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Bitmaps werden im normal
+zur Ansichtsfl&auml;che dargestellt (2D-Raum), werden am linken
+unteren Eckpunkt im 3D-Raum positioniert.<BR>Bitmaps werden dynamisch
+oder fix skaliert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Es k&ouml;nnen Files im Format JPG oder BMP importiert werden.</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H3><A NAME="File__Export_NC-ISO"></A><FONT FACE="helvetica, arial, sans-serif"><B>File
+/ Export NC-ISO</B></FONT></H3>
+<P>&nbsp; <FONT FACE="helvetica, arial, sans-serif">Ausgabe der
+NC-Bearbeitungscodes in Datei &lt;base&gt;/tmp/pp.iso.<BR>&nbsp;
+Weitere Postprozessoren auf Anfrage.<BR><BR></FONT><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Print"></A><FONT FACE="helvetica, arial, sans-serif"><B>Print</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Auswahl
+Ausgabformat:</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">PS&nbsp;
+	(ab V.076 Vektorformat) </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">PCL5
+	(GL-Format)</FONT></P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">HP-GL </FONT>
+	</P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Auswahl
+Format:</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">A4
+oder A3 (nur f&uuml;r Ausgabeformat PCL5)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Auswahl Funktion:</FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">mit
+	Viewer anzeigen (nur f&uuml;r Ausgabeformat PS, voreingestellt ist
+	der Postscriptviewer gv) </FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">ausgeben
+	in Datei (voreingestellt ist Dateiname /tmp/print.dat) </FONT>
+	</P>
+	<LI><P><FONT FACE="helvetica, arial, sans-serif">direkt ausdrucken
+	(voreingestellt ist Command &quot;lpr -l -P&lt;Defaltdrucker&gt;&quot;)
+	</FONT>
+	</P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Es
+werden keine schattierten Fl&auml;chen ausgegeben (dazu kann zB
+Programm ksnapshot benutzt werden).<BR><BR>Funktionsweise:</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Es
+wird eine Zwischendatei &lt;base&gt;/tmp/print.tmp erzeugt; diese
+wird dann in das gew&auml;hlte Ausgabeformat umgewandelt.<BR>Die
+Ausgabe kann um 90 Grad gedreht werden, skaliert und (mit Offset)
+verschoben werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><BR><BR>
+</P>
+<H3><A NAME="GO_-_STEP_-_END"></A><FONT FACE="helvetica, arial, sans-serif"><B>GO
+- STEP - END</B></FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Diese
+Buttons bewirken die Bearbeitung bestimmter Programmteile. Die
+Verarbeitung bewirkt die Darstellung der Objekte.<BR><BR><BR><B>GO</B></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Mit
+dem GO - Button wird das gesamte Programm, beginnend in der ersten
+Zeile,&nbsp; bis zur aktuellen Zeile abgearbeitet.<BR>Mit der
+ESCAPE-Taste kann der Ablauf unterbrochen werden.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR><B>STEP</B></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Mit
+dem STEP - Button k&ouml;nnen die APT-Zeilen einzeln ausgef&uuml;hrt
+werden.<BR>Zum Darstellen eines einzelnen Elementes aktivieren sie
+CLEAR, dann STEP; es wird nur die aktuelle Zeile dargestellt.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR><B>END</B></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Mit
+dem END - Button wird das gesamte Programm, beginnend in der ersten
+Zeile,&nbsp; bis zum Dateiende abgearbeitet.<BR>Mit der ESCAPE-Taste
+kann der Ablauf unterbrochen werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Funktionen_VWR"></A><FONT FACE="helvetica, arial, sans-serif">Funktionen
+VWR</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">gCAD startet in diesem
+Modus.<BR>Im Modus VWR&nbsp; (&quot;Viewer&quot;) k&ouml;nnen Objekte
+nicht modifiziert / gel&ouml;scht werden.<BR>Von selektierten
+Objekten werden nur die Objektnamen angezeigt.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Der Toolbar und der
+Messagebar k&ouml;nnen ausgeblendet werden (Men&uuml; Options).</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Standardwerte
+(Modelsize ..) k&ouml;nnen ver&auml;ndert / abgespeichert werden.</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Funktionen_CAD"></A><FONT FACE="helvetica, arial, sans-serif"><B>Funktionen
+CAD</B></FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Aktivieren
+Sie die CAD-Checkbox.<BR><BR><BR><BR><B><U>Erzeugen von
+Objekten:</U></B><BR>Selektieren sie eine Funktion. Es werden nun
+alle erforderlichen Eingabefelder angezeigt; die Eingaben erfolgen
+durch Selektion, Indicate&nbsp; oder mit der Tastatur. (Indicate:
+Anzeige einer Position mit der Maus; linke Maustaste).<BR>Schliessen
+Sie Tastatureingaben mit der Tab-Taste ab.<BR>Sind alle
+erforderlichen Eingaben gemacht, wird das Element angezeigt. <BR>Alle
+Eingabewerte k&ouml;nnen noch ver&auml;ndert werden, die Anzeige wird
+sofort korrigiert (die Werte werden mit der Tab-Taste &uuml;bergeben).<BR>Mit
+der Esc-Taste wird das zuvor belegte Eingabefeld gel&ouml;scht.<BR>Mit
+dem OK-Button oder der Eingabetaste (&quot;Return&quot;) oder
+RechteMaustaste wird das Objekt erzeugt.<BR>Bei der Eingabe von
+Vektoren, Variablen oder Modifikatoren k&ouml;nnen Sie mit Hilfe der
+PageUp &nbsp;oder PageDown - Tasten aus den vorhandenen Werten
+ausw&auml;hlen.<BR><BR><BR><BR><B><U>Modifikation von
+Objekten:</U></B><BR>Selektieren Sie die Checkbox S/M/DEL, dann
+selektieren sie das geometrische Objekt.<BR><BR>Wenn Sie nun <B>Modify</B>
+selektieren (oder rechte Maustaste) wird die erzeugende CAD-Funktion
+gerufen und alle erzeugenden Parameter in die Eingabeboxen
+eingetragen.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Als
+aktive Funktion wird &quot;MODIFY&quot; angezeigt.<BR>Modifizieren
+Sie die Parameter (- wie Funktion Erzeugen).<BR>Button Exit (oder
+Ctrl rechte Maustaste) schalten zur&uuml;ck in die Funktion &quot;ADD&quot;
+(hintanf&uuml;gen).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><B><U>Selektion
+von Objekten:</U></B><BR>Im Men&uuml; &quot;Select&quot; gibt es
+folgende Hilfsfunktionen:<BR>PT &lt;-- ObjectPoint<BR>&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp; Es wird der dem Cursor n&auml;chstliegende Objektpunkt
+selektiert (zB Startpunkt einer Linie)<BR>PT &lt;-- Vertex<BR>&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp; Es werden die Koordinaten des dem Cursor n&auml;chstliegenden
+Vertexpunkts ausgegeben<BR>PT &lt;-- Position<BR>&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp; Es werden die Koordinaten des Cursor auf der aktiven
+Konstruktionsebene ausgegeben</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><A NAME="L&ouml;schen_von_Objekten:"></A>
+<FONT FACE="helvetica, arial, sans-serif"><BR><B><U>L&ouml;schen von
+Objekten:</U></B><BR>Aktivieren Sie S/M/DEL, selektieren Sie das zu
+l&ouml;schende Objekt; dr&uuml;cken Sie Taste &quot;Entf&quot;
+(Delete).<BR>Es werden nun alle vom selektierten Objekt abh&auml;ngigen
+Objekte gezeigt; wird kein weiteres abh&auml;ngiges Objekt mehr
+gefunden, werden alle gel&ouml;scht.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Wieder
+zur&uuml;ckholen mit Esc&nbsp.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Entfernen
+aller gel&ouml;schten Zeilen mit &quot;Alt&quot; + &quot;Esc&quot;&nbsp;&nbsp;
+(Modify / APT-Clean).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Checkbox
+newObj:<BR></U></B>Nur f&uuml;r den Funktionsblock
+CUT/Translate/Project/Mirror.<BR>Modifiziert das Objekt
+(Eingabeobjekt Nr. 1) oder erstellt ein neues, modifiziertes Objekt.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><B><U>LineEdit-Box</U></B>
+(zur Eingabe von Konturen / Punkteketten):<BR>durch setzen der
+Cursorposition (ins Textfenster klicken) wird die Grafik bis zur
+Cursorposition dargestellt.<BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Funktionen_Man"></A><FONT FACE="helvetica, arial, sans-serif"><B>Funktionen
+MAN</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><I>Erzeugen von
+Objekten:</I></U><BR>Eingabe der Programmcodes im Editfenster.<BR><BR>Die
+Objektheader werden mit Alt-P (Punkt) bzw Alt-L (Linie), Alt-C
+(Kreis) erzeugt (nur am Beginn einer neuen Zeile).<BR>Die rechte
+Maustaste impliziert am Dateiende ein CR (die Return-Taste).<BR>Es
+k&ouml;nnen folgende Editfunktionen benutzt werden:<BR>Selektieren
+mit ShiftCursorLinks oder rechts;<BR>Selektieren mit der Maus, inur
+Unix: mittlere Maustaste zum Einf&uuml;gen;<BR>Ctrl X zum
+Ausschneiden und Kopieren<BR>Ctrl C zum Kopieren;<BR>Ctrl V zum
+Ausgeben.<BR>Taste Delete (&quot;Entf&quot;) zum L&ouml;schen;<BR>mit
+Ctrl-Entf/Delete k&ouml;nnen gel&ouml;schte Programmcodes wieder
+eingef&uuml;gt werden.<BR>Die Esc-Taste l&ouml;scht die zuletzt
+eingegebene Zeile.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>
+<I>Suchen von Objekten:</I></U>&nbsp; <A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Funktionen_SMDEL_">S/M/DEL.</A></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><U><I>Modifikation
+von Objekten:</I></U><BR>Selektieren Sie die Checkbox S/M/DEL, dann
+selektieren sie das geometrische Objekt.<BR>Wenn Sie nun <B>Modify</B>
+selektieren (oder rechte Maustaste) wird der Programmcode selektiert
+dargestellt und der Cursor gesetzt. Die Korrektur muss manuell
+erfolgen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><U><I>L&ouml;schen
+von Objekten:</I></U>&nbsp; <A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#L&ouml;schen_von_Objekten:">L&ouml;schen.</A></FONT></P>
+<P><I><U><BR>Programmcode erzeugen:</U></I></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Beispiel:<BR>Geben Sie
+mit der Tastatur ein:<BR>Alt-P &nbsp; &nbsp;(erzeugt den Objektheader
+&quot;P20=&quot;);<BR>Linke Maustaste im Grafikfenster (erzeugt&nbsp;
+&quot; P(100 100)&quot;);<BR>Rechte Maustaste (impliziert
+Return-Taste; der entsprechende Punkt wird angezeigt).<BR>P20=P(100
+100)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Programmcodes: siehe
+</FONT><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Geom.Definitionen"><FONT FACE="helvetica, arial, sans-serif">Programmfunktionen.</FONT></A></P>
+<P><BR>In MAN wird (von gtk) charset UTF8 verwendet.</P>
+<P>Achtung: Parametrische Definition f&uuml;r Punkte werden nur im
+Modus CAD erzeugt !</P>
+<P><BR><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Funktionen_SMDEL_"></A><FONT FACE="helvetica, arial, sans-serif"><B>
+Suchen Messen L&ouml;schen</B> <B>S/M/DEL</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>
+Selektieren Sie die Checkbox S/M/DEL  und das geometrische Objekt -<br>
+oder Selektieren Sie das Objekt mit gedr&uuml;ckter Control-Taste;<br>
+<BR>
+Es wird nun das folgende Men&uuml; angezeigt:</FONT></P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P><B>&lt;&lt;--prv </B>
+			</P>
+		</TD>
+		<TD>
+			<P>zeigt alle DefinitionLines, die zuletzt generierten zuerst</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><B>nxt--&gt;&gt;</B></P>
+		</TD>
+		<TD>
+			<P>zeigt alle vom selektierten Objekt abh&auml;ngigen Objekte
+			(dependant)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><B>Modify</B></P>
+		</TD>
+		<TD>
+			<P>Obj. Modifizieren / Return-Taste od. rechte-Maustaste</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><B>Delete</B> 
+			</P>
+		</TD>
+		<TD>
+			<P>Obj. l&ouml;schen / L&ouml;sch-Taste (Entf/Delete)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><B>Done</B> 
+			</P>
+		</TD>
+		<TD>
+			<P>S/M/DEL beenden / Ctrl-rechte-Maustaste</P>
+		</TD>
+	</TR>
+</TABLE>
+<br>
+<br>
+<br>
+
+
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">
+<b>Delete:</b>
+Es wird das Objekt und alle seine Hilfsobjekte angezeigt.<br>
+Es muss auch jedes einzelne Hilfsobjekt explizit mit 
+der L&ouml;sch-Taste entfernt werden.<br>
+
+Zur&uuml;ckholen der gel&ouml;schten Objekte mit Taste Ctrl-Y.<br>
+<br>
+
+
+
+<I>Beispiel:</I><BR>
+1&nbsp; P1=..<BR>
+2&nbsp; P2=..<BR>
+3&nbsp; L1= P1 P2<BR>
+4&nbsp; L1=CUT L1 L2</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Objekt
+L1 hat 2 DefinitionLines mit je 2 Hilfsobjekten; die Zeilen 3 und 4. Beide sind abh&auml;ngig
+von den Punkte P1 und P2.</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+
+
+
+
+<HR>
+<P><A NAME="Modify"></A><B>Modify</B></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><B>Surface-Style<BR></B>&nbsp;
+shaded<BR>&nbsp; symbolic&nbsp; (es werden nur Aussenkonturen
+dargestellt)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Surface-Color<BR></B>&nbsp;
+define Color (Definition der aktiven Color)<BR>&nbsp; change Color
+(es wird die aktive Color &uuml;bernommen)<BR>&nbsp; remove Color (es
+wird wieder die Default-Color (Standards/Color) &uuml;bernommen)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Surface-Transparenz<BR></B>&nbsp;
+solid<BR>&nbsp; 50% - transparent<BR>&nbsp; transparent&nbsp; (voll
+transparent)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>
+<B><A HREF="Textures_de.htm">Surface-Texture</A></B>
+</FONT>
+</P>
+<BR><BR><BR>
+<HR>
+<P><A NAME="ANALYZE_-_Funktionen:"></A><B><FONT FACE="helvetica, arial, sans-serif">ANALYZE
+- Funktionen:</FONT></B><BR><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Analyze
+Point / Posi.</FONT></I></U><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Anzeige
+der Position von Punkten auf Linie, Polygon, Kreis (Endpunkt,
+Eckpunkte).</FONT><BR><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Analyze
+Obj</FONT></I></U><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Es
+werden die geometr. Parameter des selektierten Objekts
+angezeigt.</FONT><BR><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Analyze
+Dist. Point-Point</FONT></I></U><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Es
+wird der Abstand zwischen von 2 Punkten angezeigt.</FONT><BR><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Analyze
+Dist. Point-Object</FONT></I></U><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Es
+wird der Normalabstand von Punkt - Objekte angezeigt. Derzeit
+nur:</FONT><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Punkt/Linie
+- Normalabstand</FONT><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Punkt/Kreis
+- Normalabstand</FONT><BR><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Analyze
+Vertex</FONT></I></U><BR>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Anzeige
+der Position der Vertexpunkte (der Punkte der 3D-Darstellung; keine
+analytische Genauigkeit; abh&auml;ngig vom Darstellungsma&szlig;stab
+(Scale))</FONT><BR><BR><BR><BR><BR>
+</P>
+<HR>
+
+
+
+<H3><A NAME="Funktionen_NC"></A><FONT FACE="helvetica, arial, sans-serif"><B>Funktionen
+NC</B></FONT></H3>
+<P><BR><BR>
+</P>
+<H3><U>Funktion ist derzeit nicht aktiv.</U></H3>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Alle NC-Funktionen
+sind entweder im Men&uuml; NC-Tech oder auch als Direktcommands (Man)
+verf&uuml;gbar.<BR></B><BR><BR>Die momentan aktive
+NC-Bearbeitungsposition wird durch eine rote senkrechte Linie
+angezeigt.<BR><BR>Im Programmverlauf wird die aktuelle Position immer
+im Punkt P0 gespeichert.<BR>Dieser Punkt kann normal benutzt werden;
+Beispiel:<BR>PRI P0<BR># ausdrucken der aktuellen Position<BR>P21[P0
+P20 12]<BR># vom momentanen Punkt weg in Richtung P20 12 mm weit
+gehen<BR><BR><BR><BR><BR><B>FROM</B><BR>&nbsp; Erzeugen einer FROM -
+Befehlszeile. Selektieren oder indizieren<BR>&nbsp; Sie einen
+Punkt.<BR>&nbsp; Die FROM-Position wird als Dreieck dargestellt, die
+aktuelle Bearbeitungsposition wird mit einem Kreuz
+dargestellt.<BR><BR><BR><B>RAPID</B><BR>&nbsp; Erzeugen einer RAPID -
+Befehlszeile. Selektieren oder indizieren<BR>&nbsp; Sie einen
+Punkt.<BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1>
+<P><BR><BR>
+</P>
+<H3><A NAME="Funktionen_DE_GEO"></A><FONT FACE="helvetica, arial, sans-serif"><B>Funktionen
+NC-Wcut</B></FONT></H3>
+<P><BR><BR>
+</P>
+<H3><U>Funktion ist derzeit nicht aktiv.</U></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1>
+<P><BR><BR>
+</P>
+<H3><A NAME="Funktionen_DE_TEC_"></A><FONT FACE="helvetica, arial, sans-serif"><B>Funktionen
+NC-Tech</B></FONT></H3>
+<P><BR><BR>
+</P>
+<H3><U>Funktion ist derzeit nicht aktiv.</U></H3>
+<H3><BR><BR>
+</H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><BR>TEC</B><BR>Eine
+Liste der Makroprogrammfiles. Vor dem Start eines NC-Programms muss
+(mindestens ein) Makrofile selektiert werden. Die in den gew&auml;hlten
+Makrofiles enthaltenen Makroprogramme werden im folgenden in der
+Liste Work angezeigt.<BR>(Makrofiles:
+&lt;base&gt;/wc/&lt;macname&gt;.mac).<BR><BR><B>Program</B><BR>Der
+NC-Programmname. In jedem Modell k&ouml;nnen mehrere NC-Programme
+definiert werden.<BR>Befindet sich noch kein NC-Programm im Modell,
+so muss eine neuer Programmname definiert werden. Es muss zuvor
+mindestens ein Makroprogrammfile (aus Liste TEC) selektiert worden
+sein.<BR><BR><B>Work</B><BR>Eine Liste aller geladenen Zyklen. Wird
+ein Zyklus selektiert, so werden alle f&uuml;r diesen Zyklus
+erforderlichen Parameter in eigenen Eingabfeldern angefordert.<BR>Wird
+eine Eingabe nicht automatisch zugeordnet, muss der Cursor vorher in
+das entsprechende Eigabefeld gesetzt werden (Beispiel: Cursor in das
+Eingabfeld &quot;Radius&quot; setzen, Kreis selektieren).<BR>Der
+erste Zyklus sollte der FROM-Startpunkt sein.<BR><BR><B>Contour</B><BR>Eine
+Liste der im Modell verf&uuml;gbaren Konturen (S20 ..). Bei Selektion
+wird der gew&auml;hlte Konturname an ein Eingabefeld &quot;Konturname&quot;
+&uuml;bergeben.<BR><BR><BR><B>OK &nbsp;(oder rechte Maustaste oder
+Entertaste)</B><BR>den aktuellen Zyklus speichern.<BR><BR><B>prev /
+next</B><BR>aktiviert den vorherigen / n&auml;chsten Zyklus; es
+k&ouml;nnenn nun die Parameter ge&auml;ndert werden; Zyklus
+abspeichern (&uuml;berschreiben) mit OK.<BR><BR><B>RUN</B><BR>Mit RUN
+kann jederzeit das gesamte NC-Programm dargestellt
+werden.<BR><BR><B>List</B><BR>zeigt eine Liste aller aktiven Zyklen
+mit allen Parametern.<BR><BR><B>Ins</B><BR>Zyklus einf&uuml;gen (vor
+den momentan aktiven Zyklus),<BR><BR><B>Del<BR></B>den momentan
+aktiven Zyklus l&ouml;schen.<BR><BR><B>PP</B><BR>startet den
+Postprozessorlauf. Im ersten Schritt (auch ohne installierten
+Postprozessoren) wird eine NC-ISO-Datei erzeugt (Datei
+&lt;base&gt;/tmp/pp.iso).<BR><BR><B>Save/Exit</B><BR>beenden /
+abspeichern des gesamten Programms im Modell.<BR><BR><BR><BR><BR><B>Erste
+Schritte - NC-Tech</B> &nbsp;<B>(Kurzbeispiel):</B><BR>- aus Liste
+TEC &quot;Demo1&quot; selektieren<BR>- NewProg selektieren, &quot;prog1&quot;
+eingeben, OK.<BR>- aus Liste Work &quot;Kreis&quot;
+selektieren,<BR>-&nbsp;ins Eingabefeld &quot;Startpunkt&quot; die
+Koordinaten 30,30 eingeben, Entertaste dr&uuml;cken<BR>- aus Liste
+Work &quot;Kreis&quot; selektieren,<BR>-&nbsp;ins Eingabefeld
+&quot;Startpunkt&quot; die Koordinaten 60,30 eingeben, Entertaste
+dr&uuml;cken<BR>- RUN-Button dr&uuml;cken<BR>- prev-Button dr&uuml;cken
+(retour zu Zyklus 2)<BR>- Koordinaten 60,30 in 80,30 ver&auml;ndern,
+Entertaste dr&uuml;cken, RUN dr&uuml;cken.<BR>- shade - Checkbox
+selektieren<BR>- PP (Postprozessorlauf), Beenden (ISO-Code nun in
+tmp/pp.iso)<BR>- Save/Exit, OK; verlassen mit Checkbox
+Man.<BR><BR>Modifizieren von NC-Prog &quot;prog1&quot;:<BR>- Checkbox
+NC-Tech,<BR>- aus Liste Program &quot;prog1&quot; selektieren,<BR>-
+RUN, prev, ...<BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><FONT FACE="helvetica, arial, sans-serif"><B>Programmfunktionen</B></FONT></H3>
+<P><BR><BR>
+</P>
+<H3><A NAME="Format"></A><FONT FACE="helvetica, arial, sans-serif">Format</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Definitionszeilen:<BR>A=Area
+(Fl&auml;che)<BR>B=Body (Solid)<BR>C=Circle (Kreis)<BR>D=Direction
+(Vektor)<BR>I=Interaktion<BR>L=Line<BR>M=Model, Submodel,
+Mockup-Model<BR>N=Note, Tag, Bitmap-Image<BR>P=Point<BR>R=Refsys
+(Referenzsystem)<BR>S=Spline (Parametr., B-Spline, Polygon,
+Kegelschnitte)<BR>T=Transformation (Translation od
+Rotation)<BR>V=Variable &nbsp;(numer. Wert)<BR><BR><BR>- Gross- oder
+Kleinschreibung egal<BR><BR><BR><BR>
+Modifikator: eine Zahl (wird im CAD-Modus durch die PageUp und PageDown-Tastebereitgestellt)<BR>
+Beispiele:<BR>MOD(1)<BR>MOD(2)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR> </P>
+<H3><A NAME="Geom.Definitionen"></A>
+<FONT FACE="helvetica, arial, sans-serif">Geom.Definitionen</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>
+<B><A HREF="#Grundlagen_2D_-_3D">Grundlagen 2D - 3D</A><BR>
+<A HREF="#Texte">Texte/Symbole/Image</A><BR>
+<A HREF="#Vermaszung:">Verma&szlig;ung</A><BR>
+<A HREF="#Abbildungen_BMP-Bitmaps_">Abbildungen (JPG/BMP-Bitmaps)</A><BR>
+<A HREF="#Punkte_2D">Punkte</A><BR>
+<A HREF="#Linien">Linien</A><BR>
+<A HREF="#Vektor_-_Richtung">Vektor - Richtung</A><BR>
+<A HREF="#Transformationen:">Transformationen</A><BR>
+<A HREF="#Kreise">Kreise</A><BR>
+<A HREF="#Kurven">Kurven</A></B>&nbsp;
+&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;
+&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+(Ellipse, Polygon, B-Spline, Kontur)<B><BR>
+<A HREF="#Achsensysteme_-_Ebenen">Achsensysteme - Ebenen</A><BR>
+<A HREF="#Flaechen">Fl&auml;chen</A><BR>
+<A HREF="#Solids">Solids</A><BR>
+<A HREF="#Models">Models</A><BR>
+<A HREF="#Geom.Modfikationen">Geom.Modifikationen</A></B>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;
+(Cut (Trim),&nbsp; Intersect, Transform, Project, Mirror)<BR>
+<A HREF="#Variablen"><B>Variablen</B></A></FONT></P>
+<H3><BR><BR>
+</H3>
+<H3><FONT FACE="helvetica, arial, sans-serif">Elemente ohne eigenen
+Kennbuchstaben:</FONT></H3>
+<P><A HREF="#Winkel_-_ANG"><B><FONT FACE="helvetica, arial, sans-serif">Winkel&nbsp;&nbsp;
+-&nbsp;&nbsp; ANG()</FONT></B></A></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>L&ouml;schen von
+geometr. Objekten:</U></B><BR>durch eine leere Definitionsangabe; zB
+L&ouml;schen des Punkt Nr. 12:<BR>P12=<BR><BR><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Grundlagen_2D_-_3D"></A>
+<FONT FACE="helvetica, arial, sans-serif"><B>Grundlagen 2D - 3D</B><BR><BR><BR>
+Die Raumgr&ouml;sse (Standardwert ist 300 mm)
+wird zum Errechnen von Toleranzen benutzt (Kurvendarstellung,
+Identische-Punkte-Toleranz usw). Raumgr&ouml;sse &auml;ndern auf
+10m:<BR>MODSIZ 10000<BR>Defaultwert in der Datei &lt;base&gt;/xa/gCAD3D.rc.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Die aktuelle
+Arbeitsebene kann im 3D-Raum mit Hilfe eines Referenzsystemes
+definiert werden. Sobald dieses aktiviert wird, werden alle ab nun
+definierten 2D-Koordinaten in diese Ebene transformiert.<BR><BR>Die
+Referenzsysteme erhalten eine Nummer. Referenzsystem Nr. 0 ist das
+Hauptachsensystem und kann nicht definiert / ver&auml;ndert
+werden.<BR>Jedes Referenzsystem sollte nur einmal definiert und nicht
+mehr ver&auml;ndert werden<BR>&nbsp;(dies w&uuml;rde Fehler beim
+EXPORT verursachen).<BR><BR><BR>Beispiel:<BR># Definition
+Achsensystem Nr.1<BR>R1=Z(100)<BR><BR># Aktivierung Achsensystem
+Nr.1<BR>R1<BR><BR># Punkt (wird ins aktive Achsensystem &uuml;bertragen
+!)<BR>P1=100 100<BR><BR># R&uuml;cksetzen
+Achsensystem<BR>R0<BR><BR><BR>Definition Achsensystem ist ident mit
+Definition Ebene. Siehe <A HREF="../../../mnt/F/dev/xa/gCAD3D_de.htm#Achsensysteme_-_Ebenen">Achsensysteme</A>.<BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Texte"></A><FONT FACE="helvetica, arial, sans-serif"><B>Texte</B></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Texte
+und Verma&szlig;ung verwenden den Kennbuchstaben N.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Die
+<B>Schriftgr&ouml;&szlig;e f&uuml;r Texte und Verma&szlig;ung</B>
+wird definiert durch <BR>DEFTX &lt;Textsiz&gt; &lt;DimTextSiz&gt;
+&lt;TextGeneralScale&gt; &lt;AnzahlNachkommstellen&gt;<BR>oder
+interaktiv in Standards/Text. (Defaultwerte in der Datei
+&lt;base&gt;/xa/gCAD3D.rc).</FONT></P>
+<P STYLE="margin-bottom: 0cm">&nbsp;</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><B><U>2D-Texte:<BR></U></B>Fixe
+Textgr&ouml;&szlig;e.<BR>Immer in Draufsicht.<BR>Als Sonderzeichen
+f&uuml;r 2D-Texte sind derzeit nur &quot;[n&quot;
+(Zeilentrennzeichen) verwendbar.<BR>Selektieren von 2D-Texten ist
+derzeit nur am linken unteren Startpunkt des Textfeldes m&ouml;glich.</FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><B><U>3D-Texte:<BR></U></B>Textgr&ouml;&szlig;e
+skalierbar und entsprechend den Standards/Text.<BR>Sonderzeichen lt.
+Tabelle</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><B><U>Sonderzeichen:</U></B><BR>Ein
+Sonderzeichen wird durch eine Folge von 2 Zeichen
+generiert.<BR>&nbsp;[d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Durchmesserzeichen<BR>&nbsp;[g&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Gradzeichen (Winkel)<BR>&nbsp;[+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
++- Zeichen<BR>&nbsp;[/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hochgestellt<BR>&nbsp;[\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+tiefgestellt<BR>&nbsp;[n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+neue Zeile (Return, CR)<BR>&nbsp;[%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+wird durch Standardtext ersetzt. Wenn im Text kein [% enthalten
+ist,<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+wird der Standardtext ganz an den Textbeginn gestellt.<BR>&nbsp;[-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+keinen Standardtext einfuegen.<BR>&nbsp;[[&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ein &quot;[&quot;<BR>&nbsp;[0 bis [9&nbsp;&nbsp; nur N=DIM3 und
+N=LDRP: Anzahl Nachkommastellen der MassZahlen<BR>&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; (muss am Beginn des Textblocks
+stehen)<BR>[V20]&nbsp;&nbsp;&nbsp;&nbsp; expandieren einer numer.
+Variablen (V20 im Beispiel)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Beispiel:<BR>#
+&quot;Winkel 60 &lt;Gradzeichen&gt; &lt;&quot;+0.123&quot;
+&lt;hochgestellt&gt; &quot;0.5&quot;&lt;tiefgestellt&gt;&gt;&quot;<BR>N20=P(100
+0) &quot;Winkel 60[g [/+0.123[\-0.5&quot;</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U><B>3D-Text
+mit variabler Gr&ouml;sse, Richtung und Sonderzeichen:</B></U></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">N#
+= Textpunkt Size [Richtung] &quot;Text&quot;<BR>Defaultrichtung ist 0
+Grad. Keine Hilfslinien.<BR><BR>Beispiel:<BR>N10=P5 &quot;Text an
+Punkt P5&quot;<BR>N11=P(100 100) 10 ANG(15) &quot;Text Size 10,
+Richtung 15 Grad&quot;</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>TXG Textpunkt
+SIZE, RICHTUNG, TEXT<BR>(Diese Texte werden nicht gespeichert - nicht
+exportiert).<BR><BR><BR>TXA Textpunkt &quot;Text&quot;<BR>(Diese
+Texte werden nicht gespeichert - nicht exportiert).</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Text mit 1 od 2
+2D-Hilfslinien; mit oder ohne Pfeilsymbol.</U></B><BR>&nbsp;N=LDR
+StartpunktLinie EndPunkt1 [EndPunkt2] [Textwinkel] [PfeilTyp]
+[Text]<BR>&nbsp; PfeilTyp: 0=kein Pfeilsymbol, 1-3
+Pfeilsymbol<BR>&nbsp;Hilfslinie und Kreis sind (dzt) immer in der
+XY-Ebene.<BR>&nbsp;Beispiel:<BR>&nbsp;N21=LDR P(50 10 0) P(100 50 0)
+ANG(0) 0 &quot;abc&quot;</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Text mit Kreis und
+2D-Hilfslinie.</U></B><BR>&nbsp;N=LDRC TextPosition
+[Linienstartpunkt] [Linetyp] [Text]<BR>&nbsp;Es wird eine Line von
+Linienstartpunkt nach TextPosition erzeugt,<BR>&nbsp;an TextPosition
+ein Kreis, in dem der Text ausgegebn wird.<BR>&nbsp;Hilfslinie und
+Kreis sind (dzt) immer in der XY-Ebene.<BR>&nbsp;Beispiel:<BR>&nbsp;N22=LDRC
+P(150 50 50) P(100 10 0)&nbsp; &quot;P21&quot;</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><B><U>2D-Text/Textblock
+mit Hilfslinie.</U></B><BR>&nbsp;N=TAG TextPosition
+[Linienstartpunkt] [color] [Text]<BR>&nbsp; color - Textblockfarbe
+(keine Angabe: nur Text, kein Block)<BR>&nbsp;&nbsp; 0 = schwarz<BR>&nbsp;&nbsp;
+1 = DefCol<BR>&nbsp;&nbsp; 2 = rot<BR>&nbsp;&nbsp; 3 = gr&uuml;n<BR>&nbsp;&nbsp;
+4 = blau<BR>&nbsp;&nbsp; 5 = gelb<BR>&nbsp;&nbsp; 6 = violett<BR>&nbsp;&nbsp;
+7 = hellblau<BR>&nbsp;&nbsp; 8 = weiss<BR>&nbsp;Beispiel:<BR>&nbsp;N23=TAG
+P(150 50 50) P(100 10 0)&nbsp; &quot;P21&quot;<BR>&nbsp;N24=TAG P(250
+50 50) P(200 0 0) VAL(7) &quot;N24[nP25&quot;<BR></FONT><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Symbol.</U></B><BR>&nbsp;N=LDRS
+SymbolPosition [symbolTyp] [color] [Endpoint Vector]<BR>&nbsp;
+symbolTyp<BR>&nbsp;&nbsp; 0 = Stern klein,<BR>&nbsp;&nbsp; 1 =
+Dreieck klein<BR>&nbsp;&nbsp; 2 = Kreis klein<BR>&nbsp;&nbsp; 3 =
+Rechteck gross<BR>&nbsp;&nbsp; 4 = Vektor normiert (immer gleich
+lang)<BR>&nbsp;&nbsp; 5 = Vektor (mit korrekter Laenge)<BR>&nbsp;
+Endpoint_Vector:<BR>&nbsp;&nbsp; nur fuer symbolTyp 4 und
+5<BR>&nbsp;Beispiel:<BR>&nbsp;N25=LDRS P(350 50 50) 1 2</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Image</U></B><BR>&nbsp;N=IMG
+ImagePosition Filename [scale]<BR>&nbsp;Es wird ein (BMP-)Image
+dargestellt. Immer normal zum Betrachter.<BR>&nbsp;Beispiel:<BR>&nbsp;N32=IMG
+P(500 0 0) &quot;Data/sample_bmp1.bmp&quot; VAL(0.5)</FONT></P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Vermaszung:"></A><U><B>Verma&szlig;ung:</B></U></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><B><U>3D-Punktkoordinaten
+(Kote; mit 3D-Hilfslinie, 3D-Text mit Sonderzeichen)</U></B><BR>N=LDRP
+TextPosition [Punkt] [Linetyp] [&quot;ZusatzText&quot;]<BR>&nbsp;Es
+wird eine Line von &lt;Punkt&gt; nach &lt;TextPosition&gt;
+erzeugt;<BR>&nbsp;an der &lt;TextPosition&gt; werden die
+X/Y/Z-Kordinaten von &lt;Punkt&gt; ausgegeben.<BR>&nbsp;Beispiel:
+Position von Punkt 20 mit 3 Nachkommastellen:<BR>&nbsp;N20 = LDRP
+P(50 50 50) P(10 10 0.12345) &quot;[3&quot;</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><I><B><U>3D_Ma&szlig;:</U></B><BR></I>N#
+= DIM3 p1 p2 p3 [DimPlane] [&quot;Zusatztext&quot;]<BR><BR>p1,p2 die
+Punkte<BR>p3&nbsp;&nbsp;&nbsp; Position des Textblocks<BR>DimPlane&nbsp;&nbsp;
+X oder Y oder Z oder keine ('P' = Default = parallel)<BR>keine
+DimPlane: die Textebene geht durch die Punkt1 p1 und p2 und
+liegt<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; normal zum Betrachter.<BR>X&nbsp;&nbsp;&nbsp;&nbsp;
+es wird der Abstand von p1-p2 auf der X-Achse verma&szlig;t;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+der Texblock liegt in der X-Y oder X-Z-Ebene.<BR>Y&nbsp;&nbsp;&nbsp;&nbsp;
+es wird der Abstand von p1-p2 auf der Y-Achse verma&szlig;t;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+der Texblock liegt in der X-Y oder Y-Z-Ebene.<BR>Z&nbsp;&nbsp;&nbsp;&nbsp;
+es wird der Abstand von p1-p2 auf der Z-Achse verma&szlig;t;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+der Texblock liegt in der Y-Z oder X-Z-Ebene.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">F&uuml;r alle Ma&szlig;texte
+wird jene Textebene ausgewaehlt, die rechtwinkeliger zum<BR>&nbsp;
+Betrachter liegt.</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U><I>Linearma&szlig;
+2D:</I></U></B><BR>N# = DIM Punkt1 Punkt2 Textpunkt [Winkel Mpfeile
+Mlinien &quot;Zusatztext&quot;]<BR>Punkt1 - Ma&szlig;punkt1<BR>Punkt2
+- Ma&szlig;punkt2<BR>Textpunkt - linker unterer Startpunkt
+Ma&szlig;text<BR>alle folgenden Paramter sind optional:<BR>Winkel -
+ANG(0) = Horizontal, ANG(90) = Vertikal; keine Angabe:
+Parallelma&szlig;.<BR>Mpfeile: 2 Ziffern fuer die beiden Maszpfeile:
+0=keiner, 1=&lt;, 2=&gt;, 3=/, 4=o; Default ist 12.<BR>Mlinien: 2
+Ziffern fuer die beiden Ma&szlig;hilfslinien: 0=keine, 1=Volllinie;
+Default ist 11.<BR>Zusatztext (zB. &quot;[+
+0.2&quot;).<BR>&nbsp;Beispiel:<BR>&nbsp;P1=P(100 100)<BR>&nbsp;P2=P(200
+200)<BR>&nbsp;N1=DIM P1 P2 150 50 ANG(0) &quot;[+ 0.2&quot;<BR>&nbsp;N2=DIM
+P1 P2 250 150 ANG(90)<BR>&nbsp;N3=DIM P1 P2 100 180</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><B><U><I>Winkelma&szlig;
+2D:</I></U></B><BR>N# = DIMA Punkt1 Richtg1 Punkt2 Richtg2 Textpunkt
+[Mpfeile Mlinien &quot;Zusatztext&quot;]<BR>N20=DIMA P20 ANG(L20) P21
+ANG(L21) P22 12 11 &quot;[+ 0.5&quot;<BR>Die Ma&szlig;linie (ein
+Kreisbogen) wird im Gegenuhrzeigersinn (CCW) angelegt. Richtung1/2
+definiert, wo sich der Endpunkt des Kreisbogen befindet (ausgehend
+von Punkt1/2).<BR>Beispiel:<BR>L20=P(330 100 0) P(380 130
+0)<BR>P20=P(400 100 0)<BR>N20=DIMA P20 ANG(0) P(L20 MOD(2)) ANG(L20)
+P(444 128 0)<BR><BR><BR><B><U><I>Durchmesser/Radiusma&szlig; 2D:</I></U></B><BR>N#
+= DIM Kreis Textpunkt [Mpfeile &quot;Zusatztext&quot;]<BR>Beispiel:<BR>#
+au&szlig;en:<BR>C20=P(-200 100) 12<BR>P27=P(-175 125)<BR>N30=DIMR C20
+P27 &quot;[+0.5&quot;<BR>P28=P(-175 70)<BR>N31=DIMD C20 P28 &quot;[+0.5&quot;<BR>#
+innen:<BR>C21=P(-200 200) 32<BR>P29=P(-210 190)<BR>N32=DIMR C21 P29
+&quot;[+0.5&quot;</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">VERMASZUNG WIRD NOCH
+NICHT NACH IGS, DXF EXPORTIERT.<BR>F&uuml;r interaktive Modifikation
+der Parameter Mpfeile, Mlinien und Zusatztext sollte ein
+Userinterface erstellt werden.</FONT></P>
+<P><BR><BR>
+</P>
+<HR>
+<P><A NAME="Abbildungen_BMP-Bitmaps_"></A><FONT FACE="helvetica, arial, sans-serif"><B>Abbildungen
+(JPG/BMP-Bitmaps)</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><BR></B>N# = IMG
+Bildposition [Startpunkt_Linie Linientyp] BMP-Filename
+[Scale]<BR><U>Bildposition</U>: als Punkt links unten<BR><U>BMP-Filename:</U>
+der Dateiname einer JPG-oder BMP-Bitmap;
+aktivieren des Filedialog mit der mittleren Maustaste.<BR>Das
+Verzeichnis ist als Symbol zu definieren (Siehe <A HREF="#Symbolische_Dateibezeichnungen:">Symbolische
+Dateibezeichnungen</A>).<BR><U>Scale:</U> wird kein Scale (oder Wert
+0) definiert, so wird die Bitmap dynamisch skaliert.<BR>Wird ein
+Ma&szlig;stab angegeben, so wird dieser Ma&szlig;stab fixiert (kein
+dynamisches skalieren).</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Beispiel:<BR>N20=IMG P(0
+0 0) &quot;Data/Bild1.bmp&quot;<BR># Windows-Bitmap
+&lt;base&gt;/dat/Bild1.bmp wird dargestellt.</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Kein Export von Bitmaps.</FONT></P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Punkte_2D"></A><FONT FACE="helvetica, arial, sans-serif"><B>Punkte</B><BR><BR>P1=P(10,20)<BR>&nbsp;&nbsp;&nbsp;
+2D-Punkt absolut</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">P21=P(10,20,30)</FONT></P>
+<P>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">3D-Punkt
+absolut</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>P2=P1,D1</FONT></P>
+<P>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Punkt
+P1 um den Vektors D1 verschieben.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>P2=P1,D1,Abstand</FONT></P>
+<P>&nbsp;&nbsp;&nbsp; <FONT FACE="helvetica, arial, sans-serif">Punkt
+P1 in Richtung des Vektors D1 um den Abstand abst verschieben.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>P11=R1
+P10<BR>Transformation des Punktes P10 in das Referenzsysten R1 (Ebene
+R1).<BR>P11=R1 10 0 &nbsp;- Punkt P11 wird auf der X-Achse des
+Referenzsystems R1 liegen.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P11=P10
+R1<BR>Projektion des Punktes P10 auf die Ebene R1.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P3=P2,X(10),Y(10)<BR>&nbsp;&nbsp;&nbsp;
+Punkt relativ (im Abstand 10,10 von p2)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P5=P4,ANG(90),Abstand<BR>&nbsp;&nbsp;&nbsp;
+Polar relativ (Basispunkt, Winkel, Abstand)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P3=P1,P2<BR>&nbsp;&nbsp;&nbsp;
+Punkt in der Mitte erzeugen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>P3=P1,D(P1,P2),Abstand<BR>Eine
+Strecke abtragen.<BR>Punkt mit bestimmtem Abstand von P1 in Richtung
+P1 -&gt; P2 abschlagen.<BR>Die Richtung wird bestimmt durch den
+Winkel der Strecke P1 -&gt; P2.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P11=P1,D(L1),Abstand<BR>&nbsp;&nbsp;&nbsp;
+Eine Strecke von einem Punkt weg entlang einer Linie mit bestimmtem
+Abstand abtragen.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P2=P1,D(L1),Abstand,Normalabstand<BR>Eine
+Strecke von einem Punkt weg abtragen. Der Abstand wird in die
+Richtung der Linie abgetragen, der Normalabstand wird normal zur
+Linie abgetragen. Beispiel:<BR>p1=p1,d(l1),val(100),val(50)<BR>P1
+wird 100 mm in Richtung l1 verschoben, dann wird er 50 mm in Richtung
+normal zu l1 verschoben</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">P3=P1,P2,Winkel<BR>Punkt
+drehen (Mittelpunkt,Ausgangsposition,Winkel)
+Beispiel:<BR>P3=P1,P2,ANG(180)<BR>P2 wird 180 Grad um P1 gedreht.</FONT></P>
+
+
+
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>
+P1=L1,Seite<BR>
+&nbsp;&nbsp;&nbsp;Anfangs- oder Endpunkt einer Linie (entsprechend Seite)<BR>
+<BR>
+P2=P1,L1<BR>
+&nbsp;&nbsp;&nbsp;Punkt auf Linie projizieren.<BR>
+<BR>
+
+
+P4=L1 L2<BR>
+&nbsp;&nbsp;&nbsp;Schnittpunkt Linie - Linie<BR>
+<BR>
+
+P41=L20 A20<BR>
+&nbsp;&nbsp;&nbsp;Schnittpunkt Linie - B-SplineFl&auml;che<BR>
+<BR>
+
+P6=C1<BR>
+&nbsp;&nbsp;&nbsp;Kreismittelpunkt<BR>
+<BR>
+P7=P1 C1 [Seite]<BR>
+Punkt normal auf Kreis (wird auf den Kreis projiziert). Die Standardl&ouml;sung ist der
+n&auml;here Punkt.<BR>
+MOD(2) definiert den entfernten Punkt.</FONT></P>
+
+
+
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P5=L1
+C1 Seite<BR>&nbsp;&nbsp;&nbsp; Schnittpunkt Linie- Kreis.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>P6=C1
+C2 Seite<BR>&nbsp;&nbsp;&nbsp; Schnittpunkt 2-er Kreise</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Anfangs-
+/ Endpunkt einer Line; 1 = Startpunkt; 2 = Endpunkt.<BR>P20=L20
+MOD(1)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Anfangs-
+/ Endpunkt eines Kreises: 1=Startpunkt, 2=Endpunkt.<BR>P28=C22 MOD(2)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Punkt
+eines Polygons:<BR>S20=POL ..<BR>P10=S20 MOD(&lt;PunktNummer&gt;)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+
+
+<PRE>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">
+<u>Anfangs- / Endpunkt einer Kurve</u>, entsprechend Seite.
+Punkt = Kurve [punktNummer]
+P10=S10 MOD(1)
+
+
+
+<u>Punkt auf Kurve projizieren.</u>
+Punkt = Punkt Kurve [punktNummer]
+P11=P1 S10 MOD(1)
+P1-P11 bilden nun eine Normale auf S10 im Punkt P11.
+MOD(1) = Seite - erste L&ouml;sung.
+(<B><I>Nichtimplementiert: </I></B>
+Kommt P11 ausserhalb von S10 zu liegen, so wird die Kurve mit einer Tangente
+durch den Endpunkt verl&auml;ngert.)
+
+
+
+
+<u>Punkt auf Fl&auml;che projizieren.</u>
+Punkt = Punkt Fl&auml;che [punktNummer]
+P12=P1 A20 MOD(1)
+
+
+
+<u>Einen Punkt auf einem Objekt durch Parameter erzeugen</u>
+  Objekt: Linie/Kreis/Kurve/Fl&auml;che
+
+Parameterbereich ist 0 bis 1; 0.5 definiert also die Mitte.
+Bei Fl&auml;chen sind zwei Parameterwerte erforderlich
+  (U und V; Laengs- und Querrichtung).
+
+Beispiel:
+# Mittelpunkt einer Linie:
+P23=C20 VAL(.5)
+# Mittelpunkt einer B-SplineFl&auml;che:
+P23=A20 0.5 0.5
+
+
+
+</FONT></P>
+</pre>
+
+
+
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Der Punkt mit
+Index 0 ist zu jeder Zeit die aktuelle Position, kann also<BR>nur f&uuml;r
+einen Arbeitsschritt verwendet werden.</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Implizite
+Punktdefinitionen:</U></B><BR>Beispiel f&uuml;r Endpunkte der Linie
+mit P(L20 MOD(1)):<BR>L20=P(-300 10) P(-260 40)<BR>N21=DIM P(L20
+MOD(1)) P(L20 MOD(2)) P(-280 -40) ANG(0)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Eckpunkt eines Polygon
+aus einer CCV:<BR>P# = P(S&lt;ccv&gt; MOD(&lt;ccvSegNr&gt;)
+MOD(&lt;polgonPtNr&gt;))</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Punkt parametrisch auf
+BasisObjekt:<BR>P# = P(&lt;baseObj&gt; &lt;lpar&gt;)<BR>Beispiel -
+Punkt in der Mitte des Objekt Line-20:<BR>P20=P(L20 0.5)<BR>P =
+P(S&lt;ccv&gt; MOD(&lt;ccvSegNr&gt;) &lt;lpar&gt;)</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Linien"></A><FONT FACE="helvetica, arial, sans-serif"><B>Linien</B><BR>
+<BR>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">
+<BR>
+L1=P1 P(100 100)<BR>
+Linie zwischen 2 Punkten<BR>
+<BR>
+<BR>
+L2=Y(10)<BR>
+L2=DX P20 Y(10) Z(10)<BR>
+Linie parallel zur aktuellen X-Achse; durch einen Punkt.<BR>
+Es kann ein Y-Offset und/oder Z-Offset definiert werden.<BR>
+<BR>
+<BR>
+L1=X(10)<BR>
+L2=DY P20<BR>
+Linie parallel zur aktuellen Y-Achse; durch einen Punkt.<BR>
+Es kann ein X-Offset und/oder Z-Offset definiert werden.<BR>
+<BR>
+<BR>
+L2=DZ P20<BR>
+Linie parallel zur aktuellen Z-Achse; durch einen Punkt.<BR>
+Es kann ein X-Offset und/oder Y-Offset definiert werden.<BR>
+
+<BR>
+<BR>
+Linie durch Punkt mit fixem Winkel<BR>
+L3=P1 ANG(45)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>
+Linie durch Punkt mit Richtung (Vektor)<BR>L4=P1
+D(L1)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+# parallel zu Linie L1 oder<BR>L = P L</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Line
+durch Punkt und die Z-Achse von Kreis/Ebene:<BR>L = P C<BR>L = P R</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>L4=P1
+D(L1) ANG(90)<BR>Linie durch Punkt mit Winkel relativ zu anderer
+Linie.<BR>ANG(0): parallel zu Linie L1; ANG(90): normal.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Linie
+parallel zu Linie mit Abstand.<BR>L8=L1 Abstand Seite<BR>L8=L1
+VAL(10) HIY</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+als Mittellinie (wenn l1, l2 parallel) oder als Winkelhalbierende
+(durch den Schnittpunkt).<BR>L9=L1 L2</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+als Winkelhalbierende, zus&auml;tzlich drehen.<BR>L9=L1 L2 ANG(90)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Line
+tangential an Kreis, parallel zu Linie.<BR>L1=C1 D(L1) Seite</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+tangential an Kreis mit fixem Winkel<BR>L1=C1,D(ANG(45)),Seite</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+durch Punkt tangential an Kreis<BR>L5=P1 C1,Seite</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+tangential an 2 Kreise&nbsp; &nbsp; &nbsp; &nbsp;(Ort: in
+out)<BR>L5=c1,c2,Ort,Seite</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Schnittlinie
+zwischen zwei Ebenen.<BR>L10=R20 R21</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Projektion
+einer Linie auf eine Ebene.<BR>L21=L20 R20</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Linie
+tangential durch Punkt P10 an Kurve S10.<BR>L10=P10 S10 MOD(1)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>L20=L(Startpunkt
+Endpunkt)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B><U>Implizite
+Liniendefinitionen:</U></B><BR><BR>Line in einer CCV:<BR>L(S&lt;ccv&gt;
+MOD(&lt;ccvSegNr&gt;))</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Polygonsegment aus einer
+CCV:<BR>L(S&lt;ccv&gt; MOD(&lt;ccvSegNr&gt;) MOD(PolgonSegNr))</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Vektor_-_Richtung"></A><FONT FACE="helvetica, arial, sans-serif"><B>Vektor
+- Richtung</B><BR><BR>Vektoren benutzen den Kennbuchstaben D
+(&quot;Direction&quot;).<BR><BR>Vektoren werden nur tempor&auml;r
+dargestellt; Normierte Vektoren (mit L&auml;nge 1) in schwarz, sonst
+rot. Immer in Bildmitte.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Als
+letzter Parameter kann bei allen Vektordefinition &quot;REV&quot;
+angegeben werden (Vektor wird verkehrt = Revers dargestellt).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Als
+vorletzter Parameter kann bei allen Vektordefinition die Vektorl&auml;nge
+angegeben werden.<BR><BR><BR>Es gibt folgende Standardvektoren:<BR><BR>DX
+DY DZ</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">entsprechen den
+Standardachsrichtungen</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">DIX
+DIY DIZ<BR>entsprechen den inversen Standardachsrichtungen<BR>&nbsp;
+Beispiel:<BR>D1=DIX<BR><BR>Definition Vektor durch Richtung und
+L&auml;nge. D=D(dx,dy[,dz]) [L&auml;nge] [&quot;REV&quot;]<BR>&nbsp;
+Beispiele:<BR>D1=DX 100<BR>D2=D(10 0)<BR>D3=D(0.7 0 0.7)
+100<BR><BR><BR>D3=ANG(30) 100</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Definition
+2D-Vektor durch 2D-Winkel und Vektorl&auml;nge (optional).<BR>Der
+Winkel definiert die Richtung in der X-Y-Ebene.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>D4=ANG(90)
+ANG(30) 100</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Definition
+Vektor durch Drehwinkel, Kippwinkel und Vektorl&auml;nge
+(optional).<BR>Der Drehwinkel definiert den Verdrehwinkel in der
+X-Y-Ebene; 0 (Grad) entspricht also der X-Richtung, 90 enspricht der
+Y-Richtung; 180 ist die inverse X-Richtung.<BR>Der Kippwinkel ist
+jener Winkel, den der Vektor mit der X-Y-Ebene einschliesst.<BR>Alle
+Vektoren mit gleichem Kippwinkel (bei variablem Drehwinkel) bilden
+also einen Kegel um die Z-Achse.<BR>Die Z-Achse hat einen Kippwinkel
+von 90 Grad (unabh&auml;ngig vom Drehwinkel).<BR>Im Beispiel (90,30)
+wird die X-Achse um 90 gedreht (um die Z-Achse);&nbsp; der<BR>Vektor
+entspricht nun der alten Y-Achse. der Vektor wird nun in jener
+Ebene,<BR>den er nun mit der Z-Achse einschliesst, um 30 Grad
+hochgekippt.<BR>Vektoren mit positivem Kippwinkel liegen im positiven
+Z-Halbraum,<BR>Vektoren mit negativem Kippwinkel im negativen
+Z-Halbraum.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">D5=P1
+P2<BR>D5=P1 P2 100 </FONT>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Vektor
+D5 als Strecke von P1 nach P2. L&auml;nge optional.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>D6=L10
+100</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Vektor
+in Richtung der Linie; L&auml;nge optional.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Haupt/Nebenachsen
+von Circ, Ellipse, Plane durch Modifier:<BR>&nbsp; 1 = Z-Achse,<BR>&nbsp;
+2 = X-Achse (Ellipse: Hauptachse),<BR>&nbsp; 3 = Y-Achse (Ellipse:
+Nebenachse),<BR>&nbsp; 4 = inverse X-Achse<BR>&nbsp; 5 = inverse
+Y-Achse<BR>&nbsp;Beispiel: &quot;D20 = C20 MOD(2)&quot;&nbsp;&nbsp;
+liefert die X-Achse des C20<BR></FONT><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U>Normalvektoren:<BR></U>D=Circle<BR>D=Plane<BR>D=Point
+Point Point<BR>D=Line Line<BR>D=Line Point<BR>D=Vector Line<BR>D=Vector
+Point Point</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">(Alle
+zus&auml;tzlich mit L&auml;nge und &quot;REV&quot; m&ouml;glich).</FONT></P>
+<P STYLE="margin-bottom: 0cm">&nbsp; <FONT FACE="helvetica, arial, sans-serif">Beispiele:<BR>D7=C10
+100<BR># Vektor in Richtung der Z-Achse von Kreis C10, L&auml;ge 100</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>D7=R10
+REV<BR># Vektor in die umgekehrte Richtung der Z-Achse von Ebene R10.</FONT></P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Transformationen:"></A><FONT FACE="helvetica, arial, sans-serif"><B>Transformationen:</B></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Werden angewendet mit
+Modifikation <A HREF="#Geom.Modfikationen">Transform</A></FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Translation:</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">T=TRA Translationsvektor
+[Vektorl&auml;nge]<BR>T20=DZ VAL(100)<BR># Translation in Richtung Z
+um 100 mm</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Rotation:</U><BR>T=ROT
+DrehAchse DrehWinkel<BR>T20=ROT L20 ANG(30)<BR># Definition einer
+30-Grad-Rotation um Linie L20</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Kreise"></A><FONT FACE="helvetica, arial, sans-serif"><B>Kreise</B><BR><BR><BR>Parameter
+Drehrichtung:</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">CW&nbsp;&nbsp;
+(clockwise, im Uhrzeigersinn) oder<BR>CCW&nbsp; (counterclockwise,
+Gegenuhrzeigersinn)<BR>Die Angabe von CCW ist nicht erforderlich
+(Standard).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Der
+Drehsinn ist g&uuml;ltig, wenn die Drehachse zum Auge des Betrachters
+zeigt.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U><B>Kreise
+(360 - Grad):</B></U></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Mittelpunkt, Radius [Z-Achsvektor]<BR>C20=P20 VAL(25) DZ</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Kreis kopieren<BR>C2=C1</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+konzentr. Kreise. Negative Radiusdifferenz verkleinert den
+Kreis.<BR>C2=C1 &lt;Radiusdifferenz&gt;</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Mittelpunkt, Punkt am Umfang [Z-Achsvektor]<BR>C3=P1 P2<BR>C3=P1 P2
+D(1 0 1)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Mittelpunkt, tangential&nbsp; an Line / Circ<BR>C1=P1 L1<BR>C1=P1 C1</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+
+
+<PRE>
+<h3>Kreisbogen durch Startpunkt, Startrichtung und Radius.</h3>
+  Startrichtung: die Tangente an den Kreis im Starpunkt. Ein Vektor.
+  Angle: Öffnungswinkel, optional; Standard ist 360 Grad.
+  Achsvektor optional.
+  [CW/CCW] ist die Drehrichtung; optional ("CW").
+
+# Beispiel: Endtangente einer Klothoide als Startrichtung.
+S20=CLOT P(0 0 0) DX ANG(30) 0 10
+P20=P(S20 1)
+D20=TNG P20 S20
+C20=ARC P20 D20 25 ANG(30)
+
+
+</PRE>
+
+
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">
+# Tangential an 2 Elemente, Radius.<BR>
+# C1=P1,L1,Radius,Seite<BR>
+# C2=P1,C1,Radius,Seite<BR>
+# C5=L1,L2,Radius,Seite<B><I><BR></I></B>
+# C5=L1,C1,Radius,Seite<B><I><BR></I></B>
+# C5=C1,C2,Radius,Seite<BR>
+L1=X(10)<BR>
+L2= Y(10)<BR>
+C1=L1 L2 VAL(5) MOD(1)</FONT></P>
+
+
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>#
+2 Punkte am Umfang, Radius. Seite: auf der sich der Mittelpunkt
+befindet.<BR># C1=P1 P2 Radius Seite Z-Achs-Vektor<BR>P20=P(98.6 5.4
+0)<BR>P21=P(114.5 -15.2 0)<BR>C22=P20 P21 VAL(12) MOD(1) DZ</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Punkt am Umfang, Tangente, Radius.<BR># C1=P1 L1 Radius
+Seite<BR>L20=P(44.6 -32.8 0) P(86.5 -69.3 0)<BR>P26=P(56.2 -35.5
+0)<BR>C21=P26 L20 VAL(8) MOD(2)</FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Punkt am Umfang, tangential an Kreis.<BR># C2=P1 C1 Radius
+Seite<BR>C20=P(114.5 -15.2 0) VAL(12) DZ<BR>P27=P(96.9 -19.7
+0)<BR>C21=P27 C20 VAL(8) MOD(1)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Kreis durch drei Punkte am Umfang<BR>C20=P(0 0) P(10 0) P(10 10)</FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U><B>Kreisb&ouml;gen
+(begrenzte Kreise):</B></U></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Mittelpunkt Startpunkt Drehwinkel Z-Achs-Vektor<BR>C21=ARC P20 P21
+ANG(90) DZ</FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-left: 1.13cm">Circ=ARC Startpunkt Endpunkt
+Mittelpunkt [Z-Achse] [Drehrichtung]<BR>Kreisbogen aus Startpunkt
+Endpunkt Mittelpunkt (Mittelpunktsachse, Drehrichtung)<BR>Drehrichtung:
+CW (Uhrzeigersinn) oder CCW (Gegenuhrzeigersinn, Standard).<BR>Der
+Drehsinn ist g&uuml;ltig, wenn die Drehachse zum Auge des Betrachters
+zeigt.<BR>C20=ARC P1 P2 P3<BR>C31=ARC P(10,0,10) P(0,10,10)
+P(0,0,10)<BR>C32=ARC P(10,0,0) P(0,0,10) P(0,0,0) D(0,1,0) CW</P>
+<P><BR>Circ = ARC Startpunkt, Endpunkt, Radius, Z-Achse<BR>Kreisbogen
+aus Startpunkt Endpunkt Radius Mittelpunktsachse, Info180.<BR>Radius:
+positiv fuer Uhrzeigersinn, negativ fuer Gegenuhrzeigersinn.<BR>C21=ARC
+P(251 23 0) P(189 75 0) VAL(50) DZ 
+</P>
+<P STYLE="margin-left: 1.13cm"><BR># Kreisbogen durch drei Punkte am
+Umfang<BR>C20=ARC1 P(0 0) P(10 0) P(10 10)</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U><B>Implizite
+Definition von Kreisen / Kreisb&ouml;gen:</B></U></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">C(Startpunkt
+Endpunkt Mittelpunkt [Z-Achse] [Drehrichtung])<BR>C(Endpunkt
+Mittelpunkt [Z-Achse] [Drehrichtung])</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Punkte hier nur mit
+Index &quot;P20&quot; oder direkt &quot;xKoord yKoord
+[Z(zKoord]&quot;<BR>Beispiel: &nbsp;C(25 0 0 25 0 0)<BR>Fehlt der
+Startpunkt, so wird der Endpunkt der letzten P(), L() oder C() -
+Definition benutzt.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Circ aus
+CCV:<BR>C(S&lt;ccv&gt; MOD(&lt;ccvSegNr&gt;))</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><I><U><B>Sehnentoleranz:</B></U></I></FONT></P>
+<P>Die Sehnentoleranz f&uuml;r die Darstellung der Kreise kann direkt
+gesetzt werden in <B>Standards/Tolerances</B> mit &quot;Toleranzen
+zur Darstellung - Polygon&quot;.</P>
+<P>Weiters wird auch durch Ver&auml;ndern der Modelsize (MODSIZ) die
+Sehnentoleranz gesetzt.</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Kurven"></A><FONT FACE="helvetica, arial, sans-serif"><B>Kurven</B><BR><BR><BR>Ellipse
+aus Mittelpunkt, Endpunkt Hauptachse, Endpunkt Nebenachse:<BR>S1=ELL
+P(100 0) P(150 0) P(100 20)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Ellipse aus
+Mittelpunkt, Vektor Hauptachse, Vektor Nebenachse:<BR>S1=ELL P(100 0)
+D(10 0) D(0 5)<BR>(die Vektoren definieren Richtung und L&auml;nge
+der Haupt- und Nebenachse)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Begrenzte Ellipse
+aus Mittelpunkt, Vektor Hauptachse, Vektor Nebenachse, Startpunkt,
+Endpunkt:<BR>S1=ELL P(0 0) D(10 0) D(0 5) P(10 0) P(-10 0)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Ellipse aus
+Projektion von Kreis auf Ebene:<BR>S20 = ELL C20 R20<BR></FONT><BR><BR>
+</P>
+<HR SIZE=1>
+<P><FONT FACE="helvetica, arial, sans-serif">Parallelogram aus einem
+Punkt und 2 Vektoren:<BR>S= RECT pt1 vec1 vec2<BR>(Vektoren: Richtung
+und L&auml;nge !)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Beispiel:<BR>S20=REC
+P(100 0 0) D(50 0 0) D(0 12 0)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>2D-Polygon aus
+Punkten:</U><BR>S#=POL2,2D-point1,2D-point2&lt;,2D-point3, ..
+2D-pointn&gt;<BR><BR>Beispiel:<BR>P20= 10,10<BR>S20=POL2, P20,
+P(10,0) P(20,10) P(30,30)<BR><BR><BR><BR><U>3D-Polygon aus
+Punkten:</U><BR>S#=POL,point1,point2&lt;,point3, ..
+pointn&gt;<BR><BR>Beispiel:<BR>P20=P(10,10)<BR>P21=P(20,20,15)<BR>P22=P(25,20)<BR>S24=POL
+P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)<BR><BR><BR><BR><U>Polygon
+auf Ebene projizieren:</U><BR>S#=POL Polygon Refsys<BR>Beispiel:<BR>S20=POL
+P(30,0) P(30,10,10) P(40,30,20)<BR>S21=POL S20 R0<BR><BR><BR><U>3D-Polygon
+aus B-Spline:</U><BR>S#=POL,B-Spline,Toleranz<BR><BR><BR></FONT><BR><BR>
+</P>
+
+
+
+
+<HR SIZE=1>
+<PRE>
+
+S Clotoid                                  CLOT
+
+ Klothoid-Kurve erzeugen (eine planare Spirale durch Fresnel-Integrale).
+   StartPoint   Startpunkt
+   StartVector  StartRichtung  (Vektor oder Winkel)
+   Angle        Differenzwinkel Startrichtung - Richtung am Endpunkt
+                positiv: Uhrzeigersinn (CW); negativ: Gegenuhrzeigersinn (CCW).
+   StartRadius  Radius beim Startpunkt oder 0 für unendlich
+   EndRadius    Radius beim Endpunkt oder 0 für unendlich
+   [Z-Axis]     Normalvektor; optional.
+
+
+Hilfsfunktionen zum Erzeugen einer Klothoid-Kurve:
+  Erzeugen des Startpunktes mit "PT cartes"
+    Selektieren Sie den Endpunkt des vorhergehenden Elementes.
+  Erzeugen des StartVector mit "VEC tangent"
+    Selektieren Sie den Endpunkt des vorhergehenden Elementes und das
+    vorhergehende Element; mit "OK" wird der Auslaufvektor erzeugt.
+
+
+Beispiel:
+S20=CLOT P(0 0 0) ANG(0) ANG(30) 0 10
+
+Beispielmodel siehe sample_cloth1.gcad
+
+Export einer Klothoid-Kurve:
+  DXF:  Ausgabe als POLYLINE.
+  Iges: Ausgabe als Entity 106 (CopiousData, Form 12 = 3D-Polygon).
+
+
+</PRE>
+
+
+
+
+
+
+<HR SIZE=1>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Polynomische Kurve
+aus Polynomwerten:</U><BR><BR>S#=PSP3,arc1&lt;,arc2, .. arcn&gt;<BR>&nbsp;
+Polynomische Kurve mit 1-n Arcs.<BR>&nbsp; Ein Arc besteht aus 13
+Zahlen; dem Abstandswert und den Polynomwerten<BR>&nbsp; xa, ya, za,
+xb, yb, zb, xc, yc, zc und xd, yd, zd.<BR>&nbsp; xa, ya, za
+definieren einen
+Durchgangspunkt.<BR>Beispiel:<BR>S20=PSP3,0,3.84815,0.967105,0,0.577021,0.207039,0,0,0,0,-0.169071,0.140166,0,<BR>&nbsp;1,4.2561,1.31431,0,0.069808,0.627537,0,-0.507212,0.420498,0,0.341924,<BR>&nbsp;-0.327596,0,2,4.16062,2.03475,0,0.081155,0.485747,0,0.518559,-0.562288,0,<BR>&nbsp;-0.183075,0.224101,0,3,4.57726,2.18231,0,0.56905,0.033474,0,-0.030664,<BR>&nbsp;0.110016,0,-0.060996,-0.13481,0,4,5.05465,2.19099,0,0.324734,-0.150924,0,<BR>&nbsp;-0.213651,-0.294414,0,0.071217,0.098138,0,5,5.23695,1.84379,0,0.111083,<BR>&nbsp;-0.445338,0,0,0,0,0.427303,0.588828,0<BR></FONT><BR><BR>
+</P>
+<HR SIZE=1>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>
+<U>B-Spline aus Kontrollpunkten / Knotenvektor:</U><BR>
+<BR>
+S-bsp = BSP,ptNr,degree,controlpoints,knotvector,Startparameter,Endparameter<BR>
+&nbsp; ptNr = Anzahl von Kontrollpunkten<BR>
+&nbsp; controlpoints: die Kontrollpunkte; Anzahl = ptNr, 3 Werte (X/Y/Z).<BR>
+&nbsp; knotvector: die Abstandsparameter; Anzahl = ptNr + degree + 1.<BR>
+<BR>
+Beispiel:<BR>
+S20=BSP,6,3,-178,109,0,-166,128,0,-144,109,0,-109,112,0,-106,134,0,-119,138,<BR>
+&nbsp;0,0,0,0,0,0.333333,0.666667,1,1,1,1,0,1<BR>
+<BR>
+<BR>
+<U>B-Spline aus Punkten:</U><BR>
+S-bsp = BSP {points} [,degree] [,CTRL]<br>
+&nbsp; CTRL: ob die definierten Punkte Durchgangspunkte oder Kontrollpunkte sind.<br> 
+<BR>
+ Beispiel:<BR>
+ P20=P(78,9)<BR>
+ P21=P(66,28)<BR>
+ P22=P(44,9,25)<BR>
+ P23=P(9,12)<BR>
+ P24=P(6,34)<BR>
+ # B-Spline from Points<BR>
+ S20=BSP,P20,P21,P22,P23,P24<BR>
+<BR>
+<BR>
+<U>B-Spline aus Polygon:</U><BR>
+S-bsp = BSP {Polygon} [,degree] [,CTRL]<br>
+&nbsp; CTRL: ob die definierten Punkte Durchgangspunkte oder Kontrollpunkte sind.<br>
+<BR>
+Beispiel:<BR>
+P20=P(78,9)<BR>
+P21=P(66,28)<BR>
+P22=P(44,9,25)<BR>
+P23=P(9,12)<BR>
+P24=P(6,34)<BR>
+# B-Spline from Points<br>
+S20=BSP,P20,P21,P22,P23,P24<BR>
+# Polygon from Points:<BR>
+DRAW OFF<BR>
+S21=POL,P20,P21,P22,P23,P24<BR>
+# BSpline from Polygon <BR>
+DRAW ON<BR>
+S22=BSP,S21<BR>
+<BR>
+<BR>
+<U>B-Spline = Isoparametrische Kurve aus einer Flaeche</u><br>
+Dzt nur aus B-SplineFl&auml;che, Punkteingabe statt Parameterwert noch nicht implementiert<br>
+S-bsp = ISO {B-SplineFl&auml;che} {Parameterwert} [,CX]<br>
+<br>
+Eingaben:<br>
+Fl&auml;che:  Dzt nur B-SplineFl&auml;che<br>
+Parameterwert: (0 - 1)<br>
+Optional: Richtung.<br>
+  Keine Angabe: L&auml;ngsRichtung; "CX" definiert QuerRichtung.<br>
+  (Modifier CX = across; Default = along)<br>
+<br>
+<br>
+Beispiel:<br>
+# Querschnittkurve in der Mitte der Surface A20:<br>
+S20=ISO A20 .5 CX<br>
+<br>
+<br>
+
+
+
+
+
+
+
+</FONT><BR>
+<BR>
+</P>
+<HR SIZE=1>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><U>Kontur
+(&quot;Concatenated Curve&quot; - CCV)</U><BR>S#=CCV &lt;Konturelemente&gt;</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Die
+Kontur beginnt und endet an einem Punkt.<BR>Elemente: Punkte, Linien,
+Kreise, Kurven.<BR>Im Anschluss an Kreise und Kurven kann die
+Drehrichtung (CW oder CCW) definiert werden. Es werden automatisch
+Normalen an Linien und Kreisb&ouml;gen
+gebildet.<BR>Beispiel:<BR>C20=P(39,26) VAL(22)<BR>S20=CCV P(7,25) C20
+CW P(35,58)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR><BR><BR><BR><BR><BR><U>2D-CompositeCurve
+aus 2D-Polygon:</U><BR>Eine 2D-CompositeCurve besteht aus
+Kreisen/Linien<BR><BR>S#=CCV2, 2D-Polygon,
+Toleranz<BR><BR>Beispiel:<BR>P20=P(78,9)<BR>P21=P(66,28)<BR>P22=P(44,9,25)<BR>P23=P(9,12)<BR>P24=P(6,34)<BR><BR>#
+Poly &lt;- Points<BR>DRAW OFF<BR>S20=POL,<BR>&amp;
+P20,P21,P22,P23,P24<BR><BR># BSpline &lt;- Poly<BR>DRAW
+ON<BR>S21=BSP,S20,2<BR><BR># Poly &lt;- BSpline<BR>DRAW
+OFF<BR>S22=POL,S21,0.05<BR><BR># 2DPoly &lt;- Poly<BR>DRAW
+OFF<BR>S23=POL2,S22,R22,0.05<BR><BR># 2DCirc/Line &lt;- 2DPoly<BR>DRAW
+ON<BR>S24=CCV2,S23,0.05<BR><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Achsensysteme_-_Ebenen"></A><FONT FACE="helvetica, arial, sans-serif"><B>Achsensysteme
+- Ebenen</B><BR><BR>Vordefinierte Ebenen sind:<BR>RZ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Basisebene XY<BR>RY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Ebene XZ<BR>RX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ebene
+YZ</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">R
+= Nullpunkt<BR>Es wird eine Ebene mit dem angegebenen Nullpunkt und
+den Achsen des Hauptachsystems erzeugt. </FONT>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Definition
+einer Ebene durch den Nullpunkt und einen Normalvektor:<BR>R =
+Nullpunkt Normalvektor/Linie<BR>Normalvektor: Vektor oder
+Linie.<BR>Beispiele:<BR>R10=P(100 100 100) D(0 0 1)<BR>R11=P154
+D(ANG(90) ANG(45))<BR>R12=P(100 100 100) L(P(0 0 0) P(0 0 100))</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene
+aus Nullpunkt, Normalvektor der Ebene und einem Punkt auf der X-Achse
+der neuen Ebene:<BR>R=po vz px<BR>Beispiel: R11=P(100 100 100) D(0 0
+1) P(101 100 100)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene
+aus Nullpunkt, Normalvektor und X-Achsvektor:<BR>R=PERP Origin
+Z-Achse X-Achse<BR>Beispiel:<BR>R21=PERP P(50 50) DX DY</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Definition
+einer Ebene durch den Nullpunkt, den X-Vektor der Ebene und einen
+weiteren Vektor in der neuen Ebene:<BR>R=po vx vc
+<BR>Beispiel:<BR>R12=P(100 100 100) D(1 0 0) D(0 1 0)<BR>R20=P(100
+100 25) DX DY<BR></FONT><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene/Referenzsystem
+durch drei 3D-Punkte;<BR>R=po, px, pt<BR>po = der Nullpunkt,<BR>px =
+ein Punkt auf der X-Achse der neuen Ebene,<BR>pt = ein Punkt in der
+Ebene (der nicht in einer Linie mit po - px liegen darf).<BR>Beispiel:
+&nbsp;R4=P(100 100 100) P(101,100,100) P(100,101,100)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene/Referenzsystem
+verschieben (die Achsenrichtungen bleiben):<BR>R = Refsys
+Nullpunkt<BR>Beispiel:<BR>R21=R20 P(100 100 50)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">R
+= Z(Z_Abstand)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Die
+neue Ebene ist parallel zur X-Y-Ebene, alle Achsenrichtungen sind
+hier gleich wie bei der Hauptachse. Der Abstand auf der Z-Achse wird
+angegeben.<BR>Beispiel: R5=Z(100)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>R
+= X(X_Abstand)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene
+parallel zur Y-Z-Ebene; die neue X-Achse entspricht der 3D-Y-Achse,
+die neue Y-Achse entspricht der 3D-Z-Achse. Die neue Z-Achse
+entspricht der Hauptachse -X.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>R
+= Y(Y_Abstand)</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Ebene
+parallel zur X-Z-Ebene; die neue X-Achse entspricht der 3D-X-Achse,
+die neue Y-Achse entspricht der 3D-Z-Achse. Die neue Z-Achse
+entspricht der Hauptachse -Y.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>R12</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Aktivieren
+von Refsys Nr. 12.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>RZ</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Entspricht
+der Hauptachse = R&uuml;cksetzen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Flaechen"></A><FONT FACE="helvetica, arial, sans-serif"><BR><BR>
+<B>Fl&auml;chen - Area:</B></FONT></P><BR><BR>
+<P STYLE="margin-bottom: 0cm"><U><I><FONT FACE="helvetica, arial, sans-serif">Planare
+Fl&auml;chen; getrimmt, ungelocht und gelocht:</FONT></I></U> <BR><I><FONT FACE="helvetica, arial, sans-serif">A
+=</FONT></I> <FONT FACE="helvetica, arial, sans-serif">Randkurve
+[Inseln ...] </FONT><BR><FONT FACE="helvetica, arial, sans-serif">Randkurve,
+Inseln:</FONT></P>
+<P STYLE="margin-left: 1.13cm; margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">ein
+Kreis, eine Ellipse, ein geschlossener B-Spline oder eine
+geschlossene CCV (S=CCV ..).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR><FONT FACE="helvetica, arial, sans-serif">#
+Beispiel Planare Fl&auml;che:</FONT></P>
+<P STYLE="margin-left: 1.13cm; margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">P20=P(-120
+-160)<BR># Die Randkurve:<BR>S20=CCV P20 P(233 -186) P(223 -95) P(104
+-81) P(135 134) P(-122 162) P20<BR># die planare Fl&auml;che:<BR>A20=S20</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">#
+Beispiel:&nbsp; Aussenrand C29, Insel C28.</FONT></P>
+<P STYLE="margin-left: 1.13cm; margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">C29=P(-252.2
+-580.9 0) VAL(12)<BR>C28=P(-255.9 -606.8 0) VAL(66)<BR>A20= C28 C29</FONT></P>
+<P><BR><BR>
+</P>
+<HR>
+<P><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Ruled Surface
+aus zwei Grundelementen (PT/LN/AC/CV)</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">A#=SRU
+Objekt1 Objekt2</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L20=P(0
+-10 20) P(0 10 20)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">C20=ARC
+P(0 -10) P(0 10) P(0 0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A20=SRU
+C20 L20</FONT><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Ruled
+Surface aus Grundelement und Vektor:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L30=P(0
+-10 20) P(0 10 20)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">D30=D(10
+10 60)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A30=SRU
+L30 D30</FONT><BR><BR><BR><BR>
+</P>
+<HR>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><I>Drehfl&auml;chen:<BR><BR>Zylinderfl&auml;che<BR></I></U>A
+= CYL Achse Radius drehWinkel1 drehWinkel2 Hoehe1
+Hoehe2<BR>Zylinderflaeche;<BR>Achse&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+Linie od Kreis od Ebene od PT+PT od PT+LN od PT+VC<BR>Radius&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; KeyIn Radius oder Punkt.<BR>drehWinkel1&nbsp;
+KeyIn Startwinkel (Def = 0) oder Punkt.<BR>drehWinkel2&nbsp; KeyIn
+Endwinkel (Def = 360) oder Punkt.<BR>Hoehe1&nbsp;&nbsp;&nbsp; &nbsp;
+KeyIn Hoehe (ab position; Def = 0) oder Punkt.<BR>Hoehe2&nbsp;&nbsp;&nbsp;
+&nbsp; KeyIn Hoehe (ab position) oder Punkt.<BR>R22=P(105 129.2 0)
+D(1 1 1)<BR>A22=CYL R22 12 0 360 0 30<I><BR><BR><BR><U>Kugelfl&auml;che</U><BR></I>A
+= SPH <FONT FACE="helvetica, arial, sans-serif">Achse</FONT></FONT>
+<FONT FACE="helvetica, arial, sans-serif">Radius [drehWinkel1
+drehWinkel2 [HoeheWinkel1 HoeheWinkel2]]<BR>Kugelflaeche; Parameter
+wie Zylinderflaeche.<BR>Achse&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Linie od Kreis od Ebene od PT+PT od PT+LN od PT+VC<BR>Radius&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+KeyIn Radius oder Punkt.<BR>drehWinkel1&nbsp; KeyIn Startwinkel (Def
+= 0) oder Punkt.<BR>drehWinkel2&nbsp; KeyIn Endwinkel (Def = 360)
+oder Punkt.<BR>HoeheWinkel1 KeyIn Startwinkel (Def = 0) oder
+Punkt.<BR>HoeheWinkel2 KeyIn Endwinkel (Def = 180) oder
+Punkt.<BR>P20=P(68 68.9 0)<BR>A21=SPH R(P20) 12<I><BR><BR><U><BR><BR>Revolved
+- Surface&nbsp; (Rotationsfl&auml;che, Drehfl&auml;che)</U><BR></I>A=
+SRV Achse [Kontur drehWinkel1 drehWinkel2 [Hoehe1
+Hoehe2]]<BR>Achse&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Linie od Kreis
+od Ebene od PT+PT od PT+LN od PT+VC<BR>Kontur&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Linie, Kreis od. B-Spline.<BR>drehWinkel1&nbsp; KeyIn Startwinkel
+(Def = 0)</FONT> <FONT FACE="helvetica, arial, sans-serif"><FONT FACE="helvetica, arial, sans-serif">oder
+Punkt.</FONT><BR>drehWinkel2&nbsp; KeyIn Endwinkel (Def = 360)</FONT>
+<FONT FACE="helvetica, arial, sans-serif"><FONT FACE="helvetica, arial, sans-serif">oder
+Punkt.</FONT><BR>Hoehe1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; KeyIn
+Startparameter (Def = 0.) oder Punkt.<BR>Hoehe2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+KeyIn Endparameter (Def = 1.) oder Punkt.<BR><BR>Der Startpunkt des
+Konturelementes liegt in Winkelposition 0 Grad; die Drehrichtung ist
+CCW.<BR></FONT><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L20=P(20
+0) P(20 20)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L21=P(50
+0) P(40 20)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A20=SRV
+L20 L21 270 0</FONT><BR><BR><BR><BR><BR>
+</P>
+<HR>
+<P><U><I><FONT FACE="helvetica, arial, sans-serif">B-Spline-Fl&auml;che:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">A#=BSP,pt1Nr,pt2Nr,degree1,degree2,controlpoints,knotvector1,knotvector2</FONT><BR>&nbsp;
+<FONT FACE="helvetica, arial, sans-serif">pt1Nr = Anzahl von
+Kontrollpunkten in Richtung 1</FONT><BR>&nbsp; <FONT FACE="helvetica, arial, sans-serif">pt2Nr
+= Anzahl von Kontrollpunkten in Richtung 2</FONT><BR>&nbsp; <FONT FACE="helvetica, arial, sans-serif">degree1
+= Grad der B-Splinekurven in Richtung 1</FONT><BR>&nbsp;
+<FONT FACE="helvetica, arial, sans-serif">controlpoints: die
+Kontrollpunkte; Anzahl = pt1Nr * pt2Nr, 3 Werte (X/Y/Z).</FONT><BR>&nbsp;
+<FONT FACE="helvetica, arial, sans-serif">knotvector1: die
+Abstandsparameter fuer Richtung 1; Anz. = pt1Nr + degree1 + 1</FONT><BR><BR><BR><BR>
+</P>
+<HR>
+<P STYLE="margin-bottom: 0cm"><U><I><FONT FACE="helvetica, arial, sans-serif">Fl&auml;che
+supported, trimmed, punched:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB St&uuml;tzfl&auml;che Randkurve [Inseln ...] </FONT><BR><BR><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB A S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// St&uuml;tzfl&auml;che&nbsp; (SRU, BSP) getrimmt</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB A S S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// St&uuml;tzfl&auml;che&nbsp; getrimmt und 1 Loch</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB A A S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// St&uuml;tzfl&auml;che nicht getrimmt, 1 Loch </FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB B&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// Konus od. Torus (unbegrenzt, ungelocht)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB B S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// getrimmt</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A =
+FSUB B S S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// getrimmt, gelocht</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A
+= FSUB B B S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// ungetrimmt, gelocht</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">St&uuml;tzfl&auml;che:</FONT></P>
+<P STYLE="margin-left: 1.13cm; margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Es
+ist immer eine St&uuml;tzfl&auml;che erforderlich.<BR>kann sein:
+A=SRU A=BSP oder<BR>Fl&auml;che auf Kegel (konisch): einen
+Solidk&ouml;rper &quot;Conus&quot; w&auml;hlen (B=CON ..).</FONT></P>
+<P STYLE="margin-left: 1.13cm"><FONT FACE="helvetica, arial, sans-serif">Fl&auml;che
+auf Torus (Kreisring): einen Solidk&ouml;rper &quot;Torus&quot;
+w&auml;hlen (B=TOR ..).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Randkurve,
+Inseln: </FONT>
+</P>
+<P STYLE="margin-left: 1.13cm"><FONT FACE="helvetica, arial, sans-serif">ein
+Kreis, eine Ellipse, ein geschlossener B-Spline oder eine
+geschlossene CCV (S=CCV ..).<BR>Die Randkurve muss sich auf der
+St&uuml;tzfl&auml;che befinden. Ist die Aussenkontur mit der
+Begrenzung der St&uuml;tzfl&auml;che ident, kann die St&uuml;tzfl&auml;che
+auch als Randkurve angegeben werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Beispiel
+Konusfl&auml;che:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(100
+0 0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=P(200 0
+0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P22=P20
+Y(120)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P23=P21
+Y(60)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P24=P20 P22
+ANG(135) DX</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P25=P21
+P23 ANG(135) dx</FONT><BR><FONT FACE="helvetica, arial, sans-serif">C20=ARC
+P23 P25 P21 dx</FONT><BR><FONT FACE="helvetica, arial, sans-serif">C21=ARC
+P22 P24 P20 dx</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+Der Grundk&ouml;rper:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">B20=CON
+C21 C20</FONT><BR><FONT FACE="helvetica, arial, sans-serif"># Die
+Randkurve:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">S20=CCV
+P23 P22 C21 P24 P25 C20 P23</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+Die Konusfl&auml;che:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A20=FSUB
+B20 S20</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#</FONT></P>
+<HR SIZE=1>
+<P><U><I><FONT FACE="helvetica, arial, sans-serif">Kreis&auml;hnliche
+Fl&auml;che aus 3 - n Punkten.</FONT></I></U>
+<BR><FONT FACE="helvetica, arial, sans-serif">A#=RCIR,P#,P#,P#&lt;,P#&gt;</FONT><BR>&nbsp;
+<BR>&nbsp; <FONT FACE="helvetica, arial, sans-serif">Vom ersten Punkt
+gehen alle Strahlen aus (zB Konusmittelpunkt).</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(5,
+-2)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=P(9,
+-1)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P22=P(8,
+3)</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">A20=RCIR,P20,P21,P22,P(4
+3)</FONT><BR><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><U><I><FONT FACE="helvetica, arial, sans-serif">Streifenf&ouml;rmige
+Fl&auml;che aus 1-n Streifen.</FONT></I></U><BR><BR><FONT FACE="helvetica, arial, sans-serif">A#=RSTRIP,ptNr,P#,P#,P#&lt;,P#&gt;</FONT><BR><FONT FACE="helvetica, arial, sans-serif">Jeder
+Streifen besteht aus zwei Reihen von je &lt;ptNr&gt; Punkten. Min.
+Anzahl von Punkten ist 2 * ptNr. F&uuml;r 2 Streifen sind (3*ptNr)
+Punkte erforderlich.</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(2
+0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=P(4
+0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P22=P(6
+0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P23=P(8
+0)</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">P30=P(2 0
+5)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P31=P(4 1
+5)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P32=P(6 1
+5)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P33=P(8 0
+5)</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">A21=RSTRIP,4,
+P20,P21,P22,P23, P30,P31,P32,P33</FONT><BR><BR><BR>
+</P>
+
+
+<HR SIZE=1 NOSHADE>
+<PRE>
+<u>Freiformflaeche aus Laengsschnittkurven und Querschnittkurven.</u>
+Typisch: 2 + 2 Randkurven.
+Sonderform: 3 Randkurven.
+
+Alle Laengs- und Querschnittskurven muessen ein Netz bilden -
+  - je einen gemeinsamen Punkt haben.
+
+Eingabekurven koennen Linien, Kreisboegen oder Freiformkurven sein
+(dzt nicht CCV - zusammengesetzte Kurve).
+
+Beispielmodelle:
+  sample_area_bsp3 (5 x 4 Kurven)
+  sample_area_bsp5 (2 x 1 Randkurven)
+  sample_area_bsp7 (2 x 2 Randkurven)
+
+
+<HR SIZE=1 NOSHADE>
+<u>Freiformflaeche aus Querschnittkurven.</u>
+Eingabekurven koennen Linien, Kreisboegen oder Freiformkurven sein
+(dzt nicht CCV - zusammengesetzte Kurve).
+
+
+Beispielmodell:
+  sample_area_bsp4
+  sample_area_bsp6
+
+
+
+</PRE>
+
+
+<HR SIZE=1>
+<P><U><I><FONT FACE="helvetica, arial, sans-serif">Schraffur /
+Hatch:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">A#
+= HAT Kontur Abstand Richtung </FONT><BR><FONT FACE="helvetica, arial, sans-serif">Richtung
+= Schraffurwinkel in Grad </FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(-500
+500)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">S21=CCV P20
+P(400 900) P(400 300) P20</FONT><BR><FONT FACE="helvetica, arial, sans-serif">A20=HAT
+S21 VAL(50) VAL(45)</FONT><BR><BR><BR><FONT FACE="helvetica, arial, sans-serif">Derzeit
+noch keine Import / Export - Funktion f&uuml;r Schraffuren.</FONT><BR><FONT FACE="helvetica, arial, sans-serif">Derzeit
+noch keine Funktion f&uuml;r gelochte Schraffuren.</FONT><BR><BR><BR><BR><BR>
+</P>
+
+
+
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Solids"></A><FONT FACE="helvetica, arial, sans-serif"><BR><BR>
+<B>Solids- Body:</B></FONT></P><BR><BR>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Kugel:</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Kugel aus Mittelpunkt
+Radius:<BR>B1=SPH P(0 0 0) 12</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Kugel aus
+Kreis:<BR>C1=P(0 0 0) 12<BR>B2=SPH C1<BR></FONT><BR><BR>
+</P>
+<HR>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Konischer K&ouml;rper
+(Kegel):</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>B1=CON BasisKreis
+Punkt_Kegelspitze</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">B2=CON Mittelpunkt_1
+Mittelpunkt_2 Radius_1 Radius_2<BR><BR>B3=CON Kreis_1
+Kreis_2<BR><BR>Beispiel:<BR>B20=CON P(0 0 0) P(100 0 0) VAL(60)
+VAL(40)<BR><BR>C20=P(0 0 0) VAL(100) DX<BR>C21=P(100 0 0) VAL(40)
+DX<BR>B20=CON C20 C21<BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1>
+<P><U><FONT FACE="helvetica, arial, sans-serif">Torus / Kreisring:</FONT></U>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>B#=TOR Mittelpunkt
+Hauptachse Radius_Hauptkreis Radius_Nebenkreis</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">B#=TOR L
+C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// Achse Aussenkreis<BR>B#=TOR C C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// Hauptkreis Aussenkreis<BR>B#=TOR R
+C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// Basisebene Aussenkreis</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Achse des
+Hautkreises ist die Hauptachse.<BR>Die Nebenkreisachse liegt immer
+normal auf Hauptachse.<BR>Radius_Hauptkreis ist ganz an der
+Aussenseite; ist also immer positiv.<BR>Modifikator_Aussen_Innen:
+erforderlich zur Auswahl einer Variante, bei der der
+Radius_Hauptkreis kleiner als der Radius_Nebenkreis ist.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Beispiel:<BR>B20=TOR
+P(0 0 0) DZ VAL(100) VAL(25)<BR>C20=P(100 0 0) VAL(25) DY<BR>B20=TOR
+P(0 0 0) DZ C20</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR SIZE=1>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Prisma:</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>B=PRISM
+planare_Basisflaeche Vektor/Point/Dicke</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">planare_Basisflaeche:
+geschlossenes Polygon / Kreis /Ellipse<BR>Die gegen&uuml;berliegende
+Fl&auml;che kann ein Punkt sein oder durch einen Vektor oder die
+Dicke (z.B. Blechdicke) definiert sein.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><BR>Beispiele:</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Prisma aus
+Parallelogram und Vektor<BR>S20=REC P(100 0 0) D(50 0 0) D(0 12
+0)<BR>B20=PRISM S20 D(0 0 10)</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Prisma aus Kreis mit
+Dicke (Zylinderh&ouml;he)<BR>C20=P(289 -20.8 0) VAL(125) DZ<BR>B20=PRISM
+C20 25</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Prisma konisch aus
+Polygon<BR>P20=P(768 -457 0)<BR>S20=POL P20 P(930 -474 0) P(1029 -251
+0) P(971 -246 0) P(891 -412 0) P(801 -407 0) P20<BR>B21=PRISM S20&nbsp;
+P(900 -500 200)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Models"></A><FONT FACE="helvetica, arial, sans-serif">Models</FONT></H3>
+<P>Siehe <A HREF="#Interne_Submodels_">Interne Modelle</A>&nbsp; /
+<A HREF="#Externe_Submodels">Externe Modelle</A><BR><BR><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">M# = &quot;&lt;modelname&gt;&quot;
+Position [Scale] [Z-Vektor [X-Vektor] ]<BR>M# = &quot;&lt;modelname&gt;&quot;
+Position [Scale] [Refsys]</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Modelname: siehe
+<A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Symbolische_Dateibezeichnungen:">Symbolische
+Dateibezeichnungen</A>.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Beispiel internes
+Submodell:<BR>M20=&quot;Submodel1&quot; P(100 0)<BR><BR>Beispiel
+externes Model:<BR>M20=&quot;Data/Niet1.gcad&quot; P(100 0) 0.5 DZ
+DIY<BR><BR>Beispiel Mockup-Model:<BR>M21=&quot;Data/clocktwr.wrl&quot;
+P(0 0 0) R20</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Geom.Modfikationen"></A><FONT FACE="helvetica, arial, sans-serif"><B>Geom.Modifikationen</B>
+&nbsp; (Cut (Trim),&nbsp; Intersect, Transform, Project, Mirror)</FONT></H3>
+<P><BR><FONT FACE="helvetica, arial, sans-serif">CAD-Modus: Checkbox
+newObj bestimmt, ob das Element modifiziert wird oder ob ein neues
+Element erzeugt wird.<B><U><BR><BR><BR><BR>CUT</U></B></FONT><BR><FONT FACE="helvetica, arial, sans-serif">Lineare
+Elemente (Linien, Kurven) begrenzen, mit einem oder zwei
+Schneidelementen:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">obj=CUT
+obj Schneidelement (Variante) (Schneidelement
+(Variante))</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">Beispiel:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L20=P(-60
+30 0) P(20 70 0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">C20=P(-14
+40 0) VAL(32) DZ</FONT><BR><FONT FACE="helvetica, arial, sans-serif">C20=CUT
+C20 L20 L20</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+Kreis C20 wird an beiden Enden begrenzt (getrimmt).</FONT><BR><BR><BR><FONT FACE="helvetica, arial, sans-serif">Parameterwerte
+als Schneidelemente: dzt nur f&uuml;r B-Splines:</FONT><BR><FONT FACE="helvetica, arial, sans-serif">S21=CUT
+S20 0.33 066</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">CUT
+noch nicht f&uuml;r Fl&auml;chen.</FONT><BR><BR><BR><B><U><FONT FACE="helvetica, arial, sans-serif">INTERSECT</FONT></U></B><BR>&lt;ErgebnisObjekt&gt;=INT
+&lt;Obj1&gt; &lt;Obj2&gt; [MOD(#)] [POL]<BR>Mehrere Objekte (zB
+mehrere Fl&auml;chen) k&ouml;nnen mit&nbsp; U(obj1 obj2 ..) zu einer
+Gruppe zusammengefasst werden.<BR>Mit MOD() wird definiert, welches
+Teilst&uuml;ck ausgegeben wird; zB MOD(2) w&uuml;de die zweite
+Teilkurve ausgeben. (Offen: alle Teil-L&ouml;sungen als Gruppe
+ausgeben).<BR>Mit POL wird Polygon statt Spline ausgeben<BR><BR>#
+Beispiel Intersection:<BR>P20=P(-62.5 -63.7 0)<BR>S20=CCV P20 P(-20
+-70) P(-40 -15) P20<BR>A20=S20<BR>#<BR>P21=P(-60 -110 20)<BR>P22=P(S20
+MOD(2) 1)<BR>S21=POL&nbsp; P21 P20 P22
+P21<BR>A21=S21<BR>#<BR>R20=X(-35)<BR>#<BR>S22=INT U(A20 A21) R20
+POL<BR>#<BR><BR><BR><BR><BR><B><U><FONT FACE="helvetica, arial, sans-serif">TRANSFORM</FONT></U></B><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif">Translation:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">#
+Objekte um einen Vektor verschieben (REV: Gegenrichtung).</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+obj=TRA obj vec/traVC [REV]</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(100,0,0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=TRA
+P20 D(0 0 100)</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">T20=D(10
+10 10)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P22=TRA
+P21 T20</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">#
+traVC (T20 im Beispiel): siehe </FONT><A HREF="#Transformationen:"><FONT FACE="helvetica, arial, sans-serif">Transformation</FONT></A><BR><BR><U><I><FONT FACE="helvetica, arial, sans-serif"><BR>Rotation:</FONT></I></U><BR><FONT FACE="helvetica, arial, sans-serif">Objekte
+um eine Achse drehen.</FONT><BR><FONT FACE="helvetica, arial, sans-serif">obj=TRA
+obj traRot</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L20=P(50
+0 0) P(50 0 10)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P20=P(100
+0 0)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">T20=ROT L20
+ANG(90)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=TRA&nbsp;
+P20 T20</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">#
+traRot (T20 im Beispiel): siehe </FONT><A HREF="../../../../../win_d/dev/gCAD3D/doc/gCAD3D_de.htm#Transformationen:"><FONT FACE="helvetica, arial, sans-serif">Transformation</FONT></A><BR><BR><BR><BR><FONT FACE="helvetica, arial, sans-serif"><U><I>Transformation:<BR></I></U>#
+Objekt aus einem Referenzsystem in die Hauptlage transportieren.</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+Als Referenzsystem kann jede Ebene benutzt werden.</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+obj=TRA obj refSys REV</FONT><BR><FONT FACE="helvetica, arial, sans-serif">R20=P(100
+100 25) D(-1 0 2) </FONT><BR><FONT FACE="helvetica, arial, sans-serif">L20=P(100
+100 25) P(100 120 25)</FONT><BR><FONT FACE="helvetica, arial, sans-serif">L21=TRA
+L20 R20 REV</FONT><BR><BR><FONT FACE="helvetica, arial, sans-serif">#
+Objekt (aus dem Hauptachsensystem) in ein anderes Referenzsystem
+transportieren</FONT><BR><FONT FACE="helvetica, arial, sans-serif">#
+obj=TRA obj refSys</FONT><BR><FONT FACE="helvetica, arial, sans-serif">P21=TRA
+P(0 0 10) R20</FONT><BR><BR><BR>&nbsp;<BR><BR><B><U><FONT FACE="helvetica, arial, sans-serif">PROJECT</FONT></U></B><BR><FONT FACE="helvetica, arial, sans-serif">Lineare
+Elemente auf eine Ebene projizieren.</FONT><BR><FONT FACE="helvetica, arial, sans-serif">obj=PRJ
+obj Plane</FONT><BR><FONT FACE="helvetica, arial, sans-serif">S20=PRJ
+S20 R20</FONT><BR><FONT FACE="helvetica, arial, sans-serif"># Kurve
+S20 wird auf die Ebene R20 projiziert.</FONT><BR><BR><BR><BR><FONT FACE="helvetica, arial, sans-serif"><B><U>MIRROR<BR></U></B>Lineare
+Elemente um eine Ebene spiegeln.<B><U><BR></U></B>obj=MIR obj
+Plane<BR>S20=MIR S20 R20<BR># Kurve S20 wird um die Ebene R20
+gespiegelt.<BR><BR>Derzeit nicht f&uuml;r Fl&auml;chen.<BR><BR></FONT><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Variablen"></A>Variablen</H3>
+<P><BR>Direktzuweisung:<BR>V20=10 <BR><BR>&nbsp;<BR>Rechnen mit
+Operatoren:<BR>V21=V20+10<BR>&nbsp;<BR><BR>ACHTUNG: es ist Klammerung
+entspechend der Operatorpriorit&auml;t erforderlich
+!<BR>V22=10+(V21*3))&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// ergibt 70<BR>V22=10+V21*3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// ergibt 90<BR><BR><BR>Rechnen mit Funktionen (sqrt, sin, cos,
+tan):<BR>V23=SQRT(9)<BR><BR><BR>Absolutwert (das Vorzeichen ist immer
+positiv)<BR>V24=ABS(V20)<BR>&nbsp;<BR>Integerzahl - den Rest hinter
+dem Komma abschneiden;<BR>V25=FIX(1.8)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// ergibt 1.0<BR>&nbsp;<BR><BR>Runden. Beispiel: 1.3 wird zu 1.0, 1.8
+wird zu 2.0, -1.3 wird zu -1.0, -1.8 wird zu
+-2.0.<BR>V26=RND(V20)<BR>&nbsp;<BR><BR>Abstand Punkt-Punkt:<BR>V5=P1
+P2 <BR><BR>&nbsp;<BR>Normalabstand von Punkt zu Linie:<BR>V6=P1 L2
+<BR><BR>&nbsp;<BR>L&auml;nge einer Linie:<BR>V7=L10<BR><BR><BR>Radius
+eines Kreisbogens:<BR>V9=C10 <BR><BR>&nbsp;<BR>Die X / Y / Z -
+Koordinaten eines Punktes:<BR>V7=X(P1) <BR>V8=Y(P2)
+<BR>V9=Z(P2)<BR>&nbsp;<BR><BR>Vordefinierte Variablen: PI
+(3.1415..)<BR>V1=PI*180 <BR><BR><BR>Durchmesser errechnen
+zB:<BR>V10=C10<BR>V10=V10*2<BR>PRI V10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+// anzeigen<BR>&nbsp;<BR><BR>&nbsp;<BR>&nbsp;Numer. Variablen werden
+indirekt durch Funktion VAL() benutzt; Beispiel:<BR>&nbsp;C10=P10
+VAL(C5)<BR>&nbsp;(es wird der Radius des C5 &uuml;bernommen).<BR>&nbsp;<BR><BR>In
+den CAD-Eingabefeldern k&ouml;nnen als Zahlenwerte (zB f&uuml;r
+Radius) nur Variablen, PI, die Grundrechnungsarten und mathemat.
+Funktionen benutzt werden (nicht die Funktionen X,Y,Z sowie L,
+C).<BR>&nbsp;<BR><BR><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Winkel_-_ANG"></A><FONT FACE="helvetica, arial, sans-serif">Winkel&nbsp;&nbsp;
+-&nbsp;&nbsp; ANG()</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Bei allen Varianten kann
+zus&auml;tzlich angegeben werden:<BR>REV&nbsp; (revert, umdrehen)
+oder<BR>ANG(Winkelwert). Der Winkelwert wird dem Ergebniswert
+aufaddiert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR># Winkelwert<BR>ANG
+(Winkelwert [REV])</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Richtungsvektor<BR>ANG
+(D [ANG()/REV])</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># Linie (Richtung)<BR>ANG
+(L [ANG()/REV])</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"># 2 Punkte
+(Richtung)<BR>ANG (P P [ANG()/REV])</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Im Modus CAD kann durch
+die PgUp / PgDown - Taste eine zus&auml;tzlicher (relativer)
+Winkelwert von jeweils +90 Grad aufaddiert werden. (Es muss zuvor
+eine Angabe gemacht worden sein (zB eine Linie selektieren)).</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><I>Beispiel:</I><BR>P20=P(69.9
+-60.7 0)<BR>P21=P(119 -20.3 0)<BR>P22=P(122.1 -65.1 0)<BR>L20=P22
+ANG(P20 P21)<BR>L21=P22 ANG(P20 P21 ANG(90))</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Interaktionen_"></A><FONT FACE="helvetica, arial, sans-serif">Interaktionen</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Jedes CAD-Objekt kann
+mit einer Interaktion verbunden werden.<BR>Interaktionen benutzen Typ
+&quot;I&quot;.<BR>Bei Selektion des CAD-Objekts (Ankerobjekts) wird
+die Interaktion ausgel&ouml;st.<BR>Beispiele f&uuml;r Interaktionen
+sind:<BR>&nbsp;- Ein Folgemodell laden (wie HTM-HREF; LDMOD)<BR>&nbsp;-
+Viewposition wechseln (Ansicht &auml;ndern, VIEW)<BR>&nbsp;- Ein
+Plugin-Programm (DLL) starten / ausf&uuml;hren&nbsp;&nbsp;
+(EXECM)<BR><BR><BR>Format Interaktion:<BR>I20 = &lt;Ankerobjekt&gt;
+&quot;&lt;Command&gt;&quot;<BR><BR>Commands:<BR>&nbsp; <I>Ein Modell
+laden:</I><BR>&nbsp;&nbsp;&nbsp; LOAD
+&quot;symbol.Verzeichnis/Modelname&quot;<BR><BR>&nbsp; <I>Den
+Viewport ver&auml;ndern:</I><BR>&nbsp;&nbsp;&nbsp; VIEW
+&lt;viewPortDaten&gt;<BR>&nbsp;&nbsp;&nbsp; Mit Insert/ViewPort (oder
+Alt-Shift-V) kann man die aktuellen Viewport-Daten generieren.<BR><BR>&nbsp;
+<I>Ein Plugin-Programm (DLL) starten / ausfuehren:</I><BR>&nbsp;&nbsp;&nbsp;
+EXECM DLL-Name<BR>&nbsp;&nbsp;&nbsp; Achtung: das Programm darf keine
+Rekursion enthalten<BR>&nbsp;&nbsp;&nbsp; (zB &quot;UI_butCB (NULL,
+(void*)&quot;butEND&quot;);&quot;).<BR><BR>&nbsp; <I>Die gleiche
+Interaktion f&uuml;r ein weiteres Objekt aktivieren</I> -
+Beispiel:<BR>&nbsp;&nbsp;&nbsp; I20 = N20 &quot;VIEW ...&quot;<BR>&nbsp;&nbsp;&nbsp;
+# Bei Selektion von N20 Ansicht &auml;ndern<BR>&nbsp;&nbsp;&nbsp; I21
+= N21 I20<BR>&nbsp;&nbsp;&nbsp; # Auch bei Selektion von Objekt N21
+die gleiche Interaktion I20 ausf&uuml;hren.<BR><BR><BR><U><I>Beispiele:</I></U><BR>&nbsp;I1
+= M1 &quot;VIEW ....&quot;<BR>&nbsp;# Bei Selektion von Model1 wird
+der angegebene Viewport aktiviert.<BR><BR>&nbsp;I2 = P20 &quot;LDMOD
+&quot;Data/Assy_H86&quot;&quot;<BR>&nbsp;# Bei Selektion von Punkt 20
+wird Model Assy_H86 geladen.<BR><BR>&nbsp;I3 = N20 &quot;EXECM
+tst3&quot;<BR>&nbsp;# Bei Selektion von Note 20 wird Plugin-Programm
+tst3.so gestartet.<BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Graf._Attribute"></A><FONT FACE="helvetica, arial, sans-serif">Graf.
+Attribute</FONT></H3>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P>DRAW OFF</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>Darstellung aller folgenden Objekte aus / einblenden (ON).</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>MODE DISP_PT OFF 
+			</P>
+		</TD>
+		<TD>
+			<P>Darstellung Punkte abschalten;</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>MODE DISP_PT ON 
+			</P>
+		</TD>
+		<TD>
+			<P>Zur&uuml;cksetzen mit ON. Standard ist ON.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>MODE DISP_PT ptSize 
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>Definition Punktgr&ouml;sse.</P>
+		</TD>
+	</TR>
+</TABLE>
+<H4><BR><BR>
+</H4>
+<P><FONT FACE="helvetica, arial, sans-serif"><A HREF="#Layer"><B>Layer</B></A><BR><A HREF="#Farben_Linientypen_Strichst%E4rken"><B>Farben,
+Linientypen, Strichst&auml;rken</B></A> </FONT>
+</P>
+<H4><BR><BR>
+</H4>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P><A NAME="Layer"></A><FONT FACE="helvetica, arial, sans-serif"><B>Layer</B><BR><BR>Es
+gibt 265 Layers (0-255), Standard ist Layer 0.<BR>Es k&ouml;nnen bei
+einigen Befehlen alle Layer mit &quot;ALL&quot; angesprochen werden.</FONT></P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P>LAY 12 
+			</P>
+		</TD>
+		<TD>
+			<P>ab jetzt alles dem Layer 12 zuordnen</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 0 
+			</P>
+		</TD>
+		<TD>
+			<P>ab nun wieder alles dem Standardlayer 0 zuordnen</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 12 OFF 
+			</P>
+		</TD>
+		<TD>
+			<P>Layer 12 ausblenden (ALL: alle Layer).</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY ALL ON 
+			</P>
+		</TD>
+		<TD>
+			<P>Alle Layer einblenden.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 12 HILI ON 
+			</P>
+		</TD>
+		<TD>
+			<P>alle Objekte in Layer 12 hiliten</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 12 DIM OFF 
+			</P>
+		</TD>
+		<TD>
+			<P>alle gedimmten Objekte in Layer 12 normal darstellen</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 12 NOP ON 
+			</P>
+		</TD>
+		<TD>
+			<P>alle Objekte in Layer 12 nicht selektierbar machen</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>LAY 12 ADD Eigenschaften &nbsp;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>Eigenschaften (ein oder mehrere der folgenden):</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>LAY 8 Input nur von Layer 8</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>TYP PT nur Punkte (LN=Lines, CI=Kreise, AC=Kreisb&ouml;gen)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>COL 2 nur Farbe 2 (rot)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>LTYP 2 nur Strichtyp 2 (strichliert kurz)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>THICK 2 nur Liniendicke 2</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>Beispiel - alle
+roten Obj von Layer 5 dem Layer 12 zuf&uuml;gen :<BR>LAY 12 ADD LAY 5
+COL 2<BR><BR><BR><BR></FONT><BR><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<P STYLE="margin-bottom: 0cm"><A NAME="Farben_Linientypen_Strichst&auml;rken"></A>
+<FONT FACE="helvetica, arial, sans-serif"><B>Farben, Linientypen,
+Strichst&auml;rken</B><BR><BR>Es existiert eine Tabelle f&uuml;r die
+Linienattribute.<BR>Diese Tabelle besteht aus je einem Wert f&uuml;r
+Farbe, Strichtyp und Strichdicke.<BR><BR>G21=Farbe, Strichtyp,
+Strichdicke<BR><BR>Farbe:<BR>0=keine<BR>1=schwarz<BR>2=rot<BR>3=gr&uuml;n<BR>4=blau<BR>5=gelb<BR>6=magenta<BR>7=cyan<BR>8=weiss<BR>9=Hilite<BR>10=dimmen<BR>11=Fl&auml;che
+blau<BR>12=Fl&auml;che rot<BR>13=Fl&auml;che grau.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Strichtyp: 0 =
+Vollinie<BR>1 = Strich-Punkt-Linie<BR>2 = strichliert kurz<BR>3 =
+strichliert lang.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Strichdicke:<BR>1 bis
+max. 15.</FONT></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Beispiel:<BR>&nbsp;
+</FONT>
+</P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P>G20=2,0,4 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+			</P>
+		</TD>
+		<TD>
+			<P>Rote Vollinie mit Dicke 4.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>G20 
+			</P>
+		</TD>
+		<TD>
+			<P>Aktivieren des Attributtabelleneintrages 20; alle</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>nachfolgend erzeugten Elemente erhalten diese Attribute.</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR><BR><BR><BR><BR>&nbsp;Die
+Tabellenpl&auml;tze 0 bis 12 sind vordefiniert:<BR><BR>&nbsp;&nbsp; 0
+= Default; Defaultfarbe, Vollinie, normal.<BR>&nbsp;&nbsp; 1 =
+Defaultfarbe, Vollinie, d&uuml;nn.<BR>&nbsp;&nbsp; 2 = Defaultfarbe,
+strichliert, d&uuml;nn.<BR>&nbsp;&nbsp; 3 = Defaultfarbe,
+Strich-Punkt-Linie, d&uuml;nn.<BR>&nbsp;&nbsp; 4 = Tool left;&nbsp;
+Fl&auml;che blau<BR>&nbsp;&nbsp; 5 = Tool right; Fl&auml;che rot;<BR>&nbsp;&nbsp;
+6 = Tool off;&nbsp;&nbsp; Fl&auml;che grau.<BR>&nbsp;&nbsp; 7 =
+Symbole, Schwarz, Voll, Dicke = 2.<BR>&nbsp;&nbsp; 8 = Aktives
+Element; Gr&uuml;n, Voll, Dicke 3.<BR>&nbsp;&nbsp; 9 = Selektiert;
+Hilite-farbe, Voll, Dicke 4.<BR>&nbsp; 10 = gedimmt; Farbe gedimmt,
+Voll, Dicke 1.<BR>&nbsp; 11 = 2. Farbe Bearbeitung Oberseite;
+Default, Voll, Dicke 2.<BR>&nbsp; 12 = dick, rot, strichliert<BR><BR><BR><BR>HILI</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Aktivieren
+der Farbe &quot;Selektiert&quot;.<BR>Entspricht auch dem
+&quot;G9&quot;.<BR>R&uuml;cksetzen mit G1 (aktivieren Default).</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>DIM</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Aktivieren der Farbe
+&quot;DIM&quot; (abdunkeln).<BR>Entspricht auch dem &quot;G10&quot;.<BR>R&uuml;cksetzen
+mit G1 (aktivieren Default).<BR>Diese Objekte werden nicht exportiert
+!</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>NOP
+ON&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Aktivieren
+&quot;NOPICK&quot;; die folgenden Elemente sind nicht
+selektierbar.<BR>R&uuml;cksetzen mit NOP OFF.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>Defaultfarbe f&uuml;r
+Fl&auml;chen:</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">DEFCOL&nbsp; &lt;rot&gt;&nbsp;
+&lt;blau&gt; &lt;gr&uuml;n&gt;<BR>Rot/Blau/Gr&uuml;n sind als
+Zahlenwerte von 1 bis 255 zu definieren; 1,1,1 ist schwarz.<BR>Beispiel
+stahlblau:<BR>DEFCOL 200 200 220</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR>&nbsp;</FONT></P>
+<HR>
+<H3><BR><BR>
+</H3>
+<H3><FONT FACE="helvetica, arial, sans-serif">MultiModelsupport</FONT></H3>
+<H3><BR><BR>
+</H3>
+<H3><A NAME="Interne_Submodels_"></A><FONT FACE="helvetica, arial, sans-serif"><B>Interne
+Submodels</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Die Modelbezeichnung
+darf keinen Pfad (und kein Pfadtrennzeichen &quot;/&quot; oder &quot;\&quot;)
+enthalten.<BR>W&auml;hrend der Bearbeitung werden Submodelle in
+&lt;base&gt;/tmp/Mode_&lt;submodelname&gt; zwischengespeichert.<BR>Alle
+internen Submodels werden im Modelfile abgespeichert.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><BR>Erzeugen von
+Submodels:</U><BR>- move main --&gt; new submodel<BR>&nbsp;&nbsp;&nbsp;
+alle Objekte des aktiven Mainmodel in ein Submodel umkopieren.<BR>-
+create new submodel<BR>&nbsp;&nbsp;&nbsp; Ein neues Submodel anlegen
+und aktivieren.<BR>- load submodel from file<BR>&nbsp;&nbsp;&nbsp;
+Ein natives Model aus einer Datei in eine neues Submodel laden.</FONT></P>
+<P><U><BR>Benutzen von internen Submodels im CAD-Modus:</U><BR>mit
+der Funktion 'M-int.Modell'</P>
+<P><FONT FACE="helvetica, arial, sans-serif">Auswahl eines Submodels
+aus Liste (durch mittlere Maustaste) oder durch Selektion eines
+bereits vorhandenen Submodels.</FONT></P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U>Benutzen von internen
+Submodels im MAN-Modus:</U><BR>durch Key-In von zB:</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">M20=&quot;subModel1&quot;
+P(0 0 0) DZ DIY</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H3><A NAME="Externe_Submodels"></A><FONT FACE="helvetica, arial, sans-serif">Externe
+<B>Submodels</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">F&uuml;r diese Models
+muss es eine (externe) Modelldatei geben.<BR>Die Modellbezeichnung
+muss einen symbolischen Pfad enthalten.<BR>Die Modelldatei muss in
+einem Verzeichnis liegen, das &uuml;ber ein Symbol angesprochen
+werden kann.<BR>Siehe <A HREF="#Symbolische_Dateibezeichnungen:">Symbolische
+Dateibezeichnungen</A>.<BR>Externe Modelle d&uuml;rfen dzt nur
+Mockup-Modelle (zB WRL), jedoch keine internen oder externen
+Submodelle beinhalten !<BR>Externe Submodels werden nicht intern
+zwischengespeichert.</FONT></P>
+<P><U>Benutzen von externen Submodels im CAD-Modus:</U><BR>mit der
+Funktion 'M-ext.Modell'</P>
+<P>Auswahl eines Submodels eines Submodels aus Liste (durch mittlere
+Maustaste, im Grafikfenster) oder durch Selektion eines bereits
+vorhandenen Submodels.<BR><BR><U>Benutzen von externen Submodels im
+MAN-Modus:<BR></U>durch Key-In von zB:<BR>M20=&quot;Data/Mod1.gcad&quot;
+P(0 0 0) DZ DIY</P>
+<P><BR><BR>
+</P>
+<HR>
+<H3><A NAME="Symbolische_Dateibezeichnungen:"></A><FONT FACE="helvetica, arial, sans-serif">Symbolische
+Dateibezeichnungen:</FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Eine symbolische
+Dateibezeichnung besteht aus<BR>&quot;&lt;symbolischer_Pfad&gt;/&lt;Dateiname&gt;&quot;</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Alle symbolischen Pfade
+sind in Datei &lt;base&gt;xa/dir.lst definiert.<BR>Das Symbol ist
+frei w&auml;hlbar.<BR>Pfad interaktiv definieren mit
+&quot;Standards/Directories&quot;.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Standardverzeichnis ist
+&lt;base&gt;/dat; das Zugriffsysmbol f&uuml;r dieses Verzeichnis ist
+&quot;Data&quot;.<BR>Eine Modelbezeichnung w&auml;re also zB
+&quot;Data/Niet1.gcad&quot;.</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<HR SIZE=1 NOSHADE>
+<H3><A NAME="Programmierumgebung"></A><FONT FACE="helvetica, arial, sans-serif"><B>Programmierumgebung</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR>stat<BR>Statusanzeige;
+Anzahl der freien / belegten Elemente
+anzeigen.<BR><BR><BR><BR><BR><A HREF="#Variablen"><B>Variablen</B></A><BR><A HREF="#Unterprogrammtechnik"><B>Unterprogrammtechnik</B></A><BR><A HREF="#Programmierfunktionen:"><B>Programmierfunktionen</B></A></FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><A NAME="Unterprogrammtechnik"></A><FONT FACE="helvetica, arial, sans-serif"><B><U>Unterprogrammtechnik</U></B><BR><BR>Unterprogramme
+k&ouml;nnen zum Erzeugen von Geometrieelementen und
+NC-Bearbeitungswegen benutzt werden.<BR><BR><BR><BR>MAC
+unterprogrammName<BR>Beginn allgemeines Unterprogramm. Im
+Unterprogramm kann auf alle Variablen zugegriffen werden. Allgemeine
+Unterprogramme werden f&uuml;r den Postproz. aufgel&ouml;st.
+Verschachtelungstiefe:&nbsp; bis max 10 Ebenen
+tief.<BR>UnterprogrammName muss aus mindestens 2 Buchstaben bestehen,
+dann k&ouml;nnen Ziffern folgen.<BR>Geometr. Elemente werden in die
+DB gespeichert, aber nicht angezeigt.<BR><BR>END<BR>Ende allgemeines
+Unterprogramm.<BR><BR>CALL unterprogrammName<BR>Aufruf allgemeines
+Unterprogramm an der momentanen Position.<BR>Achtung: der
+Unterprogrammname muss auch betreff Gross / Kleinschreibung v&ouml;llig
+ident sein.<BR><BR><BR><BR>CALL &quot;Dateiname&quot;<BR>Ein in einer
+Datei befindliches Unterprogramm ausf&uuml;hren. Das Unterprogramm
+ist ohne MAC und END abzuspeichern. Derzeit kann in solchen
+Unterprogrammen nicht in ein weiteres Unterprogramm verzweigt
+werden.<BR><BR>--------------------------------------------------------------------------------------<BR><BR>GEO
+UnterprogrammName<BR>Beginn Geometrieunterprogramm. Das erste Element
+ist die Startlinie, dann die Kontur, das letzte Element dieses
+Unterprogrammes ist die Ausfahrlinie. Entlang der Startlinie wird die
+Korrektur aufgebaut, entlang der Kontur wird mit Korrektur
+geschnitten (G40, G41 oder G42), entlang der Ausfahrlinie wird die
+Korrektur wieder abgebaut.<BR>UnterprogrammName muss aus mindestens 2
+Buchstaben bestehen, dann k&ouml;nnen Ziffern folgen.<BR>Im
+Unterprogramm kann auf alle Variablen zugegriffen werden.
+Verschachtelungstiefe: bis max 10 Ebenen tief.
+Geometrieunterprogramme werden f&uuml;r den Postprozessor als
+Unterprogramme angelegt.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">Innerhalb
+der Geometrieunterprogramme wird eine Kontur mit CON0 - CONEND
+definiert.<BR><BR>END<BR>Ende Geometrieunterprogramm.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><I>Beispiel MAC:</I></U><BR>MAC
+Kreis1<BR>V2=V1*2<BR>PRI &quot;V2=&quot; V2<BR>P1=V1 V2<BR>END<BR>V1
+= 16<BR>CALL Kreis1<BR>V1 = 20<BR>CALL Kreis1<BR>PRI &quot;P1=&quot;
+P1<BR><BR><BR>ZSUR2 20<BR>P20=P(100 100)<BR>P21=P(200 100)<BR>MAC
+Kreis1V<BR># V1=Rad<BR>TL 1<BR>P1901=P0<BR>V2=V1*2<BR>PR V1,0<BR>AR
+-V2,0,-V1,0<BR>AR V2,0,V1,0<BR>TL 0<BR>END<BR>TL 0<BR>FROM 50,50<BR>RP
+P20<BR>V1=16<BR>CALL Kreis1V<BR>RP P21<BR>CALL Kreis1V<BR>RP P21</FONT></P>
+<P><A NAME="Programmierfunktionen:"></A><FONT FACE="helvetica, arial, sans-serif"><BR><B><U>Programmierfunktionen:</U></B></FONT></P>
+<PRE>
+# Kommentar 
+   
+
+<B># Testausgaben von Texten / Variableninhalten:</B>
+# (nur zu Testzwecken im Meldungsfenster)
+PRI &quot;Text&quot;
+PRI &quot;Punkt1 =&quot; p1                 
+PRI &quot;Var 1 =&quot; v1
+
+
+
+
+<B>#  Verzweigen, unbedingter Sprungbefehl.</B>
+JUMP Labelname
+..
+:Labelname 
+# Das Sprungziel. Achtung: muss auch betreffend 
+# Gross / Kleinschreibung v&ouml;llig ident sein.
+
+
+
+
+
+# <B>Programm beenden (alle folgenden Zeilen ignorieren)</B>
+EXIT
+
+
+
+<B>Bedingte Verzweigung mit if</B>
+if Wert Bedingung Wert ; Befehl
+ Es gibt folgende Bedingungen: 
+  eq      gleich,
+  ne      nicht gleich,
+  lt      kleiner,
+  gt      groesser,
+  l_e     kleiner oder gleich,
+  g_e     groesser oder gleich.
+
+# Beispiel
+V20=10
+:Next
+PRI &quot;Var 20 =&quot;,V20
+V20=V20+10
+IF V20 LT 55 ; JUMP Next
+ 
+ 
+
+<B>Ausgeben/Einlesen von Befehlscodes in/aus Datei:</B>
+Mit Write kann in eine Datei ausgegeben werden; die Datei
+wird im Temor&auml;rverzeichnis von gcad angelegt, der Dateityp
+.write ist fix. Diese Dateien werden beim Laden des n&auml;chsten
+Modells automatisch gel&ouml;scht.
+Es werden alle Textzeilen von WRITE bis ENDWRITE in die
+Textdatei {filNam}.write ausgegeben.
+Der Dateiinhalt kann mit dem Befehl CALL geladen werden.
+
+# Beispiel WRITE/CALL: save Parameters to File
+WRITE &quot;TestPar1&quot;
+V20=15
+V21=16
+ENDWRITE
+
+# load Parameters from File
+CALL &quot;TestPar1&quot;
+PRI &quot;V20=&quot;,V20
+
+# use Parameters
+P20=0 0 0
+#V20=5
+#
+P20=P20
+P21=P20 Z(12)
+B20=CON P20 P21 VAL(V20) VAL(V20)
+#
+
+
+</PRE><H3>
+<A NAME="NC-Bearbeitungsfunktionen"></A><FONT FACE="helvetica, arial, sans-serif">NC-Bearbeitungsfunktionen</FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif"><BR>Die
+aktuelle Position kann jederzeit &uuml;ber den Punkt P0 abgefragt<BR>&nbsp;
+und somit sp&auml;ter wiederbenutzt werden.<BR><BR><BR>TL
+1<BR>Werzeugwechselbefehl (mit Werzeugnummer);<BR>TL 0<BR>das
+Werkzeug entladen.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR><BR><BR>FROM
+FromPunkt<BR><BR>Definiert die angegebene Position als Startpunkt
+eines Konturprogrammes. Diese Anweisung darf nur einmal im
+Hauptprogramm und einmal in jedem Geometrieunterprog. definiert
+werden. Beispiel: &nbsp;&quot; FROM 100,100&quot; oder &quot;FROM
+P20&quot;<BR><BR>RP Punkt<BR>Rapid - Verfahranweisung absolut.
+Darstellung: oben blau / strichliert, unten rot.<BR><BR>RPR
+X-Abstand,Y-Abstand<BR>Rapid - Verfahranweisung relativ.<BR><BR><BR><BR><BR>WORK
+P10<BR>WORK P(100 100)<BR>Direktverfahranweisung &uuml;ber Angabe von
+Koordinaten oder eines APT-Punktes.<BR><BR>PR xAbstand,
+yAbstand<BR>Definition einer relativen Verfahrstrecke.<BR><BR>NICHT
+AKTIV:<BR>A Endpkt Mittelpkt &lt;Drehrichtung&gt;<BR>Definition
+Kreisbogen, Absolutkoordinaten. Der Kreisbogen beginnt an der
+momentanen Position. <BR>Standarddrehrichtung ist Gegenuhrzeigersinn
+(CCW)</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">NICHT AKTIV:<BR>AR
+Endpkt Mittelpkt &lt;Drehrichtung&gt;<BR>Kreisbogen mit relativen
+Koordinatenangaben. Der Kreisbogen beginnt an der momentanen
+Position, Endpunkt und Mittelpunkt werden relativ zu diesem
+Startpunkt definiert. Wird, beginnend an der momentanen Position,
+sofort abgearbeitet. Beispiel:<BR>AR -10 10 -10 0 CW<BR>AR
+10,10,0,10<BR>Viertelkreis (von 270 bis 360 Grad) im
+Gegenuhrzeigersinn.<BR><BR><BR>POCKET Randabstand
+Schnittabstand<BR>Definiert die Parameter f&uuml;r nachfolgende
+Pocketzyklen.</FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT FACE="helvetica, arial, sans-serif">WORK
+Beabeitungtyp UnterprogrammName [Parameter]<BR>Aufruf
+Geometrieunterprogramm an der momentanen Position. Die Startposition
+ist also vorher mit &quot;RP ..&quot;&nbsp; od. &quot;P1&quot;
+anzufahren.<BR>Konturen k&ouml;nnen in Unterprogrammen (GEO) abgelegt
+und mit WORK mehrfach aufgerufen werden.<BR><I><BR>Bearbeitungstypen:</I><BR>CUT
+KonturName [Parameter]<BR>REV KonturName [Parameter]<BR>SEP_CUT
+KonturName [Parameter]<BR>SEP_REV KonturName [Parameter]<BR>POCK
+KonturName KonturStartpunkt<BR>CUT_CIR Radius Startrichtung
+Umfahrungswinkel Ausfahrstrecke [Stopwinkel]<BR>POCK_CIR
+Radius_aussen Radius_Bohrloch [Mittelpunkt]</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Pocketzyklen siehe auch
+POCKET-Befehl.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">KonturName:&nbsp; muss
+dzt ein Polygon oder eine CCV sein. Siehe Beispiele.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">Parameter:<BR>&lt;winkelwert&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Verdrehen. Direkt den Winkel angeben.<BR>xmir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+um die X-Achse spiegeln<BR>ymir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+um die Y-Achse spiegeln<BR><BR>Beispiel; Macro S20 um X gespiegelt,
+um 30 Grad gedreht an der momentanen Position abarbeiten. Wird
+gespiegelt und gedreht, so wird zuerst die Spiegelung, dann die
+Drehung ausgef&uuml;hrt.<BR>WORK S20 30 XMIR<BR><BR>SEP_ sind
+Trennschnitte (es wird automatisch ein Konturprogramm erzeugt, das
+eine offene Kontur schliesst).<BR><BR>Die Position nach dem
+Unterprogramm kann &uuml;ber den Punkt P0 abgefragt und so sp&auml;ter
+wiederverwendet werden.<BR>WORK Beabeitungtyp &quot;Dateiname&quot;<BR>Ein
+in einer Datei befindliches Unterprogramm ausf&uuml;hren.<BR>Das
+Unterprogramm ist ohne GEO und END abzuspeichern.<BR>Derzeit kann in
+solchen Unterprogrammen nicht in ein weiteres Unterprogramm verzweigt
+werden.</FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><U><BR>Beispiele:</U></FONT></P>
+<P><FONT FACE="helvetica, arial, sans-serif">S2=BSP P(2,1) P(1,1)
+P(0,0) P(-1,1) P(-2,1)<BR>S3=CCV S2<BR>ZSUR2 1<BR>FROM 16 -2<BR>RP 16
+0<BR>WORK CUT S3<BR>WORK CUT P(10 0)</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><FONT FACE="helvetica, arial, sans-serif"><BR><BR></FONT><BR><BR>
+</P>
+<H3><A NAME="APT-Hilfsfunktionen"></A><FONT FACE="helvetica, arial, sans-serif"><B>NC-Hilfsfunktionen</B></FONT></H3>
+<P><FONT FACE="helvetica, arial, sans-serif">Funktionen, die an den
+Postprozessor weitergegeben werden:</FONT></P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P>mch &lt;machine&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>pn &lt;Partname&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>stop</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>osp 
+			</P>
+		</TD>
+		<TD>
+			<P>operational stop</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>osp on / off</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TL RI 
+			</P>
+		</TD>
+		<TD>
+			<P>Tool right, G42</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TL LE 
+			</P>
+		</TD>
+		<TD>
+			<P>Tool left, G41</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TL OFF 
+			</P>
+		</TD>
+		<TD>
+			<P>Werzeugkorrektur aus, G40</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>zsur1 &lt;Z-Wert&gt; 
+			</P>
+		</TD>
+		<TD>
+			<P>Definiert den Abstand der unteren Werkst&uuml;ckebene</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>von der Z=0 - Ebene.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>zsur2 &lt;Z-Wert&gt; 
+			</P>
+		</TD>
+		<TD>
+			<P>obere Werkst&uuml;ckebene</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>zsur2 
+			</P>
+		</TD>
+		<TD>
+			<P>Die obere Werkst&uuml;ckebene wird zur aktiven Ebene definiert</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>cool on / off</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>fed &lt;Vorschubwert&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>&quot;M01&quot; 
+			</P>
+		</TD>
+		<TD>
+			<P>Insert</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>&quot;(Stop &quot;,x(p0),y(p0),&quot;)&quot;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TEC &lt;Tooldef&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>Tooldef oder allg. Technologiedefinition</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>tcpos &lt; Punkt&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>Def. Werkzeugwechselpunkt</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>drill</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>clear &lt;Z-Wert&gt; 
+			</P>
+		</TD>
+		<TD>
+			<P>Clearence</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>deep &lt;Z-Wert&gt;</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>cycle off 
+			</P>
+		</TD>
+		<TD>
+			<P>nur off</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TL 0 
+			</P>
+		</TD>
+		<TD>
+			<P>Werkzeug entladen</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>TL 1 
+			</P>
+		</TD>
+		<TD>
+			<P>Werkzeug Nr. 1 laden</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>INL &quot;Text&quot; 
+			</P>
+		</TD>
+		<TD>
+			<P>Insert Line; es wird eine eigene Zeile ausgegeben.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>Auch bei allen Insert - Versionen kann Text zusammengesetzt
+			werden.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>INS &quot;G40 &quot; 
+			</P>
+		</TD>
+		<TD>
+			<P>Insert to start of line;</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP>
+			<P>am Zeilenanfang (der n&auml;chstfolgenden Zeile) einf&uuml;gen.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>INE &quot; F12.5&quot; 
+			</P>
+		</TD>
+		<TD>
+			<P>Insert to end of line;</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>am Zeileende (der n&auml;chstfolgenden Zeile) einf&uuml;gen.</P>
+		</TD>
+	</TR>
+</TABLE>
+<BR>
+<BR>
+<BR>
+<BR>
+
+<HR SIZE=3 NOSHADE>
+<P><A NAME="Versionsinfos_"></A></P>
+<P><FONT FACE="helvetica, arial, sans-serif"><B>Versionsinfos</B></FONT></P>
+<PRE>
+
+
+
+<strong>Neu in Version 1.12 / 2007-10-20</strong>
+neue Funktionen:
+- import Mesh from Landmark-XML-Files
+- create Clothoid-Curve
+  (see CAD - "S Clotoid" - Help)
+- compress/decompress native modelfiles (with gzip)
+- 1-n Objekte zu B-Splinekurve verbinden
+  (see CAD - "S BSpline < join obj's" - Help)
+- Circ from startpoint, tangent and radius
+  (see CAD - "ARC PT Tang Radius Angle" - Help)
+- Vectors tangential to curves
+  (see CAD - "VEC tangent. (Circ, Elli, Bsp, Cloth) - Help"
+- import mesh from Landmark.xml - files
+
+Bugfixes:
+- Iges-Import-Bug with Qmax/Qflex3D-files fixed
+- VRML2-Export-Bug with big surfaces fixed
+- DXF-Import-Bug limiting to 10000 input-objects fixed.
+
+
+
+<strong>Neu in Version 1.100 / 2007-09-01</strong>
+neue Funktionen:
+- Delete/Restore-Funktionen neu implementiert (Ctrl-Z/Ctrl-Y)
+- Konstruktionsebene (ConstructionPlane, UserCoordinateSystem) neu in CAD
+- B-SplineKurven exact durch Definitionspunkte
+- Freiformflaechen durch Querschnittkurven
+- Freiformflaechen durch Laengs- und Querschnittkurven
+- Freiformflaechen durch 4 oder 3 Randkurven
+- B-SplineKurven aus isoparametrischen Flaechenkurven
+- Projektion Punkt auf Freiformflaeche
+- Schnittpunkt Linie / Freiformflaeche
+
+
+
+<strong>Neu in Version 1.08 / 2007-05-08</strong>
+neue Funktionen:
+- Normteilbibliotheksfunktionen Catalog (Catalog_de.htm)
+- Modify subModelPosition (Translate/Rotate/Surface-to-Surface)
+- Export im Format STL; subModels werden exploded (f. Blender)
+- WRL-Export: es werden auch Mockup-subModels (wrl,stl,..) exportiert
+- neue Funktion WRITE/CALL zur Erzeugung von Parametrikmodellen (gCAD3D_de.htm)
+- neue Konstante Variablen (RAD_1 SR_3 .. siehe Doku Variablen)
+- Linuxversion nun mit gcc4.1.1
+Fehlerkorrekturen:
+- Fehler bei JUMP in subModels korr.
+- alle DLL's (.so) nun im Unterverzeichnis bin
+
+
+
+<strong>Neu in Version 1.06 / 2007-03-27</strong>
+neue Funktionen:
+- Import STL-Files (Ascii)
+- neue interaktive Help-Funktion fuer CAD
+- Dateityp &quot;.dat&quot;fuer das native Format geaendert in &quot;.gcad&quot;
+- Samplemodell fuer texturierte Flaechen.
+- Fehler MS-Win CAD-GruppenEingabe korrigiert
+- MS-Win: Portierung auf Express-2005-Compiler (VC8)
+- MS-Win: Portierung auf GTK-Version 2.10
+
+
+
+<strong>Neu in Version 1.04 / 2007-01-01</strong>
+neue Funktionen:
+-Intersection Surface X Plane
+<BR>style=&quot;font-family:
+helvetica,arial,sans-serif;&quot;&gt;</FONT>
+KeyIn Objektname bei Dump/Obj und Group/Add
+-Linux: erste Version mit Installer gxInstall.
+
+
+
+<strong>Neuin Version 1.02 / 2006-09-13</strong>
+neue Funktionen:
+-VRML2-Export (VRML-97; noch keine Texturen, noch kein VRML2-Import)
+- DXF-out: Flaechen werden als 3DFACE's exportiert (nicht subModels)
+- interaktiv Farbe und Transparenz fuer Flaechen setzen
+- neues Objekt 3D-Dimension (NOTE N DIM3)
+- neues Objekt Note mit 3D-Punktkoordinaten (N PointPos; N=LDRP)
+- neues Objekt Note mit Kreis (N Text,LN,Circle; N=LDRC)
+- neues Objekt Symbol Stern, .. Vektoren (N Symbol; N=LDRS)
+ge&auml;ndert:
+- BlockNote (N=TAG); Parameterreihenfolge geaendert.
+
+
+<strong>Neu in Version 1.00 / 2006-05-10</strong>
+neue Funktionen:
+- CAD: Linetyp interaktiv modifizieren
+- CAD: SurfaceStyle (shaded od. symbolic)&nbsp; interaktiv modifizieren
+- CAD: Parametrische Definition f&uuml;r Punkte auf Line,Circ, Curve.
+- CAD: Parametrische Definition f&uuml;r Segmente von Polygon, CCV.
+ge&auml;ndert:
+- Displayprobleme bei modifierten Elementen (CUT ..) korrigiert
+- STEP-Import: Fehler bei sehr grossen Modellen korrigiert
+- NC-Replay-Fehler korrigiert
+
+
+
+<strong>Neu in Version 0.98 / 2006-02-24:</strong>
+neue Funktionen:
+- STEP-Import: Assemblies und Rational-B-SplineCurves/Surfaces;
+- VRML1-Export: Assemblies (subModels).
+- Interaktiv: Gruppe bilden und (native) exportieren.
+- Interaktiv: Circ - neue Funktionen
+ge&auml;ndert:
+- Keyword MOCK obsolet
+-Fehlerkorrekturen ..
+
+
+
+<strong>Neu in Version 0.96 / 2005-11-10:</strong>
+neue Funktionen:
+- STEP-Import (ISO-10303-21 - AP203). Getestet mit CATIA-V4 und CATIA-V5.
+Noch nicht unterst&uuml;tzt: Rational-B-SplineCurves.
+- CAD-Funktion Prisma (Solid)
+ge&auml;ndert:
+- VRML1: Problem grosse Importmodelle korr.
+
+
+
+
+<strong>Neu in Version 0.94 / 2005-06-17:</strong>
+neue Funktionen:
+- MS-Win: NISI-Installer
+- Parallelogramm&nbsp; (S=RECT vec1 vec2)
+- Solids: Kugel (B=SPH center radius)
+- Solids: Prisma von Parallelogramm (B=PRISM parallelogramm vektor)
+- VRML1: Sphere und Cone neu zu.
+ge&auml;ndert:
+- Linux: GTK+2 (bisher GTK+1.2); gtkglarea statisch gelinkt.
+- MS-Win: GTK+2 + GtkGLExt (bisher GTK+1.2 + gtkglarea)
+- Fehlerkorrektur bei Import VRML1 und Import Iges
+- Fehlerkorrektur bei NC (siehe Modell sample_nc0.dat)
+
+
+<strong>Neu in Version 0.93 / 2005-05-11:</strong>
+neue Funktionen:
+- Symbole als selektierbare Objekte (N=TAG ..)
+ge&auml;ndert:
+- Fehlerkorrektur bei Import VRML1 und Import Iges
+- Fehlerkorrektur bei Import Bitmaps (padding)
+- Fehlerkorrektur bei Export Mockup (VRML1, OBJ, TESS)
+
+
+<strong>Neu in Version 0.92 / 2005-04-11:</strong>
+neue Funktionen:
+- Import/Export von VRML-1-Files als Mockup-Modelle (nur FaceSets)
+- Import/Export von WaveFront-OBJ-Files (nur Faces)
+- Transformation von Kurven und Fl&auml;chen (Translation, Rotation, Transformation)
+- Transformation in anderes Referenzsystem
+- Transformation aus Referenzsystem in das Hauptachsensystem
+- Darstellung von Bitmaps (BMP-Files) fuer Dokumentationen
+- Toolbar und der Messagebar k&ouml;nnen ausgeblendet werden (Vollbild)
+ge&auml;ndert:
+- Aufbau der Fl&auml;chen vom Typ_SURCIR und Typ_SURSTRIP
+- Bitmap-Notes; &quot;N#=TXA ..&quot; ersetzt durch &quot;N#=TAG 0 ..&quot;
+
+
+<strong>Neu in Version 0.90 / 2004-12-30:</strong>
+neueFunktionen:
+- Iges/Dxf-Modelle k&ouml;nnen als Startparameter angegeben werden
+  (f&uuml;r Start aus einem Filebrowser)
+- neuer Funktionsmodul &quot;Viewer&quot;
+- File/Open: DXF/IGS - Modelle werden nun entspechend Filetyp automatisch importiert.
+- Dimensions fertiggestellt (Linear-, Winkel-, Radiusverma&szlig;ung)
+- Texte: Sonderzeichen, Textsize nun in den Defaults.
+- CAD-Funktion Suchen/L&ouml;schen/Modfizieren verbessert
+- CAD: direkte Selektion von Objektendpunkten, Polygonpunkten ..
+- DXF-Import von LWPOLYLINE u DIMENSION u MTEXT
+- neue Kreisdefinition: Circ = Mittelpunkt Startpunkt Drehwinkel Z-Achs-Vektor
+ge&auml;ndert:
+- Definition Alfatext&nbsp;&nbsp; (N#=TXA &lt;Position&gt; &lt;Text&gt;- TXA kommt dazu)
+- Kreisdefinition Circ = Mittelpunkt Radius: - Z-Achsvektor hinzu (&quot;DZ&quot;).
+- struct Dimen: char dtyp zu.
+
+
+
+<strong>Neu in Version 0.86 / 2004-10-10:</strong>
+neue Funktionen:
+- Viewer: Mittelpunkt f&uuml;r 3D-Rotation durch Selektion eines beliebigen Vertex
+- CAD: RevolutionSurfaces (Rotationsfl&auml;chen)
+- CAD: Funktion CUT (trimmen von linearen Elementen)
+- CAD: Funktion TRANSLATE (verschieben / drehen von linearen Elementen)
+- CAD: Funktion PROJECT (lineare Elemente auf Ebene projizieren)
+- CAD: Funktion MIRROR (lineare Elemente um Ebene spiegeln)
+- CAD: Analysefunktionen (Objekt dekodieren,&nbsp; Abstand / Normalabstand messen)
+- Iges-Import: Getrimmte, gelochte RuledSurfaces (144 - 118) und getrimmte,
+  gelochte RevolutionSurfaces (144 - 120).
+- Iges-Export: B-Spline Fl&auml;chen Ent. 128 und Rev.Surfaces, Ent. 120.
+- DXF-Export: Ellipsen und B-Spline-Kurven werden als POLYLINE ausgegeben.
+ge&auml;ndert:
+- Objekttyp &quot;T&quot; zur Definition geometr. Transformationen (war ToolDef).
+- struct Circ: &Ouml;ffnungswinkel ango zugefuegt
+
+
+
+<strong>Neu in Version 0.84 / 2004-07-08:</strong>
+neue Funktionen:
+- begrenzte, gelochte Fl&auml;chen mit St&uuml;tzfl&auml;che (Ruled, B-Spline, Konisch Toroid).
+- Definition f. gelochte planare Fl&auml;chen
+
+
+<strong>Neu in Version 0.82 / 2004-04-30:</strong>
+neue Funktionen:
+- Planare gelochte Fl&auml;chen aus CIRC / Ellipse / B-Spline / CCV (A = FSUB)
+- Iges-Import u. Export von planaren gelochten Fl&auml;chen (Ent. 144, 142, 102)
+- automatisches Vergr&ouml;ssern aller Datenfelder (realloc)
+- automatisches Laden von Modellen / Programmen (durch Startparameter)
+
+
+
+<strong>Neu in Version 0.80 / 2004-02-02:</strong>
+neue Funktionen:
+- interne und externe Submodels
+- Konstruktionsebene frei definierbar
+- neue Iges-Import-Elemente 118,122,144,308,408
+- neue Iges-Export-Elemente 118,308,408
+- RuledSurface aus Grundelement und Vektor
+ge&auml;ndert:
+- Startupfile nun &lt;base&gt;tmp/Model (war &lt;base&gt;tmp/xa.apt)
+- File/Open nur auf Verzeichnisse in Datei &lt;base&gt;/xa/dir.lst
+- Definition Torus abge&auml;ndert
+
+
+<strong>Neu in Version 0.77 / 2003-11-14:</strong>
+Neue Plattform MS-Windows.
+neue Funktionen:
+- neue Printertreiber
+(Postscript(Vektoren), PCL5(via GL), HPGL).
+Programming:
+- neues Beispiel Postprozessor (DemoPostProc.*, mit Sourcecode).
+- struct Ellipse ge&auml;ndert in struct CurvElli (see VC98\include\wingdi.h)
+- struct Polygon ge&auml;ndert in struct CurvPoly (see VC98\include\wingdi.h)
+
+
+
+<strong>Neu in Version 0.74 / 2003-09-15:</strong>
+- CAD_Interface f&uuml;r planare Fl&auml;chen, Fl&auml;che auf Konus,
+  Fl&auml;che auf Torus(Men&uuml; Fl&auml;chen - A)
+- CAD-Interface f&uuml;r die Objekte Konus, Torus (Men&uuml; Solids - B)
+- Darstellung getrimmter Fl&auml;chen durch integrierte Dreieckszerlegung
+  (Tesselation) f&uuml;r planare Fl&auml;chen, Fl&auml;chen auf Konus,
+  Fl&auml;chen auf Torus.
+- neues Auswahlmenue (Popup) bei Selektion graf. Objekte, wenn mehrere Objekte
+  genau &uuml;bereinander liegen.
+- CAD-Interface f&uuml;r neue Funktion Schraffur (Men&uuml; Fl&auml;chen - A)
+- Eingabefenster f&uuml;r div. Toleranzwerte (Standard/Tolerances)
+- Definition Drehmittelpunkt (ViewZ) verbessert.
+- Fehler beim Resolv Contours korr.
+
+
+
+<strong>Neu in Version 0.72 / 2003-08-04:</strong>
+- Schnittpunkte Circ/B-Spline, Circ/Ellipse, Ellipse/Ellipse, Ellipse/B-Spline.
+- interaktives Objekt Polygon (im Men&uuml; Kurven - S)
+- proj. PT-&gt; Polygon, Tangente an Polygon
+- Schnittpunkte Polygon - Line, Circle, Ellipse, B-Spline, Polygon.
+- Kreise: Bei Vollkreisen mit Z-Vektor nach -Z nun Z-Vektor immer nach +Z&nbsp;
+
+
+
+<strong>Neu in Version 0.70 / 2003-06-25:</strong>
+- Neue Funktion HIDE / VIEW (Ausblenden / einblenden von Objekten)
+- CAD-Menue Curves(&quot;S&quot;) grundlegend erneuert
+- Kontur (CCV- CompositeCurves) neu zu (im Menue &quot;S&quot; - Curves)
+- Neuen CAD-Men&uuml;punkt Ruled Surface.
+- NC-Funktionen ge&auml;ndert; Konturen integriert.
+- Neuer interaktiver NC-Editor (Men&uuml; NC-Tech)
+- Neu Iges Import CCV's (Typ 102)
+
+
+<strong>Neu in Version 0.6.2 / 2003-04-18:</strong>
+- Modul CAD grundlegend erneuert
+- Fehler &quot;erzeugt nur 2D-Punkte&quot; korrigiert
+- mehrere neue und korrigierte <A HREF="#Vektor_-_Richtung">Vektordefinitionen.</A>
+- neue Transformationsfunktion f&uuml;r <A HREF="#Punkte_2D">Punkte:</A>&nbsp;P=R P
+- neue Projektionsfunktion f&uuml;r <A HREF="#Punkte_2D">Punkte:</A> P=P R
+- Ellipse neu
+- Dimensions neu (Entwurf)
+- Neu IgesImport / Export 108 (Plane), 104 (Ellipse)
+
+
+
+Ende Dokumentation gCAD3D
+
+
+</PRE>
+
+
+<HR SIZE=1 NOSHADE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,73 @@
+/*! \page Tools-MemoryFunctions
+../gcad_doxygen/Tools-MemoryFunctions.dox
+
+<pre>
+<h2>Memory</h2>
+
+\ref Temp-space
+\ref Textstrings__UtxTab
+\ref Bit-Arrays__BitTab
+\ref Swap-Invert-Delete
+\ref Fixed-Length-Records__MemTab
+\ref Variable-Length-Records_Memspc_UME
+\ref Save-retrieve_key-value-Records_in_file__DBF
+</pre>
+
+
+
+________________________________________________________________________________
+\section Temp-space
+\code
+
+// get temporary memory:
+// calls alloca; memspace exists until active function returns.
+
+// get local space
+  memspace = UME_alloc_tmp (siz_in_bytes);
+  if(!memspace) {TX_Error("funcXX EOM %d",siz_in_bytes); return -1;}
+
+// get local space for a Memspc
+  Memspc wrkSeg;
+  UME_alloca (&wrkSeg, 1000000);
+
+
+\endcode
+________________________________________________________________________________
+\section Textstrings__UtxTab
+<pre>
+\ref ut_txTab.c            Functions for Textstrings
+
+________________________________________________________________________________
+\section Bit-Arrays__BitTab
+<pre>
+\ref ut_BitTab.h           Functions for bit-arrays
+</pre>
+
+________________________________________________________________________________
+\section Swap-Invert-Delete
+\ref ut_mem.c           delete, swap invert ..
+
+________________________________________________________________________________
+\section Fixed-Length-Records__MemTab
+\ref ut_memTab.c           Store fixed-length-records in memory
+
+________________________________________________________________________________
+\section Variable-Length-Records_Memspc_UME
+<pre>
+\ref ut_umem.c             Store variable-length-records in memory
+
+Example:
+    Memspc  tSpc;
+    UME_init (&tSpc, memspc101, sizeof(memspc101));
+</pre>
+
+________________________________________________________________________________
+\section Save-retrieve_key-value-Records_in_file__DBF
+\ref ut_dbf.c
+
+
+
+</pre>
+
+
+*/

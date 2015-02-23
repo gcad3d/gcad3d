@@ -1,0 +1,43 @@
+../dox/ApplicationData.dox
+
+
+
+Daten für Zusatzanwendungen können in einem Block "ApplicationData"
+  gespeichert werden. ApplicationData werden mit den nativen Modelldaten
+  gespeichert.
+  Die Applikation muss beim Verlassen der Anwendung die Daten in eine
+    Datei <tempDir>/<appNam>.appdat schreiben.
+  Der Applikationsname <appNam> ist frei wählbar.
+
+
+Format of data:
+<parameterName> <parametervalue>
+if value == "BINDATA" + <sizeInBytes>\n  then next line is binary data.
+
+
+
+Formatbeschreibung ApplicationData:
+Die Zeilen SECTION und SECTIONEND befinden sich nur in der Modelldatei.
+
+
+SECTION APPDAT <appNam>
+.. (data)
+SECTIONEND
+
+
+
+Funktionen:
+#define APP_NAME  "TestApp1"
+char    fNam[256], parval[160];
+// Write: UTX_setup_add     TO-BE-DONE !
+// Read:
+sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),APP_NAME);
+UTX_setup_get (parval, "parametername", fNam);
+
+
+
+affected functions:
+Mod_kill__     löschen
+Mod_load__     laden
+Mod_sav__      speichern
+

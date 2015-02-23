@@ -1,0 +1,45 @@
+# new words: add ID-s in xa_msg.h
+OK
+Cancel
+Save
+Insert
+Delete
+Modify
+Exit
+Help
+length
+Activate
+#10
+Move
+Edit
+Rename
+create subModel
+show
+hide
+shading
+inspect
+move points
+restore
+#20
+filtertext
+texture
+open
+clear group
+hide group
+#25
+delete group
+add to group
+remove from group
+remove all of this type from Group
+remove all other types from Group
+#30
+update
+all
+ no
+Error
+copy into entry
+#35
+find parent-objects
+find child-objects
+modify object-name
+#eof

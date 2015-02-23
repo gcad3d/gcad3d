@@ -1,0 +1,574 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>CAD_input_en.htm</TITLE>
+<style>body{ font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+Documentation possible inputs into CAD inputfields:
+
+Possible Inputs:
+- Select object in grafic-window (with left mousebutton)
+- key-in
+- select object from objectbrowser 
+..
+
+
+
+____________________________________________________________________________
+<p><a name="_DistX_"></a></p>
+<h3>X - Coordinate / distance</h3>
+- enter a number with the keyboard: eg "12.5"
+- define a variable - key-in or select from objectbrowser; eg "V20"
+- select a point - provides the X-Coordinate of this point
+- select a vector - provides the X-Coordinate of this vector
+- select a line - provides the difference of the X-Coordinates of this Line
+  
+The output is eg "X(12.5)"
+  
+
+____________________________________________________________________________
+<p><a name="_DistY_"></a></p>
+<h3>Y - Coordinate / distance</h3>
+- enter a number with the keyboard: eg "12.5"
+- define a variable - key-in or select from objectbrowser; eg "V20"
+- select a point - provides the Y-Coordinate of this point
+- select a vector - provides the Y-Coordinate of this vector
+- select a line - provides the difference of the Y-Coordinates this Line
+  
+The output is eg "Y(12.5)"
+
+
+____________________________________________________________________________
+<p><a name="_DistZ_"></a></p>
+<h3>Z - Coordinate / distance</h3>
+- enter a number with the keyboard: eg "12.5"
+- define a variable - key-in or select from objectbrowser; eg "V20"
+- select a point - provides the Z-Coordinate of this point
+- select a vector - provides the Z-Coordinate of this vector
+- select a line - provides the difference of the Z-Coordinates of this Line
+  
+The output is eg "Z(12.5)"
+
+
+____________________________________________________________________________
+<p><a name="_Val_"></a></p>
+<h3>Number (Value)</h3>
+- enter a number with the keyboard:
+  - direct: eg "12.5"
+  - from variable: eg "V20"
+  - length of a vector: eg "D23"
+- Selection of a line provides the length of the line
+- Selection of a circle or arc provides the radius
+- Selection of 2 points provides the distance
+- Selection of a point and a line provides the normal - distance
+
+
+The output is eg "VAL(12.5)"
+
+
+
+____________________________________________________________________________
+<p><a name="_Angle_"></a></p>
+<h3>Angle</h3>
+- enter a number with the keyboard:
+  - direct: eg "45"
+  - from variable: eg "V20"
+
+- Selection of a circle or arc provides the opening-angle
+- Selection of a a line, a vector or two points
+    provides the angle relative to the X-axis in the XY-plane
+
+The last parameter can be "REV"; this gives the complementary-angle
+  (eg 90 changes to to 270)
+
+The output is eg "ANG(90)"
+Unit is Degree.
+
+
+
+____________________________________________________________________________
+<p><a name="_Vec_"></a></p>
+<h3>Vector / Direction</h3>
+Define a vector by:
+
+- Selection of a line or polygonsegment (also from inside CCV)
+
+- Selection of 2 points
+
+- Selection of a Standardvector
+  - select from the vectors shown in bottom-right corner
+  - enter with the keyboard (DX or DY or DZ or opposite DIX DIY DIZ)
+
+- Selection of a defined Vector
+  - by PageUp/PageDown-keys;
+  - from ObjectBrowser (left)
+  - enter with the keyboard (eg "D12")
+
+- enter a Vectors with the keyboard:
+  - Cartesian (X/Y/Z-Components): eg "0 0 1" (a Z-Vector)
+  - Polar (Angle): eg "ANG(45)"
+  - Polar (rotation-angle, tilt-angle): eg "ANG(45) ANG(30)"
+    
+- Normalvector of a circle or plane
+
+- Normalvector from 2 Objects (line or point or vector)
+    Examples:  DX DY    result is DZ (normalvector)
+               L20 DZ   result is the normalvector in the construction-plane
+
+- Normalvector from 3 points
+
+
+The last parameter can be "REV"; this gives the complementary-angle
+  (eg 90 changes to to 270)
+
+The last but one parameter can be the vectorlength.
+  Example: "DX 2.5" or "DX 2.5 REV"
+
+
+The output is eg "D(ANG(45) ANG(30) 2.5)"
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_PT_"></a></p>
+<h3>Point</h3>
+Define a Point by:
+- Selection of a Point
+- Selection of a Curve - provides the parametric Position on the  Object
+- Selection of a surface - provides the parametric Position on the  Object
+    (at the moment only for B-Spline-surfaces)
+- input a Point with the keyboard:
+  - Cartes. Coordinates: "100 0 0"
+  - Relative:  basepoint, Offset-X/Y/Z: "P22 Z(100)"
+  - Relative:  basepoint, direction(Vector), [distance]: "P22 D20 100"
+  - Polar:  basepoint, angle, distance: "P22 ANG(45) 100"
+  - Polar:  basepoint, 2 angles, distance: "P22 ANG(45) ANG(30) 100"
+
+
+The output is eg "P(100 0 0)"
+
+
+
+____________________________________________________________________________
+<p><a name="_LN_"></a></p>
+<h3>Line</h3>
+Define a Line by:
+- Selection of a line or polygonsegment (also from inside CCV)
+- define two points (select or indicate)
+- provide a point and a vector (select or indicate)
+- define a Line with the keyboard:
+  - Horizontal Line: define a Y-value; eg "Y(10)"
+  - Vertical Line: define a X-value; eg "X(10)"
+  - two points: eg "P(0 0 0) P(10 0 0)"
+  - point and Vector: eg "P20 D(0 0 1)" or "P20 DX"
+  - point and angle: eg "P(10 0 0) ANG(45)"
+  - point, rotation-angle, tilt-angle: eg "P22 ANG(45) ANG(30)"
+
+
+The output is eg "L(Y(10))"
+
+
+
+____________________________________________________________________________
+<p><a name="_AC_"></a></p>
+<h3>Circle</h3>
+Define a circle by:
+
+- Selection of a circle or arc
+- Selection of a circular segment inside a CCV
+- define a circle with the keyboard:
+  - center, radius: eg "P22 100"
+  - center, point on the circumference: eg "P22 P(100 0 0)"
+  - tree points on the circumference: eg "P21 P22 P23"
+  
+
+The output is eg "C(P22 100)"
+  
+
+
+____________________________________________________________________________
+<p><a name="_PLN_"></a></p>
+<h3>Plane (Referencesystem)</h3>
+Define a plane by:
+
+Selection of a Standardplane:
+  - select from the planes shown in bottom-right corner (RZ or RY or RX)
+  - enter with the keyboard (RZ or RY or RX)
+
+
+Definition of the active Constructionplane with different origin:
+  - select new origin
+    (all axes of the active Constructionplane will be used)
+
+
+Definition of a existing plane with different origin:
+  - select new origin, select plane
+    (all axes of this plane will be used)
+
+
+Definition from origin and X-axis in the new plane:
+  - select origin, select X-axis
+    (axis can be defined by a Vector or a Line or a point, see below)
+  - origin X-axis Y-axis              (origin and two axes of the new plane)
+  - select line (origin is the Startpoint of the Line)
+
+Definition from origin and X-axis and Y-axis in the new plane:
+  - select origin, select X-axis, select Y-axis
+    (axis can be defined by a Vector or a Line or a point, see below)
+  - select line, select Y-axis
+    (axis can be defined by a Vector or a Line or a point, see below)
+
+
+
+Definition from Z-axis (Normalvector) and the distance from the absolute origin:
+  - select a vector for Z-axis, enter the distance with the keyboard
+
+
+Definition from origin and Z-axis (Normalvector):
+  - "PERP", select origin, select Z-axis
+    (axis can be defined by a Vector or a Line or a point, see below)
+
+
+Definition from origin and Z-axis (Normalvector) and X-axis:
+  - "PERP", select origin, select Z-axis, select X-axis
+    (axis can be defined by a Vector or a Line or a point, see below)
+
+
+Plane from a circular arc or a ellipse:
+  - Selection of a circle or arc (also from inside CCV)
+    origin is the center of the object
+  
+ 
+
+---------------------------------------
+  Definition of a axis by giving a angle with the keyboard:
+    - rotation-angle: eg "P20 45"  (origin and rotation-angle around the Z-axis)
+    - rotation-angle and tilt-angle: "P20 90 45"
+      (origin, rotation-angle around the Z-axis, tilt-angle around the new Y-axis)
+      
+  Definition of a axis by giving a vector with the keyboard:
+    - rotation-angle: eg "D(ANG(45))"
+    - rotation-angle and tilt-angle: eg "D(ANG(45) ANG(30))"
+ 
+The output is eg "R(P22 90)"
+ 
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeom_"></a></p>
+
+Selection of all geometric Objects is possible.
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_lFig_"></a></p>
+
+Selection of lines, circles, curves is possible;
+Points, surfaces and bodies cannot be used.
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo1_"></a></p>
+
+Selection of all geometric Objects but not points is possible.
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo2_"></a></p>
+
+Selection of circle or Ellipse is possible.
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo5_"></a></p>
+<h3>Circle or Curve</h3>
+
+Selection of circle or curve (Ellipse, Polygon, Spline, CCV) is possible.
+For closed contours.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo6_"></a></p>
+<h3>Point or Line or Circle</h3>
+
+Selection of point or Line or circle is possible.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo7_"></a></p>
+<h3>Value or point or Vektor</h3>
+
+Definition of a value or
+Selection of point or Vektor is possible.
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goGeo8_"></a></p>
+<h3>Value or point</h3>
+
+Definition of a value or
+Selection of a point is possible.
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goPrim_"></a></p>
+<h3>Point, Line, Circle or Curve</h3>
+
+Selection of point, Line, circle or curve is possible.
+
+Surfaces and bodies cannot be used.
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_goSUSU_"></a></p>
+<h3>Surfaces (A) or Bodies (B)</h3>
+
+Selection of surfaces or bodies is possible.
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_FilNam_"></a></p>
+
+Selection of a Model-Filename by
+
+- Selection from the File-List
+  (List from Button "FILE" or middle-mousebutton)
+
+- Selection of a already existing Submodels
+
+
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_CtlgPart_"></a></p>
+
+Selection of a catalogpart by
+
+- Selection from the File-List
+  (Liste from Button "FILE" or middle-mousebutton)
+
+- Selection of a already existing catalogpart
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_EyePT_"></a></p>
+<h3>Dimensioning-direction</h3>
+
+Enter X or Y or Z with the keyboard (Standard ist P (parallel))
+or use the PageUp-key.
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_ModCTRL_"></a></p>
+<h3>controlpoints</h3>
+
+Enter "CTRL" or use the PageUp-key.
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_ModCoo_"></a></p>
+<h3>Version-number</h3>
+
+Enter a number with the keyboard or use the PageUp-key or the Buttons "NXT¦PRV".
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_ModREV_"></a></p>
+<h3>Turn (invert, "reverse")</h3>
+
+Enter "REV" with the keyboard or use the PageUp-key or the "REV"-Button.
+
+
+
+
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_ModCX_"></a></p>
+<h3>LängsRichtung (Default) or QuerRichtung ("CX")</h3>
+
+Enter "CX" with the keyboard or use the PageUp-key or the "CX"-Button.
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_ModCWC_"></a></p>
+<h3>Uhrzeigersinn (CW) or Gegenuhrzeigersinn (Default, CCW)</h3>
+
+Enter "CW" with the keyboard or use the PageDown-key or the "CW"-Button.
+
+
+
+________________________________________________________
+<p><a name="_ModUNL_"></a></p>
+<h3>Starting from a point unlimited or in both directions unlimited.</h3>
+
+use the PageDown-key or enter with the keyboard:
+"UNL"    at startpoint unlimited
+"UNL1"   at endpoint unlimited
+"UNL2"   at both points unlimited
+
+
+
+
+____________________________________________________________________
+<p><a name="_FncDirX_"></a></p>
+<h3>Definition of direction with reference to an inputobject.</h3>
+
+use the PageDown-key or enter with the keyboard:
+"PARL"    parallel
+"CX"      across (normal, rectangular)
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="_Text_"></a></p>
+<h3>Text</h3>
+
+Enter Text with the keyboard.
+The text will be output unmodified (without enclosing apostrophes "")
+
+
+
+
+
+
+__________________________________________________________________
+<p><a name="_String_"></a></p>
+<h3>Textstring</h3>
+
+Enter Text with the keyboard.
+The text will be output with enclosing apostrophes "".
+
+- <a href="CAD_Base_de.htm#TSZ">special characters for text, notes</A>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+</PRE>
+</HTML>
+

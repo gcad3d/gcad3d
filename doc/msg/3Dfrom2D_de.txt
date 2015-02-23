@@ -1,0 +1,5 @@
+# German Messages for Application 3Dfrom2D
+TOP Draufsicht
+SIDE Seitenansicht
+FRONT Vorderansicht
+# EOF

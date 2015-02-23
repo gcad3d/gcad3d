@@ -1,0 +1,464 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+<TITLE>Using_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<h2>Ein- Ausgaben</h2>
+
+<p><a name="IO"></a></p>
+<b>Start- Open- Save-</b>
+<a href="#F_N" >Start (New)</a>
+<a href="#F_OM">Open Model</a>
+<a href="#F_sM">Save Model</a>
+
+<p><a name="ImpExp"></a></p>
+<b>Import Export</b>
+<a href="#ff_dxf">DXF</a>
+<a href="#ff_igs">Iges</a>
+<a href="#ff_stp">Step</a>
+<a href="#ff_wrl1">VRML-1</a>
+<a href="#ff_wrl2">VRML-2</a>
+<a href="IO_svg_de.htm#exp">SVG</a>
+<a href="#ff_obj">WaveFront-OBJ</a>
+<a href="#ff_tess">TESS</a>
+<a href="#ff_bmp">BMP,JPG</a>
+<a href="#ff_stl">STL</a>
+<a href="#ff_lwo">LWO</a>
+<a href="#ff_3ds">3DS</a>
+<a href="#ff_nciso">NC-ISO</a>
+
+
+
+<a href="#Print">Drucken</a>
+
+
+
+____________________________________________________________________________
+<p><a name="F_N"></a></p>
+<b>File / New</b>
+
+Modelspace und alle Submodelspaces löschen.
+
+
+____________________________________________________________________________
+<p><a name="F_OM"></a></p>
+<b>File / Open Model</b>
+
+Laden oder importieren eines Modells.
+
+Alle Modelle können nur aus Verzeichnissen, die mit einem symbolischen Pfad
+  definiert sind, geladen / importiert werden.
+  Symbolische Pfade (Standardverzeichnisse): siehe Standards/ Directories.
+
+
+<b>DIR-SYM - Button</b>
+  Ein Verzeichnis wählen, das bereits bekannt ist
+    (es existiert ein symbolischer Pfad).
+
+<b>DIR-NEW - Button</b>
+  Ein allgemeines Verzeichnis wählen.
+  Nach der Verzeichnisauswahl wird ein symbolischer Pfadname abgefragt,
+  der dann bei den Standardverzeichnissen eingetragen wird.
+
+
+Dateien werden entsprechend dem Filetyp automatisch umgewandelt,
+für Mockup-Modelle und Bitmaps wird ein  Import-Befehl generiert.
+
+
+<b>Analytische Formate:</b>
+Analytische Beschreibung von Kurven, Flächen.
+
+<i>Dateityp:</i>
+.stp        <a href="#ff_stp">Step</a>
+.gs         <a href="#ff_igs">Iges</a>
+.dxf        <a href="#ff_dxf">DXF</a> (AutoCAD)
+.svg        <a href="IO_svg_de.htm">SVG/a>
+.gcad       gCAD3D-native
+
+
+
+<b>Mockup-Formate:</b>
+Mockup-Modelle sind fertig tesselierte Modelle, die besonders schnell
+  importiert werden.
+
+<i>Dateityp:</i>
+.wrl        <a href="#ff_wrl1">VRML-1</a> (VRML-2 dzt nur export)
+.obj        <a href="#ff_obj">OBJ</a> (WaveFront)
+.stl        <a href="#ff_stl">STL</a> (Ascii)
+.3ds        <a href="#ff_3ds">3DS</a>
+.lwo        <a href="#ff_lwo">LWO</a>
+.tess       <a href="#ff_tess" >gCAD3D-native-tesseliert</a>
+  
+
+
+<b>Bitmap-Formate:</b>
+Damit können Bilder (Pixel-Images) in den 3D-Raum geladen werden.
+
+<i>Dateityp:</i>
+.bmp        Microsoft-Bitmap
+.jpg        JPG
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="F_I"></a></p>
+<b>File / Insert</b>
+
+Es werden zum aktuellen Modell zusätzliche Modelle / Bilder geladen.
+  Es wird ein entsprechender Ladebefehl zugefügt.
+  SubModelle werden nicht gelöscht.
+
+Native Modelle (.gcad): werden derzeit als Hauptmodell geladen.
+  Mehrere native Modelle laden:
+    Insert, dann subModels/move_main_-->_new-subModel, internes subModel positionieren.
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="F_IMn"></a></p>
+<b>File / Import Mockup native</b>
+
+
+Schalterstellung EIN:
+  Alle Mockup-Modelle (dzt nur OBJ) werden nachfolgend importiert -
+  Damit können diese Modelle wieder zB als WRL oder TESS exportiert werden.
+
+
+Schalterstellung AUS: (Standard)
+  Alle Mockup-Modelle werden direkt (besonders schnell) geladen -
+  können aber nicht mehr verändert / exportiert werden.
+
+
+
+
+____________________________________________________________________________
+<p><a name="F_cnm"></a></p>
+<b>File / compress_native_models</b>
+
+Schalter, ob bei "Save Modell" die Daten komprimiert werden sollen. 
+
+Der Dateityp unkomprimierter Dateien ist .gcad;
+Der Dateityp komprimierter Dateien ist .gcaz.
+Die Komprimierung erfolgt mit "gzip -qc {unkompr.} > {kompr.}"
+Die DeKomprimierung erfolgt mit "gzip -dqc {kompr.} > {unkompr.}"
+Somit kann man in Unix und MS-Windows Modelle auch mit der
+Standardfunktion gzip komprimieren / dekomprimieren.
+
+Die Kompressionsrate ist etwa 70 %.
+
+------------------
+the filetype for uncompressed files is .gcad;
+the filetype for the compressed files is .gcaz;
+compression is done with "gzip -qc  > "
+decompression is done with "gzip -dqc  > "
+This works for Unix and MS-Win and you can compress and
+decompress the models at any time without a cad-system.
+
+The compressionrate is around 70 percent.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="F_sM"></a></p>
+<b>File / save Model (as)</b>
+
+Es wird das Hauptmodell mit allen internen Submodellen gespeichert.
+  Nur selektierte Objekte speichern: siehe <a href="Using_de.htm#Group">Group -> File</a>
+
+<b>Save Model</b>
+abspeichern (nur native) mit dem aktuellen Modelnamen.
+Für native Daten sollte Dateiendung .gcad verwendet werden.
+Native Daten sind die im Editfenster angezeigten Texte).
+
+
+
+<b>Save Model as</b>
+abspeichern mit einem neuen Modelnamen, das Ausgabeformat muss gewählt werden.
+
+<i>Formate:</i>
+native           .gcad      analyt.
+DXF              <a href="#ff_dxf"  >.dxf</a>       analyt.
+Iges             <a href="#ff_igs"  >.igs</a>       analyt.
+VRML-1           <a href="#ff_wrl1" >.wrl</a>       Mockup
+VRML-2 (VRML-97) <a href="#ff_wrl2" >.wrl</a>       Mockup
+STL              <a href="#ff_stl"  >.stl</a>       Mockup
+OBJ              <a href="#ff_obj"  >.obj</a>       Mockup
+TESS             <a href="#ff_tess" >.tess</a>      Mockup
+NC-ISO           <a href="#ff_nciso">.iso</a>       NC
+
+<!--
+ Bereits tesselierte Modelle (Mockups) können nur exportiert werden,
+  wenn sie intern nativ sind .. ??
+Ein Mockup-Modell selbst kann nicht mehr exportiert werden.
+ -->
+
+<b>DIR-SYM - Button</b>
+  Ein Verzeichnis wählen, das bereits bekannt ist
+    (es existiert ein symbolischer Pfad).
+
+<b>DIR-NEW - Button</b>
+  Ein allgemeines Verzeichnis wählen.
+  Nach der Verzeichnisauswahl wird ein symbolischer Pfadname abgefragt,
+  der dann bei den Standardverzeichnissen eingetragen wird.
+
+
+<b>Mockup-Modelle:</b>
+Mockup-Modelle sind fertig tesselierte Modelle, die besonders schnell
+  importiert werden.
+  
+
+
+
+____________________________________________________________________________
+<p><a name="ImpExp"></a></p>
+<h2><b>Import Export</b></h2>
+____________________________________________________________________________
+<p><a name="ff_dxf"></a></p>
+<b>Import / Export DXF</b>
+
+Liste der unterstützten DXF - Objekttypen:
+
+Typ               Import   Export
+
+POINT              X        X 
+VERTEX             X        X 
+LINE               X        X 
+CIRCLE             X        X 
+ARC                X        X 
+POLYLINE           X        X 
+3DLINE             X        X 
+TEXT               X        X 
+3DFACE             X        X 
+DIMENSION          X        X 
+HATCH              -        - 
+ELLIPSE            X        X
+LWPOLYLINE         X        - 
+MTEXT              X        - 
+BLOCK/INSERT       -        -
+
+
+DXF-R12:
+  Export Ellipse, Klothoide, Spline als POLYLINE;
+
+DXF-2000:
+  Export Ellipse als ELLIPSE
+  Export Splines als SPLINE.
+  Export Klothoide als POLYLINE.
+
+
+Gedimmte ("DIM") und mit DRAW OFF ausgeblendete Objekte werden nicht exportiert.
+Export: es werden die tesselierten Surfaces als 3DFACE's ausgegeben.
+    (Anzahl 3-Ecke: Standards/Tolerances).
+    
+    
+
+____________________________________________________________________________
+<p><a name="ff_igs"></a></p>
+<b>Import / Export - Iges</b>
+
+Liste der unterstützten Iges - Objekttypen:
+
+
+Typ                              Import      Export
+
+Punkt          116                X           X  
+Linie          110                X           X 
+Kreis          100                X           X 
+Par.Spline     112                X           X 
+B-Spl.Kurve    126                X           X 
+B-Spl.Fläche   128                X           X 
+Polylines      106 Form 11,12     X           X 
+CompositeCurve 102                X           X 
+Text           212                X           X 
+Ebene          108                X           X 
+Ellipse        104 Form 1         X4          X 
+Subfig.Def.    308                X           X 
+Subfig.Ref.    408                X           X 
+RuledSurface   118                X           X 
+Rev.Surface    120                X           X 
+Zylinderfläche 122                X           5) 
+CurveOnSurf    142                X           X 
+TrimmedSurf.   144                X           X 
+
+
+X4    dzt noch nicht: Hyperbel, Parabel (Form 2, 3).
+5)    Ausgabe als Rev.Surf oder RuledSurf.
+
+
+Getestet mit CATIA-V4 und CATIA-V5 (V5: Subfigures werden aufgelöst (kopiert)).
+Referenzen auf Externe SubModels werden noch nicht exportiert.
+Gedimmte ("DIM") und mit DRAW OFF ausgeblendete Objekte werden nicht exportiert.
+
+
+
+____________________________________________________________________________
+<p><a name="ff_stp"></a></p>
+<b>Import Step</b>
+
+Es können STEP ISO-10303-21 - AP203 - AP214 - Files importiert werden.
+Die Import-Funktionen basieren nicht auf den Express-Funktionen.
+Getestet mit CATIA-V4 und CATIA-V5.
+
+
+
+____________________________________________________________________________
+<p><a name="ff_wrl1"></a></p>
+<b>Import / Export VRML-1</b>
+
+VRML-1-Modelle werden als Mockups (Modell nicht veränderbar) importiert / exportiert.
+
+
+EXPORT:
+ - kann Assemblies (subModels) exportieren
+ - kann Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren
+
+
+
+____________________________________________________________________________
+<p><a name="ff_wrl2"></a></p>
+<b>Export VRML-2  (VRML-97)</b>
+
+- kann Assemblies(subModels) exportieren
+- kann Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren
+- kann Texturen noch nicht exportieren
+
+
+
+____________________________________________________________________________
+<p><a name="ff_obj"></a></p>
+<b>Import / Export WaveFront-OBJ</b>
+
+Es werden derzeit nur OBJ-Ascii-Dateien importiert / exportiert.
+OBJ-Dateien können als Modelle (veränderbar) oder Mockup-Modelle
+  (nicht veränderbar) geladen werden.
+
+Es werden nur die folgenden Objekttypen importiert / exportiert:
+v     Vertices
+f     Faces
+
+
+EXPORT:
+ - kann dzt exportierte Submodelle nicht positionieren
+ - kann Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren
+
+
+
+____________________________________________________________________________
+<p><a name="ff_tess"></a></p>
+<b>Import / Export TESS</b>
+
+Es werden die Binärdaten der fertig tesselierten Flächen in eine Datei
+  mit Dateityp .tess ausgegeben (also nur Mockup-Modelldaten).
+Beschreibung Dateiformat in Datei gCAD3D_prog_de.txt.
+
+EXPORT:
+ - kann dzt nur single Models (keine subModels) exportieren
+ - kann Mockup-Submodelle (WRL/OBJ/TESS) nicht reexportieren
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="ff_bmp"></a></p>
+<b>Import Bitmap</b>
+
+Bitmaps werden im normal zur Ansichtsfläche dargestellt (2D-Raum),
+  werden am linken unteren Eckpunkt im 3D-Raum positioniert.
+Bitmaps werden dynamisch oder fix skaliert.
+
+Es können Files im Format JPG oder BMP importiert werden.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="ff_stl"></a></p>
+<b>Import Steroelithografieformat</b>
+
+Ascii-Format.
+Es wird nicht überprüft, ob die Modelle geschlossen sind.
+
+
+
+____________________________________________________________________________
+<p><a name="ff_3ds"></a></p>
+<b>Import 3DS</b>
+
+3D Studio File Format  (Autodesk Ltd)
+
+Derzeit werden nur die Flächen übernommen.
+
+Binärformat.
+
+
+
+____________________________________________________________________________
+<p><a name="ff_lwo"></a></p>
+<b>Import LWO-Format</b>
+
+LIGHTWAVE 3D layered object File Format
+
+Derzeit werden nur die Flächen übernommen.
+
+Binärformat.
+
+
+____________________________________________________________________________
+<p><a name="ff_nciso"></a></p>
+<b>File / Export NC-ISO</b>
+
+  Ausgabe der NC-Bearbeitungscodes in Datei <base>/tmp/pp.iso.
+  Weitere Postprozessoren auf Anfrage.
+
+
+
+____________________________________________________________________________
+<p><a name="Print"></a></p>
+<b>Drucken</b>
+____________________________________________________________________________
+
+
+Auswahl Ausgabformat:
+      PS    (Vektorformat)
+      PCL5  (GL-Format)
+      HP-GL
+
+Auswahl Format (nur für Ausgabeformat PCL5):
+      A4 oder A3
+
+Auswahl Funktion:
+      mit Viewer anzeigen (nur für Ausgabeformat PS,
+         voreingestellt ist der Postscriptviewer gv)
+      ausgeben in Datei (voreingestellt ist Dateiname /tmp/print.dat)
+      direkt ausdrucken (voreingestellt ist Command "lpr -l -P{Defaultdrucker}")
+
+
+Es werden keine schattierten Flächen ausgegeben
+  (dazu kann zB Programm ksnapshot benutzt werden).
+
+
+Funktionsweise:
+
+Es wird eine Zwischendatei {base}/tmp/print.tmp erzeugt;
+  diese wird dann in das gewählte Ausgabeformat umgewandelt.
+  Die Ausgabe kann um 90 Grad gedreht werden, skaliert und (mit Offset)
+  verschoben werden.
+
+
+
+____________________________________________________________________________</PRE>
+</HTML>

@@ -1,0 +1,301 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1250">
+<TITLE>Using_en.htm </TITLE>
+<style> body {font: 10pt Verdana, serif, sans;} </style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+<h2> Using gCAD3D </h2>
+
+<a href="#File">Menu - File </a>
+<a href="#subModels">Menu - SubModels </a>
+<a href="#Options">Menu - Options </a>
+<a href="#Display">Menu - Display </a>
+<a href="#Modify">Menu - Modify </a>
+<a href="Select_en.htm">Menu Select</a>
+<a href="#Group">Menu - Group </a>
+<a href="Settings_en.htm#Standards">Menu - Standards </a>
+<a href="Catalog_en.htm">Menu - Catalog </a>
+<a href="Appli_en.htm">Menu Application</a>
+<a href="Process_en.htm">Menu Process</a>
+<a href="Plugin_en.htm">Menu Plugin</a>
+<a href="RemoteControl_en.htm">Menu Remote</a>
+
+<a href="VWR_en.htm">Graphic functions </a>
+
+<a href="Measure_en.htm">Measure</a>
+<a href="Search_en.htm">Search / Name</a>
+<a href="CAD_Activ_en.htm">Interaction</a>
+
+<a href="#Hide">Checkbox - Hide, View</a>
+<a href="Search_en.htm">Checkbox - Search/Name</a>
+<a href="VWR_en.htm#RotCen">Checkbox - RotCen</a>
+<a href="#cb3s">Checkbox - 3D, Shade</a>
+
+<a href="keycodes_en.htm">Keycodes </a>
+
+____________________________________________________________________________
+<p> <a name="File"> </a> </p>
+<h2> menu - File: </h2>
+
+<a href="IO_en.htm#F_N">New</a>
+<a href="IO_en.htm#F_OM">Open Model</a>
+<a href="IO_en.htm#F_I">Insert</a>
+
+<a href="IO_en.htm#F_IMn">Import Mockup native</a>
+
+<a href="IO_en.htm#F_sM">save Model (as)</a>
+
+<a href="IO_en.htm#F_cnm">compress native Models</a>
+
+<a href="IO_en.htm#Print">Print</a>
+
+
+
+____________________________________________________________________________
+<p> <a name="subModels"> </a> </p>
+<h2> menu - Submodels: </h2>
+
+
+See <a href="gCAD3D_basics_en.htm#MMS"> multi-model support </a>
+See <a href="CAD_Model_en.htm"> use submodels (position) </a>
+See <a href="CAD_examples_en.htm#assy"> create assembly </a>
+
+
+<b> activate submodel </b>
+  activate a submodel or the main model.
+  "- Main - is the main model.
+  After creating a submodel: back to the main model,
+  continue with <a href="CAD_Model_en.htm"> use submodels </a>
+
+
+<b> move main -> new submodel </b>
+  move all objects in the main model into a submodel.
+  See <a href="CAD_Model_en.htm"> use submodels </a>
+
+
+<b> create new submodel </b>
+  create a new (empty) create submodel and activate it.
+
+
+<b> save Submodel to File </b>
+  write the currently active submodel into a file.
+  It can be loaded normally or be used as an external submodel.
+
+
+<b> load Submodel from File </b>
+  a model is loaded but not as the main model
+    but as an internal submodel.
+  Submodellname is the filename of the loaded model.
+  The submodel is not yet visible;
+  see <a href="CAD_Model_en.htm"> use submodels </a>
+
+
+<b> rename Submodel </b>
+
+
+<b> delete Submodel</b>
+
+
+<b> modify position of submodel </b>
+
+
+____________________________________________________________________________
+<p> <a name="Options"> </a> </p>
+</A> <h2> menu - Options: </h2>
+
+<!--
+Boundary
+extra light
+-->
+<B> compile DLLs </B>
+  if ON: before loading a DLL - unload this DLL,
+  recompile it, relink it and load again. (A debug function).
+
+
+<B> Interaction </B>
+  if ON: Interaction is also active in CAD or MAN
+    In mode VWR interaction is always active.
+
+
+<B>MainToolBar</B>
+  if OFF: the main function bar at the top will disappear.
+  
+
+<B>MessageToolBar</B>
+  if OFF: messagewindow at the bottom is hidden.
+
+
+<B>ScreenCast ON</B>
+  Only for Gtk3, if ON:
+  - pressing the mousebuttons is indicated 
+  - pressing the keyboardbuttons is indicated
+
+
+<B>BrowserWindow OFF</B>
+  if OFF: the browserwindow at the left side is hidden.
+
+
+<B>RemoteControl OFF</B>
+  if OFF: <a href="RemoteControl_en.htm">RemoteControl</a> is not active.
+
+
+
+____________________________________________________________________________
+<p> <a name="Display"> </a> </p>
+<h2> menu - Display: </h2>
+
+
+<b> ObjName </b>
+  Representation of the names of the text elements, eg "P20".
+  Representation of the direction of all the processing paths by arrows.
+
+
+
+<b> NC-text </b>
+  Of NC-toolbox (as text) at the respective positions.
+  Shown are e.g. all insert text, STOP ....
+
+
+<b> point display OFF </b>
+  Hide all points.
+
+
+<b> plane display OFF </b>
+  Hide all layers.
+
+
+<b> solid display OFF </b>
+  Hide all solids.
+
+
+____________________________________________________________________________
+<p> <a name="Modify"> </a> </p>
+<h2> menu - Modify: </h2>
+
+
+<b> model position </b>
+<b> Curve-> Circ </b>
+
+<hr>
+<a href="Attribs_en.htm#curvs"><b>Linetyp</b></a>
+
+<a href="Attribs_en.htm#dispTyp-surfs"><b>SurfaceStyle</b></a>
+
+<a href="Attribs_en.htm#color-surfs"><b>SurfaceColor</b></a>
+
+
+<b> surface transparency </b>
+  solid
+  50% - transparent
+  transparent (fully transparent)
+
+
+<a href="Textures_de.htm"><b>SurfaceTexture</b></a>
+
+
+<b> object names </b>
+  See <a href="Search_en.htm"> Search /Name </a>.
+
+
+<hr>
+<b> Edit (F3) </b>
+  Open the currently active line of code with the system editor.
+
+
+<b> APT-Clean (F4) </b>
+  Permanently delete all previousely deleted codes.
+
+
+<b> Delete last Obj (Ctrl-Z) </b>
+  delete Last generated object.
+
+
+<b> Restore last deleted (Ctrl-Y) </b>
+  reactivate last deleted object.
+
+
+
+____________________________________________________________________________
+<p> <a name="Group"> </a> </p>
+<h2> menu - Group: </h2>
+
+Obj <b> add (remove) </b>
+  All subsequently selected objects are added to the group.
+  Select an object again, remove from the group.
+
+
+<p> <a name="Group2File"> </a> </p>
+save <b> Group -> File </b>
+  Write all objects in the group to a file (native format -. Gcad)
+
+
+
+
+
+
+____________________________________________________________________________
+<p> <a name="Hide"> </a> </p>
+<h2> checkbox - Hide /View </h2>
+
+<i> Hide: </i>
+  select are any graphic object to hide.
+
+<i> View: </i>
+  all currently hidden elements will be displayed;
+  Select items to be shown again
+
+____________________________________________________________________________
+<p> <a name="MD"> </a> </p>
+<h2> checkbox - Modify /Delete </h2>
+
+
+Select the checkbox "Modify /Delete" and the geometric object -
+or select the object while holding down the Control key;
+
+It is now the following menu appears:
+
+<b>&lt;&lt;--prv</b>
+<b>nxt--&gt;&gt;</b>
+  shows all objects depending from the selected object
+
+Modify <b> items </b> Modify / Return key or the right mouse button
+
+<b> Delete items </b> delete / delete-key (Del) key
+
+<b> Done </b> End / Ctrl-right mouse button
+
+
+Delete: You will see the object and all its auxiliary objects.
+Each single object must be removed by using the delete key.
+Retrieving deleted objects using the key Ctrl-Y.
+
+Example:
+1 P20 = P (-16.71 -32.4 0)
+2 P21 = P (-0.83 -22.12 0)
+3 P22 = P (-2.1 -30.41 0)
+4 L20 = P20 P21
+5 L21 L20 P22 = CUT
+
+  Property P20 has 2 dependent objects: L20, L21.
+  L21 object has 4 auxiliary objects: L20 P20 P21 P2.
+
+
+____________________________________________________________________________
+<p> <a name="cb3s"> </a> </p>
+<h2> checkbox - 3D, Shade </h2>
+
+<b> 3D: </b>
+  OFF: the model can not be rotated, the view plane is fixed.
+          For 2D plan view: Button "Top", then "3D" OFF.
+
+<b> Shade: </b>
+  OFF: surfaces and solids are presented only as a wire model.
+  ON:  Solids and surfaces are shaded.
+
+____________________________________________________________________________
+</PRE>
+</HTML>
+

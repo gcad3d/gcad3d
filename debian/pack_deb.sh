@@ -27,7 +27,7 @@ set gcad_dir_bin=../binLinux${bits}
 set Version=`cat ${srcDir}/gcad_version`
 
 if ("${bits}" == "32") then
-set platform = "x86"
+set platform = "i386"
 else
 set platform = "amd64"
 endif

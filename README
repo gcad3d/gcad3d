@@ -83,13 +83,16 @@ Linux Install from tarfile:
 // start commandline (eg gnome-terminal)
 cd
 mkdir devel
-mkdir binLinux32
-mkdir binLinux64
-mkdir binMS32
 cd devel
-cp xxx/gcad3d-*-Linux.tar.gz .
-unzip gcad3d_V*.zip
+
+cp xxx/gCAD3D_x.xx-src.zip .
+unzip gCAD3D_x.xx-src.zip
 // get all files into ~/devel/gcad3d/*
+
+cd gcad3d
+mkdir -p binLinux32/plugins
+mkdir -p binLinux64/plugins
+
 
 
 _____________________________________
@@ -97,8 +100,15 @@ Linux Build:
 
 cd ~/devel/gcad3d/src/APP
 
-// change gtk-version (VGUI):
+./do help         # see options of build-script
+
+// change gtk-version (set VGUI):
 vi ../options.mak
+
+./do complete     # build gui, gcad, libs, demos.
+
+// (re)Create gCAD3D
+make -f gcad3d.mak
 
 // (re)Create the gui-lib
 make -f gcad_gui__.mak
@@ -107,16 +117,6 @@ make -f gcad_gui__.mak
 cd ~/devel/gcad3d/src
 ./NEW_VERSION.sh
 
-// (re)Create gCAD3D
-make -f gcad3d.mak
-
-// (re)Create all core-dll's
-make -f gcad3d.mak all
-
-// (re)Create all demo-plugins
-make -f gcad3d.mak allDemos
-
-
 // ReCreate gcad development documentation:
 cd ~/devel/gcad3d/doc
 ./gcad_doxygen.sh
@@ -124,19 +124,13 @@ cd ~/devel/gcad3d/doc
 // view documentation:
 xdg-open ~/devel/gcad3d/doc/gcad/index.htm
 
-// create debian-package (binary, gCAD3D-#.##-bin-amd64.deb)
+// create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb)
 cd ~/devel/gcad3d/debian
 ./pack_deb.sh
-
 
 // create source-package (gCAD3D-#.##-src.zip)
 cd ~/devel/gcad3d
 ./pack_src.sh
-
-
-DEVELOPMENT:
-cd ~/devel/gcad3d/src/APP
-./do help
 
 
 DEVELOPMENT-TOOLS-TAGFILES:

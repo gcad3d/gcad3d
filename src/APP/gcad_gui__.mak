@@ -9,11 +9,22 @@ include ../gui/gui_$(VGUI).mak
 OBJGUI = $(patsubst %.c,%.o, $(notdir $(SRCGUI)))
 
 
+default:
+	@echo build ..
+	make -f gcad_gui_lnk.mak
+
+
+delete:
+	@echo delete ..
+	cd $(OUTDIR) && rm -f $(OBJGUI)
+
+
 srclst:
 	make -f gcad_gui_lnk.mak srclst
 
-default:
-	make -f gcad_gui_lnk.mak
+
+# link after changing VGUI in ../options.mak
+link:
 	@echo make the link ..
 	cd $(OUTDIR) ;\
  if test "$(VGUI)" = "gtk2"; then\
@@ -24,12 +35,6 @@ default:
  echo "Gtk3";\
  ln -fs xa_gui_gtk3.so xa_gui.so;\
  fi
-	exit
-
-
-delete:
-	cd $(OUTDIR) && rm -f $(OBJGUI)
-	exit
 
 
 # EOF

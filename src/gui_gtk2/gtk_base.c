@@ -1599,8 +1599,8 @@ static int       UI_act_Id;
   int     i1, i2;
 
 
-  printf("GUI_w_pack_b typ=%d sx=%d sy=%d ex=%d ey=%d\n",pTyp,
-         *isx,*isy,*iex,*iey);
+  // printf("GUI_w_pack_b typ=%d sx=%d sy=%d ex=%d ey=%d\n",pTyp,
+         // *isx,*isy,*iex,*iey);
 
 
   //   iex    hor.expand;   0=expand=yes,   1=do not expand

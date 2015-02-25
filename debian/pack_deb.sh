@@ -120,6 +120,7 @@ chmod 0644 ${instDir}/usr/share/gcad3d/icons/*
 #../debian/gCAD3D/debian/usr/share/doc/gcad3d/changelog.gz,copyright,gCAD3D.ico,gCAD3D.desktop
 #cp /usr/share/common-licenses/GPL-3 ${instDir}/usr/share/doc/gcad3d/copyright
 cp ../LICENSE           ${instDir}/usr/share/doc/gcad3d/copyright
+#cp copyright            ${instDir}/usr/share/doc/gcad3d/.
 cp changelog            ${instDir}/usr/share/doc/gcad3d/.
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/changelog
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/copyright

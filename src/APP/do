@@ -12,7 +12,7 @@
 
 # bits; 32|64
 osVer=`getconf LONG_BIT` 
-echo $osVer
+echo $osVer"-bit-system"
 
 
 
@@ -34,6 +34,7 @@ fi
 if test "$1" = "complete"; then
   ./del_obj.sh
   make -f gcad_gui__.mak
+  make -f gcad_gui__.mak link
   make -f gcad3d.mak
   make -f gcad3d.mak all
   make -f gcad3d.mak allDemos
@@ -50,12 +51,15 @@ fi
 if test "$1" = "guiinit"; then
   vi ../options.mak
   make -f gcad_gui__.mak delete
+  make -f gcad_gui__.mak
+  make -f gcad_gui__.mak link
   exit 0
 fi
 
 
 if test "$1" = "gui"; then
   make -f gcad_gui__.mak
+  make -f gcad_gui__.mak link
   exit 0
 fi
 

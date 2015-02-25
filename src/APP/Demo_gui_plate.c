@@ -71,8 +71,8 @@ __declspec(dllexport) int gCad_fini ();
 #include "../db/ut_DB.h"               // DB_GetObjGX
 #include "../ci/NC_Main.h"             // WC_ask_ModSiz
 
-#include "xa_mem.h"                    // gen.purp.memblocks
-#include "xa_ui.h"                     // UID_..
+#include "../xa/xa_mem.h"                    // gen.purp.memblocks
+#include "../xa/xa_ui.h"                     // UID_..
 
 
 

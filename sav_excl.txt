@@ -7,4 +7,5 @@ gCAD3D/tmp
 debian/gCAD3D
 debian/exa_dir
 *.tag
+*.swp
 *.out

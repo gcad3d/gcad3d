@@ -165,7 +165,7 @@ rm -rf gcad3d
 
 
 ==================================================================
-MS-Windows
+MS-Windows   ************ GIT-VERSION NOT YET FINISHED ***********
 ==================================================================
 Prerequisites:
 
@@ -191,6 +191,11 @@ Create new directory %HOMEDRIVE%%HOMEPATH%/devel
 Extract C-KIT-GUI-GTK-*.**-MS.zip into this directory
   Using a commandshell (cmd):
   unzip ckitgui_V*.zip
+
+
+Before reLink do in Linux:
+  ./gendef.sh
+  # creates gCAD3D.def
 
 
 Rebuild  library / examples:

@@ -1,0 +1,66 @@
+# use mit nmake -f libgui.nmak
+# creates ..\binMS32\libgui_gtk2_MS.lib
+
+
+
+LIBNAM  = libgui_gtk2_MS
+
+
+#---------------------------------------------------
+# gui\options.mak:
+OS = MS32
+VGUI = gtk2_MS
+
+
+#---------------------------------------------------
+# get OUTDIR
+!include "../xa/outdir.nmak"
+
+
+#---------------------------------------------------
+# get CPDEB LKDEB DEB
+!include "../xa/deb.nmak"
+
+
+
+#---------------------------------------------------
+# get GUICP GUILIBS SRCGUI OBJGUI
+!include "../gui_gtk2_MS/gtk.nmak"
+
+
+#---------------------------------------------------
+# OBJGLB SRCGLB CPGLB
+!include "../gui_gtk2_MS/glb.nmak"
+
+
+#---------------------------------------------------
+CPFLG =\
+ /nologo\
+ $(GUICP)\
+ $(CPGLB)\
+ $(CPDEB)\
+ /Od
+
+
+#---------------------------------------------------
+default: $(OBJGUI) $(OBJGLB)
+	@echo ============== done ======================
+#	@echo $(OBJGUI)
+#	lib/out:$(OUTDIR)\$(LIBNAM).lib
+# 	copy/y $(LIBNAM).lib $(OUTDIR)\.
+	exit
+
+
+
+#---------------------------------------------------
+.c.obj:
+	@echo ============== Compile C $< ==================
+	$(CC) -c $(CPFLG) $<
+	move $(*F).obj $@
+	if exist $(OUTDIR)\$(LIBNAM).lib\
+ (lib $(OUTDIR)\$(LIBNAM).lib $@) else\
+ (lib/out:$(OUTDIR)\$(LIBNAM).lib $@)
+# ctags $(TAGFLGS) -f $*.wtag $<
+
+
+# EOF

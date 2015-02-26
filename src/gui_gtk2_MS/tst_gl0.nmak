@@ -1,0 +1,220 @@
+# use mit nmake -f tst_gl0.nmak "OS=MS32"
+# ..\binMS32\tst_gl0.exe
+
+
+
+
+PRJNAM  = tst_gl0
+
+
+#---------------------------------------------------
+# get OUTDIR
+#!include "..\xa\outdir.nmak"
+
+!if "$(OS)"=="MS32"
+OUTDIR = ..\binMS32
+#OUTDIR = C:\Devel\gCAD3D\binMS32
+!endif
+
+
+!if "$(OS)"=="MS64"
+OUTDIR = ..\binMS64
+#OUTDIR = D:\gcad\bin$(OS)
+!endif
+
+
+
+#---------------------------------------------------
+# get CPDEB LKDEB
+#!include "deb.nmak"
+# get DEB
+#!include deb.mak
+# Debug 1=Development; Debug-ON
+#       2=Distribute;  Debug-OFF
+DEB   = 1
+#DEB   = 2
+
+!if "$(DEB)"=="1"
+CPDEB = -DDEB /Zi
+LKDEB = /DEBUG
+!endif
+
+
+
+#---------------------------------------------------
+#!include "srcOS.nmak"
+#SRCOS = ../ut/ut_os_w32.c
+# ../lic/ut_lic_w32.c
+
+
+#---------------------------------------------------
+# gui\options.mak:
+VGUI = MS_gtk2
+
+#---------------------------------------------------
+# get GUICP GUILIB SRCGUI
+#!include "../gtk/gtk.nmak"
+
+
+
+#SRCGUI =\
+# ../gtk/ut_gtk.c\
+# ../gtk/ut_gtk2ed.c\
+# ../gtk/mList.c\
+# ../gtk/ut_gtk2tx.c\
+# ../gtk/fList3.c\
+# ../gtk/ut_tree_it.c\
+# ../gtk/ut_ico.c
+
+SRCGUI =\
+  tst_gl0.c\
+  gui_ut.c
+
+!if "$(OS)"=="MS32"
+gtk_bas_dir  = ..\gtk_MS32_224
+!endif
+
+!if "$(OS)"=="MS64"
+gtk_bas_dir  = ..\gtk_MS222
+!endif
+
+gtk_inc_dir =\
+      /I $(gtk_bas_dir)\include\gtk-2.0\
+      /I $(gtk_bas_dir)\include\glib-2.0\
+      /I $(gtk_bas_dir)\include\cairo\
+      /I $(gtk_bas_dir)\include\pango-1.0\
+      /I $(gtk_bas_dir)\include\atk-1.0\
+      /I $(gtk_bas_dir)\include\gdk-pixbuf-2.0\
+      /I $(gtk_bas_dir)\include
+
+GUICP  = -DGTK2 $(gtk_inc_dir)
+
+gtk_lib_dir  = $(gtk_bas_dir)\lib
+
+GUILIBS = $(gtk_lib_dir)\gtk-win32-2.0.lib\
+          $(gtk_lib_dir)\gdk-win32-2.0.lib\
+          $(gtk_lib_dir)\gdk_pixbuf-2.0.lib\
+          $(gtk_lib_dir)\glib-2.0.lib\
+          $(gtk_lib_dir)\gobject-2.0.lib
+
+
+
+#---------------------------------------------------
+# SRCGLB CPGLB GLBLIB
+#!include "glb.nmak"
+SRCGLB =\
+ ..\gtkglarea\gtkglarea.c\
+ ..\gtkglarea\gdkgl.c
+
+
+# ..\xa\GL_glarea.c\
+
+CPGLB = /I ..\gtkglarea
+
+
+
+#---------------------------------------------------
+# SRCG SRCB SRC1 SRCA SRC3
+#!include "src.mak"
+#SRCG =\
+#  tst_gtk0.c
+
+#SRC1 =\
+#  ../ut/ut_memTab.c
+
+
+
+#---------------------------------------------------
+# get OGLLIB
+#!include "ogl.nmak"
+
+ogl_dir = $(WindowsSdkDir)
+#ogl_dir = ../MS_ogl/
+ogl_inc_dir = "$(ogl_dir)Include"
+
+#ogl_lib_dir = $(ogl_dir)\Lib
+ogl_lib_dir = H:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+
+OGLLIB =\
+ "$(ogl_lib_dir)\OpenGL32.lib"\
+ "$(ogl_lib_dir)\Glu32.lib"\
+ "$(ogl_lib_dir)\Gdi32.lib"
+
+
+
+#---------------------------------------------------
+# get LIB_BAS - get Basiclibs for MS-VC (libcmt, Kernel32 ..) 
+# get CPFLG LKFLG
+#!include "bas_$(OS).nmak"
+
+cc_dir = $(VSINSTALLDIR)
+#cc_dir = C:\Programme\Microsoft Visual Studio 9.0
+#cc_dir = H:\Programme\Microsoft Visual Studio 9.0
+cc_lib_dir = $(cc_dir)\VC\lib
+cc_inc_dir = $(cc_dir)\VC\include
+
+#sdk_dir = $(WindowsSdkDir)
+#sdk_lib_dir = $(WindowsSdkDir)\Lib
+#sdk_lib_dir = C:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+sdk_lib_dir = H:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+
+LIB_BAS =\
+ "$(cc_lib_dir)\libcmt.lib"\
+ "$(sdk_lib_dir)\Kernel32.lib"\
+ "$(sdk_lib_dir)\User32.lib"\
+ "$(sdk_lib_dir)\AdvAPI32.lib"\
+
+# compile-flags Defaults:
+CPDEF =\
+ /nologo\
+ $(GUICP)\
+ $(CPGLB)\
+ $(CPDEB)\
+ /Od
+
+# LinkFlags-Defaults:
+LKDEF =\
+ /link\
+ /nologo\
+ /nodefaultlib\
+ /INCREMENTAL:NO\
+ $(LKDEB)\
+ /MACHINE:X86
+
+
+
+#---------------------------------------------------
+# get OBJ* from SRC*
+!include "..\xa\src2obj.nmak"
+
+
+#---------------------------------------------------
+CPFLG = $(CPDEF)
+
+#LKFLG = $(LKDEF) /DEF:$(PRJNAM).def /SUBSYSTEM:CONSOLE
+LKFLG = $(LKDEF) /SUBSYSTEM:CONSOLE
+
+
+
+#---------------------------------------------------
+default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGUI) $(OBJGLB) $(OBJOS)
+	@echo ========================= Link ================================
+	$(CC) $(OBJ1) $(OBJG) $(OBJA) $(OBJGUI) $(OBJGLB) $(OBJOS)\
+ $(GUILIBS) $(GLBLIB) $(OGLLIB) $(LIB_BAS)\
+ $(LKFLG) /out:$(PRJNAM).exe 2> lkwarn2.txt
+ 	move $(PRJNAM).exe $(OUTDIR)\.
+	exit
+
+
+
+#---------------------------------------------------
+# compile c -> obj_$(OS)
+#!include "..\xa\compile.nmak"
+.c.obj_$(OS):
+	@echo ==================== Compile C $< ==========================
+	$(CC) -c $(CPFLG) $<
+	move $(*F).obj $@
+# ctags $(TAGFLGS) -f $*.wtag $<
+
+
+# EOF

@@ -1,0 +1,44 @@
+# BasicLibs for Microsoft-Compiler
+# LIB_BAS
+
+
+cc_dir = $(VSINSTALLDIR)
+#cc_dir = C:\Programme\Microsoft Visual Studio 9.0
+#cc_dir = H:\Programme\Microsoft Visual Studio 9.0
+cc_lib_dir = $(cc_dir)\VC\lib
+cc_inc_dir = $(cc_dir)\VC\include
+
+
+sdk_lib_dir = $(WINDOWSSDKDIR)Lib
+#sdk_lib_dir = C:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+#sdk_lib_dir = H:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
+LIB_BAS =\
+ "$(cc_lib_dir)\libcmt.lib"\
+ "$(sdk_lib_dir)\Kernel32.lib"\
+ "$(sdk_lib_dir)\User32.lib"\
+ "$(sdk_lib_dir)\AdvAPI32.lib"\
+
+# msvcrt.lib
+# Gdi32.lib
+
+
+## compile-flags Defaults:
+#CPDEF =\
+# /nologo\
+# $(GUICP)\
+# $(CPGLB)\
+# $(CPDEB)\
+# /Od
+
+
+# LinkFlags-Defaults:
+LKDEF =\
+ /link\
+ /nologo\
+ /nodefaultlib\
+ /INCREMENTAL:NO\
+ $(LKDEB)\
+ /MACHINE:X86
+
+
+# EOF

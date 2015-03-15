@@ -5,8 +5,8 @@ DLLNAM = DemoPlugin_Create
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Create.c
+	../APP/DemoPlugin_Create.c
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

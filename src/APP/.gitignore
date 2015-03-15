@@ -1,5 +1,8 @@
 *.tag
 *.obj
 *.pdb
+*.exp
+*.lib
 *.out
 *.log
+t1

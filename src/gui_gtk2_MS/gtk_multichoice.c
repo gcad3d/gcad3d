@@ -16,11 +16,8 @@
 
 
 -----------------------------------------------------
-Radiobuttons, option-menu, popup-menu.
-
-
 TODO:
-
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -33,7 +30,7 @@ void GUI_CONTAINER(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_multichoice.c
-\ingroup grp_gui
+\brief Radiobuttons, option-menu, popup-menu.
 \code
 
 =====================================================

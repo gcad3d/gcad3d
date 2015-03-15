@@ -1,0 +1,14 @@
+# Link & run:
+#  nmake -f gcad3d.nmak
+
+PRJNAM = gCAD3D
+
+
+# get SRC1 SRCA SRCG SRC3 SRCB
+!include gcad_src.mak
+
+
+# create executable ..
+!include "..\APP\gcad__.nmak"
+
+# EOF

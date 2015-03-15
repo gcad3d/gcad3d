@@ -16,8 +16,8 @@
 
 
 -----------------------------------------------------
-Backgroundimage.
-
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -31,7 +31,7 @@ void GUI_IMAGE(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_image.c
-\ingroup grp_gui
+\brief Backgroundimage.
 \code
 
 =====================================================

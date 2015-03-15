@@ -1,6 +1,4 @@
-# make -f Demo_CPP.mak "OS=Linux32"
-# 
-
+# make -f Demo_CPP.mak
 
 DLLNAM = plugins/Demo_CPP
 

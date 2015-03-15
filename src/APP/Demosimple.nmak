@@ -5,10 +5,10 @@ DLLNAM = Demosimple
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/Demosimple.c
+	../APP/Demosimple.c
 
 #DIRSRC1 := ../xa/
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

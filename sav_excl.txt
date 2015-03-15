@@ -9,3 +9,7 @@ debian/exa_dir
 *.tag
 *.swp
 *.out
+*.obj
+*.pdb
+*.exp
+*.lib

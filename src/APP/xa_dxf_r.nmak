@@ -1,0 +1,16 @@
+# nmake -f xa_dxf_r.nmak
+
+DLLNAM = xa_dxf_r
+
+SRC1 =\
+ ../exp/dxf_r.c
+
+
+CORE = J
+
+
+# create executable ..
+!include "..\APP\gcad__.nmak"
+
+
+########################### EOF #######################

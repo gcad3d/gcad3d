@@ -744,7 +744,7 @@ static char sproc[128];
 
   // Searchpath
   sprintf(cbuf1, "%splugins/",OS_get_bin_dir());
-    // printf(" path-plugins=|%s|\n",cbuf1);
+    printf(" path-plugins=|%s|\n",cbuf1);
 
 
 #ifdef _MSC_VER

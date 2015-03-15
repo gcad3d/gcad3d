@@ -1,18 +1,35 @@
-/* GL_C-KIT.c
-GTK-OpenGl-Bindings with lib from C-KIT-GUI-GTK
+// GL_C-KIT.c
+/*
+ *
+ * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *
+-----------------------------------------------------
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
 2012-08-26 Extracted from GL_glarea.c. RF.
 
 -----------------------------------------------------
-*//*!
-\file ../xa/GL_C-KIT.c
-\ingroup grp_ap
+*/
+/*!
+\file  ../gui_gtk2_MS/GL_C-KIT.c
+\brief GTK-OpenGl-Bindings with lib ckitgui
 \code
-
 =====================================================
-Liste_Funktionen_Beginn:
+List_functions_start:
 
 // UI_GR_DrawConfig      .
 // UI_GR_DrawQuery       .
@@ -20,10 +37,11 @@ Liste_Funktionen_Beginn:
 UI_GR_DrawInit        .
 UI_GR_DrawExit        .
 
-Liste_Funktionen_Ende:
+List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+
 
 
 ---------------------------------------------------

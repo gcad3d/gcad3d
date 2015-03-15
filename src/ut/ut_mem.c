@@ -274,7 +274,7 @@ UTA_reallTab
 
     // printf(" _get_file|%s|\n",txbuf);
 
-  return;
+  return 0;
 
 }
 

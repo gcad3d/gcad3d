@@ -1,0 +1,12 @@
+# make -f xa_wrl_r.mak
+
+DLLNAM = xa_wrl_r
+
+SRC1 =\
+ ../exp/wrl_ut.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

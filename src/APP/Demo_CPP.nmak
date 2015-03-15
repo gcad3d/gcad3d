@@ -1,18 +1,11 @@
-# nmake -f Demo_CPP.nmak "OS=MS32"
-# 
-
+# nmake -f Demo_CPP.nmak
 
 DLLNAM = Demo_CPP
 
 OBJ1 = Demo_CPP.obj
 
-#SRCTYP = cpp
-#SRC1 =\
-#	../xa/Demo_CPP.cpp
-#!include gCAD_DLL.nmak
-
-# get OUTDIR
-!include "..\xa\outdir.nmak"
+# get OS OUTDIR VGUI (Version GTK)
+!include ..\options.nmak
 
 
 

@@ -78,7 +78,7 @@ git clone https://github.com/gcad3d/gcad3d
 
 
 __________________________________________________________________
-Linux Install from tarfile:
+Linux Install from zipfile:
 
 // start commandline (eg gnome-terminal)
 cd
@@ -165,69 +165,74 @@ rm -rf gcad3d
 
 
 ==================================================================
-MS-Windows   ************ GIT-VERSION NOT YET FINISHED ***********
+MS-Windows 
 ==================================================================
 Prerequisites:
 
-  for using C-KIT-GUI-GTK:
-    MS-C-Compiler (gcc or MS-Visual-C (C++, Express))
-  for using C-KIT-GUI-GTK with OpenGL:
-    OpenGL32.lib, Glu32.lib (Microsoft SDKs)
-  for modifications of C-KIT-GUI-GTK:
-    the package contains all development-files;
-    optional: get the gtk-dokumentation from www.gtk.org.
+
+for using gCAD3D:
+  nothing; all necessary libs are included.
 
 
-MS-Windows Install (Win-XP Win7 Win8):
-  The registry is never affected / modified.
+for modifications of gCAD3D:
+  MS-C-Compiler (gcc or MS-Visual-C (C++, Express))
+  OpenGL32.lib, Glu32.lib (Microsoft SDKs)
+  optional: get the gtk-dokumentation from www.gtk.org.
 
-Create new directory %HOMEDRIVE%%HOMEPATH%/devel
-  Using a commandshell (cmd):
-  %HOMEDRIVE%       // activate the homedrive
-  cd %HOMEPATH%     // goto homepath
-  mkdir devel       // create new directory
-  cd devel          // goto %HOMEPATH%/devel
-
-Extract C-KIT-GUI-GTK-*.**-MS.zip into this directory
-  Using a commandshell (cmd):
-  unzip ckitgui_V*.zip
-
-
-Before reLink do in Linux:
-  ./gendef.sh
-  # creates gCAD3D.def
-
-
-Rebuild  library / examples:
   // You will need a commandshell with the correct compiler-environment.
   // You can use the Visual-Studio-Commandwindow or cmd.exe;  e.g. for VC8:
   "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
+  // or for VC9:
+  "%VS90COMNTOOLS%vsvars32.bat"
   // or for VC10 - start a commandwindow with:
   %comspec% /k ""C:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"" x86
   // Test MS-compiler with:
   cl /?
 
 
-ReCreate the shared library:
+for creating new MS-Win-install-package:
+  NSIS-installer / uninstaller from Nullsoft (http://nsis.sf.net)
+  %ProgramFiles%\NSIS\NSIS.chm  // see help-file in cmd-window
+
+
+MS-Windows install the binary package (Win-XP Win7 Win8):
+  selfextracting (NSIS-installer).
+  The registry is never affected / modified.
+
+
+MS-Windows install the source package from zip-file (Win-XP Win7 Win8):
+  // start commandshell (cmd);
+  // Create new directory %HOMEDRIVE%%HOMEPATH%/devel
+  %HOMEDRIVE%       // activate the homedrive
+  cd %HOMEPATH%     // goto homepath
+  mkdir devel       // create new directory
+  cd devel          // goto %HOMEPATH%/devel
+  // Extract the package gCAD3D_#.##-src.zip into this directory
+  unzip gCAD3D_#.##-src.zip
+
+
+Update definiton-file gCAD3D.def
+  // create new file gCAD3D.def in Linux (from linux-executable):
+  ./gendef.sh
+  // or update gCAD3D.def manually.
+
+
+Rebuild:
   %HOMEDRIVE%                     // activate the homedrive
-  cd %HOMEPATH%\devel\ckitgui\src\APP
-  nmake -f ckitgui.nmak
-  // reCreate and start testprogs
-  nmake -f hello-world.nmak
-  nmake -f tst_gui1.nmak
-  nmake -f tst_gui2.nmak
+  cd %HOMEPATH%\devel\gcad3d\src\APP
+  do c            // reCreate exe
+  do gui          // reCreate gui-lib
+  do help         // disp help for do.bat
+
+
+Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
+  cd %HOMEPATH%\devel\gcad3d\pack_MS
+  pack
 
 
 // view documentation:
-  cd %HOMEPATH%\devel\ckitgui
-  hh doc\gui\index.htm
-
-
-
-MS-Windows Uninstall:
-cd
-rmdir/s %HOMEDRIVE%%HOMEPATH%\devel\ckitgui
-
+  cd %HOMEPATH%\devel\gcad3d
+  hh doc\gcad\index.htm
 
 
 
@@ -235,7 +240,7 @@ rmdir/s %HOMEDRIVE%%HOMEPATH%\devel\ckitgui
 __________________________________________________________________
 History:
 
-V0.62 / 2015-02-05 changes for git. RF.
+2015-03-14 V2.25 MS-Win version added to git. RF.
 
 
 // EOF

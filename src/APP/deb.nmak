@@ -1,0 +1,11 @@
+# Debug 1=Debug-ON
+#       2=Distribute;DebugOFF
+
+!include ..\APP\deb.mak
+
+!if "$(DEB)"=="1"
+CPDEB = -DDEB /Zi
+LKDEB = /DEBUG
+!endif
+
+#

@@ -6,11 +6,11 @@
 # ctags $(TAGFLGS) -f $*.wtag $<
 
 
-#.cpp.obj_$(OS):
-# @echo ==================== Compile Cpp $< ==========================
-##  compileoptions not yet set ..
-# $(CC) -c /EHsc $(CPPFLG) $<
-# move $(*F).obj $@
-## ctags $(TAGFLGS) -f $*.wtag $<
-
+#.cpp.obj:
+#	@echo ==================== Compile Cpp $< ==========================
+#  compileoptions not yet set ..
+#	$(CC) -c /EHsc $<
+#	move $(*F).obj $@
+# ctags $(TAGFLGS) -f $*.wtag $<
+#
 # EOF

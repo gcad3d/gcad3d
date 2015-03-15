@@ -16,10 +16,6 @@
 
 
 -----------------------------------------------------
-Lists with 1 or 2 columns.
-
-
------------------------------------------------------
 TODO:
 - gtk_window_set_title (GTK_WINDOW (UI_list1_win), "MultiColumnList");
 
@@ -37,7 +33,7 @@ void GUI_LIST(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_lists.c.c
-\ingroup grp_gui
+\brief Lists with 1 or 2 columns.
 \code
 
 
@@ -68,6 +64,8 @@ List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+
+
 
 gtk_tree_selection_set_select_function
   provides also a callback before selection occurs ..

@@ -1,0 +1,12 @@
+# make -f xa_svg_w.mak
+
+DLLNAM = xa_svg_w
+
+SRC1 =\
+ ../exp/svg_w.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

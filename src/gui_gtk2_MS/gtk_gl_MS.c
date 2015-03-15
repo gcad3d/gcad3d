@@ -1,5 +1,4 @@
 /*
- * gtk_gl_MS32.c
  *
  * Copyright (C) 2012 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
  *
@@ -16,8 +15,8 @@
 
 
 -----------------------------------------------------
-Gtk-OpenGL-Binding for Linux (x11).
-
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -28,7 +27,7 @@ Modifications:
 -----------------------------------------------------
 *//*!
 \file ../gui_gtk2/gtk_gl_x11.c
-\ingroup grp_gui
+\brief Gtk-OpenGL-Binding for Linux (x11).
 \code
 
 

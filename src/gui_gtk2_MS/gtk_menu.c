@@ -15,22 +15,10 @@
  *
 
 
------------------------------------------------------
-Menu in menubar.
-
-
-# else menu unvisible:     UBUNTU_MENUPROXY=libappmenu.so
-if [ -n "$UBUNTU_MENUPROXY" ]; then
-  echo "disactivate ubuntu-global-menu"
-  export UBUNTU_MENUPROXY=
-fi
-
 
 -----------------------------------------------------
 TODO:
 Gtk3: replacing gtk_menu_item_set_right_justified does not work ..
-
-
 
 -----------------------------------------------------
 Modifications:
@@ -43,7 +31,7 @@ void GUI_CONTAINER(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_menu.c
-\ingroup grp_gui
+\brief Menu in menubar.
 \code
 
 =====================================================
@@ -66,6 +54,13 @@ List_functions_end:
 GUI_MenuSub UNUSED
 
 \endcode *//*----------------------------------------
+
+
+# else menu unvisible:     UBUNTU_MENUPROXY=libappmenu.so
+if [ -n "$UBUNTU_MENUPROXY" ]; then
+  echo "disactivate ubuntu-global-menu"
+  export UBUNTU_MENUPROXY=
+fi
 
 
 cc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_menu.c

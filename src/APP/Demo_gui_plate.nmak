@@ -1,12 +1,11 @@
-# nmake -f DemoAnim1.nmak "OS=MS64"
+# nmake -f Demo_gui_plate.nmak
 
-DLLNAM = DemoAnim1
+DLLNAM = Demo_gui_plate
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
- ../xa/DemoAnim1.c\
+	../APP/Demo_gui_plate.c
 
-
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

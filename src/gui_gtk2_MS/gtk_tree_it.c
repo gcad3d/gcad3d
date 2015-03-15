@@ -16,12 +16,8 @@
 
 
 -----------------------------------------------------
-Treeview with icon + text
-
-
------------------------------------------------------
 TODO:
-
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -35,7 +31,7 @@ void GUI_Tree(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_tree_it.c
-\ingroup grp_gui
+\brief Treeview with icon + text
 \code
 
 

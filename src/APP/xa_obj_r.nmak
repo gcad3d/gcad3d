@@ -1,0 +1,12 @@
+# nmake -f xa_obj_r.nmak
+
+DLLNAM = xa_obj_r
+
+SRC1 =\
+ ../exp/obj_ut.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

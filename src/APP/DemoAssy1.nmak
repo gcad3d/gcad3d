@@ -3,8 +3,8 @@
 DLLNAM = DemoAssy1
 
 SRC1 =\
- ../xa/DemoAssy1.c
+ ../APP/DemoAssy1.c
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

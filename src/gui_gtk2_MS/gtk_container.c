@@ -13,11 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
-
-
 -----------------------------------------------------
-Frame, notebook, paned boxes, toolbar.
-
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -30,7 +28,7 @@ void GUI_CONTAINER(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_container.c
-\ingroup grp_gui
+\brief Frame, notebook, paned boxes, toolbar.
 \code
 
 =====================================================

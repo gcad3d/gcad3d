@@ -16,13 +16,12 @@
 
 
 -----------------------------------------------------
-Standard-dialogs; slider, color-selection.
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
 2012-02-01 extracted from ut_gtk.c.  RF.
-
-
 
 -----------------------------------------------------
 */
@@ -30,8 +29,8 @@ Modifications:
 void GUI_DIALOG(){}
 #endif
 /*!
-\file ../gui_gtk2/gtk_dlg_std.c
-\ingroup grp_gui
+\file ../gui_gtk2_MS/gtk_dlg_std.c
+\brief Standard-dialogs; slider, color-selection.
 \code
 
 
@@ -48,6 +47,8 @@ GUI_Dialog_2b          dialogWindow w. 2 Buttons, waiting.
 GUI_Dialog_e2b         dialogWindow w. entry, 2 Buttons, waiting.
 
 GUI_Color_select       select-color-Dialog. Modal (wait).
+
+GUI_AboutInfo          license-info
 
 GUI_Slider__           Slider = AdjustmentControl
 GUI_Slider_set         change slider-value
@@ -114,6 +115,55 @@ static MemObj UI_DialogEntryWin;
 
 
 
+
+//=========================================================================
+  int GUI_AboutInfo (char *progInfo, char *auxInfo, char *url, char *img) {
+//=========================================================================
+/// \code
+/// GUI_AboutInfo         display license-info, hompage-url, ..
+/// Input:
+///   progInfo     program name & version
+///   auxInfo      comments
+///   url          homepage-url
+///   img          filename of log in icon-drectory
+/// \endcode
+
+  char              s1[256];
+  GdkPixbuf         *img1;
+  GError            *error = NULL;
+  // GtkWidget         *win1;
+
+
+
+  printf("GUI_AboutInfo \n");
+
+
+  sprintf(s1, "%s%s",OS_get_ico_dir(),img);
+  img1 = gdk_pixbuf_new_from_file (s1, &error);
+      if (error) {
+        TX_Error ("GUI_AboutInfo icon %s not found ..\n", error->message);
+        g_error_free(error);
+        error = NULL;
+      }
+
+
+
+
+  gtk_show_about_dialog (NULL,       // parent-win
+    "program-name",   progInfo,
+    // "license-type",   GTK_LICENSE_GPL_3_0,
+    "license",
+      "License is GPL-v3\nThis program comes with ABSOLUTELY NO WARRANTY;\nfor details, visit http://www.gnu.org/licenses/gpl-3.0.txt",
+    "comments",       auxInfo,
+    "logo",           img1,
+    "website",        url,
+    "website-label",  "Program-Homepage",
+    NULL);
+
+
+  return 0;
+
+}
 
 
 //=====================================================================

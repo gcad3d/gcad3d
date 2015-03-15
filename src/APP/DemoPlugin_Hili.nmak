@@ -5,8 +5,8 @@ DLLNAM = DemoPlugin_Hili
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Hili.c
+	../APP/DemoPlugin_Hili.c
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

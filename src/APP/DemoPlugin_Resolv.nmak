@@ -5,8 +5,8 @@ DLLNAM = DemoPlugin_Resolv
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Resolv.c
+	../APP/DemoPlugin_Resolv.c
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

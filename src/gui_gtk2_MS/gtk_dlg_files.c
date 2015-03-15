@@ -16,8 +16,8 @@
 
 
 -----------------------------------------------------
-CAD-specific dialogs: File-open, save.
-
+TODO:
+  ..
 
 
 -----------------------------------------------------
@@ -33,7 +33,7 @@ void GUI_DIALOG(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_dlg_files.c
-\ingroup grp_gui
+\brief CAD-specific dialogs: File-open, save.
 \code
 
 

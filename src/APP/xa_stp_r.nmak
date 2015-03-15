@@ -1,0 +1,12 @@
+# nmake -f xa_stp_r.nmak
+
+DLLNAM = xa_stp_r
+
+SRC1 =\
+ ../exp/stp_r.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

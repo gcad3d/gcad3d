@@ -25,7 +25,7 @@ OBJ2 =\
 #OS := ..\binMS64
 #endif
 #OUTDIR = ${HOME}/bin$(OS)
-OUTDIR = ..\..\binMS32
+OUTDIR = ..\..\..\binMS32
 
 
 #ADDLIBS = -lm
@@ -44,7 +44,7 @@ CXFLG = /nologo /Od
 $(EXENAM): $(OBJ1) $(OBJ2)
 	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(LKFLG)
 #	ctags --excmd=number -f ut.tag $(SRC2)
-	copy/y $(EXENAM).exe $(OUTDIR)\plugins\cut1\.
+	move/y $(EXENAM).exe $(OUTDIR)\plugins\cut1\.
 
 
 # vi holt fuer Alt f (grep) damit seine Sourcefileliste

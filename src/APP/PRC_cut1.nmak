@@ -1,4 +1,4 @@
-# nmake -f PRC_cut1.nmak "OS=MS32"
+# nmake -f PRC_cut1.nmak
 
 DLLNAM = PRC_cut1
 
@@ -8,6 +8,6 @@ SRC1 =\
 
 DIRSRC1 = ../prc/
 
-!include gCAD_DLL.nmak
+!include gcad__.nmak
 
 ########################### EOF #######################

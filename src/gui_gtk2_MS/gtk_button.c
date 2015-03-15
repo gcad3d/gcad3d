@@ -13,12 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
-
-
 -----------------------------------------------------
-Buttons, Checkbox.
-
-
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -31,7 +28,7 @@ void GUI_BUTTON(){}
 #endif
 /*!
 \file ../gui_gtk2/gtk_button.c
-\ingroup grp_gui
+\brief Buttons, Checkbox.
 \code
 
 =====================================================

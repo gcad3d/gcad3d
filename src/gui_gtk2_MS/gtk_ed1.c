@@ -1,16 +1,22 @@
-/***************************************************************************
-                          gtk_ed1.c   -  description
-                             -------------------
-    begin                : 2012-07-12
-    copyright            : (C) 2012 by CADCAM-Services Franz Reiter
-    email                : franz.reiter@cadcam.co.at
-
-****************************************************************************
-
-Editor-functions for Gtk.
-
+//**************************************************************************
+/*
+ *
+ * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *
+-----------------------------------------------------
 TODO:
-
+  ..
 
 -----------------------------------------------------
 Modifications:
@@ -23,13 +29,11 @@ Modifications:
 void GUI_EDI(){}
 #endif
 /*!
-\file ../gui_gtk2/gtk_ed1.c
-\ingroup grp_ut_gui
+\file  ../gui_gtk2_MS/gtk_ed1.c
+\brief Editor-functions for Gtk.
 \code
-
-
 =====================================================
-Liste_Funktionen_Beginn:
+List_functions_start:
 
 GUI_edi__              create editor-window
 GUI_edi_Insert         insert text
@@ -64,10 +68,11 @@ GUI_ed1_cb2            INTERNAL
 GUI_ed1_cb3            INTERNAL
 GUI_ed1_decode         INTERNAL
 
-Liste_Funktionen_Ende:
+List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+
 
 
 Editor is UTF8;     charOffsets ARE NOT BYTE-OFFSETS !

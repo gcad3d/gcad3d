@@ -41,7 +41,7 @@ make -f DemoPlugin_Dialog.mak
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>

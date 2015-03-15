@@ -1,0 +1,12 @@
+# make -f xa_ige_r.mak
+
+DLLNAM = xa_ige_r
+
+SRC1 =\
+ ../exp/ige_r.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

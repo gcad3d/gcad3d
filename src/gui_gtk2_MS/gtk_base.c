@@ -1,7 +1,7 @@
+//
 /*
- * gtk_base.c
  *
- * Copyright (C) 2012 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,20 +13,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
-
-
+ *
 -----------------------------------------------------
-Basefunctions, boxes
-
-
------------------------------------------------------
-OFFEN:
+TODO:
+  ..
 
 -----------------------------------------------------
 Modifications:
 2012-07-08 GUI_Win__ GUI_DATA_I1 added. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
-
 
 -----------------------------------------------------
 */
@@ -34,10 +29,9 @@ Modifications:
 void GUI_GTK(){}
 #endif
 /*!
-\file ../gui_gtk2/gtk_base.c
-\ingroup grp_gui
+\file  ../gui_gtk2_MS/gtk_base.c
+\brief Basefunctions, boxes
 \code
-
 =====================================================
 List_functions_start:
 
@@ -102,7 +96,8 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
-======================================================================
+
+
 */
 
 #include <stdio.h>

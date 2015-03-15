@@ -1,7 +1,7 @@
 #
 
 #ifeq "$(OS)" "MS32" | "MS64"
-SRCOS = ../ut/ut_os_w32.c
+SRCOS = ../ut/ut_os_w32.c ../ut/ctrl_os_f.c ../xa/dummyFuncs_MS.c
 # ../lic/ut_lic_w32.c
 
 # eof

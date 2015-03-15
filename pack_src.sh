@@ -15,7 +15,7 @@ rm -f ${basDir}/gCAD3D_${version}-src.zip
 zip ${basDir}/gCAD3D_${version}-src.zip\
  ${basDir}/TODO ${basDir}/README ${basDir}/LIC*\
  -r ${basDir}/doc/gcad_doxygen ${basDir}/src ${basDir}/icons ${basDir}/binMS32\
-
+ -x "*.obj" "*.exp" "*.pdb"
 
 
 #-x ${basDir}/doc/gcad/*\

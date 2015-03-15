@@ -74,6 +74,8 @@
 \ref xa/catalog_gui.c                         <A HREF="../../src/xa/catalog_gui.c">source</A>    CATALOG-GUI
 \ref xa/srcu.c                                <A HREF="../../src/xa/srcu.c">source</A>    Dynamic update numeric strings
 \ref xa/xa_batch.c                            <A HREF="../../src/xa/xa_batch.c">source</A>    dummy-functions for batch-module
+\ref xa/MS_Def0.h                             <A HREF="../../src/xa/MS_Def0.h">source</A>    -
+\ref xa/MS_Def1.h                             <A HREF="../../src/xa/MS_Def1.h">source</A>    -
 \ref xa/gcad_version.h                        <A HREF="../../src/xa/gcad_version.h">source</A>    -
 \ref xa/xa.h                                  <A HREF="../../src/xa/xa.h">source</A>    -
 \ref xa/xa_ato.h                              <A HREF="../../src/xa/xa_ato.h">source</A>    -

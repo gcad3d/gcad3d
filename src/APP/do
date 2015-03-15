@@ -33,10 +33,15 @@ fi
 
 if test "$1" = "complete"; then
   ./del_obj.sh
+# create xa_gui_(VGUI).so
   make -f gcad_gui__.mak
+# create link xa_gui.so <- xa_gui_(VGUI).so
   make -f gcad_gui__.mak link
+# create core
   make -f gcad3d.mak
+# create core-dll's
   make -f gcad3d.mak all
+# create demo-plugins
   make -f gcad3d.mak allDemos
   exit 0
 fi

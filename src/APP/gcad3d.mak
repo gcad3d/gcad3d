@@ -103,6 +103,10 @@ all:
 #=============================================================
 # Alle Demo-DLL's xa_XX.so linken
 allDemos:
+# test if plugins/ exist - else create
+	if [ ! -f "$(OUTDIR)/plugins" ]; then\
+ mkdir "$(OUTDIR)/plugins";\
+ fi
 	find . -maxdepth 1 -name "Demo*.mak" -exec $(MK) -f {} "OS=${OS}" \;
 	find . -maxdepth 1 -name "APP_*.mak" -exec $(MK) -f {} "OS=${OS}" \;
 	find . -maxdepth 1 -name "PRC_*.mak" -exec $(MK) -f {} "OS=${OS}" \;

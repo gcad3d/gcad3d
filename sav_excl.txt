@@ -1,6 +1,7 @@
 binLinux32/
 binLinux64/
 binMS32/
+packages/
 doc/gcad/
 doc/gui/
 gCAD3D/tmp

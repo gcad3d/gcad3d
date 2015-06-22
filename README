@@ -108,6 +108,8 @@ vi ../options.mak
 ./do complete     # build gui, gcad, libs, demos.
 
 // (re)Create gCAD3D
+./do c
+# or
 make -f gcad3d.mak
 
 // (re)Create the gui-lib
@@ -117,11 +119,11 @@ make -f gcad_gui__.mak
 cd ~/devel/gcad3d/src
 ./NEW_VERSION.sh
 
-// ReCreate gcad development documentation:
+// ReCreate development-documentation:
 cd ~/devel/gcad3d/doc
 ./gcad_doxygen.sh
 
-// view documentation:
+// view development-documentation:
 xdg-open ~/devel/gcad3d/doc/gcad/index.htm
 
 // create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb)

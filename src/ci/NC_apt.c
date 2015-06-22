@@ -12717,7 +12717,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
                (aus_typ[1] == Typ_modif))         {
 
       ox1p = DB_GetCurv  ((long)aus_tab[0]);
-        UT3D_stru_dump(Typ_ObjGX, ox1p, "  decode_ln:");
+        // UT3D_stru_dump(Typ_ObjGX, ox1p, "  decode_ln:");
       i1 = aus_tab[1];
 
       // extract Line from Polygon
@@ -13362,7 +13362,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   //-----------------------------------------------------------------
   // L = P D [Val] [Angle-Rot.] [Angle-Tilt]
   L_pt_vc:
-      printf(" L_pt_vc: lTyp=%d\n",lTyp);
+      // printf(" L_pt_vc: lTyp=%d\n",lTyp);
 
     pt1 = DB_GetPoint ((long)aus_tab[0]);
     vc1 = DB_GetVector ((long)aus_tab[1]);
@@ -19445,11 +19445,11 @@ Rückgabewert ist der gefundene Index.
   Mat_4x3 m1, mi1;
 
 
-  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa \n");
-  printf("APT_tra_obj anz=%d oTyp=%d oSiz=%ld\n",aus_anz,oTyp,*oSiz);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
+  // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa \n");
+  // printf("APT_tra_obj anz=%d oTyp=%d oSiz=%ld\n",aus_anz,oTyp,*oSiz);
+  // for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // }
 
 
 
@@ -19508,6 +19508,7 @@ Rückgabewert ist der gefundene Index.
     if(iDir < 0) {
       UT3D_vc_invert (&vt, &vt);
     }
+      // UT3D_stru_dump (Typ_VC, &vt, " vt = ");
 
     // Load Translation
     // UTO_obj_apptra (NULL, Typ_VC, &vt, NULL);
@@ -19546,7 +19547,7 @@ Rückgabewert ist der gefundene Index.
   ox2 = DB_GetObjGX (o0Typ, dbi);
   if(ox2.typ == Typ_Error) return -1;
     // UTO_dump__  (&ox2, "-ccv:");
-    UTO_dump_s_  (&ox2, "APT_tra_obj-in:");
+    // UTO_dump_s_  (&ox2, "APT_tra_obj-in:");
     // eg: typ=CvBsp(23) form=CvBsp(23)
     // eg: typ=SurRU(53) form=ObjGX(204)
 

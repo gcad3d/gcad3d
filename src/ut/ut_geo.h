@@ -1854,7 +1854,8 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 :(((x)>(v1))?(1):(((x)<(v2))?(1):(0))))
 
 
-///  char --> int;    does x -= 48;  eg get 1 from '1'
+///  char --> int;   eg get 1 from '1'
+///   same as (int = charDig - 48) or (int = charDig - '0')
 #define ICHAR(x) ((x) & 15)
 
 

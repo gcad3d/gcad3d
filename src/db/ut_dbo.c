@@ -139,7 +139,6 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
 }
 
 
-/*
 //================================================================
   int DBO_dump__ (int typ, long dbi) {
 //================================================================
@@ -148,27 +147,32 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
 /// see also UI_dump_obj
 /// \endcode
 
-  int    irc, oTyp, oNr;
+  int    irc, oTyp, oNr, i1, oSiz;
   void   *vp;
 
 
-  printf("DBO_dump__ %d %d\n",typ,dbi);
+  printf("DBO_dump__ %d %ld\n",typ,dbi);
 
   oNr = 1;
   oTyp = typ;
 
-    irc = UTO_get_DB (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
-    if(irc < 0) {
+  irc = UTO_get_DB (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
+  if(irc < 0) {
     printf(" - temporary object\n");
     return -1;
   }
 
-  UTO_dump_obj (oTyp, vp, oNr);                  // dump obj ..
+  // UTO_dump_obj (oTyp, vp, oNr);                  // dump obj ..
+  oSiz = UTO_siz_stru (oTyp);
+  for(i1=0; i1<oNr; ++i1) {
+    UT3D_stru_dump (oTyp, vp, "%d",i1);
+    oTyp += oSiz;
+  }
 
   return 0;
 
 }
-*/
+
 
 // EOF
 

@@ -1,8 +1,8 @@
 # returns BITS OS OUTDIR CC MK 
 
 # Version GTK; gtk2 or gtk3
-#VGUI = gtk2
-VGUI = gtk3
+VGUI = gtk2
+#VGUI = gtk3
 
 
 

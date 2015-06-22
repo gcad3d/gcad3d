@@ -4,7 +4,7 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-ACOS	../ut/ut_geo.h	1883;"	d
+ACOS	../ut/ut_geo.h	1884;"	d
 ALL_OBJS	../gr/ut_UI.h	67;"	d
 ATT_BIT_ABS	../ut/ut_geo.h	106;"	d
 ATT_BIT_LIM	../ut/ut_geo.h	116;"	d
@@ -26,9 +26,9 @@ ATT_PT_YELLOW	../gr/ut_UI.h	113;"	d
 AText	../ut/ut_geo.h	710;"	t	typeref:struct:__anon60
 Activity	../ut/ut_geo.h	955;"	t	typeref:struct:__anon81
 Att_ln	../ut/ut_geo.h	877;"	t	typeref:struct:__anon76
-BIT_CLR	../ut/ut_geo.h	1941;"	d
-BIT_GET	../ut/ut_geo.h	1947;"	d
-BIT_SET	../ut/ut_geo.h	1935;"	d
+BIT_CLR	../ut/ut_geo.h	1942;"	d
+BIT_GET	../ut/ut_geo.h	1948;"	d
+BIT_SET	../ut/ut_geo.h	1936;"	d
 BitTab	../ut/ut_BitTab.h	49;"	d
 BitTab	../ut/ut_BitTab.h	4;"	f
 BitTab_bNr	../ut/ut_BitTab.h	77;"	d
@@ -95,18 +95,18 @@ DB_setFree_TR	../db/ut_DB.h	38;"	d
 DB_setFree_TX	../db/ut_DB.h	39;"	d
 DB_setFree_VC	../db/ut_DB.h	30;"	d
 DB_setFree_Var	../db/ut_DB.h	29;"	d
-DLIM2	../ut/ut_geo.h	1874;"	d
+DLIM2	../ut/ut_geo.h	1875;"	d
 DL_Att	../ut/ut_geo.h	936;"	t	typeref:struct:__anon79
 DLind	../ut/ut_geo.h	768;"	m	struct:__anon66
 DLsiz	../ut/ut_geo.h	768;"	m	struct:__anon66
-DMAX	../ut/ut_geo.h	1871;"	d
-DMIN	../ut/ut_geo.h	1870;"	d
-DSIGN	../ut/ut_geo.h	1880;"	d
-DSIGTOL	../ut/ut_geo.h	1881;"	d
+DMAX	../ut/ut_geo.h	1872;"	d
+DMIN	../ut/ut_geo.h	1871;"	d
+DSIGN	../ut/ut_geo.h	1881;"	d
+DSIGTOL	../ut/ut_geo.h	1882;"	d
 Dim3	../ut/ut_geo.h	847;"	t	typeref:struct:__anon73
 Dimen	../ut/ut_geo.h	838;"	t	typeref:struct:__anon72
 Ditto	../ut/ut_geo.h	748;"	t	typeref:struct:__anon64
-FDABS	../ut/ut_geo.h	1868;"	d
+FDABS	../ut/ut_geo.h	1869;"	d
 FUNC_Dim	../gr/ut_UI.h	145;"	d
 FUNC_DispHid1	../gr/ut_UI.h	140;"	d
 FUNC_DispHid2	../gr/ut_UI.h	141;"	d
@@ -130,7 +130,7 @@ FUNC_ViewZoomBox	../gr/ut_UI.h	136;"	d
 GText	../ut/ut_geo.h	743;"	t	typeref:struct:__anon63
 GridBoxH	../ut/ut_geo.h	962;"	t	typeref:struct:__anon82
 IABS	../ut/ut_geo.h	1785;"	d
-ICHAR	../ut/ut_geo.h	1858;"	d
+ICHAR	../ut/ut_geo.h	1859;"	d
 ICHG01	../ut/ut_geo.h	1789;"	d
 ICHG0x1	../ut/ut_geo.h	1792;"	d
 ID	../ut/ut_geo.h	290;"	m	struct:__anon27
@@ -154,14 +154,14 @@ LIMITED	../ut/ut_geo.h	88;"	d
 Line	../ut/ut_geo.h	359;"	t	typeref:struct:__anon33
 Line2	../ut/ut_geo.h	353;"	t	typeref:struct:__anon32
 MEMOBJ_PTR	../ut/ut_umem.h	152;"	d
-MEM_cmp__	../ut/ut_geo.h	2501;"	d
-MEM_del_pt	../ut/ut_geo.h	2532;"	d
-MEM_ptr_mov	../ut/ut_geo.h	2538;"	d
-MEM_swap_2db	../ut/ut_geo.h	2520;"	d
-MEM_swap_2lg	../ut/ut_geo.h	2515;"	d
-MEM_swap_2vp	../ut/ut_geo.h	2525;"	d
-MEM_swap_int	../ut/ut_geo.h	2510;"	d
-MEM_swap_short	../ut/ut_geo.h	2505;"	d
+MEM_cmp__	../ut/ut_geo.h	2502;"	d
+MEM_del_pt	../ut/ut_geo.h	2533;"	d
+MEM_ptr_mov	../ut/ut_geo.h	2539;"	d
+MEM_swap_2db	../ut/ut_geo.h	2521;"	d
+MEM_swap_2lg	../ut/ut_geo.h	2516;"	d
+MEM_swap_2vp	../ut/ut_geo.h	2526;"	d
+MEM_swap_int	../ut/ut_geo.h	2511;"	d
+MEM_swap_short	../ut/ut_geo.h	2506;"	d
 Mat_3x2	../ut/ut_geo.h	146;"	t
 Mat_3x3	../ut/ut_geo.h	147;"	t
 Mat_4x3	../ut/ut_geo.h	148;"	t
@@ -250,11 +250,11 @@ TXT_Typ_num	../ut/ut_txt.h	13;"	d
 TXT_Typ_spec	../ut/ut_txt.h	11;"	d
 TXT_Typ_string	../ut/ut_txt.h	14;"	d
 TXT_Typ_text	../ut/ut_txt.h	12;"	d
-TYP_IS_FCM	../ut/ut_geo.h	2486;"	d
-TYP_IS_GEOMPAR	../ut/ut_geo.h	2483;"	d
-TYP_IS_MOD	../ut/ut_geo.h	2489;"	d
-TYP_IS_OPM	../ut/ut_geo.h	2480;"	d
-TYP_IS_SELGRP	../ut/ut_geo.h	2493;"	d
+TYP_IS_FCM	../ut/ut_geo.h	2487;"	d
+TYP_IS_GEOMPAR	../ut/ut_geo.h	2484;"	d
+TYP_IS_MOD	../ut/ut_geo.h	2490;"	d
+TYP_IS_OPM	../ut/ut_geo.h	2481;"	d
+TYP_IS_SELGRP	../ut/ut_geo.h	2494;"	d
 TexBas	../ut/ut_geo.h	722;"	t	typeref:struct:__anon61
 TexRef	../ut/ut_geo.h	736;"	t	typeref:struct:__anon62
 Torus	../ut/ut_geo.h	819;"	t	typeref:struct:__anon71
@@ -311,103 +311,103 @@ UME_get_used	../ut/ut_umem.h	109;"	d
 UME_obj_IS_VALID	../ut/ut_umem.h	157;"	d
 UME_set_next	../ut/ut_umem.h	100;"	d
 UNLIMITED	../ut/ut_geo.h	89;"	d
-UT2D_acos_2vc	../ut/ut_geo.h	2043;"	d
-UT2D_acos_innerprod2vc	../ut/ut_geo.h	1891;"	d
-UT2D_acos_vc2pt	../ut/ut_geo.h	2059;"	d
-UT2D_comp2pt	../ut/ut_geo.h	1971;"	d
-UT2D_irot_r	../ut/ut_geo.h	1952;"	d
-UT2D_len_cia	../ut/ut_geo.h	2155;"	d
-UT2D_len_vc	../ut/ut_geo.h	1958;"	d
-UT2D_lenq_2pt	../ut/ut_geo.h	1961;"	d
-UT2D_lenq_vc	../ut/ut_geo.h	1955;"	d
-UT2D_ln_inv	../ut/ut_geo.h	2158;"	d
-UT2D_ln_ln3	../ut/ut_geo.h	2148;"	d
-UT2D_ln_ptpt	../ut/ut_geo.h	2137;"	d
-UT2D_ln_ptvc	../ut/ut_geo.h	2142;"	d
-UT2D_pt_2db	../ut/ut_geo.h	1983;"	d
-UT2D_pt_addpt	../ut/ut_geo.h	2000;"	d
-UT2D_pt_mid2pt	../ut/ut_geo.h	2010;"	d
-UT2D_pt_opp2pt	../ut/ut_geo.h	2005;"	d
-UT2D_pt_pt	../ut/ut_geo.h	1991;"	d
-UT2D_pt_pt3	../ut/ut_geo.h	1987;"	d
-UT2D_pt_pt3bp	../ut/ut_geo.h	1994;"	d
-UT2D_pt_traptvc	../ut/ut_geo.h	2015;"	d
-UT2D_sar_2vc	../ut/ut_geo.h	2054;"	d
-UT2D_skp_2vc	../ut/ut_geo.h	2045;"	d
-UT2D_skp_vc2pt	../ut/ut_geo.h	2060;"	d
-UT2D_slen_vc_vcNo	../ut/ut_geo.h	2041;"	d
-UT2D_swap2pt	../ut/ut_geo.h	1979;"	d
-UT2D_vc_2db	../ut/ut_geo.h	2073;"	d
-UT2D_vc_2pt	../ut/ut_geo.h	2124;"	d
-UT2D_vc_add2vc	../ut/ut_geo.h	2083;"	d
-UT2D_vc_angr	../ut/ut_geo.h	2113;"	d
-UT2D_vc_div_d	../ut/ut_geo.h	2094;"	d
-UT2D_vc_invert	../ut/ut_geo.h	2078;"	d
-UT2D_vc_ln	../ut/ut_geo.h	2129;"	d
-UT2D_vc_multvc	../ut/ut_geo.h	2099;"	d
-UT2D_vc_perp2pt	../ut/ut_geo.h	2108;"	d
-UT2D_vc_perpvc	../ut/ut_geo.h	2104;"	d
-UT2D_vc_pt	../ut/ut_geo.h	2066;"	d
-UT2D_vc_sub2vc	../ut/ut_geo.h	2088;"	d
-UT2D_vc_vc3	../ut/ut_geo.h	2069;"	d
-UT2D_vc_vc3bp	../ut/ut_geo.h	2118;"	d
-UT3D_acos_2vc	../ut/ut_geo.h	2208;"	d
-UT3D_acos_vc2pt	../ut/ut_geo.h	2209;"	d
-UT3D_comp2pt	../ut/ut_geo.h	2411;"	d
-UT3D_len_vc	../ut/ut_geo.h	2181;"	d
-UT3D_lenq_vc	../ut/ut_geo.h	2177;"	d
-UT3D_ln_inv	../ut/ut_geo.h	2421;"	d
-UT3D_ln_ln2	../ut/ut_geo.h	2437;"	d
-UT3D_ln_ptpt	../ut/ut_geo.h	2425;"	d
-UT3D_ln_ptvc	../ut/ut_geo.h	2430;"	d
-UT3D_pt_LinComb2Pts	../ut/ut_geo.h	2235;"	d
-UT3D_pt_NEW	../ut/ut_geo.h	2214;"	d
-UT3D_pt_add2pt	../ut/ut_geo.h	2247;"	d
-UT3D_pt_addpt	../ut/ut_geo.h	2241;"	d
-UT3D_pt_evparptcv	../ut/ut_geo.h	2285;"	d
-UT3D_pt_isFree	../ut/ut_geo.h	2218;"	d
-UT3D_pt_multpt	../ut/ut_geo.h	2226;"	d
-UT3D_pt_multvc	../ut/ut_geo.h	2020;"	d
-UT3D_pt_pt	../ut/ut_geo.h	2222;"	d
-UT3D_pt_traptivc	../ut/ut_geo.h	2271;"	d
-UT3D_pt_traptmultvc	../ut/ut_geo.h	2278;"	d
-UT3D_pt_traptvc	../ut/ut_geo.h	2265;"	d
-UT3D_pt_vc	../ut/ut_geo.h	2260;"	d
-UT3D_skp_2ptvc	../ut/ut_geo.h	2202;"	d
-UT3D_skp_2vc	../ut/ut_geo.h	2199;"	d
-UT3D_swap2pt	../ut/ut_geo.h	2256;"	d
-UT3D_vc_2pt	../ut/ut_geo.h	2339;"	d
-UT3D_vc_3db	../ut/ut_geo.h	2321;"	d
-UT3D_vc_add2vc	../ut/ut_geo.h	2361;"	d
-UT3D_vc_add3vc	../ut/ut_geo.h	2373;"	d
-UT3D_vc_addvc	../ut/ut_geo.h	2355;"	d
-UT3D_vc_addvc2pt	../ut/ut_geo.h	2367;"	d
-UT3D_vc_crossprod2vc	../ut/ut_geo.h	1890;"	d
-UT3D_vc_div_d	../ut/ut_geo.h	2386;"	d
-UT3D_vc_invert	../ut/ut_geo.h	2349;"	d
-UT3D_vc_isFree	../ut/ut_geo.h	2307;"	d
-UT3D_vc_merge2vc	../ut/ut_geo.h	2398;"	d
-UT3D_vc_multvc	../ut/ut_geo.h	2392;"	d
-UT3D_vc_perpTria	../ut/ut_geo.h	2345;"	d
-UT3D_vc_pt	../ut/ut_geo.h	2327;"	d
-UT3D_vc_pt3db	../ut/ut_geo.h	2333;"	d
-UT3D_vc_setFree	../ut/ut_geo.h	2311;"	d
-UT3D_vc_sub2vc	../ut/ut_geo.h	2379;"	d
-UT3D_vc_vc2	../ut/ut_geo.h	2315;"	d
-UTI_iNr_chrNr	../ut/ut_geo.h	1865;"	d
+UT2D_acos_2vc	../ut/ut_geo.h	2044;"	d
+UT2D_acos_innerprod2vc	../ut/ut_geo.h	1892;"	d
+UT2D_acos_vc2pt	../ut/ut_geo.h	2060;"	d
+UT2D_comp2pt	../ut/ut_geo.h	1972;"	d
+UT2D_irot_r	../ut/ut_geo.h	1953;"	d
+UT2D_len_cia	../ut/ut_geo.h	2156;"	d
+UT2D_len_vc	../ut/ut_geo.h	1959;"	d
+UT2D_lenq_2pt	../ut/ut_geo.h	1962;"	d
+UT2D_lenq_vc	../ut/ut_geo.h	1956;"	d
+UT2D_ln_inv	../ut/ut_geo.h	2159;"	d
+UT2D_ln_ln3	../ut/ut_geo.h	2149;"	d
+UT2D_ln_ptpt	../ut/ut_geo.h	2138;"	d
+UT2D_ln_ptvc	../ut/ut_geo.h	2143;"	d
+UT2D_pt_2db	../ut/ut_geo.h	1984;"	d
+UT2D_pt_addpt	../ut/ut_geo.h	2001;"	d
+UT2D_pt_mid2pt	../ut/ut_geo.h	2011;"	d
+UT2D_pt_opp2pt	../ut/ut_geo.h	2006;"	d
+UT2D_pt_pt	../ut/ut_geo.h	1992;"	d
+UT2D_pt_pt3	../ut/ut_geo.h	1988;"	d
+UT2D_pt_pt3bp	../ut/ut_geo.h	1995;"	d
+UT2D_pt_traptvc	../ut/ut_geo.h	2016;"	d
+UT2D_sar_2vc	../ut/ut_geo.h	2055;"	d
+UT2D_skp_2vc	../ut/ut_geo.h	2046;"	d
+UT2D_skp_vc2pt	../ut/ut_geo.h	2061;"	d
+UT2D_slen_vc_vcNo	../ut/ut_geo.h	2042;"	d
+UT2D_swap2pt	../ut/ut_geo.h	1980;"	d
+UT2D_vc_2db	../ut/ut_geo.h	2074;"	d
+UT2D_vc_2pt	../ut/ut_geo.h	2125;"	d
+UT2D_vc_add2vc	../ut/ut_geo.h	2084;"	d
+UT2D_vc_angr	../ut/ut_geo.h	2114;"	d
+UT2D_vc_div_d	../ut/ut_geo.h	2095;"	d
+UT2D_vc_invert	../ut/ut_geo.h	2079;"	d
+UT2D_vc_ln	../ut/ut_geo.h	2130;"	d
+UT2D_vc_multvc	../ut/ut_geo.h	2100;"	d
+UT2D_vc_perp2pt	../ut/ut_geo.h	2109;"	d
+UT2D_vc_perpvc	../ut/ut_geo.h	2105;"	d
+UT2D_vc_pt	../ut/ut_geo.h	2067;"	d
+UT2D_vc_sub2vc	../ut/ut_geo.h	2089;"	d
+UT2D_vc_vc3	../ut/ut_geo.h	2070;"	d
+UT2D_vc_vc3bp	../ut/ut_geo.h	2119;"	d
+UT3D_acos_2vc	../ut/ut_geo.h	2209;"	d
+UT3D_acos_vc2pt	../ut/ut_geo.h	2210;"	d
+UT3D_comp2pt	../ut/ut_geo.h	2412;"	d
+UT3D_len_vc	../ut/ut_geo.h	2182;"	d
+UT3D_lenq_vc	../ut/ut_geo.h	2178;"	d
+UT3D_ln_inv	../ut/ut_geo.h	2422;"	d
+UT3D_ln_ln2	../ut/ut_geo.h	2438;"	d
+UT3D_ln_ptpt	../ut/ut_geo.h	2426;"	d
+UT3D_ln_ptvc	../ut/ut_geo.h	2431;"	d
+UT3D_pt_LinComb2Pts	../ut/ut_geo.h	2236;"	d
+UT3D_pt_NEW	../ut/ut_geo.h	2215;"	d
+UT3D_pt_add2pt	../ut/ut_geo.h	2248;"	d
+UT3D_pt_addpt	../ut/ut_geo.h	2242;"	d
+UT3D_pt_evparptcv	../ut/ut_geo.h	2286;"	d
+UT3D_pt_isFree	../ut/ut_geo.h	2219;"	d
+UT3D_pt_multpt	../ut/ut_geo.h	2227;"	d
+UT3D_pt_multvc	../ut/ut_geo.h	2021;"	d
+UT3D_pt_pt	../ut/ut_geo.h	2223;"	d
+UT3D_pt_traptivc	../ut/ut_geo.h	2272;"	d
+UT3D_pt_traptmultvc	../ut/ut_geo.h	2279;"	d
+UT3D_pt_traptvc	../ut/ut_geo.h	2266;"	d
+UT3D_pt_vc	../ut/ut_geo.h	2261;"	d
+UT3D_skp_2ptvc	../ut/ut_geo.h	2203;"	d
+UT3D_skp_2vc	../ut/ut_geo.h	2200;"	d
+UT3D_swap2pt	../ut/ut_geo.h	2257;"	d
+UT3D_vc_2pt	../ut/ut_geo.h	2340;"	d
+UT3D_vc_3db	../ut/ut_geo.h	2322;"	d
+UT3D_vc_add2vc	../ut/ut_geo.h	2362;"	d
+UT3D_vc_add3vc	../ut/ut_geo.h	2374;"	d
+UT3D_vc_addvc	../ut/ut_geo.h	2356;"	d
+UT3D_vc_addvc2pt	../ut/ut_geo.h	2368;"	d
+UT3D_vc_crossprod2vc	../ut/ut_geo.h	1891;"	d
+UT3D_vc_div_d	../ut/ut_geo.h	2387;"	d
+UT3D_vc_invert	../ut/ut_geo.h	2350;"	d
+UT3D_vc_isFree	../ut/ut_geo.h	2308;"	d
+UT3D_vc_merge2vc	../ut/ut_geo.h	2399;"	d
+UT3D_vc_multvc	../ut/ut_geo.h	2393;"	d
+UT3D_vc_perpTria	../ut/ut_geo.h	2346;"	d
+UT3D_vc_pt	../ut/ut_geo.h	2328;"	d
+UT3D_vc_pt3db	../ut/ut_geo.h	2334;"	d
+UT3D_vc_setFree	../ut/ut_geo.h	2312;"	d
+UT3D_vc_sub2vc	../ut/ut_geo.h	2380;"	d
+UT3D_vc_vc2	../ut/ut_geo.h	2316;"	d
+UTI_iNr_chrNr	../ut/ut_geo.h	1866;"	d
 UTN_LIMCK__	../ut/ut_geo.h	1852;"	d
-UTP_comp2db	../ut/ut_geo.h	1911;"	d
-UTP_comp_0	../ut/ut_geo.h	1903;"	d
-UTP_db_comp_0	../ut/ut_geo.h	1925;"	d
-UTP_px_paramp0p1px	../ut/ut_geo.h	1919;"	d
+UTP_comp2db	../ut/ut_geo.h	1912;"	d
+UTP_comp_0	../ut/ut_geo.h	1904;"	d
+UTP_db_comp_0	../ut/ut_geo.h	1926;"	d
+UTP_px_paramp0p1px	../ut/ut_geo.h	1920;"	d
 UTX_Clear	../ut/ut_txt.h	42;"	d
 UTX_Siz	../ut/ut_txt.h	47;"	d
 UTX_pos_EOS	../ut/ut_txt.h	65;"	d
 UTX_pos_skipLeadBlk	../ut/ut_txt.h	61;"	d
 UTX_skip_1bl	../ut/ut_txt.h	57;"	d
 UT_BEZDEG_MAX	../ut/ut_geo.h	96;"	d
-UT_DEGREES	../ut/ut_geo.h	1888;"	d
-UT_RADIANS	../ut/ut_geo.h	1886;"	d
+UT_DEGREES	../ut/ut_geo.h	1889;"	d
+UT_RADIANS	../ut/ut_geo.h	1887;"	d
 Vector	../ut/ut_geo.h	207;"	t	typeref:struct:__anon20
 Vector2	../ut/ut_geo.h	201;"	t	typeref:struct:__anon18
 Vectorf	../ut/ut_geo.h	204;"	t	typeref:struct:__anon19
@@ -782,7 +782,7 @@ u1	../ut/ut_geo.h	564;"	m	struct:__anon50
 u1	../ut/ut_geo.h	631;"	m	struct:__anon54
 u2	../ut/ut_geo.h	564;"	m	struct:__anon50
 u3	../ut/ut_umem.h	34;"	m	struct:__anon83
-u3d_LinComb2Pts	../ut/ut_geo.h	2295;"	d
+u3d_LinComb2Pts	../ut/ut_geo.h	2296;"	d
 u4	../ut/ut_umem.h	34;"	m	struct:__anon83
 uar	../ut/ut_geo.h	735;"	m	struct:__anon62
 udx	../ut/ut_geo.h	735;"	m	struct:__anon62

@@ -290,7 +290,7 @@ Typ_modCTRL Bild-Tasten / ("CTRL" = Controlpoints) eing.
 Typ_modREV Bild-Tasten / ("REV" = reverse) eing.
 Typ_modCX Bild-Tasten / ("CX" = Querrichtung) eing.
 Typ_modUnlim Unlimitiert; Bild-Tasten / "UNL" oder "UNL1" oder "UNL2" eingeben
-insert Typ_Txt Text eingeben / Bild-Tasten
+Typ_Txt Text eingeben / Bild-Tasten
 Typ_String Text eing. / Modify-Edit
 TYP_FilNam Filename eing. / mittl. Mausetaste (F5) Liste / sel.Model
 Typ_CtlgPart Normteilname eing. / mittl. Mausetaste (F5) Liste / sel.Normteil

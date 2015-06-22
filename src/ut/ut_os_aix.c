@@ -438,7 +438,7 @@ static char txbuf[256];
   cBuf1[0] = '\0';
 
   while (1 == 1) {
-    if (fgets (cBuf1, 500, fPip1) == NULL) break;
+    if (fgets (cBuf1, 256, fPip1) == NULL) break;
     // printf("  jb_check_active |%s|\n",cBuf1);
   }
 
@@ -1707,6 +1707,13 @@ static char txbuf[256];
 //================================================================
   OS_file_date_m (time_t *tim_m, char *filnam) {
 //================================================================
+// return unix-timestamp of last modification-date of file <filnam>.
+// needs:
+// #include <time.h>
+// #include <unistd.h>
+// #include <sys/stat.h>
+// #include <sys/time.h>
+// 
 //   time_t        st_atime;    // Letzter Zugriff
 //   time_t        st_mtime;    // Letzte Modifikation
 //   time_t        st_ctime;    // Letzte Aenderung

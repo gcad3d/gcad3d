@@ -10,7 +10,7 @@
 # fi
 
 
-# bits; 32|64
+# osVer = nr_of_bits; 32|64
 osVer=`getconf LONG_BIT` 
 echo $osVer"-bit-system"
 
@@ -114,8 +114,10 @@ fi
 
 
 #=================================================================
+# start gCAD3D
 
-LOCAL=${HOME}/devel/gcad3d
+#LOCAL=${HOME}/devel/gcad3d
+LOCAL=../..
 # Init-process: /gCAD3D/ will be added to ${LOCAL}; then 
 #   mkdir ${LOCAL}/gCAD3D
 #   mkdir ${LOCAL}/gCAD3D/tmp       // runtime-temp-files !
@@ -141,8 +143,8 @@ if test "${OSTYPE}" = "linux-gnu"; then
   export gcad_dir_local=${LOCAL}/
 
 # html and msg-files
+# def is /usr/share/doc/
   export gcad_dir_doc=${LOCAL}/doc/
-#/usr/share/doc/gcad3d/msg
 
 
 

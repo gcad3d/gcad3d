@@ -195,7 +195,7 @@ S_Contour_CCV_____PT_LN_CIR_CRV Contorno (curva compuesta - CCV) de StartPoint, 
 A_Planar_Surf__trim_punch_ superficie plana de la frontera (círculo / polígono / contorno) [islas (círculo / polígono / contorno)]
 A_Spheric_Surf__Axis_Rad__ superficie esférica del eje, radio [ángulo x1, x2] [ángulo y1, y2]
 A_Cylinder_Surf__Axis_Rad__ superficie Cylindrcal del eje, radio [ángulo x1, x2] [ángulo y1, y2]
-A_Revolved_Surf__Axis_Contour_ Revuelto superficie del eje, contourline (línea / círculo / B-spline), [startAngle] [endangle] height1 (parámetro o punto), altura2 (parámetro o punto),
+A_Revolved_Surf__Axis_Contour_ Revuelto superficie del eje, contourline (línea / círculo / B-spline), [startAngle] [endangle] height1 (parámetro o punto), altura2 (parámetro o punto)
 A_Extrusion_Surf__Contour_Vec_ Superficie reglada del elemento lineal (línea / círculo / B-spline) y vector
 A_Sweep_Surf__Contour_Path_ surface from path (spine) and contour (eg pipe)
 A_Loft_Surf__Curves_across_ superficie de forma libre de sectioncurves vertical (línea / círculo / B-spline)

@@ -1,8 +1,11 @@
 #!/bin/sh
+
+# create ${doxy_path_out}/index.htm and all files 
+# start script in doc/ or src/
+# doxy_path_out="<base>/doc/gcad"
+
 # UPDATE files src/gcad_version and src/gcad_date
 # ReCreate documentation:   ./gcad_doxygen.sh
-#   active dir must be doc/ or src/
-#
 
 
 

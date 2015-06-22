@@ -384,8 +384,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   double  d1;
 
 
-  printf("UT3D_2pt_segplg %d\n",is);
-  UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_segplg");
+  // printf("UT3D_2pt_segplg %d\n",is);
+  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_segplg");
 
 
   if(is < 1) {
@@ -397,12 +397,12 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   // get startSegNr, endSegNr
   plg_segNr_par (&iis, plg->v0, plg);
   plg_segNr_par (&iie, plg->v1, plg);
-    printf(" iis=%d iie=%d\n",iis,iie);
+    // printf(" iis=%d iie=%d\n",iis,iie);
 
 
   is -= iis;
   ii = is - 1;
-    printf(" ii for p1=%d\n",ii);
+    // printf(" ii for p1=%d\n",ii);
 
 
   // is p1 outside v0-v1 ?
@@ -423,7 +423,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
     TX_Error("UT3D_2pt_segplg E002");
     return -1;
   }
-    printf(" ii for p2=%d\n",ii);
+    // printf(" ii for p2=%d\n",ii);
 
 
   // is p2 outside v0-v1 ?

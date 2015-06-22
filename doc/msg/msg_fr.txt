@@ -10,7 +10,7 @@ MMcomp compresser modèles natifs (. GCAD) avec gzip (. Gcaz)
 MMfDel supprimer le fichier
 MMfRen renommer le fichier
 MMfCpy de copie de fichiers
-Imprimer MMfPrt / lot
+MMfPrt Imprimer / plot
 MMexit Exit Program
 MMsma activer le sous-modèle ou d'autres mainmodel
 MMsmcp mainmodel emménager dans submodel

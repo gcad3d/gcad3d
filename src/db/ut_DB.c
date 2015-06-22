@@ -7533,7 +7533,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 
 
   L_err:
-    printf("ex DB_QueryDef -1 typ=%d ind=%ld\n",typ,ind);
+    // printf("ex DB_QueryDef -1 typ=%d ind=%ld\n",typ,ind);
   return -1;
 
 }

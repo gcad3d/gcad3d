@@ -684,8 +684,10 @@ WC_sur_mat WC_sur_imat
 
   // printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n");
   // printf("UTRA_app_dbo typ=%d dbi=%ld\n",*typ,*dbi);
+  // DBO_dump__ (*typ,*dbi);
 
-  mSpc = UME_get_next (wrkSpc);
+
+  mSpc = UME_get_next (wrkSpc);  // get free pos in wrkSpc; not yet reserve.
 
 
   // get a ObjGX of the obj to transform
@@ -699,7 +701,7 @@ WC_sur_mat WC_sur_imat
   // CV: returns the parent-record in tmpSpc ?
   irc = UTRA_app__ (tmpSpc, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
   if(irc < 0) return irc;
-
+    // UT3D_stru_dump (ox2.form, tmpSpc, "ex UTRA_app__");
 
 
 /*
@@ -722,7 +724,7 @@ WC_sur_mat WC_sur_imat
 
     // save the complete obj in DB
     *dbi = -1L;
-    irc = DB_store_stru (&vp1, ox2.typ, ox2.form, vp1, ox2.siz, dbi);
+    irc = DB_store_stru (&vp1, ox2.typ, ox2.form, tmpSpc, ox2.siz, dbi);
     if(irc < 0) return irc;
 
     // restore wrkSpc
@@ -752,12 +754,16 @@ WC_sur_mat WC_sur_imat
 
 
   // transform basicCurve typ.dbi
-  printf("UTRA_app_CCV typ=%d\n",obji->typ);
+  // printf("UTRA_app_CCV typ=%d\n",obji->typ);
+  // UT3D_stru_dump (Typ_CVCCV, obji, "in");
 
 
   if(obji->dbi) {
     typ = obji->typ;
+    // transform DB-obj & store in DB
     irc = UTRA_app_dbo (&objo->dbi, &typ, wrkSpc);
+      // printf("ex UTRA_app_dbo irc=%d dbi=%ld typ=%d\n",irc,objo->dbi,typ);
+      // DBO_dump__ (typ, objo->dbi);
     if(irc < 0) return -1;
   }
 
@@ -767,7 +773,7 @@ WC_sur_mat WC_sur_imat
     // transform point, change point-index
     UTRA_app_pt (&pt1, DB_get_PT(obji->ip0));
     objo->ip0 = DB_StorePoint (-1L, &pt1);
-      printf(" ip0-1=%ld ip0-2=%ld\n",obji->ip0,objo->ip0);
+      // printf(" ip0-1=%ld ip0-2=%ld\n",obji->ip0,objo->ip0);
   }
 
   // transform endpoint if one exists
@@ -775,7 +781,7 @@ WC_sur_mat WC_sur_imat
       // printf(" ip1-1=%ld\n",objo->ip1);
     UTRA_app_pt (&pt1, DB_get_PT(obji->ip1));
     objo->ip1 = DB_StorePoint (-1L, &pt1);
-      printf(" ip1-1=%ld ip0-2=%ld\n",obji->ip1,objo->ip1);
+      // printf(" ip1-1=%ld ip0-2=%ld\n",obji->ip1,objo->ip1);
   }
 
   return 0;
@@ -887,7 +893,7 @@ WC_sur_mat WC_sur_imat
 
 
   irc = 0;
-  objo = UME_get_next (wrkSpc);
+  objo = UME_get_next (wrkSpc); // get position of free space; no reserve yet
   *poo = objo;
 
 
@@ -1129,7 +1135,8 @@ WC_sur_mat WC_sur_imat
 
     //================================================================
     case Typ_CVCCV:
-      if(UME_add (wrkSpc, sizeof(CurvBSpl) * iNr) < 0) goto L_EOM;
+      // must provide space for poo in wrkSpc
+      if(!UME_reserve(wrkSpc,sizeof(CurvCCV) * iNr) < 0) goto L_EOM; // 2015-06-11
         // printf(" copy CVCCV\n");
 
       L_CCV_nxt:

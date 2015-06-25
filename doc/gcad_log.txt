@@ -1,3 +1,16 @@
+Version 2.26 / 2015-06-22
+
+- Bug "translate concatenated-curve" fixed (sample_tra_ccv_1.gcad)
+- Bug "modify GIS-point" fixed (sample_gis1.gcad)
+- Bug "display html docu" (Linux only) fixed
+- minor bugfixes
+- modifications for git
+
+Programlines (C)  336808
+Functions           4917
+
+
+===========================================================================
 Version 2.24 / 2015-02-25
 
 - NEW: License changed to GPL-v3; see Releasenotes.

@@ -156,6 +156,8 @@ REM create package with NSIS-Installer
 REM echo "copy/y %packNam%.exe X:\."
 REM copy/y %packNam%.exe X:\.
 
+move/y %packNam%.exe ..\packages\.
+
 goto :Fertig
 
 

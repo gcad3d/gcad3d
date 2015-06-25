@@ -1,6 +1,7 @@
 #!/bin/csh
 
 # create debian-package                         ./pack_deb.sh
+# start in <basDir>/gcad3d/debian
 #
 # remove gcad:       sudo apt-get remove gcad3d
 # install gcad-32    sudo dpkg -i /mnt/serv1/gCAD3D-1.80-Linux-x86.deb
@@ -15,14 +16,17 @@
 
 
 
-# debDir: ~/devel/gcad3d/debian
+# basDir: ~/devel/gcad3d
 set debDir=`pwd`
+cd ..
+set basDir=`pwd`
 # copy all files -> instDir = ~/devel/gcad3d/debian/gCAD3D/debian
 set instDir = ${debDir}/gCAD3D/debian
-set srcDir=../src
+set srcDir=${basDir}/src
+set outDir=${basDir}/packages
 
 set bits=`getconf LONG_BIT`
-set gcad_dir_bin=../binLinux${bits}
+set gcad_dir_bin=${basDir}/binLinux${bits}
 
 set Version=`cat ${srcDir}/gcad_version`
 
@@ -39,6 +43,7 @@ echo "start create debian-package" ${packNam}
 
 #-------------------------------------------------------
 # create ~/devel/gcad3d/debian/examples.gz
+cd ${debDir}
 ./pack_examples.sh
 echo "examples.gz created .."
 
@@ -170,9 +175,11 @@ cd ${instDir}
 cd ..
 rm -f debian.deb
 fakeroot dpkg-deb --build debian && lintian debian.deb
-mv -f debian.deb ../${packNam}
+mv -f debian.deb ${outDir}/${packNam}
 
-echo "${packNam} created."
+echo "${outDir}/${packNam} created."
+
+rm -rf ${debDir}/examples.gz
 
 exit
 # eof

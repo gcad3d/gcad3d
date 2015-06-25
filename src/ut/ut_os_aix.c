@@ -438,7 +438,7 @@ static char txbuf[256];
   cBuf1[0] = '\0';
 
   while (1 == 1) {
-    if (fgets (cBuf1, 500, fPip1) == NULL) break;
+    if (fgets (cBuf1, 256, fPip1) == NULL) break;
     // printf("  jb_check_active |%s|\n",cBuf1);
   }
 
@@ -862,20 +862,21 @@ static char txbuf[256];
 
 
   txbuf[0] = '\0';
-  if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "xdg-open");
+
+  if(system("which firefox 1>/dev/null 2>/dev/null") == 0)
+    strcpy(txbuf, "firefox");
 
   else if(system("which konqueror 1>/dev/null 2>/dev/null") == 0)
     strcpy(txbuf, "konqueror");
-
-  else if(system("which firefox 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "firefox");
 
   else if(system("which mozilla 1>/dev/null 2>/dev/null") == 0)
     strcpy(txbuf, "mozilla");
 
   else if(system("which netscape 1>/dev/null 2>/dev/null") == 0)
     strcpy(txbuf, "netscape");
+
+  else if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0)
+    strcpy(txbuf, "xdg-open");
 
   if(strlen(txbuf) < 2) {
     printf(" **** no HTML-Browser found\n");
@@ -1707,6 +1708,13 @@ static char txbuf[256];
 //================================================================
   OS_file_date_m (time_t *tim_m, char *filnam) {
 //================================================================
+// return unix-timestamp of last modification-date of file <filnam>.
+// needs:
+// #include <time.h>
+// #include <unistd.h>
+// #include <sys/stat.h>
+// #include <sys/time.h>
+// 
 //   time_t        st_atime;    // Letzter Zugriff
 //   time_t        st_mtime;    // Letzte Modifikation
 //   time_t        st_ctime;    // Letzte Aenderung

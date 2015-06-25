@@ -31,13 +31,14 @@ Modifications:
 =====================================================
 List_functions_start:
 
-UT3D_stru_dump
+UT3D_stru_dump       
 UT3D_dump__
 OVR_dump_add
 
 List_functions_end:
 =====================================================
 see also
+DBO_dump__
 UT3D_dump_txt
 \endcode *//*----------------------------------------
 

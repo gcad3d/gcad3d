@@ -21,5 +21,7 @@ zip ${basDir}/gCAD3D_${version}-src.zip\
 #-x ${basDir}/doc/gcad/*\
 
 
+mv ${basDir}/gCAD3D_${version}-src.zip ${basDir}/packages/.
+
 
 # eof

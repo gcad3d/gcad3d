@@ -206,7 +206,7 @@ Point actPos;
   // >=0 partially filled line
   } else if(!strncmp(data, "MBR_", 4)) {
     i1 = atoi (&data[4]);
-      printf(" mbr-i1=%d\n",i1);
+      // printf(" mbr-i1=%d\n",i1);
     // provide popup-menu ..
     UI_EdKeyCR (2);           // imply OK
 

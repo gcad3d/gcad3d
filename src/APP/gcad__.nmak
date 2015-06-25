@@ -48,8 +48,7 @@ default: $(OBJ1) $(OBJG) $(OBJA) $(OBJOS) $(LIBGUI)
  $(LKDEF) /DEF:gCAD3D.def /SUBSYSTEM:CONSOLE\
  /out:$(PRJNAM).exe
 	move/Y $(PRJNAM).exe $(OUTDIR)\.
-	exit
-!endif
+!else
 # link dll
 	$(CC) $(OBJ1)\
  gCAD3D.lib $(LIB_BAS) $(LIBOGL)\
@@ -60,6 +59,8 @@ default: $(OBJ1) $(OBJG) $(OBJA) $(OBJOS) $(LIBGUI)
 	move/y $(DLLNAM).dll $(OUTDIR)\.
 !else
 	move/y $(DLLNAM).dll $(OUTDIR)\plugins\.
+!endif
+
 !endif
 	exit
 

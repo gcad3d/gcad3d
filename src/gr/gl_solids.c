@@ -764,7 +764,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   //----------------------------------------------------------------
   // check if is contour convex or concave
   iCon = UT3D_isConvx_ptTab (p1Nr, pa1);    // 1=Konvex; -1=Konkav
-    printf(" iCon=%d\n",iCon);
+    // printf(" iCon=%d\n",iCon);
 
   // generieren Basisflaeche
   // MODIFIES pa1;

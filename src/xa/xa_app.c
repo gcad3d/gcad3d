@@ -207,7 +207,9 @@ List_functions_end:
 #ifdef _MSC_VER
   sprintf(cbuf, "start %s %s",AP_browser,fNam);
 #else
-  sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
+  // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
+  // "file://" - problems with "../fn"
+  sprintf(cbuf, "%s %s 2>/dev/null &",AP_browser,fNam);
 #endif
 
   printf("APP_browse |%s|\n",cbuf);

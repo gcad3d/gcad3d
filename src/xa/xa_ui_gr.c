@@ -3571,6 +3571,7 @@ static  Point  selPos;
        (bTyp == Typ_Note)    ||
        (bTyp == Typ_SOL)     ||
        (bTyp == Typ_Model)   ||
+       (bTyp == Typ_APPOBJ)  ||               // 2015-06-21
        (bTyp == Typ_TmpPT))       goto L_selTab_from_dlTab_nxt; 
     // resolv obj
     sele_ck_subCurv (sca, typ, dbi, &selPos);

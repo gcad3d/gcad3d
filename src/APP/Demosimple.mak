@@ -1,4 +1,4 @@
-# make -f Demosimple.mak "OS=Linux32"
+# make -f Demosimple.mak
 
 
 DLLNAM = plugins/Demosimple

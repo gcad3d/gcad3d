@@ -1,5 +1,5 @@
 # OpenGL for MS-VC
-# OGLLIB: OpenGL32.lib und /Glu32.lib
+# LIBOGL: OpenGL32.lib und /Glu32.lib
 # get SRCGLB GLBCP GLBLIB
 
 
@@ -19,7 +19,7 @@ ogl_inc_dir = "$(ogl_dir)Include"
 ogl_lib_dir = $(ogl_dir)Lib
 #ogl_lib_dir = H:\Programme\Microsoft SDKs\Windows\v6.0A\Lib
 
-OGLLIB =\
+LIBOGL =\
  "$(ogl_lib_dir)\OpenGL32.lib"\
  "$(ogl_lib_dir)\Glu32.lib"\
  "$(ogl_lib_dir)\Gdi32.lib"
@@ -33,7 +33,7 @@ OGLLIB =\
 
 ogl_lib_dir = $(ogl_dir)Lib\x64
 
-OGLLIB =\
+LIBOGL =\
  "$(ogl_lib_dir)\OpenGL32.lib"\
  "$(ogl_lib_dir)\Glu32.lib"\
  "$(ogl_lib_dir)\Gdi32.lib"

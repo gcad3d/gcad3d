@@ -748,7 +748,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
   // >=0 partially filled line
   } else if(!strncmp(data, "MBR_", 4)) {
     i1 = atoi (&data[4]);
-      printf(" mbr-i1=%d\n",i1);
+      // printf(" mbr-i1=%d\n",i1);
     if(i1 == -1) PRCE_m3Menu__ (0);
     else if(i1 >= 0) PRCE_m3Menu__ (1);
 
@@ -773,6 +773,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
                     "TL   (toolchange)",
                     "RP   (rapid)",
                     "FROM (startpos)",
+                    "OK   (continue)",
                     "\0"};
 
   // printf("PRCE_m3Menu__ %d\n",mode);
@@ -811,7 +812,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
   if(iEv != TYP_EventPress) return 0;
 
   isel = GUI_DATA_I1;
-    printf("UI_GR_selMen_cbSel %d\n",isel);
+    // printf("PRCE_selMen_cb %d\n",isel);
 
   switch (isel) {
     case 0:
@@ -825,6 +826,11 @@ static  Point  pta[TAB_SIZ], p1, p2;
       break;
     case 3:
       strcpy(s1, "FROM ");
+      break;
+    case 4:
+      strcpy(s1, "");  // 2015-06-23
+      s1[0] = 13;
+      s1[1] = '\0';
       break;
   }
 

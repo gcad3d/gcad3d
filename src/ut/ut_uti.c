@@ -1105,7 +1105,7 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
   d2 = sqrt(d1);
   if(d2 > 2.) { ++ii; d1 = d2; goto L1; }
 
-    printf("ex UTP_dbqsiz ii=%d\n",ii);
+    // printf("ex UTP_dbqsiz ii=%d\n",ii);
 
   return ii;
 

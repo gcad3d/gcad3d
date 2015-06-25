@@ -1,4 +1,4 @@
-# make -f DemoGtk1.mak "OS=Linux32"
+# make -f DemoGtk1.mak
 
 
 DLLNAM = plugins/Demo_gui1

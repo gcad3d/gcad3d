@@ -1,4 +1,4 @@
-# make -f DemoAnim1.mak  "OS=Linux32"
+# make -f DemoAnim1.mak
 
 DLLNAM = plugins/Demo_gui_anim1
 

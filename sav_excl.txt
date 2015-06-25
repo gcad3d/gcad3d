@@ -1,11 +1,13 @@
+.git/
 binLinux32/
 binLinux64/
 binMS32/
+packages/
 doc/gcad/
 doc/gui/
-gCAD3D/tmp
-debian/gCAD3D
-debian/exa_dir
+gCAD3D/tmp/
+debian/gCAD3D/
+debian/exa_dir/
 *.tag
 *.swp
 *.out

@@ -7,8 +7,8 @@ if ("$#argv" == "1") then
     goto Forw
   endif
 
-  if ("$1" == "CopyBack") then
-    goto CopyBack
+  if ("$1" == "Local") then
+    goto Local
   endif
 
   if ("$1" == "Stick") then
@@ -18,10 +18,11 @@ if ("$#argv" == "1") then
 endif
 #
 echo "***** unknown option, use:"
-echo "CopyBack           serv1:GITHUB/gcad3d  -->> HDEV2:~/devel/gcad3d"
-echo "Forw               HDEV2:~/devel/gcad3d -->> serv1:GITHUB/gcad3d"
 echo "Stick              serv1:GITHUB/gcad3d  -->> STICK:~/BACKUP/gcad3d"
+echo "Local              serv1:GITHUB/gcad3d  -->> HDEV2:~/devel/gcad3d"
+echo "Forw               HDEV2:~/devel/gcad3d -->> serv1:GITHUB/gcad3d"
 goto L_exit
+#
 #
 #
 #------------------------------------------------------------
@@ -55,9 +56,9 @@ goto L_exit
 #
 #------------------------------------------------------------
 # copy serv1:GITHUB/gcad3d -> HDEV2:~/devel/gcad3d
-CopyBack:
-echo "CopyBack:"
-rsync -urv --delete --exclude-from=sav_excl.txt\
+Local:
+echo "Local:"
+rsync -rv --delete --exclude-from=sav_excl.txt\
  /mnt/serv1/Devel/GITHUB/gcad3d\
  /home/fwork/devel
 #

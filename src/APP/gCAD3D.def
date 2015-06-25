@@ -589,6 +589,9 @@ ckb_ptDisp
 ckb_such
 ckb_view
 ckb_vwr
+colB1
+colB2
+colR
 Col_set__
 Col_set_3db
 CSV_read__
@@ -720,6 +723,7 @@ DB_ModNod_ckLoop1
 DB_ObjG2Tab_sav
 DBO_dbo_ato__
 DBO_dbo_src__
+DBO_dump__
 DBO_sel__
 DB_PLN_isFree
 DB_pt0
@@ -998,6 +1002,7 @@ GL_AttTab_dump__
 GLB_Create
 GLB_DrawExit
 GLB_DrawInit
+GLB_pending
 GLB_Query
 GL_ck_sel_PT
 GL_Clear
@@ -1505,9 +1510,7 @@ GUI_file_cb_dirsym2
 GUI_file_cb_filt
 GUI_file_get
 GUI_file_open__
-GUI_file_open_1
 GUI_file_save__
-GUI_file_save_1
 GUI_frame__
 GUI_frame_styl
 GUI_FuncExit
@@ -1683,9 +1686,7 @@ GUI_tree1_row_add
 GUI_tree1_row_set
 GUI_tree1_set_selMode
 GUI_tree1_unselect_all
-GUI_TUT_CB_tmr
 GUI_TUT_m__
-GUI_TUT_m_CB
 GUI_TUT_t__
 GUI_update__
 GUI_Win__

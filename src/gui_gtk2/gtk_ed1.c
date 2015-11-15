@@ -428,7 +428,6 @@ static char  *GUI_ed1_lcSet;
   void          *w_par, *wb;
   GtkWidget     *wev, *wsw;
   GtkTextBuffer *web;
-  Obj_Entry     *gEnt;
   Obj_gui1      *go;
 
 
@@ -498,7 +497,7 @@ static char  *GUI_ed1_lcSet;
     g_signal_connect (G_OBJECT (web),   // wev wsw
                         "paste-done",
                         G_CALLBACK (GUI_ed1_cb3),
-                        PTR_MEMOBJ(go->mem_obj));    //(void*)gEnt);
+                        PTR_MEMOBJ(go->mem_obj));
 
 
 
@@ -541,7 +540,6 @@ static char  *GUI_ed1_lcSet;
   // fill obj
   go->gio_typ  = TYP_GUI_Editor;
   go->widget   = wev; //wsw;
-  // gEnt->data     = data;
   go->uFunc    = funcnam;
 
   GUI_ed1_view = NULL;  // makes error after recalling this edi ! 2014-01-17

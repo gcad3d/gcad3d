@@ -1,5 +1,6 @@
-/*! \page ResolveObjects
-../gcad_doxygen/ResolveObjects.dox
+/*! \page Objects-Resolve
+../../doc/gcad_doxygen/Objects-Resolve.dox
+
 
 <pre>
 \ref Get_DispListObject       DL_Att
@@ -129,7 +130,7 @@ ________________________________________________________________________________
 DispList is (DL_Att*) GR_ObjTab;
 
   // get DL-record from dispListIndex dli
-  dla = DL_GetAtt (dli);
+  DL_get_dla (&dla, dli);
   typ = dla.typ;       // DB-typ
   dbi = dla.ind;       // DB-ind
         dla.modInd;    // -1=active Model, 0-n=Submodel

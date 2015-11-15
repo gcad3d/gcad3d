@@ -1,7 +1,7 @@
 //**************************************************************************
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,6 +112,7 @@ UT2D_slen_nor_2pt_vc__    signed length of normal of point onto vector
 UT2D_slen_nor_2pt_vcNo    signed length of normal of point onto norm.vector
 UT2D_slen_nor3pt          signed length of normal of point - line
 UT2D_nlenq_3pt            give quadr.Distance from point to line
+UT2D_nlenq_2vc            give quadr.Distance from vec on vec (point to line)
 UT2D_2slen_2pt_vc__       relative coords (dx,dy) of point along/normal to line
 UT2D_2slen_vc_vc__        relative coords (dx,dy) of vector on vector
 UT2D_minLenB_4pt          min lenght between 2 lines
@@ -144,6 +145,7 @@ UT2D_pt_ck_int4pt         check if 2 lines intersect/touch
 UT2D_i4pt_npt             find indices of extreme-points;
 
 UT2D_pt_pt                2D-Point = 3D-Point                          INLINE
+UT2D_npt_npt              tab of 2D-Points = tab of 3D-Points (copy X,Y)
 UT2D_pt_pt3               2D-Point = 3D-Point                          INLINE
 UT2D_pt_2db               2D-Point = 2 doubles (x, y)                  INLINE
 UT2D_pt_pt3bp             2D-Point = 3D-Point on Backplane (inline)
@@ -213,6 +215,7 @@ UT2D_ckvc_vert            test if vector is vertical
 UT2D_ckvc_parl            test if 2 vectors parallel
 UT2D_ckvc_in2vc           check if v2 is between v1 and v3
 UT2D_ckvc_inA_vc_vc       check if v2 is between v1 and v3 (parall.& antiparall.)
+UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_2parvc_3vc           project end of vec1 along vec2 on vec3
 UT2D_vc_pt                Vector from 0,0 -> point
 UT2D_vc_2db               2D-Vector = 2 doubles (x, y)
@@ -336,6 +339,26 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
 
+
+
+
+
+//==========================================================================
+  int UT2D_npt_npt (Point2 *p2a, Point *pa, int pNr) {
+//==========================================================================
+/// \code
+/// UT2D_npt_npt              tab of 2D-Points = tab of 3D-Points (copy X,Y)
+/// \endcode
+
+// es sollte Normalvektor benutzt werden; dzt copy X- & Y-Coord only.
+
+  int    i1;
+
+  for(i1=0; i1<pNr; ++i1) UT2D_pt_pt (&p2a[i1], &pa[i1]);
+
+  return 0;
+
+}
 
 
 //===========================================================================
@@ -2067,6 +2090,51 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 }
 
 
+//====================================================================
+  int UT2D_nlenq_2vc (double *qlen, Vector2 *vab, Vector2 *vac) {
+//====================================================================
+/// \code
+/// UT2D_nlenq_2vc            give quadr.Distance from vec on vec (point to line)
+/// pa - pb gives a line, pc is projected onto this line, giving e.
+/// Returns the qadr.length pc - e.
+///
+///           pc
+///           /|
+///      vac/  |
+///       /    |qlen
+///     /      |
+///    pa------+-------pb
+///           vab
+/// -  0      0.5      1.0     1.5
+/// \endcode
+
+
+
+  double    s_ab_ab, s_ab_ac, pe_ab;
+  Vector2   vae, vec;
+
+
+  s_ab_ab = UT2D_skp_2vc (vab, vab);  // skp mit sich selbst = Laenge^2
+  s_ab_ac = UT2D_skp_2vc (vab, vac);  // gibt Wert fuer e relativ zu s_ab_ab
+
+  // Parameterwert von e zwischen a-b
+  pe_ab = s_ab_ac / s_ab_ab;
+
+  // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
+  UT2D_vc_multvc (&vae, vab, pe_ab);
+
+  // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
+  UT2D_vc_sub2vc (&vec, vac, &vae);
+
+  *qlen = UT2D_skp_2vc (&vec, &vec);
+
+    // printf("ex UT2D_nlenq_3pt %f\n",*qlen);
+
+  return 0;
+
+}
+
+
 //=======================================================================
   int UT2D_parLn_pt2pt (double *d1, Point2 *p1, Point2 *p2, Point2 *px) {
 //=======================================================================
@@ -2459,7 +2527,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   d1 = vp.dx * vl.dy - vl.dx * vp.dy;
 
-  if (fabs(d1) < UT_TOL_min1) irc =  0;
+  if (fabs(d1) < UT_TOL_min2) irc =  0;
 
   else if (d1 < 0.)    irc =  1;
 
@@ -8961,9 +9029,16 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //================================================================
 /// \code
 /// UT3D_parvc_2vc      parameter of distance of vec1 projected on vec2
-///
+/// Output:
+///   lp         parameter; eg 0.5 = iproj. of end of v1 is in middle of v2
+///   RetCode:
+///     0  OK
+///    -1  v1-v2 aufeinander Normal; pl = 0.
 /// dl ist zwischen 0 bis 1; wenn dl=0.5 liegt der Endpunkt von V2
 /// genau in der Mitte des Vektors V2. Mit Vorzeichen !
+/// v1={0.5, 0.5, 0.}, v2={1., 0., 0.} gives pl = 0.5
+/// v1={-0.5, 0.5, 0.}, v2={1., 0., 0.} gives pl = -0.5
+/// v1={1.5, 0.5, 0.}, v2={1., 0., 0.} gives pl = 1.5
 ///
 ///    
 ///                             V1,V2 have same startpoint s.

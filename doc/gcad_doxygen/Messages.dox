@@ -8,14 +8,17 @@
 \ref Dump-object-functions
 \ref Debug-functions
 
+
+
+
+<hr>
+Files:
 \ref xa_msg.c            Application-Messages, Standard-Messages, Constant-Messages
 \ref xa_msg.h            integer-constants for Constant-Messages
 
 
-See also ProgramFlow / \ref Errorhandling-Tests
 
-
-
+<hr>
 Tools for manipulating the language-files:
 
 save the lang.files: ./lang_save.csh
@@ -118,6 +121,10 @@ UTX_dump_cnl        disp. textStrings (UTX_dump_c__ UTX_dump__)
 
   // check debugfile: vi ~/gCAD3D/tmp/debug.dat
 
+
+
+  AP_debug__ ();  // stop in debugmode;
+                  // must start with "gdb gCAD3D.exe -x gCAD3D.gdb"
 
 \endcode
 

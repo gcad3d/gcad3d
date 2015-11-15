@@ -1,7 +1,7 @@
 // ut_DL.c    displayList functions     RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,9 +54,11 @@ DL_Stat                 ausgabe Statistik
 DL_DumpObjTab
 DL_DumpObj__
 
+DL_SetInd               modify (do not create new DL-Record); set DL_ind_act=dli;
+DL_SetObj               get or set disp-list-record.
 DL_StoreObj             Den naechsten freien DispList-Platz belegen
 DL_StoreAtt             store GR_Att in GR_AttTab
-DL_SetObj               store DL-record (only for active vector)
+DL_SetTmpObj            store DL-record (only for active vector)
 
 DL_hili_on              set obj hilited
 DL_hili_off             reset hilited
@@ -69,6 +71,7 @@ DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
 
 DL_disp_reset           delete all DL-objects starting from line-nr
+DL_OBJ_IS_HIDDEN        test if DidpListObj is hidden                INLINE
 
 DL_unvis_set            set visible / unvisible
 
@@ -87,7 +90,7 @@ DL_grp1__               add / remove (change) Groupbit 1 of DL-Record ind
 DL_grp1_copy            copy all DL-obj with groupBit ON --> GroupList
 
 DL_get__                returns DispList
-DL_GetAtt               get DL-record (DL_Att from GR_ObjTab[objInd])
+DL_get_dla              get DL-record (DL_Att from GR_ObjTab[objInd])
 DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
 DL_get_sStyl            get surfaceStyle (shaded|symbolic)
 DL_get_iatt             returns iatt of DL-record
@@ -104,8 +107,6 @@ DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
 DL_find_obj             Objekt typ=typ APTind=ind in der DL suchen
 DL_find_APPOBJ          find applicationObject
 DL_find_sel             find selected object in DL
-
-DL_SetInd               modify (do not create new DL-Record); set DL_ind_act=dli;
 
 DL_Lay_act_g1           activate GroupBit1 des layer Nr. layNr
 DL_Lay_typ_g1           grp_1 fuer alle Obj, die NICHT Typ i1 haben, auf OFF.
@@ -307,6 +308,7 @@ cc -c -g3 -Wall ut_DL.c
 #include "../xa/xa_uid.h"                // UID_ckb_view
 #include "../xa/xa_obj_txt.h"            // AP_obj_add_val
 #include "../xa/xa.h"                    // AP_Get_ConstPl_Z
+#include "../xa/xa_app.h"                // PRC_IS_ACTIVE
 
 
 
@@ -1141,7 +1143,10 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUU\n");
   // printf("DL_unvis_set %ld %d\n",ind,mode);
 
-  GR_ObjTab[ind].unvis = mode;
+  if(ind >= 0)
+    GR_ObjTab[ind].unvis = mode;
+  else
+    printf("**** DL_unvis_set E001 %ld\n",ind);
 
   return 0;
 
@@ -1251,14 +1256,16 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   // printf("DL_hili_off %ld\n",ind);
-  // if(ind>=0)printf(" hili=%d disp=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
+  // if(ind>=0)printf("hi=%d di=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
 
 
 
   if(ind >= 0) {         // UnHili Obj.
+    // skip hidden obj's; 2015-09-26
+    if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) goto L_exit;
     GR_ObjTab[ind].hili  = OFF;   // OFF=1
     GR_ObjTab[ind].disp  = ON;    // ON=0
-    return 0;
+    goto L_exit;
   }
 
 
@@ -1268,6 +1275,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     ii = 0;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       //TX_Print("reset hili=%d disp=%d",GR_ObjTab[l1].hili,GR_ObjTab[l1].disp);
+      // skip hidden; 2015-09-26
+      if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) continue;
       if(GR_ObjTab[l1].hili == ON) {
         GR_ObjTab[l1].hili  = OFF;
         // hier sollte man nachsehen ob Layer ueberhaupt aktiv ist usw !!
@@ -1280,21 +1289,26 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   if(ind == -2) {         // das zuletzt gearbeitete Obj unhiliten
-    l1 = GR_TAB_IND-1;
       // printf("DL_hili_off  -2 %ld\n",l1);
+    DL_hili_off (GR_TAB_IND - 1);
+/*
+    l1 = GR_TAB_IND-1;
     if(l1 >= 0) {
       GR_ObjTab[l1].hili  = OFF;
       GR_ObjTab[l1].disp  = ON;
     }
+*/
     return 0;
   }
 
+
+
+  L_exit:
     // printf("DL_hili_off Err %ld\n",ind);
 
   return -1;
 
 }
-
 
 
 //===============================================================
@@ -1784,14 +1798,15 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 /// DL_InitAttRec              define a new lineattributeRecord
 /// Input:
 ///   ind    Recordnr; first=0; use as attInd in GL_DrawLine
-///   col    color 2=red, 3=green, 4=blue, 5=yellow
-///   ltyp   0=full, 1=dash-dot, 2=shortDash, 3=longDash
+///   col    color   900=red, 090=green, 119=blue, 990=yellow
+///   ltyp   linetyp LTYP_.. (../gr/ut_UI.h)
+///            0=full, 1=dash-dot, 2=shortDash, 3=longDash
 ///   lthick 1-6, thickness in pixels
 ///
-/// defaultvalues from <tempDir>/ltyp.rc    
+/// 
+/// defaultvalues from <tempDir>/cfg/ltyp.rc (../../gCAD3D/cfg/ltyp.rc)   
 /// \endcode
 
-// colors: ../cfg/ltyp.rc
 //  wird schon vor DL_Init gebraucht !!!
 
 
@@ -1921,9 +1936,41 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
  
 
 //============================================================
+  int DL_SetObj (long *dli, int typ, long dbi, int iAtt) {
+//============================================================
+/// \code
+/// DL_SetObj      get or set disp-list-record.
+/// Using DL_StoreObj / DL_SetInd.
+/// Input:
+///   dli     disp-list-record#; initialize with -1L.
+///           if (dli < 0) - create new record (DL_StoreObj)
+///           if (dli >= 0) - use the existing record (update obj)
+///   typ,dbi,iAtt see DL_StoreObj
+/// Output:
+///   dli     disp-list-record# >= 0
+///   retCod  0  DL-record did already exist
+///           1  new DL-record created
+/// \endcode
+
+
+  if(*dli < 0) {
+    *dli = DL_StoreObj (typ, dbi, iAtt);
+    return 1;
+
+  } else {
+    // DL_ind_act = *dli;
+    return 0;
+  }
+
+}
+
+
+//============================================================
    long DL_StoreObj (int Typ, long DBInd, int AttInd) {
 //============================================================
 /// \code
+/// create new or overwrite DispList-record; returns its index.
+///    (overwrite with DL_SetInd before)
 /// Den naechsten freien DispList-Platz belegen mit Typ, DBInd, att ....
 /// In der (hier lokalen) Displayliste, DBInd und Att speichern.
 /// Wird benutzt von GL zum Redraw, beim Select.
@@ -1932,15 +1979,14 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 /// Dynam. Objekte, die ueberhaupt nicht in der APT-DB gespeichert werden,
 ///  erhalten als DBInd den negativen DispList-Index.
 /// 
-///  DBInd  0:    definiert temp. Obj 8 
-///  DBInd -1:    temp. Obj m ind. -GR_TAB_IND
+///  Input:
+///    DBInd    0     definiert temp. Obj 8 (returns -8L)
+///            -1     temp. Obj m ind. -GR_TAB_IND
+///    AttInd   ?     2 ? 5 ?
 /// 
-//   AttInd   ?   2 ? 5 ?
-/// 
-///   dlInd = DL_StoreObj (Typ_LN, objInd, attInd);
-///   // IN:  Objectindex objInd  und ObjTyp Typ_xx
-///   // OUT: DispListIndex dlInd
-/// 
+///  Output:
+///    RetCod    DispListIndex dli
+///
 /// see also:
 ///   DL_SetInd   preset DL-index (to modify DL-record)
 /// \endcode
@@ -1978,7 +2024,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     // not for Typ_Ditto+Typ_Mock (GR_DrawModel)
     // - cannot hilite tempDLobjs
     if((Typ != Typ_Ditto)   && 
-       (Typ != Typ_Model))         {
+       (Typ != Typ_Model)   &&
+       (Typ != Typ_APPOBJ))         {
       dlInd = DLI_TMP;
       goto L_done;
     }
@@ -2513,6 +2560,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
+/*
 //=============================================================
   DL_Att DL_GetAtt (long objInd) {
 //=============================================================
@@ -2523,7 +2571,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return GR_ObjTab[objInd];
 
 }
-
+*/
 
 
 /*
@@ -4052,7 +4100,22 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
  
 
 //================================================================
-  int DL_get__ (DL_Att **dl) {
+  int DL_get_dla (DL_Att *dla, long dli) {
+//================================================================
+// DL_get_dla      get DispList-record (DL_Att)
+// was DL_GetAtt
+
+  if(dli < 0)           { TX_Error("DL_get_dla E001"); return 0; }
+  if(dli >= GR_TAB_IND) { TX_Error("DL_get_dla E002"); return 0; }
+
+  *dla =  GR_ObjTab[dli];  
+
+  return 1;
+}
+
+
+//================================================================
+  long DL_get__ (DL_Att **dl) {
 //================================================================
 /// DL_get__                returns DispList
 
@@ -4209,9 +4272,9 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
 //================================================================
-  long DL_SetObj (int typ, long dbi) {
+  long DL_SetTmpObj (int typ, long dbi) {
 //================================================================
-// DL_SetObj               store DL-record (only for active vector)
+// DL_SetTmpObj            store DL-record (only for active vector)
 
 
   GR_ObjTab[GR_TAB_IND].typ    = typ;

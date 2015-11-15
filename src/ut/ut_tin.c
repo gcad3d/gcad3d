@@ -1,7 +1,7 @@
 //  ut_tin.c.c                                2008-01-24    Franz Reiter.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,13 +33,16 @@ List_functions_start:
 
 UFA_add_fac        add face to MemTab(Fac3)
 UFA_chg_fac        set face
-UFA_chg1_fac       set 1 pointer in face (seqnr)
+UFA_chg1_fac       set 1 pointer in face (seqnr) from esn
 UFA_2fac_facpt     create 2 new Faces from 1 face (point on edge)
 UFA_3fac_facpt     create 3 new Faces from 1 face
+UFA_mod_delPt      change all face-pointers >= ip to ip-1
 
 UFA_ifac_ck_edgu   find (1|2) faces from unoriented Edge (2 ipt's)
 UFA_ifac_ck_edgo   find face from oriented Edge (2 ipt's)
 UFA_nifac_ck_pt    get all faces going tru point with index ipt
+UFA_if_findSegP    find face with LineSegment ips-ps2 inside
+UFA_if_find_ptmsh  find faceNr of point (2D-test point inside face)
 
 UFA_esn_2ip        get esn from startpoint of edge
 UFA_esn_nxt        get Edge|PointSeqNr of next Edge|Point (CCW)           INLINE
@@ -139,6 +142,179 @@ typedef_MemTab(Fac3);
 typedef_MemTab(EdgeLine);
 
 
+
+
+//================================================================
+  int UFA_if_find_ptmsh (int *iFac, Point *pt1,
+                         Fac3 *fa, int fNr,
+                         Point *pa, int pNr) {
+//================================================================
+// find faceNr of point pt1 (2D-test point inside face)
+// see also UFA_pt_prjptmsh1
+// Output:
+//   iFac      face nr (index into fa)
+// Returncodes:
+//   1 = NO  = point outside mesh
+//   0 = YES = point inside triangle
+//  -1 = ~~  = point is on sideline p1-p2
+//  -2 = ~~  = point is on sideline p2-p3
+//  -3 = ~~  = point is on sideline p3-p1
+//  -4 = ~~  = point is equal to p1
+//  -5 = ~~  = point is equal to p2
+//  -6 = ~~  = point is equal to p3
+
+
+
+  int     irc, i1, ii1, ii2, ii3;
+  Point2  *pf1, *pf2, *pf3, *pp;
+
+
+  // UT3D_stru_dump (Typ_PT, pt1, "UFA_if_find_ptmsh: ");
+
+
+  // check if point is in Triangle or on its boundary
+  pp = (Point2*)pt1;
+
+  // loop tru triangles;
+  for(i1=0; i1<fNr; ++i1) {
+    ii1 = fa[i1].i1;
+    ii2 = fa[i1].i2;
+    ii3 = fa[i1].i3;
+
+    pf1 = (Point2*)&pa[ii1];
+    pf2 = (Point2*)&pa[ii2];
+    pf3 = (Point2*)&pa[ii3];
+
+    // test if point ip1 is inside Face ii1-ii2-ii3
+    irc = UT2D_ck_pt_in_tria (pf1, pf2, pf3, pp);
+    if(irc > 0) continue;    // outside ..
+    goto L_found;
+  }
+
+  // point is ouside mesh
+    // printf("ex UFA_if_find_ptmsh pt is outside ..\n");
+  return 1;
+
+
+  L_found:  //irc: 0=inside, -1=on i1-i2, -2=on i2-i3, -3=on i3-i1
+  *iFac = i1;
+
+    // printf("ex UFA_if_find_ptmsh if=%d irc=%d %d %d %d\n",i1,irc,ii1,ii2,ii3);
+
+  return irc;
+
+}
+
+
+//=========================================================================
+  int UFA_if_findSegP (int *iFac, int *iEdg,
+                       int ips, int ipe, Point *ps2,
+                       Fac3 *fa, int fNr, Point *pa) {
+//=========================================================================
+// find face with LineSegment ips-ps2 inside.
+// The startPoint of the LineSegment is a facepoint; the endPoint is or is not.
+// LineSegment: startPoint = pa[ips]    endpoint = ps2
+// Input:
+//   ips, ps2   a ray limited at ips tru ps2 (ps2=pa[ipe])
+//   ipe     used only for test if breakline already exists
+// Output:
+//   iFac    Facenr
+//   iEdg    EdgeSeqNr of edge in iFace where ips-ps2 goes tru
+// RetCod:
+//   -1      Error; no Face with point ips ...
+//    0      correct intersection with Face iFac;
+//    1-6    see UT2D_ptvc_ck_int2pt
+//    10     this breakline already exists !
+
+
+
+  int        irc, i2, i4, iif, iie, esn, ip1, ip2;
+  int        iTab[50], iNr;
+  char       psna[50];
+  Vector2    vs;
+  Point2     *p21, *p22, *ps1;
+
+
+  // printf("UFA_if_findSegP %d\n",ips);
+
+  // get all faces using point ips
+  iNr = 50;
+  irc = UFA_nifac_ck_pt (iTab, psna, &iNr, ips, fa, fNr);
+  if(irc < 0) goto L_Err1;
+  // all facNr's in iTab; corresponding pointSeqNr's are in psna.
+
+
+  // make vs = vector-segment
+  ps1 = (Point2*)&pa[ips];
+  UT2D_vc_2pt (&vs, ps1, (Point2*)ps2);
+    // UT3D_stru_dump (Typ_VC2, &vs, "  vs:");
+
+
+  // loop tru iTab;
+  // find face where edges goes tru
+  for(i2=0; i2<iNr; ++i2) {
+    iif = iTab[i2];       // iif = faceNr to test
+    iie = psna[i2];       // iie = pointSeqNr of ips in face iif
+    esn =  UFA_esn_opp_psn (iie);
+      // printf(" test f[%d]-e%d\n",iif,iie);
+    // get points of the edge opposite to the point iie
+    // get 2D-points of edge of face + EdgeSeqNr
+    // UFA_2pt2_fac_esn (&p21, &p22, esn, &fa[iif], pa);
+    UFA_2ip_fac_esn (&ip1, &ip2, esn, &fa[iif]);
+      // printf(" esn=%d ip1=%d ip2=%d\n",esn,ip1,ip2);
+
+    // if (ip1|ip2 == endpunkt): this breakline already exists !
+    if((ip1 == ipe)||(ip2 == ipe)) {
+        // printf (" breakline already exists !\n");
+      return 10; // this breakline already exists !
+    }
+
+    // seg starts at point ps1; check intersection with edge p21-p22
+    p21 = (Point2*)&pa[ip1];
+    p22 = (Point2*)&pa[ip2];
+    irc = UT2D_ptvc_ck_int2pt (1, ps1, &vs, p21, p22);
+    if(irc < 0) continue;
+    // intersecting Face found; get intersecting EdgeNr
+    *iEdg =  esn;
+    goto L_found;
+  }
+
+  L_Err1:
+  iif = -1;
+  irc = -1;
+
+  L_found:
+  *iFac = iif;
+
+    // printf("ex UFA_if_findSegP irc=%d iFac=%d iEdg=%d\n",irc,iif,esn);
+    // if(irc>=0)
+      // printf("   f[%d]=%d-%d-%d\n",iif,fa[iif].i1,fa[iif].i2,fa[iif].i3);
+
+  return irc;
+
+}
+
+ 
+//================================================================
+  int UFA_mod_delPt (MemTab(Fac3) *fTab, int ip) {
+//================================================================
+/// UFA_mod_delPt         change all face-pointers >= ip to ip-1
+
+  int   i1;
+  Fac3  *fa = fTab->data;
+
+
+  for(i1=0; i1<fTab->rNr;  ++i1) {
+    if(fa[i1].i1 >= ip) fa[i1].i1 -= 1;
+    if(fa[i1].i2 >= ip) fa[i1].i2 -= 1;
+    if(fa[i1].i3 >= ip) fa[i1].i3 -= 1;
+  }
+    
+  return 0;
+    
+} 
+
+
 //================================================================
   int UFA_BL_cke (int ie1, int ie2, MemTab(EdgeLine) *eTab) {
 //================================================================
@@ -220,11 +396,11 @@ typedef_MemTab(EdgeLine);
   int UFA_fnb_init__ (Fac3 *fnb, Fac3 *fa, int fNr) {
 //================================================================
 /// \code
-/// Zu den Faces eine Parallelstructur fnb aufbauen,
+/// Zu den Faces fa eine Parallelstructur fnb aufbauen,
 /// in denen die NachbarFacNrs gespeichert sind.
 /// (Fac3*)fnb: i1 ist der Index zum Nachbarface der Kante 1
 ///    (Kante 1 geht von Punkt 1 zu Punkt 2) usw.
-///    Index -1: kein NachbarFace gefunden.
+///    Index -1: kein NachbarFace gefunden (outer boundary).
 /// EdgeSeqNrs der NachbarFaces werden nicht geliefert.
 /// \endcode
 
@@ -1065,8 +1241,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   // if(d3 < (d1 * 1.1)) return -2;  // Inkreis
   // if(d3 > (d1 * 0.9)) return -2;  // Umkreis
   // if(d3 >= d1) return -2;  // Umkreis
-# define TOL_GIS_PT  0.1
-  if(d3 > (d1 - TOL_GIS_PT)) return -2;  // Umkreis
+# define gis_TOL_PT  0.1
+  if(d3 > (d1 - gis_TOL_PT)) return -2;  // Umkreis
 
   return 0;
 
@@ -1134,8 +1310,12 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //================================================================
 // UFA_2ip_ck_ptfac   ck if ip1 is used in face fc; get ip2, ip3.
 // check if face fc uses point ip1; if yes get the other points > ip2,ip3.
+// Input:
+//   fc     face to test
+//   ip1    pointIndex to test
 // Output:
-//   ip2    -1 = ip1 not in face.
+//   ip2    -1 = ip1 not in face, else next ip of face
+//   ip3    next ip of face
 
 
   // printf("UFA_2ip_ck_ptfac fac %d %d %d ip1 %d\n",fc->i1,fc->i2,fc->i3,ip1);
@@ -1351,30 +1531,30 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
 //================================================================
-  int UFA_2ip_fac_esn (int *i1, int *i2, int ie, Fac3 *fc) {
+  int UFA_2ip_fac_esn (int *i1, int *i2, int esn, Fac3 *fc) {
 //================================================================
 // get the pointNr's from Face and its EdgeSeqNr (1|2|3)
 // Input:
-//   ie    EdgeNr 1 (i1-i2) or 2 (i2-i3) or 3 (i3-i1)
+//   esn    EdgeNr 1 (i1-i2) or 2 (i2-i3) or 3 (i3-i1)
 
 
-  if(ie < 0) ie = -ie;
+  if(esn < 0) esn = -esn;
 
-  // printf("UFA_2ip_fac_esn %d\n",ie);
+  // printf("UFA_2ip_fac_esn %d\n",esn);
 
 
   // irc=1: Edge i1-i2;
-  if(ie == 1) {
+  if(esn == 1) {
     *i1 = fc->i1;
     *i2 = fc->i2;
 
   // irc=2: Edge i2-i3;
-  } else if(ie == 2) {
+  } else if(esn == 2) {
     *i1 = fc->i2;
     *i2 = fc->i3;
 
   // irc=3: Edge i3-i1;
-  } else if(ie == 3) {
+  } else if(esn == 3) {
     *i1 = fc->i3;
     *i2 = fc->i1;
   }
@@ -1524,8 +1704,13 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
     L_add:
       iTab[ii] = i1;
-      if(ii < iSiz) ++ii;
-      else { TX_Print("UFA_nifac_ck_pt E001"); return -1; }
+      if(ii < iSiz) {
+        ++ii;
+      } else {
+        TX_Print("UFA_nifac_ck_pt E001");
+        printf("***** ERROR UFA_nifac_ck_pt iSiz=%d ii=%d\n",iSiz,ii);
+        return -1;
+      }
   }
 
   *iNr = ii;

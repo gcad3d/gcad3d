@@ -1,7 +1,7 @@
 // DXF read, write  dxfr_ dxfw_                          RF  2001-06-17
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -516,8 +516,8 @@ __declspec(dllexport) int DXF_r__ (char*);
 
 #include "../gr/ut_UI.h"              // SYM_SQUARE ..
 
-#include "../xa/xa.h"                 // mem_cbuf1_SIZ
-#include "../xa/xa_mem.h"             // memspc55
+#include "../xa/xa.h"                 // ?
+#include "../xa/xa_mem.h"             // memspc55 mem_cbuf1
 #include "../xa/xa_sele.h"            // Typ_go*
 
 

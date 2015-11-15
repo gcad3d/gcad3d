@@ -1,5 +1,9 @@
 // xa_ui_gr.h
 
+/// test if hide or view is active; 1=yes, 0=no.
+#define UI_CK_HIDE_VIEW (((UI_stat_hide==0)||(UI_stat_view==0))?1:0)
+
+
 // OpenGL interface app2GL
 void UI_GR_DrawInit ();
 void UI_GR_DrawExit ();

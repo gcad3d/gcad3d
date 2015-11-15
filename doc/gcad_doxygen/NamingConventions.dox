@@ -1,7 +1,7 @@
 /*! \page pag_nConv NamingConventions
 
 
-\verbinclude NamingConventions.txt
+\verbinclude "../../doc/gcad_doxygen/NamingConventions.txt"
 
 
 */

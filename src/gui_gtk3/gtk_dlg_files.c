@@ -37,7 +37,10 @@ List_functions_start:
 GUI_file_open__    open file, waiting.
 GUI_file_save__    save file, waiting.
 
+GUI_file_open_1
+GUI_file_save_1
 GUI_file_cb_dirsym1 INTERNAL
+GUI_file_cb_dirsym2 INTERNAL
 GUI_file_cb_filt    INTERNAL
 
 List_functions_end:
@@ -256,46 +259,9 @@ void* GUI_file_get () { return UI_FileWin; }
 
 
   //----------------------------------------------------------------
-  // wait, modal:
-  // start waiting; does not return until user clicks button.
-  iRes = gtk_dialog_run (GTK_DIALOG (UI_FileWin));    // wait (modal) !
-    printf(" iRes=%d\n",iRes);
-
-
-  if (iRes == GTK_RESPONSE_ACCEPT) {
-    char *filename;
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (UI_FileWin));
-      // printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
-
-
-#ifdef _MSC_VER
-    p1 = strrchr(filename, '\\');
-#else
-    p1 = strrchr(filename, '/');
-#endif
-    i1 = p1 - filename;
-    if(i1 >= GUI_dlg1.dSiz) {iRes = -2; goto L_exit; }
-      // printf(" i1=%d\n",i1);
-    strncpy(GUI_dlg1.dNam, filename, i1);
-    GUI_dlg1.dNam[i1] = '\0';
-    ++p1;
-    if(strlen(p1) >= GUI_dlg1.fSiz) {iRes = -2; goto L_exit; }
-    strcpy(GUI_dlg1.fNam, p1);
-
-    g_free (filename);
-    iRes = 0;
-
-  } else {
-    iRes = -1;
-  }
-
-  L_exit:
-  if(UI_FileWin) {    // not yet killed from DIR-SYM
-    gtk_widget_destroy (UI_FileWin);
-    UI_FileWin = NULL;
-  }
-
-  return iRes;
+  // wait, modal:  // 2015-07-08
+  return GUI_Dialog_run (GUI_dlg1.dNam, GUI_dlg1.dSiz, 
+                         GUI_dlg1.fNam, GUI_dlg1.fSiz, UI_FileWin);
 
 }
 
@@ -448,46 +414,9 @@ void* GUI_file_get () { return UI_FileWin; }
 
 
   //----------------------------------------------------------------
-  // wait, modal:
-  // start waiting; does not return until user clicks button.
-  iRes = gtk_dialog_run (GTK_DIALOG (UI_FileWin));    // wait (modal) !
-    printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
-
-
-  if (iRes == GTK_RESPONSE_ACCEPT) {
-    char *filename;
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (UI_FileWin));
-      // printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
-
-#ifdef _MSC_VER
-    p1 = strrchr(filename, '\\');
-#else
-    p1 = strrchr(filename, '/');
-#endif
-    i1 = p1 - filename;
-    if(i1 >= GUI_dlg1.dSiz) {iRes = -2; goto L_exit; }
-      // printf(" i1=%d\n",i1);
-    strncpy(GUI_dlg1.dNam, filename, i1);
-    GUI_dlg1.dNam[i1] = '\0';
-    ++p1;
-    if(strlen(p1) >= GUI_dlg1.fSiz) {iRes = -2; goto L_exit; }
-    strcpy(GUI_dlg1.fNam, p1);
-
-    g_free (filename);
-    iRes = 0;
-
-  } else {
-    iRes = -1;
-  }
-
-
-  L_exit:
-  if(UI_FileWin) {    // not yet killed from DIR-SYM
-    gtk_widget_destroy (UI_FileWin);
-    UI_FileWin = NULL;                 // 2013-05-13
-  }
-
-  return iRes;
+  // wait, modal:  // 2015-07-08
+  return GUI_Dialog_run (GUI_dlg1.dNam, GUI_dlg1.dSiz, 
+                         GUI_dlg1.fNam, GUI_dlg1.fSiz, UI_FileWin);
 
 }
 
@@ -566,7 +495,9 @@ void* GUI_file_get () { return UI_FileWin; }
 /// display content of selected dir. in fileChooser ..
 /// \endcode
 
-  // char  wTit[80];
+
+  int   irc;
+  char  s1[256];
 
 
   printf("GUI_file_cb_dirsym2 %d\n",GUI_DATA_EVENT);
@@ -583,6 +514,21 @@ void* GUI_file_get () { return UI_FileWin; }
   if(data) {
     // normal selection; 
       printf("GUI_File_cb_dirsym2 |%s|%s|\n",GUI_DATA_S3,GUI_DATA_S4);
+
+
+    // test if directory <GUI_DATA_S4> exists  2015-08-29
+    irc = OS_checkFilExist (GUI_DATA_S4, 1);
+    if(!irc) {
+      // delete ListWindow
+      GUI_list1_dlg_del ();
+      GUI_dlg1.stat = 0;
+      // message
+      sprintf(s1, " dir. %s does not exist ..\n",GUI_DATA_S4);
+      GUI_MsgBox (s1);
+      // GUI_MsgBox1 (s1, UI_FileWin);
+      return TRUE;
+    }
+
 
     // copy symbolic name -> title (size of title misssing)
     // strcpy (GUI_dlg1.title, GUI_DATA_S3);

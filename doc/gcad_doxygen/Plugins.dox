@@ -1,0 +1,128 @@
+/*! \page Plugins
+../gcad_doxygen/Plugins.dox
+
+<pre>
+\ref BasicStructure
+\ref GUI                            Userinterface
+\ref ApplicationObjects
+\ref ApplicationData
+\ref Errorhandling-Tests
+\ref Global-CAD-Datafields
+\ref Constants
+\ref Standards-Tolerences-Modelsize
+</pre>
+
+
+<hr>
+\section BasicStructure
+\verbinclude "../../doc/gcad_doxygen/BasicStructure.txt"
+Example:
+\include Demosimple.c
+
+
+<hr>
+\section GUI
+<pre>
+\ref Sourcefiles_gui
+Example:
+</pre>
+\include Demo_gui1.c
+
+
+<hr>
+\section ApplicationObjects
+\include "../../doc/gcad_doxygen/ApplicationObjects.txt"
+
+
+<hr>
+\section ApplicationData
+\include "../../doc/gcad_doxygen/ApplicationData.txt"
+
+
+
+
+<hr>
+\section Errorhandling-Tests
+
+<pre>
+see also Messages / \ref Direct-Messages
+</pre>
+
+\code
+
+AP_errStat_get
+AP_errStat_set      raise / reset error
+AP_errStat_reset
+AP_errText_set
+
+
+AP_debug__          Alt shift x
+AP_test__           Testfunction in core; activate by Ctl shift T
+                    exit durch Ctl shift X
+
+
+\endcode
+\section Global-CAD-Datafields
+\code
+
+// def. in ../xa/xa.c   or include ../xa/xa.h
+extern  char  WC_modnam[128];  // der Modelname
+extern  char  WC_modact[128];  // name of the active submodel; def="" (main)
+extern char   AP_printer[80];
+extern char   AP_browser[64];
+extern char   AP_dir_open[128];
+extern char   AP_lang[4];                   // en od de ..
+// def. in ../xa/xa.c
+extern Plane     WC_sur_act;            // act. constr.plane
+extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
+extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
+
+// def. in ../ci/NC_Main.c:
+extern double APT_ModSiz;       // Modelsize; Basiswert fuer Toleranzberechnung
+
+// def. in ../ut/ut_tol_const.h   or include ../ut/ut_geo.h
+extern double UT_TOL_pt         // Tolerance identical points
+extern double UT_TOL_ln         // Tolerance minimal lineLength
+extern double UT_TOL_cv         // Toleranz max. Abweichung Berechnung Kurven
+extern double UT_DISP_cv        // Toleranz max. Abweichung Darstellung Kurven
+extern double UT_DISP_ln        // length of construction-lines
+
+// ../xa/xa_ui.c:
+extern int    KeyStatShift;
+extern int    KeyStatCtrl;
+
+
+
+
+
+\endcode
+\section Constants
+<pre>
+\ref ut_const.h        Basic constants math.
+\ref ut_tol_const.h    Basic constants tolereances.
+\ref ut_geo_const.h    Basic constants geometry.
+</pre>
+
+
+
+
+
+\section Standards-Tolerences-Modelsize
+\code
+
+WC_ask_ModSiz        get APT_ModSiz
+WC_Init_Modsiz       set APT_ModSiz
+ WC_Init_Tol         deduct tolerances from APT_ModSiz   <<<<<<<<<<<<<<
+UI_WinToler          window for setting tolerances ..
+ GL_InitModelSize
+
+
+
+
+\endcode
+
+
+
+
+
+*/

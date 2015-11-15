@@ -1,7 +1,7 @@
 //     APT-Datbase.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1960,7 +1960,7 @@ Vector     DB_vc0;
 long DB_GetDynInd (int typ) {
 //=======================================================================
 /// \code
-/// returns next free dynamic object-Index for typ
+/// returns next free dynamic object-Index for typ (negative)
 /// \endcode
 
 
@@ -3924,7 +3924,7 @@ int DB_del_Mod__ () {
 //======================================================================
 /// \code
 /// in BasicModels gibts Reihenfolgenummer seqNr.
-/// Diese in korrekter Reihenfolge -> Datei ../tmp/Mod.lst ausgeben.
+/// Diese in korrekter Reihenfolge -> Datei <tmpdir>/Mod.lst ausgeben.
 /// irc: Anzahl Models; (<0: Error).
 /// \endcode
 
@@ -5870,10 +5870,17 @@ Point DB_GetPoint (long Ind) {
 
 
 
-//********************************************************************
+//================================================================
 long DB_StoreLine (long Ind, Line* ln1) {
-//********************************************************************
-
+//================================================================
+/// \code
+/// create DB-record for line
+/// Input:
+///   Ind       dbi; -1   get dynamic-obj-index; 
+///                  >=0  overwrite existing DB-record
+/// Output:
+///   RetCod     dbi  (negative for dynamic obj)
+/// \endcode
 
 // Achtung: wenn TypInd<0, dann muss ein dynam. Objekt noch
 //  erzeugt werden !
@@ -5887,7 +5894,7 @@ long DB_StoreLine (long Ind, Line* ln1) {
 
   // Dynam. Objekt erzeugen -
   if(Ind < 0) {
-    dbi = DB_GetDynInd(Typ_LN);
+    dbi = DB_GetDynInd(Typ_LN);  // get dynamic DB-index (negative)
     ln_dyn[-dbi] = *ln1;
 
 
@@ -7482,7 +7489,6 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 
   } else if(typ == Typ_PLN) {      // Refsys
     if(ind >= 0) {
-        printf(" pln[%ld].p=%lf\n",ind,pln_tab[ind].p);
       if((ind > APT_PL_SIZ)||(DB_isFree_PLN(&pln_tab[ind]))) goto L_err;
     } else {
       if((-ind > DYN_PL_SIZ)||(DB_isFree_PLN(&pln_dyn[-ind]))) goto L_err;
@@ -8990,6 +8996,7 @@ long DB_QueryCurv (Point *pt1) {
      case Typ_SUR:
        for(i1=1; i1<25; ++i1) {
          if(DB_isFree_Sur (&su_tab[i1])) continue;
+           // printf(" used sur %d\n",i1);
          ++i2;
        }
        if(APT_SU_IND > 25) i2 += APT_SU_IND - 25;

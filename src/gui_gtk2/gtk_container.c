@@ -38,6 +38,7 @@ GUI_frame__            frame around widgets
 // GUI_frame_styl         modify frame
 
 GUI_toolbox__          removable container for widgets (was GUI_toolbar__)
+GUI_toolbox_del        kill toolbar
 
 GUI_box_paned__        get 2 boxes with movable separation-line
 GUI_box_paned_siz      modify size of primary paned-box
@@ -85,6 +86,11 @@ cc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_container.c
 extern GtkWidget *UI_act_wi;
 
 
+//----------------------------------------------------------------
+// local:
+static void   *toolBoxStart = NULL;
+// TODO: only for last active toolBox; should be stacked
+// better: handle toolBox like new window, keep parent in primary record ..
 
 
 
@@ -222,6 +228,39 @@ int GUI_box_paned_siz (MemObj *mo, int siz) {
 
 
 //=====================================================================
+  MemObj GUI_toolbox_del (MemObj *mo) {
+//=====================================================================
+// GUI_toolbox_del                   kill toolbar
+
+  int         Id;
+  Obj_Unknown *go;
+
+
+  // reload existing window-data 
+  Id = GUI_obj_reload (mo);
+  if(Id < 0) goto L_exit;
+
+
+  go = GUI_obj_pos (mo);
+  if(!go) goto L_exit;
+
+
+  GUI_set_show (mo, 0);    // hide toolbar
+  // GUI_obj_destroy (mo);
+  gtk_widget_destroy (go->widget);
+
+
+  // remove all widgets in UI_tmpSpc
+  GUI_obj_reset (toolBoxStart);
+
+
+  L_exit:
+  return GUI_OBJ_INVALID();
+
+}
+
+
+//=====================================================================
   MemObj GUI_toolbox__ (MemObj *o_par) {
 //=====================================================================
 /// \code
@@ -264,7 +303,7 @@ int GUI_box_paned_siz (MemObj *mo, int siz) {
   GUI_obj_spc ((void**)&go, sizeof(Obj_Unknown));
   if(!go) return (UME_obj_invalid_set (-1));
 
-
+  toolBoxStart = (void*)go;
 
   // box1 = gtk_toolbar_new ();
   // gtk_toolbar_set_style(GTK_TOOLBAR(box1), GTK_TOOLBAR_TEXT);

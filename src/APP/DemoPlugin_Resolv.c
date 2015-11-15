@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,8 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
-  dla = DL_GetAtt(dl_ind);               // get DL-record
+  // dla = DL_GetAtt(dl_ind);               // get DL-record
+  DL_get_dla (&dla, dl_ind);
   apt_typ  = dla.typ;
   apt_ind  = dla.ind;
   model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
@@ -223,7 +224,8 @@ __declspec(dllexport) int gCad_fini ();
 
   for(l1=0; l1<dlNr; ++l1) {
 
-    dla = DL_GetAtt(l1);                  // get alle DL-Infos
+    // dla = DL_GetAtt(l1);                  // get alle DL-Infos
+    DL_get_dla (&dla, l1);
     apt_typ  = dla.typ;
     apt_ind  = dla.ind;
     model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
@@ -286,7 +288,8 @@ __declspec(dllexport) int gCad_fini ();
     if(dlInd < 0) continue;                // no DispListRecord ..
 
     // get DispListRecord of object ...
-    dla = DL_GetAtt(dlInd);
+    // dla = DL_GetAtt(dlInd);
+    DL_get_dla (&dla, dlInd);
 
     printf(" dbI=%ld dlI=%ld typ=%d disp=%d\n",dbInd,dlInd,o1->typ,dla.disp);
 

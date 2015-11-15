@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# ./NEW_VERSION.sh
+# ./NEW_VERSION1.sh
 # start in <baseDir>/gcad3d/src/
 
 srcDir=`pwd`
@@ -67,29 +67,6 @@ cd ${srcDir}/APP
 cd ${srcDir}/APP
 ./gendef.sh
 
-
-
-# create debian-package (binary, <basDir>/packages/gCAD3D-#.##-bin-xxxxx.deb)
-cd ${basDir}/debian
-./pack_deb.sh
-
-
-
-# create source-package (<basDir>/packages/gCAD3D-#.##-src.zip)
-cd ${basDir}
-./pack_src.sh
-
-
-
-# create docu-package (<basDir>/packages/gCAD3D-doc-#.##.zip)
-cd ${basDir}/doc
-./packDoc.sh
-
-
-
-# create <basDir>/packages/upd.zip
-cd ${basDir}/packages
-./packUpd.sh
 
 
 echo fertig

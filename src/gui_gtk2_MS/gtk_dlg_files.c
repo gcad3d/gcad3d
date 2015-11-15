@@ -220,48 +220,9 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 
 
   //----------------------------------------------------------------
-  // wait, modal:
-  // start waiting; does not return until user clicks button.
-  iRes = gtk_dialog_run (GTK_DIALOG (UI_FileWin));    // wait (modal) !
-    // printf(" iRes=%d\n",iRes);
-  // GTK_RESPONSE_ACCEPT
-  // GTK_RESPONSE_OK GTK_RESPONSE_YES GTK_RESPONSE_CANCEL ..
-
-
-  if (iRes == GTK_RESPONSE_ACCEPT) {
-    char *filename;
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (UI_FileWin));
-      // printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
-
-#ifdef _MSC_VER
-    p1 = strrchr(filename, '\\');
-#else
-    p1 = strrchr(filename, '/');
-#endif
-    i1 = p1 - filename;
-    if(i1 >= dSiz) {iRes = -2; goto L_exit; }
-      // printf(" i1=%d\n",i1);
-    strncpy(dirNam, filename, i1);
-    dirNam[i1] = '\0';
-    ++p1;
-    if(strlen(p1) >= fSiz) {iRes = -2; goto L_exit; }
-    strcpy(filNam, p1);
-
-    g_free (filename);
-    iRes = 0;
-
-  } else {
-    iRes = -1;
-  }
-
-
-  L_exit:
-  gtk_widget_destroy (UI_FileWin);
-  UI_FileWin = NULL;                 // 2013-05-13
-  if(dirLst) GUI_list1_dlg_del ();   // remove dir-list
-
-
-  return iRes;
+  // wait, modal:  // 2015-07-08
+  return GUI_Dialog_run (dirNam, dSiz,
+                         filNam, fSiz, UI_FileWin);
 
 }
 
@@ -383,48 +344,9 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 
 
   //----------------------------------------------------------------
-  // wait, modal:
-  // start waiting; does not return until user clicks button.
-  iRes = gtk_dialog_run (GTK_DIALOG (UI_FileWin));    // wait (modal) !
-    // printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
-  // GTK_RESPONSE_ACCEPT
-  // GTK_RESPONSE_OK GTK_RESPONSE_YES GTK_RESPONSE_CANCEL ..
-
-
-  if (iRes == GTK_RESPONSE_ACCEPT) {
-    char *filename;
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (UI_FileWin));
-      // printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
-
-#ifdef _MSC_VER
-    p1 = strrchr(filename, '\\');
-#else
-    p1 = strrchr(filename, '/');
-#endif
-    i1 = p1 - filename;
-    if(i1 >= dSiz) {iRes = -2; goto L_exit; }
-      // printf(" i1=%d\n",i1);
-    strncpy(dirNam, filename, i1);
-    dirNam[i1] = '\0';
-    ++p1;
-    if(strlen(p1) >= fSiz) {iRes = -2; goto L_exit; }
-    strcpy(filNam, p1);
-
-    g_free (filename);
-    iRes = 0;
-
-  } else {
-    iRes = -1;
-  }
-
-
-  L_exit:
-  gtk_widget_destroy (UI_FileWin);
-  UI_FileWin = NULL;                 // 2013-05-13
-  if(dirLst) GUI_list1_dlg_del ();   // remove dir-list
-
-
-  return iRes;
+  // wait, modal:  // 2015-07-08
+  return GUI_Dialog_run (dirNam, dSiz,
+                         filNam, fSiz, UI_FileWin);
 
 }
 
@@ -492,7 +414,8 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 /// display content of selected dir. in fileChooser ..
 /// \endcode
 
-  char  wTit[80];
+  int   irc;
+  char  s1[256];
 
 
   // printf("GUI_file_cb_dirsym2 %d\n",GUI_DATA_EVENT);
@@ -505,15 +428,25 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
     if(GUI_DATA_EVENT == TYP_EventExit) return FALSE;
 
 
+    // test if directory <GUI_DATA_S4> exists  2015-08-29
+    irc = OS_checkFilExist (GUI_DATA_S4, 1);
+    if(!irc) {
+      // delete ListWindow
+      GUI_list1_dlg_del ();
+      // message
+      sprintf(s1, " dir. %s does not exist ..\n",GUI_DATA_S4);
+      GUI_MsgBox1 (s1, UI_FileWin);
+      return FALSE;
+    }
+
+
     gtk_window_set_modal (GTK_WINDOW (UI_FileWin), TRUE);
     gtk_window_set_transient_for (GTK_WINDOW(UI_FileWin), GTK_WINDOW(UI_MainWin));
 
 
     // set new directory
-    sprintf (wTit, " sym.dir %s", GUI_DATA_S3);
-    gtk_window_set_title (GTK_WINDOW (UI_FileWin), wTit);
-
-
+    sprintf (s1, " sym.dir %s", GUI_DATA_S3);
+    gtk_window_set_title (GTK_WINDOW (UI_FileWin), s1);
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (UI_FileWin),
                                          GUI_DATA_S4);
 

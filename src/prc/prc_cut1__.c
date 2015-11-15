@@ -1,7 +1,7 @@
 // gCAD3D NC-Processor
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1247,7 +1247,8 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
   // init toolbar
   if(GUI_OBJ_IS_VALID(&PRCE_tb__)) {
-    GUI_set_show (&PRCE_tb__, 1);
+    // GUI_set_show (&PRCE_tb__, 1);
+    return -1;
   } else {
     PRCE_tb_win (&UIw_Box_TB, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
   }
@@ -1362,7 +1363,8 @@ static int pp_id=0;
   // DL_hili_off (-1L);             //  -1 = unhilite all
 
   // remove Toolbar
-  GUI_set_show (&PRCE_tb__, 0);
+  // GUI_set_show (&PRCE_tb__, 0);
+  PRCE_tb__ = GUI_toolbox_del (&PRCE_tb__);
 
   // restore some application-functions...
   UI_func_stat_set__ (APF_VWR,

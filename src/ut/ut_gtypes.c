@@ -1,7 +1,7 @@
 //    ../ut/ut_types.c
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ List_functions_start:
 APED_dbo_oid      give typ, index from text "P12"
 APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
 APED_oid_dbo_all      make name from typ and DB-index  (all types)
+APED_oid_vc         get oid for Vector; (DX or DIX or D#)
 
 AP_typ_srcExpr      decode expression
 AP_typ_FncNam       get type of function
@@ -269,6 +270,243 @@ char  *ObjCodTab[] = {
 
 //----------------------------------------------------------------
 
+
+
+
+
+
+//================================================================
+  int APED_oid_dbo_all (char *oid, int typ, long dbi, long dli) {
+//================================================================
+/// \code
+/// APED_oid_dbo_all          make name from typ and DB-index  (all types)
+/// Input:
+///   dli       -1 for unknown; used only for applicationObjects
+///
+/// see also APED_oid_dbo__ AP_typ_2_bastyp AP_cre_defHdr
+/// \endcode
+
+  int   irc;
+
+  // printf("APED_oid_dbo_all %d %ld %ld\n",typ,dbi,dli);
+
+
+
+  if(typ == Typ_APPOBJ) {
+    PLU_oid_appNam (oid,dli);
+
+  } else if(typ == Typ_TmpPT) {
+    strcpy(oid, "ConstrPlane");
+
+
+  } else if(typ == TYP_FilNam) {
+    strcpy(oid, "ext.Files");
+
+  } else if(typ == Typ_SubModel) {
+    strcpy(oid, "int.Files");
+
+  } else if(typ == Typ_CtlgPart) {
+    strcpy(oid, "ctlgFiles");
+
+
+  } else if(TYP_IS_MOD(typ)) {
+    strcpy(oid, AP_src_typMod (typ));
+
+
+  } else {
+
+    irc = APED_oid_dbo__ (oid, typ, dbi);
+  }
+
+
+    // printf("ex APED_oid_dbo_all |%s| %d %ld %ld\n",oid, typ, dbi, dli);
+
+
+  return irc;
+
+}
+
+
+//====================================================================
+  int APED_oid_dbo__ (char *buf, int typ, long ind) {
+//====================================================================
+/// \code
+/// APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
+/// see also APED_oid_dbo_all AP_typ_2_bastyp AP_cre_defHdr
+/// \endcode
+
+// FuncNam should be APED_oid_dbo_all
+
+  char   *p1;
+
+  // printf("APED_oid_dbo__ %d %d\n",typ,ind);
+
+
+  if(       (typ == Typ_PT)    ||
+            (typ == Typ_PT2)   ||
+            (typ == Typ_TmpPT))      {
+    sprintf(buf, "P%ld", ind);
+
+
+  } else if((typ == Typ_LN)    ||
+            (typ == Typ_LN2))        {
+    sprintf(buf, "L%ld", ind);
+
+
+  } else if((typ == Typ_CI)    ||
+            (typ == Typ_CI2))        {
+    sprintf(buf, "C%ld", ind);
+
+
+  } else if(typ == Typ_PLN) {
+    if(ind >= 0) sprintf(buf, "R%ld", ind);
+    else {
+      if     (ind == DB_PLX_IND) sprintf(buf, "RX");
+      else if(ind == DB_PLY_IND) sprintf(buf, "RY");
+      else if(ind == DB_PLZ_IND) sprintf(buf, "RZ");
+    }
+
+
+
+  } else if(typ == Typ_VC) {
+    if(ind >= 0) sprintf(buf, "D%ld", ind);
+    else {
+      if     (ind == DB_VCX_IND) sprintf(buf, "DX");
+      else if(ind == DB_VCY_IND) sprintf(buf, "DY");
+      else if(ind == DB_VCZ_IND) sprintf(buf, "DZ");
+      else if(ind == DB_VCIX_IND) sprintf(buf, "DIX");
+      else if(ind == DB_VCIY_IND) sprintf(buf, "DIY");
+      else if(ind == DB_VCIZ_IND) sprintf(buf, "DIZ");
+      else sprintf(buf, "D%ld", ind);
+    }
+
+
+  } else if((typ == Typ_CV)      ||
+            (typ == Typ_CVLNA)   ||
+            (typ == Typ_CVPOL)   ||
+            (typ == Typ_CVPOL2)  ||
+            (typ == Typ_CVBSP)   ||
+            (typ == Typ_CVRBSP)  ||
+            (typ == Typ_CVELL)   ||
+            (typ == Typ_CVCLOT)  ||
+            (typ == Typ_CVCCV))      {
+    sprintf(buf, "S%ld", ind);
+
+
+  } else if((typ == Typ_SUR)      ||
+            (typ == Typ_SURRU)    ||
+            (typ == Typ_SURRV)    ||
+            (typ == Typ_SURCIR)   ||
+            (typ == Typ_SURSTRIP) ||
+            (typ == Typ_SURBSP)   ||
+            (typ == Typ_SURRBSP)  ||
+            (typ == Typ_SURPTAB)  ||
+            (typ == Typ_SURMSH))    {
+    sprintf(buf, "A%ld", ind);
+
+
+  } else if((typ == Typ_SOL)   ||
+            (typ == Typ_CON)   ||
+            (typ == Typ_TOR))        {
+    sprintf(buf, "B%ld", ind);
+
+
+  } else if((typ == Typ_Note)  ||
+            (typ == Typ_ATXT)  ||
+            (typ == Typ_GTXT)  ||
+            (typ == Typ_Dimen) ||
+            (typ == Typ_SymV)  ||                           // 2011-08-07
+            (typ == Typ_Tag))         {
+    sprintf(buf, "N%ld", ind);
+
+
+  } else if((typ == Typ_Model) ||
+            (typ == Typ_Mock))        {
+    sprintf(buf, "M%ld", ind);
+
+
+  } else if(typ == Typ_Val) {
+    //sprintf (buf,"%f,%f",pt1.x,pt1.y);
+    //strcpy(buf, ",");
+    buf[0] = '\0';
+    return -1;
+    // UTX_add_fl_u2 (buf, pt1.x,pt1.y);
+
+
+  } else if(typ == Typ_VAR) {  // hat hoechste Select-Prioritaet in GL
+    sprintf(buf, "V%ld", ind);
+
+
+  } else if(typ == Typ_Tra) {  // Transformation
+    sprintf(buf, "T%ld", ind);
+
+
+  } else if(typ == Typ_Activ) {  // Activity
+    sprintf(buf, "I%ld", ind);
+
+
+  } else if(typ == Typ_Joint) {  // Joint
+    sprintf(buf, "J%ld", ind);
+
+
+  } else if(typ == Typ_Group) {  // undefined  // 2011-06-01 was Typ_goGeom
+    sprintf(buf, "U%ld", ind);
+
+
+  } else if(typ == Typ_SymB) {  // temporary-SymBmp
+    sprintf(buf, "Sym%ld", ind);
+
+
+  } else if(typ == Typ_APPOBJ) {  // ApplicationObj
+    sprintf(buf, "App%ld", ind);
+
+
+  } else {
+
+    strcpy(buf, "-");
+    p1 = AP_src_typ__ (typ);
+    // TX_Error("APED_oid_dbo__: Objekttyp %d gefunden",typ);
+    TX_Print("Err APED_oid_dbo__ obj %s %d %d",p1,ind,typ);
+    return -1;
+
+  }
+
+  // printf("ex APED_oid_dbo__ |%s| %d\n",buf,strlen(buf)); // nur Testausg.
+
+  return 1;
+
+}
+
+
+//====================================================================
+  int APED_oid_vc (char *cbuf, Vector *vc1) {
+//====================================================================
+/// \code
+/// APED_oid_vc          get oid for Vector; (DX or DIX or D#)
+/// check if Vector is a Defaultvektor (DX or DIX or ...)
+/// Input:
+///   vc1      struct Vector*
+/// Output:
+///   text     eg "DZ" if RetCod < 0
+///   RC =  0: no, allgemeiner vektor;
+///   RC != 0: yes, -1=DX, -4=DIX, (DB-index of standard-vector)
+/// see AP_vec_txt
+/// \endcode
+
+  int       i1, ii;
+  double    dx, dy, dz;
+  char      *vcTab[]={NULL,"DX","DY","DZ","DIX","DIY","DIZ"};
+
+
+  i1 = UT3D_vc_ck_std (vc1);  // check for defaultVector (DX DY DZ DIX DIY DIZ)
+  if(!i1) { cbuf[0] = '\0'; return 0; }
+
+  ii = i1; if(ii < 0) ii = 3 - ii;  // gives 1-6
+  strcpy(cbuf, vcTab[ii]);
+
+  return -ii;  // DBindex: -1 - -6
+
+}
 
 
 //================================================================

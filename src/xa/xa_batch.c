@@ -1,7 +1,7 @@
 //  xa_batch.c                                2005-06-25
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -230,7 +230,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
 
 
   // Startup fertig; in debug: give chance to set watchpoints
-  AP_debug__ (); // die func ist ganz leer; ist als stoppoint definiert.
+  AP_debug__ ("batch"); // die func ist ganz leer; ist als stoppoint definiert.
 
 
   // Call Userfunc
@@ -445,7 +445,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void DL_GetInd () {}
   void DL_GetTrInd () {}
   void DL_Get_lNr_dli () {}
-  void DL_GetAtt () {}
+  void DL_get_dla () {}
   void DL_SetInd () {}
   void DL_Lay_mod () {}
   void DL_Lay_act_g1 () {}

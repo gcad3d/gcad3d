@@ -1,6 +1,6 @@
 // example dialog.
 /*
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
-  ..
+2015-08-18 UNDO_app__ added. RF.
 
 -----------------------------------------------------
 */
@@ -90,7 +90,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
   static MemObj  win0;
-  static MemObj  dia_ideg, dia_lb_func;
+  static MemObj  dia_lb_func;
 
   static long    ID_tab[3];
   static long    dl_start;
@@ -103,84 +103,6 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
-
-
-
-
-
-
-//=========================================================
-  int dia_sele2 (int src, long dl_ind) {
-//=========================================================
-// userselection-callback  turn-arrow
-// (user selects arrow)
-
-  int    i1, irc, ideg;
-  long   l1;
-  ObjGX  ox1;
-  DL_Att att1;
-
-
-
-  printf("dia_sele2 source=%d ind=%ld nr=%d\n",src,dl_ind,dia_nr);
-
-
-  if(src != GUI_MouseL) goto L_err_1; // skip all but left mousebutt.
-
-  // get DL-record
-  att1 = DL_GetAtt(dl_ind);
-
-  if(att1.typ != Typ_SymV) goto L_err_1;     // skip all but symbols
-
-
-  for(i1=0; i1<3; ++i1) {
-    if(ID_tab[i1] == dl_ind) {         // dynam. symbols report DL-Ind.
-      printf(" arr %d sel\n",i1);
-      goto L_1;
-    }
-  }
-  goto L_err_1;
-
-
-
-  //-----------------------------------------------------
-  L_1:
-  // delete selected obj
-  GL_Del0 (ID_tab[i1]);
-
-  // delete displist from dl_start -> end (points, line from last run)
-  if(dl_start != 0) GL_Delete (dl_start+1);
-
-  // redraw inverted vector
-  UT3D_vc_invert (&vc_tab[i1], &vc_tab[i1]);   // invert vector
-  APT_disp_SymV3 (SYM_ARROW, 0, &pt_tab[i1], &vc_tab[i1], 10.);
-  ID_tab[i1] = GL_GetActInd();
-
-  // save DL-posi (to delete all foll. objs)
-  dl_start = GL_GetActInd(); // keep last obj
-
-  // 2 point & 1 line
-  UT3D_pt_traptvclen (&ln1.p1, &pt_tab[i1], &vc_tab[i1], -20.);
-  l1 = -1;  // do not store obj in DB
-  GR_CrePoint (&l1, 0, &ln1.p1);
-  UT3D_pt_traptvclen (&ln1.p2, &pt_tab[i1], &vc_tab[i1], -100.);
-  l1 = -1;  // do not store obj in DB
-  GR_CrePoint (&l1, 0, &ln1.p2);
-  l1 = -1;  // do not store obj in DB
-  GR_CreLine (&l1, 1, &ln1);
-
-  DL_Redraw (); // Redraw DispList
-
-  return 0;
-
-
-
-  //-----------------------------------------------------
-  L_err_1:
-  TX_Print (" select arrow !!");
-  return 0;
-
-}
 
 
 //=========================================================
@@ -214,7 +136,7 @@ __declspec(dllexport) int gCad_fini ();
   // select Point
   } else {
     // get DL-record
-    att1 = DL_GetAtt(dl_ind);
+    DL_get_dla (&att1, dl_ind);
 
     if(att1.typ == Typ_PT) {
       pt1 = DB_GetPoint (att1.ind);
@@ -257,15 +179,13 @@ __declspec(dllexport) int gCad_fini ();
   }
 
 
-  // get degree
-  // p1 = gtk_entry_get_text (GTK_ENTRY(dia_ideg));
-  p1 = GUI_entry_get (&dia_ideg);
-  ideg = atoi(p1);
+
 
   // // reset dim (graf att 1 = default)
   // ED_add_Line ("G1");
 
   // polygon -> B-spline
+  ideg = 2;
   sprintf(cBuf,"S%d=BSP,S%d,%d",irc+1,irc,ideg);
   UTF_add1_line  (cBuf);
 
@@ -275,6 +195,8 @@ __declspec(dllexport) int gCad_fini ();
 
   // reset
   dia_nr = 0;
+
+  GUI_label_mod (&dia_lb_func, " - ");
 
 
   return 0;
@@ -313,10 +235,25 @@ __declspec(dllexport) int gCad_fini ();
 //=========================================================
 // dll being unloaded - reset Input, kill all open windows !!!
 
+
+  printf("gCad_fini \n");
+
+
+  // do nothing, if already unloaded.
+  if(!GUI_OBJ_IS_VALID(&win0)) return 0;
+
   // kill window
   GUI_Win_kill (&win0);
 
   AP_User_reset ();      // close application
+
+  // create undo-record; activate undo-button
+  UNDO_app__ (1);
+
+  // update browser-window
+  Brw_Mdl_upd ();
+
+  TX_Print ("DemoPlugin_Dialog closed.");
 
   return 0;
 
@@ -337,6 +274,9 @@ __declspec(dllexport) int gCad_fini ();
 
   // init diawin (create and display userpanel)
   dia_win_main (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
+
+  // init undo (get act.lNr)
+  UNDO_app__ (0);
 
   // init object-create
   dia_cre_init ();
@@ -379,17 +319,19 @@ __declspec(dllexport) int gCad_fini ();
       // textlabel
       GUI_label__ (&box0, "active function is:", "l");
       // textlabel
-      dia_lb_func = GUI_label__ (&box0, "points->curve ", "l");
+      dia_lb_func = GUI_label__ (&box0, " - ", "l");
 
 
       // create buttons (parentwidget, textlabel, callback, CB-data, border)
       // box0 = GUI_Hbox (box0, 0);
       GUI_button__ (&box0, " points->curve ", dia_CB_1, (void*)"p2c", "");
-      dia_ideg = GUI_entry__(&box0,  "degree","2", NULL, NULL, "");
-      GUI_button__ (&box0, " turn vec ", dia_CB_1, (void*)"turn", "");
+      GUI_Tip (" indicate/select 5 points for polygon/spline ..");
       GUI_button__ (&box0, " polygon ", dia_cre_Poly, NULL, "a,a");
+      GUI_Tip (" create a polygon (size 15.)");
       GUI_button__ (&box0, " Export ", dia_CB_1, (void*)"Export", "");
+      GUI_Tip (" export complete -> iges ..");
       GUI_button__ (&box0, " Clear ",  dia_CB_1, (void*)"Clear", "");
+      GUI_Tip (" clear complete model ..");
       GUI_button__ (&box0, " Exit ",   dia_win_main, (void*)&GUI_FuncExit, "");
 
 
@@ -399,9 +341,6 @@ __declspec(dllexport) int gCad_fini ();
       GUI_Win_up (NULL, &win0, 0);  // always on top
       GUI_Win_go (&win0);
 
-      // inactivate box degree
-      GUI_set_enable (&dia_ideg, FALSE);
-
       break;
 
 
@@ -410,6 +349,7 @@ __declspec(dllexport) int gCad_fini ();
 
     //---------------------------------------------------------
     case UI_FuncExit:
+      if(!GUI_OBJ_IS_VALID(&win0)) return 0;
       gCad_fini ();
 
   }
@@ -431,8 +371,6 @@ static  Plane  pln;
 
   printf("Cre_Poly\n");
 
-  // clean undo-tables
-  UNDO_clear ();
 
 
   // polygonpoints
@@ -490,9 +428,6 @@ static  Plane  pln;
     // replace info
     GUI_label_mod (&dia_lb_func, "points -> curve");
 
-    // reactivate box degree
-    GUI_set_enable (&dia_ideg, TRUE);
-
     // imply END-Button (Redraw)
     UI_but_END ();
 
@@ -503,52 +438,6 @@ static  Plane  pln;
 
     TX_Print(" --- select/indicate  5 points");
 
-
-
-
-  //-----------------------------------------------------
-  } else if(!strcmp(cp1, "turn")) {
-
-    // replace info
-    GUI_label_mod (&dia_lb_func, "turn arrows");
-
-    // inactivate box degree
-    GUI_set_enable (&dia_ideg, FALSE);
-
-
-    // create 3 pt's & 1 ln
-    // use only once (fixed objNam)
-    ED_add_Line ("P10=P(100,0)");
-    ED_add_Line ("P11=P(120,0)");
-    ED_add_Line ("P12=P(140,0)");
-    ED_add_Line ("L10=P10,P12");
-
-
-    // display vectors temporary (not stored in DB)
-    UT3D_pt_3db (&pt_tab[0], 100., 0., 0.);
-    UT3D_pt_3db (&pt_tab[1], 120., 0., 0.);
-    UT3D_pt_3db (&pt_tab[2], 140., 0., 0.);
-
-    UT3D_vc_3db (&vc_tab[0], 0., 1., 1.);
-    UT3D_vc_3db (&vc_tab[1], 0., 1., 1.);
-    UT3D_vc_3db (&vc_tab[2], 0., 1., 1.);
-
-    APT_disp_SymV3 (SYM_ARROW, 9, &pt_tab[0], &vc_tab[0], 10.);
-    ID_tab[0] = GL_GetActInd();  // save dispListIndex
-    APT_disp_SymV3 (SYM_ARROW, 9, &pt_tab[1], &vc_tab[1], 10.);
-    ID_tab[1] = GL_GetActInd();
-    APT_disp_SymV3 (SYM_ARROW, 9, &pt_tab[2], &vc_tab[2], 10.);
-    ID_tab[2] = GL_GetActInd();
-    printf(" arrID's=%ld,%ld,%ld\n",ID_tab[0],ID_tab[1],ID_tab[2]);
-
-    // Redraw DispList
-    DL_Redraw ();
-    TX_Print(" --- select arrow to invert");
-
-    // attach grafic selections -> func dia_sele2
-    AP_UserSelection_get (dia_sele2);
-
-    dl_start = 0;
 
   //-----------------------------------------------------
   }
@@ -569,6 +458,8 @@ static  Plane  pln;
 
   // clear auxBuffer UTF_FilBuf1
   UTF_clear1 ();
+
+  UTF_add1_line ("# DemoPlugin_Dialog start");
 
   // Init objNrs
   AP_obj_2_txt (NULL, 0L, NULL, 0L);
@@ -623,6 +514,7 @@ static  Plane  pln;
 
 
   // output auxBuffer UTF_FilBuf1 -> CAD
+  UTF_add1_line ("# DemoPlugin_Dialog end");
   UTF_insert1 (-1L);
 
   // update display (work new created objects)

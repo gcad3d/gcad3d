@@ -28,7 +28,7 @@
   int   UTF_insert1    (long cpos);
 
   int   UTF_del_line1  (long lNr);
-  int   UTF_del_rest   (char *text);
+  // int   UTF_del_rest   (char *text);
 
   long  UTF_GetLinLen  (char **lEnd, char *lStart);
 

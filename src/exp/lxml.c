@@ -1,7 +1,7 @@
 //  read LandXML-Functions                  RF   2007-09-17
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -277,7 +277,7 @@ static  MemTab(int) LM_eDat = MemTab_empty;
     MemTab_del (&LM_pTab, i1, 1);
 
     // change all face-pointers >= i1 to i1-1
-    MSH_FA_mod_delPt (&LM_fTab, i1);
+    UFA_mod_delPt (&LM_fTab, i1);
   }
   printf("  %d undefined points deleted\n",i2);
 

@@ -1,7 +1,7 @@
 //                                      2005-04-19    Reiter Franz
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ ICHG0x1                   change 0 > -1,-1 > 0, 1 > -2, -2 > 1           INLINE
 ILIM2                     returns x = between lo and hi                  INLINE
 ILIM0X                    returns x = between 0 and hi                   INLINE
 ILIM0x1                   returns 0 (ii >= 0) or -1 (ii < 0)             INLINE
+UTI_add_uniq              add int uniq to list
 UTI_deleq                 delete equal records form 2 intLists
 UTI_findeq                find 2 gleiche Elemente in 2 IntegerListen
 UTI_ni_sort               sort integerList
@@ -268,6 +269,28 @@ UTA_  functions for pointers (addresses)
   }
 
   if(i2 > 0) printf("\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTI_add_uniq (int *iNr, int *ia, int iNew) {
+//================================================================
+/// \code
+/// UTI_add_uniq              add int uniq to list
+/// NO CHECK FOR SIZE OF IA
+/// \endcode
+
+  int    i1;
+
+
+  for(i1=0; i1 < *iNr; ++i1) if(ia[i1] == iNew) return 1;
+
+  ia[*iNr] = iNew;
+
+  *iNr += 1;
 
   return 0;
 

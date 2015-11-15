@@ -1,7 +1,7 @@
 //     ut_txfil.c           Reiter 17.9.2000
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1382,7 +1382,10 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //===========================================================================
   int UTF_clear1 () {
 //===========================================================================
+/// \code
 /// UTF_clear1          den Zwischenspeicher Buf1 loeschen
+/// Example see UTF_insert1
+/// \endcode
 
 
   if(UTF_FilBuf1) {
@@ -1472,7 +1475,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   int UTF_add_file (char* fn) {
 //================================================================
 /// \code
-/// Datei in den in den Hauptbuffer laden - hintanhaengen
+/// Datei in den Hauptbuffer laden - hintanhaengen
 /// rc = -1 = Error;
 ///       1 = OK.
 /// \endcode
@@ -1650,6 +1653,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 /// \code
 /// UTF_add1_line        add string (0-termin.) into UTF_FilBuf1
 /// Schreibt --> UTF_FilBuf1  (hintanfuegen)
+/// retCod    0    OK
+///          -1    out of mem
+/// Example see UTF_insert1
 /// \endcode
 
   long newLen;
@@ -1821,6 +1827,15 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 /// auxBuffer: UTF_FilBuf1; mainBuffer: UTF_FilBuf0.
 /// cpos < 0: join buffers (mainBuffer += auxBuffer).
 /// update display after buffer-update: see APED_update__ ();
+/// Example:
+///   ObjGX o1; char s1[1000]; int siz_s1=1000; Point p1={1.,0.,0.};
+///   UTF_clear1 ();                       // init auxBuf
+///   AP_obj_2_txt (NULL, 0L, NULL, 0L);   // init AP_obj_2_txt
+///   OGX_SET_OBJ (&o1, Typ_PT, Typ_PT, 1, &p1); // create point-object
+///   AP_obj_2_txt (s1, siz_s1, &o1, -1L); // create sourcecode for obj -> auxBuf
+///   UTF_add1_line ("# end of xx");       // add text to auxBuf
+///   UTF_insert1 (-1L);       // store auxBuf (add to active code)
+///   APED_update__ (-1L);     // work new codes
 /// \endcode
 
 // UTF_insert1         Zwischenspeicher im Memory an Pos cpos einfuegen
@@ -2103,7 +2118,7 @@ Soll tx1 am Zeilenbeginn stehen:
 }
 
 
-
+/* UNUSED
 //===========================================================================
   int UTF_del_rest (char *text) {
 //===========================================================================
@@ -2129,6 +2144,6 @@ Soll tx1 am Zeilenbeginn stehen:
   return 0;
 
 }
-
+*/
 
 /*=================== EOF ============================*/

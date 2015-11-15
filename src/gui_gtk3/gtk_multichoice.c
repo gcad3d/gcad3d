@@ -19,6 +19,8 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2015-09-15 GUI_optmen_chg remove all existing children added. RF.
+2015-08-28 GUI_optmen__ disactivation fixed. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
 
 -----------------------------------------------------
@@ -116,6 +118,7 @@ extern GdkRGBA   *UI_stylTab[3];
   // set label = itemText
   gtk_label_set_text (GTK_LABEL(UI_optmen_act->data), pTab[2]);
 
+
   // report selection -> user
   pTab[0] = &iEv;
   pTab[1] = &lNr;
@@ -160,10 +163,17 @@ extern GdkRGBA   *UI_stylTab[3];
   int        ii;
   Obj_gui2   *go;
 
+
   // printf("GUI_optmen_go\n");
 
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
+
+  // test if optmen is active; else exit       2015-08-28
+  ii = gtk_widget_get_sensitive (go->widget);   
+    // printf(" sens=%d\n",ii); // !=0 is yes
+  if(!ii) return 0;          // exit if nat active
+
 
   UI_optmen_act = go;
 
@@ -185,9 +195,11 @@ extern GdkRGBA   *UI_stylTab[3];
 /// GUI_optmen_chg  populate / Change the menu of existing OptionMenu.
 
 
-  int         i1;
-  GtkWidget   *menu, *item;
-  Obj_Unknown *go;
+  int          i1;
+  GtkWidget    *menu, *item, *child;
+  Obj_Unknown  *go;
+  GtkContainer *con1;
+  GList        *lst1, *lst2;
 
 
   // set GUI_ed1_view GUI_ed1_buff
@@ -201,9 +213,20 @@ extern GdkRGBA   *UI_stylTab[3];
   }
 
 
-  i1=0;
+  // delete all existing children of GtkContainer   // 2015-09-15
+  con1 = GTK_CONTAINER (menu);
+  L_del_nxt:
+  lst1 = gtk_container_get_children (con1);
+  lst2 = g_list_last (lst1);
+  if(lst2) {
+    child = lst2->data;
+    gtk_container_remove (con1, child);
+    goto L_del_nxt;
+  }
+
 
   // poulate list
+  i1=0;
   if(optLst) {
     while (optLst[i1]) {
       if(strlen(optLst[i1]) < 1) break;
@@ -246,6 +269,7 @@ extern GdkRGBA   *UI_stylTab[3];
 //=====================================================================
 /// \code
 /// GUI_OptMen__           option-menu (combo-box)
+///   disactivation with GUI_optmen_set (do not use GUI_set_enable)
 /// 
 /// Input:
 ///   o_par      parentBox 
@@ -271,10 +295,10 @@ extern GdkRGBA   *UI_stylTab[3];
 ///   static GIO_OptMen om1;
 ///   char *optLst[]={"Jaenner","Februar","Maerz",NULL};
 ///
-///   GUI_OptMen__  (&om1, box0, optLst, NULL, OptMen_CB, "");
+///   GUI_optmen__  (&om1, box0, optLst, NULL, OptMen_CB, "");
 ///   ..
 ///   int OptMen_CB (void *parent, void **data) {
-///     printf("OptMen_CB sel. Line = %d |%s|\n",GUI_DATA_I1,GUI_DATA_S2);
+///     printf("GUI_optmen__ sel. Line = %d |%s|\n",GUI_DATA_I1,GUI_DATA_S2);
 ///     GUI_OptMenSet  (parent, 1, GUI_DATA_S2);    // change text of basic item
 ///     return 0;
 ///   }
@@ -412,6 +436,9 @@ extern GdkRGBA   *UI_stylTab[3];
                         G_CALLBACK (GUI_optmen_go),
                         PTR_MEMOBJ(go->mem_obj));
 
+
+  // go->widget = fr1;   // disactivate !!!!
+  
   return (go->mem_obj);
 
 }
@@ -432,12 +459,12 @@ extern GdkRGBA   *UI_stylTab[3];
 /// 
 /// Example see GUI_OptMen__
 /// \endcode
-    
+ 
 
   Obj_gui2   *go;
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
-  // printf("GUI_optmen_set %d |%s|\n",mode,(char*)data);
+  printf("GUI_optmen_set %d |%s|\n",mode,(char*)data);
 
 
   go = GUI_obj_pos (mo);
@@ -461,10 +488,13 @@ extern GdkRGBA   *UI_stylTab[3];
 
   } else if(mode == 2) {
     gtk_widget_set_sensitive (go->widget, FALSE);
+    // disactivate also label (else active !)   2015-08-28
+    gtk_widget_set_sensitive (go->data, FALSE);
 
 
   } else if(mode == 3) {
     gtk_widget_set_sensitive (go->widget, TRUE);
+    gtk_widget_set_sensitive (go->data, TRUE);
 
   }
 

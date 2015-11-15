@@ -1,8 +1,8 @@
 # returns BITS OS OUTDIR CC MK 
 
 # Version GTK; gtk2 or gtk3
-#VGUI = gtk2
-VGUI = gtk3
+VGUI = gtk2
+#VGUI = gtk3
 
 
 
@@ -15,7 +15,8 @@ else
 OS := Linux64
 endif
 
-OUTDIR := ../../bin$(OS)
+#OUTDIR := ../../bin$(OS)
+OUTDIR := ${HOME}/gCAD3D/bin$(OS)
 
 CC = gcc
 MK = make

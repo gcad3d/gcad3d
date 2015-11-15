@@ -45,17 +45,23 @@ __________________________________________________________________
 Linux Prerequisites:
 
   for modifications of gCAD3D:
-    gcc, ctags.
+    gcc, ctags, build-essential.
+    (eg sudo apt-get install build-essential)
 
 
   for modifications of the gui-system C-KIT-GUI-GTK:
-    gcc, Gtk-development-files (libgtk2.0-dev or libgtk-3-dev),
-      OpenGL-development-files (eg mesa-common-dev).
+    Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
+      OpenGL-development-files (eg mesa-common-dev, libglu1-mesa-dev).
       Installation of gtk3-development-files; eg for debian-os:
-        sudo apt-get install libgtk-3-0-dev
+        sudo apt-get install libgtk-3-dev
         Optional:
-        sudo apt-get install libgtk-3-0-doc
+        sudo apt-get install libgtk-3-doc
         sudo apt-get install gtk-3-examples
+      Installation of gtk2-development-files; eg for debian-os:
+        sudo apt-get install libgtk2.0-dev
+        Optional:
+        sudo apt-get install libgtk2.0-doc
+        sudo apt-get install gtk2.0-examples
 
 
   for modification of the documentation:
@@ -69,25 +75,26 @@ Linux Prerequisites:
 __________________________________________________________________
 Linux Install from git-repository:
 
-// start commandline (eg gnome-terminal)
+# start commandline (eg gnome-terminal)
 cd
 mkdir devel
 cd devel
+
+# get all files into ~/devel/gcad3d/*
 git clone https://github.com/gcad3d/gcad3d
-// get all files into ~/devel/gcad3d/*
 
 
 __________________________________________________________________
 Linux Install from zipfile:
 
-// start commandline (eg gnome-terminal)
+# start commandline (eg gnome-terminal)
 cd
 mkdir devel
 cd devel
 
+# get all files into ~/devel/gcad3d/*
 cp xxx/gCAD3D_x.xx-src.zip .
 unzip gCAD3D_x.xx-src.zip
-// get all files into ~/devel/gcad3d/*
 
 cd gcad3d
 mkdir -p binLinux32/plugins
@@ -117,7 +124,7 @@ make -f gcad_gui__.mak
 
 // set new gcad-version (modify gcad_version, gcad_date; create xa/gcad_version.h)
 cd ~/devel/gcad3d/src
-./NEW_VERSION.sh
+./NEW_VERSION1.sh
 
 // ReCreate development-documentation:
 cd ~/devel/gcad3d/doc
@@ -242,6 +249,7 @@ Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
 __________________________________________________________________
 History:
 
+2015-08-21 V2.28 Demo_toolbar1, Demo_appDat1, UNDO-plugin, bugfixes. RF.
 2015-06-22 V2.26 Bugfixes. RF.
 2015-03-14 V2.25 MS-Win version added to git. RF.
 

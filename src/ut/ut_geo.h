@@ -1102,6 +1102,8 @@ extern double UT_TOL_cv;
 extern double UT_TOL_ln;
 /// max deviation from curve  (distance analyticalCurve -> displayPolygon)
 extern double UT_DISP_cv;
+/// length of construction-lines
+extern double UT_DISP_ln;
 
 
 
@@ -1613,7 +1615,7 @@ void   UT3D_ln_6db (Line*, double, double, double, double, double, double);
 void   UT3D_ln_2pt (Line *ln1, Point *pta, Point *pte);
 void   UT3D_ln_2pt2 (Line *ln1, Point2 *pta, Point2 *pte);
 int    UT3D_ln_int2pl (Line *ln, Plane *pl1, Plane *pl2);
-int    UT3D_ln_tangcici (Line *ln1, Circ *ci1, Circ *ci2, int sNr);
+int    UT3D_ln_tng_ci_ci (Line *ln1, Circ *ci1, Circ *ci2, int sNr);
 int    UT3D_ln_parl2ln (Point*, Point*, Point*, Point*, Point*, Point*);
 int    UT3D_ln_pts_dmax (Line *ln, int np, Point *ptab, double tol);
 int    UT3D_ln_setLen (Line *lno, Point *pc, double lnlg, Line *lni);

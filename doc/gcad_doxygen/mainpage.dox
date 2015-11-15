@@ -1,10 +1,8 @@
-//--------- Hauptgruppe "Related Pages" --------------
-
 /*! \mainpage
 
-\version V.2.26
+\version V.2.28
 
-\date 2015-06-22
+\date 2015-08-21
 
 
 \image html gcad1.jpg
@@ -26,7 +24,3 @@ License:
 
 </pre>
 */
-
-
-
-// EOF

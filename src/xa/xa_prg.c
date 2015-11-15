@@ -1,7 +1,7 @@
 // Programming-functions.                           2008-04-05     RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -449,7 +449,7 @@ typedef_MemTab(ObjRange);
     AP_SRC_edi_mem ();
     // execute additional program ..
     // ED_work_CurSet ((int)SRCU_obj_pri.lnr);  // reset to line 
-    ED_work_CurSet (999999);                 // work until end
+    ED_work_CurSet (UT_INT_MAX);                // work until end
     goto L_Exit0;
     // goto L_Cancel;
 
@@ -501,6 +501,7 @@ typedef_MemTab(ObjRange);
     // only if OK is active: update browser
     if(iFunc == UI_FuncUCB3) {
       Brw_Mdl_upd ();
+      UNDO_app__ (1);                             // create undo-record
     }
     ED_set_mode (PRG_ED_stat);         // reset ED_mode
     return (0);
@@ -1269,6 +1270,8 @@ typedef_MemTab(ObjRange);
   // DB_set_state (0);                  // save all DB-pointers
     // printf(" delay=%d lNr=%d PRG_dli=%ld\n",delay,lNr,PRG_dli);
   
+
+  UNDO_app__ (0);            // init undo (get act.lNr)
 
 
   // Create Form & FormTab;
@@ -2043,9 +2046,9 @@ typedef_MemTab(ObjRange);
   FormVar   *vf1;
 
 
-  printf("PRGUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
-  PRG_dumpRec ();
-  printf("PRG_update rNr=%d\n",FormTab.rNr);
+  // printf("PRGUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
+  // PRG_dumpRec ();
+  // printf("PRG_update rNr=%d\n",FormTab.rNr);
   // UTF_dump1__ ();
 
 // was DLG_form2db

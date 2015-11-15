@@ -3,6 +3,8 @@
 
 // gio_src  obj-nr; first=window=0; next widget=1 ..
 
+// TODO: replace Obj_Entry, Obj_Button with Obj_gui2
+
 
 // all / Obj_Box Obj_Label
 typedef struct { MemObj mem_obj;                 // memory-block: nr, offset

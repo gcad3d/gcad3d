@@ -1,7 +1,7 @@
 // xa_ui_cad.c                   Toolbar CAD
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -758,6 +758,7 @@ static IE_rec_stru IE_cad_l[]={
    5, Typ_goGeom,  "object 1",
    5, Typ_goGeom,  "object 2",
    5, Typ_mod1,    "[solutionNr]",
+   5, Typ_modUnlim,"[unlimited]",
 /*
   // "LN CirTang Direct. [Rotate]",      ""},                  // 7
    5, Typ_AC,      "Circ tang",
@@ -1235,18 +1236,18 @@ static IE_rec_stru IE_cad_b[]={
 #define IE_Func_Note 9
 
 static IE_rec_txt cad_lst_n[]={
-  "N DIM  hor/vert/parall.",  "DIM",
-  "N DIM3 X/Y/Z/parl",        "DIM3",
-  "N DIM  Angle",             "DIMA",
-  "N DIM  Dmr",               "DIMD",
-  "N DIM  Radius",            "DIMR",
-  "N PointPos,LN",            "LDRP",    //                 ex TAG 4
-  "N Text",                   "",        // Txt
-  "N Text,LN",                "LDR",     // LN+Txt          ex LDR
-  "N Text,LN,Circle",         "LDRC",    //                 ex TAG 3
-  "N TextTag,LN",             "TAG",     //                 ex TAG 0,2
-  "N Symbol",                 "LDRS",    //                 ex TAG 5,6,7
-  "N Image Pos,Filename",     "IMG",
+  "N DIM  hor/vert/parall.",  "DIM",     // 0
+  "N DIM3 X/Y/Z/parl",        "DIM3",    // 1
+  "N DIM  Angle",             "DIMA",    // 2
+  "N DIM  Dmr",               "DIMD",    // 3
+  "N DIM  Radius",            "DIMR",    // 4
+  "N PointPos,LN",            "LDRP",    // 5               ex TAG 4
+  "N Text",                   "",        // 6 Txt
+  "N Text,LN",                "LDR",     // 7 LN+Txt        ex LDR
+  "N Text,LN,Circle",         "LDRC",    // 8               ex TAG 3
+  "N TextTag,LN",             "TAG",     // 9               ex TAG 0,2
+  "N Symbol",                 "LDRS",    // 10              ex TAG 5,6,7
+  "N Image Pos,Filename",     "IMG",     // 11
   "",""};
 
 
@@ -1322,6 +1323,7 @@ static IE_rec_stru IE_cad_n[]={
   11, Typ_PT,      "ImagePosition",
   11, Typ_PT,      "[StartPoint Line]",
   11, Typ_mod1,    "[Linetyp]",
+  // 11, Typ_PLN,     "[Orientation]",       // 2015-07-06
   11, TYP_FilNam,  "Filename (JPG,BMP)",
   11, Typ_Val,     "[Scale]",
   -1, -1,          ""};
@@ -3106,7 +3108,9 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   if(IE_inpTypAct == TYP_FilNam) {  // 238
 
     strcpy(cbuf1, MSG_const__(MSG_open));  // "Model open"
-    i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.gcad");
+    // i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.gcad");
+    // 2015-07-06 filetyp removed (N=IMG needs jpg,bmp..)
+    i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.*");
     UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
     if(i1 < 0) return -1;
     IE_cad_selM2_CB (fNam, dNam);

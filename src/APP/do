@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # help usage                        ./do h 
 # Development-Start gcad3d          ./do
 
@@ -9,10 +9,12 @@
 #   cp -f dirw.lst ~/gCAD3D/cfg/dir.lst
 # fi
 
+# get bitNr BINLOC gcad_dir_bin DirBasSer
+. ../options.sh
 
-# osVer = nr_of_bits; 32|64
-osVer=`getconf LONG_BIT` 
-echo $osVer"-bit-system"
+
+cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
+echo $cmdVi
 
 
 
@@ -24,8 +26,16 @@ if test "$1" = "help"; then
   echo "./do c                 # compile & link core"
   echo "./do all               # compile & link corelibs"
   echo "./do allDemos          # compile & link demos"
+  echo "./do cp2serv1          # copy -> server before build"
   echo "./do                   # start"
   echo "./do d                 # start with debugger"
+  echo "./do ud                # display userDoc"
+  echo "./do dd                # display devDoc"
+  echo "./do udd               # update & display devDoc"
+  echo "./do gty               # display AP_types.h"
+  echo "./do gh                # display ut_geo.h"
+  echo "./do g2                # display ut_geo3d.c"
+  echo "./do g3                # display ut_geo3d.c"
   exit 0
 fi
 
@@ -69,31 +79,33 @@ if test "$1" = "gui"; then
 fi
 
 
+if test "$1" = "cp2serv1"; then
+  cp -f ${gcad_dir_bin}/gCAD3D ${DirBinSer}/.
+  cp  -f ${gcad_dir_bin}/*.so ${DirBinSer}/.
+  cp -rf ${gcad_dir_bin}/plugins ${DirBinSer}/.
+  exit 0
+fi
+
+
 if test "$1" = "c"; then
   make -f gcad3d.mak
   exit 0
 fi
-
 
 if test "$1" = "all"; then
   make -f gcad3d.mak all
   exit 0
 fi
 
-
 if test "$1" = "allDemos"; then
   make -f gcad3d.mak allDemos
   exit 0
 fi
 
-
-
-
 if test "$1" = "guiinit"; then
   ./gui_init.sh
   exit 0
 fi
-
 
 if test "$1" = "gui"; then
   make -f xa_gui_gtk.mak
@@ -101,12 +113,40 @@ if test "$1" = "gui"; then
   exit 0
 fi
 
+if test "$1" = "ud"; then
+  firefox ../../doc/html/index_de.htm 2>/dev/null &
+  exit 0
+fi
 
+if test "$1" = "dd"; then
+  firefox ../../doc/gcad/index.htm
+  exit 0
+fi
 
+if test "$1" = "udd"; then
+  cd /mnt/serv1/Devel/GITHUB/gcad3d/doc && ./gcad_doxygen.sh > t1
+  exit 0
+fi
 
+if test "$1" = "gty"; then
+  $cmdVi ../ut/AP_types.h
+  exit 0
+fi
 
+if test "$1" = "gh"; then
+  $cmdVi ../ut/ut_geo.h
+  exit 0
+fi
 
+if test "$1" = "g2"; then
+  $cmdVi ../ut/ut_geo2d.c
+  exit 0
+fi
 
+if test "$1" = "g3"; then
+  $cmdVi ../ut/ut_geo3d.c
+  exit 0
+fi
 
 
 
@@ -116,35 +156,30 @@ fi
 #=================================================================
 # start gCAD3D
 
-#LOCAL=${HOME}/devel/gcad3d
-LOCAL=../..
-# Init-process: /gCAD3D/ will be added to ${LOCAL}; then 
-#   mkdir ${LOCAL}/gCAD3D
-#   mkdir ${LOCAL}/gCAD3D/tmp       // runtime-temp-files !
-#   unpack examples.gz into ${LOCAL}/gCAD3D (create cfg, dat, ..)
-#   
-
-
 #export UBUNTU_MENUPROXY=
 
+OSTYPE=`uname`
+# "Linux" = Ubuntu 12/32
+echo "start - OSTYPE = " $OSTYPE
 
-if test "${OSTYPE}" = "linux-gnu"; then
-  echo " Linux .."
+
+if [ "$OSTYPE" = "Linux" ] ; then
 
 # executables (shared-libs ..)
-# export gcad_dir_bin=${LOCAL}/gCAD3D/binLinux${osVer}/
-  export gcad_dir_bin=${LOCAL}/binLinux${osVer}/
+# export gcad_dir_bin=${DirBasSer}/gCAD3D/binLinux${bitNr}/
+# export gcad_dir_bin=${DirBasSer}/binLinux${bitNr}/
+  export gcad_dir_bin=${gcad_dir_bin}/
   export LD_LIBRARY_PATH=${gcad_dir_bin}
 
 # icons,
-  export gcad_dir_ico=${LOCAL}/icons/
+  export gcad_dir_ico=${DirBasSer}/icons/
 
 # def is /usr/share/gcad3d/
-  export gcad_dir_local=${LOCAL}/
+  export gcad_dir_local=${DirBasSer}/
 
 # html and msg-files
 # def is /usr/share/doc/
-  export gcad_dir_doc=${LOCAL}/doc/
+  export gcad_dir_doc=${DirBasSer}/doc/
 
 
 
@@ -155,14 +190,14 @@ if test "${OSTYPE}" = "linux-gnu"; then
 
 #-----------------------------------------------------
 # d = debug
-if test "$1" = "d"; then
+if [ "$1" = "d" ] ; then
   gdb ${exeNam} $* -x gCAD3D.gdb
   #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0
 
 #-----------------------------------------------------
 # init = copy dirx.lst -> ?
-elif test "$1" = "init"; then
+elif [ "$1" = "init" ] ; then
   cp -f dirx.lst ~/gCAD3D/cfg/dir.lst
   exit 0
 
@@ -181,7 +216,7 @@ exit
 
 
 #----------------------------------------------------
-elif test "$OSTYPE" = "msys"; then
+elif [ "$OSTYPE" = "msys" ] ; then
   cp -f dirw.lst dir.lst
   #cp -f xa.rc_MS ../tmp\xa.rc
   cd ..
@@ -190,7 +225,7 @@ elif test "$OSTYPE" = "msys"; then
 
 #-----------------------------------------------------
 else
-  echo "OPSYS" $OSTYPE " not supported .."
+  echo "OPSYS $OSTYPE not supported .."
   exit -1
 fi
 

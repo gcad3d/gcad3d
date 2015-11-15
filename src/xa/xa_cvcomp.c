@@ -1,7 +1,7 @@
 //  ../xa/xa_cvcomp.c
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -234,7 +234,6 @@ extern int     APT_dispDir;
   OGX_SET_OBJ (&ox1, typ1, typ1, 1, oc1);
   OGX_SET_OBJ (&ox2, typ2, typ2, 1, oc2);
 
-  pNr = 0;
   irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, &ox1, &ox2, &wrkSeg);
     // printf(" ex npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
   if(irc < 0) goto L_exit;

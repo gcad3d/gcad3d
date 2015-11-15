@@ -5,7 +5,6 @@
 
 echo "do complete          // do all following"
 echo "do delObj            // delete all objects"
-echo "do guiinit           // change gui-version"
 echo "do gui               // rebuild libgui_gtk2_MS.lib
 echo "do c                 // compile & link core (gCAD3D.exe)"
 echo "do all               // compile & link corelibs"
@@ -47,13 +46,6 @@ if c==%1 (
 if delObj==%1 (
 REM delete all gui-objects and gui-lib
   nmake -f gcad3d.nmak delObj
-  goto L_exit
-)
-
-
-REM delete all gui-objects and gui-lib
-if guiinit==%1 (
-  nmake -f gcad3d.nmak %1
   goto L_exit
 )
 

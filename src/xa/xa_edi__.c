@@ -1,7 +1,7 @@
 //  ../xa/xa_edi__.c                        Reiter 2012-07-30
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +86,7 @@ AP_APT_*
 #include "../xa/xa_ui.h"          //  UI_men__
 #include "../xa/xa_uid.h"         //  UI_MODE_MAN
 #include "../xa/xa_mem.h"         //  mem_cbuf1
+#include "../xa/xa_app.h"         // PRC_IS_ACTIVE
 #include "../xa/xa.h"             // APP_act_nam
 
  
@@ -330,8 +331,10 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
         ED_work_CurSet (l1);
         l1 = ED_get_lnr_act() - 1;  // get lNr AP_ED_lNr
         // printf(" lastLn %d |%s|\n",l1,mem_cbuf1); // filled by ED_Run
-        UNDO_grp_add (l1, 0); // add neu generierte Zeile to Undo-List
-        UNDO_upd__ ();
+        if(GUI_DATA_I1 == GUI_KeyReturn) {  // no undo for delete -operations
+          UNDO_grp_add (l1, 0);             // add new codeline to undo-list
+          UNDO_upd__ ();
+        }
 
 
       } else {

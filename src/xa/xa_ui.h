@@ -103,6 +103,4 @@ enum { APF_EndTab,    // 0 = end of list
   int UI_func_stat_set__ (int i0, ...);
   int UI_func_stat_set_tab (short *sTab);
 
-  char* AP_UserAppObjNam__ (int iNam);
-
 //============ EOF ============= 

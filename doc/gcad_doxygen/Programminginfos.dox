@@ -476,8 +476,8 @@ Userprograms/Plugins:        Userinteraktionen
       printf("%s\n",UI_GR_get_actPos_());  // get curPos as string "<x> <y> <z>"
 
 
-    } else {                     // User hat ein Objekt selektiert;
-      att1 = DL_GetAtt(dl_ind);  // die Attribute holen
+    } else {                       // User hat ein Objekt selektiert;
+      DL_get_dla (&att1, dl_ind);  // die Attribute holen
       printf("selected objectTyp =  %d\n",att1.typ);
       printf("DB-Index of selected object = %d\n",att1.ind);
     }
@@ -574,7 +574,7 @@ APP_Save (char *wTit, char *defNam, void *funcNam);
 
 
  Alle Objekte, die dargestellt werden sollen, erhalten einen Eintrag in der DL.
-   Die DL-Eintraege koennen mit DL_GetAtt abgefragt werden,
+   Die DL-Eintraege koennen mit DL_get_dla abgefragt werden,
    man erhaelt damit den Objekttyp, den DB-Index und graf. Attribute.
    Der DL-Index wird fortlaufend vergeben (siehe GL_GetActInd).
    
@@ -1133,7 +1133,7 @@ Objekte mit Modelnummer -1 liegen im aktiven Model.
   
   ModelBas  *mdr;
 
-  dla = DL_GetAtt(DL-Index);  // get DL-Record
+  DL_get_dla (&dla, DL-Index);  // get DL-Record
   model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
 
   // den BasicModelRecord eines Submodels holen
@@ -1151,7 +1151,7 @@ Objekte mit Modelnummer -1 liegen im aktiven Model.
 ================================================================= 
   Graf.Attribute
 ================================================================= 
-Analysieren: see DL_GetAtt
+Analysieren: see DL_get_dla
 
 
 - Attr_Hilite 
@@ -1248,7 +1248,8 @@ Analysieren: see DL_GetAtt
 
   // einen Displaylisteneintrag einlesen
   DL_Att dlRec;
-  dlRec = DL_GetAtt((long)DisplayListIndex);
+  DL_get_dla (&dlRec, (long)DisplayListIndex);
+
   // dlRec.modInd       Modelindex; -1 = active Model; 0-n = Submodel.
   // dlRec.typ          Objekttyp; zB Typ_PT
   // dlRec.ind          DB-Index; long.
@@ -1399,7 +1400,7 @@ Analysieren: see DL_GetAtt
   for(dl_ind=0; dl_ind<dlNr; ++dl_ind) {
 
     // einen Displaylistenrecord holen
-    dla = DL_GetAtt(dl_ind);
+    DL_get_dla (&dla, dl_ind);
 
     // if object is not in active model: cannot get it from DB.
     if(dla.modInd >= 0) continue;

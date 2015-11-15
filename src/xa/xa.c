@@ -1,7 +1,7 @@
 //     xa.c          AP_search_init
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ AP_typ_typChar      make typ from typChar  ("P" -> Typ_PT)
 AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
 
 AP_vec_txt          give vector from Textvec
-AP_txt_vec          check if Vector is a Defaultvektor
+APED_oid_vc          check if Vector is a Defaultvektor
 AP_get_nxtVec       returns DB-index of next|previous Vector
 AP_hili_obj         hilite obj
 GR_tmpSym
@@ -103,6 +103,9 @@ APcol_actColTra     set new active colour and transparency
 APcol_actCol__      set new active colour
 Col_set_3db         colour from 3 doubles
 Col_set__           create colour from red,green,blue
+Col_dump            dump ColRGB
+Col_DL_Att          get pointer -> Color out of DL_Att     INLINE
+Col_set_vsym        set style, symbolic|shaded
 AP_SetCol__         set default color
 AP_SetCol3i         set color
 AP_colSel           select color
@@ -914,7 +917,7 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
   char   *buttons[3], sbt[2][80];
 
 
-  printf("AP_save__ |%s|\n",fTyp);
+  printf("AP_save__ %d |%s|\n",mode,fTyp);
 
   strcpy(filNam, WC_modnam);
   strcat(filNam, fTyp);
@@ -927,11 +930,17 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 
   strcpy(sTit, MSG_const__(MSG_save));  // "Model save" 
 
-                    // fNam        dNam     dLst
+                      // fNam        dNam     dLst
   irc = GUI_file_save__ (filNam, 256, s1, 256, s2, sTit, sFilt);
   if(irc) return 0;
     // does already ask for overwrite !
     printf(" save model %d |%s|%s|\n",irc,filNam,s1);
+
+
+  // test if filNam has filtype; if not: add fTyp
+  irc = UTX_ftyp_s (sFilt, filNam, 0);
+  if(irc < 0) strcat (filNam, fTyp);
+    // printf(" save model %d |%s|\n",irc,filNam);
 
 
   // find symbolDir of dirNam
@@ -967,6 +976,7 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 
 
   // den filename (incl. Pfad) nach WC_modnam holen.
+  // WC_modnam must have filename.filetype
   L_file_save:
   if(mode != 1) strcpy (WC_modnam, filNam);
 
@@ -2205,83 +2215,6 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
-  int Col_set_3db (ColRGB *col1, double d1, double d2, double d3) {
-//================================================================
-/// Col_set_3db    colour from 3 doubles (values 0.0 - 1.0)
-
-// see  wrl1_r_dec_Col_ Col_set__
-
-  // printf("Col_set_3db d1=%f d2=%f d3=%f\n",d1,d2,d3);
-
-  col1->cr = d1 * 255;
-  col1->cg = d2 * 255;
-  col1->cb = d3 * 255;
-
-  // 0 als Col ist Default - geht ned !!
-  if(col1->cr < 1) col1->cr = 1;
-  if(col1->cg < 1) col1->cg = 1;
-  if(col1->cb < 1) col1->cb = 1;
-
-  // col1->typ = 0;   // diffuseColor
-  col1->color = 1;
-  col1->vtra  = 0;
-  col1->vsym  = 0;
-  col1->vtex  = 0;
-
-    // printf(" newCol=%d %d %d\n",col1->cr,col1->cg,col1->cb);
-
-  return 0;
-
-}
-
-
-//================================================================
-  int Col_set__ (ColRGB *col1, int cr, int cg, int cb) {
-//================================================================
-/// \code
-/// Col_set__       create surface-colour from red,green,blue
-/// Input:
-///   cr         red part of colour; 0-255
-///   cg         green part of colour; 0-255
-///   cb         blue part of colour; 0-255
-///   mode    0  only return new colour as col1
-///   mode    1  set defaultColour to new colour
-///
-/// Examples 1:
-///   int   i1;                    // or ColRGB i1
-///   Col_set__ (&i1, 12,12,122);  // set colour 
-///   GR_Disp_sur (ox1, i1);       // apply colour i1
-///
-/// Examples 2:
-///   AP_SetCol3i (12,112,12, 1);  // set defaultcolor
-///   GR_Disp_sur (ox1, 0);        // use defaultcolor
-///
-/// see also AP_SetCol3i AP_SetCol__
-/// \endcode
-
-  static int  i0 = 0;
-
-
-  printf("Col_set__ %d %d %d\n",cr,cg,cb);
-
-
-  *col1 = *((ColRGB*)&i0);
-  // col1->vtra  = 0;
-  // col1->vsym  = 0;
-  // col1->vtex  = 0;
-
-  col1->color = 1;
-
-  col1->cr =  cr;
-  col1->cg =  cg;
-  col1->cb =  cb;
-
-  return 0;
-
-}
-
-
-//================================================================
   int AP_SetCol__ (ColRGB *cSel) {
 //================================================================
 /// \code
@@ -3293,16 +3226,20 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //====================================================================
-  int AP_debug__ () {
+  int AP_debug__ (char *module_info) {
 //====================================================================
 /// \code
 /// stop here in debug-mode; in core; with Alt-X
-/// in .gdbinit:
+/// in .gdbinit (gCAD3D.gdb); must start with: "gdb gCAD3D.exe -x gCAD3D.gdb"
 /// break AP_debug__
-///
+/// Input:
+///   module_info    text in which plugin/dll the stop occurs
 /// Purpose: eg set "watch <varnam>" after startup is done (saves time)
 /// \endcode
 
+
+  // printf("*** debugStop in module %s\n",module_info);
+  // fflush (stdout);
 
   return 0;
 
@@ -3587,7 +3524,7 @@ remote control nur in VWR, nicht MAN, CAD;
 //====================================================================
 /// \code
 /// give vector-struc from vector-text (only Standardvectors & planes)
-/// see AP_txt_vec
+/// see APED_oid_vc
 /// \endcode
 
 // see also APT_obj_expr APED_dbo_oid
@@ -3635,37 +3572,6 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // UT3D_stru_dump(Typ_VC, vco, "ex AP_vec_txt");
   return 0;
-
-}
-
-
-//====================================================================
-  int AP_txt_vec (char *cbuf, Vector *vc1) {
-//====================================================================
-/// \code
-/// AP_txt_vec          get oid for Vector; (DX or DIX or D#)
-/// check if Vector is a Defaultvektor (DX or DIX or ...)
-/// Input:
-///   vc1      struct Vector*
-/// Output:
-///   text     eg "DZ" if RetCod < 0
-///   RC =  0: no, allgemeiner vektor;
-///   RC != 0: yes, -1=DX, -4=DIX, (DB-index of standard-vector)
-/// see AP_vec_txt
-/// \endcode
-
-  int       i1, ii;
-  double    dx, dy, dz;
-  char      *vcTab[]={NULL,"DX","DY","DZ","DIX","DIY","DIZ"};
-
-
-  i1 = UT3D_vc_ck_std (vc1);  // check for defaultVector (DX DY DZ DIX DIY DIZ)
-  if(!i1) { cbuf[0] = '\0'; return 0; }
-
-  ii = i1; if(ii < 0) ii = 3 - ii;  // gives 1-6
-  strcpy(cbuf, vcTab[ii]);
-
-  return -ii;  // DBindex: -1 - -6
 
 }
 
@@ -4016,10 +3922,24 @@ remote control nur in VWR, nicht MAN, CAD;
 
   int          irc;
   char         s1[256];
+  Point        p1;
 
   printf("AP_test__\n");
 
-  ED_test__();
+  // ED_test__();
+
+  // get userCoords
+  UI_GR_get_actPosA (&p1);
+    UT3D_stru_dump (Typ_PT, &p1, "userC");
+
+
+  GR_get_constPlnPos (&p1);
+    UT3D_stru_dump (Typ_PT, &p1, "worldC");
+
+  p1 = DB_GetPoint (24L);
+    UT3D_stru_dump (Typ_PT, &p1, "P24");
+
+
 
   // GUI_edi_sel__ (&winED, );
   // GUI_edi_sel_wrf (&winED, "t1.dat");

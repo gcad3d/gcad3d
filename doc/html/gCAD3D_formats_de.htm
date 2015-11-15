@@ -1,0 +1,252 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<B>Formate</B>
+
+
+
+<a href="CAD_Base_de.htm#Codes">Codes</a>
+<a href="#fmt_f">Dateiformate</a>
+<a href="http://www.gcad3d.org/devdoc/pag_pdm.htm">Binärformate</a>
+
+
+__________________________________________________________________________
+<p><a name="fmt_f"></a></p>
+<b>Dateiformate</b>
+
+Alle Objekte werden intern in analytischer Form mit allen
+  Definitionsparametern als Ascii-Text gespeichert.
+
+Das Dateiformat .gcad ist identisch mit dem internen Format.
+
+Die Objekte können auch als Mockup-Elemente ausgegeben werden;
+  tesseliert; dadurch beschleunigtes Laden bei Assemblies,
+  jedoch keine Parametrik mehr.
+
+Andere analytische Ausgabeformate: .gcad, .iges.
+
+Mockup-Ausgabeformate: VRML-1, VRML-2, obj, tess.
+
+
+Wenn eine Datei als {base}/tmp/Model abgespeichert wird,
+  wird das Modell beim Start automatisch geladen.
+  {base} ist im Normalfall ~/gCAD3D/.
+
+
+
+
+__________________________________________________________________________
+<B>Format .gcad</B>
+
+
+Das Hauptmodell mit allen Submodellen, NC-Prozessdaten und den Daten
+  von Zusatzprogrammen (plugins) wird im Modellfile gespeichert.
+
+Die Modellfiles enthalten alle Daten und Objekte in Textform (Ascii).
+
+Submodelle, NC-Prozessdaten und Applicationsdaten sind in Abschnitte
+  (SECTION - SECTIONEND) eingebettet, dann folgt das Hauptmodell.
+  
+
+Alle Abschnitte vor dem Hauptmodell beginnen mit einer Zeile:
+SECTION {sectionTyp} {parameter}
+und enden mit:
+SECTIONEND
+
+  - Submodelle         SECTION MODEL {modelname}
+  - PunkteTabellen     SECTION PTAB  {modelname} {ObjID}
+  - Meshes             SECTION MESH  {modelname} {ObjID}
+  - Processes (eg NC)  SECTION PROCESS {processName}
+  - applicationData    SECTION APPDAT {pluginName}
+  - Hauptmodell        ..
+
+
+
+
+SECTION MODEL {modelname}
+- Dynamic-Dataspace (settings, standards, End: ":DYNAMIC_DATA")
+- Objectdata
+SECTIONEND
+
+
+SECTION PTAB {modelname}_{ObjID}
+ptnr={nr of points}
+{pointCoords, one point per line}
+SECTIONEND
+
+
+SECTION MESH  {modelname}_{ObjID}
+faces={nr of faces} edgelines={nr of edgelines}
+{faces (3 indices for one face per line)}
+edgeline={nr of edgeline} points={nr of points} edgetyp={edgetyp}
+{edgeline (indices for points)}
+SECTIONEND
+
+
+SECTION PROCESS {processName}
+- Objectdata
+- process-specific-commands
+SECTIONEND
+
+
+SECTION APPDAT {pluginName}
+- beliebige Daten;
+  werden nur von der Applikation {pluginName} geschrieben, gelesen.
+SECTIONEND
+
+
+Das Hauptmodell enthält die Objektcodes, siehe <A HREF='#fmt_exa'>Beispiele</A>.
+
+
+____________________________________________________________________________
+<p><a name="fmtsub"></a></p>
+<b>Dateiformate Hauptmodell / Submodelle:</b>
+
+
+- Abschnitt DYNAMIC_DATA (optional)
+- Objektdaten
+
+
+<B>Abschnitt DYNAMIC_DATA:</B>
+
+Kann folgende Records haben:
+
+- MODSIZ                 Modelsize
+- DEFTX                  Textsize
+- VIEW                   aktuelle Ansicht
+- CONST_PL               aktuelle Konstruktionsebene
+- <A HREF='#fmtgat'>GATAB</A>                  Tabelle graf. Attribute
+- :DYNAMIC_DATA          beendet den Abschnitt DYNAMIC_DATA
+
+
+Objektdaten:
+  siehe <a href="CAD_Base_de.htm">Codes</a>,
+  siehe <A HREF='#fmt_exa'>Beispiele</A>.
+
+
+____________________________________________________________________________
+<p><a name="fmtgat"></a></p>
+<b>Dateiformat der Attribute:</b>
+
+Die Grafik-Attribute definieren Linientypen, Farben, Transparenz, Texturen.
+
+
+GATAB      starts the grafic-attributes-table,
+ENDGATAB   end of table.
+
+
+
+
+Grafic-Attributes-Records for Lines, Curves:
+
+<ObjectID> [H] [T#]
+ H  hidden
+ T  index Linetyp; 2=dash, 3=dashDot; see file cfg/ltyp.rc
+
+
+
+
+Grafic-Attributes-Records for surfaces:
+
+<ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
+ H  hidden
+ C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
+ T  transparent; 0=not, 1=50% transparent, 2=full transparent
+ S  symbolic; 0=not, 1=symbolic display
+ X  textured surface; Format:
+    X"<Image>",X-scale,Y-Scale,X-Offset,Y-Offset,RotAng[,X-vec,Z-Vec]
+      <Image>  consists of "<symbolPath>/<imagefilename>"
+      Offsets are Values from 0-1
+      RotAng in degree
+
+
+
+
+<b>Beispiel Linie mit Linientyp 2 (strichliert):</b>
+GATAB
+L20 T2
+ENDGATAB
+:DYNAMIC_DATA
+L20=P(0 0 0) P(100 10 0)
+#eof
+
+
+
+<b>Beispiel Fläche mit Farbe:</b>
+# example GATAB: surface A20 has color e2dc27; surf. A21 is symbolic (not shaded)
+GATAB
+A20 Ce2dc27
+A21 S1
+ENDGATAB
+:DYNAMIC_DATA
+C20=P(50 100) 25
+C21=P(100 100) 25
+A20=C20
+A21=C21
+#eof
+
+
+
+
+__________________________________________________________________________
+<p><a name="fmt_exa"></a></p>
+<B>Beispiele:</B>
+
+
+
+<b>Beispiel nur Hauptmodell:</b>
+# 2010/11/29-18:37:05
+P1=P(0 0)
+P2=P(200 20)
+# Linie von 2 Punkten
+L1=P1 P2
+# Kreis von Center, Radius
+C1=P(50 100) 25
+# Fläche von Kreis
+A1=C1
+# Ende
+
+
+
+<b>Beispiel Modelldatei mit subModell:</b>
+# 2010/11/29-18:37:05
+SECTION MODEL SM1
+# Cone from 1 Points 2 radius
+B1=CON P(0 0) P(0 0 12) VAL(16) VAL(12)
+SECTIONEND
+# 2 references of submodel
+M1="SM1" P(0 0)
+M1="SM1" P(50 0)
+# Ende
+
+
+
+<b>Beispiel Modelldatei mit Mesh:</b>
+SECTION PTAB _A1
+ptnr=4
+78.206807 -215.069439 0
+75.797808 -206.220382 0
+82.125568 -204.36855 0
+83.557688 -210.647853 0
+SECTIONEND
+SECTION MESH _A2
+faces=2 edgelines=1
+3 2 1
+3 1 0
+edgeline=0 points=4 edgetyp=5
+3 2 1 0
+SECTIONEND
+# mainmodel
+A1=PTAB
+A2=MSH A1
+# eof
+
+
+</PRE>
+</BODY>
+</HTML>

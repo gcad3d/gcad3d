@@ -1,7 +1,7 @@
 // CommandInterpreter - decode-functions
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,6 +119,7 @@ APT_decode_tool
 
 APT_decode_goAxis
 APT_decode_goRadius
+APT_decode_modUnlim      get UNL|UNL2|UNL1
 
 APT_store_obj            create DB-object from aus_typ/aus_tab
 
@@ -152,10 +153,6 @@ APT_prj_obj_vc
 APT_prj_obj_perp
 APT_mir_obj
 
-APT_MOD_resolv_open
-APT_MOD_resolv_closed
-APT_MOD_resolv_twoOpen
-APT_MOD_resolv_twoClosed
 APT_solv_mod
 APT_solv_mod_1
 APT_solv_x_max
@@ -3614,7 +3611,7 @@ static  CurvPoly plg1;
          (aus_typ[1] == Typ_modif))         {
 
       ox1 = DB_GetCurv  ((long)aus_tab[0]);
-        UT3D_stru_dump (Typ_ObjGX, ox1, "ex _GetCurv");
+        // UT3D_stru_dump (Typ_ObjGX, ox1, "ex _GetCurv");
 
       i1 = aus_tab[1];
 
@@ -3623,8 +3620,10 @@ static  CurvPoly plg1;
       if(ox1->typ == Typ_CVCCV) {
         // get bin-obj of CCV-segment
         irc = UT3D_obj_ccv_segnr (&i2, obj1, i1, ox1);
+          // printf(" ex ccv_segnr irc=%d seg#=%d typ=%d\n",irc,i1,i2);
         if(irc < 0) return -1;
-        if(UTO_ck_curvForm(i1) != Typ_ObjGX) goto Par_err;
+          // UT3D_stru_dump (i2, obj1, "ex _ccv_segnr");
+        if(UTO_ck_curvForm(i2) != Typ_ObjGX) goto Par_err;
         // create ox of bin-obj
         OGX_SET_OBJ (cvo, i2, i2, 1, obj1);
 
@@ -6036,6 +6035,42 @@ static SurStd  sus;
   L_done:
     // UT3D_stru_dump (Typ_PLN, pln, "ex APT_decode_goAxis");
   return 0;
+
+}
+
+
+//=======================================================================
+  int APT_decode_modUnlim (int *aus_anz, int *aus_typ, double *aus_tab) {
+//=======================================================================
+/// \code
+/// APT_decode_modUnlim      get UNL=3|UNL2=2|UNL1=1
+/// retCod   0 (limited)
+///          1 (side 1 limited)
+///          2 (side 2 limited)
+///          3 (both sides unlimited
+/// \endcode
+
+  int  i1, lTyp;
+
+  i1 = *aus_anz - 1;
+
+  lTyp = 0;  // both sides limited
+
+  if(aus_typ[i1] == Typ_cmdNCsub)     {
+    if((int)aus_tab[i1] == T_UNL) {
+      *aus_anz = i1;
+      lTyp = 3;  // both sides unlimited
+    } else if((int)aus_tab[i1] == T_UNL1) {
+      *aus_anz = i1;
+      lTyp = 1;  // both sides unlimited
+    } else if((int)aus_tab[i1] == T_UNL2) {
+      *aus_anz = i1;
+      lTyp = 2;  // both sides unlimited
+    } 
+  }
+    // printf("APT_decode_modUnlim lTyp=%d\n",lTyp);
+
+  return lTyp;
 
 }
 
@@ -12467,23 +12502,9 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // lnLen = APT_ln_len;
 
 
-  i1 = aus_anz - 1;
-  if(aus_typ[i1] == Typ_cmdNCsub)     {
-    if((int)aus_tab[i1] == T_UNL) {
-      --aus_anz;
-      lTyp = 3;  // both sides unlimited
-    } else if((int)aus_tab[i1] == T_UNL1) {
-      --aus_anz;
-      lTyp = 1;  // both sides unlimited
-    } else if((int)aus_tab[i1] == T_UNL2) {
-      --aus_anz;
-      lTyp = 2;  // both sides unlimited
-    } else goto Par_err; 
+  // get UNL=3|UNL2=2|UNL1=1
+  lTyp = APT_decode_modUnlim (&aus_anz, aus_typ, aus_tab);
 
-  } else {
-    lTyp = 0;  // both sides limited
-  }
-    // printf(" _decode_ln lTyp=%d\n",lTyp);
 
 
 
@@ -12832,7 +12853,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
         printf(" imod=%d\n",i1);
 
 
-      APT_modMax1 = UT3D_ln_tangcici (ln_out, &ci1, &ci2, i1);
+      APT_modMax1 = UT3D_ln_tng_ci_ci (ln_out, &ci1, &ci2, i1);
         printf(" APT_modMax1=%d\n",APT_modMax1);
       if(APT_modMax1 < 0) goto Par_err;
       goto Exit;
@@ -13327,7 +13348,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     } else {
       i2 = 1;  // IN
     }
-    i1 = UT3D_ln_tangcici (&ln1, &ci1, &ci2, i2);
+    i1 = UT3D_ln_tng_ci_ci (&ln1, &ci1, &ci2, i2);
     if(i1 < 0) {
       TX_Error("keine Tangente moeglich");
       return -1;
@@ -14019,38 +14040,25 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // Transform Line pta-pte
   Fertig:  // Inp: pta, pte, f_tra, lTyp
 
+  ln_out->p1 = pta;
+  ln_out->p2 = pte;
+
   // work unlimited ..
-  ln_out->typ = lTyp;
-  if(lTyp) {
-    APT_subTyp = Typ_Att_dim;
-    UT3D_vc_2pt (&vc1, &pta, &pte);
-    d1 = UT3D_len_vc (&vc1);
-    d2 = (5. * APT_ModSiz) / d1;  // unlimited = 5 * APT_ModSiz
-    UT3D_vc_multvc (&vc1, &vc1, d2);
+  UT3D_ln_unlim (ln_out, lTyp);
+  if(lTyp) APT_subTyp = Typ_Att_dim;
 
-    if(lTyp == 1) {  // p1 is startpoint, p2 unlimited) UNL1
-      UT3D_pt_traptvc (&pte, &pte, &vc1);
-
-    } else if(lTyp == 2) {  // p2 is startpoint, p1 unlimited) UNL2
-      UT3D_pt_traptivc (&pta, &pta, &vc1);
-
-    } else if(lTyp == 3) {  // both sides unlimited   UNL
-      UT3D_pt_traptivc (&pta, &pta, &vc1);
-      UT3D_pt_traptvc (&pte, &pte, &vc1);
-    }
-  }
 
   // translate
   if(f_tra != 0) {
     if(WC_sur_ind != 0) {
-      UT3D_pt_traptm3 (&ln_out->p1, WC_sur_mat, &pta);
-      UT3D_pt_traptm3 (&ln_out->p2, WC_sur_mat, &pte);
+      UT3D_pt_traptm3 (&ln_out->p1, WC_sur_mat, &ln_out->p1);
+      UT3D_pt_traptm3 (&ln_out->p2, WC_sur_mat, &ln_out->p2);
       goto Exit;
     }
   }
 
-  ln_out->p1 = pta;
-  ln_out->p2 = pte;
+  // ln_out->p1 = pta;
+  // ln_out->p2 = pte;
   // UT3D_ln_2pt2 (ln_out, &pta, &pte);
 
 
@@ -18531,6 +18539,7 @@ Offen: Pointer out auf das next Word ...
   int APT_solv_mod (Point2 *pta, int PtAnz) {
 /*================
 den Index der Lösung retournieren
+see also UTO_MOD_resolv_open
 */
 
   int    i1, ind1, ind2, ind, ModAct, PtInd[8];
@@ -20730,7 +20739,7 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
 
 static Line lno;
 
-  int       i1, typ1, typ2, imod;
+  int       i1, typ1, typ2, imod, lTyp;
   double    d1, d2;
   Point     pt1, pt2;
   Vector    vco, vci;
@@ -20740,6 +20749,13 @@ static Line lno;
 
   // printf("APT_TNG__ %d\n",aus_anz);
   // for(i1=0;i1<aus_anz;++i1)printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+
+
+  // remove last "UNL"  UNL=3|UNL2=2|UNL1=1
+  lTyp = APT_decode_modUnlim (&aus_anz, aus_typ, aus_tab);
+    // printf(" aus_anz=%d lTyp=%d\n",aus_anz,lTyp);
+
+
 
   // get imod from last parameter
   if(aus_anz > 3) {
@@ -20751,21 +20767,94 @@ static Line lno;
     // printf(" imod=%d\n",imod);
 
 
+  // make VC,LN first obj
   if(aus_typ[2] == Typ_VC) ATO_swap (aus_typ, aus_tab, 1, 2);
   if(aus_typ[2] == Typ_LN) ATO_swap (aus_typ, aus_tab, 1, 2);
+  if(aus_typ[2] == Typ_PT) ATO_swap (aus_typ, aus_tab, 1, 2);
 
+
+  // make complex-objects DB-objects o1 and o2
   OGX_SET_INDEX (&o1, aus_typ[1], (long)aus_tab[1]);
   OGX_SET_INDEX (&o2, aus_typ[2], (long)aus_tab[2]);
 
-  if((aus_typ[1] == Typ_VC)||(aus_typ[1] == Typ_LN)) {
+
+  typ1 = aus_typ[1]; 
+  typ2 = aus_typ[2]; 
+
+
+  //----------------------------------------------------------------
+  // PT CI, VC CI, CI CI
+  if(typ2 == Typ_CI) {
+    UTO_obj_getp (&obj2, &i1, &o2);
+
+    //----------------------------------------------------------------
+    // TNG PT CI
+    if(typ1 == Typ_PT) {
+      UTO_obj_getp (&obj1, &i1, &o1);
+      i1 = UT3D_ln_tng_ci_pt (&lno, obj2, obj1, imod);
+        // UT3D_stru_dump (Typ_LN,  &lno, "lno-lTyp=%d",lTyp);
+      if(i1 == 1) {
+        // point exactly on circ: line into opposit dir
+        if((lTyp == 0) || (lTyp == 3)) {
+          // unlim both sides; p1=out, p2=mid
+          lno.p2 = lno.p1;
+          UT3D_pt_opp2pt (&lno.p1, obj1, &lno.p1);  // p2 is on circ
+        } else if(lTyp == 2) {
+          UT3D_pt_opp2pt (&lno.p1, obj1, &lno.p1);
+        }
+        lTyp = 0;
+        APT_subTyp = Typ_Att_dim;
+      }
+      goto L_tng_9;
+
+
+    //----------------------------------------------------------------
+    // TNG VC CI
+    } else if(typ1 == Typ_VC) {
+      UTO_obj_getp (&obj1, &i1, &o1);
+      UT3D_ln_tng_ci_vc (&lno, obj2, obj1, imod);
+      goto L_tng_9;
+
+
+    //----------------------------------------------------------------
+    // TNG LN CI
+    } else if(typ1 == Typ_LN) {
+      UTO_obj_getp (&obj1, &i1, &o1);
+      UT3D_vc_ln (&vci, obj1);  // vc from ln
+      UT3D_ln_tng_ci_vc (&lno, obj2, &vci, imod);
+      goto L_tng_9;
+
+
+    //----------------------------------------------------------------
+    // TNG CI CI
+    } else if(typ1 == Typ_CI) {
+      UTO_obj_getp (&obj1, &i1, &o1);
+      i1 = UT3D_ln_tng_ci_ci (&lno, obj1, obj2, imod+1);
+      goto L_tng_9;
+    }
+  }
+
+
+  if((typ1 == Typ_VC)||(typ1 == Typ_LN)) {
     i1 = UTO_TNG_vc_cv (&lno, &o1, &o2, imod, tSpc1);
   } else {
     i1 = UTO_TNG_cv_cv (&lno, &o1, &o2, imod, tSpc1);
   }
-  if(i1 < 0) goto L_err1;
-  APT_modMax1 = i1;
 
-  OGX_SET_OBJ (oxo, Typ_LN, Typ_LN,  1, &lno);
+
+  //----------------------------------------------------------------
+  L_tng_9:
+    if(i1 < 0) goto L_err1;
+    APT_modMax1 = i1;
+
+
+    // work "UNL" unlimited ..
+    UT3D_ln_unlim (&lno, lTyp);
+    if(lTyp) APT_subTyp = Typ_Att_dim;
+
+
+    OGX_SET_OBJ (oxo, Typ_LN, Typ_LN,  1, &lno);
+      // UT3D_stru_dump (Typ_LN,  &lno, "ex APT_TNG__");
 
 /*
   // swap objects if 2. obj is point
@@ -20924,7 +21013,7 @@ static Line lno;
   //================================================================
     // TNG C C 
     ++imod;
-    APT_modMax1 = UT3D_ln_tangcici (&lno, obj1, obj2, imod);
+    APT_modMax1 = UT3D_ln_tng_ci_ci (&lno, obj1, obj2, imod);
       printf(" APT_modMax1=%d\n",APT_modMax1);
     if(APT_modMax1 < 0) goto L_Par_err;
     goto L_out;
@@ -21376,310 +21465,6 @@ static Line lno;
   return 0;
   
 } 
-
-
-//==================================================================
-  int APT_MOD_resolv_open (int *ii1, int *ii2, int isol, int ptNr) {
-//==================================================================
-// get indexes according to resolutionNr isol.
-// Input:
-//   isol     MODificationNr; (0=not defined; 1=first sol, 2=second sol ..)
-//   ptNr     nr of points;  3 gives 3 solutions; 4 gives 5 solutions..
-// Output:
-//   ii1      index to 1. point;
-//   ii2      index to 2. point;
-//   RetCod   max nr of solutions
-//
-// Example:  ptNr=3; retCod=2;
-//      ii1  ii2  isol
-//       0    1     0
-//   //  0    2       skipped
-//       1    2     1
-//
-// Example:  ptNr=4; retCod=5;
-//       0    1     0
-//       0    2     1
-//   //  0    3        skipped
-//       1    2     2
-//       1    3     3
-//       2    3     4
-//
-// Example:  ptNr=5; retCod=9;
-//       0    1     0
-//       0    2     1
-//       0    3     2
-//   //  0    4       skipped
-//       1    2     3
-//       1    3     4
-//       1    4     5
-//       2    3     6
-//       2    4     7
-//       3    4     8
-
-
-// see also APT_trim_u0 APT_trim_uu
-
-  int  iMax, ie;
-
-  // printf("APT_MOD_resolv_open isol=%d ptNr=%d\n",isol,ptNr);
-
-  if(isol < 0) isol = 0;
-
-  if(ptNr <= 2) {
-    iMax = 1;
-    *ii1 = 0;
-    *ii2 = 1;
-    goto L_exit;
-  }
-
-  // get nr of max solutions
-  ie = ptNr - 1;
-  iMax = UTI_sum_row (ie) - 1; // + ptNr;
-  isol = isol % iMax;
-    // printf("  isol=%d ptNr=%d iMax=%d\n",isol,ptNr,iMax);
-
-  // 1. loop: nr = ptNr; ii1=0; ii2=0-ptNr
-  *ii1 = 0;
-  *ii2 = 1;
-
-  while(isol) {
-    *ii2 += 1;
-    if(*ii2 >= ptNr) {
-      *ii1 += 1;
-      *ii2 = *ii1 + 1;
-    }
-    if((*ii1 == 0) && (*ii2 == ie)) continue; // skip comp first+last
-    --isol;
-  }
-
-
-  L_exit:
-    // printf("  ex _MOD_resolv_open ii1=%d ii2=%d iMax=%d\n",*ii1,*ii2,iMax);
-
-  return iMax;
-
-}
- 
-
-//====================================================================
-  int APT_MOD_resolv_closed (int *ii1, int *ii2, int isol, int ptNr) {
-//====================================================================
-// get indexes according to resolutionNr isol.
-// circle; 
-// Input:
-//   isol     MODificationNr; (0=not defined; 1=first sol, 2=second sol ..)
-//   ptNr     nr of points;  3 gives 6 solutions; 4 gives 12 solutions..
-// Output:
-//   ii1      index to 1. point;
-//   ii2      index to 2. point;
-//   RetCod   max nr of solutions (ptNr * (ptNr - 1))
-//
-// Example:  ptNr=2; retCod=2;
-//      ii1  ii2  isol
-//       0    1     0
-//       1    0     1
-//
-// Example:  ptNr=3; retCod=6;
-//      ii1  ii2  isol
-//       0    1     0
-//       0    2     1
-//       1    0     2
-//       1    2     3
-//       2    0     4
-//       2    1     5
-//
-// Example:  ptNr=4; retCod=12;
-//      ii1  ii2  isol
-//       0    1     0
-//       0    2     1
-//       0    3     2
-//       1    0     3
-//       1    2     4
-//       1    3     5
-//       2    0     6
-//       2    1     7
-//       2    3     8
-//       3    0     9
-//       3    1    10
-//       3    2    11
-
-// see also APT_trim_u0 APT_trim_uu
-
-  int  iMax;
-
-
-  // printf("APT_MOD_resolv_closed isol=%d ptNr=%d\n",isol,ptNr);
-
-  if(isol < 0) isol = 0;
-
-  // get nr of max solutions
-  iMax = ptNr * (ptNr - 1);
-
-  if(ptNr < 2) goto L_exit;
-
-  isol = isol % iMax;
-    // printf("  isol=%d ptNr=%d iMax=%d\n",isol,ptNr,iMax);
-
-  
-
-  // 1. loop: nr = ptNr; ii1=0; ii2=0-ptNr
-  *ii1 = 0;
-  *ii2 = 1;
-
-  while(isol) {
-    *ii2 += 1;
-    if(*ii2 >= ptNr) {
-      *ii1 += 1;
-      *ii2 = 0;
-    }
-    if(*ii1 == *ii2) continue;
-    --isol;
-  }
-
-
-  L_exit:
-    // printf("  ex APT_MOD_resolv_closed ii1=%d ii2=%d iMax=%d\n",
-           // *ii1,*ii2,iMax);
-
-  return iMax;
-
-}
- 
-
-//===========================================================================
-  int APT_MOD_resolv_two_open (int *ii1, int *ii2, int imod, int p1Nr, int p2Nr) {
-//===========================================================================
-// get indexes according to resolutionNr imod.
-// Input:
-//   imod     MODificationNr; (0=not defined; 1=first sol, 2=second sol ..)
-//   p1Nr     nr of points on 1. cuttingObj;
-//   p2Nr     nr of points on 2. cuttingObj;
-// Output:
-//   ii1      index to 1. point;
-//   ii2      index to 2. point;
-//   RetCod   max nr of solutions; is always (p1Nr * p2Nr)
-//
-// Example:  p1Nr=2; p2Nr=2; retCod=4;
-//      ii1  ii2  imod
-//       0    0     0
-//       0    1     1
-//       1    0     2
-//       1    1     3
-
-// see also APT_trim_u0 APT_trim_uu APT_MOD_resolv_closed APT_MOD_resolv_open
-
-  int  iMax;
-
-
-  // printf("APT_MOD_resolv_twoOpen imod=%d p1Nr=%d p2Nr=%d\n",imod,p1Nr,p2Nr);
-
-
-  if(p2Nr < 1) {
-    return APT_MOD_resolv_open (ii1, ii2, imod, p1Nr);
-  }
-
-  if(imod < 0) imod = 0;
-
-  iMax = p1Nr * p2Nr;
-  if(iMax < 1) {      // % 0 makes crash
-    iMax = p1Nr + p2Nr;
-    *ii1 = 0;
-    *ii2 = 0;
-    goto L_exit;
-  }
-
-  imod = imod % iMax;
-
-  *ii1 = imod / p2Nr;
-  *ii2 = imod % p2Nr;
-
- L_exit:
-    // printf("ex _MOD_resolv_two_open ii1=%d ii2=%d iMax=%d\n",*ii1,*ii2,iMax);
-
-  return iMax;
-
-}
-
-
-//===========================================================================
-  int APT_MOD_resolv_two_closed (int *iRev, int *ii1, int *ii2,
-                                int imod, int p1Nr, int p2Nr) {
-//===========================================================================
-// get indexes according to resolutionNr imod.
-// Input:
-//   imod     MODificationNr; (0=first sol, 1=second sol ..)
-//   p1Nr     nr of points on 1. cuttingObj;
-//   p2Nr     nr of points on 2. cuttingObj;
-// Output:
-//   iRev     0: ii1 is index in table 1; ii2 in table 2.
-//            1: ii1 is index in table 2; ii2 in table 1.
-//   ii1      index to 1. point;
-//   ii2      index to 2. point;
-//   RetCod   max nr of solutions; is always (2 * (p1Nr + p2Nr))
-//
-// p2-points follow p1-points; first point of p2 has index [p1Nr]
-//
-// Example:  p1Nr=1; p2Nr=1; retCod=2;
-//      iRev ii1  ii2  imod
-//       0    0    0     0
-//       1    0    0     1
-//
-// Example:  p1Nr=2; p2Nr=1; retCod=4;
-//      iRev ii1  ii2  imod
-//       0    0    0     0
-//       0    1    0     1
-//       1    2    0     2
-//       1    2    0     4
-//
-// Example:  p1Nr=2; p2Nr=2; retCod=8;
-//      iRev ii1  ii2  imod
-//       0    0    0     0
-//       0    0    1     1
-//       0    1    0     2
-//       0    1    1     3
-//       1    0    0     4
-//       1    0    1     5
-//       1    1    0     6
-//       1    1    1     7
-
-// see also APT_trim_u0 APT_trim_uu APT_MOD_resolv_closed APT_MOD_resolv_open
-  
-  int  iMax, ii;
-
-  // printf("APT_MOD_resolv_twoClosed imod=%d p1Nr=%d p2Nr=%d\n",imod,p1Nr,p2Nr);
-
-  if(imod < 0) imod = 0;
-
-  if(p1Nr < 1) {
-    *iRev = 1;
-    *ii2 = imod;
-   goto L_exit;
-  }
-
-  if(p2Nr < 1) {
-    *iRev = 0;
-    *ii1 = imod;
-   goto L_exit;
-  }
-
-  ii = p1Nr * p2Nr;
-  iMax = ii * 2;
-  imod = imod % iMax;
-
-
-  *iRev = imod / ii;   // 0 or 1
-  if(*iRev) imod -= ii;
-
-  *ii1 = imod / p2Nr;
-  *ii2 = imod % p2Nr;
-
- L_exit:
-    // printf("  ex APT_MOD_resolv_twoClosed iRev=%d ii1=%d ii2=%d iMax=%d\n",
-            // *iRev,*ii1,*ii2,iMax);
-
-  return iMax;
-
-}
 
 
 //================================================================

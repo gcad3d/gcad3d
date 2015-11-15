@@ -79,7 +79,7 @@ Korr:
 #define Typ_Att_Fac2       6
 #define Typ_Att_Symb       7
 #define Typ_Att_hili       8  // white
-#define Typ_Att_hili1      9  // red
+#define Typ_Att_hili1      9  // red, thick=3
 #define Typ_Att_dim       10
 #define Typ_Att_top1      11
 #define Typ_Att_top2      12
@@ -123,6 +123,12 @@ Korr:
 #define ATT_COL_WHITE      8
 #define ATT_COL_HILI       9
 #define ATT_COL_DIMMED    10
+
+// linetypes
+#define LTYP_full          0
+#define LTYP_dashLong      3
+#define LTYP_dashShort     2
+#define LTYP_dashDot       1
 
 #define FUNC_Pan           1
 #define FUNC_Rot           2

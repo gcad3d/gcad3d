@@ -1034,7 +1034,7 @@ extern int    UI_umbId;
 
     if (fgets (cbuf, 256, fpi) == NULL) break;
     UTX_CleanCR (cbuf);
-      printf(" list add |%s|\n",cbuf);
+      // printf(" list add |%s|\n",cbuf);
 
     gtk_list_store_append (list_store, &iter);
 

@@ -559,11 +559,23 @@ extern long       GR_TAB_IND;
   int tst_exp_dxf () {
 //================================================================
   
+  int    irc;
+  char   cbuf[256];
+
   TX_Print("tst_exp_dxf\n");
   AP_stat.subtyp = 1;  // 0=R12; 1=2000
+
+  // Compile, Link.
+  strcpy(cbuf, "xa_dxf_w.so");
+  irc = DLL_build__ (cbuf);
+  printf(" build=%d\n",irc);
+  if(irc != 0) return -1;
+
+  // export
   strcpy(WC_modnam, "unknown.dxf");
   UI_save__ (1);
   UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+
   return 0;
 
 }

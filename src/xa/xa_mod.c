@@ -1,7 +1,7 @@
 //          Model-managment-functions.        Franz Reiter.  10.Dez.2003
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1077,13 +1077,14 @@ static char *fnam;
     if(l1 < 3) continue;
 
     // cat file tmp/<appnam>.appdat
-    fprintf(fpo, "SECTION APPDAT %s\n",cbuf);
+    fprintf(fpo, "SECTION APPDAT %s %ld\n",cbuf,l1);
     if(UTX_cat_file (fpo, fnam1) < 0) {
       TX_Print("Mod_sav__ E007 %s",fnam1);
       return -1;
     }
 
-    fprintf(fpo,"%s\n",sSecEnd);
+    // fprintf(fpo,"%s\n",sSecEnd);
+    fprintf(fpo,"\n%s\n",sSecEnd);
   }
 
 
@@ -2428,6 +2429,8 @@ static ModelRef modR2;
   while (!feof (fpi)) {
 
     if (fgets (lBuf, mem_cbuf1_SIZ, fpi) == NULL) break;
+      // printf(" lBuf-len=%ld\n",strlen(lBuf));
+
     UTX_CleanCR (lBuf);
 /*
       if((strlen(lBuf) > 128)&&(lBuf[0] != 'A')&&(lBuf[0] != 'S')) {
@@ -2476,8 +2479,9 @@ static ModelRef modR2;
       }
 
       // copy section "APPDAT" into file <temp>/<appNam>.appdat
+      //   ascii|binary
       if(!strncmp(&lBuf[7], " APPDAT ", 8)) {
-        MSH_aload_appDat (lBuf, mem_cbuf1_SIZ, fpi);
+        appDat_aload (lBuf, mem_cbuf1_SIZ, fpi);
         continue;
       }
 

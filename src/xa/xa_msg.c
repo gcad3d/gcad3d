@@ -1,7 +1,7 @@
 // xa_msg.                                   2009-12-11  RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@ MSG_err_1       print errormessage with 1 parameter, formatted ..
 MSG_get_wTab    get a table of words from integers
 MSG_get_str     get message from string (get key from string; 0 parameters)
 MSG_Init        open / reopen
+MSG_lng_init    find supported languages ..
 
 MSG_get__
 MSG_read
@@ -299,7 +300,8 @@ static char   MSG_buf[MSG_bSiz];
 
 
     if(strncmp(sbuf, key, ilen)) goto L_nxt;
-    if(sbuf[ilen] != ' ') goto L_nxt;
+    // if(sbuf[ilen] != ' ') goto L_nxt;
+    if((sbuf[ilen] != ' ')&&(sbuf[ilen] != '=')) goto L_nxt;  // 2015-11-14
 
     // found it ..
     cp1 = &sbuf[ilen + 1];        // skip the key
@@ -503,7 +505,7 @@ static char   MSG_buf[MSG_bSiz];
 
   char     fnam[200];
 
-  printf("MSG_Init |%s|\n",lang);
+  // printf("MSG_Init |%s|\n",lang);
   //printf("  bas_dir  = |%s|\n",OS_get_bas_dir());
   //printf("  fnam_del = |%c|\n",fnam_del);
 
@@ -511,7 +513,7 @@ static char   MSG_buf[MSG_bSiz];
   if(MSG_fp) fclose (MSG_fp);
 
   sprintf(fnam, "%smsg%cmsg_%s.txt",OS_get_doc_dir(),fnam_del,lang);
-    printf(" msgfile = |%s|\n",fnam);
+    // printf(" msgfile = |%s|\n",fnam);
 
 
   if((MSG_fp=fopen(fnam,"r")) == NULL) {
@@ -520,8 +522,6 @@ static char   MSG_buf[MSG_bSiz];
     sprintf(fnam, "%smsg%cmsg_en.txt",OS_get_doc_dir(),fnam_del);
     if((MSG_fp=fopen(fnam,"r")) == NULL) return -1;
   }
-
-
 
 
   return 0;
@@ -931,6 +931,79 @@ static char   MSG_buf[MSG_bSiz];
   // TEST:
   // for(i1=0;i1<txTab->iNr; ++i1)
      // printf(" txTab[%d]=|%s|\n",i1,UtxTab__(i1,txTab));
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int MSG_lng_init (int *lngNr, char lngCode[][4], char lngName[][40]) {
+//======================================================================
+// provide list of supported languages an language-names
+
+  int    ii, iNr, lNr;
+  char   *p1, cbuf1[256];
+
+
+
+  printf("MSG_lng_init %d\n",*lngNr);
+
+
+  //----------------------------------------------------------------
+  // - make list of all <docdir>/msg/msg_*.txt
+
+#ifdef _MSC_VER
+  sprintf(cbuf1,"%smsg",OS_get_doc_dir());
+#else
+  sprintf(cbuf1,"%smsg/",OS_get_doc_dir());
+#endif
+
+
+  ii = strlen (cbuf1);
+    printf(" _scan_- %d |%s|\n",ii,cbuf1);
+
+  iNr = 0;
+  OS_dir_scan_ (cbuf1, &iNr);   // Init
+    printf(" _scan_%d |%s|\n",ii,cbuf1);
+
+  lNr = 0;
+  for(;;)  {
+    OS_dir_scan_ (cbuf1, &iNr);
+      printf(" _scan_%d |%s|\n",iNr,cbuf1);
+    if(iNr < 0) break;
+    p1 = strstr (&cbuf1[ii], "msg_");
+    if(!p1) continue;
+
+    // if(strncmp(&cbuf1[ii], "msg_", 4)) continue;
+    p1 += 4;
+    if(!strncmp(p1, "const", 4)) continue;
+
+
+    // extract & copy language-code
+    strncpy (lngCode[lNr], p1, 2);
+    lngCode[lNr][2] = '\0';
+      printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
+
+
+    // - get value of LANG__ of all files
+    MSG_Init (lngCode[lNr]);
+    // p1 = MSG_get_str ("LANG__");
+    strcpy (lngName[lNr], MSG_get_str ("LANG__"));
+      printf(" lang = |%s|\n",lngName[lNr]);
+
+
+    ++lNr;
+    if(lNr >= *lngNr) {
+      TX_Error("MSG_msg_init E001");
+      return 0;
+    }
+  }
+
+
+
+  //----------------------------------------------------------------
+  *lngNr = lNr;
 
   return 0;
 

@@ -1,7 +1,7 @@
 //  xa_ui.c
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,8 @@ void UI(){}
 =====================================================
 List_functions_start:
 
-UI_block__            activate / disactivate Input
+UI_block__            activate / disactivate functions, input, cursor
+UI_block_get          query if functions, input, cursor is blocked
 UI_block_input        activate / disactivate keystrokes & grafic_selections
 UI_func_stat_set__    activate / disactivate Functions.
 UI_func_stat_set_tab  activate / disactivate Functions.
@@ -60,7 +61,7 @@ UI_EdKeyCR            CR|M3
 AP_UserKeyIn_reset
 AP_UserKeyIn_get
 AP_User_reset         alle reset-funcs, die bei MS-Win u Linux gleich sind
-AP_UserAppObjNamTab   provide names for application-objects
+PLU_appNamTab_set   provide names for application-objects
 UI_CAD_activate
 UI_save_over_CB
 UI_save__
@@ -210,6 +211,7 @@ cl -c /I ..\include xa_ui.c
 #include "../xa/xa.h"                  // WC_modact PRC_IS_ACTIVE
 #include "../xa/gcad_version.h"        // INIT_TXT
 #include "../xa/xa_ui_cad.h"
+#include "../xa/xa_app.h"              // PRC_IS_ACTIVE
 
 
 #define   TRUE 1
@@ -288,12 +290,6 @@ extern long   UI_Ed_fsiz;      // AptTextsize
          ckb_impnat, ckb_compr, // ckb_grpAdd,ckb_mod,ckb_del,
          ckb_vwz;
 
-  MemObj UI_lang[5];
-
-  // GtkWidget UI_inf_sip, UI_inf_sil, UI_inf_sic, UI_inf_sir,
-            // UI_inf_sid;
-
-
   static MemObj box00, box1, w_test1, ToolBar1, ToolBar2,
          box1C, box1C1, boxRelAbs,
          box1R, box1S,
@@ -352,12 +348,12 @@ int    UI_Focus      = 0;      // wer Focus hat; 0=GL, 1=Edit, 2=ViewZ-Entryfeld
 
 int    (*UI_UserKeyFunc) ();        // ob KeyIn an eine UserFunction geht
 
-// table of user-defined names of application-objects
-APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
+// // table of user-defined names of application-objects
+// APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
 int    KeyStatEscape = OFF;
 int    KeyStatShift  = OFF;
-int    KeyStatCtrl   = OFF;
+int    KeyStatCtrl   = OFF;            // 1=OFF; 0=ON
 int    KeyStatAlt    = OFF;
 
 int    UI_InpMode    = UI_MODE_START;  // MAN od CAD od NC; see also AP_SRC
@@ -367,13 +363,14 @@ int    UI_InpVWZ     = OFF;            // S/M
 char   UI_stat_view  = 1,
        UI_stat_hide  = 1,              // hide iactive: 0=yes, 1=not
        UI_stat_3D    = 1,                  // 0=not sel, 1=selected.
-       UI_stat_shade = 1;               // 0=not sel, 1=selected.
+       UI_stat_shade = 1,               // 0=not sel, 1=selected.
+       UI_block_func = 0,
+       UI_block_inp  = 0,               // 0=open, 1=blocked
+       UI_block_cur  = 0;
 
 int UI_EditMode = UI_EdMode_Add;
 
 int    UI_RelAbs = 0;                 // 0=Rel, 1=Abs
-
-int    UI_block_inp = 0;              // 0=open, 1=blocked
 
   // char xa_auxbuf1[256];
 
@@ -586,6 +583,23 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 }
 */
 
+
+//================================================================
+  int UI_block_get (int *iFunc, int *iInp, int *iCur) {
+//================================================================
+// UI_block_get    query if functions, input, cursor is blocked
+
+  if(iFunc) *iFunc = UI_block_func;
+  if(iInp)  *iInp  = UI_block_inp;
+  if(iCur)  *iCur  = UI_block_cur;
+
+    printf("ex UI_block_get %d %d %d\n",*iFunc,*iInp,*iCur);
+
+  return 0;
+
+}
+
+
 //================================================================
   int UI_block__ (int iFunctions, int iInput, int iCursor) {
 //================================================================
@@ -599,7 +613,7 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 /// \endcode
 
   int   ii;
-  static char actFun=0, actCur=0;
+  // static char actFun=0, actCur=0;
 
 
   // printf("UI_block__ mode=%d actMode=%d\n",mode,actMode);
@@ -609,7 +623,7 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
   //----------------------------------------------------------------
   L_cur:
   if((iCursor < 0) ||
-     (actCur == iCursor)) goto L_func;
+     (UI_block_cur == iCursor)) goto L_func;
 
   if(iCursor == 0)
   UI_CursorWait (1);    // reset cursor
@@ -618,14 +632,14 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
     ii = UI_CursorWait (0);    // wait-cursor
   }
 
-  actCur = iCursor;
+  UI_block_cur = iCursor;
 
 
   //----------------------------------------------------------------
   L_func:
   // 0 = reset to normal
   if((iFunctions < 0) ||
-     (actFun == iFunctions)) goto L_inp;
+     (UI_block_func == iFunctions)) goto L_inp;
 
   // unlock some application-functions...
   if(iFunctions == 0) {
@@ -654,7 +668,7 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
       0);
   }
 
-  actFun = iFunctions;
+  UI_block_func = iFunctions;
 
 
   //----------------------------------------------------------------
@@ -2169,73 +2183,6 @@ static char LstBuf[LstSiz][32];
 }
 
 
-//================================================================
-  int AP_oid_UserAppObj (char *oid, long dli) {
-//================================================================
-// create name (oid) for application-object
-
-  char    *p1;
-  DL_Att  dla;
-
-
-  // get DL-record from dispListIndex dli
-  dla = DL_GetAtt (dli);
-
-
-  if(UI_User_appNamTab) { // display user-defined name of application-object
-    p1 = AP_UserAppObjNam__ (dla.iatt);
-    sprintf(oid, "%s %ld",p1,dla.ind);
-
-  } else {               // default-name of application-object
-    sprintf(oid, "%ld/%ld",dla.ind,
-                           dla.iatt);
-  }
-
-  return 0;
-
-}
- 
-
-//================================================================
-  char* AP_UserAppObjNam__ (int iNam) {
-//================================================================
-// return name of UserAppObjTyp = iNam
-
-  int  ii = 0;
-
-  while (UI_User_appNamTab[ii].oTyp >= 0) {
-    if(UI_User_appNamTab[ii].oTyp == iNam) return UI_User_appNamTab[ii].oNam;
-    ++ii;
-  }
-  return NULL;
-}
-
- 
-//================================================================
-  int AP_UserAppObjNamTab (APP_OBJ_NAM *appObjNamTab) {
-//================================================================
-/// \code
-/// provide names for application-objects
-/// size of words max 32 chars
-/// \endcode
-
-// keep appObjNamTab static until exit of userApplication !
-
-
-  // printf("AP_UserAppObjNamTab \n");
-  // { int   i1; i1 = 0; for(;;) {
-    // if(appObjNamTab[i1].oTyp < 0) break;
-      // printf(" appObjNamTab[%d] |%s| %d\n",i1,
-             // appObjNamTab[i1].oNam,appObjNamTab[i1].oTyp); ++i1;} }
-
-
-  UI_User_appNamTab = appObjNamTab;     // appObjNamTab
-
-  return 0;
-
-}
-
-
 //=====================================================================
   int AP_UserKeyIn_reset () {
 //=====================================================================
@@ -2292,7 +2239,8 @@ static char LstBuf[LstSiz][32];
 
   AP_stat.APP_stat = 0;    // no plugin is active ..
 
-  if(UI_User_appNamTab) UI_User_appNamTab = NULL;   // reset appObjNamTab
+  // if(UI_User_appNamTab) UI_User_appNamTab = NULL;   // reset appObjNamTab
+  PLU_appNamTab_set (NULL);
 
     // printf("ex AP_User_reset AP_stat.APP_stat=%d\n",AP_stat.APP_stat);
 
@@ -2935,7 +2883,7 @@ TX_Error("EDI-GDK_BackSpace");
   case 'P':
     if(KeyStatCtrl != ON) goto L_spcFnc;
       printf("APP_act_typ = %d APP_act_nam = |%s|\n",APP_act_typ,APP_act_nam);
-    if(APP_act_typ == 1)  APP_start ();
+    if(APP_act_typ == 1)   ();
     if(APP_act_typ == 2)  PRG_start ();
     goto AllDone;
 
@@ -3214,9 +3162,12 @@ TX_Error("EDI-GDK_BackSpace");
 
     if(!strcmp(ftyp, "DXF")) {
       // printf(" Export DXF |%s|\n",WC_modnam);
+/*
       AP_ExportDxf (cbuf, AP_stat.subtyp);
       // nun noch die Surf's
       goto L_mock;
+*/
+      OS_dll_do ("xa_dxf_w", "DXFW__", cbuf);
       // goto L_fertig;
 
 
@@ -7198,7 +7149,7 @@ See UI_but__ (txt);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "AppUnl")) {
-    APP_Unl ();
+    PLU_unl ();
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "AppHlp")) {        // HELP Application
@@ -7380,6 +7331,13 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "docWC_g")) {
     sprintf(cbuf1, "%shtml%cwcut_de.htm",OS_get_doc_dir(), fnam_del);
     APP_browse (cbuf1);
+
+  //-------------------------------------------------
+
+  } else if(!strcmp(cp1, "docTransl")) {
+    sprintf(cbuf1, "%shtml%ctransl_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    APP_browse (cbuf1);
+
 
 
   //-------------------------------------------------
@@ -8163,9 +8121,21 @@ box1
   // char   *surLst[]={"XY","XZ","YZ",NULL};
 
 
+#define LNG_MAX_NR 16
+  typedef  char lngCode[4];
+  typedef  char lngName[40];
+  static lngCode    TabLngCode[LNG_MAX_NR];
+  lngName    *TabLngName;
+  int        lngNr;
+
+
+
+
+
+
   /* -------------------------------------------------- */
   idat = GUI_DATA_I1;
-    // printf("UI_win_main %d\n",idat);
+    printf("UI_win_main %d\n",idat);
 
 
   switch (idat) {
@@ -8806,26 +8776,15 @@ box1
       // GUI_menu_checkbox__   (men_hlp, " Sprache deutsch");
       // GUI_menu_checkbox__   (men_hlp, " Language english");
       actwi = GUI_menu_entry   (&men_hlp, "---",     NULL,       NULL);
-        printf(" men_hlp-|%s|\n",AP_lang);
-        // GUI_register_cb (actwi, "toggled", UI_chg_lang, NULL);
-      UI_lang[0] = GUI_menu_radiobutt__ (&men_hlp, " Deutsch", 0,
-                                         UI_chg_lang, (void*)"de");
-        // GUI_register_cb (UI_lang[0], "activate", UI_chg_lang, (void*)"de");
-      UI_lang[1] = GUI_menu_radiobutt__ (&men_hlp, " English", 1,
-                                         UI_chg_lang, (void*)"en");
-        // GUI_register_cb (UI_lang[1], "activate", UI_chg_lang, (void*)"en");
-      UI_lang[2] = GUI_menu_radiobutt__ (&men_hlp, " French", 1,
-                                         UI_chg_lang, (void*)"fr");
-        // GUI_register_cb (UI_lang[2], "activate", UI_chg_lang, (void*)"fr");
-      UI_lang[3] = GUI_menu_radiobutt__ (&men_hlp, " Italian", 1,
-                                         UI_chg_lang, (void*)"it");
-        // GUI_register_cb (UI_lang[3], "activate", UI_chg_lang, (void*)"it");
-      UI_lang[4] = GUI_menu_radiobutt__ (&men_hlp, " Spanish", 1,
-                                         UI_chg_lang, (void*)"es");
-        // GUI_register_cb (UI_lang[4], "activate", UI_chg_lang, (void*)"es");
 
 
+      // add installed languages
+      TabLngName = (void*) UME_alloc_tmp (LNG_MAX_NR * 40);
+      lngNr = LNG_MAX_NR;
+      UI_lang_men (&lngNr, TabLngCode, TabLngName, &men_hlp);
 
+
+      GUI_menu_entry(&men_hlp,"make translation", UI_menCB,(void*)"docTransl");
 
 
 
@@ -9371,19 +9330,13 @@ box1
       win_edStat = 1;  // disactivate ..
       UI_brw__ (0);
 
-      // activate language; crash in MS if before show mainWinmainWin  !
-      if     (!strcmp(AP_lang, "de"))   i1 = 0;
-      else if(!strcmp(AP_lang, "en"))   i1 = 1;
-      else if(!strcmp(AP_lang, "fr"))   i1 = 2;
-      else if(!strcmp(AP_lang, "it"))   i1 = 3;
-      else if(!strcmp(AP_lang, "es"))   i1 = 4;
-      else {
-        printf("**** unsupported language |%s|\n",AP_lang);
-        i1 = 1;     // unknown Language = def = en
-      }
 
+/*
+      //----------------------------------------------------------------
+      // activate language; crash in MS if before show mainWinmainWin  !
       // gtk_signal_emit_by_name (GTK_OBJECT(UI_lang[i1]),"activate");
-      GUI_menu_radiobutt_set (&UI_lang[i1]);
+      GUI_menu_radiobutt_set ("en");
+*/
 
       // act. GO,STEP;   MAN:On; CAD,VWR:Off.
       GUI_set_enable (&but_go, FALSE);
@@ -9424,7 +9377,7 @@ box1
       // unload active Application
       if(AP_stat.APP_stat) {
         strcpy (cbuf1, APP_act_nam);
-        DLL_run2 ("", -1);                // see APP_Unl
+        DLL_run2 ("", -1);                // see PLU_unl
         strcpy (APP_act_nam, cbuf1);
       }
 
@@ -9456,6 +9409,64 @@ box1
 }
 
 
+//===================================================================
+  int UI_lang_men (int *lngNr, char lngCode[][4], char lngName[][40],
+                   MemObj *mo) {
+//===================================================================
+ 
+  int    i1, ia, ie, ii;
+  MemObj m1, ma, me;
+
+
+  printf("UI_lang_men |%s|\n",AP_lang);
+
+  // find installed languages and language-names
+  MSG_lng_init (lngNr, lngCode, lngName);
+
+
+  // create menu-entry.
+  ia = -1;
+  ie = -1;
+  ii = 0;
+  for(i1=0; i1 < *lngNr; ++i1) {
+      printf(" lng %d |%s|%s|\n",i1,lngCode[i1],lngName[i1]);
+    m1 = GUI_menu_radiobutt__ (mo,lngName[i1],ii,UI_chg_lang,(void*)lngCode[i1]);
+    if(!ii) ++ii;  // 0=new menu; 1=add to menu
+
+    // keep language AP_lang
+    if (!strcmp(AP_lang, lngCode[i1])) {
+      ia = i1;
+      ma = m1;
+    }
+
+    // keep defLang en
+    if (!strcmp(AP_lang, "en")) {
+      ie = i1;
+      me = m1;
+    }
+  }
+
+
+  if(ia < 0) {
+    TX_Print ("UI_lang_men - cannot find lang. %s - defaulted english.",AP_lang);
+    GUI_menu_radiobutt_set (&me);
+    ia = ie;
+    ma = me;
+  }
+
+
+    printf(" lang-activate |%s|\n",lngCode[ia]);
+  GUI_menu_radiobutt_set (&ma);
+  strcpy(AP_lang, lngCode[ia]);
+  MSG_const_init (AP_lang);
+  MSG_Init (AP_lang);
+
+
+  return 0;
+
+}
+
+
 //================================================================
   int UI_chg_lang (MemObj *mo, void **data) {
 //================================================================
@@ -9463,14 +9474,12 @@ box1
   char    *cp1;
 
 
-  // printf("UI_chg_lang |%s|%s|\n",(char*)data,AP_lang); 
-  // printf(" AP_stat.sysStat=%d\n",AP_stat.sysStat);
+  printf("UI_chg_lang |%s|%s| %d\n",GUI_DATA_S1,AP_lang,AP_stat.sysStat); 
 
   if(AP_stat.sysStat < 2) return 0;
 
   if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
 
-  // cp1 = (char*)data;
   cp1 = GUI_DATA_S1;
   if(!strcmp(cp1, AP_lang)) return 0;
 
@@ -9486,19 +9495,6 @@ box1
   TX_Print("HOW TO IMPROVE DOCUMENTATION: see Help/Translations");
   TX_Print("***** Exit and Restart gcad (languge modified) *****");
 
-
-/*
-  if(!strcmp(cp1, "it")) {
-    TX_Print("***** Italian translation only partially exists;");
-    TX_Print("***** use Help/Documentation.");
-
-  } else if(!strcmp(cp1, "fr")) {
-    TX_Print("***** French translation does not exist yet !!! *****");
-
-  } else if(!strcmp(cp1, "es")) {
-    TX_Print("***** Spanish translation does not exist yet !!! *****");
-  }
-*/
 
   return 0;
 }

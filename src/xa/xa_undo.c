@@ -1,7 +1,7 @@
 //   Undo-Window-Funktions.             RF 2002-05-22
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
-  ..
+2015-08-17 UNDO_app__ new. RF.
 
 -----------------------------------------------------
 */
@@ -42,11 +42,13 @@ UNDO_lock
 UNDO_grp_add       add new group to undoTab
 UNDO_chg_add       save line-modified-record
 UNDO_chg_ins       increment all linenumbers > lNr
+UNDO_app__         handle undo for plugins (no redo)
 
 UNDO_grp_undo      delete;  --actGrp;
 UNDO_grp_redo      restore; ++actGrp;
 UNDO_grp_del       delete actGrp
 UNDO_grp_res       restore active grp
+UNDO_grp_clr       delete record and all following records
 UNDO_ln_del        delete line
 UNDO_ln_res        restore line
 
@@ -162,7 +164,7 @@ typedef_MemTab(undoObj);
 
 static MemTab(undoObj) undoTab = MemTab_empty;
 
-static int actGrp;
+static int actGrp;    // the nr of (.grpNr==0) - records in undoTab
 
 
 //================================================================
@@ -340,6 +342,7 @@ extern AP_STAT   AP_stat;
   int UNDO_grpNr_recNr (int iRec) {
 //================================================================
 // get groupNr from recordnr
+// groupNr = nr of (grpNr==0) - records in undoTab
 
   int    i1, ig;
 
@@ -453,6 +456,10 @@ extern AP_STAT   AP_stat;
     // actGrp = UNDO_ind_undo ();              // --actGrp;
     if(actGrp >= 0) --actGrp;
 
+  } else if(undoTab.data[ii].u1 == 'P') {
+    UNDO_app__ (2);                           // delete application-output
+    if(actGrp >= 0) --actGrp;
+
   } else {
     UNDO_grp_res ();
     // do NOT change actGrp - cannot go back because objs are reactivated;
@@ -466,6 +473,7 @@ extern AP_STAT   AP_stat;
   UI_block__ (0, 0, 0);                   // reset UI
 
   UNDO_upd_bt ();                         // update buttons
+  UNDO_upd_lb ();
 
   return 0;
 
@@ -520,9 +528,33 @@ extern AP_STAT   AP_stat;
 
 
 //================================================================
+  int UNDO_grp_clr (int iGrp) {
+//================================================================
+// remove the UNDO-record with group-nr iGrp and all following records.
+// used for removing 'P'-records
+ 
+
+  int    ii;
+
+
+  // get recordNr from groupNr
+  ii = UNDO_recNr_grpNr (iGrp);
+  if(ii < 0) return -1;
+    printf("UNDO_grp_clr %d ii=%d\n",iGrp,ii);
+
+  // MemTab_del (&undoTab, ii, 1);
+  undoTab.rNr = ii;
+
+  return 0;
+
+}
+
+
+//================================================================
   int UNDO_grp_del () {
 //================================================================
 // UNDO_grp_del     delete last active grp & update display
+// change u1 -> 'd'
 
 // was UI_undo_do(1)
 
@@ -852,6 +884,105 @@ extern AP_STAT   AP_stat;
   
 
 //================================================================
+  int UNDO_app__ (int mode) {
+//================================================================
+/// \code
+/// UNDO_app__         handle undo for plugins (no redo)
+/// Input
+///   mode
+///        0 store all infos before start off appli
+///        1 end of appli: create undo-record; activate undo-button
+///        2 delete output of appli, remove undo-record
+///        3 remove undo-record
+/// \endcode
+
+
+
+static int    lNr;
+static long   dli, dbl;
+  int         irc;
+  long        ld;
+  undoObj     o1;
+
+
+  printf("UNDO_app__ %d\n",mode);
+    UNDO_dump ();
+
+
+  //================================================================
+  //        0 store all infos before start off appli
+  if(mode != 0) goto L_app_1;
+
+  // stor line-nr
+  lNr = ED_get_lnr_act ();
+    // printf(" _app__-lNr=%d\n",lNr);
+
+  goto L_app_ex;
+
+
+  //================================================================
+  //        1 end of appli: create undo-record; activate undo-button
+  L_app_1:
+  if(mode != 1) goto L_app_2;
+
+  // check if output was created
+  ld = ED_get_lnr_act ();
+  if(ld <= lNr) return -1;
+
+  // create undo-record
+  o1.lNr   = lNr;
+  o1.grpNr = 0;
+  o1.u1    = 'P';
+  o1.u2    = '1';
+  MemTab_sav (&undoTab, &ld, &o1, 1);
+  actGrp = UNDO_grpNr_recNr (undoTab.rNr - 1);
+
+  // activate undo-button
+  UNDO_upd__ ();
+
+  goto L_app_ex;
+
+
+  //================================================================
+  //        2 delete output of appli, remove undo-record
+  L_app_2:
+  if(mode != 2) goto L_app_3;
+
+  // delete modelcode
+  irc = ED_del__ (lNr);    // del all following
+  if(irc < 0) goto L_E001;
+  ED_work_CurSet (lNr);    // reset to lNr (kill all following)
+  APED_update__ (-1L);     // work new codes; updated lNr
+
+  goto L_app_3;  // delete record
+
+
+  //================================================================
+  //        3 remove undo-record
+  L_app_3:
+
+  // delete undo-record
+  // if(undoTab.rNr > 0) undoTab.rNr -= 1;
+  UNDO_grp_clr (actGrp);  // delete actGrp and all follow. rec's
+
+  goto L_app_ex;
+
+
+  //================================================================
+  L_app_ex:
+
+    UNDO_dump ();
+
+  return 0;
+
+  L_E001:
+    printf("UNDO_app__ E001\n");
+    UNDO_dump ();
+    return -1;
+}
+
+
+//================================================================
   int UNDO_clear () {
 //================================================================
 
@@ -933,12 +1064,12 @@ extern AP_STAT   AP_stat;
   // test if next record is free
   i1 = UNDO_grpNr_recNr(UT_INT_MAX);
   if(actGrp < i1) iRedo = TRUE;              // T=1
-    // printf(" i1=%d iRedo=%d\n",i1,iRedo);
+    // printf(" iUndo=%d actGrp=%d i1=%d iRedo=%d\n",iUndo,actGrp,i1,iRedo);
 
 
   L_disp:
     // printf(" iUndo=%d iRedo=%d\n",iUndo,iRedo);
-  GUI_set_enable (&btUndo, iUndo);
+  GUI_set_enable (&btUndo, iUndo); //1=active, 0=inactive
   GUI_set_enable (&btRedo, iRedo);
 
 

@@ -1,13 +1,13 @@
-# make -f APP_GIS1.mak
+# make -f Demo_toolbar1.mak
 
 
-DLLNAM = plugins/APP_GIS1
+DLLNAM = plugins/Demo_toolbar1
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../GIS1/APP_GIS1.c
+	../xa/Demo_toolbar1.c
 
-DIRSRC1 := ../GIS1/
+DIRSRC1 := ../xa/
 
 include gcad_dll.mak
 

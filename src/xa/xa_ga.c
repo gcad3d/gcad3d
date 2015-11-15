@@ -1,7 +1,7 @@
 // PermanentAttributeList.          RF 2004-01-25.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,7 +190,7 @@ int     GA_recNr=0;              // die aktuelle Anzahl von Records
 
 static int   GA_stat=0;          // 0=unmodified; 1=GA_ObjTab changed.
 static long  GA_SIZ = 0;         // size of GA_ObjTab
-#define GA_INC_SIZ  5000
+#define GA_INC_SIZ  10000
 
 static ObjAtt GA_DefRec;
 
@@ -1969,7 +1969,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 
 ///================================================================
-  int GA_sStyl__ (long dli, int sStyl, int typ, long ind) {
+  int GA_sStyl__ (long dli, int sStyl, int typ, long dbi) {
 ///================================================================
 /// GA_sStyl__           modify surfStyle
 /// 
@@ -1984,7 +1984,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
   ColRGB     *col;
 
 
-  // printf("GA_sStyl__ dli=%ld sStyl=%d typ=%d ind=%ld\n",dli,sStyl,typ,ind);
+  // printf("GA_sStyl__ dli=%ld sStyl=%d typ=%d dbi=%ld\n",dli,sStyl,typ,dbi);
 
 
   // typ kann Typ_SURBSP sein  !!
@@ -2003,7 +2003,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
   // find or create GA-record > PermanentAttributeTable GA_ObjTab
   L_1:
-  gaNr = GA_creRec (typ, ind);
+  gaNr = GA_creRec (typ, dbi);
   if(gaNr < 0) return -1;
     // printf(" gaNr=%d\n",gaNr);
 
@@ -2013,16 +2013,12 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
   if(sStyl == 1) {               // reset style to 1=normal
     col->vsym = 0;
-    col->vtra = 0;
 
   } else if(sStyl == 2) {        // set style to 2=symbolic
     col->vsym = 1;
-    col->vtra = 0;
 
   } else if(sStyl == 3) {        // set style to 3=transparent
     col->vsym = 0;
-    col->vtra = 1;
-
   }
 
 
@@ -2038,10 +2034,12 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
   // save the index in the DL-Record
   GR_ObjTab[dli].iatt = GA_ObjTab[gaNr].iatt;
 
-  // die GL-DrawFunction mit neuem attInd rufen ..
-  APT_Draw__ (GA_ObjTab[gaNr].iatt, typ, ind);
 
-  DL_hili_off (-1L);             //  -1 = unhilite all
+  // die GL-DrawFunction mit neuem attInd rufen ..
+  APT_Draw__ (GA_ObjTab[gaNr].iatt, typ, dbi);
+
+  DL_hili_off (dli);             // unhilite
+
 
   DL_Redraw ();
 

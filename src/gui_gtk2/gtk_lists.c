@@ -131,8 +131,17 @@ typedef struct {
 
 
 
+/*
+//================================================================
+  int GUI_list1_win (mode) {
+//================================================================
+ 
+  gtk_widget_set_sensitive (UI_list1_win, mode);
+  // GUI_set_enable (UI_list1_win, mode);
+  return 0;
 
-
+}
+*/
 
 //================================================================
   int GUI_list2_modCol (MemObj *mo, int iCol, char *txt) {

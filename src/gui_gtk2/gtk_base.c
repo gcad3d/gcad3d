@@ -387,6 +387,8 @@ static int       UI_act_Id;
 // 2012-06-15 raus ! comes from GUI_DialogEntry !
   // if(mo->mbID == 0) exit (0);    // GUI_main_quit ?
 
+  // make it invalid
+  *mo = GUI_OBJ_INVALID ();   // 2015-08-18
 
   gtk_widget_destroy (ww);
 

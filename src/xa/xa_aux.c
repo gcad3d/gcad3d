@@ -1,7 +1,7 @@
 //            xa_aux.c
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1131,9 +1131,11 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
 */
 
+/*
 //=============================================================================
   void AP_ExportDxf (char* fnam, int dxfVersion) {
 //=============================================================================
+//   dxfVersion    0=DxfR12  1=Dxf2000
 
   int      i1, irc, tra_ind, tra_act, apt_typ, anz_obj=0, anz_sur=0;
   long     l1, apt_ind;
@@ -1151,15 +1153,15 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   printf("AP_ExportDxf %d |%s|\n",dxfVersion,fnam);
 
 
-/*
-  // ev. vorhandene Dateiendung abschneiden.
-  int i1 = docTit.Find('.', 0);
-  if(i1 < 0) {
-    docTit += ".dxf";
-  } else {
-    docTit = docTit.Left(i1) + ".dxf";
-  }
-*/
+
+  // // ev. vorhandene Dateiendung abschneiden.
+  // int i1 = docTit.Find('.', 0);
+  // if(i1 < 0) {
+    // docTit += ".dxf";
+  // } else {
+    // docTit = docTit.Left(i1) + ".dxf";
+  // }
+
 
 
   if ((fp = fopen (fnam, "w+")) == NULL) {
@@ -1187,22 +1189,24 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
     // printf(" expdxf %d\n",l1);
 
-/*
-    // ein transformiertes Objekt holen
-    irc = AP_GetObj (&o1, l1);
+
+    // // ein transformiertes Objekt holen
+    // irc = AP_GetObj (&o1, l1);
+    // // apt_typ = DL_GetTyp(l1);
+    // // apt_ind = DL_GetInd(l1);
+    // // tra_ind = DL_GetTrInd(l1);
+    // // i1 = DB_Get_GR_Obj (&o1, apt_typ, apt_ind, tra_ind);
+    // if(irc < 0) continue;  // skip unknown types
+
+
     // apt_typ = DL_GetTyp(l1);
     // apt_ind = DL_GetInd(l1);
     // tra_ind = DL_GetTrInd(l1);
-    // i1 = DB_Get_GR_Obj (&o1, apt_typ, apt_ind, tra_ind);
-    if(irc < 0) continue;  // skip unknown types
-*/
-
-    // apt_typ = DL_GetTyp(l1);
-    // apt_ind = DL_GetInd(l1);
-    // tra_ind = DL_GetTrInd(l1);
 
 
-    dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    // dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    DL_get_dla (&dla, l1);
+
 
     // if(dla.dim    != OFF) continue;           // skip dimmed objects
     if(dla.disp   == OFF) continue;           // skip hidden obj's
@@ -1222,21 +1226,21 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     if(ox1.typ == Typ_Error) continue;  // skip unknown types
 
 
-/*
-    if(tra_ind > 0) {
 
-      if(tra_act != tra_ind) {
-         DB_GetRef (&pl1, tra_ind);
-         UT3D_m3_loadpl (m1, &pl1);
-         tra_act = tra_ind;
-      }
+    // if(tra_ind > 0) {
+// 
+      // if(tra_act != tra_ind) {
+         // DB_GetRef (&pl1, tra_ind);
+         // UT3D_m3_loadpl (m1, &pl1);
+         // tra_act = tra_ind;
+      // }
+// 
+      // op1 = (ObjGX*)memspc54;
+      // UTO_ox_tra (&op1, &ox1, m1);
+      // tra_ind = 0;
+// 
+    // } else {
 
-      op1 = (ObjGX*)memspc54;
-      UTO_ox_tra (&op1, &ox1, m1);
-      tra_ind = 0;
-
-    } else {
-*/
       op1 = &ox1;
     // }
 
@@ -1280,7 +1284,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   return;
 
 }
-
+*/
 
 //=============================================================================
   void AP_ExportIges__ (char* fnam) {

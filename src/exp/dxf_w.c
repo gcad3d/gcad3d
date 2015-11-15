@@ -1,7 +1,7 @@
-// DXF read, write  dxfr_ dxfw_                          RF  2001-06-17
+// SVG export.                                    RF 2010-09-22
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,24 +16,11 @@
  *
 -----------------------------------------------------
 TODO:
-export CCV as analytic obj's with group ?
-ATTRIB-textblock:
-  via N24=LDRS P(1.5 -36.5 0) 1 (als Symbol) ausgeben;
-  dazu muesste N=LDRS aber zusaetzlich Text ausgeben koennen !
-Offen Export:
- Toleranzen (Sub- und Superscript). Werden zB ex 
-   $DIMTM / $DIMTP ?
-   C5 macht eigenen Text f jede Toleranz!
-Offen Import:
-  Fuer Statistik: Liste benutzter Layers und Anzahl Elemente pro Layer.
-  Man soll aktuellen Layer und Farbe und Linetyp via Query abfragen können.
-  DIMENSION: sind manchmal in der BLOCKS-Section als BLOCK; dann sind die
-    Punkte in der ENTITIES-Section leer. Ev alle BLOCKS einlesen und
-    zwischenspeichern wie bei Iges.
-    BLOCK: hat 8/Blockname; Zugehoerigkeit ebenfalss via 8/Blockname ?
+  ..
 
 -----------------------------------------------------
 Modifications:
+2015-10-21 completely rewritten. RF.
 2004-11-12 DIMENSION, LWPOLYLINE zu. RF.
 2003-11-06 ELLIPSE zu. RF.
 2002-12-16 Neue Curve-Datenstruktur.RF.
@@ -44,23 +31,11 @@ Modifications:
 */
 /*!
 \file  ../exp/dxf_w.c
-\brief write DXF 
+\brief write DXF
 \code
 =====================================================
 List_functions_start:
 
-dxfw_init          write DXF-Prolog
-dxfw_end           write Endrecord
-dxfw_rec           write obj
-dxfw_VERTEX        3D-pt
-dxfw_VERTEX2       2D-pt
-dxfw_hd_POLYLINE   wr header of POLYLINE
-dxfw_POLYLINE      .
-dxfw_fl_out        wr int + double
-dxfw_point2        wr 2D-pt
-dxfw_point         wr 3D-pt
-dxfw_vector        wr vec
-dxfw_load_mat      TrMat from vec
 
 List_functions_end:
 =====================================================
@@ -68,7 +43,7 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-
+make -f xa_dxf_w.mak
 
 ==============================================================================
 Memory-Usage  memspc (../xa/xa_mem.h):
@@ -83,7 +58,7 @@ DXF-Out:
  Alle Punkte und Linien gehen als 3D-Koord. raus;
  Kreise liegen (ausser X-Y-planar) auf einer Ebene, von der der Abstand zum absol.
  Nullpunkt und der Normalvektor angegeben werden. Daher alle Obj in 3D (fertig
- tranformiert). 
+ tranformiert).
 
 
 INSERT:
@@ -106,15 +81,14 @@ $DIMTAD ?
 
 
 
-
 ==============================================================================
 DXF-Dateiformat:
 ================
 
 Prinzipiell besteht jede Information aus 2 Zeilen.
   Die 1. ist der Recordtyp (3-stelliges Int), die 2. zeile hat 3 versch. Formate:
-  Text (linksbündig, bis 255 Char's. zB Layernames ..)
-  Integers (6-stellig rechtsbündig)
+  Text (linksbÃ¼ndig, bis 255 Char's. zB Layernames ..)
+  Integers (6-stellig rechtsbÃ¼ndig)
   Real (Freiformat, zB 0.0)
 
 
@@ -135,7 +109,7 @@ Die folgenden Entities haben alle Recordtyp (= erste Zeile) 0. Es folgt dann als
   ARC      aus Mittelpunkt (10/20/30),Radius(40), Anf.Winkel(50), Endwinkel(51).
            Immer CCW!
   CIRCLE   aus Mittelpunkt (10/20/30) und ?? (34) und Radius (40)
-  TEXT     aus Position (10/20/30), Höhe (40), Text (1) und Winkel (50)
+  TEXT     aus Position (10/20/30), HÃ¶he (40), Text (1) und Winkel (50)
   POLYLINE besteht aus  Punkt ?? (10/20/30), dann
            mehreren 0 / VERTEX bis 0 / SEQEND.
            Code70: Bit1=closed-Info (VERTEX can have also its Code70 !)
@@ -178,7 +152,7 @@ Zusatzinfos: Fast fuer jedes Ent. gibts den Layer; 8 / 3  (zwei Zeilen)
 
   Text          1    zu Typ "TEXT"
   Name          2    zB BLOCK-Name (="Detail"-Name)
-  Ent.Name      5    zB "     B" oder "    4C". Für LINE und VERTEX.
+  Ent.Name      5    zB "     B" oder "    4C". FÃ¼r LINE und VERTEX.
   LinetypName   6    (Char, zB CONTINUOUS)
   Textstyle     7    zB "normal#0.300000#0.900000" od cursive#0.500000#3.000000
   Layernummer   8    (Int)
@@ -186,8 +160,8 @@ Zusatzinfos: Fast fuer jedes Ent. gibts den Layer; 8 / 3  (zwei Zeilen)
   Y-Koord      20-28
   Z-Koord      30-37
   Dicke        39    nur wenn ungleich 0.0
-  allg. Werte  40-48 Radius für CIRCLE und ARC.
-                     ?? für VERTEX (40 UND 41 !)   TEXT-size
+  allg. Werte  40-48 Radius fÃ¼r CIRCLE und ARC.
+                     ?? fÃ¼r VERTEX (40 UND 41 !)   TEXT-size
   ?            48    0-1 (0.098159) bei Line; Display-Z-Value ?
                49    Tabellenwerte (wiederholen sich)
   Winkel       50-58 Degree.
@@ -229,14 +203,6 @@ BLOCKS
   0
 ENDSEC
   0
-SECTION
-  2
-ENTITIES
-  0
-ENDSEC
-  0
-EOF
-
 
 ==========================================================================
 Koordinatensystem:
@@ -309,7 +275,6 @@ The method of getting the Ay vector would be:
           vertical, and rotated linear dimensions. The group value
           is the negative of the Entity Coordinate Systems (ECS)
           angle of the UCS X axis in effect when the Dimension was
-          drawn. The X axis of the UCS in effect when the Dimension
           was drawn is always parallel to the XY plane for the
           Dimension's ECS, and the angle between the UCS X axis and
           the ECS X axis is a single 2D angle. The value in group 51
@@ -325,116 +290,12 @@ The method of getting the Ay vector would be:
           default orientation (the direction of the dimension line).
 
 
-typedef enum { DXF_start         = 0,
-         DXF_textval       = 1,
-         DXF_name          = 2,
-         DXF_othername1    = 3,
-         DXF_othername2    = 4,
-         DXF_entity_handle = 5,
-         DXF_line_type     = 6,
-         DXF_text_style    = 7,
-         DXF_layer_name    = 8,
-         DXF_var_name      = 9,
-         DXF_primary_X     = 10,
-         DXF_other_X_1     = 11,
-         DXF_primary_Y     = 20,
-         DXF_other_Y_1     = 21,
-         DXF_primary_Z     = 30,
-         DXF_other_Z       = 31,
-         DXF_elevation     = 38,
-         DXF_thickness     = 39,
-         DXF_floatvals     = 40,
-         DXF_repeat        = 49,
-         DXF_angle1        = 50,  DXF_angle1        = 51,
-         DXF_angle1        = 52,  DXF_angle1        = 53,
-         DXF_angle1        = 54,  DXF_angle1        = 55,
-         DXF_angle1        = 56,  DXF_angle1        = 57,
-         DXF_angle1        = 58,
-         DXF_colornum      = 62,
-         DXF_entities_flg  = 66,
-         DXF_ent_ident     = 67,
-         DXF_view_state    = 69,
-         DXF_SeventyFlag   = 70,  // I guess I have a horror of literal
-         DXF_SeventyOneFlag= 71,  // constants.
-         DXF_SeventyTwoFlag= 72,
-         DXF_comment       = 999 } DXF_values;
-
-
-//   Notes: Words that are in capitols are tokens (see tokens.h),
-//          that is, values returned by the scanner.
-//          Words that start with "DXF_" are DXF integer values
-//          with special meanings.  Curley braces ("{" and "}")
-//          mean "one or more occurances".
-//
-// DXF_Section = DXF_start SECTION DXF_name SecName SecData SecEnd
-// SecName = HEADER | TABLES | ENTITIES
-// SecData = DXF_start SecStuff
-// SecEnd = DXF_start ENDSEC
-// SecStuff = TableSec | EntitiesSec
-// TableSec = TABLE TableGroup DXF_start ENDTAB
-// TableGroup = LayerGroup | OtherGroup
-// OtherGroup = DXF_name GroupName GroupData
-// LayerGroup = DXF_name LAYER DXF_SeventyFlag MaxItems {LayerDesc}
-// LayerDesc = DXF_start LAYER DXF_name LayerName
-//             DXF_SeventyFlag FlagVals DXF_colornum
-//             ColorNum DXF_line_type LineType
-// LineType = CONTINUOUS
-// EntitiesSec = {DXF_start EntType DXF_layer_name EntName EntData}
-// EntTyp = THREE_D_FACE
-// EntData = ThreeD_data
-// ThreeD_data = {Face}
-// Face = Set1 Set2 Set3 Set4 EndSet
-// EndSet = 62 0
-//
-
------------------------------------------------
-   Process a DXF file POLYLINE section and enter the points in the
-   polygon face list.
-
-   An attempt at explaining the POLYLINE format is shown below:
-
-     PolyLineHeader PolyVert MeshVals
-     PolyLineHeader = DXF_start POLYLINE DXF_name EntName
-     PolyVert = DXF_entities_flg PolyElev
-     PolyElev = 10 0 20 0 30 Elevation
-     MeshVals = 70 0 71 PolygonCount 72 PointCount
-     EntName = string
-
-   The code below skips the POLYLINE header and the POLYLINE vertices
-   section.  It looks for the "72" marker, which indicates the number
-   of points per polygon.  Or at least that is what I think it means
-   and what this object uses it for.
-
-   Following the 71 and 72 groups is a sequence of VERTEX objects, where
-   each VERTEX describes one 3D point.  It is these points that are
-   entered into the polygon face list.
-
-   I have not been able to get POLYLINE objects to display properly, so
-   there is clearly something wrong with my interpretation of the
-   DXF file format spec.
-
------------------------------------------------
-   A 3DFACE section consists of either three or four 3D points.  Each
-   "face" is read in and added to the face list for the object.
-  // The last token fetched should be 3DFACE.  This is followed by some
-  // optional information about the face (which this program ignores),
-  // followed by the point descriptions.
-  //
-  // The points are preceeded by the integers {10, 20,  30}, {11, 21, 31},
-  // {12, 22, 32},  {13, 23, 33}.  There will always be four points.
-  // if the polygon is a triangle, the third and fourth points will be
-  // the same.
-
-
-
-
 
 
 -------------------------------------------------------------------
 */
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+
 
 #include <math.h>
 #include <stdio.h>
@@ -442,26 +303,39 @@ typedef enum { DXF_start         = 0,
 #include <string.h>
 
 
-// #include "../ut/ut_umem.h"            // UME_reserve
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_DEPRECATE
+__declspec(dllexport) int DXFW__ (char*);
+#define extern __declspec(dllimport)
+#endif
+
+
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
+#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../gr/ut_DL.h"                  // DL_GetAtt
+#include "../gr/ut_GL.h"                  // GL_GetCen
+#include "../gr/ut_gr.h"                  // GTX_chh_
+#include "../gr/ut_UI.h"               // SYM_SQUARE ..
 
-#include "../gr/ut_UI.h"              // SYM_SQUARE ..
+#include "../db/ut_DB.h"                  // DB_GetObjGX
 
-#include "../xa/xa.h"          // mem_cbuf1_SIZ
-#include "../xa/xa_mem.h"      // memspc55
-
-
-// #include "../ut/ut_crv.h"
+#include "../xa/xa_mem.h"                 // memspc501
+#include "../xa/xa.h"                     // AP_STAT
 
 
-#include "../exp/dxf_w.h"
-
+//===========================================================================
+// EXTERNALS:
+// from ../xa/xa.c:
 
 extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
+extern AP_STAT    AP_stat;
 
+
+//===========================================================================
+// LOCALS:
 
 
 static int       dxf_version;     // 0=R12; 1=2000
@@ -470,626 +344,62 @@ static int       dxf_version;     // 0=R12; 1=2000
 
 
 
-/*=====================================================================*/
-  int dxfw_init (FILE *fp_in, int dxfVersion) {
-/*=============
-
-  DXF-Prolog ausgeben.
-
-*/
-
-/*
-  int i1;
-  char *dxfi1[] = {
-    "0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","0","ENDSEC",
-    "0","SECTION","2","TABLES","0","ENDSEC",
-    "0","SECTION","2","BLOCKS","0","ENDSEC",
-    "0","SECTION","2","ENTITIES",0
-  };
-
-  for (i1=0; dxfi1[i1] != '\0'; i1++)
-    fprintf(fp_in,"%s\n",dxfi1[i1]);
-*/
-
-  printf("dxfw_init %d\n",dxfVersion);
-
-  dxf_version = dxfVersion;
 
 
-  //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-  fprintf(fp_in,"2\nHEADER\n9\n$ACADVER\n");
+//===========================================================================
+  int DXFW__ (char* fnam)  {
+//===========================================================================
+/// export as DXF
+/// Input:
+///   AP_stat.subtyp  0 = DXF-R12
+///                   1 = DXF-2000
 
-  if(dxf_version == 0) {              // 0=R12
-    fprintf(fp_in,"1\nAC1009\n");
+  int       oNr, mode, dxfVersion;
+  ObjDB     *oTab;
 
-  } else {                            // 1=2000
-    fprintf(fp_in,"1\nAC1015\n");
+
+  printf("DXFW__ 18:55 |%s|\n",fnam);
+
+// - Liste auszugebender objekte (typ+dbi)
+//   - wenn grp aktiv: grp
+//   - else all obj's
+// - export all objs of list
+
+
+  // get nr of objs of group
+  oNr = Grp_get__ (&oTab);
+  if(oNr > 0) {
+    mode = 0;
+    goto L_exp;
   }
+  
 
-  fprintf(fp_in,"9\n$TEXTSIZE\n40\n%f\n",AP_txsiz);
-  fprintf(fp_in,"9\n$DIMTXT\n40\n%f\n",AP_txdimsiz);
-  fprintf(fp_in,"9\n$DIMASZ\n40\n%f\n",AP_txdimsiz);
 
-  // anzahl nachkommastellen f dimWerte
-  fprintf(fp_in,"9\n$DIMDEC\n70\n2\n");
-  fprintf(fp_in,"9\n$DIMADEC\n70\n2\n");  // fuer DIM-Angles
+  //----------------------------------------------------------------
+  L_all:  // group is empty; add all objs to group
+    mode = 2;
+    Grp_add_all1 ();
 
-  fprintf(fp_in,"0\nENDSEC\n");
 
 
-  //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-    fprintf(fp_in,"2\nTABLES\n");
+  //----------------------------------------------------------------
+  L_exp:
+      Grp_dump ();
 
-    // Defaultlayer 0; fuer POINT LINE ARC ... via 8/0
-    fprintf(fp_in,"0\nTABLE\n2\nLAYER\n70\n1\n");
 
-    // 2=Layername; 70=typ, 620col, 6=Linetyp
-    fprintf(fp_in,"0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n");
+  // get dxf-version
+  dxfVersion = AP_stat.subtyp;
 
-    fprintf(fp_in,"0\nENDTAB\n");
 
-  fprintf(fp_in,"0\nENDSEC\n");
+  // export all obj's in group.
+  DXFW_init__ (fnam, dxfVersion);
 
 
-  //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-  fprintf(fp_in,"2\nBLOCKS\n");
-
-    // defaultblock *D0  f DIM's via 2/*D0
-    fprintf(fp_in,"0\nBLOCK\n2\n*D0\n70\n1\n62\n7\n");
-    fprintf(fp_in,"10\n0\n20\n0\n30\n0\n");
-    fprintf(fp_in,"0\nENDBLK\n");
-
-  fprintf(fp_in,"0\nENDSEC\n");
-
-
-  //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-  fprintf(fp_in,"2\nENTITIES\n");
-
-
-  return 1;
-
-}
-
-
-
-
-
-
-/*=====================================================================*/
-  void dxfw_end (FILE *fp_in) {
-/*=============
-
-Endrecord ausgeben.
-
-*/
-
-  printf("dxfw_end\n");
-
-  fprintf(fp_in,"0\nENDSEC\n0\nEOF\n");
-
-}
-
-
-
-//================================================================
-  int dxfw_rec (ObjGX *ox1, FILE *fp_in) {
-//================================================================
-// export obj into dxf-file
-// 
-// irc =  0 = OK;
-// irc = -1 = Obj Error (Obj skipped ..)
-// irc = -2 = Error; stop all.
-
-
-
-  int           i1, typ, zparl, ptNr, pNr;
-  double        a1, a2, d1, d2, d3;
-  Point2        pt2c, pt21, pt22, *p2a;
-  Point         ptc, pt1, pt2, *pa, *pTab;
-  Vector2       vc21, vc22;
-  Line          *ln1;
-  Circ          *ci1;
-  // Point2Tab     *p2Tab;
-  // PointTab      *pTab;
-  GText         *tx1;
-  Dimen         *dim1;
-  Mat_4x3       m1, im1;
-  ObjG          *el;
-
-
-/* -------------------------------------------------------- */
-  printf("dxfw_rec typ=%d form=%d\n",ox1->typ,ox1->form);
-
-
-  //dxfw_head (el, fp_in);
-
-
-
-  if(ox1->typ == Typ_ObjGX) {
-    typ = ox1->form;
-  } else {
-    // bei den Kurven ...
-    typ = ox1->typ;
-  }
-
-
-
-
-  switch (typ) {
-
-
-    case Typ_PT:
-      fprintf(fp_in,"0\nPOINT\n");
-      fprintf(fp_in,"8\n0\n"); // def.Layer
-      pa = ox1->data;
-      dxfw_point (0, &pa[0], fp_in);
-      break;
-
-
-    case Typ_LN:
-      fprintf(fp_in,"0\nLINE\n");
-      fprintf(fp_in,"8\n0\n"); // def.Layer
-      ln1 = ox1->data;
-      dxfw_point (0, &ln1->p1, fp_in);
-      dxfw_point (1, &ln1->p2, fp_in);
-      break;
-
-
-    case Typ_CI:
-      ci1 = ox1->data;
-      // Feststellen, ob es ein Vollkreis ist
-      if(!UT3D_comp2pt(&ci1->p1, &ci1->p2, UT_TOL_pt)) goto L_AC;
-
-
-
-      //========== es ist ein Vollkreis =======================
-      fprintf(fp_in,"0\nCIRCLE\n");
-      fprintf(fp_in,"8\n0\n"); // def.Layer
-      //TX_Print("    pc=%f,%f,%f",ci1->pc.x,ci1->pc.y,ci1->pc.z);
-      //TX_Print("    vz=%f,%f,%f",ci1->vz.dx,ci1->vz.dy,ci1->vz.dz);
-
-
-      // Feststellen ob die Achse in +Z oder in -Z geht
-      // ist vz parallel zum Z-Vektor -
-      //if(!((UTP_comp2db(ci1->vz.dx,0.,UT_TOL_pt))   &&
-      //     (UTP_comp2db(ci1->vz.dy,0.,UT_TOL_pt))))   {
-      if((ci1->vz.dz > 1.-UT_TOL_min1)||(ci1->vz.dz < -1.+UT_TOL_min1)) {
-        zparl = ON;
-
-        // Ausgeben eines X-Y-parallelen Vollkreises.
-        pt1=ci1->pc;
-        goto L_CI_out;
-      }
-
-
-      // schiefer Vollkreis
-      zparl = OFF;
-      UT3D_vc_normalize (&ci1->vz, &ci1->vz);
-      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
-      UT3D_m3_invm3 (im1, m1);      // RücktransformationsMat. generieren
-      UT3D_pt_traptm3 (&pt1, im1, &ci1->pc);
-      //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
-
-
-      //Ausgabe Vollkreis
-      L_CI_out:
-      dxfw_point (0, &pt1, fp_in);                  // Mittelpunkt als 10,20,30
-      fprintf(fp_in,"40\n%f\n",fabs(ci1->rad));      // Radius 
-      if(zparl==OFF) dxfw_vector (&ci1->vz, fp_in);
-      break;
-
-
-
-
-
-      //========== es ist ein Kreisbogen =======================
-      L_AC:
-
-      fprintf(fp_in,"0\nARC\n");
-      fprintf(fp_in,"8\n0\n"); // def.Layer
-
-
-      // Arc umdrehen, wenn er genau in -Z zeigt.
-      // wenn vz = 0,0,-1 dann vz und p1/p2 umdrehen.
-      //if((UTP_comp2db(ci1->vz.dx, 0.0, UT_TOL_pt))  &&
-      //   (UTP_comp2db(ci1->vz.dy, 0.0, UT_TOL_pt))  &&
-      //   (ci1->vz.dz < 0.0))                 {
-      if(ci1->vz.dz < -1.+UT_TOL_min1) {
-        //TX_Print("umdrehen");
-        //pt1=ci1->p1; ci1->p1=ci1->p2; ci1->p2=pt1;
-        ci1->rad = -ci1->rad;
-        UT3D_vc_invert(&ci1->vz, &ci1->vz);
-
-      }
-
-
-      // Feststellen ob die Achse in +Z geht
-      // ist vz parallel zum Z-Vektor -
-      //if(!((UTP_comp2db(ci1->vz.dx,0.,UT_TOL_pt))   &&
-      //     (UTP_comp2db(ci1->vz.dy,0.,UT_TOL_pt))))   goto L_AC_schief;
-      if(ci1->vz.dz > 1.-UT_TOL_min1) {
-        zparl = ON;
-        ptc=ci1->pc;
-        pt1=ci1->p1;
-        pt2=ci1->p2;
-        goto L_AC_out;
-      }
-
-
-
-
-      L_AC_schief:
-      zparl = OFF;
-      UT3D_vc_normalize (&ci1->vz, &ci1->vz);
-      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
-      UT3D_m3_invm3 (im1, m1);      // RücktransformationsMat. generieren
-      UT3D_pt_traptm3 (&ptc, im1, &ci1->pc);
-      UT3D_pt_traptm3 (&pt1, im1, &ci1->p1);
-      UT3D_pt_traptm3 (&pt2, im1, &ci1->p2);
-      //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
-
-
-
-      L_AC_out:
-      dxfw_point (0, &ptc, fp_in);  // Mittelpunkt
-
-      // Radius
-      fprintf(fp_in,"40\n%f\n",fabs(ci1->rad));
-
-
-      // AnfWin
-      pt2c = UT2D_pt_pt3 (&ptc);
-      pt21 = UT2D_pt_pt3 (&pt1);
-      d1 = UT_DEGREES(UT2D_angr_ptpt(&pt2c, &pt21));
-
-      // EndWin
-      pt21 = UT2D_pt_pt3 (&pt2);
-      d2 = UT_DEGREES(UT2D_angr_ptpt(&pt2c, &pt21));
-
-      // CW -> CCW
-      if(ci1->rad < 0.) {
-        d3=d1; d1=d2; d2=d3;
-      }
-
-      fprintf(fp_in,"50\n%f\n",d1);
-      fprintf(fp_in,"51\n%f\n",d2);
-
-
-      if(zparl==OFF) dxfw_vector (&ci1->vz, fp_in);
-
-      break;
-
-
-
-
-    //=========================================================
-    case Typ_CVPOL:
-      dxfw_POLYLINE (((CurvPoly*)ox1->data)->ptNr, 32,
-                     ((CurvPoly*)ox1->data)->cpTab, fp_in);
-      break;
-
-
-
-    //=========================================================
-    case Typ_CVBSP:
-      if(dxf_version == 0) {    // 0=R12
-        dxfw_obj2poly (ox1, fp_in);
-      } else {  // 1=2000
-        dxfw_SPLINE (ox1->data, fp_in);
-      }
-      break;
-
-
-    //=========================================================
-    case Typ_CVELL:
-      if(dxf_version == 0) {    // 0=R12
-        dxfw_obj2poly (ox1, fp_in);
-      } else {  // 1=2000
-        dxfw_ELLIPSE (ox1->data, fp_in);
-      }
-      break;
-
-
-    //=========================================================
-    case Typ_CVCLOT:
-      dxfw_obj2poly (ox1, fp_in);
-      // pTab = (Point*)memspc201; 
-      // pNr = sizeof(memspc201) / sizeof(Point);
-      // // elli -> polygon -> mem?
-      // UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
-      // dxfw_POLYLINE (pNr, 32, pTab, fp_in);
-      break;
-
-
-    //=========================================================
-    case Typ_CVPOL2:
-      dxfw_hd_POLYLINE (fp_in); // wr header of POLYLINE
-
-
-      // p2Tab = (Point2Tab*)ox1->data;
-      // p2a   = (Point2*)p2Tab->ptTab;
-      p2a   = (Point2*)ox1->data;
-      for(i1=0;i1<ox1->siz; ++i1) {
-        dxfw_VERTEX2 (32, &p2a[i1], fp_in);
-      }
-
-      fprintf(fp_in,"0\nSEQEND\n");
-      break;
-
-
-
-
-
-    //=========================================================
-    case Typ_GTXT:
-      fprintf(fp_in,"0\nTEXT\n");
-      fprintf(fp_in,"8\n0\n"); // def.Layer
-
-
-      tx1 = (GText*)ox1->data;
-
-      // posi
-      dxfw_point (0, &tx1->pt, fp_in);
-
-      // 7=Textstyle "normal#0.300000#0.900000" od cursive#0.500000#3.000000
-
-      // 40-Textsize (characterhoehe)
-      // Notes haben size -1!
-      d1 = tx1->size;
-      if(d1 < 0) d1 = 1.;;
-      // d1 *= DXF_fakt_txtSiz;
-      dxfw_fl_out (40, d1, fp_in);
-
-      // 50-Textdirection
-      dxfw_fl_out (50, tx1->dir, fp_in);
-
-      // 1-Text
-      GR_gxt_dxfout (0, memspc011, tx1->txt);
-      fprintf(fp_in,"1\n%s\n",memspc011);
-
-      // 39 = Thickness; 1 oder 2
-      i1 = 1;
-      if(tx1->size > 1.) i1 = 2;
-      fprintf(fp_in,"39\n%d\n",i1);
-
-      // 62 = colornum = 0
-      fprintf(fp_in,"62\n0\n");
-
-
-      break;
-
-
-
-    //=========================================================
-    case Typ_Dimen:
-
-      dim1 = (Dimen*)ox1->data;
-      UT3D_stru_dump (Typ_Dimen, dim1, "dim1");
-
-      if(dim1->dtyp != 21) {     // 21=Leader
-
-        fprintf(fp_in,"0\nDIMENSION\n");
-        fprintf(fp_in,"8\n0\n");   // def.Layer
-        fprintf(fp_in,"2\n*D0\n"); // def.Block *D0
-
-        // 1-Text
-        GR_gxt_dxfout (1, memspc011, dim1->txt);
-        fprintf(fp_in,"1\n%s\n",memspc011);
-
-      } else {
-        // fprintf(fp_in,"0\nLEADER\n");
-        dxfw_hd_POLYLINE (fp_in); // wr header of POLYLINE
-      }
-
-
-
-      if(dim1->dtyp == 0) {     // 0=Linearmasz; a1 => ..
-        fprintf(fp_in," 70\n%d\n",128); // 70 = typ Dim; = 128+0=hor
-        dxfw_fl_out (50, dim1->a1, fp_in);  // 50 = angle
-        dxfw_fl_out (53, dim1->a1, fp_in);  // 53 = angle (f CatV5 u Rhino)
-        a1 = UT_RADIANS(dim1->a1);
-        // p1 => 4
-        pt1 = UT3D_pt_pt2 (&dim1->p1);
-        dxfw_point (4, &pt1, fp_in);
-        // p2 => 3
-        pt1 = UT3D_pt_pt2 (&dim1->p2);
-        dxfw_point (3, &pt1, fp_in);
-        // 10: der Punkt p3 auf Hilfslinie 1
-        UT2D_vc_angr (&vc21, a1);
-        UT2D_vc_perpvc (&vc21, &vc21);
-        UT2D_pt_projptptvc (&pt21,&dim1->p3, &dim1->p1,&vc21);
-          // GR_Disp_pt2 (&pt21, SYM_STAR_S, 2);
-        pt1 = UT3D_pt_pt2 (&pt21);
-        dxfw_point (0, &pt1, fp_in);
-        // 11: Punkt p3
-        pt1 = UT3D_pt_pt2 (&dim1->p3);
-        dxfw_point (1, &pt1, fp_in);
-
-
-      //----------------------------------------------------------------
-      } else if(dim1->dtyp == 1) {     // 1=Durchmesser
-        fprintf(fp_in," 70\n%d\n",131); // 70 = typ Dim; = 128+3=Dmr
-        dxfw_fl_out (53, dim1->a1, fp_in);  // 53 = angle (f CatV5 u Rhino)
-          // 0 = opposit pt am circ
-          UT2D_pt_opp2pt (&pt21, &dim1->p1, &dim1->p2);
-          pt1 = UT3D_pt_pt2 (&pt21);
-          dxfw_point (0, &pt1, fp_in);
-          // 1 = Textpt
-          pt1 = UT3D_pt_pt2 (&dim1->p3);
-          dxfw_point (1, &pt1, fp_in);
-          // 5 = pt am Circ
-          pt1 = UT3D_pt_pt2 (&dim1->p2);
-          dxfw_point (5, &pt1, fp_in);
-
-
-
-      //----------------------------------------------------------------
-      } else if(dim1->dtyp == 2) {     // 2=Radius
-        fprintf(fp_in," 70\n%d\n",132); // 70 = typ Dim; = 128+4=Rad.
-        dxfw_fl_out (53, dim1->a1, fp_in);  // 53 = angle (f CatV5 u Rhino)
-          // 0 = CirCen
-          pt1 = UT3D_pt_pt2 (&dim1->p1);
-          dxfw_point (0, &pt1, fp_in);
-          // 1 = Textpt
-          pt1 = UT3D_pt_pt2 (&dim1->p3);
-          dxfw_point (1, &pt1, fp_in);
-          // 5 = pt am Circ
-          pt1 = UT3D_pt_pt2 (&dim1->p2);
-          dxfw_point (5, &pt1, fp_in);
-
-
-
-      //----------------------------------------------------------------
-      } else if(dim1->dtyp == 3) {     // 3=Angle
-/*
-        fprintf(fp_in," 70\n%d\n",133); // 70 = typ Dim; = 128+5=Ang.
-        UT2D_vc_angr (&vc21, dim1->a1);
-        UT2D_vc_angr (&vc22, dim1->a2);
-        // inters. Pt
-        UT2D_pt_int2pt2vc (&pt21,&dim1->p1,&vc21,&dim1->p2,&vc22);
-        d1 = UT2D_len_2pt (&pt21,&dim1->p3); // Radius
-        // 3=p1=ExtL1
-        pt1 = UT3D_pt_pt2 (&dim1->p1);
-        dxfw_point (3, &pt1, fp_in);
-        // 4=p2=ExtL2
-        pt1 = UT3D_pt_pt2 (&dim1->p2);
-        dxfw_point (4, &pt1, fp_in);
-        // 5=IntersectPt ExtL1-ExtL2
-        pt1 = UT3D_pt_pt2 (&pt21);
-        dxfw_point (5, &pt1, fp_in);
-        // 0=Circ Intersect auf ExtL2
-        UT2D_pt_traptvclen (&pt22,&pt21,&vc22,d1);
-          GR_Disp_pt2 (&pt22, SYM_STAR_S, 3);
-        pt1 = UT3D_pt_pt2 (&pt22);
-        dxfw_point (0, &pt1, fp_in);
-        // 1=TextPt
-        pt1 = UT3D_pt_pt2 (&dim1->p3);
-        dxfw_point (1, &pt1, fp_in);
-*/
-        fprintf(fp_in," 70\n%d\n",130); // 70 = typ Dim; = 128+2=Ang.
-        UT2D_vc_angr (&vc21, dim1->a1);
-        UT2D_vc_angr (&vc22, dim1->a2);
-        // pt2c=Intersect ExtL1-ExtL2
-        UT2D_pt_int2pt2vc (&pt2c,&dim1->p1,&vc21,&dim1->p2,&vc22); // center
-        // d1 = Radius
-        d1 = UT2D_len_2pt (&pt2c,&dim1->p3);
-        // 53=Winkel Text (Winkel pt2c - p3)
-        d2 = UT2D_angr_ptpt (&pt2c,&dim1->p3);
-        d2 = UT2D_angr_perpangr (&d2);  // + 90 Grad
-        fprintf(fp_in,"53\n%f\n",UT_DEGREES(d2));
-        // ExtL1 = 3,4   (4=P1)
-        UT2D_pt_traptvclen (&pt22,&dim1->p1,&vc21,-1.);
-          // GR_Disp_pt2 (&pt22, SYM_STAR_S, 2);
-        pt1 = UT3D_pt_pt2 (&pt22);
-        dxfw_point (3, &pt1, fp_in);
-        pt1 = UT3D_pt_pt2 (&dim1->p1);
-        dxfw_point (4, &pt1, fp_in);
-        // ExtL2 = 5,0   (0=P2)
-        UT2D_pt_traptvclen (&pt22,&dim1->p2,&vc22,-1.);
-          // GR_Disp_pt2 (&pt22, SYM_STAR_S, 3);
-        pt1 = UT3D_pt_pt2 (&pt22);
-        dxfw_point (5, &pt1, fp_in);
-        pt1 = UT3D_pt_pt2 (&dim1->p2);
-        dxfw_point (0, &pt1, fp_in);
-        // 6 = Circ Intersect auf ExtL2
-        UT2D_pt_traptvclen (&pt22,&pt2c,&vc22,d1);
-          // GR_Disp_pt2 (&pt22, SYM_STAR_S, 3);
-        pt1 = UT3D_pt_pt2 (&pt22);
-        dxfw_point (6, &pt1, fp_in);
-        // 1 = p3
-        pt1 = UT3D_pt_pt2 (&dim1->p3);
-        dxfw_point (1, &pt1, fp_in);
-
-
-
-      //----------------------------------------------------------------
-      } else if(dim1->dtyp == 21) {     // 21=Leader
-/* Ordinate wird scheinbar nicht unterstuertzt!
-        fprintf(fp_in," 70\n%d\n",134); // 70 = typ Dim; = 128+6=Ordinate
-        pt1 = UT3D_pt_pt2 (&dim1->p1);
-        dxfw_point (3, &pt1, fp_in);
-        pt1 = UT3D_pt_pt2 (&dim1->p2);
-        dxfw_point (4, &pt1, fp_in);
-        // pt1 = UT3D_pt_pt2 (&dim1->p2);
-        // dxfw_point (4, &pt1, fp_in);
-        // dxfw_point (0, &UT2D_PT_NUL, fp_in);
-*/
-/*
-        // LEADER + TEXT
-        if(dim1->p3.x != UT_DB_LEER) 
-             fprintf(fp_in," 76\n3\n");  // Anzahl Punkte
-        else fprintf(fp_in," 76\n2\n");
-        pt1 = UT3D_pt_pt2 (&dim1->p1);
-        dxfw_point (0, &pt1, fp_in);
-        pt1 = UT3D_pt_pt2 (&dim1->p2);
-        dxfw_point (0, &pt1, fp_in);
-        if(dim1->p3.x != UT_DB_LEER) {
-          pt1 = UT3D_pt_pt2 (&dim1->p3);
-          dxfw_point (0, &pt1, fp_in);
-        }
-*/
-        // VERTEXE zu POLYLINE
-        dxfw_VERTEX2 (32, &dim1->p1, fp_in);
-        dxfw_VERTEX2 (32, &dim1->p2, fp_in);
-        if(dim1->p3.x != UT_DB_LEER) {
-          pt1 = UT3D_pt_pt2 (&dim1->p3);
-          dxfw_VERTEX2 (32, &dim1->p3, fp_in);
-        } else {
-          pt1 = UT3D_pt_pt2 (&dim1->p2);
-        }
-        fprintf(fp_in,"0\nSEQEND\n");
-
-        // Text hier extra raus
-        fprintf(fp_in,"0\nTEXT\n");
-        fprintf(fp_in,"8\n0\n"); // def.Layer
-        dxfw_fl_out (50, dim1->a1, fp_in); // 50-Textdirection
-        dxfw_fl_out (40, AP_txdimsiz, fp_in); // 40-TextSize
-        dxfw_point (0, &pt1, fp_in);
-        GR_gxt_dxfout (0, memspc011, dim1->txt);
-        fprintf(fp_in,"1\n%s\n",memspc011);
-
-      }
-      break;
-
-
-    //=========================================================
-    case Typ_CVCCV:
-      return dxfw_ccv (ox1, fp_in);
-
-
-    //=========================================================
-    default:
-      // printf("  dxfw skip %d\n",el->typ);
-      return -1;
-
-  }
-
-
-  // printf(" ex dxfw_rec\n");
+  // empty group
+  if(mode == 2) Grp_init ();
 
   return 0;
-}
 
-
-//================================================================
-  int dxfw_obj2poly (ObjGX *ox1, FILE *fp_in) {
-//================================================================
- 
-  int       irc, pNr;
-  Point     *pTab;
-  
-  pTab = (Point*)memspc201; 
-  pNr = sizeof(memspc201) / sizeof(Point);
-
-
-  irc = UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
-  if(irc < 0) return irc;
-
-  return dxfw_POLYLINE (pNr, 32, pTab, fp_in);
 
 }
 
@@ -1098,9 +408,9 @@ Endrecord ausgeben.
   int dxfw_ELLIPSE (CurvElli *cv1, FILE *fp_in) {
 //================================================================
 // see ../formate/dxf/doc/DXF2000_ellipse.txt
-      
+
   double     d1;
-      
+
   printf("dxfw_ELLIPSE \n");
   UT3D_stru_dump (Typ_CVELL, cv1, "cv1:");
 
@@ -1190,7 +500,7 @@ Endrecord ausgeben.
   return 0;
 
 }
- 
+
 
 //================================================================
   int dxfw_VERTEX (int typ, Point *pti, FILE *fp_in) {
@@ -1230,6 +540,7 @@ Endrecord ausgeben.
   return 0;
 
 }
+
 
 //================================================================
   int dxfw_hd_POLYLINE (FILE *fp_in) {
@@ -1278,7 +589,145 @@ Endrecord ausgeben.
 
 
 //=====================================================================
-  int dxfw_fl_out (int recID, double fVal, FILE *fp_in) {
+  int DXFW_CI (Circ *ci1, FILE *fp_in) {
+//=====================================================================
+
+
+  int      zparl;
+  double   d1, d2, d3;
+  Point2   pt2c, pt21;
+  Point    ptc, pt1, pt2;
+  Mat_4x3  m1, im1;
+
+
+      // Feststellen, ob es ein Vollkreis ist
+      if(!UT3D_comp2pt(&ci1->p1, &ci1->p2, UT_TOL_pt)) goto L_AC;
+
+
+
+      //========== es ist ein Vollkreis =======================
+      fprintf(fp_in,"0\nCIRCLE\n");
+      fprintf(fp_in,"8\n0\n"); // def.Layer
+      //TX_Print("    pc=%f,%f,%f",ci1->pc.x,ci1->pc.y,ci1->pc.z);
+      //TX_Print("    vz=%f,%f,%f",ci1->vz.dx,ci1->vz.dy,ci1->vz.dz);
+
+
+      // Feststellen ob die Achse in +Z oder in -Z geht
+      // ist vz parallel zum Z-Vektor -
+      //if(!((UTP_comp2db(ci1->vz.dx,0.,UT_TOL_pt))   &&
+      //     (UTP_comp2db(ci1->vz.dy,0.,UT_TOL_pt))))   {
+      if((ci1->vz.dz > 1.-UT_TOL_min1)||(ci1->vz.dz < -1.+UT_TOL_min1)) {
+        zparl = ON;
+
+        // Ausgeben eines X-Y-parallelen Vollkreises.
+        pt1=ci1->pc;
+        goto L_CI_out;
+      }
+
+
+      // schiefer Vollkreis
+      zparl = OFF;
+      UT3D_vc_normalize (&ci1->vz, &ci1->vz);
+      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
+      UT3D_m3_invm3 (im1, m1);      // RÃ¼cktransformationsMat. generieren
+      UT3D_pt_traptm3 (&pt1, im1, &ci1->pc);
+      //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
+
+
+      //Ausgabe Vollkreis
+      L_CI_out:
+      dxfw_point (0, &pt1, fp_in);                  // Mittelpunkt als 10,20,30
+      fprintf(fp_in,"40\n%f\n",fabs(ci1->rad));      // Radius 
+      if(zparl==OFF) dxfw_vector (&ci1->vz, fp_in);
+      return 0;
+
+
+
+
+
+      //========== es ist ein Kreisbogen =======================
+      L_AC:
+
+      fprintf(fp_in,"0\nARC\n");
+      fprintf(fp_in,"8\n0\n"); // def.Layer
+
+
+      // Arc umdrehen, wenn er genau in -Z zeigt.
+      // wenn vz = 0,0,-1 dann vz und p1/p2 umdrehen.
+      //if((UTP_comp2db(ci1->vz.dx, 0.0, UT_TOL_pt))  &&
+      //   (UTP_comp2db(ci1->vz.dy, 0.0, UT_TOL_pt))  &&
+      //   (ci1->vz.dz < 0.0))                 {
+      if(ci1->vz.dz < -1.+UT_TOL_min1) {
+        //TX_Print("umdrehen");
+        //pt1=ci1->p1; ci1->p1=ci1->p2; ci1->p2=pt1;
+        ci1->rad = -ci1->rad;
+        UT3D_vc_invert(&ci1->vz, &ci1->vz);
+
+      }
+
+
+      // Feststellen ob die Achse in +Z geht
+      // ist vz parallel zum Z-Vektor -
+      //if(!((UTP_comp2db(ci1->vz.dx,0.,UT_TOL_pt))   &&
+      //     (UTP_comp2db(ci1->vz.dy,0.,UT_TOL_pt))))   goto L_AC_schief;
+      if(ci1->vz.dz > 1.-UT_TOL_min1) {
+        zparl = ON;
+        ptc=ci1->pc;
+        pt1=ci1->p1;
+        pt2=ci1->p2;
+        goto L_AC_out;
+      }
+
+
+
+
+      L_AC_schief:
+      zparl = OFF;
+      UT3D_vc_normalize (&ci1->vz, &ci1->vz);
+      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
+      UT3D_m3_invm3 (im1, m1);      // RÃ¼cktransformationsMat. generieren
+      UT3D_pt_traptm3 (&ptc, im1, &ci1->pc);
+      UT3D_pt_traptm3 (&pt1, im1, &ci1->p1);
+      UT3D_pt_traptm3 (&pt2, im1, &ci1->p2);
+      //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
+
+
+
+      L_AC_out:
+      dxfw_point (0, &ptc, fp_in);  // Mittelpunkt
+
+      // Radius
+      fprintf(fp_in,"40\n%f\n",fabs(ci1->rad));
+
+
+      // AnfWin
+      // AnfWin
+      pt2c = UT2D_pt_pt3 (&ptc);
+      pt21 = UT2D_pt_pt3 (&pt1);
+      d1 = UT_DEGREES(UT2D_angr_ptpt(&pt2c, &pt21));
+
+      // EndWin
+      pt21 = UT2D_pt_pt3 (&pt2);
+      d2 = UT_DEGREES(UT2D_angr_ptpt(&pt2c, &pt21));
+
+      // CW -> CCW
+      if(ci1->rad < 0.) {
+        d3=d1; d1=d2; d2=d3;
+      }
+
+      fprintf(fp_in,"50\n%f\n",d1);
+      fprintf(fp_in,"51\n%f\n",d2);
+
+
+      if(zparl==OFF) dxfw_vector (&ci1->vz, fp_in);
+
+  return 0;
+
+}
+
+
+//=====================================================================
+  int DXFW_fl_out (int recID, double fVal, FILE *fp_in) {
 //=====================================================================
 // einen Record mit double ausgeben
 
@@ -1320,35 +769,26 @@ usw.
 }
 
 
-
 //=====================================================================
-  int dxfw_point (int pnum, Point *point, FILE *fp_in) {
+  int DXFW_point (int pnum, Point *point, FILE *fp_in) {
 //=====================================================================
 /*
- 3D-Punktkoord. ausgeben.
+ 3D-Punktkoord. ausgeben.   
  pnum=0: erster Punkt  (10, 20, 30);
  pnum=1: zweiter Punkt (11, 21, 31)
 usw.
 */
 
-/*
-  fprintf(fp_in,"%d\n%f\n%d\n%f\n%d\n%f\n",
-    10+pnum, point->x,
-    20+pnum, point->y,
-    30+pnum, point->z);
-*/
-
-  dxfw_fl_out (10+pnum, point->x, fp_in);
-  dxfw_fl_out (20+pnum, point->y, fp_in);
-  dxfw_fl_out (30+pnum, point->z, fp_in);
-
+  DXFW_fl_out (10+pnum, point->x, fp_in);
+  DXFW_fl_out (20+pnum, point->y, fp_in);
+  DXFW_fl_out (30+pnum, point->z, fp_in);
 
   return 1;
 }
 
 
 //=====================================================================
-  int dxfw_vector (Vector* vc1, FILE *fp_in)
+  int DXFW_vector (Vector* vc1, FILE *fp_in)
 //=====================================================================
 
 {
@@ -1361,12 +801,10 @@ usw.
 }
 
 
-
-
 //===========================================================================
-  void dxfw_load_mat (Mat_4x3 m1, Vector* vz) {
+  int dxfw_load_mat (Mat_4x3 m1, Vector* vz) {
 //===========================================================================
-/* die Mat für ein  DXF-ECS bestimmen. Input nur der Vektor (eines Kreises).
+/* die Mat fÃ¼r ein  DXF-ECS bestimmen. Input nur der Vektor (eines Kreises).
 
  Der Nullpunkt (Origin) ist immer ident mit dem Hauptnullpunkt !
 
@@ -1401,7 +839,6 @@ usw.
   pl1.vz = *vz;
 
   UT3D_m3_loadpl (m1, &pl1);
-
 /*
   TX_Print(" matVX=%f,%f,%f",m1[0][0],m1[1][0],m1[2][0]);
   TX_Print(" matVY=%f,%f,%f",m1[0][1],m1[1][1],m1[2][1]);
@@ -1417,11 +854,11 @@ usw.
 //================================================================
 // export CCV as polygon
 // TODO: export CCV as analytic obj's with group ?
- 
+
   int       irc, pNr;
   Point     *pTab;
-  
-  pTab = (Point*)memspc201; 
+
+  pTab = (Point*)memspc201;
   pNr = sizeof(memspc201) / sizeof(Point);
 
 
@@ -1429,39 +866,435 @@ usw.
   if(irc < 0) return irc;
 
   return dxfw_POLYLINE (pNr, 32, pTab, fp_in);
-    
+
 }
-    
+
+
+//=====================================================================
+  int DXFW_ox (ObjGX *ox1, long TrInd, int typ, long dbi,
+               FILE *fp_o1, FILE *fp_o2) {
+//=====================================================================
+// dxfw_rec
+
+  int           i1, zparl, ptNr, pNr;
+  double        a1, a2, d1, d2, d3;
+  Point2        pt2c, pt21, pt22, *p2a;
+  Point         ptc, pt1, pt2, *pa, *pTab;
+  Vector2       vc21, vc22;
+  Line          *ln1;
+  Circ          *ci1;
+  // Point2Tab     *p2Tab;
+  // PointTab      *pTab;
+  GText         *tx1;
+  Dimen         *dim1;
+  Mat_4x3       m1, im1;
+  ObjG          *el;
+
+
+  printf("DXFW_ox typ=%d tr=%ld typ=%d dbi=%ld\n",ox1->typ,TrInd,typ,dbi);
+
+
+  // IG_TrInd = TrInd;
+  // el       = *objIn;
+
 
 /*
-//=====================================================================
-  int dxfw_head (ObjG *el, FILE *fp_in)
-//=============
-
-//  Headerrecord eines Elementes schreiben ( 0 / POINT oder 0 / LINE ..)
-
-
-
-
-{
-  static int dxf_TypTab[] = {Typ_PT,Typ_LN,Typ_CI,Typ_CI,-99};
-  static char *dxf_NamTab[] = {"POINT","LINE","CIRCLE","ARC"};
-  int i1;
-
-  //------------------------------------------------------------------
-  //TX_Print("ObjG %d",act_typ);
-
-  for(i1=0; dxf_TypTab[i1] != -99; i1++) {
-    if(el->typ == dxf_TypTab[i1])
-      fprintf(fp_in,"0\n%s\n",dxf_NamTab[i1]);
+  if(ox1->typ == Typ_ObjGX) {
+    typ = ox1->form;
+  } else {
+    // bei den Kurven ...
+    typ = ox1->typ;
   }
-
-  i1 = 0;  //i1 = el->layer;  // die Layernummer
-  fprintf(fp_in,"8\n%d\n",i1);
-
-  return 1;
-
-}
 */
 
-/* *********************** end of dxfw.c ********************************* */
+
+  switch (ox1->typ) {
+
+
+    //=========================================================
+    case Typ_PT:
+      fprintf(fp_o1,"0\nPOINT\n");
+      fprintf(fp_o1,"8\n0\n"); // def.Layer
+      pa = ox1->data;
+      DXFW_point (0, &pa[0], fp_o1);
+      break;
+
+
+    //=========================================================
+    case Typ_LN:
+      fprintf(fp_o1,"0\nLINE\n");
+      fprintf(fp_o1,"8\n0\n"); // def.Layer
+      ln1 = ox1->data;
+      DXFW_point (0, &ln1->p1, fp_o1);
+      DXFW_point (1, &ln1->p2, fp_o1);
+      break;
+
+
+    //=========================================================
+    case Typ_CI:
+      DXFW_CI (ox1->data, fp_o1);
+      break;
+
+
+    //=========================================================
+    case Typ_CVPOL:
+      dxfw_POLYLINE (((CurvPoly*)ox1->data)->ptNr, 32,
+                     ((CurvPoly*)ox1->data)->cpTab, fp_o1);
+      break;
+
+
+    //=========================================================
+    case Typ_CVBSP:
+      if(dxf_version == 0) {    // 0=R12
+        dxfw_obj2poly (ox1, fp_o1);
+      } else {  // 1=2000
+        dxfw_SPLINE (ox1->data, fp_o1);
+      }
+      break;
+
+
+    //=========================================================
+    case Typ_CVELL:
+      if(dxf_version == 0) {    // 0=R12
+        dxfw_obj2poly (ox1, fp_o1);
+      } else {  // 1=2000
+        dxfw_ELLIPSE (ox1->data, fp_o1);
+      }
+      break;
+
+
+    //=========================================================
+    case Typ_CVCLOT:
+      dxfw_obj2poly (ox1, fp_o1);
+      // pTab = (Point*)memspc201; 
+      // pNr = sizeof(memspc201) / sizeof(Point);
+      // // elli -> polygon -> mem?
+      // UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
+      // dxfw_POLYLINE (pNr, 32, pTab, fp_o1);
+      break;
+
+
+    //=========================================================
+    case Typ_CVPOL2:
+      dxfw_hd_POLYLINE (fp_o1); // wr header of POLYLINE
+
+
+      // p2Tab = (Point2Tab*)ox1->data;
+      // p2a   = (Point2*)p2Tab->ptTab;
+      p2a   = (Point2*)ox1->data;
+      for(i1=0;i1<ox1->siz; ++i1) {
+        dxfw_VERTEX2 (32, &p2a[i1], fp_o1);
+      }
+
+      fprintf(fp_o1,"0\nSEQEND\n");
+      break;
+
+
+    //=========================================================
+    case Typ_GTXT:
+      fprintf(fp_o1,"0\nTEXT\n");
+      fprintf(fp_o1,"8\n0\n"); // def.Layer
+
+      tx1 = (GText*)ox1->data;
+
+      // posi
+      dxfw_point (0, &tx1->pt, fp_o1);
+
+      // 7=Textstyle "normal#0.300000#0.900000" od cursive#0.500000#3.000000
+
+      // 40-Textsize (characterhoehe)
+      // Notes haben size -1!
+      d1 = tx1->size;
+      if(d1 < 0) d1 = 1.;;
+      // d1 *= DXF_fakt_txtSiz;
+      dxfw_fl_out (40, d1, fp_o1);
+
+      // 50-Textdirection
+      dxfw_fl_out (50, tx1->dir, fp_o1);
+
+      // 1-Text
+      GR_gxt_dxfout (0, memspc011, tx1->txt);
+      fprintf(fp_o1,"1\n%s\n",memspc011);
+
+      // 39 = Thickness; 1 oder 2
+      i1 = 1;
+      if(tx1->size > 1.) i1 = 2;
+      fprintf(fp_o1,"39\n%d\n",i1);
+
+      // 62 = colornum = 0
+      fprintf(fp_o1,"62\n0\n");
+
+      break;
+
+
+
+    //=========================================================
+    case Typ_Dimen:
+      return DXFW_DIM (ox1, fp_o1);
+
+
+    //=========================================================
+    case Typ_CVCCV:
+      return dxfw_ccv (ox1, fp_o1);
+
+
+    //=========================================================
+    default:
+      printf("  dxfw skip %d\n",typ);
+      return -1;
+
+  }
+
+
+
+
+
+
+
+/*
+  //  Bestandteile von CCV's (und getrimmten Flaechen ...) ausgeben
+  irc = IGE_w_subObjs (&el, fp_o1, fp_o2);
+  if (irc < 0) return irc;
+
+  IG_mode  = 0;             // 0=normales Obj; 1=SubObj (von CCV ..)
+
+
+  // ein Obj ausgeben (TrMat, D-Zeilen, P-Zeile)
+  irc = IGE_w_obj (&el, apt_typ, apt_ind, fp_o1, fp_o2);
+  if (irc < 0) return irc;
+*/
+
+  return 0;
+
+}
+
+
+//=============================================================================
+  int DXFW_Model (int modNr, FILE *fp1, FILE *fp2) {
+//=============================================================================
+// AP_ExportIges_Model
+
+  long     gr_ind;
+  long     l1, apt_ind;
+  int      i1, irc, tra_ind, tra_act, apt_typ,  anz_obj=0,
+           anz_pt=0, anz_ln=0, anz_ac=0, anz_cv=0;
+  Point    pt1;
+  Line     ln1;
+  Circ     ci1;
+  ObjG     o1;
+  ObjGX    ox1, *op1;
+  Plane    pl1;
+  Mat_4x3  m1;
+  DL_Att   dla;
+
+
+
+  printf("DXFW_Model %d\n",modNr);
+
+
+  //----------------------------------------------------------------
+  apt_typ = Typ_PT;
+
+  for(apt_ind=1; apt_ind<APT_PT_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  apt_typ = Typ_LN;
+
+  for(apt_ind=1; apt_ind<APT_LN_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  apt_typ = Typ_CI;
+
+  for(apt_ind=1; apt_ind<APT_CI_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  apt_typ = Typ_CV;
+
+  for(apt_ind=0; apt_ind<APT_CV_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  apt_typ = Typ_GTXT;
+
+  for(apt_ind=0; apt_ind<APT_TX_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  apt_typ = Typ_SUR;
+
+  for(apt_ind=0; apt_ind<APT_SU_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+  //-----------------------------------
+  // SubfigInst; 
+  apt_typ = Typ_Model;
+
+  for(apt_ind=0; apt_ind<APT_MR_SIZ; ++apt_ind) {
+    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
+    ox1 = DB_GetObjGX (apt_typ, apt_ind);
+    if(ox1.typ == Typ_Error) continue;
+
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    ++anz_obj;
+  }
+
+
+
+
+
+
+
+
+  return anz_obj;
+
+}
+
+
+//================================================================
+  int DXFW_init__ (char * fn, int dxfVersion) {
+//================================================================
+// Input:
+//   dxfVersion    0=DxfR12  1=Dxf2000
+
+
+
+  int      i1, anz_obj=0, ipos, modNr;
+  FILE     *fp1, *fp2, *fpi;
+  char     s1[256];
+
+
+  printf("DXFW_init__ %d |%s|\n",dxfVersion,fn);
+
+
+  if ((fp1 = fopen (fn, "w+")) == NULL) {
+    TX_Error ("open file %s",fn);
+    return;
+  }
+
+
+  //==================================================================
+  // in BasicModels gibts Reihenfolgenummer seqNr.
+  // Diese in korrekter Reihenfolge -> Datei <tmpdir>/Mod.lst ausgeben.
+  DB_list_ModBas ();
+
+
+  // try to open inListe
+  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  if((fpi=fopen(s1,"r")) == NULL) {
+    TX_Print("AP_ExportIges__ E002 %s",s1);
+    return;
+  }
+
+  sprintf(s1,"%sModel_",OS_get_tmp_dir());
+  ipos = strlen(s1);
+
+  // loop tru subModels
+  while (!feof (fpi)) {
+    if (fgets (&s1[ipos], 256, fpi) == NULL) break;
+    UTX_CleanCR (s1);
+      printf("nxt model |%s|\n",s1);
+
+/*
+    DB_Init (1);
+    // RUN (abarbeiten)
+    ED_Init ();
+    if(ED_work_file (cbuf) < 0) {TX_Error("AP_ExportIges__: E003"); goto L_err;}
+    ED_lnr_reset ();
+    WC_Work__ (0, NULL);   // Init Levelcounter in WC_Work__
+    ED_Run ();
+
+    // work submodel
+    modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
+    if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
+    i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Model !
+    anz_obj += i1;
+*/
+
+  }
+  fclose(fpi);
+
+
+  //----------------------------------------------------------------
+  // resolv main
+  // DB_Init (1);
+  // ED_Reset ();  // ED_lnr_act = 0; 2004-02
+  // ED_work_END (0);
+
+  //------------------------------------
+  fprintf(fp1,"0\nSECTION\n");
+  fprintf(fp1,"2\nENTITIES\n");
+
+
+  i1 = DXFW_Model (-1, fp1, fp2);
+  anz_obj += i1;
+
+
+  fprintf(fp1,"0\nENDSEC\n");
+
+
+
+  //----------------------------------------------------------------
+  // join files
+
+  fclose (fp1);
+
+
+
+
+
+  //----------------------------------------------------------------
+  // print statistics
+  TX_Print("   Objekte exportiert:  %d",anz_obj);
+
+
+  return 0;
+
+}
+
+
+// EOF

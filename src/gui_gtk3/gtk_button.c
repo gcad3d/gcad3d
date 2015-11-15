@@ -371,8 +371,6 @@ static int UI_but_noCB = 0;
   pTab[1] = go->data;
 
   go->uFunc (&mo, pTab);
-  // uFunc = go->uFunc;
-  // uFunc (&mo, pTab);
 
 }
 

@@ -115,13 +115,16 @@ int  pa64[] = {17,23,25,60};
 
 
 
+  cp1 = getenv ("HOME");
+    printf(" home=%s\n",cp1);
+
 
   // cadExe = get filename of gcad3d-executable
-  sprintf(cadExe, "../../binLinux%d/gCAD3D", iBit);
+  sprintf(cadExe, "%s/gCAD3D/binLinux%d/gCAD3D",cp1,iBit);
 
 
   // guiExe = get filename of gui-dll
-  sprintf(guiExe, "../../binLinux%d/xa_gui.so", iBit);
+  sprintf(guiExe, "%s/gCAD3D/binLinux%d/xa_gui.so",cp1,iBit);
 
 
   sprintf(wSiz, "%ld", sizeof(long) * 8);

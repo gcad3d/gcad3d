@@ -1,7 +1,7 @@
 // xa_dbo.c            2009-03-03           RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,8 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
     return 0;
   }
 
-  att1 = DL_GetAtt(dli);   // get DL-record
+  // att1 = DL_GetAtt(dli);   // get DL-record
+  DL_get_dla (&att1, dli);
   *typ = att1.typ;
   *dbi = att1.ind;
 

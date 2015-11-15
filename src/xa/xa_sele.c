@@ -1,7 +1,7 @@
 //   xa_sele.c         selection functions             2010-04-29   RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ sele_decode         decode selected object; change sel_object into req_object
 sele_reset          reset selectionFilter
 sele_reset_type     reset a single bit
 sele_set__          set selectionFilter
+sele_set_add        add obj to selectionfilter; typeGroups can be used;
 sele_set_types      set selectionFilters
 sele_set_pos        save GR_selPos
 sele_setNoConstrPln disable selection of point on ConstrPln
@@ -256,17 +257,18 @@ static char  I2D_stat[I2D_TABSITZ];
 //   out-dbi immer 0, out-dli immer -1 ?
 
 
-  int     iVc, iLn, iCi, iCv, iPt, ii, oTyp, iTyp;
+  int     iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
   char    so[128], cto;
 
 
-  // printf("sele_ck_subCurv %d %ld\n",typ,dbi);
+  printf("sele_ck_subCurv %d %ld\n",typ,dbi);
   // UT3D_stru_dump (Typ_PT, selPos, " selPos");
 
 
   for(ii=0; ii<3; ++ii) sca[ii].typ = Typ_Error;
   ii = 0;
 
+  // test if selection of PT,VC wanted; 0 is no, else yes
   iPt = sele_ck_typ (Typ_PT);
   iVc = sele_ck_typ (Typ_VC);
 
@@ -274,6 +276,7 @@ static char  I2D_stat[I2D_TABSITZ];
   //----------------------------------------------------------------
   // is input curve or surf
   iTyp = AP_typ_2_bastyp (typ);
+    printf(" iTyp=%d iPt=%d iVc=%d\n",iTyp,iPt,iVc);
   if((iTyp == Typ_LN) ||
      (iTyp == Typ_CI) ||
      (iTyp == Typ_CV))    goto L_ck_cv;
@@ -296,28 +299,19 @@ static char  I2D_stat[I2D_TABSITZ];
     return 1;
   }
 
+  // surfs not yet implemented ?
   goto L_err1;
 
 
 
   //================================================================
-  // input = L|C|S
-  // get exact typ of inputCurve
+  // input = P|L|C|S
   L_ck_cv:
-  iTyp = DB_get_typ_cv (dbi);
+  // get exact typ of inputCurve
+  if(iTyp == Typ_CV) iTyp = DB_get_typ_cv (dbi);
+    printf(" iTyp=%d\n",iTyp);
 
 
-  //----------------------------------------------------------------
-  if(iVc) {
-    if(typ == Typ_VC) goto L_ck_2;
-    oTyp = Typ_VC;
-    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp1=%d so=|%s|\n",oTyp,so);
-    sca[ii].typ = oTyp;
-    strcpy(sca[ii].oid, so);
-    ++ii;
-    goto L_ck_2;
-  }
 
 
   //----------------------------------------------------------------
@@ -326,29 +320,64 @@ static char  I2D_stat[I2D_TABSITZ];
   iLn = sele_ck_typ (Typ_LN);
   iCi = sele_ck_typ (Typ_CI);
   iCv = sele_ck_typ (Typ_CV);
-    // printf(" iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
-  if((iLn)||(iCi)||(iCv)) {
-    if((iLn) && (typ == Typ_LN)) goto L_ck_2;
-    if((iCi) && (typ == Typ_CI)) goto L_ck_2;
-    if((iCv) && (typ == Typ_CV)) goto L_ck_2;
+    printf(" iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
+
+
+  if(iTyp == Typ_CVCCV) goto L_ck_1;
+  if(iTyp == Typ_CVPOL) goto L_ck_2;
+
+
+  // LN,CI,bspl: P,D
+  goto L_ck_3;
+  // 
+  // if(typ == Typ_LN) goto L_ck_3;     // LN: P & D
+  // if(typ == Typ_CI) goto L_ck_3;     // CI: P & D
+  // if(typ == Typ_CVBSP) goto L_ck_3;  // bspl: P & D
+
+
+  //----------------------------------------------------------------
+  // get subCurve of CCV:  L|C|S, dann P,D
+  L_ck_1:
     oTyp = Typ_goGeo1;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp1=%d so=|%s|\n",oTyp,so);
-    sca[ii].typ = oTyp;
-    strcpy(sca[ii].oid, so);
-    ++ii;
-  }
+      printf(" oTyp_1=%d so=|%s|\n",oTyp,so);
+    if(oTyp >= 0) {   // 2015-10-24
+      sca[ii].typ = oTyp;
+      strcpy(sca[ii].oid, so);
+      ++ii;
+    }
+    goto L_ck_3;
+
+
+  //----------------------------------------------------------------
+  // plg: L, dann P,D
+  // LN from curve or subcurve
+  L_ck_2:
+  // if found polygon and L|D requested: get also L|D
+  // if(iTyp == Typ_CVPOL) {
+    // if((iLn)||(iVc)) {
+    oTyp = Typ_LN;
+    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+      printf(" oTyp_2=%d so=|%s|\n",oTyp,so);
+    if(oTyp >= 0) {   // 2015-10-24
+      sca[ii].typ = oTyp;
+      strcpy(sca[ii].oid, so);
+      ++ii;
+    }
+    // }
+  // }
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
 
-  // 2. step: get Ln from curve or subcurve
-  L_ck_2:
-  // if found polygon and L|D requested: get also L|D
-  if(iTyp == Typ_CVPOL) {
-    if((iLn)||(iVc)) {
-      oTyp = Typ_LN;
-      oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-        // printf(" oTyp2=%d so=|%s|\n",oTyp,so);
+  //----------------------------------------------------------------
+  // 3. step: get Point from curve or subcurve
+  L_ck_3:
+    // printf(" sel PT iPt=%d\n",iPt);
+  if(iPt) {
+    oTyp = Typ_PT;
+    SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+      printf(" oTyp_3=%d so=|%s|\n",oTyp,so);
+    if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
       ++ii;
@@ -357,20 +386,24 @@ static char  I2D_stat[I2D_TABSITZ];
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
 
-  // 3. step: get Point from curve or subcurve
-  oTyp = Typ_PT;
-    // printf(" sel PT iPt=%d\n",iPt);
-  if(iPt) {
-    SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp3=%d so=|%s|\n",oTyp,so);
-    sca[ii].typ = oTyp;
-    strcpy(sca[ii].oid, so);
-    ++ii;
+
+  //----------------------------------------------------------------
+  // get Vc from curve or subcurve
+  if(iVc) {
+    if(typ == Typ_VC) goto L_ck_ex;
+    // add Vector to list
+    oTyp = Typ_VC;
+    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+      printf(" oTyp_4=%d so=|%s|\n",oTyp,so);
+    if(oTyp >= 0) {   // 2015-10-24
+      sca[ii].typ = oTyp;
+      strcpy(sca[ii].oid, so);
+      ++ii;
+    }
   }
-    // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
-
-
+  //----------------------------------------------------------------
+  L_ck_ex:
 /*
     // TESTBLOCK:
     { int i1,typ; long dbi; ObjAto    ato;
@@ -615,6 +648,7 @@ static char  I2D_stat[I2D_TABSITZ];
   if(objInd < 0) {         // eg a not pickable obj sel ..
     GR_selDli = 0L;
     GR_selTyp = 0;
+    GR_selBasTyp = 0;
     GR_selDbi = 0;
     GR_selNam[0] = '\0';
 
@@ -622,7 +656,8 @@ static char  I2D_stat[I2D_TABSITZ];
   //----------------------------------------------------------------
   } else {
     GR_selDli = objInd;
-    objAtt = DL_GetAtt (GR_selDli);
+    // objAtt = DL_GetAtt (GR_selDli);
+    DL_get_dla (&objAtt, GR_selDli);
     GR_selTyp = objAtt.typ;
     GR_selDbi = objAtt.ind;
     APED_oid_dbo__ (GR_selNam, GR_selTyp, GR_selDbi);
@@ -682,20 +717,30 @@ static char  I2D_stat[I2D_TABSITZ];
 /// \endcode
 
   int       irc, typ, i1;
+  Point     pSel;
 
 
-  // printf("sele_get_selPos \n");
-  // printf("  GR_reqTyp=%d \n",GR_reqTyp);
-  // printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
-  // printf("  GR_selTyp=%d \n",GR_selTyp);
-  // printf("  GR_selDbi=%d \n",GR_selDbi);
-  // printf("  GR_selNam=|%s|\n",GR_selNam);
+
+  printf("sele_get_selPos \n");
+  printf("  GR_reqTyp=%d \n",GR_reqTyp);
+  printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
+  printf("  GR_selTyp=%d \n",GR_selTyp);
+  printf("  GR_selDbi=%ld \n",GR_selDbi);
+  printf("  GR_selNam=|%s|\n",GR_selNam);
 
 
-/*
-    irc = 0;
-    UI_GR_get_actPosA (pts);
-*/
+
+  // 2015-09-01
+  if(!strcmp(GR_selNam, "ConstrPlane") )  {
+    UI_GR_get_actPosA (&pSel);
+    sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
+
+  } else if(!strcmp(GR_selNam, "selPos") )  {
+    sele_get_pos (&pSel);
+    sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
+  }
+
+
 
   if(GR_selBasTyp == Typ_PT) {
     // point selected:
@@ -831,6 +876,8 @@ static char  I2D_stat[I2D_TABSITZ];
 
 // see sele_setNoConstrPln
 
+  int  i1;
+
   // printf("sele_ck_ConstrPln %d\n",GR_NoConstrPln);
 
 
@@ -841,9 +888,11 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
   //----------------------------------------------------------------
-  // test if selected is requested
+  // test if Typ_PT | Typ_TmpPT is requested
     // printf("sele_ck_ConstrPln %d\n",BitTab_get(reqObjTab,Typ_PT));
-  return BitTab_get (reqObjTab, Typ_PT);  // !=0 is set
+  if(BitTab_get (reqObjTab, Typ_PT)) return 1;   // !=0 is set
+
+  return BitTab_get (reqObjTab, Typ_TmpPT);  // !=0 is set
 
 }
 
@@ -939,6 +988,18 @@ static char  I2D_stat[I2D_TABSITZ];
   // printf(" req=%d\n",GR_reqTyp);
   // printf(" GR_selTmpStat=%d\n",GR_selTmpStat);
   // sele_dump1 ();
+
+
+  //----------------------------------------------------------------
+  if(!strcmp(GR_selNam, "ConstrPlane") )  {
+    UI_GR_get_actPosA (&pt1);
+    sprintf(GR_selNam, "P(%f %f %f)", pt1.x, pt1.y, pt1.z);
+
+  } else if(!strcmp(GR_selNam, "selPos") )  {
+    sele_get_pos (&pt1);
+    sprintf(GR_selNam, "P(%f %f %f)", pt1.x, pt1.y, pt1.z);
+  }
+
 
 
   //----------------------------------------------------------------
@@ -1884,9 +1945,15 @@ raus 2011-07-29
 //================================================================
 /// \code
 /// init and set selectionFilter 
-/// Example:  sele_set__ (Typ_PT);
-///           sele_set_types (Typ_PLN, 0);   // add CAD-planes
+///
+/// Example:
+///   sele_set__ (Typ_PT);           // Typ_PT+Typ_SUR+Typ_SOL+Typ_Model
+///   sele_set_types (Typ_PLN, 0);   // add CAD-planes
 /// 
+/// Example without sele_set__:
+///   sele_reset ();
+///   sele_set_types (Typ_TmpPT, 0); // only indicate on active constrPln
+///
 /// set GR_reqTyp = requestedTyp = rTyp;
 /// set reqObjTab = selectableTypes
 ///     reqObjTab = all types that can be converted into rTyp
@@ -1894,9 +1961,7 @@ raus 2011-07-29
 
 // sele_set__ defines which objects subsequent can be selected;
 // sele_decode converts the selected obj into a requested obj
-
-  int     i1, i2, *ia, i2Dbutts = 0;
-  char    *ta;
+// 2015-09-02 sele_set_add extracted. RF
 
 
   // printf("sele_set__ %d\n",rTyp);
@@ -1912,11 +1977,28 @@ raus 2011-07-29
 
 
 
-  // reset selectionFilter  (see also sele_reset)
+  // reset = clear selectionFilter  (see also sele_reset)
   memset (reqObjTab, 0x00, sizeof(reqObjTab));
 
+  sele_set_add (rTyp);
 
-  switch (GR_reqTyp) {
+  return 0;
+
+}
+
+
+//================================================================
+  int sele_set_add (int rTyp) {
+//================================================================
+/// \code
+/// sele_set_add        add obj to selectionfilter; typeGroups can be used;
+/// eg Typ_go_LCS = LN/CI/CV
+/// GR_reqTyp is not set !
+/// \endcode
+ 
+  int     i1, i2, i2Dbutts = 0;
+
+  switch (rTyp) {
    
     case Typ_Val:
       sele_set_types (Typ_VAR, 
@@ -1965,8 +2047,8 @@ raus 2011-07-29
                       Typ_CI,
                       Typ_CVPOL,
                       Typ_CVCCV,
-                      Typ_PLN,
 */
+                      Typ_PLN,                  // 2015-07-06
                       Typ_SUR,
                       Typ_Model,
                       Typ_modREV,

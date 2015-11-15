@@ -1,7 +1,7 @@
 //    ut_tria.c                                   RF 205-08-18
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ Modifications:
 List_functions_start:
 
 UT2D_orient_3pt            orientation of triangle (CW or CCW)
-UT2D_ck_pt_in_tria         check if point is inside Triangle
 UT2D_2pt_tngLnCiY          Beruehrung Kreis (pc auf horiz. Gerade) - LineSeg
 UT2D_pt_gcp_3pt            gravity-centerPoint of triangle
 UTRI_radi_3pt              inkreisradius

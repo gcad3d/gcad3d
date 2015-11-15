@@ -1,0 +1,12 @@
+# nmake -f Demo_toolbar2.nmak
+
+DLLNAM = Demo_toolbar2
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+ ../APP/Demo_toolbar2.c\
+
+
+!include "..\APP\gcad__.nmak"
+
+########################### EOF #######################

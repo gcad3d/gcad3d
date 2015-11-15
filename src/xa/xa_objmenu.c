@@ -1,7 +1,7 @@
 // objspecific mouse-menus                           2009-10-26    RF.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,9 @@ List_functions_start:
 
 OMN_init
 OMN_popup_Brw   create & display popup-menu
-OMN_popup_dli   activate objMenu from DispListIndex
 OMN_CB_popup    callback of popup-menu
+
+OMN_popup_dli   UNUSED activate objMenu from DispListIndex
 
 List_functions_end:
 =====================================================
@@ -636,6 +637,9 @@ extern int       IE_modify;
   int OMN_CB_popup (MemObj *mo, void** data) {
 //=========================================================================
 // line isel in popup-menu (ObjectMenu) selected.
+//
+// iEv: TYP_EventEnter = 400 = create menu;
+//      TYP_EventPress = 402 = user-selection
 
   static int isel=-1;
   char   *nam0 = "-main-";
@@ -653,7 +657,7 @@ extern int       IE_modify;
   iEv = GUI_DATA_EVENT;
   isel = GUI_DATA_I1;
 
-    // printf("OMN_CB_popup isel=%d\n",isel);
+    // printf("OMN_CB_popup iEv=%d isel=%d\n",iEv,isel);
 
 
   // printf("OMN_CB_popup %d\n",event->type);
@@ -673,8 +677,8 @@ extern int       IE_modify;
 
   ii = MenInd[isel]; // see ../xa/xa_msg.h
 
-  // printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
-         // actObj.typ,actObj.dbInd);
+    printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
+           actObj.typ,actObj.dbInd);
 
 
   // UI_block__ (-1, -1, 1);     // wait-cursor

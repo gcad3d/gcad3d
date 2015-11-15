@@ -1,13 +1,13 @@
-#!/bin/csh
+#!/bin/sh
 # create package ${basDir}/debian/examples.gz
 # start frome <base-directory>/debian
 # copy files from <base-directory>/gCAD3D/dat/ -> <base-directory>/debian/exa_dir/
 # gcad3d/debian/exa_dir is temporary only for creating examples.gz
 #  inputfiles come from gcad3d/gCAD3D
 
-set debDir=`pwd`
+debDir=`pwd`
 cd ../gCAD3D
-set tempDir=${debDir}/exa_dir
+tempDir=${debDir}/exa_dir
 
 
 rm -rf ${tempDir}

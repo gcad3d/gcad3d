@@ -1,7 +1,7 @@
 //  Object-Browser.                                      2009-10-26  RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -754,7 +754,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   //----------------------------------------------------------------
-  // printf("Brw_Mdl_upd\n");
+  // printf("Brw_Mdl_upd %d %d\n",AP_stat.sysStat,winBrStat);
 
   if(AP_stat.sysStat < 2) return 0;
   if(winBrStat < 1) return 0;
@@ -1059,7 +1059,9 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // test if this is a new obj
   APED_oid_dbo__ (cbuf, typ, ind);
+
   irc = GUI_tree1_iter_string (&itOr, cbuf, &itTr, &winBrw);
+    printf(" n _iter_string %d |%s|\n",irc,cbuf);
   if(irc < 0) {
     // create new objRow
     // GUI_TreeIT_row_create (&itOr, winBrw, &itTr);
@@ -1104,7 +1106,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // nr of objects for this typeRow
   iNr = DB_get_ObjNr (typ);
-    // printf("  iNr=%d\n",iNr);
+    // printf("  typ=%d _ObjNr=%d\n",typ,iNr);
 
 
   // find IconTypeIndex for type. (eg ICO_PT for Typ_PT)
@@ -1143,7 +1145,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   // modify.
   // fix text
   sprintf(cbuf, "%s%d", cp1, iNr);
-    // printf(" rowTxt=|%s|\n",cbuf);
+    // printf(" _upd-rowTxt=|%s|\n",cbuf);
 
 
   if(iCre < 0) {
@@ -1437,6 +1439,8 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // create obj-ID
   APED_oid_dbo__ (oid, typ, dbi);
+    // printf(" Brw_objRow_add oid=|%s|\n",oid);
+
 
   // search def.Ln.
   mode = APED_search_defLn (&ps, &lNr, &ll, oid, -1L, 0);
@@ -1451,7 +1455,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
     p1 = &oid[strlen(oid)];
     *p1 = ' ';
     ++p1;
-    // add objName
+    // add objName to oid
     ln = &ps[ll] - pn;
       // printf(" ln=%d\n",ln);
     ln = IMIN (ln, 60);

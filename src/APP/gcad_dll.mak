@@ -58,8 +58,8 @@ endif
 #default:
 default:	$(OBJ1)
 #	@echo "OUTDIR = "$(OUTDIR)
-#@echo $(VPATH)
-#	@echo $(OBJ1)
+	@echo $(VPATH)
+	@echo $(OBJ1)
 	@echo ====================== Link ======================
 	cd $(OUTDIR) &&\
 	$(CC) -o $(DLLNAM).$(FTYP) $(LKDEB) $(OBJ1)\

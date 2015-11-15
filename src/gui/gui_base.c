@@ -85,6 +85,7 @@ List_functions_start:
 GUI_obj_init             get a new memBlockId <UI_umbId>
 GUI_obj_save             save UI_tmpSpc -> memoryblock <UI_umbId>
 GUI_obj_clear            clear the local memSpc UI_tmpSpc
+GUI_obj_reset            reset UI_tmpSpc to a previous position
 GUI_obj_spc              get address & memspc for new widget (in UI_tmpSpc)
 GUI_obj_tmp              get temporary object; only one possible.
 GUI_obj_pos              get widget-data-position from MemObj
@@ -112,6 +113,9 @@ If a new window is started before the active window is destroyed, then
   UI_tmpSpc is saved in a memoryblock (by malloc new space, copy to new space).
 If a saved window gets destroyed, its memoryblock is freed.
 
+
+umbTab         list of memblocks (mempos, size, status, id, ..)
+               (../ut/ut_umb.c)
 
 UI_umbId       memBlockNr; index into umbTab
 
@@ -387,6 +391,20 @@ char*   GUI_Win_tit     (void *gtkWin);
 }
 
 
+//================================================================
+  int GUI_obj_reset (void *oPos) {
+//================================================================
+/// GUI_obj_reset      reset UI_tmpSpc to a previous position
+
+  // printf("GUI_obj_reset %p\n",oPos);
+
+  UI_tmpSpc.next = oPos;
+
+  return 0;
+
+}
+
+ 
 //================================================================
   int GUI_obj_init () {
 //================================================================

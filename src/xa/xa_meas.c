@@ -1,7 +1,7 @@
 // xa_meas.c                                      2010-04-27  RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,9 +175,11 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   DL_hili_off (-1L);             //  -1 = unhilite all
 
 
-  // restore some application-functions...
   // GUI_obj_hide (Meas_tb);           // remove Toolbar
   GUI_set_show (&Meas_tb, 0);           // remove Toolbar
+
+
+  // restore some application-functions...
   UI_func_stat_set__ (APF_TB_CAD,
                       APF_MEN_FIL,
                       APF_MEN_SM,

@@ -20,8 +20,9 @@ Eingabefenster können systemneutral mit dem GUI-Tool "C-Kit-GUI" erstellt werde
 Aufruf von Plugins: Plugin/Select-Start (oder Ctrl-P).
 
 Die Lademodule liegen im Verzeichnis
- {baseDir}/binMS32          (Microsoft) oder
- {baseDir}/binLinux32       (Linux).
+ {baseDir}/binMS32/plugins/          (Microsoft) oder
+ {baseDir}/binLinux32/plugins/       (Linux).
+ {baseDir}/binLinux64/plugins/       (Linux).
 
 
 Plugins erzeugen Standardcode, der im Model normal abgespeichert wird.
@@ -42,27 +43,41 @@ Plugins können zur Laufzeit entladen, rekompiliert und wieder
 ________________________________________________________________________
 <p><a name="P_1"></a></p>
 <h2>Installation Entwicklungspaket Linux:</h2>
-Paketname ist gCAD3D-devel-1.28.tar.gz.
 
-Erfolderliche Softwarepakete sind:
+<b>Prerequistes:</b>
+
+Erforderliche Softwarepakete sind:
   gcc-4..                    - Compiler
   libgtk+2.0_0-devel-..      - für Gtk-Funktionen
   libgtkglarea2.0-devel-..   - für OpenGL-Funktionen
 
-Move package to basedirectory for installation:
-  You have to copy it into the gCAD3D basic installation directory;
-  the basedirectory is normally ~
-    mv gCAD3D-devel-1.28.tar.gz ~/gCAD3D/.
-    cd ~/gCAD3D
 
-Uncompress package (makes gCAD3D1.26.tar):
-    gunzip gCAD3D-devel-1.28.tar.gz
 
-Inspect content of package:
-    tar tvf gCAD3D-devel-1.28.tar
+<b>Linux Installation von git-repository:</b>
 
-Extract package:
-    tar xvf gCAD3D-devel-1.28.tar
+# start Terminal (zB gnome-terminal)
+cd
+mkdir devel
+cd devel
+
+# Entwicklungspaket nach ~/devel/gcad3d/* kopieren
+git clone https://github.com/gcad3d/gcad3d
+
+
+
+<b>Linux Installation von Zipfile:</b>
+
+# start Terminal (zB gnome-terminal)
+cd
+mkdir devel
+cd devel
+cp xxx/gCAD3D_x.xx-src.zip .
+
+# get all files into ~/devel/gcad3d/*
+unzip gCAD3D_x.xx-src.zip
+cd gcad3d
+mkdir -p binLinux32/plugins
+mkdir -p binLinux64/plugins
 
 
 
@@ -114,9 +129,10 @@ Runtime-link:
 ________________________________________________________________________
 <p><a name="P_3"></a></p>
 <h2>Entwicklungs - Dokumentation:</h2>
+
 <b>Linux:</b>
   Anzeigen aus einer Commandshell mit:
-  firefox ~/gCAD3D/devdoc/index.htm
+  firefox ~/devel/gcad3d/doc/gcad/index.htm
 
 
 <b>MS-Windows:</b>
@@ -130,9 +146,10 @@ ________________________________________________________________________
 ________________________________________________________________________
 <p><a name="P_4"></a></p>
 <h2>Erstellung neuer Plugins:</h2>
-  Es muss der erforderliche Compiler installiert sein.
+
   Es sind ein Quellprogramm ({progname}.c) und ein Linkjob ({progname}.mak)
    erforderlich (MS-Win: {progname}.nmak).
+
   Beispiele: {baseDir}/Demo*.c, Demo*.mak  (MS: Demo*.nmak).
 
   Mit "Options/compile_DLLs" ein wird ein Plugin zur Laufzeit entladen,
@@ -140,9 +157,20 @@ ________________________________________________________________________
 
   Dokumentation zum Erstellen eines Plugin:
   <a href="http://www.gcad3d.org/devdoc/pag_pd1.htm">pag_pd1.htm</a>
-  oder devdoc/pag_pd1.htm im Entwicklungspaket.
+  oder doc/gcad/pag_pd1.htm im Entwicklungspaket.
 
 
+Beispiel:
+cd ~/devel/gcad3d/src/APP
+cp Demo_toolbar1.c myTest1.c
+cp Demo_toolbar1.mak myTest1.mak
+# change "Demo_toolbar1" in myTest1.c and in myTest1.mak into "myTest1"
+# link for the first time:
+make -f myTest1.mak
+# start gcad with "Options/compile_DLLs" on
+./do comp
+# select "Plugin / select plugin .. / myTest1"
+# exit, change code, restart plugin with "Ctrl+P" makes automatic recompile ..
 
 
 ________________________________________________________________________

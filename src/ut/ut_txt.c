@@ -1,7 +1,7 @@
 //    UT_TXT.C                                    RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -626,7 +626,7 @@ static char   TX_buf2[128];
   char    *p1, *p2;
 
 
-  printf("UTX_wGrp_nxt |%s| %d\n",wGrp,wPos);
+  // printf("UTX_wGrp_nxt |%s| %d\n",wGrp,wPos);
 
 
   p1 = strchr (&wGrp[wPos], '|');

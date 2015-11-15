@@ -387,7 +387,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
 // calls GUI_Win_exit
 
-  void   *wo, *ww, *w1;
+  void      *wo, *ww, *w1;
 
 
   // printf("GUI_Win_kill %d %d\n",mo->mbID,mo->ioff);
@@ -399,6 +399,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   ww = ((Obj_Win*)wo)->win;       // get gtk-window
 
 
+
   // w1 = gtk_widget_get_toplevel (ww);
   // w1 = gtk_widget_get_ancestor (ww, GTK_TYPE_WINDOW);
   // if(w1 == UI_MainWin) exit (0);    // GUI_main_quit ?
@@ -406,6 +407,8 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 // 2012-06-15 raus ! comes from GUI_DialogEntry !
   // if(mo->mbID == 0) exit (0);    // GUI_main_quit ?
 
+  // make it invalid
+  *mo = GUI_OBJ_INVALID ();   // 2015-08-18
 
   gtk_widget_destroy (ww);
 
@@ -422,7 +425,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 ///
 /// Input:
 ///   wtit      WindowTitle. or NULL = none
-///   funcnam   callback from DestroyWindow
+///   funcnam   callback from DestroyWindow; see prototype below.
 ///   opts       options; (HorSiz,VertSiz)
 ///              HorSiz,VertSiz:  size in characters; default is automatic size.
 ///                               negative values: size in pixels.

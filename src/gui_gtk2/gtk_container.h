@@ -2,6 +2,7 @@
 MemObj  GUI_frame__ (MemObj *o_par, char* ltxt, int border);
 
 MemObj  GUI_toolbox__ (MemObj *o_par);
+MemObj  GUI_toolbox_del (MemObj *mo);
 
 MemObj  GUI_notebook__ (MemObj *o_par, void *funcnam);
 MemObj  GUI_notebook_add (MemObj *o_ntb, char *title);

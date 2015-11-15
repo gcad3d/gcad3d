@@ -12,7 +12,7 @@
 
 
 
-Analysieren: see DL_GetAtt
+Analysieren: see DL_get_dla
 
   // Jede Aenderung der Graf. Attribute wird erst nach dem Neuzeichnen
   // der gesamten Displayliste sichtbar:

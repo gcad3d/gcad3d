@@ -1,7 +1,7 @@
 // Dynamic update numeric strings.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,12 @@
  *
 -----------------------------------------------------
 TODO:
+UI_GR_Sel_Filter (21);  // unused; to be removed ..
 SRCU_fakt/SRCU_val_cen sollte abhängig sein vom active scale.
 
 -----------------------------------------------------
 Modifications:
+2015-08-25 init SRCU_isModified; RF.
 2013-09-10 neu erstellt. RF.
 
 -----------------------------------------------------
@@ -133,7 +135,7 @@ static ObjTXTSRC SRCU_val_pri;
 static int    SRCU_codeOff;             // dist lineHdr - codeStart in chars
 static char   *SRCU_ln_pri;             // the def.ln of the prim.obj
 static int    SRCU_val_siz;             // size of the active value in chars
-static int    SRCU_isModified=1;        // 0=modif; 1=unmodif
+static int    SRCU_isModified;          // 0=modif; 1=unmodif
 static double SRCU_val_cen;             // centervalue
 
 
@@ -195,6 +197,8 @@ static double SRCU_val_cen;             // centervalue
 
 
 // TODO: if window already exists, goto L_init.
+  SRCU_isModified = 1;   // 0=modif; 1=unmodif.
+
 
 
   //----------------------------------------------------------------
@@ -221,9 +225,10 @@ static double SRCU_val_cen;             // centervalue
 
   // init toolbar
   if(GUI_OBJ_IS_VALID(&SRCU_tb)) {
-    GUI_set_show (&SRCU_tb, 1);
+    // GUI_set_show (&SRCU_tb, 1);
     // // clear inputfields
     // GUI_entry_set (&SRCU_e2, "");
+    return -1;
 
   } else {
     SRCU_win__ (&UIw_Box_TB, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
@@ -364,7 +369,7 @@ static double SRCU_val_cen;             // centervalue
     case UI_FuncUCB2:  // isModified
       GUI_set_enable (&SRCU_b1, 1);
       GUI_set_enable (&SRCU_b3, 1);
-      SRCU_isModified = 0;
+      SRCU_isModified = 0;   // 0=modif; 1=unmodif.
       return 0;
 
 
@@ -862,6 +867,8 @@ static double SRCU_val_cen;             // centervalue
   // show defVal in e2
   SRCU_win_e2 (&d1, 1);
 
+
+// use SRCU_mod__  !
   // modify the primary-sourceline SRCU_ln_pri
   SRCU_pri_mod (p1);
 
@@ -887,9 +894,10 @@ static double SRCU_val_cen;             // centervalue
   GL_temp_delete ();              // unhilite vectors
 
 
-  // restore some application-functions...
-  // GUI_obj_hide (SRCU_tb);           // remove Toolbar
-  GUI_set_show (&SRCU_tb, 0);           // remove Toolbar
+  // remove Toolbar
+  SRCU_tb = GUI_toolbox_del (&SRCU_tb);
+
+  // restore functions...
   UI_func_stat_set__ (APF_TB_CAD,
                       APF_MEN_FIL,
                       APF_MEN_SM,
@@ -1054,10 +1062,10 @@ static double SRCU_val_cen;             // centervalue
   inr = depTab.rNr;
   for(l1=iSta; l1 < inr; ++l1) {
     // reExecute line nr lna[l1]
-    l2 = depTab.data[l1].iPar;   // get correct index
+    l2  = depTab.data[l1].iPar;   // get correct index
     dli = depTab.data[l2].dli;
     lnr = depTab.data[l2].lnr;
-    p1 = depTab.data[l2].lPos;
+    p1  = depTab.data[l2].lPos;
       // printf(" update ii=%ld lnr=%ld dli=%ld\n",l2,lnr,dli);
     if(dli >= 0) DL_SetInd (dli);
     irc = WC_Work_upd (lnr, p1);

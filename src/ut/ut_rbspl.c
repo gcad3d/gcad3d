@@ -1,7 +1,7 @@
 // ut_rbspl.c       Thomas Backmeister      18.9.2004
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  * Copyright (C) 2007 Thomas Backmeister (t.backmeister@gmx.at)
  *
  * This program is free software; you can redistribute it and/or modify

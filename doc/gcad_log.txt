@@ -1,3 +1,33 @@
+Version 2.30 / 2015-??-??
+
+- new plugin Demo_toolbar2
+- CAD - provide vertex-position if analytic position cannot be computed
+- CAD - bug "select ellipse in CCV" fixed
+- CAD - bug "CUT" line with single cutting-obj fixed
+- automatic support of all languages of installed messagfiles
+
+
+
+===========================================================================
+Version 2.28 / 2015-08-20
+
+- new plugin Demo_toolbar1
+- new plugin Demo_appDat1
+- Undo output of applications and plugins with the UNDO-button
+  Example: DemoPlugin_Dialog.c (func UNDO_app__)
+- CAD "LN tangent to ..": parameter "unlimited" added
+  "normal to construction-plane" bug fixed
+- Bugfix GUI_file_open__ and GUI_file_save__
+- GL_Do_Scale__ viewer bug with scroll fixed
+- GUI_file_open_1 bug "no-selection" fixed
+- Interaction bug "redo_Interaction" fixed
+- development-docu for codes - formates  improved
+
+Programlines (C)  346061
+Functions           4927
+
+
+===========================================================================
 Version 2.26 / 2015-06-22
 
 - Bug "translate concatenated-curve" fixed (sample_tra_ccv_1.gcad)

@@ -62,13 +62,13 @@ myFiles="${srcDirs}\
  ${doxBase}/Download.dox\
  ${doxBase}/TODO.dox\
  ${doxBase}/ruler1.dox\
- ${doxBase}/Applications.dox\
- ${doxBase}/Messages.dox\
- ${doxBase}/CAD-Objects.dox\
- ${doxBase}/Temp-Objects.dox\
- ${doxBase}/ResolveObjects.dox\
- ${doxBase}/Attributes.dox\
+ ${doxBase}/Plugins.dox\
  ${doxBase}/Userinteractions.dox\
+ ${doxBase}/Messages.dox\
+ ${doxBase}/Objects-Create.dox\
+ ${doxBase}/Objects-Resolve.dox\
+ ${doxBase}/ObjectFormatConversions.dox\
+ ${doxBase}/Attributes.dox\
  ${doxBase}/ruler2.dox\
  ${doxBase}/Tools-MemoryFunctions.dox\
  ${doxBase}/Tools-TextFunctions.dox\
@@ -78,7 +78,6 @@ myFiles="${srcDirs}\
  ${doxBase}/ruler3.dox\
  ${doxBase}/Userinteractions.dox\
  ${doxBase}/ProgramFlow.dox\
- ${doxBase}/ObjectFormatConversions.dox\
  ${doxBase}/Binary-Format.dox\
  ${doxBase}/File-Format-native.dox\
  ${doxBase}/File-Format-binary.dox\
@@ -105,7 +104,7 @@ cat ${doxBase}/Download | sed "s/<VERSION>/$version/g" > ${doxBase}/Download.dox
 
 
 #-------------------------------------------------------
-# create gcad-Sourcefiles.dox
+# create Sourcefiles_gcad.dox
 # create file ../src/APP/srcFiles (a list of sourcefiles)
 make -f gcad3d.mak srclst
 ./doxy_help1.sh "Sourcefiles_gcad"
@@ -115,12 +114,12 @@ mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gcad.dox
 
 
 #-------------------------------------------------------
-# create gcad-Sourcefiles.dox
+# create Sourcefiles_gui.dox
 # create file ../src/APP/srcFiles (a list of sourcefiles)
 make -f gcad_gui_lnk.mak srclst
 ./doxy_help1.sh "Sourcefiles_gui"
 mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gui.dox
-#vi ${doxBase}/Sourcefiles_gcad.dox
+#vi ${doxBase}/Sourcefiles_gui.dox
 #exit
 
 

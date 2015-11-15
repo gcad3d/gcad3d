@@ -1,5 +1,5 @@
 /*! \page ObjectFormatConversions 
-../gcad_doxygen/ObjectFormatConversions.dox
+../../doc/gcad_doxygen/ObjectFormatConversions.dox
 
 
 <pre>
@@ -14,6 +14,7 @@ Obj-types:
 \ref atomicObjects   ausTyp/ausTab-array;           (*int, *double)
 \ref binaryObjects   type & dedicated structure; eg ((int)Typ_PT, (Point)pt)
 \ref DB-Objects      type & DB-index;               (int, long)
+\ref DL-Objects      DL-index;                      (long)
 \ref complexObject   struct ObjGX;                  (ObjGX)
 
 
@@ -88,7 +89,7 @@ _____________________________________________________________________
 APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
 APED_oid_dbo_all    make name from typ and DB-index  (all types)
 SRC_src_dbo         create sourceCode of requested type from Database-object
-AP_txt_vec          get oid for Vector; (DX or DIX or D#)
+APED_oid_vc          get oid for Vector; (DX or DIX or D#)
 
 AP_obj_add_obj      add objname to string
 AP_obj_add_pt       add Point* as "P(xyz)"
@@ -218,6 +219,23 @@ DBO_dump__          dump DB-object -> debug-window
 DB-objects from atomicObj's:
 ATO_ato_eval__         create dynam DB-obj from atomic-obj
 see also APT_decode_pt*
+
+
+
+\endcode
+_____________________________________________________________________
+\section DL-Objects
+\code
+
+DL_DumpObjTab
+
+
+DL_get_dla               get DL-record
+
+DL_find_obj
+DL_find_APPOBJ
+
+
 
 \endcode
 _____________________________________________________________________

@@ -1,7 +1,7 @@
 //    xa_obj_txt.c
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -649,7 +649,7 @@ static long su_ind;
 
 
   // check if Vector is a Defaultvektor (DX or DIX or ...)
-  if(AP_txt_vec(cbuf, vc1) != 0) {
+  if(APED_oid_vc(cbuf, vc1) != 0) {
     strcat(ED_buf1, cbuf);
     return 0;
   }
@@ -948,10 +948,13 @@ static long su_ind;
 /// \code
 /// change obj to text and save it with UTF_add1_line
 /// Input:
-///   ind   DB-index; for -1L a new (free) index is used.
+///   ind          DB-index; for -1L a new (free) index is used.
 ///   o1
 /// Output:
 ///   ED_buf1
+/// retCod    0    OK
+///          -1    out of mem
+/// Example see UTF_insert1
 /// get get db-typ, db-ind with AP_obj_2_txt_query () (after AP_obj_2_txt)
 /// see UTRA_app_oTab AP_stru_2_txt
 /// \endcode

@@ -1,7 +1,7 @@
 //   xa_appDat.c                  2011-02-01                   RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,8 @@ Modifications:
 =====================================================
 List_functions_start:
 
-MSH_aload_appDat        copy section "APPDAT" into file <temp>/<appNam>.appdat
+appdat_open__       open applicationData-file for read or write
+appDat_aload        copy section "APPDAT" into file <temp>/<appNam>.appdat
 
 List_functions_end:
 =====================================================
@@ -56,42 +57,111 @@ List_functions_end:
 
 
 
+
+
+
+//----------------------------------------------------------------
+//---------------- external vars: ---------------------
+
+// ../xa/xa.c
+extern char APP_act_nam[128];    // name of last script- or plugin-program
+
+
+
+
+
+
+
 //================================================================
-   int MSH_aload_appDat (char *lBuf, int bufSiz, FILE *fpi) {
+  int appdat_open__ (FILE **fo, char *mode) {
 //================================================================
 /// \code
-/// MSH_aload_appDat        copy section "APPDAT" into file <temp>/<appNam>.appdat
-/// lbuf = buffer with line  "SECTION APPDAT appNam"
+/// appdat_open__       open applicationData-file for read or write
+/// Input:
+///   mode     "w"=write, "r"=read
+/// Output:
+///   fo       file, already opened
+///   retCod   0=OK,  -1=error
+/// \endcode
+
+  FILE    *fpo;
+  char    fNam[256];
+
+
+  sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),APP_act_nam);
+    printf(" appdat_open__ |%s|%s|\n",fNam,mode);
+
+
+  if((fpo=fopen(fNam,mode)) == NULL) {
+    TX_Print("appdat_open__ E001 %s",fNam);
+    return -1;
+  }
+
+  *fo = fpo;
+  return 0;
+
+}
+
+
+
+//================================================================
+   int appDat_aload (char *lBuf, int bufSiz, FILE *fpi) {
+//================================================================
+/// \code
+/// appDat_aload        copy section "APPDAT" into file <temp>/<appNam>.appdat
+/// Write all data until "SECTIONEND" from file fpi
+///   into file <tmpdir>/<appNam>.appdat
+/// Data can be ascii|binary
+/// Input:
+///   lbuf    buffer with line  "SECTION APPDAT appNam nrBytes"
+///   bufSiz  size of lbuf
 /// \endcode
 
 
-  char    fNam[256];
+  int     i1;
+  long    bNr;
+  char    fNam[256], fncNam[128];
   FILE    *fpo;
 
 
-  sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),&lBuf[15]);
+  // extract appNam from "SECTION APPDAT appNam nrBytes"
+  //                      0123456789012345
+  sscanf (&lBuf[15], "%s %ld", fncNam, &bNr);
+    printf(" fNam=|%s| bNr=%ld\n",fncNam,bNr);
+  sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),fncNam);
 
-  printf("MSH_aload_appDat |%s|%s|\n",fNam,lBuf);
 
-  if((fpo=fopen(fNam,"w")) == NULL) {
-    TX_Error("Mod_aload_sm E001 %s",fNam);
+  printf("appDat_aload |%s|%s| siz=%d\n",fNam,lBuf,bufSiz);
+
+  if(bNr > bufSiz) {
+    TX_Error("appDat_aload E001");
+    return -1;
+  }
+
+  i1 = fread (lBuf, 1, bNr, fpi);
+  if(i1 < 1) {
+    TX_Error("appDat_aload E002");
     return -1;
   }
 
 
-  // i1 = 0;
-  while (!feof (fpi)) {
-    if (fgets (lBuf, bufSiz, fpi) == NULL) break;
-    UTX_CleanCR (lBuf);
-    if(!strcmp(lBuf, "SECTIONEND")) break;
-    fprintf(fpo,"%s\n",lBuf);
-    // ++i1;
+  if((fpo = fopen (fNam, "wb")) == NULL) {
+    TX_Error("appDat_aload E003"); 
+    return -1;
   }
-  // printf(" i1=%d\n",i1);
-
+  fwrite(lBuf, 1, bNr, fpo);
   fclose (fpo);
 
-  return 0;
+
+  // read until SECTIONEND
+  L_r9:
+    fgets (lBuf, bufSiz, fpi);  // get "SECTIONEND"
+      printf(" _aload %ld\n",strlen(lBuf));
+    if(!strncmp(lBuf, "SECTIONEND", 10)) return 0;
+    if(!feof (fpi)) goto L_r9;
+
+    TX_Error("appDat_aload E004"); 
+    return -1;
 
 }
 

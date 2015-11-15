@@ -4,14 +4,13 @@
 # create Microsoft .def file from Linux executable.
 
 
+# get bitNr gcad_dir_bin
+source ../options.sh
 
 
 # bits; 32|64
-bitNr=`getconf LONG_BIT`
-OS=Linux${bitNr}
-OUTDIR=../../bin$OS
 
-filNam=${OUTDIR}/gendef
+filNam=${gcad_dir_bin}/gendef
 echo "help-file=" ${filNam}
 
 # TEST ONLY
@@ -26,7 +25,7 @@ fi
 
 
 # create Files.dox
-./${filNam} $*
+${filNam} $*
 #gdb ./${filNam}
 
 # eof

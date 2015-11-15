@@ -1,7 +1,7 @@
 // ut_plg.c                   RF                     2003-07-01
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -575,7 +575,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
   L_exit:
-    printf("ex _evalplg %lf %lf %lf\n",pto->x,pto->y,pto->z);
+    // printf("ex _evalplg %lf %lf %lf\n",pto->x,pto->y,pto->z);
   return 0;
 
 }

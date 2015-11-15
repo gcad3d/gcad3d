@@ -1,7 +1,7 @@
 //   Import STEP.                   2005-09-05    RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4539,7 +4539,7 @@ static Point p1, p2;
 
 
   // Vektoren: test for Defaultvecs (DX/DY/DZ)
-  irc = AP_txt_vec (gTxt, vc1);
+  irc = APED_oid_vc (gTxt, vc1);
     // printd("ex AP_txt_vec irc=%d |%s|\n",irc,gTxt);
   if(irc != 0) {
     s_tab[sInd].gTyp = Typ_VC;

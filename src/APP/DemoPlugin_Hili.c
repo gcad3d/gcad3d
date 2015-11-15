@@ -1,7 +1,7 @@
 // example Hili.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,7 +139,8 @@ __declspec(dllexport) int gCad_fini ();
 
 
   // get DL-record
-  att1 = DL_GetAtt(dl_ind);
+  // att1 = DL_GetAtt(dl_ind);
+  DL_get_dla (&att1, dl_ind);
   printf("hili=%d\n",att1.hili);  // see hilite-bit
 
 

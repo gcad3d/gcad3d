@@ -1,0 +1,15 @@
+
+/// prereq: xa.h (AP_stat, APP_OBJ_NAM)
+
+
+
+/// PRC_is_active      returns 0 if process is active else 1
+/// usage:  if(PRC_IS_ACTIVE) {   // process is active ..
+#define PRC_IS_ACTIVE (AP_stat.APP_stat)&&(APP_act_typ==2)
+
+
+// ../xa/xa_prg.c ../xa/xa_proc.c ../xa/xa_plu.c
+char* PLU_appNamTab_get (int iNam);
+
+
+// EOF

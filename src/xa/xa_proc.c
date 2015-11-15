@@ -1,7 +1,7 @@
 // processes, plugins, remoteProcesses.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,10 @@
  *
  *
 -----------------------------------------------------
+Process      (script+dll)   PRC    ../xa/xa_proc.c
+  Common funcs and vars for Application/Process/Plugin: ../xa/xa_app.c
+
+
 TODO:
   ..
 
@@ -50,8 +54,6 @@ PRC_Help
 PRC_set_CmdTab
 
 RPC_Loa
-
-PLU_Loa
 
 List_functions_end:
 =====================================================
@@ -866,76 +868,6 @@ static char sproc[128];
 
   // execute nonblocking
   RPC_restart ();
-
-  return 0;
-
-}
-
-
-//================================================================
-  int PLU_restart () {
-//================================================================
- 
-
-  if(APP_act_typ != 3) {
-    TX_Error("RPC_restart - active prog must be plugin ..");
-    return -1;
-  } 
-    
-
-  // start selected plugin
-  sprintf(memspc011, "Execute Userprog. %s",APP_act_nam);
-  TX_Print(memspc011);
-
-  UTX_ftyp_cut  (APP_act_nam);     // remove the filetyp (.so|.dll)
-  AP_exec_dll (APP_act_nam);
-
-  return 0;
-
-}
-
-
-//================================================================
-  int PLU_Loa () {
-//================================================================
-/// \code
-/// reStart remote
-/// display list of dll-files in directory <bindir>/plugins;
-/// execute selected plugin
-/// \endcode
-// was UI_DllLst_CB 
-
-  int   i1;
-  char  fnam[256], s1[256];
-
-
-  printf("PLU_Loa \n");
-
-
-  // no addOn-prog may be active.
-  if(AP_stat.APP_stat != 0) {
-    TX_Print ("***** disactivate active application / plugin ..");
-    return -1;
-  }
-
-
-
-
-  // display list of plugins (see AP_DllLst_write ) let user select
-  sprintf(fnam, "%splugins.lst", OS_get_tmp_dir());
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select program", fnam,
-                       "1", NULL, "60,40");
-  if(i1 < 0) return -1;
-
-  UTX_ftyp_cut  (s1);     // remove the filetyp (.so|.dll)
-
-  APP_act_typ = 3;
-  UI_Set_typPrg ();
-  strcpy(APP_act_nam, s1);
-  UI_Set_actPrg (APP_act_nam, 2);
-
-  PLU_restart ();
 
   return 0;
 

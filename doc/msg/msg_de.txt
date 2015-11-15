@@ -1,397 +1,399 @@
-MM0 Steuerung Anzeigefunktionen:\
-\verschieben: Shift + Maus verschieben (keine Maustaste drücken)\
-\drehen: Strg + Maus verschieben\
-\vergrössern: Shift + Strg + Maus verschieben
+LANG__=Deutsch
 
-MMclear aktives Modell löschen
-MMmock nur OBJ-Modelle; Ein: Importieren;  Aus: nur laden, kein Modifizieren, kein Export möglich.
-MMsave im .gcad - Format speichern
-MMcomp Ein: nach speichern im .gcad-Format komprimieren (zippen, .gcaz)
-MMfDel Datei löschen
-MMfRen Datei umbenennen
-MMfCpy Datei kopieren
-MMfPrt Drucken / Plotten
-MMexit Programm beenden.
-MMsma Hauptmodell oder anderes Submodel aktivieren
-MMsmcp Hauptmodell in ein neues Submodel verschieben
-MMsmcr ein neues Submodel generieren
-MMsmsf das aktuelle Submodel in eine Datei speichern
-MMsmlf Model aus Datei als Submodel laden
-MMsmre das aktuelle Submodel umbenennen
-MMsmde das aktuelle Submodel löschen
-MMsmmp ändern subModel-Position
+MM0=Steuerung Anzeigefunktionen:\
+\verschieben:=Shift + Maus verschieben (keine Maustaste drücken)\
+\drehen:=Strg + Maus verschieben\
+\vergrössern:=Shift + Strg + Maus verschieben
 
-MMopBnd Kantenlinien anzeigen; Ein / Aus
-MMopDll Zusatzprogramme (plugins) vor dem Starten kompilieren und linken; Ein / Aus
-MMopInt Interaktionen aktivieren; Ein / Aus
-MMopTb1 Hauptbedienungsfenster anzeigen (ober dem Grafikfenster grafic); Ein / Aus
-MMopTb2 Meldungsfenster anzeigen (unter dem Grafikfenster); Ein / Aus
-MMopBrw Objektbrowser anzeigen (links vom Grafikfenster); Ein / Aus
+MMclear=aktives Modell löschen
+MMmock=nur OBJ-Modelle; Ein: Importieren;  Aus: nur laden, kein Modifizieren, kein Export möglich.
+MMsave=im .gcad - Format speichern
+MMcomp=Ein: nach speichern im .gcad-Format komprimieren (zippen, .gcaz)
+MMfDel=Datei löschen
+MMfRen=Datei umbenennen
+MMfCpy=Datei kopieren
+MMfPrt=Drucken / Plotten
+MMexit=Programm beenden.
+MMsma=Hauptmodell oder anderes Submodel aktivieren
+MMsmcp=Hauptmodell in ein neues Submodel verschieben
+MMsmcr=ein neues Submodel generieren
+MMsmsf=das aktuelle Submodel in eine Datei speichern
+MMsmlf=Model aus Datei als Submodel laden
+MMsmre=das aktuelle Submodel umbenennen
+MMsmde=das aktuelle Submodel löschen
+MMsmmp=ändern subModel-Position
 
-MMdsps aktuelle Ansicht speichern
-MMdspsr gespeicherte Ansicht wiederherstellen und aktuelle Ansicht speichern
-MMdspr gespeicherte Ansicht wiederherstellen
+MMopBnd=Kantenlinien anzeigen; Ein / Aus
+MMopDll=Zusatzprogramme (plugins) vor dem Starten kompilieren und linken; Ein / Aus
+MMopInt=Interaktionen aktivieren; Ein / Aus
+MMopTb1=Hauptbedienungsfenster anzeigen (ober dem Grafikfenster grafic); Ein / Aus
+MMopTb2=Meldungsfenster anzeigen (unter dem Grafikfenster); Ein / Aus
+MMopBrw=Objektbrowser anzeigen (links vom Grafikfenster); Ein / Aus
 
-MMdspon Objektbezeichnungen und Bearbeitungsrichtungen anzeigen
-MMdspdir die Richtung von Kurven anzeigen
-MMdsppt Darstellung Punkte (P) EIN / AUS (nur Modus VWR)
-MMdsppl Darstellung Ebenen (R) EIN / AUS (nur Modus VWR)
-MMdspso Darstellung Solids (Sphere/Cone/Torus/Cube) als Solid oder Drahtmodell.
+MMdsps=aktuelle Ansicht speichern
+MMdspsr=gespeicherte Ansicht wiederherstellen und aktuelle Ansicht speichern
+MMdspr=gespeicherte Ansicht wiederherstellen
 
-MMstTol Definition Modelgröße und Toleranzen
-MMstTxl Definition Textgröße für Notes (Texte) und Dimensions (Vermaßung)
-MMstCol Definition Standard-Farbe
-MMstLty Definition Linientypen (Farbe-Linientyp-Linedicke) für Linien/Kreise/Kurven
-MMstDir Definition Modelverzeichnisse
-MMstBrw Definition Browser for Hilfe / Dokumentation
-MMstEdi Definition Editor
+MMdspon=Objektbezeichnungen und Bearbeitungsrichtungen anzeigen
+MMdspdir=die Richtung von Kurven anzeigen
+MMdsppt=Darstellung Punkte (P) EIN / AUS (nur Modus VWR)
+MMdsppl=Darstellung Ebenen (R) EIN / AUS (nur Modus VWR)
+MMdspso=Darstellung Solids (Sphere/Cone/Torus/Cube) als Solid oder Drahtmodell.
 
-MMmdMsi Maximalgröße und Toleranzen des Modells setzen
-MMmdMdp ändern subModel-Positionen
-MMmdCvC Kurven in Kreise umwandeln
-MMmdLty ändern Linientyp (Farbe-Linientyp-Linedicke) von Linien/Kreisen/Kurven
-MMmdSst ändern Fläche: schattiert oder symbolisch (Drahtmodell) oder transparent
-MMmdSco ändern Flächenfarbe: in aktive Farbe ändern
-MMmdpsr ändern Flächentransparenz: 0% (solid), 50%, 10%
-MMmdStx Fläche mit Textur (Foto) belegen.
-MMmdOnm Objektliste mit Objektnamen anzeigen; 
-MMmdDel Objekte löschen
-MMmdEdi ändern des aktiven Eingabefeldes mit dem Systemeditor / F3
-MMmdCln alle gelöschten Objekte permanent entfernen / F4
-MMmdDlo Löschen - zuletzt erzeugtes Objekt / Strg-Z
-MMmdRlo Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
+MMstTol=Definition Modelgröße und Toleranzen
+MMstTxl=Definition Textgröße für Notes (Texte) und Dimensions (Vermaßung)
+MMstCol=Definition Standard-Farbe
+MMstLty=Definition Linientypen (Farbe-Linientyp-Linedicke) für Linien/Kreise/Kurven
+MMstDir=Definition Modelverzeichnisse
+MMstBrw=Definition Browser for Hilfe / Dokumentation
+MMstEdi=Definition Editor
 
-MMinVpt Ausgabe der Parameter für die aktuelle Ansicht als Text
-MMinTxt Ausgabe Textpuffer (nach Entf oder Strg X) / Strg Entf
+MMmdMsi=Maximalgröße und Toleranzen des Modells setzen
+MMmdMdp=ändern subModel-Positionen
+MMmdCvC=Kurven in Kreise umwandeln
+MMmdLty=ändern Linientyp (Farbe-Linientyp-Linedicke) von Linien/Kreisen/Kurven
+MMmdSst=ändern Fläche: schattiert oder symbolisch (Drahtmodell) oder transparent
+MMmdSco=ändern Flächenfarbe: in aktive Farbe ändern
+MMmdpsr=ändern Flächentransparenz: 0% (solid), 50%, 10%
+MMmdStx=Fläche mit Textur (Foto) belegen.
+MMmdOnm=Objektliste mit Objektnamen anzeigen; 
+MMmdDel=Objekte löschen
+MMmdEdi=ändern des aktiven Eingabefeldes mit dem Systemeditor / F3
+MMmdCln=alle gelöschten Objekte permanent entfernen / F4
+MMmdDlo=Löschen - zuletzt erzeugtes Objekt / Strg-Z
+MMmdRlo=Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
 
-MMsePcp Ausgabe Mausposition auf der Konstruktionsebene - nächste Selektion
-MMsePop Ausgabe Mausposition als parametrischer Punkt am selektierten Objekt - nächste Selektion
-MMseLoO Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
+MMinVpt=Ausgabe der Parameter für die aktuelle Ansicht als Text
+MMinTxt=Ausgabe Textpuffer (nach Entf oder Strg X) / Strg Entf
 
-MMgrAdd Objekt zu Gruppe addieren oder (wenn bereits selektiert) aus Gruppe entfernen
-MMgrSav alle Objekte der Gruppe in Datei speichern (Format .gcad)
-MMcaMod Normteil verändern
-MMcaCre Normteil neu erzeugen
-MMcaDel Normteil löschen
-MMapSta Applikation (Skript) auswählen und starten
-MMapEdi die aktive Applikation editieren
-MMapCre neue Applikation erzeugen
-MMapDel Applikation löschen
+MMsePcp=Ausgabe Mausposition auf der Konstruktionsebene - nächste Selektion
+MMsePop=Ausgabe Mausposition als parametrischer Punkt am selektierten Objekt - nächste Selektion
+MMseLoO=Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
 
-MMbtgo gesamtes Modell bis zum aktuellen Objekt neu erzeugen
-MMbtstp aktuelles Objekt neu erzeugen
-MMbtend das gesamte Modell neu erzeugen
-MMenZva den Z-Wert der aktuellen Ansichtsebene setzen
-MMcbRot den Mittelpunkt für das interaktive Drehen setzen
-MMcbHid Objeke ausblenden
-MMcbVie Objekte (nach "Hide") wieder einblenden
-MMcb3dv 3D-Rotation fixieren; Ein / Aus
-MMcbSha Flächen: Darstellung schattiert oder als Drahtmodell.
+MMgrAdd=Objekt zu Gruppe addieren oder (wenn bereits selektiert) aus Gruppe entfernen
+MMgrSav=alle Objekte der Gruppe in Datei speichern (Format .gcad)
+MMcaMod=Normteil verändern
+MMcaCre=Normteil neu erzeugen
+MMcaDel=Normteil löschen
+MMapSta=Applikation (Skript) auswählen und starten
+MMapEdi=die aktive Applikation editieren
+MMapCre=neue Applikation erzeugen
+MMapDel=Applikation löschen
 
-MMbtTop Draufsicht (X-Y)
-MMbtFro Vorderansicht (X-Z)
-MMbtSid Seitenansicht (Y-Z)
-MMbtAxo Axonometrische Ansicht
-MMbtSca Vergrösserung und Darstellungsmittelpunkt automatisch errechnen
-MMbtScf eine Raumgrösse von ca. 6000 x 6000 x 6000 mm darstellen
-MMbtVwpt aktuelle Ansicht speichern / wiederherstellen (Ctr-V, Ctrl-CursorRechts)
-MMrbRel Cursorposition auf der aktiven Konstruktionsebene anzeigen
-MMrbAbs Cursorposition auf der aktiven Konstruktionsebene absolut anzeigen
+MMbtgo=gesamtes Modell bis zum aktuellen Objekt neu erzeugen
+MMbtstp=aktuelles Objekt neu erzeugen
+MMbtend=das gesamte Modell neu erzeugen
+MMenZva=den Z-Wert der aktuellen Ansichtsebene setzen
+MMcbRot=den Mittelpunkt für das interaktive Drehen setzen
+MMcbHid=Objeke ausblenden
+MMcbVie=Objekte (nach "Hide") wieder einblenden
+MMcb3dv=3D-Rotation fixieren; Ein / Aus
+MMcbSha=Flächen: Darstellung schattiert oder als Drahtmodell.
 
-MMrbVwr Viewer (nur Anzeige und Analyse, kein Editieren)
-MMrbNCw nicht aktiv
-MMrbCad interaktiver CAD-Objekt-Editor
-MMcbSN Objekte suchen, Objektname/info zufügen
-MMrbMan Objekte direkt erzeugen/bearbeiten (mit Text-Editor)
-MMcbMD Objekt suchen / modifizieren / löschen (Strg linke-Maustaste od. Strg-F)
-MMundo Löschen - zuletzt erzeugtes Objekt / Strg-Z
-MMredo Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
+MMbtTop=Draufsicht (X-Y)
+MMbtFro=Vorderansicht (X-Z)
+MMbtSid=Seitenansicht (Y-Z)
+MMbtAxo=Axonometrische Ansicht
+MMbtSca=Vergrösserung und Darstellungsmittelpunkt automatisch errechnen
+MMbtScf=eine Raumgrösse von ca. 6000 x 6000 x 6000 mm darstellen
+MMbtVwpt=aktuelle Ansicht speichern / wiederherstellen (Ctr-V, Ctrl-CursorRechts)
+MMrbRel=Cursorposition auf der aktiven Konstruktionsebene anzeigen
+MMrbAbs=Cursorposition auf der aktiven Konstruktionsebene absolut anzeigen
 
-RotCen neuen Rotationsmittelpunkt definieren:\
-\- einen beliebigen Punkt (existierenden Vertex) selektieren oder -\
-\- Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
-ViewOn Objekte selektieren, die wieder eingeblendet werden sollen ..
-HideOn Objekte selektieren, die ausgeblendet werden sollen ..
-CAD_On CAD-Funktion selektieren / Objekt mit rechter Maustaste selektieren
-MAN_On neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
-MD_On Objekt selektieren / Objektbezeichnung + Enter eingeben  / Beenden: Strg-rechte Maustaste
+MMrbVwr=Viewer (nur Anzeige und Analyse, kein Editieren)
+MMrbNCw=nicht aktiv
+MMrbCad=interaktiver CAD-Objekt-Editor
+MMcbSN=Objekte suchen, Objektname/info zufügen
+MMrbMan=Objekte direkt erzeugen/bearbeiten (mit Text-Editor)
+MMcbMD=Objekt suchen / modifizieren / löschen (Strg linke-Maustaste od. Strg-F)
+MMundo=Löschen - zuletzt erzeugtes Objekt / Strg-Z
+MMredo=Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
 
-CADPT Punkte
-CADLN Linien
-CADCI Kreise
-CADPLN Ebenen
-CADVC Vektoren
-CADVAR Variablen
-CADCV Kurven (Ellipse, Polygon, Spline, Klothoide, Kontur (Verbundkurve))
-CADSUR Flächen
-CADSOL Solids
-CADDIM Texte, Vermaßung
-CADMDL Submodelle
-CADTR Transformationen
-CADCUT Begrenzen, Verschieben, Drehen, Projizieren, Spiegeln
-CADINT Interaktion, Joints
-CADANA Analysieren
-CADCP Konstruktionsebene
+RotCen=neuen Rotationsmittelpunkt definieren:\
+\-=einen beliebigen Punkt (existierenden Vertex) selektieren oder -\
+\-=Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
+ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
+HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
+CAD_On=CAD-Funktion selektieren / Objekt mit rechter Maustaste selektieren
+MAN_On=neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
+MD_On=Objekt selektieren / Objektbezeichnung + Enter eingeben  / Beenden: Strg-rechte Maustaste
 
-CADname ObjektName / Zusatzinformation (suchen mit "Search/Name")
-CADhelpCAD Info über die Bedienung von CAD im HTML-Browser anzeigen
-CADhelpFunc Info über die aktive CAD-Funktion im HTML-Browser anzeigen
-CADhelpInput Info über das aktive CAD-Eingabefeld im HTML-Browser anzeigen
-CADexit Funktion abbrechen. Aktives Obj. wird nicht gespeichert. Edit-Modus: 2-mal Cancel, rechte Maustaste - Editieren.
-CADsave aktives Obj. speichern, weiter zum nächsten Obj. Rechte Maustaste, Entertaste.
+CADPT=Punkte
+CADLN=Linien
+CADCI=Kreise
+CADPLN=Ebenen
+CADVC=Vektoren
+CADVAR=Variablen
+CADCV=Kurven (Ellipse, Polygon, Spline, Klothoide, Kontur (Verbundkurve))
+CADSUR=Flächen
+CADSOL=Solids
+CADDIM=Texte, Vermaßung
+CADMDL=Submodelle
+CADTR=Transformationen
+CADCUT=Begrenzen, Verschieben, Drehen, Projizieren, Spiegeln
+CADINT=Interaktion, Joints
+CADANA=Analysieren
+CADCP=Konstruktionsebene
 
-PT_cartes__parametric__offset Punkt; selektieren od eingeben; [relativ in X/Y/Z]
-PT_polar Punkt, polar, relativ; Basispunkt, Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene),] Abstand
-PT_translate Punkt verschieben; Basispunkt, Richtung, [Abstand,] [Normalabstand]
-PT_rotate Punkt verdrehen; Mittelpunkt, Ausgangsposition, Winkel [Drehachse]
-PT_endpoints_center_focus___ Charakteristische Punkte (Mittel-, Anfangs- End-, Fokus für Ellipsen; Eckpunkte für Polygone, Splines)
-PT_Mid_Cornerpoint_PT_PT__VC_ Mittelpunkt oder Eckpunkt von 2 Punkten
-PT_parametric_on_LN_CIR_CRV_SUR Punkt auf Linie/Kreis/Kurve/Fläche durch Parameter erzeugen;
+CADname=ObjektName / Zusatzinformation (suchen mit "Search/Name")
+CADhelpCAD=Info über die Bedienung von CAD im HTML-Browser anzeigen
+CADhelpFunc=Info über die aktive CAD-Funktion im HTML-Browser anzeigen
+CADhelpInput=Info über das aktive CAD-Eingabefeld im HTML-Browser anzeigen
+CADexit=Funktion abbrechen. Aktives Obj. wird nicht gespeichert. Edit-Modus: 2-mal Cancel, rechte Maustaste - Editieren.
+CADsave=aktives Obj. speichern, weiter zum nächsten Obj. Rechte Maustaste, Entertaste.
 
-LN_PT__PT Linie zwischen 2 Punkten;
-LN_parallel Linie parallel zu Linie/Vektor
-LN_PT_Direct__Length_Rot_Angle_TiltAngle_ Linie durch Punkt, Richtung, [Länge,] [Drehwinkel (Z-Achse),] [Kippwinkel (X-Y-Ebene)]
-LN_LN_Dist____________parall_ Linie parallel zu Linie mit Abstand, Position (1-4).
-LN_LN_LN__Rot_Angle_TiltAngle___mid_ Linie = Mittellinie; [im Schnittpunkt verdrehen: Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)]]
-LN_tangent_to_line_circ_curve Linie tangential an 2 Objekte (Punkt/Richtung/Kreis/Ellipse/Bspline)
+PT_cartes__parametric__offset=Punkt; selektieren od eingeben; [relativ in X/Y/Z]
+PT_polar=Punkt, polar, relativ; Basispunkt, Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene),] Abstand
+PT_translate=Punkt verschieben; Basispunkt, Richtung, [Abstand,] [Normalabstand]
+PT_rotate=Punkt verdrehen; Mittelpunkt, Ausgangsposition, Winkel [Drehachse]
+PT_endpoints_center_focus___=Charakteristische Punkte (Mittel-, Anfangs- End-, Fokus für Ellipsen; Eckpunkte für Polygone, Splines)
+PT_Mid_Cornerpoint_PT_PT__VC_=Mittelpunkt oder Eckpunkt von 2 Punkten
+PT_parametric_on_LN_CIR_CRV_SUR=Punkt auf Linie/Kreis/Kurve/Fläche durch Parameter erzeugen;
 
-CIR_Cen_Radius__Z_Axis_ Kreis aus Mittelpunkt, Radius [Achs-Vektor]
-CIR_Cen_Tang Kreis aus Mittelpunkt, tangential an Punkt/Linie/Kreis
-CIR_Tang_Tang_Radius Kreis tangential an zwei Elemente, mit fixem Radius.
-CIR_Tang_Tang_Tang Kreis tangential an 3 Elemente.
-ARC_Cen_Ang1_Ang2_Radius Kreisbogen durch Mittelpunkt, Winkel-Startpunkt, Winkel-Endpunkt und Radius.
-ARC_Cen_PT_Angle Kreisbogen durch Mittelpunkt, Startpunkt und Öffnungswinkel.
-ARC_PT_PT_Radius Kreisbogen durch Startpunkt, Endpunkt und Radius.
-ARC_PT_Tang_Radius__Angle_ Kreisbogen durch Startpunkt, Startrichtung, Radius [Öffnungswinkel].
-ARC_PT_PT_Cen Kreisbogen durch Startpunkt, Endpunkt und Mittelpunkt.
-ARC_PT_PT_PT Kreisbogen durch drei Punkte am Umfang.
+LN_PT__PT=Linie zwischen 2 Punkten;
+LN_parallel=Linie parallel zu Linie/Vektor
+LN_PT_Direct__Length_Rot_Angle_TiltAngle_=Linie durch Punkt, Richtung, [Länge,] [Drehwinkel (Z-Achse),] [Kippwinkel (X-Y-Ebene)]
+LN_LN_Dist____________parall_=Linie parallel zu Linie mit Abstand, Position (1-4).
+LN_LN_LN__Rot_Angle_TiltAngle___mid_=Linie = Mittellinie; [im Schnittpunkt verdrehen: Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)]]
+LN_tangent_to_line_circ_curve=Linie tangential an 2 Objekte (Punkt/Richtung/Kreis/Ellipse/Bspline)
 
-PLN_Z_Axis__X_Axis_ Ebene aus Nullpunkt, Z-Achse (Normalvektor), [X-Achsvektor oder Punkt der auf X-Achse]
-PLN_X_Axis__Y_Axis_ Ebene aus Nullpunkt, X-AchsVektor, [Y-Achsvektor oder Punkt auf der Y-Achse]
-PLN_PT_Plane Ebene parallel zu Ebene, neuer Nullpunkt oder Abstand entlang Z-Achse.
+CIR_Cen_Radius__Z_Axis_=Kreis aus Mittelpunkt, Radius [Achs-Vektor]
+CIR_Cen_Tang=Kreis aus Mittelpunkt, tangential an Punkt/Linie/Kreis
+CIR_Tang_Tang_Radius=Kreis tangential an zwei Elemente, mit fixem Radius.
+CIR_Tang_Tang_Tang=Kreis tangential an 3 Elemente.
+ARC_Cen_Ang1_Ang2_Radius=Kreisbogen durch Mittelpunkt, Winkel-Startpunkt, Winkel-Endpunkt und Radius.
+ARC_Cen_PT_Angle=Kreisbogen durch Mittelpunkt, Startpunkt und Öffnungswinkel.
+ARC_PT_PT_Radius=Kreisbogen durch Startpunkt, Endpunkt und Radius.
+ARC_PT_Tang_Radius__Angle_=Kreisbogen durch Startpunkt, Startrichtung, Radius [Öffnungswinkel].
+ARC_PT_PT_Cen=Kreisbogen durch Startpunkt, Endpunkt und Mittelpunkt.
+ARC_PT_PT_PT=Kreisbogen durch drei Punkte am Umfang.
 
-VEC_cartes__polar Vektor von Linie oder Vektor oder kartes. [Länge] [REV (umdrehen)]
-VEC_polar_______Angles_Length_ Vektor durch Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)] [Länge] ["REV" (umdrehen)]
-VEC_from_objects Vektor als Tangente durch einen Punkt auf einer Kurve (Kreis/Ellipse/B-Spline/Klothoide)
+PLN_Z_Axis__X_Axis_=Ebene aus Nullpunkt, Z-Achse (Normalvektor), [X-Achsvektor oder Punkt der auf X-Achse]
+PLN_X_Axis__Y_Axis_=Ebene aus Nullpunkt, X-AchsVektor, [Y-Achsvektor oder Punkt auf der Y-Achse]
+PLN_PT_Plane=Ebene parallel zu Ebene, neuer Nullpunkt oder Abstand entlang Z-Achse.
 
-V_Variable___Value Variable aus Zahlenwert.
-V_X_Y_Z_part_PT_VC Variable = X- Y- od Z-Anteil eines Punktes oder Vektors
-V_PT_PT_Dist__Direction_ Variable = Länge zwischen 2 Punkten [in Richtung Vektor]
-V_LN___Length Variable = Länge einer Strecke
-V_PT___LN_Perp_Dist_ Variable = Normalabstand eines Punktes von einer Strecke
-V_CIR__Radius Variable = Radius eines Kreises
+VEC_cartes__polar=Vektor von Linie oder Vektor oder kartes. [Länge] [REV (umdrehen)]
+VEC_polar_______Angles_Length_=Vektor durch Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)] [Länge] ["REV" (umdrehen)]
+VEC_from_objects=Vektor als Tangente durch einen Punkt auf einer Kurve (Kreis/Ellipse/B-Spline/Klothoide)
 
-S_Ellipse_Center_AxisEndPoint_Point Ellipse aus Mittelpunkt, Endpunkt-Hauptachse, Punkt auf Ellipse
-S_Ellipse_Center_Axes__EndPoints_ Begrenzte Ellipse aus Mittelpunkt, Vektor-Hauptachse, Vektor_Nebenachse, Startpunkt und Endpunkt
-S_Polygon___Points___ Polygon aus Punkten
-S_Polygon___Rectangle Parallelogram aus einem Eckpunkt und 2 Vektoren
-S_BSpline___Points___ B-Spline aus Punkten [CTRL (Kontrollpunkte/Durchganspunkte)]
-S_BSpline___Polygon___ B-Spline aus Polygon [CTRL (Kontrollpunkte/Durchganspunkte)]
-S_BSpline___convert___join_obj_s B-Spline = Verbindung aus mehrerern Linien/Kreisbögen/B-SplineKurven
-S_Clotoid Klothoide aus Startpunkt, StartRichtung, Winkel, StartRadius, EndRadius [Normalvektor]
-S_connection_lines___Points___ Verbindungslinien zwischen Punkten
-S_Contour_CCV_____PT_LN_CIR_CRV Kontur aus Startpunkt, Kurven, Endpunkt. Verschneiden und Begrenzen erfolgt automatisch.
+V_Variable___Value=Variable aus Zahlenwert.
+V_X_Y_Z_part_PT_VC=Variable = X- Y- od Z-Anteil eines Punktes oder Vektors
+V_PT_PT_Dist__Direction_=Variable = Länge zwischen 2 Punkten [in Richtung Vektor]
+V_LN___Length=Variable = Länge einer Strecke
+V_PT___LN_Perp_Dist_=Variable = Normalabstand eines Punktes von einer Strecke
+V_CIR__Radius=Variable = Radius eines Kreises
 
-A_Planar_Surf__trim_punch_ Planare Fläche aus Randkurve (Kreis/Polygon/Kontur) [Inseln (Kreis/Polygon/Kontur)]
-A_Spheric_Surf__Axis_Rad__ Kugelfläche aus Achse, Radius [Winkel-X1,X2] [Winkel-Y1,Y2]
-A_Cylinder_Surf__Axis_Rad__ Zylinderfläche aus Achse, Radius [Winkel-X1,X2, Winkel-Y1,Y2]
-A_Revolved_Surf__Axis_Contour_ Rotationsfläche aus Achse, Konturlinie (Linie/Kreis/B-Spline), Startwinkel, Endwinkel, Höhe1 (Parameter/Punkt), Höhe2 (Parameter/Punkt)
-A_Extrusion_Surf__Contour_Vec_ Regelfläche aus Grundelement und Vektor
-A_Sweep_Surf__Contour_Path_ Fläche von Leitkuve und Profil (zB Schlauch)
-A_Loft_Surf__Curves_across_ Freiformflaeche aus Querschnittkurven (Linie/Kreis/B-Spline)
-A_Loft_Surf__Curves_along_across_ Freiformfläche aus Längsschnittkurven und Querschnittkurven (Linie/Kreis/B-Spline)
-A_supported_trimmed_punched Begrenzte Fläche aus Stützfläche, Randkurve [Inseln ...]
-A_Hatch___Schraffur Schraffierte Fläche aus Randkurve, Linienabstand, Winkel
+S_Ellipse_Center_AxisEndPoint_Point=Ellipse aus Mittelpunkt, Endpunkt-Hauptachse, Punkt auf Ellipse
+S_Ellipse_Center_Axes__EndPoints_=Begrenzte Ellipse aus Mittelpunkt, Vektor-Hauptachse, Vektor_Nebenachse, Startpunkt und Endpunkt
+S_Polygon___Points___=Polygon aus Punkten
+S_Polygon___Rectangle=Parallelogram aus einem Eckpunkt und 2 Vektoren
+S_BSpline___Points___=B-Spline aus Punkten [CTRL (Kontrollpunkte/Durchganspunkte)]
+S_BSpline___Polygon___=B-Spline aus Polygon [CTRL (Kontrollpunkte/Durchganspunkte)]
+S_BSpline___convert___join_obj_s=B-Spline = Verbindung aus mehrerern Linien/Kreisbögen/B-SplineKurven
+S_Clotoid=Klothoide aus Startpunkt, StartRichtung, Winkel, StartRadius, EndRadius [Normalvektor]
+S_connection_lines___Points___=Verbindungslinien zwischen Punkten
+S_Contour_CCV_____PT_LN_CIR_CRV=Kontur aus Startpunkt, Kurven, Endpunkt. Verschneiden und Begrenzen erfolgt automatisch.
 
-B_Conus_PT_PT_R_R Kegel aus 2 Kreismittelpunkten und 2 Radien
-B_Conus_Circ_height_radius Kegel aus Kreis, Höhe und Radius
-B_Torus_Axis_R_R Kreisring aus Mittelpunkt, Achse, Radius_Hauptkreis, Radius_Nebenkreis
-B_Torus_Axis_CI Kreisring aus Achse, Kreis
-B_Sphere_Center_radius Kugel aus Mittelpunkt, Radius/Punkt/Kreis
-B_Prism_Base_Thick_Point_Cone_ Prisma aus Basisfläche (Kreis/Polygon/Kontur), Dicke/Punkt
-B_Prism_Base_Vec Prisma aus Basisfläche (Kreis/Polygon/Kontur), Vektor
+A_Planar_Surf__trim_punch_=Planare Fläche aus Randkurve (Kreis/Polygon/Kontur) [Inseln (Kreis/Polygon/Kontur)]
+A_Spheric_Surf__Axis_Rad__=Kugelfläche aus Achse, Radius [Winkel-X1,X2] [Winkel-Y1,Y2]
+A_Cylinder_Surf__Axis_Rad__=Zylinderfläche aus Achse, Radius [Winkel-X1,X2, Winkel-Y1,Y2]
+A_Revolved_Surf__Axis_Contour_=Rotationsfläche aus Achse, Konturlinie (Linie/Kreis/B-Spline), Startwinkel, Endwinkel, Höhe1 (Parameter/Punkt), Höhe2 (Parameter/Punkt)
+A_Extrusion_Surf__Contour_Vec_=Regelfläche aus Grundelement und Vektor
+A_Sweep_Surf__Contour_Path_=Fläche von Leitkuve und Profil (zB Schlauch)
+A_Loft_Surf__Curves_across_=Freiformflaeche aus Querschnittkurven (Linie/Kreis/B-Spline)
+A_Loft_Surf__Curves_along_across_=Freiformfläche aus Längsschnittkurven und Querschnittkurven (Linie/Kreis/B-Spline)
+A_supported_trimmed_punched=Begrenzte Fläche aus Stützfläche, Randkurve [Inseln ...]
+A_Hatch___Schraffur=Schraffierte Fläche aus Randkurve, Linienabstand, Winkel
 
-N_DIM__hor_vert_parall_ Linearmaß 2D
-N_DIM3_X_Y_Z_parl Linearmaß 3D
-N_DIM__Angle Winkelmaß 2D
-N_DIM__Dmr Durchmessermaß 2D
-N_DIM__Radius Radiusmaß 2D
-N_PointPos_LN 3D-Koordinaten eines Punktes (Kote) mit 3D-Hilfslinie
-N_Text 3D-Text mit variabler Grösse, Richtung und Sonderzeichen.
-N_Text_LN Text mit 1 od 2 2D-Hilfslinien; [mit Pfeilsymbol].
-N_Text_LN_Circle Text mit Kreis und 2D-Hilfslinie.
-N_TextTag_LN 2D-Textblock [mit Hilfslinie]
-N_Symbol Symbol (0-5, Stern/Dreieck/Kreis/Rechteck/Pfeil1/Pfeil2)
-N_Image_Pos_Filename Foto (normal zum Betrachter, Maßstab fix od dyn.)
+B_Conus_PT_PT_R_R=Kegel aus 2 Kreismittelpunkten und 2 Radien
+B_Conus_Circ_height_radius=Kegel aus Kreis, Höhe und Radius
+B_Torus_Axis_R_R=Kreisring aus Mittelpunkt, Achse, Radius_Hauptkreis, Radius_Nebenkreis
+B_Torus_Axis_CI=Kreisring aus Achse, Kreis
+B_Sphere_Center_radius=Kugel aus Mittelpunkt, Radius/Punkt/Kreis
+B_Prism_Base_Thick_Point_Cone_=Prisma aus Basisfläche (Kreis/Polygon/Kontur), Dicke/Punkt
+B_Prism_Base_Vec=Prisma aus Basisfläche (Kreis/Polygon/Kontur), Vektor
 
-M_internal_Model internes Submodel; Position, Maßstab [Ausrichtung]
-M_external_Model externes Submodel; Position, Maßstab [Ausrichtung]
-M_CatalogPart  Normteil; Position, Maßstab [Ausrichtung]
+N_DIM__hor_vert_parall_=Linearmaß 2D
+N_DIM3_X_Y_Z_parl=Linearmaß 3D
+N_DIM__Angle=Winkelmaß 2D
+N_DIM__Dmr=Durchmessermaß 2D
+N_DIM__Radius=Radiusmaß 2D
+N_PointPos_LN=3D-Koordinaten eines Punktes (Kote) mit 3D-Hilfslinie
+N_Text=3D-Text mit variabler Grösse, Richtung und Sonderzeichen.
+N_Text_LN=Text mit 1 od 2 2D-Hilfslinien; [mit Pfeilsymbol].
+N_Text_LN_Circle=Text mit Kreis und 2D-Hilfslinie.
+N_TextTag_LN=2D-Textblock [mit Hilfslinie]
+N_Symbol=Symbol (0-5, Stern/Dreieck/Kreis/Rechteck/Pfeil1/Pfeil2)
+N_Image_Pos_Filename=Foto (normal zum Betrachter, Maßstab fix od dyn.)
 
-TRafo_transl Verschiebung aus Richtung [Länge]
-TRafo_rot Verdrehung aus DrehAchse, DrehWinkel
+M_internal_Model=internes Submodel; Position, Maßstab [Ausrichtung]
+M_external_Model=externes Submodel; Position, Maßstab [Ausrichtung]
+M_CatalogPart= Normteil; Position, Maßstab [Ausrichtung]
 
-CUT__trim__obj Trennen (begrenzen) von Linien/Kurven (noch nicht Konturen/Flächen/Solids) mit einem oder zwei Schneidelementen
-INT__intersect__obj Schnittpunkt/Schnittkurve von 2 Objekten
-TRAnslate_obj__VC_ Objekt verschieben entlang Vektor [Länge]
-TRAnslate_obj__PLN_ Objekt verschieben in anderes Referenzsystem (Ebene) [TRA - inverse Transformation]
-TRAnsform_obj__Tra_ Objekt verschieben (Verschiebung) oder drehen (Verdrehung)
-Project_obj__Prj_ Objekt auf Fläche projizieren.
-Mirror_about_line Objekte um eine Linie spiegeln
-Mirror_about_plane Objekte um eine Ebene spiegeln
-ISOparametric_Curve_from_Surf Kurve aus einer Fläche extrahieren (von Parameterwert(en)); [CX (Querrichtung)]
+TRafo_transl=Verschiebung aus Richtung [Länge]
+TRafo_rot=Verdrehung aus DrehAchse, DrehWinkel
 
-Interact_connect Interaktion an Objekt binden
-Joint_export ein Objekt exportieren (Punkt oder Text)
-Joint_import ein Objekt Punkt oder Text) aus einem Submodell importieren
+CUT__trim__obj=Trennen (begrenzen) von Linien/Kurven (noch nicht Konturen/Flächen/Solids) mit einem oder zwei Schneidelementen
+INT__intersect__obj=Schnittpunkt/Schnittkurve von 2 Objekten
+TRAnslate_obj__VC_=Objekt verschieben entlang Vektor [Länge]
+TRAnslate_obj__PLN_=Objekt verschieben in anderes Referenzsystem (Ebene) [TRA - inverse Transformation]
+TRAnsform_obj__Tra_=Objekt verschieben (Verschiebung) oder drehen (Verdrehung)
+Project_obj__Prj_=Objekt auf Fläche projizieren.
+Mirror_about_line=Objekte um eine Linie spiegeln
+Mirror_about_plane=Objekte um eine Ebene spiegeln
+ISOparametric_Curve_from_Surf=Kurve aus einer Fläche extrahieren (von Parameterwert(en)); [CX (Querrichtung)]
 
-Analyze_Point_Posi_ Punktkoordinaten anzeigen
-Analyze_Obj_ ObjektTyp und -koordinaten anzeigen
-Analyze_Dist__PT_PT Abstand zwischen 2 Punkten messen
-Analyze_Dist__PT_Obj Normalabstand Punkt - Objekte messen
-Analyze_Vertex Punktkoordinaten eines Darstellungspunktes anzeigen
+Interact_connect=Interaktion an Objekt binden
+Joint_export=ein Objekt exportieren (Punkt oder Text)
+Joint_import=ein Objekt Punkt oder Text) aus einem Submodell importieren
 
-ActiveConstrPlane Konstruktionsebene setzen (Ebene)
-Reset_ConstrPlane Konstruktionsebene auf absolutes Koordinatensystem rücksetzen
+Analyze_Point_Posi_=Punktkoordinaten anzeigen
+Analyze_Obj_=ObjektTyp und -koordinaten anzeigen
+Analyze_Dist__PT_PT=Abstand zwischen 2 Punkten messen
+Analyze_Dist__PT_Obj=Normalabstand Punkt - Objekte messen
+Analyze_Vertex=Punktkoordinaten eines Darstellungspunktes anzeigen
 
-Typ_Val Wert eing. / Bild-Tasten / Sel LN (Länge.) / Sel Cir (Radius)
-Typ_PT Punkt (auf Obj.) selektieren / Position anzeigen / Koord. eing.
-Typ_LN Sel LN
-Typ_AC Sel CIR
-Typ_VC Vektor: Wert eing. / Bild-Tasten / D[I]X/Y/Z / dx dy [dz] ANG(ax) [ANG(az)]; Sel LN/Cir/Elli/Surf/PLN/PT+PT; Zusatz: <Länge> / REV (umdrehen)
-Typ_CV Sel CRV
-Typ_CVCCV Sel CCV
-Typ_CVPOL Sel Polygon
-Typ_XVal X-Wert eing.; Sel PT
-Typ_YVal Y-Wert eing.; Sel PT
-Typ_ZVal Z-Wert eing.; Sel PT
-Typ_Angle Winkel: Wert (Grad) eing. / Sel LN / PT-PT / Bild-Tasten
-Typ_PLN Sel PLN / Bild-Tasten (ConstrPln)
-Typ_SOL Sel Conus/Torus
-Typ_goPrim Sel PT/LN/CIR
-Typ_lFig Sel LN/Cir/CRV
-Typ_goGeom Sel Object
-Typ_goGeo1 Sel LN/Cir/CRV/PLN
-Typ_goGeo2 Sel Circ or Ellipse
-Typ_goGeo3 Sel PT/LN/Cir/CRV, CW/CCW
-Typ_goGeo4 Sel VC / LN / PLN
-Typ_goGeo5 Sel CIR/ELL/CCV
-Typ_goGeo6 Winkel (Grad) eing. / Sel Vec/LN (Richtung) / ReversButton
-Typ_goGeo7 Winkel (Grad) eing.; Sel PT
-Typ_goGeo8 Wert eing. / Sel PT
-Typ_goAxis Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (Bild-Tasten) / PT+PLN
-Typ_goRadius Radius eing. / Sel PT / Cir
-Typ_goGeoSUSU Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
-Typ_Tra Bild-Tasten/ (select Transformation)
-Typ_modAux Bild-Tasten
-Typ_mod1 Bild-Tasten/ (Version ändern)
-Typ_modCWCCW ReversButton; Bild-Tasten / "CW" (Uhrzeigersinn) eing.
-Typ_modCTRL Bild-Tasten / ("CTRL" = Controlpoints) eing.
-Typ_modREV Bild-Tasten / ("REV" = reverse) eing.
-Typ_modCX Bild-Tasten / ("CX" = Querrichtung) eing.
-Typ_modUnlim Unlimitiert; Bild-Tasten / "UNL" oder "UNL1" oder "UNL2" eingeben
-Typ_Txt Text eingeben / Bild-Tasten
-Typ_String Text eing. / Modify-Edit
-TYP_FilNam Filename eing. / mittl. Mausetaste (F5) Liste / sel.Model
-Typ_CtlgPart Normteilname eing. / mittl. Mausetaste (F5) Liste / sel.Normteil
-Typ_Model Modelname eing. / sel.Model
-Typ_SubModel Modelname eing. / mittl. Mausetaste (F5) Liste / sel.Model
-Typ_Str_Dir1 X / Y / Z / P eing. / Bild-Tasten
-Typ_Val_symTyp 0 (Stern) 1 (Dreieck.) 2 (Kreis) 3 (Rechteck.) eing.
-Typ_Joint Joint eingeben / selektieren
-Typ_apDat Applikations-spezifisch
-Typ_Group Obj. sel. (wird zu Gruppe zugefügt); weiter mit Tab-Taste
+ActiveConstrPlane=Konstruktionsebene setzen (Ebene)
+Reset_ConstrPlane=Konstruktionsebene auf absolutes Koordinatensystem rücksetzen
 
-XAesc Abbruch durch Escape-Taste ..
-VC0 es sind keine Vektoren definiert ..
-VR0 es sind keine Variablen definiert ..
+Typ_Val=Wert eing. / Bild-Tasten / Sel LN (Länge.) / Sel Cir (Radius)
+Typ_PT=Punkt (auf Obj.) selektieren / Position anzeigen / Koord. eing.
+Typ_LN=Sel LN
+Typ_AC=Sel CIR
+Typ_VC=Vektor: Wert eing. / Bild-Tasten / D[I]X/Y/Z / dx dy [dz] ANG(ax) [ANG(az)]; Sel LN/Cir/Elli/Surf/PLN/PT+PT; Zusatz: <Länge> / REV (umdrehen)
+Typ_CV=Sel CRV
+Typ_CVCCV=Sel CCV
+Typ_CVPOL=Sel Polygon
+Typ_XVal=X-Wert eing.; Sel PT
+Typ_YVal=Y-Wert eing.; Sel PT
+Typ_ZVal=Z-Wert eing.; Sel PT
+Typ_Angle=Winkel: Wert (Grad) eing. / Sel LN / PT-PT / Bild-Tasten
+Typ_PLN=Sel PLN / Bild-Tasten (ConstrPln)
+Typ_SOL=Sel Conus/Torus
+Typ_goPrim=Sel PT/LN/CIR
+Typ_lFig=Sel LN/Cir/CRV
+Typ_goGeom=Sel Object
+Typ_goGeo1=Sel LN/Cir/CRV/PLN
+Typ_goGeo2=Sel Circ or Ellipse
+Typ_goGeo3=Sel PT/LN/Cir/CRV, CW/CCW
+Typ_goGeo4=Sel VC / LN / PLN
+Typ_goGeo5=Sel CIR/ELL/CCV
+Typ_goGeo6=Winkel (Grad) eing. / Sel Vec/LN (Richtung) / ReversButton
+Typ_goGeo7=Winkel (Grad) eing.; Sel PT
+Typ_goGeo8=Wert eing. / Sel PT
+Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (Bild-Tasten) / PT+PLN
+Typ_goRadius=Radius eing. / Sel PT / Cir
+Typ_goGeoSUSU=Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
+Typ_Tra=Bild-Tasten/ (select Transformation)
+Typ_modAux=Bild-Tasten
+Typ_mod1=Bild-Tasten/ (Version ändern)
+Typ_modCWCCW=ReversButton; Bild-Tasten / "CW" (Uhrzeigersinn) eing.
+Typ_modCTRL=Bild-Tasten / ("CTRL" = Controlpoints) eing.
+Typ_modREV=Bild-Tasten / ("REV" = reverse) eing.
+Typ_modCX=Bild-Tasten / ("CX" = Querrichtung) eing.
+Typ_modUnlim=Unlimitiert; Bild-Tasten / "UNL" oder "UNL1" oder "UNL2" eingeben
+Typ_Txt=Text eingeben / Bild-Tasten
+Typ_String=Text eing. / Modify-Edit
+TYP_FilNam=Filename eing. / mittl. Mausetaste (F5) Liste / sel.Model
+Typ_CtlgPart=Normteilname eing. / mittl. Mausetaste (F5) Liste / sel.Normteil
+Typ_Model=Modelname eing. / sel.Model
+Typ_SubModel=Modelname eing. / mittl. Mausetaste (F5) Liste / sel.Model
+Typ_Str_Dir1=X / Y / Z / P eing. / Bild-Tasten
+Typ_Val_symTyp=0 (Stern) 1 (Dreieck.) 2 (Kreis) 3 (Rechteck.) eing.
+Typ_Joint=Joint eingeben / selektieren
+Typ_apDat=Applikations-spezifisch
+Typ_Group=Obj. sel. (wird zu Gruppe zugefügt); weiter mit Tab-Taste
 
-FILT02 Punktfilter Vertex
-FILT03 Punktposition am sel. Obj. liefern ..
-FILT05 alle nachfolgend  selektierten Objekte zur Gruppe zufügen / Ende mit  Tab-Taste
-FILT06 Linie|Kreis|Kurve sel. (Ändern)
-FILT07 Fläche sel. (Ändern)
-FILT13 Fläche sel. (Textur entfernen)
-FILT14 Fläche sel. (Textur aufbringen)
-FILT15 Fläche sel. (Textur laden)
-FILT16 Position ändern: subModel sel.
-FILT18 die parametrische Punktposition am nachfolgend selektierten Objekt liefern ..
-FILT19 eine Linie als Teilsegment eines Polygons oder einer Kontur liefern ..
+XAesc=Abbruch durch Escape-Taste ..
+VC0=es sind keine Vektoren definiert ..
+VR0=es sind keine Variablen definiert ..
 
-DIR_NEW neues Verzeichnis wählen (es existiert noch kein Symbol dafür)
-DIR_SYM Verzeichnis wählen (es existiert bereits eine symbolische Bezeichnung dafür)
+FILT02=Punktfilter Vertex
+FILT03=Punktposition am sel. Obj. liefern ..
+FILT05=alle nachfolgend  selektierten Objekte zur Gruppe zufügen / Ende mit  Tab-Taste
+FILT06=Linie|Kreis|Kurve sel. (Ändern)
+FILT07=Fläche sel. (Ändern)
+FILT13=Fläche sel. (Textur entfernen)
+FILT14=Fläche sel. (Textur aufbringen)
+FILT15=Fläche sel. (Textur laden)
+FILT16=Position ändern: subModel sel.
+FILT18=die parametrische Punktposition am nachfolgend selektierten Objekt liefern ..
+FILT19=eine Linie als Teilsegment eines Polygons oder einer Kontur liefern ..
 
-PEDnopt Objekt hat keine verschiebbaren Punkte ..
-PEDnrpt Objekt hat  %%  verschiebbare Punkte
-PEDsav Änderungen übernehmen (re.Maustaste)
-PEDcanc Änderungen zurücksetzen (Esc-Taste)
-PEDlink Verbindung zu Obj. %%  löschen ?
-PEDmod1 Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Löschen / Einfügen / Fertig: re.Maustaste.
-PEDmod2 Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Fertig (re.Maustaste)
-PEDmod3 speichern (re.Maustaste) od. Abbrechen (Esc-Taste)
-PEDmov den Punkt mit der Maus verschieben - Ende mit rechter Maustaste ..
-PEDdel Punkt löschen: sel. gelbes Rechteck (Sym-#) / Einfügen / Ändern / Fertig: re.Maustaste.
-PEDins Punkt einfügen: sel. Position auf Kurve, wo Punkt eingefügt werden soll / Löschen / Ändern / Fertig: re.Maustaste.
-PEDine FEHLER: Einfügeposition auf der aktiven Kurve selektieren ..
-PEDerrSel FEHLER: selektiertes Objekt kann nicht verwendet werden ..
-PEDe1 FEHLER: PointEditor ist aktiv ..
-PEDe2 FEHLER: Ebene/Vektor kann nicht analysiert werden ..
-PEDe3 FEHLER: Punkt konnte nicht eingefügt werden ..
+DIR_NEW=neues Verzeichnis wählen (es existiert noch kein Symbol dafür)
+DIR_SYM=Verzeichnis wählen (es existiert bereits eine symbolische Bezeichnung dafür)
 
-TED_no es ist keine Textur aktiv
-TED_ldf Bild laden
-TED_ldf Textur aus Datei laden
-TED_ldn neu laden
-TED_ldn Bilddatei neu laden
-TED_rem entfernen
-TED_miy vertikal spiegeln
-TED_mix horizontal spiegeln
-TED_sz1 einpassen
-TED_sz2 fixe Größe
-TED_can Zurücksetzen und Beenden (Esc-Taste)
-TED_end Speichern und Beenden (Return-Taste)
+PEDnopt=Objekt hat keine verschiebbaren Punkte ..
+PEDnrpt=Objekt hat  %%  verschiebbare Punkte
+PEDsav=Änderungen übernehmen (re.Maustaste)
+PEDcanc=Änderungen zurücksetzen (Esc-Taste)
+PEDlink=Verbindung zu Obj. %%  löschen ?
+PEDmod1=Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Löschen / Einfügen / Fertig: re.Maustaste.
+PEDmod2=Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Fertig (re.Maustaste)
+PEDmod3=speichern (re.Maustaste) od. Abbrechen (Esc-Taste)
+PEDmov=den Punkt mit der Maus verschieben - Ende mit rechter Maustaste ..
+PEDdel=Punkt löschen: sel. gelbes Rechteck (Sym-#) / Einfügen / Ändern / Fertig: re.Maustaste.
+PEDins=Punkt einfügen: sel. Position auf Kurve, wo Punkt eingefügt werden soll / Löschen / Ändern / Fertig: re.Maustaste.
+PEDine=FEHLER: Einfügeposition auf der aktiven Kurve selektieren ..
+PEDerrSel=FEHLER: selektiertes Objekt kann nicht verwendet werden ..
+PEDe1=FEHLER: PointEditor ist aktiv ..
+PEDe2=FEHLER: Ebene/Vektor kann nicht analysiert werden ..
+PEDe3=FEHLER: Punkt konnte nicht eingefügt werden ..
 
-UIWTms Modellgröße. Alle folgenden Werte werden neu berechnet.
-UIWTcv max. Abweichung für Kurven (Tol. bei Umwandlung Curve -> Polygon).
-UIWTdi max. Abweichung bei der Darstellung von Kreisen, Kurven.
-UIWTsm nur für aktives Modell setzen oder auch auf alle subModelle anwenden
-UIWTmo aktivieren der eingestellten Modellgröße / Toleranz
-UIWTre alle Werte auf auf Standardwerte (Modellgröße 500) zurücksetzen
+TED_no=es ist keine Textur aktiv
+TED_ldf=Bild laden
+TED_ldf=Textur aus Datei laden
+TED_ldn=neu laden
+TED_ldn=Bilddatei neu laden
+TED_rem=entfernen
+TED_miy=vertikal spiegeln
+TED_mix=horizontal spiegeln
+TED_sz1=einpassen
+TED_sz2=fixe Größe
+TED_can=Zurücksetzen und Beenden (Esc-Taste)
+TED_end=Speichern und Beenden (Return-Taste)
 
-MMcbMea zwischen 2 Punkten messen
-Meas_in Messen: Selektieren Sie 2 Punkte; beenden mit rechter Maustaste.
-LST_err1 Listenüberlauf; bitte Filtertext eingeben
-SEL_fnam Dateinamen selektieren oder eingeben ..
-SEL_sDir symbolische Bezeichnung für das Verzeichnis  %%  eingeben
-SEL_ko Objekt  %%  kann nicht benutzt werden ..
-OVER_fil Datei  %%  überschreiben
-OVER_mdl subModell  %%  überschreiben
-NOEX_fil Datei  %%  existiert nicht
-NOEX_mdl subModell  %%  existiert nicht
-NOEX_dir Verzeichnis  %%  existiert nicht
-ModColIn neue Farbe definieren, dann eine Fläche selektieren ..
-ModTraIn 50% or 80% auswählen, dann Fläche oder Körper selektieren ..
-ModSstIn neue Darstellungsart wählen, dann Fläche oder Körper selektieren ..
-ModLtyIn neuen Linientyp wählen, dann Linie oder Kurve selektieren ..
-CADinit Speichern: OK / rechte Maustaste / Enter-Taste; Abbrechen: Cancel / Esc-Taste.
+UIWTms=Modellgröße. Alle folgenden Werte werden neu berechnet.
+UIWTcv=max. Abweichung für Kurven (Tol. bei Umwandlung Curve -> Polygon).
+UIWTdi=max. Abweichung bei der Darstellung von Kreisen, Kurven.
+UIWTsm=nur für aktives Modell setzen oder auch auf alle subModelle anwenden
+UIWTmo=aktivieren der eingestellten Modellgröße / Toleranz
+UIWTre=alle Werte auf auf Standardwerte (Modellgröße 500) zurücksetzen
 
-SN_New Neue Gruppe erstellen (von gesamtem Modell)
-SN_Add Zur aktuellen Gruppe zufügen (von gesamtem Modell)
-SN_Rem Aus aktueller Gruppe entfernen
-SN_TxtNot alle Objekte suchen, die Infotext [NICHT] enthalten 
-SN_DepNot alle Objekte suchen, die [NICHT] von Objekt "depends" abhängig sind
+MMcbMea=zwischen 2 Punkten messen
+Meas_in=Messen: Selektieren Sie 2 Punkte; beenden mit rechter Maustaste.
+LST_err1=Listenüberlauf; bitte Filtertext eingeben
+SEL_fnam=Dateinamen selektieren oder eingeben ..
+SEL_sDir=symbolische Bezeichnung für das Verzeichnis  %%  eingeben
+SEL_ko=Objekt  %%  kann nicht benutzt werden ..
+OVER_fil=Datei  %%  überschreiben
+OVER_mdl=subModell  %%  überschreiben
+NOEX_fil=Datei  %%  existiert nicht
+NOEX_mdl=subModell  %%  existiert nicht
+NOEX_dir=Verzeichnis  %%  existiert nicht
+ModColIn=neue Farbe definieren, dann eine Fläche selektieren ..
+ModTraIn=50% or 80% auswählen, dann Fläche oder Körper selektieren ..
+ModSstIn=neue Darstellungsart wählen, dann Fläche oder Körper selektieren ..
+ModLtyIn=neuen Linientyp wählen, dann Linie oder Kurve selektieren ..
+CADinit=Speichern: OK / rechte Maustaste / Enter-Taste; Abbrechen: Cancel / Esc-Taste.
 
-ERRCAD0 FEHLER: Funktion CAD muss aktiv sein ..
-pluginErr0 Neukompilierung nicht möglich - Compiler oder Linker nicht gefunden.
-pluginErr1 Fehler in Anwendungsprogramm  %% ; Abbruch.
-FileOp beim Öffnen von Datei  %%
-SAVusm nicht benutztes Submodel  %%  speichern ?
+SN_New=Neue Gruppe erstellen (von gesamtem Modell)
+SN_Add=Zur aktuellen Gruppe zufügen (von gesamtem Modell)
+SN_Rem=Aus aktueller Gruppe entfernen
+SN_TxtNot=alle Objekte suchen, die Infotext [NICHT] enthalten 
+SN_DepNot=alle Objekte suchen, die [NICHT] von Objekt "depends" abhängig sind
 
-ED1CW Drehrichtung Uhrzeigersinn für letzte Eingabe
-ED1CCW Drehrichtung Gegenuhrzeigersinn für letzte Eingabe
-ED1MOD+ nächste Lösungsvariante wählen
-ED1MOD- vorherige Lösungsvariante wählen
-ED1<<< eine Eingabe zurücksetzen (vor dem Einfügen)
-ED1>>> eine Eingabe weiter (nach dem Einfügen)
+ERRCAD0=FEHLER: Funktion CAD muss aktiv sein ..
+pluginErr0=Neukompilierung nicht möglich - Compiler oder Linker nicht gefunden.
+pluginErr1=Fehler in Anwendungsprogramm  %% ; Abbruch.
+FileOp=beim Öffnen von Datei  %%
+SAVusm=nicht benutztes Submodel  %%  speichern ?
+
+ED1CW=Drehrichtung Uhrzeigersinn für letzte Eingabe
+ED1CCW=Drehrichtung Gegenuhrzeigersinn für letzte Eingabe
+ED1MOD+=nächste Lösungsvariante wählen
+ED1MOD-=vorherige Lösungsvariante wählen
+ED1<<<=eine Eingabe zurücksetzen (vor dem Einfügen)
+ED1>>>=eine Eingabe weiter (nach dem Einfügen)
 
 EOF

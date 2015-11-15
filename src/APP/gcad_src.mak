@@ -41,6 +41,7 @@ SRCG =\
   ../xa/xa_ui_gr.c\
   ../xa/xa_vwpt.c\
   ../xa/xa_tra.c\
+  ../xa/xa_plu.c\
   ../xa/xa_prg.c\
   ../xa/xa_proc.c\
   ../xa/xa_objLst.c\
@@ -79,12 +80,11 @@ SRC1 =\
   ../xa/xa_appDat.c\
   ../xa/catalog.c\
   ../xa/ckint_fac.c\
-  ../exp/ut_exp.c\
   ../db/ut_DB.c     ../db/ut_dbo.c\
   ../ci/NC_Main.c   ../ci/NC_apt.c\
   ../ut/ut_gtypes.c ../ut/ut_ox_base.c ../ut/ut_transform.c ../ut/ut_ui_TX.c\
   ../ut/ut_pspl.c   ../ut/ut_bspl.c    ../ut/ut_rbspl.c  ../ut/ut_bsp_approx.c\
-  ../ut/cvClot.c    ../ut/utemp.c      ../ut/cirMoeb.c\
+  ../ut/cvClot.c    ../ut/utemp.c      ../ut/cirMoeb.c   ../ut/ut_col.c\
   ../ut/ut_srv.c    ../ut/ut_sru.c     ../ut/ut_dump.c   ../ut/ut_err.c\
   ../ut/ut_surstd.c ../ut/ut_sbsp.c    ../ut/ut_srbsp.c  ../ut/ut_npt.c\
   ../ut/ut_bez.c    ../ut/ut_rbez.c    ../ut/ut_tria.c   ../ut/ut_quat.c\
@@ -92,7 +92,8 @@ SRC1 =\
   ../ut/ut_sdc.c    ../ut/tri_orient.c ../ut/ut_tess.c   ../ut/ut_project.c\
   ../ut/ubs.c       ../ut/ubscrv.c     ../ut/ubssur.c    ../ut/sbsu1.c\
   ../ut/u3d.c       ../ut/ut_cvoff.c   ../ut/ut_msh.c    ../ut/ut_tin.c\
-  ../gr/tess_su.c   ../gr/ut_tess_su.c ../gr/tess_ut.c    ../gr/ut_GLU.c\
+  ../gr/tess_su.c   ../gr/ut_tess_su.c ../gr/tess_ut.c   ../gr/tess_vr_ut.c\
+  ../gr/ut_GLU.c    ../ut/ut_log.c\
   ../ut/ut_geo2d.c  ../ut/ut_geo3d.c   ../ut/ut_iTab.c   ../ut/ut_dbf.c\
   ../ut/ut_obj.c    ../ut/ut_txfil.c   ../ut/ut_txt.c    ../ut/ut_umb.c\
   ../ut/ut_math.c   ../ut/ut_umem.c    ../ut/ut_mem.c    ../ut/ut_box.c\
@@ -100,15 +101,15 @@ SRC1 =\
   ../ut/ut_memTab.c ../ut/ut_os__.c    ../ut/ut_BitTab.c ../ut/ut_hatch.c
 
 
+# ../exp/ut_exp.c\
 
 # sources of applications; not used in batch
 SRCA =\
   ../exp/bmp_ut.c   ../exp/lwo_r.c     ../exp/lxml.c     ../exp/ds3_r.c\
-  ../exp/dxf_w.c    ../exp/ige_w.c     ../exp/prt_w.c    ../exp/csv_ut.c\
+  ../exp/ige_w.c     ../exp/prt_w.c    ../exp/csv_ut.c\
   ../gr/ut_gr.c     ../gr/ut_GL.c      ../gr/ut_DL.c     ../gr/ut_gtx.c\
   ../gr/gru.c       ../gr/ut_dim.c\
   ../gr/gl_sSym.c   ../gr/gl_solids.c
-
 
 # ../wc/wcut.c      ../wc/wc_pock.c    ../wc/ut_nc.c\
 # ../ci/NC_drill.c\
@@ -117,6 +118,7 @@ SRCA =\
 
 # ../ut/ut_tess.c\
 # ../ut/ut_surstd.c\
+# ../exp/dxf_w.c
 # ../exp/wrl_ut.c\
 # ../exp/obj_ut.c\
 # ../wc/wc_g.c      ../wc/wc_t.c\

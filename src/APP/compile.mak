@@ -2,12 +2,13 @@
 .c.o:
 	@echo ====================== C $@ ========================
 #	echo "VEROS=$(VEROS) VGUI=$(VGUI)"
+	@echo "VPATH="$(VPATH)
 	$(CC) -c $(CPFLG) $<
 #	if test $(@D) != "../xa"; then mv $(@F) $@; fi
 	mv -f $(@F) $(OUTDIR)/.
 #	etags -f $(*F).tag $<
-	rm -f ../APP/$(*F).tag
-	ctags -f ../APP/$(*F).tag -IMemTab $<
+	rm -f ../tags/$(*F).tag
+	ctags -f ../tags/$(*F).tag -IMemTab $<
 
 
 .cpp.o:
@@ -15,7 +16,7 @@
 	# CPPFLG not yet set
 	$(CC) -c $(CPPFLG) $<
 	mv -f $(@F) $(OUTDIR)/.
-	rm -f ../APP/$(*F).tag
-	ctags -f ../APP/$(*F).tag -IMemTab $<
+	rm -f ../tags/$(*F).tag
+	ctags -f ../tags/$(*F).tag -IMemTab $<
 
 # EOF

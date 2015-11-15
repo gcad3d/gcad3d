@@ -14,12 +14,13 @@
 
 
 ____________________________________________________________________________
-<p><a name="Codes"></a></p>
-<h2>Format Specification: gCAD3D Codes:</h2>
-____________________________________________________________________________
+<a href="#Codes">Codes</a>
+<a href="gCAD3D_formats_en.htm#fmt_f">File-formate</a>
+<a href="http://www.gcad3d.org/devdoc/pag_pdm.htm">Binary-formate</a>
 
+____________________________________________________________________________
+<p><a name="Codes"></a></p>
 <A HREF='#fmt1'>General format</A>
-<A HREF='#fmtf'>File format</A>
 
 <A HREF='#V'>Variable</A>
 <A HREF='#P'>Points</A>
@@ -72,10 +73,12 @@ B = Body (Solid)
 C = Circle (circle), 
 D = Direction (vector) 
 I = Interaction
+J = Joint
 L = Line 
 M = Model, Sub-model, mockup model, standard part of 
 N = Note, Tag, bitmap image 
 P = Point (points) R = Refsys (reference system-level) 
+R = Refsys (referencesystem, plane)
 S = Spline (Parameter., B-spline, polygon, Conic Sections) 
 T = Transformation (Translation display rotation) 
 U = Union (Group) 
@@ -87,66 +90,6 @@ V = Variable (value number.)
   0 (zero) can not be used (is the current object) 
   Is a positive number for permanent objects, 
   Is a negative number for temporary objects that are dynamically generated.
-
-
-
-
-____________________________________________________________________________
-<p><a name="fmtf"></a></p>
-<h2>File format</h2>
-____________________________________________________________________________
-Structure of Model files:
-
-The model files contain all geometric objects as text (ascii).
-The sequence is:
-- subModels
-- main model.
-
-All subModels start with this line:
-SECTION {sectionTyp} {parameter}
-and end with:
-SECTIONEND
-
- subModels can be:
-  - Models             SECTION MODEL {modelname}
-  - Meshes             SECTION MESH  {modelname} {ObjID}
-  - point Tables        SECTION PTAB  {modelname} {ObjID}
-
-
-see also <a href="#fmtsub">Fileformat of subModels</a>
-
-At te beginning (before the gemetric objects) there is the <a href="#fmtgat">attribut-table "GATAB"</a>
-
-
-
-<b>Example model file:</b>
-# 2010/11/29-18:37:05
-P1=P(0 0)
-P2=P(200 20)
-# Line from 2 points
-L1=P1 P2
-# circle from Center, Radius
-C1=P(50 100) 25
-# area from circle
-A1=C1
-# Ende
-
-
-If you save a model file as {base}/tmp/Model, it will be loaded
-  wenn the program starts.
-  {base} normally is ~/gCAD3D/.
-
-
-<b>Example model file with subModel:</b>
-# 2010/11/29-18:37:05
-SECTION MODEL SM1
-# Cone from 1 Points 2 radius
-B1=CON P(0 0) P(0 0 12) VAL(16) VAL(12)
-SECTIONEND
-# 2 references of submodel
-M1="SM1" P(0 0)
-M1="SM1" P(50 0)
-# End
 
 
 
@@ -1215,90 +1158,6 @@ Go to the next field with the Tab key.
 Example: 
 # Group 2 surfaces 
 U (A20 A21) 
-
-
-
-____________________________________________________________________________
-<p><a name="fmtgat"></a></p>
-<h2>Dateiformat der Attribute:</h2>
-
-GATAB starts the grafic-attributes-table.
-
-# example GATAB: surface A20 has color e2dc27; surf. A21 is symbolic (not shaded)
-GATAB
-A20 Ce2dc27
-A21 S1
-ENDGATAB
-
-
-
-Grafic-Attributes-Records for surfaces:
-
-<ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
- H  hidden
- C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
- T  transparent; 0=not, 1=50% transparent, 2=full transparent
- S  symbolic; 0=not, 1=symbolic display
- X  textured surface; Format:
-    X"<Image>",X-scale,Y-Scale,X-Offset,Y-Offset,RotAng[,X-vec,Z-Vec]
-      <Image>  consists of "<symbolPath>/<imagefilename>"
-      Offsets are Values from 0-1
-      RotAng in degree
-
-
-
-Grafic-Attributes-Records for Lines, Curves:
-
-<ObjectID> [T#]
- H  hide
- T  index Linetyp; 2=dash, 3=dashDot.
-
-
-
-____________________________________________________________________________ 
-<p><a name="fmtsub"></a></p>
-<h2>File format of submodels:</h2>
-
-
-
-SECTION MODEL {modelname}
-- Dynamic-Dataspace (settings, standards, End: ":DYNAMIC_DATA")
-- Objectdata
-SECTIONEND
-
-
-SECTION PTAB {modelname}_{ObjID}
-ptnr={nr of points}
-{pointCoords, one point per line}
-SECTIONEND
-
-
-SECTION MESH  {modelname}_{ObjID}
-faces={nr of faces} edgelines={nr of edgelines}
-{faces (3 indices for one face per line)}
-edgeline={nr of edgeline} points={nr of points} edgetyp={edgetyp}
-{edgeline (indices for points)}
-SECTIONEND
-
-
-Example:
-
-SECTION PTAB _A1
-ptnr=4
-78.206807 -215.069439 0
-75.797808 -206.220382 0
-82.125568 -204.36855 0
-83.557688 -210.647853 0
-SECTIONEND
-SECTION MESH _A2
-faces=2 edgelines=1
-3 2 1
-3 1 0
-edgeline=0 points=4 edgetyp=5
-3 2 1 0
-SECTIONEND
-A1=PTAB
-A2=MSH A1
 
 
 

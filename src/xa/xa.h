@@ -9,10 +9,6 @@
 #endif
 
 
-/// PRC_is_active      returns 0 if process is active else 1
-/// usage:  if(PRC_IS_ACTIVE) {   // process is active ..
-#define PRC_IS_ACTIVE (AP_stat.APP_stat)&&(APP_act_typ==2)
-
 
 /// \code
 /// sysStat:  1=starting (GUI up); 2=initialize done (openGL up);
@@ -41,7 +37,7 @@ typedef struct {int errLn; short sysStat, errStat;
 
 /// \code
 /// applicationObjectNames - displayed in selectionList - used by plugins.
-/// see AP_UserAppObjNamTab
+/// see PLU_appNamTab_set
 /// \endcode
 typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 

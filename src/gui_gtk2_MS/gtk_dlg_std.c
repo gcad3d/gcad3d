@@ -21,6 +21,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2015-08-29 GUI_MsgBox1 new. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
 
 -----------------------------------------------------
@@ -38,6 +39,7 @@ void GUI_DIALOG(){}
 List_functions_start:
 
 GUI_MsgBox             display text, OK-Button, also if GTK is not yet up
+GUI_MsgBox1            display text, OK-Button, modal over window
 
 GUI_DialogYN           dialogWindow w. OK-Button, Cancel-Button, callback-func
 // GUI_Dialog_cb_e2b      dialogWindow w. entry, 2 Buttons, callback-func
@@ -57,6 +59,7 @@ GUI_Slider_get         query slider-value
 GUI_DialogYN_CB        INTERNAL callback of GUI_DialogYN
 GUI_DialogEntryCB      INTERNAL callback of GUI_DialogEntry
 GUI_Slider_cb1         INTERNAL slider callback
+GUI_Dialog_run         INTERNAL for gtk_dialog_run
 
 List_functions_end:
 =====================================================
@@ -538,6 +541,37 @@ static MemObj UI_DialogEntryWin;
 
 
 //================================================================
+  int GUI_MsgBox1 (char* text, void *win) {
+//================================================================
+/// \code
+/// GUI_MsgBox1      display text, OK-Button, modal over window 
+/// \endcode
+
+  GtkWidget   *wdlg;
+
+
+  wdlg = gtk_message_dialog_new (
+           GTK_WINDOW (win),  // keep on top of this else NULL
+           GTK_DIALOG_DESTROY_WITH_PARENT,
+           GTK_MESSAGE_INFO,
+           GTK_BUTTONS_OK,
+           "%s",text); 
+    
+  // wait, modal:
+  // start waiting; does not return until user clicks button.
+  gtk_dialog_run (GTK_DIALOG (wdlg));    // wait (modal) !
+    // printf(" iRes=%d\n",iRes);
+  // GTK_RESPONSE_OK GTK_RESPONSE_YES GTK_RESPONSE_CANCEL ..
+  // you can kill it with gtk_dialog_response ()
+  
+  gtk_widget_destroy (wdlg);
+
+  return 0;
+
+}
+
+
+//================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
 /// \code
@@ -918,5 +952,73 @@ static MemObj UI_DialogEntryWin;
 
   return 0;
 }
+
+//================================================================
+  int GUI_Dialog_run (char *dnam, int dnSiz, char *fnam, int fnSiz,
+                      GtkWidget *gtkDlg) {
+//================================================================
+// GUI_Dialog_run         INTERNAL for gtk_dialog_run
+  // start waiting; does not return until user clicks button.
+
+  int   i1, iRes;
+  char  *p1;
+
+    
+  iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !
+    printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
+
+
+  if (iRes == GTK_RESPONSE_ACCEPT) {
+    char *filename;
+    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (gtkDlg));
+    if(!filename) filename =
+      gtk_file_chooser_get_preview_filename (GTK_FILE_CHOOSER (gtkDlg));
+        printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
+
+    if(!filename) {
+      TX_Print ("**** ERROR GUI_Dialog_run ****");
+      iRes = -3;
+      goto L_exit;
+    }
+    
+  // find p1 = last delimiter
+#ifdef _MSC_VER
+    p1 = strrchr(filename, '\\');
+#else
+    p1 = strrchr(filename, '/');
+#endif 
+
+    // copy out directory
+    i1 = p1 - filename;
+    if(i1 >= dnSiz) {iRes = -2; goto L_exit; }
+      // printf(" i1=%d\n",i1);
+    strncpy(dnam, filename, i1);
+    dnam[i1] = '\0';
+
+
+
+    // copy out filename
+    ++p1;
+    if(strlen(p1) >= fnSiz) {iRes = -2; goto L_exit; }
+    strcpy(fnam, p1);
+
+    g_free (filename);
+    iRes = 0;
+
+  } else {
+    iRes = -1;
+  }
+
+
+  L_exit:
+  if(gtkDlg) {    // not yet killed from DIR-SYM
+    gtk_widget_destroy (gtkDlg);
+    gtkDlg = NULL;                 // 2013-05-13
+  }
+
+  return iRes;
+
+}
+
 
 // EOF

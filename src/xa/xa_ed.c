@@ -1,7 +1,7 @@
 //  xa_ed.c                        Reiter 2001-06-21
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,10 +92,11 @@ ED_addRange         decode ObjRanges and add them to MemTab(ObjRange)
 ED_test__
 
 see also:
-xa_edi__.c       
-xa_ed_mem.c      APED_*
+../xa/xa_edi__.c       
+../xa/xa_ed_mem.c      APED_*
+../xa/xa_src.c         SRC_
 AP_SRC_*         AP_SRC_mem_edi AP_SRC_edi_mem
-AP_src*
+AP_src*          AP_src_typ__ AP_src_new AP_src_mod_ed AP_src_sel_fmt 
 AP_lNr_*
 AP_APT_*         AP_APT_clean
 
@@ -193,6 +194,7 @@ cl -c /I ..\include xa_ed.c
 #include "../xa/xa_uid.h"         //  DLI_TMP UID_WinMain ...
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
+#include "../xa/xa_app.h"         // PRC_IS_ACTIVE
 #include "../xa/xa.h"                  // WC_modact
 
 
@@ -1174,7 +1176,13 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 //================================================================
   int ED_del__ (int lnr) {
 //================================================================
-/// ED_del__            delete all lines including <lnr>
+/// \code
+/// ED_del__            delete line <lnr> and all following lines
+/// Example:
+/// lNr = 16; 
+/// ED_del__ (lNr);  // delete code & displist for all lines starting with lNr
+/// ED_work_CurSet (lNr);  // update;  or use APED_update__
+/// \endcode
 
   char *cpos;
   long ll;
@@ -1183,6 +1191,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   printf("ED_del__ %d\n",lnr);
 
   cpos = UTF_GetPosLnr (&ll, lnr);
+  if(!cpos) return -1;
 
   *cpos = '\0';
   UTF_FilBuf0Len = cpos - UTF_FilBuf0;
@@ -1358,10 +1367,10 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
 
 
-
-//**************************************************************************
+/* DO NOT USE; replaced by ED_get_lnr_act
+//================================================================
   int ED_Get_LineNr ()  {
-//**************************************************************************
+//================================================================
 ///  die Zeilennunmmer der aktuellen Curpos (ED_lnr_act) holen.
 /// Im Batchmode ein Dummy.
 
@@ -1402,9 +1411,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   return ED_lnr_act;
 
 }
-
-
-
+*/
 
 
 //==========================================================================
@@ -2493,7 +2500,8 @@ static int lnr1, lnr2;
 
 
   // RUN
-  ED_work_CurSet (ED_Get_LineNr());
+  // ED_work_CurSet (ED_Get_LineNr());
+  ED_work_CurSet (ED_get_lnr_act());
 
 
 

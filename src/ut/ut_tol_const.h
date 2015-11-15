@@ -20,6 +20,8 @@ USE WITH:
 // includes from ../ut/ut_geo_const.h
 extern <typ> <name>;
 
+(is included in ../ut/ut_geo2d.c)
+
 \endcode *//*
 
 */
@@ -56,6 +58,8 @@ double UT_TOL_cv   = 0.005;    // Angle: ca 0.3 degree
 /// max. display-deviation for circles, curves
 double UT_DISP_cv  = 0.05;         // 2003-09-05: 0.05; war 0.01   
 
+/// length of construction-lines
+double UT_DISP_ln = 1000.;
 
 
 

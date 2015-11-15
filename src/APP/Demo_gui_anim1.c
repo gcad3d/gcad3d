@@ -1,6 +1,6 @@
 /*  Demoprog Animation.                              RF     2007-12-28
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -589,7 +589,8 @@ static MemObj    win0;
   l1 = GL_GetActInd();
 
   for(l0=0; l0<=l1; ++l0) {
-     dlRec = DL_GetAtt(l0);
+     // dlRec = DL_GetAtt(l0);
+     DL_get_dla (&dlRec, l0);
      printf(" dl[%ld] = %d %ld\n",l0,dlRec.typ,dlRec.ind);
      if(dlRec.typ == Typ_Mock) {*dli = l0; return dlRec.ind;}
   }

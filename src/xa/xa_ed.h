@@ -15,7 +15,8 @@
   // int  ED_GetActLin     (int*, char*);
   int   ED_GetNxtLin     (int*, char*);
   int   ED_GetLinNr      (char*, int);
-  int   ED_Get_LineNr    ();
+  // int   ED_Get_LineNr    ();
+  int   ED_get_lnr_act   ();
   int   ED_get_mac_fil   ();
   int   ED_work_file     (char*);
   int   ED_cont_file     ();

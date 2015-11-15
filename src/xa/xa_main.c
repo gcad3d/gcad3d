@@ -1,7 +1,7 @@
 //     xa_main.c          AP_search_init
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -555,7 +555,7 @@ kopieren geht nicht mehr -
 
 
   // Startup fertig; in debug: give chance to set watchpoints
-  AP_debug__ (); // die func ist ganz leer; ist als stoppoint definiert.
+  AP_debug__ ("main"); // die func ist ganz leer; ist als stoppoint definiert.
 
 
   // // load test-dll xa_test.so

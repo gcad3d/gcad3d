@@ -1,7 +1,7 @@
 // ../xa/xa_src.c            2009-05-28           RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,8 +125,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   void      *vp1;
 
 
-  // printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
-  // ATO_dump__ (ato, "");
+  printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
+  ATO_dump__ (ato, "");
 
 
   aNr = ato->nr;
@@ -1513,14 +1513,14 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   Point     pts;
 
 
-  // printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d\n",sSiz,oTyp,iTyp);
+  printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d\n",sSiz,oTyp,iTyp);
 
   // get last selected position
   if(!pti) {
     sele_get_pos (&pts);
     pti = &pts;
   }
-    // UT3D_stru_dump(Typ_PT, pti, " pti");
+    UT3D_stru_dump(Typ_PT, pti, " pti");
 
   // get tempSpc for ato (with max 6 records)
   ATO_getSpc_tmp__ (&ato, 6);
@@ -1580,7 +1580,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   // resolv CCV
   } else if(iTyp == Typ_CVCCV) {
-      // printf(" CCV.. siz=%d\n",iNr);
+      printf(" CCV.. siz=%d\n",iNr);
     ccva = o1;
     for(i1=0; i1<iNr; ++i1) {
         // UT3D_stru_dump (Typ_CVCCV, &ccva[i1], " ccv[%d]",i1);
@@ -1588,9 +1588,12 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       iTyp = ccva[i1].typ;
       irc = UTO_cv_cvtrm (&iTyp, o2, NULL, &ccva[i1]);
       if(irc < 0) return -1;
+      // find point on CCV-seg; 0=ok, 
       irc = ATO_ato_obj_pt (&ato, oTyp, i1+1, iTyp, o2, pti);
+        printf(" ato_obj_pt irc=%d seg-%d\n",irc,i1+1);
       if(irc == 0) break;
     }
+      
     if(irc < 0) return -1;
 
 
@@ -1602,22 +1605,34 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   }
 
 
+
+  //----------------------------------------------------------------
   // for (oTyp==Typ_goGeo1) fix oTyp
   if(oTyp == Typ_goGeo1) {
-      // printf(" iTyp=%d\n",iTyp);
+    // get the selected subObj of a CCV
+      printf(" iTyp=%d\n",iTyp);
     if((iTyp == Typ_LN)||(iTyp == Typ_CVPOL)) {
       oTyp = Typ_LN;
-    } else if(iTyp == Typ_CI) {
-      oTyp = Typ_CI;
-    } else return -2;
+    // } else if(iTyp == Typ_CI) {
+    // } else return -2;
+    } else {
+      oTyp =  AP_typ_2_bastyp (iTyp);
+    }
   }
+
 
 
   // get sourceObj for outTyp from atomicObjs in ato
   L_encode:
+    printf(" L_encode: oTyp=%d\n",oTyp);
+
     // ATO_dump__ (&ato, " L_encode:");
   irc = SRC_src_ato (so, sSiz, oTyp, &ato);
   if(irc < 0) return -1;
+
+
+    // TESTOUTPUT:
+    printf("ex SRC_src_pt_dbo %d |%s|\n",oTyp,so);
 
 
   return oTyp;

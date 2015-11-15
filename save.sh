@@ -49,7 +49,7 @@ rsync -urv --delete --exclude-from=sav_excl.txt\
  /mnt/serv1/Devel/GITHUB/gcad3d\
  /media/${USER}/DISK/BACKUP
 #
-cp -f ~/Schreibtisch/help_git.txt /mnt/serv1/Devel/help/.
+#cp -f ~/Schreibtisch/help_git.txt /mnt/serv1/Devel/help/.
 goto L_exit
 #
 #
@@ -58,7 +58,7 @@ goto L_exit
 # copy serv1:GITHUB/gcad3d -> HDEV2:~/devel/gcad3d
 Local:
 echo "Local:"
-rsync -rv --delete --exclude-from=sav_excl.txt\
+rsync -urv --delete --exclude-from=sav_excl.txt\
  /mnt/serv1/Devel/GITHUB/gcad3d\
  /home/fwork/devel
 #

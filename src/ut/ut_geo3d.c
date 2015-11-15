@@ -1,7 +1,7 @@
 //**************************************************************************
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -320,13 +320,16 @@ UT3D_comp2ln              compare 2 lines if identical
 UT3D_ln_ck_on_ln          check if 2 lines collinear
 UT3D_ln_ck_parpl          check if line is parallel to plane
 UT3D_ln_ck_degen          check if line is degenerated (length < UT_TOL_cv)
-UT3D_ln_inv               invert (change p1, p2)
+UT3D_ln_inv               invert (change p1, p2)          INLINE
+UT3D_ln_unlim             set  length for construction-line
 UT3D_ln_6db               line from 2 * 3 doubles
 UT3D_ln_ln2               3D-Line from 2D-Line (Z=0)
 UT3D_ln_2pt2              LN = PT - PT
 UT3D_ln_ptvc              Line = PT + VC                  INLINE
 UT3D_ln_ptpt              Line = Point, Point             INLINE
-UT3D_ln_tangcici          Tangente an CIR - CIR
+UT3D_ln_tng_ci_pt         tangent to circ tru point
+UT3D_ln_tng_ci_vc         tangent with fixed vector to circ
+UT3D_ln_tng_ci_ci         Tangente an CIR - CIR
 UT3D_ln_projlnci          line = project endpoints of line --> circPlane
 UT3D_ln_parl2ln           ln <== gemeinsame Strecke of 2 lines
 UT3D_ln_int2pl            LN = Intersection PLN / PLN
@@ -8050,7 +8053,7 @@ liegt. ohne acos.
     // liegt Punkt am Kreis: Tangente an den Kreis;
     if(UTP_comp2db (d1, d2, UT_TOL_pt) == 1) {     // liegt am Kreis.
       // create line w len = APT_ModSiz/2
-      d1 = UT_DISP_cv * 10000.;    // 2013-04-16 was 1000.;
+      d1 = UT_DISP_ln;
       UT3D_pt_traptvclen (po1, pt1, &vc2, d1);
       UT3D_pt_opp2pt (po2, pt1, po1);
       irc = 1;
@@ -8077,7 +8080,7 @@ liegt. ohne acos.
     irc = 2;
 
   Fertig:
-  printf("ex UT3D_pt_tangptci %d\n",irc);
+  // printf("ex UT3D_pt_tangptci %d\n",irc);
   // if(irc > 0) GR_Disp_pt (po1, SYM_TRI_S, 2);
   // if(irc > 1) GR_Disp_pt (po2, SYM_TRI_S, 2);
 
@@ -8089,9 +8092,11 @@ liegt. ohne acos.
 //======================================================================
   int UT3D_pt_tng_ci_vc (Point *pto, Circ *ci1, Vector *vc1, int imod) {
 //======================================================================
-// UT3D_pt_tng_ci_vc          tangent with fixed vector to circ
-// imod      0 = point at y-axis (vc1=x-axis; ci1.vz=z-axis)
-//           1 = point at negative y-axis
+/// \code
+/// UT3D_pt_tng_ci_vc          tangent with fixed vector to circ
+/// imod      0 = point at y-axis (vc1=x-axis; ci1.vz=z-axis)
+///           1 = point at negative y-axis
+/// \endcode
 
   double   d1;
   Vector   vcn;
@@ -11200,6 +11205,51 @@ Version 2 - auch Mist
 
 }
 */
+
+
+//================================================================
+  int UT3D_ln_unlim (Line *lno, int lTyp) {
+//================================================================
+// UT3D_ln_unlim           set  length for construction-line
+
+  double  d1, d2;
+  Point   *pta, *pte;
+  Vector  vc1;
+
+
+  // printf("UT3D_ln_unlim %d\n",lTyp);
+
+
+  lno->typ = lTyp;
+
+  if(!lTyp) return 0;
+
+  pta = &lno->p1;
+  pte = &lno->p2;
+
+  UT3D_vc_2pt (&vc1, pta, pte); // ln -> vc
+
+  d1 = UT3D_len_vc (&vc1);
+  d2 = UT_DISP_ln / d1;   // UT_DISP_ln=length of construction-line
+  UT3D_vc_multvc (&vc1, &vc1, d2);
+
+
+
+  if(lTyp == 1) {  // p1 is startpoint, p2 unlimited) UNL1
+    UT3D_pt_traptvc (pte, pte, &vc1);
+
+  } else if(lTyp == 2) {  // p2 is startpoint, p1 unlimited) UNL2
+    UT3D_pt_traptivc (pta, pta, &vc1);
+
+  } else if(lTyp == 3) {  // both sides unlimited   UNL
+    UT3D_pt_traptivc (pta, pta, &vc1);
+    UT3D_pt_traptvc (pte, pte, &vc1);
+  }
+
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -16120,11 +16170,66 @@ Mat_4x4-vertical   (used by OpenGL !)
 }
 
 
+//=====================================================================
+  int UT3D_ln_tng_ci_pt (Line *lno, Circ *ci1, Point *pt1, int imod) {
+//=====================================================================
+/// \code
+/// UT3D_ln_tng_ci_pt          tangent to circ tru point
+/// imod      0 = point at y-axis (vc1=x-axis; ci1.vz=z-axis)
+///           1 = point at negative y-axis
+/// RetCod    Nr of solutions; -1,1,2.
+/// \endcode
+
+
+  int     irc;
+  Point   po1, po2, *pt2;
+
+
+  irc = UT3D_pt_tangptci (&po1, &po2, pt1, ci1);
+    // GR_Disp_pt (&po1, SYM_TRI_S, ATT_COL_RED);
+    // GR_Disp_pt (&po2, SYM_TRI_S, ATT_COL_RED);
+
+
+  if(imod) pt2 = &po2;
+  else     pt2 = &po1;
+
+  UT3D_ln_ptpt (lno, pt2, pt1);
+    // GR_Disp_ln (lno, 9);
+
+  return irc;
+
+}
+
+
+//=====================================================================
+  int UT3D_ln_tng_ci_vc (Line *lno, Circ *ci1, Vector *vc1, int imod) {
+//=====================================================================
+/// \code
+/// UT3D_ln_tng_ci_vc          tangent with fixed vector to circ
+/// imod      0 = point at y-axis (vc1=x-axis; ci1.vz=z-axis)
+///           1 = point at negative y-axis
+/// \endcode
+
+
+  Point   pt1;
+
+  UT3D_pt_tng_ci_vc (&pt1, ci1, vc1, imod); // tangent-point on circ
+    // UT3D_stru_dump(Typ_PT, &pt1, "pt1");
+
+  UT3D_ln_ptvc (lno, &pt1, vc1);
+    // GR_Disp_ln (lno, 9);
+
+
+  return 0;
+
+}
+
+
 //=======================================================================
-  int UT3D_ln_tangcici (Line *ln1, Circ *ci1, Circ *ci2, int sNr) {
+  int UT3D_ln_tng_ci_ci (Line *ln1, Circ *ci1, Circ *ci2, int sNr) {
 //=======================================================================
 /// \code
-/// UT3D_ln_tangcici          Tangente (4 Lines) an CIR - CIR
+/// UT3D_ln_tng_ci_ci          Tangente (4 Lines) an CIR - CIR
 /// sNr = 1-4
 /// 
 /// RC = nr of possible solutions; -1 (no solution), 1|2|3|4
@@ -16136,7 +16241,7 @@ Mat_4x4-vertical   (used by OpenGL !)
   Point    pt0, pt1, pt2;
 
 
-  // printf("UT3D_ln_tangcici %d\n",sNr);
+  // printf("UT3D_ln_tng_ci_ci %d\n",sNr);
   // UT3D_stru_dump (Typ_CI, ci1, " ci1");
   // UT3D_stru_dump (Typ_CI, ci2, " ci2");
 
@@ -16251,12 +16356,12 @@ Mat_4x4-vertical   (used by OpenGL !)
   //----------------------------------------------------------------
   L_done:
     // GR_Disp_ln (ln1, 9);
-    // printf("ex UT3D_ln_tangcici %d\n",irc);
+    // printf("ex UT3D_ln_tng_ci_ci %d\n",irc);
     return irc;
 
 
   AC_AC_err:
-    printf("UT3D_ln_tangcici no solution ..\n");
+    printf("UT3D_ln_tng_ci_ci no solution ..\n");
     return -1;
 
 }

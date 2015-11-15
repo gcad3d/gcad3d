@@ -1,7 +1,7 @@
 //**************************************************************************
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2015-08-03 MemTab_del - delete all records following <ipos>. RF.
 2014-01-27 MemTab_add new mode 4. RF.
 2009-01-05 aus ut_mem.c extahiert; UME_mTab -> MemTab RF.
 2008-03-21 UME_reall_add,UME_realloc,UME_reall_save: spcOff zu. RF.
@@ -235,7 +236,7 @@ Testprog: ../ut/tst_memTab.c
                   void* objDat, int recNr, int mode) {
 //=========================================================================
 /// \code
-/// MemTab_sav           save objDat to memSpc; malloc/realloc if necessary.
+/// MemTab_add          save/check/reserve in memSpc; malloc/realloc if necessary.
 /// struct must be initialized with MemTab_ini; free it with MemTab_free.
 /// Fixed Recordsizes only !
 /// 
@@ -467,8 +468,15 @@ Testprog: ../ut/tst_memTab.c
 /// Input:
 ///   ipos       1. record to delete in mt->data
 ///   delRecNr   nr of records to delete 
+///              -1 delete all records following <ipos> and including <ipos>
 /// \endcode
 
+
+  if(delRecNr < 0) {
+    // delete all records including <ipos>
+    mt->rNr = ipos;
+    return 0;
+  }
 
   return MEM_del_nrec (&mt->rNr, mt->data, ipos, delRecNr, mt->rSiz);
 

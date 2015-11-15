@@ -84,7 +84,7 @@ ifeq "$(DEB)" "2"
 endif
 
 #	if test $(OUTDIR) != $(DIRBIN); then mv -f $(OUTDIR)/$(EXENAM) $(DIRBIN)/.; fi
-	ctags --excmd=number -f ../xa/src_h.tag $(SRC3)
+	ctags --excmd=number -f ../tags/src_h.tag $(SRC3)
 
 #	ctags --excmd=number -f ut.tag $(SRCG)
 #	etags -f ut.tag $(SRCG) $(SRC3)
@@ -122,7 +122,7 @@ allDemos:
 tag:
 	for i in $(nam1); do \
 		echo etags -f ../xa/$$i.tag $$i.c; \
-		etags -f ../xa/$$i.tag $$i.c; \
+		etags -f ../tags/$$i.tag $$i.c; \
 	done
 
 
@@ -152,29 +152,23 @@ objlst:
 
 
 #=============================================================
-# write list of all sourcefiles into file files
+# write list of all sourcefiles into file files; see gcad_src.mak
 srclst:
 	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
 	@echo $(SRCB) >> srcFiles
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
-	@echo \
-	../prc/*.c ../prc/*.h \
-	../GIS1/*.c ../GIS1/*.h \
-	../xa/*.h ../exp/*h ../db/*h ../ci/*h ../ut/*h ../gr/*h \
-  ../APP/Demo*.c >> srcFiles
+	@echo\
+ ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h\
+ ../exp/*.c ../exp/*.h\
+ ../myAPPS/*.c ../myAPPS/*.h\
+ ../prc/*.c ../prc/*.h\
+ ../APP/Demo*.c >> srcFiles
 # ../gtk/*h
 
 # ../exp/dxf_r.c ../exp/ige_r.c ../exp/obj_ut.c ../exp/stl_r.c \
 # ../exp/stp_r.c ../exp/svg_w.c ../exp/vr2_r.c ../exp/wrl_ut.c 
-
-
-# Demo*.c ../ut/test*.c\
-#../exp/dxf_r.c ../exp/stp_r.c ../exp/stl_r.c ../exp/ige_r.c\
-#../exp/obj_ut.c ../exp/wrl_ut.c\
-#../GIS1/*.c ../GIS1/*.h\
-#../xa/*.h ../exp/*h ../db/*h ../gtk/*h ../ci/*h ../ut/*h ../gr/*h
 
 
 

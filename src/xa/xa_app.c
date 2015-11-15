@@ -1,7 +1,7 @@
 // gCAD3D - APPLICATION-INTERFACE                    2008-01-21   Franz Reiter
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,13 @@
  *
  *
 -----------------------------------------------------
+  Common funcs and vars for Application/Process/Plugin: ../xa/xa_app.c
+
+Application  (gcad-script)  PRG    ../xa/xa_prg.c
+Process      (script+dll)   PRC    ../xa/xa_proc.c
+Plugin       (C-dll)        APP    ../xa/xa_plu.c ../xa/xa_appDat.c ../xa/xa_dll.c
+
+
 TODO:
 -) statt GR_Sel_Filter=17 sollte AP_User* verwendendet werden
    (see xa_ped.c)
@@ -34,11 +41,6 @@ Modifications:
 =====================================================
 List_functions_start:
 
-APP_start
-APP_free               kernel-free; see APP_realloc
-APP_realloc            kernel-realloc
-APP_Close              ReEnable Ctrl Y
-APP_Unl                unload plugin
 APP_Help               simple help
 APP_Open               select file from list, callback.
 APP_Save               simple save
@@ -85,10 +87,20 @@ List_functions_end:
 
 //===============================================================
 // Externe Variablen:
+// defined in ../xa/xa.c (with extern invalidated)
+extern char AP_dir_save[128];     // directory for SAVE
+
+
+// ../xa/xa_plu.c
+extern APP_OBJ_NAM *UI_User_appNamTab;
+
+
 
 
 //===============================================================
 // Interne Variablen:
+// table of user-defined names of application-objects
+
 
 
 
@@ -192,7 +204,7 @@ List_functions_end:
 // "firefox file:///mnt/serv1/Devel/dev/gCAD3D/doc/CAD_AC_de.htm#F6"
 
 
-  char  cbuf[280], s1[256], *fNam;
+  char  cbuf[280], s1[256], *fNam, *p1;
 
 
   if(filnam == NULL) {
@@ -203,6 +215,29 @@ List_functions_end:
   }
 
 
+  //----------------------------------------------------------------
+  // test if file exists; if not: change language to "en"
+  if(OS_checkFilExist (fNam, 1)) goto L_disp;
+  TX_Print ("%s - file does not exist", fNam);
+
+  // file does not exist; change language to "en"
+  // extract langCode (2 chars)
+  p1 = strrchr (fNam, '.');
+  if(!p1) return -1;
+  p1 -= 2;
+  strncpy (p1, "en", 2);
+
+  // test if 
+  // test if file exists; if not: change language to "en"
+  if(OS_checkFilExist (fNam, 1) == 0) {
+    TX_Print ("%s - file does not exist", fNam);
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // display file fNam with AP_browser
+  L_disp:
 
 #ifdef _MSC_VER
   sprintf(cbuf, "start %s %s",AP_browser,fNam);
@@ -215,7 +250,7 @@ List_functions_end:
   printf("APP_browse |%s|\n",cbuf);
   OS_system(cbuf);
 
-  TX_Print ("- display help-file ..");
+  TX_Print ("- display %s", fNam);
 
   return 0;
 
@@ -252,96 +287,27 @@ List_functions_end:
 
 
 //================================================================
-  int APP_start () {
-//================================================================
-// start plugin <APP_act_nam>
-
-  AP_exec_dll (APP_act_nam);
-
-  return 0;
-
-}
-
- 
-//================================================================
-  int APP_free (void **ptr) {
-//================================================================
-/// see APP_realloc
-
-  free (*ptr);
-  *ptr = NULL;
-
-  return 0;
-
-}
-
-
-//================================================================
-  int APP_realloc (void **ptr, int siz) {
-//================================================================
-/// nur fuer MS-Win:
-/// wenn Kernel ein malloc macht, muss auch das free und das realloc
-/// ebenfalls im Kernel passieren !
-
-  *ptr = realloc(*ptr, siz);
-
-  return 0;
-
-}
-
-
-///================================================================
-   int APP_Close () {
-///================================================================
-/// ReEnable Ctrl Y                   unused
-
-
-  printf("APP_Close\n");
-
-  // AP_stat.APP_act = 0;  // ReEnable Ctrl Y
-
-  return 0;
-
-}
-
-
-
-//================================================================
-   int APP_Unl () {
-//================================================================
-/// unload plugin <APP_act_nam>
-
-  printf("APP_Unl \n");
-
-  DLL_run2 ("", -1);  // unload plugin
-
-  return 0;
-
-}
-
-
-
-
-//================================================================
-   int APP_Help (char *APP_NAME, char *label) {
+   int APP_Help (char *appNam, char *label) {
 //================================================================
 /// \code
 /// call html-browser.
-/// label    is added to filename.
+/// Input:
+///   appNam    used for html-filename (use global var APP_act_nam)
+///   label     is added to filename (html-chapter).
 /// Example: 
-///   input:  APP_NAME=PED; label="#chapter1"; lang="en"
-///   result: "/mnt/serv1/Devel/dev/gCAD3D/doc/PED_en.htm#chapter1"
+///   appNam=PED; label="#chapter1"; AP_lang="en"
+///   result: browse "<docdir>/html/PED_en.htm#chapter1"
 /// see also IE_cad_help
 /// \endcode
 
 
   char cbuf1[256];
 
-  printf("APP_Help |%s|%s|%s|\n",APP_NAME,label,AP_lang);
+  printf("APP_Help |%s|%s|%s|\n",appNam,label,AP_lang);
 
 
   sprintf(cbuf1, "%shtml%c%s_%s.htm",
-          OS_get_doc_dir(), fnam_del, APP_NAME, AP_lang);
+          OS_get_doc_dir(), fnam_del, appNam, AP_lang);
 
 
   // test if File exists;
@@ -352,7 +318,7 @@ List_functions_end:
 
     // check if engl.version exists
     sprintf(cbuf1, "%shtml%c%s_en.htm",
-            OS_get_doc_dir(), fnam_del, APP_NAME);
+            OS_get_doc_dir(), fnam_del, appNam);
 
     if(OS_checkFilExist(cbuf1,1) == 0) {
       TX_Print(" - English version %s does not exist.",cbuf1);
@@ -424,6 +390,7 @@ List_functions_end:
 */
 
   strcpy(fNam, defNam);
+  strcpy(dNam, AP_dir_save);
   irc = GUI_file_save__ (fNam, 256, dNam, 256, dirLst, wTit, "*");
   if(irc) return 0;
     // does already ask for overwrite !

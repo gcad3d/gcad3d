@@ -1,22 +1,15 @@
 /*! \page pag_pf ProgramFlow 
-../gcad_doxygen/ProgramFlow.dox
+../../doc/gcad_doxygen/ProgramFlow.dox
 
 <pre>
 \ref Startup
 \ref Workflow
 \ref Events
 
-\ref Errorhandling-Tests
-\ref Constants
 
-\ref Standards-Tolerences-Modelsize
 \ref Transformations
-\ref Source-EDitor
 \ref Interaction
-\ref cursorPosition
 \ref Views
-\ref ViewPlane
-\ref ConstructionPlane
 
 \ref DB-functions
 
@@ -24,6 +17,8 @@
 \ref Tesselate
 
 \ref CAD
+\ref MAN-Editor
+\ref ObjBrowser
 \ref NC
 \ref NC-Wcut
 
@@ -66,19 +61,8 @@ DB_GetDynInd
 
 
 
+
 \endcode
-\section Constants
-<pre>
-\ref ut_const.h        Basic constants math.
-\ref ut_tol_const.h    Basic constants tolereances.
-\ref ut_geo_const.h    Basic constants geometry.
-</pre>
-\code
-\endcode
-
-
-
-
 \section Transformations
 <pre>
 see also \ref ut_transform.c  (UTRA_)
@@ -108,18 +92,6 @@ UT3D_vc_travcm4
 
 
 
-\endcode \section Standards-Tolerences-Modelsize
-\code
-
-WC_ask_ModSiz        get APT_ModSiz
-WC_Init_Modsiz       set APT_ModSiz
- WC_Init_Tol         deduct tolerances from APT_ModSiz   <<<<<<<<<<<<<<
-UI_WinToler          window for setting tolerances ..
- GL_InitModelSize
-
-
-
-
 \endcode
 \section Views
 \code
@@ -131,81 +103,6 @@ UI_GR_view               save/restore viewData
 
 
 
-
-
-\endcode
-\section ViewPlane
-see also \ref cursorPosition
-\code
-GL_GetViewPos            compute cursorPosition in userCoords on GL_view_pln
-
-// Viewplane (active displayplane with the GL-RotationCenterpoint GL_cen)
-//   Always parall. to X-Y-Plane.
-static Plane  GL_view_pln;
-
-
-
-
-
-
-\endcode
-\section ConstructionPlane
-<pre>
-see also \ref Transformations
-see also \ref xa.c
-</pre>
-\code
-
-Plane     WC_sur_act;    the ConstructionPlane; in xa.c
-int       WC_sur_ind;    DB-Index of the ActiveConstrPlane; 0=none.
-double    WC_sur_Z;      the active Z-Offset to the ConstructionPlane
-char WC_ConstPl_Z[16];   displayed name_of_Constr.Plane; is "DZ" or "R20"
-
-Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
-Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
-
-
-Functions ConstrPlane:
-DL_setRefSys
-  NC_setRefsys
-    GL_SetConstrPln
-DL_GetTrInd
-UTRA_pt_ucs2wcs     point from constructionplane (relativ) to absolut (UCS -> WCS)
-UTRA_pt_wcs2ucs     point from absolut to relativ (constructionplane) (WCS -> UCS)
-
-UI_sur_act_CB1      interactive setting of ConstructionPlane
- GL_SetConstrPln    GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
- UI_Set_ConstPl_Z   write Label name_of_Constr.Plane
-AP_Set_ConstPl_Z    write Label name_of_Constr.Plane
-UI_suract_keyIn     mode=2: set & display WC_sur_Z
-AP_Get_ConstPl_Z    gives ConstPLn as text or Z-vec
-AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
-
-
-
-
-\endcode
-
-
-
-<hr>
-\section Errorhandling-Tests
-
-<pre>
-see also Messages / \ref Direct-Messages
-</pre>
-
-\code
-
-AP_errStat_get
-AP_errStat_set      raise / reset error
-AP_errStat_reset
-AP_errText_set
-
-
-AP_debug__          Alt shift x
-AP_test__           Testfunction in core; activate by Ctl shift T
-                    exit durch Ctl shift X
 
 
 \endcode
@@ -232,7 +129,8 @@ ED_work_END
 
 
 
-\endcode \section Workflow
+\endcode
+\section Workflow
 <pre>
 \ref NC_Main.c   CommandInterpreter - main
 </pre>
@@ -332,7 +230,8 @@ UI_CB_view                    View - Funktion
 
 
 
-\endcode \section Events
+\endcode
+\section Events
 \code
 
 ------------------- GUI-events 
@@ -358,45 +257,31 @@ Brw_CB_sel                    MouseButtonCallback from Browser-window
 EDI_CB__                      KeybCallback from Editor-window
 
 
-
-
 \endcode
-\section Source-EDitor
-<pre>
-functions for MAN-editor - not memory:
-\ref xa_ed.c      Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
-\ref xa_edi__.c   Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
-GUI_edi_*()        GUI-EditorFunctions
-
-
-functions for memory (MAN & CAD) - not editor:
-\ref xa_ed_mem.c  ApplicSpecficFunctions APT-Textfunctions im Memory APED_
-\ref ut_txfil.c   Textfunctions im Memory                            UTF_
-
-
-create/modify textlines:
-\ref xa_src.c     check, modify, convert source-objects (text)       SRC_
-
-
-other:
-\ref xa_cad_ed.c  CAD-GroupEditor                                    IE_ed1_
-
-</pre>
-\code
-
-ED_work_END                   Button END = alles abarbeiten
-
-TX_Print                      ut_ui_TX.c
-  TX_Write
-    GUI_Tx_wri                ../gtk/ut_gtk2tx.c
-      GUI_Tx_add
 
 
 
 
-\endcode
+
+
+
 \section CAD
 \code
+
+  UI_CAD_ON ();
+  UI_CAD_OFF ();
+
+
+// activate new subMenu:
+IE_cad_init2   // activate new mainMenu
+IE_cad_init1   // activate new subMenu
+
+// activate new inputField:
+IE_cad_InpIn__
+
+// receive Input from user:
+IE_cad_sel1
+
 
 UI_cad                        Hauptmenue aufbauen
 IE_cad_p_CB                   PointMenueEintrag selected ..
@@ -410,8 +295,87 @@ IE_activate                   nach Select obj: entspr. menu aktivieren.
 
 
 
-\endcode \section Interaction 
+\endcode 
+
+
+
+
+
+
+\section MAN-Editor 
+<pre>
+sourcefiles for MAN-editor - not memory:
+\ref xa_ed.c      Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
+\ref xa_edi__.c   Neutral EditorFunctions (MAN, not Gtk-specific)    ED_
+GUI_edi_*()        GUI-EditorFunctions
+
+
+sourcefiles for memory (MAN & CAD) - not editor:
+\ref xa_ed_mem.c  ApplicSpecficFunctions APT-Textfunctions im Memory APED_
+\ref ut_txfil.c   Textfunctions im Memory                            UTF_
+
+
+create/modify textlines:
+\ref xa_src.c     check, modify, convert source-objects (text)       SRC_
+  
+
+other:
+\ref xa_cad_ed.c  CAD-GroupEditor                                    IE_ed1_
+
+</pre>
 \code
+
+
+
+  UI_MAN_ON ();
+  UI_MAN_OFF ();
+
+ED_work_END                   Button END = alles abarbeiten
+
+\endcode
+
+
+
+
+
+
+
+
+\section ObjBrowser 
+\code
+
+  UI_brw__ (1);            // on; -1=off
+
+  Brw_Mdl_init ();  // fill browserWindow
+
+  Brw_Mdl_upd ();
+    Brw_typeRow_upd    // add type-row
+
+  Brw_typeRow_sel
+    Brw_typeRow_open
+      Brw_objRow_add     // add obj
+
+\endcode
+
+
+
+
+
+
+\section Interaction 
+\code
+
+AP_stat.iActStat = 1;     // ON; 0=off.
+ACT_ck_act
+
+SRCU_win_var              // init update variable
+  SRCU_win__              // create Toolbar
+  SRCU_work__
+
+Events:
+SRCU_ent_CB               // new value entered into entryField
+SRCU_tmr_CB__             // timer callback
+
 
 APT_decode_Activ
 DB_StoreActiv
@@ -421,12 +385,15 @@ UI_GR_ButtonPress
   DL_IactSelect
    DB_QueryActiv
 
-ACT_ck_act
+\endcode
 
 
 
 
-\endcode \section NC 
+
+
+
+\section NC 
 \code
 
 APT_work_PrgCmd
@@ -583,27 +550,6 @@ APT_DrawSur
      GLT_comm_work
      GLT_diff_work
 
-
-
-
-\endcode
-\section cursorPosition
-\code
-
-GL_set_viewPlnPos       GL_actUsrPos, on  viewPlane    (GL_GetViewPos)
-GR_set_constPlnPos      GR_CurUk, on constructionPlane (GL_GetConstrPos)
-
-UI_GR_get_actPos_       return the active cursorPosition as string "<x> <y> <z>"
-
-GL_GetActSelPos         Coords of last selectionPoint on viewPlane
-UI_GR_get_actPosA       get current curPos in userCoords on constructionPlane
-
-GL_Get_Cen              screencenter in userCoords
-GL_get_Scale
-GL_GetEyeLn             Sichtstrahl (Point & Vector) retournieren
-GL_GetEyeX
-
-UI_GR_SelVert           get vertext nearest to cursor
 
 
 

@@ -1,6 +1,71 @@
 // ../gui/gui_types.h
 
+ 
+/// get data of callback
+#define GUI_DATA_EVENT      *(int*)data[0]
 
+#define GUI_DATA_I1         *(int*)data[1]
+#define GUI_DATA_L1         *(long*)data[1]
+#define GUI_DATA_D1         *(double*)data[1]
+#define GUI_DATA_S1         (char*)data[1]
+#define GUI_DATA_PTR_I1     (int*)(data[1])
+
+#define GUI_DATA_I2         *(int*)data[2]
+#define GUI_DATA_L2         *(long*)data[2]
+#define GUI_DATA_S2         (char*)data[2]
+
+#define GUI_DATA_I3         *(int*)data[3]
+#define GUI_DATA_S3         (char*)data[3]
+
+#define GUI_DATA_I4         *(int*)data[4]
+#define GUI_DATA_S4         (char*)data[4]
+
+#define GUI_DATA_I5         *(int*)data[5]
+#define GUI_DATA_S5         (char*)data[5]
+
+
+
+//================================================================
+#define UI_FuncInit       90
+#define UI_FuncInit1     191
+#define UI_FuncInit2     192
+#define UI_FuncInit3     193
+#define UI_FuncClear     194
+#define UI_FuncGet        91
+#define UI_FuncSet        92
+#define UI_FuncDisable    93
+#define UI_FuncEnable     94
+#define UI_FuncFocus      95
+#define UI_FuncPrev       96
+#define UI_FuncNext       97
+#define UI_FuncWork       98
+#define UI_FuncKill       99
+#define UI_FuncOK        100
+#define UI_FuncCancel    101
+#define UI_FuncExit      102
+#define UI_FuncHelp      103
+#define UI_FuncNO        104
+
+#define UI_FuncInsert    110
+#define UI_FuncModify    111   
+#define UI_FuncDelete    112
+#define UI_FuncUndo      113
+     
+#define UI_FuncUCB      1000         // Usercallbacks; 1000-1999
+#define UI_FuncUCB1     1001
+#define UI_FuncUCB2     1002
+#define UI_FuncUCB3     1003
+#define UI_FuncUCB4     1004
+#define UI_FuncUCB5     1005
+#define UI_FuncUCB6     1006
+#define UI_FuncUCB7     1007
+#define UI_FuncUCB8     1008
+#define UI_FuncUCB9     1009
+#define UI_FuncUCB10    1010
+#define UI_FuncUCB11    1011
+#define UI_FuncUCB12    1012
+#define UI_FuncUCB13    1013
+    
 // was ../ut/ut_geo.h
 /// events
 #define TYP_EventEnter      400  ///< event enter
@@ -46,31 +111,6 @@
 
 
 //================================================================
- 
-/// get data of callback
-#define GUI_DATA_EVENT      *(int*)data[0]
-
-#define GUI_DATA_I1         *(int*)data[1]
-#define GUI_DATA_L1         *(long*)data[1]
-#define GUI_DATA_D1         *(double*)data[1]
-#define GUI_DATA_S1         (char*)data[1]
-#define GUI_DATA_PTR_I1     (int*)(data[1])
-
-#define GUI_DATA_I2         *(int*)data[2]
-#define GUI_DATA_L2         *(long*)data[2]
-#define GUI_DATA_S2         (char*)data[2]
-
-#define GUI_DATA_I3         *(int*)data[3]
-#define GUI_DATA_S3         (char*)data[3]
-
-#define GUI_DATA_I4         *(int*)data[4]
-#define GUI_DATA_S4         (char*)data[4]
-
-#define GUI_DATA_I5         *(int*)data[5]
-#define GUI_DATA_S5         (char*)data[5]
-
-
-
 /// values mouse - TYP_DeviceMouse
 #define GUI_MouseL          1  ///< left mousebutton
 #define GUI_MouseM          2  ///< mid mousebutton
@@ -82,11 +122,11 @@
 /// values keyboard - TYP_DeviceKeyb
 /// /usr/include/gtk-2.0/gdk/gdkkeysyms.h
 /// see also /usr/include/X11/keysymdef.h
-#define GUI_KeyEsc          0xff1b
+#define GUI_KeyEsc          0xff1b           // 65307
 #define GUI_KeyTab          0xff09
 #define GUI_KeyReturn       0xff0d           // 65293
 #define GUI_KeyBackSpace    0xff08      // "remove-previous-char"
-#define GUI_KeyDel          0xffff      // Delete, "remove-next-char"
+#define GUI_KeyDel          0xffff      // Delete, "remove-next-char" 65535
 #define GUI_KeyNumDel       0xff9f      // Delete in numeric-key-block
 
 #define GUI_KeyPageUp       0xff55           // 65365 ff9a 65434
@@ -128,47 +168,5 @@
 #define GUI_STYL_passiv    2
 
 
-
-//----------------------------------------------------------------
-#define UI_FuncInit       90
-#define UI_FuncInit1     191
-#define UI_FuncInit2     192
-#define UI_FuncInit3     193
-#define UI_FuncClear     194
-#define UI_FuncGet        91
-#define UI_FuncSet        92
-#define UI_FuncDisable    93
-#define UI_FuncEnable     94
-#define UI_FuncFocus      95
-#define UI_FuncPrev       96
-#define UI_FuncNext       97
-#define UI_FuncWork       98
-#define UI_FuncKill       99
-#define UI_FuncOK        100
-#define UI_FuncCancel    101
-#define UI_FuncExit      102
-#define UI_FuncHelp      103
-#define UI_FuncNO        104
-
-#define UI_FuncInsert    110
-#define UI_FuncModify    111   
-#define UI_FuncDelete    112
-#define UI_FuncUndo      113
-     
-#define UI_FuncUCB      1000         // Usercallbacks; 1000-1999
-#define UI_FuncUCB1     1001
-#define UI_FuncUCB2     1002
-#define UI_FuncUCB3     1003
-#define UI_FuncUCB4     1004
-#define UI_FuncUCB5     1005
-#define UI_FuncUCB6     1006
-#define UI_FuncUCB7     1007
-#define UI_FuncUCB8     1008
-#define UI_FuncUCB9     1009
-#define UI_FuncUCB10    1010
-#define UI_FuncUCB11    1011
-#define UI_FuncUCB12    1012
-#define UI_FuncUCB13    1013
-    
 
 // EOF

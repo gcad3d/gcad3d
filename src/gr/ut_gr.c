@@ -1,7 +1,7 @@
 //     ut_gr.c                                 CADCAM-Services Franz Reiter
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,9 +42,14 @@ Modifications:
 \brief create graphic objects 
 \code
 
-_Disp_     display temporary object (no diplayListrecord)
-_Draw      display obj (with existing diplayListrecord)
-_Crea      save obj; create displayListrecord; display obj
+
+
+GR_Cre..      create dynamic-DB-obj, DL-record and display obj
+
+GR_Disp_..    create DL-record, display obj. Do not create DB-record.
+
+GR_Draw..     display obj. Do not create DB-record, DL-record.
+
 
 =====================================================
 List_functions_start:
@@ -70,10 +75,10 @@ GR_Disp_p2Tab         disp 2D-points
 GR_Disp_vc2           display 2D-Vector; length true or normalized
 GR_Disp_vc            disp 3D-vector at 3D-point; length true or normalized.
 
-GR_Disp_ln2           disp 2D-line from 2 2D-points
 GR_Disp_ln            disp 3D-line
 GR_tmpDisp_ln
 GR_Disp_ln1           disp line between 2 points
+GR_Disp_ln2           disp line between 2 2D-points
 GR_Disp_rect1         disp. rectangle
 GR_Disp_cv            disp. polygon between points
 GR_Disp_cv2
@@ -511,10 +516,11 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   void GR_CrePoint (long *ind, int attInd, Point *pt1) {
 //====================================================================
 /// \code
-/// ind > 0: store obj in DB
-/// ind = 0: store dynamic obj in DB.
-/// ind < 0: do not store obj in DB.
-/// attInd: 0=normal, black;  1=red (hilited);
+/// Input:
+///   ind > 0: store obj in DB
+///   ind = 0: store dynamic obj in DB.
+///   ind < 0: do not store obj in DB.
+///   attInd: 0=normal, black;  1=red (hilited);
 /// \endcode
 
 
@@ -688,6 +694,17 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //====================================================================
   void GR_CreLine (long *ind, int attInd, Line *ln1) {
 //====================================================================
+/// \code
+/// create DB-record, DL-record and display line
+/// Input:
+///                0    create new dynamic DB-obj;
+///                < 0  do not store obj in DB
+///   attInd       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+///
+/// Output:
+///   ind          dbi  (negative for dynamic obj)
+/// \endcode
+ 
 
 
   long   dlInd;
@@ -1485,7 +1502,12 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //====================================================================
   void GR_DrawLine (long *ind, int attInd, Line *ln1) {
 //====================================================================
+/// \code
 ///   Erzeugung einer 3D-Line
+/// Input:
+///   ind          dli
+///   attInd       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+/// \endcode
 
 
   Line lnTr;
@@ -2058,9 +2080,20 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //================================================================
-  int GR_DrawSurPtab (int att, long apt_ind) {
+  int GR_DrawSurPtab (long dbi, int att) {
 //================================================================
 // display PTAB (its boundary)
+// load pointSet from bin-file, compute boundary, display.
+//
+// Input:
+//   dli       -1    create new DL-record,
+//             >= 0  else use existing DL-record
+//   dbi
+//   att       ? 5 ?
+//   file      binary-data of pointSet, see MSH_bload_pTab/MSH_bsav_pTab
+// Output:
+//   dli
+
 
   int     *iba, iNr, PtabNr, i1;
   long    dli;
@@ -2069,10 +2102,12 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // MemTab(Point) pTab = MemTab_Init(sizeof(Point), Typ_PT, 10000);
   MemTab(Point) pTab = MemTab_empty;
 
+
+
   MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
 
 
-  // printf("GR_DrawSurPtab %d %d\n",att,apt_ind);
+  // printf("GR_DrawSurPtab %d %d\n",att,dbi);
 
 
   // override att:  set to 5=th2BlueDashed
@@ -2082,7 +2117,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // load pTab from bin.file; mallocs Ptab !
-  i1 = MSH_bload_pTab (&pTab, WC_modact, apt_ind);
+  i1 = MSH_bload_pTab (&pTab, WC_modact, dbi);
   if(i1 < 0) return -1;
   PtabNr = pTab.rNr;
     // printf(" PtabNr=%d\n",PtabNr);
@@ -2101,8 +2136,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // MSH_test_disp2 (iba, iNr, Ptab);
 
 
-  // dli = DL_StoreObj (Typ_SURPTAB, apt_ind, att);
-  dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+  // dli = DL_StoreObj (Typ_SURPTAB, dbi, att);
+  dli = DL_StoreObj (Typ_SUR, dbi, att);
 
   GL_DrawCvIpTab (&dli, att, iba, iNr, pTab.data, 1);
 
@@ -2197,7 +2232,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // if(oxi->typ == Typ_ObjGX) return 0;
   // if(oxi->typ == Typ_Typ) return 0;
   // if(oxi->siz < 1) return 0;      // Typ_SURPTAB skip A=PTAB
-  if(oxi->typ == Typ_SURPTAB) return GR_DrawSurPtab (att, apt_ind);
+  if(oxi->typ == Typ_SURPTAB) return GR_DrawSurPtab (apt_ind, att);
 
 
 
@@ -3780,7 +3815,8 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_ln2 (Point2 *p1, Point2 *p2, int att) {
 //================================================================
 /// \code
-/// att: 0=1=Black    (see ~/gCAD3D/cfg/ltyp.rc)
+/// att: colour,lineTyp,lineThick    (see ~/gCAD3D/cfg/ltyp.rc)
+///      0=1=Black
 ///      2=Black-Dash
 ///      3=black-Dashdot
 ///      4=rosa
@@ -4880,6 +4916,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   long    dli;
   // ObjGX  ox;
 
+
   printf("GR_Disp_obj %d %d\n",oTyp,att);
 
   // OGX_SET_OBJ (&ox, oTyp, oTyp, 1, sObj);
@@ -5059,51 +5096,56 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //================================================================
-  int GR_draw_mesh (int mode, long dbi, int styl,
+  int GR_draw_mesh (long dli, long dbi, ColRGB *col,
                     Point *pTab, Fac3 *fTab, int fNr) {
 //================================================================
 // Input:
-//   mode        1    modify existing object
-//               0    create new object
-//              -1    create a temporary object
- 
+//   dli      >= 0    modify existing object
+//            -1L     create new object
+//            <= -2L  create a temporary object
+//   col      styl     0 = ON  = shade;     1 = OFF = symbolic
+//
 // see GR_DrawFtab
 
+
   int     att;
-  long    dli;
 
 
   // printf("GR_draw_mesh mode=%d dbi=%ld fNr=%d\n",mode,dbi,fNr);
 
 
+  // temp-obj's
+  if(dli <= -2L) goto L_disp;
+
+
+
   // (Re-)Display mesh
-  if(mode > 0) {     // modify existing object
+  if(dli >= 0L) {     // modify existing object
     // use existing dli - modify
-    dli = DL_find_obj (Typ_SUR, dbi, -1L);
+    // dli = DL_find_obj (Typ_SUR, dbi, -1L);
       // printf(" dbi=%ld dli=%ld\n",dbi,dli);
-    if(dli >= 0) DL_SetInd (dli);  // modify (do not create new DL-Record)
+    DL_SetInd (dli);  // modify (do not create new DL-Record)
 
+  // } else if(dli == -1L) {  // create new object
+  // } else if(dli < 0) {   // create a temporary object
+    // dli = -1L;
 
-  // } else if(mode == 0) {  // create new object
-
-
-  } else if(mode < 0) {   // create a temporary object
-    dli = -1L;
   }
 
 
   att = 0; // 5; // 8; // ? APT_DrawSur GR_DrawSur TSU_DrawSurMsh
 
-  dli = DL_StoreObj (Typ_SUR, dbi, att);
+  dli = DL_StoreObj (Typ_SUR, dbi, *(int*)col);
 
 
 
   // MSH_dump_fTab (ActFtab.data, ActFtab.rNr);
 
 
-
-  GL_Surf_Ini (&dli, (void*)&att);           // att unused ..
-  GL_DrawFtab (pTab, fTab, fNr, styl);
+  L_disp:
+  GL_Surf_Ini (&dli, col);           // att unused ..
+  GL_ColSet (col);                   // 2015-09-30
+  GL_DrawFtab (pTab, fTab, fNr, col);
   GL_EndList ();
 
 
@@ -5113,7 +5155,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //=========================================================================
-  void GR_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, int styl) {
+  void GR_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
 //=========================================================================
 /// \code
 /// newS:  0 = do not start new surface
@@ -5129,6 +5171,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   if(TSU_mode != 0) {
+    // 1=speichern
     GLT_stor_rec (0, NULL, NULL, 0);  // init
 
     if((GL_actCol.color != 0) || (GL_actCol.vtra != 0)) {
@@ -5140,11 +5183,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     }
 
   }  else {
+    // 0=normal darstellen
     // if((GL_actCol.color != 0) || (GL_actCol.vtra != 0))
     GL_ColSet (&GL_actCol);
   }
 
-  GL_DrawFtab (pTab, fTab, fNr, styl);
+  GL_DrawFtab (pTab, fTab, fNr, col);
 
   if(TSU_mode != 0)
     GLT_stor_rec (1, NULL, NULL, 0);  // save

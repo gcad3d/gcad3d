@@ -1,7 +1,7 @@
 //  Group-functions.        Franz Reiter.  10.jan.2006
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ Grp_init         init obj-list
 Grp_Start        start filling group
 Grp_Clear        clear (reset) group
 Grp_add__        add obj to obj-list
+Grp_add_all1     add all objs to group (without hidden)
 Grp_del          remove obj from group
 Grp_typ_del      remove all objs of type from group
 Grp_ck_def       check if obj is in group
@@ -185,9 +186,13 @@ static int      GrpNr  = 0;
 //================================================================
    int Grp_Clear (int mode) {
 //================================================================
-// Grp_Clear        clear (reset) group
-// Input:
-//   mode    1=Redraw;  0=do not Redraw
+/// \code
+/// Grp_Clear        clear (reset) group
+/// Input:
+///   mode    2 unhili&redraw
+///           1 Redraw
+///           0 do not Redraw
+/// \endcode
 
   int    i1;
 
@@ -196,6 +201,7 @@ static int      GrpNr  = 0;
 
   if(GrpNr < 1) return 0;
 
+  if(mode == 2) Grp_HiliClear ();  // unhilite all group-objects
 
   // clear GroupBits
   // DL_grp1_set (-1L, OFF);           // clear all groupBits
@@ -338,7 +344,9 @@ static int      GrpNr  = 0;
 /// Input:
 ///   dli      -1 no dli (obj not visible)
 ///            -2 dli unknown (search)
-///   iUpd     0=update display; 1=do not update display (yet)
+///   iUpd     0 = update display;
+///            1 = do not update display (yet)
+///            2 = do not update display and do not test if already defined
 ///
 ///  see also DL_grp1__ (add obj to DL-group1 (hiliete) and to GrpTab)
 /// \endcode
@@ -352,9 +360,11 @@ static int      GrpNr  = 0;
 
 
   // testen, ob obj nicht bereits definiert ..
-  for(i1=0; i1<GrpNr; ++i1) {
-    if(GrpTab[i1].typ != typ) continue;
-    if(GrpTab[i1].dbInd == dbi) return 0;
+  if(iUpd != 2) {
+    for(i1=0; i1<GrpNr; ++i1) {
+      if(GrpTab[i1].typ != typ) continue;
+      if(GrpTab[i1].dbInd == dbi) return 0;
+    }
   }
 
 
@@ -382,6 +392,49 @@ static int      GrpNr  = 0;
   if(iUpd == 0)
   UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
   // UI_AP (UI_FuncSet, UID_ouf_grpNr, (void*)GrpNr);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int Grp_add_all1 () {
+//================================================================
+/// Grp_add_all1                add all objs to group (without hidden)
+
+  long      l1, dlNr;
+  DL_Att    *dla;
+
+
+  dlNr = DL_get__ (&dla);
+
+
+
+  for(l1=0; l1<dlNr; ++l1) {
+
+
+    // skip hidden
+    if(DL_OBJ_IS_HIDDEN(dla[l1])) continue;
+
+
+    if(GrpNr >= GrpMax) {
+      if(Grp_realloc() < 0) {
+        TX_Error("Grp_add_all1 E001");
+        return -1;
+      }
+    }
+
+
+    GrpTab[GrpNr].typ    = dla[l1].typ;
+    GrpTab[GrpNr].dbInd  = dla[l1].ind;
+    GrpTab[GrpNr].dlInd  = l1;
+    GrpTab[GrpNr].stat = 0;
+
+    ++GrpNr;
+  }
+
+
 
   return 0;
 

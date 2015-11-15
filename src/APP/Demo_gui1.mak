@@ -1,4 +1,4 @@
-# make -f DemoGtk1.mak
+# make -f Demo_gui1.mak
 
 
 DLLNAM = plugins/Demo_gui1

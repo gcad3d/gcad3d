@@ -21,6 +21,8 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2015-09-15 GUI_optmen_chg remove all existing children added. RF.
+2015-08-28 GUI_optmen__ disactivation fixed. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
 
 -----------------------------------------------------
@@ -166,6 +168,12 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
 
+  // test if optmen is active; else exit       2015-08-28
+  ii = gtk_widget_get_sensitive (go->widget);
+    // printf(" sens=%d\n",ii); // !=0 is yes
+  if(!ii) return 0;          // exit if nat active
+
+
   UI_optmen_act = go;
 
   // find place & display a popup-menu
@@ -186,9 +194,12 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 /// GUI_optmen_chg  populate / Change the menu of existing OptionMenu.
 
 
-  int         i1;
-  GtkWidget   *menu, *item;
-  Obj_Unknown *go;
+  int          i1;
+  GtkWidget    *menu, *item, *child;
+  Obj_Unknown  *go;
+  GtkContainer *con1;
+  GList        *lst1, *lst2;
+
 
 
   // set GUI_ed1_view GUI_ed1_buff
@@ -202,9 +213,22 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
   }
 
 
-  i1=0;
+
+  // delete all existing children of GtkContainer   // 2015-09-15
+  con1 = GTK_CONTAINER (menu);
+  L_del_nxt:
+  lst1 = gtk_container_get_children (con1);
+  lst2 = g_list_last (lst1);
+  if(lst2) {
+    child = lst2->data;
+    gtk_container_remove (con1, child);
+    goto L_del_nxt;
+  }
+
+
 
   // poulate list
+  i1=0;
   if(optLst) {
     while (optLst[i1]) {
       if(strlen(optLst[i1]) < 1) break;
@@ -242,6 +266,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 //=====================================================================
 /// \code
 /// GUI_OptMen__           option-menu (combo-box)
+///   disactivation with GUI_optmen_set (do not use GUI_set_enable)
 /// 
 /// Input:
 ///   o_par      parentBox 
@@ -398,10 +423,13 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
   } else if(mode == 2) {
     gtk_widget_set_sensitive (go->widget, FALSE);
+    // disactivate also label (else active !)   2015-08-28
+    gtk_widget_set_sensitive (go->data, FALSE);
 
 
   } else if(mode == 3) {
     gtk_widget_set_sensitive (go->widget, TRUE);
+    gtk_widget_set_sensitive (go->data, TRUE);
 
   }
 

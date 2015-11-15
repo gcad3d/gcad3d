@@ -32,10 +32,28 @@ APP_GIS1 gis_DrawPoint gis_DrawEL gis_EL_disp gis_sel_CB
 
 
 
+Example:
+
+  long dli = -1L;      // init; i1=dispList-record not yet exists.
+  int subTyp = 1;      // dla.iatt
+  int objId = 1;       // dla.ind
+  DL_SetObj (&dli, Typ_APPOBJ, objId, subTyp);
+  GL_DrawPoly (&dli, Typ_Att_hili1, pNr, pa);    
+  or
+  GL_DrawSymB (&dli, ATT_COL_GREEN, SYM_STAR_S, &pt);
+
+  // hide obj 
+  DL_unvis_set (dli, 1); // 0=vis, 1=unvis
+
+  // delete all appObj's with all objId's with with <subTyp>
+  GL_Del_om (Typ_APPOBJ, -1L, subTyp);  
+
+
 
 
 
 Examples:
+
 #define APPTYP_XY 0
 #define APPTYP_XZ 1
 
@@ -49,7 +67,10 @@ Examples:
   long   id, dli;
 
 
-// create App-Obj:
+  AP_UserAppObjNamTab (appObjNamTab); // provide names for application-objects
+
+
+  // create App-Obj:
   id = 123;
   // test if App-Obj with this id already exists in the DispList
   dli = DL_find_APPOBJ (id, APPTYP_PT);
@@ -60,7 +81,7 @@ Examples:
 
 
 // Test for App-Obj:
-  dla = DL_GetAtt(dli);
+  DL_get_dla (&dla, dli);
   if(dla.typ == Typ_APPOBJ) ..
 
 // Test subTyp of App-Obj:

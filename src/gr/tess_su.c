@@ -1,7 +1,7 @@
 //             Tesselate Surfaces                 2004-06-12   RF
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ static TSU_struct1 *TSU_mSpc;
 
 
 //================================================================
-  int GL_GetActDli () {
+  int TSU_dli_get () {
 //================================================================
 // get active DispListIndex TSU_dli
  
@@ -2193,7 +2193,7 @@ static int   patNr;     // nr of Patches
 
 
   // ausgeben ..
-  GR_DrawFtab (pTab.data, fTab.data, fTab.rNr, styl);
+  GR_DrawFtab (pTab.data, fTab.data, fTab.rNr, col1);
 
 
   if(TSU_mode == 0) {                                // 0=draw, 1=store

@@ -1,7 +1,7 @@
 //      ut_GL.c                               RF.
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,22 +49,9 @@ Modifications:
 
 Function-groups:
 
- APT_disp       without dli, store obj as temp-DB-obj,
-                  using (dli = -1), calls APT_Draw
-
- APT_Draw       In: DB-index, dli = DL_StoreObj(DB-index), calls GR_Draw
-
- UI_disp        using dli=DLI_TMP; display preview
-
- GR_Disp        without dli in the interface (for temp. display);
-                  using (dli = -1), calls GR_Draw
-
- GR_Draw        In: dli, calls GL_Draw; (APT_2d_to_3d_Mat unused)
-
- GL_Draw        In: dli; GL-ini, GL_Disp, GL-end
-
- GL_Disp        draw into open disp-list: without dli, without GL-ini(glNewList),
-                  without GL-end(glEndList).
+GR_Cre..      create dynamic-DB-obj, DL-record and display obj
+GR_Disp_..    create DL-record, display obj. Do not create DB-record.
+GR_Draw..     display obj. Do not create DB-record, DL-record.
 
 =====================================================
 List_functions_start:
@@ -122,9 +109,6 @@ GL_icons_Pos          get position for 2D-icons
 GL_icons_dispVcPln    draw VectorSelector and StdPlaneselector
 GL_icons_dispTags     draw 2D-tag-icons
 
-GL_DefColSet
-GL_DefColGet
-
 GL_GetCen             get center of grWin in userCoords
 GL_get_Scale          get GL_Scale;
 GL_GetScrSiz          get size of graficWindow in screenCoords
@@ -155,9 +139,13 @@ GL_sel_add_DB         add DB-obj into selectionBuffer GR_selTab
 GL_sel_add_DL         add DL-obj into selectionBuffer GR_selTab
 GL_sel_get            get GR_selTab-record
 
+GL_set_bgCol          set background-color; 0=OK, else Error.
+GL_ColSet             activate Color,transparency for surface from ColRGB
+GL_DefColSet
+GL_DefColGet
+
 ------------------ InitFunctions:
 GL_Redraw
-GL_set_bgCol          set background-color; 0=OK, else Error.
 
 GL_Init0
 GL_Init1
@@ -197,7 +185,6 @@ GL_Tex_ckSiz          test if texture could be loaded by OpenGL
 
 DL_hili_on            hilite obj from dispListIndex
 DL_hili_off          remove hilite from obj from dispListIndex
-GL_HiliAppObj         hilite ApplicationObject
 
 GL_config_test
 
@@ -236,6 +223,23 @@ Transparenz ex subModel geht ned !!!
 Ditto: Inhaltelemente brauchen kein DL-Index !
 GL_DrawQFac noch notwendig ?? (Ersatz GL_DrawStripe)
 
+
+ APT_disp       without dli, store obj as temp-DB-obj,
+                  using (dli = -1), calls APT_Draw
+
+ APT_Draw       In: DB-index, dli = DL_StoreObj(DB-index), calls GR_Draw
+
+ UI_disp        using dli=DLI_TMP; display preview
+
+ GR_Disp        without dli in the interface (for temp. display);
+                  using (dli = -1), calls GR_Draw
+
+ GR_Draw        In: dli, calls GL_Draw; (APT_2d_to_3d_Mat unused)
+
+ GL_Draw        In: dli; GL-ini, GL_Disp, GL-end
+
+ GL_Disp        draw into open disp-list: without dli, without GL-ini(glNewList),
+                  without GL-end(glEndList).
 
 ===============================================================================
 TODO:
@@ -580,6 +584,7 @@ long GL_TAB_SIZ = 0;
 long GL_TAB_INC = 10000;             // wie GR_TAB_INC
 
 int  GL_modified = 0;
+int  GL_rub_stat = 0;             // 0=uninitilized; 1=initilized; 2=box exists
 
 
 static ObjDB   *GR_selTab = NULL; // table of selected dli's
@@ -778,11 +783,14 @@ static Plane  GL_constr_pln;
 
 
 /// Viewplane (active displayplane with the GL-RotationCenterpoint GL_cen)
-///   Always parall. to X-Y-Plane.
+///   GL-RotationCenterpoint GL_cen is always in this plane.
+///   Always parall. to X-Y-Plane. Origin.z = z-value of RotationCenterpoint.
+///   Changes with definition of RotationCenterpoint
 static Plane  GL_view_pln;
 
 
 /// GL_cen: centerpoint of the Viewport (in UserCoords).
+/// Is always in GL_view_pln
 static Point  GL_cen = {0., 0., 0.};
 // GL_cen.z ist immer Z-ViewPlane  (GL_query_ViewZ, GL_Set_Cen, GL_GetCen)
 
@@ -791,8 +799,8 @@ static Point GL_icons_Ori;  // position of 2D-icons in userCoords
 
 /// \brief screenOrientation
 /// \code
-/// vectors have userCoordinates; the length is fixed to 1 pixel.
-/// GL_eyeX goes from the screenCenter to the eye - is a point.
+/// vectors have userCoordinates; the length is fixed to 1.
+/// GL_eyeX goes from the screenCenter to the eye
 /// GL_eyeZ goes up - always vertical, parallel to the window outline
 /// GL_eyeY always is horizontal, parallel to the window outline
 /// \endcode
@@ -892,7 +900,7 @@ Die GL_Draw - Routinen retournieren den DL-Index, der dann in der DB
 
 DL-Symbol-Liste (von 1-DL_base__):
 --------------------------------
-001     active nr of temporary objects
+001     -
 002-031 Temporäre Objekte.
 032-128 Bitmapobjekte des Alfatext-Font
 129     Der ScaleBackBefehl.
@@ -1728,6 +1736,9 @@ Das folgende bringt nix
 // see also GL_Translate1 GL_pos_move_2D
 
 
+  // printf("DL_Set_Cen2D %lf %lf %lf\n",GL_cen.x, GL_cen.y, GL_cen.z);
+
+
   glNewList (DL_Ind_Cen2D, GL_COMPILE);
     glTranslated (GL_cen.x, GL_cen.y, GL_cen.z);
   glEndList ();
@@ -2272,8 +2283,6 @@ static int errOld = 123;
       // ausser beim Rescale !!
       // if((GR_ObjTab[l1].disp != 0)&&(GL_mode_feed != 1)) continue;
 
-      // 2006-01-01 - skip hidden objects ..
-      if(GR_ObjTab[l1].disp == 1) continue;
 
       // 2006-01-15 - skip objects in group (disp spaeter)
       if(GR_ObjTab[l1].grp_1 == 0) continue;
@@ -2292,8 +2301,8 @@ static int errOld = 123;
     }
 
     // skip Texture (nur subCalls)
+// TODO: make Typ_TEXB unvis ?
     if(GR_ObjTab[l1].typ == Typ_TEXB) continue;
-
 
 
     if(GL_mode_draw_select == GR_MODE_SELECT) {
@@ -2375,10 +2384,9 @@ static int errOld = 123;
 */
 
       L_main_9:
-        // printf(" reDraw %ld %d\n",l1,DL_base__); 
       // very slow on MS-Win if RenderMode = GL_SELECT !
-        // printf(" gl-1 %ld",l1);
       glCallList ((GLuint)l1 + DL_base__);                      // execute
+        // printf(" reDraw %ld %d\n",l1,DL_base__); 
     // }
 
 
@@ -2532,6 +2540,8 @@ static int errOld = 123;
 
       // draw; wurde in erster Loop nicht gezeichnet.
       glCallList ((GLuint)l1 + DL_base__);
+        // printf(" _hili_tag %ld\n",l1);
+
       
       // prepare for GL_Disp_2D_box1
       // glNewList (298, GL_COMPILE);   // Open DispList
@@ -3502,7 +3512,7 @@ Screenkoords > Userkoords.
   long    l1;
 
 
-  // printf("GL_Regen1 %d\n",GR_TAB_IND);
+  // printf("GL_Regen1 %ld\n",GR_TAB_IND);
 
 
   for(l1=GR_TAB_IND-1; l1>=0; --l1) {
@@ -3528,8 +3538,8 @@ Screenkoords > Userkoords.
 // delete all DL-Obj's of typ ind iatt
 // use GL_Regen1 to Clean DL
 // typ    
-// ind     -1=ignore, else ind must match.
-// iatt    -1=ignore, else iatt must match.
+// ind     -1L = ignore, else ind must match.
+// iatt    -1  = ignore, else iatt must match.
 
   long    l1;
 
@@ -3678,6 +3688,28 @@ Screenkoords > Userkoords.
 }
 
 
+//================================================================
+  int DL_set__ (long dli) {
+//================================================================
+/// delete all records following dli
+
+// see GL_last_del
+// see DL_disp_reset does also del refModels & activate parents of deletetd childs
+
+  long    ii;
+
+
+  ii = GR_TAB_IND - dli;
+
+  glDeleteLists (ii, 1);
+
+  GR_TAB_IND =  dli;
+
+  return 0;
+
+}
+
+ 
 //=====================================================================
   void GL_last_del () {
 //=====================================================================
@@ -3885,7 +3917,6 @@ Screenkoords > Userkoords.
 //================================================================
 // mode=0=start, 1=stop.
 
-static int rbStat = 0;   // 0=uninitilized; 1=initilized; 2=box exists
 static int rb_x, rb_y;
 static int rb_dx, rb_dy;
 
@@ -3895,7 +3926,7 @@ static Point ptOri;
   Vector  vc1;
 
 
-  // printf("GL_RubberBox_drw__ mode=%d stat=%d\n",mode,rbStat);
+  // printf("GL_RubberBox_drw__ mode=%d stat=%d\n",mode,GL_rub_stat);
 
 
   // test if groupSelect is allowed ..
@@ -3905,12 +3936,12 @@ static Point ptOri;
 
   // stop ?
   if(mode != 0) {
-    if(rbStat < 1) return 0;
+    if(GL_rub_stat < 1) return 0;
   }
 
 
   // if uninitilized: save active position, noting else ..
-  if(rbStat == 0) {
+  if(GL_rub_stat == 0) {
     rb_x = GL_mouse_x_act;
     rb_y = GL_mouse_y_act;
     GL_MousePos (&ptOri);
@@ -3926,22 +3957,22 @@ static Point ptOri;
     if(d1 > 30000.) d1 = 30000.;
     UT3D_pt_traptvclen (&ptOri, &ptOri, &vc1, d1);
       // printf("  ptOri %f %f %f\n",ptOri.x,ptOri.y,ptOri.z);
-    rbStat = 1;
+    GL_rub_stat = 1;
     DL_Redraw ();  // nach einem select erforderl ?
     return 0;
   }
 
 
   // if box already exists: delete existing box
-  if(rbStat == 2) {
+  if(GL_rub_stat == 2) {
     GL_RubberBox_draw (&ptOri, rb_dx, rb_dy, 1);
-    rbStat = 1;
+    GL_rub_stat = 1;
   }
 
 
   // stop ?
   if(mode != 0) {
-    rbStat = 0;
+    GL_rub_stat = 0;
     return GL_RubberBox_sel (&ptOri, rb_dx, rb_dy);
   }
 
@@ -3953,7 +3984,7 @@ static Point ptOri;
 
   // draw box
   GL_RubberBox_draw (&ptOri, rb_dx, rb_dy, 0);
-  rbStat = 2;
+  GL_rub_stat = 2;
 
   return 0;
 
@@ -3967,6 +3998,7 @@ static Point ptOri;
 /// GL_RubberBox_draw
 /// 1.call: create box; 2.call deletes box.
 /// mode    0=createBox    1=removeBox
+/// 2015-08-31 Does not work for Driver X.Org-X-Server for AMD/ATI
 /// \endcode
 
 // glRecti would also draw a filled rectangle (in user-coords)
@@ -5244,6 +5276,7 @@ static double old_view_Z = 0.;
     }
   }
 
+      // UT3D_stru_dump (Typ_PLN, &GL_view_pln,"&new GL_view_pln:");
 
   return 0;
 
@@ -5523,6 +5556,8 @@ static double old_view_Z = 0.;
   GLdouble   mx, my ,mz;
   Point      pt1;
 
+  // printf("GL_GetCurPos %d %d\n",GL_mouse_x_act,GL_mouse_y_act);
+
 
   // Screenkoords des indizierten Punktes
   mx = GL_mouse_x_act;
@@ -5532,7 +5567,7 @@ static double old_view_Z = 0.;
 
   // Userkoords
   GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, mx, my, mz);
-  // printf ("  Uk=%f %f %f\n",pt1.x,pt1.y,pt1.z);
+    // printf ("  Uk=%f %f %f\n",pt1.x,pt1.y,pt1.z);
 
 
   return pt1;
@@ -5576,6 +5611,7 @@ static double old_view_Z = 0.;
 
   // get Userkoords of mousepos
   pt1 = GL_GetCurPos ();
+    // printf(" _GetViewPos-pt1 = %lf %lf %lf\n",pt1.x,pt1.y,pt1.z);
 
 /*
   // Screenkoords des indizierten Punktes
@@ -5591,6 +5627,7 @@ static double old_view_Z = 0.;
 */
 
 
+// see GL_GetConstrPos ?
   if(GL_actView == FUNC_ViewFront)  {
     pt1.y = 0;
     UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
@@ -5685,9 +5722,9 @@ static double old_view_Z = 0.;
 // 0,0 ist links oben.
 // also used by UI_GR_MotionNotify  
 
+
   // printf("GL_Do_Idle %d %d | %f %f\n",x,y,GL_Scr_Siz_X,GL_Scr_Siz_Y);
   // printf("           %d %d\n",x,(int)GL_Scr_Siz_Y-y);
-
 
   *dx = x - GL_mouse_x_act;   // nach links wirds kleiner.
   *dy = GL_mouse_y_act - y;
@@ -5831,6 +5868,8 @@ static double old_view_Z = 0.;
 
   // pt1 = Userkoords of cursor
   pt1 = GL_GetViewPos ();
+    // printf(" _pan_-pt1 = %lf %lf %lf\n",pt1.x,pt1.y,pt1.z);
+
 
   // neu setzen
   if(x >= 0) {
@@ -5840,6 +5879,7 @@ static double old_view_Z = 0.;
 
   // neue Curpos in Userkoords
   pt2 = GL_GetViewPos ();
+    // printf(" _pan_-pt2 = %lf %lf %lf\n",pt2.x,pt2.y,pt2.z);
 
   xAbst = pt2.x - pt1.x;
   yAbst = pt2.y - pt1.y;
@@ -5852,6 +5892,7 @@ static double old_view_Z = 0.;
 
   GL_cen.x -= xAbst;
   GL_cen.y -= yAbst;
+    // printf("  GL_cen = %lf,%lf,%lf\n",GL_cen.x, GL_cen.y, GL_cen.z);
 
   DL_Set_Cen2D ();  // set new 2D-screenCenter-position
 
@@ -6108,6 +6149,7 @@ static double old_view_Z = 0.;
 
   // GL_eyeZ normal auf GL_eyeX machen (makes more precise)
   UT3D_vc_setLength (&GL_eyeX, &GL_eyeX, 1.);
+    // UT3D_stru_dump (Typ_VC,  &GL_eyeX, " eyeX:");
   // recreate y from x and z
   UT3D_vc_perp2vc (&GL_eyeY, &GL_eyeZ, &GL_eyeX);
   // recreate z from x and y
@@ -6170,15 +6212,19 @@ static double old_view_Z = 0.;
 
 
   //----------------------------------------------------------------
-  GL_Do_Idle (&dx, &dy, x, y);  // get relative movment of mouse
-  dx = -dx;
 
 
-  // autosacle (from mouse-scroll)
+  // autoscale (from mouse-scroll)
   if(x == UT_INT_MAX) {
     if(y > 0) zoomfakt = 1.2;
     else      zoomfakt = 0.8;
     goto L_work1;
+
+  } else {  // 2015-07-05
+    // scale from mouse-movement    
+    GL_Do_Idle (&dx, &dy, x, y);  // get relative movment of mouse
+    dx = -dx;
+
   }
 
 
@@ -6896,18 +6942,25 @@ static double old_view_Z = 0.;
 }
 
 
-//***********************************************************************
+//================================================================
   GLuint GL_fix_DL_ind (long *ind) {
-//***********************************************************************
-//  GLuint GL_fix_DL_ind (long *ind, int show, int pick) {
-
-// temp. obj:         ohne DL-Base!
-//     (ind == -1):   korrigierten DL-index retournieren (next temp-Nr vergeben)
-//     (ind <  -1)    fixer temp-Index (max -DL_base_font1)
-//              
-// Normales obj:      DL_base__ aufaddiert
-//     (ind >=0):     den korrigierten DL-index retournieren
-//
+//================================================================
+/// \code
+/// GL_fix_DL_ind        make OpenGL-dispListIndex from dli (add DL_base__)
+///
+/// Input:
+///   ind >= 0     normal obj; add DL_base__
+///   ind == -1    korrigierten DL-index retournieren (next temp-Nr vergeben)
+///   ind <= -2    fixer temp-Index (max -DL_base_font1)
+///
+/// Output:
+///   ind     in >= 0   DL_base__ added ..
+///           in == -1  (returns next free (2 - <DL_base_font1 - 1>)
+///           in <= -2  *= -1   (returns 2 - <DL_base_font1 - 1>)
+///   RetCod:      OpenGL-dispListIndex
+///              
+///
+/// \endcode
 
 
 
@@ -6963,11 +7016,10 @@ static double old_view_Z = 0.;
   // printf(" SET GL_ActInd = %d\n",GL_ActInd);
 
 
-    // realloc GL_IndTab
-    if(*ind > GL_TAB_SIZ) {
-      if(GL_alloc__ (*ind) < 0) return -1;
-    }
-
+  // realloc GL_IndTab
+  if(*ind > GL_TAB_SIZ) {
+    if(GL_alloc__ (*ind) < 0) return -1;
+  }
 
   // diesen nächsten Index vergeben oder merken
   if(*ind > GR_TAB_IND) {
@@ -6977,16 +7029,11 @@ static double old_view_Z = 0.;
     *ind = GR_TAB_IND - 1;
   }
 
-
+  // DL-record already exists ..
   DL_ind = (GLuint)*ind + DL_base__;
-
 
   /* den show-status speichern */
   //DL_sho_Tab[*ind] = show | (pick * 2);
-
-
-
-
 
 
 
@@ -7428,16 +7475,17 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 }
 */
 
+
 //================================================================
   void GL_DrawLine (long *ind, int iAtt, Line *ln1) {
 //================================================================
 /// \code
 /// draw line
-/// if length is exact 1:
-///   display ray (dimmed (Typ_Att_dim), with length = GL_ModSiz
+/// Input:
+///   ind      dli
+///   iAtt     see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
 /// \endcode
 
-// see ~/gCAD3D/cfg/ltyp.rc
 
   int         lTyp, attInd, lim;
   double      d1;
@@ -7740,11 +7788,15 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 }
  
 
-//***********************************************************************
+//================================================================
   void GL_DrawPoly (long *ind, int iAtt, int ianz, Point *pTab) {
-//***********************************************************************
-// Polygon. Im Array GL_ptArr30. Kreise / Kreisbögen.
-// attInd see GR_Disp_ln2
+//================================================================
+/// \code
+/// display Polygon. Im Array GL_ptArr30. Kreise / Kreisbögen.
+/// Input:
+///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
+///   iAtt       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+/// \endcode
 
 
   int    attInd;
@@ -8318,7 +8370,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int      i1;
   Vector   GL_norm;
 
-  printf("GL_DrawStrip1 %d\n",ptAnz);
+
+  // printf("GL_DrawStrip1 %d\n",ptAnz);
 
   // man braucht einen call auf eine Liste mit den Flaechenattributen !!!
   // glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, GLcol_t1);
@@ -8732,13 +8785,18 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 }
 
 
-//================================================================
-  void GL_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, int styl) {
-//================================================================
-// styl: 0=ON=shade; 1=OFF=symbolic
+//==================================================================
+  void GL_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
+//==================================================================
+// Input:
+//   fNr      nr of faces in fTab
+//   col      .vsym: 0=ON=shade; 1=OFF=symbolic
+// 
+// TODO: texture; see TSU_DrawSurMsh (make function for both)
 
  
   int      ii, i1, i2, i3;
+  char     glCol[4];
   Vector   GL_norm;
 
   // printf("GL_DrawFtab %d\n",fNr);
@@ -8755,16 +8813,6 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
 
-  if(styl == 1) {  // 1=OFF=symbolic
-    // glPushAttrib (GL_POLYGON_BIT);
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);   // draw lines, not faces
-    // glDisable (GL_LINE_STIPPLE);
-    // glDisable (GL_BLEND);
-    // glLineWidth   (1.0);
-    glCallList (DL_base_LnAtt);                    // 2010-11-25
-  }
-
-
   // normal; display via OpenGL
   glBegin (GL_TRIANGLES);
 
@@ -8774,11 +8822,12 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       i2 = fTab[ii].i2;
       i3 = fTab[ii].i3;
 
-      // Richtung 1
-      GRU_calc_normal(&GL_norm, &pTab[i1], &pTab[i2], &pTab[i3]);
-      // GRU_calc_normal(&GL_norm, pt1, &pa1[i1+1], &pa1[i1]);
-
-      glNormal3dv ((double*)&GL_norm);
+      if(col->vsym == 0) {
+        // Richtung 1
+        GRU_calc_normal(&GL_norm, &pTab[i1], &pTab[i2], &pTab[i3]);
+        // GRU_calc_normal(&GL_norm, pt1, &pa1[i1+1], &pa1[i1]);
+        glNormal3dv ((double*)&GL_norm);
+      }
 
       glVertex3dv ((double*)&pTab[i1]);
       glVertex3dv ((double*)&pTab[i2]);
@@ -8789,7 +8838,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glEnd ();
 
 
-  if(styl == 1) {  // 1=OFF=symbolic
+  if(col->vsym == 1) {  // 1=OFF=symbolic - reset
     // glEnable (GL_LIGHTING);
     // glEnable (GL_COLOR_MATERIAL);
     // glEnable (GL_BLEND);
@@ -9126,30 +9175,61 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_ColSet (ColRGB *pCol) {
+  int GL_ColSet (ColRGB *col) {
 //================================================================
-// activate Color for surface.
+// GL_ColSet                 activate Color,transparency for surface from ColRGB
 
-  ColRGB  xCol;
+  int               iTra, iSym; 
+  unsigned char     glCol[4];
+
 
 
   // printf("GL_ColSet WC_modnr=%d WC_mod_stat=%d\n",WC_modnr,WC_mod_stat);
   // UT3D_stru_dump (Typ_Color, pCol, "GL_ColSet ");
   // printf("GL_ColSet vtra=%d WC_mod_stat=%d\n",pCol->vtra,WC_mod_stat);
 
+  memcpy(glCol, col, 3); 
 
-  if(pCol->vtra == 0) {   // 0=no transparency
+  iSym = col->vsym;
+  iTra = col->vtra;
+    // printf("GL_ColSet iTra=%d iSym=%d\n",iTra,iSym);
+
+
+
+  //------------------SURF-SYMBOLIC---------------------------------
+  if(iSym) {
+    // 1 = symbolic
+    glDisable (GL_LIGHTING);
+    glDisable (GL_BLEND);
+    glCallList (DL_base_LnAtt); // needed for ability to hilite symbolic surf
+    // glColor3ubv ((unsigned char*)&GL_defCol);
+    // glLineWidth   (1.0);
+    // glColor3fv   (GL_col_tab[0]);  // black
+    // glColor3ubv  (glCol); 
+    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);   // draw lines, not faces
+    return 0;
+  }
+
+
+  //---------------SURF-SHADED_NOT_TRANSPARENT----------------------
+  if(!iTra) {
+   // 0 = no transparency
 
     glDisable (GL_BLEND); // to overwrite transparency 2013-08-20
 
-    if(pCol->color == 0) {
+    if(col->color == 0) {
         // UT3D_stru_dump (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
       glColor3ubv ((unsigned char*)&GL_defCol);
     } else {
-      glColor3ubv ((unsigned char*)pCol);
+      glColor3ubv (glCol);
     }
 
-  } else {
+    return 0;
+  }
+
+
+  //---------------SURF-SHADED_AND_TRANSPARENT----------------------
+    // 1 = surf is transparent
     // printf(" glEnable_GL_BLEND\n");
     // glEnable (GL_LIGHTING);
     // glEnable (GL_COLOR_MATERIAL);
@@ -9170,12 +9250,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);   // geht 
     // glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);    // geht; aber zu hell !
 
-    xCol = *pCol;
-      // printf(" transpTab-value %d %d\n",pCol->vtra,GL_transpTab[pCol->vtra]);
-    ((char*)&xCol)[3] = GL_transpTab[pCol->vtra];
-    glColor4ubv ((unsigned char*)&xCol);
+    glCol[3] = GL_transpTab[col->vtra];   // 0=glass; 255=rigid;
+    glColor4ubv (glCol);
     GL_stat_blend = 1;
-  }
+
 
   return 0;
 
@@ -9515,12 +9593,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // glRasterPos2i (150, 50);
 
   glPushMatrix ();
+
   if(fabs(scl) > UT_TOL_min1) {
     f_scl = scl;
     glPixelZoom (f_scl, f_scl);
   } else {
     glCallList (DL_Img_ScBack);  // scale;
   }
+
 
   // // verschieben auf links mitte
   // // geht ned, weil ma den Scalefaktor ned dynamisch veraendern kann.
@@ -9583,17 +9663,19 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 }
 
 
-//***********************************************************************
+//==================================================================
   void GL_DrawSymB (long *ind, int attInd, int symTyp, Point *pt1){
-//***********************************************************************
+//==================================================================
 /// \code
-/// BITMAP-Symbols (SYM_TRI_S SYM_STAR_S ..)
-/// attInd          Colour; 2=rot
-/// symTyp: Bitmaps; dzt:
-///  SYM_TRI_S   Dreieck
-///  SYM_STAR_S  Sternderl
-///  SYM_CIR_S   Kreis klein
-///  SYM_TRI_B   Viereck
+/// display BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
+/// Input:
+///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
+///   attInd     Color ATT_COL_BLACK ATT_COL_RED ATT_COL_GREEN .. (../gr/ut_UI.h)
+///   symTyp     type of symbol (../gr/ut_UI.h)
+///              SYM_TRI_S   Dreieck
+///              SYM_STAR_S  Sternderl
+///              SYM_CIR_S   Kreis klein
+///              SYM_TRI_B   Viereck
 /// \endcode
 
 
@@ -10548,8 +10630,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //================================================================
 /// \code
 /// display plane / axisSystem [with x,y,z-characters]
-/// typ: 1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis+Chars;
-/// scale unused.
+///   att   see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+///   typ   1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis+Chars;
+///   scale unused.
 /// \endcode
  
   Mat_4x4   m1;
@@ -11223,7 +11306,19 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glColor3f (0.f, 0.f, 0.f);      // Textfarbe schwarz
   glRasterPos3d (pTxt->x, pTxt->y, pTxt->z);
 
-  // nur die rasterposi verschieben !
+
+/*
+// BEGIN TEST:
+  glWindowPos3dv (&pTxt);
+    printf(" il=%d ic=%d\n",il,ic);
+  p1 = txt;
+  for(i1=0; i1<ic; ++i1) {
+    glCallLists (1, GL_UNSIGNED_BYTE, (GLubyte*)p1);
+    ++p1;
+  }
+// END TEST
+*/
+  // move rasterpos
   x1 = 6;
   y1 = ((il-1) * dy) + 4 - (iy / 2);
   glBitmap (0,0, 0.f,0.f, x1,y1, NULL);
@@ -11233,11 +11328,13 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     p2 = strstr(p1, "[n");
     if(p2 == NULL) p2 = txt + strlen(txt);
     i2 = p2 - p1;
+    // draw i2 characters
     glCallLists (i2, GL_UNSIGNED_BYTE, (GLubyte*)p1);
     // printf(" %d |%s|\n",i2,p1);
     p1 = p2 + 2;
     x1 = -i2 * 10;
     y1 = -dy;
+    // goto startpoint of next line
     glBitmap (0,0, 0.f,0.f, x1,y1, NULL);
   }
 
@@ -13383,6 +13480,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_set_bgCol (int mode) {
 //================================================================
 // set background-color; 0=OK, else Error.
+
+
+  printf("GL_set_bgCol %d\n",mode);
 
 
   if(mode)

@@ -1,7 +1,7 @@
 //  Simple-Gtk-Demo  (minimum)
 /*
  *
- * Copyright (C) 2015 CADCAM-Servies Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ List_functions_end:
 */
 
 #ifdef _MSC_VER
-#include "MS_Def1.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 #include <math.h>
@@ -69,14 +69,19 @@ __declspec(dllexport) int gCad_fini ();
   static MemObj win0;
 
 
+
+
+
 //=========================================================
   int gCad_main () {
 //=========================================================
 // user has selected this plugin; starting ...
 
+
   TX_Print("gCad_main DemoGtk1");
 
   win1__ (NULL, GUI_SETDAT_E (UI_FuncInit));  // create window
+    // set EVENT=UI_FuncInit; see ../gui/gui_types.h
 
   return 0;
 
@@ -103,9 +108,10 @@ __declspec(dllexport) int gCad_fini ();
 //=========================================================
 
   MemObj box0;
+  char   *cp1;
 
 
-  // printf("win1__ %d\n",INT_PTR(data));
+
   printf("win1__ %d\n",GUI_DATA_EVENT);
 
 

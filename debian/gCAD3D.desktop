@@ -1,14 +1,19 @@
 [Desktop Entry]
-Encoding=UTF-8
-Exec=/usr/bin/gcad3d
-Icon=/usr/share/gcad3d/icons/gCAD3D.xpm
 Name=gCAD3D
-Type=Application
-Categories=GTK;Application;Graphics;VectorGraphics;Viewer;
 GenericName=CAD-CAM-Application
-GenericName[de]=CAD-CAM-Anwendung
-GenericName[en]=CAD-CAM-Application
-GenericName[ru]=САПР
 Comment=3D CAD CAM design tool
-Comment[ru]=3D САПР
+Exec=gcad3d
+Icon=/usr/share/gcad3d/icons/gCAD3D.xpm
+Type=Application
+Categories=GTK;Graphics;
 Terminal=false
+
+
+# Translations
+GenericName[de]=CAD-CAM-Anwendung
+Name[de]=gCAD3D
+Icon[de]=/usr/share/gcad3d/icons/gCAD3D.xpm
+Comment[ru]=3D САПР
+GenericName[ru]=САПР
+Name[ru]=gCAD3D
+Icon[ru]=/usr/share/gcad3d/icons/gCAD3D.xpm

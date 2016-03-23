@@ -7,6 +7,8 @@
 *.lib
 *.so
 *.o
+*~
+core
 .git/
 src/gMsh/
 doc/gcad/

@@ -21,24 +21,24 @@
 
 
 \subpage
-<b><hr>gui_gtk2/                             GUI-functions for Gtk2</b>
+<b><hr>gui_gtk3/                             GUI-functions for Gtk3</b>
 
-\ref gui_gtk2/gtk_base.c                      <A HREF="../../src/gui_gtk2/gtk_base.c">source</A>    window, boxes, Basefunctions
-\ref gui_gtk2/gtk_label.c                     <A HREF="../../src/gui_gtk2/gtk_label.c">source</A>    backgroundtext
-\ref gui_gtk2/gtk_button.c                    <A HREF="../../src/gui_gtk2/gtk_button.c">source</A>    button, checkbox
-\ref gui_gtk2/gtk_menu.c                      <A HREF="../../src/gui_gtk2/gtk_menu.c">source</A>    menus
-\ref gui_gtk2/gtk_entry.c                     <A HREF="../../src/gui_gtk2/gtk_entry.c">source</A>    Entry (input)
-\ref gui_gtk2/gtk_image.c                     <A HREF="../../src/gui_gtk2/gtk_image.c">source</A>    image, button with image, tutorial
-\ref gui_gtk2/gtk_dlg_files.c                 <A HREF="../../src/gui_gtk2/gtk_dlg_files.c">source</A>    File-open/save
-\ref gui_gtk2/gtk_dlg_std.c                   <A HREF="../../src/gui_gtk2/gtk_dlg_std.c">source</A>    standard-dialogs, msgbox, slider, color-selection
-\ref gui_gtk2/gtk_msgWin.c                    <A HREF="../../src/gui_gtk2/gtk_msgWin.c">source</A>    messagewindow
-\ref gui_gtk2/gtk_lists.c                     <A HREF="../../src/gui_gtk2/gtk_lists.c">source</A>    lists with 1 or 2 columns
-\ref gui_gtk2/gtk_multichoice.c               <A HREF="../../src/gui_gtk2/gtk_multichoice.c">source</A>    radiobuttons, popup, combo
-\ref gui_gtk2/gtk_container.c                 <A HREF="../../src/gui_gtk2/gtk_container.c">source</A>    frame, notebook, paned boxes, toolbox
-\ref gui_gtk2/gtk_tree_it.c                   <A HREF="../../src/gui_gtk2/gtk_tree_it.c">source</A>    treeview with icon + text
-\ref gui_gtk2/gtk_ed1.c                       <A HREF="../../src/gui_gtk2/gtk_ed1.c">source</A>    texteditor
-\ref gui_gtk2/gtk_opengl.c                    <A HREF="../../src/gui_gtk2/gtk_opengl.c">source</A>    OpenGL-window
-\ref gui_gtk2/gtk_gl_x11.c                    <A HREF="../../src/gui_gtk2/gtk_gl_x11.c">source</A>    Gtk-binding OpenGL Unix
+\ref gui_gtk3/gtk_base.c                      <A HREF="../../src/gui_gtk3/gtk_base.c">source</A>    window, boxes, Basefunctions
+\ref gui_gtk3/gtk_label.c                     <A HREF="../../src/gui_gtk3/gtk_label.c">source</A>    backgroundtext
+\ref gui_gtk3/gtk_button.c                    <A HREF="../../src/gui_gtk3/gtk_button.c">source</A>    button, checkbox
+\ref gui_gtk3/gtk_menu.c                      <A HREF="../../src/gui_gtk3/gtk_menu.c">source</A>    menus
+\ref gui_gtk3/gtk_entry.c                     <A HREF="../../src/gui_gtk3/gtk_entry.c">source</A>    Entry (input)
+\ref gui_gtk3/gtk_image.c                     <A HREF="../../src/gui_gtk3/gtk_image.c">source</A>    image, button with image, tutorial
+\ref gui_gtk3/gtk_dlg_files.c                 <A HREF="../../src/gui_gtk3/gtk_dlg_files.c">source</A>    File-open/save
+\ref gui_gtk3/gtk_dlg_std.c                   <A HREF="../../src/gui_gtk3/gtk_dlg_std.c">source</A>    standard-dialogs, msgbox, slider, color-selection, license-info
+\ref gui_gtk3/gtk_msgWin.c                    <A HREF="../../src/gui_gtk3/gtk_msgWin.c">source</A>    messagewindow
+\ref gui_gtk3/gtk_lists.c                     <A HREF="../../src/gui_gtk3/gtk_lists.c">source</A>    lists with 1 or 2 columns
+\ref gui_gtk3/gtk_multichoice.c               <A HREF="../../src/gui_gtk3/gtk_multichoice.c">source</A>    radiobuttons, popup, combo
+\ref gui_gtk3/gtk_container.c                 <A HREF="../../src/gui_gtk3/gtk_container.c">source</A>    frame, notebook, paned boxes, toolbox
+\ref gui_gtk3/gtk_tree_it.c                   <A HREF="../../src/gui_gtk3/gtk_tree_it.c">source</A>    treeview with icon + text
+\ref gui_gtk3/gtk_ed1.c                       <A HREF="../../src/gui_gtk3/gtk_ed1.c">source</A>    texteditor
+\ref gui_gtk3/gtk_opengl.c                    <A HREF="../../src/gui_gtk3/gtk_opengl.c">source</A>    OpenGL-window
+\ref gui_gtk3/gtk_gl_x11.c                    <A HREF="../../src/gui_gtk3/gtk_gl_x11.c">source</A>    Gtk-binding OpenGL Unix
 
 </TT><hr></pre>
 */

@@ -15,11 +15,22 @@
  *
  *
 -----------------------------------------------------
-TODO:
-  ..
+ApplicationData is stored with the model (as ascii-text).
+Store ApplicationData:
+  open file with appdat_open__(&fp, "w")
+  write data (as ascii-text !)
+
+Restore ApplicationData:
+  open file with appdat_open__(&fp, "r")
+  read data (as ascii-text !)
+
+
+
+
 
 -----------------------------------------------------
 Modifications:
+2016-02-02 update. RF.
 2015-07-07 Created RF.
 
 -----------------------------------------------------
@@ -128,6 +139,7 @@ static MemObj wNam1, wNam2;
 
 }
 
+
 //=========================================================
   int ui_init (MemObj *parent) {
 //=========================================================
@@ -148,12 +160,16 @@ static MemObj wNam1, wNam2;
 
 
   //----------------------------------------------------------------
-  // get data out of applicationData-file
+  // get applicationData
+  // open applicationData-file
   if(appdat_open__ (&fpi, "r") < 0) {
+    // ApplicationData does not exist (yet); first call.
+    // initialize data.
     strcpy(sNam1, "Franz"); 
     strcpy(sNam2, "Karl"); 
 
   } else {
+    // ApplicationData has been stored before; read data.
     fscanf(fpi, "%s", sNam1);
     fscanf(fpi, "%s", sNam2);
     fclose (fpi);
@@ -161,7 +177,7 @@ static MemObj wNam1, wNam2;
 
 
   //----------------------------------------------------------------
-  // tbApp = GUI_appDat1 (parent);
+  // create Toolbar with menu
   tbApp = GUI_toolbox__ (parent);        // 2014-11-05
 
   box0 = GUI_box_h (&tbApp, "");
@@ -189,8 +205,10 @@ static MemObj wNam1, wNam2;
 //=====================================================================
   int ui_CB1 (MemObj *mo, void **data) {
 //=====================================================================
+// callback of buttons "Help", "Exit"
 
 
+  int  irc;
   FILE *fpo;
   char *cp1;
 
@@ -211,16 +229,22 @@ static MemObj wNam1, wNam2;
 
 
     //-----------------------------------------------
+    // Store ApplicationData.
     // save all data into applicationData-file
     //   (<tmpdir>/<APP_act_nam>.appdat)
-    appdat_open__ (&fpo, "w");
-    // get & write name1
-    cp1 = GUI_entry_get (&wNam1);
-    fprintf(fpo, "%s\n",cp1);
-    // get & write name2
-    cp1 = GUI_entry_get (&wNam2);
-    fprintf(fpo, "%s\n",cp1);
-    fclose (fpo);
+    irc = appdat_open__ (&fpo, "w");
+    if(!irc) {
+      // get & write name1
+      cp1 = GUI_entry_get (&wNam1);
+      fprintf(fpo, "%s\n",cp1);
+      // get & write name2
+      cp1 = GUI_entry_get (&wNam2);
+      fprintf(fpo, "%s\n",cp1);
+      fclose (fpo);
+
+    } else {
+      TX_Print("**** cannot write application-data");
+    }
 
 
     //-----------------------------------------------

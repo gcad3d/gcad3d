@@ -399,20 +399,27 @@ static int      GrpNr  = 0;
 
 
 //================================================================
-  int Grp_add_all1 () {
+  int Grp_add_all1 (int mod) {
 //================================================================
 /// Grp_add_all1                add all objs to group (without hidden)
+/// Input:
+///   mod     modelNr to resolv;    -1 = mainModel
+
+
 
   long      l1, dlNr;
   DL_Att    *dla;
 
 
+  // get dispList
   dlNr = DL_get__ (&dla);
 
 
 
   for(l1=0; l1<dlNr; ++l1) {
 
+    // skip model
+    if((signed short)dla[l1].modInd != mod) continue;
 
     // skip hidden
     if(DL_OBJ_IS_HIDDEN(dla[l1])) continue;

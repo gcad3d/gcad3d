@@ -1492,7 +1492,7 @@ once again, with U/V changed.
       // GR_Disp_vc (&v3, &bsp1->cpTab[i1-1], 12, 0);
 
     // skip test wenn v1-v2 parallel
-    if(UT3D_comp2vc__(&v1, &v2, RAD_1) == 1) continue;
+    if(UT3D_vc_ck_parl_vc(&v1, &v2, RAD_1) == 1) continue;
 
     // die 2 Kreuzprodukte bilden
     UT3D_vc_perp2vc (&v4, &v1, &v2);
@@ -2848,7 +2848,7 @@ Returncode:
       // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
     vc1 = vc2;
     UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
-    d1 = UT3D_angr_2vc (&vc1, &vc2);
+    d1 = UT3D_angr_2vc__ (&vc1, &vc2);
     lTot += UT3D_len_2pt (&bsp->cpTab[i3-1], &bsp->cpTab[i3]);
     // printf("  d1[%d]=%f l=%f\n",i3,UT_DEGREES(d1),lTot);
     // d1 /= ld;  // normieren ; soll sein Anzahl Punkte / mm.

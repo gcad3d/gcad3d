@@ -414,7 +414,6 @@ void TX_Error (char* txt, ...);
   // printf(" stat=%d\n",tab->stat);
 
 
-
   if(!tab) {
     TX_Error ("******** UtxTab_add - E001 ***");
     return -1;

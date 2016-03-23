@@ -101,7 +101,7 @@ The mainTimer calls CTRL_CB__ periodically;
 // EXTERNALS:
 // aus ../xa/xa.c:
 extern TxtTab    AP_TxTab1;
-extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
+extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 // ../xa/xa_ui.c
@@ -302,8 +302,10 @@ static int ctrlStat = 0;
 
   //----------------------------------------------------------------
   // test APT_work_PrgCmd - functions
-  if(UTX_wTab_ck (cmdTab, cmd) >= 0) {
-    APT_work_PrgCmd (cmd, &wPos1);
+  i1 = UTX_wTab_ck (cmdTab, cmd);
+  if(i1 >= 0) {
+    // APT_work_PrgCmd (cmd, &wPos1);
+    APT_work_PrgCmd (cmdTab[i1], &wPos1);    // 2016-03-16
     goto L_done;
   }
 

@@ -31,8 +31,12 @@ echo "srcDir = " ${srcDir}
 outDir=${basDir}/packages
 echo "outDir = " ${outDir}
 
+
+
 # get bitNr BINLOC gcad_dir_bin
 . src/options.sh
+echo "gcad_dir_bin = " ${gcad_dir_bin}
+
 
 
 Version=`cat ${srcDir}/gcad_version`
@@ -57,27 +61,28 @@ cd ${debDir}
 echo "examples.gz created .."
 
 
-
-#-------------------------------------------------------
+#------------------------------------------------------
 # remove install-dir; rm -rf ~/devel/gcad3d/debian/gCAD3D/debian
 rm -rf ${instDir}
-mkdir -p ${instDir}
+/bin/mkdir -p ${instDir}
 
 
-mkdir -p -m 755 ${instDir}/DEBIAN
-mkdir -p -m 755 ${instDir}/usr/bin
-mkdir -p -m 755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins
-mkdir -p -m 755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1
-mkdir -p -m 755 ${instDir}/usr/share/gcad3d/icons
-mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/html
-mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/msg
-mkdir -p -m 755 ${instDir}/usr/share/menu
+/bin/mkdir -p -m 755 ${instDir}/DEBIAN
+/bin/mkdir -p -m 755 ${instDir}/usr/bin
+/bin/mkdir -p -m 755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins
+/bin/mkdir -p -m 755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1
+/bin/mkdir -p -m 755 ${instDir}/usr/share/gcad3d/icons
+/bin/mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/html
+/bin/mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/msg
+/bin/mkdir -p -m 755 ${instDir}/usr/share/menu
 
+#echo "instDir = " ${instDir}
+#find ${instDir}
 
 
 # copy ControlFiles
 #../debian/gCAD3D/debian/DEBIAN/control,preinst,postinst,prerm
-cp ${debDir}/_control/p* ${instDir}/DEBIAN/.
+/bin/cp ${debDir}/_control/p* ${instDir}/DEBIAN/.
 
 
 
@@ -91,15 +96,15 @@ fi
 
 
 # startscript /usr/bin/gcad3d -> ../debian/gCAD3D/debian/usr/bin/gcad3d
-cp ${debDir}/gcad3d ${instDir}/usr/bin/.
+/bin/cp ${debDir}/gcad3d ${instDir}/usr/bin/.
 
 
 
 # executables  -> ../debian/gCAD3D/debian/usr/lib/gCAD3D/binLinux##
-cp -f ${gcad_dir_bin}/gCAD3D         ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/.
-cp -f ${gcad_dir_bin}/*.so           ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/.
-cp -f ${gcad_dir_bin}/plugins/*.so   ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/.
-cp -f ${gcad_dir_bin}/plugins/cut1/* ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1/.
+/bin/cp -f ${gcad_dir_bin}/gCAD3D         ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/.
+/bin/cp -f ${gcad_dir_bin}/*.so           ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/.
+/bin/cp -f ${gcad_dir_bin}/plugins/*.so   ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/.
+/bin/cp -f ${gcad_dir_bin}/plugins/cut1/* ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1/.
 
 #strip ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/gCAD3D
 #strip ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/*.so
@@ -114,8 +119,8 @@ chmod 0755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1/*
 
 
 # examples.gz (dat,prg,ctlg,..) gCAD3D.desktop -> /usr/share/gcad3d/.
-cp -f ${debDir}/examples.gz ${instDir}/usr/share/gcad3d/.
-cp -f ${debDir}/gCAD3D.desktop ${instDir}/usr/share/gcad3d/.
+/bin/cp -f ${debDir}/examples.gz ${instDir}/usr/share/gcad3d/.
+/bin/cp -f ${debDir}/gCAD3D.desktop ${instDir}/usr/share/gcad3d/.
 chmod 0644 ${instDir}/usr/share/gcad3d/examples.gz
 chmod 0644 ${instDir}/usr/share/gcad3d/gCAD3D.desktop
 
@@ -123,9 +128,9 @@ chmod 0644 ${instDir}/usr/share/gcad3d/gCAD3D.desktop
 
 #/usr/share/gcad3d/icons/
 #../debian/gCAD3D/debian/usr/share/gcad3d/icons
-cp -f ${basDir}/icons/*.png   ${instDir}/usr/share/gcad3d/icons/.
-cp -f ${basDir}/icons/*.xpm   ${instDir}/usr/share/gcad3d/icons/.
-cp -f ${basDir}/icons/*.bmp   ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${basDir}/icons/*.png   ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${basDir}/icons/*.xpm   ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${basDir}/icons/*.bmp   ${instDir}/usr/share/gcad3d/icons/.
 chmod 0644 ${instDir}/usr/share/gcad3d/icons/*
 
 
@@ -133,9 +138,9 @@ chmod 0644 ${instDir}/usr/share/gcad3d/icons/*
 #/usr/share/doc/gcad3d/
 #../debian/gCAD3D/debian/usr/share/doc/gcad3d/changelog.gz,copyright,gCAD3D.ico,gCAD3D.desktop
 #cp /usr/share/common-licenses/GPL-3 ${instDir}/usr/share/doc/gcad3d/copyright
-cp ${basDir}/LICENSE           ${instDir}/usr/share/doc/gcad3d/copyright
+/bin/cp ${basDir}/LICENSE           ${instDir}/usr/share/doc/gcad3d/copyright
 #cp copyright            ${instDir}/usr/share/doc/gcad3d/.
-cp ${debDir}/changelog            ${instDir}/usr/share/doc/gcad3d/.
+/bin/cp ${debDir}/changelog            ${instDir}/usr/share/doc/gcad3d/.
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/changelog
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/copyright
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/changelog.gz
@@ -143,21 +148,21 @@ chmod 0644 ${instDir}/usr/share/doc/gcad3d/changelog.gz
 
 
 #/usr/share/doc/gcad3d/html/
-cp -f ${basDir}/doc/html/*.htm  ${instDir}/usr/share/doc/gcad3d/html/.
-cp -f ${basDir}/doc/html/*.png  ${instDir}/usr/share/doc/gcad3d/html/.
-cp -f ${basDir}/doc/html/*.js   ${instDir}/usr/share/doc/gcad3d/html/.
+/bin/cp -f ${basDir}/doc/html/*.htm  ${instDir}/usr/share/doc/gcad3d/html/.
+/bin/cp -f ${basDir}/doc/html/*.png  ${instDir}/usr/share/doc/gcad3d/html/.
+/bin/cp -f ${basDir}/doc/html/*.js   ${instDir}/usr/share/doc/gcad3d/html/.
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/html/*
 
 
 
 #/usr/share/doc/gcad3d/msg/
-cp -f ${basDir}/doc/msg/*.txt   ${instDir}/usr/share/doc/gcad3d/msg/.
+/bin/cp -f ${basDir}/doc/msg/*.txt   ${instDir}/usr/share/doc/gcad3d/msg/.
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/msg/*
 
 
 
 #/usr/share/menu/gcad3d
-cp ${debDir}/_control/menu         ${instDir}/usr/share/menu/gcad3d
+/bin/cp ${debDir}/_control/menu         ${instDir}/usr/share/menu/gcad3d
 chmod 0644 ${instDir}/usr/share/menu/gcad3d
 
 
@@ -179,9 +184,18 @@ chmod 0755 ${instDir}/usr
 
 
 #-----------------------------------------------------
+# strip exe and so-files
+/usr/bin/strip ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/gCAD3D
+/usr/bin/strip ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/*.so
+/usr/bin/strip ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/*.so
+
+
+#-----------------------------------------------------
 # cd ~/devel/gcad3d/debian/gCAD3D
 cd ${instDir}
+
 cd ..
+#
 rm -f debian.deb
 fakeroot dpkg-deb --build debian && lintian debian.deb
 mv -f debian.deb ${outDir}/${packNam}

@@ -637,7 +637,7 @@ UTA_reallTab
   // printf("MEM_del_nrec %d %d %d\n",*recNr,ipos,delRecNr);
 
   if((delRecNr < 1)||(ipos < 0)||((ipos+delRecNr) > *recNr)) {
-    TX_Error("MEM_del_nrec E001 %d %d\n",*recNr,ipos);
+    TX_Error("MEM_del_nrec E001 %d %d %d\n",*recNr,ipos,delRecNr);
     return -1;
   }
 

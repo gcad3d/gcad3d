@@ -47,13 +47,14 @@ Mod_chg__           activate other Submodel
 Mod_chg_CB          load selected SubModel
 Mod_chg_x           activate internal subModel from modelname
 Mod_sav__           save Model+Submodel -> File
-Mod_sav2file__      save the active Submodel WC_modact -> permanent File
+Mod_sav2file__      save the active Submodel WC_modact_nam -> permanent File
 Mod_sav2file_CB
 Mod_file2model      save submodel > tmp/Model_<name>
 Mod_savSubBuf1      save Submodel in Buffer1 + active Hidelist
-Mod_sav_tmp         save the active Submodel WC_modact -> TempFile
+Mod_sav_tmp         save the active Submodel WC_modact_nam -> TempFile
 Mod_LoadFile__      Model als Submodel laden
 Mod_LoadSubmodel    ?
+Mod_ck_isMain       check if the active model is the mainmodel
 
 Mod_sym_get__       get symbolic-directory & absolute-path from filename
 Mod_sym_get1        get path from symbol; resolv "symbol/fnam" or "fnam"
@@ -310,9 +311,8 @@ typedef_MemTab(EdgeLine);
 extern  Point     WC_mod_ori;            // der Model-Origin
 // extern char      AP_dir_open[128], AP_sym_open[64]; // Verzeichnis fuer OPEN
 // extern char      WC_modnam[128];
-// extern char      WC_modact[128];
-extern  int       WC_modnr;              // Nr of the active submodel; -1=main.
-extern  int       WC_mod_stat;           // -1=primary Model is active;
+// extern char      WC_modact_nam[128];
+extern  int       WC_modact_ind;         // -1=primary Model is active;
                                          // else subModel is being created
 
 extern  int       AP_src;                // AP_SRC_MEM od AP_SRC_EDI
@@ -337,6 +337,20 @@ static char       sSecEnd[]="SECTIONEND";
 // lokale prototypen:
   void Mod_chg_CB (char *modNam);
 
+
+
+//================================================================
+   int Mod_ck_isMain () {
+//================================================================
+/// Mod_ck_isMain       check if the active model is the mainmodel
+/// retCode      0   subModel is active
+///              1   the main-model is active
+
+// test if WC_modact_nam == ""  (mainmodel = ""; else subModelname)
+
+  return ((WC_modact_nam[0] == 0) ? 1 : 0);
+
+}
 
 
 //================================================================
@@ -446,11 +460,13 @@ static char       sSecEnd[]="SECTIONEND";
 //====================================================================
 /// Bei jedem Init und File/new:
 /// - clear all tmp/Model_*
-/// - set WC_modact="" (main)
+/// - set WC_modact_nam="" (main)
 
 
-  WC_modact[0] = '\0';
-  WC_modnr     = -1;
+  DB_StoreModBas (0, NULL);     // delete all basic models  2015-11-28
+
+  WC_modact_nam[0] = '\0';
+  WC_modact_ind    = -1;
 
   return 0;
 
@@ -501,7 +517,7 @@ static char       sSecEnd[]="SECTIONEND";
 
 
   // save active submodelname
-  strcpy(WC_modact, mNam);
+  strcpy(WC_modact_nam, mNam);
 
 
   // display submodelname im Titlebar
@@ -525,13 +541,13 @@ static char       sSecEnd[]="SECTIONEND";
   int Mod_cre__ () {
 ///====================================================================
 /// create new SubModel:
-/// - save active Model (WC_modact) -> tmp/Model_<submodelname>
+/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
 /// - ask for Modelname; callback -> Mod_cre_CB
 
   printf("Mod_cre__\n");
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
 
@@ -593,7 +609,7 @@ static char *fnam;
 
   // rename
   L_work:
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1, newNam);
 
@@ -638,7 +654,7 @@ static char *fnam;
   printf("Mod_m2s__\n");
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
   // ask for new Modelname
@@ -654,7 +670,7 @@ static char *fnam;
   int Mod_chg__ () {
 ///====================================================================
 /// activate other Submodel
-/// - save active Model (WC_modact) -> tmp/Model_<submodelname>
+/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
 /// - provide List of Submodelnames
 /// - Selection -> Mod_chg_CB
 
@@ -663,7 +679,7 @@ static char *fnam;
   printf("Mod_chg__\n");
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
 
@@ -759,14 +775,14 @@ static char *fnam;
 //====================================================================
 /// \code
 /// - load new active SubModel
-/// - set WC_modact = new active Modelname
+/// - set WC_modact_nam = new active Modelname
 /// - RUN
 /// \endcode
 
   int     i1;
 
 
-  printf("Mod_chg_CB |%s|\n",modNam);
+  // printf("Mod_chg_CB |%s|\n",modNam);
 
   i1 = Mod_get_typ2 (modNam);   // give typ from Modelname
   // must be internal = -1
@@ -793,35 +809,33 @@ static char *fnam;
 /// Mod_chg_x        activate internal subModel from modelname
 /// new Submodelname selected;
 /// - load new active SubModel
-/// - set WC_modact = new active Modelname
+/// - set WC_modact_nam = new active Modelname
 /// - RUN
 
+  // int    mTyp;
   char   fNam[256];
 
   if(modNam == NULL) return 0;  // cancel 
 
 
-  printf("Mod_chg_x |%s|\n",modNam);
-
-  // set WC_modact = new active Modelname
-  strcpy(WC_modact, modNam);
+  // printf("Mod_chg_x |%s|\n",modNam);
 
 
-  TX_Print("activate subModel %s",WC_modact);
+  TX_Print("activate subModel %s", modNam);
 
 
+  // set WC_modact_nam = new active Modelname
   if(!strcmp(modNam, "-main-")) {
-    Mod_init__ ();  // WC_modnr=-1; WC_modact='\0';  - sonst nix
+    WC_modact_nam[0] = '\0';
 
   } else {
-    WC_modnr = DB_get_ModNr (modNam);
-    if(WC_modnr < 0) WC_modnr = -2;      // dzt unused !
+    strcpy(WC_modact_nam, modNam);
   }
 
 
   // load new active SubModel
-  sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
-  printf(" load |%s|\n",fNam);
+  sprintf(fNam,"%sModel_%s", OS_get_tmp_dir(), WC_modact_nam);
+    // printf(" load |%s|\n",fNam);
   ED_new_File (fNam); // Datei ins Memory einlesen
 
 
@@ -856,9 +870,10 @@ static char *fnam;
 
   strcpy(cbuf, WC_modnam);
 
-  if(strlen(WC_modact) > 0) {
+  // if(strlen(WC_modact_nam) > 0) {
+  if(!Mod_ck_isMain()) {
     strcat(cbuf, " / ");
-    strcat(cbuf, WC_modact);
+    strcat(cbuf, WC_modact_nam);
   }
 
   UI_AP (UI_FuncSet, UID_Main_title, cbuf);
@@ -879,7 +894,7 @@ static char *fnam;
 ///   filNam     outfilename
 ///   savActMdl  0=save active model, 1=do not save active model
 ///
-/// - savActMdl=0:    save the active Submodel WC_modact -> File
+/// - savActMdl=0:    save the active Submodel WC_modact_nam -> File
 /// - eine aktuelle Liste tmp/Model_* machen
 /// - alle zusammenfuegen; Submodels mit MODEL name/../MODEL END
 /// - mainModel = tmp/Model_; subModels = tmp/Model_*
@@ -910,7 +925,7 @@ static char *fnam;
   UI_block__ (1, 1, 1);  // block all
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   if(!savActMdl) Mod_sav_tmp ();
 
 
@@ -1205,8 +1220,8 @@ static char *fnam;
 
   Mod_sav_tmp ();
 
-  // copy <tmp/Model_<WC_modact>> -> <dirNam,fnam>
-  sprintf(oldNam,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  // copy <tmp/Model_<WC_modact_nam>> -> <dirNam,fnam>
+  sprintf(oldNam,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
 
   sprintf(newNam,"%s%s",dirNam,fnam);
   UTX_ftyp_cut (newNam); // remove Filetyp
@@ -1223,14 +1238,15 @@ static char *fnam;
 //====================================================================
   int Mod_sav2file__ () {
 //====================================================================
-/// save the active Submodel WC_modact -> permanent File
+/// save the active Submodel WC_modact_nam -> permanent File
 
   int  irc;
-  // char cbuf[256];
+
 
   printf("Mod_sav2file__\n");
 
-  if(strlen(WC_modact) < 1) {
+  // if(strlen(WC_modact_nam) < 1) {
+  if(Mod_ck_isMain()) {
     GUI_MsgBox ("ERROR: subModel must be active ..");
     // TX_Error("es ist kein Submodel aktiv ..");
     return -1;
@@ -1243,7 +1259,7 @@ static char *fnam;
   GUI_save__ ("save model as",   // titletext
             AP_dir_open,           // path
             cbuf,                  // directoryList
-            WC_modact,             // defaultModelname
+            WC_modact_nam,             // defaultModelname
             (void*)Mod_sav2file_CB);
 */
   irc = AP_save__ (2, ".gcad");
@@ -1344,17 +1360,17 @@ static char *fnam;
 //====================================================================
   int Mod_sav_tmp () {
 //====================================================================
-/// save the active Submodel WC_modact -> TempFile
+/// save the active Submodel WC_modact_nam -> TempFile
 
   extern int DL_wri_dynDat0 (FILE*);
 
   char  fnam[256];
 
-  // printf("Mod_sav_tmp |%s|\n",WC_modact);
+  // printf("Mod_sav_tmp |%s|\n",WC_modact_nam);
 
 
   // fix modelname
-  sprintf(fnam,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  sprintf(fnam,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
     // printf("WWWWWWWWWWWWWWWWWWWWWWWWWW  out_>|%s|\n",fnam);
 
 
@@ -1531,7 +1547,8 @@ static char *fnam;
   // test for "M20"; das waere eine bereits existierendes Model;
   // also kein neues Basismodel
   if(txbuf[0] == 'M') {
-    if(UTX_ck_num_f (&cp1, txbuf) == 0) return -3;
+    // test if word is numeric
+    if(UTX_ck_num_f (&cp1, &txbuf[1]) == 0) return -3;
   }
 
 
@@ -1647,7 +1664,7 @@ static char *fnam;
   char *cbuf, *c1buf, *cp1, txbuf[80];
 
 
-  // printf("Mod_get_names\n");
+  printf("Mod_get_names\n");
 
 
   // Mode MAN: Update nach modification
@@ -1673,8 +1690,8 @@ static char *fnam;
     Mod_get_namStore (cbuf, -1, 0);
   }
 
-  DB_dump_ModBas ();
-  printf("ex Mod_get_names\n");
+    DB_dump_ModBas ();
+    printf("ex Mod_get_names\n");
 
   return 0;
 
@@ -2322,14 +2339,17 @@ static ModelRef modR2;
 
   // printf("Mod_kill__ \n");
 
-  sprintf(cbuf,"%sjoints",OS_get_tmp_dir());
-  OS_file_delete (cbuf);
-
   sprintf(cbuf,"%sMod.lst",OS_get_tmp_dir());
   OS_file_delete (cbuf);
 
   sprintf(cbuf, "%sModel_*",OS_get_tmp_dir());
   OS_file_delGrp (cbuf);
+
+  sprintf(cbuf,"%sDB__*.dat",OS_get_tmp_dir());
+  OS_file_delGrp (cbuf);
+
+  sprintf(cbuf,"%sjoints",OS_get_tmp_dir());
+  OS_file_delete (cbuf);
 
   // del process_* and processes.lst
   sprintf(cbuf, "%sprocess*",OS_get_tmp_dir());
@@ -2533,7 +2553,7 @@ static ModelRef modR2;
   // Submodel tmp/Model_ (-main-) laden
   L_load:
 
-  Mod_init__ (); // main  set WC_modact ..
+  Mod_init__ (); // main  set WC_modact_nam ..
 
 
   // load new active SubModel
@@ -2700,13 +2720,13 @@ static ModelRef modR2;
   strcpy(mNam, cbuf1);
 
 
-  // rename <tmp/Model_<WC_modact>> -> tmp/Model_<data>>
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  // rename <tmp/Model_<WC_modact_nam>> -> tmp/Model_<data>>
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1,newNam);
 
   // set name
-  strcpy(WC_modact, mNam);
+  strcpy(WC_modact_nam, mNam);
 
   // fix title
   Mod_chg_tit ();
@@ -2735,12 +2755,12 @@ static ModelRef modR2;
   
   printf("Mod_ren__\n");
 
-  if(strlen(WC_modact) < 1) {
+  if(strlen(WC_modact_nam) < 1) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
-  GUI_GetText(" new Submodelname: ",  WC_modact, -200, Mod_ren_CB);
+  GUI_GetText(" new Submodelname: ",  WC_modact_nam, -200, Mod_ren_CB);
 
 
   return 0;
@@ -2760,7 +2780,7 @@ static ModelRef modR2;
   printf("Mod_del1__ |%s|\n",smNam);
 
 
-  // del <tmp/Model_<WC_modact>>
+  // del <tmp/Model_<WC_modact_nam>>
   sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),smNam);
   printf("remove %s\n",cbuf);
   OS_file_delete (cbuf);
@@ -2794,8 +2814,8 @@ static ModelRef modR2;
   if(idat != UI_FuncOK) return -1;
 
 
-  // del <tmp/Model_<WC_modact>>
-  Mod_del1__ (WC_modact);
+  // del <tmp/Model_<WC_modact_nam>>
+  Mod_del1__ (WC_modact_nam);
 
 
   // start "change submodel"
@@ -2817,12 +2837,12 @@ static ModelRef modR2;
 
   printf("Mod_del__\n");
 
-  if(strlen(WC_modact) < 1) {
+  if(strlen(WC_modact_nam) < 1) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
-  sprintf(cbuf, "  delete Submodel %s  ",WC_modact);
+  sprintf(cbuf, "  delete Submodel %s  ",WC_modact_nam);
   GUI_DialogYN (cbuf, Mod_del_CB);
 
   return 0;
@@ -2948,7 +2968,7 @@ static ModelRef modR2;
 
   if(mbNr < 1) return 0;   // nix to resolv ..
 
-  actMod = WC_modnr;
+  actMod = WC_modact_ind;
 
   // UtxTab_clear (&txTab1);             // init (malloc ..)
 
@@ -2974,20 +2994,19 @@ static ModelRef modR2;
 
     mb->DLind = GL_Get_DLind();
 
-    WC_mod_stat = il1;          // die aktuelle ModelNr ! zum skip VIEW
-    WC_modnr = il1;
+    WC_modact_ind = il1;          // die aktuelle ModelNr ! zum skip VIEW
     // UtxTab_add (txTab1, mb->mnam);    // add ModelName to textTable
 
 
     // catalog-Model: den zugehoerigen Modelname suchen
-    if(mb->typ == -2) {
-      // CTLG_mnam_modelnam (cbuf1, mb->mnam);
-      // Mod_load_sm (mb->typ, cbuf1);              // load catalog-Model:
-      irc = Mod_load_sm (mb->typ, mb->mnam);           // load catalog-Model:
-
-    } else {
+    // if(mb->typ == MBTYP_CATALOG) {
+      // // CTLG_mnam_modelnam (cbuf1, mb->mnam);
+      // // Mod_load_sm (mb->typ, cbuf1);              // load catalog-Model:
+      // irc = Mod_load_sm (mb->typ, mb->mnam);           // load catalog-Model:
+// 
+    // } else {
       irc = Mod_load_sm (mb->typ, mb->mnam);           // load internal Model
-    }
+    // }
     // UtxTab_rem (txTab1);              // remove last ModelName
     if(irc < 0) return irc;
 
@@ -3021,15 +3040,14 @@ static ModelRef modR2;
   --actSeq;
   if(actSeq >= 0) goto L_nxt_lev;
 
-  WC_mod_stat = -1;    // wieder im primary Model
-  WC_modnr = actMod;
-
+  // WC_modact_ind = -1;    // wieder im primary Model
+  WC_modact_ind = actMod;
 
 
 
   // printf("ex Mod_load_allsm %d\n",DB_get_ModBasNr());
   // DB_dump_ModBas ();
-  // DL_DumpObjTab ();
+  // // DL_DumpObjTab ();
   // printf("============= ex Mod_load_allsm =======================\n");
 
   return 0;
@@ -3062,7 +3080,7 @@ static ModelRef modR2;
  
 
   // catalog-Models:
-  if(mTyp == -2) {
+  if(mTyp == MBTYP_CATALOG) {
       // printf(" catalog-Model |%s|\n",mnam);
     // CTLG_path_catPart (fNam, mnam);
     CTLG_mnam_modelnam (cbuf1, mnam);
@@ -3094,7 +3112,14 @@ static ModelRef modR2;
   UCS_Reset ();  // sm muss def.Refsys haben
   ED_Run ();
 
+
+  // save DB                                                2015-11-19
+  DB_save__ (mnam);
+
+
+
     // printf("ex Mod_load_sm |%s|========================\n",mnam);
+
   return 0;
 
 
@@ -3146,6 +3171,7 @@ static ModelRef modR2;
   iNr = 0;
     // printf(" SBSBSBSBSB scan nxt lev %d\n",iLev);
   ile = DB_get_ModBasNr();  // ile = momentane Anzahl
+
   for(il1=0; il1<ile; ++il1) {
     Mod_father = DB_get_ModBas (il1);
     if(Mod_father->seqNr != oldLev) continue;
@@ -3165,10 +3191,11 @@ static ModelRef modR2;
 
 
 
-  // printf("================ after Mod_get_namAll %d\n",DB_get_ModBasNr());
+  // printf("---------------- after Mod_get_namAll %d\n",DB_get_ModBasNr());
   // DB_dump_ModBas ();
-  // DL_DumpObjTab ();
+  // // DL_DumpObjTab ();
   // printf("================ ex Mod_get_namAll =================== \n");
+  // // exit(0);
 
 
   return 0;

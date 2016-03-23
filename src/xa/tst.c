@@ -78,10 +78,11 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../db/ut_DB.h"               // DB_get_..
 #include "../gr/ut_UI.h"               // SYM_..
+#include "../gr/tess_su.h"             // TypTsuSur
 #include "../gui/gui__.h"              // GUI_
 
 #include "../xa/xa_msg.h"              // MSG_*
-
+#include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
 
 // Externals aus ../ci/NC_Main.c:
@@ -94,6 +95,51 @@ extern double    APT_ModSiz;
   int tst_key_CB (int key);
 
 
+
+//=========================================================
+  int gCad_main () {
+//=========================================================
+// init userfunction
+
+
+  TX_Print("-->> gCad_main aus tst; 2016-02-20.");
+  printf("-->> gCad_main aus tst;\n");
+
+
+  //================================================================
+  tst_tst__ ();   goto L_fini;     // general test ..
+  //================================================================
+  // TEST EXPORT_DLL'S:
+  // tst_print_pdf ();
+  // tst_exp_stp ();
+  // tst_exp_dxf ();
+  // tst_exp_vrml2 ();
+  // tst_exp_stl ();
+  // tst_exp_obj ();
+  // tst_exp_svg ();
+  //================================================================
+  // TEST IMPORT_DLL'S:
+  // UI_menCB (NULL, "new");
+  // tst_imp_dxf ();
+  // tst_imp_igs ();
+  // tst_imp_vrml1(); // test import VRML-1
+  // tst_imp_vrml2(); // test import VRML-2
+  // tst_imp_stp (); // tst_imp_exp.c  Test Import/Export-functions
+  // tst_imp_stl ();
+  // tst_imp_obj ();
+  // tst_imp_tess ();
+  // LandXml-Import: in core (AP_ImportXML -> lxml_read); 
+  //================================================================
+
+  L_end:
+  DL_Redraw ();
+
+  L_fini:
+  gCad_fini ();
+
+  return 0;
+
+}
 
 
 
@@ -700,7 +746,7 @@ static int       dxf_version;     // 0=R12; 1=2000
       dxfw_fl_out (50, tx1->dir, fp_o1);
 
       // 1-Text
-      GR_gxt_dxfout (0, memspc011, tx1->txt);
+      dxfw_gxt (0, memspc011, tx1->txt);
       fprintf(fp_o1,"1\n%s\n",memspc011);
 
       // 39 = Thickness; 1 oder 2
@@ -982,67 +1028,138 @@ static int       dxf_version;     // 0=R12; 1=2000
   return 0;
 
 }
-*/
 
 
-//======================================================================
-  int MSG_msg_init (int *lngNr, char lngCode[][4], char lngName[][80]) {
-//======================================================================
-// provide list of supported languages an language-names
- 
-  int    ii, iNr, lNr;
-  char   *p1, cbuf1[256];
+//================================================================
+  int UT3D_vc_ck_aparl_vc (Vector *v1, Vector *v2, double tol) {
+//================================================================
+/// \code
+/// UT3D_vc_ck_aparl_vc       check for antiparallel (normalized only)
+///
+/// tol: RAD_1 RAD_01 ..
+///
+/// Output:
+///   retCod     0   vectors are not antiparallel
+///              1   vectors are parallel with different direction
+/// see also UT3D_comp2vc__
+/// \endcode
+
+  double  dd;
 
 
+  dd = -v1->dx;
+  if(!UTP_comp2db (dd, v2->dx, tol)) return 0;
 
-  printf("MSG_msg_init %d\n",*lngNr);
+  dd = -v1->dy;
+  if(!UTP_comp2db (dd, v2->dy, tol)) return 0;
 
+  dd = -v1->dz;
+  if(!UTP_comp2db (dd, v2->dz, tol)) return 0;
 
-  //----------------------------------------------------------------
-  // - make list of all <docdir>/msg/msg_*.txt
-  lNr = 0;
-  iNr = 0;
-  sprintf(cbuf1,"%smsg/",OS_get_doc_dir());
-  ii = strlen (cbuf1);
-    printf(" _scan_ %d |%s|\n",ii,cbuf1);
-
-  OS_dir_scan_ (cbuf1, &iNr);   // Init
-
-  for(;;)  {
-    OS_dir_scan_ (cbuf1, &iNr);
-    if(iNr < 0) break;
-    if(strncmp(&cbuf1[ii], "msg_", 4)) continue;
-    if(!strncmp(&cbuf1[ii + 4], "const", 4)) continue;
-
-
-    // extract & copy language-code
-    strncpy (lngCode[lNr], &cbuf1[ii + 4], 2);
-    lngCode[lNr][2] = '\0';
-      printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
-
-
-    // - get value of LANG__ of all files
-    MSG_Init (lngCode[lNr]);
-    // p1 = MSG_get_str ("LANG__");
-    strcpy (lngName[lNr], MSG_get_str ("LANG__"));
-      printf(" lang = |%s|\n",lngName[lNr]);
-
-
-    ++lNr;
-    if(lNr >= *lngNr) {
-      TX_Error("MSG_msg_init E001");
-      return -1;
-    }
-  }
-
-
-
-  //----------------------------------------------------------------
-
-  return 0;
+  return 1;
 
 }
 
+//========================================================================
+  double UT3D_angr_3vcn_CCW (Vector *vz, Vector *v1, Vector *v2) {
+//=============================================================================
+/// \code
+/// UT3D_angr_3vcn    angle between 2 vectors CCW around vz; all normalized
+///   Rotation CCW around vz
+///   RetCod: angle CCW between v1 and v2;
+/// Input:
+///   v1, v2    compute angle between these vectors
+///   vz        up-vector (necessary if angle > PI)
+/// Output:
+///   retCod    angle 0 < 2*PI
+/// see UT3D_angr_2vc__ UT3D_angr_3vc__
+/// see UT3D_angr_ci_p1_pt
+/// \endcode
+
+
+  int       svz;
+  double    ao;
+  Vector    vcn;
+
+
+  UT3D_stru_dump (Typ_VC, v1, "v1:");
+  UT3D_stru_dump (Typ_VC, v2, "v2:");
+  UT3D_stru_dump (Typ_VC, vz, "vz:");
+
+  //  ao = Oeffnungswinkel
+  ao = ACOS(UT3D_acos_2vc (v1, v2));
+    // printf("ao=%f\n",ao);
+
+
+  // get the normalvector
+  UT3D_vc_perp2vc (&vcn, v1, v2);
+    UT3D_stru_dump (Typ_VC, &vcn, "vcn:");
+
+  // side; 1=parl, -1=antiparl
+  svz = UT3D_sid_2vc (&vcn, vz);
+  if(svz < 0) ao = RAD_360 - ao;
+    printf(" svz=%d\n",svz);
+
+    printf("ex UT3D_angr_3vcn_CCW %f %f\n",ao,UT_DEGREES(ao));
+
+  return ao;
+
+}
+
+//================================================================
+  double UT3D_angr_2vc_n (Vector *v1, Vector *v2) {
+//================================================================
+/// \code
+/// UT3D_angr_2vc_n           angle between two normalized vec's
+///   angle = always 0 <= PI;    direction is CCW OR CW.
+/// for CCW-direction / angles (0 < 2PI)  use UT3D_angr_3vcn
+/// \endcode
+
+// 0.866,    0.500,    30 deg
+// 0.707,    0.707,    45 deg
+// 0.500,    0.866,    60 deg
+
+
+  // UT3D_stru_dump (Typ_VC, v1, "v1");
+  // UT3D_stru_dump (Typ_VC, v2, "v2");
+
+  return ACOS(UT3D_skp_2vc (v1, v2));
+
+}
+
+
+//================================================================
+  int OS_ck_SW_is_installed (char *ssw) {
+//================================================================
+// Test if software <ssw> is installed
+// returns 0 = yes, is installed,   elso no, not installed.
+// Test with "which <ssw>"
+
+  char    s1[256];
+
+  sprintf(s1, "which %s  1>/dev/null 2>/dev/null", ssw);
+    printf("OS_ck_SW_is_installed |%s|\n",s1);
+
+  return system (s1);
+
+}
+*/
+
+
+//================================================================
+int tst_tst_1 (Vector *v31, Vector *v32) {
+
+  double d1;
+
+  // get angle between v31-v32
+  d1 = UT3D_angr_2vc__ (v31, v32);
+  printf(" d1=%f %f\n",d1, UT_DEGREES(d1));
+
+  d1 = UT3D_angr_2vc_n (v31, v32);
+  printf(" _n-d1=%f %f\n",d1, UT_DEGREES(d1));
+
+  return 0;
+}
 
 //================================================================
   int tst_tst__ () {
@@ -1050,36 +1167,100 @@ static int       dxf_version;     // 0=R12; 1=2000
 // general test ..
  
 
-  int    ii, iNr;
+  int    irc, i1, ii, iNr;
+  double d1, d2, d3;
   char   *p1, cbuf1[256];
+  int       triSiz, triNr, surSiz, surNr;
+  int       sTyp[10];
+  long      sTab[10];
+  ObjGX     *oTab=NULL;
+  Triangle  *triTab;
+  TypTsuSur *surTab;
+  Point2    p20={-4.03350,-65.62150}; // 1691
+  Point2    p21={-4.03750,-65.63950}; // 2138
+  Point2    p22={-2.46750,-65.68750}; // 1694
+  Point2    p23={9.55,50.6};
+  Point     p30={0., 0., 0.}, p31={0., 100., 0.};
+  Point     p32={0., -50., 0.}, p33={0., 50., 0.};
+  Point     p34;
+  Vector2   v21={10., 0.};
+  Vector2   v22={-15., 5.};
+  Vector    v31={1., 0., 0.};
+  // Vector    v32={1., 1., .0};
+  // Vector    v32={0.866,    0.500, 0.};    // 30 deg
+  // Vector    v32={0.707,    0.707, 0.};    // 45 deg
+  Vector    v32={+0.500,   -0.866, 0.};    // 60 deg
+  // Vector    v32={1.0,    1.72, 0.};    // 60 deg
+  // Vector    v32={0.,    1., 0.};    // 90 deg
+  // Vector    v32={-0.500,    0.866, 0.};    // 120 deg
+  // Vector    v32={-0.707,    0.707, 0.};    // 135 deg
+  // Vector    v32={-0.866,    0.500, 0.};    // 150 deg
+  // Vector    v32={0., -1., 0.};  // 180 deg
+  Vector    v33={0., 0., -1.};  // 180 deg
 
+
+  printf("XXXXXXXXXXXXXXXXXXXXXXXXX  tst_tst__ 1\n");
+
+
+  irc = UT3D_pt_int2pt2pt_lim (&p34, NULL, NULL, &p30, &p31, &p32, &p33, 0.05);
+  printf(" irc=%d\n",irc);
+  UT3D_stru_dump (Typ_PT, &p34, "p34");
+
+
+  // tst_tst_1 (&v31, &v32);
+
+  // UT3D_vc_perp2vc (&v33, &v31, &v32);
+  // UT3D_stru_dump (Typ_VC, &v33, "v33");
+
+  // d1 = UT3D_angr_3vcn_CCW (&v33, &v31, &v32);
+  // printf(" d1=%f %f\n",d1, UT_DEGREES(d1));
+
+
+  //i1 = OS_dll_do ("xa_print_pdf", "PRI_PDF__", "abc");
+
+
+  // i1 = OS_ck_SW_is_installed ("ps2pdf");
+  // printf(" ps2pdf = %d\n",i1);
+
+
+return 0;
   // TX_Print(" plugin tst start ..");
 
-//----------------------------------------------------------------
-#define LNG_MAX_NR 16
-  typedef  char lngCode[4];
-  typedef  char lngName[80];
-  lngCode    *TabLngCode;
-  lngName    *TabLngName;
-  TabLngCode = (void*) UME_alloc_tmp (LNG_MAX_NR * 4);
-  TabLngName = (void*) UME_alloc_tmp (LNG_MAX_NR * 80);
-
-  ii = LNG_MAX_NR;
-  MSG_msg_init (&ii, TabLngCode, TabLngName);
+  // sTyp[0] = Typ_SUR;
+  sTyp[0] = Typ_SOL;
+  sTab[0] = 20L;
 
 
-/*
-      // filter filetyp
-      i1 = strlen(cbuf1);
 
-#ifdef _MSC_VER
-      // for(i2=i1-3; i2<i1; ++i2) cbuf1[i2] = tolower (cbuf1[i2]);
-      if(strncmp(&cbuf1[i1-4], ".dll", 4)) continue;
-#else
-      if(strncmp(&cbuf1[i1-3], ".so", 3)) continue;
-#endif
 
-*/
+  TSU_tess_sTab (&oTab, sTyp, sTab, 1);
+
+  // space for triangles --> triTab  (12bytes/Tria)
+  triTab = (Triangle*)memspc501;
+  triSiz = sizeof(memspc501) / sizeof(Triangle);
+    printf(" triSiz=%d\n",triSiz);
+
+  surTab = (TypTsuSur*)memspc51;
+  surSiz = sizeof(memspc51) / sizeof(TypTsuSur);
+    printf(" surSiz=%d\n",surSiz);
+
+  // get triangles from spc1 --> triTab
+  // (triangles are pointers into tesselated data !)
+  surNr = surSiz;
+  triNr = triSiz;
+  irc = TSU_tsu2tria__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, oTab);
+    printf(" _tsu2tria__ irc=%d surNr=%d triNr=%d\n",irc,surNr,triNr);
+
+
+    // dump_Triangle
+    // for(ii=0;ii<triNr;++ii) UT3D_stru_dump (Typ_Tria,&triTab[ii],"tria");
+
+
+
+  // free tesselated data
+  if(oTab) free (oTab);
+
+
 
   return 0;
 
@@ -1230,50 +1411,6 @@ static int       dxf_version;     // 0=R12; 1=2000
 }
 */
 
-
-//=========================================================
-  int gCad_main () {
-//=========================================================
-// init userfunction
-
-
-  TX_Print("-->> gCad_main aus tst; 2014-03-20.");
-  printf("-->> gCad_main aus tst;\n");
-
-
-  //================================================================
-  tst_tst__ ();   goto L_fini;     // general test ..
-  //================================================================
-  // TEST EXPORT_DLL'S:
-  // tst_exp_stp ();
-  tst_exp_dxf ();
-  // tst_exp_vrml2 ();
-  // tst_exp_stl ();
-  // tst_exp_obj ();
-  // tst_exp_svg ();
-  //================================================================
-  // TEST IMPORT_DLL'S:
-  // UI_menCB (NULL, "new");
-  // tst_imp_dxf();
-  // tst_imp_igs ();
-  // tst_imp_vrml1(); // test import VRML-1
-  // tst_imp_vrml2(); // test import VRML-2
-  // tst_imp_stp (); // tst_imp_exp.c  Test Import/Export-functions
-  // tst_imp_stl ();
-  // tst_imp_obj ();
-  // tst_imp_tess ();
-  // LandXml-Import: in core (AP_ImportXML -> lxml_read); 
-  //================================================================
-
-  L_end:
-  DL_Redraw ();
-
-  L_fini:
-  gCad_fini ();
-
-  return 0;
-
-}
 
 
 

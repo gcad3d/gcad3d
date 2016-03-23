@@ -26,7 +26,7 @@ Modifications:
 2003-03-23 UT3D_pt_projptln, UT3D_pt_projptptvc: neuer Par. len zu !! RF.
 2002-04-21 UT3D_m3_load_povxvz,UT3D_pt_rotptptvcangr neu. RF.
 2002-03-20 UT2D_ci.. zu. RF.
-2002-02-12 UT3D_angr_2vc: UTP_comp_0 -> fabs. RF.
+2002-02-12 UT3D_angr_2vc__: UTP_comp_0 -> fabs. RF.
 2001-10-16 UT3D_ci_obj2 u. UT3D_ci_obj: vz zu. RF.
 2001-04-22 UT3D_vc_cistart,UT3D_pt_traptptlen neu zu.
 2001-04-21 UT3D_vc_travcm3 korr.
@@ -97,8 +97,10 @@ UT2D_circQuad34_angr      returns if angle is quadrant 3 or 4 (CCW from 1-4)
 -------------- length -------------------------------------
 UT2D_len_vc               length of 2D-vector             INLINE
 UT2D_lenq_vc              Quadr.Vectorlength              INLINE
+UT2D_lenS_vc              dx+dy-distance 2D-vector        INLINE
 UT2D_len_2pt              distance pt - pt
-UT2D_lenB_2pt             dx/dy-Box-distance point-point  (fast!)
+UT2D_lenB_2pt             max(dx|dy)-distance point-point
+UT2D_lenS_2pt             dx+dy-distance point-point      INLINE
 UT2D_lenq_2pt             quadr. distance pt - pt         INLINE
 UT2D_len_ptln             minimal dist. from point to line
 UT2D_3len_ptln            minimal dist. from point to line + normalDist
@@ -121,10 +123,9 @@ UT2D_len_cia              length arc (from rad & angle)        INLINE
 UT2D_sDist_ciSeg          height of segment of circle from angle
 
 -------------- parameter -------------------------------------
-UT2D_parLn_pt2pt          get parameter (0-1) of point px along line p1-p2
+// UT2D_parLn_pt2pt          get parameter (0-1) of point px along line p1-p2
 UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_par_3pt              parameter of point projected on line from 2 points
-UT3D_parvc_2vc            parameter of distance of vec1 projected on vec2
 
 -------------- area --------------------------------------
 UT2D_ar_3pt               get (signed) area of triangle
@@ -137,7 +138,7 @@ UT2D_pt_ck_inLine         check 2D-point on line segment or beyond limits
 UT2D_pt_ck_inplg          Test if Point ptx is inside polygon pTab
 UT2D_pt_ck_linear         check straightness of points (if points are linear)
 UT2D_pt_cknear_npt        return index of nearest Point from n points
-UT2D_pt_ck_in3pt          check if px is between lines po-p1, po-p2
+//UT2D_pt_ck_in3pt          check if px is between lines po-p1, po-p2
 UT2D_pt_ck_inpt2vc        check if px is between vectors po-v1, po-v2
 UT2D_pt_ck_inAc           check if pt is in Arc(Segment)
 UT2D_pt_ck_inCv3          check if point is inside polygon
@@ -281,8 +282,10 @@ UT2D_cv_cin               Circ -> Polygon / Anzahl
 UT2D_cv_ci360             Vollkreis --> Polygon
 UT2D_cv_inv               Punktetabelle umdrehen
 UT2D_cv3_linear           delete unnecesary straight points
+UT2D_srar_3pt             Umlaufsinn und Flaeche eines 2D-triangle
 UT2D_srar_polc            Umlaufsinn und Flaeche eines closed polygon
-UT2D_srar_inpt3           Umlaufsinn und Flaeche eines indexed closed polygon
+UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
+UT2D_srar_inpt3           Umlaufsinn und Flaeche eines indexed closed 3D-polygon
 
 -------------- transformation ------------------------------
 UT2D_m2_load              2D-Achsensystem (Verdrehvektor, Ori.) into 3x2 Mat
@@ -1161,6 +1164,11 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2 v1, v2;
 
 
+  // UT3D_stru_dump (Typ_PT2, p3, "UT2D_sidPerp_3pt  p3");
+  // UT3D_stru_dump (Typ_PT2, p1, "p1");
+  // UT3D_stru_dump (Typ_PT2, p2, "p2");
+
+
   UT2D_vc_2pt (&v1, p1, p2);
   UT2D_vc_2pt (&v2, p2, p3);
 
@@ -1918,7 +1926,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //========================================================================
 /// \code
 /// UT2D_slen_nor_vc_vcNo     signed length of normal of 2 vectors (1 normalized)
-/// v1 must be normalized.
+/// v1 must be normalized     (else slen *= length_of_V1)
 ///            x
 ///           /|
 ///          / |
@@ -2135,40 +2143,31 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 }
 
 
+/* BUG: WORKS ONLY FOR p1-p2 X-parallel or Y-parallel ..
 //=======================================================================
   int UT2D_parLn_pt2pt (double *d1, Point2 *p1, Point2 *p2, Point2 *px) {
 //=======================================================================
 /// get parameter (0-1) of point px along line p1-p2
 
-/// see also UTP_param_p0p1px
-
   double   dx, dy;
-
-
-  // printf("UT2D_parLn_pt2pt \n");
-  // UT3D_stru_dump (Typ_PT2, p1, " p1:");
-  // UT3D_stru_dump (Typ_PT2, p2, " p2:");
-  // UT3D_stru_dump (Typ_PT2, px, " px:");
-
 
   // test if dx > dy
   dx = p2->x - p1->x;
   dy = p2->y - p1->y;
+    printf(" dx=%f dy=%f\n",dx,dy);
 
   // fix parameter d1
-  if(dx > dy)  {
+  if(fabs(dx) > fabs(dy))  {
     UTP_param_p0p1px (d1, p1->x, p2->x, px->x);
   } else {
     UTP_param_p0p1px (d1, p1->y, p2->y, px->y);
   }
-
-
-  // printf("ex UT2D_parLn_pt2pt %f\n",*d1);
+    printf("ex UT2D_parLn_pt2pt %f\n",*d1);
 
   return 0;
 
 }
-
+*/
 
 //====================================================================
   void UT2D_2len_ptvc (double *dx, double *dy,
@@ -2550,12 +2549,12 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 /// was UT2D_dir_ptvc
 ///
 ///                       X
-///                       pt    1
+///                       pt      1
 ///           pl
-/// ----------X---vl----------->
+/// ----------X---vl----------->  0
 ///            
 ///                       X
-///                       pt   -1
+///                       pt     -1
 /// 
 /// retcode:
 ///   0   pt is on vector vl
@@ -2568,19 +2567,25 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double   d1;
   Vector2  vp;
 
-  /* ------------------------------------------------------------------- */
+
+  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc pt");
+  // UT3D_stru_dump (Typ_PT2, pl, "  pl");
+  // UT3D_stru_dump (Typ_VC2, vl, "  vl");
+
+
   UT2D_vc_2pt (&vp, pl, pt);
+    // UT3D_stru_dump (Typ_VC2, &vp, "  vp");
 
   d1 = vp.dx * vl->dy - vl->dx * vp.dy;
+    // printf(" d1=%f\n",d1);
+
 
   if (fabs(d1) < UT_TOL_min1) rc =  0;
+  else if (d1 < 0.)           rc =  1;
+  else                        rc = -1;
 
-  else if (d1 < 0.)    rc =  1;
+    // printf("UT2D_sid_ptvc rc=%d d1=%f\n",rc,d1);
 
-  else                 rc = -1;
-
-
-  // printf("UT2D_sid_ptvc %d %f\n",rc,d1);
   return rc;
 
 }
@@ -3527,20 +3532,23 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //=======================================================================
-  int UT2D_pt_int4pt (Point2 *ps, double *dp1, double *dp2,
+  int UT2D_pt_int4pt (Point2 *ps, double *dp1, double *dp2, double *tol,
                       Point2 *p1,Point2 *p2,Point2 *p3,Point2 *p4) {
 //=======================================================================
 /// \code
-/// intersection of 2 limited lines
+/// intersection of 2 limited lines, tolerance.
 /// Info, ob Schnittpunkt ident mit p1 oder p2 (p3,p4 werden nicht getestet)
 /// Info, ob p1-p2 und p3-p4 uebereinanderliegen (ueberlappen)
-/// RC = -1   NO; Point outside Line p1-p2
-/// RC =  0   Yes; intersect; ps=p1; dp1=0;
-/// RC =  1   Yes; intersect; ps between p1-p2;
-///           dp1 ist der Abstandswert (0-1) des Schnittpunktes entlang p1-p2
-/// RC =  2   Yes; intersect; ps=p2; dp1=1;
-/// RC =  3   Lines parallel - Endpoints touch (not overlap). ps, dp1 unused.
-/// RC =  4   Lines parallel and overlap; ps, dp1 unused.
+/// Output:
+///   dp1       parameter along p1-p2
+///   dp2       parameter along p3-p4
+///   RC = -1   NO intersection.
+///   RC =  0   Yes; intersect; ps=p1; dp1=0;
+///   RC =  1   Yes; intersect; ps between p1-p2;
+///             dp1 ist der Abstandswert (0-1) des Schnittpunktes entlang p1-p2
+///   RC =  2   Yes; intersect; ps=p2; dp1=1;
+///   RC =  3   Lines parallel - Endpoints touch (not overlap). ps, dp1 unused.
+///   RC =  4   Lines parallel and overlap; ps, dp1 unused.
 /// \endcode
 
 //  (war:    Yes; overlap; all 4 point are on the same line; ps not used.
@@ -3564,6 +3572,34 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // UT3D_stru_dump(Typ_PT2, p4," p4 ");
 
 
+  //==================================================================
+  // boxtest
+
+  irc = -1;
+
+  lx1 = DMIN (p1->x, p2->x);
+  hx2 = DMAX (p3->x, p4->x);
+  // if((lx1 + tol) > (hx2 - tol)) goto L_fertig;
+  if(hx2 < lx1 - *tol) goto L_fertig;
+
+  lx2 = DMIN (p3->x, p4->x);
+  hx1 = DMAX (p1->x, p2->x);
+  // if((lx2 + tol) > (hx1 - tol)) goto L_fertig;
+  if(lx2 > hx1 + *tol) goto L_fertig;
+
+  ly1 = DMIN (p1->y, p2->y);
+  hy2 = DMAX (p3->y, p4->y);
+  // if((ly1 + tol) > (hy2 - tol)) goto L_fertig;
+  if(hy2 < ly1 - *tol) goto L_fertig;
+
+  ly2 = DMIN (p3->y, p4->y);
+  hy1 = DMAX (p1->y, p2->y);
+  // if((ly2 + tol) > (hy1 - tol)) goto L_fertig;
+  if(ly2 > hy1 + *tol) goto L_fertig;
+
+
+
+  //==================================================================
   UT2D_vc_2pt (&vc1, p1, p2);
   UT2D_vc_2pt (&vc2, p3, p4);
   UT2D_vc_2pt (&vcs, p1, p3);
@@ -3597,50 +3633,17 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // lines sind collinear (alle Punkte auf der gleichen Linie)
   L_collin:
 
-
-  // lines sind parallel. sind sie teilweise uebereinander ?
-  // Testen Box mit Tol
-  // d1 = fmax(p1->x, p2->x);
-  lx1 = DMIN (p1->x, p2->x);
-  hx1 = DMAX (p1->x, p2->x);
-  ly1 = DMIN (p1->y, p2->y);
-  hy1 = DMAX (p1->y, p2->y);
-  // printf(" bl1=%f %f %f %f\n",lx1,hx1,ly1,hy1);
-
-  lx2 = DMIN (p3->x, p4->x);
-  hx2 = DMAX (p3->x, p4->x);
-  ly2 = DMIN (p3->y, p4->y);
-  hy2 = DMAX (p3->y, p4->y);
-  // printf(" bl2=%f %f %f %f\n",lx2,hx2,ly2,hy2);
-
-  irc = -1;
-
-  if(lx2 > hx1+UT_TOL_pt) goto L_fertig;  // l2 ganz rechts
-  if(hx2 < lx1-UT_TOL_pt) goto L_fertig;  // l2 ganz links
-
-  if(ly2 > hy1+UT_TOL_pt) goto L_fertig;  // l2 ueber l1
-  if(hy2 < ly1-UT_TOL_pt) goto L_fertig;  // l2 unter l1
-
   // die Linien ueberlappen teilweise ..
   irc = 3;
 
   // *dp1 = 0.;
 
   // Tests ob Linien beruehren ..
-  if(fabs(hx1-lx2) < UT_TOL_pt) goto L_fertig;
-  if(fabs(hy1-ly2) < UT_TOL_pt) goto L_fertig;
+  if(fabs(hx1-lx2) < *tol) goto L_fertig;
+  if(fabs(hy1-ly2) < *tol) goto L_fertig;
 
   irc  = 4;   // Teilueberdeckung, nicht nur Beruehrung
   *dp1 = 1.;
-
-/* Tests ob Linien komplett ueberdecken ..
-  // zusaetzlich testen, ob alle 4 Punkte gleich sind
-  if(fabs(lx1-lx2) > UT_TOL_pt) goto L_fertig;
-  if(fabs(ly1-ly2) > UT_TOL_pt) goto L_fertig;
-
-  if(fabs(hx1-hx2) > UT_TOL_pt) goto L_fertig;
-  if(fabs(hy1-hy2) > UT_TOL_pt) goto L_fertig;
-*/
 
   goto L_fertig;
 
@@ -3654,7 +3657,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   d1 = (vc1.dx*vcs.dy - vc1.dy*vcs.dx) / qq;
   // printf(" d1=%f\n",d1);
 
-  if (fabs(d1) < UT_TOL_pt) goto L_collin;
+  if (fabs(d1) < *tol) goto L_collin;
 
   // parallel, aber nicht auf der gleichen Linie
   // Abstand ist > Tol; also keine Verbindung moeglich
@@ -3681,26 +3684,26 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // Endpunkte vergleichen
   if(d1 < 0.5) {              // SP bei p1 oder aussen
     if(d2 < 0.5) {            // SP bei p1 und p3; test p1=p3
-      if(fabs(p1->x - p3->x) > UT_TOL_pt) goto L_test_sp;
-      if(fabs(p1->y - p3->y) > UT_TOL_pt) goto L_test_sp;
+      if(fabs(p1->x - p3->x) > *tol) goto L_test_sp;
+      if(fabs(p1->y - p3->y) > *tol) goto L_test_sp;
       goto L_0;   // RC =  0   Yes; p1=p3;
 
     } else {                 // SP bei p1 und p4; test p1=p4
-      if(fabs(p1->x - p4->x) > UT_TOL_pt) goto L_test_sp;
-      if(fabs(p1->y - p4->y) > UT_TOL_pt) goto L_test_sp;
+      if(fabs(p1->x - p4->x) > *tol) goto L_test_sp;
+      if(fabs(p1->y - p4->y) > *tol) goto L_test_sp;
       goto L_0;   // RC =  0   Yes; p1=p4;
 
     }
 
   } else {                   // SP bei p2
     if(d2 < 0.5) {     // test p2=p3
-      if(fabs(p2->x - p3->x) > UT_TOL_pt) goto L_test_sp;
-      if(fabs(p2->y - p3->y) > UT_TOL_pt) goto L_test_sp;
+      if(fabs(p2->x - p3->x) > *tol) goto L_test_sp;
+      if(fabs(p2->y - p3->y) > *tol) goto L_test_sp;
       goto L_3;   // RC =  2   Yes; p2=p3;
 
     } else {           // test p2=p4
-      if(fabs(p2->x - p4->x) > UT_TOL_pt) goto L_test_sp;
-      if(fabs(p2->y - p4->y) > UT_TOL_pt) goto L_test_sp;
+      if(fabs(p2->x - p4->x) > *tol) goto L_test_sp;
+      if(fabs(p2->y - p4->y) > *tol) goto L_test_sp;
       goto L_4;   // RC =  2   Yes; p2=p4;
     }
   }
@@ -3717,8 +3720,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /*
   // ist ps naeher an p1 oder naeher an p2 ?
   if(d1 < 0.5) {               // PS bei p1
-    if(fabs(ps->x - p1->x) > UT_TOL_pt) goto L_m1;
-    if(fabs(ps->y - p1->y) > UT_TOL_pt) goto L_m1;
+    if(fabs(ps->x - p1->x) > *tol) goto L_m1;
+    if(fabs(ps->y - p1->y) > *tol) goto L_m1;
     goto L_0;   // RC =  0   Yes; ps=p1;
 */
 
@@ -3730,8 +3733,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
     if(d2 > 1.)  goto L_m1;
 
     // PS bei p1 und in p3-p4
-    if(fabs(ps->x - p1->x) > UT_TOL_pt) goto L_m1;
-    if(fabs(ps->y - p1->y) > UT_TOL_pt) goto L_m1;
+    if(fabs(ps->x - p1->x) > *tol) goto L_m1;
+    if(fabs(ps->y - p1->y) > *tol) goto L_m1;
     goto L_0;   // RC =  0   Yes; ps=p1;
 
 
@@ -3741,8 +3744,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
     if(d2 > 1.)  goto L_m1;
 
     // PS bei p2 und in p3-p4
-    if(fabs(ps->x - p2->x) > UT_TOL_pt) goto L_m1;
-    if(fabs(ps->y - p2->y) > UT_TOL_pt) goto L_m1;
+    if(fabs(ps->x - p2->x) > *tol) goto L_m1;
+    if(fabs(ps->y - p2->y) > *tol) goto L_m1;
     // der Schnittpunkt liegt auf l1 bei p2.
     goto L_2;   // RC =  2   Yes; ps=p2;
 
@@ -3751,26 +3754,26 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   } else {                    // PS innerhalb p1-p2
 
     if(d2 < 0.)  {            // PS in l1 bei p3
-      if(fabs(ps->x - p3->x) > UT_TOL_pt) goto L_m1;
-      if(fabs(ps->y - p3->y) > UT_TOL_pt) goto L_m1;
+      if(fabs(ps->x - p3->x) > *tol) goto L_m1;
+      if(fabs(ps->y - p3->y) > *tol) goto L_m1;
       goto L_3;   // RC =  1   Yes; ps=p3 between p1-p2
 
     } else if(d2 > 1.) {      // PS in l1 bei p4
-      if(fabs(ps->x - p4->x) > UT_TOL_pt) goto L_m1;
-      if(fabs(ps->y - p4->y) > UT_TOL_pt) goto L_m1;
+      if(fabs(ps->x - p4->x) > *tol) goto L_m1;
+      if(fabs(ps->y - p4->y) > *tol) goto L_m1;
       goto L_4;   // RC =  1   Yes; ps=p4 between p1-p2
 
 
     } else {                  // PS in l1 und in l2
                               // ps kann immer noch bei p1 od p2 liegen
       if(d1 < 0.5) {               // PS bei p1
-        if(fabs(ps->x - p1->x) > UT_TOL_pt) goto L_1;
-        if(fabs(ps->y - p1->y) > UT_TOL_pt) goto L_1;
+        if(fabs(ps->x - p1->x) > *tol) goto L_1;
+        if(fabs(ps->y - p1->y) > *tol) goto L_1;
         goto L_0;   // RC =  0   Yes; ps=p1;
 
       } else {                     // PS bei p2
-        if(fabs(ps->x - p2->x) > UT_TOL_pt) goto L_1;
-        if(fabs(ps->y - p2->y) > UT_TOL_pt) goto L_1;
+        if(fabs(ps->x - p2->x) > *tol) goto L_1;
+        if(fabs(ps->y - p2->y) > *tol) goto L_1;
         goto L_2;   // RC =  2   Yes; ps=p2;
       }
     }
@@ -3805,9 +3808,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   L_2:
   // RC =  2   Yes; ps=p2;
-  printf("L_2: %f %f\n",d1,d2);
-  printf("    l1=%f,%f  - %f,%f\n",p1->x,p1->y,p2->x,p2->y);
-  printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
+    // printf("L_2: %f %f\n",d1,d2);
+    // printf("    l1=%f,%f  - %f,%f\n",p1->x,p1->y,p2->x,p2->y);
+    // printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
   irc = 2;
   *dp1 = 1.;
   *dp2 = d2;
@@ -4741,6 +4744,14 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /// RC   1   v2 is CCW from v1  (pos. angle)
 /// RC   0   v1-v2 are parallel
 /// RC  -1   v2 is CW from v1   (neg. angle)
+/// 
+///              X
+///           v1/          1
+///            /
+/// ----------X---v2----------->  0
+///            
+///                
+///                       -1
 /// 
 /// see also UT2D_sidPerp_2vc
 /// \endcode
@@ -6232,6 +6243,61 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
 //=================================================================
+  int UT2D_srar_inpt (double *aro, int ptNr, int *ipa, Point2 *p2a)  {
+//=================================================================
+/// \code
+/// UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
+/// UT2D_srar_inpt                         nach Karl Sauer 2004-04-07
+/// Umlaufsinn (sr=sense of rotation) und Flaeche (ar=area) eines
+/// geschlossenen 2D-Polygons (polc) berechnen.
+///
+/// Input:
+///   ptNr   Anzahl PunktIndices ohne den letzten == ersten Punkt !
+///   ipa    Indexarray into pa;
+///   pa     PunkteTabelle
+/// Output:
+///   RetCod = 1 = CCW
+///           -1 = CW
+/// \endcode
+    
+  double   FLAE;
+  int      i1, i2, i3, ie, sr;
+    
+
+  FLAE = 0.;
+  ie   = ptNr-1;
+
+  for(i2=0; i2<ptNr; ++i2) {
+
+    if(i2 > 0) i1 = i2-1;
+    else       i1 = ie;
+
+    if(i2 < ie) i3 = i2+1;
+    else        i3 = 0;
+
+    // nun ist p1,p2,p3 ein Dreieck aus dem polygon pa von 3
+    // aufeinanderfolgenden Punkten; p2 ist der mittlere.
+    // FLAE += pa[i2].x * (pa[i3].y - pa[i1].y);
+    FLAE += p2a[ipa[i2]].x * (p2a[ipa[i3]].y - p2a[ipa[i1]].y);
+    // printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
+  }
+
+  if(FLAE < 0.) {
+    sr = -1;
+    *aro = FLAE / -2.;
+  } else {
+    sr = 1;
+    *aro = FLAE / 2.0;
+  }
+
+  // printf("ex UT2D_srar_inpt3 %d %f\n",sr,*aro);
+
+  return sr;
+
+}
+
+
+//=================================================================
   int UT2D_srar_inpt3 (double *aro, int ptNr, int *ipa, Point *pa)  {
 //=================================================================
 /// \code
@@ -6271,7 +6337,6 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     // printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
   }
 
-
   if(FLAE < 0.) {
     sr = -1;
     *aro = FLAE / -2.;
@@ -6280,13 +6345,54 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     *aro = FLAE / 2.0;
   }
 
-
-  printf("ex UT2D_srar_inpt3 %d %f\n",sr,*aro);
+  // printf("ex UT2D_srar_inpt3 %d %f\n",sr,*aro);
 
   return sr;
 
 }
 
+
+//=====================================================================
+  int UT2D_srar_3pt (double *aro, Point2 *p0, Point2 *p1, Point2 *p2) {
+//=====================================================================
+/// \code
+/// UT2D_srar_3pt             Umlaufsinn und Flaeche eines 2D-triangle
+/// UT2D_srar_3pt                          nach Karl Sauer 2004-04-07
+/// Umlaufsinn (sr=sense of rotation) und Flaeche (ar=area) eines
+/// geschlossenen 2D-Polygons (polc) berechnen.
+///
+/// Input:
+/// Output:
+///   RetCod = 1 = CCW
+///           -1 = CW
+/// \endcode
+
+  double   FLAE;
+  int      sr;
+
+
+  FLAE = 0.;
+
+  FLAE += p0->x * (p1->y - p2->y);
+  FLAE += p1->x * (p2->y - p0->y);
+  FLAE += p2->x * (p0->y - p1->y);
+
+
+  if(FLAE < 0.) {
+    sr = -1;
+    *aro = FLAE / -2.;
+  } else {
+
+    sr = 1;
+    *aro = FLAE / 2.0;
+  }
+
+  // printf("ex UT2D_srar_inpt3 %d %f\n",sr,*aro);
+
+  return sr;
+
+}
+ 
 
 /*
 //========================================================================
@@ -7159,7 +7265,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 /// \code
 /// UT2D_ar_3pt            get (signed) area of triangle
 ///
-/// see also UT2D_srar_inpt3 UFA_ar_fac
+/// see also UT2D_srar_inpt3 UFA_fac_srar
 /// \endcode
 
   double   d1;
@@ -7183,20 +7289,40 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 //======================================================================
 /// \code
 /// liegt p3 auf der Linie p1-p2 ?      (Tests mit UT_TOL_pt)
-/// po        nearest point on line; (NULL; not computed)
-/// RC = -1   NO; Point outside Line p1-p2
-/// RC =  0   Yes; p3=p1; po=p1.
-/// RC =  1   Yes; po between p1-p2
-/// RC =  2   Yes; p3=p2; po=p2.
+/// Output:
+///   po        nearest point on line; (NULL; not computed)
+///   retCod
+///        -1   NO; Point outside Line p1-p2
+///         0   Yes; p3=p1; po=p1.
+///         1   Yes; po between p1-p2
+///         2   Yes; p3=p2; po=p2.
 /// \endcode
 
+
   // int        irc;
-  double     dn, dl, l1;
+  double     dn, dl, l1, hx, lx, hy, ly;
   Vector2    vc1, vcs;
 
 
   // test ob voellig ausserhalb ..
-  if(UT2D_pt_ck_inBoxTol(p1,p2,p3,tol) == 1) return -1;
+  // if(UT2D_pt_ck_inBoxTol(p1,p2,p3,tol) == 1) return -1;
+
+  // hx = DMAX (p1->x, p2->x);
+  // if(hx < p3->x - tol) return -1;
+  if(DMAX (p1->x, p2->x) < p3->x - tol) return -1;
+
+  // lx = DMIN (p1->x, p2->x);
+  // if(lx > p3->x + tol) return -1;
+  if(DMIN (p1->x, p2->x) > p3->x + tol) return -1;
+
+  // hy = DMAX (p1->y, p2->y);
+  // if(hy < p3->y - tol) return -1;
+  if(DMAX (p1->y, p2->y) < p3->y - tol) return -1;
+
+  // ly = DMIN (p1->y, p2->y);
+  // if(ly > p3->y + tol) return -1;
+  if(DMIN (p1->y, p2->y) > p3->y + tol) return -1;
+
 
 
   // p3 = p1 ??

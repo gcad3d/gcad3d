@@ -243,9 +243,8 @@ typedef_MemTab(Point);
 
 //=============== extern glob. vars ======================
 // aus xa.c:
-extern  int      WC_modnr;              // Nr of the active submodel; -1=main.
-extern  int      WC_mod_stat;           // -1=primary Model is active;
-extern AP_STAT   AP_stat;                    // sysStat,errStat..
+extern int       WC_modact_ind;           // -1=primary Model is active;
+extern AP_STAT   AP_stat;                 // sysStat,errStat..
 extern ColRGB    AP_defcol;
 
 // aus ../ci/NC_Main.c:
@@ -2117,7 +2116,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // load pTab from bin.file; mallocs Ptab !
-  i1 = MSH_bload_pTab (&pTab, WC_modact, dbi);
+  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, dbi);
   if(i1 < 0) return -1;
   PtabNr = pTab.rNr;
     // printf(" PtabNr=%d\n",PtabNr);
@@ -2397,9 +2396,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     i1 = Tess_sur__ (oxi, att, apt_ind);
     if(i1 < 0) {
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
-      if(WC_mod_stat >= 0) {
+      if(WC_modact_ind >= 0) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(WC_mod_stat));
+        strcat(cBuf, DB_mdlNam_iBas(WC_modact_ind));
       }
       TX_Print(cBuf);
     }
@@ -2414,9 +2413,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     i1 = TSU_DrawSurT_ (oxi, att, apt_ind);
     if(i1 < 0) {
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
-      if(WC_mod_stat >= 0) {
+      if(WC_modact_ind >= 0) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(WC_mod_stat));
+        strcat(cBuf, DB_mdlNam_iBas(WC_modact_ind));
       }
       TX_Print(cBuf);
     }
@@ -2712,7 +2711,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //=======================================================================
-  void GR_DrawModel (long db_ind, int att, ModelRef *mdr) {
+  int GR_DrawModel (long db_ind, int att, ModelRef *mdr) {
 //=======================================================================
 
   int        irc, i1, loadMode;
@@ -2732,16 +2731,20 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   if(TSU_mode != 0) {       // 0=Normal 1=Store
     // printf(" DrawModel mit TSU_mode=Store %d\n",mdr->modNr);
-    TSU_exp_Mod (0, mdr);   // 2008-11-09
-    return;
+    return TSU_exp_Mod (0, mdr);   // 2008-11-09
   }
 
 
   mdb = DB_get_ModBas (mdr->modNr);
-  if(mdb == NULL) return;
-    // printf(" modNr %d ModelTyp=%d\n",mdr->modNr,mdb->typ);
-    // UT3D_stru_dump (Typ_SubModel, mdb, " mdb=");
-
+  if(mdb == NULL) return -1;
+/*
+// removed - xy.tess will be loaded later 
+  if(mdb->DLsiz < 1) {
+    // TX_Error("GR_DrawModel E001 M%ld\n",db_ind);
+    TX_Print("**** M%ld - Model %s empty .. \n",db_ind, mdb->mnam);
+    return -1;
+  }
+*/
 
 
   //==== Mockup ====================================================
@@ -2768,7 +2771,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // extract filetype.
   irc = UTX_ftyp_s (ftyp, ffnam, 1);
-  if(irc < 0) {TX_Print("GR_DrawModel FileType not found"); return;}
+  if(irc < 0) {TX_Print("GR_DrawModel FileType not found"); return irc;}
     // printf(" ftyp=|%s|\n",ftyp);
 
 
@@ -2804,15 +2807,15 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // Load DLL; filename = xa_<fileType>_r.so
     irc = DLL_run1 (0, ffnam);
-    if(irc < 0) return;
+    if(irc < 0) return irc;
 
     // load Model --> impSpc
     irc = DLL_run1 (2, oTab);
-    if(irc < 0) return;
+    if(irc < 0) return irc;
 
     // unload DLL   2009-06-06
     irc = DLL_run1 (3, NULL);
-    if(irc < 0) return;
+    if(irc < 0) return irc;
 
     // save tesselated data in xa/temp for next run
     tess_write__ (mnam, impSpc.start);
@@ -2822,6 +2825,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // draw
   L_mock_draw:
+    // UT3D_stru_dump (Typ_SubModel, mdb, "  mdb-1:");
+
   dli = DL_StoreObj (Typ_Ditto, 0L, 0);
   DL_unvis_set (dli, 1);         // make Basemodel unvisible
     // removed 2012-01-18 - crashes with import .tss - files
@@ -2873,7 +2878,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     GL_DrawDitto1 (&dli,&mdr->po,&mdb->po,az1,ay,az2,mdr->scl,
                    mdb->DLsiz,mdb->DLind);
 
-  return;
+  return irc;
 
 
 
@@ -2891,7 +2896,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // DL_unvis_set (dli, 1);  // 2014-09-13
 
 
-  return;
+  return 0;
 
 }
 

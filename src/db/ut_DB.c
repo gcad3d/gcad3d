@@ -688,6 +688,10 @@ Vector     DB_vc0;
 
   // printf ("-----------------------DB_Init %d -----------\n",mode);
 
+  if(mode == 0) {
+    DB_allocModNam (0);
+    DB_allocModBas (0);
+  }
 
 
   // reset Inhalt, nicht Size.
@@ -746,9 +750,6 @@ Vector     DB_vc0;
   DB_JNT_IND = 0;   // reset last used jointNr
 
 
-  DB_allocModNam (0);
-  DB_allocModBas (0);
-
 
   vr_tab[0] = 0.; // f. UI_disp_vec2
 
@@ -796,7 +797,7 @@ Vector     DB_vc0;
 
 
 //=======================================================================
-  int DB_save__ () {
+  int DB_save__ (char *mNam) {
 //=======================================================================
 /// gesamte DB -> Datei raus
 // die Felder muessen schon die erfolderliche Groesse haben; sonst waere
@@ -805,16 +806,21 @@ Vector     DB_vc0;
 
   int    i1;
   long   fSiz;
-  char   fnam[256];
+  char   fnam[256], s1[128];
   FILE   *fp1;
 
 
-  sprintf(fnam, "%sDB.dat",OS_get_tmp_dir());
-  // printf("DB_save__ |%s|\n",fnam);
+
+  strcpy(s1, mNam);
+  // change all '/' of mNam into '_' - else no correct filename possible
+  UTX_safeName (s1, 2);
+
+  sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),s1);
+    // printf("DB_save__ |%s|\n",fnam);
 
 
   if((fp1=fopen(fnam,"wb")) == NULL) {
-    TX_Print("DB_save__ E001\n",fnam);
+    TX_Print("DB_save__ E001-%s\n",fnam);
     return -1;
   }
 
@@ -863,6 +869,7 @@ Vector     DB_vc0;
   if(APT_VC_IND > 0)
   fwrite(vc_tab, sizeof(Vector), APT_VC_IND+1, fp1);
 
+    // printf(" APT_LN_IND=%ld APT_LN_SIZ=%ld\n",APT_LN_IND,APT_LN_SIZ);
   fwrite(&APT_LN_IND, sizeof(long), 1, fp1);
   if(APT_LN_IND > 0)
   fwrite(ln_tab, sizeof(Line), APT_LN_IND+1, fp1);
@@ -968,18 +975,24 @@ Vector     DB_vc0;
 
 
 //=======================================================================
-  int DB_load__ () {
+  int DB_load__ (char *mNam) {
 //=======================================================================
 /// gesamte DB aus Datei einlesen
 
   int  i1;
   long fSiz, l1;
-  char fnam[256];
+  char fnam[256], s1[128];
   FILE *fp1;
 
 
-  sprintf(fnam, "%sDB.dat",OS_get_tmp_dir());
+  strcpy(s1, mNam);
+  // change all '/' of mNam into '_' - else no correct filename possible
+  UTX_safeName (s1, 2);
+
+
+  sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),mNam);
     // printf("DB_load__ |%s|\n",fnam);
+
 
   if((fp1=fopen(fnam,"rb")) == NULL) {
     TX_Print("DB_load__ E001\n",fnam);
@@ -1037,6 +1050,7 @@ Vector     DB_vc0;
   if(APT_LN_IND > 0)
   fread(ln_tab, sizeof(Line), APT_LN_IND+1, fp1);
   for(l1=APT_LN_IND+1; l1<APT_LN_SIZ; ++l1) DB_setFree_LN(l1);
+    // printf(" APT_LN_IND=%ld APT_LN_SIZ=%ld\n",APT_LN_IND,APT_LN_SIZ);
 
   fread(&APT_CI_IND, sizeof(long), 1, fp1);
   if(APT_CI_IND > 0)
@@ -3428,7 +3442,8 @@ int DB_del_Mod__ () {
 //======================================================================
 /// DB_get_ModRef      get Ditto from Index
 
-  // printf("DB_get_ModRef %d\n",Ind);
+
+  // printf("DB_get_ModRef %ld from %ld\n",Ind,APT_MR_SIZ);
 
 
   if((Ind < 0)||(Ind >= APT_MR_SIZ)) {
@@ -3443,6 +3458,7 @@ int DB_del_Mod__ () {
     return &mdr_tab[0];
   }
 
+    // UT3D_stru_dump (Typ_Model, &mdr_tab[Ind], "mr:");
 
   return &mdr_tab[Ind];
 
@@ -3977,7 +3993,7 @@ int DB_del_Mod__ () {
   long    dlBis;
   
 
-  // printf("DB_del_ModBas %d\n",ind);
+  // printf("XXXXXXXXXXXXXXXXXXXXXXX DB_del_ModBas %ld\n",ind);
 
   for(i1=DYN_MB_IND-1; i1>=0; --i1) {
     // printf("  %d DLind=%d DLsiz=%d\n",i1,mdb_dyn[i1].DLind,mdb_dyn[i1].DLsiz);
@@ -4201,7 +4217,7 @@ loop tru all nodes; testbm=node[i1].mod;
 
 
 //======================================================================
-  int DB_StoreModBas (int mode, char *newNam) {
+  int DB_StoreModBas (int mdlTyp, char *newNam) {
 //======================================================================
 /// \code
 /// check if SubModel exists. If not: create a new mdb_dyn-Record.
@@ -4209,29 +4225,36 @@ loop tru all nodes; testbm=node[i1].mod;
 /// Add name also to mdb_dyn (if not yet present).
 ///
 /// Input:
-///  mode =  0: reset den Name-Buffer (init)
-///  mode = -2 = catalog-model
-///  mode =  1 = internal model
-///  mode =  2 = external model
-///  mode =  3 = MockupModel
-///  mode =  4 = Image-BMP
+///  newNam     modelName;   NULL=delete all basicModels and modelNames 
+///  mdlTyp    0: reset den Name-Buffer (init/delete)
+///           -2 = catalog-model
+///            1 = internal model
+///            2 = external model
+///            3 = MockupModel
+///            4 = Image-BMP
 /// Output:
 ///  RC = ModelNumber; -1 = Error.
 /// \endcode
+
+// BasicModels are stored in mdb_dyn; modelType (mode), 
+//   first index in DL and nr of dl-records.
+// Modelnames are stored in mdb_nam
+
 
 
   int  modNr, iLen;
   char *cp1;
 
 
-  // printf("DB_StoreModBas mode=%d |%s| i=%ld\n",mode,newNam,DYN_MB_IND);
+  // printf("DB_StoreModBas mdlTyp=%d |%s| DYN_MB_IND=%ld\n",
+         // mdlTyp,newNam,DYN_MB_IND);
 
 
-  // if(mode == 0) {     // INIT
-  if(newNam == NULL) {     // INIT
-    DYN_MB_IND = 0;
-    DB_MNM_IND = 0;
-    goto L_fertig;
+  // if(mdlTyp == 0) {     // INIT
+  if(newNam == NULL) {   // INIT
+    DYN_MB_IND = 0;        // basicModels
+    DB_MNM_IND = 0;        // modelNames
+    return 0;
   }
 
 
@@ -4272,10 +4295,11 @@ loop tru all nodes; testbm=node[i1].mod;
 
 
   // BasModel-record noch leer;
-  mdb_dyn[modNr].typ    = mode;
+  mdb_dyn[modNr].typ    = mdlTyp;
   mdb_dyn[modNr].DLind  = -1;
   mdb_dyn[modNr].DLsiz  = -1;
   mdb_dyn[modNr].seqNr  = 0;
+  mdb_dyn[modNr].po     = UT3D_PT_NUL;
 
 
   L_fertig:
@@ -4294,12 +4318,14 @@ loop tru all nodes; testbm=node[i1].mod;
 // beim abfragen aller names wird Ind einfach incrementiert ..
 
 
-  // printf("DB_get_ModBas %d von %d\n",Ind,DYN_MB_IND);
+  // printf("DB_get_ModBas %ld von %ld\n",Ind,DYN_MB_IND);
 
   if((Ind < 0)||(Ind >= DYN_MB_IND)) {
     // TX_Error("DB_get_ModBas E001 %d",Ind);
     return NULL;
   }
+
+    // UT3D_stru_dump (Typ_SubModel, &mdb_dyn[Ind], "mb:");
 
   return &mdb_dyn[Ind];
 
@@ -4351,13 +4377,13 @@ loop tru all nodes; testbm=node[i1].mod;
   // AP_dump_statPg ("DB_get_ModNr: ");
 
 
-  // printf("DB_get_ModNr |%s| %d\n",modNam,DYN_MB_IND);
+  // printf("DB_get_ModNr |%s| %ld\n",modNam,DYN_MB_IND);
   // DB_dump_ModBas();
   
 
   // check if modNam is ModelID ("M20");
   if(modNam[0] == 'M') {
-
+    // test modNam, return dbi
     i1 = APED_dbo_oid (&typ, &ind, modNam);
     if(i1 != 0) goto L_decode_1;
 

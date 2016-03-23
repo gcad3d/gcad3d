@@ -98,10 +98,10 @@ TESTMODELS:
 #include "../xa/xa_ga.h"                  // GA_tex_ga2tr
 
 
-typedef_MemTab(int);
+// typedef_MemTab(int);
+// typedef_MemTab(char);
+// typedef_MemTab(Point);
 typedef_MemTab(IndTab);
-typedef_MemTab(char);
-typedef_MemTab(Point);
 typedef_MemTab(SegBnd);
 typedef_MemTab(BndSur);
 

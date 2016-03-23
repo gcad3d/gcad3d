@@ -6,7 +6,7 @@
 # set EDITOR = name of script-file with editor-call
 # echo "vim -N -u ~/.vimrc $*" > ~/vim.sh
 #EDITOR=~/vim/vi
-EDITOR=/mnt/serv1/Linux/bin/vi
+EDITOR=${DIR_BIN}'vi.sh'
 export EDITOR
 
 

@@ -371,6 +371,8 @@ UTO_obj_trim
 /// xSpc  is char[OBJ_SIZ_MAX]; Typ_LN: struct Line;  else struct ObjGX
 /// sTab *long-Liste von APT-Surfs, Anzahl sNr
 /// Input:
+///   sTyp    list of Typ_SUR|Typ_SOL
+///   sTab    list of DBi's
 ///   imod    solutionNr; 0=nur_erstes, 1=nur_zweites usw
 ///   outTyp  solltyp out: Typ_CVBSP (10) | Typ_CVPOL (8)
 /// Output:

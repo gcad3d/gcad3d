@@ -341,18 +341,23 @@ extern AP_STAT   AP_stat;
 
 // Vars fuer die Applikation:
 // char      WC_modnam[128];     ///< active Modelname - without path
-// char      WC_modact[128];     ///< name of the active submodel; def=""(main)
+// char      WC_modact_nam[128];     ///< name of the active submodel; def=""(main)
 
-int       WC_modnr = -1;         ///< the Nr of the active submodel; -1 = main.
+// int       WC_modact_ind = -1;         ///< the Nr of the active submodel; -1 = main.
 // the Nr of the active submodel; -1 = main;
 // 0-n: the SubModel is the primary Model ( = is displayed).
 
-int       WC_mod_stat = -1;      ///< -1=primary Model is active;
-// -1: at the moment the primary Model is active;
-// else a subModel is being created
+int       WC_modact_ind = -1;
+// -1=primary Model is active (can also be a submodel);
+// else a subModel is being created.
+// While loading subModels WC_modact_ind is the index of the basicModel of the
+//   subModel being loaded.
+//   After all subModels have been loaded WC_modact_ind = -1.
+// Diplaylist (DL_Att*) GR_ObjTab[].modInd gives the basicModel-index.
+
          
 Point     WC_mod_ori;            ///< der Model-Origin
-Plane     WC_sur_act;            ///< die fuer Definition (zB P10=0,0) aktive Plane
+Plane     WC_sur_act;            ///< the active construction-plane
 double    WC_sur_Z =  0.0;       ///< active Z-value of WC_sur_sur;
 int       WC_sur_ind = 0;        ///< Der Index auf die ActiveConstrPlane
 Mat_4x3   WC_sur_mat;            ///< TrMat of ActiveConstrPlane
@@ -369,7 +374,7 @@ ColRGB    AP_actcol;             ///< the active color ..
 ColRGB    AP_defcol;             ///< die DefaultColor des aktiven (sub)Model
 int       AP_indCol;             ///< der DL-Index der aktuellen defCol
 
-int        WC_stat_bound = OFF;  ///<  ON OFF; Draw boundary of Flächen J/N
+int       WC_stat_bound = OFF;   ///<  ON OFF; Draw boundary of Flächen J/N
 /*
 
 // double    APT_min_dist, WC_ModSiz=300.;
@@ -425,14 +430,14 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 //================================================================
 // AP_dump_statPg      dump active subModel, active lineNr
 
-// WC_modnr     // the Nr of the active submodel; -1 = main.
-// WC_mod_stat  // -1=primary Model is active; else subModel is being created
-// WC_modact    // name of the active submodel; def="" (main)
+// WC_modact_ind     // the Nr of the active submodel; -1 = main.
+// WC_modact_ind  // -1=primary Model is active; else subModel is being created
+// WC_modact_nam    // name of the active submodel; def="" (main)
 
 
 
-  printf("%s WC_modnr=%d WC_mod_stat=%d WC_modact=|%s|\n",txt,
-          WC_modnr,WC_mod_stat,WC_modact);
+  printf("%s WC_modact_ind=%d WC_modact_nam=|%s|\n",txt,
+          WC_modact_ind, WC_modact_nam);
 
   printf(" APT_line_act=%d UP_level=%d\n",APT_line_act,UP_level);
 
@@ -1032,7 +1037,7 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 
 
     strcpy(WC_modnam, "unknown");
-    Mod_init__ (); // WC_modact='\0'; WC_modnr=-1;
+    Mod_init__ (); // WC_modact_nam='\0'; WC_modact_ind=-1;
 
     // - alle tmp/Model_* loeschen
     Mod_kill__ ();
@@ -1985,18 +1990,22 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
-  int AP_Init2 () {
+  int AP_Init2 (int dbMode) {
 //================================================================
 /// clear DB & DL
+//  Input:
+///   dbMode   0: komplettes Init (alles)
+///            1: alles ausser basicModels initialisieren
+///            2: nur dyn-objects resetten
 
 
   // init ModelNodes
-  DB_StoreModNod (0,0,-1L);
+  DB_StoreModNod (0, 0, -1L);
 
   // reset DB
-  DB_Init(0);
+  DB_Init (dbMode);
 
-  APT_Init(); // nur f. APT_line_act=0 f. Typ_Color-Record
+  APT_Init (); // nur f. APT_line_act=0 f. Typ_Color-Record
 
   // reset DL
   GR_Init1 ();

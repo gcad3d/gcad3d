@@ -96,12 +96,19 @@ int  pa64[] = {17,23,25,60};
   int main (int paranz, char** argv) {
 //=======================================================================
 
-  int     ipos0, ipos1, iBit, *ipa;
+  int     ii, ipos0, ipos1, iBit, *ipa;
   char    *lp,  cadExe[256], guiExe[256], line[256], wSiz[8], ftyp, *ps, *cp1;
+  char    sOutfile[128];
   FILE    *fpi, *fpo;
 
 
-  printf("--------- gendef ----------------\n");
+  printf("--------- gendef %d -------------\n",paranz);
+  if(paranz < 4) {
+    printf("ERROR: parameter 1 = outfile missing\n");
+    printf("ERROR: parameter 2 = infile missing\n");
+    return -1;
+  }
+
 
   if(sizeof(void*) < 5) {
     printf(" 32-bit-System -\n");
@@ -114,33 +121,33 @@ int  pa64[] = {17,23,25,60};
   }
 
 
-
-  cp1 = getenv ("HOME");
-    printf(" home=%s\n",cp1);
-
-
-  // cadExe = get filename of gcad3d-executable
-  sprintf(cadExe, "%s/gCAD3D/binLinux%d/gCAD3D",cp1,iBit);
-
-
-  // guiExe = get filename of gui-dll
-  sprintf(guiExe, "%s/gCAD3D/binLinux%d/xa_gui.so",cp1,iBit);
-
-
   sprintf(wSiz, "%ld", sizeof(long) * 8);
     // printf(" wSiz |%s|\n",wSiz);
 
-  sprintf(line, "objdump -t %s > t1",cadExe);
-    printf(" system |%s|\n",line);
-  system(line);
-    // exit(0);
 
-  sprintf(line, "objdump -t %s >> t1",guiExe);
-    printf(" system |%s|\n",line);
-  system(line);
-    // exit(0);
+  // 1. par = outfile
+  strcpy(sOutfile, argv[1]);
+    printf(" out |%s|\n",sOutfile);
+
+  system("/bin/rm -f t1");
+
+  ii = 2;
 
 
+  //================================================================
+  L_nxt:
+      printf(" arg-%d |%s|\n", ii, argv[ii]);
+    sprintf(line, "objdump -t %s >> t1", argv[ii]);
+      printf(" system |%s|\n",line);
+    system(line);
+
+    ++ii;
+    if(ii < paranz) goto L_nxt;
+
+
+
+  //================================================================
+  // filtern
   if((fpi=fopen("t1","r")) == NULL) {
     printf("****** OPEN ERROR FILE t1 **********\n");
     return -1;
@@ -255,18 +262,19 @@ int  pa64[] = {17,23,25,60};
   fclose(fpo);
   fclose(fpi);
 
-  // t2 sortieren, "EXPORTS" vorne ran = xa.def
-  system("echo EXPORTS > gCAD3D.def");
-  // system("sort t2 >> xa.def");
-  system("sort t2 >> gCAD3D.def");
+  // t2 sortieren, "EXPORTS" vorne ran
+  sprintf(line, "echo EXPORTS > %s", sOutfile);
+  system(line);
+  sprintf(line, "/usr/bin/sort t2 >> %s", sOutfile);
+  system(line);
 
 
   // 4) t1 t2 loeschen, fertig.
   // system("rm t1 t2");
 
 
-  printf(">>>>>>>>>> file gCAD3D.def created <<<<<<<<<<<<<<<<\n");
-  system("ls -l gCAD3D.def");
+  printf(">>>>>>>>>> file %s created <<<<<<<<<<<<<<<<\n",sOutfile);
+  // system("ls -l gCAD3D.def");
 
 
 

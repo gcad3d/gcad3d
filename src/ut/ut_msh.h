@@ -15,10 +15,10 @@ typedef struct {int *ipt; int *inf;}                                Face;
 
 
 /// \code
-/// ipt:  index points; 3 or 4
-/// inf:  index neighbor-faces; 3 or 4
+/// i1,i2,i3   index points
+/// st         status face
 /// \endcode
-typedef struct {int i1, i2, i3;}                                    Fac3;
+typedef struct {int i1, i2, i3, st;}                                Fac3;
 
 
 /// \code
@@ -56,11 +56,7 @@ typedef struct {int i1, i2;}                                        Edg3;
 /// \code
 ///  iNr    nr of objects in ia
 ///  ia     Indexes into pointTable
-///  typ    TYP_EDGLN_BL   2 EdgeLine (BreakLine)
-///         TYP_EDGLN_IB   3 InnerBound
-///         TYP_EDGLN_OB   4 OuterBound
-///         TYP_EDGLN_AB   5 OuterBound - automatic created
-///         TYP_EDGLN_FAC  6 faces (eg from GLU)
+///  typ    TYP_EDGLN_*    see ../ut/ut_tin.h
 ///  aux    for TYP_EDGLN_FAC: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 /// \endcode
 typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
@@ -166,5 +162,10 @@ void   UT3D_tria_pta_fac(Triangle*, Fac3*, Point*);
  (tri)->pa[2] = &(pTab)[(fac)->i3];}
 
 
+
+
+// prototypes:
+int MSH_ERR__ (int errTyp, ...);
+int MSH_dump_fTab (Fac3 *fa, int fNr, char *txt, ...);
 
 /// EOF

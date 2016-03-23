@@ -28,7 +28,7 @@ REM Version
 set /p swVers= < ..\src\gcad_version
 set osVer=win32
 
-set packer=%ProgramFiles%\NSIS\MakeNSIS.exe
+set packer="%ProgramFiles%\NSIS\makensis.exe"
 
 if not exist %packer% (
   echo File %packer% does not exist; install and fix path.

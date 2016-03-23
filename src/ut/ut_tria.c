@@ -1520,7 +1520,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
     UT3D_vc_2pt (&vx, &lnt->p1, &lnp->p1);
       // GR_Disp_vc (&vx, &plt.po, 9, 0);
     if(irc == 8) {
-      *aDiff = UT3D_angr_2vc (&vx, &plt.vz);
+      *aDiff = UT3D_angr_2vc__ (&vx, &plt.vz);
     } else {   // irc=1; Kante beruehrt genau.
       *aDiff = 0.;
     }

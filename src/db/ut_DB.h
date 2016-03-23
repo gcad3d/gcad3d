@@ -163,8 +163,8 @@ int    DB_Typ_Char      (char*);
 char*  DB_mdlNam_iBas   (int bmNr);
 
 void   DB_Stat          ();
-int    DB_save__ ();
-int    DB_load__ ();
+int    DB_save__        (char *mNam);
+int    DB_load__        (char *mNam);
 long   DB_dyn__         (int mode, int typ, long ind);
 
 

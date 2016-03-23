@@ -3,7 +3,8 @@
 DLLNAM = xa_dxf_w
 
 SRC1 =\
- ../exp/dxf_w.c
+ ../exp/dxf_w.c\
+ ../exp/dxf_ut.c
 
 DIRSRC1 = ../exp/:../gr/
 

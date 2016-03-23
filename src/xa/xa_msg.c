@@ -947,7 +947,7 @@ static char   MSG_buf[MSG_bSiz];
 
 
 
-  printf("MSG_lng_init %d\n",*lngNr);
+  // printf("MSG_lng_init %d\n",*lngNr);
 
 
   //----------------------------------------------------------------
@@ -961,16 +961,16 @@ static char   MSG_buf[MSG_bSiz];
 
 
   ii = strlen (cbuf1);
-    printf(" _scan_- %d |%s|\n",ii,cbuf1);
+    // printf(" _scan_- %d |%s|\n",ii,cbuf1);
 
   iNr = 0;
   OS_dir_scan_ (cbuf1, &iNr);   // Init
-    printf(" _scan_%d |%s|\n",ii,cbuf1);
+    // printf(" _scan_%d |%s|\n",ii,cbuf1);
 
   lNr = 0;
   for(;;)  {
     OS_dir_scan_ (cbuf1, &iNr);
-      printf(" _scan_%d |%s|\n",iNr,cbuf1);
+      // printf(" _scan_%d |%s|\n",iNr,cbuf1);
     if(iNr < 0) break;
     p1 = strstr (&cbuf1[ii], "msg_");
     if(!p1) continue;
@@ -983,14 +983,14 @@ static char   MSG_buf[MSG_bSiz];
     // extract & copy language-code
     strncpy (lngCode[lNr], p1, 2);
     lngCode[lNr][2] = '\0';
-      printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
+      // printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
 
 
     // - get value of LANG__ of all files
     MSG_Init (lngCode[lNr]);
     // p1 = MSG_get_str ("LANG__");
     strcpy (lngName[lNr], MSG_get_str ("LANG__"));
-      printf(" lang = |%s|\n",lngName[lNr]);
+      // printf(" lang = |%s|\n",lngName[lNr]);
 
 
     ++lNr;

@@ -2,6 +2,7 @@
 :: Ohne @echo in erster zeile wird nix kompiliert !!??
 :: make gCAD3D for MS-Win/Visual-C-Compiler.
 :: to update def-file execute ./gendef before.
+:: VS-2010; "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
 
 echo "do complete          // do all following"
 echo "do delObj            // delete all objects"

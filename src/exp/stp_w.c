@@ -1235,7 +1235,10 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     
   for(l1=0; l1<gr_ind; ++l1) {
 
-    dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    // dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    irc = DL_get_dla (&dla, l1);                      // get alle DL-Infos
+    if(!irc) continue;
+
     if(dla.disp   == OFF) continue;           // skip hidden obj's
 
     apt_typ = dla.typ;
@@ -1295,7 +1298,9 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   for(l1=0; l1<gr_ind; ++l1) {
 
-    dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    // dla = DL_GetAtt(l1);                      // get alle DL-Infos
+    irc = DL_get_dla (&dla, l1);  
+    if(!irc) continue;
     if(dla.disp   == OFF) continue;           // skip hidden obj's
 
     apt_typ = dla.typ;

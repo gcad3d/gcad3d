@@ -33,6 +33,7 @@ Offen Import:
 
 -----------------------------------------------------
 Modifications:
+2016-03-11 INSERT 210,220,230=z-vector. RF.
 2015-01-07 ACAD_PROXY_ENTITY. RF.
 2013-05-13 SPLINE added. RF.
 2004-11-12 DIMENSION, LWPOLYLINE zu. RF.
@@ -53,6 +54,7 @@ List_functions_start:
 DXF_r__            mainEntry
 dxfr_rec__         read next record
 dxf_r_src_out      translate obj & export obj
+dxfr_out_txt       create gcad-obj txt
 
 dxf_ckFileFormat   .
 dxfr_init          open, skip until ENTITIES-section
@@ -62,7 +64,6 @@ dxfr_section_skip  skip unsupported sections
 dxfr_block_skip    skip unsupported blocks
 dxfr_rec_read      read next 2 lines
 dxfr_tra_arc       transform circle
-dxfr_load_mat      TrMat from vec
 dxf_log            display Logmessages
 dxf_ac_bulge_2pt   create 2D-cirle from bulge-value and 2 points
 
@@ -163,7 +164,8 @@ Die folgenden Entities haben alle Recordtyp (= erste Zeile) 0. Es folgt dann als
            EndOfBlock = ENDBLK
            66=AttribsFollowFlag(1=Yes; Atribs end with SEQEND).
            blocks  (mit ASHADE und AVE_RENDER, ... glass.dxf) dzt skippen.
-  ATTRIB   ein Textattribut; im Anschluss an INSERT, Ende mit SEQEND.
+  ATTRIB   ein Textattribut; im Anschluss an INSERT,
+           Ende mit SEQEND oder einem neuen ATTRIB.
            10,20,30=textPosition; 40=textHeight;  2=AttributeID; 1=Value;
            41=relativeScale;  50=Angle
   VERTEX   Pos (10/20/30) fuer zB POLYLINE
@@ -573,7 +575,6 @@ char *dxf_NamTab[]={"POINT",    "VERTEX",    "LINE",     "CIRCLE", "ARC",
 
 static  int    dxf_siz_linbuf;
 static  char   *dxf_linbuf, dxf_numbuf[64], BlockNam[80], *dxf_ptr;
-static  char   dxf_text[256];
 static  int    dxf_rectyp;
 
 static  long   dxf_LineNr;           // ZeilenNr Inputfile
@@ -592,6 +593,11 @@ static  ObjGX  dxf_ox1;             // f.3DFACE
 static  int    dxf_blk_lev, dxf_blk_tab[10];
 
 static  int    dxf_iTra = 0;        // 0=no translation; 1=apply transf.
+
+// values 
+static  char   dxfr_s_1[256];      //  1       text
+static  double dxfr_d_40;          // 40
+static  Point  dxfr_pta_10[10];    // 10-39    points
 
 // static  FILE *dxf_auxFilLun;
 
@@ -739,7 +745,6 @@ static  int    dxf_unsupp[8];
 
 
     if(dxf_iTra == 0) {
-      dxf_iTra = 1;
       TX_Print("Model out of ModelSize - translated");
 /*
       UT3D_pl_XYZ (&plOff);
@@ -754,6 +759,12 @@ static  int    dxf_unsupp[8];
       UT3D_vc_invert (&vc1, &vc1);
       // UT3D_stru_dump (Typ_VC, &vc1, "transl.Vec:");
       UTRA_def__ (1, Typ_VC, &vc1);
+      // report the transl.Vec to the user
+      sprintf(mem_cbuf1,"# DXF-IMPORT-TRANSLATION-VECTOR:");
+      UTF_add1_line (mem_cbuf1);
+      OGX_SET_OBJ (ox1, Typ_VC, Typ_VC, 1, &vc1); // ox1 < vc1
+      dxf_r_src_out (ox1);
+      dxf_iTra = 1;
     }
 
     // $EXTMIN 1.000000E+20         $EXTMAX -1.000000E+20
@@ -776,7 +787,7 @@ static  int    dxf_unsupp[8];
 
 
   //---------------------------------------------------------
-  for(i1=0; i1<250000; ++i1) {
+  for(i1=0; i1<1000000; ++i1) {
       // printf("DXF_r__ ===== next: =====\n");
 
     UME_init (&wrkSpc, memspc501, sizeof(memspc501));
@@ -802,32 +813,14 @@ static  int    dxf_unsupp[8];
       UtxTab_add_uniq__ (&namTab, mr->mnam);
     }
 
-
-/*
-    // Objekt translieren
-    if(dxf_iTra == 1) {
-      // ox2 = (ObjGX*)memspc52;
-      // irc = UTO_ox_tra (&ox2, ox1, trOff);
-      UME_init (&wrk1Spc, memspc101, sizeof(memspc101));
-      ox2 = (ObjGX*)memspc102;
-      oSiz = sizeof(memspc102);
-      irc = UTRA_app_obj (ox2, &oSiz, ox1, wrk1Spc);
-      if(irc < 0) continue;      // Error
-      ox1 = (ObjGX*)memspc102;
-    }
-
-
-    // Objekt in Text umwandeln
-    irc = AP_obj_2_txt (mem_cbuf1, mem_cbuf1_SIZ, ox1, -1);
-*/
     // Objekt in Text umwandeln & via UTF_add1_line ausgeben
     irc = dxf_r_src_out (ox1);
     if(irc == -1) {iaErr[0] += 1; continue;}      // Error
     if(irc == -2) goto FERTIG;   // grober Fehler
 
 
-    Next_Obj:;
-
+    Next_Obj:
+    continue;
   }
 
 
@@ -995,19 +988,19 @@ static  int    dxf_unsupp[8];
     goto L_go;
   }
 
-  if(fgets(dxf_text, 256, fpi) == NULL) goto L_clo;
-  if(atoi(dxf_text) != 0) goto L_clo;
+  if(fgets(dxfr_s_1, 256, fpi) == NULL) goto L_clo;
+  if(atoi(dxfr_s_1) != 0) goto L_clo;
 
-  if(fgets(dxf_text, 256, fpi) == NULL) goto L_clo;
-  UTX_CleanCR(dxf_text);
-  if(strcmp(dxf_text,"SECTION")) goto L_clo;
+  if(fgets(dxfr_s_1, 256, fpi) == NULL) goto L_clo;
+  UTX_CleanCR(dxfr_s_1);
+  if(strcmp(dxfr_s_1,"SECTION")) goto L_clo;
 
-  if(fgets(dxf_text, 256, fpi) == NULL) goto L_clo;
-  if(atoi(dxf_text) != 2) goto L_clo;
+  if(fgets(dxfr_s_1, 256, fpi) == NULL) goto L_clo;
+  if(atoi(dxfr_s_1) != 2) goto L_clo;
 
-  if(fgets(dxf_text, 256, fpi) == NULL) goto L_clo;
-  UTX_CleanCR(dxf_text);
-  if(strcmp(dxf_text,"HEADER")) goto L_clo;
+  if(fgets(dxfr_s_1, 256, fpi) == NULL) goto L_clo;
+  UTX_CleanCR(dxfr_s_1);
+  if(strcmp(dxfr_s_1,"HEADER")) goto L_clo;
 
   irc = 0;
 
@@ -1423,39 +1416,42 @@ static  int    dxf_unsupp[8];
 //=======================================================================
   int dxfr_rec__ (ObjGX **el, FILE *fp_in, FILE *fp1, Memspc *wrkSpc)
 //=======================================================================
-/*
-Naechsten Datenrecord aus DXF-Datei einlesen
-Der Headerrecord (0/POINT oder 0/LINE) .. ist schon in dxf_rectyp/dxf_linbuf,
-  weil man ja nur nach dem Einlesen des naechsten Headerrecord den aktuellen
-  ausgeben kann.
+// return next object as ObjGX**; read from file fp_in.
+// Naechsten Datenrecord aus DXF-Datei einlesen
+// Der Headerrecord (0/POINT oder 0/LINE) .. ist schon in dxf_rectyp/dxf_linbuf,
+//   weil man ja nur nach dem Einlesen des naechsten Headerrecord den aktuellen
+//   ausgeben kann.
+// 
+// Input:
+//   dxf_rectyp/dxf_linbuf  global
+// 
+// Output:
+//   Returncode
+//     0 = OK
+//    -1 = fatal error; stop.
+//     1 = erraneous object, continue
+//     2 = EOF
+// 
+// 
+//     1 = EOF found
+//     2 = ReadError
+//     3 = Internal Error
+//     4 = Unbekannter Recordtyp
+// 
+// 
+// Memory-Usage:
+// memspc501  objData   wrkSpc
+// memspc011  convert DXF-text -> gcad-text
+// memspc012  dxf_linbuf
+// 
 
 
-
-Returncode
-  0 = OK
- -1 = fatal error; stop.
-  1 = erraneous object, continue
-  2 = EOF
-
-
-  1 = EOF found
-  2 = ReadError
-  3 = Internal Error
-  4 = Unbekannter Recordtyp
-
-
-Memory-Usage:
-memspc501  objData   wrkSpc
-memspc011  convert DXF-text -> gcad-text
-memspc012  dxf_linbuf
-
-
-*/
 
 {
   static int    ii, ix, iy, iz, act_typ, mode3d;
   static int    i1, i2, tab70[10];
-  static double recrad, recx[10], recy[10], recz[10], recwin[10], a1, a2, a3;
+  // static double recx[10], recy[10], recz[10], recwin[10], a1, a2, a3;
+  static double recwin[10], a1, a2, a3;
   static Vector vz;
 
   int           ptNr;
@@ -1472,7 +1468,7 @@ memspc012  dxf_linbuf
   Vector2       vc21, vc22;
   // CurvPoly      cvPlg;
   GText         *tx1;
-  Mat_4x3       m1;
+  Mat_4x3       m1, m2;
   Dimen         *dim1;
   ObjGX         *ox1;
   ModelRef      *modr1;
@@ -1487,17 +1483,13 @@ memspc012  dxf_linbuf
   tab70[0]  = 0;
   recwin[0] = 0.;
   recwin[1] = 0.;
-  recrad    = 0.;
-  dxf_text[0] = '\0';
+  dxfr_d_40    = 0.;
+  dxfr_s_1[0] = '\0';
   ix = 0;
   iy = 0;
   iz = 0;
 
-  for(i1=0; i1<7; ++i1) {
-    recx[i1] = 0.;
-    recy[i1] = 0.;
-    recz[i1] = 0.;
-  }
+  for(i1=0; i1<7; ++i1) dxfr_pta_10[i1] = UT3D_PT_NUL;
 
   (*el)->typ = Typ_Error;
 
@@ -1508,8 +1500,8 @@ memspc012  dxf_linbuf
   //----------------------------------------------------------------
   L_DXF_NOAMOI:
 
-  // printf("--------- dxfr_rec__ Lnr=%ld typ=%d |%s|\n",
-         // dxf_LineNr,dxf_rectyp,dxf_linbuf);
+  // printf("--------- dxfr_rec__ Lnr=%ld rectyp=%d |%s| GroupTyp=%d\n",
+         // dxf_LineNr, dxf_rectyp, dxf_linbuf, dxf_GroupTyp);
 
 
 
@@ -1651,7 +1643,7 @@ memspc012  dxf_linbuf
   // now act_typ is the active RecordTyp (from dxf_NamTab);
   // eg Typ_CVPOL for "POLYLINE".
   L_Start:
-    // printf(" L_Start:\n");
+    // printf(" L_Start:---------\n");
     // printf(" dxf_GroupTyp=%d dxf_paNr=%d dxF_VertAnz=%d\n",
            // dxf_GroupTyp,dxf_paNr,dxF_VertAnz);
 
@@ -1668,8 +1660,8 @@ memspc012  dxf_linbuf
 
   /* ==== 1 = Text ============================= */
   if (dxf_rectyp == 1) {
-    strcpy(dxf_text, dxf_linbuf);
-    // printf(" Text  |%s|\n",dxf_text);
+    strcpy(dxfr_s_1, dxf_linbuf);
+    // printf(" Text  |%s|\n",dxfr_s_1);
     goto L_Start;
 
 
@@ -1764,7 +1756,8 @@ memspc012  dxf_linbuf
 
     }
 
-    recx[i2]=atof(dxf_linbuf);
+    // recx[i2]=atof(dxf_linbuf);
+    dxfr_pta_10[i2].x = atof(dxf_linbuf);
     // printf("XKoord. %d = %f\n",i2,recx[i2]);
     goto L_Start;
 
@@ -1794,7 +1787,8 @@ memspc012  dxf_linbuf
 
     }
 
-    recy[i2]=atof(dxf_linbuf);
+    // recy[i2]=atof(dxf_linbuf);
+    dxfr_pta_10[i2].y = atof(dxf_linbuf);
     // printf("YKoord. %d = %f\n",i2,recy[i2]);
     goto L_Start;
 
@@ -1824,7 +1818,8 @@ memspc012  dxf_linbuf
 
     }
 
-    recz[i2]=atof(dxf_linbuf);
+    // recz[i2]=atof(dxf_linbuf);
+    dxfr_pta_10[i2].z = atof(dxf_linbuf);
     // printf("ZKoord. %d = %f\n",i2,recz[i2]);
     goto L_Start;
 
@@ -1846,13 +1841,13 @@ memspc012  dxf_linbuf
 
   // ==== 40 = RADIUS / Texthoehe ================== 
   } else if (dxf_rectyp == 40) {
-    recrad = atof(dxf_linbuf);
+    dxfr_d_40 = atof(dxf_linbuf);
     if(act_typ == Typ_CVBSP) {
         // printf(" spline-val-40\n");
-      dxf_da[dxf_daNr] = recrad;
+      dxf_da[dxf_daNr] = dxfr_d_40;
       ++dxf_daNr;
     }
-    // printf("Radius %f\n",recrad);
+    // printf("Radius %f\n",dxfr_d_40);
     goto L_Start;
 
 
@@ -2036,6 +2031,7 @@ memspc012  dxf_linbuf
 
 
   //========= 0 = der naechste RecordHeader =======================
+  // we got next RecordHeader; close active record act_typ
     // printf(" switch-act_typ %d\n",act_typ);
 
 
@@ -2044,12 +2040,19 @@ memspc012  dxf_linbuf
 
 
     case DXF_FuncEnd:   /*============== SEQEND ================*/
+        // printf(" SEQEND in lNr=%ld GroupTyp=%d\n",dxf_LineNr,dxf_GroupTyp);
         // printf(" DXF_FuncEnd lNr=%ld dxf_GroupTyp=%d ptNr=%d\n",
                // dxf_LineNr,dxf_GroupTyp,dxF_VertAnz);
+
+      if(dxf_GroupTyp == 0) return 1;   // nothing to do; eg SEQEND after INSERT
+
       if(dxF_VertAnz < 2) {
-        TX_Print("***** Error SEQEND E001-%ld",dxf_LineNr);
-        return 1;
+        if(dxf_GroupTyp != 2) {
+          TX_Print("***** Error SEQEND E001-%ld",dxf_LineNr);
+          return 1;
+        }
       }
+
 
       //-------------------------------------------------
       if(dxf_GroupTyp == 1) {   // SEQEND of POLYLINE
@@ -2062,9 +2065,7 @@ memspc012  dxf_linbuf
           ++dxF_VertAnz;
         }
 
-        // OGX_SET_OBJ (*el, Typ_CVPOL, Typ_PT, dxF_VertAnz, dxf_pa);
-        // // dxf_GroupTyp = 0;
-          // printf(" wrkSpc-free %d\n",UME_ck_free(&wrkSpc));
+          // printf(" wrkSpc-free %d\n",UME_ck_free(&DXFR_SPC_TRA));
         cvPlg = UME_reserve (&DXFR_SPC_TRA, sizeof(CurvPoly));
         cvPlg->cpTab = dxf_pa;
         cvPlg->ptNr  = dxF_VertAnz;
@@ -2075,18 +2076,6 @@ memspc012  dxf_linbuf
         OGX_SET_OBJ (*el, Typ_CVPOL, Typ_CVPOL, 1, cvPlg);
           // UTO_dump__ (*el, "CVPOL-PT");
           // UTO_dump_s_ (*el, "CVPOL-PT");
-        goto FERTIG;
-
-
-      //-------------------------------------------------
-      } else if(dxf_GroupTyp == 2) {   // SEQEND of ATTRIB
-
-        // remove "[n" at end of textBuffer
-        i1 = strlen(tx1->txt) - 2;
-        if(!strcmp(&tx1->txt[i1], "[n")) tx1->txt[i1] = '\0';
-
-        OGX_SET_OBJ (*el, Typ_GTXT, Typ_GTXT, 1, tx1);
-        // dxf_GroupTyp = 0;
         goto FERTIG;
 
 
@@ -2116,15 +2105,39 @@ memspc012  dxf_linbuf
         // printf(" angle: %f\n",recwin[0]);
         // printf(" count: %f %f %f\n",tab70[0],tab70[1]);
 
- 
-      // rotate X-vector from code 50                    2015-01-07
-      if(!UTP_compdb0(recwin[0],UT_TOL_Ang1)) {
-          // printf(" DXF-Model |%s| angr=%lf lNr=%ld\n",
-                 // BlockNam,recwin[0],dxf_LineNr);
-        d1 = -UT_RADIANS(recwin[0]);
-        UT3D_vc_rotangr (&vc1, (Vector*)&UT3D_VECTOR_X, &d1);
+
+      // get pt1 = origin of submodel
+      // UT3D_pt_3db (&pt1, recx[0], recy[0], recz[0]);
+      pt1 = dxfr_pta_10[0];
+
+
+      if(mode3d == ON) {
+        // the Z-vector of the subModel is NOT parallel to parent-models Z-vector
+        // get vc2 = the new Z-vector
+        // get refSys m1 (use autocad-arbitrary-axis-algorithm)
+        dxfr_load_mat (m1, &vz);
+        // translate the origin into the new axisSystem
+        UT3D_pt_traptm3 (&pt1, m1, &pt1);
+        // rotate matrix if 50 = angle given
+        UT3D_m3_get (&vc1, 0, m1);
+        UT3D_m3_get (&vc2, 2, m1);
+        if(UTP_comp_0(recwin[0])) {
+          d1 = -UT_RADIANS(recwin[0]);
+          UT3D_m3_inirot_angr (m2, NULL, &vc2, d1);
+          UT3D_vc_travcm3 (&vc1, m2, &vc1);
+        }
+
       } else {
+        // the Z-vector of the subModel is parallel to parent-models Z-vector
         vc1 = UT3D_VECTOR_X;
+        vc2 = UT3D_VECTOR_Z;
+        // rotate X-vector from code 50                    2015-01-07
+        if(!UTP_compdb0(recwin[0],UT_TOL_Ang1)) {
+            // printf(" DXF-Model |%s| angr=%lf lNr=%ld\n",
+                   // BlockNam,recwin[0],dxf_LineNr);
+          d1 = -UT_RADIANS(recwin[0]);
+          UT3D_vc_rotangr (&vc1, &vc1, &d1);
+        }
       }
 
 
@@ -2134,12 +2147,12 @@ memspc012  dxf_linbuf
       // create ModelRef-struct
       modr1 = UME_reserve (wrkSpc, sizeof(ModelRef));
  
-      modr1->scl   = a1;
-      modr1->po.x  = recx[0];
-      modr1->po.y  = recy[0];
-      modr1->po.z  = recz[0];
-      modr1->vx    = vc1;               //X-vector
-      modr1->vz    = UT3D_VECTOR_Z;     // TODO !!!!!!!!!!!
+      modr1->scl   = a1;               // 41
+      modr1->po    = pt1;              // 10
+      // modr1->po.y  = recy[0];
+      // modr1->po.z  = recz[0];
+      modr1->vx    = vc1;              // X-vector
+      modr1->vz    = vc2;              // Z-vector
       modr1->mnam  = BlockNam;
       modr1->modNr = 0;
         // UT3D_stru_dump (Typ_Model, modr1, "Insert - ");
@@ -2158,6 +2171,7 @@ memspc012  dxf_linbuf
 
     case Typ_CVPOL:   /*========= POLYLINE ===================*/
       dxf_GroupTyp = 1;    // 0=noGroup; 1=POLYLINE, 2=ATTRIB
+        // printf(" start POLYLINE %ld\n",dxf_LineNr);
 
       // was mach ma mit dem ersten Punkt im POLY-Header ? Nix !
       // printf("poly-pt %f,%f,%f\n",recx[0],recy[0],recz[0]);
@@ -2178,44 +2192,12 @@ memspc012  dxf_linbuf
 
 
 
-    case Typ_G_Att:   /*========= ATTRIB ===================*/
-      if(dxf_GroupTyp == 0) {
-        dxf_GroupTyp = 2;    // 0=noGroup; 1=POLYLINE, 2=ATTRIB
-          // printf(" start ATTRIB LineNr=%d\n",dxf_LineNr);
-        tx1 = UME_reserve (wrkSpc, sizeof(GText));
-        // reserve 10K for Text in wrkSpc;
-        tx1->txt = UME_reserve (wrkSpc, DXF_SIZ_TXBUF);
-         tx1->txt[0] = '\0';
-        // goto L_ATT_8;
-      }
+    case Typ_G_Att:   //========= ATTRIB ===================
+        // printf(" ATTRIB lNr=%ld GroupTyp=%d\n",dxf_LineNr,dxf_GroupTyp);
 
-      // use from 1. Attrib:
-      // Position (10,20,30); 40=textHeight; 41=relativeScale;
-      if(strlen(tx1->txt) < 2) {
-        tx1->pt.x=recx[0];   // Textpos
-        tx1->pt.y=recy[0];
-        tx1->pt.z=recz[0];
-
-        // 40-Textsize (characterhoehe)
-        tx1->size=recrad;  //  / DXF_fakt_txtSiz;
-
-        // // 50 = Winkel
-        // if(recwin[0] != UT_DB_LEER) tx1->dir = recwin[0];
-        // else tx1->dir = 0.;
-        tx1->dir = 0.;
-      }
-
-      // add text
-      // L_ATT_8:
-      if (strlen(tx1->txt) > 2) {
-        strcat(tx1->txt, "[n");
-      }
-      GR_gxt_dxfin (dxf_text);  // den text umwandeln ..
-      strcat(tx1->txt, dxf_text);
-        // printf(" text now |%s|\n",tx1->txt);
-
-      goto L_DXF_NOAMOI;
-
+      // return text
+      dxfr_out_txt (el, wrkSpc);
+      goto FERTIG;
 
 
 
@@ -2223,14 +2205,6 @@ memspc012  dxf_linbuf
         // printf(" exit LWPOLYLINE ii=%d ptNr=%d\n",ii,ptNr);
         // if(ii < ptNr-1) goto L_Start;   // 2009-06-12 raus
         // printf("end LWPOLYLINE siz=%d ii=%d\n",dxf_paSiz,ii);
-/*
-      (*el)->typ  = Typ_CVPOL;
-      (*el)->form = Typ_PT;
-      (*el)->siz  = ii;
-      (*el)->data = dxf_pa;
-
-      // obj_2_txt nur ptNr u cpTab erforderl
-*/
       ++ii;
       dxf_out_lwpoly (ii, tab70[0]);
       (*el)->typ  = Typ_Done;
@@ -2249,11 +2223,12 @@ memspc012  dxf_linbuf
           TX_Error("*** DXF-VERTEX-buffer too small ***)");
 
         } else {
-          dxf_pa[dxF_VertAnz].x = recx[0];
-          dxf_pa[dxF_VertAnz].y = recy[0];
-          dxf_pa[dxF_VertAnz].z = recz[0];
-            // printf(" vertex[%d] %lf %lf %lf\n",dxF_VertAnz,
-                   // recx[0],recy[0],recz[0]);
+          // dxf_pa[dxF_VertAnz].x = recx[0];
+          // dxf_pa[dxF_VertAnz].y = recy[0];
+          // dxf_pa[dxF_VertAnz].z = recz[0];
+          dxf_pa[dxF_VertAnz] = dxfr_pta_10[0];
+            // printf(" vertex[%d] %lf %lf %lf - ln %ld\n",dxF_VertAnz,
+                   // recx[0],recy[0],recz[0],dxf_LineNr);
           ++dxF_VertAnz;
         }
 
@@ -2264,9 +2239,10 @@ memspc012  dxf_linbuf
       } else {
         //TX_Print("Point %f %f %f",recx[0],recy[0],recz[0]);
         ptp    = UME_reserve (wrkSpc, sizeof(Point));
-        ptp->x = recx[0];
-        ptp->y = recy[0];
-        ptp->z = recz[0];
+        // ptp->x = recx[0];
+        // ptp->y = recy[0];
+        // ptp->z = recz[0];
+        *ptp = dxfr_pta_10[0];
         OGX_SET_OBJ (*el, Typ_PT, Typ_PT, 1, ptp);
         goto FERTIG;
       }
@@ -2282,13 +2258,15 @@ memspc012  dxf_linbuf
 
       // get line in memSpc
       ln1 = UME_reserve (wrkSpc, sizeof(Line));
-      ln1->p1.x=recx[0];
-      ln1->p1.y=recy[0];
-      ln1->p1.z=recz[0];
+      // ln1->p1.x=recx[0];
+      // ln1->p1.y=recy[0];
+      // ln1->p1.z=recz[0];
+      ln1->p1 = dxfr_pta_10[0];
 
-      ln1->p2.x=recx[1];
-      ln1->p2.y=recy[1];
-      ln1->p2.z=recz[1];
+      // ln1->p2.x=recx[1];
+      // ln1->p2.y=recy[1];
+      // ln1->p2.z=recz[1];
+      ln1->p2 = dxfr_pta_10[1];
 
       ln1->typ = 0;    // 2015-01-07
 
@@ -2304,20 +2282,21 @@ memspc012  dxf_linbuf
     case Typ_CI:   /*======================================*/
         // printf(" ARC  %f %f %f\n",recx[0],recy[0],recz[0]);
         // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
-        // printf("   r  %f\n",recrad);
+        // printf("   r  %f\n",dxfr_d_40);
         // printf("   50=%f 51=%f\n",recwin[0],recwin[1]);
 
       ci1 = UME_reserve (wrkSpc, sizeof(Circ));
 
       if(mode3d == OFF) {
 
-        ci1->pc.x = recx[0];
-        ci1->pc.y = recy[0];
-        ci1->pc.z = recz[0];
+        // ci1->pc.x = recx[0];
+        // ci1->pc.y = recy[0];
+        // ci1->pc.z = recz[0];
+        ci1->pc = dxfr_pta_10[0];
 
         p2c = UT2D_pt_pt3 (&ci1->pc);
 
-        p20.x = ci1->pc.x + recrad;
+        p20.x = ci1->pc.x + dxfr_d_40;
         p20.y = ci1->pc.y;
 
         UT2D_pt_rotptangr (&p21, &p2c, &p20, UT_RADIANS(recwin[0]));
@@ -2325,12 +2304,14 @@ memspc012  dxf_linbuf
         ci1->p1 = UT3D_pt_pt2 (&p21);
         ci1->p2 = UT3D_pt_pt2 (&p22);
 
-        ci1->p1.z = recz[0];
-        ci1->p2.z = recz[0];
+        // ci1->p1.z = recz[0];
+        ci1->p1.z = dxfr_pta_10[0].z;
+        // ci1->p2.z = recz[0];
+        ci1->p2.z = dxfr_pta_10[0].z;
 
         ci1->vz   = UT3D_VECTOR_Z;
 
-        ci1->rad  = recrad;
+        ci1->rad  = dxfr_d_40;
 
 
       } else {
@@ -2338,10 +2319,10 @@ memspc012  dxf_linbuf
         dxfr_load_mat (m1, &vz);     // vz=210,220,230
 
         // Arc umrechnen
-        pt1.x = recx[0];    // pt1=10,11,12
-        pt1.y = recy[0];
-        pt1.z = recz[0];
-        dxfr_tra_arc (ci1, m1, &pt1, recwin[0],recwin[1],recrad);
+        // pt1.x = recx[0];    // pt1=10,11,12
+        // pt1.y = recy[0];
+        // pt1.z = recz[0];
+        dxfr_tra_arc (ci1, m1, &dxfr_pta_10[0], recwin[0],recwin[1],dxfr_d_40);
       }
 
       // Oeffnungswinkel ..
@@ -2365,22 +2346,25 @@ memspc012  dxf_linbuf
     case 1000:
       // printf(" CIRCLE  %f %f %f\n",recx[0],recy[0],recz[0]);
       // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
-      // printf("   r  %f\n",recrad);
+      // printf("   r  %f\n",dxfr_d_40);
 
       ci1 = UME_reserve (wrkSpc, sizeof(Circ));
 
       if(mode3d == OFF) {
-        ci1->pc.x = recx[0];
-        ci1->pc.y = recy[0];
-        ci1->pc.z = recz[0];
+        // ci1->pc.x = recx[0];
+        // ci1->pc.y = recy[0];
+        // ci1->pc.z = recz[0];
+        ci1->pc = dxfr_pta_10[0];
 
-        ci1->p1.x = recx[0] + recrad;
-        ci1->p1.y = recy[0];
-        ci1->p1.z = recz[0];
+        // ci1->p1.x = recx[0] + dxfr_d_40;
+        // ci1->p1.y = recy[0];
+        // ci1->p1.z = recz[0];
+        ci1->p1 = dxfr_pta_10[0];
+        ci1->p1.x += dxfr_d_40;
 
         ci1->vz   = UT3D_VECTOR_Z;
         ci1->p2 = ci1->p1;
-        ci1->rad  = recrad;
+        ci1->rad  = dxfr_d_40;
 
 
       } else {
@@ -2388,10 +2372,10 @@ memspc012  dxf_linbuf
         dxfr_load_mat (m1, &vz);
 
         // Arc umrechnen
-        pt1.x = recx[0];
-        pt1.y = recy[0];
-        pt1.z = recz[0];
-        dxfr_tra_arc (ci1, m1, &pt1, 0.0, 0.0, recrad);
+        // pt1.x = recx[0];
+        // pt1.y = recy[0];
+        // pt1.z = recz[0];
+        dxfr_tra_arc (ci1, m1, &dxfr_pta_10[0], 0.0, 0.0, dxfr_d_40);
         act_typ = Typ_CI;  // Typ_CI waere falsch!
       }
 
@@ -2433,21 +2417,23 @@ memspc012  dxf_linbuf
     case Typ_CVELL:   //========= ELLIPSE ====================
       // printf("ELLIPSE %f %f %f\n",recx[0],recy[0],recz[0]);
 
-      pt1.x = recx[0];
-      pt1.y = recy[0];
-      pt1.z = recz[0];
+      // pt1.x = recx[0];
+      // pt1.y = recy[0];
+      // pt1.z = recz[0];
+      pt1 = dxfr_pta_10[0];
 
-      vc1.dx = recx[1];
-      vc1.dy = recy[1];
-      vc1.dz = recz[1];
+      // vc1.dx = recx[1];
+      // vc1.dy = recy[1];
+      // vc1.dz = recz[1];
+      vc1 = *((Vector*)&dxfr_pta_10[1]);
         // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
 
       // vz = der z-vektor UT3D_VECTOR_Z
       UT3D_vc_perp2vc (&vc2, (Vector*)&UT3D_VECTOR_Z, &vc1);
         // UT3D_stru_dump (Typ_VC, &vc2, "vc2");
 
-      // 40=recrad=Hauptachse/Nebenachse
-      d1 = UT3D_len_vc (&vc1) * recrad;  // len. Nebenachse
+      // 40=dxfr_d_40=Hauptachse/Nebenachse
+      d1 = UT3D_len_vc (&vc1) * dxfr_d_40;  // len. Nebenachse
       UT3D_vc_setLength (&vc2, &vc2, d1);
 
       // Ellipse=center,vecHauptachse,vecNebenachse,AngStart,angEnd,Richtg.
@@ -2468,10 +2454,14 @@ memspc012  dxf_linbuf
       // printf("LEADER\n");
       dim1 = UME_reserve (wrkSpc, sizeof(Typ_Dimen));
       dim1->dtyp = 21;
-      UT2D_pt_2db (&dim1->p1, recx[0],recy[0]);
-      UT2D_pt_2db (&dim1->p2, recx[1],recy[1]);
+      // UT2D_pt_2db (&dim1->p1, recx[0],recy[0]);
+      dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[0]);
+      // UT2D_pt_2db (&dim1->p2, recx[1],recy[1]);
+      dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[1]);
+      // ix = nr of coords in dxfr_pta_10;
       if(ix > 2) {
-        UT2D_pt_2db (&dim1->p3, recx[2],recy[2]);
+        // UT2D_pt_2db (&dim1->p3, recx[2],recy[2]);
+        dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[2]);
       } else {
         dim1->p3.x = UT_DB_LEER;
       }
@@ -2497,9 +2487,9 @@ memspc012  dxf_linbuf
       dim1 = UME_reserve (wrkSpc, sizeof(Typ_Dimen));
 
       // den text umwandeln ..
-      GR_gxt_dxfin (dxf_text);
-        // printf(" Text  |%s|\n",dxf_text);
-        dim1->txt  = dxf_text;
+      dxfr_gxt (dxfr_s_1);
+        // printf(" Text  |%s|\n",dxfr_s_1);
+        dim1->txt  = dxfr_s_1;
 
       // dimtyp: lower 3 bits of 70
       i1 = tab70[0] & 7;
@@ -2515,9 +2505,12 @@ memspc012  dxf_linbuf
       //----------------------------------------------------------------
       if(i1 < 2) {   // 0=Hor,Vert; 1=parallel
         dim1->dtyp = 0;
-        UT2D_pt_2db (&dim1->p1, recx[3],recy[3]);
-        UT2D_pt_2db (&dim1->p2, recx[4],recy[4]);
-        UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);
+        // UT2D_pt_2db (&dim1->p1, recx[3],recy[3]);
+        dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[3]);
+        // UT2D_pt_2db (&dim1->p2, recx[4],recy[4]);
+        dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[4]);
+        // UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);
+        dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[1]);
         dim1->hd   = 12;
         dim1->ld   = 11;
 
@@ -2530,7 +2523,8 @@ memspc012  dxf_linbuf
         // wenn 11,21,31 == 0,0,0: den 10,20,30 nehmen
         if(UT2D_comp2pt(&dim1->p3,(Point2*)&UT2D_PT_NUL,UT_TOL_pt) == 1) {
           // Pt 0 auf ExtL1 u ExtL2 projizieren, Mitte nehmen ..
-          UT2D_pt_2db (&p21, recx[0],recy[0]);
+          // UT2D_pt_2db (&p21, recx[0],recy[0]);
+          p21 =  UT2D_pt_pt3 (&dxfr_pta_10[0]);
             // UT3D_stru_dump (Typ_PT2, &p21, "~~~~~~~~~~~~~~~~~ dim-1");
           UT2D_vc_angr (&vc21, d1);
           UT2D_vc_perpvc (&vc21, &vc21);
@@ -2552,25 +2546,31 @@ memspc012  dxf_linbuf
         // nur gehen wenn die Winkel vom Schnittpunkt weg zeigen; ist aber nicht
         // immer der Fall, dann ist der Winkel 180 Grad falsch!
         dim1->dtyp = 3;
-        UT2D_pt_2db (&dim1->p1, recx[4],recy[4]);    // 14 24
-        UT2D_pt_2db (&dim1->p2, recx[0],recy[0]);    // 10 20
+        // UT2D_pt_2db (&dim1->p1, recx[4],recy[4]);    // 14 24
+        dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[4]);
+        // UT2D_pt_2db (&dim1->p2, recx[0],recy[0]);    // 10 20
+        dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[0]);
         // p3 = posi of text
         if(tab70[0] > 128) {                         // 70
-          UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);
+          // UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);
+          dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[1]);
         } else {
-          UT2D_pt_2db (&dim1->p3, recx[6],recy[6]);
+          // UT2D_pt_2db (&dim1->p3, recx[6],recy[6]);
+          dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[6]);
         }
             // UT3D_stru_dump (Typ_PT2, &dim1->p1, "~~~~~~~~~~~~~~~~~ dim2-4");
             // UT3D_stru_dump (Typ_PT2, &dim1->p2, "                  dim2-0");
             // UT3D_stru_dump (Typ_PT2, &dim1->p3, "                  dim2-1");
 
         // 3-4: extensionLine 1
-        UT2D_pt_2db (&p21, recx[3],recy[3]);
+        // UT2D_pt_2db (&p21, recx[3],recy[3]);
+        p21 = UT2D_pt_pt3 (&dxfr_pta_10[3]);
         UT2D_vc_2pt (&vc21, &p21, &dim1->p1);
         // d1 = UT2D_angr_ptpt (&p21, &dim1->p1);
 
         // 5-0: extensionLine 2
-        UT2D_pt_2db (&p22, recx[5],recy[5]);
+        // UT2D_pt_2db (&p22, recx[5],recy[5]);
+        p22 = UT2D_pt_pt3 (&dxfr_pta_10[5]);
         UT2D_vc_2pt (&vc22, &p22, &dim1->p2);
         // d2 = UT2D_angr_ptpt (&p22, &dim1->p2);
 
@@ -2578,7 +2578,8 @@ memspc012  dxf_linbuf
         // aussen zeigen. Bekannt sind: 2 Winkel und ein Punkt
         // in der Mitte des Kreisbogens (16,26).
         // Annahme erforderlich: Winkel kann 180 Grad nicht ueberschreiten !
-        UT2D_pt_2db (&p20, recx[6],recy[6]);
+        // UT2D_pt_2db (&p20, recx[6],recy[6]);
+        p20 = UT2D_pt_pt3 (&dxfr_pta_10[6]);
             // UT3D_stru_dump (Typ_PT2, &p20, "16,26:");
         // get p2c=intersectionpoint
         UT2D_pt_int2pt2vc (&p2c, &p21, &vc21, &p22, &vc22);
@@ -2628,9 +2629,12 @@ memspc012  dxf_linbuf
       //----------------------------------------------------------------
       } else if(i1 == 3) {    // DurchmesserMasz
         dim1->dtyp = 1;
-        UT2D_pt_2db (&dim1->p1, recx[0],recy[0]); // gegenueber pick-point..
-        UT2D_pt_2db (&dim1->p2, recx[5],recy[5]); // pick-point..
-        UT2D_pt_2db (&dim1->p3, recx[1],recy[1]); // kann 0,0 sein!
+        // UT2D_pt_2db (&dim1->p1, recx[0],recy[0]); // gegenueber pick-point..
+        dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[0]);
+        // UT2D_pt_2db (&dim1->p2, recx[5],recy[5]); // pick-point..
+        dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[5]);
+        // UT2D_pt_2db (&dim1->p3, recx[1],recy[1]); // kann 0,0 sein!
+        dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[1]);
         d1 = UT2D_angr_ptpt (&dim1->p1, &dim1->p2);
         dim1->a1   = UT_DEGREES(d1);
         dim1->a2   = UT2D_len_2pt (&dim1->p1,&dim1->p2) / 2.; // Radius
@@ -2645,17 +2649,20 @@ memspc012  dxf_linbuf
       //----------------------------------------------------------------
       } else if(i1 == 4) {    // RadiusMasz
         dim1->dtyp = 2;
-        UT2D_pt_2db (&dim1->p1, recx[0],recy[0]);  // center
-        UT2D_pt_2db (&dim1->p2, recx[5],recy[5]);  // pick-point am circ
-        UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);  // kann 0,0 sein!
+        // UT2D_pt_2db (&dim1->p1, recx[0],recy[0]);  // center
+        dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[0]);
+        // UT2D_pt_2db (&dim1->p2, recx[5],recy[5]);  // pick-point am circ
+        dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[5]);
+        // UT2D_pt_2db (&dim1->p3, recx[1],recy[1]);  // kann 0,0 sein!
+        dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[1]);
         d1 = UT2D_angr_ptpt (&dim1->p1, &dim1->p2); // Angle
         dim1->a1   = UT_DEGREES(d1);
         dim1->a2   = UT2D_len_2pt (&dim1->p1,&dim1->p2); // Radius
 
         // Variante: 0=cen, 5=TextPt, 40=Radius
         // wenn p3=NUL: um Radius raus.
-        if(fabs(recrad) > 0.000001) {
-          dim1->a2 = recrad;
+        if(fabs(dxfr_d_40) > 0.000001) {
+          dim1->a2 = dxfr_d_40;
         }
 
         // kein p3 (1): p3=5; p2 errechnen
@@ -2670,11 +2677,15 @@ memspc012  dxf_linbuf
       //----------------------------------------------------------------
       } else if(i1 == 5) {    // Angular 3-point
         dim1->dtyp = 3;
-        UT2D_pt_2db (&dim1->p1, recx[3],recy[3]); // 13,23,33
-        UT2D_pt_2db (&dim1->p2, recx[4],recy[4]); // 14,24,34
-        UT2D_pt_2db (&dim1->p3, recx[0],recy[0]); // 10,20,30
+        // UT2D_pt_2db (&dim1->p1, recx[3],recy[3]); // 13,23,33
+        dim1->p1 = UT2D_pt_pt3 (&dxfr_pta_10[3]);
+        // UT2D_pt_2db (&dim1->p2, recx[4],recy[4]); // 14,24,34
+        dim1->p2 = UT2D_pt_pt3 (&dxfr_pta_10[4]);
+        // UT2D_pt_2db (&dim1->p3, recx[0],recy[0]); // 10,20,30
+        dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[0]);
         // 0-3 und 4-5 sind die Hilfslinien
-        UT2D_pt_2db (&p20, recx[5],recy[5]);  // 15,25,35
+        // UT2D_pt_2db (&p20, recx[5],recy[5]);  // 15,25,35
+        p20 = UT2D_pt_pt3 (&dxfr_pta_10[5]);
         d1 = UT2D_angr_ptpt (&p20, &dim1->p1);
         dim1->a1   = UT_DEGREES(d1);
         d1 = UT2D_angr_ptpt (&p20, &dim1->p2);
@@ -2697,17 +2708,17 @@ memspc012  dxf_linbuf
 
     //================================================================
     case Typ_SURCIR:
-      // printf("3DFACE\n");
+        // printf("3DFACE %ld\n",dxf_LineNr);
 
       dxf_pa = UME_reserve (wrkSpc, 4 * sizeof(Point));
 
       // die 3 od 4 Punkte speichern;
-      for(i1=0; i1<4; ++i1) {
-        dxf_pa[i1].x=recx[i1];
-        dxf_pa[i1].y=recy[i1];
-        dxf_pa[i1].z=recz[i1];
+      for(i1=0; i1<4; ++i1) dxf_pa[i1] = dxfr_pta_10[i1];
+        // dxf_pa[i1].x=recx[i1];
+        // dxf_pa[i1].y=recy[i1];
+        // dxf_pa[i1].z=recz[i1];
         // printf("3DFpt%d=%f,%f,%f\n",i1,dxf_pa[i1].x,dxf_pa[i1].y,dxf_pa[i1].z);
-      }
+      // }
       dxF_VertAnz = 4;
 
 
@@ -2744,12 +2755,13 @@ memspc012  dxf_linbuf
 
       tx1 = UME_reserve (wrkSpc, sizeof(GText));
 
-      tx1->pt.x=recx[0];   // Textpos
-      tx1->pt.y=recy[0];
-      tx1->pt.z=recz[0];
+      // tx1->pt.x=recx[0];   // Textpos
+      // tx1->pt.y=recy[0];
+      // tx1->pt.z=recz[0];
+      tx1->pt = dxfr_pta_10[0];
 
       // 40-Textsize (characterhoehe)
-      tx1->size=recrad;  //  / DXF_fakt_txtSiz;
+      tx1->size=dxfr_d_40;  //  / DXF_fakt_txtSiz;
 
       // 50 = Winkel
       if(recwin[0] != UT_DB_LEER) tx1->dir = recwin[0];
@@ -2757,8 +2769,8 @@ memspc012  dxf_linbuf
 
       // 72, 73 = hor. vert. justification
 
-      GR_gxt_dxfin (dxf_text);  // den text umwandeln ..
-      tx1->txt = dxf_text;
+      dxfr_gxt (dxfr_s_1);  // den text umwandeln ..
+      tx1->txt = dxfr_s_1;
 
       OGX_SET_OBJ (*el, Typ_GTXT, Typ_GTXT, 1, tx1);
 
@@ -2871,63 +2883,6 @@ memspc012  dxf_linbuf
   ci1->vz.dz = m1[2][2];
 
   //TX_Print("ex dxf_tra_arc vz=%f,%f,%f rad=%f",ci1->vz.dx,ci1->vz.dy,ci1->vz.dz,ci1->rad);
-
-}
-
-
-
-//===========================================================================
-  void dxfr_load_mat (Mat_4x3 m1, Vector* vz) {
-//===========================================================================
-
-
-
-  double    d1;
-  Vector    vx, vy;
-  Plane     pl1;
-
-
-
-  // Autocad-System zur Berechnung des lokalen Achsensystems:
-  // IN:  der Z-Vektor.
-  // OUT: die Matrix.
-
-
-  // Erstens: ist der neue Z-Vektor ident mit dem Haupt-Z-Vektor:
-  // (wenn sein X-Anteil und sein Y-Anteil kleiner als 1/64 sind)
-  d1=1./64.;
-  if((fabs(vz->dx) > d1)||(fabs(vz->dy) > d1)) goto Nicht_Z_Parallel;
-  //TX_Print(" Parallel Z %f",d1);
-
-  // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
-  UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
-  //TX_Print("vx=%f,%f,%f",vx.dx,vx.dy,vx.dz);
-
-  UT3D_vc_perp2vc (&vy, vz, &vx);
-  //TX_Print("vy=%f,%f,%f",vy.dx,vy.dy,vy.dz);
-
-  goto Load_Matrix;
-
-
-
-  // NEIN: Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
-  Nicht_Z_Parallel:
-  UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Z, vz);
-  //TX_Print("vx=%f,%f,%f",vx.dx,vx.dy,vx.dz);
-
-  UT3D_vc_perp2vc (&vy, vz, &vx);
-  //TX_Print("vy=%f,%f,%f",vy.dx,vy.dy,vy.dz);
-
-
-  Load_Matrix:
-  pl1.po = UT3D_PT_NUL;
-  pl1.vx = vx;
-  pl1.vy = vy;
-  pl1.vz = *vz;
-
-  UT3D_m3_loadpl (m1, &pl1);
-
-
 
 }
 
@@ -3187,6 +3142,57 @@ memspc012  dxf_linbuf
 
 
 //================================================================
+  int dxfr_out_txt (ObjGX **ox, Memspc *wrkSpc) {
+//================================================================
+// dxfr_out_txt       create gcad-obj txt
+
+
+  int      i1;
+  GText    *tx1;
+
+  // printf("dxfr_out_txt lNr=%ld\n",dxf_LineNr);
+
+
+  // printf(" start ATTRIB LineNr=%d\n",dxf_LineNr);
+  tx1 = UME_reserve (wrkSpc, sizeof(GText));
+  // reserve 10K for Text in wrkSpc;
+  tx1->txt = UME_reserve (wrkSpc, DXF_SIZ_TXBUF);
+
+  // copy 10,20,30 = textpos
+  tx1->pt = dxfr_pta_10[0];
+
+  // copy 40 = Textsize (characterhoehe)
+  tx1->size = dxfr_d_40;  // DXF_fakt_txtSiz;
+
+  // // 50 = Winkel
+  // if(recwin[0] != UT_DB_LEER) tx1->dir = recwin[0];
+  // else tx1->dir = 0.;
+  tx1->dir = 0.;
+
+  tx1->txt[0] = '\0';
+  if (strlen(tx1->txt) > 2) {
+    strcat(tx1->txt, "[n");
+  }
+
+  // change 1 = dxf-text into gcad-text
+  dxfr_gxt (dxfr_s_1);
+
+  // copy 1 = text
+  strcat(tx1->txt, dxfr_s_1);
+
+  // remove "[n" at end of textBuffer
+  i1 = strlen(tx1->txt) - 2;
+  if(!strcmp(&tx1->txt[i1], "[n")) tx1->txt[i1] = '\0';
+
+  // create out-obj
+  OGX_SET_OBJ (*ox, Typ_GTXT, Typ_GTXT, 1, tx1);
+
+  return 0;
+
+}
+
+
+//================================================================
   int dxf_r_src_out (ObjGX *ox1) {
 //================================================================
 // translate obj & export obj.
@@ -3200,20 +3206,18 @@ memspc012  dxf_linbuf
   // gdb_halt ();
   // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) UTO_dump__ (ox1, "ox1-1");
   // if((ox1->typ >= 120)&&(ox1->typ <= Typ_Process)) {
-  // UTO_dump__ (ox1, "ox1-1");
+  // UTO_dump__ (ox1, "ox1-1");  // TODO crash m Typ_CVPOL/CarveDiem
   // printf(" dxf_iTra=%d\n",dxf_iTra);
   // UTRA_dump__ ();  // disp translObj
   // }
 
 
-
-  // Objekt translieren
+  // Objekt translieren             // 2016-03-14
   if(dxf_iTra == 1) {
     irc = UTRA_app_ox (&ox2, ox1, &DXFR_SPC_TRA);
     if(irc < 0) return irc;
     ox1 = &ox2;
   }
-
 
     // TEST ONLY
     // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) UTO_dump__ (ox1, "ox1-2");
@@ -3226,17 +3230,18 @@ memspc012  dxf_linbuf
   // AP_obj_2_txt + UTF_add1_line
 
 
-    // TEST ONLY
-    // { int typ; long dbi;
+    // TESTBLOCK
+    // { int typ; long dbi; char oid[64];
     // AP_obj_2_txt_query (&typ, &dbi); // get last gcad-typ/ind
-      // // printf(" created %d %ld\n",typ,dbi);
+    // APED_oid_dbo__  (oid, typ, dbi);
+      // printf(" lNr=%d created %s\n",dxf_LineNr, oid);
     // if((typ == Typ_CVPOL)&&(dbi == 1L)) gdb_halt ();
     // if(irc < 0) {
        // printf(" errObj dxf_r_src_out typ=%d form=%d |%s|\n",
          // ox1->typ,ox1->form,mem_cbuf1);
     // }
     // }
-    // END TEST ONLY
+    // END TESTBLOCK
 
 
   return irc;

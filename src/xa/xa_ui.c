@@ -208,7 +208,7 @@ cl -c /I ..\include xa_ui.c
 #include "../xa/xa_mem.h"              // memspc55
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_msg.h"              // MSG_open
-#include "../xa/xa.h"                  // WC_modact PRC_IS_ACTIVE
+#include "../xa/xa.h"                  // WC_modact_nam PRC_IS_ACTIVE
 #include "../xa/gcad_version.h"        // INIT_TXT
 #include "../xa/xa_ui_cad.h"
 #include "../xa/xa_app.h"              // PRC_IS_ACTIVE
@@ -241,11 +241,10 @@ extern int     APT_dispPT, APT_dispPL, APT_dispNam, APT_dispDir;
 
 
 // aus xa.c:
-extern AP_STAT   AP_stat;                    // sysStat,errStat..
-extern int       AP_ED_cPos;        // die aktuelle CharPos im Edi.
-extern  int      WC_modnr;          // -1=primary Model is active;
-extern int       WC_mod_stat;           // -1=primary Model is active;
-                                         // else subModel is being created
+extern AP_STAT   AP_stat;               // sysStat,errStat..
+extern int       AP_ED_cPos;            // die aktuelle CharPos im Edi.
+extern int       WC_modact_ind;         // -1=primary Model is active;
+                                        // else subModel is being created
 extern double    WC_sur_Z;
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;
@@ -3167,8 +3166,11 @@ TX_Error("EDI-GDK_BackSpace");
       // nun noch die Surf's
       goto L_mock;
 */
+      // export all points, curves ..
       OS_dll_do ("xa_dxf_w", "DXFW__", cbuf);
-      // goto L_fertig;
+      goto L_fertig;
+      // // export surfaces as 3DFACE
+      // goto L_mock;
 
 
     } else if(!strcmp(ftyp, "SVG")) {
@@ -4578,11 +4580,11 @@ TX_Error("EDI-GDK_BackSpace");
     
   // printf("UI_disp_activ mode=%d dbi=%ld\n",mode,dbi);
   // printf(" typ=%d dbi=%ld\n",ac1->typ,ac1->ind);
-  // printf(" WC_mod_stat=%d\n",WC_mod_stat);
+  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
 
     
   // skip display in subModels
-  if(WC_mod_stat >= 0) {           // 0-n = sind Submodel; -1=main
+  if(WC_modact_ind >= 0) {           // 0-n = sind Submodel; -1=main
     return 0;
   }
 
@@ -4641,11 +4643,11 @@ TX_Error("EDI-GDK_BackSpace");
   // printf("UI_disp_joint mode=%d indJnt=%d\n",mode,indJnt);
   // UTO_dump__ (jnt, "JNT_exp__");
   // UTO_dump_s_ (jnt, "APT_decode_Joint");
-  // printf(" WC_mod_stat=%d\n",WC_mod_stat);
+  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
 
 
   // skip display in subModels
-  if(WC_mod_stat >= 0) {           // 0-n = sind Submodel; -1=main
+  if(WC_modact_ind >= 0) {           // 0-n = sind Submodel; -1=main
     return 0;
   }
 
@@ -5434,7 +5436,7 @@ TX_Error("EDI-GDK_BackSpace");
   // display help-info
   TX_Print ("- key F1 - display help ..");
 
-    // printf("exit UI_src_edi\n");
+    // printf("ex UI_src_edi\n");
 
   return 0;
 
@@ -5482,43 +5484,46 @@ TX_Error("EDI-GDK_BackSpace");
   long   ll;
 
 
-      // printf(" butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
-    GUI_set_enable (&but_end, FALSE);
+  // printf(" butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
 
-    // opMod = UI_ask_mode ();
-    opMod = UI_InpMode;
+  GUI_set_enable (&but_end, FALSE);
 
-    ll = ED_work_END (0);
+  // opMod = UI_ask_mode ();
+  opMod = UI_InpMode;
 
-    // nach einem Error: select Line.
-    i2 = AP_errStat_get();
-      // printf(" n.work_END: lNr=%d iErr=%d\n",ll,i2);
+  ll = ED_work_END (0);
 
-
-    if(opMod == UI_MODE_CAD) {
-
-      // CAD: give Line -> LineEditor; reRun.
-      if(i2 != 0) {
-        printf(" CAD-Error: edit Line %ld\n",ll);
-        // ask LineNr
-        ll = ED_get_lnr_act();
-        // modify zeile im mem mit dem SystemEditor.
-        // AP_src_mod_ed (ll+1);
-        AP_src_mod_ed (ll);              // 2010-09-11
-      }
+  // nach einem Error: select Line.
+  i2 = AP_errStat_get();
+    // printf(" n.work_END: lNr=%d iErr=%d\n",ll,i2);
 
 
+  if(opMod == UI_MODE_CAD) {
 
-    } else if(opMod == UI_MODE_MAN) {
-
-      if(i2 != 0) {  // Ablauffehler in MAN; set CurPos, select act. Line.
-        GUI_edi_sel_ln (&winED, ll); // select Line, set Curpos to Line.
-      }
+    // CAD: give Line -> LineEditor; reRun.
+    if(i2 != 0) {
+      printf(" CAD-Error: edit Line %ld\n",ll);
+      // ask LineNr
+      ll = ED_get_lnr_act();
+      // modify zeile im mem mit dem SystemEditor.
+      // AP_src_mod_ed (ll+1);
+      AP_src_mod_ed (ll);              // 2010-09-11
     }
 
-    GUI_set_enable (&but_end, TRUE);
 
-    return 0;
+
+  } else if(opMod == UI_MODE_MAN) {
+
+    if(i2 != 0) {  // Ablauffehler in MAN; set CurPos, select act. Line.
+      GUI_edi_sel_ln (&winED, ll); // select Line, set Curpos to Line.
+    }
+  }
+
+  GUI_set_enable (&but_end, TRUE);
+
+    // printf("ex UI_but_END\n");
+
+  return 0;
 
 }
  
@@ -5729,8 +5734,6 @@ TX_Error("EDI-GDK_BackSpace");
       // start modus with datasource = editor, rework ..
       UI_src_edi ();             // mem -> edi
 
-
-
 #ifdef _MSC_VER
 // Im Editor in MS-Win sonst kein Cursor; nur aktivieren anderes Window hilft ..
 IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
@@ -5742,6 +5745,7 @@ IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
       //----------------------------------------------------------------
       // CAD -> MAN:    nothing to do ..
 
+
       //----------------------------------------------------------------
       // VWR -> MAN
       if(opMod == UI_MODE_VWR) {
@@ -5752,6 +5756,8 @@ IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
       }
 
 
+  L_exit:
+    // printf("ex UI_MAN_ON\n");
   return 0;
 
 }
@@ -6535,7 +6541,7 @@ See UI_but__ (txt);
 
   L_out:
   UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-  APP_browse (cbuf1);
+  APP_browse__ (cbuf1);
 
   return 0;
 
@@ -6563,7 +6569,7 @@ See UI_but__ (txt);
   DB_dump_f (fpo, typ);              // dump
   UTX_htm_fcl (&fpo);                // close
   // disp file
-  APP_browse (cbuf1);
+  APP_browse__ (cbuf1);
 
 
   return 0;
@@ -6840,16 +6846,20 @@ See UI_but__ (txt);
 
 
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "expDxfR12")) {
+  } else if(!strcmp(cp1, "expDxf__")) {
+    AP_stat.subtyp = 99;  // headerless
+    AP_save__ (0, ".dxf");
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "expDxfR10")) {
     AP_stat.subtyp = 0;
     AP_save__ (0, ".dxf");
 
-
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxf2000")) {
-    AP_stat.subtyp = 1;
+    AP_stat.subtyp = 3;
     AP_save__ (0, ".dxf");
+
 
 
   //-------------------------------------------------
@@ -7246,7 +7256,7 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%cindex_%s.htm", OS_get_doc_dir(), fnam_del, AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 /*
   //-------------------------------------------------
@@ -7255,7 +7265,7 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%cgCAD3D_en.htm", OS_get_doc_dir(), fnam_del);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
   
 
   //-------------------------------------------------
@@ -7264,79 +7274,79 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%ctransl_en.htm", OS_get_doc_dir(), fnam_del);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 */
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staVWR")) {
     sprintf(cbuf1, "%shtml%cVWR_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
     // sprintf(cbuf1, "%sgCAD3D_startVWR_%s.htm",OS_get_doc_dir(),AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staMAN")) {
     sprintf(cbuf1, "%shtml%cgCAD3D_startMAN_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staCAD")) {
     // sprintf(cbuf1, "%shtml%cCAD_examples_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
     sprintf(cbuf1, "%shtml%cCAD_using_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docSearch")) {
     sprintf(cbuf1, "%shtml%cSearch_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docIact")) {
     sprintf(cbuf1, "%shtml%cCAD_Activ_%s.htm",OS_get_doc_dir(),fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docTex")) {
     sprintf(cbuf1, "%shtml%cTextures_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCatalog")) {
     sprintf(cbuf1, "%shtml%cCatalog_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
   //-------------------------------------------------
   // } else if(!strcmp(cp1, "docAppli")) {
     // sprintf(cbuf1, "%sAppli_%s.htm",OS_get_doc_dir(),AP_lang);
-    // APP_browse (cbuf1);
+    // APP_browse__ (cbuf1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docPlugin")) {
     sprintf(cbuf1, "%shtml%cPlugin_%s.htm",OS_get_doc_dir(),
             fnam_del, AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCTRL")) {
     sprintf(cbuf1, "%shtml%cRemoteControl_%s.htm",OS_get_doc_dir(),
             fnam_del, AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docWC_g")) {
     sprintf(cbuf1, "%shtml%cwcut_de.htm",OS_get_doc_dir(), fnam_del);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
   //-------------------------------------------------
 
   } else if(!strcmp(cp1, "docTransl")) {
     sprintf(cbuf1, "%shtml%ctransl_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
 
@@ -7777,7 +7787,7 @@ See UI_but__ (txt);
     UTX_htm_fop (&fpo, cbuf1);    // open
     GA_dump__ (fpo);
     UTX_htm_fcl (&fpo);                // close
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
   //======================================================
@@ -7798,7 +7808,7 @@ See UI_but__ (txt);
     DB_dump_ModBas ();
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
 
@@ -7811,7 +7821,7 @@ See UI_but__ (txt);
     Grp_dump ();
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
 
@@ -7850,7 +7860,7 @@ See UI_but__ (txt);
     UT3D_stru_dump (TYP_FuncAdd, cbuf2, "");    // put out the file 
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
 
@@ -7885,7 +7895,7 @@ See UI_but__ (txt);
     // close
     UTX_htm_fcl (&fpo);
     // disp file
-    APP_browse (cbuf1);
+    APP_browse__ (cbuf1);
 
 
 
@@ -8309,7 +8319,8 @@ box1
 
       // Submenu File/Export
       GUI_menu_entry (&men_exp1, "gcad",    UI_menCB,   (void*)"exp1nat");
-      GUI_menu_entry (&men_exp1, "DXF-R12", UI_menCB,   (void*)"expDxfR12");
+      GUI_menu_entry (&men_exp1, "DXF",     UI_menCB,   (void*)"expDxf__");
+      GUI_menu_entry (&men_exp1, "DXF-R10", UI_menCB,   (void*)"expDxfR10");
       GUI_menu_entry (&men_exp1, "DXF-2000",UI_menCB,   (void*)"expDxf2000");
       GUI_menu_entry (&men_exp1, "IGES",    UI_menCB,   (void*)"exp1Ige");
       GUI_menu_entry (&men_exp1, "STEP",    UI_menCB,   (void*)"expStp");
@@ -9371,7 +9382,7 @@ box1
 
       // model in tmp saven
       // UI_save_ ();
-      // Mod_sav_tmp (); // save the active Submodel WC_modact -> TempFile
+      // Mod_sav_tmp (); // save the active Submodel WC_modact_nam -> TempFile
 
 
       // unload active Application
@@ -9385,7 +9396,7 @@ box1
       // Model_* zusammenfassen und als Model speichern
       sprintf(cbuf1,"%sModel",OS_get_tmp_dir());
       i1 = Mod_sav__ (0, cbuf1, 0);
-      if(i1 < 0) return -1;
+      // if(i1 < 0) return -1;
 
       // save Viewparameters (Scale, Center, ..)
       // UI_view__ ("Save");
@@ -9429,7 +9440,7 @@ box1
   ie = -1;
   ii = 0;
   for(i1=0; i1 < *lngNr; ++i1) {
-      printf(" lng %d |%s|%s|\n",i1,lngCode[i1],lngName[i1]);
+      // printf(" lng %d |%s|%s|\n",i1,lngCode[i1],lngName[i1]);
     m1 = GUI_menu_radiobutt__ (mo,lngName[i1],ii,UI_chg_lang,(void*)lngCode[i1]);
     if(!ii) ++ii;  // 0=new menu; 1=add to menu
 
@@ -9509,7 +9520,7 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2015 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2016 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
   GUI_AboutInfo (INIT_TXT, s1, "http://www.gcad3d.org", "xa_logo.xpm");
 
@@ -10528,9 +10539,9 @@ box1
 
       GUI_box_h (&box0, "");
 
-      printf(" WC_modnr=%d\n",WC_modnr);
-      if(WC_modnr < 0) i1 = TRUE;     // MainModel: modify all sM's
-      else             i1 = FALSE;   // in subModel: modify only active sM.
+        // printf(" WC_modact_ind=%d\n",WC_modact_ind);
+      if(WC_modact_ind < 0) i1 = TRUE;    // MainModel: modify all sM's
+      else                  i1 = FALSE;   // in subModel: modify only active sM.
       ckb_all = GUI_ckbutt__ (&box0, "all subModels", i1, NULL, NULL, "");
       MSG_Tip ("UIWTsm");
 

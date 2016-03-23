@@ -210,7 +210,7 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
       vAx = cp1->vz;
     } else {
       // check if Vectors are parallel
-      if(UT3D_comp2vc__(&vAx, &cp1->vz, RAD_1) == 0) goto L_tor_ck1U;
+      if(UT3D_vc_ck_parl_vc(&vAx, &cp1->vz, RAD_1) == 0) goto L_tor_ck1U;
       // check if points are straight; take extreme points.
       // printf(" check straight ...\n");
       UT3D_pt_projptptvc (&p1, &d1, NULL, &cp1->pc, &pAx, &vAx);
@@ -242,7 +242,7 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
       vAx = cp1->vz;
     } else {
       // check if Vectors are parallel
-      if(UT3D_comp2vc__(&vAx, &cp1->vz, RAD_1) == 0) return -1;
+      if(UT3D_vc_ck_parl_vc(&vAx, &cp1->vz, RAD_1) == 0) return -1;
       // check if points are straight; take extreme points.
       // printf(" check straight ...\n");
       UT3D_pt_projptptvc (&p1, &d1, NULL, &cp1->pc, &pAx, &vAx);

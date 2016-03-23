@@ -38,7 +38,8 @@ void MemTab(){}
 =====================================================
 List_functions_start:
 
-MemTab_ini          init memory-table
+MemTab_ini          init memory-table, malloc
+MemTab_spc          init memory-table with fixed memoryspace; no realloc, free.
 MemTab_add          save/check/reserve in memSpc; malloc/realloc if necessary.
 MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
 MemTab_reserve      reserve space to memSpc; malloc/realloc if necessary.
@@ -186,6 +187,35 @@ Testprog: ../ut/tst_memTab.c
 
 
 
+//==========================================================================
+  int MemTab_spc (MemTab *memTab, void *data, int dSiz, int rSiz, int typ) {
+//==========================================================================
+/// MemTab_spc          init memory-table with fixed memoryspace; no realloc, free
+/// \code
+/// INPUT:
+///   dSiz    size in bytes
+///   rSiz    recordsize in bytes
+///   typ     info; Typ_PT=Point Typ_Int4=int Typ_Float8=double Typ_Int1=char;
+/// \endcode
+
+  // printf("MemTab_ini rSiz=%d typ=%d incSiz=%d\n",rSiz,typ,incSiz);
+
+
+  memTab->data   = data;
+  memTab->rMax   = dSiz / rSiz;
+
+  memTab->rNr    = 0;
+  memTab->rSiz   = rSiz;
+  memTab->incSiz = -1;
+  memTab->typ    = typ;
+  memTab->spcTyp = 1;
+
+
+  // printf("ex MemTab_ini rSiz=%d incSiz=%d\n",memTab->rSiz,memTab->incSiz);
+
+  return 0;
+
+}
 
 
 //=========================================================================
@@ -194,7 +224,7 @@ Testprog: ../ut/tst_memTab.c
 /// \code
 /// MemTab_ini           init memory-table
 /// use MemTab for a list of records;
-/// use memSpc for a different types of records in the same memoryblock.
+/// use Memspc for a different types of records in the same memoryblock.
 /// 
 /// INPUT:
 ///   rSiz    recordsize in bytes
@@ -220,8 +250,9 @@ Testprog: ../ut/tst_memTab.c
  
   memTab->rNr    = 0;
   memTab->rSiz   = rSiz;
-  memTab->typ    = typ;
   memTab->incSiz = UTI_round_i2b(incSiz);
+  memTab->typ    = typ;
+  memTab->spcTyp = 0;
 
 
   // printf("ex MemTab_ini rSiz=%d incSiz=%d\n",memTab->rSiz,memTab->incSiz);
@@ -294,7 +325,16 @@ Testprog: ../ut/tst_memTab.c
   }
 
 
-  if(memTab->rSiz < 1) {TX_Error("MemTab_sav E001"); return -2;} //2007-06-18
+  //----------------------------------------------------------------
+  // not enough space ..
+  if(memTab->incSiz == -1) {    // 2015-12-04
+    TX_Error("MemTab_sav EOM");
+    return -2;
+  }
+  if(memTab->rSiz < 1) {
+    TX_Error("MemTab_sav E001");
+    return -2;
+  }
   // if(memTab->rSiz < 4) {TX_Error("MemTab_sav E001"); return -2;}
 
   newRecNrMax = memTab->rNr + recNr + UTI_round_b2i(memTab->incSiz);

@@ -84,11 +84,13 @@ UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
 UTP_compdb0               compare double mit 0.0 mit Tol.
 UTP_comp2db               compare 2 doubles (with tolerance)             INLINE
 UTP_comp2x2db             compare 2 * 2 doubles (with tolerance)
+UTP_min_3                 find minimum double of 3
 UTP_min_4                 find minimum double of 4
-UTP_min                   find minimum double out of dbTab
+UTP_min                   find index of minimum double out of dbTab
 UTP_dbRec_min             find minimum double out of dbRecords
-UTP_dbRec_max             find maximum double out of dbRecords
+UTP_max_3                 find maximum double of 3
 UTP_max                   find minimum double out of dbTab
+UTP_dbRec_max             find maximum double out of dbRecords
 UTP_db_cknear_2db         find nearest double out of 2 doubles
 UTP_db_cknear_ndb         find nearest double out of dbTab
 UTP_db_ck_in2db           test if value of v is between v1 / v2
@@ -212,6 +214,8 @@ UTA_  functions for pointers (addresses)
   if(fabs(d1) < UT_TOL_min2) { *parx = 0.5; return -1;}
 
   *parx = (px-p0) / d1;
+
+    // printf("param_p0p1px %f %f %f %f\n",*parx,p0,p1,px);
 
   return 0;
 
@@ -464,7 +468,7 @@ UTA_  functions for pointers (addresses)
   int UTI_ind_iTab_i (int ii, int *iTab, int tabSiz) {
 //================================================================
 /// \code
-/// UTI_ind_iTab_i            get index of int in iTab
+/// UTI_ind_iTab_i            get index of int <ii> in iTab
 /// RetCod: index into iTab  or -1 (not found)
 /// \endcode
 
@@ -1217,6 +1221,33 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 }
 
 
+//====================================================
+  int UTP_min_3 (double *d1, double *d2, double *d3) {
+//====================================================
+/// \code
+/// UTP_min_3                 find minimum double of 3
+/// returns 0|1|2
+/// \endcode
+
+
+  if(*d1 > *d2) {
+    // d1>d2
+    if(*d3 < *d2) return 2;
+    return 1;
+
+  } else {
+    // d2>d1
+    if(*d3 < *d1) return 2;
+    return 0;
+  }
+
+    printf("UTP_min_3 ERR -1\n");
+
+  return -1;
+
+}
+
+
 //================================================================
   int UTP_min_4 (double *d1, double *d2, double *d3, double *d4) {
 //================================================================
@@ -1330,6 +1361,33 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
     // printf("ex UTP_min %d %f\n",ind,dTab[ind]);
 
   return ind;
+
+}
+
+
+//====================================================
+  int UTP_max_3 (double *d1, double *d2, double *d3) {
+//====================================================
+/// \code
+/// UTP_max_3                 find maximum double of 3
+/// returns 0|1|2
+/// \endcode
+
+
+  if(*d1 < *d2) {
+    // d1<d2
+    if(*d3 > *d2) return 2;
+    return 1;
+
+  } else {
+    // d2<d1
+    if(*d3 > *d1) return 2;
+    return 0;
+  }
+
+    printf("UTP_max_3 ERR -1\n");
+
+  return -1;
 
 }
 

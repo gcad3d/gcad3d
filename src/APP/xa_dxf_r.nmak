@@ -3,7 +3,8 @@
 DLLNAM = xa_dxf_r
 
 SRC1 =\
- ../exp/dxf_r.c
+ ../exp/dxf_r.c\
+ ../exp/dxf_ut.c
 
 
 CORE = J

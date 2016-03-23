@@ -7,7 +7,7 @@
 #ifdef _MSC_VER
 // Mircosoft - MS32
 #define INT_8     INT8           // char 
-#define INT_16    INT16          // short 
+#define INT_16    INT16          // signed short 
 #define INT_32    INT32          // int  INT BOOL LONG32
 #define INT_64    INT64          // long long
 #define UINT_8    unsigned char  // unsigned char  BYTE UINT8
@@ -17,7 +17,7 @@
 #else
 // GCC - Linux32
 #define INT_8     char           // char  __s8
-#define INT_16    short          // short __s16
+#define INT_16    short          // signed short __s16
 #define INT_32    __s32          // int
 #define INT_64    __s64          // long long
 #define UINT_8    unsigned char  // unsigned char __u8

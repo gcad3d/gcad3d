@@ -764,6 +764,7 @@ typedef struct {char *mnam; long ind, siz;
 /// po    .. origin
 /// DLind .. ind of first obj in DL
 /// DLsiz .. nr of objects in DL
+/// typ   .. MBTYP_..
 /// \endcode
 typedef struct {char *mnam; Point po; long DLind, DLsiz;
                 short typ, seqNr;}                                  ModelBas;
@@ -1242,6 +1243,8 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_lenq_2pt (double *lq, Point2 *p1, Point2 *p2);
  double UT2D_len_2pt (Point2 *,Point2 *);
  double UT2D_lenB_2pt (Point2 *p1, Point2 *p2);
+ double UT2D_lenS_2pt (Point2 *p1, Point2 *p2);
+ double UT2D_lenS_vc  (Vector2 *vc1);
  int    UT2D_minLenB_4pt (double *dp,Point2*,Point2*,Point2*,Point2*);
  int    UT3D_minLen_3pt (double*,Point*,Point*,Point*);
  int    UT3D_minLen_4pt (double*,Point*,Point*,Point*,Point*);
@@ -1295,6 +1298,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_pt_2db (Point2 *, double, double);
  int    UT3D_pt_pt2bp (Point *p3, Point2 *p2, int bp);
  void   UT2D_pt_addpt (Point2 *, Point2 *);
+ void   UT2D_pt_sub_pt3 (Point2 *, Point *);
  void   UT2D_pt_opp2pt (Point2 *, Point2 *, Point2 *);
  void   UT2D_pt_mid2pt (Point2 *, Point2 *, Point2 *);
  void   UT2D_pt_traptvc (Point2 *, Point2 *, Vector2 *);
@@ -1320,7 +1324,8 @@ extern const Mat_4x4 UT3D_MAT_4x4;
                                Point *ptp, Vector *vcp);
  int    UT3D_ptDi_intptvcpln (Point *ip, double *dist,
                               Plane *pl, Point *pt, Vector *vln);
- int    UT2D_pt_int4pt (Point2*,double*,double*,Point2*,Point2*,Point2*,Point2*);
+ int    UT2D_pt_int4pt (Point2*,double*,double*,double*,
+                        Point2*,Point2*,Point2*,Point2*);
  int    UT2D_pt_int2ln (Point2*, Line2*, Line2*);
  int    UT2D_pt_intptvcy (Point2 *pto, Point2 *ptl, Vector2 *vcl, double yVal);
  int    UT2D_pt_intlny (Point2 *pto, Point2 *lp1, Point2 *lp2, double yVal);
@@ -1472,7 +1477,9 @@ void   UT3D_pt_opp2pt (Point *, Point *, Point *);
 int    UT3D_pt_oppptptvc (Point *po, Point *pi, Point *pl, Vector *vl);
 int    UT3D_2pt_oppptvclen (Point*,Point*,Point*,Vector*,double);
 void   UT3D_pt_addpt (Point *, Point *);
+void   UT3D_pt_add_pt2 (Point *, Point2 *);
 void   UT3D_pt_add2pt (Point *, Point *, Point *);
+void   UT3D_pt_sub_pt2 (Point *, Point *, Point2 *);
 // void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_traptvc1len (Point *po,Point *pi,Vector *vc,double dist);
@@ -1554,8 +1561,9 @@ int    UT3D_ptvc_ox (Point *pta, Vector *vca, ObjGX *oxi);
 // double UT3D_acos_2vc (Vector*,Vector*);
 
 double UT3D_angr_3pt (Point *p1, Point *pc, Point *p2);
-double UT3D_angr_2vc (Vector*,Vector*);
-double UT3D_angr_3vc (Vector *vz, Vector *v1, Vector *v2);
+double UT3D_angr_2vc__ (Vector*,Vector*);
+double UT3D_angr_3vc__ (Vector *vz, Vector *v1, Vector *v2);
+double UT3D_angr_3vcn_CCW (Vector *vz, Vector *v1, Vector *v2);
 double UT3D_angr_ci_par1 (Circ *ci1, double par1);
 double UT3D_angr_ci__  (Circ *ci1);
 int    UT3D_2angr_vc (double *az, double *ay, Vector *vc1);
@@ -1960,6 +1968,12 @@ double UTP_db_comp_0 (double);
 /// UT2D_len_vc          length of 2D-vector
 #define UT2D_len_vc(vc) (sqrt((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy))
 
+/// UT2D_lenS_2pt             dx+dy-distance point-point
+#define UT2D_lenS_2pt(p1,p2) (fabs((p2)->x - (p1)->x) + fabs((p2)->y - (p1)->y))
+
+/// UT2D_lenS_vc              dx+dy-distance 2D-vector
+#define UT2D_lenS_vc(vc1) (fabs((vc1)->dx) + fabs((vc1)->dy))
+
 /// UT2D_lenq_2pt        quadr. distance pt - pt
 #define UT2D_lenq_2pt(lq,p1,p2){\
   double _dx = (p2)->x - (p1)->x;\
@@ -2004,6 +2018,11 @@ double UTP_db_comp_0 (double);
  (po)->x = (po)->x + (p1)->x;\
  (po)->y = (po)->y + (p1)->y;}
 
+/// UT2D_pt_sub_pt               subtract point p2 from p1
+#define UT2D_pt_sub_pt(po,p1,p2){\
+ (po)->x = (p1)->x - (p2)->x;\
+ (po)->y = (p1)->y - (p2)->y;}
+
 /// UT2D_pt_opp2pt                opposite point (p1 = center)
 #define UT2D_pt_opp2pt(po,p1,p2){\
   (po)->x = (p1)->x - ((p2)->x - (p1)->x);\
@@ -2028,7 +2047,7 @@ double UTP_db_comp_0 (double);
 //----------------------------------------------------------------
 /// \code
 /// UT2D_slen_vc_vcNo         signed length of vector on norm.vector
-/// vnab must be normalized.
+/// vnab must be normalized;  else returns (slen * length_of_vAB)
 ///
 ///             C 
 ///           . |                   A-C  = vector vac
@@ -2038,8 +2057,11 @@ double UTP_db_comp_0 (double);
 ///    A-----_--+---------B
 ///    |--slen--|
 ///
+///  Input:
+///    (Vector2)vAC;
+///    (Vector2)vAB;   if not normalized: returns (slen * length_of_vab)
 ///  Returns:
-///    slen;   negative if C is left of A-B
+///    (double)slen;   negative if C is left of A-B
 /// \endcode
 #define UT2D_slen_vc_vcNo UT2D_skp_2vc
 /// UT2D_skp_2vc        cos of opening angle of 2 vecs (dot=scalarprod) DOT
@@ -2240,17 +2262,27 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
  (po)->y = a1 * (p1)->y + a2 * (p2)->y;\
  (po)->z = a1 * (p1)->z + a2 * (p2)->z;}
 
-/// UT3D_pt_addpt             Add two points:      po += p1
+/// UT3D_pt_addpt             Add point:      po += p1
 #define UT3D_pt_addpt(po,p1){\
  (po)->x += (p1)->x;\
  (po)->y += (p1)->y;\
  (po)->z += (p1)->z;}
+
+/// UT3D_pt_add_pt2             Add 2D-point:      po += p1
+#define UT3D_pt_add_pt2(po,p1){\
+ (po)->x += (p1)->x;\
+ (po)->y += (p1)->y;}
 
 /// UT3D_pt_add2pt   Add two points:               po = p1 + p2
 #define UT3D_pt_add2pt(po,p1,p2){\
  (po)->x = (p1)->x + (p2)->x;\
  (po)->y = (p1)->y + (p2)->y;\
  (po)->z = (p1)->z + (p2)->z;}
+
+/// UT3D_pt_addpt             subtract 2D-point    po = p1 - p2
+#define UT3D_pt_sub_pt2(po,p1,p2){\
+ (po)->x = (p1)->x - (p2)->x;\
+ (po)->y = (p1)->y - (p2)->y;}
 
 /// \brief UT3D_swap2pt                  swap 2 3D-points
 /// \code

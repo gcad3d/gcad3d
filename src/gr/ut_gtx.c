@@ -44,11 +44,10 @@ GR_gxt_subst1         substitute [% by text
 GR_gxt_prep1          prepare dimText
 GR_gxt_prep_Pt        prepare dimText
 GR_gxt_nkNr           extract nkNr
-GR_gxt_dxfin          DXF => gCad
-GR_gxt_dxfout         gCad => DXF
 
 List_functions_end:
 =====================================================
+see also dxfr_gxt dxfw_gxt
 
 \endcode *//*----------------------------------------
 
@@ -443,163 +442,6 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   UTX_add_fl_f (txo, d1, GR_tx_nkNr);
   UTX_del_foll0 (txo);
 
-  return 0;
-
-}
-
-
-//================================================================
-  int GR_gxt_dxfout (int mode, char *txo, char *txi) {
-//================================================================
-// GR_gxt_dxfout          gCad => DXF
-// mode=0: nur Notes; kein masztext
-// mode=1: Notes plus masztext
-
-  int  i1, ilen;
-  char c1;
-
-  printf("GR_gxt_dxfout |%s|\n",txi);
-  // strcpy(txo, txi);
-
-  i1      = 0;
-  txo[0] = '\0';
-
-
-  if(mode == 0) {
-    if(txi == NULL) goto L_fertig;
-
-
-  } else {
-    if(txi == NULL) {
-      strcpy(txo, "<>");
-      goto L_fertig;
-    }
-
-    // check if "[-" im Text (keinen masztext)
-    if(strstr(txi, "[-") != NULL) goto L_go;
-    if(strstr(txi, "[%") != NULL) goto L_go; // skip starting "[%"
-    strcpy(txo, "<>");
-
-  }
-
-
-  L_go:
-  ilen = strlen(txi);
-  if(ilen < 1) return 0;
-
-
-
-  NextChar:
-  c1 = txi[i1];
-
-
-  if (c1 == '[') {
-    ++i1;
-
-    if(txi[i1] == '[') {
-      strcat(txo, "[");      // \P = newLine
-
-    } else if(txi[i1] == '%') {
-      strcat(txo, "<>");      // \P = newLine
-
-    } else if(txi[i1] == 'n') {
-      strcat(txo, "\\P");      // \P = newLine
-
-    } else if(txi[i1] == 'd') {
-      strcat(txo, "%%c");
-
-    } else if(txi[i1] == 'g') {
-      strcat(txo, "%%d");
-
-    } else if(txi[i1] == '+') {
-      strcat(txo, "%%p");
-    }
-    goto L_weiter;
-  }
-
-  strncat(txo, &c1, 1);
-
-  L_weiter:
-  ++i1;
-  if(i1 < ilen)  goto NextChar;
-
-
-  // if(!strcmp(txt, "[%")) txt[0] = '\0';
-
-  L_fertig:
-  printf("ex GR_gxt_dxfout |%s|\n",txo);
-  // exit(0);
-
-  return 0;
-
-}
-
-
-//================================================================
-  int GR_gxt_dxfin (char *txt) {
-//================================================================
-// GR_gxt_dxfin          DXF => gCad
-
-  int  i1, ilen;
-  char c1, cbuf[256];
-
-
-  // printf("GR_gxt_dxfin |%s|\n",txt);
-
-  ilen = strlen(txt);
-  if(ilen < 2) return 0;
-
-
-  i1      = 0;
-  cbuf[0] = '\0';
-
-  NextChar:
-  c1 = txt[i1];
-
-  if(c1 == '<') {       // start of '<> ?
-    if(txt[i1+1] == '>') {
-      ++i1;
-      strcat(cbuf, "[%");
-      goto L_weiter;
-    }
-
-  } else if (c1 == '\\') {
-    if(txt[i1+1] == 'P') {        // \P = newLine
-      strcat(cbuf, "[n");
-      ++i1;
-      goto L_weiter;
-    }
-
-
-
-  } else if (c1 == '%') {
-    if(txt[i1+1] == '%') {
-      i1 += 2;
-      if((txt[i1] == 'C')||(txt[i1] == 'c')) {        // %%c = Durchmesser
-        strcat(cbuf, "[d");
-      } else if((txt[i1] == 'P')||(txt[i1] == 'p')) { // %%p = PlusMinus
-        strcat(cbuf, "[+");
-      } else if((txt[i1] == 'D')||(txt[i1] == 'd')) { // %%d = Grad-Zeichen
-        strcat(cbuf, "[g");
-      }
-      goto L_weiter;
-    }
-  }
-
-  strncat(cbuf, &c1, 1);
-
-  L_weiter:
-  ++i1;
-  if(i1 < ilen)  goto NextChar;
-
-
-  strcpy(txt, cbuf);
-
-  if(!strcmp(txt, "[%")) txt[0] = '\0';
-
-
-  // printf("ex GR_gxt_dxfin |%s|\n",txt);
-  // exit(0);
   return 0;
 
 }

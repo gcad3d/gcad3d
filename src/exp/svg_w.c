@@ -480,7 +480,9 @@ extern int     APT_dispPT;
   gr_ind = GL_Get_DLind();
   for(l1=0; l1<gr_ind; ++l1) {
 
-    dla = DL_GetAtt(l1);                      // get DL-Rec
+    // dla = DL_GetAtt(l1);                      // get DL-Rec
+    irc = DL_get_dla (&dla, l1);  
+    if(!irc) continue;
     if(dla.disp   == OFF) continue;           // skip hidden obj's
 
     SVG_iAtt = dla.iatt;

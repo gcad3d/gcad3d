@@ -13,8 +13,9 @@
 . ../options.sh
 
 
-cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
-echo $cmdVi
+cmdVi=${DIR_BIN}'vi.sh'
+#cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
+#echo $cmdVi
 
 
 
@@ -29,6 +30,7 @@ if test "$1" = "help"; then
   echo "./do cp2serv1          # copy -> server before build"
   echo "./do                   # start"
   echo "./do d                 # start with debugger"
+  echo "./do trc               # start with mtrace"
   echo "./do ud                # display userDoc"
   echo "./do dd                # display devDoc"
   echo "./do udd               # update & display devDoc"
@@ -36,6 +38,7 @@ if test "$1" = "help"; then
   echo "./do gh                # display ut_geo.h"
   echo "./do g2                # display ut_geo3d.c"
   echo "./do g3                # display ut_geo3d.c"
+  echo "./do gmon              # analyze time"
   exit 0
 fi
 
@@ -152,7 +155,6 @@ fi
 
 
 
-
 #=================================================================
 # start gCAD3D
 
@@ -187,18 +189,36 @@ if [ "$OSTYPE" = "Linux" ] ; then
 
 
 
+#-----------------------------------------------------
+# analyze times in file gmon.out - AFTER run gcad
+if [ "$1" = "gmon" ] ; then
+  gprof ${exeNam} > t1 && vi t1
+  exit 0
+
+
 
 #-----------------------------------------------------
 # d = debug
-if [ "$1" = "d" ] ; then
+elif [ "$1" = "d" ] ; then
   gdb ${exeNam} $* -x gCAD3D.gdb
   #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0
 
+
+#-----------------------------------------------------
+# trc ?
+elif [ "$1" = "trc" ] ; then
+  export MALLOC_TRACE=mtrace.txt
+  ${exeNam}
+  #mtrace  ${exeNam} $MALLOC_TRACE
+  exit 0
+
+
 #-----------------------------------------------------
 # init = copy dirx.lst -> ?
 elif [ "$1" = "init" ] ; then
-  cp -f dirx.lst ~/gCAD3D/cfg/dir.lst
+	echo "copy dir.lst"
+  cp -f ../../gCAD3D/cfg/dir.lst ~/gCAD3D/cfg/dir.lst
   exit 0
 
 #-----------------------------------------------------

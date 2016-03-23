@@ -358,6 +358,7 @@ static FILE     *uo = NULL;
   }
 
 
+
   i1 = ERR_SET1 ();
   if(i1) {
     TX_Print("***** ERROREXIT UT3D_dump__ %d *****\n",typ);
@@ -1032,10 +1033,11 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_Fac3) {
     sprintf(cps,"Face3 %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
-    sprintf(cps," Fac3 %6d %6d %6d",
+    sprintf(cps," Fac3 %6d %6d %6d st=%d",
             ((Fac3*)data)->i1,
             ((Fac3*)data)->i2,
-            ((Fac3*)data)->i3);
+            ((Fac3*)data)->i3,
+            ((Fac3*)data)->st);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1372,11 +1374,11 @@ static FILE     *uo = NULL;
     sprintf(cps," (ModelBas).mnam=%s", mdb->mnam);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps," (ModelBas).typ=%d seq=%d DLind=%4ld DLsiz=%4ld",
-            mdb->typ,mdb->seqNr,mdb->DLind,mdb->DLsiz);
+            mdb->typ, mdb->seqNr, mdb->DLind, mdb->DLsiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelBas).po=%9.3f,%9.3f,%9.3f",mdb->po.x,mdb->po.y,mdb->po.z);
+    sprintf(cps," (ModelBas).po=%9.3lf,%9.3lf,%9.3lf",
+            mdb->po.x, mdb->po.y, mdb->po.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-
 
 
   //----------------------------------------------------------------

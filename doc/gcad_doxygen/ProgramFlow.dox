@@ -476,19 +476,23 @@ UI_expIgeCB
 <pre>
 \ref dxf_r.c        ../exp/dxf_r.c  Import DXF-functions        (dxfr_)
 \ref dxf_w.c        ../exp/dxf_w.c  Export DXF-functions        (dxfw_)
+\ref dxf_ut.c       ../exp/dxf_ut.c DXF-utility-functions       (dxf)
 </pre>
 \code
 
-UI_menCB "impDxf/expDxf"
+UI_menCB "impDxf"
 DXF_r__
   dxfr_init            get txsiz,dimsiz,$EXT..
     dxfr_head__
-  dxfr_rec__
-  dxfr_rec__           read obj 
-  AP_obj_2_txt         create code, write > mem_cbuf1
-  UTF_insert1          add to mem
-AP_ExportDxf
-  dxfw_rec
+  dxfr_rec__           read nxt obj 
+  dxf_r_src_out
+    AP_obj_2_txt         create code, write > mem_cbuf1
+
+UI_menCB "expDxf__" UI_save__
+DXFW__
+  DXFW_ox
+// AP_ExportDxf
+  // dxfw_rec
 
 
 

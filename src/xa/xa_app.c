@@ -44,7 +44,7 @@ List_functions_start:
 APP_Help               simple help
 APP_Open               select file from list, callback.
 APP_Save               simple save
-APP_browse
+APP_browse__
 APP_edit
 APP_htm_fop            open a temp-file for a html-dumpFile
 APP_htm_print          write into open htm-file
@@ -189,9 +189,82 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 }
 */
 
+//================================================================
+  int APP_browse_label (char *fNam, char *label) {
+//================================================================
+/// \code
+/// html-browse <filnam>
+/// do not wait for end of process.
+/// filnam = NULL    using default <temp>/temp.htm
+///
+/// see OS_browse_
+/// \endcode
+
+// "firefox file:///mnt/serv1/Devel/dev/gCAD3D/doc/CAD_AC_de.htm#F6"
+
+  char s1[256], s2[320], *p1;
+
+
+  printf("APP_browse_label |%s|%s|\n",fNam,label);
+    
+
+  //----------------------------------------------------------------
+  // test if file exists; if not: change language to "en"
+  if(OS_checkFilExist (fNam, 1)) goto L_disp;
+  TX_Print ("%s - file does not exist", fNam);
+
+  // file does not exist; change language to "en"
+  // extract langCode (2 chars)
+  p1 = strrchr (fNam, '.');
+  if(!p1) return -1;
+  p1 -= 2;
+  strncpy (p1, "en", 2);
+
+  // test if file exists;
+  if(OS_checkFilExist (fNam, 1) == 0) {
+    TX_Print ("%s - file does not exist", fNam);
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // display file fNam with AP_browser
+  L_disp:
+
+
+  // add label to filename
+  sprintf(s1, "file:%s%s", fNam,label);
+
+
+
+
+#ifdef _MSC_VER
+  sprintf(s2, "start %s %s",AP_browser,s1);
+#else
+  // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
+  // "file://" - problems with "../fn"
+  sprintf(s2, "%s %s 2>/dev/null &",AP_browser,s1);
+#endif
+
+  printf("APP_browse__ |%s|\n",s2);
+  OS_system(s2);
+
+  TX_Print ("- display %s", s2);
+
+  return 0;
+
+
+  
+
+  strcat(s1, label);
+
+  return APP_browse__ (s1);
+
+}
+
 
 //================================================================
-  int APP_browse (char *filnam) {
+  int APP_browse__ (char *filnam) {
 //================================================================
 /// \code
 /// html-browse <filnam>
@@ -247,7 +320,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   sprintf(cbuf, "%s %s 2>/dev/null &",AP_browser,fNam);
 #endif
 
-  printf("APP_browse |%s|\n",cbuf);
+  printf("APP_browse__ |%s|\n",cbuf);
   OS_system(cbuf);
 
   TX_Print ("- display %s", fNam);
@@ -328,9 +401,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
     TX_Print(" - using English version.");
   }
 
-  strcat(cbuf1, label);
-
-  APP_browse (cbuf1);
+  APP_browse_label (cbuf1, label);
 
   return 0;
 
@@ -410,7 +481,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 //================================================================
 // APP_htm_fop            open a temp-file for a html-dumpFile
 
-// close with UTX_htm_fcl(); display with APP_browse (NULL);
+// close with UTX_htm_fcl(); display with APP_browse__ (NULL);
 // if used in plugin: use APP_htm_print to write into file
 //   MS-Win does in a plugin not write into a file, opened from core !!
 

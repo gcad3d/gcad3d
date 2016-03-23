@@ -195,7 +195,7 @@ cl -c /I ..\include xa_ed.c
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
-#include "../xa/xa.h"                  // WC_modact
+#include "../xa/xa.h"                  // WC_modact_nam
 
 
 
@@ -207,10 +207,10 @@ cl -c /I ..\include xa_ed.c
 // Externals:
 //
 // aus xa.c:
-extern AP_STAT    AP_stat;                    // sysStat,errStat..
+extern AP_STAT    AP_stat;               // sysStat,errStat..
 extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
-extern int        WC_mod_stat;           // -1=primary Model is active;
+extern int        WC_modact_ind;         // -1=primary Model is active;
 extern ColRGB     AP_defcol;
 extern int        AP_indCol;
 extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -1794,12 +1794,14 @@ static int lnr1, lnr2;
 /// mode unused !
 
 
-  int    irc, lNr, bNr, wrkStat;
+  int    irc, lNr, bNr, wrkStat, mTyp;
   double d1;
   char   *cbuf, *c1buf, *cp1;
 
 
   // printf("EEEEEEEEEEEEEEEEEEE ED_work_END %d EEEEEEEEEEEEEEEEE\n",mode);
+  // printf(" WC_modact_nam=|%s| APP_stat=%d\n",WC_modact_nam,AP_stat.APP_stat);
+
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // DB_dump_ModNod ();
 
@@ -1811,7 +1813,13 @@ static int lnr1, lnr2;
   ED_Reset ();           // ED_lnr_act = 0; 2004-02
 
   // clear DB & DL, but not in addOn-progs
-  if(AP_stat.APP_stat == 0) AP_Init2 ();
+  // delete all basic-models (mdb_dyn) all and model-names (mdb_nam)
+  if(AP_stat.APP_stat == 0) {    // 0=no plugin active
+    // clear DB & DL
+    AP_Init2 (0);
+    // primary model always has modnr=-1
+    WC_modact_ind = -1;
+  }
 
   // PRC_init ("cut1");  // (re)init active process
 
@@ -1862,11 +1870,6 @@ static int lnr1, lnr2;
   // GA_hide_fil_tmp (1);
 
 
-  // init = reset den Name-Buffer in der DB
-  // delete Models (mdb_dyn-Records)
-  DB_StoreModBas (0, NULL);
-
-
   // // alle SubmodelCalls als mdb_dyn-Records speichern
   // Mod_get_namFil (fNam, 0);
 
@@ -1880,6 +1883,7 @@ static int lnr1, lnr2;
   // ========= load subModels ==========================
   // nur fuer export VRML muessen alle subModels zuerst geladen werden
   // der folgende Block ist nur im Run_for_Tesselation-Mode aktiv !
+  // not for normal viewing mode
 
   if(TSU_get_mode() != 1) goto L_run1;
 
@@ -1901,7 +1905,7 @@ static int lnr1, lnr2;
   // scan rekursiv die SourceFiles aller basicModels;
   // load Submodels as basicModels (mdb_dyn-Record's - DB_StoreModBas)
   irc = Mod_get_namAll();
-    printf(" n._namAll %d %d\n",irc,ED_lnr_act);
+    // printf(" n._namAll %d %d\n",irc,ED_lnr_act);
 
   // if(irc < 0) return irc;
   if(irc < 0) {
@@ -2036,7 +2040,6 @@ static int lnr1, lnr2;
 
   L_exit:
     // printf("ex ED_work_END %d\n",ED_lnr_act);
-
   return ED_lnr_act;
 
 }
@@ -2394,7 +2397,7 @@ static int lnr1, lnr2;
 
   UI_CursorWait (1);    // reset cursor
 
-  DL_Redraw();
+  DL_Redraw ();
 
     // printf("ex ED_work_CurSet ED_lnr_act=%d\n",ED_lnr_act);
 
@@ -2961,7 +2964,7 @@ static int  actLev=0;
   } else if(!strncmp(cbuf, ":ATTRIB:", 8)) {
     GA_decode__ (&cbuf[8]);
     // comment this line out; only in primaryModel.
-    if(WC_mod_stat < 0) {
+    if(WC_modact_ind < 0) {
       cpos = ED_Read_cPos ();
       *cpos = '_'; 
     }
@@ -3097,7 +3100,7 @@ static int  actLev=0;
 
     if(istat == 2) {
       AP_errStat_reset (1);  // reset Error   2011-08-16
-      AP_Init2 ();           // clear DB & DL
+      AP_Init2 (1);           // clear DB & DL
       // DB_Init (0);        // clear gesamten DB_CDAT    2009-06-20
       goto L_start_RUN;      // realloc-alles no amoi
     }
@@ -3190,7 +3193,7 @@ static int  actLev=0;
   //==================================================================
   Fertig:
   // in nicht aktiven subModels: done.
-  if(WC_mod_stat >= 0) return 0;
+  if(WC_modact_ind >= 0) return 0;
 
   // Das Positionskreuz plazieren (nicht in VWR)
   // if(UI_ask_mode() != UI_MODE_VWR) WC_setPosKreuz();

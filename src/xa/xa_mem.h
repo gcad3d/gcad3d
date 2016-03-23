@@ -1,5 +1,5 @@
+// include with deactivated extern in "../xa/xa.c"
 // includefile for memoryspace
-// home is xa.c (dort ohne extern !)
 // Usage: see MemMap.txt
 
 extern char memspc011[1024];   // 1-K-Bloecke

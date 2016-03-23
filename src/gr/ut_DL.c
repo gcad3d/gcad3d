@@ -315,7 +315,7 @@ cc -c -g3 -Wall ut_DL.c
 /*=============== Externe Variablen: =======================================*/
 // aus xa.c:
 extern AP_STAT    AP_stat;                    // sysStat,errStat..
-extern  int       WC_modnr;
+extern  int       WC_modact_ind;
 extern  int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane      WC_sur_act;     // die Konstruktionsebene
 extern double     WC_sur_Z;       // Konstruktionsebene in Z verschieben !
@@ -503,7 +503,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     if(GR_ObjTab[l1].typ  != Typ_Tag) continue;
 /*
     // test if belongs to subModel
-    if((signed short)GR_ObjTab[l1].modInd != WC_modnr) {
+    if((signed short)GR_ObjTab[l1].modInd != WC_modact_ind) {
         printf(" ************ belongs to subModel %d\n",
                (signed short)GR_ObjTab[l1].modInd);
       iNr = GL_sel_add_DL (dlTab, l1);
@@ -1429,7 +1429,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     // loop tru DL
     // if(cbuf1)
     TX_Print ("add all visible objs to group");
-    modnr = WC_modnr;
+    modnr = WC_modact_ind;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       // skip hidden
       if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
@@ -2080,7 +2080,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
     GR_ObjTab[dlInd].irs    = WC_sur_ind;
 
-    GR_ObjTab[dlInd].modInd = WC_modnr;     // (signed short)
+    GR_ObjTab[dlInd].modInd = WC_modact_ind;     // (signed short)
     GR_ObjTab[dlInd].unvis  = 0;            // Default = visible
     GR_ObjTab[dlInd].sChd   = 0;            // Default = indep.
     GR_ObjTab[dlInd].sPar   = 0;            // Default = indep.
@@ -2193,8 +2193,12 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   long l1;
 
-  TX_Print("#### DL_DumpObjTab %d",GR_TAB_IND);
+  TX_Print("#### DL_DumpObjTab %ld",GR_TAB_IND);
 
+
+  
+  printf("#### DL_DumpObjTab %ld WC_modact_ind=%d WC_modact_nam=|%s|\n",
+         GR_TAB_IND, WC_modact_ind, WC_modact_nam);
 
   for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1);
 
@@ -2252,7 +2256,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 // ACHTUNG: kann keine Vecs & Vars finden !!!
 
 
-  return DL_find_smObj (typ, DBind, DLend, WC_modnr);
+  return DL_find_smObj (typ, DBind, DLend, WC_modact_ind);
 
 }
 
@@ -2270,7 +2274,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 ///   typ     objTyp (Typ_PT ..)
 ///   DBind   dataBaseIndex of obj to search
 ///   DLend   last DL-Index to check;  -1L = search in complete DL
-///   imod    WC_modnr 
+///   imod    WC_modact_ind 
 /// retCode = DispListIndex
 ///      -1   Error; objID not found in DL
 /// \endcode
@@ -2285,7 +2289,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   typ = AP_typ_2_bastyp (typ);
 
-  // ACHTUNG: WC_modnr in ein I2 kopieren, da in der DL als I2 gespeichert;
+  // ACHTUNG: WC_modact_ind in ein I2 kopieren, da in der DL als I2 gespeichert;
   // -1 == Main wird sonst nicht gefunden !!!
   modnr = imod;
 
@@ -2506,7 +2510,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   // printf("DL_Get_dli_lNr %ld\n",*lNr);
-  // printf(" WC_modnr=%d\n",WC_modnr);
+  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
   // DL_DumpObjTab ();
 
   if(GR_TAB_IND < 1) { *dli = 0; return -1; }
@@ -2515,7 +2519,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   for(l1 = GR_TAB_IND - 1; l1 >= 0; --l1) {
       // printf(" l1=%d\n",l1);
 
-    if((INT_16)GR_ObjTab[l1].modInd != WC_modnr) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
     
     if(GR_ObjTab[l1].lNr > *lNr) continue;
     if(GR_ObjTab[l1].lNr != *lNr) irc = 1;
@@ -3970,7 +3974,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
     // skip all objects not belonging to the active model
     // if((signed short)GR_ObjTab[l1].modInd != -1) continue;  // skip submodels
-    if((signed short)GR_ObjTab[l1].modInd != WC_modnr) continue;
+    if((signed short)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
 
     if(GR_ObjTab[l1].lNr < lNr) continue;
     // if(GR_ObjTab[l1].lNr <= lNr) continue; // DO NOT DELETE LAST OBJ

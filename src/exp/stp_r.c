@@ -673,7 +673,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   // TEST ONLY: set debug -> ON   ( vi ~/gCAD3D/tmp/debug.dat )
   // start debugging (following prints -> debug-file)
-  AP_deb_stat (1);
+  // AP_deb_stat (1);
 
 
   s_tab = NULL;

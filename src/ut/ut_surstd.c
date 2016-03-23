@@ -507,9 +507,11 @@ List_functions_end:
                   ObjGX *oxi, int sTyp) {
 //=========================================================
 // alle Konturen aus oxi -> cTab ...
-// RC: 0 = OK;
-//     1 = Aussenkontur klein (planar darstellen)
-//     2 = Aussenkontur zu klein (gar nix darstellen)
+// Output:
+//   cTab    contour (closed; last pt = first pt)
+//   RC: 0 = OK;
+//       1 = Aussenkontur klein (planar darstellen)
+//       2 = Aussenkontur zu klein (gar nix darstellen)
 // ACHTUNG: bei Konus wird an Spitze ein zusaetzlicher Punkt mit
 //          X=VAL_MAX eingefuegt !
 
@@ -1263,12 +1265,12 @@ List_functions_end:
       // GR_Disp_pt (&ptp, SYM_STAR_S, 3);
     // vc1 = po - ptp
     UT3D_vc_2pt (&vc1, &pls->po, &ptp);
-    *as = UT3D_angr_3vc (&pls->vz, &pls->vx, &vc1);
+    *as = UT3D_angr_3vc__ (&pls->vz, &pls->vx, &vc1);
 
   } else {
 
     UT3D_vc_2pt (&vc1, &pls->po, pt1);
-    *as = UT3D_angr_2vc (&vc1, &pls->vz);
+    *as = UT3D_angr_2vc__ (&vc1, &pls->vz);
       // GR_Disp_vc (&pls->vz, &ptp, 8, 1);
   }
 

@@ -175,7 +175,7 @@ extern char      UI_stat_view, UI_stat_hide;
 
 
 // aus xa.c:
-// extern int      WC_modnr;        // Nr of the active submodel;
+// extern int      WC_modact_ind;        // Nr of the active submodel;
 extern AP_STAT    AP_stat;
 extern ColRGB     AP_actcol;
 extern ColRGB     AP_defcol;
@@ -366,8 +366,8 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 
   // printf("GA_fil_wri grp=%d nr=%d\n",iGrp,GA_recNr);
-  // printf("  WC_modnr=%d\n",WC_modnr);
-  // printf("  WC_modact=|%s|d\n",WC_modact);
+  // printf("  WC_modact_ind=%d\n",WC_modact_ind);
+  // printf("  WC_modact_nam=|%s|d\n",WC_modact_nam);
 
 
   if(GA_recNr < 1) return -1;

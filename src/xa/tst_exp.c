@@ -284,7 +284,7 @@ extern long       GR_TAB_IND;
 // test import dxf
 
   int      irc;
-  char     cbuf[256];
+  char     cbuf[256], fDir[80], fNam[80];
 
 
   printf("tst_imp_dxf \n");
@@ -296,7 +296,15 @@ extern long       GR_TAB_IND;
   if(irc != 0) return -1;
 
 
- 
+  strcpy(fDir, "/mnt/serv1/Devel/cadfiles/dxf/");
+
+  // strcpy(fNam, "sample_models1.dxf");
+  // strcpy(fNam, "Gelaende1.dxf");
+  // strcpy(fNam, "Maguro1.dxf");
+  strcpy(fNam, "dim3.dxf");
+  
+  UI_open__ (fNam, fDir);
+
   // UI_open__ ("bsplTest1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
   // UI_open__ ("elli_2000_1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
   // UI_open__ ("t2.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");// lines,circs
@@ -305,7 +313,7 @@ extern long       GR_TAB_IND;
   // UI_open__ ("elli1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//ELLIPSE
   // UI_open__ ("poly1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//POLYLINE
   // UI_open__ ("DIM_TEST.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  UI_open__ ("c109806.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
+  // UI_open__ ("c109806.dxf", "/mnt/serv1/Devel/cadfiles/dxf/");
   // UI_open__ ("Spinne.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//LWPOLYLINE
   // UI_open__ ("dim4.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//LEADER
   // UI_open__ ("t7.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//TEXT
@@ -441,11 +449,21 @@ extern long       GR_TAB_IND;
   int tst_imp_tess () {
 //================================================================
 // test import obj
-  
+
+
+  char     cbuf[256], fDir[80], fNam[80];
+
+
   printf("tst_imp_tess \n");
+
   
-  UI_open__ ("test_tex3.tess", "/mnt/serv1/Devel/dev/gCAD3D/dat/");
-  
+  // strcpy(fDir, "/mnt/serv1/Devel/dev/gCAD3D/dat/");
+  strcpy(fDir, "/home/fwork/devel/gCAD3D/dat/");
+
+  strcpy(fNam, "unknown.tess");
+
+  UI_open__ (fNam, fDir);
+
   return 0;
   
 } 
@@ -553,7 +571,31 @@ extern long       GR_TAB_IND;
   return 0;
   
 } 
+ 
+
+//================================================================
+  int tst_print_pdf () {
+//================================================================
   
+  int      irc;
+  char     cbuf[256];
+
+  printf("tst_print_pdf\n");
+
+  // Compile, Link.
+  strcpy(cbuf, "xa_print_pdf.so");
+  irc = DLL_build__ (cbuf);
+  printf(" build=%d\n",irc);
+  if(irc != 0) return -1;
+
+
+  // print
+  OS_dll_do ("xa_print_pdf", "PRI_PDF__", "abc");
+
+  return 0;
+
+}
+
   
 //================================================================
   int tst_exp_dxf () {
@@ -563,7 +605,9 @@ extern long       GR_TAB_IND;
   char   cbuf[256];
 
   TX_Print("tst_exp_dxf\n");
-  AP_stat.subtyp = 1;  // 0=R12; 1=2000
+  // AP_stat.subtyp = 99;  // 99=headerless; no dimensions !
+  AP_stat.subtyp = 0;  // 0=R10   AC1006
+  // AP_stat.subtyp = 1;  // 1=?
 
   // Compile, Link.
   strcpy(cbuf, "xa_dxf_w.so");

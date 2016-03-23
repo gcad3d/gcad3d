@@ -358,12 +358,12 @@ cl -c ut_geo.c
   UT3D_vc_2pt (&v2, &el1->pc, &el1->p2);
 
   // den StartAngle errechnen
-  // aa = UT3D_angr_3vc (&el1->vz, &el1->va, &v1);
+  // aa = UT3D_angr_3vc__ (&el1->vz, &el1->va, &v1);
   a1 = UT3D_angr_elpt (&el1->p1, &el1->pc, &el1->va, &el1->vb);
   a2 = UT3D_angr_elpt (&el1->p2, &el1->pc, &el1->va, &el1->vb);
 
   // den OpeningAngle errechnen
-  // ango = UT3D_angr_3vc (&el1->vz, &v1, &v2);
+  // ango = UT3D_angr_3vc__ (&el1->vz, &v1, &v2);
   // if(el1->dir < 0) ango = RAD_360 - ango;
   ango = UT2D_angr_2angr (a1,a2, el1->dir);
 

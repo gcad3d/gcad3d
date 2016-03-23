@@ -677,8 +677,8 @@ extern int       IE_modify;
 
   ii = MenInd[isel]; // see ../xa/xa_msg.h
 
-    printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
-           actObj.typ,actObj.dbInd);
+    // printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
+           // actObj.typ,actObj.dbInd);
 
 
   // UI_block__ (-1, -1, 1);     // wait-cursor

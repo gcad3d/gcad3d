@@ -73,7 +73,7 @@ List_functions_end:
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
 #include "../xa/xa_mem.h"              // mem_cbuf1
-#include "../xa/xa.h"                  // WC_modact
+#include "../xa/xa.h"                  // WC_modact_nam_nam
 
 #include "../exp/prt_w.h"              // ich
 

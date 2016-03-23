@@ -5,7 +5,7 @@
 # find . -name "xa_*.mak" -exec make srclst -f {} \;
 
 
-# get OUTDIR CC VGUI
+# get gcad_dir_bin CC VGUI gcad_dir_bin
 include ../options.mak
 
 
@@ -27,7 +27,7 @@ else
 OBJ1 := $(patsubst %.c,%.o, $(notdir $(SRC1)))
 endif
 
-VPATH := $(OUTDIR):$(DIRSRC1)
+VPATH := $(gcad_dir_bin):$(DIRSRC1)
 
 CC = gcc
 
@@ -48,7 +48,7 @@ endif
 
 #ifeq "$(OS)" "MSGCC32"
 #FTYP = dll
-#OUTDIR=../bin$(OS)
+#gcad_dir_bin=../bin$(OS)
 #LKFLG = -shared gCAD3D.lib
 #endif
 
@@ -57,20 +57,20 @@ endif
 #=====================================================================
 #default:
 default:	$(OBJ1)
-#	@echo "OUTDIR = "$(OUTDIR)
+#	@echo "gcad_dir_bin = "$(gcad_dir_bin)
 	@echo $(VPATH)
 	@echo $(OBJ1)
 	@echo ====================== Link ======================
-	cd $(OUTDIR) &&\
+	cd $(gcad_dir_bin) &&\
 	$(CC) -o $(DLLNAM).$(FTYP) $(LKDEB) $(OBJ1)\
   $(GUILIB) $(OGLLIB) $(LKFLG)
-#	mv -f $(OUTDIR)/$(DLLNAM).so $(DIRBIN)/.
+#	mv -f $(gcad_dir_bin)/$(DLLNAM).so $(DIRBIN)/.
 
 #ifeq "$(DEB)" "2"
-#	strip -o $(OUTDIR)/$(DLLNAM).$(FTYP) $(OUTDIR)/$(DLLNAM).$(FTYP)
+#	strip -o $(gcad_dir_bin)/$(DLLNAM).$(FTYP) $(gcad_dir_bin)/$(DLLNAM).$(FTYP)
 #endif
 
-#	if test $(OUTDIR) != $(DIRBIN); then mv -f $(OUTDIR)/$(DLLNAM).$(FTYP) $(DIRBIN)/.; fi
+#	if test $(gcad_dir_bin) != $(DIRBIN); then mv -f $(gcad_dir_bin)/$(DLLNAM).$(FTYP) $(DIRBIN)/.; fi
 
 
 

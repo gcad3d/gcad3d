@@ -882,7 +882,7 @@ WC_sur_mat WC_sur_imat
   char      *pi, *po, *po1, *pw;
   Point     *pa1, *pa2, p1;
   void      *o1, *opi, *opo, *objo;
-  ObjGX     *ox1, *oxi, *oxo;
+  ObjGX     *ox1, *ox2, *oxi, *oxo;
 
 
   // printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \n");
@@ -1325,6 +1325,7 @@ WC_sur_mat WC_sur_imat
      // typ = AP_typ_2_bastyp (otyp);
     case Typ_CV:
     case Typ_SURRU:
+
       // get space
       if(UME_add (wrkSpc, sizeof(ObjGX) * iNr) < 0) goto L_EOM;
       // copy all records
@@ -1332,16 +1333,14 @@ WC_sur_mat WC_sur_imat
 
       ox1 = (ObjGX*)obji;
       oxo = (ObjGX*)objo;
-      // otyp = ox1->form;
+
+         // TESTBLOCK
+         // printf(" otyp=%d iNr=%d\n",otyp,iNr);
          // UTO_dump__ (objo, "obj to tra");
          // for(i1=0; i1 < iNr; ++i1)
          // UT3D_stru_dump (Typ_ObjGX, &ox1[i1], "obj-to-tra[%d]",i1);
-      // // get new memspc
-      // // o1 = wrkSpc->next;
-      // // if(UME_add (wrkSpc, OBJ_SIZ_MAX) < 0) return -1;
-      // o1 = (char*)objo + (sizeof(ObjGX) * iNr);  // o1 = wrkSpc->next;
-      // *oSiz -= sizeof(ObjGX) * iNr;
-      // if(*oSiz < 0) return -1;
+         // END TESTBLOCK
+
 
       for(i1=0; i1 < iNr; ++i1) {  // Recursion !
         // UTRA_app__ cannot get typ&form&data; resolv links now !
@@ -1353,25 +1352,20 @@ WC_sur_mat WC_sur_imat
           // skip V,D
           if((typ == Typ_VC)    ||
              (typ == Typ_VAR))        continue;
+          // transform DB-object (typ,DB-ind) and store in DB
           irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
           if(irc < 0) goto L_EOM;
           // store new dbi in objo
           OGX_SET_INDEX (&oxo[i1], typ, dbi);
           continue;
         }
-        // recurse
-// printf(" _APP_X ObjGX typ=%d ??????????????????\n",oxi->form);
-
-        // UTRA_app__ (o1, ox1->form,ox1->siz,ox1->data, wrkSpc);
-        // UTRA_app_x (o1, oxi->form, 1, oxi->data, wrkSpc);
+          // printf(" _APP_X ObjGX typ=%d ??????????????????\n",oxi->form);
+        // point (eg for RCIR):
+        UTRA_app_x ((void**)&ox2, oxi->form, oxi->siz, oxi->data, wrkSpc);
+        oxo = &((ObjGX*)objo)[i1];
+        oxo->data = ox2;
+          // UT3D_stru_dump (Typ_ObjGX, oxo, "obj-tra[%d]",i1);
       }
-/*
-      // if form=Typ_Index save to DB ?
-      if(oxi->form == Typ_Index) {
-        irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
-        if(irc < 0) goto L_EOM;
-      }
-*/
         // printf("ex-app-ox\n");
       break;
 
@@ -2218,7 +2212,7 @@ exit(0);
   }
 
   // ao = opening-angle vc1 to vc2
-  ao = UT3D_angr_2vc (vc1, vc2) * -1.;
+  ao = UT3D_angr_2vc__ (vc1, vc2) * -1.;
     printf(" ao=%lf\n",ao);
 
   UT3D_vc_setLength (&rx, &rx, 1.);

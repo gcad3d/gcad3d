@@ -201,7 +201,7 @@ UTX_dump_wTab          dumpt table of words
 List_functions_end:
 =====================================================
 - see also:
-UtxTab_*               Class for stacking Textstrings
+UtxTab_*               Class for stacking Textstrings of variable length
 UTI_iNr_chrNr          give nr of ints for n characters
 
 \endcode *//*----------------------------------------
@@ -742,14 +742,16 @@ static char   TX_buf2[128];
 /// mode:
 ///   0:  change '. ' to '_', do not change '/' (fuer absolute Filenames)
 ///   1:  change all '. ' and '/' to '_'
+///   2:  change all '/' to '_'
 /// \endcode
+
 
   int   iPos, iLen;
 
   iLen = strlen(snam);
 
 
-  if(mode > 0) goto L_1_noAmoi;
+  if(mode > 1) goto L_1_noAmoi;
 
   L_0_noAmoi:
     iPos = strcspn (snam, ". ");
@@ -758,7 +760,7 @@ static char   TX_buf2[128];
       goto L_0_noAmoi;
     }
 
-  return 0;
+  if(mode < 1) return 0;
 
 
   //----------------------------------------------------------------
@@ -1663,9 +1665,10 @@ static char   TX_buf2[128];
 /// \code
 /// UTX_ck_num_f          test if word is numeric (float)
 /// +-.  und Ziffern sind numer.!
-/// RC= 0: ja, text ist eine Zahl
-/// RC=-1: nein, nur Text.
-/// pOut = delimitchar (first char after number)
+/// Output:
+///   pOut      delimitchar (first char after number)
+///   retCod    0   yes, numeric
+///            -1   no, is text ..
 /// \endcode
 
   int   iNr = 0;

@@ -5,6 +5,7 @@ include deb.mak
 
 ifeq "$(DEB)" "1"
   CPDEB = -DDEB -ggdb -pg
+  LKDEB = -pg
 endif
 
 # LKDEB = -rdynamic $(GUILK) -ggdb -pg ../libxa_test.so -Wl,-rpath .

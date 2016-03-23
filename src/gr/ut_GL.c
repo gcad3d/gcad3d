@@ -513,8 +513,7 @@ extern char      UI_stat_view, UI_stat_hide;
 
 // aus xa.c
 extern AP_STAT   AP_stat;
-extern  int       WC_modnr;              // Nr of the active submodel; -1=main.
-extern  int       WC_mod_stat;    // -1=primary Model is active
+extern  int       WC_modact_ind;    // -1=primary Model is active
 extern Plane      WC_sur_act;     // die Konstruktionsebene
 extern double     WC_sur_Z;       // Konstruktionsebene in Z verschieben !
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -1213,7 +1212,9 @@ GLuint GL_fix_DL_ind  (long*);
     dy = fabs(actScrPos.y - spt->y);
     if(dy > GL_pickSiz) goto L_cont1;
     // get parameter of spt along p21-p22
-    UT2D_parLn_pt2pt (&ps, &p21, &p22, (Point2*)spt);
+    // UT2D_parLn_pt2pt (&ps, &p21, &p22, (Point2*)spt);
+    UT2D_par_3pt (&ps, &p21, &p22, (Point2*)spt);
+
       // printf(" ps=%f\n",ps);
     // compute spt from parameter
     UT3D_pt_evpar2pt (spt, ps, &pTab[i1-1], &pTab[i1]);
@@ -9184,9 +9185,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  // printf("GL_ColSet WC_modnr=%d WC_mod_stat=%d\n",WC_modnr,WC_mod_stat);
+  // printf("GL_ColSet WC_modact_ind=%d\n",WC_modact_ind);
   // UT3D_stru_dump (Typ_Color, pCol, "GL_ColSet ");
-  // printf("GL_ColSet vtra=%d WC_mod_stat=%d\n",pCol->vtra,WC_mod_stat);
+  // printf("GL_ColSet vtra=%d WC_modact_ind=%d\n",pCol->vtra,WC_modact_ind);
 
   memcpy(glCol, col, 3); 
 
@@ -9244,7 +9245,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // glBlendFunc (GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);   // no ..
     // glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);   // no ..
 
-    if(WC_mod_stat >= 0)         // nur bei 'make subModel';  WC_modnr?
+    if(WC_modact_ind >= 0)         // nur bei 'make subModel'
       glDisable (GL_DEPTH_TEST); // nur damit immer (in SM) durchsichtig !
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE);   // geht 
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);   // geht 
@@ -9267,12 +9268,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 // unused: 0=GL_POINTS; 1=GL_LINES; 2=GL_LINE_LOOP ?
 //   3=GL_LINE_STRIP ? 0=GL_POLYGON
 // prepare with glNormal3dv
+// default sense-of-rotation for OpenGL-frontside is CCW, CW for rear.
 // see also GL_Disp_iface
 
   int  i1;
 
   // printf("GL_Disp_face pNr=%d gTyp=%d\n",ptNr,gTyp);
   // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump (Typ_PT, &pa[i1], "P[%d]",i1);
+  // GR_Disp_pTab (ptNr, pa, SYM_STAR_S, 2);
   //// gTyp=6=GL_TRIANGLE_FAN
 
 
@@ -13645,7 +13648,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf("GL_InitModelSize %f %d %f\n",NewModSiz,mode,GL_ModSiz);
 
   // Abarbeiten nicht aktiver subModels: nix tun ?
-  // if(WC_mod_stat >= 0) return;
+  // if(WC_modact_ind >= 0) return;
 
 
   GL_initMode = mode; // change scale or not
@@ -13670,7 +13673,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     GL_SclNorm = GL_ModSiz / 500.;   // fuer immer gleich grosse Vektoren ..
 
 
-    // if(WC_mod_stat < 0) {  // Achtung: DL loeschen loescht SubModels !!!!
+    // if(WC_modact_ind < 0) {  // Achtung: DL loeschen loescht SubModels !!!!
       GL_Init__ (1, (int)GL_Scr_Siz_X, (int)GL_Scr_Siz_Y);
       // GL_Redraw ();
       // TX_Print("Modelsize %f",NewModSiz);

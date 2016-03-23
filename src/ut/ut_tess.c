@@ -176,7 +176,7 @@ wrl_reloc__         see also tess_reloc_f_
   int  i1;
   char cBuf[256];
 
-  // printf("tess_read_ |%s|\n",mnam);
+  printf("tess_read_ |%s|\n",mnam);
 
   // get filename fnam.tess & check if pretesselated file exists
   i1 = tess_fnam (cBuf, mnam);

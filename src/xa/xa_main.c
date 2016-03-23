@@ -126,8 +126,10 @@ static char *os_ico_dir;
   MemObj win0;
 
 
-  printf("+++++++++++++ Start xa 2013-10-05  %d\n",paranz);
+  printf("+++++++++++++ Start xa 2016-03-16  %d\n",paranz);
 
+
+  // mtrace ();   // malloc-tests
 
 
 #ifdef _MSC_VER
@@ -178,6 +180,13 @@ static char *os_ico_dir;
   OS_Init_ (txbuf1);
 
 
+  // display debug-switch
+#ifdef DEB
+  strcpy(txbuf2, "ON");
+#else
+  strcpy(txbuf2, "OFF");
+#endif
+  printf("Debug-switch DDEB is %s\n",txbuf2);
 
 
 

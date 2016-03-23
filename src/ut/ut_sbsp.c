@@ -854,7 +854,7 @@ Beispiel ptUNr=2 ptVNr=4:
       // UT3D_stru_dump(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
       vc1 = vc2;
       UT3D_vc_2pt (&vc2, &sbs->cpTab[i3-1], &sbs->cpTab[i3]);
-      d1 = UT3D_angr_2vc (&vc1, &vc2);
+      d1 = UT3D_angr_2vc__ (&vc1, &vc2);
       ld = UT3D_len_2pt (&sbs->cpTab[i3-1], &sbs->cpTab[i3]);
       lTot += ld;
       // printf("  d[%d/%d]=%f l=%f\n",i3-1,i3,UT_DEGREES(d1),ld);
@@ -897,7 +897,7 @@ Beispiel ptUNr=2 ptVNr=4:
       // UT3D_stru_dump(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
       vc1 = vc2;
       UT3D_vc_2pt (&vc2,&sbs->cpTab[((i2-1)*i3)+i1],&sbs->cpTab[(i2*i3)+i1]);
-      d1 = UT3D_angr_2vc(&vc1, &vc2);
+      d1 = UT3D_angr_2vc__(&vc1, &vc2);
       ld = UT3D_len_2pt(&sbs->cpTab[((i2-1)*i3)+i1],&sbs->cpTab[(i2*i3)+i1]);
       lTot += ld;
       // printf("  d1[%d/%d]=%f l=%f\n",((i2-1)*i3)+i1,(i2*i3)+i1,

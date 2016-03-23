@@ -16,6 +16,8 @@
  *
 -----------------------------------------------------
 TODO:
+sele_ck_subCurv
+  how to deactivate ? sele_set_subCurv ? see sele_setNoConstrPln
 sele_set_types (Typ_PT .. liefert dzt alle Punkte und auch Kurven & Flächen
   (der Punkt wird abgeleitet);
   wenn man NUR echte Punkte will geht das ned !!!!!!!

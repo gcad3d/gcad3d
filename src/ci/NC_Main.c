@@ -493,9 +493,8 @@ extern int       AP_src;
 // extern  int       aus_typ[aus_SIZ];
 // extern  double    aus_tab[aus_SIZ];
 
-extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
-extern int       WC_mod_stat;           // -1=primary Model is active;
-                                         // else subModel is being created
+extern int       WC_modact_ind;         // -1=primary Model is active;
+                                        // else subModel is being created
 
 
 extern Point     WC_mod_ori;            // der Model-Origin
@@ -1537,7 +1536,9 @@ int    APT_prim_typ;
 
   WC_Init_Tol ();                       // compute tolerances
 
-  if(WC_mod_stat < 0)                   // nur im aktiven Model
+
+  // display modelsize in label, redraw all
+  if(WC_modact_ind < 0)                   // nur im aktiven Model
     GL_InitModelSize (APT_ModSiz, 0);
 
   return 0;
@@ -2187,7 +2188,7 @@ int    APT_prim_typ;
 // seqNr ist Reihenfolge der BasicModels; fuer IGES-Export ..
 
 
-static char oldMod[128];
+// static char oldMod[128];
 
   int      irc, i1, mbNr, mbTyp;
   long     ll;
@@ -2203,7 +2204,7 @@ static char oldMod[128];
 
   // Init
   if(cbuf == NULL) {
-    oldMod[0] = '\0';
+    // oldMod[0] = '\0';
     AP_mdLev = -1;
     APT_Init ();
     return 0;
@@ -2225,7 +2226,7 @@ static char oldMod[128];
 
   //-----------------------------------------------------------
   // Submodelaufruf; is it MockupModel ?
-  // printf(" _Work WC_mod_stat=%d WC_modnr=%d\n",WC_mod_stat,WC_modnr);
+  // printf(" _Work WC_modact_ind=%d\n",WC_modact_ind);
   // printf(">>>>>>>>Ditto: AP_mdLev=%d |%s|\n",AP_mdLev,cbuf);
 
   // Test for catalog-part
@@ -2242,8 +2243,9 @@ static char oldMod[128];
 
   } else {
     mbTyp = Mod_get_typ1 (mNam, cbuf);  // get typ & Modelname
+    // mbTyp: -1:MBTYP_INTERN  -3:Error >=0:extern
   }
-    // printf(" CTLG _typ1 mNam |%s| mbTyp=%d\n",mNam,mbTyp);
+    // printf(" _Work__ mNam |%s| mbTyp=%d\n",mNam,mbTyp);
 
 
   if(mbTyp < -2) goto L_fertig;       // kein gueltiger Modelname ..
@@ -2258,8 +2260,8 @@ static char oldMod[128];
 /*
 2011-07-06 raus; Error wenn symbol erst nachträglich in dir.lst eingefügt wird.
   // derzeit keine subModels in external-native Models !!
-    printf("     WC_mod_stat=%d\n",WC_mod_stat);
-  if(WC_mod_stat >= 0) {            // wenn nicht im aktiven Model
+    printf("     WC_modact_ind=%d\n",WC_modact_ind);
+  if(WC_modact_ind >= 0) {            // wenn nicht im aktiven Model
     if(mbTyp >= 0) {                // und wenn external Model -
       TX_Error("external Model may not have subModels; use Mockup");
       return -1;
@@ -2276,28 +2278,24 @@ static char oldMod[128];
   mbNr = DB_StoreModBas (mbTyp, mNam);
     // printf(" _Work__ mbNr=%d\n",mbNr);
 
+
   // get the mdb_dyn-Record.
   mb = DB_get_ModBas (mbNr);
   if(mb == NULL) goto L_err1;
-    // UT3D_stru_dump (Typ_SubModel, mb, "  mb:\n");
+    // UT3D_stru_dump (Typ_SubModel, mb, "  mb:");
 
   if(mb->DLsiz >= 0) goto L_fertig;   // ja, Model bereits geladen
 
-
-  // model not yet loaded:
-    // printf(" model not yet loaded: |%s|\n",mNam,mbNr);
-
-
-  // UT3D_stru_dump (Typ_SubModel, mb, "mb:\n");
-  strcpy(oldMod, mb->mnam);
-    // printf(" load Model |%s| typ=%d\n",mb->mnam,mb->typ);
-
+  // strcpy(oldMod, mb->mnam);
 
 
 
 	//==========================================================
+  // model not yet loaded:
   // Submodel ist noch nicht geladen!!!!
   L_mod_load:
+    // printf(" _Work__ L_mod_load: |%s| typ=%d\n",mb->mnam,mb->typ);
+
   // increment Level (spaeter Rekursion !!!
   ++AP_mdLev;
   if(AP_mdLev >= 12) {
@@ -2331,7 +2329,7 @@ static char oldMod[128];
     GA_hide_fil_tmp (1);
 
     // save gesamte DB -> File
-    DB_save__ ();
+    DB_save__ ("");
 
     // save the DYNAMIC_DATA of the actual mainModel
     DL_sav_dynDat ();
@@ -2376,7 +2374,7 @@ static char oldMod[128];
 
   //----------------------------------------------------------------
   // reload gesamte DB from File
-  DB_load__ ();
+  DB_load__ ("");
 
   // reload the DYNAMIC_DATA of the actual mainModel
   DL_load_dynDat ();
@@ -2552,7 +2550,7 @@ static long     actDLi;
 
   mbNrTab[actLev] = modNr;
 
-  WC_modnr        = modNr;
+  WC_modact_ind        = modNr;
 
 
 
@@ -2655,7 +2653,7 @@ static long     actDLi;
   DL_load_dynDat ();
 
 
-  WC_modnr        = -1;  // main
+  WC_modact_ind        = -1;  // main
 
 
   // bei der alten Zeilennummer ED_lnr_act wieder weitertun ..
@@ -2784,7 +2782,7 @@ APT_stat_act:
   // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%d\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
-  // printf("         WC_modnr=%d WC_modact=|%s|\n",WC_modnr,WC_modact);
+  // printf("         WC_modact_ind=%d WC_modact_nam=|%s|\n",WC_modact_ind,WC_modact_nam);
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
 
@@ -3071,11 +3069,13 @@ APT_stat_act:
 
     // Ist das erste Wort eine Programming-Funktion -
     for (i1=0; i1<PrgCmdAnz; i1++) {
+        // printf(" Work1-comp %d !%s!%s!\n",i1,*(&PrgCmdTab[i1]),cmd);
 
-      // printf("vergl %d !%s!%s!\n",i1,*(&PrgCmdTab[i1]),cmd);
       if (!strcmp(*(&PrgCmdTab[i1]),cmd)) {
 
-        rc = APT_work_PrgCmd (txtOut, &w_next);
+        // work programming-function; retCod = typ-of-function.
+        // rc = APT_work_PrgCmd (txtOut, &w_next);
+        rc = APT_work_PrgCmd (cmd, &w_next);        // 2016-03-16
 
 
         // 1 = IFXX Funkion: work rest of Line.
@@ -3228,7 +3228,7 @@ APT_stat_act:
   // nur bei Verarbeitung aus dem Memory (nicht aus File)
   // und nur beim primary Model
   if((ED_get_mac_fil() != ON) &&
-     (WC_mod_stat < 0))              {
+     (WC_modact_ind < 0))              {
 
     // die von der aktuellen Zeile erzeugte ObjektID merken 2001-06-05
     AP_dli_act = GL_GetActInd();
@@ -3624,11 +3624,10 @@ APT_stat_act:
 
 
   // in Submodels keine hidden objects generieren ( diese sind sonst in
-  //TODO if(MODEL) only :
   // Dittos des mainmodels sichtbar!)
-    // printf(" WC_mod_stat=%d ga1->disp=%d\n",WC_mod_stat,ga1->disp);
-  if(WC_mod_stat >= 0) {           // 0-n = sind in Submodel; -1=main
-    // if(WC_modact[0] == '\0') {     // aktives Model ist main, wenn name leer
+    // printf(" WC_modact_ind=%d ga1->disp=%d\n",WC_modact_ind,ga1->disp);
+  if(WC_modact_ind >= 0) {           // 0-n = sind in Submodel; -1=main
+    // if(WC_modact_nam[0] == '\0') {     // aktives Model ist main, wenn name leer
       // i1 = GA_hide__ (8, defInd, defTyp); // ask state; 1=hidden
       // // printf(" obj %d %d = %d\n",defTyp,defInd,i1);
       // if(i1 > 0) return 0;
@@ -3759,7 +3758,7 @@ APT_stat_act:
   // Besser waere: loeschen nicht in WC_work, sondern in CAD oder
   // ACHTUNG: loescht Submodels !
   //   in ED_work_ENTER ..
-  if(WC_mod_stat < 0) {           // 0-n = sind in Submodel; -1=main
+  if(WC_modact_ind < 0) {           // 0-n = sind in Submodel; -1=main
 
     // is obj in DB already defined ?
     odb = DB_GetObjGX(defTyp, (long)defInd);
@@ -4166,9 +4165,6 @@ APT_stat_act:
 
 
 
-
-
-
   //=====================================================================
   if (!strcmp (cmd, "ZOOMALL")) {
     UI_GR_ScalAuto (0);
@@ -4489,7 +4485,7 @@ APT_stat_act:
 
     // APT_ModSiz  = aus_tab[0];
     // WC_Init_Tol ();
-    // if(WC_mod_stat < 0)                   // nur im aktiven Model
+    // if(WC_modact_ind < 0)                   // nur im aktiven Model
       // GL_InitModelSize (APT_ModSiz, 0);
 
     if(aus_typ[1] == Typ_Val) {
@@ -4576,14 +4572,14 @@ APT_stat_act:
 
   //=====================================================================
   } else if (!strcmp (cmd, "SHOW")) {
-    if(WC_mod_stat >= 0) goto Fertig; // skip command in Submodels
+    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
     return APT_work_SHOW (aus_anz, aus_typ, aus_tab);
 
 
 
   //=====================================================================
   } else if (!strcmp (cmd, "VIEW")) {
-    if(WC_mod_stat >= 0) goto Fertig; // skip command in Submodels
+    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
     return APT_work_VIEW (aus_anz, aus_typ, aus_tab);
 
 
@@ -4739,13 +4735,13 @@ Ablauf Makro:
    // check for catalog-call (Typ_cmdNCsub T_CTLG)
    if(aus_typ[0] == Typ_cmdNCsub) {
     if(aus_tab[0] != T_CTLG) goto Fehler1;
-        // printf(" catalog-call; WC_modnr=%d\n",WC_modnr);
+        // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
       // wenn im primary Model "CALL CTLG" steht darf man nix tun !
-      if(WC_modnr < 0) goto Fertig;
+      if(WC_modact_ind < 0) goto Fertig;
 
-      mb = DB_get_ModBas(WC_modnr);
+      mb = DB_get_ModBas(WC_modact_ind);
       if(mb->mnam == NULL) goto Fehler1;
-        // printf(" WC_modnr=%d mnam=|%s|\n",WC_modnr,mb->mnam);
+        // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
       sprintf(APT_macnam, "%s",mb->mnam);
       // den zugehoerigen filename fuer das .write-File machen
       CTLG_fnWrite_modelnam (APT_filnam, APT_macnam);
@@ -5769,7 +5765,7 @@ Ablauf Makro:
     if((aus_typ[ii] == Typ_SUR)  ||
        (aus_typ[ii] == Typ_SOL))     {
       dbi = aus_tab[ii];
-      dli = DL_find_smObj (aus_typ[ii], dbi, -1L, WC_modnr);
+      dli = DL_find_smObj (aus_typ[ii], dbi, -1L, WC_modact_ind);
 
       if(iTex >= 0) {
         // apply active texture
@@ -5854,7 +5850,7 @@ Ablauf Makro:
 
     // find dli from typ,dbi
     dbi = aus_tab[i1];
-    dli = DL_find_smObj (aus_typ[i1], dbi, -1L, WC_modnr);
+    dli = DL_find_smObj (aus_typ[i1], dbi, -1L, WC_modact_ind);
 
     GA_lTyp__ (dli, ii, aus_typ[i1], dbi, 1);
 
@@ -5897,7 +5893,7 @@ Ablauf Makro:
     l1 = aus_tab[i1];
 
     // find dli from typ,dbi
-    dli = DL_find_smObj (aus_typ[i1], l1, -1L, WC_modnr);
+    dli = DL_find_smObj (aus_typ[i1], l1, -1L, WC_modact_ind);
 
     // update PermanentAttributeList;  is: 3=HIDE, 2=SHOW
     GA_view__ (dli, is, 0, 0L);                  // HIDE
@@ -8348,7 +8344,7 @@ dzt unused
 
 
 //===========================================================================
-  void APT_DrawModel (int typ, long apt_ind, ModelRef *mod1) {
+  int APT_DrawModel (int typ, long apt_ind, ModelRef *mod1) {
 //===========================================================================
 
 
@@ -8358,11 +8354,9 @@ dzt unused
   // Mod_test1();
 
 
-  if(APT_Stat_Draw == OFF) return;
+  if(APT_Stat_Draw == OFF) return 0;
 
-  GR_DrawModel (apt_ind, typ, mod1);
-
-  return;
+  return GR_DrawModel (apt_ind, typ, mod1);
 
 }
 

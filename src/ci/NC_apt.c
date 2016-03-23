@@ -273,7 +273,7 @@ extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;            // Constr.Plane
 extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
-extern int       WC_mod_stat;           // -1=primary Model is active
+extern int       WC_modact_ind;           // -1=primary Model is active
 extern int       aus_SIZ;
 extern AP_STAT   AP_stat;
 
@@ -5751,7 +5751,7 @@ static SurStd  sus;
       pp1 = DB_get_PT ((long)aus_tab[6]);
       // oeffnungswinkel errechnen
       UT3D_vc_2pt (&vc1, &ci1->pc, pp1);
-      srv->v1 = fabs(UT3D_angr_3vc (&vcz, &vcx, &vc1));
+      srv->v1 = fabs(UT3D_angr_3vc__ (&vcz, &vcx, &vc1));
     }
 
     if(srv->v1 < 0.) goto L_err_p;
@@ -5775,7 +5775,7 @@ static SurStd  sus;
       pp1 = DB_get_PT ((long)aus_tab[5]);
       // oeffnungswinkel errechnen
       UT3D_vc_2pt (&vc1, &ci1->pc, pp1);
-      srv->v0 = fabs(UT3D_angr_3vc (&vcz, &vcx, &vc1));
+      srv->v0 = fabs(UT3D_angr_3vc__ (&vcz, &vcx, &vc1));
     }
 
     // den Startpunkt p1 des Circ ci1 aendern; Angle ist d1
@@ -7651,7 +7651,7 @@ static Torus to1;
 //=============================================================================
 // ACHTUNG: bd1->oiTab = memspc55
 
-static int      idebug=0;
+// static int      idebug=0;
 static ModelRef *mod1, modR1;
 
   int      irc, i1, i2, i3, ptFlag, modNr, mTyp;
@@ -7700,6 +7700,7 @@ static ModelRef *mod1, modR1;
 
     // check if is "M20"
     if(APT_spc1[0] == 'M') {
+      // test modNam, return dbi
       irc = APED_dbo_oid (&i2, &dbi, APT_spc1);
       if(irc != 0) goto L_ctlg_5;
       // get Modelname of modelRef dbi
@@ -18165,12 +18166,12 @@ see also SRC_typ_FncNam
       // display 
       UI_disp_joint (APT_obj_stat, defInd, &APTSpcObj);
 
-      if(WC_mod_stat < 0) {                    // 0-n = sind Submodel; -1=main
+      if(WC_modact_ind < 0) {                    // 0-n = sind Submodel; -1=main
         if(APT_obj_stat != 0) goto L_jnt_ex;   // temp-mode: do not store ..
 
       } else {
         // hide original obj
-        JNT_parent_hide (aus_typ[0], (long)aus_tab[0], WC_mod_stat);
+        JNT_parent_hide (aus_typ[0], (long)aus_tab[0], WC_modact_ind);
       }
 
       // save data in DBFile

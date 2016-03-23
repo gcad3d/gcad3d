@@ -7,6 +7,7 @@
 \ref ApplicationObjects
 \ref ApplicationData
 \ref Errorhandling-Tests
+\ref Debug-settings-tools
 \ref Global-CAD-Datafields
 \ref Constants
 \ref Standards-Tolerences-Modelsize
@@ -56,9 +57,51 @@ AP_errStat_reset
 AP_errText_set
 
 
-AP_debug__          Alt shift x
 AP_test__           Testfunction in core; activate by Ctl shift T
                     exit durch Ctl shift X
+
+
+
+
+\endcode
+\section Debug-settings-tools
+\code
+
+Activate debug-switch in deb.mak with: DEB = 1
+ - results in deb.umak with: CPDEB = -DDEB
+
+Check debug-switch (startup-message "Debug-switch DDEB is ON|OFF")
+
+
+
+//----------------------------------------------------------
+AP_debug__  ("func xy");   // stop in debugger and display message
+
+// stop in debugger with keycode  Alt shift x           
+
+
+
+//----------------------------------------------------------
+// using -DDEB
+
+#ifdef DEB
+..
+#endif
+
+
+
+//----------------------------------------------------------
+// Write into file <tempDir>/debug.dat:  
+// (not active if -DDEB is not ON)
+
+AP_deb_stat (1);           // open debugfile
+
+  printd ..                // print into debugfile
+
+AP_deb_stat (0);           // close debugfile
+
+
+
 
 
 \endcode

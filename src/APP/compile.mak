@@ -5,7 +5,7 @@
 	@echo "VPATH="$(VPATH)
 	$(CC) -c $(CPFLG) $<
 #	if test $(@D) != "../xa"; then mv $(@F) $@; fi
-	mv -f $(@F) $(OUTDIR)/.
+	mv -f $(@F) $(gcad_dir_bin)/.
 #	etags -f $(*F).tag $<
 	rm -f ../tags/$(*F).tag
 	ctags -f ../tags/$(*F).tag -IMemTab $<
@@ -15,7 +15,7 @@
 	@echo ================= Cpp $@ ========================
 	# CPPFLG not yet set
 	$(CC) -c $(CPPFLG) $<
-	mv -f $(@F) $(OUTDIR)/.
+	mv -f $(@F) $(gcad_dir_bin)/.
 	rm -f ../tags/$(*F).tag
 	ctags -f ../tags/$(*F).tag -IMemTab $<
 

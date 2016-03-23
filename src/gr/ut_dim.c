@@ -38,7 +38,7 @@ GR_dim_ang__          ?
 
 List_functions_end:
 =====================================================
-see also GR_gxt_dxfout
+see also dxfw_gxt
 
 \endcode *//*----------------------------------------
 

@@ -5,7 +5,7 @@ DLLNAM = plugins/Demo_appDat1
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/Demo_appDat1.c
+	../APP/Demo_appDat1.c
 
 DIRSRC1 := ../xa/
 

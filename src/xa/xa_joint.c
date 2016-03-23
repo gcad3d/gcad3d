@@ -74,7 +74,7 @@ The joints of all models are in one file: <temp>/joints.
 extern AP_STAT   AP_stat;
 
 // aus xa.c:
-extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
+extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 
@@ -190,7 +190,7 @@ extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
   // printf("JNT_exp__ indJnt=%d\n",indJnt);
   // UTO_dump__ (jnt, "JNT_exp__");
   // UTO_dump_s_ (jnt, "APT_decode_Joint");
-  // printf(" WC_modnr=%d\n",WC_modnr);
+  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
 
 
 
@@ -215,7 +215,7 @@ extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
 
   //----------------------------------------------------------------
   // create key; eg "M123J20"
-  sprintf(key, "M%dJ%ld", WC_modnr, indJnt);
+  sprintf(key, "M%dJ%ld", WC_modact_ind, indJnt);
   sizKey = strlen(key);
 
   // size of data

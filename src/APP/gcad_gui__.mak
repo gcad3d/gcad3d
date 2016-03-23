@@ -1,7 +1,7 @@
 # Create the gui-lib        make -f xa_gui__.mak
 
 
-# get OS OUTDIR CC VGUI (Version GTK)
+# get OS gcad_dir_bin CC VGUI (Version GTK)
 include ../options.mak
 
 # get SRCGUI GUICP GUILIB
@@ -16,7 +16,7 @@ default:
 
 delete:
 	@echo delete ..
-	cd $(OUTDIR) && rm -f $(OBJGUI)
+	cd $(gcad_dir_bin) && rm -f $(OBJGUI)
 
 
 srclst:
@@ -26,7 +26,7 @@ srclst:
 # link after changing VGUI in ../options.mak
 link:
 	@echo make the link ..
-	cd $(OUTDIR) ;\
+	cd $(gcad_dir_bin) ;\
  if test "$(VGUI)" = "gtk2"; then\
  echo "Gtk2";\
  ln -fs xa_gui_gtk2.so xa_gui.so;\

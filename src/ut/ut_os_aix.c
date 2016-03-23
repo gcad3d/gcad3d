@@ -67,6 +67,7 @@ OS_checkFilExist         check if File or Directory exists
 OS_checkFileWritable     check if file is writeable;
 OS_checkDirExist         und try to create dir
 OS_CkPrcIsActive         check if process with name prcNam is active
+OS_ck_SW_is_installed    Test if software <ssw> is installed
 
 OS_prc__                 get full filename of active process
 OS_get_curDir            get current directory
@@ -396,6 +397,21 @@ static char txbuf[256];
 }
 
 
+//================================================================
+  int OS_ck_SW_is_installed (char *ssw) {
+//================================================================
+// Test if software <ssw> is installed
+// returns 0 = yes, is installed,   elso no, not installed.
+// Test with "which <ssw>"
+
+  char    s1[256];
+
+  sprintf(s1, "which %s  1>/dev/null 2>/dev/null", ssw);
+    printf("OS_ck_SW_is_installed |%s|\n",s1);
+
+  return system (s1);
+
+}
 
 
 //================================================================

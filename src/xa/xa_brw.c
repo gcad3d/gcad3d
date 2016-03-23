@@ -106,7 +106,7 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../db/ut_DB.h"               // DB_GetGTxt
 #include "../gr/ut_UI.h"               // UI_FuncOK
 #include "../xa/xa_brw.h"              // ICO_..
-#include "../xa/xa.h"                  // WC_modact
+#include "../xa/xa.h"                  // WC_modact_nam
 #include "../xa/xa_ico.h"              // ICO_PT,
 #include "../xa/xa_mem.h"              // memspc55
 #include "../ut/ut_memTab.h"           // MemTab
@@ -130,7 +130,7 @@ static TreeNode actNod;      // the active node (row)
 
 
 // extern - ex ../xa/xa.c:
-// extern char WC_modact[128];
+// extern char WC_modact_nam[128];
 // extern char WC_modnam[128];
 
 
@@ -262,7 +262,8 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
 
-  if(strlen(WC_modact) == 0) {
+  // if(strlen(WC_modact_nam) == 0) {
+  if(Mod_ck_isMain()) {
     Brw_Mdl_upd ();       // fill mdlNod in browserWin
   }
 // return 0;
@@ -274,10 +275,11 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   // GUI_TreeIT_selRow (&topNod, winBrw);  // else error with primary M3
 
 
-  if(strlen(WC_modact) > 0) {
-    // activate submodel <WC_modact>
+  // if(strlen(WC_modact_nam) > 0) {
+  if(!Mod_ck_isMain()) {
+    // activate submodel <WC_modact_nam>
     // find submodel
-    irc = GUI_tree1_iter_string (&it1, WC_modact, NULL, &winBrw);
+    irc = GUI_tree1_iter_string (&it1, WC_modact_nam, NULL, &winBrw);
     if(irc < 0) {printf("ERROR: Brw_Mdl_init E001\n"); return -1;}
     mdlNod = it1;
     GUI_tree1_row_set (&winBrw, &topNod, -1, NULL, -1);

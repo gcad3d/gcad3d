@@ -71,8 +71,8 @@ List_functions_end:
 
 
 // EXTERNALS:
-// aus xa.c:
-extern  char      WC_modact[128];
+// from ../xa/xa.h
+extern  char      WC_modact_nam[128];
 
 
 
@@ -89,13 +89,13 @@ extern  char      WC_modact[128];
   int Mod_cre__ () {
 //====================================================================
 /// create new SubModel:
-/// - save active Model (WC_modact) -> tmp/Model_<submodelname>
+/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
 /// - ask for Modelname; callback -> Mod_cre_CB
 
   printf("Mod_cre__\n");
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
 
@@ -119,7 +119,7 @@ extern  char      WC_modact[128];
   char   cbuf1[256], newNam[256], mNam[64];
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
   L_name:
@@ -164,7 +164,7 @@ extern  char      WC_modact[128];
 
 
   // save active submodelname
-  strcpy(WC_modact, mNam);
+  strcpy(WC_modact_nam, mNam);
 
   // display submodelname im Titlebar
   Mod_chg_tit ();
@@ -185,7 +185,7 @@ extern  char      WC_modact[128];
   int   irc;
   char  cbuf1[256], newNam[256], mNam[64];
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   Mod_sav_tmp ();
 
   strcpy(cbuf1, "submodel_1");
@@ -218,7 +218,7 @@ extern  char      WC_modact[128];
 
   // rename
   L_work:
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1, newNam);
 
@@ -252,7 +252,7 @@ extern  char      WC_modact[128];
 //====================================================================
 /// \code
 /// activate other Submodel
-/// - save active Model (WC_modact) -> tmp/Model_<submodelname>
+/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
 /// - provide List of Submodelnames
 /// - Selection -> Mod_chg_CB
 ///   mode   0=save actice Submodel;  1=do not save active Submodel
@@ -264,7 +264,7 @@ extern  char      WC_modact[128];
   printf("Mod_chg__\n");
 
 
-  // save the active Submodel WC_modact -> TempFile
+  // save the active Submodel WC_modact_nam -> TempFile
   if(mode == 0) Mod_sav_tmp ();
 
 
@@ -298,11 +298,11 @@ extern  char      WC_modact[128];
 /// rename the active Submodel
 
   printf("Mod_ren__\n");
-  if(strlen(WC_modact) < 1) {
+  if(strlen(WC_modact_nam) < 1) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
-  GUI_GetText(" new Submodelname: ",  WC_modact, -200, Mod_ren_CB);
+  GUI_GetText(" new Submodelname: ",  WC_modact_nam, -200, Mod_ren_CB);
   return 0;
 }
 */
@@ -311,19 +311,20 @@ extern  char      WC_modact[128];
 ///=================================================================
   int Mod_ren__ () {
 ///=================================================================
+/// rename active subModel in browser
 /// the callback if OK selected.
 
   int   irc;
   char  cbuf1[256], newNam[256], mNam[64];
 
 
-  if(strlen(WC_modact) < 1) {
+  if(Mod_ck_isMain()) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
 
-  strcpy(cbuf1, WC_modact);
+  strcpy(cbuf1, WC_modact_nam);
   irc = GUI_Dialog_e2b (" new Submodelname: ", cbuf1, 250, "OK", "Cancel");
   if(irc != 0) return -1;
 
@@ -343,13 +344,13 @@ extern  char      WC_modact[128];
   }
   strcpy(mNam, cbuf1);
 
-  // rename <tmp/Model_<WC_modact>> -> tmp/Model_<data>>
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact);
+  // rename <tmp/Model_<WC_modact_nam>> -> tmp/Model_<data>>
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1,newNam);
 
   // set name
-  strcpy(WC_modact, mNam);
+  strcpy(WC_modact_nam, mNam);
 
   // fix title
   Mod_chg_tit ();
@@ -368,17 +369,19 @@ extern  char      WC_modact[128];
 //====================================================================
   int Mod_del__ () {
 //====================================================================
+// delete Submodel WC_modact_nam
 
   char     cbuf[256];
 
+
   printf("Mod_del__\n");
 
-  if(strlen(WC_modact) < 1) {
+  if(Mod_ck_isMain()) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
-  sprintf(cbuf, "  delete Submodel %s  ",WC_modact);
+  sprintf(cbuf, "  delete Submodel %s  ",WC_modact_nam);
   GUI_DialogYN (cbuf, Mod_del_CB);
 
   return 0;
@@ -398,8 +401,8 @@ extern  char      WC_modact[128];
   printf("Mod_del_CB %d\n",idat);
   if(idat != UI_FuncOK) return -1;
 
-  // del <tmp/Model_<WC_modact>>
-  strcpy (cbuf, WC_modact);
+  // del <tmp/Model_<WC_modact_nam>>
+  strcpy (cbuf, WC_modact_nam);
 
 
   Mod_chg__ (1); // do not save active Submodel

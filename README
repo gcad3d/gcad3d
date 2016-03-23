@@ -184,7 +184,7 @@ for using gCAD3D:
 
 
 for modifications of gCAD3D:
-  MS-C-Compiler (gcc or MS-Visual-C (C++, Express))
+  MS-C-Compiler (gcc or MS-Visual-C (C++, Express); eg VS-2010)
   OpenGL32.lib, Glu32.lib (Microsoft SDKs)
   optional: get the gtk-dokumentation from www.gtk.org.
 
@@ -249,6 +249,7 @@ Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
 __________________________________________________________________
 History:
 
+2016-03-16 V2.30 Demo_toolbar2, DXF-export BLOCKS, bugfixes. RF.
 2015-08-21 V2.28 Demo_toolbar1, Demo_appDat1, UNDO-plugin, bugfixes. RF.
 2015-06-22 V2.26 Bugfixes. RF.
 2015-03-14 V2.25 MS-Win version added to git. RF.

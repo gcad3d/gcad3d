@@ -549,7 +549,7 @@ static TexBas *actTexBas;
 // see Tex_getBitmap
 
   int    irc;
-  char   fNam[256], safNam[128], fTyp[16], cbuf[400];
+  char   fNam[256], safNam[128], fTyp[16], cbuf[512];
 
 
   // printf("Tex_getBitmap |%s|\n",symNam);
@@ -564,7 +564,7 @@ static TexBas *actTexBas;
 
   // create Bitmapfilename from safe-name
   sprintf(bNam,"%s%s.bmp",OS_get_tmp_dir(),safNam);
-    // printf(" bNam |%s|\n",bNam);
+    // printf(" getBitmap-bNam1 |%s|\n",bNam);
 
 
   // check if TextureFile (bmp) existes;
@@ -600,6 +600,16 @@ static TexBas *actTexBas;
     return -2;
   }
 
+
+  // check if file <fNam> exists ..
+  if(OS_FilSiz(fNam) < 8) {              // 2016-03-21
+    Mod_sym_get__ (&cbuf[0], &cbuf[100], &cbuf[300], symNam);
+    TX_Print("**** ERROR; no file \"%s\" in directory \"%s\" - symbolic \"%s\"",
+                             &cbuf[300], &cbuf[100], &cbuf[0]);
+    return -1;
+  }
+
+
   // djpeg -bmp fnIn.jpg > fnOut.bmp
   sprintf(cbuf, "%s -bmp \"%s\" > \"%s\"",OS_get_imgConv1(),fNam,bNam);
   // sprintf(cbuf, "djpeg -bmp \"%s\" > \"%s\"",fNam,bNam);
@@ -612,7 +622,7 @@ static TexBas *actTexBas;
 
   // check if TextureFile (bmp) existes;
   if(OS_checkFilExist(bNam, 1) == 1) {
-    return 0;
+    if(OS_FilSiz(bNam) > 8) return 0;      // 2016-03-21
   }
 
 

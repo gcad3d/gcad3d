@@ -239,7 +239,11 @@ static char   TX_buf1[1024];
   if(AP_stat.debStat) {
     // printf("DEB: |%s|\n", txt);
     fprintf(AP_deb_fp, "%s\n", txt);
+    fflush (AP_deb_fp);
     return;
+  } else {
+    printf("%s\n",txt);
+    fflush (stdout);
   }
 #endif
 

@@ -89,7 +89,7 @@ List_functions_end:
   static int  i0 = 0;
 
 
-  printf("Col_set__ %d %d %d\n",cr,cg,cb);
+  // printf("Col_set__ %d %d %d\n",cr,cg,cb);
 
 
   *col1 = *((ColRGB*)&i0);

@@ -98,16 +98,7 @@ List_functions_end:
 #include "../ut/ut_TX.h"               // TX_Print
 
 #include "../xa/xa_mem.h"              // memspc51
-#include "../xa/xa.h"                  // WC_modact
-
-
-
-typedef_MemTab(int);
-typedef_MemTab(char);
-typedef_MemTab(Point);
-typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
-
+#include "../xa/xa.h"                  // WC_modact_nam
 
 
 
@@ -504,8 +495,9 @@ typedef_MemTab(EdgeLine);
     return -1;
   }
 
+  // save faces
   iNr  = fTab->rNr;
-  iSiz = fTab->rSiz;
+  iSiz = sizeof(Fac3);  // fTab->rSiz;
   fwrite(&iNr, sizeof(int), 1, fp2);
   fwrite(fTab->data, iSiz, iNr, fp2);
 
@@ -600,7 +592,7 @@ typedef_MemTab(EdgeLine);
   if(irc < 0) goto L_EOM;
 
   // load faces
-  iSiz = fTab->rSiz;
+  iSiz = sizeof(Fac3);  // fTab->rSiz;
   fread(fTab->data, iSiz, iNr, fp1);
   fTab->rNr = iNr;
 
@@ -682,7 +674,7 @@ typedef_MemTab(EdgeLine);
   char fNam[256];
 
   // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
-  printf("MSH_bload_pTab |%s| %d\n",mdlNam,surNr);
+  // printf("MSH_bload_pTab |%s| %d\n",mdlNam,surNr);
 
   // load PointFile  (write: lxml_read)
   // sprintf(fNam, "%sM%dA%d.ptab",OS_get_tmp_dir(),mdlNr,surNr);
@@ -1131,20 +1123,22 @@ typedef_MemTab(EdgeLine);
 
 //================================================================
   int MSH_pt_prjptmsh_ (Point *pto, Point *pti,
-                        int surMsh,  int surPtab) {
+                        int surMsh,  int surPtab, double tol) {
                         // Vector *vp)
 //================================================================
 /// \code
 /// project point > Mesh  (load mesh)
 /// 
-/// RetCod: 0 OK;
-///         1 point is not inside mesh
-///        -1 Error in inputData
+///   retCod  0 OK; inside_face, on_face_edge:  io=faceNr, pto=point
+///           1 OK; pti is on_edge; io=faceNr, ie=edgeNr, pto=point
+///           2 OK; pti is identical_with_point: io=pointIndex, ie=edgeNr, pto=pnt
+///          -1 point is not inside mesh
+///          -2 Error in inputData
 /// Output:
 /// \endcode
 
 
-  int       i1;
+  int       i1, io, ie;
   // int       pNr, fNr;
   // Point     *pTab = NULL;
   // Fac3      *fTab = NULL;
@@ -1166,19 +1160,21 @@ typedef_MemTab(EdgeLine);
 
 
   // load PointFile  (write: lxml_read) pTab=malloc !
-  i1 = MSH_bload_pTab (&pTab, WC_modact, surPtab);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -1;}
-    printf(" pNr=%d\n",pTab.rNr);
+  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, surPtab);
+  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -2;}
+    // printf(" pNr=%d\n",pTab.rNr);
 
 
   // load MeshFile    fTab=malloc !
-  i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact, surMsh);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
-    printf(" fNr=%d\n",fTab.rNr);
+  i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact_nam, surMsh);
+  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -2;}
+    // printf(" fNr=%d\n",fTab.rNr);
 
 
   // project point > Mesh  (using memspc501)
-  i1 = MSH_pt_prjptmsh1 (pto, pti, fTab.data, fTab.rNr, pTab.data, pTab.rNr);
+// TODO: p2a fehlt !
+  i1 = MSH_pt_prjptmsh1 (&io, &ie, pto, pti, fTab.data, fTab.rNr,
+                         pTab.data, pTab.rNr, tol);
     // GR_Disp_pt (&p1, SYM_STAR_S, 2);
 
   // if(pTab) free(pTab);
@@ -1198,16 +1194,19 @@ typedef_MemTab(EdgeLine);
 
 
 //================================================================
-  int MSH_pta_prjptmsh1 (int *ptNr, Point *pa1,
+  int MSH_pta_prjptmsh1 (int *ptNr, Point *pa1, int *ia1,
                          Fac3 *fa, int fNr,
-                         Point *pa, int pNr) {
+                         Point *pa, Point2 *p2a, int pNr, double tol) {
 //================================================================
 /// \code
 /// MSH_pta_prjptmsh1       prj points (Z=0) -> active mesh
 /// if point.z == 0.  then set Z to Z-value on mesh; else keep Z-value.
 /// Deletes points outside mesh !
 /// Input 
-///   pta      3D-point from 2D-points (Z=0; else keep Z-value
+///   ptNr     nr of points
+///   pta      new points (compute Z if Z=0; else keep Z-value)
+///   ia1      index of point if identical with existing point in pa
+///   pa[pNr]  existing points
 /// Output
 ///   pNr      modified 
 ///   pta      all points outside mesh are removed !
@@ -1215,8 +1214,11 @@ typedef_MemTab(EdgeLine);
 /// \endcode
 
 
-  int       i1, i2, eNr, irc;
+  int       i1, i2, ii, ie, eNr, irc;
   Point     px;
+
+
+  for(i1 = 0; i1 < *ptNr; ++i1) ia1[i1] = -1;  // point not yet known
 
 
     // if p1a[iAct].z = 0 then we have to project it onto the mesh.
@@ -1224,16 +1226,26 @@ typedef_MemTab(EdgeLine);
     i2 = 0;
     eNr = 0;
 
+
+    //----------------------------------------------------------------
+    // loop tru points in pa1
+    // next point i1
     L_nxt_ck__:
+      // ignore point if (Z != 0)
       if(!UTP_comp_0(pa1[i1].z)) goto L_nxt_ck_nxt;
       // project p1a[iAct] onto the mesh (get the correct Z-value)
       px = pa1[i1];
       // is using memspc501 !
-      irc = MSH_pt_prjptmsh1 (&pa1[i1], &px, fa, fNr, pa, pNr);
-                              // ActFtab.data, ActFtab.rNr,
-                              // ActPtab.data, ActPtab.rNr);
-      if(irc) {
+      irc = MSH_pt_prjptmsh1 (&ia1[i1], &ie, &pa1[i1], &px, fa, fNr,
+                              pa, pNr, tol);
+
+        // TESTBLOCK
+          // printf(" pt_prjptmsh1 p%d irc=%d ia=%d\n",i1,irc,ia1[i1]);
+        // TESTBLOCK
+
+      if(irc < 0) {
         // point ouside mesh
+// TODO: gis-offset ?  // gis_log_pt3 (&pa1[i1]);  // report errPos
         LOG_A_pt3 (&pa1[i1]);  // report errPos
         LOG_A__ (MSG_typ_ERR, "point[%d] outside mesh - deleted", i2);
         // TX_Error("point[%d] - %f %f outside mesh - deleted", i1,
@@ -1241,10 +1253,13 @@ typedef_MemTab(EdgeLine);
         MEM_del_nrec (ptNr, pa1, i1, 1, sizeof(Point));
         --i1;
         ++eNr;
+
       }
+      
 
       L_nxt_ck_nxt:
-        // printf(" p[%d] = %f %f %f\n",i1,pa1[i1].x,pa1[i1].y,pa1[i1].z);
+        // printf(" pta_prjptmsh1 p%d i%d %f %f %f\n",i1,ia1[i1],
+                // pa1[i1].x,pa1[i1].y,pa1[i1].z);
 
       ++i1;
       ++i2;
@@ -1258,23 +1273,21 @@ typedef_MemTab(EdgeLine);
 
 
 //================================================================
-  int MSH_pt_prjptmsh1 (Point *pto, Point *pti,
+  int MSH_pt_prjptmsh1 (int *io, int *ie, Point *pto, Point *pti,
                         Fac3 *fa, int fNr,
-                        Point *pa, int pNr) {
-                        // Vector *vp)
+                        Point *pa, int pNr, double tol) {
 //================================================================
 /// \code
 /// project point > Mesh
 /// using memspc501
 /// 
-/// RetCod: 0 OK;
-///         1 point is not inside mesh
-///        -1 Error in inputData
 /// Output:
-///   pto     NULL point is outside mesh
-///   retCod  1    point is outside mesh
-///           0    OK
-///          -1    EOM
+///   io      rc=0: faceNr; rc=1: pointIndex
+///   pto     rc=0: pti on face (Z fixed); rc=1: NULL
+///   retCod  0 OK; inside_face, on_face_edge:  io=faceNr, pto=point
+///           1 OK; pti is on_edge; io=faceNr, ie=edgeNr, pto=point
+///           2 OK; pti is identical_with_point: io=pointIndex;
+///          -1 point is not inside mesh
 /// 
 /// - transform points > 2D;
 /// - check if point is in Triangle or on its boundary
@@ -1282,57 +1295,69 @@ typedef_MemTab(EdgeLine);
 /// \endcode
 
 
-  int     irc, i1, ii1, ii2, ii3;
+  int     irc, i1, ii1, ii2, ii3, ix;
   // int     p2Nr;
-  double  d1;
-  Point2  *p2a, p2i;
+  double  d1, d2, d3;
+  Point2  p2i;
   Point   *p1, *p2, *p3;
   Vector  vcn, *vp;
   Plane   pl1;
 
 
-  // printf("MSH_pt_prjptmsh1 %d %d\n",fNr,pNr);
-
-
-  vp = (Vector*)&UT3D_VECTOR_Z;  // projectionVector
-
-
-  // prepare space for 2D-points
-  p2a = (Point2*)memspc501;
-  i1 = sizeof(memspc501) / sizeof(Point2);  // 16 byte
-  if(i1 < pNr) {
-    TX_Error("MSH_pt_prjptmsh1 E001");
-    return -1;
-  }
-
-
-  // transport all points > 2D (pa -> p2a)
-  // for XY-Plane copy points ..
-  UT2D_npt_npt (p2a, pa, pNr);
+  // UT3D_stru_dump (Typ_PT, pti, "MSH_pt_prjptmsh1 fNr=%d pNr=%d",fNr,pNr);
+  // printf("MSH_pt_prjptmsh1 tol=%f\n",tol);
 
   p2i = UT2D_pt_pt3 (pti);
     // UT3D_stru_dump (Typ_PT2, &p2i, "p2i=");
 
 
+  vp = (Vector*)&UT3D_VECTOR_Z;  // projectionVector
+
   // check if point is in Triangle or on its boundary
   // loop tru triangles;
   for(i1=0; i1<fNr; ++i1) {
+    *io = i1;
     ii1 = fa[i1].i1;
     ii2 = fa[i1].i2;
     ii3 = fa[i1].i3;
 
     // test if point ip1 is inside Face ii1-ii2-ii3
-    irc = UT2D_ck_pt_in_tria (&p2a[ii1], &p2a[ii2], &p2a[ii3], &p2i);
+    irc = UT2D_ck_pt_in_tria ((Point2*)&pa[ii1],
+                              (Point2*)&pa[ii2],
+                              (Point2*)&pa[ii3], &p2i);
     if(irc > 0) continue;    // outside ..
     goto L_found;
   }
 
   // point is ouside mesh
     // printf("MSH_pt_prjptmsh1 pt is outside ..\n");
-  return 1;
+  return -1;
 
 
-  L_found:  //irc: 0=inside, -1=on i1-i2, -2=on i2-i3, -3=on i3-i1
+  //----------------------------------------------------------------
+  L_found:
+    // TESTBLOCK
+    // printf(" pt_in_tria irc=%d if=%d i1=%d i2=%d i3=%d\n",irc,i1,ii1,ii2,ii3);
+    // TESTBLOCK
+
+
+  // irc: -4: pi == p1; -5: pi == p2; -6: pi == p3.
+  if(irc <= -4) {
+    // irc 2 - pti_is_identical_with_point: io=pointIndex, pto=point.
+    if(irc == -4) { *pto = pa[ii1]; *io = ii1; *ie = 1; }
+    if(irc == -5) { *pto = pa[ii2]; *io = ii2; *ie = 2; }
+    if(irc == -6) { *pto = pa[ii3]; *io = ii3; *ie = 3; }
+    return 2;  // was 1
+  }
+
+
+
+
+
+
+  //----------------------------------------------------------------
+  // get Z-coord of point on 2D-Triangle.
+  // irc: 0=inside, -1=on i1-i2, -2=on i2-i3, -3=on i3-i1
     // printf(" f=%d irc=%d %d %d %d\n",i1,irc,ii1,ii2,ii3);
   p1 = &pa[ii1];
   p2 = &pa[ii2];
@@ -1343,22 +1368,55 @@ typedef_MemTab(EdgeLine);
     // UT3D_stru_dump (Typ_VC, &pl1.vz, "vz=");
 
 
-// OPE: USE MSH_pt_prjptfac
-  // get Z-coord of point on 2D-Triangle.
-  // see UT3D_pl1_tria
-  UT3D_vc_perp3pt (&pl1.vz, p1, p2, p3); // normalVector of triangle
+  // compute intersectionpoint pto (Z fixed)
+  // see UT3D_pl1_tria MSH_pt_prjptfac
+  // get pl1.vz = normalVector of triangle
+  UT3D_vc_perp3pt (&pl1.vz, p1, p2, p3);
   UT3D_vc_setLength (&pl1.vz, &pl1.vz, 1.);
     // UT3D_stru_dump (Typ_VC, &pl1.vz, "pl1.vz:");
-  UT3D_pl_ptpl (&pl1, p1);  // create pl1.p
-    // UT3D_stru_dump (Typ_PLN, &pl1, "pl1:");
-  irc = UT3D_ptDi_intptvcpln (pto, &d1, &pl1, pti, vp);
 
-  if(irc == 0) {   // plane parallel; Z=zVal of gravityCenterpoint)
+  // set plane-origin, create pl1.p
+  UT3D_pl_ptpl (&pl1, p1);
+    // UT3D_stru_dump (Typ_PLN, &pl1, "pl1:");
+  // intersect plane with pti-vp (vp=Z-vec)
+  ix = UT3D_ptDi_intptvcpln (pto, &d1, &pl1, pti, vp);
+
+  if(ix == 0) {   // plane parallel; Z=zVal of gravityCenterpoint)
     *pto = *pti;
     pto->z = (p1->z + p2->z + p3->z) / 3.;
   }
 
-  return 0;
+
+  //----------------------------------------------------------------
+  // irc: -1=on i1-i2, -2=on i2-i3, -3=on i3-i1
+  if(irc <= -1) {
+    // irc 1 - pti is on_edge; io=faceNr, ie=edgeNr, pto=point.
+// TODO: if on-egde then the intersection-point could be computed easier
+    if(irc == -1) { *io = ii1; *ie = 1; }
+    if(irc == -2) { *io = ii2; *ie = 2; }
+    if(irc == -3) { *io = ii3; *ie = 3; }
+    return 1;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // irc: 0=inside;
+  // check distance from nearest edge; if (dist < tol)  then set (irc = 1)
+  // test dist pto p1-p2
+  d1 = UT3D_nlen_3pt (p1, pto, p2);
+  if(d1 < tol) {*ie = 1; irc = 1;}
+  // test dist pto p2-p3
+  d1 = UT3D_nlen_3pt (p2, pto, p3);
+  if(d1 < tol) {*ie = 2; irc = 1;}
+  // test dist pto p3-p1
+  d1 = UT3D_nlen_3pt (p3, pto, p1);
+  if(d1 < tol) {*ie = 3; irc = 1;}
+  // get the smallest distance
+
+    // printf("ex prjptmsh1 irc=%d oi=%d ie=%d\n",irc,*io,*ie);
+
+  return irc;
 
 }
 
@@ -1369,7 +1427,8 @@ typedef_MemTab(EdgeLine);
                          MemTab(Fac3) *fTab,
                          MemTab(Point) *pTab,
                          MemTab(EdgeLine) *eTab,
-                         MemTab(int) *eDat) {
+                         MemTab(int) *eDat,
+                         double *tol) {
                          // Vector *vp)
 //================================================================
 // project curve > Mesh
@@ -1527,7 +1586,7 @@ typedef_MemTab(EdgeLine);
       p2s1 = (Point2*)&pa[ii1];
       p2s2 = (Point2*)&pa[ii2];
         // printf("  bnd-seg[%d]=%d,%d\n",i3,ii1,ii2);
-      i5 = UT2D_pt_int4pt (&p21, &d1, &d2, p2e1, p2e2, p2s1, p2s2);
+      i5 = UT2D_pt_int4pt (&p21, &d1, &d2, tol, p2e1, p2e2, p2s1, p2s2);
       // clear intersection: set intersectionPoint as new startpoint & goto
       // next segment; overlap: skip segment.
       if(i5 != 1) goto L_out_9;

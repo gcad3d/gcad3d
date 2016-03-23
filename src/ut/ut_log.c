@@ -48,6 +48,15 @@ LOG_A_exit
 Liste_Funktionen_Ende:
 =================================================================
 
+
+Example usage:
+
+#include "../ut/ut_log.h"                  // MSG_typ_*
+
+  LOG_A__ (MSG_typ_ERR, " err xyz - retCod=%d",irc);
+
+
+
 */
 
 
@@ -192,7 +201,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
   if(LOG_A_fp) fclose (LOG_A_fp);
 
-  // APP_browse (LOG_A_fnam);
+  // APP_browse__ (LOG_A_fnam);
   APP_edit (LOG_A_fnam);
 
   if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {

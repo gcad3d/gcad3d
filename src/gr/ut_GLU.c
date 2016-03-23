@@ -288,10 +288,10 @@ GLU_CB GLU_CB_tess_pt  (double*);
 GLU_CB GLU_CB_tess_edg (GLboolean flag);
 GLU_CB GLU_CB_tess_end ();
 
-typedef_MemTab(int);
+// typedef_MemTab(int);
+// typedef_MemTab(char);
+// typedef_MemTab(Point);
 typedef_MemTab(IndTab);
-typedef_MemTab(char);
-typedef_MemTab(Point);
 
 
 //------------- statics new version ------------------------------
@@ -2316,7 +2316,7 @@ static int ptOff;
   L_tex:      // mode 8
   // add texture; see also GLT_spp_Tex
   if(mode != 8) goto L_typ;
-    printf("GLT_stor_rec 8 (Tex %d)\n",ptNr);
+    // printf("GLT_stor_rec 8 (Tex %d)\n",ptNr);
 
   // start new Patch
   if(GLT_ppa_ind < GLT_ppa_SIZ) {     // next PatchNr

@@ -1,21 +1,38 @@
-../dox/ApplicationData.dox
+../../doc/gcad_doxygen/ApplicationData.txt
+
+
+Daten für Zusatzanwendungen (ApplicationData) können im Model gespeichert werden.
+ApplicationData werden beim Laden eines Models wieder zur Verfügung gestellt.
+Die Applikation muss vor dem Verlassen der Anwendung die Daten schreiben.
+  Die Daten sind als ascii-text zu schreiben.
+
+
+ApplicationData is stored with the model (as ascii-text).
+
+Store ApplicationData:
+  open file with appdat_open__(&fp, "w")
+  write data (as ascii-text !)
+
+Restore ApplicationData:
+  open file with appdat_open__(&fp, "r")
+  read data (as ascii-text !)
+
+See demo-application ../APP/Demo_appDat1.c
 
 
 
-Daten für Zusatzanwendungen können in einem Block "ApplicationData"
-  gespeichert werden. ApplicationData werden mit den nativen Modelldaten
-  gespeichert.
-  Die Applikation muss beim Verlassen der Anwendung die Daten in eine
     Datei <tempDir>/<appNam>.appdat schreiben.
   Der Applikationsname <appNam> ist frei wählbar.
 
 
-Format of data:
-<parameterName> <parametervalue>
+------------------------------------------------------------------------
+TODO:
+- a direct way to store binary data ..
 if value == "BINDATA" + <sizeInBytes>\n  then next line is binary data.
 
 
 
+------------------------------------------------------------------------
 Formatbeschreibung ApplicationData:
 Die Zeilen SECTION und SECTIONEND befinden sich nur in der Modelldatei.
 
@@ -25,14 +42,6 @@ SECTION APPDAT <appNam>
 SECTIONEND
 
 
-
-Funktionen:
-#define APP_NAME  "TestApp1"
-char    fNam[256], parval[160];
-// Write: UTX_setup_add     TO-BE-DONE !
-// Read:
-sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),APP_NAME);
-UTX_setup_get (parval, "parametername", fNam);
 
 
 

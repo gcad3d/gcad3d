@@ -409,7 +409,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GR_DrawTxtA () {}
   void GR_DrawPlane () {}
   void GR_DrawSur () {}
-  void GR_DrawModel () {}
+  int  GR_DrawModel () {}
   void GR_DrawCvPpsp3 () {}
   void GR_DrawCvBSp () {}
   void GR_DrawCvRBSp () {}

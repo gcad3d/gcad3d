@@ -124,7 +124,21 @@ int OS_sys1 (char *sOut, int sSiz, char *cmd) {return 0;}
 
 
 
+//================================================================
+  int OS_ck_SW_is_installed (char *ssw) {
+//================================================================
+// Test if software <ssw> is installed
+// returns 0 = yes, is installed,   elso no, not installed.
+// Test with "which <ssw>"
 
+  // char    s1[256];
+  // sprintf(s1, "***** OS_ck_SW_is_installed - %s not avail. in MS-Win.");
+
+  MSG_pri_1 ("NOEX_fil", "ssw");
+
+  return -1;
+
+}
 
 
 //================================================================

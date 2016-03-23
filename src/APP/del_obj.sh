@@ -2,9 +2,10 @@
 #
 # delete all gcad-objs (*.o)
 
-# bits; 32|64
-osVer=`getconf LONG_BIT`
-gcad_dir_bin=../../binLinux${osVer}
+
+# get bitNr BINLOC gcad_dir_bin DirBasSer
+. ../options.sh
+
 
 echo "delete all gcad-objs (*.o)"
 

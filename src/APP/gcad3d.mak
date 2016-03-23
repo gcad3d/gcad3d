@@ -11,11 +11,11 @@ EXENAM  = gCAD3D
 include gcad_src.mak
 
 
-# get OUTDIR CC VGUI
+# get gcad_dir_bin CC VGUI
 include ../options.mak
 
 
-# get debug-settings DEB
+# get debug-settings DEB CPDEB LKDEB
 include deb.umak
 
 
@@ -68,7 +68,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 #	@echo "OBJA=" $(OBJA) "==================="
 #	@echo "OBJGLB=" $(OBJGLB) "==================="
 #	@echo "OBJOS=" $(OBJOS) "==================="
-	cd $(OUTDIR) && \
+	cd $(gcad_dir_bin) && \
 	$(CC) -o $(EXENAM)\
   $(OBJ1) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)\
   $(GLBLIB) $(OGLLIB) $(LKFLG)\
@@ -77,13 +77,13 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 # xa_gui_$(VGUI).so
 
 
-ifeq "$(DEB)" "2"
-	echo "STRIP:"
-	strip $(OUTDIR)/$(EXENAM)
-	rm -rf libxa_test.so.1
-endif
+#ifeq "$(DEB)" "2"
+#	echo "STRIP:"
+#	strip $(gcad_dir_bin)/$(EXENAM)
+#	rm -rf libxa_test.so.1
+#endif
 
-#	if test $(OUTDIR) != $(DIRBIN); then mv -f $(OUTDIR)/$(EXENAM) $(DIRBIN)/.; fi
+#	if test $(gcad_dir_bin) != $(DIRBIN); then mv -f $(gcad_dir_bin)/$(EXENAM) $(DIRBIN)/.; fi
 	ctags --excmd=number -f ../tags/src_h.tag $(SRC3)
 
 #	ctags --excmd=number -f ut.tag $(SRCG)
@@ -104,9 +104,9 @@ all:
 # Alle Demo-DLL's xa_XX.so linken
 allDemos:
 # test if plugins/ exist - else create
-	mkdir -p "$(OUTDIR)/plugins"
-#	if [ ! -f "$(OUTDIR)/plugins" ]; then\
-# mkdir "$(OUTDIR)/plugins";\
+	mkdir -p "$(gcad_dir_bin)/plugins"
+#	if [ ! -f "$(gcad_dir_bin)/plugins" ]; then\
+# mkdir "$(gcad_dir_bin)/plugins";\
 # fi
 	find . -maxdepth 1 -name "Demo*.mak" -exec $(MK) -f {} "OS=${OS}" \;
 	find . -maxdepth 1 -name "APP_*.mak" -exec $(MK) -f {} "OS=${OS}" \;
@@ -138,7 +138,7 @@ lnr:
 objlst:
 #	@echo $(OBJ1) $(OBJG)
 	@echo "actDIR="`pwd`
-	@echo "OUTDIR="$(OUTDIR)
+	@echo "gcad_dir_bin="$(gcad_dir_bin)
 	@echo "VPATH="$(VPATH)
 	@echo "OBJ1="$(OBJ1)
 	@echo "SRC3="$(SRC3)
@@ -161,9 +161,9 @@ srclst:
 	@echo $(SRCOS) >> srcFiles
 	@echo\
  ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h\
- ../exp/*.c ../exp/*.h\
- ../myAPPS/*.c ../myAPPS/*.h\
+ ../xa/tst*.c ../exp/*.c ../exp/*.h\
  ../prc/*.c ../prc/*.h\
+ ../myAPPS/*.c ../myAPPS/*.h\
  ../APP/Demo*.c >> srcFiles
 # ../gtk/*h
 

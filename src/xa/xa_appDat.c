@@ -15,8 +15,16 @@
  *
  *
 -----------------------------------------------------
-TODO:
-  ..
+ApplicationData is stored with the model (as ascii-text).
+Store ApplicationData:
+  open file with appdat_open__(&fp, "w")
+  write data (as ascii-text !)
+
+Restore ApplicationData:
+  open file with appdat_open__(&fp, "r")
+  read data (as ascii-text !)
+
+
 
 -----------------------------------------------------
 Modifications:
@@ -82,6 +90,16 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
 /// Output:
 ///   fo       file, already opened
 ///   retCod   0=OK,  -1=error
+/// 
+/// ApplicationData is stored with the model (as ascii-text).
+/// Store ApplicationData:
+///   open file with appdat_open__(&fp, "w")
+///   write data (as ascii-text !)
+/// Restore ApplicationData:
+///   open file with appdat_open__(&fp, "r")
+///   read data (as ascii-text !)
+/// 
+/// See ../APP/Demo_appDat1.c
 /// \endcode
 
   FILE    *fpo;
@@ -93,7 +111,8 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
 
 
   if((fpo=fopen(fNam,mode)) == NULL) {
-    TX_Print("appdat_open__ E001 %s",fNam);
+    printf("**** appdat-file does not exist; first call ..\n");
+    // TX_Print("appdat_open__ E001 %s",fNam);
     return -1;
   }
 

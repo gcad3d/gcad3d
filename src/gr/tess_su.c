@@ -217,7 +217,7 @@ extern long    GL_actTex;
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
-extern int       WC_modnr;        // the Nr of the active submodel; -1 = main.
+extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 
@@ -472,7 +472,12 @@ static int oldMode = 0;
   int TSU_tess_sTab (ObjGX **spc1, int *sTyp, long *sTab, int sNr) {
 //==================================================================
 // tesselate Surf # i1 --> spc1
-// see also INT_intplsur
+// see also INT_intplsur TSU_tsu2tria__
+// Input:
+//   sTyp           DB-types (Typ_SUR|Typ_SOL)
+//   sTab           DB-indices
+// Output:
+//   spc1           malloc'd - must be freed with: free (spc1)
 
   int  i1, irc;
 
@@ -602,10 +607,21 @@ static int oldMode = 0;
                       Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi) {
 //===========================================================================
 // make Triangles from Mockup-struct (TSU-Record (GL_Sur's + GL_PP's))
-// Input:  oxi ist ein tesselated-dataBlock. See tess_dump_f_
+// Input:
+//   oxi ist ein tesselated-dataBlock. See TSU_tess_sTab tess_dump_f_
+// Output:
+//   surTab[surNr]
+//   triTab[triNr]
+//   retCod         -1 triSiz too small
+//                  -2 surSiz too small
 // see TSU_exp_sur TSU_exp_fac GL_Disp_sur
+//
+// TypTsuSur:
+//   p1,p2 unused
+//   aux structure of data; 4=GL_TRIANGLES|5=GL_TRIANGLE_STRIP|6=GL_TRIANGLE_FAN
 
-  int     i1, i2, i3, rSiz, totSiz, Snr, Pnr, pAct, cNr, cAct;
+
+  int     i1, irc, i3, rSiz, totSiz, Snr, Pnr, pAct, cNr, cAct;
   int     surTyp;
   ObjGX   *Sdat, *Pdat, *Prec;
   ObjGX   *actPP, *actCont;
@@ -613,13 +629,15 @@ static int oldMode = 0;
 
   // tess_dump_f_ (oxi, "TSU_tsu2tria__");
   // printf(" surSiz=%d triSiz=%d\n",surSiz,triSiz);
-  // UTO_dump__ (&oxi[1], "TSU_tsu2tria__-1");
+  // UTO_dump_s_ (oxi, "TSU_tsu2tria__");
+  // UTO_dump_s_ (&oxi[0], "TSU_tsu2tria__-0");
+  // UTO_dump_s_ (&oxi[1], "TSU_tsu2tria__-1");
 
 
   i1     = 0;
   *triNr = 0;
   totSiz = 0;
-  *surNr = -1;
+  *surNr = 0;  // -1;
   surTyp = Typ_SURPLN;
 
   surTab[0].ip1 = 0;
@@ -628,22 +646,24 @@ static int oldMode = 0;
   // loop durch alle 3Ecke
   // die tess. data in einzelne 3Ecke umwandeln
 
+  // skip Adress
+  if(oxi->typ == Typ_Address) ++oxi;
 
+
+
+  //---------------------------------------------------
   // Loop tru Records
   L_next_Rec:
-  // printf("L_next_Rec: typ=%d form=%d siz=%d\n",oxi->typ,oxi->form,oxi->siz);
+    // printf("L_next_Rec typ=%d form=%d siz=%d\n",oxi->typ,oxi->form,oxi->siz);
 
-
+  if(oxi->typ == Typ_Done)  goto L_fertig;
 
   // erster Record muss size of following Record sein; kein siz fuer diesen Rec!
-  if(oxi->typ  == Typ_Done)  goto L_fertig;
-  if(oxi->typ  != Typ_Size) goto L_Err2;
+  if(oxi->typ != Typ_Size) goto L_Err2;
   rSiz = (long)oxi->data;
     // printf(" totSize=%d\n",rSiz);
   // (char*)oxi += sizeof(ObjGX);  // proceed to data - skip over size
-  ++oxi;  // proceed to data - skip over size
-
-
+  ++oxi;  // proceed to next ObjGX - skip over size
     // printf(" data: typ=%d form=%d siz=%d\n",oxi->typ,oxi->form,oxi->siz);
 
   if(oxi->form != Typ_ObjGX) goto L_weiter;
@@ -659,28 +679,16 @@ static int oldMode = 0;
 
     if(actPP->typ == Typ_Typ) {
       // markiert den Start einer neuen surface ..
-      if(*triNr > 0) {
-        if(*surNr >= surSiz-1) {TX_Error("TSU_tsu2tria__ E001"); return -1;}
-        if(*surNr < 0) *surNr = 0;
-        if(*surNr > 0) {
-          surTab[*surNr-1].typ = surTyp;
-          surTab[*surNr-1].ip2 = *triNr-1;
-        }
-        surTab[*surNr].ip1 = *triNr;
-        *surNr += 1;
-        surTyp = (long)actPP->data;
-        // printf(" SSSSSSSSSSSSSS new surNr %d %d\n",*surNr,surTyp);
-      }
+      surTyp = (long)actPP->data;
 
     } else if(actPP->form == Typ_PT) {
-      // save ptTab in oxi as Triangles
-        // printf("  save ptTab siz=%d gltyp=%d\n",actPP->siz,actPP->aux);
-      TSU_tsu2tria_rec (triTab, triNr, triSiz, actPP, &surTyp);
-      if(*triNr >= triSiz) return -1;
-      continue;
+      // add points in actCont to surTab and triTab
+      if(TSU_tsu2tria_sur (surTab, surNr, surSiz,
+                           triTab, triNr, triSiz,
+                           actPP, &surTyp) < 0) return -1;
     }
 
-    if(actPP->form != Typ_ObjGX) continue;
+    if(actPP->form != Typ_ObjGX) goto L_nxt_pat;
 
 
     //---------------------------------------------------
@@ -692,12 +700,15 @@ static int oldMode = 0;
                // actCont->typ,actCont->form,actCont->siz,actCont->aux);
 
       if(actCont->form == Typ_PT) {
-        // save ptTab in oxi as Triangles
-        TSU_tsu2tria_rec (triTab, triNr, triSiz, actCont, &surTyp);
-        if(*triNr >= triSiz) return -1;
+        // add points in actCont to surTab and triTab
+        if(TSU_tsu2tria_sur (surTab, surNr, surSiz,
+                             triTab, triNr, triSiz,
+                             actCont, &surTyp) < 0) return -1;
       }
-
     }
+   
+    L_nxt_pat:
+    continue;
 
   }
 
@@ -716,11 +727,18 @@ static int oldMode = 0;
     surTab[*surNr-1].typ = surTyp;
     surTab[*surNr-1].ip2 = *triNr-1;
 
+
+    // TESTBLOCK
     // printf("ex TSU_tsu2tria__ triNr=%d\n",*triNr);
     // for(i1=0; i1<*triNr; ++i1) {
       // printf(">>>> tria %d:\n",i1);
       // GR_Disp_tria (&triTab[i1], 9);
     // }
+    // for(ii=0; ii<surNr; ++ii)
+      // printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",ii,
+             // surTab[ii].ip1,surTab[ii].ip2,surTab[ii].typ);
+    // for(ii=0;ii<triNr;++ii) UT3D_stru_dump (Typ_Tria,&triTab[ii],"tria");
+    // END TESTBLOCK
 
 
   return 0;
@@ -730,6 +748,46 @@ static int oldMode = 0;
   L_Err2:
     TX_Error("TSU_tsu2tria__ E002 typ %d",oxi->typ);
     return -1;
+
+}
+
+
+//=============================================================================
+  int TSU_tsu2tria_sur (TypTsuSur *surTab, int *surNr, int surSiz,
+                        Triangle *triTab, int *triNr, int triSiz,
+                        ObjGX *oxi, int *surTyp) {
+//=============================================================================
+// add points in oxi to surTab and triTab
+// 
+// Input:
+//   oxi     ist ein tesselated Patch.
+//           oxi->aux is der GL-Typ;
+//                   4=GL_TRIANGLES 5=GL_TRIANGLE_STRIP 6=GL_TRIANGLE_FAN
+//   triSiz  size of triTab
+// Output:
+//   triTab  triangles
+//   triNr   nr of triangles created
+
+
+  // create triangles from points
+  TSU_tsu2tria_rec (triTab, triNr, triSiz, oxi, surTyp);
+  if(*triNr >= triSiz) {
+    TX_Print("**** TSU_tsu2tria_sur E001");
+    return -1;
+  }
+
+
+  surTab[*surNr].typ = *surTyp;
+  surTab[*surNr].ip2 = *triNr - 1;
+  *surNr += 1;
+  if(*surNr >= surSiz) {
+    TX_Print("**** TSU_tsu2tria_sur E002");
+    return -2;
+  }
+  surTab[*surNr].ip1 = *triNr;
+
+
+  return 0;
 
 }
 
@@ -755,12 +813,11 @@ static int oldMode = 0;
 
 
 
-  // printf("TSU_tsu2tria_rec \n");
 
-
-  // UTO_dump_s_ (oxi, "TSU_tsu2tria_rec");
   // printf("TSU_tsu2tria_rec GL-Typ=%d siz=%d triNr=%d\n",
-    // oxi->aux,oxi->siz,*triNr);
+                           // oxi->aux, oxi->siz, *triNr);
+  // UTO_dump_s_ (oxi, "TSU_tsu2tria_rec");
+
 
 
   if(oxi->siz < 3) {
@@ -768,17 +825,19 @@ static int oldMode = 0;
     return 0;
   }
 
-  ia   = 0;
 
+  ia   = 0;
   ie   = oxi->siz - 1;
   pTab = oxi->data;
+
+
+    // TESTBLOCK
+    // for(i1=0; i1<ie; ++i1) {
+      // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
+      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+    // }
     // GR_Disp_pTab (oxi->siz, pTab, SYM_STAR_S, 2);
-
-
-  // for(i1=0; i1<ie; ++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
-    // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
-  // }
+    // END TESTBLOCK
 
 
 
@@ -2058,15 +2117,15 @@ static int   patNr;     // nr of Patches
 
 
   // load PointFile  (write: lxml_read) pTab=malloc !
-  i1 = MSH_bload_pTab (&pTab, WC_modact, pgNr);
+  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, pgNr);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -1;}
 
 
 
 
   // check if bin.meshfile exists
-  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), WC_modnr, apt_ind);
-  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), WC_modact, apt_ind);
+  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), WC_modact_ind, apt_ind);
+  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), WC_modact_nam, apt_ind);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
@@ -2080,10 +2139,10 @@ static int   patNr;     // nr of Patches
 
 
   // create bin.meshfile for PTAB
-  MSH_msh1 (&ms1, iba, &ibNr, pTab, pNr);
+  MSH_msh0__ (&ms1, iba, &ibNr, pTab, pNr);
   fTab = ms1.f->fTab;
   fNr = ms1.f->fNr;
-  MSH_bsav_fTab (fTab, fNr, WC_modnr, apt_ind);
+  MSH_bsav_fTab (fTab, fNr, WC_modact_ind, apt_ind);
   flag1 = 0;
   goto L_draw;
 */
@@ -2092,8 +2151,8 @@ static int   patNr;     // nr of Patches
 
   // load MeshFile    fTab=malloc !
   L_f_load:
-  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modnr, apt_ind);
-  i1 = MSH_bload_fTab (&fTab, NULL, NULL, WC_modact, apt_ind);
+  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact_ind, apt_ind);
+  i1 = MSH_bload_fTab (&fTab, NULL, NULL, WC_modact_nam, apt_ind);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
   flag1 = 1;
 
@@ -2523,16 +2582,17 @@ static int   patNr;     // nr of Patches
     // printf(" _load_c %d\n",irc);
   if(irc < 0) return irc;
 
-/*
-  // Testdisp. 3D-Konturen
-  for(i1=0; i1<cNr; ++i1) {
-    if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
-    printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
-    GR_Disp_pTab (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
-    for(i2=0;i2<cTab[i1].iNr;++i2) GR_Disp_txi (&cTab[i1].pa[i2],i2,0);
-  }
-  return 0;
-*/
+
+    // TESTBLOCK 3D-Konturen
+    // for(i1=0; i1<cNr; ++i1) {
+      // if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
+      // printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
+      // GR_Disp_pTab (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
+      // for(i2=0;i2<cTab[i1].iNr;++i2) GR_Disp_txi (&cTab[i1].pa[i2],i2,0);
+    // }
+    // return 0;
+    // END TESTBLOCK
+
 
 
   // Z-Vektor errechnen
@@ -2582,6 +2642,7 @@ static int   patNr;     // nr of Patches
     GLT_spp_sTyp (Typ_SURPLN);  // store surfTyp for intersect
 
 
+  // tesselate
   i1 = GLT_spp__ (cTab, cNr, &vc1);
   if(i1 < 0) goto L_err;
 
@@ -4416,7 +4477,7 @@ uOff abhaengig von Aussenkonturtyp:
       // den Oeffnungswinkel errechnen
       UT3D_vc_ln (&vc1, (Line*)TSU_obj1);
       UT3D_vc_ln (&vc2, (Line*)TSU_obj2);
-      d1 = UT3D_angr_2vc (&vc1, &vc2);
+      d1 = UT3D_angr_2vc__ (&vc1, &vc2);
       // printf(" OeffAng=%f\n",d1);
 
       // den Minimalabstand d2 entsprechend Tol. UT_DISP_cv errechnen
@@ -6235,7 +6296,7 @@ Besseres Verfahren waere:
   UT3D_vc_2pt (&vc2, &ptc, &ptx);
     // UT3D_stru_dump(Typ_VC, &vc2, "vc2:");
 
-  pt2->x = UT3D_angr_3vc (&TSU_vrx, &vc2, &vc1);
+  pt2->x = UT3D_angr_3vc__ (&TSU_vrx, &vc2, &vc1);
 
     // printf("_tr_2D_3D_srv x=%f\n",pt2->x);
     // printf("    2D_3D_srv U=%f V=%f\n",pt2->x,pt2->y);

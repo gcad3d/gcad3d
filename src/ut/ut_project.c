@@ -285,8 +285,8 @@ static Vector prj_vc;      // projectionDirection
   //----------------------------------------------------------------
   L_SURMSH:
   if(prj_typ != Typ_SURMSH) goto L_OGX;
-  irc = MSH_pt_prjptmsh_ (p2, p1, ((int*)prj_tg)[0], ((int*)prj_tg)[1]);
-  if(irc) return -1;
+  irc = MSH_pt_prjptmsh_ (p2, p1, ((int*)prj_tg)[0], ((int*)prj_tg)[1], UT_TOL_pt);
+  if(irc < 0) return -1;
   return 1;
 
 
@@ -573,8 +573,8 @@ static Vector prj_vc;      // projectionDirection
 
 
   L_exit:
-    // printf(" angr in  va-vb = %lf\n",UT3D_angr_2vc(&ei->va,&ei->vb));
-    // printf(" angr out va-vb = %lf\n",UT3D_angr_2vc(&eo->va,&eo->vb));
+    // printf(" angr in  va-vb = %lf\n",UT3D_angr_2vc__(&ei->va,&ei->vb));
+    // printf(" angr out va-vb = %lf\n",UT3D_angr_2vc__(&eo->va,&eo->vb));
     // UT3D_stru_dump (Typ_CVELL, eo, "ex UPRJ_app_el:");
     // GR_Disp_ell (eo, 9);
 

@@ -27,7 +27,7 @@ Modifications:
 2003-03-23 UT3D_pt_projptln, UT3D_pt_projptptvc: neuer Par. len zu !! RF.
 2002-04-21 UT3D_m3_load_povxvz,UT3D_pt_rotptptvcangr neu. RF.
 2002-03-20 UT2D_ci.. zu. RF.
-2002-02-12 UT3D_angr_2vc: UTP_comp_0 -> fabs. RF.
+2002-02-12 UT3D_angr_2vc__: UTP_comp_0 -> fabs. RF.
 2001-10-16 UT3D_ci_obj2 u. UT3D_ci_obj: vz zu. RF.
 2001-04-22 UT3D_vc_cistart,UT3D_pt_traptptlen neu zu.
 2001-04-21 UT3D_vc_travcm3 korr.
@@ -66,9 +66,11 @@ UT3D_sid_ptptvc           compare if pt is in, above or below plane
 -------------- angles -------------------------------------
 UT3D_acos_2vc             cos of opening angle of 2 vecs (dot=scalarprod) INLINE
 UT3D_acos_vc2pt           cos of opening angle of vc-ptpt (dot=scalarprod) INLINE
-UT3D_angr_2vc             angle between two vec's (always 0 <= PI)
+UT3D_angr_2vc__           angle between two vec's (always 0 <= PI)
+UT3D_angr_2vc_n           angle between two normalized vec's (0 <= PI)
 UT3D_angr_3pt             angle between 3 points
-UT3D_angr_3vc             angle between 2 vectors; vz gives direction (pos|neg)
+UT3D_angr_3vc__             angle between 2 vectors; vz gives direction (pos|neg)
+UT3D_angr_3vcn_CCW        angle between 2 vectors CCW around vz; all normalized
 UT3D_angr_4pt             angle between 2 lines
 UT3D_angr_ci_par1         get opening-angle from parameter 0-1
 UT3D_angr_ci__            opening angle of Circ
@@ -166,7 +168,9 @@ UT3D_pt_vc                copy
 UT3D_pt_txt               Point from text
 UT3D_pt_pt2bp             3D-point from 2D-point & backplane
 UT3D_pt_addpt             Add two points:      po += p1                INLINE
+UT3D_pt_add_pt2           add 2D-point         po += p1                INLINE
 UT3D_pt_add2pt            Add two points:      po = p1 + p2
+UT3D_pt_sub_pt2           subtract 2D-point                            INLINE
 UT3D_pt_multpt            multiply; po = pi * d
 UT3D_pt_LinComb2Pts       Linear combination of 2 points: po = a1 * p1 + a2 * p2
 UT3D_pt_mid2pt            midpoint between 2 points
@@ -256,7 +260,8 @@ UT3D_compvcNull           compare vector for (exact) 0,0,0
 UT3D_compvc0              compare vector for 0,0,0 with tol
 UT3D_comp2vc_d            compare 2 vectors for parallel and antiparallel
 UT3D_comp2vc_p            compare 2 vectors for parallel
-UT3D_comp2vc__            compare 2 vectors (direction and size)
+UT3D_vc_ck_parl_vc        check for parallel (normalized only)
+UT3D_vc_ck_aparl_vc       check for antiparallel (normalized only)
 UT3D_vc_ck_parpl          check if vec is parallel to plane
 UT3D_vc_ck_perpvc         check if 2 vectors are normal (perpendic.)
 UT3D_vc_ckperp_2vc1       check if 2 normalized-vectors are normal (perp.)
@@ -698,7 +703,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 //================================================================
 /// Oeffnungswinkel zwischen 2 Planes
 
-  return UT3D_angr_2vc (&pl1->vz, &pl2->vz);
+  return UT3D_angr_2vc__ (&pl1->vz, &pl2->vz);
 
 }
 
@@ -865,7 +870,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
     vcxy.dy = vcz.dx;
     vcxy.dz = 0.;
     // UT3D_stru_dump(Typ_VC, &vcxy, "  vcxy:");
-    *az2 = UT3D_angr_2vc (&vcxy, &vcx);
+    *az2 = UT3D_angr_2vc__ (&vcxy, &vcx);
 
     if(vcx.dz < 0.) *az2 = -*az2;
     *az2 += RAD_90;
@@ -1120,6 +1125,8 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   // lqec = quadrat.length e-c
   lqec = UT3D_skp_2vc (&vec, &vec);
+    // printf(" lqec=%lf\n",lqec);
+
 
 
   // get vector a-f
@@ -1133,6 +1140,13 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   // lqfd = quadrat.length f-d
   lqfd = UT3D_skp_2vc (&vfd, &vfd);
     // printf(" lqec=%lf lqfd=%lf\n",lqec,lqfd);
+
+
+  // test if lines are parallel, but have distance > tol
+  if(UTP_comp2db(lqec,lqfd,qtol)) {
+    // yes - parallel; test if normal-distance > tol
+    if(lqec > qtol) return -1;         // 2016-03-21
+  }
 
 
   // test if c is on a-b AND d is on a-b
@@ -3915,12 +3929,12 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   UT3D_vc_2pt (&vc1, pp1, pp2);
   UT3D_vc_2pt (&vc2, pp4, pp3);
 
-  if(UT3D_comp2vc__ (&vc1, &vc2, UT_TOL_pt) != 1) return -1;
+  if(UT3D_vc_ck_parl_vc (&vc1, &vc2, UT_TOL_pt) != 1) return -1;
 
   UT3D_vc_2pt (&vc1, pp1, pp4);
   UT3D_vc_2pt (&vc2, pp2, pp3);
 
-  if(UT3D_comp2vc__ (&vc1, &vc2, UT_TOL_pt) != 1) return -1;
+  if(UT3D_vc_ck_parl_vc (&vc1, &vc2, UT_TOL_pt) != 1) return -1;
 
   // mittelpunkt1 1-3 und 2-4 muessen gleich sein !
   UT3D_pt_mid2pt (&p1, pp1, pp3);
@@ -8669,7 +8683,7 @@ liegt. ohne acos.
   return 1;
 
 
-  L_exit_no:
+  L_exit_no:  // vectors totally different
       // printf("ex UT3D_comp2vc_d 0\n");
   return 0;
 
@@ -8699,25 +8713,60 @@ liegt. ohne acos.
 
 
 //================================================================
-  int UT3D_comp2vc__ (Vector *v1, Vector *v2, double tol) {
+  int UT3D_vc_ck_parl_vc (Vector *v1, Vector *v2, double tol) {
 //================================================================
 /// \code
-/// UT3D_comp2vc__            compare 2 vectors (direction and size)
+/// UT3D_vc_ck_parl_vc            check for parallel (normalized only)
 /// 
 /// useable also for circles and planes (vz is normalized)
 /// tol: RAD_1 RAD_01 ..
 ///
-/// RC=1:   die Vektoren sind gleich.
-/// RC=0:   die Vektoren sind unterschiedlich.
+/// Output:
+///   retCod     0   vectors are not antiparallel
+///              1   vectors are parallel with different direction
+/// see also
+///   UT3D_vc_ck_aparl_vc  (check for antiparallel)
+///   UT3D_comp2vc_p, UT3D_comp2vc_d     - if not normalized
 /// \endcode
 
-//   if(UT3D_comp2vc__(&ciO.vz, &UT3D_VECTOR_IZ, UT_TOL_min1) == 1) gleich
 
 
   return ((UTP_comp2db (v1->dx, v2->dx, tol)) &&
           (UTP_comp2db (v1->dy, v2->dy, tol)) &&
           (UTP_comp2db (v1->dz, v2->dz, tol)));
 }
+
+
+//================================================================
+  int UT3D_vc_ck_aparl_vc (Vector *v1, Vector *v2, double tol) {
+//================================================================
+/// \code
+/// UT3D_vc_ck_aparl_vc       check for antiparallel (normalized only)
+///
+/// tol: RAD_1 RAD_01 ..
+///
+/// Output:
+///   retCod     0   vectors are not antiparallel
+///              1   vectors are parallel with different direction
+/// see also UT3D_comp2vc__
+/// \endcode
+
+  double  dd;
+
+
+  dd = -v1->dx;
+  if(!UTP_comp2db (dd, v2->dx, tol)) return 0;
+
+  dd = -v1->dy;
+  if(!UTP_comp2db (dd, v2->dy, tol)) return 0;
+
+  dd = -v1->dz;
+  if(!UTP_comp2db (dd, v2->dz, tol)) return 0;
+
+  return 1;
+
+}
+
 
 /* ersetzt durch UT3D_sid_2vc
 //================================================================
@@ -9702,7 +9751,10 @@ USBS_TgVecIsoBspSur
   void UT3D_vc_perp2vc (Vector *vp, Vector *v1, Vector *v2) {
 //========================================================================
 /// \code
-/// UT3D_vc_perp2vc            vector = perpendic. to 2 vectors (crossprod CROSS)
+/// UT3D_vc_perp2vc            vector perpendic. to 2 vectors (angle < PI only)
+///   angle between v1-v2 MUST BE < PI  (else vp points into negative)
+///   NO OUTPUT if v1-v2 is parallel or antiparallel
+///   always normal to short angle ( < PI); not respecting sense of rotation.
 /// Output:
 ///   vp       vector normal to v1 and v2;
 ///            CAN BE 0,0,0 - if v1,v2 are parallel !
@@ -9712,6 +9764,24 @@ USBS_TgVecIsoBspSur
 /// Get VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vx, &vy);
 /// Get VY from VZ, VX:    UT3D_vc_perp2vc (&vy, &vz, &vx);
 /// Get VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vy, &vz);
+///
+///    vp (z)
+///     |    /v2 (y)
+///     |   / 
+///     |  /                  
+///     | / 
+///     x----------v1 (x)      angle v1 v2 < PI
+///      
+///           
+///        /v1 (x)
+///       / 
+///      / 
+///     x----------v2 (y)       angle v1 v2 > PI
+///     |
+///     |
+///     |
+///    vp (z)
+///     
 /// \endcode
 
 // die Laenge enspricht dem Normalvektor von v2 auf v1 !!!!
@@ -13330,15 +13400,19 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   UT3D_vc_2pt (&v1, pc, p1);
   UT3D_vc_2pt (&v2, pc, p2);
 
-  return UT3D_angr_2vc (&v1, &v2);
+  return UT3D_angr_2vc__ (&v1, &v2);
 
 }
 
 
 //================================================================
-  double UT3D_angr_2vc (Vector *v1, Vector *v2) {
+  double UT3D_angr_2vc__ (Vector *v1, Vector *v2) {
 //================================================================
-/// UT3D_angr_2vcd            angle between two vec's (always 0 <= PI)
+/// \code
+/// UT3D_angr_2vc__d            angle between two vec's (always 0 <= PI)
+///   v1, v2 must not be normalized.
+/// see UT3D_angr_2vc_n
+/// \endcode
 
 
   double   ang, pr;
@@ -13356,21 +13430,42 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
   }
 
-  // printf("ex UT3D_angr_2vc %f %f\n",ang,UT_DEGREES(ang));
+  // printf("ex UT3D_angr_2vc__ %f %f\n",ang,UT_DEGREES(ang));
 
   return ang;
 
 }
 
 
+//================================================================
+  double UT3D_angr_2vc_n (Vector *v1, Vector *v2) {
+//================================================================
+/// \code
+/// UT3D_angr_2vc_n           angle between two normalized vec's
+///   angle = always 0 <= PI;    direction is CCW OR CW.
+/// for CCW-direction / angles (0 < 2PI)  use UT3D_angr_3vcn
+/// 0.866,    0.500,    30 deg
+/// 0.707,    0.707,    45 deg
+/// 0.500,    0.866,    60 deg
+/// \endcode
+
+
+  // UT3D_stru_dump (Typ_VC, v1, "v1");
+  // UT3D_stru_dump (Typ_VC, v2, "v2");
+
+  return ACOS(UT3D_skp_2vc (v1, v2));
+
+}
+
+
 //=============================================================================
-  double UT3D_angr_3vc (Vector *vz, Vector *v1, Vector *v2) {
+  double UT3D_angr_3vc__ (Vector *vz, Vector *v1, Vector *v2) {
 //=============================================================================
 /// \code
-/// UT3D_angr_3vc     angle between 2 vectors; vz gives direction (pos|neg)
+/// UT3D_angr_3vc__     angle between 2 vectors; vz gives direction (pos|neg)
 ///   RetCod: angle between v1 and v2;
 /// range from pi to -pi
-/// see UT3D_angr_2vc
+/// see UT3D_angr_2vc__
 /// see UT3D_angr_ci_p1_pt
 /// \endcode
 
@@ -13406,7 +13501,54 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   // if(d1 < 0.) ao = RAD_360 - ao;
   if(d1 < 0.) ao = -ao;
 
-    // printf("ex UT3D_angr_3vc %f\n",ao);
+    // printf("ex UT3D_angr_3vc__ %f\n",ao);
+
+  return ao;
+
+}
+
+
+//========================================================================
+  double UT3D_angr_3vcn_CCW (Vector *vz, Vector *v1, Vector *v2) {
+//=============================================================================
+/// \code
+/// UT3D_angr_3vcn_CCW    angle between 2 vectors CCW around vz; all normalized
+///   Rotation CCW around vz
+///   RetCod: angle CCW between v1 and v2;
+/// Input:
+///   v1, v2    compute angle between these vectors
+///   vz        up-vector (necessary if angle > PI)
+/// Output:
+///   retCod    angle 0 < 2*PI
+/// see UT3D_angr_2vc__ UT3D_angr_3vc__
+/// see UT3D_angr_ci_p1_pt
+/// \endcode
+
+
+  int       svz;
+  double    ao;
+  Vector    vcn;
+
+
+  // UT3D_stru_dump (Typ_VC, v1, "v1:");
+  // UT3D_stru_dump (Typ_VC, v2, "v2:");
+  // UT3D_stru_dump (Typ_VC, vz, "vz:");
+
+  //  ao = Oeffnungswinkel
+  ao = ACOS(UT3D_acos_2vc (v1, v2));
+    // printf("ao=%f\n",ao);
+
+
+  // get the normalvector
+  UT3D_vc_perp2vc (&vcn, v1, v2);
+    // UT3D_stru_dump (Typ_VC, &vcn, "vcn:");
+
+  // side; 1=parl, -1=antiparl
+  svz = UT3D_sid_2vc (&vcn, vz);
+  if(svz < 0) ao = RAD_360 - ao;
+    // printf(" svz=%d\n",svz);
+
+    // printf("ex UT3D_angr_3vcn_CCW %f %f\n",ao,UT_DEGREES(ao));
 
   return ao;
 
@@ -13431,7 +13573,7 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   UT3D_vc_2pt (&v1, p11, p12);
   UT3D_vc_2pt (&v2, p21, p22);
 
-  return UT3D_angr_2vc (&v1, &v2);
+  return UT3D_angr_2vc__ (&v1, &v2);
 
 }
 
@@ -14705,7 +14847,7 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   }
 
   // ao = opening-angle vc1 to vc2
-  ao = UT3D_angr_2vc (vc1, vc2) * -1.;
+  ao = UT3D_angr_2vc__ (vc1, vc2) * -1.;
     // printf(" ao=%lf\n",ao);
 
   UT3D_vc_setLength (&rx, &rx, 1.);
@@ -17369,7 +17511,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
     // TEST ONLY:
     // angle between vcx vcy
-    // printf(" angr=%lf\n",UT3D_angr_2vc (vcx,vcy));
+    // printf(" angr=%lf\n",UT3D_angr_2vc__ (vcx,vcy));
 
 
 

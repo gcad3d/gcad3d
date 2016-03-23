@@ -14,11 +14,13 @@
 /// rSiz    recordsize in bytes
 /// typ     type of data-records; for info only.
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
+///         -1 = cannot realloc (fixed space)
 /// use     application-specific
+/// u4      unused
 /// \endcode
 #define def_MemTab(vTyp1)\
   typedef struct {vTyp1 *data; int rMax, rNr, rSiz;\
-          unsigned char typ, incSiz, use, u4;}
+          unsigned char typ, incSiz, use, spcTyp;}
 
 /// template for the typedef:
 #define typedef_MemTab(vTyp1)\

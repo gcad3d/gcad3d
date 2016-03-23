@@ -102,7 +102,7 @@ cl -c /I ..\include xa_aux.c
 
 
 // aus xa.h:
-extern  int      WC_modnr;              // Nr of the active submodel; -1=main.
+extern  int      WC_modact_ind;              // Nr of the active submodel; -1=main.
 
 
 
@@ -579,7 +579,7 @@ static double imp_scale;
   ++is;
 
   // LandXML-File einlesen; ../exp/lxml.c
-  irc = lxml_read (fnam, WC_modact, is);
+  irc = lxml_read (fnam, WC_modact_nam, is);
 
 
   // Textbuffer 1 loeschen

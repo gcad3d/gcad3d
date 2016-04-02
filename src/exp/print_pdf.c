@@ -26,7 +26,7 @@ Modifications:
 */
 /*!
 \file  ../exp/print_pdf.c
-\brief write DXF
+\brief write PDF
 \code
 =====================================================
 List_functions_start:
@@ -53,7 +53,7 @@ export as jpg < bmp ?
 parameters for PDF:
 - preview / command                    evince | xpdf | firefox file://<fn>
 OR print to file /outfilename
-OR print direct / printcommand         lpr -PMFC7360N <fn>  GEHT NED !!! ???
+OR print direct / printcommand         lpr -PMFC7360N <fn> 
      use "evince -w <fn>
 
 Papersize   A4 | A3
@@ -104,7 +104,7 @@ __declspec(dllexport) int PRI_PDF__ (char*);
 //===========================================================================
   int PRI_PDF__ (char* fnam)  {
 //===========================================================================
-/// export as DXF
+/// export as PDF
 /// Input:
 ///   AP_stat.subtyp  0 = DXF-R12
 ///                   1 = DXF-2000

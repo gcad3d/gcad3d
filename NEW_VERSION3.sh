@@ -9,13 +9,13 @@ basDir=`pwd`
 
 # create source-package (<basDir>/packages/gCAD3D-#.##-src.zip)
 cd ${basDir}/src
-#./pack_src.sh
+./pack_src.sh
 
 
 
 # create docu-package (<basDir>/packages/gCAD3D-doc-#.##.zip)
 cd ${basDir}/doc
-#./packDoc.sh
+./packDoc.sh
 
 
 

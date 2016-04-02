@@ -169,7 +169,9 @@ AP_printer
 AP_print_gl1
 AP_print_pcl5e
 AP_print_pcl5h
+AP_print_pdf
 AP_print_psv
+AP_print_TEST_LN
 AP_print_vertex
 AP_print_work2
 APP_Save
@@ -2300,6 +2302,7 @@ PRG_sel_disp
 PRG_start
 PRG_update
 PRG_win__
+PRI_PDF__
 process_CmdTab
 psp_dist1
 psp_ioff_psp

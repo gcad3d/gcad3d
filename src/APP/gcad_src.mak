@@ -105,9 +105,9 @@ SRC1 =\
 
 # sources of applications; not used in batch
 SRCA =\
-  ../exp/bmp_ut.c   ../exp/lwo_r.c     ../exp/lxml.c     ../exp/ds3_r.c\
-  ../exp/ige_w.c     ../exp/prt_w.c    ../exp/csv_ut.c\
-  ../gr/ut_gr.c     ../gr/ut_GL.c      ../gr/ut_DL.c     ../gr/ut_gtx.c\
+  ../exp/bmp_ut.c   ../exp/lwo_r.c     ../exp/lxml.c      ../exp/ds3_r.c\
+  ../exp/ige_w.c    ../exp/prt_w.c     ../exp/print_pdf.c ../exp/csv_ut.c\
+  ../gr/ut_gr.c     ../gr/ut_GL.c      ../gr/ut_DL.c      ../gr/ut_gtx.c\
   ../gr/gru.c       ../gr/ut_dim.c\
   ../gr/gl_sSym.c   ../gr/gl_solids.c
 

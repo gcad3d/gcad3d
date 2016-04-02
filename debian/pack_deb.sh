@@ -75,6 +75,7 @@ rm -rf ${instDir}
 /bin/mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/html
 /bin/mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d/msg
 /bin/mkdir -p -m 755 ${instDir}/usr/share/menu
+/bin/mkdir -p -m 755 ${instDir}/usr/share/pixmaps
 
 #echo "instDir = " ${instDir}
 #find ${instDir}
@@ -162,8 +163,13 @@ chmod 0644 ${instDir}/usr/share/doc/gcad3d/msg/*
 
 
 #/usr/share/menu/gcad3d
-/bin/cp ${debDir}/_control/menu         ${instDir}/usr/share/menu/gcad3d
+/bin/cp ${debDir}/_control/menu      ${instDir}/usr/share/menu/gcad3d
 chmod 0644 ${instDir}/usr/share/menu/gcad3d
+
+
+#/usr/share/pixmaps/gCAD3D.xpm
+/bin/cp ${basDir}/icons/gCAD3D.xpm   ${instDir}/usr/share/pixmaps/.
+chmod 0644 ${instDir}/usr/share/pixmaps/*
 
 
 
@@ -178,6 +184,7 @@ chmod 0755 ${instDir}/usr/share/doc
 
 chmod 0755 ${instDir}/usr/share/gcad3d
 chmod 0755 ${instDir}/usr/share/menu
+chmod 0755 ${instDir}/usr/share/pixmaps
 chmod 0755 ${instDir}/usr/share
 
 chmod 0755 ${instDir}/usr

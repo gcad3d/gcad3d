@@ -267,6 +267,7 @@
 \ref exp/ds3_r.c                              <A HREF="../../src/exp/ds3_r.c">source</A>    Read 3DS-File
 \ref exp/ige_w.c                              <A HREF="../../src/exp/ige_w.c">source</A>    write iges files
 \ref exp/prt_w.c                              <A HREF="../../src/exp/prt_w.c">source</A>    write PS PCL5 HPGL file
+\ref exp/print_pdf.c                          <A HREF="../../src/exp/print_pdf.c">source</A>    write PDF
 \ref exp/csv_ut.c                             <A HREF="../../src/exp/csv_ut.c">source</A>    write, read csv-files (comm-separated-values, "flat-files")
 \ref exp/bmp_ut.c                             <A HREF="../../src/exp/bmp_ut.c">source</A>    BMP -Bitmap functions
 \ref exp/csv_ut.c                             <A HREF="../../src/exp/csv_ut.c">source</A>    write, read csv-files (comm-separated-values, "flat-files")
@@ -279,7 +280,7 @@
 \ref exp/lwo_r.c                              <A HREF="../../src/exp/lwo_r.c">source</A>    read LWO file
 \ref exp/lxml.c                               <A HREF="../../src/exp/lxml.c">source</A>    read LandXML file
 \ref exp/obj_ut.c                             <A HREF="../../src/exp/obj_ut.c">source</A>    read OBJ file (WaveFront)
-\ref exp/print_pdf.c                          <A HREF="../../src/exp/print_pdf.c">source</A>    write DXF
+\ref exp/print_pdf.c                          <A HREF="../../src/exp/print_pdf.c">source</A>    write PDF
 \ref exp/prt_w.c                              <A HREF="../../src/exp/prt_w.c">source</A>    write PS PCL5 HPGL file
 \ref exp/stl_r.c                              <A HREF="../../src/exp/stl_r.c">source</A>    read STL file
 \ref exp/stp_r.c                              <A HREF="../../src/exp/stp_r.c">source</A>    read STeP file

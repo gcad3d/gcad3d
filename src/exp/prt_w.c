@@ -86,6 +86,7 @@ List_functions_end:
 int AP_print_work2 (GLint size, GLfloat *buffer);
 int AP_print_pcl5h (FILE *fp1, char *ptyp, int irot);
 int AP_print_pcl5e (FILE *fp1);
+int AP_print_TEST_LN (float x1, float y1, float x2, float y2, int iatt);
 
 
 
@@ -95,7 +96,8 @@ int AP_print_pcl5e (FILE *fp1);
 //=========================================================
   int AP_print__ () {
 //=========================================================
-// init userfunction
+// get Feedbackbuffer;
+// write file <tempDir>/print.dat
 
   int      irc = 0;
   char     *cp1;
@@ -103,11 +105,9 @@ int AP_print_pcl5e (FILE *fp1);
   int      size;
 
 
-  // get Feedback from OpenGL
-  if(GL_FeedGet(&size, &feedBuffer) < 0) return -1;
+  // get Feedback from OpenGL into feedBuffer
+  if(GL_FeedGet (&size, &feedBuffer, GL_2D) < 0) return -1;
   if(size < 6) {TX_Error("AP_print__ E001"); return -1;}
-
-
 
 
   // Feedbackbuffer ->  Hilfsdatei <tempDir>/print.tmp
@@ -119,23 +119,8 @@ int AP_print_pcl5e (FILE *fp1);
   }
 
 
-/*
-  // tmp/print.tmp -> tmp/print.dat (Postscript-Vektorformat)
-  // AP_print_psv (rot, off, Sacle, gray)
-  // rot=0=normal,1=90Grad_drehen.
-  AP_print_psv (1, "0,0", "1.0", "2");
-
-
-  // tmp/print.tmp -> tmp/print.dat (HP-GL1-Format)
-  // AP_print_gl1 (mode, ptyp, rot, off, Scale)
-  // mode 1=HPGL 2=PCL5
-  // ptyp "A4" od "A5"
-  // rot=0=normal,1=90Grad_drehen.
-  // AP_print_gl1 (2, "A4", 1, "0,0", "1.0");
-*/
-
   L_exit:
-  free(feedBuffer);
+  free (feedBuffer);
 
   return irc;
 }
@@ -167,6 +152,7 @@ static char* txBuf=NULL;
   count = 0;
 
 
+  // open outputfile
   sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
   if ((fpo = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_work2 E001");
@@ -179,11 +165,12 @@ static char* txBuf=NULL;
 
   NextRec:
   token = buffer[count];
-  // printf("........... next: %d [%d]\n",token,count),
+    // printf("........... next: %x [%d]\n",token,count),
   ++count;
 
       //===================================================================
-      if (token == GL_PASS_THROUGH_TOKEN) {
+      if (token == GL_PASS_THROUGH_TOKEN) {    // 0x0700
+         // get uservalue (provided from func glPassThrough)
          // printf ("%d GL_PASS_THROUGH_TOKEN %f\n",count,buffer[count]);
          // Wert >= 0 ist eine AttributNr;
          if(buffer[count] >= 0.) {
@@ -221,18 +208,21 @@ static char* txBuf=NULL;
          // AP_print_vertex (fpo, &count, &buffer[count]);
          fprintf(fpo, "PT %f %f\n",buffer[count],buffer[count+1]);
          // count += 7;
-         count += 3;
+         // count += 3;
+         count += 2;    // 2D
 
 
       //===================================================================
-      } else if (token == GL_LINE_TOKEN) {
+      } else if (token == GL_LINE_TOKEN) {    // 0x0702
          // printf ("%d GL_LINE_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
          // AP_print_vertex (fpo, &count, &buffer[count]);
-         fprintf(fpo, "LN %f %f %f %f\n",buffer[count],buffer[count+1],
-                                         buffer[count+3],buffer[count+4]);
-                                         // buffer[count+7],buffer[count+8]);
-         // count += 14;
-         count += 3;
+         fprintf(fpo, "LN %f %f %f %f\n", buffer[count], buffer[count+1],
+                                          buffer[count+2],buffer[count+3]);
+                                         // buffer[count+3],buffer[count+4]);
+         // count += 6;
+         count += 4;    // 2D
 
 
       //===================================================================
@@ -242,12 +232,14 @@ static char* txBuf=NULL;
          ++count;
          fprintf(fpo, "PO %f %f",buffer[count],buffer[count+1]);
          // count += 7;
-         count += 3;
+         // count += 3;
+         count += 2;  // 2D
          for (i1=1; i1<nvertices; ++i1) {
            // AP_print_vertex(fpo, &count, &buffer[count]);
            fprintf(fpo, " %f %f",buffer[count],buffer[count+1]);
            // count += 7;
-           count += 3;
+           // count += 3;
+           count += 2;    // 2D
          }
          fprintf(fpo, "\n");
 
@@ -261,37 +253,43 @@ static char* txBuf=NULL;
            txBuf = NULL;
          }
          // count += 7;
-         count += 3;
+         // count += 3;
+         count += 2;    // 2D
 
 
       //===================================================================
       } else if (token == GL_DRAW_PIXEL_TOKEN) {
          // printf ("%d GL_DRAW_PIXEL_TOKEN\n",count);
          // count += 7; // liefert auch Vertex
-         count += 3;
+         // count += 3;
+         count += 2;    // 2D
 
 
       //===================================================================
       } else if (token == GL_COPY_PIXEL_TOKEN) {
          // printf ("%d GL_COPY_PIXEL_TOKEN\n",count);
          // count += 7; // liefert auch Vertex
-         count += 3;
+         // count += 3;
+         count += 2;    // 2D
 
 
 
       //===================================================================
-      } else if (token == GL_LINE_RESET_TOKEN) {
+      } else if (token == GL_LINE_RESET_TOKEN) {  // 0x0707
+         // line with stipple reset.
          // printf ("%d GL_LINE_RESET_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
          // AP_print_vertex (fpo, &count, &buffer[count]);
          fprintf(fpo, "LN %f %f %f %f\n",buffer[count],buffer[count+1],
-                                         buffer[count+3],buffer[count+4]);
-                                         // buffer[count+7],buffer[count+8]);
-         // count += 14;
-         count += 6;
+                                         buffer[count+2],buffer[count+3]);
+                                         // buffer[count+3],buffer[count+4]);
+         // count += 6;
+         count += 4;    // 2D
 
 
       //===================================================================
-      } //else printf ("%d **** unknown GL-TOKEN %d ****\n",size-count,token);
+      } else printf ("%d **** unknown GL-TOKEN %x ****\n",size-count,token);
   
 
   if(count < size) goto NextRec;
@@ -303,6 +301,29 @@ static char* txBuf=NULL;
 }
 
 
+//=========================================================================
+  int AP_print_TEST_LN (float x1, float y1, float x2, float y2, int iatt) {
+//=========================================================================
+
+  Point2  p21, p22;
+
+
+  printf(" TEST_LN %d %f %f %f %f\n",iatt,x1,y1,x2,y2);
+
+
+  p21.x = x1;
+  p21.y = y1;
+
+  p22.x = x2;
+  p22.y = y2;
+
+  GR_Disp_ln2 (&p21, &p22, iatt);
+
+  return 0;
+
+}
+
+ 
 //=====================================================================
   int AP_print_vertex (FILE *fpo, int *count, float *buffer) {
 //=====================================================================
@@ -325,9 +346,45 @@ X-Coord Y-Coord Z-Coord R G B A
 }
 
 
+//============================================================================
+  int AP_print_pdf (int irot, char *pgTyp, char* off, char* scl, char* gray) {
+//============================================================================
+// create <tempDir>/print.pdf
+
+  int    i1;
+  char   s1[400];
+
+  printf("AP_print_pdf \n");
+
+
+  i1 = OS_ck_SW_is_installed ("ps2pdf");
+  if(i1) {
+    TX_Print("**** ERROR: ps2pdf is not installed. ****");
+    // not installed; ERRMSG.
+    return -1;
+  }
+
+
+  // create <tempDir>/print.eps
+  AP_print_psv (irot, off, scl, gray);
+
+
+  // ps2pdf -sPAPERSIZE=a4 print.ps print.pdf
+  sprintf(s1, "ps2pdf -sPAPERSIZE=a%c \"%sprint.eps\" \"%sprint.pdf\"",
+          pgTyp[1], OS_get_tmp_dir(), OS_get_tmp_dir());
+    printf("%s\n", s1);
+  system (s1);
+
+  return 0;
+
+}
+
+
 //=====================================================================
   int AP_print_psv (int irot,char* off,char* scl,char* gray) {
 //=====================================================================
+// create <tempDir>/print.eps
+// input: <tempDir>/print.tmp
 /* siehe auch AP_Print0
   Die Farben:
      0 COL_Default
@@ -396,7 +453,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
 
-  sprintf(cbuf,"%sprint.dat",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_psv E001");
     return -1;
@@ -558,9 +615,11 @@ X-Coord Y-Coord Z-Coord R G B A
 //=====================================================================
   int AP_print_gl1 (int mode,char *ptyp,int irot,char* off,char* scl) {
 //=====================================================================
-// tmp/print.tmp -> tmp/print.dat (HP-GL1-Format)
+// create <tempDir>/print.hpgl|pcl      (HPGL|PCL5)
+// input: <tempDir>/print.tmp
 // In: mode = 0=PS 1=HPGL 2=PCL5
 // In: ptyp = "A3" oder "A4"
+// rot=0=normal,1=90Grad_drehen.
 
 
   GLint   GL_Viewp[4];         // x-left, y-low, width, heigth
@@ -627,7 +686,8 @@ X-Coord Y-Coord Z-Coord R G B A
   wy += yOff;
 
 
-  sprintf(cbuf,"%sprint.dat",OS_get_tmp_dir ());
+  if(mode == 2) sprintf(cbuf,"%sprint.pcl",OS_get_tmp_dir ());
+  else          sprintf(cbuf,"%sprint.hpgl",OS_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_gl1 E001");
     return -1;

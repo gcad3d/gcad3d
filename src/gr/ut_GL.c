@@ -1811,8 +1811,16 @@ Das folgende bringt nix
 		
  
 //=====================================================================
-  int GL_Feedback (GLint *size, GLfloat *feedBuffer) {
+  int GL_Feedback (GLint *size, GLfloat *feedBuffer, GLint idim) {
 //=====================================================================
+/// \code
+/// Input:
+///   idim         GL_2D | GL_3D
+/// Output:
+///   size         nr of floats in feedBuffer
+///   feedBuffer   
+/// \endcode
+
 
   // printf("GL_Feedback %d\n",*size);
   // GLdouble px, py;
@@ -1837,7 +1845,8 @@ Das folgende bringt nix
 
 
   // init feedbackBuffer
-  glFeedbackBuffer (*size, GL_3D, feedBuffer);
+  //   idim     GL_2D | GL_3D
+  glFeedbackBuffer (*size, idim, feedBuffer);
 
   // prepare GL for feedback
   glRenderMode (GL_FEEDBACK);
@@ -6614,7 +6623,7 @@ static double old_view_Z = 0.;
 
 
   // get FeedbackBuffer
-  if(GL_FeedGet(&fSiz, &fBuf) < 0) goto L_free;
+  if(GL_FeedGet(&fSiz, &fBuf, GL_3D) < 0) goto L_free;
   if(fSiz < 6) {
     free(fBuf);
     return -2;
@@ -6766,10 +6775,18 @@ static double old_view_Z = 0.;
 
 
 //================================================================
-  int GL_FeedGet (int *fsiz, float **feedBuffer) {
+  int GL_FeedGet (int *fsiz, float **feedBuffer, int idim) {
 //================================================================
-// give back FeedbackBuffer
-// YOU MUST FREE feedBuffer AFTER DECODING !
+/// \code
+/// give back FeedbackBuffer
+/// YOU MUST FREE feedBuffer AFTER DECODING !
+/// Input:
+///   idim         GL_2D | GL_3D
+/// Output:
+///   size         nr of floats in feedBuffer
+///   feedBuffer   
+/// \endcode
+
 
 // used by Printmodule
 
@@ -6780,7 +6797,7 @@ static double old_view_Z = 0.;
   long     msiz;
   float    f1;
 
-  // printf("GL_FeedGet \n");
+  printf("GL_FeedGet %x\n",idim);
 
 
   // glGetIntegerv (GL_FEEDBACK_BUFFER_SIZE, &msiz);
@@ -6808,7 +6825,7 @@ static double old_view_Z = 0.;
   L_start:
   // get Feedback from OpenGL
   // GL_mode_feed = 1; // ReScale
-  GL_Feedback (fsiz, *feedBuffer);
+  GL_Feedback (fsiz, *feedBuffer, idim);
   // GL_mode_feed = 0;
 
 
@@ -15159,7 +15176,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
   
   // GL_mode_feed = 1; // ReScale
-  if(GL_FeedGet(&fsiz, &feedBuffer) < 0) return -1;
+  if(GL_FeedGet(&fsiz, &feedBuffer, GL_3D) < 0) return -1;
   if(fsiz < 6) {TX_Print("- nothing selected"); return -1;}
   // GL_mode_feed = 0;
 

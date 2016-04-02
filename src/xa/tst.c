@@ -107,7 +107,7 @@ extern double    APT_ModSiz;
 
 
   //================================================================
-  tst_tst__ ();   goto L_fini;     // general test ..
+  // tst_tst__ ();   goto L_fini;     // general test ..
   //================================================================
   // TEST EXPORT_DLL'S:
   // tst_print_pdf ();
@@ -130,6 +130,7 @@ extern double    APT_ModSiz;
   // tst_imp_tess ();
   // LandXml-Import: in core (AP_ImportXML -> lxml_read); 
   //================================================================
+  AP_print__ (); // test feedbackbuffer - out -> <tempDir>/print.tmp
 
   L_end:
   DL_Redraw ();

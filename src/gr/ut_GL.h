@@ -69,7 +69,7 @@ double GL_query_ViewZ       ();
 
 void*  GL_Print1            (int *iw, int *ih);
 // int    GL_Select            (int, int*, long*, long*);
-int    GL_Feedback          (int*, float*);
+int    GL_Feedback          (int*, float*, int);
 
 void   GL_Sk2Uk             (double *,double *,double *,double,double,double);
 void   GL_Uk2Sk             (double *,double *,double *,double,double,double);

@@ -987,10 +987,11 @@ static char txbuf[256];
 
   txbuf[0] = '\0';
 
-  if(system("which evince 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "evince");
   if(system("which gv 1>/dev/null 2>/dev/null") == 0)
     strcpy(txbuf, "gv");
+
+  if(system("which evince 1>/dev/null 2>/dev/null") == 0)
+    strcpy(txbuf, "evince");
 
 
   if(strlen(txbuf) < 2) {

@@ -20,6 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2016-03-31 UI_WinPrint1: rename print.dat -> print.ps for evince. RF.
 2001-06-06 Trennen in xa_app und xa_ui.
 
 -----------------------------------------------------
@@ -9695,9 +9696,9 @@ box1
 //=====================================================================
 // Print-Panel
 
-  int    i1;
+  int              i1, irot;
   char             *txoff, *txscl, *txcmd1, *txcmd2, *txcmd3, *txgray;
-  char             cbuf1[256], fTyp[8];
+  char             cbuf1[256], fNam[128], fTyp[8];
   MemObj           box0, wtmp1, wtmp2, wtmp3, wtmp4;
 
   static int       mode;
@@ -9733,15 +9734,17 @@ box1
       box0 = GUI_box_v (&win0, "");
 
       wtmp3 = GUI_box_h (&box0, "");
-        GUI_radiobutt__(&wtmp3,"PS ",   0,UI_WinPrint1, &GUI_FuncUCB5, "");
+        GUI_radiobutt__(&wtmp3,"PDF  ", 0,UI_WinPrint1, &GUI_FuncUCB6, "");
+        GUI_radiobutt__(&wtmp3,"PS ",   1,UI_WinPrint1, &GUI_FuncUCB5, "");
         GUI_radiobutt__(&wtmp3,"PCL5 ", 1,UI_WinPrint1, &GUI_FuncUCB1, "");
         GUI_radiobutt__(&wtmp3,"HPGL ", 1,UI_WinPrint1, &GUI_FuncUCB2, "");
+      mode = 0;  // 0=PDF
 
 
       wb_form = GUI_box_h (&box0, "");
         GUI_radiobutt__(&wb_form, "A4 ", 0,UI_WinPrint1, &GUI_FuncUCB3, "");
         GUI_radiobutt__(&wb_form, "A3 ", 1,UI_WinPrint1, &GUI_FuncUCB4, "");
-        strcpy(pgTyp, "A4");
+      strcpy(pgTyp, "A4");
 
 
 // ACHTUNG: GUI_frame__ geht nach einem GUI_ckbutt__ nicht !!!!!!!!!!!!!!!
@@ -9774,7 +9777,7 @@ box1
 #ifdef _MSC_VER
         w_cmd3=GUI_entry__(&wtmp4, NULL, OS_get_printer(),  NULL,NULL, "");
 #else
-        sprintf(AP_printer, "lpr -l -P%s",OS_get_printer());
+        sprintf(AP_printer, "lpr -P%s",OS_get_printer()); //2016-03-31 -l removed
         w_cmd3=GUI_entry__(&wtmp4, NULL, AP_printer,        NULL,NULL, "");
 #endif
 
@@ -9795,8 +9798,6 @@ box1
       GUI_button__ (&wtmp1, "Exit", UI_WinPrint1, &GUI_FuncExit, "e");
 
 
-      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
-      mode = 1;
 
       GUI_Win_up (NULL, &win0, 0);  // always on top
       GUI_Win_go (&win0);
@@ -9806,23 +9807,29 @@ box1
 
 
     //---------------------------------------------------------
+    case UI_FuncUCB6:   // PDF
+      mode = 0;
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
     case UI_FuncUCB5:    // PS
       mode = 1;
-      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
-      GUI_set_enable (&w_func1, TRUE);  // view ein
-      GUI_set_enable (&w_cmd1, TRUE);  // view ein
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
       break;
     case UI_FuncUCB1:   // PCL5
       mode = 2;
       GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, FALSE); // view aus
-      GUI_set_enable (&w_cmd1, FALSE); // view aus
+      GUI_set_enable (&w_func1, FALSE); // Preview aus
+      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
       break;
     case UI_FuncUCB2:   // HPGL
       mode = 3;
       GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
-      GUI_set_enable (&w_func1, FALSE); // view aus
-      GUI_set_enable (&w_cmd1, FALSE); // view aus
+      GUI_set_enable (&w_func1, FALSE); // Preview aus
+      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
+      break;
       break;
     case UI_FuncUCB3:   // A4
       strcpy(pgTyp, "A4");
@@ -9837,9 +9844,9 @@ box1
         // printf("Print work\n");
 
       // drehen -
-      // i1 = GTK_TOGGLE_BUTTON (w_rot)->active;
-      i1 = GUI_ckbutt_get (&w_rot);
-        printf("  rot=%d\n",i1);
+      // irot = GTK_TOGGLE_BUTTON (w_rot)->active;
+      irot = GUI_ckbutt_get (&w_rot);
+        printf("  rot=%d\n",irot);
 
       // cmd's, Offset, Scale
       txcmd1 = GUI_entry_get (&w_cmd1);
@@ -9852,48 +9859,54 @@ box1
 
       // Hautpfunktion ausfuehren
       // auslesen, Zwischendatei <tempDir>/print.tmp generieren
-      // ausgabefile <tempDir>/print.dat generieren
-      // fix filetyp
       if(AP_print__() < 0) break;
 
 
-      if(mode == 1) {    // PS: 
+      if(mode == 0) {    // PDF:
+        // create <tempDir>/print.eps
+        AP_print_pdf (irot, pgTyp, txoff, txscl, "2");
+        strcpy(fTyp, "pdf");
+
+
+      } else if(mode == 1) {   // PS: 
         //           rot, off, Scale, gray)
-        AP_print_psv (i1,txoff,txscl, "2");
-        strcpy(fTyp, "ps");
+        // create <tempDir>/print.eps
+        AP_print_psv (irot, txoff, txscl, "2");
+        strcpy(fTyp, "eps");
 
 
       } else if(mode == 2) {   // PCL5
-        // tmp/print.tmp -> tmp/print.hpgl (HP-GL1-Format)
-        // AP_print_gl1 (mode, ptyp, rot, off, Scale)
-        // mode 1=HPGL 2=PCL5
+        // create <tempDir>/print.pcl 
         // ptyp "A4" od "A5"
         // rot=0=normal,1=90Grad_drehen.
-        AP_print_gl1 (2, pgTyp, i1, txoff, txscl);
+        AP_print_gl1 (2, pgTyp, irot, txoff, txscl);
         strcpy(fTyp, "pcl");
 
 
       } else if(mode == 3) {   // HPGL
-        AP_print_gl1 (1, pgTyp, i1, txoff, txscl);
+        // create <tempDir>/print.hpgl
+        AP_print_gl1 (1, pgTyp, irot, txoff, txscl);
         strcpy(fTyp, "hpgl");
       }
 
+      sprintf(fNam,"\"%sprint.%s\"", OS_get_tmp_dir(), fTyp);
+
 
       //..............................................
-      // view PS
+      // view PDF|PS
       // if(GTK_TOGGLE_BUTTON (w_func1)->active) {
       if(GUI_radiobutt_get (&w_func1)) {
-        // AP_Print0 (1,txcmd1,i1,txoff,txscl);
-        if(mode != 1) { TX_Print ("***** cannot view PCL5 / HPGL"); break; }
+        // AP_Print0 (1,txcmd1,irot,txoff,txscl);
+        if(mode > 1) { TX_Print ("***** cannot view PCL5 / HPGL"); break; }
 #ifdef _MSC_VER
-        sprintf(cbuf1,"move \"%sprint.dat\" \"%sprint.eps\"",
-                OS_get_tmp_dir(),OS_get_tmp_dir());
-          printf("system %s\n",cbuf1);
-        system(cbuf1);
-        sprintf(cbuf1,"\"%sprint.eps\"",OS_get_tmp_dir());
-          printf("system %s\n",cbuf1);
+        // sprintf(cbuf1,"move \"%sprint.dat\" \"%sprint.eps\"",
+                // OS_get_tmp_dir(),OS_get_tmp_dir());
+          // printf("system %s\n",cbuf1);
+        // system(cbuf1);
+        sprintf(cbuf1,"%s", fNam);
+
 #else
-        sprintf(cbuf1,"%s %sprint.dat",txcmd1,OS_get_tmp_dir());
+        sprintf(cbuf1,"%s %s &", txcmd1, fNam);
 #endif
           printf("system %s\n",cbuf1);
         system(cbuf1);
@@ -9903,31 +9916,32 @@ box1
       // copy -> file
       // } else if(GTK_TOGGLE_BUTTON (w_func2)->active) {
       } else if(GUI_radiobutt_get (&w_func2)) {
-        // AP_Print0 (2,txcmd2,i1,txoff,txscl);
+        // AP_Print0 (2,txcmd2,irot,txoff,txscl);
         // get outfilename from txcmd2 = w_cmd2;
 
 #ifdef _MSC_VER
-        sprintf(cbuf1,"copy/Y \"%sprint.dat\" \"%s.%s\"",
-                OS_get_tmp_dir(),txcmd2,fTyp);
+        sprintf(cbuf1,"copy/Y %s \"%s.%s\"", fNam, txcmd2, fTyp);
 #else
-        sprintf(cbuf1,"cp -f %sprint.dat %s.%s",OS_get_tmp_dir(),txcmd2,fTyp);
+        sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
 #endif
-        TX_Print(cbuf1);
-        system(cbuf1);
+          printf("%s\n",cbuf1);
+        TX_Print (cbuf1);
+        system (cbuf1);
 
 
       //..............................................
       // print direct
       // } else if(GTK_TOGGLE_BUTTON (w_func3)->active) {
       } else if(GUI_radiobutt_get (&w_func3)) {
-        // AP_Print0 (3,txcmd3,i1,txoff,txscl);
+        // AP_Print0 (3,txcmd3,irot,txoff,txscl);
 #ifdef _MSC_VER
-        sprintf(cbuf1,"copy/b \"%sprint.dat\" %s",OS_get_tmp_dir(),txcmd3);
+        sprintf(cbuf1,"copy/b %s %s", fNam, txcmd3);
 #else
-        sprintf(cbuf1,"%s %sprint.dat",txcmd3,OS_get_tmp_dir());
+        sprintf(cbuf1,"%s %s &", txcmd3, fNam);
 #endif
-        TX_Print(cbuf1);
-        system(cbuf1);
+          printf("%s\n",cbuf1);
+        TX_Print (cbuf1);
+        system (cbuf1);
 
       }
 
@@ -9935,26 +9949,15 @@ box1
       break;
 
 
+
     //---------------------------------------------------------
     case UI_FuncExit:  // 102
-        // printf("UI_FuncExit\n");
-      // send destroy-signal
-      // if(win0)
-      // gtk_signal_emit_by_name (GTK_OBJECT(win0),"destroy");
-      // return 0;
-
-
-    //---------------------------------------------------------
     case UI_FuncKill:
-        // printf("UI_FuncKill\n");
-
       // EXIT
-      GUI_Win_kill (&win0);
-      win0 = GUI_OBJ_INVALID();
-
-      // restore grafic-background
-      // GL_Redra__ (2);
-      DL_Redraw ();
+      if(GUI_OBJ_IS_VALID(&win0)) {  
+        GUI_Win_kill (&win0);
+        win0 = GUI_OBJ_INVALID();
+      }
 
   }
 

@@ -820,10 +820,12 @@ extern ColRGB     AP_defcol;
     case UI_FuncKill:   // destroy-Signal
     case UI_FuncExit:   // called from GUI_Win__
 
-      DL_hili_off (-1L); // // unhilite alle Objekte
-      GUI_Win_kill (&win0);
-      win0 = GUI_OBJ_INVALID();
-      SurMod_Ini (1);   // exit all
+      if(GUI_OBJ_IS_VALID(&win0)) {           // Win schon vorhanden ?
+        DL_hili_off (-1L); // // unhilite alle Objekte
+        GUI_Win_kill (&win0);
+        win0 = GUI_OBJ_INVALID();
+        SurMod_Ini (1);   // exit all
+      }
       return 0;
 
   }

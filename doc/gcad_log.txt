@@ -1,3 +1,10 @@
+Version 2.31 / 2015-04-02
+
+- new print-format PDF (Linux only)
+- bugfix print PS
+
+
+===========================================================================
 Version 2.30 / 2016-03-16
 
 - DXF-export: export subModels as BLOCKS
@@ -10,7 +17,6 @@ Version 2.30 / 2016-03-16
 
 Programlines (C)  406226
 Functions           3956
-
 
 
 ===========================================================================

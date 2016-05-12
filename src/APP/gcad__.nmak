@@ -100,6 +100,23 @@ allDemos:
 	exit
 
 
+srclst:
+	@echo $(SRC1) > srcFiles
+	@echo $(SRCG) >> srcFiles
+	@echo $(SRCB) >> srcFiles
+	@echo $(SRCA) >> srcFiles
+	@echo $(SRCOS) >> srcFiles
+	dir/b/s\
+ ..\xa\*.h ..\db\*h ..\ci\*h ..\ut\*h ..\gr\*h\
+ ..\exp\*.c ..\exp\*.h\
+ ..\prc\*.c ..\prc\*.h\
+ ..\myAPPS\*.c ..\myAPPS\*.h\
+ ..\APP\Demo*.c ..\xa\tst*.c >> srcFiles
+
+# ../exp/dxf_r.c ../exp/ige_r.c ../exp/obj_ut.c ../exp/stl_r.c \
+# ../exp/stp_r.c ../exp/svg_w.c ../exp/vr2_r.c ../exp/wrl_ut.c 
+
+
 test:
 	@echo OBJ1 = $(OBJ1)
 	@echo CC = $(CC)

@@ -579,6 +579,10 @@ static TexBas *actTexBas;
     // printf(" fNam |%s|\n",fNam);
 
 
+  // check if sourcefiles exists
+  if(OS_checkFilExist(fNam, 1) == 0) return -1;
+
+
   // get filetyp of symNam
   UTX_ftyp_s (fTyp, symNam, 1);
     // printf(" fTyp |%s|\n",fTyp);
@@ -588,7 +592,7 @@ static TexBas *actTexBas;
   // copy BMP
   if(!strcmp(fTyp, "BMP")) {
       // printf(" copy bitmap\n");
-    OS_file_copy (fNam, bNam);
+    OS_file_copy (fNam, bNam);  //  printf(" rc OS_file_copy=%d\n",irc);
     goto L_done;
   }
 

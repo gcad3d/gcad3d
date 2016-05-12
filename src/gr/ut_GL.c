@@ -307,7 +307,8 @@ Die View-Plane ist immer parallel zur X-Y-Plane.
 
 GL_Do_Pan__
 GL_Do_Rot__
-GL_Redra__
+GL_Print_Redraw            print with white background
+GL_Redra__                 redraw without highlites surfaces
 GL_Redraw
 
 
@@ -1845,7 +1846,7 @@ Das folgende bringt nix
 
 
   // init feedbackBuffer
-  //   idim     GL_2D | GL_3D
+  //   idim     GL_2D | GL_3D | GL_3D_COLOR
   glFeedbackBuffer (*size, idim, feedBuffer);
 
   // prepare GL for feedback
@@ -1899,32 +1900,37 @@ Das folgende bringt nix
 
 
 //================================================================
-  void GL_Redra__ (int mode) {
+  void GL_Print_Redraw () {
 //================================================================
-// 0    redraw complete DL; but without highlites surfaces !
-// 1    for print (create white background)
+// print with white background
+ 
+  printf("GL_Print_Redraw \n");
 
-  // printf("GL_Redra__ %d\n",mode);
 
-
-  if(mode == 0) {
-    // redraw complete DL; but without highlites surfaces !
-    GL_mode_draw_select = GR_MODE_NORMAL;
-
-  } else if(mode == 1) {
-    // create white background
-    GL_mode_draw_select = GR_MODE_PRINT1;
-
-/*
-  } else if(mode == 2) {
-    // restore background
-    GL_mode_draw_select = GR_MODE_PRINT2;
-*/
-  }
+  GL_mode_draw_select = GR_MODE_PRINT1;
 
   UI_GR_DrawInit ();
   GL_Redraw ();
   UI_GR_DrawExit ();
+
+}
+
+
+//================================================================
+  void GL_Redra__ (int mode) {
+//================================================================
+// 0    redraw complete DL; but without highlites surfaces !
+
+  // printf("GL_Redra__ %d\n",mode);
+
+
+  // redraw complete DL; but without highlites surfaces !
+  GL_mode_draw_select = GR_MODE_NORMAL;
+
+  UI_GR_DrawInit ();
+  GL_Redraw ();
+  UI_GR_DrawExit ();
+
   GL_mode_draw_select = GR_MODE_DRAW;
 
 }
@@ -2004,7 +2010,7 @@ static int errOld = 123;
   // fix background-colour
   if(GL_mode_draw_select == GR_MODE_PRINT1) {
     GL_mode_draw_select = GR_MODE_DRAW;
-      // printf(" _Redr white\n");
+      printf(" _Redr white\n");
     glClearColor (255.f, 255.f, 255.f, 1.f);
     errOld = 4; // white bg from PRINT active
     goto L_clear;
@@ -4008,6 +4014,7 @@ static Point ptOri;
 /// GL_RubberBox_draw
 /// 1.call: create box; 2.call deletes box.
 /// mode    0=createBox    1=removeBox
+///
 /// 2015-08-31 Does not work for Driver X.Org-X-Server for AMD/ATI
 /// \endcode
 
@@ -4026,6 +4033,7 @@ static Point ptOri;
 
   // printf("GL_RubberBox_draw %f %f %f %d %d %d\n",ptOri->x,ptOri->y,ptOri->z,
           // rb_dx,rb_dy,mode);
+
 
 
     // TEST ONLY
@@ -4223,11 +4231,16 @@ static Point ptOri;
 //=====================================================================
   void*  GL_Print1   (int *iw, int *ih) {
 //=====================================================================
-// gesamte Bitmap raus.
+// get bitmap (format BGR) of active OpenGL-window;
+// returns bitmap; must be freed.
+// Output:
+//   iw, ih        width, height
+//   retCod        bitmap
 
 
 
 
+  int  bSiz;
   static void* buf;
 
 
@@ -4235,24 +4248,29 @@ static Point ptOri;
 
 
   glGetIntegerv (GL_VIEWPORT, GL_Viewp);  // get Viewport-Matrix
-  printf(" viewp %d %d %d %d\n",GL_Viewp[0], GL_Viewp[1],
-                                GL_Viewp[2], GL_Viewp[3]);
 
+  *iw = GL_Viewp[2];  // width
+  *ih = GL_Viewp[3];  // height
 
-  *iw = GL_Viewp[2];
-  *ih = GL_Viewp[3];
+  // compute memsiz
+  // bSiz = (*iw * *ih) + 32;            // for grayscale
+  bSiz = (*iw * *ih * 3) + 32;           // BGR
+    printf(" iw=%d ih=%d bSiz=%d\n",*iw,*ih,bSiz);
 
-
-  buf = malloc(*iw * *ih);
+  buf = malloc (bSiz);
   if(buf == NULL) return NULL;
 
 
 
+  // alignement in bytes
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
   // nr of rows to skip from bottom
   glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+
   // nr of pixels to skip on left side of image
   glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+
   // glPixelStorei(GL_PACK_ROW_LENGTH, 0);
   // glReadBuffer(GL_BACK);
 
@@ -4260,7 +4278,8 @@ static Point ptOri;
   glReadPixels(0, 0,                               // offestpos lower left
       (GLsizei)GL_Viewp[2], (GLsizei)GL_Viewp[3],  // width height
       // GL_RED|GL_BLUE|GL_GREEN,                     // Absturz
-      GL_LUMINANCE,                                // grayscale
+      // GL_LUMINANCE,                                // grayscale
+      GL_BGR_EXT,
       // GL_ALPHA,                                    // geht ned
       GL_UNSIGNED_BYTE,
       (GLvoid*)buf);
@@ -9550,7 +9569,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int    irc, ix, iy, pixSiz;
   GLuint dlInd;
   float  x1, y1, f_scl;
-  char   bNam[256];
+  char   bNam[256], sSym[64], sDir[128];
   void   *mSpc;
 
 
@@ -9562,6 +9581,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   if(irc < 0) {
     TX_Error("ERROR GL_LoadBMP %d %s",irc,symNam);
     pixSiz = -1;
+    // message symbolic path <symDir> is <path>
+    Mod_sym_get__ (sSym, sDir, bNam, symNam);
+    TX_Print (" - symbolic path \"%s\" is \"%s\"", sSym, sDir);
     goto L_err_img;
   }
 

@@ -39,6 +39,7 @@ if test "$1" = "help"; then
   echo "./do g2                # display ut_geo3d.c"
   echo "./do g3                # display ut_geo3d.c"
   echo "./do gmon              # analyze time"
+  echo "./do cfg-ms2ux         # change cfg/xa.rc and cfg/dir.lst"
   exit 0
 fi
 
@@ -148,6 +149,20 @@ fi
 
 if test "$1" = "g3"; then
   $cmdVi ../ut/ut_geo3d.c
+  exit 0
+fi
+
+if test "$1" = "cfg-ms2ux"; then
+  # exit if dirUX.lst does not exist
+  if [ -f dirUX.lst ]; then
+    echo "set dir.lst & xa.rc -> Unix"
+    /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst dirMS.lst
+    /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc xaMS.rc
+    /bin/mv dirUX.lst /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst
+    /bin/mv xaUX.rc /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc
+  else
+    echo "**** ERROR"
+  fi
   exit 0
 fi
 

@@ -1,6 +1,7 @@
 # Debug 1=Debug-ON
 #       2=Distribute;DebugOFF
 
+# get DEB
 include deb.mak
 
 ifeq "$(DEB)" "1"

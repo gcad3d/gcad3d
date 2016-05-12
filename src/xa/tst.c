@@ -60,6 +60,9 @@ tst_sel_CB
 #include <string.h>
 #include <stdarg.h>                         // for ...
 
+// #include <errno.h>
+// #include <dlfcn.h>           // Unix: dlopen
+
 
 #ifdef _MSC_VER
 // die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
@@ -88,6 +91,8 @@ __declspec(dllexport) int gCad_fini ();
 // Externals aus ../ci/NC_Main.c:
 extern double    APT_ModSiz;
 
+// Externals aus ../xa/xa.c:
+extern char      WC_modnam[128];
 
 
 // protos:
@@ -101,13 +106,18 @@ extern double    APT_ModSiz;
 //=========================================================
 // init userfunction
 
+  int   i1;
 
-  TX_Print("-->> gCad_main aus tst; 2016-02-20.");
+
+  TX_Print("-->> gCad_main aus tst; 2016-04-18.");
   printf("-->> gCad_main aus tst;\n");
+
+  // attach KeyIn - connect KeyIn -> func dia_KeyIn
+  AP_UserKeyIn_get (tst_key_CB);
 
 
   //================================================================
-  // tst_tst__ ();   goto L_fini;     // general test ..
+  i1 = tst_tst__ (0);   if(i1) return 0; // general test ..
   //================================================================
   // TEST EXPORT_DLL'S:
   // tst_print_pdf ();
@@ -117,6 +127,7 @@ extern double    APT_ModSiz;
   // tst_exp_stl ();
   // tst_exp_obj ();
   // tst_exp_svg ();
+  // tst_print__ ();  // OS_dll_do ("xa_print__", "PRI__"
   //================================================================
   // TEST IMPORT_DLL'S:
   // UI_menCB (NULL, "new");
@@ -130,7 +141,7 @@ extern double    APT_ModSiz;
   // tst_imp_tess ();
   // LandXml-Import: in core (AP_ImportXML -> lxml_read); 
   //================================================================
-  AP_print__ (); // test feedbackbuffer - out -> <tempDir>/print.tmp
+  // AP_print__ (); // test feedbackbuffer - out -> <tempDir>/print.tmp
 
   L_end:
   DL_Redraw ();
@@ -1146,31 +1157,897 @@ static int       dxf_version;     // 0=R12; 1=2000
 }
 */
 
+/*
+void*  GL_Print1   (int *iw, int *ih);
+
+#include "../ut/byteorder.h"
+
+typedef struct {
+  unsigned short it; unsigned long is; unsigned short iu1, iu2;
+  unsigned long io;
+} bitMapRec1;
+
+
+typedef struct {
+  unsigned long ish,iw,ih; unsigned long ipl,inr;
+  unsigned long ic,isi,ix,iy,icu,ici;
+} bitMapRec2;
+
+
+typedef struct {              
+  unsigned char  rgbBlue;      
+  unsigned char  rgbGreen;     
+  unsigned char  rgbRed;       
+  unsigned char  rgbReserved;   
+} colRec1;                         // Windows: RGBQUAD oder so
+
+
+  unsigned short bmp_MB='MB';
+
+struct BMPHeader
+{
+    char bfType[2];      
+    int bfSize;         
+    int bfReserved;    
+    int bfOffBits;    
+    int biSize;      
+    int biWidth;    
+    int biHeight;  
+    short biPlanes;       
+    short biBitCount;    
+    int biCompression;  
+    int biSizeImage;   
+    int biXPelsPerMeter; 
+    int biYPelsPerMeter;
+    int biClrUsed;     
+                      
+    int biClrImportant;
+                      
+};
+
 
 //================================================================
-int tst_tst_1 (Vector *v31, Vector *v32) {
+  int bmp_save__ (char *fNam) {
+//================================================================
 
-  double d1;
+  int    iw, ih, lSiz1, lSiz2, fSiz, i1, ii;
+  void   *pm;
+  char   *vp1;
 
-  // get angle between v31-v32
-  d1 = UT3D_angr_2vc__ (v31, v32);
-  printf(" d1=%f %f\n",d1, UT_DEGREES(d1));
 
-  d1 = UT3D_angr_2vc_n (v31, v32);
-  printf(" _n-d1=%f %f\n",d1, UT_DEGREES(d1));
+  FILE *file;
+  struct BMPHeader bmph;
 
-  return 0;
+    // int i, j, ipos;
+    // int bytesPerLine;
+    // unsigned char *line;
+    // unsigned char rgb[3] = {16, 32, 64};
+
+
+  printf("bmp_save__ |%s|\n",fNam);
+
+  // iw = 100;  ih = 100;
+  pm = GL_Print1 (&iw, &ih);
+    printf(" iw=%d ih=%d\n",iw,ih);
+
+  // lSiz1 = iw;   // size of line - input grayscale; 1 byte per pixel
+  lSiz1 = iw * 3;  // size of line - input BGR
+
+
+  lSiz2 = (lSiz1 + 3) & ~3;   // size of line 4-bytes aligned
+  fSiz  = lSiz2 * ih;
+    printf(" lSiz1=%d lSiz2=%d fSiz=%d\n", lSiz1, lSiz2, fSiz);fflush(stdout);
+
+
+  // fill bitmap-header
+  strcpy(bmph.bfType, "BM");
+  bmph.bfOffBits = 54;
+  bmph.bfSize = bmph.bfOffBits + fSiz;
+  bmph.bfReserved = 0;
+  bmph.biSize = 40;           // Size of BITMAPINFOHEADER, in bytes
+  bmph.biWidth = iw;
+  bmph.biHeight = ih;
+  bmph.biPlanes = 1;          // Number of planes in target device
+  // bmph.biBitCount = 8;        // Bits per pixel - grayscale
+  bmph.biBitCount = 24;       // Bits per pixel RGB
+  bmph.biCompression = 0;
+  bmph.biSizeImage = 0;       // Image size (0 = no compression)
+  bmph.biXPelsPerMeter = 0;   // Resolution in pixels/meter of display device
+  bmph.biYPelsPerMeter = 0;
+  bmph.biClrUsed = 0;         // Number of colors in the color table
+  bmph.biClrImportant = 0;    // Number of important colors
+
+
+  file = fopen (fNam, "wb");
+  if (file == NULL) return(0);
+
+  // write bitmap-header
+  fwrite(&bmph.bfType, 2, 1, file);
+  fwrite(&bmph.bfSize, 4, 1, file);
+  fwrite(&bmph.bfReserved, 4, 1, file);
+  fwrite(&bmph.bfOffBits, 4, 1, file);
+  fwrite(&bmph.biSize, 4, 1, file);
+  fwrite(&bmph.biWidth, 4, 1, file);
+  fwrite(&bmph.biHeight, 4, 1, file);
+  fwrite(&bmph.biPlanes, 2, 1, file);
+  fwrite(&bmph.biBitCount, 2, 1, file);
+  fwrite(&bmph.biCompression, 4, 1, file);
+  fwrite(&bmph.biSizeImage, 4, 1, file);
+  fwrite(&bmph.biXPelsPerMeter, 4, 1, file);
+  fwrite(&bmph.biYPelsPerMeter, 4, 1, file);
+  fwrite(&bmph.biClrUsed, 4, 1, file);
+  fwrite(&bmph.biClrImportant, 4, 1, file);
+  
+
+  // write line by line
+  ii = 0;
+  vp1 = pm;
+  for (i1=0; i1 < ih; ++i1) {
+    fwrite (vp1, lSiz2, 1, file);
+    vp1 += lSiz1;
+  }
+
+  fclose(file);
+
+  if(pm) free (pm);
+
+  // change bmp -> jpg
+
+
+
 }
-
-//================================================================
-  int tst_tst__ () {
-//================================================================
-// general test ..
  
 
-  int    irc, i1, ii, iNr;
+//================================================================
+  char* OS_get_imgConv2  () {
+//================================================================
+/// returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
+// popen ?
+
+  static int  iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
+  static char fn1[] = "cjpeg";
+
+
+  if(iStat == 0) {    // init
+    iStat = system("which djpeg 1>/dev/null 2>/dev/null");
+    if(iStat == 0) iStat =  1;   // OK
+    else           iStat = -1;   // not OK
+  }
+
+  if(iStat > 0) return &fn1[0];
+
+  MSG_pri_1 ("NOEX_fil", "bmp2jpg-converter");
+
+  return "";
+
+}
+
+
+//================================================================
+  int OS_jpg_bmp (char *fn_jpg, char *fn_bmp) {
+//================================================================
+// convert BMP -> JPG
+
+  char  s1[400];
+
+  sprintf(s1, "%s \"%s\" > \"%s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+    printf(" |%s|\n",s1);
+
+  return OS_system(s1);
+
+
+}
+*/
+
+#include <GL/gl.h>
+
+//=====================================================================
+  int AP_print_color (FILE *fpo, int *count, float *buffer) {
+//=====================================================================
+/* hier eventuell eine veraenderte farbe ausgeben ..
+X-Coord Y-Coord Z-Coord R G B A
+*/
+
+  int i1;
+
+  printf ("    %d  ",*count);
+
+  for (i1 = 0; i1 < 4; i1++) {
+     printf (" %7.2f ", buffer[i1]);
+  }
+
+  printf ("\n");
+
+  return 0;
+
+}
+
+
+/*
+//=========================================================
+  int AP_print_work3 (int size, float *buffer) {
+//=========================================================
+// write file <tempDir>/print.tmp from GL_3D_COLOR-Feedbackbuffer 
+// UNUSED - NO occlusion culling / hidden surface removal / hidden line removal
+// In:  Feedbackbuffer;
+// Out: Objekte ->  Hilfsdatei <tempDir>/print.tmp
+// Normaler Record (Point, Line, Polygon) sieht so aus:
+// X-Coord Y-Coord Z-Coord R G B A
+
+static char* txBuf=NULL;
+
+  int     count;
+  // GR_Att    att1;
+  Att_ln    *att1;
+  char      cbuf[256];
+  FILE      *fpo;
+  int       i1, i2, i3, token, nvertices, newAtt;
+  int       actCol=-1, actLtyp=-1, actLthick=-1;
+  long      l1;
+  ObjGX     *ox1;
+  GText     *gtx1;
+
+
+  count = 0;
+
+
+  // open outputfile
+  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  if ((fpo = fopen (cbuf, "w+")) == NULL) {
+    TX_Error ("AP_print_work2 E001");
+    return -1;
+  }
+
+  printf("AP_print_work3 size=%d |%s|\n",size,cbuf);
+
+
+
+  NextRec:
+  token = buffer[count];
+    printf("........... next: x0%x [%d]\n",token,count),
+  ++count;
+
+      //===================================================================
+      if (token == GL_PASS_THROUGH_TOKEN) {    // 0x0700
+         // get 1 uservalue (provided from func glPassThrough)
+         // printf ("%d GL_PASS_THROUGH_TOKEN %f\n",count,buffer[count]);
+         // Wert >= 0 ist eine AttributNr;
+         if(buffer[count] >= 0.) {
+           newAtt = buffer[count];
+           // DL_Get_GrAtt (&att1, newAtt);  // graf.Attrib holen; 
+           AttLn_Get_ind (&i1, &i2, &i3, newAtt);  // get line-attribute
+           // printf(" att %d %d %d\n",att1.col,att1.ltyp,att1.lthick);
+           // set Linetyp
+           if((i1 != actCol)    ||
+              (i2 != actLtyp)   ||
+              (i3 != actLthick))     {
+             actLtyp = i2;
+             fprintf(fpo, "AT %d %d %d\n",i1,i2,i3);
+           }
+
+         // Wert < 0 ist ein TextnoteIndex
+         } else {
+           l1 = -buffer[count];
+           // if(l1 < APT_TX_SIZ) {
+// Crash bei Dimen
+             // ox1 = DB_GetGTxt (l1);
+             // gtx1 = ox1->data;
+             // // fprintf(fpo, "TN %s\n",gtx1->txt);
+             // printf("TN %s\n",gtx1->txt);
+             // txBuf = gtx1->txt;
+           // // }
+//
+         }
+         ++count;
+
+
+      //===================================================================
+      } else if (token == GL_POINT_TOKEN) {    // 0x0701
+         // printf ("%d GL_POINT_TOKEN\n",count);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "PT %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2]);
+         // count += 2;    // 2D
+         // count += 3; // 3D
+         count += 7; // 3D-col
+
+
+      //===================================================================
+      } else if (token == GL_LINE_TOKEN) {    // 0x0702
+         // printf ("%d GL_LINE_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "LN %f %f %f %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2],
+                 buffer[count+7],buffer[count+8],buffer[count+9]);
+         // count += 4;    // 2D
+         // count += 6;   // 3D
+         count += 14; // 3D-col
+
+
+      //===================================================================
+      } else if (token == GL_POLYGON_TOKEN) {    // 0x0703
+         nvertices = buffer[count];
+         // printf ("%d GL_POLYGON_TOKEN: (%d)\n",count,nvertices);
+         ++count;
+         // write color
+         fprintf(fpo, "CO %f %f %f %f\n",
+                 buffer[count+3],buffer[count+4],buffer[count+5],buffer[count+6]);
+         fprintf(fpo, "PO %f %f %f",
+                 buffer[count],buffer[count+1],buffer[count+2]);
+         // count += 2;  // 2D
+         // count += 3;   // 3D
+         // AP_print_color (fpo, &count, &buffer[count]);
+         count += 7; // 3D+col
+         for (i1=1; i1<nvertices; ++i1) {
+           // AP_print_vertex(fpo, &count, &buffer[count]);
+           fprintf(fpo, " %f %f %f",
+                   buffer[count],buffer[count+1],buffer[count+2]);
+           // count += 2;    // 2D
+           // count += 3;
+           count += 7;  // 3D-col
+         }
+         fprintf(fpo, "\n");
+
+
+      //===================================================================
+      } else if (token == GL_BITMAP_TOKEN) {
+         // printf ("%d GL_BITMAP_TOKEN\n",count);
+         if(txBuf) {   // erster char einer Textnote
+           fprintf(fpo,"TN %f %f %f %s\n",
+                   buffer[count],buffer[count+1],buffer[count+2],txBuf);
+           // printf("TN %f %f %s\n",buffer[count],buffer[count+1],txBuf);
+           txBuf = NULL;
+         }
+         // count += 7;
+         // count += 3;
+         count += 2;    // 2D
+
+
+      //===================================================================
+      } else if (token == GL_DRAW_PIXEL_TOKEN) {
+         // printf ("%d GL_DRAW_PIXEL_TOKEN\n",count);
+         // count += 2;    // 2D
+         // count += 3;    // 3D
+         count += 7; // 3D + col
+
+
+      //===================================================================
+      } else if (token == GL_COPY_PIXEL_TOKEN) {
+         // printf ("%d GL_COPY_PIXEL_TOKEN\n",count);
+         // count += 2;    // 2D
+         // count += 3;    // 3D
+         count += 7; // 3D + col
+
+
+
+      //===================================================================
+      } else if (token == GL_LINE_RESET_TOKEN) {  // 0x0707
+         // line with stipple reset.
+         // printf ("%d GL_LINE_RESET_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "LN %f %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2],
+                 buffer[count+7],buffer[count+8],buffer[count+9]);
+         // count += 4;    // 2D
+         // count += 6;   // 3D
+         count += 14; // 3D-col
+
+
+      //===================================================================
+      } else printf ("%d **** unknown GL-TOKEN 0x%x ****\n",size-count,token);
+
+
+  if(count < size) goto NextRec;
+
+  fclose(fpo);
+
+  return 0;
+
+}
+
+
+//=====================================================================
+  int AP_print_psv3 (int irot,char* off,char* scl,char* gray) {
+//=====================================================================
+// create <tempDir>/print.eps from 3D-file print.tmp
+// UNUSED - hidden surface removal missing
+// TODO: occlusion culling / hidden surface removal / hidden line removal
+//  for the incoming triangles (filled polygons)
+// Input:
+//   irot     0, 1=90 deg rotated
+//   off      "0,0"    offset
+//   scl      "1"      text-scale
+//   gray     "2"      unused
+//   file <tempDir>/print.tmp
+//   file <cfgDir>/psv.setup
+// Output:
+//   file <tempDir>/print.eps
+
+  GLint   GL_Viewp[4];         // x-left, y-low, width, heigth
+  double  d1, fscl;
+  int     i1, i2, iw, ih, xOff=0, yOff=0, igray,
+          newCol, newLtyp, newLthick, actCol=-1, actLtyp=-1, actLthick=-1;
+  long    l1, nUnsupp;
+  float   col_r, col_g, col_b, col_m;
+  char    cbuf[256], *p1, *p2, *p3;
+  FILE    *fp1, *fp2;
+
+
+
+  printf ("AP_print_psv3 %d |%s|%s|%s|\n",irot,off,scl,gray);
+
+
+
+
+  glGetIntegerv (GL_VIEWPORT, GL_Viewp);  // get Viewport-Matrix
+  printf(" viewp %d %d %d %d\n",GL_Viewp[0], GL_Viewp[1],
+                                GL_Viewp[2], GL_Viewp[3]);
+  iw = GL_Viewp[2];
+  ih = GL_Viewp[3];
+  nUnsupp = 0;
+
+
+  d1 = strtod (off, &p2);
+  xOff = d1;
+  ++p2;
+  d1 = strtod (p2, &p1);
+  yOff = d1;
+
+  d1 = strtod (gray, &p2);
+  igray = d1;
+
+  fscl = strtod (scl, &p2);
+  printf(" off=%d,%d, scl=%f gray=%d\n",xOff,yOff,fscl,igray);
+
+
+
+
+  sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
+  if ((fp1 = fopen (cbuf, "w+")) == NULL) {
+    TX_Error ("AP_print_psv3 E001");
+    return -1;
+  }
+
+
+  fprintf(fp1, "%%!PS-Adobe-2.0 EPSF-2.0\n");
+  fprintf(fp1, "%%%%Title: %s\n",WC_modnam);
+  fprintf(fp1, "%%%%CreationDate: %s\n", OS_date1());
+
+
+  if(irot == 0) {
+    i1=xOff+iw;
+    i2=yOff+ih;
+  } else {
+    i2=xOff+iw;
+    i1=yOff+ih;
+  }
+  fprintf(fp1, "%%%%BoundingBox: %d %d %d %d\n\n",xOff,yOff,i1,i2);
+
+  // nun die Defaultvariablen:
+  fprintf(fp1, "/_rPt %f def\n",2.);
+
+
+
+
+
+
+  // add setup-File psv.setup via mem_cbuf1
+  sprintf(cbuf,"%spsv.setup",OS_get_cfg_dir ());
+  l1 = OS_FilSiz (cbuf);
+  if ((fp2 = fopen (cbuf, "r")) == NULL) {
+    TX_Error ("AP_print_psv3 file: Error open %s",cbuf);
+    return -1;
+  }
+  if(l1 > sizeof(mem_cbuf1)) return -1;
+  fread (mem_cbuf1, l1, 1, fp2);
+  // mem_cbuf1[strlen(mem_cbuf1)] = '\0';
+  mem_cbuf1[l1] = '\0';
+  fclose(fp2);
+  // printf("|%s|\n",mem_cbuf1);
+  fprintf(fp1, "%s\n",mem_cbuf1);
+
+
+
+
+
+  // page setup
+  if(irot == 0) {
+    fprintf(fp1, "%d %d translate\n",xOff,yOff);
+  } else {
+    fprintf(fp1, "%d %d translate\n",xOff+ih,yOff);
+    fprintf(fp1, "90 rotate\n");
+  }
+
+  // i1 = iw*fscl;
+  // i2 = ih*fscl;
+  // fprintf(fp1, "%d %d scale\n",i1,i2);
+
+  fprintf(fp1, "%f %f scale\n",fscl,fscl);
+
+  //======================================================================
+  // data
+  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  if ((fp2 = fopen (cbuf, "r")) == NULL) {
+    TX_Error ("AP_print_pvs file: Error open print.tmp");
+    return -1;
+  }
+
+  while (!feof (fp2)) {
+    if (fgets (cbuf, 250, fp2) == NULL) break;
+    UTX_CleanCR (cbuf);                            // remove foll CR,LF ..
+    // printf(" in:|%s|\n",cbuf);
+
+
+    //----------------------------------------------------------------
+    if(!strncmp(cbuf, "AT ", 3))  {
+      // Graf Att. Col Ltyp Lthick
+      sscanf(&cbuf[3], "%d %d %d",&newCol,&newLtyp,&newLthick);
+      // printf(" att %d %d %d\n",newCol,newLtyp,newLthick);
+      if(newLtyp != actLtyp) {
+        actLtyp = newLtyp;
+        if(newLtyp < 4) {
+          fprintf(fp1, "_ltyp%d\n",newLtyp);
+        } else printf("**** AP_print_pvs unsupp. lintyp %d\n",newLtyp);
+      }
+      if(newLthick != actLthick) {
+        actLthick = newLthick;
+        if(newLthick < 4) {
+          fprintf(fp1, "_lthick%d\n",newLthick);
+        } else printf("**** AP_print_pvs unsupp. linthick %d\n",newLthick);
+      }
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "TN ", 3))  {
+      // <x> <y> <text>
+      // find 2. ' '
+      p1 = strchr (&cbuf[3], ' ');
+      if(!p1) goto L_err1;
+      ++p1;
+      p2 = strchr (p1, ' ');
+      if(!p2) goto L_err1;
+      *p2 = '\0';         // abtrennen
+      ++p2;
+      fprintf(fp1, "%s m (%s) show\n",&cbuf[3],p2);
+
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "PT ", 3))  {
+      // <x> <y> _pt
+      fprintf(fp1, "%s _pt\n", &cbuf[3]);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "CO ", 3))  {
+      // Color; r g b transparency (eg for following polygon (triangle))
+      sscanf (&cbuf[3], "%f %f %f", &col_r, &col_g, &col_b);
+        // printf(" col %f %f %f\n", col_r, col_g, col_b);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "LN ", 3)) {
+      // <x> <y> m <x> <y> l
+      // find 2. ' ' 
+// TODO: in: LN x y z x y z out: x y m x y l
+      p1 = strchr (&cbuf[3], ' ');
+      if(!p1) goto L_err1;
+      ++p1;
+      p2 = strchr (p1, ' ');
+      if(!p2) goto L_err1;
+      *p2 = '\0';         // abtrennen
+      ++p2;
+      fprintf(fp1, "%s m %s l\n",&cbuf[3],p2);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "PO ", 3)) {
+      // <grayVal> g <pt1> m <pt2> p <pt3> tri
+      // get first 2 coords
+      p1 = &cbuf[3];
+      p2 = strchr (p1, ' '); if(!p2) goto L_err1;
+      ++p2;
+      p2 = strchr (p2, ' '); if(!p2) goto L_err1;
+      *p2 = '\0';  printf(" p1 |%s|\n",p1);
+      ++p2;
+      p3 = strchr (p2, ' '); if(!p3) goto L_err1;
+      ++p3;
+      p3 = strchr (p3, ' '); if(!p3) goto L_err1;
+      *p3 = '\0';  printf(" p2 |%s|\n",p2);
+      ++p3;
+      col_m = (col_r + col_g + col_b) / 3.;  // monochrom from red/green/blue
+      fprintf(fp1, "%f g %s m %s p %s tri\n",col_m,p1,p2,p3);
+      // get next 2 coords
+
+
+
+
+    //----------------------------------------------------------------
+    } else {
+      // printf(" - unsupported: %s\n",cbuf);
+      ++nUnsupp;
+    }
+
+  }
+  fclose(fp2);
+
+
+
+
+
+  //======================================================================
+  fprintf(fp1, "showpage\n");
+  fprintf(fp1, "%%%%EOF\n");
+  fclose(fp1);
+
+  if(nUnsupp > 0) printf("***** %ld unsupported objects ..\n",nUnsupp);
+
+
+  return 0;
+
+  L_err1:
+    TX_Error ("AP_print_pvs3 format error");
+    return -1;
+}
+*/
+
+
+/*
+#include "/home/fwork/devel/tst/gl2ps-1.3.9-source/gl2ps.h"
+
+// TODO:   move gl2ps_print3 -> ../gl2ps/gl2ps.c
+
+//================================================================
+  int gl2ps_print3 (char *fNam, char *title, char *producer,
+                    void gl_redraw()) {
+//================================================================
+// write file <fNam> from open-GL-window
+// 2016-04-18   ReiterFranz
+// Input:
+//   fNam       outfilename; file-extension must be: "pdf"|"svg"|"eps"
+//   title
+//   producer
+//   gl_redraw  function to redraw all openGl-objects
+// Output:
+//   file <fnam>
+//   retCod     0=OK, else Error
+//
+// Example:
+//   gl2ps_print3 ("test.eps", "test", "its me", display);
+
+
+  FILE *fp;
+  int state = GL2PS_OVERFLOW, buffsize = 0, sort, format, opts, icol;
+  char ext[32], *cp1;
+  GLint viewport[4];
+
+
+  // extract ext from fNam
+  cp1 = strrchr (fNam, '.');
+  if(!cp1) {printf("**** gl2ps_print3 E001\n"); return -1;}
+  ++cp1;
+  strcpy(ext, cp1);
+
+
+  // set format (GL2PS_PDF|GL2PS_SVG|GL2PS_TEX|GL2PS_PS)
+  if(!strcmp ("pdf", ext)) {
+    format = GL2PS_PDF;
+
+  } else if(!strcmp ("eps", ext)) {
+    format = GL2PS_EPS;
+
+  } else if(!strcmp ("svg", ext)) {
+    format = GL2PS_SVG;
+
+  } else {printf("**** gl2ps_print3 E002\n"); return -2;}
+
+
+  // sort = GL2PS_SIMPLE_SORT;
+  sort = GL2PS_BSP_SORT;
+
+  icol = 0;   // gray
+  // opts = GL2PS_DRAW_BACKGROUND; // gray, no bitmaps
+
+  // icol = 16;
+  opts = GL2PS_DRAW_BACKGROUND | GL2PS_BEST_ROOT;
+  // opts = GL2PS_DRAW_BACKGROUND | GL2PS_OCCLUSION_CULL | GL2PS_BEST_ROOT;
+
+
+
+  glGetIntegerv (GL_VIEWPORT, viewport);
+
+
+  fp = fopen(fNam, "wb");
+  printf("Writing %s\n",fNam);
+
+  while (state == GL2PS_OVERFLOW) {
+    buffsize += 1024*1024;
+    gl2psBeginPage (title, producer,
+                    viewport,
+                    format,
+                    sort,
+                    opts,
+                    GL_RGBA, 0, NULL,
+                    icol, icol, icol,
+                    buffsize, fp, fNam);
+    (*gl_redraw) (); // redraw all openGl-objects
+
+    state = gl2psEndPage();
+  }
+
+  fclose(fp);
+
+  return 0;
+
+}
+*/
+
+
+/*
+// REPLACES OS_dll__
+//================================================================
+  int _OS_dll__ (void **dll, int mode, void *data) {
+//================================================================
+//
+/// Input:
+///   mode       0 = load dll
+///              1 = start function
+///              2 = unload dll
+///              4 = recompile dll
+/// Output:
+///   dll        loaded dll
+
+// see also OS_dll_run
+
+  int   (*up1)(void**);
+  char  s1[256];
+  void  *dBlock[2];
+
+
+  printf("OS_dll__ %d |%s|\n",mode,(char*)data);
+
+
+  //----------------------------------------------------------------
+  // 0 = load DLL
+  if(mode != 0) goto L_1;
+
+  sprintf(s1, "%s%s.so",OS_get_bin_dir(),(char*)data);
+    printf(" dll=|%s|\n",s1); fflush(stdout);
+
+
+  if(*dll) {
+    dlclose (*dll);           // unload DLL
+    *dll = NULL;
+  }
+  *dll = dlopen (s1, RTLD_LAZY);    // dlfcn.h
+  if(*dll == NULL) {
+    TX_Error("DLL_run3: cannot open dyn. Lib. |%s|",(char*)data);
+    return -1;
+  }
+
+  // damit Debugger stoppt, nachdem DLL geladen wurde
+  OS_debug_dll_ ((char*)data);
+  return 0;
+
+
+
+
+  //----------------------------------------------------------------
+  // 1 = start function
+  L_1:
+  if(mode != 1) goto L_2;
+
+  // Adresse von Func.fncNam holen
+  up1 = dlsym (*dll, (char*)data);
+  if(up1 == NULL) {
+    TX_Error("OS_dll__: cannot open Func. |%s|",(char*)data);
+    dlclose (*dll);           // unload DLL
+    *dll = NULL;
+    return -1;
+  }
+
+  // start userprog
+  dBlock[0] = data;
+  dBlock[1] = *dll;
+  (*up1)(dBlock);
+  return 0;
+
+
+
+  //----------------------------------------------------------------
+  // 2 = unload dll
+  L_2:
+  if(mode != 2) goto L_4;
+
+  if(*dll) {
+    dlclose (*dll);           // unload DLL
+    *dll = NULL;
+  }
+  return 0;
+
+
+  //----------------------------------------------------------------
+  // 4 = recompile dll
+  L_4:
+  // if(mode != 2) goto L_4;
+
+  if(*dll) {
+    dlclose (*dll);           // unload DLL
+    *dll = NULL;
+  }
+  sprintf(s1, "%s.so",(char*)data);
+    printf(" dll=|%s|\n",s1); fflush(stdout);
+  
+  if(DLL_build__ (s1) != 0) {
+     TX_Print("***** Error compile/link %s",s1);
+     return -1;
+  }
+
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_PRI__ (int mode) {
+//================================================================
+//
+/// Input:
+///   mode       0 = load & start dll
+///              2 = unload dll
+
+
+  static void  *dll1 = NULL; // pointer to loaded dll "xa_print__.so"
+
+
+  printf("AP_PRI__ %d\n",mode);
+
+
+  //----------------------------------------------------------------
+  if(mode == 0) {   // load & start
+    // TESTBLOCK
+    if(&dll1) OS_dll__ (&dll1,  4, "xa_print__");       // rebuild
+    // END TESTBLOCK
+
+    // load dll
+    if(&dll1) OS_dll__ (&dll1,  0, "xa_print__");
+
+    // connect func
+    OS_dll__ (&dll1,  1, "PRI__");
+
+    // start func
+    OS_dll__ (&dll1,  2, NULL);
+
+
+  //----------------------------------------------------------------
+  } else if(mode == 2) {   // unload
+    if(&dll1) _OS_dll__ (&dll1,  2, NULL); // unload
+
+  }
+
+
+  return 0;
+
+}
+*/
+
+//================================================================
+  int tst_tst__ (int ii) {
+//================================================================
+// general test ..
+// retcod   0 exit and unload
+//          1 do not unload
+ 
+
+  int    irc, i1, iNr;
   double d1, d2, d3;
-  char   *p1, cbuf1[256];
+  char   *p1, s1[256], s2[256];
   int       triSiz, triNr, surSiz, surNr;
   int       sTyp[10];
   long      sTab[10];
@@ -1199,14 +2076,83 @@ int tst_tst_1 (Vector *v31, Vector *v32) {
   // Vector    v32={0., -1., 0.};  // 180 deg
   Vector    v33={0., 0., -1.};  // 180 deg
 
+  // FILE *fp;
+  // int state = GL2PS_OVERFLOW, buffsize = 0, format, sort, opts, icol;
+  // char ext[32], fNam[256];
+  // GLint viewport[4];
+  char fNam[256];
 
-  printf("XXXXXXXXXXXXXXXXXXXXXXXXX  tst_tst__ 1\n");
+  static void  *dll1 = NULL;
 
 
-  irc = UT3D_pt_int2pt2pt_lim (&p34, NULL, NULL, &p30, &p31, &p32, &p33, 0.05);
-  printf(" irc=%d\n",irc);
-  UT3D_stru_dump (Typ_PT, &p34, "p34");
+  printf("\n\n");
+  TX_Print ("XXXXXXXXXXXXX q=Quit, l=reLoad; u=unLoad;  tst_tst__ %d\n",ii);
+  printf("CXXXXXXXXXXXXXXXXXXXXXXXX  tst_tst__ %d\n",ii);
+    printf(" dll1=%p\n",dll1);
 
+  if(ii == 1) {
+    UI_PRI__ (FUNC_UNLOAD);
+    // i1 = _OS_dll__ (&dll1,  2, NULL); // unload
+    return 0;
+  }
+
+  UI_PRI__ (FUNC_EXEC); // 0=start, 2=unload
+
+
+  return 1;
+  // do not yet unload (gui is active)
+
+
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// xa_print__.mak ../xa/print__.c
+// xa_print_pdf.mak
+// ../exp/print_pdf.c  int PRI_PDF__ (char* fnam)
+  // i1 = OS_dll_do ("xa_print__", "PRI__", "abc");
+
+  // i1 = OS_ck_SW_is_installed ("ps2pdf");
+  // printf(" ps2pdf = %d\n",i1);
+  // GUI_printer__ ("C:\Users\freiter\AppData\Roaming\gCAD3D\tmp\print.eps");
+  // GUI_printer__ ("/mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/tmp/print.eps");
+
+
+/*
+//XXXXXX GL2PS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  // see GL_Feedback
+  // pdf svg tex eps
+  sprintf(fNam, "%s.eps", "test");
+  gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Redraw);
+    // GL_Redraw (); // display();   // redraw
+*/
+
+
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+/*
+  sprintf(s1, "%swin.bmp",OS_get_tmp_dir());
+  sprintf(s2, "%swin.jpg",OS_get_tmp_dir());
+
+  // create BMP-file of active OpenGL-window
+  bmp_save__ (s1);
+  // create JPG-file from BMP-file
+  OS_jpg_bmp (s2, s1);
+*/
+
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+/*
+  // AP_print__ (); // test feedbackbuffer - out -> <tempDir>/print.tmp
+
+  AP_print_work3 ();
+  AP_print_psv3 (1, "0,0", "1", "2");
+  // system("v /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/tmp/print.eps");
+*/
+
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  // irc = UT3D_pt_int2pt2pt_lim (&p34, NULL, NULL, &p30, &p31, &p32, &p33, 0.05);
+  // printf(" irc=%d\n",irc);
+  // UT3D_stru_dump (Typ_PT, &p34, "p34");
 
   // tst_tst_1 (&v31, &v32);
 
@@ -1215,14 +2161,6 @@ int tst_tst_1 (Vector *v31, Vector *v32) {
 
   // d1 = UT3D_angr_3vcn_CCW (&v33, &v31, &v32);
   // printf(" d1=%f %f\n",d1, UT_DEGREES(d1));
-
-
-  //i1 = OS_dll_do ("xa_print_pdf", "PRI_PDF__", "abc");
-
-
-  // i1 = OS_ck_SW_is_installed ("ps2pdf");
-  // printf(" ps2pdf = %d\n",i1);
-
 
 return 0;
   // TX_Print(" plugin tst start ..");
@@ -1470,6 +2408,19 @@ return 0;
       // DL_Redraw ();               // Redraw DispList
       gCad_fini ();
       // PED_CB1 (NULL, "Exit");
+      break;
+
+    case 'l':
+      tst_tst__ (0);
+      break;
+
+    case 'u':
+      tst_tst__ (1);
+      break;
+
+    case 't':
+      printf(" GUI_Win_exist=%d\n",GUI_Win_exist ("Export/Print"));
+
       break;
 
   }

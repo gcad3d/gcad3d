@@ -105,6 +105,7 @@
 \ref xa/xa_undo.h                             <A HREF="../../src/xa/xa_undo.h">source</A>    -
 \ref xa/tst.c                                 <A HREF="../../src/xa/tst.c">source</A>    plugin tests
 \ref xa/tst_exp.c                             <A HREF="../../src/xa/tst_exp.c">source</A>    -
+\ref xa/xa_print__.c                          <A HREF="../../src/xa/xa_print__.c">source</A>    write / print PDF EPS SVP
 
 
 \subpage
@@ -293,6 +294,19 @@
 \ref exp/dxf_w.h                              <A HREF="../../src/exp/dxf_w.h">source</A>    -
 \ref exp/ige.h                                <A HREF="../../src/exp/ige.h">source</A>    -
 \ref exp/prt_w.h                              <A HREF="../../src/exp/prt_w.h">source</A>    -
+\ref exp/ige_r.c                              <A HREF="../../src/exp/ige_r.c">source</A>    read IGEs files
+\ref exp/dxf_w.c                              <A HREF="../../src/exp/dxf_w.c">source</A>    write DXF
+\ref exp/dxf_ut.c                             <A HREF="../../src/exp/dxf_ut.c">source</A>    DXF utility funtions
+\ref exp/stp_w.c                              <A HREF="../../src/exp/stp_w.c">source</A>    write STeP file
+\ref exp/obj_ut.c                             <A HREF="../../src/exp/obj_ut.c">source</A>    read OBJ file (WaveFront)
+\ref exp/print_pdf.c                          <A HREF="../../src/exp/print_pdf.c">source</A>    write PDF
+\ref exp/stp_r.c                              <A HREF="../../src/exp/stp_r.c">source</A>    read STeP file
+\ref exp/dxf_r.c                              <A HREF="../../src/exp/dxf_r.c">source</A>    read, write DXF-files
+\ref exp/dxf_ut.c                             <A HREF="../../src/exp/dxf_ut.c">source</A>    DXF utility funtions
+\ref exp/svg_w.c                              <A HREF="../../src/exp/svg_w.c">source</A>    write SVG file
+\ref exp/stl_r.c                              <A HREF="../../src/exp/stl_r.c">source</A>    read STL file
+\ref exp/wrl_ut.c                             <A HREF="../../src/exp/wrl_ut.c">source</A>    read VRML-1 file
+\ref exp/vr2_r.c                              <A HREF="../../src/exp/vr2_r.c">source</A>    read VRML-2 file
 
 
 \subpage

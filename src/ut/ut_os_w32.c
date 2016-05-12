@@ -80,29 +80,16 @@ Braucht advapi32.lib (f. GetUserName).
 #include <sys/stat.h>      // f. _stat
 
 
-#include "../ut/ut_txt.h"         // fnam_del_s
-
-
-
-//#include "../ut/ut_geo.h"             // NO, YES
-#define YES                0
-#define NO                 1
-
-
-#define PTRSIZ             sizeof(void*)   // 4 || 8
-
-
+#include "../ut/ut_txt.h"              // fnam_del_s
+#include "../ut/ut_types.h"            // FUNC_LOAD
 #include "../ut/ut_os.h"
 
 
+#define YES                0
+#define NO                 1
 
-// static char os_bas_dir[256]="./";
-// static char os_bin_dir[256];
-// static char os_bas_dir[256]="";
-// static char os_doc_dir[256];
-// static char os_loc_dir[256]="";
-// static char os_tmp_dir[256]="";
-// static char os_ico_dir[256];
+#define PTRSIZ             sizeof(void*)   // 4 || 8
+
 
 
 static char txbuf[256];
@@ -1647,23 +1634,30 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
 //================================================================
-  int OS_dll__ (int mode, void *fDat) {
+  int OS_dll__ (void **dl1, int mode, void *fDat) {
 //================================================================
-// mode 0 = open (load Lib fNam)
-// mode 1 = connect (connect Func fDat)
-// mode 2 = work (call active Func with parameter fDat)
-// mode 3 = unload active lib
-
-// OFFEN einen Stack anlegen (damit man mehrere Libs gleichzeitig bedienen kann)
+/// \code
+/// load dll | start dll-function | unload dll
+/// Input:
+///   mode     FUNC_LOAD    = load DLL. fDat: dll-name without directory, fTyp.
+///            FUNC_CONNECT = connect (connect Func fDat)
+///            FUNC_EXEC    = work (call active Func with parameter fDat)
+///            FUNC_UNLOAD  = unload active lib
+///            FUNC_RECOMPILE = recompile DLL
+/// Output:
+///   dll      (address of) loaded DLL
+///   retCod   0=OK; else error
+/// \endcode
 
 
   // typedef int (__stdcall *dllFuncTyp01)(void*);
   // static dllFuncTyp01 dll_up1;
 
-  static HINSTANCE    hdl1=NULL;
+//  static HINSTANCE    hdl1=NULL;
   static int          (*dll_up1)();
 
-  int    irc;
+  int   irc;
+  char  s1[256], *p1;
 
 
   // printf("OS_dll__ %d\n",mode);
@@ -1671,59 +1665,91 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   //----------------------------------------------------------------
   // mode 0 = open (load Lib fNam)
-  if(mode == 0) {
+  if(mode == FUNC_LOAD) {
 
+    // unload if already loaded
+    if(*dl1 != NULL) {
+      FreeLibrary (*dl1);
+      *dl1 = NULL;
+    }
 
     // load DLL
-    hdl1 = LoadLibrary ((char*)fDat);
-    if (hdl1 == NULL) {
+    sprintf(s1, "%s%s.dll",OS_get_bin_dir(),(char*)fDat);
+      printf(" dll=|%s|\n",s1); fflush(stdout);
+
+    *dl1 = LoadLibrary (s1);
+    if (*dl1 == NULL) {
       TX_Error("OS_dll__: cannot open dyn. Lib. |%s|",(char*)fDat);
       return -1;
     }
+    dll_up1 = NULL;
 
 
   // damit Debugger stoppt, nachdem DLL geladen wurde
-  // AP_debug_dll_();
+  OS_debug_dll_((char*)fDat);
 
 
 
   //----------------------------------------------------------------
   // mode 1 = connect (connect Func fDat)
-  } else if(mode == 1) {
+  } else if(mode == FUNC_CONNECT) {
 
     // Adresse von Func.fncNam holen
     // dll_up1 = (dllFuncTyp01) GetProcAddress (hdl1, (char*)fDat);
-    dll_up1 = (void*) GetProcAddress (hdl1, (char*)fDat);
+    dll_up1 = (void*) GetProcAddress (*dl1, (char*)fDat);
     if(dll_up1 == NULL) {
       TX_Error("OS_dll__: cannot open Func. |%s|",(char*)fDat);
-      FreeLibrary (hdl1);           // unload DLL
-      hdl1 = NULL;
+      FreeLibrary (*dl1);           // unload DLL
+      *dl1 = NULL;
       return -1;
     }
 
 
   //----------------------------------------------------------------
   // mode 2 = work (call active Func with parameter fDat)
-  } else if(mode == 2) {
+  } else if(mode == FUNC_EXEC) {
 
     // start userprog
-    if(dll_up1) {
-      irc = (*dll_up1) (fDat);
-      return irc;
-    } else  TX_Error ("OS_dll__ E001");
+    if(dll_up1 != NULL) {
+      return (*dll_up1) (fDat);
+
+    } else  {
+      TX_Error ("OS_dll__ E001");
+      return -1;
+    }
 
 
   //----------------------------------------------------------------
   // mode 3 = unload active lib
-  } else if(mode == 3) {
+  } else if(mode == FUNC_UNLOAD) {
 
     // close DLL
-    if(hdl1) FreeLibrary (hdl1);           // unload DLL
-    hdl1 = NULL;
-    dll_up1 = NULL;
+    if(*dl1 != NULL) {
+      FreeLibrary (*dl1);           // unload DLL
+      *dl1 = NULL;
+    }
+
+
+  //----------------------------------------------------------------
+  // 4 = recompile dll
+  } else if(mode == FUNC_RECOMPILE) {
+
+    if(*dl1 != NULL) {
+      FreeLibrary (*dl1);           // unload DLL
+      *dl1 = NULL;
+    }
+    sprintf(s1, "%s.dll",(char*)fDat);
+      printf(" dll=|%s|\n",s1); fflush(stdout);
+  
+    if(DLL_build__ (s1) != 0) {
+       TX_Error("OS_dll__: compile/link %s",s1);
+       return -1;
+    }
+
+
+  //----------------------------------------------------------------
   }
 
-  // printf("ex OS_dll__\n");
 
   return 0;
 
@@ -2009,6 +2035,40 @@ sonst wahrscheinl nur \\ statt / ...
   sprintf(txbuf,"cd/d \"%s\"&&djpeg.exe",OS_get_bin_dir());
 
   return txbuf;
+
+}
+
+
+///================================================================
+  char* OS_get_imgConv2  () {
+///================================================================
+/// returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
+
+  //static char fn1[] = "djpeg";
+  //static int iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
+  //return fn1;
+
+  // sprintf(txbuf,"cd \"%s\"&&djpeg",os_bin_dir);
+  //sprintf(txbuf,"%sdjpeg",os_bin_dir);
+  // Problem Win7: blank im Pfadnamen !!
+  sprintf(txbuf,"cd/d \"%s\"&&cjpeg.exe",OS_get_bin_dir());
+
+  return txbuf;
+
+}
+
+
+//================================================================
+  int OS_jpg_bmp (char *fn_jpg, char *fn_bmp) {
+//================================================================
+// convert BMP -> JPG
+
+  char  s1[400];
+
+  sprintf(s1, "%s \"%s\" > \"%s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+    printf(" |%s|\n",s1);
+
+  return OS_system(s1);
 
 }
 

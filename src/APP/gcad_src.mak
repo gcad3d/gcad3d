@@ -98,7 +98,7 @@ SRC1 =\
   ../ut/ut_obj.c    ../ut/ut_txfil.c   ../ut/ut_txt.c    ../ut/ut_umb.c\
   ../ut/ut_math.c   ../ut/ut_umem.c    ../ut/ut_mem.c    ../ut/ut_box.c\
   ../ut/ut_txTab.c  ../ut/ut_int.c     ../ut/ut_uti.c    ../ut/byteorder.c\
-  ../ut/ut_memTab.c ../ut/ut_os__.c    ../ut/ut_BitTab.c ../ut/ut_hatch.c
+  ../ut/ut_memTab.c ../ut/ut_os__.c    ../ut/ut_BitTab.c ../ut/ut_hatch.c\
 
 
 # ../exp/ut_exp.c\

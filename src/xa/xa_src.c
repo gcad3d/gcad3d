@@ -125,8 +125,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   void      *vp1;
 
 
-  printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
-  ATO_dump__ (ato, "");
+  // printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
+  // ATO_dump__ (ato, "");
 
 
   aNr = ato->nr;

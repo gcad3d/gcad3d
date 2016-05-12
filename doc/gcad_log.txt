@@ -1,7 +1,13 @@
 Version 2.31 / 2015-04-02
 
-- new print-format PDF (Linux only)
+- new function: File /save Model as / JPG   (copy grafic-window)
+- print-module: output of surfaces (by using http://www.geuz.org/gl2ps)
+- new print-format PDF
 - bugfix print PS
+
+Programlines (C)  407808
+Functions           3956
+
 
 
 ===========================================================================

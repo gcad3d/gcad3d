@@ -78,6 +78,8 @@ OS_get_browser           liefert konqueror/mozilla/netscape
 OS_get_term              liefert bei Linux "xterm "
 OS_get_dialog            check if zenity is installed
 OS_get_imgConv1          returns jpg2bmp-converter; eg /usr/bin/djpeg
+OS_get_imgConv2          returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
+OS_jpg_bmp               convert BMP -> JPG
 
 OS_get_dir_pwd           get current process-working-directory "PWD"
 OS_ck_DirAbs             check if string is absoluter or relativer Filname
@@ -175,6 +177,7 @@ _______________________________________________________________________________
 
 #include "../ut/ut_os.h" 
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_types.h"            // FUNC_LOAD
 
 
 #define PTRSIZ             sizeof(void*)   // 4 || 8
@@ -985,21 +988,26 @@ static char txbuf[256];
 //================================================================
 ///  returns ps-viewer (gv|evince)
 
-  txbuf[0] = '\0';
+  static char sVwr[16] = {""};
 
-  if(system("which gv 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "gv");
-
-  if(system("which evince 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "evince");
+  if(!sVwr[0]) printf("OS_get_vwr_ps empty\n");
 
 
-  if(strlen(txbuf) < 2) {
+  if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0) {
+    strcpy(sVwr, "xdg-open");
+
+  } else if(system("which evince 1>/dev/null 2>/dev/null") == 0) {
+    strcpy(sVwr, "evince");
+
+  } else if(system("which gv 1>/dev/null 2>/dev/null") == 0) {
+    strcpy(sVwr, "gv");
+
+  } else if(strlen(sVwr) < 2) {
     printf(" **** no postcript-viewer found\n");
     return "";
   }
 
-  return txbuf;
+  return sVwr;
 }
 
 
@@ -2119,9 +2127,9 @@ static char txbuf[256];
   // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
 
   printf("OS_file_copy |%s|\n",cbuf);
-  system(cbuf);
+  return system (cbuf);
 
-  return 0;
+  // return 0;
 
 }
 
@@ -2222,6 +2230,8 @@ static char txbuf[256];
   int OS_prc_dll (int mode, void *fDat) { 
 //================================================================
 /// \code
+/// load dll | start dll-function | unload dll
+/// TODO: replace with OS_dll__
 /// mode >=0  work (mode = nc-function from NCCmdTab)
 /// mode -1 = work (programfunction fDat = "FUNC_xx")
 /// mode -2 = open (load Lib fNam)
@@ -2306,60 +2316,67 @@ static int   (*up1)();
 
 
 //================================================================
-  int OS_dll__ (int mode, void *fDat) {
+  int OS_dll__ (void **dl1, int mode, void *fDat) {
 //================================================================
 /// \code
-/// mode 0 = open (load Lib fNam)
-/// mode 1 = connect (connect Func fDat)
-/// mode 2 = work (call active Func with parameter fDat)
-/// mode 3 = unload active lib
+/// load dll | start dll-function | unload dll
+/// Input:
+///   mode     FUNC_LOAD    = load DLL. fDat: dll-name without directory, fTyp.
+///            FUNC_CONNECT = connect (connect Func fDat)
+///            FUNC_EXEC    = work (call active Func with parameter fDat)
+///            FUNC_UNLOAD  = unload active lib
+///            FUNC_RECOMPILE = recompile DLL
+/// Output:
+///   dll      (address of) loaded DLL
+///   retCod   0=OK; else error
 /// \endcode
 
-// OFFEN einen Stack anlegen (damit man mehrere Libs gleichzeitig bedienen kann)
 
-static void  *dl1 = NULL;
-// static void  (*up1)();
 static int   (*up1)();
 
   int   irc;
-  char  *p1;
+  char  s1[256], *p1;
+
 
   // printf("OS_dll__ %d\n",mode);
 
 
   //----------------------------------------------------------------
-  // mode 0 = open (load Lib fNam)
-  if(mode == 0) {
+  // mode 0 = open (load Lib fNam) 
+  if(mode == FUNC_LOAD) {
 
+    // unload if already loaded
+    if(*dl1 != NULL) {
+      dlclose (*dl1);
+      *dl1 = NULL;
+    }
 
     // load DLL
-    dl1 = dlopen(fDat, RTLD_LAZY);
-    if(dl1 == NULL) {
+    sprintf(s1, "%s%s.so",OS_get_bin_dir(),(char*)fDat);
+      printf(" dll=|%s|\n",s1); fflush(stdout);
+
+    *dl1 = dlopen (s1, RTLD_LAZY);
+    if(*dl1 == NULL) {
       TX_Error("OS_dll__: cannot open dyn. Lib. |%s|",(char*)fDat);
       return -1;
     }
+    up1 = NULL;
 
-
-    // damit Debugger stoppt, nachdem DLL geladen wurde
-    p1 = strrchr(fDat, fnam_del);
-    if(p1 == NULL) p1 = fDat;
-    else ++p1;  // skip fnam_del
-    OS_debug_dll_(p1);
-
+    // stop Debugger after DLL has been loaded
+    OS_debug_dll_((char*)fDat);
 
 
 
   //----------------------------------------------------------------
   // mode 1 = connect (connect Func fDat)
-  } else if(mode == 1) {
+  } else if(mode == FUNC_CONNECT) {
       // printf(" func fDat = |%s|\n",(char*)fDat);
 
-
-    // Adresse von Func.fncNam holen
-    up1 = dlsym(dl1, fDat);
+    // get adress of Function
+    up1 = dlsym (*dl1, fDat);
     if(up1 == NULL) {
       TX_Error("OS_dll__: cannot open Func. |%s|",(char*)fDat);
-      dlclose(dl1);           // unload DLL
+      dlclose (*dl1);           // unload DLL
       dl1 = NULL;
       return -1;
     }
@@ -2368,24 +2385,48 @@ static int   (*up1)();
 
   //----------------------------------------------------------------
   // mode 2 = work (call active Func with parameter fDat)
-  } else if(mode == 2) {
+  } else if(mode == FUNC_EXEC) {
 
     // start userprog
-    if(up1) {
-      irc = (*up1)(fDat);
-      return irc;
-    } else  TX_Error ("AP_dll__ E001");
+    if(up1 != NULL) {
+      return (*up1)(fDat);
+
+    } else {
+      TX_Error ("OS_dll__ E001");
+      return -1;
+    }
 
 
 
   //----------------------------------------------------------------
   // mode 3 = unload active lib
-  } else if(mode == 3) {
+  } else if(mode == FUNC_UNLOAD) {
 
     // close DLL
-    if(dl1) dlclose(dl1);           // unload DLL
-    dl1 = NULL;
-    up1 = NULL;
+    if(*dl1 != NULL) {
+      dlclose (*dl1);           // unload DLL
+      *dl1 = NULL;
+    }
+
+
+  //----------------------------------------------------------------
+  // 4 = recompile dll
+  } else if(mode == FUNC_RECOMPILE) {
+
+    if(*dl1 != NULL) {
+      dlclose (*dl1);           // unload DLL
+      *dl1 = NULL;
+    }
+    sprintf(s1, "%s.so",(char*)fDat);
+      printf(" dll=|%s|\n",s1); fflush(stdout);
+  
+    if(DLL_build__ (s1) != 0) {
+       TX_Error("OS_dll__: compile/link %s",s1);
+       return -1;
+    }
+
+
+  //----------------------------------------------------------------
   }
 
   return 0;
@@ -2412,9 +2453,9 @@ static int   (*up1)();
 }
 
 
-//================================================================
+//====================================================================
   int OS_dll_do (char *dllNam, char *fncnam, void *fncdat) {
-//================================================================
+//====================================================================
 /// load dll; start function fncNam (fncDat); unload dll.
 
 /*
@@ -2448,9 +2489,9 @@ static int   (*up1)();
 }
 
 
-//================================================================
+//=====================================================================
   int OS_dll_run (char *dllNam, char *fncNam, void *fncDat) {
-//================================================================
+//=====================================================================
 /// load dll; start function fncNam (fncDat); unload dll.
 /// see also UI_DllLst_work
 
@@ -2570,7 +2611,6 @@ static int   (*up1)();
   char* OS_get_imgConv1  () {
 //================================================================
 /// returns jpg2bmp-converter-program; eg /usr/bin/djpeg
-// popen ?
 
   static int  iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
   static char fn1[] = "djpeg";
@@ -2591,6 +2631,45 @@ static int   (*up1)();
 
 
   return "";
+
+}
+
+
+//================================================================
+  char* OS_get_imgConv2  () {
+//================================================================
+/// returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
+
+  static int  iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
+  static char fn1[] = "cjpeg";
+
+
+  if(iStat == 0) {    // init
+    iStat = system("which cjpeg 1>/dev/null 2>/dev/null");
+    if(iStat == 0) iStat =  1;   // OK
+    else           iStat = -1;   // not OK
+  }
+
+  if(iStat > 0) return &fn1[0];
+
+  MSG_pri_1 ("NOEX_fil", "bmp2jpg-converter");
+
+  return "";
+
+}
+
+
+//================================================================
+  int OS_jpg_bmp (char *fn_jpg, char *fn_bmp) {
+//================================================================
+// convert BMP -> JPG
+
+  char  s1[400];
+
+  sprintf(s1, "%s \"%s\" > \"%s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+    printf(" |%s|\n",s1);
+
+  return OS_system(s1);
 
 }
 

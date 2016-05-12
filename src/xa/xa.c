@@ -1026,6 +1026,10 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
     }
 
 
+    // unload unused DLLs
+    UI_PRI__ (FUNC_UNLOAD);
+
+
     // Clear Memory u. Editfenster
     UTF_clear_ ();                    // Clear Mem
     UTF_clear1 ();                    // Clear Mem
@@ -4028,7 +4032,7 @@ remote control nur in VWR, nicht MAN, CAD;
   // PLOT
   // AP_print__ ();
   //         irot  off    scl  gray
-  // AP_print_psv (1, "0,0", "1", "2");
+  // AP_print_psv2 (1, "0,0", "1", "2");
 
 
   //----------------------------------------------

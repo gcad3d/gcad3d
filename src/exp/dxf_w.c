@@ -394,7 +394,7 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
   int       i1, i2, oNr, mode;
   char      *p1, s1[256];
   ObjDB     *oTab;
-  FILE      *fp1, *fp2;
+  FILE      *fp1, *fp2=NULL;
 
 
   printf("DXFW__ vers=%d |%s|\n",AP_stat.subtyp,fnam);
@@ -1102,6 +1102,8 @@ usw.
   TX_Print(" matPO=%f,%f,%f",m1[0][3],m1[1][3],m1[2][3]);
 */
 
+  return 0;
+
 }
 
 //================================================================
@@ -1375,11 +1377,11 @@ usw.
     }
 */
     // VERTEXE zu POLYLINE
-    dxfw_VERTEX2 (32, &dim1->p1, fp_in);
-    dxfw_VERTEX2 (32, &dim1->p2, fp_in);
+    DXFW_VERTEX2 (32, &dim1->p1, fp_in);
+    DXFW_VERTEX2 (32, &dim1->p2, fp_in);
     if(dim1->p3.x != UT_DB_LEER) {
       pt1 = UT3D_pt_pt2 (&dim1->p3);
-      dxfw_VERTEX2 (32, &dim1->p3, fp_in);
+      DXFW_VERTEX2 (32, &dim1->p3, fp_in);
     } else {
       pt1 = UT3D_pt_pt2 (&dim1->p2);
     }
@@ -1700,7 +1702,7 @@ static char layNam[] = "0";
 
 
 //=====================================================================
-  int DXFW_ox (ObjGX *ox1, long TrInd, int typ, long dbi,
+  int DXFW_ox (ObjGX *ox1, int TrInd, int typ, long dbi,
                FILE *fp_o1, FILE *fp_o2) {
 //=====================================================================
 // dxfw_rec
@@ -1721,8 +1723,8 @@ static char layNam[] = "0";
   ObjG          *el;
 
 
-  printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%ld typ=%d dbi=%ld\n",
-         ox1->typ,ox1->form,TrInd,typ,dbi);
+  // printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%ld typ=%d dbi=%ld\n",
+         // ox1->typ,ox1->form,TrInd,typ,dbi);
 
 
   // IG_TrInd = TrInd;
@@ -1880,7 +1882,7 @@ static char layNam[] = "0";
 //=============================================================================
 // export all objs in group
 
-  int       oNr, i1, tra_ind;
+  int       oNr, i1, tra_ind = 0;
   ObjDB     *oTab;
   ObjGX     ox1;
 
@@ -1918,7 +1920,7 @@ static char layNam[] = "0";
 
   long     gr_ind;
   long     l1, apt_ind;
-  int      i1, irc, tra_ind, tra_act, apt_typ,  anz_obj=0,
+  int      i1, irc, tra_act, apt_typ,  anz_obj=0, tra_ind = 0,
            anz_pt=0, anz_ln=0, anz_ac=0, anz_cv=0;
   Point    pt1;
   Line     ln1;
@@ -2028,10 +2030,7 @@ static char layNam[] = "0";
 
 
 
-
-
-
-
+  //-----------------------------------
   return anz_obj;
 
 }

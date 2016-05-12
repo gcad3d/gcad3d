@@ -9,7 +9,7 @@
 include ../options.mak
 
 
-# debug-settings
+# debug-settings DEB CPDEB LKDEB
 include deb.umak
 
 
@@ -43,7 +43,7 @@ ifeq "$(OS)" "Linux64"
 FTYP = so
 CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 CPPFLG = -fPIC $(CPDEB)
-LKFLG = $(LKDEF) $(LKDEB) -shared
+LKFLG = $(LKDEF) -shared
 endif
 
 #ifeq "$(OS)" "MSGCC32"
@@ -84,7 +84,7 @@ objlst:
 #=====================================================================
 # vi holt damit seine sourcefileliste
 srclst:
-	@echo $(SRC1) ../APP/Demo_gui*.c > srcFiles
+	@echo $(SRC1) >> srcFiles
 #	@echo Demo_gui*.c >> srcFiles
 
 

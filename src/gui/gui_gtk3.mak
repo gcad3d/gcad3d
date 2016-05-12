@@ -22,6 +22,7 @@ SRCGUI =\
  ../gui_gtk3/gtk_opengl.c\
  ../gui_gtk3/gtk_gl_x11.c
 
+#../gui_gtk3/gtk_printer.c\
 
 
 GUICP = `pkg-config --cflags gtk+-3.0` -Dgtk3

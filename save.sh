@@ -19,7 +19,7 @@ endif
 #
 echo "***** unknown option, use:"
 echo "Stick              serv1:GITHUB/gcad3d  -->> STICK:~/BACKUP/gcad3d"
-echo "Local              serv1:GITHUB/gcad3d  -->> HDEV2:~/devel/gcad3d"
+echo "Local              serv1:GITHUB/gcad3d  -->> HDEV3:~/devel/gcad3d"
 echo "Forw               HDEV2:~/devel/gcad3d -->> serv1:GITHUB/gcad3d"
 goto L_exit
 #

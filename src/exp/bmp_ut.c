@@ -20,6 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2016-04-12  bmp_save__ added. RF.
 2011-02-01  reading of 8-bit-colour added. RF.
 2008-08-14  padding korrigiert. RF.
 2005-03-15  Load 24-bit-colour bitmaps. New. RF.
@@ -34,6 +35,8 @@ Modifications:
 List_functions_start:
 
 bmp_load    load bmp-file into memory
+bmp_info1   test if file is bmp-file
+bmp_save__  save pixmap as bmp-file
 
 List_functions_end:
 =====================================================
@@ -89,6 +92,28 @@ typedef struct {                     /**** Colormap entry structure ****/
   unsigned char  rgbRed;           /* Red value */
   unsigned char  rgbReserved;      /* Reserved */
 } colRec1;                         // Windows: RGBQUAD oder so
+
+
+struct BMPHeader
+{
+    char bfType[2];       /* "BM" */
+    int bfSize;           /* Size of file in bytes */
+    int bfReserved;       /* set to 0 */
+    int bfOffBits;        /* Byte offset to actual bitmap data (= 54) */
+    int biSize;           /* Size of BITMAPINFOHEADER, in bytes (= 40) */
+    int biWidth;          /* Width of image, in pixels */
+    int biHeight;         /* Height of images, in pixels */
+    short biPlanes;       /* Number of planes in target device (set to 1) */
+    short biBitCount;     /* Bits per pixel (24 in this case) */
+    int biCompression;    /* Type of compression (0 if no compression) */
+    int biSizeImage;      /* Image size, in bytes (0 if no compression) */
+    int biXPelsPerMeter;  /* Resolution in pixels/meter of display device */
+    int biYPelsPerMeter;  /* Resolution in pixels/meter of display device */
+    int biClrUsed;        /* Number of colors in the color table (if 0, use 
+                             maximum allowed by biBitCount) */
+    int biClrImportant;   /* Number of important colors.  If 0, all colors 
+                             are important */
+};
 
 
   unsigned short bmp_MB='MB';
@@ -346,5 +371,90 @@ typedef struct {                     /**** Colormap entry structure ****/
     return -1;
 }
 
+
+//================================================================
+  int bmp_save__ (char *fNam) {
+//================================================================
+
+  int    iw, ih, lSiz1, lSiz2, fSiz, i1, ii;
+  void   *pm;
+  char   *vp1;
+
+  FILE   *file;
+  struct BMPHeader bmph;
+
+  void*  GL_Print1   (int *iw, int *ih);
+
+
+  printf("bmp_save__ |%s|\n",fNam);
+
+  pm = GL_Print1 (&iw, &ih);
+  if(!pm) {TX_Error("bmp_save__ E001"); return -1;}
+    // printf(" iw=%d ih=%d\n",iw,ih);
+
+  // lSiz1 = iw;   // size of line - input grayscale; 1 byte per pixel
+  lSiz1 = iw * 3;  // size of line - input BGR
+
+
+  lSiz2 = (lSiz1 + 3) & ~3;   // size of line 4-bytes aligned
+  fSiz  = lSiz2 * ih;
+    // printf(" lSiz1=%d lSiz2=%d fSiz=%d\n", lSiz1, lSiz2, fSiz);fflush(stdout);
+
+
+  // fill bitmap-header
+  strcpy(bmph.bfType, "BM");
+  bmph.bfOffBits = 54;
+  bmph.bfSize = bmph.bfOffBits + fSiz;
+  bmph.bfReserved = 0;
+  bmph.biSize = 40;           // Size of BITMAPINFOHEADER, in bytes
+  bmph.biWidth = iw;
+  bmph.biHeight = ih;
+  bmph.biPlanes = 1;          // Number of planes in target device
+  // bmph.biBitCount = 8;        // Bits per pixel - grayscale
+  bmph.biBitCount = 24;       // Bits per pixel RGB
+  bmph.biCompression = 0;
+  bmph.biSizeImage = 0;       // Image size (0 = no compression)
+  bmph.biXPelsPerMeter = 0;   // Resolution in pixels/meter of display device
+  bmph.biYPelsPerMeter = 0;
+  bmph.biClrUsed = 0;         // Number of colors in the color table
+  bmph.biClrImportant = 0;    // Number of important colors
+
+
+  file = fopen (fNam, "wb");
+  if(!file) {TX_Error("bmp_save__ E002"); return -1;}
+
+  // write bitmap-header
+  fwrite(&bmph.bfType, 2, 1, file);
+  fwrite(&bmph.bfSize, 4, 1, file);
+  fwrite(&bmph.bfReserved, 4, 1, file);
+  fwrite(&bmph.bfOffBits, 4, 1, file);
+  fwrite(&bmph.biSize, 4, 1, file);
+  fwrite(&bmph.biWidth, 4, 1, file);
+  fwrite(&bmph.biHeight, 4, 1, file);
+  fwrite(&bmph.biPlanes, 2, 1, file);
+  fwrite(&bmph.biBitCount, 2, 1, file);
+  fwrite(&bmph.biCompression, 4, 1, file);
+  fwrite(&bmph.biSizeImage, 4, 1, file);
+  fwrite(&bmph.biXPelsPerMeter, 4, 1, file);
+  fwrite(&bmph.biYPelsPerMeter, 4, 1, file);
+  fwrite(&bmph.biClrUsed, 4, 1, file);
+  fwrite(&bmph.biClrImportant, 4, 1, file);
+
+
+  // write line by line
+  ii = 0;
+  vp1 = pm;
+  for (i1=0; i1 < ih; ++i1) {
+    fwrite (vp1, lSiz2, 1, file);
+    vp1 += lSiz1;
+  }
+
+  fclose(file);
+
+  if(pm) free (pm);
+
+  return 0;
+
+}
 
 //======================== EOF ======================

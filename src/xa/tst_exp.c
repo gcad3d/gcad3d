@@ -681,6 +681,29 @@ extern long       GR_TAB_IND;
 }
 
 //================================================================
+  int tst_print__ () {
+//================================================================
+
+  int    irc;
+  char   cbuf[256];
+
+  
+  TX_Print("tst_print__\n");
+
+  
+  // Compile, Link.
+  strcpy(cbuf, "xa_print__.so");
+  irc = DLL_build__ (cbuf);
+  printf(" build=%d\n",irc);
+  if(irc != 0) return -1;
+  
+  irc = OS_dll_do ("xa_print__", "PRI__", "abc");
+  
+  return 0; 
+
+}
+ 
+//================================================================
   int tst_exp_vrml2 () {
 //================================================================
 // test export VRML2

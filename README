@@ -249,6 +249,7 @@ Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
 __________________________________________________________________
 History:
 
+2016-05-12 V2.32 new: export jpg, pdf. RF.
 2016-03-16 V2.30 Demo_toolbar2, DXF-export BLOCKS, bugfixes. RF.
 2015-08-21 V2.28 Demo_toolbar1, Demo_appDat1, UNDO-plugin, bugfixes. RF.
 2015-06-22 V2.26 Bugfixes. RF.

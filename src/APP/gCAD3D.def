@@ -170,10 +170,12 @@ AP_print_gl1
 AP_print_pcl5e
 AP_print_pcl5h
 AP_print_pdf
-AP_print_psv
+AP_print_psv2
+AP_print_psv3
 AP_print_TEST_LN
 AP_print_vertex
 AP_print_work2
+AP_print_work3
 APP_Save
 AP_PT2EyeBp
 AP_PT2EyePln
@@ -520,6 +522,7 @@ BitTab_dump
 bmp_info1
 bmp_load
 bmp_MB
+bmp_save__
 Brw_CB_sel
 Brw_childs_passive
 Brw_Clear
@@ -582,7 +585,10 @@ ckb_ptDisp
 ckb_such
 ckb_view
 ckb_vwr
+colB1
+colB2
 Col_dump
+colR
 Col_set__
 Col_set_3db
 CSV_read__
@@ -978,6 +984,7 @@ GL_AttTab_dump__
 GLB_Create
 GLB_DrawExit
 GLB_DrawInit
+GLB_pending
 GLB_Query
 GL_ck_sel_PT
 GL_Clear
@@ -1123,6 +1130,7 @@ GL_pickSiz
 GL_plnSel_init
 GL_pos_move_2D
 GL_Print1
+GL_Print_Redraw
 GL_pt2_pt3
 GL_Query_siz
 GL_query_ViewZ
@@ -1486,9 +1494,7 @@ GUI_file_cb_dirsym2
 GUI_file_cb_filt
 GUI_file_get
 GUI_file_open__
-GUI_file_open_1
 GUI_file_save__
-GUI_file_save_1
 GUI_frame__
 GUI_frame_styl
 GUI_FuncExit
@@ -1522,7 +1528,6 @@ GUI_FuncUCB8
 GUI_FuncUCB8
 GUI_FuncUCB9
 GUI_FuncUCB9
-GUI_FuncWork
 GUI_FuncWork
 GUI_get_keys_mod
 GUI_get_version
@@ -1667,9 +1672,7 @@ GUI_tree1_row_add
 GUI_tree1_row_set
 GUI_tree1_set_selMode
 GUI_tree1_unselect_all
-GUI_TUT_CB_tmr
 GUI_TUT_m__
-GUI_TUT_m_CB
 GUI_TUT_t__
 GUI_update__
 GUI_Win__
@@ -2182,6 +2185,7 @@ OS_get_doc_dir
 OS_get_edi
 OS_get_ico_dir
 OS_get_imgConv1
+OS_get_imgConv2
 OS_get_lang
 OS_get_loc_dir
 OS_get_printer
@@ -2190,6 +2194,7 @@ OS_get_tmp_dir
 OS_get_user
 OS_get_vwr_ps
 OS_Init_
+OS_jpg_bmp
 OS_os_bits
 OS_os_s
 OS_prc__
@@ -2823,6 +2828,7 @@ UI_open_add
 UI_opePtab
 UI_ouf_scl
 UI_paned_CB
+UI_PRI__
 UI_RelAbs
 UI_RelAbs_act
 UI_RelAbsCB
@@ -2880,7 +2886,6 @@ UI_WinDefTx
 UI_WinInfo2
 UI_WinLtypMod
 UI_win_main
-UI_WinPrint1
 UI_WinSurfCol
 UI_WinSurfStyl
 UI_WinSurfTra

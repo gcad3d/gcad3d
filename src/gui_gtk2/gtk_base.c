@@ -230,7 +230,7 @@ static int       UI_act_Id;
     if(ow->gio_typ == TYP_GUI_Win) {
       cp1 = GUI_Win_tit (ow->win);
       if(!strcmp (cp1, winTit)) ++ii;
-        // printf("  winTit block %d |%s|\n",iUmb,cp1);
+        printf("  winTit block %d |%s|\n",iUmb,cp1);
 
     } else {
       printf(" GUI_Win_exist E002\n");
@@ -244,7 +244,8 @@ static int       UI_act_Id;
 
 
   L_exit:
-    // printf("ex GUI_Win_exist %d\n",ii);
+    printf("ex GUI_Win_exist %d\n",ii);
+
   return ii;
 }
 

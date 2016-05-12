@@ -79,7 +79,7 @@ enum { APF_EndTab,    // 0 = end of list
 // int UI_WinDxfImp (GtkWidget *parent, void *data);
   int UI_WinAppr   (MemObj *mo, void **data);
   // int UI_WinInfo1  (MemObj *mo, void **data);
-  int UI_WinPrint1 (MemObj *mo, void **data);
+  // int UI_WinPrint1 (MemObj *mo, void **data);
   int UI_WinToler  (MemObj *mo, void **data);
   // int UI_creObjHdr (GtkWidget *parent, void *data);
   // int UI_sur_Z_CB  (GtkWidget *widget, GdkEventKey *event);

@@ -206,18 +206,20 @@ static MemObj    win0;
     if(cycStat > 1.) {
       cycStat = 1.;
       anim_stat = -1;
-      Ani_win__ (NULL, (void*)UI_FuncUCB2); // reactivate speed-entry
+      // reactivate speed-entry
+      Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB2));
       irc = 0;     // stop idling
     }
     if(cycStat < 0.) {
       cycStat = 0.;
       anim_stat = -1;
-      Ani_win__ (NULL, (void*)UI_FuncUCB2); // reactivate speed-entry
+      // reactivate speed-entry
+      Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB2));
       irc = 0;     // stop idling
     }
 
     // update slider-position (calls Ani_CB_2 > Ani_work__())
-    Ani_win__ (NULL, (void*)UI_FuncUCB4);
+    Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB4));
 
 
     return irc;  // continue
@@ -334,7 +336,7 @@ static MemObj    win0;
   double    d1;
 
   // get total cycleTime and direction (sign)
-  Ani_win__ (&d1, (void*)UI_FuncUCB3);
+  Ani_win__ (&d1, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB3));
 
   Ani_timer (0, &d1);       // init timer
 
@@ -369,14 +371,14 @@ static MemObj    win0;
       anim_stat = 1;
       GUI_idle__ (Ani_Idle_CB, NULL);  // start idle-callbacks
       // activate speed-entry
-      Ani_win__ (NULL, (void*)UI_FuncUCB1);
+      Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
       return 0;
     }
     if(anim_stat > 0) {    // is active - stop.
       anim_stat = -1;
       Ani_Idle_CB (NULL);  // stop idling
       // disactivate speed-entry
-      Ani_win__ (NULL, (void*)UI_FuncUCB2);
+      Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB2));
       return 0;
     }
     if(anim_stat < 0) {    // is stopped - restart
@@ -384,7 +386,7 @@ static MemObj    win0;
       GUI_idle__ (Ani_Idle_CB, NULL);  // start idle-callbacks
       anim_stat = 1;
       // reactivate speed-entry
-      Ani_win__ (NULL, (void*)UI_FuncUCB1);
+      Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
       return 0;
     }
 
@@ -435,7 +437,7 @@ static MemObj    win0;
 
 
 //=========================================================
-  int Ani_win__ (void *parent, void *data) {
+  int Ani_win__ (void *parent, void **data) {
 //=========================================================
 // Animation-window; all functions.
 
@@ -448,9 +450,11 @@ static MemObj    win0;
   char             *cp1;
 
 
-  printf("Ani_win__ %d\n",INT_PTR(data));
+  i1 = GUI_DATA_I1;
+  // i1 = INT_PTR(data);
 
-  i1 = INT_PTR(data);
+  printf("Ani_win__ %d\n",i1);
+
 
 
   switch (i1) {
@@ -459,7 +463,8 @@ static MemObj    win0;
     case UI_FuncInit:
       printf("Ani_win__ init\n");
 
-      win0 = GUI_Win__ ("Animation-Demo", Ani_CB_1, "");
+      // win0 = GUI_Win__ ("Animation-Demo", Ani_CB_1, "");
+      win0 = GUI_Win__ ("Animation-Demo", Ani_win__, "");
 
       box0 = GUI_box_v (&win0, "a,a");
 
@@ -569,7 +574,8 @@ static MemObj    win0;
     return 0;
   }
 
-  Ani_win__ (NULL, (void*)UI_FuncInit);       // create window
+  // create window
+  Ani_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
 
   return 0;
 

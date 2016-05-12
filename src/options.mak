@@ -2,8 +2,8 @@
 # see also ../options.sh
 
 # Version GTK; gtk2 or gtk3
-#VGUI = gtk2
-VGUI = gtk3
+VGUI = gtk2
+#VGUI = gtk3
 
 
 

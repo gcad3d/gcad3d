@@ -60,7 +60,7 @@ Korr:
   int    OS_file_readm1 (char *cbuf, int cSiz, char *fnam);
   int    OS_file_waitExist (char *fn, int maxTim);
 
-  int    OS_dll__ (int mode, void *fDat);
+  int    OS_dll__ (void **dll, int mode, void *fDat);
   int    OS_dll_global (char *dllNam);
   int    OS_debug_dll_ (char *dllNam);
   int    OS_ck_libcVersion (int vMaj, int vMin);

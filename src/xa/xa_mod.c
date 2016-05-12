@@ -1753,8 +1753,7 @@ static char *fnam;
 #endif
 
 
-  printf("Mod_sym_get__ |%s|\n",inPath);
-  printf("  symDir=|%s| absDir=|%s|\n",symDir,absDir);
+  // printf("Mod_sym_get__ |%s|\n",inPath);
 
 
   if(!inPath) goto L_err1;
@@ -1819,7 +1818,7 @@ static char *fnam;
 
   //----------------------------------------------------------------
   L_dir_abs:
-    printf(" L_dir_abs:\n");
+    // printf(" L_dir_abs:\n");
 
   if(strlen(p1) > 128) goto L_err3;
   strcpy(absDir, p1);
@@ -1833,7 +1832,7 @@ static char *fnam;
 
   //----------------------------------------------------------------
   L_dir_rel:
-    printf(" L_dir_rel:\n");
+    // printf(" L_dir_rel:\n");
 
   // use existing symbolic-path
   strcpy(actDir, absDir);
@@ -1848,7 +1847,7 @@ static char *fnam;
 
   //----------------------------------------------------------------
   L_dir_sym:
-    printf(" L_dir_sym:\n");
+    // printf(" L_dir_sym:\n");
 
   if(strlen(p1) > 64) goto L_err4;
   strcpy(symDir, p1);
@@ -1860,9 +1859,9 @@ static char *fnam;
 
   //----------------------------------------------------------------
   L_exit:
-    printf(" absDir=|%s|\n",absDir);
-    printf(" symDir=|%s|\n",symDir);
-    printf(" fnam=|%s|\n",fnam);
+    // printf(" absDir=|%s|\n",absDir);
+    // printf(" symDir=|%s|\n",symDir);
+    // printf(" fnam=|%s|\n",fnam);
 
   return irc;
 

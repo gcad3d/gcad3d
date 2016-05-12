@@ -1,4 +1,7 @@
 // ../gui/gui_types.h
+// see also ../ut/ut_types.h
+// see also ../ut/AP_types.h
+
 
  
 /// get data of callback
@@ -27,9 +30,6 @@
 
 //================================================================
 #define UI_FuncInit       90
-#define UI_FuncInit1     191
-#define UI_FuncInit2     192
-#define UI_FuncInit3     193
 #define UI_FuncClear     194
 #define UI_FuncGet        91
 #define UI_FuncSet        92

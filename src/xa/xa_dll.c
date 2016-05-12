@@ -80,13 +80,28 @@ OS_debug_dll_
 // Externe Variablen:
 
 
+/*
+//================================================================
+  int DLL_run2 (void **dll, void *fdat, int mode) {
+//================================================================
+/// Input:
+///   mode       0 = load <dllNam>, start <fncNam>,  unload
+///              1 = load <dllNam>, start <fncNam>
+///              2 = start <fncNam>
+///              2 = unload <dllNam>
 
 
+  //----------------------------------------------------------------
+  if 
+*/
+
+ 
 ///================================================================
   int DLL_run1 (int mode, void *fdat) {
 ///================================================================
-/// DLL_run1         connect, run, unload DLL.
+/// DLL_run1         connect | run gCad_main(), gCad_fini() | unload DLL.
 /// starts ALWAYS function gCad_main in the dll !
+/// TODO: use DLL_run2
 /// 
 /// mode 0 Load DLL;  connect dll-Function "gCad_main"
 ///        ObjGX[0] = Typ_ObjGX
@@ -96,12 +111,12 @@ OS_debug_dll_
 /// mode 2 work;      start Function "gCad_main" with parameterblock fdat
 /// mode 3 unLoad / free    fdat=Memspc
 
-// ACHTUNG: hier malloc fuer impSpc; Caller must free impSpc !
 
 
   int    irc;
   char   ftyp[32], cBuf[256];
 
+  static void  *dll1 = NULL; // pointer to loaded dll
 
   // printf("DLL_run1 %d\n",mode);
 
@@ -109,43 +124,48 @@ OS_debug_dll_
 
   //----------------------------------------------------------------
   // (mode == 0)         OPEN DLL, connect Function "gCad_main"
+  // Input: fdat is the filename of mockup-modelfile
   if(mode != 0) goto L_2;
 
   // extract filetype.
   irc = UTX_ftyp_s (ftyp, (char*)fdat, 1);
   if(irc < 0) {TX_Print("DLL_run1 FileType not found"); return -1;}
 
-
   // change ftyp >lowercase
   UTX_chg_2_lower (ftyp);
 
 
   // fix DLL-FileName
-#ifdef _MSC_VER
-  sprintf(cBuf, "%s\\xa_%s_r.dll",OS_get_bin_dir(),ftyp);
-#else
-  sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
-#endif
-  // printf(" so=|%s|\n",cBuf);
+// #ifdef _MSC_VER
+  // sprintf(cBuf, "%s\\xa_%s_r.dll",OS_get_bin_dir(),ftyp);
+  sprintf(cBuf, "xa_%s_r",ftyp);
+// #else
+  // sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
+  // sprintf(cBuf, "xa_%s_r",ftyp);
+// #endif
+    printf(" soNam=|%s|\n",cBuf);
 
 
   // connect DLL..
-  irc = OS_dll__ (0, (void*)cBuf);
-  if(irc < 0) return irc;
+  if(&dll1) {
+    irc = OS_dll__ (&dll1, FUNC_LOAD, (void*)cBuf);
+    if(irc < 0) return irc;
+  }
 
 
-  // activate function
-  irc = OS_dll__ (1, (void*)"gCad_main");
+  // connect function
+  irc = OS_dll__ (&dll1, FUNC_CONNECT, (void*)"gCad_main");
   if(irc < 0) return irc;
 
   return 0;
 
 
   //----------------------------------------------------------------
-  L_2:      // (mode == 2)      EXECUTE
+  L_2:      // (mode == FUNC_EXEC)      EXECUTE
   if(mode != 2) goto L_3;
+
   // execute active function
-  irc = OS_dll__ (2, fdat);
+  irc = OS_dll__ (&dll1, FUNC_EXEC, fdat);
     // printf(" after OS_dll__ %d\n",irc);
   if(irc < 0) return irc;
 
@@ -153,9 +173,9 @@ OS_debug_dll_
 
 
   //----------------------------------------------------------------
-  L_3:     // (mode == 3)       UNLOAD
+  L_3:     // (mode == FUNC_UNLOAD)       UNLOAD
   // unload DLL
-  irc = OS_dll__ (3, NULL);
+  irc = OS_dll__ (&dll1, FUNC_UNLOAD, NULL);
   if(irc < 0) return irc;
 
   // printf("ex DLL_run1\n");
@@ -168,7 +188,8 @@ OS_debug_dll_
 ///===================================================================
   int DLL_run2 (char *soNam, int ccFlg) {
 ///===================================================================
-/// activate & start DLL
+/// activate & start gcad-plugin (gCad_main, gCad_fini only)
+/// TODO: use OS_dll__
 /// Input:
 ///   soNam     plugin; max 62 chars; including ".so" or ".dll"
 ///   ccFlg = 1 load plugin, do not recompile
@@ -402,7 +423,7 @@ OS_debug_dll_
 #ifdef _MSC_VER
   //------------------------- MS-Windows ----------------------------------
   // sprintf(cbuf, "%sxa\\%s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%ssrc\\APP\\%s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
   // ".dll" -> ".nmak"
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak");
     // printf(" exist: |%s|\n",cbuf);
@@ -413,7 +434,7 @@ OS_debug_dll_
 
 
   // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %sscr\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
 
   // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
   // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");

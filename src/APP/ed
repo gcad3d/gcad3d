@@ -17,7 +17,7 @@ OS=Linux${bitNr}
 
 
 # create list of sourcefiles in file srcFiles
-make -f gcad3d.mak srclst
+make -f gcad3d.mak srclst > /dev/null
 #cat srcFiles
 
 # start

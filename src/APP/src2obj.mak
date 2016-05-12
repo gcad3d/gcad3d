@@ -9,6 +9,6 @@ OBJGUI = $(patsubst %.c,%.o, $(notdir $(SRCGUI)))
 OBJGLB = $(patsubst %.c,%.o, $(notdir $(SRCGLB)))
 
 
-VPATH = $(gcad_dir_bin):../xa/:../wc:../exp/:../db/:../ci/:../ut/:../gr/:../lic/:../gui/:../gui_$(VGUI)/
+VPATH = $(gcad_dir_bin):../xa/:../wc:../exp/:../db/:../ci/:../ut/:../gr/:../gl2ps/:../gui/:../gui_$(VGUI)/
 
 # EOF

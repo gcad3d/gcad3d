@@ -18,6 +18,7 @@ SRCGUI =\
  ..\gui_gtk2_MS\gtk_tree_it.c\
  ..\gui_gtk2_MS\gtk_opengl.c
 
+#..\gui_gtk2_MS\gtk_printer.c\
 
 #-------------------------------------------
 OBJGUI = $(SRCGUI:.c=.obj)

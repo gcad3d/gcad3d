@@ -12,6 +12,7 @@ gcad_dir_bin=../../binLinux${osVer}
 
 # Liste aller KernSourcefiles -> srcFiles
 make -f gcad3d.mak srclst
+mv -f srcFiles srcFilesCad
 sTab=`cat srcFiles`
 echo "=========== sTab: ====================="
 echo $sTab
@@ -19,6 +20,7 @@ echo $sTab
 
 # Liste aller Sourcefiles -> srcFiles
 make -f gcad_gui_lnk.mak srclst
+mv -f srcFiles srcFilesGui
 
 # Files in ../gui:
 guiTab=`cat srcFiles`
@@ -50,7 +52,8 @@ echo $guiTab
 
 #wc -l $sTab $dllTab $demTab
 echo "======================================="
-wc -l $sTab $guiTab
+#wc -l $sTab $guiTab
+wc -l `cat srcFilesCad` `cat srcFilesGui`
 
 echo " = Anzahl Programmzeilen"
 

@@ -35,5 +35,12 @@
 #define FLT_32_MAX 9999999999999.999
 
 
+#define FUNC_LOAD          0
+#define FUNC_CONNECT       1
+#define FUNC_EXEC          2
+#define FUNC_UNLOAD        3
+#define FUNC_RECOMPILE     4
+
+
 
 // EOF

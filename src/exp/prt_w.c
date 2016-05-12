@@ -32,12 +32,15 @@ Modifications:
 List_functions_start:
 
 AP_print__       init
-AP_print_work2   wr Feedbackbuffer -> tempfile
+AP_print_work2   wr GL_2D-Feedbackbuffer -> tempfile
+AP_print_work3   wr GL_3D_COLOR-Feedbackbuffer -> tempfile
 AP_print_vertex
 AP_print_gl1     wr 0=PS 1=HPGL 2=PCL5
-AP_print_psv     wr postcript
+AP_print_psv2    wr 2D-postcript ".eps"
+AP_print_psv3    wr 3D-postcript ".eps"   UNUSED (no hidden surface removal)
 AP_print_pcl5h   wr PCL5-Header
 AP_print_pcl5e   wr PCL5-ExitCode
+AP_print_pdf     wr <tempDir>/print.pdf
 
 List_functions_end:
 =====================================================
@@ -129,6 +132,7 @@ int AP_print_TEST_LN (float x1, float y1, float x2, float y2, int iatt);
 //=========================================================
   int AP_print_work2 (int size, float *buffer) {
 //=========================================================
+// write file <tempDir>/print.tmp from GL_2D-Feedbackbuffer
 // In:  Feedbackbuffer;
 // Out: Objekte ->  Hilfsdatei <tempDir>/print.tmp
 // Normaler Record (Point, Line, Polygon) sieht so aus:
@@ -301,6 +305,200 @@ static char* txBuf=NULL;
 }
 
 
+//=========================================================
+  int AP_print_work3 () {
+//=========================================================
+// write file <tempDir>/print.tmp from GL_3D_COLOR-Feedbackbuffer 
+// UNUSED - NO occlusion culling / hidden surface removal / hidden line removal
+// In:  Feedbackbuffer;
+// Out: Objekte ->  Hilfsdatei <tempDir>/print.tmp
+// Normaler Record (Point, Line, Polygon) sieht so aus:
+// X-Coord Y-Coord Z-Coord R G B A
+  
+static char* txBuf=NULL;
+
+  int      size;
+  float    *buffer;
+
+  int     count;
+  Att_ln    *att1;
+  char      cbuf[256];
+  FILE      *fpo;
+  int       i1, i2, i3, token, nvertices, newAtt;
+  int       actCol=-1, actLtyp=-1, actLthick=-1;
+  long      l1;
+  ObjGX     *ox1;
+  GText     *gtx1;
+
+
+  count = 0;
+
+
+  if(GL_FeedGet (&size, &buffer, GL_3D_COLOR) < 0) return -1;
+  if(size < 6) {TX_Error("AP_print_work3 E001"); return -1;}
+
+
+  // open outputfile
+  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  if ((fpo = fopen (cbuf, "w+")) == NULL) {
+    TX_Error ("AP_print_work2 E001");
+    return -1;
+  }
+
+  printf("AP_print_work3 size=%d |%s|\n",size,cbuf);
+
+
+
+  NextRec:
+  token = buffer[count];
+    printf("........... next: x0%x [%d]\n",token,count),
+  ++count;
+
+      //===================================================================
+      if (token == GL_PASS_THROUGH_TOKEN) {    // 0x0700
+         // get 1 uservalue (provided from func glPassThrough)
+         // printf ("%d GL_PASS_THROUGH_TOKEN %f\n",count,buffer[count]);
+         // Wert >= 0 ist eine AttributNr;
+         if(buffer[count] >= 0.) {
+           newAtt = buffer[count];
+           // DL_Get_GrAtt (&att1, newAtt);  // graf.Attrib holen; 
+           AttLn_Get_ind (&i1, &i2, &i3, newAtt);  // get line-attribute
+           // printf(" att %d %d %d\n",att1.col,att1.ltyp,att1.lthick);
+           // set Linetyp
+           if((i1 != actCol)    ||
+              (i2 != actLtyp)   ||
+              (i3 != actLthick))     {
+             actLtyp = i2;
+             fprintf(fpo, "AT %d %d %d\n",i1,i2,i3);
+           }
+
+         // Wert < 0 ist ein TextnoteIndex
+         } else {
+           l1 = -buffer[count];
+           // if(l1 < APT_TX_SIZ) {
+/* Crash bei Dimen
+             ox1 = DB_GetGTxt (l1);
+             gtx1 = ox1->data;
+             // fprintf(fpo, "TN %s\n",gtx1->txt);
+             printf("TN %s\n",gtx1->txt);
+             txBuf = gtx1->txt;
+           // }
+*/
+         }
+         ++count;
+
+
+      //===================================================================
+      } else if (token == GL_POINT_TOKEN) {    // 0x0701
+         // printf ("%d GL_POINT_TOKEN\n",count);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "PT %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2]);
+         // count += 2;    // 2D
+         // count += 3; // 3D
+         count += 7; // 3D-col
+
+
+      //===================================================================
+      } else if (token == GL_LINE_TOKEN) {    // 0x0702
+         // printf ("%d GL_LINE_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "LN %f %f %f %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2],
+                 buffer[count+7],buffer[count+8],buffer[count+9]);
+         // count += 4;    // 2D
+         // count += 6;   // 3D
+         count += 14; // 3D-col
+
+
+      //===================================================================
+      } else if (token == GL_POLYGON_TOKEN) {    // 0x0703
+         nvertices = buffer[count];
+         // printf ("%d GL_POLYGON_TOKEN: (%d)\n",count,nvertices);
+         ++count;
+         // write color
+         fprintf(fpo, "CO %f %f %f %f\n",
+                 buffer[count+3],buffer[count+4],buffer[count+5],buffer[count+6]);
+         fprintf(fpo, "PO %f %f %f",
+                 buffer[count],buffer[count+1],buffer[count+2]);
+         // count += 2;  // 2D
+         // count += 3;   // 3D
+         // AP_print_color (fpo, &count, &buffer[count]);
+         count += 7; // 3D+col
+         for (i1=1; i1<nvertices; ++i1) {
+           // AP_print_vertex(fpo, &count, &buffer[count]);
+           fprintf(fpo, " %f %f %f",
+                   buffer[count],buffer[count+1],buffer[count+2]);
+           // count += 2;    // 2D
+           // count += 3;
+           count += 7;  // 3D-col
+         }
+         fprintf(fpo, "\n");
+
+
+      //===================================================================
+      } else if (token == GL_BITMAP_TOKEN) {
+         // printf ("%d GL_BITMAP_TOKEN\n",count);
+         if(txBuf) {   // erster char einer Textnote
+           fprintf(fpo,"TN %f %f %f %s\n",
+                   buffer[count],buffer[count+1],buffer[count+2],txBuf);
+           // printf("TN %f %f %s\n",buffer[count],buffer[count+1],txBuf);
+           txBuf = NULL;
+         }
+         // count += 7;
+         // count += 3;
+         count += 2;    // 2D
+
+
+      //===================================================================
+      } else if (token == GL_DRAW_PIXEL_TOKEN) {
+         // printf ("%d GL_DRAW_PIXEL_TOKEN\n",count);
+         // count += 2;    // 2D
+         // count += 3;    // 3D
+         count += 7; // 3D + col
+
+
+      //===================================================================
+      } else if (token == GL_COPY_PIXEL_TOKEN) {
+         // printf ("%d GL_COPY_PIXEL_TOKEN\n",count);
+         // count += 2;    // 2D
+         // count += 3;    // 3D
+         count += 7; // 3D + col
+
+
+
+      //===================================================================
+      } else if (token == GL_LINE_RESET_TOKEN) {  // 0x0707
+         // line with stipple reset.
+         // printf ("%d GL_LINE_RESET_TOKEN\n",count);
+           // AP_print_TEST_LN (buffer[count],buffer[count+1],
+                             // buffer[count+2],buffer[count+3], 8);
+         // AP_print_vertex (fpo, &count, &buffer[count]);
+         fprintf(fpo, "LN %f %f %f %f %f %f\n",
+                 buffer[count],buffer[count+1],buffer[count+2],
+                 buffer[count+7],buffer[count+8],buffer[count+9]);
+         // count += 4;    // 2D
+         // count += 6;   // 3D
+         count += 14; // 3D-col
+
+
+      //===================================================================
+      } else printf ("%d **** unknown GL-TOKEN 0x%x ****\n",size-count,token);
+
+
+  if(count < size) goto NextRec;
+
+  fclose(fpo);
+
+  free (buffer);
+
+  return 0;
+
+}
+
+
 //=========================================================================
   int AP_print_TEST_LN (float x1, float y1, float x2, float y2, int iatt) {
 //=========================================================================
@@ -366,7 +564,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
   // create <tempDir>/print.eps
-  AP_print_psv (irot, off, scl, gray);
+  AP_print_psv2 (irot, off, scl, gray);
 
 
   // ps2pdf -sPAPERSIZE=a4 print.ps print.pdf
@@ -381,10 +579,19 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
 //=====================================================================
-  int AP_print_psv (int irot,char* off,char* scl,char* gray) {
+  int AP_print_psv2 (int irot,char* off,char* scl,char* gray) {
 //=====================================================================
-// create <tempDir>/print.eps
-// input: <tempDir>/print.tmp
+// create <tempDir>/print.eps from 2D-file print.tmp
+// Input:
+//   irot     0, 1=90 deg rotated
+//   off      "0,0"    offset
+//   scl      "1"      text-scale
+//   gray     "2"      unused
+//   file <tempDir>/print.tmp
+//   file <cfgDir>/psv.setup
+// Output:
+//   file <tempDir>/print.eps
+
 /* siehe auch AP_Print0
   Die Farben:
      0 COL_Default
@@ -418,12 +625,13 @@ X-Coord Y-Coord Z-Coord R G B A
   int     i1, i2, iw, ih, xOff=0, yOff=0, igray,
           newCol, newLtyp, newLthick, actCol=-1, actLtyp=-1, actLthick=-1;
   long    l1, nUnsupp;
-  char    cbuf[256], *p1, *p2;
+  float   col_r, col_g, col_b, col_m;
+  char    cbuf[256], *p1, *p2, *p3;
   FILE    *fp1, *fp2;
 
 
 
-  printf ("AP_print_psv %d |%s|%s|%s|\n",irot,off,scl,gray);
+  printf ("AP_print_psv2 %d |%s|%s|%s|\n",irot,off,scl,gray);
 
 
 
@@ -455,7 +663,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
   sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
-    TX_Error ("AP_print_psv E001");
+    TX_Error ("AP_print_psv2 E001");
     return -1;
   }
 
@@ -488,7 +696,7 @@ X-Coord Y-Coord Z-Coord R G B A
   sprintf(cbuf,"%spsv.setup",OS_get_cfg_dir ());
   l1 = OS_FilSiz (cbuf);
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
-    TX_Error ("AP_print_psv file: Error open %s",cbuf);
+    TX_Error ("AP_print_psv2 file: Error open %s",cbuf);
     return -1;
   }
   if(l1 > sizeof(mem_cbuf1)) return -1;
@@ -531,6 +739,8 @@ X-Coord Y-Coord Z-Coord R G B A
     UTX_CleanCR (cbuf);                            // remove foll CR,LF ..
     // printf(" in:|%s|\n",cbuf);
 
+
+    //----------------------------------------------------------------
     if(!strncmp(cbuf, "AT ", 3))  {
       // Graf Att. Col Ltyp Lthick
       sscanf(&cbuf[3], "%d %d %d",&newCol,&newLtyp,&newLthick);
@@ -549,6 +759,7 @@ X-Coord Y-Coord Z-Coord R G B A
       }
 
 
+    //----------------------------------------------------------------
     } else if(!strncmp(cbuf, "TN ", 3))  {
       // <x> <y> <text>
       // find 2. ' '
@@ -563,11 +774,20 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
 
+    //----------------------------------------------------------------
     } else if(!strncmp(cbuf, "PT ", 3))  {
       // <x> <y> _pt
       fprintf(fp1, "%s _pt\n", &cbuf[3]);
 
 
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "CO ", 3))  {
+      // Color; r g b transparency (eg for following polygon (triangle))
+      sscanf (&cbuf[3], "%f %f %f", &col_r, &col_g, &col_b);
+        // printf(" col %f %f %f\n", col_r, col_g, col_b);
+
+
+    //----------------------------------------------------------------
     } else if(!strncmp(cbuf, "LN ", 3)) {
       // <x> <y> m <x> <y> l
       // find 2. ' ' 
@@ -581,6 +801,29 @@ X-Coord Y-Coord Z-Coord R G B A
       fprintf(fp1, "%s m %s l\n",&cbuf[3],p2);
 
 
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "PO ", 3)) {
+      // <grayVal> g <pt1> m <pt2> p <pt3> tri
+      // get first 2 coords
+      p1 = &cbuf[3];
+      p2 = strchr (p1, ' '); if(!p2) goto L_err1;
+      ++p2;
+      p2 = strchr (p2, ' '); if(!p2) goto L_err1;
+      *p2 = '\0';  printf(" p1 |%s|\n",p1);
+      ++p2;
+      p3 = strchr (p2, ' '); if(!p3) goto L_err1;
+      ++p3;
+      p3 = strchr (p3, ' '); if(!p3) goto L_err1;
+      *p3 = '\0';  printf(" p2 |%s|\n",p2);
+      ++p3;
+      col_m = (col_r + col_g + col_b) / 3.;  // monochrom from red/green/blue
+      fprintf(fp1, "%f g %s m %s p %s tri\n",col_m,p1,p2,p3);
+      // get next 2 coords
+
+
+
+
+    //----------------------------------------------------------------
     } else {
       // printf(" - unsupported: %s\n",cbuf);
       ++nUnsupp;
@@ -610,6 +853,245 @@ X-Coord Y-Coord Z-Coord R G B A
     return -1;
 }
 
+
+//=====================================================================
+  int AP_print_psv3 (int irot,char* off,char* scl,char* gray) {
+//=====================================================================
+// create <tempDir>/print.eps from 3D-file print.tmp
+// UNUSED - hidden surface removal missing
+// TODO: occlusion culling / hidden surface removal / hidden line removal
+//  for the incoming triangles (filled polygons)
+// Input:
+//   irot     0, 1=90 deg rotated
+//   off      "0,0"    offset
+//   scl      "1"      text-scale
+//   gray     "2"      unused
+//   file <tempDir>/print.tmp
+//   file <cfgDir>/psv.setup
+// Output:
+//   file <tempDir>/print.eps
+
+  GLint   GL_Viewp[4];         // x-left, y-low, width, heigth
+  double  d1, fscl;
+  int     i1, i2, iw, ih, xOff=0, yOff=0, igray,
+          newCol, newLtyp, newLthick, actCol=-1, actLtyp=-1, actLthick=-1;
+  long    l1, nUnsupp;
+  float   col_r, col_g, col_b, col_m;
+  char    cbuf[256], *p1, *p2, *p3;
+  FILE    *fp1, *fp2;
+
+
+
+  printf ("AP_print_psv3 %d |%s|%s|%s|\n",irot,off,scl,gray);
+
+
+  glGetIntegerv (GL_VIEWPORT, GL_Viewp);  // get Viewport-Matrix
+  printf(" viewp %d %d %d %d\n",GL_Viewp[0], GL_Viewp[1],
+                                GL_Viewp[2], GL_Viewp[3]);
+  iw = GL_Viewp[2];
+  ih = GL_Viewp[3];
+  nUnsupp = 0;
+
+
+  d1 = strtod (off, &p2);
+  xOff = d1;
+  ++p2;
+  d1 = strtod (p2, &p1);
+  yOff = d1;
+
+  d1 = strtod (gray, &p2);
+  igray = d1;
+
+  fscl = strtod (scl, &p2);
+  printf(" off=%d,%d, scl=%f gray=%d\n",xOff,yOff,fscl,igray);
+
+
+
+
+  sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
+  if ((fp1 = fopen (cbuf, "w+")) == NULL) {
+    TX_Error ("AP_print_psv3 E001");
+    return -1;
+  }
+
+
+  fprintf(fp1, "%%!PS-Adobe-2.0 EPSF-2.0\n");
+  fprintf(fp1, "%%%%Title: %s\n",WC_modnam);
+  fprintf(fp1, "%%%%CreationDate: %s\n", OS_date1());
+
+  if(irot == 0) {
+    i1=xOff+iw;
+    i2=yOff+ih;
+  } else {
+    i2=xOff+iw;
+    i1=yOff+ih;
+  }
+  fprintf(fp1, "%%%%BoundingBox: %d %d %d %d\n\n",xOff,yOff,i1,i2);
+
+  // nun die Defaultvariablen:
+  fprintf(fp1, "/_rPt %f def\n",2.);
+
+
+
+
+
+
+  // add setup-File psv.setup via mem_cbuf1
+  sprintf(cbuf,"%spsv.setup",OS_get_cfg_dir ());
+  l1 = OS_FilSiz (cbuf);
+  if ((fp2 = fopen (cbuf, "r")) == NULL) {
+    TX_Error ("AP_print_psv3 file: Error open %s",cbuf);
+    return -1;
+  }
+  if(l1 > sizeof(mem_cbuf1)) return -1;
+  fread (mem_cbuf1, l1, 1, fp2);
+  // mem_cbuf1[strlen(mem_cbuf1)] = '\0';
+  mem_cbuf1[l1] = '\0';
+  fclose(fp2);
+  // printf("|%s|\n",mem_cbuf1);
+  fprintf(fp1, "%s\n",mem_cbuf1);
+
+
+
+  // page setup
+  if(irot == 0) {
+    fprintf(fp1, "%d %d translate\n",xOff,yOff);
+  } else {
+    fprintf(fp1, "%d %d translate\n",xOff+ih,yOff);
+    fprintf(fp1, "90 rotate\n");
+  }
+/*
+  i1 = iw*fscl;
+  i2 = ih*fscl;
+  fprintf(fp1, "%d %d scale\n",i1,i2);
+*/
+  fprintf(fp1, "%f %f scale\n",fscl,fscl);
+
+  //======================================================================
+  // data
+  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  if ((fp2 = fopen (cbuf, "r")) == NULL) {
+    TX_Error ("AP_print_pvs file: Error open print.tmp");
+    return -1;
+  }
+
+  while (!feof (fp2)) {
+    if (fgets (cbuf, 250, fp2) == NULL) break;
+    UTX_CleanCR (cbuf);                            // remove foll CR,LF ..
+    // printf(" in:|%s|\n",cbuf);
+
+
+    //----------------------------------------------------------------
+    if(!strncmp(cbuf, "AT ", 3))  {
+      // Graf Att. Col Ltyp Lthick
+      sscanf(&cbuf[3], "%d %d %d",&newCol,&newLtyp,&newLthick);
+      // printf(" att %d %d %d\n",newCol,newLtyp,newLthick);
+      if(newLtyp != actLtyp) {
+        actLtyp = newLtyp;
+        if(newLtyp < 4) {
+          fprintf(fp1, "_ltyp%d\n",newLtyp);
+        } else printf("**** AP_print_pvs unsupp. lintyp %d\n",newLtyp);
+      }
+      if(newLthick != actLthick) {
+        actLthick = newLthick;
+        if(newLthick < 4) {
+          fprintf(fp1, "_lthick%d\n",newLthick);
+        } else printf("**** AP_print_pvs unsupp. linthick %d\n",newLthick);
+      }
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "TN ", 3))  {
+      // <x> <y> <text>
+      // find 2. ' '
+      p1 = strchr (&cbuf[3], ' ');
+      if(!p1) goto L_err1;
+      ++p1;
+      p2 = strchr (p1, ' ');
+      if(!p2) goto L_err1;
+      *p2 = '\0';         // abtrennen
+      ++p2;
+      fprintf(fp1, "%s m (%s) show\n",&cbuf[3],p2);
+
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "PT ", 3))  {
+      // <x> <y> _pt
+      fprintf(fp1, "%s _pt\n", &cbuf[3]);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "CO ", 3))  {
+      // Color; r g b transparency (eg for following polygon (triangle))
+      sscanf (&cbuf[3], "%f %f %f", &col_r, &col_g, &col_b);
+        // printf(" col %f %f %f\n", col_r, col_g, col_b);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "LN ", 3)) {
+      // <x> <y> m <x> <y> l
+      // find 2. ' ' 
+// TODO: in: LN x y z x y z out: x y m x y l
+      p1 = strchr (&cbuf[3], ' ');
+      if(!p1) goto L_err1;
+      ++p1;
+      p2 = strchr (p1, ' ');
+      if(!p2) goto L_err1;
+      *p2 = '\0';         // abtrennen
+      ++p2;
+      fprintf(fp1, "%s m %s l\n",&cbuf[3],p2);
+
+
+    //----------------------------------------------------------------
+    } else if(!strncmp(cbuf, "PO ", 3)) {
+      // <grayVal> g <pt1> m <pt2> p <pt3> tri
+      // get first 2 coords
+      p1 = &cbuf[3];
+      p2 = strchr (p1, ' '); if(!p2) goto L_err1;
+      ++p2;
+      p2 = strchr (p2, ' '); if(!p2) goto L_err1;
+      *p2 = '\0';  printf(" p1 |%s|\n",p1);
+      ++p2;
+      p3 = strchr (p2, ' '); if(!p3) goto L_err1;
+      ++p3;
+      p3 = strchr (p3, ' '); if(!p3) goto L_err1;
+      *p3 = '\0';  printf(" p2 |%s|\n",p2);
+      ++p3;
+      col_m = (col_r + col_g + col_b) / 3.;  // monochrom from red/green/blue
+      fprintf(fp1, "%f g %s m %s p %s tri\n",col_m,p1,p2,p3);
+      // get next 2 coords
+
+
+
+
+    //----------------------------------------------------------------
+    } else {
+      // printf(" - unsupported: %s\n",cbuf);
+      ++nUnsupp;
+    }
+
+  }
+  fclose(fp2);
+
+
+
+
+
+  //======================================================================
+  fprintf(fp1, "showpage\n");
+  fprintf(fp1, "%%%%EOF\n");
+  fclose(fp1);
+
+  if(nUnsupp > 0) printf("***** %ld unsupported objects ..\n",nUnsupp);
+
+
+  return 0;
+
+  L_err1:
+    TX_Error ("AP_print_pvs3 format error");
+    return -1;
+}
 
 
 //=====================================================================

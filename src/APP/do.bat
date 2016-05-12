@@ -12,11 +12,12 @@ echo "do all               // compile & link corelibs"
 echo "do allDemos          // compile & link demos"
 echo "do                   // start"
 echo "do d                 // start with debugger"
+echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
 
 
 
 set gcad_dir_bin=..\..\binMS32\
-set gcad_dir_local=%APPDATA%\
+::set gcad_dir_local=%APPDATA%\
 set gcad_exe=%gcad_dir_bin%gCAD3D.exe
 
 REM debugger for VS2008:
@@ -90,14 +91,27 @@ if complete==%1 (
 )   
 
 
-echo "**** ERROR; function not implemented *****"
-goto L_exit
+REM "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
+if cfg-ux2ms==%1 (
+  if exist dirMS.lst (
+    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst dirUX.lst
+    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc xaUX.rc
+    copy/y dirMS.lst X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst
+    del dirMS.lst
+    copy/y xaMS.rc X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc
+  ) else (
+    echo "**** ERROR"
+  )
+  goto L_exit
+)   
 
 
 ::==============================================================
-REM start
+REM normal start
 :L_start
-%gcad_exe%
+set gcad_dir_local=X:\Devel\GITHUB\gcad3d\
+set gcad_dir_doc=X:\Devel\GITHUB\gcad3d\doc\
+%gcad_exe% %1
 goto L_exit
 
 

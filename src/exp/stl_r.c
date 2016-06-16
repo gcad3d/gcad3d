@@ -126,7 +126,7 @@ __declspec(dllexport) int obj_read__ (char*);
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../ut/ut_txt.h"
-#include "../gr/ut_UI.h"                 // Typ_Att_Fac1
+#include "../ut/func_types.h"                 // Typ_Att_Fac1
 
 
 
@@ -136,7 +136,8 @@ typedef struct {Memspc *impSpc; int impSiz;
 static Tessdat impDat;
 
 
-typedef struct { Vectorf vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
+// typedef struct { Vectorf vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
+typedef struct { Vector vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
 
 
 

@@ -72,10 +72,11 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
+#include "../ut/func_types.h"               // UI_Func...
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
 #include "../gui/gui__.h"
 
-#include "../gr/ut_UI.h"               // UI_Func...
 #include "../xa/xa_ui.h"                     // UID_..
 
 

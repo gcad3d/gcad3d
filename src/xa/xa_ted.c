@@ -79,7 +79,7 @@ UI_GR_Sel_Filter 15  load texture
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_UI.h"               // UI_FuncInit
+#include "../ut/func_types.h"               // UI_FuncInit
 #include "../gr/ut_GL.h"               // GL_get_Scale
 
 #include "../xa/xa.h"                  // AP_STAT
@@ -214,7 +214,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   }
 
   TX_Print(
-    "- modify texture-position activated - use shift/ctrl-keys and move mouse"
+    "- modify texture-position activated - use shift and/or ctrl-key and move mouse"
     );
 
 

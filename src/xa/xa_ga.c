@@ -36,6 +36,11 @@ Modifications:
 =====================================================
 List_functions_start:
 
+GA_find_att_SU       get attribute for surface/solid from typ,DB-ind
+GA_find__            find GA-rec if already exist
+GA_getRec            get ga-record
+GA_delRec            delete ga-record
+
 GA_hide__            hide mainfunctions ..
 GA_hide_fil__        save / restore  - with open File (binary file)
 GA_hide_fil_tmp      save Hidelist --> File / restore Hidelist from File
@@ -64,10 +69,6 @@ GA_decode__          decode a runtime-attribute
 GA_dump__
 GA_dump_1
 GA_dump_tex
-
-GA_getRec            get ga-record
-GA_delRec            delete ga-record
-GA_find__            find GA-rec if already exist
 
 GA_parent_init       init or reset
 GA_parent_set        add a new record
@@ -113,7 +114,7 @@ Type of Attribute: ?
 
 
 AttributData: in iatt.
-  iatt seen as ColRGB or stru_c3c1
+  iatt seen as ColRGB or Ind_Att_ln
 
   if(((ColRGB*)GA_ObjTab[i1].iatt)->vtex != 0)      // this is a texture ..
     b123 = TextRef-ind (cr/cg/cb as ColRGB).
@@ -145,11 +146,12 @@ Funktions:     ../xa/xa_ga.c  (this file)
 #include "../ut/ut_geo.h"                  // OFF, ON ..
 #include "../ut/ut_txt.h"                  // fnam_del
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_col.h"              // COL_INT32
 #include "../ut/ut_os.h"               // OS_ ..
 
 #include "../db/ut_DB.h"                   // DB_VCX_IND
 
-#include "../gr/ut_UI.h"                   // UI_FuncUCB8
+#include "../ut/func_types.h"                   // UI_FuncUCB8
 
 #include "../xa/xa_mem.h"                  // memspc51, mem_cbuf1
 
@@ -434,7 +436,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
     // Line, Circ, Curve:
     if(GA_ObjTab[gaNr].iatt != 0) {
       // printf(" lTyp:\n");
-      sprintf(cbuf, " T%ld", GA_ObjTab[gaNr].iatt);
+      sprintf(cbuf, " T%d", GA_ObjTab[gaNr].iatt);
       strcat(mem_cbuf1, cbuf);
       ++i2;
     }
@@ -1408,6 +1410,38 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 }
 
+
+//================================================================
+  int GA_find_att_SU (int typ, long ind) {
+//================================================================
+/// \code
+/// GA_find_att_SU    get attribute for surface/solid from typ,DB-ind
+///
+/// other method (using DispListIndex dli): iatt = DL_get_iatt (dli);
+///   or: iAtt = GR_ObjTab[dli].iatt
+/// \endcode
+
+  long   gaNr, iAtt;
+  ObjAtt *ga1;
+
+
+  // find GA-rec from DB-typ,ind
+  gaNr = GA_find__ (typ, ind);
+
+  if(gaNr < 0) {
+    iAtt = 0;  // use GL_defCol | AP_defcol
+
+  } else {
+    GA_getRec (&ga1, gaNr);
+    iAtt = ga1->iatt;
+  }
+
+    printf("ex GA_find_att_SU iAtt=%ld gaNr=%ld\n",iAtt,gaNr);
+
+  return iAtt;
+
+}
+ 
  
 ///================================================================
   long GA_find__ (int typ, long ind) {
@@ -1626,7 +1660,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
   static long gaNr = -1;
 
   int        irc;
-  long       iTexRef;
+  int        iTexRef;
   TexRef     *rtex;
 
 
@@ -1664,7 +1698,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 
     // die textureParameter aus der surf extrahieren
-    iTexRef = ((stru_c3c1*)&GA_ObjTab[gaNr].iatt)->b123;
+    iTexRef = ((stru_c3c1*)&GA_ObjTab[gaNr].iatt)->b123;  // GA_tex_ga2tr
     Tex_setRefInd (iTexRef);  // set TexRef-Index
 
     // load TexBas from TexRef
@@ -1800,12 +1834,15 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 
 //================================================================
-  long GA_tex_ga2tr (long iga) {
+  int GA_tex_ga2tr (long iga) {
 //================================================================
 // GA_tex_ga2tr         get TexRef-nr from GA-record-nr
 
 // see also GA_getTexRefInd
 
+  // GA_ObjTab[].iatt of sur/sol is a ColRGB
+  // first 3 chars of ColRGB (cr, cg, cb) contain TexRef-nr as 24-bit-int
+  // first 24 bits of int -> TexRef-nr
   return ((stru_c3c1*)&GA_ObjTab[iga].iatt)->b123;
 
 }
@@ -2008,7 +2045,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
     // printf(" gaNr=%d\n",gaNr);
 
 
-  col = (ColRGB*)&GA_ObjTab[gaNr].iatt;
+  col = COL_INT32(&GA_ObjTab[gaNr].iatt); // col = (ColRGB*)&GA_ObjTab[gaNr].iatt;
     // UT3D_stru_dump (Typ_Color, col, " col ex ga ");
 
   if(sStyl == 1) {               // reset style to 1=normal
@@ -2117,7 +2154,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
     if((typ == Typ_SUR)  ||                   // surfs
        (typ == Typ_SOL)  ||                   // surfs
        (typ == Typ_Model))   {                // surfs
-      col = (ColRGB*)&GA_ObjTab[i1].iatt;
+      col = COL_INT32(&GA_ObjTab[i1].iatt); // col = (ColRGB*)&GA_ObjTab[i1].iatt;
       fprintf(fpo," cr=%d cg=%d cb=%d col=%d tra=%d sym=%d tex=%d\n",
         col->cr,col->cg,col->cb,col->color,col->vtra,col->vsym,col->vtex);
 
@@ -2125,7 +2162,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
     // } else if(typ == Typ_GTXT) {          // Tag,Images ...
 
     } else {                              // curves
-      fprintf(fpo," attInd=%ld\n",GA_ObjTab[i1].iatt);
+      fprintf(fpo," attInd=%d\n",GA_ObjTab[i1].iatt);
     }
 
 

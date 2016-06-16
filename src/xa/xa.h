@@ -1,4 +1,5 @@
 // include with deactivated extern in "../xa/xa.c"
+// needs #include "../ut/ut_geo.h"    (Point)
 
 
 /// debug-print (see AP_deb_stat)
@@ -11,17 +12,18 @@
 
 
 /// \code
-/// sysStat:  1=starting (GUI up); 2=initialize done (openGL up);
-/// errStat:  0=Ok, no Error
-/// errLn:    SourceLineNr where Error occured
-/// batch:    0=interaktiv, 1=Batchmode.
-/// texture   0=no, hardware does not accept textures; 1=Yes, Ok.
-/// build     Compile,Linker not checked/not available; 1=available.
-/// APP_stat: 0=mainActive; 1=<APP_act_nam> (plugin) active.
-/// subtyp:  0=VRML1, 1=VRML2
-/// jntStat:  0=unInitilized, 1=open  (DBFile <tmp>/joints)
-/// debStat:  0=normal (debug off); 1=debug_ON
-/// iActStat  0=normal, 1=Interactivity_ON
+/// sysStat:   1=starting (GUI up); 2=initialize done (openGL up);
+/// errStat:   0=Ok, no Error
+/// errLn:     SourceLineNr where Error occured
+/// batch:     0=interaktiv, 1=Batchmode.
+/// texture    0=no, hardware does not accept textures; 1=Yes, Ok.
+/// build      Compile,Linker not checked/not available; 1=available.
+/// APP_stat:  0=mainActive; 1=<APP_act_nam> (plugin) active.
+/// subtyp:    0=VRML1, 1=VRML2
+/// jntStat:   0=unInitilized, 1=open  (DBFile <tmp>/joints)
+/// debStat:   0=normal (debug off); 1=debug_ON
+/// tstDllStat 0=normal (OFF); 1=testdll_ON
+/// iActStat   0=normal, 1=Interactivity_ON
 /// \endcode
 typedef struct {int errLn; short sysStat, errStat;
                 unsigned  batch:1,
@@ -31,7 +33,9 @@ typedef struct {int errLn; short sysStat, errStat;
                           TUT_stat:1,
                           jntStat:1,
                           debStat:1,
-                          iActStat:1;
+                          iActStat:1,
+                          tstDllStat:1,
+                          uuBits:23;
                 char      subtyp;}                          AP_STAT;
 
 
@@ -46,7 +50,9 @@ typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 //================================================================
 // defined in ../xa/xa.c (with extern invalidated)
 extern char WC_modnam[128];       // active Modelname - without path
-extern char WC_modact_nam[128];       // name of the active submodel; def="" (main)
+extern char WC_modact_nam[128];   // name of the active submodel; def="" (main)
+
+extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel (without subModels)
 
 extern char AP_dir_open[128];     // directory for OPEN
 extern char AP_dir_save[128];     // directory for SAVE

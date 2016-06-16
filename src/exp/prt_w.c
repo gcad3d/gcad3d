@@ -71,7 +71,7 @@ List_functions_end:
 
 #include "../gr/ut_GL.h"               // GL_Feedback
 #include "../gr/ut_DL.h"               // DL_GetAtt
-#include "../gr/ut_UI.h"               // UI_Func...
+#include "../ut/func_types.h"               // UI_Func...
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
@@ -142,7 +142,7 @@ static char* txBuf=NULL;
 
   int     count;
   // GR_Att    att1;
-  Att_ln    *att1;
+  // Att_ln    *att1;
   char      cbuf[256];
   FILE      *fpo;
   int       i1, i2, i3, token, nvertices, newAtt;
@@ -321,7 +321,7 @@ static char* txBuf=NULL;
   float    *buffer;
 
   int     count;
-  Att_ln    *att1;
+  // Att_ln    *att1;
   char      cbuf[256];
   FILE      *fpo;
   int       i1, i2, i3, token, nvertices, newAtt;

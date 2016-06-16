@@ -59,7 +59,7 @@ List_functions_end:
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 
-#include "../gr/ut_UI.h"               // SYM_..
+#include "../ut/func_types.h"               // SYM_..
 
 
 #include "../xa/xa.h"

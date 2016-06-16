@@ -87,7 +87,7 @@ ctags -f ucv.tag ucv.c
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
-#include "../gr/ut_UI.h"                  // Symbols
+#include "../ut/func_types.h"                  // Symbols
 #include "../ut/ut_math.h"
 #include "../ut/ut_TX.h"
 // #include "../ubs/ubscrv.h"

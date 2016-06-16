@@ -280,6 +280,7 @@ List_functions_end:
 //==================================================================
   int GRU_tex_rec (TexRef *rtex, Vector *vz, Point **ppa, int pNr) {
 //==================================================================
+// GRU_tex_rec         find rectangle for texture in modelspace
 // get 2 vectors and the origin of a rectangle around the surface.
 // and the length of the 2 vectors (size of the rectangle)
 // Input:
@@ -333,6 +334,7 @@ pa sind die outermost points entlang X und Y.
 
   // printf("GRU_tex_rec %d\n",pNr);
     // UT3D_stru_dump (Typ_VC, vz, " vz");
+    // for(i1=0;i1<pNr;++i1)GR_Disp_pt (ppa[i1], SYM_TRI_S, ATT_COL_RED);
 
 
   //----------------------------------------------------------------
@@ -368,7 +370,6 @@ pa sind die outermost points entlang X und Y.
     // UT3D_vc_invert (&rtex->vx, &rtex->vx);
       // printf(" invert y ..\n");
   }
-
 
     // UT3D_stru_dump (Typ_VC, &rtex->vx, " vx");
     // UT3D_stru_dump (Typ_VC, &rtex->vy, " vy");
@@ -435,16 +436,17 @@ pa sind die outermost points entlang X und Y.
   // find size in direction vx
   dmin = UT_VAL_MAX;
   dmax = UT_VAL_MIN;
-  for(i1=1; i1<pNr; ++i1) {
+  for(i1=0; i1<pNr; ++i1) {
     d1 = UT3D_slenq_2ptvc (po, ppa[i1], &rtex->vx);
+      // printf(" d1[%d] = %lf\n",i1,d1);
     if(d1 < dmin) { dmin = d1; ii1 = i1; }
     if(d1 > dmax) { dmax = d1; ii2 = i1; }
   }
-    // printf(" dx: %d %d\n",ii1,ii2);
+    // printf(" dx: ii1=%d ii2=%d\n",ii1,ii2);
   // leftmost point in direction vx
   po = ppa[ii1];
   dx  = UT3D_slen_2ptvc (po, ppa[ii2], &rtex->vx);
-    // printf(" dx=%f\n",dx);
+    // printf(" _tex_rec dx=%f\n",dx);
 
 
 
@@ -457,13 +459,13 @@ pa sind die outermost points entlang X und Y.
     if(d1 < dmin) { dmin = d1; ii1 = i1; }
     if(d1 > dmax) { dmax = d1; ii2 = i1; }
   }
-    // printf(" dy: %d %d\n",ii1,ii2);
+    // printf(" dy: ii1=%d ii2=%d\n",ii1,ii2);
   // leftmost point in direction vy
   UT3D_pt_projptptvc (&p31, &d1, NULL, ppa[ii1], po, &rtex->vy);
   po = &p31;
 
   dy  = UT3D_slen_2ptvc (po, ppa[ii2], &rtex->vy);
-    // printf(" dy=%f\n",dy);
+    // printf(" _tex_rec dy=%f\n",dy);
     // UT3D_stru_dump (Typ_PT, po, " po");
 
 

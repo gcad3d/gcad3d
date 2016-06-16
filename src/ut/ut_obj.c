@@ -180,7 +180,7 @@ cc -Wall ut_obj.c -DOFFLINE&&a.out
 #include "../ut/ut_txt.h"                 // term_buf
 #include "../ut/ut_gtypes.h"              // AP_src_typ__
 
-#include "../gr/ut_UI.h"                  // SYM_TRI_S
+#include "../ut/func_types.h"                  // SYM_TRI_S
 
 #include "../db/ut_DB.h"
 
@@ -1853,7 +1853,7 @@ static int iLev;
 //=======================================================================
 /// \code
 /// dump complex-obj - structured display
-/// see UTO_dump__ UTO_dump_1
+/// see UTO_dump__ - dump also all subObjects
 /// \endcode
 
   int irc;

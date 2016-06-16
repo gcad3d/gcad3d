@@ -113,7 +113,7 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 #include "../ut/ut_cast.h"             // PTR_INT
 #include "../ut/ut_TX.h"               // TX_Print
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_GL.h"               // GL_GetCen
 // #include "../db/ut_DB.h"               // DB_GetGTxt
@@ -419,7 +419,7 @@ static int      GrpNr  = 0;
   for(l1=0; l1<dlNr; ++l1) {
 
     // skip model
-    if((signed short)dla[l1].modInd != mod) continue;
+    if((INT_16)dla[l1].modInd != mod) continue;
 
     // skip hidden
     if(DL_OBJ_IS_HIDDEN(dla[l1])) continue;

@@ -69,6 +69,7 @@ myFiles="${srcDirs}\
  ${doxBase}/Objects-Resolve.dox\
  ${doxBase}/ObjectFormatConversions.dox\
  ${doxBase}/Attributes.dox\
+ ${doxBase}/Debugging.dox\
  ${doxBase}/ruler2.dox\
  ${doxBase}/Tools-MemoryFunctions.dox\
  ${doxBase}/Tools-TextFunctions.dox\
@@ -76,11 +77,12 @@ myFiles="${srcDirs}\
  ${doxBase}/Tools-MathNumericFunctions.dox\
  ${doxBase}/Tools-OperatingSystemFunctions.dox\
  ${doxBase}/ruler3.dox\
- ${doxBase}/Userinteractions.dox\
- ${doxBase}/ProgramFlow.dox\
- ${doxBase}/Binary-Format.dox\
+ ${doxBase}/Objects-Format.dox\
+ ${doxBase}/Tables-Format.dox\
+ ${doxBase}/DataBase.dox\
  ${doxBase}/File-Format-native.dox\
  ${doxBase}/File-Format-binary.dox\
+ ${doxBase}/ProgramFlow.dox\
  ${doxBase}/Programminginfos.dox\
  ${doxBase}/NamingConventions.dox\
  ${doxBase}/Doxygen_hints.dox\

@@ -28,6 +28,7 @@ if test "$1" = "help"; then
   echo "./do all               # compile & link corelibs"
   echo "./do allDemos          # compile & link demos"
   echo "./do cp2serv1          # copy -> server before build"
+  echo "./do *.mak             # link a plugin (for the first time)"
   echo "./do                   # start"
   echo "./do d                 # start with debugger"
   echo "./do trc               # start with mtrace"
@@ -39,7 +40,7 @@ if test "$1" = "help"; then
   echo "./do g2                # display ut_geo3d.c"
   echo "./do g3                # display ut_geo3d.c"
   echo "./do gmon              # analyze time"
-  echo "./do cfg-ms2ux         # change cfg/xa.rc and cfg/dir.lst"
+  echo "./do setup             # Customize the development environment"
   exit 0
 fi
 
@@ -128,7 +129,7 @@ if test "$1" = "dd"; then
 fi
 
 if test "$1" = "udd"; then
-  cd /mnt/serv1/Devel/GITHUB/gcad3d/doc && ./gcad_doxygen.sh > t1
+  cd ../../doc && ./gcad_doxygen.sh > t1
   exit 0
 fi
 
@@ -152,26 +153,34 @@ if test "$1" = "g3"; then
   exit 0
 fi
 
-if test "$1" = "cfg-ms2ux"; then
-  # exit if dirUX.lst does not exist
-  if [ -f dirUX.lst ]; then
-    echo "set dir.lst & xa.rc -> Unix"
-    /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst dirMS.lst
-    /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc xaMS.rc
-    /bin/mv dirUX.lst /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst
-    /bin/mv xaUX.rc /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc
-  else
-    echo "**** ERROR"
-  fi
+if test "$1" = "setup"; then
+  ./dev_setup.sh
+  ./do complete
+  exit 0
+fi
+
+# check filetyp
+ftyp=`echo $1 | cut -d"." -f2-`
+
+if test "$ftyp" = "mak"; then
+  make -f $1
   exit 0
 fi
 
 
-
-
-
 #=================================================================
 # start gCAD3D
+
+
+# change configfiles to unix if last start was with MS-Windows
+if [ -f dirUX.lst ]; then
+  echo "set dir.lst & xa.rc -> Unix"
+  /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst dirMS.lst
+  /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc xaMS.rc
+  /bin/mv dirUX.lst /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst
+  /bin/mv xaUX.rc /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc
+fi
+
 
 #export UBUNTU_MENUPROXY=
 
@@ -188,15 +197,16 @@ if [ "$OSTYPE" = "Linux" ] ; then
   export gcad_dir_bin=${gcad_dir_bin}/
   export LD_LIBRARY_PATH=${gcad_dir_bin}
 
-# icons,
-  export gcad_dir_ico=${DirBasSer}/icons/
-
 # def is /usr/share/gcad3d/
-  export gcad_dir_local=${DirBasSer}/
+  #export gcad_dir_local=${DirBasSer}/
+  export gcad_dir_local=${gcad_dir_dev}
+
+# icons,
+  export gcad_dir_ico=${gcad_dir_dev}/icons/
 
 # html and msg-files
 # def is /usr/share/doc/
-  export gcad_dir_doc=${DirBasSer}/doc/
+  export gcad_dir_doc=${gcad_dir_dev}/doc/
 
 
 

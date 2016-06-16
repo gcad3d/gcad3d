@@ -59,7 +59,7 @@ see also dxfw_gxt
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
-#include "../gr/ut_UI.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
 
 #include "../db/ut_DB.h"      // DB_GetVar
 

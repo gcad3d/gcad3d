@@ -243,7 +243,7 @@ __declspec(dllexport) int SVG_w__ (char*);
 #include "../gr/ut_DL.h"                  // DL_GetAtt
 #include "../gr/ut_GL.h"                  // GL_GetCen
 #include "../gr/ut_gr.h"                  // GTX_chh_
-#include "../gr/ut_UI.h"               // SYM_SQUARE ..
+#include "../ut/func_types.h"               // SYM_SQUARE ..
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
@@ -483,7 +483,9 @@ extern int     APT_dispPT;
     // dla = DL_GetAtt(l1);                      // get DL-Rec
     irc = DL_get_dla (&dla, l1);  
     if(!irc) continue;
-    if(dla.disp   == OFF) continue;           // skip hidden obj's
+
+    // if(dla.disp   == OFF) continue;           // skip hidden obj's
+    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     SVG_iAtt = dla.iatt;
     SVG_sAtt[0] = '\0';

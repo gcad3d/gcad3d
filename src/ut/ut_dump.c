@@ -72,7 +72,7 @@ UT3D_dump_txt
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_err.h"              // ERR_SET1
 
-#include "../gr/ut_UI.h"               // Typ_Att_hili
+#include "../ut/func_types.h"               // Typ_Att_hili
 #include "../db/ut_DB.h"               // DB_
 
 #include "../xa/xa_ico.h"              // ICO_PT,
@@ -285,7 +285,7 @@ static FILE     *uo = NULL;
 
 
   void     *v1;
-  int      irc, i1, i2, i3, i4, ptNr, *iTab, sTyp;
+  int      irc, i1, i2, i3, ptNr, *iTab, sTyp;
   long     dbi, il1;
   char     oNam[32], sAux[64], cbuf[256], *cps, *cp1;
   double   d1, *dp;
@@ -387,7 +387,8 @@ static FILE     *uo = NULL;
       sprintf(cps,"Point %s",txt);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
     }
-    sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    i3 = sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    if(i3 > 60) strcpy (cps, "(Point) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -1352,13 +1353,16 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_refM);
     sprintf(cps," (ModelRef).mod=%d scl=%f mnam=%s",
             mdr->modNr,mdr->scl,mdr->mnam);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelRef).po=%9.3f,%9.3f,%9.3f",mdr->po.x,mdr->po.y,mdr->po.z);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps," (ModelRef).vx=%9.3f,%9.3f,%9.3f",mdr->vx.dx,mdr->vx.dy,mdr->vx.dz);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps," (ModelRef).vz=%9.3f,%9.3f,%9.3f",mdr->vz.dx,mdr->vz.dy,mdr->vz.dz);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps," (ModelRef).po=%12.3f,%12.3f,%12.3f",
+            mdr->po.x,mdr->po.y,mdr->po.z);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    sprintf(cps," (ModelRef).vx=%9.3f,%9.3f,%9.3f",
+            mdr->vx.dx,mdr->vx.dy,mdr->vx.dz);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
+    sprintf(cps," (ModelRef).vz=%9.3f,%9.3f,%9.3f",
+            mdr->vz.dx,mdr->vz.dy,mdr->vz.dz);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
 
     // // zusaetzlich noch das BasicModel ausdrucken ..
     // mdb = DB_get_ModBas (mdr->modNr);
@@ -1376,9 +1380,18 @@ static FILE     *uo = NULL;
     sprintf(cps," (ModelBas).typ=%d seq=%d DLind=%4ld DLsiz=%4ld",
             mdb->typ, mdb->seqNr, mdb->DLind, mdb->DLsiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelBas).po=%9.3lf,%9.3lf,%9.3lf",
+    sprintf(cps," (ModelBas).po= %12.3lf,%12.3lf,%12.3lf",
             mdb->po.x, mdb->po.y, mdb->po.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    i3 = sprintf(cps," (ModelBas).pb1=%12.3f,%12.3f,%12.3f",
+            mdb->pb1.x, mdb->pb1.y, mdb->pb1.z);
+    if(i3 > 60) strcpy (cps, " (ModelBas).pb1 not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    i3 = sprintf(cps," (ModelBas).pb2=%12.3f,%12.3f,%12.3f",
+            mdb->pb2.x, mdb->pb2.y, mdb->pb2.z);
+    if(i3 > 60) strcpy (cps, " (ModelBas).pb2 not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+
 
 
   //----------------------------------------------------------------
@@ -1457,7 +1470,7 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_TEXR) {
     rtex = data;
-    sprintf(cps,"%s TEXR uar=%f udx/y=%f,%f uscx/y=%f,%f ibas=%ld",txt,rtex->uar,
+    sprintf(cps,"%s TEXR uar=%f udx/y=%f,%f uscx/y=%f,%f ibas=%d",txt,rtex->uar,
             rtex->udx,rtex->udy,rtex->uscx,rtex->uscy,rtex->ibas);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    px/py=%f,%f ssx/ssy=%f,%f",

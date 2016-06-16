@@ -98,7 +98,7 @@ List_functions_end:
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
 #include "../db/ut_DB.h"                  // DB_GetCurv
-#include "../gr/ut_UI.h"                  // SYM_STAR_S
+#include "../ut/func_types.h"                  // SYM_STAR_S
 
 
 

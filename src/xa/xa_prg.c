@@ -127,7 +127,7 @@ APP_act_nam
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_UI.h"               // UI_Func...
+#include "../ut/func_types.h"               // UI_Func...
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_GL.h"               // GL_GetCen
 #include "../gr/ut_gr.h"               // GTX_..

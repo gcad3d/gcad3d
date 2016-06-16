@@ -87,10 +87,11 @@ TESTMODELS:
 #include "../ut/ut_os.h"                  // OS_..
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
 #include "../ut/ut_tin.h"                 // TYP_EDGLN_OB
+#include "../ut/ut_col.h"                 // COL_INT32
+#include "../ut/gr_types.h"                  // UI_Func... SYM_..
 
 #include "../db/ut_DB.h"                  // DB_GetGTxt
 
-#include "../gr/ut_UI.h"                  // UI_Func... SYM_..
 #include "../gr/tess_su.h"                // TypTsuSur
 
 #include "../xa/xa_mem.h"                 // memspc51..
@@ -234,7 +235,7 @@ extern Point     *GLT_pta;
 
   //----------------------------------------------------------------
   // TEST SYMBOLIC
-  col1 = (ColRGB*)&att;
+  col1 = COL_INT32(&att);   // col1 = (ColRGB*)&att;
     // UT3D_stru_dump (Typ_Color, col1, "sur-col1");
   TSU_sStyl = 0;            // 0=ON=shade; 1=OFF=symbolic
   if(TSU_mode == 0)  {      // 0=draw; 1=store

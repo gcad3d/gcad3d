@@ -97,7 +97,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 #include "../ut/ut_geo.h"
 #include "../ut/ut_plg.h"
 
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
 
 
 

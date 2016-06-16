@@ -436,6 +436,7 @@ Verbinden:
 #include "../gui/gui_types.h"              // UI_Func..
 #include "../ut/ut_geo.h"                 /* Point-def ..*/
 #include "../ut/ut_gtypes.h"              // APED_dbo_oid
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"                  // TX_Print
 // #include "../ut/ut_crv.h"
@@ -473,7 +474,7 @@ Verbinden:
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include "../xa/xa_uid.h"             // UID_ckb_nam, UID_ckb_txt, UID_ouf_vwz
 
-#include "../gr/ut_UI.h"              // UI_AP u UI_FuncGet
+#include "../ut/func_types.h"              // UI_AP u UI_FuncGet
 
 
 
@@ -509,7 +510,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
 extern int        AP_txNkNr;            // Nachkommastellen
 extern ColRGB     AP_defcol;
-extern int        AP_indCol;
+// extern int        AP_indCol;
 
 
 
@@ -2383,7 +2384,7 @@ int    APT_prim_typ;
   GA_hide_fil_tmp (2);
 
   // reset defCol
-  AP_indCol = GL_DefColSet (&AP_defcol);
+  // AP_indCol = GL_DefColSet (&AP_defcol);
   
 
 
@@ -3639,6 +3640,7 @@ APT_stat_act:
   // if obj == hidden: preset hidden fuer naechsten DL-Record (DL_StoreObj)
   if(ga1->disp > 0) DL_disp_def (1); // DL_disp_act = 1; // hidden
 
+
   // // Surf/Solid/Model: es ist eine ColRGB; LN/AC/Curve: ist ist LtypNr.
   // iAtt = ga1->iatt;
 
@@ -3647,7 +3649,7 @@ APT_stat_act:
 // Textur sollte nur neuberechnet werden, wenn Fläche verändert wurde ..
 // 2010-04-17 raus. RF.
   if(typTyp == Typ_PT) {
-    iAtt = ga1->iatt; // ?
+    iAtt = ga1->iatt; // iatt is a int; see GL_InitPtAtt
 
 
   //----------------------------------------------------------------
@@ -3656,12 +3658,12 @@ APT_stat_act:
     // curve; is LtypNr.
     // i1 = IndAttLn_get_ltyp (&ga1->iatt);
     // IndAttLn_Set1 (&iAtt, i1, -1);  // change ltyp, keep lim !
-    iAtt = ga1->iatt;
+    iAtt = ga1->iatt;   // iatt is a Att_ln
 
   //----------------------------------------------------------------
   // surfaces-attributes (color, symbolic, texture)
   } else if(basTyp == Typ_SUR) {
-    iAtt = ga1->iatt;
+    iAtt = ga1->iatt;       // iatt is a ColRGB
       // UT3D_stru_dump (Typ_Color, &iAtt, " col ex GA: ");
     if(TSU_mode == 0) {  // nur bei Draw, nicht bei Store
       if(GA_hasTexture(iAtt) == 1) {
@@ -4552,7 +4554,8 @@ APT_stat_act:
     AP_defcol.cg = (unsigned char)aus_tab[1];
     AP_defcol.cb = (unsigned char)aus_tab[2];
 
-    AP_indCol = GL_DefColSet (&AP_defcol);
+    // AP_indCol = GL_DefColSet (&AP_defcol);
+    GL_DefColSet (&AP_defcol);
 
     goto Fertig;
 
@@ -8990,7 +8993,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
   void APT_DrawLine (int iAtt, long dbi, Line *ln1) {
 //================================================================
 // Input:
-//   dbi       dbi
+//   iAtt     see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+//   dbi      dbi
 
 
   // printf("APT_DrawLine %d %ld\n",iAtt,dbi);

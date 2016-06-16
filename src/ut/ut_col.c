@@ -56,7 +56,8 @@ List_functions_end:
 #include <math.h>
 
 
-#include "../ut/ut_geo.h"         // OFF, ON ..
+#include "../ut/ut_geo.h"              // OFF, ON ..
+#include "../ut/ut_col.h"              // COL_INT32
 
 
 
@@ -92,7 +93,7 @@ List_functions_end:
   // printf("Col_set__ %d %d %d\n",cr,cg,cb);
 
 
-  *col1 = *((ColRGB*)&i0);
+  *col1 = *(COL_INT32(&i0)); // *col1 = *((ColRGB*)&i0);
   // col1->vtra  = 0;
   // col1->vsym  = 0;
   // col1->vtex  = 0;

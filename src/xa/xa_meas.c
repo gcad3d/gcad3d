@@ -69,7 +69,7 @@ List_functions_end:
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_UI.h"               // UI_FuncInit
+#include "../ut/func_types.h"               // UI_FuncInit
 #include "../gr/ut_GL.h"               // GL_get_Scale
 
 #include "../xa/xa_msg.h"              // MSG_..

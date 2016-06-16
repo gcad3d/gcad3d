@@ -163,7 +163,7 @@ cl -c ut_geo.c
 #include "../ut/ut_geo.h"
 #include "../ut/ut_math.h"   // UTM_scale_4db
 
-#include "../gr/ut_UI.h"     // SYM_TRI_S ..
+#include "../ut/func_types.h"     // SYM_TRI_S ..
 
 // #include "../ut/ut_TX.h"    /* TX_Error */
 

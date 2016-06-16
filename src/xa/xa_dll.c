@@ -68,6 +68,7 @@ OS_debug_dll_
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
+#include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../xa/xa.h"                  // AP_STAT
 
@@ -118,7 +119,7 @@ OS_debug_dll_
 
   static void  *dll1 = NULL; // pointer to loaded dll
 
-  // printf("DLL_run1 %d\n",mode);
+  printf("DLL_run1 %d\n",mode);
 
 
 
@@ -148,7 +149,7 @@ OS_debug_dll_
 
   // connect DLL..
   if(&dll1) {
-    irc = OS_dll__ (&dll1, FUNC_LOAD, (void*)cBuf);
+    irc = OS_dll__ (&dll1, FUNC_LOAD_only, (void*)cBuf);
     if(irc < 0) return irc;
   }
 
@@ -323,7 +324,7 @@ OS_debug_dll_
     if(up1=dlsym(dl1,"gCad_fini")) {   // Adresse von Func. "gCad_fini" holen
       (*up1)();               // gCad_fini must kill all open windows !!
       AP_User_reset();        // reset-funcs, die bei MS-Win u Linux gleich sind
-      dlclose(dl1);           // unload DLL
+      OS_dll_close (&dl1);    // unload DLL
       dl1 = NULL;
       if(ccFlg < 0) {
         TX_Print("plugin %s unloaded ..",APP_act_nam);

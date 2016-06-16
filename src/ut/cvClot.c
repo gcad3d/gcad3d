@@ -102,7 +102,7 @@ ctags -f ucv.tag ucv.c
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_math.h"
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 
 // #include "../ut/ut_TX.h"
 // #include "../ubs/ubscrv.h"

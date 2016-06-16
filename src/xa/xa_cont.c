@@ -71,7 +71,7 @@ List_functions_end:
 
 
 #include "../db/ut_DB.h"
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ci/NC_apt.h"              // T_CW
 
 

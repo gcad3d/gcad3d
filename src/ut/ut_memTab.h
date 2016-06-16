@@ -51,7 +51,7 @@ int MEMTAB_IND_POS (MemTab*, void*);
 //================================================================
 // inline functions:
 
-// get data-record
+// MEMTAB__            get pointer to data-record from index
 #define MEMTAB__(mtb,irec)\
  (&((mtb)->data[irec]))
 
@@ -59,7 +59,7 @@ int MEMTAB_IND_POS (MemTab*, void*);
 #define MEMTAB_IND(mtb)\
  ((mtb)->rNr)
 
-// MEMTAB_MAX          get size                                      INLINE
+// MEMTAB_MAX          get size                                       INLINE
 #define MEMTAB_MAX(mtb)\
  ((mtb)->rSiz)
 

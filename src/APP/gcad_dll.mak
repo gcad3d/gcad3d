@@ -1,11 +1,8 @@
 # include-File to link gCAD3D-Plugins (DLLs)
-# Alle ausfuehren:
-# find . -name "xa_*.mak" -exec make -f {} \;
-# Alle Files listen:
-# find . -name "xa_*.mak" -exec make srclst -f {} \;
+# gcad_dir_bin must be set (. ../options.sh)
 
 
-# get gcad_dir_bin CC VGUI gcad_dir_bin
+# get CC VGUI 
 include ../options.mak
 
 
@@ -19,6 +16,11 @@ include ogl.mak
 
 # get SRCOS
 include srcOS.mak
+
+
+ifndef gcad_dir_bin
+$(error ERROR - gcad_dir_bin undefined. Start with "./do c" or do ". ../options.sh")
+endif
 
 
 ifeq "$(SRCTYP)" "cpp"

@@ -126,7 +126,7 @@ UI_GR_Select_work1
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../db/ut_DB.h"            // DB_get_ModBas
-#include "../gr/ut_UI.h"            // UI_FuncSet
+#include "../ut/func_types.h"            // UI_FuncSet
 #include "../xa/xa_uid.h"           // AP_SRC_EDI
 #include "../xa/xa_mem.h"           // memspc51, mem_cbuf1
 

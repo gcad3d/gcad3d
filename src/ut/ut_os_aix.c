@@ -106,6 +106,7 @@ OS_filterff              sort & filter file
 OS_dll_do                load dll, start function, unload dll
 OS_dll_run               load dll, start function, unload dll
 OS_dll__                 load dll| start function| unload dll
+OS_dll_close             close dll
 
 List_functions_end:
 =====================================================
@@ -177,7 +178,7 @@ _______________________________________________________________________________
 
 #include "../ut/ut_os.h" 
 #include "../ut/ut_cast.h"             // INT_PTR
-#include "../ut/ut_types.h"            // FUNC_LOAD
+#include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
 
 
 #define PTRSIZ             sizeof(void*)   // 4 || 8
@@ -2280,8 +2281,7 @@ static int   (*up1)();
     up1 = dlsym(dl1, fDat);
     if(up1 == NULL) {
       TX_Error("OS_prc_dll: cannot open Func. |%s|",(char*)fDat);
-      dlclose(dl1);           // unload DLL
-      dl1 = NULL;
+      OS_dll_close (&dl1);   // unload DLL
       return -1;
     }
 
@@ -2305,12 +2305,33 @@ static int   (*up1)();
   } else if(mode == -4) {
 
     // close DLL
-    if(dl1) dlclose(dl1);           // unload DLL
-    dl1 = NULL;
+    OS_dll_close (&dl1);              // unload DLL
     up1 = NULL;
   }
 
   return 0;
+
+}
+
+
+//================================================================
+  int OS_dll_close (void **dl1) {
+//================================================================
+// on successfule returns irc = 0,  dl1 = NULL
+// BUG dlclose: returnCode is OK but handle not NULL.
+
+  int  irc = 0;
+
+  printf("OS_dll_close \n");
+
+  // unload if already loaded
+  if(*dl1 != NULL) {
+    irc = dlclose (*dl1);    
+      // printf(" close %d\n",irc);
+    if(!irc) *dl1 = NULL;
+  }
+
+  return irc;
 
 }
 
@@ -2321,11 +2342,13 @@ static int   (*up1)();
 /// \code
 /// load dll | start dll-function | unload dll
 /// Input:
-///   mode     FUNC_LOAD    = load DLL. fDat: dll-name without directory, fTyp.
-///            FUNC_CONNECT = connect (connect Func fDat)
-///            FUNC_EXEC    = work (call active Func with parameter fDat)
-///            FUNC_UNLOAD  = unload active lib
-///            FUNC_RECOMPILE = recompile DLL
+///   mode
+///     FUNC_LOAD_only = load DLL. fDat: dll-name without directory, fTyp.
+///     FUNC_LOAD_all  = load DLL. fDat: dll-name without directory, fTyp.
+///     FUNC_CONNECT   = connect (connect Func fDat)
+///     FUNC_EXEC      = work (call active Func with parameter fDat)
+///     FUNC_UNLOAD    = unload active lib; fDat unused
+///     FUNC_RECOMPILE = recompile DLL; fDat ?
 /// Output:
 ///   dll      (address of) loaded DLL
 ///   retCod   0=OK; else error
@@ -2338,24 +2361,36 @@ static int   (*up1)();
   char  s1[256], *p1;
 
 
-  // printf("OS_dll__ %d\n",mode);
+  printf("OS_dll__ %d |%s|\n",mode,(char*)fDat);
 
 
   //----------------------------------------------------------------
   // mode 0 = open (load Lib fNam) 
-  if(mode == FUNC_LOAD) {
+  if((mode == FUNC_LOAD_only)  ||
+     (mode == FUNC_LOAD_all))      {
 
     // unload if already loaded
-    if(*dl1 != NULL) {
-      dlclose (*dl1);
-      *dl1 = NULL;
-    }
+    OS_dll_close (dl1);
+    if(*dl1 != NULL) goto L_e_cl;
 
     // load DLL
     sprintf(s1, "%s%s.so",OS_get_bin_dir(),(char*)fDat);
-      printf(" dll=|%s|\n",s1); fflush(stdout);
 
-    *dl1 = dlopen (s1, RTLD_LAZY);
+
+    if(mode == FUNC_LOAD_only) {
+      // load funcs with FUNC_CONNECT
+      *dl1 = dlopen (s1, RTLD_LAZY);
+         printf(" LOAD_only |%s|\n",s1); fflush(stdout);
+
+    } else {
+      // load all funcs in dll
+      *dl1 = dlopen (s1, RTLD_LAZY|RTLD_GLOBAL);
+      // CANNOT close recompile reOpen this dll !!
+      // *dl1 = dlopen (s1, RTLD_NOW|RTLD_GLOBAL);
+      // *dl1 = dlopen (s1, RTLD_NOW|RTLD_GLOBAL|RTLD_DEEPBIND);
+         printf(" LOAD_all |%s|\n",s1); fflush(stdout);
+    }
+
     if(*dl1 == NULL) {
       TX_Error("OS_dll__: cannot open dyn. Lib. |%s|",(char*)fDat);
       return -1;
@@ -2376,8 +2411,7 @@ static int   (*up1)();
     up1 = dlsym (*dl1, fDat);
     if(up1 == NULL) {
       TX_Error("OS_dll__: cannot open Func. |%s|",(char*)fDat);
-      dlclose (*dl1);           // unload DLL
-      dl1 = NULL;
+      OS_dll_close (dl1);             // unload DLL
       return -1;
     }
 
@@ -2403,20 +2437,17 @@ static int   (*up1)();
   } else if(mode == FUNC_UNLOAD) {
 
     // close DLL
-    if(*dl1 != NULL) {
-      dlclose (*dl1);           // unload DLL
-      *dl1 = NULL;
-    }
+    OS_dll_close (dl1);
+    if(*dl1 != NULL) goto L_e_cl;
 
 
   //----------------------------------------------------------------
   // 4 = recompile dll
   } else if(mode == FUNC_RECOMPILE) {
 
-    if(*dl1 != NULL) {
-      dlclose (*dl1);           // unload DLL
-      *dl1 = NULL;
-    }
+    OS_dll_close (dl1);
+    if(*dl1 != NULL) goto L_e_cl;
+
     sprintf(s1, "%s.so",(char*)fDat);
       printf(" dll=|%s|\n",s1); fflush(stdout);
   
@@ -2430,6 +2461,12 @@ static int   (*up1)();
   }
 
   return 0;
+
+
+  L_e_cl:
+    // TX_Error("OS_dll__: close dll .. ");
+    printf("***** ERROR OS_dll__: close dll .. \n");
+    return -1;
 
 }
 
@@ -2521,7 +2558,7 @@ static int   (*up1)();
   // Adresse von Func.fncNam holen
   up1 = dlsym(dl1, fncNam);
   if(up1 == NULL) {
-    dlclose(dl1);           // unload DLL
+    OS_dll_close (&dl1);     // unload DLL
     TX_Error("OS_dll_run: cannot open Func. |%s|",fncNam);
     return -1;
   }
@@ -2533,7 +2570,7 @@ static int   (*up1)();
 
 
   // close DLL
-  dlclose(dl1);           // unload DLL
+  OS_dll_close (&dl1);     // unload DLL
 
 
   return 0;

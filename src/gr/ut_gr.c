@@ -207,7 +207,7 @@ cc -c -g3 -Wall ut_gr.c
 #include <string.h>
 
 
-//#include "../gtk/ut_UI.h"            // Typ_Att_def
+//#include "../gtk/func_types.h"            // Typ_Att_def
 
 // #include "../ut/ut_umem.h"             // UME_alloc_tmp
 #include "../ut/ut_geo.h"
@@ -216,6 +216,7 @@ cc -c -g3 -Wall ut_gr.c
 #include "../ut/ut_txt.h"                 // fnam_del
 #include "../ut/ut_memTab.h"              // MemTab_..
 #include "../ut/ut_os.h"                  // OS_..
+#include "../ut/ut_col.h"              // COL_INT32
 
 #include "../db/ut_DB.h"                  // DB_GetPoint DB_mdlNam_iBas
 
@@ -227,7 +228,7 @@ cc -c -g3 -Wall ut_gr.c
 #include "../gr/ut_DL.h"
 
 #include "../gr/ut_gr.h"
-#include "../gr/ut_UI.h"                  // SYM_SQUARE
+#include "../ut/func_types.h"                  // SYM_SQUARE
 
 #include "../xa/xa.h"                     // mem_cbuf1_SIZ
 #include "../xa/xa_mem.h"                 // memspc55
@@ -280,7 +281,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 // aus ../gr/ut_GL.c:
 extern ColRGB  GL_actCol;
-extern long    GL_actTex;
+extern int     GL_actTex;
 
 
 
@@ -969,7 +970,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1020,7 +1021,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1141,7 +1142,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1246,7 +1247,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // die Color / das Attribut
-  GL_actCol = *((ColRGB*)&attInd);
+  GL_actCol =  *(COL_INT32(&attInd)); // GL_actCol = *((ColRGB*)&attInd);
 
 
 
@@ -1286,7 +1287,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // fix style; shaded/symbolic
-  col = (ColRGB*)&attInd;
+  col = COL_INT32(&attInd); // col = (ColRGB*)&attInd;
 
   if((APT_dispSOL == OFF) ||
      (col->vsym   == 1))      sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
@@ -2220,8 +2221,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  // printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
-          // oxi->typ,oxi->form,oxi->siz);
+  printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
+          oxi->typ,oxi->form,oxi->siz);
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // UTO_dump_s_ (oxi, "GR_DrawSur");
   // if(oxi->typ==Typ_SUR) printf(" S:vtex=%d\n",((ColRGB*)&att)->vtex);
@@ -2253,8 +2254,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // die Color / das Attribut
-  GL_actCol = *((ColRGB*)&att);
-
+  GL_actCol = *(COL_INT32(&att)); // GL_actCol = *((ColRGB*)&att);
 
 
   // Texure
@@ -2268,11 +2268,12 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     } else {
       // get TexRef of GA-Record l1
       GL_actTex = GA_tex_ga2tr (l1);
-        // printf(" GL_actTex=%ld\n",GL_actTex);
     }
   } else {
-    GL_actTex = -1L;
+    GL_actTex = -1;
   }
+        printf(" _DrawSur typ=%d ind=%ld GL_actTex=%d\n",oxi->typ,apt_ind,
+               GL_actTex);
 
 
 
@@ -2721,6 +2722,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   ModelBas   *mdb;
   Memspc     impSpc;
   ObjGX      oTab[4];
+  Point      pb1, pb2, pOri;
 
 
   // printf("GR_DrawModel ind=%ld att=%d\n",db_ind,att);
@@ -2749,8 +2751,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   //==== Mockup ====================================================
   // if(mdb->typ != 3) goto L_model;
-  if(mdb->typ == 110) goto L_mock_0;
-  if((mdb->typ < 10)||(mdb->typ > 19)) goto L_model;  // 10-19=Mockup
+  if(mdb->typ == Mtyp_WRL2) goto L_mock_0;
+  if((mdb->typ < Mtyp_WRL)||(mdb->typ >= Mtyp_BMP)) goto L_model;  // 10-19=Mockup
 
   // mdr: mnam, modNr, po ...
   // mdb: mnam, typ, po, DLind, DLsiz ...
@@ -2765,7 +2767,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   if(mdb->DLind >= 0) goto L_mock_ditto;
 
   // nein, get a new ind
-  mdb->DLind = GL_Get_DLind(); // GL_GetActInd();
+  mdb->DLind = GL_Get_DLind (); // GL_GetActInd();
     // printf(" DLind=%ld\n",mdb->DLind);
 
 
@@ -2776,7 +2778,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // fix a safe modelname
-  strcpy(mnam, mdb->mnam);
+  strcpy (mnam, mdb->mnam);
   // mnam ist internal ("abc") od external ("dir/fn")
   UTX_ftyp_cut (mnam);            // remove fTyp
   UTX_safeName (mnam, 1);         // change all '. ' to '_', not '/'
@@ -2789,11 +2791,12 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   loadMode = 0;
 
 
+  // import modelfile.
   if(!strcmp(ftyp, "TESS")) {
     // import Mockup from file into Mockup-struct
     TSU_imp_tess (&impSpc, ffnam);
     // copy tess-file -> tmp/.
-    sprintf(memspc011, "%s%s.tess",OS_get_tmp_dir(),mnam);
+    sprintf (memspc011, "%s%s.tess",OS_get_tmp_dir(),mnam);
     OS_file_copy (ffnam, memspc011);
 
   } else {
@@ -2813,12 +2816,28 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     irc = DLL_run1 (2, oTab);
     if(irc < 0) return irc;
 
-    // unload DLL   2009-06-06
-    irc = DLL_run1 (3, NULL);
-    if(irc < 0) return irc;
+    // find box of tess-model in memory
+    tess_box_get (&pb1, &pb2, &impSpc);
+       UT3D_stru_dump (Typ_PT, &pb1, "pb1");
+       UT3D_stru_dump (Typ_PT, &pb2, "pb2");
+
+
+    // set box in basicModel mdb
+    mdb->pb1 = pb1;
+    mdb->pb2 = pb2;
+
+    // // get origin from box of tess-model
+    // tess_origin_box (&pOri, &pb1, &pb2);
+
+    // // subract origin of tess-model in memory
+    // tess_origin_set__ (&impSpc, &pOri);
 
     // save tesselated data in xa/temp for next run
     tess_write__ (mnam, impSpc.start);
+
+    // cannot unload unless impSpc freed; unload DLL   2009-06-06
+    // irc = DLL_run1 (3, NULL);
+    // if(irc < 0) return irc;
 
   }
   // printf(" irc nach DLL_run1 %d\n",irc);
@@ -3596,7 +3615,7 @@ int GR_Delete (long ind)                               {return 0;}
 ///   typ:  SYM_STAR_S (Sternderl)
 ///         SYM_TRI_S (Dreieck)
 ///         SYM_TRI_B (Viereck)
-///   att:  index of color, from ../gr/ut_UI.h
+///   att:  index of color, from ../ut/func_types.h
 ///         ATT_COL_BLACK       0
 ///         ATT_COL_RED         2
 ///         ATT_COL_GREEN       3
@@ -3711,7 +3730,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// draw polygon with GR_Disp_cv
 /// \endcode
 
-// #include "../gr/ut_UI.h"               // SYM_..
+// #include "../ut/func_types.h"               // SYM_..
 
   int   i1;
 
@@ -3821,6 +3840,8 @@ int GR_Delete (long ind)                               {return 0;}
 //================================================================
 /// \code
 /// att: colour,lineTyp,lineThick    (see ~/gCAD3D/cfg/ltyp.rc)
+///      att is an index to a linetyp in file cfg/ltyp.rc.
+///      linetyp has color, pattern thickness.
 ///      0=1=Black
 ///      2=Black-Dash
 ///      3=black-Dashdot
@@ -5039,7 +5060,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     } else if (GL_actCol.vtex != 0) {
       // activate active TexRefNr
-      GLT_stor_rec (8, NULL, NULL, (int)GL_actTex);
+      GLT_stor_rec (8, NULL, NULL, GL_actTex);
     }
 
 
@@ -5082,7 +5103,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     } else if (GL_actCol.vtex != 0) {
       // activate active TexRefNr
-      GLT_stor_rec (8, NULL, NULL, (int)GL_actTex);
+      GLT_stor_rec (8, NULL, NULL, GL_actTex);
     }
 
   }  else {
@@ -5171,7 +5192,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 
-  // printf("GR_DrawFtab fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
+  printf("GR_DrawFtab fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
   // UT3D_stru_dump (Typ_Color, &GL_actCol, "  GL_actCol:");
 
 
@@ -5184,7 +5205,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     } else if (GL_actCol.vtex != 0) {
       // activate active TexRefNr
-      GLT_stor_rec (8, NULL, NULL, (int)GL_actTex);
+      GLT_stor_rec (8, NULL, NULL, GL_actTex);
     }
 
   }  else {

@@ -1,9 +1,9 @@
-# returns BITS OS gcad_dir_bin CC MK 
+# returns BITS OS CC MK 
 # see also ../options.sh
 
 # Version GTK; gtk2 or gtk3
-VGUI = gtk2
-#VGUI = gtk3
+#VGUI = gtk2
+VGUI = gtk3
 
 
 
@@ -16,8 +16,6 @@ else
 OS := Linux64
 endif
 
-#gcad_dir_bin := ../../bin$(OS)
-gcad_dir_bin := ${HOME}/dev/gCAD3D/bin$(OS)
 
 CC = gcc
 MK = make

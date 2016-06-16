@@ -86,7 +86,7 @@ cc ut_bez.c -DOFFLINE&&a.out
 // #include "../ut/ut_umem.h"          // UME_save
 #include "../ut/ut_geo.h"
 #include "../ut/ut_math.h"          // UTM_db_binquot
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
 
 
 

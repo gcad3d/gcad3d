@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+  remame this file ../ut/ut_otypes.c/h
 
 -----------------------------------------------------
 Modifications:
@@ -26,7 +26,7 @@ Modifications:
 */
 /*!
 \file  ../ut/ut_gtypes.c
-\brief object typ, index, ID
+\brief get|set|check object typ, index, ID
 \code
 =====================================================
 List_functions_start:

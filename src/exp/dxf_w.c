@@ -21,6 +21,7 @@ Resolv DIMENSIONs into dummy-blocks "*D#"  (DXFW_DIM())
 
 -----------------------------------------------------
 Modifications:
+2016-06-02 write mockup-models -> 3DFACE. RF.
 2015-10-21 completely rewritten. RF.
 2004-11-12 DIMENSION, LWPOLYLINE zu. RF.
 2003-11-06 ELLIPSE zu. RF.
@@ -41,7 +42,8 @@ DXFW__           main entry
 DXFW_prolog
 DXFW_blk_ini
 DXFW_main
-DXFW_Model
+DXFW_Mdl_gcad
+DXFW_Mdl_tess
 DXFW_ox
 dxfw_ELLIPSE
 dxfw_SPLINE
@@ -51,7 +53,8 @@ DXFW_CI
 DXFW_TEXT
 DXFW_POLYLN3
 DXFW_POLYLN2
-DXFW_3DFACE
+DXFW_3DFACE__
+DXFW_3DFACE_out
 DXFW_INSERT
 
 DXFW_point3
@@ -59,7 +62,7 @@ DXFW_point2
 DXFW_vector
 DXFW_fl_out
 
-dxfw_load_mat
+dxfw_load_mat  make matrix for  DXF-ECS
 
 List_functions_end:
 =====================================================
@@ -119,10 +122,10 @@ Prinzipiell besteht jede Information aus 2 Zeilen.
 
 Die Datei besteht aus mehreren Sections (SECTION ... ENDSEC), dann "EOF".
 
-  HEADER - Section (DXF-Versionsnummer, $TEXTSIZE, $DIMASZ ..)
-  TABLES - Section (LineTypTable, LayerTable)
-  BLOCKS - Section (??)
-  ENTITIES - Section (die Objekte)
+  HEADER   - Section (DXF-Versionsnummer, $TEXTSIZE, $DIMASZ ..)
+  TABLES   - Section (LineTypTable, LayerTable)
+  BLOCKS   - Section (subModel-objects)
+  ENTITIES - Section (objects mainModel)
   EOF - Record.
 
 
@@ -152,6 +155,7 @@ Die folgenden Entities haben alle Recordtyp (= erste Zeile) 0. Es folgt dann als
   SEQEND   Ende POLYLINE
 
   3DFACE   4 Punkte; (10/20/30-13/23/33)
+           8=Layer, 62=Color.
 
   DIMENSION  Text(1) ist leer ! 10/20, 13/23, 14/24, 50 70 39 62
 
@@ -191,7 +195,7 @@ Zusatzinfos: Fast fuer jedes Ent. gibts den Layer; 8 / 3  (zwei Zeilen)
                49    Tabellenwerte (wiederholen sich)
   Winkel       50-58 Degree.
   Farbnummer   62    (Int); 1=Rot, 2=Gelb, 3=Gruen, 4=Cyan, 5=Blau,
-                         6=Magenta(violett), 7=Schwarz (=RGB-Mischung)
+                         6=Magenta(violett), 7=Schwarz (see DXF_colACI_colRGB)
                          256=BYLAYER ?
                          manchmal als 6-Char-Int.
   EntityStart  66    zB "     1" (I6 ?) bei POLYLINE-Header.
@@ -201,7 +205,7 @@ Zusatzinfos: Fast fuer jedes Ent. gibts den Layer; 8 / 3  (zwei Zeilen)
   Z-Vektor     210,220,230  Z-Vektor, wenn <> dem Haupt-Z-Vektor.
   Kommentar    999   Kommentarzeile.
 
-  ?            370   Wert immer -1; whats that ?
+  -            370   Lineweight enum value; none = -1; (TABLE/LAYER)
 
 
 
@@ -214,21 +218,34 @@ Versionen (stehen in HEADER-Section):
   no SECTION HEADER ..                      >=90
 
 
-Absolutes Minimum also:
 
-  0
-SECTION
-  2
-HEADER
-  0
-ENDSEC
-  0
-SECTION
-  2
-BLOCKS
-  0
-ENDSEC
-  0
+
+==========================================================================
+SECTION TABLES:
+
+LAYER:
+2 / Layername
+70 / 1=frozen, 4=locked, 16=external (xref)a, 32=resolved xref
+62 / color; if negative: off !
+6 / Lintypename
+370 / Lineweight enum value
+
+
+TABLE 2 VPORT .. def of viewport ???
+TABLE 2 LTYPE .. def of all linetypes ?
+TABLE 2 LAYER
+TABLE 2 STYLE
+TABLE 2 VIEW
+TABLE 2 UCS
+TABLE 2 DIMSTYLE
+TABLE 2 BLOCK_RECORD
+
+  0 ENDTAB 0 ENDSEC
+
+
+
+
+
 
 ==========================================================================
 Koordinatensystem:
@@ -321,9 +338,11 @@ The method of getting the Ay vector would be:
 -------------------------------------------------------------------
 */
 
+#ifdef _MSC_VER
+#include "../xa/MS_Def1.h"
+#endif
 
 #define DXFW_VERSION "gCAD3D-DXFW 2016-03-11"
-
 
 #include <math.h>
 #include <stdio.h>
@@ -332,7 +351,6 @@ The method of getting the Ay vector would be:
 
 
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
 __declspec(dllexport) int DXFW__ (char*);
 #define extern __declspec(dllimport)
 #endif
@@ -343,12 +361,14 @@ __declspec(dllexport) int DXFW__ (char*);
 #include "../ut/ut_TX.h"
 #include "../ut/ut_os.h"                  // OS_get_bas_dir ..
 #include "../ut/ut_log.h"                 // MSG_typ_*
-#include "../ut/ut_txTab.h"               // TxtTab
+// #include "../ut/ut_txTab.h"               // TxtTab
+#include "../ut/ut_memTab.h"              // MemTab_..
 
 #include "../gr/ut_DL.h"                  // DL_GetAtt
 #include "../gr/ut_GL.h"                  // GL_GetCen
 #include "../gr/ut_gr.h"                  // GTX_chh_
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../gr/tess_su.h"                // TypTsuSur
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
@@ -358,31 +378,53 @@ __declspec(dllexport) int DXFW__ (char*);
 
 
 
+typedef_MemTab(int);
+
 
 //===========================================================================
 // EXTERNALS:
-// from ../xa/xa.c:
 
+// from ../xa/xa.c:
 extern Plane      WC_sur_act;     // constPln
 extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
 extern AP_STAT    AP_stat;
 
 
+
 //===========================================================================
 // LOCALS:
-
 
 static int       dxfw_subtyp;
 static int       dxfw_errNr;
 static int       dxfw_objNr;
 
-
-static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
-
-
+static FILE *fpo1;                             // output
+static MemTab(int) dxfw_smTab = MemTab_empty;  // list of subModels used
 
 
+
+//===========================================================================
+// PROTOTYPES:
+
+int DXFW_tess_CB (ObjGX*);
+
+
+
+
+
+
+
+//===========================================================================
+int DXFW_test (char *txt1) {
+//===========================================================================
+
+  printf("DXFW_test %s UT3D_VECTOR_Y = %f %f %f\n", txt1,
+           UT3D_VECTOR_Y.dx, UT3D_VECTOR_Y.dy, UT3D_VECTOR_Y.dz);
+  printf(" UT3D_VECTOR_Y=%p\n",&UT3D_VECTOR_Y);
+  fflush(stdout);
+  return 0;
+}
 
 
 //===========================================================================
@@ -391,13 +433,16 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 /// export as DXF
 /// Input:
 
-  int       i1, i2, oNr, mode;
-  char      *p1, s1[256];
+  int       i1, i2, *ip, mTyp, oNr, mode;
+  long      l1;
+  char      *p1, s1[256], *fBuf;
   ObjDB     *oTab;
   FILE      *fp1, *fp2=NULL;
+  ModelBas  *mbo;
 
 
   printf("DXFW__ vers=%d |%s|\n",AP_stat.subtyp,fnam);
+
 
 // - Liste auszugebender objekte (typ+dbi)
 //   - wenn grp aktiv: grp
@@ -417,25 +462,26 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
   // store active DB
   DB_save__ ("");
 
+
   // init stringList subModelnames
-#define SIZ_SMTAB 10000
-  p1 = (char*) UME_alloc_tmp (SIZ_SMTAB);
-  UtxTab_init_spc (&dxfw_smTab, p1, SIZ_SMTAB);
+#define SIZ_SMTAB 1000
+  MemTab_ini (&dxfw_smTab, sizeof(int), Typ_Int4, SIZ_SMTAB);
+
 
 
 
   //----------------------------------------------------------------
   // open file ENTITIES
   sprintf(s1,"%sdxfw_main",OS_get_tmp_dir());
-  if ((fp1 = fopen (s1, "w+")) == NULL) {
+  if ((fpo1 = fopen (s1, "w+")) == NULL) {
     TX_Error ("open file %s",s1);
     return -1;
   }
 
 
   // export mainModel
-  fprintf(fp1,"0\nSECTION\n");
-  fprintf(fp1,"2\nENTITIES\n");
+  fprintf(fpo1,"0\nSECTION\n");
+  fprintf(fpo1,"2\nENTITIES\n");
 
 
 
@@ -460,78 +506,112 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
   // export main - all obj's in group. Add subModel -> dxfw_smTab
   // DXFW_w_grp (fnam);
-  i1 = DXFW_main (fp1, fp2);
+  i1 = DXFW_main ();
 
 
   // clear group
   if(mode == 2) Grp_init ();
 
 
-  fprintf(fp1,"0\nENDSEC\n");
-  fprintf(fp1,"0\nEOF\n");
-  fclose (fp1);
+  fprintf(fpo1,"0\nENDSEC\n");
+  fprintf(fpo1,"0\nEOF\n");
+  fclose (fpo1);
 
 
   //----------------------------------------------------------------
   // export subModels as BLOCKS; loop tru dxfw_smTab
   sprintf(s1,"%sdxfw_blocks",OS_get_tmp_dir());
-  if ((fp1 = fopen (s1, "w+")) == NULL) {
+  if ((fpo1 = fopen (s1, "w+")) == NULL) {
     TX_Error ("open file %s",s1);
     return -1;
   }
 
-  fprintf(fp1,"0\nSECTION\n");
-  fprintf(fp1,"2\nBLOCKS\n");
+  fprintf(fpo1,"0\nSECTION\n");
+  fprintf(fpo1,"2\nBLOCKS\n");
 
 
   // add defaultblocks eg *D0
-  DXFW_blk_ini (fp1);
+  DXFW_blk_ini ();
 
 
-  i2 = UtxTab_nr (&dxfw_smTab);
+  i2 = MEMTAB_IND (&dxfw_smTab);  // get nr of used subModels
+
   for(i1 = 0; i1 < i2; ++i1) {
-    p1 = UtxTab__ (i1, &dxfw_smTab);
-    fprintf(fp1,"0\nBLOCK\n");
-    fprintf(fp1,"2\n%s\n",p1);
+    ip = MEMTAB__ (&dxfw_smTab, i1);
+    mbo = DB_get_ModBas (*ip);
+    mTyp = mbo->typ;   // get modeltype (native or mockup)
+    strcpy(s1, mbo->mnam);
+    // for mockup-models: remove filetyp from modelname
+    if(mTyp >= Mtyp_DXF) UTX_ftyp_cut (s1);
+    // change all '/' of mNam into '_' - else no correct filename possible
+    UTX_safeName (s1, 2);
+    p1 = s1;
+      printf("\n++++++++++++++++++++++++++++\n nxt blk: %d %d |%s|\n",
+             *ip,mTyp,p1);
 
-    // load DB
-    DB_load__ (p1);
-  
-    DXFW_Model (0, fp1, fp1);
 
-    fprintf(fp1,"0\nENDBLK\n");
+    fprintf(fpo1,"0\nBLOCK\n");
+    fprintf(fpo1,"2\n%s\n",p1);
+
+
+    // check subModel-type; native or mockup
+    // i3 = Mod_get_ftyp1 (p1);
+      // printf(" ftyp = %d\n",i3);
+
+
+
+    if(mTyp < Mtyp_DXF) {
+      // native subModel (Mtyp_Gcad)
+      // load DB
+      DB_load__ (p1);
+      // export subModel
+      DXFW_Mdl_gcad (0);
+
+    } else {
+      // Mockup-model
+      DXFW_Mdl_tess (p1);
+    }
+
+
+    fprintf(fpo1,"0\nENDBLK\n");
 
   }
 
-  fprintf(fp1,"0\nENDSEC\n");
-  fclose (fp1);
+  fprintf(fpo1,"0\nENDSEC\n");
+  fclose (fpo1);
+
+  MemTab_free (&dxfw_smTab);
 
   DB_load__ ("");   // reload main-DB
 
 
   //----------------------------------------------------------------
   // join files
-  if ((fp1 = fopen (fnam, "w+")) == NULL) {
+  if ((fpo1 = fopen (fnam, "w+")) == NULL) {
+  // if ((fpo1 = fopen (fnam, "wb")) == NULL) {     // crash in MS !
     TX_Error ("open file %s",fnam);
     return -1;
   }
 
-  fprintf(fp1,"999\n%s\n",DXFW_VERSION);
+  fprintf(fpo1,"999\n%s\n",DXFW_VERSION);
 
 
   // write SECTION HEADER
   // write SECTION TABLES
-  if(dxfw_subtyp < 90) DXFW_prolog (fp1);
+  if(dxfw_subtyp < 90) DXFW_prolog ();
 
   // add BLOCKS
   sprintf(s1,"%sdxfw_blocks",OS_get_tmp_dir());
-  UTX_cat_file (fp1, s1);
+    printf(" cat_file |%s|\n",s1);
+  DXFW_cat_file (fpo1, s1);
+
 
   // add ENTITIES
   sprintf(s1,"%sdxfw_main",OS_get_tmp_dir());
-  UTX_cat_file (fp1, s1);
+    printf(" cat_file |%s|\n",s1);
+  DXFW_cat_file (fpo1, s1);
   
-  fclose (fp1);
+  fclose (fpo1);
 
 
   // sprintf(s1,"%sdxfw_*",OS_get_tmp_dir());
@@ -554,7 +634,7 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
 
 //================================================================
-  int DXFW_prolog (FILE *fp_in) {
+  int DXFW_prolog () {
 //================================================================
 //   DXF-Prolog ausgeben.
 //   dxfw_subtyp
@@ -571,7 +651,7 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
   };
 
   for (i1=0; dxfi1[i1] != '\0'; i1++)
-    fprintf(fp_in,"%s\n",dxfi1[i1]);
+    fprintf(fpo1,"%s\n",dxfi1[i1]);
 */
 
 
@@ -579,46 +659,46 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
 
   //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-  fprintf(fp_in,"2\nHEADER\n9\n$ACADVER\n");
+  fprintf(fpo1,"0\nSECTION\n");
+  fprintf(fpo1,"2\nHEADER\n9\n$ACADVER\n");
 
   if(dxfw_subtyp == 0) {             // 0=R10 
-    fprintf(fp_in,"1\nAC1006\n");
+    fprintf(fpo1,"1\nAC1006\n");
 
   } else if(dxfw_subtyp == 1) {      // 1=R12
-    fprintf(fp_in,"1\nAC1009\n");
+    fprintf(fpo1,"1\nAC1009\n");
 
   } else if(dxfw_subtyp == 2) {      // 2=R14
-    fprintf(fp_in,"1\nAC1014\n");
+    fprintf(fpo1,"1\nAC1014\n");
 
   } else {                            // 3=AC2000
-    fprintf(fp_in,"1\nAC1015\n");
+    fprintf(fpo1,"1\nAC1015\n");
   }
 
-  fprintf(fp_in,"9\n$TEXTSIZE\n40\n%f\n",AP_txsiz);
-  fprintf(fp_in,"9\n$DIMTXT\n40\n%f\n",AP_txdimsiz);
-  fprintf(fp_in,"9\n$DIMASZ\n40\n%f\n",AP_txdimsiz);
+  fprintf(fpo1,"9\n$TEXTSIZE\n40\n%f\n",AP_txsiz);
+  fprintf(fpo1,"9\n$DIMTXT\n40\n%f\n",AP_txdimsiz);
+  fprintf(fpo1,"9\n$DIMASZ\n40\n%f\n",AP_txdimsiz);
 
   // anzahl nachkommastellen f dimWerte
-  fprintf(fp_in,"9\n$DIMDEC\n70\n2\n");
-  fprintf(fp_in,"9\n$DIMADEC\n70\n2\n");  // fuer DIM-Angles
+  fprintf(fpo1,"9\n$DIMDEC\n70\n2\n");
+  fprintf(fpo1,"9\n$DIMADEC\n70\n2\n");  // fuer DIM-Angles
 
-  fprintf(fp_in,"0\nENDSEC\n");
+  fprintf(fpo1,"0\nENDSEC\n");
 
 
   //------------------------------------
-  fprintf(fp_in,"0\nSECTION\n");
-    fprintf(fp_in,"2\nTABLES\n");
+  fprintf(fpo1,"0\nSECTION\n");
+    fprintf(fpo1,"2\nTABLES\n");
 
     // Defaultlayer 0; fuer POINT LINE ARC ... via 8/0
-    fprintf(fp_in,"0\nTABLE\n2\nLAYER\n70\n1\n");
+    fprintf(fpo1,"0\nTABLE\n2\nLAYER\n70\n1\n");
 
     // 2=Layername; 70=typ, 620col, 6=Linetyp
-    fprintf(fp_in,"0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n");
+    fprintf(fpo1,"0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n");
 
-    fprintf(fp_in,"0\nENDTAB\n");
+    fprintf(fpo1,"0\nENDTAB\n");
 
-  fprintf(fp_in,"0\nENDSEC\n");
+  fprintf(fpo1,"0\nENDSEC\n");
   //------------------------------------
   // SECTION ENTITIES
 
@@ -628,13 +708,13 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
 
 //================================================================
-  int DXFW_blk_ini (FILE *fp_in) {
+  int DXFW_blk_ini () {
 //================================================================
 
     // defaultblock *D0  f DIM's via 2/*D0
-    fprintf(fp_in,"0\nBLOCK\n2\n*D0\n70\n1\n62\n7\n");
-    fprintf(fp_in,"10\n0\n20\n0\n30\n0\n");
-    fprintf(fp_in,"0\nENDBLK\n");
+    fprintf(fpo1,"0\nBLOCK\n2\n*D0\n70\n1\n62\n7\n");
+    fprintf(fpo1,"10\n0\n20\n0\n30\n0\n");
+    fprintf(fpo1,"0\nENDBLK\n");
 
   return 0;
 
@@ -643,14 +723,14 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
 /*
 //================================================================
-  int DXFW_w_BLOCK (char *blkNam, FILE *fpo) {
+  int DXFW_w_BLOCK (char *blkNam) {
 //================================================================
 // export subModel <blkNam>
 
 
   printf("DXFW_w_BLOCK |%s|\n",blkNam);
 
-  DXFW_Model (0, fpo, fpo);
+  DXFW_Mdl_gcad (0);
 
   return 0;
 
@@ -795,7 +875,6 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 
 }
 
-/*
 //================================================================
   int dxfw_hd_POLYLINE (FILE *fp_in) {
 //================================================================
@@ -811,6 +890,7 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
 }
 
 
+/*
 //================================================================
   int dxfw_POLYLINE (int pNr, int typ, Point *pTab, FILE *fp_in) {
 //================================================================
@@ -884,8 +964,8 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
       // schiefer Vollkreis
       zparl = OFF;
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
-      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
-      UT3D_m3_invm3 (im1, m1);      // RücktransformationsMat. generieren
+      dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
+      UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
       UT3D_pt_traptm3 (&pt1, im1, &ci1->pc);
       //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
 
@@ -940,8 +1020,8 @@ static UtxTab_NEW (dxfw_smTab);                // stringtable subModels used
       L_AC_schief:
       zparl = OFF;
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
-      dxfw_load_mat (m1, &ci1->vz);  // eine TrMat nach DXF-Konvention generieren
-      UT3D_m3_invm3 (im1, m1);      // RücktransformationsMat. generieren
+      dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
+      UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
       UT3D_pt_traptm3 (&ptc, im1, &ci1->pc);
       UT3D_pt_traptm3 (&pt1, im1, &ci1->p1);
       UT3D_pt_traptm3 (&pt2, im1, &ci1->p2);
@@ -1060,7 +1140,7 @@ usw.
 //===========================================================================
   int dxfw_load_mat (Mat_4x3 m1, Vector* vz) {
 //===========================================================================
-/* die Mat für ein  DXF-ECS bestimmen. Input nur der Vektor (eines Kreises).
+/* die Mat fuer ein  DXF-ECS bestimmen. Input nur der Vektor (eines Kreises).
 
  Der Nullpunkt (Origin) ist immer ident mit dem Hauptnullpunkt !
 
@@ -1242,7 +1322,7 @@ usw.
 // TODO: move above dim-line (add text-height / 2)
     pt21 = dim1->p3;   // textpoint
     UT2D_pt_traptvclen (&pt22, &pt21, &vc22, -(AP_txdimsiz / 2.));
-    DXFW_point2 (1, &pt2, fp_in);
+    DXFW_point2 (1, (Point2*)&pt2, fp_in);
 
     // 50 = Angle of dimension-line (deg)
     a1 = dim1->a1;
@@ -1261,13 +1341,13 @@ usw.
       // 0 = opposit pt am circ
       UT2D_pt_opp2pt (&pt21, &dim1->p1, &dim1->p2);
       pt1 = UT3D_pt_pt2 (&pt21);
-      DXFW_point2 (0, &pt1, fp_in);
+      DXFW_point2 (0, (Point2*)&pt1, fp_in);
       // 1 = Textpt
       pt1 = UT3D_pt_pt2 (&dim1->p3);
-      DXFW_point2 (1, &pt1, fp_in);
+      DXFW_point2 (1, (Point2*)&pt1, fp_in);
       // 5 = pt am Circ
       pt1 = UT3D_pt_pt2 (&dim1->p2);
-      DXFW_point2 (5, &pt1, fp_in);
+      DXFW_point2 (5, (Point2*)&pt1, fp_in);
 
 
 
@@ -1277,13 +1357,13 @@ usw.
     DXFW_fl_out (53, dim1->a1, fp_in);  // 53 = angle (f CatV5 u Rhino)
       // 0 = CirCen
       pt1 = UT3D_pt_pt2 (&dim1->p1);
-      DXFW_point2 (0, &pt1, fp_in);
+      DXFW_point2 (0, (Point2*)&pt1, fp_in);
       // 1 = Textpt
       pt1 = UT3D_pt_pt2 (&dim1->p3);
-      DXFW_point2 (1, &pt1, fp_in);
+      DXFW_point2 (1, (Point2*)&pt1, fp_in);
       // 5 = pt am Circ
       pt1 = UT3D_pt_pt2 (&dim1->p2);
-      DXFW_point2 (5, &pt1, fp_in);
+      DXFW_point2 (5, (Point2*)&pt1, fp_in);
 
 
 
@@ -1329,24 +1409,24 @@ usw.
     UT2D_pt_traptvclen (&pt22,&dim1->p1,&vc21,-1.);
       // GR_Disp_pt2 (&pt22, SYM_STAR_S, 2);
     pt1 = UT3D_pt_pt2 (&pt22);
-    DXFW_point2 (3, &pt1, fp_in);
+    DXFW_point2 (3, (Point2*)&pt1, fp_in);
     pt1 = UT3D_pt_pt2 (&dim1->p1);
-    DXFW_point2 (4, &pt1, fp_in);
+    DXFW_point2 (4, (Point2*)&pt1, fp_in);
     // ExtL2 = 5,0   (0=P2)
     UT2D_pt_traptvclen (&pt22,&dim1->p2,&vc22,-1.);
       // GR_Disp_pt2 (&pt22, SYM_STAR_S, 3);
     pt1 = UT3D_pt_pt2 (&pt22);
-    DXFW_point2 (5, &pt1, fp_in);
+    DXFW_point2 (5, (Point2*)&pt1, fp_in);
     pt1 = UT3D_pt_pt2 (&dim1->p2);
-    DXFW_point2 (0, &pt1, fp_in);
+    DXFW_point2 (0, (Point2*)&pt1, fp_in);
     // 6 = Circ Intersect auf ExtL2
     UT2D_pt_traptvclen (&pt22,&pt2c,&vc22,d1);
       // GR_Disp_pt2 (&pt22, SYM_STAR_S, 3);
     pt1 = UT3D_pt_pt2 (&pt22);
-    DXFW_point2 (6, &pt1, fp_in);
+    DXFW_point2 (6, (Point2*)&pt1, fp_in);
     // 1 = p3
     pt1 = UT3D_pt_pt2 (&dim1->p3);
-    DXFW_point2 (1, &pt1, fp_in);
+    DXFW_point2 (1, (Point2*)&pt1, fp_in);
 
 
 
@@ -1392,7 +1472,7 @@ usw.
     fprintf(fp_in,"8\n0\n"); // def.Layer
     DXFW_fl_out (50, dim1->a1, fp_in); // 50-Textdirection
     DXFW_fl_out (40, AP_txdimsiz, fp_in); // 40-TextSize
-    DXFW_point2 (0, &pt1, fp_in);
+    DXFW_point2 (0, (Point2*)&pt1, fp_in);
     dxfw_gxt (0, memspc011, dim1->txt);
     fprintf(fp_in,"1\n%s\n",memspc011);
 
@@ -1511,13 +1591,53 @@ usw.
 }
 */
 
+
 //================================================================
-  int DXFW_3DFACE (ObjGX *ox1, int typ, long dbi, FILE *fpo) {
+  int DXFW_3DFACE_out (Point *p1, Point *p2, Point *p3,
+                       char *layNam, int icol) {
+//================================================================
+// Input:
+//   icol     ACI (Autocad-Index-Color)
+
+
+  char      cbuf[160];
+
+
+  fprintf(fpo1,"0\n3DFACE\n");
+
+  if(layNam[0])
+  fprintf(fpo1,"8\n%s\n",layNam);
+
+  if(icol >= 0) 
+  fprintf(fpo1,"62\n%d\n",icol);
+
+  sprintf(cbuf, "10\n%f\n20\n%f\n30\n%f",p1->x,p1->y,p1->z);
+  fprintf(fpo1,"%s\n",cbuf);
+
+  sprintf(cbuf, "11\n%f\n21\n%f\n31\n%f",p2->x,p2->y,p2->z);
+  fprintf(fpo1,"%s\n",cbuf);
+
+  sprintf(cbuf, "12\n%f\n22\n%f\n32\n%f",p3->x,p3->y,p3->z);
+  fprintf(fpo1,"%s\n",cbuf);
+
+  sprintf(cbuf, "13\n%f\n23\n%f\n33\n%f",p1->x,p1->y,p1->z);
+  fprintf(fpo1,"%s\n",cbuf);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DXFW_3DFACE__ (ObjGX *ox1, int typ, long dbi, FILE *fpo) {
 //================================================================
 // typ:   SUR|SOL
 
 
-  int       irc, ii, triSiz, triNr, surSiz, surNr;
+  static char layNam[] = "0";
+
+  int       irc, ii, triSiz, triNr, surSiz, surNr, icol;
   int       sTyp[1];
   long      sTab[1];
   char      cbuf[160];
@@ -1526,10 +1646,8 @@ usw.
   TypTsuSur *surTab;
   Point     *p1;
 
-static char layNam[] = "0";
 
-
-  printf("DXFW_3DFACE \n");
+  // printf("DXFW_3DFACE__ \n");
 
   sTyp[0] = typ;
   sTab[0] = dbi;
@@ -1537,6 +1655,12 @@ static char layNam[] = "0";
   // tesselate -> oTab
   TSU_tess_sTab (&oTab, sTyp, sTab, 1);
 
+  // export all triangles of tess-model
+  tess_res_CB__ (&oTab, DXFW_tess_CB);
+
+
+
+/*
   // space for triangles --> triTab  (12bytes/Tria)
   triTab = (Triangle*)memspc501;
   triSiz = sizeof(memspc501) / sizeof(Triangle);
@@ -1556,27 +1680,16 @@ static char layNam[] = "0";
 
     // write Triangles
     // for(ii=0;ii<triNr;++ii) UT3D_stru_dump (Typ_Tria,&triTab[ii],"tria");
+  icol = 173;  // TODO
   for(ii = 0; ii < triNr; ++ii) {
     tr1 = &triTab[ii];
-    fprintf(fpo,"0\n3DFACE\n");
-    fprintf(fpo,"8\n%s\n",layNam);
-    p1 = tr1->pa[0];
-    sprintf(cbuf, "10\n%f\n20\n%f\n30\n%f",p1->x,p1->y,p1->z);
-    fprintf(fpo,"%s\n",cbuf);
-    p1 = tr1->pa[1];
-    sprintf(cbuf, "11\n%f\n21\n%f\n31\n%f",p1->x,p1->y,p1->z);
-    fprintf(fpo,"%s\n",cbuf);
-    p1 = tr1->pa[2];
-    sprintf(cbuf, "12\n%f\n22\n%f\n32\n%f",p1->x,p1->y,p1->z);
-    fprintf(fpo,"%s\n",cbuf);
-    sprintf(cbuf, "13\n%f\n23\n%f\n33\n%f",p1->x,p1->y,p1->z);
-    fprintf(fpo,"%s\n",cbuf);
+    DXFW_3DFACE_out (tr1->pa[0], tr1->pa[1], tr1->pa[2], layNam, icol);
   }
-
-
+*/
 
   // free tesselated data
-  if(oTab) free (oTab);
+  // if(oTab) free (oTab);
+  TSU_free ();
 
 
 
@@ -1598,23 +1711,25 @@ static char layNam[] = "0";
 //            66=AttribsFollowFlag(1=Yes; Atribs end with SEQEND).
 //            blocks  (mit ASHADE und AVE_RENDER, ... glass.dxf) dzt skippen.
 
-  int           irc;
-  char          s1[200];
+  int           irc, mTyp, mbi;
+  long          l1;
+  char          s1[256];
   double        d1;
   Point         p1;
   Vector        *vz1, *vz2, vxn, vzn;
   Mat_4x3       m1, mi1;
   ModelRef      *mr;
-  ModelBas      *mb;
+  ModelBas      *mbo;
 
 
-  // printf(" DXFW_INSERT: ------------------------\n");
+  printf(" DXFW_INSERT: ------------------------\n");
 
 
   mr = ox1->data;
-  mb = DB_get_ModBas (mr->modNr);
+  mbi = mr->modNr;
+  mbo = DB_get_ModBas (mbi);
     // UT3D_stru_dump (Typ_Model, mr, "mr:");
-    // UT3D_stru_dump (Typ_SubModel, mb, "  mb:");
+    // UT3D_stru_dump (Typ_SubModel, mbo, "  mbo:");
 
   vz1 = &(WC_sur_act.vz);
   vz2 = &(mr->vz);   // vz of subModel
@@ -1622,18 +1737,33 @@ static char layNam[] = "0";
     // UT3D_stru_dump (Typ_VC, vz2, "  vz-sm:");
     // UT3D_stru_dump (Typ_VC, &mr->vx, "  vx-sm:");
 
+  // get modeltype (native or mockup)
+  mTyp = mbo->typ;
+    // printf(" mTyp=%d\n",mTyp);
 
-  strcpy(s1, mb->mnam);
+
+  // blockName from modelname
+  strcpy(s1, mbo->mnam);
   // change all '/' of mNam into '_' - else no correct filename possible
   UTX_safeName (s1, 2);
 
-
   // add blockName to list of subModels
-  UtxTab_add_uniq__ (&dxfw_smTab, s1);
+  // UtxTab_add_uniq__ (&dxfw_smTab, s1);
+  MemTab_uniq_sav (&dxfw_smTab, &l1, &mbi);
+
+
+  // subModelName; for mockup-models: remove filetype for INSERT
+  if(mTyp >= Mtyp_DXF) {
+    strcpy(s1, mbo->mnam);
+    UTX_ftyp_cut (s1);
+    UTX_safeName (s1, 2);
+  }
 
 
   // change OCS(ECS) -> WCS
-  irc = dxfr_load_mat (m1, vz2);
+  irc = dxfw_load_mat (m1, vz2);
+    UT3D_stru_dump (Typ_VC, vz2, " vz2:");
+    UT3D_stru_dump (Typ_M4x3, m1, "m1:");
   if(irc) {
     // new Z not parallel to old Z
     // inverse matrix
@@ -1649,7 +1779,7 @@ static char layNam[] = "0";
   fprintf(fpo,"0\nINSERT\n");
 
 
-  // subModelName
+  // subModelName; for mockup-models: remove filetype
   fprintf(fpo,"2\n%s\n",s1);
 
 
@@ -1702,8 +1832,7 @@ static char layNam[] = "0";
 
 
 //=====================================================================
-  int DXFW_ox (ObjGX *ox1, int TrInd, int typ, long dbi,
-               FILE *fp_o1, FILE *fp_o2) {
+  int DXFW_ox (ObjGX *ox1, int TrInd, int typ, long dbi) {
 //=====================================================================
 // dxfw_rec
 // typ ?
@@ -1723,8 +1852,8 @@ static char layNam[] = "0";
   ObjG          *el;
 
 
-  // printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%ld typ=%d dbi=%ld\n",
-         // ox1->typ,ox1->form,TrInd,typ,dbi);
+  printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%d typ=%d dbi=%ld\n",
+         ox1->typ,ox1->form,TrInd,typ,dbi);
 
 
   // IG_TrInd = TrInd;
@@ -1746,79 +1875,79 @@ static char layNam[] = "0";
 
     //=========================================================
     case Typ_PT:
-      fprintf(fp_o1,"0\nPOINT\n");
-      fprintf(fp_o1,"8\n0\n"); // def.Layer
+      fprintf(fpo1,"0\nPOINT\n");
+      fprintf(fpo1,"8\n0\n"); // def.Layer
       pa = ox1->data;
-      DXFW_point3 (0, &pa[0], fp_o1);
+      DXFW_point3 (0, &pa[0], fpo1);
       break;
 
 
     //=========================================================
     case Typ_LN:
-      fprintf(fp_o1,"0\nLINE\n");
-      fprintf(fp_o1,"8\n0\n"); // def.Layer
+      fprintf(fpo1,"0\nLINE\n");
+      fprintf(fpo1,"8\n0\n"); // def.Layer
       ln1 = ox1->data;
-      DXFW_point3 (0, &ln1->p1, fp_o1);
-      DXFW_point3 (1, &ln1->p2, fp_o1);
+      DXFW_point3 (0, &ln1->p1, fpo1);
+      DXFW_point3 (1, &ln1->p2, fpo1);
       break;
 
 
     //=========================================================
     case Typ_CI:
-      DXFW_CI (ox1->data, fp_o1);
+      DXFW_CI (ox1->data, fpo1);
       break;
 
 
     //=========================================================
     case Typ_CVPOL:
-      return DXFW_POLYLN3 (ox1, 32, fp_o1);
+      return DXFW_POLYLN3 (ox1, 32, fpo1);
 
 
     //=========================================================
     case Typ_CVBSP:
       if(dxfw_subtyp < 2) {    // ab 2 = R14
-        return DXFW_POLYLN3 (ox1, 32, fp_o1);
+        return DXFW_POLYLN3 (ox1, 32, fpo1);
       } else {
-        return dxfw_SPLINE (ox1->data, fp_o1);
+        return dxfw_SPLINE (ox1->data, fpo1);
       }
 
 
     //=========================================================
     case Typ_CVELL:
       if(dxfw_subtyp < 2) {    // ab 2 = R14
-        return DXFW_POLYLN3 (ox1, 32, fp_o1);
+        return DXFW_POLYLN3 (ox1, 32, fpo1);
       } else {
-        return dxfw_ELLIPSE (ox1->data, fp_o1);
+        return dxfw_ELLIPSE (ox1->data, fpo1);
       }
 
 
     //=========================================================
     case Typ_CVCLOT:
-      return DXFW_POLYLN3 (ox1, 32, fp_o1);
+      return DXFW_POLYLN3 (ox1, 32, fpo1);
 
 
     //=========================================================
     case Typ_CVPOL2:
-      return DXFW_POLYLN2 (ox1, 32, fp_o1);
+      return DXFW_POLYLN2 (ox1, 32, fpo1);
 
 
     //=========================================================
     case Typ_Note:
         printf(" dxfw-Typ_Note typ=%d\n",typ);
 
-      if(typ == Typ_GTXT)  return DXFW_TEXT (ox1->data, fp_o1);
+      if(typ == Typ_GTXT)  return DXFW_TEXT (ox1->data, fpo1);
       if(dxfw_subtyp >= 90) {
         // LOG_A__
         TX_Print("**** skip dimension (no DIMENSION with headerless dxf)");
         break;
       }
-      if(typ == Typ_Dimen) return DXFW_DIM (ox1->data, fp_o1);
+      if(typ == Typ_Dimen) return DXFW_DIM (ox1->data, fpo1);
       break;
 
 
     //=========================================================
     case Typ_CVCCV:
-      return DXFW_POLYLN3 (ox1, 32, fp_o1);
+      return DXFW_POLYLN3 (ox1, 32, fpo1);
 
     //=========================================================
 // Typ_PLN
@@ -1842,13 +1971,14 @@ static char layNam[] = "0";
     case Typ_CON:
     case Typ_TOR:
     case Typ_PRI:
-      return DXFW_3DFACE (ox1, typ, dbi, fp_o1);
+      return DXFW_3DFACE__ (ox1, typ, dbi, fpo1);
 
 
     //=========================================================
     case Typ_Model:
+    case Typ_Mock:
       // add to list of subModels
-      return  DXFW_INSERT (ox1, fp_o1);
+      return  DXFW_INSERT (ox1, fpo1);
 
     //=========================================================
     default:
@@ -1861,14 +1991,14 @@ static char layNam[] = "0";
 
 /*
   //  Bestandteile von CCV's (und getrimmten Flaechen ...) ausgeben
-  irc = IGE_w_subObjs (&el, fp_o1, fp_o2);
+  irc = IGE_w_subObjs (&el, fpo1, fpo1);
   if (irc < 0) return irc;
 
   IG_mode  = 0;             // 0=normales Obj; 1=SubObj (von CCV ..)
 
 
   // ein Obj ausgeben (TrMat, D-Zeilen, P-Zeile)
-  irc = IGE_w_obj (&el, apt_typ, apt_ind, fp_o1, fp_o2);
+  irc = IGE_w_obj (&el, apt_typ, apt_ind, fpo1, fpo1);
   if (irc < 0) return irc;
 */
 
@@ -1878,30 +2008,40 @@ static char layNam[] = "0";
 
 
 //=============================================================================
-  int DXFW_main (FILE *fp1, FILE *fp2) {
+  int DXFW_main () {
 //=============================================================================
 // export all objs in group
 
-  int       oNr, i1, tra_ind = 0;
+  int       oNr, i1, iTyp, tra_ind = 0;
   ObjDB     *oTab;
   ObjGX     ox1;
 
 
   oNr = Grp_get__ (&oTab);
 
-  // printf("DXFW_main ============================ %d\n",oNr);
+  printf("DXFW_main ============================ %d\n",oNr);
 
 
   for(i1=0; i1<oNr; ++i1) {
 
-    ox1 = DB_GetObjGX (oTab[i1].typ, oTab[i1].dbInd);
+    iTyp = oTab[i1].typ;
+
+
+    // skip this types:
+    if(iTyp == Typ_Ditto) continue;
+
+
+    // get DB-obj
+    ox1 = DB_GetObjGX (iTyp, oTab[i1].dbInd);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_typ_ERR, " typ=%d dbi=%ld",oTab[i1].typ,oTab[i1].dbInd);
+      LOG_A__ (MSG_typ_ERR, "DXFW_main typ=%d dbi=%ld",
+               oTab[i1].typ,oTab[i1].dbInd);
       ++dxfw_errNr;
       continue;
     }
 
-    DXFW_ox (&ox1, tra_ind, oTab[i1].typ, oTab[i1].dbInd, fp1, fp2);
+    // export DB-obj
+    DXFW_ox (&ox1, tra_ind, oTab[i1].typ, oTab[i1].dbInd);
     ++dxfw_objNr;
 
   }
@@ -1914,7 +2054,115 @@ static char layNam[] = "0";
 
 
 //=============================================================================
-  int DXFW_Model (int modNr, FILE *fp1, FILE *fp2) {
+  int DXFW_Mdl_tess (char *mdlNam) {
+//=============================================================================
+// AP_ExportIges_Model
+
+  // Point    pb1, pb2, pOri;
+  char     fNam[256];
+  Memspc   impSpc;
+
+
+  printf("DXFW_Mdl_tess |%s|\n",mdlNam);
+
+  // fix filename for tess-model
+  sprintf(fNam, "%s%s.tess",OS_get_tmp_dir(),mdlNam);
+    printf(" fTess=|%s|\n",fNam);
+
+  // load tess-model from file
+  if(OS_checkFilExist (fNam, 1) == 0) {
+    TX_Print("***** ERR DXFW_Mdl_tess %s",fNam);
+    return -1;
+  }
+ 
+  // import tess-model into mem
+  TSU_imp_tess (&impSpc, fNam);
+
+  // export all triangles of tess-model
+  tess_res_CB__ (&impSpc, DXFW_tess_CB);
+
+  UME_free (&impSpc);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DXFW_tess_CB (ObjGX *oxi) {
+//================================================================
+  
+  static int  iCol;
+  static char layNam[] = "0";
+  
+  int       i1, triNr, triSiz;
+  ColRGB    sCol, actCol, defCol;
+  Triangle  *triTab, *tr1;
+  
+
+  if(!oxi) {
+    // INIT
+      // printf("DXFW_tess_CB INIT\n");
+    return -1;
+  }
+
+  // printf("DXFW_tess_CB %d\n",oxi->form);
+
+
+  switch (oxi->form) {
+
+    //----------------------------------------------------------------
+    case Typ_PT:           // normal faces
+      triTab = (Triangle*)memspc501;
+      triSiz = sizeof(memspc501) / sizeof(Triangle);
+      triNr = 0;
+      // get triangles from tesselated face
+      tess_ntri_tfac__ (triTab, &triNr, triSiz, oxi);
+        // printf("  fac ptNr=%d glTyp=%d fNr=%d\n",oxi->siz,oxi->aux,triNr);
+      if(triNr < 1) {
+        printf("****** EMPTY FACE typ=%d form=%d glTyp=%d\n",
+                oxi->typ, oxi->form, oxi->aux);
+        return -1;
+      }
+      for(i1=0; i1<triNr; ++i1) {
+        tr1 = &triTab[i1];
+        DXFW_3DFACE_out (tr1->pa[0], tr1->pa[1],tr1->pa[2], layNam, iCol);
+      }
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_Int4:
+      //----------------------------------------------------------------
+      if(oxi->typ == Typ_Color) {    // color of subsequent faces
+        sCol = *((ColRGB*)&oxi->data);
+        if(MEM_cmp__(&sCol, &actCol, sizeof(ColRGB))) {
+          actCol = sCol;
+          printf(" Col r%d g%d b%d\n",sCol.cr,sCol.cg,sCol.cb);
+          // change RGB-color -> ACI-color
+          iCol = DXF_colACI_colRGB (sCol.cr,sCol.cg,sCol.cb);
+        }
+
+      //----------------------------------------------------------------
+      } else {
+        printf(" DXFW_tess_CB UNUSED typ %d form Typ_Int4\n",oxi->typ);
+      }
+      break;
+
+    //----------------------------------------------------------------
+    default:
+      printf(" DXFW_tess_CB UNUSED form %d\n",oxi->form);
+
+  }
+
+  return 0;
+
+}
+
+
+//=============================================================================
+  int DXFW_Mdl_gcad (int modNr) {
 //=============================================================================
 // AP_ExportIges_Model
 
@@ -1933,7 +2181,7 @@ static char layNam[] = "0";
 
 
 
-  printf("DXFW_Model %d\n",modNr);
+  printf("DXFW_Mdl_gcad %d\n",modNr);
 
 
   //----------------------------------------------------------------
@@ -1944,7 +2192,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -1957,7 +2205,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -1970,7 +2218,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -1983,7 +2231,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -1996,7 +2244,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -2009,7 +2257,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -2023,7 +2271,7 @@ static char layNam[] = "0";
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;
 
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind, fp1, fp2);
+    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
     ++anz_obj;
   }
 
@@ -2032,6 +2280,33 @@ static char layNam[] = "0";
 
   //-----------------------------------
   return anz_obj;
+
+}
+
+//==========================================================================
+  int DXFW_cat_file (FILE *fpo, char *fnam) {
+//==========================================================================
+/// \code
+/// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
+/// UTX_cat_file           add file into open fileunit
+/// add file 
+/// \endcode
+
+
+
+  long    l1;
+  char    *fBuf;
+
+
+  printf("DXFW_cat_file/UTX_cat_file |%s|\n",fnam);
+
+
+  l1 = OS_FilSiz (fnam);
+  fBuf = UME_alloc_tmp (l1 + 128);
+  MEM_get_file (fBuf, &l1, fnam);
+  fwrite (fBuf, 1, l1, fpo);
+
+  return 0;
 
 }
 
@@ -2094,7 +2369,7 @@ static char layNam[] = "0";
 //     // work submodel
 //     modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
 //     if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
-//     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Model !
+//     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Mdl_gcad !
 //     anz_obj += i1;
 /
 
@@ -2113,7 +2388,7 @@ static char layNam[] = "0";
   fprintf(fp1,"2\nENTITIES\n");
 
 
-  // i1 = DXFW_Model (-1, fp1, fp2);
+  // i1 = DXFW_Mdl_gcad (-1, fp1, fp2);
   i1 = DXFW_main (fp1, fp2);
   anz_obj += i1;
 
@@ -2174,7 +2449,7 @@ static char layNam[] = "0";
   fprintf(fp1,"2\nENTITIES\n");
 
 
-  // i1 = DXFW_Model (-1, fp1, fp2);
+  // i1 = DXFW_Mdl_gcad (-1, fp1, fp2);
   i1 = DXFW_main (fp1, fp2);
 
 
@@ -2203,7 +2478,7 @@ static char layNam[] = "0";
 //     // work submodel
 //     modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
 //     if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
-//     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Model !
+//     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Mdl_gcad !
 //     anz_obj += i1;
 // 
 //   }

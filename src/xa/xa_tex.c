@@ -185,7 +185,7 @@ see also ../xa/xa_ga.c
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_os.h"                 // OS_ ..
 
-#include "../gr/ut_UI.h"                 // UI_FuncUCB8
+#include "../ut/func_types.h"                 // UI_FuncUCB8
 
 #include "../xa/xa_mem.h"                // memspc011
 #include "../xa/xa.h"                      // AP_STAT
@@ -244,7 +244,7 @@ static TexBas *actTexBas;
 //================================================================
 // Tex_get_fn       get textureFilename from TexRefNr
 
-  long    itb;
+  int     itb;
   char   *p1;
   TexRef *tr;
   TexBas *tb;
@@ -935,7 +935,7 @@ GL_LoadTex
 
 
 //================================================================
-  int Tex_getBas__ (TexBas **txb, long ind) {
+  int Tex_getBas__ (TexBas **txb, int ind) {
 //================================================================
 /// get the Bas.Texture from BasicTextureIndex
 
@@ -949,7 +949,7 @@ GL_LoadTex
 
 
 //================================================================
-  int Tex_getRef (TexRef **tex, long ind) {
+  int Tex_getRef (TexRef **tex, int ind) {
 //================================================================
 /// \code
 /// get TexRef-record from TexRef-index
@@ -1074,7 +1074,7 @@ GL_LoadTex
   // TexBasAct should be TexRefTab[TexRefAct].ibas;
   if(TexBasAct == TexRefTab[TexRefAct].ibas) return 0;
 
-    printf("Tex_RefTest TexRefTab[TexRefAct].ibas=%ld TexBasAct=%d\n",
+    printf("Tex_RefTest TexRefTab[TexRefAct].ibas=%d TexBasAct=%d\n",
             TexRefTab[TexRefAct].ibas,TexBasAct);
 
 

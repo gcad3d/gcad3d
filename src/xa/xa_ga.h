@@ -25,6 +25,4 @@ typedef struct {long cInd, pInd; int typ;}                    Parent;
 
 
 
-  long GA_tex_ga2tr (long iga);
-
 // EOF

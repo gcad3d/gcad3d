@@ -515,7 +515,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
 
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
 
 #include "../ut/ut_TX.h"                  // TX_Error
 
@@ -9797,21 +9797,21 @@ USBS_TgVecIsoBspSur
     // UT3D_stru_dump (Typ_VC, v1, " _perp2vc v1");
     // UT3D_stru_dump (Typ_VC, v2, " _perp2vc v2");
 
+
   // Vergleich Input- Outputadressen
-  if ((v1 == vp) || (v2 == vp)) {
+  // if ((v1 == vp) || (v2 == vp)) {
     vn.dx = v1->dy * v2->dz - v1->dz * v2->dy;
     vn.dy = v1->dz * v2->dx - v1->dx * v2->dz;
     vn.dz = v1->dx * v2->dy - v1->dy * v2->dx;
     *vp = vn;
-  } else {
+  // } else {
+    // vp->dx = v1->dy * v2->dz - v1->dz * v2->dy;
+    // vp->dy = v1->dz * v2->dx - v1->dx * v2->dz;
+    // vp->dz = v1->dx * v2->dy - v1->dy * v2->dx;
+  // }
 
-    vp->dx = v1->dy * v2->dz - v1->dz * v2->dy;
-    vp->dy = v1->dz * v2->dx - v1->dx * v2->dz;
-    vp->dz = v1->dx * v2->dy - v1->dy * v2->dx;
-
-  }
-
-    // UT3D_stru_dump (Typ_VC, vp, "ex UT3D_vc_perp2vc");
+    // UT3D_stru_dump (Typ_VC, &vn, "ex UT3D_vc_perp2vc vn");
+    // UT3D_stru_dump (Typ_VC, vp, "ex UT3D_vc_perp2vc vp");
 
 }
 
@@ -13583,6 +13583,9 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 //================================================================
 /// \code
 /// UT3D_angr_ci_p1_pt            opening angle of point on Circ
+/// Returns the angle from ci1->p1 to pti.
+///   angle 0 means that pti == ci1->p1;
+///   angle 3.14 means that pti is opposite ci1->p1.
 /// ATTENTION: DO NOT USE FOR 360-DEG-CIRCs: returns angle = 0.;
 /// ACHTUNG: ES KANN KEIN VOLLKREIS ANALYSIERT WERDEN - ERGIBT Winkel 0 !!
 /// \endcode

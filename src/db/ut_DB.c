@@ -350,6 +350,8 @@ extern double     AP_txsiz;             ///< Notes-Defaultsize
 extern double     AP_txdimsiz;          ///< Dimensions-Text-size
 extern int        AP_txNkNr;            ///< Nachkommastellen
 
+extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel (without subModels)
+
 extern int       WC_sur_ind;            ///< Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;            ///< die aktive Plane
 extern Mat_4x3   WC_sur_mat;            ///< TrMat of ActiveConstrPlane
@@ -995,7 +997,7 @@ Vector     DB_vc0;
 
 
   if((fp1=fopen(fnam,"rb")) == NULL) {
-    TX_Print("DB_load__ E001\n",fnam);
+    TX_Print("DB_load__ E001 |%s|\n",fnam);
     return -1;
   }
 
@@ -1531,7 +1533,7 @@ Vector     DB_vc0;
   ObjGX *oxp;
 
 
-  // printf("DB_GetObjGX typ=%d ind=%ld\n",typ,apt_ind);
+  // printf("DB_GetObjGX typ=%d ind=%ld\n", typ, apt_ind);
 
 
 /*
@@ -1647,6 +1649,7 @@ Vector     DB_vc0;
 
 
       case Typ_Model:
+      case Typ_Mock:
         if(apt_ind >= APT_MR_SIZ) goto L_Error_9; // skip dynam. text
         ox1.data = &mdr_tab[apt_ind];
         if(DB_isFree_ModRef((&mdr_tab[apt_ind]))) goto L_Error_9;
@@ -3804,6 +3807,10 @@ int DB_del_Mod__ () {
     UT3D_stru_dump (Typ_SubModel, &mdb_dyn[i1], "  %d ",i1);
   }
 
+  UT3D_stru_dump (Typ_Txt, "\nMainmodel:", "");
+  UT3D_stru_dump (Typ_PT, &AP_box_pm1, " pb1 ");
+  UT3D_stru_dump (Typ_PT, &AP_box_pm2, " pb2 ");
+
   return 0;
 
 }
@@ -4300,6 +4307,8 @@ loop tru all nodes; testbm=node[i1].mod;
   mdb_dyn[modNr].DLsiz  = -1;
   mdb_dyn[modNr].seqNr  = 0;
   mdb_dyn[modNr].po     = UT3D_PT_NUL;
+  mdb_dyn[modNr].pb1    = UT3D_PT_NUL;
+  mdb_dyn[modNr].pb2    = UT3D_PT_NUL;
 
 
   L_fertig:

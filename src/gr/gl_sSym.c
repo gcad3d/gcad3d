@@ -72,7 +72,7 @@ List_functions_end:
 #include "../ut/ut_obj.h"                 // UTO_obj_load
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 #include "../gr/ut_GL.h"                  //
-#include "../gr/ut_UI.h"                  // UI_Func... SYM_..
+#include "../ut/func_types.h"                  // UI_Func... SYM_..
 
 #include "../xa/xa_mem.h"                 // memspc51..
 

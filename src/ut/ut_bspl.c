@@ -166,7 +166,7 @@ The sum of all basis functions that affect the curve is always 1.
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 // #include "../xa/xa_mem.h"                 // memspc51-55
 
-#include "../gr/ut_UI.h"               // SYM..
+#include "../ut/func_types.h"               // SYM..
 
 #include "../db/ut_DB.h"               // DB_Get..
 

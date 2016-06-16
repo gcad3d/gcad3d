@@ -77,7 +77,7 @@ Man braucht fuer
 #include "../ut/ut_geo.h"
 
 #include "../gr/ut_GL.h"                 //
-#include "../gr/ut_UI.h"                 // UI_Func... SYM_..
+#include "../ut/func_types.h"                 // UI_Func... SYM_..
 
 #include "../xa/xa_mem.h"      // memspc.
 

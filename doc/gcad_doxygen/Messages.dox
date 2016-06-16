@@ -1,14 +1,14 @@
 /*! \page pag_Messages Messages
-../gcad_doxygen/Messages.dox
+../../doc/gcad_doxygen/Messages.dox
 <h2>Messages Doku</h2>
 
 
 <pre>
 \ref Direct-Messages
 \ref Dump-object-functions
-\ref Debug-functions
+\ref ErrorHandling
 
-
+See also \ref Debugging
 
 
 <hr>
@@ -92,41 +92,39 @@ UTX_dump_cnl        disp. textStrings (UTX_dump_c__ UTX_dump__)
 \endcode
 
 
-\section Debug-functions
+
+
+
 <hr>
+\section ErrorHandling
+
+<pre>
+see also Messages / \ref Direct-Messages
+</pre>
+
 \code
 
 
-#include "../xa/xa.h"                  // printd
-
-  // start debugging (following prints -> debug-file)
-  AP_deb_stat (1);
-
-
-  // print into debug-file
-  printd (" debugfile = %sdebug.dat\n",OS_get_tmp_dir());
+Global Vars:
+AP_STAT   AP_stat;
+AP_stat.errStat       0=OK, else nr of errors
+AP_stat.errLn
 
 
-  // block of debug-messages
-#ifdef DEB
-    for(i1=0;i1<i1; ++i1)
-      printd("tab[%d]=%d\n",i1,ia[i1]);
-#endif
+Functions:
+TX_Error   (../ut/ut_ui_TX.c)
+AP_errStat_get
+AP_errStat_set           // raise / reset error
+AP_errStat_reset
+AP_errText_set
 
 
-  // stop debugging (following prints -> console)
-  AP_deb_stat (0);
-
-  printd (" this text will be skipped ..\n");
-
-  // check debugfile: vi ~/gCAD3D/tmp/debug.dat
-
-
-
-  AP_debug__ ();  // stop in debugmode;
-                  // must start with "gdb gCAD3D.exe -x gCAD3D.gdb"
+AP_test__           Testfunction in core; activate by Ctl shift T
+                    exit durch Ctl shift X
 
 \endcode
+
+
 
 
 */

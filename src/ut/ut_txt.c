@@ -1127,24 +1127,38 @@ static char   TX_buf2[128];
 /// \code
 /// UTX_cat_file           add file into open fileunit
 /// add file 
+/// ATTENTION:
+/// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
 /// \endcode
 
-  long i1;
-  char cbuf[16004];
-  FILE *fpi;
 
 
-  // printf("UTX_cat_file |%s|\n",fnam);
+  long    l1;
+  char    *fBuf;
 
 
-  if((fpi = fopen(fnam, "rb")) == NULL) return -1;
+  printf("UTX_cat_file |%s|\n",fnam);
 
-  while (!feof (fpi)) {
-    i1 = fread(cbuf,1,16000,fpi);
-    fwrite(cbuf,1,i1,fpo);
-  }
 
-  fclose(fpi);
+  l1 = OS_FilSiz (fnam);
+  fBuf = UME_alloc_tmp (l1 + 128);
+  MEM_get_file (fBuf, &l1, fnam);
+  fwrite (fBuf, 1, l1, fpo);
+    
+
+
+  // long i1;
+  // char cbuf[16004];
+  // FILE *fpi;
+
+  // if((fpi = fopen(fnam, "rb")) == NULL) return -1;
+
+  // while (!feof (fpi)) {
+    // i1 = fread(cbuf,1,16000,fpi);
+      // fwrite(cbuf,1,i1,fpo);
+  // }
+
+  // fclose(fpi);
 
     // printf("ex UTX_cat_file\n");
 

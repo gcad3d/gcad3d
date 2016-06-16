@@ -1,6 +1,7 @@
 # Link gcad3d-main                    make -f gcad3d.mak
 # make all            Alle Basis-DLL's xa_XX.so linken
 # make allDemos       Alle Demo-DLL's xa_XX.so linken
+# gcad_dir_bin must be set (. ../options.sh)
 
 #OPSYS = `uname`
 
@@ -11,7 +12,7 @@ EXENAM  = gCAD3D
 include gcad_src.mak
 
 
-# get gcad_dir_bin CC VGUI
+# get CC VGUI
 include ../options.mak
 
 
@@ -39,6 +40,11 @@ include srcOS.mak
 include src2obj.mak
 
 
+ifndef gcad_dir_bin
+$(error ERROR - gcad_dir_bin undefined. Start with "./do c" or do ". ../options.sh")
+endif
+
+
 # fmod dlclose
 LKDEF = -lm -ldl
 
@@ -62,6 +68,8 @@ LKFLG = $(LKDEF) $(LKDEB) -rdynamic
 #default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGUI) $(OBJGLB) $(OBJOS)
 default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 	@echo "====================== link ======================"
+	@echo "OS=" $(OS) 
+	@echo "gcad_dir_bin=" $(gcad_dir_bin) 
 #	@echo "OBJ1=" $(OBJ1) "==================="
 #	@echo "SRC3=" $(SRC3) "==================="
 #	@echo "OBJG=" $(OBJG) "==================="

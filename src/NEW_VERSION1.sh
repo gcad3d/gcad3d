@@ -43,7 +43,7 @@ inp=`sh -c 'read INPLIN ; echo $INPLIN '`
 
 # update logfile
 cd ${basDir}/doc
-vi gcad_log.txt
+vi gCAD3D_log.txt
 
 
 #fi

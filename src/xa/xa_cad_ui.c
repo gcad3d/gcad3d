@@ -360,7 +360,7 @@ cl -c /I ..\include xa_ui_cad.c
 
 #include "../gui/gui__.h"         // Gtk3
 
-#include "../gr/ut_UI.h"          // FUNC_DispWire
+#include "../ut/func_types.h"          // FUNC_DispWire
 #include "../gr/ut_GL.h"          // GL_Redraw
 #include "../gr/ut_DL.h"          // DL_Redraw
 

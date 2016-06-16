@@ -130,7 +130,7 @@ APT_work_PrgCmd   :4217
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_UI.h"              // UI_FuncSet
+#include "../ut/func_types.h"              // UI_FuncSet
 #include "../xa/xa_mem.h"             // memspc011
 #include "../ut/ut_os.h"              // OS_get_bas_dir
 #include "../db/ut_DB.h"              // DB_get_ModRef

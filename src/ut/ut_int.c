@@ -68,7 +68,7 @@ UTO_obj_trim
 
 #include "../ut/ut_geo.h"              // Point ...
 
-#include "../gr/ut_UI.h"               // SYM_..
+#include "../ut/func_types.h"               // SYM_..
 #include "../gr/tess_su.h"             // TypTsuSur
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 

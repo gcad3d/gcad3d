@@ -43,7 +43,7 @@ gCad_sel_CB
 #include "../ut/ut_TX.h"               // TX_Print
 
 #include "../gr/ut_gr.h"               // GR_gtx_ckBlockWidth
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_GL.h"               // GL_GetCen
 #include "../gr/vf.h"                  // GL_vf1_CS
@@ -263,21 +263,29 @@ extern long       GR_TAB_IND;
 
 */
 
-//================================================================
-  int tst_FileOpen () {
-//================================================================
 
-  printf("tst_FileOpen \n");
+//================================================================
+  int tst_imp_gcad () {
+//================================================================
+// test import dxf
+  
+  int      irc;
+  char     cbuf[256], fDir[80], fNam[80];
+  
+  
+  printf("tst_imp_gcad \n");
 
-  // UI_open__ ("sample_1.gcad", "/mnt/serv1/Devel/dev/gCAD3D/dat/");
-  UI_open__ ("DIM_TEST.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("sample_activity_modval_1.gcad", "X:\\Devel\\dev\\gCAD3D\\dat\\");
+  strcpy(fDir, "/mnt/serv1/Devel/cadfiles/gcad/");   // Data
+
+  UI_open__ ("sample_dil2.gcad", fDir);
 
   return 0;
 
 }
 
- 
+
+
+
 //================================================================
   int tst_imp_dxf () {
 //================================================================
@@ -697,7 +705,8 @@ extern long       GR_TAB_IND;
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
   
-  irc = OS_dll_do ("xa_print__", "PRI__", "abc");
+  UI_PRI__ (FUNC_EXEC);
+  // irc = OS_dll_do ("xa_print__", "PRI__", "abc");
   
   return 0; 
 
@@ -733,9 +742,9 @@ extern long       GR_TAB_IND;
 //================================================================
 // test import Vrml
 // Im Model muss stehen:
-// M1="Data/t1.wrl" P(0 0 0)
+// M1="Data/samp_anilin.wrl" P(0 0 0)
 // M1=MOCK "WRL/x29.wrl" P(0 0 0)
-// aktivieren durch RUN ..
+// aktivieren durch Ctrl-P
 
   int      irc;
   char     cbuf[256];

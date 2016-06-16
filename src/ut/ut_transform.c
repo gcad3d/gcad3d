@@ -199,7 +199,7 @@ Typ_TraMat:
 
 #include "../db/ut_DB.h"               // DB_GetObjGX
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 
 
 
@@ -698,10 +698,11 @@ WC_sur_mat WC_sur_imat
 
 
   // transform curve|surf|sol (ObjGX)
-  // CV: returns the parent-record in tmpSpc ?
-  irc = UTRA_app__ (tmpSpc, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
-  if(irc < 0) return irc;
-    // UT3D_stru_dump (ox2.form, tmpSpc, "ex UTRA_app__");
+  // CV: returns the parent-record (ObjGX*) in tmpSpc !
+  fTyp = UTRA_app__ (tmpSpc, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
+  if(fTyp < 0) return fTyp;
+    // if(fTyp) UTO_dump__ (tmpSpc, "ex UTRA_app__");
+    // else     UT3D_stru_dump (ox2.form, tmpSpc, "ex UTRA_app__");
 
 
 /*
@@ -724,7 +725,15 @@ WC_sur_mat WC_sur_imat
 
     // save the complete obj in DB
     *dbi = -1L;
-    irc = DB_store_stru (&vp1, ox2.typ, ox2.form, tmpSpc, ox2.siz, dbi);
+
+    if(fTyp == 0) {                // 2016-06-08 sample_dil2.gcad
+      // simple structs;
+      vp1 = tmpSpc;
+    } else {
+      // complex (Curves, surfs, bodies
+      vp1 = ((ObjGX*)tmpSpc)->data;
+    }
+    irc = DB_store_stru (&vp1, ox2.typ, ox2.form, vp1, ox2.siz, dbi);
     if(irc < 0) return irc;
 
     // restore wrkSpc
@@ -804,7 +813,6 @@ WC_sur_mat WC_sur_imat
 ///              size: same as obji or OBJ_SIZ_MAX bytes
 ///              SABNT: returns parent-record (ObjGX)
 ///   RetCod     type of struct (0|1) from UTO_ck_dbsTyp
-/// TODO: oSiz-unused !?
 
   int     irc, fTyp;
   // Memspc  tSpc1;
@@ -818,6 +826,7 @@ WC_sur_mat WC_sur_imat
   // transform
   irc = UTRA_app_x (&poo, oform, iNr, obji, wrkSpc);
   if(irc < 0) return irc;
+    // UT3D_stru_dump (oform, poo, "ex UTRA_app_x");
 
 
   // is output a single data-record or a ox
@@ -837,15 +846,9 @@ WC_sur_mat WC_sur_imat
     OGX_SET_OBJ ((ObjGX*)objo, otyp, oform, iNr, poo);
     // UTO_ox_stru (oxo, ox2.typ, ox2.form, ox2.siz, &APTSpcObj);
     // if(i1 < 0) return -1;
-      // UTO_dump_s_  (oxo, "APT_tra_obj-out:");
-
+      // UTO_dump_s_  (objo, "APT_tra_obj-out:");
+      // UTO_dump__   (objo, "APT_tra_obj-out:");
   }
-
-/*
-  // make memspc of objo
-  UME_init (&tSpc1, objo, *oSiz);
-
-*/
 
 
   return fTyp;

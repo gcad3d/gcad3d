@@ -25,7 +25,7 @@ Modifications:
 -----------------------------------------------------
 */
 /*!
-\file  ../xa/print__.c
+\file  ../xa/xa_print__.c
 \brief write / print PDF EPS SVP
 \code
 =====================================================
@@ -339,14 +339,20 @@ int win1__ (MemObj *mo, void **data);
 
       if(mode == 0) {    // PDF:
         // create <tempDir>/print.eps
+        // new:
         gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Print_Redraw);
+        // old:
+        // if(AP_print__() < 0) break;
         // AP_print_pdf (irot, pgTyp, txoff, txscl, "2");
 
 
       } else if(mode == 1) {   // PS: 
         //           rot, off, Scale, gray)
         // create <tempDir>/print.eps
+        // new:
         gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Print_Redraw);
+        // old:
+        // if(AP_print__() < 0) break;
         // AP_print_psv2 (irot, txoff, txscl, "2");
 
 

@@ -186,13 +186,14 @@ cl -c /I ..\include xa_ui.c
 #include "../ut/ut_txfil.h"       // UTF_FilBuf0Siz
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
+#include "../ut/ut_col.h"              // COL_INT32
 
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
 
-#include "../gr/ut_UI.h"          // FUNC_DispWire
+#include "../ut/func_types.h"          // FUNC_DispWire
 #include "../gr/ut_gr.h"          // FUNC_ViewTop
 #include "../gr/ut_GL.h"          // GL_Redraw
 #include "../gr/ut_DL.h"          // GL_Redraw
@@ -201,7 +202,7 @@ cl -c /I ..\include xa_ui.c
 
 #include "../xa/xa_ui_gr.h"
 #include "../xa/xa_uid.h"         //  DLI_POS_TMP
-#include "../xa/xa_ui.h"               // UID_ckb_nam u. ex ut_UI.h: UI_FuncGet
+#include "../xa/xa_ui.h"               // UID_ckb_nam u. ex func_types.h: UI_FuncGet
 #include "../xa/xa_ed.h"            // EDI_CB__
 #include "../xa/xa_edi__.h"            // EDI_CB__
 #include "../xa/xa_undo.h"
@@ -3175,8 +3176,6 @@ TX_Error("EDI-GDK_BackSpace");
       // export all points, curves ..
       OS_dll_do ("xa_dxf_w", "DXFW__", cbuf);
       goto L_fertig;
-      // // export surfaces as 3DFACE
-      // goto L_mock;
 
 
     } else if(!strcmp(ftyp, "SVG")) {
@@ -3301,7 +3300,7 @@ TX_Error("EDI-GDK_BackSpace");
     // END TESTBLOCK
 
     // load dll
-    if(dll1 == NULL) OS_dll__ (&dll1,  FUNC_LOAD, "xa_print__");
+    if(dll1 == NULL) OS_dll__ (&dll1,  FUNC_LOAD_only, "xa_print__");
 
     // connect func
     OS_dll__ (&dll1,  FUNC_CONNECT, "PRI__");
@@ -3918,12 +3917,9 @@ TX_Error("EDI-GDK_BackSpace");
   // printf("UI_loadImg_CB |%s|%s|\n",fnam,dirNam);
 
 
-  // strcpy(AP_dir_open, dirNam);
-  AP_set_dir_open (AP_dir_open);
-  // strcpy(WC_modnam, fnam);
-
-  // get symbol from path
-  // Mod_sym_get2 (dirSym, dirNam);
+  // set AP_dir_open & AP_sym_open from dirNam
+  AP_set_dir_open (dirNam);
+  // AP_set_dir_open (AP_dir_open);
 
   // create line N1=IMG P(0 0 0) "BMP/Andi.bmp"
   ind = DB_dbo_get_free (Typ_GTXT); // N
@@ -3938,9 +3934,10 @@ TX_Error("EDI-GDK_BackSpace");
 
 
 //=====================================================================
-  int UI_loadMock_CB (char *fnam,char *dirNam) {
+  int UI_loadMock_CB (char *fnam, char *dirNam) {
 //=====================================================================
 // fnam ist FileName + Filetyp.
+// create source-line "M# = "symDir/fnam" P(0 0 0)"
 
   long ind;
   char cbuf[256]; //, dirSym[64];
@@ -3951,20 +3948,20 @@ TX_Error("EDI-GDK_BackSpace");
   printf("UI_loadMock_CB |%s|%s|\n",fnam,dirNam);
 
 
-  // strcpy(AP_dir_open, dirNam);
-  AP_set_dir_open (AP_dir_open);
-  // strcpy(WC_modnam, fnam);
+  // set AP_dir_open & AP_sym_open from dirNam
+  AP_set_dir_open (dirNam);
+  // AP_set_dir_open (AP_dir_open);
 
-  // get symbol from path
-  // Mod_sym_get2 (dirSym, dirNam);
-
-  // create line M#=MOCK "fnam" P(0 0 0)
+  // get next free Model-index
   ind = DB_dbo_get_free (Typ_Model); // M
   ++ind;
+
+  // create line M# = "symDir/fnam" P(0 0 0)
   // sprintf(cbuf,"M%ld=MOCK \"%s/%s\" P(0 0 0)",ind,AP_sym_open,fnam),
   sprintf(cbuf,"M%ld=\"%s/%s\" P(0 0 0)",ind,AP_sym_open,fnam),
     // printf(" Mock_CB |%s|\n",cbuf);
 
+  // add to model and work
   ED_add_Line (cbuf);
 
   return 0;
@@ -4217,6 +4214,10 @@ TX_Error("EDI-GDK_BackSpace");
 //================================================================
   int UI_open__ (char *fnam,char *dirNam) {
 //================================================================
+// File / open Model
+// Input:
+//   fnam      modelfileName; eg "DIM_TEST.dxf"
+//   dirNam    directory;     eg "/mnt/serv1/Devel/cadfiles/dxf/"
 
   char cbuf[256];
 
@@ -6568,7 +6569,7 @@ See UI_but__ (txt);
 
   // surf's : Color, Transparenz, Style, Style;
   if(typ == Typ_SUR) {
-    col1 = (ColRGB*)&ga1->iatt;
+    col1 = COL_INT32(&ga1->iatt); // col1 = (ColRGB*)&ga1->iatt;
 /*
     if(col1->color == 0) {
       sprintf(cbuf2, " Color = Default");
@@ -6583,12 +6584,12 @@ See UI_but__ (txt);
       UT3D_stru_dump(Typ_Txt, cbuf2, "");
     }
     if(col1->vtex > 0) {
-      l1 = GA_tex_ga2tr (iga);
-      Tex_getRef (&tr, l1);
-      UT3D_stru_dump (Typ_TEXR, tr, "Texture-Reference[%d]:\n",l1);
-      l1 = tr->ibas;
-      Tex_getBas__ (&tb, l1);
-      UT3D_stru_dump (Typ_TEXB, tb, "Basic-Texture[%d]:\n",l1);
+      i1 = GA_tex_ga2tr (iga);
+      Tex_getRef (&tr, i1);
+      UT3D_stru_dump (Typ_TEXR, tr, "Texture-Reference[%d]:\n",i1);
+      i1 = tr->ibas;
+      Tex_getBas__ (&tb, i1);
+      UT3D_stru_dump (Typ_TEXB, tb, "Basic-Texture[%d]:\n",i1);
     }
 
 
@@ -6596,7 +6597,7 @@ See UI_but__ (txt);
   } else if((typ == Typ_LN)   ||
             (typ == Typ_CI)   ||
             (typ == Typ_CV))     {
-    sprintf(cbuf2, "  Linetyp = %ld\n",ga1->iatt);
+    sprintf(cbuf2, "  Linetyp = %d\n",ga1->iatt);
     UT3D_stru_dump(Typ_Txt, cbuf2, "");
   }
 
@@ -10653,7 +10654,7 @@ box1
 // Checkboxen liefern mit UI_FuncGet ein int zurueck; 0=selektiert, 1=nicht!
 // data MUSS IMMER mit (void*) gecastet werden !
 
-// func       see ../gr/ut_UI.h
+// func       see ../ut/func_types.h
 // widgetID   see ../xa/xa_uid.h
 
 

@@ -90,7 +90,7 @@ List_functions_end:
 #include "../xa/xa_ed_mem.h"           // APED_onam_search
 #include "../xa/xa_msg.h"              // Messages
 
-// #include "../gr/ut_UI.h"               // UI_Func..
+// #include "../ut/func_types.h"               // UI_Func..
 
 
 #define   TRUE 1

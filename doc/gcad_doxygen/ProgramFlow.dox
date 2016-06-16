@@ -11,8 +11,6 @@
 \ref Interaction
 \ref Views
 
-\ref DB-functions
-
 \ref Textures
 \ref Tesselate
 
@@ -39,30 +37,6 @@
 
 
 
-\section DB-functions
-<pre>
-\ref ut_DB.c                                            (DB_)
-\ref ut_dbo.c   handle database-objects (typ, DB-index) (DBO_)
-</pre>
-\code
-
-UTO_get_DB          get DB-data-struct from typ, DB-index
-DB_get_PT,LN,VC,CI
-DB_GetCurv,Sur,Sol
-DB_GetObjGX         returns a ObjGX of a object stored in DB
-UTO_obj_getp        returns data-struct from ObjGX
-
-DB_GetObjGX
-DB_GetPoint
-DB_StorePoint
-DB_QueryNxtInd
-DB_GetDynInd
-
-
-
-
-
-\endcode
 \section Transformations
 <pre>
 see also \ref ut_transform.c  (UTRA_)
@@ -235,23 +209,36 @@ UI_CB_view                    View - Funktion
 \code
 
 ------------------- GUI-events 
+UI_GL_mouse__
   UI_GR_Select1
     GL_sel_sel
     UI_GR_Select2             callback von GUI_Popup (Liste der sel.Obj)
      UI_GR_Select_work1       work GR_Sel_Filter 3-7
+      sele_decode                 change selected_object into requested_object
       UI_GR_Select_work2      work  hide,view,SM or call
+       IE_sel_CB__               write selection -> CAD-inputfield
        IE_cad_sel1            CAD-report sel.
        ED_add_Text            MAN
   UI_GR_view_set_Z
   UI_GR_Indicate
+
 OMN_CB_popup                  callback of popup-menu
+
 UI_CursorWait UI_ChangeCursor UI_ResetCursor
+
+
+// handle special-keycodes:
+  UI_key_spcCtrl    // Ctrl on
+  UI_key_spcAlt     // Alt ON
+  UI_key_spcShAlt   // Shift + Alt ON
+
 
 ------------------- OpenGL-Events:
 UI_GL_draw__                  Redraw whole scene
 UI_GL_move__                  mouseMoveCallback from Grafic-window
 UI_GL_mouse__                 mouseButtonCallback from Grafic-window
 UI_GL_keys__                  KeybCallback from Grafic-window
+
 
 Brw_CB_sel                    MouseButtonCallback from Browser-window
 EDI_CB__                      KeybCallback from Editor-window

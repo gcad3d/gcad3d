@@ -97,13 +97,14 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_math.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_bspl.h"
 #include "../ut/ut_obj.h"                 // UTO_stru_2_obj
 
-#include "../gr/ut_UI.h"                  // SYM_..
+#include "../ut/func_types.h"                  // SYM_..
 
 #include "../xa/xa_mem.h"
 

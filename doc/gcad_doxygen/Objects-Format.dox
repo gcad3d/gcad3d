@@ -1,55 +1,48 @@
-/*! \page pag_bdm Binary-Format
-../gcad_doxygen/Binary-Format.dox
+/*! \page Objects-Format
+../../doc/gcad_doxygen/Objects-Format.dox
 
 
+<pre>
+\ref ObjectTypes
 
-\ref Datenmodelle<br>
-  &nbsp;&nbsp; \ref ComplexObject<br>
-  &nbsp;&nbsp; \ref Vector<br>
-  &nbsp;&nbsp; \ref Point<br>
-  &nbsp;&nbsp; \ref Line<br>
-  &nbsp;&nbsp; \ref Circle<br>
-  &nbsp;&nbsp; \ref Ellipse<br>
-  &nbsp;&nbsp; \ref Plane<br>
-  &nbsp;&nbsp; \ref Textnote<br>
-  &nbsp;&nbsp; \ref Dimensions<br>
-  &nbsp;&nbsp; \ref Bitmaps<br>
-  &nbsp;&nbsp; \ref Curves<br>
-  &nbsp;&nbsp; \ref Surfaces<br>
-  &nbsp;&nbsp; \ref Bodies<br>
-  &nbsp;&nbsp; \ref Models<br>
-  &nbsp;&nbsp; \ref BinaryMesh<br>
-  &nbsp;&nbsp; \ref Transformation<br>
-\ref DynamicDataArea<br>
-\ref PermanentAttributeList<br>
-\ref DisplayList<br>
-\ref BasicModelList<br>
-\ref ModelReferenceList<br>
-\ref BasicTexureList<br>
-\ref TextureReferenceList<br>
-\ref TexturedSurfaces<br>
-
+\ref ComplexObject
+\ref Vector
+\ref Point
+\ref Line
+\ref Circle
+\ref Ellipse
+\ref Plane
+\ref Textnote
+\ref Dimensions
+\ref Bitmaps
+\ref Curves
+\ref Surfaces
+\ref Bodies
+\ref Models
+\ref BinaryMesh
+\ref Transformation
+</pre>
 
 <hr>
 
 
 
 ////////////////////////////////////////////////////////////////////
-\section Datenmodelle
+\section ObjectTypes
 ////////////////////////////////////////////////////////////////////
-Definition der Datenstructs siehe ../ut/ut_geo.h.
-
-
-
-_________________________________________________________________________
-\subsection ComplexObject
 \code
+Definition der Datenstructs siehe ../ut/ut_geo.h.
 
 Es gibt typenspezifische Strukturen -
   (Point, Line, Circ, Vector, CurvPoly, CurvBSpl ..)
 
 Es gibt ein Containerobjekt: die struct ObjGX.
 
+
+\endcode
+_________________________________________________________________________
+\section ComplexObject
+\code
 In der DB werden alle Kurven und Flaechen (S,A) als
   ObjGX-Strukturen gespeichert (retourniert);
   Punkte, Linien, Kreise, Vektoren .. werden direkt (mit ihrer
@@ -57,6 +50,9 @@ In der DB werden alle Kurven und Flaechen (S,A) als
 
 
 
+
+form = ObjGX
+typ = Typ_ObjGX
 
 Inhalte einer struct ObjGX:
 
@@ -120,7 +116,7 @@ UTO_obj_2_mem           Ein Obj seriell in einen Speicherbereich ablegen.
 
 \endcode
 _________________________________________________________________________
-\subsection Vector
+\section Vector
 \ref ut_geo_const.h               Constant Vectors<br>
 \code
 
@@ -139,7 +135,7 @@ Examples:
 
 \endcode
 _________________________________________________________________________
-\subsection Point
+\section Point
 \code
 
 
@@ -207,7 +203,7 @@ see also
 
 \endcode
 _________________________________________________________________________
-\subsection Line
+\section Line
 \code
 
 
@@ -249,7 +245,7 @@ ObjGX  ox1;
 
 \endcode
 _________________________________________________________________________
-\subsection Circle
+\section Circle
 \code
 
 
@@ -260,8 +256,8 @@ _________________________________________________________________________
 Circ2  ci2D;
   ci2D.p1   = (Point2) Startpunkt
   ci2D.p2   = (Point2) Endpunkt
-  ci2D.pc   = (Point2) Mittelpunkt
-  ci2D.rad  = (double) Radius
+  ci2D.pc   = (Point2) centerpoint
+  ci2D.rad  = (double) Radius; positive for CCW, negative for CW.
 
 ObjGX  ox1;
   ox1.typ   = Typ_CI
@@ -280,9 +276,9 @@ ObjGX  ox1;
 Circ   ci3D;
   ci3D.p1   = (Point) Startpunkt
   ci3D.p2   = (Point) Endpunkt
-  ci3D.pc   = (Point) Mittelpunkt
-  ci3D.rad  = (double) Radius
-  ci3D.vz   = (Vector) Achsrichtung
+  ci3D.pc   = (Point) centerpoint
+  ci3D.rad  = (double) Radius; positive for CCW, negative for CW.
+  ci3D.vz   = (Vector) axis direction
 
 // size = 104
 
@@ -299,7 +295,7 @@ ObjGX  ox1;
 
 \endcode
 _________________________________________________________________________
-\subsection Ellipse
+\section Ellipse
 \code
 
 
@@ -324,7 +320,7 @@ CurvElli ell1;
 
 \endcode
 _________________________________________________________________________
-\subsection Plane
+\section Plane
 \code
 
 
@@ -377,7 +373,7 @@ Examples:
 
 \endcode
 _________________________________________________________________________
-\subsection Textnote
+\section Textnote
 \code
 
 
@@ -400,7 +396,7 @@ GText     tx1
 
 \endcode
 _________________________________________________________________________
-\subsection Dimensions
+\section Dimensions
 \code
 
 
@@ -485,7 +481,7 @@ Dimen dim1
 
 \endcode
 _________________________________________________________________________
-\subsection Bitmaps
+\section Bitmaps
 \code
 
 
@@ -507,7 +503,7 @@ AText     tag
 
 \endcode
 _________________________________________________________________________
-\subsection Curves
+\section Curves
 \ref Polygon<br>
 \ref Splines (B-Spl., Polynom-Spl., Bezier-Spl.)<br>
 \ref CCV<br>
@@ -516,7 +512,7 @@ _________________________________________________________________________
 
 \endcode
 _________________________________________________________________________
-\subsubsection Polygon
+\subsection Polygon
 \code
 
 
@@ -576,7 +572,7 @@ Examples:
 
 \endcode
 _________________________________________________________________________
-\subsubsection Splines
+\subsection Splines
 \code
 
 
@@ -662,7 +658,7 @@ CurvBez  cvBez
 
 \endcode
 _________________________________________________________________________
-\subsubsection CCV
+\subsection CCV
 \code
 
 
@@ -713,7 +709,7 @@ Example decode ccv:
 
 \endcode
 _________________________________________________________________________
-\subsection Surfaces
+\section Surfaces
 \code
 
 
@@ -1018,7 +1014,7 @@ Konische/Toroide Flaeche; ungetrimmt, ungelocht:      UNUSED
 
 \endcode
 _________________________________________________________________________
-\subsection Bodies
+\section Bodies
 \code
 
 
@@ -1133,7 +1129,7 @@ ObjGX     ox1
 
 \endcode
 _________________________________________________________________________
-\subsection Models
+\section Models
 \code
 
 
@@ -1169,7 +1165,7 @@ ObjGX     ox1
 
 \endcode
 _________________________________________________________________________
-\subsection BinaryMesh
+\section BinaryMesh
 \code
 
 
@@ -1256,7 +1252,7 @@ ObjGX  rfi
 
 \endcode
 _________________________________________________________________________
-\subsection Transformation
+\section Transformation
 \code
 
 
@@ -1277,319 +1273,6 @@ TraRot    rr1
   rr1.vz     = (Vector) Drehachse
   rr1.angr   = (double) Drehwinkel in Grad
 
-
-
-
-
-
-\endcode
-\section DynamicDataArea
-\code
-
-================================================================= 
-DynamicDataArea
-================================================================= 
-
-In every model the first block is the DynamicDataArea;
-  it ends with the line ":DYNAMIC_DATA".
-The DynamicDataArea can have the following commands:
-
-
-MODSIZ ..
-DEFTX ..
-DEFCOL ..
-VIEW ..
-CONST_PL ..
-GATAB
-..
-ENDGATAB
-:DYNAMIC_DATA
-
-
-
-
-GATAB starts the grafic-attributes-table;
-
-Grafic-Attributes-Records for surfaces:
-
-<ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
- H  hidden
- C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
- T  transparent; 0=not, 1=50% transparent, 2=full transparent
- S  symbolic; 0=not, 1=symbolic display 
- X  textured surface; Format:
-    X"<Image>",X-scale,Y-Scale,X-Offset,Y-Offset,RotAng[,X-vec,Z-Vec]
-      <Image>  consists of "<symbolPath>/<imagefilename>"
-      Offsets are Values from 0-1
-      RotAng in degree
-
-
-
-Grafic-Attributes-Records for Lines, Curves:
-
-<ObjectID> [T#]
- H  hide
- T  index Linetyp; 2=dash, 3=dashDot.
-
-
-
-
-Example DynamicDataArea:
-
-
-# DefaultColor
-DEFCOL 224 224 242
-GATAB
-# Linetype; 2=dash, 3=dashDot.
-L20 T2
-L21 T3
-# color green, semiTransparent
-A20 C00ff00 T1
-# textures
-A21 X"Data/sample_Stein1.bmp",5,5,0,0,15
-A22 X"Data/sample_Ziegel1.bmp",5,5,0,0,0
-ENDGATAB
-:DYNAMIC_DATA
-# here starts geometric-object-space
-L20=P(0 0 0) P(50 0 0)
-L21=P(0 0 0) P(50 50 0)
-S20=REC P(50 0 0) D(50 0 0) D(0 50 0)
-S21=REC P(50 0 0) D(0 50 0) D(0 0 20)
-S22=REC P(50 50 0) D(50 0 0) D(0 50 0)
-A20=S20
-A21=S21
-A22=S22
-
-
-
-\endcode
-\section PermanentAttributeList
-\code
-
-
-================================================================= 
-PermanentAttributeList
-================================================================= 
-
-// PermanentAttributRecord
-typedef struct {long ind;
-                unsigned long iatt;
-                unsigned lay:16, typ:8,
-                         unused:7, disp:1;}                         ObjAtt;
-// typ    DB-Typ
-// ind    DB-Index
-// iatt   for typ=LN/AC/Curve: LineTypNr.
-//        for typ=TAG/IMG: sx/sy
-//        for typ=Surf/Model: ColRGB
-// disp   0=normal; 1=hidden
-// oNam   objectname; not yet impl.
-// size = 12
-
-
-../xa/xa_ga.c:
-ObjAtt  *GA_ObjTab=NULL;         // die PermanentAttributeTable
-int     GA_recNr=0;              // die aktuelle Anzahl von Records
-
-
- 
-Die DispList enthaelt alle fuers Display erforderlichen Infos
-  (Color, Texture, symbolic-yes/no usw).
-Die DispList wird bei RUN neu generiert, die GA_ObjTab ist permanent.
- Die GA_ObjTab ist eine Kopie, die erforderlich ist um den DL-Record
-  wieder zu erzeugen.
-In der DispList gibt es keine Info ob ein zugehoeriger GA_ObjTab-Record
-  existiert.
-
-
-Nur fuer typ=Surf/Model:    GA_ObjTab[i].iatt   ist eine ColRGB;
-
-// Typ_Color
-typedef struct {unsigned cr:8, cg:8, cb:8,
-                  unused:3, vtra:2, vsym:1, vtex:1, color:1;}       ColRGB;
-// vtra   view transparent; 0=not, 1=25% transparent, 2=50%, 3=75%
-// vtex   has texture; 0=not, 1=yes; (cr+cg+cb) = textureRefNr
-// vsym   view normal (0,shaded) or symbolic (1,wireframeboundary)
-// color  0=color not active; 1=color from cr/cg/cb
-// size = 4
-
-
-
-
-\endcode
-\section DisplayList
-\code
-
-================================================================= 
-DisplayList
-================================================================= 
-
-
-// typedef struct {long ind; int lNr; short refInd, attInd;
-typedef struct {long ind, lNr;
-                unsigned long iatt;
-                unsigned modInd:16, typ:8,
-                         disp:1,  pick:1,  hili:1,  dim:1,
-                         grp_1:1, temp:1,  unvis:1, sPar:1;}        DL_Att;
-// lNr    APTlineNr.
-// typ    DB-Typ
-// ind    DB-Index
-// refInd 2d_to_3d_Ind
-// modInd ModelNr
-// iatt   for typ=LN/AC/Curve: LineTypNr.
-//        for typ=TAG/IMG: sx/sy
-//        for typ=Surf/Model: ColRGB
-//        in Parent-state DL-index of child
-// disp, hili:
-//        normal = ((disp == 0)&&(hili == 1))
-//        hilite = ((disp == 1)&&(hili == 0))
-//        hidden = ((disp == 1)&&(hili == 1))
-// pick   0=unpickable, 1=pickable
-// unvis  0=visible; 1=obj does not have graph. representation
-// sPar   0=independent; 1=Parent-state is active.
-// grp_1  0=belongs to active Group, 1=not
-// size = 16
-
-
-
-../gr/ut_DL.c:
-DL_Att     *GR_ObjTab;      // die DisplayList
-long       GR_TAB_IND;      // naechster freier Index
-
-
-Nur fuer typ=Surf/Model:    GR_ObjTab[i].iatt   ist eine ColRGB;
-  genauso wie bei PermanentAttributeList. For iatt see PermanentAttributeList.
-
-
-
-
-
-\endcode
-\section BasicModelList
-\code
-
-================================================================= 
-BasicModelList
-================================================================= 
-
-// Typ_SubModel
-typedef struct {char *mnam; Point po; long DLind, DLsiz;
-                short typ, seqNr;}                                  ModelBas;
-// po    .. origin
-// DLind .. ind of first obj in DL
-// DLsiz .. nr of objects in DL
-
-
-../db/ut_DB.c:
-static ModelBas   *mdb_dyn;
-static long DYN_MB_IND
-
-
-
-\endcode
-\section ModelReferenceList
-\code
-
-================================================================= 
-ModelReferenceList
-================================================================= 
-
-// Typ_Model
-typedef struct {char *mnam; int modNr; double scl;
-                Point po; Vector vx, vz;}                           ModelRef;
-// modNr .. modelnumber of ModelBas-obj. (DB_get_ModNr())
-// po    .. position of ditto
-
-
-../db/ut_DB.c:
-static ModelRef   *mdr_tab;
-long APT_MR_IND
-
-
-
-\endcode
-\section BasicTexureList
-\code
-
-================================================================= 
-BasicTexureList
-================================================================= 
-
-// Typ_TEXB
-typedef struct {long dli; char *fnam;
-                short xSiz, ySiz, texNr, keep;}                     TexBas;
-// dli          DispListindex of the Texture
-// texNr        (OpenGL-) TextureNr
-// keep         0=do not keep texture; 1=keep.
-// fnam         Filename (symbolicPath/Filename) of the Texturefile
-// xSiz, ySiz   size of the Texure in pixels
-
-
-
-../xa/xa_tex.c:
-static TexBas *TexBasTab;
-static int    TexBasNr;           // next free index
-
-
-
-
-\endcode
-\section TextureReferenceList
-\code
-
-================================================================= 
-TextureReferenceList
-================================================================= 
-
-// Typ_TEXR
-typedef struct {long ibas; float uscx, uscy, udx, udy, uar;
-                float scx, scy, dx, dy; Vector vx, vy;}             TexRef;
-// ibas         index of the Base-Texure
-// uscx uscy    User-defined-scale in X- and Y-direction;
-// udx  udy     User-defined-offset of texture; 0-1
-// uar          User-defined-rotationAngle for texture in degree
-// scx scy      scale in X- and Y-direction;
-// dx, dy       offset of texture; 0-1
-// vx, vy       X- and Y-vector of textureplane
-
-
-../xa/xa_tex.c:
-static TexRef *TexRefTab;
-static int    TexRefNr;           // next free index
-
-Ist ebenfalls permanent wie die PermanentAttributeList und die BasicTexureList;
-beim Exit wird die GATAB daraus generiert.
-
-
-
-\endcode
-\section TexturedSurfaces
-\code
-
-
-
-================================================================= 
-TexturedSurfaces:
-================================================================= 
-
-
--) DispList-Record:                         (typ=DL_Att, tab=GR_ObjTab)
-   typ,ind = DB-Typ/Index
-
--) PermanentAttribute-Record:               (typ=ObjAtt, tab=GA_ObjTab)
-   typ,ind = DB-Typ/Index
-   iatt is ColRGB; vtex=1 indicates texture; cr+cg+cb=TextureReference-Index.
-
--) TextureReference-Record:                 (typ=TexRef, tab=TexRefTab)
-   ibas=BasicTexture-Index
-
--) BasicTexture-Record:                     (typ=TexBas; tab=TexBasTab)
-
-
-
-  GA_hasTexture()
-  GA_getTexRefInd()
-  Tex_getRef()
-  Tex_getBas__()
 
 
 

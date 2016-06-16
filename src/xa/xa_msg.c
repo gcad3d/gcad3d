@@ -199,6 +199,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 #include <stdarg.h>
 
 
+#include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_os.h"               // OS_

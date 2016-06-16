@@ -123,7 +123,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../gr/ut_gr.h"
 #include "../gr/ut_DL.h"
 
-#include "../gr/ut_UI.h"             // FUNC_DispRend ..
+#include "../ut/func_types.h"             // FUNC_DispRend ..
 #include "../gr/ut_GL.h"
 #include "../gr/ut_DL.h"             // DL_GetAtt
 
@@ -709,7 +709,9 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
       if(GUI_ckbutt_get (&ckb_meas) == 1) goto L_ck_sel;       //2013-05-06
 
+      //----------------------------------------------------------------
       if(UI_InpMode == UI_MODE_CAD) {        
+        // M1|M3 in CAD
         if(GR_Event_Act == GUI_MouseR) {
           // M3 in CAD
           // M3: if CAD-OK is active: no menu, give OK=Enter.  2010-04-29
@@ -799,14 +801,17 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
     // selection (Obj analysieren)
     irc = UI_GR_Select1 (mode, &objInd);
-    // irc=0: more than 1 obj's found !
-      // printf(" nach UI_GR_Select1 %d %d %ld\n",irc,mode,objInd);
-      // printf(" GR_Sel_Filter=%d GR_selTyp=%d\n",GR_Sel_Filter,GR_selTyp);
 
-    // GL_Select (mode, &objInd);
-    // GR_SelObj = objInd;              // der DLindex des zuletzt sel. obj
-    // hier kein swapuffers!
-    //GRView_DrawExecute ();
+      // TESTBLOCK
+      // irc=0: more than 1 obj's found !
+      // printf(" nach _GR_Select1 irc=%d mode=%d objInd=%ld\n",irc,mode,objInd);
+      // printf(" GR_selNam=|%s| GR_Sel_Filter=%d GR_selTyp=%d\n",
+             // GR_selNam, GR_Sel_Filter,GR_selTyp);
+      // GL_Select (mode, &objInd);
+      // GR_SelObj = objInd;              // der DLindex des zuletzt sel. obj
+      // hier kein swapuffers!
+      //GRView_DrawExecute ();
+      // END TESTBLOCK
 
 
 
@@ -1477,21 +1482,21 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
 
   if(KeyStatCtrl == ON) {
-    // do special-function with ctrl + ?
+    // do special-function with ctrl ON
     UI_key_spcCtrl (iKey);
     goto L_exit; 
   }
 
     // printf(" shi=%d alt=%d\n",KeyStatShift,KeyStatAlt);
   if((KeyStatShift == ON)&&(KeyStatAlt == ON)) {
-    // do special-function with shift + alt + ?
+    // do special-function with shift + alt + ON
     UI_key_spcShAlt (iKey);
     goto L_exit; 
   }
 
 
   if(KeyStatAlt == ON) {
-    // do special-function with alt + ?
+    // do special-function with Alt ON
     UI_key_spcAlt (iKey);
     goto L_exit; 
   }
@@ -1614,7 +1619,11 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
 
   case 'T':                     // Ctrl Shift t
-    AP_test__ ();
+    if(AP_stat.tstDllStat) {
+      AP_testdll__ (1);         // rebuild & reload testdll.so
+    } else {
+      AP_test__ ();
+    }
     // KeyStatShift = OFF;
     // goto Reset_Ctrl;
     goto AllDone;
@@ -2243,7 +2252,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
     d1 = GL_query_ViewZ();
     UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&d1);
 
-    APT_set_view_stat ();
+    APT_set_view_stat ();  // APT_view_stat = 1;
 
   UI_block__ (iFunc, iInp, iCur);   // reset block
 
@@ -3334,20 +3343,26 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 //====================================================================
   int UI_GR_Select1 (int mode, long *dlInd) {
 //====================================================================
-// Vom GL die Objekte holen; wenn mehrere:
-// mode=-1:    change ViewPlane; keine Liste.
-// mode=0:     create list of objects under cursor
-// mode=0-99:  Liste anbieten, die Auswahl reournieren.
-// mode=100:   Select Popup-ListObj
-// mode=101:   ENTER Popup-ListObj; preview object
-// mode=102:   LEAVE Popup-ListObj;
-// RetCod:
-//   0  mehrere objects gefunden
-//   1  one obj found; unknown obj: dlInd = -1; typ = Typ_Vertex.
-//  -1  no object selected; TmpPT on ConstPln 
+/// \code
+/// get selected object;
+/// decode according requested type;
+/// start processing object
+/// Input:
+///   mode=-1:    change ViewPlane; no List
+///   mode=0:     create list of objects under cursor
+///   mode=0-99:  display Popup-List; return selection
+///   mode=100:   Popup-ListObj selected
+///   mode=101:   ENTER Popup-ListObj; preview object
+///   mode=102:   LEAVE Popup-ListObj;
+///   dlInd       dispListIndex
+/// Output:
+///   RetCod      0  found more than 1 objects
+///               1  one obj found; unknown obj: dlInd = -1; typ = Typ_Vertex.
+///              -1  no object selected; TmpPT on ConstPln 
+///   GR_selNam   (global) GR_selTyp GR_selDbi GR_selDli
+/// \endcode
 
 // UI_GR_ButtonPress
-//   UI_GR_Select1
 
 
 
@@ -3611,16 +3626,18 @@ static  Point  selPos;
     }
 
 
+    // skip non-resolvable objects
+    if((bTyp == Typ_VC)       ||
+       (bTyp == Typ_PT)       ||
+       (bTyp == Typ_PLN)      ||               // 2015-07-06
+       (bTyp == Typ_Note)     ||
+       (bTyp == Typ_APPOBJ)   ||               // 2015-06-21
+       (bTyp == Typ_SubModel) ||               // 2015-06-21
+       (bTyp == Typ_TmpPT))       goto L_selTab_from_dlTab_nxt; 
 
     // test for component of curve; eg provide also line for polygon
       // printf(" ck-subCurv typ=%d dbi=%ld reqTyp=%d\n",typ,dbi,reqTyp);
       // UT3D_stru_dump (Typ_PT, &selPos, "ex sele_get_pos");
-    if((bTyp == Typ_VC)      ||
-       (bTyp == Typ_PT)      ||
-       (bTyp == Typ_PLN)     ||               // 2015-07-06
-       (bTyp == Typ_Note)    ||
-       (bTyp == Typ_APPOBJ)  ||               // 2015-06-21
-       (bTyp == Typ_TmpPT))       goto L_selTab_from_dlTab_nxt; 
     // resolv obj
     sele_ck_subCurv (sca, typ, dbi, &selPos);
     for(i2=0; i2<3; ++i2) {     //loop tru output (max 3 objects)
@@ -3660,6 +3677,8 @@ static  Point  selPos;
 
     // test if ConstrPlane already in buffer; yes: skip adding it
     for(i1=0; i1<selNr; ++i1) if(dlTab[i1].typ == Typ_TmpPT) goto L_12;
+
+    // check if ConstrPlane (point-indicate) useful
     irc = sele_ck_ConstrPln ();  
       // printf(" %d ex sele_ck_ConstrPln\n",irc);
     if(irc) {   // 0=skip, 1=yes,add.

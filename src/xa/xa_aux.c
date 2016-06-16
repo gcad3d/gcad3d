@@ -92,7 +92,7 @@ cl -c /I ..\include xa_aux.c
 
 #include "../db/ut_DB.h"                  // APT_PT_SIZ
 
-#include "../gr/ut_UI.h"                  // SYM_..
+#include "../ut/func_types.h"                  // SYM_..
 #include "../gr/ut_DL.h"                  // DB_GetDLatt
 
 #include "../xa/xa.h"                     // mem_cbuf1_SIZ WC_modnam

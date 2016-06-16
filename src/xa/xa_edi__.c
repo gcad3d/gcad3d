@@ -77,7 +77,8 @@ AP_APT_*
 #include <ctype.h>                    // isdigit
 
 
-#include "../ut/ut_umem.h"                // Memspc MemObj UME_*
+#include "../ut/ut_geo.h"
+// #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_os.h"          // OS_get_tmp_dir
 

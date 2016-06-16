@@ -76,7 +76,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
 
 
 #include "../ut/ut_geo.h"
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 
 
 

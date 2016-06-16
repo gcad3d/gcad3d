@@ -20,6 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2016-05-20 outSpc incr. RF.
 2006-01-05 Transformationen nochmal ganz neu. RF.
 
 -----------------------------------------------------
@@ -233,7 +234,7 @@ __declspec(dllexport) int gCad_main (void*);
 #include "../ut/ut_txt.h"              // UTX_pos_skipDeli1
 #include "../ut/ut_cast.h"             // INT_PTR
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
@@ -276,7 +277,7 @@ static int     err0Nr;
 
 
 // soviel muss in outSpc immer frei sein
-#define outSpc_FRE 500000
+#define outSpc_FRE 200000    // 2016-05-20 was 500000
 
 #define iTab_INC  50000
 
@@ -1443,7 +1444,11 @@ static int levOld = -1;
   outSpc->next = pp;
   // irc = UME_reall_add (outSpc, sizeof(ObjGX) * fNr, outSpc_INC);
   addSpc = sizeof(ObjGX) * fNr;
-  if(!UME_reserve(outSpc, addSpc)) goto L_Rewrite;
+  if(!UME_reserve(outSpc, addSpc)) {
+      printf(" outSpc free=%d tot=%d\n",
+             UME_ck_free(outSpc),UME_ck_tot(outSpc));
+    goto L_Rewrite;
+  }
 
 
   // prepare
@@ -2176,7 +2181,7 @@ static  double height = 1.;
 
   // printf("vTabSiz=%d iTabSiz=%d defTabSiz=%d\n",vTabSiz,iTabSiz,defTabSiz);
 
-  outSpc_INC = (fSiz * 1) + outSpc_FRE;
+  outSpc_INC = (fSiz * 2) + outSpc_FRE;   // 2016-05-20 fSiz > (fSiz * 2) RF
 
   irc = UME_malloc (outSpc, outSpc_INC, fSiz);
   if(irc < 0) goto L_fertig;

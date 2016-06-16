@@ -468,9 +468,9 @@ cl -c ut_GL.c
 #include "../ut/ut_TX.h"                 // TX_Error
 #include "../ut/ut_cast.h"               // INT_PTR
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
-#include "../gr/ut_UI.h"                 // ATT_LN_RAY
+#include "../ut/func_types.h"                 // ATT_LN_RAY
 
-#include "../gr/ut_UI.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
 #include "../db/ut_DB.h"                 // DB_get_ModBas
 
 
@@ -739,7 +739,7 @@ static GLfloat GL_col_be[4] = {0.6,  0.4,  0.4,  1.0};    // error,  red
 // static ColRGB  actCol, newCol;
        ColRGB  GL_defCol;   // AP_defcol
        ColRGB  GL_actCol;   // NICHT AP_actcol sondern col of active sur or sol
-       long    GL_actTex;   // TexRef-index
+       int     GL_actTex;   // TexRef-index
 
 // static unsigned char GL_transpTab[4] = { 0, 64, 16, 2};
 static unsigned char GL_transpTab[4] = { 254, 250, 128, 64};
@@ -1823,7 +1823,7 @@ Das folgende bringt nix
 /// \endcode
 
 
-  // printf("GL_Feedback %d\n",*size);
+  printf("GL_Feedback %d\n",*size);
   // GLdouble px, py;
   // GLint  i1;
 
@@ -1847,7 +1847,9 @@ Das folgende bringt nix
 
   // init feedbackBuffer
   //   idim     GL_2D | GL_3D | GL_3D_COLOR
+    printf(" glFeedbackBuffer 1\n");
   glFeedbackBuffer (*size, idim, feedBuffer);
+    printf(" glFeedbackBuffer 2\n");
 
   // prepare GL for feedback
   glRenderMode (GL_FEEDBACK);
@@ -1868,7 +1870,9 @@ Das folgende bringt nix
   // GL_Reframe1 (); // ganz wichtig !
 
   // draw all
+    printf(" _Redraw 1\n");
   GL_Redraw ();
+    printf(" _Redraw 2\n");
 
   // Abschliessen, Buffer fuellen. out of Mem: size is negative !
   *size = glRenderMode (GL_RENDER);
@@ -1883,7 +1887,7 @@ Das folgende bringt nix
 
   UI_GR_DrawExit ();
 
-    // printf("ex GL_Feedback %d\n",*size);
+    printf("ex GL_Feedback %d\n",*size);
 
   return 0;
 
@@ -2284,12 +2288,15 @@ static int errOld = 123;
              // GR_ObjTab[l1].disp, GR_ObjTab[l1].hili);
     // if(l1 == 16) continue; // TEST ONLY
 
+    // skip all objs outside active model                       2016-06-12
+    if((INT_16)GR_ObjTab[l1].modInd != -1) continue;
 
     // skip unvisible (subModel-objects !)
     if(GR_ObjTab[l1].unvis != 0) continue;
 
     // skip hidden objs
-    if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
+    // if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
 
     if(GL_mode_draw_select == GR_MODE_DRAW) {        //2010-06-17
       // GL_Mouse1Pos needs this after GL_Select
@@ -2350,6 +2357,7 @@ static int errOld = 123;
       } else if(GR_ObjTab[l1].typ == Typ_PLN) {  // ReScale: skip scalables
         if(GL_mode_feed == 1) continue;
       }
+
     }
 
 
@@ -2513,9 +2521,13 @@ static int errOld = 123;
 
   for(l1=0; l1<GR_TAB_IND; ++l1) {
 
-    // mode select: skipp all hilited objects ..  // 2010-10-24
+    // skip all objs outside active model                       2016-06-12
+    if((INT_16)GR_ObjTab[l1].modInd != -1) continue;
+
+    // mode select: skip all hilited objects ..  // 2010-10-24
     if(GL_mode_draw_select == GR_MODE_SELECT) {
       if(GR_ObjTab[l1].grp_1 == 0) continue;
+      // skip hilited obj
       if((GR_ObjTab[l1].disp == 1)&&(GR_ObjTab[l1].hili == 0)) continue;
     }
 
@@ -3069,7 +3081,7 @@ Screenkoords > Userkoords.
 
 
   // DL loeschen
-  GL_Del0 (ALL_OBJS);
+  GL_Del0 (Typ_ALL_OBJS);
 
   GR_TAB_IND  = 0;
 
@@ -3109,7 +3121,7 @@ Screenkoords > Userkoords.
 // UI_GR_DrawInit/UI_GR_DrawExit muss aussen sein !
 
 
-  // printf("GL_Init_View %d\n",GL_initMode);
+  printf("GL_Init_View %d\n",GL_initMode);
 
 
   //----------------------------------------------------------------
@@ -3599,8 +3611,8 @@ Screenkoords > Userkoords.
 
 
 
-  if (ind == ALL_OBJS) {         // -1
-    // TX_Print("GL_Del0 ALL_OBJS %d",GR_TAB_IND);
+  if (ind == Typ_ALL_OBJS) {         // -1
+    // TX_Print("GL_Del0 Typ_ALL_OBJS %d",GR_TAB_IND);
     // glDeleteLists (DL_base__, -DL_base__);
 
     ianz = GR_TAB_IND;
@@ -6634,7 +6646,9 @@ static double old_view_Z = 0.;
   Point    pt1, pt2;
 
 
-  // printf("GL_Rescal0 0000000000000000000000000\n");
+  printf("GL_Rescal0 0000000000000000000000000\n");
+  UT3D_stru_dump (Typ_PT, pb1, "pb1");
+  UT3D_stru_dump (Typ_PT, pb2, "pb2");
 
 
   count = 0;
@@ -6642,14 +6656,15 @@ static double old_view_Z = 0.;
 
 
   // get FeedbackBuffer
-  if(GL_FeedGet(&fSiz, &fBuf, GL_3D) < 0) goto L_free;
+  if(GL_FeedGet (&fSiz, &fBuf, GL_3D) < 0) goto L_free;
+  // if(GL_FeedGet (&fSiz, &fBuf, GL_3D_COLOR) < 0) goto L_free;
   if(fSiz < 6) {
     free(fBuf);
     return -2;
   }
 
 
-  // printf(" GL-fSiz=%d\n",fSiz);
+  printf(" GL-fSiz=%d\n",fSiz);
     // 2 Punkte haben ein fSiz von 10 !
 
 
@@ -6759,7 +6774,7 @@ static double old_view_Z = 0.;
 
   // UT3D_stru_dump (Typ_PT, pb1, " sc-pb1:");
   // UT3D_stru_dump (Typ_PT, pb2, " sc-pb2:");
-  // printf(" vNr=%d\n",vNr);
+  printf(" vNr=%d\n",vNr);
 
   if(vNr < 1) return -1;
 
@@ -6800,7 +6815,7 @@ static double old_view_Z = 0.;
 /// give back FeedbackBuffer
 /// YOU MUST FREE feedBuffer AFTER DECODING !
 /// Input:
-///   idim         GL_2D | GL_3D
+///   idim         GL_2D | GL_3D | GL_3D_COLOR
 /// Output:
 ///   size         nr of floats in feedBuffer
 ///   feedBuffer   
@@ -6852,7 +6867,7 @@ static double old_view_Z = 0.;
 
     // msiz += DR_BUF_SIZ;
     msiz += msiz;
-      // printf("GL_FeedGet REALLOC %ld\n",msiz);
+      printf("GL_FeedGet REALLOC %ld\n",msiz);
 
     *feedBuffer = realloc (*feedBuffer, msiz);
     *fsiz = msiz / sizeof(float);
@@ -6865,7 +6880,7 @@ static double old_view_Z = 0.;
   }
 
 
-    // printf("ex GL_Feedback %d\n",*fsiz);
+    printf("ex GL_FeedGet %d\n",*fsiz);
 
   return 0;
 
@@ -6893,9 +6908,8 @@ static double old_view_Z = 0.;
   else if(Usiz > 100000000.) Usiz =  100000000.;
 
 
-  GL_cen.x = Ucen->x;
-  GL_cen.y = Ucen->y;
-  GL_cen.z = Ucen->z;
+  // set center of screen in usercoords
+  GL_cen = *Ucen;
 
   //GL_cen_Z = WC_ask_actZsur ();
   // GL_sur_act = GL_cen_Z;
@@ -8902,8 +8916,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_DrawSur (long *ind, int att, ObjGX *os) {
+  int GL_DrawSur (long *ind, int att, ObjGX *bMsh) {
 //================================================================
+// display surface
+// Input:
+//   ind        dbi
+//   att        ColRGB*   color|texture
+//   bMsh       binMsh (tesselated surf)
+//
 // see also GRU_tex_pos2 < TSU_DrawSurTRU
 // see also TSU_DrawSurTess
 
@@ -8911,10 +8931,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int    irc, iTex;
   TexBas *btex;
   TexRef *rtex;
-  long   iTexBas, iTexRef;
+  int    iTexBas, iTexRef;
 
 
-  // printf("GL_DrawSur %ld vtex=%d\n",*ind,((ColRGB*)&att)->vtex);
+  printf("GL_DrawSur %ld vtex=%d\n",*ind,((ColRGB*)&att)->vtex);
   // UT3D_stru_dump (Typ_Color, &att, "  att:");
 
   
@@ -8936,16 +8956,16 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // nur wenn vx=NULL (= uninitialized): vx,vy errechnen ..
     if(UT3D_compvcNull(&rtex->vx) == 1) {
       // Vektoren vx/vy, Scales scx/scy und  Offsets dx/dy setzen.
-      GRU_tex_pos1 (rtex, os);
+      GRU_tex_pos1 (rtex, bMsh);
     }
     // init texture
     GL_Tex_Ini (ind, btex, rtex);
-    irc = GL_Disp_sur (os);
+    irc = GL_Disp_sur (bMsh);
     GL_Tex_End ();
 
   } else {
     GL_Surf_Ini (ind, (void*)&att);
-    irc = GL_Disp_sur (os);
+    irc = GL_Disp_sur (bMsh);
     GL_EndList ();
   }
 
@@ -8965,6 +8985,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_Disp_sur (ObjGX *bMsh) {
 //================================================================
 // Draw 1-n Planar Patches; each Patch with 1 vektor and 1-n closed Contours.
+// Input: 
+//   bMsh     binMsh (tesselated surf)
+//
 // ContourTypes: 4=GL_TRIANGLES 5=GL_TRIANGLE_STRIP 6=GL_TRIANGLE_FAN
 // bMsh->typ must be Typ_GL_Sur.
 //
@@ -9712,8 +9735,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 /// display BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
 /// Input:
 ///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
-///   attInd     Color ATT_COL_BLACK ATT_COL_RED ATT_COL_GREEN .. (../gr/ut_UI.h)
-///   symTyp     type of symbol (../gr/ut_UI.h)
+///   attInd     Color ATT_COL_BLACK ATT_COL_RED ATT_COL_GREEN .. (../ut/func_types.h)
+///   symTyp     type of symbol (../ut/func_types.h)
 ///              SYM_TRI_S   Dreieck
 ///              SYM_STAR_S  Sternderl
 ///              SYM_CIR_S   Kreis klein
@@ -10819,7 +10842,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // display 3D-plane, vc1 is Normalvec !
-  // ../gr/ut_UI.h: SYM_SQUARE=142 SYM_PLANE=145
+  // ../ut/func_types.h: SYM_SQUARE=142 SYM_PLANE=145
   if((symTyp == SYM_SQUARE)||(symTyp == SYM_PLANE)) {
     ay -= 90.;
     // printf("  korr. az=%f ay=%f\n",az,ay);
@@ -13551,7 +13574,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // die Displist löschen
-  GL_Del0 (ALL_OBJS);
+  GL_Del0 (Typ_ALL_OBJS);
 
   GL_temp_delete ();
 

@@ -51,6 +51,7 @@ Korr:
 
 
 
+#define Typ_ALL_OBJS      -1
 #define Typ_Error          0  ///<     U0 = undefined
 
 /// DB-primitives 1-19
@@ -129,7 +130,7 @@ Korr:
 
 /// DB-bodies 80-89
 #define Typ_SOL           80  ///< B  body (CON, TOR, ..)
-#define Typ_SPH           81  ///< B  sphere
+#define Typ_SPH           81  ///< B  Sphere
 #define Typ_CON           82  ///< B  Conus (Cylinder)
 #define Typ_TOR           83  ///< B  Torus
 #define Typ_PRI           84  ///< B  Prism
@@ -167,15 +168,15 @@ Korr:
 
 
 
-/// geom. attributes
+/// models, submodels
 #define Typ_Part         120
-#define Typ_Group        121     ///< U ObjDB DB-Objects (union-group)
+#define Typ_Group        121  ///< U ObjDB DB-Objects (union-group)
 #define Typ_SubModel     122  ///< M  - basicModel
-#define Typ_Model        123  ///< M  - ModelReference ModelRef
-#define Typ_Mock         124
-#define Typ_Ditto        125
-#define Typ_Joint        126     ///< connection, exported;
-#define Typ_Process      127     ///< 
+#define Typ_Model        123  ///< M  ModelReference of native-subModel ModelRef
+#define Typ_Mock         124  ///< M  ModelReference of mockup-subModel
+#define Typ_Ditto        125  ///< mockup-subModel (unvisible)
+#define Typ_Joint        126  ///< connection, exported;
+#define Typ_Process      127  
 
 
 /// geom. parameters  TYP_IS_GEOMPAR

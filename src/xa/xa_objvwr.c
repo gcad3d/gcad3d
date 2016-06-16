@@ -61,7 +61,7 @@ List_functions_end:
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_UI.h"               // Typ_Att_hili
+#include "../ut/func_types.h"               // Typ_Att_hili
 #include "../db/ut_DB.h"               // DB_
 
 

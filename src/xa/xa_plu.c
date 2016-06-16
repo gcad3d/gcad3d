@@ -71,7 +71,7 @@ List_functions_end:
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 
-#include "../gr/ut_UI.h"               // UI_FuncUCB8
+#include "../ut/func_types.h"               // UI_FuncUCB8
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_uid.h"              // UID_ckb_comp
@@ -98,86 +98,6 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
   // void  (*xa_test)();
 
  
-/*
-//================================================================
-  int APP_dll_load (int mode) {
-//================================================================
-// mode == 0:  connect dynLib xa_test.so
-// mode == 1:  unload, recompile, connect dynLib xa_test.so
-
-// Leider kein Weg zum interpose (override active symbol) gefunden.
-// see xa_test.c
-
-  static void  *dl1 = NULL;
-
-  int   irc;
-  char  cBuf[256];
-
-
-#ifdef _MSC_VER
-  return 0;
-#endif
-
-
-  printf("APP_dll_load %d\n",mode);
- 
-
-  //----------------------------------------------------------------
-  if(mode != 1) goto L_load;
-
-  // unload dll
-  if(dl1) {
-    irc = dlclose(dl1);
-    if(irc) {
-      TX_Error("APP_dll_load: cannot close dyn. Lib.");
-      return -1;
-    }
-  }
-
-  // recompile
-  sprintf(cBuf, "cd xa;make -f %sxa/xa_test.mak",OS_get_bas_dir());
-  system (cBuf);
-  // OS_spawn_wait (cBuf, 5);
-
-
-  //----------------------------------------------------------------
-  L_load:
-  sprintf(cBuf, "%sbin/xa_test.so",OS_get_bas_dir());
-    printf("   _dll_load |%s|\n",cBuf);
-
-
-  // exit if dll does not exist;  else load DLL
-  if(OS_checkFilExist(cBuf, 1) == 0) return 0;
-
-
-  // load DLL
-  // dl1 = NULL;
-  // dl1 = dlopen(cBuf, RTLD_LAZY);   // linkt nicht !
-  // dl1 = dlopen(cBuf, RTLD_NOW);
-  dl1 = dlopen(cBuf, RTLD_LAZY|RTLD_GLOBAL);
-  // dl1 = dlopen(cBuf, RTLD_NOW|RTLD_DEEPBIND|RTLD_GLOBAL);
-  if(dl1 == NULL) {
-    TX_Error("APP_dll_load: cannot open dyn. Lib. |%s|",cBuf);
-    return -1;
-  }
-
-
-  // // Adresse von Func. holen
-  // xa_test=dlsym(dl1,"xa_test");
-  // if(xa_test == NULL) {
-    // TX_Error("cannot open gCad_main");
-    // return -1;
-  // }
-
-
-
-  printf("ex xa_test\n");
-
-  return 0;
-
-}
-*/
-
 
 //================================================================
   int PLU_start () {
@@ -380,7 +300,7 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
     sprintf(oid, "%s %ld",p1,dla.ind);
 
   } else {               // default-name of application-object
-    sprintf(oid, "%ld/%ld",dla.ind,
+    sprintf(oid, "%ld/%d",dla.ind,
                            dla.iatt);
   }
 

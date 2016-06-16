@@ -31,19 +31,39 @@ Modifications:
 =====================================================
 List_functions_start:
 
-tess_dump_f_        dump file-oriented obj;  structured display.
-tess_read_f         read tesselated surf (file-oriented)
-tess_write_f_       tesselated surf in Datei ausgeben.
-tess_reloc_f_       relocate tesselated surf (read from file)
+tess_res_CB__         resolv tess-model in memory with callback
+tess_ntri_tfac__      get triangles from tesselated face
+tess_ntri_tfac_add    copy 3 (pointers of) points -> Triangle            INLINE
 
-tess_read_          read .tess-file from temp-dir
-tess_write__        write .tess-file into temp-dir
+tess_analyz__
+tess_analyz_sur
+tess_analyz_sph
+tess_analyz_con
+tess_analyz_fac
 
-tess_siz1           find nr of surfaces & (total) nr of triangles
-tess_siz2           find nr of triangles in tesselated surface
+tess_box_get          find box of tess-model in memory
+tess_box_sur
+tess_box_fac
+
+tess_origin_box       get origin from box of tess-model
+tess_origin_set__     subract origin of tess-model in memory
+tess_origin_set_sur
+tess_origin_set_fac
+
+tess_dump_f_          dump file-oriented obj;  structured display.
+tess_read_f           read tesselated surf (file-oriented)
+tess_write_f_         tesselated surf in Datei ausgeben.
+tess_reloc_f_         relocate tesselated surf (read from file)
+
+tess_read_            read .tess-file from temp-dir
+tess_write__          write .tess-file into temp-dir
+
+tess_siz1             find nr of surfaces & (total) nr of triangles
+tess_siz2             find nr of triangles in tesselated surface
 
 List_functions_end:
 =====================================================
+TODO: tess_box_sph tess_box_con tess_origin_set_sph tess_origin_set_con tor?
 - see also:
 TSU_tess_addf       add Mockup-Filestruct oxi to existing Mockup-struct TSU_vMem
 TSU_imp_tess        import Mockup from file into Mockup-struct
@@ -74,8 +94,26 @@ wrl_reloc__         see also tess_reloc_f_
 
 
 #include "../ut/ut_geo.h"              // Point ...
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_ ..
+
+#include "../ut/func_types.h"               // SYM_STAR_S
+#include "../xa/xa_mem.h"              // memspc501
+
+
+// tess_ntri_tfac_add                 copy 3 (pointers of) points -> Triangle
+#define tess_ntri_tfac_add(tria,pt1,pt2,pt3)\
+ {(tria)->pa[0] = pt1;\
+  (tria)->pa[1] = pt2;\
+  (tria)->pa[2] = pt3;}
+
+
+
+//===========================================================================
+// PROTOTYPES:
+
+int tess_analyz_CB (ObjGX*);
 
 
 
@@ -643,5 +681,1266 @@ wrl_reloc__         see also tess_reloc_f_
     *triNr += i1;
   return 0;
 }
+
+
+//================================================================
+  int tess_analyz__ (Memspc *impSpc) {
+//================================================================
+// see TSU_exp_sm_sur
+
+  ObjGX    ox1;
+
+
+  printf("tess_analyz__ \n");
+
+
+  // init
+  ox1.typ = TYP_FuncInit;
+  tess_analyz_CB (&ox1);
+
+
+  // resolv all obj's, call tess_analyz_CB
+  tess_res_CB__ (impSpc, tess_analyz_CB);
+
+
+  // exit
+  ox1.typ = TYP_FuncExit;
+  tess_analyz_CB (&ox1);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_analyz_CB (ObjGX *oxi) {
+//================================================================
+
+  static int      iCol;
+  static FILE     *fpo;
+
+  int       i1, triNr, triSiz;
+  char      s1[256];
+  ColRGB    sCol, actCol, defCol;
+  Triangle  *triTab, *tr1;
+
+
+  // printf("tess_analyz_CB %d\n",oxi->form);
+
+
+  switch (oxi->typ) {
+
+
+    //----------------------------------------------------------------
+    case TYP_FuncInit:        // INIT
+      // open outputfile fpo
+      sprintf(s1, "%sanalyz.txt",OS_get_tmp_dir());
+      fpo = NULL;
+      if((fpo = fopen(s1, "w")) == NULL) {
+        TX_Print("tess_analyz_CB E001");
+        fpo = stdout;
+      } else {
+        TX_Print(" file %s created ..\n",s1);
+      }
+      break;
+
+
+    //----------------------------------------------------------------
+    case TYP_FuncExit:         // exit
+      fprintf (fpo, "// EOF");
+      if(fpo != stdout) {
+        fclose (fpo);
+      }
+        printf(" file closed ..\n");
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_GL_PP:           // normal faces
+      if(oxi->form == Typ_PT) {
+        triTab = (Triangle*)memspc501;
+        triSiz = sizeof(memspc501) / sizeof(Triangle);
+        triNr = 0;
+        // get triangles from tesselated face
+        tess_ntri_tfac__ (triTab, &triNr, triSiz, oxi);
+          // printf("  fac ptNr=%d glTyp=%d fNr=%d\n",oxi->siz,oxi->aux,triNr);
+        if(triNr < 1) {
+          fprintf(fpo,"****** EMPTY FACE typ=%d form=%d glTyp=%d\n",
+                  oxi->typ, oxi->form, oxi->aux);
+          return -1;
+        }
+        for(i1=0; i1<triNr; ++i1) {
+          tr1 = &triTab[i1];
+          fprintf(fpo,"face %f %f %f - %f %f %f - %f %f %f\n",
+            tr1->pa[0]->x,tr1->pa[0]->y,tr1->pa[0]->z,
+            tr1->pa[1]->x,tr1->pa[1]->y,tr1->pa[1]->z,
+            tr1->pa[2]->x,tr1->pa[2]->y,tr1->pa[2]->z);
+        }
+        break;
+      }
+
+
+    //----------------------------------------------------------------
+    case Typ_Color:   // color of subsequent faces
+      if(oxi->form == Typ_Int4) {    // color of subsequent faces
+        sCol = *((ColRGB*)&oxi->data);
+          fprintf(fpo,"Col r%d g%d b%d\n",sCol.cr,sCol.cg,sCol.cb);
+        break;
+      }
+
+    //----------------------------------------------------------------
+    default:
+      printf(" tess_analyz_CB UNUSED typ=%d form=%d\n",oxi->typ,oxi->form);
+
+  }
+
+  return 0;
+
+}
+
+
+/*
+//================================================================
+  int tess_analyz__ (Memspc *impSpc) {
+//================================================================
+// see TSU_exp_sm_sur
+
+  int      rSiz;
+  char     s1[256];
+  ObjGX    *ox1;
+  FILE     *fpo;
+
+
+  printf("tess_analyz__ \n");
+
+
+  // open outputfile fpo
+  sprintf(s1, "%sanalyz.txt",OS_get_tmp_dir());
+  if((fpo = fopen(s1, "w")) == NULL) {
+    TX_Print("tess_analyz__ E001");
+    return -1;
+  }
+
+
+  // get 1.obj = tess. model
+  ox1 = UME_get_start (impSpc);
+
+  // wenn das erste obj Adress: skip it
+  if(ox1->typ == Typ_Address) ++ox1;
+
+
+  //----------------------------------------------------------------
+  L_next:
+    // erster Record muss size of following Record sein
+    if(ox1->typ != Typ_Size) goto L_Err2;
+    rSiz = (long)ox1->data;
+    // printf("Recordsize=%d\n",rSiz);
+
+    // next record
+    ++ox1;  //(char*)oxi += sizeof(ObjGX);
+
+    // analyze this record
+    tess_analyz_sur (ox1, fpo);
+
+    // (char*)oxi += rSiz;
+    ox1 = (ObjGX*)((char*)ox1 + rSiz);
+    if(ox1->typ != Typ_Done) goto L_next;
+
+
+  //----------------------------------------------------------------
+  L_fertig:
+  fprintf (fpo, "// EOF");
+  fclose (fpo);
+  printf(" file %s created ..\n",s1);
+
+  return 0;
+
+
+  L_Err2:
+    TX_Error("tess_analyz__ E002 typ %d",ox1->typ);
+    fclose (fpo);
+    return -1;
+
+}
+
+
+//================================================================
+  int tess_analyz_sur (ObjGX *oxi, FILE *fpo) {
+//================================================================
+// ..sur
+// ..pat
+// facCol
+// fac
+// see TSU_exp_fac GL_Disp_sur
+
+  int     iSur, iPat, i1Nr, i2Nr, iTyp, iTex;
+  ColRGB  *sCol, defCol;
+  Vector  *vcn;
+  ObjGX   *oxs, *oxd;
+
+
+  fprintf(fpo, "\n====================\n");
+  fprintf(fpo, "tess_analyz_sur typ=%d form=%d siz=%d\n",
+          oxi->typ,oxi->form,oxi->siz);
+
+
+  if(oxi->typ == Typ_GL_Sur) {
+    // typ=Typ_GL_Sur, form=Typ_ObjGX
+    goto L_GL_Sur;
+
+
+  } else if(oxi->typ == Typ_Color) {
+    // TSU_exp_wrlCol (&oxi->data);  // data ist selbst Color !
+    defCol = *((ColRGB*)&oxi->data);
+    fprintf(fpo, " defCol %d %d %d\n",defCol.cr,defCol.cg,defCol.cb);
+    return 0;
+
+
+  } else {
+    printf("***** tess_analyz_sur E001: typ=%d form=%d siz=%d\n",
+           oxi->typ,oxi->form,oxi->siz);
+    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    return -1;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // loop tru surfs
+  L_GL_Sur:
+
+  i1Nr = oxi->siz;              // ex Sur  211 143 5
+  oxd  = oxi->data;
+
+  sCol = NULL;   // defaultCol
+  iTex = -1;
+
+  for(iSur=0; iSur<i1Nr; ++iSur) {
+
+    fprintf(fpo, "\n ..sur[%d] typ=%d form=%d siz=%d\n",iSur,
+           oxd->typ, oxd->form, oxd->siz);
+
+    // Patch kann ein ObjGX oder nur pTab sein
+    if(oxd->form == Typ_ObjGX) {
+      i2Nr  = oxd->siz;
+      oxs = oxd->data;
+
+    } else {
+      i2Nr  = 1;
+      oxs = oxd;
+    }
+
+
+    //----------------------------------------------------------------
+    // loop tru patches
+    for(iPat=0; iPat<i2Nr; ++iPat) {
+        fprintf(fpo," ..pat[%d] typ=%d form=%d siz=%d\n",iPat,
+          oxs->typ, oxs->form, oxs->siz);
+
+
+      if(oxs->form == Typ_PT) {
+        tess_analyz_fac (oxs, fpo);
+
+
+      } else if(oxs->form == Typ_VC) {
+        // Normalvektor
+        vcn = (Vector*)oxs->data;
+        fprintf(fpo,"   %d Vector %f %f %f\n",iPat,
+          vcn->dx, vcn->dy, vcn->dz);
+
+
+      } else if(oxs->form == Typ_SPH) {
+        tess_analyz_sph (oxs, fpo);
+
+
+      } else if(oxs->form == Typ_CON) {
+        tess_analyz_con (oxs, fpo);
+
+
+      } else if(oxs->form == Typ_Int4) {
+
+        if(oxs->typ == Typ_Color) {
+          // form = Typ_Int4 ?
+          sCol = (ColRGB*)&oxs->data;
+          iTex = -1;
+          fprintf(fpo, "   %d facCol r%d g%d b%d\n",iPat,
+                  sCol->cr,sCol->cg,sCol->cb);
+
+        } else if(oxs->typ == Typ_Texture) {
+          // sCol = NULL;   form = Typ_Int4 ?
+          iTex = INT_PTR (oxs->data);
+          fprintf(fpo, "   %d facTex=%d\n",iPat,iTex);
+
+        
+        } else if(oxs->typ == Typ_Typ) {
+          // markiert den Beginn einer neuen Surf - dzt nur f Intersect used
+          // Typ_Typ, Typ_Int4, Typ_SURPLN (58) - supporting surface is planar
+          iTyp = INT_PTR (oxs->data);
+          fprintf(fpo, "   %d typ=%d\n",iPat,iTyp);
+        }
+
+
+      } else {
+        fprintf(fpo, "****** UNKNOWN PATCH typ=%d form=%d\n",oxs->typ,oxs->form);
+      }
+
+
+      ++oxs;  //(char*)oxs += sizeof(ObjGX);
+    }
+    //----------------------------------------------------------------
+
+
+
+    ++oxd;  //(char*)oxi += sizeof(ObjGX);
+  }
+  //----------------------------------------------------------------
+
+
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_analyz_sph (ObjGX *oxi, FILE *fpo) {
+//================================================================
+// sphere
+// see GL_disp_sph GR_Disp_face
+//
+TODO:
+L_disp_sph zerteilen:
+  .    get triangles for circ
+  .    display triangles in OpenGL
+
+............................
+test und use in tess_analyz_sph;
+make GL_TRIANGLE_STRIP-s
+make 2 GL_TRIANGLE_FAN-s
+
+............................
+use in GL_disp_sph
+//
+
+  long   dli;
+  Sphere *sp1;
+
+
+  sp1 = oxi->data;
+
+
+  UT3D_stru_dump (Typ_SPH, sp1, " sp1: ");
+
+
+  // dli = DL_StoreObj (Typ_SUR, -1L, 1);  // typ, dbi, att
+  // GL_Surf_Ini (&dli, NULL);
+  // GL_Col__ (2);
+  // GL_disp_sph (&(sp1->pc), sp1->rad, 0);
+  // GL_EndList ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_analyz_con (ObjGX *oxi, FILE *fpo) {
+//================================================================
+// cone
+// see GL_disp_cone
+//
+TODO:
+GL_disp_cone zerteilen:
+  .    get triangles for cone
+  .    display triangles in OpenGL
+
+............................
+test und use in tess_analyz_sph;
+make GL_TRIANGLE_STRIP-s
+make 2 GL_TRIANGLE_FAN-s
+
+............................
+use in GL_disp_cone
+//
+
+  long   dli;
+  Conus *co1;
+
+
+  co1 = oxi->data;
+
+
+  UT3D_stru_dump (Typ_CON, co1, " co1: ");
+
+  // dli = DL_StoreObj (Typ_SUR, -1L, 1);
+  // GL_Surf_Ini (&dli, NULL);
+  // GL_Col__ (2);
+  // GL_disp_cone (co1, 7, 0);
+  // GL_EndList ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_analyz_fac (ObjGX *oxi, FILE *fpo) {
+//================================================================
+// Input:
+//   oxi->typ  = Typ_GL_PP
+//   oxi->form = Typ_PT
+//   oxi->aux  = glTyp
+//   oxi->siz  = nr of points
+//
+//   glTyp: 4=GL_TRIANGLES
+//          5=GL_TRIANGLE_STRIP
+//          6=GL_TRIANGLE_FAN
+//          16=GL_FAC_PLANAR
+//
+// see TSU_tsu2tria_rec GL_Disp_sur GL_Disp_face
+//     TSU_exp_dxfFac TSU_exp_stlFac TSU_exp_objFac
+//     TSU_exp_wrl1Fac TSU_exp_wrl2Fac
+
+
+  int       i1, triNr, triSiz;
+  Triangle  *triTab;
+
+
+  triTab = (Triangle*)memspc501;
+  triSiz = sizeof(memspc501) / sizeof(Triangle);
+  triNr = 0;
+
+
+  // get triangles from tesselated face
+  tess_ntri_tfac__ (triTab, &triNr, triSiz, oxi);
+
+  fprintf(fpo,"    fac ptNr=%d glTyp=%d fNr=%d\n",oxi->siz,oxi->aux,triNr);
+
+  if(triNr < 1) {
+    fprintf(fpo, "****** EMPTY FACE typ=%d form=%d glTyp=%d\n",
+            oxi->typ, oxi->form, oxi->aux);
+    return -1;
+  }
+
+
+    // fprintf(fpo,"    fNr=%d\n",triNr);
+  for(i1=0; i1<triNr; ++i1) {
+    GR_Disp_tria (&triTab[i1], 9);
+    // GR_Disp_pt (p1, SYM_STAR_S, 2);
+    // GR_Disp_pt (p2, SYM_STAR_S, 2);
+    // GR_Disp_pt (p3, SYM_STAR_S, 2);
+  }
+
+  return 0;
+
+}
+*/
+
+
+//================================================================
+  int tess_ntri_tfac__  (Triangle *triTab, int *triNr, int triSiz,
+                       ObjGX *oxi) {
+//================================================================
+// get triangles from tesselated face
+// Input:
+//   triSiz    size of triTab
+// Output:
+//   triTab
+//   triNr
+//
+// see TSU_tsu2tria_rec
+
+  int   i0, i1, i2, i3, ia, ie, it, surTyp;
+  Point *pTab;
+
+
+
+  surTyp = oxi->aux;
+
+
+  if(oxi->siz < 3) {
+    printf("tess_analyz_tri I001\n");
+    return -1;
+  }
+
+
+  ia   = 0;
+  ie   = oxi->siz - 1;
+  pTab = oxi->data;
+
+  it   = 0;   
+
+
+
+
+
+  //----------------------------------------------------------------
+  if((surTyp != GL_TRIANGLE_FAN) &&
+     (surTyp != GL_FAC_PLANAR))          goto L_GLS;
+    // 6  = TRIANGLE_FAN
+    // 16 = nonPlanar TRIANGLE_FAN:
+    //    1------2           ptAnz = 4
+    //    |    /  |
+    //    |   /   |
+    //    |  /    |
+    //    | /     |
+    //    0.------3
+    //     \     /
+    //       \  /
+    //        4
+    //
+    // sollte so zerlegt werden:
+    // 0 1 2
+    // 0 2 3
+    // 0 3 4
+
+    // make ie = nr of points without last point
+    // pTab can have last point
+    if(UT3D_comp2pt(&pTab[ia],&pTab[ie],UT_TOL_pt) == 1) ie -= 1;
+      // printf(" ie=%d pNr=%d\n",ie,oxi->siz);
+
+    // compute nr of triangles
+    *triNr = ie - 1;
+    if(*triNr > triSiz) goto L_err1;
+
+    i0 = ia;
+    i2 = i0 + 1;
+
+
+    //----------------------------------------------------------------
+    L_f_nxt:
+    i1 = i2;
+    ++i2;
+
+    // add next triangle
+    tess_ntri_tfac_add (&triTab[it], &pTab[i0],&pTab[i1],&pTab[i2]);
+    ++it;
+
+    if(i2 < ie) goto L_f_nxt;
+    //----------------------------------------------------------------
+
+    goto L_fertig;
+
+
+
+
+
+  //----------------------------------------------------------------
+  L_GLS:
+  if(surTyp != GL_TRIANGLE_STRIP) goto L_GLT;
+    // 5 = GL_TRIANGLE_STRIP
+    //
+    //    0--2--4--6      ie = 8
+    //    | /| /| /|
+    //    |/ |/ |/ |
+    //    1--3--5--7
+    //
+    // sollte so zerlegt werden:
+    // 0 1 2                       0 2 1
+    // 2 1 3                       2 3 1
+    // 2 3 4                       2 4 3
+    // 4 3 5
+    // 4 5 6   usw ...
+
+    // compute nr of triangles
+    *triNr = ie - 1;
+    if(*triNr > triSiz) goto L_err1;
+
+    i1 = ia;
+    i3 = i1 + 1;       // 1 - 2
+
+
+    //----------------------------------------------------------------
+    L_s_nxt:
+    // i1 bleibt
+    i2 = i3;
+    ++i3;          // 1 2 3       3 4 5
+
+    tess_ntri_tfac_add (&triTab[it], &pTab[i1],&pTab[i2],&pTab[i3]);
+      // printf(" i1=%d i2=%d i3=%d it=%d\n",i1,i2,i3,it);
+    ++it;
+
+    if(i3 >= ie) goto L_fertig;
+
+    // i2 bleibt
+    i1 = i3;
+    ++i3;           // 3 2 4
+
+    tess_ntri_tfac_add (&triTab[it], &pTab[i1],&pTab[i2],&pTab[i3]);
+      // printf(" i1=%d i2=%d i3=%d it=%d\n",i1,i2,i3,it);
+    ++it;
+
+    if(i3 >= ie) goto L_fertig;
+    goto L_s_nxt;
+
+
+
+
+
+
+
+
+  //================================================================
+  L_GLT:
+    //
+    if(surTyp != GL_TRIANGLES) {
+      TX_Print("tess_ntri_tfac__ E001 %d",surTyp);
+      return -1;
+    }
+    // 4 = GL_TRIANGLES
+    //
+    // 0 1 2
+    // 3 4 5
+    // 6 7 8
+
+    // compute nr of triangles
+    *triNr = oxi->siz / 3;
+    if(*triNr > triSiz) goto L_err1;
+  
+    i3 = ia - 1;
+
+
+    //----------------------------------------------------------------
+    L_t_nxt:
+      i1 = i3 + 1;
+      i2 = i1 + 1;
+      i3 = i2 + 1;
+  
+      // add next triangle
+      tess_ntri_tfac_add (&triTab[it], &pTab[i1],&pTab[i2],&pTab[i3]);
+      ++it;
+  
+      if(i3 < ie) goto L_t_nxt;
+    //----------------------------------------------------------------
+  
+    // goto L_fertig;
+
+
+
+  //================================================================
+  L_fertig:
+
+    // TESTBLOCK
+    // if(*triNr > 1) AP_debug__ ("tess_ntri_tfac__");
+    // ENDTESTBLOCK
+
+    return 0;
+
+
+  L_err1:
+    TX_Print ("TSU_exp_objFac E002");
+    return -1;
+
+}
+
+
+//======================================================================
+  int tess_box_get (Point *pb1, Point *pb2, Memspc *impSpc) {
+//======================================================================
+// find box of tess-model in memory
+
+
+  int         rSiz;
+  // char     s1[256];
+  ObjGX       *ox1;
+
+
+  printf("tess_box_get\n");
+
+  // init box
+  UT3D_box_ini0 (pb1, pb2);
+
+  // get 1.obj = tess. model
+  ox1 = UME_get_start (impSpc);
+
+  // wenn das erste obj Adress: skip it
+  if(ox1->typ == Typ_Address) ++ox1;
+
+  //----------------------------------------------------------------
+  L_next:
+    // erster Record muss size of following Record sein
+    if(ox1->typ != Typ_Size) goto L_Err2;
+    rSiz = (long)ox1->data;
+    // printf("Recordsize=%d\n",rSiz);
+
+    // next record
+    ++ox1;  //(char*)oxi += sizeof(ObjGX);
+
+    // test points of this record
+    tess_box_sur (pb1, pb2, ox1);
+
+    // (char*)oxi += rSiz;
+    ox1 = (ObjGX*)((char*)ox1 + rSiz);
+    if(ox1->typ != Typ_Done) goto L_next;
+
+
+  //----------------------------------------------------------------
+  L_fertig:
+
+      // TESTBLOCK
+      UT3D_stru_dump(Typ_PT, pb1, "tess_box_get pb1=");
+      UT3D_stru_dump(Typ_PT, pb2, "tess_box_get pb2=");
+      // END TESTBLOCK
+
+    return 0;
+
+
+  L_Err2:
+    TX_Error("tess_box_get E002 typ %d",ox1->typ);
+    return -1;
+
+}
+
+
+//================================================================
+  int tess_box_sur (Point *pb1, Point *pb2, ObjGX *oxi) {
+//================================================================
+
+  int     iSur, iPat, i1Nr, i2Nr;
+  ObjGX   *oxs, *oxd;
+
+
+  if(oxi->typ == Typ_GL_Sur) {
+    // typ=Typ_GL_Sur, form=Typ_ObjGX
+    goto L_GL_Sur;
+
+  // defCol kommt als single Record;
+  } else if(oxi->typ == Typ_Color) {
+    // ignore defCol
+    return 0;
+
+  } else {
+    printf("***** tess_box_sur E001: typ=%d form=%d siz=%d\n",
+           oxi->typ,oxi->form,oxi->siz);
+    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    return -1;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // loop tru surfs
+  L_GL_Sur:
+
+  i1Nr = oxi->siz;              // ex Sur  211 143 5
+  oxd  = oxi->data;
+
+
+  for(iSur=0; iSur<i1Nr; ++iSur) {
+
+
+    // Patch kann ein ObjGX oder nur pTab sein
+    if(oxd->form == Typ_ObjGX) {
+      i2Nr  = oxd->siz;
+      oxs = oxd->data;
+
+    } else {
+      i2Nr  = 1;
+      oxs = oxd;
+    }
+
+
+    //----------------------------------------------------------------
+    // loop tru patches
+    for(iPat=0; iPat<i2Nr; ++iPat) {
+
+      if(oxs->form == Typ_PT) {
+        tess_box_fac (pb1, pb2, oxs);
+
+
+      // } else if(oxs->form == Typ_SPH) {
+        // tess_origin_sph (oxs, fpo);
+
+
+      // } else if(oxs->form == Typ_CON) {
+        // tess_origin_con (oxs, fpo);
+
+
+      } else if(oxs->form == Typ_VC) {
+        // normalVector; // ignore
+
+      } else if(oxs->form == Typ_Int4) {
+        // Typ_Color Typ_Texture Typ_Typ; ignore
+
+
+      } else {
+        printf("****** tess_box_sur: UNKNOWN PATCH typ=%d form=%d\n",
+                oxs->typ,oxs->form);
+      }
+
+
+      ++oxs;  //(char*)oxs += sizeof(ObjGX);
+    }
+    //----------------------------------------------------------------
+
+
+    ++oxd;  //(char*)oxi += sizeof(ObjGX);
+  }
+  //----------------------------------------------------------------
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_box_fac (Point *pb1, Point *pb2, ObjGX *oxi) {
+//================================================================
+// Input:
+//   oxi->typ  = Typ_GL_PP
+//   oxi->form = Typ_PT
+//   oxi->aux  = glTyp
+//   oxi->siz  = nr of points
+//   oxi->data = array of <oxi->siz> points
+//
+//  
+// see gis_ori__
+    
+    
+  int   i1, pNr;
+  Point *pTab;
+
+
+  pNr  = oxi->siz;
+  pTab = oxi->data;
+
+  // printf("tess_box_fac %d\n",pNr);
+
+  // loop tru points; extend box
+  for(i1=0; i1<pNr; ++i1) {
+    UT3D_box_extend (pb1, pb2, &pTab[i1]);
+      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+      // UT3D_stru_dump(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
+  }
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_origin_box (Point *pOri, Point *pb1, Point *pb2) {
+//================================================================
+// get origin from box of tess-model
+
+
+  double  midDist, boxDist;
+  Point   midPt;
+  Vector  boxSiz;
+
+
+  // get midPt of box
+  UT3D_pt_mid2pt (&midPt, pb1, pb2);
+
+  // set midDist = max dist of midPt (max val of dx | dy | dz)
+  UT3D_bplen_vc (&midDist, (Vector*)&midPt);
+
+  // set boxSiz = Vector pb1 - pb2
+  UT3D_vc_2pt (&boxSiz, pb1, pb2);
+
+  // set boxDist = max dist of boxSiz (max val of dx | dy | dz)
+  UT3D_bplen_vc (&boxDist, &boxSiz);
+    printf(" _origin_box midDist=%lf boxDist=%lf\n",midDist,boxDist);
+
+  // if (midDist > (boxSiz / 2)) then pOri = midPt; else pOri = pNull;
+  if (midDist > (boxDist / 2)) {
+    // round 2 sig
+    pOri->x = UTP_db_rnd2sig (midPt.x);
+    pOri->y = UTP_db_rnd2sig (midPt.y);
+    pOri->z = UTP_db_rnd2sig (midPt.z);
+
+  } else {
+    *pOri = UT3D_PT_NUL;
+  }
+
+    UT3D_stru_dump (Typ_PT, pOri, "ex tess_origin_box");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_origin_set__ (Memspc *impSpc, Point *pOri) {
+//================================================================
+// subract origin of tess-model in memory
+// Input:
+//   oxi       tesss.model
+// see tess_analyz__ tess_box_get 
+
+  int         i1, rSiz;
+  ObjGX       *ox1;
+
+
+  // get 1.obj = tess. model
+  ox1 = UME_get_start (impSpc);
+  
+  // wenn das erste obj Adress: skip it
+  if(ox1->typ == Typ_Address) ++ox1;
+
+  //----------------------------------------------------------------
+  L_next:
+    // erster Record muss size of following Record sein
+    if(ox1->typ != Typ_Size) goto L_Err2;
+    rSiz = (long)ox1->data;
+    // printf("Record %d size=%d\n",i1,rSiz);
+
+    // next record
+    ++ox1;  //(char*)oxi += sizeof(ObjGX);
+
+    // subtract
+    tess_origin_set_sur (pOri, ox1);
+
+    ox1 = (ObjGX*)((char*)ox1 + rSiz);
+    if(ox1->typ != Typ_Done) goto L_next;
+
+
+  //----------------------------------------------------------------
+  L_fertig:
+
+  return 0;
+
+  L_Err2:
+    TX_Error("tess_origin_set__ E002 typ %d",ox1->typ);
+    return -1;
+
+
+}
+
+
+//================================================================
+  int tess_origin_set_sur (Point *pOri, ObjGX *oxi) {
+//================================================================
+
+  int     iSur, iPat, i1Nr, i2Nr;
+  ObjGX   *oxs, *oxd;
+
+
+  if(oxi->typ == Typ_GL_Sur) {
+    // typ=Typ_GL_Sur, form=Typ_ObjGX
+    goto L_GL_Sur;
+
+  // defCol kommt als single Record;
+  } else if(oxi->typ == Typ_Color) {
+    // ignore defCol
+    return 0;
+
+  } else {
+    printf("***** tess_origin_set_sur E001: typ=%d form=%d siz=%d\n",
+           oxi->typ,oxi->form,oxi->siz);
+    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    return -1;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // loop tru surfs
+  L_GL_Sur:
+
+  i1Nr = oxi->siz;              // ex Sur  211 143 5
+  oxd  = oxi->data;
+
+
+  for(iSur=0; iSur<i1Nr; ++iSur) {
+
+
+    // Patch kann ein ObjGX oder nur pTab sein
+    if(oxd->form == Typ_ObjGX) {
+      i2Nr  = oxd->siz;
+      oxs = oxd->data;
+
+    } else {
+      i2Nr  = 1;
+      oxs = oxd;
+    }
+
+
+    //----------------------------------------------------------------
+    // loop tru patches
+    for(iPat=0; iPat<i2Nr; ++iPat) {
+
+      if(oxs->form == Typ_PT) {
+        tess_origin_set_fac (pOri, oxs);
+
+
+      // } else if(oxs->form == Typ_SPH) {
+        // tess_origin_set_sph (oxs, fpo);
+
+
+      // } else if(oxs->form == Typ_CON) {
+        // tess_origin_set_con (oxs, fpo);
+
+
+      } else if(oxs->form == Typ_VC) {
+        // normalVector; // ignore
+
+      } else if(oxs->form == Typ_Int4) {
+        // Typ_Color Typ_Texture Typ_Typ; ignore
+
+
+      } else {
+        printf("****** tess_origin_set_sur: UNKNOWN PATCH typ=%d form=%d\n",
+                oxs->typ,oxs->form);
+      }
+
+
+      ++oxs;  //(char*)oxs += sizeof(ObjGX);
+    }
+    //----------------------------------------------------------------
+
+    ++oxd;  //(char*)oxi += sizeof(ObjGX);
+  }
+  //----------------------------------------------------------------
+
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_origin_set_fac (Point *pOri, ObjGX *oxi) {
+//================================================================
+// subtract vector
+// Input:
+//   oxi->typ  = Typ_GL_PP
+//   oxi->form = Typ_PT
+//   oxi->aux  = glTyp
+//   oxi->siz  = nr of points
+//   oxi->data = array of <oxi->siz> points
+//
+//  
+// see gis_ori__
+
+
+  int   i1, pNr;
+  Point *pTab;
+
+
+  pNr  = oxi->siz;
+  pTab = oxi->data;
+
+  // printf("tess_box_fac %d\n",pNr);
+
+  // loop tru points; extend box
+  for(i1=0; i1<pNr; ++i1) {
+    UT3D_pt_sub_pt3 (&pTab[i1], pOri);
+      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+      // UT3D_stru_dump(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
+  }
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int tess_res_CB__ (Memspc *impSpc, int (*funcnam)()) {
+//================================================================
+// see TSU_exp_sm_sur
+
+  int      rSiz;
+  char     s1[256];
+  ObjGX    *ox1;
+  FILE     *fpo;
+
+
+  printf("tess_res_CB__ \n");
+
+
+  // get 1.obj = tess. model
+  ox1 = UME_get_start (impSpc);
+
+  // wenn das erste obj Adress: skip it
+  if(ox1->typ == Typ_Address) ++ox1;
+
+
+  //----------------------------------------------------------------
+  L_next:
+    // erster Record muss size of following Record sein
+    if(ox1->typ != Typ_Size) goto L_Err2;
+    rSiz = (long)ox1->data;
+    // printf("Recordsize=%d\n",rSiz);
+
+    // next record
+    ++ox1;  //(char*)oxi += sizeof(ObjGX);
+
+    // analyze this record
+    tess_res_CB_sur (ox1, funcnam);
+
+    // (char*)oxi += rSiz;
+    ox1 = (ObjGX*)((char*)ox1 + rSiz);
+    if(ox1->typ != Typ_Done) goto L_next;
+
+
+  //----------------------------------------------------------------
+  L_fertig:
+
+  return 0;
+
+
+  L_Err2:
+    TX_Error("tess_res_CB__ E001 typ=%d form=%d",ox1->typ,ox1->form);
+    return -1;
+
+}
+
+
+//================================================================
+  int tess_res_CB_sur (ObjGX *oxi, int (*funcnam)()) {
+//================================================================
+// ..sur
+// ..pat
+// facCol
+// fac
+// see TSU_exp_fac GL_Disp_sur
+
+  int     iSur, iPat, i1Nr, i2Nr, iTyp, iTex;
+  ColRGB  *sCol;
+  Vector  *vcn;
+  ObjGX   *oxs, *oxd;
+
+
+  printf("\n====================\n");
+  printf("tess_res_CB_sur typ=%d form=%d siz=%d\n",
+          oxi->typ,oxi->form,oxi->siz);
+
+
+  if(oxi->typ == Typ_GL_Sur) {
+    // typ=Typ_GL_Sur, form=Typ_ObjGX
+    goto L_GL_Sur;
+
+
+  } else if(oxi->typ == Typ_Color) {
+    sCol = (ColRGB*)&oxi->data;
+      printf("  defCol r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
+    funcnam (oxi);
+    return 0;
+
+
+  } else {
+    printf("***** tess_analyz_sur E001: typ=%d form=%d siz=%d\n",
+           oxi->typ,oxi->form,oxi->siz);
+    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    return -1;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // loop tru surfs
+  L_GL_Sur:
+
+  i1Nr = oxi->siz;              // ex Sur  211 143 5
+  oxd  = oxi->data;
+
+  // sCol = NULL;   // defaultCol
+  iTex = -1;
+
+  for(iSur=0; iSur<i1Nr; ++iSur) {
+    // printf("\n ..sur[%d] typ=%d form=%d siz=%d\n",iSur,
+           // oxd->typ, oxd->form, oxd->siz);
+
+    // Patch kann ein ObjGX oder nur pTab sein
+    if(oxd->form == Typ_ObjGX) {
+      i2Nr  = oxd->siz;
+      oxs = oxd->data;
+
+    } else {
+      i2Nr  = 1;
+      oxs = oxd;
+    }
+
+
+    //================================================================
+    // loop tru patches
+    for(iPat=0; iPat<i2Nr; ++iPat) {
+        // printf(" ..pat[%d] typ=%d form=%d siz=%d\n",iPat,
+          // oxs->typ, oxs->form, oxs->siz);
+
+
+      //----------------------------------------------------------------
+      if(oxs->form == Typ_PT) {
+        funcnam (oxs);
+
+
+      //----------------------------------------------------------------
+      } else if(oxs->form == Typ_VC) {
+        // Normalvektor
+        printf("****** tess_res_CB_sur UNUSED RECORD Typ_VC\n");
+        // vcn = (Vector*)oxs->data;
+          // printf("tess_res_CB_sur vcn %f %f %f\n",vcn->dx,vcn->dy,vcn->dz);
+
+
+      //----------------------------------------------------------------
+      } else if(oxs->form == Typ_SPH) {
+        // tess_analyz_sph (oxs, fpo);
+        printf("****** tess_res_CB_sur UNUSED RECORD Typ_SPH\n");
+
+
+      //----------------------------------------------------------------
+      } else if(oxs->form == Typ_CON) {
+        // tess_analyz_con (oxs, fpo);
+        printf("****** tess_res_CB_sur UNUSED RECORD Typ_CON\n");
+
+
+      //----------------------------------------------------------------
+      } else if(oxs->form == Typ_Int4) {
+
+        //----------------------------------------------------------------
+        if(oxs->typ == Typ_Color) {
+          iTex = -1;
+          sCol = (ColRGB*)&oxs->data;
+            printf("  Col r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
+          funcnam (oxs);
+
+
+        //----------------------------------------------------------------
+        } else if(oxs->typ == Typ_Texture) {
+          // sCol = NULL;   form = Typ_Int4 ?
+          iTex = INT_PTR (oxs->data);
+          // fprintf(fpo, "   %d facTex=%d\n",iPat,iTex);
+            printf("****** tess_res_CB_sur UNUSED RECORD Typ_Texture\n");
+
+
+        //----------------------------------------------------------------
+        } else if(oxs->typ == Typ_Typ) {
+          // markiert den Beginn einer neuen Surf - dzt nur f Intersect used
+          // Typ_Typ, Typ_Int4, Typ_SURPLN (58) - supporting surface is planar
+          iTyp = INT_PTR (oxs->data);
+          // fprintf(fpo, "   %d typ=%d\n",iPat,iTyp);
+        }
+
+
+      //----------------------------------------------------------------
+      } else {
+        printf("****** UNKNOWN PATCH typ=%d form=%d\n",oxs->typ,oxs->form);
+      }
+
+
+      ++oxs;  //(char*)oxs += sizeof(ObjGX);
+    }
+    //----------------------------------------------------------------
+
+
+
+    ++oxd;  //(char*)oxi += sizeof(ObjGX);
+  }
+  //----------------------------------------------------------------
+
+
+
+
+  return 0;
+
+}
+
 
 //============================= EOF ==============================

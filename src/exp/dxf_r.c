@@ -516,7 +516,7 @@ __declspec(dllexport) int DXF_r__ (char*);
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
-#include "../gr/ut_UI.h"              // SYM_SQUARE ..
+#include "../ut/func_types.h"              // SYM_SQUARE ..
 
 #include "../xa/xa.h"                 // ?
 #include "../xa/xa_mem.h"             // memspc55 mem_cbuf1
@@ -834,8 +834,6 @@ static  int    dxf_unsupp[8];
   sprintf(mem_cbuf1,"### End DXF-Import");
   UTF_add1_line (mem_cbuf1);
 
-  free (spc_tra);
-
   Fertig_1:
 
 
@@ -886,6 +884,7 @@ static  int    dxf_unsupp[8];
   // loop tru block
   for(i1=0; i1<250000; ++i1) {
     UME_init (&wrkSpc, memspc501, sizeof(memspc501));
+    UME_init (&DXFR_SPC_TRA, spc_tra, SPC_TRA_SIZ);
     irc = dxfr_rec__ (&ox1, fp, fp1, &wrkSpc);
     if(irc > 1) goto L_sm_done;           // 2 = FERTIG
     if(irc > 0) continue;
@@ -940,6 +939,8 @@ static  int    dxf_unsupp[8];
 
   // report unsupported objects
   dxf_log();
+
+  free (spc_tra);
 
 
   // // TEST-DEBUG-OFF

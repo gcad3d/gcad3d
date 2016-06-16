@@ -53,7 +53,7 @@ make -f DemoPlugin_Resolv.mak
 
 #include "../gui/gui__.h"
 
-#include "../gr/ut_UI.h"               // UI_Func...
+#include "../ut/func_types.h"               // UI_Func...
 #include "../gr/ut_DL.h"               // DB_GetDLatt
 #include "../db/ut_DB.h"               // DB_GetObjGX
 // #include "../xa/xa_ui.h"               // UID_..

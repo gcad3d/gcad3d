@@ -76,6 +76,7 @@ APP/src2obj.nmak
 APP/srcFiles
 APP/srcOS.mak
 APP/srcOS.nmak
+APP/t2
 APP/tst.c
 APP/tst.mak
 APP/ut_stat.sh

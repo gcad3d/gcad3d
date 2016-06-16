@@ -65,7 +65,7 @@ __declspec(dllexport) int gCad_fini ();
 
 #include "../gui/gui__.h"
 
-#include "../gr/ut_UI.h"               // UI_Func...
+#include "../ut/func_types.h"               // UI_Func...
 #include "../gr/ut_DL.h"               // DB_GetDLatt
 #include "../gr/ut_GL.h"               // GL_GetCurpos0
 #include "../db/ut_DB.h"               // DB_GetObjGX

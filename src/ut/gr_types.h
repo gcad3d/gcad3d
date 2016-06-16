@@ -1,4 +1,4 @@
-/* ut_UI.h
+/* func_types.h
 
 Allgemeines Userinterface.
 
@@ -9,64 +9,8 @@ Korr:
 
 */
 
-#define STAT_deleted       0
-#define STAT_normal        1
-
-
-/* -> ../gui/gui_types.h
-#define UI_FuncInit       90
-#define UI_FuncInit1     191
-#define UI_FuncInit2     192
-#define UI_FuncInit3     193
-#define UI_FuncClear     194
-#define UI_FuncGet        91
-#define UI_FuncSet        92
-#define UI_FuncDisable    93
-#define UI_FuncEnable     94
-#define UI_FuncFocus      95
-#define UI_FuncPrev       96
-#define UI_FuncNext       97
-#define UI_FuncWork       98
-#define UI_FuncKill       99
-#define UI_FuncOK        100
-#define UI_FuncCancel    101
-#define UI_FuncExit      102
-#define UI_FuncHelp      103
-#define UI_FuncNO        104
-
-#define UI_FuncInsert    110
-#define UI_FuncModify    111
-#define UI_FuncDelete    112
-#define UI_FuncUndo      113
-
-#define UI_FuncUCB      1000         // Usercallbacks; 1000-1999
-#define UI_FuncUCB1     1001
-#define UI_FuncUCB2     1002
-#define UI_FuncUCB3     1003
-#define UI_FuncUCB4     1004
-#define UI_FuncUCB5     1005
-#define UI_FuncUCB6     1006
-#define UI_FuncUCB7     1007
-#define UI_FuncUCB8     1008
-#define UI_FuncUCB9     1009
-#define UI_FuncUCB10    1010
-#define UI_FuncUCB11    1011
-#define UI_FuncUCB12    1012
-#define UI_FuncUCB13    1013
-*/
-
-// auch Activate, Deactivate usw ...
-// #define GUI_FuncReset   98
-// #define GUI_QueryActive 94
-// #define GUI_QueryState  95
-
-
-
-#define QUERY             -1
-
-#define ALL_OBJS    (long)-1
-
-
+// #define STAT_deleted       0
+// #define STAT_normal        1
 
 
 // attributes for lines,curves
@@ -129,30 +73,6 @@ Korr:
 #define LTYP_dashLong      3
 #define LTYP_dashShort     2
 #define LTYP_dashDot       1
-
-#define FUNC_Pan           1
-#define FUNC_Rot           2
-#define FUNC_RotCen        3
-
-#define FUNC_ViewTop       4
-#define FUNC_ViewFront     5
-#define FUNC_ViewSide      6
-#define FUNC_ViewIso       7
-#define FUNC_ViewReframe   8
-#define FUNC_ViewZoomBox   9
-#define FUNC_ViewReset    10
-#define FUNC_DispWire     11
-#define FUNC_DispRend     12
-#define FUNC_DispHid1     13
-#define FUNC_DispHid2     14
-#define FUNC_DispHid3     15
-
-#define FUNC_Hili        870
-#define FUNC_Dim         860
-#define FUNC_Show        880
-#define FUNC_Pick        890
-
-#define FUNC_Idle        990
 
 
 //============================================================

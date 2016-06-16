@@ -116,7 +116,7 @@ SUStess_ck_srot_
 #include "../ut/ut_geo.h"
 #include "../ut/ut_cast.h"                // INT_PTR
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 
 #include "../db/ut_DB.h"               // DB_GetCurv
 

@@ -783,9 +783,6 @@ __declspec(dllexport) int STP_w__ (char*);
 #include <time.h>                // localtime
 
 
-#include "../xa/xa.h"                  // WC_modnam
-#include "../xa/xa_mem.h"              // memspc201
-
 #include "../ut/ut_cast.h"             // LONG_PTR
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
@@ -794,10 +791,13 @@ __declspec(dllexport) int STP_w__ (char*);
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_memTab.h"           // MemTab
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../gr/ut_DL.h"               // DL_GetAtt
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
+
+#include "../xa/xa.h"                  // WC_modnam
+#include "../xa/xa_mem.h"              // memspc201
 
 
 // #include "../xa/xa_ui.h"               // UID_..
@@ -1239,7 +1239,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     irc = DL_get_dla (&dla, l1);                      // get alle DL-Infos
     if(!irc) continue;
 
-    if(dla.disp   == OFF) continue;           // skip hidden obj's
+    // if(dla.disp == OFF) continue;           // skip hidden obj's
+    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     apt_typ = dla.typ;
     apt_ind = dla.ind;
@@ -1301,7 +1302,9 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     // dla = DL_GetAtt(l1);                      // get alle DL-Infos
     irc = DL_get_dla (&dla, l1);  
     if(!irc) continue;
-    if(dla.disp   == OFF) continue;           // skip hidden obj's
+
+    // if(dla.disp   == OFF) continue;           // skip hidden obj's
+    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     apt_typ = dla.typ;
     apt_ind = dla.ind;

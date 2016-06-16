@@ -8,9 +8,21 @@
 #define GR_ATT_TAB_SIZ   45          // DL_base_PtAtt - DL_base_LnAtt
 #define GR_DIT_TAB_SIZ   1000
 
-// DL_OBJ_IS_HIDDEN ((DL_Att)dla)
+
+// DL_OBJ_IS_ACTMDL ((DL_Att)dla)     test if obj belongs to active model
+//   returns 0 if(dla.modInd >= 0)  - subModel
+//   returns 1 if(dla.modInd == -1) - active Model
+// int DL_OBJ_IS_ACTMDL (DL_Att);
+#define DL_OBJ_IS_ACTMDL(dla)\
+ ((INT_16)dla.modInd != -1)
+
+
+// DL_OBJ_IS_HIDDEN ((DL_Att)dla)     test if obj is hidden
+//   returns 0=visible; else 1=hidden
+// int DL_OBJ_IS_HIDDEN (DL_Att);
 #define DL_OBJ_IS_HIDDEN(dla)\
  ((dla.disp == 1)&&(dla.hili == 1))
+ // ((dla->disp == 1)&&(dla->hili == 1))
 
 
 
@@ -29,7 +41,6 @@ void DL_DumpObjTab   ();
 // int  DL_StoreAtt     (long Ind, GR_Att* att1);
 int  DL_Redraw       ();
 void DL_ReScale__    ();
-void DL_ReScalePoint (Point *pt1);
 // int  DL_save_DYNAMIC_AREA ();
 
 int  DL_GetTyp       (long dli);
@@ -41,7 +52,7 @@ unsigned long DL_get_iatt (long dli);
 
 long DL_find_smObj (int typ, long DBind, long DLend, int imod);
 long DL_find_obj (int typ, long ind, long DLend);
-int  DL_find_sel (int *typ, long *ind);
+// int  DL_find_sel (int *typ, long *ind);
 
 int  DL_hili_on           (long);
 int  DL_hili_off         (long);

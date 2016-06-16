@@ -72,7 +72,7 @@ prj_vc           projectionDirection or vz of Plane
 #include "../xa/xa_mem.h"                 // memspc*
 #include "../ut/ut_geo.h"                 // Point-def ..
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
-#include "../gr/ut_UI.h"                  // UI_Func... SYM_..
+#include "../ut/func_types.h"                  // UI_Func... SYM_..
 
 static int    prj_typ;     // typ of targetObj; Typ_PLN or surface ...
 static int    prj_nr;      // nr of objects in prj_tg

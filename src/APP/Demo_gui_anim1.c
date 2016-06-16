@@ -87,7 +87,7 @@ __declspec(dllexport) int gCad_fini ();
 
 #include "../gui/gui__.h"
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../gr/ut_DL.h"               // DL_Att
 
 #include "../db/ut_DB.h"               // DB_get_ModRef

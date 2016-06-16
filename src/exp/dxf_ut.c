@@ -31,6 +31,7 @@ List_functions_start:
 dxfr_load_mat       Arbitrary Axis Algorithm  - TrMat from vec
 dxfr_gxt            text dxf -> gCad
 dxfw_gxt            text gCad -> dxf
+DXF_colACI_colRGB   returns ACI-color from RGB-color
 
 List_functions_end:
 =====================================================
@@ -42,16 +43,132 @@ List_functions_end:
 
 
 #ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// #include <stdarg.h>
+
 
 #include "../ut/ut_geo.h"
 
+
+
+//================================================================
+  int DXF_colACI_colRGB (unsigned char rci,
+                         unsigned char gci,
+                         unsigned char bci) {
+//================================================================
+// DXF_colACI_colRGB          returns ACI-color from RGB-color
+// ACI = AutoCad Color Index
+// based on the work of moses@subatomic.com
+
+
+  static unsigned char Rca[] = {
+    0, 255, 255, 0, 0, 0, 255, 255, 65, 128,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    51, 80, 105, 130, 190, 255};
+
+  static unsigned char Gca[] = {
+    0, 0, 255, 255, 255, 0, 0, 255, 65, 128,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    51, 80, 105, 130, 190, 255};
+
+  static unsigned char Bca[] = {
+    0, 0, 0, 0, 255, 255, 255, 255, 65, 128,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    0, 170, 0, 126, 0, 86, 0, 69, 0, 53,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    255, 255, 189, 189, 129, 129, 104, 104, 79, 79,
+    191, 234, 141, 173, 96, 118, 78, 95, 59, 73,
+    127, 212, 94, 157, 64, 107, 52, 86, 39, 66,
+    63, 191, 46, 141, 31, 96, 25, 78, 19, 59,
+    51, 80, 105, 130, 190, 255};
+
+  int     i1, id, iMin, iCol;
+
+
+  // printf("DXF_colACI_colRGB %d %d %d\n",rci,gci,bci);
+
+
+  iMin = 999;
+  for(i1=0; i1<256; ++i1) {
+    id = abs(rci - Rca[i1]) + abs(gci - Gca[i1]) + abs(bci - Bca[i1]);
+    if(id < iMin) {
+      iMin = id;
+      iCol = i1;
+    }
+  }
+
+  return iCol;
+
+}
 
 
 //================================================================
@@ -222,6 +339,11 @@ List_functions_end:
 ///            1: refSys is not parallel to old z-axis
 /// \endcode
 
+  // Autocad-System zur Berechnung des lokalen Achsensystems:
+  // IN:  der Z-Vektor.
+  // OUT: die Matrix.
+
+
 
   int       irc;
   double    d1;
@@ -229,27 +351,28 @@ List_functions_end:
   Plane     pl1;
 
 
-  // Autocad-System zur Berechnung des lokalen Achsensystems:
-  // IN:  der Z-Vektor.
-  // OUT: die Matrix.
+  // printf("dxfr_load_mat \n");
+  // UT3D_stru_dump (Typ_VC, vz, "dxfr_load_mat vz:");
+  // DXFW_test ("2");
 
 
   // Erstens: ist der neue Z-Vektor ident mit dem Haupt-Z-Vektor:
   // (wenn sein X-Anteil und sein Y-Anteil kleiner als 1/64 sind)
-  d1=1./64.;
+  d1 = 1. / 64.;
   if((fabs(vz->dx) > d1)||(fabs(vz->dy) > d1)) goto Nicht_Z_Parallel;
-  //TX_Print(" Parallel Z %f",d1);
+
+  // DXFW_test ("3");
 
 
   //----------------------------------------------------------------
-  // YES, IS PARALLEL
+  // // YES, IS PARALLEL
+    printf(" _load_mat - Z-parallel %lf\n",d1);
   irc = 0;
   // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
-  //TX_Print("vx=%f,%f,%f",vx.dx,vx.dy,vx.dz);
+    // UT3D_stru_dump (Typ_VC, &vx, " vx:");
 
   UT3D_vc_perp2vc (&vy, vz, &vx);
-  //TX_Print("vy=%f,%f,%f",vy.dx,vy.dy,vy.dz);
 
   goto Load_Matrix;
 
@@ -258,12 +381,12 @@ List_functions_end:
   // NOT PARALLEL
   // NEIN: Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
   Nicht_Z_Parallel:
+    printf(" _load_mat - NOT Z-parallel %lf\n",d1);
+
   irc = 1;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Z, vz);
-  //TX_Print("vx=%f,%f,%f",vx.dx,vx.dy,vx.dz);
 
   UT3D_vc_perp2vc (&vy, vz, &vx);
-  //TX_Print("vy=%f,%f,%f",vy.dx,vy.dy,vy.dz);
 
 
   Load_Matrix:
@@ -273,6 +396,14 @@ List_functions_end:
   pl1.vz = *vz;
 
   UT3D_m3_loadpl (m1, &pl1);
+
+
+    // TESTBLOCK
+    // UT3D_stru_dump (Typ_VC, &vx, " vx:");
+    // UT3D_stru_dump (Typ_VC, &vy, " vy:");
+    // UT3D_stru_dump (Typ_M4x3, m1, " irc=%d m1:",irc);
+    // END TESTBLOCK
+
 
   return  irc;
 

@@ -322,7 +322,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 #include <stdarg.h>
 
 
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
  
 // #include "../ut/ut_umem.h"             // UME_reserve
 #include "../ut/ut_geo.h"

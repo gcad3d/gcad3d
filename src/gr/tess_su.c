@@ -190,8 +190,9 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_os.h"                  // OS_..
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
+#include "../ut/ut_col.h"                 // COL_INT32
 #include "../db/ut_DB.h"                  // DB_GetGTxt
-#include "../gr/ut_UI.h"                  // UI_Func... SYM_..
+#include "../ut/gr_types.h"                  // UI_Func... SYM_..
 #include "../gr/tess_su.h"                // TypTsuSur
 #include "../xa/xa_mem.h"                 // memspc51..
 #include "../xa/xa.h"                     // AP_STAT
@@ -213,7 +214,7 @@ extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
 // aus ../gr/ut_GL.c:
 extern ColRGB  GL_actCol;
 extern ColRGB  GL_defCol;
-extern long    GL_actTex;
+extern int     GL_actTex;
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
@@ -305,6 +306,18 @@ static TSU_struct1 *TSU_mSpc;
 
 
 
+//================================================================
+  int TSU_free () {
+//================================================================
+// free space
+// ATTENTION: MS-Win in dll MUST use this func
+
+  if(TSU_mSpc->mSpc) free (TSU_mSpc->mSpc);
+  return 0;
+
+}
+
+ 
 //================================================================
   int TSU_dli_get () {
 //================================================================
@@ -499,18 +512,26 @@ static int oldMode = 0;
 //================================================================
   int TSU_tessObj (ObjGX **spc1, int typ, long ind) {
 //================================================================
-// tesselate (add) obj into memspc spc1
-// Input:
-//   typ    TYP_FuncInit          start/init
-//          Typ_SUR od Typ_SOL    tesselate add to TSU_mSpc
+/// \code
+/// tesselate (add) obj into memspc spc1
+/// Input:
+///   typ    TYP_FuncInit          start/init
+///          Typ_SUR od Typ_SOL    tesselate add to TSU_mSpc
+/// \endcode
+
 //          TYP_FuncExit          exit; provide data
+// 
+// TODO: add parameter mode; 0 = geometry only; without attributes;
+//   1 = geometry + color;   2 = geometry + color + textures
 
 
-  int    irc, i1, recNr;
+  int    irc, i1, recNr, iAtt;
+  long   gaNr;
+  ObjAtt *ga1;
 
-  // printf("TSU_tessObj %d %ld\n",typ,ind);
+
+  printf("TSU_tessObj %d %ld\n",typ,ind);
   // UT3D_stru_dump (Typ_PLN, pln, "");
-
 
 
   // draw
@@ -520,11 +541,13 @@ static int oldMode = 0;
 
 
   } else if(typ == Typ_SUR) {
-    APT_DrawSur (5, ind);
+    iAtt = GA_find_att_SU (typ, ind);  // get color
+    APT_DrawSur (iAtt, ind);
 
 
   } else if(typ == Typ_SOL) {
-    APT_DrawSol (5, ind);
+    iAtt = GA_find_att_SU (typ, ind);  // get color
+    APT_DrawSol (iAtt, ind);
 
 
   } else if(typ == TYP_FuncExit) {
@@ -1565,7 +1588,7 @@ static int   patNr;     // nr of Patches
 
 
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);   // col = (ColRGB*)&att;
     // printf(" col=%d tra=%d tex=%d sym=%d\n",
            // col->color,col->vtra,col->vtex,col->vsym);
 
@@ -1743,7 +1766,7 @@ static int   patNr;     // nr of Patches
 
 
   int       sTyp, ptNr, p1Max, p2Max, iTex;
-  long      iTexBas, iTexRef;
+  int       iTexBas, iTexRef;
   Point     *p1Tab, *p2Tab;
   ColRGB    *col;
   TexBas    *btex;
@@ -1788,7 +1811,7 @@ static int   patNr;     // nr of Patches
   //================================================================
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0=draw; 1=store
 
     if((APT_dispSOL == OFF) ||
@@ -1885,7 +1908,7 @@ static int   patNr;     // nr of Patches
 
   TexBas    *btex;
   TexRef    *rtex;
-  long      iTexBas, iTexRef;
+  int       iTexBas, iTexRef;
 
 
   // printf("TSU_DrawSurTRV %d %d\n",oxi->typ,oxi->form);
@@ -1898,7 +1921,7 @@ static int   patNr;     // nr of Patches
 
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -2098,7 +2121,7 @@ static int   patNr;     // nr of Patches
 
   TexBas    *btex;
   TexRef    *rtex;
-  long      iTexBas, iTexRef;
+  int       iTexBas, iTexRef;
 
 
   MemTab(Point) pTab = MemTab_empty;
@@ -2211,7 +2234,7 @@ static int   patNr;     // nr of Patches
   }
 */
 
-  col1 = (ColRGB*)&att;
+  col1 = COL_INT32(&att);   // col1 = (ColRGB*)&att;
   styl = col1->vsym;
     // printf(" styl=%d\n",styl);
 
@@ -2321,7 +2344,7 @@ static int   patNr;     // nr of Patches
 
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -2463,7 +2486,7 @@ static int   patNr;     // nr of Patches
 
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -2551,11 +2574,12 @@ static int   patNr;     // nr of Patches
 
 
 
-
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
-    // printf(" col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
+  col = COL_INT32(&att);   // col = (ColRGB*)&att;
+    printf(" SurTP col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
+    printf("       GL_actTex=%d\n",GL_actTex);
+
 
   if(TSU_mode == 0)  {      // 0=draw; 1=store
     if((APT_dispSOL == OFF) ||
@@ -2642,7 +2666,7 @@ static int   patNr;     // nr of Patches
     GLT_spp_sTyp (Typ_SURPLN);  // store surfTyp for intersect
 
 
-  // tesselate
+  // tesselate planar patch
   i1 = GLT_spp__ (cTab, cNr, &vc1);
   if(i1 < 0) goto L_err;
 
@@ -2821,7 +2845,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   //-----------------------------------------------------------
   // shaded or symbolic
   TSU_sStyl = 0;
-  col = (ColRGB*)&att;
+  col = COL_INT32(&att); // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0=draw; 1=store
 
     if((APT_dispSOL == OFF) ||

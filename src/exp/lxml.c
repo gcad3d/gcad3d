@@ -101,7 +101,7 @@ Format LandXML:
 #include "../ut/ut_msh.h"         // Fac3 ..
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_memTab.h"          // MemTab_..
-#include "../gr/ut_UI.h"          // SYM_..
+#include "../ut/func_types.h"          // SYM_..
 #include "../xa/xa_mem.h"         // memspc..
 
 

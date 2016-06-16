@@ -649,7 +649,7 @@ __declspec(dllexport) int IGE_r__ (char*);
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_TX.h"               // TX_Print
 
-#include "../gr/ut_UI.h"               // UI_Func...
+#include "../ut/func_types.h"               // UI_Func...
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_gr.h"               // GTX_..
 

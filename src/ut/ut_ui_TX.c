@@ -67,6 +67,7 @@ die Funktionen ohne GUI sind in ut/ut_TX.c
 
 
 
+#include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"        /* f.UTX_CleanCR */
 #include "../ut/ut_os.h"        // OS_beep
 #include "../ut/ut_TX.h"               // TX_Print

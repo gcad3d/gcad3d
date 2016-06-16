@@ -155,7 +155,7 @@ UT2D_ck_pt_in_tria
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_tin.h"              // TYP_EDGLN_BL
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/ut_os.h"               // OS_ ..
 

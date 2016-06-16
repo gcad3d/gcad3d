@@ -1,5 +1,5 @@
 /*! \page pag_Attributes Attributes
-../gcad_doxygen/Attributes.dox
+../../doc/gcad_doxygen/Attributes.dox
 
 <pre>
 <h2>Attribute Doku</h2>
@@ -8,6 +8,8 @@
 \ref Hide_attribute
 \ref Pick_attribute
 \ref Linetyp_attributes
+\ref Color_attributes
+\ref Texture_attributes
 \ref permanent_attributes
 
 
@@ -67,6 +69,11 @@ ______________________________________________________________________________
 ______________________________________________________________________________
 \section Linetyp_attributes
 \code
+- for lines (L) circles (C) and curves (S) 
+- struct Ind_Att_ln     type is Typ_Ltyp
+- struct Att_ln         type is Typ_G_Att
+- source .. ?
+- Ind_Att_ln is used as INT32 for GL-functions (TODO)
 
 
   Defaultwerte siehe Hauptdoku "Farben, Linientypen, Strichstärken".
@@ -96,7 +103,54 @@ ______________________________________________________________________________
   DL_InitAttTab ();
 
 
+
 \endcode
+______________________________________________________________________________
+\section Color_attributes
+\code
+- for surfaces (A) and solids (B) 
+- struct ColRGB     type is Typ_Color
+- source ../ut/ut_col.c and ../ut/ut_col.h
+- ColRGB is used as INT32 for GL-functions (COL_INT32 / INT32_COL)
+
+
+
+\endcode
+______________________________________________________________________________
+\section Texture_attributes
+\code
+- DisplayList GR_ObjTab - struct DL_Att.iatt keeps ColRGB for obj
+- PermanentAttribute-Table GA_ObjTab - struct ObjAtt.iatt keeps ColRGB for obj
+
+- struct ColRGB.vtex keeps Info Color or Texture (yes if .vtex = 1)
+- struct ColRGB.cr .cg .cb keeps textureRefNr (index into TexRefTab)
+
+- List *TexRefTab - struct TexRef.ibas keeps Base-Texure (index into TexBasTab)
+- List *TexBasTab - struct TexBas keeps basic texture-data.
+
+
+Global Vars:
+  GL_actTex
+
+Functions:
+  GA_hasTexture()
+  GA_getTexRefInd()
+  Tex_getRef()
+  Tex_getBas__()
+  GRU_tex_rec         // find rectangle for texture in modelspace
+  GL_Tex_Ini
+
+
+
+\endcode
+
+<pre>
+See:
+\ref TextureReferenceList
+\ref BasicTexureList
+</pre>
+
+
 ______________________________________________________________________________
 \section permanent_attributes
 \code
@@ -107,7 +161,8 @@ GATAB
 A20 Ce2dc27
 A21 S1
 ENDGATAB
-# See also: \endcode \ref DynamicDataArea \code
+
+\endcode See also: \ref DynamicDataArea \code
 
 
 
@@ -122,5 +177,4 @@ Color:
 
 
 \endcode
-
 */

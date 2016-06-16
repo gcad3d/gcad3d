@@ -252,7 +252,7 @@ Separator {
 
 #include "../db/ut_DB.h"               // DB_get_ModBas
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 // #include "../gr/ut_DL.h"               // DL_GetAtt
 // #include "../gr/ut_GL.h"               // GL_GetCen
 // #include "../gr/vf.h"                  // GL_vf1_CS
@@ -1515,7 +1515,7 @@ static MemTab(ColRGB) colTab = MemTab_empty;
 
   fprintf(TSU_fp,"texCoord TextureCoordinate{point [\n");
 
-  Tex_getRef (&tr, (long)iTex);     // get TexRef-record from TexRef-index
+  Tex_getRef (&tr, iTex);     // get TexRef-record from TexRef-index
     // UT3D_stru_dump (Typ_TEXR, tr, "TexRef[%d]:\n",iTex);
   po.x = tr->px;
   po.y = tr->py;
@@ -2364,17 +2364,22 @@ static FILE *fpo = NULL;
 //================================================================
   int TSU_exp_sur (ObjGX *oxi) {
 //================================================================
+// export surfaces of main-model
 
   int     irc, i1, rSiz;
   // ColRGB  defCol;
 
 
-  // printf("TSU_exp_sur %d %d %d %d\n",TSU_ftyp,oxi->typ,oxi->form,oxi->siz);
+  printf("TSU_exp_sur ftyp=%d typ=%d form=%d siz=%d\n",
+         TSU_ftyp,oxi->typ,oxi->form,oxi->siz);
   // printf("   _exp_sur actModNam=|%s|\n",actModNam);
   // tess_dump_f_ (oxi, "TSU_exp_sur ");
 
 
-  // fprintf(TSU_fp,"# TSU_exp_sur |%s|\n",actModNam);
+    // TESTBLOCK
+    // fprintf(TSU_fp,"# TSU_exp_sur |%s|\n",actModNam);
+    // TSU_ftyp = Mtyp_STL;
+    // END TESTBLOCK
 
 
 
@@ -2654,14 +2659,15 @@ static FILE *fpo = NULL;
   ColRGB     defCol;
 
 
-  // printf("TSU_exp_Ditto |%s| iNr=%d ftyp=%d\n",modNam,iNr,TSU_ftyp);
+  printf("TSU_exp_Ditto |%s| iNr=%d ftyp=%d\n",modNam,iNr,TSU_ftyp);
 
 
   // fprintf(TSU_fp,"#TSU_exp_Ditto |%s| %d\n",mnam,iNr);
 
 
+  //----------------------------------------------------------------
   // testen, ob ein .tess-Model existiert und flag f_tess setzen
-  // muss Filetyp weg
+  // remove filetyp from modelname
   strcpy(cbuf, modNam);
   cp = strrchr(cbuf, '.');
   if(cp) *cp = '\0';
@@ -2669,8 +2675,7 @@ static FILE *fpo = NULL;
   strcat(cbuf, ".tess");
   sprintf(cbuf1, "%s%s",OS_get_tmp_dir(),cbuf);
   f_tess = OS_checkFilExist (cbuf1, 1);   // 0=does not exist
-    // printf(" f_tess=%d |%s|\n",f_tess,cbuf1);
-
+    printf(" f_tess=%d |%s|\n",f_tess,cbuf1);
 
 
 
@@ -2683,9 +2688,15 @@ static FILE *fpo = NULL;
 
 
 
+  // ======== DXF =============================================  2016-05-23
+  if(TSU_ftyp == Mtyp_DXF) {
+      printf(" DXF < tess\n");
+
+
+
 
   // ======== WRL / VRML1 =====================================
-  if(TSU_ftyp == Mtyp_WRL) {                 // 10=WRL
+  } else if(TSU_ftyp == Mtyp_WRL) {                 // 10=WRL
     
     if(f_tess == 0) goto L_wrl1_1;
     TSU_exp_sm__ (cbuf, mdr);
@@ -2799,6 +2810,12 @@ static FILE *fpo = NULL;
 
     ++TSU_errStat;     // subModels werden nicht behandelt
     goto L_done;
+
+
+
+  // ======== ?? =====================================
+  } else {
+    printf("***** TSU_exp_Ditto I001 %d\n",TSU_ftyp);
   }
 
 
@@ -2925,8 +2942,8 @@ static char  mStat[1024];
 
   TSU_errStat = 0;
   TSU_fnam = fnam;
-  TSU_ftyp = AP_ck_ftyp(mode);
-    // printf(" TSU_ftyp=%d\n",TSU_ftyp);
+  TSU_ftyp = AP_ck_ftyp (mode);
+    printf(" TSU_ftyp=%d\n",TSU_ftyp);
 
 
   // VRML-1 or VRML-2 ?
@@ -2958,6 +2975,7 @@ static char  mStat[1024];
   }
 
 
+  //----------------------------------------------------------------
   // start tesselation-mode store
   irc = TSU_Init (1, &vTab);
   if(irc < 1) {
@@ -2987,6 +3005,7 @@ static char  mStat[1024];
   irc = recNr;
 
 
+  //----------------------------------------------------------------
   // obj und tess haben dzt keine Dittos.
   // TESS kann keine subModels exportieren; nur primary Model.
   if(TSU_ftyp == Mtyp_TESS) {  // TESS

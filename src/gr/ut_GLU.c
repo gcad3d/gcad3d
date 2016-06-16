@@ -206,7 +206,7 @@ se gluTessNormal() to reverse the sign of the supplied normal.
 
 #include "../db/ut_DB.h"               //
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
-#include "../gr/ut_UI.h"               // SYM_..
+#include "../ut/func_types.h"               // SYM_..
 
 
 
@@ -1769,6 +1769,7 @@ static int ptOff;
 //================================================================
   GLT_spp_Tex (long texNr) {
 //================================================================
+// add texture-record into GLT_cta
  
   // printf("GLT_spp_Tex %d\n",texNr);
 

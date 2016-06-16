@@ -179,7 +179,7 @@ cl -c /I ..\include xa_ed.c
 #include "../ut/ut_memTab.h"          // MemTab_..
 #include "../ut/ut_cast.h"             // INT_PTR
 
-#include "../gr/ut_UI.h"
+#include "../ut/func_types.h"
 #include "../gr/ut_DL.h"
 #include "../gr/ut_gr.h"
 
@@ -190,7 +190,7 @@ cl -c /I ..\include xa_ed.c
 
 
 #include "xa_mem.h"               // mem_cbuf1
-// #include "xa_ui.h"                // UID_ckb_nam u. ex ut_UI.h: UI_FuncGet
+// #include "xa_ui.h"                // UID_ckb_nam u. ex func_types.h: UI_FuncGet
 #include "../xa/xa_uid.h"         //  DLI_TMP UID_WinMain ...
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
@@ -212,7 +212,7 @@ extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
 extern int        WC_modact_ind;         // -1=primary Model is active;
 extern ColRGB     AP_defcol;
-extern int        AP_indCol;
+// extern int        AP_indCol;
 extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
 // extern char      AP_ED_oNam[64];        // objectName of active Line
 
@@ -2656,12 +2656,14 @@ static int  actLev=0;
 /// Bei subModel UP_level=-1
 
 
+  int   irc;
 
   // printf("ED_work_file |%s| UP_level=%d\n",filnam,UP_level);
 
   strcpy(AP_filnam, filnam);
 
-  ED_file__ (1, filnam);
+  irc = ED_file__ (1, filnam);
+  if(irc < 0) return irc;
 
 
   // // Das Eingabefile oeffnen

@@ -92,8 +92,8 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa.h"                  // APP_act_*
 
-
-#include "../gr/ut_UI.h"               // SYM_TRIANG
+#include "../ut/func_types.h"               // SYM_TRIANG
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
 #include "../prc/prc_cut1__.h"         // NCCmdAnz, NCCmdTab
 

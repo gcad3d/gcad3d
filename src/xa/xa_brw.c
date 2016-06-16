@@ -104,7 +104,7 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
-#include "../gr/ut_UI.h"               // UI_FuncOK
+#include "../ut/func_types.h"               // UI_FuncOK
 #include "../xa/xa_brw.h"              // ICO_..
 #include "../xa/xa.h"                  // WC_modact_nam
 #include "../xa/xa_ico.h"              // ICO_PT,

@@ -38,10 +38,11 @@ Korr:
 */
 
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
+#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/AP_types.h"               // Typ_PT ..
 #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 // ../gui/gui_types.h
-// ../gr/ut_UI.h                        // ATT_COL_. SYM_. Typ_Att_
+// ../ut/func_types.h                        // ATT_COL_. SYM_. Typ_Att_
 // ../xa/xa_sele.h
 
 
@@ -201,7 +202,7 @@ typedef struct {double x, y, z, w;}                                 wPoint;
 typedef struct {double dx, dy;}                                     Vector2;
 // size = 16
 
-typedef struct {float dx, dy, dz;}                                  Vectorf;
+// typedef struct {float dx, dy, dz;}                                  Vectorf;
 
 /// 3D-vector, Typ_VC
 typedef struct {double dx, dy, dz;}                                 Vector;
@@ -685,8 +686,9 @@ typedef struct {long ptUNr, ptVNr; int degU, degV;
 /// vtra   view transparent; 0=not, 1=25% transparent, 2=50%, 3=75%
 /// vtex   has texture; 0=not, 1=yes; (cr+cg+cb) = textureRefNr
 /// vsym   view normal (0,shaded) or symbolic (1,wireframeboundary)
-/// color  0=color not active; 1=color from cr/cg/cb
+/// color  0=color not active (use AP_defcol); 1=color from cr/cg/cb
 /// cr,cg,cb  red, green, blue; 0-255
+/// Grafic-Attribute for surface, solid (not line, curve - see Att_ln).
 /// \endcode
 typedef struct {unsigned cr:8, cg:8, cb:8,
                   unused:3, vtra:2, vsym:1, vtex:1, color:1;}       ColRGB;
@@ -732,12 +734,14 @@ typedef struct {char *fnam;
 /// px,py,pz     origin of surfac
 /// vx, vy       X- and Y-vector of textureplane
 /// \endcode
-typedef struct {long ibas; float uscx, uscy, udx, udy, uar,
+typedef struct {int ibas; float uscx, uscy, udx, udy, uar,
                 ssx, ssy, px, py, pz, fx, fy; Vector vx, vy;}       TexRef;
 
 
 /// \brief grafic text; Typ_GTXT
 /// \code
+/// pt           lower left position
+/// size         textheight in usercoords; default = 0.; 2D-text: -1.
 /// dir          direction in degree
 /// \endcode
 typedef struct {Point pt; float size, dir; char *txt;}              GText;
@@ -762,11 +766,13 @@ typedef struct {char *mnam; long ind, siz;
 /// \code
 /// mnam  .. Modelname
 /// po    .. origin
+/// pb1,pb2  boxPoints
 /// DLind .. ind of first obj in DL
 /// DLsiz .. nr of objects in DL
-/// typ   .. MBTYP_..
+/// typ   .. MBTYP_[EXTERN|INTERN|CATALOG] for native-subModels
+///          Mtyp_[WRL|WRL2|OBJ|STL|TESS]  for mockup-subModels
 /// \endcode
-typedef struct {char *mnam; Point po; long DLind, DLsiz;
+typedef struct {char *mnam; Point po, pb1, pb2; long DLind, DLsiz;
                 short typ, seqNr;}                                  ModelBas;
 
 
@@ -867,22 +873,23 @@ typedef struct {Point pt; Vector dx, dy; float scl; int typ;}       SymRef;
 
 //....................... Geom. Attributes: ..................................
 
-/// \brief  grafic attribute for lines, curves; Typ_G_Att
+/// \brief  grafic attribute; Typ_G_Att
 /// \code
 /// dash       0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
 ///            2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
 /// thick      line-thickness in pixels; 1-6
 /// cr cg cb   color red, green, blue;  0-9  (digit; not hex-char)
+/// used for line,circle,curve,text
 /// \endcode
 typedef struct {unsigned dash:8, thick:8,
                          cr:4, cg:4, cb:4, uu:4;}                   Att_ln;
 
 /// \brief  grafic attribute for lines, curves; Typ_Ltyp
 /// \code
-/// indAtt     LineTypNr; 
-/// lim     UNUSED    0 = both sides limited;
-///                   1 = one side unlimited;
-///                   2 = both sides unlimited
+/// indAtt     LineTypNr (color/pattern/thick in file cfg/ltyp.rc)
+/// lim        sides unlimited: 0 = both sides; 1 = side one; 2 = sides two;
+/// uu         UNUSED
+/// Grafic-Attribute for line,circle,curve (not surface, solid - see ColRGB)
 /// \endcode
 typedef struct {short indAtt; char lim, uu;}                        Ind_Att_ln;
 
@@ -903,7 +910,7 @@ typedef struct {short indAtt; char lim, uu;}                        Ind_Att_ln;
 /// oNam   objectname; not yet impl.
 /// \endcode
 typedef struct {long ind;
-                unsigned long iatt;
+                UINT_32 iatt;
                 unsigned lay:16, typ:8,
                          unused:7, disp:1;}                         ObjAtt;
 // size = 12
@@ -931,7 +938,7 @@ typedef struct {long ind;
 /// grp_1  0=belongs to active Group, 1=not
 /// \endcode
 typedef struct {long ind, lNr, irs;
-                unsigned long iatt;
+                UINT_32 iatt;
                 unsigned modInd:16, typ:8,
                          disp:1,  pick:1,  hili:1,  dim:1,
                          grp_1:1, unvis:1, sChd:1,  sPar:1;}        DL_Att;
@@ -1185,6 +1192,8 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UTP_db_ck_in2dbTol (double v, double v1, double v2, double tol);
  int    UTP_db_cknear_2db (double *db, double *d1, double *d2);
  int    UTP_db_cknear_ndb (double db1, int dbNr, double *dbTab);
+ double UTP_min_d3 (double *d1, double *d2, double *d3);
+ double UTP_max_d3 (double *d1, double *d2, double *d3);
  double UTP_db_rnd1sig (double);
  double UTP_db_rnd2sig (double);
 
@@ -1480,6 +1489,7 @@ void   UT3D_pt_addpt (Point *, Point *);
 void   UT3D_pt_add_pt2 (Point *, Point2 *);
 void   UT3D_pt_add2pt (Point *, Point *, Point *);
 void   UT3D_pt_sub_pt2 (Point *, Point *, Point2 *);
+void   UT3D_pt_sub_pt3 (Point *, Point2 *);
 // void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_traptvc1len (Point *po,Point *pi,Vector *vc,double dist);
@@ -2279,7 +2289,13 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
  (po)->y = (p1)->y + (p2)->y;\
  (po)->z = (p1)->z + (p2)->z;}
 
-/// UT3D_pt_addpt             subtract 2D-point    po = p1 - p2
+/// UT3D_pt_sub_pt3             subtract point    po = p1 - p2
+#define UT3D_pt_sub_pt3(pto,pti){\
+ (pto)->x -= (pti)->x;\
+ (pto)->y -= (pti)->y;\
+ (pto)->z -= (pti)->z;}
+
+/// UT3D_pt_sub_pt2             subtract 2D-point    po = p1 - p2
 #define UT3D_pt_sub_pt2(po,p1,p2){\
  (po)->x = (p1)->x - (p2)->x;\
  (po)->y = (p1)->y - (p2)->y;}

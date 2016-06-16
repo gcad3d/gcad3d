@@ -42,6 +42,7 @@ MemTab_ini          init memory-table, malloc
 MemTab_spc          init memory-table with fixed memoryspace; no realloc, free.
 MemTab_add          save/check/reserve in memSpc; malloc/realloc if necessary.
 MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
+MemTab_uniq_sav     if data is uniq only: save data with MemTab_add (.. 1, 0);
 MemTab_reserve      reserve space to memSpc; malloc/realloc if necessary.
 MemTab_check        check free space to memSpc; malloc/realloc if necessary.
 MemTab_ins          insert records in MemTab
@@ -398,6 +399,40 @@ Testprog: ../ut/tst_memTab.c
 // MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
 
   return MemTab_add (memTab, spcOff, objDat, recNr, 0);
+
+}
+
+
+//====================================================================
+    int MemTab_uniq_sav (MemTab *memTab, long *spcOff, void* objDat) {
+//====================================================================
+/// \code
+/// MemTab_uniq_add     if data is uniq only: save data with MemTab_add (.. 1, 0);
+/// API see MemTab_add
+/// RetCode
+///   2        objDat already exists
+/// \endcode
+
+
+  int     i1, ie;
+  long    lsiz;
+  char    *mdat;
+
+
+  printf("MemTab_uniq_sav %d %d\n",memTab->rNr,memTab->rSiz);
+
+
+  ie = memTab->rNr;      // nr of records
+  lsiz = memTab->rSiz;   // recordSize
+  mdat =memTab->data;    // start of data
+
+  for(i1=0; i1<ie; ++i1) {
+    if(! memcmp(mdat, objDat, lsiz)) return 2;  // objDat already exists
+    mdat += lsiz;
+  }
+
+
+  return MemTab_add (memTab, spcOff, objDat, 1, 0);
 
 }
 

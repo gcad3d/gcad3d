@@ -1513,14 +1513,14 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   Point     pts;
 
 
-  printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d\n",sSiz,oTyp,iTyp);
+  // printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d\n",sSiz,oTyp,iTyp);
 
   // get last selected position
   if(!pti) {
     sele_get_pos (&pts);
     pti = &pts;
   }
-    UT3D_stru_dump(Typ_PT, pti, " pti");
+    // UT3D_stru_dump(Typ_PT, pti, " pti");
 
   // get tempSpc for ato (with max 6 records)
   ATO_getSpc_tmp__ (&ato, 6);
@@ -1624,7 +1624,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   // get sourceObj for outTyp from atomicObjs in ato
   L_encode:
-    printf(" L_encode: oTyp=%d\n",oTyp);
+    // printf(" L_encode: oTyp=%d\n",oTyp);
 
     // ATO_dump__ (&ato, " L_encode:");
   irc = SRC_src_ato (so, sSiz, oTyp, &ato);
@@ -1632,7 +1632,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
     // TESTOUTPUT:
-    printf("ex SRC_src_pt_dbo %d |%s|\n",oTyp,so);
+    // printf("ex SRC_src_pt_dbo %d |%s|\n",oTyp,so);
 
 
   return oTyp;

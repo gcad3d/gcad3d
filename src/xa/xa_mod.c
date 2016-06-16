@@ -278,7 +278,7 @@ MBTYP_EXTERN usw.
 #include <ctype.h>                    // isdigit
 #include <stdarg.h>
 
-#include "../gr/ut_UI.h"              // UI_FuncSet
+#include "../ut/func_types.h"              // UI_FuncSet
 #include "../xa/xa_uid.h"             // UID_Main_title
 
 #include "../gui/gui_types.h"          // UI_Func..
@@ -3023,14 +3023,15 @@ static ModelRef modR2;
 
     // UT3D_stru_dump (Typ_SubModel, mb, "mb:\n");
 
-    // make it unvisible
+/* 2016-06-12
+    // make it unvisible (else ditto & original obj's visible !)
     // printf(" make invis. %d - %d\n",mb->DLind,mb->DLind+mb->DLsiz-1);
     if(mb->DLsiz > 0) {
       for(il2=0; il2<mb->DLsiz; ++il2) {
         DL_unvis_set (mb->DLind+il2, 1);
       }
     }
-
+*/
     // make it unpickable
     DL_pick_set (mb->DLind, ON);   // set to nopick
 

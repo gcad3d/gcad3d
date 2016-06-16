@@ -93,7 +93,7 @@ List_functions_end:
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_tin.h"              // TYP_EDGLN_..
 #include "../ut/ut_log.h"                  // MSG_typ_*
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_TX.h"               // TX_Print
 

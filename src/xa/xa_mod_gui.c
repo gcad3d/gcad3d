@@ -62,7 +62,7 @@ List_functions_end:
 
 
 #include "../xa/xa_uid.h"             // UID_WinEdit
-#include "../gr/ut_UI.h"              // UI_FuncSet
+#include "../ut/func_types.h"              // UI_FuncSet
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_umem.h"

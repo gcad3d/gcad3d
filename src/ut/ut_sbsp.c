@@ -108,7 +108,7 @@ Beispiel ptUNr=2 ptVNr=4:
 #include "../ut/ut_bspl.h"
 #include "../ut/ut_sbsp.h"
 
-#include "../gr/ut_UI.h"            // SYM.
+#include "../ut/func_types.h"            // SYM.
 
 #include "../xa/xa_mem.h"                 // memspc51-55
 

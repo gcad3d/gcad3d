@@ -71,8 +71,6 @@ DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
 
 DL_disp_reset           delete all DL-objects starting from line-nr
-DL_OBJ_IS_HIDDEN        test if DidpListObj is hidden                INLINE
-
 DL_unvis_set            set visible / unvisible
 
 DL_pick__               change all objects to pickable or unpickable
@@ -89,6 +87,8 @@ DL_grp1_get             get grp_1-bit
 DL_grp1__               add / remove (change) Groupbit 1 of DL-Record ind
 DL_grp1_copy            copy all DL-obj with groupBit ON --> GroupList
 
+DL_OBJ_IS_HIDDEN        test if obj is hidden                           INLINE
+DL_OBJ_IS_ACTMDL        test if obj belongs to active model             INLINE
 DL_get__                returns DispList
 DL_get_dla              get DL-record (DL_Att from GR_ObjTab[objInd])
 DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
@@ -292,9 +292,10 @@ cc -c -g3 -Wall ut_DL.c
 #include "../ut/ut_txfil.h"              // UTF_clear1
 #include "../ut/ut_txt.h"                // fnam_del
 #include "../ut/ut_os.h"                 // OS_ ..
+#include "../ut/ut_col.h"                // COL_INT32
 
-#include "../gr/ut_UI.h"                 // Typ_Att_PT, SYM_TRI_S, ..
-#include "../gr/ut_UI.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
 #include "../gr/vf.h"                    // GL_vf1_CS
 
 #include "../db/ut_DB.h"                 // DB_GetPoint ..
@@ -511,7 +512,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     }
 */
     // skip hidden obj
-    if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
+    // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;    // skip hidden obj's
     // if(GR_ObjTab[l1].del  != 0) continue;         // skip deleted
     // if(GR_ObjTab[l1].pick != 0) continue;         // skip unpickable
 
@@ -1002,6 +1004,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 //===============================================================
 /// DL_hide_all      change hidden/visible for all objs
 
+// hidden: disp=1 
 // ON=0   OFF=1
 
   long  ind;
@@ -1013,11 +1016,20 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   for(ind=0; ind<GR_TAB_IND; ++ind) {
 
     if(GR_ObjTab[ind].disp == OFF) {
-      // make visible
-      GR_ObjTab[ind].disp  = ON;
+      if(GR_ObjTab[ind].hili == OFF) {
+        // disp=1; hili=1: hidden; make visible
+        GR_ObjTab[ind].disp  = ON;
+        // disp=0; hili=1: Visible.
+      } else {
+        // disp=1; hili=0: hilited; make hidden
+        GR_ObjTab[ind].hili  = OFF;
+        // disp=1; hili=1. Hidden.
+      }
+
     } else {
-      // make hidden
+      // disp=0; hili=1: visible; make hidden
       GR_ObjTab[ind].disp  = OFF;
+      // disp=1; hili=1. Hidden.
     }
   }
 
@@ -1095,7 +1107,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     }
 
     // skip subModels
-    if((signed short)GR_ObjTab[ind].modInd != -1) continue;
+    // if((signed short)GR_ObjTab[ind].modInd != -1) continue;
+    if(DL_OBJ_IS_ACTMDL(GR_ObjTab[ind])) continue;
 
     // skip all but Typ_Activ,Typ_Joint
     if((GR_ObjTab[ind].typ != Typ_Activ)  &&
@@ -1141,7 +1154,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUU\n");
-  // printf("DL_unvis_set %ld %d\n",ind,mode);
+  printf("DL_unvis_set %ld %d\n",ind,mode);
 
   if(ind >= 0)
     GR_ObjTab[ind].unvis = mode;
@@ -1187,7 +1200,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     if(GR_ObjTab[ind].typ == Typ_APPOBJ) return 0;      //2011-02-16
 
     // do not hilite if hidden !   2010-10-10
-    if((GR_ObjTab[ind].hili == 1)&&(GR_ObjTab[ind].disp == 1)) return -1;
+    // if((GR_ObjTab[ind].hili == 1)&&(GR_ObjTab[ind].disp == 1)) return -1;
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) return -1;
 
 
     GR_ObjTab[ind].hili  = ON;   // ON=0
@@ -1262,7 +1276,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   if(ind >= 0) {         // UnHili Obj.
     // skip hidden obj's; 2015-09-26
-    if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) goto L_exit;
+    // if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) goto L_exit;
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) goto L_exit;
     GR_ObjTab[ind].hili  = OFF;   // OFF=1
     GR_ObjTab[ind].disp  = ON;    // ON=0
     goto L_exit;
@@ -1276,7 +1291,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       //TX_Print("reset hili=%d disp=%d",GR_ObjTab[l1].hili,GR_ObjTab[l1].disp);
       // skip hidden; 2015-09-26
-      if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) continue;
+      // if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) continue;
+      if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) continue;
       if(GR_ObjTab[l1].hili == ON) {
         GR_ObjTab[l1].hili  = OFF;
         // hier sollte man nachsehen ob Layer ueberhaupt aktiv ist usw !!
@@ -1432,9 +1448,11 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     modnr = WC_modact_ind;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       // skip hidden
-      if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
+      // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
+      if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;
       // skip subModels
-      if(GR_ObjTab[l1].modInd != modnr) continue;
+      // if(GR_ObjTab[l1].modInd != modnr) continue;
+      if(DL_OBJ_IS_ACTMDL(GR_ObjTab[l1])) continue;
       // skip deleted obj
       if(GR_ObjTab[l1].typ    == 0) continue;
       // add ..
@@ -1718,6 +1736,9 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 //================================================================
 /// DL_AttLn_store                store line-attribute in table GR_AttLnTab
 
+// TODO: change Att_ln -> Ind_Att_ln
+
+
 
   if((attInd < 0)||(attInd >= GR_ATT_TAB_SIZ)) {
     TX_Error("DL_AttLn_store E001 %d",attInd);
@@ -1799,7 +1820,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 /// Input:
 ///   ind    Recordnr; first=0; use as attInd in GL_DrawLine
 ///   col    color   900=red, 090=green, 119=blue, 990=yellow
-///   ltyp   linetyp LTYP_.. (../gr/ut_UI.h)
+///   ltyp   linetyp LTYP_.. (../ut/func_types.h)
 ///            0=full, 1=dash-dot, 2=shortDash, 3=longDash
 ///   lthick 1-6, thickness in pixels
 ///
@@ -2141,7 +2162,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   if((GR_ObjTab[idl].typ == Typ_SUR)  ||
      (GR_ObjTab[idl].typ == Typ_SOL)  ||
      (GR_ObjTab[idl].typ == Typ_Model))   {
-    col = (ColRGB*)&GR_ObjTab[idl].iatt;
+    col = COL_INT32(&GR_ObjTab[idl].iatt); // col = (ColRGB*)&GR_ObjTab[idl].iatt;
     if(col->vtex == 0) {
       // sprintf(cAtt, "r%dg%db%d,%d",
       sprintf(cAtt, "r%02xg%02xb%02x,t%d,s%d %d",
@@ -2157,7 +2178,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   } else {                              // curves
-    sprintf(cAtt, "%ld",GR_ObjTab[idl].iatt);
+    sprintf(cAtt, "%d",GR_ObjTab[idl].iatt);
   }
 
   i20 = GR_ObjTab[idl].modInd;
@@ -2309,8 +2330,11 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
       // printf("DL[%d] typ=%d dbi=%d\n",l1,DL_GetTyp(l1),DL_GetInd(l1));
 
     if(GR_ObjTab[l1].ind    != DBind) continue;
-    if(GR_ObjTab[l1].modInd != modnr) continue;       // skip SubModels
-    if(GR_ObjTab[l1].typ    == 0) continue;           // skip deleted obj
+    // skip SubModels
+    // if(GR_ObjTab[l1].modInd != modnr) continue;
+    if(DL_OBJ_IS_ACTMDL(GR_ObjTab[l1])) continue;
+    if(GR_ObjTab[l1].typ    == 0) continue;
+    // skip deleted obj
 
     
     typAct = GR_ObjTab[l1].typ;
@@ -2387,6 +2411,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
+/* UNUSED ..
 //================================================================
   int DL_find_sel (int *typ, long *ind) {
 //================================================================
@@ -2405,7 +2430,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     if(GR_ObjTab[l1].hili  != ON)  continue;
     if(GR_ObjTab[l1].unvis != 0)   continue; // skip unvisible
 
-    // printf(" _find_sel %d typ=%d ind=%d\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
+      // printf(" _find_sel %d typ=%d ind=%d\n",
+                // l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
     *typ = GR_ObjTab[l1].typ;
     *ind = GR_ObjTab[l1].ind;
     return 0;
@@ -2414,7 +2440,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return -1;
 
 }
-
+*/
 
 //============================================================
   int DL_GetTyp (long objInd) {
@@ -2658,7 +2684,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   ColRGB *col;
 
 
-  col = (ColRGB*)&GR_ObjTab[dli].iatt;
+  col = COL_INT32(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
 
   return col->vsym;
 
@@ -3005,6 +3031,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
+/*
 //====================================================================
   int DL_ReScale_pt_get (Point *pt1, Point *pt2) {
 //====================================================================
@@ -3073,7 +3100,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return 0;
 
 }
-
+*/
 
 //====================================================================
   void DL_ReScale__ () {
@@ -3112,25 +3139,21 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   // und in Draufsicht !!??
-  // GL_DefineView (FUNC_ViewTop);
-  // d1 =  APT_ModSiz * 10000.;
   // d1 =  1000000. / APT_ModSiz;    // bis 2005-10-27
-
-
   // Problem mit sehr kleinen Objekten; zB WRL/Assy6.wrl
   // d1 = APT_ModSiz / 0.001;
-
   // Sehr gr.Objekt ist IGS/Rahmen2; IGS/6001_3.igs
   // d1 = APT_ModSiz;  // 2011-01-09
   // startvalue must be fixed ! 2011-05-21   
   // 2011-06-27  ..Err3 geht ned mit d1=1000; erst mit 25000.
-  d1 = 25000.; 
+  // d1 = 25000.; 
+  d1 = APT_ModSiz * 50;  // 2016-05-23
   ii = 0;
 
 
   L_retry:
   ++ii;
-    // printf("L_retry d1=%f\n",d1);
+    printf("L_retry d1=%f\n",d1);
   GL_Rescale (d1, (Point*)&UT3D_PT_NUL);   // macht ein GL_Redraw!
 
   // init box
@@ -3195,7 +3218,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   L_exit:
-    // printf("ex DL_ReScale__ ModSiz=%f\n",APT_ModSiz);
+    // printf("ex DL_ReScale__ ModSiz=%f\n", APT_ModSiz);
+
   return;
 
 }
@@ -3214,6 +3238,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   Point  p1, p2;
 
 
+  printf("DL_ReScale_Notes \n");
+
       // UT3D_stru_dump(Typ_PT, pb1, "  pb1i=");
       // UT3D_stru_dump(Typ_PT, pb2, "  pb2i=");
 
@@ -3221,8 +3247,11 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   // loop tru all visible notes ..
   for(l1=0; l1<GR_TAB_IND; ++l1) {
+
     if(GR_ObjTab[l1].typ  != Typ_Tag) continue;
-    if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue; // hidden
+
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
+    // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue; // hidden
 
     // SizeInfo zu Tag/Image holen
     DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, l1);
@@ -3928,7 +3957,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   // im Main einfach hide; im subModel delete notwendig !
   // printf("HHHHHHHHHHHHHHHHHHHHHHH _hideParent %d\n",lPar);
 
-  if((signed short)GR_ObjTab[lPar].modInd == -1) {
+  if((INT_16)GR_ObjTab[lPar].modInd == -1) {
     // DL_hili_off (lPar);    // hili  = OFF; disp  = ON;
     DL_hide__ (lPar, 1);  // hide=OFF   hili = OFF; disp = OFF;
 
@@ -3974,7 +4003,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
     // skip all objects not belonging to the active model
     // if((signed short)GR_ObjTab[l1].modInd != -1) continue;  // skip submodels
-    if((signed short)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
 
     if(GR_ObjTab[l1].lNr < lNr) continue;
     // if(GR_ObjTab[l1].lNr <= lNr) continue; // DO NOT DELETE LAST OBJ

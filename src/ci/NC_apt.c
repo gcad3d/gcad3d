@@ -199,6 +199,7 @@ cc -c NC_apt.c
 // #include "../ut/ut_umem.h"                // UME_save
 #include "../ut/ut_geo.h"              // Point
 #include "../ut/ut_geo_const.h"        // UT2D_PT_NUL
+#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_bspl.h"             // UT3D_parbsp_par1
@@ -218,7 +219,7 @@ cc -c NC_apt.c
 #include "../xa/xa_uid.h"              //  DLI_TMP
 
 #include "../gr/ut_DL.h"
-#include "../gr/ut_UI.h"                  // Typ_Att_hili
+#include "../ut/func_types.h"                  // Typ_Att_hili
 
 #include "../db/ut_DB.h"                  // DB_GetCurv ..
 
@@ -8063,6 +8064,7 @@ static ModelRef *mod1, modR1;
 //====================================================================
 // decode a linetype given in source from eg:
 // G20 = color lineTyp thickness
+// TODO: change Att_ln -> Ind_Att_ln
 
   // int i1;
 
@@ -14796,8 +14798,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       // printf(" C=ARC A E r\n");
       pp1 = DB_get_PT ((long)aus_tab[1]);  // pa
       pp2 = DB_get_PT ((long)aus_tab[2]);  // pe
-        GR_Disp_pt (pp1, SYM_TRI_S, 2);
-        GR_Disp_pt (pp2, SYM_TRI_S, 2);
+        // GR_Disp_pt (pp1, SYM_TRI_S, 2);
+        // GR_Disp_pt (pp2, SYM_TRI_S, 2);
       ci3d.rad = fabs(aus_tab[3]);
       i1 = 4;
 
@@ -17401,6 +17403,9 @@ see also SRC_typ_FncNam
 
 // Retcode -1: Fehler;
 // Retcode -2: nicht mehr zeichnen !
+
+// TODO: change Att_ln -> Ind_Att_ln
+
 
 
   static int  defTyp;

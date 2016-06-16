@@ -127,6 +127,10 @@ extern MemObj  winMain;    // toolbarBox
 //         0   save viewport
 //         1   restore previous viewport
 //         2   restore next viewport
+//
+// TODO: save ~/gCAD3D/tmp/view.dat into model;
+//   restore ~/gCAD3D/tmp/view.dat at laod-model.
+//   Make ~/gCAD3D/tmp/view.dat ascii (not binary) ?
 
  
   int    i1;

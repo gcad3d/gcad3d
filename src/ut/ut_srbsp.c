@@ -76,8 +76,9 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 
-#include "../gr/ut_UI.h"            // SYM.
+#include "../ut/func_types.h"            // SYM.
 
 
 #include "../xa/xa.h"                  // aus_SIZ

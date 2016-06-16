@@ -56,7 +56,7 @@ List_functions_end:
 
 #include "../ut/ut_geo.h"              // DL_Att
 // #include "../gr/ut_DL.h"               // DB_GetDLatt
-#include "../gr/ut_UI.h"               // SYM_TRI_S
+#include "../ut/func_types.h"               // SYM_TRI_S
 // #include "../db/ut_DB.h"               // DB_GetDLatt
 
 #include "../xa/xa_mem.h"             // memspc55

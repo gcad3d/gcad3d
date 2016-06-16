@@ -96,7 +96,7 @@ Update: update TexRef-UserData; apply Texture.
 
 #include "../gui/gui__.h"              // Gtk3
 
-// #include "../gr/ut_UI.h"          // UI_FuncUCB7
+// #include "../ut/func_types.h"          // UI_FuncUCB7
 #include "../xa/xa.h"             // AP_STAT
 
 

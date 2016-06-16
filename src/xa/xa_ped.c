@@ -154,7 +154,7 @@ PED_mousemove_CB
 
 #include "../db/ut_DB.h"               // DB_
 
-#include "../gr/ut_UI.h"               // Typ_Att_hili
+#include "../ut/func_types.h"               // Typ_Att_hili
 #include "../gr/ut_GL.h"               // GL_get_Scale
 #include "../xa/xa_ed_mem.h"           // ObjSRC
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1

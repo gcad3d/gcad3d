@@ -101,7 +101,7 @@ tStat:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_msh.h"              // Fac3 ..
 #include "../xa/xa_mem.h"              // memspc51
-#include "../gr/ut_UI.h"               // SYM_STAR_S
+#include "../ut/func_types.h"               // SYM_STAR_S
 
 
 

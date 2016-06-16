@@ -84,11 +84,13 @@ UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
 UTP_compdb0               compare double mit 0.0 mit Tol.
 UTP_comp2db               compare 2 doubles (with tolerance)             INLINE
 UTP_comp2x2db             compare 2 * 2 doubles (with tolerance)
-UTP_min_3                 find minimum double of 3
-UTP_min_4                 find minimum double of 4
+UTP_min_3                 find minimum double of 3; returns 0|1|2
+UTP_min_d3                find minimum double of 3; returns double.
+UTP_min_4                 find minimum double of 4; returns 0|1|2|3
 UTP_min                   find index of minimum double out of dbTab
 UTP_dbRec_min             find minimum double out of dbRecords
 UTP_max_3                 find maximum double of 3
+UTP_max_d3                find maximum double of 3; returns double.
 UTP_max                   find minimum double out of dbTab
 UTP_dbRec_max             find maximum double out of dbRecords
 UTP_db_cknear_2db         find nearest double out of 2 doubles
@@ -984,7 +986,6 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 //======================================================================
 /// \code
 ///   auf 2 sig. Stellen runden
-///  Geht nur mit pos. zahlen !!!!!
 /// 
 /// (0.00579, 1) -> 0.0058
 /// (0.19500, 1) -> 0.19          (gerundet !!)
@@ -1221,6 +1222,30 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 }
 
 
+//========================================================
+  double UTP_min_d3 (double *d1, double *d2, double *d3) {
+//========================================================
+/// UTP_min_d3                find minimum double of 3; returns double.
+
+
+  if(*d1 > *d2) {
+    // d1>d2
+    if(*d3 < *d2) return *d3;
+    return *d2;
+
+  } else {
+    // d2>d1
+    if(*d3 < *d1) return *d3;
+    return *d1;
+  }
+
+    printf("UTP_min_d3 ERR -1\n");
+
+  return *d1;
+
+}
+
+
 //====================================================
   int UTP_min_3 (double *d1, double *d2, double *d3) {
 //====================================================
@@ -1361,6 +1386,30 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
     // printf("ex UTP_min %d %f\n",ind,dTab[ind]);
 
   return ind;
+
+}
+
+
+//========================================================
+  double UTP_max_d3 (double *d1, double *d2, double *d3) {
+//========================================================
+/// UTP_max_d3                find maximum double of 3; returns double.
+
+
+  if(*d1 < *d2) {
+    // d1>d2
+    if(*d3 > *d2) return *d3;
+    return *d2;
+
+  } else {
+    // d2>d1
+    if(*d3 > *d1) return *d3;
+    return *d1;
+  }
+
+    printf("UTP_max_d3 ERR -1\n");
+
+  return *d1;
 
 }
 

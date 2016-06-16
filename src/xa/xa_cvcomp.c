@@ -72,7 +72,7 @@ List_functions_end:
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_plg.h"              // UT3D_par_par1plg
-#include "../gr/ut_UI.h"                  // SYM_SQUARE ..
+#include "../ut/func_types.h"                  // SYM_SQUARE ..
 #include "../ci/NC_apt.h"              // T_CW
 #include "../xa/xa_mem.h"                 // memspc55
 

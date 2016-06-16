@@ -95,7 +95,7 @@ UT3D_tria_tst_load         load testTriangles
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_msh.h"              // Fac3 ..
 #include "../xa/xa_mem.h"              // memspc51
-#include "../gr/ut_UI.h"               // SYM_STAR_S
+#include "../ut/gr_types.h"               // SYM_STAR_S
 
 
 

@@ -81,7 +81,7 @@ UT3D_npt_ci                circular polygon
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
+#include "../ut/func_types.h"               // UI_Func... SYM_..
 
 #include "../db/ut_DB.h"               // DB_GetCurv
 

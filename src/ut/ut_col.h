@@ -3,6 +3,13 @@
 
 */
 
+/// *ColRGB from *int:
+#define COL_INT32(i32) ((ColRGB*)(i32))
+
+
+/// *int from *ColRGB
+#define INT32_COL(col) ((INT_32*)(col))
+
 
 /// Col_DL_Att          get pointer -> Color out of DL_Att     INLINE
 ColRGB* Col_DL_Att (DL_Att *dla);

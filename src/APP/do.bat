@@ -91,6 +91,7 @@ if complete==%1 (
 )   
 
 
+REM echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
 REM "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
 if cfg-ux2ms==%1 (
   if exist dirMS.lst (
@@ -109,6 +110,18 @@ if cfg-ux2ms==%1 (
 ::==============================================================
 REM normal start
 :L_start
+
+
+REM change configfiles to MS-Windows if last start was with Unix
+if exist dirMS.lst (
+  copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst dirUX.lst
+  copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc xaUX.rc
+  copy/y dirMS.lst X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst
+  del dirMS.lst
+  copy/y xaMS.rc X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc
+)
+
+
 set gcad_dir_local=X:\Devel\GITHUB\gcad3d\
 set gcad_dir_doc=X:\Devel\GITHUB\gcad3d\doc\
 %gcad_exe% %1

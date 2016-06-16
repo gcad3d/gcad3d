@@ -143,7 +143,7 @@ UNDO-Tests:
 
 #include "../gui/gui__.h"         // incl. /gui/gui_types.h /gui/gui_base.h
 
-// #include "../gr/ut_UI.h"               // UI_FuncSet
+// #include "../ut/func_types.h"               // UI_FuncSet
 
 #include "../xa/xa.h"                        // AP_STAT
 #include "../xa/xa_ui.h"

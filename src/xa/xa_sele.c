@@ -182,7 +182,7 @@ GR_selPos (out via sele_get_pos) ist mouseposition in userCoords
 
 #include "../gui/gui_types.h"
 
-#include "../gr/ut_UI.h"               // Typ_Att_hili1
+#include "../ut/func_types.h"               // Typ_Att_hili1
 #include "../gr/ut_DL.h"               // DL_GetAtt
 
 #include "../db/ut_DB.h"               // DB_GetPoint
@@ -246,13 +246,17 @@ static char  I2D_stat[I2D_TABSITZ];
 //===========================================================================
   int sele_ck_subCurv (subCurv sca[3], int typ, long dbi, Point *selPos) {
 //===========================================================================
-// get (max.) 3 subcurves for a selected curve.
-// Input:
-//   typ,dbi   DB-obj to check (selected curve)
-//   selPos    selection-point 
-// Output:
-//   sca       max 3 sub-parts of obj typ,dbi
-//   retCod    nr of objs out
+/// \code
+/// get (max.) 3 subcurves for a selected curve.
+/// Input:
+///   typ,dbi   DB-obj to check (selected curve)
+///   selPos    selection-point 
+/// Output:
+///   sca       max 3 sub-parts of obj typ,dbi
+///   retCod    nr of objs out
+///
+/// get eg selected part of CCV or polygon
+/// \endcode
 
 // array (max 3) typ und oid (for GR_selNam) liefern ?
 //   sca soll output sein und typ und oid enthalten !
@@ -263,7 +267,7 @@ static char  I2D_stat[I2D_TABSITZ];
   char    so[128], cto;
 
 
-  printf("sele_ck_subCurv %d %ld\n",typ,dbi);
+  // printf("sele_ck_subCurv %d %ld\n",typ,dbi);
   // UT3D_stru_dump (Typ_PT, selPos, " selPos");
 
 
@@ -278,7 +282,7 @@ static char  I2D_stat[I2D_TABSITZ];
   //----------------------------------------------------------------
   // is input curve or surf
   iTyp = AP_typ_2_bastyp (typ);
-    printf(" iTyp=%d iPt=%d iVc=%d\n",iTyp,iPt,iVc);
+    // printf(" iTyp=%d iPt=%d iVc=%d\n",iTyp,iPt,iVc);
   if((iTyp == Typ_LN) ||
      (iTyp == Typ_CI) ||
      (iTyp == Typ_CV))    goto L_ck_cv;
@@ -311,7 +315,7 @@ static char  I2D_stat[I2D_TABSITZ];
   L_ck_cv:
   // get exact typ of inputCurve
   if(iTyp == Typ_CV) iTyp = DB_get_typ_cv (dbi);
-    printf(" iTyp=%d\n",iTyp);
+    // printf(" iTyp=%d\n",iTyp);
 
 
 
@@ -322,7 +326,7 @@ static char  I2D_stat[I2D_TABSITZ];
   iLn = sele_ck_typ (Typ_LN);
   iCi = sele_ck_typ (Typ_CI);
   iCv = sele_ck_typ (Typ_CV);
-    printf(" iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
+    // printf(" iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
 
 
   if(iTyp == Typ_CVCCV) goto L_ck_1;
@@ -342,7 +346,7 @@ static char  I2D_stat[I2D_TABSITZ];
   L_ck_1:
     oTyp = Typ_goGeo1;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      printf(" oTyp_1=%d so=|%s|\n",oTyp,so);
+      // printf(" oTyp_1=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -360,7 +364,7 @@ static char  I2D_stat[I2D_TABSITZ];
     // if((iLn)||(iVc)) {
     oTyp = Typ_LN;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      printf(" oTyp_2=%d so=|%s|\n",oTyp,so);
+      // printf(" oTyp_2=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -378,7 +382,7 @@ static char  I2D_stat[I2D_TABSITZ];
   if(iPt) {
     oTyp = Typ_PT;
     SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      printf(" oTyp_3=%d so=|%s|\n",oTyp,so);
+      // printf(" oTyp_3=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -396,7 +400,7 @@ static char  I2D_stat[I2D_TABSITZ];
     // add Vector to list
     oTyp = Typ_VC;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      printf(" oTyp_4=%d so=|%s|\n",oTyp,so);
+      // printf(" oTyp_4=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -1371,7 +1375,9 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_SUR)   ||
        (GR_selTyp == Typ_Model))
       goto L_vc_conv;
-    if(GR_selTyp == Typ_TmpPT)   goto L_pt_conv;
+    if((GR_selTyp == Typ_PT)    ||
+       (GR_selTyp == Typ_TmpPT))  goto L_pt_conv;
+    // if(GR_selTyp == Typ_TmpPT)   goto L_pt_conv;
 
 
 
@@ -1858,8 +1864,8 @@ raus 2011-07-29
 
   //================================================================
   L_exit:
-      // printf("ex sele_decode %d %ld |%s|\n",
-             // GR_selTyp, GR_selDbi, GR_selNam);
+      printf("ex sele_decode %d %ld |%s|\n",
+             GR_selTyp, GR_selDbi, GR_selNam);
     return 0;
 
 
@@ -2043,13 +2049,7 @@ raus 2011-07-29
 
     case Typ_VC:
       sele_set_types (Typ_VC, 
-/* // 2014-12-20
-                      Typ_PT,
-                      Typ_LN,
-                      Typ_CI,
-                      Typ_CVPOL,
-                      Typ_CVCCV,
-*/
+                      Typ_PT,    // 2016-05-16; for PT-PT, 2 indicates
                       Typ_PLN,                  // 2015-07-06
                       Typ_SUR,
                       Typ_Model,

@@ -238,6 +238,8 @@ cl -c /I ..\include xa.c
 #include "../ut/ut_err.h"         // ERR_SET1
 #include "../ut/ut_os.h"          // OS_get_bas_dir
 
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+
 #include "../gui/gui__.h"         // GUI_SETDAT_EI ..
 
 
@@ -263,7 +265,7 @@ cl -c /I ..\include xa.c
 #include "xa_obj_txt.h"              // AP_obj_2_txt
 */
 
-#include "../gr/ut_UI.h"         // SYM_CROSS
+#include "../ut/func_types.h"         // SYM_CROSS
 
 #include "../db/ut_DB.h"             // DB_PLX_IND
 
@@ -348,11 +350,11 @@ extern AP_STAT   AP_stat;
 // 0-n: the SubModel is the primary Model ( = is displayed).
 
 int       WC_modact_ind = -1;
-// -1=primary Model is active (can also be a submodel);
-// else a subModel is being created.
 // While loading subModels WC_modact_ind is the index of the basicModel of the
 //   subModel being loaded.
-//   After all subModels have been loaded WC_modact_ind = -1.
+// -1=primary Model is active (can also be a submodel);
+//   else a subModel is being loaded.
+// After all subModels have been loaded WC_modact_ind = -1.
 // Diplaylist (DL_Att*) GR_ObjTab[].modInd gives the basicModel-index.
 
          
@@ -372,7 +374,7 @@ double    AP_txdimsiz = 2.5;     ///< Dimensions-Text-Defaultsize
 int       AP_txNkNr   = 2;       ///< Nachkommastellen
 ColRGB    AP_actcol;             ///< the active color ..
 ColRGB    AP_defcol;             ///< die DefaultColor des aktiven (sub)Model
-int       AP_indCol;             ///< der DL-Index der aktuellen defCol
+// int       AP_indCol;             ///< der DL-Index der aktuellen defCol
 
 int       WC_stat_bound = OFF;   ///<  ON OFF; Draw boundary of Flächen J/N
 /*
@@ -1820,6 +1822,10 @@ ED_Run
     } else if(!strcmp(AP_argv[i1], "mode_man")) {
       iStartMode = 2;
 
+    } else if(!strcmp(AP_argv[i1], "testdll")) {
+      AP_stat.tstDllStat = 1; // 0=normal (OFF); 1=testdll_ON
+      AP_testdll__ (0);
+
     } else {
       irc = AP_work__ (AP_argv[i1], AP_argv[i1+1]);
       if(irc > 0) i1 += irc;
@@ -1861,6 +1867,61 @@ ED_Run
 
   if(iStartMode == 1) UI_AP (UI_FuncSet, UID_ckb_CAD, PTR_INT(1)); // TRUE=1
   if(iStartMode == 2) UI_AP (UI_FuncSet, UID_ckb_MAN, PTR_INT(1)); // TRUE=1
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_testdll__ (int mode) {
+//================================================================
+// mode == 0:  connect dynLib xa_test.so
+// mode == 1:  unload, recompile, connect dynLib xa_test.so
+
+// was APP_dll_load
+ 
+
+  static void  *dll1 = NULL;
+  static char  *dllNam = "testdll";
+
+  int   irc;
+  char  s1[128];
+
+
+  printf("AP_testdll__ %d\n",mode);
+
+
+  //----------------------------------------------------------------
+  if(mode != 1) goto L_load;
+
+  // unload dll
+  irc = OS_dll__ (&dll1, FUNC_UNLOAD, NULL);
+  if(irc < 0) {
+    TX_Error("AP_testdll__: cannot close dyn. Lib.");
+    return -1;
+  }
+
+
+  // recompile
+  OS_dll__ (&dll1,  FUNC_RECOMPILE, dllNam);  // rebuild
+
+
+
+  //----------------------------------------------------------------
+  L_load:
+  // sprintf(cBuf, "%s%s",OS_get_bin_dir(),dllNam);
+    // printf("   _dll_load |%s|\n",cBuf);
+  // exit if dll does not exist;  else load DLL
+  // if(OS_checkFilExist(cBuf, 1) == 0) return 0;
+
+
+  // load DLL (dlopen); RTLD_GLOBAL: load all funcs in dll.
+  if(&dll1) {
+    irc = OS_dll__ (&dll1, FUNC_LOAD_all, (void*)dllNam);
+    if(irc < 0) return irc;
+  }
 
 
   return 0;
@@ -2017,7 +2078,7 @@ remote control nur in VWR, nicht MAN, CAD;
   // jetzt die DefaultColor nochmal setzen ! (macht eine DL-Eintrag !)
   // DEFCOL-Abarbeitung wurde mit GR_Init1 geloescht !
   // if(AP_indCol != 5)
-  AP_indCol = GL_DefColSet (&AP_defcol);
+  // AP_indCol = GL_DefColSet (&AP_defcol);
 
   return 0;
 }
@@ -2241,7 +2302,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   AP_defcol = *cSel;
 
-  AP_indCol = GL_DefColSet (&AP_defcol);
+  // AP_indCol = GL_DefColSet (&AP_defcol);
 
   return 0;
 
@@ -2305,7 +2366,7 @@ remote control nur in VWR, nicht MAN, CAD;
   AP_defcol.cg = cg;
   AP_defcol.cb = cb;
 
-  if(mode > 0) AP_indCol = GL_DefColSet (&AP_defcol);
+  // if(mode > 0) AP_indCol = GL_DefColSet (&AP_defcol);
 
   return 0;
 
@@ -2555,7 +2616,7 @@ remote control nur in VWR, nicht MAN, CAD;
 //================================================================
   int AP_set_dir_open (char *newDir) {
 //================================================================
-/// sets AP_sym_open
+/// sets AP_dir_open & AP_sym_open from newDir
 
   int   irc;
 
@@ -2565,7 +2626,7 @@ remote control nur in VWR, nicht MAN, CAD;
  
   // if(!strcmp(newDir, AP_dir_open)) return 0;
 
-  strcpy(AP_dir_open, newDir);
+  strcpy (AP_dir_open, newDir);
 
 
   // set sym; else sym = leer
@@ -3072,6 +3133,7 @@ remote control nur in VWR, nicht MAN, CAD;
   } else if(ift == Mtyp_WRL) {
     ift = AP_ImportWRL_ckTyp (cbuf);
     if(ift == Mtyp_WRL) {
+      // create sourceLine "M# = <fnam> <origin>"
       UI_loadMock_CB (mnam, AP_dir_open);
     }
     if(ift == Mtyp_WRL2) {
@@ -3093,12 +3155,13 @@ remote control nur in VWR, nicht MAN, CAD;
   } else if(ift == Mtyp_XML) {        // XML
     AP_ImportXML (cbuf);
 
-  } else if((ift < 20)||(ift == 110)) {  // WRL OBJ TESS STL
+  } else if((ift < Mtyp_BMP)||(ift == Mtyp_WRL2)) {  // WRL OBJ TESS STL
     if(impTyp != 0) {   // Mock
+      // add "M# = <fnam> <origin" to model-source
       UI_loadMock_CB (mnam, AP_dir_open);
     } else {
       // printf(" load native |%s|\n",cbuf);
-      if(ift == 11) {   // obj
+      if(ift == Mtyp_OBJ) {   // obj
         // irc = OS_dll_do ("xa_OBJ_R", "obj_read__", cbuf);
         irc = OS_dll_do ("xa_obj_r", "obj_read__", cbuf); // 2013-08-15
       } else {
@@ -3108,7 +3171,7 @@ remote control nur in VWR, nicht MAN, CAD;
       }
     }
 
-  } else if(ift < 30) {  // BMP
+  } else if(ift < 30) {  // JPG BMP
     UI_loadImg_CB (mnam, AP_dir_open);
   }
 
@@ -3178,6 +3241,11 @@ remote control nur in VWR, nicht MAN, CAD;
   L_fertig:
 
   TX_Print("load Model %s",cbuf);
+
+  // test - report errors
+  if(AP_stat.errStat) {
+    TX_Print("***** %d errors *****",AP_stat.errStat);
+  }
 
   // RUN (abarbeiten)
   ED_Reset ();    // ED_lnr_act resetten

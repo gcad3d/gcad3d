@@ -334,16 +334,13 @@ __declspec(dllexport) int STP_r__ (char*);
 
 #include "../ci/NC_Main.h"             // WC_ask_ModSiz
 
-#include "../gr/ut_UI.h"               // UI_Func... SYM_..
-// #include "../gr/ut_DL.h"               // DL_GetAtt
-// #include "../gr/ut_GL.h"               // GL_GetCen
+#include "../ut/func_types.h"               // UI_Func... SYM_..
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
-// #include "../xa/xa_ui.h"               // UID_..
 #include "../xa/xa_mem.h"              // memspc.., mem_cbuf1
 #include "../xa/xa.h"                  // AP_STAT printd
-// #include "../xa/ut_ui_TX.h"            // TX_Print
 
 
 

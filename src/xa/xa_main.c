@@ -63,7 +63,7 @@ Batch-main ist in xa_batch.c.
 #include "../ut/ut_txTab.h"              // TxtTab
 
 #include "../gui/gui__.h"
-// #include "../gr/ut_UI.h"          // UI_FuncInit
+// #include "../ut/func_types.h"          // UI_FuncInit
 
 #include "../xa/xa_ui.h"               // UI_win_main
 #include "../xa/xa_uid.h"              // UID_Main_title
@@ -566,9 +566,6 @@ kopieren geht nicht mehr -
   // Startup fertig; in debug: give chance to set watchpoints
   AP_debug__ ("main"); // die func ist ganz leer; ist als stoppoint definiert.
 
-
-  // // load test-dll xa_test.so
-  // APP_dll_load (0);
 
 
   // mtrace geht leider nicht, da gtk und Mesa zu viele Stoerzeilen machen ..

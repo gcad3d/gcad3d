@@ -33,7 +33,7 @@ Activate a plugin: "Plugin/Select-Start" (oder Ctrl-P).
   <a href="#P_docD">Development - Documentation </a>
 
 
-
+See also DevDoc / Introduction
 
 ________________________________________________________________________
 <p><a name="P_insL"></a></p>
@@ -220,8 +220,63 @@ cd ~/devel/gcad3d/src/APP
 # test it (start gcad)
 ./do
 
+
+# optional:
 # test to rebuild a plugin:
 ./do Demo_gui1.mak
+
+# change gtk-version (sets VGUI in ../options.mak):
+./do guiinit
+
+# ReCreate development-documentation (doygen must be installed):
+cd ~/devel/gcad3d/doc
+./gcad_doxygen.sh
+
+# view development-documentation:
+xdg-open ~/devel/gcad3d/doc/gcad/index.htm
+
+# after modification of sourcefiles, rebuild gcad:
+./do c
+
+
+#---------------------------------------------------------
+# Create new gcad-Version:
+# Modifys gcad_version, gcad_date; create xa/gcad_version.h:
+cd ~/devel/gcad3d/src
+./NEW_VERSION1.sh
+
+# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
+cd ~/devel/gcad3d/debian
+./pack_deb.sh
+
+# create source-package (gCAD3D-#.##-src.zip):
+cd ~/devel/gcad3d
+./pack_src.sh
+
+
+#---------------------------------------------------------
+# DEVELOPMENT-TOOLS-TAGFILES:
+# If you are using vim: jump into functions with tagfiles:
+# in directory APP_tests tagfiles can be used with vim.
+
+# Add in .vimrc:
+  let tagfiles = system("ls -m *.tag |sed \"s/ //g\"")
+  "echo tagfiles
+  let &tags = substitute(tagfiles, "\n", "", "g")
+
+# Using tagfiles:
+  cd ~/devel/gcad3d/src/APP
+  vi -t UME_init
+# or use "Ctr-R" inside vim with cursor over function, Ctrl-O = back.
+
+
+#---------------------------------------------------------
+# DEVELOPMENT-TOOLS-CSCOPE:
+# Use cscope with:
+  cd ~/devel/gcad3d/src/APP
+  ./ed
+    update EDITOR in file ~/devel/gcad3d/src/APP/ed.
+
 
 
 ________________________________________________________________________

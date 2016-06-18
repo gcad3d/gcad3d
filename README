@@ -75,6 +75,7 @@ Linux Prerequisites:
 __________________________________________________________________
 Linux Install from git-repository:
 
+# If possible: prefer installation from git-repository.
 # start commandline (eg gnome-terminal)
 cd
 mkdir devel
@@ -105,60 +106,78 @@ mkdir -p binLinux64/plugins
 _____________________________________
 Linux Build:
 
+The installed program gCAD3D uses system-directories,
+- normal users cannot write to system-directories.
+The development environment is using different directories,
+- the program must be rebuilt (with ./do setup).
+
+
+# goto APP-directory; normaly:
 cd ~/devel/gcad3d/src/APP
 
-./do help         # see options of build-script
+# Script "do" has predefined functions; get infos with:
+./do help
 
-// change gtk-version (set VGUI):
-vi ../options.mak
+# first customize (create some directories, rebuild gCAD3D)
+./do setup
 
-./do complete     # build gui, gcad, libs, demos.
+# test it (start gcad)
+./do
 
-// (re)Create gCAD3D
-./do c
-# or
-make -f gcad3d.mak
 
-// (re)Create the gui-lib
-make -f gcad_gui__.mak
+# optional:
+# test to rebuild a plugin:
+./do Demo_gui1.mak
 
-// set new gcad-version (modify gcad_version, gcad_date; create xa/gcad_version.h)
-cd ~/devel/gcad3d/src
-./NEW_VERSION1.sh
+# change gtk-version (sets VGUI in ../options.mak):
+./do guiinit
 
-// ReCreate development-documentation:
+# ReCreate development-documentation (doygen must be installed):
 cd ~/devel/gcad3d/doc
 ./gcad_doxygen.sh
 
-// view development-documentation:
+# view development-documentation:
 xdg-open ~/devel/gcad3d/doc/gcad/index.htm
 
-// create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb)
+# after modification of sourcefiles, rebuild gcad:
+./do c
+
+
+
+#---------------------------------------------------------
+# Create new gcad-Version:
+# Modifys gcad_version, gcad_date; create xa/gcad_version.h:
+cd ~/devel/gcad3d/src
+./NEW_VERSION1.sh
+
+# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
 cd ~/devel/gcad3d/debian
 ./pack_deb.sh
 
-// create source-package (gCAD3D-#.##-src.zip)
+# create source-package (gCAD3D-#.##-src.zip):
 cd ~/devel/gcad3d
 ./pack_src.sh
 
 
-DEVELOPMENT-TOOLS-TAGFILES:
-  If you are using vim: jump into functions with tagfiles:
-  in directory APP_tests tagfiles can be used with vim.
+#---------------------------------------------------------
+# DEVELOPMENT-TOOLS-TAGFILES:
+# If you are using vim: jump into functions with tagfiles:
+# in directory APP_tests tagfiles can be used with vim.
 
-  Add in .vimrc:
+# Add in .vimrc:
   let tagfiles = system("ls -m *.tag |sed \"s/ //g\"")
   "echo tagfiles
   let &tags = substitute(tagfiles, "\n", "", "g")
 
-  Using tagfiles:
+# Using tagfiles:
   cd ~/devel/gcad3d/src/APP
   vi -t UME_init
-  or use "Ctr-R" inside vim with cursor over function, Ctrl-O = back.
+# or use "Ctr-R" inside vim with cursor over function, Ctrl-O = back.
 
 
-DEVELOPMENT-TOOLS-CSCOPE:
-  Use cscope with:
+#---------------------------------------------------------
+# DEVELOPMENT-TOOLS-CSCOPE:
+# Use cscope with:
   cd ~/devel/gcad3d/src/APP
   ./ed
     update EDITOR in file ~/devel/gcad3d/src/APP/ed.

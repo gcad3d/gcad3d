@@ -47,7 +47,7 @@ UT3D_grd_ptya              add gridbox-points with y-valTab to MemTab(Point)
 List_functions_end:
 =====================================================
 see also:
-UT3D_npt_curvp             polygon from planar curve (clotoid)
+UT3D_npt_clot             polygon from planar curve (clotoid)
 UT3D_pta_plg               polygon from CurvPoly (polygon)
 UT3D_pta_bez UT3D_pta_rbez UT3D_cv_rbsp
 bspl_pol_bsp
@@ -120,6 +120,11 @@ typedef_MemTab(Point);
       pNr = UT3D_ptNr_ell ((CurvElli*)data, tol);
       break;
 
+    case Typ_CVCLOT:   // CurvClot
+      // only estimation.
+      UT3D_ptNr_clot (&pNr, data, tol);
+      break;
+
     case Typ_CVBSP:   // CurvBSpl
       // only estimation.
       UT3D_ptNr_bsplTol (&pNr, data, tol); // use bspl_cv_bsp
@@ -131,6 +136,11 @@ typedef_MemTab(Point);
 
     case Typ_SURSWP:
       pNr = Tess_ptNr_SURSWP (data, tol);
+      break;
+
+    case Typ_Model:
+    case Typ_PLN:
+      pNr = 1;
       break;
 
     default:
@@ -227,17 +237,21 @@ typedef_MemTab(Point);
 //   ptNr         max Nr of points !
 //   oxi          curve
 // Output:
+//   ptNr         Nr of points
 //   pTab[ptNr]   polygon
 // RetCod:  0=OK; -1=Error; -2=pTab_overflow;
 
+// see also UT3D_npt_obj
 
-  int       typ, form;
+
+  int       typ, form, paSiz;
   long      dbi;
   ObjGX     *ox1, *ox2;
 
 
   // printf("UT3D_npt_ox typ=%d form=%d siz=%d ptNr=%d tol=%lf\n",
           // oxi->typ,oxi->form,oxi->siz,*ptNr,tol);
+
 
   typ = oxi->typ;
   form = oxi->form;
@@ -295,18 +309,22 @@ typedef_MemTab(Point);
   }
 
 
-  return UT3D_npt_obj (ptNr, pTab, form, oxi->data, oxi->siz, tol);
+  paSiz = *ptNr;
+  *ptNr = 0;
+  return UT3D_npt_obj (ptNr, pTab, paSiz, 
+                       form, oxi->data, oxi->siz, tol);
 
 }
 
 
 //====================================================================
-  int UT3D_npt_obj (int *ptNr, Point* pTab,
+  int UT3D_npt_obj (int *ptNr, Point* pTab, int ptSiz,
                     int typ, void *data, int siz, double tol) {
 //====================================================================
 // ObjGX-objekt -> Polygon umwandeln
 // Input:
-//   ptNr         max Nr of points !
+//   ptNr         nr of output-points already in pTab (index of 1. unused point)
+//   ptSiz        size of pTab
 //   typ          type of struct in data
 //   data         curve
 //   siz          nr of objects of type 'typ' in 'data'
@@ -323,11 +341,12 @@ typedef_MemTab(Point);
 
 
 
-  // printf("UT3D_npt_obj typ=%d siz=%d ptNr=%d tol=%lf\n",typ,siz,*ptNr,tol);
+  // printf("UT3D_npt_obj typ=%d siz=%d ptNr=%d ptSiz=%d tol=%lf\n",
+         // typ, siz, *ptNr, ptSiz, tol);
 
 
   irc = 0;
-  if(*ptNr < 2) goto L_EOM;
+  if(ptSiz - *ptNr < 2) goto L_EOM;
 
 
 
@@ -335,82 +354,112 @@ typedef_MemTab(Point);
   //----------------------------------------------------------------
   if(typ == Typ_PT)                        {         // 2013-03-19
     // copy all points -> pTab
-    if(siz > *ptNr) goto L_EOM; // outTab zu klein
-    memcpy(pTab, data, siz * sizeof(Point));
-    *ptNr = siz;
+    // if(siz > *ptNr) goto L_EOM; // outTab zu klein
+    if((*ptNr + siz) > ptSiz) goto L_EOM; // outTab zu klein
+    memcpy(&pTab[*ptNr], data, siz * sizeof(Point));
+    *ptNr += siz;
     return 0;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVCCV) {
     // CCV -> 3D-Polygon umwandeln (aus GR_DrawSur)
-    i1 = UT3D_pta_ccv (ptNr, pTab, data, 0, NULL, tol);
+    // i1 = UT3D_pta_ccv (ptNr, pTab, data, 0, NULL, tol);
+    ptn = ptSiz - *ptNr;
+    i1 = UT3D_pta_ccv (&ptn, &pTab[*ptNr], data, 0, NULL, tol);
+    *ptNr += ptn;
     // printf("  ccv hat %d pt\n",ptNr);
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_LN) {
     // Line -> Polygon
-    pTab[0] = ((Line*)data)->p1;
-    pTab[1] = ((Line*)data)->p2;
-    *ptNr = 2;
+    if((*ptNr + 2) > ptSiz) goto L_EOM; // outTab zu klein
+    pTab[*ptNr] = ((Line*)data)->p1;
+    *ptNr += 1;
+    pTab[*ptNr] = ((Line*)data)->p2;
+    *ptNr += 1;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CI) {
     // CIRC -> Polygon
-    UT3D_cv_ci (pTab, ptNr, data, *ptNr, tol);
+    // UT3D_cv_ci (pTab, ptNr, data, *ptNr, tol);
+    ptn = ptSiz - *ptNr;
+    UT3D_cv_ci (&pTab[*ptNr], &ptn, data, ptn, tol);
+    *ptNr += ptn;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVPOL) {
     // polygon kopieren
       // UT3D_stru_dump(Typ_CVPOL, oxi->data, "_pta_obj CVPOL:");
-    irc = UT3D_pta_plg (ptNr, pTab, data);             // 2012-01-18
+    // irc = UT3D_pta_plg (ptNr, pTab, data);
+    ptn = ptSiz - *ptNr;
+    irc = UT3D_pta_plg (&ptn, &pTab[*ptNr], data);
+    *ptNr += ptn;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVELL) {
     // irc = UT3D_cv_ell (pTab, ptNr, data, *ptNr, tol);
-    i1 = *ptNr;  // max ptNr
-    *ptNr = UT3D_ptNr_ell (data, tol);
-    if(*ptNr > i1) return -1;
-    UT3D_npt_ell (*ptNr, pTab, data);
+    // i1 = *ptNr;  // max ptNr
+    // *ptNr = UT3D_ptNr_ell (data, tol);
+    // if(*ptNr > i1) return -1;
+    // UT3D_npt_ell (*ptNr, pTab, data);
+    ptn = UT3D_ptNr_ell (data, tol);
+    if((*ptNr + ptn) > ptSiz) goto L_EOM; // outTab zu klein
+    irc = UT3D_npt_ell (ptn, &pTab[*ptNr], data);
+    *ptNr += ptn;
+
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVCLOT) {
-    irc = UT3D_npt_curvp  (pTab, ptNr, Typ_CVCLOT, data, tol);
+    // irc = UT3D_npt_clot  (pTab, ptNr, Typ_CVCLOT, data, tol);
+    ptn = ptSiz - *ptNr;
+    irc = UT3D_npt_clot  (&pTab[*ptNr], &ptn, data, tol);
+    *ptNr += ptn;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVBSP) {
-    // printf(" CurvBSpl v0=%f v1=%f\n",((CurvBSpl*)data)->v0,
-                                     // ((CurvBSpl*)data)->v1);
-    // UT3D_ptNr_bsplTol ? bspl_cv_bsp ?
-    // irc = bspl_pol_bsp (ptNr, pTab, data, *ptNr, tol);
-    irc = UT3D_pta_bsp (ptNr, pTab, data, *ptNr, tol);
+    // irc = UT3D_pta_bsp (ptNr, pTab, data, *ptNr, tol);
+    ptn = ptSiz - *ptNr;
+    irc = UT3D_pta_bsp  (&ptn, &pTab[*ptNr], data, ptn, tol);
+       // printf(" ex _pta_bsp irc=%d ptn=%d\n",irc,ptn);
+    *ptNr += ptn;
+
     
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVRBSP) {
-    // printf(" CurvRBSpl v0=%f v1=%f\n",((CurvBSpl*)data)->v0,
-                                     // ((CurvBSpl*)data)->v1);
-    irc = UT3D_cv_rbsp (ptNr, pTab, NULL, data, *ptNr, tol);
+    // irc = UT3D_cv_rbsp (ptNr, pTab, NULL, data, *ptNr, tol);
+    ptn = ptSiz - *ptNr;
+    irc = UT3D_cv_rbsp (&ptn, &pTab[*ptNr], NULL, data, ptn, tol);
+    *ptNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Model) {
+    pTab[*ptNr] = ((ModelRef*)data)->po;
+    *ptNr += 1;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_ObjGX) {
     // recurse
-    ptMax = *ptNr;
-    *ptNr = 0;
+    ptMax = ptSiz - *ptNr;
+        printf(" _npt_ox start ptMax=%d *ptNr=%d\n",ptMax,*ptNr);
+    // *ptNr = 0;
     oa = data;
     for(i1=0; i1<siz; ++i1) {
-      ptn = ptMax;
+      ptn = 0;
       irc = UT3D_npt_ox (&ptn, &pTab[*ptNr], &oa[i1], tol);
       if(irc < 0) return -1;
       ptMax -= ptn;
       *ptNr += ptn;
+        printf(" _npt_ox i1=%d ptMax=%d *ptNr=%d\n",i1,ptMax,*ptNr);
     }
 
 
@@ -773,7 +822,7 @@ Returncodes:
       // UME_init (&wrkSpc, tmpSpc, 50000);
       if(i1 > 0) --ptNr;   // den ersten Punkt gibts schon !!
       i2 = iMax;
-      irc = UT3D_npt_curvp  (&pta[ptNr], &i2,
+      irc = UT3D_npt_clot  (&pta[ptNr], &i2,
                              Typ_CVCLOT, vp1, tol);
                              // Typ_CVCLOT, ox3->data, tol, &wrkSpc);
       ptNr += i2;
@@ -1117,7 +1166,7 @@ Returncodes:
     } else if(otyp == Typ_CVCLOT) {
       if(i1 > 0) --ptNr;   // den ersten Punkt gibts schon !!
       i2 = iMax;
-      irc = UT3D_npt_curvp  (&pta[ptNr], &i2,
+      irc = UT3D_npt_clot  (&pta[ptNr], &i2,
                              Typ_CVCLOT, vp1, tol);
       ptNr += i2;
 */
@@ -1303,7 +1352,7 @@ Returncodes:
       UTO_obj_get (&ox3, ox2);
       if(i1 > 0) --ptNr;   // den ersten Punkt gibts schon !!
       i2 = iMax;
-      irc = UT3D_npt_curvp  (&pta[ptNr], &i2,
+      irc = UT3D_npt_clot  (&pta[ptNr], &i2,
                              Typ_CVCLOT, ox3->data, tol);
       ptNr += i2;
 

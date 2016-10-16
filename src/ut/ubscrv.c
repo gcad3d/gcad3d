@@ -890,8 +890,8 @@ Returncodes:
 
   // printf("UCBS_XPtsBspCrvNet cvNrU=%d cvNrV=%d\n",cvNrU,cvNrV);
 
-  // UME_alloca (&tmpSpc, 5000000);  // 5MB tempSpace
-  // UME_alloca (&tmpSpc, 1000000);  // 1MB tempSpace (MS: Stack Overflow !)
+  // UME_alloc_tmp (&tmpSpc, 5000000);  // 5MB tempSpace
+  // UME_alloc_tmp (&tmpSpc, 1000000);  // 1MB tempSpace (MS: Stack Overflow !)
 
 
   // space for intersection points

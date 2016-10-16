@@ -3,7 +3,7 @@
 # Delete all GUI-dll-objects: make delete -f gui_del.mak
 
 
-# get OS gcad_dir_bin CC VGUI (Version GTK)
+# get get VGUI BITS OS CC MK
 include ../options.mak
 
 

@@ -5265,7 +5265,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 ///    | /           |
 ///    x---------------------> vcx
 ///
-/// retour: UT3D_pt_tra_pt_2vc1_2par
+/// retour: UT3D_pt_tra_pt_2vc_2par
 /// \endcode
 
 // see also UT2D_vc_tra_vcx_vcy UT3D_nlen_projvcvc UT3D_nlen_projvcvc
@@ -6108,7 +6108,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   if(*pNr < 3) return 0;
 
   // get memspc for ptStat
-  ptStat = UME_alloc_tmp (*pNr);
+  ptStat = MEM_alloc_tmp (*pNr);
   if(!ptStat) {TX_Error("UT2D_cv3_linear EOM"); return -1;}
 
 
@@ -8429,7 +8429,7 @@ neuere Version UT2D_ck_pt_in_tria von Sauer/Reiter ..
 /// Example:
 /// UT2D_cic_ci3               get 2D-circ and its plane from 3D-circ
 /// UT2D_pt_cic_par            get point on 2D-circ
-/// UT3D_pt_tra_pt_2vc1_2par   get 3D-point from 2D-point.
+/// UT3D_pt_tra_pt_2vc_2par   get 3D-point from 2D-point.
 /// \endcode       
                    
                    

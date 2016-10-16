@@ -263,7 +263,7 @@ static char  I2D_stat[I2D_TABSITZ];
 //   out-dbi immer 0, out-dli immer -1 ?
 
 
-  int     iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
+  int     irc, iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
   char    so[128], cto;
 
 
@@ -277,6 +277,8 @@ static char  I2D_stat[I2D_TABSITZ];
   // test if selection of PT,VC wanted; 0 is no, else yes
   iPt = sele_ck_typ (Typ_PT);
   iVc = sele_ck_typ (Typ_VC);
+    // printf(" ck_subCurv-iPt=%d iVc=%d\n",iPt,iVc);
+
 
 
   //----------------------------------------------------------------
@@ -302,7 +304,8 @@ static char  I2D_stat[I2D_TABSITZ];
     else goto L_err1;
     sprintf(sca[ii].oid, "%c(%s)",cto,so);
     sca[ii].typ = typ;
-    return 1;
+    ii = 1;
+    goto L_ck_ex;
   }
 
   // surfs not yet implemented ?
@@ -315,7 +318,7 @@ static char  I2D_stat[I2D_TABSITZ];
   L_ck_cv:
   // get exact typ of inputCurve
   if(iTyp == Typ_CV) iTyp = DB_get_typ_cv (dbi);
-    // printf(" iTyp=%d\n",iTyp);
+    // printf(" ck_subCurv-iTyp=%d\n",iTyp);
 
 
 
@@ -326,7 +329,7 @@ static char  I2D_stat[I2D_TABSITZ];
   iLn = sele_ck_typ (Typ_LN);
   iCi = sele_ck_typ (Typ_CI);
   iCv = sele_ck_typ (Typ_CV);
-    // printf(" iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
+    // printf(" ck_subCurv-iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
 
 
   if(iTyp == Typ_CVCCV) goto L_ck_1;
@@ -344,34 +347,33 @@ static char  I2D_stat[I2D_TABSITZ];
   //----------------------------------------------------------------
   // get subCurve of CCV:  L|C|S, dann P,D
   L_ck_1:
-    oTyp = Typ_goGeo1;
+  if(iLn) {
+    oTyp = Typ_goGeo1; // if L in CCV selected: OK; if C in CCV selcted: oTyp=0.
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp_1=%d so=|%s|\n",oTyp,so);
+      // printf(" ck_subCurv-Ln-CCV oTyp=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
       ++ii;
     }
-    goto L_ck_3;
+  }
+  goto L_ck_3;
 
 
   //----------------------------------------------------------------
   // plg: L, dann P,D
   // LN from curve or subcurve
   L_ck_2:
-  // if found polygon and L|D requested: get also L|D
-  // if(iTyp == Typ_CVPOL) {
-    // if((iLn)||(iVc)) {
+  if(iLn) {
     oTyp = Typ_LN;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp_2=%d so=|%s|\n",oTyp,so);
+      // printf(" ck_subCurv-Ln_POL oTyp=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
       ++ii;
     }
-    // }
-  // }
+  }
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
 
@@ -381,8 +383,8 @@ static char  I2D_stat[I2D_TABSITZ];
     // printf(" sel PT iPt=%d\n",iPt);
   if(iPt) {
     oTyp = Typ_PT;
-    SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp_3=%d so=|%s|\n",oTyp,so);
+    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+      // printf(" ck_subCurv-Pt oTyp=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -400,7 +402,7 @@ static char  I2D_stat[I2D_TABSITZ];
     // add Vector to list
     oTyp = Typ_VC;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" oTyp_4=%d so=|%s|\n",oTyp,so);
+      // printf(" ck_subCurv-Vc oTyp=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
       sca[ii].typ = oTyp;
       strcpy(sca[ii].oid, so);
@@ -422,11 +424,13 @@ static char  I2D_stat[I2D_TABSITZ];
         ATO_ato_srcLn__ (&ato, sca[i1].oid);
         ATO_dump__ (&ato, sca[i1].oid);
         // display subCurv
-        typ = ato.typ[0]; dbi = ato.val[0]; GR_Disp_dbo (typ, dbi, 9, 0);
+        // typ = ato.typ[0]; dbi = ato.val[0]; GR_Disp_dbo (typ, dbi, 9, 0);
     }}
-    if((typ == 25)&&(dbi==26)) exit(0);
     // END TESTBLOCK:
 */
+
+    // printf("ex SRC_src_pt_dbo irc=%d so=|%s|\n",ii,so);
+
 
   return ii;
 
@@ -582,8 +586,8 @@ static char  I2D_stat[I2D_TABSITZ];
 // CX           Typ_modCX
 // CTRL         Typ_modCTRL
 // "1"|"2" ...  Typ_mod1  "1"|"2" ... (Side, Version, solutionNr ..)
-// NXT PRV      für PgUp/PgDwn-Buttons für DB-Vectors, Typ_mod1,
-
+// NXT PRV      for PgUp/PgDwn-Buttons for DB-Vectors, Typ_mod1,
+// LIST         for Typ_CtlgPart
 
 // Typ_modAux "[Spline/Polygon] POL"  IE_cad_Inp1_Aux
 // man könnte Typ_modCX mit Typ_modAux ersetzen.
@@ -1864,8 +1868,8 @@ raus 2011-07-29
 
   //================================================================
   L_exit:
-      printf("ex sele_decode %d %ld |%s|\n",
-             GR_selTyp, GR_selDbi, GR_selNam);
+      // printf("ex sele_decode %d %ld |%s|\n",
+             // GR_selTyp, GR_selDbi, GR_selNam);
     return 0;
 
 
@@ -1954,6 +1958,9 @@ raus 2011-07-29
 /// \code
 /// init and set selectionFilter 
 ///
+/// Input:
+///   rTyp = GR_reqTyp = requestedTyp;  see ../xa/xa_sele.h
+///
 /// Example:
 ///   sele_set__ (Typ_PT);           // Typ_PT+Typ_SUR+Typ_SOL+Typ_Model
 ///   sele_set_types (Typ_PLN, 0);   // add CAD-planes
@@ -1962,7 +1969,6 @@ raus 2011-07-29
 ///   sele_reset ();
 ///   sele_set_types (Typ_TmpPT, 0); // only indicate on active constrPln
 ///
-/// set GR_reqTyp = requestedTyp = rTyp;
 /// set reqObjTab = selectableTypes
 ///     reqObjTab = all types that can be converted into rTyp
 /// \endcode
@@ -2071,8 +2077,8 @@ raus 2011-07-29
                       Typ_CVCLOT,
                       // Typ_CVPOL,               // 2014-12-19
                       // Typ_CVCCV,               // 2014-12-19
-                      // Typ_PLN,                 // 2011-09-08
 */
+                      Typ_PLN,                 // 2016-10-04
                       Typ_SUR,
                       Typ_SOL,
                       Typ_Model,

@@ -1,12 +1,15 @@
 # Create the gui-lib        make -f xa_gui__.mak
 
 
-# get OS gcad_dir_bin CC VGUI (Version GTK)
+# get VGUI BITS OS CC MK
 include ../options.mak
 
 # get SRCGUI GUICP GUILIB
 include ../gui/gui_$(VGUI).mak
+
+
 OBJGUI = $(patsubst %.c,%.o, $(notdir $(SRCGUI)))
+VPATH = $(gcad_dir_bin):../gui/:../gui_$(VGUI)/
 
 
 default:
@@ -21,6 +24,9 @@ delete:
 
 srclst:
 	make -f gcad_gui_lnk.mak srclst
+
+add_srclst:
+	make -f gcad_gui_lnk.mak add_srclst
 
 
 # link after changing VGUI in ../options.mak

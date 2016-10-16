@@ -1,6 +1,5 @@
 # Link & run:
-#   make run -f hello-world.mak
-# Menu on Ubuntu: export UBUNTU_MENUPROXY=
+#   make run -f gMsg.mak
 
 
 # name of this makefile

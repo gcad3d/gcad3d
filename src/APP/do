@@ -9,8 +9,11 @@
 #   cp -f dirw.lst ~/gCAD3D/cfg/dir.lst
 # fi
 
-# get bitNr BINLOC gcad_dir_bin DirBasSer
+# get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
 . ../options.sh
+
+echo "gcad_dir_dev: " ${gcad_dir_dev}
+echo "gcad_dir_bin: " ${gcad_dir_bin}
 
 
 cmdVi=${DIR_BIN}'vi.sh'
@@ -27,7 +30,7 @@ if test "$1" = "help"; then
   echo "./do c                 # compile & link core"
   echo "./do all               # compile & link corelibs"
   echo "./do allDemos          # compile & link demos"
-  echo "./do cp2serv1          # copy -> server before build"
+# echo "./do cp2serv1          # copy -> server before build"
   echo "./do *.mak             # link a plugin (for the first time)"
   echo "./do                   # start"
   echo "./do d                 # start with debugger"
@@ -84,12 +87,12 @@ if test "$1" = "gui"; then
 fi
 
 
-if test "$1" = "cp2serv1"; then
-  cp -f ${gcad_dir_bin}/gCAD3D ${DirBinSer}/.
-  cp  -f ${gcad_dir_bin}/*.so ${DirBinSer}/.
-  cp -rf ${gcad_dir_bin}/plugins ${DirBinSer}/.
-  exit 0
-fi
+#if test "$1" = "cp2serv1"; then
+#  cp -f ${gcad_dir_bin}/gCAD3D ${DirBinSer}/.
+#  cp  -f ${gcad_dir_bin}/*.so ${DirBinSer}/.
+#  cp -rf ${gcad_dir_bin}/plugins ${DirBinSer}/.
+#  exit 0
+#fi
 
 
 if test "$1" = "c"; then
@@ -172,15 +175,6 @@ fi
 # start gCAD3D
 
 
-# change configfiles to unix if last start was with MS-Windows
-if [ -f dirUX.lst ]; then
-  echo "set dir.lst & xa.rc -> Unix"
-  /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst dirMS.lst
-  /bin/mv /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc xaMS.rc
-  /bin/mv dirUX.lst /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/dir.lst
-  /bin/mv xaUX.rc /mnt/serv1/Devel/GITHUB/gcad3d/gCAD3D/cfg/xa.rc
-fi
-
 
 #export UBUNTU_MENUPROXY=
 
@@ -202,15 +196,30 @@ if [ "$OSTYPE" = "Linux" ] ; then
   export gcad_dir_local=${gcad_dir_dev}
 
 # icons,
-  export gcad_dir_ico=${gcad_dir_dev}/icons/
+  export gcad_dir_ico=${gcad_dir_dev}icons/
 
 # html and msg-files
 # def is /usr/share/doc/
-  export gcad_dir_doc=${gcad_dir_dev}/doc/
+  export gcad_dir_doc=${gcad_dir_dev}doc/
 
 
 
   exeNam=${gcad_dir_bin}gCAD3D
+
+
+
+# change configfiles to unix if last start was with MS-Windows
+if [ -f MS.lock ]; then
+  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
+  echo "set dir.lst & xa.rc -> Unix"
+  /bin/cp -f ${cfgDir}dir.lst ${cfgDir}dirMS.lst
+  /bin/cp -f ${cfgDir}xa.rc ${cfgDir}xaMS.rc
+  /bin/cp -f ${cfgDir}dirUX.lst ${cfgDir}dir.lst
+  /bin/cp -f ${cfgDir}xaUX.rc ${cfgDir}xa.rc
+  /bin/rm -f MS.lock
+  touch UX.lock
+fi
+
 
 
 
@@ -238,13 +247,6 @@ elif [ "$1" = "trc" ] ; then
   #mtrace  ${exeNam} $MALLOC_TRACE
   exit 0
 
-
-#-----------------------------------------------------
-# init = copy dirx.lst -> ?
-elif [ "$1" = "init" ] ; then
-	echo "copy dir.lst"
-  cp -f ../../gCAD3D/cfg/dir.lst ~/gCAD3D/cfg/dir.lst
-  exit 0
 
 #-----------------------------------------------------
 fi

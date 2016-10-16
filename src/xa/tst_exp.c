@@ -306,36 +306,13 @@ extern long       GR_TAB_IND;
 
   strcpy(fDir, "/mnt/serv1/Devel/cadfiles/dxf/");
 
+  strcpy(fNam, "Blocktest1.dxf");
   // strcpy(fNam, "sample_models1.dxf");
   // strcpy(fNam, "Gelaende1.dxf");
   // strcpy(fNam, "Maguro1.dxf");
-  strcpy(fNam, "dim3.dxf");
+  // strcpy(fNam, "dim3.dxf");
   
   UI_open__ (fNam, fDir);
-
-  // UI_open__ ("bsplTest1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("elli_2000_1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("t2.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");// lines,circs
-  // UI_open__ ("t3.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");// points
-  // UI_open__ ("t1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");// lines,circs
-  // UI_open__ ("elli1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//ELLIPSE
-  // UI_open__ ("poly1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//POLYLINE
-  // UI_open__ ("DIM_TEST.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("c109806.dxf", "/mnt/serv1/Devel/cadfiles/dxf/");
-  // UI_open__ ("Spinne.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//LWPOLYLINE
-  // UI_open__ ("dim4.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//LEADER
-  // UI_open__ ("t7.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//TEXT
-  // UI_open__ ("t13.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//Radius-DIMEN
-  // UI_open__ ("schieberkontur.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//INSERT
-  // UI_open__ ("fac2.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");//3DFACE
-  // UI_open__ ("lkw3.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("Gelaende1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("gelaende2.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("OpenGeo2.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("OpenGeo1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("OpenGeo3.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dxf/");
-  // UI_open__ ("t1.dxf", "/mnt/serv1/Devel/dev/gCAD3D/dat/");
-  // UI_open__ ("t4.dxf", "/p2/fwork/");
 
   return 0;
 
@@ -403,14 +380,16 @@ extern long       GR_TAB_IND;
 
   // Run DLL
   strcpy(cbuf,
-  "/home/fwork/gCAD3D/dat/unknown.stp");
+  "/mnt/serv1/Devel/cadfiles/step/Models/Block.stp");
+  // "/mnt/serv1/Devel/cadfiles/step/Models/assy1.stp");
+  // "/mnt/serv1/Devel/cadfiles/step/Models/hookchain.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/dat/sample_step1.stp");
-  // "/mnt/serv1/Devel/dev/gCAD3D/formate/step/Models/hookchain.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/formate/step/Models/Assy6.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/formate/step/Models/Coupling_Link.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/formate/step/Models/14.dat.step");
   // "/mnt/serv1/Devel/dev/gCAD3D/formate/step/ErrorModels/angle1.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/cadenas/wuerth_010734925_sechskantschraube_din_933_m4x25_10_9_a2c_2_03.stp");
+  // "/home/fwork/gCAD3D/dat/unknown.stp");
 
   // printf("vi %s\n",cbuf);
   OS_dll_do ("xa_stp_r", "STP_r__", cbuf);
@@ -1339,7 +1318,7 @@ extern long       GR_TAB_IND;
 //================================================================
 
 
-
+/*
 //================================================================
   int _UT3D_rMin_pta (double *rMin, int pNr, Point *pTab) {
 //================================================================
@@ -1373,5 +1352,6 @@ extern long       GR_TAB_IND;
   return 0;
 
 }
+*/
 
 //======== EOF =========

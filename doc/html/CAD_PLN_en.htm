@@ -162,18 +162,26 @@ R4 = P(100 100 100) P(101 100 100) P(100 101 100)
 
 
 <p><A NAME="F2"></A></p>
-<h2>PLN PT  Plane</h2>
-Moving of a plane/reference system (the axes will remain),
-  optional the new origin, offset along z-axis.
+<h2>PLN PT Plane Offset Angle</h2>
+Move, rotate a plane/reference system
+  Set new origin,
+  move the origin along X/Y/Z-axis,
+  rotate the X-axis and Y-axis around the Z-axis
+  All parameters are optional.
 
-  [Origin]          optional; the new orgin
-  Refsys            plane to be moved 
-  [offset Z-axis]   optional: distance of the new origin along the z-axis
-
+  [Origin]         the new orgin
+  [Refsys]         plane to be moved 
+  [offset-X-axis]  move the new origin along the X-axis
+  [offset-Y-axis]  move the new origin along the Y-axis
+  [offset-Z-axis]  move the new origin along the Z-axis
+  [Angle-around-Z] rotate the reference system around Z-axis (degree)
 
 Example:
-R21=P(100 100 50) R20
-R21=R20 10
+#
+# R20 - set new orgin
+R21=RSYS P(100 100 50) R20
+# R20 - move orgin, rotate axes
+R22=RSYS R20 X(100) Y(100) ANG(180)
 
 
 

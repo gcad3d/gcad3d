@@ -139,10 +139,10 @@ Korr:
 
 /// notes, images
 #define Typ_Note          90     ///< GroupCode f Typ_ATXT|Typ_GTXT|Typ_Dimen..
-#define Typ_ATXT          91     ///< N  AText
-#define Typ_GTXT          92     ///< N  GText
-#define Typ_Dimen         93     ///< N  
-#define Typ_Dim3          94     ///< N
+#define Typ_ATXT          91     ///< N  AText (2D-text, tag, bitmap, symbol ..)
+#define Typ_GTXT          92     ///< N  GText (grafic text)
+#define Typ_Dimen         93     ///< N  Dimen (dimension)
+#define Typ_Dim3          94     ///< N  Dim3  (3D-dimension)
 #define Typ_Tag           95     ///< N Bitmap (Blocknote, Image ..)
 
 /// symbols
@@ -150,6 +150,7 @@ Korr:
 #define Typ_SymV         101     ///< Vektorymbole: SYM_PLANE SYM_ARROW ..
 #define Typ_SymRef       102  ///<     SymRef
 #define Typ_SymRef2      103  ///<     SymRef2
+
 #define Typ_Texture      104     ///< index to TexRef
 #define Typ_TEXB         105     ///< Base-Texture    TexBas
 #define Typ_TEXR         106     ///< Ref-Texture     TexRef
@@ -181,13 +182,13 @@ Korr:
 
 /// geom. parameters  TYP_IS_GEOMPAR
 #define Typ_Val          130  ///< double-Value
-#define Typ_ValX         131  ///< X-coord
-#define Typ_ValY         132  ///< Y-coord
-#define Typ_ValZ         133  ///< Z-coord
-#define Typ_XVal         134  ///< X-distance
-#define Typ_YVal         135  ///< Y-distance
-#define Typ_ZVal         136  ///< Z-distance
-#define Typ_Angle        137  ///< Angle (in degree)
+// #define Typ_ValX         131  ///< X-coord
+// #define Typ_ValY         132  ///< Y-coord
+// #define Typ_ValZ         133  ///< Z-coord
+#define Typ_XVal         134  ///< X-value (X())
+#define Typ_YVal         135  ///< Y-value (Y())
+#define Typ_ZVal         136  ///< Z-value (Z())
+#define Typ_Angle        137  ///< Angle (in degree; ANG())
 #define Typ_Rad          138  ///< Radius
 #define Typ_Dist         139  ///< distance
 #define Typ_Par1         140  ///< Parameter 0-1; for knotvals use Typ_Val
@@ -276,14 +277,15 @@ Korr:
 
 
 /// operators
-#define Typ_ope_eq       220  ///< operator =
-#define Typ_ope_ne       221  ///< operator !=
-#define Typ_ope_lt       222  ///< operator <
-#define Typ_ope_gt       223  ///< operator >
-#define Typ_ope_ge       224  ///< operator >=
-#define Typ_ope_le       225  ///< operator <=
-#define Typ_ope_and      226  ///< operator &
-#define Typ_ope_or       227  ///< operator |
+#define Typ_ope__        220  ///< operator =
+#define Typ_ope_eq       221  ///< operator =
+#define Typ_ope_ne       222  ///< operator !=
+#define Typ_ope_lt       223  ///< operator <
+#define Typ_ope_gt       224  ///< operator >
+#define Typ_ope_ge       225  ///< operator >=
+#define Typ_ope_le       226  ///< operator <=
+#define Typ_ope_and      227  ///< operator &
+#define Typ_ope_or       228  ///< operator |
 
 
 /// modifiers  TYP_IS_MOD
@@ -307,7 +309,7 @@ Korr:
 #define Typ_modIN        247
 #define Typ_modOUT       248
 #define Typ_modAux       249  ///< Modifier; on|off; text=last infoWord
-#define Typ_modUnlim     250  ///< "UNLIM" or not
+#define Typ_modUnlim     250  ///< "UNL|UNL1|UNL2"
 
 // /// events  DO NOT USE - replaced by TYP_Event* ../gui/gui_types.h
 // #define GUI_MouseL     250  ///< event left mousebutton
@@ -394,6 +396,21 @@ Korr:
 #define MBTYP_EXTERN    0
 #define MBTYP_INTERN   -1
 #define MBTYP_CATALOG  -2
+
+
+
+// UT3D_ptvc_obj UTO_2pt_limstru UTO_ptnr_std_obj
+#define Ptyp_def      0    ///< default
+#define Ptyp_0        1    ///< startpoint (0-deg-point)
+#define Ptyp_1        2    ///< endpoint
+#define Ptyp_90_deg   4    ///< 25 % point        1     Circ, elli: 90-deg-point
+#define Ptyp_mid      8    ///< midpoint          1     Circ, elli: 180-deg-point
+#define Ptyp_270_deg 16    ///< 75 % point        1     Circ, elli: 270-deg-point
+#define Ptyp_cen     32    ///< centerpoint       1     Circ, elli, plane
+#define Ptyp_focus1  64    ///< focus points      1|2   Elli, hyp ..
+#define Ptyp_focus2  65    ///< focus points      1|2   Elli, hyp ..
+
+
 
 
 #ifndef TimeStamp

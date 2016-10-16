@@ -81,7 +81,7 @@ Braucht advapi32.lib (f. GetUserName).
 
 
 #include "../ut/ut_txt.h"              // fnam_del_s
-#include "../ut/ut_types.h"            // FUNC_LOAD
+#include "../ut/func_types.h"          // FUNC_..
 #include "../ut/ut_os.h"
 
 
@@ -1634,6 +1634,35 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
 //================================================================
+  int OS_dll_close (void **dl1) {
+//================================================================
+// on successfule returns irc = 0,  dl1 = NULL
+// BUG dlclose: returnCode is OK but handle not NULL.
+
+  int  irc = 0;
+
+  printf("OS_dll_close \n");
+
+  // unload if already loaded
+  if(*dl1 != NULL) {
+    irc = FreeLibrary (*dl1);    // 0=err
+      // printf(" close %d\n",irc);
+    if(irc) {
+      // success
+      *dl1 = NULL;
+      irc = 0;
+    } else {
+      irc = -1;
+    }
+  }
+
+  return irc;
+
+}
+
+
+
+//================================================================
   int OS_dll__ (void **dl1, int mode, void *fDat) {
 //================================================================
 /// \code
@@ -1665,7 +1694,8 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   //----------------------------------------------------------------
   // mode 0 = open (load Lib fNam)
-  if(mode == FUNC_LOAD) {
+  if((mode == FUNC_LOAD_only)  ||
+     (mode == FUNC_LOAD_all))      {
 
     // unload if already loaded
     if(*dl1 != NULL) {

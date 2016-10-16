@@ -22,13 +22,16 @@ ________________________________________________________________________________
 // get temporary memory:
 // calls alloca; memspace exists until active function returns.
 
-// get local space
-  memspace = UME_alloc_tmp (siz_in_bytes);
-  if(!memspace) {TX_Error("funcXX EOM %d",siz_in_bytes); return -1;}
 
-// get local space for a Memspc
+// get local space for 1000 points
+  Point *pta;
+  pta = (Point*) MEM_alloc_tmp (1000 * sizeof(Point));
+  if(!pta) {TX_Error("funcXX EOM"); return -1;}
+
+
+// get 1MB local space for a Memspc
   Memspc wrkSeg;
-  UME_alloca (&wrkSeg, 1000000);
+  UME_alloc_tmp (&wrkSeg, 1000000);
 
 
 \endcode

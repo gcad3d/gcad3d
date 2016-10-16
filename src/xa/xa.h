@@ -23,6 +23,8 @@
 /// jntStat:   0=unInitilized, 1=open  (DBFile <tmp>/joints)
 /// debStat:   0=normal (debug off); 1=debug_ON
 /// tstDllStat 0=normal (OFF); 1=testdll_ON
+/// mdl_modified   AP_mdl_modified_ck
+/// mdl_box_valid  AP_mdlbox_invalid_ck
 /// iActStat   0=normal, 1=Interactivity_ON
 /// \endcode
 typedef struct {int errLn; short sysStat, errStat;
@@ -35,7 +37,9 @@ typedef struct {int errLn; short sysStat, errStat;
                           debStat:1,
                           iActStat:1,
                           tstDllStat:1,
-                          uuBits:23;
+                          mdl_modified:1,
+                          mdl_box_valid:1,
+                          uuBits:21;
                 char      subtyp;}                          AP_STAT;
 
 
@@ -52,7 +56,7 @@ typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 extern char WC_modnam[128];       // active Modelname - without path
 extern char WC_modact_nam[128];   // name of the active submodel; def="" (main)
 
-extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel (without subModels)
+extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel
 
 extern char AP_dir_open[128];     // directory for OPEN
 extern char AP_dir_save[128];     // directory for SAVE

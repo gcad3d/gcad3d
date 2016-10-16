@@ -1094,7 +1094,7 @@ Returncodes:
 
   // get spc for wPoints
   i1 = rbsp->ptNr * sizeof(wPoint);
-  Pw = (void*) UME_alloc_tmp (i1);
+  Pw = (void*) MEM_alloc_tmp (i1);
 
 
   // transfer rbsp-curve from format point[3] + weight into format point[4]
@@ -1120,12 +1120,12 @@ Returncodes:
   // b = nr of ctrlPts of the bezCurves is (degree + 1)
   // max nr of bezCurves is ptNr + degree + 1
   i1 = m * b * sizeof(wPoint);
-  Qw = (void*) UME_alloc_tmp (i1);
+  Qw = (void*) MEM_alloc_tmp (i1);
     // printf(" size Qw = %d * %d * %d\n",m,b,sizeof(wPoint));
 
 
   i1 = nrpb * sizeof(double);
-  alphas = (void*) UME_alloc_tmp (i1);
+  alphas = (void*) MEM_alloc_tmp (i1);
 
 
   for (i=0; i<=deg; i++) {
@@ -1874,7 +1874,7 @@ Returncodes:
 
   // pt1 - set correct length (tangential point)
   UT3D_pt_traptmultvc (&pt1, &ci1->pc, &vcm, d1);
-    GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
+    // GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
 
 
   rb1->ptNr = 3;

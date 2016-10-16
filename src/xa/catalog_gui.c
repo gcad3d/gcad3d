@@ -220,7 +220,8 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 
   // Datei mit den Names aller catalog-Files
   sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
-    printf(" vor GUI_list1_h2__ parent=|%s|\n",parent);
+    printf(" _list1_h2__ parent=|%s|\n",parent);
+    printf(" _list1_h2__ fnam=|%s|\n",fnam);
 
   // display List of parts ..
   GUI_list1_h2__ (

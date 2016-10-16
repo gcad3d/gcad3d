@@ -7,6 +7,10 @@
 \ref Direct-Messages
 \ref Dump-object-functions
 \ref ErrorHandling
+\ref Logfile                     write log-messages into file, display file
+\ref Standard-Messages           messages, identified by a keyword
+\ref Constant-Messages           messages; identified by integers (../xa/xa_msg.h)
+\ref Application-Messages
 
 See also \ref Debugging
 
@@ -125,6 +129,33 @@ AP_test__           Testfunction in core; activate by Ctl shift T
 \endcode
 
 
+
+<hr>
+\section Logfile
+Sourcefile: ../ut/ \ref ut_log.c
+
+\code
+LOG_A_init      set logfilename
+LOG_A__         write
+LOG_A_disp      display logfile
+\endcode
+
+
+\section Standard-Messages
+Sourcefile: ../xa/ \ref xa_msg.c
+\code
+See MSG_STD_ERR
+Example:
+  #include "../xa/xa_msg.h"                 // MSG_*
+  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
+\endcode
+
+
+\section Constant-Messages
+Sourcefile: ../xa/ \ref xa_msg.c
+
+\section Application-Messages
+Sourcefile: ../xa/ \ref xa_msg.c
 
 
 */

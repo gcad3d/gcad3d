@@ -47,11 +47,19 @@ AP_set_dir_save
 AP_set_modsiz
 
 AP_stat__           get/set AP_stat
+AP_stat_file        save AP_box_pm1,2 AP_stat.. 
 AP_errStat_set      set AP_stat.errStat
 AP_errStat_get
 AP_debug__          stop in debug
 AP_test__           "Ctl shift T"
 AP_dump_statPg      dump active subModel, active lineNr
+
+AP_mdl_modified_ck      check if model is modified
+AP_mdl_modified_set     set model is modified
+AP_mdl_modified_reset   set model is unmodified
+AP_mdlbox_invalid_ck    check if modelbox is valid
+AP_mdlbox_invalid_set   set modelbox not valid
+AP_mdlbox_invalid_reset set modelbox = valid
 
 AP_decode_fnam
 AP_split_fnam       split WC_modnam AP_dir_open Filetyp
@@ -112,6 +120,9 @@ AP_colSel           select color
 
 AP_DllLst_write     write list of plugins
 
+AP_save_ex          save model at exit model
+AP_save__           save model
+
 AP_work__           work startparameters
 AP_defLoad          load DefaultModel
 AP_Init1
@@ -164,6 +175,8 @@ Das aktive RefSys kann nur in MAN oder CAD gesetzt werden;
   es wird durch ein rotes Achsenkreuz dargestellt.
   Das absolute Achsensystem wird durch ein graues Achsenkreuz dargestellt.
   Das aktuelle RefSys wird in der Liste links-oben als ConstrPln angezeigt.
+  WC_sur_act     is the active construction-plane
+  WC_sur_mat     is its transformation-matrix
 
 Coordinates: 
   in modelSource not transformed;
@@ -427,6 +440,106 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 
 
 
+
+//================================================================
+  int AP_mdl_modified_ck () {
+//================================================================
+/// \code
+/// AP_mdl_modified_ck        check if model is modified
+/// 0 = model is unmodified
+/// 1 = model is modified
+/// \endcode
+
+
+  printf("AP_mdl_modified_ck %d\n",AP_stat.mdl_modified);
+  
+  // return (AP_box_pm1.x == UT_VAL_MAX);
+
+  return (AP_stat.mdl_modified);
+
+}
+
+
+//================================================================
+  int AP_mdl_modified_reset () {
+//================================================================
+/// AP_mdl_modified_reset       set model is unmodified
+
+  AP_stat.mdl_modified = 0;
+
+  // AP_debug__ ("AP_mdl_modified_reset");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_mdl_modified_set () {
+//================================================================
+/// AP_mdl_modified_set       set model is modified
+
+  AP_stat.mdl_modified = 1;
+
+  AP_mdlbox_invalid_set ();
+
+  // AP_debug__ ("AP_mdl_modified_set");
+
+  return 0;
+
+}
+ 
+
+//================================================================
+  int AP_mdlbox_invalid_ck () {
+//================================================================
+/// \code
+/// AP_mdlbox_invalid_ck           check if modelbox is valid
+/// 0 = modelbox is valid
+/// 1 = modelbox is not valid
+/// \endcode
+
+  
+  // printf("AP_mdlbox_invalid_ck %d\n",AP_stat.mdl_box_valid);
+
+  return (AP_stat.mdl_box_valid);
+
+}
+
+
+//================================================================
+  int AP_mdlbox_invalid_set () {
+//================================================================
+/// AP_mdlbox_invalid_set          set modelbox not valid (not initialized)
+
+  
+
+  AP_stat.mdl_box_valid = 1;
+
+  // printf("AP_mdlbox_invalid_set \n");
+  // AP_debug__ ("AP_mdlbox_invalid_set");
+
+  return 0;
+
+}
+
+//================================================================
+  int AP_mdlbox_invalid_reset () {
+//================================================================
+/// AP_mdlbox_invalid_reset          set modelbox = valid
+
+
+  AP_stat.mdl_box_valid = 0;
+
+  // printf("AP_mdlbox_invalid_set \n");
+  // AP_debug__ ("AP_mdlbox_invalid_reset");
+
+  return 0;
+
+}
+
+
+
 //================================================================
    int AP_dump_statPg (char *txt) {
 //================================================================
@@ -525,6 +638,40 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
   // APT_obj_stat; 0=permanent, 1=temporary.
   if(APT_obj_stat == 1) AP_stat.errStat = 0;         // 2013-05-06
   // if(AP_stat.errLn < 0) AP_stat.errStat = 0;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_stat_file (int mode, FILE *fp1) {
+//================================================================
+/// write|read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
+
+
+  char   s1[8];
+
+
+  if(mode == 1) {          // write
+    fwrite(&AP_box_pm1, sizeof(Point), 1, fp1);
+    fwrite(&AP_box_pm2, sizeof(Point), 1, fp1);
+
+    // save the AP_stat-bits mdl_modified and mdl_box_valid
+    s1[0] = AP_stat.mdl_modified;
+    s1[1] = AP_stat.mdl_box_valid;
+    fwrite(s1, 2, 1, fp1);
+
+  } else if(mode == 2) {   // read
+    fread(&AP_box_pm1, sizeof(Point), 1, fp1);
+    fread(&AP_box_pm2, sizeof(Point), 1, fp1);
+
+    // read the AP_stat-bits mdl_modified and mdl_box_valid
+    fread(s1, 2, 1, fp1);
+    AP_stat.mdl_modified = s1[0];
+    AP_stat.mdl_box_valid = s1[1];
+
+  }
 
   return 0;
 
@@ -914,6 +1061,57 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
 
 
 //================================================================
+  int AP_save_ex (int mode) {
+//================================================================
+// exiting active model; save/overwrite active model; model is modified.
+// mode:     0=exit-app (no cancel, mainwindow has exited)
+//           1=load-new-model;  add option cancel.
+// retCod:   0=0k, -1=cancel
+ 
+  int  irc;
+  char s1[128], sbt[3][64], *buttons[4];
+
+  printf("AP_save_ex %d |%s|\n",mode,WC_modnam);
+
+
+  // do not save model "unknown" if exiting
+  // if(mode == 0) {
+    // // invalidate modelBox ?
+    // if(!strcmp(WC_modnam,"unknown")) return 0;
+  // }
+
+
+  sprintf(s1, "  Model %s is modified; save (overwrite) ?  ",WC_modnam);
+
+  strcpy(sbt[0],  MSG_const__(MSG_ok));      // "YES");
+  strcpy(sbt[1],  MSG_const__(MSG_cancel));  // "Cancel");
+  strcpy(sbt[2],  MSG_const__(MSG_no));      // "NO");
+
+  if(mode == 1) {  // 1=load-new-model
+    buttons[0] = sbt[0];
+    buttons[1] = sbt[1];
+    buttons[2] = sbt[2];
+    buttons[3] = NULL;
+
+  } else {   // 0=exit-app
+    buttons[0] = sbt[0]; // "YES");
+    buttons[1] = sbt[2]; // "NO");
+    buttons[2] = NULL;
+  }
+  // returns 0=yes, 1=cancel, 2=no
+  irc = GUI_DialogEntry (s1, NULL, 0, buttons, 5);
+    // printf(" gui-irc %d\n",irc);
+
+  if(irc == 1) return -1;   // cancel
+
+  if(irc == 0) AP_save__ (0, ".gcad");
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_save__ (int mode, char *fTyp) {
 //================================================================
 // mode  0=save all, 1=save group only 2=save subModel to file;
@@ -988,7 +1186,7 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
   if(mode != 1) strcpy (WC_modnam, filNam);
 
 
-  // save 
+  // save-overwrite
   if(mode == 0) return UI_save__ (1);  // needs Filetyp, removes it.
 
 
@@ -1041,6 +1239,8 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
     ED_lnr_act = 2;       // ED_set_lnr_act (2L);
     UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(2));  // display lNr
 
+    // reset model-modified (was activated with UTF_add_line)
+    AP_mdl_modified_reset ();
 
     strcpy(WC_modnam, "unknown");
     Mod_init__ (); // WC_modact_nam='\0'; WC_modact_ind=-1;
@@ -2003,10 +2203,13 @@ remote control nur in VWR, nicht MAN, CAD;
 
   Tex_Init__ ();  // init textures
 
-    // sprintf(txbuf,"%stmp%cModel",OS_get_bas_dir(),fnam_del);
-    sprintf(txbuf,"%sModel",OS_get_tmp_dir());
-    Mod_load__ (mode, txbuf, 0);
-    ED_work_END (0); // ABARBEITEN
+  sprintf(txbuf,"%sModel",OS_get_tmp_dir());
+  Mod_load__ (mode, txbuf, 0);
+
+  // model successful loaded;
+  AP_mdl_modified_reset ();
+
+  ED_work_END (0); // ABARBEITEN
 
 
   Mod_mkList (0);       // create ../tmp/Mod.lst
@@ -3296,6 +3499,9 @@ remote control nur in VWR, nicht MAN, CAD;
 
   //----------------------------------------------------------------
   L_exit:
+    // model successful loaded;
+    AP_mdl_modified_reset ();
+
     UI_block__ (0, 0, 0);  // reset UI
 #ifdef _MSC_VER
     UI_GR_expose ();  // MS-Windows only
@@ -3615,7 +3821,7 @@ remote control nur in VWR, nicht MAN, CAD;
   Plane   pl1;
   // Mat_4x3 ma;
 
-  printf("AP_vec_txt |%s|\n",p1);
+  // printf("AP_vec_txt |%s|\n",p1);
 
   UTX_cp_nchr_2_upper (s1, p1, 2);
 

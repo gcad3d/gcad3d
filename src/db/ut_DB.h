@@ -11,7 +11,8 @@ BRAUCHT vorher include ut_geo.h !!!
 */
 
 // DB_isFree_<obj>           test if obj is free
-// if(DB_isFree_ModRef (&mdr_tab[i1]))  printf("yes-its free \n");
+// if(DB_isFree_ModRef (&mdr_tab[i1]))     printf("yes-its free \n");
+// if(!(DB_isFree_ModRef (&mdr_tab[i1])))  printf("no, is in use\n");
 #define DB_isFree_Var(obj) *(obj) == UT_VAL_MAX
 #define DB_isFree_PT(obj) (obj)->x == UT_VAL_MAX
 #define DB_isFree_LN(obj) (obj)->p1.x == UT_VAL_MAX
@@ -123,7 +124,7 @@ Circ*     DB_get_CI        (long Ind);
 void*     DB_get_CV        (int *ityp, long Ind);
 Plane*    DB_get_PLN       (long Ind);
 ModelRef* DB_get_ModRef    (long Ind);
-ModelBas* DB_get_ModBas    (long Ind);
+ModelBas* DB_get_ModBas    (int Ind);
 ModelNode* DB_get_ModNod   (int ind);
 
 int       DB_GetObjDat     (void **pDat, int *oNr, int dbTyp, long dbInd);

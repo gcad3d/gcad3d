@@ -39,7 +39,7 @@ List_functions_start:
 
 -------------- functions for memory only EDM_* --------------
 ED_del__            delete all lines including <lnr> in mem
-ED_del_block        delete Block; In: first line, last line.
+ED_del_block        delete Block; In: first line, last line.   UNUSED
 ED_work_file        CALL-File-Funktion. PrgMod_skip_until_file
 ED_cont_file        continue with file ..
 
@@ -308,7 +308,7 @@ long   UI_Ed_fsiz;      // Textsize
   // l1 = gtk_text_get_length ((GtkText*)widget);
   if((l1 != UI_Ed_fsiz) ||
      (im)               ||
-     (xa_fl_TxMem== 1))       {
+     (xa_fl_TxMem == 1))       {
 
     // Edi -> Memory
       // printf("  _update %d %d %d\n",l1,l2,lNr);
@@ -905,7 +905,7 @@ long   UI_Ed_fsiz;      // Textsize
 
 
   l1 = strlen(buf);
-  cmdBuf = (char*) UME_alloc_tmp	(l1 + 8);
+  cmdBuf = (char*) MEM_alloc_tmp	(l1 + 8);
 
 
   // add ' ' if last char is not '=' or '('
@@ -1197,6 +1197,8 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   UTF_FilBuf0Len = cpos - UTF_FilBuf0;
 
   ED_lnr_act = lnr; 
+
+  AP_mdl_modified_set ();
 
   return 0;
 
@@ -1848,7 +1850,7 @@ static int lnr1, lnr2;
 */
 
   // get active state
-  wrkStat = WC_get_obj_stat();
+  wrkStat = WC_get_obj_stat(); // 0=perm, 1=workmode
   WC_set_obj_stat (0);  // set to perm
   
 /*
@@ -1899,7 +1901,9 @@ static int lnr1, lnr2;
   
 
   // save dynam. data
-  DL_sav_dynDat ();
+  // DL_sav_dynDat ();
+  DB_save__ ("");
+if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
 
   // scan rekursiv die SourceFiles aller basicModels;
@@ -1926,7 +1930,8 @@ static int lnr1, lnr2;
   // GA_hide_fil_tmp (2);
 
   // reload dynam. data
-  DL_load_dynDat ();
+  // DL_load_dynDat ();
+  DB_load__ ("");
 
 
 
@@ -2021,7 +2026,7 @@ static int lnr1, lnr2;
 
   // If VWR & CAD: unhilite all (last obj)
   if(AP_src != AP_SRC_EDI) {
-    DL_hili_off (-1L); DL_Redraw (); // unhilite alle Objekte
+    DL_hili_off (-1L);   // unhilite alle Objekte
 
   } else {   // MAN
     // proceed/scroll to EOF; nicht im Inputmode.
@@ -2036,6 +2041,10 @@ static int lnr1, lnr2;
       DL_disp_PL (1);
     }
   }
+
+
+  // update unhilite, hide planes ..
+  DL_Redraw ();
 
 
   L_exit:
@@ -2191,12 +2200,13 @@ static int lnr1, lnr2;
       DL_hili_on (-2L);       // das zuletzt bearb. Elem. hiliten
       // if it is a temporyr element: set to not pickable
       if(DL_GetInd(dl2) == 0) DL_pick_set (dl2, ON);  // set to nopick
+
+      // // set box invalid
+      // UT3D_pt_setFree (&AP_box_pm1);
     }
 
   }
 
-
-  // DL_Redraw ();          // notwendig, sonst malt er nix hin !?
 
   ED_enter();                 // 2011-12-18
     // after CTLG not korrect !
@@ -2465,7 +2475,7 @@ static int lnr1, lnr2;
   // UI_AP (UI_FuncGet, UID_ckb_view, (void*)&ckb_view_stat); // 0=aktiv
   // printf("??????????? view=%d\n",ckb_view_stat);
   // if(ckb_view_stat != 0) {
-    // DL_hide_all ();
+    // DL_hide_chg ();
     // DL_Redraw ();
   // }
 
@@ -2662,6 +2672,7 @@ static int  actLev=0;
 
   strcpy(AP_filnam, filnam);
 
+  // open file <filnam> as maclun, set APT_mac_fil = ON
   irc = ED_file__ (1, filnam);
   if(irc < 0) return irc;
 

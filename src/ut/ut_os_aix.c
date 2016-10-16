@@ -2326,7 +2326,7 @@ static int   (*up1)();
 
   // unload if already loaded
   if(*dl1 != NULL) {
-    irc = dlclose (*dl1);    
+    irc = dlclose (*dl1);  // 0=success
       // printf(" close %d\n",irc);
     if(!irc) *dl1 = NULL;
   }
@@ -2361,7 +2361,7 @@ static int   (*up1)();
   char  s1[256], *p1;
 
 
-  printf("OS_dll__ %d |%s|\n",mode,(char*)fDat);
+  printf("OS_dll__ %d\n",mode);
 
 
   //----------------------------------------------------------------

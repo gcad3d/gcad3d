@@ -199,7 +199,7 @@ extern int       IE_modify;
 
   itsMax = SRCU_tsMax (p2);
     // printf(" itsMax=%d siz=%d\n",itsMax,itsMax * sizeof(ObjTXTSRC));
-  tso = UME_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
 
   itsAct = APED_txo_srcLn__ (tso, itsMax, p2);
     // printf(" _txo_srcLn__ %d\n",itsAct);

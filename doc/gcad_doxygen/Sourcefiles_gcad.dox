@@ -151,7 +151,7 @@
 \ref ut/ut_cvoff.c                            <A HREF="../../src/ut/ut_cvoff.c">source</A>    offset curve on surface
 \ref ut/ut_msh.c                              <A HREF="../../src/ut/ut_msh.c">source</A>    Mesh-Functions MSH_.. (using struct MemTab)
 \ref ut/ut_tin.c                              <A HREF="../../src/ut/ut_tin.c">source</A>    faces (using struct Fac3 - UFA_)
-\ref ut/ut_log.c                              <A HREF="../../src/ut/ut_log.c">source</A>    -
+\ref ut/ut_log.c                              <A HREF="../../src/ut/ut_log.c">source</A>    write log-messages into file, display file
 \ref ut/ut_geo2d.c                            <A HREF="../../src/ut/ut_geo2d.c">source</A>    2D geometric point vector line circle
 \ref ut/ut_geo3d.c                            <A HREF="../../src/ut/ut_geo3d.c">source</A>    3D geometric point vector line circle
 \ref ut/ut_iTab.c                             <A HREF="../../src/ut/ut_iTab.c">source</A>    list of integers
@@ -198,8 +198,8 @@
 \ref ut/ut_geo_const.h                        <A HREF="../../src/ut/ut_geo_const.h">source</A>    -
 \ref ut/ut_gtypes.h                           <A HREF="../../src/ut/ut_gtypes.h">source</A>    -
 \ref ut/ut_iTab.h                             <A HREF="../../src/ut/ut_iTab.h">source</A>    -
-\ref ut/ut_log.h                              <A HREF="../../src/ut/ut_log.h">source</A>    -
 \ref ut/ut_math.h                             <A HREF="../../src/ut/ut_math.h">source</A>    -
+\ref ut/ut_mem.h                              <A HREF="../../src/ut/ut_mem.h">source</A>    -
 \ref ut/ut_memTab.h                           <A HREF="../../src/ut/ut_memTab.h">source</A>    -
 \ref ut/ut_msh.h                              <A HREF="../../src/ut/ut_msh.h">source</A>    -
 \ref ut/ut_obj.h                              <A HREF="../../src/ut/ut_obj.h">source</A>    -

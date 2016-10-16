@@ -463,6 +463,8 @@ static double SRCU_val_cen;             // centervalue
   strncpy (SRCU_ln_pri, p1, ll);
   SRCU_ln_pri[ll] = '\0';
 
+  // cut objName of SRCU_ln_pri
+  APED_onam_cut (SRCU_ln_pri);
 
   // skip definition-header
   p2 = strchr (p1, '=');
@@ -488,7 +490,7 @@ static double SRCU_val_cen;             // centervalue
   itsMax = SRCU_tsMax (p2);
     // printf(" itsMax=%d siz=%d\n",itsMax,itsMax * sizeof(ObjTXTSRC));
 
-  tso = UME_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
   // SRC_txo_getSpc__ (&tso); // get memspc & init
   itsAct = APED_txo_srcLn__ (tso, itsMax, p2);
     // printf(" _txo_srcLn__ %d\n",itsAct);
@@ -936,7 +938,7 @@ static double SRCU_val_cen;             // centervalue
   int  i1;
 
 
-  printf("SRCU_work_upd %lf\n",d1);
+  // printf("SRCU_work_upd %lf\n",d1);
 
 
   // check if mousebutton 1 is down ..
@@ -1003,7 +1005,7 @@ static double SRCU_val_cen;             // centervalue
 
   // get pointers to code for codelines
   inr = depTab.rNr;
-  // spa = (char**)UME_alloc_tmp (inr * sizeof(void*));
+  // spa = (char**)MEM_alloc_tmp (inr * sizeof(void*));
   // if(!spa) {TX_Error("funcXX EOM "); return -1;}
   for(l1=0; l1 < inr; ++l1) {
     lnr = depTab.data[l1].lnr; // lna[l1];
@@ -1015,9 +1017,9 @@ static double SRCU_val_cen;             // centervalue
 
 
   // sort
-  ia1 = (int*)UME_alloc_tmp (inr * sizeof(int));
+  ia1 = (int*)MEM_alloc_tmp (inr * sizeof(int));
   if(!ia1) {TX_Error("SRCU_work__ EOM1"); return -1;}
-  ia2 = (int*)UME_alloc_tmp (inr * sizeof(int));
+  ia2 = (int*)MEM_alloc_tmp (inr * sizeof(int));
   if(!ia2) {TX_Error("SRCU_work__ EOM2"); return -1;}
   for(l1=0; l1 < inr; ++l1) ia1[l1] = depTab.data[l1].lnr;
   UTI_ni_ind_sort (ia2, ia1, inr); // sort

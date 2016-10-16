@@ -1517,7 +1517,9 @@ static int   patNr;     // nr of Patches
           // oxi->typ,oxi->form,oxi->siz);
   // UTO_dump__ (oxi, "Sur %d:",apt_ind);
   // for(i1=0; i1<oxi->siz; ++i1)
-    // printf("SurT_ typ[%d]=%d\n",i1,((ObjGX*)oxi->data)[i1].typ);
+    // printf("SurT_ %d typ=%d form=%d\n",i1,
+           // ((ObjGX*)oxi->data)[i1].typ,
+           // ((ObjGX*)oxi->data)[i1].form);
 
 
 
@@ -1601,7 +1603,8 @@ static int   patNr;     // nr of Patches
 
   //----------------------------------------------------------------
   // get all points of RCIR > pTab
-  i1 = UT3D_cv_scir__ (&ptNr, pa, oxi);
+  ptNr = 0;
+  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi);
   if(i1 < 0) return i1;
   pTab = pa;
 
@@ -2577,8 +2580,8 @@ static int   patNr;     // nr of Patches
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
   col = COL_INT32(&att);   // col = (ColRGB*)&att;
-    printf(" SurTP col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
-    printf("       GL_actTex=%d\n",GL_actTex);
+    // printf(" SurTP col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
+    // printf("       GL_actTex=%d\n",GL_actTex);
 
 
   if(TSU_mode == 0)  {      // 0=draw; 1=store
@@ -3443,9 +3446,9 @@ memspc102  TSU_grid  Vergleichspunkteraster
     ii += (cTab[ic].iNr + 2);
   }
     // printf(" nr pts=%d\n",ii);
-  tTab = (Point*)UME_alloc_tmp (sizeof(Point) * (ii));
+  tTab = (Point*)MEM_alloc_tmp (sizeof(Point) * (ii));
   if(!tTab) {TX_Error("TSU_srv_con_2cylCon EOM1"); return -1;}
-  iTab = (int*)UME_alloc_tmp (sizeof(int) * *cNr);
+  iTab = (int*)MEM_alloc_tmp (sizeof(int) * *cNr);
   if(!iTab) {TX_Error("TSU_srv_con_2cylCon EOM2"); return -1;}
 
 
@@ -8297,7 +8300,7 @@ static double du,dv;
     // printf(" L_find:\n");
 
   // get tempSpace
-  tTab = (Point*)UME_alloc_tmp (sizeof(Point) * (iNr+3));
+  tTab = (Point*)MEM_alloc_tmp (sizeof(Point) * (iNr+3));
   if(!tTab) {TX_Error("TSU_srv_con_cycX2_ EOM"); return -1;}
 
   for(i1=1; i1<iNr; ++i1) {

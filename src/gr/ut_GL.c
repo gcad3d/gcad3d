@@ -22,7 +22,7 @@ See "Reframe unfertig" below.
 
 -----------------------------------------------------
 Modifications:
-2005-03-15 GL_DrawTag1 u GL_LoadBMP zu. RF.
+2005-03-15 GL_Draw_Tag u GL_Draw_BMP zu. RF.
 2004-04-25 Redraw - via GL_eyeX u GL_eyeZ u GL_cen. RF.
 2003-12-07 Neue Const.Plane zu. RF.
 2003-03-16 GL_DrawVec neu zu. RF.
@@ -66,7 +66,7 @@ GL_DrawDimdia         Diameter-Dimension
 GL_DrawDimrad         Radius-Dimension
 GL_DrawLdr
 GL_DrawTxtA           Text; .. ??
-GL_DrawTag1           Text + Farbiges Rechteck ?
+GL_Draw_Tag           Text + Farbiges Rechteck ?
 GL_DrawSymV3          oriented vector-symbols;  SYM_ARROW SYM_SQUARE
 GL_DrawVec            Vector true length; SYM_VEC
 GL_DrawSymB           display bitmap symbols SYM_TRI_S SYM_STAR_S ..
@@ -482,6 +482,7 @@ cl -c ut_GL.c
 #include "../gr/ut_GL_bitmaps.h"
 #include "../gr/vf.h"                   /* der vektorfont */
 
+#include "../xa/xa_msg.h"               // MSG_STD_ERR
 #include "../xa/xa_uid.h"               // UID_ouf_coz
 // #include "../xa/xa_edi__.h"             // ED_mode_enter
 #include "../xa/xa_ed.h"                // ED_mode_*
@@ -1904,11 +1905,26 @@ Das folgende bringt nix
 
 
 //================================================================
+  int GL_backgrnd_1 (int mode) {
+//================================================================
+// permanent white background 0=ON, 1=OFF
+
+
+  if(mode) GL_mode_draw_select = GR_MODE_DRAW;      // OFF   
+  else     GL_mode_draw_select = GR_MODE_PRINT2;    // ON
+
+  return 0;
+}
+
+
+//================================================================
   void GL_Print_Redraw () {
 //================================================================
 // print with white background
  
   printf("GL_Print_Redraw \n");
+
+
 
 
   GL_mode_draw_select = GR_MODE_PRINT1;
@@ -2012,12 +2028,19 @@ static int errOld = 123;
 
   //----------------------------------------------------------------
   // fix background-colour
-  if(GL_mode_draw_select == GR_MODE_PRINT1) {
-    GL_mode_draw_select = GR_MODE_DRAW;
-      printf(" _Redr white\n");
-    glClearColor (255.f, 255.f, 255.f, 1.f);
-    errOld = 4; // white bg from PRINT active
-    goto L_clear;
+  if(GL_mode_draw_select != GR_MODE_DRAW) {
+    if(GL_mode_draw_select == GR_MODE_PRINT2) {
+      goto L_backgrnd_w;
+
+    } else if(GL_mode_draw_select == GR_MODE_PRINT1) {
+      GL_mode_draw_select = GR_MODE_DRAW;   // reset
+
+      L_backgrnd_w:
+        printf(" _Redr white\n");
+        glClearColor (255.f, 255.f, 255.f, 1.f);
+        errOld = 4; // white bg from PRINT active
+        goto L_clear;
+    }
   }
 
 /*
@@ -2578,7 +2601,8 @@ static int errOld = 123;
       glColor3f (1.f, 0.f, 0.f);        // rot
       // glDepthFunc (GL_ALWAYS);          // alles ueberschreiben
     
-      irc = DL_txtgetInfo (&i1, &eye, &sx, &sy, &dx, &dy, l1);
+      // irc = DL_txtgetInfo (&i1, &eye, &sx, &sy, &dx, &dy, l1);
+      irc = GR_img_get_dbi (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[l1].ind);
       if(irc < 0) continue; // SymbolTag
       GL_Disp_2D_box1 (&eye, sx, sy, dx, dy);
 
@@ -3121,7 +3145,7 @@ Screenkoords > Userkoords.
 // UI_GR_DrawInit/UI_GR_DrawExit muss aussen sein !
 
 
-  printf("GL_Init_View %d\n",GL_initMode);
+  // printf("GL_Init_View %d\n",GL_initMode);
 
 
   //----------------------------------------------------------------
@@ -4082,7 +4106,7 @@ static Point ptOri;
   if(i1 < 4) goto L_exit;
 
   // get buffer (alloca)
-  fBuf = UME_alloc_tmp (i1 * sizeof(GLfloat));
+  fBuf = MEM_alloc_tmp (i1 * sizeof(GLfloat));
   if(fBuf == NULL) {TX_Error("GL_RubberBox_draw EOF"); goto L_exit;}
 
 
@@ -4637,7 +4661,7 @@ static Point ptOri;
   // test VectorSelect, 2D-button-selection
   if(dli >= GR_TAB_IND) {
     l1 = GR_TAB_IND - dli - 1;
-      // printf(" auxFunSelect %ld\n",l1);
+      printf(" GL_sel_add_DL l1=%ld\n",l1);
 
     if(l1 <= -11L) {             // 2D-button selected
       ii = -l1 - 11;
@@ -6900,7 +6924,7 @@ static double old_view_Z = 0.;
   /* double   s1x, s1y, s1z, s2x, s2y, s2z; */
 
 
-  // printf("GL_Rescale scal=%f cen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
+  // printf("GL_Rescale Usiz=%f Ucen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
   // printf("   GL_ModSiz=%f\n",GL_ModSiz);
 
 
@@ -7091,6 +7115,7 @@ static double old_view_Z = 0.;
   //================================================================
   Fertig:
 
+  // if(DL_ind == 728) AP_debug__  ("GL_fix_DL_ind");   // stop in debugger
   // printf("ex GL_fix_DL_ind dli=%d ind=%ld %ld\n",DL_ind,*ind,GR_TAB_IND);
 
   return DL_ind;
@@ -8934,7 +8959,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int    iTexBas, iTexRef;
 
 
-  printf("GL_DrawSur %ld vtex=%d\n",*ind,((ColRGB*)&att)->vtex);
+  // printf("GL_DrawSur %ld vtex=%d\n",*ind,((ColRGB*)&att)->vtex);
   // UT3D_stru_dump (Typ_Color, &att, "  att:");
 
   
@@ -9577,8 +9602,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //=====================================================================
-  int GL_LoadBMP (long *ind, Point *p1, Point *p2, int ltyp, double scl,
-                  char *symNam) {
+  int GL_Draw_BMP (long *dli, AText *tx1, long dbi) {
 //=====================================================================
 // Bitmap wird direkt ins OpenGL kopiert (mit glDrawPixels)
 // Es wird keine Textur benutzt.
@@ -9589,20 +9613,28 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   scl      0: skaliert mit Zoom; else immer gleiche Size
 
 
-  int    irc, ix, iy, pixSiz;
+  int    irc, ix, iy, pixSiz, ltyp;
   GLuint dlInd;
   float  x1, y1, f_scl;
-  char   bNam[256], sSym[64], sDir[128];
+  double scl;
+  char   *symNam, bNam[256], sSym[64], sDir[128];
   void   *mSpc;
+  Point  *p1, *p2;
 
 
-  printf("GL_LoadBMP |%s| %ld %f\n",symNam,*ind,scl);
+  symNam = tx1->txt;  // ImageFilename
+  scl    = tx1->scl;
+  ltyp   = tx1->ltyp; // Linetyp Leaderline; -1=no Leaderline
+  p1     = &tx1->p1;
+  p2     = &tx1->p2;
+
+  printf("GL_Draw_BMP |%s| dli=%ld scl=%f dbi=%ld\n",symNam,*dli,scl,dbi);
 
 
   // provide BitmapFile for <symNam> as file <bNam> in <tmpDir>
   irc = Tex_getBitmap (bNam, symNam, 0);
   if(irc < 0) {
-    TX_Error("ERROR GL_LoadBMP %d %s",irc,symNam);
+    TX_Error("ERROR GL_Draw_BMP %d %s",irc,symNam);
     pixSiz = -1;
     // message symbolic path <symDir> is <path>
     Mod_sym_get__ (sSym, sDir, bNam, symNam);
@@ -9636,12 +9668,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
 
-  dlInd = GL_fix_DL_ind (ind);
+  dlInd = GL_fix_DL_ind (dli);
   // printf(" dli=%d\n",dlInd);
 
 
-  // bei tags und Bitmaps die size im DL-record speichern
-  DL_setTagSiz (*ind, ix, iy);
+  // tags and Bitmaps: store size
+  // DL_setTagSiz (*dli, ix, iy);
+  tx1->xSiz = ix;
+  tx1->ySiz = iy;
 
 
   glNewList (dlInd, GL_COMPILE);
@@ -9720,7 +9754,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   free (mSpc);
 
-  // printf("ex GL_LoadBMP\n");
+  // printf("ex GL_Draw_BMP\n");
 
 
   return 0;
@@ -9839,9 +9873,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GLuint  dlInd;
 
 
-  //TX_Print("GL_DrawSymV2 %d Typ=%d %f,%f  %f,%f",*ind,symTyp,
-  //             pt1->x,pt1->y,pt2->x,pt2->y);
+  // printf("GL_DrawSymV2 %ld Typ=%d %f,%f  %f,%f\n",*ind,symTyp,
+         // pt1->x,pt1->y,pt2->x,pt2->y);
 
+  scale = 1.;
 
   p20 = UT2D_pt_pt3 (pt1);
   p21 = UT2D_pt_pt3 (pt2);
@@ -10156,7 +10191,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // get mem for circSeg
-  pta = UME_alloc_tmp ((ptNr + 4) * sizeof(Point));   // 2012-01-17 - was 2
+  pta = MEM_alloc_tmp ((ptNr + 4) * sizeof(Point));   // 2012-01-17 - was 2
 
 
   // compute circSegPoints - rotate pt1
@@ -10539,7 +10574,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // get memSpc for points
-  pta = UME_alloc_tmp  (ptNr * sizeof(Point));
+  pta = MEM_alloc_tmp  (ptNr * sizeof(Point));
 
   pta[0] = pt1;
 
@@ -10606,7 +10641,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   //----------------------------------------------------------------
   // get space for wPoint-array
-  pwa = UME_alloc_tmp (sizeof(wPoint) * ptNr);
+  pwa = MEM_alloc_tmp (sizeof(wPoint) * ptNr);
 
   // transfer rbsp-curve from format point[3] + weight into format point[4]
   UT3D_wPTn_ptn_wn (pwa, rb1->ptNr, rb1->cptab, rb1->wtab);
@@ -11158,18 +11193,35 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   3  SYM_TRI_B
 //   4  vector normalized
 //   5  vector with length from scale; not normalized
+//   6  arrowhead
 // used by APT_DrawTxtA
 
   GLuint DL_ind;
-
-
-  DL_ind = GL_fix_DL_ind (ind);
 
 
   // printf("GL_DrawTxtsym ind=%ld typ=%d att%d scl=%f\n",*ind,typ,att,scl);
   // UT3D_stru_dump (Typ_PT, pts, " pts:");
   // UT3D_stru_dump (Typ_VC, vc1, " vec:");
 
+
+  if(typ > 4) {
+
+    if(typ == 6) { // Arrowhead 2D
+      Point pte;
+      UT3D_pt_traptvc (&pte, pts, vc1);
+      GL_DrawSymV2 (ind, SYM_ARROH, att, pts, &pte, scl);
+      return 0;
+
+    } else if(typ == 5) { // vector with real length
+      GL_DrawVec (ind, att, pts, vc1);
+      return 0;
+    } else {
+      TX_Error("GL_DrawTxtsym E002 %d",typ);
+    }
+  }
+
+
+  DL_ind = GL_fix_DL_ind (ind);
 
   if(att < 0) att = 0;
 
@@ -11181,19 +11233,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   //----------------------------------------------------------------
-  // typ > 4 sind Symbols; 5=SYM_STAR_S 6=SYM_TRI_S 7=SYM_TRI_B
-
-  if(typ > 3) {           // Vector ..
-    if(typ == 4) {        // vec normiert
-      GL_Disp_vc (vc1, pts, att);
-    } else if(typ == 5) { // vec in wahrer Laenge
-      GL_Disp_vSym (SYM_VEC, pts, vc1, scl, att);
-    } else {
-      TX_Error("GL_DrawTag1 E002 %d",typ);
-    }
+  if(typ == 4) {        // vec normiert
+    GL_Disp_vc (vc1, pts, att);
     goto L_99;
   }
-
 
   //----------------------------------------------------------------
   glColor3fv (GL_col_tab[att]);
@@ -11213,7 +11256,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glCallList ((GLuint)SYM_TRI_B);
   }
   // werden via rectangle angezeigt ...
-  DL_setTagSiz (*ind, 0, 0); // ??
+  // DL_setTagSiz (*ind, 0, 0); // ??
+
   goto L_99;
 
 
@@ -11231,21 +11275,29 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_DrawTag1 (long *ind, Point *pTxt, Point *pLdr, char *txt,
-                   int symTyp, int atta, int attl) {
+  int GL_Draw_Tag (long *dli, AText *tx1, long dbi) {
 //================================================================
 // atta: fuellfarbe des Block. -1: kein Block.
 // attl: Leaderlineattribut; -1: keine Leaderline (pTxt-pLdr).
 
 
-  int    i1, i2, i3, ic, il, ix,iy, dx,dy, sizBuf;
+  int    symTyp, atta, attl, i1, i2, i3, ic, il, ix,iy, dx,dy, sizBuf;
   GLuint DL_ind;
   float  x1, y1;
   unsigned char   *cBuf;
-  char   *p1, *p2;
+  char   *txt, *p1, *p2;
+  Point  *pTxt, *pLdr;
 
 
-  // printf("GL_DrawTag1 |%s|symTyp=%d atta=%d attl=%d\n",txt,symTyp,atta,attl);
+  pTxt   = &tx1->p1;
+  pLdr   = &tx1->p2;
+  txt    = tx1->txt;
+  symTyp = tx1->typ;
+  atta   = tx1->col;
+  attl   = tx1->ltyp;   // Linetyp Leaderline; -1=no Leaderline
+
+
+  // printf("GL_Draw_Tag |%s|symTyp=%d atta=%d attl=%d\n",txt,symTyp,atta,attl);
 
 
   if(GLT_pta_SIZ < 1024) {
@@ -11258,10 +11310,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   sizBuf = GLT_pta_SIZ * sizeof(Point);
 
 
-  DL_ind = GL_fix_DL_ind (ind);
+  DL_ind = GL_fix_DL_ind (dli);
 
 
-  // printf("GL_DrawTag1 sizBuf=%d ind=%d DL_ind=%d\n",sizBuf,*ind,DL_ind);
+  // printf("GL_Draw_Tag sizBuf=%d dli=%d DL_ind=%d\n",sizBuf,*dli,DL_ind);
   // UT3D_stru_dump (Typ_PT, pTxt, " pos:");
   // printf(" symTyp=%d atta=%d attl=%d\n",symTyp,atta,attl);
   // printf(" txt=|%s|\n",txt);
@@ -11298,7 +11350,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     } else if(symTyp == 5) { // vec in wahrer Laenge
       GL_Disp_vSym (SYM_VEC, pTxt, (Vector*)pLdr, 1., atta);
     } else {
-      TX_Error("GL_DrawTag1 E002 %d",symTyp);
+      TX_Error("GL_Draw_Tag E002 %d",symTyp);
     }
     goto L_99;
   }
@@ -11336,13 +11388,16 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   iy = (dy * il) + 2;   // add unten u oben
 
   // bei tags und Bitmaps die size im DL-record speichern
-  DL_setTagSiz (*ind, ix, iy);
+  // DL_setTagSiz (*dli, ix, iy);
+  tx1->xSiz = ix;
+  tx1->ySiz = iy;
+
 
   // check Size of bitBuffer
   i1 = (ix / 8) + 1;  // jedes Byte hat nur 8 Bit.
   i1 *= iy;
   // printf(" ix=%d iy=%d i1=%d\n",ix,iy,i1);
-  if(i1 >= sizBuf) {TX_Error("GL_DrawTag1 E001 %d",i1); return -1;}
+  if(i1 >= sizBuf) {TX_Error("GL_Draw_Tag E001 %d",i1); return -1;}
   // preset BitBuffer
   for(i2=0; i2<i1; ++i2) cBuf[i2] = 255;
 
@@ -12404,7 +12459,6 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf(" dMod=%d pos=%f %f %f\n",dMod,ptx->x, ptx->y, ptx->z);
 
 
-
   if(txt == NULL) {printf("***** GL_txt__ E001 \n"); return -1;}
 
 
@@ -12414,15 +12468,20 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // get Textblockbreite in Usercoords
-  cw = GTX_chw_ (scale);
   bw = GR_gtx_ckBlockWidth (txt, scale);
+
+  // get character height
   bh = GTX_chh_ (scale);
+    // printf(" bw=%lf bh=%lf\n",bw,bh);
+
+  cw = GTX_chw_ (scale);
+    // printf(" cw=%lf\n",cw);
 
 
   // Balloon
   if(dMod == 4) {
     p21 = UT2D_pt_pt3 (ptx);
-    p2c.x = p21.x + bw/2.;
+    p2c.x = p21.x + (bw/2.) + (cw/2.);
     p2c.y = p21.y;
     GL_Disp_ci2 (&p2c, &p21, RAD_360);  // Balloon
   }
@@ -12493,7 +12552,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // Balloon
   } else if(dMod == 4) {
-    dx = 0.;
+    dx = cw / 2.; //dx = 0.;
     dy = -bh  / 2.;
     // printf(" dx=%f dy=%f\n",dx,dy);
     glTranslated (dx, dy, 0.);
@@ -12833,31 +12892,33 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //=========================================================================
-  int GL_DrawTxtLBG (long *ind, Point *pTxt, Point *pLdr, char *txt,
-                     long bNr) {
+  int GL_DrawTxtLBG (long *dli, AText *tx1, long dbi) {
 //=========================================================================
 // LeaderLine + Balloon + 3D-Text
-// Defaulttext sollte die N-Nummer (bNr) sein und ein Kreis rundherum.
+// Defaulttext sollte die N-Nummer (dbi) sein und ein Kreis rundherum.
 // Keine UserTextangabe: nur N-Nummer;
 // else KEIN DefaultText - nur UserText.
 
 
-  int    attl;         // lineAttribut ..
+  int    i1, attl;         // lineAttribut ..
   GLuint DL_ind;
   double ang, size;
-  char   ptTxt[128], outTxt[256];
+  Point  *pTxt, *pLdr;
+  char   *txt, ptTxt[128], outTxt[256];
 
 
-  // printf("GL_DrawTxtLBG ind=%ld bNr=%ld\n",*ind,bNr);
-  // UT3D_stru_dump (Typ_PT, pTxt, " pTxt:");
-  // UT3D_stru_dump (Typ_PT, pLdr, " pLdr:");
-  // printf(" txt=|%s|\n",txt);
+  pTxt    = &tx1->p1;
+  pLdr    = &tx1->p2;
+  txt     = tx1->txt;
 
+
+  printf("GL_DrawTxtLBG dli=%ld dbi=%ld\n",*dli,dbi);
+  UT3D_stru_dump (Typ_ATXT, tx1, " tx1:");
 
 
   //----------------------------------------------------------------
   // prepare Text
-  if(txt == NULL) sprintf(ptTxt, "%ld", bNr);
+  if(txt == NULL) sprintf(ptTxt, "%ld", dbi);
   else ptTxt[0] = '\0';
     // printf(" ptTxt=|%s|\n",ptTxt);
 
@@ -12867,11 +12928,18 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // printf(" outTxt=|%s|\n",outTxt);
 
 
+  // store nr of chars -> xSiz
+  i1 = GR_gxt_strLen (outTxt);
+  tx1->xSiz = i1;
+  tx1->ySiz = 0;
+ 
+  
+
   //----------------------------------------------------------------
   attl = 0;
 
-  GL_DrawLn_Ini (ind, attl);
-  // DL_ind = GL_fix_DL_ind (ind);
+  GL_DrawLn_Ini (dli, attl);
+  // DL_ind = GL_fix_DL_ind (dli);
   // glNewList (DL_ind, GL_COMPILE);   // Open DispList
   // glCallList (DL_base_LnAtt + attl);
 
@@ -12883,8 +12951,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   //----------------------------------------------------------------
   // Leader
-  // see also GL_DrawTag1 ..
-  if(pLdr) {
+  // see also GL_Draw_Tag ..
+  if(tx1->ltyp >= 0) {
     glBegin (GL_LINES);
       glVertex3dv ((double*)pTxt);
       glVertex3dv ((double*)pLdr);
@@ -12913,18 +12981,23 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //=============================================================================
-  int GL_DrawTxtLG (long *ind, int iatt, Point *pTxt, Point *pLdr, char *txt) {
+  int GL_DrawTxtLG (long *dli, AText *tx1, long dbi) {
 //=============================================================================
 // draw LeaderLine + 3D-Text
 
-  int    nkz;         // lineAttribut ..
+  int    i1, nkz, attl;         // lineAttribut ..
   GLuint DL_ind;
   double ang;
-  char   ptTxt[128], outTxt[256], *p1;
+  char   *txt, ptTxt[128], outTxt[256], *p1;
+  Point  *pTxt, *pLdr;
 
 
+  pTxt    = &tx1->p1;
+  pLdr    = &tx1->p2; 
+  txt     = tx1->txt; 
+  
 
-  // printf("GL_DrawTxtLG ind=%d\n",*ind);
+  // printf("GL_DrawTxtLG dli=%d\n",*dli);
   // UT3D_stru_dump (Typ_PT, pTxt, " pTxt:");
   // UT3D_stru_dump (Typ_PT, pLdr, " pLdr:");
   // printf(" txt=|%s|\n",txt);
@@ -12954,11 +13027,20 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // printf(" outTxt=|%s|\n",outTxt);
 
 
+  // store nr of chars -> xSiz
+  i1 = GR_gxt_strLen (outTxt);
+  tx1->xSiz = i1;
+  tx1->ySiz = 0;
+
+
+  // ltyp unused; set to 0
+  tx1->ltyp = 0;
 
 
   //----------------------------------------------------------------
-  GL_DrawLn_Ini (ind, iatt);
-  // DL_ind = GL_fix_DL_ind (ind);
+  attl = 0;
+  GL_DrawLn_Ini (dli, attl);
+  // DL_ind = GL_fix_DL_ind (dli);
   // glNewList (DL_ind, GL_COMPILE);   // Open DispList
   // glCallList (DL_base_LnAtt + iatt);
 
@@ -12970,7 +13052,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   //----------------------------------------------------------------
   // Leader
-  // see also GL_DrawTag1 ..
+  // see also GL_Draw_Tag ..
   glBegin (GL_LINES);
     glVertex3dv ((double*)pTxt);
     glVertex3dv ((double*)pLdr);
@@ -12999,8 +13081,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //=========================================================================
-  void GL_DrawTxtG (long *ind, int att,
-                    Point *pt1, float size, float ang, char *txt) {
+  void GL_DrawTxtG (long *ind, int att, GText *tx1) {
 //=========================================================================
 // Den Text als Listeneintrag einer Liste speichern.
 // Jeder char ist DL-Objekt mit glListBase ??.
@@ -13008,15 +13089,31 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 // text ist dzt nur am 0-Punkt (links unten) selektierbar !
 
+  int   chrNr, lNr;
+  char  *txt;
+  float size, ang;
 
 
   // printf("GL_DrawTxtG %ld att=%d pos=%f,%f |%s|\n",*ind,att,pt1->x,pt1->y,txt);
   // printf("    siz=%f  ang=%f|\n",size,ang);
 
 
+  txt  = tx1->txt;
+  size = tx1->size;
+  ang  = tx1->dir;
+
   // Defaultsize einsetzen
   if(size < 0.001) size = AP_txsiz;
 
+
+  // // get chrNr=max_nr_of_chars and lNr=nr_of_lines
+  GR_gtx_BlockWidth__ (&chrNr, &lNr, txt);
+
+
+  // store in GText
+  tx1->xSiz = chrNr;
+  tx1->ySiz = lNr;
+    // UT3D_stru_dump (Typ_GTXT, tx1, "GL_DrawTxtG");
 
 
   // Init GL-Ausgaben
@@ -13028,14 +13125,16 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // draw text
-  GL_txt__ (2, 0, pt1, ang, 0., 0., size, txt);  // doubles !
+  GL_txt__ (2, 0, &tx1->pt, ang, 0., 0., size, txt);  // doubles !
 
 
   // close GL-Ausgaben
   // GL_EndList2 ();
 
+
   // glMatrixMode(GL_MODELVIEW);
   glPopMatrix ();
+
 
   // glEnable (GL_LIGHTING);
   glEndList ();
@@ -13052,7 +13151,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GLuint   DL_ind;
 
 
-  printf("GL_DrawDitto %ld %ld\n",dlNr,dlInd);
+  // printf("GL_DrawDitto %ld %ld\n",dlNr,dlInd);
   // UT3D_stru_dump (Typ_PT, p1, "pt-new");
   // UT3D_stru_dump (Typ_PT, po, "pt-old");
   // return 0;
@@ -13361,7 +13460,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //============================================================================
-  void GL_DrawModel (long *ind, int att, ModelRef *mdr, ModelBas *mdb) {
+  int GL_DrawModel (long *ind, int att, ModelRef *mdr, ModelBas *mdb) {
 //============================================================================
 // ind    = DL-Ind des Ditto;
 // p1     = Position (der neue Nullpunkt)
@@ -13401,7 +13500,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   int        irot, iscl;
-  unsigned long       lstSiz;
+  long       lstSiz;
   double     az1, ay, az2, scl;
   Point      pmb, pmr;
   Vector     vcx, vcz;
@@ -13425,6 +13524,11 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   
   lstPos = &GL_IndTab[mdb->DLind];
   lstSiz = mdb->DLsiz;
+
+
+  if(lstSiz < 0) {
+    return MSG_STD_ERR (subModel_undefined, " sm '%s'", mdb->mnam);
+  }
 
 
   // den DL-Index (+ Offset) holen)
@@ -13537,6 +13641,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glPopMatrix();
 
   glEndList();
+
+  return 0;
 
 }
 
@@ -16275,7 +16381,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 
 
   // get mem for BitBuffer
-  cBuf = UME_alloc_tmp (mSiz);
+  cBuf = MEM_alloc_tmp (mSiz);
   if(!cBuf) {
     TX_Error("GL_DispTag1 E001 %d",mSiz);
     return -1;

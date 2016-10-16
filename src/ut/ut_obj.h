@@ -10,7 +10,7 @@
   // int   UTO_objx_get    (ObjX *oxo, ObjGX *oxi);
 
 int   UTO_obj_getp     (void **objOut, int *oNr, ObjGX *ox1);
-int   UTO_2pt_lim_ox   (Point *ps, Point *pe, double *v1, double *v2, ObjGX *oxi);
+// int   UTO_2pt_lim_ox   (Point *ps,Point *pe, double *v1,double *v2,ObjGX *oxi);
 int   UTO_pt_eval_par1_dbo (Point *pto, double lpar, int typ, long ind);
 int   UTO_parpt_pt_dbo (double *lpar, Point *pti, int typ, long ind);
 int   UTO_npt_Tes      (int *pNr, Point **ppa, ObjGX *os);

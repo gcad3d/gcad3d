@@ -67,17 +67,6 @@ UI_CAD_activate
 UI_save_over_CB
 UI_save__
 UI_PRI__              export / print
-UI_impAux1
-UI_impLwoCB
-UI_imp3dsCB
-UI_expMockup
-UI_expDxfCB
-UI_expObjCB
-UI_expIgeCB
-UI_expIsoCB
-UI_saveMockCB
-UI_saveCB
-UI_expNat
 UI_vwz__
 UI_vwzCB
 UI_loadImg_CB
@@ -141,6 +130,17 @@ UI_AP                  Hauptinterface zur App (APP ruft UI);
 List_functions_end:
 =====================================================
 obsolet:
+// UI_impAux1        UNUSED
+// UI_impLwoCB       UNUSED
+// UI_imp3dsCB       UNUSED
+// UI_expMockup      UNUSED
+// UI_expDxfCB       UNUSED
+// UI_expObjCB       UNUSED
+// UI_expIgeCB       UNUSED
+// UI_saveMockCB     UNUSED
+// UI_expIsoCB       UNUSED
+// UI_saveCB         UNUSED
+// UI_expNat         UNUSED
 UI_EdKeyPress         allback keyPress im editwin UND CAD-Entryfelder
 UI_EdKeyRelease       callback KeyRelease im editwin
 UI_EdButtonPress      klick into Editor-window
@@ -285,6 +285,7 @@ extern long   UI_Ed_fsiz;      // AptTextsize
 
   static MemObj ckb_nam, ckb_dir, ckb_shd,
          ckb_bound, ckb_light, ckb_compl, ckb_Iact, ckb_Bar1, ckb_Bar2,
+         ckb_backW, // background white
          ckb_Tut,   // ScreenCast ON/OFF
          ckb_Brw,   // BrowserWindow OFF
          ckb_rctl,  // RemoteControl OFF
@@ -594,7 +595,7 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
   if(iInp)  *iInp  = UI_block_inp;
   if(iCur)  *iCur  = UI_block_cur;
 
-    printf("ex UI_block_get %d %d %d\n",*iFunc,*iInp,*iCur);
+    // printf("ex UI_block_get %d %d %d\n",*iFunc,*iInp,*iCur);
 
   return 0;
 
@@ -715,6 +716,8 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 //================================================================
   int UI_upd_plDisp () {
 //================================================================
+// change checkbox "PlanesDisplay OFF"
+
 
   if(APT_dispPL == OFF) {
     // hide pts
@@ -1212,7 +1215,12 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   // printf("UI_wireCB\n");
 
 
-  // Status der Checkbox "Extra Light" abfragen
+  i2 = GUI_menu_checkbox_get (&ckb_backW);
+  if(i2) GL_backgrnd_1 (0);  // ON
+  else   GL_backgrnd_1 (1);  // OFF
+
+
+  // Status der Checkbox abfragen
   UI_stat_3D = GUI_ckbutt_get (&ckb_3D);
     // printf(" UI_stat_3D=%d\n",UI_stat_3D);
 
@@ -3106,14 +3114,17 @@ TX_Error("EDI-GDK_BackSpace");
 //=====================================================================
   int UI_save__ (int mode) {
 //=====================================================================
-// save Model WC_modnam; WC_modnam ist ohne Path, mit Filetyp.
-// Path = AP_dir_open (mit "/" am Ende)
-// see also AP_Mod_load
-// ACHTUNG: WC_modnam = Input muss Filetyp haben; wird hier entfernt.
-// Input:
-//   mode = 0:  check for overwrite
-//   mode = 1:  overwrite
-//   WC_modnam, AP_dir_save, AP_sym_save
+/// \code
+/// save Model WC_modnam; WC_modnam ist ohne Path, mit Filetyp.
+/// Path = AP_dir_open (mit "/" am Ende)
+/// see also AP_Mod_load
+/// ACHTUNG: WC_modnam = Input muss Filetyp haben; wird hier entfernt.
+/// Input:
+///   mode = 0:  check for overwrite
+///   mode = 1:  overwrite
+///   WC_modnam, AP_dir_save, AP_sym_save
+/// see also AP_save__
+/// \endcode
 
   int   i1, ift;
   char  cbuf[256], mnam[256], ftyp[32], s1[256];
@@ -3253,6 +3264,10 @@ TX_Error("EDI-GDK_BackSpace");
   if(UI_InpMode == UI_MODE_MAN) {
     GUI_edi_Focus (&winED);
   }
+
+
+  // model unmodified ..
+  AP_mdl_modified_reset ();
 
   UI_CursorWait (1);    // reset cursor
 
@@ -3572,7 +3587,7 @@ TX_Error("EDI-GDK_BackSpace");
 
 }
 */
-
+/* UNUSED
 //=====================================================================
   int UI_saveMockCB (char *fnam,char *dirNam) {
 //=====================================================================
@@ -3611,8 +3626,8 @@ TX_Error("EDI-GDK_BackSpace");
   return 0;  // do not exit FileDialog
 
 }
-
-
+*/
+/*  UNUSED ?
 //=====================================================================
   int UI_saveCB (char *fnam,char *dirNam) {
 //=====================================================================
@@ -3656,8 +3671,7 @@ TX_Error("EDI-GDK_BackSpace");
   return 0;
 
 }
-
-
+*/
 /* UNUSED
 //=====================================================================
   int UI_expNat (GtkWidget *parent, void *data) {
@@ -4638,7 +4652,7 @@ TX_Error("EDI-GDK_BackSpace");
   int     irc, iCol;
   long    dli;
   char    s1[16];
-  Point   *pt1; 
+  Point   pt1; 
   ObjGX   ox1;
     
     
@@ -4656,12 +4670,13 @@ TX_Error("EDI-GDK_BackSpace");
 
   // get typical point for activity-object -> pt1
   OGX_SET_INDEX (&ox1, ac1->typ, ac1->ind);
-  irc = UTO_pt_ox (&pt1, &ox1);
+  // irc = UTO_pt_ox (&pt1, &ox1);
+  irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, &ox1);
   if(irc < 0) {
     TX_Print ("UI_disp_activ E001 %d %d",ac1->typ,ac1->ind);
     return -1;
   }
-    // UT3D_stru_dump (Typ_PT, pt1, " activ-pt1:");
+    // UT3D_stru_dump (Typ_PT, &pt1, " activ-pt1:");
 
 
   if(mode) {
@@ -4681,7 +4696,7 @@ TX_Error("EDI-GDK_BackSpace");
     DL_hide__ (dli, 1);  //unvis
   }
 
-  GR_DrawTxtA (&dli, iCol, pt1, s1);
+  GR_DrawTxtA (&dli, iCol, &pt1, s1);
 
 
   return 0;
@@ -4965,7 +4980,7 @@ TX_Error("EDI-GDK_BackSpace");
   Vector  vx, vz;
 
 
-  UTO_dump__ (tra, "UI_disp_tra ");
+  // UTO_dump__ (tra, "UI_disp_tra ");
 
 
   // GL_temp_delete (); // alle temp. obj loeschen ..
@@ -5311,7 +5326,7 @@ TX_Error("EDI-GDK_BackSpace");
     GUI_ckbutt_set_noCB (&ckb_view, FALSE);
     GA_hide__ (6, 0L, 0); // reverseMode off
     UI_stat_view = 1;    // 0=OFF
-    DL_hide_all ();
+    DL_hide_chg ();
     DL_Redraw ();
   }
 
@@ -5431,7 +5446,7 @@ TX_Error("EDI-GDK_BackSpace");
   L_fertig:
 
   // change VIEW-Bit of complete DL
-  DL_hide_all ();
+  DL_hide_chg ();
   DL_Redraw ();
 
     // printf("ex UI_CB_view UI_stat_hide=%d UI_stat_view=%d\n",
@@ -5468,7 +5483,7 @@ TX_Error("EDI-GDK_BackSpace");
     // UME_TMP_FILE (&fBuf, &UI_Ed_fsiz, s1);
     UI_Ed_fsiz = OS_FilSiz (s1);   
     l1 = UI_Ed_fsiz + 100 + UI_Ed_fsiz/4;
-    fBuf = UME_alloc_tmp (l1);
+    fBuf = MEM_alloc_tmp (l1);
     MEM_get_file (fBuf, &UI_Ed_fsiz, s1);
     if(UI_Ed_fsiz < 1) {
       TX_Print("UI_src_edi E001 |%s|",s1);
@@ -6655,6 +6670,7 @@ See UI_but__ (txt);
   int UI_men__ (char *cmd) {
 //==================================================================
 /// Mainentry Menufunktions.
+/// Retcod:  0=OK; -1=error; cancel.
 
 
   int    irc, i1, i2, i3, imode, iCompr;
@@ -6717,6 +6733,16 @@ See UI_but__ (txt);
             cbuf1,              // Liste der directories
             (void*)UI_open__);  // CallBackFunction of listSelection
 */
+
+    // test if model was modified
+    if(AP_mdl_modified_ck()) {
+      irc = AP_save_ex (1);
+      if(irc < 0) return -1;   // cancel open.
+      // reset mdl_modified also for NO
+      AP_mdl_modified_reset ();
+    }
+
+
     strcpy(sTit, MSG_const__(MSG_open));  // "Model open"
     // Liste mit Dir-Auswahl
     i1 = AP_Mod_open (0, cbuf1, cbuf2, sTit, UI_fnamFilt);
@@ -7278,7 +7304,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "Clean")) {
     AP_APT_clean ();
 
-
+	
   //-------------------------------------------------
   } else if(!strcmp(cp1, "ModSiz")) {
     UI_WinToler (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
@@ -7436,7 +7462,6 @@ See UI_but__ (txt);
     APP_edit (cbuf1);
 
 
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "ckb_nam")) {
 
@@ -7446,10 +7471,6 @@ See UI_but__ (txt);
     ED_Reset ();
     ED_work_END (0);
 
-  //-------------------------------------------------
-  } else if(!strcmp(cp1, "ckb_dir0")) {
-    // check ckb_dir
-    APT_dispDir = GUI_menu_checkbox_get (&ckb_dir); //1=checked; 0=not
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "ckb_dir1")) {
@@ -7984,6 +8005,10 @@ See UI_but__ (txt);
     APP_Help ("Catalog", "");
 
 
+  //======================================================
+  } else if(!strcmp(cp1, "logfile")) {
+    LOG_A_disp ();   // view logfile
+
 
   //======================================================
   } else if(!strcmp(cp1, "abort")) {
@@ -8196,7 +8221,7 @@ box1
   static MemObj hpaned;
   static MemObj frm_act;
 
-  int    i1, i2, idat;
+  int    irc, i1, i2, idat;
   long   l1;
   char   cbuf1[256], *cp1;
   // char   *surLst[]={"XY","XZ","YZ",NULL};
@@ -8443,12 +8468,6 @@ box1
 
       //----------------------------------------------------------------
       // Entries von "Options"
-      ckb_bound = GUI_menu_checkbox__ (&men_opt, "Boundary", 0, NULL, NULL);
-        MSG_Tip ("MMopBnd");
-      // GUI_Tip  ("Checkbox fuer mit od. ohne Kantenlinien");
-
-      ckb_light = GUI_menu_checkbox__ (&men_opt, "Extra Light", 0, UI_wireCB, NULL);
-
       ckb_compl = GUI_menu_checkbox__ (&men_opt, "compile DLLs", 0, NULL, NULL);
         MSG_Tip ("MMopDll");
 
@@ -8529,6 +8548,14 @@ box1
       MSG_Tip ("MMdspso"); //
       // GUI_Tip  ("Darstellung Solids (Sphere/Cone/Torus/Cube) als Solid "
                 // "oder Drahtmodell.");
+
+      ckb_bound = GUI_menu_checkbox__ (&wtmp1, "Boundary", 0, NULL, NULL);
+        MSG_Tip ("MMopBnd");
+      // GUI_Tip  ("Checkbox fuer mit od. ohne Kantenlinien");
+
+      ckb_light = GUI_menu_checkbox__ (&wtmp1,"Extra Light",0,UI_wireCB,NULL);
+
+      ckb_backW = GUI_menu_checkbox__ (&wtmp1,"BackGrd white",0,UI_wireCB,NULL);
 
 
       //----------------------------------------------------------------
@@ -8718,6 +8745,8 @@ box1
       GUI_menu_entry   (&wtmp8, "Group", UI_menCB,  (void*)"dumpGrp");
       GUI_menu_entry   (&wtmp8, "Source", UI_menCB,  (void*)"src");
       GUI_menu_entry   (&wtmp8, "Standards", UI_menCB,  (void*)"std");
+      GUI_menu_entry   (&wtmp8, "---",     NULL,       NULL);
+      GUI_menu_entry   (&wtmp8, "view logfile", UI_menCB,  (void*)"logfile");
 
 
 
@@ -8862,7 +8891,7 @@ box1
 
 
       // add installed languages
-      TabLngName = (void*) UME_alloc_tmp (LNG_MAX_NR * 40);
+      TabLngName = (void*) MEM_alloc_tmp (LNG_MAX_NR * 40);
       lngNr = LNG_MAX_NR;
       UI_lang_men (&lngNr, TabLngCode, TabLngName, &men_hlp);
 
@@ -9462,6 +9491,12 @@ box1
         strcpy (cbuf1, APP_act_nam);
         DLL_run2 ("", -1);                // see PLU_unl
         strcpy (APP_act_nam, cbuf1);
+      }
+
+
+      // test if model was modified
+      if(AP_mdl_modified_ck()) {
+        irc = AP_save_ex (0);
       }
 
 

@@ -61,7 +61,7 @@ GUI_edi_sel_del        delete selected text
 
 GUI_edi_scroll_s       scroll to act.charOffset (= selected)
 GUI_edi_Focus          set focus to EditWindow
-GUI_edi_getModif       get if buffer is modfied 
+GUI_edi_getModif       check if edit-buffer is modfied
 
 GUI_ed1_cb1            INTERNAL
 GUI_ed1_cb2            INTERNAL
@@ -108,6 +108,7 @@ g_convert
 #include <gtk/gtk.h>
 
 #include "../ut/ut_umem.h"                    // Memspc
+#include "../ut/ut_mem.h"                     // MEM_alloc_file
 
 #include "../gui/gui_types.h"                 // TYP_Event..
 #include "../gui/gui_base.h"                  // GUI_obj_*
@@ -138,7 +139,7 @@ static char  *GUI_ed1_lcSet;
 //================================================================
   int GUI_edi_getModif (MemObj *mo) {
 //================================================================
-/// GUI_edi_getModif       get if buffer is modfied 
+/// GUI_edi_getModif       check if edit-buffer is modfied 
 /// if buffer is modied: save; this call resets the state.
 /// returns     1=modified; 0=unmodified.
 
@@ -570,7 +571,7 @@ static char  *GUI_ed1_lcSet;
     
 
   // get file -> fBuf
-  UME_TMP_FILE (&fBuf, &fSiz, fnam);
+  MEM_alloc_file (&fBuf, &fSiz, fnam);
   UTX_str_file (fBuf, &fSiz, fnam);
   if(fSiz < 1) {
     TX_Print("GUI_Ed_Ins_f E001 |%s|",fnam);

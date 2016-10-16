@@ -37,13 +37,25 @@ List_functions_start:
 Meas_init      main-entrypoint
 Meas_exit__
 Meas_win__     create Toolbar
-Meas_key_CB
-Meas_sel_CB
-Meas_ent_CB
-Meas_work_pp
+Meas_key_CB    callback key
+Meas_sel_CB    callback userselection
+Meas_sel_ln1   sel. line
+Meas_ent_CB    ?
+Meas_opt_CB    ?
+Meas_work__
+Meas_work_pp   draw temp. line
+Meas_upd_styp
+Meas_upd_e     style ?
+
+Meas_normal    normal point of pti onto object
+Meas_ck_active 
 
 List_functions_end:
 =====================================================
+
+inputfields:  Meas_e1, Meas_e2
+
+
 
 \endcode *//*----------------------------------------
 
@@ -402,6 +414,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 //================================================================
   int Meas_sel_ln1 (int typ, long dbi, long dli) {
 //================================================================
+// OBJ/OBJ
  
   int      rNr;
   double   dr, dt, dl;
@@ -414,7 +427,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   typ = DB_GetObjDat (&vp1, &rNr, typ, dbi);
 
   if(typ != Typ_LN) {
-    TX_Print ("**** cannot analyze typ %d",typ);
+    TX_Print ("**** implemented types: line;  %d not yet ..",typ);
     return -1;
   }
 
@@ -446,8 +459,8 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
 
 
-  static Point  pt1 = UT3D_pt_NEW;
-  static Point  pt2 = UT3D_pt_NEW;
+  static Point  pt1; // = UT3D_pt_NEW;
+  static Point  pt2; // = UT3D_pt_NEW;
 
 
   int    irc, typ;
@@ -521,7 +534,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 //================================================================
   int Meas_normal (Point *pto, Point *pt1, char *sObj) {
 //================================================================
-// compute pt0 = normal point of pti onto object <obj>
+// compute pto = normal point of pt1 onto object <sObj>
 
 // see IE_analyz_dist or APT_obj_expr
 
@@ -531,8 +544,9 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   void      *o1;
   int       aus_typ[3];
   double    aus_tab[3];
+  char      obj2[OBJ_SIZ_MAX];
   ObjGX     ox1;
-  Memspc    spcTmp;
+  Memspc    wrkSpc;
   Line      ln1;
   Circ      ci1;
 
@@ -541,68 +555,44 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   UT3D_stru_dump (Typ_PT, pt1, "  pt1: ");
 
 
-  aus_typ[0] = Typ_cmdNCsub;
-  aus_tab[0] = T_PRJ;
-
-
   dynPti = DB_dyn__ (0, Typ_PT, 0L);    // save state of dyn-points
   dynLni = DB_dyn__ (0, Typ_LN, 0L);    // save state of dyn-lines
   dynCii = DB_dyn__ (0, Typ_CI, 0L);    // save state of dyn-circs
-  dbi = DB_StorePoint (-1L, pt1);       // store dynamic obj in DB.
 
 
-  aus_typ[1] = Typ_PT;
-  aus_tab[1] = dbi;
+  //----------------------------------------------------------------
+  // get binObj typ2,obj2 from sObj
+  oTyp = APT_obj_expr ((void*)obj2, 0, sObj);
+    UT3D_stru_dump (oTyp, obj2, "Meas_normal-1");
 
 
-  // irc = APED_dbo_oid (&dbTyp, &dbi, sObj);
-  // APT_obj_expr  (pto, Typ_PT, sObj);
-    // UT3D_stru_dump (Typ_PT, pto, "  pto: ");
-// return 0;
+  // if obj is line: make unlimited line (else UPRJ_app__ error)
 
 
-  irc = APED_dbo_oid (&dbTyp, &dbi, sObj);
+
+
+
+
+  //----------------------------------------------------------------
+  // project pt1 onto obj2
+  UPRJ_def__ (oTyp, obj2, 1, NULL);
+
+  UPRJ_def_lim (NO);
+
+  UME_init (&wrkSpc, memspc501, sizeof(memspc501));
+
+  irc = UPRJ_app__ (&ox1, 1, pt1, Typ_PT, &wrkSpc);
   if(irc < 0) {
-      printf(" typ=%d\n",dbTyp);
-    if(dbTyp == Typ_LN) {
-      APT_obj_expr  (&ln1, Typ_LN, sObj);
-      dbi = DB_StoreLine (-1L, &ln1);
-    } else if (dbTyp == Typ_CI) {
-      APT_obj_expr  (&ci1, Typ_CI, sObj);
-      dbi = DB_StoreCirc (-1L, &ci1);
-    } else {
-      TX_Print("cannot use obj 2 |%s|",sObj);
-      return -1;
-    }
+    TX_Print("Meas_normal E1");
+    return -1;
   }
-    // printf(" dbTyp=%d dbi=%ld\n",dbTyp,dbi);
+    UT3D_stru_dump (Typ_ObjGX, &ox1, "Meas_normal-2");
 
-  aus_typ[2] = dbTyp;
-  aus_tab[2] = dbi;
-
-/*
-  // get datastructs from typ, DB-index; for curves we need the subtyp
-  oTyp = DB_GetObjDat (&o1, dbTyp, dbi);
-    printf(" oTyp=%d\n",oTyp);
-    UT3D_stru_dump (oTyp, o1, "o1");
-*/
-
-  UME_init (&spcTmp, memspc501, sizeof(memspc501));
+  *pto = *((Point*)ox1.data);
 
 
 
-  irc = APT_prj_obj_perp (&ox1, 3, aus_typ, aus_tab, &spcTmp);
-  if(irc != Typ_PT) {
-    TX_Print("cannot project .. |%s|",sObj);
-    irc = -1;
-    goto L_exit;
-  }
-    // printf(" irc=%d\n",irc);
-
-  *pto = *((Point*)&ox1);
-  irc = 0;
-
-
+  //----------------------------------------------------------------
   L_exit:
   DB_dyn__ (2, Typ_PT, dynPti);      // reset state of dyn-points
   DB_dyn__ (2, Typ_LN, dynLni);      // reset state of dyn-Lines
@@ -644,7 +634,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   char   *p1, *p2, s1[256];
 
 
-  printf("Meas_work__ \n");
+  printf("Meas_work__ func=%d ie=%d\n",Meas_func,Meas_ie);
 
   p1 = GUI_entry_get (&Meas_e1);
   p2 = GUI_entry_get (&Meas_e2);
@@ -655,9 +645,12 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   if(Meas_ie != 0) goto L_upd1;
 
     APT_obj_expr (&pt1, Typ_PT, p1);
-    UT3D_stru_dump (Typ_PT, &pt1, "spt1: ");
+      UT3D_stru_dump (Typ_PT, &pt1, "spt1: ");
+
+    // diplay pt1
     dl1 = -2L;
     GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt1); // red circ
+
     sprintf(s1, "%s = %f %f %f",p1,pt1.x,pt1.y,pt1.z);
     TX_Print(s1);
     if(strlen(p2) > 0) {
@@ -677,9 +670,12 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       } else {
         Meas_normal (&pt2, &pt1, p2);
       }
-        // UT3D_stru_dump (Typ_PT, &pt2, "spt2: ");
+        UT3D_stru_dump (Typ_PT, &pt2, "spt2: ");
+
+      // diplay pt2
       dl1 = -3L;
       GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt2); // red circ
+
       sprintf(s1, "%s = %f %f %f",p2,pt2.x,pt2.y,pt2.z);
       TX_Print(s1);
 
@@ -698,24 +694,12 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   // if((NOT UT3D_pt_isFree(&pt1))&&(NOT UT3D_pt_isFree(&pt2))) {
     // draw temp. line between pt1-pt2
     Meas_work_pp (&pt1, &pt2);
-    DL_Redraw ();
   // }
 
 
   //----------------------------------------------------------------
   L_next:
-/*
-  // activate other inputfield
-  if(Meas_ie == 0) {
-    Meas_ie = 1;
-  } else {
-    Meas_ie = 0;
-  }
-  Meas_upd_e ();
   DL_Redraw ();
-*/
-
-
 
   return 0;
 
@@ -801,20 +785,46 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
   // printf("Meas_upd_styp ie=%d\n",Meas_ie);
 
+/*
   if(Meas_func == 2) {
     styp = Typ_LN;
     goto L_exit;
   }
 
   styp = Typ_PT;
+*/
 
-  if(Meas_ie == 1) {
-    // if(Meas_func != 0) styp = Typ_goGeo1;
-    if(Meas_func != 0) styp = Typ_goGeo6;  // P|L|C
-    // sele_set__ (Typ_APPOBJ);       // init
-    // sele_set_types (Typ_LN, 0);
+  
+  //----------------------------------------------------------------
+  if(Meas_ie == 0) {
+    // 0=e1 is active
+
+    styp = Typ_PT;   // 0=PT/PT and 1=PT/OBJ
+
+    if(Meas_func == 2) {
+      // 2=OBJ/OBJ
+      styp = Typ_go_LCS;
+    }
 
 
+  //----------------------------------------------------------------
+  } else if(Meas_ie == 1) {
+    // 1=e2 is active
+
+    if(Meas_func == 0) {
+      // 0=PT/PT
+      styp = Typ_PT;
+
+    } else if(Meas_func == 1) {
+      // 1=PT/OBJ
+      styp = Typ_go_LCS;
+
+    } else if(Meas_func == 2) {
+      // 2=OBJ/OBJ
+      styp = Typ_go_LCS;
+
+
+    }
   }
 
   L_exit:

@@ -918,11 +918,19 @@ static char *fnam;
   MemTab(int) eDat = MemTab_empty;
 
 
-  printf("Mod_sav__ |%s|\n",filNam);
+  printf("Mod_sav__ |%s| savActMdl=%d\n",filNam,savActMdl);
 
   irc = -1;
 
   UI_block__ (1, 1, 1);  // block all
+
+
+  // fix box if necessary
+  if(AP_mdlbox_invalid_ck()) {
+    // get box of active model
+    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1);
+    AP_mdlbox_invalid_reset ();
+  }
 
 
   // save the active Submodel WC_modact_nam -> TempFile
@@ -1366,7 +1374,7 @@ static char *fnam;
 
   char  fnam[256];
 
-  // printf("Mod_sav_tmp |%s|\n",WC_modact_nam);
+  printf("Mod_sav_tmp |%s|\n",WC_modact_nam);
 
 
   // fix modelname
@@ -1411,11 +1419,15 @@ static char *fnam;
 //====================================================================
   int Mod_get_path (char *out_path, char *in_path) {
 //====================================================================
-/// In:   "pfadsymbol/filename" oder nur "filename"
-///       der erste Teil (vor dem ersten '/') ist ein Pfadsymbol; expandieren.
-///       kein Symbol: "<bas_dir>dat/filename".
-/// Out:  der komplette Filename (Path + Filename + Filetyp).
-/// RetCod:  0 = OK; -1 = Symbol_not_found
+/// \code
+/// Input:
+///   in_path   pathSymbol/filename" or "filename"
+///             without Symbol: "<bas_dir>dat/filename".
+/// Output:
+///   out_path  filename complete (Path + Filename + Filetyp).
+///   RetCod    0 = OK;
+///            -1 = Symbol_not_found
+/// \endcode
 
 
   int    i1;
@@ -1920,6 +1932,7 @@ static char *fnam;
 ///   imod:     0=get 1=check(no Msg)
 /// Output:
 ///   out_path: full path (from file xa/dir.lst)  Size 256.
+///             filename not added; use Mod_get_path for path/filename
 ///   RetCod
 ///     >= 0    OK; path in out_path; Linenumber of symbol in path.
 ///     -1      Symbol from in_path not found in file
@@ -2010,12 +2023,17 @@ static char *fnam;
 //====================================================================
   int Mod_sym_get2 (char *out_sym, char * in_path, int imod) {
 //====================================================================
+/// \code
 /// get symbol from path
-/// imod:  0=get 1=check(no Msg)
-/// in_path:    der Pfad (mit "/" am Ende)
-/// out_sym:    das zugehoerige Symbol (aus datei xa/dir.lst)
-/// RetCod 0    OK; symTxt in out_sym;
-///       -1    in_path not found in file
+/// Input:
+///   in_path:    der Pfad (mit "/" am Ende)
+///   imod:       0=get 1=check(no Msg)
+/// Output:
+///   out_sym:    das zugehoerige Symbol (aus datei xa/dir.lst)
+///               filename not added; use Mod_get_path for path/filename
+///   RetCod 0    OK; symTxt in out_sym;
+///         -1    in_path not found in file
+/// \endcode
 
   char    cbuf[256], *p1;
   FILE    *fpi;
@@ -2357,8 +2375,8 @@ static ModelRef modR2;
   sprintf(cbuf, "%s*.tess",OS_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.write",OS_get_tmp_dir());
-  OS_file_delGrp (cbuf);
+  // catalog-parameterfiles
+  CTLG_dat_del ();
 
   sprintf(cbuf, "%s*.ptab",OS_get_tmp_dir());
   OS_file_delGrp (cbuf);
@@ -2436,7 +2454,8 @@ static ModelRef modR2;
   
   
   //----------------------------------------------------------
-  // file tmp/Model einlesen - aufteilen -> tmp/Model_*
+  // split file tmp/Model into tmp/Model_ (mainmodel) and 
+  //   subModels tmp/Model_<subModelName>
 
   if((fpi=fopen(cp1,"r")) == NULL) {
     TX_Error("Mod_load__ E001 %s",cp1);
@@ -2557,18 +2576,17 @@ static ModelRef modR2;
 
   // load new active SubModel
   sprintf(cbuf,"%sModel_",OS_get_tmp_dir());
-    printf("Mod_load__ load |%s|\n",cbuf);
-  ED_new_File (cbuf); // Datei ins Memory einlesen
+    printf("  _load__ |%s|\n",cbuf);
+
+  // get file <cbuf> into memory
+  ED_new_File (cbuf);
     // printf("nach ED_new_File..\n");
 
-
-  // den DYNAMIC_DATA - Block suchen abarbeiten eliminieren
+  // work, then delete  DYNAMIC_DATA - Block
   ED_work_dyn ();
-    // printf("nach ED_work_dyn..\n");
 
 
   if(dbResiz == 0) {
-
     APED_search_dbLimits (lTab);          // search highest indices in Model
     DB_size_set (lTab);                   // increase DB-size
 
@@ -2950,7 +2968,7 @@ static ModelRef modR2;
   // static void *txTab1 = NULL;
 
   int      irc, actSeq, actMod, mbNr;
-  long     il1, il2;
+  int      il1;
   char     cbuf1[256];
   ModelBas *mb;
 
@@ -3003,10 +3021,15 @@ static ModelRef modR2;
       // // Mod_load_sm (mb->typ, cbuf1);              // load catalog-Model:
       // irc = Mod_load_sm (mb->typ, mb->mnam);           // load catalog-Model:
 // 
-    // } else {
-      irc = Mod_load_sm (mb->typ, mb->mnam);           // load internal Model
-    // }
-    // UtxTab_rem (txTab1);              // remove last ModelName
+
+    AP_box_pm1 = mb->pb1;
+    AP_box_pm2 = mb->pb2;
+
+    // set AP_stat.mdl_box_valid according to subModel
+    if(UT3D_pt_isFree(&mb->pb1)) AP_mdlbox_invalid_set ();
+    else                         AP_mdlbox_invalid_reset ();
+
+    irc = Mod_load_sm (mb->typ, mb->mnam);           // load internal Model
     if(irc < 0) return irc;
 
 
@@ -3021,7 +3044,25 @@ static ModelRef modR2;
     // mod1->po = WC_mod_ori;
     mb->po = UT3D_PT_NUL;
 
-    // UT3D_stru_dump (Typ_SubModel, mb, "mb:\n");
+
+      // TESTBLOCK
+      // UT3D_stru_dump (Typ_SubModel, mb, "mb:\n");
+      // DL_DumpObjTab ();
+      // UT3D_stru_dump (Typ_PT, &AP_box_pm1, " pm1:");
+      // UT3D_stru_dump (Typ_PT, &AP_box_pm2, " pm2:");
+      // END TESTBLOCK
+
+
+    // set boxpoints for active subModel
+    // test if AP_box_pm1 valid
+    if(AP_mdlbox_invalid_ck()) {
+      UT3D_box_mdl__ (&mb->pb1, &mb->pb2, WC_modact_ind);
+      AP_mdlbox_invalid_reset ();
+    } else {
+      mb->pb1 = AP_box_pm1;
+      mb->pb2 = AP_box_pm2;
+    }
+
 
 /* 2016-06-12
     // make it unvisible (else ditto & original obj's visible !)
@@ -3099,6 +3140,7 @@ static ModelRef modR2;
   // clear DL; but do not delete basicModels
   DB_Init (1);
 
+  AP_mdlbox_invalid_set ();
 
   ED_Init ();
 
@@ -3145,7 +3187,7 @@ static ModelRef modR2;
 
 
   int      irc, i1, i2, iLev, oldLev, iNr, par;
-  long     il1, ile;
+  int      il1, ile;
   char     *cbuf, *c1buf, *cp1, txbuf[128];
 
 

@@ -764,7 +764,7 @@ static  CurvElli          el1;
 
     // CirCen: intersect Plane - TorAxis. (prj. Pl.po --> Tor.vz)
     UT3D_pt_projptptvc (&pt1, &d1, NULL, &pln->po, &tor->pl.po,&tor->pl.vz);
-      GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
 
 
     // den Abst. CirCen - TorCen
@@ -781,7 +781,7 @@ static  CurvElli          el1;
 
     // Circ from center, axis, x-vec and radius
     UT3D_ci_pt2vcr ((Circ*)oSpc, &pt1, &tor->pl.vz, &tor->pl.vx, d1);
-      GR_Disp_ac ((Circ*)oSpc, 0);
+      // GR_Disp_ac ((Circ*)oSpc, 0);
 
     d1 = tor->r1 - tor->r2 - dx;
       // printf(" d1=%f\n",d1);
@@ -808,11 +808,6 @@ static  CurvElli          el1;
   return 0;
 
 }
-
-
-
-
-
 
 
 //============================================================================

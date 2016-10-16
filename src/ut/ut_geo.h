@@ -40,6 +40,7 @@ Korr:
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
 #include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/AP_types.h"               // Typ_PT ..
+#include "../ut/ut_mem.h"                 // MEM_*
 #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 // ../gui/gui_types.h
 // ../ut/func_types.h                        // ATT_COL_. SYM_. Typ_Att_
@@ -280,7 +281,7 @@ typedef struct {short typ, form, ilen, ipar; int ioff;}             ObjTXTSRC;
 /// ilev       level; -1=primary level. NULL=unused
 /// txt        for strings; NULL for none (was APT_defTxt)
 /// \endcode
-typedef struct {int nr, siz, txsiz; int *typ; double *val; char *ilev;
+typedef struct {int nr, siz, txsiz; int *typ; double *val; short *ilev;
                 char *txt;}                                         ObjAto;
 
 
@@ -695,20 +696,35 @@ typedef struct {unsigned cr:8, cg:8, cb:8,
 // size = 4
 
 
-/// \brief text or image or label; Typ_ATXT, Typ_Tag ..
+/// \brief grafic text; Typ_GTXT
+/// \code
+/// pt           lower left position
+/// size         textheight in usercoords; default = 0.; 2D-text: -1.
+/// dir          direction in degree
+/// xSiz, ySiz   max_nr_of_chars, nr_of_lines
+/// \endcode
+typedef struct {Point pt; float size, dir; char *txt;
+                 short xSiz, ySiz;}                                 GText;
+// size = 36
+
+
+/// \brief text or image or tag or label; Typ_ATXT, Typ_Tag
 /// \code
 /// p1   Textblock-/Imageposition (left middle)
 /// p2   Startpoint leaderline
-/// scl  Scale (for Image)
-/// typ  0=Text, 1=Image, 2=Label-Block, 3=Label-Kreis  4=PointCoord
+/// typ  0=Text, 1=Image, 2=Tag, 3=Balloon  4=PointCoord
 ///      5=Symbol SYM_STAR_S (Stern klein) 6=Symbol SYM_TRI_S (Dreieck klein)
 ///      7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_TRI_B (Viereck)
 ///      9=Vector (normalized)            10=Vector (true length)
-/// col  Farbe fuer Label; -1=kein Label
+///     11=Arrowhead (normalized)
+/// txt  Text or ImageFilename; none: noteindex
+/// scl          Image: Scale
+/// xSiz, ySiz   Image, Tag: size of image / tag in pixels
+///              Balloon: xSiz=stringLength
+/// col  color of Label; -1=no Label
 /// ltyp Linetyp Leaderline; -1=no Leaderline.
-/// txt  Text/ImageFilename
 /// \endcode
-typedef struct {Point p1, p2; char *txt;
+typedef struct {Point p1, p2; char *txt; short xSiz, ySiz;
                 float scl; char typ, col, ltyp;}                    AText;
 
 
@@ -738,20 +754,12 @@ typedef struct {int ibas; float uscx, uscy, udx, udy, uar,
                 ssx, ssy, px, py, pz, fx, fy; Vector vx, vy;}       TexRef;
 
 
-/// \brief grafic text; Typ_GTXT
-/// \code
-/// pt           lower left position
-/// size         textheight in usercoords; default = 0.; 2D-text: -1.
-/// dir          direction in degree
-/// \endcode
-typedef struct {Point pt; float size, dir; char *txt;}              GText;
-// size = 36
-
 
 /// internal submodel (block); Typ_Ditto
 typedef struct {Point po; long ind, siz;}                           Ditto;
 
 
+/* UNUSED
 /// \brief internal submodel reference; Typ_Mock
 /// \code
 /// ind   DL-startindex of ditto
@@ -760,6 +768,7 @@ typedef struct {Point po; long ind, siz;}                           Ditto;
 /// \endcode
 typedef struct {char *mnam; long ind, siz;
                 Point po; Vector vx, vz;}                           ModelMock;
+*/
 
 
 /// \brief basic model description; Typ_SubModel
@@ -778,11 +787,10 @@ typedef struct {char *mnam; Point po, pb1, pb2; long DLind, DLsiz;
 
 /// \brief model reference; Typ_Model
 /// \code
-/// mnam  .. unused
 /// modNr .. modelnumber of ModelBas-obj. (DB_get_ModNr())
 /// po    .. position of ditto
 /// \endcode
-typedef struct {char *mnam; int modNr; double scl;
+typedef struct {int modNr; double scl;
                 Point po; Vector vx, vz;}                           ModelRef;
 
 
@@ -864,7 +872,6 @@ typedef struct {Point2 pt; float ang, scl; int typ;}                SymRef2;
 
 
 /// \brief 3D-symbol; Typ_SymRef
-/// \endcode
 typedef struct {Point pt; Vector dx, dy; float scl; int typ;}       SymRef;
 // GL_DrawSymV3
 
@@ -964,6 +971,7 @@ typedef struct {int typ; long ind; char *data;}                     Activity;
 
 
 /// \brief Typ_BoxH
+/// \code
 /// horizontal gridBox; position of startpoint p1 is bottom left 
 /// ix, iy, iz    nr of points in a row
 /// \endcode
@@ -1163,25 +1171,6 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 
 //================================================================
 // prototypes for gcad_ut_geo.c
-
- // ut_mem.o:
- int MEM_swap__      (void *stru1, void* stru2, long strSiz);
-
-
- int MEM_ins_rec     (void *insPos, long movSiz, void *insDat, long insSiz);
- int MEM_chg_rec     (void *datStart, long *datSiz,
-                      void *insDat,   long insSiz,
-                      void *delPos,   long delSiz);
- int MEM_ins_nrec    (int *recNr, void *recTab,
-                     int ipos, void *insDat, int insRecNr, int sizRec);
- int MEM_del_nrec    (int *recNr, void *recTab,
-                     int ipos, int delRecNr, int sizRec);
- int MEM_del_IndRec  (int *recNr, void *recTab, int ipos);
- int MEM_del_DbRec   (int *recNr, void *recTab, int ipos);
- void   MEM_del_pt   (int *recNr, Point *pa, int recInd);
- void*  MEM_ptr_mov  (void *ptr, long dist);
- int MEM_cmp__       (void *obj1, void *obj2, int size);
-
 
 //----------------------------------------------------------------
  int    UTP_comp_0  (double);
@@ -1452,6 +1441,7 @@ double UT3D_parpt_cipt (Point *pti, Circ *ci1);
 double UT3D_par1_ci_angr (Circ *ci1, double angr);
 double UT3D_par1_ci_pt   (Circ *ci1, Point *pt1);
 
+void   UT3D_pt_setFree (Point*);
 int    UT3D_pt_isFree (Point*);
 int    UT3D_pt_ck_npt (Point *p0, Point *pTab, int pNr, double tol);
 int    UT3D_ipt_cknear_npt (Point *p0, Point *ptTab, int ptNr);
@@ -1486,15 +1476,20 @@ void   UT3D_pt_opp2pt (Point *, Point *, Point *);
 int    UT3D_pt_oppptptvc (Point *po, Point *pi, Point *pl, Vector *vl);
 int    UT3D_2pt_oppptvclen (Point*,Point*,Point*,Vector*,double);
 void   UT3D_pt_addpt (Point *, Point *);
+void   UT3D_pt_add_vc_par (Point *, Vector *, double);
+void   UT3D_pt_add_3vc_3par (Point*,Vector*,Vector*,Vector*,double,double,double);
 void   UT3D_pt_add_pt2 (Point *, Point2 *);
 void   UT3D_pt_add2pt (Point *, Point *, Point *);
 void   UT3D_pt_sub_pt2 (Point *, Point *, Point2 *);
 void   UT3D_pt_sub_pt3 (Point *, Point2 *);
+void   UT3D_pt_tra_pt_dx (Point*, Point*, double);
+void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
 // void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
-void   UT3D_pt_traptvc1len (Point *po,Point *pi,Vector *vc,double dist);
+void   UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_trapt2vc (Point *po,Point *pi,Vector *vc1, Vector *vc2);
 void   UT3D_pt_trapt2vc2len (Point *,Point *,Vector *,double,Vector *,double);
+void   UT3D_pt_tra_pt_2vc_2par (Point *,Point *,Vector *,double,Vector *,double);
 void   UT3D_pt_trapt3vc3len (Point *po,Point *pi,
               Vector *vx,double dx, Vector *vy,double dy, Vector *vz,double dz);
 void   UT3D_pt_traptptlen (Point *po,Point *pi,Point *pDir,double lenv);
@@ -2246,11 +2241,18 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 
 //----------------------------------------------------------------
 /// UT3D_pt_NEW              create empty point (UT3D_pt_isFree) 
-#define UT3D_pt_NEW {FLT_32_MAX, 0., 0.}
+#define UT3D_pt_NEW {UT_VAL_MAX, 0., 0.}
     
+/// UT3D_pt_setFree          set point not valid (not initialized)
+#define UT3D_pt_setFree(obj) (obj)->x = UT_VAL_MAX
 
-/// UT3D_pt_isFree            check if pt is empty (free - UT3D_pt_init)
-#define UT3D_pt_isFree(obj) ((obj)->x == FLT_32_MAX)
+/// \code
+/// UT3D_pt_isFree           check if pt is empty (UT3D_pt_setFree UT3D_pt_NEW)
+/// 0 = point is valid )(pt->x != FLT_32_MAX)
+/// 1 = point is free (NEW, not set).
+/// \endcode
+#define UT3D_pt_isFree(obj) ((obj)->x == UT_VAL_MAX)
+
 
 
 /// UT3D_pt_ptz               3D-Point = 2D-Point + Z-Val
@@ -2283,6 +2285,21 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
  (po)->x += (p1)->x;\
  (po)->y += (p1)->y;}
 
+/// UT3D_pt_add_vc_par        add (vector * lpar)  po += (vc * lpar)
+#define UT3D_pt_add_vc_par(pt,vc,lpar){\
+  (pt)->x += (vc)->dx * lpar;\
+  (pt)->y += (vc)->dy * lpar;\
+  (pt)->z += (vc)->dz * lpar;}
+/// see also UT3D_pt_traptmultvc
+
+/// UT3D_pt_add_3vc_3par        add (vector * lpar)  po += (vc * lpar)
+/// - eg transport point (lp1/lp2/lp3) into refsys v1/v2/v3
+#define UT3D_pt_add_3vc_3par(pt,v1,v2,v3,lp1,lp2,lp3){\
+  (pt)->x += (v1)->dx * lp1 + (v2)->dx * lp2 + (v3)->dx * lp3;\
+  (pt)->y += (v1)->dy * lp1 + (v2)->dy * lp2 + (v3)->dy * lp3;\
+  (pt)->z += (v1)->dz * lp1 + (v2)->dz * lp2 + (v3)->dz * lp3;}
+/// see also UT3D_pt_trapt3vc3len
+
 /// UT3D_pt_add2pt   Add two points:               po = p1 + p2
 #define UT3D_pt_add2pt(po,p1,p2){\
  (po)->x = (p1)->x + (p2)->x;\
@@ -2312,6 +2329,16 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 // // p1 = UT3D_pt_vc (&vz);
 // #define UT3D_pt_vc__(vc) *((Point*)vc)
 
+
+/// UT3D_pt_tra_pt_dx         Point = Point + dx
+#define UT3D_pt_tra_pt_dx(po,pi,dx)\
+ *po = *pi; (po)->x += dx
+
+/// UT3D_pt_tra_pt_dy         Point = Point + dy
+#define UT3D_pt_tra_pt_dy(po,pi,dy)\
+ *po = *pi; (po)->y += dy
+
+
 /// UT3D_pt_traptvc               Point = Point + Vector
 #define UT3D_pt_traptvc(po,pi,vc){\
  (po)->x = (pi)->x + (vc)->dx;\
@@ -2320,7 +2347,7 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 
 /// UT3D_pt_traptivc               Point = Point - Vector
 #define UT3D_pt_traptivc(po,pi,vc){\
- (po)->x = (pi)->x - (vc)->dx; \
+ (po)->x = (pi)->x - (vc)->dx;\
  (po)->y = (pi)->y - (vc)->dy;\
  (po)->z = (pi)->z - (vc)->dz;}
 
@@ -2544,49 +2571,6 @@ int    UT3D_comp2pt (Point *, Point *, double);
 #define TYP_IS_SELGRP(typ) ((typ>=Typ_goGeom)&&(typ<Typ_FncVAR1))
 // #define TYP_IS_SELGRP(typ) ((typ>=Typ_goGeom)&&(typ<Typ_FncVAR1)||\
  // (typ==Typ_lFig))
-
-
-
-//----------------------------------------------------------------
-/// compare memoryspaces (n bytes); returns 0 for equal.
-#define MEM_cmp__ memcmp
-
-/// swap 2 shorts
-void MEM_swap_short  (short *i1, short *i2);
-#define MEM_swap_short(i1,i2){\
-  short _i3 = *(i1); *(i1) = *(i2); *(i2) = _i3;}
-
-/// swap 2 ints
-void MEM_swap_int (int *i1, int *i2);
-#define MEM_swap_int(i1,i2){\
-  int _i3 = *(i1); *(i1) = *(i2); *(i2) = _i3;}
-
-/// swap 2 longs
-void MEM_swap_2lg (long *i1, long *i2);
-#define MEM_swap_2lg(i1,i2){\
-  long _i3 = *(i1); *(i1) = *(i2); *(i2) = _i3;}
-
-/// swap 2 doubles
-void MEM_swap_2db (double*, double*);
-#define MEM_swap_2db(d1,d2){\
-  double _d3 = *(d1); *(d1) = *(d2); *(d2) = _d3;}
-
-/// swap 2 pointers (void*)
-void MEM_swap_2vp    (void **v1, void **v2);
-#define MEM_swap_2vp(v1,v2){\
-  void *_v3 = *(v1); *(v1) = *(v2); *(v2) = _v3;}
-// void MEM_swap_2vp (void **p1, void **p2)
-
-// swap structs: MEM_swap__ ();
-
-/// delete point pa[recInd]; pa has recNr points. recNr is reduced by 1.
-#define MEM_del_pt(recNr, pa, recInd)\
-  MEM_del_nrec (recNr, pa, recInd, 1, sizeof(Point))
-
-/// MEM_ptr_mov         move a point <dist> bytes
-/// Example:
-/// ptr = MEM_ptr_mov (ptr, 16);      // move ptr 16 bytes in memory
-#define MEM_ptr_mov(ptr,dist) ((char*)(ptr) + (dist))
 
 
 

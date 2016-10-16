@@ -409,7 +409,7 @@ UTA_  functions for pointers (addresses)
 
 
   // alloc iNr pointers;
-  pia = UME_alloc_tmp (iNr * sizeof(void*));
+  pia = MEM_alloc_tmp (iNr * sizeof(void*));
   if(!pia) {TX_Error("UTI_ni_ind_sort EOM1"); return -1;}
 
   // set pointers

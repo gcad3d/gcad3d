@@ -66,7 +66,8 @@ DL_disp_hili_last       (change) hilite last obj of DL
 // DL_disp_hili            hilite Obj of line lNr
 
 DL_hide__               change hidden/visible for single obj
-DL_hide_all             change hidden/visible for all objs
+DL_hide_chg             change hidden/visible for all objs
+DL_hide_all             change all active, visible objs to hidden|visible
 DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
 
@@ -119,7 +120,7 @@ DL_Lay_add
 DL_txtgetInfo           Infos zu Tag/Image holen
 DL_txtSelect            check if TextTag was selcted and add obj to tables
 DL_IactSelect           check if Interactivity is connected
-DL_setTagSiz            bei tags und Bitmaps die size im DL-record speichern
+// DL_setTagSiz            bei tags und Bitmaps die size im DL-record speichern
 
 DL_sav_dynDat           save the DYNAMIC_DATA of the actual mainModel
 DL_load_dynDat          reload the DYNAMIC_DATA
@@ -377,7 +378,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
 
-
+/* replaced by GR_img_get_dbi
 //====================================================================
   int DL_txtgetInfo (int *typ, Point *p1,
                      int *sx, int *sy, int *dx, int *dy, long dli) {
@@ -391,6 +392,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 ///   p1     Textposition of Text in Usercoords
 ///   sx, sy size of 2D-Field in screencoords
 ///   dx, dy offset from p1 to lower left 2D-corner in screencoords
+///
+/// See also DL_setTagSiz
 /// \endcode
 
 
@@ -426,7 +429,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   ia = (void*)&(GR_ObjTab[dli].iatt);
   *sx = ia->i2[0];
   *sy = ia->i2[1];
-  // printf(" tagSiz=%d %d\n",*sx,*sy);
+    printf(" tagSiz=%d %d\n",*sx,*sy);
 
   // *sx = GR_ObjTab[dli].refInd;
   // *sy = GR_ObjTab[dli].attInd;
@@ -475,7 +478,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return 0;
 
 }
-
+*/
 
 //====================================================================
   int DL_txtSelect (int iNr, ObjDB **dlTab) {
@@ -519,7 +522,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
     // SizeInfo zu Tag/Image holen
-    irc = DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, l1);
+    // irc = DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, l1);
+    irc = GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, GR_ObjTab[l1].ind);
     if(irc < 0) continue;  // zB SymbolTags; werden normal auch gefunden.
 
     // change Textpoint --> Screencoords
@@ -627,11 +631,14 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 }
 
-
+/*
 //================================================================
   int DL_setTagSiz (long dli, int xsiz, int ysiz) {
 //================================================================
-/// bei tags und Bitmaps die size im DL-record speichern
+/// \code
+/// store size of tags and Bitmaps in the DL-record
+/// See also DL_txtgetInfo
+/// \endcode
 
   uni_i4i2  *ia;
 
@@ -657,7 +664,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return 0;
 
 }
- 
+*/
 
 //===============================================================
   int DL_Stat () {
@@ -693,7 +700,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 }
 
-
+/*
 //===============================================================
   int DL_sav_dynDat () {
 //===============================================================
@@ -720,8 +727,10 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   GL_View_get(view);
   fwrite(view, sizeof(double), 10, fp1);
 
-  // save MODSIZ / APT_ModSiz UT_TOL_cv UT_DISP_cv
+  // save MODSIZ (APT_ModSiz) / MODBOX / UT_TOL_cv UT_DISP_cv
   fwrite(&APT_ModSiz, sizeof(double), 1, fp1);
+  fwrite(&AP_box_pm1, sizeof(Point), 1, fp1);
+  fwrite(&AP_box_pm2, sizeof(Point), 1, fp1);
   fwrite(&UT_TOL_cv, sizeof(double), 1, fp1);
   fwrite(&UT_DISP_cv, sizeof(double), 1, fp1);
 
@@ -753,7 +762,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   char   fnam[256];
   FILE   *fp1;
-  double view[10], da[3];
+  double view[10], d1, d2, d3;
 
   // printf("DL_load_dynDat\n");
 
@@ -770,7 +779,11 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   fread(view, sizeof(double), 10, fp1);
 
   // load MODSIZ / APT_ModSiz UT_TOL_cv UT_DISP_cv
-  fread(da, sizeof(double), 3, fp1);
+  fread(&d1, sizeof(double), 1, fp1);            // APT_ModSiz
+  fread(&AP_box_pm1, sizeof(Point), 1, fp1);
+  fread(&AP_box_pm2, sizeof(Point), 1, fp1);
+  fread(&d2, sizeof(double), 1, fp1);            // UT_TOL_cv
+  fread(&d3, sizeof(double), 1, fp1);            // UT_DISP_cv
 
   // load Textparameters
   fread(&AP_txsiz, sizeof(double), 1, fp1);
@@ -788,22 +801,21 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   fclose(fp1);
 
 
-
   // execute
   GL_View_set (view);
   // UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&view[5]); // in box raus
 
-  APT_ModSiz = da[0];
+  APT_ModSiz = d1;
   GL_InitModelSize (APT_ModSiz, 1);
-  UT_TOL_cv  = da[1];
-  UT_DISP_cv = da[2];
+  UT_TOL_cv  = d2;
+  UT_DISP_cv = d3;
 
   // printf("ex DL_load_dynDat UT_DISP_cv=%f\n",UT_DISP_cv);
 
   return 0;
 
 }
-
+*/
 
 //===============================================================
   int DL_wri_dynDat0 (FILE *fpo) {
@@ -841,8 +853,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   int i1;
   double view[10];
 
-  // printf("DL_wri_dynDat \n");
 
+  // printf("DL_wri_dynDat1 \n");
 
 
   // add Tolerances
@@ -850,8 +862,18 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     AP_obj_add_val (mem_cbuf1, APT_ModSiz);
     AP_obj_add_val (mem_cbuf1, UT_TOL_cv);
     AP_obj_add_val (mem_cbuf1, UT_DISP_cv);
-    // UTF_add1_line (mem_cbuf1);
+      // printf(" _dynDat1|%s|\n",mem_cbuf1);
     fprintf(fpo, "%s\n", mem_cbuf1);
+
+  // add boxPoints AP_box_pm1/2
+  if(!UT3D_pt_isFree(&AP_box_pm1)) {
+    strcpy(mem_cbuf1, "MODBOX");
+    AP_obj_add_pt (mem_cbuf1, &AP_box_pm1);
+    AP_obj_add_pt (mem_cbuf1, &AP_box_pm2);
+      // printf(" _dynDat1|%s|\n",mem_cbuf1);
+    fprintf(fpo, "%s\n", mem_cbuf1);
+  }
+
 
   // add Texsizes
     strcpy(mem_cbuf1, "DEFTX");
@@ -999,10 +1021,49 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
+//================================================================
+  int DL_hide_all (int mode ) {
+//================================================================
+/// \code
+/// DL_hide_all             change all active, visible objs to hidden|visible
+/// mode     0 = hide_all;  1 = redisplay_all.
+/// \endcode
+
+  long  dli;
+
+    
+  printf("DL_hide_all %d %d\n",mode,WC_modact_ind);
+
+
+  for(dli=0; dli<GR_TAB_IND; ++dli) {
+
+    // skip invis. obj's
+    if(GR_ObjTab[dli].unvis != 0) continue;
+
+    // skip objects not in model <iMdl>:
+    if((INT_16)GR_ObjTab[dli].modInd != WC_modact_ind) continue;
+
+    if(mode) {
+      // redisplay: disp=0; hili=1: visible.
+      GR_ObjTab[dli].disp  = 0;
+      GR_ObjTab[dli].hili  = 1;
+    } else {
+      // hide: disp=1; hili=1: hidden.
+      GR_ObjTab[dli].disp  = 1;
+      GR_ObjTab[dli].hili  = 1;
+    }
+  }
+
+
+  return 0;
+
+}
+
+ 
 //===============================================================
-  int DL_hide_all () {
+  int DL_hide_chg () {
 //===============================================================
-/// DL_hide_all      change hidden/visible for all objs
+/// DL_hide_chg      change hidden/visible for all objs
 
 // hidden: disp=1 
 // ON=0   OFF=1
@@ -1010,7 +1071,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   long  ind;
 
 
-  // printf("DL_hide_all\n");
+  // printf("DL_hide_chg\n");
 
 
   for(ind=0; ind<GR_TAB_IND; ++ind) {
@@ -1154,7 +1215,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUU\n");
-  printf("DL_unvis_set %ld %d\n",ind,mode);
+  // printf("DL_unvis_set %ld %d\n",ind,mode);
 
   if(ind >= 0)
     GR_ObjTab[ind].unvis = mode;
@@ -3103,6 +3164,84 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 */
 
 //====================================================================
+  int DL_ReScale__ () {
+//====================================================================
+
+
+  // printf("DL_ReScale__ \n");
+
+  // Point  pb1, pb2;
+
+
+  // test if AP_box_pm1 valid
+  if(AP_mdlbox_invalid_ck()) {
+    // get box of active model
+    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1);
+    AP_mdlbox_invalid_reset ();
+  }
+  
+  // view box
+  DL_ReScale_box (&AP_box_pm1, &AP_box_pm2);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int  DL_ReScale_box (Point *pb1, Point *pb2) {
+//================================================================
+// was DL_ReScale1
+
+  double  d1, dx, dy, dz;
+  Point   pOri, pt1;
+
+
+  // printf("DL_ReScale_box \n");
+  // UT3D_stru_dump (Typ_PT, pb1, "pb1");
+  // UT3D_stru_dump (Typ_PT, pb2, "pb2");
+    
+    
+  // get origin from box of tess-model; but only if very far outside ..
+  // tess_origin_box (&pOri, pb1, pb2); 
+    // UT3D_stru_dump (Typ_PT, &pOri, "pOri");
+    
+    
+  //----------------------------------------------------------------
+  // if boxPoints empty then set box with modelsize around pb1
+  // if(UT3D_comp2pt(pb1,pb2,UT_TOL_min0)) {
+  if(DB_isFree_PT (pb2)) {
+    pOri = *pb1;
+    d1 = APT_ModSiz / 2.;
+    goto L_do;
+  }
+
+
+  //----------------------------------------------------------------
+  // prepare for reScale; get pOri = midPoint of box
+  UT3D_pt_mid2pt (&pOri, pb1, pb2);
+
+  dx = pb2->x - pb1->x;
+  dy = pb2->y - pb1->y;
+  dz = pb2->z - pb1->z;
+
+  // find max dist
+  d1 = UTP_max_d3 (&dx, &dy, &dz);
+    // printf(" d1=%lf\n",d1);
+
+  //----------------------------------------------------------------
+  // set view, redraw
+  L_do:
+  GL_Rescale (d1, &pOri);
+
+  return 0;
+
+}
+
+
+/* Version with glFeedbackBuffer
+//====================================================================
   void DL_ReScale__ () {
 //====================================================================
 /// \code
@@ -3117,9 +3256,6 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 ///  else increase d1 to
 ///  d1 = APT_ModSiz / 0.1;
 /// \endcode
-
-
-
 
 
 
@@ -3223,6 +3359,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   return;
 
 }
+*/
 
 //================================================================
   int DL_ReScale_Notes (Point *pb1, Point *pb2) {
@@ -3254,7 +3391,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue; // hidden
 
     // SizeInfo zu Tag/Image holen
-    DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, l1);
+    // DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, l1);
+    GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, GR_ObjTab[l1].ind);
 
     // use LU
     UT3D_box_extend (pb1, pb2, &p1);   ++pNr;
@@ -3559,12 +3697,12 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
         // printf(" ReScal Sur typ=%d form=%d\n",ox1->typ,ox1->form);
 
         if(ox1->typ == Typ_SUR) {
-          UTO_box_obj (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox
+          UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox
           // if(ox1->form == Typ_SUR) {
             // man sollte eine Box von der ersten Kontur holen;
             // die Boxpunkte DL_ReScalePoint
             // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox
-            // UTO_box_obj (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox
+            // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox
           // } else if (ox1->form == Typ_ObjGX) {
           // }
 

@@ -10,7 +10,6 @@ DLLNAM = plugins/tst
 SRC1 =\
  ../xa/tst.c\
  ../xa/tst_exp.c\
- ../APP/t1.c\
 
 #../xa/tst_su1.c\
 #../xa/tst_cv1.c\

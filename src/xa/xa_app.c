@@ -260,8 +260,16 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 /// see OS_edit_ ED_sysed__
 /// \endcode
 
+  long  l1;
   char  cbuf[256];
 
+
+
+  // test size of file filnam
+  if(OS_FilSiz(filnam) < 3) {
+    TX_Print("***** File %s is empty ..", filnam);
+    return -1;
+  }
 
 #ifdef _MSC_VER
   sprintf(cbuf, "%s \"%s\"",AP_editor,filnam);      // 2013-10-05

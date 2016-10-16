@@ -1,13 +1,12 @@
 #!/bin/sh
-# unset DIR_DEV
-# unset DIR_BIN
+# only for starting dev on Github-local
+# unset DIR_DEV manually.
 
 . ../options.sh
 
 echo `getconf LONG_BIT`"-bit-system"
 
 echo "DIR_DEV =" ${DIR_DEV}
-#echo "DIR_BIN =" ${DIR_BIN}
 
 
 echo "gcad_dir_dev =" ${gcad_dir_dev}

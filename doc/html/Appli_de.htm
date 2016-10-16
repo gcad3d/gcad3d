@@ -19,9 +19,11 @@ Applications sind Scriptprogramme (direkt ausführbar).
 <b>Applications/Start</b>
   Auswahl und Start des aktiven Programmes.
     Auswahl eines Programms:
-      Verzeichnis: {baseDir}/prg
+      Verzeichnis: <beliebig>
       Dateityp:    .gcap
   Das zuletzt ausgewählte Programm kann mit Ctrl-P direkt gestartt werden.
+
+  Das zuletzt gewählte Verzeichnis wird in Datei cfg/xa.rc gespeichert.
 
 
 Jedes Programm erhält automatisch ein Eingabefenster;
@@ -94,7 +96,19 @@ DLG ..
 
 
 ____________________________________________________________________________
+<P><A NAME='Programmcodes'></A></P>
 <b>Programmcodes:</b>
+
+Werden immer (in .gcad) ausgewertet:
+Comment, PRI, JUMP-Label, IF, CALL.
+
+Werden nur Application (.gcap) ausgewertet:
+INTERN, NEW, evaluation function, DLG, DEBUG.
+
+Wird nur in Katalog-Modellfiles ausgewertet:
+CALL CTLG.
+
+
 
 
 <b>Kommentar</b>
@@ -209,6 +223,19 @@ Beispiel:
  # Alle Punkte von P1 bis P20 sowie Punkt P50 (usw..)
  # werden nur intern benutzt; keine Ausgabe in das Hauptmodell.
 
+
+
+
+<b>Aufruf Befehlsdatei</b>
+CALL "symDir/filename"
+
+# Beispiel:
+CALL "Data/sample_prg_call_1.dat"
+PRI "V20=" V20
+C20=P(0 0 0) V20
+
+# File Data/sample_prg_call_1.dat:
+V20=12
 
 
 

@@ -212,7 +212,7 @@ List_functions_end:
 
   memPos0 = memSeg1->next;
   // get tempspace (gets lost on func-return)
-  // UME_alloca (&tmpSpc, 250000);
+  // UME_alloc_tmp (&tmpSpc, 250000);
   // memSeg1 = &tmpSpc;
 
 

@@ -73,7 +73,7 @@ __declspec(dllexport) int gCad_fini ();
 
 #include "../xa/xa_mem.h"                    // gen.purp.memblocks
 #include "../xa/xa_ui.h"                     // UID_..
-
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
 
 
 

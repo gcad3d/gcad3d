@@ -86,17 +86,17 @@ List_functions_end:
 
 
 
-// #include "../ut/ut_umem.h"             // UME_alloc_tmp
+// #include "../ut/ut_umem.h"             // MEM_alloc_tmp
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_msh.h"              // Fac3 ..
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_tin.h"              // TYP_EDGLN_..
-#include "../ut/ut_log.h"                  // MSG_typ_*
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_TX.h"               // TX_Print
 
+#include "../xa/xa_msg.h"              // MSG_typ_*
 #include "../xa/xa_mem.h"              // memspc51
 #include "../xa/xa.h"                  // WC_modact_nam
 
@@ -761,7 +761,7 @@ List_functions_end:
 
   i1 = sizeof(memspc501) / sizeof(Point2);  // 16 byte
   if(i1 < pNr) {
-    p2a = (Point2*) UME_alloc_tmp (pNr * sizeof(Point2));
+    p2a = (Point2*) MEM_alloc_tmp (pNr * sizeof(Point2));
     if(p2a == NULL) {
       TX_Error("MSH_ibnd_ptn E001 %d %d",pNr,i1);
       return -1;
@@ -834,7 +834,7 @@ List_functions_end:
 
 
   // get spc for statArray sa
-  sa = UME_alloc_tmp (p2Nr + 4);
+  sa = MEM_alloc_tmp (p2Nr + 4);
   // init sa
   for(i1=0; i1<p2Nr; ++i1) sa[i1] = 0;
 

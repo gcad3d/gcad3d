@@ -1,6 +1,7 @@
 //  franz.reiter@cadcam.co.at
 //
 // see also ../ut/ut_cast.h
+// # if __WORDSIZE == 64
 
 
 #include <stdint.h>              // ISO-C99 uint32_t ..
@@ -9,7 +10,7 @@
 #ifdef _MSC_VER
 // Mircosoft - MS32
 #define INT_8     INT8           // char 
-#define INT_16    INT16          // signed short 
+#define INT_16    signed short   // signed short INT16
 #define INT_32    INT32          // int  INT BOOL LONG32
 #define INT_64    INT64          // long long
 #define UINT_8    unsigned char  // unsigned char  BYTE UINT8
@@ -29,7 +30,9 @@
 #endif
 
 
+#define INT_8S_MAX           127     // max val signed char
 #define INT_8_MAX            255
+#define INT_16S_MAX        32767     // max val signed short
 #define INT_16_MAX         65535
 #define INT_24_MAX      16777215
 #define INT_32_MAX    4294967295

@@ -360,7 +360,6 @@ __declspec(dllexport) int DXFW__ (char*);
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_os.h"                  // OS_get_bas_dir ..
-#include "../ut/ut_log.h"                 // MSG_typ_*
 // #include "../ut/ut_txTab.h"               // TxtTab
 #include "../ut/ut_memTab.h"              // MemTab_..
 
@@ -373,6 +372,7 @@ __declspec(dllexport) int DXFW__ (char*);
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
+#include "../xa/xa_msg.h"                 // MSG_typ_*
 #include "../xa/xa_mem.h"                 // memspc501
 #include "../xa/xa.h"                     // AP_STAT
 
@@ -1313,7 +1313,7 @@ usw.
     UT2D_vc_invert (&vc22, &vc22); 
     // prj defPt1 -> extLine1
     UT2D_pt_projptptvc (&pt21, &dim1->p3, &dim1->p1, &vc22);
-      GR_Disp_pt2 (&pt21, SYM_STAR_S, 2);
+      // GR_Disp_pt2 (&pt21, SYM_STAR_S, 2);
     pt1 = UT3D_pt_pt2 (&pt21);
     DXFW_point3 (0, &pt1, fp_in);
 
@@ -1326,7 +1326,7 @@ usw.
 
     // 50 = Angle of dimension-line (deg)
     a1 = dim1->a1;
-      printf(" _DIM a1=%lf\n",a1);
+      // printf(" _DIM a1=%lf\n",a1);
     DXFW_fl_out (50, a1, fp_in);
     // optional 51 ndicates the horizontal direction; val=neg angle of x-axis
     // // 53=rotation angle of the dimension text
@@ -2302,7 +2302,7 @@ usw.
 
 
   l1 = OS_FilSiz (fnam);
-  fBuf = UME_alloc_tmp (l1 + 128);
+  fBuf = MEM_alloc_tmp (l1 + 128);
   MEM_get_file (fBuf, &l1, fnam);
   fwrite (fBuf, 1, l1, fpo);
 

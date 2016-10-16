@@ -82,13 +82,14 @@ objlst:
 	@echo $(OBJ1)
 
 
+#=====================================================================
+add_srclst:
+	@echo $(SRC1) >> srcFiles
+
 
 #=====================================================================
-# vi holt damit seine sourcefileliste
 srclst:
-	@echo $(SRC1) >> srcFiles
-#	@echo Demo_gui*.c >> srcFiles
-
+	@echo $(SRC1) > srcFiles
 
 
 #=====================================================================

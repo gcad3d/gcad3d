@@ -1470,7 +1470,7 @@ Retour: der Index.
 //     Pointer to curve
 //     Point to Endpunkt, wenn Startpunkt der Startpunkt der Curve waere.
 
-  int    typ, rNr;
+  int    irc, typ, rNr;
   long   ind, dNr;
   Point  pt1, pt2;
   // Vector vc1;
@@ -1508,7 +1508,8 @@ Retour: der Index.
 
 
   // den Endpunkt von Obj1 -> pt1
-  UTO_2pt_lim_dbo (&pt1, typ, ind, 1);  //// mode; 1=Startpt 
+  // UTO_2pt_lim_dbo (&pt1, typ, ind, 1);  //// mode; 1=Startpt 
+  irc = UT3D_ptvcpar_std_dbo (&pt1, NULL, NULL, Ptyp_1, typ, ind);
 
   // den Vektor -> vc1
   // UTO_obj_get (&vc1, obj2);
@@ -1878,8 +1879,7 @@ Retour: der Index.
 
   } else if(el->form == Typ_CVCLOT) {
     // UME_init (&tmpSeg, memspc201, sizeof(memspc201));
-    irc = UT3D_npt_curvp (ptTab, &ptNr,
-                          Typ_CVCLOT, (CurvClot*)el->data, UT_DISP_cv);
+    irc = UT3D_npt_clot (ptTab, &ptNr, (CurvClot*)el->data, UT_DISP_cv);
     if (irc < 0) return -1;
 
 

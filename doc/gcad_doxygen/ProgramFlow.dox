@@ -5,7 +5,8 @@
 \ref Startup
 \ref Workflow
 \ref Events
-
+\ref Edit_mem
+\ref Edit_edi
 
 \ref Transformations
 \ref Interaction
@@ -34,9 +35,37 @@
 
 
 
+_____________________________________________________________________
+\section Edit_mem
+\code
+Functions modifying model in memory (UTF_FilBuf0):
+
+ED_new_File
+  UTF_add_file
+
+ED_add_File
+  UTF_add1_file
+    UTF_insert1
+
+ED_srcLn_add APED_src_chg PED_exit UTO_sav_ost uva..
+  UTF_add_line
+
+AP_src_mod_ed
+  UTF_chg_line
+
+APED_src_chg UNDO_ln_res UNDO_ln_del UTF_comment_chg
+  UTF_comment_line UTF_insertTxt
+
+ED_del__
+
+
+\endcode
+_____________________________________________________________________
+\section Edit_edi
 
 
 
+_____________________________________________________________________
 \section Transformations
 <pre>
 see also \ref ut_transform.c  (UTRA_)
@@ -67,6 +96,7 @@ UT3D_vc_travcm4
 
 
 \endcode
+_____________________________________________________________________
 \section Views
 \code
 APT_work_PrgCmd          do "VIEW" source
@@ -82,7 +112,7 @@ UI_GR_view               save/restore viewData
 \endcode
 
 
-<hr>
+_____________________________________________________________________
 \section Startup
 \code
 
@@ -104,6 +134,7 @@ ED_work_END
 
 
 \endcode
+_____________________________________________________________________
 \section Workflow
 <pre>
 \ref NC_Main.c   CommandInterpreter - main
@@ -209,7 +240,7 @@ UI_CB_view                    View - Funktion
 \code
 
 ------------------- GUI-events 
-UI_GL_mouse__
+UI_GL_mouse__                 OpenGL-callback for user-selection
   UI_GR_Select1
     GL_sel_sel
     UI_GR_Select2             callback von GUI_Popup (Liste der sel.Obj)
@@ -367,10 +398,16 @@ SRCU_tmr_CB__             // timer callback
 APT_decode_Activ
 DB_StoreActiv
 UI_menCB "Iact"    ckb_Iact
-UI_GR_ButtonPress
- UI_GR_Select1
-  DL_IactSelect
-   DB_QueryActiv
+UI_GL_mouse__           callback mouseButton
+  UI_GR_Select1         get selected obj
+    sele_get_pos
+    GL_sel_sel
+    sele_ck_typ         test if objTyp is active in reqObjTab
+    sele_ck_subCurv     test for component of curve; give point on polygon ..
+      SRC_src_pt_dbo    src from point and DB-obj
+
+   DL_IactSelect
+     DB_QueryActiv
 
 \endcode
 

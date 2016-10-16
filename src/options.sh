@@ -18,10 +18,8 @@ DIR_DEV=${HOME}/devel/
 fi
 
 if [ ! -n "$DIR_BIN" ]; then
-DIR_BIN=${HOME}/devel/gcad3d/gCAD3D/
-gcad_srv_bin=${DIR_BIN}/gcad3d/binLinux${bitNr}
-# objs,exes,libs; only for building new version.
-
+# vi.sh
+DIR_BIN=${HOME}/devel/bin/
 fi
 
 

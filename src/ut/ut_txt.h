@@ -64,6 +64,16 @@
 /// find end of string ('\0')           p1 = UTX_pos_EOS(cString);
 #define UTX_pos_EOS(p1) strchr(p1, '\0')
 
+
+/// UTX_wTab_tmpSpc   get tempSpace for UTX_wTab_str (see UTX_wTab_str)
+/// memspace exists only until active function returns
+#define UTX_wTab_tmpSpc(wa,waSiz)\
+ (wa)=(char**)MEM_alloc_tmp((waSiz)*sizeof(void*))
+
+
+
+
+
 // -------------------------------------------------------------------
 extern const char TX_NUL;
 

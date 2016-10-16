@@ -190,13 +190,16 @@ s_tab[]   s_obj*
 i_tab     (int*) gives the s_tab-index from a step-link
           s_tab-index = i_tab[<step-link>];
 
-mdlTab    .iPROD = link to PRODUCT,
+mdlTab    STP_MDL
+          .iPROD = link to PRODUCT,
           .nam = PRODUCT-name.
 
-refTab    .ii = link to subModelRef (NEXT_ASSEMBLY_USAGE_OCCURRENCE)
-          .iMdl = ?
+refTab    STP_I2
+          .ii = link to subModelRef (NEXT_ASSEMBLY_USAGE_OCCURRENCE)
+          .iMdl = ?   (s_tab-index of PRODUCT)
 
-geoTab    .ii = link to ADVANCED_BREP_SR
+geoTab    STP_I2      List of models;
+          .ii = link to ADVANCED_BREP_SR
           .iMdl = ?
 
 
@@ -341,6 +344,7 @@ __declspec(dllexport) int STP_r__ (char*);
 
 #include "../xa/xa_mem.h"              // memspc.., mem_cbuf1
 #include "../xa/xa.h"                  // AP_STAT printd
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
 
 
 
@@ -792,8 +796,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 
 #ifdef DEB
-    printd("importing %d STEP-records ...\n",s_Nr);
-    printd("tabIndex, sInd, sTyp:\n");
+    printd("----- s_tab - s_Nr=%d (sInd sTyp) ---------\n",s_Nr);
     for(i1=0; i1<s_Nr; ++i1) {
       printd(" %d #%d = %s\n",i1,s_tab[i1].sInd,
              STP_r_TypTxt_sTyp(s_tab[i1].sTyp));
@@ -1426,7 +1429,8 @@ static int    errTyp;       // 0=report error with TX_Print; else not
   
   long    i1, i2, l2;
   
-  printd("----- STP_r_dump_mdlTab %d ---------\n",geoTab.rNr);
+  printd("----- STP_r_dump_mdlTab %d (.iPROD Link_of_iPROD .nam) ---------\n",
+         geoTab.rNr);
   
   for(i1=0; i1 < mdlTab.rNr; ++i1) {
     // l2 = mdlTab.data[i1].iPROD;
@@ -1450,7 +1454,8 @@ static int    errTyp;       // 0=report error with TX_Print; else not
   
   int     i1, i2, l2;
   
-  printd("----- STP_r_dump_geoTab %d ---------\n",geoTab.rNr);
+  printd("----- STP_r_dump_geoTab %d (.ii Link_of_ii .iMdl) ---------\n",
+         geoTab.rNr);
   
   for(i1=0; i1 < geoTab.rNr; ++i1) {
     // i2 = geoTab.data[i1].iMdl;
@@ -1473,7 +1478,8 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   int     i1, i2, l2;
 
-  printd("----- STP_r_dump_refTab %d ---------\n",geoTab.rNr);
+  printd("----- STP_r_dump_refTab %d (.ii Link_of_ii .iMdl) ---------\n",
+         geoTab.rNr);
 
   for(i1=0; i1 < refTab.rNr; ++i1) { 
     // i2 = refTab.data[i1].iMdl;
@@ -1508,7 +1514,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
   printd("STP_r_mdl_sm\n");
 
   // get tempspace for list of unused PRODUCTs.
-  iaProd = (int*) UME_alloc_tmp (mdlNr * sizeof(int));
+  iaProd = (int*) MEM_alloc_tmp (mdlNr * sizeof(int));
   if(!iaProd) {TX_Error("STP_r_mdl_sm EOM"); return -1;}
 
 
@@ -3589,7 +3595,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
         // SHAPE_REPRESENTATION
         } else if(!strcmp(dc1, "SHAPE_REPRESENTATION")) {
           // SHAPE_REPRESENTATION('*MASTER',(#169,#182,#191),#45);
-          // Block ... alles AXIS2_PLACEMENT_3D; skippen
+          // Block ... alles AXIS2_PLACEMENT_3D; refSys of dittos.
           // Link  --> SHAPE_REPRESENTATION_RELATIONSHIP od 
           //           GEOMETRIC_REPRESENTATION_CONTEXT  od
           //           ADVANCED_BREP_SHAPE_REPRESENTATION ..
@@ -4525,19 +4531,26 @@ static Point p1, p2;
 //================================================================
   int STP_r_creVc1 (int sInd) {
 //================================================================
-// SC_DIRECTION  (koords wie bei punkt)
+/// \code
+/// SC_DIRECTION  (koords wie bei punkt)
+/// Input:
+///   sInd   index of vector in s_tab
+/// Output:
+///   s_tab[sInd].gTyp = Typ_VC;
+///   s_tab[sInd].gInd = ????
+/// \endcode
 
   int     irc;
   Vector  *vc1;
 
   vc1 = s_tab[sInd].sDat;
 
-  // UT3D_stru_dump (Typ_VC, vc1, "STP_r_creVc1:");
+  if(sInd==4226)UT3D_stru_dump (Typ_VC, vc1, "STP_r_creVc1:");
 
 
   // Vektoren: test for Defaultvecs (DX/DY/DZ)
   irc = APED_oid_vc (gTxt, vc1);
-    // printd("ex AP_txt_vec irc=%d |%s|\n",irc,gTxt);
+    if(sInd==4226)printf("ex AP_txt_vec irc=%d |%s|\n",irc,gTxt);
   if(irc != 0) {
     s_tab[sInd].gTyp = Typ_VC;
     s_tab[sInd].gInd = irc;
@@ -7071,6 +7084,8 @@ if(strlen(gTxt) > 20) exit(0);
   AP_obj_add_obj (gTxt, s_tab[ivz].gTyp, s_tab[ivz].gInd);
   AP_obj_add_val (gTxt, rd1);
   AP_obj_add_val (gTxt, rd2);
+    // printf(" creSur5 |%s|\n",gTxt);
+
 
   irc = STP_r_creObj1 (sInd, Typ_SOL, Typ_Txt, gTxt);
   if(irc < 0) return irc;
@@ -12375,22 +12390,31 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   L_get_next:
     if(fgets (p1, mem_cbuf1_SIZ, fp1) == NULL) return -1;
-    // liest bis LF;
-      // printf(" nxt ln |%s|\n",p1);
-    ll = strlen(p1) - 1;    // zeigt nun auf last char
+    // read until LF;
+    ll = strlen(p1) - 1;    // points to last char
 
-   
+
 
     //----------------------------------------------------------------
     // remove Blanks, Carriage Returns und Linefeeds
     // skip foll. blanks, CR's, LF's;
-    while((p1[ll] == ' ')  ||
-          (p1[ll] == '\n') ||
-          (p1[ll] == '\r'))     {p1[ll] = '\0';  ll -= 1;}
+    L_skip_1:
+    if(ll < 0) goto L_start;  // empty line ..
+    if((p1[ll] == ' ')  ||
+       (p1[ll] == '\n') ||
+       (p1[ll] == '\r'))     {
+      p1[ll] = '\0';
+      ll -= 1;
+      goto L_skip_1;
+    }
       // printf(" str r ll=%d\n",ll);
-    if(ll < 1) goto L_start;  // empty line ..
-    lMax -= ll;
+    lMax = mem_cbuf1_SIZ - ll ;
 
+
+#ifdef DEB
+  printd("  readLn-1 |%s| ll=%d\n",p1,ll);
+#endif
+   
 
     
     //----------------------------------------------------------------
@@ -12410,8 +12434,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     }
 
 
+    // find end "*/", remove comment.
     if(flgComm) {
-      // find end "*/", remove comment.
       commEnd = strstr(commBeg, "*/");
       if(commEnd) {
         // found end of string, check remaining nr of chars
@@ -12444,7 +12468,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
       goto L_get_next;
     }
 
-    // printf("ex STP_r_readLn |%s|\n",mem_cbuf1);
+#ifdef DEB
+  printd("  readLn-e |%s| ll=%d\n",p1,ll);
+#endif
+   
 
   return 0;
 

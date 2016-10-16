@@ -16,6 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
+alle UT3D_ci auslager -> ut_circ1.c
 remove ObjG2, ObjG
 polygon (_pta_ _cv_) auslagern nach ut_npt (UT3D_cv_..)
 
@@ -170,23 +171,28 @@ UT3D_pt_pt2bp             3D-point from 2D-point & backplane
 UT3D_pt_addpt             Add two points:      po += p1                INLINE
 UT3D_pt_add_pt2           add 2D-point         po += p1                INLINE
 UT3D_pt_add2pt            Add two points:      po = p1 + p2
+UT3D_pt_add_vc_par        add (vector * lpar)  po += (vc * lpar)       INLINE
 UT3D_pt_sub_pt2           subtract 2D-point                            INLINE
 UT3D_pt_multpt            multiply; po = pi * d
 UT3D_pt_LinComb2Pts       Linear combination of 2 points: po = a1 * p1 + a2 * p2
 UT3D_pt_mid2pt            midpoint between 2 points
 UT3D_pt_mid_pta           arithm. Mittelwert der Punktetabelle pTab
 UT3D_pt_midci             midpoint of a circ
-UT3D_pt_std_ci              90/180/270-deg-point of circ
+UT3D_pt_std_ci            90/180/270-deg-point of circ
+UT3D_ptvcpar_std_dbo      get typical points & tangent-vector for DB-obj
+UT3D_ptvcpar_std_obj      get typical points & tangent-vector for obj
 UT3D_pt_opp2pt            opposite point (p1 = center)
 UT3D_pt_oppptptvc         point opposite line (= 180 deg rot.)
 UT3D_2pt_oppptvclen       2 opposite points (center, vector, dist)
+UT3D_pt_tra_pt_dx         Point = Point + dx                  (INLINE)
+UT3D_pt_tra_pt_dy         Point = Point + dy                  (INLINE)
 UT3D_pt_traptvc           Point = Point + Vector              (INLINE)
 UT3D_pt_traptivc          Point = Point - Vector              (INLINE)
 UT3D_pt_traptmultvc       point = point + (vector * factor)   (INLINE)
 UT3D_pt_traptvclen        transl. point into dir vc dist. lenv
-UT3D_pt_traptvc1len       transl. point into dir vc dist. lenv (vcLen=1)
+UT3D_pt_tra_pt_vc_par     transl. point into dir vc dist. lenv (vcLen=1)
 UT3D_pt_trapt2vc          transl. point into 2 directions
-UT3D_pt_tra_pt_2vc1_2par  transl. point into 2 directions
+UT3D_pt_tra_pt_2vc_2par   transl. point into 2 directions
 UT3D_pt_trapt2vc2len      transl. point into 2 directions (2 len's)
 UT3D_pt_trapt3vc3len      transl. point into 3 directions (3 len's)
 UT3D_pt_traptptlen        transl. point into dir pDir dist. lenv
@@ -332,6 +338,7 @@ UT3D_ln_ln2               3D-Line from 2D-Line (Z=0)
 UT3D_ln_2pt2              LN = PT - PT
 UT3D_ln_ptvc              Line = PT + VC                  INLINE
 UT3D_ln_ptpt              Line = Point, Point             INLINE
+UT3D_ln_tra_vc            translate line
 UT3D_ln_tng_ci_pt         tangent to circ tru point
 UT3D_ln_tng_ci_vc         tangent with fixed vector to circ
 UT3D_ln_tng_ci_ci         Tangente an CIR - CIR
@@ -514,13 +521,11 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 #include "../ut/ut_bspl.h"                // UT3D_parbsp_par1
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
-
-#include "../ut/func_types.h"                  // SYM_SQUARE ..
-
+#include "../ut/func_types.h"             // SYM_SQUARE ..
 #include "../ut/ut_TX.h"                  // TX_Error
-
 #include "../ut/ut_memTab.h"              // MemTab_..
 
+#include "../xa/xa_msg.h"                 // MSG_*
 
 
 
@@ -1850,22 +1855,34 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 /// \code
 /// UT3D_ci_lncird            Circ = tangent to CIR + CIR, radius.
 /// 
-/// RC = 1,2 = Anzahl Kreise.
-///      -1  = keine Loesung
+///   sNr       solutionNr,  0-7   (0=first, 1=second, 7=last)
+///   RC = 1,2 = rn circles
+///        -1  = Error - no solution
 /// \endcode
 
 
-  int      irc, i0, i1, i2, i3, is, is31, is32, is33, ySid;
+  int      irc, i1, i2, i3, is34, is56, is78, ySid;
   double   dx, dy, lc, la, lb, d1, r1, r2, rd, dd, dx1, dx2, dx3, dGap;
   Point    ptx;
   Vector   vx, vy;
   Circ     c1, c2;
 
 
-  // printf("UT3D_ci_cicird %f %d\n",rad1,sNr);
+  // printf("UT3D_ci_cicird r=%lf sNr=%d\n",rad1,sNr);
+  // UT3D_stru_dump (Typ_CI, ci1, "  ci1");
+  // UT3D_stru_dump (Typ_CI, ci2, "  ci2");
+
 
   irc  = 0;
-  ySid = 1;
+
+  // make sNr 1-8 from 0-7
+  if(sNr < 0) sNr = 0;
+  ++sNr;
+  // make side above=1, below=0.
+  // ySid = 1;
+  ySid = sNr % 2;
+    // printf(" sNr=%d ySid=%d\n",sNr,ySid);
+
 
   r1 = fabs(ci1->rad);
   r2 = fabs(ci2->rad);
@@ -1883,18 +1900,20 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   // vx = ci1->pc --> ci2->pc
   UT3D_vc_2pt (&vx, &ci1->pc, &ci2->pc);
-  // vy = Normalvec
+  // vy = Normalvec to vx
   UT3D_vc_perp2vc (&vy, &ci1->vz, &vx);
+    // UT3D_stru_dump (Typ_VC, &vx, "  vx:");
+    // UT3D_stru_dump (Typ_VC, &vy, "  vy:");
 
-
-  // test ob ein einziger Kreis genau innen beruehrt ...
-  dGap = lc - r1 - r2;
-  if(UTP_comp2db(dGap, dd, UT_TOL_pt)) goto L_1sol;
-  
 
   // wenn gap > (2 * rd):  gar keine Loesung.
+  dGap = lc - r1 - r2;
   if(dGap > dd) return -1;
 
+
+  // test if circ touches circ inside ..
+  if(UTP_comp2db(dGap, dd, UT_TOL_pt)) goto L_1sol;
+  
 
   // wenn ein kreis den zweiten innen beruehrt -
   if(r1 > r2) {
@@ -1912,47 +1931,49 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   // test if circs overlap
   if(dGap < 0.) goto L_over;
 
+
+  //----------------------------------------------------------------
   // circs have a gap;
 
-  // solution 1 & 2 sind nun die beiden Kreise; diese 2 solutions sind fix.
+  // sNr 1, 2 = around c1 and around c2: always possible
   //          1
   //    c1         c2
   //          2
 
 
-  // test for around c1 touching c2
+  // sNr 5, 6: test for around c1 touching c2
   //          1
   //    c1  3.1    c2
   //          2
   d1 = lc + r1 - r2;
-  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is31 = 1;      // exact; 1 solution
-  else if(dd < d1) is31 = 0;                        // keine solution
-  else if(dd > d1) is31 = 2;                        // 2 solutions
-    // printf("is31=%d d1=%f\n",is31,d1);
+  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is56 = 1;      // exact; 1 solution
+  else if(dd < d1) is56 = 0;                        // keine solution
+  else if(dd > d1) is56 = 2;                        // 2 solutions
+    // printf("is56=%d d1=%f\n",is56,d1);
 
 
-  // test for around c1 touching c2
+  // sNr 3, 4: test for touching c1 around c2
   //          1
   //    c1    3.2  c2
   //          2
   d1 = lc - r1 + r2;
-  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is32 = 1;      // exact; 1 solution
-  else if(dd < d1) is32 = 0;                        // keine solution
-  else if(dd > d1) is32 = 2;                        // 2 solutions
-    // printf("is32=%d d1=%f\n",is32,d1);
+  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is34 = 1;      // exact; 1 solution
+  else if(dd < d1) is34 = 0;                        // keine solution
+  else if(dd > d1) is34 = 2;                        // 2 solutions
+    // printf("is34=%d d1=%f\n",is34,d1);
 
 
-  // test for around c1 and around c2
+  // sNr 7, 8: test for around c1 and around c2
   //         3.3
   //          1
   //    c1    3.2  c2
   //          2
   //         3.4
   d1 = lc + r1 + r2;
-  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is33 = 1;      // exact; 1 solution
-  else if(dd < d1) is33 = 0;                        // keine solution
-  else if(dd > d1) is33 = 2;                        // 2 solutions
-    // printf("is33=%d d1=%f\n",is33,d1);
+  if(UTP_comp2db(dd, d1, UT_TOL_pt)) is78 = 1;      // exact; 1 solution
+  else if(dd < d1) is78 = 0;                        // keine solution
+  else if(dd > d1) is78 = 2;                        // 2 solutions
+    // printf("is78=%d d1=%f\n",is78,d1);
 
   goto L_maxCirc_;
   
@@ -2040,6 +2061,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   //================================================================
   L_1sol:
     // printf("L_1sol \n");
+    // c1 touches c2 inside; only 1 sol. possible.
     irc = 1;
     la = ((lc -r1 -r2) / 2.) + r1;
     lb = rd;
@@ -2051,7 +2073,6 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
     // printf("L_2sol %d\n",sNr);
     la = r2 + rd;
     lb = r1 + rd;
-    if(sNr == 1) ySid = -1;
     goto L_create;
 
 
@@ -2068,7 +2089,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
     // 2 Kreise;
     la = r2 - rd;
     lb = r1 + rd;
-    if(sNr == 1) ySid = -1;
+    // if(sNr == 1) ySid = -1;
     goto L_create;
 
 
@@ -2085,7 +2106,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
     // 2 Kreise;
     la = r2 + rd;
     lb = r1 - rd;
-    if(sNr == 1) ySid = -1;
+    // if(sNr == 1) ySid = -1;
     goto L_create;
 
 
@@ -2102,12 +2123,13 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
     // 2 Kreise;
     la = r2 - rd;
     lb = r1 - rd;
-    if(sNr == 1) ySid = -1;
+    // if(sNr == 1) ySid = -1;
     goto L_create;
 
 
   //================================================================
   L_create:
+// set new pc from la, lb
 //
 //              x
 //        lb  /   \ la      dy = h
@@ -2116,15 +2138,23 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 //             lc
 //           dx=q
 //
-      // printf("L_create: la=%f lb=%f lc=%f\n",la,lb,lc);
+      // printf("L_create: la=%f lb=%f lc=%f ySid=%d\n",la,lb,lc,ySid);
+
     UT2D_solvtri_abc (&dx, &dy, la, lb, lc);
-      // printf("    dx=%f dy=%f\n",dx,dy);
     // if(sNr == 1) dy = -dy;  // 2 = unten
-    if(ySid < 0) dy = -dy;  // 2 = unten
+    // if(ySid < 0) dy = -dy;  // 2 = unten
+    if(ySid < 1) dy *= -1.;        // 1=above; 0=below
+      // printf("    dx=%f dy=%f\n",dx,dy);
+
+    // dx along vx
     UT3D_pt_traptvclen (&ptx, &ci1->pc, &vx, dx);
       // GR_Disp_pt (&ptx, SYM_STAR_S, 3);
+
+    // dy along vy
     UT3D_pt_traptvclen (&ca[0].pc, &ptx, &vy, dy);
       // GR_Disp_pt (&ca[0].pc, SYM_STAR_S, 4);
+
+    // p1 of new circ = from pc1 length r1 -> new pc
     UT3D_pt_traptptlen (&ca[0].p1, &ci1->pc, &ca[0].pc, r1);
     ca[0].p2 = ca[0].p1;
     goto L_done;
@@ -2292,100 +2322,63 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   //================================================================
   L_maxCirc_:
-    // printf("L_maxCirc_: %d %d %d\n",is31,is32,is33);
-    is = sNr + 1;
-    irc = 2 + is31 + is32 + is33;
-    if(is < 3) goto L_2sol;          // 1,2
-    i0 = 2;
+      // printf("L_maxCirc_: is34=%d is56=%d is78=%d\n",is34,is56,is78);
+
+    // irc = max nr of solutions
+    irc = 2 + is34 + is56 + is78;
+    if(sNr < 3) goto L_2sol;          // 1,2
 
 
-    // handle is31
-    i0 += is31;
-    if(is31 == 1) {
-      if(is == i0) {
+    // handle is34   (touch c1, around c2)
+    if(sNr < 5) {
+      if(is34 == 1) {
         //    c1 X    c2
         la = -r1 + rd;
         lb = rd;
         goto L_cre_1;
-      }
-    } else if(is31 > 1) {
-      if(is == (i0 - 1)) {
-        //    c1   c2
-        //    X
-        la = rd + r2;
-        lb = rd - r1;
-        r1 = -r1;
-        goto L_create;
-      }
-      if(is == i0) {
-        //    X
-        //    c1   c2
-        la = rd + r2;
-        lb = rd - r1;
-        r1 = -r1;
-        ySid = -1;
+  
+      } else if(is34 > 1) {
+        la = rd - r2;
+        lb = rd + r1;
         goto L_create;
       }
     }
 
 
-    // handle is32
-    i0 += is32;
-    if(is32 == 1) {
-      if(is == i0) {
+    // handle is56
+    if(sNr < 7) {
+      if(is56 == 1) {
         //    c1    X c2
         la = lc + r2 - rd;
         lb = rd;
         goto L_cre_1;
-      }
-    } else if(is32 > 1) {
-      if(is == (i0 - 1)) {
-        //    c1   c2
-        //          X   
-        la = r2 - rd;
-        lb = r1 + rd;
-        goto L_create;
-      }
-      if(is == i0) {
-        //          X   
-        //    c1   c2
-        la = r2 - rd;
-        lb = r1 + rd;
-        ySid = -1;
+  
+      } else if(is56 > 1) {
+        la = rd + r2;
+        lb = rd - r1;
+        r1 = -r1;
         goto L_create;
       }
     }
 
 
-    // handle is33
-    i0 += is33;
-    if(is33 == 1) {
-      if(is == i0) {
-        //    c1 X c2
-        la = ((lc + r1 + r2) / 2.) - r1;
-        lb = rd;
-        goto L_cre_1;
-      }
-    } else if(is33 > 1) {
-      if(is == (i0 - 1)) {              // OK
-        //    c1   c2
-        //       X   
-        la = r2 - rd;
-        lb = r1 - rd;
-        r1 = -r1;
-        goto L_create;
-      }
-      if(is == i0) {                    // OK
-        //       X   
-        //    c1   c2
-        la = r2 - rd;
-        lb = r1 - rd;
-        r1 = -r1;
-        ySid = -1;
-        goto L_create;
-      }
+
+    // handle is78
+    if(is78 == 1) {
+      //    c1 X c2
+      la = ((lc + r1 + r2) / 2.) - r1;
+      lb = rd;
+      goto L_cre_1;
+
+    } else if(is78 > 1) {
+      la = r2 - rd;
+      lb = r1 - rd;
+      r1 = -r1;
+      // ySid = ICHG01(ySid);
+      goto L_create;
     }
 
+    return -1;
 
 
 
@@ -2410,7 +2403,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   //================================================================
   //================================================================
   L_done:
-    // UT3D_stru_dump(Typ_CI, ca, "ex UT3D_ci_cicird %d\n",irc);
+    // UT3D_stru_dump(Typ_CI, ca, "ex UT3D_ci_cicird irc=%d\n",irc);
 
   return irc;
 
@@ -2708,7 +2701,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 /// UT3D_ci_lncird            Circ = tangent to LN + CIR, radius.
 /// 
 /// Input:
-///  sNr  solutionNr, -1 == alle Solutions, else nur die gewuenschte
+///  sNr  solutionNr, -1 == all Solutions, else requested solution
 /// 
 /// RC = 1,2,3,4,5,6,7,8 = Max. Anzahl Kreise.
 /// \endcode
@@ -3011,7 +3004,8 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 /// UT3D_ci_2lnrd             Circ = corner for 2 Lines
 /// 
 /// Input:
-///  sNr  solutionNr,  0|1|2|3     // -1=automatic
+///  sNr       solutionNr,  -1 = all Solutions, else requested solution
+///              0|1|2|3|4
 /// RC = -1: Lines parallel 
 ///      -2  lines do not intersect
 ///       4: OK, max nr of Circs, one circ back.
@@ -3020,14 +3014,14 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   int       irc;
   double    aa, la, lc, r1, d1;
-  Point     ps, px1, pm1, pm2;
+  Point     ps, px1, pm1, pm2, fp1, fp2, pmv;
   Vector    v1, v2, vm;
 
 
   // printf("============================================= \n");
-  // printf("UT3D_ci_2lnrd r=%f %d\n",rad1,sNr);
-  // UT3D_stru_dump(Typ_LN, ln1, "");
-  // UT3D_stru_dump(Typ_LN, ln2, "");
+  // printf("UT3D_ci_2lnrd rad1=%f sNr=%d\n",rad1,sNr);
+  // UT3D_stru_dump(Typ_LN, ln1, " ln1");
+  // UT3D_stru_dump(Typ_LN, ln2, " ln2");
 
 
   r1 = fabs(rad1);
@@ -3036,43 +3030,69 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   ca[0].rad = rad1;
 
 
-  // intersection-point
+  // ps = intersection-point ln1 -ln2
   // irc = UT3D_pt_int2ln (&ps, &px1, &d1, ln1, ln2);
   irc = UT3D_pt_intlnln (&ps, &px1, &d1, ln1, 1, ln2, 1);
-
   if(irc < 0) return -1;
   if(d1 > UT_TOL_cv) return -2; //UT3D_pt_mid2pt (&ps, &ps, &px1);
-    // printf(" ps=%f,%f,%f\n",ps.x,ps.y,ps.z);
+    // UT3D_stru_dump (Typ_PT, &ps, "ps");
+
+//----------------------------------------------------------------
+// NEW:
+  // get fp1 = farer point from ps on ln1
+  irc = UT3D_minLen_3pt (&aa, &ps, &ln1->p1, &ln1->p2);
+  if(irc == 1) fp1 = ln1->p2;
+  else         fp1 = ln1->p1;
 
 
-  // UT3D_vc_ln (&v1, ln1);
-  // UT3D_vc_ln (&v2, ln2);
+  // get fp2 = farer point from ps on ln2
+  irc = UT3D_minLen_3pt (&aa, &ps, &ln2->p1, &ln2->p2);
+  if(irc == 1) fp2 = ln2->p2;
+  else         fp2 = ln2->p1;
 
-  UT3D_pt_mid2pt (&pm1, &ln1->p1, &ln1->p2);    // pm1 = midpoint of ln1
-  UT3D_pt_mid2pt (&pm2, &ln2->p1, &ln2->p2);    // pm2 = midpoint of ln1
 
-  UT3D_vc_2pt (&v1, &ps, &pm1);
-  UT3D_vc_2pt (&v2, &ps, &pm2);
+  UT3D_vc_2pt (&v1, &ps, &fp1);
+  UT3D_vc_2pt (&v2, &ps, &fp2);
 
   UT3D_vc_setLength (&v1, &v1, 1.);
   UT3D_vc_setLength (&v2, &v2, 1.);
-  UT3D_vc_perp2vc (&ca[0].vz, &v1, &v2);
 
-  UT3D_vc_2vc (&vm, &v1, &v2);  // vm  = midvector ps - pm1 - pm2
+  UT3D_vc_perp2vc (&ca[0].vz, &v1, &v2);
+  UT3D_vc_setLength (&ca[0].vz, &ca[0].vz, 1.);     // 2016-09-05
+    // UT3D_stru_dump (Typ_VC, &v1, "v1");
+    // UT3D_stru_dump (Typ_VC, &v2, "v2");
+    // UT3D_stru_dump (Typ_VC, &ca[0].vz, "vz");
+
+  // vm  = midvector ps - ln1 - ln2
+  UT3D_vc_2vc (&vm, &v1, &v2);
   UT3D_vc_setLength (&vm, &vm, 1.);
-    // printf(" vm=%f,%f,%f\n",vm.dx,vm.dy,vm.dz);
+    // UT3D_stru_dump (Typ_VC, &vm, "vm");
 
 
   //-------------------------------------
+  //      v2
+  //       \                /vm
+  //        \              /
+  //         \     r   _--x pc
+  //          \    _--'  /|
+  //           x--'     / |
+  //            \    lc/  |
+  //             \    /   |r=lb
+  //              \  /    |
+  //               \/a la |
+  //      ---------x------x----- v1
+  //              ps\     p1
+  //                 \
+
   if(sNr > 1) goto L_sol34;
 
   // half opening-angle aa
   aa = ACOS(UT3D_acos_2vc (&v1, &vm));
 
-  // Dreieck la, lb=r, lc auf Mittellinie
+  // Dreieck la=v1, lb=r, lc auf Mittellinie
   la = r1 / tan(aa);
   lc = r1 / sin(aa);
-  // printf(" aa=%f la=%f lc=%f\n",aa,la,lc);
+    // printf(" aa=%f la=%f lc=%f\n",aa,la,lc);
 
 
   //-------------------------------------
@@ -5865,12 +5885,13 @@ Tests:
   int UT3D_pt_std_ci (Point *po, int imod, Circ *ci1) {
 //================================================================
 /// \code
-/// UT3D_pt_std_ci              90/180/270-deg-point of circ
+/// UT3D_pt_std_ci         get 90/180/270-deg-point of circ
 /// imod -1: rc returns nr of points; 4 for 360-deg-circs, else 2.
 /// if (circ == 360-deg-circ):
 ///   imod: 0=0, 1=90, 2=180, 3=270 Grad !
 /// else if (circ < 360-deg):
 ///   imod: 0=p1, 1=p2
+/// For nr of points use UTO_ptnr_std_obj
 /// \endcode
 
   Vector   vc1, vc2;
@@ -5928,6 +5949,424 @@ Tests:
   return 0;
 
 }
+
+
+//=======================================================================
+  int UT3D_ptvcpar_std_dbo (Point *pto, Vector *vco, double *par,
+                            int pType, int dbtyp, long dbi) {
+//=======================================================================
+/// \code
+/// UT3D_ptvcpar_std_obj   get typical points & tangent-vector for DB-obj
+/// see UT3D_ptvcpar_std_obj
+/// \endcode
+
+  ObjGX   oxi;
+
+
+  OGX_SET_INDEX (&oxi, dbtyp, dbi);
+
+  return UT3D_ptvcpar_std_obj (pto, vco, par,
+                               pType, Typ_ObjGX, &oxi);
+
+}
+
+
+//=======================================================================
+  int UT3D_ptvcpar_std_obj (Point *pto, Vector *vco, double *par,
+                            int pType, int cvTyp, void *cvDat) {
+//=======================================================================
+/// \code
+/// UT3D_ptvcpar_std_obj     get typical points & tangent-vector for obj
+///                       (start, end, mid, ..)
+///   (parametric points, typical points, standardpoints, characteristic points)
+///
+/// Input:
+///   pto        NULL for no output
+///   vco        NULL for no output
+///   par        NULL for no output
+///   pType      which points to compute (eg Ptyp_0 ../ut/AP_types.h)
+///              -1 or less: get controlpoint of polygon|spline (-1 is first)
+///   cvTyp      type of cvDat; eg Typ_LN
+///   cvDat      line/curve, eg struct Line
+///   cvPar      parameter (for pType Ptyp_param)
+/// Output:
+///   pto        point out
+///   vco        vector out      normalized ??
+///   par        parameter out (0-1)
+///   retcod     0=ok, -1=Error
+///
+/// nr of std-points: UTO_ptnr_std_obj
+/// boxpoints: see UT3D_box_obja
+/// parameter: see UT3D_ptvc_tng_crv_par UT3D_pt_evparcrv
+/// \endcode
+
+
+  int     irc, i1, i2, oTyp, imod;
+  char    *cp1;
+  double  db1, d1;
+  Point   pt1;
+  Vector  vc1;
+  Point2  pt21;
+  void    *vp1;
+
+
+  // printf("UT3D_ptvcpar_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
+
+  irc = 0;
+
+
+/*
+    if(cvTyp == Typ_ObjGX)
+      cvTyp = UTO_obj_getp (&cvDat, &i1, cvDat);
+*/
+
+  switch (cvTyp) {
+
+
+    //----------------------------------------------------------------
+    case Typ_PT2:
+      *pto = UT3D_pt_pt2 ((Point2*)cvDat);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_PT:
+      if(pto) *pto = *((Point*)cvDat);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_LN2:
+      // if(vco) UT2D_vc_ln (vco, (Line2*)cvDat);
+      // if(pType == Ptyp_0) { // startpoint
+          // // printf(" Typ_LN2-s\n");
+      // } else if(pType == Ptyp_1) { // endpoint
+          // // printf(" Typ_LN2-e\n");
+      // } else if(pType == Ptyp_mid) { // midpoint
+        // UT2D_pt_mid2pt (&pt21, &((Line2*)cvDat)->p1,
+                               // &((Line2*)cvDat)->p2);
+        // *pto = UT3D_pt_pt2 (&pt21);
+      // } else
+      goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_LN:
+      if(vco) UT3D_vc_ln (vco, (Line*)cvDat);
+
+      if(pType <= Ptyp_0) { // startpoint
+        if(pto) *pto = ((Line*)cvDat)->p1;
+        if(par) *par = 0.;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        if(pto) *pto = ((Line*)cvDat)->p2;
+        if(par) *par = 1.;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        if(pto) UT3D_pt_mid2pt (pto, &((Line*)cvDat)->p1, &((Line*)cvDat)->p2);
+        if(par) *par = 0.5;
+
+      } else goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CI2:
+      // centerpoint
+      // *pto = UT3D_pt_pt2 (&((Circ2*)cvDat)->pc);
+      goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CI:
+      if(pType == Ptyp_0) { // startpoint
+        pt1 = ((Circ*)cvDat)->p1;
+        if(par) *par = 0.;
+        goto L_CI2;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        pt1 = ((Circ*)cvDat)->p2;
+        if(par) *par = 1.;
+        goto L_CI2;
+
+      } else if(pType == Ptyp_mid) { // midpoint / 180-deg-point
+        UT3D_pt_midci (&pt1, (Circ*)cvDat);
+        if(par) *par = 0.5;
+        goto L_CI2;
+
+      } else if((pType == Ptyp_def) ||
+                (pType == Ptyp_cen)) { // centerpoint
+        if(pto) *pto = ((Circ*)cvDat)->pc;
+        break;
+
+      } else if(pType == Ptyp_90_deg) { // 90-deg-point
+        imod = 1;
+        if(par) *par = 0.25;
+        goto L_CI1;
+
+      } else if(pType == Ptyp_270_deg) { // 270-deg-point
+        // imod: 1=90;2=180;3=270;
+        imod = 3;
+        if(par) *par = 0.75;
+        goto L_CI1;
+
+      } else goto L_err_FNI;
+
+      L_CI1:
+        UT3D_pt_std_ci (&pt1, imod, (Circ*)cvDat);
+      L_CI2:
+        if(pto) *pto = pt1;
+        if(vco) UT3D_vc_tng_ci_pt (vco, &pt1, (Circ*)cvDat);
+
+      break;
+
+
+    //----------------------------------------------------------------
+    // Typ_Note
+    case Typ_GTXT:
+      // UT3D_stru_dump (Typ_GTXT, obj, "GText:");
+      if(pto) *pto = (((GText*)cvDat)->pt);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_ATXT:
+      // UT3D_stru_dump (Typ_GTXT, obj, "GText:");
+      if(pto) *pto = (((AText*)cvDat)->p1);
+      break;
+
+
+    //----------------------------------------------------------------
+    // Typ_Model
+    case Typ_Model:
+      if(pto) *pto = (((ModelRef*)cvDat)->po);
+      break;
+
+
+    //----------------------------------------------------------------
+    // Curves:
+    case Typ_CVPOL:
+
+      if((pType == Ptyp_def) ||
+         (pType == Ptyp_0)) { // startpoint
+        db1 = ((CurvPoly*)cvDat)->v0;
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvPoly*)cvDat)->v1;
+      // } else if(pType == Ptyp_mid) { // midpoint
+        // db1 = (((CurvPoly*)cvDat)->v0 + ((CurvPoly*)cvDat)->v1) / 2.;
+
+      } else if(pType < Ptyp_0) { 
+        i1 = pType * -1 - 1;  // make index from MOD; first point = -1
+          // printf(" pType=%d i1=%d\n",pType,i1);
+        if(pto) *pto = ((CurvPoly*)cvDat)->cpTab[i1];
+        db1 = ((CurvPoly*)cvDat)->lvTab[i1];
+        goto L_POL1;
+ 
+      } else goto L_err_FNI;
+
+
+      if(pto) UT3D_pt_evalplg (pto, (CurvPoly*)cvDat, db1);
+      L_POL1:
+      if(vco) UT3D_vc_evalplg (vco, (CurvPoly*)cvDat, db1);
+      if(par) *par = UT3D_par1_parplg (&db1, (CurvPoly*)cvDat);
+      break;
+  
+
+    //----------------------------------------------------------------
+    case Typ_CVELL:
+      if(pType == Ptyp_0) { // startpoint
+        pt1 = ((CurvElli*)cvDat)->p1;
+        if(par) *par = 0.;
+        goto L_ELL2;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        pt1 = ((CurvElli*)cvDat)->p2;
+        if(par) *par = 1.;
+        goto L_ELL2;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        // if 360-deg: pt = pc + (rev)va; vc = (rev)vb;
+        if(!UT3D_ck_el360((CurvElli*)cvDat)) {
+          if(pto) {
+            UT3D_vc_invert (&vc1, &((CurvElli*)cvDat)->va);
+            UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc, &vc1);
+          }
+          if(vco) UT3D_vc_invert (vco, &((CurvElli*)cvDat)->vb);
+        } else {
+          UT3D_ptvc_eval_ell_par (pto, vco, (CurvElli*)cvDat, 0, 0.5);
+        }
+        if(par) *par = 0.5;
+        break;
+
+      } else if((pType == Ptyp_def) ||
+                (pType == Ptyp_cen)) { // centerpoint
+        if(pto) *pto = ((CurvElli*)cvDat)->pc;
+        break;
+
+      } else if(pType == Ptyp_90_deg) { // 90-deg-point
+        // pc + vb
+        if(pto) UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc,
+                                      &((CurvElli*)cvDat)->vb);
+        if(vco) UT3D_vc_invert (vco, &((CurvElli*)cvDat)->va);
+        // if(par) *par = 0.?;
+
+      } else if(pType == Ptyp_270_deg) { // 270-deg-point
+        // pc + (rev)vb
+        if(pto) {
+          UT3D_vc_invert (&vc1, &((CurvElli*)cvDat)->vb);
+          UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc, &vc1);
+        }
+        if(vco) *vco = ((CurvElli*)cvDat)->va;
+        // if(par) *par = 0.?;
+        break;
+
+      } else if(pType == Ptyp_focus1) { // focus 1
+        UT3D_pt_elfoc (pto, NULL, (CurvElli*)cvDat);
+        break;
+
+      } else if(pType == Ptyp_focus2) { // focus 2
+        UT3D_pt_elfoc (NULL, pto, (CurvElli*)cvDat);
+        break;
+
+
+      } else goto L_err_FNI;
+
+      L_ELL1:
+        // UT3D_pt_std_ci (&pt1, imod, (Circ*)cvDat);
+      L_ELL2:
+        if(pto) *pto = pt1;
+        if(vco) {
+          if(!UT3D_ck_el360((CurvElli*)cvDat)) {
+            *vco = ((CurvElli*)cvDat)->vb;
+          } else {
+            UT3D_vc_tangel (vco, &pt1, (CurvElli*)cvDat);
+          }
+        }
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVCLOT:
+      if(vco) i1 = 1;
+      else    i1 = 0;
+
+      if((pType == Ptyp_def) ||
+         (pType == Ptyp_0)) { // startpoint
+        if(pto) *pto = ((CurvClot*)cvDat)->stp;
+        if(vco) *vco = ((CurvClot*)cvDat)->stv;
+        if(par) *par = 0.;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        if(pto) UT3D_ptvc_evparclot (pto, vco, i1, (CurvClot*)cvDat, 1.);
+        if(par) *par = 1.;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        if((pto) || (vco))
+          UT3D_ptvc_evparclot (pto, vco, i1, (CurvClot*)cvDat, 0.5);
+        if(par) *par = 0.5;
+
+      } else goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVBSP:
+      if((pType == Ptyp_def) ||
+         (pType == Ptyp_0)) { // startpoint
+        db1 = ((CurvBSpl*)cvDat)->v0;
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvBSpl*)cvDat)->v1;
+      // } else if(pType == Ptyp_mid) { // midpoint
+        // db1 = (((CurvBSpl*)cvDat)->v0 + ((CurvBSpl*)cvDat)->v1) / 2.;
+
+      } else if(pType < Ptyp_0) {
+        i1 = pType * -1 - 1;  // make index from MOD; first point = -1
+          // printf(" pType=%d i1=%d\n",pType,i1);
+        if(pto) *pto = ((CurvBSpl*)cvDat)->cpTab[i1];
+        db1 = ((CurvBSpl*)cvDat)->kvTab[i1];
+        goto L_BSP1;
+
+      } else goto L_err_FNI;
+
+      if(pto) UT3D_pt_evalparCv (pto, (CurvBSpl*)cvDat, db1);
+      L_BSP1:
+      if(vco) UT3D_vc_evalparCv (vco, (CurvBSpl*)cvDat, db1);
+      if(par) *par = db1;
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVRBSP:
+      if(pType == Ptyp_0) { // startpoint
+        db1 = ((CurvRBSpl*)cvDat)->v0;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvRBSpl*)cvDat)->v1;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        db1 = (((CurvRBSpl*)cvDat)->v0 + ((CurvRBSpl*)cvDat)->v1) / 2.;
+
+      } else goto L_err_FNI;
+
+      if(pto) UT3D_pt_evparCrvRBSpl (pto, &d1, (CurvRBSpl*)cvDat, db1);
+      if(vco) goto L_err_FNI;
+        // make a new UT3D_vc_eval_par_rbspl from UT3D_rbspl_tst_tg
+      if(par) *par = db1;
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_ObjGX:
+      i1 = UTO_obj_getp (&vp1, &i2, cvDat);
+      if(i1 < 0) return -1;
+      if(i2 > 1) TX_Print("**** UT3D_ptvcpar_std_obj I001");
+
+      // recursion
+      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, vp1);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVCCV:
+      if(((ObjGX*)cvDat)->typ != Typ_CVCCV) goto L_err_FNI;
+      cp1 = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
+      UTO_cv_cvtrm (&i1, cp1, NULL, (CurvCCV*)cvDat);
+// TODO: spline, clot has v0-point, v1-point in CurvCCV-struct (io0, ip1) !?
+      // recursion
+      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, cp1);
+      break;
+
+
+    //----------------------------------------------------------------
+    default:
+      goto L_err_FNI;
+  }
+
+
+    // TESTBLOCK
+    // if(irc >= 0) {
+      // UT3D_stru_dump (Typ_PT, pto, "ex ptvcpar_std_obj");
+      // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
+      // if(vco) GR_Disp_vc (vco, pto, 9, 1);
+    // }
+    // END TESTBLOCK
+
+
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_err_FNI:  // function not implemented
+    UT3D_stru_dump (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_std_obj");
+    return MSG_STD_ERR (func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
+
+}
+
 
 
 //========================================================================
@@ -6426,7 +6865,8 @@ liegt. ohne acos.
 //====================================================================
 /// \code
 /// UT3D_pt_opp2pt                  opposite point (p1 = center)
-/// p1 und po duerfen ident sein.
+/// p1 may be == po
+/// p2 may be == po
 /// \endcode
 
 
@@ -6498,10 +6938,10 @@ liegt. ohne acos.
 
 
 //=======================================================================
-  void UT3D_pt_traptvc1len (Point *po,Point *pi,Vector *vc,double dist) {
+  void UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist) {
 ///====.==================================================================
 /// \code
-/// UT3D_pt_traptvc1len          transl. point into dir vc dist.lenv (vcLen=1)
+/// UT3D_pt_tra_pt_vc_par          transl. point into dir vc dist.lenv (vcLen=1)
 /// Vector has Length 1.; Point = basePoint + (vec * len)
 /// \endcode
 
@@ -6559,29 +6999,29 @@ liegt. ohne acos.
 
 
 //========================================================================
-  void UT3D_pt_tra_pt_2vc1_2par (Point *po, Point *pi,
-                                 Vector *vc1, double l1,
-                                 Vector *vc2, double l2) {
+  void UT3D_pt_tra_pt_2vc_2par (Point *po, Point *pi,
+                                Vector *vc1, double l1,
+                                Vector *vc2, double l2) {
 //========================================================================
 /// \code
-/// UT3D_pt_tra_pt_2vc1_2par      transl. point into 2 directions
+/// UT3D_pt_tra_pt_2vc_2par      transl. point into 2 directions
 /// distance = vc. * l. (real dist if vc has length=1)
 /// po, pi can have same address.
 /// retour: UT3D_2par_vc_vcx_vcy
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_PT, pi, "UT3D_pt_tra_pt_2vc1_2par: ");
+  // UT3D_stru_dump (Typ_PT, pi, "UT3D_pt_tra_pt_2vc_2par: ");
   // UT3D_stru_dump (Typ_VC, vc1, "    vc1:");
   // UT3D_stru_dump (Typ_VC, vc2, "    vc2:");
 
 
-  po->x = pi->x + vc1->dx * l1 + vc2->dx * l2;
-  po->y = pi->y + vc1->dy * l1 + vc2->dy * l2;
-  po->z = pi->z + vc1->dz * l1 + vc2->dz * l2;
+  po->x = pi->x + (vc1->dx * l1) + (vc2->dx * l2);
+  po->y = pi->y + (vc1->dy * l1) + (vc2->dy * l2);
+  po->z = pi->z + (vc1->dz * l1) + (vc2->dz * l2);
 
 
-  // printf("ex UT3D_pt_tra_pt_2vc1_2par %lf %lf %lf\n",po->x,po->y,po->z);
+  // printf("ex UT3D_pt_tra_pt_2vc_2par %lf %lf %lf\n",po->x,po->y,po->z);
   // printf("                %f %f %f\n",pi->x,pi->y,pi->z);
   // printf("                %f %f %f %f\n",vc->dx,vc->dy,vc->dz,lenv);
 
@@ -6595,6 +7035,7 @@ liegt. ohne acos.
 //========================================================================
 /// \code
 /// UT3D_pt_trapt2vc2len        transl. point into 2 directions (2 len's)
+/// vc1, vc2 must not be normalized.
 /// Move point into direction vc with distance dx.
 /// po kann mit pi ident sein.
 /// \endcode
@@ -6627,6 +7068,7 @@ liegt. ohne acos.
 /// \code
 /// UT3D_pt_trapt3vc3len        transl. point into 3 directions (3 len's)
 /// Move point into direction vx,vy,vz with distance dx, dy dz.
+/// vx, vy, vz must not be normalized.
 /// po kann mit pi ident sein.
 /// \endcode
 
@@ -8237,12 +8679,12 @@ liegt. ohne acos.
   int UT3D_pt_evparcrv (Point *pto, double lpar, int typ, void *data) {
 //======================================================================
 /// \code
-/// einen Punkt auf linear obj ox1 errechnen;
+/// get point on line/curve from parameter
 /// Aufruf nur mit der struct (statt einem ObjX):
 /// ObjGX ox1; UT3D_pt_evparcrv (pto, 0.5, ox1.form, &ox1.data);
 /// lpar = Abstandswert 0-1 oder bei BSP Knotenwert!
 /// 
-/// see also UTO_obj_int UTO_stru_int UTO_get_ptpar 
+/// see also UT3D_ptvc_tng_crv_par UTO_stru_int
 /// \endcode
 
 
@@ -9520,7 +9962,7 @@ liegt. ohne acos.
     // UT3D_stru_dump (Typ_VC, &vy, "  vy:");
 
   // pt1 = add dx,dy (vector from angr) to x-axis,y-axis of circ
-  UT3D_pt_tra_pt_2vc1_2par (&pt1, &ci1->pc, &vx, dx, &vy, dy);
+  UT3D_pt_tra_pt_2vc_2par (&pt1, &ci1->pc, &vx, dx, &vy, dy);
 
   // get vc1 as vector ci.pc - pt1
   UT3D_vc_2pt (&vc1, &ci1->pc, &pt1);
@@ -9530,7 +9972,7 @@ liegt. ohne acos.
     dx *= rada;
     dy *= rada;
     // pt1 = add dx,dy (vector from angr) to x-axis,y-axis of circ
-    UT3D_pt_tra_pt_2vc1_2par (pto, &ci1->pc, &vx, dx, &vy, dy);
+    UT3D_pt_tra_pt_2vc_2par (pto, &ci1->pc, &vx, dx, &vy, dy);
   }
 
   // create normal-vector to vc1 according to sense-of-rotation of ci1
@@ -9757,9 +10199,13 @@ USBS_TgVecIsoBspSur
 ///   always normal to short angle ( < PI); not respecting sense of rotation.
 /// Output:
 ///   vp       vector normal to v1 and v2;
-///            CAN BE 0,0,0 - if v1,v2 are parallel !
-///            lenght-v3 = (lenght-v1 * lenght-perpVec-v2-v1)
-///                      = (lenght-v2 * lenght-perpVec-v1-v2)
+///
+///   length-vp = 1 only if v1 and v2 are normalized AND have angle = 90 deg
+///   length-vp is the projection of v2 onto v1  ??
+///     CAN BE 0,0,0 - if v1,v2 are parallel !
+///     lenght-vp = (lenght-v1 * lenght-perpVec-v2-v1)
+///               = (lenght-v2 * lenght-perpVec-v1-v2)
+/// 
 /// 
 /// Get VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vx, &vy);
 /// Get VY from VZ, VX:    UT3D_vc_perp2vc (&vy, &vz, &vx);
@@ -9785,7 +10231,6 @@ USBS_TgVecIsoBspSur
 /// \endcode
 
 // die Laenge enspricht dem Normalvektor von v2 auf v1 !!!!
-// vp ist nur normiert, wenn v1 UND v2 normiert sind.
 // 
 // Wenn v1 - v2 parallel, dann ist vp = 0,0,0 !!
 // (Test auf v1,v2 parallel: siehe UT3D_ln_int2pl)
@@ -12087,8 +12532,8 @@ Version 2 - auch Mist
     // GR_Disp_pt (&cia[1].pc, SYM_STAR_S, 2);
     // GR_Disp_ac (&cia[0], 9);
     // GR_Disp_ac (&cia[1], 9);
-    UT3D_stru_dump(Typ_CI, &cia[0], "ex UT3D_ci_2ptvcrd-0\n");
-    UT3D_stru_dump(Typ_CI, &cia[1], "ex UT3D_ci_2ptvcrd-1\n");
+    // UT3D_stru_dump(Typ_CI, &cia[0], "ex UT3D_ci_2ptvcrd-0\n");
+    // UT3D_stru_dump(Typ_CI, &cia[1], "ex UT3D_ci_2ptvcrd-1\n");
 
   return 2;
 
@@ -13234,7 +13679,7 @@ FEHLER: pos's koennen gleich sein !
 ///   pTyp       type of parameter;
 ///                 0=normalized parameter (0-1)
 ///                 1=native parameter; any value ..
-/// see also UT3D_vc_tng_crv_pt
+/// see also UT3D_pt_evparcrv UT3D_vc_tng_crv_pt
 /// \endcode
 
 
@@ -16315,6 +16760,21 @@ Mat_4x4-vertical   (used by OpenGL !)
 }
 
 
+//================================================================
+  int UT3D_ln_tra_vc (Line *lno, Line* lni, Vector *vco) {
+//================================================================
+// translate line
+
+  UT3D_pt_traptvc (&lno->p1, &lni->p1, vco);
+  UT3D_pt_traptvc (&lno->p2, &lni->p2, vco);
+
+    // UT3D_stru_dump (Typ_LN, lno, "ex UT3D_ln_tra_vc ");
+
+  return 0;
+
+}
+
+
 //=====================================================================
   int UT3D_ln_tng_ci_pt (Line *lno, Circ *ci1, Point *pt1, int imod) {
 //=====================================================================
@@ -16375,13 +16835,22 @@ Mat_4x4-vertical   (used by OpenGL !)
 //=======================================================================
 /// \code
 /// UT3D_ln_tng_ci_ci          Tangente (4 Lines) an CIR - CIR
-/// sNr = 1-4
-/// 
-/// RC = nr of possible solutions; -1 (no solution), 1|2|3|4
+///   sNr     solution-number 0-3    
+/// Output:
+///   RC = nr of possible solutions; -1 (no solution), 1|2|3|4
+///
+///   ------------1--------
+///     \ \         _/ /
+///      \ \__3   4/  /
+///      |   _\ __/   |
+///      /__/  \___   \
+///     //         \__ \
+///   -------2-------------
+///
 /// \endcode
 
   int      irc, i1;
-  double   lb, lc, r1, r2, dx, dy;
+  double   lb, lc, r1, r2, dx, dy, f1, f2;
   Vector   vcc, vcn, vc1, vc2;
   Point    pt0, pt1, pt2;
 
@@ -16391,39 +16860,129 @@ Mat_4x4-vertical   (used by OpenGL !)
   // UT3D_stru_dump (Typ_CI, ci2, " ci2");
 
 
-  // Abst. Mittelpunkte
+  // lc = dist centerpoints
   lc = UT3D_len_2pt (&ci1->pc, &ci2->pc);
-  if(UTP_compdb0(lc, UT_TOL_pt)) goto AC_AC_err; // konzentrisch
+  if(UTP_compdb0(lc, UT_TOL_pt)) goto AC_AC_err; // concentric
   r1 = fabs(ci1->rad);
   r2 = fabs(ci2->rad);
-  // printf(" r1=%f r2=%f lc=%f\n",r1,r2,lc);
+    // printf(" r1=%f r2=%f lc=%f\n",r1,r2,lc);
 
+  // vcc = von ci1.pc --> ci2.pc
+  UT3D_vc_2pt (&vcc, &ci1->pc, &ci2->pc);
 
-  // test aussen beruehren; Ja = max 3 solutions.
+  // normalize vcc
+  UT3D_vc_div_d  (&vcc, &vcc, lc);
+    // UT3D_stru_dump (Typ_VC, &vcc, " vcc");
+
+  // vcn = Crossvec von vcc | ci.vz   (y-vector from vcc=x-vector, axis=z-vector)
+  UT3D_vc_perp2vc (&vcn, &ci1->vz, &vcc);
+    // UT3D_stru_dump (Typ_VC, &vcn, " vcn");
+
+  // test touch outside
   dx = r1 + r2;
-  dy = fabs(r1 - r2);
-  // printf(" dx=%f dy=%f\n",dx,dy);
-  if(UTP_comp2db(dx, lc, UT_TOL_pt)) {
-    irc = 3;
-    if(sNr > 3) goto AC_AC_err;
-    if(sNr == 3) goto L_ac_perp;
 
-  // Test innen beruehren == 1 sol.
-  } else if(UTP_comp2db(dy, lc, UT_TOL_pt)) {
-    irc = 1;
-    if(sNr > 1) goto AC_AC_err;
+
+  // test touch outside
+  if(UTP_comp2db(dx, lc, UT_TOL_pt)) {
+    // yes, touching outside; 3 solutions possible
+    irc = 3;
+    if(sNr > 2) goto AC_AC_err;
+    if(sNr < 2) goto L_ac_01;
+    f1 = r1;
     goto L_ac_perp;
 
-  // test ci1 inside ci2: Ja = max 2 solutions
+  // test touch inside
+  } else if(UTP_comp2db(fabs(r1 - r2), lc, UT_TOL_pt)) {
+    // yes, touching inside; 1 solution possible
+    irc = 1;
+    if(sNr > 0) goto AC_AC_err;
+    f1 = r1;
+    if(r2 > r1) f1 *= -1.;
+    goto L_ac_perp;
+
+  // test ci1 intersects ci2
   } else if(dx > lc) {
+    // yes, ci1 intersects ci2; max 2 solutions
     irc = 2;
-    if(sNr > 2) goto AC_AC_err;
+    if(sNr > 1) goto AC_AC_err;
+    goto L_ac_01;
 
-  } else irc = 4;
+  } else {
+    // max 4 solutions
+    irc = 4;
+    if(sNr > 3) goto AC_AC_err;
+    if(sNr < 2) goto L_ac_01;
+    goto L_ac_23;
+  }
 
 
+
+  //----------------------------------------------------------------
+  // ln1 = line perp to ci1-ci2;
+  L_ac_perp:
+  if(fabs(lc) < UT_TOL_pt) goto AC_AC_err;
+  // pt0 = point on ci1 on line ci1->pc - ci2->pc
+  UT3D_pt_traptmultvc (&ln1->p1, &ci1->pc, &vcc, f1);
+  UT3D_pt_traptmultvc (&ln1->p2, &ln1->p1, &vcn, UT_DISP_cv*1000.);
+  goto L_done;
+
+
+  //----------------------------------------------------------------
+  L_ac_01:
+  // solutions 0 and 1 (outer tangents)
+
+  // test for parallel (same radius)
   if(UTP_comp2db(r1, r2, UT_TOL_pt)) {
-    // die Kreise sind gleich gross !
+    dx = 0.;
+    dy = 1.;
+    if(sNr < 1) dy = -1.;   // sol.0 = below
+
+    f1 = -r1;
+    f2 = -r1;
+    goto L_move;
+  }
+
+  lb = r1 - r2;
+  UT2D_solvtriri_bc (&dx, &dy, lb, lc);
+  if((sNr == 1)&&(r1 > r2)) dy *= -1.;   // sol.0 = below
+  if((sNr == 0)&&(r1 < r2)) dy *= -1.;   // sol.0 = below
+    // printf(" r1=%f r2=%f lc=%f lb=%f dx=%f dy=%f\n",r1,r2,lc,lb,dx,dy);
+
+  f1 = r1 / lb;
+  f2 = r2 / lb;
+  goto L_move;
+  
+
+  //----------------------------------------------------------------
+  L_ac_23:
+  // solutions 2 and 3 (inner tangents)
+  lb = r1 + r2;
+  UT2D_solvtriri_bc (&dx, &dy, lb, lc);
+  if(sNr == 3) dy *= -1.;
+    // printf(" r1=%f r2=%f lc=%f lb=%f dx=%f dy=%f\n",r1,r2,lc,lb,dx,dy);
+
+  f1 = r1 / lb;
+  f2 = r2 / lb * -1.;
+  goto L_move;
+  
+
+  //----------------------------------------------------------------
+  L_move:
+  // vc1 = normalvector to new line; length lb
+  vc1.dx = dx;
+  vc1.dy = dy;
+  vc1.dz = 0.;
+  // f1,f2 = multipl.factors to tangent-points
+  UT3D_pt_traptmultvc (&ln1->p1, &ci1->pc, &vc1, f1);
+  UT3D_pt_traptmultvc (&ln1->p2, &ci2->pc, &vc1, f2);
+  goto L_done;
+
+
+
+/*
+  //----------------------------------------------------------------
+  if(UTP_comp2db(r1, r2, UT_TOL_pt)) {
+    // circles have same radius
     // nur die Mittellinie parallelverschieben
     if(sNr < 3) {
       dx = 0.;
@@ -16432,8 +16991,10 @@ Mat_4x4-vertical   (used by OpenGL !)
     }
   }
 
-  if(sNr > 2)   lb = -(r1 + r2);      // Innen
-  else          lb = r2 - r1;         // aussen
+
+  //----------------------------------------------------------------
+  if(sNr >= 2)   lb = -(r1 + r2);      // inner sol.
+  else           lb = r2 - r1;         // outer sol.
 
   UT2D_solvtriri_bc   (&dx, &dy, lb, lc);
   // printf(" r1=%f r2=%f lc=%f lb=%f dx=%f dy=%f\n",r1,r2,lc,lb,dx,dy);
@@ -16443,30 +17004,8 @@ Mat_4x4-vertical   (used by OpenGL !)
   }
   goto L_ac_std;
 
-
-
-  //----------------------------------------------------------------
-  L_ac_perp:
-  if(fabs(lc) < UT_TOL_pt) goto AC_AC_err;
-
-  // Line 0 Normal auf ci1.pc - ci2.pc
-  UT3D_vc_2pt (&vcc, &ci1->pc, &ci2->pc);
-  UT3D_pt_traptvclen (&pt0, &ci1->pc, &vcc, r1);
-  UT3D_vc_perp2vc (&vcn, &vcc, &ci1->vz);
-  UT3D_pt_traptvclen (&ln1->p1, &pt0, &vcn, UT_DISP_cv*1000.);
-  UT3D_pt_opp2pt (&ln1->p2, &pt0, &ln1->p1);
-
-  goto L_done;
-
-
-
   //----------------------------------------------------------------
   L_ac_std:
-  // vcc = von ci1.pc --> ci2.pc
-  // vcn = Crossvec von vcc | ci.vz
-  UT3D_vc_2pt (&vcc, &ci2->pc, &ci1->pc);
-  UT3D_vc_perp2vc (&vcn, &vcc, &ci1->vz);
-
   // pt0 = von ci2.pc in Richt vcc Abst=dx
   // pt1 = von pt0 in Richt vcn Abst=-dy
   // pt2 = von pt0 in Richt vcn Abst=dy
@@ -16488,20 +17027,21 @@ Mat_4x4-vertical   (used by OpenGL !)
     UT3D_pt_traptvclen (&ln1->p1, &ci1->pc, &vc2, r1);
   }
 
-  if(sNr > 2)  r2 = -r2;
+  // solution 2,3:
+  if(sNr >= 2)  r2 = -r2;
   if(i1 < 1)
     UT3D_pt_traptvclen (&ln1->p2, &ci2->pc, &vc1, r2);
   else
     UT3D_pt_traptvclen (&ln1->p2, &ci2->pc, &vc2, r2);
 
   goto L_done;
-
+*/
 
 
   //----------------------------------------------------------------
   L_done:
     // GR_Disp_ln (ln1, 9);
-    // printf("ex UT3D_ln_tng_ci_ci %d\n",irc);
+      // printf("ex UT3D_ln_tng_ci_ci %d\n",irc);
     return irc;
 
 
@@ -17501,7 +18041,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 ///    | /           |
 ///    x---------------------> vcx
 ///
-/// retour: UT3D_pt_tra_pt_2vc1_2par
+/// retour: UT3D_pt_tra_pt_2vc_2par
 /// \endcode
 
 // see also UT3D_nlen_projvcvc UT3D_nlen_projvcvc
@@ -17677,7 +18217,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   if(!va1) {
     // get local space
-    va1 = UME_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
   }
 
   for(i1=0; i1 < *nrp; ++i1) {
@@ -17721,10 +18261,10 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   if(!va1) {
     // get local space
-    va1 = UME_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
   }
 
-  da = UME_alloc_tmp (sizeof(double) * *nrp);
+  da = MEM_alloc_tmp (sizeof(double) * *nrp);
 
   for(i1=0; i1 < *nrp; ++i1) {
     // get parameter of point on elli
@@ -17813,7 +18353,8 @@ Mat_4x4-vertical   (used by OpenGL !)
   irc = UT3D_pt_ck_inLine (&ln1->p1, &ln1->p2, &pa[ii], UT_TOL_pt);
   if(irc < 1) {
     // remove point [ii] from pa
-    MEM_del_pt (&paSiz, pa, ii);
+    // MEM_del_pt (&paSiz, pa, ii);
+    MEM_del_nrec (&paSiz, pa, ii, 1, sizeof(Point));
   }
   --ii;
   if(ii >= 0) goto L_nxtPt;
@@ -17855,7 +18396,8 @@ Mat_4x4-vertical   (used by OpenGL !)
   if(irc < 0) {
     // remove point [ii] from pa
       // printf(" delPt %d\n",ii);
-    MEM_del_pt (&paSiz, pa, ii);
+    // MEM_del_pt (&paSiz, pa, ii);
+    MEM_del_nrec (&paSiz, pa, ii, 1, sizeof(Point));
   }
 
   --ii;

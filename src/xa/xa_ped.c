@@ -250,7 +250,7 @@ static FILE      *PED_fp_dep = NULL;
 //================================================================
   int PED_init (int typ, long dbi, long dli) {
 //================================================================
-// main-entrypoint
+// main-entrypoint 'move_points_of_obj'
  
   int   irc, i1, form, lNr;
   long  l1, l2, icp;
@@ -1490,6 +1490,8 @@ static FILE      *PED_fp_dep = NULL;
   int PED_get_ato (int *iNr, int **atyp, double **atab) {
 //================================================================
 // get & decode the sourceObj
+// Output:
+//   iNr    nr of points
 
   int     i1, lNr, bufSiz;
   char    *cPos, *cBuf, *cp1, *cp2;
@@ -1524,7 +1526,7 @@ static FILE      *PED_fp_dep = NULL;
   // parametric point od via DirectPoint ..
   // *iNr = APT_decode__ (atyp, atab, &cp2);
   *iNr = APT_decode__ (&ato, &cp2);
-    // PED_dump_atab ();
+    PED_dump_atab ();
 
   *atyp = ato.typ;
   *atab = ato.val;

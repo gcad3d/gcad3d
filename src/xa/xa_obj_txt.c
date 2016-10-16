@@ -1052,7 +1052,7 @@ static long su_ind;
 
 
     } else {       // normale struct: convert --> text
-      irc = AP_stru_2_txt(cPos2, cLen2, pi, ind);
+      irc = AP_stru_2_txt (cPos2, cLen2, pi, ind);
       if(irc < 0) return -1;
         // printf("    ex stru_2_txt:\n%s\n",cPos2);
       irc = UTF_add1_line (cPos2); // add Lines -> Aux.Buffer
@@ -1100,8 +1100,10 @@ static long su_ind;
 /// In und Out: pt_ind wird um 1 incrementiert !
 /// Input:
 ///   o1
-///   ind   DB-index; for -1L a new (free) index is used.
+///   ind      DB-index; for -1L a new (free) index is used.
+///   bufLen   max siz of ED_buf1
 /// Output:
+///   ED_buf1  source-obj; init function if NULL.
 ///   RC = -1: Fehler am Objekt, weiter.
 ///   RC = -2: Ueberlauf; sofort abbrechen.
 ///
@@ -1118,7 +1120,7 @@ static long su_ind;
   int      typ, form, irc, ciMode, i1, i2, iNr, *ia;
   long     *lTab;
   double   d1, *da;
-  char     cbuf[240];
+  char     cbuf[240], *cp1;
 
 
   Point2    *pt21, *p2Tab, p20;
@@ -1138,7 +1140,8 @@ static long su_ind;
   SurRBSpl  *srbsp;
   SurRev    *srv;
   Conus     *bco;
-  ModelRef  *mro;
+  ModelRef  *mdr;
+  ModelBas  *mdb;
   ObjGX     *oTab, *ox1;
 
 
@@ -2552,6 +2555,8 @@ static long su_ind;
 
   //=====================================================================
   } else if (typ == Typ_Model) {
+    // create subModel-call; eg "M1="<modelname>" origin scl vz vx
+    // in: ModelRef mdr
 
     // hole naechsten freien Index
     if(ind < 0) {
@@ -2566,37 +2571,42 @@ static long su_ind;
       goto L_add_text;
     }
 
-    mro = o1->data;
-      // UT3D_stru_dump (Typ_Model, mro, "ModRef - ");
+    mdr = o1->data;
+      // UT3D_stru_dump (Typ_Model, mdr, "ModRef - ");
 
+    // catalog-part | ditto ?
+    DB_mdlTyp_iBas (&i1, mdr->modNr);
+    if(i1 == -3) return -1;
 
-    // catalog-part ?
-    DB_mdlTyp_iBas (&i1, mro->modNr);
+    // get modelname of basic-model-nr
+    cp1 = DB_mdlNam_iBas (mdr->modNr);
+
     if(i1 == MBTYP_CATALOG) {
-      CTLG_PartID_mnam (cbuf, mro->mnam);
+      CTLG_PartID_mnam (cbuf, cp1);
       sprintf(ED_buf1,"M%ld=CTLG \"%s\"",ind,cbuf);
     } else {
-      sprintf(ED_buf1,"M%ld=\"%s\"",ind,mro->mnam);
+      sprintf(ED_buf1,"M%ld=\"%s\"",ind,cp1);
     }
       // printf(" out Typ_Model: |%s|\n",ED_buf1);
 
-    AP_obj_add_pt (ED_buf1, &mro->po);
+    // add origin
+    AP_obj_add_pt (ED_buf1, &mdr->po);
       // printf(" M+po: |%s|\n",ED_buf1);
 
 
     // scale; default = 1
-    if(fabs(mro->scl - 1.) > 0.1) {
-      AP_obj_add_val (ED_buf1, mro->scl);
+    if(fabs(mdr->scl - 1.) > 0.1) {
+      AP_obj_add_val (ED_buf1, mdr->scl);
     }
 
 
     // wenn vx != UT3D_VECTOR_X muss auch vz raus !
-    // if((&mro->vz == &UT3D_VECTOR_Z)&&(&mro->vx == &UT3D_VECTOR_X)) goto L_fertig;
-    AP_obj_add_vc (ED_buf1, &mro->vz);
+    // if((&mdr->vz == &UT3D_VECTOR_Z)&&(&mdr->vx == &UT3D_VECTOR_X)) goto L_fertig;
+    AP_obj_add_vc (ED_buf1, &mdr->vz);
       // printf(" M+vz: |%s|\n",ED_buf1);
 
-    // if(&mro->vx == &UT3D_VECTOR_X) goto L_fertig;
-    AP_obj_add_vc (ED_buf1, &mro->vx);
+    // if(&mdr->vx == &UT3D_VECTOR_X) goto L_fertig;
+    AP_obj_add_vc (ED_buf1, &mdr->vx);
       // printf(" ModRef = |%s|\n",ED_buf1);
 
 

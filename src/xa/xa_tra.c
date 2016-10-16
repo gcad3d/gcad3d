@@ -488,8 +488,8 @@ static int otra_typ2[]={
   // den Modelname ueber die basicModelNr holen und dann in
   // ModelRef.mnam speichern (fuer AP_stru_2_txt)
   mb = DB_get_ModBas (otra.mr0.modNr);
-  otra.mr1.mnam = mb->mnam;
-    printf(" mnam=|%s|\n",otra.mr1.mnam);
+  // otra.mr1.mnam = mb->mnam;
+    // printf(" mnam=|%s|\n",otra.mr1.mnam);
 
 
 

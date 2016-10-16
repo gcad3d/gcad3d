@@ -43,6 +43,7 @@ endif
 
 #=========================================================================
 # gtkglarea
+# Gtk3: new gtkglarea since 3.16 (2015-03)
 ifeq "$(GLBIND)" "3"
 
   SRCGLB = ../xa/GL_glarea.c

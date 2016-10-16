@@ -1,4 +1,5 @@
 # gCAD3D-sourcefiles
+# returns SRC1 SRC3 SRCA SRCB SRCG
 
 #ifeq "$(OS)" "Linux32"
 #  SRCOS = ../ut/ut_os_aix.c ../lic/ut_lic_aix.c
@@ -128,7 +129,7 @@ SRCA =\
 SRC3 =\
   ../ut/ut_geo.h ../ut/ut_txt.h ../ut/ut_BitTab.h\
   ../ut/ut_types.h ../ut/gr_types.h ../ut/AP_types.h\
-  ../ut/ut_umem.h ../db/ut_DB.h ../xa/xa_sele.h
+  ../ut/ut_mem.h ../ut/ut_umem.h ../db/ut_DB.h ../xa/xa_sele.h 
 # ../gtk/ut_gtk.h
 
 

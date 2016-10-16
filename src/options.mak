@@ -1,9 +1,9 @@
-# returns BITS OS CC MK 
+# returns VGUI BITS OS CC MK 
 # see also ../options.sh
 
 # Version GTK; gtk2 or gtk3
-#VGUI = gtk2
-VGUI = gtk3
+VGUI = gtk2
+#VGUI = gtk3
 
 
 

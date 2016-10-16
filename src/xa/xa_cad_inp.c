@@ -34,7 +34,6 @@ List_functions_start:
 IE_inpTxtOut       create outputText from inputFieldText
 IE_inpCkAdd        add or replace or skip input.  
 IE_inpCkTyp        returns basicobjTyp from inputFieldText.
-IE_inpCkAct        test input for errors
 
 IE_txt2par1        get next parameter from atomicObjects
 
@@ -88,7 +87,9 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 //   (eg add "D(*)" if necessary)
 // Input:
 //   actBuf  inputFieldText                           siz=256
-//   tmpBuf  space for outputText (if to br modified) siz=256
+//   tmpBuf  space for outputText (if to be modified) siz=256
+//   iind    index CAD-inputfield
+//   iskip   ON|OFF ?
 // Output:
 //   txt     outputText, (pointer to tmpBuf or actBuf)
 //   retCod  -2 = Error
@@ -107,6 +108,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   if(iind < 0) return -1;
 
+  // get inptyp = requested input-type
   inptyp = IE_inpTypR[iind];
 
   // printf("IE_inpTxtOut inptyp=%d |%s|\n",inptyp,actBuf);
@@ -136,12 +138,6 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
     ATO_dump__ (&ato);
 */
 
-/* UNUSED
-  // test input for errors
-  irc = IE_inpCkAct (typ, p1, &ato);
-  if(irc < 0) return -2;
-*/
-
   // APT_obj_ato (., typ);
 
  
@@ -167,16 +163,14 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
       goto L_add_mod;
       // strcat(IE_outTxt, actBuf);
 
-
+/*
   //----------------------------------------------------------------
     } else if(inptyp == Typ_ValX) {
       goto L_add_txt;
-
-
   //----------------------------------------------------------------
     } else if(inptyp == Typ_ValY) {
       goto L_add_txt;
-
+*/
 
   //----------------------------------------------------------------
     } else if(inptyp == Typ_YVal) {
@@ -197,6 +191,14 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
   //----------------------------------------------------------------
+    } else if(inptyp == Typ_EyePT) {
+      // IE_getEyePt (tmpBuf);
+      // goto L_add_mod;
+      sprintf(tmpBuf, "\"%s\"",actBuf);
+      goto L_add_mod;
+
+
+  //----------------------------------------------------------------
     } else if(inptyp == Typ_PT) {
       // Pt aus "P20" direkt raus.
       if(ato.nr == 1) {
@@ -207,14 +209,6 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
       }
       // Pt aus 2 od 3 zahlen als P(...) raus.
       sprintf(tmpBuf, "P(%s)",actBuf);
-      goto L_add_mod;
-
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_EyePT) {
-      // IE_getEyePt (tmpBuf);
-      // goto L_add_mod;
-      sprintf(tmpBuf, "\"%s\"",actBuf);
       goto L_add_mod;
 
 
@@ -661,6 +655,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 //
 // Input:
 //   iind       index inputField
+//   ato        test of ato[0].typ
 // Output:
 //   retCod     outTyp, basicobjTyp
 
@@ -884,45 +879,6 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 }
 
 
-//================================================================
-  int IE_inpCkAct (int typ, char *s1, ObjAto *ato) {
-//================================================================
-// test inputFieldText for errors
-// test only errors made by keyIn; selection-errors checked by IE_inpCkAdd.
-
-  int    i1;
-
-
-  // printf("IE_inpCkAct typ=%d |%s|\n",typ,s1);
-  // for(i1=0;i1<ato->nr;++i1)
-    // printf("  atomicObj[%d]  %d %lf\n",i1,ato->typ[i1],ato->val[i1]);
-
-
-/*
-  //----------------------------------------------------------------
-  if(typ == Typ_PLN) {
-    // 1. obj must not be value
-    if(ato->val[0] == Typ_Val) goto L_notFirstV;
-
-
-  //----------------------------------------------------------------
-  }
-*/
-
-  return 0;
-
-
-  L_notFirstV:
-    TX_Error("**** value cannot be first parameter ..");
-    goto L_err__;
-
-
-  L_err__:
-    return -1;
-
-}
- 
- 
 //=====================================================================
   int  IE_txt2par1 (char* buf,int typRec,
                     int aus_anz,int *ind,int *aus_typ,char txtTab[][256]) {
@@ -968,8 +924,8 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
 
-
-  typ = aus_typ[*ind]; // aus EditLine
+  // typ = typ from inputline 
+  typ = aus_typ[*ind];
   // printf(" _txt2par1 typRec=%d typ=%d txt=|%s|\n",typRec,typ,txtTab[*ind]);
 
 
@@ -1009,9 +965,9 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   if(typ == Typ_Val) {        // eine Zahl in der Editline -
 
     if(typRec == Typ_Val)     goto L_OK_2;
-    if(typRec == Typ_ValX)    goto L_OK_2;
-    if(typRec == Typ_ValY)    goto L_OK_2;
-    if(typRec == Typ_ValZ)    goto L_OK_2;
+    if(typRec == Typ_XVal)    goto L_OK_2;
+    if(typRec == Typ_YVal)    goto L_OK_2;
+    if(typRec == Typ_ZVal)    goto L_OK_2;
     if(typRec == Typ_Rad)     goto L_OK_2;
     if(typRec == Typ_Angle)   goto L_OK_2;
     if(typRec == Typ_goGeo7)  goto L_OK_2;
@@ -1040,9 +996,9 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   } else if(typ == Typ_VAR) {  // im APT-Text steht zB "V12"
 
     if(typRec == Typ_Val)    goto L_OK_2;
-    if(typRec == Typ_ValX)   goto L_OK_2;
-    if(typRec == Typ_ValY)   goto L_OK_2;
-    if(typRec == Typ_ValZ)   goto L_OK_2;
+    if(typRec == Typ_XVal)   goto L_OK_2;
+    if(typRec == Typ_YVal)   goto L_OK_2;
+    if(typRec == Typ_ZVal)   goto L_OK_2;
     if(typRec == Typ_Rad)    goto L_OK_2;
     if(typRec == Typ_goGeom) goto L_OK_2;
     if(typRec == Typ_goGeo8) goto L_OK_2;  // Radius
@@ -1168,7 +1124,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_mod1) goto L_OK_2;
     if(typRec == Typ_mod2) goto L_OK_2;
     // if(typRec == Typ_modInOut) goto L_OK_2;
-    if(typRec == Typ_modCWCCW) goto L_OK_2;
 
   // //-------------------------------------------------------
   // } else if(typ == Typ_mod1) {

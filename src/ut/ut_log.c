@@ -20,7 +20,6 @@
 /*
 
 ../ut/ut_log.c                          2015-10-08    Franz Reiter.
-../ut/ut_log.h
 
 -----------------------------------------------------
 TODO:
@@ -32,30 +31,45 @@ Modifications:
 2015-11-03 new ex Gis_u1.c. RF
 
 
+*/
+/*!
+\file  ../ut/ut_log.c
+\brief write log-messages into file, display file
+\code
 =====================================================
-Liste_Funktionen_Beginn:
+List_functions_start:
 
-LOG_A__
+LOG_A__         write
 LOG_A_pt2       report errPos
 LOG_A_pt3       report errPos
-LOG_A_write
+LOG_A_write     write, internal
 
 LOG_A_set_fnam  (re)define logfilename
-LOG_A_init
-LOG_A_disp
-LOG_A_exit
+LOG_A_init      set logfilename
+LOG_A_disp      display logfile
+LOG_A_exit      close logfile
 
-Liste_Funktionen_Ende:
+List_functions_end:
 =================================================================
 
+\endcode *//*----------------------------------------
+
+
+You must set the logfilename with LOG_A_set_fnam
+You must delete the logfile.
 
 Example usage:
 
 #include "../ut/ut_log.h"                  // MSG_typ_*
 
+  sprintf(fn, "%sLog_xy.txt", OS_get_tmp_dir());
+  LOG_A_set_fnam (fn);
   LOG_A__ (MSG_typ_ERR, " err xyz - retCod=%d",irc);
+  ..
+  LOG_A_exit ((int)errNr);
 
-
+  // display logfile manually: Dump/view_logfile or with func.
+  LOG_A_disp ();
 
 */
 
@@ -73,7 +87,7 @@ Example usage:
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_log.h"                  // MSG_typ_*
+#include "../xa/xa_msg.h"              // MSG_typ_*
 
 
 
@@ -95,8 +109,10 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
   int LOG_A_set_fnam (char* fnam) {
 //================================================================
-// LOG_A_set_fnam   (re)define logfilename
+/// LOG_A_set_fnam   (re)define logfilename
 
+
+  printf("LOG_A_set_fnam %s\n", fnam);
 
   if(LOG_A_fp) {
     fclose (LOG_A_fp);
@@ -117,7 +133,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
   if(!LOG_A_fp) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "w")) == NULL) {
-      // TX_Print("***** CANNOT OPEN LOG-FILE");
+      TX_Print("***** CANNOT OPEN LOG-FILE %s",LOG_A_fnam);
       printf("%s\n",s1);
       return -1;
 
@@ -136,13 +152,15 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
   int LOG_A__ (int msgTyp, char* txt, ...) {
 //================================================================
-// LOG                    write message into logfile
-// Input:
-//   msgTyp     MSG_typ_INF = 0
-//              MSG_typ_WNG = 1
-//              MSG_typ_ERR = 2
-//
-// see also gis_msg__
+/// \code
+/// LOG                    write message into logfile
+/// Input:
+///   msgTyp     MSG_typ_INF = 0
+///              MSG_typ_WNG = 1
+///              MSG_typ_ERR = 2
+///
+/// see also gis_msg__
+/// \endcode
 
  
   va_list va;
@@ -195,17 +213,27 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
   int LOG_A_disp () {
 //================================================================
-// disp logfile
-// close, display, open-append
+/// \code
+/// disp logfile
+/// close, display, open-append
+/// \endcode
+
+  int  istat=0;
 
 
-  if(LOG_A_fp) fclose (LOG_A_fp);
+  if(LOG_A_fp) {
+    fclose (LOG_A_fp);
+    istat = 1;
+  }
+
 
   // APP_browse__ (LOG_A_fnam);
   APP_edit (LOG_A_fnam);
 
-  if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {
-    TX_Print("***** CANNOT OPEN LOG-FILE");
+  if(istat) {
+    if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {
+      TX_Print("***** CANNOT OPEN LOG-FILE");
+    }
   }
 
 
@@ -215,11 +243,17 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
 
 //================================================================
-  int LOG_A_init () {
+  int LOG_A_init (char *appNam) {
 //================================================================
+/// set automatic logfilename
+
+  char   s1[256];
+
 
   // open log-file
-  sprintf (LOG_A_fnam, "%sGIS1.log",OS_get_tmp_dir());
+  sprintf (s1, "%s%s.log",OS_get_tmp_dir(),appNam);
+
+  LOG_A_set_fnam (s1);
 
   return 0;
 
@@ -229,7 +263,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
   int LOG_A_exit (int errNr) {
 //================================================================
-// if (errNr >= 0) then nr of errors is reported with TX_Print
+/// if (errNr >= 0) then nr of errors is reported with TX_Print
 
   // close logfile
   if(LOG_A_fp) {

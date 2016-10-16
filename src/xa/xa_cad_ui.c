@@ -357,6 +357,7 @@ cl -c /I ..\include xa_ui_cad.c
 #include "../ut/ut_cast.h"        // INT_PTR
 #include "../ut/ut_os.h"          // OS_beep
 #include "../ut/ut_gtypes.h"      // AP_src_typ__
+#include "../ut/ut_ox_base.h"     // OGX_SET_OBJ
 
 #include "../gui/gui__.h"         // Gtk3
 
@@ -693,7 +694,7 @@ static IE_rec_stru IE_cad_p[]={
     3, Typ_VC,      "[Axis-VEC]||DD0",
   // {"PT endpoints, center (focus ..)     ""},   // 4
     4, Typ_goGeo1,  "LN/CI/Curv",
-    4, Typ_mod1,    "Version|1",
+    4, Typ_mod1,    "[Version]",
   // {"PT Midpoint  PT - PT",            ""},   // 6
     5, Typ_PT,      "Point 1",
     5, Typ_PT,      "Point 2",
@@ -883,7 +884,7 @@ static IE_rec_stru IE_cad_c[]={
 static IE_rec_txt cad_lst_r[]={
   "PLN Z-Axis [X-Axis]",            "PERP",   //0
   "PLN X-Axis [Y-Axis]",            "",       //1
-  "PLN PT Plane",                   "",       //3
+  "PLN PT Plane Offset Angle",      "RSYS",   //2
   "",""};
 
 
@@ -898,10 +899,13 @@ static IE_rec_stru IE_cad_r[]={
    1, Typ_goGeo7,  "X-Axis||DD0",
    1, Typ_goGeo7,  "[Y-Axis]||DD0",
    1, Typ_goGeo8,  "[offset-Z-axis]",
-  // "PLN [PT] Plane [offset]",         "",
+  // "PLN [PT] Plane [offset]",         "RSYS",
    2, Typ_PT,      "[Origin]",
-   2, Typ_PLN,     "Refsys",
-   2, Typ_goGeo8,  "[offset-Z-axis]",
+   2, Typ_PLN,     "[Refsys]",
+   2, Typ_XVal,    "[offset-X-axis]",
+   2, Typ_YVal,    "[offset-Y-axis]",
+   2, Typ_ZVal,    "[offset-Z-axis]",
+   2, Typ_Angle,   "[Angle-around-Z]",
   //===========================
   -1, -1,          ""};
 
@@ -1805,7 +1809,8 @@ static int IE_first, IE_last;
   char  *p1, *p2, *p3, *w_act, *w_nxt, cBuf[256];
 
 
-  // printf("IE_decode_Ln |%s| %d\n",lnIn,tabSiz);
+
+  printf("IE_decode_Ln |%s| %d\n",lnIn,tabSiz);
 
   w_act = lnIn;
   objNr = 0;
@@ -1819,6 +1824,7 @@ static int IE_first, IE_last;
 
 
 
+  //=====================================================
   // get IE_ftyp_act (1. word) none = NULL.
   // das erste Wort koennte ein Subtyp sein.
   // verglichen mit allen Subtypen der akt. Gruppe
@@ -1849,7 +1855,7 @@ static int IE_first, IE_last;
 
   // copy next expr from w_act into cBuf
   w_nxt = APT_cp_ausd (cBuf, w_act, 256);
-    // printf("L_next_ausdr |%s|\n",cBuf);
+    printf("L_next_expr |%s|\n",cBuf);
 
 
   // L_test_string:
@@ -1907,12 +1913,7 @@ static int IE_first, IE_last;
 
   // Funktionstyp feststellen
   // printf("  test func |%s|\n",cBuf);
-  // if     (!strcmp(cBuf, "P"   )) ityp = Typ_PT;
-       // if(!strcmp(cBuf, "L"   )) ityp = Typ_LN;
-  // else if(!strcmp(cBuf, "C"   )) ityp = Typ_CI;
        if(!strcmp(cBuf, "R"   )) ityp = Typ_PLN;
-  // else if(!strcmp(cBuf, "D"   )) ityp = Typ_VC;
-  // else if(!strcmp(cBuf, "S"   )) ityp = Typ_CV;
   else if(!strcmp(cBuf, "X"   )) ityp = Typ_XVal;
   else if(!strcmp(cBuf, "Y"   )) ityp = Typ_YVal;
   else if(!strcmp(cBuf, "Z"   )) ityp = Typ_ZVal;
@@ -1992,7 +1993,11 @@ static int IE_first, IE_last;
 
 
   } else if(cBuf[0] == 'U') {
-    if      (!strcmp (p1, "UNL")) { ityp = Typ_modUnlim; goto L_weiter; }
+    if      (!strncmp (p1, "UNL", 3)) {
+      // "UNL|UNL1|UNL2"
+      ityp = Typ_modUnlim; goto L_weiter;
+    }
+    else goto L_err1;
 
 
 
@@ -2038,10 +2043,10 @@ static int IE_first, IE_last;
 
   //----------------------------------------------------------------
   // TESTAUSGABEN:
-  // printf("ex IE_decode_Ln: %d\n",objNr);
-  // for(i1=0; i1<objNr; ++i1)
-    // printf("  aus-rec %d %d |%s|\n",i1,typTab[i1],txtTab[i1]);
-  // printf("  Subtyp=|%s|\n",IE_ftyp_act);
+  printf("ex IE_decode_Ln: %d\n",objNr);
+  for(i1=0; i1<objNr; ++i1)
+    printf("  aus-rec %d %d |%s|\n",i1,typTab[i1],txtTab[i1]);
+  printf("  Subtyp=|%s|\n",IE_ftyp_act);
   //----------------------------------------------------------------
 
 
@@ -2128,7 +2133,7 @@ Wird von UI_butSM beim deaktivieren von SM gerufen.
 = nach Select Line im EditWin: die selektierten zeile aktivieren
 die aktuelle Zeile auslesen, analysieren, eintragen.
 */
-  int    i1, i2, irc, ilen, iFound, tabSiz;
+  int    i1, i2, irc, ilen, iFound, tabSiz, typAct, typIs;
   long   ipos, fSiz, l1, lNr;
 
   int       aus_anz, aus_ind;
@@ -2175,6 +2180,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 
   // den Zeilentext nach IE_buf holen ..
+  // get a copy of line <lNr> into IE_buf
   IE_buf[0] = '\0';
   cpos = UTF_GetLinNr (IE_buf, (long*)&IE_bufSiz, lNr);
     // printf("IE_activate lNr=%ld, ln=|%s| len=%ld\n",lNr,IE_buf,IE_bufSiz);
@@ -2434,21 +2440,35 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   //====================================================================
   // Input Zeile decodieren, IE_ftyp_act (first word; zB "LDR") bestimmen.
+
+  // skip enclosing type-func (if identical with active typ IE_cad_typ)
+  i1 = IE_decode_ftyp (IE_cad_typ, cpos);
+  if(i1) {
+    cpos += 2;
+    p1 = strrchr (cpos, ')');
+    *p1 = '\0';
+  }
+
   // aus_anz = APT_decode_ausdr (aus_typ, aus_tab, &cpos);
   aus_anz = IE_decode_Ln (aus_typ, (void*)aus_tab, tabSiz, cpos);
   if(aus_anz < 0) goto L_err_TextEd;
 
 
-  // nur Testausg:
-  printf("decode - ftyp=|%s| aus_anz=%d\n",IE_ftyp_act,aus_anz);
-  for(i1=0; i1<aus_anz; ++i1) printf(" %d typ=%d\n",i1,aus_typ[i1]);
+    // TESTBLOCK
+    printf("decode - ftyp=|%s| aus_anz=%d\n",IE_ftyp_act,aus_anz);
+    p1 = aus_tab;
+    for(i1=0; i1<aus_anz; ++i1) {
+      printf(" decode_Ln %d typ=%d |%s|\n",i1,aus_typ[i1],p1);
+      p1 += 256;
+    }
+    // END TESTBLOCK
 
 
 
 
 
   //====================================================================
-  // SubgroupIndex menSubGrpInd bestimmen
+  // find SubgroupIndex & menSubGrpInd; fill entBuf.
   i1 = 0;
 
 
@@ -2521,9 +2541,6 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     if(irc < 0) { // nix gefunden ..
       if(typChar != '[') goto L_SkipGrp;  // skip optional
     }
-
-
-   
 
 
     if(entInd < (INPRECANZ - 1)) {
@@ -2627,29 +2644,35 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   IE_nxtInd ();
 
 
-  // // jetzt erst aufs erste Feld ..
-  // IE_inp_chg (0);
-
-
   // activate Edit ...
   IE_EdFnc = 0;
-  // die Werte in die Entryfelder einfuegen
+
+
+
+    // TESTBLOCK
+    // for(i1=0; i1<=entInd; ++i1) printf(" ent[%d]=|%s|\n",i1,entBuf[i1]);
+    // END TESTBLOCK
+
+
+  //----------------------------------------------------------------
+  // copy strings entBuf into inputfields
   for(i1=0; i1<=entInd; ++i1) {
     typChar = IE_cad_act[i1 + IE_first].info[0];
-      // printf(" preset %d |%s| typChar |%c|\n",i1,entBuf[i1],typChar);
-      // printf("  %d info=%c\n",i1,IE_cad_act[i1+IE_first].info[0]);
 
-    if(typChar == '<') {
-      continue;
-    }
+      // TESTBLOCK
+      // printf(" preset %d |%s| typChar=|%c| Act=%d Is=%d |%s|\n",i1,
+        // entBuf[i2],typChar,typAct,typIs,entBuf[i2]);
+      // END TESTBLOCK
 
-    // gtk_entry_set_text ((GtkEntry*) (IE_wCad_obj[i1]), entBuf[i1]);
+    // '<' = group
+    if(typChar == '<') continue;
+    // copy into inputfield i1
     IE_set_inp (i1, entBuf[i1]);
-    // strcpy(IE_inpTxtG[i1], entBuf[i1]);
   }
 
 
 
+  //----------------------------------------------------------------
   // display objName AP_ED_oNam in IE_entNam
   GUI_entry_set (&IE_entNam, AP_ED_oNam);
 
@@ -2688,6 +2711,33 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 }
 
+
+//================================================================
+  int IE_decode_ftyp (int typ, char *srctxt) {
+//================================================================
+/// \code
+/// test if eg srctxt = "P(" and typ == Typ_PT ..
+/// Retcod 0: typ != geom.func in srctxt
+///        1: typ = srctxt-func
+/// \endcode
+
+  char  s1[] = "P(";
+
+
+  // printf("IE_decode_ftyp %d |%s|\n",typ,srctxt);
+
+
+  // make char <- typ
+  s1[0] = AP_typChar_typ (typ);
+    printf(" s1=|%s|\n",s1);
+
+  if(!strncmp(srctxt, s1, 2)) return 1;
+
+
+  return 0;
+
+}
+ 
 
 //=====================================================================
   int IE_get_modify () {
@@ -3848,7 +3898,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   // printf("222222222222222222222222222222222222222222222222222\n");
-  printf("IE_cad_init2 %d %d\n",ind,IE_FuncTyp);
+  // printf("IE_cad_init2 %d %d\n",ind,IE_FuncTyp);
   // printf("     typ=%d\n",IE_cad_typ);
 
   // disactivate inputFields
@@ -4996,6 +5046,7 @@ GruppenText muessen schon in IE_buf sein !
 
     ilen = strlen(actBuf);
 
+    // iskip=ON if inputfield-info='[' ??
     if((IE_cad_act[i1+IE_first].info[0] == '[')&&(ilen < 1)) {
       iskip = ON;
     } else {
@@ -5008,6 +5059,7 @@ GruppenText muessen schon in IE_buf sein !
     // create outputText from inputFieldText actBuf
       // printf(" outTxt-3 now |%s|\n",IE_outTxt);
     // <tmpBuf> = create text from input <actBuf>
+    // get p1 = point to tmpBuf or actBuf
     irc = IE_inpTxtOut (&p1, tmpBuf, actBuf, i1, iskip);
     if(irc < 0) return irc;
     i2 = strlen (IE_outTxt);
@@ -6751,6 +6803,7 @@ static IE_info_rec IE_info_tab[] = {
 //=====================================================================
   int IE_cad_Inp1_nxtMod (int iMod, int mode) {
 //=====================================================================
+// modify active inputField (PageUp|PageKey pressed).
 // Input:
 //   iMod    1=Typ_mod1, 2=Typ_mod2
 //   mode    1=up, -1=down
@@ -6763,29 +6816,34 @@ static IE_info_rec IE_info_tab[] = {
 
   // printf("IE_cad_Inp1_nxtMod %d %d\n",iMod,mode);
 
-  if(iMod == 1) maxVal = APT_get_modMax1();
+  if(iMod == 1) maxVal = APT_get_modMax1();   // -1=all, -2=none
   else          maxVal = APT_get_modMax2();
-    // printf(" modMax %d = %d\n",iMod,maxVal);
+    // printf(" _nxtMod-imod = %d modMax =%d\n",iMod,maxVal);
 
 
   if(maxVal < 1) {
-    TX_Print ("no other version for this obj ..");
-    return 0;
+    if(maxVal == -2) {          // -2=none; no MOD-value possible
+      TX_Print ("**** no version for this obj ..");
+      return 0;
+    }
+
+    TX_Print ("**** no other version for this obj ..");
+    // return 0;
   }
 
 
+  // p1 = get inputField
   p1 = IE_get_inp__(IE_inpInd);
     // printf(" inp=|%s| %ld\n",p1,strlen(p1));
 
 
   if(strlen(p1) < 1) {
+    // empty; set to 1
     i1 = 1;
 
   } else {
-    if(iMod == 1) maxVal = APT_get_modMax1();
-    else          maxVal = APT_get_modMax2();
     // decode active value -> i1
-    i1 = atoi(IE_get_inp__(IE_inpInd));
+    i1 = atoi(p1);
     i1 += mode;
     if(i1 < 1) {
       i1 = 1;
@@ -8140,14 +8198,16 @@ static IE_info_rec IE_info_tab[] = {
 //        eine APT_obj_expr-Version die schon aus_typ, aus_tab mitbringt.
 // see also DL_disp_hili AP_hili_obj
 
-  int       aus_typ[10], aus_anz, irc, i1, typ, selTyp, iatt = 12;
+  int       aus_typ[10], aus_anz, irc, i1, typ, selTyp, dbTyp, iatt = 12;
   long      dli;
   double    d1;
   char      aus_tab[10][256], subTyp1;  // 10 strings a 256 chars
   char      *p1, o1[OBJ_SIZ_MAX];
+  void      *op1;
   Point     pt1, *ppt=NULL;
   Vector    vc1;
-  ObjAto    ato;
+  ObjAto    ato1;
+  ObjGX     ox1;
   // Memspc    tSpc1;
 
 
@@ -8165,6 +8225,13 @@ static IE_info_rec IE_info_tab[] = {
     // printf(" dli=%ld\n",dli);
 
 
+  // requested obj
+  typ = IE_inpTypR[iind];
+
+
+  if(typ == Typ_Txt) return 0;  // skip text  2016-10-05
+
+
   // get inputFieldText
   p1 = IE_get_inp__(iind);
   if(strlen(p1) < 1) {
@@ -8174,9 +8241,7 @@ static IE_info_rec IE_info_tab[] = {
   }
 
 
-
   // change to uppercase (not for TYP_FilNam)
-  typ = IE_inpTypR[iind];
   if((typ != Typ_SubModel) &&
      (typ != TYP_FilNam)   &&
      (typ != Typ_CtlgPart) &&
@@ -8184,14 +8249,23 @@ static IE_info_rec IE_info_tab[] = {
     strcpy (IE_outTxt, p1);
     i1 = UTX_chg_2_upper (IE_outTxt);
       // printf(" _2_upper %d |%s|\n",i1,IE_outTxt);
-    if(i1) {GUI_entry_set (&IE_wCad_obj[iind], IE_outTxt); GUI_update__();}
+    if(i1) {
+      // update inputfield
+      GUI_entry_set (&IE_wCad_obj[iind], IE_outTxt);
+      GUI_update__();
+    }
     p1 = IE_get_inp__(iind);
   }
-    // printf(" inp[%d]=|%s|\n",iind,p1);
+    // printf(" _Inp_disp__ %d |%s|\n",iind,p1);
 
+
+
+  //----------------------------------------------------------------
+  // skip some types ..
 
   // skip GROUP                         // 2013-03-16
   if(!strcmp(p1, "<GROUP>")) return 0;
+
 
   // skip Typ_EyePT
   if(typ == Typ_EyePT) {
@@ -8200,92 +8274,72 @@ static IE_info_rec IE_info_tab[] = {
   }
 
 
-  // get memSpc for ato
-  ATO_getSpc__ (&ato);
+  //----------------------------------------------------------------
+  // get memSpc for ato1 (memspc53, 54, 55)
+  ATO_getSpc__ (&ato1);
 
 
-  i1 = 0; // get expressions, not result.
-  d1 = 0.;
-  ATO_ato_srcLn_exp (&ato, &i1, &d1, p1);
-    // ATO_dump__ (&ato);
+  // save state of dyn-points
+  DB_dyn__ (0, Typ_PT, 0L);
+
+
+  // get dynamic struct for expression p1
+  irc = ATO_ato_srcLn__ (&ato1, p1);
+  if(irc < 0) goto L_err_dyn;
+    // ATO_dump__ (&ato1, "_Inp_disp__-1");
 
 
   // get outTyp; eg Typ_VC from requestedTyp - eg Typ_goGeo7
-  typ = IE_inpCkTyp (iind, p1, &ato);
+  typ = IE_inpCkTyp (iind, p1, &ato1);
     // printf(" _inpCkTyp typ=%d\n",typ);
 
   if((typ == Typ_XVal)       ||
      (typ == Typ_YVal)       ||
-     (typ == Typ_ZVal))          return 0;
+     (typ == Typ_ZVal))          goto L_err_dyn;
+  // // geom.parameters - can view Typ_Angle
+  // if(TYP_IS_GEOMPAR(typ)) {
+    // if(typ != Typ_Angle) return 0;          // skip modifiers
+  // }
+
 
   // cannot display Typ_mod1, Values ..
-  if(typ == Typ_mod1) return 0;
+  if(TYP_IS_MOD(typ)) goto L_err_dyn;
+
   if((typ == Typ_String)     ||
      (typ == TYP_FilNam)     ||
      (typ == Typ_SubModel)   ||   
-     (typ == Typ_CtlgPart))      return 0;
-
-  if(TYP_IS_MOD(typ)) return 0;          // skip modifiers
-
-/*
-  // geom.parameters - can view Typ_Angle
-  if(TYP_IS_GEOMPAR(typ)) {
-    if(typ != Typ_Angle) return 0;          // skip modifiers
-  }
-
-  if((typ == Typ_Val)   ||
-     (typ == Typ_VAR)   ||
-     (typ == Typ_Val)   ||
-     (typ == Typ_XVal)  ||
-     (typ == Typ_YVal)  ||
-     (typ == Typ_ZVal)  ||
-     (typ == Typ_ValX)  ||
-     (typ == Typ_ValY)  ||
-     (typ == Typ_ValZ))     return 0;
-*/
-
-
-  // get atomicObjs from inputFieldText
-  // aNr = APT_decode__ (&atyp, &atab, &p1);
-  irc = APT_decode__ (&ato, &p1);
-
-
-  // test input for errors
-  irc = IE_inpCkAct (typ, p1, &ato);
-  if(irc < 0) return -1;
-
-
-  DB_dyn__ (0, Typ_PT, 0L);      // save state of dyn-points
+     (typ == Typ_CtlgPart))      goto L_err_dyn;
 
 
 
-  irc = APT_obj_ato ((void*)o1, typ, &ato);
-  if(irc < 0) goto L_err_inp;
 
+  // get op1 = dataStruct from ato (see DBO_dbo_src__)
+  dbTyp = DB_GetObjDat (&op1, &i1, ato1.typ[0], (long)ato1.val[0]);
+    // printf(" dbTyp=%d i1=%d\n",dbTyp,i1);
+    // UT3D_stru_dump (dbTyp, op1, "op1");
 
 
     // printf("  _cad_Inp_disp %d typ=%d |%s| dli=%ld\n",iind,typ,p1,dli);
 
 
 
-//----------------------------------------------------------------
+  //----------------------------------------------------------------
+  // display binObj dbTyp,op1
+
   if((typ == Typ_Val)   ||
      (typ == Typ_VAR)   ||
      (typ == Typ_Val)   ||
      (typ == Typ_XVal)  ||
      (typ == Typ_YVal)  ||
-     (typ == Typ_ZVal)  ||
-     (typ == Typ_ValX)  ||
-     (typ == Typ_ValY)  ||
-     (typ == Typ_ValZ))     {
+     (typ == Typ_ZVal))     {
 
-    TX_Print(".. inputfield %d value is %lf",iind + 1,*((double*)o1));
+    TX_Print(".. inputfield %d value is %lf",iind + 1,*((double*)op1));
     goto L_done;
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_PT)   {
-    IE_cad_Inp_disp_pt ((Point*)o1, iind);
+    IE_cad_Inp_disp_pt ((Point*)op1, iind);
     goto L_done;
 
 
@@ -8307,7 +8361,7 @@ static IE_info_rec IE_info_tab[] = {
 
   //----------------------------------------------------------------
   } else if(typ == Typ_VC) {
-    IE_cad_Inp_disp_vc (&dli, (Vector*)o1, iind);
+    IE_cad_Inp_disp_vc (&dli, (Vector*)op1, iind);
     goto L_done;
 
 
@@ -8315,8 +8369,8 @@ static IE_info_rec IE_info_tab[] = {
   //----------------------------------------------------------------
   } else if(typ == Typ_Angle) {
     // save angle
-    IE_inpAuxDat[iind].d1 = UT_RADIANS(*(double*)o1);
-    IE_cad_Inp_disp_ang (&dli, (double*)o1, iind);
+    IE_inpAuxDat[iind].d1 = UT_RADIANS(*(double*)op1);
+    IE_cad_Inp_disp_ang (&dli, (double*)op1, iind);
     goto L_done;
 
 
@@ -8324,13 +8378,13 @@ static IE_info_rec IE_info_tab[] = {
   //----------------------------------------------------------------
   } else if(typ == Typ_Tra) {
 
-    if(((ObjGX*)o1)->form == Typ_VC) {
+    if(((ObjGX*)op1)->form == Typ_VC) {
       // display vector
-      IE_cad_Inp_disp_vc (&dli, (Vector*)(((ObjGX*)o1)->data), iind);
+      IE_cad_Inp_disp_vc (&dli, (Vector*)(((ObjGX*)op1)->data), iind);
 
     } else {
       // display TraRot
-      GL_Draw_tra (&dli, 12, (TraRot*)(((ObjGX*)o1)->data));
+      GL_Draw_tra (&dli, 12, (TraRot*)(((ObjGX*)op1)->data));
     }
 
     goto L_done;
@@ -8428,34 +8482,38 @@ static IE_info_rec IE_info_tab[] = {
   } else if(typ == Typ_PLN)  {
     // irc = APT_obj_expr ((void*)o1, Typ_PLN, p1);
     // if(irc < 0) goto L_err_inp;
-    IE_cad_Inp_disp_pln ((Plane*)o1, iind);
+    IE_cad_Inp_disp_pln ((Plane*)op1, iind);
     goto L_done;
 
 
 
   //----------------------------------------------------------------
-  } else return 0;
+  } else {
+    printf("**** IE_cad_Inp_disp__ %d %d\n",typ,dbTyp);
+    goto L_err_dyn;
+  }
 
 
 
   //----------------------------------------------------------------
   L_draw_ln:
       // UT3D_stru_dump (Typ_LN, o1, " temp.line:");
-    GL_DrawLine (&dli, iatt, (Line*)o1);
+    GL_DrawLine (&dli, iatt, (Line*)op1);
     goto L_done;
 
   L_draw_ac:
     // UT3D_stru_dump (Typ_CI, o1, "");
-    GR_DrawCirc (&dli, iatt, o1);
+    GR_DrawCirc (&dli, iatt, op1);
     goto L_done;
 
   L_draw_cv:
     // UT3D_stru_dump (Typ_ObjGX, o1, "");
-    GR_DrawCurv (&dli, iatt, (ObjGX*)o1, 0.);
+    OGX_SET_OBJ (&ox1, dbTyp, dbTyp, i1, op1);
+    GR_DrawCurv (&dli, iatt, &ox1, 0.);
     goto L_done;
 
   L_draw_vc:
-    IE_cad_Inp_disp_vc (&dli, (Vector*)o1, iind);
+    IE_cad_Inp_disp_vc (&dli, (Vector*)op1, iind);
     // GL_DrawVc1 (&dli, 12, ppt, o1);
     // GL_DrawVc1 (&dli, 12, NULL, o1);
     // UI_disp_vec1 (Typ_Txt, p1);
@@ -8478,6 +8536,10 @@ static IE_info_rec IE_info_tab[] = {
   return 0;
 
 
+  //----------------------------------------------------------------
+  L_err_dyn:
+    DB_dyn__ (1, Typ_PT, 0L);   // reset to previous saved
+    return -1;
 
   L_err:
     // Objekt unvollstaendig; Reset Error.

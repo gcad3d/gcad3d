@@ -46,7 +46,8 @@ APT_work_PrgCmd   work programcodes
 APT_work_NCCmd
 APT_stack_NCCmd
 
-APT_decode__
+// APT_decode__      DO NOT USE; new func: ATO_ato_srcLn__
+
 APT_obj_ato  create struct from atomicObjs
 APT_obj_expr  Create struct from ModelCode
 
@@ -79,7 +80,7 @@ APT_DrawModel
 
 APT_hiliObj
 APT_disp_obj      PT,LN,AC,POL2
-APT_disp_TxtG
+// APT_disp_TxtG
 APT_disp_TxtA
 APT_disp_SymB     disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 APT_disp_SymV     display symbols at 2D-pos (not rotated symbols)
@@ -457,6 +458,7 @@ Verbinden:
 #include "../xa/xa_mem.h"                 // memspc55
 #include "../xa/xa.h"                       // APP_act_proc AP_stat
 #include "../xa/xa_sele.h"                  // Typ_go_*
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
@@ -751,6 +753,7 @@ static double  RefOriAng, RefOriAng_sin, RefOriAng_cos;
 
 
 #define PrgMod_normal            0
+#define PrgMod_continue_if       1
 #define PrgMod_skip_until_label  2
 #define PrgMod_skip_until_macend 3
 #define PrgMod_skip_until_mac    4
@@ -829,22 +832,47 @@ int       GR_pick = OFF;                   // NOPICK
 /* ---------------------------------------------------------------------- */
 static int PrgCmdAnz = 41;
 
+/*
 static char  *PrgCmdTab[] = {
-/* 00   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
   "PRI",         "DRAW",        "STAT",        "MODE",        "SSTYLS",
   "JUMP",        "HIDE",        "VIEW",        "CONST_PL",    " ",
-/* 10   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
   "IF",          "MODVAL",      "MODSIZ",      "DEFTX",       "DEFCOL",
   " ",           " ",           " ",           " ",           " ",
-/* 20   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
   "MAC",         "END",         "CALL",        " ",           " ",
   "GEO",         " ",           "INPUT",       "LDMOD",       "EXECM",
-/* 30   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
   "DIM",         "HILI",        "NOP",         " ",           " ",
   "LAY",         "SHOW",        "ATTL",        "ATTS",        "PROCESS",
-/* 40   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
   "ZOOMALL"};
+*/
 
+static char  *AppCodTab[] = {
+/* 00   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
+  "PRI",         "DRAW",        "STAT",        "MODE",        "SSTYLS",
+  "SHOW",        "HIDE",        "VIEW",        "CONST_PL",    "ZOOMALL",
+/* 10   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
+  "MODBOX",      "MODVAL",      "MODSIZ",      "DEFTX",       "DEFCOL",
+  "ATTL",        "ATTS",        "PROCESS",     "LDMOD",       "EXECM",
+/* 20   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
+  "DIM",         "HILI",        "LAY",         "DUMP",        "NOP",
+  NULL};
+
+enum Typ_TACT {
+  TAC_PRI,       TAC_DRAW,      TAC_STAT,      TAC_MODE,      TAC_SSTYLS,   // 0-
+  TAC_SHOW,      TAC_HIDE,      TAC_VIEW,      TAC_CONST_PL,  TAC_ZOOMALL,  // 5-
+  TAC_MODBOX,    TAC_MODVAL,    TAC_MODSIZ,    TAC_DEFTX,     TAC_DEFCOL,   // 10-
+  TAC_ATTL,      TAC_ATTS,      TAC_PROCESS,   TAC_LDMOD,     TAC_EXECM,    // 15-
+  TAC_DIM,       TAC_HILI,      TAC_LAY,       TAC_DUMP,      TAC_NOP};     // 20-
+                                                                            // 25-
+
+
+static char  *PrgCodTab[] = {
+/* 00   67889012  1234567889012  1234567889012  1234567889012  1234567889012 */
+  "JUMP",        "MAC",         "GEO",         "END",         "IF",         // 0-
+  "CALL",        NULL};                                                     // 5-
+
+enum Typ_TPCT {
+  TPC_JUMP,      TPC_MAC,       TPC_GEO,       TPC_END,       TPC_IF,       // 0-
+  TPC_CALL};
 
 
 static char      insBuf[10][64];
@@ -960,20 +988,17 @@ int    APT_prim_typ;
   //---------------------------------------------------------
   // printf ("XXXXXXXX WC_Init_all %d\n",mode);
 
-  // APT_alloc1 (500);   // fuer die bloede DL-IndexListe
-
-  // WC_mode = mode;
-
   APT_obj_stat = 0;
 
-  //APT_Init();
   WC_Init ();
 
-
   // Standard; Editmode.
-    WC_Init_Tol ();
-    GL_InitModelSize (APT_ModSiz, 0);
+  WC_Init_Tol ();
+  GL_InitModelSize (APT_ModSiz, 0);
 
+  // // init AP_box_pm1 AP_box_pm2
+  // UT3D_pt_setFree (&AP_box_pm1);
+  // UT3D_pt_setFree (&AP_box_pm2);
 
 }
 
@@ -1154,40 +1179,12 @@ int    APT_prim_typ;
 
   ED_Init  ();
 
-  // Pock_Init__ ();
-  // APT_ausg_NCCmd (-1);  // init oldPos ..
-
-/*
-  // TX_Print geht sonst manchmal KO.
-  WC_Init_ObjG2 (&APT_KonturU[0]);
-  WC_Init_ObjG2 (&APT_KonturO[0]);
-*/
 }
 
 
-/*
-//==========================================================================
-  void   WC_Init_ObjG2     (ObjG2* o1) {
-//====================
-
-  o1->p1.x = 0.0;
-  o1->p1.y = 0.0;
-
-  o1->p2.x = 0.0;
-  o1->p2.y = 0.0;
-
-  o1->pc.x = 0.0;
-  o1->pc.y = 0.0;
-
-}
-*/
-
-
-
-/**********************************************************************/
+//================================================================
   void APT_Init () {
-/*==================================
-*/
+//================================================================
 
   // int   i1;
   long  l1;
@@ -1200,10 +1197,6 @@ int    APT_prim_typ;
 
 
 
-  // for(l1=0; l1<APT_max_anz; ++l1) {
-    // obj_ind_tab [l1] = -1;
-  // }
-
   APT_line_act = 0;
 
   // WC_actPos_save (-1);
@@ -1213,23 +1206,9 @@ int    APT_prim_typ;
   GR_Att_act = 0;
   GR_pick    = OFF;
 
-  // APT_workmode = Typ_nc_cut;
-
   APT_Reset ();
 
   Grp_init ();         // clear group
-
-
-  // Status der Checkbox "Names" abfragen
-  // APT_dispNam   = UI_ckb_Names (UI_FuncGet);
-  // UI_AP (UI_FuncGet, UID_ckb_nam, (void*)&APT_dispNam);
-
-  // Status der Checkbox "Text" abfragen
-  // APT_dispNCCmd = UI_ckb_NCCmd (UI_FuncGet);
-  // UI_AP (UI_FuncGet, UID_ckb_txt, (void*)&APT_dispNCCmd);
-
-
-  //preAnz = 0;
 
   APT_line_cnt = 0;  // not used !!
 
@@ -1249,9 +1228,7 @@ int    APT_prim_typ;
   APT_mirr = 0;
   APT_proj = 0;
 
-
   // APT_dispPT        = ON;
-
 
   // APTsw_poly      = OFF;
   // APTsw_poly_acln = OFF;
@@ -1274,17 +1251,6 @@ int    APT_prim_typ;
   old_APT_ObjO.typ  = Typ_Error;     
 
   old_APT_ObjO.typ           = Typ_Error;  // fuer den Start oben.
-
-  // APT_konik = KONIK_0;
-  // NC_ausg_anzU = 0;
-  // NC_ausg_anzO = 0;
-  // NC_disp_anzU = 0;
-
-  // NC_Obj_anzU = 0;
-  // NC_Obj_anzO = 0;
-
-  // APT_UVal    = 0.0;
-  // APT_VVal    = 0.0;
 
   actPosU.x = 0.0;
   actPosU.y = 0.0;
@@ -1320,11 +1286,6 @@ int    APT_prim_typ;
 
   // die UP_Liste loeschen
   PP_up_list (NULL, NULL, -1);
-
-
-  // zu spaet; loescht DEFCOL !
-  // dann funtktioniert "VIEW"-parameter in ED_work_END nicht mehr !!
-  // AP_indCol = 5;            // Index der globalen defCol ?
 
 }
 
@@ -2230,7 +2191,6 @@ int    APT_prim_typ;
   // printf(" _Work WC_modact_ind=%d\n",WC_modact_ind);
   // printf(">>>>>>>>Ditto: AP_mdLev=%d |%s|\n",AP_mdLev,cbuf);
 
-  // Test for catalog-part
   p1 = strchr(cbuf, '=');
   UTX_skip_1bl (&p1);
 
@@ -2238,19 +2198,20 @@ int    APT_prim_typ;
   if(!strncmp(p1, "MIR", 3)) goto L_fertig;
 
 
+  // Test for catalog-part
   if(!strncmp(p1, "CTLG",4)) {  // yes, its a catalog-part
     p1 += 4;
-    mbTyp = CTLG_Part_Ref1 (mNam, p1);  // -2 = catalogModel
+    // create tmp/<catalog>_<part>.write (with parameters different to basModel)
+    irc = CTLG_Part_Ref1 (mNam, p1);  // -2 = catalogModel
+    if(irc < 0) return -1;
+    mbTyp = -2;
 
   } else {
     mbTyp = Mod_get_typ1 (mNam, cbuf);  // get typ & Modelname
     // mbTyp: -1:MBTYP_INTERN  -3:Error >=0:extern
+    if(mbTyp < -2) goto L_fertig;       // kein gueltiger Modelname ..
   }
     // printf(" _Work__ mNam |%s| mbTyp=%d\n",mNam,mbTyp);
-
-
-  if(mbTyp < -2) goto L_fertig;       // kein gueltiger Modelname ..
-  
 
 
   // MockupModel's und Images werden direkt in WC_Work1 ausgegeben.;
@@ -2269,7 +2230,10 @@ int    APT_prim_typ;
     }
   }
 */
-  // DB_dump_ModRef (); // dump refModels
+
+    // TESTBLOCK
+    // DB_dump_ModRef (); // dump refModels
+    // END TESTBLOCK
 
 
 
@@ -2277,7 +2241,7 @@ int    APT_prim_typ;
   // ist Model schon geladen ? Else create new basicModel-(mdb_dyn)-Record.
   // get ModelNr from Modelname
   mbNr = DB_StoreModBas (mbTyp, mNam);
-    // printf(" _Work__ mbNr=%d\n",mbNr);
+    // printf(" _Work__ mbTyp=%d mbNr=%d\n",mbTyp,mbNr);
 
 
   // get the mdb_dyn-Record.
@@ -2286,8 +2250,6 @@ int    APT_prim_typ;
     // UT3D_stru_dump (Typ_SubModel, mb, "  mb:");
 
   if(mb->DLsiz >= 0) goto L_fertig;   // ja, Model bereits geladen
-
-  // strcpy(oldMod, mb->mnam);
 
 
 
@@ -2327,13 +2289,13 @@ int    APT_prim_typ;
 
 
     // save Hidelist --> File
-    GA_hide_fil_tmp (1);
+    // GA_hide_fil_tmp (1);
 
     // save gesamte DB -> File
     DB_save__ ("");
 
     // save the DYNAMIC_DATA of the actual mainModel
-    DL_sav_dynDat ();
+    // DL_sav_dynDat ();
 
 
   //----------------------------------------------------------------
@@ -2374,14 +2336,14 @@ int    APT_prim_typ;
 
 
   //----------------------------------------------------------------
-  // reload gesamte DB from File
+  // reload gesamte DB from File, also AP_box_pm1,2
   DB_load__ ("");
 
   // reload the DYNAMIC_DATA of the actual mainModel
-  DL_load_dynDat ();
+  // DL_load_dynDat ();
 
   // reload Hidelist from File
-  GA_hide_fil_tmp (2);
+  // GA_hide_fil_tmp (2);
 
   // reset defCol
   // AP_indCol = GL_DefColSet (&AP_defcol);
@@ -2780,7 +2742,7 @@ APT_stat_act:
 
 
   //---------------------------------------------------------------------
-  // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%d\n",lNr,strlen(cbuf));
+  // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%ld\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
   // printf("         WC_modact_ind=%d WC_modact_nam=|%s|\n",WC_modact_ind,WC_modact_nam);
@@ -2798,7 +2760,7 @@ APT_stat_act:
   APT_line_act  = lNr;
   APT_line_stat = 0;
   Retcod        = 0;
-  APT_set_modMax (0);     // 2014-05-29
+  // APT_set_modMax (0);     // 2016-08-26 - dont kill value if mod too high
 
 
   if(APT_stat_act == PrgMod_normal) {
@@ -2844,8 +2806,8 @@ APT_stat_act:
   ATO_getSpc1 (&SRC_ato_SIZ, &SRC_ato_typ, &SRC_ato_tab);
 /*
   SRC_ato_SIZ = 1000;
-  SRC_ato_typ = (int*) UME_alloc_tmp (SRC_ato_SIZ * sizeof(int));
-  SRC_ato_tab = (double*) UME_alloc_tmp (SRC_ato_SIZ * sizeof(double));
+  SRC_ato_typ = (int*) MEM_alloc_tmp (SRC_ato_SIZ * sizeof(int));
+  SRC_ato_tab = (double*) MEM_alloc_tmp (SRC_ato_SIZ * sizeof(double));
 */
 
 
@@ -3067,6 +3029,24 @@ APT_stat_act:
 
   } else {
     // this is not a definition-command (no '=')
+    // do command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
+    i1 = APT_work_AppCodTab (cmd, &w_next);
+    if(i1 >= 0) goto Done;
+    if(i1 == -1) return i1;
+    // -2 == not_in_AppCodTab
+
+
+    // test if its a programming-code (JUMP MAC GEO END IF)
+    i1 = UTX_wTab_ck (PrgCodTab, cmd);
+    if(i1 >= 0) {
+      // work AppCodTab[i1]
+      rc = APT_work_PrgCodTab (i1, &w_next);
+        // printf(" ex _PrgCodTab-rc=%d\n",rc);
+
+/*
+      goto Done;
+    }
+
 
     // Ist das erste Wort eine Programming-Funktion -
     for (i1=0; i1<PrgCmdAnz; i1++) {
@@ -3077,17 +3057,12 @@ APT_stat_act:
         // work programming-function; retCod = typ-of-function.
         // rc = APT_work_PrgCmd (txtOut, &w_next);
         rc = APT_work_PrgCmd (cmd, &w_next);        // 2016-03-16
-
+*/
 
         // 1 = IFXX Funkion: work rest of Line.
-        if(rc == 1) {
-          // find ";", skip it, restart.
-          c = strchr(w_next, ';');
-          if(c == NULL) {
-            TX_Error("Fehler bei IF");
-            goto Fertig;
-          }
-          ++c;
+        if(rc == PrgMod_continue_if) {
+          // retCod of if-expression is yes (APT_eval_if), work if-command
+          c = w_next;
           goto NextCmd;
 
 
@@ -3155,10 +3130,12 @@ APT_stat_act:
         // 0: normale Funktion. Fertig.
         goto Done;
       }
-    }
+    // }
 
 
+    //-------------------------------------------------------
     // Ist das erste Wort eine NC-Funktion oder ein Verfahrweg-
+    L_ck_prc:
     if(process_CmdTab) {
       for (i1=0; i1<1000; i1++) {
         if (!process_CmdTab[i1]) break;
@@ -3342,6 +3319,7 @@ APT_stat_act:
 
 
   int   i1;
+  long  dli;
   char  cbuf[16];
 
 
@@ -3382,7 +3360,10 @@ APT_stat_act:
       // ein dummy-DL-Record, der als DL.irs den neuen RefsysIndex hat.
       // Nur damit kann DL_setRefSys beim MAN-Editor-GoUp und GoDown das
       // richtige UCS anzeigen.
-      if(i1 == 0) DL_StoreObj (Typ_apDat, -1L, 0);
+      if(i1 == 0) {
+        dli = DL_StoreObj (Typ_apDat, -1L, 0);
+        DL_unvis_set (dli, 1);         // make unvisible
+      }
       return 0;
 
 /*
@@ -3429,6 +3410,9 @@ APT_stat_act:
 /// \code
 /// Work DefinitionLine (decode, store obj in DB, display obj).
 /// RetCod: defTyp.  or -3 (obj not yet complete)
+/// Input:
+///   cmdIn    obj left of '='
+///   data     pointer to srcTxt right of '='
 /// \endcode
 
   static int level=0;
@@ -3439,6 +3423,7 @@ APT_stat_act:
   ObjGX      odb;
   ObjAtt     *ga1;
   ColRGB     col1;
+  ObjAto     ato1;
   // Ind_Att_ln lnAtt1;
 
 
@@ -3472,15 +3457,25 @@ APT_stat_act:
   if(ptx == NULL) return -1;
 
 
-
+/* replaced by ATO_ato_srcLn__
   // nun die Ausdruecke einlesen, decodieren und merken
   SRC_ato_typ[0] = 0;
   SRC_ato_anz = APT_decode_ausdr (SRC_ato_typ, SRC_ato_tab, SRC_ato_SIZ, &ptx);
+*/
+
+// begin replacing APT_decode_ausdr
+   ato1.siz    = SRC_ato_SIZ;
+   ato1.typ    = SRC_ato_typ;
+   ato1.val    = SRC_ato_tab;
+   ato1.ilev   = (short*) MEM_alloc_tmp (SRC_ato_SIZ * sizeof(short));
+   ato1.nr     = 0;
+   ATO_ato_srcLn__ (&ato1, ptx);
+   SRC_ato_anz = ato1.nr;
+// end replacing APT_decode_ausdr
+
 
     // TEST 
-    // printf(" n. APT_decode_ausdr anz=%d\n",SRC_ato_anz);
-    // for(i1=0;i1<SRC_ato_anz;++i1)
-      // printf(" %d %d %f\n",i1,SRC_ato_typ[i1],SRC_ato_tab[i1]);
+    // ATO_dump__ (&ato1, " nach-_ato_srcLn__");
     // TEST END
 
 
@@ -3809,8 +3804,8 @@ APT_stat_act:
   void      *po;
   Point     pt1;
   ObjGX     *ox1;
-  AText     *atx1;
-  GText     *gtx1;
+  // AText     *atx1;
+  // GText     *gtx1;
   Memspc    tSpc1;
 
 
@@ -3909,10 +3904,10 @@ APT_stat_act:
             APT_DrawDimen (iAtt, ind, ox1);
 
         } else if(ox1->form == Typ_ATXT) {
-          atx1 = ox1->data;
+          // atx1 = ox1->data;
           // draw Tag / Bitmap-Image / LDRS
           // irc = APT_DrawTxtA (Typ_Att_Symb, ind, atx1);
-          irc = APT_DrawTxtA (iAtt, ind, atx1);
+          irc = APT_DrawTxtA (iAtt, ind, ox1->data);
           if(irc < 0) goto Error;
 
         } else if(ox1->form == Typ_Dim3) {
@@ -3927,12 +3922,13 @@ APT_stat_act:
           // if(irc < 0) goto Error;
 
         } else {
-          gtx1 = ox1->data;
-          if(gtx1->size >= 0.) {
+          // gtx1 = ox1->data;
+          // if(gtx1->size >= 0.) {
             // APT_DrawTxtG (0, &gtx1.pt, gtx1.size, gtx1.dir, gtx1.txt);
             // APT_DrawTxtG (Typ_Att_def, ind, gtx1);   // 2009-07-12
-            APT_DrawTxtG (iAtt, ind, gtx1);
-          }
+            // APT_DrawTxtG (iAtt, ind, gtx1);
+            APT_DrawTxtG (iAtt, ind, ox1->data);
+          // }
         }
       break;
 
@@ -4068,61 +4064,1012 @@ APT_stat_act:
 //================================================================
 /// evaluate expression;
 // Input:
-//   austyp    3 types; TypVal + operator + TypVal.
-//   austab    3 values; 
+//   austyp    3 types; TypVal, Typ_ope__, TypVal
+//   austab             value,  operator,  value 
 // Output:
 //     -1       Error.
 //     0        skip command; continue (expr-result is no)
-//     1        command (eg "V1=10"), continue
+//     1        do command (eg "V1=10"), continue
 
 
-  int   i1, rc;
+  int   iOpe, rc;
 
   // printf("APT_eval_if %f,%d,%f\n",aus_tab[0],aus_typ[1],aus_tab[2]);
 
   
-  i1 = aus_typ[1];
+  if(aus_typ[0] != Typ_Val)   { rc=0; goto L_e1;}
+  if(aus_typ[1] != Typ_ope__) { rc=1; goto L_e1;}
+  if(aus_typ[2] != Typ_Val)   { rc=2; goto L_e1;}
+
+  iOpe = aus_tab[1];
   rc = 1;
 
-  if(i1 == Typ_ope_eq) {
+  if(iOpe == Typ_ope_eq) {
     if(!(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt))) {
       rc = 0;
     }
 
-  } else if(i1 == Typ_ope_ne) {
+  } else if(iOpe == Typ_ope_ne) {
     if(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt)) {
       rc = 0;      }
 
-  } else if(i1 == Typ_ope_lt) {
+  } else if(iOpe == Typ_ope_lt) {
     if(aus_tab[0] >= aus_tab[2]) {
       rc = 0;
     }
 
-  } else if(i1 == Typ_ope_gt) {
+  } else if(iOpe == Typ_ope_gt) {
     if(aus_tab[0] <= aus_tab[2]) {
       rc = 0;
     }
 
-  } else if(i1 == Typ_ope_ge) {
+  } else if(iOpe == Typ_ope_ge) {
     if(aus_tab[0] < aus_tab[2]) {
       rc = 0;
     }
 
-  } else if(i1 == Typ_ope_le) {
+  } else if(iOpe == Typ_ope_le) {
     if(aus_tab[0] > aus_tab[2]) {
       rc = 0;
     }
 
   } else {
-    TX_Error("APT_eval_if E001 %d",i1);
-    rc = -1;
+    rc = 9;
+    goto L_e1;
   }
 
   return rc;
 
+  L_e1:
+    TX_Error(" APT_eval_if - E-%d ",rc);
+    return -1;
+
 }
  
 
+//================================================================
+  int APT_work_TPC_IF (char** data) {
+//================================================================
+// see also PRG_eval_expr
+ 
+  int       i1, irc;
+  char      *p1, *p2;
+  ObjAto    ato1;
+
+
+  // printf("APT_work_TPC_IF |%s|\n",*data);
+
+
+  // search ';' - terminate expression
+  p1 = *data;
+  p2 = strchr (p1, ';');
+  if(p2 == NULL) {
+    TX_Error("cannot find ; in IF-Exprssion");
+    return -1;
+  }
+  *p2 = '\0';
+  ++p2;
+  UTX_pos_skipLeadBlk(p2); // p2 is the following command now
+  *data = p2;
+    // printf(" IF-cond:|%s|\n", p1);
+    // printf(" IF-cmd: |%s|\n", *data);
+
+
+
+  //----------------------------------------------------------------
+  // get memSpc for ato
+  // ATO_getSpc__ (&ato1);
+  ATO_getSpc_tmp__ (&ato1, 6);
+
+  // decode data
+  ATO_ato_srcLn__ (&ato1, p1);
+    // ATO_dump__ (&ato1, " start _AppCodTab");
+
+  // printf("IF (%f,%d,%f)\n",aus_tab[0],aus_typ[1],aus_tab[2]);
+  return APT_eval_if (ato1.typ, ato1.val);
+
+}
+
+
+//================================================================
+  int APT_work_PrgCodTab (int icod, char** data) {
+//================================================================
+// retcod: PrgMod_normal - PrgMod_continue_mac
+    
+  int       i1, irc;
+
+
+  // printf("APT_work_PrgCodTab %d |%s|\n",icod,PrgCodTab[icod]);
+  // if(data)printf("  |%s|\n",*data);
+
+
+  // codes without values. Use direct.
+  irc = PrgMod_normal;  //0;
+  switch (icod) {
+
+
+    //----------------------------------------------------------------
+    case TPC_JUMP:
+    // im Editmode nix tun; sonst ja.
+    if(ED_query_mode() == ED_mode_enter) goto Fertig;
+
+    // Jump-Label merken
+    strcpy (APT_label, *data);
+
+    // im primary Model (ex Memory) reset Linenr to StartOfModel
+    // in subProg (ex File) muesste ein Rewind machen
+
+    // ist subModel (File) oder ein primary-Model aktiv ?
+    // if(APT_mac_fil == 0) ED_file__ (3, NULL); // rewindActiveFile
+
+    // Jump erzwingen.
+    irc = PrgMod_skip_until_label;
+    goto Fertig;
+
+
+
+    //----------------------------------------------------------------
+    case TPC_MAC:
+    // im Editmode und im STEP-Mode schon was tun
+    i1 = ED_query_mode();
+    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+
+    irc = PrgMod_skip_until_macend;
+    UP_act_typ = 'M';
+
+    goto Fertig;
+
+
+
+    //----------------------------------------------------------------
+    case TPC_GEO:
+    // im Editmode und im STEP-Mode schon was tun
+    i1 = ED_query_mode();
+    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+
+    irc = PrgMod_skip_until_macend;
+    UP_act_typ = 'G';
+
+    goto Fertig;
+
+
+
+    //----------------------------------------------------------------
+    case TPC_END:
+    // im Editmode einfach uebergehen
+    // printf(" End - mode=%d",ED_query_mode());
+
+    if(ED_query_mode() == ED_mode_enter) goto Fertig;
+
+
+
+    // hierher kommt nur der CALL/WORK - Mode !
+
+
+    // MAC oder GEO unterscheiden  (G od M)
+    if(UP_act_typ == 'G') goto Do_END_GEO;
+
+
+
+    //------- END MAC ---------
+      // printf("END MAC Lev=%d typ=%c\n",UP_level,UP_act_typ);
+      // das close Inputfile hat schon ED_Read_Line gemacht !
+    irc = PrgMod_normal;
+
+    // Bei hoeheren Levels nix tun
+    if(UP_level >= 0) {
+
+      irc = APT_UP_down ();  // restore Prg_line_nr, UP_act_typ, decr. UP_level
+
+      if(UP_level >= 0) { goto Fertig; }
+    }
+
+      // printf(" lNr nach MAC: %d\n",Prg_line_nr);
+    // explizit einen actPos-Record fuer das CALL speichern
+    i1 = APT_line_act;
+    APT_line_act = Prg_line_nr - 1;
+    // WC_actPos_save (1);                // actPosU merken
+    APT_line_act = i1;
+
+    UP_mode = OFF;     // Rueckkehr ins Main.
+    ED_lnr_mac (1);    // reset ED_lnr_bis after execute MAC
+    // rc = PrgMod_continue_mac;
+    goto Fertig;
+
+
+    //----------------------------------------------------------------
+    case TPC_IF:
+      return APT_work_TPC_IF (data); 
+
+
+    //----------------------------------------------------------------
+    case TPC_CALL:
+      return APT_work_TPC_CALL (data);
+
+
+    //----------------------------------------------------------------
+    default:
+      TX_Error("APT_work_PrgCodTab E000_%d",icod);
+  }
+
+
+
+
+    //====================================================================
+    Do_END_GEO:
+      // printf("END GEO Lev=%d typ=%c\n",UP_level,UP_act_typ);
+      // printf("    WC_mode=%d\n",WC_mode);
+      // printf("    UpOri=%f,%f\n",UpOri.x,UpOri.y);
+
+
+    irc = PrgMod_normal;
+
+    UP_resolv = OFF;  // damit APT_transl2 transliert 2002-03-07
+    actPosUtr = APT_transl2 (&actPosU); // 2001-11-02
+    actPosOtr = APT_transl2 (&actPosO);
+    actPosU = actPosUtr;                // 2001-11-02
+    // hier fuer PP auch noch actPosO ??
+
+
+    // Bei höheren Levels nix tun
+    if(UP_level >= 0) {
+      irc = APT_UP_down ();  // restore Prg_line_nr, UP_act_typ, decr. UP_level
+      if(UP_level > 0) { goto Fertig; }   // raus 2002-03-07
+    }
+
+    // Rueckkehrin ins Main.
+    UP_mode = OFF;
+
+
+    UpOri.x  = 0.0;
+    UpOri.y  = 0.0;
+    UpOriAng = 0.0;
+
+/*
+    TX_Print("EEEEEEEEEEEEE END_GEO UpOri=%f,%f\n",UpOri.x,UpOri.y);
+    TX_Print("     actPosU=%f,%f\n",actPosU.x,actPosU.y);
+    TX_Print("     actPosUtr=%f,%f\n",actPosUtr.x,actPosUtr.y);
+*/
+
+    // actPos wieder zuruecksetzen
+    actPosU.x = actPosUtr.x;
+    actPosU.y = actPosUtr.y;
+
+    actPosO.x = actPosOtr.x;
+    actPosO.y = actPosOtr.y;
+
+    goto Fertig;
+
+
+  //====================================================================
+  Fertig:
+
+  return irc;
+
+
+  //----------------------------------------------------------------
+  Fehler1:
+    TX_Error(" bei den Parametern: %s\n",PrgCodTab[icod]);
+    printf("*** Err APT_work_PrgCodTab |%s|\n",*data);
+
+
+}
+
+
+//================================================================
+  int APT_work_AppCodTab (char *cmd, char** data) {
+//================================================================
+/// \code
+/// work commands HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab)
+///  retCod:  >=0  cmd in AppCodTab; cmd executed.
+///           -1   error executing commend.
+///           -2   cmd not in AppCodTab;
+/// \endcode
+
+
+  int       i1, otyp, icod;
+  long      ind;
+  char      auxBuf[256];
+  Point     pt1;
+  ObjAto    ato1;
+
+
+  // printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
+  // if(data)printf("  data=|%s|\n",*data);
+
+
+  // test if its a command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
+  icod = UTX_wTab_ck (AppCodTab, cmd);
+  if(icod < 0) return -2;
+
+
+
+  //================================================================
+  // codes without values. Use direct.
+  switch (icod) {
+
+    //----------------------------------------------------------------
+    case TAC_MODE:
+      return APT_work_MODE (data);
+
+    //----------------------------------------------------------------
+    case TAC_ZOOMALL:
+      return UI_GR_ScalAuto (0);
+
+    //----------------------------------------------------------------
+    case TAC_LDMOD:
+      // changes symbolic_path --> real_path !
+      Mod_sym_get1 (AP_dir_open, *data, 0);
+        printf(" symbolicPath=|%s|\n",AP_dir_open);
+      UTX_fnam_s (WC_modnam, *data);
+        printf(" Filename=|%s|\n",WC_modnam);
+      return AP_Mod_load (1); // load AP_dir_open/WC_modnam
+
+    //----------------------------------------------------------------
+    case TAC_EXECM:
+        printf(" EXECM |%s|\n",*data);
+      // DLL-starten
+      return AP_exec_dll (*data);
+
+  }
+
+
+
+  //================================================================
+  // codes with values. First decode values.
+  // get memSpc for ato
+  ATO_getSpc__ (&ato1);
+
+  // decode data
+  ATO_ato_srcLn__ (&ato1, *data);
+    // ATO_dump__ (&ato1, " start _AppCodTab");
+
+
+  switch (icod) {
+
+    //----------------------------------------------------------------
+    case TAC_PRI:
+      // decode 
+      APT_decode_print (memspc011, *data, ato1.typ, ato1.val, ato1.nr);
+      TX_Print("%s",memspc011);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_DRAW:
+      for(i1=0; i1<ato1.nr; ++i1) {
+        // printf ("  DRAWWWWWW: %d %d %f\n",i1,ato1.typ[i1],ato1.val[i1]);
+        if(ato1.typ[i1] == Typ_Val) {
+          ED_set_delay ((int)ato1.val[i1]);
+
+        } else if(ato1.typ[0] == Typ_cmdNCsub) {
+
+          if((int)ato1.val[0] == 0) {               // Achtung: "T_ON"
+            APT_Stat_Draw = ON;
+
+          } else if((int)ato1.val[0] == 1) {        // Achtung: "T_OFF"
+            APT_Stat_Draw = OFF;
+            // printf ("  DRAWWWWWW: OFF\n");
+
+          } else {
+            goto Fehler1;
+          }
+
+        } else {
+          goto Fehler1;
+        }
+      }
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_STAT:
+      TX_Print("Stat:");
+      DL_Stat ();
+      DB_Stat ();
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_SSTYLS:
+      return GA_sStylTab (ato1.nr, ato1.typ, ato1.val);
+
+    //----------------------------------------------------------------
+    case TAC_SHOW:
+      if(WC_modact_ind >= 0) break;       // skip command in Submodels
+      return APT_work_SHOW (ato1.nr, ato1.typ, ato1.val);
+
+    //----------------------------------------------------------------
+    case TAC_HIDE:
+      // used only at initphase; eg "HIDE C20 P20 P24 S21 P25 P26 P22"
+      // interactive use SHOW.
+        // printf("HIDE |%s|\n",*data);
+      GA_hideTab (ato1.nr, ato1.typ, ato1.val);
+      // GA_hide__ (7, 0, 0); // Display Info Hidden about Objects
+      // DL_Redraw ();
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_VIEW:
+      if(WC_modact_ind >= 0) break;       // skip command in Submodels
+      return APT_work_VIEW (ato1.nr, ato1.typ, ato1.val);
+
+    //----------------------------------------------------------------
+    case TAC_CONST_PL:
+      pt1           = DB_GetPoint  ((long)ato1.val[0]);
+      WC_sur_act.vx = DB_GetVector ((long)ato1.val[1]);
+      WC_sur_act.vy = DB_GetVector ((long)ato1.val[2]);
+      WC_sur_act.vz = DB_GetVector ((long)ato1.val[3]);
+      WC_sur_Z = ato1.val[4];
+      // ConstPlID ist R20 (Typ_PLN) oder VC (DZ od DY od DZ)
+      if((ato1.typ[5] == Typ_PLN)||(ato1.typ[5] == Typ_VC)) {
+        APED_oid_dbo__ (auxBuf, ato1.typ[5],(long)ato1.val[5]);
+        AP_Set_ConstPl_Z (auxBuf);
+      }
+        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vx, "VX=");
+        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vy, "VY=");
+        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vz, "VZ=");
+      // das plane.p setzen !
+      UT3D_pl_ptpl (&WC_sur_act, &pt1);
+      // GL_constr_pln setzen aus WC_sur_act, WC_sur_Z;
+      GL_SetConstrPln ();
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_MODBOX:
+      if((ato1.typ[0] != Typ_PT)||(ato1.typ[1] != Typ_PT)) goto Fehler1;
+      AP_box_pm1 = DB_GetPoint ((long)ato1.val[0]);
+      AP_box_pm2 = DB_GetPoint ((long)ato1.val[1]);
+      AP_mdlbox_invalid_reset ();
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_MODVAL:
+      // get value-nr (0=first_value in text)
+      if(ato1.nr == 2) i1 = ato1.val[1];
+      else             i1 = 0;
+      // get typ and dbi from *data
+      APED_dbo_oid (&otyp, &ind, *data);              // get typ,dbi from ID
+      SRCU_win_var (otyp, ind, i1);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_MODSIZ:
+      NC_setModSiz (ato1.val[0]);
+    
+      // APT_ModSiz  = ato1.val[0];
+      // WC_Init_Tol ();
+      // if(WC_modact_ind < 0)                   // nur im aktiven Model
+        // GL_InitModelSize (APT_ModSiz, 0);
+
+      if(ato1.typ[1] == Typ_Val) {
+        UT_TOL_cv = ato1.val[1];
+        if(ato1.typ[2] == Typ_Val) {
+          UT_DISP_cv = ato1.val[2];
+        }
+      }
+      // printf(" >>>>>>>>>>> MODSIZ %f %f %f\n",APT_ModSiz,UT_TOL_cv,UT_DISP_cv);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_DEFTX:
+      // printf(" DEFTX %f %f ato1.nr=%d\n",ato1.val[0],ato1.val[1],ato1.nr);
+      AP_txsiz    = ato1.val[0];
+      AP_txdimsiz = ato1.val[1];
+      GR_tx_scale = 1.; 
+      // AP_txNkNr   = 2; 
+      AP_txNkNr = IMAX(0, 3 - UTP_dbqsiz(APT_ModSiz));
+      if(ato1.nr > 2) {
+        GR_tx_scale = ato1.val[2];
+        if(ato1.nr > 3) {
+          AP_txNkNr = ato1.val[3];
+        }
+      }
+      GR_InitGFPar (AP_txdimsiz);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_DEFCOL:
+      // printf(" DEFCOL %f %f %f\n",ato1.val[0],ato1.val[1],ato1.val[2]);
+      // defCol wird hier zwar als neuer DL-Record angelegt; in subModels wird
+      // die DL aber geloescht, defCol muss dann mit GL_DefColSet nochmal
+      // angelegt werden !
+      AP_defcol.cr = (unsigned char)ato1.val[0];
+      AP_defcol.cg = (unsigned char)ato1.val[1];
+      AP_defcol.cb = (unsigned char)ato1.val[2];
+      // AP_indCol = GL_DefColSet (&AP_defcol);
+      GL_DefColSet (&AP_defcol);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_ATTL:
+      return APT_work_ATTL (ato1.nr, ato1.typ, ato1.val);
+
+    //----------------------------------------------------------------
+    case TAC_ATTS:
+      return APT_work_ATTS (ato1.nr, ato1.typ, ato1.val);
+
+    //----------------------------------------------------------------
+    case TAC_PROCESS:
+      APT_get_Txt (auxBuf, *data, ato1.val[1]);   // processorname
+        // printf(" auxBuf=|%s|\n",auxBuf);
+        // printf(" w1=|%s|\n",APP_act_proc);
+      // load & init processor
+      PRC_init (auxBuf);
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_DIM:
+      GR_Att_act = Typ_Att_dim;
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_HILI:
+      GR_Att_act = Typ_Att_hili1;
+      break;
+
+    //----------------------------------------------------------------
+    case TAC_LAY:
+      return APT_work_LAY (ato1.nr, ato1.typ, ato1.val, data);
+
+    //----------------------------------------------------------------
+    case TAC_DUMP:
+      if(ato1.typ[0] == Typ_String) {    // APT_get_String
+        APT_get_String (auxBuf, *data, ato1.val[0]);
+
+        if(!strcmp (auxBuf, "GA")) {
+          GA_dump__ (NULL);
+
+        } else if(!strcmp (auxBuf, "DL")) {
+          DL_DumpObjTab ();
+
+        } else if(!strcmp (auxBuf, "AT")) {
+          GL_AttTab_dump__ ();
+
+        } else if(!strcmp (auxBuf, "TX")) {
+          Tex_dump__ (NULL);
+
+        } else if(!strcmp (auxBuf, "SD")) {
+          Mod_sym_dump ();
+
+        } else goto Fehler1;
+      } else goto Fehler1;
+      break;
+
+
+    //----------------------------------------------------------------
+    case TAC_NOP:
+      if(ato1.typ[0] == Typ_cmdNCsub) {
+
+        if((int)ato1.val[0] == 0) {               // Achtung: "T_ON"
+          GR_pick = ON;
+
+        } else if((int)ato1.val[0] == 1) {        // Achtung: "T_OFF"
+          GR_pick = OFF;
+
+        } else {
+          goto Fehler1;
+        }
+
+      } else {
+        goto Fehler1;
+      }
+      break;
+
+
+    //----------------------------------------------------------------
+    default:
+      TX_Error("APT_work_AppCodTab E000_%d",icod);
+  }
+
+
+  return 0;
+
+  Fehler1:
+   sprintf(auxBuf,"APT_work_AppCodTab E001 |%s|",cmd);
+   if(data) strcat(auxBuf, *data);
+   TX_Error(auxBuf);
+   return -1;
+
+}
+
+ //====================================================================
+  int APT_work_LAY (int aus_anz,int aus_typ[],double aus_tab[],
+                     char **data) {
+//====================================================================
+
+  int    i1, i2, i3;
+  char   *cp, auxBuf[128];
+
+
+
+
+    if(aus_typ[0] == Typ_Txt) {
+
+      cp = APT_get_Txt (auxBuf, *data, aus_tab[0]);
+      UTX_cp_word_2_upper (auxBuf, auxBuf);
+      //TX_Print(" auxBuf=/%s/ %d",auxBuf,aus_typ[2]);
+
+      if(!strcmp (auxBuf, "ALL")) {
+        i1 = -1;
+      } else {
+        goto Fehler1;
+      }
+
+    } else {
+      i1 = (int)aus_tab[0];
+    }
+
+/*
+    TX_Print("lay %d %d",aus_anz,i1);
+    for(i2=0; i2<aus_anz; ++i2) {
+      TX_Print(" %d %d %f",i2,aus_typ[i2],aus_tab[i2]);
+    }
+*/
+
+
+    if(aus_anz == 1) {
+      GR_lay_act = i1;
+
+
+
+
+
+    // LAY 12 ON
+    } else if(aus_anz == 2) {
+      if(aus_typ[1] == Typ_cmdNCsub) {
+
+        if((int)aus_tab[1] == 0) {          // Achtung: "T_ON"
+          DL_Lay_mod (i1, FUNC_Show, ON);
+
+        } else if(aus_tab[1] == 1) {        // Achtung: "T_OFF"
+          DL_Lay_mod (i1, FUNC_Show, OFF);
+
+        } else {
+          goto Fehler1;
+        }
+
+      } else {
+          goto Fehler1;
+      }
+
+
+
+    // LAY 12 DIM ON
+    } else if(aus_anz == 3) {
+
+      if((aus_typ[1] == Typ_Txt)&&(aus_typ[2] == Typ_cmdNCsub)) {
+
+        cp = APT_get_Txt (auxBuf, *data, aus_tab[1]);
+        UTX_cp_word_2_upper (auxBuf, auxBuf);
+        //TX_Print(" auxBuf=/%s/ %d",auxBuf,aus_typ[2]);
+
+        if((int)aus_tab[2] == 0) {               // Achtung: "T_ON"
+          i3=ON;
+
+        } else if(aus_tab[2] == 1) {             // Achtung: "T_OFF"
+          i3=OFF;
+
+        } else {
+          goto Fehler1;
+        }
+
+        i2=-1;
+        if(!strcmp (auxBuf, "NOP")) {
+          i2=FUNC_Pick;
+
+        } else if(!strcmp (auxBuf, "DIM")) {
+          i2=FUNC_Dim;
+
+        } else if(!strcmp (auxBuf, "HILI")) {
+          i2=FUNC_Hili;
+
+        }
+
+        if(i2 > 0) {
+          DL_Lay_mod (i1, i2, i3);
+
+        } else {
+          goto Fehler1;
+        }
+
+      } else {
+          goto Fehler1;
+      }
+
+
+
+
+
+    // LAY 12 ADD ....
+    } else {
+      if(aus_typ[1] == Typ_Txt) {
+
+        cp = APT_get_Txt (auxBuf, *data, aus_tab[1]);
+        UTX_cp_word_2_upper (auxBuf, auxBuf);
+        //TX_Print(" auxBuf=/%s/ %d",auxBuf,aus_typ[2]);
+
+        if(!strcmp (auxBuf, "ADD")) {
+          i2=APT_Lay_add (i1, aus_anz-3, *data, &aus_typ[2], &aus_tab[2]);
+          if(i2 < 0) goto Fehler1;
+
+        } else {
+          goto Fehler1;
+        }
+      }
+    }
+
+  return 0;
+
+
+  Fehler1:
+   TX_Error("APT_work_LAY E001");
+   return -1;
+}
+
+
+//====================================================================
+  int APT_work_MODE (char **data) {
+//====================================================================
+
+#define WTAB_SIZ 10
+  int    i1;
+  char   **pa, auxBuf[128];
+
+
+  // printf("APT_work_MODE |%s|\n",*data);
+
+  // change data to uppercase
+  UTX_cp_word_2_upper (*data, *data);
+
+
+  // get tempSpace for 10 pointers
+  UTX_wTab_tmpSpc (pa, WTAB_SIZ);
+
+  // get pointers to words -> pa
+  UTX_wTab_str (pa, WTAB_SIZ, *data);
+    // while (*pa) { printf(" |%s|\n",*pa); ++pa; }
+
+
+  UTX_cp_word_2_upper (auxBuf, pa[0]);
+    // printf(" auxBuf=|%s|\n",auxBuf);
+
+
+  //----------------------------------------------------------------
+  if(!strcmp (pa[0], "3D")) {
+    //TX_Print("start 3D-Input");
+    APT_3d_mode = ON;
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (pa[0], "2D")) {
+    //TX_Print("start 2D-Input");
+    APT_3d_mode = OFF;
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (pa[0], "MEN")) {
+    if(!strcmp (pa[1], "OFF")) UI_men__ ("Men_off");     // remove menu
+    else                 UI_men__ ("Men_on");      // restore menu
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (auxBuf, "BRW")) {
+    if(!strcmp (pa[1], "OFF")) UI_men__ ("Brw_off");
+    else                 UI_men__ ("Brw_on");
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (auxBuf, "BAR1")) {
+    if(!strcmp (pa[1], "OFF")) UI_men__ ("Bar1_off");
+    else                 UI_men__ ("Bar1_on");
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (auxBuf, "BAR2")) {
+    if(!strcmp (pa[1], "OFF")) UI_men__ ("Bar2_off");
+    else                 UI_men__ ("Bar2_on");
+
+
+  //----------------------------------------------------------------
+  // Sehnentoleranz fuer Kreise; dzt unused !
+  // } else if(!strcmp (pa[0], "DISP_AC")) {
+    // APT_get_Val (&APT_TOL_ac, cp, 0.);
+    // printf(" change Disp_AC %f",APT_TOL_ac);
+
+
+  //----------------------------------------------------------------
+  // "PlanesDisplay OFF" from APT-code
+  } else if(!strcmp (pa[0], "DISP_PL")) {
+    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+
+    if(!strcmp (pa[1], "ON")) {          // view (std)
+      APT_dispPL = ON;
+      UI_upd_plDisp ();
+      DL_disp_PL (0);
+
+    } else if(!strcmp (pa[1], "OFF")) {  // hide
+      APT_dispPL = OFF;
+      UI_upd_plDisp ();
+      DL_disp_PL (1);
+
+    } else {
+      goto Fehler1;
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (pa[0], "DISP_PT")) {
+    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+      // printf(" change Disp_PT |%s|\n",auxBuf);
+
+    if(!strcmp (pa[1], "ON")) {           // view (std)
+      APT_dispPT = ON;
+      GL_InitPtAtt (0);
+      UI_upd_ptDisp ();
+
+    } else if(!strcmp (pa[1], "OFF")) {   // hide
+      APT_dispPT = OFF;
+      GL_InitPtAtt (1);
+      UI_upd_ptDisp ();
+
+    } else {
+      // set thickness points
+      i1 = atoi(pa[1]);
+      GL_InitPtAtt (i1);
+
+    }
+
+
+  //----------------------------------------------------------------
+  } else {
+    goto Fehler1;
+  }
+
+  //TX_Print(" change APTsw_poly to %d",APTsw_poly);
+
+
+  Fertig:
+  return 0;
+
+
+  Fehler1:
+   TX_Error("APT_work_MODE E001");
+   return -1;
+}
+
+   
+//====================================================================
+  int APT_work_TPC_CALL (char **data) {
+//====================================================================
+/*
+Ablauf Makro:
+  CALL CTLG    ??
+
+  CALL Kreis1V
+    schaltet APT_stat_act auf 4 (PrgMod_skip_until_mac); es werden nun von
+    ProgrammBeginn alle Lines geliefert;
+  MAC Kreis1V
+    schaltet APT_stat_act auf 0 bis END;
+  END
+    schaltet APT_stat_act auf PrgMod_skip_until_line (od PrgMod_continue_file)
+    Es wird Prg_line_nr auf die lNr hinter dem CALL gesetzt
+    ProgAblauf beginnt wieder in Zeile 1.
+*/
+
+  int       i1, rc;
+  char      *p1;
+  ModelBas  *mb;
+  ObjAto    ato1;
+
+
+  // printf("APT_work_TPC_CALL |%s|\n",*data);
+
+
+  // get memSpc for ato
+  ATO_getSpc_tmp__ (&ato1, 6); 
+
+  // decode data
+  ATO_ato_srcLn__ (&ato1, *data);
+    // ATO_dump__ (&ato1, " start _TPC_CALL");
+
+
+    // im Editmode nix tun, sonst ja
+    // if(ED_query_mode() == ED_mode_enter) goto Fertig;
+
+
+
+  //----------------------------------------------------------------
+   // check for catalog-call (Typ_cmdNCsub T_CTLG)
+   if(ato1.typ[0] == Typ_cmdNCsub) {
+    if(ato1.val[0] != T_CTLG) goto Fehler1;
+        // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
+      // wenn im primary Model "CALL CTLG" steht darf man nix tun !
+      if(WC_modact_ind < 0) goto Fertig;
+
+      mb = DB_get_ModBas (WC_modact_ind);
+      if(mb->mnam == NULL) goto Fehler1;
+        // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
+      sprintf(APT_macnam, "%s",mb->mnam);
+
+      // get APT_filnam = filename of file tmp/<mnam>.write
+      CTLG_fnWrite_modelnam (APT_filnam, APT_macnam);
+        // printf("CALL to File |%s|%s|\n",APT_filnam,APT_macnam);
+      // ++UP_level; set rc = PrgMod_skip_until_file;
+      // this makes: now execute file <APT_filnam>, then continue normal ..
+      rc = APT_UP_up ('F');
+      goto L_call_9;
+   }
+
+
+  //----------------------------------------------------------------
+  // call "<filename>"
+    for (i1=0; i1<ato1.nr; ++i1) {
+
+      // das erste Wort muss der UP-Name sein
+      if(i1 == 0) {
+
+        //------------------------------------------------------
+        // CALL internal "MAC" ?
+        if(ato1.typ[i1] == Typ_Txt) {
+          // APT_get_Txt (APT_macnam, *data, ato1.val[i1]);
+          strcpy (APT_macnam, *data);
+
+          // printf("CALL internal |%s|\n",APT_macnam);
+          // Unterprogrammlevel und Ruecksprungaddresse merken
+          rc = APT_UP_up ('P');
+
+
+        //------------------------------------------------------
+        // CALL "<filename>"
+        // wenn das erste Zeichen ein " ist, dann ist es ein filename
+        } else if(ato1.typ[i1] == Typ_String) {
+          // remove starting/ending '"'
+          p1 = UTX_CleanBracks (*data, '\"', '\"');    // remove "
+            // printf(" p1=|%s|\n",p1);
+          // change symDir/filenam into absolute filename
+          // Mod_sym_get1 (APT_filnam, p1, 0);  // without filename !
+          Mod_get_path (APT_filnam, p1, 0);  // without filename !
+            // printf(" APT_filnam=|%s|\n",APT_filnam);
+          // Unterprogrammlevel und Ruecksprungaddresse merken
+          rc = APT_UP_up ('F');
+          goto L_call_9;
+/*
+          // fuer den PP den Filetyp entfernen
+          UTX_fnam_s (APT_macnam, APT_filnam);
+          UTX_ftyp_cut (APT_macnam);
+          // printf("CALL to File |%s|%s|\n",APT_filnam,APT_macnam);
+          // // nur zum Test:
+          rc = APT_UP_up ('F');
+*/
+        } else {
+          goto Fehler1;
+        }
+      }
+    }
+
+    // nun ist:
+    // APT_macnam - upName
+    // APT_filnam - fileName (nur bei CALL File)
+    // UP_level
+    // UP_level_adr  =  APT_line_act + 1;
+    // UP_level_typ  =  UP_act_typ
+    // UP_level_src  =  'P' (Prog) od 'F' (File)
+
+  L_call_9:
+    UP_act_typ = 'M';
+    UP_mode = ON;
+    ED_lnr_mac (0); // save LineNr; open ED_lnr_bis for execute MAC
+
+    // goto Fertig;
+
+  Fertig:
+  return rc;
+
+  Fehler1:
+   TX_Error("APT_work_TAC_CALL E001");
+   return -1;
+}
+
+ 
+/*
 //================================================================
   int APT_work_PrgCmd (char* cmd, char** data) {
 //================================================================
@@ -4289,26 +5236,24 @@ APT_stat_act:
 
     rc = PrgMod_normal;
 
-/*
-  // unerledigte NCCmds raus
-  if(insAnz > 0) {
-    ObjG2 o1;
-    TX_Print("END_GEO: unerledigte NCCmds auf %f,%f",actPosUtr.x,actPosUtr.y);
-    // ++APT_line_cnt;
-    // o1 = NC_ausgAU;
-    // o1.p1 = actPosUtr;
-    // o1.nam = APT_line_cnt;
-    APT_ausg_NCCmd (0);
-  }
-*/
 
-/*
-    // PP: wenn UP aufgelöst wird, noch END raus.
-    if (WC_mode != 0) {
-      strcpy (WC_outBuf, "END");
-      APT_PP_Write();
-    }
-*/
+  // // unerledigte NCCmds raus
+  // if(insAnz > 0) {
+    // ObjG2 o1;
+    // TX_Print("END_GEO: unerledigte NCCmds auf %f,%f",actPosUtr.x,actPosUtr.y);
+    // // ++APT_line_cnt;
+    // // o1 = NC_ausgAU;
+    // // o1.p1 = actPosUtr;
+    // // o1.nam = APT_line_cnt;
+    // APT_ausg_NCCmd (0);
+  // }
+
+    // // PP: wenn UP aufgelöst wird, noch END raus.
+    // if (WC_mode != 0) {
+      // strcpy (WC_outBuf, "END");
+      // APT_PP_Write();
+    // }
+
 
     UP_resolv = OFF;  // damit APT_transl2 transliert 2002-03-07
     actPosUtr = APT_transl2 (&actPosU); // 2001-11-02
@@ -4324,14 +5269,13 @@ APT_stat_act:
     }
 
 
-      
-/*
-    // PP: nach UP muss im Main mit G92 zurueckgesetzt werden;
-    // dafuer nun nochmal ein FROM.
-    if (WC_mode != 0) {
-      // printf("  UP_mode=%d  UP_resolv=%d UP_act_typ=%c\n",
-           // UP_mode,UP_resolv,UP_act_typ);
-      strcpy (WC_outBuf,"FROM ");
+    // // PP: nach UP muss im Main mit G92 zurueckgesetzt werden;
+    // // dafuer nun nochmal ein FROM.
+    // if (WC_mode != 0) {
+      // // printf("  UP_mode=%d  UP_resolv=%d UP_act_typ=%c\n",
+           // // UP_mode,UP_resolv,UP_act_typ);
+      // strcpy (WC_outBuf,"FROM ");
+
 ///
 //       // im PP-mode wurde nicht transliert;
 //       // um den wirklichen Punkt festzustellen, nun
@@ -4343,14 +5287,14 @@ APT_stat_act:
 //       actPosOtr = APT_transl2 (&actPosO);
 //       --UP_level;      // damit APT_transl2 transliert
 ///
-        // printf("PP: FROM nach WORK actPosU=%f,%f\n", actPosU.x, actPosU.y);
-        // printf("    FROM nach WORK %f,%f\n", actPosUtr.x, actPosUtr.y);
+        // // printf("PP: FROM nach WORK actPosU=%f,%f\n", actPosU.x, actPosU.y);
+        // // printf("    FROM nach WORK %f,%f\n", actPosUtr.x, actPosUtr.y);
+// 
+      // UTX_add_fl_u2 (WC_outBuf, actPosUtr.x, actPosUtr.y);
+      // UP_mode = OFF;  // sonst schreibt der APT_PP_Write nicht
+      // APT_PP_Write();
+    // }
 
-      UTX_add_fl_u2 (WC_outBuf, actPosUtr.x, actPosUtr.y);
-      UP_mode = OFF;  // sonst schreibt der APT_PP_Write nicht
-      APT_PP_Write();
-    }
-*/
 
 
 
@@ -4369,12 +5313,10 @@ APT_stat_act:
     UpOriAng = 0.0;
 
 
+    // TX_Print("EEEEEEEEEEEEE END_GEO UpOri=%f,%f\n",UpOri.x,UpOri.y);
+    // TX_Print("     actPosU=%f,%f\n",actPosU.x,actPosU.y);
+    // TX_Print("     actPosUtr=%f,%f\n",actPosUtr.x,actPosUtr.y);
 
-/*
-    TX_Print("EEEEEEEEEEEEE END_GEO UpOri=%f,%f\n",UpOri.x,UpOri.y);
-    TX_Print("     actPosU=%f,%f\n",actPosU.x,actPosU.y);
-    TX_Print("     actPosUtr=%f,%f\n",actPosUtr.x,actPosUtr.y);
-*/
 
 
 
@@ -4410,17 +5352,16 @@ APT_stat_act:
     goto Fertig;
 
 
-/*
-  //=====================================================================
-  } else if (!strcmp (cmd, "INPUT")) {
+  // //=====================================================================
+  // } else if (!strcmp (cmd, "INPUT")) {
+// 
+    // printf(" INPUT |%s|\n",*data);
+// 
+    // // input form
+    // DLG_input (*data);
+// 
+    // goto Fertig;
 
-    printf(" INPUT |%s|\n",*data);
-
-    // input form
-    DLG_input (*data);
-
-    goto Fertig;
-*/
 
 
 
@@ -4628,18 +5569,16 @@ APT_stat_act:
 
       // printf("CONST_PL |%s|\n",*data);
 
-/*
-    for(i1=0; i1<aus_anz; ++i1) {
-      printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-    }
-      // restore ConstPln:
-      printf("CONST_PL %d %f\n",aus_typ[0],aus_tab[0]);
-      printf("       X %d %f\n",aus_typ[1],aus_tab[1]);
-      printf("       Y %d %f\n",aus_typ[2],aus_tab[2]);
-      printf("       Z %d %f\n",aus_typ[3],aus_tab[3]);
-      printf("      dz %d %f\n",aus_typ[4],aus_tab[4]);
-      printf("      ID %d %f\n",aus_typ[5],aus_tab[5]);
-*/
+    // for(i1=0; i1<aus_anz; ++i1) {
+      // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+    // }
+      // // restore ConstPln:
+      // printf("CONST_PL %d %f\n",aus_typ[0],aus_tab[0]);
+      // printf("       X %d %f\n",aus_typ[1],aus_tab[1]);
+      // printf("       Y %d %f\n",aus_typ[2],aus_tab[2]);
+      // printf("       Z %d %f\n",aus_typ[3],aus_tab[3]);
+      // printf("      dz %d %f\n",aus_typ[4],aus_tab[4]);
+      // printf("      ID %d %f\n",aus_typ[5],aus_tab[5]);
 
     pt1           = DB_GetPoint  ((long)aus_tab[0]);
     WC_sur_act.vx = DB_GetVector ((long)aus_tab[1]);
@@ -4680,114 +5619,110 @@ APT_stat_act:
     if(rc < 0) goto Fehler1;
     goto Fertig;
 
-/*
-    i1 = aus_typ[1];
-    rc = 1;
-    if(i1 == Typ_ope_eq) {
-      if(!(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt))) {
-        //printf(" ungleich; skip the rest of he Line\n");
-        rc = 0;
-      }
-    } else if(i1 == Typ_ope_ne) {
-      if(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt)) {
-        rc = 0;      }
-    } else if(i1 == Typ_ope_lt) {
-      if(aus_tab[0] >= aus_tab[2]) {
-        rc = 0;
-      }
-    } else if(i1 == Typ_ope_gt) {
-      if(aus_tab[0] <= aus_tab[2]) {
-        rc = 0;
-      }
-    } else if(i1 == Typ_ope_ge) {
-      if(aus_tab[0] < aus_tab[2]) {
-        rc = 0;
-      }
-    } else if(i1 == Typ_ope_le) {
-      if(aus_tab[0] > aus_tab[2]) {
-        rc = 0;
-      }
-    } else {
-      goto Fehler1;
-    }
-    // printf("ex IF rc=%d\n",rc);
-    goto Fertig;
-*/
+    // i1 = aus_typ[1];
+    // rc = 1;
+    // if(i1 == Typ_ope_eq) {
+      // if(!(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt))) {
+        // //printf(" ungleich; skip the rest of he Line\n");
+        // rc = 0;
+      // }
+    // } else if(i1 == Typ_ope_ne) {
+      // if(UTP_comp2db (aus_tab[0],aus_tab[2], UT_TOL_pt)) {
+        // rc = 0;      }
+    // } else if(i1 == Typ_ope_lt) {
+      // if(aus_tab[0] >= aus_tab[2]) {
+        // rc = 0;
+      // }
+    // } else if(i1 == Typ_ope_gt) {
+      // if(aus_tab[0] <= aus_tab[2]) {
+        // rc = 0;
+      // }
+    // } else if(i1 == Typ_ope_ge) {
+      // if(aus_tab[0] < aus_tab[2]) {
+        // rc = 0;
+      // }
+    // } else if(i1 == Typ_ope_le) {
+      // if(aus_tab[0] > aus_tab[2]) {
+        // rc = 0;
+      // }
+    // } else {
+      // goto Fehler1;
+    // }
+    // // printf("ex IF rc=%d\n",rc);
+    // goto Fertig;
 
 
 
   //=====================================================================
   } else if (!strcmp (cmd, "CALL")) {
-/*
-Ablauf Makro:
-  CALL Kreis1V
-    schaltet APT_stat_act auf 4 (PrgMod_skip_until_mac); es werden nun von
-    ProgrammBeginn alle Lines geliefert;
-  MAC Kreis1V
-    schaltet APT_stat_act auf 0 bis END;
-  END
-    schaltet APT_stat_act auf PrgMod_skip_until_line (od PrgMod_continue_file)
-    Es wird Prg_line_nr auf die lNr hinter dem CALL gesetzt
-    ProgAblauf beginnt wieder in Zeile 1.
-*/
+// Ablauf Makro:
+//   CALL Kreis1V
+//     schaltet APT_stat_act auf 4 (PrgMod_skip_until_mac); es werden nun von
+//     ProgrammBeginn alle Lines geliefert;
+//   MAC Kreis1V
+//     schaltet APT_stat_act auf 0 bis END;
+//   END
+//     schaltet APT_stat_act auf PrgMod_skip_until_line (od PrgMod_continue_file)
+//     Es wird Prg_line_nr auf die lNr hinter dem CALL gesetzt
+//     ProgAblauf beginnt wieder in Zeile 1.
 
     // im Editmode nix tun, sonst ja
     // if(ED_query_mode() == ED_mode_enter) goto Fertig;
 
 
-   // check for catalog-call (Typ_cmdNCsub T_CTLG)
-   if(aus_typ[0] == Typ_cmdNCsub) {
-    if(aus_tab[0] != T_CTLG) goto Fehler1;
-        // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
-      // wenn im primary Model "CALL CTLG" steht darf man nix tun !
-      if(WC_modact_ind < 0) goto Fertig;
-
-      mb = DB_get_ModBas(WC_modact_ind);
-      if(mb->mnam == NULL) goto Fehler1;
-        // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
-      sprintf(APT_macnam, "%s",mb->mnam);
-      // den zugehoerigen filename fuer das .write-File machen
-      CTLG_fnWrite_modelnam (APT_filnam, APT_macnam);
-        // printf("CALL to File |%s|%s|\n",APT_filnam,APT_macnam);
-      rc = APT_UP_up ('F');
-      goto L_call_9;
-   }
-
-
-    for (i1=0; i1<aus_anz; ++i1) {
-
-      // das erste Wort muss der UP-Name sein
-      if(i1 == 0) {
-        if(aus_typ[i1] == Typ_Txt) {
-          APT_get_Txt (APT_macnam, sptr, aus_tab[i1]);
-
-          // printf("CALL internal |%s|\n",APT_macnam);
-          // Unterprogrammlevel und Ruecksprungaddresse merken
-          rc = APT_UP_up ('P');
-
-
-        // wenn das erste Zeichen ein " ist, dann ist es ein filename
-        } else if(aus_typ[i1] == Typ_String) {
-          i1 = APT_str2fnam (APT_filnam, *data);
-          // open exportfile
-          if(i1 == 1) {   // relativ --> tmp/
-            UTX_safeName (APT_filnam, 0); // change '. ', do not change '/'
-            strcat(APT_filnam, ".write");
-          }
-/*
-          APT_get_String (APT_filnam, sptr, aus_tab[i1]);
-            printf(" APT_filnam n get_String |%s|\n",APT_filnam);
-          // cp = sptr + (int)aus_tab[i1] + 1;
-          // UTX_cp_word_term (APT_macnam, cp, '.');
-
-          // wenn Filename nicht mit "/" beginnt, baseverzeichnis voranstellen.
-          // use better APT_str2fnam ...
-          //if(APT_filnam[0] != "/") {
-          if(APT_filnam[0] != '/') {
-            sprintf(WC_outBuf, "%s/%s",OS_get_bas_dir(),APT_filnam);
-            strcpy(APT_filnam, WC_outBuf);
-          }
-*/
+//    // check for catalog-call (Typ_cmdNCsub T_CTLG)
+//    if(aus_typ[0] == Typ_cmdNCsub) {
+//     if(aus_tab[0] != T_CTLG) goto Fehler1;
+//         // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
+//       // wenn im primary Model "CALL CTLG" steht darf man nix tun !
+//       if(WC_modact_ind < 0) goto Fertig;
+// 
+//       mb = DB_get_ModBas(WC_modact_ind);
+//       if(mb->mnam == NULL) goto Fehler1;
+//         // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
+//       sprintf(APT_macnam, "%s",mb->mnam);
+//       // den zugehoerigen filename fuer das .write-File machen
+//       CTLG_fnWrite_modelnam (APT_filnam, APT_macnam);
+//         // printf("CALL to File |%s|%s|\n",APT_filnam,APT_macnam);
+//       rc = APT_UP_up ('F');
+//       goto L_call_9;
+//    }
+// 
+// 
+//     for (i1=0; i1<aus_anz; ++i1) {
+// 
+//       // das erste Wort muss der UP-Name sein
+//       if(i1 == 0) {
+//         if(aus_typ[i1] == Typ_Txt) {
+//           APT_get_Txt (APT_macnam, sptr, aus_tab[i1]);
+// 
+//           // printf("CALL internal |%s|\n",APT_macnam);
+//           // Unterprogrammlevel und Ruecksprungaddresse merken
+//           rc = APT_UP_up ('P');
+// 
+// 
+//         // wenn das erste Zeichen ein " ist, dann ist es ein filename
+//         } else if(aus_typ[i1] == Typ_String) {
+//           i1 = APT_str2fnam (APT_filnam, *data);
+//           // open exportfile
+//           if(i1 == 1) {   // relativ --> tmp/
+//             UTX_safeName (APT_filnam, 0); // change '. ', do not change '/'
+//             strcat(APT_filnam, ".write");
+//           }
+// 
+//           APT_get_String (APT_filnam, sptr, aus_tab[i1]);
+//             printf(" APT_filnam n get_String |%s|\n",APT_filnam);
+//           // cp = sptr + (int)aus_tab[i1] + 1;
+//           // UTX_cp_word_term (APT_macnam, cp, '.');
+// 
+//           // wenn Filename nicht mit "/" beginnt, baseverzeichnis voranstellen.
+//           // use better APT_str2fnam ...
+//           //if(APT_filnam[0] != "/") {
+//           if(APT_filnam[0] != '/') {
+//             sprintf(WC_outBuf, "%s/%s",OS_get_bas_dir(),APT_filnam);
+//             strcpy(APT_filnam, WC_outBuf);
+//           }
+//
           // fuer den PP den Filetyp entfernen
           UTX_fnam_s (APT_macnam, APT_filnam);
           UTX_ftyp_cut (APT_macnam);
@@ -4826,7 +5761,7 @@ Ablauf Makro:
 
 
 
-/*
+//
   //=====================================================================
   } else if (!strcmp (cmd, "WORK")) {
 
@@ -5149,11 +6084,11 @@ Ablauf Makro:
     UP_mode = ON;
 
     goto Fertig;
-*/
+//
 
 
 
-  /*======================= PRINT =========================================*/
+  //======================= PRINT =========================================
   } else if ((!strcmp (cmd, "PRI")) || (!strcmp (cmd, "PRINT"))) {
 
     // decode 
@@ -5161,7 +6096,7 @@ Ablauf Makro:
     TX_Print("%s",memspc011);
 
 
-/*
+//
   //================================================================
   } else if (!strcmp (cmd, "TXA")) {
 
@@ -5251,13 +6186,13 @@ Ablauf Makro:
 
       // printf(" TXG |%s| %f %f\n",WC_outBuf,d1,d2);
     APT_disp_TxtG (0, &pt1, d1, d2, WC_outBuf);
-*/
+//
 
 
 
 
 
-  /*======================= DRAW ==========================================*/
+  //======================= DRAW ==========================================
   } else if (!strcmp (cmd, "DRAW")) {
 
 
@@ -5292,7 +6227,7 @@ Ablauf Makro:
 
 
 
-  /*======================= MODE ==========================================*/
+  //======================= MODE ==========================================
   } else if (!strcmp (cmd, "MODE")) {
       // printf(" MODE aus_typ[0]=%d\n",aus_typ[0]);
       if(aus_anz > 1)
@@ -5336,13 +6271,14 @@ Ablauf Makro:
 
 
       // Sehnentoleranz fuer Kreise; dzt unused !
-      // Sehnentoleranz fuer Kreise; dzt unused !
       } else if(!strcmp (auxBuf, "DISP_AC")) {
         APT_get_Val (&APT_TOL_ac, cp, 0.);
         // printf(" change Disp_AC %f",APT_TOL_ac);
 
 
+      // "PlanesDisplay OFF" from APT-code
       } else if(!strcmp (auxBuf, "DISP_PL")) {
+        if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
         APT_get_Txt (auxBuf, cp, 0.);
         UTX_cp_word_2_upper (auxBuf, auxBuf);
         if(!strcmp (auxBuf, "ON")) {          // view (std)
@@ -5361,6 +6297,7 @@ Ablauf Makro:
 
 
       }else if(!strcmp (auxBuf, "DISP_PT")) {
+        if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
         if(aus_typ[1] == Typ_Val) {
           i1 = aus_tab[1];
           GL_InitPtAtt (i1);
@@ -5398,7 +6335,7 @@ Ablauf Makro:
 
 
 
-/*
+//
   //================================================================
   } else if (!strcmp (cmd, "TOL_POLY")) {
 
@@ -5453,13 +6390,11 @@ Ablauf Makro:
       goto Fehler1;
     }
     //TX_Print(" change APTsw_poly_acln to %d",APTsw_poly_acln);
-*/
+//
 
 
 
-
-
-  /*======================= DIM ==============================================*/
+  //======================= DIM ==============================================
   } else if (!strcmp (cmd, "DIM")) {   // dimmen, nicht Dimension !
 
     //TX_Print("dim:");
@@ -5469,8 +6404,7 @@ Ablauf Makro:
 
 
 
-
-  /*======================= HILI ==============================================*/
+  //======================= HILI ==============================================
   } else if (!strcmp (cmd, "HILI")) {
 
     //TX_Print("hili:");
@@ -5479,8 +6413,7 @@ Ablauf Makro:
 
 
 
-
-  /*======================= NOP ==============================================*/
+  //======================= NOP ==============================================
   } else if (!strcmp (cmd, "NOP")) {
 
     //TX_Print("nop:");
@@ -5503,10 +6436,7 @@ Ablauf Makro:
     }
 
 
-
-
-
-  /*======================= LAY ==============================================*/
+  //======================= LAY ==============================================
   } else if (!strcmp (cmd, "LAY")) {
 
     if(aus_typ[0] == Typ_Txt) {
@@ -5525,18 +6455,15 @@ Ablauf Makro:
       i1 = (int)aus_tab[0];
     }
 
-/*
-    TX_Print("lay %d %d",aus_anz,i1);
-    for(i2=0; i2<aus_anz; ++i2) {
-      TX_Print(" %d %d %f",i2,aus_typ[i2],aus_tab[i2]);
-    }
-*/
+
+    // TX_Print("lay %d %d",aus_anz,i1);
+    // for(i2=0; i2<aus_anz; ++i2) {
+      // TX_Print(" %d %d %f",i2,aus_typ[i2],aus_tab[i2]);
+    // }
 
 
     if(aus_anz == 1) {
       GR_lay_act = i1;
-
-
 
 
     // LAY 12 ON
@@ -5556,8 +6483,6 @@ Ablauf Makro:
       } else {
           goto Fehler1;
       }
-
-
 
 
     // LAY 12 DIM ON
@@ -5604,8 +6529,6 @@ Ablauf Makro:
 
 
 
-
-
     // LAY 12 ADD ....
     } else {
       if(aus_typ[1] == Typ_Txt) {
@@ -5626,7 +6549,7 @@ Ablauf Makro:
 
 
 
-  /*======================= STAT ===========================================*/
+  //======================= STAT ===========================================
   } else if (!strcmp (cmd, "STAT")) {
 
     TX_Print("Stat:");
@@ -5663,7 +6586,7 @@ Ablauf Makro:
 
 
 
-  /*=====================================================================*/
+  //=====================================================================
   } else {
 
     TX_Error(" Programmfunktion %s nicht implementiert\n",cmd);
@@ -5689,6 +6612,7 @@ Ablauf Makro:
   Error:
     return -1;
 }
+*/
 
 
 //================================================================
@@ -8163,18 +9087,19 @@ dzt unused
 
 
 //===========================================================================
-  void APT_DrawTxtG (int typ, long apt_ind, GText *tx1) {
+  void APT_DrawTxtG (int iAtt, long apt_ind, GText *tx1) {
 //===========================================================================
 
 
-  // printf("APT_DrawTxtG typ=%d apt_ind=%ld |%s|\n",typ,apt_ind,tx1->txt);
+  // printf("APT_DrawTxtG iAtt=%d apt_ind=%ld |%s|\n",iAtt,apt_ind,tx1->txt);
 
 
   if(APT_Stat_Draw == OFF) return;
 
-  AP_dli_act = DL_StoreObj (Typ_GTXT, apt_ind, typ);
+  AP_dli_act = DL_StoreObj (Typ_GTXT, apt_ind, iAtt);
 
-  GR_DrawTxtG (&AP_dli_act, typ, &tx1->pt, tx1->size, tx1->dir, tx1->txt);
+  // GR_DrawTxtG (&AP_dli_act, typ, &tx1->pt, tx1->size, tx1->dir, tx1->txt);
+  GR_DrawTxtG (&AP_dli_act, iAtt, tx1, apt_ind);
 
 }
 
@@ -8183,6 +9108,7 @@ dzt unused
   int APT_DrawTxtA (int typ, long apt_ind, AText *tx1) {
 //===========================================================================
 // LDRP
+// TODO: use Typ_Bitmap for Typ_ATXT & Typ_Tag
 
   int    irc, i1;
   double scl;
@@ -8200,33 +9126,35 @@ dzt unused
   AP_dli_act = DL_StoreObj (Typ_Tag, apt_ind, typ);
 
   if(tx1->typ == 1) {   // Image-BMP
-    // den symbol. Pfad aufloesen.
-    // Mod_get_path (cBuf, tx1->txt);
-    // printf(" cBuf=|%s| scl=%f\n",cBuf,tx1->scl);
-    i1  = tx1->ltyp; // LineTyp
-    scl = tx1->scl;  // direkt crash in Linux !
-    // irc = GL_LoadBMP (&AP_dli_act, &tx1->p1, &tx1->p2, i1, scl, cBuf);
-    return GL_LoadBMP (&AP_dli_act, &tx1->p1, &tx1->p2, i1, scl, tx1->txt);
+    // // den symbol. Pfad aufloesen.
+    // // Mod_get_path (cBuf, tx1->txt);
+    // // printf(" cBuf=|%s| scl=%f\n",cBuf,tx1->scl);
+    // i1  = tx1->ltyp; // LineTyp
+    // scl = tx1->scl;  // direkt crash in Linux !
+    // // irc = GL_Draw_BMP (&AP_dli_act, &tx1->p1, &tx1->p2, i1, scl, cBuf);
+    // // return GL_Draw_BMP (&AP_dli_act, &tx1->p1, &tx1->p2, i1, scl, tx1->txt);
+    return GL_Draw_BMP (&AP_dli_act, tx1, apt_ind);
 
 
   } else if(tx1->typ == 3) {   // LeaderLine + Balloon + 3D-Text  LDRC
-    if(tx1->ltyp >= 0) pt1 = &tx1->p2;  // NULL = no leaderline
-    GL_DrawTxtLBG (&AP_dli_act, &tx1->p1, pt1, tx1->txt, apt_ind);
+    GL_DrawTxtLBG (&AP_dli_act, tx1, apt_ind);
 
 
   } else if(tx1->typ == 4) {   // LeaderLine + 3D-Text   LDRP
-    GL_DrawTxtLG (&AP_dli_act, typ, &tx1->p1, &tx1->p2, tx1->txt);
+    // GL_DrawTxtLG (&AP_dli_act, typ, &tx1->p1, &tx1->p2, tx1->txt);
+    GL_DrawTxtLG (&AP_dli_act, tx1, apt_ind);
 
 
   } else if(tx1->typ > 4) {   // symTyp > 4 sind Symbols
     GL_DrawTxtsym (&AP_dli_act, tx1->typ - 5, &tx1->p1, (Vector*)&tx1->p2,
                    tx1->col, tx1->scl);
-
+    if(APT_dispNam) APT_disp_nam (Typ_ATXT, apt_ind, (void*)tx1);
 
   // } else if(tx1->typ == 2) {   // Block-tag
   } else {   // typ = 2 = Block-tag; 0=normale A-text
-    GL_DrawTag1 (&AP_dli_act, &tx1->p1, &tx1->p2, tx1->txt,
-                 tx1->typ, tx1->col, tx1->ltyp);
+    GL_Draw_Tag (&AP_dli_act, tx1, apt_ind);
+    // GL_Draw_Tag (&AP_dli_act, &tx1->p1, &tx1->p2, tx1->txt,
+                 // tx1->typ, tx1->col, tx1->ltyp);
 
   // } else {
     // GR_DrawTxtA (&AP_dli_act, typ, &tx1->p1, tx1->txt);
@@ -8364,6 +9292,7 @@ dzt unused
 }
 
 
+/*
 //===========================================================================
   void APT_disp_TxtG (int typ,Point* pt1,float size,float angle,char* txt) {
 //===========================================================================
@@ -8388,7 +9317,7 @@ dzt unused
   GR_DrawTxtG (&AP_dli_act, typ, pt1, size, angle, txt);
 
 }
-
+*/
 
 
 //===========================================================================
@@ -8699,10 +9628,19 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 //===========================================================================
   void APT_disp_nam (int typ, long ind, void* e1) {
 //===========================================================================
-// display objName at objPosition.
-// Input:
-//   typ,ind    typ & DB-ind of obj to display
-//   e1         data-struct of obj
+/// \code
+/// display objName at objPosition.
+/// Input:
+///   typ,ind    typ & DB-ind of obj to display
+///   e1         data-struct of obj
+/// \endcode
+//
+// TODO: ganz neu machen;
+// - loop tru DL;
+// - skip all submodels ..
+// - skip all parents..
+// - display ...
+
 
 
   double UT3D_parbsp_par1();
@@ -8714,7 +9652,7 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
   Vector vc1;
 
 
-  // printf("APT_disp_nam %d %d\n",typ,ind);
+  // printf("APT_disp_nam %d %ld\n",typ,ind);
   // UT3D_stru_dump (typ, e1, "APT_disp_nam:");
 
 
@@ -8767,6 +9705,9 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
       // UT3D_vc_evalplg (&vc1, (CurvPoly*)e1, d1);
       break;
 
+    case Typ_ATXT:
+      pTx = ((AText*)e1)->p1;
+      break;
 
     case Typ_PLN:
       APT_disp_TxtA (0, &((Plane*)e1)->po, oNam);
@@ -8774,6 +9715,8 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 
 
     default:
+      printf("***** APT_disp_nam E001 typ=%d dbi=%ld\n",typ,ind);
+
       return;
 
   }
@@ -9004,14 +9947,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
   AP_dli_act = DL_StoreObj (Typ_LN, dbi, iAtt);
   GR_DrawLine (&AP_dli_act, iAtt, ln1);
 
-
-  if(APT_dispNam) {
-
-    // if(dbi < APT_LN_SIZ) {
-    // if(dbi >= 0) {
-      APT_disp_nam (Typ_LN, dbi, (void*)ln1);
+  if(APT_dispNam) APT_disp_nam (Typ_LN, dbi, (void*)ln1);
 /*
-    } else {
       //TX_Print(" dyn Line %d; Z=%f",dbi,ln1->p1.z);
       if(UTP_comp2db(WC_sur1, ln1->p1.z, UT_TOL_pt)) {  // nur fuer ZSUR1
         //Print("von %f,%f nach %f,%f",ln1->p1.x,ln1->p1.y,ln1->p2.x,ln1->p2.y);
@@ -9037,7 +9974,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
       }
 */
     // }
-  }
+
 }
 
 
@@ -9083,13 +10020,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
   // }
 
   //if((APT_dispNam)&&(dbi < APT_CI_SIZ)) {
-  if(APT_dispNam) {
-
-    // if(dbi < APT_CI_SIZ) {
-    // if(dbi >= 0) {
-      APT_disp_nam (Typ_CI, dbi, (void*)ci1);
+  if(APT_dispNam) APT_disp_nam (Typ_CI, dbi, (void*)ci1);
 /*
-    } else {
       //TX_Print(" dyn Circ %d; Z=%f",dbi,ci1->p1.z);
       if(UTP_comp2db(WC_sur1, ci1->p1.z, UT_TOL_pt)) {  // nur fuer ZSUR1
         double  d1;
@@ -9106,7 +10038,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
       }
 */
     // }
-  }
+ 
 }
 
 
@@ -9525,6 +10457,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   int APT_decode__ (ObjAto *ato, char **data) {
 //==============================================================================
 /// \code
+/// DO NOT USE; new func: ATO_ato_srcLn__
 /// decode textline <data> into types and values (aus_typ, aus_tab)
 /// NEEDS TERMINATING '\0' !
 ///  uses memspc54 memspc55 memspc012 for ato !
@@ -9585,15 +10518,18 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   int APT_obj_expr (void *data, int typ, char *cbuf) {
 //================================================================
 /// \code
-/// Create struct from ModelCode (text).
+/// get struct from ModelCode (text).
+/// copies struct -> data
 ///
 /// Input:
-///   typ    requested typ of object; eg Typ_PT
+///   typ    requested typ of object; eg Typ_PT; 
+///          data must have corresponding size.
+///          Result unknown: set typ=0; size of data = OBJ_SIZ_MAX
 ///   cbuf   sourceCode;  eg "P21"
 /// Output: 
 ///   data   struct corresponding to <typ>
 /// Returncodes:
-///   -1     Error
+///   -1     Error else type of data
 ///
 /// see also IE_decode_Ln APT_store_obj APED_dec_txt APT_decode__
 /// \endcode
@@ -9601,31 +10537,76 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   // int       aus_anz, aus_SIZ, *aus_typ;
   // double    *aus_tab;
 
-  ObjAto aus_obj;
+
+  int    i1, dbTyp, oSiz;
+  void   *op1;
+  ObjAto ato1;
 
 
   // printf("APT_obj_expr %d |%s|\n",typ,cbuf);
 
 
-  // if(aus_typ == NULL) {
-    // get memSpc for &aus_typ, &aus_tab
-    // ATO_getSpc1 (&aus_SIZ, &aus_typ, &aus_tab);
-  // }
-
-  ATO_getSpc__ (&aus_obj);
+  // get memSpc for atomicObjects  uses memspc54 memspc55 memspc53
+  ATO_getSpc__ (&ato1);
 
 
-  aus_obj.txt = cbuf;
-  APT_defTxt = cbuf;   // for strings
+  // get ato from ModelCode (text).
+  i1 = ATO_ato_srcLn__ (&ato1, cbuf); // 
+  if(i1) {
+    TX_Error ("Error APT_obj_expr 1-%d",i1);
+    return -1;
+  }
+    // ATO_dump__ (&ato1, " APT_obj_expr-1");
+
+ 
+  // use Typ_Val  direct for typ=Typ_VAR
+  if((typ == Typ_VAR) && (ato1.typ[0] == Typ_Val)) {
+    memcpy (data, (void*)&ato1.val[0], sizeof(double));
+    dbTyp = Typ_Val;
+    goto L_exit;
+  }
+
+ 
+  // get binObj of DB-obj
+  dbTyp = DB_GetObjDat (&op1, &i1, ato1.typ[0], (long)ato1.val[0]);
+  if(dbTyp <= 0) {
+    TX_Error ("Error APT_obj_expr 2-%d",dbTyp);
+    return -1;
+  }
+    // printf(" dbTyp=%d i1=%d\n",dbTyp,i1);
+    // UT3D_stru_dump (dbTyp, op1, "APT_obj_expr-2");
 
 
-  // aus_anz = APT_decode_ausdr (aus_typ, aus_tab, aus_SIZ, &cbuf);
-  aus_obj.nr = APT_decode_ausdr (aus_obj.typ, aus_obj.val, aus_obj.siz, &cbuf);
-    // printf(" _objTx %d |%s|\n",aus_anz,cbuf);
-  if(aus_obj.nr < 1) return -1;
+  // test if dbTyp == typ
+  if(typ) {
+    if(dbTyp != typ) {
+      TX_Error ("APT_obj_expr E3-%d-%d",dbTyp,typ);
+      return -1;
+    }
+    oSiz = UTO_siz_stru (typ);
+
+  } else {
+    oSiz = OBJ_SIZ_MAX;
+  }
 
 
-  return APT_obj_ato (data, typ, &aus_obj);
+  // copy binObj op1 -> data
+  i1 = UTO_copy_stru (data, &oSiz, dbTyp, op1, 1);
+  if(i1 < 0) {
+    TX_Error ("Error APT_obj_expr E4-%d",i1);
+    return -1;
+  }
+
+  L_exit:
+  return dbTyp;
+
+
+// old version:
+  // aus_obj.txt = cbuf;
+  // APT_defTxt = cbuf;   // for strings
+  // aus_obj.nr = APT_decode_ausdr (ato1.typ, ato1.val, ato1.siz, &cbuf);
+  // if(ato1.nr < 1) return -1;
+  // return APT_obj_ato (data, typ, &ato1);
 
 }
 
@@ -9633,9 +10614,12 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
 //================================================================
   int APT_obj_ato (void *data, int typ, ObjAto *aus_obj) {
 //================================================================
-// APT_obj_ato      create struct from atomicObjs
-// Output:
-//   data       memspc for the obj of typ <typ>; eg a struct Vector or Point ..
+/// \code
+/// APT_obj_ato      create struct from atomicObjs
+/// Output:
+///   data       memspc for the obj of typ <typ>; eg a struct Vector or Point ..
+/// see also APT_store_obj
+/// \endcode
 
 // Data must be provided in aus_anz/aus_typ/aus_tab
 // APT_defTxt = pointer to sourceText
@@ -9647,6 +10631,9 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   char      *aus_txt;
 
   int   i1, irc;
+
+  // printf("APT_obj_ato typ=%d\n",typ);
+  // ATO_dump__ (aus_obj, "_obj_ato-1");
 
 
   if(aus_obj == NULL) {
@@ -9770,9 +10757,9 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   }
 
   L_exit:
+
     // if(irc >= 0)
     // UT3D_stru_dump (typ, data, "ex APT_obj_ato - irc=%d",irc);
-
 
   return irc;
 

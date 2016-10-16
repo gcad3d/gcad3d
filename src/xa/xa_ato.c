@@ -38,19 +38,22 @@ Modifications:
 =====================================================
 List_functions_start:
 
-ATO_ato_srcLn_exp       split sourceLine, add all expressions to ato
-ATO_ato_atoTab__        decode all atomicObjects in a single ato
-ATO_dump__              dump ato-table
-ATO_ato_expr__          resolv expression and add it to ato-table
+ATO_ato_srcLn__         get atomicObjects from sourceLine; full evaluated.
+ATO_ato_txo__           get atomic-objects from source-objects
 ATO_ato_expr_add        add ato to ato-table
 ATO_swap                swap 2 records
 ATO_clear__             delete all records
-ATO_clean__             make clean atomicObjects from ato (remove FncNam, NULL )
+ATO_clear_block         delete block of records
+ATO_clean__             make clean atomicObjects from ato (use ATO_clean_1)
 ATO_clean_1             close all gaps (typ == Typ_NULL)
 ATO_cpy_rec             copy ATO-record iTo = iFrom, delete iFrom
+ATO_sort1               sort types ascending
+ATO_pNr__               get nr of parameters following record
 
-ATO_ato_srcLn__         get atomicObjects from sourceLine; full evaluated.
-ATO_ato_txo__           get atomic-objects from source-objects
+// ATO_ato_srcLn_exp    DO NOT USE  get/add ato as typ/val from modelCode
+// ATO_ato_atoTab__     DO NOT USE  get single dbo from ato
+// ATO_ato_expr__       DO NOT USE  get struct from modelCode (text).
+
 ATO_ato_typTab          get atomicObjects from aus_typ/aus_tab (old version)
 ATO_ato_eval__          evaluate atomic-objects (compute); reduce records.
 ATO_ato_eval_geom       evaluate geometrical functions
@@ -58,19 +61,102 @@ ATO_ato_obj_pt          get parametric position of point on obj
 ATO_srcTxt              get atomicObj from Typ_Txt (after AP_typ_srcExpr)
 
 ATO_getSpc_tmp__        get memspace for atomicObjects
-ATO_getSpc__     get memSpc for atomicObjects - struct
-ATO_getSpc1      get memSpc for atomicObjects - simple
+ATO_getSpc_tmp1         aux.Func for ATO_getSpc_tmp__
+ATO_getSpc__            get memSpc for atomicObjects (memspc53/54/55)
+ATO_getSpc1             get memSpc for atomicObjects - simple
+ATO_getSpc_tmpSiz       compute necessary space for type/value-table
+ATO_dump__              dump ato-table
 
 List_functions_end:
 =====================================================
+see also: APT_obj_ato // DO NOT USE
 
 \endcode *//*----------------------------------------
 
+
+ATO_ato_srcLn__:
+- get space
+- get tso from srcTxt (APED_txo_srcLn__)
+- get ato from tso (ATO_ato_txo__)
+- eval ato (ATO_ato_eval__)
+
+
+ObjTXTSRC tso   has level and text and offsetposiiton in text
+ObjAto    ato   has level; no text
 
 
 
 ato.ilev (char *ilev) = array of characters, used as ints (-100 - +100)
 /// ilev       level; -1=primary level. NULL=unused
+
+
+Testcodes:
+V20=4
+V21=VAL(SQRT(10+VAL(V20+2)))
+
+V20=10
+P20=P(-V20 -V20 0)
+
+# test case
+v20=val(rad_90)
+p20=10 v20 0
+p21=p(100 v20 0)
+
+
+----------------------------------------
+ATO_ato_srcLn__           get ato from modelCode (text).
+  store values, funcs in ato.val;
+  store text as ? in ato.val;
+  P(..) L(..) C(..) S(..) are stored as dynamic objects (dbi < 0)
+
+APT_store_obj     store ato in DB;
+  Input:  ato, dbTyp,dbi,
+    using all APT_decode_..
+    using all DB_Store..
+
+
+IE_inpTxtOut           create/add modelCode from modelCode (eg add "D(*)"
+    using ATO_ato_srcLn_exp
+TODO: for (inptyp == Typ_Val) ATO_ato_srcLn_exp unused !
+TODO: replace ATO_ato_srcLn_exp
+
+
+----------------------------------------
+DO NOT USE:
+
+ATO_ato_srcLn_exp          get/add ato as typ/val from modelCode
+  Input:  ModelCode, typ, val
+  Output: ato  ?
+    used only by IE_inpTxtOut [ATO_ato_expr__ RECU]
+    using ATO_ato_atoTab__ ATO_ato_expr__
+
+
+ATO_ato_atoTab__     get single dbo from ato
+  creates / returns dynamic obj
+  Input:  typ, ato
+  Output: db-typ,dbi.
+    used only by ATO_ato_srcLn_exp
+    using APT_obj_ato           // get binaryObject from ato
+    using DB_store_stru(dbi=-1) // save struct in DB
+
+
+ATO_ato_expr__            get struct from modelCode (text).
+  ModelCode must result in a single DB-obj (resolved by ATO_ato_srcLn__)
+  copies struct -> output-data
+  Input:  typ, ModelCode
+  Output: binObj, struct is <typ>
+    used only by ATO_ato_srcLn_exp
+    using [ATO_ato_srcLn_exp RECURSE]
+TODO: kopieren unnutz, da alle structs=DB-obj's; change output-data into pointer
+
+
+APT_obj_ato                create struct from atomicObjs
+  Input:  typ, ato
+  Output: binObj, struct is <typ>
+    used only by ATO_ato_atoTab__
+    using all APT_decode_..
+
+
 
 
 
@@ -108,8 +194,8 @@ ato.ilev (char *ilev) = array of characters, used as ints (-100 - +100)
 // EXTERN SYMBOLS:
 
 // ex ../ut/ut_gtypes.c
-extern char *ObjCodTab[];
-
+extern char   *ObjCodTab[];
+extern double NcoValTab[];
 
 
 
@@ -129,7 +215,9 @@ extern char *ObjCodTab[];
 
   // printf("ATO_getSpc_tmpSiz siz=%d\n",sizTab);
 
-  return (sizeof(int) * sizTab) + (sizeof(double) * sizTab);
+  return (sizeof(int) * sizTab) + 
+         (sizeof(double) * sizTab) +
+         (sizeof(short) * sizTab);
 }
 
 
@@ -146,11 +234,12 @@ extern char *ObjCodTab[];
   p1 += sizeof(int) * sizTab;
 
   ato->val = (double*)p1;
+  p1 += sizeof(double) * sizTab;
 
   ato->siz   = sizTab;
   ato->nr    = 0;
 
-  ato->ilev  = NULL;
+  ato->ilev  = (short*)p1;
   ato->txt   = NULL;
   ato->txsiz = 0;
 }
@@ -187,8 +276,12 @@ extern char *ObjCodTab[];
 //================================================================
   int ATO_ato_atoTab__ (int *aTyp, double *aVal, ObjAto *ato) {
 //================================================================
-// get ato from func ..  see also APT_decode_pt
+// ATO_ato_atoTab__             get a single ato from 1-n ato's
 // decode all atomicObjects in ato, return single atomicObject (aTyp,aVal).
+// using APT_obj_ato, DB_store_stru(dbi=-1)
+// Output:
+//   aTyp    db-typ
+//   aVal    db-index as double (NEGATIV = dynamic obj !)
 // returns type & value
 
   int    irc;
@@ -198,7 +291,7 @@ extern char *ObjCodTab[];
 
 
   // printf("ATO_ato_atoTab__ typ=%d val=%lf\n",*aTyp,*aVal);
-  // ATO_dump__ (ato);
+  // ATO_dump__ (ato, "_atoTab__1");
 
 
   //----------------------------------------------------------------
@@ -214,7 +307,7 @@ extern char *ObjCodTab[];
   } else if(*aTyp == Typ_modif) {
     irc = APT_decode_Opm (aVal, ato);
     if(irc < 0) {TX_Error("ATO_ato_atoTab__ Opm2"); return -1;}
-    irc = *aVal - 1;
+    irc = *aVal;
     *aVal = irc;
     *aTyp = Typ_modif;
     goto L_exit;
@@ -239,17 +332,23 @@ extern char *ObjCodTab[];
 
 
   //----------------------------------------------------------------
-  // execute function - get binaryObject
+  // get binaryObject o1 from ato
   irc = APT_obj_ato ((void*)o1, *aTyp, ato);
   if(irc < 0) {TX_Error("ATO_ato_atoTab__ E001"); return -1;}
-    // UT3D_stru_dump (*aTyp, o1, "  o1:");
+  vp1 = o1;
+  if(*aTyp == Typ_CV) {
+    // Typ_ObjGX will be returned !!
+    *aTyp = ((ObjGX*)o1)->form;
+    vp1 = ((ObjGX*)o1)->data;
+  }
+    // UT3D_stru_dump (*aTyp, vp1, "  obj_ato-vp1:");
 
 
 
   // store binaryObject temporary
   // see DB_StorePoint < APT_store_obj  APT_decode_func APT_store_obj
   dbi = -1L;
-  irc = DB_store_stru (&vp1, *aTyp, *aTyp, o1, 1, &dbi);
+  irc = DB_store_stru (&vp1, *aTyp, *aTyp, vp1, 1, &dbi);
   if(irc < 0) {TX_Error("ATO_ato_atoTab__ E002"); return -1;}
   *aVal = dbi;
 
@@ -340,7 +439,7 @@ extern char *ObjCodTab[];
   L_code__:
 
     // copy string
-    s1 = UME_alloc_tmp (sLen + 1);
+    s1 = MEM_alloc_tmp (sLen + 1);
     if(!s1) {TX_Error("ATO_ato_expr__ E001"); return -1;}
     strncpy (s1, exp, sLen);
     s1[sLen] = '\0';
@@ -406,22 +505,27 @@ extern char *ObjCodTab[];
   // ATO_dump__ (ato);
 
 
-  if(ato->nr >= ato->siz) return -1;
+  if(ato->nr >= ato->siz) goto L_E1;
+  if(lev > INT_16S_MAX) goto L_E2;
 
   ato->typ[ato->nr] = typ;
   ato->val[ato->nr] = val;
 
   if(ato->ilev) {
-    if(ato->nr > 1000) {
-      TX_Error ("ATO_ato_expr_add EOM ilev");
-      return -1;
-    }
-    ato->ilev[ato->nr] = lev;   // ilev is char*  --- ???????????
+    ato->ilev[ato->nr] = lev;   // ilev is short*
   }
 
   ++(ato->nr);
 
   return 0;
+
+  //----------------------------------------------------------------
+  L_E1:
+    TX_Error("ATO_ato_expr_add E001"); return -1;
+ 
+  L_E2:
+    TX_Error("ATO_ato_expr_add E002"); return -1;
+
 
 }
 
@@ -449,7 +553,7 @@ extern char *ObjCodTab[];
 
   // printf("ATO_ato_srcLn_exp typ=%d val=%lf\n",*typ,*val);
   // printf(" _srcLn__|%s|\n",srcLn);
-  // ATO_dump__ (ato);
+  // ATO_dump__ (ato, "_srcLn_exp-1");
 
 
   // cut srcLn into expressions (get textPos & textLen)
@@ -460,8 +564,8 @@ extern char *ObjCodTab[];
     // printf(" exp[%d] = %d |%s|\n",i1,sSiz[i1],spa[i1]);
 
 
-  // create child-ato
-  ato1 = *ato;
+  // create ati1 = child-ato following existing ato's
+  ato1 = *ato;  // copy
   if(*typ) {
     ii = ato->nr;
     ato1.typ = &ato->typ[ii];
@@ -472,7 +576,7 @@ extern char *ObjCodTab[];
   }
     
 
-  // loop tru expressions, create ato
+  // loop tru expressions, add into ato1
   for(i1=0; i1<aNr; ++i1) {
 
     cp1 = spa[i1];
@@ -484,16 +588,15 @@ extern char *ObjCodTab[];
       irc = ATO_ato_expr_add (&ato1, iTyp, dVal, 0);
       if(irc < 0) {TX_Error("ATO_ato_srcLn_exp E001"); return -1;}
 
-    // resolv expr 
+    // resolv expr and add it to ato.
     } else {
       irc = ATO_ato_expr__ (&ato1, cp1, sSiz[i1]);
       if(irc < 0) return -1;
     }
 
   }
-
     // printf(" dump child-ato:\n");
-    // ATO_dump__ (&ato1);
+    // ATO_dump__ (&ato1, "_srcLn_exp-1");
 
 
   // evaluate object (return one single ato from subObjects;i
@@ -503,6 +606,7 @@ extern char *ObjCodTab[];
     // get ato from func (eg create dynObj ..)
     ATO_ato_atoTab__ (typ, val, &ato1);
 
+    // add resulting obj to input-ato
     // create the parent-ato; kill all child-atos
     ATO_ato_expr_add (ato, *typ, *val, 0);
 
@@ -510,6 +614,7 @@ extern char *ObjCodTab[];
     *ato = ato1;
   }
 
+    // ATO_dump__ (&ato1, "ex ATO_ato_srcLn_exp");
 
   return 0;
 
@@ -531,9 +636,9 @@ extern char *ObjCodTab[];
 
   for(i1=0; i1 < ato->nr; ++i1) {
     if(ato->ilev) {
-      sprintf(s1, "%3d",  ato->ilev[i1]);
+      sprintf(s1, "%4d",  ato->ilev[i1]);
     } else {
-      strcpy(s1, "---");
+      strcpy(s1, "----");
     }
     printf(" ato[%d] = %3d %12.3lf  %s  %-16s\n",i1,
       ato->typ[i1],
@@ -552,18 +657,18 @@ extern char *ObjCodTab[];
 //================================================================
 /// \code
 /// ATO_getSpc       get memSpc for atomicObjects
-/// uses memspc54 memspc55 memspc012 !
+/// uses memspc54 memspc55 memspc53 !
 /// \endcode
 
   int    i1, i2;
 
 
-  ato1->typ = (int*) memspc55;
-  ato1->val = (double*) memspc54;
-  ato1->ilev = memspc012;    // NULL;          // 2014-05-13
+  ato1->typ  = (int*) memspc55;
+  ato1->val  = (double*) memspc54;
+  ato1->ilev = (short*) memspc53;
 
   i1 = sizeof(memspc55) / sizeof(int);
-  i2 = sizeof(memspc54) / 256;
+  i2 = sizeof(memspc54) / sizeof(double);
 
   ato1->siz = IMIN (i1, i2);
   ato1->nr = 0;
@@ -862,78 +967,69 @@ extern long      GLT_cta_SIZ;
 
 
 //================================================================
-  int ATO_clean__ (int *is, int *ie, ObjAto *ato) {
+  int ATO_clear_block (ObjAto *ato, int is, int bNr) {
 //================================================================
 /// \code
-/// make clean atomicObjects from ato (remove FncNam, NULL ..)
-///
+/// ATO_clear_block         delete block of records
 /// Input:
-///   is     startIndex in ato
-///   ie     last index of expression in ato, not included.
-/// Output:
-///   is     startIndex in ato
-///   ie     last index of expression in ato, not included.
+///   is    index of 1. record to delete
+///   bNr   nr of records to delete
 /// \endcode
 
 
-  int   dNr, iie, i1, iv;
+  int   rNr;
 
 
-  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC \n");
-  // printf("ATO_clean__ is=%d ie=%d\n",*is,*ie);
+  // printf("ATO_clear_block is=%d bNr=%d nr=%d\n", is, bNr, ato->nr);
 
 
-  dNr = 0;    // nr of deleted records
-  iv = *is + 1;   // 
-  iie = ato->nr;
-  for(i1=iv; i1<iie; ++i1) {
-    // if(ato->typ[i1] > Typ_Val) goto L_09;   ????
-    if(ato->typ[i1] == Typ_NULL) { ++dNr; continue; }
-    if(ato->ilev[i1] == *is) continue;
-    L_09:
-     // exclude all records including i1
-     iie = i1;
-     break;
-  }
-    // printf(" iv=%d dNr=%d\n",iv,dNr);
+  // delete ato->typ-block
+  rNr = ato->nr;
+  MEM_del_nrec (&rNr, ato->typ, is, bNr, sizeof(int));
 
 
-  *is = iv;
-  *ie = iie;
-    // printf(" is=%d ie=%d dNr=%d\n",*is,*ie,dNr);
+  // delete ato->val-block
+  rNr = ato->nr;
+  MEM_del_nrec (&rNr, ato->val, is, bNr, sizeof(double));
 
 
+  // delete ato->ilev-block
+  if(ato->ilev) {
+    rNr = ato->nr;
+    MEM_del_nrec (&rNr, ato->ilev, is, bNr, sizeof(short));
+  } 
 
-  //----------------------------------------------------------------
-  if(dNr > 0) ATO_clean_1 (is, ie, ato);  // remove gaps with typ=Typ_NULL
 
+  // update ato->nr
+  ato->nr -= bNr;
 
-  //----------------------------------------------------------------
-  L_exit:
-    // ATO_dump__ (ato, "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
+    // printf("ex clear_block nr=%d\n",ato->nr);
 
   return 0;
 
 }
 
+
 //================================================================
-  int ATO_clean_1 (int *is, int *ie, ObjAto *ato) {
+  int ATO_clean__ (ObjAto *ato) {
 //================================================================
 // close all gaps (typ == Typ_NULL); update ie
 
 
-  int    i1, i2;
+  int    i1, i2, ie;
 
 
   // ATO_dump__ (ato, "ATO_clean_1");
 
+  ie = ato->nr;
+
   L_del_nxt:
 
-  for(i1=0; i1 < *ie; ++i1) {
+  for(i1=0; i1 < ie; ++i1) {
     // find first gap
     if(ato->typ[i1] != Typ_NULL) continue;
     // find next non-gap
-    for(i2=i1; i2 < *ie; ++i2) {
+    for(i2=i1; i2 < ie; ++i2) {
       if(ato->typ[i2] == Typ_NULL) continue;
       // copy non-gap-record i2 over gap-record i1
       ATO_cpy_rec (ato, i1, i2);
@@ -944,16 +1040,53 @@ extern long      GLT_cta_SIZ;
 
 
   // set endIndex to last non-gap-record
-  for(i1 = (*ie - 1); i1 >= 0; --i1) {
+  for(i1 = (ie - 1); i1 >= 0; --i1) {
     if(ato->typ[i1] == Typ_NULL) continue; 
-    *ie = i1 + 1;
+    ie = i1 + 1;
+    ato->nr = ie;
     break;
   }
 
-    // printf(" is=%d ie=%d\n",*is,*ie);
+    // printf(" is=%d ie=%d\n",*is,ie);
     // ATO_dump__ (ato, "ex ATO_clean_1");
 
   return 0;
+
+}
+
+
+//================================================================
+  int ATO_pNr__ (int *iSta, ObjAto *ato) {
+//================================================================
+//  get vNr = nr of parameters following record iif
+//  parameters must have same level
+
+  int   iNr, is, ie, i1, ila;
+  // char  ila;
+
+
+  is = *iSta + 1;
+  ie = ato->nr;
+
+  ila = ato->ilev[is];
+
+  // printf("ATO_pNr__ iSta=%d ila=%d\n",*iSta,ila);
+
+
+  for(i1=is; i1<ie; ++i1) {
+      // printf(" ATO_pNr__ i1=%d c(iv)=%d\n",i1,ato->ilev[i1]);
+    if(ila == ato->ilev[i1]) continue;
+    iNr = i1 - is;
+    goto L_exit;
+  }
+
+  iNr = ie - is;
+
+  L_exit:
+  *iSta = is;
+    // printf("ex ATO_pNr__ iNr=%d iSta=%d\n",iNr,*iSta);
+
+  return iNr;
 
 }
 
@@ -972,7 +1105,7 @@ extern long      GLT_cta_SIZ;
 /// see APT_decode_func ../ci/NC_apt.c :16974
 /// \endcode
 
-  int       i1, i2, typ, iv, iie, vNr, dNr, iNew;
+  int       irc, i1, i2, typ, iv, iie, vNr, dNr, iNew;
   long      dbi;
   double    d1;
   Point     pt1;
@@ -982,30 +1115,44 @@ extern long      GLT_cta_SIZ;
   Plane     pl1;
   // ObjGX     ox1;
   // Memspc    workSeg;
-  char      obj1[OBJ_SIZ_MAX];
+  char      obj1[OBJ_SIZ_MAX], c1;
 
 
   typ = ato->val[iif];
 
-  // printf("GGGGGGGGGGG  ATO_ato_eval_geom iif=%d typ=%d\n",iif,typ);
 
-  // skip math.bracket 
-  if(ato->typ[iif+1] > Typ_Val) return 0;
+  // printf("GGGGGGGGGGG  ATO_ato_eval_geom iif=%d typ=%d\n",iif,typ);
+  // ATO_dump__ (ato, " before clean");
+
+
+  // skip math.bracket;  but not Typ_cmdNCsub
+  // if(ato->typ[iif+1] > Typ_Val) return 0;
+  if(ato->typ[iif+1] > Typ_Val) {
+    if(ato->typ[iif+1] != Typ_cmdNCsub) return 0;
+  }
 
 
   iv = iif;
   iie = ato->nr;
-  i1 = ATO_clean__ (&iv, &iie, ato);
-    // ATO_dump__ (ato, " after clean");
+    // printf(" iv=%d iie=%d\n",iv,iie);
+
+
+
+  //----------------------------------------------------------------
+  //  get vNr = nr of parameters following record iif
+  vNr = ATO_pNr__ (&iv, ato);
+  if(vNr < 1) return -1;
+    // printf(" vNr=%d\n",vNr);
 
 
   //----------------------------------------------------------------
   L_work:
-    vNr = iie - iv;  // nr of values
-      // printf(" iv=%d iie=%d vNr=%d\n",iv,iie,vNr);
+    // vNr = iie - iv;  // nr of values
+      // printf("L_work: iv=%d iie=%d vNr=%d\n",iv,iie,vNr);
 
 
   switch (typ) {
+
     case Typ_PT:
       i1 = APT_decode_pt (&pt1, vNr, &ato->typ[iv], &ato->val[iv]);
       if(i1 < 0) goto ParErr;
@@ -1041,6 +1188,13 @@ extern long      GLT_cta_SIZ;
       d1 = dbi;
       break;
 
+    case Typ_PLN:
+      i1 = APT_decode_pln1 ((Plane*)obj1, vNr, &ato->typ[iv], &ato->val[iv]);
+      if(i1 < 0) goto ParErr;
+      dbi = DB_StoreRef (-1L, (Plane*)obj1);
+      d1 = dbi;
+      break;
+
     case Typ_Val:
       i1 = APT_decode_var (&d1, vNr, &ato->typ[iv], &ato->val[iv]);
       if(i1 < 0) goto ParErr;
@@ -1051,27 +1205,31 @@ extern long      GLT_cta_SIZ;
       if(i1 < 0) goto ParErr;
       break;
 
-    case Typ_ValX:
-      typ = Typ_XVal;
+    case Typ_XVal:       // 1 value: ATO_eval_fnc1__; here more than 1 value ..
       i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
       if(i1 < 0) goto ParErr;
       break;
 
-    case Typ_ValY:
-      typ = Typ_YVal;
+    case Typ_YVal:
       i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
       if(i1 < 0) goto ParErr;
       break;
 
-    case Typ_ValZ:
-      typ = Typ_ZVal;
+    case Typ_ZVal:
       i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
       if(i1 < 0) goto ParErr;
       break;
+
+    case Typ_Group:  // U(objs)
+      // change FncNam/Typ_Group into Typ_Group/objNr
+      ato->typ[iif] = Typ_Group;
+      ato->val[iif] = vNr;
+      goto L_done;    // do not delete groupMembers
+
 
     case Typ_modif:  // MOD(#)
       typ = Typ_modif;
-      d1 = ato->val[iv] - 1;
+      d1 = ato->val[iv];
       break;
 
     default:
@@ -1086,13 +1244,11 @@ extern long      GLT_cta_SIZ;
   ato->val[iif] = d1;
 
 
-  // kill all values for this expression
-  for(i1=iv; i1<iie; ++i1) {
-    ato->typ[i1] = Typ_NULL;
-  }
-
+  // kill all records for this expression
+  ATO_clear_block (ato, iv, vNr);
 
   // done
+  L_done:
  
   return 1;
 
@@ -1135,155 +1291,303 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   // evaluate variables;
+  imod = 0;
   for(ii=0; ii<ie; ++ii) {
     if(ato->typ[ii] != Typ_VAR) continue;
     APT_decode_var (&d1, 1, &ato->typ[ii],  &ato->val[ii]);
     ato->typ[ii] = Typ_Val;
     ato->val[ii] = d1;
-  }
-    // ATO_dump__ (ato);
 
+/*
+    // if character before 'V' is '-'
+    i1 = ii - 1;
+    if((i1 >= 0) && (ato->typ[i1] == TYP_OpmMinus)) {
+      ato->val[ii] = -d1;
+      ato->typ[i1] = Typ_NULL;
+      ++imod;
+    }
+*/
+  }
+
+  // if(imod) {i1=0; ATO_clean__ (&i1, &ato->nr, ato); }
+  if(imod) ATO_clean__ (ato);
 
   if(ato->nr < 2) goto L_exit;
+
+    // ATO_dump__ (ato, "after eval_vars");
 
 
   //----------------------------------------------------------------
   // evaluate math.operators (+-*/)
   // 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
-  L_nxt0:
-  imod = 0;
-  if(ato->nr < 3) goto L_fnc0;
-  // get first record as i2
-  i2 = -1;
-  for(ii=0; ii < ie; ++ii) {
-    if(ato->typ[ii] == Typ_NULL) continue;
-    i2 = ii;
-    break;
-  }
-  if(i2 < 0) goto L_fnc0;
-    // printf(" start-i2=%d\n",i2);
-
-
-
-  // get second record as i3
-  i3 = -1;
-  for(ii=i2+1; ii < ie; ++ii) {
-    if(ato->typ[ii] == Typ_NULL) continue;
-    i3 = ii;
-    break;
-  }
-  if(i3 < 0) goto L_fnc0;
-    // printf(" start-i3=%d\n",i3);
-
-
-  L_nxt1:
-      // printf(" L_nxt1:\n");
-      // ATO_dump__ (ato);
-    i1 = i2;
-    i2 = i3;
-    // get new i3
-    i3 = -1;
-    for(ii=i2+1; ii < ie; ++ii) {
-      if(ato->typ[ii] == Typ_NULL) continue;
-      i3 = ii;
-      break;
-    }
-    if(i3 < 0) goto L_fnc0;
-      // printf(" i1,i2,i3 %d %d %d\n",i1,i2,i3);
-
-    // find 3 records (value,operator,value) with same level.
-    // record i1 must be a value
-    if(ato->typ[i1] != Typ_Val) goto L_nxt1;
-    if(ato->ilev[i1] != ato->ilev[i2]) goto L_nxt1;
-      // printf(" i1-OK\n");
-
-    // record i2 must be a operator
-    if(!TYP_IS_OPM(ato->typ[i2])) goto L_nxt1;
-    if(ato->ilev[i2] != ato->ilev[i3]) goto L_nxt1;
-      // printf(" i2-OK\n");
-
-    // record i3 must be a value
-    if(ato->typ[i3] != Typ_Val) goto L_nxt1;
-      // printf(" found %d %d %d\n",i1,i2,i3);
-    // now records i1,i2,i3 have same parent, types = val,ope,val.
-
-    switch (ato->typ[i2]) {
-      case TYP_OpmPlus:
-        ato->val[i1] += ato->val[i3];
-        break;
-      case TYP_OpmMinus:
-        ato->val[i1] -= ato->val[i3];
-        break;
-      case TYP_OpmMult:
-        ato->val[i1] *= ato->val[i3];
-        break;
-      case TYP_OpmDiv:
-        ato->val[i1] /= ato->val[i3];
-    }
-      // printf(" comp %lf %lf ope %d\n",ato->val[i1],ato->val[i3],ato->typ[i2]);
-
-    ato->typ[i2] = Typ_NULL;
-    ato->typ[i3] = Typ_NULL;
-    ++imod;
-
-    goto L_nxt0;
-
-
+  L_mathOpe:
+  i1 = ATO_eval_ope__ (ato);
 
 
 
   //----------------------------------------------------------------
   L_fnc0:
   // eval math-functions with only one value  (and geom-func-VAL)
-  // 2 Records: Typ_FncNam,Typ_Val;Typ_Val into 1 record Typ_Val.
-      // printf(" L_fnc0:\n");
-      // ATO_dump__ (ato);
-    // get i1 = function-record
-    for(i1=0; i1<ie; ++i1) {
-      if(ato->typ[i1] != Typ_FncNam) continue;
-      // check if its a math-func (skip geom-func)
-      // math-func: SQRT(290) SIN...
-      // geom-func: P(2) L,C,D,R,S,U(121) ANG(137) X(134) Y,Z
-      if(ato->val[i1] < Typ_FcmSQRT) {
-        // resolv MOD-funcs
-        if(ato->val[i1] == Typ_modif) {
-          i2 = ATO_ato_eval_geom (ato, i1);
-          if(i2 < 0) break;
-          if(i2 > 0) ++imod;
-        }
-        // resolv VAL-funcs
-        if(ato->val[i1] == Typ_Val) {
-          i2 = ATO_ato_eval_geom (ato, i1);
-          if(i2 < 0) break;
-          if(i2 > 0) ++imod;
-        }
-        continue;
-      }
-      // now i1 is a function-record
-      // get i2 = first value for record i1
-      i2 = -1;
-      for(ii=i1+1; ii<ie; ++ii) {
-        if(ato->ilev[ii] != i1) goto L_fnc9; //continue;
-        if(ato->typ[ii] == Typ_NULL) continue;
-        if(ato->typ[ii] != Typ_Val) continue;
-        i2 = ii;
-        break;
-      }
-      if(i2 < 0) goto L_fnc9;
-        // printf(" fnc-i2=%d\n",i2);
+  i2 = ATO_eval_fnc1__ (ato);
+  if((i1 > 0) || (i2 > 0)) {
+    // remove all NULL-records
+    ATO_clean__ (ato);
+    goto L_mathOpe;
+  }
 
 
 
-      // evaluate func with one numeric value
-      // test if more values exist for i1
-      for(ii=i2+1; ii<ie; ++ii) {
-        if(ato->ilev[ii] != i1) continue;
-        if(ato->typ[ii] != Typ_NULL) goto L_fnc9; // skip eg OpmPlus
-      }
-        // printf(" found fnc %d val %d\n",i1,i2);
+  //----------------------------------------------------------------
+  // decode OpmMinus followed by Val
+  L_ope_2:
+    // ATO_dump__ (ato, " L_ope_2:");
+/*
+    ie = ato->nr - 1;
+    for(ii=0; ii<ie; ++ii) {
+      if(ato->typ[ii] != TYP_OpmMinus) continue;
+      i1 = ii + 1;
+      if(ato->typ[i1] != Typ_Val) continue;
+        printf(" ato_eval-ope_2 %d %d\n",ii,i1);
+      // change i1 -> (val *= -1); delete ii.
+      ato->val[i1] *= -1.;
+      ato->typ[ii] = Typ_NULL;
+      ie = ato->nr;
+      i1 = 0;
+      ATO_clean_1 (&i1, &ato->nr, ato);  // remove gaps with typ=Typ_NULL
+      goto L_ope_2;
+    }
+*/
 
-      ii = ato->val[i1];   // type of function
-// see APT_decode_Fmc
+
+  //----------------------------------------------------------------
+  // evaluate geometrical functions
+  L_geom_0:
+/*
+  imod = 0;
+  ie = ato->nr;
+    printf(" L_geom_0: ie=%d\n",ie);
+  for(ii=0; ii<ie; ++ii) {
+    if(ii >= ie) break;
+    if(ato->typ[ii] != Typ_FncNam) continue;
+    i1 = ATO_ato_eval_geom (ato, ii);
+      printf(" i1 ex eval_geom = %d\n",i1);
+    if(i1 < 0) goto L_comp_0;
+    if(i1 > 0) ++imod;
+  }
+  if(imod) goto L_geom_0;
+*/
+  imod = 0;
+  ie = ato->nr - 1;
+    // printf(" L_geom_0: ie=%d\n",ie);
+  for(ii=ie; ii>=0; --ii) {
+    if(ii >= ato->nr) continue;
+    if(ato->typ[ii] != Typ_FncNam) continue;
+    i1 = ATO_ato_eval_geom (ato, ii);
+      // printf(" i1 ex eval_geom = %d\n",i1);
+    if(i1 < 0) goto L_comp_0;
+    if(i1 > 0) ++imod;
+  }
+  if(imod) goto L_geom_0;
+
+
+  //----------------------------------------------------------------
+  // compress ato (remove all Typ_NULL-records)
+  L_comp_0:
+    // ATO_dump__ (ato, "after L_geom_0");
+    // printf(" L_comp_0:\n");
+
+  ii = -1;
+  io = 0;   
+  ie = ato->nr;
+
+  L_comp_nxt:
+    ++ii;
+    if(ii >= ie) {
+      ato->nr = io;
+      // ato->ilev = NULL;   // 2014-12-18 (error in ATO_ato_eval__)
+      goto L_exit;
+    }
+    if(ato->typ[ii] == Typ_NULL) goto L_comp_nxt;
+    if(ii > io) {
+      ato->typ[io] = ato->typ[ii];
+      ato->val[io] = ato->val[ii];
+    }
+    ++io;
+    goto L_comp_nxt;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf(" L_exit:\n");
+    // ATO_dump__ (ato, "ex ATO_ato_srcLn__");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int ATO_eval_ope__ (ObjAto *ato) {
+//================================================================
+/// \code
+/// evaluate math.operators (+-*/)
+/// 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
+/// Retcode:  nr of evaluations
+/// \endcode
+
+
+  int      imod, ii, i1, i2, i3, is, ie, ila;
+  // char     c1;
+
+
+  // ATO_dump__ (ato, "ATO_eval_ope__ start");
+
+  imod = 0;
+
+  if(ato->nr < 3) goto L_exit;
+
+  ie = ato->nr;
+  ii = 0;
+
+
+  // get first record as i1; must be Typ_Val
+  L_nxt:
+  is = ii;
+  i1 = -1;
+  for(ii=is; ii<ie; ++ii) {
+    if(ato->typ[ii] != Typ_Val) continue;
+    i1 = ii;
+    ila = ato->ilev[i1];
+    break;
+  }
+  if(i1 < 0) goto L_exit;
+    // printf(" _ope_-i1=%d ila=%d\n",i1,ila);
+
+
+  // get 2. record as i2; must be operator (TYP_IS_OPM)
+  i2 = -1;
+  for(ii=i1+1; ii<ie; ++ii) {
+    if(ato->typ[ii] == Typ_NULL) continue;
+    if(ato->ilev[ii] != ila) goto L_nxt;
+    if(!TYP_IS_OPM(ato->typ[ii])) goto L_nxt;
+    i2 = ii;
+    break;
+  }
+  if(i2 < 0) goto L_exit;
+    // printf(" _ope_-i2=%d\n",i2);
+
+
+
+  // get 3. record as i3; must be value
+  i3 = -1;
+  for(ii=i1+1; ii<ie; ++ii) {
+    if(ato->typ[ii] == Typ_NULL) continue;
+    if(ato->ilev[ii] != ila) goto L_nxt;
+    if(ato->typ[ii] != Typ_Val) continue;
+    i3 = ii;
+    break;
+  }
+  if(i3 < 0) goto L_exit;
+    // printf(" _ope_-i3=%d\n",i3);
+
+
+  //----------------------------------------------------------------
+  // found val-ope-val; work.
+  // change ato->val[i1];
+  switch (ato->typ[i2]) {
+    case TYP_OpmPlus:
+      ato->val[i1] += ato->val[i3];
+      break;
+    case TYP_OpmMinus:
+      ato->val[i1] -= ato->val[i3];
+      break;
+    case TYP_OpmMult:
+      ato->val[i1] *= ato->val[i3];
+      break;
+    case TYP_OpmDiv:
+      ato->val[i1] /= ato->val[i3];
+  }
+    // printf(" comp %lf %lf ope %d\n",ato->val[i1],ato->val[i3],ato->typ[i2]);
+
+  ato->typ[i2] = Typ_NULL;
+  ato->typ[i3] = Typ_NULL;
+  ++imod;
+
+  is = i3 + 1;
+  if(is < ie) goto L_nxt;
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  return imod;
+
+}
+
+
+//================================================================
+  int ATO_eval_fnc1__ (ObjAto *ato) {
+//================================================================
+// eval math-functions with only one value  (and geom-func-VAL)
+// 2 Records: Typ_FncNam,Typ_Val;Typ_Val into 1 record Typ_Val.
+
+  int      imod, ii, i1, i2, i3, is, ie, ix, ila;
+  // char     c1;
+  double   d1;
+
+
+  // ATO_dump__ (ato, "ATO_eval_fnc1__ start");
+
+    
+  imod = 0;
+    
+  if(ato->nr < 2) goto L_exit;
+
+  ie = ato->nr;
+  ii = 0;
+
+
+  // get first record as i1; must be Typ_FncNam
+  L_nxt:
+  is = ii;
+  i1 = -1;
+  for(ii=is; ii<ie; ++ii) {
+    if(ato->typ[ii] != Typ_FncNam) continue;
+    i1 = ii;
+    // get ila = level of following data
+    ila = ato->ilev[i1 + 1];
+    break;
+  }
+  if(i1 < 0) goto L_exit;
+    // printf(" _fnc1_-i1=%d ila=%d\n",i1,ila);
+
+
+  // get 2. record as i2; must be Typ_Val
+  i2 = -1;
+  for(ii=i1+1; ii<ie; ++ii) {
+    if(ato->typ[ii] == Typ_NULL) continue;
+    if(ato->ilev[ii] != ila) goto L_nxt;
+    if(ato->typ[ii] != Typ_Val) goto L_nxt;
+    i2 = ii;
+    break;
+  }
+  if(i2 < 0) goto L_exit;
+    // printf(" _fnc1_-i2=%d\n",i2);
+
+
+  // record following i2 must not be same level ..
+  is = i2 + 1;
+  for(ii=is; ii<ie; ++ii) {
+    if(ato->typ[ii] == Typ_NULL) continue;
+    if(ato->ilev[ii] == ila) goto L_nxt;
+  }
+
+
+  //----------------------------------------------------------------
+  // found func [i1] with single value [i2]; work:
+  // set [i1] = value(<func>([i2]));   set [i2] = NULL
+
+      ii = ato->val[i1];   // type of function; see APT_decode_Fmc
       switch (ii) {
 
         case Typ_Val:
@@ -1314,84 +1618,63 @@ extern long      GLT_cta_SIZ;
           d1 = fabs(ato->val[i2]);
           break;
         case Typ_FcmFIX:
-          l1 = ato->val[i2];
-          d1 = l1;
+          ix = ato->val[i2];
+          d1 = ix;
           break;
         case Typ_FcmRND:
           d1 = 0.5;
           if(ato->val[i2] < 0.0) d1 = -0.5;
-          l1 = (int)(ato->val[i2] + d1);
-          d1 = l1;
+          ix = (int)(ato->val[i2] + d1);
+          d1 = ix;
           break;
 
+        case Typ_Angle:
+          ato->typ[i1] = Typ_Angle;
+          d1  = ato->val[i2];
+          goto L_sav1;
+
+        case Typ_modif:
+          ato->typ[i1] = Typ_modif;
+          d1  = ato->val[i2];
+          goto L_sav1;
+
+        case Typ_XVal:
+          ato->typ[i1] = Typ_XVal;
+          d1  = ato->val[i2];
+          goto L_sav1;
+        case Typ_YVal:
+          ato->typ[i1] = Typ_YVal;
+          d1  = ato->val[i2];
+          goto L_sav1;
+        case Typ_ZVal:
+          ato->typ[i1] = Typ_ZVal;
+          d1  = ato->val[i2];
+          goto L_sav1;
+
         default:
-          TX_Error("ATO_ato_eval__ E002 %d",ii);
+          TX_Error("ATO_eval_fnc1__ E002 %d",ii);
           return -1;
       }
 
 
+    // change record i1 into value (preserves ival !), delete record i2.
+      // printf(" L_fncSav: i1=%d i2=%d\n",i1,i2);
+    ato->typ[i1] = Typ_Val;
 
-      // change record i1 into value (preserves ival !), delete record i2.
-      L_fncSav:
-        // printf(" L_fncSav: i1=%d i2=%d\n",i1,i2);
-      ato->typ[i1] = Typ_Val;
-      ato->val[i1] = d1;
-      ato->typ[i2] = Typ_NULL;
-      ++imod;
+  L_sav1:
+    // set value of active record i1
+    ato->val[i1] = d1;
+    // delete record i2.
+    ato->typ[i2] = Typ_NULL;
+    ++imod;
 
-      L_fnc9:
-      continue;
-    }
-
-    if(imod) goto L_nxt0;    // redo evaluate math.operators
-
-
-
-
-  //----------------------------------------------------------------
-  // evaluate geometrical functions
-  L_geom_0:
-    // printf(" L_geom_0:\n");
-  imod = 0;
-  for(ii=0; ii<ie; ++ii) {
-    if(ato->typ[ii] != Typ_FncNam) continue;
-    i1 = ATO_ato_eval_geom (ato, ii);
-    if(i1 < 0) goto L_comp_0;
-    if(i1 > 0) ++imod;
-  }
-  if(imod) goto L_geom_0;
-
-
-  //----------------------------------------------------------------
-  // compress ato (remove all Typ_NULL-records)
-  L_comp_0:
-    // printf(" L_comp_0:\n");
-
-  ii = -1;
-  io = 0;   
-
-  L_comp_nxt:
-    ++ii;
-    if(ii >= ie) {
-      ato->nr = io;
-      // ato->ilev = NULL;   // 2014-12-18 (error in ATO_ato_eval__)
-      goto L_exit;
-    }
-    if(ato->typ[ii] == Typ_NULL) goto L_comp_nxt;
-    if(ii > io) {
-      ato->typ[io] = ato->typ[ii];
-      ato->val[io] = ato->val[ii];
-    }
-    ++io;
-    goto L_comp_nxt;
+    if(ie > is) goto L_nxt;
 
 
 
   //----------------------------------------------------------------
   L_exit:
-    // printf(" L_exit:\n");
-    // ATO_dump__ (ato);
-  return 0;
+  return imod;
 
 }
 
@@ -1399,19 +1682,28 @@ extern long      GLT_cta_SIZ;
 //================================================================
    int ATO_ato_txo__ (ObjAto *ato, ObjTXTSRC *tso, char *sl) {
 //================================================================
+/// \code
 /// get atomic-objects from source-objects
+/// Input:
+///   tso
+///   sl        srcTxt
+/// Output:
+///   ato
+/// \endcode
 
 // see APT_decode_Opm
 
-  int     iTyp, oTyp, its=0, sPos, sLen, lev=0;
+  int     ii, iTyp, oTyp, its, sPos, sLen, lev=0;
   long    dbi;
   double  d1;
   char    *p1, *p2, s1[80];
 
 
   // printf("ATO_ato_txo__ |%s|\n",sl);
-  // APED_txo_dump (tso, sl);
+  // APED_txo_dump (tso, sl, "start ATO_ato_txo__");
 
+
+  its = 0;
 
   for(;;) {
     iTyp = tso[its].typ;
@@ -1419,17 +1711,38 @@ extern long      GLT_cta_SIZ;
     if(iTyp == TYP_FuncEnd) break;
 
     sPos = tso[its].ioff;
-        // printf(" sl[sPos]=|%s|\n",&sl[sPos]);
+        // printf(">>> [%d] iTyp=%d sl[sPos]=|%s|\n",its,iTyp,&sl[sPos]);
 
 
     //----------------------------------------------------------------
     if(iTyp == Typ_ObjDB) {
       // decode typ
-      oTyp = AP_typ_typChar (sl[sPos]);
+      oTyp = AP_typ_typChar (toupper(sl[sPos]));
       // decode dbi
       ++sPos;
-      d1 = strtod (&sl[sPos], &p1);
-      // eval Vars ?
+      d1 = strtod (&sl[sPos], &p1);   // d1 = dbi
+        // printf(" _txo_ typ=%d dbi=%lf sPos=%d\n",oTyp,d1,sPos);
+
+      // for Typ_VAR only:
+      if(oTyp == Typ_VAR) {
+        d1 = DB_GetVar ((long)d1);
+        oTyp = Typ_Val;
+        if(sPos > 2) {
+          // if(('-' before 'V') and (deli before '-')) 
+            // printf(" before=|%c|%c|\n",sl[sPos-3],sl[sPos-2]);
+          if(sl[sPos-2] == '-') {
+            if(!UTX_ckc_Del1(sl[sPos-3])) {
+                // printf(" si_deli_yes: |%c|\n",sl[sPos-3]);
+              // get value *= -1 and ignore '-'
+              d1 *= -1.;
+              ato->nr -= 1;
+            }
+          }
+        }
+      }
+
+
+      // eval Vars
       ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
 
 
@@ -1447,22 +1760,44 @@ extern long      GLT_cta_SIZ;
       strncpy(s1, &sl[sPos], sLen);
       s1[sLen] = '\0';
        // decode constVal -> d1
-      ATO_srcTxt (&oTyp, &d1, s1);
+      // ATO_srcTxt (&oTyp, &d1, s1);
+      oTyp = Typ_Val;
+      d1 = NcoValTab[(int)tso[its].form];
       ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
 
 
     //----------------------------------------------------------------
-    } else if(iTyp == Typ_cmdNCsub) {     // 2014-05-13
+    // test for geometric-constant-object; eg DX RZ
+    } else if(iTyp == Typ_ConstOG) {
+      ii = tso[its].form;
+      APED_dbi_src_std_vc_pl (&oTyp, &dbi, ii);
+      d1 = dbi;
+      ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
+
+
+    //----------------------------------------------------------------
+    // copy ..
+    } else if((iTyp == Typ_ope__)    ||
+              (iTyp == Typ_cmdNCsub) ||
+              (iTyp == Typ_FncNam))      {
       oTyp = iTyp;
       d1 = tso[its].form;
       ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
 
-
+/*
     //----------------------------------------------------------------
     } else if(iTyp == Typ_FncNam) {
       oTyp = iTyp;
       d1 = tso[its].form;
       ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
+*/
+
+    //----------------------------------------------------------------
+    // test for strings
+    } else if(iTyp == Typ_String) {
+      d1 = tso[its].ioff;    // offset (startPos of '"')
+      // including '"', 
+      ATO_ato_expr_add (ato, iTyp, d1, tso[its].ipar);
 
 
     //----------------------------------------------------------------
@@ -1480,10 +1815,9 @@ extern long      GLT_cta_SIZ;
 
     //----------------------------------------------------------------
     // test for values; copy record.
-    } else if((iTyp >= Typ_ValX)&&(iTyp < Typ_Typ)) {
+    } else if((iTyp >= Typ_XVal)&&(iTyp < Typ_Typ)) {
       oTyp = iTyp;
       ATO_ato_expr_add (ato, oTyp, 0., tso[its].ipar);
-
 
 
     //----------------------------------------------------------------
@@ -1494,8 +1828,10 @@ extern long      GLT_cta_SIZ;
 // see APT_decode_Opm
 
 
+    //----------------------------------------------------------------
+    // unknown type iTyp
     } else {
-      TX_Print("***** ATO_ato_txo__ E001 Record %d", its);
+      TX_Print("***** ATO_ato_txo__ E001 Record %d type %d", its, iTyp);
       return -1;
     }
 
@@ -1515,9 +1851,10 @@ extern long      GLT_cta_SIZ;
 //================================================================
 /// \code
 /// get atomicObjects from sourceLine; full evaluated.
+///   (provides dynamic-DB-obj's for geometric expressions)
 /// must provide memspc before with ATO_getSpc__
 /// Input:
-///   srcLn      eg "D(0 0 1)"
+///   srcLn      eg "D(0 0 1)"      // may not have objNames !
 /// Output:
 ///   ato        eg ato->nr=1; ato->typ[0]=Typ_VC; ato->val[0]=-2.;
 ///   RetCod     0=OK, -1=Err
@@ -1532,6 +1869,7 @@ extern long      GLT_cta_SIZ;
   ObjTXTSRC *tso;
 
  
+  // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
   // printf("ATO_ato_srcLn__ |%s|\n",srcLn);
   // printf(" ilev=%p\n",ato->ilev);
 
@@ -1539,7 +1877,7 @@ extern long      GLT_cta_SIZ;
 
   // get temp-space for tso
   itsMax = SRCU_tsMax (srcLn);   // printf(" itsMax=%d\n",itsMax);
-  tso = UME_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
   if(tso == NULL) {TX_Print("ATO_ato_srcLn__ EOM"); return -1;}
 
 
@@ -1547,7 +1885,7 @@ extern long      GLT_cta_SIZ;
   irc = APED_txo_srcLn__ (tso, itsMax, srcLn);
     // printf(" _txo_srcLn__ %d\n",irc);
   if(irc < 1) return irc;
-    // APED_txo_dump (tso, srcLn);
+    // APED_txo_dump (tso, srcLn, "nach-txo_srcLn__");
 
 
   // get atomic-objects from source-objects
@@ -1597,31 +1935,33 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  // printf("ATO_ato_obj_pt outTyp=%d typ=%d\n",outTyp,typ);
+  // printf("ATO_ato_obj_pt iseg=%d outTyp=%d typ=%d\n",iseg,outTyp,typ);
 
 
 
   //----------------------------------------------------------------
   // get nr of points
   ptMax = UT3D_ptNr_obj (typ, o1, UT_DISP_cv);
-    // printf(" ptNr=%d\n",ptNr);
+  if(ptMax < 1) return -1;
+    // printf(" ptMax=%d\n",ptMax);
+
+  ptMax += 16;
 
   // get tempSpc for points
-  pta = (Point*)UME_alloc_tmp(sizeof(Point) * ptMax);
-
+  pta = (Point*)MEM_alloc_tmp(sizeof(Point) * ptMax);
 
 
   // get polygon from obj typ,obj
-  ptNr = ptMax;
-  irc = UT3D_npt_obj (&ptNr, pta, typ, o1, 1, UT_DISP_cv);
+  ptNr = 0;
+  irc = UT3D_npt_obj (&ptNr, pta, ptMax, typ, o1, 1, UT_DISP_cv);
   if(irc< 0) {TX_Error("ATO_ato_obj_pt E001"); goto L_err2;}
-
+    // printf(" _obj_pt-ptNr=%d\n",ptNr);
 
 
   // test all segments of polygon; return selPt, point# and offsetValue
   irc = GR_pt_par_sel_npt (&pts, &is, &pars, pta, ptNr, ptx);
+    // printf(" _obj_pt irc=%d is=%d pars=%lf\n",irc,is,pars);
   if(irc < 0) goto L_err1;  // -1 = ptx not on obj
-    // printf(" _par_sel_npt is=%d pars=%lf\n",is,pars);
     // ATO_dump__ (ato, " nach _sel_npt");
 
 
@@ -1636,30 +1976,39 @@ extern long      GLT_cta_SIZ;
   // D|L|C|S(basecurve segNr)            on polygon|CCV
   if(outTyp == Typ_goGeo1) {   // S|C|L
     if(typ == Typ_CVPOL) {   // skip subSegNrs for line & circ in CCV
-      is += 1; // segNr
+      is += 1; // is = index -> segNr
+      // if endpoint was selected:
+      if(is >= ptNr) is = ptNr - 1;
       goto L_add_mod;
     }
     goto L_exit;
   }
 
 
+  // L or D from plg
   if((outTyp == Typ_LN)     ||
      (outTyp == Typ_VC))       {
     if(typ == Typ_LN) goto L_exit; // D(L) - no segNr
     if(typ == Typ_CVPOL) {
       //  D|L(basecurve segNr segNr)          on polygon in CCV
-      is += 1; // segNr
+      is += 1; // is = index -> segNr
+      // if endpoint was selected:
+      if(is >= ptNr) is = ptNr - 1;
       goto L_add_mod;
     }
   }
 
 
-
-
-  // for P is parameter necessary ...
-  // point wanted:
+  // point P wanted:   parameter (value) or pointIndex (MOD(ptNr))
   // get characteristic point (first or last point or point of plg)
-  if(irc == 0) {     // retCode of GR_pt_par_sel_npt: 0=point selected
+  if(irc == 0) {     
+    // retCode of GR_pt_par_sel_npt: 0=point selected
+    if(typ == Typ_CVPOL) {
+      ++is;    // is = index of point
+      goto L_add_mod;
+    }
+
+    // eg line, circ, bspl ..
     if(is == 0) {
       // startpoint selected
       is = 1;
@@ -1679,6 +2028,8 @@ extern long      GLT_cta_SIZ;
   irc = UTO_parpt_pt_obj (&pars, &pts, typ, o1);
   if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 
+
+  //----------------------------------------------------------------
   // add parameter to atomicObjs
   ATO_ato_expr_add (ato, Typ_Val, pars, 0);
   goto L_exit;

@@ -60,6 +60,7 @@ tst_sel_CB
 #include <string.h>
 #include <stdarg.h>                         // for ...
 
+
 // #include <errno.h>
 // #include <dlfcn.h>           // Unix: dlopen
 
@@ -86,6 +87,8 @@ __declspec(dllexport) int gCad_fini ();
 #include "../gr/tess_su.h"             // TypTsuSur
 #include "../gui/gui__.h"              // GUI_
 
+#include "../gr/ut_GL.h"               // GL_get_Scale
+
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
@@ -95,7 +98,7 @@ extern double    APT_ModSiz;
 
 // Externals aus ../xa/xa.c:
 extern char      WC_modnam[128];
-
+extern Plane     WC_sur_act;            // die aktive Plane
 
 // protos:
   int tst_sel_CB (int src, long dl_ind);
@@ -119,7 +122,9 @@ extern char      WC_modnam[128];
 
 
   //================================================================
-  // i1 = tst_tst__ (0);   if(i1) return 0; // general test ..
+  // i1 = tst_tst__ (0);
+  // if(i1 == 0) return 0;     // keep plugin alive
+  // if(i1 == 1) goto L_end;   // exit plugin
   //================================================================
   // TEST EXPORT_DLL'S:
   // tst_print__ ();  // OS_dll_do ("xa_print__", "PRI__"
@@ -136,9 +141,9 @@ extern char      WC_modnam[128];
   // tst_imp_gcad ();
   // tst_imp_dxf ();
   // tst_imp_igs ();
-  tst_imp_vrml1 (); // test import VRML-1
+  // tst_imp_vrml1 (); // test import VRML-1
   // tst_imp_vrml2 (); // test import VRML-2
-  // tst_imp_stp (); // tst_imp_exp.c  Test Import/Export-functions
+  tst_imp_stp (); // tst_imp_exp.c  Test Import/Export-functions
   // tst_imp_stl ();
   // tst_imp_obj ();
   // tst_imp_tess ();
@@ -3095,7 +3100,6 @@ int dxfw_tess_CB (ObjGX*);
   return 0;
 
 }
-*/
 
 
 //================================================================
@@ -3104,7 +3108,7 @@ int dxfw_tess_CB (ObjGX*);
 // was DL_ReScale1
  
   double  d1, dx, dy, dz;
-  Point   pOri;
+  Point   pOri, pt1;
 
 
   printf("DL_ReScale_box \n");
@@ -3116,6 +3120,19 @@ int dxfw_tess_CB (ObjGX*);
   // tess_origin_box (&pOri, pb1, pb2); 
     // UT3D_stru_dump (Typ_PT, &pOri, "pOri");
 
+
+  //----------------------------------------------------------------
+  // if boxPoints empty then set box with modelsize around pb1
+  // if(UT3D_comp2pt(pb1,pb2,UT_TOL_min0)) {
+  if(DB_isFree_PT (pb2)) {
+    pOri = *pb1;
+    d1 = APT_ModSiz / 2.;
+    goto L_do;
+  }
+
+
+  //----------------------------------------------------------------
+  // prepare for reScale; get pOri = midPoint of box
   UT3D_pt_mid2pt (&pOri, pb1, pb2);
 
   dx = pb2->x - pb1->x;
@@ -3126,8 +3143,535 @@ int dxfw_tess_CB (ObjGX*);
   d1 = UTP_max_d3 (&dx, &dy, &dz);
     // printf(" d1=%lf\n",d1);
 
+  //----------------------------------------------------------------
   // set view, redraw
+  L_do:
   GL_Rescale (d1, &pOri);
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT3D_ptvcpar_std_dbo (Point *pto, Vector *vco, double *par,
+                            int pType, int dbtyp, long dbi) {
+//=======================================================================
+/// \code
+/// UT3D_ptvcpar_std_obj   get typical points & tangent-vector for DB-obj
+/// see UT3D_ptvcpar_std_obj
+/// \endcode
+
+  ObjGX   oxi;
+
+
+  OGX_SET_INDEX (&oxi, dbtyp, dbi);
+
+  return UT3D_ptvcpar_std_obj (pto, vco, par,
+                               pType, Typ_ObjGX, &oxi);
+
+}
+
+
+//=======================================================================
+  int UT3D_ptvcpar_std_obj (Point *pto, Vector *vco, double *par,
+                            int pType, int cvTyp, void *cvDat) {
+//=======================================================================
+/// \code
+/// UT3D_ptvcpar_std_obj     get typical points & tangent-vector for obj
+///                       (start, end, mid, ..)
+///   (parametric points, typical points, standardpoints, characteristic points)
+///
+/// Input:
+///   pto        NULL for no output
+///   vco        NULL for no output
+///   par        NULL for no output
+///   pType      which points to compute (eg Ptyp_0 ../ut/AP_types.h)
+///              0 or negativ: get controlpoint of polygon, spline
+///   cvTyp      type of cvDat; eg Typ_LN
+///   cvDat      line/curve, eg struct Line
+///   cvPar      parameter (for pType Ptyp_param)
+/// Output:
+///   pto        point out
+///   vco        vector out      normalized ??
+///   par        parameter out
+///   retcod     
+///
+/// boxpoints: see UT3D_box_obja
+/// parameter: see UT3D_ptvc_tng_crv_par UT3D_pt_evparcrv
+/// \endcode
+
+
+  int     irc, i1, i2, oTyp, imod;
+  char    *cp1;
+  double  db1, d1;
+  Point   pt1;
+  Vector  vc1;
+  Point2  pt21;
+  void    *vp1;
+
+
+  printf("UT3D_ptvcpar_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
+
+  irc = 0;
+
+
+
+    // if(cvTyp == Typ_ObjGX)
+      // cvTyp = UTO_obj_getp (&cvDat, &i1, cvDat);
+
+
+  switch (cvTyp) {
+
+
+    //----------------------------------------------------------------
+    case Typ_PT2:
+      *pto = UT3D_pt_pt2 ((Point2*)cvDat);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_PT:
+      if(pto) *pto = *((Point*)cvDat);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_LN2:
+      // if(vco) UT2D_vc_ln (vco, (Line2*)cvDat);
+      // if(pType == Ptyp_0) { // startpoint
+          // // printf(" Typ_LN2-s\n");
+      // } else if(pType == Ptyp_1) { // endpoint
+          // // printf(" Typ_LN2-e\n");
+      // } else if(pType == Ptyp_mid) { // midpoint
+        // UT2D_pt_mid2pt (&pt21, &((Line2*)cvDat)->p1,
+                               // &((Line2*)cvDat)->p2);
+        // *pto = UT3D_pt_pt2 (&pt21);
+      // } else
+      goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_LN:
+      if(vco) UT3D_vc_ln (vco, (Line*)cvDat);
+
+      if(pType == Ptyp_0) { // startpoint
+        if(pto) *pto = ((Line*)cvDat)->p1;
+        if(par) *par = 0.;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        if(pto) *pto = ((Line*)cvDat)->p2;
+        if(par) *par = 1.;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        if(pto) UT3D_pt_mid2pt (pto, &((Line*)cvDat)->p1, &((Line*)cvDat)->p2);
+        if(par) *par = 0.5;
+
+      } else goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CI2:
+      // centerpoint
+      // *pto = UT3D_pt_pt2 (&((Circ2*)cvDat)->pc);
+      goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CI:
+      if(pType == Ptyp_0) { // startpoint
+        pt1 = ((Circ*)cvDat)->p1;
+        if(par) *par = 0.;
+        goto L_CI2;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        pt1 = ((Circ*)cvDat)->p2;
+        if(par) *par = 1.;
+        goto L_CI2;
+
+      } else if(pType == Ptyp_mid) { // midpoint / 180-deg-point
+        UT3D_pt_midci (&pt1, (Circ*)cvDat);
+        if(par) *par = 0.5;
+        goto L_CI2;
+
+      } else if(pType == Ptyp_cen) { // centerpoint
+        if(pto) *pto = ((Circ*)cvDat)->pc;
+        break;
+
+      } else if(pType == Ptyp_90_deg) { // 90-deg-point
+        imod = 1;
+        if(par) *par = 0.25;
+        goto L_CI1;
+
+      } else if(pType == Ptyp_270_deg) { // 270-deg-point
+        // imod: 1=90;2=180;3=270;
+        imod = 3;
+        if(par) *par = 0.75;
+        goto L_CI1;
+
+      } else goto L_err_FNI;
+
+      L_CI1:
+        UT3D_pt_std_ci (&pt1, imod, (Circ*)cvDat);
+      L_CI2:
+        if(pto) *pto = pt1;
+        if(vco) UT3D_vc_tng_ci_pt (vco, &pt1, (Circ*)cvDat);
+
+      break;
+
+
+    //----------------------------------------------------------------
+    // Typ_Note
+    case Typ_GTXT:
+      // UT3D_stru_dump (Typ_GTXT, obj, "GText:");
+      if(pto) *pto = (((GText*)cvDat)->pt);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_ATXT:
+      // UT3D_stru_dump (Typ_GTXT, obj, "GText:");
+      if(pto) *pto = (((AText*)cvDat)->p1);
+      break;
+
+
+    //----------------------------------------------------------------
+    // Typ_Model
+    case Typ_Model:
+      // UT3D_stru_dump (Typ_GTXT, obj, "GText:");
+      if(pto) *pto = (((ModelRef*)cvDat)->po);
+      break;
+
+
+    //----------------------------------------------------------------
+    // Curves:
+    case Typ_CVPOL:
+      if(pType == Ptyp_0) { // startpoint
+        db1 = ((CurvPoly*)cvDat)->v0;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvPoly*)cvDat)->v1;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        db1 = (((CurvPoly*)cvDat)->v0 + ((CurvPoly*)cvDat)->v1) / 2.;
+
+      } else goto L_err_FNI;
+
+      if(pto) UT3D_pt_evalplg (pto, (CurvPoly*)cvDat, db1);
+      if(vco) UT3D_vc_evalplg (vco, (CurvPoly*)cvDat, db1);
+      if(par) *par = UT3D_par1_parplg (&db1, (CurvPoly*)cvDat);
+      break;
+  
+
+    //----------------------------------------------------------------
+    case Typ_CVELL:
+      if(pType == Ptyp_0) { // startpoint
+        pt1 = ((CurvElli*)cvDat)->p1;
+        if(par) *par = 0.;
+        goto L_ELL2;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        pt1 = ((CurvElli*)cvDat)->p2;
+        if(par) *par = 1.;
+        goto L_ELL2;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        // if 360-deg: pt = pc + (rev)va; vc = (rev)vb;
+        if(!UT3D_ck_el360((CurvElli*)cvDat)) {
+          if(pto) {
+            UT3D_vc_invert (&vc1, &((CurvElli*)cvDat)->va);
+            UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc, &vc1);
+          }
+          if(vco) UT3D_vc_invert (vco, &((CurvElli*)cvDat)->vb);
+        } else {
+          UT3D_ptvc_eval_ell_par (pto, vco, (CurvElli*)cvDat, 0, 0.5);
+        }
+        if(par) *par = 0.5;
+        break;
+
+      } else if(pType == Ptyp_cen) { // centerpoint
+        if(pto) *pto = ((CurvElli*)cvDat)->pc;
+        break;
+
+      } else if(pType == Ptyp_90_deg) { // 90-deg-point
+        // pc + vb
+        if(pto) UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc,
+                                      &((CurvElli*)cvDat)->vb);
+        if(vco) UT3D_vc_invert (vco, &((CurvElli*)cvDat)->va);
+        // if(par) *par = 0.?;
+
+      } else if(pType == Ptyp_270_deg) { // 270-deg-point
+        // pc + (rev)vb
+        if(pto) {
+          UT3D_vc_invert (&vc1, &((CurvElli*)cvDat)->vb);
+          UT3D_pt_traptvc (pto, &((CurvElli*)cvDat)->pc, &vc1);
+        }
+        if(vco) *vco = ((CurvElli*)cvDat)->va;
+        // if(par) *par = 0.?;
+        break;
+
+      } else goto L_err_FNI;
+
+      L_ELL1:
+        // UT3D_pt_std_ci (&pt1, imod, (Circ*)cvDat);
+      L_ELL2:
+        if(pto) *pto = pt1;
+        if(vco) {
+          if(!UT3D_ck_el360((CurvElli*)cvDat)) {
+            *vco = ((CurvElli*)cvDat)->vb;
+          } else {
+            UT3D_vc_tangel (vco, &pt1, (CurvElli*)cvDat);
+          }
+        }
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVCLOT:
+      if(vco) i1 = 1;
+      else    i1 = 0;
+
+      if(pType == Ptyp_0) { // startpoint
+        if(pto) *pto = ((CurvClot*)cvDat)->stp;
+        if(vco) *vco = ((CurvClot*)cvDat)->stv;
+        if(par) *par = 0.;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        if(pto) UT3D_ptvc_evparclot (pto, vco, i1, (CurvClot*)cvDat, 1.);
+        if(par) *par = 1.;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        if((pto) || (vco))
+          UT3D_ptvc_evparclot (pto, vco, i1, (CurvClot*)cvDat, 0.5);
+        if(par) *par = 0.5;
+
+      } else goto L_err_FNI;
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVBSP:
+      if(pType == Ptyp_0) { // startpoint
+        db1 = ((CurvBSpl*)cvDat)->v0;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvBSpl*)cvDat)->v1;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        db1 = (((CurvBSpl*)cvDat)->v0 + ((CurvBSpl*)cvDat)->v1) / 2.;
+
+      } else goto L_err_FNI;
+
+      if(pto) UT3D_pt_evalparCv (pto, (CurvBSpl*)cvDat, db1);
+      if(vco) UT3D_vc_evalparCv (vco, (CurvBSpl*)cvDat, db1);
+      if(par) *par = db1;
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVRBSP:
+      if(pType == Ptyp_0) { // startpoint
+        db1 = ((CurvRBSpl*)cvDat)->v0;
+
+      } else if(pType == Ptyp_1) { // endpoint
+        db1 = ((CurvRBSpl*)cvDat)->v1;
+
+      } else if(pType == Ptyp_mid) { // midpoint
+        db1 = (((CurvRBSpl*)cvDat)->v0 + ((CurvRBSpl*)cvDat)->v1) / 2.;
+
+      } else goto L_err_FNI;
+
+      if(pto) UT3D_pt_evparCrvRBSpl (pto, &d1, (CurvRBSpl*)cvDat, db1);
+      if(vco) goto L_err_FNI;
+        // make a new UT3D_vc_eval_par_rbspl from UT3D_rbspl_tst_tg
+      if(par) *par = db1;
+
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_ObjGX:
+      i1 = UTO_obj_getp (&vp1, &i2, cvDat);
+      if(i2 > 1) TX_Print("**** UT3D_ptvcpar_std_obj I001");
+
+      // recursion
+      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, vp1);
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVCCV:
+      if(((ObjGX*)cvDat)->typ != Typ_CVCCV) goto L_err_FNI;
+      cp1 = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
+      UTO_cv_cvtrm (&i1, cp1, NULL, (CurvCCV*)cvDat);
+// TODO: spline, clot has v0-point, v1-point in CurvCCV-struct (io0, ip1) !?
+      // recursion
+      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, cp1);
+      break;
+
+
+    //----------------------------------------------------------------
+    default:
+      goto L_err_FNI;
+  }
+
+
+  // if(irc > 0) {
+    if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
+    if(vco) GR_Disp_vc (vco, pto, 9, 1);
+  // }
+
+
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_err_FNI:  // function not implemented
+    UT3D_stru_dump (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_std_obj");
+    return MSG_STD_ERR (func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
+
+}
+
+
+// ../xa/xa_msg.h
+
+#define MSG_typ_INF     0
+#define MSG_typ_WNG     1
+#define MSG_typ_ERR     2
+
+char *MSG_STD_code[]={
+  "-",             // INF
+  "***",           // WNG
+  "*** ERROR:"     // ERR
+};
+
+
+enum {  // codes for MSG_STD__
+  func_not_impl,
+  unused
+};
+
+char *MSG_STD_tab[]={
+  "function not implemented",    // func_not_impl
+  "uu"
+};
+
+
+#define MSG_STD_ERR(ikey,addTxt){\
+ char s1[400]; sprintf(s1,"%s %s(): %s %s",MSG_STD_code[MSG_typ_ERR],__func__,MSG_STD_tab[ikey],addTxt); MSG_STD__ (MSG_typ_ERR, s1);}
+
+
+//================================================================
+  int MSG_STD__ (int msgTyp, char *txt) {
+//================================================================
+ 
+  printf("MSG_STD__ %d |%s|\n",msgTyp,txt);
+
+
+  TX_Print ("%s", txt);
+
+  if(msgTyp == MSG_typ_ERR) AP_errStat_set (1);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GR_gtx_BlockWidth__ (int *chrNr, int *lNr, char *txt) {
+//================================================================
+/// \code
+/// get chrNr=max_nr_of_chars and lNr=nr_of_lines
+/// [n is newLine, ignor all other '[' 
+/// output:
+///   chrNr     nr of chars of longest line 
+///   lNr       nr_of_lines
+/// retCode:    1 = txt is empty
+///             0 = OK
+/// \endcode
+
+
+  int    i1;
+  char   *pls, *px;
+
+
+  printf("GR_gtx_BlockWidth__ |%s|\n",txt);
+
+  *chrNr = 0;
+  *lNr = 0;
+
+  // loop tru lines
+  pls = txt;
+  if(! *pls) {
+    return 1;
+  }
+
+  // get next '['
+  L_nxtLn:
+  px = strchr (pls, '[');
+  if(!px) goto L_eol;
+
+  ++px;
+  if(*px == 'n') {
+    // found newLine
+    *lNr += 1;
+    i1 = px - pls - 1;
+      printf(" i1-1=%d\n",i1);
+    if(i1 > *chrNr) *chrNr = i1;
+    pls = px + 1;
+    goto L_nxtLn;
+  }
+
+  // end of line
+  L_eol:
+  *lNr += 1;
+  i1 = strlen (pls);
+    printf(" i1-2=%d\n",i1);
+  if(i1 > *chrNr) *chrNr = i1;
+
+    printf("ex GR_gtx_BlockWidth__ %d %d\n",*chrNr,*lNr);
+
+  return 0;
+
+}
+*/
+
+#define UTX_wTab_tmpSpc(wa,waSiz)\
+ (wa)=(char**)MEM_alloc_tmp((waSiz)*sizeof(void*))
+
+//================================================================
+  int ATO_wTab_str (ObjAto *ato1, char *stri){
+//================================================================
+// - alle Worte in *data trennen;
+// - die anzahl -> ato.nr;
+// - die startPointer -> ato.val
+
+
+  int  paSiz;
+  char **pa;
+
+  printf("ATO_wTab_str |%s|\n",stri);
+  // pa = *(char*)ato1->val;
+  // ato1->nr = UTX_wTab_str (pa, ato1->siz, stri);
+
+  // paSiz = 20;
+  // pa = (char**) MEM_alloc_tmp (paSiz * sizeof(void*));
+  UTX_wTab_tmpSpc(pa,20);
+
+  // pa = (char**)memspc55;
+  // paSiz = sizeof(memspc55) / sizeof(void*);
+
+
+
+
+  UTX_wTab_str (pa, 20, stri);
+
+    while (*pa) { printf(" |%s|\n",*pa); ++pa; }
 
   return 0;
 
@@ -3142,12 +3686,12 @@ int dxfw_tess_CB (ObjGX*);
 //          1 do not unload
  
 
-  int    irc, i1, iNr;
-  double d1, d2, d3;
-  char   *p1, s1[256], s2[256];
+  int       irc, i1, i2, iNr;
+  double    d1, d2, d3;
+  char      *p1, s1[256], s2[256];
   int       triSiz, triNr, surSiz, surNr;
   int       sTyp[10];
-  long      sTab[10];
+  long      sTab[10], l1;
   ObjGX     *oTab=NULL, ox1;
   Triangle  *triTab;
   TypTsuSur *surTab;
@@ -3160,18 +3704,18 @@ int dxfw_tess_CB (ObjGX*);
   Point     p34;
   Vector2   v21={10., 0.};
   Vector2   v22={-15., 5.};
-  Vector    v31={1., 0., 0.};
+  Vector    v30={1., 0., 0.};
   // Vector    v32={1., 1., .0};
   // Vector    v32={0.866,    0.500, 0.};    // 30 deg
   // Vector    v32={0.707,    0.707, 0.};    // 45 deg
-  Vector    v32={+0.500,   -0.866, 0.};    // 60 deg
+  Vector    v31={+0.500,   -0.866, 0.};    // 60 deg
   // Vector    v32={1.0,    1.72, 0.};    // 60 deg
   // Vector    v32={0.,    1., 0.};    // 90 deg
   // Vector    v32={-0.500,    0.866, 0.};    // 120 deg
   // Vector    v32={-0.707,    0.707, 0.};    // 135 deg
   // Vector    v32={-0.866,    0.500, 0.};    // 150 deg
   // Vector    v32={0., -1., 0.};  // 180 deg
-  Vector    v33={0., 0., -1.};  // 180 deg
+  Vector    v32={0., 0., -1.};  // 180 deg
 
   // FILE *fp;
   // int state = GL2PS_OVERFLOW, buffsize = 0, format, sort, opts, icol;
@@ -3179,12 +3723,81 @@ int dxfw_tess_CB (ObjGX*);
   // GLint viewport[4];
   char fNam[256];
 
-  static void  *dll1 = NULL;
+  static void  *vp1 = NULL;
 
 
-  printf("\n\ntst_tst__ 1\n");
+  printf("\n\ntst_tst__ 2\n");
+  //----------------------------------------------------------------
+  {
+    int  irc;
+    char s1[128], sbt[3][64], *buttons[4];
+    // APT_decode_ln_parl_mod (1, 100., 20L);
+    sprintf(s1, "  Model <mdlnam> is modified; save (overwrite) ?  ");
+
+    strcpy(sbt[0],  MSG_const__(MSG_ok));      // "YES");
+    strcpy(sbt[1],  MSG_const__(MSG_cancel));  // "Cancel");
+    strcpy(sbt[2],  MSG_const__(MSG_no));      // "NO");
+
+    buttons[0] = sbt[0];
+    buttons[1] = sbt[1];
+    buttons[2] = sbt[2];
+    buttons[3] = NULL;
+    // returns 0=yes, 1=cancel, 2=no
+    irc = GUI_DialogEntry (s1, NULL, 0, buttons, 5);
+      printf(" gui-irc %d\n",irc);
+
+    return 1;
+  }
+
+  // test message
+  // MSG_STD_ERR (func_not_impl, "E001 - %d",4);
+  // return 0;
+
+/*
+  {
+  int    sx, sy, dx, dy, typ, oNr;
+  long   dbi, dli;
+  double dsx, dsy, dsz;
+  Point  p1, p2;
+  void   *obj;
+
+    dbi = 1L;
+    dli = 0L;
+
+    // get data for note l1
+    typ = DB_GetObjDat (&obj, &oNr, Typ_Note, dbi);
+      UT3D_stru_dump (typ, obj, " N1 ");
+
+    // DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, dli);
+    irc = GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, dbi);
+
+      UT3D_stru_dump (Typ_PT, &p1, "p1");
+      printf(" sx=%d sy=%d\n",sx,sy);
+      GR_Disp_pt (&p1, SYM_STAR_S, ATT_COL_RED);
+
+
+    // change Textpoint --> Screencoords
+    GL_Uk2Sk (&dsx, &dsy, &dsz, p1.x, p1.y, p1.z);
+      // printf(" LU(ScrCoords) dsx=%f dsy=%f dsz=%f\n",dsx,dsy,dsz);
+
+    dsx += sx + dx;
+    dsy += sy + dy;
+
+    // change RO --> UserCoords
+    GL_Sk2Uk (&p2.x, &p2.y, &p2.z,  dsx, dsy, dsz);
+      GR_Disp_pt (&p2, SYM_STAR_S, ATT_COL_RED);
+      // UT3D_stru_dump(Typ_PT, &p2, " RO=");
+
+    // use RO
+    // UT3D_box_extend (pb1, pb2, &p2);   ++pNr;
+
+
+  } return 0;
+*/
+
+  //----------------------------------------------------------------
   // testdll__ (); return 0;
-  // goto L_test_func;
+  goto L_test_func;
   goto L_test_ReScale;
   goto L_test_tess1;
 
@@ -3328,20 +3941,14 @@ return 0;
       // Point  pt2={-4834.796, 2087.975,   0.0};
       Point  pt2={-4834.796, 2087.975,   0.0};
       Circ   *ci1;
+      ObjAto ato1;
+      char   s1[256];
 
-      ci1 = DB_get_CI (21L);
+      // ci1 = DB_get_CI (21L);
 
-      UT3D_pt_evparci (&pt1, 0.25, ci1);
-      UT3D_pt_evparci (&pt1, 0.5, ci1);
-      // d1 = UT3D_angr_ci_pt (ci1, &ci1->p2);  // 1.075
-      UT3D_pt_evparci (&pt1, 2., ci1);       // 2.15; OK
-      UT3D_pt_evparci (&pt1, 3., ci1);       // 3.22: OK
-      UT3D_pt_evparci (&pt1, 4., ci1);       // 4.30: OK
-      UT3D_pt_evparci (&pt1, 5., ci1);       // 5.37: OK
-      d1 = UT3D_angr_ci_p1_pt (ci1, &pt1);
-        printf(" d1=%lf\n",d1);
-      d1 = UT3D_angr_ci_p1_pt (ci1, &pt2);   // 5.64; OK
-        printf(" d1=%lf\n",d1);
+      // ATO_getSpc__ (&ato1);
+      strcpy(s1, "DISP_PT OFF");
+      ATO_wTab_str (&ato1, s1);
 
     }
     return 0;
@@ -3354,7 +3961,7 @@ return 0;
       Point  pb1, pb2;
 
       // get box of active model
-      AP_box_model (&pb1, &pb2, -1);
+      UT3D_box_mdl__ (&pb1, &pb2, -1);
 
       // view box
       DL_ReScale_box (&pb1, &pb2);

@@ -1,6 +1,18 @@
+# auxiliary for ckitgui - testprogs; eg hello-world
 
-# get OS OUTDIR VGTK (Version GTK)
+ifndef gcad_dir_bin
+$(error ERROR - gcad_dir_bin undefined. Start with "./do c" or do ". ../options.sh")
+endif
+
+
+# get VGUI BITS OS CC MK
 include ../options.mak
+
+# get SRCGUI (filList), GUICP (compile with gui), GUILIB (link with gui)
+include ../gui/gui_$(VGUI).mak
+
+# OpenGL: get OGLLIB
+include ../APP/ogl.mak
 
 
 # add utility-funcs
@@ -24,19 +36,23 @@ VPATH = $(OUTDIR):../ut/:../gui_$(VGUI)/:.
 OGLLIB = -lGLU -lGL
 
 
-default: $(OBJ1) $(OBJGUI)
-	cd $(OUTDIR) && \
-	$(CC) -o $(PRJNAM) $(OBJ1) xa_gui_$(VGUI).so $(OGLLIB) $(LKDEF) $(LKDEB)
+default: $(OBJ1)
+	@echo "====================== link ======================"
+	@echo "OS=" $(OS) 
+	@echo "gcad_dir_bin=" $(gcad_dir_bin) 
+	cd $(gcad_dir_bin) && \
+	$(CC) -o $(PRJNAM) $(OBJ1) xa_gui.so $(OGLLIB) $(LKDEF) $(LKDEB)
 
 
 run:
 	make -f $(PRJNAM).mak
-	export LD_LIBRARY_PATH=$(OUTDIR) && $(OUTDIR)/a.out
+	export LD_LIBRARY_PATH=$(gcad_dir_bin) && $(gcad_dir_bin)/$(PRJNAM)
 
 
 .c.o:
 	$(CC) -c $(GUICP) $(CPDEB) $<
-	mv -f $(@F) $(OUTDIR)/.
-	ctags -f $*.tag $<
+	mv -f $(@F) $(gcad_dir_bin)/.
+	rm -f ../tags/$(*F).tag
+	ctags -f ../tags/$(*F).tag -IMemTab $<
 
 # eof

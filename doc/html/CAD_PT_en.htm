@@ -112,21 +112,22 @@ s
   <h2>PT endpoints center focus ..</h2>
 Create the characteristic points of an object.
 
-             MOD(1)      MOD(2)    MOD(3)       MOD(4)        MOD(5)
-  Line:    startpoint, endpoint  midpoint.
-  Circle:  startpoint, endpoint, centerpoint.
-  Ellipse: startpoint, endpoint, centerpoint, focuspoint-1, focucpoint-2.
+             default     MOD(1)    MOD(2)       MOD(3)      MOD(4)
+  Line:    startpoint, startpoint, endpoint  midpoint.
+  Circle:  centerpoint,startpoint, endpoint, centerpoint.
+  Ellipse: centerpoint,startpoint, endpoint, centerpoint, focuspt-1, focuspt-2.
+  Clothoid startpoint, startpoint, endpoint
   Plane:   origin.
 
-  Polygon: all cornerpoints
-  Spline:  all controlpoints
+  Polygon: startpoint, cornerpoints ....
+  Spline:  startpoint, controlpoints ....
 
 
 Beispiele:
 # center of circle:
 P6=C1
 # endpoint of line:
-P5=L1 MOD(2)
+P5=P(L1 MOD(2))
 
 
 

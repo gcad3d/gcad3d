@@ -36,7 +36,7 @@ typedef struct {void *start, *next, *end;
 
 
   int   UME_init (Memspc *memSpc, void* objDat, int osiz);
-  int   UME_alloca (Memspc *memSpc, long spcSiz);
+  int   UME_alloc_tmp (Memspc *memSpc, long spcSiz);
   int   UME_malloc (Memspc *memSpc, long spcSiz, long memInc);
   void* UME_save (Memspc *memSpc, void* objDat, int osiz);
   void* UME_reserve (Memspc *memSpc, int osiz);
@@ -60,35 +60,19 @@ typedef struct {void *start, *next, *end;
 /// init Memspc
 #define UME_NEW {NULL, NULL, NULL, 0}
 
-/// \code
-/// UME_alloc_tmp             allocate mem for active function
-/// DO NOT GET > 100000 byte
-/// calls alloca; memspace exists until active function returns.
-/// ptab = (Point*) UME_alloc_tmp (nr_of_points * sizeof(Point));
-/// ATTENTION: MinGW: use also alloca, not _alloca !!!
-/// ATTENTION: MS needs more space!
-/// \endcode
-void* UME_alloc_tmp(int);
-#ifdef _MSC_VER
-#define UME_alloc_tmp(siz) _alloca(siz + 64)
-//#define UME_alloc_tmp(siz) alloca(siz)
-#else
-#define UME_alloc_tmp(siz) alloca(siz)
-#endif
-
 
 /// \code
-/// UME_alloca                allocate temp. space for Memspc
+/// UME_alloc_tmp                allocate temp. space for Memspc
 /// DO NOT GET > 100000 byte
 /// memspace exists until active function returns (using alloca)
 /// MUST BE INLINE; after return of function memspace is lost !
 /// Example:
 /// Memspc   tmpSpc=UME_NEW;
-/// UME_alloca (&tmpSpc, 1000);   // get a Memspc size = 1000 bytes
+/// UME_alloc_tmp (&tmpSpc, 1000);   // get a Memspc size = 1000 bytes
 /// \endcode
-int   UME_alloca (Memspc*, long);
-#define UME_alloca(memSeg,memsiz)\
-  UME_init (memSeg, UME_alloc_tmp(memsiz), memsiz)
+int   UME_alloc_tmp (Memspc*, long);
+#define UME_alloc_tmp(memSeg,memsiz)\
+  UME_init (memSeg, MEM_alloc_tmp(memsiz), memsiz)
 
 
 /// UME_get_next          get actual memSpacePosition (.next; next free position)
@@ -116,11 +100,11 @@ int   UME_alloca (Memspc*, long);
 #define UME_connect(memPos,memSeg)(memPos)=(memSeg)->next
 
 
-/// UME_TMP_FILE          allocate temp.memspace for file
-int UME_TMP_FILE (void**, long*,  char*);
-#define UME_TMP_FILE(fBuf, fSiz, fNam)\
-  *fSiz = OS_FilSiz (fNam);\
-   *fBuf = UME_alloc_tmp (*fSiz)
+// /// UME_TMP_FILE          allocate temp.memspace for file
+// int UME_TMP_FILE (void**, long*,  char*);
+// #define UME_TMP_FILE(fBuf, fSiz, fNam)\
+//   *fSiz = OS_FilSiz (fNam);\
+//    *fBuf = (void*)MEM_alloc_tmp (*fSiz)
 
 
 

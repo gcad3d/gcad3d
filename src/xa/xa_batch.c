@@ -510,9 +510,9 @@ int WINAPI WinMain (HINSTANCE hInstance,
   int  GL_DefColSet () {return 0;}
   void GL_DefColGet () {}
   void DL_hili_on () {}
-  void GL_LoadBMP () {}
+  void GL_Draw_BMP () {}
   void GR_Draw_dbo () {}
-  void GL_DrawTag1 () {}
+  void GL_Draw_Tag () {}
   void GL_DrawSymB () {}
   void GL_DrawSymV () {}
   void GL_DrawSymV2 () {}

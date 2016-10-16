@@ -71,6 +71,7 @@ void OGX_SET_INDEX (ObjGX *ox, int dbTyp, long dbInd);
 /// \code
 /// replaces: (int)ind = (long)oxi->data;   (if oxi->form == Typ_Index)
 /// \endcode
+/// see also LONG_PTR
 void OGX_GET_INDEX (int *typ, long *dbi, ObjGX *ox);
 #define OGX_GET_INDEX(dbTyp,dbInd,ox){\
   *(dbTyp) = (ox)->typ;\

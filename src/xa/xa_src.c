@@ -83,6 +83,7 @@ AP_obj_add_obj AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
 
 
 
@@ -1515,12 +1516,14 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   // printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d\n",sSiz,oTyp,iTyp);
 
+
   // get last selected position
   if(!pti) {
     sele_get_pos (&pts);
     pti = &pts;
   }
-    // UT3D_stru_dump(Typ_PT, pti, " pti");
+    // UT3D_stru_dump(Typ_PT, pti, " SRC_src_pt_dbo-pti");
+
 
   // get tempSpc for ato (with max 6 records)
   ATO_getSpc_tmp__ (&ato, 6);
@@ -1536,7 +1539,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //---------------------------------------------------------------
   UTO_get_DB (&o1, &iNr, &iTyp, iDbi);
     // printf(" iTyp=%d\n",iTyp);
-    // UT3D_stru_dump(iTyp, o1, " o1");
+    // UT3D_stru_dump (iTyp, o1, " SRC_src_pt_dbo-o1");
 
 
   // get selected obj
@@ -1560,6 +1563,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   if(iTyp == Typ_SUR) {                // selected: SUR
     // irc = AP_src_parPt_selSur (outBuf, pti, dbi);
+
     // get 2D-parameters of 3D-point pti in pts
     irc = SUR_pt2_prjptsur (&pts, pti, o1);
     if(irc < 0) {
@@ -1580,7 +1584,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   // resolv CCV
   } else if(iTyp == Typ_CVCCV) {
-      printf(" CCV.. siz=%d\n",iNr);
+      // printf(" CCV.. siz=%d\n",iNr);
     ccva = o1;
     for(i1=0; i1<iNr; ++i1) {
         // UT3D_stru_dump (Typ_CVCCV, &ccva[i1], " ccv[%d]",i1);
@@ -1590,7 +1594,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       if(irc < 0) return -1;
       // find point on CCV-seg; 0=ok, 
       irc = ATO_ato_obj_pt (&ato, oTyp, i1+1, iTyp, o2, pti);
-        printf(" ato_obj_pt irc=%d seg-%d\n",irc,i1+1);
+        // printf(" ato_obj_pt irc=%d seg-%d\n",irc,i1+1);
+        // ATO_dump__ (&ato, " rc_pt_dbo-5");
       if(irc == 0) break;
     }
       
@@ -1600,7 +1605,9 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   } else {
     // curve - not CCV
+    // get parametric position of point on obj
     irc = ATO_ato_obj_pt (&ato, oTyp, 0, iTyp, o1, pti);
+      // ATO_dump__ (&ato, " rc_pt_dbo-6");
     if(irc < 0) return irc;
   }
 
@@ -1610,11 +1617,12 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   // for (oTyp==Typ_goGeo1) fix oTyp
   if(oTyp == Typ_goGeo1) {
     // get the selected subObj of a CCV
-      printf(" iTyp=%d\n",iTyp);
+      // printf(" iTyp=%d\n",iTyp);
     if((iTyp == Typ_LN)||(iTyp == Typ_CVPOL)) {
       oTyp = Typ_LN;
     // } else if(iTyp == Typ_CI) {
     // } else return -2;
+
     } else {
       oTyp =  AP_typ_2_bastyp (iTyp);
     }
@@ -1622,11 +1630,12 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
 
-  // get sourceObj for outTyp from atomicObjs in ato
+  //----------------------------------------------------------------
   L_encode:
     // printf(" L_encode: oTyp=%d\n",oTyp);
-
     // ATO_dump__ (&ato, " L_encode:");
+
+  // get sourceObj for outTyp from atomicObjs in ato
   irc = SRC_src_ato (so, sSiz, oTyp, &ato);
   if(irc < 0) return -1;
 

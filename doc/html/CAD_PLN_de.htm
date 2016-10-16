@@ -141,21 +141,29 @@ R13 = P(100 100 100) L(P(0 0 0) P(0 0 100))
 
 
 <p><a name="F2"></a></p>
-<h2>PLN PT  Plane</h2>
-Ebene/Referenzsystem verschieben (die Achsrichtungen bleiben)
-  optional neuer Nullpunkt, Abstand des neuen Nullpunktes auf der Z-Achse.
+<h2>PLN PT Plane Offset Angle</h2>
+Ebene/Referenzsystem verschieben, drehen.
+  Neuen Nullpunkt setzen,
+  den Nullpunkt entlang der X/Y/Z-Achse verschieben,
+  das Achsensystem um die Z-Achse drehen.
+  Alle Parameter sind optional.
 
-
-  [Origin]        optional: der neue Nullpunkt
-  Refsys          Ebene - diese Ebene wird verschoben
-  [offset Z-axis] optional: der Abstand vom Nullpunkt der Basisebene
-                  (in Richtung Z-Achse / Normalvector)
+  [Origin]         der neue Nullpunkt
+  [Refsys]         Achsensystem dieser Ebene übernehmen;
+                   Default = die aktive Konstruktionsebene
+  [offset-X-axis]  Abstand entlang X-Achse
+  [offset-Y-axis]  Abstand entlang Y-Achse
+  [offset-Z-axis]  Abstand entlang Z-Achse
+  [Angle-around-Z] Referenzsystem um die Z-Achse drehen (Grad)
 
 
 
 Beispiel:
-R21=P(100 100 50) R20
-R21=R20 10
+# 
+# R20 - neuen Nullpunkt setzen
+R21=RSYS P(100 100 50) R20
+# R20 verschieben und drehen
+R22=RSYS R20 X(100) Y(100) ANG(180)
 
 
 

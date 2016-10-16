@@ -21,10 +21,11 @@ Applications are scriptprograms (directly executable).
 
  <B>Applications / Start </B>
    Selection and start of a program.
-     Directory:  {baseDir}/prg
+     Directory:  {any_direcory}
      Filetyp:    .gcap
    The program selected last can be started directly with Ctrl-P.
 
+   The directory of the program selected last is stored in file cfg/xa.rc.
 
 Each program will automatically get a window;
    each window automatically gets 3 buttons:
@@ -91,7 +92,18 @@ DLG ..
 
 
 ____________________________________________________________________________
+<P><A NAME='Program_codes'></A></P>
 <B>Program Codes: </B>
+
+Will be evaluated in all modelfiles (.gcad files):
+Kommentar, PRI, JUMP-Label, IF, CALL.
+
+Will be evaluated only in applications (.gcap files):
+INTERN, NEW, Auswertungsfunktion, DLG, DEBUG.
+
+Will be evaluated only in catalog-modelfiles:
+CALL CTLG.
+
 
 
 <B>Comment </B>
@@ -195,6 +207,19 @@ Example:
   # All points from P1 to P20 and point P50 and ...
   # are only used internally, no export into the main model.
 
+
+
+
+<b>Execute commandfile</b>
+CALL "symDir/filename"
+
+# Example:
+CALL "Data/sample_prg_call_1.dat"
+PRI "V20=" V20
+C20=P(0 0 0) V20
+
+# File Data/sample_prg_call_1.dat:
+V20=12
 
 
 

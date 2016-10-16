@@ -543,6 +543,7 @@ typedef_MemTab(ObjRange);
 
 
     //----------------------------------------------------------------
+/*
     } else if(typ == Typ_Model) {
         printf(" Typ_Model |%s| iSiz=%d\n",((ModelRef*)pi)->mnam,iSiz);
       // copy modelname
@@ -551,7 +552,7 @@ typedef_MemTab(ObjRange);
       *oSiz -= 4;
       *objo = (char*)*objo + 4; // *objo += 4;
         UT3D_stru_dump (Typ_Model, po, "model");
-
+*/
 
     //----------------------------------------------------------------
     } else {
@@ -605,6 +606,7 @@ typedef_MemTab(ObjRange);
     case Typ_CON:    // Conus:
     case Typ_TOR:    // Torus:
     case Typ_SymRef: // SymRef:
+    case Typ_Model:  // ModelRef
       return 0;
     
     default:
@@ -1296,9 +1298,9 @@ static void*  relPos;
 
   //----------------------------------------------------------------
   // UME_init (&tmpSpc, memspc51, sizeof(memspc51));
-  // tmpSpc1 = UME_alloc_tmp  (1000);
+  // tmpSpc1 = MEM_alloc_tmp  (1000);
   // UME_malloc (&tmpSpc, 1000, 1000);
-  UME_alloca (&tmpSpc, 1000);
+  UME_alloc_tmp (&tmpSpc, 1000);
     printf(" free %d\n",UME_ck_free(&tmpSpc));
 
 
@@ -1325,7 +1327,7 @@ static void*  relPos;
 // exit(0);
 
 
-  // spc2 = UME_alloc_tmp  (oSiz);
+  // spc2 = MEM_alloc_tmp  (oSiz);
   // UME_init (&spcObj2, spc2, oSiz);
   // UME_init (&spcObj1, memspc52, sizeof(memspc52));
   UME_malloc (spcObj1, oSiz, 1000);

@@ -266,6 +266,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 }
 
 
+/*
 ///===============================================================
   int GA_hide_fil_tmp (int mode) {
 ///===============================================================
@@ -341,7 +342,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
   return 0;
 
 }
-
+*/
 
 //================================================================
   int GA_fil_wri (FILE *fpo, int iGrp, int src, int ckExist) {

@@ -25,8 +25,9 @@
 
   void GR_DrawDimen (long *ind, int attInd, Dimen *dim1);
   void GR_DrawTxtA  (long *ind, int attInd, Point *pt1, char *txt);
-  void GR_DrawTxtG  (long *ind, int attInd,
-                    Point *pt1, float size, float ang, char *txt);
+  void GR_DrawTxtG  (long *dli, int attInd, GText *tx1, long dbi);
+  // void GR_DrawTxtG  (long *ind, int attInd,
+                    // Point *pt1, float size, float ang, char *txt);
   void GR_DrawPoint (long*, int, Point*);
   void GR_DrawLine  (long *ind, int attInd, Line *ln1);
   void GR_DrawCirc  (long *ind, int attInd, Circ *ci1);
@@ -83,12 +84,27 @@
   int GR_Disp_sbsp (int ptUNr, int ptVNr,  Point *pTab, int att);
 
   double GR_gtx_ckBlockWidth (char*, double);
+  int    GR_gxt_strLen (char*);
   double GTX_chw_  (double);
   double GTX_cw_   ();
   double GTX_chh_  (double);
+  double GTX_chhl_ (double);
   double GTX_chhl2 (double);
   double GTX_scale (double);
   double GTX_siz__ (double);
+
+
+
+//================================================================
+// inline functions
+
+/// \code
+/// GR_gxt_strLen         get stringlength of textnote
+/// ignore all controlcharacters '['
+/// \endcode
+#define GR_gxt_strLen(txt)\
+ strlen(txt) - UTX_cnr_chr (txt, '[')
+
 
 
 /*========== EOF ==============*/

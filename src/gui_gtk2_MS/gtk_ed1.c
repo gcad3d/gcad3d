@@ -109,6 +109,7 @@ g_convert
 #include <gtk/gtk.h>
 
 #include "../ut/ut_umem.h"                    // Memspc
+#include "../ut/ut_mem.h"                     // MEM_alloc_file
 
 #include "../gui/gui_types.h"                 // TYP_Event..
 #include "../gui/gui_base.h"                  // GUI_obj_*
@@ -565,7 +566,7 @@ static char  *GUI_ed1_lcSet;
     
 
   // get file -> fBuf
-  UME_TMP_FILE (&fBuf, &fSiz, fnam);
+  MEM_alloc_file (&fBuf, &fSiz, fnam);
   UTX_str_file (fBuf, &fSiz, fnam);       // 2013-04-10
   if(fSiz < 1) {
     TX_Print("GUI_Ed_Ins_f E001 |%s|",fnam);

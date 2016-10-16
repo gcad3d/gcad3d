@@ -161,10 +161,8 @@ static char *os_ico_dir;
   // mit --g-fatal-warnings   bricht aber ganz ab !
   // gtk_init (&paranz, &argv);
   // system(". export LC_ALL=C");   // f sort
+  memset (&AP_stat, '\0', sizeof(AP_stat));  // init with 0
 
-  AP_stat.batch = 0;     // Interaktiv ..
-  AP_stat.sysStat = 0;   // progress -status;
-  AP_stat.build   = 0;   // compiler/linker not checked
   APP_act_typ = 0;
 
   AP_deb_fp = NULL;

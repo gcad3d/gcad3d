@@ -85,7 +85,7 @@ The mainTimer calls CTRL_CB__ periodically;
 #include <fcntl.h>
 
 #include "../ut/ut_geo.h"                // UT_INT_MAX
-// #include "../ut/ut_umem.h"               // UME_alloc_tmp
+// #include "../ut/ut_umem.h"               // MEM_alloc_tmp
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_txt.h"                // UTX_pos_skipLeadBlk
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
@@ -302,13 +302,20 @@ static int ctrlStat = 0;
 
   //----------------------------------------------------------------
   // test APT_work_PrgCmd - functions
+  // do command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
+  i1 = APT_work_AppCodTab (cmd, &wPos1);
+  if(i1 >= 0) goto L_done;
+  if(i1 == -1) return i1;
+  // -2 == not_in_AppCodTab
+
+/*
   i1 = UTX_wTab_ck (cmdTab, cmd);
   if(i1 >= 0) {
     // APT_work_PrgCmd (cmd, &wPos1);
     APT_work_PrgCmd (cmdTab[i1], &wPos1);    // 2016-03-16
     goto L_done;
   }
-
+*/
 
 
   //----------------------------------------------------------------

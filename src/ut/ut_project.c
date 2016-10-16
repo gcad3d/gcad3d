@@ -33,6 +33,7 @@ Modifications:
 List_functions_start:
 
 UPRJ_def__           init projection with target & projectionDirection
+UPRJ_def_lim         define if resulting point must be on limited obj
 
 UPRJ_app__           apply prj to struct (nicht ObjGX)
 UPRJ_app_obj         apply transf. to to object (ObjGX-tree)
@@ -76,6 +77,7 @@ prj_vc           projectionDirection or vz of Plane
 
 static int    prj_typ;     // typ of targetObj; Typ_PLN or surface ...
 static int    prj_nr;      // nr of objects in prj_tg
+static int    prj_limStat; // 0=yes; 1=NO=unlimited obj
 static void   *prj_tg;     // pointer to targetObj; typ=prj_typ.
 static Vector prj_vc;      // projectionDirection
 
@@ -103,9 +105,10 @@ static Vector prj_vc;      // projectionDirection
   // UT3D_stru_dump (Typ_VC, vc1, "vc1:");
 
 
-  prj_typ = typ;
-  prj_tg  = target;
-  prj_nr  = oNr;
+  prj_typ     = typ;
+  prj_tg      = target;
+  prj_nr      = oNr;
+  prj_limStat = 0;       // default=yes=limited
 
   if(vc1) {
     prj_vc = *vc1;
@@ -126,6 +129,22 @@ static Vector prj_vc;      // projectionDirection
 }
 
 
+//================================================================
+  int UPRJ_def_lim (int mode) {
+//================================================================
+/// \code
+/// UPRJ_def_lim          define if resulting point must be on limited obj
+/// default=yes=limited
+/// \endcode
+
+
+  prj_limStat = mode;
+
+  return 0;
+
+}
+
+ 
 //================================================================
   int UPRJ_app_pt (Point *p2, Point* p1) {
 //================================================================
@@ -166,10 +185,13 @@ static Vector prj_vc;      // projectionDirection
     UT3D_vc_2pt (&vc1, &((Line*)prj_tg)->p1, &((Line*)prj_tg)->p2);
     irc = UT3D_pt_projptptvc (p2, &dist, da, p1, &((Line*)prj_tg)->p1, &vc1);
     if(irc < 0) return -1;
-    // check if point is on limited line from parameter and points
-    irc = UT3D_par_ck_inObj__ (da[0], p2, &((Line*)prj_tg)->p1, 0., 
-                                          &((Line*)prj_tg)->p2, 1.);
-    if(!irc) return -1;
+
+    if(!prj_limStat) {
+      // check if point is on limited line from parameter and points
+      irc = UT3D_par_ck_inObj__ (da[0], p2, &((Line*)prj_tg)->p1, 0., 
+                                            &((Line*)prj_tg)->p2, 1.);
+      if(!irc) return -1;
+    }
     return 1;
 
 
@@ -181,7 +203,9 @@ static Vector prj_vc;      // projectionDirection
     // irc = UT3D_pt_ck_inCirc (prj_tg, p1, UT_TOL_cv);
     // if(irc < 0) return 0;
     i1 = 2;
-    UT3D_pt_ci_lim_del (&i1, pa, da, (Circ*)prj_tg);
+    if(!prj_limStat) {
+      UT3D_pt_ci_lim_del (&i1, pa, da, (Circ*)prj_tg);
+    }
     *p2 = pa[0];
     return 1;
 
@@ -209,10 +233,11 @@ static Vector prj_vc;      // projectionDirection
   if(prj_typ != Typ_CVELL) goto L_CVBSP;
     i1 = 16;   // maxPoints
     irc = UT3D_pt_projptel (&i1, pa, prj_tg, p1);
+// TODO: limited curve ?
       // printf(" projptel-irc=%d i1=%d\n",irc,i1);
       // UT3D_stru_dump (Typ_PT, &pa[0], " p0:");
     APT_set_modMax (i1);
-    if(irc < 0) return -1;
+    if(irc) return -1;
     if(i1 < 1) return 0;
     *p2 = pa[APT_get_mod1()];
     return 1;
@@ -255,7 +280,7 @@ static Vector prj_vc;      // projectionDirection
     for(i1=0; i1<i2; ++i1) {
       // get space for curve
       i3 = UTO_siz_stru (ccva[i1].typ);
-      cv1 = UME_alloc_tmp (i3);
+      cv1 = MEM_alloc_tmp (i3);
       // make normal object of CCV[i1]; set prj_tg & prj_nr
       UTO_cv_cvtrm (&prj_typ, cv1, NULL, &ccva[i1]);
       prj_tg = cv1; 

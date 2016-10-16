@@ -31,10 +31,11 @@ Modifications:
 =====================================================
 List_functions_start:
 
-APED_dbo_oid      give typ, index from text "P12"
+APED_dbo_oid        give typ, index from text "P12"
 APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
 APED_oid_dbo_all      make name from typ and DB-index  (all types)
 APED_oid_vc         get oid for Vector; (DX or DIX or D#)
+APED_dbi_src_std_vc_pl get dbi for std-vector or -planes from GcoTxtTab-index
 
 AP_typ_srcExpr      decode expression
 AP_typ_FncNam       get type of function
@@ -67,7 +68,7 @@ List_functions_end:
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <ctype.h>                     // toupper
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"                // UTX_pos_skipLeadBlk
@@ -150,8 +151,8 @@ List_functions_end:
   static char *TypTxtTab210[]={   /// transformations
   "Tra",    "TraTra", "TraRot", "TraMat", "------"};   // 210-
   static char *TypTxtTab220[]={   /// operators
-  "OpeEQ",  "OpeNE",  "OpeLT",  "OpeGT",  "OpeGE",     // 220-
-  "OpeLE",  "OpeAND", "OpeOR",  "Ope---", "Ope---"};
+  "Ope__",  "OpeEQ",  "OpeNE",  "OpeLT",  "OpeGT",     // 220-
+  "OpeGE",  "OpeLE",  "OpeAND", "OpeOR",  "Ope---"};
   static char *TypTxtTab230[]={   /// modifiers  TYP_IS_MOD
   "Mod",    "Mod1--", "Mod2--", "ModCWCCW","ModREV",   // 230-
   "ModCX",  "ModCTRL","ModPERP","ModPARL","ModHIX",
@@ -200,23 +201,40 @@ List_functions_end:
   "ACOS",        "ATAN",        "ABS",         "FIX",         "RND",
   ""};
 
+
 char  *NcoTxtTab[] = {  // num. constants
 // 00             1              2              3              4
   "PI",          "RAD_1",       "RAD_90",      "RAD_180",     "RAD_360",
   "SR_2",        "SR_3",
   ""};
 
-char  *GcoTxtTab[] = {  // geom. constants
+double NcoValTab[] = {  // values for NcoTxtTab; see ATO_srcTxt
+  RAD_180,       RAD_1,        RAD_90,        RAD_180,       RAD_360,
+  SR_2,          SR_3
+};
+
+
+char  *GcoTxtTab[] = {  // geom. constants see APED_dbi_src_std_vc_pl
 // 00             1              2              3              4
   "DX",          "DY",          "DZ",          "DIX",         "DIY",
   "DIZ",         "RX",          "RY",          "RZ",       
   ""};
-/*
-char  *MOpTxtTab[] = {   // math.operators
-// 00             1              2              3              4
-  "+",           "-",           "/",           "*",
+
+int    GcoDbiTab[] = {  // dbi-tab for GcoTxtTab
+  DB_VCX_IND,    DB_VCY_IND,    DB_VCZ_IND,    DB_VCIX_IND,   DB_VCIY_IND,
+  DB_VCIZ_IND,   DB_PLX_IND,    DB_PLY_IND,    DB_PLZ_IND
+};
+
+
+char  *CopTxtTab[] = {  // controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq ..
+// 00             1              2              3              4   TypTxtTab220
+  "EQ",          "NE",          "LT",          "GT",          "G_E",
+  "L_E",         "AND",         "OR",
   ""};
-*/
+
+
+
+
 char  MOpTxtStr[] = "+-*/";  // math.operators
 
 
@@ -240,13 +258,14 @@ char  *ObjCodTab[] = {
   "PRJ",         "TRA",         "ROT",         "MIR",         "TXA",
   "DIMD",        "DIMR",        "DIM3",        "REC",         "INT",
 // 50
-  "UNUSED",      "UNUSED",      "RBSP",        "ARC1",         "CTRL",
+  "RSYS",        "UNUSED",      "RBSP",        "ARC1",         "CTRL",
   "LDRP",        "LDRC",        "LDRS",        "CTLG",         "ISO",
 // 60
   "FW",          "CX",          "PTAB",        "MSH",          "CLOT",
   "TNG",         "IMP",         "BSP1",        "PARL",         "BLEND",
 // 70
-  "UNL",         "UNL1",        "UNL2",        ""};
+  "UNL",         "UNL1",        "UNL2",        "DISP_PT",      "DISP_PL",
+  ""};
 
 // last word must be "" !
 
@@ -323,6 +342,33 @@ char  *ObjCodTab[] = {
 
 
   return irc;
+
+}
+
+
+//================================================================
+  int APED_dbi_src_std_vc_pl (int *typ, long *dbi, int gti) {
+//================================================================
+/// \code
+/// get dbi for std-vector or planes from oid-index in GcoTxtTab
+/// see APED_oid_dbo__ APED_dbo_oid
+/// 
+/// Input:
+///   gti    index GcoTxtTab
+/// Output:
+///   typ    Typ_VC | Typ_PLN
+///   dbi
+/// \endcode
+
+
+  // printf("APED_dbi_src_std_vc_pl |%s|\n",GcoTxtTab[gti]);
+
+  if(gti >= 6) *typ = Typ_PLN;
+  else         *typ = Typ_VC;
+
+  *dbi = GcoDbiTab[gti];
+
+  return 0;
 
 }
 
@@ -490,7 +536,7 @@ char  *ObjCodTab[] = {
 ///   text     eg "DZ" if RetCod < 0
 ///   RC =  0: no, allgemeiner vektor;
 ///   RC != 0: yes, -1=DX, -4=DIX, (DB-index of standard-vector)
-/// see AP_vec_txt
+/// see AP_vec_txt APED_oid_dbo__
 /// \endcode
 
   int       i1, ii;
@@ -585,6 +631,7 @@ char  *ObjCodTab[] = {
   rc = -2;
 
   if(*defTyp == Typ_VC) {  // test DX DY DZ DIX DIY DIZ
+// TODO: use APED_dbi_src_std_vc_pl
     ++txt;
     i1 = strlen(txt);
     if(i1 > 2) goto Fertig;
@@ -615,6 +662,7 @@ char  *ObjCodTab[] = {
     rc = 0;
 
   } else if(*defTyp == Typ_PLN) {  // test RX RY RZ
+// TODO: use APED_dbi_src_std_vc_pl
     ++txt;
     i1 = strlen(txt);
     if(i1 > 1) goto Fertig;
@@ -1077,6 +1125,7 @@ char  *ObjCodTab[] = {
             (typ == Typ_CVBSP)   ||
             (typ == Typ_CVRBSP)  ||
             (typ == Typ_CVELL)   ||
+            (typ == Typ_CVCLOT)  ||
             (typ == Typ_CVCCV))      {
     return 'S';
 
@@ -1148,13 +1197,13 @@ char  *ObjCodTab[] = {
 
 
   if(typ >= Typ_CV) {
-    if(typ < Typ_PLN)   return Typ_CV;       // S
-    if(typ < Typ_SUR)   return Typ_PLN;      // R
-    if(typ < Typ_SOL)   return Typ_SUR;      // A
-    if(typ < Typ_Note)  return Typ_SOL;      // B
-    if(typ < Typ_SymB)  return Typ_Note;     // N
+    if(typ < Typ_PLN)     return Typ_CV;       // S
+    if(typ < Typ_SUR)     return Typ_PLN;      // R
+    if(typ < Typ_SOL)     return Typ_SUR;      // A
+    if(typ < Typ_Note)    return Typ_SOL;      // B
+    if(typ < Typ_Texture) return Typ_Note;     // N    2016-10-03
 
-    if(typ == Typ_Mock) return Typ_Model;    // M
+    if(typ == Typ_Mock)   return Typ_Model;    // M
 
   }
 
@@ -1224,7 +1273,7 @@ char  *ObjCodTab[] = {
 // see also APT_decode_func ObjCodTab,
 
 
-  int   iTyp;
+  int   i1, iTyp;
   char  s1[32];
 
 
@@ -1233,25 +1282,31 @@ char  *ObjCodTab[] = {
   // get strLen
   while (fncNam[sLen - 1] == ' ') --sLen;
 
+  if(sLen > 30) { iTyp = -2; goto L_exit;}
+
+  // copy fncNam -> s1, make uppercase     see also UTX_cp_word_2_upper
+  // strncpy (s1, fncNam, sLen);
+  for(i1=0; i1<sLen; ++i1) s1[i1] = toupper (fncNam[i1]);
+  s1[sLen] = '\0';
+    // printf(" s1 %d |%s|\n",sLen,s1);
+
+
+  //----------------------------------------------------------------
   if(sLen > 1) goto L_fnc1;
 
   // test for obj-typ
-  iTyp = AP_typ_typChar (*fncNam);
+  iTyp = AP_typ_typChar (*s1);
   if(iTyp) goto L_exit;
-  if(*fncNam == 'X') { iTyp = Typ_ValX; goto L_exit;}
-  if(*fncNam == 'Y') { iTyp = Typ_ValY; goto L_exit;}
-  if(*fncNam == 'Z') { iTyp = Typ_ValZ; goto L_exit;}
+
+  if(*s1 == 'X') { iTyp = Typ_XVal; goto L_exit;}
+  if(*s1 == 'Y') { iTyp = Typ_YVal; goto L_exit;}
+  if(*s1 == 'Z') { iTyp = Typ_ZVal; goto L_exit;}
   goto L_exit;
 
 
   //----------------------------------------------------------------
   L_fnc1:
-  if(sLen > 30) { iTyp = -2; goto L_exit;}
-  strncpy (s1, fncNam, sLen);
-  s1[sLen] = '\0';
-    // printf(" s1 %d |%s|\n",sLen,s1);
-
-  // VAL ANG RAD NEW
+  // VAL ANG RAD MOD NEW
   iTyp = UTX_cmp_word_wordtab (Fc1TxtTab, s1);
   if(iTyp >= 0) {
     iTyp = Fc1TypTab[iTyp];
@@ -1259,7 +1314,8 @@ char  *ObjCodTab[] = {
   }
 
 
-  // SQRT SIN COS TAN ASIN ACOS ATAN ABS FIX RND
+  // SQRT SIN COS TAN ASIN
+  // ACOS ATAN ABS FIX RND
   iTyp = UTX_cmp_word_wordtab (FcmTxtTab, s1);
   if(iTyp >= 0) iTyp += Typ_FcmSQRT;
 

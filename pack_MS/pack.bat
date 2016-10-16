@@ -17,6 +17,9 @@ REM source of programs (binDirIn)
 REM set srcDir=C:\Devel\gCAD3D\
 set srcDir=..\src\
 
+REM dirMdl = cad-modelFiles
+set dirMdl=\Devel\cadfiles\gcad
+
 REM binDir = subdir of outDirP and of %srcDir%
 set binDir=binMS32
 set binDirIn=..\%binDir%
@@ -105,36 +108,44 @@ REM copy icons
 copy ..\icons\*                  %outDirP%\icons\.
 
 
+REM Startmodell 
+copy %dirMdl%\sample_activity_modval_1.gcad     %outDirD%\tmp\Model
 
-REM copy -> cfg
-copy %datDirIn%\cfg\*                    %outDirD%\cfg\.
-
-
-REM this files must be created:
-del %outDirD%\cfg\xa.rc
-del %outDirD%\cfg\dir.lst
-
+REM copy Demomodelle -> dat
+copy %dirMdl%\samp*.*              %outDirD%\dat\.
+copy %dirMdl%\Renault1.gcad        %outDirD%\dat\.
+copy %dirMdl%\Haus1.gcad           %outDirD%\dat\.
+copy %dirMdl%\Haus*.jpg            %outDirD%\dat\.
+copy %dirMdl%\DachWS4.jpg          %outDirD%\dat\.
+copy %dirMdl%\SteinMarmor1.jpg     %outDirD%\dat\.
+copy %dirMdl%\Niet1.gcad           %outDirD%\dat\.
+copy %dirMdl%\Schrau1.gcad         %outDirD%\dat\.
 
 REM copy progs, catalog ..
-copy %datDirIn%\prg\*                    %outDirD%\prg\.
+copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.
+copy %datDirIn%\prg\CirPat.gcap          %outDirD%\prg\.
+copy %datDirIn%\prg\LinPat.gcap          %outDirD%\prg\.
+copy %datDirIn%\prg\Haus1.gcap           %outDirD%\prg\.
+copy %datDirIn%\prg\Stair*.gcap          %outDirD%\prg\.
+copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.
+copy %datDirIn%\prg\DemoRC*              %outDirD%\prg\.
+
+REM copy -> cfg
+copy %datDirIn%\cfg\ltyp.rc              %outDirD%\cfg\.
+copy %datDirIn%\cfg\gCAD3D.rc            %outDirD%\cfg\.
+copy %datDirIn%\cfg\psv.setup            %outDirD%\cfg\.
+copy %datDirIn%\cfg\Default.ctlg         %outDirD%\cfg\.
+
 copy %datDirIn%\ctlg\*                   %outDirD%\ctlg\.
 copy %datDirIn%\Schrau\*                 %outDirD%\Schrau\.
 copy %datDirIn%\Profile\*                %outDirD%\Profile\.
 copy %datDirIn%\symEl1\*                 %outDirD%\symEl1\.
 
 
-REM copy Demomodelle -> dat
-copy %datDirIn%\dat\Renault1.gcad        %outDirD%\dat\.
-copy %datDirIn%\dat\Haus*.*              %outDirD%\dat\.
-copy %datDirIn%\dat\DachWS4.jpg          %outDirD%\dat\.
-copy %datDirIn%\dat\SteinMarmor1.jpg     %outDirD%\dat\.
-copy %datDirIn%\dat\samp*.*              %outDirD%\dat\.
-copy %datDirIn%\dat\Niet1.gcad           %outDirD%\dat\.
-copy %datDirIn%\dat\Schrau1.gcad         %outDirD%\dat\.
 
-
-REM Startmodell 
-copy %datDirIn%\dat\sample_activity_modval_1.gcad     %outDirD%\tmp\Model
+REM this files must be created:
+REM del %outDirD%\cfg\xa.rc
+REM del %outDirD%\cfg\dir.lst
 
 
 REM if %1 == free goto L_packStart

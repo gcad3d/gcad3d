@@ -71,7 +71,7 @@ UTX_CleanCommC         Clean C-Comments (remove foll. blanks & // comments)
 UTX_Clean_db           clean doubles (change ',' into '.') See also UTX_chg_chr1
 UTX_CleanSC            Change SpecialChars into '?' (alle „” -> ?)
 UTX_CleanAN            Change all chars not alpha or numeric into '_'
-UTX_CleanBracks        Remove first/last char (brackets ..)
+UTX_CleanBracks        Remove first/last char (brackets, '"', ..)
 UTX_endDelChar         if last char of string == chr: remove it
 UTX_endDelWord         remove last word; delimiting char; keep or not.
 UTX_endAddChar         if last char of string != chr: add it
@@ -515,12 +515,21 @@ static char   TX_buf2[128];
 /// s1 becomes modified (terminates words with \0) !
 /// End of List is NULL.
 ///
+/// Output:
+///   wTab    table of pointers to words, end of table = NULL
+///   retCod  nr of words
+///
 /// Usage:
 /// char *wTab[20];
 /// UTX_wTab_str (&wTab, sizeof(wTab), string);
 /// char  **pa;
-/// pa = fwTab;
+/// pa = wTab;
 /// while (*pa) { printf(" |%s|\n",*pa); ++pa; }
+///
+/// using tempspace (exists only until active function returns):
+/// #define WTAB_SIZ 10
+/// char   **pa;
+/// UTX_wTab_tmpSpc (pa, WTAB_SIZ);
 /// \endcode
   
 // see also UTX_pos_skipTermWord
@@ -1137,11 +1146,11 @@ static char   TX_buf2[128];
   char    *fBuf;
 
 
-  printf("UTX_cat_file |%s|\n",fnam);
+  // printf("UTX_cat_file |%s|\n",fnam);
 
 
   l1 = OS_FilSiz (fnam);
-  fBuf = UME_alloc_tmp (l1 + 128);
+  fBuf = MEM_alloc_tmp (l1 + 128);
   MEM_get_file (fBuf, &l1, fnam);
   fwrite (fBuf, 1, l1, fpo);
     
@@ -3474,7 +3483,7 @@ Das folgende ist NICHT aktiv:
   i123 = i12 + i3;
   if(i123 >= sSiz) {TX_Error("UTX_ins_add E1"); return -1;}
 
-  tmpS1 = UME_alloc_tmp (i1);
+  tmpS1 = MEM_alloc_tmp (i1);
   memcpy (tmpS1, s1, i1);
 
   memcpy (s1, s2, i2);
@@ -3604,7 +3613,7 @@ Das folgende ist NICHT aktiv:
   // in- and out-file open; read, write ..
 
   // get spc for line
-  sln = (char*) UME_alloc_tmp (lnMaxSiz);
+  sln = (char*) MEM_alloc_tmp (lnMaxSiz);
   lnMaxSiz -= 2; // \n\0
 
   i1 = 0;

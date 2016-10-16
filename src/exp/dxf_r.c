@@ -518,6 +518,8 @@ __declspec(dllexport) int DXF_r__ (char*);
 
 #include "../ut/func_types.h"              // SYM_SQUARE ..
 
+#include "../db/ut_DB.h"               // DB_mdlNam_iBas
+
 #include "../xa/xa.h"                 // ?
 #include "../xa/xa_mem.h"             // memspc55 mem_cbuf1
 #include "../xa/xa_sele.h"            // Typ_go*
@@ -611,6 +613,8 @@ static  int    dxf_unsupp[8];
 // 7=3DSOLID
 
 
+static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
+
 
 
 //===========================================================================
@@ -630,10 +634,10 @@ static  int    dxf_unsupp[8];
 // memspc501   objData
 // mem_cbuf1   act codeline
 
-  int      i1, ism, irc, oSiz, iaErr[3], iaImp[8], iaAux[8];
+  int      i1, ism, irc, oSiz, iaErr[3], iaImp[8], iaAux[8], mr_ind;
   double   d1, d2, d3, min_dist, dTab[10];
 
-  char     *pf, cbuf[256], *spc_tra;
+  char     *pf, cbuf[256], *spc_tra, *cp1;
   Point    pt1;
   Vector   vc1;
 
@@ -646,11 +650,14 @@ static  int    dxf_unsupp[8];
   Mat_4x3  trOff;
   ModelRef *mr;
 
-  UtxTab_NEW (namTab);
 
   for(i1=0; i1<3; ++i1) iaErr[i1] = 0;
   for(i1=0; i1<8; ++i1) iaImp[i1] = 0;
 
+
+  // get net free modelIndex of AP_stru_2_txt
+  mr_ind = DB_dbo_get_free (Typ_Model);
+  if(mr_ind < 20) mr_ind = 20;
 
   //-----------------------------------------------------
 
@@ -715,7 +722,7 @@ static  int    dxf_unsupp[8];
   UTF_clear1();
 
   // init StringList for subModelnames
-  UtxTab_init_spc (&namTab, memspc55, sizeof(memspc55));
+  UtxTab_init_spc (&dxfr_blockTab, memspc55, sizeof(memspc55));
 
   sprintf(mem_cbuf1,"# DXF-Import %s",pf);
   UTF_add1_line (mem_cbuf1);
@@ -805,14 +812,22 @@ static  int    dxf_unsupp[8];
     if(ox1->typ == Typ_Error) continue;   // minor error
     if(ox1->typ == Typ_Done) continue;    // obj already exported
 
+    if(ox1->typ == Typ_Model) {
+      // subModel-call 
+      dxfr_sm__ (&mr_ind, ox1->data);
+      continue;
+    }
 
-    // subModelCalls: save subModelname in StringList namTab
+/*
+    // subModelCalls: save subModelname in StringList dxfr_blockTab
     if(ox1->typ == Typ_Model) {
       mr = ox1->data;
         // printf(" >>>>>>>>>>>>>>>>>> Model |%s|\n",mr->mnam);
-      UtxTab_add_uniq__ (&namTab, mr->mnam);
+      // get modelname from basic-model-nr
+      UtxTab_add_uniq__ (&dxfr_blockTab, DB_mdlNam_iBas(mr->modNr));
+      UtxTab_add_uniq__ (&dxfr_blockTab, BlockNam);
     }
-
+*/
     // Objekt in Text umwandeln & via UTF_add1_line ausgeben
     irc = dxf_r_src_out (ox1);
     if(irc == -1) {iaErr[0] += 1; continue;}      // Error
@@ -855,15 +870,21 @@ static  int    dxf_unsupp[8];
 
 
   //================================================================
+    // TESTBLOCK
+    printf(" nr subModels = %d\n",dxfr_blockTab.iNr);
+    // END TESTBLOCK
+
+
+  //================================================================
   // output subModels
   ism = -1;
 
   L_nxt_sm:
   ism += 1;
-  if(ism >= namTab.iNr) goto L_exit;
+  if(ism >= dxfr_blockTab.iNr) goto L_exit;
 
-  pf = UtxTab__ (ism, &namTab);     // get string (subModelName)
-    // printf(" nxt sm %d |%s|\n",ism,pf);
+  pf = UtxTab__ (ism, &dxfr_blockTab);     // get string (subModelName)
+    printf(" nxt sm %d |%s|\n",ism,pf);
 
   // reset DB
   WC_Init_all (0);
@@ -891,12 +912,22 @@ static  int    dxf_unsupp[8];
     if(ox1->typ == Typ_Done) continue;    // already exported
     if(ox1->typ == Typ_Error) continue;   // minor error
 
-    // subModelCalls: save subModelname in StringList namTab
+    if(ox1->typ == Typ_Model) {
+      // subModel-call 
+      dxfr_sm__ (&mr_ind, ox1->data);
+      continue;
+    }
+
+/*
+    // subModelCalls: save subModelname in StringList dxfr_blockTab
     if(ox1->typ == Typ_Model) {
       mr = ox1->data;
-      UtxTab_add (&namTab, mr->mnam);
-        printf(" >>>>>>>>>>>>>>>>>> Model |%s|\n",mr->mnam);
+      // get modelname from basic-model-nr
+      cp1 = DB_mdlNam_iBas(mr->modNr);
+      UtxTab_add (&dxfr_blockTab, cp1);
+        printf(" >>>>>>>>>>>>>>>>>> Model |%s|\n",cp1);
     }
+*/
 
     // Objekt in Text umwandeln
     irc = AP_obj_2_txt (mem_cbuf1, mem_cbuf1_SIZ, ox1, -1L);
@@ -964,6 +995,54 @@ static  int    dxf_unsupp[8];
 }
 
 
+//================================================================
+  int dxfr_sm__ (int *mr_ind, ModelRef *mdr) {
+//================================================================
+// cannot use AP_stru_2_txt -
+// ModelBas does not exist;
+// mdr->modNr = index into dxfr_blockTab
+
+  char   *pmn;
+
+
+  // UT3D_stru_dump (Typ_Model, mdr, "dxfr_sm__ - ");
+
+
+  // get modelname
+  pmn = UtxTab__ (mdr->modNr, &dxfr_blockTab);
+    // printf(" pmn |%s|\n",pmn);
+
+  sprintf (mem_cbuf1, "M%d = \"%s\"", *mr_ind, pmn);
+  *mr_ind += 1;
+
+// see also AP_stru_2_txt: (typ == Typ_Model)
+
+    // add origin
+    AP_obj_add_pt (mem_cbuf1, &mdr->po);
+      // printf(" M+po: |%s|\n",ED_buf1);
+
+    // scale; default = 1
+    if(fabs(mdr->scl - 1.) > 0.1) {
+      AP_obj_add_val (mem_cbuf1, mdr->scl);
+    }
+
+    // wenn vx != UT3D_VECTOR_X muss auch vz raus !
+    // if((&mdr->vz == &UT3D_VECTOR_Z)&&(&mdr->vx == &UT3D_VECTOR_X)) goto L_fertig;
+    AP_obj_add_vc (mem_cbuf1, &mdr->vz);
+      // printf(" M+vz: |%s|\n",ED_buf1);
+
+    // if(&mdr->vx == &UT3D_VECTOR_X) goto L_fertig;
+    AP_obj_add_vc (mem_cbuf1, &mdr->vx);
+      // printf(" ModRef = |%s|\n",ED_buf1);
+
+
+
+  UTF_add1_line (mem_cbuf1);
+
+  return 0;
+
+}
+ 
 
 //=======================================================================
   int dxf_ckFileFormat (char *fnam) {
@@ -2092,12 +2171,7 @@ static  int    dxf_unsupp[8];
 
 
     case Typ_Group:   /*========== INSERT ====================*/
-      //TX_Print("INSERT Block /%s/ Zeile %d",BlockNam,dxf_LineNr);
-
-      // // die Inputunit fp1 rewinden und auf Block BlockNam positionieren.
-      // dxfr_block_find (fp_in, fp1, BlockNam);
-      // goto L_DXF_NOAMOI;
-      // goto L_DXF_NOAMOI;  // TEST ONLY
+      // printf("INSERT Block |%s| Zeile %ld\n",BlockNam,dxf_LineNr);
 
       // make safe subModelname
       UTX_CleanAN (BlockNam);
@@ -2141,9 +2215,9 @@ static  int    dxf_unsupp[8];
         }
       }
 
-
       // add <BlockNam> into list of used subModels
-
+      i1 = UtxTab_add_uniq__ (&dxfr_blockTab, BlockNam);
+        // printf(" INSERT |%s|\n",BlockNam);
 
       // create ModelRef-struct
       modr1 = UME_reserve (wrkSpc, sizeof(ModelRef));
@@ -2154,8 +2228,8 @@ static  int    dxf_unsupp[8];
       // modr1->po.z  = recz[0];
       modr1->vx    = vc1;              // X-vector
       modr1->vz    = vc2;              // Z-vector
-      modr1->mnam  = BlockNam;
-      modr1->modNr = 0;
+      // modr1->mnam  = BlockNam;
+      modr1->modNr = i1;      // index in dxfr_blockTab
         // UT3D_stru_dump (Typ_Model, modr1, "Insert - ");
 
       (*el)->typ  = Typ_Model;

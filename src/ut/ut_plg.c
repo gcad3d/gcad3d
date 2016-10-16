@@ -386,6 +386,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
   // printf("UT3D_2pt_segplg %d\n",is);
   // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_segplg");
+  // if(is == 1) AP_debug__ ("UT3D_2pt_segplg-1");
 
 
   if(is < 1) {
@@ -789,7 +790,7 @@ Returncodes:
 
   // get spc for parameters on elli
   if(!va_el) {
-    va_el = (void*) UME_alloc_tmp (ptxMax * sizeof(double));
+    va_el = (void*) MEM_alloc_tmp (ptxMax * sizeof(double));
       // printf(" tmpSpc for va_el..\n");
   }
 

@@ -523,8 +523,8 @@ Example ../formate/step/Models/v4_ditto1.stp    3 dittos in main
 #55=PRODUCT_DEFINITION(' ',' ',#54,#24);
 #56=PRODUCT_DEFINITION_SHAPE(' ',' ',#55);
 #161=SHAPE_DEFINITION_REPRESENTATION(#56,#156);
-#162=SHAPE_REPRESENTATION_RELATIONSHIP(' ',' ',#156,#151);
 #156=SHAPE_REPRESENTATION('DET1',(#160,#174),#57);
+#162=SHAPE_REPRESENTATION_RELATIONSHIP(' ',' ',#156,#151);
 #151=ADVANCED_BREP_SHAPE_REPRESENTATION('DET1',(#59),#57);
 #59=MANIFOLD_SOLID_BREP('*SOL1',#150);
 #150=CLOSED_SHELL(
@@ -1494,10 +1494,10 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   iU = su1->ptUNr + su1->degU + 1;
   iV = su1->ptVNr + su1->degV + 1;
     printf(" iU=%d iV=%d\n",iU,iV);
-  mU = (int*)UME_alloc_tmp (iU * sizeof(int));
-  mV = (int*)UME_alloc_tmp (iV * sizeof(int));
-  dU = (double*)UME_alloc_tmp (iU * sizeof(double));
-  dV = (double*)UME_alloc_tmp (iV * sizeof(double));
+  mU = (int*)MEM_alloc_tmp (iU * sizeof(int));
+  mV = (int*)MEM_alloc_tmp (iV * sizeof(int));
+  dU = (double*)MEM_alloc_tmp (iU * sizeof(double));
+  dV = (double*)MEM_alloc_tmp (iV * sizeof(double));
 
   //----------------------------------------------------------------
   uNr = 0;
@@ -1810,7 +1810,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   // get all points of RCIR > pTab
-  i1 = UT3D_cv_scir__ (&ptNr, pa, oxi);
+  ptNr = 0;
+  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi);
   if(i1 < 0) return i1;
   pTab = pa;
 
@@ -1885,7 +1886,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   UTO_dump__ (oxi, "SURTP__");
 
 
-  iba = (int*)UME_alloc_tmp (oxi->siz * sizeof(int));
+  iba = (int*)MEM_alloc_tmp (oxi->siz * sizeof(int));
 
   // init plb
   STP_w_plb_ini (&plb);
@@ -2048,7 +2049,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     //----------------------------------------------------------------
     case Typ_ObjGX:           // CCV
       // UTO_dump__ (odc, " CCV:");
-      ia = (int*)UME_alloc_tmp (((ObjGX*)odc)->siz * sizeof(int));
+      ia = (int*)MEM_alloc_tmp (((ObjGX*)odc)->siz * sizeof(int));
       iNr = STP_w_CVCCV (plb, ia, odc, "", 3);
       break;
 
@@ -2251,7 +2252,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   
     //----------------------------------------------------------------
     case Typ_ObjGX:
-      ia = (int*)UME_alloc_tmp (((ObjGX*)ox1)->siz * sizeof(int));
+      ia = (int*)MEM_alloc_tmp (((ObjGX*)ox1)->siz * sizeof(int));
       ii = STP_w_CVCCV (NULL, ia, ox1, oid, 2); // makes COMPOSITE_CURVE !
       goto L_exit;
 
@@ -2821,8 +2822,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // set multiplicity = nr of identical values.
 
   iNr = cv1->ptNr;
-  ia = (int*)UME_alloc_tmp (iNr * sizeof(int));
-  // da = (double*)UME_alloc_tmp (iNr * sizeof(double));
+  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
+  // da = (double*)MEM_alloc_tmp (iNr * sizeof(double));
 
   for(i1=0; i1 < iNr; ++i1) {
     ia[i1] = 1;
@@ -2856,7 +2857,9 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   if(UTP_comp2db(cv1->v0, cv1->lvTab[0], UT_TOL_min1)) {
     ip1 = ipa;
   } else {
-    UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
+    // get startpoint
+    // UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
     ip1 = STP_w_PT (&pt1, "");
   }
 
@@ -2865,7 +2868,9 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     if(UT3D_comp2pt(&pa[0], &pa[i1], UT_TOL_pt) != 0) ip2 = ip1;
     else ip2 = ipa + i1;
   } else {
-    UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
+    // get endpoint
+    // UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
     ip2 = STP_w_PT (&pt1, "");
   }
 
@@ -3195,8 +3200,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // set multiplicity = nr of identical values.
   iNr = cv1->ptNr + cv1->deg + 1;
     printf(" iNr=%d\n",iNr);
-  ia = (int*)UME_alloc_tmp (iNr * sizeof(int));
-  da = (double*)UME_alloc_tmp (iNr * sizeof(double));
+  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
+  da = (double*)MEM_alloc_tmp (iNr * sizeof(double));
 
   kNr = 0;
   im = 0;
@@ -3232,7 +3237,10 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   ++stpw_li;
 
 
-  UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
+  // get startpoint, endpoint
+  // UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt2, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
   *actPos = pt2;
 
   if(cv1->v1 > cv1->v0) {
@@ -3450,7 +3458,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     ++stpw_li;
   }
   
-// TODO: build list of compositeCurveSegments. UME_alloc_tmp; 
+// TODO: build list of compositeCurveSegments. MEM_alloc_tmp; 
 // see STP_w_wf_init-GEOMETRIC_SET
 
   // compositeCurve from list of compositeCurveSegments
@@ -3503,7 +3511,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   int     i1, *ia;
 
 
-  ia = (int*)UME_alloc_tmp (iNr * sizeof(int));
+  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
   for(i1=0; i1<iNr; ++i1) ia[i1] = is + i1;
 
   return STP_w_list__ (s1, ia, iNr, 1, sPre);

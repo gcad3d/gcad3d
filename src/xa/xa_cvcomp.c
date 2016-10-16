@@ -134,7 +134,9 @@ extern int     APT_dispDir;
   } else {
     // ERROR
     i1 = aus_tab[iOut];
-    TX_Print ("APT_decode_cvco_nxt I_NCsub_%d",i1);
+    TX_Print ("**** APT_decode_cvco_nxt I_NCsub %d",i1);
+    printf("**** APT_decode_cvco_nxt I_NCsub %d\n",i1);
+
   }
   goto L_nxt_inp;
 
@@ -150,7 +152,9 @@ extern int     APT_dispDir;
   L_nxt_inp:
   iOut += 1;
   if(iOut < aus_anz) goto L_noAmoi;
+
     // printf("ex APT_decode_cvco_nxt sr=%d mod=%d\n",*isr,*imod);
+
   return iOut;
 
 }
@@ -207,13 +211,13 @@ extern int     APT_dispDir;
 
   ptAct = *pto;
 
-  // printf("APT_decode_cvco_int typ1=%d typ2=%d clo1=%d mod=%d\n",
+  // printf("APT_decode_cvco_int typ1=%d typ2=%d clo1=%d imod=%d\n",
           // typ1,typ2,clo1,imod);
   // UT3D_stru_dump (Typ_PT, &ptAct, " ptAct");
-  // UT3D_stru_dump (Typ_CVCCV, cc1, " cc1");
   // UT3D_stru_dump (typ1, oc1, " oc1");
-  // UT3D_stru_dump (Typ_CVCCV, cc2, " cc2");
   // UT3D_stru_dump (typ2, oc2, " oc2");
+  // UT3D_stru_dump (Typ_CVCCV, cc1, " cc1");
+  // UT3D_stru_dump (Typ_CVCCV, cc2, " cc2");
 
 
     // TEST
@@ -221,7 +225,7 @@ extern int     APT_dispDir;
 
 
   //----------------------------------------------------------------
-  // UME_alloca (&wrkSeg, 2000000);  // 2015-01-04; crash in MS !
+  // UME_alloc_tmp (&wrkSeg, 2000000);  // 2015-01-04; crash in MS !
   i1 = 2000000; // 2MB
   irc = UME_malloc (&wrkSeg, i1, i1/2);
   if(irc < 0) return -1;
@@ -239,6 +243,7 @@ extern int     APT_dispDir;
   if(irc < 0) goto L_exit;
   if(pNr <= 0) {
       // printf("APT_decode_cvco_int no solution - %d_%d \n",typ1,typ2);
+    irc = -1;
     goto L_exit;
   }
     // printf(" _stru_int irc=%d i1=%d\n",irc,i1);
@@ -421,6 +426,7 @@ extern int     APT_dispDir;
 }
  
 
+/* UNUSED
 //=============================================================================
   int APT_decode_cvco_ck_pts (Point *pti, long ipt,
                               int cvTyp, void *ocv, CurvCCV *ccv, int cvClo) {
@@ -454,6 +460,7 @@ extern int     APT_dispDir;
   return 0;
 
 }
+*/
 
 
 //=============================================================================
@@ -466,12 +473,16 @@ extern int     APT_dispDir;
 
 
 
+  int       irc;
   double    dist;
   Point     pte;
 
+
   // check if pto == endpoint
   // get endpoint
-  UTO_2pt_limstru (NULL, &pte, NULL, NULL, cvTyp, ocv);
+  // UTO_2pt_limstru (NULL, &pte, NULL, NULL, cvTyp, ocv);
+  irc = UT3D_ptvcpar_std_obj (&pte, NULL, NULL, Ptyp_1, cvTyp, ocv);
+  if(irc< 0) return -1;
 
 
   // check distance pti-pto > UT_TOL_cv
@@ -564,14 +575,16 @@ extern int     APT_dispDir;
 
 
 
+  // TESTBLOCK
   // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
   // UT3D_stru_dump (Typ_PT, &ptAct, " ptAct");
   // UT3D_stru_dump (Typ_PT, &oldPte, " oldPte");
   // if(oxi->typ != TYP_FuncExit) {
-  // UT3D_stru_dump(Typ_ObjGX,oxi,"APT_decode_cvco_add");
+  // UT3D_stru_dump (Typ_ObjGX,oxi,"APT_decode_cvco_add");
   // printf(" ccNr=%d isr=%d imod=%d oldTyp=%d\n",*ccNr,isr,imod,oldTyp);
   // printf(" UT_TOL_cv=%lf\n",UT_TOL_cv);
   // } else printf(" APT_decode_cvco_add TYP_FuncExit\n");
+  // END TESTBLOCK
 
 
 
@@ -640,7 +653,10 @@ extern int     APT_dispDir;
       // if(dbi == 4) exit(0); // TEST ONLY !
 
   // get startPt and endtPt of newObj
-  UTO_2pt_limstru (&newPts, &newPte, NULL, NULL, newTyp, newObj);
+  // UTO_2pt_limstru (&newPts, &newPte, NULL, NULL, newTyp, newObj);
+  irc = UT3D_ptvcpar_std_obj (&newPts, NULL, NULL, Ptyp_0, newTyp, newObj);
+  irc = UT3D_ptvcpar_std_obj (&newPte, NULL, NULL, Ptyp_1, newTyp, newObj);
+
     // UT3D_stru_dump (Typ_PT, &newPts, " newPts");
     // UT3D_stru_dump (Typ_PT, &newPte, " newPte");
 
@@ -1075,7 +1091,9 @@ extern int     APT_dispDir;
   L_lf_fl_conn:
   // no connection between oldObj - newObj; find nearest endpoints,
   // add connectLine between nearest endpoints.
-      // printf(" L_lf_fl_conn: ccNr=%d iConn=%d\n",*ccNr,iConn);
+      // printf(" L_lf_fl_conn: ccNr=%d iConn=%d oldClo=%d newClo=%d\n",
+             // *ccNr,iConn,oldClo,newClo);
+// TODO: create point as normal from ptAct to newObj; test distance.
 
   if(*ccNr < 1) {
     if(iConn == 1) { // d_os_ns; revert oldObj
@@ -1289,7 +1307,7 @@ extern int     APT_dispDir;
 
     // TESTONLY:
     // UTO_dump__ (ocv, "ex decode_cvcomp:");
-    // UTO_dump_dbo (Typ_PT, -5L);
+    // UT3D_dump_dbo (Typ_PT, -5L);
     // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCC exiting decode_cvcomp: \n");
 
   return 0;

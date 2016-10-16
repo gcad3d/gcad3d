@@ -247,14 +247,17 @@ N = LDRS SymbolPosition [SymbolType] [Color] [EndpointVector]
      1 = small triangle
      2 = small circle
      3 = large rectangle
-     4 = normalized vector (always the same length)
-     5 = vector (with correct length)
+     4 = normalized vector (always same length, arrowhead points to EndpointVector)
+     5 = vector (with correct length, arrowhead is at EndpointVector)
+     6 = Arrowhead 2D (SymbolPosition is the arrowhead)
    [color]
-   [EndpointVector] - only for SymbolType 4 and 5
+   [EndpointVector] - only for SymbolTypes 4, 5, 6
 
 Example:
+# small triangle, red, at pos. 350,50,50
 N25 = LDRS P(350 50 50) 1 2
-
+# Arrowhead at enpoint of Line L21
+N26=LDRS P(L21 MOD(2)) 6 P(L21 MOD(1))
 
 
 <a name="F11"></a>
@@ -267,7 +270,7 @@ N# = IMG ImagePosition [StartPointLine] [Linetyp] Filename [Scale]
 
  <a href="CAD_Base_en.htm#P">ImagePosition</a>: point for the lower left position of the image
  [StartPoint Line]: the startpoint of a connecting line to the lower left image position
- [Linetyp]:  -1 = no connecting line.
+ [Linetyp]:  <a href="Settings_en.htm#Linetypes">type of connecting line</a>
  Filename: the file name of a imagefile (.jpg oder .bmp).
    The middle mouse button in the graphics window activates the file dialog box.
    The directory is a Symbol Path Name (See Symbolic File Names).

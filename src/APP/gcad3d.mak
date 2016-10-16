@@ -8,11 +8,11 @@
 EXENAM  = gCAD3D
 
 
-# get SRC1 SRCA SRCG SRC3 SRCB
+# get SRC1 SRC3 SRCA SRCB SRCG
 include gcad_src.mak
 
 
-# get CC VGUI
+# get VGUI BITS OS CC MK
 include ../options.mak
 
 
@@ -171,13 +171,8 @@ srclst:
 	@echo ../xa/tst*.c >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../APP/Demo*.c >> srcFiles
-	find . -maxdepth 1 -name "xa_*.mak" -exec $(MK) -f {} "srclst" \;
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
-#	find . -maxdepth 1 -name "PRC_*.mak" -exec $(MK) -f {} "srclst" \;
-
-# ../gtk/*h
-# ../exp/dxf_r.c ../exp/ige_r.c ../exp/obj_ut.c ../exp/stl_r.c \
-# ../exp/stp_r.c ../exp/svg_w.c ../exp/vr2_r.c ../exp/wrl_ut.c 
+	find . -maxdepth 1 -name "xa_*.mak" -exec $(MK) -f {} "add_srclst" \;
 
 
 

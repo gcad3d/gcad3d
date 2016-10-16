@@ -350,6 +350,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
   //----------------------------------------------------------------
   if(AP_stat.sysStat < 3) {
+    // STARTUP:
     AP_src_new (0);   // 2013-06-19
     AP_init__ ();     // work startup-parameters, load defaultmodel
     AP_tmr_init ();
@@ -1564,6 +1565,8 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
 
   // printf("UI_key_spcCtrl %d\n",iKey);
+  printf(" hide=%d view=%d\n",UI_stat_hide,UI_stat_view);
+
 
 
   switch (iKey) {
@@ -1573,6 +1576,12 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   case 'A':
     // add all objs to group ..
       // printf(" UI_stat_view=%d\n",UI_stat_view);
+    if(!UI_stat_hide) {
+      DL_hide_all (0); DL_Redraw (); goto AllDone;
+    }
+    if(!UI_stat_view) {
+      DL_hide_all (0); DL_Redraw (); goto AllDone;
+    }
     DL_grp1__ (0, NULL, 2, 0);
     if(UI_stat_view == 0) {
       Grp_hide (1);    // view group
@@ -2226,7 +2235,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   double d1;
 
 
-  printf("UI_GR_ScalAuto %d\n",mode);
+  // printf("UI_GR_ScalAuto %d\n",mode);
   
   // query state
   UI_block_get (&iFunc, &iInp, &iCur);
@@ -2374,14 +2383,16 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
     // if(((GtkCheckMenuItem*)parent)->active == 1) {
     // is stored in "MODE DISP_PL OFF"
     if(GUI_DATA_EVENT == TYP_EventPress) {
-      APT_dispPL = OFF;         // hide
+      // remove (hide) display of Planes
+      APT_dispPL = OFF;
       if(UI_InpMode != UI_MODE_VWR) {
         TX_Print("... hide planes only in mode VWR ..");
       } else {
         DL_disp_PL (1);
       }
     } else {
-      APT_dispPL = ON;          // view (std)
+      // restore (show) display of Planes
+      APT_dispPL = ON;
       DL_disp_PL (0);
     }
     // UI_butCB (NULL, (void*)"butEND");     // Ausfuehren END-Button
@@ -3404,10 +3415,10 @@ static  Point  selPos;
 
   // get nr and type of selected objects (not including images, tags)
   iNr = GL_sel_sel (&dlTab);
-    // printf(" _sel_sel %d\n",iNr);
 
 
     // DUMP SELECTION_BUFFER dlTab
+    // printf(" _sel_sel %d\n",iNr);
     // UI_GR_dump_dlTab (dlTab, iNr);
 
 
@@ -3416,7 +3427,13 @@ static  Point  selPos;
     i1 = dlTab[0].typ;
       // printf(" ip1=%d\n",i1);
     // if((i1 == Typ_modREV)  || (i1 >= Typ_FncVAR1))     {
-    if((TYP_IS_MOD(i1)) || (TYP_IS_SELGRP(i1)))     {
+    if(i1 == Typ_CtlgPart) {
+      // 2D-icon "LIST" for catalogpart sel.
+      IE_cad_selM2 (0);
+      return 0;
+    }
+    if((TYP_IS_MOD(i1))     ||
+       (TYP_IS_SELGRP(i1)))     {
       selNr = 1;
       selTab[0].typ   = i1;
       selTab[0].dbInd = 0L;
@@ -3569,6 +3586,7 @@ static  Point  selPos;
       // if(irc < 0) strcpy(namTab[i1], "-");
         // printf(" selTab-add-[%d] %d %ld %ld |%s|\n",selNr, dlTab[selNr].typ,
                // dlTab[selNr].dbInd, dlTab[selNr].dlInd, namTab[selNr]);
+        // printf("selTab-add1 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
       ++selNr;
       if(selNr >= SELTABSIZ - 2) break;
 
@@ -3587,6 +3605,7 @@ static  Point  selPos;
           APED_oid_dbo__ (namTab[selNr], parTab[i2].typ, parTab[i2].dbInd);
             // printf(" add par [%d] %d %ld %ld |%s|\n",selNr, selTab[selNr].typ,
                    // selTab[selNr].dbInd, selTab[selNr].dlInd, namTab[selNr]);
+            // printf("selTab-add2 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
           ++selNr;
         }
       }
@@ -3620,6 +3639,7 @@ static  Point  selPos;
         selTab[selNr].dbInd = 0L;
         selTab[selNr].dlInd = -1L;
         strcpy(namTab[selNr], "selPos");
+          // printf(" selTab-add3 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
         ++selNr;
       }
       goto L_selTab_from_dlTab_nxt;
@@ -3651,6 +3671,7 @@ static  Point  selPos;
       selTab[selNr].dbInd = dbi;
       selTab[selNr].dlInd = -1L;
       strcpy(namTab[selNr], sca[i2].oid);
+        // printf(" add [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
       ++selNr;
     }
 
@@ -3662,7 +3683,6 @@ static  Point  selPos;
   // change nr of sel objs
   GL_sel_nr_set (selNr);
     // printf(" selNr=%d\n",selNr);
-
     // dump selTab
     // UI_GR_dump_selTab (selTab, namTab, selNr);
 
@@ -3691,6 +3711,7 @@ static  Point  selPos;
       selTab[selNr].typ   = Typ_TmpPT;
       selTab[selNr].dbInd = -1L;
       selTab[selNr].dlInd = -1L;
+        // printf(" selTab-add4 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
       ++selNr;
     }
 
@@ -3985,6 +4006,7 @@ static  Point  selPos;
 
 
   int     i1;
+  char    s1[32];
 
   // printf("UI_GR_Select2 %d %ld %ld\n",typ,dbi,dli);
   // printf(" UI_stat_hide=%d\n",UI_stat_hide);
@@ -3996,6 +4018,8 @@ static  Point  selPos;
   if(UI_stat_view == 0) {
     // VIEW is active;
     // GA_view__ (dli, 0, 0, 0L);
+    APED_oid_dbo__ (s1, typ, dbi);
+    TX_Print ("redisplay obj %s",s1);
     GA_view__ (dli, 2, typ, dbi);    // 2013-01-15
     DL_Redraw ();           // update display
     return 0;

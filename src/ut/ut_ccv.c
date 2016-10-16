@@ -36,7 +36,6 @@ UT3D_vcn_ccv               Normalvector an (planare) Curve
 
 UT3D_obj_ccv_segnr         get obj (typ,data) from segment of CCV.
 UT3D_pt_ccv_segnr_par1     get point from segment-nr and parameter on CCV
-UT3D_2pt_ccv1_lim          get start- or endpoint of trimmed-curve
 // UT3D_ln_ccv_pt             make line from trimmed-curve and previous curve
 
 UT3D_segpar_ccvSel         give segmentnr & parameter for point on ccv
@@ -51,8 +50,6 @@ UT3D_obj_segccv            get ObjGX from segNr in CCV
 // UT3D_crv_segccv            get ObjGX + data from segment in CCV
 // UT3D_stru_segccv           copy struct(LN/AC)  <-- segNr in CCV
 
-UT3D_pt_endptccv           proj PT -> PolygonCurve
-
 UT3D_segpar_iTab           intern
 
 UT3D_pt_segparlna          point <-- segNr & parameter on lines[] (Typ_CVLNA)
@@ -60,14 +57,17 @@ UT3D_pt_segparlna          point <-- segNr & parameter on lines[] (Typ_CVLNA)
 List_functions_end:
 =====================================================
 - see also:
-../xa/xa_cvcomp.c  APT_decode_cvco_add
-
+UTO_cv_cvtrm               change trimmedCurve into standardCurve
+APT_decode_cvco_add        process next obj (add obj's to output)
 \endcode *//*----------------------------------------
 
 
 - unused functions:
 cn_PnPoly                  crossing number test for a point in a polygon
 wn_PnPoly                  winding number test for a point in a polygon
+UT3D_pt_endptccv           proj PT -> PolygonCurve
+UT3D_2pt_ccv1_lim          get start- or endpoint of trimmed-curve
+
 
 
 - missing functions:
@@ -1206,7 +1206,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 }
 
-
+/* UNUSED ?
 //================================================================
   int UT3D_2pt_ccv1_lim (Point *ps, Point *pe, CurvCCV *ccv) {
 //================================================================
@@ -1258,7 +1258,6 @@ REPLACED by UT3D_obj_ccv_segnr
 }
 
 
-/*
 //================================================================
   int UT3D_ln_ccv_pt (Line *lno, CurvCCV *cc1, CurvCCV *cc2) {
 //================================================================
@@ -1291,7 +1290,10 @@ REPLACED by UT3D_obj_ccv_segnr
 //====================================================================
   int UT3D_pt_ccv_segnr_par1 (Point *po, int is, double ps, ObjGX *cv1) {
 //====================================================================
+/// \code
 /// UT3D_pt_ccv_segnr_par1      get point from segment-nr and parameter on CCV
+/// is    segmentNr; 0=first
+/// \endcode
 
   int      irc, typ;
   // CurvCCV  *cca, *cc1;
@@ -1406,7 +1408,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 }
 
-
+/* replaced by UT3D_ptvcpar_std_obj
 //=========================================================================
   int UT3D_pt_endptccv (Point *pTab, ObjGX *ccv1) {
 //=========================================================================
@@ -1427,22 +1429,22 @@ REPLACED by UT3D_obj_ccv_segnr
   oxTab = ccv1->data;
   // i1 = ccv1->siz - 1;
 
-/*
-  // get last curve  // wouldnt be last point better ?
-  i1 = ccv1->siz - 2;         // last record is the trim-record !!
-  // if there is only 1 record:
-  if(i1 < 0) i1 = 0;
-
-  // UTO_2pt_lim_ox (&pTab[0], &oxTab[0],  1);    // 1=Anf.
-  // UTO_2pt_lim_ox (&pTab[1], &oxTab[i1], 2);    // 2=End.
-*/
+///
+//   // get last curve  // wouldnt be last point better ?
+//   i1 = ccv1->siz - 2;         // last record is the trim-record !!
+//   // if there is only 1 record:
+//   if(i1 < 0) i1 = 0;
+// 
+//   // UTO_2pt_lim_ox (&pTab[0], &oxTab[0],  1);    // 1=Anf.
+//   // UTO_2pt_lim_ox (&pTab[1], &oxTab[i1], 2);    // 2=End.
+///
 
   UTO_2pt_lim_ox (&pTab[0], &pTab[1], NULL, NULL, oxTab);
 
   return 0;
 
 }
-
+*/
 
 
 //=========================================================================

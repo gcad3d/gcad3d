@@ -209,7 +209,7 @@ cc -c -g3 -Wall ut_gr.c
 
 //#include "../gtk/func_types.h"            // Typ_Att_def
 
-// #include "../ut/ut_umem.h"             // UME_alloc_tmp
+// #include "../ut/ut_umem.h"             // MEM_alloc_tmp
 #include "../ut/ut_geo.h"
 #include "../ut/ut_msh.h"                 // Fac3 ..
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
@@ -331,7 +331,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // den symbol. Pfad aufloesen.
   Mod_get_path (cBuf, fnam);
 
-  irc = GL_LoadBMP (&dlInd, pt1, cBuf);
+  irc = GL_Draw_BMP (&dlInd, pt1, cBuf);
 
 
   return irc;
@@ -463,7 +463,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  GL_DrawTxtG (&dlInd, attInd, pt1, size, ang, txt);
+  // GL_DrawTxtG (&dlInd, attInd, pt1, size, ang, txt);
+  GL_DrawTxtG (&dlInd, attInd, &gtx1);
 
 }
 
@@ -487,8 +488,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //====================================================================
-  void GR_DrawTxtG (long *ind, int attInd,
-                    Point *pt1, float size, float ang, char *txt) {
+  void GR_DrawTxtG (long *dli, int attInd, GText *tx1, long dbi) {
 //====================================================================
 /// \code
 /// attInd dzt 0
@@ -496,10 +496,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 /// \endcode
 
 
-  Point   ptTr;
+  // Point   ptTr;
+
+
 
   // if(APT_2d_to_3d_mode == OFF) {
-    GL_DrawTxtG (ind, attInd, pt1, size, ang, txt);
+    // GL_DrawTxtG (ind, attInd, pt1, size, ang, txt);
+    GL_DrawTxtG (dli, attInd, tx1);
 
   // } else {
     // UT3D_pt_traptm3 (&ptTr, APT_2d_to_3d_Mat, pt1);
@@ -1646,8 +1649,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  // get memory      dzt GLT_pta; better use UME_alloc_tmp (alloca)
-  pa2 = (Point2*)UME_alloc_tmp(sizeof(Point2)*ptNr);
+  // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
+  pa2 = (Point2*)MEM_alloc_tmp(sizeof(Point2)*ptNr);
 
   // make 2D-circ from 3D-circ
   UT2D_ci_ci3 (&ci2, ci1);
@@ -1704,8 +1707,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   L_3D_Circ:
   // printf(" draw 3D_Circ\n");
 
-  // get memory      dzt GLT_pta; better use UME_alloc_tmp (alloca)
-  pa3 = (Point*)UME_alloc_tmp(sizeof(Point)*ptNr);
+  // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
+  pa3 = (Point*)MEM_alloc_tmp(sizeof(Point)*ptNr);
 
   UT3D_npt_ci (pa3, ptNr, ci1);
 
@@ -1741,7 +1744,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   typ = cv1->typ;
 
-  printf("GR_DrawCurv ind=%ld %d\n",*ind,typ);
+  // printf("GR_DrawCurv ind=%ld typ=%d\n",*ind,typ);
 
 
   if(typ == Typ_CVPSP3) {
@@ -1771,7 +1774,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     GR_DrawCvCCV2 (ind, att, cv1);
 
   } else {
-    TX_Error("GR_DrawCurv E001");
+    TX_Error("GR_DrawCurv E001-%d",typ);
     return -1;
   }
 
@@ -2196,7 +2199,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  int       i1, i2, ptNr, irow1, irow2, cNr, cMax;
+  int       i1, i2, ptNr, ptMax, irow1, irow2, cNr;
   long      ind, dli, l1, l2;
   double    d1, d2, d3;
   ObjGX     *oxp1, *oxp2, *oxa, ox1, ox2;
@@ -2221,8 +2224,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
-          oxi->typ,oxi->form,oxi->siz);
+  // printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
+          // oxi->typ,oxi->form,oxi->siz);
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // UTO_dump_s_ (oxi, "GR_DrawSur");
   // if(oxi->typ==Typ_SUR) printf(" S:vtex=%d\n",((ColRGB*)&att)->vtex);
@@ -2246,7 +2249,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
   pTab = (void*) memspc501;
-  ptNr = sizeof(memspc501) / sizeof(Point);
+  ptMax = sizeof(memspc501) / sizeof(Point);
   // ACHTUNG: GLT_pta unbrauchbar, da es beim ExportMockup benutzt wird !!!
   // pTab = GLT_pta;
   // ptNr = GLT_pta_SIZ;
@@ -2272,8 +2275,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   } else {
     GL_actTex = -1;
   }
-        printf(" _DrawSur typ=%d ind=%ld GL_actTex=%d\n",oxi->typ,apt_ind,
-               GL_actTex);
+        // printf(" _DrawSur typ=%d ind=%ld GL_actTex=%d\n",oxi->typ,apt_ind,
+               // GL_actTex);
 
 
 
@@ -2475,50 +2478,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   L_SurCir:
 
     i1 = TSU_DrawRCIR (oxi, att, apt_ind);
-
-/*
-  oxp1 = oxi->data;
-  // printf(" CIR %d %d %d\n",oxp1->typ,oxp1->form,oxp1->siz);
-
-  if(oxp1->siz < 3) goto L_not_supp;
-  if(oxp1->siz > 32000) goto L_not_supp;
-
-
-  if(oxp1->form == Typ_Index) {
-    if(oxp1->siz > ptNr) goto L_EOM;
-    itab = (long*)oxp1->data;
-    for(i1=0; i1<oxp1->siz; ++i1) {
-      pTab[i1] = DB_GetPoint (itab[i1]);
-    }
-    ptNr = oxp1->siz;
-
-
-  // oxi->data ist Pointer zu den Punktrecords;
-  } else if(oxp1->form == Typ_PT) {
-    pTab = oxp1->data;
-    ptNr = oxp1->siz;
-
-
-  // oxi->data ist Pointer zu den Punktrecords;
-  } else if(oxi->form == Typ_PT) {
-    pTab = oxi->data;
-    ptNr = oxi->siz;
-
-
-  } else {
-    TX_Error("GR_DrawSur E_CIR %d %d",oxi->form,oxi->siz);
-    return -1;
-  }
-
-  // dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-  //                            att  pCen   anz     pTab
-  // GR_DrawTriaFan (&dli, att, pTab, ptNr-1, &pTab[1]);
-
-  // GR_CreFan (&dli, att, pTab, ptNr-1, &pTab[1], 0);
-  GR_CreFan (&apt_ind, att, pTab, ptNr-1, &pTab[1], 0);
-*/
-
-  return 0;
+    return 0;
 
 
 
@@ -2552,11 +2512,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // get all points -> pTab
   i2 = irow1 * irow2;
-  if(i2 > ptNr) { TX_Error("GR_DrawSur EOP SurStripe"); return -1;}
+  if(i2 > ptMax) { TX_Error("GR_DrawSur EOP SurStripe"); return -1;}
   oxa = sus1->pTab;
 
   // get points from dbo-tab
-  i1 = UT3D_npt_obj (&ptNr, pTab, Typ_ObjGX, oxa, i2, UT_DISP_cv);
+  // i1 = UT3D_npt_obj (&ptNr, pTab, Typ_ObjGX, oxa, i2, UT_DISP_cv);
+  ptNr = 0;
+  i1 = UT3D_npt_obj (&ptNr, pTab, ptMax, Typ_ObjGX, oxa, i2, UT_DISP_cv);
   if(i1 < 0) return -1;
 
   // display
@@ -2587,55 +2549,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   //======================================================
   //  B-SplineSurface
   L_SurBSpl:
-      // UT3D_stru_dump (Typ_ObjGX, oxi, "SBS");
     return TSU_DrawSurBsp (oxi, att, apt_ind);
-
-/*
-  sub1 = oxi->data;
-
-  // UT3D_stru_dump (Typ_SURBSP, sub1, "SBS");
-
-  // alle Punkte TEST
-    // GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
-
-
-  // Kontrollpolygone als Stripes ausgeben; u=0,1 als Stripe 1,
-  // u=1,2 als Stripe 2 usw.
-
-  if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-  
-
-  // Version1: das Kontrollpolygon darstellen
-  // GR_DrawTriaStrip (&dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
-
-
-  // pTab = (void*) memspc101;
-  // ptNr = sizeof(memspc101) / sizeof(Point);
-
-  // die optimale Anzahl von Punkten in U- und V-Richtung ermitteln
-  // SUSbsp_ck_tol (&irow1, &irow2, sub1);
-  UME_init (&workSeg, memspc55, sizeof(memspc55));
-  UT3D_uvNr_sbsp (&irow1, &irow2, sub1, &workSeg);
-    // printf(" ex SUSbsp_ck_tol %d %d %d\n",irow1,irow2,ptNr);
-  if(ptNr < (irow1 * irow2)) {
-    printf(" U=%d V=%d\n",irow1,irow2);
-    pTab = malloc(sizeof(Point)*irow1*irow2);
-    if(pTab == NULL) goto L_EOM;
-    i1 = 1;
-  } else i1 = 0;
-
-  // alle Punkte ermitteln
-  // SUSbsp_aux1 (pTab, &workSeg, irow1, irow2, sub1);
-  UT3D_ptgrid_sbsp (pTab, &d1,&d2, sub1, irow1,irow2, &workSeg);
-
-  // ausgeben ..
-  GR_DrawTriaStrip (&dli, att, irow1, irow2, pTab);
-
-  if(i1 == 1) free (pTab);
-
-  return 0;
-*/
 
 
 
@@ -2644,59 +2558,6 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   //  Rat.B-SplineSurface
   L_SurRBSpl:
     return TSU_DrawSurRBsp (oxi, att, apt_ind);
-
-/*
-  rsub1 = oxi->data;
-
-  // UT3D_stru_dump (Typ_SURRBSP, rsub1, "SRBS");
-
-  // alle Punkte TEST
-    // GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
-
-
-  // Kontrollpolygone als Stripes ausgeben; u=0,1 als Stripe 1,
-  // u=1,2 als Stripe 2 usw.
-
-  if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-
-
-  // Version1: das Kontrollpolygon darstellen
-  // GR_DrawTriaStrip (&dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
-
-
-  // pTab = (void*) memspc101;
-  // ptNr = sizeof(memspc101) / sizeof(Point);
-
-  // die optimale Anzahl von Punkten in U- und V-Richtung ermitteln
-  // UT3D_ptaNr_srbsp (&irow1, &irow2, rsub1);
-  UME_init (&workSeg, memspc55, sizeof(memspc55));
-  UT3D_uvNr_srbsp (&irow1, &irow2, rsub1, &workSeg);
-    // printf(" n. UT3D_uvNr_srbsp %d %d %d\n",irow1,irow2,ptNr);
-
-  if(ptNr < (irow1 * irow2)) {
-    // printf(" U=%d V=%d\n",irow1,irow2);
-    pTab = malloc(sizeof(Point)*irow1*irow2);
-    if(pTab == NULL) goto L_EOM;
-    i1 = 1;
-  } else i1 = 0;
-
-
-  UME_init (&workSeg, memspc55, sizeof(memspc55));
-  // alle Punkte ermitteln
-  // SUSbsp_aux1 (pTab, &workSeg, irow1, irow2, sub1);
-  UT3D_ptgrid_srbsp (pTab, &d1,&d2, rsub1, irow1,irow2, &workSeg);
-
-  // ausgeben ..
-  GR_DrawTriaStrip (&dli, att, irow1, irow2, pTab);
-
-  if(i1 == 1) free (pTab);
-
-
-  return 0;
-*/
-
-
 
 
   //----------------------------------------------------------------
@@ -2818,8 +2679,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
-       UT3D_stru_dump (Typ_PT, &pb1, "pb1");
-       UT3D_stru_dump (Typ_PT, &pb2, "pb2");
+       // UT3D_stru_dump (Typ_PT, &pb1, "pb1");
+       // UT3D_stru_dump (Typ_PT, &pb2, "pb2");
 
 
     // set box in basicModel mdb
@@ -3040,7 +2901,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // UME_init (&objSeg, memspc501, sizeof(memspc501));
   // irc = UCV_PlgCltCrv (&ptNr, &pta, &objSeg, cl1, &tmpSeg);
 
-  irc = UT3D_npt_curvp (pta, &ptNr, Typ_CVCLOT, cl1, UT_DISP_cv);
+  irc = UT3D_npt_clot (pta, &ptNr, cl1, UT_DISP_cv);
   if (irc < 0) return -1;
 
   GL_DrawPoly (ind, att, ptNr, pta);
@@ -3245,7 +3106,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // pTab = (void*) memspc55;
 
   ptNr = plg1->ptNr + 4;
-  pTab = (Point*) UME_alloc_tmp (ptNr * sizeof(Point));
+  pTab = (Point*) MEM_alloc_tmp (ptNr * sizeof(Point));
 
 
   // PolygonCurve -> relimited Polygon
@@ -4504,7 +4365,7 @@ int GR_Delete (long ind)                               {return 0;}
 
   // get tempspace (gets lost on func-return)
   ii = 32 + rbez->ptNr * sizeof(Point) * 2;
-  // UME_alloca (&tmpSpc, ii);
+  // UME_alloc_tmp (&tmpSpc, ii);
   UME_malloc (&tmpSpc, ii, ii/2);
   memSeg1 = &tmpSpc;
 
@@ -5386,7 +5247,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // printf(" ptNr-ell=%d\n",ptNr);
 
 
-  pa = UME_alloc_tmp (ptNr * sizeof(Point));
+  pa = MEM_alloc_tmp (ptNr * sizeof(Point));
 
 
   // if(ptNr > ptmax) goto L_e1;
@@ -5598,7 +5459,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_PT2:
-      o1 = UME_alloc_tmp (sizeof(Point));
+      o1 = MEM_alloc_tmp (sizeof(Point));
       *((Point*)o1) = UT3D_pt_pt2 (obj);
       GR_DrawPoint (ind, att, (Point*)o1);
       break;
@@ -5910,19 +5771,16 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   // printf("----------------- GR_pt_par_sel_npt %d\n",ptNr);
-  // UT3D_stru_dump (Typ_PT, pt1, " pt1");
-  // UT3D_stru_dump (Typ_PT, pt2, " pt2");
+  // for(i1=0; i1<ptNr; ++i1) UT3D_stru_dump (Typ_PT, &pta[i1],"p[%d]",i1);
 
   tol = GL_pickSiz,
-
 
   // get 2D-Coords of ptAct
   GL_pt2_pt3 (&p2Act, ptAct);
     // UT3D_stru_dump (Typ_PT, &p2Act, " p2Act");
 
-
   // get memspc for 2D-points p2a
-  p2a = (Point*)UME_alloc_tmp (sizeof(Point) * ptNr);
+  p2a = (Point*)MEM_alloc_tmp (sizeof(Point) * ptNr);
 
   // loop tru points, get 2D-coords pf point, test if 2D-point == ptAct-2D
   dMax = tol;

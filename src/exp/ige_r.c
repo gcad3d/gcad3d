@@ -657,6 +657,7 @@ __declspec(dllexport) int IGE_r__ (char*);
 
 // #include "../xa/xa_ui.h"               // UID_..
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
 
 
 
@@ -1426,7 +1427,7 @@ static  int oCnt1, oCnt2;
   // 408 = SubfigureInstance
   } else if(ox1.typ == Typ_Model) {
     if(impTab[ind].fTyp == 408) {
-      i1 = IGE_rw_408 (&ox1);
+      i1 = IGE_rw_408 (&ox1);             // useless .. ??
       if(i1 < 0) return i1;
     }
 
@@ -5164,6 +5165,7 @@ static ImpSubmodel *im1;
   int IGE_rw_408 (ObjGX *ox1) {
 //=====================================================================
 // nur mnam setzen
+// useless func ..
 
   int         i1;
   ModelRef    *mr1;
@@ -5182,10 +5184,11 @@ static ImpSubmodel *im1;
 
   // printf(" rw_408: mNr=%d fTyp=%d\n",i1,impTab[i1].fTyp);
 
+/*
   im1 = impTab[i1].data;
-  // printf(" nam=|%s|\n",im1->mnam);
-
+    // printf(" nam=|%s|\n",im1->mnam);
   mr1->mnam = im1->mnam;
+*/
 
   return 0;
 

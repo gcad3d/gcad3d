@@ -34,14 +34,15 @@ Modifications:
 =====================================================
 List_functions_start:
 
+MEM_alloc_tmp             allocate mem for active function               INLINE
+MEM_ptr_mov               move a pointer <dist> bytes                    INLINE
+
 MEM_swap_short
 MEM_swap_int              2 int vertauschen
 MEM_swap_2db              2 doubles vertauschen                          INLINE
 MEM_swap_2vp              swap 2 pointers                                INLINE
 MEM_swap_2bit             swap 2 bits
 MEM_swap__                2 structs vertauschen
-
-MEM_ptr_mov               move a point <dist> bytes                      INLINE
 
 MEM_chg_str               change a part of a string in mem
 MEM_ins_str               insert s2 into s1 (s1 = s2 + s1)
@@ -70,7 +71,7 @@ MEM_get_file              read file -> mem
 List_functions_end:
 =====================================================
 - see also:
-UME_alloc_tmp             get temp-space
+MEM_alloc_tmp             get temp-space
 UTX_memstr
 UTX_memFind
 UTX_memFind1
@@ -163,12 +164,14 @@ UTA_reallTab
 //================================================================
    int MEM_del_str (char *cp1, int sizDel) {
 //================================================================
-// delete n chars out of string cp1 starting at pos cp1
-// Input:
-//   cp1     startpos of string = startpos where to deleten
-//   ls      nr of characters to delete
-// Output:
-//   cp1
+/// \code
+/// delete n chars out of string cp1 starting at pos cp1
+/// Input:
+///   cp1     startpos of string = startpos where to deleten
+///   ls      nr of characters to delete
+/// Output:
+///   cp1
+/// \endcode
 
   int   sizTot, movSiz;
   char  *oldPos;
@@ -353,7 +356,7 @@ UTA_reallTab
 
 
   if(strSiz > OBJ_SIZ_MAX) {
-    tmpSpc = UME_alloc_tmp (strSiz);
+    tmpSpc = MEM_alloc_tmp (strSiz);
     memcpy (tmpSpc, stru1, strSiz);
     memcpy (stru1, stru2, strSiz);
     memcpy (stru2, tmpSpc, strSiz);

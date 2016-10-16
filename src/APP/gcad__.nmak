@@ -82,6 +82,13 @@ delObj:
 	exit
 
 
+guiinit:
+	del/q ..\..\binMS32\libgui_*.lib
+	del/q ..\gui_gtk2_MS\*.obj
+	del/q ..\gui\*.obj
+	exit
+
+
 all:
 	@echo ================ Build core-DLL's =============================
 	for /f %%a in ('dir/b xa_*.nmak') do nmake -f %%a

@@ -16,10 +16,16 @@
  *
 -----------------------------------------------------
 TODO:
-Relocate DB_CSEG vor ReAllocate (DB_allocCDAT)
+- DB_StoreXXX test if already defined ((!(DB_isFree_XXX)
+  if yes: ERROR. Before set-free when going back in code (loop tru all
+   DL-records beeing deleted).  ED_work_CurSet, ED_work_END, ..
+
+- Relocate DB_CSEG vor ReAllocate (DB_allocCDAT)
   (see tess_reloc_obj tess_reloc_f_)
-DB_VCX_IND sollte -1 -8 sein ! (dynam.Vektoren, vordefiniert.
-Fuer Dittos sollte dynmaische Felder definiert werden; bei ResetDisplList
+
+- DB_VCX_IND sollte -1 -8 sein ! (dynam.Vektoren, vordefiniert.
+
+- Fuer Dittos sollte dynmaische Felder definiert werden; bei ResetDisplList
  koennten diese dittos dann geloescht werden. dzt muss das selbst gemacht
  werden (in WC_actPos_reset); geht dzt nur via lNr.
 
@@ -105,7 +111,7 @@ DB_StoreDim_
 DB_StoreATxt
 DB_StoreGTxt
 DB_StoreImg        store BMP-Bitmap (AText)
-DB_StoreTex        store Texture
+// DB_StoreTex        store Texture
 DB_StoreRef        store Plane "R" (RefSys)
 DB_StoreSur        su_tab
 DB_StoreSol        so_tab
@@ -345,10 +351,13 @@ DB_allocModNam     mdb_nam   char            DB_MNM_INC
 
 
 //============ Externe Var: =======================================
-// aus xa.c:
+// EXTERNALS:
+// from ../xa/xa.c:
+
 extern double     AP_txsiz;             ///< Notes-Defaultsize
 extern double     AP_txdimsiz;          ///< Dimensions-Text-size
 extern int        AP_txNkNr;            ///< Nachkommastellen
+extern ColRGB     AP_defcol;
 
 extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel (without subModels)
 
@@ -358,24 +367,22 @@ extern Mat_4x3   WC_sur_mat;            ///< TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           ///< inverse TrMat of ActiveConstrPlane
 
 
-// aus ../gr/ut_gtx.c:
+// from ../xa/xa_ga.c:
+extern ObjAtt  *GA_ObjTab;        // die PermanentAttributeTable
+extern int     GA_recNr;          // die aktuelle Anzahl von Records
+
+// from ../gr/ut_gtx.c:
 extern double GR_tx_scale;
 
-// aus NC_Main.c:
+// from ../ci/NC_Main.c:
 extern double APT_ModSiz;
 // extern double APT_ln_len;
-
-
-// extern const int UT_INT_MAX;
 
 
 
 //============ Lokale Var: =======================================
 
 typedef struct {int typ; void *data;}       DB_obj;       
-
-
-
 
 
 #define APT_VR_INC       200
@@ -813,6 +820,9 @@ Vector     DB_vc0;
 
 
 
+  // printf("------------------ DB_save__ |%s| ------------------------\n",mNam);
+
+
   strcpy(s1, mNam);
   // change all '/' of mNam into '_' - else no correct filename possible
   UTX_safeName (s1, 2);
@@ -830,16 +840,13 @@ Vector     DB_vc0;
   fwrite(&APT_ModSiz, sizeof(double), 1, fp1);
   fwrite(&UT_TOL_pt, sizeof(double), 1, fp1);
   fwrite(&UT_TOL_ln, sizeof(double), 1, fp1);
-  // printf(" %f %f %f\n",APT_ModSiz,UT_TOL_pt,UT_TOL_ln);
   fwrite(&UT_TOL_cv, sizeof(double), 1, fp1);
   fwrite(&UT_DISP_cv, sizeof(double), 1, fp1);
-  // fwrite(&APT_ln_len, sizeof(double), 1, fp1);
-  // printf(" %f %f %f\n",UT_TOL_cv,UT_DISP_cv,APT_ln_len);
   fwrite(&AP_txdimsiz, sizeof(double), 1, fp1);
   fwrite(&AP_txsiz, sizeof(double), 1, fp1);
   fwrite(&GR_tx_scale, sizeof(double), 1, fp1);
   fwrite(&AP_txNkNr, sizeof(int), 1, fp1);
-  // printf(" wr AP_txdimsiz=%f AP_txsiz=%f\n",AP_txdimsiz,AP_txsiz);
+  fwrite(&AP_defcol, sizeof(ColRGB), 1, fp1);
 
   fwrite(&DB_JNT_IND, sizeof(long), 1, fp1);
 
@@ -892,10 +899,6 @@ Vector     DB_vc0;
   if(APT_AC_IND > 0)
   fwrite(ac_tab, sizeof(Activity), APT_AC_IND+1, fp1);
 
-  // fwrite(&APT_TL_IND, sizeof(long), 1, fp1);
-  // if(APT_TL_IND > 0)
-  // fwrite(tl_tab, sizeof(BTool), APT_TL_IND+1, fp1);
-
   fwrite(&APT_TR_IND, sizeof(long), 1, fp1);
   if(APT_TR_IND > 0)
   fwrite(tra_tab, sizeof(ObjGX), APT_TR_IND+1, fp1);
@@ -915,7 +918,6 @@ Vector     DB_vc0;
   fwrite(&APT_SO_IND, sizeof(long), 1, fp1);
   if(APT_SO_IND > 0)
   fwrite(so_tab, sizeof(ObjGX), APT_SO_IND+1, fp1);
-
 
 
   DB_Query_siz (&fSiz);
@@ -966,6 +968,14 @@ Vector     DB_vc0;
   // fwrite(&DYN_MB_IND, sizeof(long), 1, fp1);
   // fwrite(mdb_dyn, sizeof(ModelBas), DYN_MB_SIZ, fp1);
 
+  fwrite(&GA_recNr, sizeof(int),  1, fp1);
+  if(GA_ObjTab > 0)
+  fwrite(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
+
+  // save AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
+  AP_stat_file (1, fp1);
+
+  GA_parent_file (1, fp1);    // write ParentTable
 
   fclose(fp1);
 
@@ -1004,16 +1014,13 @@ Vector     DB_vc0;
   fread(&APT_ModSiz, sizeof(double), 1, fp1);
   fread(&UT_TOL_pt, sizeof(double), 1, fp1);
   fread(&UT_TOL_ln, sizeof(double), 1, fp1);
-    // printf(" %f %f %f\n",APT_ModSiz,UT_TOL_pt,UT_TOL_ln);
   fread(&UT_TOL_cv, sizeof(double), 1, fp1);
   fread(&UT_DISP_cv, sizeof(double), 1, fp1);
-  // fread(&APT_ln_len, sizeof(double), 1, fp1);
-    // printf(" _load__ %f %f %f\n",UT_TOL_cv,UT_DISP_cv,APT_ln_len);
   fread(&AP_txdimsiz, sizeof(double), 1, fp1);
   fread(&AP_txsiz, sizeof(double), 1, fp1);
   fread(&GR_tx_scale, sizeof(double), 1, fp1);
   fread(&AP_txNkNr, sizeof(int), 1, fp1);
-    // printf(" rd AP_txdimsiz=%f AP_txsiz=%f\n",AP_txdimsiz,AP_txsiz);
+  fread(&AP_defcol, sizeof(ColRGB), 1, fp1);
 
   fread(&DB_JNT_IND, sizeof(long), 1, fp1);
 
@@ -1156,92 +1163,16 @@ Vector     DB_vc0;
   fread(tx_dyn, sizeof(ObjGX), DYN_TX_IND+1, fp1);
   for(i1=DYN_TX_IND+1; i1<DYN_TX_SIZ; ++i1) tx_dyn[i1].typ = Typ_Error;
 
-/*
-  fread(&APT_VR_SIZ, sizeof(long), 1, fp1);
-  fread(vr_tab, sizeof(double), APT_VR_SIZ, fp1);
 
-  fread(&APT_PT_SIZ, sizeof(long), 1, fp1);
-  fread(pt_tab, sizeof(Point), APT_PT_SIZ, fp1);
+  fread(&GA_recNr, sizeof(int),  1, fp1);
+  if(GA_ObjTab > 0)
+  fread(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
 
-  fread(&APT_VC_SIZ, sizeof(long), 1, fp1);
-  fread(vc_tab, sizeof(Vector), APT_VC_SIZ, fp1);
+  // read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
+  AP_stat_file (2, fp1);
 
-  fread(&APT_LN_SIZ, sizeof(long), 1, fp1);
-  fread(ln_tab, sizeof(Line), APT_LN_SIZ, fp1);
+  GA_parent_file (2, fp1);     // read ParentTable
 
-  fread(&APT_CI_SIZ, sizeof(long), 1, fp1);
-  fread(ci_tab, sizeof(Circ), APT_CI_SIZ, fp1);
-
-  fread(&APT_PL_SIZ, sizeof(long), 1, fp1);
-  fread(pln_tab, sizeof(Plane), APT_PL_SIZ, fp1);
-
-  fread(&APT_MR_SIZ, sizeof(long), 1, fp1);
-  fread(mdr_tab, sizeof(ModelRef), APT_MR_SIZ, fp1);
-
-  fread(&APT_AC_SIZ, sizeof(long), 1, fp1);
-  fread(ac_tab, sizeof(Activity), APT_AC_SIZ, fp1);
-
-  fread(&APT_TL_SIZ, sizeof(long), 1, fp1);
-  fread(tl_tab, sizeof(BTool), APT_TL_SIZ, fp1);
-
-  fread(&APT_TR_SIZ, sizeof(long), 1, fp1);
-  fread(tra_tab, sizeof(ObjGX), APT_TR_SIZ, fp1);
-
-  fread(&APT_CV_SIZ, sizeof(long), 1, fp1);
-  fread(cv_tab, sizeof(ObjGX), APT_CV_SIZ, fp1);
-
-  fread(&APT_TX_SIZ, sizeof(long), 1, fp1);
-  fread(tx_tab, sizeof(ObjGX), APT_TX_SIZ, fp1);
-
-  fread(&APT_SU_SIZ, sizeof(long), 1, fp1);
-  fread(su_tab, sizeof(ObjGX), APT_SU_SIZ, fp1);
-
-  fread(&APT_SO_SIZ, sizeof(long), 1, fp1);
-  fread(so_tab, sizeof(ObjGX), APT_SO_SIZ, fp1);
-
-  fread(&DB_CSIZ, sizeof(long), 1, fp1);
-  fread(DB_CDAT, DB_CSIZ, 1, fp1);
-
-  fread(&DYN_VR_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_VR_IND, sizeof(long), 1, fp1);
-  fread(vr_dyn, sizeof(double), DYN_VR_SIZ, fp1);
-
-  fread(&DYN_PT_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_PT_IND, sizeof(long), 1, fp1);
-  fread(pt_dyn, sizeof(Point), DYN_PT_SIZ, fp1);
-
-  fread(&DYN_VC_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_VC_IND, sizeof(long), 1, fp1);
-  fread(vc_dyn, sizeof(Vector), DYN_VC_SIZ, fp1);
-
-  fread(&DYN_LN_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_LN_IND, sizeof(long), 1, fp1);
-  fread(ln_dyn, sizeof(Line), DYN_LN_SIZ, fp1);
-
-  fread(&DYN_CI_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_CI_IND, sizeof(long), 1, fp1);
-  fread(ci_dyn, sizeof(Circ), DYN_CI_SIZ, fp1);
-
-  fread(&DYN_PL_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_PL_IND, sizeof(long), 1, fp1);
-  fread(pln_dyn, sizeof(Plane), DYN_PL_SIZ, fp1);
-
-  fread(&DYN_CV_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_CV_IND, sizeof(long), 1, fp1);
-  fread(cv_dyn, sizeof(ObjGX), DYN_CV_SIZ, fp1);
-
-  fread(&DYN_SU_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_SU_IND, sizeof(long), 1, fp1);
-  fread(su_dyn, sizeof(ObjGX), DYN_SU_SIZ, fp1);
-
-  fread(&DYN_TX_SIZ, sizeof(long), 1, fp1);
-  fread(&DYN_TX_IND, sizeof(long), 1, fp1);
-  fread(tx_dyn, sizeof(ObjGX), DYN_TX_SIZ, fp1);
-
-  // fread(&DYN_MB_SIZ, sizeof(long), 1, fp1);
-  // fread(&DYN_MB_IND, sizeof(long), 1, fp1);
-  // fread(mdb_dyn, sizeof(ModelBas), DYN_MB_SIZ, fp1);
-*/
 
   fclose(fp1);
 
@@ -1623,9 +1554,12 @@ Vector     DB_vc0;
       case Typ_Dimen:
       case Typ_Dim3:
       case Typ_Tag:
-        if(apt_ind >= APT_TX_SIZ) goto L_Error_9; // skip dynam. text
-        ox1 = tx_tab[apt_ind];
-        if(DB_isFree_GTxt((&tx_tab[apt_ind]))) goto L_Error_9;
+        oxp = DB_GetGTxt (apt_ind);
+        // if(apt_ind >= APT_TX_SIZ) goto L_Error_9;
+        // if(apt_ind >= 0) ox1 = tx_tab[apt_ind];
+        // else             ox1 = tx_dyn[-apt_ind];
+        if(DB_isFree_GTxt(oxp)) goto L_Error_9;
+        ox1 = *oxp;
         break;
 
 
@@ -1736,14 +1670,25 @@ Vector     DB_vc0;
 
 
   // Surfaces: return adress of surface directly (ox1 is not static !)
-  if((dbTyp == Typ_SUR) ||
-     (dbTyp == Typ_SOL))   {
+  if(dbTyp == Typ_SUR) {
     *pDat = DB_GetSur (dbInd, 0);
     *oNr = 1;
     // if(((ObjGX*)*pDat)->typ == Typ_Error) return Typ_Error;
     if(DB_isFree_Sur((ObjGX*)*pDat)) return Typ_Error;
     return Typ_ObjGX;
   }
+
+
+  // Surfaces: return adress of surface directly (ox1 is not static !)
+  if(dbTyp == Typ_SOL)   {
+    *pDat = DB_GetSol (dbInd);
+    *oNr = 1;
+    // if(((ObjGX*)*pDat)->typ == Typ_Error) return Typ_Error;
+    if(DB_isFree_Sol((ObjGX*)*pDat)) return Typ_Error;
+    return Typ_ObjGX;
+  }
+
+
 
 
   // get ObjGX of a object stored in DB
@@ -3492,7 +3437,7 @@ int DB_del_Mod__ () {
 //================================================================
 /// \code
 /// dump all objects of type<typ> into open file
-/// see also UTO_dump_dbo
+/// see also UT3D_dump_dbo
 /// \endcode
 
 
@@ -3822,9 +3767,9 @@ int DB_del_Mod__ () {
 
   int  i1;
 
-  printf("DB_dump_ModRef: reference models 1 - %ld:\n",APT_MR_IND);
+  printf("DB_dump_ModRef: reference models %ld:\n",APT_MR_IND);
   // for(i1=0; i1<APT_MR_IND; ++i1) {
-  for(i1=1; i1<=APT_MR_IND; ++i1) {
+  for(i1=0; i1<=APT_MR_IND; ++i1) {
     // if(mdr_tab[i1].po.x == UT_VAL_MAX) continue;
     if(DB_isFree_ModRef (&mdr_tab[i1])) continue;
     UT3D_stru_dump (Typ_Model, &mdr_tab[i1], "  M%d ",i1);
@@ -4308,7 +4253,8 @@ loop tru all nodes; testbm=node[i1].mod;
   mdb_dyn[modNr].seqNr  = 0;
   mdb_dyn[modNr].po     = UT3D_PT_NUL;
   mdb_dyn[modNr].pb1    = UT3D_PT_NUL;
-  mdb_dyn[modNr].pb2    = UT3D_PT_NUL;
+  // mdb_dyn[modNr].pb2    = UT3D_PT_NUL;
+  mdb_dyn[modNr].pb2.x  = UT_VAL_MAX;
 
 
   L_fertig:
@@ -4321,9 +4267,13 @@ loop tru all nodes; testbm=node[i1].mod;
 
 
 //======================================================================
-  ModelBas* DB_get_ModBas (long Ind) {
+  ModelBas* DB_get_ModBas (int Ind) {
 //======================================================================
+/// \code
 /// get the basicModel with index <Ind>
+/// get Ing eg from ModelRef.modNr
+/// \endcode
+
 // beim abfragen aller names wird Ind einfach incrementiert ..
 
 
@@ -4778,8 +4728,14 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   }
 
   L_init:
+  // init for DB_isFree_ModRef (set po.x == UT_VAL_MAX)
   for(i1=APT_MR_SIZ; i1<newSiz; ++i1) DB_setFree_MR (i1);
+
+  // init error
+  if(APT_MR_SIZ == 0) mdr_tab[0].modNr = -2;
+
   APT_MR_SIZ = newSiz;
+
 
   // printf("ex DB_allocModRef %d %d %d\n",Ind,APT_MR_SIZ,newSiz);
 
@@ -5943,8 +5899,9 @@ long DB_StoreLine (long Ind, Line* ln1) {
         if(DB_allocLine (Ind) < 0) return 0;
       }
     }
-
     dbi = Ind;
+    // if(!(DB_isFree_LN(&ln_tab[dbi])))
+       // TX_Print("**** DB: overwrite Line %ld",dbi); // problem with MODVAL
     ln_tab[dbi] = *ln1;
   }
 
@@ -8697,9 +8654,9 @@ long DB_QueryCurv (Point *pt1) {
     //================================================================
     case Typ_VAR:
     case Typ_Val:
-    case Typ_ValX:
-    case Typ_ValY:
-    case Typ_ValZ:
+    case Typ_XVal:
+    case Typ_YVal:
+    case Typ_ZVal:
     case Typ_Angle:
       if(iNr > 1) goto L_E_INR;
       *ind = DB_StoreVar (*ind, *((double*)os1));

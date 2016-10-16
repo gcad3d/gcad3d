@@ -49,7 +49,7 @@ int    WC_Work__         (int, char*);
 int    WC_Work1          (int, char*);
 int    APT_work_def      (char*, char**);
 int    APT_work_NCCmd    (char*, char**);
-int    APT_work_PrgCmd   (char*, char**);
+int    APT_work_AppCodTab  (char*, char**);
 
 int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab);
 
@@ -80,7 +80,7 @@ void   APT_disp_SymV1    (int, int att, Point*, double);
 void   APT_disp_SymV2    (int, int att, Point*, Point*, double);
 void   APT_disp_SymV3    (int, int att, Point*, Vector*, double);
 void   APT_disp_TxtA     (int, Point*, char*);
-void   APT_disp_TxtG     (int typ,Point* pt1,float size,float angle,char* txt);
+// void   APT_disp_TxtG     (int typ,Point* pt1,float size,float angle,char* txt);
 // void   APT_disp_Vec      (int att, long, Point*, Vector*);
 void   APT_disp_ln       (Point2*, Point2*, int, double, double);
 void   APT_disp_ac       (ObjG2*, int, double);

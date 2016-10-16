@@ -45,6 +45,9 @@ Modifications:
 =====================================================
 List_functions_start:
 
+MSG_STD_ERR     errormessage (key, additional_text) 
+MSG_STD__       error/warning/info
+
 APP_MSG_pri_0   print message with 0 parameter (TX_Print)
 APP_MSG_pri_1   print formatted message with 1 parameter (TX_Print)
 APP_MSG_err_0   error (TX_Error)
@@ -77,32 +80,21 @@ MSG_fread       read message <key> in (open) file <fpIn>
 List_functions_end:
 =====================================================
 
-\endcode *//*----------------------------------------
 
 
 
-file = ../doc/msg/msg_de.txt
-MSG_pri_0 ("PEDsav");
-
-
-- Tips for CAD-menus
-- IE_cad_Inp1_Info()
-- primaryMessages: werden nur ein einziges mal (beim Startup) gelesen
-- coreMessages: werden mehrfach vom coreModule benutzt
-- applicationMessages: werden nur von bestimmer application benutzt.
-  Nach Beendigung der application werden wieder coreMessages aktiviert.
-
-
---------------------------------------------------------------------
-Application-Messages:
---------------------------------------------------------------------
-Each application (plugin) can have its own messagefile:
-{docDir}/msg/{appnam}_{language}.txt
 Defaultlanguage is "_en"  english
                     _de   german
                     _es   spanish
                     _fr   french
                     _it   italian
+
+
+//================================================================
+  Application-Messages:
+//================================================================
+Each application (plugin) can have its own messagefile:
+{docDir}/msg/{appnam}_{language}.txt
 File ~/gCAD3D/xa/app1_en.txt   would be used by plugin
 ~/gCAD3D/binLinux32/plugins/app1.so
 Opening & closing this files is done automatic.
@@ -121,13 +113,25 @@ Functions APP_MSG_*
 
 
 
---------------------------------------------------------------------
-Standard-Messages
---------------------------------------------------------------------
-Get messages, identified by a keyword;
-   Messagefiles: msg_de.txt  msg_en.txt
+//================================================================
+  Standard-Messages
+//================================================================
+Get messages, identified by a integer; ../xa/xa_msg.h eg func_not_impl
 
 Examples:
+  MSG_STD_ERR (func_not_impl, "E001 - %d",4);
+
+  
+
+
+
+//================================================================
+  Messages for the menu's:
+//================================================================
+Get messages, identified by a keyword;
+Files keyword=message: msg_<language>.txt
+   ../../doc/msg/msg_en.txt
+
   // message without parameters:
   MSG_pri_0("PEDmod1");                       // TX_Print message
   MSG_Tip ("MMclear");                        // add Tooltip to GTK-widget
@@ -139,29 +143,20 @@ Examples:
 
 
 
-.....................................................
-Tools for manipulating the language-files:
-
-save the lang.files: ./lang_save.csh
-edit files:          ./lang_ed.csh
-find a keyword:      ./lang_find.csh keyWd 
-modify keyword       /mnt/serv1/Linux/bin/changeall old new files
-modify line          ./lang_line keyWd "line words .."
-delete Line          ./lang_del.csh keyWd
-insert Line          ./lang_ins.csh keyWd_before new line words ..
 
 
+//================================================================
+  Constant-Messages
+//================================================================
+Often used, short messages; identified by integers (../xa/xa_msg.h)
 
-
-
---------------------------------------------------------------------
-Constant-Messages
---------------------------------------------------------------------
-Often used, short messages; identified by integers
+Messagecodes:
+  ../xa/xa_msg.h
 
 Messagefiles:
 {baseDir}/gCAD3D/xa/msg_const_{language}.txt
-   eg msg_const_de.txt  msg_const_en.txt
+  eg msg_const_de.txt  msg_const_en.txt
+  ../../doc/msg/msg_const_de.txt
 
 Messagecodes: enum in file
 {baseDir}/gCAD3D/xa/xa_msg.h
@@ -180,6 +175,23 @@ Examples:
 
 
 
+//================================================================
+  Tools for manipulating the language-files:
+//================================================================
+
+save the lang.files: ./lang_save.csh
+edit files:          ./lang_ed.csh
+find a keyword:      ./lang_find.csh keyWd 
+modify keyword       /mnt/serv1/Linux/bin/changeall old new files
+modify line          ./lang_line keyWd "line words .."
+delete Line          ./lang_del.csh keyWd
+insert Line          ./lang_ins.csh keyWd_before new line words ..
+
+
+
+\endcode *//*----------------------------------------
+
+
 Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 
 
@@ -196,7 +208,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
+#include <stdarg.h>                    // ...
 
 
 #include "../ut/ut_geo.h"
@@ -218,6 +230,25 @@ static FILE   *MSG_fp=NULL;
 
 #define MSG_bSiz 256
 static char   MSG_buf[MSG_bSiz];
+
+
+char *MSG_STD_code[]={
+  "-",             // INF
+  "***",           // WNG
+  "*** ERROR:"     // ERR
+};
+
+
+/// messages for MSG_STD__ MSG_STD_ERR
+char *MSG_STD_tab[]={
+  "function not implemented",    ///< 0 func_not_impl,
+  "subModel undefined",          ///< 1 subModel_undefined,
+  "file open",                   ///< 2 file_open,
+  "uu"
+};
+
+
+
 
 
 //========= Prototypen: =====================
@@ -1009,6 +1040,45 @@ static char   MSG_buf[MSG_bSiz];
   return 0;
 
 }
+
+
+//=======================================================================
+  int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...) {
+//=======================================================================
+/// \code
+/// MSG_STD__     error/warning/info
+///   msgTyp:     MSG_typ_ERR|MSG_typ_WNG|MSG_typ_INF
+///
+/// output:       TX_Error|TX_Print; 
+/// retCod        -1
+///
+/// see also MSG_STD_ERR
+/// \endcode
+
+  va_list va;
+  char    s1[400];
+
+
+  // printf("MSG_STD__ %d |%s| %d\n",msgTyp,fnc,ikey);
+
+  va_start (va, txt);
+  vsprintf (s1, txt, va);
+  va_end (va);
+    // printf(" s1=|%s|\n",s1);
+
+
+
+  TX_Print ("%s %s(): %s %s", MSG_STD_code[MSG_typ_ERR],
+                     fnc,
+                     MSG_STD_tab[ikey],
+                     s1);
+
+  if(msgTyp == MSG_typ_ERR) AP_errStat_set (1);
+
+  return -1;
+
+}
+
 
 
 // EOF

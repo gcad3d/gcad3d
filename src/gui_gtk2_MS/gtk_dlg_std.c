@@ -91,6 +91,8 @@ gcc `pkg-config --cflags gtk+-3.0` gtk_dialog.c
 
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_umem.h"
+#include "../ut/ut_mem.h"              // MEM_alloc_tmp
+#include "../ut/ut_os.h"               // OS_ .
 
 #include "../gui/gui_types.h"           // TYP_Event..
 #include "../gui/gui_base.h"            // TYP_Event..
@@ -389,7 +391,7 @@ static MemObj UI_DialogEntryWin;
 
 
   // get static list of integers for user-data
-  ia = UME_alloc_tmp (sizeof(int) * bNr);
+  ia = MEM_alloc_tmp (sizeof(int) * bNr);
 
   for(i1=0; i1<bNr; ++i1) {
     if(border > 0) GUI_spc__ (&box1, 0, border);
@@ -961,7 +963,10 @@ static MemObj UI_DialogEntryWin;
   // start waiting; does not return until user clicks button.
 
   int   i1, iRes;
-  char  *p1;
+  char  *p1, *filename;
+
+
+  printf("GUI_Dialog_run dnSiz=%d fnam=|%s| %d\n",dnSiz,fnam,fnSiz);
 
     
   iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !
@@ -969,7 +974,6 @@ static MemObj UI_DialogEntryWin;
 
 
   if (iRes == GTK_RESPONSE_ACCEPT) {
-    char *filename;
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (gtkDlg));
     if(!filename) filename =
       gtk_file_chooser_get_preview_filename (GTK_FILE_CHOOSER (gtkDlg));
@@ -989,19 +993,25 @@ static MemObj UI_DialogEntryWin;
 #endif 
 
     // copy out directory
-    i1 = p1 - filename;
-    if(i1 >= dnSiz) {iRes = -2; goto L_exit; }
-      // printf(" i1=%d\n",i1);
-    strncpy(dnam, filename, i1);
-    dnam[i1] = '\0';
-
+    if(p1) {
+      i1 = p1 - filename;
+      if(i1 >= dnSiz) {iRes = -2; goto L_exit; }
+        // printf(" i1=%d\n",i1);
+      strncpy(dnam, filename, i1);
+      dnam[i1] = '\0';
+    } else {
+      // no '/' in filename
+      TX_Print ("**** ERROR GUI_Dialog_run - E001 ****");
+      iRes = -3;
+      goto L_exit;
+    }
+    
 
 
     // copy out filename
     ++p1;
     if(strlen(p1) >= fnSiz) {iRes = -2; goto L_exit; }
     strcpy(fnam, p1);
-
     g_free (filename);
     iRes = 0;
 

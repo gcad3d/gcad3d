@@ -138,7 +138,7 @@ static MemObj winOvr;
 
 
   // get space for strings
-  s1 = (char*) UME_alloc_tmp (tmpSiz);
+  s1 = (char*) MEM_alloc_tmp (tmpSiz);
   UtxTab_init_spc (&txTab1, s1, tmpSiz);
 
   

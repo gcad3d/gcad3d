@@ -155,6 +155,7 @@ extern long UTF_FilBuf1Len;  // die aktuelle Filesize
 extern char *ObjCodTab[];
 extern char *NcoTxtTab[];
 extern char *GcoTxtTab[];
+extern char *CopTxtTab[];
 extern char  MOpTxtStr[];
 
 
@@ -443,6 +444,8 @@ extern char  MOpTxtStr[];
 /// cut cbuf at " #"  and copy the following text -> AP_ED_oNam
 /// MODIFIES cbuf !
 /// \endcode
+
+// TODO: add AP_ED_oNam|NULL as parameter 
 
   // int       ll;
   char      *p1;
@@ -2312,8 +2315,8 @@ extern char  MOpTxtStr[];
 
 
 
-  // printf("APED_txo_srcLn__ %d\n",itsMax);
-  // printf(" _txo_src |%s|\n",sln);
+  // printf("APED_txo_srcLn__ ,itsMax=%d\n",itsMax);
+  // printf("  _txo_src |%s|\n",sln);
 
 
   its = 0;
@@ -2333,7 +2336,11 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   L_nextExpr:
     tso[its].ipar = levTab[iLev];  // toplevel = -1
-    UTX_pos_skipLeadBlk (cp1);  // skip leading blanks
+    while(*cp1 == ' ') ++cp1;      // skip leading blanks
+    if(*cp1 == ',') {
+      ++cp1;                       // skip one ','
+      while(*cp1 == ' ') ++cp1;    // skip following blanks
+    }
     if(cp1 >= cpe) {
       tso[its].typ  = TYP_FuncEnd;
       return its;
@@ -2369,7 +2376,7 @@ extern char  MOpTxtStr[];
 
 
   //----------------------------------------------------------------
-  // test delim. for objName
+  // test delim. for objName (eg ' # sum')
   if(*cp1 == '#') {
     // rest of line is comment !
     tso[its].typ  = Typ_Name;
@@ -2381,7 +2388,7 @@ extern char  MOpTxtStr[];
 
 
   //----------------------------------------------------------------
-  // test delim. for string (eg "Submodel1")
+  // test delim. for string (eg '"Submodel1"')
   if(*cp1 != '\"') goto L_1;
       // printf(" handle string\n");
     cp2 = UTX_pos_skipStr (cp1);  // get pos of closing \"
@@ -2397,7 +2404,7 @@ extern char  MOpTxtStr[];
 
 
   //----------------------------------------------------------------
-  L_1:  // test for  math.oper      + - / *
+  L_1:  // test for  math.oper     '+ - / *'
     if(cp1 <= sln) goto L_1_1;
     cp2 = strchr (MOpTxtStr, *cp1);
     if(cp2) {
@@ -2450,6 +2457,7 @@ extern char  MOpTxtStr[];
     cp2 = cp1;
     ++cp2;
     if(!isdigit(*cp2)) goto L_3;
+      // yes, DB-obj
       ii = UTX_ck_num_digNr (&cp2, cp2);
       tso[its].typ  = Typ_ObjDB;
       tso[its].form = Typ_ObjDB;
@@ -2495,8 +2503,10 @@ extern char  MOpTxtStr[];
 
   //----------------------------------------------------------------
   L_4:
-    strncpy (s1, cp1, ii); s1[ii] = '\0';
-      printf(" _txo_srcLn_objectCode|%s|\n",s1);
+    // strncpy (s1, cp1, ii); s1[ii] = '\0';
+    for(i1=0; i1<ii; ++i1) s1[i1] = toupper (cp1[i1]);
+    s1[ii] = '\0';
+      // printf(" _txo_srcLn_objectCode-s1=|%s|\n",s1);
 
   // test for objectCodes (CUT, REV, ...) ObjCodTab Typ_Cmd1
     i1 = UTX_cmp_word_wordtab (ObjCodTab, s1);
@@ -2530,6 +2540,18 @@ extern char  MOpTxtStr[];
       tso[its].form = ii;
       goto L_saveExpr;
     }
+
+
+  // test for controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq ..
+    ii = UTX_cmp_word_wordtab (CopTxtTab, s1);
+    if (ii >= 0) {
+      // printf(" found SubCmd %d\n",i1);
+      tso[its].typ = Typ_ope__;
+      tso[its].form = Typ_ope__ + 1 + ii;
+      goto L_saveExpr;
+    }
+
+
 
 
   goto L_err99;  // cannot analyze expr..
@@ -2586,14 +2608,15 @@ extern char  MOpTxtStr[];
 
 
 //================================================================
-  int APED_txo_dump (ObjTXTSRC *tso, char *sl) {
+  int APED_txo_dump (ObjTXTSRC *tso, char *sl, char *auxTxt) {
 //================================================================
 /// sl: NULL or the corresponding codeline
 
   int   its=0, i1, i2;
   char  fmtBuf[32];
 
-  printf("APED_txo_dump \n");
+
+  printf("%s ======================= APED_txo_dump \n",auxTxt);
 
 
   for(;;) {

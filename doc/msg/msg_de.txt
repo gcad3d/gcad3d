@@ -170,7 +170,7 @@ ARC_PT_PT_PT=Kreisbogen durch drei Punkte am Umfang.
 
 PLN_Z_Axis__X_Axis_=Ebene aus Nullpunkt, Z-Achse (Normalvektor), [X-Achsvektor oder Punkt der auf X-Achse]
 PLN_X_Axis__Y_Axis_=Ebene aus Nullpunkt, X-AchsVektor, [Y-Achsvektor oder Punkt auf der Y-Achse]
-PLN_PT_Plane=Ebene parallel zu Ebene, neuer Nullpunkt oder Abstand entlang Z-Achse.
+PLN_PT_Plane_Offset_Angle=Ebene mit neuem Nullpunkt und/oder um Z-Achse gdreht
 
 VEC_cartes__polar=Vektor von Linie oder Vektor oder kartes. [Länge] [REV (umdrehen)]
 VEC_polar_______Angles_Length_=Vektor durch Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)] [Länge] ["REV" (umdrehen)]

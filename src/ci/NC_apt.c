@@ -45,9 +45,9 @@ APT_dec_Par_Obj          paramter from curve-obj
 APT_decode_func          decode functions (<fncnam>(<parameters>))
 APT_decode_inp           aus_typ/aus_tab -> IN_obj
 
-APT_decode_ValTab        aus_typ/aus_tab -> fTab
-APT_decode_ausdr         decode string -> aus_typ/aus_tab
+// APT_decode_ausdr         DO NOT USE; new func: ATO_ato_srcLn__
 APT_decode_ausdr1        decode expr -> aus_typ/aus_tab
+APT_decode_ValTab        aus_typ/aus_tab -> fTab
 APT_decode_comp1         do math operations in aus_typ/aus_tab
 APT_decode_Opm           do math operations
 APT_decode_Fmc           execute math.function
@@ -153,6 +153,8 @@ APT_prj_obj_vc
 APT_prj_obj_perp
 APT_mir_obj
 
+APT_solv_ln_parl_mod     parallel line from DB-line, mod, offset
+APT_solv_vc_mod          perp. vector from vector, normal-vector, mod
 APT_solv_mod
 APT_solv_mod_1
 APT_solv_x_max
@@ -328,7 +330,7 @@ static char  APT_spc1[512];
 
 extern int    APT_prim_typ;
 static long   APT_prim_ind;
-static int    APT_prim_seg;       // active MOD()
+static int    APT_prim_seg;       // active MOD(); segNr; 1=first
 static int    APT_prim_sg2;
 static double APT_prim_par;
 // static void  *APT_prim_dat;
@@ -396,7 +398,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
  
   // printf("MMMMMMMMMMMMM APT_get_mod1 %d\n",APT_modMax1);
 
-  return APT_prim_seg;
+  return (IMAX(APT_prim_seg,0));
 
 }
 
@@ -3614,17 +3616,19 @@ static  CurvPoly plg1;
       ox1 = DB_GetCurv  ((long)aus_tab[0]);
         // UT3D_stru_dump (Typ_ObjGX, ox1, "ex _GetCurv");
 
-      i1 = aus_tab[1];
+      i1 = aus_tab[1] - 1;  // segNr -> indNr; 0=first.
 
       *iNew = 1;        // do not copy data ...
 
       if(ox1->typ == Typ_CVCCV) {
-        // get bin-obj of CCV-segment
+        // get bin-obj of CCV-segment into obj1
         irc = UT3D_obj_ccv_segnr (&i2, obj1, i1, ox1);
           // printf(" ex ccv_segnr irc=%d seg#=%d typ=%d\n",irc,i1,i2);
         if(irc < 0) return -1;
           // UT3D_stru_dump (i2, obj1, "ex _ccv_segnr");
+
         if(UTO_ck_curvForm(i2) != Typ_ObjGX) goto Par_err;
+
         // create ox of bin-obj
         OGX_SET_OBJ (cvo, i2, i2, 1, obj1);
 
@@ -4136,7 +4140,7 @@ static  TraRot  trr;
 
 
 
-  oTab = UME_alloc_tmp (sizeof(ObjGX) * aus_anz);
+  oTab = MEM_alloc_tmp (sizeof(ObjGX) * aus_anz);
 
   for(i1=0; i1<aus_anz; ++i1) {
     OGX_ox_ato1 (&oTab[i1], &aus_typ[i1], &aus_tab[i1]);
@@ -4276,6 +4280,85 @@ static  TraRot  trr;
 
 
 //=============================================================================
+  int APT_decode_pln_rsys (Plane *pln1,
+                           int aus_anz, int aus_typ[], double aus_tab[]) {
+//=============================================================================
+// decode R=RSYS ..
+
+  int      i1, iNxt, iTst;
+  Point    pto;
+  double   ar;
+  Mat_4x3  ma;
+
+
+  // printf("APT_decode_pln_rsys %d\n",aus_anz);
+  // for(i1=0; i1<aus_anz; ++i1)
+  // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+
+
+  iNxt = 1;
+
+
+  // get origin
+  if(aus_typ[iNxt] == Typ_PT) {
+    pto = DB_GetPoint ((long)aus_tab[iNxt]);
+    ++iNxt;
+    iTst = 0;
+  } else iTst = 1;
+
+
+  // get base-refsys
+  if(aus_typ[iNxt] == Typ_PLN) {
+    DB_GetRef (pln1, (long)aus_tab[iNxt]);
+    ++iNxt;
+  } else {
+    *pln1 = WC_sur_act;
+  }
+
+
+  // fix origin pto
+  if(iTst) pto = pln1->po;
+    // UT3D_stru_dump (Typ_PT, &pto, "_pln_rsys: pto");
+
+
+  // get offsets for origin
+  if(aus_typ[iNxt] == Typ_XVal) {
+    // move po along X-axis
+    UT3D_pt_traptmultvc (&pto, &pto, &pln1->vx, aus_tab[iNxt]);
+    ++iNxt;
+  }
+  if(aus_typ[iNxt] == Typ_YVal) {
+    // move po along Y-axis
+    UT3D_pt_traptmultvc (&pto, &pto, &pln1->vy, aus_tab[iNxt]);
+    ++iNxt;
+  }
+  if(aus_typ[iNxt] == Typ_ZVal) {
+    // move po along Z-axis
+    UT3D_pt_traptmultvc (&pto, &pto, &pln1->vz, aus_tab[iNxt]);
+    ++iNxt;
+  }
+
+  // get angle 
+  if(aus_typ[iNxt] == Typ_Angle) {
+    ar = UT_RADIANS (aus_tab[iNxt]);
+    // rotate x-axis and y-axis see UT3D_vc_rotvcangr
+    UT3D_m3_inirot_angr (ma, NULL, &pln1->vz, ar);
+    UT3D_vc_travcm3 (&pln1->vx, ma, &pln1->vx);
+    UT3D_vc_travcm3 (&pln1->vy, ma, &pln1->vy);
+  }
+
+  // fix new origin
+  UT3D_pl_ptpl (pln1, &pto);
+
+
+    // UT3D_stru_dump (Typ_PLN, pln1, "ex APT_decode_pln_rsys");
+
+  return 0;
+
+}
+
+
+//=============================================================================
   int APT_decode_pln1 (Plane *pln1,
                        int aus_anz, int aus_typ[], double aus_tab[]) {
 //=============================================================================
@@ -4294,50 +4377,19 @@ static  TraRot  trr;
   // for(i1=0; i1<aus_anz; ++i1)
   // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
 
-
   // pt1 = WC_sur_act.po;
   pt1 = UT3D_PT_NUL;
-
 
   // PERP
   if(aus_typ[0] == Typ_cmdNCsub)
     return APT_decode_pln2 (pln1, aus_anz, aus_typ, aus_tab);
 
 
-/*
-  int     iPerp;
-  // fix iPerp
-  iPerp = 0;     // 0 = x-axis [y-axis]; 1 = z-axis [x-axis]
-
-  // first param
-  if((aus_typ[0] == Typ_cmdNCsub)    &&
-     (aus_tab[0] == T_PERP))                 {
-    iPerp = 1;     // 0 = x-axis [y-axis]; 1 = z-axis [x-axis]
-    // remove first param
-    --aus_anz;
-    ++aus_typ;
-    ++aus_tab;
-  }
-
-  // last param
-  if((aus_typ[aus_anz - 1] == Typ_cmdNCsub)  &&
-     (aus_tab[aus_anz - 1] == T_PERP))             {
-    iPerp = 1;     // 0 = x-axis [y-axis]; 1 = z-axis [x-axis]
-    // remove last param
-    --aus_anz;
-  }
-    printf(" iPerp=%d aus_anz=%d\n",iPerp,aus_anz);
-*/
 
 
   //================================================================
   if(aus_anz == 1) {
   //================================================================
-
-
-    //==================================================================
-    // Das Achsensystem (eigentlich eine Plane) aus einer Equation bestimmen
-    // für spätere Transformation.
 
 
     //----------------------------------------------------------------
@@ -4595,7 +4647,7 @@ static  TraRot  trr;
 
 
     //----------------------------------------------------------------
-    // R = R  Val(offset)          // move Refsys
+    // R = R Val(offset)          // move Refsys
     } else if((aus_typ[0] == Typ_PLN)  &&
               (aus_typ[1] == Typ_Val))     {
 
@@ -4758,6 +4810,7 @@ static  TraRot  trr;
 
 
 
+  //----------------------------------------------------------------
   // Plane aus Nullpunkt(pt1), Z-Vektor(vcz) und X_Vektor(vcx)
   L_pvxvz:
   if(WC_sur_ind != 0) {
@@ -4777,6 +4830,7 @@ static  TraRot  trr;
 
 
 
+  //----------------------------------------------------------------
   Fertig:
     // UT3D_stru_dump (Typ_PLN, pln1, "ex APT_decode_pln1");
   return 1;
@@ -5028,9 +5082,42 @@ static  TraRot  trr;
   int APT_decode_spl (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
 // SPL (planare surf)
+/* TODO:
+change to SurStd -> Typ_SURTPS
+
+see ../../doc/gcad_doxygen/Objects-Format.dox
+
+SUR_ck_typ   ANPASSEN !!!!    In die Doku !
+
+P24=P(100 500 0)
+S20=POL P24 P(1500 1500 0) P(500 1500 0) P24
+C20=P(200 100 0) P(400 100 0)
+C21=P(300 100 0) P(300 150 0)
+A22=S20
+A23=C20 C21
+#
+
+WC_Work1
+  APT_work_def
+    APT_store_obj
+      APT_decode_sur
+        APT_decode_spl                             <<<<<<
+      DB_StoreSur
+    APT_Draw__
+      APT_DrawSur
+        GR_DrawSur
+          TSU_DrawSurT_
+            TSU_DrawSurTS    Tess / Disp ungetrimmte/ungelochte Planare Flaeche
+            TSU_DrawSurTP    Tess / Disp getrimmte/gelochte Planare Flaeche
 
 
-static SurStd  sus;
+change APT_decode_spl
+see APT_decode_fsub
+- provide backplane as supporting surface (ObjGX[0]) Typ_PLN
+*/
+
+
+// static SurStd  sus;
 
   int      i1;
   long     l1;
@@ -5848,12 +5935,12 @@ static SurStd  sus;
   Plane   *pla, pln;
 
 
-/*
-  printf("\nAPT_decode_s_cyl |%d|\n",aus_anz);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
-*/
+
+  // printf("\nAPT_decode_s_cyl |%d|\n",aus_anz);
+  // for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // }
+  // UT3D_dump_dbo (aus_typ[1], (long)aus_tab[1], "");
 
 
   // prepare memspc for srv & pt1 & ci1
@@ -6046,9 +6133,9 @@ static SurStd  sus;
 /// \code
 /// APT_decode_modUnlim      get UNL=3|UNL2=2|UNL1=1
 /// retCod   0 (limited)
-///          1 (side 1 limited)
-///          2 (side 2 limited)
-///          3 (both sides unlimited
+///          1 (UNL1 = side 1 limited)
+///          2 (UNL2 = side 2 limited)
+///          3 (UNL  = both sides unlimited
 /// \endcode
 
   int  i1, lTyp;
@@ -8042,7 +8129,7 @@ static ModelRef *mod1, modR1;
   bd1->siz   = aus_anz;
   bd1->data  = memspc55;  // table of BndSur's
 
-    UTO_dump__(bd1, " _decode_sol:");
+    // UTO_dump__(bd1, " _decode_sol:");
 
   return 1;
 
@@ -8609,9 +8696,8 @@ static ModelRef *mod1, modR1;
       ox1p = DB_GetCurv  ((long)aus_tab[0]);
 
       if(aus_typ[1] == Typ_modif) {
-        i1 = aus_tab[1];
+        i1 = aus_tab[1] - 1;   // 0=first.
           // printf(" mod=%d lenStat=%d\n",i1,lenStat);  //0=YES;1=NO
-
 
         // extract subCurve <MOD> out of CCV
         if(ox1p->typ == Typ_CVCCV) {
@@ -8661,7 +8747,7 @@ static ModelRef *mod1, modR1;
       // D(S MOD)         // s=elli, plg, connLn
       // extract Line aus Polygon
       } else if(ox1p->form == Typ_CVPOL) {
-        ++i1;
+        ++i1;    // first seg. = 1
         // printf(" D ex Plg; %d\n",i1);
         rc = UT3D_2pt_segplg (&pt1, &pt2, i1, ox1p->data);
         if(rc < 0) return -1;
@@ -8833,25 +8919,32 @@ static ModelRef *mod1, modR1;
 
 
       ox1p = DB_GetCurv  ((long)aus_tab[0]);
-        // UT3D_stru_dump(Typ_ObjGX, ox1p, "S MOD MOD curv:");
+        UT3D_stru_dump(Typ_ObjGX, ox1p, "S MOD MOD curv:");
 
       // extract Line aus Polygon aus CCV
-      // 1. MOD = segment of CCV;
-      // 2. MOD = segment of Plg;
+      // 1. MOD = segment of CCV; 1=first
+      // 2. MOD = segment of Plg; 1=first
 
       // get segment of ccv;
       if(ox1p->typ != Typ_CVCCV) goto L_parErr;
-      i1 = aus_tab[1];
+      i1 = aus_tab[1] - 1;    // segNr -> indexNr; 0=first.
       // rc = UT3D_obj_segccv (&ox1, i1, ox1p);
       rc = UT3D_obj_ccv_segnr (&typ, obj1, i1, ox1p);
       if(rc < 0) return -1;
-        // UT3D_stru_dump (typ, obj1, " ex _ccv_segnr: ");
+        UT3D_stru_dump (typ, obj1, " ex _ccv_segnr %d",i1);
 
-      if(typ != Typ_CVPOL) goto L_parErr;
-      i1 = aus_tab[2] + 1;      // MOD(1) liefert 0 !
-      rc = UT3D_2pt_segplg (&pt1, &pt2, i1, obj1);
-      if(rc < 0) return -1;
-      UT3D_vc_2pt (&vc1, &pt1, &pt2);
+      i1 = aus_tab[2];    // 1=first.
+      if(typ == Typ_CVPOL) {
+        rc = UT3D_2pt_segplg (&pt1, &pt2, i1, obj1);
+        if(rc < 0) return -1;
+        UT3D_vc_2pt (&vc1, &pt1, &pt2);
+
+      } else {   //goto L_parErr;
+        // create tangent to std-point on trimmed curve; 1=startPt, 2=endPt.
+        rc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, i1, typ, obj1);
+        // rc = UT3D_vc_tng_crv_pt (&vc1, &pt1, typ, ox1p);
+        if(rc < 0) return -1;
+      }
       goto Fertig;
 
 
@@ -9320,7 +9413,7 @@ static ModelRef *mod1, modR1;
   int APT_decode_tag (AText *atx,int aus_anz,int aus_typ[],double aus_tab[]){
 //===========================================================================
 // N=TAG TextPosition [Linienstartpunkt] [tagColor] [Text]
-// GL_DrawTag1
+// GL_Draw_Tag
 
   int     ii, ip;
 
@@ -9401,8 +9494,8 @@ static ModelRef *mod1, modR1;
 //===========================================================================
   int APT_decode_ldrs (AText *atx,int aus_anz,int aus_typ[],double aus_tab[]){
 //===========================================================================
-// N=LDRS SymbolPos. [StartPoint Line] [symbolTyp]
-// GL_DrawTag1
+// N=LDRS SymbolPos. [StartPoint Line] [symbolTyp] [Color] [EndpointVector]
+// GL_Draw_Tag
 
   int     ii, i1;
   Point   *pp1;
@@ -9423,6 +9516,7 @@ static ModelRef *mod1, modR1;
   // atx->p2  = NULL; p2.x = NAN ?
 
 
+  // SymbolPosition
   if(aus_typ[ii] != Typ_PT) goto L_parErr;
   atx->p1 = DB_GetPoint ((long)aus_tab[ii]);
   ++ii;
@@ -9432,7 +9526,7 @@ static ModelRef *mod1, modR1;
   if((aus_typ[ii] == Typ_Val)   ||
      (aus_typ[ii] == Typ_modif))    {
     i1 = aus_tab[ii];
-    if((i1 >= 0)&&(i1<250)) atx->typ = i1 + 5;  // offset 5 !
+    if((i1 >= 0)&&(i1<250)) atx->typ = i1 + 5;  // offset 5 !  ???
     else goto L_parErr;
     ++ii;
   }
@@ -9446,16 +9540,16 @@ static ModelRef *mod1, modR1;
     ++ii;
   }
 
-  // nur f Vektoren:
-  // f Vektoren auch die Laenge -> scale
+  // for vectors ..
   if(aus_typ[ii] == Typ_PT) {
     pp1 = DB_get_PT ((long)aus_tab[ii]);
     UT3D_vc_2pt ((Vector*)&atx->p2, &atx->p1, pp1);
     // ++ii;
-    atx->scl = UT3D_len_vc ((Vector*)&atx->p2);
+
   } else if (aus_typ[ii] == Typ_VC) {
     *((Vector*)&atx->p2) = DB_GetVector ((long)aus_tab[ii]);
     atx->scl = UT3D_len_vc ((Vector*)&atx->p2);
+
   } else {
     atx->p2.x = 0.;
     atx->p2.y = 0.;
@@ -9463,12 +9557,22 @@ static ModelRef *mod1, modR1;
   }
 
 
-  APT_modMax1 = 6;    // nr of symbols; 0-5
+  // scale
+  if((atx->typ == 4)||(atx->typ == 5)) {
+    // f Vektoren auch die Laenge -> scale
+    atx->scl = UT3D_len_vc ((Vector*)&atx->p2);
+  } else {
+    atx->scl = 1.;   // for Arrowhead
+  }
+
+
+  APT_modMax1 = 7;    // nr of symbols; 0-6
 
   APT_modMax2 = 9;    // nr of colors; 0-8
 
 
-  // UT3D_stru_dump (Typ_ATXT, atx, "ex APT_decode_ldrs");
+    // UT3D_stru_dump (Typ_ATXT, atx, "ex APT_decode_ldrs");
+
   return 0;
 
 
@@ -9729,7 +9833,7 @@ static ModelRef *mod1, modR1;
 //=============================================================================
   int APT_decode_img (AText *atx,int aus_anz,int aus_typ[],double aus_tab[]){
 //=============================================================================
-// N = IMG p1 [p2 LineAtt] Filename [Scale]           // 2D-Image, immer normal
+// N = IMG p1 [p2] [LineAtt] Filename [Scale]           // 2D-Image, immer normal
 
 // see APT_decode_tag: N = TAG Labeltyp p1 [p2 LineAtt] Text    // TextLabel
 
@@ -9746,7 +9850,6 @@ static ModelRef *mod1, modR1;
   // Def:
   atx->typ = 1;
   atx->scl = 0.;
-
 
   ii = 1;
 /*
@@ -9827,7 +9930,8 @@ static ModelRef *mod1, modR1;
   } 
 
 
-  APT_modMax1 = 4;    // nr of linetypes; 0-3
+  // APT_modMax1 = 4;    // nr of linetypes; 0-3
+  APT_modMax1 = DL_GetAttNr ();   // nr of defined linetypes
 
   // UT3D_stru_dump (Typ_ATXT, atx, "ex APT_decode_img");
 
@@ -10305,7 +10409,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
 */
-  int              i1, i2, irc, modFlag, imod, ptNr, modTab[2], typ;
+  int              i1, i2, irc, modFlag, imod, ptNr, modTab[2], mtyp;
   long             il1, il2;
   double           d1, d2, d3, rad, da[20];
   void             *vp1;
@@ -10322,7 +10426,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   Plane            pl1;
   ObjGX            ox1, *ox1p, ox2, *ox2p, *oxTab;
   Memspc           memSeg1;
-  char            obj1[OBJ_SIZ_MAX];
+  ModelRef         *mdr;
+  char             obj1[OBJ_SIZ_MAX];
 
 
 
@@ -10338,6 +10443,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
   // letzter Wert MOD(): -> imod einlesen u entfernen
+  // first value = 1
   if(aus_typ[aus_anz-1] == Typ_modif) {
     --aus_anz;
     imod = aus_tab[aus_anz];
@@ -10380,19 +10486,20 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     // P = L  [mod]        // midpoint, endpoints ..
     } else if(aus_typ[0] == Typ_LN)            {
 
+      APT_modMax1 = 3;                          // 2013-03-17
+
       ln1 = DB_GetLine ((long)aus_tab[0]);
 
       // P=L MOD     Anf-/Endpkt
       if(modFlag > 0) {
-        if(imod == 0) pt1 = ln1.p1;
-        else if(imod == 1) pt1 = ln1.p2;
-        else if(imod == 2) UT3D_pt_mid2pt (&pt1, &ln1.p1, &ln1.p2);
-        APT_modMax1 = 3;                          // 2013-03-17
+        if(imod == 1) pt1 = ln1.p1;
+        else if(imod == 2) pt1 = ln1.p2;
+        else if(imod == 3) UT3D_pt_mid2pt (&pt1, &ln1.p1, &ln1.p2);
         goto Fertig3D;
       }
 
-      // P=L    Mittelpunkt
-      UT3D_pt_mid2pt (&pt1, &ln1.p1, &ln1.p2);
+      // UT3D_pt_mid2pt (&pt1, &ln1.p1, &ln1.p2); // P=L    Mittelpunkt
+      pt1 = ln1.p1;  // P=L  - startpoint
       goto Fertig3D;
 
 
@@ -10403,14 +10510,15 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     // P = C [mod]         (C-Mittelpt)
     } else if(aus_typ[0] == Typ_CI)            {
 
+      APT_modMax1 = 3;
+
       ci1 = DB_GetCirc ((long)aus_tab[0]);
 
       // P = C mod           // Anf od End
       if(modFlag > 0) {
-        if(imod == 0) pt1 = ci1.p1;
-        else if(imod == 1) pt1 = ci1.p2;
-        else if(imod == 2) pt1 = ci1.pc;
-        APT_modMax1 = 3;                          // 2013-03-17
+        if(imod == 1) pt1 = ci1.p1;
+        else if(imod == 2) pt1 = ci1.p2;
+        else if(imod == 3) pt1 = ci1.pc;
         goto Fertig3D;
       }
 
@@ -10426,24 +10534,45 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     // P = S [MOD]                         // Anf od End
     } else if(aus_typ[0] == Typ_CV)           {
 
-      ox1p = DB_GetCurv ((long)aus_tab[0]);
+      il1 = aus_tab[0];
+      ox1p = DB_GetCurv (il1);
+      mtyp = ox1p->form;
 
-      // printf(" curv[%d]Typ=%d siz=%d\n",(int)aus_tab[0],ox1p->typ,ox1p->siz);
+      APT_modMax1 = UTO_ptnr_std_obj (ox1p->form, il1);
+        // printf(" curv[%d]form=%d siz=%d\n",(int)aus_tab[0],mtyp,ox1p->siz);
 
-      // APT_modMax1 = 4;                          // 2013-03-17
+      if       ((mtyp == Typ_CVELL)  ||
+                (mtyp == Typ_CVCLOT))   {
+        // MOD -> Ptyp_
+        i1 = imod;
+        // 1, 2, 3->32, 4->64, 5->65
+        if(imod == 3) i1 = 32;
+        if(imod > 3) i1 += 60;
 
+      } else if((mtyp == Typ_CVPOL)  ||
+                (mtyp == Typ_CVBSP)  ||
+                (mtyp == Typ_CVRBSP))   {
+        i1 = -imod;  // get controlpoints
+      }
+
+
+      irc = UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, i1, Typ_ObjGX, ox1p);
+      goto Exit;
+
+/*
       if(ox1p->typ == Typ_CVELL) {
         if(modFlag == 0) { // kein MOD; centerpoint
           *pt_out = ((CurvElli*)ox1p->data)->pc;
           goto Exit;
         }
-        if(imod == 0) {
+        // handle MOD
+        if(imod == 1) {
           *pt_out = ((CurvElli*)ox1p->data)->p1;
 
-        } else if(imod == 1) {
+        } else if(imod == 2) {
           *pt_out = ((CurvElli*)ox1p->data)->p2;
 
-        } else if(imod == 2) {   // center
+        } else if(imod == 3) {   // center
           *pt_out = ((CurvElli*)ox1p->data)->pc;
 
         } else if(imod == 3) {   // focus on va                  // 2013-03-17
@@ -10455,6 +10584,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
           UT3D_pt_traptvclen (pt_out, &((CurvElli*)ox1p->data)->pc,
                                       &((CurvElli*)ox1p->data)->va, -d1);
         }
+        UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, mType, Typ_CVELL, ox1p->data);
         APT_modMax1 = 5;                                         // 2013-03-17
         goto Exit;
 
@@ -10487,7 +10617,15 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
       } else if(ox1p->typ == Typ_CVCCV) {
-        UT3D_pt_endptccv (pa, ox1p);
+        // UT3D_pt_endptccv (pa, ox1p);
+        if(imod == 0) {  // startpt
+          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, ox1p);
+        } else if(imod == 1) {  // end Pt
+          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_ObjGX, ox1p);
+        }
+        APT_modMax1 = 2;
+        goto Fertig3D;
+
 
       } else {
         goto L_noFunc;
@@ -10495,7 +10633,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
       pt1 = pa[imod];
       goto Fertig3D;
-
+*/
 
 
 
@@ -10530,6 +10668,16 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       *pt_out = pl1.po;
       APT_modMax1 = 0;                          // 2013-03-17
       goto Exit;
+
+
+    //-----------------------------------------------------------------
+    // P = M                 (origin of subModel)
+    } else if(aus_typ[0] == Typ_Model)            {
+      mdr = DB_get_ModRef ((long)aus_tab[0]);
+      *pt_out = mdr->po;
+      APT_modMax1 = 0;
+      goto Exit;
+
 
 
     //-----------------------------------------------------------------
@@ -11168,26 +11316,17 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
       // irc = UT3D_obj_segccv (&ox1, APT_prim_seg, ox1p);
       // get typ,obj1 = subcurve of CCV
-      irc = UT3D_obj_ccv_segnr (&typ, obj1, APT_prim_seg, ox1p);
+      i1 = APT_prim_seg - 1;  // segNr -> indexNr; first=0;
+      irc = UT3D_obj_ccv_segnr (&mtyp, obj1, i1, ox1p);
       if(irc < 0) goto L_noFunc;
 
-/*
-      if(typ == Typ_CVPOL) {
-        // plg in ccv
-        pt1 = ((CurvPoly*)obj1)->cpTab[imod];
-        goto Fertig3D;
+      // get 1=startPt 2=endPt
+      i1 = APT_prim_sg2;
+      if(mtyp == Typ_CVPOL) i1 *= -1;  // only polygon: get cornerpoints
+      irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, i1, mtyp, obj1);
+      if(irc < 0) goto L_noFunc;
+      goto Fertig3D;
 
-      } else {
-*/
-        if(APT_prim_sg2 < 1) {    // MOD(1) kommt hier als 0 !
-          irc = UTO_2pt_limstru (&pt1, NULL, NULL, NULL, typ, obj1);
-        } else {
-          irc = UTO_2pt_limstru (NULL, &pt1, NULL, NULL, typ, obj1);
-        }
-        if(irc < 0) goto L_noFunc;
-        goto Fertig3D;
-
-      // }
 
 
 
@@ -11366,7 +11505,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
     //-----------------------------------------------------------------
-    // P = P  X/Y/Z  X/Y/Z
+    // P = P  X|Y|Z  X|Y|Z
     } else if((aus_typ[0] == Typ_PT)         &&
               (aus_typ[1] >= Typ_XVal)&&(aus_typ[1] <= Typ_ZVal)    &&
               (aus_typ[2] >= Typ_XVal)&&(aus_typ[1] <= Typ_ZVal))      {
@@ -11389,7 +11528,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
     //-----------------------------------------------------------------
-    // P = X/Y/Z  X/Y/Z  X/Y/Z
+    // P = X  Y  Z
     } else if((aus_typ[0] == Typ_XVal)    &&
               (aus_typ[1] == Typ_YVal)    &&
               (aus_typ[2] == Typ_ZVal))      {
@@ -11526,7 +11665,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
               (aus_typ[2] == Typ_Val))           {
 
       ox1p = DB_GetCurv ((long)aus_tab[0]);
-      imod = aus_tab[1];
+      imod = aus_tab[1] - 1;  // segmentNr -> segmentIndex.
       d1   = aus_tab[2];
 
       APT_prim_seg = imod;
@@ -12684,7 +12823,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
   //================================================================
-  } else if (aus_anz    == 2)          {
+  } else if (aus_anz == 2)          {
   //================================================================
 
 
@@ -12742,11 +12881,11 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
       ox1p = DB_GetCurv  ((long)aus_tab[0]);
         // UT3D_stru_dump(Typ_ObjGX, ox1p, "  decode_ln:");
-      i1 = aus_tab[1];
+      i1 = aus_tab[1];    // 1=first.
 
       // extract Line from Polygon
       if(ox1p->form == Typ_CVPOL) {
-        rc = UT3D_2pt_segplg (&pta, &pte, i1+1, ox1p->data);
+        rc = UT3D_2pt_segplg (&pta, &pte, i1, ox1p->data);
         if(rc < 0) return -1;
         goto Fertig;
       }
@@ -12754,6 +12893,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       // extract Line from CCV
       if(ox1p->form == Typ_CVCCV) {
         // get ccv-seg
+        --i1; // segNr -> indexNr; nor 0=first.
         irc = UT3D_obj_ccv_segnr (&i2, obj1, i1, ox1p);
         if(irc < 0) return -1;
         if(i2 != Typ_LN) goto Geom_err;
@@ -12794,18 +12934,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     } else if ((aus_typ[0] == Typ_LN)    &&
                (aus_typ[1] == Typ_Val))   {
 
-    ln1 = DB_GetLine ((long)aus_tab[0]);
-    d1  = aus_tab[1];
-
-    pta = ln1.p1;
-    pte = ln1.p2;
-    UT3D_vc_2pt (&vc1, &pta, &pte);
-
-    i1 = 0;
-    APT_modMax1 = 4;
-    goto L_parall_2;
-
-
+    APT_solv_ln_parl_mod (ln_out, 0, aus_tab[1], (long)aus_tab[0]);
+    goto Exit;
 
 
     //-----------------------------------------------------------------
@@ -12852,12 +12982,12 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
       ci1 = DB_GetCirc  ((long)aus_tab[0]);
       ci2 = DB_GetCirc  ((long)aus_tab[1]);
-      i1 = aus_tab[2] + 1;
-        printf(" imod=%d\n",i1);
+      i1 = aus_tab[2];
+        // printf(" imod=%d\n",i1);
 
 
       APT_modMax1 = UT3D_ln_tng_ci_ci (ln_out, &ci1, &ci2, i1);
-        printf(" APT_modMax1=%d\n",APT_modMax1);
+        // printf(" APT_modMax1=%d\n",APT_modMax1);
       if(APT_modMax1 < 0) goto Par_err;
       goto Exit;
 
@@ -12942,19 +13072,19 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       ox1p = DB_GetCurv ((long)aus_tab[0]);
 
       // extract Line aus Polygon aus CCV
-      // 1. MOD = segment of CCV;
-      // 2. MOD = segment of Plg;
+      // 1. MOD = segmentNr of CCV; 1=first
+      // 2. MOD = segmentNr of Plg; 1=first
 
       // get segment of ccv;
       if(ox1p->typ != Typ_CVCCV) goto Par_err;
-      i1 = aus_tab[1];   // 0=first seg.
+      i1 = aus_tab[1] - 1;   // segNr -> indexNr; 0=first seg.
         // get bin-obj of CCV-segment
         irc = UT3D_obj_ccv_segnr (&i2, obj1, i1, ox1p);
         if(irc < 0) return -1;
         // if(UTO_ck_curvForm(i1) != Typ_ObjGX) goto Par_err;
         if(i2 != Typ_CVPOL) goto Par_err;
         // get Line of Polygon
-        i1 = aus_tab[2] + 1;
+        i1 = aus_tab[2];  // segNr
         rc = UT3D_2pt_segplg (&pta, &pte, i1, obj1);
         if(rc < 0) return -1;
         goto Fertig;
@@ -13202,8 +13332,11 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
              (aus_typ[1] == Typ_Val)         &&
              (aus_typ[2] == Typ_modif))       {
 
+    APT_modMax1 = 4;
+    APT_solv_ln_parl_mod (ln_out,(int)aus_tab[2],aus_tab[1],(long)aus_tab[0]);
+    goto Exit;
 
-
+/*
     ln1 = DB_GetLine ((long)aus_tab[0]);
     d1  = aus_tab[1];
     i1 = aus_tab[2];
@@ -13211,8 +13344,6 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     pta = ln1.p1;
     pte = ln1.p2;
     UT3D_vc_2pt (&vc1, &pta, &pte);
-
-
 
 
     if(i1 == 0) {
@@ -13284,7 +13415,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     UT3D_pt_traptvclen (&pte, &pte, &vc2, d1);
     APT_modMax1 = 4;
     goto Fertig;
-
+*/
 
 
 
@@ -13391,7 +13522,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     pt1 = DB_GetPoint ((long)aus_tab[0]);
     vc1 = DB_GetVector ((long)aus_tab[1]);
 
-    if(lTyp == 0) lTyp = 3;  // default = both sides unlimited
+    if(lTyp == 0) lTyp = 1;  // default = side 1 unlimited
 
     if(aus_anz == 2) goto Fertig_e_v;
     // ACHTUNG: pt1 muss der Startpunkt sein; sonst geht zB A20=CYL L(P20 DZ)
@@ -14539,6 +14670,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
                        int Dreh, int iMod) {
 //=============================================================================
 // Circ = Tang Tang Radius
+//   iMod    0-7  (0=first,1=second !!)
 
   int        i1, oNr;
   double     rdc;
@@ -14547,7 +14679,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   Circ       cia[8];
 
 
-  // printf("\nAPT_decode_cttr %d\n",aus_anz);
+  // printf("\nAPT_decode_cttr aus_anz=%d iMod=%d\n",aus_anz,iMod);
   // for(i1=0; i1<aus_anz; ++i1) {
     // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
@@ -14576,7 +14708,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
   // in Reihenfolge P-L-C bringen
-  if((oa1[1].form == Typ_PT)||(oa1[0].form == Typ_CI))
+  // if((oa1[1].form == Typ_PT)||(oa1[0].form == Typ_CI))  do NOT swap same types
+  if(oa1[1].form < oa1[0].form)
     MEM_swap__ (&oa1[0], &oa1[1], sizeof(ObjGX));
 
 
@@ -14733,6 +14866,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   ii = aus_anz - 1;
   if(aus_typ[ii] == Typ_modif) {
     iMod = aus_tab[ii];
+    if(iMod) --iMod;  // make 0=0; 1=0; 2=1; 3=2; ..
     --ii;
     --aus_anz;
   }
@@ -14794,7 +14928,9 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     if((aus_typ[1] == Typ_PT)        &&
        (aus_typ[2] == Typ_PT)        &&
        (aus_typ[3] == Typ_Val))           {
-      //
+ 
+       APT_modMax1 = 2;
+
       // printf(" C=ARC A E r\n");
       pp1 = DB_get_PT ((long)aus_tab[1]);  // pa
       pp2 = DB_get_PT ((long)aus_tab[2]);  // pe
@@ -15090,6 +15226,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     } else if ((aus_typ[0] == Typ_PT)    &&
                (aus_typ[1] == Typ_LN))             {
 
+      APT_modMax1 = -2;
+
       ci3d.pc = DB_GetPoint ((long)aus_tab[0]);
       ln1     = DB_GetLine ((long)aus_tab[1]);
 
@@ -15139,7 +15277,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       UPRJ_def__ (i1, o1, 1, NULL);
       ii = sizeof(memspc011);
       o2 = memspc011;
-      APT_prim_seg = 0;  // MOD() !
+      APT_prim_seg = iMod;  // MOD() !
       // rc = UPRJ_app__ (o2, &i2, &ii, 1, &ci3d.pc, Typ_PT, &APTSpcTmp);
       rc = UPRJ_app__ (&oxo, 1, &ci3d.pc, Typ_PT, &APTSpcTmp);
       if(rc < 0) goto Par_err;
@@ -16007,6 +16145,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
                         int aus_siz, char** data) {
 //================================================================
 /// \code
+/// DO NOT USE; new func: ATO_ato_srcLn__
 /// decode sourceObj -> atomicObj
 /// Names ("xx #name") must have been removed
 /// \endcode
@@ -16241,7 +16380,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
   int  ii, io;
 
-  printf("APT_decode_Opm\n");
+  // printf("APT_decode_Opm\n");
 
   ii = ato->nr - 1;
 
@@ -17391,18 +17530,22 @@ see also SRC_typ_FncNam
   int APT_store_obj (int *eTyp, long *eInd,
                      int aus_anz, int* aus_typ, double* aus_tab) {
 /*==========================================================================*/
-// Ein Objekt eTyp aus den Parametern aus_typ/aus_tab erzeugen;
-//   Objekt in der DB speichern.
-// MemoryUsage:
-//   Die decode-Funktionen benutzen die globalen Memspc APTSpcObj,APTSpcTmp.
-//   Sind nach DB-speichern wieder frei.
-// Input:
-//   eTyp eInd            ErgebnisTyp u DB-Index 
-//   aus_typ[] aus_tab[]  die decodierten Eingabeparameter
-//                        if(!aus_anz) return typ and ind of last processed obj
-
-// Retcode -1: Fehler;
-// Retcode -2: nicht mehr zeichnen !
+/// \code
+/// Ein Objekt eTyp aus den Parametern aus_typ/aus_tab erzeugen;
+///   Objekt in der DB speichern.
+/// MemoryUsage:
+///   Die decode-Funktionen benutzen die globalen Memspc APTSpcObj,APTSpcTmp.
+///   Sind nach DB-speichern wieder frei.
+/// Input:
+///   eTyp eInd            ErgebnisTyp u DB-Index 
+///   aus_typ[] aus_tab[]  die decodierten Eingabeparameter
+///                        if(!aus_anz) return typ and ind of last processed obj
+/// Output:
+///   Retcode -1: Fehler;
+///   Retcode -2: nicht mehr zeichnen !
+///
+/// see also APT_obj_ato
+/// \endcode
 
 // TODO: change Att_ln -> Ind_Att_ln
 
@@ -17968,16 +18111,19 @@ see also SRC_typ_FncNam
           oSiz = OBJ_SIZ_MAX;
           i1 = APT_tra_obj (obj1, oTyp, &oSiz,
                             aus_anz, aus_typ, aus_tab, &APTSpcObj);
-          if(i1 < 0) return -1;
+          goto L_PLN_sav;
+
+        } else if((int)aus_tab[0] == T_RSYS) {   // R = RSYS ..
+          i1 = APT_decode_pln_rsys ((Plane*)obj1, aus_anz, aus_typ, aus_tab);
           goto L_PLN_sav;
         }
 
       }
       i1 = APT_decode_pln1 ((Plane*)obj1, aus_anz, aus_typ, aus_tab);
-      if(i1 < 0) goto Problem1;
       // UTO_dump__ (&ox1, "T[%d]:",defInd);
  
       L_PLN_sav:
+      if(i1 < 0) goto Problem1;
       DB_StoreRef (defInd, (Plane*)obj1);
       break;
 
@@ -19743,10 +19889,11 @@ Rückgabewert ist der gefundene Index.
   // }
 
 
-  // letzter Wert MOD(): -> imod einlesen u entfernen
+  // get last val = solution-nr MOD(): -> APT_prim_seg
   if(aus_typ[aus_anz-1] == Typ_modif) {
     --aus_anz;
     APT_prim_seg = aus_tab[aus_anz];
+    if(APT_prim_seg) --APT_prim_seg;  // make 0=0; 1=0; 2=1 ....
   } else {
     APT_prim_seg = 0;
   }
@@ -19854,8 +20001,8 @@ Rückgabewert ist der gefundene Index.
   i1 = UPRJ_app__ (oxo, 1, obji, oWhat.typ, wrkSpc);
   if(i1 < 0) return i1;
 
-    UTO_dump__ (oxo, "ex APT_prj_obj_perp");
-    printf("PPPPPPPPPPPPPPPPPPPPPPPPPP ex APT_prj_obj_perp\n");
+    // UTO_dump__ (oxo, "ex APT_prj_obj_perp");
+    // printf("PPPPPPPPPPPPPPPPPPPPPPPPPP ex APT_prj_obj_perp\n");
 
 
   return (oxo->typ);
@@ -20767,6 +20914,7 @@ static Line lno;
   if(aus_anz > 3) {
     if(aus_typ[3] != Typ_modif) goto L_err1;
     imod = aus_tab[3];
+    if(imod) --imod;  // make 0=0; 1=0; 2=1; 3=2; ..
   } else {
     imod = 0;
   }
@@ -20835,7 +20983,7 @@ static Line lno;
     // TNG CI CI
     } else if(typ1 == Typ_CI) {
       UTO_obj_getp (&obj1, &i1, &o1);
-      i1 = UT3D_ln_tng_ci_ci (&lno, obj1, obj2, imod+1);
+      i1 = UT3D_ln_tng_ci_ci (&lno, obj1, obj2, imod);
       goto L_tng_9;
     }
   }
@@ -21108,7 +21256,7 @@ static Line lno;
       --aus_anz;
     } else { i1 = 4; goto ParErr; }
   }
-    printf(" outTyp=%d\n",outTyp);
+    // printf(" _INT__-outTyp=%d\n",outTyp);
 
 
 
@@ -21117,11 +21265,12 @@ static Line lno;
   i1 = aus_anz - 1;
   if(aus_typ[i1] == Typ_modif) {
     imod = aus_tab[i1];
+    if(imod) --imod;  // make 0=0; 1=0; 2=1; 3=2; ..
     --aus_anz;
   } else {
     imod = 0;
   }
-    printf(" outTyp=%d imod=%d\n",outTyp,imod);
+    // printf(" _INT__-outTyp=%d imod=%d\n",outTyp,imod);
 
 
 
@@ -21244,20 +21393,21 @@ static Line lno;
 
   // intersect 2 surfs; result = curve
   // make 2 lists of db-obj's 
-  typ1Tab = (int*) UME_alloc_tmp (no1 * sizeof(int));
-  dbi1Tab = (long*) UME_alloc_tmp (no1 * sizeof(long));
+  typ1Tab = (int*) MEM_alloc_tmp (no1 * sizeof(int));
+  dbi1Tab = (long*) MEM_alloc_tmp (no1 * sizeof(long));
   APT_grp_decode2 (typ1Tab, dbi1Tab, io1, no1, aus_typ, aus_tab);
 
-  typ2Tab = (int*) UME_alloc_tmp (no2 * sizeof(int));
-  dbi2Tab = (long*) UME_alloc_tmp (no2 * sizeof(long));
+  typ2Tab = (int*) MEM_alloc_tmp (no2 * sizeof(int));
+  dbi2Tab = (long*) MEM_alloc_tmp (no2 * sizeof(long));
   APT_grp_decode2 (typ2Tab, dbi2Tab, io2, no2, aus_typ, aus_tab);
 
-  oDat = (char*) UME_alloc_tmp (OBJ_SIZ_MAX);
+  oDat = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
 
   iMaxSol = UTO_INT_susu (&oTyp, &oDat,
                           typ1Tab, dbi1Tab, no1,
                           typ2Tab, dbi2Tab, no2,
                           imod, outTyp, tSpc1);
+  if(oTyp < 1) return -1;
   if(iMaxSol < 0) return -1;
 
     // UT3D_stru_dump (oTyp, oDat, "ex APT_INT__");
@@ -21372,7 +21522,7 @@ static Line lno;
   // [aus[4] = modifier for 2. CuttingObj]
   if(inxt >= aus_anz) goto L_trim_1;
   if(aus_typ[inxt] == Typ_modif)  {
-    imod = aus_tab[inxt] + 1;
+    imod = aus_tab[inxt];
     // ++inxt;
   }
 
@@ -21441,8 +21591,8 @@ static Line lno;
 //=======================================================================
 // make a list of db-obj's (copy iNr records from aus_typ & aus_tab)
 // you must provide memspace for i1 & la !
-// ia = (int*) UME_alloc_tmp (iNr * sizeof(int));
-// la = (long*) UME_alloc_tmp (iNr * sizeof(long));
+// ia = (int*) MEM_alloc_tmp (iNr * sizeof(int));
+// la = (long*) MEM_alloc_tmp (iNr * sizeof(long));
 // Input:
 //   iStart    startPos in aus..
 //   iNr       nr of objs
@@ -21492,6 +21642,84 @@ static Line lno;
 
 }
 
+
+//=========================================================================
+  int APT_solv_vc_mod (Vector *vco, Vector *vci, Vector *vcn, int imod) {
+//=========================================================================
+// APT_solv_vc_mod    perp. vector from vector, normal-vector, mod
+// Input:
+//   vcn     vector normal to vector vci (= imod-1 / lateral left)
+//   imod:   1, 2 lateral left / right; 3, 4 top / bottom. 0=undefined=1
+//           
+
+
+  if        (imod < 2)  {   // 0,1 left
+    *vco = *vcn;
+
+  } else if (imod == 2) {   // 2   right
+    UT3D_vc_invert (vco, vcn);
+
+  } else if (imod == 3) {   // 3   top
+    // make z from x=vci   y=vcn
+    UT3D_vc_perp2vc (vco, vci, vcn);
+
+  } else                {   // 4   bottom
+    // make z from x=vci, y=vcn then invert
+    UT3D_vc_perp2vc (vco, vci, vcn);
+    UT3D_vc_invert (vco, vco);
+
+  }
+
+    // UT3D_stru_dump (Typ_VC, vco, "ex APT_decode_vc_mod ");
+
+  return 0;
+
+}
+
+
+//=========================================================================
+  int APT_solv_ln_parl_mod (Line *lno, int imod, double dist, long dbiLn) {
+//=========================================================================
+// APT_solv_ln_parl_mod     parallel line from DB-line, mod, offset
+// Input:
+//   imod     1, 2 lateral left / right; 3, 4 top / bottom
+//   dist     distance 
+//   dbiLn    DB-index of line
+
+    int      i1, i2;
+    Vector   vci, vcn, vco, *vz;
+    void     *vp1;
+
+
+    // get data
+    i1 = DB_GetObjDat (&vp1, &i2, Typ_LN, dbiLn);
+      // UT3D_stru_dump (i1, vp1, " o ");
+
+    UT3D_vc_ln (&vci, (Line*)vp1);
+      // UT3D_stru_dump (Typ_VC, &vci, " vci ");
+
+    vz = &WC_sur_act.vz;
+
+    // get normal-vector vcn from vci and WC_sur_act
+    UT3D_vc_perp2vc (&vcn, vz, &vci);
+      // UT3D_stru_dump (Typ_VC, &vcn, " vcn ");
+      // GR_Disp_vc (&vcn, &((Line*)vp1)->p1, 8, 1);
+
+    // test if vcn == 0 (vci == vcz). Yes: set vcn = WC_sur_act.vy
+    if(UT3D_compvc0(&vcn, UT_TOL_min0)) vcn = WC_sur_act.vy;
+
+    // make line-offset-vector vco from mod and normal-vector vcn
+    APT_solv_vc_mod (&vco, &vci, &vcn, imod);
+    UT3D_vc_setLength (&vco, &vco, dist);
+      // UT3D_stru_dump (Typ_VC, &vco, " vco-len-1: ");
+
+    // translate line
+    UT3D_ln_tra_vc (lno, (Line*)vp1, &vco);
+      // GR_Disp_ln (lno,  9);
+
+    return 0;
+
+}
 
 
 /* ----------- eof -------------- */

@@ -535,8 +535,8 @@ extern Point     *GLT_pta;
   // contour: typ=td1->typCov  data=td1->datCov
   // spine:   typ=td1->typPath data=td1->datPath
   // get contour
-  pNr = pMax;
-  i1 = UT3D_npt_obj (&pNr, &pTab[0], td1->typCov, td1->datCov, 1, tol);
+  pNr = 0;
+  i1 = UT3D_npt_obj (&pNr, &pTab[0], pMax, td1->typCov, td1->datCov, 1, tol);
   if(i1 < 0) return -1;
   // transfer points onto basic-plane pl1
   for(i1=0; i1<pNr; ++i1) {
@@ -583,8 +583,10 @@ extern Point     *GLT_pta;
 
   //----------------------------------------------------------------
   // get polygon from spine
-  pNr = pMax - ipa; // max nr of points
-  UT3D_npt_obj (&pNr, &pTab[ipa], td1->typPath, td1->datPath, 1, tol);
+  // pNr = pMax - ipa; // max nr of points
+  // UT3D_npt_obj (&pNr, &pTab[ipa], td1->typPath, td1->datPath, 1, tol);
+  pNr = 0; // max nr of points
+  UT3D_npt_obj (&pNr, &pTab[ipa], pMax - ipa, td1->typPath, td1->datPath, 1, tol);
 
   // add as curve
   OGX_SET_OBJ (&cvTab[cvNr], Typ_PT, Typ_PT, pNr, &pTab[ipa]);
@@ -1192,7 +1194,7 @@ extern Point     *GLT_pta;
 
 
   // transfer 2D-point into pl1
-  UT3D_pt_tra_pt_2vc1_2par (pt3, &pl1.po, &pl1.vx, pt21.x, &pl1.vy, pt21.y);
+  UT3D_pt_tra_pt_2vc_2par (pt3, &pl1.po, &pl1.vx, pt21.x, &pl1.vy, pt21.y);
 
 
 
@@ -1310,7 +1312,7 @@ extern Point     *GLT_pta;
     datCov = tdSwp->datCov;
     gbh1->iy = ((CurvPoly*)datCov)->ptNr;
     // get normalized values for points
-    da = (double*)UME_alloc_tmp (sizeof(double) * iy);
+    da = (double*)MEM_alloc_tmp (sizeof(double) * iy);
     UT3D_plg_npar1_npar (da, datCov);
     // add gridbox-points with y-valTab da
     pNr = UT3D_grd_ptya (&pa2D, gbh1, da);
@@ -1410,8 +1412,8 @@ extern Point     *GLT_pta;
 
   // get space for bSur's
   sNr = MEMTAB_IND (fmt);   // nr of bSur
-  bSur = (void*) UME_alloc_tmp (sizeof(ObjGX) * sNr);
-  bFac = (void*) UME_alloc_tmp (sizeof(ObjGX) * sNr);
+  bSur = (void*) MEM_alloc_tmp (sizeof(ObjGX) * sNr);
+  bFac = (void*) MEM_alloc_tmp (sizeof(ObjGX) * sNr);
 
 
   // Create mesh (topmost obj)
@@ -1425,7 +1427,7 @@ extern Point     *GLT_pta;
       UT3D_stru_dump (Typ_IndTab, itAct, "it[%d]",i1);
     // get space for points
     pNr = itAct->iNr;
-    p2a = (void*) UME_alloc_tmp (sizeof(Point) * pNr);
+    p2a = (void*) MEM_alloc_tmp (sizeof(Point) * pNr);
     // copy points -> pa
     ia1 = &ia0[itAct->ibeg];
     for(i2=0; i2<pNr; ++i2) {

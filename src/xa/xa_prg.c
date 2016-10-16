@@ -140,7 +140,7 @@ APP_act_nam
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1, mem_cbuf1
 #include "../xa/xa_ui_gr.h"            // UI_GR_get_actPos_
 #include "../xa/xa.h"                  // AP_dir_prg AP_sym_prg APP_act_*
-
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
 
 #define CKBTYP 1
@@ -954,7 +954,7 @@ typedef_MemTab(ObjRange);
   char   *cp1, *cp2;
 
 
-  // printf("PRG_dec_defLn PRG_stat=%d\n",PRG_stat);
+  // printf("PRG_dec_defLn PRG_stat=%d |%s|\n",PRG_stat,cbuf);
 
 
   // check for NEW
@@ -1001,7 +1001,7 @@ typedef_MemTab(ObjRange);
 //     1        command (eg "V1=10"), continue
 //     2        execute jump
 
-// see APT_work_PrgCmd:4245
+// see also APT_work_TPC_IF
 
 
 
@@ -1009,6 +1009,7 @@ typedef_MemTab(ObjRange);
   int       aus_typ[10];
   double    aus_tab[10];
   char      *p1, *p2;
+  ObjAto    ato1;
 
 
 
@@ -1024,8 +1025,6 @@ typedef_MemTab(ObjRange);
   UTX_pos_skipLeadBlk(p2); // p2 is the following command now
 
 
-  aus_anz = APT_decode_ausdr (aus_typ, aus_tab, 10, &p1);
-  if(aus_anz < 3) goto L_Error;
     // for(irc=0; irc<aus_anz; ++irc) {
       // printf(" %d typ=%d tab=%f\n",irc,aus_typ[irc],aus_tab[irc]);
     // }
@@ -1034,14 +1033,19 @@ typedef_MemTab(ObjRange);
 
   //----------------------------------------------------------------
   // evaluate command; -1=Error, 0=no, 1=yes.
-  irc = APT_eval_if (aus_typ, aus_tab);
-    // printf(" _eval_if %d |%s|\n",irc,p2);
-  if(irc < 0) return -1;    // err
+  ATO_getSpc_tmp__ (&ato1, 6);
+  // decode data
+  ATO_ato_srcLn__ (&ato1, p1);
+
+  // work IF
+  irc = APT_eval_if (ato1.typ, ato1.val);
+
+  if(irc < 0) goto L_Error;
   if(irc == 0) return 0;    // no
 
-  //yes; check for jump
+  // 1, yes; check for jump
   if(UTX_ck_casenChr(p2, "JUMP" , 4) == 0) {
-    p2 += 4;
+    p2 += 4;   // skip the "JUMP"
     UTX_pos_skipLeadBlk(p2);
     irc = 2;
     *cmd = p2;
@@ -1100,8 +1104,7 @@ typedef_MemTab(ObjRange);
 
 
   // decode expr
-  ATO_getSpc__ (&ato);  // get memspc55,memspc54
-  ato.ilev = memspc012;
+  ATO_getSpc__ (&ato);  // get memspc55,memspc54,memspc53
   irc = ATO_ato_srcLn__ (&ato, sExpr);
     // printf(" irc=%d\n",irc);
     // ATO_dump__ (&ato);
@@ -1383,6 +1386,10 @@ typedef_MemTab(ObjRange);
     }
 
 
+    // extract objectName -> AP_ED_oNam        2016-10-07
+    APED_onam_cut (cbuf);
+
+
     // evaluate line (change <V#> into value of V#; eg "P<V1>=" -> "P3=")
     irc = PRG_eval_subst (cbuf);
     if(irc < 0) {TX_Print("PRG_start E002 %s",cbuf); goto L_err1;}  // return -1;
@@ -1417,7 +1424,6 @@ typedef_MemTab(ObjRange);
       if(irc == 0) goto L_nxt_ln;
       if(irc == 2) goto L_jump;
     }
-
 
     // is it a definitionLine of a Variable of Formtab ?
     iCod = APED_dec_defLn (&cp1, &iTyp, &iInd, cbuf);

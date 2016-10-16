@@ -121,11 +121,12 @@ void   GL_DrawSymV          (long*, int, int att, Point*, double);
 void   GL_DrawSymV2         (long*, int, int att, Point*, Point*, double);
 void   GL_DrawSymV3         (long*, int, int att, Point*, Vector*, double);
 void   GL_DrawTxtA          (long*, int, Point *, char *);
-void   GL_DrawTxtG          (long *ind, int att,
-                             Point *P1, float size, float ang, char *txt);
+void   GL_DrawTxtG          (long *ind, int att, GText *tx1);
+// void   GL_DrawTxtG          (long *ind, int att,
+                             // Point *P1, float size, float ang, char *txt);
 void   GL_DrawDimen         (long *ind, int att, Dimen *dim1);
 void   GL_DrawDitto2 (long *ind, Point *p1, double az, char mir, Ditto *di);
-void   GL_DrawModel  (long *ind, int att, ModelRef *mdr, ModelBas *mdb);
+int    GL_DrawModel  (long *ind, int att, ModelRef *mdr, ModelBas *mdb);
 
 int    GL_txt__             (int dMod, int bMod,
                             Point *ptx, double txAng, double ay, double az,

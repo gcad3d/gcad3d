@@ -9,7 +9,7 @@ void ATO_getSpc_tmp__ (ObjAto *ato, int sizTab);
 /// Input: siz   size of type/value-table
 /// Example: ObjAto ato; ATO_getSpc_tmp__ (&ato, 6);
 #define ATO_getSpc_tmp__(ato1,siz)\
- (ato1)->typ=(int*)UME_alloc_tmp(ATO_getSpc_tmpSiz(siz));\
+ (ato1)->typ=(int*)MEM_alloc_tmp(ATO_getSpc_tmpSiz(siz));\
  ATO_getSpc_tmp1(ato1,siz)
 
 

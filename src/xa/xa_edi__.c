@@ -431,7 +431,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 
   // get tempspace
-  p1 = UME_alloc_tmp (l2);
+  p1 = MEM_alloc_tmp (l2);
 
 
   // get editor -> tempspace

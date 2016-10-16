@@ -33,6 +33,8 @@ List_functions_start:
 
 UT3D_stru_dump       
 UT3D_dump__
+UT3D_dump_dbo           dump DB-object
+UT3D_dump_txt
 OVR_dump_add
 
 List_functions_end:
@@ -116,6 +118,34 @@ UT3D_dump_txt
 }
 
 
+//================================================================
+  int UT3D_dump_dbo (int typ, long dbi, char *txx) {
+//================================================================
+/// UT3D_dump_dbo            dump DB-object
+
+  int     i1, iNr;
+  char    oid[40];
+  void    *dbs;
+
+
+  printf("UT3D_dump_dbo %d %ld |%s|\n",typ,dbi,txx);
+
+  APED_oid_dbo__  (oid, typ, dbi);
+
+  // get data for dbo
+  typ = DB_GetObjDat (&dbs, &iNr, typ, dbi);
+
+  // dump data
+  for(i1=0; i1<iNr; ++i1) {
+    UT3D_stru_dump (typ, dbs, " %s %s",oid,txx);
+// TODO
+    if(iNr>1) printf("XXXXXXXXXXX TODO UT3D_dump_dbo for arrays XXXXXXXXX \n");
+  }
+
+  return 0;
+
+
+}
 
 
 //===============================================================
@@ -216,7 +246,7 @@ static FILE     *uo = NULL;
   // fprintf(uo, "%s",cbuf);                    //2010-01-01
 
 
-  // p1 = (char*) UME_alloc_tmp (tmpSiz);   // 50k
+  // p1 = (char*) MEM_alloc_tmp (tmpSiz);   // 50k
 
   irc = -1;
   i1 = 100000;  // space for outputdata
@@ -1346,13 +1376,13 @@ static FILE     *uo = NULL;
 */
 
   //----------------------------------------------------------------
-  } else if((typ == Typ_Model) ||
+  } else if((typ == Typ_Model) ||                  // ModelRef
             (typ == Typ_Mock))     {
     mdr = data;
     sprintf(cps,"ModelReference %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_refM);
-    sprintf(cps," (ModelRef).mod=%d scl=%f mnam=%s",
-            mdr->modNr,mdr->scl,mdr->mnam);
+    sprintf(cps," (ModelRef).mod=%d scl=%f",
+            mdr->modNr,mdr->scl);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps," (ModelRef).po=%12.3f,%12.3f,%12.3f",
             mdr->po.x,mdr->po.y,mdr->po.z);
@@ -1371,7 +1401,7 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_SubModel) {
+  } else if(typ == Typ_SubModel) {                     // ModelBas
     mdb = data;
     sprintf(cps,"BasicModel %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_natM);
@@ -1383,13 +1413,15 @@ static FILE     *uo = NULL;
     sprintf(cps," (ModelBas).po= %12.3lf,%12.3lf,%12.3lf",
             mdb->po.x, mdb->po.y, mdb->po.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    i3 = sprintf(cps," (ModelBas).pb1=%12.3f,%12.3f,%12.3f",
+    if(UT3D_pt_isFree(&mdb->pb1)) strcpy (cps, " (ModelBas).pb1 not set ..");
+    else sprintf(cps," (ModelBas).pb1=%12.3f,%12.3f,%12.3f",
             mdb->pb1.x, mdb->pb1.y, mdb->pb1.z);
-    if(i3 > 60) strcpy (cps, " (ModelBas).pb1 not set ..");
+    // if(i3 > 60) strcpy (cps, " (ModelBas).pb1 not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    i3 = sprintf(cps," (ModelBas).pb2=%12.3f,%12.3f,%12.3f",
+    if(UT3D_pt_isFree(&mdb->pb2)) strcpy (cps, " (ModelBas).pb2 not set ..");
+    else sprintf(cps," (ModelBas).pb2=%12.3f,%12.3f,%12.3f",
             mdb->pb2.x, mdb->pb2.y, mdb->pb2.z);
-    if(i3 > 60) strcpy (cps, " (ModelBas).pb2 not set ..");
+    // if(i3 > 60) strcpy (cps, " (ModelBas).pb2 not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -1434,8 +1466,8 @@ static FILE     *uo = NULL;
     sprintf(cps,"Text %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     if(cp1 == NULL) cp1 = (char*)&UT_CHR_NULL;
-    sprintf(cps," ATX |%s| typ=%d col=%d ltyp=%d scl=%f",cp1,
-      atx->typ,atx->col,atx->ltyp,atx->scl);
+    sprintf(cps," ATX |%s| typ=%d col=%d ltyp=%d scl=%f xSiz=%d ySiz=%d",cp1,
+      atx->typ,atx->col,atx->ltyp,atx->scl,atx->xSiz,atx->ySiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    p1=%9.3f,%9.3f,%9.3f",atx->p1.x,atx->p1.y,atx->p1.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1449,8 +1481,8 @@ static FILE     *uo = NULL;
     gtx = data;
     sprintf(cps,"Graph.Text %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," GTX dir=%.2f size=%.2f |%s|",
-      gtx->dir,gtx->size,gtx->txt);
+    sprintf(cps," GTX |%s| dir=%.2f size=%.2f xSiz=%d ySiz=%d",
+                 gtx->txt, gtx->dir, gtx->size, gtx->xSiz, gtx->ySiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    pt=%9.3f,%9.3f,%9.3f",gtx->pt.x,gtx->pt.y,gtx->pt.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1526,7 +1558,7 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
 
 
-
+/*
   //----------------------------------------------------------------
   } else if(typ == Typ_ValX) {
     sprintf(cps,"X-Value %s = %f",txt,*((double*)data));
@@ -1541,22 +1573,22 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_ValZ) {
     sprintf(cps,"Z-Value %s = %f",txt,*((double*)data));
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
-
+*/
 
   
   //----------------------------------------------------------------
   } else if(typ == Typ_XVal) {
-    sprintf(cps,"X-Dist. %s = %f",txt,*((double*)data));
+    sprintf(cps,"X-Value %s = %f",txt,*((double*)data));
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
 
   //----------------------------------------------------------------
   } else if(typ == Typ_YVal) {
-    sprintf(cps,"Y-Dist. %s = %f",txt,*((double*)data));
+    sprintf(cps,"Y-Value %s = %f",txt,*((double*)data));
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
 
   //----------------------------------------------------------------
   } else if(typ == Typ_ZVal) {
-    sprintf(cps,"Z-Dist. %s = %f",txt,*((double*)data));
+    sprintf(cps,"Z-Value %s = %f",txt,*((double*)data));
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
 
 

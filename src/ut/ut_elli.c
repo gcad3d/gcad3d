@@ -159,7 +159,7 @@ cl -c ut_geo.c
 #include <string.h>
 
 
-// #include "../ut/ut_umem.h"   // UME_alloc_tmp
+// #include "../ut/ut_umem.h"   // MEM_alloc_tmp
 #include "../ut/ut_geo.h"
 #include "../ut/ut_math.h"   // UTM_scale_4db
 
@@ -196,7 +196,7 @@ cl -c ut_geo.c
 
   if(!va1) {
     // get local space
-    va1 = UME_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
   }
 
   for(i1=0; i1 < *nrp; ++i1) {
@@ -793,8 +793,8 @@ cl -c ut_geo.c
 /// IN:
 ///   CurvElli *el  ... 3D-ellipse
 /// OUT:
-///   Point *fp1   ... focal point 1 (in direction of main axis)
-///   Point *fp2   ... focal point 2
+///   Point *fp1   focal point 1 (in direction of main axis); NULL = none
+///   Point *fp2   focal point 2                              NULL = none
 /// Returncodes:
 ///   0 = OK
 ///  -1 = input error
@@ -816,9 +816,9 @@ cl -c ut_geo.c
   le = sqrt(le);
 
   // focal points
-  UT3D_pt_traptvclen (fp1, &(el->pc), &(el->va), le);
+  if(fp1) UT3D_pt_traptvclen (fp1, &(el->pc), &(el->va), le);
   UT3D_vc_invert (&iva, &(el->va));
-  UT3D_pt_traptvclen (fp2, &(el->pc), &iva, le);
+  if(fp2) UT3D_pt_traptvclen (fp2, &(el->pc), &iva, le);
 
   return 0;
 }
@@ -1265,7 +1265,7 @@ cl -c ut_geo.c
 
     // parametric-point (0-1): multiply va,vb, done !
     // move from pc along vcx, vcx and multiply
-    UT3D_pt_tra_pt_2vc1_2par (&pa[ip], &el3->pc,
+    UT3D_pt_tra_pt_2vc_2par (&pa[ip], &el3->pc,
                               &vcx, pt21.x,
                               &vcy, pt21.y);
       // if(ao < 6)
@@ -1555,7 +1555,7 @@ cl -c ut_geo.c
 
   i1 = *numpt * sizeof(Point2);
   if(i1 < sizeof(Point2)) {printf("***** UT3D_cv_ell E001\n");return -1;}
-  pa2 = (Point2*) UME_alloc_tmp (i1);
+  pa2 = (Point2*) MEM_alloc_tmp (i1);
 
   // circ -> polygon
   UT2D_cv_ci_ (pa2, numpt, &ci2, *numpt, -1.);
@@ -3023,6 +3023,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //===========================================================================
 /// UT3D_vc_tng_elptMaj           tangents point-ellipse; point on majorAxis
 /// 2013-04-18 Reiter
+/// isol          0|1
 //
 // get tangent to circle with radius = elli.Maj.
 // Tria.b(Circ.rad) = elli.a; 
@@ -3100,6 +3101,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //================================================================
 /// UT3D_vc_tng_elpt           tangents point-ellipse; point on minorAxis
 /// 2013-04-18 Reiter
+///   isol      0|1
 // see also UT3D_vc_tangel
 //
 //     + B=pt1

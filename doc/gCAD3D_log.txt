@@ -1,10 +1,19 @@
-Version 2.33 / 2015-06-02
+Version 2.34 / 2016-10-05
 
-- testversion
+- CAD - Plane definition extended. See www.gCAD3D.org/doc/CAD_PLN_en.htm#F2
+- CAD - new symbol Arrowhead (N Symbol, symbolType 6)
+- CAD - selection of catalogparts fixed
+- CAD - Measure PT / Obj: normals to all types of curves added
+- Menu Display: new option "Background white" (use eg with "save as JPG")
+- automatic scaling (button "Scal.All") rewritten
+
+Programlines (C)  431188
+Functions           3956
+
 
 
 ===========================================================================
-Version 2.32 / 2015-04-02
+Version 2.32 / 2016-04-02
 
 - new function: File /save Model as / JPG   (copy grafic-window)
 - print-module: output of surfaces (by using http://www.geuz.org/gl2ps)

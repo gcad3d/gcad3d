@@ -104,6 +104,7 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 
 
 #include "../gui/gui_types.h"           // UI_Func..
+
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 // #include "../ut/ut_os.h"               // OS_get_bas_dir ..
@@ -112,8 +113,8 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_cast.h"             // PTR_INT
 #include "../ut/ut_TX.h"               // TX_Print
+// #include "../ut/func_types.h"          // FUNC_..
 
-#include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_GL.h"               // GL_GetCen
 // #include "../db/ut_DB.h"               // DB_GetGTxt

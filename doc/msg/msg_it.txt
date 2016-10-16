@@ -170,7 +170,7 @@ ARC_PT_PT_PT=Arco di circonferenza da: 3 punti su un arco
 
 PLN_Z_Axis__X_Axis_=Plane from origin, Z-axis (normalvector), [x-axis-vector or point on x-axis]
 PLN_X_Axis__Y_Axis_=Plane from origin, X-axisvector, [y-axis-vector or point on y-axis]
-PLN_PT_Plane=Plane parallel to Plane, new origin or offset along z-axis.
+PLN_PT_Plane_Offset_Angle=Plane with new origin and/or rotated around Z-axis
 
 VEC_cartes__polar=Vettore da linea o vettore o cartes. [lunghezza] [REV (reverso)]
 VEC_polar_______Angles_Length_=Vettore da: angolo di rotazione intorno all'asse Z, [angolo di inclinazione rispetto al piano xy] [lunghezza] [REV (reverso)]

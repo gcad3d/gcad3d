@@ -250,7 +250,7 @@ N24=TAG P(250 50 50) P(200 0 0) VAL(7) "N24[nP25"
   <h2>N Symbol                    LDRS</h2>
 Ein Symbol oder einen Vektor darstellen.
 
-N=LDRS SymbolPosition [symbolTyp] [Farbe] [Endpoint Vector]
+N=LDRS SymbolPosition [symbolTyp] [Farbe] [Endpoint_Vector]
 
   <a href="CAD_Base_de.htm#P">SymbolPosition</a>
   [symbolTyp]: 
@@ -258,14 +258,17 @@ N=LDRS SymbolPosition [symbolTyp] [Farbe] [Endpoint Vector]
      1 = Dreieck klein
      2 = Kreis klein
      3 = Rechteck gross
-     4 = Vektor normiert (immer gleich lang)
-     5 = Vektor (mit korrekter Länge)
+     4 = Vektor normiert (immer gleich lang, Pfeilspitze zeigt auf auf Endpoint_Vector)
+     5 = Vektor (mit korrekter Länge, Pfeilspitze ist auf Endpoint_Vector)
+     6 = Pfeilspitzen 2D (SymbolPosition ist die Pfeilspitze)
   [<a href="CAD_Base_de.htm#iCol">color</a>]:  Farbe
-  [Endpoint_Vector]:  Endpunkt des Vektor (nur fuer symbolTyp 4 und 5).
+  [Endpoint_Vector]:  Endpunkt des Vektor (nur fuer symbolTyp 4, 5 und 6).
 
 Beispiel:
+# kleines Dreieck, rot, auf Position 350,50,50
 N25=LDRS P(350 50 50) 1 2
-
+# Pfeilspitze am Ende von Linie L21
+N20=LDRS P(L21 MOD(2)) 6 P(L21 MOD(1))
 
 
 <p><a name="F11"></a></p>
@@ -278,7 +281,7 @@ N# = IMG Bildposition [Startpunkt_Linie] [Linientyp] Filename [Scale]
 
   <a href="CAD_Base_de.htm#P">ImagePosition</a>: linke untere Bildposition
   [StartPoint Line]:  der Startpunkt einer Verbindungslinie zur linken unteren Bildposition
-  [Linetyp]:  -1 = keine Verbindungslinie.
+  [Linetyp]:  <a href="Settings_de.htm#Linetypes">Typ Verbindungslinie</a>
   Filename: der Dateiname einer Bilddatei (.jpg oder .bmp).
     Aktivieren des Filedialog mit der mittleren Maustaste im Grafikfenster.
     Das Verzeichnis ist als Symbol zu definieren (Siehe Symbolische Dateibezeichnungen).

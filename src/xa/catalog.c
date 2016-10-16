@@ -32,11 +32,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-CTLG_fnWrite_modelnam    create .write-Filename from partName
+CTLG_fnWrite_modelnam    get filename for parameters to modify
 CTLG_mnam_modelnam       find symDir/Modelname from partName
 CTLG_mnam_PartID           returns internal Modelname
 CTLG_PartID_mnam         returns PartID from internal Modelname
-CTLG_Part_Ref1           create catalogreference
+CTLG_Part_Ref1           create file tmp/<catalog>_<part>.write (modif. params)
+CTLG_dat_del             delete all parameter-files
 CTLG_getCatDir           return symbol "CATALOG" (directory for .ctlg-files)
 CTLG_Sel_wPartLst        create new childList in  file tmp/catParts.lst
 CTLG_Lst_write           create tmp/Catalog.lst
@@ -92,20 +93,26 @@ user-select Part:
 
 
 ----------------------------------------------------------------------
-Funktionsweise:
+Funktionsweise:          see also ../../doc/html/Catalog_en.htm
 ----------------------------------------------------------------------
-Format Makro:
-ctlgNam;gcadPrgNam;parameters..
+- baseModel    (Example: Schrau/SKS.gcad)
+  is a gcad-model;
+  must have this line: "CALL CTLG"
+    (at runtime now the parametfile is excuted)
 
-gcadPrg:
-  enthält eine Zeile:
-  CALL CTLG
-  damit wird das <ctlgNam>.write ausgeführt !
+- catalogFile  (Example: ctlg/Schrauben.ctlg)
+  one line for each part; the format is:
+  partName;baseModel;parameter[;parameter ..];
+  catalog-files are in symbolic directory "CATALOG"
 
 
-es wird file /tmp/<ctlgNam>.write erzeugt;
-  enthält alle v#=value -commands (aus dem ctlg-Makro)
+- using catalogparts  (Example: "M20=CTLG "Schrauben/SKS_6x30" P(100 0 0)")
+  the format is:
+  M# = CTLG "<catalogfilename>/<partName>" <position_orientation>
 
+CTLG_Part_Ref1 
+  Create file tmp/<catalog>_<part>.write (with parameters different to basModel)
+  extracted parameters from catalog-file, overwrites values in baseModel.
 
 
 
@@ -121,8 +128,11 @@ WC_Work__
 APT_decode_model
   CTLG_mnam_PartID
 
-APT_work_PrgCmd   :4217
-  CALL CTLG
+APT_work_PrgCodTab
+  APT_work_TPC_CALL "CALL CTLG"
+    CTLG_fnWrite_modelnam
+    APT_UP_up
+    return (PrgMod_skip_until_file)   // 6
 
 
 */
@@ -142,10 +152,11 @@ APT_work_PrgCmd   :4217
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../ut/func_types.h"              // UI_FuncSet
-#include "../xa/xa_mem.h"             // memspc011
 #include "../ut/ut_os.h"              // OS_get_bas_dir
 #include "../db/ut_DB.h"              // DB_get_ModRef
 
+#include "../xa/xa_mem.h"             // memspc011
+#include "../xa/xa_msg.h"             // MSG_STD_ERR
 
 
 
@@ -154,6 +165,10 @@ APT_work_PrgCmd   :4217
 #ifdef globTag
  void CTLG(){}
 #endif
+
+
+
+static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
 
@@ -190,17 +205,18 @@ APT_work_PrgCmd   :4217
 
 
   // printf("CTLG_fnWrite_modelnam |%s|\n",modelnam);
-  // DB_dump_ModRef (); // gibts keine ..
+
 
   sprintf(fnam, "%s",OS_get_tmp_dir());
   p1 = UTX_pos_EOS (fnam);
 
-  // sprintf(p1, "%s.write",modelnam);
   strcat(p1, modelnam);
-  UTX_safeName (p1, 1); // change '. /\\'
-  strcat(p1, ".write");
+  UTX_safeName (p1, 1); // change '. /\\' into '_'
 
-    // printf("ex CTLG_fnWrite_modelnam |%s|\n",fnam);
+  strcat(p1, ".");
+  strcat(p1, CATLG_DATFIL_TYP);
+
+    // printf("ex CTLG_fnWrite_modelnam |%s|%s|\n",fnam,modelnam);
 
   return 0;
 
@@ -210,12 +226,14 @@ APT_work_PrgCmd   :4217
 ///================================================================
   int CTLG_mnam_modelnam (char *mnam, char *modelnam) {
 ///================================================================
-/// catalog-Model: den zugehoerigen Modelname suchen
-///   (aus dem write-File, zeile 1 lesen)
+/// \code
+/// catalog-Model: get directory/basicModelname from <catalog>_<part>
+///   (read 1. line of file tmp/<catalog>_<part>.write)
 /// Input:
 ///   modelnam; zB |Schrauben_SKS_6x30|
 /// Output:
 ///   mnam         |Schrauben/SKS.gcad|  (symDir/Modelname)
+/// \endcode
 
 // das 
 
@@ -224,7 +242,6 @@ APT_work_PrgCmd   :4217
 
 
   // printf("CTLG_mnam_modelnam |%s|\n",modelnam);
-  // DB_dump_ModRef (); // gibts keine ..
 
   // den zugehoerigen filename fuer das .write-File machen
   CTLG_fnWrite_modelnam (mnam, modelnam);
@@ -237,7 +254,6 @@ APT_work_PrgCmd   :4217
     TX_Error("Catalog-Model %s not yet loaded",modelnam);
     return -1;
   }
-
 
   strcpy(mnam, &memspc011[2]);
 
@@ -334,26 +350,27 @@ APT_work_PrgCmd   :4217
 ///================================================================
   int CTLG_Part_Ref1 (char *mNam, char *catPart) {
 ///================================================================
-/// Create reference of catalogPart.
-/// basemodel als internes Model umkopieren -
-/// Parameter des part als File xx.write erzeugen
-/// returns internal Modelname.
+/// \code
+/// Prepare creation of catalogPart.
+/// Create file tmp/<catalog>_<part>.write (with parameters different to basModel)
+/// return internal Modelname.
 /// 
 /// Input:
 ///   catPart   the declaration without CTLG | "Schrauben/SKS_10x45" P(0 0 0)|
 /// Output:
 ///   mNam = name of internal Model; size=128
 /// Retcod:
-///   -2 = success ( = type: catalogModel)
-///   -3 = Error
+///    0 = success ( = type: catalogModel)
+///   -1 = Error: cannot find part in catalog
+///   -3 = Error   4 = error open catalogFile
+/// \endcode
 
 // catPart decodieren in catalogName,PartName.
 // den BasmodelName suchen
 // die Parameter des part suchen (get PartLine in CatalogFile)
 // alle parameter aus dem Catalog in eine Datei exportieren
-// (ein tmp/CTLG.write schreiben mit allen Parametern (am ';' getrennt)
+// (ein tmp/<mnam>.write schreiben mit allen Parametern (am ';' getrennt)
 // see also Function "WRITE"
-// das basemodel als internes Model umkopieren
 
 // Beispiel partLine im catalog Schrau.ctlg:
 // SKS_6x10;Schrau/SKS";V1=40;V2=40;V3=600;
@@ -367,7 +384,7 @@ APT_work_PrgCmd   :4217
   ModelBas  *mb;
 
 
-  // printf("CTLG_Part_Ref1 |%s|\n",catPart);
+  printf("CTLG_Part_Ref1 |%s|\n",catPart);
 
 
   // catalogName von catPart abtrennen; maxLen = 62 chars
@@ -385,14 +402,14 @@ APT_work_PrgCmd   :4217
     if(mb == NULL) {irc = 1; goto L_Err__;}
       // printf(" mNr=%d mnam=|%s|\n",mr->modNr,mb->mnam);
     strcpy(mNam, mb->mnam);
-    return -2;   // OK
-    
+    goto L_OK;   // OK
   }
+
   i1 = p1 - catPart;
   if(i1 > 62) {irc = 2; goto L_Err__;}
   strncpy(ctlgNam, catPart, i1);
   ctlgNam[i1] = '\0';
-    // printf(" ctlgNam=|%s|\n",ctlgNam);
+    printf(" ctlgNam=|%s|\n",ctlgNam);
 
   // fix partName
   ++p1;
@@ -402,7 +419,7 @@ APT_work_PrgCmd   :4217
   if(i1 > 62) {irc = -2; goto L_Err__;}
   strncpy(partNam, p1, i1);
   partNam[i1] = '\0';
-    // printf(" partName=|%s|\n",partNam);
+    printf(" partName=|%s|\n",partNam);
 
 
 
@@ -419,7 +436,10 @@ APT_work_PrgCmd   :4217
 
 
   // open catalogFileName
-  if((fp1=fopen(memspc011, "r")) == NULL) {irc = 4; goto L_Err__;}
+  if((fp1=fopen(memspc011, "r")) == NULL) {
+    MSG_STD_ERR (file_open, "'%s'", memspc011);
+    return -2;
+  }
 
 
   // search partName-Line in catalogFile
@@ -446,7 +466,7 @@ APT_work_PrgCmd   :4217
   L_found:
   fclose(fp1);
   ++modDir;
-    // printf(" partLine=|%s|\n",modDir);
+    printf(" partLine=|%s|\n",modDir);
 
 
   // die Parameter des part suchen
@@ -482,7 +502,7 @@ APT_work_PrgCmd   :4217
   // create filename for baseModel
   i1 = strlen(cbuf1);
   sprintf(&cbuf1[i1], "%s.gcad",modNam);
-    // printf(" fnbm=|%s|\n",cbuf1);
+    printf(" fnbm=|%s|\n",cbuf1);
 
   // check if Basemodel exists
   irc = OS_checkFilExist (cbuf1, 2);
@@ -505,10 +525,10 @@ APT_work_PrgCmd   :4217
   //----------------------------------------------------------------
   // parameter sPar in Datei tmp/CTLG.write schreiben (am ';' trennen)
 
-  // create filename for parameterfile - tmp/CTLG.write
+  // create filename for parameterfile - tmp/<catalog>_<part>.write
   // sprintf(cbuf2,"%stmp%c%s.write",OS_get_bas_dir(),fnam_del,mNam);
-  sprintf(cbuf2,"%s%s_%s.write",OS_get_tmp_dir(),ctlgNam,partNam);
-    // printf(" fnpar=|%s|\n",cbuf2);
+  sprintf(cbuf2,"%s%s_%s.%s",OS_get_tmp_dir(),ctlgNam,partNam,CATLG_DATFIL_TYP);
+    printf(" fnpar=|%s|\n",cbuf2);
 
   // open parameterfile
   if((fp1=fopen(cbuf2, "w")) == NULL) {irc = 11; goto L_Err__;}
@@ -537,15 +557,15 @@ APT_work_PrgCmd   :4217
 
   //----------------------------------------------------------------
   // fix the internal Modelname
-  // sprintf(mNam,"%s_%s",ctlgNam,partNam);
   sprintf(mNam,"%s/%s",ctlgNam,partNam);              // 2011-12-18
-  // sprintf(mNam,"%s_%s",ctlgNam,modNam);
-    // printf("ex CTLG_Part_Ref1 |%s|\n",mNam);
 
 
-  return -2;
+  L_OK:
+    printf("ex CTLG_Part_Ref1 irc=0 mNam=|%s|\n",mNam);
+  return 0;
 
 
+  //----------------------------------------------------------------
   L_Err__:
     sprintf(memspc011, "CTLG_Part_Ref1 E%d", irc);
     TX_Error(memspc011);
@@ -558,7 +578,7 @@ APT_work_PrgCmd   :4217
   int CTLG_getCatDir (char *catDir) {
 ///================================================================
 /// \code
-/// return symbold "CATALOG" (directory for .ctlg-files)
+/// return symbol "CATALOG" (directory for .ctlg-files)
 /// Output:
 ///   catDir         size >= 256
 /// \endcode
@@ -636,6 +656,23 @@ APT_work_PrgCmd   :4217
   fprintf(fpo, "%s\n", actCatNam);
   fclose(fpo);
 
+
+  return 0;
+
+}
+
+
+//================================================================
+  int CTLG_dat_del () {
+//================================================================
+/// CTLG_dat_del             delete all parameter-files
+
+  char  cbuf[256];
+
+
+  // catalog-parameterfiles
+  sprintf(cbuf, "%s*.%s",OS_get_tmp_dir(),CATLG_DATFIL_TYP);
+  OS_file_delGrp (cbuf);
 
   return 0;
 

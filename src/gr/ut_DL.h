@@ -40,7 +40,7 @@ long DL_get__        (DL_Att **dl);
 void DL_DumpObjTab   ();
 // int  DL_StoreAtt     (long Ind, GR_Att* att1);
 int  DL_Redraw       ();
-void DL_ReScale__    ();
+int  DL_ReScale__    ();
 // int  DL_save_DYNAMIC_AREA ();
 
 int  DL_GetTyp       (long dli);
@@ -60,7 +60,7 @@ int  DL_hili_off         (long);
 int  DL_pick_set   (long ind, int mode);
 int  DL_grp1_set   (long ind, int mode);
 
-int  DL_hide_all   ();
+int  DL_hide_chg   ();
 void DL_hide__   (long ind, int mode);
 
 void DL_Lay_act_g1 (int layNr, int mode);

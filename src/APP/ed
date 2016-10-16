@@ -16,8 +16,13 @@ OS=Linux${bitNr}
 #echo ${OS}
 
 
-# create list of sourcefiles in file srcFiles
+# get bitNr BINLOC gcad_dir_bin DirBasSer
+. ../options.sh
+
+# create list of gcad-sourcefiles in file srcFiles
 make -f gcad3d.mak srclst > /dev/null
+# add gui-sources
+make -f gcad_gui__.mak add_srclst
 #cat srcFiles
 
 # start

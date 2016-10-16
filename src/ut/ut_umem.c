@@ -41,9 +41,9 @@ List_functions_start:
 
 UME_init              init Memspc with existing space
 UME_malloc            init Memspc, malloc
+UME_alloc_tmp         allocate temp. space (until functions ends)        INLINE
 UME_realloc
 UME_free
-UME_alloca            allocate temp. space for Memspc (until functions ends)
 
 UME_save              save Obj -> Memspc
 UME_reall_save        save and reallocate if necessary
@@ -62,7 +62,7 @@ UME_ck_free           return free space
 UME_ck_tot            report total space
 UME_dump              display free space
 
-UME_alloc_tmp         allocate mem for active function (temp.space)
+MEM_alloc_tmp         allocate mem for active function (temp.space)
 UME_TMP_FILE          allocate temp.memspace for file             INLINE
 
 UME_obj_reserve       reserve space in Memspc and return a MemObj
@@ -93,7 +93,7 @@ List_functions_end:
   int      *iTab;
 
   // tempspace :
-  UME_init (&memSeg1, UME_alloc_tmp (oSiz), oSiz);
+  UME_init (&memSeg1, MEM_alloc_tmp (oSiz), oSiz);
 
 --------------------------
   or:
@@ -186,7 +186,7 @@ List_functions_end:
 ///
 /// Example:
 ///  l1 = OS_FilSiz (fnam);
-///  UME_alloca (&tmpSpc1, l1);
+///  UME_alloc_tmp (&tmpSpc1, l1);
 ///  UME_read__ (&tmpSpc1, fnam);
 /// \endcode
 

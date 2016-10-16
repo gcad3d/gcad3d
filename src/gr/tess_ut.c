@@ -2970,7 +2970,7 @@ static char  mStat[1024];
   if(TSU_ftyp == Mtyp_WRL2) { 
     // get nr of basic-textures TexBasNr
     i1 = Tex_tbNr ();
-    pv1 = UME_alloc_tmp (i1 * sizeof(int));
+    pv1 = MEM_alloc_tmp (i1 * sizeof(int));
     TSU_exp_wrlProto (-i1, pv1);
   }
 
@@ -2991,7 +2991,6 @@ static char  mStat[1024];
 
 
   // Start a Redraw (fills vTab)
-  ED_Reset ();  // ED_lnr_act = 0
   irc = ED_work_END (0);
 
 

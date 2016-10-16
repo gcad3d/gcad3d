@@ -19,6 +19,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2016-09-26 GUI_list1_h2_cb1 fixed. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
 
 -----------------------------------------------------
@@ -115,6 +116,7 @@ static int           GUI_list1_evt;  // TYP_EventPress(MB,Enter-Key)
                                      // TYP_EventEnter (Up,Down,Page-keys)
 static int           GUI_list1_stat; // 1=childList active;
                                      // 2=parentList active;
+                                     // 3=skip handling
 static char          GUI_list1_s1[256], GUI_list1_s2[256],
                      GUI_list1_s3[256], GUI_list1_s4[256];
 
@@ -1066,7 +1068,7 @@ extern int    UI_umbId;
 
   fclose(fpi);
 
-    printf("ex  GUI_list1_f\n");
+    // printf("ex  GUI_list1_f\n");
 
   return 0;
 
@@ -1198,7 +1200,7 @@ extern int    UI_umbId;
   Obj_gui2    *go;
 
 
-  printf("GUI_list1_cbMouse \n");
+  // printf("GUI_list1_cbMouse \n");
 
   if(GUI_OBJ_IS_VALID(&mo)) {   // 2013-04-10
     go = GUI_obj_pos (&mo);
@@ -1207,10 +1209,11 @@ extern int    UI_umbId;
 
 
   typ  = ((GdkEventAny*)ev)->type;
+    // printf("   _list1_cbMouse typ=%d\n",typ);
 
 
   if(typ == GDK_2BUTTON_PRESS) {
-      printf(" doubleClick\n");
+      // printf(" doubleClick\n");
     if(GUI_OBJ_IS_VALID(&mo)) {
       GUI_list1_evt  = TYP_EventPress;
       GUI_list1_msbt = GUI_Mouse2L;
@@ -1227,11 +1230,11 @@ extern int    UI_umbId;
 
   GUI_list1_evt  = TYP_EventPress;
   GUI_list1_msbt = ((GdkEventButton*)ev)->button;
-
-  // printf("GUI_list1_cbMouse typ=%d but=%d\n",typ,GUI_list1_msbt);
+    // printf("   _list1_cbMouse typ=%d but=%d\n",typ,GUI_list1_msbt);
 
 
   L_exit:
+
   return (FALSE);  // FALSE = do further handling of event ..
 
 }
@@ -1403,7 +1406,7 @@ extern int    UI_umbId;
   void         (*uFunc)();
 
 
-  printf("GUI_list1_h2_cb1 bt=%d stat=%d\n",GUI_list1_msbt,GUI_list1_stat);
+  // printf("GUI_list1_h2_cb1 bt=%d stat=%d\n",GUI_list1_msbt,GUI_list1_stat);
 
 
   if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
@@ -1417,13 +1420,15 @@ extern int    UI_umbId;
     // decode selected row
     // iCol = 0;      // get data for first column
     gtk_tree_model_get (model, &iter, 0, &txt1, -1);  // access Spalte 0
-      // printf ("GUI_list1_h2_cb1 c0 |%s|\n",txt1);
+      // printf ("   _list1_h2_cb1 c0 |%s|\n",txt1);
+
 
     if(GUI_list1_stat == 2) {
       // parent selected
       // copy parentTxt
       strcpy(GUI_list1_s3, txt1);
       g_free (txt1);
+      GUI_list1_stat = 3;   // skip following calls ..
       // create new child-list
       uFunc = UI_List_p4;
       uFunc (GUI_list1_s2, GUI_list1_s3);
@@ -1436,6 +1441,13 @@ extern int    UI_umbId;
       // unlock button
       gtk_widget_set_sensitive (UI_List_p3, TRUE);
       GUI_list1_stat = 1;
+      return TRUE;  // stop handling of event  2016-09-26
+
+
+    } else if(GUI_list1_stat == 3) {
+      // gtk3 comes with all following lines ..
+        // printf(" skip follower ..\n");
+      return TRUE;  // stop handling of event  2016-09-26
 
 
     } else {
@@ -1499,13 +1511,14 @@ extern int    UI_umbId;
 ///   selecting parents-button changes childList -> parentList
 ///   selecting parentObject gets new childList by calling funcP
 ///   selecting childObject exits (provides parentText and childText by funcC)
+///   the name of file with childs is the 1. parameter of funcP
 /// 
 /// Input:
 ///   titP     titletext for selection of parent
 ///   titC     titletext for selection of child
 ///   lButP    caption parents-button
 ///   txtP     active parent
-///   fnamP    Name of file for parents
+///   fnamP    Name of file with parents
 ///   funcP    user has selected a parent; create childlist from selected parent.
 ///   funcC    user has selected a child; exit and report selection -> user.
 ///   opts       options; (HorSiz,VertSiz)
@@ -1538,9 +1551,9 @@ extern int    UI_umbId;
 
 
 
-  printf("GUI_list1_h2 |%s|\n",opts);
-  printf("  |%s|%s|\n",titP,titC);
-  printf("  |%s|\n",fnamP);
+  // printf("GUI_list1_h2 |%s|\n",opts);
+  // printf("  |%s|%s|\n",titP,titC);
+  // printf("  |%s|\n",fnamP);
 
   // parentsFile must exist
   if(OS_checkFilExist(fnamP, 1) != 1) return -2;

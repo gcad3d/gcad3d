@@ -62,9 +62,11 @@ List_functions_end:
                          unsigned char gci,
                          unsigned char bci) {
 //================================================================
-// DXF_colACI_colRGB          returns ACI-color from RGB-color
-// ACI = AutoCad Color Index
-// based on the work of moses@subatomic.com
+/// \code
+/// DXF_colACI_colRGB          returns ACI-color from RGB-color
+/// ACI = AutoCad Color Index
+/// based on the work of moses@subatomic.com
+/// \endcode
 
 
   static unsigned char Rca[] = {
@@ -366,7 +368,7 @@ List_functions_end:
 
   //----------------------------------------------------------------
   // // YES, IS PARALLEL
-    printf(" _load_mat - Z-parallel %lf\n",d1);
+    // printf(" _load_mat - Z-parallel %lf\n",d1);
   irc = 0;
   // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
@@ -381,7 +383,7 @@ List_functions_end:
   // NOT PARALLEL
   // NEIN: Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
   Nicht_Z_Parallel:
-    printf(" _load_mat - NOT Z-parallel %lf\n",d1);
+    // printf(" _load_mat - NOT Z-parallel %lf\n",d1);
 
   irc = 1;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Z, vz);

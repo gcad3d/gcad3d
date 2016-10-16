@@ -40,7 +40,7 @@ Modifications:
 List_functions_start:
 
 UT3D_par_clotpt         get parameter of clot from point
-UT3D_npt_curvp          Polygon <-- clothoid curve
+UT3D_npt_clot          Polygon <-- clothoid curve
 UT3D_pt_intclotptvc     intersect line(pt+vc) with Clothoid
 UT3D_pt_prjclotpt       project point onto Clothoid
 UT3D_ptvc_evparclot     get point&tangent on Clothoid from parameter
@@ -75,7 +75,7 @@ List_functions_end:
   clot.ce  = 0.1;  // 0.3 - 0.1
   clot.lr  = 0;
   UT3D_stru_dump (Typ_CVCLOT, &clot, "clot=");
-  UT3D_npt_curvp (pTab, &ptNr, Typ_CVCLOT, &clot, 0.01);
+  UT3D_npt_clot (pTab, &ptNr, Typ_CVCLOT, &clot, 0.01);
     GR_Disp_cv (pTab, ptNr, 9);
 
 
@@ -174,7 +174,7 @@ L_InErr:
 /// \code
 /// UT3D_pt_intclotptvc     intersect line(pt+vc) with Clothoid
 /// gives also parameter of intersectionPoint (from 0-1)
-/// see UT3D_pt_intlnbspl UT3D_npt_curvp
+/// see UT3D_pt_intlnbspl UT3D_npt_clot
 ///
 /// Output:
 ///   tTab   parallel zu xptab die zugehoerigen parameter 
@@ -326,7 +326,7 @@ L_InErr:
                          Point *lpt, CurvClot *cv, double tol) {
 //================================================================
 // UT3D_pt_prjclotpt       project point onto Clothoid
-// see UT3D_pt_intlnbspl UT3D_npt_curvp
+// see UT3D_pt_intlnbspl UT3D_npt_clot
 
 // Output:
 //   tTab   parallel zu xptab die zugehoerigen parameter 
@@ -470,9 +470,38 @@ L_InErr:
 
 
 //================================================================
-  int UT3D_npt_curvp (Point *pTab, int *ptNr,
-                      int cvTyp, void *cv, double tol) {
+  int UT3D_ptNr_clot (int *pNr, CurvClot *clt, double tol) {
 //================================================================
+// estimation nr of points of polygon for clotoid
+
+  double   hv, ts, te, tt;
+  double   rm, aSeg;
+
+
+  UT3D_stru_dump (Typ_CVCLOT, clt, "UT3D_ptNr_clot");
+  printf(" tol=%lf\n",tol);
+
+
+  hv = clt->pc / SR_PI;         // SQRT(PI)
+  ts = hv * clt->cs; // >=0
+  te = hv * clt->ce; // >=0
+  tt = te-ts;
+    printf(" ts=%lf te=%lf tt=%lf\n",ts,te,tt);
+
+
+  rm = clt->pc;  // 100.; // medium radius
+  aSeg = UT2D_angr_ciSec (tol, rm);
+  *pNr =  tt / aSeg;
+    printf(" pNr=%d aSeg=%lf\n",*pNr,aSeg);
+
+  return 0;
+
+}
+
+ 
+//=======================================================================
+  int UT3D_npt_clot (Point *pTab, int *ptNr, CurvClot *clt, double tol) {
+//=======================================================================
 /// \code
 /// make polygon from planar curve (clotoid)
 /// NOT YET SUPPORTED: parabola, hyperbola, ellipsis)
@@ -480,7 +509,6 @@ L_InErr:
 /// Input:
 ///   ptNr         max size of pTab
 ///   pTab[ptNr]   empty
-///   cvTyp        Typ_CVCLOT (unused)
 /// Output:
 ///   ptNr         size of pTab
 ///   RetCod       0=OK; -1=Error
@@ -496,7 +524,7 @@ L_InErr:
   double   t1, t2, t3, td, dc, ts, te, tt, tol1, tol2;
 
 
-  // printf("UT3D_npt_curvp tol=%f\n",tol);
+  // printf("UT3D_npt_clot tol=%f\n",tol);
 
   tol1 = tol / 1.33;
   tol2 = tol * 1.33;
@@ -507,12 +535,13 @@ L_InErr:
 
   // get the Transformation matrix > mc, the startpoint > pts and
   // the startParameter > cl
-  UCV_TrfMatCltCrv (mc, &pt1, &ts, (CurvClot*)cv);
+  UCV_TrfMatCltCrv (mc, &pt1, &ts, clt);
     // printf(" cv.cs=%f cv.ce=%f\n",((CurvClot*)cv)->cs,((CurvClot*)cv)->ce);
     // UT3D_stru_dump (Typ_M4x3, mc, "mc:");
 
   // Endparameter from EndCurvatur
-  te = ((CurvClot*)cv)->pc * ((CurvClot*)cv)->ce / SR_PI;
+  // te = ((CurvClot*)cv)->pc * ((CurvClot*)cv)->ce / SR_PI;
+  te = clt->pc * clt->ce / SR_PI;
 
 
 
@@ -529,11 +558,11 @@ L_InErr:
   L_nxt_par:
     if(ii < 20) {
       ++ii;
-      UCV_Ev2DNxtPtCltCrv (&pt2, cv, ts, &pt1, dc);
+      UCV_Ev2DNxtPtCltCrv (&pt2, clt, ts, &pt1, dc);
         // printf(" dc=%f pt2.y=%f\n",dc,pt2.y);
       if(fabs(pt2.y) < tol1) {dc *= t1; goto L_nxt_par;}
       if(fabs(pt2.y) > tol2) {dc /= t1; goto L_nxt_par;}
-    } else TX_Print("UT3D_npt_curvp I001");
+    } else TX_Print("UT3D_npt_clot I001");
       // printf(" ts=%f te=%f dc=%f iDir=%d\n",ts,te,dc,iDir);
 
   // den Startpunkt raus
@@ -567,14 +596,14 @@ L_InErr:
   L_nxt_pt:
     i1 = i2;
     ++i2;
-    if(i2 >= ptMax) {TX_Error("UT3D_npt_curvp E001"); return -1;}
+    if(i2 >= ptMax) {TX_Error("UT3D_npt_clot E001"); return -1;}
     t1 = t2;
     t2 = t1 + td;
     if(iDir) { if(t2 < t3) goto L_finish;}
     else     { if(t2 > t3) goto L_finish;}
       // printf(" t2[%d]=%f\n",i1,t2);
     // compute next point
-    UCV_Ev2DNxtPtCltCrv ((void*)&pTab[i2], cv, t1, (void*)&pTab[i1], t2);
+    UCV_Ev2DNxtPtCltCrv ((void*)&pTab[i2], clt, t1, (void*)&pTab[i1], t2);
       // GR_Disp_pt2 (&pTab[i2], SYM_STAR_S, 0);
     td *= f1;
     goto L_nxt_pt;
@@ -583,14 +612,14 @@ L_InErr:
 
   // den letzten Punkt raus
   L_finish:
-  UCV_Ev2DNxtPtCltCrv ((void*)&pTab[i2], cv, t1, (void*)&pTab[i1], te);
+  UCV_Ev2DNxtPtCltCrv ((void*)&pTab[i2], clt, t1, (void*)&pTab[i1], te);
       // GR_Disp_pt2 (&pTab[i2], SYM_STAR_S, 0);
   ++i2;
 
 
   // check left/right bend of clothoid polygon
-  if ((((CurvClot*)cv)->lr == 0 && ts > te) ||
-      (((CurvClot*)cv)->lr == 1 && ts < te)) {
+  if ((clt->lr == 0 && ts > te) ||
+      (clt->lr == 1 && ts < te)) {
     for (i1=0; i1<i2; ++i1) pTab[i1].y = -pTab[i1].y;
       // printf(" change side\n");
   }

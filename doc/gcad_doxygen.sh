@@ -85,8 +85,8 @@ myFiles="${srcDirs}\
  ${doxBase}/ProgramFlow.dox\
  ${doxBase}/Programminginfos.dox\
  ${doxBase}/NamingConventions.dox\
- ${doxBase}/Doxygen_hints.dox\
- ${doxBase}/ruler3.dox\
+ ${doxBase}/DevDoc_hints.dox\
+ ${doxBase}/ruler4.dox
 "
 export myFiles
 

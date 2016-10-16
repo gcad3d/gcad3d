@@ -6,6 +6,7 @@
 
 echo "do complete          // do all following"
 echo "do delObj            // delete all objects"
+echo "do guiinit           // rebuild complete libgui
 echo "do gui               // rebuild libgui_gtk2_MS.lib
 echo "do c                 // compile & link core (gCAD3D.exe)"
 echo "do all               // compile & link corelibs"
@@ -17,6 +18,8 @@ echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
 
 
 set gcad_dir_bin=..\..\binMS32\
+set gcad_dir_dev=..\..\
+
 ::set gcad_dir_local=%APPDATA%\
 set gcad_exe=%gcad_dir_bin%gCAD3D.exe
 
@@ -35,6 +38,12 @@ if .%1==. goto L_start
 
 if gui==%1 (
   nmake -f gcad_gui__.nmak
+  goto L_exit
+)
+
+
+if guiinit==%1 (
+  nmake -f gcad3d.nmak guiinit
   goto L_exit
 )
 
@@ -112,18 +121,21 @@ REM normal start
 :L_start
 
 
+set gcad_dir_local=%gcad_dir_dev%
+set gcad_dir_doc=%gcad_dir_dev%doc\
+
 REM change configfiles to MS-Windows if last start was with Unix
-if exist dirMS.lst (
-  copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst dirUX.lst
-  copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc xaUX.rc
-  copy/y dirMS.lst X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst
-  del dirMS.lst
-  copy/y xaMS.rc X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc
+if exist UX.lock (
+  set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
+  copy/y %cfgDir%xa.rc %cfgDir%xaUX.rc
+  copy/y %cfgDir%dir.lst %cfgDir%dirUX.lst
+  copy/y %cfgDir%xaMS.rc %cfgDir%xa.rc
+  copy/y %cfgDir%dirMS.lst %cfgDir%dir.lst
+  del UX.lock
+  echo MS > MS.lock
 )
 
 
-set gcad_dir_local=X:\Devel\GITHUB\gcad3d\
-set gcad_dir_doc=X:\Devel\GITHUB\gcad3d\doc\
 %gcad_exe% %1
 goto L_exit
 

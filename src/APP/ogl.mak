@@ -1,4 +1,5 @@
 # OpenGL - libs
+# returns OGLLIB
 
 
 ifeq "$(OS)" "MS32"

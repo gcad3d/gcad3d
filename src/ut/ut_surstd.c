@@ -276,9 +276,9 @@ List_functions_end:
 }
 
 
-//================================================================
-  int UT3D_cv_scir__ (int *pNr, Point *pa, ObjGX *oxi) {
-//================================================================
+//=================================================================
+  int UT3D_cv_scir__ (int *pNr, Point *pa, int paSiz, ObjGX *oxi) {
+//=================================================================
 // UT3D_cv_scir__            get boundary-points from SURCIR (tesselated fan)
 // returns array of points; max. 4
 // see also UT3D_cv_sru_ UT3D_cv_pls__
@@ -296,6 +296,11 @@ List_functions_end:
   //----------------------------------------------------------------
   if(oxi->typ != Typ_SURCIR) goto L_err1;
 
+  return UT3D_npt_obj (pNr, pa, paSiz,
+                       Typ_ObjGX, oxi->data, oxi->siz, UT_DISP_cv);
+
+
+/*
   oa = oxi->data;
 
   if(oxi->siz < 3) goto L_not_supp;
@@ -311,20 +316,11 @@ List_functions_end:
       pa[i1] = DB_GetPoint (dbi);
         // UT3D_stru_dump(Typ_PT, &pa[i1], "  pa[%d]:",i1);
 
-/*
-    // oxi->data ist Pointer zu den Punktrecords;
-    } else if(oxp1->form == Typ_PT) {
-      pTab = oxp1->data;
-      pa[i1] = pTab[i1];
-*/
-
     } else {
       TX_Error("UT3D_cv_scir__ E_CIR %d %d",oxi->form,oxi->siz);
       return -1;
     }
-
     ++oa;
-
   }
 
 
@@ -333,12 +329,13 @@ List_functions_end:
 
 
   //----------------------------------------------------------------
-  L_err1:
-  TX_Error("UT3D_cv_scir__ E001 %d %d",oxi->form,oxi->siz);
-  return -1;
-
   L_not_supp:
   TX_Error("UT3D_cv_scir__ E002 %d",oxi->typ);
+  return -1;
+*/
+
+  L_err1:
+  TX_Error("UT3D_cv_scir__ E001 %d %d",oxi->form,oxi->siz);
   return -1;
 
 }
@@ -796,13 +793,13 @@ List_functions_end:
 
 
 
-  printf("UT3D_ptvc_sur typ=%d form=%d\n", su1->typ,su1->form);
-  UTO_dump__ (su1, "");
+  // printf("UT3D_ptvc_sur typ=%d form=%d\n", su1->typ,su1->form);
+  // UTO_dump__ (su1, "");
 
 
   // check surTyp
   i1 = SUR_ck_typ (&sTyp, &ox1p, &i2, su1);
-    printf(" surTyp=%d %d\n",i1,sTyp);
+    // printf(" surTyp=%d %d\n",i1,sTyp);
 
 
   if(sTyp == Typ_SURPLN) {

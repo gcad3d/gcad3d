@@ -63,7 +63,7 @@ tess_siz2             find nr of triangles in tesselated surface
 
 List_functions_end:
 =====================================================
-TODO: tess_box_sph tess_box_con tess_origin_set_sph tess_origin_set_con tor?
+TODO: tess_origin_set_sph tess_origin_set_con tor?
 - see also:
 TSU_tess_addf       add Mockup-Filestruct oxi to existing Mockup-struct TSU_vMem
 TSU_imp_tess        import Mockup from file into Mockup-struct
@@ -107,6 +107,13 @@ wrl_reloc__         see also tess_reloc_f_
  {(tria)->pa[0] = pt1;\
   (tria)->pa[1] = pt2;\
   (tria)->pa[2] = pt3;}
+
+
+
+//===========================================================================
+//=============== extern glob. vars ======================
+// ex ../xa/xa.c:
+extern Plane     WC_sur_act;            // Constr.Plane
 
 
 
@@ -1347,7 +1354,7 @@ use in GL_disp_cone
   ObjGX       *ox1;
 
 
-  printf("tess_box_get\n");
+  // printf("tess_box_get\n");
 
   // init box
   UT3D_box_ini0 (pb1, pb2);
@@ -1380,8 +1387,8 @@ use in GL_disp_cone
   L_fertig:
 
       // TESTBLOCK
-      UT3D_stru_dump(Typ_PT, pb1, "tess_box_get pb1=");
-      UT3D_stru_dump(Typ_PT, pb2, "tess_box_get pb2=");
+      // UT3D_stru_dump(Typ_PT, pb1, "tess_box_get pb1=");
+      // UT3D_stru_dump(Typ_PT, pb2, "tess_box_get pb2=");
       // END TESTBLOCK
 
     return 0;
@@ -1450,12 +1457,12 @@ use in GL_disp_cone
         tess_box_fac (pb1, pb2, oxs);
 
 
-      // } else if(oxs->form == Typ_SPH) {
-        // tess_origin_sph (oxs, fpo);
+      } else if(oxs->form == Typ_SPH) {
+        UT3D_box_Sphere (pb1, pb2, (Sphere*)oxs->data);
 
 
-      // } else if(oxs->form == Typ_CON) {
-        // tess_origin_con (oxs, fpo);
+      } else if(oxs->form == Typ_CON) {
+        UT3D_box_Conus (pb1, pb2, (Conus*)oxs->data);
 
 
       } else if(oxs->form == Typ_VC) {
@@ -1485,6 +1492,70 @@ use in GL_disp_cone
 
 }
 
+/*
+//================================================================
+  int UT3D_box_Conus (Point *pb1, Point *pb2, ObjGX *oxi) {
+//================================================================
+// 2 points; cen + r-vx + r-vy + r-vz
+
+  Conus     *co1;
+  Circ      ci1;
+  Point     po, p1, p2;
+  
+
+  co1 = oxi->data;
+
+  UT3D_stru_dump (Typ_CON, co1, " UT3D_box_Conus ");
+
+  // get bottom-circ
+  po = co1->pl.po;
+  UT3D_ci_ptvcr (&ci1, &po,  &co1->pl.vz,  co1->r1);
+  UT3D_box_ci (&p1, &p2, &ci1);
+  UT3D_box_extend (pb1, pb2, &p1);
+  UT3D_box_extend (pb1, pb2, &p2);
+
+
+  // UT3D_pt_traptmultvc (&p1, &sp1->pc, &WC_sur_act.vx, sp1->rad)
+// 
+  // UT3D_pt_traptmultvc (&p2, &p1, &WC_sur_act.vy, sp1->rad)
+// 
+  // UT3D_box_extend (pb1, pb2, &p2);
+// 
+  // UT3D_pt_opp2pt (&p1, &sp1->pc, &p2);
+// 
+  // UT3D_box_extend (pb1, pb2, &p1);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_box_Sphere (Point *pb1, Point *pb2, ObjGX *oxi) {
+//================================================================
+// 2 points; cen + r-vx + r-vy + r-vz
+
+  Sphere    *sp1;
+  Point     p1, p2;
+
+  sp1 = oxi->data;
+
+  // UT3D_stru_dump (Typ_SPH, sp1, " UT3D_box_Sphere ");
+
+  UT3D_pt_traptmultvc (&p1, &sp1->pc, &WC_sur_act.vx, sp1->rad)
+
+  UT3D_pt_traptmultvc (&p2, &p1, &WC_sur_act.vy, sp1->rad)
+
+  UT3D_box_extend (pb1, pb2, &p2);
+
+  UT3D_pt_opp2pt (&p1, &sp1->pc, &p2);
+
+  UT3D_box_extend (pb1, pb2, &p1);
+
+  return 0;
+
+}
+*/
 
 //================================================================
   int tess_box_fac (Point *pb1, Point *pb2, ObjGX *oxi) {

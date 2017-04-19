@@ -530,7 +530,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   void      *obj;
 
 
-  *typ = atx1->typ; // 1=Image
+  *typ = atx1->aTyp; // 1=Image
 
   // copy textposPoint
   *p1 = atx1->p1;

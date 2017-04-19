@@ -38,6 +38,7 @@ IE_ed1_CMB           Mouseklick into GroupEditWindow
 IE_ed1_CB
 IE_ed1_rem           remove word out of IE_buf
 IE_ed1_cw            modify IE_buf add|change|delete word
+IE_ed1_stat          get status of CCV-Edit-window
 
 List_functions_end:
 =====================================================
@@ -45,6 +46,8 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
+Window = IE_edWin1;
+textbuffer = IE_buf[IE_bufSiz].
 
 
 Offline testen:
@@ -171,6 +174,25 @@ extern int     APT_dispDir;
 
 
 
+//================================================================
+  int IE_ed1_stat () {
+//================================================================
+// IE_ed1_stat          get status of CCV-Edit-window
+// Retcod:
+//  -1      window is not active
+//   0      textfield ist empty
+//   1      window is active and textfield is not empty
+ 
+  // printf("IE_ed1_stat valid=%d\n",GUI_OBJ_IS_VALID(&IE_edWin1));
+
+  if(!GUI_OBJ_IS_VALID(&IE_edWin1)) return -1;
+
+  // printf("IE_ed1_stat len=%d\n",strlen(IE_buf));
+  if(strlen(IE_buf) < 1) return 0;
+
+  return 1;
+
+}
 
 
 //=====================================================================
@@ -325,7 +347,7 @@ extern int     APT_dispDir;
   if(IE_bufSiz > 2) {
     // update CW|CCW
     // if..
-    IE_cad_test1 ();
+    IE_cad_test__ ();
 
   } else {
     GL_temp_Delete (DLI_DIR_TMP);  // delete temporary direction-arrow
@@ -430,7 +452,7 @@ extern int     APT_dispDir;
 
       IE_bufSiz = cPos;
       IE_buf[IE_bufSiz] = '\0';
-      IE_cad_test1 ();
+      IE_cad_test__ ();
       goto L_skip_key;
 */
   }

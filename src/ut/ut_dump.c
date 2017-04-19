@@ -31,8 +31,10 @@ Modifications:
 =====================================================
 List_functions_start:
 
-UT3D_stru_dump       
-UT3D_dump__
+UT3D_stru_dump          dump object
+UT3D_nstru_dump         dump n object's
+UT3D_dump_n             dump n object's
+UT3D_dump__             dump object
 UT3D_dump_dbo           dump DB-object
 UT3D_dump_txt
 OVR_dump_add
@@ -88,6 +90,31 @@ UT3D_dump_txt
                            // for BSP-Sur's 50000 ! 2011-08-23 
 
 
+//====================================================================
+  int UT3D_nstru_dump (int form, int oNr, void *obj, char *txt) {
+//====================================================================
+/// UT3D_dump_n             dump n object's
+
+  int      i1;
+  long     il1;
+  char     oNam[80];
+  void     *vp1;
+
+
+  printf("UT3D_nstru_dump typ=%d txt=|%s|\n",form,txt);
+
+  il1 = UTO_siz_stru (form);
+
+  for(i1=0; i1<oNr; ++i1) {
+    sprintf(oNam, " %s[%d]", txt, i1);
+    UT3D_stru_dump (form, obj, oNam);
+    // obj += il1;
+    obj = (char*)obj + il1;
+  }
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -289,6 +316,60 @@ static FILE     *uo = NULL;
 }
 
 
+//=======================================================================
+  int UT3D_dump_n (TxtTab *sTab, int form, void *obj, int oNr, char *txt,
+                  int ipar, int mode) {
+//=======================================================================
+/// \code
+/// create info-textstrings describing binary object form/obj (structured)
+/// Input:
+///   form                   Typ_ObjGX,Typ_Index,Typ_CV,Typ_SUR,Typ_SOL ..
+///   obj                  struct of type <form>
+///   oNr                   nr of obj's in <obj> of type <form>
+///   txt                   obj.description (should be objName)
+///   ipar                  parentRecordNr
+///   mode                  0=normal object; create info-textstrings
+///                         1=internal object; do not create info-textstrings
+/// Output:
+///   characters 0-3 = level (ParentRecordNr)
+///   characters 4-5 = IconNr
+/// \endcode
+
+
+  int      irc, i1, i2;
+  long     il1;
+  char     oNam[80];
+  void     *vp1;
+
+
+  // printf("UT3D_dump_n form=%d txt=|%s| oNr=%d ipar=%d\n",form,txt,oNr,ipar);
+
+
+  if(oNr < 2) return UT3D_dump__ (sTab, form, obj, txt, ipar, mode);
+
+  sprintf (oNam, "123456 %s %s - %d records", AP_src_typ__(form), txt, oNr);
+  UT3D_dump_add (sTab, oNam, ipar, ICO_CV);
+
+  il1 = UTO_siz_stru (form);
+
+
+  for(i1=0; i1<oNr; ++i1) {
+
+    sprintf(oNam, " %s[%d]", txt, i1);
+
+    irc = UT3D_dump__ (sTab, form, obj, oNam, ipar, mode);
+    if(irc < 0) return irc;
+
+    // obj += il1;
+    obj = (char*)obj + il1;
+
+  }
+
+  return 0;
+
+}
+
+
 //===============================================================
   int UT3D_dump__ (TxtTab *sTab, int typ, void *data, char *txt,
                   int ipar, int mode) {
@@ -317,7 +398,7 @@ static FILE     *uo = NULL;
   void     *v1;
   int      irc, i1, i2, i3, ptNr, *iTab, sTyp;
   long     dbi, il1;
-  char     oNam[32], sAux[64], cbuf[256], *cps, *cp1;
+  char     oNam[32], s1[64], s2[64], cbuf[256], *cps, *cp1;
   double   d1, *dp;
   Point    *p1, *ptAr;
   Point2   *pt2Ar;
@@ -335,7 +416,6 @@ static FILE     *uo = NULL;
   CurvBSpl   *cvbs;
   CurvBSpl2  *cv2bs;
   CurvRBSpl  *cvrbs;
-  // CurvComp   *cvcvc;
   CurvCCV    *cvccv;
   SurBSpl    *sbs;
   SurRBSpl   *srbs;
@@ -373,6 +453,7 @@ static FILE     *uo = NULL;
   ModelBas* DB_get_ModBas    ();
   BndSur   *sba; // Typ_SURBND
   wPoint   *wpt;
+  CurvPrcv *prcv;
   // EdgSur   *esa;
 
 
@@ -478,7 +559,7 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_LN) {
     l1 = data;
-    sprintf(cps,"Line %s typ = %d",txt,l1->typ);
+    sprintf(cps,"Line %s ltyp = %d",txt,l1->typ);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_LN);
     sprintf(cps,"(Line).p1=%9.3f,%9.3f,%9.3f",l1->p1.x,l1->p1.y,l1->p1.z);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
@@ -531,7 +612,8 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_CVELL2C) {
     el2c = data;
-    sprintf(cps,"2D-CenterEllipse %s sr=%d",txt,el2c->sr);
+    sprintf(cps,"2D-CenterEllipse %s sr=%d clo=%d trm=%d",txt,
+            el2c->srot,el2c->clo,el2c->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
     sprintf(cps,"(CurvEll2C).p1=%9.3f,%9.3f",el2c->p1.x,el2c->p1.y);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
@@ -558,7 +640,7 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
     sprintf(cps,"(CurvEll2).vb=%9.3f,%9.3f",e2->vb.dx,e2->vb.dy);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps,"(CurvEll2).dir=%d",e2->dir);
+    sprintf(cps,"(CurvEll2).sr=%d clo=%d trm=%d",e2->srot,e2->clo,e2->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -579,7 +661,7 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
     sprintf(cps,"(CurvElli).vz=%9.3f,%9.3f,%9.3f",e1->vz.dx,e1->vz.dy,e1->vz.dz);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps,"(CurvElli).dir=%d",e1->dir);
+    sprintf(cps,"(CurvElli).sr=%d .clo=%d .trm=%d",e1->srot,e1->clo,e1->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -589,8 +671,8 @@ static FILE     *uo = NULL;
     cvbs = data;
     sprintf(cps,"B-Spline %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps,"  ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d",
-            cvbs->ptNr, cvbs->deg, cvbs->v0, cvbs->v1, cvbs->dir);
+    sprintf(cps,"  ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d clo=%d trm=%d",
+            cvbs->ptNr,cvbs->deg,cvbs->v0,cvbs->v1,cvbs->dir,cvbs->clo,cvbs->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     for(i1=0; i1<cvbs->ptNr; ++i1) {
       sprintf(cps," p[%d] = %12.6f,%12.6f,%12.6f",i1,
@@ -610,8 +692,9 @@ static FILE     *uo = NULL;
     cv2bs = data;
     sprintf(cps,"2D-B-Spline %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps,"  ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d",
-            cv2bs->ptNr, cv2bs->deg, cv2bs->v0, cv2bs->v1, cv2bs->dir);
+    sprintf(cps,"  ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d clo=%d trm=%d",
+            cv2bs->ptNr,cv2bs->deg,cv2bs->v0,cv2bs->v1,
+            cv2bs->dir,cv2bs->clo,cv2bs->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     for(i1=0; i1<cv2bs->ptNr; ++i1) {
       sprintf(cps," p[%d] = %12.6f,%12.6f",i1,
@@ -632,8 +715,9 @@ static FILE     *uo = NULL;
     cvrbs = data;
     sprintf(cps,"Rat-B-Spline %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps,"    ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d",
-            cvrbs->ptNr, cvrbs->deg, cvrbs->v0, cvrbs->v1, cvrbs->dir);
+    sprintf(cps,"    ptNr=%d deg=%d v0=%.6f,v1=%.6f dir=%d clo=%d trm=%d",
+            cvrbs->ptNr, cvrbs->deg, cvrbs->v0, cvrbs->v1,
+            cvrbs->dir, cvrbs->clo, cvrbs->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     for(i1=0; i1<cvrbs->ptNr; ++i1) {
       sprintf(cps," p[%d] = %12.6f,%12.6f,%12.6f  w = %9.6f",i1,
@@ -653,20 +737,20 @@ static FILE     *uo = NULL;
     plg = data;
     sprintf(cps,"Polygon %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps,"(CurvPoly).ptNr=%d v0=%.3f v1=%.3f dir=%d",
-            plg->ptNr, plg->v0, plg->v1, plg->dir);
+    sprintf(cps,"(CurvPoly).ptNr=%d v0=%.3f v1=%.3f dir=%d clo=%d trm=%d",
+            plg->ptNr, plg->v0, plg->v1, plg->dir, plg->clo, plg->trm);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
-    strcpy (sAux, "---");
+    strcpy (s1, "---");
     for(i1=0; i1<plg->ptNr; ++i1) {
       // if(i1>50) break;
-      if(plg->lvTab) sprintf(sAux, "%.3f", plg->lvTab[i1]);
+      if(plg->lvTab) sprintf(s1, "%.3f", plg->lvTab[i1]);
       else dp = NULL;
       sprintf(cps," p[%d] = %.3f %.3f %.3f lv=%s",i1,
               plg->cpTab[i1].x,
               plg->cpTab[i1].y,
               plg->cpTab[i1].z,
-              sAux);                  // lvTab
+              s1);                  // lvTab
         // printf(" p[%d] |%s|\n",i1,cps);
       i2 = UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
       if(i2 < 0) break;
@@ -1037,8 +1121,8 @@ static FILE     *uo = NULL;
     for(i1=0; i1<sus->ptVNr; ++i1) {
       i3 = i1 * sus->ptUNr;
       for(i2=0; i2<sus->ptUNr; ++i2) {
-        sprintf(sAux, " row %d pt %d ",i1,i2);
-        UT3D_dump__ (sTab, ox->form, ox->data, sAux, i2, 0);
+        sprintf(s1, " row %d pt %d ",i1,i2);
+        UT3D_dump__ (sTab, ox->form, ox->data, s1, i2, 0);
         ++ox;
       }
     }
@@ -1280,23 +1364,23 @@ static FILE     *uo = NULL;
       // printf(" OGX: typIn=%d ox->typ=%d form=%d siz=%d\n",typ,
              // ox->typ, ox->form, ox->siz);
 
-    // prepare sAux = objDescription  and icon
+    // prepare s1 = objDescription  and icon
     if(ox->form == Typ_Index) {
       i1 = ICO_link;
       // dbi = (long)ox->data;
       dbi = LONG_PTR(ox->data);
       APED_oid_dbo__ (oNam, ox->typ, dbi);
-      sprintf(sAux, "Link %s", oNam);
+      sprintf(s1, "Link %s", oNam);
 
     } else {
       if(typ == Typ_SOL)      i1 = ICO_SOL;
       else if(typ == Typ_SUR) i1 = ICO_SUR;
       else if(typ == Typ_CV)  i1 = ICO_CV;
       else                    i1 = ICO_data;
-      strcpy(sAux, AP_src_typ__ (ox->typ));
+      strcpy(s1, AP_src_typ__ (ox->typ));
     }
 
-    sprintf(cps,"Obj %s %s (ObjGX typ=%d form=%d siz=%d dir=%d)",txt,sAux,
+    sprintf(cps,"Obj %s %s (ObjGX typ=%d form=%d siz=%d dir=%d)",txt,s1,
                    ox->typ, ox->form, ox->siz, ox->dir);
       // printf(" %s\n",cps);
 
@@ -1306,6 +1390,7 @@ static FILE     *uo = NULL;
     i2 = sTab->iNr - 1;  // parentRecordNr
 
 
+// TODO: use UT3D_dump_n ...............
     // loop tru records
     il1 = UTO_siz_stru (ox->form);
     v1 = ox->data;
@@ -1350,22 +1435,26 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_CVCCV)   {
-    cvccv = data;
+  } else if(typ == Typ_CVTRM)   {
+    cvccv = data;  // CurvCCV
     // sprintf(cps,"ConcatCurve %s",txt);
     // UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps," (CurvComp%s) typ=%d dbi=%ld ip0=%ld ip1=%ld",txt,
+    sprintf(cps," (CurvCCV%s) typ=%d dbi=%ld ip0=%ld ip1=%ld",txt,
             cvccv->typ, cvccv->dbi, cvccv->ip0, cvccv->ip1);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"   v0=%9.3f on seg %d    v1=%9.3f on seg %d rev=%d",
-            cvccv->v0, cvccv->is0,
-            cvccv->v1, cvccv->is1, cvccv->rev);
+    if(cvccv->v0 == UT_VAL_MAX) strcpy(s1, " -undef- ");
+    else sprintf (s1, "%9.3f", cvccv->v0);
+    if(cvccv->v1 == UT_VAL_MAX) strcpy(s2, " -undef- ");
+    else sprintf (s2, "%9.3f", cvccv->v1);
+    sprintf(cps,
+            "   v0 = %s on seg %3d    v1 = %s on seg %3d   dir%3d clo%3d trm%3d",
+            s1, cvccv->is0, s2, cvccv->is1, cvccv->dir, cvccv->clo, cvccv->trm);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
 /*
   //----------------------------------------------------------------
-  } else if(typ == Typ_CVCCV)   {
+  } else if(typ == Typ_CVTRM)   {
     cvccv = data;
     // sprintf(cps,"ConcatCurve %s",txt);
     // UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
@@ -1467,7 +1556,7 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     if(cp1 == NULL) cp1 = (char*)&UT_CHR_NULL;
     sprintf(cps," ATX |%s| typ=%d col=%d ltyp=%d scl=%f xSiz=%d ySiz=%d",cp1,
-      atx->typ,atx->col,atx->ltyp,atx->scl,atx->xSiz,atx->ySiz);
+      atx->aTyp,atx->col,atx->ltyp,atx->scl,atx->xSiz,atx->ySiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    p1=%9.3f,%9.3f,%9.3f",atx->p1.x,atx->p1.y,atx->p1.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1591,6 +1680,16 @@ static FILE     *uo = NULL;
     sprintf(cps,"Z-Value %s = %f",txt,*((double*)data));
     UT3D_dump_add (sTab, cbuf, ipar, ICO_Var);
 
+
+
+  //----------------------------------------------------------------
+  // polygonal representation curve
+  } else if(typ == Typ_PRCV) {
+    prcv = data;
+    // data (pointer) = int-value itself. 2013-12-20
+    sprintf(cps,"%s Prcv typ=%d dbi=%ld siz=%d ptNr=%d fTmp=%d",txt,
+            prcv->typ,prcv->dbi,prcv->siz,prcv->ptNr,prcv->fTmp);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
 

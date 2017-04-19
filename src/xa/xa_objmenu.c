@@ -68,7 +68,7 @@ add new commands:
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../gr/ut_DL.h"               // DL_GetInd
+#include "../gr/ut_DL.h"               // DL_get_dbi
 #include "../db/ut_DB.h"               // 
 
 #include "../xa/xa_mem.h"
@@ -385,8 +385,8 @@ extern int       IE_modify;
     case Typ_CVBSP:
     case Typ_CVRBSP:
     case Typ_CVCLOT:
-    case Typ_CVCCV:
-    case Typ_CVCCV2:
+    case Typ_CVTRM:
+    // case Typ_CVTRM2:
 
     case Typ_PLN:
     case Typ_SUR:
@@ -1057,7 +1057,7 @@ extern int       IE_modify;
 
   // get DB-typ & DB-index from DispListIndex
   typ = DL_GetTyp (dli);
-  dbi = DL_GetInd (dli);
+  dbi = DL_get_dbi (dli);
 
   //----------------------------------------------------------------
   if(actObj.typ != Typ_Model) goto L_PT;

@@ -59,9 +59,10 @@ List_functions_start:
 DB_fix_tol
 DB_Stat            display statistic
 DB_dump__          dump complete DB
-DB_dump_dyn__      dump dynamic
+DB_dump_dyn__      dump all dynamic objects of type<typ>
 DB_dump_f          dump all objects of type<typ> into open file
 DB_dump_Activ      dump all activities
+// see also UT3D_dump_dbo
 
 DB_save__          gesamte DB -> Datei raus
 DB_load__          gesamte DB aus Datei einlesen
@@ -226,9 +227,6 @@ DB_allocTra
 DB_allocSur
 DB_allocSol
 
-DB_GetObjG2        ********** do not use *******
-DB_ObjG2Tab_sav    ********** do not use *******
-
 List_functions_end:
 =====================================================
 
@@ -263,7 +261,7 @@ In Version vor 2001-05-04 erforderliche Korrekturen:
   long     apt_ind;
 
   apt_typ = DL_GetTyp(gr_ind);
-  apt_ind = DL_GetInd(gr_ind);
+  apt_ind = DL_get_dbi(gr_ind);
   tra_ind = DL_GetTrInd(gr_ind);
 
   .. DB_Get_GR_Obj (..o, apt_typ, apt_ind, tra_ind);
@@ -388,7 +386,7 @@ typedef struct {int typ; void *data;}       DB_obj;
 #define APT_VR_INC       200
 #define APT_PT_INC       5000
 #define APT_VC_INC       2000
-#define APT_LN_INC       2000
+#define APT_LN_INC       5000
 #define APT_CI_INC       2000
 #define APT_PL_INC       500
 #define APT_MR_INC       200
@@ -848,7 +846,7 @@ Vector     DB_vc0;
   fwrite(&AP_txNkNr, sizeof(int), 1, fp1);
   fwrite(&AP_defcol, sizeof(ColRGB), 1, fp1);
 
-  fwrite(&DB_JNT_IND, sizeof(long), 1, fp1);
+  fwrite(&DB_JNT_IND, sizeof(int), 1, fp1);    // 2017-04-15
 
   // i1 = ED_get_lnr_act();
     // printf(" DB_save__ lnr=%d\n",i1);
@@ -975,7 +973,7 @@ Vector     DB_vc0;
   // save AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (1, fp1);
 
-  GA_parent_file (1, fp1);    // write ParentTable
+  OPAR_file (1, fp1);    // write ParentTable
 
   fclose(fp1);
 
@@ -1022,7 +1020,7 @@ Vector     DB_vc0;
   fread(&AP_txNkNr, sizeof(int), 1, fp1);
   fread(&AP_defcol, sizeof(ColRGB), 1, fp1);
 
-  fread(&DB_JNT_IND, sizeof(long), 1, fp1);
+  fread(&DB_JNT_IND, sizeof(int), 1, fp1);
 
   // fread(&i1, sizeof(int), 1, fp1);
     // printf(" DB_load__ lnr=%d\n",i1);
@@ -1171,7 +1169,7 @@ Vector     DB_vc0;
   // read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (2, fp1);
 
-  GA_parent_file (2, fp1);     // read ParentTable
+  OPAR_file (2, fp1);     // read ParentTable
 
 
   fclose(fp1);
@@ -1410,7 +1408,7 @@ Vector     DB_vc0;
 /// \code
 /// returns form and struct of Curve BUT NOT ITS PRIMARY OBJECT !
 /// Out:
-///   ityp   <-- oGX[Ind].form      (od Typ_CVCCV bei Typ_ObjGX)
+///   ityp   <-- oGX[Ind].form      (od Typ_CVTRM bei Typ_ObjGX)
 ///   retVal <-- oGX[Ind].data      (also die struct !!!
 ///
 /// see also DB_GetCurv (returns the primary obj (ObjGX))
@@ -1423,7 +1421,7 @@ Vector     DB_vc0;
     Ind = -Ind;
     if(Ind >= DYN_CV_SIZ) Ind = DYN_CV_SIZ - 1;
     if(cv_dyn[Ind].form == Typ_ObjGX) {
-      *ityp = Typ_CVCCV;
+      *ityp = Typ_CVTRM;
     } else {
       *ityp = cv_dyn[Ind].form;
     }
@@ -1433,7 +1431,7 @@ Vector     DB_vc0;
   } else {
     if(Ind >= APT_CV_SIZ) Ind = APT_CV_SIZ - 1;
     if(cv_tab[Ind].form == Typ_ObjGX) {
-      *ityp = Typ_CVCCV;
+      *ityp = Typ_CVTRM;
     } else {
       *ityp = cv_tab[Ind].form;
     }
@@ -1529,8 +1527,8 @@ Vector     DB_vc0;
       case Typ_CVELL:
       case Typ_CVBSP:
       case Typ_CVRBSP:
-      case Typ_CVCCV:
-      case Typ_CVCCV2:
+      case Typ_CVTRM:
+      // case Typ_CVTRM2:
         oxp = DB_GetCurv (apt_ind);
           // printf("cv.typ=%d form=%d siz=%d\n",oxp->typ,oxp->form,oxp->siz);
         if(DB_isFree_CV((oxp))) goto L_Error_9;
@@ -1859,7 +1857,7 @@ Vector     DB_vc0;
 
 
       case Typ_CV:
-      case Typ_CVCCV:
+      case Typ_CVTRM:
       case Typ_CVELL:
       case Typ_CVBSP:
         // if(apt_ind >= dyn_cv_max) return -1; // skip dynam. obj
@@ -3786,6 +3784,13 @@ int DB_del_Mod__ () {
 /// DB_mdlNam_iBas    get the name of a basic-model from its basicModelNr
 /// Input:
 ///   bmNr     nr of its basic-model
+
+  printf("DB_mdlNam_iBas %d DYN_MB_IND=%ld \n",bmNr,DYN_MB_IND);
+
+  if(bmNr >= DYN_MB_IND) {
+    TX_Print("DB_mdlNam_iBas E001");
+    return NULL;
+  }
 
   return mdb_dyn[bmNr].mnam;
 
@@ -6152,6 +6157,7 @@ void* DB_cGet(void *data, void *pos, long size) {
 }
 
 
+/* UU
 //====================================================================
 void* DB_ObjG2Tab_sav (ObjGX *ox1) {
 //====================================================================
@@ -6217,6 +6223,7 @@ void* DB_ObjG2Tab_sav (ObjGX *ox1) {
   return startPos;
 
 }
+*/
 
 
 //========================================================================
@@ -6570,8 +6577,8 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
       
   cPos1 = DB_cPos ();
 
-  cvo->typ    = Typ_CVCCV;
-  cvo->form   = Typ_CVCCV;
+  cvo->typ    = Typ_CVTRM;
+  cvo->form   = Typ_CVTRM;
   cvo->siz    = cvi->siz;
   cvo->data   = cPos1;
 
@@ -6604,7 +6611,7 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
     
   // printf("===================================== \n");
   // printf("DB_StoreCvCCV %d\n",Ind);
-  // UT3D_stru_dump (Typ_CVCCV, cvi, "S%d", Ind);
+  // UT3D_stru_dump (Typ_CVTRM, cvi, "S%d", Ind);
 
   // get adress where to stor primary obj
   Ind = DB_Store_hdr_cv (&cvo, Ind);        
@@ -6614,8 +6621,8 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
   DB_cSav(sizeof(CurvCCV) * iNr, (void*)cvi);
 
 
-  cvo->typ    = Typ_CVCCV;
-  cvo->form   = Typ_CVCCV;
+  cvo->typ    = Typ_CVTRM;
+  cvo->form   = Typ_CVTRM;
   cvo->siz    = iNr;
   cvo->data   = cvNew;
 
@@ -6676,8 +6683,8 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
  Typ_CVBSP
  Typ_CVRBSP
  Typ_CVELL
- Typ_CVCCV
- Typ_CVCCV2
+ Typ_CVTRM
+ Typ_CVTRM2
 */
 
 
@@ -6805,9 +6812,9 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   goto L_fertig;
 
 
-  //============ Typ_CVCCV =======================
+  //============ Typ_CVTRM =======================
   L_typ_cvc:
-  if(form != Typ_CVCCV) goto L_typ_nn;
+  if(form != Typ_CVTRM) goto L_typ_nn;
   Ind = DB_StoreCvCCV (Ind, cv1->data, cv1->siz);
   goto L_fertig;
 
@@ -7449,7 +7456,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 
 
   } else if((typ == Typ_CV)     ||
-            (typ == Typ_CVCCV))    {
+            (typ == Typ_CVTRM))    {
     if(ind >= 0) {
       if((ind > APT_CV_SIZ)||(DB_isFree_CV(&cv_tab[ind]))) goto L_err;
     } else {
@@ -8519,7 +8526,7 @@ long DB_QueryCurv (Point *pt1) {
     // change to Typ_Index; wenn jedoch ox1->siz > 1 (dzt nur Typ_PT), dann
     // wird data-pos korrigiert.
     if((ox1->siz > 1)         ||
-       (iForm == Typ_CVCCV)   ||                      // trim-ccv-data
+       (iForm == Typ_CVTRM)   ||                      // trim-ccv-data
        (iForm == Typ_SURHAT))    oxo->data = cPos3;
     // ((ObjGX*)oxo)->form = Typ_Index;
     // (int)((ObjGX*)oxo)->data = l1;
@@ -8735,7 +8742,7 @@ long DB_QueryCurv (Point *pt1) {
 
 
     //================================================================
-    case Typ_CVCCV:                       // DB_StoreCurv
+    case Typ_CVTRM:                       // DB_StoreCurv
       *ind = DB_StoreCvCCV (*ind, os1, iNr);
       break;
 

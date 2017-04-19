@@ -176,18 +176,8 @@ Examples:
 
 
 //================================================================
-  Tools for manipulating the language-files:
+  Tools for manipulating the language-files: see INF_MSG_new
 //================================================================
-
-save the lang.files: ./lang_save.csh
-edit files:          ./lang_ed.csh
-find a keyword:      ./lang_find.csh keyWd 
-modify keyword       /mnt/serv1/Linux/bin/changeall old new files
-modify line          ./lang_line keyWd "line words .."
-delete Line          ./lang_del.csh keyWd
-insert Line          ./lang_ins.csh keyWd_before new line words ..
-
-
 
 \endcode *//*----------------------------------------
 
@@ -217,6 +207,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 #include "../ut/ut_os.h"               // OS_
 #include "../xa/xa_msg.h"              // MSG_read
 #include "../xa/xa.h"                  // APP_act_nam AP_lang
+#include "../xa/xa_mem.h"              // memspc501
 
 
 //========= Extern Var: =====================
@@ -233,9 +224,9 @@ static char   MSG_buf[MSG_bSiz];
 
 
 char *MSG_STD_code[]={
-  "-",             // INF
-  "***",           // WNG
-  "*** ERROR:"     // ERR
+  "-",             // MSG_typ_INF
+  "***",           // MSG_typ_WNG
+  "*** ERROR:"     // MSG_typ_ERR
 };
 
 
@@ -243,7 +234,8 @@ char *MSG_STD_code[]={
 char *MSG_STD_tab[]={
   "function not implemented",    ///< 0 func_not_impl,
   "subModel undefined",          ///< 1 subModel_undefined,
-  "file open",                   ///< 2 file_open,
+  "DB-object undefined",         ///< 2 db_obj_undefined,
+  "file open",                   ///< 3 file_open,
   "uu"
 };
 
@@ -305,11 +297,14 @@ char *MSG_STD_tab[]={
 //================================================================
   char* MSG_fread (char *sbuf, int bufSiz, char *key, FILE *fpIn) {
 //================================================================
-// read message "<key> in (open) file <fpIn>
-// Output:
-//   sbuf
-//   retCod   NULL key not found
-//            else position of text without key in sbuf
+/// \code
+/// read message "<key> in (open) file <fpIn>
+/// Output:
+///   sbuf
+///   retCod   NULL key not found
+///            else position of text without key in sbuf
+/// Howto create new message: see INF_MSG_new
+/// \endcode
  
   int    iloop, ilen;
   char   *cp1, *cp2, *cp3;
@@ -685,18 +680,18 @@ char *MSG_STD_tab[]={
 
 
   // search for " %% "
-  cp1 = strstr (msg, " %%");
+  cp1 = strstr (msg, " {0}");       // was %%
   if(cp1 == NULL) {
     TX_Print("****** Parametererror 1 MSG_get__ %s",key);
     goto L_wri;
   }
 
   // test if %% is at end of line
-  cp2 = cp1 + 3;
+  cp2 = cp1 + 4;          // was 3
   if(*cp2 == '\0') {
-    ii = 3;
-  } else if(*cp2 == ' ') {
     ii = 4;
+  } else if(*cp2 == ' ') {
+    ii = 5;
   } else {
     TX_Print("****** Parametererror 2 MSG_get__ %s",key);
     goto L_wri;
@@ -759,7 +754,6 @@ char *MSG_STD_tab[]={
   irc = MSG_get__ (MSG_buf, MSG_bSiz, key, MSG_fp, fmt, &va);
     // printf("MSG_pri_1 |%s|\n",MSG_buf);
 
-
   va_end (va);
 
   if(irc == 0) TX_Print (MSG_buf);
@@ -796,7 +790,7 @@ char *MSG_STD_tab[]={
 // read msg from ../msg/msg_de.txt -> sbuf
   
   int    iloop, ilen;
-  char   *cp1, *cp2, *cp3;
+  char   *p1, *cp1, *cp2, *cp3;
 
 
   // printf("MSG_read |%s| siz=%d\n",key,bufSiz);
@@ -820,9 +814,9 @@ char *MSG_STD_tab[]={
 //================================================================
 // load file msg/msg_const_de.txt -> MSG_tab
   
-  int    i1;
+  int    i1, siz1, siz_, ls;
   long   l1;
-  char   fnam[200], *cp1, *cp2;
+  char   s1[256], *cp1, *cp2, *spc1;
   FILE   *fpi;
   
   printf("MSG_const_init |%s|\n",sLang);
@@ -830,34 +824,67 @@ char *MSG_STD_tab[]={
   //printf("  fnam_del = |%c|\n",fnam_del);
 
   // (re)open messagefile msg/msg_const_de.txt
-  sprintf(fnam, "%smsg%cmsg_const_%s.txt",OS_get_doc_dir(),fnam_del,sLang);
-    printf(" constmsgfile = |%s|\n",fnam);
+  sprintf(s1, "%smsg%cmsg_const_%s.txt",OS_get_doc_dir(),fnam_del,sLang);
+    // printf(" constmsgfile = |%s|\n",s1);
 
 
-  if((fpi = fopen (fnam, "rb")) == NULL) {
-    // TX_Print("***** MESSAGEFILE %s DOES NOT EXIST *****",fnam);
-    printf("***** MESSAGEFILE %s DOES NOT EXIST *****",fnam);
-    sprintf(fnam, "%smsg%cmsg_const_en.txt",OS_get_doc_dir(),fnam_del);
-    if((fpi=fopen(fnam,"rb")) == NULL) return -1;
+  l1 = OS_FilSiz (s1);
+  if(l1 < 2) {
+    TX_Error("cannot access %s",s1);
+    printf("**** MSG_const_init E001 %s\n",s1);
+    return -1;
+  }
+    // printf(" fsiz=%ld\n",l1);
+  
+
+  spc1 = memspc501;
+  siz1 = sizeof(memspc501) - 10;
+  siz_ = 0;
+
+  if((fpi = fopen (s1, "r")) == NULL) {
+    // TX_Print("***** MESSAGEFILE %s DOES NOT EXIST *****",s1);
+    printf("***** MESSAGEFILE %s DOES NOT EXIST *****",s1);
+    sprintf(s1, "%smsg%cmsg_const_en.txt",OS_get_doc_dir(),fnam_del);
+    if((fpi=fopen(s1,"r")) == NULL) return -1;
   }
 
 
-  l1 = OS_FilSiz (fnam);
-  if(l1 < 2) {TX_Error("MSG_const_init E001 %s",fnam); return -1;}
-    printf(" fsiz=%ld\n",l1);
-  
-
-    
-  // load complete messagefile -> MSG_tab
-  // if(MSG_tab) free (MSG_tab);
-  // MSG_tab = (char*) malloc (l1 + 4);
-  MSG_tab = (char*) realloc ((void*)MSG_tab, l1 + 4);
-  if(MSG_tab == NULL) {TX_Error("MSG_const_init E002"); return -1;}
-
-  fread (MSG_tab, l1, 1, fpi);
+  // first use memspcX; later (if size is known) malloc.   
+  while (!feof (fpi)) {
+    if(fgets (s1, 256, fpi) == NULL) break;
+    // skip comments
+    if(s1[0] == '#') continue;
+    // remove key
+    cp1 = strchr(s1, '=');
+    if(!cp1) {
+      printf("**** ERROR const-message \"%s\"\n",s1);
+      continue;
+    }
+    ++cp1;  // skip '='
+    // replace '\n' by '\0'
+    cp2 = strchr(cp1, '\n');
+    if(cp2) *cp2 = '\0';
+      // printf("_const_init |%s|\n",cp1);
+    // add cp1-cp2 -> spc1
+    ls = cp2 - cp1 + 1;       //printf(" ls=%d\n",ls);
+    strncpy(&spc1[siz_], cp1, ls);
+    siz_ += ls;
+    if(siz_ >= siz1) {
+      printf("**** ERROR const-message EOM-1");
+      break;
+    }
+  }
   fclose (fpi);
 
+  // copy -> MSG_tab
+  MSG_tab = (char*) realloc ((void*)MSG_tab, siz_ + 8);
+  if(MSG_tab == NULL) {TX_Error("MSG_const_init EOM-2"); return -1;}
+  memcpy(MSG_tab, spc1, siz_);
 
+
+/*
+  fread (MSG_tab, l1, 1, fpi);
+  fclose (fpi);
   // replace all '\n' by '\0'
   cp1 = MSG_tab;
   for(;;) {
@@ -866,6 +893,7 @@ char *MSG_STD_tab[]={
     *cp2 = '\0';
     cp1 = cp2 + 1;
   }
+*/
 
   return 0;
 
@@ -893,7 +921,7 @@ char *MSG_STD_tab[]={
   // printf("MSG_const__ %d\n",iMsg);
 
   // if(!MSG_tab) {TX_Error("MSG_const__ E000"); return NULL;}
-  if(!MSG_tab) {printf("MSG_const__ E000-%d",iMsg); return NULL;}
+  if(!MSG_tab) {printf("MSG_const__ E000-%d\n",iMsg); return NULL;}
 
   i1  = -1;
   cp1 = MSG_tab;
@@ -949,14 +977,15 @@ char *MSG_STD_tab[]={
   int    i1;
   char   *ps;
 
-  printf("MSG_get_wTab %d\n",tabSiz);
+  // printf("MSG_get_wTab %d\n",tabSiz);
 
 
   for(i1=0; i1<tabSiz; ++i1) {
     // get string and add it to stringTable
     ps = MSG_const__ (i1);
       // printf(" |%s|\n",ps);
-    UtxTab_add (txTab, ps);      // add word
+    
+    if(ps) UtxTab_add (txTab, ps);      // add word
   }
 
 
@@ -975,7 +1004,7 @@ char *MSG_STD_tab[]={
 // provide list of supported languages an language-names
 
   int    ii, iNr, lNr;
-  char   *p1, cbuf1[256];
+  char   *p1, cbuf1[256], *pl;
 
 
 
@@ -1021,10 +1050,11 @@ char *MSG_STD_tab[]={
     // - get value of LANG__ of all files
     MSG_Init (lngCode[lNr]);
     // p1 = MSG_get_str ("LANG__");
-    strcpy (lngName[lNr], MSG_get_str ("LANG__"));
+    pl = MSG_get_str ("LANG__");
+    if(!pl) continue;
+
+    strcpy (lngName[lNr], pl);
       // printf(" lang = |%s|\n",lngName[lNr]);
-
-
     ++lNr;
     if(lNr >= *lngNr) {
       TX_Error("MSG_msg_init E001");

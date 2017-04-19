@@ -47,9 +47,11 @@ ICHAR                     get integer from character-digit               INLINE
 
 ICHG01                    change 0 > 1, 1 > 0.                           INLINE
 ICHG0x1                   change 0 > -1,-1 > 0, 1 > -2, -2 > 1           INLINE
+ILIM01                    returns 0 (ii <= 0) or 1 (ii >= 1)             INLINE
+ILIM0x1                   returns 0 (ii >= 0) or -1 (ii < 0)             INLINE
 ILIM2                     returns x = between lo and hi                  INLINE
 ILIM0X                    returns x = between 0 and hi                   INLINE
-ILIM0x1                   returns 0 (ii >= 0) or -1 (ii < 0)             INLINE
+I_XOR_2I                  XOR exclusive or 2 ints                        INLINE
 UTI_add_uniq              add int uniq to list
 UTI_deleq                 delete equal records form 2 intLists
 UTI_findeq                find 2 gleiche Elemente in 2 IntegerListen
@@ -78,12 +80,9 @@ DMAX                      INLINE
 DMIN                      INLINE
 DSIGN                     sign of double; +1 or -1                       INLINE
 DSIGTOL                   sign of double with tolerance; +1 or -1        INLINE
+DLIM01                    0 if (d1 >= 0.); 1 if (d1 < 0.)                INLINE
 DLIM2                     limits double between hi and lo-value          INLINE
 ACOS                      cos                                            INLINE
-UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
-UTP_compdb0               compare double mit 0.0 mit Tol.
-UTP_comp2db               compare 2 doubles (with tolerance)             INLINE
-UTP_comp2x2db             compare 2 * 2 doubles (with tolerance)
 UTP_min_3                 find minimum double of 3; returns 0|1|2
 UTP_min_d3                find minimum double of 3; returns double.
 UTP_min_4                 find minimum double of 4; returns 0|1|2|3
@@ -100,10 +99,17 @@ UTP_db_ck_in2dbTol        test if value of v is between v1 / v2
 UTP_2db_ck_in4db          die beiden inneren Werte aus 4 Zahlen finden
 UTP_2db_ck_in2db          test if range2 overlaps range1
 
+UTP_db_comp_0             if fabs(d1) < UT_TOL_min1) d1 = 0.;
+UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
+UTP_compdb0               compare double mit 0.0 mit Tol.
+UTP_comp2db               compare 2 doubles (with tolerance)             INLINE
+UTP_comp2x2db             compare 2 * 2 doubles (with tolerance)
+
+UTP_sort_npar_npt         sort ascending parameters, points
+
 UTP_param_p0p1px          Parameterwert von Zahl (Parameterwerte fuer 0 u 1)
 UTP_px_paramp0p1px        Zahl aus p0, p1 und Parameterwert         INLINE
 
-UTP_db_comp_0             if fabs(d1) < UT_TOL_min1) d1 = 0.;
 UTP_db_rnd1sig            Zahl auf 1 signifikante Stelle runden
 UTP_db_rnd2sig            Zahl auf 2 signifikante Stellen runden
 UTP_db_rnd10              round dound double to next 10
@@ -112,8 +118,6 @@ UTP_dbsiz                 get size of double; (number of pos. digits);
 UTP_dbqsiz                get quadr. size (estim.)
 
 UTP_sincosTab_circ        sinus- und cosinuswerte fuer einen Vollkreis.
-
-UTP_sort_npar_npt         sort ascending parameters, points
 
 --------- binary
 BIT_SET                   einzelne Bits setzen in einem int         INLINE
@@ -770,6 +774,27 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 //       0 enclose r1Start r2Start r2End r1End
 //       1 overlap r1Start r2Start r1End r2End
 //       2 outHigh r1Start r1End r2Start r2End
+//
+//
+// RC=-4                     1s-----------1e
+//              2s------2e
+//
+// RC=-3        1s------1e
+//                           2s--------2e
+//
+// RC=-2            1s-----------1e
+//              2s--------2e
+//
+// RC=-1        1s-----------1e
+//                  2s-----------2e
+//
+// RC=1          1s-----------1e
+//                  2s-----2e
+//
+// RC=2             1s-----1e
+//              2s------------2e
+//
+
 
   int  irc;
 
@@ -780,12 +805,29 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
   if(r2Start > r2End) MEM_swap_2db (&r2Start, &r2End);
 
 
-  if (r2End < r1Start) irc = -2;
-  else if (r2Start > r1End) irc = 2;
-  else if (r1Start > r2Start) irc = -1;
-  else if (r2Start < r1Start) irc = 1;
-  else irc = 0;
+  if (r2End < r1Start) {
+    irc = -4;
 
+
+  } else if (r2Start > r1End) {
+    irc = -3;
+
+
+  } else if (r1Start > r2Start) {
+    if (r2End > r1End) {
+      irc = 2;
+    } else {
+      irc = -2;
+    }
+
+
+  } else if (r2Start > r1Start) {
+    if (r2End < r1End) {
+      irc = 1;
+    } else {
+      irc = -1;
+    }
+  }
 
     // printf("ex UTP_2db_ck_in2db irc=%d\n",irc);
 

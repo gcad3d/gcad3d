@@ -764,7 +764,7 @@ WC_sur_mat WC_sur_imat
 
   // transform basicCurve typ.dbi
   // printf("UTRA_app_CCV typ=%d\n",obji->typ);
-  // UT3D_stru_dump (Typ_CVCCV, obji, "in");
+  // UT3D_stru_dump (Typ_CVTRM, obji, "in");
 
 
   if(obji->dbi) {
@@ -1137,7 +1137,7 @@ WC_sur_mat WC_sur_imat
 
 
     //================================================================
-    case Typ_CVCCV:
+    case Typ_CVTRM:
       // must provide space for poo in wrkSpc
       if(!UME_reserve(wrkSpc,sizeof(CurvCCV) * iNr) < 0) goto L_EOM; // 2015-06-11
         // printf(" copy CVCCV\n");
@@ -1988,7 +1988,8 @@ WC_sur_mat WC_sur_imat
       ((CurvEll2*)*o2)->pc = UT2D_pt_pt3 (&((CurvElli*)o3)->pc);
       UT2D_vc_vc3 (&((CurvEll2*)*o2)->va, &((CurvElli*)o3)->va);
       UT2D_vc_vc3 (&((CurvEll2*)*o2)->vb, &((CurvElli*)o3)->vb);
-      ((CurvEll2*)*o2)->dir = ((CurvElli*)o3)->dir;
+      ((CurvEll2*)*o2)->clo = ((CurvElli*)o3)->clo;
+      ((CurvEll2*)*o2)->srot = ((CurvElli*)o3)->srot;
       break;
 
 

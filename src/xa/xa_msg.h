@@ -1,4 +1,4 @@
-/* constant messages. MSG_const__ ()
+/* Messages.
 needs
 #include <stdarg.h>                    // va_list
 
@@ -7,6 +7,45 @@ needs
 Messagetext: ../../doc/msg/msg_const_de.txt
 */
 
+
+
+
+/// \code
+/// MSG_STD_ERR             errormessage (key, additional_text)
+/// Input:
+///   ikey    see enum below
+/// Output:   TX_Error "<MSG_STD_code> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
+/// Example:  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
+///   how to add new STD-message:
+///    - add key in enum below;
+///    - add text for key in ../xa/xa_msg.c MSG_STD_tab
+/// \endcode
+
+int MSG_STD_ERR (int ikey, ...);
+
+// keys for standard-Messages MSG_STD_ERR;
+// text for messages in MSG_STD_tab in ../xa/xa_msg.c
+enum {
+  ERR_func_not_impl,        ///< "function not implemented"
+  ERR_subModel_undefined,   ///< subModel_undefined,
+  ERR_db_obj_undefined,     ///< db-obj_undefined,
+  ERR_file_open,            ///< file_open error
+  ERR_unused
+};
+
+
+// messagetype for MSG_STD__; see MSG_STD_code in ../xa/xa_msg.c
+#define MSG_typ_INF     0
+#define MSG_typ_WNG     1
+#define MSG_typ_ERR     2
+
+int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...);
+
+
+
+
+
+// keys for constant-messages; MSG_const__ ()
 // MSG_SIZE must be last.
 enum {
   MSG_ok,     MSG_cancel, MSG_save,    MSG_insert,      MSG_delete,     // 0-
@@ -32,48 +71,14 @@ enum {
                    char *fmt, va_list *va);
 
 
-#define MSG_typ_INF     0
-#define MSG_typ_WNG     1
-#define MSG_typ_ERR     2
-
-
-/// keys for MSG_STD__ MSG_STD_ERR, add messages to MSG_STD_tab in ../xa/xa_msg.c
-enum {
-  func_not_impl,        ///< "function not implemented"
-  subModel_undefined,   ///< subModel_undefined,
-  file_open,            ///< file_open error
-  unused
-};
-
-
-// char **MSG_STD_code;
+/*
+// char **MSG_STD_code; ee ../xa/xa_msg.c
 extern char *MSG_STD_code[];
-// char *MSG_STD_code[]={
-  // "-",             // INF
-  // "***",           // WNG
-  // "*** ERROR:"     // ERR
-// };
 
-
-/// messages for MSG_STD__ MSG_STD_ERR - in file ../xa/xa_msg.c
-// char **MSG_STD_tab;
+// char **MSG_STD_tab; see ../xa/xa_msg.c
 extern char *MSG_STD_tab[];
-// char *MSG_STD_tab[]={
-  // "function not implemented",    ///< 0 func_not_impl
-  // "uu"
-// };
+*/
 
-
-/// \code
-/// MSG_STD_ERR             errormessage (key, additional_text)
-/// Input:
-///   ikey    see eg func_not_impl in ../xa/xa_msg.h
-/// Output:   TX_Error "<MSG_STD_code> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
-/// Example:  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
-/// \endcode
-
-int MSG_STD_ERR (int ikey, ...);
-int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...);
 
 // MS-VS-2010:
 #ifndef __func__ 

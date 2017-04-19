@@ -86,9 +86,9 @@ extern TxtTab    AP_TxTab1;
 
 //_____________________________________
 // LOCALS:
-static char *os_bin_dir;
-static char *os_bas_dir;
-static char *os_loc_dir;
+static char *os_bin_dir;         // gcad_dir_bin
+static char *os_bas_dir;         // gcad_dir_bas
+static char *os_loc_dir;         // local
 static char *os_cfg_dir;
 static char *os_tmp_dir;
 static char *os_doc_dir;
@@ -440,6 +440,8 @@ kopieren geht nicht mehr -
 
   // Init und display Windows
   UI_win_main (&win0, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
+  // starts Grafic-window GUI_gl__ UI_GL_draw__ ..
+
 
   AP_UserSelection_reset ();
   AP_UserKeyIn_reset ();      // reset  KeyIn

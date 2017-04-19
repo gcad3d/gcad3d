@@ -122,9 +122,11 @@ static MemObj winOvr;
 
 
 //===============================================================
-  int OVR__ (int typ, void *data, char *txt) {
+  int OVR__ (int typ, void *data, int oNr, char *txt) {
 //===============================================================
 // create & populate objViewer
+//   txt    obj.description (should be objName)
+
 
   char         *s1;
   UtxTab_NEW   (txTab1);
@@ -143,7 +145,7 @@ static MemObj winOvr;
 
   
   // create strings of infos about struct in txTab1
-  UT3D_dump__ (&txTab1, typ, data, txt, -1, 0);
+  UT3D_dump_n (&txTab1, typ, data, oNr, txt, -1, 0);
     // UtxTab_dump (&txTab1);
 
 
@@ -265,7 +267,7 @@ static MemObj winOvr;
 //================================================================
 // inspect obj
 
-  int       irc, ii;
+  int       irc, oNr;
   char      oNam[32];
   void      *vp1;
 
@@ -280,13 +282,13 @@ static MemObj winOvr;
 
 
   // get objStruct from dbo
-  // irc = UTO_get_dbo (&typ, &vp1, &ii, typ, dbi);
-  irc = UTO_get_DB (&vp1, &ii, &typ, dbi);
+  // irc = UTO_get_dbo (&typ, &vp1, &oNr, typ, dbi);
+  irc = UTO_get_DB (&vp1, &oNr, &typ, dbi);
   if(irc < 0) return -1;
 
 
   // objViewer
-  OVR__ (typ, vp1, oNam);
+  OVR__ (typ, vp1, oNr, oNam);
 
 
   // _UT3D_stru_dump (typ, vp1, oNam);

@@ -337,10 +337,10 @@ List_functions_end:
   ptNr = sizeof(memspc54) / sizeof(Point);
 
 /*
-  ox1  = DB_GetObjGX (Typ_CVCCV, suh->cvID);
+  ox1  = DB_GetObjGX (Typ_CVTRM, suh->cvID);
 
   // CCV -> 3D-Polygon umwandeln
-  i1 = UT3D_pta_ccv (&ptNr, pta, ox1->data, 0, NULL, UT_DISP_cv);
+  i1 = UT3D_pta_ox_lim (&ptNr, pta, ox1->data, 0, NULL, UT_DISP_cv);
     printf(" _pta_ccv %d %d\n",i1,ptNr);
   if(i1 < 0) return i1;
 */

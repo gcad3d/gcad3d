@@ -87,7 +87,7 @@ cl -c /I ..\include ut_gtk.c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>                      // memcmp memcpy
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>         // f. GDK_Return

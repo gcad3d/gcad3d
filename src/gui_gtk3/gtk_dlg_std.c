@@ -840,6 +840,7 @@ static MemObj thisWin;
 
   go->uFunc (go, pTab);
 
+  return 0;
 }
 
 

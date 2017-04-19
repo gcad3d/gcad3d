@@ -150,7 +150,7 @@ Modifications:
 
     //----------------------------------------------------------------
     } else if(!strncmp(cbuf, "COOL", 4)) {
-      if(!strcmp(&cbuf[5], "OFF") > 5) {
+      if(strstr(&cbuf[5], "OFF")) {
         fprintf(fpo, "M09\n");
       } else {
         fprintf(fpo, "M07\n");

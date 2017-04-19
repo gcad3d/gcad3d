@@ -25,7 +25,7 @@
   \ref Curve-RBSpl                Rational-B-spline-curve
   \ref Curve-Bez                  Bezier-curve
   \ref Curve-RBez                 Rational-Bezier-curve
-  \ref Curve-CCV
+  \ref Curve-CCV                  trimmed-curve, Contour
 \ref SURFACES
   \ref Surface-TPS                trimmed, perforated, supported surface
   \ref Surface-PLN                OBSOLETE; DO NOT USE
@@ -98,7 +98,7 @@ Beispiele ObjGX:
     .typ=Typ_PT;    .form=Typ_Index; .siz=1;     .data=(int)DB-index_of_obj
     .typ=Typ_LN;    .form=Typ_LN;    .siz=1;     .data=address_of_(Line*)
     .typ=Typ_CVPLG; .form=Typ_CVPLG; .siz=1;     .data=(CurvPoly*)
-    .typ=Typ_CVCCV; .form=Typ_CVCCV; .siz=3;     .data=(CurvCCV[3])
+    .typ=Typ_CVTRM; .form=Typ_CVTRM; .siz=3;     .data=(CurvCCV[3])
 
   keine typenspezifischen DB-Speicherbereiche:
     .typ=Typ_Typ;  .form=Typ_Int4;  .siz=1;            .data=(int)typ
@@ -810,9 +810,9 @@ CurvRBez  Typ_CVRBEZ
 _________________________________________________________________________
 \subsection Curve-CCV
 <pre>
-Concatenated curves, Typ_CVCCV, struct CurvCCV
+Concatenated curves, Typ_CVTRM, struct CurvCCV
 
-Source: ../ut/ \ref ut_ccv.c
+Source: ../ut/ \ref ut_cvtrm.c \ref ut_cntf.c
 </pre>
 \code
 
@@ -820,8 +820,8 @@ Functions:
   UTO_cv_cvtrm       // make normal object of trimmedCurve
 
 ObjGX     cv1
-  cv1.typ   = Typ_CVCCV;
-  cv1.form  = Typ_CVCCV;
+  cv1.typ   = Typ_CVTRM;
+  cv1.form  = Typ_CVTRM;
   cv1.siz   = nr of subCurves
   cv1.data  = (CurvCCV*)=array of subCurves (trimmedCurves)
 
@@ -843,7 +843,7 @@ Example decode ccv:
   o2 = o1;
   for(i1=0; i1<rNr; ++i1) {
     UT3D_stru_dump(typ, o2, " o2");
-    if(typ == Typ_CVCCV) {
+    if(typ == Typ_CVTRM) {
       // change trimmedCurve into standardCurve
       UTO_cv_cvtrm (&typ1, obj1, NULL, o2);
       UT3D_stru_dump(typ1, obj1, " ccv-o2");

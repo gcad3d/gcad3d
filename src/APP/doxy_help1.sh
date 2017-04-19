@@ -1,5 +1,5 @@
 #!/bin/sh
-#
+# gcad_dir_dev and gcad_dir_bin must be set (. ../options.sh)
 
 echo "doxy_help1.sh start"
 echo $*

@@ -389,7 +389,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GR_Disp_ac () {}
   void GR_Disp_ell () {}
   void GR_Disp_pol () {}
-  void GR_Disp_bsp () {}
+  void GR_Disp_CvBSp () {}
   void GR_Disp_sur () {}
   void GR_Disp_sru () {}
   void GR_Disp_pln () {}
@@ -442,7 +442,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void DL_Redraw () {}
   void DL_find_obj () {}
   void DL_GetTyp () {}
-  void DL_GetInd () {}
+  void DL_get_dbi () {}
   void DL_GetTrInd () {}
   void DL_Get_lNr_dli () {}
   void DL_get_dla () {}

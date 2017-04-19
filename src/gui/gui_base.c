@@ -148,7 +148,7 @@ ctags -f gui_base.tag gui_base.c
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>                     // memcpy
+#include <string.h>                     // memcpy memcmp
 
 #include "../ut/ut_umem.h"              // Memspc
 #include "../ut/ut_umb.h"               // UMB

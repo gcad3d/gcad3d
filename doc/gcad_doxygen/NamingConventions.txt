@@ -28,11 +28,9 @@ input       pt 2pt  ..
  vc    Vector, Typ_VC
  vc1   Vector with length=1 (normalized)
  ln    Line, Typ_LN
+ nln   array of Lines, Typ_LN
  plg   CurvPoly, Typ_CVPOL, Polygon with parameterTable
  polc  (closed Polygon)
- cv    Curve
- cvp   polygon (points only)
- ncv   Array of curves;  was cva
  ci    Circ; Typ_CI, ac,  trimmed-circle
  ell   CurvElli, Typ_CVELL, Ellipse
  pl    Plane, Typ_PLN; Ebene.
@@ -43,7 +41,10 @@ input       pt 2pt  ..
  ccon  Conic-Curve; hyperbola|parabola.
  pspl  Typ_CVPSP3, Polynom.Spline.
  bnd   boundary; curve, closed.
- crv   linear object; LN,CI,EL,CV
+ cv crv   curve, linear object; LN,CI,EL,CV
+ cvp   polygon (points only)
+ cvtrm trimmed (limited) curve Typ_CVTRM
+ ncv   Array of curves;  was cva
  sur   Surface (all types)
  sru   RuledSurface, Typ_SURRU.
  srv   RevolvedSurface, Typ_SURRV.
@@ -96,17 +97,19 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  gcp   gravity-center-point (Schwerpunkt)
 
 <property>
- clo   closed (curve)
- perp    = Orthogonal (Normal)
- par     = parallel
- on      = auf
- in      = zwischen between
+ clo     closed (curve, surface)
+ cyc     cyclic, passing endpoint / startpoint, not ending at endpoint
+ rev     reverse, not forward
+ perp    Orthogonal (Normal)
+ par     parallel
+ on      auf
+ in      zwischen between
  mid
  near
- equ     = identisch
- norm    = normieren
- div     = teilen (divide)
- orient    ausrichten
+ equ     identisch
+ norm    normieren
+ div     teilen (divide)
+ orient  ausrichten
 
 
 <Functyp> ------------------------------------

@@ -16,11 +16,28 @@
 
 full include in ../ut/ut_geo2d.c
 
+Adding constant:
+extern const <typ> <nam>
+const <typ> <nam> { <values> };
+
+touch ../ut/ut_geo2d.c && ./do c
+
 \endcode *//*
 
 */
 
 
+// CurvPrcv
+#define _PRCV_NUL { 0L, 0, 0, 0,\
+                    NULL, NULL, NULL,\
+                    (short)0, (char)2, (char)0 };
+//                  typ,      fTmp,    uu1
+
+// CurvCCV
+#define _CCV_NUL  { FLT_32_MAX, FLT_32_MAX, 0L, 0L, 0L,\
+                    (unsigned short)0, (unsigned short)0,\
+                    (short)0, (short)0, (char)0, (char)-1, (char)-1, (char)0 };
+//                  typ,      us1;      dir,     clo,      trm,      uc1;
 
 //================================================================
 // constant geometric objects:
@@ -40,6 +57,8 @@ extern const Mat_3x3 UT3D_MAT_3x3;
 extern const Mat_4x3 UT3D_MAT_4x3;
 extern const Mat_4x4 UT3D_MAT_4x4;
 
+extern const CurvCCV UT3D_CCV_NUL;
+extern const CurvPrcv UT3D_PRCV_NUL;
 
  
 //----------------------------------------------------------------
@@ -49,7 +68,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 const Point2  UT2D_PT_NUL     = { 0.0, 0.0 };
 const Point   UT3D_PT_NUL     = { 0.0, 0.0, 0.0 };
 
-const Point2  UT2D_PT_INFTY   = {9999999999999.999, 9999999999999.999};
+const Point2  UT2D_PT_INFTY   = { FLT_32_MAX, FLT_32_MAX};
 
 const Vector2 UT2D_VECTOR_NUL = { 0.0, 0.0 };
 const Vector2 UT2D_VECTOR_X   = { 1.0, 0.0 };
@@ -79,6 +98,12 @@ const Mat_4x4 UT3D_MAT_4x4    = { {1.0, 0.0, 0.0, 0.0},
                                   {0.0, 1.0, 0.0, 0.0},
                                   {0.0, 0.0, 1.0, 0.0},
                                   {0.0, 0.0, 0.0, 1.0} };
+
+
+
+const CurvCCV UT3D_CCV_NUL    = _CCV_NUL;
+const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
+
 #endif
 
 

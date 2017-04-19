@@ -76,6 +76,7 @@ ED_work_exit        exit modify, work from curPos to end of model ..
 
 ED_set_lnr_act      set ED_lnr_act
 ED_get_lnr_act      get ED_lnr_act; see also ED_Get_LineNr
+ED_set_cpos_lnr_act set ED_cpos to start of line ED_lnr_act
 
 ED_lnr_bis__        ED_lnr_bis setzen
 ED_query_mode       get ED_mode (ED_mode_step|ED_mode_go|ED_mode_enter)
@@ -169,6 +170,7 @@ cl -c /I ..\include xa_ed.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>                       // isdigit
 
 #include "../gui/gui_types.h"      // UI_Func..
 #include "../ut/ut_geo.h"  
@@ -271,7 +273,7 @@ static FILE      *maclun = NULL;
 static int       ED_lnr_von;
 static int       ED_lnr_bis;
 static int       ED_lnr_max;
-static char     *ED_cpos;          // mem-position of last ED_Read_Line
+       char      *ED_cpos;          // mem-position of last ED_Read_Line
 
 
 long   UI_Ed_fsiz;      // Textsize
@@ -2199,7 +2201,7 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
       // save
       DL_hili_on (-2L);       // das zuletzt bearb. Elem. hiliten
       // if it is a temporyr element: set to not pickable
-      if(DL_GetInd(dl2) == 0) DL_pick_set (dl2, ON);  // set to nopick
+      if(DL_get_dbi(dl2) <= 0) DL_pick_set (dl2, ON);  // set to nopick
 
       // // set box invalid
       // UT3D_pt_setFree (&AP_box_pm1);
@@ -2727,6 +2729,18 @@ static int  actLev=0;
   ED_lnr_act = lNr;
 
   return 0;
+
+}
+
+
+//================================================================
+  int ED_set_cpos_lnr_act () {
+//================================================================
+/// ED_set_cpos_lnr_act set ED_cpos to start of line ED_lnr_act
+
+  long   il;
+
+  ED_cpos = UTF_GetPosLnr (&il, ED_lnr_act);
 
 }
 
@@ -3415,29 +3429,6 @@ static int  actLev=0;
 
 }
 
-/* UNUSED
-//================================================================
-  int ED_parent_disp (int typ, long ind) {
-//================================================================
-// display a selected ParentObject.
-// see also IE_parent_disp
-
-  long      l1;
-
-
-  printf("ED_parent_disp %d %ld\n",typ,ind);
-
-
-  l1  = -1;
-
-  // DL_hili_off (-1L);                          // reset hili
-
-  GR_Draw_dbo (&l1, 12, typ, ind);  // Typ_Att_hili1,
-
-  return 0;
-
-}
-*/
 
 //================================================================
   int ED_test__ () {

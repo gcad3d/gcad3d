@@ -1068,7 +1068,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   // im Entryfeld steht zB "S22"
   } else if(typ == Typ_CV) {
     if(typRec == Typ_CV)     goto L_OK_2;
-    if(typRec == Typ_CVCCV)  goto L_OK_2;
+    if(typRec == Typ_CVTRM)  goto L_OK_2;
     if(typRec == Typ_CVPOL)  goto L_OK_2;
     if(typRec == Typ_go_LCS)   goto L_OK_2;
     if(typRec == Typ_goPrim) goto L_OK_2;

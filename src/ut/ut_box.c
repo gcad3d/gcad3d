@@ -72,6 +72,7 @@ UT3D_box_Torus
 // UT3D_box_Prism
 UT3D_box_CurvClot
 UT3D_box_GText
+UT3D_box_ln               box Line 
 UT3D_box_ci
 UT3D_box_mdr
 UT3D_box_ox 
@@ -1200,8 +1201,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   //================================================================
-  if((tx1->typ == 0) ||       // 2D-Text
-     (tx1->typ == 2))   {     // Tag
+  if((tx1->aTyp == 0) ||       // 2D-Text
+     (tx1->aTyp == 2))   {     // Tag
 
     // 2 = Tag = fixed size; cannot be used for next scale; ignore ..
 
@@ -1210,7 +1211,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   //================================================================
-  } else if(tx1->typ == 1) {       // Image
+  } else if(tx1->aTyp == 1) {       // Image
 
     int    sx, sy, dx, dy, typ, pNr;
     long   dli;
@@ -1251,7 +1252,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   //================================================================
-  } else if(tx1->typ == 3) {       // LeaderLine + Balloon + 3D-Text
+  } else if(tx1->aTyp == 3) {       // LeaderLine + Balloon + 3D-Text
 
     int       sLen;
     double    rdc, cw, bw, scale;
@@ -1280,7 +1281,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   //================================================================
-  } else if(tx1->typ == 4) {       // LeaderLine + 3D-Text
+  } else if(tx1->aTyp == 4) {       // LeaderLine + 3D-Text
 
     int       sLen;
     double    cw, bw, scale;
@@ -1312,7 +1313,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     UT3D_box_extend (p1, p2, &tx1->p1);
 
 
-    if(tx1->typ == 10) {   // 10 = Vector (true length)
+    if(tx1->aTyp == 10) {   // 10 = Vector (true length)
       // p2 is vector; add to p1
       Point     pb2;
       UT3D_pt_traptvc (&pb2, &tx1->p1, (Vector*)&tx1->p2);
@@ -1602,7 +1603,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
     // have primary obj for A, B !
 
-    // get box
+    // get box for obj
     UT3D_box_obja (&pb1, &pb2, form, oNr, obj);
 
   }
@@ -1686,8 +1687,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   //----------------------------------------------------------------
   } else if(form == Typ_LN) {
-    UT3D_box_extend (pb1, pb2, &((Line*)obj)->p1);
-    UT3D_box_extend (pb1, pb2, &((Line*)obj)->p2);
+    // UT3D_box_extend (pb1, pb2, &((Line*)obj)->p1);
+    // UT3D_box_extend (pb1, pb2, &((Line*)obj)->p2);
+    UT3D_box_ln (pb1, pb2, (Line*)obj);
 
 
   //----------------------------------------------------------------
@@ -1768,7 +1770,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 */
 
   //-----------------------------------------------------------------
-  } else if (form == Typ_CVCCV) {
+  } else if (form == Typ_CVTRM) {
     for(i1=0;i1<oNr; ++i1)
       UT3D_box_ccv (pb1, pb2, &((CurvCCV*)obj)[i1]);
 
@@ -1835,12 +1837,12 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     
 /*
   //----------------------------------------------------------------
-    UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox
+    UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox__
     // if(ox1->form == Typ_SUR) {
       // man sollte eine Box von der ersten Kontur holen;
       // die Boxpunkte UT3D_box_extend (&pb1, &pb2,
-      // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox
-      // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox
+      // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox__
+      // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox__
     // } else if (ox1->form == Typ_ObjGX) {
     // }
 
@@ -2238,7 +2240,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   char    obj1[OBJ_SIZ_MAX];
 
 
-  // UT3D_stru_dump (Typ_CVCCV, ccv, "UT3D_box_ccv");  fflush (stdout);
+  // UT3D_stru_dump (Typ_CVTRM, ccv, "UT3D_box_ccv");  fflush (stdout);
 
   // make a normal struct of trimmed-curve
   UTO_cv_cvtrm (&typ1, obj1, NULL, ccv);
@@ -2306,7 +2308,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   //----------------------------------------------------------------
-  } else if(oxi->typ == Typ_CVCCV) {
+  } else if(oxi->typ == Typ_CVTRM) {
     // oTab  = oxi->data;
     ccva = oxi->data;
     for(i1=0; i1<oxi->siz; ++i1) {
@@ -2381,6 +2383,67 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   //----------------------------------------------------------------
   L_exit:
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_box_ln (Point *p1, Point *p2, Line *ln1) {
+//================================================================
+/// \code
+/// UT3D_box_ln           box Line 
+///   unlimited lines: only definitionpoint
+/// if UNL:   midpoint;
+/// if UNL1:  startpt
+/// if UNL1:  endpt
+/// \endcode
+
+
+  // Vector   vl1, vl2;
+  Point    px;
+
+
+  // UT3D_stru_dump (Typ_LN, ln1, "UT3D_box_ln");
+
+
+  switch(ln1->typ) {
+
+    case 0:     // both sides limited
+      UT3D_box_extend (p1, p2, &ln1->p1);
+      UT3D_box_extend (p1, p2, &ln1->p2);
+      break;
+
+    case 1:     // p1 = limitpoint
+      UT3D_box_extend (p1, p2, &ln1->p1);
+      // UNL1:  add 1 to startpt
+      // UT3D_vc_ln (&vl1, ln1);
+      // UT3D_vc_div_d (&vl2, &vl1, UT_DISP_ln);
+      // // px = ln1->p1 + vl2
+      // px = ln1->p1;
+      // UT3D_pt_add_vc__ (&px, &vl2);
+      // UT3D_box_extend (p1, p2, &px);
+      break;
+
+    case 2:     // p2 = limitpoint
+      UT3D_box_extend (p1, p2, &ln1->p2);
+      break;
+
+    case 3:     // 1 both sides unlimited
+      // UNL: add +0.5 /-0.5 to midpoint;
+      UT3D_pt_mid2pt (&px, &ln1->p1, &ln1->p2);
+      UT3D_box_extend (p1, p2, &px);
+      break;
+  }
+
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // UT3D_stru_dump (Typ_PT, p1, "-p1");
+    // UT3D_stru_dump (Typ_PT, p2, "-p2");
+
   return 0;
 
 }
@@ -2705,7 +2768,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /
 
         //-----------------------------------------------------------------
-        } else if (typ1 == Typ_CVCCV) {
+        } else if (typ1 == Typ_CVTRM) {
           ox1 = DB_GetCurv (dbi);
           UT3D_box_ox (&pb1, &pb2, ox1);
 
@@ -2768,12 +2831,12 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
         //----------------------------------------------------------------
         if(ox1->typ == Typ_SUR) {
-          UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox
+          UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox__
           // if(ox1->form == Typ_SUR) {
             // man sollte eine Box von der ersten Kontur holen;
             // die Boxpunkte UT3D_box_extend (&pb1, &pb2,
-            // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox
-            // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox
+            // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox__
+            // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox__
           // } else if (ox1->form == Typ_ObjGX) {
           // }
 

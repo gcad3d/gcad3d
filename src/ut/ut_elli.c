@@ -42,7 +42,7 @@ UT3D_ck_el360             check if elli is 360-degree-elli
 UT3D_angr_par1_ell        par 0-1  -->  parametric-Angle
 UT3D_angr_elpt            real angle for point on elli
 UT3D_angr_el_corr         get angle-circ from angle of elli.
-UT3D_2angr_el             get starting- and opening angle of ellipse
+UT2D_2angr_el             get starting- and opening angle of ellipse
 UT3D_ango_el          UU  opening angle of ellipse
 UT3D_lne_ell              get dist center-focus for ellipse
 UT3D_pt_ell_lim_del       remove points outside limited ellipse
@@ -250,7 +250,8 @@ cl -c ut_geo.c
   eo->p1 = ci->p1;
   eo->p2 = ci->p2;
   eo->vz = ci->vz;
-  eo->dir = DSIGN(ci->rad);
+  if(ci->rad > 0.) eo->srot = 0;
+  else             eo->srot = 1;
 
   // vz,va,vb,dir
   UT3D_vc_2pt (&eo->va, &ci->pc, &ci->p1);
@@ -270,11 +271,12 @@ cl -c ut_geo.c
 // UT3D_el_inv1              turn direction and p1/p2 (same display !)
 
 
+  // UT3D_stru_dump (Typ_CVELL, el1, "UT3D_el_inv1");
+
   MEM_swap__(&el1->p1, &el1->p2, sizeof(Point));
 
-  el1->dir = -el1->dir;
-
-  return 0;
+  // turn direction
+  return UT3D_el_inv2 (el1);
 
 }
 
@@ -285,7 +287,12 @@ cl -c ut_geo.c
 /// UT3D_el_inv2              turn direction (do not swap p1,p2)
 
 
-  el1->dir = -el1->dir;
+  // change 0 -> 1, 1 -> 0;
+  // ICHG01(el1->dir);   does not work !!! ???
+  if(el1->srot) el1->srot = 0;
+  else          el1->srot = 1;
+
+  // UT3D_stru_dump (Typ_CVELL, el1, "ex UT3D_el_inv1");
 
   return 0;
 
@@ -319,7 +326,7 @@ cl -c ut_geo.c
   UT2D_elc_el3 (&el2c, el1);
 
   // get as, ao
-  UT3D_2angr_el (&as, &ango, &el2c);
+  UT2D_2angr_el (&as, &ango, &el2c);
 
   aa = as + (ango * par1);
 
@@ -475,7 +482,7 @@ cl -c ut_geo.c
 }
 
 
-/* REPLACED WITH UT3D_2angr_el
+/* REPLACED WITH UT2D_2angr_el
 //================================================================
   double UT3D_ango_el (CurvElli *el1) {
 //================================================================
@@ -530,27 +537,30 @@ cl -c ut_geo.c
   Point2   pt20;
   
 
-  // printf("UT3D_ptvc_eval_ell_par par=%lf pTyp=%d\n",par,pTyp);
-  
+  printf("UT3D_ptvc_eval_ell_par par=%lf pTyp=%d\n",par,pTyp);
+  UT3D_stru_dump (Typ_CVELL, el1, "  el1:");
+
   
   //----------------------------------------------------------------
   // point;    yet need point for vector.
     
+  // angle from 0-1-parameter
   if(pTyp == 0) 
-    par = UT3D_angr_par1_ell (par, el1);  // angle from 0-1-parameter
+    par = UT3D_angr_par1_ell (par, el1);
       // printf(" angr=%f\n",par);
   
 
   lx = UT3D_len_vc (&el1->va);  // Laenge hauptachse
   ly = UT3D_len_vc (&el1->vb);  // length 
 
-  // 2D-Punkt errechnen
+  // get 2D-point from angle
   UT2D_pt_elangd (&pt20, lx, ly, par);
     // printf(" pt20 = %lf %lf\n",pt20.x,pt20.y);
 
-  // um dx, dy verschieben
+  // translate -> 3D
   UT3D_pt_trapt2vc2len(&ptt, &el1->pc, &el1->va, pt20.x, &el1->vb, pt20.y);
     // GR_Disp_pt (&ptt, SYM_STAR_S, 2);
+    UT3D_stru_dump(Typ_PT, &ptt, "  ptt:");
 
   // copy point out
   if(pto) *pto = ptt;
@@ -672,9 +682,9 @@ cl -c ut_geo.c
   // UT3D_stru_dump(Typ_PT, pt1, "  PT1:");
 
 
-  el1->pc = *ptc;
-  el1->p1 = *ptx;
-  el1->p2 = *ptx;
+  el1->pc  = *ptc;
+  el1->p1  = *ptx;
+  el1->p2  = *ptx;
   UT3D_vc_2pt (&el1->va, ptc, ptx);
   UT3D_vc_2pt (&v1, ptc, pt1);
 
@@ -695,6 +705,8 @@ cl -c ut_geo.c
   // get vb (side of pt1)
   UT3D_vc_perp2vc (&el1->vb, &el1->vz, &el1->va);
   UT3D_vc_setLength (&el1->vb, &el1->vb, db);
+
+  el1->srot = 0;
 
   // UT3D_stru_dump(Typ_CVELL, el1, "ex UT3D_el_ptc_ptx_pt:");
 
@@ -728,7 +740,7 @@ cl -c ut_geo.c
   UT3D_pt_elangd (&el->p1,ptc,vcx,vcy,a1);
   UT3D_pt_elangd (&el->p2,ptc,vcx,vcy,a2);
 
-  el->dir = idir;
+  el->srot = idir;
 
   // UT3D_stru_dump(Typ_CVELL,el"ex UT3D_el_pt2vc2a");
 
@@ -1137,12 +1149,15 @@ cl -c ut_geo.c
 
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el3);
+    // UT3D_stru_dump (Typ_CVELL2C, &el2c, "  el2c:");
 
   // get as & ao
-  UT3D_2angr_el (&as, &ao, &el2c);
+  UT2D_2angr_el (&as, &ao, &el2c);
+    // printf(" as=%f ao=%f\n",as,ao);
 
-  L_1:
-  lMin = UT3D_len_vc (&el3->vb);  // length minor axis
+  // L_1:
+  // lMin = UT3D_len_vc (&el3->vb);  // length minor axis
+  lMin = UT3D_len_vc (&el3->va);  // length major axis
 
   pNr = UT2D_ptNr_ci (fabs(lMin), fabs(ao), tol);
 
@@ -1189,6 +1204,7 @@ cl -c ut_geo.c
   double     dx, dy, xPar, yPar;
   double     as, ae, ao, ai, aa;
   double     acs, ace;
+  double     UT3D_angr_el_corr();
   Vector     vcx, vcy;
   Point2     pt21;
   CurvEll2C  el2c;
@@ -1211,7 +1227,7 @@ cl -c ut_geo.c
 
   // get as, ao
   // as=angle at startpoint; ao=opening-angle; ao = endAngle
-  UT3D_2angr_el (&as, &ao, &el2c);
+  UT2D_2angr_el (&as, &ao, &el2c);
   ae = as + ao;
     // printf(" _npt_ell as=%lf ae=%lf ao=%lf\n",as,ae,ao);
 
@@ -1229,12 +1245,12 @@ cl -c ut_geo.c
 
   if(is360) {
      // printf(" ell=360; sr=%d\n",el2c.sr);
-   if(el2c.sr == 1) ace = acs + RAD_360;  // 1=CCW, else CW.
-   else             ace = acs - RAD_360;
+   if(el2c.srot == 0) ace = acs + RAD_360;  // 1=CCW, else CW.
+   else               ace = acs - RAD_360;
 
   } else {
     // make ace following acs
-    ace = UT2D_angr_set_2angr (acs, ace, el2c.sr);
+    ace = UT2D_angr_set_2angr (acs, ace, el2c.srot);
   }
     // printf(" korr.acs=%lf ace=%lf ae=%lf sr=%d\n",acs,ace,ae,el2c.sr);
 
@@ -1281,6 +1297,7 @@ cl -c ut_geo.c
   // copy last point
   pa[ptNr] = el3->p2;
   ++ptNr;
+
 
     // GR_Disp_cv (pa, ptNr, 8);
     // UT3D_nstru_dump (Typ_PT, ptNr, pa, "pa:");
@@ -1650,6 +1667,14 @@ cl -c ut_geo.c
 
 	elo->vz = pl->vz;
 
+  // test if eli->vz opposite pl->vz
+  if(UT3D_sid_2vc(&eli->vz, &pl->vz) > 0) {
+    elo->srot = eli->srot;
+  } else {
+    elo->srot = ICHG01(eli->srot);
+  }
+
+
 
 /* 
   printf("ex UT3D_el_projcipl pc=%f,%f,%f\n",elo->pc.x,elo->pc.y,elo->pc.z);
@@ -1750,10 +1775,10 @@ cl -c ut_geo.c
 
   // revers ? RF 2006-04-15
   if(ci->rad < 0.) {
-    // el->dir = -1;
+    el->srot = 1;
     MEM_swap__ (&el->p1, &el->p2, sizeof(Point));
-  // } else {
-    // el->dir = 1;
+  } else {
+    el->srot = 0;
   }
 
 
@@ -3337,10 +3362,10 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
 //=================================================================
-  int UT3D_2angr_el (double *angs, double *ango, CurvEll2C *el2c) {
+  int UT2D_2angr_el (double *angs, double *ango, CurvEll2C *el2c) {
 //=================================================================
 /// \code
-/// UT3D_2angr_el              get starting- and opening angle of ellipse
+/// UT2D_2angr_el              get starting- and opening angle of ellipse
 /// angs    real-angle between major-axis and startpoint
 /// ango    real-opening-angle between startpoint and endpoint 
 ///           CCW ?
@@ -3356,24 +3381,27 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // make ae following as corresponding to sense
   if(UT2D_comp2pt(&el2c->p1, &el2c->p2, UT_TOL_pt)) {
-    if(el2c->sr > 0) {
+    if(el2c->srot == 0) {
+      // CCW
       ae = as + RAD_360;
     } else {
+      // CW
       ae = as - RAD_360;
     }
     
   } else {
     // get ae from p2
     UT2D_angr_elc_pt (&ae, &el2c->p2, el2c);
-      // printf(" as=%lf ae=%lf dir=%d\n",as,ae,el2c->sr);
+      // printf(" 1-as=%lf ae=%lf dir=%d\n",as,ae,el2c->srot);
     
-    UT2D_2angr_set (&as, &ae, el2c->sr);
+    UT2D_2angr_set (&as, &ae, el2c->srot);
+      // printf(" 2-as=%lf ae=%lf dir=%d\n",as,ae,el2c->srot);
   }
 
   *angs = as;
   *ango = ae - as;
 
-    // printf("ex UT3D_2angr_el as=%lf ao=%lf ae=%lf\n",*angs,*ango,ae);
+    // printf("ex UT2D_2angr_el as=%lf ao=%lf ae=%lf\n",*angs,*ango,ae);
 
   return 0;
 }
@@ -3393,8 +3421,10 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // GR_Disp_vc (&el3->vb, &el3->pc, 5, 1);
 
 
-  if(el3->dir > 0) el2c->sr = 1;
-  else             el2c->sr = -1;
+  // if(el3->dir > 0) el2c->dir = -1;    // 2016-10-30
+  // else             el2c->dir = 1;
+  el2c->srot = el3->srot;
+  el2c->clo = el3->clo;
 
   el2c->a = UT3D_len_vc (&el3->va);
   el2c->b = UT3D_len_vc (&el3->vb);
@@ -3458,16 +3488,18 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
-  // UT3D_stru_dump (Typ_CVELL, el1, "UT3D_par1_el_pt el1:");
-  // UT3D_stru_dump (Typ_PT, pt1, "  pt1:");
+  UT3D_stru_dump (Typ_CVELL, el1, "UT3D_par1_el_pt el1:");
+  UT3D_stru_dump (Typ_PT, pt1, "  pt1:");
 
 
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el1);
+    UT3D_stru_dump (Typ_CVELL2C, &el2c, "  el2c:");
+
 
   // get startAngle & opening-angle of elli
-  UT3D_2angr_el (&as, &ao, &el2c);
-    // printf(" as=%lf ao=%lf\n",as,ao);
+  UT2D_2angr_el (&as, &ao, &el2c);
+    printf(" as=%lf ao=%lf\n",as,ao);
 
 
 /*
@@ -3486,21 +3518,24 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // get pt on 2D-elli in centerPos from pt on 3D-elli
   UT2D_pt_ptel3 (&pt21, pt1, el1);
-    // UT3D_stru_dump (Typ_PT2, &pt21, "  pt21:");
+    UT3D_stru_dump (Typ_PT2, &pt21, "  pt21:");
 
   // get angr on innerCirc
   aa = UT2D_angr_vc ((Vector2*)&pt21);
+    printf(" aa-1=%f\n",aa);
+
 
   // aa should be between as,ae. Do not modify as.
-  aa = UT2D_angr_set_2angr (as, aa, el2c.sr);
+  aa = UT2D_angr_set_2angr (as, aa, el2c.srot);
+    printf(" aa-2=%f\n",aa);
 
   // change angr da into par1 du (du = ao / piTwo)
   ae = as + ao;
-    // printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
+    printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
 
   UTP_param_p0p1px (du, as, ae, aa);
 
-    // printf("ex UT3D_par1_el_pt du=%lf ao=%lf\n",*du,ao);
+    printf("ex UT3D_par1_el_pt du=%lf ao=%lf\n",*du,ao);
 
   return 0;
 

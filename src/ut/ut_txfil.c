@@ -418,6 +418,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 }
 
 
+/* UNUSED
 //================================================================
   int UTF_comment_chg (long lNr, char cs) {
 //================================================================
@@ -445,7 +446,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   return 0;
 
 }
-
+*/
 
 //================================================================
   int UTF_comment_line (char *lPos, int mode, char *cs) {
@@ -501,7 +502,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   //================================================================
   // restore: remove first char of line
   L_restore:
-    printf(" restore %c\n",UTF_FilBuf0[ii]);
+    // printf(" restore %c\n",UTF_FilBuf0[ii]);
   if(UTF_FilBuf0[ii] != *cs) goto L_exit;  // already uncommented ..
   // restore: remove 1. char
   // Zeile 1 char nach links; insert blank am LineEnd (to,from,len)

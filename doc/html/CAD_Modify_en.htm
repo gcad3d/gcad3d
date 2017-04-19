@@ -34,7 +34,7 @@ CAD-functions for modifying geometry
 
  Caution: currently only for curves, not yet for surfaces/solids and CCVs.
 
-<b>CUT Obj CuttingElement (CuttingElement2) (Variant)</b>
+<b>CUT Obj CuttingElement (CuttingElement2) (Variant) (REVerse)</b>
 
 <b>Obj:</b> this element will be changed (trimmed).
     If it is already trimmed, also its parent-object will be displayed
@@ -50,15 +50,17 @@ CAD-functions for modifying geometry
     Change with the Page Up/Page Down keys
     Default or “1” saves the first resulting object 
 
+<b>REVerse:</b> Reverse the direction of the resulting curve.
+
 <img src="doc_L_cut__.jpg" alt="versions">
 
  Example:
  L20 = P(-60 30 0) P(20 70 0) 
  C20 = P(-14 40 0) VAL(32) DZ
- C20 = CUT C20 L20 L20
+ S20 = CUT C20 L20 L20
  # Circle C20 is limited at both ends (trimmed).
 
- Parameter values as cutting element:
+ # Parameter values as cutting element:
  S21 = CUT S20 0.33 0.66
 
 
@@ -178,6 +180,13 @@ S1=INT A1 A2
 
 
 <p><a name="F5"></a></p>
+  <h2>reverse curve      REV</h2>
+Reverse direction of curve.
+The resulting curve looks identical.
+
+
+
+<p><a name="F6"></a></p>
 <h2>Project obj        PRJ</h2>
 Project points or linear elements (lines, circles, curves) onto 
   an other linear element or on a surface.
@@ -199,20 +208,34 @@ solutionNr:      1-n, PgUp/PgDown keys.
 
 
 
-<p><a name="F6"></a></p>
+<p><a name="F7"></a></p>
+  <h2>Mirror about line       MIR</h2>
+Reflect objects across a line
+  Currently, only for linear elements, plane, not surfaces.
+
+resulting object = MIR object line
+
+
+Beispiel:
+S20=MIR S20 L20
+# Curve S20 is mirrored across line L20
+
+
+
+<p><a name="F8"></a></p>
 <h2>Mirror obj (Plane)      MIR</h2>
  Reflect objects across a plane
    Currently, only for linear elements, not surfaces
 
- Result object = MIR object level
+ Result object = MIR object plane
 
  Example:
  S20 = MIR S20 R20
- # Curve S20 suspended at the level R20 mirrored.
+ # Curve S20 is mirrored across plane R20
 
 
 
-<p><a name="F7"></a></p>
+<p><a name="F9"></a></p>
 <h2>ISOparametric Curve from Surf         ISO</h2>
  Extracts an isoparametric curve from a surface.
   Currently only B-Spline surface. Entering point or parameter value has not yet been implemented 

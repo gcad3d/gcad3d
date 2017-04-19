@@ -1502,7 +1502,7 @@ usw.
   pNr = sizeof(memspc201) / sizeof(Point);
 
 
-  irc = UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
+  irc = UT3D_npt_ox__ (&pNr, pTab, ox1, UT_DISP_cv);
   if(irc < 0) return irc;
 
   fprintf(fp_in,"0\nPOLYLINE\n");
@@ -1548,7 +1548,7 @@ usw.
   pNr = sizeof(memspc201) / sizeof(Point);
 
 
-  irc = UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
+  irc = UT3D_npt_ox__ (&pNr, pTab, ox1, UT_DISP_cv);
   if(irc < 0) return irc;
 
   fprintf(fp_in,"0\nPOLYLINE\n");
@@ -1583,7 +1583,7 @@ usw.
   pNr = sizeof(memspc201) / sizeof(Point);
 
 
-  irc = UT3D_npt_ox (&pNr, pTab, ox1, UT_DISP_cv);
+  irc = UT3D_npt_ox__ (&pNr, pTab, ox1, UT_DISP_cv);
   if(irc < 0) return irc;
 
   return dxfw_POLYLINE (pNr, 32, pTab, fp_in);
@@ -1946,7 +1946,7 @@ usw.
 
 
     //=========================================================
-    case Typ_CVCCV:
+    case Typ_CVTRM:
       return DXFW_POLYLN3 (ox1, 32, fpo1);
 
     //=========================================================

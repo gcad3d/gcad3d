@@ -3,12 +3,6 @@
 # Development-Start gcad3d          ./do
 
 
-# if test -f WinIsLast.lock; then
-#   rm -rf WinIsLast.lock
-#   cp -f dirx.lst ~/gCAD3D/cfg/dir.lst
-#   cp -f dirw.lst ~/gCAD3D/cfg/dir.lst
-# fi
-
 # get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
 . ../options.sh
 
@@ -44,6 +38,7 @@ if test "$1" = "help"; then
   echo "./do g3                # display ut_geo3d.c"
   echo "./do gmon              # analyze time"
   echo "./do setup             # Customize the development environment"
+  echo "./do edm               # edit model"
   exit 0
 fi
 
@@ -96,6 +91,7 @@ fi
 
 
 if test "$1" = "c"; then
+  rm -f *.o
   make -f gcad3d.mak
   exit 0
 fi
@@ -156,11 +152,17 @@ if test "$1" = "g3"; then
   exit 0
 fi
 
+if test "$1" = "edm"; then
+   $cmdVi "${gcad_dir_dev}gCAD3D/tmp/Model"
+  exit 0
+fi
+
 if test "$1" = "setup"; then
   ./dev_setup.sh
   ./do complete
   exit 0
 fi
+
 
 # check filetyp
 ftyp=`echo $1 | cut -d"." -f2-`
@@ -173,7 +175,7 @@ fi
 
 #=================================================================
 # start gCAD3D
-
+# Must set gcad_dir_bin and gcad_dir_bas;
 
 
 #export UBUNTU_MENUPROXY=
@@ -184,6 +186,10 @@ echo "start - OSTYPE = " $OSTYPE
 
 
 if [ "$OSTYPE" = "Linux" ] ; then
+
+
+# icons; if not set: /usr/share/gcad3d/
+  export gcad_dir_bas=${gcad_dir_dev}/
 
 # executables (shared-libs ..)
 # export gcad_dir_bin=${DirBasSer}/gCAD3D/binLinux${bitNr}/

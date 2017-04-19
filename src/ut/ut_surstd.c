@@ -423,7 +423,7 @@ List_functions_end:
 
   cTab->iNr = pNr;
   cTab->pa  = pTab;
-  cTab->typ = Typ_modOUT;
+  cTab->cTyp = Typ_modOUT;
 
   // feststellen Umdrehungssinn; unbedingt; sonst sieht ma gar nix !!
   SUP_orient (vcn, cTab, 1);
@@ -471,7 +471,7 @@ List_functions_end:
 
     // test Aussenkontur; muss CCW sein
     if(i1 == 0) {      // erste = aussen
-      cTab[i1].typ = Typ_modOUT;
+      cTab[i1].cTyp = Typ_modOUT;
       if(i2 < 0) {
         // printf(" inv con %d\n",i1);
         // UT3D_cv_inv (iNr, &pTab[ipa]);
@@ -481,7 +481,7 @@ List_functions_end:
 
     // test Innenkontur; muss CW sein
     } else {
-      cTab[i1].typ = Typ_modIN;
+      cTab[i1].cTyp = Typ_modIN;
       if(i2 > 0) {
         // printf(" inv con %d\n",i1);
         // UT3D_cv_inv (iNr, &pTab[ipa]);
@@ -644,6 +644,10 @@ List_functions_end:
                           // oxi->typ,oxi->form,tol);
   // printf(" pTab-posi=%p\n",pTab);
   // printf(" oxi-data-posi=%p\n",oxi->data);
+  // UTO_dump_s_ (oxi, "_addBound");
+
+
+  if(!oxi->typ) return -1;  // no outer-boundary
 
 
   // noch Platz in icTab ?
@@ -663,11 +667,19 @@ List_functions_end:
   ptNr = pMax;
 
 
+
   // objekt -> Polygon umwandeln
-  // i1 = UT3D_npt_ox (&ptNr, &pTab[ip], oxi, tol);
-  irc = UT3D_npt_ox (&ptNr, pTab, oxi, tol);
+  // i1 = UT3D_npt_ox__ (&ptNr, &pTab[ip], oxi, tol);
+  irc = UT3D_npt_ox__ (&ptNr, pTab, oxi, tol);
   if(irc > 0) return 0; // skip Stuetzflaeche
   if(irc < 0) return irc;
+
+
+// TODO: use PRCV_npt_dbo__
+  // irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVTRM, dbi, WC_modact_ind);
+    // if(irc < 0) return -1;
+
+
 
 
   // check if boundary closed. If not: add pt.
@@ -910,12 +922,12 @@ List_functions_end:
 
       switch (ox1.typ) {
 
-        case Typ_CVCCV:
+        case Typ_CVTRM:
           // Plane from CCV: see GR_DrawSur
           pTab = (Point*)memSeg1->start;
           ptNr = UME_ck_free(memSeg1) / sizeof(Point);
           // CCV -> 3D-Polygon umwandeln
-          i1 = UT3D_pta_ccv (&ptNr, pTab, ox1.data, 0, NULL, UT_DISP_cv);
+          i1 = UT3D_pta_ox_lim (&ptNr, pTab, ox1.data, 0, NULL, UT_DISP_cv);
           if(i1 < 0) return i1;
           // 3D-Polygon -> Plane
           UT3D_pl_pta (&pl1, ptNr, pTab);

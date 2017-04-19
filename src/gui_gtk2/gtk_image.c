@@ -56,7 +56,7 @@ see tst_gtk_image.c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>                      // memcmp memcpy
 
 
 #include <gtk/gtk.h>

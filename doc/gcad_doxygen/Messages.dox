@@ -1,16 +1,17 @@
 /*! \page pag_Messages Messages
 ../../doc/gcad_doxygen/Messages.dox
-<h2>Messages Doku</h2>
 
 
 <pre>
-\ref Direct-Messages
-\ref Dump-object-functions
-\ref ErrorHandling
-\ref Logfile                     write log-messages into file, display file
+\ref Direct-Messages             display text
 \ref Standard-Messages           messages, identified by a keyword
 \ref Constant-Messages           messages; identified by integers (../xa/xa_msg.h)
+\ref System-Messages             messages; keyword, languages
 \ref Application-Messages
+
+\ref Logfile                     write log-messages into file, display file
+\ref Dump-object-functions
+\ref ErrorHandling
 
 See also \ref Debugging
 
@@ -19,10 +20,11 @@ See also \ref Debugging
 Files:
 \ref xa_msg.c            Application-Messages, Standard-Messages, Constant-Messages
 \ref xa_msg.h            integer-constants for Constant-Messages
+../../doc/msg/msg_*.txt  message-files
 
 
 
-<hr>
+
 Tools for manipulating the language-files:
 
 save the lang.files: ./lang_save.csh
@@ -34,10 +36,6 @@ delete Line          ./lang_del.csh keyWd
 insert Line          ./lang_ins.csh keyWd_before new line words ..
 
 
-Examples Messages:
-  strcpy(s1,  MSG_const__(MSG_cancel));  // "Cancel");
-  p1 = MSG_get_str ("CADSUR");
-
 </pre>
 
 
@@ -46,6 +44,10 @@ Examples Messages:
 
 <hr>
 \section Direct-Messages
+
+- display text in text-window (under grafic-window)
+- no translation
+
 
 <pre>
 \ref ut_ui_TX.c         TX_* messages
@@ -141,8 +143,50 @@ LOG_A_disp      display logfile
 \endcode
 
 
+<hr>
+\section System-Messages
+<pre>
+
+- Messagefiles, different languages (../../doc/msg/msg_en.txt - language is _en)
+  (Languages: _en _de _es _fr _it)
+- find key in message-file
+- can have dynamic parameters ({0})
+- Functions: MSG_pri_0 MSG_pri_1 MSG_get_0 MSG_err_0 MSG_Tip ..
+
+\code
+Example:
+  MSG_pri_0 ("CAD_On");
+  MSG_get_1 (buf, 256, "NOEX_fil", "%s", filnam);  // with dynam. parameter
+  p1 = MSG_get_str ("CADSUR");
+\endcode
+
+
+How to add new System-Message:
+- add line with {keyCode}={message} into all messagefiles
+
+Fileformat of the messagefile:
+{keyCode}={message}
+  Messagelinelength may not exceed 255 chars
+  commentlines: first char #
+  dynamic parameters: " {0} " will be replaced with the parameter.
+  continuation-lines:  last char \, first char of next line \
+
+
+
+
+</pre>
+<hr>
 \section Standard-Messages
 Sourcefile: ../xa/ \ref xa_msg.c
+
+- display message from keyword
+- and display name of calling function with additional parameters
+
+How to add new standard-message:
+  - add key in enum ERR_* in ../xa/xa_msg.h
+  - add text for key MSG_STD_tab in ../xa/xa_msg.c
+
+
 \code
 See MSG_STD_ERR
 Example:
@@ -151,8 +195,23 @@ Example:
 \endcode
 
 
+
+<hr>
 \section Constant-Messages
 Sourcefile: ../xa/ \ref xa_msg.c
+
+- get text from keyword
+- all constant-Messages are in memory
+
+How to add new constant-message:
+  - add key into enum in ../xa/xa_msg.h
+  - add text into files ../../doc/msg/msg_const_{language}.txt
+
+
+\code
+Example:
+  strcpy(s1,  MSG_const__(MSG_cancel));  // "Cancel");
+\endcode
 
 \section Application-Messages
 Sourcefile: ../xa/ \ref xa_msg.c

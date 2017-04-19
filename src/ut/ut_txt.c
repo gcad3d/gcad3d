@@ -1104,7 +1104,7 @@ static char   TX_buf2[128];
 
 
 
-  L_cut:     // rmove Filename
+  L_cut:     // remove Filename
   // printf("      fnam tot=|%s|\n",fdir);
 
   p1 = strrchr(fdir, '/');  // find last FilenamedelimiterChar
@@ -4320,10 +4320,11 @@ L_exit:
 /// find end of bracket ..
 /// Input:
 ///  cbuf:    !!! first '(' is not included in *cbuf !!!
-///           Example: "(3*3) + (4*4))"
 /// Output:
 ///   retCod  the position of the ')' corresponding to the missing ')'
-///           Example: ")"
+///  Examples:
+///   strcpy(s1, "(3*3*sin(9)) + (4*4))");
+///   UTX_pos_skipBrack1(&s1[1]);      returns ") + (4*4))"
 /// \endcode
 
 

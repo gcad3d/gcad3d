@@ -68,7 +68,7 @@ List_functions_end:
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>                      // memcmp memcpy
 #include <stdarg.h>                    // va_list
 #include <math.h>
 

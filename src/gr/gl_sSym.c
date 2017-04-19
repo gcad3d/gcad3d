@@ -313,16 +313,19 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 // draw symbolic display of RevolvedSurface
 
 
-  int    irc, i1, ii, ip, pcNr, ppNr[6], pcMax, cTyp, rNr;
-  long   dli, l1;
-  double d1, a1, am, a2, v0, vm, v1;
-  void   *oc;
-  Point  pta, *pcTab, *ppTab[6], p1, p2, pm, pc;
-  Vector vca;
-  Circ   cic, ci1;
-  ObjGX  oo, oco, oci, oc1, oc2, cvTab[6], *ocp;
-  SurRev *srv1;
-  Memspc wrkSeg;
+  int     irc, i1, ii, ip, pcNr, ppNr[6], pcMax, cTyp, rNr;
+  long    dli, l1, dbi;
+  double  d1, a1, am, a2, v0, vm, v1;
+  void    *oc;
+  Point   pta, *pcTab, *ppTab[6], p1, p2, pm, pc;
+  Vector  vca;
+  Circ    cic, ci1;
+  ObjGX   oo, oxo, oci, oc1, oc2, cvTab[6];  // *ocp;   // oco
+  CurvCCV oco;
+  ObjDB   odbi;
+  SurRev  *srv1;
+  Memspc  wrkSeg;
+  void    *cvCov;
 
 
 
@@ -354,12 +357,12 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // die Winkel korrigieren; muessen im Bereich -2Pi bis +2Pi sein
   // und aufsteigend.
-  UT2D_2angr_set (&a1, &a2, 1);
+  UT2D_2angr_set (&a1, &a2, 0);
 
 
   // Mittelwerte errechnen
   vm = (v0 + v1) / 2.;
-  am = (a1 + a2) / 2.;   UT2D_2angr_set (&am, &am, 1);
+  am = (a1 + a2) / 2.;   UT2D_2angr_set (&am, &am, 0);
     // printf(" ang1=%f am=%f ang2=%f v0=%f vm=%f v1=%f\n",a1,am,a2,v0,vm,v1);
 
 
@@ -380,22 +383,26 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // -----------------------------------
   // get oci = obj to cut   srv1->typCov, srv1->indCov
-  oci.typ   = srv1->typCov; // Typ_CI; // Typ_LN;
-  oci.form  = Typ_Index;
-  l1 = srv1->indCov;
-  oci.data  = (void*)l1;
+  ODB_set_odb (&odbi, (int)srv1->typCov, srv1->indCov);
+  // oci.typ   = srv1->typCov; // Typ_CI; // Typ_LN;
+  // oci.form  = Typ_Index;
+  // l1 = srv1->indCov;
+  // oci.data  = (void*)l1;
+
 
 
   // ACHTUNG vermutlich muss man hier auch TSU_srv_tor_01 benutzen uva ...
   // wenn oci ein Vollkreis ist, den Startpunkt ganz innen setzen ...
-  cTyp = UTO_obj_getp ((void**)&ocp, &rNr, &oci);
+  // cTyp = UTO_obj_getp ((void**)&ocp, &rNr, &oci);
+  cTyp = srv1->typCov;
+  UTO_get_DB (&cvCov, &rNr, &cTyp, srv1->indCov);
   if(cTyp == Typ_CI) {
       // UT3D_stru_dump(Typ_CI, ocp, " srv-cont1:");
-    UT3D_pt_projptptvc (&pta, &d1, NULL, &((Circ*)ocp)->pc, &pta, &vca);
+    UT3D_pt_projptptvc (&pta, &d1, NULL, &((Circ*)cvCov)->pc, &pta, &vca);
       // GR_Disp_pt (&pta, SYM_STAR_S, 4);
     // SEE ALSO TSU_srv_tor_03 !
-    if(UT3D_ck_ci360((Circ*)ocp) == 0) {
-      cic = *(Circ*)ocp;
+    if(UT3D_ck_ci360((Circ*)cvCov) == 0) {
+      cic = *(Circ*)cvCov;
       // den Z-Vektor setzen
       UT3D_vc_perpvc2pt (&cic.vz, &vca, &pta, &cic.pc);
       UT3D_pt_traptptlen (&cic.p1, &cic.pc, &pta, fabs(cic.rad));
@@ -403,10 +410,12 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
         // UT3D_stru_dump(Typ_CI, &cic, " srv-cont2:");
         // GR_Disp_ac (&cic, 9);
         // GR_Disp_pt (&cic.p1, SYM_STAR_S, 3);
-      oci.typ   = Typ_CI;
-      oci.form  = Typ_CI;
-      oci.data  = &cic;
-      ocp = (void*)&cic;  // for midPoint ..
+      dbi = DB_StoreCirc (-1L, &cic);
+      ODB_set_odb (&odbi, Typ_CI, dbi);
+      // oci.typ   = Typ_CI;
+      // oci.form  = Typ_CI;
+      // oci.data  = &cic;
+      // ocp = (void*)&cic;  // for midPoint ..
     }
   }
 
@@ -427,15 +436,18 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // oco = Konturkurve holen und trimmen
   // irc = UTO_obj_trim (&oco, &oci, &oc1, 0, &oc2, 0, &wrkSeg);
-  irc = UTO_CUT__ (&oco, &oci, &oc1, &oc2, 0, &wrkSeg);
+  irc = UTO_CUT__ (&oco, &odbi, &oc1, &oc2, 0, &wrkSeg);
+  // irc = UTO_CUT__ (&oco, &oci, &oc1, &oc2, 0, &wrkSeg);
   if(irc < 0) return irc;
+  // ObjGX from CurvCCV
+  OGX_SET_OBJ (&oxo, Typ_CVTRM, Typ_CVTRM, 1, &oco);
     // UTO_obj_Disp__ (&oco, &wrkSeg, 9);
     // UTO_dump__ (&oco, "contour:");
 
 
-  // oco in Polygon pcTab umwandeln ...
+  // oxo in Polygon pcTab umwandeln ...
   pcNr = pcMax;
-  i1 = UT3D_npt_ox (&pcNr, pcTab, &oco, UT_DISP_cv*2.);
+  i1 = UT3D_npt_ox__ (&pcNr, pcTab, &oxo, UT_DISP_cv*2.);
   if(i1 != 0) return 0;
   ip = pcNr;               // index auf den letzten punkt in pcTab
     // GR_Disp_cv (pcTab, pcNr, 9);
@@ -522,7 +534,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // midPoint contour
   // UTO_pt_par1_dbo (&pm, vm, srv1->typCov, srv1->indCov);
-  UT3D_pt_evparcrv (&pm, vm, cTyp, ocp);
+  UT3D_pt_evparcrv (&pm, vm, cTyp, cvCov);
 
   // project midPoint -> pta+vca
   UT3D_pt_projptptvc (&pc, &d1, NULL, &pm, &pta, &vca);

@@ -684,7 +684,7 @@ static  CurvElli          el1;
     UT3D_vc_setLength (&vc2, &vc2, coi->r1);
 
     // Elli from 
-    UT3D_el_pt2vc2a ((CurvElli*)oSpc, &pt1, &vc1, &vc2, 0., RAD_360, 1);
+    UT3D_el_pt2vc2a ((CurvElli*)oSpc, &pt1, &vc1, &vc2, 0., RAD_360, 0);
       // GR_Disp_ell ((CurvElli*)oSpc, 9);
 
     *oTyp = Typ_CVELL;
@@ -1657,7 +1657,7 @@ static  CurvElli          el1;
   oxp1 = oDat;
   UTO_dump_s_ (oxp1, "xSpc");
   if(oxp1->typ == Typ_CVBSP) {
-    GR_Disp_bsp (oxp1->data, 9);
+    GR_Disp_CvBSp (oxp1->data, 9);
     UT3D_stru_dump(Typ_CVBSP, oxp1->data, "");
   }
   oxp1 = (ObjGX*)oSpc.start;

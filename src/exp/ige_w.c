@@ -269,7 +269,7 @@ static  int  IG_D_line_mod; // end of last submodel
 static  int  IG_TypTab[] = {
   Typ_PT,      Typ_LN,      Typ_CI,      0,           Typ_CVPOL,
   Typ_CVPOL2,  Typ_CVPSP3,  Typ_CVBSP,   Typ_ATXT,    Typ_GTXT,
-  Typ_CVELL,   Typ_CVCCV,   Typ_PLN,     Typ_SURRU,   Typ_SUR,
+  Typ_CVELL,   Typ_CVTRM,   Typ_PLN,     Typ_SURRU,   Typ_SUR,
   Typ_SURRV,   Typ_SURBSP,  Typ_goGeo1,  Typ_Model,   Typ_SubModel,
   Typ_CVCLOT,  -99};
 
@@ -777,7 +777,7 @@ Retour: der Index.
 
 
   // CCV wird einzeln ausgegeben
-  if(el->typ == Typ_CVCCV2) return -1;   // 21
+  // if(el->typ == Typ_CVTRM2) return -1;   // 21
 
 
   cadtyp = el->typ;
@@ -1111,7 +1111,7 @@ Retour: der Index.
   IG_subObjNr = 0;
 
 
-  if(el->typ == Typ_CVCCV) {
+  if(el->typ == Typ_CVTRM) {
     return IGE_w_CVCCV (el, fp_o1, fp_o2);
 
 
@@ -1210,7 +1210,7 @@ Retour: der Index.
        ((oxp->typ == Typ_CV)&&(oxp->form == Typ_Index))) {
 
       // Aussenkontur holen
-      i1 = UT3D_npt_ox (&ptNr, pTab, &oTab[1], UT_DISP_cv); // Kontur 1
+      i1 = UT3D_npt_ox__ (&ptNr, pTab, &oTab[1], UT_DISP_cv); // Kontur 1
       if(i1 < 0) return i1;
 
 
@@ -1317,7 +1317,7 @@ Retour: der Index.
 
 
 
-  // siehe UT3D_pta_ccv
+  // siehe UT3D_pta_ox_lim
   for(i1=0; i1<oNr; ++i1) {
 
     ox2 = &oTab[i1];

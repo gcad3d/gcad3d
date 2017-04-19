@@ -60,6 +60,11 @@ GL_DrawPoint
 GL_Draw_ray
 GL_DrawLine
 GL_DrawLtab           display group of lines
+GL_DrawPoly2D         2D-Polygon on plane Z=zval
+GL_DrawPolySc         Scaled Polygon
+GL_DrawCvIpTab        draw polygon from indexTable; open or closed
+GL_DrawPoly           polygon
+GL_Draw_cvp_dir       polygon and direction-arrow
 GL_DrawDimen          Hor, Vert Dimension
 GL_DrawDima           Angular Dimension
 GL_DrawDimdia         Diameter-Dimension
@@ -454,6 +459,7 @@ cl -c ut_GL.c
 #include <stdio.h>                       // FILE ..
 #include <stdlib.h>
 #include <string.h>                      // strlen
+#include <ctype.h>                       // isdigit
 
 
 
@@ -552,7 +558,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
 // aus ../ci/NC_Main.c:
-extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
+extern int       APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
+extern double    APT_ModSiz;
 
 
 // ex ../xa/xa_ui_cad.c
@@ -764,8 +771,8 @@ static int  GL_stat_blend = 0;                      // transparent = OFF
 // static double GL_Aug_X = 0., GL_Aug_Y = 0., GL_Aug_Z = 50.; 
 
 
-// GL_Scr_Siz_X/Y: Die Size des Fensters (=Viewport) in Screenkoord;
-// links oben ist 0,0. Als doubles !
+// GL_Scr_Siz_X/Y: Size of the grafic-window (=Viewport) in ScreenCoords;
+// top left is 0,0. Als doubles !
 static double GL_Scr_Siz_X, GL_Scr_Siz_Y;
 
 static double GL_Svfakt;     // Screen-Verzerrungsfaktor;
@@ -846,7 +853,7 @@ static GLint    GL_Viewp[4];     // x-left, y-low, width, heigth
 static GLdouble GL_MatMod[16], GL_MatProj[16];
 
 
-static int GL_actView = FUNC_ViewTop;
+static int GL_actView = FUNC_ViewIso;
 
 static int GL_initMode = 0;
 
@@ -3202,24 +3209,28 @@ Screenkoords > Userkoords.
 //================================================================
   void GL_DefineView (int mode) {
 //================================================================
+/// \code
 /// Change Views Function. Set GL_eyeX, GL_eyeZ.
+///   mode  FUNC_ViewTop|FUNC_ViewFront|FUNC_ViewSide|FUNC_ViewIso
+///         FUNC_Init
+/// \endcode
 
   // Vector vcn;
 
 
   // printf("GL_DefineView %d\n",mode);
 
+  if(mode == FUNC_Init) mode = GL_actView;
 
   GL_actView = mode;
+  UI_VW_upd (GL_actView);  // enable/disable active view-button
+  
 
   switch (mode) {
 
 
     /* von oben, XY */
     case FUNC_ViewTop:
-              // GL_ang_X = 0.;
-              // GL_ang_Y = 0.;
-              // GL_ang_Z = 0.;
               GL_eyeX.dx = 0.; GL_eyeX.dy = 0.; GL_eyeX.dz = 1.;
               GL_eyeZ.dx = 0.; GL_eyeZ.dy = 1.; GL_eyeZ.dz = 0.;
               GL_eyeY.dx = 1.; GL_eyeY.dy = 0.; GL_eyeY.dz = 0.;
@@ -3229,10 +3240,6 @@ Screenkoords > Userkoords.
 
     /* von vorn, YZ */
     case FUNC_ViewFront:
-              // GL_ang_X = -90.;
-              // GL_ang_Y =   0.;
-              // GL_ang_Z =   0.;
-              // X-Z-Ansicht:
               GL_eyeX.dx = 0.; GL_eyeX.dy = -1.; GL_eyeX.dz = 0.;
               GL_eyeZ.dx = 0.; GL_eyeZ.dy = 0.; GL_eyeZ.dz = 1.;
               GL_eyeY.dx = 1.; GL_eyeY.dy = 0.; GL_eyeY.dz = 0.;
@@ -3242,10 +3249,6 @@ Screenkoords > Userkoords.
 
     /* von der Seite, XZ */
     case FUNC_ViewSide:
-              // GL_ang_X = -90.;
-              // GL_ang_Y =   0.;
-              // GL_ang_Z = -90.;
-              // Y-Z-Ansicht:
               GL_eyeX.dx = 1.; GL_eyeX.dy = 0.; GL_eyeX.dz = 0.;
               GL_eyeZ.dx = 0.; GL_eyeZ.dy = 0.; GL_eyeZ.dz = 1.;
               GL_eyeY.dx = 0.; GL_eyeY.dy = 1.; GL_eyeY.dz = 0.;
@@ -3254,9 +3257,6 @@ Screenkoords > Userkoords.
 
 
     case FUNC_ViewIso:
-              // GL_ang_X = -60.;
-              // GL_ang_Y =   0.;
-              // GL_ang_Z = -60.;
               GL_eyeX.dx = 1.; GL_eyeX.dy = -1.; GL_eyeX.dz = 1.;
               UT3D_vc_setLength (&GL_eyeX, &GL_eyeX, 1.);
 
@@ -3291,7 +3291,13 @@ Screenkoords > Userkoords.
 
   GL_Redraw ();
 
-    // printf("ex GL_DefineView\n");
+
+    // TESTBLOCK
+    // printf("ex GL_DefineView:\n");
+    // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX");
+    // UT3D_stru_dump (Typ_VC, &GL_eyeY, "GL_eyeY");
+    // UT3D_stru_dump (Typ_VC, &GL_eyeZ, "GL_eyeZ");
+    // END TESTBLOCK
 
 }
 
@@ -4567,7 +4573,7 @@ static Point ptOri;
 
     // typ = DL_GetObj (oNam, &apt_ind, &att);
     // typ     = DL_GetTyp (oNam);
-    // apt_ind = DL_GetInd (oNam);
+    // apt_ind = DL_get_dbi (oNam);
     // printf(" .... save[%d] dli=%d typ=%d ind=%ld pick=%d\n",selNr,
                   // oNam,typ,apt_ind,pick);
 
@@ -4694,7 +4700,7 @@ static Point ptOri;
   } else {
     // normal obj selected ..
     GR_selTab[GR_nr_selTab].dlInd = dli;
-    GR_selTab[GR_nr_selTab].dbInd = DL_GetInd (dli);
+    GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
     GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
   }
 
@@ -4984,7 +4990,7 @@ static Point ptOri;
   // den Typ anfragen
   // typ = DL_GetObj (oNam, &apt_ind, &att);
   typ     = DL_GetTyp (oNam);
-  apt_ind = DL_GetInd (oNam);
+  apt_ind = DL_get_dbi (oNam);
     // pick    = DL_GetPick(oNam);
     // printf(" oNam=%d typ=%d ind=%d pick=%d\n",oNam,typ,apt_ind,pick);
 
@@ -5175,7 +5181,7 @@ static Point ptOri;
     // den Typ anfragen
     // typ = DL_GetObj (oNam, &apt_ind, &att);
     typ     = DL_GetTyp (oNam);
-    apt_ind = DL_GetInd (oNam);
+    apt_ind = DL_get_dbi (oNam);
     pick    = DL_GetPick(oNam);
 
     if(DL_GetPick(oNam) == ON)  goto CheckNext;
@@ -5666,7 +5672,7 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_GetViewPos\n");
-  // UT3D_stru_dump (Typ_PLN,&GL_view_pln,"&GL_view_pln:");
+  // UT3D_stru_dump (Typ_PLN, &GL_view_pln, " GL_view_pln:");
 
 
   //TX_Print ("GL_GetViewPos %d %d",GL_mouse_x_act,GL_mouse_y_act);
@@ -5702,9 +5708,11 @@ static double old_view_Z = 0.;
   } else if(GL_actView == FUNC_ViewSide) {
     pt1.x = 0;
     UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
+    pt2.x = pt1.z;   // 2017-04-12
 
 
   } else {
+    // FUNC_ViewTop FUNC_ViewIso
     // Linie pt2 / GL_eyeX mit der Userebene schneiden
     // irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, &pt1, &GL_eyeX);
     irc = UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, &GL_eyeX);
@@ -5712,7 +5720,7 @@ static double old_view_Z = 0.;
   }
 
 
-  // printf(" ex GL_GetViewPos %f %f %f\n",pt2.x, pt2.y, pt2.z);
+    // printf(" ex GL_GetViewPos %f %f %f\n",pt2.x, pt2.y, pt2.z);
 
   return pt2;
 
@@ -5723,16 +5731,25 @@ static double old_view_Z = 0.;
   Point GL_GetConstrPos (Point *pt1) {
 //=====================================================================
 /// \code
-/// compute intersectionpoint of pt1 - GL_eyeX in userCoords on constructionPlane
-/// RetCode:  point in worldCoords on constructionPlane.
+/// compute intersectionpoint of pt1 along eyeVector on constructionPlane
+///   eyeVector = GL_eyeX; constructionPlane = GL_constr_pln
+/// returns:  point in worldCoords on constructionPlane 
 /// \endcode
 
+// PROBLEM:
+// if(GL_actView == FUNC_ViewFront) OR if(GL_actView == FUNC_ViewSide) then
+//   intersectionpoint is too far;
+//   cannot be displayed in label cursor-position (UI_curPos)
+// TODO: cannot change constructionPlane to normal-plane; in CAD some points
+//       are relativ to constructionPlane. .. ??
+//
 //   from GL_mouse_x_act,GL_mouse_y_act
 // es wird eine Line durch die aktuelle Mausposition,
 // normal zur Konstr.ebene GL_constr_pln, (= Vektor GL_eyeX)
 // geschnitten mit der Konstr.ebene GL_constr_pln.
 
 // see also GL_GetViewPos (for GL_view_pln)
+//   GR_actPos
 
 
   int      irc;
@@ -5918,15 +5935,22 @@ static double old_view_Z = 0.;
   Point    pt1, pt2;
 
 
-  // printf("GL_Do_Pan__ %d %d\n",x,y);
+  // printf("GL_Do_Pan__ %d %d actV=%d\n",x,y,GL_actView);
+
+
 
 /*
   if(GL_actView == FUNC_ViewFront) {
-    yAbst = (y - GL_mouse_y_act) / GL_Scale;
+    yAbst = (y - GL_mouse_y_act) / GL_Scale / GL_Svfakt;  - verzerrt !
+    xAbst = (x - GL_mouse_x_act) / GL_Scale / GL_Svfakt;
     printf(" dy=%f GL_cen.z=%f GL_Scale=%f\n",yAbst,GL_cen.z,GL_Scale);
     // um das Display zu verschieben muss man die Viewplane veraendern !
+    // GL_cen.z += yAbst;
+    // UI_GR_view_set_Z1 (GL_cen.z);
+    GL_mouse_x_act = x;
+    GL_mouse_y_act = y;
+    GL_cen.x -= xAbst;
     GL_cen.z += yAbst;
-    UI_GR_view_set_Z1 (GL_cen.z);
     goto L_fertig;
   }
 */
@@ -5948,19 +5972,27 @@ static double old_view_Z = 0.;
 
   xAbst = pt2.x - pt1.x;
   yAbst = pt2.y - pt1.y;
-    // printf("   GL_Do_Pan__ Abst %f %f\n",xAbst,yAbst);
+    // printf("   _Pan__-xAbst=%f yAbst=%f\n",xAbst,yAbst);
 
 
   // move cen
-  // GL_cen.x -= (xAbst * GL_Scale);
-  // GL_cen.y -= (yAbst * GL_Scale);
-
-  GL_cen.x -= xAbst;
-  GL_cen.y -= yAbst;
+  if(GL_actView == FUNC_ViewFront) {
+    GL_cen.x -= xAbst;
+    GL_cen.z -= yAbst;
+  
+  } else if(GL_actView == FUNC_ViewSide) {
+    GL_cen.y -= yAbst;    // horiz;
+    GL_cen.z -= xAbst;
+  
+  } else {
+    GL_cen.x -= xAbst;
+    GL_cen.y -= yAbst;
+  }
     // printf("  GL_cen = %lf,%lf,%lf\n",GL_cen.x, GL_cen.y, GL_cen.z);
 
-  DL_Set_Cen2D ();  // set new 2D-screenCenter-position
 
+  L_fertig:
+  DL_Set_Cen2D ();  // set new 2D-screenCenter-position
 
   ++GL_ViewModTimStamp;    // view modified ..
 
@@ -6143,6 +6175,7 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_Do_Rot__ %d %d\n",x,y);
+  // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX: ");
 
 
   // get relative movement of mouse from last stored position
@@ -6175,9 +6208,12 @@ static double old_view_Z = 0.;
   // d2 = 0.;
 
 
+  //================================================================
+  // rotate the view-refSys GL_eyeX-GL_eyeY-GL_eyeZ
+  //
   // wenn der Sichtvektor GL_eyeX ident mit Z-Vektor:
   // den GL_eyeZ um den GL_eyeX drehen
-  zFlag = UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, 0.001);
+  zFlag = UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_Ang2);
   if(zFlag == 1) {
     // only for top-view: keep GL_eyeX; rotate GL_eyeZ.
     UT3D_vc_rotvcangr (&GL_eyeZ, UT_RADIANS(d2), &GL_eyeZ, &GL_eyeX);
@@ -6225,18 +6261,24 @@ static double old_view_Z = 0.;
   //================================================================
   // check if View is top, front, side or isoview. Set GL_actView.
   // top
-  if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 1)
+  if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewTop;
+    UI_VW_upd (GL_actView);
 
   // front
-  else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1) == 1)
+  } else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewFront;
+    UI_VW_upd (GL_actView);
 
   // side
-  else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1) == 1)
+  } else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewSide;
+    UI_VW_upd (GL_actView);
 
-  else GL_actView = FUNC_ViewIso;
+  } else {
+    GL_actView = FUNC_ViewIso;
+    UI_VW_upd (GL_actView);
+  }
 
 
   ++GL_ViewModTimStamp;    // view modified ..
@@ -6523,6 +6565,7 @@ static double old_view_Z = 0.;
     // printf(" GL_Scale=%lf\n",GL_Scale);
 
   GL_Scale_back = 1. / GL_Scale;          // soll immer gleich grosz sein
+    // printf(" GL_Scale_back=%lf\n",GL_Scale_back);
 
   // GL2D_Scale = GL_ModScale / (GL_Scale * 100.);
   GL2D_Scale = GL_ModSiz / (GL_Scale * 500.);
@@ -6921,14 +6964,16 @@ static double old_view_Z = 0.;
 /// \endcode
 
 
-  /* double   s1x, s1y, s1z, s2x, s2y, s2z; */
+  double   d1;
 
 
-  // printf("GL_Rescale Usiz=%f Ucen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
-  // printf("   GL_ModSiz=%f\n",GL_ModSiz);
+  printf("GL_Rescale Usiz=%f Ucen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
+  printf("   GL_ModSiz=%f\n",GL_ModSiz);
 
 
-  if    (Usiz < 0.000000001) Usiz = 0.000000001;
+  // if    (Usiz < 0.000000001) Usiz = 0.000000001;
+  d1 = APT_ModSiz / 2000.;  // UT_DISP_cv;    2017-04-10
+  if    (Usiz < d1) Usiz = d1;
   else if(Usiz > 100000000.) Usiz =  100000000.;
 
 
@@ -7865,6 +7910,83 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
  
 
 //================================================================
+  int GL_Draw_cvp_dir (long *ind, int iAtt, int ianz, Point *pTab) {
+//================================================================
+/// \code
+/// GL_Draw_cvp_dir          display polygon and direction-arrow
+/// Input:
+///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
+///   iAtt       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+///
+/// see also GL_Draw_cvp_dir
+/// \endcode
+
+
+  int    attInd, ipe;
+  long   i1;
+  double ay, az, scl;
+  GLuint dlInd;
+  Vector vc1;
+
+
+  printf("GL_Draw_cvp_dir ind=%ld iAtt=%d ptNr=%d\n",*ind,iAtt,ianz);
+  // for(i1=0;i1<ianz;++i1)
+    // printf(" p[%ld] %lf %lf %lf\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
+
+
+  ipe = ianz - 1;
+  UT3D_vc_2pt (&vc1, &pTab[ipe], &pTab[ipe - 1]);
+    UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+
+  UT3D_2angr_vc (&az, &ay, &vc1);
+    // printf(" az=%lf ay=%lf\n",az,ay);
+
+
+  // rad -> deg
+  az = UT_DEGREES(az);
+  ay = UT_DEGREES(ay);
+    // printf(" az=%lf ay=%lf\n",az,ay);
+
+  scl = GL_SclNorm;
+
+
+  attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
+  // den DL-Index (+ Offset) holen)  
+  dlInd = GL_fix_DL_ind (ind);
+
+  glNewList (dlInd, GL_COMPILE);
+
+  glDisable (GL_LIGHTING);
+
+  glCallList (DL_base_LnAtt + attInd);
+
+    //----------------------------------------------------------------
+    glBegin (GL_LINE_STRIP);
+    for (i1 = 0; i1 < ianz; i1++) glVertex3dv ((double*)&pTab[i1]);
+    glEnd();
+
+    //----------------------------------------------------------------
+    glPushMatrix ();
+
+    // Transl und Scale: Reihenfolge wichtig !
+    glTranslated (pTab[ipe].x, pTab[ipe].y, pTab[ipe].z);
+    glRotated (az, 0.0, 0.0, 1.0);  // um Z drehen
+    glRotated (ay, 0.0, -1.0, 0.0);  // um Y drehen
+    glScaled (scl, scl, scl);
+    glCallList ((GLuint)SYM_ARRO3H);
+    glPopMatrix ();
+
+
+  glEnable (GL_LIGHTING);
+
+  glEndList ();
+
+  return 0;
+
+}
+
+
+//================================================================
   void GL_DrawPoly (long *ind, int iAtt, int ianz, Point *pTab) {
 //================================================================
 /// \code
@@ -7872,6 +7994,8 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 /// Input:
 ///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
 ///   iAtt       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+///
+/// see also GL_Draw_cvp_dir
 /// \endcode
 
 
@@ -11292,7 +11416,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   pTxt   = &tx1->p1;
   pLdr   = &tx1->p2;
   txt    = tx1->txt;
-  symTyp = tx1->typ;
+  symTyp = tx1->aTyp;
   atta   = tx1->col;
   attl   = tx1->ltyp;   // Linetyp Leaderline; -1=no Leaderline
 
@@ -13527,7 +13651,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   if(lstSiz < 0) {
-    return MSG_STD_ERR (subModel_undefined, " sm '%s'", mdb->mnam);
+    return MSG_STD_ERR (ERR_subModel_undefined, " sm '%s'", mdb->mnam);
   }
 
 

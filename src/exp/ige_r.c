@@ -1383,7 +1383,7 @@ static  int oCnt1, oCnt2;
 
 
   // 102 = CCV
-  } else if(ox1.typ == Typ_CVCCV) {
+  } else if(ox1.typ == Typ_CVTRM) {
     if((impTab[ind].fTyp == 102)   ||
        (impTab[ind].fTyp == 141))     {
       i1 = IGE_rw_102 (&ox1);
@@ -3648,7 +3648,7 @@ static  int oCnt1, oCnt2;
   iTab = (long*)memspc55;
 
 
-  ox1->typ  = Typ_CVCCV;
+  ox1->typ  = Typ_CVTRM;
   ox1->form = Typ_Index;
   ox1->siz  = indNr;
   ox1->data = iTab;
@@ -3724,7 +3724,7 @@ static  int oCnt1, oCnt2;
   }
 
 
-  ox1->typ  = Typ_CVCCV;
+  ox1->typ  = Typ_CVTRM;
   ox1->form = Typ_Txt;
   ox1->siz  = strlen(cBuf) + 1;
   ox1->data = (void*)cBuf;
@@ -3793,7 +3793,7 @@ static  int oCnt1, oCnt2;
   iTab = (long*)memspc55;
 
 
-  ox1->typ  = Typ_CVCCV;
+  ox1->typ  = Typ_CVTRM;
   ox1->form = Typ_Index;
   ox1->siz  = cNr;
   ox1->data = iTab;

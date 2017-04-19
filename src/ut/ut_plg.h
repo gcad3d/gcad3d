@@ -5,9 +5,9 @@ double UT3D_par_par1plg (double pv, CurvPoly* cv1);
 double UT3D_par1_parplg (double *kv, CurvPoly* cv1);
 
 
-/// plg_pare_unl               get unlimited endParameter of CurvPoly  INLINE
-double plg_pare_unl (CurvPoly*);
-#define plg_pare_unl(cvp)\
+/// UPLG_pare_unl               get unlimited endParameter of CurvPoly  INLINE
+double UPLG_pare_unl (CurvPoly*);
+#define UPLG_pare_unl(cvp)\
  ((cvp)->lvTab[(cvp)->ptNr - 1])
 
 

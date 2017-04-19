@@ -1014,7 +1014,7 @@ static long su_ind;
 
 
   i1 = AP_typ_2_bastyp (iTyp);
-  if(iTyp == Typ_CVCCV) {  // CCV: den Header "S#=CCV" holen
+  if(iTyp == Typ_CVTRM) {  // CCV: den Header "S#=CCV" holen
     irc = AP_stru_2_txt(cPos1, bufLen, o1, ind);  // "S%d=CCV"
     if(irc < 0) return -1;
       // printf("    ex stru_2_txt-CCV:\n%s\n",cPos1);
@@ -2046,7 +2046,7 @@ static long su_ind;
 
 
   //=====================================================================
-  } else if (typ == Typ_CVCCV) {
+  } else if (typ == Typ_CVTRM) {
      // nur Header generieren f AP_iges_ccv2txt
     if(ind < 0) {
       ++cv_ind;
@@ -2061,7 +2061,7 @@ static long su_ind;
     irc = ind;
 
     sprintf(ED_buf1,"S%ld=CCV ",ind);
-      // printf(" out Typ_CVCCV: |%s|\n",ED_buf1);
+      // printf(" out Typ_CVTRM: |%s|\n",ED_buf1);
 
     if(form == Typ_Txt) goto L_add_text;
 
@@ -2580,6 +2580,7 @@ static long su_ind;
 
     // get modelname of basic-model-nr
     cp1 = DB_mdlNam_iBas (mdr->modNr);
+    if(!cp1) return -1;
 
     if(i1 == MBTYP_CATALOG) {
       CTLG_PartID_mnam (cbuf, cp1);

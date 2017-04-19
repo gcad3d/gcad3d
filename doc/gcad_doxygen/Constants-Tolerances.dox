@@ -1,0 +1,38 @@
+/*! \page Constants-Tolerances
+../../doc/gcad_doxygen/Constants-Tolerances.dox
+
+<pre>
+\ref Constants
+\ref Standards-Tolerences-Modelsize
+</pre>
+
+
+
+<hr>
+
+
+\section Constants
+<pre>
+\ref ut_const.h        Basic constants math (int,double-MIN|MAX)
+\ref ut_tol_const.h    Basic constants tolerances (UT_TOL_..)
+\ref ut_geo_const.h    Basic constants geometry.
+</pre>
+
+
+
+
+
+\section Standards-Tolerences-Modelsize
+\code
+
+WC_ask_ModSiz        get APT_ModSiz
+WC_Init_Modsiz       set APT_ModSiz
+ WC_Init_Tol         deduct tolerances from APT_ModSiz   <<<<<<<<<<<<<<
+UI_WinToler          window for setting tolerances ..
+ GL_InitModelSize
+
+
+
+\endcode
+*/
+

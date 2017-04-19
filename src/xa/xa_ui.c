@@ -44,7 +44,11 @@ UI_mBars_off           entspr. SM Menuebar sensitiv machen oder abdunkeln
 UI_wait_Esc           Wait for pressing the Esc-Key ...
 UI_askEscape          alle pending events abarbeiten;
 UI_askExit            ?
-UI_winTX_prt          print into messahe-window
+
+UI_VW_upd             enable/disable active view-button
+UI_VW_set             enable/disable active view-button
+
+UI_winTX_prt          print into message-window
 UI_winTX_prf          write file to message-window
 UI_winTX_rmLast       delete last textoutputline
 
@@ -279,6 +283,7 @@ extern long   UI_Ed_fsiz;      // AptTextsize
 //============ Lokale Var: =======================================
   MemObj ckb_hide, ckb_view, ckb_man, ckb_cad, ckb_vwr, ckb_3D,
          ckb_ptDisp, ckb_plDisp, ckb_such,
+         bt_top, bt_front, bt_side, bt_iso,    // view-buttons
          ckb_meas,
          UIw_Box_TB,  // box for the Toolbars; under Grafic, over textWindow.
          UI_box_ntb;  // Notebook-box (browser,editor);
@@ -4578,16 +4583,22 @@ TX_Error("EDI-GDK_BackSpace");
 
 
 //================================================================
-  int UI_disp_dbo (int typ, long dbi) {
+  int UI_disp_dbo (int typ, long dbi, int att) {
 //================================================================
-// UI_disp_dbo           display temporary db-obj
+/// \code
+/// UI_disp_dbo           display temporary db-obj
+///   att       see GR_Draw_obj
+/// \endcode
 
   long    dli;
 
 
+  printf("UI_disp_dbo %d %ld\n",typ,dbi);
+
+
   dli = DLI_TMP;    // dli for temp.Objects
 
-  return GR_Draw_dbo (&dli, typ, dbi, 1, 0);
+  return GR_Draw_dbo (&dli, typ, dbi, att, 0);
 
 }
 
@@ -5321,7 +5332,7 @@ TX_Error("EDI-GDK_BackSpace");
 //================================================================
 
   if(mode == 0) {
-      printf("disactivate view\n");
+      printf("UI_objView__ - disactivate view\n");
     // UI_reset_hide (1);
     GUI_ckbutt_set_noCB (&ckb_view, FALSE);
     GA_hide__ (6, 0L, 0); // reverseMode off
@@ -5341,15 +5352,10 @@ TX_Error("EDI-GDK_BackSpace");
 // restore hidden objects
 // see also UI_CB_hide
 
-  int      mode;
-  char     *cp1;
-
 
   printf("UI_CB_view %d\n",GUI_DATA_EVENT);
   // printf("  UI_stat_hide=%d UI_stat_view=%d\n",
            // UI_stat_hide,UI_stat_view);  // 0=ON; 1=OFF
-
-
 
 
 
@@ -5358,12 +5364,7 @@ TX_Error("EDI-GDK_BackSpace");
   if(GUI_DATA_EVENT == TYP_EventPress) goto L_activate;
     printf("disactivate view\n");
 
-  // TX_Print("display visible objects");
-
-  mode = 1;
-
   UI_objView__ (0);  // disactivate view\
-
 
   // reactivate functions ..
   UI_func_stat_set__ (APF_TB_CAD,
@@ -5380,9 +5381,9 @@ TX_Error("EDI-GDK_BackSpace");
                       APF_UNDO,
                       0);
 
-
+  sele_setNoParents (0);         // enable selection of parents (unvisible)
   sele_restore ();
-  // goto L_fertig;
+  
   return 0;
 
 
@@ -5391,19 +5392,20 @@ TX_Error("EDI-GDK_BackSpace");
   L_activate:
     printf("activate view\n");
 
-  // wenn hide active: disactivate hide.
+  // if hide is active: disactivate hide.
   if (UI_stat_hide == 0) {
+    // uncheck checkbox Hide
     GUI_ckbutt_set_noCB (&ckb_hide, FALSE);
+    sele_restore ();
     UI_stat_hide = 1;    // 0=OFF
   }
 
-  UI_stat_view = 0;    // 0=active
 
 
 
   //----------------------------------------------------------
   // printf("activate view\n");
-  mode = 0;
+  UI_stat_view = 0;    // 0=active
 
   // block some functions ..
   // GUI_set_enable (&box1C1v, FALSE); // disact. GO, RUN
@@ -5958,7 +5960,7 @@ See UI_but__ (txt);
 
   //=============================================================
   } else if(!strcmp(cp1, "butTop")) {
-    UI_view__ ("TopView");
+    UI_view__ ("TopView");  // UI_view__ -> UI_viewCB
 
 
   //=============================================================
@@ -7839,6 +7841,9 @@ See UI_but__ (txt);
 
   //======================================================
   } else if(!strcmp(cp1, "dump")) {   // dump objData
+    // exit active CAD-function (else no selection possible)
+    IE_cad_exitFunc ();
+
     TX_Print("select or keyIn obj to dump ..");
     UI_GR_Sel_Filter (4);
 
@@ -8021,6 +8026,9 @@ See UI_but__ (txt);
              OS_get_bas_dir());
 
 
+  //======================================================
+  } else if(!strcmp(cp1, "DispList")) {
+    DL_DumpObjTab ();
 
 
   //-------------------------------------------------
@@ -8747,6 +8755,8 @@ box1
       GUI_menu_entry   (&wtmp8, "Standards", UI_menCB,  (void*)"std");
       GUI_menu_entry   (&wtmp8, "---",     NULL,       NULL);
       GUI_menu_entry   (&wtmp8, "view logfile", UI_menCB,  (void*)"logfile");
+      GUI_menu_entry   (&wtmp8, "DispList", UI_menCB,  (void*)"DispList");
+      // GUI_menu_entry   (&wtmp8, "Parents", UI_menCB,  (void*)"Parents");
 
 
 
@@ -9059,19 +9069,19 @@ box1
       box1V2 = GUI_box_h (&box1V, "");
 
 
-      GUI_button__ (&box1V1, "Top", UI_butCB, (void*)"butTop", "e");
+      bt_top=GUI_button__ (&box1V1, "Top", UI_butCB, (void*)"butTop", "e");
       MSG_Tip ("MMbtTop"); //
       // GUI_Tip  ("Draufsicht (X-Y)");
 
-      GUI_button__ (&box1V1, "Front", UI_butCB, (void*)"butFront", "e");
+      bt_front=GUI_button__ (&box1V1, "Front", UI_butCB, (void*)"butFront", "e");
       MSG_Tip ("MMbtFro"); //
       // GUI_Tip  ("Vorderansicht (X-Z)");
 
-      GUI_button__ (&box1V1, "Side", UI_butCB, (void*)"butSide", "e");
+      bt_side=GUI_button__ (&box1V1, "Side", UI_butCB, (void*)"butSide", "e");
       MSG_Tip ("MMbtSid"); //
       // GUI_Tip  ("Seitenansicht (Y-Z)");
 
-      GUI_button__ (&box1V1, "Axo", UI_butCB, (void*)"butAxo", "e");
+      bt_iso=GUI_button__ (&box1V1, "Axo", UI_butCB, (void*)"butAxo", "e");
       MSG_Tip ("MMbtAxo"); //
       // GUI_Tip  ("Axonometrische Ansicht");
 
@@ -9525,6 +9535,75 @@ box1
   return 0;
 
 }
+
+
+//================================================================
+  int UI_VW_upd (int newView) {
+//================================================================
+/// \code
+/// UI_VW_upd    enable/disable active view-button
+///   newView    FUNC_ViewTop FUNC_ViewFront FUNC_ViewSide FUNC_ViewIso
+/// \endcode
+
+  static int actView = -1;
+
+
+  if(actView < 0) {  // init
+    UI_VW_set (newView, 0);  // disable new view-button
+
+  } else {
+    if(actView != newView) {
+      UI_VW_set (actView, 1);  // enable active view-button
+      UI_VW_set (newView, 0);  // disable new view-button
+    }
+  }
+
+  actView = newView;
+
+  return 0;
+
+}
+//================================================================
+  int UI_VW_set (int iView, int mode) {
+//================================================================
+/// \code
+/// UI_VW_set    enable/disable active view-button
+///   iView        FUNC_ViewTop FUNC_ViewFront FUNC_ViewSide FUNC_ViewIso
+///   mode         1=TRUE=active; 0=FALSE=unpickable
+/// \endcode
+
+  static int actView = -1;
+
+
+  if(mode == FUNC_Init) {  // init
+    UI_VW_upd (FUNC_Init);  // enable/disable active view-button
+  }
+
+
+  switch(iView) {
+
+    case FUNC_ViewTop:
+      GUI_set_enable (&bt_top, mode);
+      break;
+
+    case FUNC_ViewFront:
+      GUI_set_enable (&bt_front, mode);
+      break;
+
+    case FUNC_ViewSide:
+      GUI_set_enable (&bt_side, mode);
+      break;
+
+    case FUNC_ViewIso:
+      GUI_set_enable (&bt_iso, mode);
+      break;
+  }
+
+
+  return 0;
+
+}
+
 
 
 //===================================================================

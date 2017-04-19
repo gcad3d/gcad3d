@@ -172,6 +172,7 @@ APT_obj_ato                create struct from atomicObjs
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>                    // va_list
+#include <ctype.h>                       // isdigit toupper
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
@@ -506,7 +507,7 @@ extern double NcoValTab[];
 
 
   if(ato->nr >= ato->siz) goto L_E1;
-  if(lev > INT_16S_MAX) goto L_E2;
+  if(lev > INT_16_MAX) goto L_E2;
 
   ato->typ[ato->nr] = typ;
   ato->val[ato->nr] = val;
@@ -1329,6 +1330,7 @@ extern long      GLT_cta_SIZ;
   L_fnc0:
   // eval math-functions with only one value  (and geom-func-VAL)
   i2 = ATO_eval_fnc1__ (ato);
+  if(i2 < 0) return i2;         // 2070-01-27
   if((i1 > 0) || (i2 > 0)) {
     // remove all NULL-records
     ATO_clean__ (ato);
@@ -1801,13 +1803,18 @@ extern long      GLT_cta_SIZ;
 
 
     //----------------------------------------------------------------
-    } else if(iTyp >= TYP_EventEnter) {
+    // test for CObj-name; eg " # sum"; skip record      2017-04-19
+    } else if(iTyp == Typ_Name) {  // 156
+
+
+    //----------------------------------------------------------------
+    } else if(iTyp >= TYP_EventEnter) {  // 400
       TX_Print("***** ATO_ato_txo__ E002 Record %d", its);
       return -1;
 
     //----------------------------------------------------------------
-    // test for math-operator, math-func; copy record.
-    } else if(iTyp >= Typ_FcmSQRT) {
+    // test for math-operator, math-func; copy record.  
+    } else if(iTyp >= Typ_FcmSQRT) {     // 290
       oTyp = iTyp;
       ATO_ato_expr_add (ato, oTyp, 0., tso[its].ipar);
 // see APT_decode_Fmc
@@ -1839,7 +1846,9 @@ extern long      GLT_cta_SIZ;
   }
 
 
-  // ATO_dump__ (ato);
+    // TESTBLOCK
+    // ATO_dump__ (ato, "------ ex ATO_ato_txo__:");
+    // END TESTBLOCK
 
   return 0;
 
@@ -1904,19 +1913,25 @@ extern long      GLT_cta_SIZ;
   int ATO_ato_obj_pt (ObjAto *ato, int outTyp, int iseg,
                          int typ, void *o1, Point *ptx) {
 //================================================================
-// ATO_ato_obj_pt          get parametric position of point on obj
-// get parametric position of point ptx on obj (typ,o1) as atomicObjs
-// eg returns "P(S1 0.5)"
+// ATO_ato_obj_pt          get atomicObjs for selection
+// type of output can be:
+//   Typ_PT     (parametric position on selected curve); eg "P(L20 0.456)"
+//   Typ_VC     (direction of selected position)         eg "D(S20 MOD(2))"
+//   Typ_goGeo1 LN/CI/CV                                 eg "S(S20 MOD(1))"
+//   Typ_LN     L,plg
+//
 // Input:
+//   ptx       select-position
+//   typ,o1    typ/object of selected-obj
 //   outTyp    Typ_PT - "P(..)"
 //             Typ_VC - "D(..)"
 //             0 (Typ_Error) gives eg "P#"
-//   typ,o1    typ/object of selected-obj
-//   ptx       select-position
-//   iseg      nr of segment of selected-obj
-//             0 - do not output segmentNr
-//             1-n output iseg as MOD(<iseg>) (eg subCurveNr)
+//             Typ_goGeo1 gives L|C (== typ)
+//   iseg      0    do not output segmentNr (basic-curve selected)
+//             >0   output iseg as MOD(<iseg>) (segment of CCV selected)
 // Output:
+//   ato       all atomicObjs for definition of selected obj are added;
+//               the atomicObjs form an objID of type <outTyp>
 //   retCod:   0     OK; parameters are in ato
 //             -1    ptx not on obj (typ,o1)
 //             -2    internal error;
@@ -1936,10 +1951,13 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   // printf("ATO_ato_obj_pt iseg=%d outTyp=%d typ=%d\n",iseg,outTyp,typ);
-
+  // ATO_dump__ (ato, " _obj_pt-in");
+  // UT3D_stru_dump (typ, o1, " _obj_pt-in");
 
 
   //----------------------------------------------------------------
+  // get pta = polygon for obj (typ,o1)
+
   // get nr of points
   ptMax = UT3D_ptNr_obj (typ, o1, UT_DISP_cv);
   if(ptMax < 1) return -1;
@@ -1958,12 +1976,17 @@ extern long      GLT_cta_SIZ;
     // printf(" _obj_pt-ptNr=%d\n",ptNr);
 
 
+
+  //----------------------------------------------------------------
   // test all segments of polygon; return selPt, point# and offsetValue
   irc = GR_pt_par_sel_npt (&pts, &is, &pars, pta, ptNr, ptx);
     // printf(" _obj_pt irc=%d is=%d pars=%lf\n",irc,is,pars);
   if(irc < 0) goto L_err1;  // -1 = ptx not on obj
     // ATO_dump__ (ato, " nach _sel_npt");
 
+
+  //----------------------------------------------------------------
+  // selected point, segment#, parameter found.
 
   // add primary segment-nr if more > 1 segments exist
   if(iseg > 0) {
@@ -1973,7 +1996,7 @@ extern long      GLT_cta_SIZ;
 
 
   // add secondary segment-nr for polygon in CCV
-  // D|L|C|S(basecurve segNr)            on polygon|CCV
+  // L|C|S(basecurve                   on polygon|CCV
   if(outTyp == Typ_goGeo1) {   // S|C|L
     if(typ == Typ_CVPOL) {   // skip subSegNrs for line & circ in CCV
       is += 1; // is = index -> segNr
@@ -1985,12 +2008,25 @@ extern long      GLT_cta_SIZ;
   }
 
 
-  // L or D from plg
-  if((outTyp == Typ_LN)     ||
-     (outTyp == Typ_VC))       {
+  // D 
+  if(outTyp == Typ_VC) {
+    // D() wanted
     if(typ == Typ_LN) goto L_exit; // D(L) - no segNr
     if(typ == Typ_CVPOL) {
-      //  D|L(basecurve segNr segNr)          on polygon in CCV
+      //  D(basecurve segNr segNr)          on polygon in CCV
+      is += 1; // is = index -> segNr
+      // if endpoint was selected:
+      if(is >= ptNr) is = ptNr - 1;
+      goto L_add_mod;   // ?
+    }
+  }
+
+
+
+  // L 
+  if(outTyp == Typ_LN) {
+    if(typ == Typ_CVPOL) {
+      // L(basecurve segNr segNr)          on polygon in CCV
       is += 1; // is = index -> segNr
       // if endpoint was selected:
       if(is >= ptNr) is = ptNr - 1;
@@ -2025,7 +2061,7 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   // point: no characteristic point selected; parameter necessary ...
   // get parameter from selected point
-  irc = UTO_parpt_pt_obj (&pars, &pts, typ, o1);
+  irc = UTO_par1_pt_pt_obj (&pars, &pts, typ, o1);
   if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 
 
@@ -2045,6 +2081,8 @@ extern long      GLT_cta_SIZ;
     // ATO_dump__ (ato, "ex ATO_ato_obj_pt");
   return 0;
 
+
+  //----------------------------------------------------------------
   L_err1:
     return -1;
 

@@ -252,8 +252,8 @@ static FILE      *PED_fp_dep = NULL;
 //================================================================
 // main-entrypoint 'move_points_of_obj'
  
-  int   irc, i1, form, lNr;
-  long  l1, l2, icp;
+  int   irc, i1, form, lNr, parTyp;
+  long  l1, l2, icp, parDbi;
   char  cbuf[160];
 
 
@@ -277,14 +277,22 @@ static FILE      *PED_fp_dep = NULL;
 
   //----------------------------------------------------------------
   // test if inputObject has a parent
+  //  but if inputObject has more than 1 parents ?
   if(DL_parent_ck_c (dli)) {
       printf(" .. has parent !\n");
-    irc = GA_parent_get (&dbi, typ, dbi);
+    // get parentObj
+// TODO: use AP_parent_get; can provide more than 1 parent; select parent ?
+    irc = CVTRM_parent_ccv (&parTyp, &parDbi, typ, dbi);
+    // irc = GA_parent_get (&parTyp, &parDbi, typ, dbi);
+    // irc = GA_parent_get (&dbi, typ, dbi);
     if(irc < 0) { printf("parentError E001 %ld\n",dli); return -1; }
       printf(" parent-dbi=%ld\n",dbi);
-    dli = DL_find_obj (typ, dbi, dli);
+    // get dli for dbo
+    dli = DL_find_obj (parTyp, parDbi, dli);
     if(dli < 0) { printf("parentError E002 %ld\n",dbi); return -1; }
     TX_Print("***** using parent of selected object ..");
+    dbi = parDbi;
+    typ = parTyp;
   }
 
 
@@ -395,8 +403,8 @@ static FILE      *PED_fp_dep = NULL;
     // l1 = DL_get__ (NULL) - 1;
     // UI_GR_set_sel (l1);
     l1 = GL_GetActInd ();
-    l2 = DL_GetInd (l1);                     // get dl.ind
-    UI_GR_set_selNam (Typ_SymB, l2, "");     // simulate selection
+    l2 = DL_get_dbi (l1);                     // get dl.ind
+    UI_GR_set_selNam (Typ_SymB, l2, "");      // simulate selection
     PED_sel_CB (GUI_MouseL, l1);
     GUI_update__ ();
     DL_Redraw ();
@@ -2391,7 +2399,7 @@ static FILE      *PED_fp_dep = NULL;
     UT3D_pt_projptplg (&i1, pta, da, actObj, pt1);
     // get parameter of point on polygon
     UT3D_parplg_plgpt (&up, pta, actObj);
-    plg_segNr_par (&actInd, up, actObj);
+    UPLG_iseg_par (&actInd, up, actObj);
       printf(" actInd=%d up=%f\n",actInd,up);
 
 

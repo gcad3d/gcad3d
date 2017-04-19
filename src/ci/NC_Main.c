@@ -42,6 +42,7 @@ WC_Work__         mainFunc; test for submodels
 WC_Work1          mainFunc
 WC_Work_upd       call WC_Work1 with 0-terminated memory-line, restore.
 APT_work_def      work DefinitionLine (decodieren, in DB-speichern, darstellen)
+APT_work_parent_hide  hide parent-obj
 APT_work_PrgCmd   work programcodes
 APT_work_NCCmd
 APT_stack_NCCmd
@@ -487,7 +488,6 @@ Verbinden:
 // EXTERNALS:
 // from ../xa/xa.c:
 
-
 extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
 extern double  *SRC_ato_tab;
 
@@ -672,7 +672,7 @@ int     APT_konik = 0;    // Koniktyp; KONIK_0 od KONIK_1 ..
 
 
 int     APT_dispNam;                 // display ObjNames
-int     APT_dispDir;                 // display ObjDirection
+int     APT_dispDir;                 // display ObjDirection; 1=yes, 0=not
 // int     APT_dispNCCmd;               // display NC-Commands
 int     APT_dispPT  = ON;            // display Points
 int     APT_dispPL  = ON;            // display Planes
@@ -1621,118 +1621,6 @@ int    APT_prim_typ;
   DL_Redraw ();
 
   return 0;
-
-}
-
-
- 
-
-/*====================================================================*/
-  void   WC_setPosKreuz   () {
-/*======================
--) alle Tempobjekte löschen
--) ein Poskreuz -> actPosUtr
-*/
-
-  long      l1;
-  // double    dx, dy;
-  Point     pt1;
-  Line      ln1;
-  // Circ      ci1;
-
-
-  // wenn sich die Position geändert hat, das Positionskreuz neu positionieren.
-  // aber nur im Stepmode und bei der letzten Zeile.
-
-  // printf("WC_setPosKreuz %d\n",NC_work_modeU);
-  // printf("      actPosU=%f,%f\n",actPosU.x,actPosU.y);
-  // printf("      actPosUtr=%f,%f\n",actPosUtr.x,actPosUtr.y);
-  // return;  // test
-
-
-/*
-  if(APT_Stat_Draw == OFF) {
-    APT_Stat_Draw = ON;
-    return;
-  }
-*/
-
-
-  // alle alten Tempobjekte löschen
-  GL_temp_delete ();
-
-
-  pt1 = UT3D_pt_pt2(&actPosUtr);
-  // printf("  PosKreuz=%f,%f\n",pt1.x,pt1.y);
-  GR_tmpSym (SYM_CROSS, &pt1);                  // 0 = das Positionskreuz
-
-
-
-
-  //=======================================================================
-  // den Draht zeichnen
-  //TX_Print(" APT_konik=%d NC_ausg=%d",APT_konik,NC_ausg);
-
-/*
-  if(APT_konik == KONIK_0) {
-    ln1.p1   = UT3D_pt_pt2 (&actPosUtr);
-    ln1.p2   = ln1.p1;
-
-
-
-  } else if(APT_konik == KONIK_1) {
-    if(NC_ausg > 0) {
-      ln1.p1   = UT3D_pt_pt2 (&NC_ausgAU.p2);
-      ln1.p2   = UT3D_pt_pt2 (&NC_ausgAO.p2);
-    } else {
-      ln1.p1   = UT3D_pt_pt2 (&NC_ausgAU.p2);
-      ln1.p2   = UT3D_pt_pt2 (&NC_ausgAU.p2);
-    }
-*/
-
-
-  // } else {
-    ln1.p1   = UT3D_pt_pt2 (&actPosUtr);
-    ln1.p2   = UT3D_pt_pt2 (&actPosOtr);
-  // }
-
-
-  ln1.p1.z = WC_sur1;
-  ln1.p2.z = WC_sur2;
-
-  l1 = -1;
-  GR_DrawLine (&l1, Typ_Att_hili1, &ln1);
-
-
-
-
-
-  //=======================================================================
-  // ist noch ein weiterfuehrendes Element zu hilighten ?
-
-  if(NC_work_modeU == ON) goto Fertig;    // bei immediate mode nix definiert
-
-
-  //TX_Print(" weiterf. %d",old_APT_ObjUtr.typ);
-  l1 = -1;
-  APT_hiliObj (&l1, &old_APT_ObjUtr, Typ_Att_hili, WC_sur1);
-
-/*
-  // Oberes Element nicht hiliten, verwirrt nur; wird vom Eingebzyklus
-  // oben erst gezeigt.
-  // ist Konik2 aktiv: oben auch.
-  if(APT_konik != KONIK_2) goto Fertig;
-
-  l1 = -1;
-  APT_hiliObj (&l1, &old_APT_ObjOtr, Typ_Att_hili, WC_sur2);
-*/
-
-
-
-
-  Fertig:
-
-  DL_Redraw ();
 
 }
 
@@ -3522,6 +3410,13 @@ APT_stat_act:
 
 
   //----------------------------------------------------------------
+  // create PRCV (polygon of curve)
+  if((defTyp < Typ_CV)&&(defTyp != Typ_CI)) goto L_attribs;
+  if(defTyp >= Typ_PLN) goto L_attribs;
+  PRCV_set_dbo__ (defTyp, defInd);
+
+
+  //----------------------------------------------------------------
 /*
   // skip punkt if noDisp
   if(defTyp == Typ_PT) {
@@ -3539,9 +3434,10 @@ APT_stat_act:
 
 
   //----------------------------------------------------------------
+  // get attributes
+  L_attribs:
   // if obj cannot have attributes: goto draw ..
   // .. goto L_draw;
-
 
   // reduce typ -> Basistyp (Typ_SURRU -> Typ_SUR ..)
   basTyp = AP_typ_2_bastyp (defTyp);
@@ -3686,90 +3582,15 @@ APT_stat_act:
   //----------------------------------------------------------------
   // overwrite display of already present obj's  (zB "L=CUT L L")
   // delete display of zB  ungetrimmtes Basisobj
-  // Nicht in IE_cad_test1, weil es sonst bei ReRUN nicht mehr geht ...
+  // Nicht in IE_cad_test__, weil es sonst bei ReRUN nicht mehr geht ...
 
     // printf(" typ=%d ind=%ld\n",defTyp,defInd);
     // printf(" aus_[0] = %d %d\n",iPar[0],iPar[1]);
     // printf(" aus_[1] = %d %d\n",iPar[2],iPar[3]);
 
-  if(APT_obj_stat == 1) {   // 1=temp
-    // CUT: unhilite parent-obj.                             // 2013-03-15
-    if((iPar[0] == Typ_cmdNCsub) && (iPar[1] == T_CUT)){
-      dbi = iPar[3];
-      dli = DL_find_obj (iPar[2], dbi, -1L);
-      if(dli >= 0) DL_hili_off (dli);
-    }
-    goto Fertig;   // temp-Mode: skip ..
-  }
+  // hide parent-obj
+  APT_work_parent_hide (defTyp, defInd, iPar);
 
-  // wenn Funktion "CUT","TRA","PRJ","MIR
-  // CUT: das Original immer ersetzen; auch wenn gleiche ObjID.
-  // TRA,PRJ,MIR: das Original nur ersetzen, wenn gleiche ObjID.
-
-  if(iPar[0] != Typ_cmdNCsub) goto Fertig;
-  i1 = iPar[1];
-  if(i1 == T_CUT) goto L_hidePar;
-  if((i1 != T_TRA)&&(i1 != T_PRJ)&&(i1 != T_MIR)) goto Fertig;
-  // wenn child == parent ..
-  if(iPar[2] != defTyp) goto Fertig;  // typ
-  if(iPar[3] != defInd) goto Fertig;  // ind
-
-  // DL_parent_hide (defTyp, defInd);
-  L_hidePar:
-  // store childInfo, parentInfo; hide parent.
-  //DL_parent_hide (iPar[2], iPar[3]);
-  DL_parent_hide (iPar[2], (long)iPar[3], defInd);
-
-/*
-  // hide parentObj bei CUT
-  // was ist mit IE_modify ?
-  if((IE_FncNr >= 0)&&(iNew == 0)&&(WC_get_obj_stat() == 0)) {
-    printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
-    printf(" IE_FncNr=%d typ=%d ind=%d\n",IE_FncNr,IE_cad_typ,iParent);
-    // find parentRec in DL (= zu hidenender DL-Rec; typ/Ind of parentObj);
-    // iatt des parentRec erhaelt den DL-Index des neuen DL-Record.
-    // hide parentRec: set autoHid of parentRec to ON;
-    DL_parent_hide (IE_cad_typ, iParent);
-  }
-*/
-
-
-/*  wurde nach IE_cad_test1 verlegt ...
-  // is obj in DB already defined ?
-  i1 = DB_QueryDef (basTyp, (long)defInd);
-
-  if(i1 >= 0) {   // ja, existiert schon ...
-    // Obj in DL suchen
-    dli = DL_find_obj (basTyp, (long)defInd);
-    // overwrite DL-Record dli !
-    if(dli >= 0) {
-      // printf(" overwrite dli=%d\n",dli);
-      DL_SetInd (dli);
-      // Overwrite the APT-LinNr (sonst kein find -> hilite moeglich)
-      DL_SetLnr (dli, APT_line_act);
-    }
-  }
-*/
-
-/*
-  // Besser waere: loeschen nicht in WC_work, sondern in CAD oder
-  // ACHTUNG: loescht Submodels !
-  //   in ED_work_ENTER ..
-  if(WC_modact_ind < 0) {           // 0-n = sind in Submodel; -1=main
-
-    // is obj in DB already defined ?
-    odb = DB_GetObjGX(defTyp, (long)defInd);
-    // printf(" clear typ=%d defTyp=%d ind=%d\n",odb.typ,defTyp,(long)defInd);
-
-    if(AP_typ_2_bastyp(odb.typ) == defTyp) {
-      // Obj in DL suchen
-      dli = DL_find_obj (defTyp, (long)defInd);
-      // printf(" find_obj %d\n",dli);
-      // Obj aus DL loeschen
-      if(dli >= 0) GL_Del0 (dli);
-    }
-  }
-*/
 
 
 
@@ -3782,6 +3603,150 @@ APT_stat_act:
   Error:
   return -1;
 
+
+}
+
+
+//================================================================
+  int APT_work_parent_hide (int cldTyp, long cldDbi, int *iPar) {
+//================================================================
+/// \code
+/// APT_work_parent_hide               hide parent-obj
+/// overwrite display of already present obj's  (eg "S<child>=CUT L<parent> ..")
+///                   (set (DL_Att*)GR_ObjTab[child].sChd   = 1)
+/// hide parent-obj   (set (DL_Att*)GR_ObjTab[parent].sPar  = 1)
+///                   (set (DL_Att*)GR_ObjTab[parent].unvis = 1)
+///   child  = GL_GetActInd ();
+///   parent = 
+///
+/// Input:
+///   cldTyp,cldDbi      typ/dbi of child  (output-obj)
+///   iPar[0],iPar[1]    Typ_cmdNCsub / T_CUT|T_MIR|..
+///   iPar[2],iPar[3]    typ/dbi of parent (basic-obj; first obj of "CUT"
+///
+/// \endcode
+
+
+#define oaSIZ 10
+
+  int     i1, ii, fnc, parTyp;
+  long    parDbi, dli_par, dli_chd;
+  ObjDB   parTab[oaSIZ];
+
+
+
+  // printf("APT_work_parent_hide cldTyp=%d cldDbi=%ld\n",cldTyp,cldDbi);
+
+
+  if(APT_obj_stat == 1) goto L_done;       // mode temporary: do nothing ..
+
+  if(iPar[0] != Typ_cmdNCsub) goto L_done;
+
+
+  fnc = iPar[1];
+  parTyp = iPar[2];  // parent
+  parDbi = iPar[3];  // parent
+
+    // printf("   _work_parent_hide parTyp=%d parDbi=%ld\n",parTyp,parDbi);
+    // printf("  fnc=%d cldTyp=%d cldDbi=%ld\n",fnc,cldTyp,cldDbi);
+
+/*
+  //----------------------------------------------------------------
+  // mode temporary: unhilite parent-obj.
+  if(APT_obj_stat == 1) {   // 1=temp
+    // CUT: unhilite parent-obj.                             // 2013-03-15
+    if((iPar[0] == Typ_cmdNCsub) && (iPar[1] == T_CUT)){
+      // find dli of parent
+      dli = DL_find_obj (parTyp, parDbi, -1L);
+      if(dli >= 0) DL_hili_off (dli);
+    }
+    goto L_done;   // temp-Mode: done ..
+  }
+*/
+
+
+  //----------------------------------------------------------------
+  // store childInfo, parentInfo in DL and ParTab; hide parent.
+  // Obj's from "TRA","PRJ","MIR" "REV" have parents;
+  // Obj's from "CUT" have parents (in bin. struct); do not hide.
+
+  if((fnc != T_CUT) &&
+     (fnc != T_CCV) &&
+     (fnc != T_PRJ) &&
+     (fnc != T_REV) &&
+     (fnc != T_TRA) &&
+     (fnc != T_MIR))   goto L_done;
+
+
+  // get the dispListIndex of child = active DL-Index
+  dli_chd = GL_GetActInd ();
+
+
+  if(fnc == T_CCV) {
+    // set DL-flags; do not hide; do nor create PartTab-Record.
+    // get all parents of active contour; set DL.sPar u. sChd
+    ii = 0;
+    AP_parent_get (&ii, parTab, oaSIZ, cldTyp, cldDbi);
+    for(i1=0; i1<ii; ++i1) {   // loop tru parent-obj's
+      // get the dispListIndex of parent
+      dli_par = DL_find_obj (parTab[i1].typ, parTab[i1].dbInd, dli_chd - 1);
+      // set dispList-flag sChd and sPar
+      DL_parent_set (dli_chd, dli_par);
+    }
+    goto L_done;
+  }
+
+
+  // if (child == parent): do nothing (S20 = CUT S20 ..)
+  if((parTyp == cldTyp)&&(parDbi == cldDbi)) goto L_done;
+
+
+  // get the dispListIndex of parent
+  dli_par = DL_find_obj (parTyp, parDbi, dli_chd - 1);
+  if(dli_par < 0) return 0;   // no parent ..
+
+
+  // set dispList-flag sChd and sPar for child & parent
+  DL_parent_set (dli_chd, dli_par);
+
+
+  // hide parent.
+  // but not contour-obj's
+  if(fnc != T_CCV)
+    DL_parent_hide (dli_par);
+
+
+  // create the PartTab-Record (store childInfo, parentInfo)
+  // but not for "CUT" records
+  if(fnc != T_CUT)
+    OPAR_set (parTyp, parDbi, cldTyp, cldDbi);
+
+
+
+
+
+  //----------------------------------------------------------------
+/*  wurde nach IE_cad_test__ verlegt ...
+  // is obj in DB already defined ?
+  i1 = DB_QueryDef (basTyp, (long)cldDbi);
+
+  if(i1 >= 0) {   // ja, existiert schon ...
+    // Obj in DL suchen
+    dli = DL_find_obj (basTyp, (long)cldDbi);
+    // overwrite DL-Record dli !
+    if(dli >= 0) {
+      // printf(" overwrite dli=%d\n",dli);
+      DL_SetInd (dli);
+      // Overwrite the APT-LinNr (sonst kein find -> hilite moeglich)
+      DL_SetLnr (dli, APT_line_act);
+    }
+  }
+*/
+
+
+  L_done:
+
+  return 0;
 
 }
 
@@ -3879,8 +3844,7 @@ APT_stat_act:
     case Typ_CVRBSP:
     case Typ_CVELL:
     case Typ_CVCLOT:
-    case Typ_CVCCV:
-    case Typ_CVCCV2:
+    case Typ_CVTRM:
         po = DB_GetCurv (ind);
         UME_init (&tSpc1, memspc201, sizeof(memspc201));
         APT_DrawCurv (iAtt, ind, (ObjGX*)po, WC_sur_Z, &tSpc1);
@@ -8997,11 +8961,10 @@ dzt unused
 */
 
 
-/*===========================================================================*/
+/*
+//================================================================
   int APT_disp_obj (ObjG2* obj1, int attr, double zval) {
-/*================
-
-*/
+//================================================================
 
   //Line      ln1;
   //long      apt_ind;
@@ -9052,7 +9015,7 @@ dzt unused
   return 0;
 
 }
-
+*/
 
 //===========================================================================
   int APT_DrawDim3 (int typ, long apt_ind, ObjGX *dim3) {
@@ -9125,7 +9088,7 @@ dzt unused
 
   AP_dli_act = DL_StoreObj (Typ_Tag, apt_ind, typ);
 
-  if(tx1->typ == 1) {   // Image-BMP
+  if(tx1->aTyp == 1) {   // Image-BMP
     // // den symbol. Pfad aufloesen.
     // // Mod_get_path (cBuf, tx1->txt);
     // // printf(" cBuf=|%s| scl=%f\n",cBuf,tx1->scl);
@@ -9136,17 +9099,17 @@ dzt unused
     return GL_Draw_BMP (&AP_dli_act, tx1, apt_ind);
 
 
-  } else if(tx1->typ == 3) {   // LeaderLine + Balloon + 3D-Text  LDRC
+  } else if(tx1->aTyp == 3) {   // LeaderLine + Balloon + 3D-Text  LDRC
     GL_DrawTxtLBG (&AP_dli_act, tx1, apt_ind);
 
 
-  } else if(tx1->typ == 4) {   // LeaderLine + 3D-Text   LDRP
+  } else if(tx1->aTyp == 4) {   // LeaderLine + 3D-Text   LDRP
     // GL_DrawTxtLG (&AP_dli_act, typ, &tx1->p1, &tx1->p2, tx1->txt);
     GL_DrawTxtLG (&AP_dli_act, tx1, apt_ind);
 
 
-  } else if(tx1->typ > 4) {   // symTyp > 4 sind Symbols
-    GL_DrawTxtsym (&AP_dli_act, tx1->typ - 5, &tx1->p1, (Vector*)&tx1->p2,
+  } else if(tx1->aTyp > 4) {   // symTyp > 4 sind Symbols
+    GL_DrawTxtsym (&AP_dli_act, tx1->aTyp - 5, &tx1->p1, (Vector*)&tx1->p2,
                    tx1->col, tx1->scl);
     if(APT_dispNam) APT_disp_nam (Typ_ATXT, apt_ind, (void*)tx1);
 
@@ -9565,7 +9528,7 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 }
 
 
-
+/* UU
 //===========================================================================
   void APT_disp_cv (ObjG2 *objU, int attInd, double zval) {
 //===========================================================================
@@ -9589,12 +9552,21 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 
 
 }
-
+*/
 
 //================================================================
   int APT_disp_dir (Point *p1, Point *p2) {
 //================================================================
-    // APT_disp_SymV2 (SYM_ARROH, Typ_Att_Symb, &ln1->p2, &ln1->p1, 1.0);
+/// \code
+/// APT_disp_dir         display obj-direction with arrow
+/// see also GL_Draw_cvp_dir
+/// \endcode
+
+// TODO: do not display Arrow for hidden or parent-objects;
+// Problem: wird erst viel später auf hidden gesetzt !!!!
+// ABHILFE: 
+//  -) statt reRun loop tru DL and display direction only for not hidden obj's
+
 
 
   int    att = Typ_Att_Symb;
@@ -9618,6 +9590,7 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
   GL_DrawSymV3 (&dli, SYM_ARRO3H, att, p1, &vc1, 1.);
     
   // APT_disp_SymV3 (SYM_ARRO3H, att, p1, &vc1, 1.);
+  // APT_disp_SymV2 (SYM_ARROH, Typ_Att_Symb, &ln1->p2, &ln1->p1, 1.0);
 
 
   return 0;
@@ -9978,12 +9951,10 @@ see WC_Init_Modsiz WC_Init_Tol ..
 }
 
 
-
-
-/*===========================================================================*/
+//================================================================
   void APT_DrawCirc (int Typ, long dbi, Circ *ci1) {
-/*=================
-*/
+//================================================================
+// TODO: replace with GR_CreCirc
 
   // char  oNam[8];
   Point pt1;
@@ -10007,7 +9978,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
   // AP_dli_act = DL_StoreObj (Typ_CI, dbi, Typ);      //2006-01-16 AC 
 
 
-  GR_DrawCirc (&AP_dli_act, Typ, ci1);
+  GR_DrawCirc (&AP_dli_act, dbi, Typ, ci1);
 
 
   // // disp direction
@@ -10121,7 +10092,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
   } else if(typ == Typ_CVBSP) {
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVBSP, dbi, att);
-    GR_DrawCvBSp (&AP_dli_act, att, ox1->data);
+    GR_DrawCvBSp (&AP_dli_act, dbi, att, ox1->data);
     if(APT_dispNam) APT_disp_nam (Typ_CVBSP, dbi, ox1->data);
 
 
@@ -10155,18 +10126,18 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   // } else if(typ == Typ_CVComp) {
     // // AP_dli_act = DL_StoreObj (Typ_CVComp, dbi, Typ_Att_hili);
-    // AP_dli_act = DL_StoreObj (Typ_CVCCV, dbi, Typ_Att_hili);
+    // AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, Typ_Att_hili);
     // GR_DrawCVComp (&AP_dli_act, att, ox1, tbuf1);
 
-  } else if(typ == Typ_CVCCV) {
-    AP_dli_act = DL_StoreObj (Typ_CVCCV, dbi, Typ_Att_hili);
+  } else if(typ == Typ_CVTRM) {
+    AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, Typ_Att_hili);
     // GR_DrawCvCCV (&AP_dli_act, att, ox1->data, tbuf1);
-    GR_DrawCvCCV (&AP_dli_act, att, ox1, tbuf1);
+    GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1, tbuf1);
 
-
-  } else if(typ == Typ_CVCCV2) {
-    // GR_DrawCvCCV2 (&AP_dli_act, att, ox1->data);
-    GR_DrawCvCCV2 (&AP_dli_act, att, ox1);
+// TODO: test for 2D-Curve
+  // } else if(typ == Typ_CVTRM2) {
+    // // GR_DrawCvCCV2 (&AP_dli_act, att, ox1->data);
+    // GR_DrawCvCCV2 (&AP_dli_act, att, ox1);
 
 
   } else {
@@ -10256,77 +10227,6 @@ see WC_Init_Modsiz WC_Init_Tol ..
   //TX_Print(" ex APT_curv2ptArr ianz=%d",*ianz);
 
 }
-
-
-
-//===========================================================================
-  void APT_hiliObj (long* ind, ObjG2* o1, int att, double zval) {
-//===========================================================================
-/// \code
-/// ind == -1: es wird ein temporäres Obj. erzeugt.
-/// ind == -2: es wird ein dynam. Obj. erzeugt (der Ind wird retourniert).
-/// \endcode
-
-
-  long      l1;
-  Point     pt1;
-  Line      ln1;
-  Circ      ci1;
-
-
-  printf("APT_hiliObj typ=%d att=%d zval=%f",o1->typ,att,zval);
-
-
-  l1 = *ind;
-
-  if(l1 == -2) {
-    l1 = DL_StoreObj (o1->typ, 0L, att);
-  }
-
-
-  if(o1->typ == Typ_PT2) {
-
-    pt1   = UT3D_pt_pt2 (&o1->p1);
-    pt1.z = zval;
-
-    // GR_DrawPoint (&l1, att, &pt1);
-    GL_DrawSymB (&l1, 0, SYM_TRI_B, &pt1); // rotes Viereck
-
-
-
-  } else if(o1->typ == Typ_LN2) {
-
-    ln1.p1   = UT3D_pt_pt2 (&o1->p1);
-    ln1.p1.z = zval;
-
-    ln1.p2   = UT3D_pt_pt2 (&o1->p2);
-    ln1.p2.z = zval;
-
-    GR_DrawLine (&l1, att, &ln1);
-
-
-
-
-  } else if(o1->typ == Typ_CI2) {
-
-    ci1.p1   = UT3D_pt_pt2 (&o1->p1);
-    ci1.p1.z = zval;
-    ci1.p2   = UT3D_pt_pt2 (&o1->p2);
-    ci1.p2.z = zval;
-    ci1.pc   = UT3D_pt_pt2 (&o1->pc);
-    ci1.pc.z = zval;
-    ci1.rad  = o1->rad;
-    ci1.vz   = UT3D_VECTOR_Z;
-
-    GR_DrawCirc (&l1, att, &ci1);
-  }
-
-
-  *ind = l1;
-
-}
-
-
 
 
 //***********************************************************************
@@ -10543,7 +10443,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   ObjAto ato1;
 
 
-  // printf("APT_obj_expr %d |%s|\n",typ,cbuf);
+  printf("APT_obj_expr %d |%s|\n",typ,cbuf);
 
 
   // get memSpc for atomicObjects  uses memspc54 memspc55 memspc53
@@ -10701,7 +10601,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
             (typ == Typ_CVCLOT) ||
             (typ == Typ_CVBSP)  ||
             (typ == Typ_CVRBSP) ||
-            (typ == Typ_CVCCV))    {
+            (typ == Typ_CVTRM))    {
     // nur "S21" decodieren (1 parameter)
     // irc = APT_decode_curv (data, aus_anz, aus_typ, aus_tab);
     irc = APT_decode_cv (data, &i1, aus_anz, aus_typ, aus_tab);

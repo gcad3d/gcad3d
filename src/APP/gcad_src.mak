@@ -48,6 +48,7 @@ SRCG =\
   ../xa/xa_objLst.c\
   ../xa/xa_joint.c\
   ../xa/catalog_gui.c\
+  ../xa/opar.c\
   ../xa/srcu.c\
 
 # ../xa/xa_ui_nc.c\
@@ -66,8 +67,6 @@ SRC1 =\
   ../xa/xa.c\
   ../xa/xa_msg.c\
   ../xa/xa_obj_txt.c\
-  ../xa/xa_cvcomp.c\
-  ../xa/xa_cont.c\
   ../xa/xa_mod.c\
   ../xa/xa_edi__.c\
   ../xa/xa_ed.c\
@@ -89,20 +88,23 @@ SRC1 =\
   ../ut/ut_srv.c    ../ut/ut_sru.c     ../ut/ut_dump.c   ../ut/ut_err.c\
   ../ut/ut_surstd.c ../ut/ut_sbsp.c    ../ut/ut_srbsp.c  ../ut/ut_npt.c\
   ../ut/ut_bez.c    ../ut/ut_rbez.c    ../ut/ut_tria.c   ../ut/ut_quat.c\
-  ../ut/ut_plg.c    ../ut/ut_ccv.c     ../ut/ut_elli.c   ../ut/ut_cvApp.c\
+  ../ut/ut_plg.c    ../ut/ut_cvtrm.c   ../ut/ut_elli.c   ../ut/ut_cvApp.c\
   ../ut/ut_sdc.c    ../ut/tri_orient.c ../ut/ut_tess.c   ../ut/ut_project.c\
   ../ut/ubs.c       ../ut/ubscrv.c     ../ut/ubssur.c    ../ut/sbsu1.c\
   ../ut/u3d.c       ../ut/ut_cvoff.c   ../ut/ut_msh.c    ../ut/ut_tin.c\
   ../gr/tess_su.c   ../gr/ut_tess_su.c ../gr/tess_ut.c   ../gr/tess_vr_ut.c\
-  ../gr/ut_GLU.c    ../ut/ut_log.c\
+  ../gr/ut_GLU.c     ../ut/ut_log.c    ../ut/ut_cntf.c   ../ut/ut_prcv.c\
   ../ut/ut_geo2d.c  ../ut/ut_geo3d.c   ../ut/ut_iTab.c   ../ut/ut_dbf.c\
   ../ut/ut_obj.c    ../ut/ut_txfil.c   ../ut/ut_txt.c    ../ut/ut_umb.c\
   ../ut/ut_math.c   ../ut/ut_umem.c    ../ut/ut_mem.c    ../ut/ut_box.c\
   ../ut/ut_txTab.c  ../ut/ut_int.c     ../ut/ut_uti.c    ../ut/byteorder.c\
   ../ut/ut_memTab.c ../ut/ut_os__.c    ../ut/ut_BitTab.c ../ut/ut_hatch.c\
+  ../xa/dummy.c\
 
-
+# ../ut/ut_prcv.c
+# ../ut/ut_cntf.c
 # ../exp/ut_exp.c\
+# ../xa/xa_cont.c     replaced by ../ut/ut_cntf.c
 
 # sources of applications; not used in batch
 SRCA =\

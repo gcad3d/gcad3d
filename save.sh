@@ -15,11 +15,16 @@ if ("$#argv" == "1") then
     goto Stick
   endif
 
+  if ("$1" == "backup") then
+    goto backup
+  endif
+
 endif
 #
 echo "***** unknown option, use:"
 echo "Stick              serv1:gcad3d  -->> STICK:~/BACKUP/gcad3d"
 echo "Local              serv1:gcad3d  -->> HDEV3:~/devel/gcad3d"
+echo "backup             ~/devel/gcad3d -->> ~/backup/gcad3d"
 echo "Forw               HDEV2:~/devel/gcad3d -->> serv1:gcad3d"
 echo "serv1: = /mnt/serv1/Devel/"
 goto L_exit
@@ -69,8 +74,23 @@ rsync -urv --delete --exclude-from=sav_excl.txt\
  /mnt/serv1/Devel/gcad3d\
  /home/fwork/devel
 #
+goto L_exit
 #
 #
 #------------------------------------------------------------
+# copy serv1:/Devel/gcad3d -> ~/backup/gcad3d
+backup:
+echo "Local:"
+echo "/mnt/serv1/Devel/gcad3d  =>   /home/fwork/devel/gcad3d"
+
+rsync -urv --delete --exclude-from=sav_excl.txt\
+ /mnt/serv1/Devel/gcad3d\
+ /home/fwork/backup
+#
+goto L_exit
+#
+#
+#------------------------------------------------------------
+
 L_exit:
 #eof

@@ -1,5 +1,5 @@
 /*! \page devDoc_hints
-../../doc/gcad_doxygen/devDoc_hints.dox
+../../doc/gcad_doxygen/DevDoc_hints.dox
 
 <pre>
 \ref doxygen_Structure
@@ -10,6 +10,10 @@
 _____________________________________________________________________
 \section doxygen_Structure
 \verbatim
+
+./do udd                             start update doc (start gcad_doxygen.sh)
+../../doc/gcad_doxygen.sh            main-script, (re)create whole doc
+
 
 -------------------------------------------------------
 ADD A new controlpage:

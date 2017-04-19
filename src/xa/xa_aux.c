@@ -255,7 +255,7 @@ static double imp_scale;
 
   //-----------------------------------------------------------
   // CCV nicht via AP_obj_2_txt in Text umwandeln sondern sofort hier.
-  } else if(ox1->typ == Typ_CVCCV) {
+  } else if(ox1->typ == Typ_CVTRM) {
     // printf("CCV ex Igs %d\n",ox1->siz); 
 
     // nur objHeader holen ("S#=CCV")
@@ -479,7 +479,7 @@ static double imp_scale;
     // CCV muss gesondert behandelt werden:
     // ox1 hat Tabelle der Iges-ID's; in impTab sind die zugehoerigen
     // gCad-typen und Indexe.
-    if(ox1->typ == Typ_CVCCV) {
+    if(ox1->typ == Typ_CVTRM) {
       irc = AP_iges_ccv2txt (mem_cbuf1, mem_cbuf1_SIZ, ox1);
       if(irc == -1) continue;      // Error
       if(irc == -2) goto FERTIG;   // grober Fehler
@@ -1193,14 +1193,14 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     // // ein transformiertes Objekt holen
     // irc = AP_GetObj (&o1, l1);
     // // apt_typ = DL_GetTyp(l1);
-    // // apt_ind = DL_GetInd(l1);
+    // // apt_ind = DL_get_dbi(l1);
     // // tra_ind = DL_GetTrInd(l1);
     // // i1 = DB_Get_GR_Obj (&o1, apt_typ, apt_ind, tra_ind);
     // if(irc < 0) continue;  // skip unknown types
 
 
     // apt_typ = DL_GetTyp(l1);
-    // apt_ind = DL_GetInd(l1);
+    // apt_ind = DL_get_dbi(l1);
     // tra_ind = DL_GetTrInd(l1);
 
 
@@ -1645,7 +1645,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     // apt_typ = GR_ObjTab[l1].typ;
     // apt_typ = DL_GetTyp(l1);
     // apt_ind = GR_ObjTab[l1].ind;
-    // apt_ind = DL_GetInd(l1);
+    // apt_ind = DL_get_dbi(l1);
     // tra_ind = GR_ObjTab[l1].refInd;
     // tra_ind = DL_GetTrInd(l1);
 

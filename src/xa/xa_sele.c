@@ -43,6 +43,7 @@ List_functions_start:
 
 sele_ck_typ         Test if obj of typ iTyp is a requested typ.
 sele_ck_ConstrPln   Test if must add "ConstrPlane" to option-menu
+sele_ck_NoParents   test if must add parents to selection-list
 
 sele_set_stat       set status of 2D-icons; 0=enabled, X=disabled
 sele_set_icon       add 2D-icon to list
@@ -57,6 +58,7 @@ sele_set_add        add obj to selectionfilter; typeGroups can be used;
 sele_set_types      set selectionFilters
 sele_set_pos        save GR_selPos
 sele_setNoConstrPln disable selection of point on ConstrPln
+sele_setNoParents   add or do not add parents to selection-list
 sele_get_pos        return GR_selPos
 sele_get_selPos     returns selected position as point on selected object
 sele_get_reqTyp     return GR_reqTyp
@@ -228,6 +230,7 @@ static Point  GR_selPos;         // mouseposition in userCoords
 
 static int    GR_reqTyp;         // requested typ
 static int    GR_NoConstrPln;    // disable selection of point on ConstrPln
+static int    GR_NoParents=0;    // 0=add-parents; 1=do-not-add-parents
 static int    bck_GR_NoConstrPln;
 
 // static char   GR_actPos[60];     // cursorPos as "P(x y z)"
@@ -248,6 +251,9 @@ static char  I2D_stat[I2D_TABSITZ];
 //===========================================================================
 /// \code
 /// get (max.) 3 subcurves for a selected curve.
+///   sca[0]   subCurve
+///   sca[1]   point
+///   sca[2]   vector 
 /// Input:
 ///   typ,dbi   DB-obj to check (selected curve)
 ///   selPos    selection-point 
@@ -262,6 +268,9 @@ static char  I2D_stat[I2D_TABSITZ];
 //   sca soll output sein und typ und oid enthalten !
 //   out-dbi immer 0, out-dli immer -1 ?
 
+// TODO: contour inside contour; output of eg P(S# MOD(#1) MOD(#2) par)
+//       // #1 is segNr of contour; #2 is segNr inside contour #1
+
 
   int     irc, iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
   char    so[128], cto;
@@ -273,6 +282,7 @@ static char  I2D_stat[I2D_TABSITZ];
 
   for(ii=0; ii<3; ++ii) sca[ii].typ = Typ_Error;
   ii = 0;
+
 
   // test if selection of PT,VC wanted; 0 is no, else yes
   iPt = sele_ck_typ (Typ_PT);
@@ -321,51 +331,48 @@ static char  I2D_stat[I2D_TABSITZ];
     // printf(" ck_subCurv-iTyp=%d\n",iTyp);
 
 
-
-
   //----------------------------------------------------------------
   // 1. step: get subCurve
   // test if L or C or S requested; 0=no, else yes.
-  iLn = sele_ck_typ (Typ_LN);
-  iCi = sele_ck_typ (Typ_CI);
-  iCv = sele_ck_typ (Typ_CV);
+  iLn = sele_ck_typ (Typ_LN); // linear (LN)
+  iCi = sele_ck_typ (Typ_CI); // circular (CI)
+  iCv = sele_ck_typ (Typ_CV); // curved (CV)
     // printf(" ck_subCurv-iLn=%d iCi=%d iCv=%d\n",iLn,iCi,iCv);
 
 
-  if(iTyp == Typ_CVCCV) goto L_ck_1;
-  if(iTyp == Typ_CVPOL) goto L_ck_2;
+  // only this obj's can have subCurves:
+  if((iTyp == Typ_CVTRM)  ||
+     (iTyp == Typ_CVPOL)) {
+    if((iLn)||(iCi)||(iCv)) goto L_ck_1;
+  }
 
-
-  // LN,CI,bspl: P,D
+  // not LN,CI,bspl: get P,D
   goto L_ck_3;
-  // 
-  // if(typ == Typ_LN) goto L_ck_3;     // LN: P & D
-  // if(typ == Typ_CI) goto L_ck_3;     // CI: P & D
-  // if(typ == Typ_CVBSP) goto L_ck_3;  // bspl: P & D
 
 
   //----------------------------------------------------------------
-  // get subCurve of CCV:  L|C|S, dann P,D
   L_ck_1:
-  if(iLn) {
-    oTyp = Typ_goGeo1; // if L in CCV selected: OK; if C in CCV selcted: oTyp=0.
-    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" ck_subCurv-Ln-CCV oTyp=%d so=|%s|\n",oTyp,so);
-    if(oTyp >= 0) {   // 2015-10-24
-      sca[ii].typ = oTyp;
-      strcpy(sca[ii].oid, so);
-      ++ii;
-    }
+  // get subCurve of CCV:  L|C|S, dann P,D
+  oTyp = Typ_goGeo1; // if L in CCV selected: OK; if C in CCV selcted: oTyp=0.
+  // get src-obj so of type=oTyp from selPos and db-object (typ,dbi)
+  oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+    // printf(" ck_subCurv-Ln-CCV oTyp=%d so=|%s|\n",oTyp,so);
+  if(oTyp >= 0) {   // 2015-10-24
+// TODO: test if useful (if oTyp is wanted - LN or CI or curve)
+//       oTyp should be type of basic-curve for trimmed-curve
+    sca[ii].typ = oTyp;
+    strcpy(sca[ii].oid, so);
+    ++ii;
   }
-  goto L_ck_3;
+  // goto L_ck_3;
 
-
+/*
   //----------------------------------------------------------------
   // plg: L, dann P,D
   // LN from curve or subcurve
   L_ck_2:
   if(iLn) {
-    oTyp = Typ_LN;
+    oTyp = Typ_CV; // oTyp = Typ_LN;
     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
       // printf(" ck_subCurv-Ln_POL oTyp=%d so=|%s|\n",oTyp,so);
     if(oTyp >= 0) {   // 2015-10-24
@@ -374,6 +381,7 @@ static char  I2D_stat[I2D_TABSITZ];
       ++ii;
     }
   }
+*/
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
 
@@ -858,7 +866,7 @@ static char  I2D_stat[I2D_TABSITZ];
   // test if selected is requested
   // printf("sele_ck_typ %d\n",iTyp);
   // BitTab_dump (reqObjTab, TYP_SIZ);
-    // printf("ex sele_ck_typ %d %d\n",BitTab_get(reqObjTab,iTyp),iTyp);
+    // printf("sele_ck_typ %d %d\n",BitTab_get(reqObjTab,iTyp),iTyp);
 
 
   // if GR_Sel_Filter==18 (parametric point) keep selection
@@ -873,6 +881,35 @@ static char  I2D_stat[I2D_TABSITZ];
 }
 
 
+//================================================================
+  int sele_setNoParents (int mode) {
+//================================================================
+/// \code
+/// sele_setNoParents   add or do not add parents to selection-list
+/// mode: 0=add-parents; 1=do-not-add-parents
+///       (parentObjs are unvisible)
+/// \endcode
+
+  GR_NoParents = mode;
+
+  return 0;
+
+}
+
+ 
+//================================================================
+  int sele_ck_NoParents () {
+//================================================================
+/// \code
+/// sele_ck_NoParents   test if must add parents to selection-list
+/// mode: 0=add-parents; 1=do-not-add-parents
+/// \endcode
+
+  return GR_NoParents;
+
+}
+
+ 
 //================================================================
   int sele_ck_ConstrPln () {
 //================================================================
@@ -1098,7 +1135,7 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_CVBSP) ||
        (GR_selTyp == Typ_CVELL) ||
        (GR_selTyp == Typ_CVCLOT)||         // geht no ned ..
-       (GR_selTyp == Typ_CVCCV) ||
+       (GR_selTyp == Typ_CVTRM) ||
        (GR_selTyp == Typ_PLN)   ||
        (GR_selTyp == Typ_SUR)   ||
        (GR_selTyp == Typ_SOL))    goto L_exit;
@@ -1157,7 +1194,7 @@ static char  I2D_stat[I2D_TABSITZ];
 
     // these objs can be converted:
     if((GR_selTyp == Typ_CVPOL) ||
-       (GR_selTyp == Typ_CVCCV) ||
+       (GR_selTyp == Typ_CVTRM) ||
        (GR_selTyp == Typ_CVLNA)) goto L_ln_conv;
 
     // change 3 values -> vector
@@ -1174,7 +1211,7 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_CVPOL) ||         // 2011-08-05 was Typ_CV
        (GR_selTyp == Typ_CVBSP) ||
        (GR_selTyp == Typ_CVELL) ||
-       (GR_selTyp == Typ_CVCCV)) goto L_exit;
+       (GR_selTyp == Typ_CVTRM)) goto L_exit;
     // these objs can be converted:
 
 
@@ -1190,7 +1227,7 @@ static char  I2D_stat[I2D_TABSITZ];
     // these objs can be converted:
     if(GR_selTyp == Typ_TmpPT)    goto L_pt_conv;
     if(GR_selTyp == Typ_CVPOL)    goto L_ln_conv;
-    if(GR_selTyp == Typ_CVCCV)    goto L_LnAc_conv;
+    if(GR_selTyp == Typ_CVTRM)    goto L_LnAc_conv;
     
                       
                       
@@ -1209,7 +1246,7 @@ static char  I2D_stat[I2D_TABSITZ];
     // make vector:
     if((GR_selTyp == Typ_CVPOL) ||
        (GR_selTyp == Typ_LN)    ||
-       (GR_selTyp == Typ_CVCCV))   goto L_vc_conv;
+       (GR_selTyp == Typ_CVTRM))   goto L_vc_conv;
 
 
 
@@ -1245,7 +1282,7 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_CVBSP) ||
        (GR_selTyp == Typ_CVELL) ||
        (GR_selTyp == Typ_CVCLOT)||         // geht no ned ..
-       (GR_selTyp == Typ_CVCCV))
+       (GR_selTyp == Typ_CVTRM))
       goto L_exit;
     // these objs can be converted:
 
@@ -1355,7 +1392,7 @@ static char  I2D_stat[I2D_TABSITZ];
       goto L_exit;
     // these objs can be converted: gives D()
     if((GR_selTyp == Typ_CVPOL) ||
-       (GR_selTyp == Typ_CVCCV))   goto L_vc_conv;
+       (GR_selTyp == Typ_CVTRM))   goto L_vc_conv;
     if((GR_selTyp == Typ_TmpPT) ||
        (GR_selTyp == Typ_PT))      goto L_val_conv;
 
@@ -1375,7 +1412,7 @@ static char  I2D_stat[I2D_TABSITZ];
        // (GR_selTyp == Typ_CVBSP) ||
        // (GR_selTyp == Typ_CVELL) ||
        // (GR_selTyp == Typ_CVCLOT)||
-       (GR_selTyp == Typ_CVCCV) ||
+       (GR_selTyp == Typ_CVTRM) ||
        (GR_selTyp == Typ_SUR)   ||
        (GR_selTyp == Typ_Model))
       goto L_vc_conv;
@@ -1400,7 +1437,7 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_CVRBSP)||
        (GR_selTyp == Typ_CVELL) ||
        (GR_selTyp == Typ_CVCLOT)||
-       (GR_selTyp == Typ_CVCCV) ||
+       (GR_selTyp == Typ_CVTRM) ||
        (GR_selTyp == Typ_PLN)   ||         // 2011-09-08
        (GR_selTyp == Typ_SUR)   ||
        (GR_selTyp == Typ_SOL)   ||
@@ -1436,7 +1473,7 @@ static char  I2D_stat[I2D_TABSITZ];
 
     // these objs can be converted:
     if((GR_selTyp == Typ_CVPOL) ||
-       (GR_selTyp == Typ_CVCCV) ||
+       (GR_selTyp == Typ_CVTRM) ||
        (GR_selTyp == Typ_CVLNA) ||
        (GR_selTyp == Typ_PLN))      goto L_ln_conv;      // 2011-09-07
 
@@ -1455,7 +1492,7 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_Val)      ||
        (GR_selTyp == Typ_VAR))        goto L_ac_conv;
     // these objs can be converted:
-    if(GR_selTyp == Typ_CVCCV)   { ii = Typ_CI; goto L_LnAc_1; }
+    if(GR_selTyp == Typ_CVTRM)   { ii = Typ_CI; goto L_LnAc_1; }
 
 
 
@@ -2012,6 +2049,10 @@ raus 2011-07-29
  
   int     i1, i2, i2Dbutts = 0;
 
+
+  // printf("sele_set_add %d\n",rTyp);
+
+
   switch (rTyp) {
    
     case Typ_Val:
@@ -2045,7 +2086,7 @@ raus 2011-07-29
                       Typ_LN,
                       Typ_CI,
                       Typ_CVPOL,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       0);
       sele_set_icon (&i2Dbutts, Typ_modREV);
       sele_set_icon (&i2Dbutts, Typ_VAR);         // V+ V-
@@ -2056,6 +2097,7 @@ raus 2011-07-29
     case Typ_VC:
       sele_set_types (Typ_VC, 
                       Typ_PT,    // 2016-05-16; for PT-PT, 2 indicates
+                      Typ_LN,                   // 2017-03-02
                       Typ_PLN,                  // 2015-07-06
                       Typ_SUR,
                       Typ_Model,
@@ -2067,7 +2109,7 @@ raus 2011-07-29
 
     case Typ_PT:
       sele_set_types (Typ_PT, 
-/* // 2014-12-19
+  // Typ_LN-Typ_CVTRM needed for eg 'PT cartes' - BasePoint 2017-04-06
                       Typ_LN,
                       Typ_CI,
                       Typ_CVBSP,
@@ -2075,9 +2117,8 @@ raus 2011-07-29
                       Typ_CVLNA,               // 2011-09-07
                       Typ_CVELL,
                       Typ_CVCLOT,
-                      // Typ_CVPOL,               // 2014-12-19
-                      // Typ_CVCCV,               // 2014-12-19
-*/
+                      Typ_CVPOL,               // 2014-12-19
+                      Typ_CVTRM,               // 2014-12-19
                       Typ_PLN,                 // 2016-10-04
                       Typ_SUR,
                       Typ_SOL,
@@ -2091,7 +2132,7 @@ raus 2011-07-29
                       Typ_LN,
                       Typ_CVLNA,               // 2011-09-08
                       Typ_CVPOL, 
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       Typ_PLN,                 // 2011-09-08
                       0);
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
@@ -2104,7 +2145,7 @@ raus 2011-07-29
                       Typ_PT,                  // 2011-12-05
                       Typ_Val,                 // 2011-12-05
                       Typ_VAR,                 // 2011-12-05
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       0);
       break;
 
@@ -2151,7 +2192,7 @@ raus 2011-07-29
                       Typ_CVPOL,               // 2011-08-05 was Typ_CV
                       Typ_CVELL,
                       Typ_CVCLOT,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       0);
       break;
 
@@ -2163,7 +2204,7 @@ raus 2011-07-29
                       Typ_CVPOL,               // 2011-08-05 was Typ_CV
                       Typ_CVELL,
                       Typ_CVCLOT,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       Typ_PLN,
                       Typ_SUR,
                       Typ_SOL,
@@ -2180,6 +2221,7 @@ raus 2011-07-29
       sele_set_types (Typ_PT, 
                       Typ_LN,
                       Typ_CI, 
+                      Typ_CV,
                       Typ_CVBSP,
                       Typ_CVRBSP,
                       Typ_CVPOL,               // 2011-08-05 was Typ_CV
@@ -2193,7 +2235,7 @@ raus 2011-07-29
                       Typ_PT,                  // 2011-09-29
                       Typ_CVLNA,               // 2011-09-29
                       Typ_CVPOL,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       Typ_LN,
                       Typ_PLN,
                       0);
@@ -2205,7 +2247,7 @@ raus 2011-07-29
                       Typ_CVPOL,               // 2011-08-05 was Typ_CV
                       Typ_CVBSP,
                       Typ_CVELL,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       0);
       break;
 
@@ -2215,7 +2257,7 @@ raus 2011-07-29
                       Typ_LN,
                       Typ_CI,
                       Typ_CVPOL,
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       0);
       break;
 
@@ -2234,7 +2276,7 @@ raus 2011-07-29
                       Typ_VC,
                       Typ_LN,
                       Typ_CVPOL, 
-                      Typ_CVCCV,
+                      Typ_CVTRM,
                       Typ_modREV,
                       0);
       sele_set_icon (&i2Dbutts, Typ_modREV);

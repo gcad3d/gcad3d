@@ -56,6 +56,7 @@ List_functions_start:
 UT3D_pt_evparCrvRBSpl    point <-- rational b-spline at parameter
 UT3D_pt_projptrbspl      project point onto rational-b-spline curve
 UT3D_vc_evparCrvRBSpl    tangent vector <-- rational b-spline at parameter
+UT3D_ptNr_rbsp           estimate nr of polygonPoints for rat-B-spline
 UT3D_cv_rbsp             make Polygon from Rat.B-Spline-Kurve + tol
 UT3D_bspl_deriv1         1. derivation b-spline curve <-- b-spline curve
 UT3D_rbspl_deriv1        1. deriv. rat. b-spline curve <-- rat. b-spline curve
@@ -97,7 +98,6 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_math.h"
 #include "../ut/ut_TX.h"
@@ -116,24 +116,74 @@ List_functions_end:
 // UT3D_par_rbsp_pt         get knotvalue from point on rational-b-spline curve
 // see also UT3D_parCv_bsplpt
 
-  // TX_Print("********* UT3D_par_par1_rbsp not yet implem. *********");
-  printf("********* UT3D_par_par1_rbsp not yet implem. *********");
 
-  return (*kv);
+#define  TABSIZ1 16
+#define  TABSIZ2 1000000
+  int    irc, nip;
+  double va[TABSIZ1];
+  char   *memSpc;
+  Point  pa[TABSIZ1];
+  Memspc wrkSpc;
+
+
+  UT3D_stru_dump (Typ_PT, pt, "UT3D_par_rbsp_pt:");
+
+
+  memSpc = MEM_alloc_tmp (TABSIZ2);
+  UME_init (&wrkSpc, memSpc, TABSIZ2);
+  irc = UT3D_pt_projptrbspl (&nip, pa, va, &wrkSpc, UT_TOL_cv, cvi, pt);
+
+  if(irc > 0) nip = 1; /// ???
+  if(irc < 0){TX_Error("UTO_stru_int E004"); return irc;}
+
+  *kv = va[0];
+
+    printf("ex par_rbsp_pt n=%d kv=%f\n",nip,va[0]);
+
+
+  return 0;
 
 }
 
 
 //================================================================
-  double UT3D_par1_par_rbsp (double *kv, CurvBSpl* cv1) {
+  double UT3D_par1_par_rbsp (double *kv, CurvRBSpl* cv1) {
 //================================================================
 // UT3D_par1_par_rbsp       get parameter 0-1 from knotvalue of rational-b-spline
 // see also UT3D_par1_parbsp
 
-  // TX_Print("********* UT3D_par_par1_rbsp not yet implem. *********");
-  printf("********* UT3D_par_par1_rbsp not yet implem. *********");
 
-  return (*kv);
+  double pv, u1, u2, uTot, uMin, uMax;
+
+
+  printf("UT3D_par1_par_rbsp %f\n", *kv);
+
+  u1 = cv1->v0;
+  u2 = cv1->v1;
+
+  if(cv1->dir) MEM_swap_2db (&u1, &u2);
+
+
+  uMin = cv1->kvTab[0];
+  uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
+    printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
+
+  if(u2 < u1) {
+    // umax - u1 + u2 - umin
+    uTot = uMax - u1 + u2 - uMin;
+    if(*kv > u1) pv = (*kv - u1) / uTot;
+    else         pv = (uMax - u1 + *kv - uMin) / uTot;
+
+  } else {
+    uTot = u2 - u1;
+    pv = (*kv - u1) / uTot;
+  }
+
+  if(cv1->dir) pv = 1. - pv;   // removed 2017-02-15
+
+    printf("ex _par1_par_rbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
+
+  return (pv);
 
 }
 
@@ -514,6 +564,8 @@ List_functions_end:
 
   double kv, uTot, uMin, uMax;
 
+
+  // printf("UT3D_par_par1_rbsp %f\n",pv);
 
   // uMin = cv1->kvTab[0];
   // uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
@@ -1027,6 +1079,81 @@ List_functions_end:
 
 }
 
+//================================================================
+  int UT3D_ptNr_rbsp (int *iu, CurvRBSpl *bsp, double tol1) {
+//================================================================
+/// \code
+/// UT3D_ptNr_rbsp     estimate nr of polygonPoints for rat-B-spline
+/// see also UT3D_ptNr_bsp UT3D_cv_rbsp
+/// \endcode
+
+  int    i2, i3, ip;
+  double ao, a1, d1, d2;
+  Vector vc1, vc2;
+
+
+  // UT3D_stru_dump (Typ_CVRBSP, bsp, "UT3D_ptNr_rbsp:\n");
+
+
+  if(bsp->ptNr < 3) {*iu = 2; return 0;}
+
+  // if(bsp->deg == 1) { ??
+
+
+  //===============================================================
+  // Toleranz voff: loop durch Kurve, max. Abweichung pro Laenge suchen
+
+  *iu = 0;
+  tol1 /= 8.;  // else too much bufferOverflows .. 2014-06-04
+
+  // degree
+  d1 = bsp->deg - 1.;     // printf(" _ptNr_bsp-d1=%f\n",d1);
+  tol1 /= d1;
+
+
+  // printf("------------ %d\n",i3);
+  // aTot = 0.;
+  // dTot = 0.;
+  i3 = 2;
+  d2 = UT3D_len_2pt (&bsp->cpTab[0], &bsp->cpTab[1]);
+
+  // startvector
+  UT3D_vc_2pt (&vc2, &bsp->cpTab[0], &bsp->cpTab[1]);
+
+  for(i3=2; i3<bsp->ptNr; ++i3) {
+      // UT3D_stru_dump(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
+      // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
+    d1 = d2;
+    vc1 = vc2;
+    UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
+
+    // opening-angle
+    ao = UT3D_angr_2vc__ (&vc1, &vc2);
+    ao *= (1. / bsp->wTab[i3]);
+    // aTot += ao;
+
+    // dist
+    d2 = UT3D_len_2pt (&bsp->cpTab[i3-1], &bsp->cpTab[i3]);
+
+    // get angle for rad = d1 + d2
+    a1 = UT2D_angr_ciSec (tol1, d1 + d2);
+
+    ip = ao / a1;
+    *iu += ip + 2;
+
+      // printf(" %d ao=%f d2=%f ip=%d\n",i3,UT_DEGREES(ao),d2,ip);
+  }
+
+
+  if(*iu < 2) *iu = 2;
+
+  // printf("ex UT3D_ptNr_rbsp %d\n",*iu);
+
+
+  return 0;
+
+}
+
 
 //========================================================================
   int UT3D_cv_rbsp (int *ptNr, Point *pTab, double *dTab,
@@ -1245,7 +1372,13 @@ List_functions_end:
 
   //----------------------------------------------------------------
   L_exit:
+
   *ptNr = ptOut;
+
+  // swap all points ...
+  if(cv1->dir) {
+    UT3D_cv_inv (*ptNr, pTab);
+  }
 
 
   //------- Testausg------
@@ -1281,33 +1414,36 @@ List_functions_end:
 }
 
 
-/*===========================================================================*/
-  int UT3D_pt_evparCrvRBSpl (Point *pt,double *wt,CurvRBSpl *rbspl,double u) {
-/*=========================
-UT3D_pt_evparCrvRBSpl    point <-- rational b-spline at parameter
-
-UT3D_pt_evparCrvRBSpl    Author: Thomas Backmeister       18.9.2004
-
-Evaluate a point on a rational b-spline curve.
-The underlying algorithm is "rational de Boor".
-The point is computed for any parameter value within the maximal
-support of the curve (we do not consider the limit parameters
-rbspl->v0 and rbspl->v1).
-The function needs work space of size
-(curve degree + 1) * (sizeof(Point) + sizeof(double)).
-
-IN:
-  CurvRBSpl *rbspl  ... rational b-spline curve
-  double u          ... parameter value
-  Memspc *workSeg   ... work space (control points and weights)
-OUT:
-  Point  *pt        ... curve point
-  double *wt        ... weigtt fro *pt
-Returncodes:
-  0 = OK
- -1 = out of work space
- -2 = input error
-*/
+//================================================================
+  int UT3D_pt_evparCrvRBSpl (Point *pt, double *wt,
+                             CurvRBSpl *rbspl, double u) {
+//================================================================
+/// \code
+/// UT3D_pt_evparCrvRBSpl    point <-- rational b-spline at parameter
+/// 
+/// UT3D_pt_evparCrvRBSpl    Author: Thomas Backmeister       18.9.2004
+/// 
+/// Evaluate a point on a rational b-spline curve.
+/// The underlying algorithm is "rational de Boor".
+/// The point is computed for any parameter value within the maximal
+/// support of the curve (we do not consider the limit parameters
+/// rbspl->v0 and rbspl->v1).
+/// The function needs work space of size
+/// (curve degree + 1) * (sizeof(Point) + sizeof(double)).
+/// 
+/// IN:
+///   CurvRBSpl *rbspl  ... rational b-spline curve
+///   double u          ... parameter value
+///   Memspc *workSeg   ... work space (control points and weights)
+/// OUT:
+///   Point  *pt        ... curve point
+///   double *wt        ... weight for *pt
+/// Returncodes:
+///   0 = OK
+///  -1 = out of work space
+///  -2 = input error
+///
+/// \endcode
 
   int rc, d, n, m, r, s;
   int i1, i2, ih, jh, n1;
@@ -1327,7 +1463,7 @@ Returncodes:
 
 
   // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
-  // printf("UT3D_pt_evparCrvRBSpl %f\n",u);
+  // printf("UT3D_pt_evparCrvRBSpl %lf\n",u);
   // UT3D_stru_dump (Typ_CVRBSP, rbspl, "");
 
 
@@ -1410,12 +1546,14 @@ Returncodes:
   }
   *pt = ptab[0];
   *wt = wtab[0];
+
   // if(*wt == 0.) *wt = 1.;       // soll lt Thomas wichtig sein .. ??
 
   // release work space
   workSeg->next = memstart;
 
-  // UT3D_stru_dump (Typ_PT, pt, "ex UT3D_pt_evparCrvRBSpl:");
+    // UT3D_stru_dump (Typ_PT, pt, "ex UT3D_pt_evparCrvRBSpl:");
+
   return 0;
 
 

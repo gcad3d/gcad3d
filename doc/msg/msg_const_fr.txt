@@ -1,45 +1,39 @@
-# Mots nouveaux: add ID-s dans xa_msg.h
-OK
-Annuler
-Sauver
-Insérer
-Supprimer
-Modifier
-Exit
-Aider
-longueur
-Activer
-# 10
-Bouger
-Modifier
-Renommer
-créer des sous-modèle
-montrer
-masquer
-ombrage
-inspecter
-points bougent
-restaurer
-# 20
-critère de recherche
-texture
-open
-clear group
-hide group
-#25
-delete group
-add to group
-remove from group
-remove all of this type from Group
-remove all other types from Group
-#30
-update
-all
- no
-Error
-copy into entry
-#35
-find parent-objects
-find child-objects
-modify object-name
+MSG_ok=OK
+MSG_cancel=Annuler
+MSG_save=Sauver
+MSG_insert=Insérer
+MSG_delete=Supprimer
+MSG_modify=Modifier
+MSG_exit=Exit
+MSG_help=Aider
+MSG_length=longueur
+MSG_activate=Activer
+MSG_move=Bouger
+MSG_edit=Modifier
+MSG_rename=Renommer
+MSG_CreSubModel=créer des sous-modèle
+MSG_show=montrer
+MSG_hide=masquer
+MSG_shade=ombrage
+MSG_inspect=inspecter
+MSG_movPoints=points bougent
+MSG_undo=restaurer
+MSG_filter=critère de recherche
+MSG_texture=texture
+MSG_open=open
+MSG_GrpClear=clear group
+MSG_GrpHide=hide group
+MSG_GrpDelA=delete group
+MSG_GrpAdd1=add to group
+MSG_GrpRem1=remove from group
+MSG_GrpRemTyp=remove all of this type from Group
+MSG_GrpRemOTs=remove all other types from Group
+MSG_upd=update
+MSG_all=all
+MSG_no= no
+MSG_Error=Error
+MSG_cpyMdl=copy into entry
+MSG_getPar=find parent-objects
+MSG_getChd=find child-objects
+MSG_modNam=modify object-name
 #eof

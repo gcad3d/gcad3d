@@ -84,8 +84,8 @@ ________________________________________________________________________
 
 
 
-  AP_debug__ ();  // stop in debugmode;
-                  // must start with "gdb gCAD3D.exe -x gCAD3D.gdb"
+  AP_debug__ ("func xx");  // stop in debugmode;
+                           // must start with "gdb gCAD3D.exe -x gCAD3D.gdb"
 
 
 

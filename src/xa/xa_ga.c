@@ -39,6 +39,7 @@ List_functions_start:
 GA_find_att_SU       get attribute for surface/solid from typ,DB-ind
 GA_find__            find GA-rec if already exist
 GA_getRec            get ga-record
+GA_get_dbo           get GraficAttribute for DB-obj
 GA_delRec            delete ga-record
 
 GA_hide__            hide mainfunctions ..
@@ -70,13 +71,6 @@ GA_dump__
 GA_dump_1
 GA_dump_tex
 
-GA_parent_init       init or reset
-GA_parent_set        add a new record
-GA_parent_get        get parent of Child
-GA_parent_del        delete record
-GA_parent_file       write|read ParentTable
-GA_parent_dump
-
 - internal:
 GA_newRec            get recordNr of next free record
 GA_creRec
@@ -91,17 +85,22 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-
-Funktionstheorie:
-ein inaktiver (geloeschter) Record: typ == Typ_Error.
+Functions for GraficAttributes (struct ObjAtt)
 
 AttributeTable is:
 ObjAtt GA_ObjTab[];
 
-Object with attribute: .typ, .ind
-Type of Attribute: ?
+/// typ    DB-Typ;      Typ_Error = deleted Record.
+/// ind    DB-Index
+
+/// disp   0=normal; 1=hidden
   All objects:
     Object-hidden: ("H")  .disp = 1  
+
+/// iatt   for typ=LN/AC/Curve: Ind_Att_ln
+///        for typ=TAG/IMG: sx/sy
+///        for typ=Surf/Model: ColRGB
+
 
   Line, Circ, Curve:
     Linetyp: ("T")        .iatt = Linetype
@@ -196,13 +195,6 @@ static long  GA_SIZ = 0;         // size of GA_ObjTab
 
 static ObjAtt GA_DefRec;
 
-
-// Parent-table ParTab:
-// Am DL-Record des parent ist das .sPar-Flag gesetzt;
-// am DL-Record des child ist das .sChd-Flag gesetzt.
-// Functions: GA_parent_set GA_parent_get IE_parent_disp
-typedef_MemTab(Parent);
-static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 
 
@@ -1074,7 +1066,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
   // die GL-DrawFunction mit neuem attInd rufen ..
 /*  2012-10-29
-  if(typ == Typ_CVCCV) typ = Typ_CV;
+  if(typ == Typ_CVTRM) typ = Typ_CV;
   APT_Draw__ (GR_ObjTab[dli].iatt, typ, dbi);
 */
 
@@ -1333,10 +1325,49 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 ///================================================================
   int GA_getRec (ObjAtt **ga_rec, long ind) {
 ///================================================================
+/// \code
+/// get GraficAttribute for GA_ObjTab-record ind
+/// see AP_GA_get
+/// \endcode
 
   // printf("GA_getRec %d\n",ind);
 
   *ga_rec = &GA_ObjTab[ind];
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GA_get_dbo (int *iAtt, int typ, long dbi) {
+//================================================================
+/// \code
+/// get GraficAttribute for DB-obj
+/// Output:
+///  retCod    1  no GA-Record exists
+///            0  OK, iAtt = GraficAttribute
+/// \endcode
+
+  int      basTyp;
+  long     gaNr;
+  ObjAtt   *ga1;
+
+
+  basTyp = AP_typ_2_bastyp (typ);
+
+  // find GA-rec if already exist
+  gaNr = GA_find__ (basTyp, dbi);
+  if(gaNr < 0) {
+    *iAtt = Typ_Att_hili1;    // curves
+    return 1;                 // skip, no GA-Record exists
+  }
+
+
+  GA_getRec (&ga1, gaNr);
+  // if(typTyp == Typ_go_LCS) {
+    *iAtt = ga1->iatt;
+
 
   return 0;
 
@@ -2172,138 +2203,5 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
 }
 
-
-//================================================================
-  int GA_parent_init () {
-//================================================================
-// GA_parent_init            init or reset
-
-  MemTab_ini (&ParTab, sizeof(Parent), 0, 100);
-
-
-  return 0;
-}
-
-
-//================================================================
-  int GA_parent_set (int typ, long cInd, long pInd) {
-//================================================================
-// add a new record
-
-  long    i1, ld;
-  Parent  pr1, *pTab;
-
-
-  // printf("GA_parent_set %d cInd=%ld pInd=%ld\n",typ,cInd,pInd);
-
-
-  pr1.typ  = typ;
-  pr1.cInd = cInd;
-  pr1.pInd = pInd;
-
-
-  // loop tru ParTab - check if record already exists
-  pTab = ParTab.data;
-  for(i1=0; i1 < ParTab.rNr; ++i1) {
-    // exit if record already exists
-    if(memcmp(&pTab[i1], &pr1, sizeof(Parent)) == 0) return 1;
-  }
-
-  // printf("  _parent_set save typ=%d cInd=%d pInd=%d\n",typ,cInd,pInd);
-
-
-  return MemTab_sav (&ParTab, &ld, &pr1, 1);              // add 1 record
-
-}
-
-
-//================================================================
-  int GA_parent_get (long *dbi, int cTyp, long cInd) {
-//================================================================
-// get parent of Child; 
-// RetCod: parentIndex; -1=not found.
-
-  int      typ;
-  long     i1;
-  Parent   *pTab;
-
-
-  // printf("GA_parent_get %d %ld\n",cTyp,cInd);
-  // GA_parent_dump ();
-
-  typ = AP_typ_2_bastyp (cTyp);
-
-  pTab = ParTab.data;
-  for(i1=0; i1 < ParTab.rNr; ++i1) {
-    if(pTab[i1].cInd != cInd) continue;
-    if(pTab[i1].typ  != typ ) continue;
-    *dbi = pTab[i1].pInd;
-      // printf(" ex GA_parent_get %d %d %d\n",*dbi,typ,cInd);
-    return 0;
-  }
-
-  return -1;
-}
-
-
-//================================================================
-  int GA_parent_dump () {
-//================================================================
-
-  int      i1;
-  Parent   *pTab;
-
-  printf("======= GA_parent_dump %d =========== \n",ParTab.rNr);
-
-  pTab = ParTab.data;
-
-  for(i1=0; i1 < ParTab.rNr; ++i1) {
-    printf(" %3d typ=%2d cInd = %4ld pInd = %4ld\n",i1,pTab[i1].typ,
-           pTab[i1].cInd,pTab[i1].pInd);
-  }
-
-
-  return 0;
-
-}
-
-
-//================================================================
-  int GA_parent_del (long cInd, short typ) {
-//================================================================
-// delete record.
-
-  long     i1;
-  Parent   *pTab;
-
-  pTab = ParTab.data;
-  for(i1=0; i1 < ParTab.rNr; ++i1) {
-    if(pTab[i1].cInd != cInd) continue;
-    if(pTab[i1].typ  != typ ) continue;
-    MemTab_del (&ParTab, i1, 1);
-    break;
-  }
-
-  return 0;
-}
-
-
-//================================================================
-  int GA_parent_file (int mode, FILE *fp1) {
-//================================================================
-// write|read ParentTable
- 
-  if(mode == 1) {          // write
-    MemTab_write (fp1, &ParTab);
-
-  } else if(mode == 2) {   // read
-    MemTab_read (fp1, &ParTab);
-    // if(ParTab.rNr < 1) MemTab_clear (&ParTab);
-
-  }
-
-
-  return 0;
-}
 
 //========================= EOF =================================

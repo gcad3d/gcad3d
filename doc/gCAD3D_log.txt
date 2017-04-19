@@ -1,3 +1,16 @@
+Version 2.35 / 2017-04-18
+
+- all curve-modifications (eg CUT) create now trimmed-curves
+- all curves now have a polygonal representation
+    (see www.gCAD3D.org/doc/watertight.htm)
+- Format of message-files changed ({key} = {value}) for automatic translation
+
+Programlines (C)  415388
+Functions           3956
+
+
+
+===========================================================================
 Version 2.34 / 2016-10-05
 
 - CAD - Plane definition extended. See www.gCAD3D.org/doc/CAD_PLN_en.htm#F2

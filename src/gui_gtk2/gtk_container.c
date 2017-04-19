@@ -68,7 +68,7 @@ cc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_container.c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>                      // memcmp memcpy
 
 
 #include <gtk/gtk.h>

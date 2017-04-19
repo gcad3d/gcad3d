@@ -1,10 +1,9 @@
 # returns VGUI BITS OS CC MK 
-# see also ../options.sh
+# used by all gcad3d - makefiles.
 
 # Version GTK; gtk2 or gtk3
-VGUI = gtk2
-#VGUI = gtk3
-
+#VGUI = gtk2
+VGUI = gtk3
 
 
 # do not modify ....

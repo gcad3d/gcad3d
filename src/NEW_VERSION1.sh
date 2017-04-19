@@ -8,9 +8,6 @@ cd ..
 basDir=`pwd`
 
 
-#if [ -z "abc" ] ; then
-
-
 # create new version-info
 vi ${srcDir}/gcad_version
 
@@ -35,6 +32,7 @@ touch ${srcDir}/xa/xa_main.c ${srcDir}/xa/xa_ui.c
 
 # find nr_of_sourcelines, nr_of_functions
 cd ${srcDir}/APP
+. ../options.sh
 ./ut_stat.sh
 # wait for blank or enter-key
 echo "continue with enter-key .."
@@ -46,15 +44,8 @@ cd ${basDir}/doc
 vi gCAD3D_log.txt
 
 
-#fi
-
-
-# rebuild development-documentation:
-cd ${basDir}/doc
-./gcad_doxygen.sh
-
-
 # rebuild gCAD3D
+echo "build Core; cd ${srcDir}/APP"
 cd ${srcDir}/APP
 ./do c
 

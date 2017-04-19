@@ -78,6 +78,7 @@ DB_get_ModRef       get referenceModel from refModelNr
 Mod_mdbi_mdri       get basicModelNr of refModelNr
 Mod_m3_mdr          get matrix of referenceModel
 Mod_mNam_mdr        get ModbasName from ModRefNr
+Mod_mNam_mdb        get ModbasName from basicModelNr
 
 Mod_fget_names__    get lists of all subModels, PTAB-Surfs and MSH-Surfs
 Mod_fget_names_0    get all subModels, PTAB-Surfs and MSH-Surfs from file
@@ -369,27 +370,38 @@ static char       sSecEnd[]="SECTIONEND";
 
 
 //================================================================
-  int Mod_mNam_mdr (char *mNam, int *sSiz, int *typ, long irMdl) {
+  int Mod_mNam_mdb (char *mNam, int *sSiz, int *typ, int imdb) {
 //================================================================
-// Mod_mNam_mdr              get ModbasName & modelTyp from ModRefNr
+// Mod_mNam_mdb        get ModbasName from basicModelNr
 // sSiz unused
 
-  ModelRef  *mr1;
   ModelBas  *mb1;
 
+  // printf("Mod_mNam_mdb imdb=%ld siz=%d\n",imdb,*sSiz);
 
-  // printf("Mod_mNam_mdr mr=%ld siz=%d\n",irMdl,*sSiz);
-
-  // get refMdl
-  mr1 = DB_get_ModRef (irMdl);
-
-  mb1 = DB_get_ModBas (mr1->modNr);
+  mb1 = DB_get_ModBas (imdb);
     printf(" mnam=|%s| typ=%d\n",mb1->mnam,mb1->typ);
 
   strcpy (mNam, mb1->mnam);
   *typ = mb1->typ;
 
   return 0;
+
+}
+
+//================================================================
+  int Mod_mNam_mdr (char *mNam, int *sSiz, int *typ, long irMdl) {
+//================================================================
+// Mod_mNam_mdr              get ModbasName & modelTyp from ModRefNr
+
+  ModelRef  *mr1;
+
+  // printf("Mod_mNam_mdr mr=%ld siz=%d\n",irMdl,*sSiz);
+
+  // get refMdl
+  mr1 = DB_get_ModRef (irMdl);
+
+  return (Mod_mNam_mdb (mNam, sSiz, typ, mr1->modNr));
 
 }
  
@@ -2393,7 +2405,12 @@ static ModelRef modR2;
   sprintf(cbuf, "%s*.bmp",OS_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
+  // remove all PRCV-files
+  sprintf(cbuf, "%s*.odat",OS_get_tmp_dir());
+  OS_file_delGrp (cbuf);
+
   Tex_DelAll ();  // delete all OpenGL-textures
+
 
 
   return 0;

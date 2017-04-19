@@ -1,45 +1,39 @@
-# Nuove parole: Aggiungi ID-s in xa_msg.h
-OK
-Annulla
-Salva
-Inserisci
-Elimina
-Modifica
-Esci
-Aiuto
-lunghezza
-Attiva
-# 10
-Sposta
-Modifica
-Rinomina
-Crea un sottomodello
-visualizza
-nascondi
-ombrato
-ispeziona le proprietà
-sposta i punti
-ripristina
-# 20
-testo filtro
-texture
-apri
-annulla la selezione gruppo
-nascondi il gruppo
-#25
-cancella il gruppo
-aggiungi al gruppo
-rimuovi dal gruppo
-rimuovi tutti gli oggetti di questo tipo dal gruppo
-rimuovi tutti gli oggetti di altri tipi dal gruppo
-#30
-aggiorna
-tutto
- no
-Errore
-copy into entry
-#35
-find parent-objects
-find child-objects
-modify object-name
+MSG_ok=OK
+MSG_cancel=Annulla
+MSG_save=Salva
+MSG_insert=Inserisci
+MSG_delete=Elimina
+MSG_modify=Modifica
+MSG_exit=Esci
+MSG_help=Aiuto
+MSG_length=lunghezza
+MSG_activate=Attiva
+MSG_move=Sposta
+MSG_edit=Modifica
+MSG_rename=Rinomina
+MSG_CreSubModel=Crea un sottomodello
+MSG_show=visualizza
+MSG_hide=nascondi
+MSG_shade=ombrato
+MSG_inspect=ispeziona le proprietà
+MSG_movPoints=sposta i punti
+MSG_undo=ripristina
+MSG_filter=testo filtro
+MSG_texture=texture
+MSG_open=apri
+MSG_GrpClear=annulla la selezione gruppo
+MSG_GrpHide=nascondi il gruppo
+MSG_GrpDelA=cancella il gruppo
+MSG_GrpAdd1=aggiungi al gruppo
+MSG_GrpRem1=rimuovi dal gruppo
+MSG_GrpRemTyp=rimuovi tutti gli oggetti di questo tipo dal gruppo
+MSG_GrpRemOTs=rimuovi tutti gli oggetti di altri tipi dal gruppo
+MSG_upd=aggiorna
+MSG_all=tutto
+MSG_no= no
+MSG_Error=Errore
+MSG_cpyMdl=copy into entry
+MSG_getPar=find parent-objects
+MSG_getChd=find child-objects
+MSG_modNam=modify object-name
 #eof

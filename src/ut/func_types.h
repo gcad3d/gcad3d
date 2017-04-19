@@ -26,6 +26,7 @@
 #define FUNC_UNLOAD       24
 #define FUNC_RECOMPILE    25
 #define FUNC_QUERY        26
+#define FUNC_Init         27
 
 #define FUNC_Hili        870
 #define FUNC_Dim         860

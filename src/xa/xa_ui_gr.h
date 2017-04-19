@@ -26,7 +26,7 @@ int  UI_GR_Select_work1 (long objInd);
 int  UI_GR_Select_work2 (int typ, long ind, char* buf, long dli);
 int  UI_GR_GetdlInd (long *ind);
 int  UI_GR_Indicate();
-int  UI_GR_view (void *parent, void *data);
+// int  UI_GR_view (void *parent, void *data);
 // void UI_GR_Redraw (void *parent, void *data);
 // void UI_GR_Redraw ();
 

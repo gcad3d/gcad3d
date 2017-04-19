@@ -30,7 +30,7 @@
                     // Point *pt1, float size, float ang, char *txt);
   void GR_DrawPoint (long*, int, Point*);
   void GR_DrawLine  (long *ind, int attInd, Line *ln1);
-  void GR_DrawCirc  (long *ind, int attInd, Circ *ci1);
+  int  GR_DrawCirc  (long *dli, long dbi, int attInd, Circ *ci1);
   void GR_DrawPoly  (long *ind, int attInd, int, Point*);
   void GR_DrawDitto2 (long *ind, Point *pt, double az, char mir, Ditto *di);
   int  GR_DrawPlane (long *ind, int attInd, Plane *pl1);
@@ -49,7 +49,7 @@
   void GR_DrawTorSeg(long *ind, int attInd, Circ *ci1, Circ *ci2);
 
   void GR_DrawCvPpsp3 (long *ind, int attInd, ObjGX *cv1, double zval);
-  int  GR_DrawCvBSp   (long *ind, int attInd, CurvBSpl *cv1);
+  int  GR_DrawCvBSp   (long *ind, long dbi, int attInd, CurvBSpl *cv1);
 
   int GR_DrawFan (Point *pt1, int ptAnz, Point *pa1, int typ, int newS);
   int GR_DrawStrip (Point *pa1, Point *pa2, int ptAnz, int newS);
@@ -69,7 +69,7 @@
   int GR_Disp_cv (Point *pta, int ptnr, int att);
   int GR_Disp_cv2 (Point2 *pta, int ptnr, int att);
   int GR_Disp_bez (CurvBez *bez, int att, Memspc *workSeg);
-  int GR_Disp_bsp (CurvBSpl *bspl, int att);
+  int GR_Disp_CvBSp (CurvBSpl *bspl, int att);
   int GR_Disp_tria (Triangle *tria, int att);
   int GR_Disp_box (Point *p1, Point *p2, int att);
   int GR_Disp_pln (Plane *pl1, int att);

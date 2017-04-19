@@ -241,7 +241,7 @@ extern long       GR_TAB_IND;
   // i1 = sizSpc1;
   // UTRA_app__ (datSpc1, &i1, Typ_AC, ci1, &memSeg1);  // Circ
   // GR_Disp_ac (datSpc1, 2);
-  // GR_Disp_bsp (((ObjGX*)datSpc1)->data, 2, &memSeg1);
+  // GR_Disp_CvBSp (((ObjGX*)datSpc1)->data, 2, &memSeg1);
   
 
   // tra obj's
@@ -341,14 +341,17 @@ extern long       GR_TAB_IND;
 
   // Run DLL
   strcpy(cbuf,
-  "/mnt/serv1/Devel/dev/gCAD3D/igs/blech1.igs");
-  // "/mnt/serv1/Devel/dev/gCAD3D/igs/Starcd_1.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/blech1.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/Starcd_1.igs");
   // "/mnt/win_d/dev/gCAD3D/dat/.0.igs");
-  // "/mnt/win_d/dev/gCAD3D/igs/schmiernippel_71412.igs");
-  // "/mnt/serv1/Devel/dev/gCAD3D/igs/t2.igs");
-  // "/mnt/serv1/Devel/dev/gCAD3D/igs/M1.igs");
-  // "/mnt/serv1/Devel/dev/gCAD3D/igs/pt+ln+ci2.igs");
-  // "/mnt/serv1/Devel/dev/gCAD3D/dat/warner1.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/schmiernippel_71412.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/t2.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/M1.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/pt+ln+ci2.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/C5_6001_3_Modell.igs");
+  // "/mnt/serv1/Devel/cadfiles/igs/M5.igs");
+  "/mnt/serv1/Devel/cadfiles/igs/Block.igs");
+  // "/mnt/serv1/Devel/cadfiles/dat/warner1.igs");
 
 
   OS_dll_do ("xa_ige_r", "IGE_r__", cbuf);
@@ -380,7 +383,9 @@ extern long       GR_TAB_IND;
 
   // Run DLL
   strcpy(cbuf,
-  "/mnt/serv1/Devel/cadfiles/step/Models/Block.stp");
+  // "/mnt/serv1/Devel/cadfiles/gcad/t5.stp");
+  "/mnt/serv1/Devel/cadfiles/step/Models/Rhi_cv2.stp");
+  // "/mnt/serv1/Devel/cadfiles/step/Models/Block.stp");
   // "/mnt/serv1/Devel/cadfiles/step/Models/assy1.stp");
   // "/mnt/serv1/Devel/cadfiles/step/Models/hookchain.stp");
   // "/mnt/serv1/Devel/dev/gCAD3D/dat/sample_step1.stp");
@@ -1040,7 +1045,7 @@ extern long       GR_TAB_IND;
   // test 'struct/obj mit den limitParameters begrenzen':
   // - Copy struct                                        UTO_copy_stru
   // - struct/obj mit den limitParameters begrenzen       UTO_stru_int (structs)
-  // - struct/obj in Polygon umwandeln ...                UT3D_npt_ox (ObjGX)
+  // - struct/obj in Polygon umwandeln ...                UT3D_npt_ox__ (ObjGX)
 
   // obj op2 mit den limitParameters v0, v1 begrenzen
   v0 = 0.15;
@@ -1069,12 +1074,12 @@ extern long       GR_TAB_IND;
     // UTO_obj_Disp__ (&oo, &wrkSeg, 9);
 
 
-  // - struct/obj in Polygon umwandeln ...                UT3D_npt_ox (ObjGX)
+  // - struct/obj in Polygon umwandeln ...                UT3D_npt_ox__ (ObjGX)
   p1Tab = (Point*)memspc55;
   p1Max = sizeof(memspc55) / sizeof(Point);
 
   ptNr = p1Max;
-  i1 = UT3D_npt_ox (&ptNr, p1Tab, &oo, UT_DISP_cv*2.);
+  i1 = UT3D_npt_ox__ (&ptNr, p1Tab, &oo, UT_DISP_cv*2.);
   if(i1 != 0) return 0;
     GR_Disp_cv (p1Tab, ptNr, 9);
 */
@@ -1094,7 +1099,7 @@ extern long       GR_TAB_IND;
   // Polygon p1Tab[ptNr] aus Randkurve oxc generieren
   ptNr = p1Max;
   i1 = bspl_pol_bsp (&ptNr, p1Tab, bsp1, ptNr, UT_DISP_cv*2.);
-  // i1 = UT3D_npt_ox (&ptNr, p1Tab, &oxc, UT_DISP_cv*2.);
+  // i1 = UT3D_npt_ox__ (&ptNr, p1Tab, &oxc, UT_DISP_cv*2.);
   if(i1 != 0) return 0;
   // GR_Disp_cv (p1Tab, ptNr, 9);
 
@@ -1288,9 +1293,9 @@ extern long       GR_TAB_IND;
 //===========================================================================
 // UNFERTIG 
 // die 3 am weitest entfernten Punkte suchen ..
-// Achtung: Umdrehungssinn kann nun falsch sein !!!!! (Korrektur: UT3D_vcn_ccv)
+// Achtung: Umdrehungssinn kann nun falsch sein !!!!! (Korrektur: UT3D_vcn_cvtrm)
 
-// see UT3D_pl_pta UT3D_sbs_ck_planar UT3D_vcn_ccv UT3D_pt_ckfar_npt
+// see UT3D_pl_pta UT3D_sbs_ck_planar UT3D_vcn_cvtrm UT3D_pt_ckfar_npt
 
   printf("UT3D_3ipt_ckfar_npt %d\n",pNr);
 

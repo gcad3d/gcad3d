@@ -26,7 +26,7 @@ Lineare Elemente (Linien, Kurven) trennen / begrenzen.
 
 Achtung: derzeit nur für Kurven, noch nicht für Flächen/Solids und CCV's.
 
-<b>CUT obj Schneidelement (Schneidelement2) (Variante)</b>
+<b>CUT obj Schneidelement (Schneidelement2) (Variante) (REVerse)</b>
 
 <b>obj:</b> dieses Element wird verändert (verkleinert).
      Ist ein Objekt bereits getrimmt, wird auch das ursprüngliche Objekt
@@ -39,17 +39,17 @@ Achtung: derzeit nur für Kurven, noch nicht für Flächen/Solids und CCV's.
      alle weiteren werden verworfen.
      Ändern mit der PageUp/PageDown-Taste.
      Keine Angabe oder "1": erstes Ergebnisobjekt.
+<b>REVerse:</b> Richtung der Ergebniskurve umdrehen.
 
 <img src="doc_L_cut__.jpg" alt="versions">
 
 Beispiel:
 L20=P(-60 30 0) P(20 70 0)
 C20=P(-14 40 0) VAL(32) DZ
-C20=CUT C20 L20 L20
+S20=CUT C20 L20 L20
 # Kreis C20 wird an beiden Enden begrenzt (getrimmt).
 
-
-Parameterwerte als Schneidelemente:
+#Parameterwerte als Schneidelemente:
 S21=CUT S20 0.33 0.66
 
 
@@ -169,6 +169,13 @@ P21=TRA P20 T20
 
 
 <p><a name="F5"></a></p>
+  <h2>reverse curve      REV</h2>
+Richtung einer Kurve umdrehen.
+Das Ergebnis sieht identisch aus.
+
+
+
+<p><a name="F6"></a></p>
   <h2>Project obj      PRJ</h2>
 Punkte oder Lineare Elemente (Linien, Kreise, Kurven) auf andere
   lineare Elemente oder auf Flächen projizieren.
@@ -193,7 +200,7 @@ S20=PRJ S20 R20 D20
 
 
 
-<p><a name="F6"></a></p>
+<p><a name="F7"></a></p>
   <h2>Mirror about line       MIR</h2>
 Objekte um eine Line spiegeln.
   Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
@@ -207,7 +214,7 @@ S20=MIR S20 L20
 
 
 
-<p><a name="F7"></a></p>
+<p><a name="F8"></a></p>
   <h2>Mirror about plane      MIR</h2>
 Objekte um eine Ebene spiegeln.
   Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
@@ -221,7 +228,7 @@ S20=MIR S20 R20
 
 
 
-<p><a name="F8"></a></p>
+<p><a name="F9"></a></p>
   <h2>ISOparametric Curve from Surf         ISO</h2>
 
 Isoparametrische Kurve aus einer Flaeche extrahieren.

@@ -863,6 +863,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
   GUI_tree1_ActObj->data = PTR_INT(mode);
 
+  return 0;
 }
 
 

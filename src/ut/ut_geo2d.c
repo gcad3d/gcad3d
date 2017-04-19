@@ -264,17 +264,12 @@ UT2D_ci_2vc2ptrd          2D-Circ; verrundet 2 Lines; 4 Lösungen
 UT2D_ci_ciptvcrd          2D-Circ; verrundet Circ/Line; 4 Lösungen
 
 -------------- GrafObj - (see also UTO_) ---------------
-UT2D_obj_obj3             change 3D-Obj > 2D-Obj (remove Z-val)
-UT2D_obj_pt3              change 3D-Point > 2D-Obj
-UT2D_obj_ln3              change 3D-Line > 2D-Obj
-UT2D_obj_ci2              change 2D-Circ > 2D-Obj
-UT2D_obj_ci3              change 3D-Circ > 2D-Obj
-UT2D_obj_cv3              change 3D-Curv > 2D-Obj
-
-UT2D_void_obj2            change ObjG2-Objekt -> data-Obj
+UT2D_obj_obj3             change 3D-Obj > 2D-Obj (remove Z-val)     DO NOT USE
+UT2D_obj_ci2              change 2D-Circ > 2D-Obj                   DO NOT USE
+UT2D_void_obj2            change ObjG2-Objekt -> data-Obj           DO NOT USE
 
 -------------- polygon --------------------------------
-UT2D_cv_ci                change circle > polygon (schnell)  DO NOT USE
+UT2D_cv_ci                change circle > polygon (schnell)         DO NOT USE
 UT2D_cv_ci_               get circular polygon from circle
 UT2D_cv_ln                Linearstueck -> Polygon / Anzahl
 UT2D_npt_ci               circular polygon
@@ -333,11 +328,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
 #include "../ut/ut_TX.h"                  // TX_Error
 
+
+#include "../ut/ut_const.h"               // the constants ..
+#include "../ut/ut_tol_const.h"           // the constants ..
+
 #define INCLUDE_FULL
 #include "../ut/ut_geo_const.h"           // the constants ..
 #undef INCLUDE_FULL
-#include "../ut/ut_tol_const.h"           // the constants ..
-#include "../ut/ut_const.h"               // the constants ..
 
 
 
@@ -549,7 +546,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 /// UT2D_angr_set_2angr        set aa following as. Do not modify as.
 ///   as         startAngle; not modified.
 ///   aa         following angle; must be > as for CCW; must be < as for CW.
-///   sr         1=CCW; else CW
+///   sr         0=CCW; 1=CW
 /// Output:
 ///   retVal    if(sr==1) then retVal > as;
 ///             else           retVal < as;
@@ -563,7 +560,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   // printf("UT2D_angr_set_2angr as=%lf aa=%lf sr=%d\n",as,aa,sr);
 
-  if(sr > 0) {     // CCW; aa must be > as
+  if(sr == 0) {     // CCW; aa must be > as
     if(aa < as)              aa += RAD_360;
     // else if(aa > as+RAD_360) aa -= RAD_360;   // EXAMPLE ?? // 2014-04-10 raus.
 
@@ -646,8 +643,8 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //================================================================
 /// \code
 /// UT2D_2angr_set     change consecutive values from -RAD_360 to RAD_360
-/// if irot == 1 (CCW) ang2 > ang1
-/// if irot == -1 (CW) ang2 < ang1
+/// if irot == 0     (CCW) ang2 > ang1
+/// if irot == 1     (CW)  ang2 < ang1
 /// \endcode
 
   double    da;
@@ -660,9 +657,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   da = *ang2 - *ang1;
   if(fabs(da + RAD_360) < *tol) {
-    if(irot < 0) {   // CW;
+    if(irot) {       // 1 = CW;
       *ang2 = *ang1 - RAD_360;
-    } else {         // CCW
+    } else {         // 0 = CCW
       *ang2 = *ang1 + RAD_360;
     }
     goto L_exit;
@@ -674,11 +671,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
     // printf(" ang1=%lf ang2=%lf da=%lf\n",*ang1,*ang2,da);
 
 
-  if(irot < 0) {   // CW;
+  if(irot) {
+    // 1 = CW;
     if(*ang1 < *ang2) *ang2 -= RAD_360;
 
 
-  } else {         // CCW
+  } else {
+    // 0 = CCW
     if(*ang2 < *ang1) *ang2 += RAD_360;        // 2014-02-20
   }
 
@@ -693,8 +692,8 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //================================================================
 /// \code
 /// UT2D_angr_2angr                   angle between 2 angles (opening-angle)
-/// irot =  1   CCW
-/// irot = -1   CW
+/// irot =  0      CCW
+/// irot =  1      CW
 /// \endcode
 
   double a1, a2, da;
@@ -703,9 +702,11 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   a2 = ang2;
   UT2D_2angr_set (&a1, &a2, irot);
 
-  if(irot < 0) {
+  if(irot) {
+    // CW
     da = a1 - a2;
   } else {
+    // CCW
     da = a2 - a1;
   }
 
@@ -5797,6 +5798,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 }
 
 
+/* UU
 //====================================================================
   ObjG2  UT2D_obj_pt3 (Point *pt1) {
 //====================================================================
@@ -5818,16 +5820,15 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   o1.pc.x = 0.0;
   o1.pc.y = 0.0;
 
-  /* printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y); */
+  // printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y);
 
   return o1;
 
 }
+*/
 
 
-
-
-
+/* UU
 //====================================================================
   ObjG2  UT2D_obj_ln3 (Line *ln1) {
 //====================================================================
@@ -5849,11 +5850,13 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   o1.p2.y = ln1->p2.y;
 
 
-  /* printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y); */
+  // printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y);
 
   return o1;
 
 }
+*/
+
 
 //======================================================================
   ObjG2  UT2D_obj_ci2 (Circ2 *ci1) {
@@ -5882,6 +5885,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 }
 
 
+/* UU
 //====================================================================
   ObjG2  UT2D_obj_ci3 (Circ *ci1) {
 //====================================================================
@@ -5889,39 +5893,6 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 /// UT2D_obj_ci3              change 3D-Kreis > 2D-Obj
 /// DO NOT USE
 /// \endcode
-/*
-  Circ     ci1;  double d1;
-  d1=0.1;                       /  Sehnenfehler. /
-  ci1.rad = 1.0;
-  UT3D_vc_3db (&ci1.vz, 1.,0.,0.);
-  UT3D_pt_3db (&ci1.pc, 0.,0.,0.);
-  UT3D_pt_3db (&ci1.p1, 0.,1.,0.);
-
-  UT3D_pt_3db (&ci1.p2, 0.,0.707,0.707);   /  45 Grad /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,0.,1.);         /  90 - Viertelkreis /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,-0.707,0.707);  /  135 Grad /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,-1.,0.);        /  180 - Halbkreis /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,-0.707,-0.707); /  225 Grad 
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,0.,-1.);        /  270 - Dreiviertelkreis 
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,0.707,-0.707);  /  315 Grad /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-  UT3D_pt_3db (&ci1.p2, 0.,1.,0.);         /  Vollkreis /
-  UT3D_cv_ci (pa, &i1, &ci1, 140, d1);
-
-*/
 
   ObjG2 o1;
 
@@ -5961,14 +5932,14 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   o1.pc.x = ci1->pc.x;
   o1.pc.y = ci1->pc.y;
 
-  /* printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y); */
+  // printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y);
 
   return o1;
 
 }
+*/
 
-
-
+/* UU
 //=====================================================================
   ObjG2  UT2D_obj_cv3 (Curv *cv1) {
 //=====================================================================
@@ -5981,8 +5952,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
   ObjG2 o1;
 
-  /* TX_Print("UT2D_obj_cv3 nr=%d ind1/2=%d/%d ID1/2=%d/%d", */
-  /*           cv1->cvnr,cv1->ind1,cv1->ind2,cv1->ID1,cv1->ID2); */
+  // TX_Print("UT2D_obj_cv3 nr=%d ind1/2=%d/%d ID1/2=%d/%d",
+  //           cv1->cvnr,cv1->ind1,cv1->ind2,cv1->ID1,cv1->ID2);
 
 
   o1.typ  = Typ_CVPOL2;
@@ -6002,11 +5973,12 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   o1.ID   = cv1->ID1;
   o1.ID1  = cv1->ID2;
 
-  /* printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y); */
+  // printf("exit UT2D_obj_ln3 %f,%f bis %f,%f\n",o1.p1.x,o1.p1.y,o1.p2.x,o1.p2.y);
 
   return o1;
 
 }
+*/
 
 
 //====================================================================
@@ -7703,7 +7675,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   ap = UT2D_angr_vc (&vc1);
 
   // check if ap is between aa & ae
-  irot = UT2D_irot_r (ci->rad);
+  // irot = UT2D_irot_r (ci->rad);
+  irot = DLIM01 (ci->rad);
   UT2D_2angr_set (&aa, &ap, irot);
 
   ae = aa + ci->ango;
@@ -8989,7 +8962,13 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   int UT2D_ptNr_ci (double rdc, double ao, double tol) {
 //======================================================================
 /// \code
-/// Anzahl Ecken circ berechnen
+/// UT2D_ptNr_ci          get nr of points for polygon from circ
+/// Input:
+///   rdc    radius; must be pos.
+///   ao     opening angle in rad; must be pos.
+///   tol    deviation
+/// Output:
+///   retCod nr of points for polygon
 /// see also UT2D_angr_ciSec
 /// \endcode
 
@@ -9001,7 +8980,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
   a1 = rdc - tol;
-  // printf("   tol=%f rd1=%f a1=%f\n",tol,rd1,a1);
+    // printf("   tol=%f rdc=%f a1=%f\n",tol,rdc,a1);
 
 
   if(a1 < 0.) {   //  if Tol. > Radius
@@ -9011,14 +8990,17 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // damits etwa mit den Flaechen uebereinstimmt ...
     // aTol = ACOS(dCos) * 2.;
     aTol = ACOS(dCos);
+      // printf(" dCos=%f aTol=%f\n",dCos,aTol);
+
     if(aTol > RAD_45)  aTol = RAD_45;
   }
 
-  iAnz = (ao / aTol) + 1;
-  if(iAnz < 2) iAnz = 2;
+  iAnz = ao / aTol;
+  iAnz += 2;                      // add startpt
+  // if(iAnz < 2) iAnz = 2;
 
 
-  // printf("ex UT2D_ptNr_ci %d\n");
+  // printf("ex UT2D_ptNr_ci iAnz=%d ao=%lf aTol=%lf\n",iAnz,ao,aTol);
 
   return iAnz;
 

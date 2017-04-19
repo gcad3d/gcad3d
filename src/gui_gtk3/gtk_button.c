@@ -372,6 +372,8 @@ static int UI_but_noCB = 0;
 
   go->uFunc (&mo, pTab);
 
+  return 0;
+
 }
 
 

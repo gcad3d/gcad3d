@@ -134,7 +134,7 @@ List_functions_end:
     case Typ_CVRBSP:
     case Typ_CVELL:
     case Typ_CVCLOT:
-    case Typ_CVCCV:
+    case Typ_CVTRM:
       ii = ICO_CV; // 5;
       break;
 

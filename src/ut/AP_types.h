@@ -72,21 +72,21 @@ Korr:
 #define Typ_CVPSP3        22  ///< S   polynom_d3
 #define Typ_CVBSP         23  ///< S   CurvBSpl
 #define Typ_CVRBSP        24  ///< S   CurvRBSpl
-#define Typ_CVCCV         25  ///< S   CurvCCV
-#define Typ_CVELL         26  ///< S   CurvElli
-#define Typ_CVBEZ         27  ///< S   CurvBez
-#define Typ_CVRBEZ        28  ///< S   CurvRBez
-#define Typ_CVCLOT        29  ///< S   ClothoidCurve  (CurvClot)
-#define Typ_CVLNA         30  ///< S   array of lines (form=Typ_LN)
-#define Typ_CV2           31  ///< S   all 2D-curves
-#define Typ_CVPOL2        32  ///< S   CurvPoly-2D
-#define Typ_CVPSP2        33  ///< S   polynom_?
-#define Typ_CVBSP2        34  ///< S   CurvBSpl2
-#define Typ_CVRBSP2       35  ///< S   CurvRBSpl-2D
-#define Typ_CVCCV2        36  ///< S   CCV-2D
-#define Typ_CVELL2        37  ///< S   CurvEll2
-#define Typ_CVELL2C       38  ///< S   CurvEll2C centerPosition
-#define Typ_CVBEZ2        39  ///< S   CurvBez2
+#define Typ_CVELL         25  ///< S   CurvElli
+#define Typ_CVBEZ         26  ///< S   CurvBez
+#define Typ_CVRBEZ        27  ///< S   CurvRBez
+#define Typ_CVCLOT        28  ///< S   ClothoidCurve  (CurvClot)
+#define Typ_CVLNA         29  ///< S   array of lines (form=Typ_LN)
+#define Typ_CV2           30  ///< S   all 2D-curves
+#define Typ_CVPOL2        31  ///< S   CurvPoly-2D
+#define Typ_CVPSP2        32  ///< S   polynom_?
+#define Typ_CVBSP2        33  ///< S   CurvBSpl2
+#define Typ_CVRBSP2       34  ///< S   CurvRBSpl-2D
+#define Typ_CVELL2        35  ///< S   CurvEll2
+#define Typ_CVELL2C       36  ///< S   CurvEll2C centerPosition
+#define Typ_CVBEZ2        37  ///< S   CurvBez2
+#define Typ_CVTRM         38  ///< S   CurvCCV
+#define Typ_CurvAssy      39  ///< S   CurvAssy
 
 /// DB-surfs 40-79
 #define Typ_PLN           40  ///< R  plane/Refsys
@@ -221,6 +221,7 @@ Korr:
 #define Typ_APPOBJ       163  /// Typ_apDat 
 #define Typ_apDat        164  ///< application-data Typ_APPOBJ
 #define Typ_Tool         165
+#define Typ_PRCV         166  ///< polygonal representation curve
 
 
 /// dataFormats (Int, matrix, Polynom..)

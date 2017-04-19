@@ -2514,7 +2514,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
       // Ellipse=center,vecHauptachse,vecNebenachse,AngStart,angEnd,Richtg.
       // elli1 = pt1, vc1, vc2, a1, a2, CCW
       elli1 = UME_reserve (wrkSpc, sizeof(CurvElli));
-      UT3D_el_pt2vc2a (elli1, &pt1, &vc1, &vc2, a1, a2, 1);
+      UT3D_el_pt2vc2a (elli1, &pt1, &vc1, &vc2, a1, a2, 0);
 
       OGX_SET_OBJ (*el, Typ_CVELL, Typ_CVELL, 1, elli1);
 
@@ -2670,7 +2670,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
         // nun muss p1-p2 noch CCW gemacht werden.
-        d3 = UT2D_angr_2angr (d1, d2, 1);
+        d3 = UT2D_angr_2angr (d1, d2, 0);
           // printf(" ango=%f\n",d3);
 
         if(d3 > RAD_180) {

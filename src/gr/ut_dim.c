@@ -535,8 +535,8 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
 
 
   // liegt Textblock zwischen den Hilfslinien oder ausserhalb ?
-  a12 = UT2D_angr_2angr (a1, a2, 1);       // ango p1-p2 (gesamt)
-  a13 = UT2D_angr_2angr (a1, a3, 1);       // ango p1-p3
+  a12 = UT2D_angr_2angr (a1, a2, 0);       // ango p1-p2 (gesamt)
+  a13 = UT2D_angr_2angr (a1, a3, 0);       // ango p1-p3
     // printf(" a12=%f a13=%f\n",a12,a13);
 
   acd->pc = ps;
@@ -555,7 +555,7 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
   } else {                                 // 3 1 2    od 1 2 3
     MEM_swap_int (&hd1->typ, &hd2->typ);   // swap Maszpfeiltypen
     // d1 = RAD_360 - d1; // nun CW
-    a23 = UT2D_angr_2angr (a2, a3, 1);
+    a23 = UT2D_angr_2angr (a2, a3, 0);
       // printf("a23=%f\n",a23);
 
     if(a23 < RAD_180) {      // p3 bei p2        1 2 3

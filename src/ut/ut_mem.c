@@ -53,7 +53,6 @@ MEM_chg_rec               change a record in mem (change line; delete+insert)
 MEM_del_str               delete n chars out of string
 MEM_del_IndRec            delete 1 integer from intArray
 MEM_del_DbRec             delete 1 double in double-Array
-MEM_del_pt                delete point in Point-Array
 MEM_del_nrec              delete <delRecNr> records from table
 MEM_inv_itab              invert table of intData; 1/2/3 --> 3/2/1
 MEM_inv_dtab              invert table of dbData; 1/2/3 --> 3/2/1
@@ -718,7 +717,11 @@ UTA_reallTab
 //================================================================
   int MEM_inv_rtab (int recNr, void *recTab, int sizRec) {
 //================================================================
+/// \code
 /// MEM_inv_rtab              invert table of dataRecords; 1/2/3 --> 3/2/1
+/// Example: invert table of <iptNr> Point's
+/// MEM_inv_rtab (iptNr, pTab, sizeof(Point));
+/// \endcode
 
   int    inach, ivon;
   char   *pnach, *pvon;

@@ -1961,7 +1961,7 @@ static int   patNr;     // nr of Patches
   // Polygon p1Tab[ptNr] aus Randkurve TSU_ox2 generieren ("Contour")
   // p1Tab ist das StartPolygon (bei Angle = 0)
   ptNr = p1Max;
-  i1 = UT3D_npt_ox (&ptNr, p1Tab, &TSU_ox2, UT_DISP_cv * 2.);
+  i1 = UT3D_npt_ox__ (&ptNr, p1Tab, &TSU_ox2, UT_DISP_cv * 2.);
     // printf(" irc=%d ptNr=%d\n",i1,ptNr);
   if(i1 != 0) return 0; // skip Stuetzflaeche
 
@@ -1992,7 +1992,7 @@ static int   patNr;     // nr of Patches
   }
 
 
-  UT2D_2angr_set (&aSta, &a2, 1);
+  UT2D_2angr_set (&aSta, &a2, 0);
     // printf(" aSta=%f a2=%f\n",aSta,a2);
 
   aTot = a2 - aSta;
@@ -2979,7 +2979,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   // - 2D-Punkte haben 3D-Format ! (f GLU notwendig)
   // printf(" TSU_tol2D=%f\n",TSU_tol2D);
   for(i1=0; i1<cNr; ++i1) {
-    if(cTab[i1].typ != 'A')        // skip AutomaticContour
+    if(cTab[i1].cTyp != 'A')        // skip AutomaticContour
       UT2D_cv3_linear (&cTab[i1].iNr, cTab[i1].p2a, TSU_tol2D);
   }
 
@@ -3052,7 +3052,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
 
   // Automatisch generierte Aussenkontur: check MinSiz
-  if(cTab[0].typ == 'A') {
+  if(cTab[0].cTyp == 'A') {
     // Boxpunkte -> 3D
     (*TSU_tr_3D_2D_pt)(&box1[0], &cTab[0].p1);
     (*TSU_tr_3D_2D_pt)(&box1[1], &cTab[0].p2);
@@ -3915,7 +3915,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     // die Winkel korrigieren; muessen im Bereich -2Pi bis +2Pi sein
     // und aufsteigend.
-    UT2D_2angr_set (&TSU_dat[0], &TSU_dat[1], 1);
+    UT2D_2angr_set (&TSU_dat[0], &TSU_dat[1], 0);
       // printf(" ang1=%f ang2=%f\n",TSU_dat[0],TSU_dat[1]);
 
 
@@ -4346,7 +4346,7 @@ uOff abhaengig von Aussenkonturtyp:
           // printf(" v0/v1 korr:%f %f\n",TSU_bs1.v0,TSU_bs1.v1);
       }
       
-      UT3D_ptNr_bsplTol (&i1, (CurvBSpl*)TSU_ox2.data, UT_DISP_cv);
+      UT3D_ptNr_bsp (&i1, (CurvBSpl*)TSU_ox2.data, UT_DISP_cv);
       // printf(" i1 ex bsplTol = %d\n",i1);
       // Parameterbereich 
       vOff = (TSU_dat[3] - TSU_dat[2]) / i1;
@@ -4555,8 +4555,8 @@ uOff abhaengig von Aussenkonturtyp:
         // TSU_dat[1] = TSU_obj1.bsp->v0;
         // printf("  B1: k=%f d=%f\n",TSU_dat[0],TSU_dat[1]);
 
-        UT3D_ptNr_bsplTol (&i1, (CurvBSpl*)TSU_obj1, UT_DISP_cv/4.);
-          // printf("ex UT3D_ptNr_bsplTol o1: %d\n",i1);
+        UT3D_ptNr_bsp (&i1, (CurvBSpl*)TSU_obj1, UT_DISP_cv/4.);
+          // printf("ex UT3D_ptNr_bsp o1: %d\n",i1);
         d1 = 1. / i1;
         if(d1 < uOff) uOff = d1;
           // printf(" uOff-obj1=%f i1=%d d1=%f\n",uOff,i1,d1);
@@ -4595,8 +4595,8 @@ uOff abhaengig von Aussenkonturtyp:
         // TSU_dat[3] = TSU_obj2.bsp->v0;
         // printf("  B2: k=%f d=%f\n",TSU_dat[2],TSU_dat[3]);
 
-        UT3D_ptNr_bsplTol (&i1, (CurvBSpl*)TSU_obj2, UT_DISP_cv);
-        // printf("ex UT3D_ptNr_bsplTol o2: %d\n",i1);
+        UT3D_ptNr_bsp (&i1, (CurvBSpl*)TSU_obj2, UT_DISP_cv);
+        // printf("ex UT3D_ptNr_bsp o2: %d\n",i1);
         d1 = 1. / i1;
         if(d1 < uOff) uOff = d1;
           // printf(" uOff-obj2=%f\n",uOff);
@@ -4919,7 +4919,7 @@ uOff abhaengig von Aussenkonturtyp:
     //================================================================
     // existiert keine 3D-Aussenkontur: 2D-Kontur generieren
     if(pTab == NULL) {
-      cTab[i1].typ = 'A'; // A=Automatic
+      cTab[i1].cTyp = 'A'; // A=Automatic
       pTab = &p2Tab[ip];
         // printf(" AutomaticContour %d\n",TSU_typ_);
 
@@ -4955,7 +4955,7 @@ uOff abhaengig von Aussenkonturtyp:
       continue;
 
     } else {
-      cTab[i1].typ = 'C'; // C=Contour
+      cTab[i1].cTyp = 'C'; // C=Contour
     }
 
 
@@ -5128,7 +5128,7 @@ uOff abhaengig von Aussenkonturtyp:
   // Korrektur X-Werte;
   for(i1=0; i1<*cNr; ++i1) {
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
     // X-Werte zyklisch machen
     TSU_srv_con_cycX__ (cTab[i1].p2a, cTab[i1].iNr, d1);
   }
@@ -5155,7 +5155,7 @@ uOff abhaengig von Aussenkonturtyp:
   for(i1=0; i1<*cNr; ++i1) {
 
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
 
     pTab = cTab[i1].p2a;
 
@@ -5210,7 +5210,7 @@ uOff abhaengig von Aussenkonturtyp:
   // Korrektur X-Werte Torus
   for(i1=0; i1<*cNr; ++i1) {
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
     // X-Werte(Angles) zyklisch machen
     TSU_bsp_con_cyclic (cTab[i1].p2a, cTab[i1].iNr);
   }
@@ -5233,7 +5233,7 @@ uOff abhaengig von Aussenkonturtyp:
   // Korrektur X-Werte;
   for(i1=0; i1<*cNr; ++i1) {
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
     // X-Werte zyklisch machen
     TSU_srv_con_cycX__ (cTab[i1].p2a, cTab[i1].iNr, d1);
     // TSU_bsp_con_cyclic (cTab[i1].p2a, cTab[i1].iNr, d1);
@@ -5335,7 +5335,7 @@ uOff abhaengig von Aussenkonturtyp:
   for(i1=0; i1<*cNr; ++i1) {
 
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
 
     pTab = cTab[i1].p2a;
 
@@ -5416,7 +5416,7 @@ uOff abhaengig von Aussenkonturtyp:
 
   for(i1=0; i1<*cNr; ++i1) {
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
     // X-Werte(Angles) zyklisch machen
     // TSU_sph_cyclic TSU_srv_con_cycX__ TSU_srv_con_cyclic
     if(TSU_sph_cyclic (cTab[i1].p2a, cTab[i1].iNr) < 0) return -1;
@@ -5435,7 +5435,7 @@ uOff abhaengig von Aussenkonturtyp:
   // Korrektur X-Werte Torus
   for(i1=0; i1<*cNr; ++i1) {
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
     // X-Werte(Angles) zyklisch machen
     if(TSU_srv_con_cyclic (cTab[i1].p2a, cTab[i1].iNr) < 0) return -1;
   }
@@ -6236,7 +6236,8 @@ Besseres Verfahren waere:
 
     // ptx ist nun der Inputpunkt auf der InputKonturkurve.
     // Schnittpunkt auf Konturkurve: Parameter suchen, -> Y
-    pt2->y = UT3D_parpt_cipt (&ptx, (Circ*)TSU_ox2.data);
+    // pt2->y = UT3D_parpt_cipt (&ptx, (Circ*)TSU_ox2.data);
+    pt2->y = UT3D_par1_ci_pt ((Circ*)TSU_ox2.data, &ptx);
       // printf(" pary=%f\n",pt2->y);
 
 
@@ -8120,7 +8121,7 @@ static double du,dv;
   for(i1=1; i1<cNr; ++i1) {
 
     // automat.generierte Kontur darf nicht korrigiert werden
-    if(cTab[i1].typ == 'A') continue;
+    if(cTab[i1].cTyp == 'A') continue;
 
     pTab = cTab[i1].p2a;
 

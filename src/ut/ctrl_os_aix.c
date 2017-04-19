@@ -52,6 +52,7 @@ List_functions_end:
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>                      // write read
 
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
@@ -124,7 +125,7 @@ static FILE  *finLun;                    // swapfile for large input
 
   printf("OS_CTL_write__ |%s|\n",sBufOut);
 
-
+  return 0;
 }
 
 

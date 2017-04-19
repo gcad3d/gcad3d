@@ -91,7 +91,6 @@ AP_typ_typChar      make typ from typChar  ("P" -> Typ_PT)
 AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
 
 AP_vec_txt          give vector from Textvec
-APED_oid_vc          check if Vector is a Defaultvektor
 AP_get_nxtVec       returns DB-index of next|previous Vector
 AP_hili_obj         hilite obj
 GR_tmpSym
@@ -326,7 +325,7 @@ extern AP_STAT   AP_stat;
 
 
 
-//============ Lokale Var: =======================================
+//============ Locale Var: =======================================
 
 // Vars fuer spezielle Verwendung:
   // int       aus_anz;
@@ -1264,6 +1263,8 @@ char      AP_ED_oNam[64];   ///< objectName of active Line
     // UI_reset ();
     UI_GR_Sel_Filter (0);      // reset add to group
 
+    // clear PRCV-spc
+    PRCV_free__ ();
 
     // Title oben auf den Mainwinrahmen
     UI_AP (UI_FuncSet, UID_Main_title, NULL);
@@ -3979,13 +3980,13 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   } else if(typ1 == Typ_CV) {
-    if(typ2 == Typ_CVCCV) return 0;
+    if(typ2 == Typ_CVTRM) return 0;
     // case Typ_CVPOL:
     // case Typ_CVBSP:
     // case Typ_CVRBSP:
     // case Typ_CVELL:
     // case Typ_CVCLOT:
-    // case Typ_CVCCV:
+    // case Typ_CVTRM:
 
 
 
@@ -4013,7 +4014,7 @@ remote control nur in VWR, nicht MAN, CAD;
      (typ == Typ_CVRBSP)  ||
      (typ == Typ_CVELL)   ||
      (typ == Typ_CVCLOT)  ||
-     (typ == Typ_CVCCV))
+     (typ == Typ_CVTRM))
     return Typ_CV;                        // S
 
 
@@ -4140,7 +4141,7 @@ remote control nur in VWR, nicht MAN, CAD;
             (typ == Typ_CVBSP)   ||
             (typ == Typ_CVRBSP)  ||
             (typ == Typ_CVELL)   ||
-            (typ == Typ_CVCCV))      {
+            (typ == Typ_CVTRM))      {
     return 'S';
 
 
@@ -4343,7 +4344,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 // see also GL_GetViewSizU
 
-  // printf("AP_Set_scale %f\n",scl);
+  // printf("AP_Set_scale %lf\n",scl);
 
   AP_scale = scl;
 
@@ -4822,7 +4823,7 @@ static char cbuf[32];
 
 
     apt_typ = DL_GetTyp (dli);
-    apt_ind = DL_GetInd (dli);
+    apt_ind = DL_get_dbi (dli);
     tra_ind = DL_GetTrInd (dli);
 
     irc = DB_Get_GR_Obj (o1, apt_typ, apt_ind, tra_ind);
@@ -4864,7 +4865,8 @@ static char cbuf[32];
 
   typ = DL_GetTyp (dli);
   typ = AP_typ_2_bastyp (typ);
-  ind = DL_GetInd (dli);
+  ind = DL_get_dbi (dli);
+  if(ind <= 0) return -1;
 
 
   // printf("ACT_ck_act %ld %d %ld\n",dli,typ,ind);

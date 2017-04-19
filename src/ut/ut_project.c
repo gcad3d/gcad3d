@@ -96,6 +96,8 @@ static Vector prj_vc;      // projectionDirection
 ///           typ=Typ_SURMSH: (int*)target[0]=dbIndSurMesh;
 ///                                 target[1]=dbIndSurPtab.
 ///   vc1     projectionVector; if NULL: normal projection
+/// Output:
+///   retCod
 /// see UTRA_def_...
 /// \endcode
 
@@ -203,8 +205,11 @@ static Vector prj_vc;      // projectionDirection
     // irc = UT3D_pt_ck_inCirc (prj_tg, p1, UT_TOL_cv);
     // if(irc < 0) return 0;
     i1 = 2;
-    if(!prj_limStat) {
-      UT3D_pt_ci_lim_del (&i1, pa, da, (Circ*)prj_tg);
+    // test if circ is 360-deg;
+    if(UT3D_ck_ci360((Circ*)prj_tg) > 0) {
+      if(!prj_limStat) {
+        UT3D_pt_ci_lim_del (&i1, pa, da, (Circ*)prj_tg);
+      }
     }
     *p2 = pa[0];
     return 1;
@@ -270,7 +275,7 @@ static Vector prj_vc;      // projectionDirection
 
   //----------------------------------------------------------------
   L_CVCCV:
-  if(prj_typ != Typ_CVCCV) goto L_PLN;
+  if(prj_typ != Typ_CVTRM) goto L_PLN;
     // keep prj_tg and prj_nr
     vp1 = prj_tg;
     i2 = prj_nr;
@@ -484,7 +489,9 @@ static Vector prj_vc;      // projectionDirection
 
 
   L_done:
-  e2->dir = DSIGN(c1->rad);
+  if(c1->rad > 0.) e2->srot = 0;
+  else             e2->srot = 1;
+
   e2->vz = ((Plane*)prj_tg)->vz;
   
     // UT3D_stru_dump (Typ_CVELL, e2, "Ell=");
@@ -718,7 +725,7 @@ static Vector prj_vc;      // projectionDirection
   // Start- und Endpunkt bleiben bestehen ..
 
   // UT3D_stru_dump (Typ_CVBSP, cvo, "Bsp-out");
-  // GR_Disp_bsp (cvo, 9, objSpc);
+  // GR_Disp_CvBSp (cvo, 9, objSpc);
 
   return 0;
 

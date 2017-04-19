@@ -55,7 +55,7 @@ typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 // defined in ../xa/xa.c (with extern invalidated)
 extern char WC_modnam[128];       // active Modelname - without path
 extern char WC_modact_nam[128];   // name of the active submodel; def="" (main)
-
+                                  //   not set in runmode.
 extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel
 
 extern char AP_dir_open[128];     // directory for OPEN

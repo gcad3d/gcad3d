@@ -291,7 +291,6 @@ extern int     APT_dispDir;
 
 
   //----------------------------------------------------------------
-  // wenn nicht PREVIEW (MOD+, MOD-, REV): add od change word
   if(strcmp(txt, "PREVIEW")) {
 
     // modify Buffer; add od change word
@@ -305,8 +304,12 @@ extern int     APT_dispDir;
   }
 
 
+  //----------------------------------------------------------------
+  // if(strcmp(txt, "Exit")) {
+  // }
 
   //-----------------------------------------------------
+  // wenn nicht PREVIEW (MOD+, MOD-, REV): add od change word
   // Text rechts von CurPos selected setzen
   L_view:
   if(cPos > IE_bufSiz) cPos = IE_bufSiz;
@@ -346,7 +349,7 @@ extern int     APT_dispDir;
   if(IE_bufSiz > 2) {
     // update CW|CCW
     // if..
-    IE_cad_test1 ();
+    IE_cad_test__ ();
     // update lmnr
     IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncOK));
 
@@ -396,7 +399,7 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  // printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
+  printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
 
 /*
   if(GUI_DATA_EVENT == TYP_EventEnter) {
@@ -410,7 +413,7 @@ extern int     APT_dispDir;
 
   // TYP_EventRelease ..
   iKey = GUI_DATA_I1;
-    // printf("IE_ccv_CB iKey=%d\n",iKey);
+    printf("IE_ccv_CB iKey=%d\n",iKey);
 
 
   switch (iKey) {
@@ -419,9 +422,8 @@ extern int     APT_dispDir;
       if(oldEvent == TYP_EventPress) goto L_skip_key;   // 2014-04-10
       // CREATE or MODIFY
       if(IE_modify == 0) {  // 0=Add 1=Modify 2=Insert
-        //  CREATE: exit all ..
-        IE_ccv_mod (NULL, GUI_SETDAT_ES(TYP_EventPress,"Exit"));
-        // IE_ccv__ (NULL, (void*)"UI_FuncKill");
+        //  CREATE: delete entries, then window
+        IE_cad_Inp_undo ();
       } else {
         //  MODIFY: exit all ..
         IE_cad_Inp_undo ();      // delete last CAD-input or exit func
@@ -457,7 +459,7 @@ extern int     APT_dispDir;
 
       IE_bufSiz = cPos;
       IE_buf[IE_bufSiz] = '\0';
-      IE_cad_test1 ();
+      IE_cad_test__ ();
       goto L_skip_key;
 */
   }
@@ -616,7 +618,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
 
 
     //---------------------------------------------------------
-    // update after IE_cad_test1:
+    // update after IE_cad_test__:
     case UI_FuncOK:  // update lmnr
       i1 = APT_get_modMax1 ();
       sprintf(s1, "  %d ", i1);

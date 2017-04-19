@@ -1623,7 +1623,7 @@ L_outOfWorkSpace:
 
 
     // TESTDISP
-    // GR_Disp_bsp (bspl, 2, workSeg);
+    // GR_Disp_CvBSp (bspl, 2, workSeg);
 
   return 0;
 
@@ -1681,7 +1681,7 @@ L_outOfWorkSpace:
 
 
     // TESTDISP
-    // GR_Disp_bsp (bspl, 2, workSeg);
+    // GR_Disp_CvBSp (bspl, 2, workSeg);
 
   return 0;
 
@@ -1750,7 +1750,7 @@ L_outOfWorkSpace:
   // randKurve V-aussen (U0 / V0-V1)
   i1 = sur->ptUNr-1;
   i1 = UT3D_bsp_sbspV (&cv1, i1, sur, wrkSeg);
-    // GR_Disp_bsp (&cv1, 9);
+    // GR_Disp_CvBSp (&cv1, 9);
 
   // CurvRBSpl -> polygon
   i1 = bspl_pol_bsp (&p1Nr, pTab, &cv1, pMax, UT_DISP_cv/3.);
@@ -1765,7 +1765,7 @@ L_outOfWorkSpace:
   // randKurve U-aussen (U1 / V0-V1)
   i1 = sur->ptVNr-1;
   UT3D_bsp_sbspU (&cv1, i1, sur);
-    // GR_Disp_bsp (&cv1, 9);
+    // GR_Disp_CvBSp (&cv1, 9);
 
   // curve umdrehen !  (see UTO_stru_inv)
   // MEM_swap_2db (&cv1.v0, &cv1.v1);
@@ -1783,7 +1783,7 @@ L_outOfWorkSpace:
   //----------------------------------------------------------------
   // randKurve V0 (U0-U1 / V0)
   i1 = UT3D_bsp_sbspV (&cv1, 0, sur, wrkSeg);
-    // GR_Disp_bsp (&cv1, 9);
+    // GR_Disp_CvBSp (&cv1, 9);
 
   // // curve umdrehen !  (see UTO_stru_inv)
   // MEM_swap_2db (&cv1.v0, &cv1.v1);

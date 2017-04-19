@@ -33,7 +33,8 @@ List_functions_start:
 
 APED_dbo_oid        give typ, index from text "P12"
 APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
-APED_oid_dbo_all      make name from typ and DB-index  (all types)
+APED_oid_dbo_sm     object-id from typ and DB-Index and subModelname
+APED_oid_dbo_all    make name from typ and DB-index  (all types)
 APED_oid_vc         get oid for Vector; (DX or DIX or D#)
 APED_dbi_src_std_vc_pl get dbi for std-vector or -planes from GcoTxtTab-index
 
@@ -50,9 +51,7 @@ DB_Typ_Char         give typ(int) from text "PT" --> Typ_PT;
 
 UTO_ck_dbsTyp       check object-typ (struct or object)
 UTO_ck_typTyp       check if typ=curve (Typ_lFig) or surface (Typ_SUR)
-UTO_ck_curvLimTyp   check if CurveLimits are Points or parameters
 UTO_ck_curvForm     check if objTyp is ObjGX or other typ
-UTO_ck_surfTyp      returns surfSubTyp
 
 List_functions_end:
 =====================================================
@@ -82,6 +81,16 @@ List_functions_end:
 
 
 
+
+//============ Extern Var: =====================
+// ex ../xa/xa.c
+extern int       WC_modact_ind;         // -1=primary Model is active;
+
+
+
+//============ Locale Var: =======================================
+
+
 //----------------------------------------------------------------
   static char *TypTxtTab0[]={
 //0         1         2         3         4
@@ -92,9 +101,9 @@ List_functions_end:
 
   static char *TypTxtTab20[]={
   "CV",     "CvPlg",  "CvPsp3", "CvBsp",  "CvRBsp",    // 20-
-  "CvCcv",  "CvEll",  "CvBez",  "CvRBez", "Clot",
-  "CvLnTab","CV2",    "CvPlg2", "CvPsp2", "CvBsp2",    // 30-
-  "CvRBsp2","CvCcv2", "CvEll2", "CvEll2C","CvBez2"};
+  "CvEll",  "CvBez",  "CvRBez", "Clot",   "CvLnTab",
+  "CV2",    "CvPlg2", "CvPsp2", "CvBsp2", "CvRBsp2",   // 30-
+  "CvEll2", "CvEll2C","CvBez2", "CvCcv",  "-"};
 
   static char *TypTxtTab40[]={                         // 40-
   "PLN"};
@@ -378,6 +387,10 @@ char  *ObjCodTab[] = {
 //====================================================================
 /// \code
 /// APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
+/// Input:
+///   typ,ind    DB-obj
+/// Output:
+///   buf        name for DB-obj
 /// see also APED_oid_dbo_all AP_typ_2_bastyp AP_cre_defHdr
 /// \endcode
 
@@ -385,7 +398,8 @@ char  *ObjCodTab[] = {
 
   char   *p1;
 
-  // printf("APED_oid_dbo__ %d %d\n",typ,ind);
+  // printf("APED_oid_dbo__ %d %ld\n",typ,ind);
+  if(!typ) AP_debug__ ("APED_oid_dbo__ E0");
 
 
   if(       (typ == Typ_PT)    ||
@@ -435,7 +449,7 @@ char  *ObjCodTab[] = {
             (typ == Typ_CVRBSP)  ||
             (typ == Typ_CVELL)   ||
             (typ == Typ_CVCLOT)  ||
-            (typ == Typ_CVCCV))      {
+            (typ == Typ_CVTRM))      {
     sprintf(buf, "S%ld", ind);
 
 
@@ -512,18 +526,41 @@ char  *ObjCodTab[] = {
     strcpy(buf, "-");
     p1 = AP_src_typ__ (typ);
     // TX_Error("APED_oid_dbo__: Objekttyp %d gefunden",typ);
-    TX_Print("Err APED_oid_dbo__ obj %s %d %d",p1,ind,typ);
+    TX_Print("Err APED_oid_dbo__ obj %s typ=%d dbi=%d",p1,typ,ind);
     return -1;
 
   }
 
-  // printf("ex APED_oid_dbo__ |%s| %d\n",buf,strlen(buf)); // nur Testausg.
+    // printf("ex APED_oid_dbo__ |%s| %d\n",buf,strlen(buf));
 
   return 1;
 
 }
 
+//================================================================
+  int APED_oid_dbo_sm (char *oid, int sSiz, int dbTyp, long dbi) {
+//================================================================
+// APED_oid_dbo_sm     object-id from typ and DB-Index and subModelname
 
+  int  i1, ii;
+
+  APED_oid_dbo__ (oid, dbTyp, dbi);
+
+  if(WC_modact_ind >= 0) {
+    strcat (oid, " in ");
+    ii = strlen (oid);
+    sSiz -= ii;
+    Mod_mNam_mdb (&oid[ii], sSiz, &i1, WC_modact_ind);
+  }
+
+    printf("ex APED_oid_dbo_sm |%s|\n",oid);
+
+
+  return 0;
+
+}
+
+ 
 //====================================================================
   int APED_oid_vc (char *cbuf, Vector *vc1) {
 //====================================================================
@@ -564,9 +601,13 @@ char  *ObjCodTab[] = {
 /// Returns also this constantObjects: DX DY DZ DIX DIY DIZ RX RY RZ
 /// see also AP_cut_defHdr
 /// 
-///   OUT:
-/// defTyp: see wincut_base.h
-///         values return 0 !
+/// Input:
+///   txtIn
+///
+/// Output:
+///   defTyp: see wincut_base.h
+///           values return 0 !
+///   defInd
 /// 
 /// Retcodes:
 ///   0 = OK
@@ -583,6 +624,7 @@ char  *ObjCodTab[] = {
 
 
   // printf("APED_dbo_oid |%s| %p\n",txtIn,defInd);
+
   *defTyp = Typ_Error;
   *defInd = 0L;
 
@@ -840,7 +882,7 @@ char  *ObjCodTab[] = {
     case Typ_CVPSP3:
       return "CvPsp3";
 
-    case Typ_CVCCV:
+    case Typ_CVTRM:
       return "CvCcv";
 
     case Typ_PLN:
@@ -1126,7 +1168,7 @@ char  *ObjCodTab[] = {
             (typ == Typ_CVRBSP)  ||
             (typ == Typ_CVELL)   ||
             (typ == Typ_CVCLOT)  ||
-            (typ == Typ_CVCCV))      {
+            (typ == Typ_CVTRM))      {
     return 'S';
 
   } else if((typ == Typ_SUR)      ||
@@ -1214,7 +1256,7 @@ char  *ObjCodTab[] = {
      (typ == Typ_CVRBSP)  ||
      (typ == Typ_CVELL)   ||
      (typ == Typ_CVCLOT)  ||
-     (typ == Typ_CVCCV))
+     (typ == Typ_CVTRM))
     return Typ_CV;                        // S
 
 
@@ -1490,13 +1532,13 @@ char  *ObjCodTab[] = {
 
 
   } else if(typ1 == Typ_CV) {
-    if(typ2 == Typ_CVCCV) return 0;
+    if(typ2 == Typ_CVTRM) return 0;
     // case Typ_CVPOL:
     // case Typ_CVBSP:
     // case Typ_CVRBSP:
     // case Typ_CVELL:
     // case Typ_CVCLOT:
-    // case Typ_CVCCV:
+    // case Typ_CVTRM:
 
 
 
@@ -1618,7 +1660,7 @@ char  *ObjCodTab[] = {
     case Typ_CVRBSP:
     case Typ_CVELL:
     case Typ_CVCLOT:
-    case Typ_CVCCV:
+    case Typ_CVTRM:
 
       return Typ_ObjGX;
 
@@ -1648,105 +1690,9 @@ char  *ObjCodTab[] = {
   return 1;
 
 }
-*/
  
-//================================================================
-  int UTO_cv_ck_clo (int otyp, void *obj) {
-//================================================================
-/// \code
-/// UTO_cv_ck_clo        test if curve is closed; ignore trimmed.
-/// 360-deg-circ/elli
-/// returns   1 NO, not closed
-///           0 YES, closed
-///          -2 degenerated.
-/// TODO: CCV
-/// \endcode
-
-  int  iClo;
 
 
-  iClo = 1;  // 1=NO; for L
-
-  if(otyp == Typ_CI) {
-    iClo = UT3D_ck_ci360 ((Circ*)obj);
-
-  } else if(otyp == Typ_CVELL) {
-    iClo = UT3D_ck_el360 ((CurvElli*)obj);
-
-  } else if(otyp == Typ_CVPOL) {
-    iClo = UT3D_ck_plgclo ((CurvPoly*)obj);
-    if(iClo == -1) iClo = 0;    // closed=closed,but trimmed
-
-  } else if(otyp == Typ_CVBSP) {
-    iClo = UT3D_bsp_ck_closed_tr ((CurvBSpl*)obj);
-
-  } else if(otyp == Typ_CVRBSP) {
-    iClo = UT3D_rbspl_ck_closed ((CurvRBSpl*)obj);
-
-  } else {
-    TX_Error("UTO_cv_ck_clo E001_%d",otyp);
-    return -1;
-  }
-
-    // printf("ex UTO_cv_ck_clo %d\n",iClo); // 0=yes,1=no,-1=degen
-
-  return iClo;
-
-}
-
- 
-//================================================================
-  int UTO_ck_surfTyp (ObjGX *oxi) {
-//================================================================
-/// \code
-/// UTO_ck_surfTyp          returns surfSubTyp
-/// Input:
-///  oxi      su_tab-record
-/// Output:
-///  retCod   Typ_SURTPS|Typ_SURBSP|Typ_SURRU|Typ_SURRV ..
-/// 
-/// see also SUR_ck_typ (get details for surfaces)
-/// see GR_DrawSur TSU_DrawSurT_
-/// \endcode
-
-
-  int   ityp;
-  ObjGX *ox1;
-
-  // printf("UTO_ck_surfTyp %d %d\n",oxi->typ,oxi->form);
-  // UT3D_stru_dump (Typ_ObjGX, oxi, "");
-  // UTO_dump__ (oxi, "");
-
-  // if(oxi->typ == Typ_SURPTAB) return Typ_SURPTAB;
-
-
-  if(oxi->typ == Typ_SUR) {    // eg Typ_PT  from   A=PTAB  
-    ityp = oxi->form;
-    if(ityp == Typ_ObjGX) {     // planar od gelocht ..
-      // form of 1.subObj: Typ_SURPLN or Index of supportSurface
-      ox1 = (ObjGX*)oxi->data;
-      ityp = ox1->form;
-      if(ityp != Typ_SURPLN) ityp = Typ_SURTPS;
-    }
-    goto L_exit;
-
-  } else {
-    ityp = oxi->typ;
-    goto L_exit;
-  }
-
-
-
-  return -1;
-
-
-  L_exit:
-    // printf("ex UTO_ck_surfTyp %d\n",ityp);
-  return ityp;
-
-}
-
-/*
 //================================================================
   int AP_ato_srcTxt (int *atoTyp, double *atoVal, char *cmd) {
 //================================================================

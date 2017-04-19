@@ -65,8 +65,10 @@ MemTab_dump
 
 List_functions_end:
 =====================================================
+- necessary includes:
+#include "../ut/ut_memTab.h"              // MemTab
+
 - see also:
-../ut/ut_memTab.h
 ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
 
 \endcode *//*----------------------------------------

@@ -584,7 +584,7 @@ static MemTab(ObjSRC) delTab = MemTab_empty;
 //================================================================
 // Del_tab__      delete objects
 
-  int            i1, i2, i3, typ, iDel;
+  int            i1, i2, i3, iRec, typ, iDel;
   long           dbi, ld;
   char           oNam[32];
   ObjSRC         *o2, *o3;
@@ -674,19 +674,23 @@ static MemTab(ObjSRC) delTab = MemTab_empty;
   // TESTDISPLAY ONLY:-------------------
 */
 
-  // delete
+
+  // add all obj's of group to undoTab
   iDel = 0;
   for(i2=0; i2 < oTab.rNr; ++i2) {
     o2 = &(oTab.data[i2]);
       // printf("[%d] typ=%d dbi=%d\n",i2,o2->typ,o2->dbi);
-    UNDO_grp_add (o2->lnr, iDel);    // add to undoTab
+    iRec = UNDO_grp_add (o2->lnr, iDel);    // add to undoTab
     ++iDel;
   }
 
   // delete the active undo-grp & update display
-  UNDO_grp_del ();
+    UNDO_dump ();
+  UNDO_grp_del (iRec);
 
-  Grp_init ();           // reset selected-obj-group
+
+  // reset selected-obj-group
+  Grp_init ();
 
 
   MemTab_free (&dTab);

@@ -437,7 +437,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   // open catalogFileName
   if((fp1=fopen(memspc011, "r")) == NULL) {
-    MSG_STD_ERR (file_open, "'%s'", memspc011);
+    MSG_STD_ERR (ERR_file_open, "'%s'", memspc011);
     return -2;
   }
 

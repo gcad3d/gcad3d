@@ -45,7 +45,33 @@ AP_print_pdf     wr <tempDir>/print.pdf
 List_functions_end:
 =====================================================
 
+// AP_print_color
+
 \endcode *//*----------------------------------------
+
+
+
+
+//=====================================================================
+  int AP_print_color (FILE *fpo, int *count, float *buffer) {
+//=====================================================================
+// hier eventuell eine veraenderte farbe ausgeben ..
+// X-Coord Y-Coord Z-Coord R G B A
+//
+
+  int i1;
+
+  printf ("    %d  ",*count);
+
+  for (i1 = 0; i1 < 4; i1++) {
+     printf (" %7.2f ", buffer[i1]);
+  }
+
+  printf ("\n");
+
+  return 0;
+
+}
 
 
 */

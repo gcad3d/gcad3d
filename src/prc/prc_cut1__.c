@@ -655,10 +655,10 @@ static  Point  pta[TAB_SIZ], p1, p2;
 //===========================================================================
 // 
 
-  long   dli;
+  long   dbi;
 
-        dli = -1;
-        GR_CreCirc (&dli, iAtt_cut, &actCir);
+        dbi = -1;
+        GR_CreCirc (&dbi, iAtt_cut, &actCir);
 
   return 0;
 
@@ -948,11 +948,11 @@ static  Point  pta[TAB_SIZ], p1, p2;
       // was wcg_OutBSP
       pta = (void*)memspc101;
       ptNr = sizeof(memspc101) / sizeof(Point);
-      // get polygon from curve UT3D_npt_ox 
+      // get polygon from curve UT3D_npt_ox__ 
       //   bspl_pol_bsp bspl_cv_bsp bspl_cvpol_cvbsp
       //   APT_DrawCurv APT_decode_conv_pol
       OGX_SET_INDEX (&ox1, ityp, dbi);
-      i1 = UT3D_npt_ox (&ptNr, pta, &ox1, UT_DISP_cv);
+      i1 = UT3D_npt_ox__ (&ptNr, pta, &ox1, UT_DISP_cv);
       if(i1 < 0) return i1;
       goto L_do_polygon;
     }

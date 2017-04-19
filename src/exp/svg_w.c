@@ -608,7 +608,7 @@ extern int     APT_dispPT;
     case Typ_CVBSP:
     case Typ_CVRBSP:
     case Typ_CVCLOT:
-    case Typ_CVCCV:
+    case Typ_CVTRM:
       SVG_w_setLtyp ();
       SVG_w_crv (ox1);
       break;
@@ -847,7 +847,7 @@ Typ_Model   // ModelReference
 
 
   // curve -> polygon
-  UT3D_npt_ox (&pNr, pa, ox1, UT_DISP_cv);
+  UT3D_npt_ox__ (&pNr, pa, ox1, UT_DISP_cv);
 
 
   // draw polygon
@@ -962,13 +962,14 @@ Typ_Model   // ModelReference
 
       // large; 0=small;1=large;
       // d1 = UT3D_ango_el (el1);
-      UT3D_2angr_el (&as, &ao, &el2c);
+      UT2D_2angr_el (&as, &ao, &el2c);
         // printf(" ang0 1,2 = %f %f\n",d3,d1,d2);
       if(fabs(ao) > RAD_180) { i1 = 1; } else { i1 = 0; }
 
 
       // iDir; 0=CW, 1=CCW;
-      if(el1->dir > 0) { i2 = 0; } else { i2 = 1; }
+      // if(el1->dir > 0) { i2 = 0; } else { i2 = 1; }
+      i2 = el1->srot;  // 0=CCW, 1=CW
       // Z-vec must go up; else turn iDir
       if(el1->vz.dz < 0.) i2 = ICHG01 (i2);
         // printf(" large %d iDir %d\n",i1,i2);

@@ -22,7 +22,7 @@ TODO:
 Modifications:
 2002-02-12 DL_disp_* zu. RF.
 2001-06-06 DL_Lay_mod (war DB_Lay).
-2001-05-04 DL_Delete, DL_GetTyp, DL_GetInd neu.
+2001-05-04 DL_Delete, DL_GetTyp, DL_get_dbi neu.
 2000-10-17 Vereinheitlichung mit d. Unix-Variante.
 
 -----------------------------------------------------
@@ -77,27 +77,26 @@ DL_unvis_set            set visible / unvisible
 DL_pick__               change all objects to pickable or unpickable
 DL_pick_set
 
-DL_parent_ck__          get all parents for obj (typ,dbi,dli)
 DL_parent_ck_c          check if DL-record has a parent-object (check .sChd-Flag)
 DL_parent_ck_p          check if DL-record is a parent-object (check .sPar-Flag)
 DL_parent_hide
-GA_parent_get           get DB-index of parentObj of DB-obj dbTyp/ind
 
 DL_grp1_set             Zugehoerigkeit zu Group 1 setzen; ON od OFF
 DL_grp1_get             get grp_1-bit
 DL_grp1__               add / remove (change) Groupbit 1 of DL-Record ind
 DL_grp1_copy            copy all DL-obj with groupBit ON --> GroupList
 
+DL_dbi_is_visTyp        test if typ == visual typ (VC is not)
 DL_OBJ_IS_HIDDEN        test if obj is hidden                           INLINE
 DL_OBJ_IS_ACTMDL        test if obj belongs to active model             INLINE
 DL_get__                returns DispList
 DL_get_dla              get DL-record (DL_Att from GR_ObjTab[objInd])
+DL_get_dbi              get DB-index from DL-Index
 DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
 DL_get_sStyl            get surfaceStyle (shaded|symbolic)
 DL_get_iatt             returns iatt of DL-record
 DL_set_iatt             modify iatt of DL-record
 DL_GetTyp               get obj-typ from DL-ind
-DL_GetInd               get DB-ind from DL-ind
 DL_Get_oid_dli          get objName from DispListIndex
 DL_Get_lNr_dli          get sourceLineNumber from DispListIndex
 DL_Get_dli_lNr          get DispListIndex from sourceLineNumber
@@ -994,13 +993,13 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 //===============================================================
 /// \code
 /// DL_hide__     change hidden/visible for single obj
-/// mode = ON(0) oder OFF(1,hide)
+///   mode    ON(0)    set visible
+///           OFF(1)   set hidden
+///
 /// modify DL.disp, DL.hili
 /// \endcode
 
-///        hidden = ((disp == 1)&&(hili == 1))            // ON=0   OFF=1
-
-
+//        hidden = ((disp == 1)&&(hili == 1))            // ON=0   OFF=1
 // zB:
 // DL_set_disp (GL_GetActInd(), OFF);
 
@@ -1477,6 +1476,8 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   // printf("DL_grp1__ dli=%ld mode=%d %d\n",ind,mode,iUpd);
 
+  if(ind < 0) return -1;
+
 
   if(mode == 0) {
     if(GR_ObjTab[ind].grp_1 == ON) mode = -1;    // remove from group
@@ -1666,8 +1667,6 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   DL_InitAttTab ();
-
-  // GA_parent_init (); in GR_Init1
 
 
   /*  Auch die DispList löschen */
@@ -2125,7 +2124,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   // liefern; wurde von DL_SetInd() gesetzt !
   // printf(" DL_ind_act=%d\n",DL_ind_act);
   if(DL_ind_act >= 0) {
-    // printf(" XXXXXXXXXXX overwrite; DL_ind_act=%d\n",DL_ind_act);
+    // printf(" XXXXXXX overwrite; DL_ind_act=%d \n",DL_ind_act);
     dlInd = DL_ind_act;
     // GL_Del0 (dlInd);
     goto L_done;
@@ -2388,7 +2387,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
   for(l1=DLend; l1>=0; --l1) {
 
-      // printf("DL[%d] typ=%d dbi=%d\n",l1,DL_GetTyp(l1),DL_GetInd(l1));
+      // printf("DL[%d] typ=%d dbi=%d\n",l1,DL_GetTyp(l1),DL_get_dbi(l1));
 
     if(GR_ObjTab[l1].ind    != DBind) continue;
     // skip SubModels
@@ -2421,7 +2420,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     
     } else if(typ == Typ_CV) {         // CV = CVCCV
       if((typAct == Typ_CV)     ||
-         (typAct == Typ_CVCCV))    {
+         (typAct == Typ_CVTRM))    {
         DLind = l1;
         goto L_found;
       }
@@ -2526,25 +2525,22 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
 //============================================================
-  long DL_GetInd (long objInd) {
+  long DL_get_dbi (long dli) {
 //============================================================
 /// \code
 ///  liefert den DB-index eines DB-Obj (als return-Code)
 /// 
-///  Input: objInd; alle andern Out.
+///  Input: dli; alle andern Out.
 /// \endcode
 
 
-  long ind;
+  if(dli < 0) return dli;
+  if(dli >= GR_TAB_IND) return 0L;   //-1L;
 
-  if(objInd < 0) return -1L;
-  if(objInd >= GR_TAB_IND) return -1L;
 
-  ind = GR_ObjTab[objInd].ind;
+  // printf ("ex DL_get_dbi dli=%ld dbi=%ld\n",ind,GR_ObjTab[dli].ind);
 
-  // printf ("ex DL_GetInd ind=%d objInd=%ld\n",ind,objInd);
-
-  return ind;
+  return GR_ObjTab[dli].ind;
 
 }
 
@@ -2635,7 +2631,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   if((dli < 0)||(dli > APT_PL_SIZ)) return -1;
   // ind = GR_ObjTab[objInd].refInd;
 
-  // TX_Print ("DL_GetInd typ=%d\n",ind);
+  // TX_Print ("DL_get_dbi typ=%d\n",ind);
 
   return GR_ObjTab[dli].irs;
 
@@ -2968,7 +2964,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       // i2=GR_AttTab[GR_ObjTab[l1].iatt].ltyp;
-      i2=i2=GR_AttLnTab[GR_ObjTab[l1].iatt].dash;
+      i2 = GR_AttLnTab[GR_ObjTab[l1].iatt].dash;
       if(GR_ObjTab[l1].grp_1 == ON) {
         if(i2 != ltyp) {
           GR_ObjTab[l1].grp_1   = OFF;
@@ -3225,6 +3221,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   dx = pb2->x - pb1->x;
   dy = pb2->y - pb1->y;
   dz = pb2->z - pb1->z;
+
 
   // find max dist
   d1 = UTP_max_d3 (&dx, &dy, &dz);
@@ -3697,12 +3694,12 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
         // printf(" ReScal Sur typ=%d form=%d\n",ox1->typ,ox1->form);
 
         if(ox1->typ == Typ_SUR) {
-          UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox
+          UT3D_box_ox (&pb1, &pb2, ox1);  // siehe UT3D_npt_ox__
           // if(ox1->form == Typ_SUR) {
             // man sollte eine Box von der ersten Kontur holen;
             // die Boxpunkte DL_ReScalePoint
-            // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox
-            // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox
+            // siehe GR_DrawSur/SUP_load_c .., UT3D_npt_ox__
+            // UT3D_box_ox (&pb1, &pb2, ox1->data);  // siehe UT3D_npt_ox__
           // } else if (ox1->form == Typ_ObjGX) {
           // }
 
@@ -3977,63 +3974,6 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 }
 
-
-//================================================================
-  int DL_parent_ck__ (int *tabSiz, ObjDB *parTab,
-                      int typ, long dbi, long dli) {
-//================================================================
-/// \code
-/// DL_parent_ck__          get all parents for obj (typ,dbi,dli)
-/// Input:  
-///   tabSiz          size of parTab
-///   typ,dbi,dli
-/// Output:
-///   parTab[tabSiz]
-/// \endcode
-
-  int    irc, maxSiz;
-
-
-  maxSiz = *tabSiz;
-  *tabSiz = 0;
-
-
-  // printf("DL_parent_ck__  typ=%d dbi=%ld dli=%ld\n",typ,dbi,dli);
-
-
-  L_nxt:
-
-  // search parent for obj dli
-  if(DL_parent_ck_c (dli)) {
-      // printf(" .. has parent !\n");
-
-    // get parent-dbi for obj (typ,dbi)
-    irc = GA_parent_get (&dbi, typ, dbi);
-    if(irc < 0) { printf("parentError dbi %ld\n",dli); goto L_exit; }
-
-    // get dli from (typ,dbi)
-    dli = DL_find_obj (typ, dbi, dli);
-    if(dli < 0L) { printf("parentError dli %ld\n",dli); goto L_exit; }
-
-    // add obj to list
-    parTab[*tabSiz].typ   = typ;
-    parTab[*tabSiz].dbInd = dbi;
-    parTab[*tabSiz].dlInd = dli;
-    *tabSiz += 1;
-    if(*tabSiz >= maxSiz) { printf("parentError maxSiz\n"); goto L_exit; }
-    goto L_nxt;
-  }
-
-
-  L_exit:
-
-    for(irc=0;irc<*tabSiz;++irc)printf(" parTab[%d] typ=%d dbi=%ld\n",
-      irc, parTab[irc].typ, parTab[irc].dbInd);
-
-  return 0;
-
-}
-
  
 //================================================================
   int DL_parent_ck_c (long dli) {
@@ -4051,64 +3991,58 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
-//================================================================
-  int DL_parent_hide (int typ, long pInd, long cInd) {
-//================================================================
-/// store childInfo, parentInfo; hide parent.
-
-  long   lPar, lChild;
-
-
-  // printf("DL_parent_hide typ=%d cInd=%d pInd=%d\n",typ,cInd,pInd);
+//=======================================================================
+  int DL_parent_set (long lChild, long lPar) {
+//=======================================================================
+/// \code
+/// store childInfo, parentInfo in DL
+/// \endcode
 
 
-  // get lChild = active DL-Index = child-DL-Ind
-  lChild = GL_GetActInd ();
-    // printf(" lChild=%d\n",lChild);
+  // printf("DL_parent_set lChild=%ld lPar=%ld\n",lChild,lPar);
 
 
+  if(lChild >= 0L)
+    GR_ObjTab[lChild].sChd = 1;
 
-  // set child-bit
-  GR_ObjTab[lChild].sChd = 1;
-    // DL_DumpObj__ (lChild);
-
-
-  // get lPar = DL-Index of parent
-  lPar = DL_find_obj (typ, pInd, lChild - 1);
-    // printf(" lPar=%d\n",lPar);
-  if(lPar < 0) {
-    // TX_Print("DL_parent_hide E001 %d %d",typ,iPar);
-    // printf("DL_parent_hide I000 %d %d\n",typ,iPar);
-    return -1;
-  }
-    // DL_DumpObj__ (lPar);
+  if(lPar >= 0L)
+    GR_ObjTab[lPar].sPar = 1;
 
 
-  GR_ObjTab[lPar].sPar = 1;
+  return 0;
+
+}
+
+
+//=======================================================================
+  int DL_parent_hide (long dli_par) {
+//=======================================================================
+/// DL_parent_hide     hide parent.
+
+
+  // printf("DL_parent_hide %ld\n",dli_par);
+
   // muss unsichtbar sein; Schoener waere dim+noPick ?
-  GR_ObjTab[lPar].unvis = 1; // unvis
+  GR_ObjTab[dli_par].unvis = 1; // unvis
   // GR_ObjTab[lPar].dim  = 0; // ON
   // GR_ObjTab[lPar].pick = 0; // not pickable
 
 
   // hide 
   // im Main einfach hide; im subModel delete notwendig !
-  // printf("HHHHHHHHHHHHHHHHHHHHHHH _hideParent %d\n",lPar);
+  // printf("HHHHHHHHHHHHHHHHHHHHHHH _hideParent %d\n",dli_par);
 
-  if((INT_16)GR_ObjTab[lPar].modInd == -1) {
-    // DL_hili_off (lPar);    // hili  = OFF; disp  = ON;
-    DL_hide__ (lPar, 1);  // hide=OFF   hili = OFF; disp = OFF;
+  if((INT_16)GR_ObjTab[dli_par].modInd == -1) {
+    // DL_hili_off (dli_par);    // hili  = OFF; disp  = ON;
+    DL_hide__ (dli_par, 1);  // hide=OFF   hili = OFF; disp = OFF;
 
   } else {
     // Parent ist in der Kette von obj's fuer das Ditto; das per callList 
     // gerufen wird; muss daher explizit geloescht werden ...
-    // glDeleteLists (lPar+DL_base__, 1);
-    GL_Del0 (lPar);
+    // glDeleteLists (dli_par+DL_base__, 1);
+    GL_Del0 (dli_par);
   }
 
-
-  // create the PartTab-Record
-  GA_parent_set (typ, cInd, pInd);
 
   return 0;
 
@@ -4118,9 +4052,16 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 //================================================================
   int DL_disp_reset (int lNr) {
 //================================================================
+/// \code
+/// remove all display-objects following (including) APT-line-Nr <lNr>
 /// alle Ausgabeobjekte der APT-Zeilen ab (inclusive) lNr loeschen
+/// \endcode
 
-  long    l0, l1, l2, dli, dbi;
+#define oaSIZ 10
+
+  int     ii, i3, parTyp;
+  long    l0, l1, l2, dli, dbi, parDbi;
+  ObjDB   parTab[oaSIZ];
 
 
   // printf("''''''''''''DL_disp_reset %d %d\n",lNr,GR_TAB_IND);
@@ -4135,7 +4076,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
   //----------------------------------------------------
-  // dli = DL-Index suchen, ab dem geloescht wird ..
+  // get dli = first DL-record to delete (and all following DL-records)
   for(l1=l0; l1<GR_TAB_IND; ++l1) {
     // printf(" [%d]=%d\n",l1,GR_ObjTab[l1].lNr);
 
@@ -4150,14 +4091,15 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     goto L_del1;
   }
 
-  // nix zu loeschen ..
-  // if(dli < 0) return 0;
+  // nothing to delete ..
   return 0;
 
 
 
 
   //----------------------------------------------------
+  L_del1:
+  // redisplay parent-objects of deleted child-objects
   // find DL-recs with sPar==1;
   //   iatt of this rec = DL-Ind of childRec (= following DL-Rec)
   //   wenn childRec geloescht wird (im zu loeschenden DL-Bereich liegt),
@@ -4166,8 +4108,30 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   //     iatt of parentRec = iatt of childRec;
   //     sPar of parentRec==0.
 
-  L_del1:
     // printf(" _disp_res dli=%d\n",dli);
+
+  // loop tru all rec's to delete, start at end
+  for(l1=GR_TAB_IND-1; l1>=dli; --l1) {
+    // skip objs without parent
+    if(GR_ObjTab[l1].sChd != 1) continue;
+
+    // get table of parents of this child
+    ii = 0;
+    AP_parent_get (&ii, parTab, oaSIZ, GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
+
+    for(i3=0; i3<ii; ++i3) {   // loop tru parent-obj's
+
+      // get l2 = dli of  parent-obj 
+      l2 = DL_find_obj (parTab[i3].typ, parTab[i3].dbInd, dli);
+      if(l2 < 0) continue; // {TX_Print("DL_disp_reset E002"); break;}
+
+      // set parent visible
+      GR_ObjTab[l2].sPar  = 0; // reset Parent-state
+      GR_ObjTab[l2].unvis = 0; // vis
+      DL_hide__ (l2, 0);       // set visible = do not hide
+    }
+  }
+
 
 /*  old version ..
   for(l1=dli-1; l1>=0; --l1) {
@@ -4185,22 +4149,6 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     DL_hide__ (l1, 0);  // hide=OFF   hili = OFF; disp = OFF;
   }
 */
-
-  for(l1=GR_TAB_IND-1; l1>=dli; --l1) {
-    if(GR_ObjTab[l1].sChd != 1) continue;
-    // get dbi of parent of this child
-    GA_parent_get (&dbi, GR_ObjTab[l1].typ, GR_ObjTab[l1].ind);
-    if(dli < 0) continue; // {TX_Print("DL_disp_reset E001"); break;}
-    // get dli of parent of this child
-    l2 = DL_find_obj (GR_ObjTab[l1].typ, dbi, dli);
-    if(l2 < 0) continue; // {TX_Print("DL_disp_reset E002"); break;}
-    // reset parent
-    GR_ObjTab[l2].sPar  = 0;
-    GR_ObjTab[l2].unvis = 0; // vis
-    DL_hide__ (l2, 0);  // hide=OFF   hili = OFF; disp = OFF;
-  }
-
-
 
 
 
@@ -4273,8 +4221,12 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 //================================================================
   int DL_get_dla (DL_Att *dla, long dli) {
 //================================================================
-// DL_get_dla      get DispList-record (DL_Att)
-// was DL_GetAtt
+/// \code
+/// DL_get_dla      get DispList-record (DL_Att)
+/// RetCod:    1 = OK
+///            0 = ERROR
+/// was DL_GetAtt
+/// \endcode
 
   if(dli < 0)           { TX_Error("DL_get_dla E001"); return 0; }
   if(dli >= GR_TAB_IND) { TX_Error("DL_get_dla E002"); return 0; }
@@ -4282,6 +4234,24 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   *dla =  GR_ObjTab[dli];  
 
   return 1;
+}
+
+
+//================================================================
+  int DL_typ_is_visTyp (int typ) {
+//================================================================
+/// \code
+/// DL_dbi_is_visTyp        test if typ == visual typ (VC is not)
+/// retCod:  1   yes, typ can have a DL-record;
+///          0   no, typ cannot have a DL-record;
+/// \endcode
+
+
+  if((typ == Typ_VC)     ||
+     (typ == Typ_VAR))       return 0;
+
+  return 1;
+
 }
 
 

@@ -557,7 +557,7 @@ double SRU_parsru_utLn2 ();
       // UTO_dump_s_  ((ObjGX*)oxx, " CCV:");
       // UTO_dump__ ((ObjGX*)oxx, " CCV:");
     *ptNr = ptMax;
-    irc = UT3D_pta_ccv (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv);
+    irc = UT3D_pta_ox_lim (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv);
     if(irc < 0) return -1;
       // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
       // for(i1=0;i1<*ptNr;++i1) UT3D_stru_dump(Typ_PT,&pTab[i1]," pt[%d]=",i1);

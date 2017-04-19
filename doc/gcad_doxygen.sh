@@ -70,6 +70,7 @@ myFiles="${srcDirs}\
  ${doxBase}/ObjectFormatConversions.dox\
  ${doxBase}/Attributes.dox\
  ${doxBase}/Debugging.dox\
+ ${doxBase}/Constants-Tolerances.dox\
  ${doxBase}/ruler2.dox\
  ${doxBase}/Tools-MemoryFunctions.dox\
  ${doxBase}/Tools-TextFunctions.dox\
@@ -92,6 +93,7 @@ export myFiles
 
 
 ############# work ..
+echo "cd $srcBase"
 cd $srcBase
 
 
@@ -106,9 +108,13 @@ cat ${doxBase}/Download | sed "s/<VERSION>/$version/g" > ${doxBase}/Download.dox
 
 
 #-------------------------------------------------------
-# create Sourcefiles_gcad.dox
 # create file ../src/APP/srcFiles (a list of sourcefiles)
+# get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
+echo "Create list of sourcefiles"
+. ../options.sh
 make -f gcad3d.mak srclst
+
+echo "doxy_help1 Sourcefiles_gcad"
 ./doxy_help1.sh "Sourcefiles_gcad"
 mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gcad.dox
 #vi ${doxBase}/Sourcefiles_gcad.dox
@@ -117,8 +123,11 @@ mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gcad.dox
 
 #-------------------------------------------------------
 # create Sourcefiles_gui.dox
+echo "Create list of GUI-files"
 # create file ../src/APP/srcFiles (a list of sourcefiles)
 make -f gcad_gui_lnk.mak srclst
+
+echo "doxy_help1 Sourcefiles_gui"
 ./doxy_help1.sh "Sourcefiles_gui"
 mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gui.dox
 #vi ${doxBase}/Sourcefiles_gui.dox
@@ -127,6 +136,7 @@ mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gui.dox
 
 #-------------------------------------------------------
 # clear outDir, but keep .gitignore
+echo "Clear ${doxy_path_out}"
 rm -rf ${doxy_path_out}/*
 
 

@@ -1512,7 +1512,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   int          irc, typ, ii;
-  long         ind;
+  // long         ind;
   char         cbuf[80], *cp1;
   TreeNode     itTr, itOr;
 
@@ -1525,7 +1525,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   typ = DL_GetTyp (dli);
-  ind = DL_GetInd (dli);
+  // ind = DL_get_dbi (dli);
     // printf(" typ=%d ind=%ld\n",typ,ind);
 
 

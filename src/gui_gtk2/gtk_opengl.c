@@ -74,7 +74,7 @@ make -f tst_gui_core.mak && ./a.out
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>                      // memcmp memcpy
 
 #include <gtk/gtk.h>
 

@@ -31,7 +31,6 @@ void   WC_Init_Tol       ();
 void   WC_EOF            ();
 int    WC_PP_open        (int mode);
 
-void   WC_setPosKreuz    ();
 void   WC_setDisp3D      (int);
 int    NC_setRefsys      (int);
 void   NC_setGrafAtt     (int AttInd);
@@ -73,7 +72,7 @@ Point2 APT_transl2       (Point2*);
 Point2 APT_rotate3       (Point*);
 double APT_transl_rad    (double);
 
-int    APT_disp_obj      (ObjG2*, int, double);
+// int    APT_disp_obj      (ObjG2*, int, double);
 int    APT_disp_SymB     (int typ, int att, Point* pt1);
 void   APT_disp_SymV     (int, int att, Point2*, double);
 void   APT_disp_SymV1    (int, int att, Point*, double);
@@ -84,10 +83,8 @@ void   APT_disp_TxtA     (int, Point*, char*);
 // void   APT_disp_Vec      (int att, long, Point*, Vector*);
 void   APT_disp_ln       (Point2*, Point2*, int, double, double);
 void   APT_disp_ac       (ObjG2*, int, double);
-void   APT_disp_cv       (ObjG2*, int, double);
+// void   APT_disp_cv       (ObjG2*, int, double);
 void   APT_disp_nam      (int, long, void*);
-
-void   APT_hiliObj       (long*, ObjG2*, int, double);
 
 void   APT_DrawDimen     (int typ, long apt_ind, ObjGX *dim1);
 void   APT_DrawTxtG      (int typ, long apt_ind, GText *tx1);

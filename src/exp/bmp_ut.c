@@ -116,7 +116,7 @@ struct BMPHeader
 };
 
 
-  unsigned short bmp_MB='MB';
+  unsigned short bmp_MB = 'MB';
 
 
 //================================================================
@@ -402,7 +402,9 @@ struct BMPHeader
 
 
   // fill bitmap-header
-  strcpy(bmph.bfType, "BM");
+  // strcpy(bmph.bfType, "BM");
+  bmph.bfType[0] = 'B';
+  bmph.bfType[1] = 'M';
   bmph.bfOffBits = 54;
   bmph.bfSize = bmph.bfOffBits + fSiz;
   bmph.bfReserved = 0;

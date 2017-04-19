@@ -88,8 +88,8 @@ List_functions_end:
 
 ==============================
 Doku STEP =  STP
-/mnt/serv1/Devel/dev/gCAD3D/formate/step/part203.exp.html
-evince /mnt/serv1/Devel/dev/gCAD3D/formate/step/Step_D_90_04.pdf
+firefox /mnt/serv1/Devel/cadfiles/step/part203.exp.html
+evince /mnt/serv1/Devel/cadfiles/step/Step_D_90_04.pdf
 ../exp/stp_w.c
 ../exp/stp_r.c
 
@@ -249,12 +249,19 @@ TRIMMED_CURVE(name,<baseCurve>,(<startPoint>),(<endPoint>),orient,flag2);
   //   if the 2.point is before first Trimpoint, orient. is .F.
   // flag2: .UNSPECIFIED.|.CARTESIAN.|.PARAMETER.
 
+
+----------- trimmed-curve LINE ---------
 TRIMMED_CURVE('',<LINE>,(<CARTESIAN_POINT>),(<CARTESIAN_POINT>),.T.,.CARTESIAN.);
 //                       startpoint         endpoint          sameDir
 
 TRIMMED_CURVE('',<LINE>,(PARAMETER_VALUE(0.0)),(PARAMETER_VALUE(1.0)),
   .T.,.UNSPECIFIED.);
 
+TRIMMED_CURVE('',<LINE>,(<CARTESIAN_POINT>,PARAMETER_VALUE(0.)),
+                        (<CARTESIAN_POINT>, PARAMETER_VALUE(33.),.T.,.PARAMETER.);
+
+
+----------- trimmed-curve CIRCLE ---------
 TRIMMED_CURVE('',<CIRCLE>,(PARAMETER_VALUE(0.0)),(PARAMETER_VALUE(180.0)),
   .T.,.UNSPECIFIED.);
 // parameter = angles-degree (startPt,endPt)
@@ -290,7 +297,7 @@ INTERSECTION_CURVE (name, curv, (surf1, surf2), .CURVE_3D.)
 
 
 ------------------------------------------------------
-ADVANCED FACE ((Aussen/Innenbegrenzung), Stuetzflaeche)
+ADVANCED_FACE ((Aussen/Innenbegrenzung), Stuetzflaeche)
   Stuetzflaeche: PLANE|CYLINDRICAL_SURFACE|SPHERICAL_SURFACE|CONICAL_SURFACE|
                  TOROIDAL_SURFACE
 
@@ -2697,15 +2704,14 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // mode=3: ORIENTED_EDGE < EDGE_CURVE
   if(mode == 3) {
     // EDGE_CURVE and ORIENTED_EDGE from baseCurve & 2 points
-    if(el1->dir > 0) i1 = 0;
-    else             i1 = 1;   // CW
+    i1 = el1->srot; // 0=CCW, 1=CW.
     return STP_w_ORIENTED_EDGE (ip1, ip2, ici, i1);
   }
 
 
   // mode=1|2
-  if(el1->dir > 0)  p1 = stpwTrue;
-  else              p1 = stpwFalse;
+  if(el1->srot > 0)  p1 = stpwTrue;
+  else               p1 = stpwFalse;
   ici = STP_w_TRIMMED_CURVE (ici, ip1, ip2, p1);
   // if(el1->dir > 0) ici = STP_w_TRIMMED_CURVE (ici, ip1, ip2, stpwTrue);
   // else             ici = STP_w_TRIMMED_CURVE (ici, ip2, ip1, stpwTrue);
@@ -3023,7 +3029,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     // get polygon from CCV
     pa = (void*)memspc201;
     pNr = sizeof(memspc201) / sizeof(Point);
-    irc = UT3D_pta_ccv (&pNr, pa, cv, 0, NULL, UT_DISP_cv);
+    irc = UT3D_pta_ox_lim (&pNr, pa, cv, 0, NULL, UT_DISP_cv);
       printf(" ccv-pNr=%d\n",pNr);
     if(irc < 0) {TX_Error("STP_w_CVCCV EOM"); return -1;}
     // set normal-vector, sense-of-rotation ..
@@ -3036,8 +3042,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     ox1 = &oxa[i1];
       UTO_dump__ (ox1, " CCV[%d]",i1);
 
-    // skip data, form=Typ_CVCCV
-    if(ox1->form == Typ_CVCCV) {
+    // skip data, form=Typ_CVTRM
+    if(ox1->form == Typ_CVTRM) {
       continue;
 
     //----------------------------------------------------------------

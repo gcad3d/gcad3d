@@ -17,12 +17,4 @@
 // see also GA_tex_ga2tr
 
 
-// parent-type and child-type are equal !
-// cInd    childIndex  (dbi)
-// pInd    parentIndex (dbi)
-// typ     groupCode !
-typedef struct {long cInd, pInd; int typ;}                    Parent;
-
-
-
 // EOF

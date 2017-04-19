@@ -50,7 +50,7 @@ UT3D_2ncvbsp_orient        orient 2 groups of BSplCurves for surface
 UT3D_4cvbsp_3cvbsp         make 4 curves from 3 curves for a CoonsPatchSurf.
 
 UT3D_parCv_bsplpt          curve parameter <-- point on b-spline curve
-UT3D_ptNr_bsplTol          Nr of polygonpoints from tol
+UT3D_ptNr_bsplTol          estimate nr of polygonPoints for B-spline
 UT3D_du_bsplTol            get du for polygonalization of bSpline from tol
 UT3D_bsp_degrad            degrade bsp to line
 UT3D_bsp_infTg             Eine Tabelle der Wendepunkte liefern (nur Parameter)
@@ -1278,7 +1278,7 @@ once again, with U/V changed.
   bsp->kvTab = NULL;
 
     // UT3D_stru_dump (Typ_CVBSP, bsp, "ex UT3D_cbsp_2pt:");
-    // GR_Disp_bsp (bsp, 9, memSeg);
+    // GR_Disp_CvBSp (bsp, 9, memSeg);
 
   return 0;
 
@@ -1317,7 +1317,7 @@ once again, with U/V changed.
   // bspl_knotvec__ (kvTab, ptNr, deg);
 
     // UT3D_stru_dump (Typ_CVBSP, bsp, "ex UT3D_cbsp_2pt:");
-    // GR_Disp_bsp (bsp, 9, memSeg);
+    // GR_Disp_CvBSp (bsp, 9, memSeg);
 
   return 0;
 
@@ -1358,7 +1358,7 @@ once again, with U/V changed.
   UME_adjust (tmpSeg, memPos);
 
     // UT3D_stru_dump (Typ_CVBSP, bsp, "ex UT3D_cbsp_ci:");
-    // GR_Disp_bsp (bsp, 9, memSeg);
+    // GR_Disp_CvBSp (bsp, 9, memSeg);
 
   return 0;
 
@@ -1435,7 +1435,7 @@ once again, with U/V changed.
   UME_adjust (tmpSeg, memPos);
 
     // UT3D_stru_dump (Typ_CVBSP, bsp, "ex UT3D_cbsp_ell:");
-    // GR_Disp_bsp (bsp, 9, memSeg);
+    // GR_Disp_CvBSp (bsp, 9, memSeg);
 
   return 0;
 
@@ -1867,7 +1867,7 @@ once again, with U/V changed.
   cvo->v1   = cvo->kvTab[i1-1];
 
   // UT3D_stru_dump (Typ_CVBSP, cvo, "");
-  // GR_Disp_bsp (cvo, 2, memSeg1);
+  // GR_Disp_CvBSp (cvo, 2, memSeg1);
 
 
   goto L_fertig;
@@ -1910,7 +1910,7 @@ once again, with U/V changed.
   cvo->v1   = cvo->kvTab[i1-1];
 
   // UT3D_stru_dump (Typ_CVBSP, cvo, "");
-  // GR_Disp_bsp (cvo, 2, memSeg1);
+  // GR_Disp_CvBSp (cvo, 2, memSeg1);
 
 
 
@@ -2303,7 +2303,6 @@ Returncode:
 
 
   // printf("UT3D_pt_projptbspl %d\n",bspl->ptNr);
-
   // UT3D_stru_dump (Typ_PT, pt, "");
   // UT3D_stru_dump (Typ_CVBSP, bspl, "");
   // printf(" free tmpSpc=%d\n",UME_ck_free(memSeg1));
@@ -2447,7 +2446,7 @@ Returncode:
     printf("ex UT3D_pt_projptbspl %d\n",*nxp);
     for(i1=0; i1<*nxp; ++i1) {
       UT3D_stru_dump (Typ_PT, &ptab[i1],"  %d %f",i1,ttab[i1]);
-      GR_Disp_pt (&ptab[i1], SYM_STAR_S, 2);
+      // GR_Disp_pt (&ptab[i1], SYM_STAR_S, 2);
     }
     printf("\n");
     // END TESTBLOCK:
@@ -2593,6 +2592,9 @@ Returncodes:
   double pv, u1, u2, uTot, uMin, uMax;
 
 
+  printf("UT3D_par1_parbsp kv=%lf\n",*kv);
+
+
   u1 = cv1->v0;
   u2 = cv1->v1;
 
@@ -2601,7 +2603,7 @@ Returncodes:
 
   uMin = cv1->kvTab[0];
   uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
-    // printf("UT3D_par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
+    printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
 
   if(u2 < u1) {
     // umax - u1 + u2 - umin
@@ -2614,9 +2616,9 @@ Returncodes:
     pv = (*kv - u1) / uTot;
   }
 
-  if(cv1->dir) pv = 1. - pv;
+  if(cv1->dir) pv = 1. - pv;   // removed 2017-02-15
 
-  // printf("UT3D_par1_parbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
+    printf("ex UT3D_par1_parbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
 
   return (pv);
 
@@ -2800,7 +2802,7 @@ Returncode:
 
   int  pNr;
 
-  UT3D_ptNr_bsplTol (&pNr, cvbs, tol);
+  UT3D_ptNr_bsp (&pNr, cvbs, tol);
 
   *du =  (cvbs->v1 - cvbs->v0) / pNr;
 
@@ -2809,12 +2811,90 @@ Returncode:
 }
 
 
+//================================================================
+  int UT3D_ptNr_bsp (int *iu, CurvBSpl *bsp, double tol1) {
+//================================================================
+/// \code
+/// UT3D_ptNr_rbsp     estimate nr of polygonPoints for B-spline
+/// see also UT3D_ptNr_rbsp SUSbsp_ck_tol
+/// \endcode
+
+  int    i2, i3, ip;
+  double ao, a1, d1, d2;
+  Vector vc1, vc2;
+
+
+  // UT3D_stru_dump (Typ_CVBSP, bsp, "UT3D_ptNr_bsp:\n");
+
+
+  if(bsp->ptNr < 3) {*iu = 2; return 0;}
+
+  if(bsp->deg == 1) { *iu = bsp->ptNr; return 0;}
+
+
+  //===============================================================
+  // Toleranz voff: loop durch Kurve, max. Abweichung pro Laenge suchen
+
+  *iu = 0;
+  tol1 /= 8.;
+
+  // degree
+  d1 = bsp->deg - 1.;     // printf(" _ptNr_bsp-d1=%f\n",d1);
+  tol1 /= d1;
+
+
+
+  // printf("------------ %d\n",i3);
+  // aTot = 0.;
+  // dTot = 0.;
+  i3 = 2;
+  d2 = UT3D_len_2pt (&bsp->cpTab[0], &bsp->cpTab[1]);
+
+  // startvector
+  UT3D_vc_2pt (&vc2, &bsp->cpTab[0], &bsp->cpTab[1]);
+
+  for(i3=2; i3<bsp->ptNr; ++i3) {
+      // UT3D_stru_dump(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
+      // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
+    d1 = d2;
+    vc1 = vc2;
+    UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
+
+    // opening-angle
+    ao = UT3D_angr_2vc__ (&vc1, &vc2);
+    // ao *= (1. / bsp->wTab[i3]);
+    // aTot += ao;
+
+    // dist
+    d2 = UT3D_len_2pt (&bsp->cpTab[i3-1], &bsp->cpTab[i3]);
+
+    // get angle for rad = d1 + d2
+    a1 = UT2D_angr_ciSec (tol1, (d1 + d2));
+
+    ip = ao / a1;
+    *iu += ip + 2;
+
+      // printf(" %d ao=%f d2=%f ip=%d\n",i3,UT_DEGREES(ao),d2,ip);
+  }
+
+
+  if(*iu < 2) *iu = 2;
+
+  // printf("ex UT3D_ptNr_bsp %d\n",*iu);
+
+
+  return 0;
+
+}
+
+/* old Version; replaced by UT3D_ptNr_bsp
 //===================================================================
   int UT3D_ptNr_bsplTol (int *iu, CurvBSpl *bsp, double tol1) {
 //===================================================================
+// UT3D_ptNr_bsplTol      estimate nr of polygonPoints for B-spline
 // Anzahl von Polygonpunkten fuer bestimmte Toleranz ermitteln
 // Wird fuer SRU benutzt, muss also mit hoeherer Kurvelaenge steigen !
-// siehe auch SUSbsp_ck_tol
+// see also UT3D_ptNr_rbsp SUSbsp_ck_tol
 
 
   int    i2, i3;
@@ -2825,7 +2905,10 @@ Returncode:
   // printf("UT3D_ptNr_bsplTol v0=%f v1=%f tol=%f\n",bsp->v0,bsp->v1,tol1);
   // UT3D_stru_dump (Typ_CVBSP, bsp, "  ");
 
-  if(bsp->deg == 1) return bsp->ptNr;
+  if((bsp->deg == 1) ||(bsp->ptNr < 3)) {
+    *iu = bsp->ptNr;
+    return 0;
+  }
 
 
   //===============================================================
@@ -2881,7 +2964,7 @@ Returncode:
   return 0;
 
 }
-
+*/
 
 //============================================================================
   int bspl_bsp_ptn (CurvBSpl *cvo,Memspc *memSeg1,Point *pTab,int pNr,int deg) {
@@ -3194,10 +3277,11 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
 /// see also bspl_cv_bsp (fixed pointNr)
 /// \endcode
 
-
 // tol (typ. 0.003) kleinste Strecke zur Berechnung der Abweichung
 // Die Anzahl von Polygonsegment entspricht der Toleranz (NUR OUT !!)
 
+// TODO: extract v0<v1 (reverse points afterwards;
+//       extract adding points outside v0-v1
 
 
 #define AUXTABSIZ 200
@@ -3325,7 +3409,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
 
   // testen ob kve innerhalb Bereich liegt
   iout = UTP_db_ck_in2db (kve, u1, u2);
-    // printf(" iout=%d\n",iout);
+    // printf(" iout=%d kve=%lf u1=%lf u2=%lf\n",iout,kve,u1,u2);
   if(iout != 0) {
     if(idir > 0) kve = u2;
     else         kve = u1;
@@ -3387,7 +3471,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   //---------- TEST display stack
   // for(i1=0;i1<ptStackNr;++i1) {
     // printf(" uStack[%d]=%f\n",i1,uStack[i1]);
-    // // GR_Disp_pt (&ptStack[i1], SYM_STAR_S, 2);
+    // GR_Disp_pt (&ptStack[i1], SYM_STAR_S, 2);
   // }
   //---------- TEST display stack
 
@@ -3415,12 +3499,11 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
 
   // u-Mittelwert errechnen
   pVal = (us + ue) / 2.0;
-
-  // printf("next pVal=%f us=%f ue=%f ptStackNr=%d\n",pVal,us,ue,ptStackNr);
+    // printf("next pVal=%f us=%f ue=%f ptStackNr=%d\n",pVal,us,ue,ptStackNr);
 
   // den Punkt dazu holen (Zwischenpunkt)
   irc = bspl_eval_Pt (ianz, ideg, ptCrv, vTab, pVal, &pt1);
-  // printf(" irc=%d pt1=%f %f %f\n",irc,pt1.x,pt1.y,pt1.z);
+    // printf(" irc=%d pt1=%f %f %f\n",irc,pt1.x,pt1.y,pt1.z);
   if(irc < 0) return irc;
 
 
@@ -3493,13 +3576,17 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
 
   //-------------------------------------------
   L_fertig:
+    // printf(" L_fertig: iout=%d\n",iout);
+
+  if(ptOut < 2) {
+    pTab[ptOut] = ptStack[0];
+    ++ptOut;
+  }
 
   // wenn v1 outside Curve: add Point.
   if(iout == 0) goto L_exit;
-
   d1 = cv1->v1 - kve;
-
-  // get Endpt CV
+  // get Endpt CV outside curve
   bspl_eval_expPt (&pTab[ptOut], cv1, kve, d1);
   ++ptOut;
 

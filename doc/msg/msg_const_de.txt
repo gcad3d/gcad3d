@@ -1,47 +1,39 @@
-# new words: add ID-s in xa_msg.h
- Ja 
-Abbrechen
-Speichern
-Einfügen
-Löschen
-#5
-Ändern
-Fertig
-Hilfe
-Länge
-aktivieren
-#10
-verschieben
-Editieren
-umbenennen
-subModell erzeugen
-anzeigen
-#15
-ausblenden
-schattieren
-analysieren
-Punkte verschieben
-wiederherstellen
-#20
-Filtertext
-Textur
-Öffnen
-Gruppe auflösen
-Gruppe ausblenden
-#25
-Gruppe löschen
-zur Gruppe zufügen
-aus Gruppe entfernen
-alle dieses Typs aus Gruppe entfernen
-alle anderen Typen aus Gruppe entfernen
-#30
-update
-alle
- Nein
-Fehler
-in Eingabefeld kopieren
-#35
-suche Eltern-Objekte
-suche Kind-Objekte
-Objektname ändern
+MSG_ok= Ja 
+MSG_cancel=Abbrechen
+MSG_save=Speichern
+MSG_insert=Einfügen
+MSG_delete=Löschen
+MSG_modify=Ändern
+MSG_exit=Fertig
+MSG_help=Hilfe
+MSG_length=Länge
+MSG_activate=aktivieren
+MSG_move=verschieben
+MSG_edit=Editieren
+MSG_rename=umbenennen
+MSG_CreSubModel=subModell erzeugen
+MSG_show=anzeigen
+MSG_hide=ausblenden
+MSG_shade=schattieren
+MSG_inspect=analysieren
+MSG_movPoints=Punkte verschieben
+MSG_undo=wiederherstellen
+MSG_filter=Filtertext
+MSG_texture=Textur
+MSG_open=Öffnen
+MSG_GrpClear=Gruppe auflösen
+MSG_GrpHide=Gruppe ausblenden
+MSG_GrpDelA=Gruppe löschen
+MSG_GrpAdd1=zur Gruppe zufügen
+MSG_GrpRem1=aus Gruppe entfernen
+MSG_GrpRemTyp=alle dieses Typs aus Gruppe entfernen
+MSG_GrpRemOTs=alle anderen Typen aus Gruppe entfernen
+MSG_upd=update
+MSG_all=alle
+MSG_no= Nein
+MSG_Error=Fehler
+MSG_cpyMdl=in Eingabefeld kopieren
+MSG_getPar=suche Eltern-Objekte
+MSG_getChd=suche Kind-Objekte
+MSG_modNam=Objektname ändern
 #EOF

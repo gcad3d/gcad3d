@@ -1,5 +1,5 @@
 /*
-2001-05-04 DL_GetTyp,DL_GetInd,DL_GetTrInd zu.
+2001-05-04 DL_GetTyp,DL_get_dbi,DL_GetTrInd zu.
 */
 
 
@@ -44,7 +44,7 @@ int  DL_ReScale__    ();
 // int  DL_save_DYNAMIC_AREA ();
 
 int  DL_GetTyp       (long dli);
-long DL_GetInd       (long dli);
+long DL_get_dbi      (long dli);
 long DL_GetTrInd     (long dli);
 // int  DL_Get_GrAtt    (GR_Att* att1, long Ind);
 // DL_Att DL_GetAtt     (long dli);

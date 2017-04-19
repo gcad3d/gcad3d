@@ -1,4 +1,4 @@
-// ut_ccv.c                   RF                     2003-08-11
+// ut_cvtrm.c                   RF                     2003-08-11
 /*
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -24,41 +24,48 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void CVTRM(){}
+#endif
 /*!
-\file  ../ut/ut_ccv.c
-\brief CCV = Contour functions 
+\file  ../ut/ut_cvtrm.c
+\brief CVTRM = trimmed-curve functions 
 \code
 =====================================================
 List_functions_start:
 
-// UT3D_ccv_contour           create Obj CCV from contours
-UT3D_vcn_ccv               Normalvector an (planare) Curve
+CVTRM_ck_cyc               check if trimmed-curve passes tru end-startpoint
+
+CVTRM__dbo                 create trimmedCurve from DB-lFig
+CVTRM__plg_2par            create trimmed-curve from polygon and parameters
+CVTRM__plg_iseg            get trimmed-curve from segment of polygon
 
 UT3D_obj_ccv_segnr         get obj (typ,data) from segment of CCV.
-UT3D_pt_ccv_segnr_par1     get point from segment-nr and parameter on CCV
+
+CVTRM_basCv_trmCv          get basic-curve of trimmed-curve (typ,dbi,obj)
+CVTRM__basCv__             get updated trimmedCurve (direct ref to basic-curve)
+CVTRM_basCv_trmCv_con      get trimmedCurve of parent-trimmedCurve
+CVTRM_par1_con             translate parameters from child-curve to parent-curve
+
+CVTRM_parent_ccv  DO NOT USE    get parent of a trimmedCurve    
+
+// UT3D_seg_objSel            Segmentnummer am Polygon liefern
+// UT3D_seg_dboSel            Segmentnummer am Polygon liefern
+// UT3D_segpar_dboSel         den selektieren Punkt am obj feststellen
+// UT3D_segpar_ccvSel         give segmentnr & parameter for point on ccv
+// UT3D_ccv_contour           create Obj CCV from contours
 // UT3D_ln_ccv_pt             make line from trimmed-curve and previous curve
-
-UT3D_segpar_ccvSel         give segmentnr & parameter for point on ccv
-
-UT3D_seg_objSel            Segmentnummer am Polygon liefern
-UT3D_seg_dboSel            Segmentnummer am Polygon liefern
-UT3D_segpar_dboSel         den selektieren Punkt am obj feststellen
-UT3D_segpar_iSeg           get segNr iSeg from iTab
-
 // UT3D_pt_segparccv          Punkt <-- segNr und Paramter auf CCV
-UT3D_obj_segccv            get ObjGX from segNr in CCV
+// UT3D_obj_segccv            get ObjGX from segNr in CCV
 // UT3D_crv_segccv            get ObjGX + data from segment in CCV
 // UT3D_stru_segccv           copy struct(LN/AC)  <-- segNr in CCV
-
-UT3D_segpar_iTab           intern
-
-UT3D_pt_segparlna          point <-- segNr & parameter on lines[] (Typ_CVLNA)
 
 List_functions_end:
 =====================================================
 - see also:
+UT3D_pt_ccv_segnr_par1     get point from segment-nr and parameter on CCV
+UT3D_vcn_cvtrm             Normalvector for trimmed-curve
 UTO_cv_cvtrm               change trimmedCurve into standardCurve
-APT_decode_cvco_add        process next obj (add obj's to output)
 \endcode *//*----------------------------------------
 
 
@@ -90,6 +97,12 @@ SUStess_ck_srot_
 
 
 ?
+
+==============================================================
+ccv = trimmed-curve = struct CurvCCV  type = Typ_CVTRM
+
+newCC = UT3D_CCV_NUL;      // create empty CurvCCV
+
  v0, v1: jedes Element liegt in Zahlenbereich 0-1 und hat ganzzahligen
   Offset. 0-1 ist Objekt 1, 1-2 ist Objekt 2 usw. 2.5 ist also in der Mitte des
   Objekts Nr. 3.
@@ -113,15 +126,160 @@ SUStess_ck_srot_
 
 
 
-#include "../ut/ut_geo.h"
 #include "../ut/ut_cast.h"                // INT_PTR
-
-#include "../ut/func_types.h"               // UI_Func... SYM_..
+#include "../ut/ut_geo.h"
+#include "../ut/ut_geo_const.h"           // UT3D_CCV_NUL
+#include "../ut/func_types.h"             // UI_Func... SYM_..
+#include "../ut/ut_plg.h"                 // UT3D_par1_parplg
 
 #include "../db/ut_DB.h"               // DB_GetCurv
 
 #include "../xa/xa_mem.h"              // memspc55
 
+
+
+
+
+
+
+
+//=========================================================================
+  int CVTRM__plg_2par (CurvCCV *cvo, 
+                       double *kv0, double *kv1, long dbi, CurvPoly *plg) {
+//=========================================================================
+/// \code
+/// CVTRM__plg_2par         get trimmed-curve from polygon and parameters
+/// Input:
+///   kv0,kv1  knotvalues v0,v1
+///   dbi      DB-index of plgi
+///   plgi     polygon | NULL
+/// Output:
+///   cvo      single trimmed-curve 
+/// see CVTRM__plg_iseg
+/// \endcode
+  
+  
+  // UT3D_stru_dump (Typ_CVPOL,  plg, " CVTRM__plg_2par");
+  
+  *cvo = UT3D_CCV_NUL;      // copy empty CurvCCV
+
+  cvo->typ = Typ_CVPOL;
+  cvo->dbi = dbi;
+
+
+  // parameters -> par-0-1
+  cvo->v0 = UT3D_par1_parplg (kv0, plg);
+  cvo->v1 = UT3D_par1_parplg (kv1, plg);
+
+    // UT3D_stru_dump (Typ_CVTRM, cvo, " ex CVTRM__plg_iseg");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int CVTRM_basCv_trmCv (int *pTyp, long *pDbi, void **basCv,
+                         CurvCCV *tcv) {
+//================================================================
+// CVTRM_basCv_trmCv    get basic-curve of trimmed-curve (typ,dbi,obj)
+// retCod    0   OK
+//          -1   no DB-object exists (eg connection-line in contour)
+
+  int      oNr, cTyp;    // p=parent, c=child
+  void     *obj;
+
+
+  // UT3D_stru_dump (Typ_CVTRM, tcv, " CVTRM_basCv_trmCv");
+
+
+  L_nxt:
+  *pTyp = tcv->typ;
+  *pDbi = tcv->dbi;
+
+  if(!*pDbi) return -1;
+
+
+  // get typ/dbi of parent of tcv
+  *pTyp = DB_GetObjDat (&obj, &oNr, *pTyp, *pDbi);
+    // printf(" pTyp=%d\n",*pTyp);
+
+  if(*pTyp == Typ_CVTRM) {
+    tcv = obj;
+    goto L_nxt;
+  }
+
+  *basCv = obj;
+
+    // printf(" ex _basCv_trmCv pTyp=%d pDbi=%ld\n",*pTyp,*pDbi);
+    // UT3D_stru_dump (*pTyp, *basCv, " ex _basCv_trmCv");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int CVTRM_ck_cyc (CurvCCV *cvt) {
+//================================================================
+/// \code
+/// CVTRM_ck_cyc            check if trimmed-curve passes tru end-startpoint
+///
+/// retCod:   0 = yes,cyclic; curve is passing tru endpoint/startpoint
+///           1 = no, curve does not pass tru endpoint/startpoint 
+///                 (but can start at startpoint or end at endpoint)
+/// see UTO_cv_ck_dir_clo INF_struct_closed
+/// \endcode
+
+  int cyc = 1;
+
+
+  // UT3D_stru_dump (Typ_CVTRM, cvt, " CVTRM_ck_cyc");
+
+
+  switch (cvt->typ) {
+
+    //----------------------------------------------------------------
+    case Typ_CI:       // Circ
+    case Typ_CVELL:    // CurvElli
+      // parameters are increasing for CCW-circs and also for CW-circs.
+      // circ                 if(v0 >= v1) cyc=yes; (for CW AND CCW)
+      // dir = difference of dirBas - dirtcv;
+      if(!cvt->dir) {
+        // fwd=CCW
+        if(cvt->v0 >= cvt->v1) cyc = 0;    // yes,cyclic
+      } else {
+        // bwd=CW
+        if(cvt->v1 >= cvt->v0) cyc = 0;    // yes,cyclic
+      }
+      break;
+
+
+    //----------------------------------------------------------------
+    case Typ_CVPOL:    // CurvPoly
+    case Typ_CVBSP:    // CurvBSpl
+    case Typ_CVRBSP:    // CurvRBSpl
+      // bspl: parameters are increasing OR descending (if (dir==1, bwd))
+      if(!cvt->dir) {
+        if(cvt->v0 >= cvt->v1) cyc = 0;    // fwd; yes,cyclic
+      } else { 
+        if(cvt->v1 >= cvt->v0) cyc = 0;    // bwd; yes,cyclic
+      }
+      break;
+
+
+    //----------------------------------------------------------------
+    default:
+      printf("***** UTO_cv_ck_cyc I001 %d\n",cvt->typ);
+
+  }
+
+    // printf("ex UTO_cv_ck_cyc %d\n",cyc);
+
+
+  return cyc;
+
+}
 
 
 /*
@@ -142,8 +300,8 @@ SUStess_ck_srot_
 
 
   //------------------------------------------------
-  ocv->typ   = Typ_CVCCV;
-  ocv->form  = Typ_CVCCV;
+  ocv->typ   = Typ_CVTRM;
+  ocv->form  = Typ_CVTRM;
   ocv->siz   = 1;
   ocv->data  = ccv;
 
@@ -161,7 +319,7 @@ SUStess_ck_srot_
 /// UT3D_obj_ccv_segnr             get obj (typ,data) from segment of CCV.
 /// Returns only curves; points are returned as lines.
 /// Input:
-///   cv1    ObjGX with typ=Typ_CVCCV
+///   cv1    ObjGX with typ=Typ_CVTRM
 ///   is     subCurve-nr; 0=first.
 /// Output:
 ///   typ
@@ -176,7 +334,7 @@ SUStess_ck_srot_
   // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparccv: ");
 
 
-  if(cv1->form != Typ_CVCCV) {
+  if(cv1->form != Typ_CVTRM) {
     TX_Error("UT3D_obj_ccv_segnr EI_%d_%d",cv1->typ,cv1->form);
     return -1;
   }
@@ -190,7 +348,7 @@ SUStess_ck_srot_
   // get segment nr <is> as curve-data (change point -> line)
   cca = (CurvCCV*)cv1->data;
   cc1 = &cca[is];
-    // UT3D_stru_dump (Typ_CVCCV, cc1, " cc1: ");
+    // UT3D_stru_dump (Typ_CVTRM, cc1, " cc1: ");
 
 /*
   //----------------------------------------------------------------
@@ -429,7 +587,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
     // create polygon for obj
-    irc = UT3D_npt_ox (&ptNr, pTab, cv1, UT_DISP_cv*2.);
+    irc = UT3D_npt_ox__ (&ptNr, pTab, cv1, UT_DISP_cv*2.);
     if(irc < 0) return -1;
     // iTab besetzen.
     iTab[0] = 0;
@@ -654,10 +812,10 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // das Polygon der curve erzeugen.
-  } else if((typ == Typ_CV)&&(oxi.typ == Typ_CVCCV)) {
+  } else if((typ == Typ_CV)&&(oxi.typ == Typ_CVTRM)) {
     // das Polygon der selektierten CCV holen UND segmnetIndexTable iTab !
     iNr = iTabSiz;
-    UT3D_pta_ccv (&ptNr, pTab, &oxi, iNr, iTab, UT_DISP_cv*2.);
+    UT3D_pta_ox_lim (&ptNr, pTab, &oxi, iNr, iTab, UT_DISP_cv*2.);
       // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
       // i1=0;while(iTab[i1] >= 0) {printf(" XsY[%d] %d\n",i1,iTab[i1]);++i1;}
 
@@ -688,7 +846,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   } else {
     // create polygon for obj
-    irc = UT3D_npt_ox (&ptNr, pTab, &oxi, UT_DISP_cv*2.);
+    irc = UT3D_npt_ox__ (&ptNr, pTab, &oxi, UT_DISP_cv*2.);
     if(irc < 0) return -1;
     sTyp = Typ_LN;
 
@@ -715,7 +873,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   //----------------------------------------------------------------
-  if(typ != Typ_CVCCV) goto L_not_CCV;
+  if(typ != Typ_CVTRM) goto L_not_CCV;
   //----------------------------------------------------------------
   // handle CCV.
 
@@ -754,7 +912,7 @@ REPLACED by UT3D_obj_ccv_segnr
     // printf(" CCV-l0: typ=%d sTyp=%d is=%d,%d\n",typ,sTyp,is[0],is[1]);
 
   // // get ps=parameter of point spt on curve
-  // irc = UTO_parpt_pt_obj (ps, &spt, ox1.form, ox1.data);
+  // irc = UTO_par1_pt_pt_obj (ps, &spt, ox1.form, ox1.data);
     // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
   // if(irc < 0) return -1;
   // goto L_done;
@@ -779,7 +937,7 @@ REPLACED by UT3D_obj_ccv_segnr
   // Polygon in CCV selected
   if(sTyp == Typ_CVPOL) {
 
-    irc = UTO_parpt_pt_obj (ps, &spt, sTyp, ox1.data);
+    irc = UTO_par1_pt_pt_obj (ps, &spt, sTyp, ox1.data);
       // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
     if(irc < 0) return -1;
 
@@ -925,7 +1083,7 @@ REPLACED by UT3D_obj_ccv_segnr
   //----------------------------------------------------------------
   L_noCCV2:
   // get ps=parameter of point spt on curve
-  irc = UTO_parpt_pt_obj (ps, &spt, oxi.form, oxi.data);
+  irc = UTO_par1_pt_pt_obj (ps, &spt, oxi.form, oxi.data);
     // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
 
 
@@ -944,44 +1102,6 @@ REPLACED by UT3D_obj_ccv_segnr
     // exit(0);
 
   return sTyp;
-
-}
-*/
-
-//============================================================================
-  int UT3D_segpar_iTab (int *iNr, int typ, int *iTab, int tabSiz, int ptNr) {
-//============================================================================
-
-  int  i1;
-
-  // printf("UT3D_segpar_iTab %d\n",ptNr);
-
-  // iTab besetzen.
-  if(typ == Typ_CVPOL) {
-/*
-    if(tabSiz <= ptNr) {
-      TX_Print("UT3D_segpar_iTab EOM");
-      goto L_simple;
-    }
-    for(i1=0; i1<ptNr-1; ++i1) iTab[i1] = i1+1;
-    iTab[ptNr] = -1;
-    *iNr = ptNr;
-*/
-    *iNr = -1;
-    return 0;
-  }
-
-
-  L_simple:
-/*
-    iTab[0] = ptNr - 1;
-    iTab[1] = -1;
-    *iNr = 1;
-*/
-    *iNr = -2;
-
-
-  return 0;
 
 }
 
@@ -1010,7 +1130,6 @@ REPLACED by UT3D_obj_ccv_segnr
 }
  
 
-/*
 //==================================================================
   int UT3D_segpar_ccvSel (int *is, double *ps, ObjGX *cv1) {
 //==================================================================
@@ -1038,7 +1157,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   // das Polygon der selektierten CCV holen UND segmnetIndexTable iTab !
   iNr = iTabSiz;
-  UT3D_pta_ccv (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
+  UT3D_pta_ox_lim (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
     // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
     // i1=0;while(iTab[i1] >= 0) {printf(" [%d] %d\n",i1,iTab[i1]);++i1;}
 
@@ -1106,7 +1225,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   iNr = iTabSiz;
-  UT3D_pta_ccv (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
+  UT3D_pta_ox_lim (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
     // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
     // i1=0;while(iTab[i1] >= 0) {printf(" [%d] %d\n",i1,iTab[i1]);++i1;}
 
@@ -1154,7 +1273,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   // get Parameter from object
   if(oTyp == Typ_PT) d1 = 0.;
-  else UTO_parpt_pt_obj (&d1, p1, oTyp, od);
+  else UTO_par1_pt_pt_obj (&d1, p1, oTyp, od);
 
   if(fabs(d1-1.) < UT_TOL_min0) d1 = 1.;
 
@@ -1173,39 +1292,6 @@ REPLACED by UT3D_obj_ccv_segnr
 */
 
       
-      
-//====================================================================
-  int UT3D_pt_segparlna (Point *p1, int is, double ps, ObjGX *cv1) {
-//====================================================================
-// UT3D_pt_segparlna      point <-- segNr & parameter on lines[] (Typ_CVLNA)
-
-// see UTO_pt_par1_dbo
-// see UT3D_obj_segccv
-        
-  int      irc, typ;
-  void     *data;
-  Point    *pa, *pe, pta;
-  Line     *ln1;
-  ObjGX    ox1;
-
-    
-  // printf("UT3D_pt_segparlna %d %f\n",is,ps);
-  // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparlna: ");
-  // UTO_dump__ (cv1, " _pt_segparlna: "); 
-
-
-  // get line <is> out of curve
-  if(is < 0) return -1;
-  if(is >= cv1->siz) return -1;
-  ln1 = &((Line*)cv1->data)[is];
-    // UT3D_stru_dump (Typ_LN, ln1, " _pt_segparlna ln1:");
-
-
-  // create paraemetric point on ln1
-  return UT3D_pt_evpar2pt (p1, ps, &ln1->p1, &ln1->p2);
-
-}
-
 /* UNUSED ?
 //================================================================
   int UT3D_2pt_ccv1_lim (Point *ps, Point *pe, CurvCCV *ccv) {
@@ -1224,7 +1310,7 @@ REPLACED by UT3D_obj_ccv_segnr
   char      cvo[OBJ_SIZ_MAX];
 
 
-  UT3D_stru_dump (Typ_CVCCV, ccv, "UT3D_2pt_ccv1_lim: ");
+  UT3D_stru_dump (Typ_CVTRM, ccv, "UT3D_2pt_ccv1_lim: ");
 
 
   //----------------------------------------------------------------
@@ -1362,15 +1448,15 @@ REPLACED by UT3D_obj_ccv_segnr
 */
 
 //=======================================================================
-  int UT3D_vcn_ccv (Vector *vco, Point *pto, ObjGX *oi, Memspc *wrkSpc) {
+  int UT3D_vcn_cvtrm (Vector *vco, Point *pto, ObjGX *oi, Memspc *wrkSpc) {
 //=======================================================================
-// UT3D_vcn_ccv         Normalvector an (planare) CCV
+// UT3D_vcn_cvtrm         Normalvector an (planare) CCV
 // Liefert auch den ersten Punkt der Kontur !
 // Wenn CCV geschlossen: vco zeigt nach innen !!
 // see also UT3D_ptvc_sus (Normalvec) braucht SurStd* !!
 // see also APT_DrawCurv
 // see also UT3D_pta_sus  braucht SurStd* !
-// see also UT3D_npt_ox
+// see also UT3D_npt_ox__
 
 
   int    irc, ptNr, ibp, isr;
@@ -1378,15 +1464,15 @@ REPLACED by UT3D_obj_ccv_segnr
   Plane  pl1;
 
 
-  // UTO_dump__(oi, "UT3D_vcn_ccv:");
+  // UTO_dump__(oi, "UT3D_vcn_cvtrm:");
 
 
-  if(oi->typ != Typ_CVCCV) return -1;
+  if(oi->typ != Typ_CVTRM) return -1;
 
   // CCV -> 3D-Polygon umwandeln
   ptTab = (Point*)wrkSpc->start;
   ptNr  = UME_ck_free(wrkSpc) / sizeof(Point);
-  irc = UT3D_npt_ox (&ptNr, ptTab, oi, UT_DISP_cv);
+  irc = UT3D_npt_ox__ (&ptNr, ptTab, oi, UT_DISP_cv);
   // printf(" irc=%d ptNr=%d\n",irc,ptNr);
   if(irc < 0) return irc;
 
@@ -1408,6 +1494,335 @@ REPLACED by UT3D_obj_ccv_segnr
 
 }
 
+
+//==============================================================================
+  int CVTRM_basCv_trmCv_con (CurvCCV *cv2, CurvCCV *cv1, int form, void *cvBas) {
+//==============================================================================
+/// \code
+/// make cv2 = combined curve of cv2 on cv1 on basicCurve 
+/// Input:
+///   form,cvBas
+///   cv1              v0,v1 of cv1 refers to cvBas
+///   cv2              v0,v1 of cv2 refers to cv1
+/// Output:
+///   cv2              v0,v1 of cv2 refers to cvBas
+/// \endcode
+
+  int      dirb, dir1, cyc;
+  double   ang1, v0, v1, dd;
+
+
+  // UT3D_stru_dump (form, cvBas, "CVTRM_basCv_trmCv_con");
+  // UT3D_stru_dump (Typ_CVTRM, cv1, " _trmCv_con-1");
+  // UT3D_stru_dump (Typ_CVTRM, cv2, " _trmCv_con-2");
+
+
+  //----------------------------------------------------------------
+  // Line
+  if(form != Typ_LN) goto L_circ;
+  // translate parameters from child-curve cv2 to parent-curve cv1
+  CVTRM_par1_con (&cv2->v0, &cv2->v1, &cv1->v0, &cv1->v1, 0);
+  goto L_exit;
+
+
+
+  //----------------------------------------------------------------
+  // Circ
+  L_circ:
+  if(form != Typ_CI) goto L_bspl;
+
+  // set dir
+  cv2->dir = I_XOR_2I (cv1->dir,cv2->dir);
+
+  cyc = CVTRM_ck_cyc (cv1);
+
+  // translate parameters from child-curve cv2 to parent-curve cv1
+  CVTRM_par1_con (&cv2->v0, &cv2->v1, &cv1->v0, &cv1->v1, cv1->dir, cyc);
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_bspl:
+  if(form != Typ_CVBSP) goto L_elli;
+  // B-spline: keep v0,v1; combine dir = XOR dir,dir2.
+  cv2->dir = I_XOR_2I (cv1->dir,cv2->dir);
+  goto L_exit;
+
+
+
+  //----------------------------------------------------------------
+  L_elli:
+
+  // set dir
+  cv2->dir = I_XOR_2I (cv1->dir,cv2->dir);
+
+  cyc = CVTRM_ck_cyc (cv1);
+
+  // translate parameters from child-curve cv2 to parent-curve cv1
+  CVTRM_par1_con (&cv2->v0, &cv2->v1, &cv1->v0, &cv1->v1, cv1->dir, cyc);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // UT3D_stru_dump (Typ_CVTRM, cv2, " ex  _trmCv_con");
+
+  return 0;
+
+}
+
+ 
+//========================================================================
+  int CVTRM__basCv__ (CurvCCV *cv2, void **data, CurvCCV *cv1) {
+//========================================================================
+// get basicCurve of trimmedCurve  (fix parameters if necessary)
+// if basic-curve of ccv1 is also trimmedCurve: modify in cv1:
+// - get type and dbi of basicCurve (cv1.typ and cv1.dbi)
+// - get v0 and v1 of trimmedCurve on basicCurve (cv1.v0 and cv1.v1)
+//
+// Input:
+//   cv1       trimmedCurve
+// Output:
+//   cv2       trimmedCurve; typ, dbi, v0, v1 updated (to fix to basicCurve)
+//   data      basicCurve of type cv2.typ
+//
+// TODO: CCV in CCV sollte recursiv aufgelöst werden !
+
+  int      form, oNr, iNr, i1, typ;
+  long     dbi;
+  double   ang1, ang2;
+  Circ     *ci1;
+  CurvCCV  cca[10];
+
+
+  // printf("CVTRM__basCv__ typ=%d dbi=%ld v0i=%lf v1i=%lf\n",
+          // cv1->typ,cv1->dbi,cv1->v0,cv1->v1);
+
+
+  // store all CCVS in cca, if basCurve is found: stop and keep in data.
+  cca[0] = *cv1;
+  iNr = 1;
+
+
+  // get parent of cv1
+  L_res_nxt:
+  typ = cca[iNr - 1].typ;
+  dbi = cca[iNr - 1].dbi;
+  form = DB_GetObjDat (data, &oNr, typ, dbi);
+    // printf(" form1=%d oNr=%d\n",form,oNr);
+    // UT3D_stru_dump (form, *data, " _basCv-1");
+
+
+  // resolv trimmed-curve
+  if(form == Typ_CVTRM) {
+    // store -> cca
+    if(iNr >= 10) {TX_Error("CVTRM__basCv__ E001"); return -1;}
+    cca[iNr] = *(CurvCCV*)*data;   // copy trimmed-curve
+    ++iNr;
+    goto L_res_nxt;
+  }
+
+
+  //----------------------------------------------------------------
+  // data = basCurve; cca has <iNr> trimmed-curves
+  if(iNr < 2) goto L_exit;
+
+  // fix parameters.
+  // for CurvBSpl & CurvPoly parameters do not change; 
+  // for Circ & Ellipse parameters must be fixed
+
+  i1 = iNr - 1;
+  for (;;) {
+    // work (1 < 2), then (0 < 1)
+    CVTRM_basCv_trmCv_con (&cca[i1 - 1], &cca[i1], form, *data);
+    --i1;
+    if(i1 <= 0) break;
+  }
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  // *cv2 = cca[iNr - 1];
+  *cv2 = cca[0];
+
+  // keep points !
+  cv2->ip0 = cv1->ip0;
+  cv2->ip1 = cv1->ip1;
+  // set typ,dbi
+  cv2->typ = form; // cca[iNr - 1].typ;
+  cv2->dbi = dbi;  // cca[iNr - 1].dbi;
+
+
+    // TESTBLOCK
+    // printf("ex CVTRM__basCv__ iNr=%d\n",iNr);
+    // UT3D_stru_dump (Typ_CVTRM, cv2, " _trmCv__-cv2");
+    // UT3D_stru_dump (form, *data, " _trmCv__-data");
+    // TESTBLOCK
+
+  return 0;
+
+}
+
+
+//=========================================================================
+  int CVTRM_par1_con (double *ov0, double *ov1,
+                      double *iv0, double *iv1, int idir, int icyc) {
+//=========================================================================
+/// \code
+/// CVTRM_par1_con    translate parameters from child-curve to parent-curve
+/// Input:
+///   ov0, ov1   parameters of child-curve; curve is part of parent-curve iv0-iv1 
+///   iv0, iv1   parameters of parent-curve 
+///   idir       0=same dir as parent-curve; 1=not,revers
+///   icyc       0=child-curve_is_cyclic (passes tru start-endPoint); 1=not
+/// Output:
+///   ov0, ov1 = parameters of child-curve on parent-curve iv0-iv1
+/// \endcode
+
+  double  dd;
+
+
+  // printf("CVTRM_par1_con dir=%d cyc=%d\n",idir,icyc);
+
+  dd = *iv1 - *iv0;        
+
+  if(!icyc) {
+    // yes, cyclic, passes tru start-endPoint
+    if(!idir) {
+      // fwd
+      // dd -= 1.;    // Circ-?
+      dd += 1.;     // elli-CASE-1
+
+    } else {
+      // bwd
+      dd -= 1.;   // elli-CASE-2
+    }
+  }
+
+
+
+  *ov0 = *iv0 + (*ov0 * dd);
+  *ov1 = *iv0 + (*ov1 * dd);
+
+  // if(*ov1 < 0.) *ov1 += 1.;
+  if(*ov0 < 0.) *ov0 += 1.;        // elli-CASE-2
+  if(*ov1 > 1.) *ov1 -= 1.;        // elli-CASE-1
+
+    // printf("ex CVTRM_par1_con v0=%lf v1=%lf dd=%lf\n",*ov0,*ov1,dd);
+
+  return 0;
+
+}
+ 
+
+//================================================================
+  int CVTRM__dbo (CurvCCV *cvtrm, int typ, long dbi) {
+//================================================================
+/// create trimmedCurve from DB-lFig (copy curve -> trimmedCurve)
+// see UTO_cv_cvtrm               change trimmedCurve into standardCurve
+
+
+  int      form, oNr, dir, clo;
+  void     *obj;
+
+
+  // printf("             %d %ld\n",typ,dbi);
+
+
+  // get baseCurve
+  form = DB_GetObjDat (&obj, &oNr, typ, dbi);
+
+  if(form == Typ_CVTRM) {
+    *cvtrm = *(CurvCCV*)obj;
+    goto L_exit;
+  }
+
+
+  *cvtrm = UT3D_CCV_NUL;
+
+  cvtrm->typ = typ;
+  cvtrm->dbi = dbi;
+
+  // get closed-flag and direction.
+  UTO_cv_ck_dir_clo (&dir, &clo, form, obj);
+  cvtrm->dir = dir;
+  cvtrm->clo = clo;
+
+
+  L_exit:
+
+    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex CVTRM__dbo");
+
+  return 0;
+
+}
+
+
+//========================================================================
+  int CVTRM__plg_iseg (CurvCCV *cvo, int iseg, long dbi, CurvPoly *plgi) {
+//========================================================================
+/// \code
+/// CVTRM__plg_iseg            get segment of polygon
+/// Input:
+///   dbi    DB-index of plgi
+///   plgi   polygon | NULL
+///   iseg   index of segment to extract; 0=first.
+/// Output:
+///   cvo    single trimmed-curve 
+/// see UT3D_2pt_plg_iseg UT3D_obj_ccv_segnr
+/// \endcode
+
+
+  int       irc, typ, oNr;
+  double    kv0, kv1;
+  char      obj[OBJ_SIZ_MAX];
+
+
+  // printf("CVTRM__plg_iseg iseg=%d dbi=%ld\n",iseg,dbi);
+
+
+  if(iseg >= plgi->ptNr) return -1;
+
+  if(!plgi) {
+    irc = DB_GetObjDat  ((void**)&plgi, &oNr, Typ_CV, dbi);
+    if(irc < 0) return -2;
+  }
+    // UT3D_stru_dump (Typ_CVPOL, plgi, " _plg_iseg-plgi");
+
+
+  // get parameters of segment iseg
+  UPLG_2par_iseg (&kv0, &kv1, iseg, plgi);
+
+  // get trimmed-curve from polygon and parameters
+  return CVTRM__plg_2par (cvo, &kv0, &kv1, dbi, plgi);
+
+}
+
+
+//====================================================================
+  int CVTRM_parent_ccv (int *typ, long *dbi, int chdTyp, long chdDbi) {
+//====================================================================
+// DO NOT USE; (use AP_parent_get); 
+// CVTRM_parent_ccv       get parent of a trimmedCurve
+// 
+
+  int     irc, i1, form, oNr;
+  CurvCCV *ccv1;
+
+  form = DB_GetObjDat ((void**)&ccv1, &oNr, chdTyp, chdDbi);
+
+  if(form != Typ_CVTRM) return -1;
+
+  *typ = ccv1->typ;
+  *dbi = ccv1->dbi;
+
+  return 0;
+
+}
+
+
 /* replaced by UT3D_ptvcpar_std_obj
 //=========================================================================
   int UT3D_pt_endptccv (Point *pTab, ObjGX *ccv1) {
@@ -1420,7 +1835,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   printf("UT3D_pt_endptccv \n");
-  UT3D_stru_dump (Typ_CVCCV, ccv1, "ccv1:\n");
+  UT3D_stru_dump (Typ_CVTRM, ccv1, "ccv1:\n");
 
 
 

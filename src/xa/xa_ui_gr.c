@@ -31,32 +31,50 @@ Modifications:
 =====================================================
 List_functions_start:
 
-UI_CB_hide
+UI_GL_move__         callBack mouse-movement
+UI_GL_mouse__        callback mouseButton press | release | scroll
+UI_GL_draw__         Redraw whole scene.
+UI_GR_ButtonM1Release
+
+UI_GL_keys__         callback keypress
+UI_key_mod_set       update modifier-keys (KeyStatShift, KeyStatAlt, KeyStatCtrl)
+UI_key_spcAlt        work keys with Alt
+UI_key_spcCtrl       work keys with Ctrl
+UI_key_spcShAlt      work keys with Alt shift
+UI_key_return        
+UI_key_delete
+UI_key_escape
+UI_key_mod_decode    decode state of modier-keys;
+UI_key_view_decode   update GR_Func_Act & cursorType
+UI_key_view__        do grafic-viewing (check for shift|Ctrl|Alt-key)
+
+UI_TUT_key           ScreenCast-mode: display key
+
+UI_viewCB            change view
 UI_GR_ScalAuto       "butRes"/ScaleFix   & "butRes"/ScaleAll
-UI_GR_view
-UI_GR_Init
-UI_GR_Redraw         Main RedrawFunction
-UI_GR_WinInit
-UI_GR_GLInit
-UI_GR_Draw           When widget is exposed
-UI_GR_Reshape        When glarea widget size changes
-UI_GR_MotionNotify   callBack mouse-movement
-UI_GR_CB_Sel1        CB of Select aus Popup-Men.
+UI_CK_HIDE_VIEW      test if hide or view is active                INLINE
+UI_CB_hide
+UI_GR_expose         Redraw; MS only ..
+
+UI_CursorWait        0=change to wait-cursor, 1=reset cursor
+UI_ChangeCursor
+UI_ResetCursor
+
+UI_CurPos_upd        update label cursor-position
+UI_GR_get_actPos_    return the active cursorPosition as string "<x> <y> <z>"
+UI_GR_get_actPosA    get current curPos in userCoords on constructionPlane
+UI_GR_SelVert        get vertex nearest to cursor
+
 UI_GR_CB_Sel2        CB of MouseOverPopup-Eintrag
 UI_GR_Select1        get objs from GL
 UI_GR_Select2        Popup-Eintrag selektiert
 UI_GR_Select3        hilite obj ..
+AP_parent_get get all parents of a DB-obj
 UI_GR_Sel_Filter
-UI_GR_ButtonPress    Mousebuttons im GrafWin (selection, indicate)
-UI_GR_ButtonRelease
 UI_GR_Destroy
-UI_CursorWait        0=change to wait-cursor, 1=reset cursor
-UI_ChangeCursor
-UI_ResetCursor
 UI_GR_view_set_func  unused
 UI_GR_view_set_Z     ..
 UI_GR_view_set_Z1
-UI_GR_setKeyFocus    set focus to glarea widget
 UI_GR_Indicate
 UI_GR_Select_work_vc selection (only for vector)
 UI_GR_Select_work1   selection
@@ -64,20 +82,16 @@ UI_GR_Select_work2   selection
 UI_GR_selMen_init    create popup-menu for mousebutton-middle
 UI_GR_selMen_cbSel   callback of popup-menu
 
-UI_CK_HIDE_VIEW      test if hide or view is active                INLINE
 
 GR_set_dispTra       inhibit display-transformations; 0=yes, 1=no
 
-UI_GR_get_actPos_    return the active cursorPosition as string "<x> <y> <z>"
 UI_GR_GetdlInd       get zuletzt selektierte DLIndex#
-UI_GR_get_actPosA    get current curPos in userCoords on constructionPlane
-UI_GR_SelVert        get vertex nearest to cursor
-AP_Mousemove2dx      get single value from relative mousemove
 
 AP_UserSelection_get
 AP_UserSelection_reset
 AP_UserMousemove_get
 AP_UserMousemove_reset
+AP_Mousemove2dx      get single value from relative mousemove
 AP_UserSelFunc_get   test if plugin is active
 
 UI_GR_FROM
@@ -86,6 +100,16 @@ UI_KeyFieldWri       unused
 
 List_functions_end:
 =====================================================
+// UI_key_sel_fi
+// UI_GR_setKeyFocus    set focus to glarea widget
+// UI_GR_view
+// UI_GR_Init
+// UI_GR_Redraw         Main RedrawFunction
+// UI_GR_WinInit
+// UI_GR_GLInit
+// UI_GR_Draw           When widget is exposed
+// UI_GR_Reshape        When glarea widget size changes
+// UI_GR_CB_Sel1        CB of Select aus Popup-Men.
 
 \endcode *//*----------------------------------------
 
@@ -105,6 +129,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>                       // isdigit toupper
 
 //#include <GL/gl.h>
 
@@ -152,7 +177,8 @@ cl -c /I ..\include xa_ui_gr.c
 
 //============ Externe Var: =======================================
 // aus xa.c:
-extern AP_STAT   AP_stat;                    // sysStat,errStat..
+extern AP_STAT   AP_stat;              // sysStat,errStat..
+extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main
 
 // extern void *UI_MainWin;
 extern MemObj    UI_curPos;
@@ -329,6 +355,9 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
     AP_stat.sysStat = 2;   
 
+    // setup view-buttons; primary statup
+    GL_DefineView (FUNC_Init);
+
     return 0; // mit diesem event kein enter_notify_event möglich !
 
   }
@@ -377,6 +406,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   int UI_GL_move__ (MemObj *mo, void **data) {
 //================================================================
 /// \code
+/// UI_GL_move__         callBack mouse-movement
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventMove
 ///   GUI_DATA_I1   =*(int*)data[2]=x-val mousepos in screencoords
 ///   GUI_DATA_I2   =*(int*)data[3]=y-val mousepos in screencoords
@@ -385,8 +415,6 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 // was UI_GR_MotionNotify
 
   int    actPosX, actPosY, dx, dy, ikey;
-  char   buf1[128];
-  Point  pt1;
 
 
 
@@ -513,15 +541,8 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   //----------------------------------------------------------------
   L_fertig: // L_weiter:
 
-  //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
-  GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
-
-  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
-
-
-  sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
-    // printf("  UI_curPos formatted %s\n",buf1);
-  GUI_label_mod (&UI_curPos, buf1);
+  // update label cursor-position
+  UI_CurPos_upd ();
 
 
   L_exit:
@@ -535,7 +556,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   int UI_GL_mouse__ (MemObj *mo, void **data) {
 //================================================================
 /// \code
-/// callback mouseButton press | release | scroll
+/// UI_GL_mouse__        callback mouseButton press | release | scroll
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventPress|TYP_EventRelease
 ///   GUI_DATA_I2   =*(int*)data[1]=button; GUI_MouseL|M|R|2L|ScUp|ScDown
 /// \endcode
@@ -2151,7 +2172,6 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
   UI_stat_hide = 1;    // 1=inactive
 
-
   // reactivate functions ..
   UI_func_stat_set__ (APF_TB_CAD,
                       APF_MEN_FIL,
@@ -2170,6 +2190,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
 
   // UI_mBars_off ();     // Menuebar reset
+  sele_setNoParents (0);         // enable selection of parents (unvisible)
   sele_restore ();
   goto L_fertig;
 
@@ -2214,6 +2235,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   sele_save ();
   sele_set__ (Typ_goGeom);       // enable selection of all types
   sele_setNoConstrPln ();        // disable selection of point on ConstrPln
+  sele_setNoParents (1);         // disable selection of parents (unvisible)
 
 
   L_fertig:
@@ -3351,6 +3373,89 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 }
 
 
+//=================================================================
+  int AP_parent_get (int *tabNr, ObjDB *parTab, int tabSiz,
+                     int typ, long dbi) {
+//=================================================================
+/// \code
+/// AP_parent_get              get all parents of a DB-obj
+///   parents can be not uniq
+/// Input:
+///   tabNr       nr of already used records in parTab
+///   typ,dbi     must be trimmedCurve
+/// RetCod:       0=OK; -1 ERROR parTab too small
+/// \endcode
+
+
+  int     irc, i1, form, bTyp, cTyp, oNr;
+  long    bDbi;
+  void    *data, *bObj;
+  CurvCCV *ccv1;
+
+
+  // printf("AP_parent_get typ=%d dbi=%ld\n",typ,dbi);
+
+
+  // Connection-lines in contours do not have DB-records (dbi=0).
+  if(!dbi) return 1;
+
+  
+  cTyp = AP_typ_2_bastyp(typ);
+
+
+  // if(AP_typ_2_bastyp(typ) != Typ_CV) return 0;
+
+
+  // get curve
+  form = DB_GetObjDat (&data, &oNr, cTyp, dbi);
+    // printf(" form1=%d oNr=%d\n",form,oNr);
+    // UT3D_stru_dump (form, data, " _basCv-1"); 
+
+
+  if(form == Typ_CVTRM) {
+
+    // loop tru all all obj's
+    for(i1=0; i1<oNr; ++i1) {
+      ccv1 = &((CurvCCV*)data)[i1];
+
+      // get basic-curve
+      irc = CVTRM_basCv_trmCv (&bTyp, &bDbi, &bObj, ccv1);
+      if(irc < 0) continue;
+
+      // add curve to list. Check uniq later.
+      if(*tabNr >= tabSiz) return -1;
+      parTab[*tabNr].typ   = ccv1->typ;
+      parTab[*tabNr].dbInd = ccv1->dbi;
+      parTab[*tabNr].dlInd = 0;
+      *tabNr += 1;
+    }
+
+  } else {
+    // get parent
+    irc = OPAR_get (&bTyp, &bDbi, cTyp, dbi);
+    if(irc > 0) {
+      if(*tabNr >= tabSiz) return -1;
+      parTab[*tabNr].typ   = bTyp;
+      parTab[*tabNr].dbInd = bDbi;
+      parTab[*tabNr].dlInd = 0;
+      *tabNr += 1;
+    }
+  }
+
+
+
+  // TESTBLOCK
+  // printf("ex AP_parent_get %d\n",*tabNr);
+  // for(i1=0; i1 < *tabNr; ++i1)
+    // printf(" _parTab[%d] %d %ld\n",i1,parTab[i1].typ, parTab[i1].dbInd);
+  // END TESTBLOCK
+
+
+  return 0;
+
+}
+
+
 //====================================================================
   int UI_GR_Select1 (int mode, long *dlInd) {
 //====================================================================
@@ -3387,7 +3492,7 @@ static  int    selNr;
 static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 static  Point  selPos;
 
-  int     irc, iNr, i1, i2, typ, bTyp, reqTyp, *ip1;
+  int     irc, iNr, i1, i2, i3, ii, typ, bTyp, reqTyp, *ip1;
   long    l1, ind, dbi, dli;
   char    *p1, *namPtr[SELTABSIZ + 1];
   char    nam[60];
@@ -3438,6 +3543,7 @@ static  Point  selPos;
       selTab[0].typ   = i1;
       selTab[0].dbInd = 0L;
       selTab[0].dlInd = 0L;
+      selTab[0].stat  = 0;
       APED_oid_dbo_all (namTab[0], i1, 0L, 0L);  // get text from typ and dbi
       goto L_done;
     }
@@ -3503,7 +3609,7 @@ static  Point  selPos;
 
 
 
-  // test for Vertex-request
+  // test for Vertex-request; yes: add to nam, done.
   if(GR_Sel_Filter == 3) {
     if(iNr < 1) return -1;
       printf(" give vertex ..\n");
@@ -3555,7 +3661,11 @@ static  Point  selPos;
     // UI_GR_dump_dlTab (dlTab, iNr);
 
 
-  // Popup-Liste aufbauen. Loop tru dlTab[], size iNr; create selTab, namTab.
+
+  //----------------------------------------------------------------
+  // create Popup-List selTab.
+  // Loop tru dlTab[], size iNr; check if requested (convert);
+  //   add to selTab, namTab.
   selNr = 0;
   for(i1=0; i1<iNr; ++i1) {
       // printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",i1,
@@ -3569,6 +3679,7 @@ static  Point  selPos;
     // test if objTyp is active in reqObjTab; 0; no; elso yes
     // if(sele_ck_typ (dlTab[i1].typ) == 0)  continue;
     if(sele_ck_typ (typ)) {
+        // printf(" _ck_typ-OK\n");
 
       // test ConstrPlane. Temp.points not useful, if ConstrPln not active.
       if(typ == Typ_TmpPT) {                // 2012-01-17
@@ -3582,36 +3693,22 @@ static  Point  selPos;
       selTab[selNr].typ   = typ;
       selTab[selNr].dbInd = dbi;
       selTab[selNr].dlInd = dli;
+      selTab[selNr].stat  = 0;
   
       // if(irc < 0) strcpy(namTab[i1], "-");
+
         // printf(" selTab-add-[%d] %d %ld %ld |%s|\n",selNr, dlTab[selNr].typ,
                // dlTab[selNr].dbInd, dlTab[selNr].dlInd, namTab[selNr]);
         // printf("selTab-add1 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
+
       ++selNr;
       if(selNr >= SELTABSIZ - 2) break;
-
-
-      // test for parents
-      irc = oaSIZ;
-      // find all parents for obj (typ, dbi, dli)
-      DL_parent_ck__ (&irc, parTab, typ, dbi, dli);
-      if(irc > 0) {
-        for(i2=0; i2<irc; ++i2) {
-          if(selNr >= SELTABSIZ - 2) break;
-          // add parent
-          selTab[selNr].typ   = parTab[i2].typ;
-          selTab[selNr].dbInd = parTab[i2].dbInd;
-          selTab[selNr].dlInd = parTab[i2].dlInd;
-          APED_oid_dbo__ (namTab[selNr], parTab[i2].typ, parTab[i2].dbInd);
-            // printf(" add par [%d] %d %ld %ld |%s|\n",selNr, selTab[selNr].typ,
-                   // selTab[selNr].dbInd, selTab[selNr].dlInd, namTab[selNr]);
-            // printf("selTab-add2 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
-          ++selNr;
-        }
-      }
     }
 
+      // UI_GR_dump_selTab (selTab, namTab, selNr);
 
+
+    //----------------------------------------------------------------
     // if "View" or Hide" is active: do NOT resolve subCurves
       // printf(" hide/view=%d\n",UI_CK_HIDE_VIEW);
     if(UI_CK_HIDE_VIEW) continue;
@@ -3638,6 +3735,7 @@ static  Point  selPos;
         selTab[selNr].typ   = Typ_Vertex;
         selTab[selNr].dbInd = 0L;
         selTab[selNr].dlInd = -1L;
+        selTab[selNr].stat  = 0;
         strcpy(namTab[selNr], "selPos");
           // printf(" selTab-add3 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
         ++selNr;
@@ -3645,36 +3743,82 @@ static  Point  selPos;
       goto L_selTab_from_dlTab_nxt;
     }
 
+      // UI_GR_dump_selTab (selTab, namTab, selNr);
+      // GL_sel_dump ();
 
-    // skip non-resolvable objects
-    if((bTyp == Typ_VC)       ||
-       (bTyp == Typ_PT)       ||
-       (bTyp == Typ_PLN)      ||               // 2015-07-06
-       (bTyp == Typ_Note)     ||
-       (bTyp == Typ_APPOBJ)   ||               // 2015-06-21
-       (bTyp == Typ_SubModel) ||               // 2015-06-21
-       (bTyp == Typ_TmpPT))       goto L_selTab_from_dlTab_nxt; 
+
+    //----------------------------------------------------------------
+    // get subCurves of trimmed-curve, contours, polygons.
+    if(bTyp != Typ_CV)  goto L_selTab_from_dlTab_nxt;
+
 
     // test for component of curve; eg provide also line for polygon
       // printf(" ck-subCurv typ=%d dbi=%ld reqTyp=%d\n",typ,dbi,reqTyp);
       // UT3D_stru_dump (Typ_PT, &selPos, "ex sele_get_pos");
-    // resolv obj
+    // returns up to 3 obj's in sca; subCurve S, P and D.
     sele_ck_subCurv (sca, typ, dbi, &selPos);
-    for(i2=0; i2<3; ++i2) {     //loop tru output (max 3 objects)
-       // printf(" sca[%d] typ=%d oid=|%s|\n",i1,sca[i2].typ,sca[i2].oid);
-      if(sca[i2].typ == Typ_Error) continue;
+
+    // loop tru output sca (max 3 objects); find & add also parents
+    for(i2=0; i2<3; ++i2) {
+        // printf(" sca[%d] typ=%d oid=|%s|\n",i2,sca[i2].typ,sca[i2].oid);
+      if(sca[i2].typ == Typ_Error) goto L_sca_nxt;
       if(selNr >= SELTABSIZ - 2) break;
+
       // decode src & create temp obj
       DBO_dbo_src__ (&typ, &dbi, sca[i2].oid);
+
+      // test if objId already exists
+      for(i3=0; i3<selNr; ++i3)
+        if(!strcmp(sca[i2].oid, namTab[i3])) goto L_sca_ck_par;
+
+      // get dli
+      if(DL_typ_is_visTyp(typ)) {
+        l1 = DL_find_smObj (typ, dbi, -1L, WC_modact_ind);
+      } else {
+        l1 = -1L;
+      }
+
       // add subcurv
       selTab[selNr].typ   = typ;
       selTab[selNr].dbInd = dbi;
-      selTab[selNr].dlInd = -1L;
+      selTab[selNr].dlInd = l1; // -1L;
+      selTab[selNr].stat  = 1;                   // 1=subCurve-obj
       strcpy(namTab[selNr], sca[i2].oid);
-        // printf(" add [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
+        // printf(" _subCurv-add-1 [%d] %d %ld |%s|\n",
+               // selNr,typ,dbi,namTab[selNr]);
       ++selNr;
+
+
+      // add parents of trimmed-curves;
+      L_sca_ck_par:
+      if(typ != Typ_CV) continue; // skip P|D()
+
+
+      // get all parents of DB-obj
+        // UT3D_dump_dbo (Typ_CV, dbi, " _subCurv-add-CV");
+      ii = 0;
+      AP_parent_get (&ii, parTab, oaSIZ, typ, dbi);
+      // add parents found, if not already stored
+      for(i3=0; i3<ii; ++i3) {
+        irc = UI_GR_namTab_ck_Uniq (namTab, selNr, SELTABSIZ,
+                                    parTab[i3].typ, parTab[i3].dbInd);
+        if(irc < 0) {printf("*** UI_GR_Select1 E1\n"); break;}
+        if(irc > 0) continue;
+          // printf(" _subCurv-add-2 [%d] %d %ld |%s|\n",
+                  // selNr,parTab[i3].typ,parTab[i3].dbInd,namTab[selNr]);
+        selTab[selNr].typ   = parTab[i3].typ;
+        selTab[selNr].dbInd = parTab[i3].dbInd;
+        // find dli from typ, dbi
+        selTab[selNr].dlInd = 
+          DL_find_smObj (parTab[i3].typ, parTab[i3].dbInd, -1L, WC_modact_ind);
+        selTab[selNr].stat  = 2;                   // 1=parent of subCurve-obj
+        ++selNr;
+      }
+      L_sca_nxt:
+      continue;
     }
 
+    //----------------------------------------------------------------
     L_selTab_from_dlTab_nxt:
     continue;
   }
@@ -3711,6 +3855,7 @@ static  Point  selPos;
       selTab[selNr].typ   = Typ_TmpPT;
       selTab[selNr].dbInd = -1L;
       selTab[selNr].dlInd = -1L;
+      selTab[selNr].stat  = 3;         // ConstrPlane
         // printf(" selTab-add4 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
       ++selNr;
     }
@@ -3718,8 +3863,7 @@ static  Point  selPos;
 
   L_12:
 
-    // dump selTab
-    // UI_GR_dump_selTab (selTab, namTab, selNr);
+    // UI_GR_dump_selTab (selTab, namTab, selNr); // dump selTab
 
 
 
@@ -3815,7 +3959,7 @@ static  Point  selPos;
 
   // haben Obj-Ind; was fuer ein APT-Ind / Typ ist das ?
   // store sel. obj in GR_selNam, GR_selTyp, GR_selDbi
-  // vectors do not have a useful dli
+  // vectors do not have a useful dli (DL_typ_is_visTyp ?)
   if(selTab[*dlInd].typ == Typ_VC) {
     UI_GR_set_sel_obj (Typ_VC, selTab[*dlInd].dbInd);
 
@@ -3858,11 +4002,15 @@ static  Point  selPos;
   // if(mode >= 100) goto L_mode101;
   L_mode101:
   if(mode > 101) goto L_mode102;
-    // GL_sel_dump ();
-    // printf(" L_mode101-preview: \n");
+    // UI_GR_dump_selTab (selTab, namTab, selNr); // dump selTab
 
   // skip objects previewed later:
   typ = selTab[*dlInd].typ;
+  dbi = selTab[*dlInd].dbInd;
+  dli = selTab[*dlInd].dlInd;
+    // printf(" L_mode101-preview: typ=%d dbi=%ld dli=%ld\n",typ,dbi,dli);
+
+
   if((typ == Typ_Angle)   ||        // see IE_cad_Inp_disp_ang
      (typ == Typ_Tra)) return 0;
 
@@ -3892,7 +4040,18 @@ static  Point  selPos;
   // preview subcurv
   if(namTab[*dlInd][1] == '(') {
     UI_GR_Select3 (-1L);
-    UI_GR_disp_oid (namTab[*dlInd]);
+    UI_GR_disp_oid (namTab[*dlInd], Typ_Att_hili1);
+    GR_dli_hili = DLI_TMP;
+    return 0;
+  }
+
+
+  // preview hidden parent
+  // if(DL_parent_ck_p(dli)) {
+  if(selTab[*dlInd].stat == 2) {
+    UI_GR_Select3 (-1L);
+    // Typ_Att_top2 = for parentObj's
+    UI_GR_disp_oid (namTab[*dlInd], Typ_Att_top2);
     GR_dli_hili = DLI_TMP;
     return 0;
   }
@@ -3921,8 +4080,46 @@ static  Point  selPos;
 }
 
 
+/*
 //================================================================
-  int UI_GR_disp_oid (char *oid) {
+  int UI_GR_selTab_add_uniq (int *tabNr, int tabSiz, ObjDB *selTab,
+                             int typ, long dbi, long dli) {
+//================================================================
+      // add obj to list.
+      if(*tabNr >= tabSiz) return -1;
+      selTab[*tabNr].typ   = ccv1->typ;
+      selTab[*tabNr].dbInd = ccv1->dbi;
+      selTab[*tabNr].dlInd = 0;
+      *tabNr += 1;
+}
+*/
+ 
+//========================================================================
+  int UI_GR_namTab_ck_Uniq (char namTab[][SELTABLEN], int sNr, int tabSiz,
+                            int typ, long dbi) {
+//========================================================================
+// RetCod:     -1 = objID already exists in namTab
+
+  int     i1;
+
+
+  // printf("UI_GR_namTab_addUniq %d %ld\n",typ,dbi);
+  // printf("SELTABSIZ=%d SELTABLEN=%d\n",SELTABSIZ,SELTABLEN);
+
+  if(sNr >= tabSiz) return -1;
+
+  APED_oid_dbo__ (namTab[sNr], typ, dbi);
+
+  for(i1=0; i1<sNr; ++i1)
+    if(!strcmp(namTab[sNr], namTab[i1])) return 1;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_GR_disp_oid (char *oid, int att) {
 //================================================================
 // preview subcurv
 
@@ -3947,7 +4144,7 @@ static  Point  selPos;
 
   // preview obj
   dli = DLI_TMP;
-  GR_Draw_dbo (&dli, typ, dbi, 9, 0);
+  GR_Draw_dbo (&dli, typ, dbi, att, 0);
   DL_Redraw ();
 
   return 0;
@@ -3965,9 +4162,9 @@ static  Point  selPos;
   printf("UI_GR_dump_selTab %d\n",iNr);
 
   for(i1=0; i1<iNr; ++i1) {
-    printf(" selTab[%d] typ=%d dbi=%ld dli=%ld |%s|\n", i1,
+    printf(" selTab[%d] typ=%d dbi=%ld dli=%ld |%s| stat=%d\n", i1,
                    selTab[i1].typ, selTab[i1].dbInd,
-                   selTab[i1].dlInd, namTab[i1]);
+                   selTab[i1].dlInd, namTab[i1], selTab[i1].stat);
 
 
   }
@@ -4082,12 +4279,16 @@ static  Point  selPos;
 //====================================================================
 // hilite obj and/or unhilite last displayed object
 // objInd < 0      unhilite last displayed object
+// Input:
+//   objInd   
 
   int   typ;
   long  dbi;
 
 
-  // printf("UI_GR_Select3 objInd=%ld GR_dli_hili=%ld\n",objInd,GR_dli_hili);
+  // printf("UI_GR_Select3 objInd=%ld GR_dli_hili=%ld DLI_TMP=%ld\n",
+          // objInd,GR_dli_hili,DLI_TMP);
+
 
   // if(UI_InpMode == UI_MODE_CAD) return 0;   // 2011-10-19
 
@@ -4110,17 +4311,21 @@ static  Point  selPos;
   // IE_cad_ClearAct ();  raus 2011-10-03 - löscht tempPt + vec weg ..
 
 
+  //----------------------------------------------------------------
+  // hilite objInd
+/*
   // check if this is a parent-obj
   if(DL_parent_ck_p (objInd)) {
       // printf(" .. is parent ..\n");
     typ = DL_GetTyp (objInd);
-    dbi = DL_GetInd (objInd);
-    IE_parent_disp (typ, dbi);
+    dbi = DL_get_dbi (objInd);
+    // display  parent-obj
+    UI_disp_dbo (typ, dbi, Typ_Att_top2);
     GR_dli_hili = DLI_TMP;
 
 
   } else {
-
+*/
     // hilite normal obj
 
   // das Obj mal hiliten; aber nicht in Mode MAN und CAD
@@ -4134,7 +4339,7 @@ static  Point  selPos;
     DL_hili_on (objInd);
     GR_dli_hili = objInd;
 
-  }
+  // }
 
 
   // GL_Redraw ();
@@ -5554,6 +5759,35 @@ static Point   pt1;
 
 
 //================================================================
+  int UI_CurPos_upd () {
+//================================================================
+/// UI_CurPos_upd        update label cursor-position
+// get GR_CurUk, display.
+
+  Point    pt1;
+  char     buf1[128];
+
+
+
+  // get cursor-position on constructionPlane
+  //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
+  GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
+
+  // get current curPos in userCoords on constructionPlane
+  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+
+  
+  sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
+    // printf("  UI_curPos formatted %s\n",buf1);
+
+  GUI_label_mod (&UI_curPos, buf1);
+
+  return 0;
+
+}
+
+
+//================================================================
   int UI_GR_get_actPosA (Point *curPosAbs) {
 //================================================================
 /// \code
@@ -6427,6 +6661,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
 
   L_addGrp:
+    if(dli < 0) goto Fertig;
     // skip indicates ..
     if(typ == Typ_TmpPT) {
       TX_Print(" .. ?");

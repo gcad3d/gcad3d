@@ -31,7 +31,7 @@ int UT3D_cbsp_ell (CurvBSpl *bsp, Memspc *memSeg, CurvElli *el1, Memspc *tmpSeg)
   int UT3D_parCv_bsplpt (double *up,double *dist,
                          CurvBSpl *bspl,Point *pt);
 
-  int UT3D_ptNr_bsplTol (int *iu, CurvBSpl *bsp, double tol1);
+  int UT3D_ptNr_bsp (int *iu, CurvBSpl *bsp, double tol1);
 
   int UT3D_bsp_cpsbsp (CurvBSpl *cvo, SurBSpl *su1, char cDir, int cvNr,
                         Memspc *memSeg1);

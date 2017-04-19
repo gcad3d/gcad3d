@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # ./gendef.sh
-# create Microsoft .def file from Linux executable.
+# create Microsoft gCAD3D.def file from Linux executable.
 
 
 # get bitNr gcad_dir_bin

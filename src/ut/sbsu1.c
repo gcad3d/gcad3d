@@ -392,7 +392,7 @@ List_functions_end:
   UT3D_pt_traptvclen (&(ci.p2), (Point*)&UT3D_PT_NUL, &vt, ci.rad);
 
   // sample-point on corresponding circle
-  if (el->dir < 0) ci.rad = -ci.rad;
+  if (el->srot) ci.rad = -ci.rad;
   rc = UT3D_pt_cisn (po, &ci, np, sn);
   if (rc < 0) return -1;
 

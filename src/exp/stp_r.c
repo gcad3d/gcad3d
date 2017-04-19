@@ -32,9 +32,11 @@ Colors:
       #13527 = FILL_AREA_STYLE_COLOUR( '', #17439 );
        #17439 = COLOUR_RGB( '',0.645180702,0.678915679,0.699999988 );
  #1522 = ADVANCED_FACE( '', ( #3022 ), #3023, .T. );
+see also CURVE_STYLE
 
 -----------------------------------------------------
 Modifications:
+2017-04-07 new format trimmed-curve in gcad. RF.
 2015-02-18 STP_r_readLn bug reading comments fixed. RF.
 2014-02-09 Typ_AC -> Typ_CI
 2012-11-28 rewritten. RF.
@@ -154,11 +156,8 @@ List_functions_end:
 
 
 
-
-
-
 ===================================================================
-Step-Specif. siehe ../exp/stp_w.c
+Step-Specif/documentation siehe ../exp/stp_w.c
 /mnt/serv1/Devel/dev/gCAD3D/formate/step/part203.exp.html
 
 
@@ -204,6 +203,7 @@ geoTab    STP_I2      List of models;
 
 
 
+//----------------------------------------------------------------
 TESTMETHODE   DEBUG:
  fix tst.c    make -f tst.mak
 
@@ -218,6 +218,7 @@ TESTMETHODE   DEBUG:
  return -4    beendet sofort !
 
 
+//----------------------------------------------------------------
 ABLAUF:
 STP_r__               mainentry
   STP_r_readLn        read next line -> mem_cbuf1
@@ -674,7 +675,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   // TEST ONLY: set debug -> ON   ( vi ~/gCAD3D/tmp/debug.dat )
   // start debugging (following prints -> debug-file)
-  // AP_deb_stat (1);
+  AP_deb_stat (1);
 
 
   s_tab = NULL;
@@ -3254,14 +3255,18 @@ static int    errTyp;       // 0=report error with TX_Print; else not
         STP_r_geoTab_add ();
         break;
 
-      // GEOMETRICALLY_BOUNDED_WIREFRAME_SHAPE_REPRESENTATION
+    
       } else if(!strcmp(dc1,
                "GEOMETRICALLY_BOUNDED_WIREFRAME_SHAPE_REPRESENTATION")) {
-        // n Links --> GEOMETRIC_CURVE_SET
+        // GEOMETRICALLY_BOUNDED_WIREFRAME_SHAPE_REPRESENTATION('',(#1),#2);
+        // #1 = linkBlock GEOMETRIC_CURVE_SET
+        // #2 = link GEOMETRIC_REPRESENTATION_CONTEXT
         // printf(" SC_GBOUNDED_WIREFRAME_SR/1 |%s|\n",p2);
+        // decode block GEOMETRIC_CURVE_SET
         irc = STP_r_savLinkB (SC_GBOUNDED_WIREFRAME_SR, &p2);
         if(irc < 0) return irc;
         // printf(" SC_GBOUNDED_WIREFRAME_SR/2 |%s|\n",p2);
+        // decode link GEOMETRIC_REPRESENTATION_CONTEXT
         i1 = 1;
         irc = STP_r_decLinks (&i1, &p2);  // decode & save Links
         STP_r_geoTab_add ();
@@ -4262,7 +4267,7 @@ static Point p1, p2;
                   // ii,s_tab[ii].sInd,s_tab[ii].sTyp);
         AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
       }
-      irc = STP_r_creObj1 (sInd, Typ_CVCCV, Typ_Txt, gTxt);
+      irc = STP_r_creObj1 (sInd, Typ_CVTRM, Typ_Txt, gTxt);
       if(irc < 0) return irc;
 
       if(resMod == 2)     // hide bei Solids
@@ -6340,7 +6345,7 @@ static Point p1, p2;
     // printf(" Crv. %d ind=%d #%d typ=%d\n",i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
     AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
   }
-  irc = STP_r_creObj1 (sInd, Typ_CVCCV, Typ_Txt, gTxt);
+  irc = STP_r_creObj1 (sInd, Typ_CVTRM, Typ_Txt, gTxt);
   if(irc < 0) return irc;
 
   if(resMod == 2)     // hide bei Solids
@@ -7642,7 +7647,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   }
 
   // check also CCV (can consist of 2 circles)
-  if(s_tab[is].gTyp != Typ_CVCCV) return -1;
+  if(s_tab[is].gTyp != Typ_CVTRM) return -1;
 
 
 // see also STP_r_creCont1
@@ -7706,13 +7711,13 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   vp = STP_r_getInt (&lax, s_tab[ib].sDat);
   vp = STP_r_getDb (&rd1, vp);
   vp = STP_r_getDb (&rd2, vp);
-    printd(" iax,rd1,rd2=%d %lf %lf\n",iax,rd1,rd2);
+    // printd(" lax,rd1,rd2=%d %lf %lf\n",lax,rd1,rd2);
 
   iax = i_tab[lax];
   iap = s_tab[iax].sDat;
   ipo = STP_r_findInd (iap[0], 0);   // origin
   ivz = STP_r_findInd (iap[1], 0);   // Z-vec
-    printd(" ipo,ivz=%d %d\n",ipo,ivz);
+    // printd(" ipo,ivz=%d %d\n",ipo,ivz);
 
 
   //----------------------------------------------------------------
@@ -9667,18 +9672,19 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 }
 
 
-
 //================================================================
   int STP_r_decCurv1 (char *cbuf) {
 //================================================================
 // TRIMMED_CURVE('',#54,(#55),(#56),.T.,.CARTESIAN.);
 // TRIMMED_CURVE('',#76,(16.855),(31.999),.T.,.UNSPECIFIED.);
 // TRIMMED_CURVE('',#3367,(CARTESIAN_POINT(#3368)),(CARTES..
-// basis_curve
-// trim_1
+// TRIMMED_CURVE('',#17,(#21,PARAMETER_VALUE(0.)),(#22,PARAMETER_VALUE(33.)),.T.,.PARAMETER.);
+// base_curve
+// trim_1:  (#55)|CARTESIAN_POINT(#3368)|#21,PARAMETER_VALUE(0.)
 // trim_2
-// .T./.F.                         (Richtung)
-// .CARTESIAN./.UNSPECIFIED.       (master_representation trimming_preference)
+// direction(fwd-rev): .T.|.F.
+// master_representation trimming_preference:
+//    .CARTESIAN.|.UNSPECIFIED.|.PARAMETER.
 
 // 1 Link     basis_curve
 // 1 int      typ of trim_1,trim_2; 0=Link, 1=Db
@@ -9705,15 +9711,16 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   s_tab[s_Nr].sTyp = SC_TRIMMED_CURVE;
 
+
+  // decode & save 1 Link (baseCurve)
   iNr = 1;
-  irc = STP_r_decLinks (&iNr, &cbuf);  // decode & save 1 Link (baseCurve)
+  irc = STP_r_decLinks (&iNr, &cbuf);
   if(irc < 0) return irc;
 
 
   // check typ of trimObj's
   irc = STP_r_ckTypB (&iTyp, &iForm, cbuf);
-    printd(" iTyp=%d iForm=%d\n",iTyp,iForm);
-
+    printd(" n-_ckTypB-irc=%d iTyp=%d iForm=%d\n",irc,iTyp,iForm);
   if(irc < 0) return irc;
 
 
@@ -10908,6 +10915,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   int STP_r_savLinkB (int settyp, char **cbuf) {
 //================================================================
 // 1-n bracketed Links decodieren und speichern
+// - must starts with char '('
 // GEOMETRIC_SET('',(#24,#25,#26)) ;
 // GEOMETRIC_CURVE_SET('',(#24,#25,#26)) ;
 // OPEN_SHELL('',(#190,#213,#229,#240)) ;
@@ -10920,8 +10928,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   if(irc < 0) return irc;
 
 
-  // printf("================================ \n");
-  // printf("STP_r_savLinkB |%s|\n",*cbuf);
+  // printd("================================ \n");
+  // printd("STP_r_savLinkB |%s|\n",*cbuf);
 
 
   // next s-obj-Record
@@ -10947,7 +10955,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   *((int*)(s_tab[s_Nr].sDat)) = iNr;
     // printf(" nr_of_links=%d\n",iNr);
 
-  // printf("ex STP_r_savLinkB |");
+  // printd("ex STP_r_savLinkB |%s|\n",*cbuf);
   // UTX_dump_s__ (*cbuf); printf("|\n");
 
 
@@ -11951,14 +11959,17 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 //================================================================
 // decode Links in Klammer eingebettet
 // iNr out:  Anzahl decodierter Links.
+// - must starts with char '('
+// - exists with char after ')'
 // RetCod  0 - nach (..) war ein ',' (wird geskippt !)
 // RetCod -1 - nach (..) war ein ')' (wird geskippt !)
 // RetCod -2 - Fehler; stop.
 
   int    irc;
-  char   *p1;
+  char   *p1, *p2;
 
-  // printf("STP_r_decLinkB |%s|\n",*cbuf);
+
+  // printd("STP_r_decLinkB %d |%s|\n",*iNr,*cbuf);
 
   p1 = *cbuf;
 
@@ -11973,17 +11984,25 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     return -2;
   }
 
-  *iNr = 0;
-  irc = STP_r_decLinks (iNr, &p1);  // decode & save all Links
+  // *iNr = 0;    // 0 = all Links
+  irc = STP_r_decLinks (iNr, &p1);  // decode & save Links
   if(irc < 0) return irc;
+  // (irc == 1): ')' already skipped
 
 
-  // printf(" STP_r_decLinkB skip |%c|\n",*p1);
-  // ++p1;
+  // skip all until ')'     2017-04-08
+  if(irc < 1) {
+    // end of block was not ')'; skip all until ')'
+    p2 = UTX_pos_skipBrack1(p1);
+    if(!p2) {TX_Error("STP_r_decLinkB E000|%s|",*p1); return -1;}
+    p1 = ++p2; // skip ')'
+  }
+
+
   *cbuf = p1;
 
 
-  // printf("ex STP_r_decLinkB irc=%d iNr=%d |",irc,*iNr);
+  // printd("ex STP_r_decLinkB irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
   // UTX_dump_s__ (*cbuf); printf("|\n");
 
 
@@ -11998,12 +12017,16 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 // decode iNr Links; wenn (iNr==0) decode bis ')';
 // iNr out:  Anzahl decodierter Links.
 // ein '$' wird als Link -1 gepeichert.
+// - must start with char '#'
+// - exits with char after ',' or ')'  (see RetCod)
+// RetCod  2 - OK; last char was ');' (skipped)
+// RetCod  1 - OK; last char was ')' (skipped)
 // RetCod  0 - OK
 // RetCod -2 - Fehler; stop.
 
   int   irc, i1, iend;
 
-  // printf("STP_r_decLinks %d |%s|\n",*iNr,*cbuf);
+  // printd("STP_r_decLinks %d |%s|\n",*iNr,*cbuf);
 
   iend = *iNr;
   if(iend < 1) iend = 99999;
@@ -12013,7 +12036,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // get next Link
   L_nxt_l:
   irc = STP_r_decLink1 (&i1, cbuf);
-  if(irc < -1) return irc;
+  if(irc < 0) return irc;
 
   *iNr += 1;
 
@@ -12023,13 +12046,20 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   if(irc == 0) {
     if(*iNr < iend) goto L_nxt_l;
+
+  } else {
+    if(**cbuf == ';') {
+      *cbuf += 1;
+      irc = 2;
+    }
   }
 
 
-  // printf("ex STP_r_decLinks iNr=%d |",*iNr);
+
+  // printd("ex STP_r_decLinks irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
   // UTX_dump_s__ (*cbuf); printf("|\n");
 
-  return 0;
+  return irc;
 
 }
  
@@ -12039,14 +12069,17 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 //================================================================
 // einen Link (#77) decodieren; out als iLink.
 // Link == '$': iLink = -1
+// - must start with char '#'
+// - exits with char after ',' or ')'  (see RetCod)
+// RetCod  1 - nach Link war ein ')' (wird geskippt !)
 // RetCod  0 - nach Link war ein ',' (wird geskippt !)
-// RetCod -1 - nach Link war ein ')' (wird geskippt !)
 // RetCod -2 - Fehler; stop.
 
   int   irc, i1;
   char  *p1, *p2;
 
-  // printf("STP_r_decLink1 |%s|\n",*cbuf);
+
+  // printd("STP_r_decLink1 |%s|\n",*cbuf);
 
   p1 = *cbuf;
 
@@ -12070,7 +12103,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     ++p2;
     if(*p2 == ')') {
       *p2 = '\0';  // fuer atoi
-      irc = -1; 
+      irc = 1; 
       ++p2;
       // wenn nachfolgend noch ein ',' -  remove it !
       L_l3:
@@ -12100,7 +12133,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   *cbuf = p2;
 
-  // printf("ex STP_r_decLink1 irc=%d iLink=%d |",irc,*iLink);
+  // printd("ex STP_r_decLink1 irc=%d iLink=%d |%s|\n",irc,*iLink,*cbuf);
   // UTX_dump_s__ (p2); printf("|\n");
 
   return irc;
@@ -12418,7 +12451,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
     
     //----------------------------------------------------------------
-    // skip comments like /* ...*/   (ex CATIA V15 !)
+    // skip comments like "/* ...*/"   (ex CATIA V15 !)
     if(!flgComm) {
       p2 = p1;
       while(*p2 == ' ') ++p2;

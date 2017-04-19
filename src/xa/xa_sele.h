@@ -10,7 +10,7 @@
 // selectionGroups (cannot be used as chars):      TYP_IS_SELGRP()
 #define Typ_goGeom      1000  ///< all       (USED AS CHAR U)
 #define Typ_goPrim      1001  ///< PT/LN/CI/Spline; nicht Plg,CCV
-#define Typ_goGeo1      1002  ///< LN/CI/CV/PL/Sur/Sol (nicht PT)
+#define Typ_goGeo1      1002  ///< LN/CI/CV/PL/Sur/Sol (nicht PT,VC)
 #define Typ_goGeo2      1003  ///< CI/ELL (prj -> PLN)
 #define Typ_goGeo3      1004  ///< UNUSED
 #define Typ_goGeo4      1005  ///< UNUSED VC/LN/PLN
@@ -44,10 +44,10 @@
 
 
   typedef struct {int typ; char oid[128];}            subCurv;
-// L|C|S(basecurve v1)    typ=L|C|S; v1=segNr; v2=0.; eg L in CCV
-// L(basecurve v1 v2)     typ=L; v1=segNr; v2=segNr(>=1); eg L from plg in CCV
-// P(basecurve v2)        typ=P; v1<1.; v2=parameter;     eg P on plg
-// P(basecurve v1 v2)     typ=P; v1=segNr(>=1); v2=parameter; eg P on L in CCV
+// S(baseCv v1)        baseCv=contour; v1=segNr; subCurv = L|C in CCV
+// S(baseCv v1 v2)     baseCv=contour; v1=segNr; subCurv=contour|plg; v2=segNr
+// P|D(baseCv v2)      typ=P; v1<1.; v2=parameter;     eg P on plg
+// P|D(baseCv v1 v2)   typ=P; v1=segNr(>=1); v2=parameter; eg P on L in CCV
                           // segmentNumbers: 1 = first segment.
 
 

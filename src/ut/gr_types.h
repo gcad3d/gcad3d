@@ -26,7 +26,7 @@ Korr:
 #define Typ_Att_hili1      9  // red, thick=3
 #define Typ_Att_dim       10
 #define Typ_Att_top1      11
-#define Typ_Att_top2      12
+#define Typ_Att_top2      12   // used for parent-obj's
 
 #define SYM_TRI_S        130   // Bitmap tringle small
 #define SYM_STAR_S       131   // star, small

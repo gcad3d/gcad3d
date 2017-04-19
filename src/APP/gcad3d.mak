@@ -1,14 +1,18 @@
-# Link gcad3d-main                    make -f gcad3d.mak
-# make all            Alle Basis-DLL's xa_XX.so linken
-# make allDemos       Alle Demo-DLL's xa_XX.so linken
-# gcad_dir_bin must be set (. ../options.sh)
+# compile / link gcad3d
+#
+# make -f gcad_gui__.mak       build core
+# make all                     build all basis-DLL's xa_XX.so
+# make allDemos                build all demo-DLL's xa_XX.so
+#
+# gcad_dir_dev and gcad_dir_bin must be set (. ../options.sh)
+#
 
 #OPSYS = `uname`
 
 EXENAM  = gCAD3D
 
 
-# get SRC1 SRC3 SRCA SRCB SRCG
+# get sourcefiles - SRC1 SRC3 SRCA SRCB SRCG
 include gcad_src.mak
 
 

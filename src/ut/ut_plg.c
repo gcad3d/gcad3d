@@ -55,16 +55,18 @@ UT3D_plg_lvTab             create new lengthTable lvTab
 UT3D_plg_projplgpln        Polygon = project Polygon -> Plane
 
 UT3D_parplg_plgpt          get knotvalue from point on polygon
-UT3D_par1_plg_pt           get parameter 0-1 for knotvalue on polygon
-UT3D_par_par1plg           Parameterwert von 0-1 in einen Knotenwert aendern
-UT3D_par1_parplg           Knotenwert in einen Parameterwert von 0-1 aendern
+UT3D_par_par1plg           get knotvalue from parameter 0-1
+UT3D_par1_plg_pt           get parameter 0-1 for point on polygon
+UT3D_par1_parplg           get parameter 0-1 from knotvalue
 UT3D_vc_evalplg            Tangente an PolygonCurve aus Parameterwert
 UT3D_pta_plg     (ut_npt.c)  Punktetabelle (relimited) aus PolygonCurve
 UT3D_pta_ccw_plg           Punktetabelle (relimited) aus PolygonCurve
 UT3D_plg_npar1_npar        get knotTable (length) with values from 0-1 for polygon
-UT3D_2pt_segplg            get segment from polygon
-plg_segNr_par              get segmentNr from parameter
-plg_pare_unl               get unlimited endParameter of CurvPoly  INLINE
+UT3D_2pt_plg_iseg            get segment from polygon
+
+UPLG_2par_iseg             get parameters of single segment of polygon
+UPLG_iseg_par              get segmentNr from parameter
+UPLG_pare_unl              get unlimited endParameter of CurvPoly  INLINE
 
 ULN3_segNr_par_prj_pt_nln  get segNr & parameter from prj point onto lnTab
 UT3D_2pt_segnln            get segment from lineTable
@@ -75,7 +77,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   UT3D_2vc_pta UT3D_vc_perpptai
   UT3D_pta_ck_planar UT3D_rMin_pta UT3D_pta_dbo UT3D_cv_*
   UT3D_npt_ci UT3D_pta_rot__ UT3D_sr_polc
-  UT3D_npt_ox UT3D_pta_sus
+  UT3D_npt_ox__ UT3D_pta_sus
   
 \endcode *//*----------------------------------------
 
@@ -101,8 +103,90 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
 
+//====================================================================
+  int UPLG_2par_iseg (double *p1, double *p2, int is, CurvPoly *plg) {
+//====================================================================
+// UPLG_2par_iseg        get parameters of single segment of polygon
+// Input:
+//   is    segmentNr to get parameters; 0=first (the segment with v0)
+//   plg   polygon-curve
+// Output:
+//   p1    parameter of startpoint of segment
+//   p2    parameter of endpoint of segment
+// see UT3D_2pt_plg_iseg CVTRM__plg_iseg
+
+  int   iis, iie, iseg, ipt, itot;
 
 
+  UT3D_stru_dump (Typ_CVPOL, plg, " UPLG_2par_iseg ");
+
+
+  itot = plg->ptNr - 1;
+  if(is >= itot) return -1;
+
+
+  // get startSegNr, endSegNr. 0=first.
+  UPLG_iseg_par (&iis, plg->v0, plg);
+  UPLG_iseg_par (&iie, plg->v1, plg);
+    printf(" iis=%d iie=%d is=%d\n",iis,iie,is);
+
+
+
+  //----------------------------------------------------------------
+  if(plg->dir) goto L_rev;
+
+  // fwd
+  if(is == 0) {
+    *p1 = plg->v0;
+  } else {
+    ipt = is + iis;
+    if(ipt == itot) ipt = 0;
+    *p1 = plg->lvTab[ipt];
+  }
+
+
+  iseg = iis + is;
+  if(iseg >= itot) iseg -= itot;
+  if(iseg == iie) {
+    *p2 = plg->v1;
+  } else {
+    *p2 = plg->lvTab[is + iis + 1];
+  }
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_rev:
+   printf(" _2par_iseg-rev\n");
+
+  if(is == 0) {
+    *p1 = plg->v0;
+  } else {
+    ipt = iis - is + 1;
+    if(ipt <= 0) ipt += itot;
+      printf(" p1-ipt=%d\n",ipt);
+    *p1 = plg->lvTab[ipt];
+  }
+
+
+  iseg = iis - is;
+  if(iseg < 0) iseg += itot;
+    printf(" p2-iseg=%d\n",iseg);
+  if(iseg == iie) {
+    *p2 = plg->v1;
+  } else {
+    *p2 = plg->lvTab[iseg];
+  }
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    printf("ex _2par_iseg p1=%lf p2=%lf\n",*p1,*p2);
+
+  return 0;
+
+}
 
 //================================================================
   int UT3D_pt_plg_lim (Point *p1, Point *p2, double *v1, double *v2,
@@ -373,72 +457,46 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
 //================================================================
-  int UT3D_2pt_segplg (Point *p1, Point *p2, int is, CurvPoly *plg) {
+  int UT3D_2pt_plg_iseg (Point *p1, Point *p2, int is, CurvPoly *plg) {
 //================================================================
-// UT3D_2pt_segplg            get segment from polygon
+// UT3D_2pt_plg_iseg            get segment from polygon
 // Input:
-//   is     segment-nr, seg.1 is point[0]-point[1]
+//   is     segment-nr, seg.1 is first = point[0]-point[1]
 
 
-  int     iis, iie, ii;
-  double  d1;
+  int     irc;
+  // int     iis, iie, ii, ib, ips, ipe;
+  double  par1, par2;
 
 
-  // printf("UT3D_2pt_segplg %d\n",is);
-  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_segplg");
-  // if(is == 1) AP_debug__ ("UT3D_2pt_segplg-1");
+  printf("UT3D_2pt_plg_iseg %d\n",is);
+  UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_plg_iseg");
 
 
   if(is < 1) {
-    TX_Error("UT3D_2pt_segplg E001");
+    TX_Error("UT3D_2pt_plg_iseg E001");
     return -1;
   }
 
-
-  // get startSegNr, endSegNr
-  plg_segNr_par (&iis, plg->v0, plg);
-  plg_segNr_par (&iie, plg->v1, plg);
-    // printf(" iis=%d iie=%d\n",iis,iie);
-
-
-  is -= iis;
-  ii = is - 1;
-    // printf(" ii for p1=%d\n",ii);
+  // get parameters of seg. is
+  --is;    // set 0=first
+  irc = UPLG_2par_iseg (&par1, &par2, is, plg);
+  if(irc < 0) return -1;
 
 
-  // is p1 outside v0-v1 ?
-  d1 = plg->v0 - UT_TOL_pt;
-  if(d1 <= plg->lvTab[ii]) {
-    *p1 = plg->cpTab[ii];
-  
-  } else {
-    // get point from offset v0
-    UT3D_pt_evalplg (p1, plg, plg->v0);
-  }
+  // get point for p1
+  UT3D_pt_evalplg (p1, plg, par1);
+
+  // get point for p2
+  UT3D_pt_evalplg (p2, plg, par2);
 
 
-  //----------------------------------------------------------------
-  // get p2
-  ii += 1;
-  if(ii >= plg->ptNr) {
-    TX_Error("UT3D_2pt_segplg E002");
-    return -1;
-  }
-    // printf(" ii for p2=%d\n",ii);
-
-
-  // is p2 outside v0-v1 ?
-  d1 = plg->v1 + UT_TOL_pt;
-  if(d1 >= plg->lvTab[ii]) {
-    *p2 = plg->cpTab[ii];
-
-  } else {
-    // get point from offset v0
-    UT3D_pt_evalplg (p2, plg, plg->v1);
-  }
+    UT3D_stru_dump(Typ_PT, p2, "_2pt_segplg-p2");
 
 
   return 0;
+
+
 
 }
 
@@ -611,8 +669,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   Line   lnp;
 
 
-  // UT3D_stru_dump (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
-  // UT3D_stru_dump (Typ_LN, ln, " ln ");
+  UT3D_stru_dump (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
+  UT3D_stru_dump (Typ_LN, ln, " ln ");
 
 
   // init
@@ -1105,10 +1163,11 @@ Returncodes:
 //================================================================
   int UT3D_par1_plg_pt (double *par1, Point *pt, CurvPoly *plg) {
 //================================================================
-// UT3D_par1_plg_pt           get parameter 0-1 for knotvalue on polygon
+// UT3D_par1_plg_pt           get parameter 0-1 for point on polygon
 
   int   irc;
 
+  // get length for point on plg
   irc = UT3D_parplg_plgpt (par1, pt, plg);
   if(irc < 0) return -1;
   // Knotenwert in einen Parameterwert von 0-1 aendern
@@ -1411,6 +1470,8 @@ Returncodes:
 ///   Returncodes:
 ///                0 = OK
 ///               -1 = out of tempSpace
+///
+/// Nearest point to <pt> is in pto[0];
 /// \endcode
 
 
@@ -1421,7 +1482,7 @@ Returncodes:
 
 
   // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
-  // printf("UT3D_pt_projptplg Pt = %f %f %f\n",pt->x,pt->y,pt->z);
+  printf("UT3D_pt_projptplg Pt = %f %f %f\n",pt->x,pt->y,pt->z);
   // UT3D_stru_dump (Typ_CVPOL, plg, " plg ");
 
 
@@ -1506,6 +1567,16 @@ Returncodes:
     MEM_swap__ (&pto[0], &pto[ii], sizeof(Point));
     if(ttab) MEM_swap_2db (&ttab[0], &ttab[ii]);
   }
+
+
+
+    // TESTBLOCK
+    printf("PPPPPPPPPPPPPPPPPPP ex UT3D_pt_projptplg nxp=%d\n",*nxp);
+    for(i1=0; i1 < *nxp; ++i1) printf(" pa[%d] = %f %f %f ttab = %f\n",
+                               i1,pto[i1].x,pto[i1].y,pto[i1].z,ttab[i1]);
+
+    // END TESTBLOCK
+
 
   return 0;
 
@@ -1773,7 +1844,7 @@ Returncodes:
 
   if(cv1->dir) pv = 1. - pv;
 
-    // printf("ex UT3D_par1_parplg pv=%f kv=%f kTot=%f\n",pv,*kv,kTot);
+    // printf("ex UT3D_par1_parplg %f kv=%f kTot=%f\n",pv,*kv,kTot);
 
   return pv;
 
@@ -1781,7 +1852,7 @@ Returncodes:
 
 
 //================================================================
-  int plg_segNr_par (int *segNr, double up, CurvPoly *cv1) {
+  int UPLG_iseg_par (int *segNr, double up, CurvPoly *cv1) {
 //================================================================
 // get segmentNr from parameter
 //   up          parameter
@@ -1790,7 +1861,7 @@ Returncodes:
   int    i1;
   double u1;
 
-  // printf("plg_segNr_par %f\n",up);
+  // printf("UPLG_iseg_par %f\n",up);
   // UT3D_stru_dump (Typ_CVPOL, cv1, "");
 
   *segNr = cv1->ptNr - 2;
@@ -1799,7 +1870,7 @@ Returncodes:
     if(u1 > up)  { *segNr = i1 - 1; break;}
   }
 
-  // printf("ex plg_segNr_par %d\n",*segNr);
+  // printf("ex UPLG_iseg_par %d\n",*segNr);
 
   return 0;
 

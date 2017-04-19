@@ -594,8 +594,7 @@ typedef_MemTab(ObjRange);
     case Typ_CI:
     case Typ_CVELL:  // CurvElli
     case Typ_CVCLOT: // CurvClot:
-    // case Typ_CVComp: // CurvComp:
-    case Typ_CVCCV:  // CurvCCV:
+    case Typ_CVTRM:  // CurvCCV:
     case Typ_PLN:
     case Typ_SURRV:  // SurRev
     case Typ_SUR:    // SurStd

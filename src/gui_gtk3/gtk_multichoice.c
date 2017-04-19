@@ -464,7 +464,7 @@ extern GdkRGBA   *UI_stylTab[3];
   Obj_gui2   *go;
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
-  printf("GUI_optmen_set %d |%s|\n",mode,(char*)data);
+  // printf("GUI_optmen_set %d |%s|\n",mode,(char*)data);
 
 
   go = GUI_obj_pos (mo);
@@ -498,6 +498,7 @@ extern GdkRGBA   *UI_stylTab[3];
 
   }
 
+  return 0;
 
 }
 
@@ -957,6 +958,8 @@ static void *ptx;     // the active menu-txt
   pTab[1] = go->data;
 
   go->uFunc (&mo, pTab);
+
+  return 0;
 
 }
 

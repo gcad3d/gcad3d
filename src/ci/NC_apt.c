@@ -3806,7 +3806,7 @@ static  CurvPoly plg1;
       *iNew = 1;        // do not copy data ...
 
       ox1 = DB_GetCurv  ((long)aus_tab[0]);
-        UT3D_stru_dump (Typ_ObjGX, ox1, "ex _GetCurv");
+        // UT3D_stru_dump (Typ_ObjGX, ox1, "ex _GetCurv");
 
       l1 = (long)aus_tab[0];   // dbi of S
       i1 = aus_tab[1] - 1;     // segNr -> indNr; 0=first.
@@ -3863,7 +3863,7 @@ static  CurvPoly plg1;
       *iNew = 1;        // do not copy data ...
 
       ox1 = DB_GetCurv  ((long)aus_tab[0]);
-        UT3D_stru_dump (Typ_ObjGX, ox1, " ex _GetCurv");
+        // UT3D_stru_dump (Typ_ObjGX, ox1, " ex _GetCurv");
 
       l1 = (long)aus_tab[0];   // dbi of S
       i1 = aus_tab[1] - 1;     // segNr -> indNr; 0=first.
@@ -3925,7 +3925,7 @@ static  CurvPoly plg1;
 
 
     // TESTBLOCK
-    UT3D_stru_dump (Typ_ObjGX, cvo, "ex_APT_decode_cv");
+    // UT3D_stru_dump (Typ_ObjGX, cvo, "ex_APT_decode_cv");
 
   return 0;
 

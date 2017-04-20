@@ -5565,7 +5565,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_CVBSP:
-      irc = DL_get_dbi (*dli);
+      dbi = DL_get_dbi (*dli);
       GR_DrawCvBSp (dli, dbi, att, obj); // CurvBSpl
       break;
 
@@ -5647,7 +5647,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   L_E001:
-      TX_Error("GR_Draw_obj not yet impl: %d",oTyp);
+      TX_Error("GR_Draw_obj not yet impl: %d",form);
       return -1;
 
   L_E002:

@@ -122,7 +122,7 @@ Default: <dirXX> = ${HOME}
 
 
 Setup environment:
-cd <dirXX>
+cd <dirXX>/gcad3d/
 The development environment is using the directories $DIR_DEV and $DIR_BIN.
 Edit devconf_git.sh if necessary:
 Set DIR_DEV = <dirXX>

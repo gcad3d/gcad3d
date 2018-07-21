@@ -77,23 +77,34 @@ Parallel- oder Normalvektor zu existierenden Objekten.
 
 
 <b>Parallelvektor:</b>
-  Vektor als Strecke zwischen 2 <a href="CAD_Base_de.htm#P">Punkten</a>; Länge optional.
 
   Vektor als Tangente durch einen Punkt an eine Kurve:
-    einen Kreis oder Ellipse oder B-Spline oder Klothoide selektieren -
-    und einen Punkt auf dieser Kurve
+   Obj1              Linie oder Kurve oder Fläche 
+   [Point (on obj)]  Basispunkt des Vektors auf der Kurve/Fläche
     
-  Vektor parallel zur Hauptachse (U-Richtung):
-    (derzeit nur für Ebene, B-SplineFläche)
-    Ebene: ergibt X-Achse der Ebene.
-    Fläche: Richtung der Isoparametrischen Kurve U
-    Modifier "PARL" aktivieren.
+  Vektor parallel zu Vektor oder Linie, Eckpunkt
+    Obj1              Richtung - Vektor oder Linie 
+    [Point (on obj)]  Startpunkt
+    [PT or VC]        Punkt (Eckpunkt)
+    PARL oder CX      PARL: Vektor entlang Obj1 von Startpunkt bis Eckpunkt
+                      CX:   Vektor normal zu Richtung
+                      keine Angabe: Normalvektor auf die Ebene aus Obj1 - Eckpunkt
 
-  Vektor parallel zur V-Achse (normal zur Hauptachse U):
-    (derzeit nur für Ebene, B-SplineFläche)
-    Ebene: ergibt Y-Achse der Ebene.
-    Fläche: Richtung der Isoparametrischen Kurve V
-    Modifier "CX" aktivieren.
+  Vektor parallel zu 2 Punkten, Eckpunkt
+    Obj1              Startpunkt
+    [Point (on obj)]  Punkt auf Vektor / Linie
+    [PT or VC]        Punkt (Eckpunkt)
+    PARL oder CX      PARL: Vektor entlang Startpunkt - Point-on-OBj bis Eckpunkt
+                      CX:   Vektor normal zu Startpunkt - Point-on-OBj
+                      keine Angabe: Normalvektor auf die Ebene aus den 3 Punkten
+
+  Vektor auf Fläche parallel zur Isoparametrischen Richtung U oder
+    zur Isoparametrischen Richtung V
+    Obj1              Fläche oder Ebene
+    PARL oder CX      PARL: in Richtung der Isoparametrischen Kurve U
+                      CX:   in Richtung der Isoparametrischen Kurve V
+                      keine Angabe: Normalvektor auf die Fläche
+
 
 
 <b>Normalvektor:</b>
@@ -103,9 +114,10 @@ Parallel- oder Normalvektor zu existierenden Objekten.
     
 
   Normalvektor auf 2 lineare Segmente (Kreuzprodukt):
-    3 Punkte           (normal auf Ebene durch 3 Punkte)
-    Linie, Punkt       (normal auf Ebene durch Punkt, Linie)
-    2 Linien           (normal auf Ebene durch 2 Linien)
+    3 Punkte           (normal auf Ebene durch 3 Punkte)           oder
+    Linie, Punkt       (normal auf Ebene durch Punkt, Linie)       oder
+    Vektor, 2 Punkte   (Ebene aus 2 Punkten und Vektor)            oder
+    2 Linien           (normal auf Ebene durch 2 Linien)           oder
     Das Ergebnis (der Normalvektor) ist das Kreuzprodukt von 2 Eingabevektoren. 
 
 
@@ -134,7 +146,11 @@ D20=L20 DZ
 # X-Achs-Vektor der Ebene R20
 D20=R20 PARL
 
+# Vektor entlang der X-Achse von P23 bis zum Eckpunkt P24
+D20=DX P23 P24 PARL
 
+# Vektor entlang P23 P25 bis zum Eckpunkt P24
+D20=P23 P25 P24 PARL
 
 <hr>
 Die folgenden Befehle koennen derzeit nur manuell erzeugt werden:

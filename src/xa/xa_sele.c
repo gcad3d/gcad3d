@@ -45,9 +45,7 @@ sele_ck_typ         Test if obj of typ iTyp is a requested typ.
 sele_ck_ConstrPln   Test if must add "ConstrPlane" to option-menu
 sele_ck_NoParents   test if must add parents to selection-list
 
-sele_set_stat       set status of 2D-icons; 0=enabled, X=disabled
 sele_set_icon       add 2D-icon to list
-sele_get_icons      get list of active 2D-icons
 sele_ck_subCurv     get (max.) 3 subcurves for a selected curve
 
 sele_decode         decode selected object; change sel_object into req_object
@@ -79,6 +77,13 @@ List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+
+
+- define all selectabele objects with sele_set_add
+- provide requested object from selected obj with sele_decode
+
+
+
 
 
 -------------------------------------------------
@@ -236,12 +241,6 @@ static int    bck_GR_NoConstrPln;
 // static char   GR_actPos[60];     // cursorPos as "P(x y z)"
 
 
-#define I2D_TABSITZ  10
-static int   I2D_typTab[I2D_TABSITZ], I2D_iNr = 0;
-static char  I2D_txtTab[I2D_TABSITZ][32];
-static char  I2D_stat[I2D_TABSITZ];
-
-
 
 
 
@@ -352,8 +351,11 @@ static char  I2D_stat[I2D_TABSITZ];
 
   //----------------------------------------------------------------
   L_ck_1:
+    // printf("L_ck_1: iTyp=%d iLn=%d iCi=%d iCv=%d\n",iTyp,iLn,iCi,iCv);
   // get subCurve of CCV:  L|C|S, dann P,D
-  oTyp = Typ_goGeo1; // if L in CCV selected: OK; if C in CCV selcted: oTyp=0.
+  // if L in CCV selected: OK; if C in CCV selcted: oTyp=0.
+  if(iTyp == Typ_CVPOL) oTyp = Typ_LN; // 2017-09-26
+  else oTyp = Typ_goGeo1;
   // get src-obj so of type=oTyp from selPos and db-object (typ,dbi)
   oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
     // printf(" ck_subCurv-Ln-CCV oTyp=%d so=|%s|\n",oTyp,so);
@@ -450,186 +452,68 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
 //================================================================
-  int sele_set_stat (int ii) {
+  int sele_set_icon (int *ib, int iTyp) {
 //================================================================
-// set status of 2D-icons; 0=enabled, X=disabled
+// add 2D-GL-button(s) to list
 // Input:
-//   ii    inputFieldInd
-
-  int   i1, i2, typR;
-  char  *p1;
-
-  // Func:
-  char *IE_get_inp__ ();
-
-
-  // printf("sele_set_stat %d %d\n",ii,I2D_iNr);
-
-  // typR = IE_inpTypR[ii];   // requested typ
-  // p1 = IE_get_inp__ (ii);
-  IE_get_inp_typ (&typR, &p1, ii);  // get requested typ & text of inputField
-
-
-  // typR = IE_inpCkTyp (ii, p1);
-    // printf(" typR=%d |%s|\n",typR,p1);
-
-
-  // loop tru all active buttons:
-  for(i1=0; i1<I2D_iNr; ++i1) {
-
-    if(typR == Typ_modREV) {
-      I2D_stat[i1] = '0';
-    } else {
-      if(I2D_typTab[i1] == Typ_modREV) {
-        // Input Vector: may not be first word of inputField
-        if(strlen(p1) < 1) I2D_stat[i1] = 'X';
-        else               I2D_stat[i1] = '0';
-          // printf(" REV -> |%c|\n",I2D_stat[i1]);
-      }
-    }
-
-    // check if vars defined
-    if((I2D_typTab[i1] == Typ_FncVAR1)  ||
-       (I2D_typTab[i1] == Typ_FncVAR2))     {
-      i2 = DB_get_ObjNr (Typ_VAR);
-      if(i2 < 1) {
-        I2D_stat[i1] = 'X';   // no vars defined
-        // MSG_pri_0("VR0");
-      }
-    }
-
-    // check if vectors defined
-    if((I2D_typTab[i1] == Typ_FncVC1)  ||
-       (I2D_typTab[i1] == Typ_FncVC2))     {
-      i2 = DB_get_ObjNr (Typ_VC);
-      if(i2 < 1) {
-        I2D_stat[i1] = 'X';   // no vars defined
-        // MSG_pri_0("VC0");
-      }
-    }
-
-  }
-
-  return 0;
-
-}
- 
-
-//================================================================
-  int sele_set_icon (int *ii, int iTyp) {
-//================================================================
-// add 2D-icon to list
-// get list with sele_get_icons for each Redraw
+//   ib      button-index to use, clearing all following buttons
+// Output:
+//   ib      ib += 1;
 //
 // see also APED_oid_dbo_all (get iTxt from iTyp)
-// see GL_icons_dispTags (draw 2D-tag-icons)
 
 
   char      *p1;
 
 
-  // printf("sele_set_icon %d %d\n",*ii, iTyp);
+  // printf("sele_set_icon %d %d\n",*ib, iTyp);
+
+  // if not CAD: return
+  if(UI_InpMode != UI_MODE_CAD) return -1;
 
 
+  //----------------------------------------------------------------
+  // add group of buttons
   if(iTyp == Typ_VAR) {
-    sele_set_icon (ii, Typ_FncVAR2);
-    sele_set_icon (ii, Typ_FncVAR1);
+    sele_set_icon (ib, Typ_FncVAR2);
+    sele_set_icon (ib, Typ_FncVAR1);
     return 0;
 
 
   } else if(iTyp == Typ_VC) {
-    sele_set_icon (ii, Typ_FncVC2);   // VC- previous
-    sele_set_icon (ii, Typ_FncVC1);   // VC+ next
+    sele_set_icon (ib, Typ_FncVC2);   // VC- previous
+    sele_set_icon (ib, Typ_FncVC1);   // VC+ next
     return 0;
 
 
   } else if(iTyp == Typ_mod1) {
-    sele_set_icon (ii, Typ_FncPrv);
-    sele_set_icon (ii, Typ_FncNxt);
+    sele_set_icon (ib, Typ_FncPrv);
+    sele_set_icon (ib, Typ_FncNxt);
     return 0;
 
 
   } else if(iTyp == Typ_FncDirX) {
-    sele_set_icon (ii, Typ_modCX);
-    sele_set_icon (ii, Typ_modPARL);
+    sele_set_icon (ib, Typ_modCX);
+    sele_set_icon (ib, Typ_modPARL);
     return 0;
   }
 
 
+  //----------------------------------------------------------------
+  // add single button
   // get text
   p1 = AP_src_typMod (iTyp);
   if(!p1) {TX_Error("sele_set_icon E001 %d",iTyp); return -1;}
 
-  I2D_iNr = *ii;
 
-  I2D_typTab[I2D_iNr] = iTyp;
-
-  strcpy (I2D_txtTab[I2D_iNr], p1);
-
-  I2D_stat[I2D_iNr] = '0';          // 0=active
-
-  I2D_iNr += 1;
-  *ii = I2D_iNr;
+  // add GL-2D-button
+  GLBT_but_add (ib, iTyp, p1);
 
 
   return 0;
 
 }
 
-
-//================================================================
-  int sele_get_icons (int *ii, int **ia, char **sa, char **stat) {
-//================================================================
-// sele_get_icons      get list of active 2D-icons
-
-// Output:
-//   ii    nr of icons to display
-//   ia    list of types (selection returns this type); GL_sel_add_DL
-//   sa    list of 2D-button-texts (GL_Redraw)
-//   stat  list status (0=normal, 1=dimmed)
-
-// Possible icons:
-// REV          Typ_modREV
-// CCW          Typ_modCWCCW  Typ_modCW Typ_modCCW
-// CX           Typ_modCX
-// CTRL         Typ_modCTRL
-// "1"|"2" ...  Typ_mod1  "1"|"2" ... (Side, Version, solutionNr ..)
-// NXT PRV      for PgUp/PgDwn-Buttons for DB-Vectors, Typ_mod1,
-// LIST         for Typ_CtlgPart
-
-// Typ_modAux "[Spline/Polygon] POL"  IE_cad_Inp1_Aux
-// man könnte Typ_modCX mit Typ_modAux ersetzen.
-// man könnte Typ_modCTRL mit Typ_modAux ersetzen.
-// man könnte Typ_modREV mit Typ_modAux ersetzen.
-
-
-// Add new modifier:
-// sele_get_icons
-// sele_set__
-// UI_GR_Select1
-// IE_inpCk
-
-
-
-  *ii = I2D_iNr;
-  *ia = I2D_typTab;
-  *sa = *I2D_txtTab;
-  *stat = I2D_stat;
-
-
-  // // TESTOUTPOUT ONLY
-  // if(I2D_iNr) {
-  // printf("§§§§§§§§§§ ex sele_get_icons %d \n",I2D_iNr);
-  // { int i1; for(i1=0;i1<I2D_iNr;++i1)
-    // printf("  2D-ico[%d] = %d |%s|\n",i1,I2D_typTab[i1],I2D_txtTab[i1]);}}
-
-    // printf("ex sele_get_icons %d\n",I2D_iNr);
-
-
-  return I2D_iNr;
-
-}
- 
 
 //================================================================
   int UI_GR_set_sel_obj (int typ, long dbi) {
@@ -1025,7 +909,7 @@ static char  I2D_stat[I2D_TABSITZ];
   int     irc, i1, ii, iTyp, typBas;
   long    l1;
   double  d1;
-  char    *sp1;
+  char    *sp1, s1[64];
   Point   pt1, pt2;
   ObjAto  ato;                  // only temp
 
@@ -1040,11 +924,13 @@ static char  I2D_stat[I2D_TABSITZ];
   //----------------------------------------------------------------
   if(!strcmp(GR_selNam, "ConstrPlane") )  {
     UI_GR_get_actPosA (&pt1);
-    sprintf(GR_selNam, "P(%f %f %f)", pt1.x, pt1.y, pt1.z);
+    // write "P(<x> <y> <z>)"
+    SRC_src_pt3_10 (GR_selNam, &pt1);
 
   } else if(!strcmp(GR_selNam, "selPos") )  {
     sele_get_pos (&pt1);
-    sprintf(GR_selNam, "P(%f %f %f)", pt1.x, pt1.y, pt1.z);
+    // write "P(<x> <y> <z>)"
+    SRC_src_pt3_10 (GR_selNam, &pt1);
   }
 
 
@@ -1258,7 +1144,8 @@ static char  I2D_stat[I2D_TABSITZ];
     if((GR_selTyp == Typ_VAR)   ||
        (GR_selTyp == Typ_PT))     goto L_exit;
     // these objs can be converted:
-    if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
+    if((GR_selTyp == Typ_TmpPT) ||
+       (GR_selTyp == Typ_LN))   goto L_pt_conv;   // 2017-05-28; L -> P((L par)
     if((GR_selTyp == Typ_CI))      goto L_VAL_C;
 
 
@@ -1300,6 +1187,26 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
   //================================================================
+  // Typ_PLN REQUESTED ..
+  //================================================================
+  } else if(GR_reqTyp == Typ_PLN) {
+    // these objs can be used directly:
+    if (GR_selTyp == Typ_PLN)     goto L_exit;
+    // these objs can be converted:
+    if((GR_selTyp == Typ_PT)    ||
+       (GR_selTyp == Typ_TmpPT) ||
+       (GR_selTyp == Typ_LN))     goto L_exit;
+// do not yet make "R(<selObj>)" of "<selObj>"
+       // (GR_selTyp == Typ_LN))     goto L_REF__;
+    // these objs can be used additional:
+    if(GR_selTyp == Typ_VC)       goto L_exit;
+
+    // Typ_CI ?
+    // Typ_Model ?
+
+
+
+  //================================================================
   // Typ_goAxis REQUESTED ..
   //================================================================
   } else if(GR_reqTyp == Typ_goAxis) {
@@ -1310,6 +1217,8 @@ static char  I2D_stat[I2D_TABSITZ];
        (GR_selTyp == Typ_PLN))     goto L_exit;
     // these objs can be converted:
     if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
+
+
 
 
 /*
@@ -1506,20 +1415,6 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
   //================================================================
-  // Typ_PLN REQUESTED ..
-  //================================================================
-  } else if(GR_reqTyp == Typ_PLN) {
-    // these objs can be used directly:
-    if(GR_selTyp == Typ_VC)      goto L_exit;
-    if(GR_selTyp == Typ_PT)      goto L_exit;
-    if(GR_selTyp == Typ_TmpPT)   goto L_pt_conv;
-    // these objs can be converted:
-
-  // Typ_CI ?
-  // Typ_Model ?
-
-
-  //================================================================
   // SURF REQUESTED ..
   //================================================================
   } else if(GR_reqTyp == Typ_SUR) {
@@ -1583,7 +1478,7 @@ static char  I2D_stat[I2D_TABSITZ];
     printf("sele_decode I001 %d\n",GR_reqTyp);
   }
 
-  printf("***** sele_decode E001-%d\n",GR_reqTyp);
+  printf("***** sele_decode E001-%d-%d\n",GR_reqTyp,GR_selTyp);
   return -1;
 
 
@@ -1903,6 +1798,19 @@ raus 2011-07-29
 
 
 
+// UNUSED;
+  //================================================================
+  // convert obj -> R()
+  //================================================================
+  // L_REF__:
+    // sprintf (s1, "R(%s)",GR_selNam);
+    // strcpy (GR_selNam, s1);
+    // GR_selTyp = Typ_PLN;
+    // GR_selDbi = 0L;
+    // return 0;
+
+
+
   //================================================================
   L_exit:
       // printf("ex sele_decode %d %ld |%s|\n",
@@ -2024,7 +1932,7 @@ raus 2011-07-29
 
   GR_selTmpStat = 0;        // reset temp-indicate.
 
-  I2D_iNr = 0;
+  GLBT_but_ini ();          // I2D_iNr = 0;
 
 
 
@@ -2286,9 +2194,10 @@ raus 2011-07-29
 
 
     case Typ_goGeo8:    // Val|PT
-      sele_set_types (Typ_VAR, 
-                      Typ_Val,
-                      Typ_PT, 
+      sele_set_types (Typ_VAR,          // VAL(V)
+                      Typ_Val,          // direct
+                      Typ_PT,           // direct
+                      Typ_LN,           // P(L par)
                       Typ_CI,
                       0);
       sele_set_icon (&i2Dbutts, Typ_VAR);   // V+ V-
@@ -2403,26 +2312,26 @@ raus 2011-07-29
 
   //----------------------------------------------------------------
   // activate/deActivate 2D-butts
-  // activate VectorSelector
-  i1 = 0;  // not active
-  // activate PlaneSelector
-  i2 = 0;  // not active
   if(UI_InpMode == UI_MODE_CAD) {
+    // activate VectorSelector
+    i1 = -1;  // not active
+    // activate PlaneSelector
+    i2 = -1;  // not active
     if(IE_get_Func() >= 0) {          // only if a cad-function is active
         // printf(" IE_cad_typ=%d\n",IE_get_Func());
-      if(BitTab_get(reqObjTab, Typ_VC)  != 0) i1 = -1;
+      if(BitTab_get(reqObjTab, Typ_VC)  != 0) i1 = 0;
       // -1 = display defaultVectors, but no DB-vector.
-      if(BitTab_get(reqObjTab, Typ_PLN) != 0) i2 = -1;
+      if(BitTab_get(reqObjTab, Typ_PLN) != 0) i2 = 0;
     }
+    GLBT_vcSel_set (i1, 1);        // activate VectorSelector, Redraw
+    GLBT_plnSel_set (i2, 1);       // activate PlaneSelector, Redraw
   }
-  GL_vcSel_init (i1, 1);        // activate VectorSelector, Redraw
-  GL_plnSel_init (i2, 1);       // activate PlaneSelector, Redraw
 
 
   // only if CAD is active:
   if(IE_get_Func() >= 0) {
     // set status of 2D-icons
-    sele_set_stat (IE_get_inpInd ());
+    GLBT_set_stat (IE_get_inpInd ());
   }
 
   if(UI_InpMode == UI_MODE_CAD)   // 2013-05-06

@@ -32,6 +32,16 @@ void UTX(){}
 \file  ../ut/ut_txt.c
 \brief text manipulations 
 \code
+Needs:
+../ut/ut_TX.h         ../ut/ut_ui_TX.c|../ut/ut_TX.c      TX_Error ..
+../ut/ut_umb.h        ../ut/ut_umb.c                      UMB_..
+../ut/ut_umem.h       ../ut/ut_umem.c                     UME_..
+../ut/ut_txTab.h      ../ut/ut_txTab.c                    UtxTab_init_..
+../ut/ut_os.h         ../ut/ut_os_aix.c                   OS_FilSiz ..
+../xa/xa_msg.c        ../xa/xa_msg.h                      MSG_STD__ MSG_get_1 ..
+../ut/ut_types.h      -                                   FLT_32_MAX
+-                     ../ut/ut_mem.c                      MEM_chg_str ..
+-                     ../ut/ut_utx_dummy.c
 =====================================================
 List_functions_start:
 
@@ -44,10 +54,14 @@ UTX_cp_word_t          copy next word, give terminator
 UTX_cp_expr            copy expression (without brackets)
 UTX_cp_print           add maxLen printable characters from txi --> txo
 // APT_cp_ausd         kopiert einen Ausdruck (kompletter Klammerinhalt)
+UTX_CP__               copy n chars - terminate with '\0'                  INLINE
 UTX_cp_Line            copy a Line (terminated by '\n')
 UTX_cp_left            copy n chars from left side of string
 UTX_cp_right           copy n chars from right side of string
 UTX_cpLn_2cp           copy line between 2 pointers; del ending blanks, lf
+
+UTX_db10__             double -> string; precision 10 digits
+UTX_db15__             double -> string; precision 15 digits
 
 UTX_add_i_u            add integer to string
 UTX_add_db             add double unformatted; Trennzeichen ist blank
@@ -63,6 +77,7 @@ UTX_add_fl_15          add double with 15 signif digits
 UTX_add_slash          add closing "/" to string (for dirs)
 UTX_add_fnam_del       add closing "/" or "\\" to string (filename-delimiter)
 
+UTX_chrNr              get nr of chars to end of line
 UTX_Clear              string = '\0'                                 INLINE
 UTX_Siz                get length of rest of string                  INLINE
 UTX_CleanCR            delete following Blanks, CRs and LFs
@@ -77,8 +92,9 @@ UTX_endDelWord         remove last word; delimiting char; keep or not.
 UTX_endAddChar         if last char of string != chr: add it
 UTX_del_right          delete last characters
 UTX_del_chr            delete all characters <cx> out of string cbuf
-UTX_del_follBl         delete following blanks
+UTX_del_follBl         delete following blanks, return strLen
 UTX_del_foll0          Delete following 0s and following "."
+UTX_del_foll_chrn      delete last char if it is in list
 UTX_del_FilTx          delete all lines containing <dtxt>
 
 UTX_chg_chr1           in cBuf alle oldChr aendern in newChr
@@ -133,10 +149,12 @@ UTX_ck_num_digNr       returns nr of consecutive digits
 UTX_ck_uml_c           check for Umlaut (ÄÖÜäöüß); change to normal char
 UTX_ck_uml_s           change all umlaute of string
 UTX_cmp_word_wordtab   check if word wd1 is in list wdtab
+UTX_find_chr           find character in string (strchr)                 INLINE
 UTX_find_Del1          // find next delimiter ' ' '=' ',' '\n' '\t' '{' ..
 UTX_find_word1         Wort in Zeile suchen
 UTX_find_wordNr        find word "was" in string "wo"; return nr of occurences
 UTX_find_strrstr       find last occurence of str in cbuf
+UTX_find_strrchrn      find last occurence of one of the chars of str2
 UTX_strcmp_right       check if string1 ends with string2
 
 UTX_wGrp_find          find word-position in group-of-words
@@ -160,13 +178,15 @@ UTX_sget_nrRange       get nr or range out of textstring
 
 UTX_db_tx              read float from ascii-string
 
+UTX_fnam__             separate/copy directory,fileName,fileTyp of full filename
 UTX_ftyp_s             get filetyp from filename (change => upper)
 UTX_fnam_s             get fnam from string
 UTX_fdir_s             get fileDirectory from string
 UTX_ftyp_cut           remove Filetyp from string
 UTX_safeName           make a safe modelname from a modelname
-UTX_fnam_abs2rel       make relative filename from absolutFilename and actDir
+UTX_fnam_fnrel         make absolute filename from relative Filename and basDir
 UTX_fnam_rel2abs       make absolute filename from relative Filename and actDir
+UTX_fnam_abs2rel       make relative filename from absolutFilename and actDir
 UTX_fdir_cut           cut last subpath from path
 
 UTX_fgets              Zeile aus Datei lesen und CRs LFs am Ende deleten
@@ -175,6 +195,7 @@ UTX_fsavLine           Zeile Nr. <lNr> into Datei <filNam> schreiben
 UTX_fRevL              File revert lines; eine Datei zeilenweise umdrehen;
 UTX_str_file           read file -> string; remove ending '\n'
 UTX_wrf_str            write string -> file
+UTX_f_lifo_add         add line as first line into file with maxLnr lines
 
 UTX_setup_get__        get parameters (typ, value) from setup-file
 UTX_setup_get          get parameters (typ, value) from setup-file (1.word only)
@@ -192,7 +213,7 @@ UTX_htm_fcl            close html-textfile
 
 UTX_dump_cnl           dump String (printf) until next '\n'   (maxLen)
 UTX_dump_word          print word delimited by one of sDel-chars
-UTX_dump_c__           dump <cLen> chars
+UTX_dump_c__           dump <cLen> chars - does not stop at \n
 UTX_dump__             dump <cLen> chars (replace \n\r\t)  - stop at \0
 UTX_dump_s__           dump <cLen> chars (replace \n\r\t\0)
 UTX_dump_p1p2          dump string from ps to pe
@@ -225,14 +246,13 @@ UTI_iNr_chrNr          give nr of ints for n characters
 #include "../ut/ut_txt.h"
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_os.h"
+#include "../xa/xa_msg.h"              // MSG_*
+
 
 
 const char TX_NUL = '\0';
 
 
-
-static double UTX_TOL_min1 = 0.000001;
-static double UTX_VAL_MAX  = 9999999999999.999;
 
 static char   TX_buf1[128];
 static char   TX_buf2[128];
@@ -757,6 +777,8 @@ static char   TX_buf2[128];
 
   int   iPos, iLen;
 
+  // printf("UTX_safeName %d |%s|\n",mode,snam);
+
   iLen = strlen(snam);
 
 
@@ -780,6 +802,8 @@ static char   TX_buf2[128];
       goto L_1_noAmoi;
     }
 
+  // printf("ex-UTX_safeName %d |%s|\n",mode,snam);
+
   return 0;
 
 }
@@ -796,7 +820,7 @@ static char   TX_buf2[128];
   int    i1;
   char   *p1;
 
-  printf("UTX_fdir_cut |%s|\n",fdir);
+  // printf("UTX_fdir_cut |%s|\n",fdir);
 
   // last char must be '/'
   if(!fdir) return -1;
@@ -811,7 +835,7 @@ static char   TX_buf2[128];
   if(p1) {
     ++p1;
     *p1 = '\0';
-      printf("ex UTX_fdir_cut |%s|\n",fdir);
+      // printf("ex UTX_fdir_cut |%s|\n",fdir);
 
     return 0;
   }
@@ -822,15 +846,80 @@ static char   TX_buf2[128];
 
 
 //=========================================================================
+  int UTX_fnam_fnrel (char *fnAbs, int isiz, char *fnRel, char *basDir) {
+//=========================================================================
+/// UTX_fnam_rel2abs     make absolute filename from relative Filename and basDir
+/// RF 2018-05-23
+
+  int      ls, irc, fTmp = 0;
+  char     *si, *so = NULL;
+
+
+  // printf("UTX_fnam_fnrel %d basDir=|%s| fnRel=|%s|\n",isiz,basDir,fnRel);
+
+  ls = strlen(basDir);   if(ls >= isiz) return -1;
+  strcpy (fnAbs, basDir);
+  UTX_add_fnam_del (fnAbs);   // add closing "/"
+
+
+  si = fnRel;
+  so = fnAbs;
+
+  if(si == so) {
+    so = MEM_alloc_tmp(isiz);
+    so[0] = '\0';  //strcpy(so,si);
+    fTmp = 1;
+  }
+
+
+  //----------------------------------------------------------------
+  L_nxt:
+  // "./" - skip this
+  if(!strncmp(si, "./", 2)) {
+    si += 2;
+    goto L_nxt;
+  }
+
+
+  // "../"  go one back
+  if(!strncmp(si, "../", 3)) {
+    si += 3;
+    // remove one path of outDir (cut last)
+    irc = UTX_fdir_cut (so);
+    if(irc < 0) return irc;
+    goto L_nxt;
+  }
+
+
+  //----------------------------------------------------------------
+  // add to absolute path
+  ls += strlen(so) + 1;
+  if(ls > isiz) {
+    printf("***** UTX_fnam_fnrel overflow-1\n");
+    return -1;
+  }
+  strcat(so, si);
+  if(fTmp) strcpy(fnAbs, so);
+  UTX_add_fnam_del (fnAbs);   // add closing "/"
+
+    // printf("ex-UTX_fnam_fnrel fnAbs=|%s|\n",fnAbs);
+
+  return 0;
+
+}
+
+
+//=========================================================================
   int UTX_fnam_rel2abs (char *fnAbs, int isiz, char *fnRel, char *actDir) {
 //=========================================================================
 /// UTX_fnam_rel2abs     make absolute filename from relative Filename and actDir
+/// DO NOT USE - replaced by UTX_fnam_fnrel
 
   int      i1, irc;
   char     *p1;
 
   
-  printf("UTX_fnam_rel2abs %d |%s|%s|\n",isiz,fnRel,actDir);
+  // printf("UTX_fnam_rel2abs %d |%s|%s|\n",isiz,fnRel,actDir);
 
   strcpy (fnAbs, actDir);
 
@@ -895,14 +984,14 @@ static char   TX_buf2[128];
   char sdir[4] = "../";
 #endif
 
-  printf("UTX_fnam_abs2rel |%s|%s|\n",fnAbs,actDir);
+  // printf("UTX_fnam_abs2rel |%s|%s|\n",fnAbs,actDir);
 
 
   // wie viele characters sind gleich ?
   ie = UTX_memcmp (fnAbs, actDir);
 
   id = strlen (actDir);
-    printf(" ie=%d id=%d\n",ie,id);
+    // printf(" ie=%d id=%d\n",ie,id);
 
 
   if(ie >= id) {
@@ -923,9 +1012,92 @@ static char   TX_buf2[128];
 
   //================================================================
   L_exit:
-  printf("ex UTX_fnam_abs2rel |%s|%s|%s|\n",fnRel,fnAbs,actDir);
-  printf(" ==========================\n");
+  // printf("ex UTX_fnam_abs2rel |%s|%s|%s|\n",fnRel,fnAbs,actDir);
+  // printf(" ==========================\n");
 
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTX_fnam__ (char *fdir, char *fnam, char *ftyp, char *fnIn) {
+//================================================================
+/// \code
+/// UTX_fnam__        separate/copy directory,fileName,fileTyp of full filename
+/// Input:
+///   fnIn      full filname; 
+///   fdir      size must be >= 128
+///   fnam      size must be >= 128
+///   ftyp      size must be >= 32 
+/// Output:
+///   fdir      directory; can be NULL (no directory);
+///   fnam      filname;
+///   ftyp      fileTyp;  can be NULL (no fileTyp);
+///
+/// fdir out eg: "/xx" (absolute directory)
+///          or  "Data" (symbolic-directory)
+///          or  ".x" or "../x" or "."  (relative direcotory)
+///
+/// see also UTX_fdir_s UTX_fnam_s UTX_ftyp_s
+/// \endcode
+
+
+  int    sdl, snl;
+  char   *pfn, *pft;
+
+  fdir[0] ='\0';
+
+
+  // printf("----------------------------------- \n");
+  // printf("UTX_fnam__ |%s|\n",fnIn);
+
+  // pfn = find last filename-delimiter
+  // must check for '/' AND '\' (in MS '/' can come from out of source)
+#ifdef _MSC_VER
+  pfn = UTX_find_strrchrn(fnIn, "/\\");
+#else
+  pfn = strrchr(fnIn, fnam_del);
+#endif
+  if((pfn - fnIn) >= 256) return -1;
+  if(!pfn) {
+    // no directory;
+    fdir[0] ='\0';
+    pfn = fnIn;
+  } else {
+    sdl =  pfn - fnIn + 1;
+    strncpy(fdir, fnIn, sdl);
+    fdir[sdl] = '\0';
+    ++pfn;  // skip deli
+  }
+
+  // find pft = filetype-delimiter
+  pft = strrchr(pfn, '.');
+  if(!pft) {
+    // no filetype;
+    ftyp[0] ='\0';
+    // copy the filname
+    strcpy(fnam, pfn);
+  } else {
+    snl = pft - pfn;   // printf(" snl=%d\n",snl);
+    if(snl) {
+      ++pft; // skip '.'
+      // copy filetyp
+      if(strlen(pft) >= 32) return -3;
+      strcpy(ftyp, pft);
+      // copy the filname
+      if(snl >= 128) return -2;
+      strncpy(fnam, pfn, snl);
+      fnam[snl] = '\0';
+    } else {
+      // no filetype
+      if(strlen(pft) >= 128) return -2;
+      strcpy(fnam, pft);
+    }
+  }
+
+    // printf("ex-_fnam__ |%s|%s|%s|\n",fdir,fnam,ftyp);
 
   return 0;
 
@@ -1006,6 +1178,7 @@ static char   TX_buf2[128];
 
   return 0;
 
+  //----------------------------------------------------------------
   L_err:
     // printf("ex UTX_ftyp_s -1 |%s|\n",cbuf);
   return -1;
@@ -1140,34 +1313,46 @@ static char   TX_buf2[128];
 /// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
 /// \endcode
 
+#define bSiz 4096
 
-
+  int     i1;
   long    l1;
   char    *fBuf;
+  div_t   div1;
+  FILE    *fpi;
 
 
   // printf("UTX_cat_file |%s|\n",fnam);
 
 
   l1 = OS_FilSiz (fnam);
-  fBuf = MEM_alloc_tmp (l1 + 128);
-  MEM_get_file (fBuf, &l1, fnam);
-  fwrite (fBuf, 1, l1, fpo);
-    
 
 
-  // long i1;
-  // char cbuf[16004];
-  // FILE *fpi;
+  div1 = div (l1, bSiz);
+    // printf(" _cat_file %d %d\n",div1.quot,div1.rem);
 
-  // if((fpi = fopen(fnam, "rb")) == NULL) return -1;
+  // get spc
+  fBuf = MEM_alloc_tmp (bSiz + 32);
 
-  // while (!feof (fpi)) {
-    // i1 = fread(cbuf,1,16000,fpi);
-      // fwrite(cbuf,1,i1,fpo);
-  // }
+  if((fpi = fopen(fnam, "rb")) == NULL) return -1;
 
-  // fclose(fpi);
+  if(div1.quot > 0) {
+    for(i1=0; i1<div1.quot; ++i1) {
+      // read into fBuf
+      fread(fBuf, 1, bSiz, fpi);
+      // write fBuf
+      fwrite(fBuf, 1, bSiz, fpo);
+    }
+  }
+
+  if(div1.rem > 0) {
+    // read into fBuf
+    fread(fBuf, 1, div1.rem, fpi);
+    // write fBuf
+    fwrite(fBuf, 1, div1.rem, fpo);
+  }
+
+  fclose(fpi);
 
     // printf("ex UTX_cat_file\n");
 
@@ -1605,6 +1790,76 @@ static char   TX_buf2[128];
   }
 
   // printf("ex UTX_find_strrstr |%s| \n",p1);
+
+  return p1;
+
+}
+
+
+//================================================================
+  int UTX_del_foll_chrn (char *cbuf, char *str) {
+//================================================================
+/// \code
+/// UTX_del_foll_chrn           delete last char of cbuf if it is in str
+/// \endcode
+
+  int    ii;
+  char   *p1;
+
+  ii = strlen(cbuf) - 1;
+  if(ii < 0) return -1;
+  p1 = &cbuf[ii];
+
+  printf("UTX_del_foll_chrn |%s|%c|\n",cbuf,*p1);
+
+  ii = 0;
+
+  while(str[ii]) {
+    if(*p1 == str[ii]) {
+      *p1 = '\0';
+      break;
+    }
+    ++ii;
+  }
+
+  printf("ex-UTX_del_foll_chrn |%s|\n",cbuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  char *UTX_find_strrchrn (char *cbuf, char *str) {
+//================================================================
+/// \code
+/// UTX_find_strrchrn        find last occurence of one of the chars of str2
+/// returns NULL or the position of the last char in cbuf also found in str. 
+///  (see strpbrk = find first)
+/// NULL: nicht enthalten
+/// \endcode
+
+  int    ii;
+  char   *p1, *p2;
+
+  // printf("UTX_find_strrchrn |%s|%s| \n",cbuf,str);
+
+
+  ii = 0;
+  p1 = cbuf;
+
+  while(str[ii]) {
+    p2 = strrchr (p1, str[ii]);
+    if(p2) {
+      // found
+      p1 = ++p2;  // start here
+    }
+    ++ii;
+  }
+
+  if(p1) --p1;
+
+  // printf("ex-UTX_find_strrchrn |%s| \n",p1);
 
   return p1;
 
@@ -2901,10 +3156,10 @@ Das folgende ist NICHT aktiv:
 
 
 //================================================================
-  void UTX_del_follBl (char *cbuf) {
+  int UTX_del_follBl (char *cbuf) {
 //================================================================
 /// \code
-/// UTX_del_follBl             delete following blanks
+/// UTX_del_follBl             delete following blanks, return strLen
 /// see also UTX_CleanCR
 /// \endcode
 
@@ -2917,13 +3172,17 @@ Das folgende ist NICHT aktiv:
 
   L_next_char:
   if(*cpos == ' ') *cpos = '\0';
-  else return;
+  else goto L_exit;
 
 
   L_weiter:
   --cpos;
   if(cpos >= cbuf) goto L_next_char;
-  return;
+
+  L_exit:
+    printf(" UTX_del_follBl |%s|\n",cbuf);
+
+  return (cpos - cbuf + 1);
 
 }
 
@@ -3037,25 +3296,31 @@ Das folgende ist NICHT aktiv:
 /// UTX_add_fl_u            add double unformatted (del foll. 0's and ".")
 /// 
 ///   Delete following 0's and following ".".
+/// see UTX_add_fl_f UTX_db10__
 /// \endcode
 
 
+  double u1;
 
-  /* Die Zahl -0.0 auf 0.0 korrigieren */
-  /* if (UTP_comp_0 (zahl)) zahl = 0.0; */
-  if((zahl > -UTX_TOL_min1)&&(zahl < UTX_TOL_min1)) zahl = 0.0;
+  // Die Zahl -0.0 auf 0.0 korrigieren
+  u1 = fabs(zahl);
+  if(u1 < FLT_32_MIN1) { strcat (strBuf, "0"); return 0; }
+  if(u1 > FLT_32_MAX)  {
+      if(zahl < 0.) { strcat (strBuf, "-9999999999999.999"); return -1; }
+    else            { strcat (strBuf, "9999999999999.999"); return 1; }
+                                  //   123456789012345678
+  }
 
 
   sprintf (&strBuf[strlen(strBuf)],"%lf", zahl);
 
-
-  /* delete following 0's */
+  // delete following 0's
   UTX_del_foll0 (strBuf);
 
 
-  /* printf("UTX_add_fl_u |%s|\n",strBuf); */
+  // printf("UTX_add_fl_u |%s|\n",strBuf);
 
-  return 1;
+  return 0;
 }
 
 
@@ -3141,27 +3406,39 @@ Das folgende ist NICHT aktiv:
 /// \code
 /// UTX_add_fl_1uf         add double with max.1 digit after dec.point
 /// unformatted (remove following ".0")
+/// retCod = position of closing '\0'
 /// see also UTX_add_fl_f
 /// \endcode
     
 
   long   l1;
   char   auxBuf[40], *p1;
+  double u1;
     
-    
-  p1 = &outBuf[strlen(outBuf)];  // pointer at \0
     
   // Die Zahl -0.0 auf 0.0 korrigieren
-  if(fabs(d1) < UTX_TOL_min1) d1 = 0.0;
+  u1 = fabs(d1);
 
-  sprintf (p1, "%.1f", d1);
+  p1 = &outBuf[strlen(outBuf)];  // pointer at \0
+    
+  if(u1 < FLT_32_MIN1) {
+    strcpy (p1, "0");
+    ++p1;
+    return p1;
 
-  l1 = strlen(p1);
+  } else if(u1 > FLT_32_MAX)  {
+      if(d1 < 0.) { strcpy (p1, "-9999999999999.999"); p1 += 18; return p1; }
+    else          { strcpy (p1, "9999999999999.999"); p1 += 17; return p1; }
+                            //   1234567890123456789
+  }
+
+  sprintf (p1, "%.1f", d1);       //   printf(" _fl_1uf-|%s|\n",outBuf);
+
 
   // remove ".0" if last char = "0"
+  l1 = strlen(p1);
   if(p1[l1 - 1] == '0') { l1 -= 2; p1[l1] = '\0'; }
-  
-    // printf("ex UTX_add_fl_1uf |%s|\n",outBuf);
+
   
   return &p1[l1];
 
@@ -3172,7 +3449,7 @@ Das folgende ist NICHT aktiv:
   int UTX_add_fl_f (char strBuf[], double zahl, int nkAnz) {
 //==============================================================
 /// \code
-/// UTX_add_fl_f            add double with x digits after dec.point
+/// UTX_add_fl_f            add double with <nkAnz> digits after dec.point
 ///   to string. The nr of digits before dec.point is floating.
 ///
 /// IGES verwendet %.10f !
@@ -3181,95 +3458,206 @@ Das folgende ist NICHT aktiv:
 /// \endcode
 
 
-  char auxBuf[40], fmtBuf[16];
+  char   auxBuf[40], fmtBuf[16];
+  double u1;
 
 
-  /* Die Zahl -0.0 auf 0.0 korrigieren */
-  if(fabs(zahl) < UTX_TOL_min1) zahl = 0.0;
+  // Die Zahl -0.0 auf 0.0 korrigieren
+  u1 = fabs(zahl);
+  if(u1 < FLT_32_MIN1) { strcat (strBuf, "0"); return 0; }
+  if(u1 > FLT_32_MAX)  {
+      if(zahl < 0.) { strcat (strBuf, "-9999999999999.999"); return -1; }
+    else            { strcat (strBuf, "9999999999999.999"); return 1; }
+                                  //   123456789012345678
+  }
 
 
-  /* zuerst einmal den Formatstring generieren */
+  // zuerst einmal den Formatstring generieren
   // sprintf (fmtBuf, "%%20.%df", nkAnz);
-  sprintf (fmtBuf, "%%.%df", nkAnz);
-  /* printf("fmtBuf = %s\n", fmtBuf); */
+  // sprintf (fmtBuf, "%%.%df", nkAnz);
+    // printf("fmtBuf = %s\n", fmtBuf);
+  // sprintf (auxBuf, fmtBuf, zahl);
 
-  sprintf (auxBuf, fmtBuf, zahl);
+  sprintf (auxBuf, "%.*f", nkAnz, zahl);
+
 
   // strcat (strBuf, UTX_pos_1n(auxBuf));
   strcat (strBuf, auxBuf);
 
-  /* printf("UTX_add_fl_f |%s|\n",strBuf); */
+  // printf("UTX_add_fl_f |%s|\n",strBuf);
 
-  return 1;
+  return 0;
+}
+
+
+//================================================================
+  char* UTX_db10__ (char s1[], double d1) {
+//================================================================
+/// \code
+/// UTX_db10__             double -> string; precision 10 digits
+/// remove following blanks and ending '.'
+/// returns position of closing 0
+/// size of s1 > 32
+/// \endcode
+
+// Double hat 15-17 signifikante Stellen.
+
+
+  char    *tpos;
+  double  u1;
+
+
+  // printf("UTX_db10__ ||%f\n",s1,d1);
+
+  u1 = fabs(d1);
+
+  if(u1 < FLT_32_MIN1)              {
+    strcpy (s1, "0");
+    tpos = &s1[1];
+    goto L_exit;
+  } else if(u1 < 1.)                       {
+    sprintf (s1, "%.10lf", d1);
+  } else if(u1 < 10.)               {
+    sprintf (s1, "%.9lf", d1);
+  } else if(u1 < 100.)              {
+    sprintf (s1, "%.8lf", d1);
+  } else if(u1 < 1000.)             {
+    sprintf (s1, "%.7lf", d1);
+  } else if(u1 < 10000.)            {
+    sprintf (s1, "%.6lf", d1);
+  } else if(u1 < 100000.)           {
+    sprintf (s1, "%.5lf", d1);
+  } else if(u1 < 1000000.)          {
+    sprintf (s1, "%.4lf", d1);
+  } else if(u1 < 10000000.)         {
+    sprintf (s1, "%.3lf", d1);
+  } else if(u1 < 100000000.)        {
+    sprintf (s1, "%.2lf", d1);
+  } else if(u1 < 1000000000.)       {
+    sprintf (s1, "%.1lf", d1);
+  } else {
+    if(u1 > FLT_32_MAX) {
+      // TX_Error("UTX_add_fl_10 E001");
+      if(d1 < 0.) {strcpy (s1, "-9999999999999.999"); tpos = &s1[18];}
+      else        {strcpy (s1, "9999999999999.999");  tpos = &s1[17];}
+                           //   123456789012345678
+      goto L_exit;
+    }
+    sprintf (s1, "%.0lf", d1);
+  }
+
+  //----------------------------------------------------------------
+  // remove following zeros and '.' as last char. See UTX_del_foll0
+  tpos = strchr (s1, '.');
+  if(!tpos) goto L_exit;
+  tpos = &s1[strlen (s1)];
+  --tpos;
+  while (*tpos == '0') --tpos;
+  if(*tpos == '.') --tpos;
+  ++tpos;
+  *tpos = '\0';
+    // printf("  fl_15-nd=%d |%s|\n",nd,s1);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // printf("ex UTX_db10__ |%s| %lf\n",s1,d1);
+
+  return tpos;
+
+}
+
+
+//================================================================
+  char* UTX_db15__ (char s1[], double d1) {
+//================================================================
+/// \code
+/// UTX_db15__             double -> string; precision 15 digits
+/// remove following blanks and ending '.'
+/// size of s1 > 40
+/// returns position of closing 0
+/// \endcode
+
+// Double hat 15-17 signifikante Stellen.
+
+
+  int     nd;
+  char    *tpos;
+  double  u1;
+
+
+  // printf("UTX_db15__ |%f|\n",d1);
+
+  // get nd = nr of digits right of comma
+  u1 = fabs(d1);
+
+  if(u1 < FLT_32_MIN1) { strcpy (s1, "0"); return &s1[1]; }
+
+  if(u1 >= 1.) {
+    // nd = 15 - log10(fabs(d1));
+    nd = log10(u1);
+    if(nd > 37) {
+      if(d1 < 0.)
+        {strcpy(s1, "-99999999999999999999999999999999999999");  tpos = &s1[39];}
+      else
+        {strcpy(s1, "99999999999999999999999999999999999999");   tpos = &s1[38];}
+                //   1234567890123456789012345678901234567890
+                //            1         2         3         4
+      goto L_exit;
+    }
+    nd = 15 - nd;
+    if(nd < 0) nd = 0;
+  } else nd = 15;
+
+  // encode (dynamic-format)
+  sprintf (s1, "%.*lf",nd,d1);
+    // printf("  fl_15-nd=%d %s\n",nd,s1);
+
+
+  //----------------------------------------------------------------
+  // remove following zeros and '.' as last char. See UTX_del_foll0
+  tpos = strchr (s1, '.');
+  if(!tpos) goto L_exit;
+  tpos = &s1[strlen (s1)];
+  --tpos;
+  while (*tpos == '0') --tpos;
+  if(*tpos == '.') --tpos;
+  ++tpos;
+  *tpos = '\0';
+    // printf("  fl_15-nd=%d |%s|\n",nd,s1);
+
+  //----------------------------------------------------------------
+  L_exit:
+
+  // printf("ex UTX_db15__ %3d |%s|\n",nd,s1);
+
+  return tpos;
+
 }
 
 
 //================================================================
   int UTX_add_fl_10 (char strBuf[], double d1) {
 //================================================================
+/// \code
 /// UTX_add_fl_10          add double with 10 signif digits
+/// remove following blanks and ending '.'
+/// free size of strBuf > 32
+/// \endcode
 
 // Double hat 15-17 signifikante Stellen.
 
 
-  char    cBuf[32], *tpos;
-  double  u1;
+  char    s1[80];   // *tpos;
+  // double  u1;
 
 
   // printf("UTX_add_fl_10 ||%f\n",strBuf,d1);
 
-  u1 = fabs(d1);
 
-  if(d1 < 1.)                       {
-    sprintf (cBuf, "%.10f", d1);
-  } else if(u1 < 10.)               {
-    sprintf (cBuf, "%.9f", d1);
-  } else if(u1 < 100.)               {
-    sprintf (cBuf, "%.8f", d1);
-  } else if(u1 < 1000.)              {
-    sprintf (cBuf, "%.7f", d1);
-  } else if(u1 < 10000.)             {
-    sprintf (cBuf, "%.6f", d1);
-  } else if(u1 < 100000.)            {
-    sprintf (cBuf, "%.5f", d1);
-  } else if(u1 < 1000000.)           {
-    sprintf (cBuf, "%.4f", d1);
-  } else if(u1 < 10000000.)         {
-    sprintf (cBuf, "%.3f", d1);
-  } else if(u1 < 100000000.)         {
-    sprintf (cBuf, "%.2f", d1);
-  } else if(u1 < 1000000000.)       {
-    sprintf (cBuf, "%.1f", d1);
-  } else {
-    if(u1 > UTX_VAL_MAX) {
-      // TX_Error("UTX_add_fl_10 E001");
-      if(d1 < 0.) strcat (strBuf, "-9999999999999.999");
-      else        strcat (strBuf, "9999999999999.999");
-      goto L_exit;
-    }
-    // sprintf (cBuf, "%f",   d1);
-    tpos = &cBuf[9];
-    while (*tpos  != '.') ++tpos;
-    goto L_done;
-  }
-
-  // printf(" cBuf=|%s|\n",cBuf);
-  tpos = &cBuf[10];
-
-  while (*tpos  == '0') --tpos;
-
-  // delete following .
-  if(*tpos == '.') --tpos;
-
-  ++tpos;
-
-
-  L_done:
-  *tpos = '\0';
-
-  strcat (strBuf, cBuf);
-
-  L_exit:
+  UTX_db10__ (s1, d1);
+  strcat (strBuf, s1);
 
   // printf("ex UTX_add_fl_10 |||%f\n",strBuf,cBuf);
 
@@ -3278,72 +3666,6 @@ Das folgende ist NICHT aktiv:
 }
 
 /*
-//================================================================
-  int UTX_add_fl_10 (char strBuf[], double d1) {
-//================================================================
-// // UTX_add_fl_10          add double with 10 signif digits
-
-// Double hat 15-17 signifikante Stellen.
-
-
-  char  cBuf[32], *tpos;
-
-
-  // printf("-|%f|\n",d1);
-
-
-  if(d1 < 10.)                       {
-    sprintf (cBuf, "%.10f", d1);
-  } else if(d1 < 100.)               {
-    sprintf (cBuf, "%.9f", d1);
-  } else if(d1 < 1000.)              {
-    sprintf (cBuf, "%.8f", d1);
-  } else if(d1 < 10000.)             {
-    sprintf (cBuf, "%.7f", d1);
-  } else if(d1 < 100000.)            {
-    sprintf (cBuf, "%.6f", d1);
-  } else if(d1 < 1000000.)           {
-    sprintf (cBuf, "%.5f", d1);
-  } else if(d1 < 10000000.)         {
-    sprintf (cBuf, "%.4f", d1);
-  } else if(d1 < 100000000.)         {
-    sprintf (cBuf, "%.3f", d1);
-  } else if(d1 < 1000000000.)       {
-    sprintf (cBuf, "%.2f", d1);
-  } else if(d1 < 10000000000.)       {
-    sprintf (cBuf, "%.1f", d1);
-  } else {
-    sprintf (cBuf, "%f",   d1);
-    tpos = &cBuf[10];
-    while (*tpos  != '.') ++tpos;
-    goto L_done;
-  }
-
-  tpos = &cBuf[11];
-
-  // delete following 0's
-  // tpos = &cBuf[strlen (cBuf)];
-  // --tpos;
-
-  while (*tpos  == '0') --tpos;
-
-  // delete following .
-  if(*tpos == '.') --tpos;
-
-  ++tpos;
-
-  L_done:
-  *tpos = '\0';
-
-  strcat (strBuf, cBuf);
-
-  // printf(" |%s|\n",cBuf);
-
-  return 0;
-
-}
-*/
-
 //================================================================
   int UTX_add_fl_15 (char strBuf[], double d1) {
 //================================================================
@@ -3356,6 +3678,7 @@ Das folgende ist NICHT aktiv:
 
 
   // printf("-|%f|\n",d1);
+
 
   if(d1 < 10.)                       {
     sprintf (cBuf, "%.15f", d1);
@@ -3416,6 +3739,34 @@ Das folgende ist NICHT aktiv:
   return 0;
 
 }
+*/
+
+
+//================================================================
+  int UTX_add_fl_15 (char strBuf[], double d1) {
+//================================================================
+/// \code
+/// UTX_add_fl_15          add double with 15 signif digits
+/// free size of strBuf > 40
+/// remove following blanks and ending '.'
+/// \endcode
+
+
+
+  int   nd;
+  char  s1[80], *tpos;
+
+
+  // printf("UTX_add_fl_15 |%f|\n",d1);
+
+  UTX_db15__ (s1, d1);
+  strcat (strBuf, s1);
+
+  // printf("ex UTX_add_fl_15 |%s|\n",strBuf);
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -3426,14 +3777,20 @@ Das folgende ist NICHT aktiv:
 /// see also UTX_endAddChar
 /// \endcode
 
-  char cl;
+
+  char *ps;
 
   // wenn cbuf kein closing "/" hat, eins zufuegen.
-  cl = cbuf[strlen(cbuf)-1];
+  ps = &cbuf[strlen(cbuf)-1];
 
-  if((cl != '/')&&(cl != '\\')) {
-    strcat(cbuf, fnam_del_s);
-  }
+#ifdef _MSC_VER
+  // MS: CR-LF !
+  if(*ps == '\r') --ps;
+#endif
+
+
+  if(*ps != fnam_del) strcat(cbuf, fnam_del_s);
+
 
   return 0;
   
@@ -3545,6 +3902,66 @@ Das folgende ist NICHT aktiv:
 }
 
 
+//================================================================
+  int UTX_f_lifo_add (char *fNam, int maxLnr, char *newLn) {
+//================================================================
+/// \code
+/// UTX_f_lifo_add             add line as first line into file with maxLnr lines
+/// add line as first line into file;
+/// all lines must uniq;
+/// if file has more then maxNr Lines, delete surplus lines
+/// \endcode
+
+#define LN_MAX_SIZ 128
+
+  int    i1, lln;
+  char   fnTmp[256], sln[LN_MAX_SIZ], *p1;
+  FILE   *fpi, *fpo;
+
+
+  // printf("UTX_f_lifo_add |%s|%s|\n",fNam,newLn);
+
+  // create tempfilnam
+  sprintf(fnTmp,"%s.tmp",fNam);
+
+  // write to tempfile
+  if((fpo = fopen (fnTmp, "w")) == NULL) {
+    MSG_STD_ERR (ERR_file_open, "'%s'", fnTmp);
+    return -1;
+  }
+  fprintf(fpo, "%s\n", newLn);
+  lln = strlen(newLn);
+
+  // add existing; read write
+  if((fpi = fopen (fNam, "r")) == NULL) goto L_exit1;
+
+  i1 = 1;
+  while (i1<maxLnr) {
+    if(feof (fpi)) break;
+    // read
+    p1 = fgets (sln, LN_MAX_SIZ, fpi);
+    // skip if not uniq, else write
+    if(p1) {
+      if(strncmp(sln,newLn,lln)) {
+        fprintf(fpo, "%s", sln);
+        ++i1;
+      }
+    }
+  }
+
+  fclose (fpi);
+
+  L_exit1:
+  fclose (fpo);
+
+  // move fnTmp fNam
+  OS_file_rename (fnTmp, fNam); // old,new
+
+  return 0;
+
+}
+
+
 //=======================================================================
   int UTX_fsavLine (char *cbuf, char *filNam, int lnMaxSiz, int lNr) {
 //=======================================================================
@@ -3620,9 +4037,9 @@ Das folgende ist NICHT aktiv:
   p1 = sln;
 
   L_nxt:
-    ++i1;                                     printf(" nxt %d\n",i1);
+    ++i1; //                                  printf(" nxt %d\n",i1);
     if(p1 != NULL) {
-      p1 = fgets (sln, lnMaxSiz, fpi);        printf(" l %d |%s|\n",i1,sln);
+      p1 = fgets (sln, lnMaxSiz, fpi); //     printf(" l %d |%s|\n",i1,sln);
       if(p1 == NULL) sprintf(sln, "\n");
     }
     if(feof (fpi)) goto L_exit1;
@@ -3918,6 +4335,18 @@ L_exit:
 
 
   return p2;
+
+}
+
+
+//================================================================
+  int UTX_chrNr (char *s1) {
+//================================================================
+// get nr of chars to end of line (excluding EOL)
+
+  char *p1 = strchr(s1,'\n');
+   if(p1) return p1 - s1;
+   else   return strlen (s1);
 
 }
 
@@ -5461,7 +5890,7 @@ Example (scan line):
   int UTX_dump_c__ (char *cPos, int cLen) {
 //================================================================
 /// \code
-/// print next <cLen> characters;  ignores \n !!
+/// print next <cLen> characters;  \n will be printed ..
 ///    printf(" Line %d |",i1);
 ///    UTX_dump_c__ (cpos, 30);
 ///    printf("|\n");
@@ -5965,7 +6394,7 @@ Example (scan line):
   FILE  *fpi;
 
 
-  printf("UTX_setup_get__ |%s|\n",ctyp);
+  // printf("UTX_setup_get__ |%s|\n",ctyp);
 
 
   // datei neu oeffnen
@@ -5994,7 +6423,7 @@ Example (scan line):
   strcpy(cval, p1);
   UTX_CleanCR (cval);
 
-    printf("ex UTX_setup_get__ |%s|%s|\n",ctyp,cval);
+    // printf("ex UTX_setup_get__ |%s|%s|\n",ctyp,cval);
 
   fclose (fpi);
   return 0;

@@ -58,8 +58,8 @@ tess_reloc_f_         relocate tesselated surf (read from file)
 tess_read_            read .tess-file from temp-dir
 tess_write__          write .tess-file into temp-dir
 
-tess_siz1             find nr of surfaces & (total) nr of triangles
-tess_siz2             find nr of triangles in tesselated surface
+tess_triaNr_bMsh             find nr of surfaces & (total) nr of triangles
+tess_triaNr_patch             find nr of triangles in tesselated surface
 
 List_functions_end:
 =====================================================
@@ -68,7 +68,7 @@ TODO: tess_origin_set_sph tess_origin_set_con tor?
 TSU_tess_addf       add Mockup-Filestruct oxi to existing Mockup-struct TSU_vMem
 TSU_imp_tess        import Mockup from file into Mockup-struct
 TSU_exp_sm_sur      export all faces from Mockup-struct
-TSU_tsu2tria__      make Triangles from Mockup-struct
+TSU_ntria_bMsh__      make Triangles from Mockup-struct
 TSU_DrawSurTess     draw Mockup-struct (tesselated surf)
 wrl_reloc__         see also tess_reloc_f_
 
@@ -103,6 +103,7 @@ wrl_reloc__         see also tess_reloc_f_
 
 
 // tess_ntri_tfac_add                 copy 3 (pointers of) points -> Triangle
+// see also UTRI_tria_3pt
 #define tess_ntri_tfac_add(tria,pt1,pt2,pt3)\
  {(tria)->pa[0] = pt1;\
   (tria)->pa[1] = pt2;\
@@ -225,6 +226,7 @@ int tess_analyz_CB (ObjGX*);
 
   // get filename fnam.tess & check if pretesselated file exists
   i1 = tess_fnam (cBuf, mnam);
+    printf("ex-tess_fnam %d |%s|\n",i1,cBuf);
   if(i1 < 0) return i1;
 
   // tesselate
@@ -547,7 +549,7 @@ int tess_analyz_CB (ObjGX*);
 
 
 //================================================================
-  int tess_siz1 (int *surNr, int *triNr, ObjGX *oxi) {
+  int tess_triaNr_bMsh (int *surNr, int *triNr, ObjGX *oxi) {
 //================================================================
 // find nr of surfaces & (total) nr of triangles in tesselated surface.
 
@@ -600,8 +602,8 @@ int tess_analyz_CB (ObjGX*);
 
     } else if(actPP->form == Typ_PT) {
       // find nr of tringles for actPP
-      // see also TSU_tsu2tria_rec
-      tess_siz2 (triNr, actPP, &surTyp);
+      // see also TSU_ntria_bMsh_p
+      tess_triaNr_patch (triNr, actPP, &surTyp);
       continue;
     }
 
@@ -619,7 +621,7 @@ int tess_analyz_CB (ObjGX*);
 
       if(actCont->form == Typ_PT) {
         // find nr of tringles for actPP
-        tess_siz2 (triNr, actCont, &surTyp);
+        tess_triaNr_patch (triNr, actCont, &surTyp);
       }
     }
   }
@@ -636,29 +638,30 @@ int tess_analyz_CB (ObjGX*);
   //----------------------------------------------------------------
   L_fertig:
   if(*surNr < 1) *surNr = 1;
-    printf("ex tess_siz1 %d %d\n",*surNr,*triNr);
+    printf("ex tess_triaNr_bMsh %d %d\n",*surNr,*triNr);
   return 0;
 
 
   L_Err:
-    TX_Error("tess_siz1 E001 form %d",oxi->form);
+    TX_Error("tess_triaNr_bMsh E001 form %d",oxi->form);
     return -1;
 
 }
 
 
 //================================================================
-  int tess_siz2 (int *triNr, ObjGX *oxi, int *surTyp) {
+  int tess_triaNr_patch (int *triNr, ObjGX *oxi, int *surTyp) {
 //================================================================
 // find nr of triangles in tesselated surface.
+// surTyp UNUSED
 
   int   i1;
   
-  // printf("tess_siz2 %d typ=%d\n",oxi->siz,oxi->aux);
+  // printf("tess_triaNr_patch %d typ=%d\n",oxi->siz,oxi->aux);
 
 
   if(oxi->siz < 3) {
-    printf(" ********** tess_siz2 I001 ***************\n");
+    printf(" ********** tess_triaNr_patch I001 ***************\n");
     return 0;
   }
 
@@ -679,7 +682,7 @@ int tess_analyz_CB (ObjGX*);
       break;
 
     default:
-      TX_Error("***** tess_siz2 E002 %d",oxi->aux);
+      TX_Error("***** tess_triaNr_patch E002 %d",oxi->aux);
 
   }
 
@@ -1015,7 +1018,7 @@ int tess_analyz_CB (ObjGX*);
   int tess_analyz_sph (ObjGX *oxi, FILE *fpo) {
 //================================================================
 // sphere
-// see GL_disp_sph GR_Disp_face
+// see GL_disp_sph GR_Disp_patch
 //
 TODO:
 L_disp_sph zerteilen:
@@ -1106,7 +1109,7 @@ use in GL_disp_cone
 //          6=GL_TRIANGLE_FAN
 //          16=GL_FAC_PLANAR
 //
-// see TSU_tsu2tria_rec GL_Disp_sur GL_Disp_face
+// see TSU_ntria_bMsh_p GL_Disp_sur GL_Disp_patch
 //     TSU_exp_dxfFac TSU_exp_stlFac TSU_exp_objFac
 //     TSU_exp_wrl1Fac TSU_exp_wrl2Fac
 
@@ -1157,7 +1160,8 @@ use in GL_disp_cone
 //   triTab
 //   triNr
 //
-// see TSU_tsu2tria_rec
+// TODO: use UTRI_ntria_patch
+// see TSU_ntria_bMsh_p
 
   int   i0, i1, i2, i3, ia, ie, it, surTyp;
   Point *pTab;
@@ -1354,7 +1358,7 @@ use in GL_disp_cone
   ObjGX       *ox1;
 
 
-  // printf("tess_box_get\n");
+  printf("tess_box_get\n");
 
   // init box
   UT3D_box_ini0 (pb1, pb2);
@@ -1387,8 +1391,8 @@ use in GL_disp_cone
   L_fertig:
 
       // TESTBLOCK
-      // UT3D_stru_dump(Typ_PT, pb1, "tess_box_get pb1=");
-      // UT3D_stru_dump(Typ_PT, pb2, "tess_box_get pb2=");
+      // UT3D_stru_dump(Typ_PT, pb1, "ex-tess_box_get pb1=");
+      // UT3D_stru_dump(Typ_PT, pb2, "ex-tess_box_get pb2=");
       // END TESTBLOCK
 
     return 0;

@@ -87,6 +87,7 @@ UT3D_vc_evalparCv          Tangente an B-Spline aus Parameterwert
 UT3D_par1_parbsp           get parameter 0-1 from knotValue
 UT3D_parbsp_par1           get knotValue from parameter 0-1
 bspl_segNr_par             get segmentNr from parameter
+bspl_tmpSpc_siz            get size of necessary tempSpace for UT3D_pt_projptbspl
 
 UT3D_bsp_cpsbsp            copy Bsp-Curve out of Bsp-Surf (nicht interpolierend)
 UT3D_knotvec_m             create & copy knotvektor
@@ -1190,7 +1191,7 @@ once again, with U/V changed.
         // printf(" ptnr-plg=%d\n",ptNr);
       if(ptNr > 0) {
         // get points of trimmed polygon
-        pta = MEM_alloc_tmp (ptNr  * sizeof(Point));
+        pta = MEM_alloc_tmp ((int)(ptNr  * sizeof(Point)));
         irc = UT3D_pta_plg (&ptNr, pta, (CurvPoly*)vp);
           // for(i2=0;i2<i1;++i2)UT3D_stru_dump(Typ_PT,&pta[i2]," pta[%d]:",i2);
       } else {
@@ -2292,12 +2293,12 @@ Returncode:
  -2 = out of mem (ptab too small)
 */
 
-  int      nbcv, i1, i3, i4, irc, ptxNr, xptSiz;
+  int      nbcv, i1, i3, i4, irc, ptxNr, xptSiz, bNr;
   ObjGX    bezTab;
   CurvBez  *bcvtab;
   Point    pTab1[UT_BEZDEG_MAX+1];
   double   d1, kvMin, kvMax, tTab1[UT_BEZDEG_MAX+1];
-  void     *memPos0, *memPos1;
+  void     *memPos0, *memPos1, *vp1;
 
   Memspc   tmpSpc=UME_NEW, *memSeg1;
 
@@ -2309,7 +2310,11 @@ Returncode:
 
 
   // get tempspace (gets lost on func-return)
-  UME_alloc_tmp (&tmpSpc, 250000);  // 500K tempSpace
+  // UME_alloc_tmp (&tmpSpc, 250000);
+  bNr = bspl_tmpSpc_siz (bspl);
+  vp1 = malloc(bNr);
+  if(!vp1) return -1;
+  UME_init (&tmpSpc, vp1, bNr);  // 500K tempSpace
   memSeg1 = &tmpSpc;
 
 
@@ -2330,8 +2335,8 @@ Returncode:
 
 
   // Bezier curves from b-spline curve
-  i1 = UT3D_bez_bspl__ (&bezTab, memSeg1, bspl);
-  if(i1 < 0) return i1;
+  irc = UT3D_bez_bspl__ (&bezTab, memSeg1, bspl);
+  if(irc < 0) goto L_exit;
 
 
   // projection of point onto Bezier curves
@@ -2452,6 +2457,10 @@ Returncode:
     // END TESTBLOCK:
 */
 
+  //----------------------------------------------------------------
+  L_exit:
+  // free tmpSpc
+  free(vp1);
 
   return irc;
 }
@@ -2543,7 +2552,7 @@ Returncodes:
   // ptab = workSeg->next;
   // rc = UME_add (workSeg, sizeof(Point) * (d+1));
   // if (rc < 0) goto L_outOfWorkSpace;
-  ptab = (Point*)MEM_alloc_tmp (sizeof(Point) * (d+1));
+  ptab = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * (d+1)));
   if(!ptab) {TX_Error("UT3D_pt_evparCrvBSpl: EOM"); return -1;}
 
  
@@ -2710,7 +2719,7 @@ Returncodes:
 
 
   // printf("UT3D_vc_evalparCv par=%f ptNr=%d deg=%d\n",
-    // uVal,cv1->ptNr-1,cv1->deg);
+         // uVal,cv1->ptNr-1,cv1->deg);
 
 
   if(cv1->deg == 1) {
@@ -2721,6 +2730,9 @@ Returncodes:
   }
 
   UT3D_vc_setLength (vco, vco, 1.);
+
+
+    // printf("ex-vc_evalparCv %lf %lf %lf\n",vco->dx,vco->dy,vco->dz);
 
   return 0;
 
@@ -4059,7 +4071,7 @@ rollpunkte 0)
   // allocate memory for computation of Bij
   // b =  (double*)  calloc (m+1,sizeof(double));
   // b = tmp;
-  b =  (double*) MEM_alloc_tmp ((m + 3) * sizeof(double));
+  b =  (double*) MEM_alloc_tmp ((int)((m + 3) * sizeof(double)));
   if(!b) {TX_Error("bspl_eval_Pt EOM"); return 5;}
 
 
@@ -4228,7 +4240,7 @@ rollpunkte 0)
 
   // allocate memory for computation of new control polygon
   // p =  (Point*)  calloc (segNr+2,sizeof(Point));
-  p = (Point*) MEM_alloc_tmp ((segNr+2) * sizeof(Point));
+  p = (Point*) MEM_alloc_tmp ((int)((segNr+2) * sizeof(Point)));
 
 
   //  compute new control polygon
@@ -4277,10 +4289,10 @@ rollpunkte 0)
 
   rc = bspl_eval_Pt (n1, m1, p, vk, uVal, &p1);
 
-  // neg - sonst nicht in Richtung Curve sondern verkehrt ..
-  tg->dx = -p1.x;
-  tg->dy = -p1.y;
-  tg->dz = -p1.z;
+  // copy 
+  tg->dx = p1.x;
+  tg->dy = p1.y;
+  tg->dz = p1.z;
 
 
 GOBACK:
@@ -4812,7 +4824,7 @@ GOBACK:
   }
 
   // provide work space
-  ptab = (Point2*)MEM_alloc_tmp (sizeof(Point2) * (d+1));
+  ptab = (Point2*)MEM_alloc_tmp ((int)(sizeof(Point2) * (d+1)));
   if(!ptab) {TX_Error("UT2D_pt_evpar_cbsp: EOM"); return -1;}
 
 
@@ -4888,10 +4900,10 @@ GOBACK:
   ++pNr;
 
 // use memspc50 for pNr 2D-points;
-  pa = (Point2*)MEM_alloc_tmp (pNr * sizeof(Point2));
+  pa = (Point2*)MEM_alloc_tmp ((int)(pNr * sizeof(Point2)));
   if(!pa) {TX_Error("UT2D_pt_tng_cbsp_vc EOM"); return -3;}
 // use memspc51 for pNr parameters
-  da = (double*)MEM_alloc_tmp (pNr * sizeof(double));
+  da = (double*)MEM_alloc_tmp ((int)(pNr * sizeof(double)));
   if(!da) {TX_Error("UT2D_pt_tng_cbsp_vc EOM"); return -3;}
 
   iRun = 0;
@@ -5039,11 +5051,11 @@ GOBACK:
 
 // use memspc50 for pNr 2D-points;
   // p2a = (Point2*)memspc50;
-  pa = (Point2*)MEM_alloc_tmp (pNr * sizeof(Point2));
+  pa = (Point2*)MEM_alloc_tmp ((int)(pNr * sizeof(Point2)));
   if(!pa) {TX_Error("UT2D_pt_tng_cbsp_pt EOM"); return -3;}
 // use memspc51 for pNr parameters
   // da = (double*)memspc51;
-  da = (double*)MEM_alloc_tmp (pNr * sizeof(double));
+  da = (double*)MEM_alloc_tmp ((int)(pNr * sizeof(double)));
   if(!da) {TX_Error("UT2D_pt_tng_cbsp_pt EOM"); return -3;}
 
   iRun = 0;

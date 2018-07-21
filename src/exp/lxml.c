@@ -98,34 +98,34 @@ Format LandXML:
 
 // #include "../ut/ut_umem.h"        // UME_reserve
 #include "../ut/ut_geo.h"         // OFF, ON ..
-#include "../ut/ut_msh.h"         // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"         // fnam_del
-#include "../ut/ut_memTab.h"          // MemTab_..
 #include "../ut/func_types.h"          // SYM_..
 #include "../xa/xa_mem.h"         // memspc..
 
 
 
 
-typedef_MemTab(int);
-typedef_MemTab(Point);
-typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
+// typedef_MemTab(int);
+// typedef_MemTab(Point);
+// typedef_MemTab(Fac3);
+// typedef_MemTab(EdgeLine);
 
 
 
 // PunkteTabelle
   // Point  *pTab;	
   // int    siz_pTab, nr_pTab;
-static  MemTab(Point) LM_pTab = MemTab_empty;
+static  MemTab(Point) LM_pTab = _MEMTAB_NUL;
 
 // FaceTabelle
   // Fac3   *fTab = NULL;	
   // int    siz_fTab, nr_fTab;
-static  MemTab(Fac3) LM_fTab = MemTab_empty;
+static  MemTab(Fac3) LM_fTab = _MEMTAB_NUL;
 
-static  MemTab(EdgeLine) LM_eTab = MemTab_empty;
-static  MemTab(int) LM_eDat = MemTab_empty; 
+static  MemTab(EdgeLine) LM_eTab = _MEMTAB_NUL;
+static  MemTab(int) LM_eDat = _MEMTAB_NUL; 
 
 
 

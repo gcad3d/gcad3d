@@ -20,47 +20,53 @@ input       pt 2pt  ..
 
 
 <outputObjs> / <inputObjs> ------------------------------------
-  Elementtypen:
+  object types:
 
  pt    Point, Typ_PT
  npt   table of points = PointArray = Polygon; was pta
+ plg   CurvPoly, Typ_CVPOL, Polygon with parameterTable
  inpt  indexed polygon (index table to table of points)
  vc    Vector, Typ_VC
  vc1   Vector with length=1 (normalized)
  ln    Line, Typ_LN
  nln   array of Lines, Typ_LN
- plg   CurvPoly, Typ_CVPOL, Polygon with parameterTable
- polc  (closed Polygon)
  ci    Circ; Typ_CI, ac,  trimmed-circle
  ell   CurvElli, Typ_CVELL, Ellipse
- pl    Plane, Typ_PLN; Ebene.
+ pln   Plane, Typ_PLN; Ebene.
  sph   Sphere, Typ_SPH, Kugel.
- bez   CurvBez, Typ_CVBEZ, Bezier-curve.
- clt   CurvClot, Typ_CVCLOT, clothoid-curve.
- cbsp  CurvBSpl, Typ_CVBSP, B-Spline-Curve; was bspl
- ccon  Conic-Curve; hyperbola|parabola.
- pspl  Typ_CVPSP3, Polynom.Spline.
- bnd   boundary; curve, closed.
- cv crv   curve, linear object; LN,CI,EL,CV
- cvp   polygon (points only)
- cvtrm trimmed (limited) curve Typ_CVTRM
- ncv   Array of curves;  was cva
+ mdr   ReferenceModel Ditto
+ mdb   BasicModel
+
+ cv crv  curve, linear object; LN,CI,EL,CV
+ cvbez   CurvBez, Typ_CVBEZ, Bezier-curve.
+ cvclt   CurvClot, Typ_CVCLOT, clothoid-curve.
+ cvbsp  CurvBSpl, Typ_CVBSP, B-Spline-Curve; was bspl
+ cvcon  Conic-Curve; hyperbola|parabola.
+ cvpnm  pspl  Typ_CVPSP3, Polynom.Spline.
+ cvcnt  contour; bnd  boundary; curve, closed.
+ cvtrm  trimmed (limited) curve Typ_CVTRM
+ ncv    Array of curves;  was cva
+
  sur   Surface (all types)
- sru   RuledSurface, Typ_SURRU.
- srv   RevolvedSurface, Typ_SURRV.
- sbsp  SurBSpl, Typ_SURBSP, B-SplineSurface.
+ stps  trimmedPerforateSurface, Typ_SURTPS
+ sru   RuledSurface, Typ_SURRU
+ srv   RevolvedSurface, Typ_SURRV
+ sbsp  B-SplineSurface, SurBSpl, Typ_SURBSP
+ srbsp Rat.B-SplineSurface, SurRBSpl, Typ_SURRBSP
+ sswp  Sweep Surf, SurSwp, Typ_SURSWP
  spu   Surf-planar-unperforated;  spp Surf-planar-perforated.
  sus   SurStd, StandardSurface.
  Tes   tesselated surface (openGlSurface)
+
  box   Box Tri (box besser -> bbox (boundingBox))
- tria  Triangle
+ tria  Triangle (3 points (pointers))
  rbox  rectangleBox; Viereck)
  edg   Edge (Kante)
- fac   Fac3, Typ_Fac3: Face; 3 int's (pointIndices)
+ fac   Fac3, Typ_Fac3: Face; indexed-triangle; 3 int's (pointIndices)
  -"-   FacNf  Face with its NeigbourFaces
  msh   Typ_SURMSH, Mesh
- mdr   ReferenceModel Ditto
- mdb   BasicModel
+ patch Opengl-patch; type, points (GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN.. ))
+ ipatch indexed-Opengl-patch; type, indexTable, points.
 
  ox   Complex-Object                     ObjGX
  oid  ObjectID                           string       (of DB-object eg "P20")
@@ -110,6 +116,7 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  norm    normieren
  div     teilen (divide)
  orient  ausrichten
+ appr    approximate, not precise (Abschaetzung) 
 
 
 <Functyp> ------------------------------------

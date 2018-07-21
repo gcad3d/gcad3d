@@ -1,4 +1,4 @@
-# make -f PRC_cut1.mak
+# . ../options.sh && make -f PRC_cut1.mak
 
 DLLNAM = plugins/PRC_cut1
 

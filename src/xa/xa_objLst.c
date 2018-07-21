@@ -136,7 +136,7 @@ static char         mcl_ID[32] = "";           // the ID of the active obj
 static char         mcl_nam[64] = "";          // the name of the active obj
 static long         mcl_rNr;                   // sourceLineNr of selected obj
 
-// static MemTab(int)  mcl_lNrTab = MemTab_empty; // list of lineNrs
+// static MemTab(int)  mcl_lNrTab = _MEMTAB_NUL; // list of lineNrs
 
 static BitTab       (mcl_typTab, 256);
 
@@ -339,7 +339,7 @@ int main (int argc, char *argv[]) {
   char     *oTxt, *oSrc, *oNam, *oEnd, actNam[64], oid[32];
   ObjSRC   *osa, *os1;
 
-static MemTab(ObjSRC) parTab = MemTab_empty;
+static MemTab(ObjSRC) parTab = _MEMTAB_NUL;
 
 
   // printf("==================================================== \n");
@@ -576,7 +576,7 @@ static MemTab(ObjSRC) parTab = MemTab_empty;
 
   // Get line, cut name, add new name,
   p1 = UTF_GetLinNr (mem_cbuf1, &ll, mcl_rNr);
-  ll = APED_onam_cut (mem_cbuf1);
+  ll = APED_onam_cut (mem_cbuf1, NULL);
   // strcpy(&mem_cbuf1[ll], (char*)data);
   strcat(mem_cbuf1, " #");
   strcat(mem_cbuf1, mcl_nam);
@@ -783,7 +783,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
     // activeTyp=Typ_VC:      den Vector temporaer anzeigen
     L_typ_vc:
     if(mcl_typ != Typ_VC) goto L_typ_def;
-      UI_disp_vec1 (Typ_Index, (void*)mcl_dbi, NULL);
+      UI_disp_vec1 (Typ_Index, PTR_LONG(mcl_dbi), NULL);
       goto L_pop9;
       // return 0;
 
@@ -893,7 +893,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
 
   itsMax = SRCU_tsMax (p2);
     // printf(" itsMax=%d siz=%d\n",itsMax,itsMax * sizeof(ObjTXTSRC));
-  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp ((int)(itsMax * sizeof(ObjTXTSRC)));
 
   itsAct = APED_txo_srcLn__ (tso, itsMax, p2);
     // printf(" _txo_srcLn__ %d\n",itsAct);

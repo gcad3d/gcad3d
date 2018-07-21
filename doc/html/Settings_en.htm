@@ -24,6 +24,7 @@ Standards / editor, change the text editor (for directories)
 
 <a href="#Start">Application startup</a>
 <a href="#Directories">Directories</a>
+<a href="SW_layout_en.htm">Software-Layout</a>
 
 
 
@@ -149,13 +150,14 @@ ____________________________________________________________________________
 <p><a name="ModelDirectories"></a></p>
 <h2>menu Standards -> Directories</h2>
 
-All directories that should be accessed with File / Open Model,
-must be defined here. This sets the symbolic directory list in the button
- "DIR-SYM" in the menu File -> Open model dialog.
+All directories that will be accessed with File / Open Model,
+should be defined here.
+ In File/OpenModel - Dialog you can change the directory with button "DIR-SYM".
  
-There must be a directory set for each symbolic name defined on the list defined. 
-These can be set to any directory. These can be set with a text editor by
-editing file {base}/xa/dir.lst. Note: Access rights for writing is required.
+There must be a directory set for each symbolic name.
+Add / change directory-sets with Standards/Directories
+  (starts editing file {base}/gCAD3D/cfg/dir.lst).
+  Note: Access rights for writing is required.
 
 Unix example:
 Data /usr/home/gCAD3D/dat/
@@ -182,32 +184,29 @@ ____________________________________________________________________________
 
 <b>Startup Parameters:</b>
 The program can be started with the following parameters:
-  new               // open blank model.
-  load              // load named model. Path/filename is the following parameter.
-  defLoad           // load the default model (normally done automatically)  
-                    // after processing startup parameters.
-  reLoad            // reload the temporary model (after crash)
-  run               // work from defLoad Model (before exit)
   comp              // compile dll's - activate checkbox
-  exit              // normaler Programmstop (mit sichern)
+  exit              // normal Programmstop (with saving)
+  crashEx           // Programmstop without saving
   mode_cad          // start in CAD mode.
+  mode_cad_1_2      // Start in CAD mode, with main-function and sub-function
+                    // main-functions: 0=PT, 1=LN, 2=CI ..
+                    // mode_cad_6_3 = S (curve) / B-spline
   mode_man          // start in MANual mode.
   noTB              // no Toolbar
   noMB              // no MessageWindow
   noBrw             // no BrowserWindow
+  defLoad           // load the model last used
 
 Undefined parameters:
   {Filename}.{Filetype}
   
   Filetype .gcad, .dxf, .igs, .stp, .bmp, .jpg:
-                    //  load model (image). File name must be complete.
+                    //  load model/image. File name must be complete.
                     
   No filetype:     //  plugin (DLL, shared library) with that name to load;
     
 
 <i>Examples:</i>
-./gCAD3D new
-  Start with no model loaded.
 
 ./gCAD3D load sample_activ_1.gcad noTB noMB
   Load model "sample_activ_1" from the last directory used (DirIn),

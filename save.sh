@@ -61,7 +61,7 @@ goto L_exit
 #
 #
 #------------------------------------------------------------
-# copy serv1:/Devel/gcad3d -> HDEV2:~/devel/gcad3d
+# copy serv1:/Devel/gcad3d -> HDEV:~/devel/gcad3d
 Local:
 echo "Local:"
 echo "/mnt/serv1/Devel/gcad3d  =>   /home/fwork/devel/gcad3d"
@@ -81,7 +81,7 @@ goto L_exit
 # copy serv1:/Devel/gcad3d -> ~/backup/gcad3d
 backup:
 echo "Local:"
-echo "/mnt/serv1/Devel/gcad3d  =>   /home/fwork/devel/gcad3d"
+echo "/mnt/serv1/Devel/gcad3d  =>  ~/backup/gcad3d"
 
 rsync -urv --delete --exclude-from=sav_excl.txt\
  /mnt/serv1/Devel/gcad3d\

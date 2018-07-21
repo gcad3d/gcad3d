@@ -362,7 +362,7 @@ static ObjAtt GA_DefRec;
 
   // printf("GA_fil_wri grp=%d nr=%d\n",iGrp,GA_recNr);
   // printf("  WC_modact_ind=%d\n",WC_modact_ind);
-  // printf("  WC_modact_nam=|%s|d\n",WC_modact_nam);
+  // printf("  AP_modact_nam=|%s|d\n",AP_modact_nam);
 
 
   if(GA_recNr < 1) return -1;
@@ -1856,7 +1856,7 @@ static ObjAtt GA_DefRec;
   if(mode < 4) {
     // modify (do not create new DL-Record)
     DL_Draw_obj (dli, typ, ind);
-    // DL_Redraw ();
+    DL_Redraw ();
   }
 
 

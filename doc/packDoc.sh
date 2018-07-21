@@ -1,20 +1,18 @@
 #!/bin/sh
 
 # create gCAD3D-doc-x.xx.zip
-# start in <basDir>/doc
+# start in ${DIR_DEV}gcad3d
 
-docDir=`pwd`
-cd ..
-basDir=`pwd`
-srcDir=${basDir}/src
+
+docDir=${DIR_DEV}gcad3d/doc
+srcDir=${DIR_DEV}gcad3d/src
+instDir=${DIR_DEV}gcad3d/packages
+
 
 Version=`cat ${srcDir}/gcad_version`
 Product="gCAD3D-doc"
-
 packNam="${Product}-${Version}"
-
-instDir="${basDir}/packages"
-
+fileNam=${DIR_DEV}gcad3d/packages/${packNam}.zip
 
 #-----------------------------------------------------
 # remove complete instDir
@@ -59,12 +57,13 @@ find devdoc -type f >> gCAD3D.lst
 find prg -type f >> gCAD3D.lst
 
 
-# create Zip-File
-zip ${basDir}/packages/${packNam}.zip `cat gCAD3D.lst`
+# create Zip-File ${fileNam}
+rm -rf ${fileNam}
+zip ${fileNam} `cat gCAD3D.lst`
 
 
 # move gCAD3D-doc-x.xx.zip   ->   packages
-echo "****** ${basDir}/packages/${packNam} created."
+echo "****** File ${fileNam} created."
 
 
 # remove complete instDir

@@ -147,7 +147,7 @@ List_functions_end:
     // printf(" int [%d] %f %f\n",i1,pt2a[i1].x,pt2a[i1].y);
 
     // verschneiden
-    irc = UT2D_pt_intlny(&spa[isp], &pt2a[i1-1], &pt2a[i1], Yact);
+    irc = UT2D_pt_intlny(&spa[isp], &pt2a[i1-1], &pt2a[i1], Yact, UT_TOL_min1);
     if(irc < 0) continue;
 
 

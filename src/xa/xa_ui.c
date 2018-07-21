@@ -35,6 +35,9 @@ void UI(){}
 =====================================================
 List_functions_start:
 
+UI_win_main           Das gesamte Window-Layout
+UI_open_last          display file <tmpDir>MdlLst.txt as subMenu
+
 UI_block__            activate / disactivate functions, input, cursor
 UI_block_get          query if functions, input, cursor is blocked
 UI_block_input        activate / disactivate keystrokes & grafic_selections
@@ -68,7 +71,6 @@ AP_UserKeyIn_get
 AP_User_reset         alle reset-funcs, die bei MS-Win u Linux gleich sind
 PLU_appNamTab_set   provide names for application-objects
 UI_CAD_activate
-UI_save_over_CB
 UI_save__
 UI_PRI__              export / print
 UI_vwz__
@@ -84,8 +86,7 @@ UI_cpyMdl2
 UI_cpyMdl1
 UI_renMdl
 UI_opePtab
-UI_open__
-UI_open_add
+UI_open_add      UNUSED
 UI_open_symCB
 UI_openCB
 UI_disp_modsiz         display modelsize in gtk-label
@@ -107,10 +108,10 @@ UI_reset__             back to VWR
 UI_ToolBars            Toolbars ein/ausschalten.
 UI_grp__               Goupmode ON|OFF
 UI_grpAdd
-UI_dump_obj            UTO_dump__
+UI_dump_oid            dump DB-object  into file & display with browser
+UI_dump_obj            dump DB-object  into file & display with browser
 UI_dump__
 UI_menCB               Mainentry Menufunktions.
-UI_win_main            Das gesamte Window-Layout
 UI_file_sensi          TRUE od FALSE
 UI_WinInfo1            InfoWindow
 UI_RelAbs_act
@@ -214,10 +215,12 @@ cl -c /I ..\include xa_ui.c
 #include "../xa/xa_mem.h"              // memspc55
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_msg.h"              // MSG_open
-#include "../xa/xa.h"                  // WC_modact_nam PRC_IS_ACTIVE
+#include "../xa/xa.h"                  // AP_modact_nam PRC_IS_ACTIVE
 #include "../xa/gcad_version.h"        // INIT_TXT
 #include "../xa/xa_ui_cad.h"
 #include "../xa/xa_app.h"              // PRC_IS_ACTIVE
+
+#include "../xa/xa_brw.h"              // Brw_CB_sel
 
 
 #define   TRUE 1
@@ -367,8 +370,8 @@ int    UI_InpMode    = UI_MODE_START;  // MAN od CAD od NC; see also AP_SRC
 // int    UI_InpSM      = OFF;            // S/M
 int    UI_InpVWZ     = OFF;            // S/M
 
-char   UI_stat_view  = 1,
-       UI_stat_hide  = 1,              // hide iactive: 0=yes, 1=not
+char   UI_stat_view  = 1,              // view active: 0=yes, 1=not
+       UI_stat_hide  = 1,              // hide active: 0=yes, 1=not
        UI_stat_3D    = 1,                  // 0=not sel, 1=selected.
        UI_stat_shade = 1,               // 0=not sel, 1=selected.
        UI_block_func = 0,
@@ -403,6 +406,8 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
   int UI_chg_lang (MemObj *mo, void **data);
   int UI_def_browser ();
   int UI_def_editor ();
+  int UI_open_last ();
+
   // int UI_EdKeyPress (GtkWidget *parent, GdkEventKey *event);
 
   // gint UI_GR_ButtonPress (GtkWidget *widget, GdkEventButton *event);
@@ -412,10 +417,6 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 
 // ex xa_grp.c:
   int Grp_exp (char *fnam,char *dirNam);
-
-  // int UI_GR_RECONFIG ();
-
-  int Brw_CB_sel (void *parent, void **data);
   int UI_paned_CB (void *parent, int pgNr);
 
 
@@ -2151,7 +2152,7 @@ static char LstBuf[LstSiz][32];
     // cursur is at the end of the line; add (insert) CR ..
 
     // DL_hili_off (-1L);               // unhilite alle Objekte
-    GL_temp_delete ();                   // remove indicate-circ   2010-06-03
+    GL_temp_del_all ();                   // remove indicate-circ   2010-06-03
 
     // switch to perm
     WC_set_obj_stat (0);  // 0=perm
@@ -2264,885 +2265,34 @@ static char LstBuf[LstSiz][32];
 }
 
 
-/*
-//=====================================================================
-  int UI_CAD_activate () {
-//=====================================================================
-
-
-  if(UI_InpMode != UI_MODE_CAD) return -1;
-
-  if(UI_InpSM == ON) return -1;
-
-  IE_activate ();
-
-  return 0;
-}
-
-//================================================================
-  int UI_winEd_enter (GtkWidget *parent, GdkEventAny *event) {
-//================================================================
-// enter inputField-callback
-
-  printf(" >>>>>>>>>>>>>>>>>> UI_winEd_enter\n");
-
-  return 0;
-
-}
-*/
-
-/* UNUSED 
-//=====================================================================
-  int UI_EdKeyPress (GtkWidget *parent, GdkEventKey *event) {
-//=====================================================================
-// callback keyPress im graficWin & im editWin & CAD-Entryfelder !!
-// Ist leider nicht trennbar! Zuerst kommt immer der Callback vom Main,
-//   dann erst der Callback vom Editwin (wen er nicht unterdrückt wurde !)
-// Ctrl-Taste macht in MS-Win Dauerfeuer !!?
-//
-//
-// GDK_F1-GDK_F12 GDK_KP_F1-GDK_KP_1
-// GDK_Return
-// GDK_BackSpace
-// GDK_Left GDK_Right GDK_Up GDK_Down
-// GDK_Escape GDK_Tab
-// GDK_Alt_L GDK_Alt_R GDK_Meta_L GDK_Meta_R
-// GDK_Delete GDK_KP_Delete
-// GDK_Page_Up GDK_Page_Down
-
-
-  int  i1, iKey, selFi;
-  long l1, l2;
-  char cbuf[256], *p1;
-
-  static char xbuf[32]={""};
-
-
-  // printf("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK \n");
-  // printf("UI_EdKeyPress %x typ=%d\n",event->keyval,event->type);
-  // printf("UI_EdKeyPress %d \n",INT_PTR(data));
-  // printf("   Ctrl=%d Alt=%d Shift=%d\n",KeyStatCtrl,KeyStatAlt,KeyStatShift);
-
-
-  // check parent: geht ned ..
-  // if(parent == winED.view) printf(" IST IM EDITOR1 !\n");
-  // if(parent == winED.win) printf(" IST IM EDITOR3 !\n");
-
-  // printf("win_edStat = %d\n",win_edStat);
-
-
-
-  iKey = event->keyval;
-
-  selFi = UI_GR_Sel_Filter(-1);
-    // printf(" selFi=%d\n",selFi);
-
-
-// Achtung: Shift, Alt & Ctrl repeats in MS-Win !!
-
-
-  //================================================================
-  // overrride userFunction, selectionFilter:
-  switch (iKey) {
-
-  case GDK_Escape:
-    KeyStatEscape = ON;
-    break;
-
-  // gar nix tun: (text unmodified):
-  // case GDK_Up:
-  // case GDK_Down:
-    // goto Finish;
-
-
-  case GDK_Shift_L:
-  case GDK_Shift_R:
-    // printf("Shift ON\n");
-    KeyStatShift = ON;
-    goto Finish;
-
-
-  case GDK_Control_L:
-  case GDK_Control_R:
-    // printf("Ctrl ON\n");
-    KeyStatCtrl = ON;
-    goto Finish;
-
-
-  // GDK_Alt_L GDK_Alt_R GDK_Meta_L GDK_Meta_R
-  // ACHTUNG MS-WIN: mit GTK-1 kann man ALT-Key nicht abfangen !!!!!
-  case GDK_Alt_L:
-  case GDK_Alt_R:
-  case GDK_Meta_L:
-  case GDK_Meta_R:
-    // printf("Alt ON\n");
-    KeyStatAlt = ON;
-    goto Finish;
-
-
-  case GDK_Left:
-    if((UI_InpMode == UI_MODE_CAD) && (selFi == 0)) {
-      // goto end of upper cad-inputField
-      if(IE_cad_InpIn_left()) return TRUE;
-    }
-  case GDK_Right:
-  case GDK_Up:
-  case GDK_Down:
-    if((selFi == 14)||(selFi == 15)) {
-      UI_Tex_Key (iKey);
-      return TRUE;  // prevent the default handler from being run
-    }
-    break;
-
-/
-  // case GDK_Page_Down:
-        // // printf(" key Page_Down\n");
-    // if(UI_InpMode == UI_MODE_CAD) {
-      // // if select Typ_Val is active, display next value in Textline
-      // AP_get_nxtVal (1);
-      // if(GL_vcSel_vc (1) >= 0) goto Finish;    // VectorSelector
-    // }
-    // break;
-
-
-  // case GDK_Page_Up:
-      // // printf(" key Page_Up\n");
-    // if(UI_InpMode == UI_MODE_CAD) {
-      // // if select Typ_Val is active, display next value in Textline
-      // AP_get_nxtVal (-1);
-      // if(GL_vcSel_vc (-1) >= 0) goto Finish;    // VectorSelector
-    // }
-    // break;
-/
-
-  }
-
-
-
-  //================================================================
-  // call user (ohne shift, control)
-  if(UI_UserKeyFunc != NULL) {
-    // Esc: clear group 2010-12-31
-    if(iKey == GDK_Escape) {
-      if(Grp_get_nr() > 0) {
-        Grp_Clear (1);
-        goto AllDone;
-      }
-    }
-    return (*UI_UserKeyFunc) (iKey);
-    goto AllDone;
-  }
-
-
-  // event->type: 8=GDK_KEY_PRESS (gdk/gdktypes.h)
-  / F-Keys 1 - 35 /
-  // if ((iKey >= GDK_F1) &&
-      // (iKey <= GDK_F35)) { goto FuncKey; }
-
-
-
-
-
-  //================================================================
-  // no userFunction is active ..
-
-  // handle active selectionFilter
-    // printf(" filter=%d\n",selFi);
-  if(selFi != 0) {
-    if(KeyStatCtrl == ON) goto L_no_group;   // skip control-funcs
-    if(iKey == GDK_Escape) {
-      if(selFi == 16) {    // ModifyModelPos: clear previous Entryfield
-        UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUndo));
-        goto AllDone;
-      }
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("Esc");
-        goto AllDone;
-      }
-
-      xbuf[0] = '\0';
-      UI_GR_Sel_Filter (0);      // reset selectionFilter
-      goto AllDone;
-
-    } else if(iKey == GDK_Tab) {
-      if(selFi == 16) {    // ModifyModelPos: jump into next Entryfield
-        UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncNext));
-        goto AllDone;
-      }
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("Tab");
-        goto AllDone;
-      }
-
-    } else if(iKey == GDK_Page_Up) {
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("PgUp");
-        goto AllDone;
-      }
-
-    } else if(iKey == GDK_Page_Down) {
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("PgDwn");
-        goto AllDone;
-      }
-
-    }
-    if((selFi == 4)||(selFi == 5)) {       // 4=dump_obj | 5=add_to_group
-      // if(iKey == GDK_Tab)  // im CAD fuer GotoNextInputfield erforderlich !
-        // goto L_no_group;
-
-      if(iKey == GDK_Tab) {
-        if(UI_InpMode == UI_MODE_CAD) { // CAD-add_to_group (INTersect)
-          goto Finish;  // use default-handler = acticate next Inp.field
-        }
-
-      } else if(iKey == GDK_Return) {
-        GUI_Tx_rmLast ();
-        APED_dbo_oid (&i1, &l1, xbuf);
-        if(selFi == 4) {     // dump obj
-          UI_dump_obj (i1, l1);
-          UI_GR_Sel_Filter (0);      // reset dump
-        } else {         // 5 = add to group
-          l2 = DL_find_obj (i1, l1, -1L);
-          if(l2 < 0) {
-            TX_Print("******  Obj. %s nicht gefunden",xbuf);
-          } else {
-            // add/remove to group
-            DL_grp1__(l2, xbuf, 0, 0);  // DL_grp1_set
-          }
-        }
-        xbuf[0] = '\0';
-      } else if((iKey == GDK_BackSpace) ||        // RemoveLeftChar-Taste  <x|
-                (iKey == GDK_Delete))       {     // Entf
-        i1 = strlen(xbuf);
-        // printf(" backSp %d |%s|\n",i1,xbuf);
-        if(i1 > 0) {
-          xbuf[i1-1] = '\0';
-          GUI_Tx_rmLast ();
-          TX_Print("...... sel. obj %s",xbuf);
-        }
-      } else {
-        // check for alfanum-char ...
-        if((isalnum(iKey)) && (iKey < 125)) {
-        // printf(" iKey=%d\n",iKey);
-        // add character to buffer xbuf
-        i1 = strlen(xbuf);
-        // printf(" add key %d %d |%s|\n",iKey,i1,xbuf);
-        xbuf[i1] = iKey;
-        xbuf[i1+1] = '\0';
-        GUI_Tx_rmLast ();
-        TX_Print("...... sel. obj %s",xbuf);
-        }
-      }
-      goto AllDone;
-    } else {
-      xbuf[0] = '\0';
-    }
-  }
-  L_no_group:
-
-
-
-  
-  //================================================================
-  // no userFunction and no selectionFilter is active ..
-
-  switch (iKey) {
-
-  //----------------------------------------------------------------
-  case GDK_F3:
-      printf(" key F3 pressed ..\n");
-    UI_menCB (NULL, (void*)"Edit");
-    goto AllDone;
-
-  //----------------------------------------------------------------
-  case GDK_F4:
-    AP_APT_clean ();
-    goto AllDone;
-
-  //----------------------------------------------------------------
-  case GDK_F5:
-    if(UI_InpMode == UI_MODE_CAD) {
-      IE_cad_selM2 (-1);
-    }
-    goto AllDone;
-
-
-  //----------------------------------------------------------------
-  case GDK_Escape:
-    // printf("UI_EdKeyPress Esc EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n");
-    // printf("  Esc: ED_query_mode=%d UI_InpMode=%d\n",
-           // ED_query_mode(),UI_InpMode);
-
-/
-    // // Alt-Esc = APT-Clean
-    // // dzt nur Linux !
-    // if(KeyStatAlt == ON) {
-      // AP_APT_clean ();
-      // goto AllDone;
-    // }
-/
-
-
-    // if(UI_InpSM == ON) {    // search
-      // // if(UI_InpMode == UI_MODE_CAD)
-      // // AP_SMD_undo ();  // delete - undo
-      // UI_WinSM (NULL, (void*)UI_FuncExit);   // exit SM
-      // goto AllDone;
-    // }
-
-    // if Search/Name-Window is active: hide it.
-    if(UI_cb_search (4) == 1) {
-      // UI_mcl__ (NULL, PTR_INT(-1));   // disactivate Search/Name
-      // UI_cb_search (3);
-      GUI_ckbutt_set (&ckb_such, FALSE);
-      goto AllDone;
-    }
-
-
-
-    // if(ED_query_mode() == ED_mode_enter)  // 0=step 3=enter Run Unterbrechen
-
-
-      if(UI_InpMode == UI_MODE_VWR) {
-        // VWR: unhilite selected obj's
-        if(Grp_get_nr() > 0) Grp_Clear (1);     // clear group
-        i1 = DL_hili_off (-1L);
-        DL_Redraw (); 
-
-
-      } else if(UI_InpMode == UI_MODE_CAD) {
-        // UI_undo_work (0, 0);  // change last entry
-        // test if CAD-funtion ist active;
-        if(IE_get_Func() < 0) {
-          if(Grp_get_nr() > 0) Grp_Clear (1);     // clear group
-          // no CAD-func active ..
-          i1 = DL_hili_off (-1L);
-          DL_Redraw (); 
-
-        } else {
-          IE_cad_Inp_undo ();      // delete last CAD-input or exit func
-        }
-
-
-      } else if(UI_InpMode == UI_MODE_MAN) {
-          printf("  _EdKeyPress Esc MAN\n");
-        if(Grp_get_nr() > 0) {
-          Grp_HiliClear ();  // unhilite all group-objects
-          Grp_Clear (1);     // clear group
-          goto AllDone;
-        }
-        DL_hili_off (-1L);
-        // war zuletzt ein "create neue zeile" oder ein "delete Text"
-        // i1 = UI_undo_get_ustat();
-        // if(i1 == 1) {
-          // UI_undo_work (0, 0);  // undo last entry .. changed to Ctrl-Z
-
-        // } else if(i1 == 2) {  // last was "delete Text"; undelete it.
-          // sprintf(cbuf,"%stmp%cselection.txt",OS_get_bas_dir(),fnam_del);
-          // GUI_edi_InsFile (&winED, cbuf);
-        // }
-        xa_fl_TxMem = 1;         // src modified merken
-        // AP_obj_del1 ();
-        // AP_obj_del0 (); // geht no ned
-        ED_work_exit (); // exit modify, work from curPos to end of model
-        goto AllDone;
-      }
-
-/
-    // // wenn nicht im RUN-Mode: delete
-    // if(ED_query_mode() == ED_mode_enter) {
-      // if(UI_InpSM == ON) {    // search
-        // AP_obj_del1 ();
-      // } else {
-        // UI_undo_work (0, 0);  // change last entry
-      // }
-      // goto AllDone;
-
-    }
-/
-    // erst hier; stoppt sonst das Redraw vom AP_obj_del1
-    // problem wenn nun das Release schon passiert ist ...
-    // KeyStatEscape = ON;
-    KeyStatEscape -= 1;
-    // printf("UI_EdKeyPress Esc\n");
-
-    goto AllDone;
-
-
-
-  //----------------------------------------------------------------
-  case GDK_BackSpace:                  // RemoveLeftChar-Taste  <x|
-    // printf("UI_EdKeyPress GDK_BackSpace\n");
-    // if(UI_InpSM == ON) goto Finish; // skip
-    // CAD-EntryField; nix tun ..
-    if(AP_src == AP_SRC_MEM) goto Finish;
-
-    // if(AP_src == AP_SRC_EDI) {  // 1=AP_SRC_EDI    - MAN
-TX_Error("EDI-GDK_BackSpace");
-/
-      // l1 = GUI_edi_getCpos (&winED);
-      // GUI_Ed_del (&winED, l1-1, l1);
-      // ED_newPos ();
-/
-    // }
-    goto AllDone;
-
-
-
-  //----------------------------------------------------------------
-  case GDK_Down:
-  case GDK_Tab: 
-        // printf(" key Tab or Down\n");
-    if(UI_InpMode == UI_MODE_CAD) {
-      IE_focus_set (-1);  // next inputfield
-      goto AllDone;       // terminate event
-    }
-    goto Finish;   // continue normal
-
-
-  //----------------------------------------------------------------
-  case GDK_Up:
-        // printf(" key Up\n");
-    if(UI_InpMode == UI_MODE_CAD) {
-      IE_focus_set (-2);  // previous inputfield
-      goto AllDone;       // terminate event
-    }
-    goto Finish;          // continue normal
-      
-
-
-  //----------------------------------------------------------------
-  case GDK_Delete:                  // "Entf" - Taste
-  case GDK_KP_Delete:
-  // case GDK_BackSpace:
-
-
-/
-    // // mode VWR: do nothing ..
-    // if(UI_InpMode == UI_MODE_VWR) {
-      // TX_Print ("***** delete objects in MAN or CAD *****");
-      // goto AllDone;
-    // }
-/
-
-    // check if Error is active
-    if(AP_stat.errStat != 0) {
-      printf(" ERR=%d lNr=%d\n",AP_stat.errStat,AP_stat.errLn);
-      // delete Line <AP_stat.errLn>, continue RUN
-      UNDO_grp_add (AP_stat.errLn, 0);     // add line to delelete-stack
-      UNDO_grp_del ();                     // delete & continue ..
-    }
-
-
-
-    if(Grp_get_nr() > 0) {
-      // test if MAN/Editor is active ..
-      if(UI_InpMode == UI_MODE_VWR) {
-        Del_grp__ ();
-        goto AllDone;
-      }
-      if(UI_InpMode == UI_MODE_CAD) {
-        if(IE_get_Func() < 0) {
-          Del_grp__ ();
-          goto AllDone;
-        }
-      }
-      goto Finish;
-    }
-
-
-    // Das S/M/DEL - rufen in MAn und CAD geht ned, weil die Delete-Taste
-    // fuer das remove characters benutzt wird !!!!!
-
-
-/
-    // // CAD - ohne SM: activate SM.// geht ned; sonst kein Del in den entrys
-    // if(UI_InpSM != ON) {
-      // // activate S/M
-      // gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (ckb_mdel), TRUE);
-      // TX_Print("select obj or line to delete -");
-      // goto AllDone;
-    // }
-/
-
-    // if(UI_InpSM == ON) {     // SearchMeasure ON ?
-      // // UI_undo_work (0, 0);  // change last entry
-      // // delete active Line & RUN
-      // // AP_obj_del0 ();
-      // AP_SMD_del ();   // delete active line
-      // goto AllDone;
-    // }
-
-
-    if(UI_InpMode == UI_MODE_CAD) {
-      // IE_cad_ClearInpAct ();
-      // goto AllDone;
-      goto Finish;     // remove part of text in inputfield - default operation
-    }
-
-
-    //---------- Delete/UnDelete in MAN
-    if(UI_InpMode != UI_MODE_MAN) goto AllDone;
-
-
-    // printf("UI_EdKeyPress GDK_Delete\n");
-    xa_fl_TxMem = 1;   // src modified merken
-  
-    // fix filename for selected text
-    sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
-      // printf(" fnam:|%s|\n",cbuf);
-    if(KeyStatCtrl == ON) {
-      GUI_edi_InsFile (&winED, cbuf);
-    }  else {
-      i1 = GUI_edi_sel_wrf (&winED, cbuf);   // write selected text -> file
-      if(i1 < 1) goto L_del1;
-      GUI_edi_sel_del (&winED);         // delete selected text in Editor
-      TX_Print("Text deleted; undelete: Ctrl-delete.");
-    }
-    // UI_undo_set_ustat (2);   // report last action = "delete Text"
-
-    // l1 = GUI_edi_getCpos (&winED);  // get cursorposi
-    // l2 = GUI_Ed_getEof (&winED);   // get EOF
-    // printf(" cPos=%d Eof=%d\n",l1,l2);
-
-    // EOF: fertig.
-    // if(l1 >= l2) goto AllDone;
-
-    // l1 = GUI_edi_getCpos (&winED);  // get cursorposi
-    // l2 = UTF_GetLnrPos (l1);          // get APT-LineNr from cursorposi
-    l2 = GUI_edi_getLnr (&winED);
-    // printf(" l1=%d l2=%d\n",l1,l2);
-    ED_work_CurSet (l2);              // work bis l2
-
-    // Edi -> Memory (nach dem Loeschen)
-    ED_unload__ ();
-
-    // goto Changed;
-      // printf(" dddddddddddddelete done\n");
-    goto AllDone;
-
-
-    L_del1:
-    // i1 = GUI_Ed_getLnr (&winED);
-    // UI_undo_del_set (i1-1);   // delete line before !
-    // goto AllDone;
-    goto Changed;  // Standardbehandlung
-
-
-
-  //----------------------------------------------------------------
-  case GDK_Return:
-    if(UI_Focus == 2) {
-      UI_suract_keyIn (1);  // keyIn -> ViewZ
-
-    }  else if(UI_Focus == 3) {
-      UI_suract_keyIn (2);  // keyIn -> ViewZ
-
-    } else {
-      // if(UI_InpSM == ON) {   // wenn Search ON: activate Modify.
-        // // UI_WinSM (NULL, (void*)UI_FuncModify);
-        // UI_WinSM (NULL, (void*)UI_FuncUCB5);
-
-      // } else {
-        if(UI_InpMode == UI_MODE_CAD) {
-          IE_inp_selection_clear ();    // clear selection
-          // test if OK is active
-          if(IE_cad_get_OK()) {
-            IE_cad_OK (NULL, NULL);  // OK-Button druecken
-          } else {
-            // activate next inputfield
-            IE_cad_InpIn_CB (0, GDK_Return);
-          }
-
-        } else if(UI_InpMode == UI_MODE_MAN){
-          if(KeyStatCtrl == ON) UI_EdKeyCtrlM3 ();   // work all ..
-          else {
-            i1 = UI_EdKeyCR (1);     // Return pressed 
-            if(i1 < 0) goto Changed; // Standardbehandlung, wenn Cursor im File
-          }
-        }
-      // }
-    }
-    goto AllDone;
-    // xa_fl_TxMem = 1; //Edittext - memory:  needUpdate
-    // goto Changed;
-
-
-
-  //----------------------------------------------------------------
-  case 'a':
-  case 'A':
-    if(KeyStatCtrl != ON) goto L_spcFnc;
-    // add all objs to group ..
-      printf(" UI_stat_view=%d\n",UI_stat_view);
-    DL_grp1__ (0, NULL, 2, 0);
-    if(UI_stat_view == 0) {
-      Grp_hide (1);    // view group
-    }
-    goto AllDone;
-
-
-  case 'f':
-  case 'F':
-    if(KeyStatCtrl != ON) goto Finish;
-    // if(UI_InpMode == UI_MODE_VWR) goto L_cad_man;
-    // UI_AP (UI_FuncSet, UID_ckb_search, (void*)TRUE);  // SMD - On setzen
-    // UI_mcl__ (NULL, PTR_INT(UI_FuncInit));   // activate Search/Name
-    GUI_ckbutt_set (&ckb_such, TRUE);
-    goto AllDone;
-
-
-  case 'p':
-  case 'P':
-    if(KeyStatCtrl != ON) goto L_spcFnc;
-      printf("APP_act_typ = %d APP_act_nam = |%s|\n",APP_act_typ,APP_act_nam);
-    if(APP_act_typ == 1)   ();
-    if(APP_act_typ == 2)  PRG_start ();
-    goto AllDone;
-
-
-
-  case 's':
-  case 'S':
-    if(KeyStatCtrl != ON) goto L_spcFnc;
-    // sichern ..
-    strcat(WC_modnam, ".gcad"); // add filetyp
-    UI_save__ (1);              // save-overwrite
-    UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
-    goto AllDone;
-
-
-  case 'T':                     // Ctrl Shift t
-    if(KeyStatCtrl != ON) goto Finish;
-    AP_test__ ();
-    // APP_dll_load (1);
-    // xa_test();
-    goto AllDone;
-
-
-  case 'x':
-    return FALSE;
-  case 'X':
-    if(KeyStatCtrl != ON) goto Finish;
-    printf("testexit....\n");
-    exit(0);
-
-
-  case 'y':
-  case 'Y':
-    if(KeyStatCtrl != ON) goto Finish;
-    // if(UI_InpMode == UI_MODE_VWR) break;
-    // printf("Ctrl-Y  UI_InpMode=%d\n",UI_InpMode);
-    if(UI_InpMode == UI_MODE_MAN) {
-      // return FALSE;
-      sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
-      GUI_edi_InsFile (&winED, cbuf);
-      goto AllDone;
-    }
-    // Redo last ElementCreate
-    UNDO_grp_redo ();
-    goto AllDone;
-
-
-  case 'z':
-  case 'Z':
-    if(KeyStatCtrl != ON) goto Finish;
-    // if(UI_InpMode == UI_MODE_VWR) break;
-      // printf("Ctrl-Z  UI_InpMode=%d\n",UI_InpMode);
-    if(UI_InpMode == UI_MODE_MAN) {
-      // return FALSE;
-      // gtk_signal_emit_by_name (GTK_OBJECT(winED.win),"activate");
-      sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
-      GUI_edi_InsFile (&winED, cbuf);
-      goto AllDone;
-    }
-    UNDO_grp_undo ();  // CAD & VWR
-    goto AllDone;
-
-
-  // case 'v':
-  // case 'V':
-    // goto Finish;  // Test: normale EventBehandlung
-
-  }
-
-
-  //================================================================
-  // function-labels ..
-
-/
-  // //...............................................
-  // // remove Umlaute !!!
-  // i1 = UTX_ck_uml_c (&iKey);
-  // if(i1 != 0) {
-    // TX_Print("***** Umlaute nicht moeglich ! *****");
-    // cbuf[0] = iKey;
-    // cbuf[1] = '\0';
-    // UI_AP (UI_FuncSet, UID_Edit_Line, (void*)cbuf);
-    // goto AllDone;
-  // }
-/
-
-
-
-  //...............................................
-  // Sonderfunktionen Alt Shift ..
-  L_spcFnc:
-  // if(KeyStatAlt == ON) {           // Alt Shift .
-  if((KeyStatShift == ON)&&(KeyStatAlt == ON)) {
-    i1 = toupper(iKey);  // im MS-Win kommt immer uppercase !
-
-    if(i1 == 'V') {
-      // printf(" add ViePortDef\n");
-      strcpy(cbuf, " \"");
-      AP_view_2_txt (&cbuf[2]);
-      strcat(cbuf, " \"");
-      UI_AP (UI_FuncSet, UID_Edit_Line, (void*)cbuf);
-      goto AllDone;
-    }
-
-
-    // if(i1 == 'G') {GL_tst1 ();       goto AllDone;} // Alt shift z
-
-    printf(" auxFun %d\n",iKey);
-    if(i1 == 'A') {GA_dump__ ();     goto AllDone;} // Alt shift g
-    if(i1 == 'D') {DL_DumpObjTab (); goto AllDone;} // Alt shift d
-    if(i1 == 'G') {Grp_dump ();      goto AllDone;} // Alt shift g
-    if(i1 == 'M') {DB_dump_ModBas ();goto AllDone;} // Alt shift m
-    if(i1 == 'N') {WC_actPos_dump ();goto AllDone;} // Alt shift n
-    if(i1 == 'O') {DB_dump_stat ();  goto AllDone;} // Alt shift O
-    if(i1 == 'R') {DB_dump_ModRef ();goto AllDone;} // Alt shift r
-    if(i1 == 'S') {UTF_dump__ ();    goto AllDone;} // Alt shift S
-    if(i1 == 'T') {Tex_dump__(NULL); goto AllDone;} // Alt shift T
-    if(i1 == 'U') {UNDO_dump ();     goto AllDone;} // Alt shift U     Undo-Tab
-    if(i1 == 'X') {AP_debug__ ();    goto AllDone;} // Alt shift x
-    // eine temporaer benutzte Testfunktion: Alt shift T
-    // if(i1 == 'T') {PP_up_list(NULL,NULL,-2);goto AllDone;}
-
-
-    goto Finish;
-  }
-
-
-
-
-  //...............................................
-  // generate new header  from Ctl p l c s a B D T V R N M
-  // in Linux geht Alt s ned ... ???
-  // if((UI_InpMode == UI_MODE_MAN)&&(KeyStatCtrl == ON)) {
-  if((UI_InpMode == UI_MODE_MAN)&&(KeyStatAlt == ON)) {
-    i1 = toupper(iKey);
-    // printf(" Ctrl-Man; keyval=%d\n",i1);
-// #ifdef _MSC_VER
-    // p1 = strchr("PLCSABDTVRINM",i1);
-// #else
-    p1 = strchr("PLCSABDTVRINM",i1);
-// #endif
-    if(p1) {
-      // printf(" p1=|%c|\n",*p1);
-      // i1 = UI_creHdr (i1);
-      // if(i1 > 0) goto AllDone;
-      i1 = AP_typ_typChar (i1);
-      // printf(" i1=%d |%c|\n",i1,i1);
-      i1 = UI_creObjHdr (NULL, PTR_INT(i1));
-      if(i1 > 0) goto AllDone;
-    } else {
-      if(i1 == 'F') {ED_add_Def ("FROM "); goto AllDone;}
-      if(i1 == 'W') {ED_add_Def ("WORK "); goto AllDone;}
-    }
-    goto Finish;
-  }
-
-
-
-  //----------------------------------------------------------------
-  Changed:
-  xa_fl_TxMem = 1; //Edittext - memory:  needUpdate
-  // printf(" set modified ..\n");
-
-
-  // weiter mit Standardbehandlung des Event ..
-  Finish:
-  // printf("ex UI_EdKeyPress Ctrl=%d Alt=%d\n",KeyStatCtrl,KeyStatAlt);
-  return FALSE;  // GTK2
-  // return TRUE;   // GTK1
-
-
-
-  AllDone:
-  // prevent the default handler from being run
-  // sonst kommt zB Esc twice
-  gtk_signal_emit_stop_by_name (GTK_OBJECT(parent),"key_press_event");
-  return TRUE;
-
-
-  L_cad_man:
-    TX_Print("only in CAD or MAN ..");
-    goto Finish;
-
-}
-*/
-
-//=====================================================================
-  int UI_save_over_CB (MemObj *mo, void **data) {
-//=====================================================================
-// callback of "overwrite file YES/NO
-
-  int idat;
-
-  idat = GUI_DATA_EVENT;
-
-  printf("UI_save_over_CB %d\n",idat);
-
-
-  switch(idat) {
-
-    case UI_FuncOK:
-      // save ...
-      UI_save__ (1);
-      break;
-
-    case UI_FuncCancel:
-      // skip saving ...
-      TX_Print ("skip save (overwrite) %s",WC_modnam);
-      UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
-      UI_CursorWait (1);          // reset cursor from wait
-      break;
-  }
-
-  return 0;
-
-}
-
-
 //=====================================================================
   int UI_save__ (int mode) {
 //=====================================================================
 /// \code
-/// save Model WC_modnam; WC_modnam ist ohne Path, mit Filetyp.
-/// Path = AP_dir_open (mit "/" am Ende)
-/// see also AP_Mod_load
-/// ACHTUNG: WC_modnam = Input muss Filetyp haben; wird hier entfernt.
+/// save Model AP_mod_fnam; AP_mod_fnam ist ohne Path, mit Filetyp.
+/// Path = AP_mod_dir (mit "/" am Ende)
+/// see also AP_Mod_load__
+/// ACHTUNG: AP_mod_fnam = Input muss Filetyp haben; wird hier entfernt.
 /// Input:
 ///   mode = 0:  check for overwrite
 ///   mode = 1:  overwrite
-///   WC_modnam, AP_dir_save, AP_sym_save
+///   AP_mod_dir AP_mod_sym AP_mod_fnam AP_mod_ftyp AP_mod_iftyp
 /// see also AP_save__
 /// \endcode
 
   int   i1, ift;
-  char  cbuf[256], mnam[256], ftyp[32], s1[256];
+  char  cbuf[256], mnam[256], s1[256];
 
 
   printf("UI_save__ %d\n",mode);
-  printf("  |%s|%s|%s|\n",AP_sym_save,AP_dir_save,WC_modnam);
+  printf("  |%s|%s|%s|%s| %d\n",AP_mod_sym,AP_mod_dir,
+         AP_mod_fnam,AP_mod_ftyp,AP_mod_iftyp);
 
 
-  // check if outDir exists
-  if(OS_checkFilExist(AP_dir_save,1) ==  0) {
-    // TX_Error("Directory %s does not exist ..",AP_dir_save);
-    MSG_err_1 ("NOEX_dir", "%s", AP_dir_save);
+  // check if outDir AP_mod_dir exists
+  if(OS_checkFilExist(AP_mod_dir,1) ==  0) {
+    // TX_Error("Directory %s does not exist ..",AP_mod_dir);
+    MSG_err_1 ("NOEX_dir", "%s", AP_mod_dir);
     return 0;
   }
 
@@ -3152,88 +2302,79 @@ TX_Error("EDI-GDK_BackSpace");
   // clear Undo-List (sonst wilde gtk-Fehlermeldungen beim exit)
   UNDO_clear ();
 
-  // fix full filename
-  sprintf(cbuf,"%s%s",AP_dir_save,WC_modnam);
+  // get cbuf = absolute-filename
+  Mod_fNam_set (cbuf, 0);
 
 
   // check if File exists
   if(mode == 0) {
     if(OS_checkFilExist(cbuf,1) == 1) {
-      // sprintf(mnam,"overwrite file %s ?\n\n (Path %s)",WC_modnam,AP_dir_save);
+      // sprintf(mnam,"overwrite file %s ?\n\n (Path %s)",AP_mod_fnam,AP_mod_dir);
       MSG_get_1 (mnam, 256, "OVER_fil", "%s", cbuf);
-      GUI_DialogYN (mnam, UI_save_over_CB);
-      return 0;
+      // GUI_DialogYN (mnam, UI_save_over_CB);
+      i1 = GUI_Dialog_2b (mnam, "OK", "Cancel");
+      if(i1) return 0;
     }
   }
 
-  // den Filetyp extrahieren (dxf/igs laden)
-  ift = UTX_ftyp_s (ftyp, WC_modnam, 1);
-
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
-
-
-  // new loescht WC_modnam ! Kopieren, Filetyp weg.
-  strcpy(mnam, WC_modnam);
+  // new deletes AP_mod_fnam
+  strcpy(mnam, AP_mod_fnam);
 
     printf(" mnam=|%s|\n",mnam);
     printf(" cbuf=|%s|\n",cbuf);
-    printf(" ftyp=|%s|\n",ftyp);
 
 
-  if(ift == 0) {
+    if(AP_mod_iftyp == Mtyp_Gcad) {
+      // save native
+      // Mainmodel und Submodels -> Datei AP_mod_fnam sichern
+      Mod_sav__ (GUI_menu_checkbox_get(&ckb_compr), cbuf, 0);
+      goto L_fertig;
 
-    if(!strcmp(ftyp, "DXF")) {
-      // printf(" Export DXF |%s|\n",WC_modnam);
-/*
-      AP_ExportDxf (cbuf, AP_stat.subtyp);
-      // nun noch die Surf's
-      goto L_mock;
-*/
-      // export all points, curves ..
+
+    } else if(AP_mod_iftyp == Mtyp_DXF) {
+      // printf(" Export DXF |%s|\n",AP_mod_fnam);
       OS_dll_do ("xa_dxf_w", "DXFW__", cbuf);
       goto L_fertig;
 
 
-    } else if(!strcmp(ftyp, "SVG")) {
-      // printf(" Export SVG |%s|\n",WC_modnam);
+    } else if(AP_mod_iftyp == Mtyp_SVG) {
+      // printf(" Export SVG |%s|\n",AP_mod_fnam);
       OS_dll_do ("xa_svg_w", "SVG_w__", cbuf);
       goto L_fertig;
 
 
-    } else if((!strcmp(ftyp, "IGS"))||(!strcmp(ftyp, "IGE"))) {
-      // printf(" Export IGS |%s|\n",WC_modnam);
+    } else if(AP_mod_iftyp == Mtyp_Iges) {
+      // printf(" Export IGS |%s|\n",AP_mod_fnam);
       AP_ExportIges__ (cbuf);
       goto L_fertig;
 
 
-    } else if(!strcmp(ftyp, "STP")) {
+    } else if(AP_mod_iftyp == Mtyp_Step) {
       OS_dll_do ("xa_stp_w", "STP_w__", cbuf);
       goto L_fertig;
 
 
-    } else if(!strcmp(ftyp, "JPG")) {
+    } else if(AP_mod_iftyp == Mtyp_JPG) {
       sprintf(s1, "%swin.bmp",OS_get_tmp_dir());
       // create BMP-file of active OpenGL-window
       bmp_save__ (s1);
       // create JPG-file from BMP-file
       OS_jpg_bmp (cbuf, s1);
+      TX_Print ("- %s exported ..",cbuf);
       goto L_fertig;
 
 
-    } else if((!strcmp(ftyp, "WRL"))  ||
-              (!strcmp(ftyp, "STL"))  ||
-              (!strcmp(ftyp, "OBJ"))  ||
-              (!strcmp(ftyp, "TESS"))) goto L_mock;
+    } else if((AP_mod_iftyp == Mtyp_WRL)  ||
+              (AP_mod_iftyp == Mtyp_STL)  ||
+              (AP_mod_iftyp == Mtyp_OBJ)  ||
+              (AP_mod_iftyp == Mtyp_TESS)) {
+      goto L_mock;
 
+    } else {
+      TX_Print("**** Error filetyp %s %d",AP_mod_ftyp,AP_mod_iftyp);
+      return -1;
+    }
 
-  }
-
-
-  //================================================================
-  // save native
-  // Mainmodel und Submodels -> Datei WC_modnam sichern
-  Mod_sav__ (GUI_menu_checkbox_get(&ckb_compr), cbuf, 0);
-  goto L_fertig;
 
 
 
@@ -3242,12 +2383,12 @@ TX_Error("EDI-GDK_BackSpace");
   L_mock:
   // tess. exportieren ..
   // sprintf(memspc011, "%s%c%s",dirNam,fnam_del,fnam);
-  i1 = TSU_exp__ (ftyp, cbuf);
+  i1 = TSU_exp__ (AP_mod_ftyp, cbuf);
   if(i1 != 0) DB_del_Mod__ ();  // del all subModels nach error
 
   ED_Reset ();       // ED_lnr_act resetten
   ED_work_END (0);   // restore display ..
-  // TX_Print("save tesselated as %s in %s",WC_modnam,AP_dir_save);
+  // TX_Print("save tesselated as %s in %s",AP_mod_fnam,AP_mod_dir);
 
 
 
@@ -3256,8 +2397,8 @@ TX_Error("EDI-GDK_BackSpace");
   // Defaults rausschreiben
   L_fertig:
 
-  // restore WC_modnam  - ohne Filetyp
-  strcpy(WC_modnam, mnam);
+  // restore AP_mod_fnam  - ohne Filetyp
+  strcpy(AP_mod_fnam, mnam);
 
   AP_defaults_write ();
 
@@ -3272,7 +2413,11 @@ TX_Error("EDI-GDK_BackSpace");
 
 
   // model unmodified ..
-  AP_mdl_modified_reset ();
+  // AP_mdl_modified_reset ();
+
+  // make a copy of Model for ck-modified
+  Mod_sav_ck (0);
+
 
   UI_CursorWait (1);    // reset cursor
 
@@ -3284,7 +2429,7 @@ TX_Error("EDI-GDK_BackSpace");
   // DL_save_DYNAMIC_AREA ();
 
   // Memory in Datei rausschreiben
-  UTF_wri_file (WC_modnam);
+  UTF_wri_file (AP_mod_fnam);
 
   // // Title oben auf den Mainwinrahmen
   // UI_AP (UI_FuncSet, UID_Main_title, NULL);
@@ -3345,377 +2490,6 @@ TX_Error("EDI-GDK_BackSpace");
   return 0;
 
 }
-
-
-/* UNUSED
-//=====================================================================
-  int UI_impAux1 (void *data) {
-//=====================================================================
-
-  char   *cp1;
-
-
-  // vom Window ins Memory kopieren
-  ED_unload__ ();
-
-  // selekt. Dateinamen einlesen
-  GUI_File_selGet (memspc011 , (char*)data);
-
-
-  // das Verzeichnis wieder abspalten
-  strcpy(AP_dir_open, memspc011);
-  cp1=strrchr(AP_dir_open, fnam_del);
-  // ++cp1; // mit "/"
-  *cp1='\0';
-  printf("new path |%s|\n",AP_dir_open);
-
-  return 0;
-
-}
-*/
-
-/* UNUSED
-//=====================================================================
-  int UI_impDxfCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-
-  UI_impAux1 (data);
-
-
-  // DXF-Importwindow
-  UI_WinDxfImp (NULL, (void*)UI_FuncInit1);
-
-  return 0;
-}
-
-
-
-//=====================================================================
-  int UI_impLwoCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  UI_impAux1 (data);
-
-  UI_WinDxfImp (NULL, (void*)UI_FuncInit2);
-
-  return 0;
-}
-
-
-//=====================================================================
-  int UI_imp3dsCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  UI_impAux1 (data);
-
-  UI_WinDxfImp (NULL, (void*)UI_FuncInit3);
-
-  return 0;
-}
-
-
-
-//=====================================================================
-  int UI_impobjCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  UI_impAux1 (data);
-
-  // gesamter fnam in memspc011
-
-  printf("UI_impobjCB |%s|\n",memspc011);
-
-
-  obj_read__ (memspc011);
-
-  // die Hauptdatei raus ins Editfenster
-  ED_load__ ();
-  // xa_fl_TxMem = 1; // weils veraend. wurde
-
-  // imply END-Button (Redraw)
-  // UI_AP (UI_FuncSet, UID_but_END, NULL);
-  // ED_work_END (0);
-  UI_butCB (NULL, (void*)"butEND");     // Ausfuehren END-Button
-  DL_Redraw ();
-
-
-  return 0;
-}
-
-
-//=====================================================================
-  int UI_impIgeCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-
-  UI_impAux1 (data);
-
-
-  // IGE-Importwindow
-  // UI_WinIgeImp (NULL, (void*)UI_FuncInit);
-
-  // AP_ImportIg1 ("0,0,0", 1, memspc011);
-  AP_Import__ ("xa_stp_r", "STP_r__", memspc011);
-
-  ED_work_END (0);  // ABARBEITEN
-
-
-  // // add importData to UTF_FilBuf1
-  // AP_ImportIges ("", memspc011);
-
-  // // die Hauptdatei raus ins Editfenster
-  // ED_load__ ();
-  // xa_fl_TxMem = 1; // weils veraend. wurde
-
-
-  return 0;
-
-}
-*/
-
-/* UNUSED
-//=====================================================================
-  int UI_expMockup (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  int    ift;
-  char   ftyp[32];
-
-
-  GUI_File_selGet (memspc011 , (char*)data);
-
-  // teilen in ftyp WC_modnam und AP_dir_open und Filetyp feststellen
-  ift = AP_split_fnam (2, memspc011);
-
-  Mod_sym_get2 (AP_sym_save, AP_dir_save, 1);
-
-  // // clear Undo-List (sonst wilde gtk-Fehlermeldungen beim exit)
-  // UI_undo_clear ();
-
-  AP_i2ftyp (ftyp, ift);  // get fileTyp as text
-  TSU_exp__ (ftyp, memspc011);
-  // AP_ExportDxf (memspc011);
-
-  UI_AP (UI_FuncSet, UID_Main_title, NULL); // disp new AP_dir_save
-
-  return 0;
-}
-*/
-/*
-//=====================================================================
-  int UI_expDxfCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  int    ift;
-
-
-  GUI_File_selGet (memspc011 , (char*)data);
-
-  // teilen in ftyp WC_modnam und AP_dir_open und Filetyp feststellen
-  ift = AP_split_fnam (2, memspc011);
-
-  Mod_sym_get2 (AP_sym_save, AP_dir_save, 1);
-
-  AP_ExportDxf (memspc011);
-
-  UI_AP (UI_FuncSet, UID_Main_title, NULL); // disp new AP_dir_save
-
-  return 0;
-}
-*/
-
-/* UNUSED
-//=====================================================================
-  int UI_expObjCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  GUI_File_selGet (memspc011 , (char*)data);
-
-
-  TSU_exp__ ("obj", memspc011);
-
-  return 0;
-}
-*/
-/*
-//=====================================================================
-  int UI_expIgeCB (MemObj *mo, void **data) {
-//=====================================================================
-
-  int  irc;
-  char txbuf[256];
-
-  // printf("UI_expIgeCB %d\n",(int)data);
-
-
-  // callbacks von GUI_DialogYN:
-  // if(GUI_DATA_EVENT == UI_FuncCancel) return 0;
-  // else if(GUI_DATA_EVENT == UI_FuncOK) goto L_work;
-
-
-
-  // fn holen
-  GUI_File_selGet (memspc011 , GUI_DATA_S1);
-
-  printf("UI_expIgeCB |%s|\n",memspc011);
-
-
-  if(OS_checkFilExist(memspc011,1) == 1) {
-    // sprintf(txbuf,"  overwrite file %s ?  ",memspc011);
-    MSG_get_1 (txbuf, 256, "OVER_fil", "%s", memspc011);
-    irc = GUI_Dialog_2b (txbuf, "OK", "Cancel");
-    if(irc != 0) return 0;
-  }
-
-
-
-  L_work:
-  AP_ExportIges__ (memspc011);
-
-  return 0;
-
-}
-*/
-
-/* UNUSED
-//=====================================================================
-  int UI_expIsoCB (GtkWidget *parent, void *data) {
-//=====================================================================
-
-  GUI_File_selGet (memspc011 , (char*)data);
-
-  // AP_ExportISO (memspc011);
-  ED_work_PP ();
-
-  return 0;
-
-}
-*/
-/* UNUSED
-//=====================================================================
-  int UI_saveMockCB (char *fnam,char *dirNam) {
-//=====================================================================
-
-  char    ftyp[32];
-
-
-  if(fnam == NULL) return 0;   // cancel
-
-
-  printf("UI_saveMockCB |%s|%s|%s|%s|\n",dirNam,fnam,AP_dir_open,WC_modnam);
-
-  // das Verzeichnis -> AP_dir_open
-  strcpy(AP_dir_open, dirNam);
-
-  // extract filetyp
-  UTX_ftyp_s (ftyp, fnam, 1);
-
-  if((strcmp(ftyp, "WRL"))   &&
-     (strcmp(ftyp, "OBJ"))   &&
-     (strcmp(ftyp, "TESS")))     {
-    TX_Print("Filetyp MUST be .wrl / .obj / .tess");
-    return -1;  // do not exit FileDialog
-  }
-
-  // UI_CursorWait (0);    // display watch
-
-  // tess. exportieren ..
-  sprintf(memspc011, "%s%c%s",dirNam,fnam_del,fnam);
-  TSU_exp__ (ftyp, memspc011);
-
-  TX_Print("save tesselated as %s in %s",fnam,dirNam);
-
-  // UI_CursorWait (1);    // reset cursor
-
-  return 0;  // do not exit FileDialog
-
-}
-*/
-/*  UNUSED ?
-//=====================================================================
-  int UI_saveCB (char *fnam,char *dirNam) {
-//=====================================================================
-// user has given filename for save.
-// in memspc011 befindet sich Modelnam*FileTyp. Cut off FileTyp,
-// add this Filetyp to fnam.
-
-  char    ftyp[32];
-
-
-  if(fnam == NULL) return 0;   // cancel
-
-
-  printf("UI_saveCB |%s|%s|\n",dirNam,fnam);
-  printf("  memspc011=|%s|\n",memspc011);
-
-
-  // copy required Filetyp from memspc011
-  UTX_ftyp_s (ftyp, memspc011, 0);
-
-  // das Verzeichnis -> AP_dir_save
-  // strcpy(AP_dir_save, dirNam);
-  AP_set_dir_save (dirNam);
-
-  // den filename (incl. Pfad) nach WC_modnam holen.
-  strcpy (WC_modnam , fnam);
-
-  // cut off Filetyp from WC_modnam
-  UTX_ftyp_cut (WC_modnam);
-
-  // add required Filetyp to WC_modnam
-  strcat (WC_modnam, ".");
-  strcat (WC_modnam, ftyp);
-
-  // sichern ..
-  UI_save__ (0);
-
-  // // Title oben auf den Mainwinrahmen
-  // UI_AP (UI_FuncSet, UID_Main_title, NULL);
-
-  return 0;
-
-}
-*/
-/* UNUSED
-//=====================================================================
-  int UI_expNat (GtkWidget *parent, void *data) {
-//=====================================================================
-// Datei abspeichern; zuerst vom Window ins Memory kopieren,
-//   von dort in Datei raus.
-
-  int    ift;
-  char      *cp1;
-
-
-  printf("UI_expNat\n");
-
-
-
-  // den filename (incl. Pfad) nach WC_modnam holen.
-  GUI_File_selGet (memspc011 , (char*)data);
-
-
-  // teilen in ftyp WC_modnam und AP_dir_open und Filetyp feststellen
-  ift = AP_split_fnam (2, memspc011);
-
-  Mod_sym_get2 (AP_sym_save, AP_dir_save, 1);
-
-
-  // // den filename (incl. Pfad) nach WC_modnam holen.
-  // strcpy (WC_modnam , fnam);
-
-
-  // sichern ..
-  UI_save__ (0);
-
-  // // Title oben auf den Mainwinrahmen
-  // UI_AP (UI_FuncSet, UID_Main_title, NULL);
-
-  return 0;
-
-}
-*/
 
 
 //=====================================================================
@@ -3926,6 +2700,8 @@ TX_Error("EDI-GDK_BackSpace");
 //=====================================================================
   int UI_loadImg_CB (char *fnam,char *dirNam) {
 //=====================================================================
+//   fnam   <filename>.<filetyp>
+
 
   long ind;
   char cbuf[256]; //, dirSym[64];
@@ -3936,14 +2712,14 @@ TX_Error("EDI-GDK_BackSpace");
   // printf("UI_loadImg_CB |%s|%s|\n",fnam,dirNam);
 
 
-  // set AP_dir_open & AP_sym_open from dirNam
+  // set AP_mod_dir & AP_mod_sym from dirNam
   AP_set_dir_open (dirNam);
-  // AP_set_dir_open (AP_dir_open);
+  // AP_set_dir_open (AP_mod_dir);
 
   // create line N1=IMG P(0 0 0) "BMP/Andi.bmp"
   ind = DB_dbo_get_free (Typ_GTXT); // N
   ++ind;
-  sprintf(cbuf,"N%ld=IMG P(0 0 0) \"%s/%s\"",ind,AP_sym_open,fnam),
+  sprintf(cbuf,"N%ld=IMG P(0 0 0) \"%s/%s\"",ind,AP_mod_sym,fnam),
 
   ED_add_Line (cbuf);
 
@@ -3964,20 +2740,20 @@ TX_Error("EDI-GDK_BackSpace");
 
   if(fnam == NULL) return 0;
 
-  printf("UI_loadMock_CB |%s|%s|\n",fnam,dirNam);
+  // printf("UI_loadMock_CB |%s|%s|\n",fnam,dirNam);
 
 
-  // set AP_dir_open & AP_sym_open from dirNam
+  // set AP_mod_dir & AP_mod_sym from dirNam
   AP_set_dir_open (dirNam);
-  // AP_set_dir_open (AP_dir_open);
+  // AP_set_dir_open (AP_mod_dir);
 
   // get next free Model-index
   ind = DB_dbo_get_free (Typ_Model); // M
   ++ind;
 
   // create line M# = "symDir/fnam" P(0 0 0)
-  // sprintf(cbuf,"M%ld=MOCK \"%s/%s\" P(0 0 0)",ind,AP_sym_open,fnam),
-  sprintf(cbuf,"M%ld=\"%s/%s\" P(0 0 0)",ind,AP_sym_open,fnam),
+  // sprintf(cbuf,"M%ld=MOCK \"%s/%s\" P(0 0 0)",ind,AP_mod_sym,fnam),
+  sprintf(cbuf,"M%ld=\"%s/%s\" P(0 0 0)",ind,AP_mod_sym,fnam),
     // printf(" Mock_CB |%s|\n",cbuf);
 
   // add to model and work
@@ -4001,8 +2777,8 @@ TX_Error("EDI-GDK_BackSpace");
   printf("UI_loadBmp_CB |%s|%s|\n",fnam,dirNam);
 
 
-  strcpy(AP_dir_open, dirNam);
-  // strcpy(WC_modnam, fnam);
+  strcpy(AP_mod_dir, dirNam);
+  // strcpy(AP_mod_fnam, fnam);
 
   // get symbol from path
   Mod_sym_get2 (dirSym, dirNam, 0);
@@ -4188,7 +2964,7 @@ TX_Error("EDI-GDK_BackSpace");
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   sprintf(cbuf3,"copy %s File to",ftyp);
   GUI_save__ (cbuf3,            // titletext
-          AP_dir_save,            // path
+          AP_mod_dir,            // path
           cbuf1,                  // directoryList
           cbuf2,                  // defaultModelname
           (void*)UI_cpyMdl2);
@@ -4230,63 +3006,10 @@ TX_Error("EDI-GDK_BackSpace");
 }
 
 
-//================================================================
-  int UI_open__ (char *fnam,char *dirNam) {
-//================================================================
-// File / open Model
-// Input:
-//   fnam      modelfileName; eg "DIM_TEST.dxf"
-//   dirNam    directory;     eg "/mnt/serv1/Devel/cadfiles/dxf/"
-
-  char cbuf[256];
-
-
-  if(fnam == NULL) return 0;
-
-  printf("UI_open__ |%s|%s|\n",fnam,dirNam);
-
-
-  // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
-  AP_src_new(1);
-  // UI_menCB (NULL, "new");   // NEW
-
-
-  // Open Model setzt AP_dir_open und AP_dir_save;
-  // strcpy(AP_dir_open, dirNam);
-  AP_set_dir_open (dirNam);
-  // strcpy(AP_dir_save, dirNam);
-  AP_set_dir_save (dirNam);
-
-  strcpy(WC_modnam, fnam);
-
-
-/*
-  //--------------------------------------------------------
-  // Format der Inputdatei testen
-  sprintf(cbuf, "%s%s",AP_dir_open,WC_modnam);
-
-  if(dxf_ckFileFormat (cbuf) == 0) {
-    // GUI_Dialog (NULL, "  for DXF-Files use Import / DXF  ");
-    TX_Error ("  for DXF-Files use Import / DXF  ");
-    return 0;
-  }
-  if(IGE_ckFileFormat (cbuf) == 0) {
-    // GUI_Dialog (NULL, "  for DXF-Files use Import / DXF  ");
-    TX_Error ("  for Iges-Files use Import / IGES  ");
-    return 0;
-  }
-*/
-
-
-  // load
-  return AP_Mod_load (0);
-
-}
-
-
 //=====================================================================
   int UI_open_add (char *fnam,char *dirNam) {
 //=====================================================================
+// UNUSED
 
   int  irc;
   char cbuf[256], actNam[256];
@@ -4297,256 +3020,23 @@ TX_Error("EDI-GDK_BackSpace");
   printf("UI_open_add |%s|%s|\n",fnam,dirNam);
 
 
-  // Open Model setzt AP_dir_open und AP_dir_save;
-  // strcpy(AP_dir_open, dirNam);
+  // Open Model setzt AP_mod_dir und AP_mod_dir;
+  // strcpy(AP_mod_dir, dirNam);
   AP_set_dir_open (dirNam);
   // AP_set_dir_save (dirNam);
 
-  strcpy(actNam, WC_modnam);  // save act Modelnam
-  strcpy(WC_modnam, fnam);
+  strcpy(actNam, AP_mod_fnam);  // save act Modelnam
+  strcpy(AP_mod_fnam, fnam);
 
   // load
-  irc = AP_Mod_load (1);
+  irc = AP_Mod_load__ (1);
 
-  strcpy(WC_modnam, actNam);  // restore act Modelnam
+  strcpy(AP_mod_fnam, actNam);  // restore act Modelnam
 
   return irc;
 
 }
 
-
-/*
-//================================================================
-  int UI_open_symCB () {
-//================================================================
-
-  int    irc, ift, lNr;
-  char   ftyp[32], cbuf[256], fnam[256];
-
-
-  
-  // query for Symbolname for dir AP_dir_open
-  MSG_get_1 (fnam, 300, "SEL_sDir", "%s", AP_dir_open);
-
-  strcpy (cbuf, "DIRXX");
-  irc = GUI_Dialog_e2b (fnam,   // "Give symbolic pathname for that directory: ",
-                        cbuf, 250, "OK", "Cancel");
-
-  if(irc != 0) goto L_load;
-
-
-
-  // symbol data for path erforderlich fuer Mockup und Image
-  ift = UTX_ftyp_s (ftyp, WC_modnam, 1);
-  if(ift == 0) ift = AP_ck_ftyp (ftyp);
-  else         ift = 0; // native
-
-
-  printf("UI_open_symCB |%s|\n",cbuf);
-
-
-  // check if symbol already exists
-  lNr = -1;
-  strcat(cbuf, "/");
-  lNr = Mod_sym_get1 (fnam, cbuf, 1);
-  printf(" lNr Mod_sym_get1=%d\n",lNr);
-  if(lNr >= 0) {
-    TX_Print("**** Symbol %s already exists  overwritten !",cbuf);
-    OS_beep ();
-    // goto L_err1_sym;
-  }
-
-
-
-  // add symbol to file
-  // see Mod_symOpen_add
-  cbuf[strlen(cbuf)-1] = '\0';  // remove /
-  strcat(cbuf, " ");
-  strcat(cbuf, AP_dir_open);
-
-  AP_get_fnam_symDir (fnam);   // get filename of dir.lst
-  // sprintf(fnam,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-  UTX_fsavLine (cbuf, fnam, lNr);
-
-
-
-
-
-  //----------------------------------------------------------------
-  L_load:
-
-  // kill window
-  // GUI_GetText_CB (NULL, (void*)UI_FuncKill);
-
-
-
-  // check if symbol already exists
-  // if(ift >= 10) {
-    irc = Mod_sym_get2 (AP_sym_open, AP_dir_open, 1);
-    if(irc < 0) {
-      TX_Print("**** Error: cannot resolv symbol for path |%s|",AP_dir_open);
-      OS_beep ();
-      // goto L_err1_sym;
-    }
-  // }
-
-
-
-  //----------------------------------------------------------------
-  // load
-  return AP_Mod_load (0);
-
-
-  // L_err1_sym:
-      // TX_Print("you must give a Symbol for Mockups / Images");
-      // GUI_GetText("Symbolname: ","modIGE", -200, UI_open_symCB);
-      // return 0;
-
-}
-
-
-//================================================================
-  int UI_openCB (GtkWidget *parent, void *data) {
-//================================================================
-// die Callbackfunktion des Fileselection-Dialoges.
-// Neue Datei einlesen; zuerst ins Memory, von dort ins Window.
-
-
-  int       irc, ift;
-  long      cpos;
-  char      *cp1, cbuf[256], s1[300], ftyp[32];
-
-
-  printf("UI_openCB /%s/\n", (char*)data);
-
-  cp1 = (char*)data;
-
-
-  //=============================================================
-  if(!strcmp(cp1, "open")) {
-
-  // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
-  AP_src_new();
-
-
-  // den filename (incl. Pfad) nach WC_modnam holen.
-  GUI_File_selGet (cbuf, parent);
-    // printf(" new mod |%s|\n",cbuf);
-
-
-  // see AP_decode_fnam
-
-  // teilen in ftyp WC_modnam und AP_dir_open und Filetyp feststellen
-  ift = AP_split_fnam (1, cbuf);
-
-  irc = Mod_sym_get2 (AP_sym_open, AP_dir_open, 1);
-
-
-  // load, if symbol already exists
-  if(irc >= 0) return AP_Mod_load (0);
-
-
-  // Symbol does not exist;
-  // create a defaultsymbolname:
-  strcpy(cbuf, "DIR_1");
-
-
-  // query for Symbolname for dir AP_dir_open
-  UI_open_symCB ();
-  // MSG_get_1 (s1, 300, "SEL_sDir", "%s", AP_dir_open);
-  // GUI_GetText(s1,     // "Give symbolic pathname for that directory: ",
-              // cbuf, -200, UI_open_symCB);
-  return 0;
-
-
-
-//
-  // //=============================================================
-  // } else if(!strcmp(cp1, "insert")) {
-// 
-  // // selekt. Dateinamen einlesen
-  // GUI_File_selGet (memspc011 , parent);
-// 
-  // // curpos holen
-  // cpos = GUI_edi_getCpos (&winED);
-// 
-  // // die Datei nun im APT-Prog hintanfuegen
-  // ED_add_File (memspc011, cpos);
-//
-//
-  // // Datei in den Buffer 1 einlesen
-  // UTF_add1_file (memspc011);
-// 
-  // // vom Window ins Memory kopieren
-  // ED_unload__ ();
-// 
-  // // Buffer1 in die Hauptdatei einfuegen
-  // UTF_insert1 (cpos);
-// 
-  // // Memory > Editfenster
-  // ED_load__ ();
-  // xa_fl_TxMem = 1; // weils veraend. wurde
-//
-
-
-
-  //=============================================================
-  }
-
-  return 0;
-
-}
-*/
-
-/*
-//=====================================================================
- void UI_mBars_off () {
-//=====================================================================
-// DO NOT USE: replace with AP_func_stat_set_tab
-
-// - used during Search/Measure
-// - used during UI_CB_view (restore hidden objects)
-// - used during UI_CB_Hide (hide objects)
-
-// entspr. SM Menuebar sensitiv machen oder abdunkeln
-
-  int mode;
-
-
-  // printf("UI_mBars_off %d %d %d\n",UI_InpSM,UI_stat_hide,UI_stat_view);
-
-
-  // if((UI_InpSM == ON)    ||      // bar is OFF
-  if((UI_stat_hide == 0) ||
-     (UI_stat_view == 0))   {
-    mode = FALSE;
-
-  } else {                       // bar is ON
-    mode = TRUE;
-  }
-
-  // printf("UI_mBars_off bar=%d mode=%d\n",UI_InpMode,mode);
-
-
-  if(UI_InpMode == UI_MODE_CAD) {
-    if(GUI_OBJ_IS_VALID(&tbCad))
-        GUI_set_enable (&tbCad, mode);
-
-  } else if(UI_InpMode == UI_MODE_NC) {
-    if(GUI_OBJ_IS_VALID(&tbNc))
-        GUI_set_enable (&tbNc, mode);
-
-  } else if(UI_InpMode == UI_MODE_WCGEO) {
-    if(GUI_OBJ_IS_VALID(&tbWcGeo))
-        GUI_set_enable (&tbWcGeo, mode);
-
-  } else if(UI_InpMode == UI_MODE_WCTEC) {
-    if(GUI_OBJ_IS_VALID(&tbWcTec))
-        GUI_set_enable (&tbWcTec, mode);
-  }
-
-}
-*/
 
 //================================================================
   int UI_disp_var1 (double *val1) {
@@ -4593,7 +3083,7 @@ TX_Error("EDI-GDK_BackSpace");
   long    dli;
 
 
-  printf("UI_disp_dbo %d %ld\n",typ,dbi);
+  // printf("UI_disp_dbo %d %ld\n",typ,dbi);
 
 
   dli = DLI_TMP;    // dli for temp.Objects
@@ -4624,7 +3114,7 @@ TX_Error("EDI-GDK_BackSpace");
 
 
   if(typ == Typ_Index) {
-    pt1 = DB_GetPoint(*((long*)data));
+    pt1 = DB_GetPoint(LONG_PTR(data));
 
 
   } else if(typ == Typ_Txt) {
@@ -4682,7 +3172,7 @@ TX_Error("EDI-GDK_BackSpace");
   // get typical point for activity-object -> pt1
   OGX_SET_INDEX (&ox1, ac1->typ, ac1->ind);
   // irc = UTO_pt_ox (&pt1, &ox1);
-  irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, &ox1);
+  irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, &ox1);
   if(irc < 0) {
     TX_Print ("UI_disp_activ E001 %d %d",ac1->typ,ac1->ind);
     return -1;
@@ -4855,8 +3345,8 @@ TX_Error("EDI-GDK_BackSpace");
 
   dli = DLI_TMP;  // als temp. obj anlegen ..
 
-  // GL_temp_delete (); // alle temp. obj loeschen ..
-  GL_temp_Delete (dli);
+  // GL_temp_del_all (); // alle temp. obj loeschen ..
+  GL_temp_del_1 (dli);
 
 
   vl = UT3D_len_vc (&vc1);
@@ -4941,7 +3431,7 @@ TX_Error("EDI-GDK_BackSpace");
 
   // plID   NULL = clear hilite
   if(!plID) {
-    if(dli < -1L) GL_temp_Delete (dli);
+    if(dli < -1L) GL_temp_del_1 (dli);
     dli = -1;
     return 0;
   }
@@ -4958,7 +3448,7 @@ TX_Error("EDI-GDK_BackSpace");
   }
 
 
-  if(dli < -1L) GL_temp_Delete (dli);
+  if(dli < -1L) GL_temp_del_1 (dli);
 
   dli = DL_find_obj (Typ_PLN, dbi, -1L);
   if(dli >= 0) {
@@ -4994,7 +3484,7 @@ TX_Error("EDI-GDK_BackSpace");
   // UTO_dump__ (tra, "UI_disp_tra ");
 
 
-  // GL_temp_delete (); // alle temp. obj loeschen ..
+  // GL_temp_del_all (); // alle temp. obj loeschen ..
 
   if(tra->form == Typ_VC) {
 
@@ -5407,6 +3897,9 @@ TX_Error("EDI-GDK_BackSpace");
   // printf("activate view\n");
   UI_stat_view = 0;    // 0=active
 
+  Grp_Clear (0);       // clear group
+
+
   // block some functions ..
   // GUI_set_enable (&box1C1v, FALSE); // disact. GO, RUN
   // UI_brw__ (0);                               // disact.. EditWin
@@ -5485,7 +3978,7 @@ TX_Error("EDI-GDK_BackSpace");
     // UME_TMP_FILE (&fBuf, &UI_Ed_fsiz, s1);
     UI_Ed_fsiz = OS_FilSiz (s1);   
     l1 = UI_Ed_fsiz + 100 + UI_Ed_fsiz/4;
-    fBuf = MEM_alloc_tmp (l1);
+    fBuf = MEM_alloc_tmp ((int)l1);
     MEM_get_file (fBuf, &UI_Ed_fsiz, s1);
     if(UI_Ed_fsiz < 1) {
       TX_Print("UI_src_edi E001 |%s|",s1);
@@ -5627,7 +4120,9 @@ TX_Error("EDI-GDK_BackSpace");
       // printf("VWR - activate\n");
       UI_InpMode = UI_MODE_VWR;
 
-        GL_temp_Delete (DLI_TMP);               // remove tempObj
+      MSG_pri_0 ("VWR_On");
+
+        GL_temp_del_1 (DLI_TMP);               // remove tempObj
         GUI_gl_block (&winMain, 1);
         // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
 
@@ -5708,6 +4203,8 @@ TX_Error("EDI-GDK_BackSpace");
       UI_InpMode = UI_MODE_CAD;
          UI_brw__ (0);         // das Edit-Fenster deaktivieren
 
+        MSG_pri_0 ("CAD_On");
+
         GUI_gl_block (&winMain, 1);
         // UI_cb_search (1);  // switch on "Search/Name"          2011-03-03
 
@@ -5749,7 +4246,7 @@ TX_Error("EDI-GDK_BackSpace");
           DL_Redraw ();  // first time only necessary ..
         }
 
-
+  GUI_obj_focus (&winGR);
 
   return 0;
 
@@ -5989,6 +4486,11 @@ See UI_but__ (txt);
 
 
   //=============================================================
+  } else if(!strcmp(cp1, "butScG")) {              // Scale group
+    DL_scale_grp ();
+
+
+  //=============================================================
   } else if(!strcmp(cp1, "oNam")) {              // Search/Name
 /* 2011-03-03
     if(UI_InpMode == UI_MODE_VWR) {
@@ -6136,7 +4638,7 @@ See UI_but__ (txt);
       } else {                         //  activate VWR
           printf(" activate VWR\n");
         // UI_block__ (-1, 1, -1);
-        GL_temp_Delete (DLI_TMP);               // remove tempObj
+        GL_temp_del_1 (DLI_TMP);               // remove tempObj
         GUI_gl_block (&winMain, 1);
         // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
 
@@ -6182,7 +4684,7 @@ See UI_but__ (txt);
 
 
       // del temp. Objects
-      GL_temp_delete ();
+      GL_temp_del_all ();
       // unhilite alle Objekte (last obj zB Kontur sonst ganz rot)
       DL_hili_off (-1L);
 
@@ -6499,6 +5001,22 @@ See UI_but__ (txt);
 
 
 //================================================================
+ int UI_dump_oid (char *sOid) {
+//================================================================
+/// UI_dump_oid    dump DB-object  into file & display with browser
+
+  int   typ;
+  long  dbi;
+
+
+  APED_dbo_oid (&typ, &dbi, sOid);
+
+  return UI_dump_obj (typ, dbi);
+
+}
+
+
+//================================================================
  int UI_dump_obj (int typ, long ind) {
 //================================================================
 /// \code
@@ -6520,7 +5038,7 @@ See UI_but__ (txt);
 
 
   // printf("================UI_dump_obj==================================\n");
-  // printf("UI_dump_obj %d %d\n",typ,ind);
+  // printf("UI_dump_obj %d %ld\n",typ,ind);
 
   oNr = 1;
 
@@ -6677,7 +5195,7 @@ See UI_but__ (txt);
 
   int    irc, i1, i2, i3, imode, iCompr;
   long   il1, il2;
-  char   *cp1, *p1, cbuf1[256], cbuf2[256], sTit[80];
+  char   *cp1, *p1, cbuf1[256], cbuf2[256], s1[256], sTit[80];
   FILE   *fpo;
   ColRGB col1;
 
@@ -6686,12 +5204,12 @@ See UI_but__ (txt);
   printf("UI_men__ |%s|\n",cmd);
 
 
-  // printf("  WC_modnam=|%s|\n",WC_modnam);
-  // printf("  AP_dir_open=|%s|\n",AP_dir_open);
+  // printf("  AP_mod_fnam=|%s|\n",AP_mod_fnam);
+  // printf("  AP_mod_dir=|%s|\n",AP_mod_dir);
 
 
-  // // wenn AP_dir_open kein closing "/" hat, eins zufuegen.
-  // UTX_add_slash (AP_dir_open);
+  // // wenn AP_mod_dir kein closing "/" hat, eins zufuegen.
+  // UTX_add_slash (AP_mod_dir);
 
 
 /*
@@ -6717,9 +5235,25 @@ See UI_but__ (txt);
   //-------------------------------------------------
   if(!strcmp(cp1, "new")) {
 
+    // save Model+Submodels into tempDir as "Model" native
+    Mod_sav_i (0);
+
+    // compare Model - Mod_in
+    i1 = Mod_sav_ck (1);
+    if(i1) {
+      // model has changed -
+      irc = AP_save_ex (1);
+      if(irc < 0) return 0;     // cancel
+    } 
+
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
     AP_src_new(1);
 
+    // save Model+Submodels into tempDir as "Model" native
+    Mod_sav_i (0);
+
+    // make a copy (copy Model -> Mod_in)
+    Mod_sav_ck (0);
 
 
   //-------------------------------------------------
@@ -6727,43 +5261,58 @@ See UI_but__ (txt);
 
     // // reset GUI  (back to VWR)
     // UI_reset__ ();
-/*
-    // see APP_open
-    AP_get_fnam_symDir (cbuf1);   // get filename of cfg/dir.lst
-    GUI_List2 ("Model open",    // titletext
-            AP_dir_open,        // Pfadname des activeDirectory
-            cbuf1,              // Liste der directories
-            (void*)UI_open__);  // CallBackFunction of listSelection
-*/
 
-    // test if model was modified
-    if(AP_mdl_modified_ck()) {
-      irc = AP_save_ex (1);
-      if(irc < 0) return -1;   // cancel open.
-      // reset mdl_modified also for NO
-      AP_mdl_modified_reset ();
+
+    // // save Model+Submodels into tempDir as "Model" native
+    // Mod_sav_i (0);
+    // compare Model - Mod_in
+    i1 = Mod_sav_ck (1);
+    if(i1) {
+      // model has changed -
+      i1 = AP_save_ex (1);
+      if(i1 < 0) return 0;     // cancel
     }
 
 
+    // get cbuf1 = filename, cbuf2=directory from user
     strcpy(sTit, MSG_const__(MSG_open));  // "Model open"
-    // Liste mit Dir-Auswahl
-    i1 = AP_Mod_open (0, cbuf1, cbuf2, sTit, UI_fnamFilt);
-    if(i1 < 0) return -1;
+
+
+                        // fnam      dirnam     filter-out 
+    AP_get_fnam_symDir (s1);   // get filename of cfg/dir.lst
+    // let user select (symbolic-directory,) modelfile
+    // get cbuf1=fnam cbuf2=dnam
+    strcpy(cbuf2, AP_mod_dir);
+    irc = GUI_file_open__ (cbuf1,128, cbuf2,128, UI_fnamFilt,
+                           s1, sTit, NULL);
+      printf("ex-GUI_file_open__ %d|%s|%s|\n",irc,cbuf2,cbuf1);
+    if(irc) return irc;
 
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane. 
     AP_src_new (1);
     // UI_menCB (NULL, "new");   // NEW
 
-    strcpy(WC_modnam, cbuf1);  // has been overwritten by AP_src_new
+    // get cbuf2 = full-filename
+    UTX_add_fnam_del (cbuf2);  // add following '/' to dnam
+    strcat(cbuf2, cbuf1);
 
-    return AP_Mod_load (0);
+    // get AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
+    irc = AP_Mod_load_fn (cbuf2, 0);
+    if(irc) return irc;
+
+    if(!AP_mod_sym[0]) {
+      // get symbol-name for new directory from user
+      AP_mod_sym_get (AP_mod_sym, AP_mod_dir);
+    }
+
+    return 0;
 
 
 /* UNUSED
   //-------------------------------------------------
   } else if(!strcmp(cp1, "opeDir")) {
 
-    strcpy(cbuf1, AP_dir_open);
+    strcpy(cbuf1, AP_mod_dir);
     GUI_File_selext ("open", cbuf1, UI_openCB, (void*)"open");
 */
 
@@ -6774,7 +5323,7 @@ See UI_but__ (txt);
     // Liste mit Dir-Auswahl
     sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("open Pointfile",    // titletext
-            AP_dir_open,            // Pfadname des activeDirectory
+            AP_mod_dir,            // Pfadname des activeDirectory
             cbuf1,                  // Liste der directories
             (void*)APP_opePtab);    // CallBack der Liste
 */
@@ -6789,7 +5338,7 @@ See UI_but__ (txt);
     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("Model add",    // titletext
-            AP_dir_open,       // Pfadname des activeDirectory
+            AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
             (void*)UI_open_add); // CallBack der Liste
 */
@@ -6797,27 +5346,27 @@ See UI_but__ (txt);
 
 
 
+  //----------------------------------------------------------------
   } else if(!strcmp(cp1, "save")) {
-    iCompr = GUI_menu_checkbox_get(&ckb_compr);  // 0=not checked; 1=checked
-    if(iCompr == 0) strcat(WC_modnam, ".gcad");
-    else            strcat(WC_modnam, ".gcaz");
 
-    // UI_save_ UI_save_ BRAUCHT FILTYP !!
+    // save, 1=overwrite.
     UI_save__ (1);
 
+    // add filename to list "last-used"
+    AP_Mod_lstAdd ();
 
 
 /*
   } else if(!strcmp(cp1, "saveAs")) {
-    // strcpy(txbuf, AP_dir_open);
+    // strcpy(txbuf, AP_mod_dir);
     // strcat(txbuf, fnam_del_s);
     // strcat(txbuf, "Unknown.dat");
     // GUI_File_selext ("save as",txbuf,UI_saveCB,NULL);
     sprintf(txbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_save__ ("save model as",   // titletext
-            AP_dir_save,           // path
+            AP_mod_dir,           // path
             txbuf,                 // directoryList
-            WC_modnam,             // defaultModelname
+            AP_mod_fnam,             // defaultModelname
             (void*)UI_saveCB);
 
 
@@ -6827,7 +5376,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "loadMock")) {
     sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("Load Mockup-Model (VRML/OBJ/TESS)",    // titletext
-            AP_dir_open,       // Pfadname des activeDirectory
+            AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
             (void*)UI_loadMock_CB);
 
@@ -6836,7 +5385,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "loadBmp")) {
     sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("Load Bitmap-Image (BMP)",    // titletext
-            AP_dir_open,       // Pfadname des activeDirectory
+            AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
             (void*)UI_loadBmp_CB);
 
@@ -6844,7 +5393,7 @@ See UI_but__ (txt);
 
 
   } else if(!strcmp(cp1, "impDxf")) {
-    strcpy(txbuf, AP_dir_open);
+    strcpy(txbuf, AP_mod_dir);
     strcat(txbuf, fnam_del_s);
     strcat(txbuf, "*.dxf");
     GUI_File_selext ("import DXF",txbuf,UI_impDxfCB,NULL);
@@ -6852,7 +5401,7 @@ See UI_but__ (txt);
 
 
   } else if(!strcmp(cp1, "impIge")) {
-    strcpy(txbuf, AP_dir_open);
+    strcpy(txbuf, AP_mod_dir);
     strcat(txbuf, fnam_del_s);
     strcat(txbuf, "*.igs");
     GUI_File_selext ("import IGES",txbuf,UI_impIgeCB,NULL);
@@ -6860,7 +5409,7 @@ See UI_but__ (txt);
 
 
   } else if(!strcmp(cp1, "implwo")) {
-    strcpy(txbuf, AP_dir_open);
+    strcpy(txbuf, AP_mod_dir);
     strcat(txbuf, fnam_del_s);
     strcat(txbuf, "*.lwo");
     GUI_File_selext ("import LWO",txbuf,UI_impLwoCB,NULL);
@@ -6868,14 +5417,14 @@ See UI_but__ (txt);
 
 
   } else if(!strcmp(cp1, "imp3ds")) {
-    strcpy(txbuf, AP_dir_open);
+    strcpy(txbuf, AP_mod_dir);
     strcat(txbuf, fnam_del_s);
     strcat(txbuf, "*.3ds");
     GUI_File_selext ("import 3DS",txbuf,UI_imp3dsCB,NULL);
 
 
   } else if(!strcmp(cp1, "impobj")) {
-    strcpy(txbuf, AP_dir_open);
+    strcpy(txbuf, AP_mod_dir);
     strcat(txbuf, fnam_del_s);
     strcat(txbuf, "*.obj");
     GUI_File_selext ("import WaveFront - OBJ",txbuf,UI_impobjCB,NULL);
@@ -6888,9 +5437,9 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "saveMock")) {
     sprintf(txbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_save__ ("save tesselated as VRML / OBJ / TESS",   // titletext
-            AP_dir_open,           // path
+            AP_mod_dir,           // path
             txbuf,                 // directoryList
-            WC_modnam,             // defaultModelname
+            AP_mod_fnam,             // defaultModelname
             (void*)UI_saveMockCB);
 */
 
@@ -6902,23 +5451,9 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "exp1nat")) {
 
 
-/*
-    strcpy(memspc011, WC_modnam);
-    iCompr = GUI_menu_checkbox_get(ckb_compr);  // 0=not checked; 1=checked
-    if(iCompr == 0) strcat(memspc011, ".gcad");
-    else            strcat(memspc011, ".gcaz");
-
-    AP_get_fnam_symDir (cbuf1);   // get filename of cfg/dir.lst
-    GUI_save__ ("save native",     // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,             // defaultModelname
-            (void*)UI_saveCB);
-*/
-
     iCompr = GUI_menu_checkbox_get(&ckb_compr);  // 0=not checked; 1=checked
-    if(iCompr == 0) strcpy(cbuf1, ".gcad");
-    else            strcpy(cbuf1, ".gcaz");
+    if(iCompr == 0) strcpy(cbuf1, "gcad");
+    else            strcpy(cbuf1, "gcaz");
 
     AP_save__ (0, cbuf1);
 
@@ -6928,7 +5463,7 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp2nat")) {
 
-    strcpy(memspc011, WC_modnam);
+    strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".gcad");
 
     // strcat(memspc011, "fn.dxf");
@@ -6940,45 +5475,45 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxf__")) {
     AP_stat.subtyp = 99;  // headerless
-    AP_save__ (0, ".dxf");
+    AP_save__ (0, "dxf");
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxfR10")) {
     AP_stat.subtyp = 0;
-    AP_save__ (0, ".dxf");
+    AP_save__ (0, "dxf");
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxf2000")) {
     AP_stat.subtyp = 3;
-    AP_save__ (0, ".dxf");
+    AP_save__ (0, "dxf");
 
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expStp")) {
-    AP_save__ (0, ".stp");
+    AP_save__ (0, "stp");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Ige")) {
 /*
-    strcpy(memspc011, WC_modnam);
+    strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".igs");
     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_save__ ("save model as IGES",   // titletext
-            AP_dir_save,           // path
+            AP_mod_dir,           // path
             cbuf1,                 // directoryList
             memspc011,            // defaultModelname
             (void*)UI_saveCB);
 */
-    AP_save__ (0, ".igs");
+    AP_save__ (0, "igs");
 
 /*
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp2Ige")) {
 
-    strcpy(memspc011, WC_modnam);
+    strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".igs");
 
     // strcat(memspc011, "fn.dxf");
@@ -6991,177 +5526,57 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Wrl1")) {
     AP_stat.subtyp = 0;  // VRML1
-/*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".wrl");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Mockup as VRML1",   // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,             // defaultModelname
-            (void*)UI_saveCB);
-*/
-    AP_save__ (0, ".wrl");
+    AP_save__ (0, "wrl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Wrl2")) {
     AP_stat.subtyp = 1;  // VRML2
-/*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".wrl");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Mockup as VRML2",   // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,             // defaultModelname
-            (void*)UI_saveCB);
-*/
-    AP_save__ (0, ".wrl");
+    AP_save__ (0, "wrl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expSVG")) {
-/*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".svg");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save as SVG",     // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,             // defaultModelname
-            (void*)UI_saveCB);
-*/
-
-    AP_save__ (0, ".svg");
-
-/*
-  //-------------------------------------------------
-  } else if(!strcmp(cp1, "exp2Wrl1")) {
-
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".wrl");
-    AP_stat.subtyp = 0;  // VRML1
-
-    // strcat(memspc011, "fn.dxf");
-    GUI_File_selext ("save Mockup as VRML1", memspc011, UI_expMockup, NULL);
-
-
-
-  //-------------------------------------------------
-  } else if(!strcmp(cp1, "exp2Wrl2")) {
-
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".wrl");
-    AP_stat.subtyp = 1;  // VRML2
-
-    // strcat(memspc011, "fn.dxf");
-    GUI_File_selext ("save Mockup as VRML2", memspc011, UI_expMockup, NULL);
-*/
+    // see also Export/print svg; different versions !!!
+    AP_save__ (0, "svg");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Obj")) {
-/*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".obj");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Mockup as OBJ",   // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,            // defaultModelname
-            (void*)UI_saveCB);
-*/
-    AP_save__ (0, ".obj");
-
-
-/*
-  //-------------------------------------------------
-  } else if(!strcmp(cp1, "exp2Obj")) {
-
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".obj");
-
-    // strcat(memspc011, "fn.dxf");
-    GUI_File_selext ("save Mockup as OBJ", memspc011, UI_expMockup, NULL);
-*/
-
+    AP_save__ (0, "obj");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Stl")) {
-/*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".stl");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Mockup as STL",   // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,            // defaultModelname
-            (void*)UI_saveCB);
-*/
-    AP_save__ (0, ".stl");
-
-
-/*
-  //-------------------------------------------------
-  } else if(!strcmp(cp1, "exp2Stl")) {
-
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".stl");
-
-    // strcat(memspc011, "fn.dxf");
-    GUI_File_selext ("save Mockup as STL", memspc011, UI_expMockup, NULL);
-*/
-
+    AP_save__ (0, "stl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Tess")) {
+    AP_save__ (0, "tess");
+
+
 /*
-    strcpy(memspc011, WC_modnam);
-    strcat(memspc011, ".tess");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Mockup as TESS",   // titletext
-            AP_dir_save,           // path
-            cbuf1,                 // directoryList
-            memspc011,            // defaultModelname
-            (void*)UI_saveCB);
-*/
-    AP_save__ (0, ".tess");
-
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Jpg")) {
-    AP_save__ (0, ".jpg");
+    AP_save__ (0, "jpg");
 
 
-/*
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp2Tess")) {
-
-    strcpy(memspc011, WC_modnam);
+    strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".tess");
-
     // strcat(memspc011, "fn.dxf");
     GUI_File_selext ("save Mockup as TESS", memspc011, UI_expMockup, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expISO")) {
-
-    // strcpy(memspc011, WC_modnam);
+    // strcpy(memspc011, AP_mod_fnam);
     // cp1 = strrchr (memspc011, '.');     // den letzten Punkt suchen
     // *cp1 = '\0';
     // strcat(memspc011, ".iso");
     // GUI_File_selext ("export ISO",memspc011,UI_expIsoCB,NULL);
-
     // AP_ExportISO (memspc011);
     ED_work_PP ();
 */
@@ -7171,60 +5586,25 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "selHlp")) {
     APP_Help ("Select", "");
 
-
-/*
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "savSel")) {
-    // die aktuell selektierte ObjId suchen
-    irc = DL_find_sel (&i1, &il1);
-    if(irc < 0) {TX_Print("no obj selected ..."); return 0;}
-    // prepare APTsource: MAN-Mode: copy Edi --> memory.
-    AP_SRC_mem_edi ();
-    // init obj-list
-    Grp_init ();
-    // add obj to obj-list
-    Grp_add__ (i1, il1, -2L);
-    // obj-list Recursiv nach seinen Eltern absuchen und diese zufuegen
-    Grp_res ();
-    AP_save__ (1, ".gcad");
-*/
-
+  } else if(!strcmp(cp1, "grpSav")) {        // save Group -> modelFile
+    Grp_Mdl ();
 
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "grpSav")) {
-
-    // prepare APTsource: MAN-Mode: copy Edi --> memory.
-    AP_SRC_mem_edi ();
-
-    // copy all DL-obj with groupBit ON --> GroupList.
-    DL_grp1_copy ();
-
-    // obj-list Recursiv nach seinen Eltern absuchen und diese zufuegen
-    irc = Grp_res ();
-    if(irc <= 0) {TX_Print("no obj selected ..."); return 0;}
-
-    // export (native) alle objects of obj-list --> file
-/*
-    sprintf(cbuf1, "%s.gcad",WC_modnam);
-    AP_get_fnam_symDir (cbuf2);   // get filename of dir.lst
-    // sprintf(cbuf2, "%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_save__ ("save Group native",      // titletext
-              AP_dir_save,                // path
-              cbuf2,                      // directoryList
-              cbuf1,                      // defaultModelname
-              (void*)Grp_exp);
-*/
-    AP_save__ (1, ".gcad");
-
-
+  } else if(!strcmp(cp1, "grpSM")) {        // move group -> subModel
+    Grp_SM ();
 
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "grpAll")) {        // make  grp of all objs
-    DL_grp1__ (0, NULL, 2, 0);
+  } else if(!strcmp(cp1, "grpMov")) {        // move all objs of group
+    GMVO__ (0);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "grpHid")) {        // hide all objs of group
     Grp_hide (0);
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "grpAll")) {        // make  grp of all objs
+    DL_grp1__ (0, NULL, 2, 0);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "grpHlp")) {        // HELP group
@@ -7237,6 +5617,11 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "grpDel")) {        // delete all objs of group
     Del_grp__ ();
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "grpInv")) {
+    Grp_Inv (1);
+
 
   //==========================================================
   } else if(!strcmp(cp1, "AppLoa")) {
@@ -7452,7 +5837,7 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "LtypEd")) {
     sprintf(cbuf1, "%sltyp.rc",OS_get_cfg_dir());
-    APP_edit (cbuf1);
+    APP_edit (cbuf1, 0);
     DL_InitAttTab ();             // neu einlesen
     ED_Reset (); ED_work_END (0); // redraw
 
@@ -7461,7 +5846,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "DirEd")) {
     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1, "%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    APP_edit (cbuf1);
+    APP_edit (cbuf1, 0);
 
 
   //-------------------------------------------------
@@ -7671,7 +6056,7 @@ See UI_but__ (txt);
     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("delete File",    // titletext
-            AP_dir_open,       // Pfadname des activeDirectory
+            AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
             (void*)UI_delMdl); // CallBack der Liste
 */
@@ -7689,7 +6074,7 @@ See UI_but__ (txt);
     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("rename File",    // titletext
-            AP_dir_open,         // Pfadname des activeDirectory
+            AP_mod_dir,         // Pfadname des activeDirectory
             cbuf1,               // Liste der directories
             (void*)UI_renMdl);   // CallBack der Liste
 */
@@ -7706,10 +6091,10 @@ See UI_but__ (txt);
     // Liste mit Dir-Auswahl
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     // GUI_List2 ("copy File - select from",      // titletext
-            // AP_dir_open,         // Pfadname des activeDirectory
+            // AP_mod_dir,         // Pfadname des activeDirectory
             // cbuf1,               // Liste der directories
             // (void*)UI_cpyMdl1);  // CallBack der Liste
-    strcpy(cbuf1, AP_dir_open);
+    strcpy(cbuf1, AP_mod_dir);
     GUI_File_selext ("copy File - select from", cbuf1, UI_cpyMdl1, NULL);
 */
     strcpy(sTit, APP_MSG_get_0("MMfCpy"));
@@ -7843,9 +6228,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "dump")) {   // dump objData
     // exit active CAD-function (else no selection possible)
     IE_cad_exitFunc ();
-
-    TX_Print("select or keyIn obj to dump ..");
-    UI_GR_Sel_Filter (4);
+    UI_GR_Sel_Filter (4); // "select or keyIn obj to dump .."
 
 
   //======================================================
@@ -7923,7 +6306,7 @@ See UI_but__ (txt);
 
 
   //======================================================
-  } else if(!strcmp(cp1, "std")) {     // dump standards
+  } else if(!strcmp(cp1, "dumpStd")) {     // dump standards
 
     sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
     UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
@@ -7934,7 +6317,7 @@ See UI_but__ (txt);
     UT3D_dump_txt("Basedirectory: %s",OS_get_bas_dir());
     UT3D_dump_txt("Tempdirectory: %s",OS_get_tmp_dir());
     UT3D_dump_txt("Bin.directory: %s",OS_get_bin_dir());
-    UT3D_dump_txt("Model:         %s",WC_modnam);
+    UT3D_dump_txt("Model:         %s",AP_mod_fnam);
     UT3D_dump_txt("Modelsize:     %f",APT_ModSiz);
     UT3D_dump_txt("Tol.Points:    %f",UT_TOL_pt);
     UT3D_dump_txt("Tol.Curves:    %f",UT_TOL_cv);
@@ -7975,25 +6358,9 @@ See UI_but__ (txt);
                   // AP_editor, -180, UI_def_editor);
 
 
-
   //======================================================
-  } else if(!strcmp(cp1, "src")) {
-    // prepare APTsource: MAN-Mode: copy Edi --> memory.
-    AP_SRC_mem_edi ();
-    // write mem (UTF_FilBuf0) --> file
-
-    // open temp. html-File
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
-
-    // open html
-    i1 = UTX_htm_fop (&fpo, cbuf1);
-    // cat data -> file
-    UTF_wri_f__ (fpo);
-    // close
-    UTX_htm_fcl (&fpo);
-    // disp file
-    APP_browse__ (cbuf1);
-
+  } else if(!strcmp(cp1, "dumpSrc")) {
+    SRC_dump__ (0);
 
 
   //======================================================
@@ -8328,6 +6695,10 @@ box1
       strcat(cbuf1, " - GCAD, STP/STEP, IGS/IGE/IG2, DXF, 3DS, STL, LWO, WRL(VRML1), OBJ(WaveFront), TESS, BMP, JPG");
       GUI_Tip (cbuf1);
 
+      GUI_menu_entry (&men_fil,"Open last-used",UI_open_last,NULL);
+      // wtmp2 = GUI_menu__ (&men_fil, " last-used", 's');
+      // UI_addLast (&wtmp2);
+
 
       // UIw_file_opD=GUI_menu_entry(men_fil,"Open Model new Dir",
                                  // UI_menCB,(void*)"opeDir");
@@ -8366,7 +6737,7 @@ box1
       men_exp1 = GUI_menu__ (&men_fil,"save Model as", 's');
         // GUI_Tip  (" save native, DXF, IGS, WRL(VRML1), OBJ, TESS");
 
-      GUI_menu_entry (&men_fil, "save active Group as",
+      GUI_menu_entry (&men_fil, "save active Group",
                                  UI_menCB, (void*)"grpSav");
       MSG_Tip ("MMgrSav");
       // men_exp2=GUI_Menu(men_fil,"save Model new Dir", 's');
@@ -8434,7 +6805,7 @@ box1
       GUI_menu_entry (&men_exp1, "STL",     UI_menCB,   (void*)"exp1Stl");
       GUI_menu_entry (&men_exp1, "OBJ",     UI_menCB,   (void*)"exp1Obj");
       GUI_menu_entry (&men_exp1, "TESS",    UI_menCB,   (void*)"exp1Tess");
-      GUI_menu_entry (&men_exp1, "JPG",     UI_menCB,   (void*)"exp1Jpg");
+      // GUI_menu_entry (&men_exp1, "JPG",     UI_menCB,   (void*)"exp1Jpg");
       // GUI_menu_entry (&men_exp1, "NC-ISO",  UI_menCB,   (void*)"expISO");
       // GUI_menu_entry (men_exp, "Charmilles Robofil",UI_menCB,(void*)"ppCha1");
       // GUI_menu_entry (men_exp, "Fanuc",   UI_menCB,   (void*)"ppFan1");
@@ -8447,17 +6818,21 @@ box1
         MSG_Tip ("MMsma"); //("anderes Submodel aktivieren");
 
       GUI_menu_entry(&men_mod,"move main --> new submodel",
-                    UI_menCB,(void*)"mod_m2s");
+                     UI_menCB,(void*)"mod_m2s");
         MSG_Tip ("MMsmcp"); //("Mainmodel in ein neues Submodel kopieren");
+
+      GUI_menu_entry(&men_mod,"move Group --> new submodel",
+                     UI_menCB,(void*)"grpSM");
+        // MSG_Tip ("MMsmcp"); //("Mainmodel in ein neues Submodel kopieren");
 
       GUI_menu_entry(&men_mod,"create new submodel", UI_menCB, (void*)"mod_cre");
         MSG_Tip ("MMsmcr"); //("ein neues Submodel generieren");
 
-      GUI_menu_entry(&men_mod,"save Submodel to File", UI_menCB, (void*)"mod_sav");
+      GUI_menu_entry(&men_mod,"save Submodel to File",UI_menCB, (void*)"mod_sav");
         MSG_Tip ("MMsmsf"); //("das aktuelle Submodel in Datei speichern");
 
       GUI_menu_entry(&men_mod,"load Submodel from File",
-                    UI_menCB, (void*)"mod_loa");
+                     UI_menCB, (void*)"mod_loa");
         MSG_Tip ("MMsmlf"); //("Model aus Datei als Submodel laden");
 
       GUI_menu_entry(&men_mod,"rename Submodel", UI_menCB, (void*)"mod_ren");
@@ -8467,7 +6842,7 @@ box1
         MSG_Tip ("MMsmde"); //("das aktuelle Submodel loeschen");
 
       GUI_menu_entry(&men_mod,"modify Position of subModel",
-                    UI_menCB, (void*)"ModPos");
+                     UI_menCB, (void*)"ModPos");
         MSG_Tip ("MMsmmp");
         // GUI_Tip  ("modify the Position of a subModel");
 
@@ -8751,8 +7126,8 @@ box1
       GUI_menu_entry   (&wtmp8, "Graf.Attrib.s", UI_menCB,  (void*)"dump_ga");
       GUI_menu_entry   (&wtmp8, "Models", UI_menCB,  (void*)"mods");
       GUI_menu_entry   (&wtmp8, "Group", UI_menCB,  (void*)"dumpGrp");
-      GUI_menu_entry   (&wtmp8, "Source", UI_menCB,  (void*)"src");
-      GUI_menu_entry   (&wtmp8, "Standards", UI_menCB,  (void*)"std");
+      GUI_menu_entry   (&wtmp8, "Source", UI_menCB,  (void*)"dumpSrc");
+      GUI_menu_entry   (&wtmp8, "Standards", UI_menCB,  (void*)"dumpStd");
       GUI_menu_entry   (&wtmp8, "---",     NULL,       NULL);
       GUI_menu_entry   (&wtmp8, "view logfile", UI_menCB,  (void*)"logfile");
       GUI_menu_entry   (&wtmp8, "DispList", UI_menCB,  (void*)"DispList");
@@ -8766,26 +7141,36 @@ box1
       // MSG_Tip ("MMgrAdd"); //
         // GUI_Tip  ("add obj to group; remove from Group, if already selected");
 
-      GUI_menu_entry (&wtmp7, "add all objects to group  (Ctrl-A)",
-                     UI_menCB,(void*)"grpAll");
-
-      GUI_menu_entry (&wtmp7, "hide all objects of group",UI_menCB,(void*)"grpHid");
-      // MSG_Tip ("MMgrSav"); //
-
-      GUI_menu_entry (&wtmp7, "save Group --> File",UI_menCB,(void*)"grpSav");
+      GUI_menu_entry (&wtmp7, "save Group --> File",
+                      UI_menCB,(void*)"grpSav");
       MSG_Tip ("MMgrSav"); //
         // GUI_Tip  ("save all objects of Group into File (native)");
 
+      GUI_menu_entry (&wtmp7, "move Group --> new subModel",
+                      UI_menCB,(void*)"grpSM");
+
+
+      GUI_menu_entry   (&wtmp7, "---",     NULL,       NULL);
+
+      GUI_menu_entry (&wtmp7, "move all objects of group",
+                     UI_menCB,(void*)"grpMov");
+
+      GUI_menu_entry (&wtmp7, "hide all objects of group",
+                     UI_menCB,(void*)"grpHid");
+
+      GUI_menu_entry (&wtmp7, "add all objects to group  (Ctrl-A)",
+                     UI_menCB,(void*)"grpAll");
+
+      GUI_menu_entry (&wtmp7, "invert Group ",
+                     UI_menCB,(void*)"grpInv");
+
       GUI_menu_entry (&wtmp7, "delete Group             (Dele)",
                      UI_menCB,(void*)"grpDel");
-      // MSG_Tip ("MMgrSav"); //
 
       GUI_menu_entry (&wtmp7, "clear Group              (Esc)",
                      UI_menCB,(void*)"grpClr");
-      // MSG_Tip ("MMgrSav"); //
 
       GUI_menu_entry (&wtmp7, "HELP group",UI_menCB,(void*)"grpHlp");
-      // MSG_Tip ("MMgrSav"); //
 
 
 
@@ -9069,7 +7454,7 @@ box1
       box1V2 = GUI_box_h (&box1V, "");
 
 
-      bt_top=GUI_button__ (&box1V1, "Top", UI_butCB, (void*)"butTop", "e");
+      bt_top=GUI_button__ (&box1V1, "View Top", UI_butCB, (void*)"butTop", "e");
       MSG_Tip ("MMbtTop"); //
       // GUI_Tip  ("Draufsicht (X-Y)");
 
@@ -9089,22 +7474,21 @@ box1
 
 
       // box1C4v:
-      GUI_button__ (&box1V2, "Scal.All", UI_butCB, (void*)"butRes", "");
+      GUI_button__ (&box1V2, "Scale All", UI_butCB, (void*)"butRes", "");
       MSG_Tip ("MMbtSca"); //
       // GUI_Tip  ("Vergroesserung und Darstellungsmittelpunkt automatisch "
                 // "errechnen");
 
-      GUI_button__ (&box1V2, "Scal.Fix", UI_butCB, (void*)"butAll", "");
+      GUI_button__ (&box1V2, "Mdl", UI_butCB, (void*)"butAll", "");
       MSG_Tip ("MMbtScf"); //
       // GUI_Tip  ("eine Raumgroesse von ca. 6000 x 6000 x 6000 mm darstellen");
 
-      // GUI_button__ (box1V2, "Clear", UI_butCB, (void*)"butClear", 0);
-      // GUI_Tip  ("gesamte Grafik loeschen");
-      // GUI_button__ (&box1V2, "UnHili", UI_butCB, (void*)"butHili", "");
-      // MSG_Tip ("MMbtUnh"); //
-      // GUI_Tip  ("unhilite all hilited objects");
-      GUI_button__ (&box1V2, "Viewport", UI_butCB, (void*)"butVwpt", "");
-      MSG_Tip ("MMbtVwpt"); //
+      GUI_button__ (&box1V2, "Grp", UI_butCB, (void*)"butScG", "");
+      MSG_Tip ("MMbtScg"); //
+      // GUI_Tip  ("scale group");
+
+      GUI_button__ (&box1V2, "View", UI_butCB, (void*)"butVwpt", "");
+      MSG_Tip ("MMbtVwpt"); // store (Ctrl-V) / restore view (Ctrl-<curKey>)
 
 
 
@@ -9468,6 +7852,8 @@ box1
       // copy out
       if(mo) *mo = winMain;
 
+      // GUI_obj_focus (&winGR);
+
       break;
 
 
@@ -9488,13 +7874,12 @@ box1
       // }
 
       // // akt. Datei als tmp/xa.apt rausschreiben
-      // strcpy(WC_modnam, OS_get_bas_dir ());
-      // strcat(WC_modnam,"tmp/xa.apt");
+      // strcpy(AP_mod_fnam, OS_get_bas_dir ());
+      // strcat(AP_mod_fnam,"tmp/xa.apt");
 
       // model in tmp saven
       // UI_save_ ();
-      // Mod_sav_tmp (); // save the active Submodel WC_modact_nam -> TempFile
-
+      // Mod_sav_tmp (); // save the active Submodel AP_modact_nam -> TempFile
 
       // unload active Application
       if(AP_stat.APP_stat) {
@@ -9503,17 +7888,12 @@ box1
         strcpy (APP_act_nam, cbuf1);
       }
 
-
-      // test if model was modified
-      if(AP_mdl_modified_ck()) {
+      // test if model is modified;
+      // Mod_sav_i already done
+      i1 = Mod_sav_ck (1);
+      if(i1) {
         irc = AP_save_ex (0);
       }
-
-
-      // Model_* zusammenfassen und als Model speichern
-      sprintf(cbuf1,"%sModel",OS_get_tmp_dir());
-      i1 = Mod_sav__ (0, cbuf1, 0);
-      // if(i1 < 0) return -1;
 
       // save Viewparameters (Scale, Center, ..)
       // UI_view__ ("Save");
@@ -9554,7 +7934,7 @@ box1
   } else {
     if(actView != newView) {
       UI_VW_set (actView, 1);  // enable active view-button
-      UI_VW_set (newView, 0);  // disable new view-button
+      UI_VW_set (newView, 0);  // disable new
     }
   }
 
@@ -9594,9 +7974,9 @@ box1
       GUI_set_enable (&bt_side, mode);
       break;
 
-    case FUNC_ViewIso:
-      GUI_set_enable (&bt_iso, mode);
-      break;
+    // case FUNC_ViewIso:
+      // GUI_set_enable (&bt_iso, mode);
+      // break;
   }
 
 
@@ -9604,6 +7984,53 @@ box1
 
 }
 
+
+//================================================================
+  int UI_open_last () {
+//================================================================
+// UI_open_last                  display file <tmpDir>MdlLst.txt as subMenu
+  
+
+  int   i1;
+  char  fnam[128], s1[256];
+
+
+  printf("UI_open_last -------\n");
+
+
+  // save Model+Submodels into tempDir as "Model" native
+  Mod_sav_i (0);
+
+
+  // test if model is modified;
+  i1 = Mod_sav_ck (1);
+  if(i1) {
+    // model has changed -
+    i1 = AP_save_ex (1);
+    if(i1 < 0) return 0;     // cancel
+  }
+
+
+  //----------------------------------------------------------------
+  sprintf(fnam, "%sMdlLst.txt", OS_get_tmp_dir());
+
+  i1 = GUI_list1_dlg_w (s1, 256,
+                       NULL, " select model", fnam,
+                       "1", NULL, "80,16");
+  if(i1 < 0) return -1;
+    printf("UI_open_last sel |%s|\n",s1);
+
+
+  //----------------------------------------------------------------
+ 
+  // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane. 
+  AP_src_new (1);
+  // UI_menCB (NULL, "new");   // NEW
+
+  // load selected model
+  return AP_Mod_load_fn (s1, 0);
+
+}
 
 
 //===================================================================
@@ -9706,7 +8133,7 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2016 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2018 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
   GUI_AboutInfo (INIT_TXT, s1, "http://www.gcad3d.org", "xa_logo.xpm");
 
@@ -10828,10 +9255,10 @@ box1
 
 
       case UID_WinEdit:
+// SEE ED_unload__
         // Editfenster(gesamten APT-Text) > Memory kopieren
         // printf("Text->Mem modif=%d\n",xa_fl_TxMem);
         if(xa_fl_TxMem != 0) {      //Edittext - memory:  needUpdate
-          UTF_load_ (NULL, NULL);
           L_Get_WinEdit_1:
           UTF_FilBuf0Len = UTF_FilBuf0Siz;
           i1 = GUI_edi_Read (UTF_FilBuf0, &UTF_FilBuf0Len, 0L, -1L, &winED);
@@ -11157,21 +9584,18 @@ box1
 */
 
       case UID_Main_title:                // Title oben auf den Mainwinrahmen
+        sprintf(cbuf,"%s   Mdl: ", INIT_TXT);
         if(data == NULL) {
-          sprintf(cbuf,"%s   %s", INIT_TXT, WC_modnam);
-          // GUI_WinTit (UI_MainWin, WC_modnam);
-          // gtk_window_set_title (GTK_WINDOW (UI_MainWin), (char*)WC_modnam);
+          strcat(cbuf, AP_mod_fnam);
         } else {
-          sprintf(cbuf,"%s   %s", INIT_TXT, (char*)data);
-          // GUI_WinTit (UI_MainWin, (char*)data);
-          // gtk_window_set_title (GTK_WINDOW (UI_MainWin), (char*)data);
+          strcat(cbuf, (char*)data);
         }
-        strcat(cbuf, "     Dir.In: ");
-        if(strlen(AP_sym_open) > 0) strcat(cbuf, AP_sym_open);
-        else                        strcat(cbuf, AP_dir_open);
-        strcat(cbuf, "     Dir.Out: ");
-        if(strlen(AP_sym_save) > 0) strcat(cbuf, AP_sym_save);
-        else                        strcat(cbuf, AP_dir_save);
+        strcat(cbuf, "     Dir: ");
+        if(strlen(AP_mod_sym) > 0) strcat(cbuf, AP_mod_sym);
+        else                        strcat(cbuf, AP_mod_dir);
+        // strcat(cbuf, "     Dir.Out: ");
+        // if(strlen(AP_mod_sym) > 0) strcat(cbuf, AP_mod_sym);
+        // else                        strcat(cbuf, AP_mod_dir);
         // GUI_WinTit (&winMain, cbuf);
         GUI_WinTit (&winMain, cbuf);
         return;

@@ -62,7 +62,7 @@ DB_dump__          dump complete DB
 DB_dump_dyn__      dump all dynamic objects of type<typ>
 DB_dump_f          dump all objects of type<typ> into open file
 DB_dump_Activ      dump all activities
-// see also UT3D_dump_dbo
+DB_dump_dbo        UT3D_dump_dbo   dump DB-obj
 
 DB_save__          gesamte DB -> Datei raus
 DB_load__          gesamte DB aus Datei einlesen
@@ -325,6 +325,7 @@ DB_allocModNam     mdb_nam   char            DB_MNM_INC
 
 
 #include "../ut/ut_geo.h"                /* Point-def ..*/
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_obj.h"                // UTO_obj_save
 #include "../ut/ut_txt.h"                /* Point-def ..*/
 #include "../ut/ut_TX.h"
@@ -662,7 +663,7 @@ Vector     DB_vc0;
 
   //TEST ONLY:
   sizTot += (iAll * 100);
-    printf(" sizTot=%ld iAll=%ld\n",sizTot,iAll);
+    // printf(" sizTot=%ld iAll=%ld\n",sizTot,iAll);
 
   DB_allocCDAT (sizTot);
 
@@ -973,7 +974,7 @@ Vector     DB_vc0;
   // save AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (1, fp1);
 
-  OPAR_file (1, fp1);    // write ParentTable
+  // OPAR_file (1, fp1);    // write ParentTable
 
   fclose(fp1);
 
@@ -1169,8 +1170,7 @@ Vector     DB_vc0;
   // read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (2, fp1);
 
-  OPAR_file (2, fp1);     // read ParentTable
-
+  // OPAR_file (2, fp1);     // read ParentTable
 
   fclose(fp1);
 
@@ -1568,6 +1568,8 @@ Vector     DB_vc0;
       case Typ_SURBSP:
       case Typ_SURRU:
       case Typ_SURRV:
+      case Typ_SURSWP:
+      case Typ_SURSUP:
         oxp = DB_GetSur (apt_ind, 0);
         if(DB_isFree_Sur(oxp)) goto L_Error_9;
         // if(oxp->typ == Typ_Error) goto L_Error_9;
@@ -2690,10 +2692,10 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   Plane* DB_DefRef (long Ind) {
 //================================================================
 /// \code
-/// das Defaultrefsys (RX/RY/RZ) liefern.
-/// Diese liegen fix in pln_dyn[0/1/2] !
-/// Ind   0  alle initialisieren
-/// Ind  -1  return Plane
+/// create defaultPlanes in DB
+/// Input:
+///   Ind   0  create all defaultPlanes
+///        <0  return Plane
 /// \endcode
 
   int    i1;
@@ -2706,28 +2708,45 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   }
 
   // init planes ..
-  i1 = -DB_PLX_IND;
-      // printf(" i1=%d\n",i1);
+  i1 = -DB_PLX_IND;     // RX
       pln_dyn[i1].vx = UT3D_VECTOR_Y;
       pln_dyn[i1].vy = UT3D_VECTOR_Z;
       pln_dyn[i1].vz = UT3D_VECTOR_X;
       UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
 
-  i1 = -DB_PLY_IND;
-      // printf(" i1=%d\n",i1);
+  i1 = -DB_PLY_IND;     // RY
       pln_dyn[i1].vx = UT3D_VECTOR_IX;
       pln_dyn[i1].vy = UT3D_VECTOR_Z;
       pln_dyn[i1].vz = UT3D_VECTOR_Y;
       UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
 
-  i1 = -DB_PLZ_IND;
-      // printf(" i1=%d\n",i1);
+  i1 = -DB_PLZ_IND;     // RZ = XYZ
       pln_dyn[i1].vx = UT3D_VECTOR_X;
       pln_dyn[i1].vy = UT3D_VECTOR_Y;
       pln_dyn[i1].vz = UT3D_VECTOR_Z;
       UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
 
-  DYN_PL_IND = 3;
+
+
+  i1 = -DB_PLIX_IND;    // RIX
+      pln_dyn[i1].vx = UT3D_VECTOR_Y;
+      pln_dyn[i1].vy = UT3D_VECTOR_IZ;
+      pln_dyn[i1].vz = UT3D_VECTOR_IX;
+      UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
+
+  i1 = -DB_PLIY_IND;    // RIY
+      pln_dyn[i1].vx = UT3D_VECTOR_IX;
+      pln_dyn[i1].vy = UT3D_VECTOR_IZ;
+      pln_dyn[i1].vz = UT3D_VECTOR_IY;
+      UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
+
+  i1 = -DB_PLIZ_IND;    // RIZ
+      pln_dyn[i1].vx = UT3D_VECTOR_X;
+      pln_dyn[i1].vy = UT3D_VECTOR_IY;
+      pln_dyn[i1].vz = UT3D_VECTOR_IZ;
+      UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
+
+  DYN_PL_IND = 6;
  
   return NULL;
 
@@ -2977,8 +2996,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   void     *cPos1, *cPos2;
 
 
-  printf("DB_StoreSurStripe %ld\n",Ind);
-  UT3D_stru_dump (Typ_SURSTRIP, si, "DB_StoreSurStripe %ld\n",Ind);
+  // printf("DB_StoreSurStripe %ld\n",Ind);
+  // UT3D_stru_dump (Typ_SURSTRIP, si, "DB_StoreSurStripe %ld\n",Ind);
     
   // get parent-record so
   Ind = DB_Store_hdr_su (&so, Ind);
@@ -3128,6 +3147,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   //----------------------------------------------------------------
   // old
   if((ox1->typ == Typ_SUR)      ||
+     (ox1->typ == Typ_SURTPS)   ||
+     (ox1->typ == Typ_SURSUP)   ||
      (ox1->typ == Typ_SURRU)    ||
      (ox1->typ == Typ_SURBSP)   ||
      (ox1->typ == Typ_SURRBSP)  ||
@@ -3247,7 +3268,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 
 
   //----------------------------------------------------------------
-  // save struct has with no extra-data
+  // save struct; struct has no extra-data
   L_sav1:
 
     // get IndIn = index into su_dyn|su_tab;
@@ -3538,7 +3559,7 @@ int DB_del_Mod__ () {
   static long ptd=6, pti=0, ptl=0, pta=0, ptp=3;
 
 
-  // printf("DB_dyn__ %d %d %ld -",mode,typ,ind);
+  // printf("DB_dyn__ %d %d %ld \n",mode,typ,ind);
   // printf(" %ld %ld %ld\n",pti,ptl,pta);
   // printf(" %ld %ld %ld\n",DYN_PT_IND,DYN_LN_IND,DYN_CI_IND);
 
@@ -3553,6 +3574,7 @@ int DB_del_Mod__ () {
 
       case Typ_PT:
         pti = DYN_PT_IND;
+          // printf(" _dyn__-store-DYN_PT_IND=%ld\n",pti);
         return pti;
 
       case Typ_LN:
@@ -3585,6 +3607,7 @@ int DB_del_Mod__ () {
         return DYN_VC_IND;
       case Typ_PT:
         DYN_PT_IND = pti;
+          printf(" _dyn__-reset-DYN_PT_IND=%ld\n",pti);
         return DYN_PT_IND;
       case Typ_LN:
         DYN_LN_IND = ptl;
@@ -8504,7 +8527,7 @@ long DB_QueryCurv (Point *pt1) {
   // ObjGX  *oxo;
 
 
-  // printf("DB_store_obj ind=%d typ=%d form=%d\n",*ind,ox1->typ,ox1->form);
+  // printf("DB_store_obj ind=%ld typ=%d form=%d\n",*ind,ox1->typ,ox1->form);
   // UTO_dump_s_ (ox1, "DB_store_obj-in\n");
   // UTO_dump__ (ox1, "DB_store_obj-in\n");
   
@@ -8560,7 +8583,9 @@ long DB_QueryCurv (Point *pt1) {
     sSiz  = ((ObjGX*)pi)->siz;
     // printf(" o[%d] sTyp=%d sForm=%d sSiz=%d\n",i1,sTyp,sForm,sSiz);
 
-    if(sTyp  == Typ_Typ)   goto L_GX_nxt;   // hat keine data
+    if(sTyp  == Typ_Typ)      goto L_GX_nxt;   // hat keine data
+    if(sTyp  == Typ_modUndef) goto L_GX_nxt;   // hat keine data
+    if(sForm == Typ_modUndef) goto L_GX_nxt;   // hat keine data
 
     if(sForm == Typ_ObjGX) { // recurse
       // printf("******** DB_store_obj I001\n");
@@ -8577,8 +8602,7 @@ long DB_QueryCurv (Point *pt1) {
       // siz=1: change to Typ_Index 
       if(sSiz < 2) {
         ((ObjGX*)pi)->form = Typ_Index;
-        // (int)((ObjGX*)pi)->data = l1;
-        ((ObjGX*)pi)->data = (void*)l1;
+        ((ObjGX*)pi)->data = PTR_LONG(l1);
       } else {
         ((ObjGX*)pi)->data = cPos3;
       }
@@ -8749,6 +8773,13 @@ long DB_QueryCurv (Point *pt1) {
 
     //================================================================
     //================================================================
+    case Typ_PLN:
+      if(iNr > 1) goto L_E_INR;
+      *ind = DB_StoreRef (*ind, os1);
+      break;
+
+
+    //================================================================
     case Typ_SURRV:
       if(iNr > 1) goto L_E_INR;
       *ind = DB_StoreSurRV (*ind, os1);
@@ -8874,6 +8905,7 @@ long DB_QueryCurv (Point *pt1) {
         }
 //-------
         // here is info in data itself:
+        if(ox1->form == Typ_modUndef) continue;
         if(ox1->form == Typ_Index) continue;
         if(ox1->form == Typ_Int4) continue; // typ=Typ_Typ
         // save Point or Line in ox1->data -> DB; RECURSION !
@@ -8885,6 +8917,13 @@ long DB_QueryCurv (Point *pt1) {
           // UT3D_stru_dump(Typ_ObjGX, ox1, "new oTab[%d]\n",i1);
       }
       break;
+
+
+
+    //================================================================
+    case Typ_modUndef:   // nothing to store ..
+      break;
+
 
 
     //================================================================

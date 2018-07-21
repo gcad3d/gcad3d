@@ -32,6 +32,7 @@ Modifications:
 List_functions_start:
 
 main              main for interactive gcad
+TODO              missing function
 
 List_functions_end:
 =====================================================
@@ -69,7 +70,7 @@ Batch-main ist in xa_batch.c.
 #include "../xa/xa_uid.h"              // UID_Main_title
 #include "../xa/xa_mem.h"
 #include "../xa/xa_sele.h"             // Typ_goGeom
-#include "../xa/xa.h"                  // WC_modnam
+#include "../xa/xa.h"                  // AP_mod_fnam
 #include "../xa/gcad_version.h"        // INIT_TXT
 
 
@@ -346,9 +347,9 @@ static char *os_ico_dir;
   L_write_defaults:
       printf(" first start ..\n");
     // create Defaults
-    strcpy(WC_modnam, "unknown.gcad");
-    sprintf(AP_dir_open, "%sdat",dirLocal);
-    sprintf(AP_dir_save, "%sdat",dirLocal);
+    strcpy(AP_mod_fnam, "unknown.gcad");
+    sprintf(AP_mod_dir, "%sdat",dirLocal);
+    sprintf(AP_mod_dir, "%sdat",dirLocal);
     sprintf(AP_dir_prg, "%sprg",dirLocal);
 
     // get printer
@@ -406,10 +407,9 @@ kopieren geht nicht mehr -
   // Init und display Windows
   L_1:
 
-  // read Defaults
-  AP_defaults_read();
-  Mod_sym_get2 (AP_sym_open, AP_dir_open, 0);
-  Mod_sym_get2 (AP_sym_save, AP_dir_save, 0);
+  // read Defaults from <base>/cfg/xa.rc
+  AP_defaults_read ();
+  Mod_sym_get2 (AP_mod_sym, AP_mod_dir, 0);
 
   // init MSG-system
   MSG_const_init (AP_lang);
@@ -484,7 +484,7 @@ kopieren geht nicht mehr -
   UTF_alloc__ (100);
 
   // (re)create GLU-tess-obj
-  GLT_init ();
+  // GLT_init__ ();
 
 
 /* 2012-07-30
@@ -538,7 +538,7 @@ kopieren geht nicht mehr -
 
 
 /* 2012-07-30
-  // Datei WC_modnam laden (nur wenn noch nix geladen)
+  // Datei AP_mod_fnam laden (nur wenn noch nix geladen)
   // tmp/Model zerteilen und laden
     // printf(" FilBuf0Len=%d\n",UTF_GetLen0());
   if(UTF_GetLen0() < 24) {
@@ -616,7 +616,7 @@ kopieren geht nicht mehr -
   char    *p1, *p2, s1[512];
 
 
-  // printf("AP_get_dir__ \n");
+  printf("AP_get_dir__ \n");
 
 
   //----------------------------------------------------------------
@@ -670,6 +670,7 @@ kopieren geht nicht mehr -
     strcpy(s1, "/usr/share/gcad3d/");
 #endif
   }
+    printf(" gcad_dir_bas = |%s|\n",s1);
 
   if(!OS_checkFilExist(s1, 1)) {
     strcpy(s1, "Directory \"gcad_dir_bas\" not found; Installationproblem.\n"
@@ -688,6 +689,7 @@ kopieren geht nicht mehr -
   p1 = getenv("gcad_dir_local");
   if(!p1) {
     p1 = getenv("HOME");
+      // printf(" HOME = |%s|\n",p1);
     if(!p1) {
       strcpy(s1, "Cannot locate $HOME for a temporary directory.\n"
              " Fix gcad_dir_local in startup-script.");
@@ -701,6 +703,7 @@ kopieren geht nicht mehr -
   UTX_add_fnam_del (s1);   // add closing "/"
   strcat(s1, "gCAD3D");
   UTX_add_fnam_del (s1);   // add closing "/"
+    // printf(" os_loc_dir = |%s|\n",s1);
 
   UtxTab_add (&AP_TxTab1, s1);
   UtxTab_query (&os_loc_dir, &AP_TxTab1);
@@ -866,6 +869,19 @@ kopieren geht nicht mehr -
 /// OS_get_bas_dir           returns path of ?
 
   return os_bas_dir;
+
+}
+
+
+//================================================================
+  int TODO (char *fn, ...) {
+//================================================================
+/// OS_get_bas_dir           returns path of ?
+
+  printf("************ TODO func %s () ***********\n",fn);
+
+
+  return 0;
 
 }
 

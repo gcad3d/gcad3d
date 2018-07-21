@@ -1,3 +1,27 @@
+// ITMSH irregular-triangle-mesh generarator functions
+//
+// prerequisites:
+// #include "../ut/ut_geo.h"              // Point ...
+// #include "../ut/ut_memTab.h"           // MemTab_..
+
+
+
+#define MSH_EDGLN_BL    1  // BreakLine
+#define MSH_EDGLN_AB    2  // OuterBound - automatic created
+#define MSH_EDGLN_IB    3  // InnerBound - user defined points
+#define MSH_EDGLN_OB    4  // OuterBound - user defined points
+#define MSH_EDGLN_IC    5  // InnerBound - computed points
+#define MSH_EDGLN_OC    6  // OuterBound - computed points
+#define MSH_EDGLN_LN    7  // lines (test)
+#define MSH_EDGLN_SB   -1  // surface-boundary (tile)
+#define MSH_EDGLN_ERR -16  // unset, invalid ..
+#define MSH_GRIDBOX     8  // points in a rectangular grid
+#define MSH_nFAC        9  // indexed faces (Fac3)
+#define MSH_PATCH      10  // patch = group of faces (eg from GLU)
+#define MSH_SURF       11  // surface =  group of patches
+#define MSH_SKIN       12  // skin = group of surfaces; body if closed.
+
+
 
 /// \code
 /// pTyp[pNr]: NULL=undefined;
@@ -56,8 +80,8 @@ typedef struct {int i1, i2;}                                        Edg3;
 /// \code
 ///  iNr    nr of objects in ia
 ///  ia     Indexes into pointTable
-///  typ    TYP_EDGLN_*    see ../ut/ut_tin.h
-///  aux    for TYP_EDGLN_FAC: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
+///  typ    MSHIG_EDGLN_*    see ../ut/ut_face.h
+///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 /// \endcode
 typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
 
@@ -105,11 +129,11 @@ typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
 /// \code
 /// suID    surface-ID (DB-index A)
 /// contNr  contour-nr; first1=1, ..
-/// typb    TYP_EDGLN_BL   2 EdgeLine (BreakLine)
-///         TYP_EDGLN_IB   3 InnerBound
-///         TYP_EDGLN_OB   4 OuterBound
-///         TYP_EDGLN_AB   5 OuterBound - automatic created
-///         TYP_EDGLN_FAC  6 faces (eg from GLU)
+/// typb    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+///         MSH_EDGLN_IB   3 InnerBound
+///         MSH_EDGLN_OB   4 OuterBound
+///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
+///         MSH_PATCH  6 faces (eg from GLU)
 /// typt    Typ_SURCIR   (fan)
 ///         Typ_SURSTRIP (strip)
 /// dir     0=undefined; 1=CCW; -1=CW
@@ -125,7 +149,7 @@ typedef struct {int suID, contNr; char typb, typt, dir, stat;}      BndSur;
 ///  iNr    nr of objects in index-list
 ///  typi   typ of indextable (form int4)
 ///  typd   typ of datatable
-///  aux    for TYP_EDGLN_FAC: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
+///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 ///  stat   -
 /// \endcode
 typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
@@ -154,18 +178,44 @@ typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
 ///                            0+1 -> 2; 1+2 -> 0; 2+0 -> 1.
 #define UT3D_ind3Tria_2ind(i1,i2) (IABS((i1)+(i2)-3))
 
-/// UT3D_tria_pta_fac          create triangle from Fac3
-void   UT3D_tria_pta_fac(Triangle*, Fac3*, Point*);
-#define UT3D_tria_pta_fac(tri,fac,pTab){\
+/// UT3D_tria_fac          create triangle from indexed-triangle (Fac3)
+void   UT3D_tria_fac(Triangle*, Fac3*, Point*);
+#define UT3D_tria_fac(tri,fac,pTab){\
  (tri)->pa[0] = &(pTab)[(fac)->i1];\
  (tri)->pa[1] = &(pTab)[(fac)->i2];\
  (tri)->pa[2] = &(pTab)[(fac)->i3];}
 
 
 
+// estimate nr of faces necessary for edgNr edges
+// In: nr of edges; Out: nr of faces
+#define MSH2D_facnr_edgnr(edgNr) edgNr+4
 
-// prototypes:
-int MSH_ERR__ (int errTyp, ...);
-int MSH_dump_fTab (Fac3 *fa, int fNr, char *txt, ...);
+// MSH2D_edgnr_facnr     estimate nr of edges for facnr faces
+#define MSH2D_edgnr_facnr(facNr) (facNr*3)+1
 
-/// EOF
+
+
+
+//----------------------------------------------------------------
+typedef_MemTab(int);
+typedef_MemTab(char);
+typedef_MemTab(Point2);
+typedef_MemTab(Point);
+typedef_MemTab(Vec3f);
+typedef_MemTab(Line);
+typedef_MemTab(Fac3);
+typedef_MemTab(EdgeLine);
+typedef_MemTab(IndTab);
+
+// DOES NOT WORK:
+// #define MemTab_int MemTab
+// #define MemTab_char MemTab
+// #define MemTab_Point2 MemTab
+// #define MemTab_Point MemTab
+// #define MemTab_Vec3f MemTab
+// #define MemTab_Line MemTab
+// #define MemTab_Fac3 MemTab
+// #define MemTab_EdgeLine MemTab
+// #define MemTab_IndTab MemTab
+// EOF

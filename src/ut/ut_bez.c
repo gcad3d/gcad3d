@@ -1699,7 +1699,7 @@ Returncode:
 */
 
 
-# define  bcvtabSiz  100
+# define  bcvtabSiz  256
 
   int      p, rc, nbcv, bcv_deg;
   long     nbmax;
@@ -1716,7 +1716,7 @@ Returncode:
 
   // printf("UT3D_bez_bspl__ %d\n",bspl->ptNr - bspl->deg);
   // printf("  free tmpSpc=%d\n",UME_ck_free(memSeg1));
-  // printf("nbmax=%d %d %d\n",nbmax,bspl->ptNr,bspl->deg);
+  // printf("  nbmax=%d ptNr=%d deg=%d\n",nbmax,bspl->ptNr,bspl->deg);
 
 
 
@@ -1754,6 +1754,7 @@ Returncode:
     // next curve
     bcvtab[nbcv] = bcv;
     ++nbcv;
+      // printf("  _bez_bspl__-nbcv=%d\n",nbcv);
     if(nbcv >= bcvtabSiz) goto L_outOfMem;
 
 

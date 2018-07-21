@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+  <TITLE>CAD_Base_de.htm</TITLE>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <meta name="description" content="gCAD3D-Format-Spezifikation">
+  <meta name="keywords" content="3D CAD-Format Spezifikation">
+  <meta name="date" content="2018-05-07T12:28:39+0200" >
+  <meta name="author" content="Franz Reiter" >
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<B>Bearbeitungscodes</B>
+
+<A HREF='#fmt_attri'>Attribute</A>
+
+<A HREF='#fmt_setti'>Einstellungen</A>
+
+
+
+
+____________________________________________________________________________
+<p><a name="fmt_attri"></a></p>
+<h2>Attribute:</h2>
+
+<B>Hide / View</B>
+# Object B20 nicht anzeigen
+SHOW B20 OFF
+# wieder anzeigen
+SHOW B20
+
+
+
+<B>Linientype ändern</B>
+# Linientyp 8 für Objekte L21 und L22 
+ATTL 8 L21 L22
+# Siehe <a href="Settings_de.htm#Linetypes">Defaultsettings</a>
+
+
+<B>Flächenattribute ändern (Farbe, Darstellung)</B>
+# Typ der Fläche A21 auf Symbolisch ändern (nicht schattiert)
+ATTS "S" A21
+
+# Transparent setzen (T0=normal, T1=halb transparent, T2=voll transparent)
+ATTS "T2" A21
+
+# Farbe grün setzen (Rot-Anteil-0, Grün-Anteil-255, Blau-Anteil-0)
+ATTS "C00ff00" A21
+
+# auf Standardfarbe zurücksetzen
+ATTS "C" A21
+
+
+# Definition Standardfarbe
+DEFCOL 0 0 220     # Standardfarbe blau
+
+
+
+____________________________________________________________________________
+<p><a name="fmt_setti"></a></p>
+<h2>Einstellungen:</h2>
+
+# Menü aus
+MODE MEN OFF
+
+# Browser aus
+MODE BRW OFF
+
+# Balken oben aus
+MODE BAR1 OFF
+
+# Nachrichtenfenster unten aus
+MODE BAR2 OFF
+
+# Nachrichtenfenster unten wieder Ein.
+MODE BAR2 ON
+
+# Anzeige Ebenen aus
+MODE DISP_PL OFF
+
+# Anzeige Punkte aus
+MODE DISP_PT OFF
+
+
+____________________________________________________________________________
+Senden sie Fehlerberichte, Verbesserungsvorschläge
+  an franz.reiter@cadcam.co.at
+</PRE>
+</BODY>
+</HTML>

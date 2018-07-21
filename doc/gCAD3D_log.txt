@@ -1,3 +1,18 @@
+Version 2.40 / 2018-06-07
+
+- new function File/Open last-used;
+- Startup-parameters changed, see www.gCAD3D.org/doc/Settings_en.htm#Start
+- redesign of curves (for watertight-models curves now have polygon-files)
+- new CAD-function "CurveEditor"; see  www.gCAD3D.org/doc/CVED_en.htm
+- CAD-Translate with vector ("TRafo transl") option "keep parent" added
+- new software-layout documentation www.gCAD3D.org/doc/SW_layout_en.htm
+
+Programlines (C)  445885
+Functions           3954
+
+
+
+===========================================================================
 Version 2.35 / 2017-04-18
 
 - all curve-modifications (eg CUT) create now trimmed-curves

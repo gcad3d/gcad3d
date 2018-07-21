@@ -3,4 +3,4 @@
        section="Applications/Graphics"\
        title="gCAD3D"\
        command="/usr/bin/gcad3d"\
-       icon="/usr/share/pixmaps/gCAD3D.xpm"
+       icon="/usr/share/pixmaps/gcad3d.xpm"

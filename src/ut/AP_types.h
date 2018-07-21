@@ -14,14 +14,15 @@ Korr:
 
 
 -------------------------------------------
-*//*!
+*/
+/*!
 \file ../ut/AP_types.h
 \ingroup grp_ut_geom
 */
-
-
+#ifdef globTag
+void INF_OTYP (){}
+#endif
 //----------------------------------------------------------------
-/// types: nr = TYP_SIZ.    See also xa_sele.h   typText: TypTxtTab0
 /// \code
 ///   01 -  19  DB-primitives (V.D,P,L,C)
 ///   20 -  39  DB-curves (S)
@@ -45,8 +46,9 @@ Korr:
 /// 1000 -1099  ../xa/xa_sele.h         selection-modfiers
 ///
 /// Get infoText for types: AP_src_typ__ ();
-///
+/// See also xa_sele.h
 /// SEE (UPDATE) ALSO TypTxtTab** in ../ut/ut_gtypes.c
+/// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
 /// \endcode
 
 
@@ -61,6 +63,7 @@ Korr:
 #define Typ_LN             4  ///< L   Line
 #define Typ_CI             5  ///< C   Circ
 #define Typ_VC2           10  ///< D   Vector2
+#define Typ_VC3F          15  ///< D   Vec3f
 #define Typ_PT2           11  ///< P   Point2
 #define Typ_LN2           12  ///< L   Line2
 #define Typ_CI2           13  ///< C   Circ2
@@ -95,15 +98,16 @@ Korr:
 #define Typ_SURCON        51  ///< Conus (unused)
 #define Typ_SURTOR        52  ///< Torus (unused)
 #define Typ_SURRU         53  ///< A Ruled Surf
-#define Typ_SURRV         54  ///< A Revolved Surf
+#define Typ_SURRV         54  ///< A Revolved Surf       SurRev
 #define Typ_SURSWP        55  ///< A Sweep Surf          SurSwp
 #define Typ_SURBSP        56  ///< A B_Spline_Surf       SurBSpl
 #define Typ_SURRBSP       57  ///< A Rat.B_Spline Surf   SurRBSpl
+#define Typ_SURHAT        60  ///< A Hatch
 
 // trimmed, perforated surfaces:
 #define Typ_SURPLN        58  ///< A Planar surf.
+#define Typ_SURSUP        69  ///< A support-surface 
 #define Typ_SURTPS        59  ///< A surface-trimmed-perforated-supported
-#define Typ_SURHAT        60  ///< A Hatch
 
 // pretesselated surfaces
 #define Typ_SURCIR        61  ///< tesselated fan
@@ -154,13 +158,14 @@ Korr:
 #define Typ_Texture      104     ///< index to TexRef
 #define Typ_TEXB         105     ///< Base-Texture    TexBas
 #define Typ_TEXR         106     ///< Ref-Texture     TexRef
-#define Typ_BoxH         107     ///< symbolic box
+#define Typ_GridBox         107     ///< symbolic box, GridBox
 #define Typ_EdgeLine     108     ///< EdgeLine (../ut/ut_msh.h)
 
 /// temp objs
 #define Typ_TmpPT        110     ///< temporary Point
 #define Typ_Vertex       111  ///< Vertex; point on existing object
 #define Typ_EyePT        112     ///y eye-point
+#define Typ_TmpGrp       113     ///< temporary Point
 // #define Typ_TmpLN        111     ///< temporary Line
 // #define Typ_TmpVC        113     ///< temporary Vector
 // #define Typ_TmpSym       114     ///< temporary Symbol
@@ -180,6 +185,7 @@ Korr:
 #define Typ_Process      127  
 
 
+/// END OF DB-OBJECTS
 /// geom. parameters  TYP_IS_GEOMPAR
 #define Typ_Val          130  ///< double-Value
 // #define Typ_ValX         131  ///< X-coord
@@ -209,7 +215,7 @@ Korr:
 #define Typ_cmdNCsub     152  ///  see enum Typ_Cmd1
 #define Typ_Address      153  ///< form of ObjGX-Record defines dataPosition
 #define Typ_Size         154  ///< recordSize for following record
-#define Typ_Index        155  ///< int or long
+#define Typ_Index        155  ///< long (in pointer)
 #define Typ_Name         156
 #define Typ_Color        157  ///< ColRGB
 #define Typ_Ltyp         158  ///< line type
@@ -229,9 +235,10 @@ Korr:
 #define Typ_Int1         171   ///<  8 bit (char)
 #define Typ_Int2         172   ///< 16 bit (short)
 #define Typ_Int4         173   ///< 32 bit (int, long)
-#define Typ_Float4       174   ///< 32 bit (float)
-#define Typ_Float8       175   ///< 64 bit (double)
-#define Typ_IndTab       176   ///< 32-bit-int-list (struct Int4ITab)
+#define Typ_Int8         174   ///< 64 bit (long)
+#define Typ_Float4       175   ///< 32 bit (float)
+#define Typ_Float8       176   ///< 64 bit (double)
+
 
 #define Typ_Polynom_     180
 #define Typ_Polynom1     181   ///< Polynom1
@@ -261,13 +268,14 @@ Korr:
 /// containers
 #define Typ_Memspc       200   ///< Memspc
 #define Typ_MemTab       201   ///< MemTab   ../ut/ut_memTab.h
-
-#define Typ_ObjRange     202   ///< ObjRange
-#define Typ_ObjSRC       203   ///< ObjSRC
-#define Typ_ObjGX        204   ///< ObjGX
-#define Typ_ObjG2        205   ///< deprec
-#define Typ_ObjG         206   ///< deprec
-#define Typ_ObjDB        207   ///< ObjDB
+#define Typ_IndTab       202   ///< IndTab, container
+#define Typ_ObjRange     203   ///< ObjRange
+#define Typ_ObjSRC       204   ///< ObjSRC
+#define Typ_ObjGX        205   ///< ObjGX
+#define Typ_ObjG2        206   ///< deprec
+#define Typ_ObjTXTSRC    207   ///< ObjTXTSRC 
+#define Typ_ObjDB        208   ///< ObjDB
+#define Typ_ObjAto       209   ///< ObjAto
 
 
 /// transformations
@@ -290,7 +298,8 @@ Korr:
 
 
 /// modifiers  TYP_IS_MOD
-#define Typ_modif        230  ///< Modifier  MOD
+#define Typ_modif        229  ///< Modifier  MOD
+#define Typ_modRepl      230  ///< Replace (default is create, add) REPL T_REPL
 #define Typ_mod1         231  ///< Modifier; Value depends
 #define Typ_mod2         232  ///< Modifier; Value depends
 #define Typ_modCWCCW     233  ///< Modifier; CW CCW
@@ -311,6 +320,9 @@ Korr:
 #define Typ_modOUT       248
 #define Typ_modAux       249  ///< Modifier; on|off; text=last infoWord
 #define Typ_modUnlim     250  ///< "UNL|UNL1|UNL2"
+#define Typ_modUndef     259  ///< undefined
+
+
 
 // /// events  DO NOT USE - replaced by TYP_Event* ../gui/gui_types.h
 // #define GUI_MouseL     250  ///< event left mousebutton
@@ -376,7 +388,7 @@ Korr:
 
 
 
-// AP_ck_ftyp
+// AP_iftyp_ftyp
 #define Mtyp_Gcad       0
 #define Mtyp_DXF        1
 #define Mtyp_Iges       2
@@ -384,13 +396,14 @@ Korr:
 #define Mtyp_3DS        4
 #define Mtyp_LWO        5
 #define Mtyp_XML        6
+#define Mtyp_SVG        7
 #define Mtyp_WRL       10    ///< VRML1      10-19  tess-Formate
-#define Mtyp_WRL2     110    ///< VRML2
 #define Mtyp_OBJ       11
 #define Mtyp_STL       12
 #define Mtyp_TESS      13
-#define Mtyp_BMP       20    ///< 20-29 PixelImages
-#define Mtyp_JPG       21
+#define Mtyp_BMP       20    ///< .bmp       20-29 PixelImages
+#define Mtyp_JPG       21    ///< .jpg
+#define Mtyp_WRL2     110    ///< VRML2
 
 
 // basicModeltypes

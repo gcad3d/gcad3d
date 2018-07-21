@@ -96,6 +96,7 @@ MMbtSid=sideview (Y-Z)
 MMbtAxo=vue axonométrique
 MMbtSca=calculer échelle et viewcenter automatique
 MMbtScf=afficher un espace de ~ 6000 x 6000 x 6000 mm
+MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
 MMrbRel=display cursorposition on the active constructionplane
 MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
@@ -114,8 +115,9 @@ RotCen=définir nouvelle rotation-Center: \
 \=- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
 ViewOn=affichage des objets cachés, objets sélectionner pour les afficher
 HideOn=Sélectionner les objets à cacher 
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
 CAD_On=CAD sélectionnez-Function / select object avec mouseb droite.
-MAN_On=nouveau point: Alt-P; nouvelle ligne: right_mousebutton; ..
+MAN_On=MAN: nouveau point: Alt-P; nouvelle ligne: right_mousebutton; ..
 MD_On=choisir objet / key ObjID Entrée / Sortie: Ctrl mouseb droite.
 
 CADPT=Points
@@ -140,6 +142,7 @@ CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=cancel function. Does not save active object. Edit-mode: Cancel twice, right mousebutton  - edit.
+CADclear=clear active CAD-inputfield
 CADsave=mettre obj active., Obj prochaine GOTO. Droit mousebutton, Enterkey.
 
 PT_cartes__offset=Point ; sélectionner ou de clés; offsetvalues [pour X / Y / Z]
@@ -293,6 +296,7 @@ Typ_modCTRL=pièce PgUp / PgDwn ("CTRL" = Controlpoints)
 Typ_modREV=pièce PgUp / PgDwn ("REV" = inverse)
 Typ_modCX=ey PgUp / PgDwn ("CX" = diamètre)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Key Texte / Modifier-Modifier
 TYP_FilNam=pièce Nom du fichier / Moyen Mousebutt. (F5 = FileList) / sel.Model
@@ -311,6 +315,7 @@ Vr0=pas de variables définies ..
 
 FILT02=Pointfilter Vertex
 FILT03=donner la position du curseur sur certaines obj ..
+FILT04=select or keyIn obj to dump ..
 FILT05=ajouter sélections / Keyin de groupe, le groupe fin avec touche de tabulation
 FILT06=Line select | Circ | Image de la courbe à modifier ..
 FILT07=surfer sur Sélectionner pour modifier ..

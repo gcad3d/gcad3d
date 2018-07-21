@@ -400,7 +400,7 @@ static int       dxfw_errNr;
 static int       dxfw_objNr;
 
 static FILE *fpo1;                             // output
-static MemTab(int) dxfw_smTab = MemTab_empty;  // list of subModels used
+static MemTab(int) dxfw_smTab = _MEMTAB_NUL;  // list of subModels used
 
 
 
@@ -1674,7 +1674,7 @@ usw.
   // (triangles are pointers into tesselated data !)
   surNr = surSiz;
   triNr = triSiz;
-  irc = TSU_tsu2tria__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, oTab);
+  irc = TSU_ntria_bMsh__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, oTab);
     // printf(" _tsu2tria__ irc=%d surNr=%d triNr=%d\n",irc,surNr,triNr);
 
 
@@ -2302,7 +2302,7 @@ usw.
 
 
   l1 = OS_FilSiz (fnam);
-  fBuf = MEM_alloc_tmp (l1 + 128);
+  fBuf = MEM_alloc_tmp ((int)(l1 + 128));
   MEM_get_file (fBuf, &l1, fnam);
   fwrite (fBuf, 1, l1, fpo);
 

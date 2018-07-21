@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>CVED_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+<h2>CAD - edit curve</h2>
+
+<A HREF='#F1'>activate function</A>
+
+<A HREF='#F10'>modify_points</A>
+<A HREF='#F11'>delete_points</A>
+<A HREF='#F12'>insert_points</A>
+
+<A HREF='#F2'>move points in plane</A>
+<A HREF='#F3'>move points along vector</A>
+<A HREF='#F4'>move points along vector with fixed length</A>
+
+<A HREF='#F20'>Exit</A>
+
+
+<p><a name="F1"><h3>activate function</h3></a></p>
+only in mode CAD -
+  select object with movable points (P,L,C,S)
+   with right mousebutton, "edit curve"
+
+
+
+<p><a name="F2"><h3>move points of curve in plane</h3></a></p>
+Activate checkbox "plane".
+Definition of plane where point is moved.
+  Default is the active constructionplane.
+  Key into inputfield:
+    "RZ" for X-Y-plane
+    "RX" (for Y-Z-plane) or "RY" for X-Z-plane
+    or select previously defined plane ("R#").
+    or select plane in browser.
+
+
+<p><a name="F3"><h3>move points of curve along vector</h3></A></p>
+Activate checkbox "vector".
+
+Definition of a vector. Points will be moved along this vector.    
+  Default is the normalvektor of the active plane ("DZ" eg for plane "RZ")
+  or key into inputfield:
+  - defaultvectors (DX,DY, DZ, DIX, DIX, oder DIZ) -
+  - oder select vector in browser
+  - or define plane (its normalvektor will be used)
+
+
+
+<p><a name="F4"><h3>move points of curve along vector with fixed length</h3></A></p>
+  "vector"  like above
+  "length"  key vectorlength
+
+
+
+
+<p><a name='F10'><h3>modify</h3></A></p>
+move points with mouse
+
+All movable points will be displayed as yellow rectangles.
+Select a yellow rectangle -
+Now all objects depending on this point will be modified dynamically.
+Stop with left mousebutton.
+Continue with "Save" or "Cancel".
+ 
+ 
+
+<p><a name='F11'><h3>delete</h3></A></p>
+Delete points:
+
+Only for curves with more than 3 points.
+Select the point to be deleted.
+Continue with next point or "Save" or "Cancel".
+
+
+
+<p><a name='F12'><h3>insert</h3></A></p>
+Insert points:
+Only for curves with more than 3 points.
+Select the active curve at the position where to insert a point.
+Continue with next point or "Save" or "Cancel".
+
+
+<b>Save / Cancel</b>
+ Cancel  - restore previous state; (also Esc)
+ Save    - store point(s) temporary (also right mousebutton).
+
+
+<p><a name='F20'><h3>Exit</h3></A></p>
+Exit CurveEditor with "Exit"-Button or right mousebutton.
+
+Undo changes after exit with UNDO-icon.
+
+
+</PRE>
+</BODY>
+</HTML>

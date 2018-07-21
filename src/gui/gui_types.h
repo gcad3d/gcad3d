@@ -76,6 +76,7 @@
 #define TYP_EventDraw       405  ///< event draw
 #define TYP_EventConfig     406  ///< event config 
 #define TYP_EventUnmap      407  ///< event unmap (widget disappears)
+#define TYP_EventMap        408  ///< event map (widget comes up)
 #define TYP_EventExit       409  ///< event exit (widget destroyed)
 
 /// mouseEvents

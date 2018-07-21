@@ -18,7 +18,7 @@
 #define Typ_goGeoSUSU   1007  ///< Sur|Sol   (Supporting Surface)
 #define Typ_goGeo6      1008  ///< PT|LN|AC
 #define Typ_goGeo7      1009  ///< ANG/PT  angle (0-360) od angle from point
-#define Typ_goGeo8      1010  ///< Val/PT  parameter (0-1) od par. from point
+#define Typ_goGeo8      1010  ///< Val|PT  parameter (0-1) od par. from point
 #define Typ_goAxis      1011  ///< RotAxis LN/PT+PT/PT+LN/PT+VC/PLN
 #define Typ_go_LCS      1012  ///< Line,Circ,Curv
 #define Typ_go_LR       1013  ///< Line,Plane

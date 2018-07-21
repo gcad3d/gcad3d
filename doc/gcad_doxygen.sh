@@ -78,6 +78,7 @@ myFiles="${srcDirs}\
  ${doxBase}/Tools-MathNumericFunctions.dox\
  ${doxBase}/Tools-OperatingSystemFunctions.dox\
  ${doxBase}/ruler3.dox\
+ ${doxBase}/Programming-Helpfiles.dox\
  ${doxBase}/Objects-Format.dox\
  ${doxBase}/Tables-Format.dox\
  ${doxBase}/DataBase.dox\
@@ -150,7 +151,7 @@ doxygen ${doxBase}/Doxyfile
 
 
 # display new docu
-xdg-open ${doxy_path_out}/index.htm
+#xdg-open ${doxy_path_out}/index.htm
 
 exit
 # EOF

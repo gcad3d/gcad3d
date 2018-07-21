@@ -94,7 +94,7 @@ The mainTimer calls CTRL_CB__ periodically;
 #include "../gui/gui_types.h"            // GUI_KeyEsc
 
 #include "../xa/xa_mem.h"                // mem_cbuf1_SIZ memspc201
-#include "../xa/xa.h"                    // AP_sym_open ..
+#include "../xa/xa.h"                    // AP_mod_sym ..
 
 
 //_____________________________________
@@ -356,10 +356,11 @@ static int ctrlStat = 0;
 
   //----------------------------------------------------------------
   // LOAD
+  // does NOT check model-is-modified
   } else if(!strcmp(cmd, "LOAD")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    i1 = Mod_sym_get__ (AP_sym_open, AP_dir_open, WC_modnam, wPos1);
-    AP_Mod_load (0);                   // load
+    Mod_fNam_get (wPos1);
+    AP_Mod_load__ (0);                   // load
   
 
   
@@ -471,13 +472,12 @@ static int ctrlStat = 0;
   } else if(!strcmp(cmd, "SAVE")) {
     if(wPos1) {
       wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-      i1 = Mod_sym_get__ (AP_sym_save, AP_dir_save, WC_modnam, wPos1);
-    } else {
-      strcat(WC_modnam, ".gcad");
+      Mod_fNam_get (wPos1);
     }
-      // printf(" _save: |%s|%s|%s|\n",AP_sym_save,AP_dir_save,WC_modnam);
+      // printf(" _save: |%s|%s|%s|\n",AP_sym_save,AP_mod_dir,AP_mod_fnam);
     UI_save__ (1);
-    UTX_ftyp_cut (WC_modnam);
+    // add filename to list "last-used"
+    AP_Mod_lstAdd ();
     goto L_done;
     
 

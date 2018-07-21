@@ -382,10 +382,10 @@ static GSList *UI_menGrp;
 /// MemObj  menu_bar, men_fil, mns, men_hlp, wm2, wml;
 /// menu_bar = GUI_menu__ (&box1, NULL, 0);               // create Menubar
 /// men_fil = GUI_menu__ (&menu_bar, "File ", 0);         // first Menu on Menubar
-/// men_hlp = GUI_Menu__ (&menu_bar, "Help ", 'r');       // Menu rechts
+/// men_hlp = GUI_menu__ (&menu_bar, "Help ", 'r');       // Menu rechts
 /// GUI_menu_entry (men_fil, "New", UI_CB, (void*)"new"); // add entry to Menu
 ///
-/// mns = GUI_menu__ (&men_fil, "Save as ", 0);           // add submenu
+/// mns = GUI_menu__ (&men_fil, "Save as ", 's');           // add submenu
 /// GUI_menu_entry (&mns, "dxf", UI_CB, (void*)"saveDxf");
 ///
 /// GUI_menu_entry  (&men_fil, "---", NULL, NULL);        // menu-separatorline

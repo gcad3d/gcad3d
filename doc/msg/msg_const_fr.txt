@@ -22,6 +22,7 @@ MSG_filter=critère de recherche
 MSG_texture=texture
 MSG_open=open
 MSG_GrpClear=clear group
+MSG_GrpMove=move group
 MSG_GrpHide=hide group
 MSG_GrpDelA=delete group
 MSG_GrpAdd1=add to group
@@ -36,4 +37,6 @@ MSG_cpyMdl=copy into entry
 MSG_getPar=find parent-objects
 MSG_getChd=find child-objects
 MSG_modNam=modify object-name
+MSG_cvEd=edit curve
+MSG_GrpInv=invert group
 #eof

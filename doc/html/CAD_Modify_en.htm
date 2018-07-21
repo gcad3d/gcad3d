@@ -119,20 +119,28 @@ S1=INT A1 A2
 
  Result = Object TRA Obj_to_move vector [length]
    TRA Obj_to_move: this object is moved
-   Vector 
+   <a href="CAD_Base_en.htm#D">Vector</a>
+   length       vectorlength (optional)
+   replace-duplicat   if parentobject should be kept or hidden; default = keep.
+                      press Page-down to keep ("REPL").
 
- Currently, new objects are always created.
- Open: the shift is not parametric but permanent. 
-   (The base object is changed).
+ A new, translated object (a copy) will be created.
+ Permanent translation of the selected object: use "Group/move objects of group"
 
- # Objects to move a vector (REV: opposite direction). 
- # Obj = vec TRA obj/traVC [REV] 
- P20 = P(100,0,0) 
- P21 = TRA P20 D(0 0 100) 
+
+# Objects to move a vector (REV: opposite direction). 
+# Obj = vec TRA obj/traVC [REV] 
+P20 = P(100,0,0) 
+P21 = TRA P20 D(0 0 100) 
  
- T20 = D(10 10 10) 
- P22 = TRA P21 T20 
- # TraVC (T20 in the example): see Transformation 
+# "TRafo transl"  (define Transformation)
+T20 = D(10 10 10) 
+# "TRAnslate obj (VC)"  and keep parent
+P22 = TRA P21 T20
+# TraVC (T20 in the example): see Transformation 
+# replace parent
+P23=TRA P22 D(0 0 100) REPL
+
 
 
 

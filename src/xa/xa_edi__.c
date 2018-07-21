@@ -167,7 +167,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 
   // modify File m. Editor
-  APP_edit (fnam);
+  APP_edit (fnam, 0);
   TX_Print("Edit done ..");
 
 
@@ -327,7 +327,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
         // l1 = ED_lnr_act; --ED_lnr_act;
           // printf(" ED_lnr_act=%d l1=%ld\n",ED_lnr_act,l1);
         UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
-        GL_temp_delete ();    // remove circle
+        GL_temp_del_all ();    // remove circle
         WC_set_obj_stat (0);  // 0=perm
         ED_work_CurSet (l1);
         l1 = ED_get_lnr_act() - 1;  // get lNr AP_ED_lNr
@@ -431,7 +431,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 
   // get tempspace
-  p1 = MEM_alloc_tmp (l2);
+  p1 = MEM_alloc_tmp ((int)l2);
 
 
   // get editor -> tempspace
@@ -488,7 +488,6 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   // printf("Text->Mem modif=%d\n",xa_fl_TxMem);
   if(xa_fl_TxMem != 0) {      //Edittext - memory:  needUpdate
       // printf(" _unload__ - get ed -> mem\n");
-    UTF_load_ (NULL, NULL);   // clear mem
 
     L_Get_WinEdit_1:
     UTF_FilBuf0Len = UTF_FilBuf0Siz;

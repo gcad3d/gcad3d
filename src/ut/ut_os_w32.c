@@ -112,6 +112,26 @@ int OS_sys1 (char *sOut, int sSiz, char *cmd) {return 0;}
 
 
 //================================================================
+  int OS_file_compare_A (char *fn1, char *fn2) {
+//================================================================
+// OS_file_compare_A                   compare 2 files ascii
+// RetCode: 0=files_not_different, -1=different_files.
+// MS-Win: FC
+
+  char   s1[280];
+
+
+  printf("TODO: ************** OS_file_compare_A \n"); // yet unused
+  sprintf (s1, "FC /B %s %s", fn1, fn2);
+    printf(" |%s|\n",s1);
+  // ??? returns 0 for identical files
+
+  return OS_system (s1);
+
+}
+
+
+//================================================================
   int OS_ck_SW_is_installed (char *ssw) {
 //================================================================
 // Test if software <ssw> is installed
@@ -1633,6 +1653,59 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 }
 
 
+///===================================================================
+  int OS_dll_build (char *dllNam) {
+///===================================================================
+/// wenn .mak vorh: compile/link
+
+// dllNam   zB "xa_ige_r.so"   (ohne Pfad, mit Filetyp).
+
+  int  irc;
+  char cbuf[256];         // char cbuf[512];
+
+
+
+  printf("OS_dll_build |%s|\n",dllNam);
+
+  // sprintf(cbuf, "%sxa\\%s",OS_get_bas_dir(),dllNam);
+  sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
+  // ".dll" -> ".nmak"
+  strcpy(&cbuf[strlen(cbuf)-4], ".nmak");
+    // printf(" exist: |%s|\n",cbuf);
+  if(OS_checkFilExist (cbuf, 1) == 0) goto L_err_nof;
+
+
+  TX_Print(".. compile .. link .. %s",dllNam);
+
+
+  // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
+  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
+
+  // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
+  // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");
+  // strcat(cbuf, OS_os());
+
+  strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
+  strcat(cbuf, OS_os_s());
+
+  // "make -f %s.mmak"
+  printf("|%s|\n",cbuf);
+
+
+  irc = system(cbuf);
+  if(irc != 0) TX_Error("Error build %s",dllNam);
+
+  return irc;
+
+  L_err_nof:
+    TX_Print("***** %s does not exist ..",cbuf);
+    printf("***** %s does not exist ..\n",cbuf);
+
+    return 0;
+
+}
+
+
 //================================================================
   int OS_dll_close (void **dl1) {
 //================================================================
@@ -1771,7 +1844,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
     sprintf(s1, "%s.dll",(char*)fDat);
       printf(" dll=|%s|\n",s1); fflush(stdout);
   
-    if(DLL_build__ (s1) != 0) {
+    if(OS_dll_build (s1) != 0) {
        TX_Error("OS_dll__: compile/link %s",s1);
        return -1;
     }
@@ -2172,6 +2245,99 @@ sonst wahrscheinl nur \\ statt / ...
   GUI_MsgBox (NULL, " Cannot find compiler and make. Start from console-window;\
  use vcvarsall.bat. ");
   goto L_exit;
+
+}
+
+
+//================================================================
+  int OS_timA_now (char *sts1) {
+//================================================================
+// get timestamp-string "now";  |2017-10-14 10:32:07|
+//   size of sts1 >= 32
+
+  long   i1;
+  time_t tim1;        // timestamp
+  struct tm *ts1;      // time-structure
+
+
+  // get tim1 = timestamps "now"
+  tim1 = time (0);
+
+  // get time-structure ts1 from timestamp tim1
+  ts1 = localtime (&tim1);
+
+  // get sts1 = timestamp-string sts1 from time-structure ts1
+  strftime (sts1, 32, "%Y-%m-%d %H:%M:%S", ts1);
+    printf ("  ex OS_timA_now |%s|\n",sts1);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_tim_timA (struct tm *tm, char *stA) {
+//================================================================
+/// \code
+/// OS_tim_timA            get timestamp from time-string
+/// timestring format: |2017-10-14 10:32:07|
+/// \endcode
+
+
+  int    iy, im, id;
+
+  // printf("OS_tim_timA |%s|\n",stA);
+
+
+  sscanf (stA, "%4d-%2d-%2d %2d:%2d:%2d",
+          &iy, &im, &id,
+          &tm->tm_hour, &tm->tm_min, &tm->tm_sec);
+
+
+  tm->tm_year = iy - 1900;
+  tm->tm_mon  = im - 1;
+  tm->tm_mday  = id;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_timA_diff_s (double *dd, char *sts1, char *sts2) {
+//================================================================
+/// \code
+/// get difftime in seconds of two timestrings
+/// timestring format: |2017-10-14 10:32:07|
+/// see OS_timA_now
+/// \endcode
+
+  time_t tim1, tim2;         // timestamps
+  struct tm ts1, ts2;        // time-structure
+
+  // get time-structure ts1 from timestamp-string sts1
+  memset(&ts1, 0, sizeof(struct tm));
+  // strptime(sts1, "%Y-%m-%d %H:%M:%S", &ts1);
+  OS_tim_timA (&ts1, sts1);
+
+  // make unix-timestamp tim1 from time-structure ts1
+  tim1 = mktime (&ts1);
+
+
+  // get time-structure ts2 from timestamp-string sts2
+  memset(&ts2, 0, sizeof(struct tm));
+  // strptime(sts2, "%Y-%m-%d %H:%M:%S", &ts2);
+  OS_tim_timA (&ts2, sts2);
+
+  // make unix-timestamp tim2 from time-structure ts1
+  tim2 = mktime (&ts2);
+
+
+  // get d1 = Diff.Time in Sec (nur auf Sec. genau) als double !
+  *dd = difftime (tim1, tim2);
+    printf ("ex-OS_timA_diff_s %f secs\n",*dd);
+
+  return 0;
 
 }
 

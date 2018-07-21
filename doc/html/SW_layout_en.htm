@@ -1,0 +1,166 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>SW_layout_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+<p><a name="SW-Layout"></a></p>
+
+<a href="#OSU1">Debian, Ubuntu, .. (.deb)</a>
+<a href="#OSU2">CentOS, Suse, ..   (.rpm)</a>
+<a href="#OSMS1">MS-Windows</a>
+<a href="#DEV_U">Development-Unix</a>
+<a href="#DEV_MS">Development-MS-Win</a>
+
+____________________________________________________________________________
+<p><a name="DEV_U"></a></p>
+<h2>Development-Unix:</h2>
+
+Necessary symbols:
+  $DIR_DEV; if not defined ${HOME}/devel/  will be used
+  $DIR_BIN; if not defined ${HOME}/devel/bin/  will be used
+
+  For other directories do:
+  export DIR_DEV='/<devDir>/'
+  export DIR_BIN='/<binDir>/'
+
+  $DIR_DEV must have sourcfiles
+
+  $DIR_BIN will receive all objectsi, libs and executables
+    in ${DIR_BIN}/gcad3d/ ???
+
+
+
+Used symbols  (set in ${DIR_DEV}gcad3d/src/options.sh):
+${gcad_dir_dev} = ${DIR_DEV}gcad3d/
+${gcad_dir_bin} = ${HOME}/devel/binLinux${bitNr}
+
+
+Programfiles:
+  ${gcad_dir_dev}src/*          all sourcefiles
+  ${gcad_dir_dev}debian/*       package-creation-files debian
+  ${gcad_dir_dev}pack_MS/*      package-creation-files MS-Win
+  ${gcad_dir_dev}packages/*     packages for all OS
+
+
+Userfiles:
+  ${gcad_dir_dev}gCAD3D/
+
+
+Symbols set by gcad-startup-script:
+  gcad_dir_bin       (Def. = /usr/lib/gCAD3D/binLinux${osVer})
+  LD_LIBRARY_PATH    (Def. = ${gcad_dir_bin})
+
+  This symbols can be set:
+    gcad_dir_bas     (Def. = /usr/share/gcad3d/)
+    gcad_dir_ico     (Def. = /usr/share/gcad3d/icons/)
+    gcad_dir_local   (Def. = ${HOME}/gCAD3D/)
+
+
+Create-package-debian:
+  ${DIR_DEV}gcad3d/debian/pack_deb.sh
+
+____________________________________________________________________________
+<p><a name="DEV_MS"></a></p>
+<h2>Development-MS-Win:</h2>
+
+  
+let %DIR_DEV% = {basic-development-directory}\gcad3d
+  %DIR_DEV%\binMS32           binarary files
+
+
+%DIR_DEV%\src\*          all sourcefiles
+
+Create-package-MS-Win:
+  %DIR_DEV%\pack_MS\pack.bat  (using gcad3d\pack_MS\gCAD3D.nsi)
+
+
+
+____________________________________________________________________________
+<p><a name="OSU1"></a></p>
+<h2>Debian, Ubuntu, .. (.deb)</h2>
+
+Programfiles:
+  /usr/bin/gcad3d                            Startscript for main-executable
+  /usr/lib/gCAD3D/binLinux64/gCAD3D          main-executable
+  /usr/lib/gCAD3D/binLinux64/*.so            shared libs for main-executable
+  /usr/lib/gCAD3D/binLinux64/plugins/*.so    plugins (shared libs)
+  /usr/lib/gCAD3D/binLinux64/plugins/cut1/*  processes (NC-programs, executables)
+  /usr/share/menu/gcad3d                     menufile for package gcad3d
+  /usr/share/pixmaps/gCAD3D.xpm              icon for menufile
+  /usr/share/gcad3d/gCAD3D.desktop           Desktop-starter
+  /usr/share/gcad3d/examples.gz              zipfile for userspace
+  /usr/share/gcad3d/icons/*                  icons for executable
+  /usr/share/doc/gcad3d/changelog.Debian.gz, copyright
+  /usr/share/doc/gcad3d/html/*               documentation
+  /usr/share/doc/gcad3d/msg/*                software-message-files
+
+Userfiles:
+  $HOME/gCAD3D/tmp/                          temporary files
+               dat/                          cad-models-directory
+               cfg/                          config-files
+               prg/                          application-programs .gcap topDir
+               ctlg/                         Catalog-files .gcad topDir
+
+If file $HOME/gCAD3D/cfg/gCAD3D.rc does not exist:
+  /usr/share/gcad3d/examples.zip will be extracted,
+  - this will overwrite all startup-userfiles with the original version,
+  - also the user-config-files  in $HOME/gCAD3D/cfg/ !
+
+
+___________________________________________________
+<p><a name="OSU2"></a></p>
+<h2>CentOS, Suse, .. (.rpm)</h2>
+
+Programfiles:
+  /usr/bin/gcad3d                            Startscript for main-executable
+  /usr/lib64/gcad3d/Linux_x86_64/gCAD3D      main-executable
+  /usr/lib64/gcad3d/Linux_x86_64/*.so        shared libs for main-executable
+  /usr/lib64/gcad3d/Linux_x86_64/plugins/*.so   plugins (shared libs)
+  /usr/lib64/gCAD3D/Linux_x86_64/plugins/cut1/* processes (NC-programs, executables)
+  /usr/share/applications/gCAD3D.desktop     Desktop-starter
+  /usr/share/pixmaps/gCAD3D.xpm              icon for Desktop-starter
+  /usr/share/gcad3d/examples.gz              zipfile for userspace
+  /usr/share/gcad3d/icons/*                  icons for executable
+  /usr/share/doc/gcad3d/changelog.Debian.gz, copyright
+  /usr/share/doc/gcad3d/html/*               documentation
+  /usr/share/doc/gcad3d/msg/*                software-message-files
+
+Userfiles:
+  $HOME/gCAD3D/tmp/                          temporary files
+               dat/                          cad-models-directory
+               cfg/                          config-files
+               prg/                          application-programs .gcap topDir
+               ctlg/                         Catalog-files .gcad topDir
+
+If file $HOME/gCAD3D/cfg/gCAD3D.rc does not exist:
+  /usr/share/gcad3d/examples.zip will be extracted,
+  - this will overwrite all startup-userfiles with the original version,
+  - also the user-config-files  in $HOME/gCAD3D/cfg/ !
+
+
+____________________________________________________________________________
+<p><a name="OSMS1"></a></p>
+<h2>MS-Windows:</h2>
+
+Programfiles:
+  %ProgramFiles%\gCAD3D\gCAD3D.bat           Startscript for main-executable
+  %ProgramFiles%\gCAD3D\binMS32\*            executables, libs, plugins, ..
+  %ProgramFiles%\gCAD3D\doc\*
+  %ProgramFiles%\gCAD3D\icons\*
+  %USERPROFILE%\Desktop\gCAD3D.lnk           Desktop-starter
+
+Userfiles:
+  %APPDATA%\gCAD3D\tmp\                      temporary files
+                   dat\                      cad-models-directory
+                   cfg\                      config-files
+                   prg\                      application-programs .gcap topDir
+                   ctlg\                     Catalog-files .gcad topDir
+
+____________________________________________________________________________
+</PRE>
+</HTML>

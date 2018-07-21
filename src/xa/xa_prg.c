@@ -177,8 +177,8 @@ typedef_MemTab(ObjRange);
   static FILE      *PRG_fp = NULL;
   static MemObj    PRG_win0, PRG_box;
 
-  static MemTab(FormVar) FormTab = MemTab_empty;
-  static MemTab(ObjRange) PRG_internTab = MemTab_empty;
+  static MemTab(FormVar) FormTab = _MEMTAB_NUL;
+  static MemTab(ObjRange) PRG_internTab = _MEMTAB_NUL;
 
 
   static int       PRG_dbg=0;   // 0=off; 1=On.
@@ -210,29 +210,36 @@ typedef_MemTab(ObjRange);
 //================================================================
 
   int    irc;
-  char   cbuf1[80];
+  char   s1[80], fnam[256];
 
 
-  strcpy(cbuf1, "APP_1");
-  irc = GUI_Dialog_e2b ("name for new program:", cbuf1, 80, "OK", "Cancel");
+  strcpy(s1, "APP_1");
+  irc = GUI_Dialog_e2b ("name for new program:", s1, 80, "OK", "Cancel");
   if(irc != 0) return -1;
 
 
   // make safeName
-  UTX_safeName (cbuf1, 1); // change '. /\\'
+  UTX_safeName (s1, 1); // change '. /\\'
 
   // check maxLen; max 62 chars
-  if(strlen(cbuf1) > 62) {
+  if(strlen(s1) > 62) {
     TX_Print("max Laenge = 62 chars; gekuerzt !!");
-    cbuf1[62] = '\0';
+    s1[62] = '\0';
   }
 
   APP_act_typ = 1;
   UI_Set_typPrg ();
-  strcpy(APP_act_nam, cbuf1);
+  strcpy(APP_act_nam, s1);
   UI_Set_actPrg (APP_act_nam, 2);
 
   printf(" prgnam |%s|\n",APP_act_nam);
+
+  // create file
+  sprintf(fnam, "%s%s.gcap",AP_dir_prg,APP_act_nam);
+  if(!OS_checkFilExist(fnam,1)) {
+    sprintf(s1,"# %s.gcap",APP_act_nam);
+    UTX_wrf_str (fnam, s1);
+  }
 
   PRG_Ed ();
 
@@ -347,6 +354,7 @@ typedef_MemTab(ObjRange);
   int PRG_win__ (MemObj *mo, void **data) {
 //================================================================
  
+  static long dlAct;
 
   int              iFunc, i1, i2;
   char             cbuf[256], *cPos;
@@ -354,12 +362,14 @@ typedef_MemTab(ObjRange);
 
 
   iFunc = GUI_DATA_I1;
+
   // printf("PRG_win__ %d %d\n",iFunc,PRG_stat);
-  // printf("  PRG_win0=%p\n",PRG_win0);
 
 
   //----------------------------------------------------------------
   if(iFunc != UI_FuncInit) goto L_UCB1;
+      sprintf(cbuf,"%s%s.gcap",AP_dir_prg,APP_act_nam);
+      printf("PRG_win__ - start application %s\n",cbuf);
     if(PRG_stat != 0) {           // Win schon vorhanden ? Kill .
       // MemTab_free (&FormTab);
       // MemTab_free (&PRG_internTab);
@@ -367,7 +377,8 @@ typedef_MemTab(ObjRange);
       GUI_Win_kill (&PRG_win0);
     }
     PRG_stat = 1;
-
+    
+    dlAct = DL_get__ (NULL);
 
     // init win
     PRG_win0 = GUI_Win__ (APP_act_nam, PRG_win__, "");
@@ -375,10 +386,8 @@ typedef_MemTab(ObjRange);
     // create vertical box
     PRG_box = GUI_box_v (&PRG_win0, "");
 
-
     // loop tru program; find & create widgets
     PRG_dlg__ ();
-
 
     // finish & display form
     GUI_sep_h (&PRG_box, 5);
@@ -440,12 +449,16 @@ typedef_MemTab(ObjRange);
   L_UCB3:      // OK: add to Mainprg, exit.
     if(iFunc != UI_FuncUCB3) goto L_Kill;
     PRG_mode = 2; // 0 = normal update; 1=cancel; 2=save.
+
     // update
     PRG_win__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
+    // clear DL (remove all output from macro) 
+    GL_Delete (dlAct);
     // fix filename
     sprintf(cbuf, "%sPRG_ACT.gcad",OS_get_tmp_dir());
+    // add macroSource to mem
     UTF_add_file (cbuf);
-    // if MAN is active: update Edit
+    // if MAN is active: update (editor -> mem)
     AP_SRC_edi_mem ();
     // execute additional program ..
     // ED_work_CurSet ((int)SRCU_obj_pri.lnr);  // reset to line 
@@ -469,7 +482,7 @@ typedef_MemTab(ObjRange);
     PRG_intern_exit ();
 
     // del all temp obj's
-    GL_temp_delete ();
+    GL_temp_del_all ();
 
     if(PRG_mode < 2) {
       // Cancel, not OK: reset DL and DB
@@ -847,7 +860,7 @@ typedef_MemTab(ObjRange);
   //----------------------------------------------------------------
   // delete temp.symbol for this inputField
   l1 = -2 - PRG_iAct;
-  GL_temp_Delete (l1);
+  GL_temp_del_1 (l1);
 
 
   // display circle-symbol at pos. pt1
@@ -1387,7 +1400,8 @@ typedef_MemTab(ObjRange);
 
 
     // extract objectName -> AP_ED_oNam        2016-10-07
-    APED_onam_cut (cbuf);
+    // cut objectName
+    APED_onam_cut (cbuf, NULL);
 
 
     // evaluate line (change <V#> into value of V#; eg "P<V1>=" -> "P3=")
@@ -2195,13 +2209,13 @@ typedef_MemTab(ObjRange);
   // printf("PRG_Ed %d\n",APP_act_typ);
 
   if(APP_act_typ != 1) {
-    TX_Print("*** no application acxtive ..");
+    TX_Print("*** no application active ..");
     return -1;
   }
 
 
   sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
-  return APP_edit (cbuf);
+  return APP_edit (cbuf, 1);  // do not wait
 
 
   // // modify File m. Editor
@@ -2350,7 +2364,7 @@ typedef_MemTab(ObjRange);
 
   int     i1, iNr;
   char    cmd[4], cbuf[512], *cp1;
-  ObjAto  ato;
+  ObjAto  ato1;
 
   // printf("IO_wri_ope |%s|\n",lBuf);
 
@@ -2390,12 +2404,14 @@ typedef_MemTab(ObjRange);
   // execute PRInt
   cp1 = &lBuf[4];
   // APT_work_PrgCmd (cmd, &cp1);
-  iNr = APT_decode__ (&ato, &cp1);
+  // iNr = APT_decode__ (&ato, &cp1);
+  ATO_getSpc__ (&ato1);
+  iNr = ATO_ato_srcLn__ (&ato1, cp1);
   if(iNr < 0) return -1;
     // for(i1=0;i1<iNr;++i1) printf("[%d] typ=%d tab=%f\n",i1,atyp[i1],atab[i1]);
 
   //decode
-  APT_decode_print (cbuf, cp1, ato.typ, ato.val, ato.nr);
+  APT_decode_print (cbuf, cp1, ato1.typ, ato1.val, ato1.nr);
 
   fprintf(IO_fp, "%s\n",cbuf);
 

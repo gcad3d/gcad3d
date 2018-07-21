@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+  Bug subModelposition rear.stp
 
 -----------------------------------------------------
 Modifications:
@@ -319,7 +319,87 @@ ORIENTED_EDGE (name, *, *, <EDGE_CURVE>, orientation)
 
 
 ===========================================================================
+
+#32=PRODUCT('*MASTER',' ',' ',(#12));
+  // L0=PRODUCT_DEFINITION_FORMATION_WITH_SPECIFIED_SOURCE(P3)
+  // P4=Block MECHANICAL_CONTEXT
+
+#35=PRODUCT_DEFINITION_FORMATION_WITH_SPECIFIED_SOURCE('','', #32, .NOT_KNOWN.);
+  // L0=PRODUCT_DEFINITION(P3)
+  // P3=PRODUCT
+
+#41=PRODUCT_DEFINITION('','',#35, #11);
+  // L0=PRODUCT_DEFINITION_SHAPE(P3)
+  // P3=PRODUCT_DEFINITION_FORMATION_WITH_SPECIFIED_SOURCE
+  // P4=DESIGN_CONTEXT
+
+#44=PRODUCT_DEFINITION_SHAPE('','',#41);
+  // L0=SHAPE_DEFINITION_REPRESENTATION(P1) (primMdl) |
+  //    CONTEXT_DEPENDENT_SHAPE_REPRESENTATION(P2) (subModel)
+  // P3=PRODUCT_DEFINITION (primMdl) |
+  //    NEXT_ASSEMBLY_USAGE_OCCURRENCE (subModel)
+
+#197=SHAPE_DEFINITION_REPRESENTATION(#44,#52);
+  // L0=open;
+  // P1=PRODUCT_DEFINITION_SHAPE
+  // P2=SHAPE_REPRESENTATION |
+  //    GEOMETRICALLY_BOUNDED_WIREFRAME_SHAPE_REPRESENTATION
+
+.........................
+#156=SHAPE_REPRESENTATION('DET1',(#160,#174),#57);
+  // L0=REPRESENTATION_RELATIONSHIP(P2)            |
+  //    SHAPE_DEFINITION_REPRESENTATION(P2)        |
+  //    SHAPE_REPRESENTATION_RELATIONSHIP(P3)
+  // P2-Block=AXIS2_PLACEMENT_3D - refSys of dittos
+  // P3-Link=GEOMETRIC_REPRESENTATION_CONTEXT  (v4_ditto1.stp) |
+
+#162=SHAPE_REPRESENTATION_RELATIONSHIP('','',#156,#151);
+  // L0=open
+  // P3=SHAPE_REPRESENTATION
+  // P4=ADVANCED_BREP_SHAPE_REPRESENTATION
+
+
+------- subModel ------------
+#.=CONTEXT_DEPENDENT_SHAPE_REPRESENTATION(#177,#176);
+  // L0=topmost item of dittos; not linked.
+  // P1=REPRESENTATION_RELATIONSHIP-Block
+  // P2=PRODUCT_DEFINITION_SHAPE (geometry of subModel)
+
+#177=(REPRESENTATION_RELATIONSHIP(' ',' ',#52,#156)
+  // L0=CONTEXT_DEPENDENT_SHAPE_REPRESENTATION(P1)
+  // P3=SHAPE_REPRESENTATION (parent?)
+  // P4=SHAPE_REPRESENTATION (child?)
+    REPRESENTATION_RELATIONSHIP_WITH_TRANSFORMATION(#175)
+  // P1=ITEM_DEFINED_TRANSFORMATION
+    SHAPE_REPRESENTATION_RELATIONSHIP());
+
+#175=ITEM_DEFINED_TRANSFORMATION(' ',' ',#174,#182);
+  // L0=REPRESENTATION_RELATIONSHIP_WITH_TRANSFORMATION(P1)
+  // P3=AXIS
+  // P4=AXIS
+
+#170=NEXT_ASSEMBLY_USAGE_OCCURRENCE('*DIT1','*DIT1','*DIT1',#41,#55,' ');
+  // L0=PRODUCT_DEFINITION_SHAPE(P3)
+  // P4=PRODUCT_DEFINITION-parent
+  // P5=PRODUCT_DEFINITION-child
+
+
+===========================================================================
+#10=ADVANCED_BREP_SHAPE_REPRESENTATION ('', (#11, #12), ?)
+#11=AXIS2_PLACEMENT_3D(..
+#12=MANIFOLD_SOLID_BREP(?, #13)
+#13=CLOSED_SHELL (..
+
+---------------------------------------------------
+
+
+
+===========================================================================
 Default:
+#10=APPLICATION_CONTEXT('3d design ..');
+#11=DESIGN_CONTEXT(' ',#10,'design');
+#12=MECHANICAL_CONTEXT(' ',#10,'mechanical');
+
    #15=(GEOMETRIC_REPRESENTATION_CONTEXT(3)..
    #16=PRODUCT_DEFINITION_SHAPE..
    #100=AXIS2_PLACEMENT_3D..
@@ -803,7 +883,7 @@ __declspec(dllexport) int STP_w__ (char*);
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
-#include "../xa/xa.h"                  // WC_modnam
+#include "../xa/xa.h"                  // AP_mod_fnam
 #include "../xa/xa_mem.h"              // memspc201
 
 
@@ -814,9 +894,9 @@ __declspec(dllexport) int STP_w__ (char*);
 
 typedef_MemTab(int);
 
-static MemTab(int) ol_oSh = MemTab_empty;  // open-shell-objects
-static MemTab(int) ol_GS  = MemTab_empty;  // obj's for GEOMETRIC_SET
-// static MemTab(int) olSs = MemTab_empty;
+static MemTab(int) ol_oSh = _MEMTAB_NUL;  // open-shell-objects
+static MemTab(int) ol_GS  = _MEMTAB_NUL;  // obj's for GEOMETRIC_SET
+// static MemTab(int) olSs = _MEMTAB_NUL;
 
 
 static FILE *stpw_fp;
@@ -967,7 +1047,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   fprintf(stpw_fp,
 "\n\n/*===========================================*/\n");
   fprintf(stpw_fp,
-"#10=PRODUCT('%s','','None',(#11));\n",WC_modnam);
+"#10=PRODUCT('%s','','None',(#11));\n",AP_mod_fnam);
   fprintf(stpw_fp,
 "#11=PRODUCT_CONTEXT('None',#8,'mechanical');\n");
   fprintf(stpw_fp,
@@ -1501,10 +1581,10 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   iU = su1->ptUNr + su1->degU + 1;
   iV = su1->ptVNr + su1->degV + 1;
     printf(" iU=%d iV=%d\n",iU,iV);
-  mU = (int*)MEM_alloc_tmp (iU * sizeof(int));
-  mV = (int*)MEM_alloc_tmp (iV * sizeof(int));
-  dU = (double*)MEM_alloc_tmp (iU * sizeof(double));
-  dV = (double*)MEM_alloc_tmp (iV * sizeof(double));
+  mU = (int*)MEM_alloc_tmp ((int)(iU * sizeof(int)));
+  mV = (int*)MEM_alloc_tmp ((int)(iV * sizeof(int)));
+  dU = (double*)MEM_alloc_tmp ((int)(iU * sizeof(double)));
+  dV = (double*)MEM_alloc_tmp ((int)(iV * sizeof(double)));
 
   //----------------------------------------------------------------
   uNr = 0;
@@ -1818,7 +1898,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get all points of RCIR > pTab
   ptNr = 0;
-  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi);
+  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi, 2);
   if(i1 < 0) return i1;
   pTab = pa;
 
@@ -1893,7 +1973,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   UTO_dump__ (oxi, "SURTP__");
 
 
-  iba = (int*)MEM_alloc_tmp (oxi->siz * sizeof(int));
+  iba = (int*)MEM_alloc_tmp ((int)(oxi->siz * sizeof(int)));
 
   // init plb
   STP_w_plb_ini (&plb);
@@ -2056,7 +2136,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     //----------------------------------------------------------------
     case Typ_ObjGX:           // CCV
       // UTO_dump__ (odc, " CCV:");
-      ia = (int*)MEM_alloc_tmp (((ObjGX*)odc)->siz * sizeof(int));
+      ia = (int*)MEM_alloc_tmp ((int)(((ObjGX*)odc)->siz * sizeof(int)));
       iNr = STP_w_CVCCV (plb, ia, odc, "", 3);
       break;
 
@@ -2259,7 +2339,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   
     //----------------------------------------------------------------
     case Typ_ObjGX:
-      ia = (int*)MEM_alloc_tmp (((ObjGX*)ox1)->siz * sizeof(int));
+      ia = (int*)MEM_alloc_tmp ((int)(((ObjGX*)ox1)->siz * sizeof(int)));
       ii = STP_w_CVCCV (NULL, ia, ox1, oid, 2); // makes COMPOSITE_CURVE !
       goto L_exit;
 
@@ -2828,7 +2908,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // set multiplicity = nr of identical values.
 
   iNr = cv1->ptNr;
-  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
+  ia = (int*)MEM_alloc_tmp ((int)(iNr * sizeof(int)));
   // da = (double*)MEM_alloc_tmp (iNr * sizeof(double));
 
   for(i1=0; i1 < iNr; ++i1) {
@@ -2865,7 +2945,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get startpoint
     // UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
+    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
     ip1 = STP_w_PT (&pt1, "");
   }
 
@@ -2876,7 +2956,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get endpoint
     // UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
+    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
     ip2 = STP_w_PT (&pt1, "");
   }
 
@@ -3029,7 +3109,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     // get polygon from CCV
     pa = (void*)memspc201;
     pNr = sizeof(memspc201) / sizeof(Point);
-    irc = UT3D_pta_ox_lim (&pNr, pa, cv, 0, NULL, UT_DISP_cv);
+    irc = UT3D_pta_ox_lim (&pNr, pa, cv, 0, NULL, UT_DISP_cv, 0);
       printf(" ccv-pNr=%d\n",pNr);
     if(irc < 0) {TX_Error("STP_w_CVCCV EOM"); return -1;}
     // set normal-vector, sense-of-rotation ..
@@ -3206,8 +3286,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // set multiplicity = nr of identical values.
   iNr = cv1->ptNr + cv1->deg + 1;
     printf(" iNr=%d\n",iNr);
-  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
-  da = (double*)MEM_alloc_tmp (iNr * sizeof(double));
+  ia = (int*)MEM_alloc_tmp ((int)(iNr * sizeof(int)));
+  da = (double*)MEM_alloc_tmp ((int)(iNr * sizeof(double)));
 
   kNr = 0;
   im = 0;
@@ -3245,8 +3325,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get startpoint, endpoint
   // UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
-  UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
-  UT3D_ptvcpar_std_obj (&pt2, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
+  UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
+  UT3D_ptvcpar1_std_obj (&pt2, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
   *actPos = pt2;
 
   if(cv1->v1 > cv1->v0) {
@@ -3517,7 +3597,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   int     i1, *ia;
 
 
-  ia = (int*)MEM_alloc_tmp (iNr * sizeof(int));
+  ia = (int*)MEM_alloc_tmp ((int)(iNr * sizeof(int)));
   for(i1=0; i1<iNr; ++i1) ia[i1] = is + i1;
 
   return STP_w_list__ (s1, ia, iNr, 1, sPre);

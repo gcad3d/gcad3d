@@ -95,7 +95,7 @@ cl -c /I ..\include xa_aux.c
 #include "../ut/func_types.h"                  // SYM_..
 #include "../gr/ut_DL.h"                  // DB_GetDLatt
 
-#include "../xa/xa.h"                     // mem_cbuf1_SIZ WC_modnam
+#include "../xa/xa.h"                     // mem_cbuf1_SIZ AP_mod_fnam
 #include "../xa/xa_uid.h"                 // UID_but_END
 #include "../xa/xa_mem.h"                 // memspc51, mem_cbuf1
 #include "../xa/xa_aux.h"
@@ -161,7 +161,7 @@ static double imp_scale;
   FILE   *fpi;
   char   s1[16], *cp1;
 
-  printf("AP_ImportWRL_ckTyp |%s|\n",fNam);
+  // printf("AP_ImportWRL_ckTyp |%s|\n",fNam);
 
   // get first 10 chars of file
 
@@ -579,13 +579,13 @@ static double imp_scale;
   ++is;
 
   // LandXML-File einlesen; ../exp/lxml.c
-  irc = lxml_read (fnam, WC_modact_nam, is);
+  irc = lxml_read (fnam, AP_modact_nam, is);
 
 
   // Textbuffer 1 loeschen
   UTF_clear1();
 
-  sprintf(mem_cbuf1, "A%ld=PTAB \"%s\"",is,WC_modnam);
+  sprintf(mem_cbuf1, "A%ld=PTAB \"%s\"",is,AP_mod_fnam);
   UTF_add1_line (mem_cbuf1);
   ++is;
   sprintf(mem_cbuf1, "A%ld=MSH A%ld",is,is - 1L);

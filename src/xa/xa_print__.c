@@ -106,7 +106,7 @@ __declspec(dllexport) int PRI__ (void**);
 
 
 // Externals aus ../xa/xa.c:
-extern char WC_modnam[128];
+extern char AP_mod_fnam[128];
 extern char AP_printer[80];       // Printer
 
 
@@ -150,14 +150,14 @@ int win1__ (MemObj *mo, void **data);
 
   int              i1, irot;
   char             *txoff, *txscl, *txcmd1, *txcmd2, *txcmd3, *txgray;
-  char             cbuf1[256], fNam[128];
+  char             cbuf1[256], fNam[128], cmdTyp;
   MemObj           box0, wtmp1, wtmp2, wtmp3, wtmp4;
 
   static int       mode;
   static char      fTyp[8], pgTyp[4];
   static MemObj    w_rot, w_off, w_scl, w_gray,
                    w_cmd1, w_cmd2, w_cmd3, wb_form, wb_view,
-                   w_func1, w_func2, w_func3,
+                   w_func1, w_func2, w_func3, w_opts,
                    w_a4, w_a3;
 
   void            GL_Print_Redraw ();
@@ -197,6 +197,8 @@ int win1__ (MemObj *mo, void **data);
         GUI_radiobutt__(&wtmp3,"PCL5 ", 1,PRI_UI__, &GUI_FuncUCB1, "");
         GUI_radiobutt__(&wtmp3,"HPGL ", 1,PRI_UI__, &GUI_FuncUCB2, "");
         GUI_radiobutt__(&wtmp3,"SVG  ", 1,PRI_UI__, &GUI_FuncUCB7, "");
+        GUI_radiobutt__(&wtmp3,"JPG  ", 1,PRI_UI__, &GUI_FuncUCB8, "");
+        GUI_radiobutt__(&wtmp3,"BMP  ", 1,PRI_UI__, &GUI_FuncUCB9, "");
       mode = 0;  // 0=PDF
       strcpy(fTyp, "pdf");
 
@@ -207,12 +209,10 @@ int win1__ (MemObj *mo, void **data);
       strcpy(pgTyp, "A4");
 
 
-// ACHTUNG: GUI_frame__ geht nach einem GUI_ckbutt__ nicht !!!!!!!!!!!!!!!
-      // wtmp1 = GUI_frame__ (box0, NULL, 2);
+      //----------------------------------------------------------------
       GUI_sep_h (&box0, 2);
 
-      // wtmp2 = GUI_box_v (wtmp1, 0);
-      wtmp2 = GUI_box_h (&box0, "");
+      wtmp2 = GUI_box_h (&box0, "e");
 
       wtmp3 = GUI_box_v (&wtmp2, "");
         wtmp4 = GUI_box_h (&wtmp3, "");
@@ -222,41 +222,48 @@ int win1__ (MemObj *mo, void **data);
         wtmp4 = GUI_box_h (&wtmp3, "");
         w_func3=GUI_radiobutt__(&wtmp4, "print direct  ", 1,NULL, NULL, "");
 
-      wtmp3 = GUI_box_v (&wtmp2, "");
+      wtmp3 = GUI_box_v (&wtmp2, "e");
         wtmp4 = GUI_box_h (&wtmp3, "");
-        // OS_get_vwr_ps: get ps-viewer (gv|evince)
-        w_cmd1=GUI_entry__(&wtmp4, NULL, OS_get_vwr_ps(), NULL, NULL, "10");
+        // w_cmd1 = Preview-commad OS_get_vwr_ps: get ps-viewer (gv|evince)
+        w_cmd1=GUI_entry__(&wtmp4, NULL, OS_get_vwr_ps(), NULL, NULL, "e");
 
-      wtmp4 = GUI_box_h (&wtmp3, "");
-        // filename w.o. filetyp
+      wtmp4 = GUI_box_h (&wtmp3, "e");
+        // w_cmd2 = filename w.o. filetyp
         sprintf(cbuf1, "%sprint",OS_get_tmp_dir());
-        w_cmd2=GUI_entry__(&wtmp4, NULL, cbuf1,   NULL,NULL, "");
+        w_cmd2=GUI_entry__(&wtmp4, NULL, cbuf1,   NULL,NULL, "e");
 
-      // printer | printcommand
-      wtmp4 = GUI_box_h (&wtmp3, "");
+      // w_cmd3 = printer | printcommand
+      wtmp4 = GUI_box_h (&wtmp3, "e");
 #ifdef _MSC_VER
-        w_cmd3=GUI_entry__(&wtmp4, NULL, OS_get_printer(),  NULL,NULL, "");
+        w_cmd3=GUI_entry__(&wtmp4, NULL, OS_get_printer(),  NULL,NULL, "e");
 #else
         sprintf(AP_printer, "lpr -P%s",OS_get_printer()); //2016-03-31 -l removed
-        w_cmd3=GUI_entry__(&wtmp4, NULL, AP_printer,        NULL,NULL, "");
+        w_cmd3=GUI_entry__(&wtmp4, NULL, AP_printer,        NULL,NULL, "e");
 #endif
 
       GUI_sep_h (&box0, 2);
 
-      w_rot = GUI_ckbutt__ (&box0, "Landscape (rotate 90 deg)",
+
+      //----------------------------------------------------------------
+      w_opts = GUI_box_h (&box0, "");
+
+      w_rot = GUI_ckbutt__ (&w_opts, "Landscape (rotate 90 deg)",
                           TRUE, NULL, NULL, "");
 
-      wtmp1 = GUI_box_h (&box0, "");
-      w_off = GUI_entry__(&wtmp1, "Offset", "0,0", NULL,NULL, "10");
+      wtmp1 = GUI_box_h (&w_opts, "");
+      w_off = GUI_entry__(&wtmp1, "Offset ", "0,0", NULL,NULL, "10");
       w_scl = GUI_entry__(&wtmp1, " Scale ", "1",  NULL,NULL, "10");
 
       // wtmp1 = GUI_box_h (box0, 0);
       // w_gray=GUI_Entry(wtmp1, "Graufaktor", "2", NULL, -50);
 
+      GUI_sep_h (&box0, 2);
+
+
+      //----------------------------------------------------------------
       wtmp1 = GUI_box_h (&box0, "");
       GUI_button__ (&wtmp1, "OK",   PRI_UI__, &GUI_FuncWork, "e");
       GUI_button__ (&wtmp1, "Exit", PRI_UI__, &GUI_FuncExit, "e");
-
 
 
       GUI_Win_up (NULL, &win0, 0);  // always on top
@@ -266,41 +273,7 @@ int win1__ (MemObj *mo, void **data);
 
 
 
-    //---------------------------------------------------------
-    case UI_FuncUCB6:   // PDF
-      mode = 0;
-      strcpy(fTyp, "pdf");
-      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, TRUE);  // Preview ein
-      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
-    case UI_FuncUCB5:    // PS
-      mode = 1;
-      strcpy(fTyp, "eps");
-      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, TRUE);  // Preview ein
-      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
-      break;
-    case UI_FuncUCB1:   // PCL5
-      mode = 2;
-      strcpy(fTyp, "pcl");
-      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, FALSE); // Preview aus
-      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
-      break;
-    case UI_FuncUCB2:   // HPGL
-      mode = 3;
-      strcpy(fTyp, "hpgl");
-      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
-      GUI_set_enable (&w_func1, FALSE); // Preview aus
-      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
-      break;
-    case UI_FuncUCB7:   // SVG
-      mode = 4;
-      strcpy(fTyp, "svg");
-      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, TRUE);  // Preview ein
-      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
-      break;
+    //================================================================
     case UI_FuncUCB3:   // A4
       strcpy(pgTyp, "A4");
       break;
@@ -309,14 +282,84 @@ int win1__ (MemObj *mo, void **data);
       break;
 
 
+    case UI_FuncUCB6:   // PDF
+      mode = 0;
+      strcpy(fTyp, "pdf");
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
+      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+
+    case UI_FuncUCB5:    // PS
+      mode = 1;
+      strcpy(fTyp, "eps");
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
+      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+      break;
+
+    case UI_FuncUCB1:   // PCL5
+      mode = 2;
+      strcpy(fTyp, "pcl");
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, FALSE); // Preview aus
+      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
+      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+      break;
+
+    case UI_FuncUCB2:   // HPGL
+      mode = 3;
+      strcpy(fTyp, "hpgl");
+      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
+      GUI_set_enable (&w_func1, FALSE); // Preview aus
+      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
+      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+      break;
+
+    case UI_FuncUCB7:   // SVG
+      mode = 4;
+      strcpy(fTyp, "svg");
+      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
+      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+      break;
+
+    case UI_FuncUCB8:   // JPG
+      mode = 5;
+      strcpy(fTyp, "jpg");
+      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
+      GUI_set_enable (&w_opts, FALSE);  // Landscape, Offset, Scale off
+      break;
+
+    case UI_FuncUCB9:   // BMP
+      mode = 6;
+      strcpy(fTyp, "bmp");
+      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
+      GUI_set_enable (&w_func1, TRUE);  // Preview ein
+      GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
+      GUI_set_enable (&w_opts, FALSE);  // Landscape, Offset, Scale off
+      break;
+
+
     //---------------------------------------------------------
     case UI_FuncWork:
-        // printf("Print work\n");
+      // set cmdTyp = P(review), F(ile), D(irect)
+      if(GUI_radiobutt_get (&w_func1)) {
+        cmdTyp = 'P';
+      } else if(GUI_radiobutt_get (&w_func2)) {
+        cmdTyp = 'F';
+      } else if(GUI_radiobutt_get (&w_func3)) {
+        cmdTyp = 'D';
+      }
 
-      // drehen -
-      // irot = GTK_TOGGLE_BUTTON (w_rot)->active;
+      // irot = rotate 
       irot = GUI_ckbutt_get (&w_rot);
-        printf("  rot=%d\n",irot);
+
+        printf("Print work %c mode= %d rot=%d\n",cmdTyp,mode,irot);
 
       // cmd's, Offset, Scale
       txcmd1 = GUI_entry_get (&w_cmd1);
@@ -337,25 +380,28 @@ int win1__ (MemObj *mo, void **data);
         printf(" fNam=|%s|\n",fNam);
 
 
+      //------------------------------
       if(mode == 0) {    // PDF:
         // create <tempDir>/print.eps
         // new:
-        gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Print_Redraw);
+        gl2ps_print3 (fNam, AP_mod_fnam, "gCAD3D", GL_Print_Redraw);
         // old:
         // if(AP_print__() < 0) break;
         // AP_print_pdf (irot, pgTyp, txoff, txscl, "2");
 
 
+      //------------------------------
       } else if(mode == 1) {   // PS: 
         //           rot, off, Scale, gray)
         // create <tempDir>/print.eps
         // new:
-        gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Print_Redraw);
+        gl2ps_print3 (fNam, AP_mod_fnam, "gCAD3D", GL_Print_Redraw);
         // old:
         // if(AP_print__() < 0) break;
         // AP_print_psv2 (irot, txoff, txscl, "2");
 
 
+      //------------------------------
       } else if(mode == 2) {   // PCL5
         // create <tempDir>/print.pcl 
         // ptyp "A4" od "A5"
@@ -363,15 +409,35 @@ int win1__ (MemObj *mo, void **data);
         AP_print_gl1 (2, pgTyp, irot, txoff, txscl);
 
 
+      //------------------------------
       } else if(mode == 3) {   // HPGL
         // create <tempDir>/print.hpgl
         AP_print_gl1 (1, pgTyp, irot, txoff, txscl);
 
 
+      //------------------------------
       } else if(mode == 4) {   // SVG
         // create <tempDir>/print.hpgl
-        gl2ps_print3 (fNam, WC_modnam, "gCAD3D", GL_Print_Redraw);
+        // SVG from gl2ps
+        gl2ps_print3 (fNam, AP_mod_fnam, "gCAD3D", GL_Print_Redraw);
 
+        // SVG from gcad: eog KO, firefox OK
+        // OS_dll_do ("xa_svg_w", "SVG_w__", fNam);
+
+
+      //------------------------------
+      } else if(mode == 5) {   // JPG
+        // create file <fNam>
+        sprintf(cbuf1, "%s-tmp", fNam);
+        bmp_save__ (cbuf1);
+        OS_jpg_bmp (fNam, cbuf1);
+        
+
+
+      //------------------------------
+      } else if(mode == 6) {   // BMP
+        // create file <fNam>
+        bmp_save__ (fNam);
       }
 
 
@@ -399,6 +465,8 @@ int win1__ (MemObj *mo, void **data);
 #endif
           printf("system %s\n",cbuf1);
         system(cbuf1);
+        TX_Print("- exported into %s",fNam);
+
 
 
       //..............................................
@@ -414,8 +482,8 @@ int win1__ (MemObj *mo, void **data);
         sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
 #endif
           printf("%s\n",cbuf1);
-        TX_Print (cbuf1);
         system (cbuf1);
+        TX_Print("- exported into %s",fNam);
 
 
       //..............................................
@@ -432,12 +500,13 @@ int win1__ (MemObj *mo, void **data);
         // sprintf(cbuf1,"copy/b %s %s", fNam, txcmd3);  // OS_get_printer not OK
         sprintf(cbuf1,"%s", fNam);
 #else
-        // Linux: "lpr -PMFC7360N <fNam.eps>"
+        // Linux: "lpr -PMFC7360N <fNam>"
         sprintf(cbuf1,"%s %s &", txcmd3, fNam);
 #endif
           printf("%s\n",cbuf1);
         TX_Print (cbuf1);
         system (cbuf1);
+        TX_Print("- printing file %s",fNam);
 
       }
 

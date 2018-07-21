@@ -197,7 +197,7 @@ cl -c /I ..\include xa_ed.c
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
-#include "../xa/xa.h"                  // WC_modact_nam
+#include "../xa/xa.h"                  // AP_modact_nam
 
 
 
@@ -208,7 +208,7 @@ cl -c /I ..\include xa_ed.c
 //===========================================================================
 // Externals:
 //
-// aus xa.c:
+// aus ../xa/xa.c:
 extern AP_STAT    AP_stat;               // sysStat,errStat..
 extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
@@ -216,7 +216,7 @@ extern int        WC_modact_ind;         // -1=primary Model is active;
 extern ColRGB     AP_defcol;
 // extern int        AP_indCol;
 extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
-// extern char      AP_ED_oNam[64];        // objectName of active Line
+extern char      AP_ED_oNam[128];        // objectName of active Line
 
 
 // aus xa_ui.c:
@@ -384,7 +384,7 @@ long   UI_Ed_fsiz;      // Textsize
 
       // click ans EOF: S/M ausschalten ..
       if(fSiz <= ipos) {
-        // GL_temp_delete ();  DL_Redraw ();  // alle temp-Obj. loeschen
+        // GL_temp_del_all ();  DL_Redraw ();  // alle temp-Obj. loeschen
         DL_hili_off (-1L); // // unhilite alle Objekte
         // sind am EOF: SM ausschalten, Mode Add.
         UI_EditMode = UI_EdMode_Add;
@@ -907,7 +907,7 @@ long   UI_Ed_fsiz;      // Textsize
 
 
   l1 = strlen(buf);
-  cmdBuf = (char*) MEM_alloc_tmp	(l1 + 8);
+  cmdBuf = (char*) MEM_alloc_tmp	((int)(l1 + 8));
 
 
   // add ' ' if last char is not '=' or '('
@@ -1200,7 +1200,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
   ED_lnr_act = lnr; 
 
-  AP_mdl_modified_set ();
+  // AP_mdl_modified_set ();
 
   return 0;
 
@@ -1804,7 +1804,7 @@ static int lnr1, lnr2;
 
 
   // printf("EEEEEEEEEEEEEEEEEEE ED_work_END %d EEEEEEEEEEEEEEEEE\n",mode);
-  // printf(" WC_modact_nam=|%s| APP_stat=%d\n",WC_modact_nam,AP_stat.APP_stat);
+  // printf(" AP_modact_nam=|%s| APP_stat=%d\n",AP_modact_nam,AP_stat.APP_stat);
 
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // DB_dump_ModNod ();
@@ -2146,12 +2146,14 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
 ///   -3     obj not yet complete
 
 
-  int      irc;
+  int      irc, tmpStat;
   long     l1, dl1, dl2;
 
 
+  tmpStat = WC_get_obj_stat();
+
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-  // printf("ED_work_CAD %d |%s|\n",lNr,cbuf);
+  // printf("ED_work_CAD %d |%s| tmpStat=%d\n",lNr,cbuf,tmpStat);
 
 
 
@@ -2168,7 +2170,6 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
 
 
   dl1 = GL_GetActInd();
-
 
   // printf("->WC_Work__ lNr=%d txt=|%s|\n",IE_ed_lNr, cbuf);
   irc = WC_Work__ (lNr, cbuf);
@@ -2247,6 +2248,8 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
   long   l1, dbi, dli;
   char   s1[32];
 
+
+  // printf("ED_work_CurSet %d\n",new_lnr_act);
 
 
   // new_lnr_act = -1: nur aktuelle Line abfragen
@@ -2362,17 +2365,17 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
   // printf(" _CurSet - APT_obj_stat=%d\n",WC_get_obj_stat());
   if(UI_InpMode == UI_MODE_MAN) {           // 2011-04-10
 
-    if(WC_get_obj_stat() == 0) GL_temp_Delete (DLI_TMP);   // remove tempObj
+    if(WC_get_obj_stat() == 0) GL_temp_del_1 (DLI_TMP);   // remove tempObj
     DL_disp_hili_last (ON);             // hilite last obj of DL
 
   } else if(UI_InpMode == UI_MODE_CAD) {    // 2011-08-25
     if(IE_get_Func() < 0) {
       // no CAD-func active ..
-      GL_temp_Delete (DLI_TMP);             // remove tempObj
+      GL_temp_del_1 (DLI_TMP);             // remove tempObj
     }
 
   // } else if(UI_InpMode == UI_MODE_VWR) {    // 2011-08-25
-    // GL_temp_Delete (DLI_TMP);               // remove tempObj
+    // GL_temp_del_1 (DLI_TMP);               // remove tempObj
 
 
   }
@@ -2741,6 +2744,8 @@ static int  actLev=0;
   long   il;
 
   ED_cpos = UTF_GetPosLnr (&il, ED_lnr_act);
+
+  return 0;
 
 }
 
@@ -3115,7 +3120,7 @@ static int  actLev=0;
 
 
     // extract objectName -> AP_ED_oNam
-    APED_onam_cut (cbuf);
+    APED_onam_cut (cbuf, AP_ED_oNam);
 
     // work ..
     rc = WC_Work__ (lNr, cbuf);
@@ -3136,7 +3141,7 @@ static int  actLev=0;
     if((rc != 0)||(istat != 0)) {
       // stop - error occured ..
         // printf(" rc=%d istat=%d\n",rc,istat);
-        // printf(" rc von WC_Work__=%d |%s|\n",rc,WC_modnam);
+        // printf(" rc von WC_Work__=%d |%s|\n",rc,AP_mod_fnam);
         // printf(" ErrLn=%d |%s|\n",AP_stat.errLn,cbuf);
       if(APT_mac_fil == ON) {
         TX_Print("*** Error in Line %d - Submodel %s",lNr,AP_filnam);

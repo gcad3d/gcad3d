@@ -314,7 +314,6 @@ static MemObj    win0;
   //======== DISPLAY =======================
   L_disp:
 
-  UI_GR_DrawInit ();
   GL_DrawDitto1 (&dli, &mr->po, &mb->po, az1, ay, az2, mr->scl,
                   mb->DLsiz, mb->DLind);
 

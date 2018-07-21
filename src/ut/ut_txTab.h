@@ -18,13 +18,14 @@ typedef struct {long tabSiz, indSiz; char *tab;
                 int iNr, stat; long *ind;}                   TxtTab;
 
 
+#define _UTXTAB_NUL {0,0, NULL, 0,0, NULL}
+
 /// \code
 /// setup of a new StringList.
 /// creates: TxtTab xTab = {0,0, NULL, 0,0, NULL};
 /// \endcode
 #define UtxTab_NEW(xTab)\
-   TxtTab xTab = {0,0, NULL, 0,0, NULL}
-
+   TxtTab xTab = _UTXTAB_NUL
 
 //_____________________________________
 // PROTOTYPES:

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# call editor for messagefiles, one after another ..
+# ./lang_ed.sh
+
 # get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
 . ../options.sh
 

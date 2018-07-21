@@ -42,8 +42,13 @@ UTA_reallTab              reallocate a table of pointers       UNFERTIG !
 IMAX                      INLINE
 IMIN                      INLINE
 IABS                      INLINE
+IMOD                      int - division with remainder (modul0)         INLINE
 ISIGN                     get sign of int; +1 or -1                      INLINE
 ICHAR                     get integer from character-digit               INLINE
+
+UTI_I32_2I16              get int from 2 shorts                          INLINE
+UTI_hiI16_I32             get hi (left) short out of 32-bit-int          INLINE
+UTI_loI16_I32             get lo (right) short out of 32-bit-int         INLINE
 
 ICHG01                    change 0 > 1, 1 > 0.                           INLINE
 ICHG0x1                   change 0 > -1,-1 > 0, 1 > -2, -2 > 1           INLINE
@@ -55,12 +60,14 @@ I_XOR_2I                  XOR exclusive or 2 ints                        INLINE
 UTI_add_uniq              add int uniq to list
 UTI_deleq                 delete equal records form 2 intLists
 UTI_findeq                find 2 gleiche Elemente in 2 IntegerListen
+UTI_i2_sort               sort 2 integers                                INLINE
 UTI_ni_sort               sort integerList
 UTI_ni_ind_sort           return sorted indexarray for integerarray
 UTI_ind_iTab_i            get index of int in iTab
 UTI_iNr_chrNr             give nr of ints for n characters (not including \0) INL
 UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)
 UTI_div4diff              get nr of missing bytes for modulo-4.
+UTI_round_32up            round integer up to 32                         INLINE
 UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
 UTI_round_b2i             make integer from byte (back from UTI_round_i2b)
 UTI_sum_row               sum up row from 1 to iend
@@ -78,6 +85,7 @@ FDABS                     absolute value of float
 --------- doubles;  see also UT1D_
 DMAX                      INLINE
 DMIN                      INLINE
+DMOD                      double - division with remainder (module)      INLINE
 DSIGN                     sign of double; +1 or -1                       INLINE
 DSIGTOL                   sign of double with tolerance; +1 or -1        INLINE
 DLIM01                    0 if (d1 >= 0.); 1 if (d1 < 0.)                INLINE
@@ -132,6 +140,8 @@ see also:
 ../ut/ut_mem.c            memory-funcs
 
 \endcode *//*----------------------------------------
+
+INLINE-functions in ../ut/ut_geo.h
 
 
 UTI_ auxiliary functions for integers (lists ...)
@@ -413,7 +423,7 @@ UTA_  functions for pointers (addresses)
 
 
   // alloc iNr pointers;
-  pia = MEM_alloc_tmp (iNr * sizeof(void*));
+  pia = MEM_alloc_tmp ((int)(iNr * sizeof(void*)));
   if(!pia) {TX_Error("UTI_ni_ind_sort EOM1"); return -1;}
 
   // set pointers
@@ -542,13 +552,14 @@ UTA_  functions for pointers (addresses)
 
 
 //================================================================
-  int UTI_round_i2b (int i1) {
+  int UTI_round_i2b (int ii) {
 //================================================================
 /// \code
 /// UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
-///   Purpose: save Integers in a single byte.
-///     UTI_round_i2b(10000)  -> 14
-///     UTI_round_b2i(14)     -> 16384
+///  0,1 -> 0; 2 -> 1; 3,4 -> 2; 5-8 -> 3; 9-16 -> 4; 17-32 -> 5; .. 
+///   Purpose: save Integers in a single byte, rounding up.
+///     UTI_round_i2b(20)    -> 5;     // all values from 17 to 32 give 5;
+///     UTI_round_b2i(5)     -> 32
 /// \endcode
 
 //  ii = 10000;
@@ -556,11 +567,16 @@ UTA_  functions for pointers (addresses)
 //           UTI_round_i2b(ii),UTI_round_b2i(UTI_round_i2b(ii)));
 
 
-  int   ii=0;
+  int   ib = -1;
 
-  while(i1) {i1 /= 2; ++ii;}
+  if(ii < 2) return 0;
 
-  return ii;
+  ii *= 2;
+  --ii;
+
+  while(ii) {ii /= 2; ++ib;}
+
+  return ib;
 
 }
 
@@ -568,11 +584,16 @@ UTA_  functions for pointers (addresses)
 //================================================================
   int UTI_round_b2i (int i1) {
 //================================================================
+/// \code
 /// UTI_round_b2i         make integer from byte (back from UTI_round_i2b)
+/// 0 -> 0; 1 -> 2; 2 -> 4; 3 -> 8; 4 -> 16; 5 -> 32; .. 8=256; .. 10=1024 ..
+/// \endcode
 
   int ii=1;
 
-  while(i1) {--i1; ii *=2;}
+  if(i1) {
+    while(i1) {--i1; ii *= 2;}
+  } else return i1;
 
   return ii;
 

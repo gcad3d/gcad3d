@@ -10,17 +10,6 @@ Messagetext: ../../doc/msg/msg_const_de.txt
 
 
 
-/// \code
-/// MSG_STD_ERR             errormessage (key, additional_text)
-/// Input:
-///   ikey    see enum below
-/// Output:   TX_Error "<MSG_STD_code> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
-/// Example:  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
-///   how to add new STD-message:
-///    - add key in enum below;
-///    - add text for key in ../xa/xa_msg.c MSG_STD_tab
-/// \endcode
-
 int MSG_STD_ERR (int ikey, ...);
 
 // keys for standard-Messages MSG_STD_ERR;
@@ -30,6 +19,7 @@ enum {
   ERR_subModel_undefined,   ///< subModel_undefined,
   ERR_db_obj_undefined,     ///< db-obj_undefined,
   ERR_file_open,            ///< file_open error
+  ERR_internal,             ///< internal error
   ERR_unused
 };
 
@@ -46,17 +36,19 @@ int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...);
 
 
 // keys for constant-messages; MSG_const__ ()
+// messageText:  ../../doc/msg/msg_const_en.txt
+// modify messages: cd ../../doc/msg/  vi msg_const_*.txt
 // MSG_SIZE must be last.
 enum {
   MSG_ok,     MSG_cancel, MSG_save,    MSG_insert,      MSG_delete,     // 0-
   MSG_modify, MSG_exit,   MSG_help,    MSG_length,      MSG_activate,   // 5-
   MSG_move,   MSG_edit,   MSG_rename,  MSG_CreSubModel, MSG_show,       // 10-
   MSG_hide,   MSG_shade,  MSG_inspect, MSG_movPoints,   MSG_undo,       // 15-
-  MSG_filter, MSG_texture,MSG_open,    MSG_GrpClear,    MSG_GrpHide,    // 20-
-  MSG_GrpDelA,MSG_GrpAdd1,MSG_GrpRem1, MSG_GrpRemTyp,   MSG_GrpRemOTs,  // 25-
-  MSG_upd,    MSG_all,    MSG_no,      MSG_Error,       MSG_cpyMdl,     // 30-
-  MSG_getPar, MSG_getChd, MSG_modNam,                                   // 35-
-  MSG_SIZE
+  MSG_filter, MSG_texture,MSG_open,    MSG_GrpClear,    MSG_GrpMove,    // 20-
+  MSG_GrpHide,MSG_GrpDelA,MSG_GrpAdd1, MSG_GrpRem1,     MSG_GrpRemTyp,  // 25-
+  MSG_GrpRemOTs,MSG_upd,  MSG_all,     MSG_no,          MSG_Error,      // 30-
+  MSG_cpyMdl, MSG_getPar, MSG_getChd,  MSG_modNam,      MSG_cvEd,       // 35-
+  MSG_GrpInv, MSG_SIZE
 };
 
 
@@ -84,6 +76,17 @@ extern char *MSG_STD_tab[];
 #ifndef __func__ 
 #define __func__ __FUNCTION__
 #endif
+
+/// \code
+/// MSG_STD_ERR             errormessage (key, additional_text)
+/// Input:
+///   ikey    see enum below
+/// Output:   TX_Error "<MSG_STD_code> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
+/// Example:  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
+///   how to add new STD-message:
+///    - add key in enum below;
+///    - add text for key in ../xa/xa_msg.c MSG_STD_tab
+/// \endcode
 
 #define MSG_STD_ERR(ikey,...)\
  MSG_STD__ (MSG_typ_ERR,__func__,ikey,__VA_ARGS__)

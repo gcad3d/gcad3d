@@ -4,15 +4,13 @@
 
 
 # set EDITOR = name of script-file with editor-call
-# echo "vim -N -u ~/.vimrc $*" > ~/vim.sh
-#EDITOR=~/vim/vi
-EDITOR=${DIR_BIN}'vi.sh'
+EDITOR="${DIR_DEV}gcad3d/src/vi.sh"
 export EDITOR
 
 
 # get OS (eg "Linux32")
-bitNr=`getconf LONG_BIT`
-OS=Linux${bitNr}
+#bitNr=`getconf LONG_BIT`
+#OS=Linux${bitNr}
 #echo ${OS}
 
 
@@ -21,12 +19,14 @@ OS=Linux${bitNr}
 
 # create list of gcad-sourcefiles in file srcFiles
 make -f gcad3d.mak srclst > /dev/null
+
 # add gui-sources
 make -f gcad_gui__.mak add_srclst
 #cat srcFiles
 
-# start
 cscope -i srcFiles
+# start; -p2 = 2 directory-levels
+#cscope -p2 -i srcFiles
 
 exit
 #

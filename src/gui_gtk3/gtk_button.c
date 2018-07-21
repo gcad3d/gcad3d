@@ -347,6 +347,10 @@ static int UI_but_noCB = 0;
   if(UI_but_noCB) return (0);
 
 
+  // ScreenCast ON: draw mouse ..
+  if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
+
   // go = GUI_obj_pos (&mo);     
   // if(!go) return 0;
 

@@ -42,6 +42,7 @@ ATO_ato_srcLn__         get atomicObjects from sourceLine; full evaluated.
 ATO_ato_txo__           get atomic-objects from source-objects
 ATO_ato_expr_add        add ato to ato-table
 ATO_swap                swap 2 records
+ATO_del_rec             delete record
 ATO_clear__             delete all records
 ATO_clear_block         delete block of records
 ATO_clean__             make clean atomicObjects from ato (use ATO_clean_1)
@@ -49,6 +50,8 @@ ATO_clean_1             close all gaps (typ == Typ_NULL)
 ATO_cpy_rec             copy ATO-record iTo = iFrom, delete iFrom
 ATO_sort1               sort types ascending
 ATO_pNr__               get nr of parameters following record
+
+ATO_parents__           get all parents of obj (index into ato)
 
 // ATO_ato_srcLn_exp    DO NOT USE  get/add ato as typ/val from modelCode
 // ATO_ato_atoTab__     DO NOT USE  get single dbo from ato
@@ -60,16 +63,24 @@ ATO_ato_eval_geom       evaluate geometrical functions
 ATO_ato_obj_pt          get parametric position of point on obj
 ATO_srcTxt              get atomicObj from Typ_Txt (after AP_typ_srcExpr)
 
-ATO_getSpc_tmp__        get memspace for atomicObjects
+ATO_malloc              get memspace for atomicObjects
+ATO_free                free ObjAto after ATO_malloc
+ATO_tmpSpc_get__        get memspace on stack or heap for active func only
+ATO_tmpSpc_get_s        get memspace for atomicObjects (string)
+ATO_getSpc_tmp__        get temp - memspace for atomicObjects
 ATO_getSpc_tmp1         aux.Func for ATO_getSpc_tmp__
 ATO_getSpc__            get memSpc for atomicObjects (memspc53/54/55)
-ATO_getSpc1             get memSpc for atomicObjects - simple
-ATO_getSpc_tmpSiz       compute necessary space for type/value-table
+ATO_getSpc_siz       compute necessary space for type/value-table
 ATO_dump__              dump ato-table
 
 List_functions_end:
 =====================================================
-see also: APT_obj_ato // DO NOT USE
+for txo-funcs see APED
+see also:
+APT_obj_ato             create struct from atomicObjs
+
+obsolete:
+// ATO_getSpc1             get memSpc for atomicObjects - simple
 
 \endcode *//*----------------------------------------
 
@@ -183,11 +194,13 @@ APT_obj_ato                create struct from atomicObjs
 
 #include "../db/ut_DB.h"               // DB_VCX_IND DB_PLX_IND
 
+#include "../xa/xa_ed_mem.h"           // APED OSRC
 #include "../xa/xa_mem.h"              // memspc..
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_sele.h"             // Typ_go*
 
 #include "../gui/gui__.h"              // GUI_* TYP_EventEnter
+
 
 
 
@@ -209,12 +222,111 @@ extern double NcoValTab[];
 
 
 
-//================================================================
-  int ATO_getSpc_tmpSiz (int sizTab) {
-//================================================================
-/// compute necessary space for type/value-table
 
-  // printf("ATO_getSpc_tmpSiz siz=%d\n",sizTab);
+//================================================================
+  int ATO_malloc (ObjAto *ato, int sizTab) {
+//================================================================
+// ATO_malloc              get memspace for atomicObjects
+// get space for the ato-tables typ,val,ilev, but not for the obj itself.
+
+  int   ib;
+
+
+  ato->nr = 0;
+  if(ato->siz >= sizTab) return 0;
+
+  ib = ATO_getSpc_siz (sizTab);
+
+  ato->typ = (int*) realloc (ato->typ, ib);
+
+  if(!ato->typ) {TX_Print("ATO_malloc E1"); return -1;}
+
+  ato->val = (double*)((char*)ato->typ + sizTab * sizeof(int));
+
+  ato->ilev = (short*)((char*)ato->val + sizTab * sizeof(double));
+
+  ato->siz = sizTab;
+  ato->txt = NULL;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int ATO_free (ObjAto *ato) {
+//================================================================
+// ATO_free                  free ObjAto after ATO_malloc
+
+  if(ato->typ) {
+    free (ato->typ);
+    ato->typ  = NULL;
+    ato->val  = NULL;
+    ato->ilev = NULL;
+    ato->siz  = 0;
+  }
+
+  return 0;
+
+}
+ 
+
+//================================================================
+  int ATO_del_rec (ObjAto *ato, int iDel) {
+//================================================================
+// ATO_del_rec             delete record
+
+  int   i1;
+
+  MEM_del_IndRec (&ato->nr, ato->typ, iDel);
+  MEM_del_DbRec (&i1, ato->val, iDel);
+  MEM_del_ShRec (&i1, ato->ilev, iDel);
+
+  return 0;
+
+}
+ 
+
+//================================================================
+  void ATO_tmpSpc_get1 (ObjAto *ato1, int bNr) {
+//================================================================
+/// ATO_tmpSpc_get          get memspace on stack or heap for active func only
+/// if(!ato1->typ)   ERROR
+/// if(ato1->spcTyp < 3)  must free at end of calling func - ATO_tmpSpc_free
+
+  int    rNr;
+
+
+  // test if memspc already got on stack
+  if(bNr < SPC_MAX_STK) {
+    ato1->spcTyp = 3;  // stack; do not free
+  } else {
+    ato1->typ = (int*) realloc (ato1->typ, bNr);
+    ato1->spcTyp = 0;   // heap - malloc-type; must be freed
+  }
+
+  if(!ato1->typ) {TX_Print("ATO_tmpSpc_get1 E1"); return;} 
+
+  rNr = bNr / (sizeof(int) + sizeof(double) + sizeof(short));
+
+  ato1->siz = rNr;
+
+  ato1->val = (double*)((char*)ato1->typ + (rNr * sizeof(int)));
+    
+  ato1->ilev = (short*)((char*)ato1->val + (rNr * sizeof(double)));
+
+  ato1->txt = NULL;
+
+  ato1->nr  = 0;
+}
+
+
+//================================================================
+  int ATO_getSpc_siz (int sizTab) {
+//================================================================
+/// compute necessary space for ato.typ/val/ilev
+
+  // printf("ATO_getSpc_siz siz=%d\n",sizTab);
 
   return (sizeof(int) * sizTab) + 
          (sizeof(double) * sizTab) +
@@ -225,7 +337,10 @@ extern double NcoValTab[];
 //================================================================
   void ATO_getSpc_tmp1 (ObjAto *ato, int sizTab) {
 //================================================================
+/// \code
+/// set ato.typ,val,ilev at memPos from ato.typ
 /// aux.Func for ATO_getSpc_tmp__
+/// \endcode
 
   char  *p1;
 
@@ -495,28 +610,31 @@ extern double NcoValTab[];
 
 
 //====================================================================
-  int ATO_ato_expr_add (ObjAto *ato, int typ, double val, int lev) {
+  int ATO_ato_expr_add (ObjAto *ato, int typ, double dVal, int lev) {
 //====================================================================
 /// \code
 /// add ato to ato-table
 /// Example: ATO_ato_expr_add (&ato, Typ_PT, 20., 0);
 /// \endcode
 
-  // printf("ATO_ato_expr_add typ=%d val=%lf\n",*typ,*val);
-  // ATO_dump__ (ato);
+  // printf("ATO_ato_expr_add typ=%d val=%lf lev=%d\n",typ,dVal,lev);
+  // ATO_dump__ (ato, "ATO_ato_expr_add");
 
 
   if(ato->nr >= ato->siz) goto L_E1;
   if(lev > INT_16_MAX) goto L_E2;
 
   ato->typ[ato->nr] = typ;
-  ato->val[ato->nr] = val;
+  ato->val[ato->nr] = dVal;
 
   if(ato->ilev) {
     ato->ilev[ato->nr] = lev;   // ilev is short*
   }
 
-  ++(ato->nr);
+  // ++(ato->nr);
+  ato->nr += 1;
+
+    // ATO_dump__ (ato, "ex-ATO_ato_expr_add");
 
   return 0;
 
@@ -526,7 +644,6 @@ extern double NcoValTab[];
  
   L_E2:
     TX_Error("ATO_ato_expr_add E002"); return -1;
-
 
 }
 
@@ -679,6 +796,7 @@ extern double NcoValTab[];
 }
 
 
+/*
 //================================================================
   int ATO_getSpc1 (int *tabSiz, int **aus_typ, double **aus_tab) {
 //================================================================
@@ -710,6 +828,7 @@ extern long      GLT_cta_SIZ;
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -1713,7 +1832,8 @@ extern long      GLT_cta_SIZ;
     if(iTyp == TYP_FuncEnd) break;
 
     sPos = tso[its].ioff;
-        // printf(">>> [%d] iTyp=%d sl[sPos]=|%s|\n",its,iTyp,&sl[sPos]);
+        // printf("ato_txo__-nxt [%d] iTyp=%d |",its,iTyp);
+               // UTX_dump_cnl(&sl[sPos],50);printf("|\n");
 
 
     //----------------------------------------------------------------
@@ -1864,6 +1984,7 @@ extern long      GLT_cta_SIZ;
 /// must provide memspc before with ATO_getSpc__
 /// Input:
 ///   srcLn      eg "D(0 0 1)"      // may not have objNames !
+///   ato        free space for atomic-objs
 /// Output:
 ///   ato        eg ato->nr=1; ato->typ[0]=Typ_VC; ato->val[0]=-2.;
 ///   RetCod     0=OK, -1=Err
@@ -1886,7 +2007,7 @@ extern long      GLT_cta_SIZ;
 
   // get temp-space for tso
   itsMax = SRCU_tsMax (srcLn);   // printf(" itsMax=%d\n",itsMax);
-  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp ((int)(itsMax * sizeof(ObjTXTSRC)));
   if(tso == NULL) {TX_Print("ATO_ato_srcLn__ EOM"); return -1;}
 
 
@@ -1966,12 +2087,12 @@ extern long      GLT_cta_SIZ;
   ptMax += 16;
 
   // get tempSpc for points
-  pta = (Point*)MEM_alloc_tmp(sizeof(Point) * ptMax);
+  pta = (Point*)MEM_alloc_tmp((int)(sizeof(Point) * ptMax));
 
 
   // get polygon from obj typ,obj
   ptNr = 0;
-  irc = UT3D_npt_obj (&ptNr, pta, ptMax, typ, o1, 1, UT_DISP_cv);
+  irc = UT3D_npt_obj (&ptNr, pta, ptMax, typ, o1, 1, UT_DISP_cv, 2);
   if(irc< 0) {TX_Error("ATO_ato_obj_pt E001"); goto L_err2;}
     // printf(" _obj_pt-ptNr=%d\n",ptNr);
 
@@ -2091,6 +2212,46 @@ extern long      GLT_cta_SIZ;
 
 }
 
+
+//================================================================
+  int ATO_parents__ (MemTab(ObjSRC) *mtPar, ObjAto *ato) {
+//================================================================
+// ATO_parents__           get all parents of obj (index into ato)
+
+  int      irc, i1, pNr=0;
+  long     ld;
+  ObjSRC   odb1 = _OSRC_NUL;
+
+
+  // ATO_dump__ (ato, "ATO_parents__");
+
+  for(i1=0; i1 < ato->nr; ++i1) {
+    // skip all non-geometric-objects
+    if(ato->typ[i1] >= Typ_Val) continue;
+    // skip all dynamic objects
+    if(ato->val[i1] <= 0.) continue;
+
+    // have explizit (with values) definend geometric obj
+    odb1.typ = ato->typ[i1];
+    odb1.dbi = ato->val[i1];
+
+    // get the dispListIndex of parent
+    odb1.dli = DL_find_obj ((int)odb1.typ, odb1.dbi, -1L);
+
+    // add dbo (parent) to mtPar
+    irc = MemTab_add (mtPar, &ld, &odb1, 1, 0);
+    if(irc < 0) return irc;
+  }
+
+
+    // TESTBLOCK
+    // MemTab_dump (mtPar, " ex-ATO_parents__ ");
+    // END TESTBLOCK
+    
+
+  return pNr;
+
+}
 
 
 // EOF

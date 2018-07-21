@@ -1,4 +1,4 @@
-@echo off
+@echo on
 :: Ohne @echo in erster zeile wird nix kompiliert !!??
 :: make gCAD3D for MS-Win/Visual-C-Compiler.
 :: to update def-file execute ./gendef before.
@@ -12,23 +12,31 @@ echo "do c                 // compile & link core (gCAD3D.exe)"
 echo "do all               // compile & link corelibs"
 echo "do allDemos          // compile & link demos"
 echo "do                   // start"
-echo "do d                 // start with debugger"
+echo "do debug             // start with debugger"
 echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
 
 
 
+:: set to Server or to Local;
 set gcad_dir_bin=..\..\binMS32\
 set gcad_dir_dev=..\..\
 
-::set gcad_dir_local=%APPDATA%\
-set gcad_exe=%gcad_dir_bin%gCAD3D.exe
+set gcad_dir_dev=X:\Devel\gcad3d\
+set gcad_dir_bin=X:\Devel\gcad3d\binMS32\
 
+
+:: set to Local;  %APPDATA%..
+
+
+::set gcad_dir_local=%APPDATA%\
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::
 REM debugger for VS2008:
 set prgDeb="%ProgramFiles%\Debugging Tools for Windows (x86)\windbg.exe"
 
-
 REM if exist %SystemRoot%\SysWOW64 goto L_64bit
-
 
 
 
@@ -81,18 +89,12 @@ if allDemos==%1 (
 )   
 
 
-if d==%1 (
-REM start with debugger
-  %prgDeb% %gcad_exe%
-  goto L_exit
-)
-
-
 REM do complete
 if complete==%1 (
   nmake -f gcad3d.nmak delobj
   nmake -f gcad3d.nmak guiinit
-  nmake -f ..\gui_gtk2_MS\libgui.nmak
+::nmake -f ..\gui_gtk2_MS\libgui.nmak
+  nmake -f gcad_gui__.nmak
   nmake -f gcad3d.nmak
   nmake -f gcad3d.nmak all
   nmake -f gcad3d.nmak allDemos
@@ -120,9 +122,11 @@ if cfg-ux2ms==%1 (
 REM normal start
 :L_start
 
-
 set gcad_dir_local=%gcad_dir_dev%
 set gcad_dir_doc=%gcad_dir_dev%doc\
+set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
+
+echo "cfgDir=|%cfgDir%|"
 
 REM change configfiles to MS-Windows if last start was with Unix
 if exist UX.lock (
@@ -135,9 +139,14 @@ if exist UX.lock (
   echo MS > MS.lock
 )
 
+set gcad_exe=%gcad_dir_bin%gCAD3D.exe
 
-%gcad_exe% %1
-goto L_exit
+
+if .debug==.%1 (
+windbg "%gcad_dir_bin%gCAD3D.exe"
+) else (
+"%gcad_dir_bin%gCAD3D.exe" %1
+)
 
 
 ::==============================================================

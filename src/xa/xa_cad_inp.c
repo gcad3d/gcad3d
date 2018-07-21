@@ -951,6 +951,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   }
 
 
+  if(typ == typRec) goto L_OK_2;
 
 
 
@@ -964,7 +965,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //-------------------------------------------------------
   if(typ == Typ_Val) {        // eine Zahl in der Editline -
 
-    if(typRec == Typ_Val)     goto L_OK_2;
     if(typRec == Typ_XVal)    goto L_OK_2;
     if(typRec == Typ_YVal)    goto L_OK_2;
     if(typRec == Typ_ZVal)    goto L_OK_2;
@@ -1005,43 +1005,21 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_mod1)   goto L_OK_2;  // only for old N-commands
     // if((typRec >= Typ_Val_symTyp)&&(typRec < Typ_Str_Dir1)) goto L_OK_2;
 
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_XVal) {
-    if(typRec == Typ_XVal) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_YVal) {
-    if(typRec == Typ_YVal) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_ZVal) {
-    if(typRec == Typ_ZVal) goto L_OK_2;
-
-
   //-------------------------------------------------------
   } else if(typ == Typ_Angle) {
-    // printf(" in Typ_Angle %d\n",typRec);
-    if(typRec == Typ_Angle)   goto L_OK_2;
     if(typRec == Typ_LN)      goto L_OK_2;
 
 
   //-------------------------------------------------------
   } else if(typ == Typ_PT) {
-    if(typRec == Typ_PT)      goto L_OK_P;
     if(typRec == Typ_EyePT)   goto L_OK_2;
     if(typRec == Typ_goPrim)  goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
     if(typRec == Typ_goGeo7)  goto L_OK_2;
     if(typRec == Typ_goGeo8)  goto L_OK_2;
 
-
   //-------------------------------------------------------
   } else if(typ == Typ_LN) {
-    if(typRec == Typ_LN)      goto L_OK_2;
     if(typRec == Typ_goPrim)  goto L_OK_2;
     if(typRec == Typ_go_LCS)    goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
@@ -1053,7 +1031,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
   //-------------------------------------------------------
   } else if(typ == Typ_CI) {
-    if(typRec == Typ_CI)      goto L_OK_2;
     if(typRec == Typ_goPrim)  goto L_OK_2;
     if(typRec == Typ_go_LCS)    goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
@@ -1067,7 +1044,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //-------------------------------------------------------
   // im Entryfeld steht zB "S22"
   } else if(typ == Typ_CV) {
-    if(typRec == Typ_CV)     goto L_OK_2;
     if(typRec == Typ_CVTRM)  goto L_OK_2;
     if(typRec == Typ_CVPOL)  goto L_OK_2;
     if(typRec == Typ_go_LCS)   goto L_OK_2;
@@ -1078,46 +1054,28 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     // nur ELL und CCV; testen ?
     if(typRec == Typ_goGeo5) goto L_OK_2;
 
-
   //-------------------------------------------------------
   } else if(typ == Typ_VC) {
-    if(typRec == Typ_VC)     goto L_OK_2;
     if(typRec == Typ_Angle)  goto L_OK_2;
     if(typRec == Typ_goGeom) goto L_OK_2;
     if(typRec == Typ_goGeo7) goto L_OK_2;
 
-
   //-------------------------------------------------------
   } else if(typ == Typ_PLN) {
-    if((typRec == Typ_PLN)             ||
-       (typRec == Typ_goGeom)          ||
+    if((typRec == Typ_goGeom)          ||
        (typRec == Typ_goGeo1)          ||
        (typRec == Typ_go_LR)           ||
        (typRec == Typ_goAxis))  goto L_OK_2;
-
 
   //-------------------------------------------------------
   } else if(typ == Typ_SUR) {
     if(typRec == Typ_goGeoSUSU) goto L_OK_2;
     if(typRec == Typ_goGeom)    goto L_OK_2;
 
-
   //-------------------------------------------------------
   } else if(typ == Typ_SOL) {
-    if(typRec == Typ_SOL)       goto L_OK_2;
     if(typRec == Typ_goGeo1)    goto L_OK_2;
     if(typRec == Typ_goGeoSUSU) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_Group) {
-    if(typRec == Typ_Group) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_Tra) {
-    if(typRec == Typ_Tra) goto L_OK_2;
-
 
   //-------------------------------------------------------
   } else if(typ == Typ_modif) {
@@ -1125,77 +1083,27 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_mod2) goto L_OK_2;
     // if(typRec == Typ_modInOut) goto L_OK_2;
 
-  // //-------------------------------------------------------
-  // } else if(typ == Typ_mod1) {
-    // if(typRec == Typ_mod1) goto L_OK_2;
-
-  //-------------------------------------------------------
-  // } else if(typ == Typ_modInOut) {
-    // if(typRec == Typ_modInOut) goto L_OK_2;
-  //-------------------------------------------------------
-  } else if(typ == Typ_modREV) {
-    if(typRec == Typ_modREV) goto L_OK_2;
-  //-------------------------------------------------------
-  } else if(typ == Typ_modCTRL) {
-    if(typRec == Typ_modCTRL) goto L_OK_2;
-  //-------------------------------------------------------
-  } else if(typ == Typ_modCWCCW) {
-    if(typRec == Typ_modCWCCW) goto L_OK_2;
-  //-------------------------------------------------------
-  } else if(typ == Typ_modUnlim) {
-    if(typRec == Typ_modUnlim) goto L_OK_2;
   //-------------------------------------------------------
   } else if((typ == Typ_modCX)      ||
             (typ == Typ_modPARL)) {
     if(typRec == Typ_FncDirX) goto L_OK_2;
-    if(typRec == Typ_modCX)   goto L_OK_2;
-    if(typRec == Typ_modPARL) goto L_OK_2;
-
 
   //-------------------------------------------------------
   } else if(typ == Typ_String) {                 // in der Inputzeile;
-    if(typRec == Typ_String)   goto L_OK_2;
     if(typRec == Typ_CtlgPart) goto L_OK_2;
     if(typRec == Typ_SubModel) goto L_OK_2;
     if(typRec == Typ_EyePT)    goto L_OK_2;
     // if((typRec >= Typ_Str_Dir1)&&(typRec < Typ_Obj_0)) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == TYP_FilNam) {                 // in der Inputzeile;
-    if(typRec == TYP_FilNam) goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_CtlgPart) {                 // in der Inputzeile;
-    if(typRec == Typ_CtlgPart) goto L_OK_2;
-
 
   //-------------------------------------------------------
   // } else if(typ == Typ_GTXT) {               // Notes, Tags ...
   } else if(typ == Typ_Note) {               // Notes, Tags ...
     if(typRec == Typ_goGeom) goto L_OK_2;
 
-
-
   //-------------------------------------------------------
   } else if(typ == Typ_Model) {              // M
-    if(typRec == Typ_Model)    goto L_OK_2;                // 2011-07-05
     if(typRec == Typ_SubModel) goto L_OK_2;
     if(typRec == Typ_goGeom)   goto L_OK_2;
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_Joint) {              // J
-    if(typRec == Typ_Joint)    goto L_OK_2;                // 2011-07-05
-
-
-  //-------------------------------------------------------
-  } else if(typ == Typ_Activ) {              // I
-    if(typRec == Typ_Activ)    goto L_OK_2;                // 2011-07-05
-
-
-
 
   //-------------------------------------------------------
 /*

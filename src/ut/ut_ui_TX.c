@@ -41,7 +41,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
-Ausgabe nach GUI_Tx_wri (mit GUI);
+Ausgabe nach UI_winTX_prt (mit GUI);
 die Funktionen ohne GUI sind in ut/ut_TX.c
 
 
@@ -201,11 +201,10 @@ static char   TX_buf1[1024];
   va_end(va);
 
 
+  //----------------------------------------------------------------
   UTX_CleanCR (TX_buf1);
 
   TX_Write (TX_buf1);
-    printf(" %s\n",TX_buf1);   // 2013-09-18
-
 
   AP_errStat_set (1);
 
@@ -226,15 +225,6 @@ static char   TX_buf1[1024];
 
   // printf("TX_Write %s\n",txt);
 
-  // if gui is not up yet:
-  if(AP_stat.sysStat < 1) {
-    // GUI_MsgBox (txt);
-    printf("*********** %s\n",txt);
-
-
-  } else {
-    UI_winTX_prt (txt);
-  }
 
 #ifdef DEB
   if(AP_stat.debStat) {
@@ -247,6 +237,17 @@ static char   TX_buf1[1024];
     fflush (stdout);
   }
 #endif
+
+  // if gui is not up yet:
+  if(AP_stat.sysStat < 1) {
+    // GUI_MsgBox (txt);
+    printf("*********** %s\n",txt);
+
+
+  } else {
+    UI_winTX_prt (txt);
+  }
+
 
 }
 

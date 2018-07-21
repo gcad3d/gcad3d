@@ -8,6 +8,9 @@ cd ..
 basDir=`pwd`
 
 
+. ../options.sh
+
+
 # create new version-info
 vi ${srcDir}/gcad_version
 
@@ -32,7 +35,6 @@ touch ${srcDir}/xa/xa_main.c ${srcDir}/xa/xa_ui.c
 
 # find nr_of_sourcelines, nr_of_functions
 cd ${srcDir}/APP
-. ../options.sh
 ./ut_stat.sh
 # wait for blank or enter-key
 echo "continue with enter-key .."

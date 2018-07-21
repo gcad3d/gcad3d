@@ -15,6 +15,8 @@
  *
  *
 -----------------------------------------------------
+Group-Edit - Window
+
 TODO:
   ..
 
@@ -354,37 +356,14 @@ extern int     APT_dispDir;
     IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncOK));
 
   } else {
-    GL_temp_Delete (DLI_TMP);      // delete temporary curve
-    GL_temp_Delete (DLI_DIR_TMP);  // delete temporary direction-arrow
+    GL_temp_del_1 (DLI_TMP);      // delete temporary curve
+    GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
   }
 
 
 
   return 0;
 }
-
-
-/*
-//=====================================================================
-  gint IE_ccv_CMB (void *widget, void *event, gpointer data) {
-//=====================================================================
-// Mouseklick into GroupEditWindow
-
-
-  printf("IE_ccv_CMB\n");
-
-
-  // prevent the default handler from being run
-  // NEIN; sonst wird Curpos nicht gesetzt!
-  // gtk_signal_emit_stop_by_name (GTK_OBJECT(widget),"button_press_event");
-
-
-  IE_ccv_mod (NULL, (void*)"PREVIEW");
-
-  return FALSE;
-  // return TRUE;   // bis 2006-02-02
-}
-*/
 
 
 //=====================================================================
@@ -399,7 +378,7 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
+  // printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
 
 /*
   if(GUI_DATA_EVENT == TYP_EventEnter) {
@@ -413,7 +392,7 @@ extern int     APT_dispDir;
 
   // TYP_EventRelease ..
   iKey = GUI_DATA_I1;
-    printf("IE_ccv_CB iKey=%d\n",iKey);
+    // printf("IE_ccv_CB iKey=%d\n",iKey);
 
 
   switch (iKey) {
@@ -486,7 +465,7 @@ extern int     APT_dispDir;
   int IE_ccv_ck_active () {
 //================================================================
 
-  printf("IE_ccv_ck_active \n");
+  // printf("IE_ccv_ck_active \n");
 
   return IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB3));
 
@@ -661,7 +640,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
     //---------------------------------------------------------
     case UI_FuncExit:   // 102; called from GUI_Win__
 
-      GL_temp_delete (); // alle temp. obj loeschen ..
+      GL_temp_del_all (); // alle temp. obj loeschen ..
 
       win0 = GUI_OBJ_INVALID();
       IE_edWin1 = GUI_OBJ_INVALID();

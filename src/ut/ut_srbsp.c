@@ -1421,15 +1421,29 @@ L_outOfWorkSpace:
 
 
 int       aus_anz;
-int       aus_typ[400];
-double    aus_tab[400];
+int       *aus_typ;
+double    *aus_tab;
+static ObjAto    ato1;
+
 // aus_SIZ aus xa.h
 
 // man sollte extern aus_SIZ = 400 setzen !
 
   p1 = sr;
-  aus_anz = APT_decode_ausdr (aus_typ, aus_tab, 400, &p1);
+  // aus_anz = APT_decode_ausdr (aus_typ, aus_tab, 400, &p1);
+  // ATO_getSpc_tmp__ (&ato1, 400);
+  ATO_malloc (&ato1, 400);
+
+  ATO_ato_srcLn__ (&ato1, p1);
+  aus_anz = ato1.nr;
+  aus_typ = ato1.typ;
+  aus_tab = ato1.val;
+    printf(" aus_anz=%d\n",aus_anz);
+
+
   APT_decode_sur (ox1, aus_anz, aus_typ, aus_tab, tbuf1);
+
+  ATO_free (&ato1);
 
 
   return 0;

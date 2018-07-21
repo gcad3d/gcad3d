@@ -81,6 +81,7 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 
 // #include "../ut/ut_umem.h"         // UME_reserve
 #include "../ut/ut_geo.h"
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_txTab.h"            // UtxTab
@@ -138,8 +139,8 @@ Tool    tlTab[TLTABSIZ];
 
 #define cmd_SIZ 100
 int     cmd_anz;
-int     cmd_typ[cmd_SIZ];
-double  cmd_tab[cmd_SIZ];
+int     *cmd_typ;
+double  *cmd_tab;
 
 
 #define iAtt_rp      20     // rapid; without tool
@@ -173,8 +174,9 @@ char    spprc[128];         // postproc
 ///   data     additional text for nc-func NCCmdTab[iFnc]
 
 
-  int    i1;
-  Point  pt1;
+  int       i1;
+  Point     pt1;
+  ObjAto    ato1;
 
 
   // printf("------------- cut1 ------------------ \n");
@@ -193,7 +195,13 @@ char    spprc[128];         // postproc
   // commands without parameters
 
   // decode input
-  cmd_anz = APT_decode_ausdr (cmd_typ, cmd_tab, cmd_SIZ, &data);
+  // cmd_anz = APT_decode_ausdr (cmd_typ, cmd_tab, cmd_SIZ, &data);
+  ATO_getSpc_tmp__ (&ato1, cmd_SIZ);
+  ATO_ato_srcLn__ (&ato1, data);
+  cmd_anz = ato1.nr;
+  cmd_typ = ato1.typ;
+  cmd_tab = ato1.val;
+
     // for(i1=0; i1<cmd_anz; ++i1)
     // printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);
 
@@ -498,7 +506,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
     oxTab[0].typ  = Typ_Typ;   // OGX_SET_INT
     oxTab[0].form = Typ_Int4;
     oxTab[0].siz  = 1;
-    oxTab[0].data = (void*)Typ_SURPLN;
+    oxTab[0].data = PTR_INT(Typ_SURPLN);
 
     oxTab[1].typ  = Typ_PT;
     oxTab[1].form = Typ_PT;
@@ -590,7 +598,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
     oxTab[0].typ  = Typ_Typ;   // OGX_SET_INT
     oxTab[0].form = Typ_Int4;
     oxTab[0].siz  = 1;
-    oxTab[0].data = (void*)Typ_SURPLN;
+    oxTab[0].data = PTR_INT(Typ_SURPLN);
 
     oxTab[1].typ  = Typ_PT;
     oxTab[1].form = Typ_PT;
@@ -720,7 +728,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
     if(PRCE_mode) {
       fprintf (PRCE_fpo,"$$-----------------------------------------\n");
       fprintf (PRCE_fpo,"$$ %s\n",OS_date1());
-      fprintf (PRCE_fpo,"$$ MODEL %s\n",WC_modnam);
+      fprintf (PRCE_fpo,"$$ MODEL %s\n",AP_mod_fnam);
       fprintf (PRCE_fpo,"$$ PROCESSOR %s\n",&APP_act_proc[4]);
       fprintf (PRCE_fpo,"$$ PROCESS %s\n",&APP_act_nam[8]);
       fprintf (PRCE_fpo,"$$-----------------------------------------\n");
@@ -1373,7 +1381,7 @@ static int pp_id=0;
 
   // AP_User_reset ();
 
-  GL_temp_delete (); // alle temp. obj loeschen ..
+  GL_temp_del_all (); // alle temp. obj loeschen ..
 
   return 0;
 

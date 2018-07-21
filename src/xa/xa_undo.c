@@ -48,14 +48,11 @@ UNDO_grp_undo      delete next group
 UNDO_grp_redo      restore next group
 UNDO_grp_del       delete group
 UNDO_grp_res       restore group
-// UNDO_grp_clr       delete record and all following records
-UNDO_ln_del        delete line
+UNDO_ln_del        delete sourceLine lNr
 UNDO_ln_res        restore line
 
-UNDO_grpNr_recNr   get groupNr from recordnr
-UNDO_recNr_grpNr   get recordNr from groupNr
+UNDO_recNr__       get recordNr of last group in table
 UNDO_grp_ck        test if group already exists in undoTab
-// UNDO_grp_upd       delete all following groups after actGrp
 UNDO_del_active    check if one of the previous groups can be deleted
 UNDO_res_active    check if one of the next groups can be restored
 UNDO_upd_bt        activate/disactivate  delete/restore-buttons
@@ -65,6 +62,10 @@ UNDO_dump
 
 List_functions_end:
 =====================================================
+// UNDO_grp_clr       delete record and all following records
+// UNDO_grpNr_recNr   get groupNr from recordnr
+// UNDO_recNr_grpNr   get recordNr from groupNr
+// UNDO_grp_upd       delete all following groups after actGrp
 
 \endcode *//*----------------------------------------
 
@@ -172,24 +173,20 @@ UNDO-Tests:
 #include "../xa/xa.h"                        // AP_STAT
 #include "../xa/xa_ui.h"
 #include "../xa/xa_undo.h"
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
+#include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
+// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
+
 
 
 #define   TRUE 1
 #define   FALSE 0
 
 
-
-
-static MemObj  wUndo, btUndo,  // delete-icon   red-arrow
-                      btRedo;  // restore-icon  green-arrow
-
 typedef struct {long lNr; short grpNr; char u1, u2; }            undoObj;
 
 typedef_MemTab(undoObj);
 
-static MemTab(undoObj) undoTab = MemTab_empty;
-
-static int actGrp;    // the nr of (.grpNr==0) - records in undoTab
 
 
 //================================================================
@@ -199,6 +196,35 @@ static int actGrp;    // the nr of (.grpNr==0) - records in undoTab
 extern AP_STAT   AP_stat;
 
 
+//===========================================================================
+// LOCALS:
+
+
+static MemObj  wUndo, btUndo,  // delete-icon   red-arrow
+                      btRedo;  // restore-icon  green-arrow
+
+static MemTab(undoObj) undoTab = _MEMTAB_NUL;
+
+// static int actGrp;    // the nr of (.grpNr==0) - records in undoTab
+
+
+
+
+
+//================================================================
+  int UNDO_recNr__ () {
+//================================================================
+// UNDO_recNr__            get recordNr of last group in table
+// find recordNr of last record in undoTab with .grpNr=0
+
+
+  int iRec = undoTab.rNr - 1;
+
+  while((MEMTAB__(&undoTab,iRec))->grpNr) --iRec;
+
+  return iRec;
+
+}
 
 
 //================================================================
@@ -295,14 +321,12 @@ extern AP_STAT   AP_stat;
 // was UI_undo_add_
 
 
-  static int       iRec;
-
   long      ld;
   undoObj   o1;
 
 
   // printf("--------- UNDO_grp_add %ld %d\n",lNr,grpNr);
-  // UNDO_dump ();
+  // UNDO_dump ("UNDO_grp_add");
 
 
   // test if group already exists in undoTab; yes: delete.
@@ -325,17 +349,11 @@ extern AP_STAT   AP_stat;
   MemTab_sav (&undoTab, &ld, &o1, 1);
 
 
-  // for groupheaderrecord: make this new group = active group
-  if(grpNr == 0) {
-    iRec = undoTab.rNr - 1;
-  }
+    // printf("============== exit UNDO_grp_add =====\n");
+    // UNDO_dump ("ex-_grp_add");
 
 
-    // printf("============== exit UNDO_grp_add =========\n");
-    // UNDO_dump ();
-
-
-  return iRec;
+  return 0;
 
 }
 
@@ -426,7 +444,13 @@ extern AP_STAT   AP_stat;
   MemTab_del (&undoTab, iRec, 1);
 
   // if this record was group-start-record: set nxt record grpNr=0
-  if(undoTab.data[iRec].grpNr != 0) undoTab.data[iRec].grpNr = 0;
+  // if(undoTab.data[iRec].grpNr != 0) undoTab.data[iRec].grpNr = 0;
+  L_nxt:
+  if(undoTab.data[iRec].grpNr == 0) goto L_exit;
+  undoTab.data[iRec].grpNr -= 1;
+  ++iRec;
+  if(iRec < undoTab.rNr) goto L_nxt;
+
 
 
 
@@ -450,6 +474,8 @@ extern AP_STAT   AP_stat;
   // printf(" dump after _grp_ck:\n");
   // UNDO_dump ();
 
+
+  L_exit:
   // printf("-------- ex UNDO_grp_ck %d\n",lNr);
 
   return 0;
@@ -466,7 +492,7 @@ extern AP_STAT   AP_stat;
   int   iRec;
 
 
-  printf("UNDO_grp_undo\n");
+  // printf("UNDO_grp_undo\n");
 
 
   // do CAD-undo;
@@ -479,7 +505,7 @@ extern AP_STAT   AP_stat;
   //----------------------------------------------------------------
   // undo
   iRec = UNDO_del_active (); 
-    printf(" iRec=%d\n",iRec);
+    // printf(" iRec=%d\n",iRec);
   if(iRec < 0) {
     TX_Print ("***** undo-group is empty ..");
     return 0;
@@ -522,7 +548,7 @@ extern AP_STAT   AP_stat;
   int   iRec;
 
 
-  printf("UNDO_grp_redo\n");
+  // printf("UNDO_grp_redo\n");
 
 
   // do CAD-undo;
@@ -534,7 +560,7 @@ extern AP_STAT   AP_stat;
 
   //----------------------------------------------------------------
   iRec = UNDO_res_active ();
-    printf(" iRec=%d\n",iRec);
+    // printf(" iRec=%d\n",iRec);
   if(iRec < 0) {
     TX_Print ("***** redo-group is empty ..");
     return 0;
@@ -601,7 +627,7 @@ extern AP_STAT   AP_stat;
   char     *lPos;
 
 
-  printf("======================= UNDO_grp_del %d\n",ii);
+  // printf("======================= UNDO_grp_del %d\n",ii);
   // UNDO_dump ();
 
   if(ii < 0) return -1;
@@ -673,7 +699,7 @@ extern AP_STAT   AP_stat;
   char     *lPos;
 
 
-  printf("==================== UNDO_grp_res %d\n",ii);
+  // printf("==================== UNDO_grp_res %d\n",ii);
   // UNDO_dump ();
 
 
@@ -755,12 +781,12 @@ extern AP_STAT   AP_stat;
   char     *lPos;
 
 
-  printf("UNDO_ln_res %ld\n",lNr);
+  // printf("UNDO_ln_res %ld\n",lNr);
 
 
   lPos = UTF_GetLinNr (NULL, &ll, lNr);
   if(!lPos) {printf("*** UNDO_ln_res E001\n"); return -1;}
-    printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
+    // printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
 
 
   // remove first char; add ' ' as last char
@@ -788,7 +814,7 @@ extern AP_STAT   AP_stat;
 //================================================================
   int UNDO_ln_del (long lNr) {
 //================================================================
-// delete line (lNr+1).
+// UNDO_ln_del             delete sourceLine lNr
 
 
   int      typ;
@@ -796,17 +822,62 @@ extern AP_STAT   AP_stat;
   char     *lPos;
 
 
-  printf("UNDO_ln_del %ld\n",lNr);
+  // printf("UNDO_ln_del %ld\n",lNr);
   // UTF_dump__ ();
 
 
+  // get lPos = sourceline from sourcelineNr lNr
   lPos = UTF_GetLinNr (NULL, &ll, lNr);
   if(!lPos) {printf("*** UNDO_ln_del E001\n"); return -1;}
-    printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
+    // printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
 
 
+  //----------------------------------------------------------------
+  // get parents, redisplay unvis. parents, reset is-parent-bit of parents
+  {
+    int            i1;
+    long           dli;
+    char           *osrc;
+    MemTab(ObjSRC) mtPar = _MEMTAB_NUL;
+    // ObjAto         ato1;
+
+    // check if Line cBuf is a Definitionline; get osrc = pos. of code
+    i1 = APED_ck_defLn (&osrc, lPos);
+    if(i1) {TX_Error("UNDO_ln_del E1"); return -1;}
+    // get max nr of atomic-objs
+    i1 = SRCU_tsMax (osrc);  // printf(" siz-mtPar = %d\n",i1);
+      // printf(" _ln_del2|");UTX_dump_cnl(lPos,100);printf("|\n");
+      // printf(" _ln_del2 i1=%d\n",i1); // exit(-1);
+    // get temp-spc for atomic-objs 
+    // ATO_getSpc_tmp__ (&ato1, i1);
+    // if(!ATO_getSpc_tmp_ck(&ato1)) {TX_Error("UNDO_ln_del E2"); return -1;}
+    // get temp-spc for parents-table
+    MEMTAB_tmpSpc_get (&mtPar, i1);
+    if(MEMTAB_RMAX(&mtPar) != i1) {TX_Error("UNDO_ln_del EOM"); return -1;}
+    // get parents-table and atomic-objs
+    // APT_ato_par_srcLn (&mtPar, &ato1, osrc);
+      // ATO_dump__ (&ato1, "_ln_del");
+    APT_ato_par_srcLn (&mtPar, NULL, osrc);
+      // MemTab_dump (&mtPar, "_ln_del");
+
+    // loop tru parents
+    for(i1=0; i1<mtPar.rNr; ++i1) {
+      dli = (MEMTAB__(&mtPar,i1))->dli;
+      // redisplay parent if unvis.
+      DL_unvis__ (dli, 0);
+      // reset is-parent-bit of parent
+      DL_parent_set (dli, 0);
+    }
+    MEMTAB_tmpSpc_free (&mtPar);
+  }
+
+
+
+
+  //----------------------------------------------------------------
+  // get dbo
   APED_dbo_oid (&typ, &dbi, lPos);
-  if(typ == Typ_Error) {printf("*** UNDO_ln_del E002\n"); return -1;}
+  if(typ == Typ_Error) {printf("UNDO_ln_del E4\n"); return -1;}
     // printf(" typ=%d dbi=%d\n",typ,dbi);
 
 
@@ -930,7 +1001,7 @@ static long   dli, dbl;
 
 
   printf("UNDO_app__ %d\n",mode);
-    UNDO_dump ();
+    // UNDO_dump ("UNDO_app__");
 
 
   //================================================================
@@ -996,13 +1067,13 @@ static long   dli, dbl;
   //================================================================
   L_app_ex:
 
-    UNDO_dump ();
+    // UNDO_dump ("ex-UNDO_app__");
 
   return 0;
 
   L_E001:
     printf("UNDO_app__ E001\n");
-    UNDO_dump ();
+    UNDO_dump ("");
     return -1;
 }
 
@@ -1190,7 +1261,7 @@ static long   dli, dbl;
 
 
 //================================================================
-  int UNDO_dump () {
+  int UNDO_dump (char *info) {
 //================================================================
 /// dump delTab
 
@@ -1200,7 +1271,7 @@ static long   dli, dbl;
 
   MemTab_load ((void**)&oTab, &iNr, (MemTab*)&undoTab);
 
-  printf("--------- UNDO_dump rNr=%d\n",iNr);
+  printf("--------- UNDO_dump rNr=%d ---- %s\n",iNr,info);
 
   for(i1=0; i1 < iNr; ++i1) {
     o1 = &oTab[i1];

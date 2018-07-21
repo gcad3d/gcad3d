@@ -118,7 +118,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   int   iis, iie, iseg, ipt, itot;
 
 
-  UT3D_stru_dump (Typ_CVPOL, plg, " UPLG_2par_iseg ");
+  // UT3D_stru_dump (Typ_CVPOL, plg, " UPLG_2par_iseg %d",is);
 
 
   itot = plg->ptNr - 1;
@@ -128,7 +128,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   // get startSegNr, endSegNr. 0=first.
   UPLG_iseg_par (&iis, plg->v0, plg);
   UPLG_iseg_par (&iie, plg->v1, plg);
-    printf(" iis=%d iie=%d is=%d\n",iis,iie,is);
+    // printf(" iis=%d iie=%d is=%d\n",iis,iie,is);
 
 
 
@@ -182,7 +182,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   //----------------------------------------------------------------
   L_exit:
 
-    printf("ex _2par_iseg p1=%lf p2=%lf\n",*p1,*p2);
+    // printf("ex _2par_iseg p1=%lf p2=%lf\n",*p1,*p2);
 
   return 0;
 
@@ -456,9 +456,9 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 }
 
 
-//================================================================
+//=====================================================================
   int UT3D_2pt_plg_iseg (Point *p1, Point *p2, int is, CurvPoly *plg) {
-//================================================================
+//=====================================================================
 // UT3D_2pt_plg_iseg            get segment from polygon
 // Input:
 //   is     segment-nr, seg.1 is first = point[0]-point[1]
@@ -469,8 +469,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   double  par1, par2;
 
 
-  printf("UT3D_2pt_plg_iseg %d\n",is);
-  UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_plg_iseg");
+  // printf("UT3D_2pt_plg_iseg %d\n",is);
+  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_plg_iseg");
 
 
   if(is < 1) {
@@ -491,7 +491,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   UT3D_pt_evalplg (p2, plg, par2);
 
 
-    UT3D_stru_dump(Typ_PT, p2, "_2pt_segplg-p2");
+    // UT3D_stru_dump(Typ_PT, p2, "_2pt_segplg-p2");
 
 
   return 0;
@@ -669,8 +669,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   Line   lnp;
 
 
-  UT3D_stru_dump (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
-  UT3D_stru_dump (Typ_LN, ln, " ln ");
+  // UT3D_stru_dump (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
+  // UT3D_stru_dump (Typ_LN, ln, " ln ");
 
 
   // init
@@ -848,7 +848,7 @@ Returncodes:
 
   // get spc for parameters on elli
   if(!va_el) {
-    va_el = (void*) MEM_alloc_tmp (ptxMax * sizeof(double));
+    va_el = (void*) MEM_alloc_tmp ((int)(ptxMax * sizeof(double)));
       // printf(" tmpSpc for va_el..\n");
   }
 
@@ -1469,6 +1469,7 @@ Returncodes:
 ///                NULL = no parameters
 ///   Returncodes:
 ///                0 = OK
+///                1 = no projectionpoint exists; nearest point selected
 ///               -1 = out of tempSpace
 ///
 /// Nearest point to <pt> is in pto[0];
@@ -1482,7 +1483,7 @@ Returncodes:
 
 
   // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
-  printf("UT3D_pt_projptplg Pt = %f %f %f\n",pt->x,pt->y,pt->z);
+  // printf("UT3D_pt_projptplg Pt = %f %f %f\n",pt->x,pt->y,pt->z);
   // UT3D_stru_dump (Typ_CVPOL, plg, " plg ");
 
 
@@ -1516,6 +1517,8 @@ Returncodes:
     // d1 = signed distance (pTab[i1-1] - pt)
     // d1 = UT3D_slen_3pt (&pTab[i1-1], &pTab[i1], &pto[iOut]);
     d1 = dd * lSeg;
+      // printf(" d1[%d] = %lf\n",i1,d1);
+
     if(d1 < -UT_TOL_pt) continue;
     if(d1 > lSeg+UT_TOL_pt) continue;
 
@@ -1571,9 +1574,9 @@ Returncodes:
 
 
     // TESTBLOCK
-    printf("PPPPPPPPPPPPPPPPPPP ex UT3D_pt_projptplg nxp=%d\n",*nxp);
-    for(i1=0; i1 < *nxp; ++i1) printf(" pa[%d] = %f %f %f ttab = %f\n",
-                               i1,pto[i1].x,pto[i1].y,pto[i1].z,ttab[i1]);
+    // printf("PPPPPPPPPPPPPPPPPPP ex UT3D_pt_projptplg nxp=%d\n",*nxp);
+    // for(i1=0; i1 < *nxp; ++i1) printf(" pa[%d] = %f %f %f ttab = %f\n",
+                               // i1,pto[i1].x,pto[i1].y,pto[i1].z,ttab[i1]);
 
     // END TESTBLOCK
 
@@ -1588,7 +1591,7 @@ Returncodes:
   L_noPt:
     // printf("L_noPt:\n");
 
-/*
+
   lSeg = UT_VAL_MAX;
   *nxp = 1;
 
@@ -1601,7 +1604,8 @@ Returncodes:
       irc = i1;
     }
   }
-
+  TX_Print("**** PT -> Polygon: no prjPoint exists ..");
+/*
   // Punkt 0: Tangente an das Startsegent.
   if(irc == 0) {
     UT3D_pt_projpt2pt (&pto[0], &d1, pt, &pTab[0], &pTab[1]);
@@ -1621,7 +1625,7 @@ Returncodes:
     // printf("PPPPPPPPPPPPPPPPPPP ex UT3D_pt_projptplg nxp=%d\n",*nxp);
 
 
-  return 0;
+  return 1;
 
 }
 

@@ -141,6 +141,8 @@ static FILE  *finLun;                    // swapfile for large input
   UtxTab_add (&AP_TxTab1, fn);
   UtxTab_query (&pnin, &AP_TxTab1);
 
+  printf("OS_CTL_read_init |%s|\n",fn);
+
 
   // create input-pipe
   if(stat(pnin, &att1) == -1) {
@@ -153,7 +155,7 @@ static FILE  *finLun;                    // swapfile for large input
 
   // fix tempfilename
   sprintf(fnin, "%sCTRLfin",OS_get_tmp_dir());
-    printf(" CTRL_CB__ fnin=|%s|\n",fnin);
+    // printf(" CTRL_CB__ fnin=|%s|\n",fnin);
 
   // open input-file (keep it open permanently)
   // finLun = open (fnin, O_RDWR|O_NONBLOCK);

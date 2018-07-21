@@ -1,4 +1,4 @@
-# make -f tst.mak 
+# . ../options.sh && make -f tst.mak 
 
 # compile only - view precompiled:
 # gcc -E tst_cv1.c > t1 && vi t1
@@ -10,6 +10,13 @@ DLLNAM = plugins/tst
 SRC1 =\
  ../xa/tst.c\
  ../xa/tst_exp.c\
+ ../xa/tst_surfaces.c\
+ ../xa/tst_new.c\
+ ../xa/tst_msh2d.c\
+ ../xa/tst_ut_tin.c\
+ ../xa/tst_ut_GL.c\
+ ../xa/tst_geo.c\
+ ../xa/tst_mem.c\
 
 #../ut/ut_prcv.c\
 #../ut/ut_cntf.c\

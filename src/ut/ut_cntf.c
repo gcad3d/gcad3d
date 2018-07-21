@@ -333,8 +333,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   } else {
     // get startPt and endtPt of newObj
-    irc = UT3D_ptvcpar_std_obj (&new.pts,NULL,&new.v0, Ptyp_0, new.typ, new.obj);
-    irc = UT3D_ptvcpar_std_obj (&new.pte,NULL,&new.v1, Ptyp_1, new.typ, new.obj);
+    irc = UT3D_ptvcpar1_std_obj (&new.pts,NULL,&new.v0, Ptyp_0, new.typ, new.obj);
+    irc = UT3D_ptvcpar1_std_obj (&new.pte,NULL,&new.v1, Ptyp_1, new.typ, new.obj);
     new.ip0 = 0;
     new.ip1 = 0;
   }
@@ -358,7 +358,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     // degenerated lfig;
       // printf(" degen:%d\n",newClo);
     APED_oid_dbo_sm (oid, sizeof(oid), new.typ, new.dbi);
-    // TX_Print("skip degenerated object %s %s",oid,WC_modact_nam);
+    // TX_Print("skip degenerated object %s %s",oid,AP_modact_nam);
     TX_Print("**** skip degenerated object %s",oid);
     // return new.clo;
     return 0;

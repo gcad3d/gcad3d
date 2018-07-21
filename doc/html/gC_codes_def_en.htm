@@ -1,0 +1,1150 @@
+<HTML>
+<HEAD>
+  <TITLE>CAD_Base_de.htm</TITLE>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <meta name="description" content="gCAD3D-Format-Spezifikation">
+  <meta name="keywords" content="3D CAD-Format Spezifikation">
+  <meta name="date" content="2018-05-07T11:33:09+0200" >
+  <meta name="author" content="Franz Reiter" >
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<B>Definitioncodes</B>
+
+<A HREF='#codes0'>General format</A>
+
+<A HREF='#V'>Variable</A>
+<A HREF='#P'>Points</A>
+<A HREF='#L'>Lines</A>
+<A HREF='#D'>Vectors</A>
+<A HREF='#C'>Circles</A>
+<A HREF='#S'>Curves</A>
+<A HREF='CAD_PLN_en.htm'>Plane / Reference system</A>
+<A HREF='format_gcad_A_en.htm'>Surfaces</A>
+<A HREF='#B'>Solids</A>
+<A HREF='#N'>Notes / Dimensions</A>
+<A HREF='#M'>Models</A>
+<A HREF='#T'>Transformations</A>
+<A HREF='CAD_Activ_en.htm'>Interactions</A>
+<A HREF='CAD_Joint_en.htm'>Joints</A>
+<A HREF='#U'>Group</A>
+
+
+____________________________________________________________________________
+<p><a name="codes0"><B>General format:</B></a></p>
+
+The format is: {ObjektName} = {Parameter}
+
+
+<B>Object name</B> (database ID):
+  Consists of the letters and the DB-index,
+  for example: P123 is a point with the reference number 123
+
+
+<p><a name="Codeletters"></a></p>
+<B>Codeletters:</B>
+A = Area (surface)
+B = Body (Solid)
+C = Circle (circle),
+D = Direction (vector)
+I = Interaction
+J = Joint
+L = Line
+M = Model, Sub-model, mockup model, standard part of
+N = Note, Tag, bitmap image
+P = Point (points) R = Refsys (reference system-level)
+R = Refsys (referencesystem, plane)
+S = Spline (Parameter., B-spline, polygon, Conic Sections)
+T = Transformation (Translation display rotation)
+U = Union (Group)
+V = Variable (value number.)
+
+
+<B>DB-index:</B>
+
+  0 (zero) can not be used (is the current object)
+  Is a positive number for permanent objects,
+  Is a negative number for temporary objects that are dynamically generated.
+
+
+____________________________________________________________________________
+<p><a name="V"></a></p>
+<h2>Variable</h2>
+Identification key for a variable is V. 
+____________________________________________________________________________
+
+see also <A HREF="CAD_Var_en.htm">CAD functions variable</A> 
+
+
+<B>Direct assignment to a variable:</B> 
+  Example: 
+  V20 = 10 
+
+
+<B>The following constants are used:</B> 
+RAD_360    PI * 2     6.2831853071795862319 
+RAD_180    PI         3.1415926535897932384 R
+AD_90      PI / 2     1.5707963267948965579 
+RAD_1      PI / 180   0.0174532925199432954 
+SR_3       SQRT(3)    1.732050808 
+SR_2       SQRT(2)    1.414213562 
+Example: V21 = V20 * TAN (RAD_90) 
+
+
+<B>The following functions can be used:</B> 
+The /X/Y/Z coordinates of a point value on: 
+V21 = X(P20) 
+
+The radius of a circle on : 
+V20 = C20 
+
+Length between 2 points: 
+V20 = P20 P21 
+
+Length of a trail: 
+V20 = L20 
+
+Normal distance of a point from a distance: 
+V20 = P20 L20 
+
+Basic account types + - / * 
+V20 = 10 
+V21 = V20 +10 
+# result 20 
+V22 = 10 + V21 * 3 
+result is 70 
+V22 = 10 + V21 * 3 
+# result is 90  - corresponds to V22=(10+V21)*3 
+V20=20*2 
+# !! Error - "20*2"  or "20 * 2" 
+
+The power function ^
+V1 = 4^0.5 
+# result is 2 (4 to the power 0.5) 
+
+The mathematics functions (SQRT () SIN () COS () TAN () ASIN () ACOS () ATAN ()): 
+V23 = SQRT(V22) 
+
+Absolute value (the sign is always positive) 
+V24 = ABS(V20) 
+
+Integer - the numbers after the decimal point are removed 
+V25 = FIX(1.8) 
+# result is 1.0 
+
+Rounding. 1.3 becomes 1.0, 1.8 becomes 2.0, -1.3 becomes -1.0, -1.8 becomes -2.0. 
+V26=RND(V20) 
+
+Numeric variables taken over indirectly through function VAL(); 
+Example: C10=P10 VAL(C5) 
+(It is the radius of the C5 over). 
+
+
+Display the content of variables: 
+PRI "V26 = " V26 
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="P"></a></p>
+<h2>Point</h2>
+Identification letter code of a point is P.
+____________________________________________________________________________
+
+see also <A HREF="CAD_PT_de.htm">CAD-point functions,</A> 
+see also <A HREF="#P_Copy">point from copy function</A> 
+
+
+
+
+
+- Enter a point (with the keyboard:) 
+by entering a defined point, for example, "P12" 
+by the X/Y/Z-components, "10 , 0.0 "defines a point at a distance 10 on the X axis. 
+- Selection of a point, the name, eg" P20 
+
+<B>Selection of points on linear objects:</B> 
+start / end of a line, side: 1 = starting point, 2 = endpoint. 
+P20 = L20 MOD (1) 
+start / end point of a circle: 1 = starting point, 2 = endpoint. 
+P28 = C22 MOD (2) 
+start / end point of a curve, according to Page. 
+P10 = S10 page 
+
+Endpoints of a polygon: 
+P10 = S{polygon} MOD({Item Number}) 
+A polygon vertex of a contour: 
+P # = P(S{ccv} MOD({ccvSegNr}) MOD({polgonPtNr}))
+Points within the endpoints are represented parametrically: 
+P # = P({baseObj} {LPAR}) 
+Example - point in the middle of the object line-20: P20 = P(L20 0.5) 
+Point on a contour line: P = P(S{ccv} MOD({ccvSegNr}) {LPAR}) 
+
+The point with index 0 is always the current position,
+  so it can be only be used for one step.
+
+
+<p><a name="P_Copy"></a></p>
+<B>Point copy function (parametric)</B> 
+These formats are generated when selection functions: 
+# point on line, circle, polygon, spline: 
+  P({obj} {parameter value}) 
+# start or end of line/circle/polygon/spline 
+# or point on a polygon point: P({obj} MOD({Item Number}) 
+# point on line/circle/polygon/spline in a CCV 
+  P({obj} MOD({CCV segment number}) {parameter value}) 
+# start or end point of line/circle/polygon/spline in a CCV 
+# or point on a polygon in a point CCV: 
+  P({obj} MOD({CCV segment number}) MOD({number point})) 
+# Parametric point on a surface: 
+  P(A# {uPar} {vPar}) 
+  
+<u>Example:</u>
+# dot in the middle of the CCV 1.segment the S26: 
+  P(S26 MOD(1) 0.5)
+ 
+<B>Standard definitions:</B> 
+P21 = P(10,20,30) 
+  3D point absolute 
+
+P2 = P1, D1 item 
+  P1 to move by the vector D1. 
+
+P1 = P2, D1, distance 
+  Move point P1 in the direction of the vector to the distance D1 distance. 
+
+P11 = R1 P10 
+  transformation of the point P10 in the reference system R1 (level R1). 
+
+P11 = R1, 10 0 point 
+  P11 is on the X-axis of the reference system is R1. 
+
+P11 = P10 R1 
+  projection of the point P10 to the level of R1. 
+
+P3 = P2, X (10), Y (10) 
+  point relative (in the distance 10 , 10 of p2) 
+
+P5 = P4, ANG (90), distance 
+  polar relative (basis point, angle, distance) 
+
+P3 = P1, P2 
+  point in the middle of producing. 
+
+P3 = P1, D (P1, P2), distance 
+  off track. 
+  point with certain distance from P1 to P1 -&gt; P2 off.
+  The direction is determined by the angle of the line P1 -&gt; P2. 
+
+P11 = P1, D (L1), distance 
+  from a distance away from a point along a line with certain distance off. 
+
+P2 = P1, D (L1), distance, normal distance 
+  from a distance away from a point off. 
+  The distance is in the direction of the line removed, 
+  the normal distance to the line is normally worn. Example: 
+
+p1 = p1, d (l1), val (100), val (50) 
+  P1 is 100 mm in the direction l1 moved,
+  then he will be 50 mm in the direction normal to l1 moved 
+
+P3 = P1, P2, turn angle 
+  point ( focus, position, angle) Example: 
+
+P3 = P1, P2, ANG (180) 
+  P2 is 180 degrees turned around P1. 
+
+P1 = L1, page start or endpoint of a line (corresponding page) 
+P2 = P1, L1 
+  point on line projection. 
+
+P4 = L1 L2 
+  intersection line - line 
+
+P41 = L20 A20 
+  intersection Line - B-SplineFläche 
+
+P6 = C1 
+  circle centre point
+
+P7 = P1 C1 [page] 
+  Fair point on a circle (the circle is projected). 
+  The standard solution is the immediate point. 
+  MOD (2) defines the remote point. 
+
+P5 = L1 C1 side 
+  line-circle intersection. 
+
+P6 = C1 C2 page 
+  2-intersection point on, 
+  the circles projecting curve: Point point = curve number) 
+
+P11 = P1 S10 MOD (1) 
+  P1 P11 is now a standard on S10 at point P11. 
+  MOD (1) = page - the first solution.  
+
+
+
+
+The point with index 0 is always the current position, so it can be only one step can be used. 
+
+<I>Implicit point definitions:</I> 
+for example, the line with endpoints P (L20 MOD (1)): 
+L20 = P (-300 10) P ( -260 40) 
+N21 = DIM P (L20 MOD (1)) P (L20 MOD (2)) P (-280 -40) ANG (0) 
+
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="L"></a></p>
+<h2>Line</h2>
+Identification key for Line is L.
+____________________________________________________________________________
+
+see also <a href="CAD_LN_de.htm">CAD-Function Linie</a>
+see also <a href="#L_Copy">line from copyfunction</a>
+
+
+Definition of a line by:
+  entering a line (with the keyboard)
+  by entering a defined line, for example, "L12"
+  with input from 2 points, for example, "P (0 0 0) P (10 0 0)"
+  by entering point and angle, for example, "P (10 0 0) ANG (45)"
+  by entering point and vector, eg "P20 D (0 0 1)"
+  Horizontal line: Entering the Y value, eg 'Y (10) "
+  Vertical Line: Enter the X value, eg "X (10)"
+
+- selection of a linei
+  provides the name, for example, "L20"
+
+- selection of a line in a contour (CCV):
+    L(S{ccv} MOD({ccvSegNr}))
+  polygon segment from a CCV:
+    L(S{ccv} MOD({ccvSegNr}) MOD({polgonSegNr}))
+
+
+
+
+<p><a name="L_Copy"></a></p>
+<h2>line from copyfunction</h2>
+Objectselections create this formats:
+
+# Line of Polygonsegment
+# or Line of Line in  CCV:
+L({obj} MOD({SegmentNumber}))
+
+# Line of Polygonsegment in CCV:
+L({obj} MOD({CCV-SegmentNumber}) MOD({SegmentNumber}))
+
+
+<u>Example:</u>
+# Line of 1.Segment of CCV S26 (a Line):
+L(S26 MOD(1))
+
+
+
+
+<B>Standardformats:</B> 
+
+L1 = P1 P(100 100) 
+  line between 2 points 
+
+L2 = Y (10) 
+L2 = DX P20 Y (10) Z (10) 
+  line parallel to the current X-axis, through one point. 
+  A Y-offset and/or Z offset can be defined. 
+
+L1 = X (10) L2 = DY P20 
+  line parallel to the current Y-axis, by one point. 
+  An X-offset and / or Z offset can be defined. 
+
+L2 = DZ P20 
+  line parallel to the current Z-axis, through one point. 
+  An X Offset and / or Y offset can be defined.
+line through point with a fixed angle 
+
+L3 = P1 ANG(45) 
+  line through point with direction (vector) 
+
+L4 = P1 D(L1) 
+  parallel to line L1 or: 
+L = PL 
+
+  line by point and the Z-axis of circle/plane: 
+L = L P
+C = P R 
+L4 = P1 D(L1) ANG(90) 
+d
+  line by point with angle relative to the other line. 
+  ANG (0): parallel to line L1; ANG( 90): normal. 
+  line parallel to line spacing. 
+L8 = L8 side distance 
+L1 = L1 VAL (10) HIY 
+
+  line as a center (where l1, l2 parallel) 
+  or as an angle bisector (through the intersection). 
+L9 = L1 L2 
+
+
+  line as angle bisector, additionally rotated. 
+L9 = L1 L2 ANG(90) 
+
+
+
+  line tangential to circle, parallel to line. 
+L1=TNG C1 D(L1) MOD(1)
+
+  line tangent to circle with a fixed angle 
+L1=TNG C1 D(ANG(45)) MOD(1)
+
+  tangent line through point P10 to S10 curve. 
+L10=TNG P10 S10 MOD(1)
+
+  line through point, tangential to circle 
+L5=TNG P1 C1 MOD(1)
+
+  line tangent to 2 circles (Location: in out) 
+L5=TNG C1 C2 MOD(2)
+
+
+
+  cut line between two planes. 
+L10 = R20 R21 
+
+  projection of a line on a plane. 
+L21 = L20 R20 
+
+
+
+
+<I>Implicit Line Definitions:</I> 
+L20 = L(Start Point Endpoint) 
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="D"></a></p>
+<h2>Vector / direction</h2>
+Identification key for a vector is the letter D ( "Direction"). 
+____________________________________________________________________________
+
+
+see also <A HREF="CAD_Vec_en.htm">CAD functions vector/direction,</A> 
+see also <A HREF="#D_Copy">vector from copyfunction</A> 
+
+
+
+
+A vector defines a direction and is not bound to any position. 
+representation of vectors:
+  - vectors are only temporarily displayed, 
+  - Always in the center of the picture. 
+  - Normalized vectors (with length 1) in black, otherwise red. 
+
+The following are standard vectors: 
+  DX DY DZ 
+  according to standard axis directions; 
+  DIX DIY DIZ 
+  correspond to the inverse standard axis directions 
+
+Definition of a vector by: 
+  - select a line or a circle (normal vector) 
+    or a plane (normal vector) or by 2 points 
+  - Selection of a vector by Page Up/Page Down (picture) keys 
+  - enter a standard vector (with the keyboard:) 
+    DX or DY or DZ or inverse to DIX DIY DIZ 
+  - entering a vector (with the keyboard): 
+  defined by entering a vector, for example, "D12" 
+  by the X / Y / Z-components, "0,0,1" defines a Z-vector 
+  by one or two angles (rotateangle, tiltangle)
+
+
+The last parameter may be "REV" (vector is shown reverse). 
+
+As the penultimate parameter the vector length can be specified. 
+  Example: "DX 2" or "DX 2 REV"
+
+
+<U>For example:</U> 
+# vector 1 = direction negative X-axis 
+D1 = DIX 
+# 2 = vector in direction x = 1, y = 1 in the XY plane 
+D2 = D(1 1 0)
+
+
+<p><a name="D_Copy"></a></p>
+<B>vector from copyfunction</B> 
+
+These formats are generated from selection functions: 
+# vector of line: 
+D (L{number}) 
+
+# vector of polygon segment 
+# or vector of line in a CCV: 
+D ((obj) MOD ((segment number))) 
+
+# vector of line in a vector CCV 
+# or polygon segment in a CCV: 
+P ((obj) MOD({CCV-segment number}) MOD({segment-number})) 
+<U>Example:</U> # vector from 1.segment the CCV S26 (one line): 
+P (S26 MOD(1))
+
+ 
+<B>Standard formats</B> 
+
+  defined by vector direction and length. 
+  D = D(dx, dy [, dz]) [length] [ "REV"] 
+D1 = DX 100 
+D2 = D (10 0) 
+D3 = D (0.7 0 0.7) 100 
+
+D3 = ANG(30) 100 
+  definition 2D by 2D-vector angle and vector length (optional). 
+  The angle defines the direction in the XY plane. 
+
+D4 = ANG(90) ANG(30) 100 
+  Definition vector by rotation-angle, tilt-angle and vector length (optional). 
+  First rotate around Z-axis, then around the new Y-axis.
+  ANG(0) ANG(0)      - gives Vector 1,0,0
+  ANG(90) ANG(0)     - gives Vector 0,1,0
+  ANG(90) ANG(30)    - gives Vector 0,0.9,0.5
+  ANG(180) ANG(30)   - gives Vector -0.9,0,0.5
+
+D5 = P1 P2
+D5 = P1 P2 100
+D5 is a vector route from P1 to P2. Length optional
+
+
+D6 = L10 100 
+  Vector in the direction of the line. Length is optional. 
+Main/sub-axis of Circ, ellipse, Plane through Modifier: 
+  1 = Z-axis, 
+  2 = X-axis (ellipse: major axis), 
+  3 = Y-axis (ellipse: In addition to axis), 
+  4 = inverse X-axis 
+  5 = inverse Y-axis 
+Example: 
+D20 = C20 MOD(2) 
+  provides the X-axis of the C20 
+Normal vectors: 
+D = Circle 
+D = Plane 
+D = Point Point Point 
+D = Line Line 
+D = Line Point 
+D = Vector Line 
+D = Vector Point Point 
+  (All in addition to length and "REV" is possible). 
+
+Examples: 
+D7 = C10 100 
+# vector in the direction of the Z-axis circle of C10, length 100 
+D7 = R10 REV
+# vector in the opposite direction of the Z-axis level of R10. 
+
+
+
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="C"></a></p>
+<h2>Circle / Arc</h2>
+Identification key for circle/arc is C
+____________________________________________________________________________
+
+see also <A HREF="CAD_CI_en.htm">CAD functions circle / arc (Circle / Arc)</A> 
+
+
+
+
+Definition of a circle by defining an arc by: 
+
+- C (Start Point Endpoint centre [Z-axis] [Rotation direction]) 
+- C (endpoint center [Z-axis] [Rotation direction]) 
+  Points here with index "P20" or "xCoord yCoord [Z (zCoord]" 
+For example: | C (25 0 0 25 0 0) 
+If the starting point, then the endpoint is the last P(), L() or C() - the definition used. 
+- Selection of a circle, 
+  the name, eg "C20" 
+- selection of a circle in a Contour (CCV): 
+  C (S{ccv} MOD({ccvSegNumber})) 
+
+
+Deviation:
+  The deviation for the presentation of the circles can be set directly in Standards/Tolerances with tolerances for the representation – Polygon."
+  Furthermore, by changing the Model size (MODSIZ) the deviation is set. 
+
+Parameter direction of rotation: 
+<B>CW</B> (clockwise) or 
+<B>CCW</B> (counter-clockwise) 
+The specification of CCW is not required (default). 
+
+The turning point is valid if the spin axis of the eye of the beholder shows. 
+# Circle copy 
+C2 = C1 
+
+
+<B>Standard formats:</B> 
+# concentrically. circles. Negative radius difference shrinks the circle. 
+C2 = C1 (radius differential) 
+# center point, point at the periphery [Z-axis vector] 
+C3 = P1 P2 
+C3 = P1 P2 D(1 0 1) 
+# center, tangential to Line/Circ 
+C1 = P1 L1 
+C1 = P1 C1 
+# Tangential to 2 elements, radius. 
+# C1 = P1, L1, Radius, page 
+# C2 = P1, C1, Radius, page 
+# C5 = L1, L2, Radius, page 
+# C5 = L1, C1, radius, Page 
+# C5 = C1, C2, Radius, page 
+L1 = X (10) 
+L2 = Y (10) 
+C1 = L1 L2 VAL(5) MOD(1) 
+
+# 2 points on the scale radius. page on which the center is located. 
+# C1 = P1 P2 radius side Z-axis vector 
+P20 = P(98.6 5.4 0) 
+P21 = P(114.5 -15.2 0) 
+C22 = P20 P21 VAL(12) MOD(1) DR 
+
+# point at the periphery, tangent, radius . 
+#C1 = P1 L1 radius side 
+L20 = P(44.6 -32.8 0) P(86.5 -69.3 0) 
+P26 = P(56.2 -35.5 0) 
+C21 = P26 L20 VAL(8) MOD(2) 
+
+# point at the periphery, tangential to a circle. 
+# C2 = P1 C1 radius page 
+C20 = P (114.5 -15.2 0) VAL (12) DR 
+P27 = P (96.9 -19.7 0) 
+C21 = P27 C20 VAL (8) MOD (1) 
+
+# Circle through three edge points 
+C20 = P (0 0) P (10 0) P (10 10) 
+
+
+<B>Arc (limited circles):</B> 
+
+  Start center point of rotation angle Z-axis vector 
+C21 = ARC P20 P21 ANG(90) DZ 
+
+  Circ ARC starting point endpoint center [Z] [Rotation direction] 
+  Arc from start point endpoint center (center axis of rotation direction) 
+  Rotation direction: CW (clockwise) or CCW (counter-clockwise, default). 
+  The turning point is valid if the spin axis of the eye of the beholder shows. 
+C20 = ARC P1 P2 P3 
+C31 = ARC P(10,0,10) P(0,10,10) P(0,0,10) = 
+C32 = ARC P(10,0,0) P(0,0,10) P( 0,0,0) D(0,1,0) CW 
+  Circ ARC start point, end point, radius, Z-axis 
+  Arc from start point endpoint radius center axis
+  Radius: positive for clockwise, negative for counter-clockwise. 
+C21 ARC = P(251 23 0) P(189 75 0) VAL(50) DZ
+  
+  Double arc through the starting point, starting direction, and radius. off direction: the tangent to the circle in the Start point. A vector. 
+  Angle: start angle, optional, default is 360 degrees. 
+  Axis vector optional. 
+  [CW / CCW] is the direction of rotation; optional ( "CW").
+Example: End tangents of a Clothoid as the start direction. 
+S20 = CLOT P(0 0 0) DX ANG(30) 0 10 
+P20 = P(S20 1) 
+D20 = TNG P20 S20 
+C20 = ARC P20 D20 25 ANG(30) 
+
+
+  Arc through three points on the edge 
+C20 = ARC1 P (0 0) P (10 0) P (10 10) 
+
+
+<B>Implicit Definition of circles/arcs:</B> 
+
+C ((starting point) (end) (center) [Z] [Direction]) 
+C ((end) (center) [Z] [Direction]) 
+here only points with index "P20" or "xCoord yCoord [Z (zCoord] "
+Example: C(25 0 0 25 0 0)   
+
+
+
+<B>Circle from copyfunction</B> 
+These formats are generated when selecting features 
+Circle from CCV: 
+C(S{ccv} MOD({ccvSegNumber}))
+ 
+
+
+
+
+____________________________________________________________________________
+<p><a name="S"></a></p>
+<h2>Splines/Curves</h2>
+Identification letter for curves is S (spline).
+____________________________________________________________________________
+
+see also <A HREF="CAD_CV_en.htm">CAD functions for curves</A> 
+
+
+
+Polygon 
+ellipse 
+Clothoide 
+free-form curve (B-Spline) 
+contour (compound curve) 
+polynomial curve (currently only import programs or MANual) 
+
+<B>Standard sizes ellipse:</B> 
+  ellipse from center, endpoint main axis, endpoint Besides axis: 
+S1 = ELL P (100 0) P (150 0) P (100 20) 
+ellipse from center, the main vector, vector addition axis: 
+S1 = ELL P(100 0) D(10 0) D(0 5)
+ (the vectors defining the direction and length of main and secondary axes) 
+
+ Limited ellipse from center, main axis vector, secondary axis vector, starting point and end point: 
+S1 ELL = P(0 0) D(10 0) D(0 5) P(10 0) P(-10 0) 
+
+ projection of an ellipse from circle on plane: 
+S20 = R20 ELL C20 
+
+<B>Standard formats polygon:</B> 
+ Parallelogram from one point and 2 vectors: 
+ S = REC pt1 vec1 vec2 
+ (vectors: the direction and length!) 
+S20 = REC P(100 0 0) D(50 0 0) D(0 12 0)  
+
+ Polygon of points: 
+ S# = POL, point1, point2 &lt;POINT3, .. pointn&gt; 
+P20=P(10,10) 
+P21=P(20,20,15) 
+P22=P(25,20) 
+S24=POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10) 
+
+ Polygon projected onto plane
+ S#=POL Polygon Refsys 
+S20=POL P(30,0) P(30,10,10) P(40,30,20) 
+S21=POL S20 R0 
+
+ 3D-Polygon from B-Spline: 
+ S#=POL,B-Spline,Tolerance 
+
+<B>Standard formats Clothoids:</B> 
+ Create a clothoid curve (by a planar spiral through Fresnel integrals). 
+ Start Point       Start Point 
+ Start Vector      Start direction (or vector angle) 
+ Angle             Difference Angle off direction-toward the end point is positive, clockwise (CW); 
+                    negative: counterclockwise (CCW). 
+ Start radius      Radius at the start point, or 0 for infinite radius 
+ EndRadius         Radius at the end point or 0 to infinity 
+ [Z-Axis]          Normal vector; optional. 
+
+S20 = CLOT P(0 0 0) ANG( 0) ANG(30) 0 10 
+
+Example Model: see sample_cloth1.gcad 
+
+To export a clothoid curve: 
+ DXF: Output as POLYLINE. 
+ Iges: output entity 106 (CopiousData, form 12 = 3D polygon). 
+
+
+<B>Standard formats B-spline:</B> 
+
+ B-spline from control points/node vector: 
+ S-bsp=BSP, ptNr, degree, control points, node vector, startup parameters, end parameter 
+  ptNr = number of control points, 
+  control points: the control points, number = ptNr, 3 values (X/Y/Z). 
+  node vector: the distance parameter, number = ptNr + degree + 1  
+S20 GNP, 6.3, -178,109,0, -166,128,0, -144,109,0, -109,112,0, -106,134,0, -119.138, 0,0,0 , 0,0,0.333333,0.666667,1,1,1,1,0,1 
+
+ B-Spline from points: 
+ S-bsp = BSP{points} [, degree] [, CTRL] 
+ CTRL: whether the defined points are transit points or control points. 
+P20 = P (78.9) 
+P21 = P (66.28) 
+P22 = P (44,9,25) 
+P23 = P (9.12) 
+P24 = P (6.34) 
+# B-spline from Points 
+S20 + BSP, P20, P21, P22, P23, P24 
+
+ B-spline from polygon: 
+ S-bsp = BSP {polygon} [, degree] [, CTRL] 
+ CTRL: whether the defined points are transit points or control points. 
+P20 = P (78.9) 
+P21 = P (66.28) 
+P22 = P (44,9,25) 
+P23 = P (9.12) 
+P24 = P (6.34) 
+# B-spline from points 
+S20 = GNP, P20 , P21, P22, P23, P24 
+# Polygon from Points: 
+DRAW OFF 
+S21 = POL, P20, P21, P22, P23, P24 
+# BSpline from Polygon 
+DRAW ON 
+S22=BSP, S21
+
+ B-Spline = isoparametric curve from a surface 
+ Currently from B-Spline surface only, entry point instead of parameter value has not yet been implemented 
+ S-bsp = ISO {B-Spline surface} {parameter value} [{direction}] 
+  (Modifier CX = across; Default = along) 
+# cross-section curve in the middle of the Surface A20: 
+S20 = ISO A20 0.5 CX
+
+
+<B>Standard format contour (compound curve):</B> 
+
+Contour ("concatenated Curve"-CCV), 
+The contour begins and ends at a point. 
+Elements: points, lines, circles, curves. 
+Following circles and curves, the direction of rotation (CW or CCW) can be defined. 
+It will automatically be formed normal to lines and arcs. 
+
+Format: 
+S# = CCV {contour elements} 
+
+Example: 
+C20 = P(39.26) VAL( 22) 
+S20 = CCV P (7.25) C20 CW P (35.58)  
+
+
+<B>Standard format polynomial curve:</B> 
+
+ Polynomial curve from evaluating a polynomial: 
+ S# = PSP3, arc1{, arc2, .. arcn} 
+ Polynomial curve with 1-n arcs. 
+ An arc comprises 13 numbers, the distance value and the evaluated polynomial 
+ xa, ya, za, xb, yb, zb, xc, yc, zc and xd, yd, zd. 
+ xa, ya, za defines a passage point. 
+S20=PSP3,0,3.84815,0.967105,0,0.577021,0.207039,0,0,0,0,-0.169071,0.140166,0, 1,4.2561,1.31431,0,0.069808,0.627537,0,-0.507212,0.420498,0,0.341924, -0.327596,0,2,4.16062,2.03475,0,0.081155,0.485747,0,0.518559,-0.562288,0, -0.183075,0.224101,0,3,4.57726,2.18231,0,0.56905,0.033474,0,-0.030664, 0.110016,0,-0.060996,-0.13481,0,4,5.05465,2.19099,0,0.324734,-0.150924,0, -0.213651,-0.294414,0,0.071217,0.098138,0,5,5.23695,1.84379,0,0.111083, -0.445338,0,0,0,0,0.427303,0.588828,0 
+
+
+
+
+____________________________________________________________________________
+<p><a name="B"></a></p>
+<h2>Solids (Bodies)</h2>
+Identification letter for Solids is B (Body).
+____________________________________________________________________________
+
+see also <a href="CAD_SOL_en.htm">CAD-Functions for Solids (Bodies)</a>
+
+
+
+Cone 
+Torus
+Sphere
+Prism
+
+____________________________________________________________________________
+<b>Sphere: </b>
+
+# Sphere from the radius center: 
+B1 = SPH P(0 0 0) 12 
+
+# Sphere from circle: 
+C1 = P(0 0 0) 12 
+B2 = SPH C1 
+
+
+
+
+
+
+
+<b>Cone-shaped body: </b>
+
+   B2 = CON Midpoint_1 Midpoint_2 Radius_1 Radius_2 
+B20 = CON P(0 0 0) P(100 0 0) VAL(60) VAL(40) 
+
+   B3 = CON circle_1 circle_2
+C20 = P(0 0 0) VAL(100) DX 
+C21 = P(100 0 0) VAL(40) DX 
+B20 = CON C20 C21 
+
+   B1 = CON base_circle point_cone_top
+
+
+
+
+
+<b>Torus / circular ring: </b>
+
+  B# = TOR centrPt axis Radius_major Radius_minor
+
+  B# = TOR L C    // axis outer_circle 
+  B# = TOR C C    // main_circle, outer_circle 
+  B# = TOR R C    // mani_radius,  outer_circle 
+   
+  
+  The axis of the circle of skin is the main axis. 
+  The minor circle axis is always normal to the main axis. 
+  Radius_major circle is entirely on the outside, and is always positive. 
+  Modifier_outer_Inner: required for selection of a variant 
+   where the Radius_major circle is smaller than the Radius_minor circle. 
+
+B20=TOR P(0 0 0) DZ VAL(100) VAL(25)
+C20=P(100 0 0) VAL(25) DY
+B20=TOR P(0 0 0) DZ C20
+
+
+
+
+<b>Prism: </b>
+
+  B = PRISM plane_Base_surface Vector/Point/thickness 
+  
+  plane_Base surface: Closed Polygon/Circle/Ellipse 
+  The opposite surface may be a point or defined by a vector 
+  or by the thickness (for example wall thickness). 
+
+# Prism from Parallelogram and vector 
+S20=REC P(100 0 0) D(50 0 0) D(0 12 0)
+B20=PRISM S20 D(0 0 10)
+
+# Prism from circle with thickness (cylinder height) 
+C20=P(289 -20.8 0) VAL(125) DZ
+B20=PRISM C20 25
+
+# Conic prism from polygon 
+20=P(768 -457 0)
+S20=POL P20 P(930 -474 0) P(1029 -251 0) P(971 -246 0) P(891 -412 0) P(801 -407 0) P20
+B21=PRISM S20  P(900 -500 200)
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="N"></a></p>
+<h2>Notes / Dimensions</h2>
+Identification letter for Notes/Dimensions is N. 
+____________________________________________________________________________
+
+see also <a href="CAD_TxtG_en.htm">CAD-Functions for Notes / Dimensions</a>
+
+
+
+   The font size for text and dimensioning is defined by 
+DEFTX {Textsize} {DimTextSiz} {text general scale} {number decimal places} 
+   or interactively in Standards/Text. 
+   Default values in the file {base}/xa/gCAD3D.rc. 
+
+TODO: 
+TEXTS AND DIMENSIONS ARE NOT EXPORTED TO IGS or DXF. 
+For interactive modification of the parameters Marrow, Mline
+  and additional text a user interface is to be created.
+
+
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="M"></a></p>
+<h2>Model</h2>
+Identification letter for Models is M.
+____________________________________________________________________________
+
+see also <a href="CAD_Model_en.htm">CAD-Functions for Models</a>
+
+
+A model (a Assembly) can consist of several Models (Sub-models)</P>
+
+
+
+
+____________________________________________________________________________
+<p><a name="T"></a></p>
+<h2>Transformations</h2>
+Identification letter for Transformations is T.
+____________________________________________________________________________
+
+see also <a href="CAD_Tra_en.htm">CAD-Functions for Definition of Transformations</a>
+see also <a href="CAD_Modify_de.htm#F2">CAD-functions for modifying geometry</a>
+
+
+
+
+
+____________________________________________________________________________ 
+<p><a name="CWCCW"></a></p>
+<B>Rotation </B>
+ CW      (clockwise) or 
+ CCW     (counter-clockwise) 
+ The specification of CCW is not required (default). 
+ The rotation results in plan view of the axis of rotation 
+ as seen by the eye of the beholder. 
+
+
+<p><a name="ANGR"></a></p>
+<B>Rotation angle (Rotate) </B>
+ The rotation is around the Z-axis of the active construction plane. 
+ Input directly: Angle 
+ Enter indirectly: ANG(angle) 
+ Output format: ANG(angle ()), for example: 
+ ANG(30) - rotation by 30 degrees 
+ # Angle value 
+ ANG (angle value [REV]) 
+ # Direction vector 
+ ANG (D [ANG () / REV]) 
+ # Line (direction) 
+ ANG (L [ANG () / REV]) 
+ # 2 Points (direction) 
+ ANG (P P [ANG () / REV]) 
+In CAD mode, the PgUp / PgDown button can add together one additional (relative) 
+ angle value of about +90 degrees. (There must have been a prior 
+ selection to indicate direction (eg select a line)). 
+
+
+
+<p><a name="ANGT"></a></p>
+<B>Tilt angle</B>
+The rotation (tilting) is done to the new Y-axis created by a rotation of the Z-axis. 
+ A tilt angle of 90 degrees provides the Z-axis (independent from the angle of rotation). 
+ 
+Output format: ANG({angle}), for example: 
+ ANG(30) - rotation by 30 degrees 
+Example of rotate and tilt: 
+ ANG(90) ANG(30) 
+ There the object is rotated 90 degrees around the Z axis; 
+ The horizontal axis now corresponds to the old X-axis, tilt axis at this 
+ tilt is now around 30 degrees. 
+ A negative tilt angle rotates in the opposite direction. 
+
+
+<p><a name="MOD1"></a></p>
+<B>Page 1 / 2</B> 
+ Page: with PageUp / Down button; 
+ 1, 2 lateral right / left; 
+ Output Format: MOD (1) or MOD (2) 
+
+
+<p><a name="TSZ"></a></p>
+<B>Additional text with special characters</B> 
+A special character is generated by a sequence of 2 characters. 
+ [d         diameter sign 
+ [g         degree sign (angle) 
+ [+         + - Signs 
+ ['         double quote (")
+ [/         Superscript 
+ [\         Subscript 
+ [n         new line (return, CR) 
+ [%         Is replaced by the standard text. If the text does not include [%, 
+        the default text provided throughout is inserted. 
+ [-         no standard text. 
+ [[         a square bracket "[" 
+ [0 to [9   only N=DIM3 and N=LDRP: Number of decimal places of the dimensions
+         (must be at the beginning of the text block) 
+ [V20]      to expand a numeric variable (V20 in the example) 
+Example: 
+“[+ 0.2 " 
+
+
+<p><a name="NMP"></a></p>
+<B>Dimension arrows </B>
+are defined by specifying a number with 2 digits; 
+one digit for each of the two dimension arrows; 
+No indication or -1: create both arrows automatically.
+
+ 0        no dimension arrow; 
+ 1   &lt;    left arrow 
+ 2   &gt;    right arrow
+ 3   /    slash
+ 4   &gt; &lt;  arrow right and arrow left
+
+Example:
+"12"   left arrow  and right arrow
+
+
+
+<p><a name="NMH"></a></p>
+<B>Extension lines</B> 
+are defined by specifying a number with 2 digits; 
+one digit for each of the two extension lines; 
+ 0 = no guide, 
+ 1 = line 
+Default is 11 (two lines) 
+
+
+<p><a name="iCol"></a></p>
+<B>Color </B>
+ 0 = black 
+ 1 = DefCol 
+ 2 = red 
+ 3 = green 
+ 4 = blue 
+ 5 = yellow 
+ 6 = purple 
+ 7 = blue 
+ 8 = white 
+
+
+<p><a name="symFnam"></a></p>
+<B>Symbolic file names:</B> 
+A symbolic file name consists of 
+"{path}/{filename}" 
+All symbolic pathe are defined in file {base}xa/dir.lst. 
+The icon can be freely chosen. 
+Interactively define the path using the "Standards/Directories". 
+Default directory is {base}/dat; the identifier for this 
+ directory is "Data". 
+ 
+Example of symbolic file name: 
+"Data/Niet1.dat" 
+
+
+
+
+____________________________________________________________________________ 
+<p><a name="U"></a></p>
+<B>Group </B>
+Identification key for group is U. 
+____________________________________________________________________________ 
+Select the objects in the group - the objects will be highlighted. 
+Remove from the group by selecting again. 
+Go to the next field with the Tab key. 
+Example: 
+# Group 2 surfaces 
+U (A20 A21) 
+
+
+
+
+____________________________________________________________________________ 
+In the CAD input fields numerical values can be used (eg, for radius only) as well as variables, 
+PI, the basic arithmetic and mathematics. Functions are also used (but not the functions X, Y, Z and L, C).
+
+
+________________________________________________
+Send bug-reports, suggestions for improvement to
+  franz.reiter@cadcam.co.ats
+</PRE>
+</BODY>
+</HTML>

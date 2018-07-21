@@ -132,7 +132,7 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
 ///   into file <tmpdir>/<appNam>.appdat
 /// Data can be ascii|binary
 /// Input:
-///   lbuf    buffer with line  "SECTION APPDAT appNam nrBytes"
+///   lbuf    buffer with line  "SECTION APPDAT appNam [nrBytes]"
 ///   bufSiz  size of lbuf
 /// \endcode
 
@@ -143,23 +143,20 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
   FILE    *fpo;
 
 
-  // extract appNam from "SECTION APPDAT appNam nrBytes"
+  printf("appDat_aload |%s| siz=%d\n",lBuf,bufSiz);
+
+
+  // extract appNam from "SECTION APPDAT appNam [nrBytes]"
   //                      0123456789012345
   sscanf (&lBuf[15], "%s %ld", fncNam, &bNr);
-    printf(" fNam=|%s| bNr=%ld\n",fncNam,bNr);
+    printf(" fncNam=|%s| bNr=%ld\n",fncNam,bNr);
   sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),fncNam);
+    printf(" fNam=|%s|\n",fNam);
 
 
-  printf("appDat_aload |%s|%s| siz=%d\n",fNam,lBuf,bufSiz);
 
   if(bNr > bufSiz) {
     TX_Error("appDat_aload E001");
-    return -1;
-  }
-
-  i1 = fread (lBuf, 1, bNr, fpi);
-  if(i1 < 1) {
-    TX_Error("appDat_aload E002");
     return -1;
   }
 
@@ -168,19 +165,30 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
     TX_Error("appDat_aload E003"); 
     return -1;
   }
-  fwrite(lBuf, 1, bNr, fpo);
-  fclose (fpo);
 
 
-  // read until SECTIONEND
+  if(bNr > 0) {
+    // copy binary section -> file
+    i1 = fread (lBuf, 1, bNr, fpi);
+    if(i1 < bNr) {
+      TX_Error("appDat_aload E002");
+      return -1;
+    }
+    fwrite(lBuf, 1, bNr, fpo);
+  }
+
+
+  // read/write until SECTIONEND
   L_r9:
     fgets (lBuf, bufSiz, fpi);  // get "SECTIONEND"
       printf(" _aload %ld\n",strlen(lBuf));
-    if(!strncmp(lBuf, "SECTIONEND", 10)) return 0;
+    if(!strncmp(lBuf, "SECTIONEND", 10)) goto L_exit;
+    fprintf (fpo, "%s", lBuf);
     if(!feof (fpi)) goto L_r9;
 
-    TX_Error("appDat_aload E004"); 
-    return -1;
+  L_exit:
+    fclose (fpo);
+    return 0;
 
 }
 

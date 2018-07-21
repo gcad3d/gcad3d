@@ -137,7 +137,7 @@ static Tessdat impDat;
 
 
 // typedef struct { Vectorf vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
-typedef struct { Vector vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
+typedef struct { Vec3f vcf; Pointf p1f, p2f, p3f; short is;}     stlRecBin;
 
 
 
@@ -344,7 +344,7 @@ int main () {
 
   fp1 = fopen (fNam, "rb");
   if(!fp1) {
-    printf("stl_read file open error \n");
+    printf("****** stl_read file open error \n");
     return -2;
   }
 
@@ -355,11 +355,12 @@ int main () {
     // UTX_dump_c__ (s1, 200);
 
   if(UTX_memFind1 (s1, 510, "facet", 5)) {
-    printf(" ascii ...\n");
+    printf(" stl_read_bin - ascii ...\n");
     fclose(fp1);
     return 0;
   }
     
+    printf(" stl_read_bin - binary ...\n");
 
   rewind (fp1);
 
@@ -369,7 +370,8 @@ int main () {
       TX_Print ("stl_read_bin E002");
       return -2;
     }
-      printf(" header |%s|\n", s1);
+      printf(" stl_read_bin - header |%s|\n", s1);
+
     if(strncmp (s1, "solid ", 5)) {
       printf(" stl_read_bin E003\n");
       TX_Print ("stl_read_bin E003");
@@ -379,7 +381,7 @@ int main () {
 
     // read nr of facets
     ii = fread (&nf, 4, 1, fp1);
-      printf(" %d %d\n",ii,nf);
+      printf(" %d nf=%d\n",ii,nf);
     if(ii != 1) {
       TX_Print ("stl_read_bin E004");
       return -4;
@@ -388,8 +390,8 @@ int main () {
   // 3 Points + 3 ints
   i1 = (nf * 24 * 3)  + (nf * 4 * 3) + 1200;
   irc = stl_r_init (wrkSpc, i1);
-    // printf(" i1=%d\n",i1);
-
+    // printf(" irc=%d i1=%d\n",irc,i1);
+    // printf(" sizeof(stlRecBin)=%ld\n",sizeof(stlRecBin));
   if(irc < 0) goto L_err_eom;
 
 
@@ -397,20 +399,22 @@ int main () {
   // read all facets
   for(i1=0; i1 < nf; ++i1) {
 
-    ii = fread (&r1, 50, 1, fp1);
+    ii = fread (&r1, 50, 1, fp1);  // sizeof not correct !
     if(ii != 1) {
       printf(" ReadError in facet %d\n",i1);
       return -1;
     }
-    // printf(" P%d = %f %f %f\n",i1,r1.p1f.x, r1.p1f.y, r1.p1f.z);
+       // printf(" P%d = %f %f %f\n",i1,r1.p1f.x, r1.p1f.y, r1.p1f.z);
     pta[0].x = r1.p1f.x;
     pta[0].y = r1.p1f.y;
     pta[0].z = r1.p1f.z;
 
+       // printf(" P%d = %f %f %f\n",i1,r1.p2f.x, r1.p2f.y, r1.p2f.z);
     pta[1].x = r1.p2f.x;
     pta[1].y = r1.p2f.y;
     pta[1].z = r1.p2f.z;
 
+       // printf(" P%d = %f %f %f\n",i1,r1.p3f.x, r1.p3f.y, r1.p3f.z);
     pta[2].x = r1.p3f.x;
     pta[2].y = r1.p3f.y;
     pta[2].z = r1.p3f.z;
@@ -468,13 +472,16 @@ int main () {
   int    irc;
 
 
+  printf("stl_r_init %d\n",fSiz);
+
   impDat.impSpc = wrkSpc;
 
 
   // structSize berechnen
   // impDat.impSiz = (impDat.oNr * sizeof(ObjGX))     +
            // (impDat.oNr * 3 * sizeof(Point)) + impSpc_INC;
-  impDat.impSiz = fSiz + impSpc_INC;
+  impDat.impSiz = fSiz + (fSiz / 2) + impSpc_INC;
+  // impDat.impSiz = (fSiz * 2) + impSpc_INC;
     // printf(" impSiz=%d\n",impDat.impSiz);
 
 

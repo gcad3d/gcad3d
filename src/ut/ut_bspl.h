@@ -58,13 +58,15 @@ int UT3D_cbsp_ell (CurvBSpl *bsp, Memspc *memSeg, CurvElli *el1, Memspc *tmpSeg)
   int bspl_eval_Tg (int    segNr,  int    ideg,   Point  ContPt[],
                     double *vk,   double uVal,    Vector  *tg);
 
-
   int UT3D_bsp_ck_maxDeg (CurvBSpl *cv1);
 
 
 /// UT3D_bsp_ck_maxDeg         returns max degree of bspline-curve
 #define UT3D_bsp_ck_maxDeg(cv1) ((cv1)->ptNr - 1)
 
+/// UT3D_bsp_tmpSpc_siz    get size of necessary tempSpace for UT3D_pt_projptbspl
+#define bspl_tmpSpc_siz(cvBsp)\
+  (cvBsp)->ptNr * (cvBsp)->deg * 10240
 
 
 //===================== EOF =============================

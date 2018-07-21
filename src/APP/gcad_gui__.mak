@@ -1,8 +1,11 @@
 # Create the gui-lib        make -f xa_gui__.mak
+#
+# used symbols: gcad_dir_bin VGUI
 
 
-# get VGUI BITS OS CC MK
-include ../options.mak
+# get VGUI 
+VGUI := $(shell cat ../gcad_gui_version)
+
 
 # get SRCGUI GUICP GUILIB
 include ../gui/gui_$(VGUI).mak
@@ -13,12 +16,12 @@ VPATH = $(gcad_dir_bin):../gui/:../gui_$(VGUI)/
 
 
 default:
-	@echo build ..
+	@echo "build guilib for $(VGUI) .."
 	make -f gcad_gui_lnk.mak
 
 
 delete:
-	@echo delete ..
+	@echo "delete guilibs .."
 	cd $(gcad_dir_bin) && rm -f $(OBJGUI)
 
 

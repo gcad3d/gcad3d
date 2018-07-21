@@ -1,9 +1,9 @@
 // ../xa/xa_cad_ui.h
 
 
-// IE_get_inp_dli       get dli for active inputField
-// dli = IE_get_inp_dli (IE_inpInd);
-#define IE_get_inp_dli(iind)  -iind - 2
+// IE_GET_INP_DLI       get dli for active inputField
+// dli = IE_GET_INP_DLI (IE_inpInd);
+#define IE_GET_INP_DLI(iind)  -iind - 2
 // dli f. Feld 0: -2, Feld 1: -3 ....
 // see also DLI_TMP
 

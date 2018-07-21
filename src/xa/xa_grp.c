@@ -39,6 +39,7 @@ Grp_ck_def       check if obj is in group
 Grp_init         init obj-list
 Grp_Start        start filling group
 Grp_Clear        clear (reset) group
+Grp_Inv          invert group
 Grp_add__        add obj to obj-list
 Grp_add_all1     add all objs to group (without hidden)
 Grp_del          remove obj from group
@@ -47,7 +48,6 @@ Grp_ck_def       check if obj is in group
 Grp_exp          export (native) alle objects of obj-list --> file
 Grp_res          resolv list and add all parents to list
 Grp_cbuf         return list ob objs of group as text
-Grp_dlAdd        add all objs of group to DL-grp1
 Grp_hide         hide all objs of grp
 Grp_upd          Redraw &| update GrpNr-label
 
@@ -60,6 +60,7 @@ Grp_realloc
 
 List_functions_end:
 =====================================================
+// Grp_dlAdd        add all objs of group to DL-grp1
 
 see also
 DL_grp1_copy      copy all DL-obj with groupBit ON --> GroupList
@@ -125,6 +126,11 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 
 
 
+
+//============ Extern Var: =====================
+
+
+//============ Local Var: =====================
 static ObjDB    *GrpTab = NULL;
 static int      GrpMax = 0;
 static int      GrpNr  = 0;
@@ -183,7 +189,130 @@ static int      GrpNr  = 0;
 
 }
 
+
+//================================================================
+  int Grp_SM () {
+//================================================================
+// move group -> subModel
+// see Mod_m2s__ - (main -> subModel)
+// see Grp_Mdl   - (save Group -> File)
+
+  int    irc;
+  char   s1[256], smNam[128];
+
+
+  printf("Grp_SM \n");
+
+  // exit if no greoup exists
+  if(GrpNr < 1) {TX_Print(" .. no group exists .."); return 0;}
+
+
+  //----------------------------------------------------------------
+  // get smNam = new subModelname
+  irc = Mod_smNam_get (smNam);
+  if(irc < 0) return -1;
+    printf(" smNam=|%s|\n",smNam);
+
+
+
+  //----------------------------------------------------------------
+  // - write group into file
+  // prepare APTsource: MAN-Mode: copy Edi --> memory.
+  AP_SRC_mem_edi ();
+
+  // copy all DL-obj with groupBit ON --> GroupList.
+  DL_grp1_copy ();
+
+  // obj-list Recursiv nach seinen Eltern absuchen und diese zufuegen
+  irc = Grp_res ();
+  if(irc <= 0) {TX_Print("no obj selected ..."); return -1;}
+
+  // export (native) alle objects of obj-list --> file tmpDir/selection1.gcad
+  strcpy(s1,"selection1");
+  Grp_exp (s1, OS_get_tmp_dir());
+
+
+  //----------------------------------------------------------------
+  // create subModel smNam from file tmpDir/selection1.gcad
+  sprintf(s1, "%sselection1.gcad", OS_get_tmp_dir());
+  irc = Mod_SM_add_file (smNam, s1);
+  if(irc < 0) return -1;
+
+
+  //----------------------------------------------------------------
+  // delete group
+  Del_grp__ ();
+
+
+  return 0;
+
+}
+
  
+//================================================================
+  int Grp_Mdl () {
+//================================================================
+// save Group -> modelFile
+
+  int   irc;
+
+  // prepare APTsource: MAN-Mode: copy Edi --> memory.
+  AP_SRC_mem_edi ();
+
+  // copy all DL-obj with groupBit ON --> GroupList.
+  DL_grp1_copy ();
+
+  // obj-list Recursiv nach seinen Eltern absuchen und diese zufuegen
+  irc = Grp_res ();
+  if(irc <= 0) {TX_Print("no obj selected ..."); return -1;}
+
+  // export (native) alle objects of obj-list --> file
+  AP_save__ (1, "gcad");
+
+  return 0;
+
+}
+
+ 
+//================================================================
+  int Grp_Inv (int mode) {
+//================================================================
+/// \code
+/// Grp_Inv          invert group
+/// Input:
+///   mode    2 unhili&redraw
+///           1 Redraw
+///           0 do not Redraw
+/// \endcode
+
+
+  printf("Grp_Inv %d\n",GrpNr);
+
+  if(GrpNr < 1) return 0;
+
+  // if(mode == 2) Grp_HiliClear ();  // unhilite all group-objects
+
+  // clear GroupBits
+  DL_grp1_set (-1L, -1);           // invert all groupBits
+
+  // get GrpNr
+  // GrpNr = DL_grp1_nr_get ();
+
+
+  // DL_hili_off (-1L);   // unhilite alle Objekte  raus 2011-10-03
+
+
+  if(mode) {
+    DL_Redraw ();     // redraw
+    // display nr of objs in group
+    UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
+  }
+
+  return 0;
+
+}
+
+
 //================================================================
    int Grp_Clear (int mode) {
 //================================================================
@@ -623,26 +752,22 @@ static int      GrpNr  = 0;
 }
 
 
+/*
 //================================================================
   int Grp_dlAdd () {
 //================================================================
 // Grp_dlAdd        add all objs of group to DL-grp1
 
   int    i1;
-  long   dli;
 
   for(i1=0; i1<GrpNr; ++i1) {
-  
     DL_grp1_set (GrpTab[i1].dlInd, ON);
-    
   }
-
   DL_Redraw (); // hilite / unhilite
-
   return 0;
 
 }
-
+*/
 
 //================================================================
   int Grp_hide (int mode) {
@@ -664,6 +789,7 @@ static int      GrpNr  = 0;
       DL_grp1_set (GrpTab[i1].dlInd, OFF);
       DL_hili_off (GrpTab[i1].dlInd);
       GA_view__ (GrpTab[i1].dlInd, 3, GrpTab[i1].typ, GrpTab[i1].dbInd);
+      // GA_hide__ ??
     }
 
 
@@ -719,6 +845,8 @@ static int      GrpNr  = 0;
 //================================================================
 /// \code
 /// export (native) alle objects of obj-list --> file
+///   fnam        <filename>[.<filetyp>]
+///   dirNam      absolute
 /// \endcode
 
 //----------------------------------------------------------------
@@ -729,7 +857,7 @@ static int      GrpNr  = 0;
 
   int    i1, i2, typ;
   long   lNr, llen, ind;
-  char   *cpos, cBuf[256], cNam[32];
+  char   *cpos, cBuf[256], cNam[32], *p2;
   FILE   *fpo;
 
   if(fnam == NULL) return 0;   // cancel
@@ -761,7 +889,7 @@ static int      GrpNr  = 0;
     // printf(" nxt ln %ld |",lNr);UTX_dump_cnl(cpos, 50);printf("|\n");
 
   // check for definitionline, defTyp and defInd
-  if(APED_ck_defLn (cpos) != 0) goto L_weiter;
+  if(APED_ck_defLn (&p2, cpos) != 0) goto L_weiter;
 
   // decode definitionObject
   AP_cut_defHdr (&typ, &ind, cpos);
@@ -796,8 +924,8 @@ static int      GrpNr  = 0;
   }
 
 
-  // write MODSIZ DEFTX DEFCOL VIEW CONST_PL
-  DL_wri_dynDat1 (fpo);
+  // write MODSIZ DEFTX DEFCOL VIEW CONST_PL; not MODBOX
+  DL_wri_dynDat1 (fpo, 1);
 
   // add GA-Table (HIDE/G#/..)
   GA_fil_wri (fpo, 1, 0, 1);

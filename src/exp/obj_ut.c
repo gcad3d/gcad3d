@@ -131,6 +131,7 @@ illum 2
 # illumination model;
 
 
+
 */
 
 
@@ -177,7 +178,7 @@ __declspec(dllexport) int obj_read__ (char*);
 
 //================================================================
 // ex ../xa/xa.c
-extern char    AP_dir_open[128];     // directory for OPEN
+extern char    AP_mod_dir[128];     // directory for OPEN
 extern ColRGB  AP_defcol;
 
 
@@ -195,9 +196,10 @@ static ColRGB  colAct;
 static Memspc  *impSpc;
 
 static UtxTab_NEW (colNam);                // stringtable
+// static TxtTab  colNam;                // stringtable
 
 typedef_MemTab(ColRGB);
-static MemTab(ColRGB) colTab = MemTab_empty;
+static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
 
@@ -280,6 +282,12 @@ static MemTab(ColRGB) colTab = MemTab_empty;
 
   // Zwischenspeicher UTF_FilBuf1 loeschen
   UTF_clear1 ();
+
+  // clear stringtable colNam
+  UtxTab_init__ (&colNam);
+
+  // clear colortable colTab
+  MemTab_ini (&colTab, sizeof(ColRGB), Typ_Color, 30);
 
 
   sprintf(mem_cbuf1,"# WaveFront-OBJ-Import %s",fnam);
@@ -718,7 +726,7 @@ static MemTab(ColRGB) colTab = MemTab_empty;
 
   // printf("obj_r_mtllib |%s|\n",cbuf);
 
-  sprintf(s1, "%s%s",AP_dir_open,cbuf);
+  sprintf(s1, "%s%s",AP_mod_dir,cbuf);
     // printf(" s1=|%s|\n",s1);
 
   if((fpi=fopen(s1,"r")) == NULL) {

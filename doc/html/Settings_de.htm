@@ -24,6 +24,7 @@ Standards / Editor                   Ändern des Texteditors (für Directories)
 
 <a href="#Start">Programmstart</a>
 <a href="#Directories">Directories</a>
+<a href="SW_layout_en.htm">Software-Layout</a>
 
 
 
@@ -158,15 +159,15 @@ ____________________________________________________________________________
 <h2>Standards / Directories</h2>
 
 Alle Verzeichnisse, auf die mit File/OpenModel zugegriffen werden soll,
-  müssen hier definiert werden.
-  Im File/OpenModel - Dialog kann mit dem Button "&lt;&lt;---" das Verzeichnis
+  sollten hier definiert werden.
+  Im File/OpenModel - Dialog kann mit dem Button "DIR-SYM" das Verzeichnis
   gewechselt werden.
  
 Es muss für jedes Verzeichnis eine symbolische Bezeichnug definiert werden;
   diese kann frei gewählt werden.
   
-
-Es wird der Systemeditor mit Datei {base}/xa/dir.lst aufgerufen.
+Verzeichnisse zufügen / ändern mit Standards/Directories;
+Es wird der Systemeditor mit Datei {base}/gCAD3D/cfg/dir.lst aufgerufen.
   Achtung: Zugriffsrecht für Schreiben erforderlich.
 
 Beispiel Unix:
@@ -197,33 +198,29 @@ ____________________________________________________________________________
 
 <b>Startparameter:</b>
 Beim Start koennen folgende Parameter angegeben werden:
-  new               // Standardmodell NICHT laden
-  load              // load Model; filename is the following Parameter.
-  defLoad           // das Default-Modell laden;  erfolgt sonst automatisch 
-                    // nach dem Abarbeiten der Startparameter.
-  reLoad            // das temporäre Modell laden (nach Programmabsturz)
-  run               // nach defLoad Model abarbeiten (vor exit)
   comp              // compile DLL's - Checkbox aktivieren
   exit              // normaler Programmstop (mit sichern)
+  crashEx           // Programmstop ohne sichern
   mode_cad          // Starten im Modus CAD.
+  mode_cad_1_2      // Starten im Modus CAD, mit Hauptfunktion u. SubFunktion
+                    // Hauptfunktion: 0=PT, 1=LN, 2=CI ..
+                    // mode_cad_6_3 = S (curve) / B-spline
   mode_man          // Starten im Modus Manuell.
   noTB              // kein Toolbar
   noMB              // kein Meldungsfenster
   noBrw             // kein BrowserWindow
+  defLoad           // das zuletzt bearbeitete Modell laden
 
 Nicht definierte Parameter:
   {Dateiname}.{Filetyp}
   
   Filetyp .gcad, .dxf, .igs, .stp, .bmp. .jpg:
-                    //  Modell (Bild) laden. Dateiname muss komplett sein.
+                    //  Modell/Bild laden. Dateiname muss komplett sein.
                     
   Kein Filetyp:     //  Plugin (DLL, shared library) mit diesem Namen starten;
     
 
 <i>Beispiele:</i>
-./gCAD3D new
-  Starten ohne das Standardmodell zu laden
-
 
 ./gCAD3D load sample_activ_1.gcad noTB noMB
   Modell sample_activ_1 aus dem zuletzt benutzen Verzeichnis (DirIn) laden,

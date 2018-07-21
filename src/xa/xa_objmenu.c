@@ -199,7 +199,7 @@ extern int       IE_modify;
 
   itsMax = SRCU_tsMax (p2);
     // printf(" itsMax=%d siz=%d\n",itsMax,itsMax * sizeof(ObjTXTSRC));
-  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp ((int)(itsMax * sizeof(ObjTXTSRC)));
 
   itsAct = APED_txo_srcLn__ (tso, itsMax, p2);
     // printf(" _txo_srcLn__ %d\n",itsAct);
@@ -265,12 +265,14 @@ extern int       IE_modify;
 //            2/Typ_SubModel:create new SubModel;
 //            3=undo
 
+// static int iTest=0;
   int         i1, i2, ii, iPlg;
   char        s1[32];
 
 
   // printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld %d\n",typ,dbi,dli,version);
   // printf("  APP_stat=%d\n",AP_stat.APP_stat);
+  // ++iTest; if(iTest == 2) AP_debug__ ("OMN_popup_Brw");
 
 
   // load MenInd with indices into MenTxt; this is the new menu.
@@ -304,9 +306,11 @@ extern int       IE_modify;
       }
       // group exists: add "gesamte Gruppe löschen, ausblenden"
       if(iPlg) goto L_Grp0;   // if plugin active: only menu-funcs
+        MenInd[ii] = MSG_GrpMove;  ++ii;   // move groupObjs
         MenInd[ii] = MSG_GrpHide;  ++ii;   // gesamte Gruppe ausblenden
         MenInd[ii] = MSG_GrpDelA;  ++ii;   // gesamte Gruppe löschen
         MenInd[ii] = MSG_GrpClear; ++ii;   // gesamte Gruppe auflösen
+        MenInd[ii] = MSG_GrpInv;   ++ii;   // Gruppe invertieren
       goto L_work; // skip analyze
       // break;
 
@@ -338,7 +342,8 @@ extern int       IE_modify;
       // DB_mdlTyp_iRef (&i1, dbi);
       i1 = Brw_getAux ();
         // printf(" mbTyp=%d\n",i1);
-      if((i1 == ICO_natM)||(i1 == ICO_refM)) {          // 
+      // if((i1 == ICO_natM)||(i1 == ICO_refM)) {        2018-03-31
+      if(i1 == ICO_natM) {
         MenInd[ii] = MSG_activate; ++ii; // activate
       }
       if(version == 0) { 
@@ -405,7 +410,9 @@ extern int       IE_modify;
 
       if(UI_InpMode != UI_MODE_VWR) {
         if(IE_modify == 0) {             // 0=Add 1=Modify 2=Insert
-          if((typ != Typ_PLN)  &&                 // no "move points" for PLN,SUR
+          if(TYP_IS_CV(typ))  {
+            MenInd[ii] = MSG_cvEd; ++ii;        // edit curve
+          } else if((typ != Typ_PLN)  &&          // no "move points" for PLN,SUR
              (typ != Typ_SUR))        {
             MenInd[ii] = MSG_movPoints; ++ii;
           }
@@ -479,8 +486,9 @@ extern int       IE_modify;
           MenInd[ii] = MSG_GrpRem1;   ++ii;
           MenInd[ii] = MSG_GrpRemTyp; ++ii;
           MenInd[ii] = MSG_GrpRemOTs; ++ii;
-          MenInd[ii] = MSG_GrpHide;   ++ii;   // gesamte Gruppe ausblenden
-          MenInd[ii] = MSG_GrpDelA;   ++ii;   // gesamte Gruppe löschen
+          MenInd[ii] = MSG_GrpMove;   ++ii;   // move groupObjs
+          MenInd[ii] = MSG_GrpHide;   ++ii;   // hide groupObjs
+          MenInd[ii] = MSG_GrpDelA;   ++ii;   // delete groupObjs
         } else {
           // add obj to group
           MenInd[ii] = MSG_GrpAdd1;   ++ii;   // add (obj) to group
@@ -532,6 +540,7 @@ extern int       IE_modify;
   MenInd[ii] = -1;
 
 
+  //----------------------------------------------------------------
   // TEST
   // for(i1=0;i1<MenTab.iNr; ++i1)
      // printf(" MenTab[%d]=|%s| MenIa=%d\n",i1,UtxTab__(i1,&MenTab),MenIa[i1]);
@@ -539,6 +548,7 @@ extern int       IE_modify;
      // printf(" MenInd[%d]=%d\n",i1,MenInd[i1]);
 
 
+  //----------------------------------------------------------------
   // create the list of menutextpointers
   for(i1=0; i1<ii; ++i1) {
     // get index of i2 in MenTab
@@ -638,8 +648,11 @@ extern int       IE_modify;
 //=========================================================================
 // line isel in popup-menu (ObjectMenu) selected.
 //
-// iEv: TYP_EventEnter = 400 = create menu;
-//      TYP_EventPress = 402 = user-selection
+// iEv: TYP_EventEnter = 400 = create menu (enter)
+//      TYP_EventLeave = 401 = leave
+//      TYP_EventPress = 402 = user-selection (press mouseKey)
+//      TYP_EventUnmap = 407 = unmap (widget disappears)
+// isel   selected rowNr or -1=Unmap;   -2=select; <-2=disactivate-row
 
   static int isel=-1;
   char   *nam0 = "-main-";
@@ -676,9 +689,8 @@ extern int       IE_modify;
 
 
   ii = MenInd[isel]; // see ../xa/xa_msg.h
-
-    // printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
-           // actObj.typ,actObj.dbInd);
+    printf("OMN_CB_popup isel=%d ii=%d typ=%d ind=%ld\n",isel,ii,
+           actObj.typ,actObj.dbInd);
 
 
   // UI_block__ (-1, -1, 1);     // wait-cursor
@@ -702,6 +714,11 @@ extern int       IE_modify;
 
 
     //----------------------------------------------------------------
+    case MSG_GrpInv:        // invert group
+      Grp_Inv (1);
+      break;
+
+
     case MSG_GrpClear:        // clear group
       Grp_Clear (1);
       break;
@@ -724,6 +741,11 @@ extern int       IE_modify;
 
     case MSG_GrpRemOTs:       // remove all other types from Group
       Grp_typo_del (actObj.typ);
+      break;
+
+
+    case MSG_GrpMove:         // Move group
+      GMVO__ (0);
       break;
 
 
@@ -769,9 +791,11 @@ extern int       IE_modify;
           if(!Brw_Mod_is_main_active()) return 0;
           cp1 = nam0;
         }
+
           // printf(" activate |%s|\n",cp1);
         Mod_sav_tmp ();             // save the active Submodel
         Mod_chg_CB (cp1);           // activate Submodel in graficWindow & browser
+
         break;
       }
 
@@ -785,13 +809,17 @@ extern int       IE_modify;
 
       L_1_ModRef: // Typ_Model = ModelReference
       if(actObj.typ != Typ_Model) goto L_not_yet;
+      // subModelID in row of referenceModels (not subModels) selected !
       irc = DB_mdlNam_iRef (&cp1, actObj.dbInd);
       if(irc < 0) return -1;
         // printf(" mdlNam |%s|\n",cp1);
       // if(!Brw_Mod_is_main_active()) return 0;
         // printf(" activate |%s|\n",cp1);
-      Mod_sav_tmp ();             // save the active Submodel
-      Mod_chg_CB (cp1);           // activate Submodel in graficWindow & browser
+
+// TODO: BUG - closing of the Models-row restarts the popup-menu- hangs. 
+      // Mod_sav_tmp ();            // save the active Submodel
+      // Mod_chg_CB (cp1);          // activate Submodel in graficWindow & browser
+      TX_Print("**** select Submodel below ***");
       break;
    
 
@@ -828,9 +856,10 @@ extern int       IE_modify;
 
     //----------------------------------------------------------------
     case MSG_movPoints:     // move points (PED)
-      PED_init (actObj.typ, actObj.dbInd, actObj.dlInd);
+    case MSG_cvEd:          // edit points, curve (EDMPT)
+      // PED_init (actObj.typ, actObj.dbInd, actObj.dlInd);
+      EDMPT_init (actObj.typ, actObj.dbInd, actObj.dlInd);
       break;
-
 
     //----------------------------------------------------------------
     case MSG_texture:       // modify texture (TED)

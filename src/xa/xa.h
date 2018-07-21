@@ -2,7 +2,7 @@
 // needs #include "../ut/ut_geo.h"    (Point)
 
 
-/// debug-print (see AP_deb_stat)
+/// debug-print (see AP_deb_stat())
 #ifdef DEB
 #define printd if(AP_stat.debStat) AP_deb_print
 #else
@@ -12,20 +12,23 @@
 
 
 /// \code
-/// sysStat:   1=starting (GUI up); 2=initialize done (openGL up);
-/// errStat:   0=Ok, no Error
-/// errLn:     SourceLineNr where Error occured
-/// batch:     0=interaktiv, 1=Batchmode.
+/// sysStat    1=starting (GUI up); 2=initialize done (openGL up);
+/// errStat    0=Ok, no Error
+/// errLn      SourceLineNr where Error occured
+/// batch      0=interaktiv, 1=Batchmode.
 /// texture    0=no, hardware does not accept textures; 1=Yes, Ok.
 /// build      Compile,Linker not checked/not available; 1=available.
-/// APP_stat:  0=mainActive; 1=<APP_act_nam> (plugin) active.
-/// subtyp:    0=VRML1, 1=VRML2
-/// jntStat:   0=unInitilized, 1=open  (DBFile <tmp>/joints)
-/// debStat:   0=normal (debug off); 1=debug_ON
+/// APP_stat   0=mainActive; 1=<APP_act_nam> (plugin) active.
+/// TUT_stat   ScreeCast on=1  off=0
+/// subtyp     0=VRML1, 1=VRML2
+/// jntStat    0=unInitilized, 1=open  (DBFile <tmp>/joints)
+/// debStat    0=normal (debug off); 1=debug_ON
 /// tstDllStat 0=normal (OFF); 1=testdll_ON
-/// mdl_modified   AP_mdl_modified_ck
-/// mdl_box_valid  AP_mdlbox_invalid_ck
+/// mdl_modified   UNUSED
+/// mdl_box_valid  AP_mdlbox_invalid_ck - 0=valid, 1=void,invalid
 /// iActStat   0=normal, 1=Interactivity_ON
+/// cadIniM    CAD - init - mainFunction
+/// cadIniS    CAD - init - subFunction
 /// \endcode
 typedef struct {int errLn; short sysStat, errStat;
                 unsigned  batch:1,
@@ -40,7 +43,7 @@ typedef struct {int errLn; short sysStat, errStat;
                           mdl_modified:1,
                           mdl_box_valid:1,
                           uuBits:21;
-                char      subtyp;}                          AP_STAT;
+                char      cadIniM, cadIniS, subtyp;}           AP_STAT;
 
 
 /// \code
@@ -53,17 +56,20 @@ typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 
 //================================================================
 // defined in ../xa/xa.c (with extern invalidated)
-extern char WC_modnam[128];       // active Modelname - without path
-extern char WC_modact_nam[128];   // name of the active submodel; def="" (main)
+extern char AP_mod_dir[128];      // directory of active model, with '/' at end
+extern char AP_mod_fnam[128];     // active Modelname - without path
+extern char AP_mod_ftyp[32];      // filetyp of active model
+extern char AP_mod_sym[64];       // symbolic directory for OPEN (no '/' at end)
+  // AP_mod_iftyp: integer-filetyp of active model; eg Mtyp_DXF
+extern char AP_mod_iftyp;         // integer-filetyp - eg Mtyp_Gcad|Mtyp_DXF ..
+extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
                                   //   not set in runmode.
 extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel
 
-extern char AP_dir_open[128];     // directory for OPEN
-extern char AP_dir_save[128];     // directory for SAVE
-extern char AP_dir_prg[128];      // directory for programs
+// extern char AP_dir_save[128];     // directory for SAVE
+// extern char AP_sym_save[64];      // symbolic directory for SAVE
 
-extern char AP_sym_open[64];      // symbolic directory for OPEN
-extern char AP_sym_save[64];      // symbolic directory for SAVE
+extern char AP_dir_prg[128];      // directory for programs
 extern char AP_sym_prg[64];       // symbolic directory for programs
 
 extern char AP_errText[128];      // errortext for minor errors

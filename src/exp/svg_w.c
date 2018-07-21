@@ -16,6 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
+- does not work with eog; ok with firefox.
+- add <svg ... width="854px" height="525px"
+- add <title>..Err3</title>
   ..
 
 -----------------------------------------------------

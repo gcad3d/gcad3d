@@ -50,15 +50,6 @@ List_functions_start:
 UT1D_ndb_npt_bp           copy the backplane-part of a pointTable
 
 -------------- 2D ----------------------------------
-UT_RADIANS                angle (radians) = angle (degrees) (inline)
-UT_DEGREES                angle (degrees) = angle (radians) (inline)
-UT2D_angr_set_2angr       set aa following as. Do not modify as.
-UT2D_angr_set             change to val >= 0 <= RAD_360
-UT2D_angd_set             change to val >= 0 <= 360
-UT2D_2angr_set            change to consecutive vals from -RAD_360 to RAD_360
-UT2D_angr_2angr           angle between 2 angles
-UT2D_ptNr_ci              Anzahl Ecken circ berechnen
-UT2D_comp2angd_p          compare 2 angles (deg) for parallel
 
 -------------- triangles ----------------------------------
 UT2D_solvtriri_a          right-angled tri: a from sides b and c
@@ -69,14 +60,32 @@ UT2D_solvtriri_p_b_q      right-angled tri: get p from b and q
 UT2D_solvtriri_bc         right-angled tri: q and hc from sides b and c
 
 -------------- side -------------------------------------
-UT2D_sid_2vc              check vc for left (CCW, above) or right (CW, below)
-UT2D_sidPerp_2vc          check vc for inFront, perp.(normal), or behind
+UT2D_sid_2vc__            check vc for left (CCW, above) or right (CW, below)
+UT2D_sid_2vc_tol          check vc for left or right with tolerance
+UT2D_sid_ptvc__           compare if pt is on, above or below line (pt+vc)
+UT2D_sid_ptvc_tol         compare if pt is on, above or below line with tol
 UT2D_sid_3pt              compare if pt is on, above or below line (p1-p2)
-UT2D_sid_ptvc             compare if pt is on, above or below line (pt+vc)
+UT2D_sidPerp_2vc          check vc for inFront, perp.(normal), or behind
 UT2D_sidPerp_3pt          check if p3 is in, before or behind perp-line tru p2
 UT2D_sidPerp_ptvc         compare if pt is right/on/left of a normal to pt+vc
 
+-------------- area sense_of_rotation -------------------------------------
+UT2D_ar_3pt               get (signed) area of triangle
+UT2D_srar_3pt             Umlaufsinn und Flaeche eines 2D-triangle
+UT2D_srar_polc            Umlaufsinn und Flaeche eines closed polygon
+UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
+UT2D_srar_inpt3           Umlaufsinn und Flaeche eines indexed closed 3D-polygon
+
 -------------- angles -------------------------------------
+UT_RADIANS                angle (radians) = angle (degrees) (inline)
+UT_DEGREES                angle (degrees) = angle (radians) (inline)
+UT2D_angr_set_2angr       set aa following as. Do not modify as.
+UT2D_angr_set             change to val >= 0 <= RAD_360
+UT2D_angd_set             change to val >= 0 <= 360
+UT2D_2angr_set            change to consecutive vals from -RAD_360 to RAD_360
+UT2D_angr_2angr           angle between 2 angles
+UT2D_ptNr_ci              Anzahl Ecken circ berechnen
+UT2D_comp2angd_p          compare 2 angles (deg) for parallel
 UT2D_crossprod_2vc        crossprod of 2 2D-Vectors
 UT2D_acos_2vc             cos of opening angle of 2 vecs (dot=scalarprod)
 UT2D_angr_angd            angle (radians) = angle (degrees)
@@ -94,7 +103,7 @@ UT2D_angr_perpangr        angle + 90 degree (perp. to angle)
 UT2D_circQuad23_angr      returns if angle is quadrant 2 or 3 (CCW from 1-4)
 UT2D_circQuad34_angr      returns if angle is quadrant 3 or 4 (CCW from 1-4)
 
--------------- length -------------------------------------
+-------------- length, parameter --------------------------
 UT2D_len_vc               length of 2D-vector             INLINE
 UT2D_lenq_vc              Quadr.Vectorlength              INLINE
 UT2D_lenS_vc              dx+dy-distance 2D-vector        INLINE
@@ -122,13 +131,13 @@ UT2D_len_cir              length circular arc (pa,pe,pc,rad/dreh)
 UT2D_len_cia              length arc (from rad & angle)        INLINE
 UT2D_sDist_ciSeg          height of segment of circle from angle
 
+UT2D_parpt_2pt            parameter of point on linesegment
+
 -------------- parameter -------------------------------------
-// UT2D_parLn_pt2pt          get parameter (0-1) of point px along line p1-p2
+// UT2D_parLn_pt2pt       get parameter (0-1) of point px along line p1-p2
+UT2D_par_nor_2vc          parameter height to lenght
 UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_par_3pt              parameter of point projected on line from 2 points
-
--------------- area --------------------------------------
-UT2D_ar_3pt               get (signed) area of triangle
 
 -------------- points --------------------------------------
 UT2D_comp2pt              compare 2 2D-points
@@ -141,7 +150,9 @@ UT2D_pt_cknear_npt        return index of nearest Point from n points
 //UT2D_pt_ck_in3pt          check if px is between lines po-p1, po-p2
 UT2D_pt_ck_inpt2vc        check if px is between vectors po-v1, po-v2
 UT2D_pt_ck_inAc           check if pt is in Arc(Segment)
+UT2D_ck_pt_in_tria_tol    check if point is inside triangle with tol
 UT2D_pt_ck_inCv3          check if point is inside polygon
+UT2D_2pt_ck_int_2pt       check if 2 linesegments intersect with tol
 UT2D_pt_ck_int4pt         check if 2 lines intersect/touch
 UT2D_i4pt_npt             find indices of extreme-points;
 
@@ -178,8 +189,8 @@ UT2D_2pt_projptci         project point to circle
 UT2D_pt_projptci          project point to Arc (segment of circle)
 UT2D_pt_int4pt            intersection 2 lines
 UT2D_pt_intptvcy          intersection line (pt-vc) - horizontal line
-UT2D_pt_intlny            intersection linesegment - horizontal line
-UT2D_pt_intlnx            intersection linesegment - vertical line
+UT2D_pt_intlny            intersection linesegment - horizontal (unlim.) line
+UT2D_pt_intlnx            intersection linesegment - vertical (unlim.) line
 UT2D_pt_intlnln           intersect Line x Line; both limited or unlimited
 UT2D_pt_int2ln            point = intersection of 2 lines
 UT2D_2par_int2pt2vc       intersect 2 unlimitedLines; gives 2 parameters
@@ -220,7 +231,7 @@ UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_2parvc_3vc           project end of vec1 along vec2 on vec3
 UT2D_vc_pt                Vector from 0,0 -> point
 UT2D_vc_2db               2D-Vector = 2 doubles (x, y)
-UT2D_vc_vc3               2D-Vector from 3D-Vector                  INLINE
+UT2D_vc_vc3               2D-Vector from 3D-Vector                         INLINE
 UT2D_vc_angr              2D-Vector =  angle (radians)
 UT2D_vc_angrlen           2DVector =  angle (radians) + Length
 UT2D_vc_vc3BP             2D-Vector = 3D-Vector on Backplane (inline)
@@ -231,10 +242,11 @@ UT2D_vc_2ptlen            2D-Vector = 2D-Point -> 2D-Point, set Length
 UT2D_vc_ln                2D-Vector = 2D-LineStartPoint -> 2D-LineEndPoint
 UT2D_vc_cipt              Tang.Vektor an einem Punkt pt des Kreises errechnen
 UT2D_vc_tng_ci_pt         tangent to circ tru point on circ
-UT2D_vc_invert            2D-Vector invert (change direction)
-UT2D_vc_add2vc            v3 = v1 + v2                ADD           INLINE
-UT2D_vc_sub2vc            v3 = v1 - v2                SUB           INLINE
-UT2D_vc_multvc            vo = vi * d                 MULT          INLINE
+UT2D_vc_invert            2D-Vector invert (change direction)              INLINE
+UT2D_vc_add2vc            v3 = v1 + v2                ADD                  INLINE
+UT2D_vc_sub2vc            v3 = v1 - v2                SUB                  INLINE
+UT2D_vc_multvc            vo = vi * d                 MULT                 INLINE
+UT2D_vcPerpAppr_vc_len    vector with fixed length normal to vector        INLINE
 UT2D_vc_perpvc            vector = perpendic. to vector ( + 90 degrees)
 UT2D_vc_perp2pt           vector = perpendic. to Line ( + 90 degrees)
 UT2D_vc_normalize         change to length 1
@@ -277,10 +289,7 @@ UT2D_cv_cin               Circ -> Polygon / Anzahl
 UT2D_cv_ci360             Vollkreis --> Polygon
 UT2D_cv_inv               Punktetabelle umdrehen
 UT2D_cv3_linear           delete unnecesary straight points
-UT2D_srar_3pt             Umlaufsinn und Flaeche eines 2D-triangle
-UT2D_srar_polc            Umlaufsinn und Flaeche eines closed polygon
-UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
-UT2D_srar_inpt3           Umlaufsinn und Flaeche eines indexed closed 3D-polygon
+UT2D_is_convex_inpt       check if indexed contour is convex | concave
 
 -------------- transformation ------------------------------
 UT2D_m2_load              2D-Achsensystem (Verdrehvektor, Ori.) into 3x2 Mat
@@ -290,6 +299,7 @@ UT2D_m3_init_rot          Initialize a 3x2 - matrix with rotation
 
 List_functions_end:
 =====================================================
+Box: see UT2D_ckBoxinBox1
 
 \endcode *//*----------------------------------------
 
@@ -340,7 +350,54 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
 
+//======================================================================
+  int UT2D_parpt_2pt (double *par, Point2 *pa, Point2 *pb, Point2 *pc) {
+//======================================================================
+ /// \code
+/// UT2D_parpt_2pt         parameter of point on linesegment
+/// pa - pb gives a line, pc is projected onto this line, giving e.
+/// Returns the parameter e.
+///
+///             pc
+///              |
+///              |
+///              |
+///    pa--------+-----pb
+///              e
+///
+/// RetCod erweitern;
+///   -1   pc is left of pa       (pc - pa   -    pb)
+///    0   pc is between pa -pb        (pa - pc - pb)
+///    1   pc is right of pb           (pa   -    pb - pc)
+///
+/// see UT2D_sidPerp_3ptlen
+/// \endcode
 
+  int       irc;
+  double    s_ab_ab, s_ab_ac, pe_ab;
+  Vector2   vab, vac, vae;
+
+
+  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
+  // UT3D_stru_dump (Typ_PT2, pb, "  pb");
+  // UT3D_stru_dump (Typ_PT2, pc, "  pc");
+
+
+  UT2D_vc_2pt (&vab, pa, pb);           // vab = Vector a-b
+  UT2D_vc_2pt (&vac, pa, pc);           // vac = Vector a-c
+
+  s_ab_ab = UT2D_skp_2vc (&vab, &vab);  // skp mit sich selbst = Laenge^2
+  s_ab_ac = UT2D_skp_2vc (&vab, &vac);  // gibt Wert fuer e relativ zu s_ab_ab
+    // printf("s_ab_ab=%f s_ab_ac=%f \n",s_ab_ab,s_ab_ac);
+
+
+  // Parameterwert von e zwischen a-b
+  *par = s_ab_ac / s_ab_ab;
+    // printf(" pe_ab=%f\n",*par);
+
+  return 0;
+
+}
 
 
 //==========================================================================
@@ -404,19 +461,20 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // set s2sv1 = side of p2s along v1
   UT2D_vc_2pt (&v1s2s, p1s, p2s);
   d1 = UT2D_sar_2vc (v1, &v1s2s);
-  s2sv1 = DSIGTOL (d1, UT_TOL_min0);      // pos: p2s is left of p1s-v1
+  s2sv1 = DSIGTOL (d1, UT_TOL_min0);      // 1 p2s is left of p1s-v1 else -1
     // printf(" s2sv1=%d d1=%f\n",s2sv1,d1);
 
 
   // set s2ev1 = side of p2e along v1
   UT2D_vc_2pt (&v1s2e, p1s, p2e);
   d1 = UT2D_sar_2vc (v1, &v1s2e);
-  s2ev1 = DSIGTOL (d1, UT_TOL_min0);      // pos: p2e is left of p1s-v1
+  s2ev1 = DSIGTOL (d1, UT_TOL_min0);      // 1 p2e is left of p1s-v1 else -1
     // printf(" s2ev1=%d d1=%f\n",s2ev1,d1);
 
 
 
   if((s2sv1 != 0)&&(s2ev1 != 0)) {
+    // if points on same side: no intersection.
     if(s2sv1 == s2ev1) {irc = -1; goto L_exit;}
   }
 
@@ -1175,15 +1233,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   sk = v1.dx * v2.dx + v1.dy * v2.dy;     // UT2D_skp_2vc
 
-  // irc = UTP_COMP_0(sk);
+  return DSIGTOL (sk, UT_TOL_min2); // 2017-10-04
 
-  if(sk < -UT_TOL_min2)     irc = -1;
-  else if(sk > UT_TOL_min2) irc = 1;
-  else                      irc = 0;
-
+  // if(sk < -UT_TOL_min2)     irc = -1;
+  // else if(sk > UT_TOL_min2) irc = 1;
+  // else                      irc = 0;
     // printf("ex UT2D_sidPerp_3pt %d %f\n",irc,sk);
-
-  return irc;
+  // return irc;
 
 }
 
@@ -2200,7 +2256,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // dy = length pt - ph
   *dy = UT2D_len_2pt (pt, &ph);
 
-  if ((UT2D_sid_ptvc (pt, pb, vc)) < 0) *dy = - *dy;
+  if ((UT2D_sid_ptvc__ (pt, pb, vc)) < 0) *dy = - *dy;
 
   // printf("UT2D_2len_ptvc %f %f\n",*dx,*dy);
 
@@ -2514,6 +2570,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 ///  -1   pt is below vector vl (right side)
 ///
 /// side before,behind: UT2D_sidPerp_3pt
+/// see also UT2D_sid_ptvc_tol
 /// \endcode
 
   int      irc;
@@ -2525,27 +2582,18 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   UT2D_vc_2pt (&vp, p1, pt);
 
-  d1 = vp.dx * vl.dy - vl.dx * vp.dy;
+  d1 = vl.dx * vp.dy - vp.dx * vl.dy;
 
-  if (fabs(d1) < UT_TOL_min2) irc =  0;
-
-  else if (d1 < 0.)    irc =  1;
-
-  else                 irc = -1;
-
-
-  // printf("UT2D_sid_ptvc %d %f\n",irc,d1);
-  return irc;
-
+  return DSIGTOL (d1, UT_TOL_min2);
 
 }
 
 
 //======================================================================
-  int UT2D_sid_ptvc (Point2 *pt,  Point2 *pl, Vector2 *vl) {
+  int UT2D_sid_ptvc__ (Point2 *pt,  Point2 *pl, Vector2 *vl) {
 //======================================================================
 /// \code
-/// UT2D_sid_ptvc             compare if pt is on, above or below line (pl+vl)
+/// UT2D_sid_ptvc__             compare if pt is on, above or below line (pl+vl)
 ///
 /// was UT2D_dir_ptvc
 ///
@@ -2569,7 +2617,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2  vp;
 
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc pt");
+  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
   // UT3D_stru_dump (Typ_PT2, pl, "  pl");
   // UT3D_stru_dump (Typ_VC2, vl, "  vl");
 
@@ -2577,17 +2625,43 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   UT2D_vc_2pt (&vp, pl, pt);
     // UT3D_stru_dump (Typ_VC2, &vp, "  vp");
 
-  d1 = vp.dx * vl->dy - vl->dx * vp.dy;
+  d1 = vl->dx * vp.dy - vp.dx * vl->dy;
     // printf(" d1=%f\n",d1);
 
+  return DSIGTOL (d1, UT_TOL_min2);  // 2017-10-04 was UT_TOL_min1
 
-  if (fabs(d1) < UT_TOL_min1) rc =  0;
-  else if (d1 < 0.)           rc =  1;
-  else                        rc = -1;
+}
 
-    // printf("UT2D_sid_ptvc rc=%d d1=%f\n",rc,d1);
 
-  return rc;
+//===========================================================================
+  int UT2D_sid_ptvc_tol (Point2 *pt,  Point2 *pl, Vector2 *vl, double *tol) {
+//===========================================================================
+/// \code
+/// UT2D_sid_ptvc_tol          compare if pt is on, above or below line with tol
+///
+///                 X pt      1
+///           pl
+/// ----------X-------vl--->  0
+///            
+///                 X pt     -1
+/// 
+/// retcode:
+///   0   pt is on vector vl
+///   1   pt is above vector vl (left side)
+///  -1   pt is below vector vl (right side)
+/// \endcode
+// see also UT2D_sid_2vc_tol
+
+  Vector2  vp;
+
+  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
+  // UT3D_stru_dump (Typ_PT2, pl, "  pl");
+  // UT3D_stru_dump (Typ_VC2, vl, "  vl");
+
+  UT2D_vc_2pt (&vp, pl, pt);
+    // UT3D_stru_dump (Typ_VC2, &vp, "  vp");
+
+  return UT2D_sid_2vc_tol (vl, &vp, tol);
 
 }
 
@@ -2625,12 +2699,11 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   d1 = vp.dx * vl->dx + vp.dy * vl->dy;
 
+  rc = DSIGTOL (d1, UT_TOL_min2);         // 2017-10-04 was UT_TOL_min0
+
   // if (UTP_comp_0 (d1)) rc =  0;
   // else if (d1 < 0.)    rc = -1;
   // else                 rc =  1;
-  rc = DSIGTOL (d1, UT_TOL_min0);         // UT_TOL_min1
-
-
   // printf("UT2D_sidPerp_ptvc %d %f\n",rc,d1);
 
   return rc;
@@ -3441,19 +3514,27 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //=======================================================================
-  int UT2D_pt_intlny (Point2 *pto, Point2 *lp1, Point2 *lp2, double yVal) {
+  int UT2D_pt_intlny (Point2 *pto, Point2 *lp1, Point2 *lp2, double yVal,
+                      double tol) {
 //=======================================================================
 /// \code
-/// UT2D_pt_intlny            intersection linesegment - horizontal line
-/// Schnittpunkt eines Linesegmentes ln1 mit einer unendlich langen,
-/// horizontalen Geraden mit Y=yVal errechnen.
-/// Retcod= 0: Schnittpunkt in pto
-/// Retcod=-1: kein Schnittpunkt
-/// Retcod= 1: Linie horizontal; beliebig viele Schnittpunkte
+/// UT2D_pt_intlny            intersection linesegment - horiz. (unlim.) line
+/// Input
+///   lp1-lp2  limited line 
+///   yVal     y-value of unlimited horizontal line
+/// Output
+///   pto      intersection-point
+///   Retcod -1  no intersection  (no intersection-point computed)
+///           0  normal intersection ..
+///           1  intersection-point == lp1
+///           2  intersection-point == lp2
+///           3  line lp1-lp2 is horizontal with y=yVal;  ....
 /// \endcode
-// Achtung: wenn der Schnittpunkt sich ausserhalb des Geradensegmentes
-//   befindet, wird kein Schnittpunkt geliefert!
-// ACHTUNG: fuer UT_hatch_2D sind SEHR geringe Tol. erforderlich !
+//     UT2D_pt_2db (&p1, 0., 0.);
+//     UT2D_pt_2db (&p2, 10., 10.);
+//     irc = UT2D_pt_intlny (&p0, &p1, &p2, 0., UT_TOL_min1);
+//       UT3D_stru_dump(Typ_PT, &p0, "irc=%d",irc);
+
 
 
   // Lineseg oberhalb
@@ -3466,10 +3547,24 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   if((lp1->y < yVal)&&(lp2->y < yVal)) return -1;
 
 
-  // Linie horizontal; nur Schnittpunkte; irc = 1, Schnittpkt = Mittelpkt
-  if(UTP_comp2db(lp1->y, lp2->y, UT_TOL_min1)) {
-    UT2D_pt_mid2pt (pto, lp1, lp2);
+  // test if lp1.y == yVal; yes: return 2
+  if(UTP_comp2db(lp1->y, yVal, tol)) {
+    *pto = *lp1;
     return 1;
+  }
+
+
+  // test if lp2.y == yVal; yes: return 3
+  if(UTP_comp2db(lp2->y, yVal, tol)) {
+    *pto = *lp2;
+    return 2;
+  }
+
+
+  // Linie horizontal; nur Schnittpunkte; irc = 1, Schnittpkt = Mittelpkt
+  if(UTP_comp2db(lp1->y, lp2->y, tol)) {
+    UT2D_pt_mid2pt (pto, lp1, lp2);
+    return 3;
   }
 
 
@@ -3478,8 +3573,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                                (lp2->x - lp1->x));
    pto->y = yVal;
 
+    // UT3D_stru_dump (Typ_PT2, pto, "ex UT2D_pt_intlny:  ");
 
-  // UT3D_stru_dump (Typ_PT2, pto, "ex UT2D_pt_intlny:  ");
   return 0;
 
 }
@@ -3487,19 +3582,27 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //=======================================================================
-  int UT2D_pt_intlnx (Point2 *pto, Point2 *lp1, Point2 *lp2, double xVal) {
+  int UT2D_pt_intlnx (Point2 *pto, Point2 *lp1, Point2 *lp2, double xVal,
+                      double tol) {
 //=======================================================================
 /// \code
-/// UT2D_pt_intlnx            intersection linesegment - vertical line
-/// Schnittpunkt eines Linesegmentes ln1 mit einer unendlich langen,
-/// vertical Geraden mit X=xVal errechnen.
-/// Retcod= 0: Schnittpunkt in pto
-/// Retcod=-1: kein Schnittpunkt
-/// Retcod= 1: Linie vertical; beliebig viele Schnittpunkte
+/// UT2D_pt_intlnx            intersection linesegment - vertical (unlim.) line
+/// Input
+///   lp1-lp2  limited line 
+///   yVal     x-value of unlimited vertical line
+/// Output
+///   pto      intersection-point
+///   Retcod -1  no intersection  (no intersection-point computed)
+///           0  normal intersection ..
+///           1  intersection-point == lp1
+///           2  intersection-point == lp2
+///           3  line lp1-lp2 is vertical with x=yVal;  ....
 /// \endcode
-// Achtung: wenn der Schnittpunkt sich ausserhalb des Geradensegmentes
-//   befindet, wird kein Schnittpunkt geliefert!
-// ACHTUNG: fuer UT_hatch_2D sind SEHR geringe Tol. erforderlich !
+//     UT2D_pt_2db (&p1, 0., 0.);
+//     UT2D_pt_2db (&p2, 10., 10.);
+//     irc = UT2D_pt_intlnx (&p0, &p1, &p2, 0., UT_TOL_min1);
+//       UT3D_stru_dump(Typ_PT, &p0, "irc=%d",irc);
+
 
 
   // Lineseg oberhalb
@@ -3510,6 +3613,20 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // Lineseg unterhalb
   // if(((lp1->x+UT_TOL_min1) < xVal)&&((lp2->x+UT_TOL_min1) < xVal)) return -1;
   if((lp1->x < xVal)&&(lp2->x < xVal)) return -1;
+
+
+  // test if lp1.x == xVal; yes: return 2
+  if(UTP_comp2db(lp1->x, xVal, tol)) {
+    *pto = *lp1;
+    return 1;
+  }
+
+
+  // test if lp2.x == xVal; yes: return 3
+  if(UTP_comp2db(lp2->x, xVal, tol)) {
+    *pto = *lp2;
+    return 2;
+  }
 
 
   // Linie horizontal; nur Schnittpunkte; irc = 1, Schnittpkt = Mittelpkt
@@ -4737,42 +4854,138 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //================================================================
-  int UT2D_sid_2vc (Vector2 *v1, Vector2 *v2, double tol) {
+  int UT2D_sid_2vc__ (Vector2 *v1, Vector2 *v2) {
 //================================================================
 /// \code
-/// UT3D_cklr_2vc        check vc for left (CCW, above) or right (CW, below)
-/// Vektoren muessen nicht normiert sein !
-/// RC   1   v2 is CCW from v1  (pos. angle)
+/// UT2D_sid_2vc         check vc for left (CCW, above) or right (CW, below)
+/// vectors must not be normalized
+/// RC   1   v2 is above v1  (pos. angle)
 /// RC   0   v1-v2 are parallel
-/// RC  -1   v2 is CW from v1   (neg. angle)
+/// RC  -1   v2 is below v1  (neg. angle)
 /// 
 ///              X
-///           v1/          1
+///           v2/          1
 ///            /
-/// ----------X---v2----------->  0
+/// ----------X---v1----------->  0
 ///            
-///                
 ///                       -1
 /// 
-/// see also UT2D_sidPerp_2vc
+/// was UT2D_sid_2vc
+/// see also UT2D_sid_2vc_tol UT2D_sidPerp_2vc UT2D_sar_2vc
 /// \endcode
 
   int    irc;
   double sk;
 
 
-
-  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc");
+  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc__");
   // UT3D_stru_dump (Typ_VC, v2, "              ");
-
 
   // see UT2D_sar_2vc
   sk = v1->dx * v2->dy - v2->dx * v1->dy;
 
+  return DSIGTOL (sk, UT_TOL_min2);
+
+}
+
+
+//================================================================
+  int UT2D_sid_2vc_tol (Vector2 *v1, Vector2 *v2, double *tol) {
+//================================================================
+/// \code
+/// UT2D_sid_2vc_tol     check vc for left (CCW, above) or right (CW, below)
+/// vectors must not be normalized
+/// RC   1   v2 is above v1  (pos. angle)
+/// RC   0   v1-v2 are within tolerance (parallel)
+/// RC  -1   v2 is below v1  (neg. angle)
+/// 
+///              X
+///           v2/          1
+///            /
+/// ----------X---v1----------->  0
+///            
+///                       -1
+/// 
+/// see also UT2D_sidPerp_2vc UT2D_sar_2vc
+/// \endcode
+
+
+  int     isl, isr;
+  Vector2 vl, v2l, vr, v2r;
+
+
+  // UT3D_stru_dump (Typ_VC2, v1, "UT2D_sid_2vc_tol");
+  // UT3D_stru_dump (Typ_VC2, v2, "              ");
+
+  // get vector for tolerance above (left-side)
+  UT2D_vcPerpAppr_vc_len (&vl, v1, tol);
+    // printf(" vl.dx=%f dy=%f\n", vl.dx, vl.dy);
+
+  // move endPt of v2 <tol> up
+  UT2D_vc_add2vc (&v2l, v2, &vl);
+    // printf(" v2l.dx=%f dy=%f\n", v2l.dx, v2l.dy);
+
+  // see UT2D_sar_2vc
+  isr = DSIGN (v1->dx * v2l.dy - v2l.dx * v1->dy);
+    // printf(" isr=%d\n",isr);
+
+  // -1 = below tolerance
+  if(isr < 0) return isr;
+
+  // get vector for tolerance below (right-side) - invert vr
+  UT2D_vc_invert (&vr, &vl);
+    // printf(" vr.dx=%f dy=%f\n", vr.dx, vr.dy);
+
+  // move endPt of v2 <tol> down
+  UT2D_vc_add2vc (&v2r, v2, &vr);
+    // printf(" v2r.dx=%f dy=%f\n", v2r.dx, v2r.dy);
+
+  // see UT2D_sar_2vc
+  isl = DSIGN (v1->dx * v2r.dy - v2r.dx * v1->dy);
+    // printf(" isl=%d\n",isl);
+
+  // 1 = above tolerance
+  if(isl > 0) return isl;
+
+  // within tolerance
+  return 0;
+
+}
+
+
 /*
-  if(sk < -UT_TOL_min2)     irc = -1;
-  else if(sk > UT_TOL_min2) irc = 1;
-*/
+// replaced by UT2D_sid_2vc__ UT2D_sid_2vc_tol
+//================================================================
+  int UT2D_sid_2vc (Vector2 *v1, Vector2 *v2, double tol) {
+//================================================================
+/// TODO: replace with UT2D_sid_2vc_tol (see UT2D_ck_pt_in_tria_tol UT2D_2pt_ck_int_2pt
+/// \code
+/// UT2D_sid_2vc         check vc for left (CCW, above) or right (CW, below)
+/// vectors must not be normalized
+/// RC   1   v2 is above v1  (pos. angle)
+/// RC   0   v1-v2 are parallel
+/// RC  -1   v2 is below v1  (neg. angle)
+/// 
+///              X
+///           v2/          1
+///            /
+/// ----------X---v1----------->  0
+///            
+///                
+///                       -1
+/// 
+/// see also UT2D_sidPerp_2vc UT2D_sar_2vc
+/// \endcode
+
+  int    irc;
+  double sk;
+
+  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc");
+  // UT3D_stru_dump (Typ_VC, v2, "              ");
+
+  // see UT2D_sar_2vc
+  sk = v1->dx * v2->dy - v2->dx * v1->dy;
+
   if(sk < -tol)     irc = -1;
   else if(sk > tol) irc = 1;
   else                      irc = 0;
@@ -4782,6 +4995,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   return irc;
 
 }
+*/
 
 
 //================================================================
@@ -4812,13 +5026,12 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   // irc = UTP_COMP_0(sk);
 
-  if(sk < -UT_TOL_min1)     irc = -1;
-  else if(sk > UT_TOL_min1) irc = 1;
-  else                      irc = 0;
-
-    printf("ex UT2D_sidPerp_2vc %d %f\n",irc,sk);
-
-  return irc;
+  return DSIGTOL (sk, UT_TOL_min2); // 2017-10-04 was UT_TOL_min1
+  // if(sk < -UT_TOL_min1)     irc = -1;
+  // else if(sk > UT_TOL_min1) irc = 1;
+  // else                      irc = 0;
+    // printf("ex UT2D_sidPerp_2vc %d %f\n",irc,sk);
+  // return irc;
 
 }
 
@@ -4886,10 +5099,10 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
   // test if v3 is above (ccw) or below (cw) v1
-  s1 = UT2D_sid_2vc (v1, v3, UT_TOL_min2);
+  s1 = UT2D_sid_2vc__ (v1, v3);
 
   // test if v2 is above (ccw) or below (cw) v1
-  s2 = UT2D_sid_2vc (v1, v2, UT_TOL_min2);
+  s2 = UT2D_sid_2vc__ (v1, v2);
     // printf(" s1=%d s2=%d\n",s1,s2);
 
   if(s1 == -1) goto L_cw;
@@ -4908,7 +5121,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   if(s2 == -1) return -1;  // v2 below v1; v3 above v1.
 
   // test if v2 is above (ccw) or below (cw) v3
-  s3 = UT2D_sid_2vc (v3, v2, UT_TOL_min2);
+  s3 = UT2D_sid_2vc__ (v3, v2);
     // printf(" s3=%d\n",s3);
 
   if(s3 == 1) return 1;  // v2 above v3; v3 above v1.
@@ -4922,7 +5135,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   if(s2 == 1) return 1;  // v2 above v1; v3 below v1.
 
   // test if v2 is above (ccw) or below (cw) v3
-  s3 = UT2D_sid_2vc (v3, v2, UT_TOL_min2);
+  s3 = UT2D_sid_2vc__ (v3, v2);
     // printf(" s3=%d\n",s3);
 
   if(s3 == -1) return -1;  // v2 below v3; v3 below v1.
@@ -5689,7 +5902,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   /*  liegt ptc links oder rechts von pt1/vc1 ? */
-  side = UT2D_sid_ptvc (ptc, pt1, vc1);
+  side = UT2D_sid_ptvc__ (ptc, pt1, vc1);
 
   if(side > 0) {  /*  auf die gleiche Seite .. */
     d1 = rad1;
@@ -6220,7 +6433,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 /// \code
 /// UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
 /// UT2D_srar_inpt                         nach Karl Sauer 2004-04-07
-/// Umlaufsinn (sr=sense of rotation) und Flaeche (ar=area) eines
+/// Umlaufsinn (sr=sense-of-rotation) und Flaeche (ar=area) eines
 /// geschlossenen 2D-Polygons (polc) berechnen.
 ///
 /// Input:
@@ -6251,7 +6464,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     // aufeinanderfolgenden Punkten; p2 ist der mittlere.
     // FLAE += pa[i2].x * (pa[i3].y - pa[i1].y);
     FLAE += p2a[ipa[i2]].x * (p2a[ipa[i3]].y - p2a[ipa[i1]].y);
-    // printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
+      // printf(" FLAE %f - %d %d %d - %d %d %d\n",FLAE,
+             // i1,i2,i3,ipa[i2],ipa[i3],ipa[i1]);
   }
 
   if(FLAE < 0.) {
@@ -7582,7 +7796,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 ///                  po +----------
 ///       (outside)             v1
 ///
-/// see also UT2D_sid_3pt UT2D_sid_ptvc UT2D_sidPerp_2vc
+/// see also UT2D_sid_3pt UT2D_sid_ptvc__ UT2D_sidPerp_2vc
 /// \endcode
 
 
@@ -7694,7 +7908,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 // UT2D_pt_ck_inTriangle        check if point is inside triangle
 
 // UT2D_pt_ck_inTriangle        Author: Thomas Backmeister       27.8.2003
-neuere Version UT2D_ck_pt_in_tria von Sauer/Reiter ..
+neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 
 // Check if a point is inside a triangle.
 
@@ -8549,7 +8763,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
   // liegt pe ueber oder unter ps -vcs ? + = CCw, - = CW.
-  if(UT2D_sid_ptvc (pe, ps, vcs) < 0) *radc = -(*radc);
+  if(UT2D_sid_ptvc__ (pe, ps, vcs) < 0) *radc = -(*radc);
 
 
 
@@ -9430,5 +9644,597 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 }
 
 
+//==========================================================================
+  int UT2D_2pt_ck_int_2pt (int *mode, double *tol,
+                           Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p4) {
+//==========================================================================
+// UT2D_ptvc_ck_int2pt       check if 2 linesegments intersect
+/// Input:
+///   tol    tolerance; used for parallel-test, identical-points-test
+/// Output:
+///   mode   if linesegments are parallel or normal (not set for irc=-1)
+///      1   parallel linesegments
+///      0   not-normal,not-parallel
+///     -1   normal (math. normal, tol not checked)
+///   Returncode
+///     -1   no intersection 
+///      0   OK; lines intersect normal
+///      1   intersection; but p3 is on line p1-p2
+///      2   intersection; but p4 is on line p1-p2
+///      3 (p1=p3), 4 (p1=p4), 5 (p2=p3), 6 (p2=p4) identical endpoints
+///      7 = parallel lines with overlapping
+/// \endcode
+// TESTPROG: UT2D_test_2pt_ck_int_2pt
+// see also UT2D_ptvc_ck_int2pt UT2D_pt_int4pt
+
+
+  int      irc, s13_1, s13_2, s14_1, s14_2, s23vr, s13vl, 
+           ishor, is3on, is4on, isparl, ir34;
+  double   d1, d2, q1, q2, qq, tol1;
+  Point2   pb1, pb2, pb3, pb4, ph3, ph4;
+  Vector2  v12, v34, v13, vs, vn;
+
+
+  // printf("UT2D_2pt_ck_int_2pt tol=%f\n",*tol);
+  // UT3D_stru_dump (Typ_PT2, p1, " p1");
+  // UT3D_stru_dump (Typ_PT2, p2, " p2");
+  // UT3D_stru_dump (Typ_PT2, p3, " p3");
+  // UT3D_stru_dump (Typ_PT2, p4, " p4");
+
+  
+  //==================================================================
+  // get v12 = linesegment 1
+  UT2D_vc_2pt (&v12, p1, p2);
+    // UT3D_stru_dump (Typ_VC2, &v12, " v12");
+
+  tol1 = *tol;
+
+  // set ishor 0: pb1-pb2 is nearly horizontal; 1: nearly vertical
+  if(fabs(v12.dy) > fabs(v12.dx)) {
+    ishor = 1;
+    if(p1->y < p2->y) tol1 *= -1.;
+
+  } else {
+    ishor = 0;
+    if(p1->x > p2->x) tol1 *= -1.;
+  }
+    // printf(" ishor=%d tol1=%f\n",ishor,tol1);
+
+
+  //==================================================================
+  // test distance of p3,p4 from p1-p2 with tolerance;
+  //----------------------------------------------------------------
+  // set s13_1 = if p3 is far above line v12 (tolerance left)
+  // 1=far-left; -1=
+  ph3 = *p3;
+  if(!ishor) ph3.y -= tol1;    // horiz.; move pb3 down
+  else       ph3.x -= tol1;    // vertic.; move pb3 left
+  UT2D_vc_2pt (&vs, p1, &ph3);
+  d1 = UT2D_sar_2vc (&v12, &vs);  // get side; 
+  s13_1 = DSIGN (d1);      // 1: p3 is far-above|left of v1; else -1
+    // printf(" s13_1=%d d1=%f\n",s13_1,d1);
+
+  //----------------------------------------------------------------
+  // s14_1 = if p4 is far above (left of) line v12 (with tolerance)
+  ph4 = *p4;
+  if(!ishor) ph4.y -= tol1;    // horiz.; move pb4 down
+  else       ph4.x -= tol1;    // vertic.; move pb4 left
+  UT2D_vc_2pt (&vs, p1, &ph4);
+  d1 = UT2D_sar_2vc (&v12, &vs);  // get side; 
+  s14_1 = DSIGN (d1);      // 1: p4 is far-above|left of v1; else -1
+    // printf(" s14_1=%d d1=%f\n",s14_1,d1);
+
+  // p3 & p4 above = outside
+  if((s13_1 > 0) && (s14_1 > 0)) goto L_outSide;
+
+  //----------------------------------------------------------------
+  // s13_2 = if p3 is far below line v12 (with tolerance)
+  ph3 = *p3;
+  if(!ishor) ph3.y += tol1;    // horiz.; move pb3 up
+  else       ph3.x += tol1;    // vertic.; move pb3 left
+  UT2D_vc_2pt (&vs, p1, &ph3);
+  d1 = UT2D_sar_2vc (&v12, &vs);  // get side; 
+  s13_2 = DSIGN (d1);      // 1 p3 is left of v1 else -1
+    // printf(" s13_2=%d d1=%f\n",s13_2,d1);
+
+  //----------------------------------------------------------------
+  // s14_2 = if p4 is far below line v12 (with tolerance)
+  ph4 = *p4;
+  if(!ishor) ph4.y += tol1;    // horiz.; move pb4 up
+  else       ph4.x += tol1;    // vertic.; move pb4 left
+  UT2D_vc_2pt (&vs, p1, &ph4);
+  d1 = UT2D_sar_2vc (&v12, &vs);  // get side; 
+  s14_2 = DSIGN (d1);      // 1 p3 is left of v1 else -1
+    // printf(" s14_2=%d d1=%f\n",s14_2,d1);
+
+  // p3 & p4 below = outside
+  if((s13_2 < 0) && (s14_2 < 0)) goto L_outSide;
+
+  //----------------------------------------------------------------
+  // is3on = if(s13_1 != s13_2) then p3 is on line v12
+  is3on = s13_1 + s13_2;  // 0=is_on_line; else outside line (2=above, -2=below)
+
+  // is4on = if(s14_1 != s14_2) then p4 is on line v12
+  is4on = s14_1 + s14_2;  // 0=is_on_line; else outside line
+    // printf(" is3on=%d is4on=%d\n",is3on,is4on);
+
+  // isparl = parallel (if p3 & p4 on line);  1=is_parallel; 0=not
+  if((!is3on) && (!is4on)) {
+    // is_parallel
+    isparl = 1;
+  } else {
+    isparl = 0;
+    // outside if all 4 values equal
+    if(is3on == is4on) goto L_outSide;
+  }
+    // printf(" isparl-1=%d\n",isparl);
+
+
+  //==================================================================
+  // find if p3-p4 goes somae deirection as p1-p2; 1=yes, -1=no, 0=parallel
+  UT2D_vc_2pt (&v34, p3, p4);
+  d1 = v12.dx * v34.dx + v12.dy * v34.dy;
+    // printf(" d1=%f\n",d1);
+
+
+  // get pb3-pb4 to go into same direction as p1-p2
+  if(d1 > 0.) {
+      // printf("p3-p4 goes same direction \n");
+    pb3 = *p3;
+    pb4 = *p4;
+    ir34 = 0;       // p3-p4 not swapped
+
+  } else if(d1 < 0.) {
+      // printf("p3-p4 goes opposite direction \n");
+    pb3 = *p4;
+    pb4 = *p3;
+    v34.dx *= -1.;  // invert v34
+    v34.dy *= -1.;
+    ir34 = 1;       // p3-p4 swapped
+
+  } else {
+    // p3-p4 is normal to p1-p2
+    isparl = -1;
+    goto L_normal;
+      // printf(" is-normal !\n");
+  }
+    // UT3D_stru_dump (Typ_PT2, &pb3, " -h-pb3");
+    // UT3D_stru_dump (Typ_PT2, &pb4, " -h-pb4");
+    // printf(" isparl-2=%d\n",isparl);
+
+
+  // isparl -1=normal, 1=parallel, 0=not-parallel
+  if(isparl > 0) goto L_parallel;
+  goto L_not_parall;
+
+
+  //==================================================================
+  // NORMAL: -1 = linesegments are normal. pb3,4 not set !
+  L_normal:
+  // box test: is p3 right of normal line to p2:   outside ..
+  //           is p3 left  of normal line to p1:   outside ..
+    // printf(" normal..\n");
+
+  // normal to v12
+  UT2D_vc_perpvc (&vn, &v12);
+
+  // set s13vl = if p3 is far left of a normal line tru p1 (with tolerance)
+  if(is4on) ph3 = *p3;
+  else      ph3 = *p4;
+  if(!ishor) ph3.x += *tol;    // horiz.; move pb3 right
+  else       ph3.y -= *tol;    // vertic.; move pb3 down
+  UT2D_vc_2pt (&vs, p1, &ph3);
+  d1 = UT2D_sar_2vc (&vn, &vs);  // get side; 1=left=outside;
+  s13vl = DSIGN (d1);
+    // printf(" s13vl=%d d1=%f\n",s13vl,d1);
+  // if far-left (1) then outside
+  if(s13vl > 0) goto L_outSide;
+
+  // set s23vr = if p3 is far right of a normal line tru p2 (with tolerance)
+  if(is4on) ph3 = *p3;
+  else      ph3 = *p4;
+  if(!ishor) ph3.x += *tol;    // horiz.; move pb3 left
+  else       ph3.y -= *tol;    // vertic.; move pb3 up
+  UT2D_vc_2pt (&vs, p2, &ph3);
+  d1 = UT2D_sar_2vc (&vn, &vs);  // get side; 
+  s23vr = DSIGN (d1);      // 1: p3 is above|left of v1; else -1
+    // printf(" s23vr=%d d1=%f\n",s23vr,d1);
+  // if far-right (-1) then outside
+  if(s23vr < 0) goto L_outSide;
+
+
+  // test endpoints
+  if(!is3on) {   // p3 is on line p1-p2
+    irc = 1;
+    // test if p3 == p1
+    if(fabs(p3->x - p1->x) < *tol) {
+      if(fabs(p3->y - p1->y) < *tol) {irc = 3; goto L_exit;}}
+    // test if p3 == p2
+    if(fabs(p3->x - p2->x) < *tol) {
+      if(fabs(p3->y - p2->y) < *tol) {irc = 5; goto L_exit;}}
+
+
+  } else if(!is4on) {   // p4 is on line p1-p2
+    irc = 2;
+    // test if p4 == p1
+    if(fabs(p4->x - p1->x) < *tol) {
+      if(fabs(p4->y - p1->y) < *tol) {irc = 4; goto L_exit;}}
+    // test if p4 == p2
+    if(fabs(p4->x - p2->x) < *tol) {
+      if(fabs(p4->y - p2->y) < *tol) {irc = 6; goto L_exit;}}
+
+  } else {
+    irc = 0;
+  }
+
+  *mode = -1;
+  goto L_exit;
+
+
+
+  //==================================================================
+  // is parallel.
+  L_parallel:
+    // printf(" L_parallel:\n");
+
+  // linesegments are parallel; pb3-pb4 goes same direction as p1-p2
+  //           is pb3 right|lower of p2: outside ..
+  //           is pb4 left|upper  of p1: outside ..
+  if(!ishor) {
+    // horiz.; test if pb3 is right of p2
+    if(pb3.x > (p2->x + *tol)) goto L_outSide;
+    // horiz.; test if pb4 is left of p1
+    if(pb4.x < (p1->x - *tol)) goto L_outSide;
+
+  } else {
+    // vertic; test if pb3 is above of p2
+    if(pb3.y > (p2->y + *tol)) goto L_outSide;
+    // vertic.; test if pb4 is below of p1
+    if(pb4.y < (p1->y - *tol)) goto L_outSide;
+  }
+
+
+  // test endpoints
+  if(!ishor) {
+    // horiz.; test if pb3 == p2
+     if(fabs(p3->x - p2->x) < *tol) {irc = 5 + ir34; goto L_exit;}
+    // horiz.; test if pb4 == p1
+     if(fabs(p4->x - p1->x) < *tol) {irc = 4 - ir34; goto L_exit;}
+  } else {
+    // vertic.; test if pb3 == p2
+     if(fabs(p3->y - p2->y) < *tol) {irc = 5 + ir34; goto L_exit;}
+    // vertic; test if pb4 == p1
+     if(fabs(p4->y - p1->y) < *tol) {irc = 4 - ir34; goto L_exit;}
+  }
+
+  // pb3-pb4 overlaps p1-p2
+  irc = 7;
+  goto L_exit;
+
+
+
+  //==================================================================
+  // not parallel
+  L_not_parall:
+    // printf(" L_not_parall\n");
+
+  // get d1 = parameter of the intersectionpoint along p1-p2
+  UT2D_vc_2pt (&v13, p1, &pb3);
+  q1 = v12.dy * v34.dx;
+  q2 = v12.dx * v34.dy;
+  qq = q1 - q2;
+    // printf(" 1-qq=%f q1=%f q2=%f\n",qq,q1,q2);
+  d1 = (v34.dx * v13.dy - v34.dy * v13.dx) / qq;
+    // printf(" par-d1=%f\n",d1);
+
+  // test endpoints
+  if(d1 < 0.5) {
+    // check if (p1 == pb3)
+    if(fabs(pb3.x - p1->x) < *tol) {
+      if(fabs(pb3.y - p1->y) < *tol) {irc = 3 + ir34; goto L_exit;}}
+    // check if (p1 == pb4)
+    if(fabs(pb4.x - p1->x) < *tol) {
+      if(fabs(pb4.y - p1->y) < *tol) {irc = 4 - ir34; goto L_exit;}}
+  } else {
+    // check if (p2 == pb3)
+    if(fabs(pb3.x - p2->x) < *tol) {
+      if(fabs(pb3.y - p2->y) < *tol) {irc = 5 + ir34; goto L_exit;}}
+    // check if (p2 == pb4)
+    if(fabs(pb4.x - p2->x) < *tol) {
+      if(fabs(pb4.y - p2->y) < *tol) {irc = 6 - ir34; goto L_exit;}}
+  }
+
+  // test outside endpoints
+  if((d1 < 0.)||(d1 > 1.)) goto L_outSide;
+
+  // 1 = endpoint of p3-p4 is on line p1-p2
+  irc = 0;
+  if(!is3on) irc = 1;
+  if(!is4on) irc = 2;
+  goto L_exit;
+
+
+
+  //----------------------------------------------------------------
+  L_outSide:
+    irc = -1;
+    
+  L_exit:
+    *mode = isparl;
+      // printf("  ex UT2D_2pt_ck_int_2pt irc=%d mode=%d\n",irc,*mode);
+    return irc;
+
+}
+
+
 //================================================================
+  int UT2D_is_convex_inpt (int pNr, int *ia, Point2 *pa)  {
+//================================================================
+// check if indexed contour is convex | concave
+// Output:
+//   retCod:  -1  contour is convex ("O")
+//           >=0  contour is concave ("L"); pointIndex of first concave segments
+//                - contour is concave arount point [ia[ii]]
+// TESTPROG: UT2D_test_is_convex_inpt
+// see also UT3D_isConvx_ptTab UFA_opt_ckCvx UFA_opt_ckOpt
+
+  int      ii, i1, ie;
+  double   d1;
+  Vector2  v01, v12, ve0;
  
+
+  // printf("UT2D_is_convex_inpt %d\n",pNr);
+  // for(i1=0;i1<pNr;++i1)printf(" %d",ia[i1]);
+  // printf(" \n");
+
+
+
+
+  ie = pNr - 1;
+  // closing segment
+  ve0.dx = pa[ia[ie]].x - pa[ia[0]].x;
+  ve0.dy = pa[ia[ie]].y - pa[ia[0]].y;
+  v01 = ve0;
+
+  i1 = -1;
+  for(ii=1; ii < pNr; ++ii) {
+    ++i1;
+    v12.dx = pa[ia[i1]].x - pa[ia[ii]].x;
+    v12.dy = pa[ia[i1]].y - pa[ia[ii]].y;
+    // crossprod of v01 - v12
+    d1 = -v01.dy * v12.dx + v01.dx * v12.dy;
+      // printf(" isConvex v12=%d,%d  %f\n",i1,ii,d1);
+    if(d1 < 0.) return i1;  // concave arount point [ia[ii]]
+    v01 = v12;
+  }
+  // test last segment - closing segment
+      // printf(" isConvex v12=%d,%d  %f\n",i1,ii,d1);
+  d1 = -v01.dy * ve0.dx + v01.dx * ve0.dy;
+  if(d1 < 0.) return ie;
+
+
+  return -1;
+
+}
+
+
+//================================================================
+  double UT2D_par_nor_2vc (Vector2 *vc1, Vector2 *vc2) {
+//================================================================
+/// parameter height to lenght
+/// get pn = height of vc2 / length of vc1
+/// endpoint of vc2 is projected onto (unlimited) vc1;
+///   pn = lenght-of-projection-line / length-of-vc1
+///   pn is negative, if vc2 is below vc1.
+///            x
+///           /|
+///          / |
+///       vc2  |
+///        /   | par_nor
+///       /    |
+///      /     |
+///     x------+-------x
+///              vc1
+///
+/// vc1=0,1; vc2=1,2; returns 1 (length vc1 == lenght of vc2 normal to vc1)
+
+
+  double  _dx, pn;
+  Vector2 vcn;
+
+  // UT3D_stru_dump (Typ_VC2, vc1, "UT2D_par_nor_2vc vc1");
+  // UT3D_stru_dump (Typ_VC2, vc2, "                 vc2");
+
+
+  // rotate vc1 90 deg (UT2D_vc_perpvc)                                <<<<<
+  _dx = vc1->dx;
+  vcn.dx = -vc1->dy;
+  vcn.dy = _dx;
+    // printf(" vcn %f %f\n",vcn.dx,vcn.dy);
+
+  // get parameter of vc2 onto vcn
+  UT2D_parvc_2vc (&pn, vc2, &vcn);
+    // printf(" ex par_nor_2vc-pn=%f\n",pn);
+
+
+  return pn;
+
+}
+
+
+//=============================================================================
+  int UT2D_ck_pt_in_tria_tol (Point2 *p1, Point2 *p2, Point2 *p3,
+                              Point2 *px, double *tol) {
+//=============================================================================
+// UT2D_ck_pt_in_tria_tol   check if point is inside Triangle with tolerance
+// see UT2D_ck_pt_in_tria__ UT2D_pt_ck_inCv3
+// Returncodes:
+//   1 = NO  = point outside triangle
+//   0 = YES = point inside triangle
+//  -1 = ~~  = point is on sideline p1-p2
+//  -2 = ~~  = point is on sideline p2-p3
+//  -3 = ~~  = point is on sideline p3-p1
+//  -4 = ~~  = point is equal to p1
+//  -5 = ~~  = point is equal to p2
+//  -6 = ~~  = point is equal to p3
+
+// see also UT2D_ck_pt_in_tria__
+
+
+
+  int       irc, i1r, i2r, i3r, i1l, i2l, i3l;
+  Vector2   v12, v1x, v1l, v1r, v1xl, v1xr;
+  Vector2   v23, v2x, v2l, v2r, v2xl, v2xr;
+  Vector2   v31, v3x, v3l, v3r, v3xl, v3xr;
+  double    rTol;
+
+
+  // printf("UT2D_ck_pt_in_tria__: tol=%f \n",*tol);
+  // UT3D_stru_dump (Typ_PT2, px, "   px:");
+  // UT3D_stru_dump (Typ_PT2, p1, "   p1:");
+  // UT3D_stru_dump (Typ_PT2, p2, "   p2:");
+  // UT3D_stru_dump (Typ_PT2, p3, "   p3:");
+    // GR_Disp_pt2 (px, SYM_STAR_S, 4);
+    // GR_Disp_ln2 (p1, p2, 0);
+    // GR_Disp_ln2 (p1, p3, 0);
+    // GR_Disp_ln2 (p3, p2, 0);
+    // GR_Disp_tx2 (p1, "1", 1);
+    // GR_Disp_tx2 (p2, "2", 1);
+    // GR_Disp_tx2 (p3, "3", 1);
+
+
+
+  //----------------------------------------------------------------
+  // get v1l = vector for tolerance above v1 (left-side)
+  UT2D_vc_2pt (&v12, p1, p2);
+  UT2D_vc_2pt (&v1x, p1, px);
+  UT2D_vcPerpAppr_vc_len (&v1l, &v12, tol);
+    // printf(" v1l.dx=%f dy=%f\n", v1l.dx, v1l.dy);
+
+  // move endPt of v1x <tol> up
+  UT2D_vc_add2vc (&v1xl, &v1x, &v1l);
+    // printf(" v1xl.dx=%f dy=%f\n", v1xl.dx, v1xl.dy);
+
+  // see UT2D_sar_2vc
+  i1r = DSIGN (v12.dx * v1xl.dy - v1xl.dx * v12.dy);
+    // printf(" i1r=%d\n",i1r);
+
+
+  //----------------------------------------------------------------
+  // get v2l = vector for tolerance above v2 (left-side)
+  UT2D_vc_2pt (&v23, p2, p3);
+  UT2D_vc_2pt (&v2x, p2, px);
+  UT2D_vcPerpAppr_vc_len (&v2l, &v23, tol);
+    // printf(" v2l.dx=%f dy=%f\n", v2l.dx, v2l.dy);
+
+  // move endPt of v2x <tol> up
+  UT2D_vc_add2vc (&v2xl, &v2x, &v2l);
+    // printf(" v2xl.dx=%f dy=%f\n", v2xl.dx, v2xl.dy);
+
+  // see UT2D_sar_2vc
+  i2r = DSIGN (v23.dx * v2xl.dy - v2xl.dx * v23.dy);
+    // printf(" i2r=%d\n",i2r);
+
+
+  //----------------------------------------------------------------
+  // if i1r not equal i2r: point outside
+  if((i1r != 0) && (i2r != 0)) { // keines der Vorzeichen ist 0 ..
+    if(i1r != i2r) {irc = 1; goto L_exit;}
+  }
+
+
+  //----------------------------------------------------------------
+  // get v3l = vector for tolerance above v3 (left-side)
+  UT2D_vc_2pt (&v31, p3, p1);
+  UT2D_vc_2pt (&v3x, p3, px);
+  UT2D_vcPerpAppr_vc_len (&v3l, &v31, tol);
+    // printf(" v3l.dx=%f dy=%f\n", v3l.dx, v3l.dy);
+
+  // move endPt of v3x <tol> up
+  UT2D_vc_add2vc (&v3xl, &v3x, &v3l);
+    // printf(" v3xl.dx=%f dy=%f\n", v3xl.dx, v3xl.dy);
+
+  // see UT2D_sar_2vc
+  i3r = DSIGN (v31.dx * v3xl.dy - v3xl.dx * v31.dy);
+    // printf(" i3r=%d\n",i3r);
+
+
+  //----------------------------------------------------------------
+  // if all are left: point-inside; else outside
+  if((i1r < 1) || (i2r < 1) || (i3r < 1)) {irc = 1; goto L_exit;}
+
+
+  //----------------------------------------------------------------
+  // get i1l = vector for tolerance below v1 (right-side)
+  // move endPt of v1x <tol> down
+  UT2D_vc_invert (&v1r, &v1l);
+  UT2D_vc_add2vc (&v1xr, &v1x, &v1r);
+    // printf(" v1xr.dx=%f dy=%f\n", v1xr.dx, v1xr.dy);
+
+  // see UT2D_sar_2vc
+  i1l = DSIGN (v12.dx * v1xr.dy - v1xr.dx * v12.dy);
+    // printf(" i1l=%d\n",i1l);
+
+  // if point is right: is-inside-tolerence
+  if(i1l < 0) {
+    // test if (p1 == px)
+    if(UT2D_comp2pt(p1, px, *tol)) irc = -4;
+    // test if (p2 == px)
+    else if(UT2D_comp2pt(p2, px, *tol)) irc = -5;
+    else irc = -1;
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // get i2l = vector for tolerance below v2 (right-side)
+  // move endPt of v2x <tol> down
+  UT2D_vc_invert (&v2r, &v2l);
+  UT2D_vc_add2vc (&v2xr, &v2x, &v2r);
+    // printf(" v2xr.dx=%f dy=%f\n", v2xr.dx, v2xr.dy);
+
+  // see UT2D_sar_2vc
+  i2l = DSIGN (v23.dx * v2xr.dy - v2xr.dx * v23.dy);
+    // printf(" i2l=%d\n",i2l);
+
+  // if point is right: is-inside-tolerence
+  if(i2l < 0) {
+    // test if (p3 == px)
+    if(UT2D_comp2pt(p3, px, *tol)) irc = -6;
+    else irc = -2;
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // get i1l = vector for tolerance below v1 (right-side)
+  // move endPt of v3x <tol> down
+  UT2D_vc_invert (&v3r, &v3l);
+  UT2D_vc_add2vc (&v3xr, &v3x, &v3r);
+    // printf(" v3xr.dx=%f dy=%f\n", v3xr.dx, v3xr.dy);
+
+  // see UT2D_sar_2vc
+  i3l = DSIGN (v31.dx * v3xr.dy - v3xr.dx * v31.dy);
+    // printf(" i3l=%d\n",i3l);
+
+  // if point is right: is-inside-tolerence
+  if(i3l < 0) {
+    irc = -3;
+    goto L_exit;
+  }
+
+  // point is inside.
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex UT2D_ck_pt_in_tria_tol %d\n",irc);
+
+  return irc;
+
+}
+
+
+//================================================================
+// eof

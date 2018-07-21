@@ -54,6 +54,7 @@ MSG_err_1              DUMMY
 MSG_pri_1              DUMMY
 MSG_get_str            DUMMY
 gCad_fini              DUMMY
+AP_tutStat_get         DUMMY
 
 List_functions_end:
 =====================================================
@@ -501,6 +502,12 @@ char* MSG_get_str (char *key) {
 int gCad_fini () {
   return 0;
 }
+
+
+int AP_tutStat_get () {
+  return 0;
+}
+
 
 
 

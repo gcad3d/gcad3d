@@ -22,6 +22,7 @@ MSG_filter=Filtertext
 MSG_texture=Textur
 MSG_open=Öffnen
 MSG_GrpClear=Gruppe auflösen
+MSG_GrpMove=Gruppe verschieben
 MSG_GrpHide=Gruppe ausblenden
 MSG_GrpDelA=Gruppe löschen
 MSG_GrpAdd1=zur Gruppe zufügen
@@ -36,4 +37,6 @@ MSG_cpyMdl=in Eingabefeld kopieren
 MSG_getPar=suche Eltern-Objekte
 MSG_getChd=suche Kind-Objekte
 MSG_modNam=Objektname ändern
+MSG_cvEd=edit curve
+MSG_GrpInv=Gruppe invertieren
 #EOF

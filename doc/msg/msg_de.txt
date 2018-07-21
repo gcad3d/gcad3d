@@ -96,6 +96,7 @@ MMbtSid=Seitenansicht (Y-Z)
 MMbtAxo=Axonometrische Ansicht
 MMbtSca=Vergrösserung und Darstellungsmittelpunkt automatisch errechnen
 MMbtScf=eine Raumgrösse von ca. 6000 x 6000 x 6000 mm darstellen
+MMbtScg=nur aktive Gruppe darstellen
 MMbtVwpt=aktuelle Ansicht speichern / wiederherstellen (Ctr-V, Ctrl-CursorRechts)
 MMrbRel=Cursorposition auf der aktiven Konstruktionsebene anzeigen
 MMrbAbs=Cursorposition auf der aktiven Konstruktionsebene absolut anzeigen
@@ -114,8 +115,9 @@ RotCen=neuen Rotationsmittelpunkt definieren:\
 \-=Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
 ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
 HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
 CAD_On=CAD-Funktion selektieren / Objekt mit rechter Maustaste selektieren
-MAN_On=neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
+MAN_On=MAN: neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
 MD_On=Objekt selektieren / Objektbezeichnung + Enter eingeben  / Beenden: Strg-rechte Maustaste
 
 CADPT=Punkte
@@ -140,6 +142,7 @@ CADhelpCAD=Info über die Bedienung von CAD im HTML-Browser anzeigen
 CADhelpFunc=Info über die aktive CAD-Funktion im HTML-Browser anzeigen
 CADhelpInput=Info über das aktive CAD-Eingabefeld im HTML-Browser anzeigen
 CADexit=Funktion abbrechen. Aktives Obj. wird nicht gespeichert. Edit-Modus: 2-mal Cancel, rechte Maustaste - Editieren.
+CADclear=das aktive CAD-Eingabefeld löschen
 CADsave=aktives Obj. speichern, weiter zum nächsten Obj. Rechte Maustaste, Entertaste.
 
 PT_cartes__offset=Punkt; selektieren od eingeben; [relativ in X/Y/Z]
@@ -293,6 +296,7 @@ Typ_modCTRL=Bild-Tasten / ("CTRL" = Controlpoints) eing.
 Typ_modREV=Bild-Tasten / ("REV" = reverse) eing.
 Typ_modCX=Bild-Tasten / ("CX" = Querrichtung) eing.
 Typ_modUnlim=Unlimitiert; Bild-Tasten / "UNL" oder "UNL1" oder "UNL2" eingeben
+Typ_modRepl=Obj. ersetzen; Standard = kopieren; Bild-Taste oder "REPL" eingeben
 Typ_Txt=Text eingeben / Bild-Tasten
 Typ_String=Text eing. / Modify-Edit
 TYP_FilNam=Filename eing. / mittl. Mausetaste (F5) Liste / sel.Model
@@ -311,7 +315,8 @@ VR0=es sind keine Variablen definiert ..
 
 FILT02=Punktfilter Vertex
 FILT03=Punktposition am sel. Obj. liefern ..
-FILT05=alle nachfolgend  selektierten Objekte zur Gruppe zufügen / Ende mit  Tab-Taste
+FILT04=Objekt analysieren; auswählen oder Objektname mit Tastatur eingeben -
+FILT05=alle nachfolgend selektierten Objekte zur Gruppe zufügen / Ende mit  Tab-Taste
 FILT06=Linie|Kreis|Kurve sel. (Ändern)
 FILT07=Fläche sel. (Ändern)
 FILT13=Fläche sel. (Textur entfernen)

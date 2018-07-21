@@ -34,9 +34,10 @@ Modifications:
 List_functions_start:
 
 Mod_load_all        unused
-Mod_load__          Ein ganz neues Model als MainModel oeffnen;
+Mod_load__          load native model
 Mod_load_allsm      load Models of mdb_dyn-Records;
 Mod_load_sm         load a subModel (ED_work_file / ED_Run)
+Mod_SM_add_file     add subModel from file
 Mod_cre__           create new SubModel
 Mod_cre_CB
 Mod_ren__           rename Submodel
@@ -46,16 +47,24 @@ Mod_del_CB
 Mod_chg__           activate other Submodel
 Mod_chg_CB          load selected SubModel
 Mod_chg_x           activate internal subModel from modelname
-Mod_sav__           save Model+Submodel -> File
-Mod_sav2file__      save the active Submodel WC_modact_nam -> permanent File
+Mod_m2s__           move Mainmodel > Submodel
+Mod_m2s_CB
+Mod_sav_ck          save Model+Submodel -> File native; compare with last saved
+Mod_sav_cmp__         compare <tmpDir>/Model mit <tmpDir>/Mod_in
+Mod_sav__           save Model+Submodel -> File native
+Mod_sav_i           save Model+Submodels into tempDir as "Model" native. Intern
+Mod_sav_tmp         save the active Submodel AP_modact_nam -> TempFile
+Mod_sav2file__      save the active Submodel AP_modact_nam -> permanent File
 Mod_sav2file_CB
 Mod_file2model      save submodel > tmp/Model_<name>
 Mod_savSubBuf1      save Submodel in Buffer1 + active Hidelist
-Mod_sav_tmp         save the active Submodel WC_modact_nam -> TempFile
 Mod_LoadFile__      Model als Submodel laden
 Mod_LoadSubmodel    ?
+
+Mod_smNam_get       get new subModelname from user
 Mod_ck_isMain       check if the active model is the mainmodel
 
+Mod_sym_dir__       get symbolic-directory from any-directory
 Mod_sym_get__       get symbolic-directory & absolute-path from filename
 Mod_sym_get1        get path from symbol; resolv "symbol/fnam" or "fnam"
 Mod_sym_get2        get symbol from path
@@ -63,6 +72,10 @@ Mod_sym_add         register symbolic path
 Mod_sym_del         delete symbolic path
 Mod_symOpen_set     register symbolic path
 Mod_get_path        resolv "symbol/fnam" or "fnam"
+Mod_sym_getAbs      get abs.dir from symbolic-dir
+Mod_fNam_sym        get absolute-filename from symbolic-filename
+Mod_fNam_get        get AP_mod_dir,sym,fnam,ftyp from symbolic- or abs.filename
+Mod_fNam_set        get symbolic-filename or absolute-filename
 Mod_sym_dump        dump all symbolic directories
 
 Mod_get_ftyp1       give Modeltyp from Filename
@@ -90,6 +103,7 @@ Mod_allmod_MS       in all subMods modify ModSiz
 
 List_functions_end:
 =====================================================
+see also ../xa/xa_mod_gui.c   Mod_*
 
 SEE ALSO:
 DB_get_ModRef      get Ditto from Index
@@ -279,40 +293,42 @@ MBTYP_EXTERN usw.
 #include <ctype.h>                    // isdigit
 #include <stdarg.h>
 
-#include "../ut/func_types.h"              // UI_FuncSet
-#include "../xa/xa_uid.h"             // UID_Main_title
-
 #include "../gui/gui_types.h"          // UI_Func..
+
+#include "../ut/func_types.h"          // UI_FuncSet
 #include "../ut/ut_geo.h"
-#include "../ut/ut_msh.h"         // Fac3 ..
-#include "../ut/ut_txt.h"             // fnam_del
-#include "../ut/ut_txfil.h"           // UTF_GetnextLnPos
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_txt.h"              // fnam_del
+#include "../ut/ut_txfil.h"            // UTF_GetnextLnPos
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_os.h"
-#include "../ut/ut_memTab.h"          // MemTab_..
 #include "../ut/ut_cast.h"             // INT_PTR
 
-#include "../db/ut_DB.h"              // DB_cPos
+#include "../db/ut_DB.h"               // DB_cPos
 
-#include "../xa/xa_msg.h"             // MSG_ok,
-#include "../xa/xa_mem.h"             // mem_cbuf1
-#include "../xa/xa.h"                 // WC_modnam
+#include "../xa/xa_uid.h"              // UID_Main_title
+#include "../xa/xa_msg.h"              // MSG_ok,
+#include "../xa/xa_mem.h"              // mem_cbuf1
+#include "../xa/xa_ed_mem.h"           // APED_..
+
+#include "../xa/xa.h"                  // AP_mod_fnam
 
 
 
-typedef_MemTab(int);
-typedef_MemTab(Point);
-typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
+// typedef_MemTab(int);
+// typedef_MemTab(Point);
+// typedef_MemTab(Fac3);
+// typedef_MemTab(EdgeLine);
 
 
 
 //-------------------------------
 // aus xa.c:
 extern  Point     WC_mod_ori;            // der Model-Origin
-// extern char      AP_dir_open[128], AP_sym_open[64]; // Verzeichnis fuer OPEN
-// extern char      WC_modnam[128];
-// extern char      WC_modact_nam[128];
+// extern char      AP_mod_dir[128], AP_mod_sym[64]; // Verzeichnis fuer OPEN
+// extern char      AP_mod_fnam[128];
+// extern char      AP_modact_nam[128];
 extern  int       WC_modact_ind;         // -1=primary Model is active;
                                          // else subModel is being created
 
@@ -347,9 +363,9 @@ static char       sSecEnd[]="SECTIONEND";
 /// retCode      0   subModel is active
 ///              1   the main-model is active
 
-// test if WC_modact_nam == ""  (mainmodel = ""; else subModelname)
+// test if AP_modact_nam == ""  (mainmodel = ""; else subModelname)
 
-  return ((WC_modact_nam[0] == 0) ? 1 : 0);
+  return ((AP_modact_nam[0] == 0) ? 1 : 0);
 
 }
 
@@ -380,7 +396,7 @@ static char       sSecEnd[]="SECTIONEND";
   // printf("Mod_mNam_mdb imdb=%ld siz=%d\n",imdb,*sSiz);
 
   mb1 = DB_get_ModBas (imdb);
-    printf(" mnam=|%s| typ=%d\n",mb1->mnam,mb1->typ);
+    // printf(" mnam=|%s| typ=%d\n",mb1->mnam,mb1->typ);
 
   strcpy (mNam, mb1->mnam);
   *typ = mb1->typ;
@@ -472,12 +488,12 @@ static char       sSecEnd[]="SECTIONEND";
 //====================================================================
 /// Bei jedem Init und File/new:
 /// - clear all tmp/Model_*
-/// - set WC_modact_nam="" (main)
+/// - set AP_modact_nam="" (main)
 
 
   DB_StoreModBas (0, NULL);     // delete all basic models  2015-11-28
 
-  WC_modact_nam[0] = '\0';
+  AP_modact_nam[0] = '\0';
   WC_modact_ind    = -1;
 
   return 0;
@@ -529,7 +545,7 @@ static char       sSecEnd[]="SECTIONEND";
 
 
   // save active submodelname
-  strcpy(WC_modact_nam, mNam);
+  strcpy(AP_modact_nam, mNam);
 
 
   // display submodelname im Titlebar
@@ -553,13 +569,13 @@ static char       sSecEnd[]="SECTIONEND";
   int Mod_cre__ () {
 ///====================================================================
 /// create new SubModel:
-/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
+/// - save active Model (AP_modact_nam) -> tmp/Model_<submodelname>
 /// - ask for Modelname; callback -> Mod_cre_CB
 
   printf("Mod_cre__\n");
 
 
-  // save the active Submodel WC_modact_nam -> TempFile
+  // save the active Submodel AP_modact_nam -> TempFile
   Mod_sav_tmp ();
 
 
@@ -621,7 +637,7 @@ static char *fnam;
 
   // rename
   L_work:
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),AP_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1, newNam);
 
@@ -666,7 +682,7 @@ static char *fnam;
   printf("Mod_m2s__\n");
 
 
-  // save the active Submodel WC_modact_nam -> TempFile
+  // save the active Submodel AP_modact_nam -> TempFile
   Mod_sav_tmp ();
 
   // ask for new Modelname
@@ -682,7 +698,7 @@ static char *fnam;
   int Mod_chg__ () {
 ///====================================================================
 /// activate other Submodel
-/// - save active Model (WC_modact_nam) -> tmp/Model_<submodelname>
+/// - save active Model (AP_modact_nam) -> tmp/Model_<submodelname>
 /// - provide List of Submodelnames
 /// - Selection -> Mod_chg_CB
 
@@ -691,7 +707,7 @@ static char *fnam;
   printf("Mod_chg__\n");
 
 
-  // save the active Submodel WC_modact_nam -> TempFile
+  // save the active Submodel AP_modact_nam -> TempFile
   Mod_sav_tmp ();
 
 
@@ -787,7 +803,7 @@ static char *fnam;
 //====================================================================
 /// \code
 /// - load new active SubModel
-/// - set WC_modact_nam = new active Modelname
+/// - set AP_modact_nam = new active Modelname
 /// - RUN
 /// \endcode
 
@@ -821,7 +837,7 @@ static char *fnam;
 /// Mod_chg_x        activate internal subModel from modelname
 /// new Submodelname selected;
 /// - load new active SubModel
-/// - set WC_modact_nam = new active Modelname
+/// - set AP_modact_nam = new active Modelname
 /// - RUN
 
   // int    mTyp;
@@ -836,17 +852,17 @@ static char *fnam;
   TX_Print("activate subModel %s", modNam);
 
 
-  // set WC_modact_nam = new active Modelname
+  // set AP_modact_nam = new active Modelname
   if(!strcmp(modNam, "-main-")) {
-    WC_modact_nam[0] = '\0';
+    AP_modact_nam[0] = '\0';
 
   } else {
-    strcpy(WC_modact_nam, modNam);
+    strcpy(AP_modact_nam, modNam);
   }
 
 
   // load new active SubModel
-  sprintf(fNam,"%sModel_%s", OS_get_tmp_dir(), WC_modact_nam);
+  sprintf(fNam,"%sModel_%s", OS_get_tmp_dir(), AP_modact_nam);
     // printf(" load |%s|\n",fNam);
   ED_new_File (fNam); // Datei ins Memory einlesen
 
@@ -880,12 +896,12 @@ static char *fnam;
   char   cbuf[256];
 
 
-  strcpy(cbuf, WC_modnam);
+  strcpy(cbuf, AP_mod_fnam);
 
-  // if(strlen(WC_modact_nam) > 0) {
+  // if(strlen(AP_modact_nam) > 0) {
   if(!Mod_ck_isMain()) {
     strcat(cbuf, " / ");
-    strcat(cbuf, WC_modact_nam);
+    strcat(cbuf, AP_modact_nam);
   }
 
   UI_AP (UI_FuncSet, UID_Main_title, cbuf);
@@ -896,19 +912,240 @@ static char *fnam;
 }
 
 
+//================================================================
+  int Mod_sav_ck (int mode) {
+//================================================================
+/// \code
+/// Mod_sav_ck          save Model+Submodel -> File native; compare with last saved
+/// test if model is modified;
+///  mode      0=init (copy Model -> Mod_in)
+///            1=compare Model - Mod_in
+///  retCode:  0=files_not_different, -1=different_files (only for mode=1)
+///
+/// When loading new Model, after saving modified model: copy -> Mod_in.
+/// Check modified: compare active Model <tmpDir>/Model with <tmpDir>/Mod_in
+/// \endcode
+
+  int  irc;
+  char fnTmp[256], fn1[256];
+
+
+  // printf("Mod_sav_ck %d\n",mode);
+
+
+  sprintf(fnTmp, "%sMod_in", OS_get_tmp_dir());
+  sprintf(fn1,   "%sModel",  OS_get_tmp_dir());
+
+  //----------------------------------------------------------------
+  // mode=0   init (copy Model -> Mod_in)
+  if(!mode) {
+    OS_file_copy (fn1, fnTmp);
+    return 0;
+  }
+
+
+  //----------------------------------------------------------------
+  // mode=1   compare
+  // save Model+Submodels into tempDir as "<tmpDir>/Model" native
+  irc = Mod_sav_i (0);
+  if(irc < 0) return irc;
+
+
+  // compare Mod_in - Model
+  // irc = OS_file_compare_A (fnTmp, fn1);
+  irc = Mod_sav_cmp__ (fnTmp, fn1);
+    // printf(" Mod_sav_ck compare=%d\n",irc);
+
+
+  return irc;
+
+}
+
+
+//================================================================
+  int Mod_sav_cmp_i (char *ln1) {
+//================================================================
+// test if line can be ignored
+// retCode:   1=ignore_line;  0=test_line
+// ignore also DEFTX DEFCOL CONST_PL (will be added to subModel when activated)
+
+  if(!strncmp(ln1, "MODBOX ", 7))   return 1;
+  if(!strncmp(ln1, "MODSIZ ", 7))   return 1;
+  if(!strncmp(ln1, "VIEW ", 5))     return 1;
+
+  if(!strncmp(ln1, "DEFCOL ", 7))   return 1;
+  if(!strncmp(ln1, "DEFTX ", 6))    return 1;
+  if(!strncmp(ln1, "CONST_PL ", 9)) return 1;
+
+
+  return 0;
+
+}
+
+ 
+//================================================================
+  int Mod_sav_cmp__ (char *fnM1, char *fnM2) {
+//================================================================
+/// \code
+/// Mod_sav_cmp__         compare <tmpDir>/Model mit <tmpDir>/Mod_in
+/// RetCode:  0=files_not_different, 1=different_files
+/// \endcode
+
+  int     irc = 0, ieof=0;
+  long    llM1, llM2, lNrM1, lNrM2;
+  char    *lnM1, *lnM2;  // linebuffers
+  FILE    *fpM1 = NULL, *fpM2 = NULL;
+
+
+  //----------------------------------------------------------------
+  // test filesizes
+  // PROBLEM: MODBOX VIEW records can make different filesize !
+  // if(OS_FilSiz(fnM1) != OS_FilSiz(fnM2)) goto L_errEx;
+
+
+  //----------------------------------------------------------------
+  // open model1
+  if ((fpM1 = fopen (fnM1, "r")) == NULL) {
+    printf ("ERROR open %s\n",fnM1);
+    goto L_errEx;
+  }
+
+
+  //----------------------------------------------------------------
+  // open model2
+  if ((fpM2 = fopen (fnM2, "r")) == NULL) {
+    printf ("ERROR open %s\n",fnM2);
+    goto L_errEx;
+  }
+
+
+  //----------------------------------------------------------------
+  // get space for the next 2 lines
+  lnM1 = APED_SRCLN_BUF__;
+  // lnM2 = (char*) MEM_alloc_tmp (APED_SRCLN_BUFSIZ);
+  lnM2 = memspc201;
+
+
+  //----------------------------------------------------------------
+  // get next line of model1
+  L_nxtM1:
+  if(fgets (lnM1, APED_SRCLN_BUFSIZ, fpM1) == NULL) {  // printf(" EOF M1\n");
+    ++ieof; goto L_nxtM2; }
+  llM1 = strlen(lnM1);
+  if(llM1 <= 1) goto L_nxtM1;
+    // printf(" M1 %ld |%s|",llM1,lnM1);
+  // test if line can be ignored
+  if(Mod_sav_cmp_i(lnM1)) goto L_nxtM1;
+
+
+  //----------------------------------------------------------------
+  // get next line of model2
+  L_nxtM2:
+  if (fgets (lnM2, APED_SRCLN_BUFSIZ, fpM2) == NULL) {  // printf(" EOF M2\n");
+    ++ieof; goto L_nxtCmp; }
+  llM2 = strlen(lnM2);
+  if(llM2 <= 1) goto L_nxtM2;
+    // printf(" M2 %ld |%s|",llM2,lnM2);
+  // test if line can be ignored
+  if(Mod_sav_cmp_i(lnM2)) goto L_nxtM2;
+
+
+  //----------------------------------------------------------------
+  // 2 lines to compare ?
+  L_nxtCmp:
+  if(ieof) {
+    if(ieof == 1) goto L_errEx;             // ieof=1: premature end of 1 file
+    goto L_exit;                            // ieof=2: finished, OK.
+  }
+
+  // compare
+  if(llM1 != llM2) goto L_errEx;
+  if(memcmp(lnM1, lnM2, llM1)) goto L_errEx;  // objDat already exists
+
+  // ok, both lines equal;
+  goto L_nxtM1;
+
+
+  //----------------------------------------------------------------
+  L_errEx:
+  irc = 1;
+    printf("  _sav_cmp__-1-|%s|\n",lnM1);
+    printf("  _sav_cmp__-2-|%s|\n",lnM2);
+
+
+
+  L_exit:
+  if(fpM1) fclose (fpM1);
+  if(fpM2) fclose (fpM2);
+
+    printf(" ex Mod_sav_cmp__ %d\n",irc);
+
+
+  return irc;
+
+}
+
+
 //====================================================================
-  int Mod_sav__ (int iCompress, char *filNam, int savActMdl) {
+  int Mod_sav__ (int iCompress, char *fnOut, int savActMdl) {
+//====================================================================
+/// Mod_sav__           save Model+Submodel -> File native
+/// Input:
+///   filNam     outfilename absolute
+///   iCompress  0=do not compress; else compress.
+///   savActMdl  0=save active model, 1=do not save active model
+
+  int  irc;
+  char fnTmp[256], fn1[256];
+
+
+  sprintf(fnTmp, "%sModel", OS_get_tmp_dir());
+
+  // save Model+Submodels into tempDir as "<tmpDir>/Model" native
+  irc = Mod_sav_i (savActMdl);
+  if(irc < 0) return irc;
+
+  // make a copy (copy Model -> Mod_in) for check-modified
+  Mod_sav_ck (0);
+
+
+  TX_Print("Save File %s",fnOut);
+
+
+  //================================================================
+  // compress ?
+
+  if(iCompress) {
+    // compress, native.
+    // change filetyp "gcad" -> "gcaz"
+    strcpy(fn1, fnOut);
+    fn1[strlen(fn1) - 1] = 'z';
+    OS_file_zip (0, fnTmp, fnOut);
+
+
+  } else {
+    // copy tempFile -> outfile
+    OS_file_copy (fnTmp, fnOut);
+  }
+
+    // printf("ex Mod_sav__\n");
+
+  return 0;
+
+}
+
+
+//====================================================================
+  int Mod_sav_i (int savActMdl) {
 //====================================================================
 /// \code
-/// save Model+Submodels -> File
+/// Mod_sav_i         save Model+Submodels into tempDir as "Model" native
 /// Input:
-///   iCompress  0=do not compress; else compress.
-///   filNam     outfilename
+///   filNam     outfilename absolute
 ///   savActMdl  0=save active model, 1=do not save active model
 ///
-/// - savActMdl=0:    save the active Submodel WC_modact_nam -> File
-/// - eine aktuelle Liste tmp/Model_* machen
-/// - alle zusammenfuegen; Submodels mit MODEL name/../MODEL END
+/// - savActMdl=0:    save the active Submodel AP_modact_nam -> File
+/// - join all files tmp/Model_* into file tmp/Model
 /// - mainModel = tmp/Model_; subModels = tmp/Model_*
 /// \endcode
 
@@ -924,13 +1161,13 @@ static char *fnam;
   UtxTab_NEW (surPtab);               // stringtable
   UtxTab_NEW (surMsh);                // stringtable
 
-  MemTab(Point) pTab = MemTab_empty;
-  MemTab(Fac3) fTab = MemTab_empty;
-  MemTab(EdgeLine) eTab = MemTab_empty;
-  MemTab(int) eDat = MemTab_empty;
+  MemTab(Point) pTab = _MEMTAB_NUL;
+  MemTab(Fac3) fTab = _MEMTAB_NUL;
+  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(int) eDat = _MEMTAB_NUL;
 
 
-  printf("Mod_sav__ |%s| savActMdl=%d\n",filNam,savActMdl);
+  // printf("Mod_sav_i savActMdl=%d\n",savActMdl);
 
   irc = -1;
 
@@ -940,12 +1177,12 @@ static char *fnam;
   // fix box if necessary
   if(AP_mdlbox_invalid_ck()) {
     // get box of active model
-    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1);
+    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
     AP_mdlbox_invalid_reset ();
   }
 
 
-  // save the active Submodel WC_modact_nam -> TempFile
+  // save the active sub- or mainmodel AP_modact_nam -> TempFile
   if(!savActMdl) Mod_sav_tmp ();
 
 
@@ -960,26 +1197,13 @@ static char *fnam;
 
   // set temp.outfilename <fNam>
   sprintf(fnam0,"%sModel",OS_get_tmp_dir());
-  // fNam = fnam0;
-/*
-  // compress ?
-  if(iCompress) {
-    // yes: create a temp. filename in ../tmp
-    sprintf(fnam0,"%sModel.gcad",OS_get_tmp_dir());
-    fNam = fnam0;
-
-  } else {
-    fNam = filNam;
-  }
-*/
 
 
   // try to open outfile
   if((fpo=fopen(fnam0,"w")) == NULL) {
-    TX_Print("Mod_sav__ E001 %s",fnam0);
+    TX_Print("Mod_sav_i E001 %s",fnam0);
     goto L_err1;
   }
-  TX_Print("Save File %s",filNam);
 
 
 
@@ -1001,7 +1225,7 @@ static char *fnam;
 
     // cat file tmp/Model_<mdlnam>
     if(UTX_cat_file (fpo, fnam1) < 0) {
-      TX_Print("Mod_sav__ E003 %s",fnam1);
+      TX_Print("Mod_sav_i E003 %s",fnam1);
       return -1;
     }
 
@@ -1080,7 +1304,7 @@ static char *fnam;
     fprintf(fpo, "SECTION PROCESS %s\n",UtxTab__(i1, &sTab1));
     sprintf(fnam1, "%s%s",OS_get_tmp_dir(),UtxTab__(i1, &sTab1));
     if(UTX_cat_file (fpo, fnam1) < 0) {
-      TX_Print("Mod_sav__ E-prc-1 %s",fnam1);
+      TX_Print("Mod_sav_i E-prc-1 %s",fnam1);
     }
     fprintf(fpo, "%s\n",sSecEnd);
   }
@@ -1097,7 +1321,7 @@ static char *fnam;
     printf("add -appDat-\n");
 
   if((fp1=fopen(cbuf,"r")) == NULL) {
-    TX_Print("Mod_sav__ E008 %s",cbuf);
+    TX_Print("Mod_sav_i E008 %s",cbuf);
     goto L_main;
   }
 
@@ -1128,10 +1352,10 @@ static char *fnam;
   // add -main-
   L_main:
   // cat file tmp/Model_
-    printf("add -main-\n");
+    // printf("add -main-\n");
   sprintf(fnam1,"%sModel_",OS_get_tmp_dir());
   if(UTX_cat_file (fpo, fnam1) < 0) {
-    TX_Print("Mod_sav__ E006 %s",fnam1);
+    TX_Print("Mod_sav_i E006 %s",fnam1);
     goto L_err2;
   }
 
@@ -1142,18 +1366,6 @@ static char *fnam;
 
 
   //================================================================
-  // compress ?
-  if(strcmp(fnam0, filNam)) {  // defNam /tmp/Model: do not zip/copy. 2013-09-02
-    if(iCompress) {
-      OS_file_zip (0, fnam0, filNam);
-    } else {
-      // copy tempFile -> outfile           // 2013-04-12
-      OS_file_copy (fnam0, filNam);          
-    }
-  }
-    // printf("ex Mod_sav__\n");
-
-
   L_err2:
   if(fpo) fclose(fpo);
 
@@ -1240,8 +1452,8 @@ static char *fnam;
 
   Mod_sav_tmp ();
 
-  // copy <tmp/Model_<WC_modact_nam>> -> <dirNam,fnam>
-  sprintf(oldNam,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
+  // copy <tmp/Model_<AP_modact_nam>> -> <dirNam,fnam>
+  sprintf(oldNam,"%sModel_%s",OS_get_tmp_dir(),AP_modact_nam);
 
   sprintf(newNam,"%s%s",dirNam,fnam);
   UTX_ftyp_cut (newNam); // remove Filetyp
@@ -1258,14 +1470,14 @@ static char *fnam;
 //====================================================================
   int Mod_sav2file__ () {
 //====================================================================
-/// save the active Submodel WC_modact_nam -> permanent File
+/// save the active Submodel AP_modact_nam -> permanent File
 
   int  irc;
 
 
   printf("Mod_sav2file__\n");
 
-  // if(strlen(WC_modact_nam) < 1) {
+  // if(strlen(AP_modact_nam) < 1) {
   if(Mod_ck_isMain()) {
     GUI_MsgBox ("ERROR: subModel must be active ..");
     // TX_Error("es ist kein Submodel aktiv ..");
@@ -1277,12 +1489,12 @@ static char *fnam;
   AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
   // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   GUI_save__ ("save model as",   // titletext
-            AP_dir_open,           // path
+            AP_mod_dir,           // path
             cbuf,                  // directoryList
-            WC_modact_nam,             // defaultModelname
+            AP_modact_nam,             // defaultModelname
             (void*)Mod_sav2file_CB);
 */
-  irc = AP_save__ (2, ".gcad");
+  irc = AP_save__ (2, "gcad");
   // if(irc < 0) return -1;
 
 
@@ -1296,7 +1508,9 @@ static char *fnam;
   int Mod_LoadSubmodel (char *fnam,char *dirNam) {
 //=====================================================================
 /// Models/load Submodel from File
-/// does: AP_dir_open = dirNam
+/// does: AP_mod_dir = dirNam
+
+// TODO: use Mod_SM_add_file
 
   int   ift;
   char  oldNam[256], newNam[256], smNam[256];
@@ -1317,7 +1531,7 @@ static char *fnam;
   }
 
 
-  strcpy(AP_dir_open, dirNam);
+  strcpy(AP_mod_dir, dirNam);
 
   // remove Filtyp from Filname --> smNam
   strcpy(smNam, fnam);
@@ -1365,7 +1579,7 @@ static char *fnam;
   AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
   // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   GUI_List2 ("load Submodel from File",    // titletext
-            AP_dir_open,       // Pfadname des activeDirectory
+            AP_mod_dir,       // Pfadname des activeDirectory
             cbuf,              // Liste der directories
             (void*)Mod_LoadSubmodel);
 */
@@ -1380,17 +1594,22 @@ static char *fnam;
 //====================================================================
   int Mod_sav_tmp () {
 //====================================================================
-/// save the active Submodel WC_modact_nam -> TempFile
+/// \code
+/// save the active sub- or mainmodel AP_modact_nam -> TempFile
+/// AP_modact_nam = "" - mainmodel; else submodel
+/// \endcode
 
   extern int DL_wri_dynDat0 (FILE*);
 
   char  fnam[256];
 
-  printf("Mod_sav_tmp |%s|\n",WC_modact_nam);
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
+  // printf("Mod_sav_tmp |%s|\n",AP_modact_nam);
 
 
   // fix modelname
-  sprintf(fnam,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
+  sprintf(fnam,"%sModel_%s",OS_get_tmp_dir(),AP_modact_nam);
     // printf("WWWWWWWWWWWWWWWWWWWWWWWWWW  out_>|%s|\n",fnam);
 
 
@@ -1454,8 +1673,6 @@ static char *fnam;
   // InternalModelnames may not have char fnam_del
   p1 = strchr (in_path, '/');
   if(p1 != NULL) goto L_ext;
-  p1 = strchr (in_path, '\\');
-  if(p1 != NULL) goto L_ext;
 
 
   //------------------------------------------------------------
@@ -1466,10 +1683,11 @@ static char *fnam;
 
 
   //------------------------------------------------------------
-  // ExternalModel:
+  // ExternalModel:  (has not '/')
   L_ext:
   // get path from symbol
   if(Mod_sym_get1 (cbuf, in_path, 0) < 0) return -1;
+    // printf("ex-sym_get1 |%s|\n",cbuf);
   ++p1; // skip the fnam_del
   sprintf(out_path,"%s%s",cbuf,p1);
 
@@ -1478,7 +1696,7 @@ static char *fnam;
 
   //------------------------------------------------------------
   L_fertig:
-  // printf("ex Mod_get_path |%s|\n",out_path);
+    // printf("ex Mod_get_path |%s|\n",out_path);
 
   return 0;
 
@@ -1489,7 +1707,7 @@ static char *fnam;
    int Mod_get_ftyp1 (char *fnam) {
 //================================================================
 /// Mod_get_ftyp1                      give Modeltyp from Filename
-/// RetCod=fTyp (see AP_ck_ftyp)
+/// RetCod=fTyp (see AP_iftyp_ftyp)
 
 
   int  ift;
@@ -1497,7 +1715,7 @@ static char *fnam;
 
 
   ift = UTX_ftyp_s (ftyp, fnam, 1);
-  if(ift == 0) ift = AP_ck_ftyp (ftyp);
+  if(ift == 0) ift = AP_iftyp_ftyp (ftyp);
   else         ift = 0; // native
 
   // printf("ex Mod_get_ftyp1 %d |%s|",ift,fnam);
@@ -1623,7 +1841,7 @@ static char *fnam;
 
   // test filetyp
   UTX_ftyp_s (ftyp, txbuf, 1);         // get ftyp in UC
-  mode = AP_ck_ftyp (ftyp);            // returns ftyp as int else 0
+  mode = AP_iftyp_ftyp (ftyp);            // returns ftyp as int else 0
 
   // 0=native    
   // 1-9=Import 
@@ -1688,7 +1906,7 @@ static char *fnam;
   char *cbuf, *c1buf, *cp1, txbuf[80];
 
 
-  printf("Mod_get_names\n");
+  // printf("Mod_get_names\n");
 
 
   // Mode MAN: Update nach modification
@@ -1715,7 +1933,7 @@ static char *fnam;
   }
 
     DB_dump_ModBas ();
-    printf("ex Mod_get_names\n");
+      // printf("ex Mod_get_names\n");
 
   return 0;
 
@@ -1751,19 +1969,98 @@ static char *fnam;
 
 }
 
+//================================================================
+  int Mod_sym_dir__ (char *sym, char *dir, char *basDir) {
+//================================================================
+// Mod_sym_dir__ get symbolic-directory from any-directory
+// RF 2018-05-23
+// Input:
+//   dir     relative, absolute or symbolic directory; with closing '/'
+//           size must be >= 128
+//   sym     size must be >= 64
+//   GLOBAL: basDir
+// Output:
+//   sym     name of symbolic-directory, empty = none;
+//   dir     absolute directory
+//   retCod  0=OK, -1=no-symDir, dir=path
+//
+
+  int  irc;
+  char s1[128];
+
+
+  // printf("----------------------------------- \n");
+  // printf("Mod_sym_dir__ dir=|%s| basDir=|%s|\n",dir,basDir);
+
+  sym[0] = '\0';
+
+
+  //----------------------------------------------------------------
+  // test if dir is absolute-dir; yes: make it absolute-dir
+  // if(dir[0] == fnam_del) goto L_abs;
+  if(!OS_ck_DirAbs(dir)) goto L_abs;
+
+  // not absolute-dir; symbol or no directory at all -
+  if(dir[0] != '.') {
+    if(dir[0] == '\0') {
+      // empty dir; use basDir
+      strcpy(dir, basDir);
+      UTX_add_fnam_del (dir);   // add closing "/"
+      // get symbol
+      goto L_abs;
+    }
+    // first char is not '.' - symbol ?
+    // test if dir is listed in file <cfg>/dir.lst; yes: get dir -> s1
+    strcpy (sym, dir);
+#ifdef _MSC_VER
+    UTX_del_foll_chrn (sym, "/\\");
+#else
+    UTX_endDelChar (sym, fnam_del);  // remove closing '/'
+#endif
+    irc = Mod_sym_getAbs (dir, sym);
+      // printf("ex Mod_sym_getAbs %d |%s|%s|\n",irc,dir,sym);
+    goto L_exit;
+  }
+
+
+  // first char is '.' - is relative-dir.
+  // get s1 = absolute from relative.
+  strcpy (s1, dir);
+  UTX_fnam_fnrel (dir, 128, s1, basDir);
+
+
+
+  //----------------------------------------------------------------
+  L_abs:
+  // dir is absolute-dir. Get symbol.
+  // test if dir is listed in file <cfg>/dir.lst; yes: get symbol -> sym
+  irc = Mod_sym_get2 (sym, dir, 0);
+    // printf("ex-Mod_sym_get2 %d |%s|\n",irc,sym);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // printf("ex-Mod_sym_dir__ irc=%d sym=|%s| dir=|%s|\n",irc,sym,dir);
+
+  return irc;
+
+}
+
 
 //================================================================
   int Mod_sym_get__ (char *symDir, char *absDir, char *fnam,
                      char *inPath) {
 //================================================================
 /// Mod_sym_get__       get symbolic-directory & absolute-path from filename
+// DO NOT USE - replaced by Mod_sym_dir__
 //
 // Input:
 //   inPath        filename; absolut, relativ or symbolic.
 // Output:
-//   symDir        maxSiz 64         eg AP_sym_open
-//   absDir        maxSiz 128        eg AP_dir_open
-//   fnam          maxSiz 128        eg WC_modnam
+//   symDir        maxSiz 64         eg AP_mod_sym
+//   absDir        maxSiz 128        eg AP_mod_dir
+//   fnam          maxSiz 128        eg AP_mod_fnam
 
 // see also UTX_fnam_s UTX_fdir_s Mod_sym_get2
 // check file /home/fwork/gCAD3D/cfg/dir.lst
@@ -1883,9 +2180,7 @@ static char *fnam;
 
   //----------------------------------------------------------------
   L_exit:
-    // printf(" absDir=|%s|\n",absDir);
-    // printf(" symDir=|%s|\n",symDir);
-    // printf(" fnam=|%s|\n",fnam);
+     // printf("ex-Mod_sym_get__ |%s|%s|%s|\n",absDir,symDir,fnam);
 
   return irc;
 
@@ -1898,6 +2193,134 @@ static char *fnam;
     return -3;
   L_err4:              // size symDir too small
     return -4;
+
+}
+
+
+//================================================================
+  int Mod_fNam_sym (char *s2, char *s1) {
+//================================================================
+/// \code
+/// Mod_fNam_sym                     get absolute-filename from symbolic-filename
+/// copy absolute filenames, else resolve symbolic-directory
+/// Input     s1    symbolic-filename or absolute-filename
+/// Output    s2    absolute-filename
+///           Retcod:   0     OK
+///                    -1     filename not symbolic and not absolute.
+/// \endcode
+
+  int    il;
+  char   *p1, ss[64];
+
+  // printf("Mod_fNam_sym |%s|\n",s1);
+
+
+  //----------------------------------------------------------------
+  // test for absolute filename; do not modify
+  if(s1[0] == fnam_del) {
+    strcpy(s2,s1);
+    goto L_exit;
+  }
+
+  //----------------------------------------------------------------
+  // p1 = cut directory
+#ifdef _MSC_VER
+  // must check for '/' AND '\' (in MS '/' can come from out of source)
+  p1 = strpbrk (s1, "/\\");
+#else
+  p1 = strchr (s1, fnam_del);
+#endif
+  if(!p1) return -1;
+
+  il = p1 - s1;
+  strncpy (ss, s1, il);
+  ss[il] = '\0';
+
+  // get s2 = absolute-directory
+  Mod_sym_getAbs (s2, ss);
+
+  // add filename
+  il = strlen(s2);
+  ++p1;
+  strcpy(&s2[il], p1);
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf(" ex-Mod_fNam_sym |%s|\n",s2);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int Mod_fNam_get (char *fn) {
+//================================================================
+/// \code
+/// Mod_fNam_get        get sym,dir,fnam,ftyp from symbolic- or abs.filename
+/// Output:
+///   global AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp
+///   RetCod:    0=OK, -1=no-symDir, dir=path
+/// \endcode
+
+  int   irc;
+
+  // printf("Mod_fNam_get |%s|\n",fn);
+
+  // separate/copy directory,fileName,fileTyp of full filename
+  UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, fn);
+    // printf("ex-UTX_fnam__ |%s|%s|%s|\n",AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
+
+  // get integer-filetyp of AP_mod_ftyp
+  AP_mod_iftyp = AP_iftyp_ftyp (AP_mod_ftyp);
+ 
+  // get  symDir from directory 
+  irc = Mod_sym_dir__ (AP_mod_sym, AP_mod_dir, OS_get_bas_dir());
+    // printf("ex-Mod_fNam_get irc=%d |%s|%s|\n",irc,AP_mod_sym,AP_mod_dir);
+
+  return irc;
+
+}
+
+
+//================================================================
+  int Mod_fNam_set (char *fNam, int mode) {
+//================================================================
+// Mod_fNam_set        get symbolic-filename or absolute-filename
+//  full-filename: <directory|symbol>/<filename>.<filetyp>
+// 2018-05-24 RF
+//
+// Input:
+//   mode      0=make-absolute-filename; 1=make-symbolic-filename
+// Output:
+//   mode      0   absolute-filename
+//             1   full-filename <directory|symbol>/<filename>.<filetyp>
+//   fNam      <directory|symbol>/<filename>.<filetyp>    size >= 256
+//             AP_mod_dir AP_mod_sym AP_mod_fnam AP_mod_ftyp
+
+
+  // printf("Mod_fNam_set %d\n",mode);
+  // printf("   |%s|%s|%s|\n",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+
+  if((mode) && (AP_mod_sym[0])) {
+    // make symbolic-filename
+    if(AP_mod_ftyp[0])
+      sprintf(fNam,"%s/%s.%s",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+    else 
+      sprintf(fNam,"%s/%s",AP_mod_sym,AP_mod_fnam);
+
+  } else {
+    // 0: make absolute-filename
+    if(AP_mod_ftyp[0])
+      sprintf(fNam,"%s%s.%s",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
+    else 
+      sprintf(fNam,"%s%s",AP_mod_dir,AP_mod_fnam);
+  }
+
+    // printf("ex-Mod_fNam_set |%s|\n",fNam);
+
+  return 0;
 
 }
 
@@ -1920,10 +2343,10 @@ static char *fnam;
   char    fn[256];
 
 
-  printf("Mod_sym_getAbs |%s|\n",symDir);
+  // printf("Mod_sym_getAbs |%s|\n",symDir);
 
   AP_get_fnam_symDir (fn);   // get filename of dir.lst
-    printf(" fn-dir.lst=|%s|\n",fn);
+    // printf(" fn-dir.lst=|%s|\n",fn);
 
 
   // return UTX_setup_get (absDir, symDir, fn, 0);
@@ -1956,7 +2379,7 @@ static char *fnam;
 
 
   // printf("Mod_sym_get1 |%s| %d\n",in_path,imod);
-  // printf("  AP_dir_open=|%s|\n",AP_dir_open);
+  // printf("  AP_mod_dir=|%s|\n",AP_mod_dir);
 
 
   lNr = 0;
@@ -1980,7 +2403,7 @@ static char *fnam;
 
   // replace symDir "." mit dem active directory
   if (!strcmp (sbuf,".")) {
-    strcpy(out_path, AP_dir_open);
+    strcpy(out_path, AP_mod_dir);
     goto L_exit;
   }
 
@@ -2103,8 +2526,8 @@ static char *fnam;
 /// Mod_symOpen_set         set symbolic path
 // see AP_set_dir_open
 
-  strcpy(AP_sym_open, sym);
-  strcpy(AP_dir_open, path);
+  strcpy(AP_mod_sym, sym);
+  strcpy(AP_mod_dir, path);
 
   // update Title & Pfade oben auf den Mainwinrahmen
   UI_AP (UI_FuncSet, UID_Main_title, NULL);
@@ -2139,7 +2562,7 @@ static char *fnam;
 //================================================================
 /// \code
 /// Mod_sym_add         register symbolic path in File cfg/dir.lst
-/// path comes from AP_dir_open
+/// path comes from AP_mod_dir
 /// \endcode
 
 // see UI_open_symCB
@@ -2422,6 +2845,7 @@ static ModelRef modR2;
   int Mod_load__ (int mode, char *filNam, int dbResiz) {
 //====================================================================
 /// \code
+/// Mod_load__         load native model 
 /// Ein ganz neues Model als MainModel oeffnen;
 /// - alle tmp/Model_* loeschen
 /// - file einlesen - aufteilen -> tmp/Model_*
@@ -2588,12 +3012,12 @@ static ModelRef modR2;
   // Submodel tmp/Model_ (-main-) laden
   L_load:
 
-  Mod_init__ (); // main  set WC_modact_nam ..
+  Mod_init__ (); // main  set AP_modact_nam ..
 
 
   // load new active SubModel
   sprintf(cbuf,"%sModel_",OS_get_tmp_dir());
-    printf("  _load__ |%s|\n",cbuf);
+    // printf("  _load_SM_ |%s|\n",cbuf);
 
   // get file <cbuf> into memory
   ED_new_File (cbuf);
@@ -2754,13 +3178,13 @@ static ModelRef modR2;
   strcpy(mNam, cbuf1);
 
 
-  // rename <tmp/Model_<WC_modact_nam>> -> tmp/Model_<data>>
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),WC_modact_nam);
+  // rename <tmp/Model_<AP_modact_nam>> -> tmp/Model_<data>>
+  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),AP_modact_nam);
   sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
   rename (cbuf1,newNam);
 
   // set name
-  strcpy(WC_modact_nam, mNam);
+  strcpy(AP_modact_nam, mNam);
 
   // fix title
   Mod_chg_tit ();
@@ -2789,12 +3213,12 @@ static ModelRef modR2;
   
   printf("Mod_ren__\n");
 
-  if(strlen(WC_modact_nam) < 1) {
+  if(strlen(AP_modact_nam) < 1) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
-  GUI_GetText(" new Submodelname: ",  WC_modact_nam, -200, Mod_ren_CB);
+  GUI_GetText(" new Submodelname: ",  AP_modact_nam, -200, Mod_ren_CB);
 
 
   return 0;
@@ -2814,7 +3238,7 @@ static ModelRef modR2;
   printf("Mod_del1__ |%s|\n",smNam);
 
 
-  // del <tmp/Model_<WC_modact_nam>>
+  // del <tmp/Model_<AP_modact_nam>>
   sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),smNam);
   printf("remove %s\n",cbuf);
   OS_file_delete (cbuf);
@@ -2848,8 +3272,8 @@ static ModelRef modR2;
   if(idat != UI_FuncOK) return -1;
 
 
-  // del <tmp/Model_<WC_modact_nam>>
-  Mod_del1__ (WC_modact_nam);
+  // del <tmp/Model_<AP_modact_nam>>
+  Mod_del1__ (AP_modact_nam);
 
 
   // start "change submodel"
@@ -2871,12 +3295,12 @@ static ModelRef modR2;
 
   printf("Mod_del__\n");
 
-  if(strlen(WC_modact_nam) < 1) {
+  if(strlen(AP_modact_nam) < 1) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
 
-  sprintf(cbuf, "  delete Submodel %s  ",WC_modact_nam);
+  sprintf(cbuf, "  delete Submodel %s  ",AP_modact_nam);
   GUI_DialogYN (cbuf, Mod_del_CB);
 
   return 0;
@@ -3073,7 +3497,7 @@ static ModelRef modR2;
     // set boxpoints for active subModel
     // test if AP_box_pm1 valid
     if(AP_mdlbox_invalid_ck()) {
-      UT3D_box_mdl__ (&mb->pb1, &mb->pb2, WC_modact_ind);
+      UT3D_box_mdl__ (&mb->pb1, &mb->pb2, WC_modact_ind, 0);
       AP_mdlbox_invalid_reset ();
     } else {
       mb->pb1 = AP_box_pm1;
@@ -3113,6 +3537,34 @@ static ModelRef modR2;
 }
 
 
+//================================================================
+  int Mod_SM_add_file (char *smNam, char *fNam) {
+//================================================================
+// Mod_SM_add_file     add subModel from file
+// Input:
+//   smNam    new subModelname
+//   fNam     filename to use; must be native
+
+  char   s1[256];
+
+  // copy <fNam> -> /<tmpDir>/"Model_<subModelname>"
+  // rename /<tmpDir>/selection1.gcad /<tmpDir>/"Model_<subModelname>"
+  sprintf(s1, "%sModel_%s", OS_get_tmp_dir(), smNam);
+    printf(" Mod_SM_add_file |%s|%s|\n",fNam,s1);
+  OS_file_copy (fNam, s1);
+
+  // update Mod.lst (find all "/<tmpDir>/"Model_*")
+  Mod_mkList (0);
+
+  // update BrowserWindow
+  Brw_Mod_add (smNam);
+
+
+  return 0;
+
+}
+
+ 
 //================================================================
   int Mod_load_sm (int mTyp, char *mnam) {
 //================================================================

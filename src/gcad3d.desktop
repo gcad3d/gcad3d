@@ -4,9 +4,9 @@ Name=gCAD3D
 GenericName=CAD-CAM-Application
 Comment=3D CAD CAM design tool
 Exec=gcad3d
-Icon=gCAD3D
+Icon=gcad3d
 Type=Application
-Categories=GTK;Graphics;
+Categories=GTK;Graphics;3DGraphics;Engineering;
 Terminal=false
 
 

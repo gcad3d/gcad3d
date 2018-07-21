@@ -98,7 +98,7 @@ extern MemObj     UIw_Box_TB;    // toolbarBox
 
 // aus xa.c:
 extern AP_STAT    AP_stat;
-extern char       AP_dir_open[128], AP_sym_open[64];
+extern char       AP_mod_dir[128], AP_mod_sym[64];
 
 
 
@@ -398,7 +398,7 @@ static TexRef actTr;             // active TexRef (for Restore)
      AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
      // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
      GUI_List2 ("select Texturefile", // titletext
-              AP_dir_open,             // Pfadname des activeDirectory
+              AP_mod_dir,             // Pfadname des activeDirectory
               cbuf1,                    // Liste der directories
               (void*)TED_Tex_Load);    // CallBack der Liste
 */
@@ -615,7 +615,7 @@ extern int       KeyStatCtrl;
 
   //----------------------------------------------------------------
   L_del:
-  GL_temp_Delete (2L);  // delete red frame
+  GL_temp_del_1 (2L);  // delete red frame
 
 
   return 0;
@@ -660,10 +660,10 @@ extern int       KeyStatCtrl;
 
   printf("TED_Tex_Load |%s|%s|\n",fnam,dirNam);
 
-  AP_set_dir_open (dirNam);  // copy dir -> AP_dir_open; load AP_sym_open
+  AP_set_dir_open (dirNam);  // copy dir -> AP_mod_dir; load AP_mod_sym
 
   // save & load Texture
-  irc = Tex_addBas__ (fnam, AP_sym_open, 0);
+  irc = Tex_addBas__ (fnam, AP_mod_sym, 0);
   if(irc < 0) return 0;       // MUST return with 0 (gtk-returncode !)
 
 
@@ -816,11 +816,24 @@ extern int       KeyStatCtrl;
       itb = Tex_actBas_get ();
       if(itb < 0) goto L_eb1;
       Tex_getBas__ (&tb, itb);  // get pixel-size of basic-texture
-        printf(" imgSiz(pixels) = %d %d\n",tb->xSiz,tb->ySiz);
-      d1 = tr->ssx * 100. / tb->xSiz;
-      tr->uscx = 1. / UTP_db_rnd2sig (d1);
-      d1 = tr->ssy * 100. / tb->ySiz;
-      tr->uscy = 1. / UTP_db_rnd2sig (d1);
+        // printf(" imgSiz(pixels) = %d %d\n",tb->xSiz,tb->ySiz);
+        // printf("   (userCoords)ssx=%f ssy=%f\n",tr->ssx,tr->ssy);
+      // d1 = tr->ssx * 100. / tb->xSiz;
+      // tr->uscx = 1. / UTP_db_rnd2sig (d1);
+      // d1 = tr->ssy * 100. / tb->ySiz;
+      // tr->uscy = 1. / UTP_db_rnd2sig (d1);
+      d1 = (double)tb->xSiz / (double)tb->ySiz;
+      d2 = (double)tr->ssx / (double)tr->ssy;
+      if(d2 > d1) {
+        tr->uscx = 1. / d2 * d1; tr->uscy = 1.0;
+        // tr->uscx = 0.35;      tr->uscy = 1.0;
+      } else {
+        tr->uscx = 1.; tr->uscy = 1. * d2 / d1;
+        // tr->uscx = 1.0;       tr->uscy = 0.35;
+      }
+        // printf(" d1=%f d2=%f\n",d1,d2);
+        // printf(" uscx=%f uscy=%f\n",tr->uscx,tr->uscy);
+
 
     } else {    // einpassen
       Tex_TexRef_InitU (itr);

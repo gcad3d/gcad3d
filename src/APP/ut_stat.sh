@@ -3,7 +3,7 @@
 
 # gCAD3D-Statistik; Anzahl Zeilen, Anzahl Funktionen.
 
-date
+. ../options.sh
 
 # bits; 32|64
 osVer=`getconf LONG_BIT`
@@ -13,19 +13,11 @@ gcad_dir_bin=../../binLinux${osVer}
 # Liste aller KernSourcefiles -> srcFiles
 make -f gcad3d.mak srclst
 mv -f srcFiles srcFilesCad
-sTab=`cat srcFiles`
-echo "=========== sTab: ====================="
-echo $sTab
 
 
-# Liste aller Sourcefiles -> srcFiles
+# Liste aller GUI-Sourcefiles -> srcFiles
 make -f gcad_gui_lnk.mak srclst
 mv -f srcFiles srcFilesGui
-
-# Files in ../gui:
-guiTab=`cat srcFiles`
-echo "=========== guiTab: ====================="
-echo $guiTab
 
 
 ## Files in ../gui_gtk2:
@@ -50,18 +42,17 @@ echo $guiTab
 #set appTab = `find . -name "APP*.mak" -exec make srclst -f {} \;`
 
 
-#wc -l $sTab $dllTab $demTab
+#-----------------------------------------------------
 echo "======================================="
-#wc -l $sTab $guiTab
 wc -l `cat srcFilesCad` `cat srcFilesGui`
 
 echo " = Anzahl Programmzeilen"
 
-
-#nm -o ${gcad_dir_bin}/gCAD3D | grep " T " > /tmp/t2
-nm -o ${gcad_dir_bin}/gCAD3D ${gcad_dir_bin}/xa_*.so | grep " T " > /tmp/t2
-nm -o ${gcad_dir_bin}/plugins/PRC*.so | grep " T " >> /tmp/t2
-nm -o ${gcad_dir_bin}/plugins/APP*.so | grep " T " >> /tmp/t2
+#-----------------------------------------------------
+# get nr of functions
+rm -rf /tmp/t2
+./ut1_stat.sh ${gcad_dir_bin}/gCAD3D
+find ${gcad_dir_bin} -maxdepth 1 -name "xa_*.so" -exec ./ut1_stat.sh {} \;
 
 
 wc -l /tmp/t2

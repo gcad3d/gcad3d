@@ -238,7 +238,7 @@ extern int     APT_dispDir;
 
 
   if(!strcmp(txt, "Exit")) {
-    IE_cad_INS ("Exit");  // exit mode Modify;
+    IE_cad_Inp_cancel ();
     return 0;
   }
 
@@ -350,7 +350,7 @@ extern int     APT_dispDir;
     IE_cad_test__ ();
 
   } else {
-    GL_temp_Delete (DLI_DIR_TMP);  // delete temporary direction-arrow
+    GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
   }
 
 
@@ -552,8 +552,8 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
         MSG_Tip ("ED1>>>");
       GUI_button__(&box1, "Delete", IE_ed1_mod, (void*)"DEL", "a,a");
         MSG_Tip ("MMundo");
-      // GUI_button__(&box1, "Exit", IE_ed1_mod, (void*)"Exit", "a,a");
-      GUI_button__(&box1, "Exit", IE_ed1__, &GUI_FuncKill, "a,a");
+      GUI_button__(&box1, "Exit", IE_ed1_mod, (void*)"Exit", "a,a");
+      // GUI_button__(&box1, "Exit", IE_ed1__, &GUI_FuncKill, "a,a");
         MSG_Tip ("CADexit");
       GUI_button__(&box1, "OK", IE_ed1_mod, (void*)"OK", "a,a");
         MSG_Tip ("CADsave");
@@ -620,7 +620,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
     //---------------------------------------------------------
     case UI_FuncExit:   // 102; called from GUI_Win__
 
-      GL_temp_delete (); // alle temp. obj loeschen ..
+      GL_temp_del_all (); // alle temp. obj loeschen ..
 
       win0 = GUI_OBJ_INVALID();
       IE_edWin1 = GUI_OBJ_INVALID();

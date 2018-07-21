@@ -88,7 +88,7 @@ List_functions_end:
 //===============================================================
 // Externe Variablen:
 // defined in ../xa/xa.c (with extern invalidated)
-extern char AP_dir_save[128];     // directory for SAVE
+extern char AP_mod_dir[128];     // directory for SAVE
 
 
 // ../xa/xa_plu.c
@@ -251,12 +251,12 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
 //================================================================
-  int APP_edit (char *filnam) {
+  int APP_edit (char *filnam, int mode) {
 //================================================================
 /// \code
 /// <edit> <filnam>
-/// waits for end of process.
-///
+/// mode = 0 - waits for end of process
+///        1 - do not wait for end of process
 /// see OS_edit_ ED_sysed__
 /// \endcode
 
@@ -280,7 +280,13 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   printf("APP_edit |%s|\n",cbuf);
   TX_Print("%s",cbuf);
 
-  OS_system(cbuf);
+  if(mode) {
+    // do not wait
+    OS_exec (cbuf);
+  } else {
+    // wait until completion.
+    OS_system (cbuf);
+  }
 
   return 0;
 
@@ -355,7 +361,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
   GUI_List2 (wTit,              // titletext
-            AP_dir_open,        // Pfadname des activeDirectory
+            AP_mod_dir,        // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
             funcNam);           // CallBack der Liste
 */
@@ -382,14 +388,14 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 /*
     GUI_save__ (wTit,              // titletext
-            AP_dir_save,           // path
+            AP_mod_dir,           // path
             cbuf1,                 // directoryList
             defNam,                // defaultModelname
             funcNam);              // CallBack der Liste
 */
 
   strcpy(fNam, defNam);
-  strcpy(dNam, AP_dir_save);
+  strcpy(dNam, AP_mod_dir);
   irc = GUI_file_save__ (fNam, 256, dNam, 256, dirLst, wTit, "*");
   if(irc) return 0;
     // does already ask for overwrite !

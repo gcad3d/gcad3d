@@ -128,9 +128,15 @@ Examples:
 //================================================================
   Messages for the menu's:
 //================================================================
-Get messages, identified by a keyword;
-Files keyword=message: msg_<language>.txt
-   ../../doc/msg/msg_en.txt
+Get messages, identified by a keyword
+
+Files:   ../../doc/msg/msg_en.txt ../../doc/msg/msg_de.txt ..
+
+Format:  keyword=message
+
+Tools for manipulating the language-files: see INF_MSG_new
+
+Functions:
 
   // message without parameters:
   MSG_pri_0("PEDmod1");                       // TX_Print message
@@ -236,6 +242,7 @@ char *MSG_STD_tab[]={
   "subModel undefined",          ///< 1 subModel_undefined,
   "DB-object undefined",         ///< 2 db_obj_undefined,
   "file open",                   ///< 3 file_open,
+  "internal",                    ///< 4 internal Error,
   "uu"
 };
 
@@ -565,8 +572,7 @@ char *MSG_STD_tab[]={
 /// msg out of files  msg_de.txt  msg_en.txt ..
 /// \endcode
 
-// add new message into ../doc/msg/msg_de.txt ../doc/msg/msg_en.txt ../doc/msg/msg_es.txt ../doc/msg/msg_fr.txt ../doc/msg/msg_it.txt
-// cp ../doc/msg/msg_* /usr/share/doc/gcad3d/msg/.
+// how to add new message: see INF_MSG_new
 
   char    *cp1;
 
@@ -588,6 +594,7 @@ char *MSG_STD_tab[]={
   int MSG_pri_0 (char *key) {
 //================================================================
 /// print message (TX_Write) with 0 parameters.
+// see INF_MSG_new
 
 // MSG_pri_0 ("PED_msg1");
  
@@ -789,6 +796,9 @@ char *MSG_STD_tab[]={
 //================================================================
 // read msg from ../msg/msg_de.txt -> sbuf
   
+// how to add new message: see INF_MSG_new
+
+
   int    iloop, ilen;
   char   *p1, *cp1, *cp2, *cp3;
 
@@ -837,8 +847,8 @@ char *MSG_STD_tab[]={
     // printf(" fsiz=%ld\n",l1);
   
 
-  spc1 = memspc501;
-  siz1 = sizeof(memspc501) - 10;
+  siz1 = l1 + 256;
+  spc1 = MEM_alloc_tmp (siz1);
   siz_ = 0;
 
   if((fpi = fopen (s1, "r")) == NULL) {
@@ -867,7 +877,7 @@ char *MSG_STD_tab[]={
       // printf("_const_init |%s|\n",cp1);
     // add cp1-cp2 -> spc1
     ls = cp2 - cp1 + 1;       //printf(" ls=%d\n",ls);
-    strncpy(&spc1[siz_], cp1, ls);
+    strncpy (&spc1[siz_], cp1, ls);
     siz_ += ls;
     if(siz_ >= siz1) {
       printf("**** ERROR const-message EOM-1");
@@ -1080,12 +1090,15 @@ char *MSG_STD_tab[]={
 ///   msgTyp:     MSG_typ_ERR|MSG_typ_WNG|MSG_typ_INF
 ///
 /// output:       TX_Error|TX_Print; 
-/// retCod        -1
+/// retCod        0   for MSG_typ_INF
+///               -1  for MSG_typ_WNG
+///               -99 for MSG_typ_ERR
 ///
 /// see also MSG_STD_ERR
 /// \endcode
 
   va_list va;
+  int     irc = 0;
   char    s1[400];
 
 
@@ -1103,9 +1116,9 @@ char *MSG_STD_tab[]={
                      MSG_STD_tab[ikey],
                      s1);
 
-  if(msgTyp == MSG_typ_ERR) AP_errStat_set (1);
-
-  return -1;
+  if(msgTyp == MSG_typ_ERR) {AP_errStat_set (1); irc = -99;}
+  if(msgTyp == MSG_typ_WNG) irc = -1;
+  return irc;
 
 }
 

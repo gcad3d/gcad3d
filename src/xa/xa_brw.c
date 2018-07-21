@@ -106,7 +106,7 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../db/ut_DB.h"               // DB_GetGTxt
 #include "../ut/func_types.h"               // UI_FuncOK
 #include "../xa/xa_brw.h"              // ICO_..
-#include "../xa/xa.h"                  // WC_modact_nam
+#include "../xa/xa.h"                  // AP_modact_nam
 #include "../xa/xa_ico.h"              // ICO_PT,
 #include "../xa/xa_mem.h"              // memspc55
 #include "../ut/ut_memTab.h"           // MemTab
@@ -130,8 +130,8 @@ static TreeNode actNod;      // the active node (row)
 
 
 // extern - ex ../xa/xa.c:
-// extern char WC_modact_nam[128];
-// extern char WC_modnam[128];
+// extern char AP_modact_nam[128];
+// extern char AP_mod_fnam[128];
 
 
 // local vars:
@@ -257,12 +257,12 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   GUI_tree1_clear (&winBrw); 
          
   // create primary node
-  GUI_tree1_row_add (&topNod, &winBrw, NULL, ICO_natM,  WC_modnam, 1);
+  GUI_tree1_row_add (&topNod, &winBrw, NULL, ICO_natM,  AP_mod_fnam, 1);
   mdlNod = topNod;
 
 
 
-  // if(strlen(WC_modact_nam) == 0) {
+  // if(strlen(AP_modact_nam) == 0) {
   if(Mod_ck_isMain()) {
     Brw_Mdl_upd ();       // fill mdlNod in browserWin
   }
@@ -275,11 +275,11 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   // GUI_TreeIT_selRow (&topNod, winBrw);  // else error with primary M3
 
 
-  // if(strlen(WC_modact_nam) > 0) {
+  // if(strlen(AP_modact_nam) > 0) {
   if(!Mod_ck_isMain()) {
-    // activate submodel <WC_modact_nam>
+    // activate submodel <AP_modact_nam>
     // find submodel
-    irc = GUI_tree1_iter_string (&it1, WC_modact_nam, NULL, &winBrw);
+    irc = GUI_tree1_iter_string (&it1, AP_modact_nam, NULL, &winBrw);
     if(irc < 0) {printf("ERROR: Brw_Mdl_init E001\n"); return -1;}
     mdlNod = it1;
     GUI_tree1_row_set (&winBrw, &topNod, -1, NULL, -1);
@@ -405,11 +405,11 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   long         ii;
   char         *cp1, s1[256], *oid;
   void         *vp1;
-  int          Brw_stat;          // 0=select(M1); 1=popup-menu-requested(M3).
+  int          Brw_stat;     // mouse-button, GUI_MouseL ..
   TreeNode     itAct;
 
 
-  Brw_stat = GUI_DATA_I1;   // button 1|2|3
+  Brw_stat = GUI_DATA_I1;   // button 1|2|3; 0=row-update-operation
 
 
   // printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB \n");
@@ -605,6 +605,9 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
     return 0;
   }
 
+
+  //----------------------------------------------------------------
+  // skip this for row being closed
   OMN_popup_Brw (iTyp, iInd, dli, 0);
 
   return 0;
@@ -1063,7 +1066,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   APED_oid_dbo__ (cbuf, typ, ind);
 
   irc = GUI_tree1_iter_string (&itOr, cbuf, &itTr, &winBrw);
-    printf(" n _iter_string %d |%s|\n",irc,cbuf);
+    // printf(" n _iter_string %d |%s|\n",irc,cbuf);
   if(irc < 0) {
     // create new objRow
     // GUI_TreeIT_row_create (&itOr, winBrw, &itTr);
@@ -1105,6 +1108,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // printf("Brw_typeRow_upd %d\n",typ);
   // printf(" parNd=%p\n",parNd);
+
 
   // nr of objects for this typeRow
   iNr = DB_get_ObjNr (typ);
@@ -1179,7 +1183,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   char   *cp1;
 
 
-  // printf("Brw_typeRow_sel |%s|\n",txt);
+  printf("Brw_typeRow_sel |%s|\n",txt);
 
 
   // get objectTyp from TypeRowText
@@ -1230,6 +1234,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   //----------------------------------------------------------------
   // test if childs already exist
   i1 = GUI_tree1_childNr (&winBrw, &actNod);
+    printf(" _childNr-i1 = %d\n",i1);
   if(i1 <= 0) goto L_add;
 
   // remove all childs

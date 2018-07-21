@@ -330,6 +330,8 @@ static char  APT_spc1[512];
 
 
 extern int    APT_prim_typ;
+extern int    APT_hide_parent;    // 0=not, else yes
+
 static long   APT_prim_ind;
 static int    APT_prim_seg;       // active MOD(); segNr; 1=first
 static int    APT_prim_sg2;
@@ -1378,7 +1380,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
   if(aus_anz == 1)  {
   //-----------------------------------------------------
 
-    // V = V20                 (f.zB "P = P21 Z(V20)")
+    // V21 = V20                 (f.zB "P = P21 Z(V20)")
     if (aus_typ[0] == Typ_VAR)              {
       *d1 = DB_GetVar (aus_tab[0]);
       goto L_fertig;
@@ -3825,7 +3827,7 @@ static  CurvPoly plg1;
         if(i1 >= ox1->siz) goto Par_err;
         // copy trimmedCurve[i1] -> obj1
         memcpy(obj1, &((CurvCCV*)ox1->data)[i1], sizeof(CurvCCV));
-          UT3D_stru_dump (Typ_CVTRM, obj1, " curv-S-MOD");
+          // UT3D_stru_dump (Typ_CVTRM, obj1, " curv-S-MOD");
         OGX_SET_OBJ (cvo, Typ_CVTRM, Typ_CVTRM, 1, obj1);
         
 
@@ -4388,7 +4390,7 @@ static  TraRot  trr;
 
 
 
-  oTab = MEM_alloc_tmp (sizeof(ObjGX) * aus_anz);
+  oTab = MEM_alloc_tmp ((int)(sizeof(ObjGX) * aus_anz));
 
   for(i1=0; i1<aus_anz; ++i1) {
     OGX_ox_ato1 (&oTab[i1], &aus_typ[i1], &aus_tab[i1]);
@@ -5395,7 +5397,7 @@ see APT_decode_fsub
     oxTab[i1+1].form = Typ_Index;
     oxTab[i1+1].siz  = 1;
     l1 = aus_tab[i1];
-    oxTab[i1+1].data = (void*)l1;
+    oxTab[i1+1].data = PTR_LONG(l1);
   }
 
 
@@ -5598,7 +5600,7 @@ see APT_decode_fsub
     oxTab[i1].form = Typ_Index;
     oxTab[i1].siz  = 1;
     l1 = aus_tab[i2];
-    oxTab[i1].data = (void*)l1;
+    oxTab[i1].data = PTR_LONG(l1);
   }
 
 
@@ -6502,7 +6504,7 @@ static ObjGX   oxa[2];
   oxa[0].siz  = 1;
   oxa[0].dir  = 0;
   i1 = aus_tab[1];
-  oxa[0].data = (void*)i1;
+  oxa[0].data = PTR_LONG(i1);
 
 
   oxa[1].typ  = aus_typ[2];
@@ -6510,7 +6512,7 @@ static ObjGX   oxa[2];
   oxa[1].siz  = 1;
   oxa[1].dir  = 0;
   i1 = aus_tab[2];
-  oxa[1].data = (void*)i1;
+  oxa[1].data = PTR_LONG(i1);
 
 
   ox1->typ   = Typ_SURRU;
@@ -6778,14 +6780,15 @@ static ObjGX   oxa[2];
   //----------------------------------------------------------------
   // single-curve: add a second (degenerated) curve
   if(cv1Nr < 2) {
-    UT3D_4cvbsp_3cvbsp (cv1tab, cv2tab, tbuf1);
+    irc = UT3D_4cvbsp_3cvbsp (cv1tab, cv2tab, tbuf1);
+    if(irc < 0) goto Err_3;
     cv1Nr = 2;
     // MEM_swap_2vp (cv1tab, cv2tab);
     goto L_sdraw;
 
   } else if(cv2Nr < 2) {
     irc = UT3D_4cvbsp_3cvbsp (cv2tab, cv1tab, tbuf1);
-    if(irc < 0) return -1;
+    if(irc < 0) goto Err_3;
     cv2Nr = 2;
     goto L_sdraw;
 
@@ -6833,6 +6836,10 @@ static ObjGX   oxa[2];
 
   Err_2:
     TX_Error("BsplSurf: max 19 curves ****");
+    goto Error;
+
+  Err_3:
+    TX_Print("**** BsplSurf: Error CoonsPatchSurf - add curve ****");
 
 
   Error:
@@ -8445,6 +8452,7 @@ static ModelRef *mod1, modR1;
   int APT_decode_vc (Vector *vc_out,
                      int aus_anz, int aus_typ[], double aus_tab[]) {
 //=======================================================================
+// decode vectors; eg D(S val|MOD)
 // OFFEN:
 // Perpendic/Tangential an Surfaces:
 // V=P surf Richtung
@@ -8485,26 +8493,24 @@ static ModelRef *mod1, modR1;
 
 
   L_get_cmd:
+  if(aus_typ[aus_anz - 1] != Typ_cmdNCsub) goto L_vc_1;
 
   // "REV" als letzen parameter abspalten und ganz am Schluss anwenden
-  if((aus_typ[aus_anz - 1] == Typ_cmdNCsub) &&
-     (aus_tab[aus_anz - 1] == T_REV))                      {
+  if(aus_tab[aus_anz - 1] == T_REV)                      {
     iRev = 1;
     --aus_anz;
     goto L_get_cmd;
   }
 
   // "PARL" als letzen parameter abspalten und ganz am Schluss anwenden
-  if((aus_typ[aus_anz - 1] == Typ_cmdNCsub) &&
-     (aus_tab[aus_anz - 1] == T_PARL))                      {
+  if(aus_tab[aus_anz - 1] == T_PARL)                      {
     iParl = 1;
     --aus_anz;
     goto L_get_cmd;
   }
 
   // "CX" als letzen parameter abspalten und ganz am Schluss anwenden
-  if((aus_typ[aus_anz - 1] == Typ_cmdNCsub) &&
-     (aus_tab[aus_anz - 1] == T_CX))                      {
+  if(aus_tab[aus_anz - 1] == T_CX)                      {
     iParl = 2;
     --aus_anz;
     goto L_get_cmd;
@@ -8512,6 +8518,8 @@ static ModelRef *mod1, modR1;
 
 
 
+  //----------------------------------------------------------------
+  L_vc_1:
 
   // VAL() / Laenge als letzen parameter abspalten und ganz am Schluss anwenden
   lenStat = NO;
@@ -8634,20 +8642,26 @@ static ModelRef *mod1, modR1;
 
 
   //-----------------------------------------------------------------
-  // D = S [par1]             (tangent to curve
+  // D = S [par1]             // tangent to curve
   } else if(aus_typ[0]==Typ_CV)    {
 
     ox1p = DB_GetCurv  ((long)aus_tab[0]);
 
-    if(lenStat != YES) {;
-      // D = S
+
+
+    if(lenStat != YES) {
+      // D = S   // defaultLength
       if(ox1p->typ == Typ_CVELL) {
+        // normal vec of ellipse
         vc1 = ((CurvElli*)ox1p->data)->vz;
         goto Fertig;
+
       } else {
+
         if(APT_obj_stat != 0) return -3;  // obj not yet complete
         else goto L_parErr;
       }
+
     }
 
     // D = S par1     // tangent to cvbsp, ..
@@ -8943,6 +8957,8 @@ static ModelRef *mod1, modR1;
         // printf(" D = S x\n");
       ox1p = DB_GetCurv  ((long)aus_tab[0]);
 
+
+      //-- S MOD ----------------------------------------------
       if(aus_typ[1] == Typ_modif) {
         i1 = aus_tab[1] - 1;   // 0=first.
           // printf(" mod=%d lenStat=%d\n",i1,lenStat);  //0=YES;1=NO
@@ -8989,10 +9005,22 @@ static ModelRef *mod1, modR1;
           vc1 = ((CurvElli*)obj1)->vz;
           goto Fertig;
 
-        } else goto L_parErr;
+        } else goto L_parErr; // end of CCV
+    
 
-
+      //----------------------------------------------------------------
       // D(S MOD)         // s=elli, plg, connLn
+
+      // extract Line aus Polygon
+      } else if(ox1p->form == Typ_CVBSP) {
+        i1 = aus_tab[1];   printf(" d(bsp,MOD) %d\n",i1); // 1=first.
+        // create tangent to std-point on trimmed curve; 1=startPt, 2=endPt.
+        rc = UT3D_ptvcpar1_std_obj (NULL, &vc1, NULL, i1, ox1p->form, ox1p->data);
+        // rc = UT3D_vc_tng_crv_pt (&vc1, &pt1, typ, ox1p);
+        if(rc < 0) return -1;
+        goto Fertig;
+
+
       // extract Line aus Polygon
       } else if(ox1p->form == Typ_CVPOL) {
         i1 = aus_tab[1];   // 1=first.
@@ -9125,32 +9153,35 @@ static ModelRef *mod1, modR1;
 
 
   //-----------------------------------------------------------------
-  // D = P|D|L P|D|L P|D|L           PPP PPD PPL
-  if( (aus_typ[0]==Typ_PT)   &&
+  // D = P|D|L P|D|L P|D|L           PPP DPP PPL
+  if(((aus_typ[0]==Typ_PT)||(aus_typ[0]==Typ_VC))  &&
       (aus_typ[1]==Typ_PT)   &&
-     ((aus_typ[2]==Typ_PT)||(aus_typ[2]==Typ_VC)||(aus_typ[2]==Typ_LN)))    {
+     ((aus_typ[2]==Typ_PT)||(aus_typ[2]==Typ_LN)))    {
 
-    pp1 = DB_get_PT ((long)aus_tab[0]);
     pp2 = DB_get_PT ((long)aus_tab[1]);
 
-    UT3D_vc_2pt (&vc2, pp1, pp2);
-
-
-    if(aus_typ[2]==Typ_PT) {     // PPP
+    if(aus_typ[0]==Typ_VC) {   // DPP
+      vc2 = DB_GetVector ((long)aus_tab[0]);
       pp3 = DB_get_PT ((long)aus_tab[2]);
       UT3D_vc_2pt (&vc3, pp2, pp3);
+      pp1 = pp2;
       goto L_perp;
 
-
-    } else if(aus_typ[2]==Typ_VC) {   // PPD
-      vc3 = DB_GetVector ((long)aus_tab[2]);
-      goto L_perp;
-
-
-    } else {                         // PPL
+    } else if(aus_typ[2]==Typ_LN) {     // PPL
+      pp1 = DB_get_PT ((long)aus_tab[0]);
+      UT3D_vc_2pt (&vc3, pp1, pp2);
       lnp = DB_get_LN ((long)aus_tab[2]);
-      UT3D_vc_ln (&vc3, lnp);
+      UT3D_vc_ln (&vc2, lnp);
+      pp3 = pp2;
       goto L_perp;
+
+    } else {     // PPP
+      pp1 = DB_get_PT ((long)aus_tab[0]);
+      UT3D_vc_2pt (&vc2, pp1, pp2);
+      pp3 = DB_get_PT ((long)aus_tab[2]);
+      UT3D_vc_2pt (&vc3, pp1, pp3);
+      goto L_perp;
+
     }
 
     goto L_parErr;
@@ -9189,7 +9220,7 @@ static ModelRef *mod1, modR1;
 
       } else {   //goto L_parErr;
         // create tangent to std-point on trimmed curve; 1=startPt, 2=endPt.
-        rc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, i1, typ, obj1);
+        rc = UT3D_ptvcpar1_std_obj (NULL, &vc1, NULL, i1, typ, obj1);
         // rc = UT3D_vc_tng_crv_pt (&vc1, &pt1, typ, ox1p);
         if(rc < 0) return -1;
       }
@@ -9216,12 +9247,27 @@ static ModelRef *mod1, modR1;
 
   //=================================================================
   L_perp:
+  if(iParl) goto L_parl;
   if(lenStat == NO) { lenStat = YES; lenVc = 1.; } // normieren
   // Kreuzprod
   UT3D_vc_perp2vc (&vc1, &vc2, &vc3);
-  // goto Fertig;
+  goto Fertig;
 
 
+  //=================================================================
+  L_parl:
+  // in: vc2, vc3;
+  UT3D_parvc_2vc (&d1, &vc3, &vc2);
+  UT3D_vc_multvc (&vc1, &vc2, d1);
+  if(iParl == 2) goto L_cx_lin;
+  goto Fertig;
+
+
+  //=================================================================
+  L_cx_lin:
+  // in: vc1, pp1, pp3
+  UT3D_pt_traptvc (&pt1, pp1, &vc1);   // pt1 = pp1 + vc1
+  UT3D_vc_2pt (&vc1, &pt1, pp3);       // vc1 = pt2 -> pp3
 
 
   //=================================================================
@@ -10686,7 +10732,6 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // printf("  %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
-
   irc = 0;
 
 
@@ -10789,22 +10834,23 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       APT_modMax1 = UTO_ptnr_std_obj (ox1p->form, il1);
         // printf(" curv[%d]form=%d siz=%d\n",(int)aus_tab[0],mtyp,ox1p->siz);
 
+      i1 = imod;
+      // Typ_CVBSP, Typ_CVRBSP: MOD(1)=StartPt; MOD(2)=EndPt
+
       if       ((mtyp == Typ_CVELL)  ||
                 (mtyp == Typ_CVCLOT))   {
         // MOD -> Ptyp_
-        i1 = imod;
         // 1, 2, 3->32, 4->64, 5->65
         if(imod == 3) i1 = 32;
         if(imod > 3) i1 += 60;
 
-      } else if((mtyp == Typ_CVPOL)  ||
-                (mtyp == Typ_CVBSP)  ||
-                (mtyp == Typ_CVRBSP))   {
-        i1 = -imod;  // get controlpoints
+      } else if(mtyp == Typ_CVPOL)      {
+        // Polygon: get controlpoint
+        i1 = -imod;
       }
 
 
-      irc = UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, i1, Typ_ObjGX, ox1p);
+      irc = UT3D_ptvcpar1_std_obj (pt_out, NULL, NULL, i1, Typ_ObjGX, ox1p);
       goto Exit;
 
 /*
@@ -10832,7 +10878,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
           UT3D_pt_traptvclen (pt_out, &((CurvElli*)ox1p->data)->pc,
                                       &((CurvElli*)ox1p->data)->va, -d1);
         }
-        UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, mType, Typ_CVELL, ox1p->data);
+        UT3D_ptvcpar1_std_obj (pt_out, NULL, NULL, mType, Typ_CVELL, ox1p->data);
         APT_modMax1 = 5;                                         // 2013-03-17
         goto Exit;
 
@@ -10867,9 +10913,9 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       } else if(ox1p->typ == Typ_CVTRM) {
         // UT3D_pt_endptccv (pa, ox1p);
         if(imod == 0) {  // startpt
-          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, ox1p);
+          irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, ox1p);
         } else if(imod == 1) {  // end Pt
-          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_ObjGX, ox1p);
+          irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_ObjGX, ox1p);
         }
         APT_modMax1 = 2;
         goto Fertig3D;
@@ -11573,7 +11619,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       // get 1=startPt 2=endPt
       i1 = APT_prim_sg2;
       if(mtyp == Typ_CVPOL) i1 *= -1;  // only polygon: get cornerpoints
-      irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, i1, mtyp, obj1);
+      irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, i1, mtyp, obj1);
       if(irc < 0) goto L_noFunc;
       goto Fertig3D;
 
@@ -12894,8 +12940,9 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // lnLen = APT_ln_len;
 
 
-  // get UNL=3|UNL2=2|UNL1=1
+  // get UNL=3|UNL2=2|UNL1=1; def=0
   lTyp = APT_decode_modUnlim (&aus_anz, aus_typ, aus_tab);
+    // printf(" lTyp=%d f_tra=%d aus_anz=%d\n",lTyp,f_tra,aus_anz);
 
 
 
@@ -13781,10 +13828,13 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     // length
     i1 = 2;
     if(aus_typ[i1] == Typ_Val) {
+      lTyp = 0; // length given !
       d1 = aus_tab[i1];
       UT3D_vc_setLength (&vc1, &vc1, d1);
       ++i1;
-      if(aus_anz == i1) goto Fertig_p_l;
+      if(aus_anz == i1) {
+        goto Fertig_p_l;
+      }
     }
 
 
@@ -14423,13 +14473,17 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
   // Transform Line pta-pte
   Fertig:  // Inp: pta, pte, f_tra, lTyp
-
-  ln_out->p1 = pta;
-  ln_out->p2 = pte;
+    // printf(" _decode_ln-Fertig-lTyp=%d f_tra=%d\n",lTyp,f_tra);
+  ln_out->p1  = pta;
+  ln_out->p2  = pte;
+  ln_out->typ = lTyp;
+    // UT3D_stru_dump (Typ_LN, ln_out, "  _decode_ln-Fertig");
 
   // work unlimited ..
-  UT3D_ln_unlim (ln_out, lTyp);
-  if(lTyp) APT_subTyp = Typ_Att_dim;
+  if(lTyp != 0) {
+    UT3D_ln_unlim (ln_out, lTyp);
+    APT_subTyp = Typ_Att_dim;
+  }
 
 
   // translate
@@ -14441,16 +14495,10 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
     }
   }
 
-  // ln_out->p1 = pta;
-  // ln_out->p2 = pte;
-  // UT3D_ln_2pt2 (ln_out, &pta, &pte);
-
 
 
   Exit:
-
     // UT3D_stru_dump (Typ_LN, ln_out, "ex APT_decode_ln");
-    
   return rc;
 
 
@@ -16390,6 +16438,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 }   // end of APT_decode_ci
 
 
+/*
 //================================================================
   int APT_decode_ausdr (int *aus_typ, double *aus_tab,
                         int aus_siz, char** data) {
@@ -16399,15 +16448,15 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 /// decode sourceObj -> atomicObj
 /// Names ("xx #name") must have been removed
 /// \endcode
-/*
-  nun die Ausdrücke aus data einlesen, decodieren und merken
-  Returncode = Nr of Records in aus_typ/aus_tab
-  Die Ausdrücke zerlegen (Trennzeichen ist ",")
-  Bei Typ_Txt ist die Posi in aus_tab.
-  Typ_String: 
-     in aus_tab ist die TextStartposition in aus_tab;
-     der Text ist APT_defTxt[(int)aus_tab].
-*/
+//
+//   die Ausdrücke aus data einlesen, decodieren und merken
+//   Returncode = Nr of Records in aus_typ/aus_tab
+//   Die Ausdrücke zerlegen (Trennzeichen ist ",")
+//   Bei Typ_Txt ist die Posi in aus_tab.
+//   Typ_String: 
+//      in aus_tab ist die TextStartposition in aus_tab;
+//      der Text ist APT_defTxt[(int)aus_tab].
+//
   int    aus_anz, iNr, i1, sLen, aus_rest;
   //int    ctyp, oTyp, oInd;
   //double d1;
@@ -16494,16 +16543,16 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
   if(*w_next == '\0') {
-/*
-    // wenn der letzte char von w ein "," ist:
-    w = w_next - 1;
-    if(*w == '\\') {
-      // printf(" Fortsetzungszeile erforderlich %d!\n",aus_anz);
-      ++aus_anz;
-      aus_typ[aus_anz] = Typ_StrDel;
-      aus_tab[aus_anz] = 0.0;
-    }
-*/
+// .. 
+// ..   // wenn der letzte char von w ein "," ist:
+// ..   w = w_next - 1;
+// ..   if(*w == '\\') {
+// ..     // printf(" Fortsetzungszeile erforderlich %d!\n",aus_anz);
+// ..     ++aus_anz;
+// ..     aus_typ[aus_anz] = Typ_StrDel;
+// ..     aus_tab[aus_anz] = 0.0;
+// ..   }
+// .. 
     goto Fertig;
   }
 
@@ -16530,15 +16579,15 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   aus_typ[aus_anz] = Typ_Error;
 
 
-/*
-    // // Nur Testausgaben:
-    printf("ex APT_decode_ausdr %d\n",aus_anz);
-    for(i1=0; i1<aus_anz; ++i1) {
-      // TX_Print("    %d %d %f",i1,aus_typ[i1],aus_tab[i1]);
-      printf("    %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
-    }
-    printf("/////////////////////////////////////////\n");
-*/
+/// .. 
+// ..   // // Nur Testausgaben:
+// ..   printf("ex APT_decode_ausdr %d\n",aus_anz);
+// ..   for(i1=0; i1<aus_anz; ++i1) {
+// ..     // TX_Print("    %d %d %f",i1,aus_typ[i1],aus_tab[i1]);
+// ..     printf("    %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+// ..   }
+// ..   printf("/////////////////////////////////////////\n");
+// .. 
 
 
   //-----------------------------------------------------
@@ -16550,6 +16599,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // L_exit:
   return aus_anz;
 }
+*/
 
 
 //================================================================
@@ -16784,24 +16834,25 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 }
 
 
-/*===========================================================================*/
-  int APT_decode_ausdr1 (int *aus_typ,double *aus_tab,int aus_siz,char *data) {
-/*===========================================================================*/
 /*
-  EINEN Ausdruck aus data einlesen u. decodieren
-  hier kommt nur mehr ein Ausdruck; er kann aber noch Funktionen beinhalten.
-  Enhaelt er einen Klammerausdruck: extrahieren und mit ?? abarbeiten.
-   Also zB In  > Out:
-         "3+5" > 8
-
-  ReturnCode:  -1 = Error; else nr of records added to aus_typ/aus_tab.
-
-OFFEN:
-  man sollte alle so aendern, dass bei Rekursion in aus_typ/aus_tab
-  hineinaddiert wird; also bei der Rekursion mit einem Offset und korrigierter
-  TabSiz rufenTabSiz.
-
-*/
+//================================================================
+  int APT_decode_ausdr1 (int *aus_typ,double *aus_tab,int aus_siz,char *data) {
+//================================================================
+/// .. 
+// .. EINEN Ausdruck aus data einlesen u. decodieren
+// .. hier kommt nur mehr ein Ausdruck; er kann aber noch Funktionen beinhalten.
+// .. Enhaelt er einen Klammerausdruck: extrahieren und mit ?? abarbeiten.
+// ..  Also zB In  > Out:
+// ..        "3+5" > 8
+// .. 
+// .. ReturnCode:  -1 = Error; else nr of records added to aus_typ/aus_tab.
+// .. 
+// .. FEN:
+// .. man sollte alle so aendern, dass bei Rekursion in aus_typ/aus_tab
+// .. hineinaddiert wird; also bei der Rekursion mit einem Offset und korrigierter
+// .. TabSiz rufenTabSiz.
+// .. 
+// .. 
 
   int    irc, i1, ityp, ctyp, oTyp;
   long   l1, oInd;
@@ -16848,17 +16899,17 @@ OFFEN:
   if(w_anz >= 200) goto L_err2;
   w_tab[w_anz] = 0.;
 
-/*
-  // 2013-10-08
-  if(deli == '(') {
-      w_siz = 200 - w_anz;
-      i1 = APT_decode_ausdr1 (&w_typ[w_anz], &w_tab[w_anz], w_siz, w_next);
-      if(i1 < 0) goto Error;
-      w_anz += i1;
-      w_next += strlen(w_next);
-      goto Next;
-  }
-*/
+/// .. 
+// .. // 2013-10-08
+// .. if(deli == '(') {
+// ..     w_siz = 200 - w_anz;
+// ..     i1 = APT_decode_ausdr1 (&w_typ[w_anz], &w_tab[w_anz], w_siz, w_next);
+// ..     if(i1 < 0) goto Error;
+// ..     w_anz += i1;
+// ..     w_next += strlen(w_next);
+// ..     goto Next;
+// .. }
+// .. 
 
 
   NunWert:
@@ -16983,6 +17034,43 @@ OFFEN:
 
     } else if (cmd[0] == 'R') {
 
+      if(cmd[1] == 'A') {
+        if (!strcmp (cmd, "RAD_360")) {
+          d1 = RAD_360;
+          goto L_fix_numVal;
+  
+        } else if (!strcmp (cmd, "RAD_180")) {
+          d1 = RAD_180;
+          goto L_fix_numVal;
+  
+        } else if (!strcmp (cmd, "RAD_90")) {
+          d1 = RAD_90;
+          goto L_fix_numVal;
+  
+        } else if (!strcmp (cmd, "RAD_1")) {
+          d1 = RAD_1;
+          goto L_fix_numVal;
+        }
+      }
+
+      if(cmd[1] == 'I') {
+        if (!strcmp (cmd, "RIX")) {
+          w_typ[w_anz] = Typ_PLN;
+          w_tab[w_anz] = DB_PLIX_IND;
+          goto Next;
+  
+        } else if (!strcmp (cmd, "RIY")) {
+          w_typ[w_anz] = Typ_PLN;
+          w_tab[w_anz] = DB_PLIY_IND;
+          goto Next;
+  
+        } else if (!strcmp (cmd, "RIZ")) {
+          w_typ[w_anz] = Typ_PLN;
+          w_tab[w_anz] = DB_PLIZ_IND;
+          goto Next;
+        }
+      }
+
       if (!strcmp (cmd, "RX")) {
         w_typ[w_anz] = Typ_PLN;
         w_tab[w_anz] = DB_PLX_IND;
@@ -16997,24 +17085,9 @@ OFFEN:
         w_typ[w_anz] = Typ_PLN;
         w_tab[w_anz] = DB_PLZ_IND;
         goto Next;
-
-      } else if (!strcmp (cmd, "RAD_360")) {
-        d1 = RAD_360;
-        goto L_fix_numVal;
-
-      } else if (!strcmp (cmd, "RAD_180")) {
-        d1 = RAD_180;
-        goto L_fix_numVal;
-
-      } else if (!strcmp (cmd, "RAD_90")) {
-        d1 = RAD_90;
-        goto L_fix_numVal;
-
-      } else if (!strcmp (cmd, "RAD_1")) {
-        d1 = RAD_1;
-        goto L_fix_numVal;
-
       }
+
+
 
 
     } else if (cmd[0] == 'S') {
@@ -17065,7 +17138,7 @@ OFFEN:
 
       // kein Objekt, also normaler Text.
       *aus_typ = Typ_Txt;
-      //*aus_tab = (double)strlen(txtOut);
+      // *aus_tab = (double)strlen(txtOut);
       //printf("   Text: |%s| len=%f\n",txtOut,*aus_tab);
       //printf("**** Unbekanntes Objekt: %s ****\n",txtOut);
       //os_beep ();
@@ -17375,34 +17448,36 @@ OFFEN:
 }
   
 
-/*===========================================================================*/
+//================================================================
   int APT_decode_func (int* w_typ, double* w_tab, int w_siz,
                        char* func, char* ausd) {
-/*====================
-Eine Function abarbeiten und das Ergebnis retournieren.
-Der Returncode ist die Anzahl retournierter Wert in w_typ/w_tab.
-
-Eine Function ist: "<name>(<Ausdruck>)"
-
-Wird rekursiv verwendet, daher lokale aus_typ, aus_tab.
-
-Does store objects in dynamic area and returns the dynamic DB-index.
-
-Inp:
-  func = FunctionName; zB "D"  oder "COS" od "sqrt"
-  ausd = der Funktionstext ohne starting "(" aber MIT closing ")"
-         also zB "1 0 9)" oder "V34)"
-  w_siz         size of tables w_typ and w_tab
-Out:
-  w_typ,w_tab   a single atomicObject (type, value);
-  RetCod        nr of objects; 1; Typ_Group: nr of objects in Grp.
-
-MEM:
-  memspc101 f temp BSP-Curves
-
-see also SRC_typ_FncNam
-
-*/
+//================================================================
+// TODO: replace with ATO_ato_srcLn__
+// 
+// Eine Function abarbeiten und das Ergebnis retournieren.
+// Der Returncode ist die Anzahl retournierter Wert in w_typ/w_tab.
+// 
+// Eine Function ist: "<name>(<Ausdruck>)"
+// 
+// Wird rekursiv verwendet, daher lokale aus_typ, aus_tab.
+// 
+// Does store objects in dynamic area and returns the dynamic DB-index.
+// 
+// Inp:
+//   func = FunctionName; zB "D"  oder "COS" od "sqrt"
+//   ausd = der Funktionstext ohne starting "(" aber MIT closing ")"
+//          also zB "1 0 9)" oder "V34)"
+//   w_siz         size of tables w_typ and w_tab
+// Out:
+//   w_typ,w_tab   a single atomicObject (type, value);
+//   RetCod        nr of objects; 1; Typ_Group: nr of objects in Grp.
+// 
+// MEM:
+//   memspc101 f temp BSP-Curves
+// 
+// see also SRC_typ_FncNam
+// 
+// .. 
 
   static Point     pt_old;
 
@@ -17434,20 +17509,20 @@ see also SRC_typ_FncNam
 
   UTX_cp_word_2_upper (funcU, func);
 
-/*
-  for (i1=0; i1<Cmd0Anz; i1++) {
-    //printf("vergl %d !%s!%s!\n",i1,*(&Cmd0Tab[i1]),func);
-    if (!strcmp(*(&Cmd0Tab[i1]),funcU)) {
- 
-      goto WorkFunc;
-    }
-  }
-
-
-  *w_typ = Typ_Error;
-  rc = -1;
-  goto Fertig;
-*/
+/// .. 
+// .. for (i1=0; i1<Cmd0Anz; i1++) {
+// ..   //printf("vergl %d !%s!%s!\n",i1,*(&Cmd0Tab[i1]),func);
+// ..   if (!strcmp(*(&Cmd0Tab[i1]),funcU)) {
+// .. 
+// ..     goto WorkFunc;
+// ..   }
+// .. }
+// .. 
+// .. 
+// .. *w_typ = Typ_Error;
+// .. rc = -1;
+// .. goto Fertig;
+// .. 
 
 
 
@@ -17493,15 +17568,15 @@ see also SRC_typ_FncNam
     goto Fertig;
   }
 
-/*
-  if(!strcmp(funcU, "NEW")) {
-    // printf(" ********* NEW |%s| *********\n",LineF);
-    *w_typ = Typ_Val;
-    i1 = DB_QueryNew (LineF);
-    *w_tab = i1;
-    goto Fertig;
-  }
-*/
+/// .. 
+// .. if(!strcmp(funcU, "NEW")) {
+// ..   // printf(" ********* NEW |%s| *********\n",LineF);
+// ..   *w_typ = Typ_Val;
+// ..   i1 = DB_QueryNew (LineF);
+// ..   *w_tab = i1;
+// ..   goto Fertig;
+// .. }
+// .. 
 
 
   // nun den Klammerausdruck abarbeiten; der kann aber mehrere
@@ -17511,14 +17586,14 @@ see also SRC_typ_FncNam
   if(aus_anz < 0) goto Error;
 
 
-/*
-  //=== Testausg: ==================================================
-  printf(" in APT_decode_func aus_anz=%d\n",aus_anz);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf("  Funpar: %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
-  //=== Testausg: ==================================================
-*/
+/// .. 
+// .. //=== Testausg: ==================================================
+// .. printf(" in APT_decode_func aus_anz=%d\n",aus_anz);
+// .. for(i1=0; i1<aus_anz; ++i1) {
+// ..   printf("  Funpar: %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+// .. }
+// .. //=== Testausg: ==================================================
+// .. 
 
 
   if(!strcmp(funcU, "VAL")) {
@@ -17736,15 +17811,15 @@ see also SRC_typ_FncNam
     irc = aus_anz+1;
 
 
-/*
-  //===========================================================
-  } else if(!strcmp(funcU, "V")) {             // Value
-
-    printf(" ************ VALUE ***********\n");
-
-    *w_typ = Typ_Val;
-    *w_tab = 123.45;
-*/
+/// .. 
+// .. //===========================================================
+// .. } else if(!strcmp(funcU, "V")) {             // Value
+// .. 
+// ..   printf(" ************ VALUE ***********\n");
+// .. 
+// ..   *w_typ = Typ_Val;
+// ..   *w_tab = 123.45;
+// .. 
 
 
 
@@ -17774,6 +17849,7 @@ see also SRC_typ_FncNam
   return -1;
 
 }
+*/
 
 
 /*==========================================================================*/
@@ -18179,7 +18255,7 @@ see also SRC_typ_FncNam
 
 
       i1 = APT_decode_ln ((Line*)obj1, aus_anz, aus_typ, aus_tab);
-      DB_dyn__ (1, Typ_PT, 0L);   // reset to previous saved
+      // DB_dyn__ (1, Typ_PT, 0L);   // reset to previous saved
       if(i1 < 0) goto Problem0;
 
       L_LN_sav:
@@ -18291,7 +18367,7 @@ see also SRC_typ_FncNam
         i1 = APT_decode_bsp_ ((ObjGX*)obj1, &APTSpcObj, &APTSpcTmp,
                              aus_anz, aus_typ, aus_tab);
         // DB_dump_dyn__ ();
-        DB_dyn__ (1, Typ_PT, 0L);   // reset to previous saved
+        // DB_dyn__ (1, Typ_PT, 0L);   // reset to previous saved
         if(i1 == 1) { DL_Redraw (); return -1; }     // nur 1. Punkt
         if(i1 < 0) goto Problem1;
 
@@ -18896,10 +18972,16 @@ Offen: Pointer out auf das next Word ...
 
 
 //================================================================
-  void APT_get_String (char* outBuf, char* inBuf, double offset) {
+  int APT_get_String (char* outBuf, char* inBuf, double offset) {
 //================================================================
 /// \code
 /// copy word until double-quote
+/// Input:
+///   inBuf         startpos of string, surrounded by '"',
+///                 starting with word-delimiter (blank or ',')
+///   offset        startpos in inBuf
+/// Output:
+///   outBuf        size max 80
 /// 
 /// see also APT_get_Txt APT_get_TxAll
 /// \endcode
@@ -18909,11 +18991,17 @@ Offen: Pointer out auf das next Word ...
 
   // printf("APT_get_String |%s| %d\n",inBuf,offset);
 
-  cp = inBuf + (int)offset + 1;
+  // cp = inBuf + (int)offset + 1;
+  cp = strchr(&inBuf[(int)offset], '"');
+  if(!cp) {outBuf[0] = '\0'; return -1;}
+  ++cp;  // skip the starting '"'
+  // copy to (excluding) '"'
   UTX_cp_word_term (outBuf, cp, '"');
 
 
   // printf("exit APT_get_String |%s|%f|%s|\n",outBuf,offset,inBuf);
+
+  return 0;
 
 }
 
@@ -19874,6 +19962,15 @@ Rückgabewert ist der gefundene Index.
   // }
 
 
+  // set APT_hide_parent (keep-parent) from last parameter
+  if(aus_typ[aus_anz - 1] == Typ_cmdNCsub) {
+    if(aus_tab[aus_anz - 1] == T_REPL) {
+      APT_hide_parent = 1;    // 0=not, else yes
+      --aus_anz;
+    }
+  }
+    // printf(" APT_hide_parent=%d\n",APT_hide_parent);
+
 
   // iDir = letzter Parameter "REV" optional
   iDir = 1;
@@ -20143,11 +20240,21 @@ Rückgabewert ist der gefundene Index.
   // Mat_4x3   m1;
 
 
-  printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
-  printf("APT_prj_obj_perp |%d|\n",aus_anz);
+  // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
+  // printf("APT_prj_obj_perp |%d|\n",aus_anz);
   // for(i1=0; i1<aus_anz; ++i1) {
     // printf(" %d typ=%d tab=%lf\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
+
+
+  // set APT_hide_parent (keep-parent) from last parameter
+  if(aus_typ[aus_anz - 1] == Typ_cmdNCsub) {
+    if(aus_tab[aus_anz - 1] == T_REPL) {
+      APT_hide_parent = 1;    // 0=not, else yes
+      --aus_anz;
+    }
+  }
+    // printf(" APT_hide_parent=%d\n",APT_hide_parent);
 
 
   // get last val = solution-nr MOD(): -> APT_prim_seg
@@ -20295,10 +20402,10 @@ Rückgabewert ist der gefundene Index.
   void      *obji, *objo, *mo;
 
 
-  printf("APT_mir_obj |%d|\n",aus_anz);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
+  // printf("APT_mir_obj |%d|\n",aus_anz);
+  // for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // }
 
 
   // obj[1] ist zu bearbeitendes obj
@@ -20341,7 +20448,7 @@ Rückgabewert ist der gefundene Index.
     i1 = UTO_obj_appmir (objo, o0Typ, obji, wrkSpc);
     if(i1 < 0) return i1;
 
-      UT3D_stru_dump (oxo->form, objo, "ex APT_mir_obj:");
+      // UT3D_stru_dump (oxo->form, objo, "ex APT_mir_obj:");
 
 
   return 0;
@@ -21654,12 +21761,12 @@ static Line lno;
 
   // intersect 2 surfs; result = curve
   // make 2 lists of db-obj's 
-  typ1Tab = (int*) MEM_alloc_tmp (no1 * sizeof(int));
-  dbi1Tab = (long*) MEM_alloc_tmp (no1 * sizeof(long));
+  typ1Tab = (int*) MEM_alloc_tmp ((int)(no1 * sizeof(int)));
+  dbi1Tab = (long*) MEM_alloc_tmp ((int)(no1 * sizeof(long)));
   APT_grp_decode2 (typ1Tab, dbi1Tab, io1, no1, aus_typ, aus_tab);
 
-  typ2Tab = (int*) MEM_alloc_tmp (no2 * sizeof(int));
-  dbi2Tab = (long*) MEM_alloc_tmp (no2 * sizeof(long));
+  typ2Tab = (int*) MEM_alloc_tmp ((int)(no2 * sizeof(int)));
+  dbi2Tab = (long*) MEM_alloc_tmp ((int)(no2 * sizeof(long)));
   APT_grp_decode2 (typ2Tab, dbi2Tab, io2, no2, aus_typ, aus_tab);
 
   oDat = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
@@ -21759,9 +21866,11 @@ static Line lno;
 
   // change db-obj -> CurvCCV
   CVTRM__dbo (oCv, iTyp, iDbi);
+    // UT3D_stru_dump (Typ_CVTRM, oCv, " ex-CVTRM__dbo-2");
 
   // reverse output-object oCv
   UTO_stru_inv (Typ_CVTRM, oCv);
+    // UT3D_stru_dump (Typ_CVTRM, oCv, " ex-UTO_stru_inv-2");
 
   // complexObject (ObjGX) from binObj (struct)
   OGX_SET_OBJ (oxo, Typ_CVTRM, Typ_CVTRM, 1, oCv);
@@ -21771,7 +21880,7 @@ static Line lno;
   //----------------------------------------------------------------
   L_exit:
 
-    UTO_dump__ (oxo, "ex APT_REV__");
+    // UTO_dump__ (oxo, "ex APT_REV__");
 
   return 0;
 

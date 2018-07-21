@@ -79,8 +79,8 @@ __declspec(dllexport) int gCad_fini ();
 
 
 // ext aus xa.c:
-extern  char      WC_modnam[128];    // der Modelname
-extern  char      AP_dir_open[128];  // Verzeichnis f Open, ..
+extern  char      AP_mod_fnam[128];    // der Modelname
+extern  char      AP_mod_dir[128];  // Verzeichnis f Open, ..
 
 
 
@@ -219,8 +219,8 @@ extern  char      AP_dir_open[128];  // Verzeichnis f Open, ..
     //---------------------------------------------------------
     case UI_FuncUCB3:
       printf("UI_FuncUCB3 - Export Iges\n");
-      // sprintf(cbuf, "%s.igs",OS_get_bas_dir(),WC_modnam);
-      sprintf(cbuf, "%s%s.igs",AP_dir_open,WC_modnam);
+      // sprintf(cbuf, "%s.igs",OS_get_bas_dir(),AP_mod_fnam);
+      sprintf(cbuf, "%s%s.igs",AP_mod_dir,AP_mod_fnam);
       TX_Print("export -> file %s",cbuf);
       AP_ExportIges__ (cbuf);
       break;

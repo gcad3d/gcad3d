@@ -169,7 +169,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
 
 
-  // printf("GUI_tree1__ |%s|\n",opts);
+  printf("GUI_tree1__ |%s|\n",opts);
   // printf("  sizeof(GtkTreeIter)=%d\n",(int)sizeof(GtkTreeIter));
 
 
@@ -694,6 +694,8 @@ static Obj_gui2     *GUI_tree1_ActObj;
 //================================================================
 /// expand row  or all (if it == NULL)
 
+// see gtk_tree_view_collapse_all|row
+
   int              i1;
   GtkTreePath      *tpt;
 
@@ -920,7 +922,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
 //====================================================================
   int GUI_tree1_cbSel (void *selection, MemObj mo) {
 //====================================================================
-/// INTERNAL
+/// INTERNAL;  tree-obj did change
 
   int          i1, i2, i3, iEv=TYP_EventPress;
   gchar            *txt1, *txt2;
@@ -932,6 +934,8 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
 
   // printf("GUI_tree1_cbSel selMode=%d\n",INT_PTR(GUI_tree1_ActObj->data));
+  // printf(" msbt=%d\n",GUI_tree1_msbt);
+
 
   if(INT_PTR(GUI_tree1_ActObj->data)) return FALSE;  //0=normal;1=skip selection
 
@@ -943,8 +947,10 @@ static Obj_gui2     *GUI_tree1_ActObj;
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
 
-  i1 = gtk_tree_selection_count_selected_rows (selection);
+
+  // i1 = gtk_tree_selection_count_selected_rows (selection);
     // printf(" iNr=%d\n",i1);
+
 
   list = gtk_tree_selection_get_selected_rows (selection, &model);
 
@@ -1004,9 +1010,13 @@ static Obj_gui2     *GUI_tree1_ActObj;
 //================================================================
   int GUI_tree1_cbMouse (void *parent, void *ev, MemObj mo) {
 //================================================================
-/// INTERNAL
+/// INTERNAL;  mouse-select of treeObj
 
   int      typ;
+
+
+  // printf("GUI_tree1_cbMouse \n");
+
 
   typ  = ((GdkEventAny*)ev)->type;
 
@@ -1014,7 +1024,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
   GUI_tree1_msbt = ((GdkEventButton*)ev)->button;
 
-  // printf("GUI_tree1_cbMouse typ=%d but=%d\n",typ,GUI_tree1_msbt);
+    // printf("GUI_tree1_cbMouse typ=%d but=%d\n",typ,GUI_tree1_msbt);
 
   L_exit:
   return FALSE;  // TRUE=1=stop further handling of event ..

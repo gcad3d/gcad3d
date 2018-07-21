@@ -106,7 +106,7 @@ c
 
 #include <stdarg.h>
 
-// GUI-funcs   in ../xa/ut_ui_TX.c
+// GUI-funcs   in ../ut/ut_ui_TX.c
 // Text-funcs  in ../ut/ut_TX.c
 void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 void TX_Error (char* txt, ...) { TX_Print (txt); }

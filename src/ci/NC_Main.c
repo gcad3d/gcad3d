@@ -38,16 +38,17 @@ Modifications:
 =====================================================
 List_functions_start:
 
-WC_Work__         mainFunc; test for submodels
-WC_Work1          mainFunc
-WC_Work_upd       call WC_Work1 with 0-terminated memory-line, restore.
-APT_work_def      work DefinitionLine (decodieren, in DB-speichern, darstellen)
+WC_Work__             mainFunc; test for submodels
+WC_Work1              mainFunc
+WC_Work_upd           call WC_Work1 with 0-terminated memory-line, restore.
+APT_work_def          work DefinitionLine (decode, store in DB, display)
 APT_work_parent_hide  hide parent-obj
-APT_work_PrgCmd   work programcodes
+APT_parent_set   set isParent-bit bei allen parents
+APT_work_PrgCmd       work programcodes
 APT_work_NCCmd
 APT_stack_NCCmd
 
-// APT_decode__      DO NOT USE; new func: ATO_ato_srcLn__
+APT_ato_par_srcLn     get atomic-objects (ato1) and parents of sourceLine
 
 APT_obj_ato  create struct from atomicObjs
 APT_obj_expr  Create struct from ModelCode
@@ -74,6 +75,7 @@ APT_DrawDim3
 APT_DrawDimen
 APT_DrawTxtG
 APT_DrawTxtA
+APT_DrawSymB
 APT_DrawSol
 APT_DrawPln
 APT_DrawSur
@@ -147,6 +149,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+// APT_decode__      new func: ATO_ato_srcLn__
 
 
 ===============================================================================
@@ -437,18 +440,21 @@ Verbinden:
 
 #include "../gui/gui_types.h"              // UI_Func..
 #include "../ut/ut_geo.h"                 /* Point-def ..*/
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"              // APED_dbo_oid
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"                  // TX_Print
 // #include "../ut/ut_crv.h"
 #include "../ut/ut_obj.h"
 #include "../ut/ut_txfil.h"               // UTF_GetLinNr
 #include "../ut/ut_os.h"                   // OS_Wait
-#include "../gr/ut_GL.h"                  // :wGL_GetCen
+#include "../ut/func_types.h"              // UI_AP u UI_FuncGet
 
 #include "../db/ut_DB.h"
 
+#include "../gr/ut_GL.h"                  // GL_GetCen
 #include "../gr/ut_gr.h"                  // Typ_Att_..
 #include "../gr/ut_DL.h"
 
@@ -457,29 +463,15 @@ Verbinden:
 #include "../xa/xa_edi__.h"
 #include "../xa/xa_ga.h"                    // GA_hasTexture
 #include "../xa/xa_mem.h"                 // memspc55
+#include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
+// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
 #include "../xa/xa.h"                       // APP_act_proc AP_stat
 #include "../xa/xa_sele.h"                  // Typ_go_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
+#include "../xa/xa_uid.h"             // UID_ckb_nam, UID_ckb_txt, UID_ouf_vwz
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
-
-// #include "../ci/NC_drill.h"
-// #include "../ci/NC_cont.h"
-// #include "../wc/wcut.h"                     // NC_up_Work_ NC_up_Pock_
-// #include "../ci/NC_wcut.h"
-// #include "../ci/NC_pock.h"                 // Pock_POCK_CIRC
-
-
-
-
-
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#include "../xa/xa_uid.h"             // UID_ckb_nam, UID_ckb_txt, UID_ouf_vwz
-
-#include "../ut/func_types.h"              // UI_AP u UI_FuncGet
-
-
 
 
 
@@ -488,8 +480,8 @@ Verbinden:
 // EXTERNALS:
 // from ../xa/xa.c:
 
-extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
-extern double  *SRC_ato_tab;
+// extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
+// extern double  *SRC_ato_tab;
 
 extern int       AP_src;
 // extern  int       aus_anz;
@@ -541,6 +533,9 @@ extern char **process_CmdTab;     // was NCCmdTab
 
 
 
+//===========================================================================
+typedef_MemTab(ObjTXTSRC);
+
 
 
 //===========================================================================
@@ -556,7 +551,7 @@ static long      NC_stat_SIZ=0;   // size von NC_stat__
 static long      NC_stat_IND=0;   // zeigt auf den naechsten freien index
 
 static NC_recTyp    *NC_stat__;
-static long      AP_dli_act;
+       long      AP_dli_act;      // index dispList
 
 // static long APT_dbi;              // dbi of active obj
        int  AP_mdLev;             // active subModelLevel
@@ -911,6 +906,7 @@ char      *APT_defTxt;
 
 
 int    APT_prim_typ;
+int    APT_hide_parent;              // 0=not (def), else yes
 
 
 
@@ -1051,11 +1047,11 @@ int    APT_prim_typ;
   sprintf (WC_outBuf , "$$ %s",OS_date1());
   APT_PP_Write();
 
-  if(WC_modnam) {
-    printf("WC_modnam |%s|\n",WC_modnam);
+  if(AP_mod_fnam) {
+    printf("AP_mod_fnam |%s|\n",AP_mod_fnam);
     strcpy(WC_outBuf, "$$ ");
     strcpy(WC_outBuf, "$$ ");
-    strcat(WC_outBuf, WC_modnam);
+    strcat(WC_outBuf, AP_mod_fnam);
     APT_PP_Write();
   }
 
@@ -1610,7 +1606,7 @@ int    APT_prim_typ;
   if(NC_TL_act < 0) return 0;
 
   // alle alten Tempobjekte löschen
-  GL_temp_delete ();
+  GL_temp_del_all ();
 
 
   pt1 = UT3D_pt_pt2(&actPosU);
@@ -2620,10 +2616,11 @@ APT_stat_act:
   int       ctyp, i1, i2, rc, irc, Retcod, recTyp;
   // long      l1;
   double    d1;
-  char      deli, *w, *w_next, *c, *c_next;
+  char      deli, *w_act, *w_next, *c_act, *c_next;
   char      txtOut[64];
   char      cmd[32], auxc4[4]; 
   Point     pt1;
+  ObjAto    ato1 = _OBJATO_NUL;
 
 
   // if(strlen(cbuf) < 1) return 0;
@@ -2633,7 +2630,7 @@ APT_stat_act:
   // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%ld\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
-  // printf("         WC_modact_ind=%d WC_modact_nam=|%s|\n",WC_modact_ind,WC_modact_nam);
+  // printf("         WC_modact_ind=%d AP_modact_nam=|%s|\n",WC_modact_ind,AP_modact_nam);
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
 
@@ -2680,7 +2677,7 @@ APT_stat_act:
 
 
 
-  c = cbuf;
+  c_act = cbuf;
 
 
   if(strlen(cbuf) < 1) goto L_exit99;
@@ -2691,7 +2688,7 @@ APT_stat_act:
 
   // Memory --> aus_typ, aus_tab zuweisen
   // get memSpc for atomicObjects
-  ATO_getSpc1 (&SRC_ato_SIZ, &SRC_ato_typ, &SRC_ato_tab);
+  // ATO_getSpc1 (&SRC_ato_SIZ, &SRC_ato_typ, &SRC_ato_tab);
 /*
   SRC_ato_SIZ = 1000;
   SRC_ato_typ = (int*) MEM_alloc_tmp (SRC_ato_SIZ * sizeof(int));
@@ -2701,7 +2698,7 @@ APT_stat_act:
 
   //==========================================================================
   NextCmd:
-  // printf("  NextCmd |%s|\n",c);
+    // printf("  NextCmd |%s|\n",c_act);
 
   // den naechsten Command > Line kopieren
   // c_next = UTX_cp_word_term (Line, c, ';');
@@ -2713,8 +2710,8 @@ APT_stat_act:
   // w = UTX_pos_1n (c); 
 
   // skip starting blanks
-  w = c;
-  while (*w == ' ') ++w;
+  w_act = c_act;
+  while (*w_act == ' ') ++w_act;
   
 
   
@@ -2728,20 +2725,20 @@ APT_stat_act:
 
 
   // skip geloeschte Zeilen
-  if (*w == '_') goto Fertig;
+  if (*w_act == '_') goto Fertig;
 
   /* skip Kommentar-Zeile (gesamten Zeilenrest) */
-  if (*w == '#') goto Fertig;
+  if (*w_act == '#') goto Fertig;
 
   // Fortsetzungszeilen werden generell geskippt.
-  if (*w == '&') goto Fertig;
+  if (*w_act == '&') goto Fertig;
 
   // // skip das Label "DYNAMIC_AREA"
   // if(!strcmp(w, ":DYNAMIC_AREA")) goto Fertig;
 
 
   // das erste Wort > txtOut 
-  ctyp = UTX_get_word (&w, &w_next, txtOut, &d1, &deli);
+  ctyp = UTX_get_word (&w_act, &w_next, txtOut, &d1, &deli);
     // printf("word ctyp=%d deli=|%c| cmd=|%s| w_nxt=|%s| d1=%f\n",
                  // ctyp,   deli,     txtOut,  w_next,    d1);
 
@@ -2758,18 +2755,19 @@ APT_stat_act:
     // printf(" nxt cmd=|%s|\n",cmd);
 
 
+
+  //----------------------------------------------------------------
+  // handle lables; eg  "Loop1:"            - ':'  marks as label
   // im Normalmode Labels skippen (beginnen mit :)
   if(APT_stat_act == 0) {
-    if (*w == ':') {
+    if (*w_act == ':') {
       goto Done;
     }
-
-
 
   // skip all Lines im PrgMod_skip_until_label (suchen JUMP - Label)
   } else if(APT_stat_act == PrgMod_skip_until_label) {
 
-    if (*w != ':') {
+    if (*w_act != ':') {
       goto Fertig;
 
     } else {
@@ -2782,8 +2780,6 @@ APT_stat_act:
       goto Fertig;
     }
 
-
-
   // skip all Lines im PrgMod_skip_until_macend (ein MAC skippen)
   } else if(APT_stat_act == PrgMod_skip_until_macend) {
 
@@ -2795,8 +2791,6 @@ APT_stat_act:
     } else {
       goto Fertig;
     }
-
-
 
   // skip all Lines im PrgMod_skip_until_mac bis MAC APT_macnam
   // (ein CALL-Up suchen)
@@ -2840,10 +2834,9 @@ APT_stat_act:
   // Ab hier gibts wirklich was zu arbeiten.
   // Do_It:
 
-  // printf("////////Start WC_Work %d |%s| %d\n",APT_line_act,w,APT_stat_act);
+  // printf("////////Start WC_Work %d |%s| %d\n",APT_line_act,w_act,APT_stat_act);
   // printf("line_act=%d line_old=%d\n",APT_line_act,APT_line_old);
   // printf("line_stat=%d mode=%d\n",APT_line_stat,ED_query_mode());
-  //TX_Print("/%s/",w);
 
   // Notstop!!
   //if(APT_line_cnt > 50) return -1;
@@ -2883,6 +2876,8 @@ APT_stat_act:
   L_work_12:
   if(deli == '=')  recTyp = 1;  // CadDefRec
   else             recTyp = 2;  // NC-Saetze
+    // printf(" recTyp = %d ctyp = %d\n",recTyp,ctyp);
+
 
 /*
   // Demo-Mode: nur xx Zeilen abarbeiten
@@ -2892,17 +2887,6 @@ APT_stat_act:
     }
   }
 */
-
-
-  // Check for direkt-Insert
-  if(ctyp == TXT_Typ_string) {
-    //printf("DirektInsert |%s|\n",txtOut);
-    strcpy (txtOut, "INL");
-    // APT_work_NCCmd (txtOut, &w);
-    PRC__ (15, w);   //15="INL"
-    goto Done;
-  }
-
 
   // is this a NCCommandLine (from/0,0) or a DefinitionLine (pt1=100,100)
   // or a Bearbeitungscommand (L0)
@@ -2916,6 +2900,16 @@ APT_stat_act:
 
 
   } else {
+
+    // Check for direkt-Insert
+    if(ctyp == TXT_Typ_string) {
+      //printf("DirektInsert |%s|\n",txtOut);
+      strcpy (txtOut, "INL");
+      // APT_work_NCCmd (txtOut, &w_act);
+      PRC__ (15, w_act);   //15="INL"
+      goto Done;
+    }
+
     // this is not a definition-command (no '=')
     // do command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
     i1 = APT_work_AppCodTab (cmd, &w_next);
@@ -2950,7 +2944,7 @@ APT_stat_act:
         // 1 = IFXX Funkion: work rest of Line.
         if(rc == PrgMod_continue_if) {
           // retCod of if-expression is yes (APT_eval_if), work if-command
-          c = w_next;
+          c_act = w_next;
           goto NextCmd;
 
 
@@ -3038,24 +3032,33 @@ APT_stat_act:
 
     //-------------------------------------------------------
     // somit muss es eine Bearbeitungsanweisung sein.
-    SRC_ato_anz = APT_decode_ausdr (SRC_ato_typ, SRC_ato_tab, SRC_ato_SIZ, &w);
-    if(SRC_ato_anz == 1) {
+    // get tempSpace for string w_act
+    ATO_tmpSpc_get_s (&ato1, w_act);
+    if(!ato1.typ) {TX_Error("WC_Work1 E1"); return -1;}
+
+    // decode w_act
+    ATO_ato_srcLn__ (&ato1, w_act);
+    if(ato1.nr < 1) goto Done;
+
+
+    // SRC_ato_anz = APT_decode_ausdr (SRC_ato_typ, SRC_ato_tab, SRC_ato_SIZ, &w);
+    if(ato1.nr == 1) {
       // handle change Graf. Attribut u. Refsys (R#;   or G#;(
-      if(APT_do_auxCmd (SRC_ato_typ, SRC_ato_tab) == 0) goto Done;
+      if(APT_do_auxCmd (ato1.typ, ato1.val) == 0) goto Done;
     }
 
 
     // Test for "G2 L20 ..";
     // AchtunG: "G2" wird jedoch in APT_do_auxCmd bearb.!
-    if(SRC_ato_typ[0] == Typ_G_Att) {
+    if(ato1.typ[0] == Typ_G_Att) {
       // load attributed objects into PermanentAttributTable GA
-      GA_LtypTab (SRC_ato_anz, SRC_ato_typ, SRC_ato_tab);
+      GA_LtypTab (ato1.nr, ato1.typ, ato1.val);
       goto Done;
     }
 
 
     // cannot specify ..
-    TX_Error(w);
+    TX_Error(w_act);
 
   }
 
@@ -3215,7 +3218,7 @@ APT_stat_act:
   // for(i1=0;i1<
 
 
-    //---------- Change Graf. Attribut  Typ_G_Att=105
+    //---------- Change Graf. Attribut  eg. "G20" Typ_G_Att=105
     if(i_typ[0] == Typ_G_Att) {
       //TX_Print(" change att > %d",(int)i_tab[0]);
       NC_setGrafAtt ((int)i_tab[0]);
@@ -3305,13 +3308,14 @@ APT_stat_act:
 
   static int level=0;
 
-  int        irc, i1, defTyp, basTyp, typTyp, iAtt, iPar[4];
-  long       l1, dli, dbi, gaNr, defInd;
-  char       *ptx;
-  ObjGX      odb;
-  ObjAtt     *ga1;
-  ColRGB     col1;
-  ObjAto     ato1;
+  int            irc, i1, defTyp, basTyp, typTyp, iAtt, iPar[4];
+  long           l1, dli, dbi, gaNr, defInd;
+  char           *ptx;
+  ObjGX          odb;
+  ObjAtt         *ga1;
+  ColRGB         col1;
+  ObjAto         ato1 = _OBJATO_NUL;
+  MemTab(ObjSRC) mtPar = _MEMTAB_NUL;
   // Ind_Att_ln lnAtt1;
 
 
@@ -3327,9 +3331,11 @@ APT_stat_act:
 
   // init ..
   APT_prim_typ = 0;
+  APT_hide_parent = 0;           // 0=not, else yes
+  AP_dli_act = -1L;
 
 
-  // die Zielvariable bestimmen (besteht aus einem Typ und einem Index)
+  // get destination-obj (DB-typ,index)
   i1 = APED_dbo_oid (&defTyp, &defInd, cmdIn);
   if(i1 < 0) {
       TX_Error("ObjHeader: |%s|",cmdIn);
@@ -3351,15 +3357,41 @@ APT_stat_act:
   SRC_ato_anz = APT_decode_ausdr (SRC_ato_typ, SRC_ato_tab, SRC_ato_SIZ, &ptx);
 */
 
-// begin replacing APT_decode_ausdr
-   ato1.siz    = SRC_ato_SIZ;
-   ato1.typ    = SRC_ato_typ;
-   ato1.val    = SRC_ato_tab;
-   ato1.ilev   = (short*) MEM_alloc_tmp (SRC_ato_SIZ * sizeof(short));
-   ato1.nr     = 0;
-   ATO_ato_srcLn__ (&ato1, ptx);
-   SRC_ato_anz = ato1.nr;
-// end replacing APT_decode_ausdr
+  // init ato1
+  // ato1.siz    = SRC_ato_SIZ;
+  // ato1.typ    = SRC_ato_typ;
+  // ato1.val    = SRC_ato_tab;
+  // ato1.ilev   = (short*) MEM_alloc_tmp ((int)(SRC_ato_SIZ * sizeof(short)));
+  // ato1.nr     = 0;
+
+  // get memSpc
+  ATO_tmpSpc_get_s  (&ato1, ptx);
+  if(!ato1.typ) {TX_Error("APT_work_def EM1"); return -1;}
+
+
+
+  if(!APT_obj_stat) {
+    // permanent;
+    // get tempSpc for <ato1.siz> parent-records
+    MEMTAB_tmpSpc_get (&mtPar, ato1.siz);
+    if(MEMTAB_RMAX(&mtPar) != ato1.siz) {
+      TX_Error("APT_work_def EM2");
+      ATO_tmpSpc_free (&ato1);
+      return -1;
+    }
+
+    // get atomic-objects (ato1) and parents of source ptx
+    APT_ato_par_srcLn (&mtPar, &ato1, ptx);
+
+  } else {
+    // temporary; get atomic-objects (ato1) of source ptx
+    ATO_ato_srcLn__ (&ato1, ptx);
+    mtPar.rNr = 0;
+  }
+
+
+  // // get nr of atomic-objects
+  // SRC_ato_anz = ato1.nr;
 
 
     // TEST 
@@ -3368,7 +3400,7 @@ APT_stat_act:
 
 
   // Obj loeschen (ganz loeschen; ZB "L20=")
-  if(SRC_ato_anz < 1) {
+  if(ato1.nr < 1) {
     // printf("loesche obj Typ = %d, Ind %d\n",defTyp,defInd);
     // Obj aus DB loeschen
     DB_Delete (defTyp, defInd);
@@ -3388,10 +3420,10 @@ APT_stat_act:
 
 
   // die ersten 2 Parameter merken (aus_typ & _tab werden bei Draw geloescht!)
-  iPar[0]=SRC_ato_typ[0];
-  iPar[1]=SRC_ato_tab[0];
-  iPar[2]=SRC_ato_typ[1];
-  iPar[3]=SRC_ato_tab[1];
+  iPar[0] = ato1.typ[0];
+  iPar[1] = ato1.val[0];
+  iPar[2] = ato1.typ[1];
+  iPar[3] = ato1.val[1];
 
 
   // clear subTyp (only used for ray)
@@ -3399,21 +3431,34 @@ APT_stat_act:
 
 
   //----------------------------------------------------------------
-  // Parameter decodieren und zuweisen und obj in DB speichern
-  i1 = APT_store_obj (&defTyp, &defInd, SRC_ato_anz, SRC_ato_typ, SRC_ato_tab);
+  // decode all parameters, create binary obj; store obj in DB.
+  i1 = APT_store_obj (&defTyp, &defInd, ato1.nr, ato1.typ, ato1.val);
     // printf("ex _store_obj %d defTyp=%d defInd=%ld\n",i1,defTyp,defInd);
-  if(i1 == -1) goto Error;
-  if(i1 == -2) return 0;       // joints, activities, vectors ..
-  if(i1 == -3) return i1;      // object not yet complete
+  if(i1 < 0) {
+    if(i1 == -2) goto Fertig; // joints,activities,vectors; do not draw; else OK
+    defTyp = i1; // -1=Error; -3=object_not_yet_complete
+    goto Fertig;
+  }
 
 
+  //----------------------------------------------------------------
+  if(!APT_obj_stat) {
+    // set isParent-bit in all DL-records of the parent-objects
+    APT_parent_set (&mtPar, &ato1);
+
+    // hide parent-objs
+    APT_parent_hide (&mtPar);
+  }
 
 
   //----------------------------------------------------------------
   // create PRCV (polygon of curve)
   if((defTyp < Typ_CV)&&(defTyp != Typ_CI)) goto L_attribs;
   if(defTyp >= Typ_PLN) goto L_attribs;
-  PRCV_set_dbo__ (defTyp, defInd);
+  // if(!defInd) goto L_attribs;   // temporary-mode
+  if(APT_obj_stat) goto L_attribs;   // temporary-mode 
+  irc = PRCV_set_dbo__ (defTyp, defInd);
+  if(irc < 0) return -1;
 
 
   //----------------------------------------------------------------
@@ -3518,12 +3563,13 @@ APT_stat_act:
   // in Submodels keine hidden objects generieren ( diese sind sonst in
   // Dittos des mainmodels sichtbar!)
     // printf(" WC_modact_ind=%d ga1->disp=%d\n",WC_modact_ind,ga1->disp);
-  if(WC_modact_ind >= 0) {           // 0-n = sind in Submodel; -1=main
-    // if(WC_modact_nam[0] == '\0') {     // aktives Model ist main, wenn name leer
+  if(WC_modact_ind >= 0) {     // 0-n = sind in Submodel; -1=main
+    // Submodel is active (main is -1)
+    // if(AP_modact_nam[0] == '\0') {     // active Model is main, wenn name leer
       // i1 = GA_hide__ (8, defInd, defTyp); // ask state; 1=hidden
       // // printf(" obj %d %d = %d\n",defTyp,defInd,i1);
       // if(i1 > 0) return 0;
-      if(ga1->disp > 0) return 0;
+      if(ga1->disp > 0) goto Fertig;
     // }
   }
 
@@ -3573,10 +3619,14 @@ APT_stat_act:
   L_draw:
   // printf("APT_work_def - work %d %d lev=%d\n",defTyp,defInd,level);
 
-
-  // obj ex DB laden (DB_GetXX), ausgeben via APT_DrawXX
+  // get DB-obj from DB;  create|overwrite DL-record; display obj.
   APT_Draw__ (iAtt, defTyp, defInd);
 
+
+  // set isChild-bit in DispList. DL-record AP_dli_act is a Child - has parents.
+  if((mtPar.rNr)&&(AP_dli_act>= 0L)) 
+    DL_child_set (AP_dli_act, 1);   // GR_ObjTab[AP_dli_act].sChd = 1;
+ 
 
 
   //----------------------------------------------------------------
@@ -3589,24 +3639,168 @@ APT_stat_act:
     // printf(" aus_[1] = %d %d\n",iPar[2],iPar[3]);
 
   // hide parent-obj
-  APT_work_parent_hide (defTyp, defInd, iPar);
+  // APT_work_parent_hide (defTyp, defInd, iPar);
 
 
 
 
   //----------------------------------------------------------------
   Fertig:
-  // TX_Print("ex APT_work_def");
-  return defTyp;
+    // free 
+    ATO_tmpSpc_free (&ato1);
+    if(!APT_obj_stat) MEMTAB_tmpSpc_free (&mtPar);
+
+    return defTyp;
 
 
+  //----------------------------------------------------------------
   Error:
-  return -1;
+    defTyp = -1;
+    goto Fertig;
 
 
 }
 
 
+//========================================================================
+  int APT_ato_par_srcLn (MemTab(ObjSRC) *mtPar, ObjAto *ato, char *srcLn) {
+//========================================================================
+/// \code
+/// get atomicObjects and parents from sourceLine; full evaluated.
+///   (provides dynamic-DB-obj's for geometric expressions)
+/// must provide memspc before with ATO_getSpc__
+/// Input:
+///   srcLn      eg "D(0 0 1)"      // may not have objNames !
+///   mtPar      free space for parents (get with MEMTAB_tmpSpc_get)
+///   ato        free space for atomic-objs (ATO_getSpc_siz + ATO_tmpSpc_get__)
+///              or NULL for no output of atomic-objs
+/// Output:
+///   mtPar      parents
+///   ato        atomic objects;  not if NULL
+///   RetCod     0=OK, -1=Err
+/// Example:
+///  ATO_getSpc__ (&ato);
+///  i1 = ATO_ato_srcLn__ (&ato, s1);
+///    ATO_dump__ (&ato, " after _ato_srcLn__");
+/// \endcode
+
+
+  int       irc, fMspc1, itsMax, ib, iato=1;
+  ObjAto    at1 = _OBJATO_NUL;
+  ObjTXTSRC *tso;
+  MemTab(ObjTXTSRC) mtso = _MEMTAB_NUL;
+
+
+  // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
+  // printf("APT_ato_par_srcLn |");
+  // UTX_dump_cnl(srcLn,50);printf("|\n");
+  // printf(" ilev=%p\n",ato->ilev);
+
+  // max nr of atos
+  itsMax = SRCU_tsMax (srcLn);
+
+
+  if(ato == NULL) {
+    iato = 0;         // ato must not be evaluated at end; only parents
+    // get temp-spc for atomic-objs 
+    ato = &at1;
+    // get size necessary for ato
+    ib = ATO_getSpc_siz (itsMax);
+    // get tmp-memspc (persists only until end of this func; must ATO_tmpSpc_free)
+    ATO_tmpSpc_get__ (ato, ib);
+    // ATO_getSpc_tmp__ (ato, itsMax);
+    // if(!ATO_getSpc_tmp_ck(ato)) {TX_Error("APT_ato_par_srcLn E1"); return -1;}
+    if(!at1.typ) {TX_Error("APT_ato_par_srcLn E1"); return -1;}
+  }
+
+
+  // get memspc until end-of-func (alloca|malloc)
+  MEMTAB_tmpSpc_get (&mtso, itsMax);
+  tso = mtso.data;
+  if(tso == NULL) {TX_Print("APT_ato_par_srcLn E2"); return -1;}
+
+
+  // analyze sourceline; get source-objects -> tso
+  irc = APED_txo_srcLn__ (tso, itsMax, srcLn);
+    // printf(" _txo_srcLn__ %d\n",irc);
+  if(irc < 1) goto L_exit;
+    // APED_txo_dump (tso, srcLn, "nach-txo_srcLn__");
+
+
+  // get atomic-objects from source-objects
+  irc = ATO_ato_txo__ (ato, tso, srcLn);
+  if(irc < 0) goto L_exit;
+    // ATO_dump__ (ato, " nach _ato_txo_");
+
+
+  // get parents of tso
+  ATO_parents__ (mtPar, ato);
+
+
+  // evaluate atomic-objects (compute)
+  irc = ATO_ato_eval__ (ato);
+
+
+  L_exit:
+  // free memspaces
+  if(!iato) ATO_tmpSpc_free (ato);
+  MEMTAB_tmpSpc_free (&mtso);
+
+  return irc;
+
+}
+
+
+//================================================================
+  int APT_parent_set (MemTab(ObjSRC) *mtPar, ObjAto *ato) {
+//================================================================
+// set isParent-bit bei allen parents
+
+  int     i1, ie;
+  long    dli;
+
+  ie = mtPar->rNr;
+
+  // printf("APT_parent_set %d\n",ie);
+
+  for(i1=0; i1<ie; ++i1) {   // loop tru parent-obj's
+    dli = mtPar->data[i1].dli;
+
+    // set dispList-flag sPar (obj is a parent - has childs)
+    DL_parent_set (dli, 1);
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int APT_parent_hide (MemTab(ObjSRC) *mtPar) {
+//================================================================
+// replace APT_work_parent_hide
+// APT_hide_parent: 1=hide, elso not
+
+  int     i1, ie;
+  long    dli;
+  
+  ie = mtPar->rNr;
+  
+
+  for(i1=0; i1<ie; ++i1) {   // loop tru parent-obj's
+    dli = mtPar->data[i1].dli;
+  
+    // hide or redisplay
+    DL_unvis__ (dli, APT_hide_parent);
+
+  }
+
+  return 0;
+
+}
+
+ 
+/* replaced, unused
 //================================================================
   int APT_work_parent_hide (int cldTyp, long cldDbi, int *iPar) {
 //================================================================
@@ -3635,7 +3829,7 @@ APT_stat_act:
 
 
 
-  // printf("APT_work_parent_hide cldTyp=%d cldDbi=%ld\n",cldTyp,cldDbi);
+  printf("APT_work_parent_hide cldTyp=%d cldDbi=%ld\n",cldTyp,cldDbi);
 
 
   if(APT_obj_stat == 1) goto L_done;       // mode temporary: do nothing ..
@@ -3650,19 +3844,19 @@ APT_stat_act:
     // printf("   _work_parent_hide parTyp=%d parDbi=%ld\n",parTyp,parDbi);
     // printf("  fnc=%d cldTyp=%d cldDbi=%ld\n",fnc,cldTyp,cldDbi);
 
-/*
-  //----------------------------------------------------------------
-  // mode temporary: unhilite parent-obj.
-  if(APT_obj_stat == 1) {   // 1=temp
-    // CUT: unhilite parent-obj.                             // 2013-03-15
-    if((iPar[0] == Typ_cmdNCsub) && (iPar[1] == T_CUT)){
-      // find dli of parent
-      dli = DL_find_obj (parTyp, parDbi, -1L);
-      if(dli >= 0) DL_hili_off (dli);
-    }
-    goto L_done;   // temp-Mode: done ..
-  }
-*/
+
+  // //----------------------------------------------------------------
+  // // mode temporary: unhilite parent-obj.
+  // if(APT_obj_stat == 1) {   // 1=temp
+    // // CUT: unhilite parent-obj.                             // 2013-03-15
+    // if((iPar[0] == Typ_cmdNCsub) && (iPar[1] == T_CUT)){
+      // // find dli of parent
+      // dli = DL_find_obj (parTyp, parDbi, -1L);
+      // if(dli >= 0) DL_hili_off (dli);
+    // }
+    // goto L_done;   // temp-Mode: done ..
+  // }
+
 
 
   //----------------------------------------------------------------
@@ -3670,6 +3864,7 @@ APT_stat_act:
   // Obj's from "TRA","PRJ","MIR" "REV" have parents;
   // Obj's from "CUT" have parents (in bin. struct); do not hide.
 
+  // ignore these funcs 
   if((fnc != T_CUT) &&
      (fnc != T_CCV) &&
      (fnc != T_PRJ) &&
@@ -3678,7 +3873,7 @@ APT_stat_act:
      (fnc != T_MIR))   goto L_done;
 
 
-  // get the dispListIndex of child = active DL-Index
+  // get the dispListIndex of child = active DL-Index (AP_dli_act ?)
   dli_chd = GL_GetActInd ();
 
 
@@ -3686,12 +3881,13 @@ APT_stat_act:
     // set DL-flags; do not hide; do nor create PartTab-Record.
     // get all parents of active contour; set DL.sPar u. sChd
     ii = 0;
-    AP_parent_get (&ii, parTab, oaSIZ, cldTyp, cldDbi);
+    OPAR_get_src (&ii, parTab, oaSIZ, cldTyp, cldDbi);
     for(i1=0; i1<ii; ++i1) {   // loop tru parent-obj's
       // get the dispListIndex of parent
       dli_par = DL_find_obj (parTab[i1].typ, parTab[i1].dbInd, dli_chd - 1);
       // set dispList-flag sChd and sPar
-      DL_parent_set (dli_chd, dli_par);
+      DL_parent_set (dli_par, 1);
+      DL_child_set (dli_chd, 1);
     }
     goto L_done;
   }
@@ -3707,13 +3903,16 @@ APT_stat_act:
 
 
   // set dispList-flag sChd and sPar for child & parent
-  DL_parent_set (dli_chd, dli_par);
+  DL_parent_set (dli_par, 1);
+  DL_child_set (dli_chd, 1);
 
 
   // hide parent.
   // but not contour-obj's
-  if(fnc != T_CCV)
-    DL_parent_hide (dli_par);
+  if(APT_hide_parent) {   // See APT_tra_obj
+    if(fnc != T_CCV)
+      DL_parent_hide (dli_par);
+  }
 
 
   // create the PartTab-Record (store childInfo, parentInfo)
@@ -3722,26 +3921,23 @@ APT_stat_act:
     OPAR_set (parTyp, parDbi, cldTyp, cldDbi);
 
 
-
-
-
   //----------------------------------------------------------------
-/*  wurde nach IE_cad_test__ verlegt ...
-  // is obj in DB already defined ?
-  i1 = DB_QueryDef (basTyp, (long)cldDbi);
+//  wurde nach IE_cad_test__ verlegt ...
+  // // is obj in DB already defined ?
+  // i1 = DB_QueryDef (basTyp, (long)cldDbi);
+// 
+  // if(i1 >= 0) {   // ja, existiert schon ...
+    // // Obj in DL suchen
+    // dli = DL_find_obj (basTyp, (long)cldDbi);
+    // // overwrite DL-Record dli !
+    // if(dli >= 0) {
+      // // printf(" overwrite dli=%d\n",dli);
+      // DL_SetInd (dli);
+      // // Overwrite the APT-LinNr (sonst kein find -> hilite moeglich)
+      // DL_SetLnr (dli, APT_line_act);
+    // }
+  // }
 
-  if(i1 >= 0) {   // ja, existiert schon ...
-    // Obj in DL suchen
-    dli = DL_find_obj (basTyp, (long)cldDbi);
-    // overwrite DL-Record dli !
-    if(dli >= 0) {
-      // printf(" overwrite dli=%d\n",dli);
-      DL_SetInd (dli);
-      // Overwrite the APT-LinNr (sonst kein find -> hilite moeglich)
-      DL_SetLnr (dli, APT_line_act);
-    }
-  }
-*/
 
 
   L_done:
@@ -3749,6 +3945,7 @@ APT_stat_act:
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -3788,11 +3985,17 @@ APT_stat_act:
 
     case Typ_PT:
         po = DB_get_PT (ind);
-        // if(UP_level < 0) {   // in UP-s nix darstellen  WIESO NED ?
+          // UT3D_stru_dump (Typ_PT, (Point*)po, " PT-po: ");
+
         if(APT_obj_stat == 1) {  // 1=temp                 // 2013-03-16
-          l1 = DLI_TMP;
-          GL_DrawSymB (&l1, 2, SYM_CIR_S, (Point*)po);
+          // get the temp-dispListindex for the active CAD-inputfield
+          l1 = IE_get_inp_dli();
+          // if CAD is active: overwrite symbol for the active inputfield
+          if(l1) DL_SetInd (l1);
+          APT_DrawSymB (iAtt, ind, SYM_CIR_S, ATT_COL_RED, (Point*)po);
+
         } else {
+          // 0=permanent
           APT_DrawPoint (iAtt, ind, (Point*)po);
         }
       break;
@@ -3944,7 +4147,7 @@ APT_stat_act:
       // if(WC_mode != 0) break;
       // if(UP_level < 0) {   // in UP-s nix darstellen
 
-      UI_disp_vec1 (Typ_Index, (void*)ind, NULL);
+      UI_disp_vec1 (Typ_Index, PTR_LONG(ind), NULL);
 
       // UI_GR_get_selNam  (&i1, &l1, &s1);
       // if(i1 != 0) sele_get_pos (&pt1);   // GR_selTyp
@@ -4362,12 +4565,8 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_LDMOD:
-      // changes symbolic_path --> real_path !
-      Mod_sym_get1 (AP_dir_open, *data, 0);
-        printf(" symbolicPath=|%s|\n",AP_dir_open);
-      UTX_fnam_s (WC_modnam, *data);
-        printf(" Filename=|%s|\n",WC_modnam);
-      return AP_Mod_load (1); // load AP_dir_open/WC_modnam
+      // load model from file
+      return AP_Mod_load_fn (*data, 1);
 
     //----------------------------------------------------------------
     case TAC_EXECM:
@@ -4539,7 +4738,8 @@ APT_stat_act:
       AP_defcol.cg = (unsigned char)ato1.val[1];
       AP_defcol.cb = (unsigned char)ato1.val[2];
       // AP_indCol = GL_DefColSet (&AP_defcol);
-      GL_DefColSet (&AP_defcol);
+      APcol_actColTra (&AP_defcol); // set AP_actcol 2017-04-21
+      GL_DefColSet (&AP_defcol);    // set GL_defCol
       break;
 
     //----------------------------------------------------------------
@@ -4924,7 +5124,7 @@ Ablauf Makro:
   ObjAto    ato1;
 
 
-  // printf("APT_work_TPC_CALL |%s|\n",*data);
+  printf("APT_work_TPC_CALL |%s|\n",*data);
 
 
   // get memSpc for ato
@@ -4932,7 +5132,7 @@ Ablauf Makro:
 
   // decode data
   ATO_ato_srcLn__ (&ato1, *data);
-    // ATO_dump__ (&ato1, " start _TPC_CALL");
+    ATO_dump__ (&ato1, " start _TPC_CALL");
 
 
     // im Editmode nix tun, sonst ja
@@ -4989,9 +5189,11 @@ Ablauf Makro:
           p1 = UTX_CleanBracks (*data, '\"', '\"');    // remove "
             // printf(" p1=|%s|\n",p1);
           // change symDir/filenam into absolute filename
-          // Mod_sym_get1 (APT_filnam, p1, 0);  // without filename !
-          Mod_get_path (APT_filnam, p1, 0);  // without filename !
-            // printf(" APT_filnam=|%s|\n",APT_filnam);
+          rc = Mod_fNam_sym (APT_filnam, p1);
+          // rc < 0 if p1 has no directory-delimiter ('/')
+          if(rc < 0) {
+            sprintf(APT_filnam, "%s%s.write", OS_get_tmp_dir(), p1);
+          }
           // Unterprogrammlevel und Ruecksprungaddresse merken
           rc = APT_UP_up ('F');
           goto L_call_9;
@@ -5025,10 +5227,14 @@ Ablauf Makro:
     // goto Fertig;
 
   Fertig:
+
+    printf(" ex_TPC_CALL UP_act_typ=%c\n",UP_act_typ);
+
+
   return rc;
 
   Fehler1:
-   TX_Error("APT_work_TAC_CALL E001");
+   TX_Error("APT_work_TPC_CALL E001");
    return -1;
 }
 
@@ -5336,13 +5542,13 @@ Ablauf Makro:
     printf(" LDMOD |%s|\n",*data);
 
     // changes symbolic_path --> real_path !
-    Mod_sym_get1 (AP_dir_open, *data, 0);
-      // printf(" symbolicPath=|%s|\n",AP_dir_open);
+    Mod_sym_get1 (AP_mod_dir, *data, 0);
+      // printf(" symbolicPath=|%s|\n",AP_mod_dir);
 
-    UTX_fnam_s (WC_modnam, *data);
-      // printf(" Filename=|%s|\n",WC_modnam);
+    UTX_fnam_s (AP_mod_fnam, *data);
+      // printf(" Filename=|%s|\n",AP_mod_fnam);
 
-    AP_Mod_load (1); // load AP_dir_open/WC_modnam
+    AP_Mod_load__ (1); // load AP_mod_dir/AP_mod_fnam
 
     goto Fertig;
 
@@ -6582,19 +6788,30 @@ Ablauf Makro:
 //================================================================
   int APT_work_ATTS (int aus_anz, int aus_typ[], double aus_tab[]) {
 //================================================================
-// modify line-attributes
+/// \code
+/// modify surface-attributes
+/// ATTS "S" A21            // symbolic
+/// ATTS "T2" A21           // transp.
+/// ATTS "C" A21            // defCol
+/// ATTS "C00ff00" A21      // change color
+///
+/// TODO: set/reset Texture-attributes ?
+/// TODO: CLEAR TRANSPARENCY, symbolic, color ..
+/// \endcode
 
-  int       i1, i2, i3, ii, iAtt, iCol, iTra, iTex, ia[5];
+
+  int       i1, i2, i3, ii, iAtt, iCol, iTra, iTex;
   long      dbi, dli;
-  double    da[5];
   char      s1[80], *p1;
   ColRGB    col1;
   TexRef    *tr;
+  ObjAto    ato1;
 
 
-  // printf("APT_work_ATTS %d\n",aus_anz);
-  // for(ii=0; ii<aus_anz; ++ii)
-    // printf(" %d typ=%d tab=%lf\n",ii,aus_typ[ii],aus_tab[ii]);
+  printf("APT_work_ATTS %d |%s|\n",aus_anz,APT_defTxt);
+  for(ii=0; ii<aus_anz; ++ii)
+    printf(" %d typ=%d tab=%lf\n",ii,aus_typ[ii],aus_tab[ii]);
+
 
   iAtt = -1;
   iCol = -1;
@@ -6606,7 +6823,7 @@ Ablauf Makro:
     if(aus_typ[ii] == Typ_String) {
       // get string
       APT_get_String (s1, APT_defTxt, aus_tab[ii]);
-        // printf(" s1=|%s|\n",s1);
+        printf(" s1=|%s|\n",s1);
 
       //---symbolic--------------------------------------------------
       if(s1[0] == 'S') {
@@ -6626,7 +6843,7 @@ Ablauf Makro:
         if(strlen(s1) == 7) {
           iCol = 0;
           sscanf(&s1[1],"%02x%02x%02x",&i1,&i2,&i3);   // get col out of string
-            // printf(" col1 = %d %d %d\n",i1,i2,i3);
+            printf(" col1 = %d %d %d\n",i1,i2,i3);
           Col_set__ (&col1, i1,i2,i3);
 
         } else {
@@ -6641,7 +6858,10 @@ Ablauf Makro:
         if(strlen(s1) > 1) {
           // nun die Ausdruecke aus data einlesen, decodieren und merken
           p1 = &s1[1];
-          iTex = APT_decode_ausdr (ia, da, 5, &p1);
+          ATO_getSpc_tmp__ (&ato1, 10);
+          ATO_ato_srcLn__ (&ato1, p1);
+            // ATO_dump__ (&ato1, "APT_work_ATTS");
+          iTex = ato1.nr;
             // for(i2=0; i2<aus_anz; ++i2)
               // printf(" %d typ=%d tab=%lf\n",i2,ia[i2],da[i2]);
         }
@@ -6665,12 +6885,12 @@ Ablauf Makro:
         if(iTex > 0) {
           i2 = Tex_getRefInd ();   //printf(" RefInd=%d\n",i2);
           Tex_getRef (&tr, i2);
-          tr->uscx = da[0];
+          tr->uscx = ato1.val[0];
         }
-        if(iTex > 1) tr->uscy = da[1];
-        if(iTex > 2) tr->udx  = da[2];
-        if(iTex > 3) tr->udy  = da[3];
-        if(iTex > 4) tr->uar  = da[4];
+        if(iTex > 1) tr->uscy = ato1.val[1];
+        if(iTex > 2) tr->udx  = ato1.val[2];
+        if(iTex > 3) tr->udy  = ato1.val[3];
+        if(iTex > 4) tr->uar  = ato1.val[4];
 
         // update modified texture
         DL_Draw_obj (dli, aus_typ[ii], dbi);
@@ -6953,7 +7173,7 @@ Ablauf Makro:
   UP_level_src[UP_level] = src;
 
 
-  // printf("APT_UP_up %c lev=%d adr=%d\n",src,UP_level,UP_level_adr[UP_level]);
+  printf("APT_UP_up %c lev=%d adr=%d\n",src,UP_level,UP_level_adr[UP_level]);
 
 
   irc = PrgMod_skip_until_mac;
@@ -9286,7 +9506,10 @@ dzt unused
 //===========================================================================
   void APT_disp_TxtA (int typ, Point* pt1, char* txt) {
 //===========================================================================
-// AlfaText hinmalen
+/// \code
+/// display AlfaText
+///   typ     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+/// \endcode
 
 
   long      apt_ind;
@@ -9311,6 +9534,53 @@ dzt unused
 }
 
 
+//===========================================================================
+  int APT_disp_SymB2 (int symTyp, int att, Point2* pt1) {
+//===========================================================================
+/// \code
+/// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
+/// Input:
+///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///   att      see INF_COL_SYMB
+/// see also GL_DrawSymB
+/// \endcode
+
+  Point   pt3;
+
+  pt3 = UT3D_pt_pt2 (pt1);
+
+  return APT_disp_SymB (symTyp, att, &pt3);
+
+}
+
+
+//===========================================================================
+  int APT_DrawSymB (int iatt, long dbi, int symTyp, int att, Point* pt1) {
+//===========================================================================
+/// \code
+/// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
+/// Input:
+///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///   att      see INF_COL_SYMB
+/// see also GL_DrawSymB
+/// \endcode
+
+  long    l1;
+
+  // UT3D_stru_dump (Typ_PT, pt1, "APT_disp_SymB: ");
+
+  if(APT_Stat_Draw == OFF) return 0;      // OFF=1
+
+  l1 = DL_StoreObj (Typ_SymB, dbi, iatt);
+    // printf(" _DrawSymB dbi=%ld l1=%ld\n",dbi,l1);
+
+          
+  GL_DrawSymB (&l1, iatt, symTyp, pt1); // att=1=sw, 2=rot, 4=bl,
+
+  return 0;
+
+}
+
 
 //===========================================================================
   int APT_disp_SymB (int symTyp, int att, Point* pt1) {
@@ -9319,7 +9589,7 @@ dzt unused
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 /// Input:
 ///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
-///   att   see GL_col_tab
+///   att      see INF_COL_SYMB
 /// see also GL_DrawSymB
 /// \endcode
 
@@ -9330,8 +9600,6 @@ dzt unused
   l1 = DL_StoreObj (Typ_SymB, -1L, 0);
 
   GL_DrawSymB (&l1, att, symTyp, pt1); // att=1=sw, 2=rot, 4=bl,
-
-
 
   return 0;
 
@@ -10040,6 +10308,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
 /// see GR_DrawCurv GR_Draw_dbo GR_Disp_dbo UTO_obj_Draw__
 /// Input:
 ///   dbi      dbi
+///   tbuf1    only for Typ_CVTRM
 /// \endcode
 
 
@@ -10141,7 +10410,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
 
   } else {
-    TX_Error("APT_DrawCurv E001 %d",typ);
+    TX_Error("APT_DrawCurv E001 typ=%d",typ);
   }
 
   return;
@@ -10353,6 +10622,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
 }
 
 
+/* replaced by ATO_ato_srcLn__
 //==============================================================================
   int APT_decode__ (ObjAto *ato, char **data) {
 //==============================================================================
@@ -10412,6 +10682,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   return ato->nr;
 
 }
+*/
 
 
 //================================================================
@@ -10443,7 +10714,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   ObjAto ato1;
 
 
-  printf("APT_obj_expr %d |%s|\n",typ,cbuf);
+  // printf("APT_obj_expr %d |%s|\n",typ,cbuf);
 
 
   // get memSpc for atomicObjects  uses memspc54 memspc55 memspc53
@@ -10570,6 +10841,10 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
 
   } else if(typ == Typ_VAR) {  // 2013-03-15
       irc = APT_decode_var (data, aus_anz, aus_typ, aus_tab);
+
+
+  } else if(typ == Typ_Angle) {
+      irc = APT_decode_ang (data, aus_anz, aus_typ, aus_tab);
 
 
   } else if(typ == Typ_PT) {

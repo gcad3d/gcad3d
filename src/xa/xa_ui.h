@@ -17,6 +17,8 @@ Modif:
 
 // #define UI_men__(txt) UI_menCB(NULL, GUI_SETDAT_ES(TYP_EventEnter,txt));
 #define UI_but__(txt) UI_butCB(NULL, GUI_SETDAT_ES(TYP_EventEnter,txt));
+
+
 #define UI_view__(txt) UI_viewCB(NULL, GUI_SETDAT_ES(TYP_EventEnter,txt));
 
 // 0=OFF, 1=ON             Interactiviy is ON or OFF

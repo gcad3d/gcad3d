@@ -34,21 +34,25 @@ Modifications:
 =====================================================
 List_functions_start:
 
-OPAR_init       init or reset
-OPAR_set        add a new record
-OPAR_get        get parent of Child
-OPAR_del        delete record
-OPAR_file       write|read ParentTable
-OPAR_dump
+MEMTAB_tmpSpc_get    get tempSpc for <siz> parent-records
+OPAR_get_src       get parents of srcObj oPar
+
+// OPAR_init       init or reset
+// OPAR_set        add a new record
+// OPAR_get        get parent of Child
+// OPAR_del        delete record
+// OPAR_file       write|read ParentTable
+// OPAR_dump
 
 List_functions_end:
 =====================================================
 see also:
+APT_ato_par_srcLn         get atomicObjects and parents
+ATO_parents__             get all parents
 DL_parent_hide
 DL_parent_ck_c
 DL_parent_ck_p
 APT_work_parent_hide
-AP_parent_get   get all parents of a DB-obj
 
 \endcode *//*----------------------------------------
 
@@ -79,7 +83,11 @@ parents have:
 #include <stdio.h>                        /*  FILE .. */
 #include <stdlib.h>                       // realloc
 
+#include "../ut/ut_geo.h"                 // ObjSRC
 #include "../ut/ut_memTab.h"              // MemTab_..
+#include "../ut/ut_txfil.h"               // UTF_GetPosLnr
+#include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
+// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
 
 
 
@@ -95,9 +103,134 @@ typedef struct {long cldDbi, parDbi; short cldTyp, parTyp;}         Parent;
 // Am DL-Record des parent ist das .sPar-Flag gesetzt;
 // am DL-Record des child ist das .sChd-Flag gesetzt.
 typedef_MemTab(Parent);
-static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
+static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
 
 
+
+//================================================================
+  int OPAR_get_src (MemTab(ObjSRC) *mtPar, ObjSRC *oPar) {
+//================================================================
+// OPAR_get_src                       get parents of srcObj oPar
+// see UNDO_ln_del APT_ato_par_srcLn
+
+
+  int            i1;
+  long           ll;
+  char           *lPos, *oSrc;
+
+
+  // printf("OPAR_get_src typ=%d dbi=%ld lNr=%ld\n",
+         // oPar->typ,oPar->dbi,oPar->lnr);
+
+
+  // get sourceline
+  // if(lPos != NULL) {
+    // sourceline not defined ..
+    if(!oPar->lnr) {
+      // lineNr not defined; get it ..
+      oPar->lnr = DL_find_obj (oPar->typ, oPar->dbi, -1L);
+    }
+
+    // get sourceline
+    lPos = UTF_GetPosLnr (&ll, oPar->lnr);
+    if(!lPos) {TX_Error("OPAR_get_src E1"); return -1;}
+  // }
+    // printf(" lnr=%ld\n",oPar->lnr);
+    // printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");
+
+
+  // skip dest-obj; but can be disactivated (stating with '_')
+  if(lPos[0] == '_') ++lPos;
+  i1 = APED_ck_defLn (&oSrc, lPos);
+  if(i1) {TX_Error("OPAR_get_src E2"); return -1;}
+
+  // get max nr of atomic-objs
+  i1 = SRCU_tsMax (oSrc);  // printf(" siz-mtPar = %d\n",i1);
+
+  // get parents-table and atomic-objs
+  APT_ato_par_srcLn (mtPar, NULL, oSrc);
+
+    // MemTab_dump (mtPar, "ex-OPAR_get_src");
+
+  return 0;
+
+}
+
+/*
+//=================================================================
+  int OPAR_get_src (int *tabNr, ObjDB *parTab, int tabSiz,
+                     int typ, long dbi) {
+//=================================================================
+/// \code
+/// OPAR_get_src              get all parents of a DB-obj
+///   parents can be not uniq
+/// Input:
+///   tabNr       nr of already used records in parTab
+///   typ,dbi     must be trimmedCurve
+/// RetCod:       0=OK; -1 ERROR parTab too small
+/// \endcode
+
+
+  int     irc, i1, form, bTyp, cTyp, oNr;
+  long    bDbi;
+  void    *data, *bObj;
+  CurvCCV *ccv1;
+
+
+  printf("OPAR_get_src typ=%d dbi=%ld\n",typ,dbi);
+
+
+  // Connection-lines in contours do not have DB-records (dbi=0).
+  if(!dbi) return 1;
+  
+  cTyp = AP_typ_2_bastyp(typ);
+
+  // if(AP_typ_2_bastyp(typ) != Typ_CV) return 0;
+
+  // get curve
+  form = DB_GetObjDat (&data, &oNr, cTyp, dbi);
+    // printf(" form1=%d oNr=%d\n",form,oNr);
+    // UT3D_stru_dump (form, data, " _basCv-1"); 
+
+  if(form == Typ_CVTRM) {
+
+    // loop tru all all obj's
+    for(i1=0; i1<oNr; ++i1) {
+      ccv1 = &((CurvCCV*)data)[i1];
+
+      // get basic-curve
+      irc = CVTRM_basCv_trmCv (&bTyp, &bDbi, &bObj, ccv1);
+      if(irc < 0) continue;
+
+      // add curve to list. Check uniq later.
+      if(*tabNr >= tabSiz) return -1;
+      parTab[*tabNr].typ   = ccv1->typ;
+      parTab[*tabNr].dbInd = ccv1->dbi;
+      parTab[*tabNr].dlInd = 0;
+      *tabNr += 1;
+    }
+
+  } else {
+    // get parent
+    irc = OPAR_get (&bTyp, &bDbi, cTyp, dbi);
+    if(irc > 0) {
+      if(*tabNr >= tabSiz) return -1;
+      parTab[*tabNr].typ   = bTyp;
+      parTab[*tabNr].dbInd = bDbi;
+      parTab[*tabNr].dlInd = 0;
+      *tabNr += 1;
+    }
+  }
+
+  // TESTBLOCK
+  printf("ex OPAR_get_src %d\n",*tabNr);
+  for(i1=0; i1 < *tabNr; ++i1)
+    printf(" _parTab[%d] %d %ld\n",i1,parTab[i1].typ, parTab[i1].dbInd);
+  // END TESTBLOCK
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -158,7 +291,7 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
   Parent   *pTab;
 
 
-  // printf("OPAR_get %d %ld\n",cldTyp,cldDbi);
+  printf("OPAR_get %d %ld\n",cldTyp,cldDbi);
   // OPAR_dump ();
 
 
@@ -228,10 +361,10 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 // write|read ParentTable
  
   if(mode == 1) {          // write
-    MemTab_write (fp1, &ParTab);
+    MemTab_wrf (fp1, &ParTab);
 
   } else if(mode == 2) {   // read
-    MemTab_read (fp1, &ParTab);
+    MemTab_rdf (fp1, &ParTab);
     // if(ParTab.rNr < 1) MemTab_clear (&ParTab);
 
   }
@@ -239,6 +372,6 @@ static MemTab(Parent) ParTab = MemTab_empty;    // see ../xa/xa_ga.h
 
   return 0;
 }
-
+*/
 
 //========================= EOF =================================

@@ -34,18 +34,21 @@ void CVTRM(){}
 =====================================================
 List_functions_start:
 
-CVTRM_ck_cyc               check if trimmed-curve passes tru end-startpoint
+CVTRM_ck_cyc             check if trimmed-curve passes tru end-startpoint
 
-CVTRM__dbo                 create trimmedCurve from DB-lFig
-CVTRM__plg_2par            create trimmed-curve from polygon and parameters
-CVTRM__plg_iseg            get trimmed-curve from segment of polygon
+CVTRM__rev               reverse trimmed-curve (same curve, different direction)
 
-UT3D_obj_ccv_segnr         get obj (typ,data) from segment of CCV.
+CVTRM__dbo               create trimmedCurve from DB-lFig
+CVTRM__obj               create trimmed-curve from obj (form,struct,dbi)
+CVTRM__plg_2par          create trimmed-curve from polygon and parameters
+CVTRM__plg_iseg          get trimmed-curve from segment of polygon
 
-CVTRM_basCv_trmCv          get basic-curve of trimmed-curve (typ,dbi,obj)
-CVTRM__basCv__             get updated trimmedCurve (direct ref to basic-curve)
-CVTRM_basCv_trmCv_con      get trimmedCurve of parent-trimmedCurve
-CVTRM_par1_con             translate parameters from child-curve to parent-curve
+UT3D_obj_ccv_segnr       get obj (typ,data) from segment of CCV.
+
+CVTRM_basCv_trmCv        get basic-curve of trimmed-curve (typ,dbi,obj)
+CVTRM__basCv__           get updated trimmedCurve (direct ref to basic-curve)
+CVTRM_basCv_trmCv_con    get trimmedCurve of parent-trimmedCurve
+CVTRM_par1_con           translate parameters from child-curve to parent-curve
 
 CVTRM_parent_ccv  DO NOT USE    get parent of a trimmedCurve    
 
@@ -140,7 +143,55 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
 
+//================================================================
+  int CVTRM__rev (CurvCCV *cvtrm) {
+//================================================================
+// CVTRM__rev     reverse trimmed-curve (same curve, different direction)
+// see UTO_stru_inv
 
+
+  MEM_swap_2db(&cvtrm->v0, &cvtrm->v1);
+  MEM_swap_2lg(&cvtrm->ip0, &cvtrm->ip1);
+  cvtrm->dir = ICHG01 (cvtrm->dir);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int CVTRM__obj (CurvCCV *cvtrm, int form, void *data, long dbi) {
+//================================================================
+// create trimmed-curve from obj (form,struct,dbi)
+// Input:
+//   form    type of curve
+//   data    curve as stored in DB
+//   dbi     DB-index of data; DB-type from form
+// see CVTRM__dbo
+
+
+  int     dir, clo;
+
+
+  *cvtrm = UT3D_CCV_NUL;
+
+  cvtrm->typ = form;
+  cvtrm->dbi = dbi;
+
+  // get parameters as 0-1
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_0, form, data);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_1, form, data);
+
+  // get closed-flag and direction.
+  UTO_cv_ck_dir_clo (&dir, &clo, form, data);
+  cvtrm->dir = dir;
+  cvtrm->clo = clo;
+
+    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex-CVTRM__obj");
+
+  return 0;
+
+}
 
 
 //=========================================================================
@@ -1655,6 +1706,12 @@ REPLACED by UT3D_obj_ccv_segnr
   cv2->dbi = dbi;  // cca[iNr - 1].dbi;
 
 
+  // get parameter if parameter and point undefined
+  // if(cv2->v0 == 
+  // if(cv2->ip0 == 0) 
+  // if(cv2->ip1 == 0) 
+
+
     // TESTBLOCK
     // printf("ex CVTRM__basCv__ iNr=%d\n",iNr);
     // UT3D_stru_dump (Typ_CVTRM, cv2, " _trmCv__-cv2");
@@ -1675,7 +1732,7 @@ REPLACED by UT3D_obj_ccv_segnr
 /// Input:
 ///   ov0, ov1   parameters of child-curve; curve is part of parent-curve iv0-iv1 
 ///   iv0, iv1   parameters of parent-curve 
-///   idir       0=same dir as parent-curve; 1=not,revers
+///   idir       0=qqsame dir as parent-curve; 1=not,revers
 ///   icyc       0=child-curve_is_cyclic (passes tru start-endPoint); 1=not
 /// Output:
 ///   ov0, ov1 = parameters of child-curve on parent-curve iv0-iv1
@@ -1722,6 +1779,7 @@ REPLACED by UT3D_obj_ccv_segnr
 //================================================================
 /// create trimmedCurve from DB-lFig (copy curve -> trimmedCurve)
 // see UTO_cv_cvtrm               change trimmedCurve into standardCurve
+// see CVTRM__obj
 
 
   int      form, oNr, dir, clo;
@@ -1745,6 +1803,11 @@ REPLACED by UT3D_obj_ccv_segnr
   cvtrm->typ = typ;
   cvtrm->dbi = dbi;
 
+
+  // get parameters as 0-1
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_0, form, obj);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_1, form, obj);
+
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, obj);
   cvtrm->dir = dir;
@@ -1753,7 +1816,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   L_exit:
 
-    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex CVTRM__dbo");
+    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
 
   return 0;
 
@@ -1800,11 +1863,11 @@ REPLACED by UT3D_obj_ccv_segnr
 
 }
 
-
+/*   replaced by OPAR_get_src
 //====================================================================
   int CVTRM_parent_ccv (int *typ, long *dbi, int chdTyp, long chdDbi) {
 //====================================================================
-// DO NOT USE; (use AP_parent_get); 
+// DO NOT USE; (use OPAR_get_src); 
 // CVTRM_parent_ccv       get parent of a trimmedCurve
 // 
 
@@ -1821,9 +1884,9 @@ REPLACED by UT3D_obj_ccv_segnr
   return 0;
 
 }
+*/
 
-
-/* replaced by UT3D_ptvcpar_std_obj
+/* replaced by UT3D_ptvcpar1_std_obj
 //=========================================================================
   int UT3D_pt_endptccv (Point *pTab, ObjGX *ccv1) {
 //=========================================================================

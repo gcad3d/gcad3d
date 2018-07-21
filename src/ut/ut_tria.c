@@ -24,6 +24,9 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void UTRI(){}
+#endif
 /*!
 \file  ../ut/ut_tria.c
 \brief triangles (using struct Point - UTRI_) 
@@ -31,36 +34,40 @@ Modifications:
 =====================================================
 List_functions_start:
 
+UT3D_tria_pta              create triangle from 3 points
+UTRI_tria_3pt              create triangle from 3 points
+UT3D_tria_fac              create triangle from Fac3                   INLINE
+UTRI_ntria_patch           get triangles from opengl-patch (pTab, pNr, pTyp)
+
+UTRI_triaNr_patch          get nr of triangles for [indexed-]opengl-patch
 UT2D_orient_3pt            orientation of triangle (CW or CCW)
+UT3D_ck_triaOrientV        get orientation from indices   INLINE
+UT3D_ck_triaOrientI
 UT2D_2pt_tngLnCiY          Beruehrung Kreis (pc auf horiz. Gerade) - LineSeg
-UT2D_pt_gcp_3pt            gravity-centerPoint of triangle
+UT3D_vc_perpTria           vector = perpendic. to Triangle (crossprod)
 UTRI_radi_3pt              inkreisradius
 UTRI_rado_3pt              radius circumCircle        umkreisradius
 UTRI_ptCC_3pt              center of circumCircle     UmkreisMittelpunkt
 UTRI_ar_3pt                area of triangle         see UT2D_ar_3pt
 
-UT3D_ck_triaOrientV        get orientation from indices   INLINE
 UT3D_indTria2ccw           3EckIndices CCW orientieren
 UT3D_ind3Tria_2ind         give index of 3.point of triangle (0/1/2)  INLINE
-
-UT3D_vc_perpTria           vector = perpendic. to Triangle (crossprod)
 
 UT3D_lenq_PtTria           minimum (quadr) distance Point-Triangle
 UT3D_lenq_PlnTria          minimum (quadr) distance Plane-Triangle
 UT3D_ck_pt_in_tria         check if point is inside Triangle
 UT3D_ck_pt_prj_tria        check if projection of point is inside Triangle
+UT2D_pt_gcp_3pt            gravity-centerPoint of triangle
 UT3D_pt_gcp_3pt            gravity-centerPoint of triangle
 UT3D_pt_gcp_tria           gravity-centerPoint of triangle
 UT3D_tria_inv              Umlaufsinn umdrehen
-
-UT3D_tria_pta_fac          create triangle from Fac3
-UT3D_tria_pta              create triangle from 3 points
 
 UT3D_pt_projPtTria         project point onto triangle
 UTRI_pt_prjZpt3pt          project point to face along Z-vec
 UT3D_pt_intTriaLnu         Point from intersect Triangle - LineUnlimited
 UTRI_ln_int_LnFac          intersect Line - Face
-UT3D_ln_intTriaPln         Line = intersect Triangle - Plane
+UT3D_ln_intTriaPln         Line = intersect Triangle (Triangle) - Plane
+UT3D_ln_int_tria_pln       Line = intersect Triangle (3 points) - Plane
 UT3D_ln_intTriaTria        Line = intersect Triangle - Triangle
 UT3D_2ln_tngTriPlSph       Kugel in Ebene an 3Eck abrollen
 
@@ -69,10 +76,11 @@ UT3D_pl1_tria              make Plane from Triangle
 List_functions_end:
 =====================================================
 - see also:
+TSU_ntria_bMsh__             triangles from binary-mesh
 statt UT3D_vc_perptria     use UT3D_vc_perp3pt      Normalvektor auf 3Eck
 GR_Disp_triv GR_Disp_tria
-TSU_tsu2tria__ TSU_tsu2tria_rec TSU_tsu2tria_add
-../ut/ut_tin.c   UFA   Funktionen fuer Faces (Fac3)
+TSU_ntria_bMsh__ TSU_ntria_bMsh_p UTRI_tria_3pt
+../ut/ut_face.c   UFA   Funktionen fuer Faces (Fac3)
 ../ut/ut_msh.c   MSH   Funktionen fuer Meshes
 
 - test functions:
@@ -84,7 +92,7 @@ UT3D_tria_tst_load         load testTriangles
 */
 
 #ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 #include <math.h>
@@ -92,16 +100,228 @@ UT3D_tria_tst_load         load testTriangles
 #include <stdlib.h>
 #include <string.h>
 
+#include <GL/gl.h>            // GL_TRIANGLE_STRIP ..
+
+
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../xa/xa_mem.h"              // memspc51
-#include "../ut/gr_types.h"               // SYM_STAR_S
+#include "../ut/gr_types.h"            // SYM_STAR_S
+
+
+//================================================================
+  int UTRI_tria_3pt (Triangle *triTab, int *triNr, int triSiz,
+                        Point *p1, Point *p2, Point *p3) {
+//================================================================
+// add 1 triangle       als 3 Pointer --> triTab[*triNr];
+// der Pointer auf den 1. Punkt zB ist        triTab[i1].pa[0]
+// see also tess_ntri_tfac_add
+
+  int    it;
+
+
+  it = *triNr;
+
+  // printf("UTRI_tria_3pt %d\n",it);
+  // GR_Disp_pt (p1, SYM_STAR_S, 2);
+  // GR_Disp_pt (p2, SYM_STAR_S, 2);
+  // GR_Disp_pt (p3, SYM_STAR_S, 2);
+
+
+  if(it >= triSiz) {
+    TX_Error("UTRI_tria_3pt EOM");
+    return -1;
+  }
+
+
+  triTab[it].pa[0] = p1;
+  triTab[it].pa[1] = p2;
+  triTab[it].pa[2] = p3;
+
+  ++it;
+  *triNr = it;
+
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UTRI_ntria_patch (Triangle *tTab, int *tSiz,
+                        Point *pTab, int pNr, int pTyp) {
+//=======================================================================
+// get triangles from opengl-patch (pTab, pNr, pTyp)
+// Input:
+//   tSiz   size of tTab
+//   pTyp   patchTyp GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|GL_QUAD_STRIP
+// Output:
+//   tSiz   nr of Triangles created
+// 
+// find min size of tTab: UTRI_triaNr_patch()
+// see TSU_nfac_ipatch__ TSU_nfac_ipatch__ tess_ntri_tfac__
+//
+// TODO: use UTRI_ntria_patch in tess_ntri_tfac__
+
+  int      i1, ii, tNr;
+
+
+  ii = 0;
+
+  switch (pTyp) {
+
+    //================================================================
+    case GL_TRIANGLES:  // 4
+
+      tNr = pNr / 3;           // total nr of triangles
+      if(tNr > *tSiz) goto L_errEOM;
+
+      L_T0:
+        tTab->pa[0] = pTab;  ++pTab;
+        tTab->pa[1] = pTab;  ++pTab;
+        tTab->pa[2] = pTab;  ++pTab;
+        ++tTab;
+        ++ii;
+        if(ii < tNr) goto L_T0;
+
+      break;
+
+
+    //================================================================
+    case GL_FAC_PLANAR:      // 16:   Achtung: additinal for indexed 
+    case GL_TRIANGLE_FAN:    // 6
+      //    1------2           ptAnz = 4
+      //    |    /  |
+      //    |   /   |
+      //    |  /    |
+      //    | /     |
+      //    0.------3
+      //      \     /
+      //        \  /
+      //         4
+      //
+      // sollte so zerlegt werden:
+      // 0 1 2
+      // 0 2 3
+      // 0 3 4
+
+      tNr = pNr - 2;
+      if(tNr > *tSiz) goto L_errEOM;
+      i1 = 1;
+
+      L_T6:
+        tTab->pa[0] = &pTab[0];
+        tTab->pa[1] = &pTab[i1]; ++i1;
+        tTab->pa[2] = &pTab[i1];
+        ++tTab;
+        ++ii;
+        if(ii < tNr) goto L_T6;
+
+      break;
+
+
+    //================================================================
+    case GL_TRIANGLE_STRIP:  // 5
+    case GL_QUAD_STRIP:      // 8
+      //
+      //    0--2--4--6
+      //    | /| /| /|
+      //    |/ |/ |/ |
+      //    1--3--5--7
+      //
+      // sollte so zerlegt werden:
+      // 0 1 2
+      // 2 1 3
+      // 2 3 4
+      // 4 3 5 ..
+
+      tNr = pNr - 2;
+      if(tNr > *tSiz) goto L_errEOM;
+      i1 = 0;
+
+      L_T8:
+        tTab->pa[0] = &pTab[i1]; ++i1;
+        tTab->pa[1] = &pTab[i1]; ++i1;
+        tTab->pa[2] = &pTab[i1];
+        ++tTab;
+        ++ii;
+        if(ii >= tNr) break;
+
+        tTab->pa[0] = &pTab[i1];
+        tTab->pa[1] = &pTab[i1-1];
+        tTab->pa[2] = &pTab[i1+1];
+        ++tTab;
+        ++ii;
+        if(ii < tNr) goto L_T8;
+
+      break;
+
+
+    //================================================================
+    default:
+      TX_Error("UTRI_ntria_patch E001 %d", pTyp);
+      return -1;
+
+  }
+
+  *tSiz = tNr;
+
+  return 0;
+
+
+  L_errEOM:
+    TX_Error("UTRI_ntria_patch EOM");
+    return -1;
 
 
 
+  return 0;
+
+}
 
 
+//================================================================
+  int UTRI_triaNr_patch (int ptNr, int patchTyp) {
+//================================================================
+/// \code
+/// UTRI_triaNr_patch     get nr of triangles for [indexed-]opengl-patch
+/// Input:
+///   ptNr     nr of points
+///   patchTyp GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|GL_QUAD_STRIP
+///
+/// see TSU_facNr_ipatch
+/// see tess_triaNr_patch
+/// \endcode
 
+  int   tNr;
+
+
+    switch (patchTyp) {
+
+      case GL_TRIANGLES:
+        tNr = ptNr / 3;
+        break;
+
+      case GL_TRIANGLE_STRIP:
+      case GL_FAC_PLANAR:
+      case GL_TRIANGLE_FAN:
+      case GL_QUAD_STRIP:
+        tNr = ptNr - 2;
+        break;
+
+      default:
+        TX_Error("UTRI_triaNr_patch NYI typ=%d",patchTyp);
+        return -1;
+    }
+
+
+    // printf("ex UTRI_triaNr_patch %d\n",tNr);
+
+
+  return tNr;
+
+}
 
 
 /*=======================================================================*/
@@ -688,7 +908,7 @@ Returncodes:
 
 
   // check if lp2 lies also inside Face fp1-3.
-  irc = UT2D_ck_pt_in_tria (p1, p2, p3, e2);
+  irc = UT2D_ck_pt_in_tria__ (p1, p2, p3, e2);
 
   if(irc == 1) goto L_out;   // 1=outside Face
 
@@ -746,9 +966,9 @@ Returncodes:
   // lp2 does not lie inside face.
   // test which edge is crossing Line lp1-2.
   // set side; s1, s2, s3.
-  s1 = UT2D_sid_ptvc (e2, p1, &v1);
-  s2 = UT2D_sid_ptvc (e2, p2, &v2);
-  s3 = UT2D_sid_ptvc (e2, p3, &v3);
+  s1 = UT2D_sid_ptvc__ (e2, p1, &v1);
+  s2 = UT2D_sid_ptvc__ (e2, p2, &v2);
+  s3 = UT2D_sid_ptvc__ (e2, p3, &v3);
     // printf(" s1=%d s2=%d s3=%d\n",s1,s2,s3);
 
 
@@ -756,7 +976,7 @@ Returncodes:
   // fix irc = side to intersect.
   // man muss beide Edges, wo e2 rechts liegt, testen.
   if(s1 > 0) {     //  test 2 & 3 (p3)
-    i1 = UT2D_sid_ptvc (p3, e1, &vl);
+    i1 = UT2D_sid_ptvc__ (p3, e1, &vl);
     if(i1 < 0) irc = 3;   // p3=rechts
     if(i1 > 0) irc = 2;   // p3=links
     if(i1 == 0) {irc = 9; *ip = *pf3; goto L_exit;}  // Line goes tru pf3
@@ -765,7 +985,7 @@ Returncodes:
 
 
   if(s2 > 0) {     //  test 1 & 3 (p1)
-    i1 = UT2D_sid_ptvc (p1, e1, &vl);
+    i1 = UT2D_sid_ptvc__ (p1, e1, &vl);
     if(i1 < 0) irc = 1;   // p1=rechts
     if(i1 > 0) irc = 3;   // p1=links
     if(i1 == 0) {irc = 7; *ip = *pf1; goto L_exit;}  // Line goes tru pf1
@@ -774,7 +994,7 @@ Returncodes:
 
 
   if(s3 > 0) {     //  test 1 & 2 (p2)
-    i1 = UT2D_sid_ptvc (p2, e1, &vl);
+    i1 = UT2D_sid_ptvc__ (p2, e1, &vl);
     if(i1 < 0) irc = 2;   // p2=rechts
     if(i1 > 0) irc = 1;   // p2=links
     if(i1 == 0) {irc = 8; *ip = *pf2; goto L_exit;}  // Line goes tru pf2
@@ -819,11 +1039,29 @@ Returncodes:
 // ret    1  Kante liegt genau in der Ebene
 // ret    2  ein Punkt liegt genau in der Ebene (lni.p1 & p2)
 
+
+  return UT3D_ln_int_tria_pln (lni, pln, tria->pa[0], tria->pa[1], tria->pa[2]);
+
+}
+
+
+//================================================================
+  int UT3D_ln_int_tria_pln (Line *lni, Plane *pln,
+                            Point *p0, Point *p1, Point *p2) {
+//================================================================
+// Line = intersect Triangle - Plane
+// ret   -2  Dreieck liegt ganz ausserhalb Plane
+// ret   -1  Dreieck und plane sind coplanar
+// ret    0  OK; Intersectionline out in lni.
+// ret    1  Kante liegt genau in der Ebene
+// ret    2  ein Punkt liegt genau in der Ebene (lni.p1 & p2)
+
+
   int       irc, i0, i1, i2;
   int       is0, is1, is2;
   double    dn0, dn1, dn2;
   double    d1;
-  Point     *pp1;
+  Point     *pl1, *ppi0, *pp1, *pp2;
   // Vector    E1, E2, N1, D;
 
 
@@ -836,9 +1074,9 @@ Returncodes:
 
   // die Normalabstaende der Punkte des Dreiecks tria von der Ebene
   // pln errechnen.
-  dn0 = UT3D_slen_ptpl (tria->pa[0], pln);
-  dn1 = UT3D_slen_ptpl (tria->pa[1], pln);
-  dn2 = UT3D_slen_ptpl (tria->pa[2], pln);
+  dn0 = UT3D_slen_ptpl (p0, pln);
+  dn1 = UT3D_slen_ptpl (p1, pln);
+  dn2 = UT3D_slen_ptpl (p2, pln);
     // printf(" dn1/2/3=%f %f %f\n",dn0,dn1,dn2);
 
   // Vorzeichen der Normalabstaende bestimmen
@@ -867,39 +1105,47 @@ Returncodes:
         return -1;
       }
       // Kante 0-1 liegt in der Ebene
-      i1 = 0;   i2 = 1;  goto L_edge;
+      // i1 = 0;   i2 = 1;  goto L_edge;
+      pp1 = p0;  pp2 = p1;  goto L_edge;
     } else if(is2 == 0) {
       // Kante 0-2 liegt in der Ebene
-      i1 = 0;   i2 = 2;  goto L_edge;
+      // i1 = 0;   i2 = 2;  goto L_edge;
+      pp1 = p0;  pp2 = p2;  goto L_edge;
     }
+    ppi0 = p0;
   } else if(is1 == 0) {
     i0 = 1;
     if(is2 == 0) {
       // Kante 1-2 liegt in der Ebene
-      i1 = 1;   i2 = 2;  goto L_edge;
+      // i1 = 1;   i2 = 2;  goto L_edge;
+      pp1 = p1;  pp2 = p2;  goto L_edge;
     }
+    ppi0 = p1;
   } else if(is2 == 0) {
     i0 = 2;
+    ppi0 = p2;
   }
 
 
   // i0 zeigt nun auf den Punkt der in der Ebene liegt (else -1).
+  // both other points are not in the plane
 
 
   // Intersectionpoints 3EcksKanten mit Plane errechnen.
   // 2 Punkte von 2 Kanten.
   // i1, i2 sind die Kanten.
   i1 = 0;
-  pp1 = &lni->p1;
+  pl1 = &lni->p1;
 
 
 
   // wenn einer der Punkte in der Ebene liegt: diesen Punkt nehmen
   if(i0 >= 0) {
-    lni->p1 = *(tria->pa[i0]);
+    // lni->p1 = *(tria->pa[i0]);
+    lni->p1 = *ppi0;
       // printf(" add %d\n",i0);
       // UT3D_stru_dump(Typ_PT, &lni->p1, " p1 -> ");
-    pp1 = &lni->p2;
+    pl1 = &lni->p2;
     i1 = 1;
   }
 
@@ -912,12 +1158,10 @@ Returncodes:
     i2 = IABS(is0) + IABS(is1);      // muss 2 sein !!
     if(i2 == 2) {
         // printf(" add01 %d %d\n",is0,is1);
-      UT3D_pt_intlnpl1 (pp1, &d1,
-                        tria->pa[0], tria->pa[1],
-                        dn0, dn1);
-        // GR_Disp_pt (pp1, SYM_STAR_S, 2);
+      UT3D_pt_intlnpl1 (pl1, &d1, p0, p1, dn0, dn1);
+        // GR_Disp_pt (pl1, SYM_STAR_S, 2);
       ++i1;
-      if(i1 < 2) pp1 = &lni->p2;
+      if(i1 < 2) pl1 = &lni->p2;
     }
   }
 
@@ -927,11 +1171,9 @@ Returncodes:
     i2 = IABS(is0) + IABS(is2);      // muss 2 sein !!
     if(i2 == 2) {
         // printf(" add02 %d %d\n",is0,is2);
-      UT3D_pt_intlnpl1 (pp1, &d1,
-                        tria->pa[0], tria->pa[2],
-                        dn0, dn2);
+      UT3D_pt_intlnpl1 (pl1, &d1, p0, p2, dn0, dn2);
       ++i1;
-      if(i1 < 2) pp1 = &lni->p2;
+      if(i1 < 2) pl1 = &lni->p2;
     }
   }
 
@@ -943,9 +1185,7 @@ Returncodes:
     if(i2 == 2) {
       if(i1 > 1) goto L_L1; // skip wenn p1 od p2 in Plane liegt
         // printf(" add12 %d %d\n",is1,is2);
-      UT3D_pt_intlnpl1 (pp1, &d1,
-                        tria->pa[1], tria->pa[2],
-                        dn1, dn2);
+      UT3D_pt_intlnpl1 (pl1, &d1, p1, p2, dn1, dn2);
       ++i1;
       }
   }
@@ -955,7 +1195,8 @@ Returncodes:
   // 0 1 1  liefert nur einen Punkt !
     // printf(" L_L1: %d\n",i1);
   if(i1 < 2) {                        // Punkt beruehrt Plane
-    lni->p2 = *(tria->pa[i0]);
+    // lni->p2 = *(tria->pa[i0]);
+    lni->p2 = *ppi0;
     irc = 2;
   }
 
@@ -997,8 +1238,8 @@ Returncodes:
   //----------------------------------------------------------------
   L_edge:        // Kante i1-i2 liegt in der Ebene
     irc = 1;
-    lni->p1 = *tria->pa[i1];
-    lni->p2 = *tria->pa[i2];
+    lni->p1 = *pp1; // tria->pa[i1];
+    lni->p2 = *pp2; // tria->pa[i2];
     goto L_done;
 
 }
@@ -1184,7 +1425,7 @@ Returncodes:
 
   // is point inside triangle ?  0=yes, 1=no
   // ACHTUNG ! GEHT DZT NUR BEI X-Y-PLANAREN EBENEN !
-  irc = UT2D_ck_pt_in_tria (trii->pa[0], trii->pa[1], trii->pa[2], pti);
+  irc = UT2D_ck_pt_in_tria__ (trii->pa[0], trii->pa[1], trii->pa[2], pti);
   if(irc != 0) goto L_exit;
 
 
@@ -1618,11 +1859,11 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
 //=========================================================================
-  int UT2D_ck_pt_in_tria (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *px) {
+  int UT2D_ck_pt_in_tria__ (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *px) {
 //=========================================================================
-// UT2D_ck_pt_in_tria   check if point is inside Triangle
-// UT2D_ck_pt_in_tria                          nach Karl Sauer 2007-01-14
-// see UT2D_ck_pt_in_tria UT2D_pt_ck_inCv3
+// UT2D_ck_pt_in_tria__   check if point is inside Triangle
+// UT2D_ck_pt_in_tria__                          nach Karl Sauer 2007-01-14
+// see UT2D_ck_pt_in_tria__ UT2D_pt_ck_inCv3
 // Returncodes:
 //   1 = NO  = point outside triangle
 //   0 = YES = point inside triangle
@@ -1642,7 +1883,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   Vector2   nv, v1x;
 
 
-  // UT3D_stru_dump (Typ_PT2, px, "UT2D_ck_pt_in_tria:");
+  // UT3D_stru_dump (Typ_PT2, px, "UT2D_ck_pt_in_tria__:");
   // UT3D_stru_dump (Typ_PT2, p1, "   p1:");
   // UT3D_stru_dump (Typ_PT2, p2, "   p2:");
   // UT3D_stru_dump (Typ_PT2, p3, "   p3:");
@@ -1746,7 +1987,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
   //----------------------------------------------------------------
   L_exit:
-  // printf("ex UT2D_ck_pt_in_tria %d\n",irc);
+  // printf("ex UT2D_ck_pt_in_tria__ %d\n",irc);
 
 
   return irc;
@@ -1797,7 +2038,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
   // 2D-check if point is inside Triangle
-  return UT2D_ck_pt_in_tria (&p21, &p22, &p23, &p2x);
+  return UT2D_ck_pt_in_tria__ (&p21, &p22, &p23, &p2x);
 
 }
 
@@ -1807,7 +2048,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 //=========================================================================
 // UT3D_ck_pt_prj_tria          check if projection of point is inside Triangle
 // px must not be in triangle-plane; projection is made.
-// see UT2D_ck_pt_in_tria
+// see UT2D_ck_pt_in_tria__
 // Returncodes:
 //   1 = NO  = point outside triangle
 //   0 = YES = point inside triangle
@@ -1969,7 +2210,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   GR_Disp_pt2 (&p21, SYM_TRI_S, 2);
   GR_Disp_pt2 (&p22, SYM_TRI_S, 2);
 
-  i1 = UT2D_ck_pt_in_tria (&p20, &p21, &p22, &pti);
+  i1 = UT2D_ck_pt_in_tria__ (&p20, &p21, &p22, &pti);
   printf(" i1=%d\n",i1);
   return 0;
 }

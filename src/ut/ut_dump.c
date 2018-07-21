@@ -69,10 +69,10 @@ UT3D_dump_txt
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txTab.h"            // TxtTab
-#include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_err.h"              // ERR_SET1
 
@@ -150,9 +150,8 @@ UT3D_dump_txt
 //================================================================
 /// UT3D_dump_dbo            dump DB-object
 
-  int     i1, iNr;
-  char    oid[40];
-  void    *dbs;
+  int     i1, iNr, oSiz;
+  char    oid[40],  *data;
 
 
   printf("UT3D_dump_dbo %d %ld |%s|\n",typ,dbi,txx);
@@ -160,13 +159,14 @@ UT3D_dump_txt
   APED_oid_dbo__  (oid, typ, dbi);
 
   // get data for dbo
-  typ = DB_GetObjDat (&dbs, &iNr, typ, dbi);
+  typ = DB_GetObjDat ((void**)&data, &iNr, typ, dbi);
+
+  oSiz = UTO_siz_stru (typ);
 
   // dump data
   for(i1=0; i1<iNr; ++i1) {
-    UT3D_stru_dump (typ, dbs, " %s %s",oid,txx);
-// TODO
-    if(iNr>1) printf("XXXXXXXXXXX TODO UT3D_dump_dbo for arrays XXXXXXXXX \n");
+    UT3D_stru_dump (typ, (void*)data, " %s %s",oid,txx);
+    data += oSiz;
   }
 
   return 0;
@@ -396,7 +396,7 @@ static FILE     *uo = NULL;
 
 
   void     *v1;
-  int      irc, i1, i2, i3, ptNr, *iTab, sTyp;
+  int      irc, i1, i2, i3, ptNr, sTyp, *ia;
   long     dbi, il1;
   char     oNam[32], s1[64], s2[64], cbuf[256], *cps, *cp1;
   double   d1, *dp;
@@ -410,6 +410,7 @@ static FILE     *uo = NULL;
   Circ2C   *c2c;
   Vector   *vc1;
   Vector2  *vc2;
+  Vec3f    *vcf;
   CurvElli   *e1;
   CurvEll2   *e2;
   CurvEll2C  *el2c;
@@ -454,20 +455,23 @@ static FILE     *uo = NULL;
   BndSur   *sba; // Typ_SURBND
   wPoint   *wpt;
   CurvPrcv *prcv;
+  GridBox  *gb1;
   // EdgSur   *esa;
 
 
 
   // printf("UT3D_dump__ typ=%d txt=|%s| ipar=%d\n",typ,txt,ipar);
+  // printf(" data=%p\n",data);
 
 
-  if(!data) {
+/*
+  if(!data) {    // needed for Int4 (0)
     // first 6 charaters become replaced in UT3D_dump_add !
     sprintf(cbuf, "123456 %s data = NULL ",AP_src_typ__(typ));
     UT3D_dump_add (sTab, cbuf, ipar, 0);
     return -1;
   }
-
+*/
 
 
   i1 = ERR_SET1 ();
@@ -531,6 +535,15 @@ static FILE     *uo = NULL;
     sprintf(cps,"Vector %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
     sprintf(cps,"(Vector) %9.3f,%9.3f,%9.3f",vc1->dx,vc1->dy,vc1->dz);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_VC3F) {
+    vcf = data;
+    sprintf(cps,"Vectorf %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
+    sprintf(cps,"(Vectorf) %9.3f,%9.3f,%9.3f",vcf->dx,vcf->dy,vcf->dz);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
 
 /*
@@ -1439,7 +1452,7 @@ static FILE     *uo = NULL;
     cvccv = data;  // CurvCCV
     // sprintf(cps,"ConcatCurve %s",txt);
     // UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps," (CurvCCV%s) typ=%d dbi=%ld ip0=%ld ip1=%ld",txt,
+    sprintf(cps,"CurvCCV %s  typ=%d dbi=%ld ip0=%ld ip1=%ld",txt,
             cvccv->typ, cvccv->dbi, cvccv->ip0, cvccv->ip1);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     if(cvccv->v0 == UT_VAL_MAX) strcpy(s1, " -undef- ");
@@ -1463,6 +1476,19 @@ static FILE     *uo = NULL;
             cvccv->v1, cvccv->is1, cvccv->dir);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 */
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_GridBox)   {
+    gb1 = data;
+    sprintf(cps,"GridBox %s  pMin %f %f %f",txt,
+                 gb1->pMin.x, gb1->pMin.y, gb1->pMin.z);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps,"           ix=%d iy=%d iz=%d",
+                 gb1->ix, gb1->iy, gb1->iz);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps,"           dx=%f dy=%f dz=%f", gb1->dx, gb1->dy, gb1->dz);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
 
   //----------------------------------------------------------------
   } else if((typ == Typ_Model) ||                  // ModelRef
@@ -1694,11 +1720,22 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_Int1) {
+    // data (pointer) = int-value itself. 2013-12-20
+    sprintf(cps,"Int1 %s = %s (%d)",txt,AP_src_typ__(Typ_Int1),INT_PTR(data));
+    // ia = data;  // 2017-04-28; for MemTab_dump (iTab, "Typ_Int4") - not ObjGX
+    // sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),ia[0]);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
+
+
+  //----------------------------------------------------------------
   // ex OX-Record; typ=Typ_Size; form=Typ_Int4; data=(long)
   } else if(typ == Typ_Int4) {
     // data (pointer) = int-value itself. 2013-12-20
     sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),INT_PTR(data));
-    // sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),*(int*)data);
+    // ia = data;  // 2017-04-28; for MemTab_dump (iTab, "Typ_Int4") - not ObjGX
+    // sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),ia[0]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1728,9 +1765,12 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_MemTab) {
-    sprintf(cps,"  rMax=%d rNr=%d rSiz=%d typ=%d incSiz=%d use=%d",
-      ((MemTab*)data)->rMax, ((MemTab*)data)->rNr, ((MemTab*)data)->rSiz,
-      ((MemTab*)data)->typ, UTI_round_b2i(((MemTab*)data)->incSiz),
+    sprintf(cps," MemTab %s rNr=%d rMax=%d typ=%d rSiz=%d incSiz=%d use=%d",txt,
+      ((MemTab*)data)->rNr,
+      ((MemTab*)data)->rMax,
+      ((MemTab*)data)->typ,
+      ((MemTab*)data)->rSiz,
+      UTI_round_b2i(((MemTab*)data)->incSiz),
       ((MemTab*)data)->use);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
@@ -1741,6 +1781,10 @@ static FILE     *uo = NULL;
     sprintf(cps,"  %s",(char*)data);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
+
+  //----------------------------------------------------------------
+  // ignore:
+  } else if(typ == Typ_modUndef)  {
 
   //----------------------------------------------------------------
   } else {

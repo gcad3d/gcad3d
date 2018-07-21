@@ -12,6 +12,7 @@ Korr:
 #define GR_MODE_NORMAL     3
 #define GR_MODE_PRINT1     4
 #define GR_MODE_PRINT2     5
+#define GR_MODE_2DSELECT   6
 
 #define GR_STATE_WIRE      0
 #define GR_STATE_SHADE     1
@@ -20,6 +21,28 @@ Korr:
 #define GR_STATE_HID3      4
 
 
+
+//----------------------------------------------------------------
+#define DL_base_font1    32   // End of tempObj-range (1-DL_base_font1)
+                              // start of Bitmapfont (alfatext)
+#define DL_Ind_ScBack   129   // index of the scaleback-record (glPopMatrix)
+                              // 130-138 Bitmap-Symbols
+                              // 139     Vector
+                              // 140-149 Vector-Symbols (scaled)
+#define DL_base_LnAtt   150   // LineAttributes until DL_base_PtAtt
+#define DL_base_PtAtt   195   // PointAttributes until DL_base_font2
+#define DL_base_font2   200   // fontObjs until DL_Ind_Scl2D (200=Blank=Ascii 32)
+#define DL_Ind_Scl2D    297   // DL_Set_Scl2D 
+#define DL_Ind_Cen2D    298   // set to 2D-screenCenter  DL_Set_Cen2D
+#define DL_Img_ScBack   299   // index for scale images (DL_Img_ScBack)
+#define DL_OnTop__      300   // overwrite-all (glDepthFunc (GL_ALWAYS))
+#define DL_OnTopOff     301   // reset "overwrite-all"
+#define DL_base_mod     310   // first index of BasModelnames (DL_base_mod)
+                              // next is DL_base__ - first index of normal objects
+
+
+
+//----------------------------------------------------------------
 void   GL2D_pos_move        (int dx, int dy);
 void   GL_DefineView        (int);
 void   GL_DefineDisp        (int, int);
@@ -33,7 +56,7 @@ int    GL_InitNewAtt        (int, int);
 void   GL_InitSymb          ();
 void   GL_InitAFont         ();
 void   GL_InitGFont         ();
-int    GL_InitGF2 (int ind, int ianz, char mode[], double cx[], double cy[]);
+int    GL_InitGF2 (int ind, int ianz, char mode[], Point2 *pta);
 void   GL_InitModelSize     (double, int);
 
 void   GL_Redraw            ();
@@ -43,7 +66,6 @@ void   GL_Reframe           ();
 void   GL_Reframe1          ();
 
 void   GL_Translate         ();
-void   GL_Translate1        ();
 void   GL_Transl_Vert       ();
 void   GL_Transl_VertP      (Point*);
 
@@ -97,8 +119,9 @@ void   GL_Rescale           (double, Point*);
 
 void   GL_Draw_Ini          (long*, int);
 void   GL_Disp_ln           (Point*, Point*);
-int    GL_Disp_face         (int gTyp, int ptNr, Point *pa);
-int    GL_Disp_iface        (int gTyp, int iNr, int *ia, Point *pa);
+int    GL_Disp_patch         (int gTyp, int ptNr, Point *pa);
+int    GL_Disp_ipatch        (int gTyp, int iNr, int *ia, Point *pa);
+void   GL_Disp_npt          (Point *pa, int ptNr);
 
 void   GL_DrawPoint         (long*, int, Point*);
 void   GL_DrawLine          (long*, int, Line*);
@@ -121,6 +144,7 @@ void   GL_DrawSymV          (long*, int, int att, Point*, double);
 void   GL_DrawSymV2         (long*, int, int att, Point*, Point*, double);
 void   GL_DrawSymV3         (long*, int, int att, Point*, Vector*, double);
 void   GL_DrawTxtA          (long*, int, Point *, char *);
+void   GL_Disp_txtA         (Point*, char*);
 void   GL_DrawTxtG          (long *ind, int att, GText *tx1);
 // void   GL_DrawTxtG          (long *ind, int att,
                              // Point *P1, float size, float ang, char *txt);
@@ -132,8 +156,8 @@ int    GL_txt__             (int dMod, int bMod,
                             Point *ptx, double txAng, double ay, double az,
                             double scale, char *txt);
 
-  void GL_temp_Delete      (long ind);
-  void GL_temp_delete      ();
+  void GL_temp_del_1      (long ind);
+  void GL_temp_del_all      ();
   long GL_temp_GetInd      ();
   long GL_GetInd_temp      ();
   long GL_GetInd_last_temp ();
@@ -146,7 +170,6 @@ int    GRU_teileLin         (Point2*, int,  Point2*, Point2*);
 void   GRU_calc_normal      (Vector*, Point*, Point*, Point*);
 void   GRU_calc_normal2     (Vector*, Point2*,Point2*,Point2*, double,double);
 
-int    GL_icons_dispTags    (int iNr, char *txt, char stat);
 // void   GL_Test              (long);
 
 
@@ -155,12 +178,25 @@ int    GL_icons_dispTags    (int iNr, char *txt, char stat);
 // #define GL_ptArr32Siz     140
 
 
+// size of Alfa-text (2D-Text, always normal to eye)
+#define GLTXA_sizCX    8         // width character-bitmap
+#define GLTXA_sizCY   13
+#define GLTXA_sizBX   10         // width block; 8 + 2;
+#define GLTXA_sizBY   17         // height block; 2 + sizCY + 2;
+
+
 // relative move of the screenPos in screencoords
 #define GL2D_pos_move(dx,dy) glBitmap (0,0,0.f,0.f,(float)dx,(float)dy,NULL)
 
+// save the current color & rasterPosition
+#define GL2D_pos_set()    glPushAttrib (GL_CURRENT_BIT)
+
+// restore color & rasterPosition
+#define GL2D_pos_get    glPopAttrib
+
+
 
 extern int GL_pickSiz ;        // SelectionDistance in Pixel (ScreenCoords)
-
 
 
 

@@ -65,7 +65,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
 // ext aus xa.c:
-extern  char      WC_modnam[128];  // der Modelname
+extern  char      AP_mod_fnam[128];  // der Modelname
 
 
 
@@ -83,7 +83,7 @@ extern  char      WC_modnam[128];  // der Modelname
   TX_Print("gCad_main out of Demosimple.dll");
 
   // get modelname from Mainprog
-  printf("Modelname = %s\n",WC_modnam);
+  printf("Modelname = %s\n",AP_mod_fnam);
 
 
   // finish application

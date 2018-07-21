@@ -52,8 +52,14 @@ int     GUI_set_show    (MemObj *mo, int mode);
 int     GUI_set_enable  (MemObj *mo, int mode);
 
 
-  int GUI_idle__ (void *funcnam, void *data);
-  int GUI_timer__ (void *funcnam, int interval, void *data);
+int GUI_idle__ (void *funcnam, void *data);
+int GUI_timer__ (void *funcnam, int interval, void *data);
+
+
+// call gui-button-callback func like "int XX_CB (MemObj *mo, void **data)"
+// use eg.       XX_CB (GUI_ES("Exit"));
+// for           XX_CB (NULL, GUI_SETDAT_ES(TYP_EventPress,"Exit"));
+#define GUI_ES(txt) NULL,GUI_SETDAT_ES(TYP_EventPress,(txt))
 
 
 

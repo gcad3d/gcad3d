@@ -95,6 +95,8 @@ extern double     AP_txsiz;             // Notes-Defaultsize
 extern double     AP_txdimsiz;          // Dimensions-Text-size
 extern int        AP_txNkNr;            // Nachkommastellen
 
+// ex ../gr/ut_GL.c:
+extern double GL2D_Scale;
 
 
 
@@ -530,6 +532,11 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   void      *obj;
 
 
+  // UT3D_stru_dump (Typ_ATXT, atx1, "GR_img_get_obj");
+  // printf(" GL2D_Scale=%f\n",GL2D_Scale);
+
+
+
   *typ = atx1->aTyp; // 1=Image
 
   // copy textposPoint
@@ -540,21 +547,24 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   *sx = atx1->xSiz;
   *sy = atx1->ySiz;
     // printf(" tagSiz=%d %d\n",*sx,*sy);
+  *dx = 0;
+  *dy = 0;
 
 
   // Image-Bitmap: scalen;
   // Tag: NICHT scalen; dy um halbe Taghoehe nach unten verschieben.
   if(*typ == 1) {  // Bitmap: scalen;
-    if(fabs(scl) < UT_TOL_min1) {
+    if(fabs(scl) > UT_TOL_min1) {
       scl = GL_get_Scale ();
-    }
       // printf(" scl=%lf\n",scl);
-
-    *sx *= scl;
-    *sy *= scl;
-    *sx += 2;     // ??
-    *dx = 0;
-    *dy = 0;
+      *sx *= scl;
+      *sy *= scl;
+      *sx += 2;     // ??
+    } else {
+      *sx /= GL2D_Scale;
+      *sy /= GL2D_Scale;
+      *sx += 2;     // ??
+    }
 
 
   } else if(*typ == 3) {

@@ -9,11 +9,11 @@ Korr:
 */
 
 
-// the dispList-index of the temporary outputObject of WC_Work1
-// the dispList-index of the CAD-inputObjects are -2 to -7; see IE_get_inp_dli
-#define DLI_TMP         -8L
-#define DLI_DIR_TMP     -9L
-#define DLI_POS_TMP    -10L
+// GL-dispList-index of the temporary outputObject of WC_Work1
+// GL-dispList-index of the CAD-inputObjects are -2 to -7; see IE_GET_INP_DLI
+#define DLI_TMP         -8L       // primary temporary obj
+#define DLI_DIR_TMP     -9L       // direction with arrow
+#define DLI_POS_TMP    -10L       // vertexposition - small circle
 
 
 

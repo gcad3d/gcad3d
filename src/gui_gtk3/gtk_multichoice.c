@@ -523,6 +523,7 @@ extern GdkRGBA   *UI_stylTab[3];
 ///   // data=table of 2 pointers;
 ///   GUI_DATA_EVENT =*(int*)data[0]=TYP_EventEnter|TYP_EventLeave|
 ///                                  TYP_EventPress  selection
+///                                  TYP_EventMap no selection
 ///                                  TYP_EventUnmap  cancel menu, no selection
 ///   GUI_DATA_I1    =*(int*)data[1]=line-nr; first is 0  (TYP_EventPress)
 ///   GUI_DATA_S2    =(char*)data[2] user-data of selected item (TYP_EventPress)
@@ -631,7 +632,9 @@ extern GdkRGBA   *UI_stylTab[3];
                       GDK_BUTTON_RELEASE_MASK|
                       GDK_STRUCTURE_MASK);                 // GDK_UNMAP
 
-    g_signal_connect (menu, "unmap_event",    // "select-cursor-row",
+    g_signal_connect (menu, "map_event",
+                      G_CALLBACK (GUI_popup_cb2), (void*)-2);
+    g_signal_connect (menu, "unmap_event",
                       G_CALLBACK (GUI_popup_cb2), (void*)-1);
     g_signal_connect (menu, "button_release_event",
                       G_CALLBACK(GUI_popup_cb2), NULL);
@@ -660,12 +663,12 @@ extern GdkRGBA   *UI_stylTab[3];
 //  8 = GDK_KEY_PRESS
 // 10 = GDK_ENTER_NOTIFY
 // 11 = GDK_LEAVE_NOTIFY
+// 14 = GDK_MAP
 // 15 = GDK_UNMAP
 
   int  typ, i1;
 
-  // printf("GUI_popup_cb2 ev=%d\n",((GdkEventAny*)event)->type);
-  // printf("GUI_popup_cb2 ev=%d lNr=%d\n",((GdkEventAny*)event)->type,
+  // printf("GUI_popup_cb2 ev=%d dat=%d\n",((GdkEventAny*)event)->type,
                                         // INT_PTR(data));
                   
   typ  = ((GdkEventAny*)event)->type;
@@ -675,6 +678,9 @@ extern GdkRGBA   *UI_stylTab[3];
       // printf(" key = %d\n",i1);
     if(i1 != 0xff0d) return FALSE;             // GDK_Return
     i1 = -2;
+
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
 
 
   } else if (typ == GDK_BUTTON_RELEASE) {
@@ -687,6 +693,16 @@ extern GdkRGBA   *UI_stylTab[3];
   } else if (typ == GDK_UNMAP) {
       // printf(" unmap\n");
     i1 = -1;
+
+
+  } else if (typ == GDK_MAP) {
+      // printf(" unmap\n");
+    return FALSE;   // skip
+
+
+  } else {
+    printf("GUI_popup_cb2-I001-%d \n",typ);
+
   }
 
   return GUI_popup_cb1 (parent, PTR_INT(i1));     // (void*)i1);
@@ -705,7 +721,7 @@ extern GdkRGBA   *UI_stylTab[3];
 //       <=-3 = disactivate line (l * -1 - 3)
   
 
-static int  lNr;
+static int  lNr=-2;
 static void *ptx;     // the active menu-txt
   int      ii, iEv=0;
   void     *pTab[4];
@@ -930,6 +946,8 @@ static void *ptx;     // the active menu-txt
   // GUI_obj_dump__ ();
   // GUI_obj_dump_mo (&mo);
 
+
+
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
     // GUI_obj_dump_o (go);
@@ -949,8 +967,12 @@ static void *ptx;     // the active menu-txt
 
   if(i1 == 0) {   // disactivate
     iTyp = TYP_EventRelease;
+
   } else {        // activate
     iTyp = TYP_EventPress;
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
   }
 
 

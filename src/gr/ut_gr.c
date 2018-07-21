@@ -45,10 +45,14 @@ Modifications:
 
 
 GR_Cre..      create dynamic-DB-obj, DL-record and display obj
+              (get dynamic DB-index: dbi = DB_Store.. ((long)-1, obj, ..);
 
-GR_Disp_..    create DL-record, display obj. Do not create DB-record.
+GR_Draw..     create DL-record and display obj 
+              Do not create DB-record
 
-GR_Draw..     display obj. Do not create DB-record, DL-record.
+GR_Disp_..    display obj (using dynamic DL-record)
+              Do not create DB-record
+              (get dynamic DL-record:  dli = DL_StoreObj (oTyp, -1L, att);)
 
 
 =====================================================
@@ -60,7 +64,7 @@ GR_Disp_obj           tempDisp obj from typ+struct
 GR_Disp_dbo           tempDisp obj from typ+dbInd
 GR_Disp_ox            temp. display of ObjGX-structs
 
-GR_Disp_txi           disp integer-chars
+GR_Disp_txi           display integer at position
 GR_Disp_txi2          Testdisplay integer at 2D-point
 GR_Disp_tx2           text at 2D-point
 GR_Disp_tx            text at 3D-point
@@ -91,26 +95,26 @@ GR_Disp_rbspl         testdisplay rational-bezier-curve
 GR_Disp_pol           disp. polygon = GR_Disp_plg
 GR_Disp_ccv           display ConcatenatedCurVe
 
-GR_Disp_pln           Plane
-GR_Disp_axis          display axisSystem with x,y,z-characters
-
-GR_Disp_cv3p2         Display boundary of triangle from 3 2D-points
-GR_Disp_tria          disp. boundary of triangle
-GR_Disp_triv          disp. normalVector of triangle
-GR_Disp_tris          disp. surface of triangle
-GR_Disp_su3p2         disp. surface of 3 2D-points
-GR_Disp_su3pt         disp. surface of 3 points
-
-GR_Disp_box           disp 3D-boundingBox (lines)
-
-GR_Disp_fan           display triangleStrip
 GR_Disp_spu           display nicht gelochte planare Flaeche
 GR_Disp_spu1          display planare Contour
 GR_Disp_sur           display surface from OGX
 GR_Disp_sru           Display ungetrimmte/ungelochte Ruled Flaeche
 GR_Disp_sbsp          display  BSP-Surf; nur Kontrollpunkte
-GR_Disp_face          display a set of triangles
-GR_Disp_iface         display a set of triangles from indexed points
+
+GR_Disp_pln           Plane
+GR_Disp_axis          display axisSystem with x,y,z-characters
+GR_Disp_box           disp 3D-boundingBox (lines)
+
+GR_Disp_cv3p2         Display boundary of triangle from 3 2D-points
+GR_Disp_tria          display boundary of triangle as lines
+GR_Disp_triv          display normalVector and number of triangle
+GR_Disp_tris          display surface of triangle
+GR_Disp_su3p2         display surface of 3 2D-points
+GR_Disp_su3pt         display surface of 3 points
+GR_Disp_fan           display triangleStrip
+GR_Disp_patch         display Opengl-patch (type & n-points)
+GR_Disp_nfac          display (not indexed) Fac3-faces
+GR_Disp_ipatch        display a set of triangles from indexed points
 GR_Disp_iSur          display tesselated faces (using fmt pmt imt)
 
 GR_Draw_obj           display obj from typ+struct
@@ -119,7 +123,6 @@ GR_Draw_dbo           display DB-obj (typ+dbInd)
 GR_Draw_vc            display 3D-Vector; length true or normalized
 GR_Draw_spu
 GR_DrawSup
-GR_Draw_iSur          display tesselated faces (using fmt pmt imt)
 
 GR_create_dummy       create a dummy DL-record; in DL and in GL.
 GR_CrePoint
@@ -153,26 +156,31 @@ GR_DrawModel
 GR_DrawPlane
 GR_DrawSur
 
-GR_CreFan
+GR_DrawCyl               Cyl und Cone
+GR_DrawTorSeg
+GR_DrawPrism 
+
 GR_DrawFan
-GR_CreTriaFan            In: punkte rund um eine Flaeche
 GR_DrawTriaFan 
 GR_DrawStrip
-GR_CreTriaStrip
 GR_DrawTriaStrip
-GR_CrePrism              In: zwei Punkteketten
-GR_DrawPrism 
-GR_CreCyl                In: 2 Punkte 2 Radien        
-GR_DrawCyl               Cyl und Cone
-GR_CreTorSeg             In: 2 Circs         
-GR_DrawTorSeg
-GR_CreDisk               In: innerer Rad u ausserer rad fuer Kreisring       
+GR_Draw_ipatch        display a set of triangles from indexed points
+GR_Draw_iSur          display tesselated faces (using fmt pmt imt)
+
 GR_DrawDisk
 
+GR_CreCyl                In: 2 Punkte 2 Radien        
+GR_CrePrism              In: zwei Punkteketten
+GR_CreDisk               In: innerer Rad u ausserer rad fuer Kreisring       
+GR_CreTorSeg             In: 2 Circs         
 GR_CreSolSph
 GR_CreSolCon
 GR_CreSolTor
 GR_CreSol__
+
+GR_CreFan
+GR_CreTriaFan            In: punkte rund um eine Flaeche
+GR_CreTriaStrip
 
 GR_pt_par_sel_npt        get selectionpoint and parameter on polygon
 
@@ -211,10 +219,11 @@ cc -c -g3 -Wall ut_gr.c
 
 // #include "../ut/ut_umem.h"             // MEM_alloc_tmp
 #include "../ut/ut_geo.h"
-#include "../ut/ut_msh.h"                 // Fac3 ..
+#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_txt.h"                 // fnam_del
-#include "../ut/ut_memTab.h"              // MemTab_..
 #include "../ut/ut_os.h"                  // OS_..
 #include "../ut/ut_col.h"              // COL_INT32
 
@@ -235,9 +244,9 @@ cc -c -g3 -Wall ut_gr.c
 
 
 
-typedef_MemTab(int);
-typedef_MemTab(IndTab);
-typedef_MemTab(Point);
+// typedef_MemTab(int);
+// typedef_MemTab(IndTab);
+// typedef_MemTab(Point);
 
 
 
@@ -252,7 +261,8 @@ extern ColRGB    AP_defcol;
 extern int     APT_3d_mode;
 extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
 extern int     APT_dispDir;
-extern int     APT_obj_stat;
+extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
+extern long    AP_dli_act;            // index dispList
 
 //  DISP_AC - Toleranz (Sehnenfehler bei der Darstellung von Arcs.
 // extern double    APT_TOL_ac;
@@ -268,6 +278,8 @@ extern int     APT_obj_stat;
 
 
 
+// aus ../gr/ut_DL.c:
+extern long   DL_ind_act;
 
 
 // aus ../gr/ut_GLU.c:
@@ -307,10 +319,11 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // printf("GGGGGGGGGGGG GR_Init1\n");
 
-  GL_temp_delete ();   // delete ALL objects in temp-area of DispList
-  GL_Init1 ();         // delete displist
+  GL_temp_del_all ();       // delete ALL objects in temp-area of DispList
+  GL_Init1 ();              // delete displist
+  AP_mdlbox_invalid_set();  // set AP_stat.mdl_box_valid = void
 
-  OPAR_init ();
+  // OPAR_init ();
 
 }
 
@@ -406,8 +419,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   void GR_DrawTxtA (long *ind, int attInd, Point *pt1, char *txt) {
 //====================================================================
 /// \code
-/// attInd  0=yellow  1=blue
-/// pt1     Position bottom left.
+///   attInd  colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///   pt1     Position bottom left.
 /// \endcode
 
 
@@ -846,6 +859,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //======================================================================
 /// \code
 /// used fuer unbegrenzte B-SplineSurface
+/// TSU_mode   0=normal darstellen; 1=speichern
 /// Attr f faces sind 4,5 od 6   
 ///   p1       size = ptUNr * ptVNr
 ///   newS     Typ_SURBSP
@@ -1587,25 +1601,11 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // }
 
 
-/*
-  ptAnz = 1024;  // max ptNr
-
-  if(GLT_pta_SIZ < ptAnz) {
-    i1 = GLT_alloc_pta (ptAnz);
-    if(i1 == -1) return;
-  }
-  pa2 = (Point2*)GLT_pta;
-*/
-
 
 
   /*======================================================================*/
-  /*  reiner 2D-Kreis */
+  /*  test 2D - circle */
   /*======================================================================*/
-
-  // wenn der Z-Vektor nicht (0,0,1) ist, ists ein 3D-Kreis.
-  // if(UT3D_comp2vc_p(&ci1->vz, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 0)
-    // goto L_3D_Circ;
 
   if(fabs(ci1->vz.dx) > UT_TOL_min1) goto L_3D_Circ;
   if(fabs(ci1->vz.dy) > UT_TOL_min1) goto L_3D_Circ;
@@ -1615,40 +1615,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf(" draw 2D_Circ\n");
 
 
-  /* GR_Att (attInd); */
-/*
-  //  UT2D_cv_ci kann nur CCW; umdrehen.
-  // if(ci1->rad > 0.0) {
-    p20 = UT2D_pt_pt3 (&ci1->p1);
-    p21 = UT2D_pt_pt3 (&ci1->p2);
-  // } else {
-    // p20 = UT2D_pt_pt3 (&ci1->p2);
-    // p21 = UT2D_pt_pt3 (&ci1->p1);
-  // }
-
-  p22 = UT2D_pt_pt3 (&ci1->pc);
-
-  //  2D-Arc > 2D-Polygon.
-  //  idisp 1-4; 1=feines Polygon (64 Punkte f. Vollkreis), 2 gröber (32).
-  //  3 hat nur mehr 24 Ecken, 4 nur mehr 16.
-  // idisp = 1;
-  // UT2D_cv_ci (GR_ptArr2, &ptAnz, &p20, &p21, &p22, idisp);
-
-  i1 = UT_DISP_cv * -10000.;
-  if(i1 >= 0) {
-    TX_Print("APT_DrawCirc EOM");
-    i1 = -1; // min. Tol. !
-  }
-  ptNr = ptAnz;
-  UT2D_cv_cin (&ptNr, pa2, &p20, &p21, &p22, ci1->rad, i1);
-
-  // printf("ptNr = %d\n",ptNr);
-*/
-
-
-
   // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
-  pa2 = (Point2*)MEM_alloc_tmp(sizeof(Point2)*ptNr);
+  pa2 = (Point2*)MEM_alloc_tmp((int)(sizeof(Point2)*ptNr));
 
   // make 2D-circ from 3D-circ
   UT2D_ci_ci3 (&ci2, ci1);
@@ -1657,19 +1625,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   UT2D_npt_ci (pa2, ptNr, &ci2);
 
 
+  // display polygon
+  z1 = ci1->pc.z;
+  GL_DrawPoly2D (dli, attInd, ptNr, pa2, z1);
 
-
-  /*  2D_Array > 3D-Array umkopieren */
-  // if(ci1->rad > 0.0) {
-    /*
-    for(i1=0; i1<ptNr; ++i1) {
-      GR_ptArr1[i1].x = pa2[i1].x;
-      GR_ptArr1[i1].y = pa2[i1].y;
-      //GR_ptArr1[i1].z = z1;
-    }
-    */
-    z1 = ci1->pc.z;
-    GL_DrawPoly2D (dli, attInd, ptNr, pa2, z1);
 
   // disp direction
   if(APT_dispDir) {
@@ -1682,25 +1641,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     APT_disp_dir (&pt31, &pt32);
   }
 
-/*
-  } else {
-    i2 = ptNr;
-    for(i1=0; i1<ptNr; ++i1) {
-      --i2;
-      GR_ptArr1[i1].x = pa2[i2].x;
-      GR_ptArr1[i1].y = pa2[i2].y;
-      // GR_ptArr1[i1].z = z1;
-    }
-    GL_DrawPoly2D (dli, attInd, ptNr, GR_ptArr1, z1);
-  }
-*/
 
   return 0;
 
 
 
   /*======================================================================*/
-  /*  reiner 3D-Kreis */
+  /*  3D-Circle */
   /*======================================================================*/
   L_3D_Circ:
   // printf(" draw 3D_Circ\n");
@@ -1708,22 +1655,24 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // get pa3 = circular polygon
   if(dbi > 0) {
+    // get polygon from file
     irc = PRCV_npt_dbo__ (&pa3, &ptNr, Typ_CI, dbi, WC_modact_ind);
     if(irc < 0) return -1;
 
   } else {
     // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
-    pa3 = (Point*)MEM_alloc_tmp(sizeof(Point)*ptNr);
-    // get pa3 = circular polygon
+    pa3 = (Point*)MEM_alloc_tmp((int)(sizeof(Point)*ptNr));
+    // get pa3 = circular polygon (compute)
     UT3D_npt_ci (pa3, ptNr, ci1);
     // UT3D_cv_ci (GLT_pta, &ptNr, ci1, ptAnz, UT_DISP_cv);
   }
 
 
-  // das Poly GL_ptArr30 darstellen
+  // display polygon
   GL_DrawPoly (dli, attInd, ptNr, pa3);
 
-  // disp direction
+
+  // display direction
   if(APT_dispDir) {
     int   ipe;
     ipe = ptNr - 1;
@@ -1744,49 +1693,50 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 /// see APT_DrawCurv GR_Draw_dbo UTO_obj_Draw__
 /// \endcode
 
-  int       typ;
+  int       form;
   long      dbi;
   DL_Att    *att1;
   Memspc    tSpc1;
 
 
-  typ = cv1->typ;
+  form = cv1->form;
 
-  // printf("GR_DrawCurv dli=%ld typ=%d\n",*dli,typ);
+  printf("GR_DrawCurv dli=%ld att=%d\n",*dli,att);
+  // UT3D_stru_dump (Typ_ObjGX, cv1, "  cv1:");
 
 
-  if(typ == Typ_CVPSP3) {
+  if(form == Typ_CVPSP3) {
     GR_DrawCvPpsp3 (dli, att, cv1, zval);
 
-  } else if(typ == Typ_CVBSP) {
+  } else if(form == Typ_CVBSP) {
     if(*dli > 0) { DL_get_dla (&att1, *dli); dbi = att1->ind; }
     else dbi = 0L;
     GR_DrawCvBSp (dli, dbi, att, cv1->data);
 
-  } else if(typ == Typ_CVRBSP) {
+  } else if(form == Typ_CVRBSP) {
     GR_DrawCvRBSp (dli, att, cv1->data);
 
-  } else if(typ == Typ_CVPOL) {
+  } else if(form == Typ_CVPOL) {
     GR_DrawCvPol (dli, att, cv1->data);
 
-  } else if(typ == Typ_CVPOL2) {
+  } else if(form == Typ_CVPOL2) {
     GL_DrawPoly2D (dli, att, cv1->siz, cv1->data, zval);
 
-  } else if(typ == Typ_CVELL) {
+  } else if(form == Typ_CVELL) {
     GR_DrawCvEll (dli, att, cv1->data);
 
-  } else if(typ == Typ_CVTRM) {
+  } else if(form == Typ_CVTRM) {
     // GR_DrawCvCCV (dli, att, cv1->data);  korr 2007-08-10
     UME_init (&tSpc1, memspc201, sizeof(memspc201));
     DL_get_dla (&att1, *dli);
     GR_DrawCvCCV (dli, att1->ind, att, cv1, &tSpc1);
 
 // TODO: test for 2D-Curve
-  // } else if(typ == Typ_CVTRM2) {
+  // } else if(form == Typ_CVTRM2) {
     // GR_DrawCvCCV2 (ind, att, cv1);
 
   } else {
-    TX_Error("GR_DrawCurv E001-%d",typ);
+    TX_Error("GR_DrawCurv E001-%d-%d",cv1->typ,cv1->form);
     return -1;
   }
 
@@ -1922,8 +1872,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //====================================================================
 /// \code
 ///   Erzeugung eines Zylinders / Konus   (Cyl / Cone)
-/// See also GL_draw_cone GL_Disp_face GL_DrawFan
-///          GL_DrawLStrip GL_DrawStrip1 GL_DrawStrip2 GL_DrawRCone
+/// See also GL_draw_cone GL_Disp_patch GL_DrawFan
+///          GL_DrawStrip1 GL_DrawStrip2 GL_DrawRCone
 /// \endcode
 
 
@@ -2115,7 +2065,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // Point   *cv;
   // Point   *Ptab = NULL;
   // MemTab(Point) pTab = MemTab_Init(sizeof(Point), Typ_PT, 10000);
-  MemTab(Point) pTab = MemTab_empty;
+  MemTab(Point) pTab = _MEMTAB_NUL;
 
 
 
@@ -2132,7 +2082,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // load pTab from bin.file; mallocs Ptab !
-  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, dbi);
+  i1 = MSH_bload_pTab (&pTab, AP_modact_nam, dbi);
   if(i1 < 0) return -1;
   PtabNr = pTab.rNr;
     // printf(" PtabNr=%d\n",PtabNr);
@@ -2151,10 +2101,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // MSH_test_disp2 (iba, iNr, Ptab);
 
 
-  // dli = DL_StoreObj (Typ_SURPTAB, dbi, att);
   dli = DL_StoreObj (Typ_SUR, dbi, att);
 
   GL_DrawCvIpTab (&dli, att, iba, iNr, pTab.data, 1);
+  AP_dli_act = dli;
 
 /*
   // get spce for curve
@@ -2189,6 +2139,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 /// \code
 /// siehe auch APT_DrawSur
 /// oxi=Input.
+/// Output:
+///   AP_dli_act     dispListIndex of surf created
 /// 
 /// GR_DrawSur
 ///   GR_DrawSurPtab                   -
@@ -2435,6 +2387,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
       }
       TX_Print(cBuf);
     }
+    AP_dli_act = TSU_dli_get ();
     return i1;
 
 
@@ -2478,6 +2431,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // GL_Disp_cv (i2, lTab);
 
   GL_EndList ();
+
+  AP_dli_act = dli;
 
   return 0;
 
@@ -2530,7 +2485,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // get points from dbo-tab
   // i1 = UT3D_npt_obj (&ptNr, pTab, Typ_ObjGX, oxa, i2, UT_DISP_cv);
   ptNr = 0;
-  i1 = UT3D_npt_obj (&ptNr, pTab, ptMax, Typ_ObjGX, oxa, i2, UT_DISP_cv);
+  i1 = UT3D_npt_obj (&ptNr, pTab, ptMax, Typ_ObjGX, oxa, i2, UT_DISP_cv,
+                     APT_obj_stat);
   if(i1 < 0) return -1;
 
   // display
@@ -2545,6 +2501,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   if(TSU_mode == 0)
     GL_EndList ();
+
+  AP_dli_act = dli;
 
   return 0;
 
@@ -2633,7 +2591,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // get full filename
   L_mock_0:
   Mod_get_path (ffnam, mdb->mnam);
-    // printf(" MOCK mnam=|%s| ffnam=|%s| dli=%ld\n",mdb->mnam,ffnam,mdb->DLind);
+    // printf("ex-Mod_get_path mnam=|%s| ffnam=|%s| dli=%ld\n",
+           // mdb->mnam,ffnam,mdb->DLind);
 
   // is MockupModel already loaded ?
     // printf(" DLind=%d DLsiz=%d\n",mdb->DLind,mdb->DLsiz);
@@ -2655,7 +2614,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // mnam ist internal ("abc") od external ("dir/fn")
   UTX_ftyp_cut (mnam);            // remove fTyp
   UTX_safeName (mnam, 1);         // change all '. ' to '_', not '/'
-    // printf(" safeName=|%s|\n",mnam);
+    printf(" DrawModel-mnam=|%s|\n",mnam);
 
 
   // check if tesselated data of the Model exists in xa/temp
@@ -2670,6 +2629,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     TSU_imp_tess (&impSpc, ffnam);
     // copy tess-file -> tmp/.
     sprintf (memspc011, "%s%s.tess",OS_get_tmp_dir(),mnam);
+      printf(" DrawModel-ffnam=|%s|\n",memspc011);
     OS_file_copy (ffnam, memspc011);
 
   } else {
@@ -2677,7 +2637,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // Die Parametertabelle oTab fuer die DLL generieren.
     UTO_rec_set (&oTab[0], Typ_ObjGX,  Typ_ObjGX,  3, &oTab[1]);
-    UTO_rec_set (&oTab[1], Typ_Int4,   Typ_Int4,   1, (void*)1);  // mode
+    UTO_rec_set (&oTab[1], Typ_Int4,   Typ_Int4,   1, PTR_INT(1));  // mode
     UTO_rec_set (&oTab[2], Typ_Txt,    Typ_Txt,    1, ffnam);
     UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);
 
@@ -2926,9 +2886,11 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //============================================================================
   int GR_DrawCvCCV (long *dli, long dbi, int att, ObjGX *cv1, Memspc *tbuf1) {
 //============================================================================
+// display DB-obj - trimmed-curve 
 
-  int    irc, ptNr;
+  int    irc, ptNr, paSiz;
   int    ipe;
+  void   *msPos;
   Point  *pta;
 
 
@@ -2937,6 +2899,16 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
 
 
+  msPos = UME_get_next (tbuf1);  // keep free pos of tbuf1
+
+/*
+  // get space for points in tbuf1
+  paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
+  pta = UME_reserve (tbuf1, paSiz * sizeof(Point));
+  ptNr = 0;
+  irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, cv1, UT_DISP_cv);
+  if(irc < 0) return -1;
+*/
 
   //----------------------------------------------------------------
   // get pta = polygon 
@@ -2945,15 +2917,16 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     irc = PRCV_npt_dbo__ (&pta, &ptNr, Typ_CVTRM, dbi, WC_modact_ind);
     if(irc < 0) return -1;
 
-
   } else {
 
     // CCV -> Polygon - dynamic view only.
-    // compute amount of memspace needed
-    UME_connect (pta, tbuf1);
-    ptNr = UME_ck_free (tbuf1) / sizeof(Point);
+    // get space for points in tbuf1
+    paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
+    pta = UME_reserve (tbuf1, paSiz * sizeof(Point));
+    // ptNr = 0;
+    ptNr = paSiz; // 2017-09-26
     // CCV -> Polygon
-    irc = UT3D_pta_ox_lim (&ptNr, pta, cv1, 0, NULL, UT_DISP_cv);
+    irc = UT3D_pta_ox_lim (&ptNr, pta, cv1, 0, NULL, UT_DISP_cv, APT_obj_stat);
       // printf("nach UT3D_pta_cvcomp %d %d\n",irc,ptNr);
     if(irc < 0) return -1;
   }
@@ -2974,23 +2947,19 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     // END TESTBLOCK
 
 
-
     // APT_dispDir=1; // TEST !
 
   if((!APT_dispDir)&&(*dli > 0)) {
     // display normal without direction-arrow
     // for CCV in statu nascendi ("S0=CCV .."): display also direction
     GL_DrawPoly (dli, Typ_Att_hili, ptNr, pta);
-    return 0;
+
+  } else {
+    // disp curve with direction-arrow
+    GL_Draw_cvp_dir (dli, Typ_Att_hili1, ptNr, pta);
   }
 
-
-  // disp curve with direction-arrow
-  GL_Draw_cvp_dir (dli, Typ_Att_hili1, ptNr, pta);
-  // ipe = ptNr - 1;
-  // GL_DrawPoly (dli, Typ_Att_hili, ptNr, pta);
-  // APT_disp_dir (&pta[ipe], &pta[ipe - 1]);
-
+  UME_set_next (msPos, tbuf1);   // restore wrkSpc
 
   return 0;
 
@@ -3129,22 +3098,24 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 }
 */
 
+
 //=====================================================================
   int  GR_DrawCvPol (long *ind, int attInd, CurvPoly *plg1) {
 //=====================================================================
 
   int    ptNr;
   Point  *pTab;
+  MemTab(Point) mtPt = _MEMTAB_NUL;
 
 
   // printf("GR_DrawCvPol ptNr=%d\n",plg1->ptNr);
 
 
-  // ptNr = sizeof(memspc55) / sizeof(Point);
-  // pTab = (void*) memspc55;
-
   ptNr = plg1->ptNr + 4;
-  pTab = (Point*) MEM_alloc_tmp (ptNr * sizeof(Point));
+
+  // get memspc until end-of-func (alloca|malloc)
+  MEMTAB_tmpSpc_get (&mtPt, ptNr);
+  pTab = mtPt.data;
 
 
   // PolygonCurve -> relimited Polygon
@@ -3154,6 +3125,14 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   //erhaelt das Polygon als fertiges Array (mit Screenkoords)
   GL_DrawPoly (ind, attInd, ptNr, pTab);
 
+
+  // disp direction (last-point, point before)
+  if(APT_dispDir) {
+    APT_disp_dir (&pTab[ptNr - 1], &pTab[ptNr - 2]);
+  }
+
+  // free memspace
+  MEMTAB_tmpSpc_free (&mtPt);
 
   return 0;
 
@@ -3384,7 +3363,7 @@ int GR_Delete (long ind)                               {return 0;}
 
   printf("GR_tmpDisp_ln %d\n",att);
 
-  // GL_temp_delete (); // alle temp. obj loeschen ..
+  // GL_temp_del_all (); // alle temp. obj loeschen ..
 
   dli = -1;  // als temp. obj anlegen ..
 
@@ -3426,10 +3405,10 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_txi (Point *pt1, int ii, int att) {
 //===================================================================
 /// \code
-/// Testdisplay integer
-/// att: see GR_Disp_tx
-/// ACHTUNG: zeigt manchmal letzes obj nicht an -- whats that ???
-/// see GR_Disp_message
+/// GR_Disp_txi       display integer at position
+///   att     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///
+/// see also GR_Disp_message GR_Disp_npti
 /// \endcode
 
   char cbuf[32];
@@ -3456,7 +3435,7 @@ int GR_Delete (long ind)                               {return 0;}
   char    cbuf[32];
   Point   pt3;
 
-  if(DispMode) UT3D_stru_dump(Typ_PT, pt1, "GR_Disp_txi2: |%d|",ii);
+  if(DispMode) UT3D_stru_dump(Typ_PT2, pt1, "GR_Disp_txi2: |%d|",ii);
 
   sprintf(cbuf,"%d",ii);
 
@@ -3493,7 +3472,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay Text
-/// att: see GR_Draw_obj/Typ_SymB
+///   att     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 /// \endcode
 
   UT3D_stru_dump(Typ_PT, pt1, "GR_Disp_tx: |%s|",txt);
@@ -3514,13 +3493,7 @@ int GR_Delete (long ind)                               {return 0;}
 ///   typ:  SYM_STAR_S (Sternderl)
 ///         SYM_TRI_S (Dreieck)
 ///         SYM_TRI_B (Viereck)
-///   att:  index of color, from ../ut/func_types.h
-///         ATT_COL_BLACK       0
-///         ATT_COL_RED         2
-///         ATT_COL_GREEN       3
-///         ATT_COL_BLUE        4
-///         ATT_COL_YELLOW      5
-///         ATT_COL_WHITE       8
+///   att:  colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 /// \endcode
 
 /// see also GR_Disp_pTab
@@ -3623,10 +3596,12 @@ int GR_Delete (long ind)                               {return 0;}
 /// Testdisplay ptNr points with bitmap-symbols (star, triangle, ..)
 /// typ: see GR_Draw_obj/GR_Draw_obj/Typ_SymB
 ///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
-/// att: see GR_Draw_obj/Typ_SymB
+/// att: see INF_COL_SYMB       GR_Draw_obj/Typ_SymB
 ///      ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|..
 ///
-/// draw polygon with GR_Disp_cv
+/// see also:
+///   GR_Disp_cv            draw polygon
+///   GR_Disp_npti          display points and integers along table of points
 /// \endcode
 
 // #include "../ut/func_types.h"               // SYM_..
@@ -3711,7 +3686,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// GR_Disp_vc      display 3D-Vector; length true or normalized
 /// Input:
 ///   pt1      position fo vector; NULL = display at center of screen
-///   att       see ~/gCAD3D/cfg/ltyp.rc
+///   att       see INF_COL_CV
 ///   mode      0: vector has always same lenght
 ///             1: vector has exact size (length)
 ///
@@ -3738,22 +3713,9 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_ln2 (Point2 *p1, Point2 *p2, int att) {
 //================================================================
 /// \code
-/// att: colour,lineTyp,lineThick    (see ~/gCAD3D/cfg/ltyp.rc)
-///      att is an index to a linetyp in file cfg/ltyp.rc.
+/// att: linetype; see INF_COL_CV
+///      att is an index to a linetyp in file ~/gCAD3D/cfg/ltyp.rc.
 ///      linetyp has color, pattern thickness.
-///      0=1=Black
-///      2=Black-Dash
-///      3=black-Dashdot
-///      4=rosa
-///      5=Blue-Dash-Th2
-///      6=lightGray
-///      7=Blue
-///      8=Green-Th3
-///      9=Red-Th3
-///     10=dimmed thick4 
-///     11=black  thick4
-///     12=red dashed thick2
-///                Th2 = 2 pixels thick       Th3 = 3 pixels thick
 /// \endcode
 
   Point   pa[2];
@@ -3858,7 +3820,7 @@ int GR_Delete (long ind)                               {return 0;}
 
     
   // CCV -> Polygon
-  irc = UT3D_pta_ox_lim (&ptNr, pta, ccv, 0, NULL, UT_DISP_cv);
+  irc = UT3D_pta_ox_lim (&ptNr, pta, ccv, 0, NULL, UT_DISP_cv, APT_obj_stat);
   // printf("nach UT3D_pta_ox_lim %d %d\n",irc,ptNr);
   if(irc < 0) {TX_Error("GR_Disp_ccv EOM"); return -1;}
 
@@ -3881,8 +3843,9 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_triv (Triangle *tr, int att, int tNr, int ipNr) {
 //===================================================================
 /// \code
-/// Testdisplay Triangle-Normalvektor & number of triangle
-/// att                   see ~/gCAD3D/cfg/ltyp.rc
+/// display Triangle-Normalvektor & number of triangle
+/// att   colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///       color,linetyp,thickness; see INF_COL_CV
 /// tNr   Display Integer in gravity-centerPoint if (tNr >= 0; -1 = none)
 /// ipNr  1 = display pointNumbers (0/1/2); -1=not
 ///
@@ -3956,14 +3919,15 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_tria (Triangle *tria, int att) {
 //================================================================
 /// \code
-/// Display RandCurve of triangle
-/// att: GR_Disp_ln2
+/// GR_Disp_tria           display boundary of triangle as lines
+/// att      color,linetyp,thickness; see INF_COL_CV
 ///
 /// see also GR_Disp_triv GR_Disp_tris
 /// \endcode
 
   int    i1;
   Point  pa[4];
+
 
   pa[0] = *(tria->pa[1]);
   pa[1] = *(tria->pa[2]);
@@ -3974,7 +3938,7 @@ int GR_Delete (long ind)                               {return 0;}
     // GR_Disp_pt (&pa[1], SYM_STAR_S, 2);
 
   // Flaeche immer defaultfarbe; somit nicht sichtbar !
-  GL_Col__ (10);
+  // GL_Col__ (10);
   // GR_DrawFan(tria->pa[0], 3, pa, 0);
 
   GR_Disp_cv (pa, 4, att);
@@ -4021,16 +3985,16 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
-  int GR_Disp_tris (Triangle *tria, int att) {
+  int GR_Disp_tris (Triangle *tria, int icol) {
 //================================================================
 /// \code
-/// Display Surface of triangle
-/// att: see GR_Disp_spu
+/// display Surface of triangle
+/// icol     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 ///
 /// see also GR_Disp_triv GR_Disp_tria
 /// \endcode
 
-  GR_Disp_fan(tria->pa[0], tria->pa[1], tria->pa[2], 1, att);
+  GR_Disp_fan(tria->pa[0], tria->pa[1], tria->pa[2], 1, icol);
 
   return 0;
 
@@ -4096,6 +4060,9 @@ int GR_Delete (long ind)                               {return 0;}
 /// \code
 /// Testdisplay Polygon
 /// att: GR_Disp_ln2     see ~/gCAD3D/cfg/ltyp.rc
+/// see also:
+///   GR_Disp_pTab          display table of points with bitmap-symbols
+///   GR_Disp_npti          display points and integers along table of points
 /// \endcode
 
   int  i1;
@@ -4187,7 +4154,8 @@ int GR_Delete (long ind)                               {return 0;}
   // GR_Disp_pt (&pl1->po, SYM_TRI_S, 2);
   // GR_Disp_vc (&pl1->vz, &pl1->po, 2, 0);
 
-  dli = DL_StoreObj (Typ_PLN, -1L, 2);
+  // dli = DL_StoreObj (Typ_PLN, -1L, 2);
+  dli = -2;  // index for first CAD-inputfield
 
   GL_DrawSymVX (&dli, att, pl1, typ, 1.);
 
@@ -4197,14 +4165,14 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
-  int GR_Disp_face (int gTyp, int icol, int pNr, Point *pa) {
+  int GR_Disp_patch (int gTyp, int icol, int pNr, Point *pa) {
 //================================================================
-// display a set of triangles
+// GR_Disp_patch       display Opengl-patch (type & n-points)
 // Input:
 //   gtyp     type of output; points, lines, surface. see below
 //   icol     index of color; see GR_Disp_pt
 //
-// see also GR_Disp_iface
+// see also GR_Disp_ipatch
 // replaces GR_Disp_fan
 
 // gtyp:
@@ -4256,7 +4224,7 @@ int GR_Delete (long ind)                               {return 0;}
     GL_Col__ (icol);  // glColor3fv (GL_col_tab[icol]); 2=red,3=green,5=yellow..
 
 
-  GL_Disp_face (gTyp, pNr, pa);
+  GL_Disp_patch (gTyp, pNr, pa);
 
   // close GL-dispList
   GL_EndList ();                  // glEndList ();
@@ -4267,21 +4235,26 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //=======================================================================
-  int GR_Disp_iface (int gTyp, int icol, int iNr, int *ia, Point *pa) {
+  int GR_Disp_ipatch (int gTyp, int icol, int iNr, int *ia, Point *pa) {
 //=======================================================================
-// display a set of triangles from indexed points
-
-// Input:
-//   pa       all points
-//   ia[iNr]  indices into pa
-//   gTyp     type of triangles in ia; eg GL_TRIANGLES; see GR_Disp_face
-//            bitVal-16 set: face is planar; else not.
-//   icol     see GR_Disp_pt
+/// \code
+/// temp. display a set of triangles from indexed points
+/// 
+/// Input:
+///   gTyp     type of triangles in ia; eg GL_TRIANGLES; see GR_Disp_patch
+///            bitVal-16 set: face is planar; else not.
+///   iNr      nr of indices in ia
+///   ia[iNr]  indices into pa
+///   pa       table of points
+///   icol     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+/// 
+/// was GR_Disp_iface
+/// \endcode
 
   long      dli;
 
 
-  printf("GR_Disp_iface %d %d %d\n",gTyp,icol,iNr);
+  printf("GR_Disp_ipatch %d %d %d\n",gTyp,icol,iNr);
 
 
   // get gcad-dispList-record
@@ -4294,7 +4267,7 @@ int GR_Delete (long ind)                               {return 0;}
   if(icol >= 0)
     GL_Col__ (icol);  // glColor3fv (GL_col_tab[icol]); 2=red,3=green,5=yellow.
 
-  GL_Disp_iface (gTyp, iNr, ia, pa);
+  GL_Disp_ipatch (gTyp, iNr, ia, pa);
 
   // close GL-dispList
   GL_EndList ();                  // glEndList ();
@@ -4304,20 +4277,20 @@ int GR_Delete (long ind)                               {return 0;}
 }
 
 
-//=======================================================================
-  int GR_Draw_iface (long *dli, int gTyp, int icol, int iNr, int *ia, Point *pa) {
-//=======================================================================
+//================================================================================
+  int GR_Draw_ipatch (long *dli, int gTyp, int icol, int iNr, int *ia, Point *pa){
+//================================================================================
 // display a set of triangles from indexed points
 
 // Input:
 //   pa       all points
 //   ia[iNr]  indices into pa
-//   gTyp     type of triangles in ia; eg GL_TRIANGLES; see GR_Disp_face
+//   gTyp     type of triangles in ia; eg GL_TRIANGLES; see GR_Disp_patch
 //            bitVal-16 set: face is planar; else not.
 //   icol     see GR_Disp_pt
 
 
-  printf("GR_Draw_iface %d %d %d\n",gTyp,icol,iNr);
+  printf("GR_Draw_ipatch %d %d %d\n",gTyp,icol,iNr);
 
 
   // init GL-dispList
@@ -4326,7 +4299,7 @@ int GR_Delete (long ind)                               {return 0;}
   if(icol >= 0)
     GL_Col__ (icol);  // glColor3fv (GL_col_tab[icol]); 2=red,3=green,5=yellow.
 
-  GL_Disp_iface (gTyp, iNr, ia, pa);
+  GL_Disp_ipatch (gTyp, iNr, ia, pa);
 
   // close GL-dispList
   GL_EndList ();                  // glEndList ();
@@ -4336,12 +4309,11 @@ int GR_Delete (long ind)                               {return 0;}
 }
 
 
-
 //===================================================================
   int GR_Disp_fan (Point *ps, Point *pa1, Point *pa2, int pNr, int att) {
 //===================================================================
 /// \code
-/// DO NOT USE; replaced with GR_Disp_face
+/// DO NOT USE; replaced with GR_Disp_patch
 /// Testdisplay Dreiecksflaechen; 
 /// att: see GR_Disp_spu
 /// pNr: Anzahl Punkte der Arrays pa1 und pa2.
@@ -4521,7 +4493,7 @@ int GR_Delete (long ind)                               {return 0;}
   // GR_Disp_pt (p2, SYM_TRI_S, 0);
 
 
-  dli=DL_StoreObj (Typ_BoxH, -1L, 2);
+  dli=DL_StoreObj (Typ_GridBox, -1L, 2);
   GL_Draw_Ini1 (&dli, att, 0);
 
 
@@ -4542,7 +4514,8 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].y = p1->y;
   pta[3].z = p1->z;
 
-  GL_DrawLStrip (pta, 4);
+  // GL_DrawLStrip (pta, 4);
+  GL_Disp_cv (4, pta);
 
   // s2
   pta[0].x = p2->x;
@@ -4561,7 +4534,8 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].y = p1->y;
   pta[3].z = p2->z;
 
-  GL_DrawLStrip (pta, 4);
+  // GL_DrawLStrip (pta, 4);
+  GL_Disp_cv (4, pta);
 
   // s3
   pta[0].x = p1->x;
@@ -4580,7 +4554,8 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].y = p1->y;
   pta[3].z = p2->z;
 
-  GL_DrawLStrip (pta, 4);
+  // GL_DrawLStrip (pta, 4);
+  GL_Disp_cv (4, pta);
 
   // s4
   pta[0].x = p1->x;
@@ -4599,7 +4574,8 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].y = p1->y;
   pta[3].z = p1->z;
 
-  GL_DrawLStrip (pta, 4);
+  // GL_DrawLStrip (pta, 4);
+  GL_Disp_cv (4, pta);
 
   GL_EndList1 (0);
 
@@ -4730,6 +4706,7 @@ int GR_Delete (long ind)                               {return 0;}
   if(TSU_mode == 0) {
     dli = DL_StoreObj (Typ_SUR, *ind, att);
     GL_DrawSur (&dli, att, gSur);
+    AP_dli_act = dli;
 
   } else {
     TSU_store (gSur);
@@ -4845,12 +4822,13 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // ObjGX  ox;
 
 
-  printf("GR_Disp_obj %d %d\n",oTyp,att);
 
   // OGX_SET_OBJ (&ox, oTyp, oTyp, 1, sObj);
   // GR_Disp_ox (&ox, att, mode);
 
   dli = DL_StoreObj (oTyp, -1L, att);
+
+  printf("GR_Disp_obj typ=%d dli=%ld att=%d\n",oTyp,dli,att);
 
   return GR_Draw_obj (&dli, oTyp, obj, 1, att, mode);
 
@@ -4921,14 +4899,14 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// do always start a new surface.
 /// \endcode
 
-  long   dlInd;
+  long   dli;
   int    newS;
 
   if(TSU_mode == 0) {
-    dlInd = DL_StoreObj (Typ_SUR, *ind, att);
+    dli = DL_StoreObj (Typ_SUR, *ind, att);
 
     // GL_Draw_Ini (&dlInd, att);
-    GL_Surf_Ini (&dlInd, att);
+    GL_Surf_Ini (&dli, att);
   }
 
   if(typ == 0) newS = Typ_SURPLN;
@@ -4936,7 +4914,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   GR_DrawFan (pt1, ptNr, pa, typ, newS);
 
-  if(TSU_mode == 0) GL_EndList ();
+  if(TSU_mode == 0) {
+    GL_EndList ();
+    AP_dli_act = dli;
+  }
 
   return 0;
 
@@ -5033,7 +5014,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //            <= -2L  create a temporary object
 //   col      styl     0 = ON  = shade;     1 = OFF = symbolic
 //
-// see GR_DrawFtab
+// see GR_Disp_nfac
 
 
   int     att;
@@ -5073,7 +5054,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   L_disp:
   GL_Surf_Ini (&dli, col);           // att unused ..
   GL_ColSet (col);                   // 2015-09-30
-  GL_DrawFtab (pTab, fTab, fNr, col);
+  GL_Disp_nfac (pTab, fTab, fNr, col);
   GL_EndList ();
 
 
@@ -5083,9 +5064,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //=========================================================================
-  void GR_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
+  void GR_Disp_nfac (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
 //=========================================================================
 /// \code
+/// GR_Disp_nfac        display (not indexed) Fac3-faces
 /// newS:  0 = do not start new surface
 /// newS:  1 = start new surface
 /// \endcode
@@ -5094,7 +5076,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 
-  printf("GR_DrawFtab fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
+  printf("GR_Disp_nfac fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
   // UT3D_stru_dump (Typ_Color, &GL_actCol, "  GL_actCol:");
 
 
@@ -5116,7 +5098,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     GL_ColSet (&GL_actCol);
   }
 
-  GL_DrawFtab (pTab, fTab, fNr, col);
+  GL_Disp_nfac (pTab, fTab, fNr, col);
 
   if(TSU_mode != 0)
     GLT_stor_rec (1, NULL, NULL, 0);  // save
@@ -5181,13 +5163,14 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // void  *memstart;
 
 
-  // printf("GR_DrawCvBSp dbi=%ld ptNr=%d deg=%d\n",dbi,bspl->ptNr,bspl->deg);
+  // printf("GR_DrawCvBSp dbi=%ld ptNr=%d deg=%d dli=%ld\n",
+         // dbi, bspl->ptNr, bspl->deg,*dli);
   // UT3D_stru_dump (Typ_CVBSP, bspl, "CV:\n");
   // GR_Disp_pTab (bspl->ptNr, bspl->cpTab, SYM_STAR_S, 2);
 
 
 
-  if(dbi > 0) {
+  if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
     // bspl -> Polygon using PRCV
     irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, WC_modact_ind);
     if(irc < 0) return -1;
@@ -5198,7 +5181,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // get memSpc for points
     UT3D_ptNr_bsp (&ptNr, bspl, UT_DISP_cv); 
     ptMax = ptNr * 2;
-    pTab = (Point*)MEM_alloc_tmp(sizeof(Point)*ptMax);
+    pTab = (Point*)MEM_alloc_tmp((int)(sizeof(Point)*ptMax));
     // pTab = (void*) memspc102;
     // ptMax = sizeof(memspc102) / sizeof(Point);
     // memstart = workSeg->next;
@@ -5301,7 +5284,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // printf(" ptNr-ell=%d\n",ptNr);
 
 
-  pa = MEM_alloc_tmp (ptNr * sizeof(Point));
+  pa = MEM_alloc_tmp ((int)(ptNr * sizeof(Point)));
 
 
   // if(ptNr > ptmax) goto L_e1;
@@ -5471,14 +5454,13 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 ///   dli      DispListIndex; get it from DL_StoreObj
 ///   form,obj obj to display;
 ///   oNr      nr of objects of type <typ> in obj
-///   att      Typ_PT:
+///   att      Typ_PT:  see INF_COL_PT
 ///              ATT_PT_BLACK|ATT_PT_HILI|ATT_PT_DIMMED|ATT_PT_GREEN|ATT_PT_YELLOW
-///            Typ_SymB: 
+///            Typ_SymB:   colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 ///              ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|
 ///              ATT_COL_YELLOW|ATT_COL_MAGENTA|ATT_COL_CYAN|ATT_COL_WHITE
 ///              ATT_COL_HILI|ATT_COL_DIMMED
-///            Typ_CI|Typ_CVBSP|Typ_PLN:
-///              see ~/gCAD3D/cfg/ltyp.rc
+///            Typ_CI|Typ_CVBSP|Typ_PLN:   see INF_COL_CV
 ///   mode     Typ_PT|Typ_CI|Typ_CV*: unused;
 ///            Typ_SymB: SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
 ///            Typ_PLN:  1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis;
@@ -5515,7 +5497,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_PT2:
-      o1 = MEM_alloc_tmp (sizeof(Point));
+      o1 = MEM_alloc_tmp ((int)sizeof(Point));
       *((Point*)o1) = UT3D_pt_pt2 (obj);
       GR_DrawPoint (dli, att, (Point*)o1);
       break;
@@ -5664,7 +5646,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //================================================================
   int GR_Disp_dbo (int typ, long dbi, int att, int mode) {
 //================================================================
-// mode: see GR_Draw_obj
+// att, mode: see GR_Draw_obj
 
   long dli;
 
@@ -5672,7 +5654,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // printf("GR_Disp_dbo typ=%d dbi=%ld att=%d\n",typ,dbi,att);
 
 
-  dli = DL_StoreObj (typ, dbi, att);
+  dli = DL_StoreObj (typ, -1L, att);
 
   return GR_Draw_dbo (&dli, typ, dbi, att, mode);
 
@@ -5682,7 +5664,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //=========================================================================
   int GR_Draw_dbo (long *dli, int typ, long dbi, int att, int mode) {
 //=========================================================================
-// mode: see GR_Draw_obj
+// att, mode: see GR_Draw_obj
 // see also GR_Disp_dbo GR_Disp_obj UTO_obj_Disp__
 
   // int        ii;
@@ -5790,8 +5772,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
                                   // pa[i2].x, pa[i2].y, pa[i2].z);
 
     // display triangles; col: ind into GL_col_tab
-    // GR_Disp_iface (it->aux, iCol, it->iNr, ia, pa);    <<<<<<<<<<
-    GL_Disp_iface (it->aux, it->iNr, ia, pa);
+    // GR_Disp_ipatch (it->aux, iCol, it->iNr, ia, pa);    <<<<<<<<<<
+    GL_Disp_ipatch (it->aux, it->iNr, ia, pa);
 
   }
 
@@ -5836,18 +5818,19 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   tol = GL_pickSiz,
 
-  // get 2D-Coords of ptAct
-  GL_pt2_pt3 (&p2Act, ptAct);
+  // get ScreenCoords of ptAct
+  GL_ptSc_ptUc (&p2Act, ptAct);
     // UT3D_stru_dump (Typ_PT, &p2Act, " p2Act");
 
-  // get memspc for 2D-points p2a
-  p2a = (Point*)MEM_alloc_tmp (sizeof(Point) * ptNr);
+  // get memspc for p2a = ptNr 2D-points
+  p2a = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * ptNr));
 
   // loop tru points, get 2D-coords pf point, test if 2D-point == ptAct-2D
   dMax = tol;
   ii = -1;
   for(i1=0; i1<ptNr; ++i1) {
-    GL_pt2_pt3 (&p2a[i1], &pta[i1]);
+    // get ScreenCoords 
+    GL_ptSc_ptUc (&p2a[i1], &pta[i1]);
       // UT3D_stru_dump (Typ_PT, &p2a[i1], " p2a[%d]",i1);
       // GR_Disp_pt (&pta[i1], SYM_TRI_S, ATT_COL_YELLOW);
 

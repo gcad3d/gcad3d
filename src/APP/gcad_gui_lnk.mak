@@ -1,10 +1,12 @@
-# make -f xa_gui__.mak
+# . ../options.sh && make -f gcad_gui_lnk.mak
 # Create GUI-dll for Gtk
 # Delete all GUI-dll-objects: make delete -f gui_del.mak
+#
+# used symbols: gcad_dir_bin VGUI
 
 
-# get get VGUI BITS OS CC MK
-include ../options.mak
+# get VGUI 
+VGUI := $(shell cat ../gcad_gui_version)
 
 
 # get debug-settings DEB

@@ -342,7 +342,7 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
   
   // edit Catalog
   sprintf(fNam, "%s%c%s",cfn,fnam_del,cNam);
-  APP_edit (fNam);
+  APP_edit (fNam, 0);
 
 
   return 0;

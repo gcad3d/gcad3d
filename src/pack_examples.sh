@@ -1,28 +1,40 @@
 #!/bin/sh
-# create package ${basDir}/debian/examples.gz
-# start frome <base-directory>/debian   (<base-dir> /mnt/serv1/Devel/gcad3d/)
-# copy files from <base-directory>/gCAD3D/dat/ -> <base-directory>/debian/exa_dir/
-# gcad3d/debian/exa_dir is temporary only for creating examples.gz
-#  inputfiles come from gcad3d/gCAD3D
-# Test with:
-# cd /mnt/serv1/Devel/gcad3d/debian/
-# . ./pack_examples.sh
-# ls -l /mnt/serv1/Devel/gcad3d/debian/examples.gz
+#
+# create package ${DIR_DEV}gcad3d/packages/examples.gz
+# examples.gz contains config-files and sample-models.
+# Using symbols DIR_DEV and DIR_BIN. See ../../doc/html/SW_layout_en.htm
+#
+# start ${DIR_DEV}gcad3d/src/pack_examples.sh
+#  inputfiles come from ${DIR_DEV}gcad3d/gCAD3D/
 
-echo "pack_examples.sh - copy from "`pwd`"/dat"
+echo "============ pack_examples.sh ============"
 
-dirMdl=/mnt/serv1/Devel/cadfiles/gcad/
+# test if options.sh exists
+if [ ! -f ${DIR_DEV}gcad3d/src/options.sh ] ; then
+  echo "****** ERROR - file ../options.sh does not exist. *******"
+  exit
+fi
 
-debDir=`pwd`
-tempDir=${debDir}/exa_dir
-cd ..
-basDir=`pwd`
+# get symbols gcad_dir_dev and gcad_dir_bin
+. ${DIR_DEV}gcad3d/src/options.sh
 
-cd gCAD3D
+
+cd ${DIR_DEV}gcad3d/gCAD3D
+echo " .. now in `pwd`"
+
+# set tempDir for output
+# tempDir is temporary only for creating examples.gz
+tempDir=../packages/tmp
+
+# set outDir for outputfile examples.gz
+outDir=${gcad_dir_dev}packages
+
+#dirMdl=/mnt/serv1/Devel/cadfiles/gcad/
+dirMdl=gCAD3D
 
 rm -rf ${tempDir}
 /bin/mkdir -p  ${tempDir}
-cp .gitignore ${tempDir}/.
+#cp .gitignore ${tempDir}/.
 
 
 echo " start mkdir " ${tempDir}
@@ -44,17 +56,16 @@ echo " - copy to   "${tempDir}"/dat/"
 #cp dat/Haus1.gcad        ${tempDir}/tmp/Model
 #cp dat/sample_PRC_cut1_1.gcad ${tempDir}/tmp/Model
 #cp dat/Boot_Dach_V1.gcad ${tempDir}/tmp/Model
-/bin/cp ${dirMdl}sample_activity_modval_1.gcad ${tempDir}/tmp/Model
+#/bin/cp ${dirMdl}sample_activity_modval_1.gcad ${tempDir}/tmp/Model
 
 # copy example-models
-/bin/cp ${dirMdl}samp*.*           ${tempDir}/dat/.
-/bin/cp ${dirMdl}Renault1.gcad     ${tempDir}/dat/.
-/bin/cp ${dirMdl}Haus1.gcad        ${tempDir}/dat/.
-/bin/cp ${dirMdl}Haus*.jpg         ${tempDir}/dat/.
-/bin/cp ${dirMdl}DachWS4.jpg       ${tempDir}/dat/.
-/bin/cp ${dirMdl}SteinMarmor1.jpg  ${tempDir}/dat/.
-/bin/cp ${dirMdl}Niet1.gcad        ${tempDir}/dat/.
-/bin/cp ${dirMdl}Schrau1.gcad      ${tempDir}/dat/.
+/bin/cp dat/samp*.*           ${tempDir}/dat/.
+/bin/cp dat/Haus1.gcad        ${tempDir}/dat/.
+/bin/cp dat/Haus*.jpg         ${tempDir}/dat/.
+/bin/cp dat/DachWS4.jpg       ${tempDir}/dat/.
+/bin/cp dat/SteinMarmor1.jpg  ${tempDir}/dat/.
+/bin/cp dat/Niet1.gcad        ${tempDir}/dat/.
+/bin/cp dat/Schrau1.gcad      ${tempDir}/dat/.
 
 /bin/cp prg/demo_*.gcap       ${tempDir}/prg/.
 /bin/cp prg/CirPat.gcap       ${tempDir}/prg/.
@@ -80,8 +91,12 @@ echo " - copy to   "${tempDir}"/dat/"
 
 
 cd ${tempDir}
-tar cvf ${debDir}/examples *
-gzip -f --best ${debDir}/examples
+tar cvf ${outDir}/examples *
+gzip -f --best ${outDir}/examples
+
+
+echo "---- file ${outDir}/examples.gz crated .."
+ls -latr ${outDir}/examples*
 
 
 # eof

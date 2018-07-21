@@ -60,7 +60,7 @@ MSH_eTab_fix            recover EdgeLine-pointers ia
 List_functions_end:
 =====================================================
 - see also:
-../ut/ut_tin.c      UFA   Funktionen fuer Faces (Fac3)
+../ut/ut_face.c      UFA   Funktionen fuer Faces (Fac3)
 ../ut/ut_tria.c     Triangle-functions    (using struct Point)
 
 \endcode *//*----------------------------------------
@@ -88,17 +88,17 @@ List_functions_end:
 
 // #include "../ut/ut_umem.h"             // MEM_alloc_tmp
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
-#include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_memTab.h"           // MemTab_..
-#include "../ut/ut_tin.h"              // TYP_EDGLN_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_txt.h"              // fnam_del
+#include "../ut/ut_face.h"              // UFA
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_TX.h"               // TX_Print
 
 #include "../xa/xa_msg.h"              // MSG_typ_*
 #include "../xa/xa_mem.h"              // memspc51
-#include "../xa/xa.h"                  // WC_modact_nam
+#include "../xa/xa.h"                  // AP_modact_nam
 
 
 
@@ -120,7 +120,7 @@ List_functions_end:
   long   ld;
   char   *cp1, *cp2, cbuf[256];
   // MemTab(Point) pTab = MemTab_Init(sizeof(Point), Typ_PT, 10000);
-  MemTab(Point) pTab = MemTab_empty;
+  MemTab(Point) pTab = _MEMTAB_NUL;
 
   MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
 
@@ -184,9 +184,9 @@ List_functions_end:
   char     *cp1, *cp2, *cbuf;
   EdgeLine el1;
 
-  MemTab(Fac3) fTab = MemTab_empty;
-  MemTab(EdgeLine) eTab = MemTab_empty;
-  MemTab(int) eDat = MemTab_empty;
+  MemTab(Fac3) fTab = _MEMTAB_NUL;
+  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(int) eDat = _MEMTAB_NUL;
 
 
 
@@ -761,7 +761,7 @@ List_functions_end:
 
   i1 = sizeof(memspc501) / sizeof(Point2);  // 16 byte
   if(i1 < pNr) {
-    p2a = (Point2*) MEM_alloc_tmp (pNr * sizeof(Point2));
+    p2a = (Point2*) MEM_alloc_tmp ((int)(pNr * sizeof(Point2)));
     if(p2a == NULL) {
       TX_Error("MSH_ibnd_ptn E001 %d %d",pNr,i1);
       return -1;
@@ -915,7 +915,7 @@ List_functions_end:
 
   for(i1=0; i1<p2Nr; ++i1) {
     if(sa[i1] < 0) continue;
-    irc = UT2D_ck_pt_in_tria (&p2a[ii1], &p2a[ii2], &p2a[ii3], &p2a[i1]);
+    irc = UT2D_ck_pt_in_tria__ (&p2a[ii1], &p2a[ii2], &p2a[ii3], &p2a[i1]);
     if(irc > 0) {
       sa[i1] = 0;
     } else {
@@ -942,7 +942,7 @@ List_functions_end:
 
     for(i1=0; i1<p2Nr; ++i1) {
       if(sa[i1] < 0) continue;
-      irc = UT2D_ck_pt_in_tria (&p2a[ii1], &p2a[ii2], &p2a[ii3], &p2a[i1]);
+      irc = UT2D_ck_pt_in_tria__ (&p2a[ii1], &p2a[ii2], &p2a[ii3], &p2a[i1]);
       if(irc > 0) {
         sa[i1] = 0;
       } else {
@@ -1009,7 +1009,7 @@ List_functions_end:
   iin = -1;
   for(i1=0; i1<p2Nr; ++i1) {
     if(sa[i1] < 0) continue;
-    irc = UT2D_sid_ptvc (&p2a[i1], &p2a[ii1], &ve);
+    irc = UT2D_sid_ptvc__ (&p2a[i1], &p2a[ii1], &ve);
     if(irc < 0) {
       sa[i1] = 1;  // is on the right; activate this point ..
       ++iin;
@@ -1055,7 +1055,7 @@ List_functions_end:
   // if yes: eliminate point (stat = -1).
   for(i1=0; i1<p2Nr; ++i1) {
     if(sa[i1] < 1) continue;
-    irc = UT2D_ck_pt_in_tria (&p2a[ii1], &p2a[iin], &p2a[ii2], &p2a[i1]);
+    irc = UT2D_ck_pt_in_tria__ (&p2a[ii1], &p2a[iin], &p2a[ii2], &p2a[i1]);
     if(irc > 0) continue;
     sa[i1] = -1; // inside.
   }
@@ -1067,7 +1067,7 @@ List_functions_end:
 
 
   // Testen ob der Punkt ii2 im 3Eck ii1-iin-ii3 enthalten ist
-  irc = UT2D_ck_pt_in_tria (&p2a[ii1], &p2a[iin], &p2a[ii3], &p2a[ii2]);
+  irc = UT2D_ck_pt_in_tria__ (&p2a[ii1], &p2a[iin], &p2a[ii3], &p2a[ii2]);
   if(irc < 1) {  // inside or on contour: replace
     // Punkt iin befindet sich vor dem Punkt ie2
     // iin replaces ie2
@@ -1077,7 +1077,7 @@ List_functions_end:
 
 
   // Testen ob der Punkt ii1 im 3Eck ii0-iin-ii2 enthalten ist
-  irc = UT2D_ck_pt_in_tria (&p2a[ii0], &p2a[iin], &p2a[ii2], &p2a[ii1]);
+  irc = UT2D_ck_pt_in_tria__ (&p2a[ii0], &p2a[iin], &p2a[ii2], &p2a[ii1]);
   if(irc < 1) {  // inside or on contour: replace
     // Punkt iin befindet sich hinter dem Punkt ie1
     // iin replaces ie1
@@ -1147,10 +1147,10 @@ List_functions_end:
   // MemTab(Fac3) fTab = MemTab_Init(sizeof(Fac3), Typ_Fac3, 10000);
   // MemTab(EdgeLine) eTab = MemTab_Init(sizeof(EdgeLine), Typ_EdgeLine, 10);
   // MemTab(int) eDat = MemTab_Init(sizeof(int), Typ_Int4, 50);
-  MemTab(Point) pTab = MemTab_empty;
-  MemTab(Fac3) fTab = MemTab_empty;
-  MemTab(EdgeLine) eTab = MemTab_empty;
-  MemTab(int) eDat = MemTab_empty;
+  MemTab(Point) pTab = _MEMTAB_NUL;
+  MemTab(Fac3) fTab = _MEMTAB_NUL;
+  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(int) eDat = _MEMTAB_NUL;
 
   MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
   MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
@@ -1160,13 +1160,13 @@ List_functions_end:
 
 
   // load PointFile  (write: lxml_read) pTab=malloc !
-  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, surPtab);
+  i1 = MSH_bload_pTab (&pTab, AP_modact_nam, surPtab);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -2;}
     // printf(" pNr=%d\n",pTab.rNr);
 
 
   // load MeshFile    fTab=malloc !
-  i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact_nam, surMsh);
+  i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_nam, surMsh);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -2;}
     // printf(" fNr=%d\n",fTab.rNr);
 
@@ -1322,7 +1322,7 @@ List_functions_end:
     ii3 = fa[i1].i3;
 
     // test if point ip1 is inside Face ii1-ii2-ii3
-    irc = UT2D_ck_pt_in_tria ((Point2*)&pa[ii1],
+    irc = UT2D_ck_pt_in_tria__ ((Point2*)&pa[ii1],
                               (Point2*)&pa[ii2],
                               (Point2*)&pa[ii3], &p2i);
     if(irc > 0) continue;    // outside ..
@@ -1576,8 +1576,8 @@ List_functions_end:
   p2e1 = (Point2*)pe1;
   p2e2 = (Point2*)pe2;
   for(i2=0; i2<eTab->rNr; ++i2) {
-    if((eTab->data[i2].typ != TYP_EDGLN_IB)  &&
-       (eTab->data[i2].typ != TYP_EDGLN_OB)) continue;
+    if((eTab->data[i2].typ != MSH_EDGLN_IB)  &&
+       (eTab->data[i2].typ != MSH_EDGLN_OB)) continue;
     ela = &eTab->data[i2];
     i4 = ela->iNr - 1;
     for(i3=0; i3<ela->iNr; ++i3) {  // loop tru boundary ela
@@ -1591,7 +1591,7 @@ List_functions_end:
       // next segment; overlap: skip segment.
       if(i5 != 1) goto L_out_9;
       // set iFac=index of face with segment ii1-ii2
-      if(eTab->data[i2].typ == TYP_EDGLN_IB) MEM_swap_int (&ii1, &ii2);
+      if(eTab->data[i2].typ == MSH_EDGLN_IB) MEM_swap_int (&ii1, &ii2);
       goto L_sta_5;
 
       L_out_9:

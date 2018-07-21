@@ -196,7 +196,7 @@ cl -c ut_geo.c
 
   if(!va1) {
     // get local space
-    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp ((int)(sizeof(double) * *nrp));
   }
 
   for(i1=0; i1 < *nrp; ++i1) {
@@ -3241,11 +3241,11 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 // get sidMaj = above or below plane tru pln.vx=elli.va; pln.vz=elli.vb
 // 0=normal; 1=quad. 1,2; -1=quad. 3,4
-  sidMaj = UT2D_sid_2vc (&el1->va, &vcp, UT_TOL_cv);
+  sidMaj = UT2D_sid_2vc_tol (&el1->va, &vcp, &UT_TOL_cv);
 
 // get sidMin = above or below plane tru pln.vx=elli.vb; pln.vz=elli.va
 // 0=normal; 1=quad. 1,4; -1=quad. 2,3
-  sidMin = UT2D_sid_2vc (&el1->vb, &vcp, UT_TOL_cv);
+  sidMin = UT2D_sid_2vc_tol (&el1->vb, &vcp, &UT_TOL_cv);
     // printf(" sidMaj=%d sidMin=%d\n",sidMaj,sidMin);
 
   if(sidMaj == 0) {

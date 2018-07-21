@@ -1,5 +1,6 @@
 #! /bin/csh
 
+# delete line starting with $1
 # example: 
 
 echo "del. ln " $1
@@ -14,7 +15,7 @@ START:
 #set fNam = msg_de.txt
 
 
-foreach fn (`ls -1 | grep msg_...txt`)
+foreach fn (`ls ../../doc/msg/* | grep msg_...txt`)
  cp -f $fn actMsgFil.txt
  sed -n "/^$1/! p" actMsgFil.txt > $fn
 end

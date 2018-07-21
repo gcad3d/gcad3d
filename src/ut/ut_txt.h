@@ -67,10 +67,20 @@
 
 /// UTX_wTab_tmpSpc   get tempSpace for UTX_wTab_str (see UTX_wTab_str)
 /// memspace exists only until active function returns
-#define UTX_wTab_tmpSpc(wa,waSiz)\
- (wa)=(char**)MEM_alloc_tmp((waSiz)*sizeof(void*))
+#define UTX_wTab_tmpSpc(wa,wSiz)\
+ (wa)=(char**)MEM_alloc_tmp((int)(wSiz*sizeof(void*)))
 
 
+/// find character in string; 0=no, 1=yes, char is in string.            INLINE
+/// Example: find char 'd' in string "abc"; returns 0 (no)
+///   i1 = UTX_find_chr("abc", 'd');
+int UTX_find_chr(char*,char);
+#define UTX_find_chr(s1,c1) ((strchr(s1,c1) == NULL) ? 0 : 1)
+
+
+// UTX_CP__               copy n chars - terminate with '\0'
+#define UTX_CP__(pTo,pFrom,cNr){\
+  strncpy (pTo,pFrom,cNr); pTo[cNr]='\0';}
 
 
 
@@ -121,6 +131,9 @@ extern const char TX_NUL;
   char* UTX_2db_tx     (double *d1, double *d2, char *cbuf);
   double UTX_db_tx     (char **po, char *pi);
 
+  char* UTX_db10__     (char s1[], double d1);
+  char* UTX_db15__     (char s1[], double d1);
+
   int   UTX_add_i_u    (char[], int);
   int   UTX_add_db     (char outBuf[], double *db1);
   int   UTX_add_pt     (char outBuf[], void *pt1);
@@ -135,7 +148,7 @@ extern const char TX_NUL;
 
   int   UTX_del_chr    (char *cbuf, char cx);
   int   UTX_del_foll0  (char strBuf[]);
-  void  UTX_del_follBl (char *cbuf);
+  int   UTX_del_follBl (char *cbuf);
   int   UTX_del_FilTx  (char *dtxt, char *filNam);
 
   char* UTX_fgets      (char* line, int len, FILE* fp);
@@ -164,6 +177,7 @@ extern const char TX_NUL;
   char* UTX_find_word1 (char *was, char *wo);
   char* UTX_find_Del1  (char *p1);
   char* UTX_find_strrstr (char *cbuf, char *str);
+  char* UTX_find_strrchrn (char *cbuf, char *str);
   int   UTX_strcmp_right (char *string, char *text);
 
   int   UTX_ck_casenChr(char *s1, char *s2, int cNr);

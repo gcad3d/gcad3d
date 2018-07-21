@@ -1,5 +1,5 @@
 # Link & run:
-#   make run -f hello-world.mak
+#   . ../options.sh && make run -f hello-world.mak
 
 
 # name of this makefile

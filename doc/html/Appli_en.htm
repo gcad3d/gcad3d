@@ -11,7 +11,123 @@
 <PRE>
 
 
-Applications are scriptprograms (directly executable).
+
+
+<B>Programmierfunktionen</B>
+
+
+<A HREF='#prg_std'>General programming-functions</A>
+<A HREF='#prg_app'>Programming-functions for Applications</A>
+<A HREF='Catalog_en.htm'>Programming-functions for Catalog-files</A>
+
+
+
+____________________________________________________________________________
+<P><A NAME='prg_std'> </A></P>
+<B>General programming-functions</B>
+
+
+- General-programming-functions can be used in all .gcad-Models;
+- can be created only in mode "MAN" (or be read from file)
+
+General programming-functions are:
+#-Comment, PRI, JUMP-Label, IF, WRITE, CALL, EXIT.
+
+
+
+<b># - Comment</b>
+# as the first character of a line defines a commentline.
+
+
+
+<b>PRI - Testoutput of text / variables:</b>
+# (output into message-window only for tests)
+PRI "Text"
+PRI "Point1 =" P1
+PRI "Var 1 =" V1
+
+
+
+<b>JUMP - program-branching:</b>
+JUMP Labelname
+..
+:Labelname
+# where to go. Must be absolute identical - check case.
+
+
+<b>IF - conditional processing:</b>
+if value condition value ; JUMP Labelname
+ possible conditions are:
+  EQ      equal,
+  NE      not equal,
+  LT      less than,
+  GT      greater than,
+  L_E     less or equal,
+  G_E     greater or equal.
+
+# Example programloop:
+V20=10
+:Next
+PRI "Var 20 =",V20
+V20=V20+10
+IF V20 LT 55 ; JUMP Next
+
+
+
+<b>EXIT</b>
+  Exit program.
+
+
+<b>CALL - execute commandfile</b>
+CALL "symDir/filename"
+# or
+CALL "/absolute-filename"
+
+# Example:
+CALL "Data/sample_prg_call_1.dat"
+PRI "V20=" V20
+C20=P(0 0 0) V20
+
+# File Data/sample_prg_call_1.dat:
+V20=12
+
+
+
+<B>WRITE - write into file:</B>
+The file will be created in the temporary directory;
+ the filetype is ".write".
+Thisfiles will be deleted always when starting a new model.
+All lines between WRITE and ENDWRITE will be written into file {filNam}.write.
+This files can be loaded with CALL "{filNam}".
+
+# Example write file, read file.
+#JUMP L1
+PRI"WRITE-start"
+WRITE "TestPar1"
+V20=15
+V21=16
+ENDWRITE
+#
+:L1
+PRI "L1-start"
+CALL "TestPar1"
+PRI"V20="V20"; V21="V21
+#
+
+
+
+
+____________________________________________________________________________
+<P><A NAME='prg_app'> </A></P>
+<B>Programming-functions for Applications</B>
+
+
+- in Applications all general programming-functions can be used;
+- Applications are scriptprograms (files) -
+  see "Applications/Create"
+- Applications have additional <A HREF='#app_prg'>Programfunktions</A>
+- Applications have <A HREF='#app_gui'>input-forms</A>
+
 
 
 <h2>Functions Menu Applications:</h2>
@@ -54,8 +170,8 @@ Each program will automatically get a window;
    Directory/file name of the executable files:
    {baseDir}/prg/{Programname}.gcap
   
-   The program directory can be set/modified only in file:
-   &quot;{baseDir}/cfg/xa.rc&quot;
+   The program directory can be set/modified only in line 7 of file:
+     "{baseDir}/cfg/xa.rc"
 
 
 
@@ -92,14 +208,14 @@ DLG ..
 
 
 ____________________________________________________________________________
-<P><A NAME='Program_codes'></A></P>
+<P><A NAME='app_prg'> </A></P>
 <B>Program Codes: </B>
 
 Will be evaluated in all modelfiles (.gcad files):
-Kommentar, PRI, JUMP-Label, IF, CALL.
+#-comment, PRI, JUMP-Label, IF, WRITE, CALL, EXIT
 
 Will be evaluated only in applications (.gcap files):
-INTERN, NEW, Auswertungsfunktion, DLG, DEBUG.
+##-comment, INTERN, NEW, evaluation-function, DLG, DEBUG.
 
 Will be evaluated only in catalog-modelfiles:
 CALL CTLG.
@@ -108,42 +224,21 @@ CALL CTLG.
 
 <B>Comment </B>
 The # character as the first character of a line defines a comment line.
-Lines with # at the beginning exist only in the program (.gcap);
-Lines with ## at the beginning are copied into the main program (.gcad).
+Lines with one # at the beginning exist only in the program (.gcap);
+Lines with two ## at the beginning are copied into the main program (.gcad).
 
    
 
-<B>Test output of text/variable content: </B>
-# (Only for testing purposes in the message window)
-PRI &quot;text&quot;
-PRI &quot;Point1 =&quot; p1
-PRI &quot;Var 1 =&quot; v1
+<B>INTERN {range ..}</B>
+  Definition of variables that are needed only for calculations inside
+  the program; these are not exported into the main model.
+  INTERN must be within the first part of the programme (Declarations).
 
+Example:
+  INTERN P1-P20 P50 V1-V20 V33 L1-L3
+  # All points from P1 to P20 and point P50 and ...
+  # are only used internally, no export into the main model.
 
-<B>Branch, unconditional jump command. </B>
-JUMP Label
-..
-:Label
-# The target. Note: Label is case-sensitive.
-
-
-<B>Conditional branching with if </B>
-if value condition value ; JUMP Labelname
-  There are the following conditions:
-   EQ      equal,
-   NE      not the same,
-   LT      smaller,
-   GT      bigger,
-   L_E     less than or equal to,
-   G_E     bigger or equal.
-
-# Example:
-V20 = 10
-:Next
-PRI &quot;Var 20 =&quot; V20
-V20=V20+10
-IF V20 LT 55 ; JUMP Next
- 
 
 
 <B>V{#}=NEW({objTyp},{startIndex})</B>
@@ -161,7 +256,7 @@ IF V20 LT 55 ; JUMP Next
 <B>Evaluation function (top brackets) </B>
  An expression between brackets is replaced by its result.
  Variables, points and vectors can be used.
-        Output:
+              Output:
 &lt;V#&gt;    the num. value (the content of the variable)
 &lt;P#&gt;    P(xCoord yCoord zCoord)
 &lt;D#&gt;    D(xCoord yCoord zCoord)
@@ -192,38 +287,9 @@ gives:
   continue to the next program line with the Esc key.
    
 
-<B>EXIT </B>
-  Exits the program.
-
-
-
-<B>INTERN {range ..}</B>
-  Definition of variables that are needed only for calculations inside
-  the program; these are not exported into the main model.
-  INTERN must be within the first part of the programme (Declarations).
-
-Example:
-  INTERN P1-P20 P50 V1-V20 V33 L1-L3
-  # All points from P1 to P20 and point P50 and ...
-  # are only used internally, no export into the main model.
-
-
-
-
-<b>Execute commandfile</b>
-CALL "symDir/filename"
-
-# Example:
-CALL "Data/sample_prg_call_1.dat"
-PRI "V20=" V20
-C20=P(0 0 0) V20
-
-# File Data/sample_prg_call_1.dat:
-V20=12
-
-
 
 ____________________________________________________________________________
+<P><A NAME='app_gui'> </A></P>
 <B>Definition Input form: </B>
 
 # Horizontal ruler:
@@ -258,35 +324,49 @@ DLG RDB V{#} &quot;{InfoText}&quot;
 
 
 
-Example:
+----------------------------
+Examples:
+----------------------------
 
-# text
-TXT DLG test window
+#-----------------------------
+# Example input value
+DLG TXT Test1
+DLG V20 "TestVar"
+PRI "value is "V20
 
-# inputfields for variable, point
-DLG V1 &quot;Length -&quot; 150
-DLG P1 &quot;position&quot; 150
+
+#-----------------------------
+# Example input value, Position, Checkbox, Radiobox
+# do not export:
+INTERN P1 P50 V1-V3
+# Text
+DLG TXT Test Form
+
+# input value position
+DLG V1 "Length - " 150
+DLG P1 "Position " 150
 DLG ---
 
-# checkbox
+# Checkbox
 DLG CKB V2 "export"
 DLG ---
 
-
-# 3 radioboxes
+# 3 Radioboxen
 DLG RDB V3 "Point"
 DLG RDB V3 "Line"
 DLG RDB V3 "Circ"
 
-
-# preset "Circ"
+# initialize all variables
+V1=60
+# set "export" not checked
+V2=0
+# preset to Circ.
 V3=3
+P1=P(0 0 0)
 
-# V2 contains 1 if "export" is active
-#             0 if "export" is not active
-
-# V3 contains 1 if "Point" is active
-#             2 if "Circ" is active.
+PRI "V1 = "V1"; V2 = "V2"; V3 = "V3
+PRI "P1 = "P1
+#
 
 
 
@@ -296,7 +376,7 @@ ____________________________________________________________________________
 
 Ctrl P     starts last executed program;
 
-Ctrl P     edit last executed program;
+Ctrl E     edit last executed program;
 
 Esc: go into previous input field;
      during program execution: stop the process.
@@ -313,110 +393,119 @@ Ctrl-right/outer mouse button: starts OK;
 ____________________________________________________________________________
 <B>Example programs: </B>
 
-# Example get value from user and export to model with new/unused ID.
-
-# do not export V1 - V19
-INTERN V1-19
-
-# setup dialog-window
-DLG TXT Test1
-DLG V1 "TestVar"
-
-# init the dialog-variable
-V1=10
-
-# get a new, uniq variable-ID
-V2=NEW(V,20)
-
-# export the value from the dialog-window with a new ID
-# add an object-name (use it for filtering)
-V&lt;V2&gt;=&lt;V1&gt; # Length XX
-
-PRI "new var V" &lt;V2&gt; "=" &lt;V1&gt;
-
-EXIT
-
-
-
-____________________________________________________________________________
-#------------------ Declarations-----------------
-# do not export V1,V2 (internal use only)
-INTERN V1-2
-DLG TXT Test CheckBox
-DLG V1 &quot;X-Coord - &quot; 60
-DLG CKB V2 &quot;Point&quot;
-DLG CKB V2 &quot;Circ&quot;
-
-#------------------ Init Variables --------------
-V1=10
-# preSet 1=&quot;Point&quot;, 2=&quot;Circ&quot;
-V2=1
-
-#------------------ Program Code -----------------
-if V2 eq 2; jump L_Circ
-P1=P(&lt;V1&gt; 0 0)
-PRI &quot;V2=&quot; V2
-EXIT
-
-:L_Circ
-C1=P(&lt;V1&gt; 0 0) 2
+#-----------------------------
+# create 10 points, without dialog:
+INTERN V1            # do not export V1
+V1=NEW(P,20)         # startindex
+V2=V1 + 10           # endIndex
+P&lt;V1&gt;=P(100 100 0)   # startpoint
+D20=D(100 0 0)       # offset
+:L1
+V1=V1 + 1
+P&lt;V1&gt;=P&lt;V1 - 1&gt; D20  # new point with offset D20
+IF V1 LT V2; JUMP L1
 #
 
 
-____________________________________________________________________________
-## create a single chain of points
+#-----------------------------
+# Example get value from user and export to model with new/unused ID.
+# do not export V1 - V19
+INTERN V1-19
+# setup dialog-window
+DLG TXT Test1
+DLG V1 "TestVar"
+# init the dialog-variable
+V1=10
+# get a new, uniq variable-ID
+V2=NEW(V,20)
+# export the value from the dialog-window with a new ID
+# add an object-name (use it for filtering)
+V&lt;V2&gt;=&lt;V1&gt;
+PRI "new var V" &lt;V2&gt; "=" &lt;V1&gt;
+#
 
-#------------------ Declarations-----------------
+
+#-----------------------------
+# Example create new point with user-defined X-Value
+# do not export V1,V2 (internal use only)
+INTERN V1-2
+# get new poinIndex
+V1=NEW(P,20)
+DLG V2 "X-Coord - " 60
+# Init Variables
+V2=10
+P&lt;V1&gt;=P(&lt;V2&gt; 0 0)
+#
+
+
+#-----------------------------
+# Example create new point OR Circ
+INTERN V1-4 P1
+V3=NEW(P,20)
+V4=NEW(C,20)
+#
+DLG RDB V1 "Point"
+DLG RDB V1 "Circ"
+DLG P1 "select/indicate position" 150
+DLG V2 "radius" 100
+# preSet 1="Point", 2="Circ"
+V1=1
+P1=P(0 0 0)
+V2=10
+#
+if V1 EQ 2; JUMP L_Circ
+P&lt;V3&gt;=P(&lt;X(P1)&gt; &lt;Y(P1)&gt; &lt;Z(P1)&gt;)
+JUMP L_cont
+#
+:L_Circ
+C&lt;V4&gt;=P(&lt;X(P1)&gt; &lt;Y(P1)&gt; &lt;Z(P1)&gt;) &lt;V2&gt;
+:L_cont
+#
+
+
+#-----------------------------
+# Example create single chain of points;
+# the following line will be exported into model;
+## create single chain of points
 # do not export the following variables with OK:
 INTERN P1 V1-10 D1
-
-# put text lines into the panel
+# put textlines into the panel
 DLG TXT             Create linear point-pattern.
-DLG TXT Select or indicate starting point;
+DLG TXT Select or indicate Startpoint;
 DLG TXT Give offset (X-offset,y-offset,z-offset)
-DLG TXT Define number of points;
-DLG TXT Update: Button or right/outer mouse button
-DLG TXT in the main Window;
-DLG TXT OK: button or Crtl-Right/outer mouse button.
-
-# get starting point from user into P1;
-# input field size 150
-DLG P1 &quot; Startpoint &quot; 150
-
-# get point offset from user
-# Offset must be a Vector (3 values !)
-DLG D1 &quot; OffsetVec.&quot; 150
-
-# get number of points from user
-DLG V1 &quot; nr of points&quot; 150
-
-#-------- initialise all dialog variables----------
+DLG TXT Define nr of points;
+DLG TXT Update: Button or right mousebutton
+DLG TXT   in the mainWindow;
+DLG TXT OK: button or Crtl-Right mousebutton.
+# get Startpoint from user into P1;
+# inputfieldsize 150
+DLG P1 " Startpoint " 150
+# get pointoffset from user
+# Offset must be a Vektor (3 values !)
+DLG D1 " OffsetVec." 150
+# get nr of points from user
+DLG V1 " nr of points" 150
+#-------- init all dialog-variables----------
 P1=P(0 0 0)
 D1=D(10 0 0)
 V1=3
-
-#----------program Code ---------
+#----------programCode ---------
 #DEBUG ON
-
-# get a new point index for the output points
+# get a new pointindex for the outputpoints
 # beginning with index 5 (preserve P1)
 V2=NEW(P,5)
-# initialise point Counter
+# init pointCounter
 V3=0
-
-# decode the starting point
+# decode the startpoint
 V4=X(P1)
 V5=Y(P1)
 V6=Z(P1)
-
-# decode the offset Vector
+# decode the offsetVector
 V7=X(D1)
 V8=Y(D1)
 V9=Z(D1)
-
-
 :Next
-# increment counter
+# incr counter
 V3=V3+1
 # add offset
 V4=V4+V7
@@ -424,17 +513,15 @@ V5=V5+V8
 V6=V6+V9
 # create point with next index v2
 P&lt;V2&gt;=P(&lt;V4&gt; &lt;V5&gt; &lt;V6&gt;)
-# increment point index
+# increment pointindex
 V2=V2+1
 if V3 lt V1 ; jump Next
-
 #
 
 
 ____________________________________________________________________________
 Send bug reports and suggestions for improvement
   to franz.reiter@cadcam.co.at
-
 </PRE>
 </BODY>
 </HTML>

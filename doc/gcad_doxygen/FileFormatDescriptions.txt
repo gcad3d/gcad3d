@@ -1,3 +1,4 @@
+../../doc/gcad_doxygen/FileFormatDescriptions.txt
 
 All files are in gCAD3D/tmp/.
 All files are temporary (internal use) only.

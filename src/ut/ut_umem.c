@@ -41,7 +41,6 @@ List_functions_start:
 
 UME_init              init Memspc with existing space
 UME_malloc            init Memspc, malloc
-UME_alloc_tmp         allocate temp. space (until functions ends)        INLINE
 UME_realloc
 UME_free
 
@@ -186,7 +185,7 @@ List_functions_end:
 ///
 /// Example:
 ///  l1 = OS_FilSiz (fnam);
-///  UME_alloc_tmp (&tmpSpc1, l1);
+///  ..
 ///  UME_read__ (&tmpSpc1, fnam);
 /// \endcode
 
@@ -451,7 +450,7 @@ List_functions_end:
 
 
 
-  // printf("UME_init  siz=%d\n",osiz);
+  // printf("UME_init  siz=%d\n",osiz); fflush (stdout);
 
   memSpc->start = objDat;
   memSpc->next  = objDat;
@@ -712,10 +711,11 @@ List_functions_end:
 //=======================================================================
   int UME_ck_free (Memspc *memSpc) {
 //=======================================================================
+/// \code
 /// UME_ck_free           return free space
-
-// usage:
-//  pTabSiz = UME_ck_free(memSeg1) / sizeof(Point);
+/// Example:
+///  pTabMaxSiz = (UME_ck_free(memSeg1) / sizeof(Point)) - 1;
+/// \endcode
 
 
   int i1;

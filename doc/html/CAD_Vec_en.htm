@@ -146,23 +146,35 @@ Vectors parallel or right-angled to existing objects.
 
 
 <b>Parallel Vector:</b>
-  Vector between 2 <a href="CAD_Base_en.htm#P">Points</a>; Length optional.
 
   Vector tangential to curve through point on this curve:
-    select circle or ellipse or B-Spline or Clothoid and -
-    point on this curve
+   Obj1              Line or curve or surface
+   [Point (on obj)]  point on this curve / surface
 
-  Vector parallel to main-axis (U-direction):
-    (until now only for plane, B-SplineSurface)
-    Plane: result is the X-axis of the plane.
-    Surface: direction of the isoparametric U-curve
-    Use Modifier "PARL"
+  Vector parallel to Vector or Line, cornerpoint
+    Obj1              direction - Vector or Line
+    [Point (on obj)]  Startpoint
+    [PT or VC]        point (cornerpoint)
+    PARL oder CX      PARL: Vector along Obj1 from Startpoint to cornerpoint
+                      CX:   Vector normal to direction
+                      default: normal to plane from Obj1 - cornerpoint
 
-  Vector parallel to V-axis (only for plane, surface)               
-    (until now only for plane, B-SplineSurface)
-    Plane: result is the Y-axis of the plane.
-    Surface: direction of the isoparametric V-curve
-    Use Modifier "CX"
+  Vector parallel to 2 points, cornerpoint
+    Obj1              Startpoint
+    [Point (on obj)]  point on Vector / Line
+    [PT or VC]        point (cornerpoint)
+    PARL oder CX      PARL: Vector along Startpoint - Point-on-OBj to cornerpoint
+                      CX:   Vector normal to Startpoint - Point-on-OBj
+                      default: normal to plane from 3 points
+
+  Vector in surface parallel to Isoparametric direction U or
+                      Isoparametric direction V
+    Obj1              surface oder plane
+    [Point (on obj)]  point on surface
+    PARL oder CX      PARL: vector at Point-on-OBj into direction U
+                      CX:   vector at Point-on-OBj into direction V
+                      default: vector at Point-on-OBjnormal to surface
+
 
 <b>Normal Vector:</b>
   Normal vector for circle or plane or ellipse

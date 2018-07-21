@@ -262,7 +262,7 @@ Separator {
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_tex.h"              // Tex_get_fn
 // #include "../xa/ut_ui_TX.h"            // TX_Print
-#include "../xa/xa.h"                  // AP_STAT WC_modnam
+#include "../xa/xa.h"                  // AP_STAT AP_mod_fnam
 
 
 
@@ -797,7 +797,7 @@ f 1 6 7
 /// \endcode
 
 static  int iMtl = -1;
-static MemTab(ColRGB) colTab = MemTab_empty;
+static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   int     i1, i2;
@@ -1815,7 +1815,7 @@ static MemTab(ColRGB) colTab = MemTab_empty;
 //================================================================
   int TSU_exp_fac (ObjGX *oxi) {
 //================================================================
-// see also TSU_tsu2tria_rec GL_Disp_sur
+// see also TSU_ntria_bMsh_p GL_Disp_sur
 
   int     i1, i2, i1Nr, i2Nr, iTyp;
   int     iTex;
@@ -2021,7 +2021,7 @@ static FILE *fpo = NULL;
     }
     // see also TSU_exp_init
     fprintf(fpo,"#VRML V2.0 utf8\n");
-    fprintf(fpo,"# Model %s       %s\n",WC_modnam,OS_date1());
+    fprintf(fpo,"# Model %s       %s\n",AP_mod_fnam,OS_date1());
 
     // create defCol -PROTO
     f1 = AP_defcol.cr; f1 /= 255;
@@ -2196,7 +2196,7 @@ static FILE *fpo = NULL;
       TSU_exp_Mod (-2, NULL);    // reset used-Model-buffer
       // init-Text mainModel TSU_exp_init !
       fprintf(TSU_fp,"#VRML V1.0 ascii\n");
-      fprintf(TSU_fp,"# Model %s       %s\n",WC_modnam,OS_date1());
+      fprintf(TSU_fp,"# Model %s       %s\n",AP_mod_fnam,OS_date1());
       fprintf(TSU_fp,"Separator {\n");
 
     //----------------------------------------------------------------
@@ -2219,7 +2219,7 @@ static FILE *fpo = NULL;
       TSU_exp_Mod (-2, NULL);    // reset used-Model-buffer
       // init-Text mainModel TSU_exp_init !
       // fprintf(TSU_fp,"#VRML V2.0 utf8\n");
-      // fprintf(TSU_fp,"# Model %s       %s\n",WC_modnam,OS_date1());
+      // fprintf(TSU_fp,"# Model %s       %s\n",AP_mod_fnam,OS_date1());
       TSU_exp_wrlInit (1,0);  // init export1.temp
       fprintf(TSU_fp,"Transform { children [\n");
 
@@ -2252,7 +2252,7 @@ static FILE *fpo = NULL;
   // ======== STL =====================================0
   if(TSU_ftyp == Mtyp_STL) {
     if(strlen(mnam) < 1) {       // init mainModel
-      fprintf(TSU_fp,"solid %s %s gCAD3D\n",WC_modnam,OS_date1());
+      fprintf(TSU_fp,"solid %s %s gCAD3D\n",AP_mod_fnam,OS_date1());
     // } else {                     // init subModel: nix tun ..
     }
   }
@@ -2261,7 +2261,7 @@ static FILE *fpo = NULL;
   // ======== OBJ =====================================0
   if(TSU_ftyp == Mtyp_OBJ) {
     if(strlen(mnam) < 1) {       // init mainModel
-      fprintf(TSU_fp,"# Model %s       %s\n",WC_modnam,OS_date1());
+      fprintf(TSU_fp,"# Model %s       %s\n",AP_mod_fnam,OS_date1());
     //----------------------------------------------------------------
     } else {                     // init subModel
       fprintf(TSU_fp,"#<<<<<<<<<<<<<< Beg. subModel %s\n",mnam);
@@ -2331,7 +2331,7 @@ static FILE *fpo = NULL;
   // ======== STL =====================================0
   if(TSU_ftyp == Mtyp_STL) {
     if(strlen(mnam) < 1) {          // mainModel
-      fprintf(TSU_fp,"endsolid %s\n",WC_modnam);
+      fprintf(TSU_fp,"endsolid %s\n",AP_mod_fnam);
     // } else {                     // subModel
     }
   }
@@ -2527,7 +2527,7 @@ static FILE *fpo = NULL;
   UTX_safeName (mnam, 1); // change '. /\\'
 
   
-  // AP_dir_save WC_modnam TSU_ftyp
+  // AP_dir_save AP_mod_fnam TSU_ftyp
   if(strlen(mnam) > 0) goto L_SM;      // goto main / subModel
 
 
@@ -2942,7 +2942,7 @@ static char  mStat[1024];
 
   TSU_errStat = 0;
   TSU_fnam = fnam;
-  TSU_ftyp = AP_ck_ftyp (mode);
+  TSU_ftyp = AP_iftyp_ftyp (mode);
     printf(" TSU_ftyp=%d\n",TSU_ftyp);
 
 
@@ -2970,7 +2970,7 @@ static char  mStat[1024];
   if(TSU_ftyp == Mtyp_WRL2) { 
     // get nr of basic-textures TexBasNr
     i1 = Tex_tbNr ();
-    pv1 = MEM_alloc_tmp (i1 * sizeof(int));
+    pv1 = MEM_alloc_tmp ((int)(i1 * sizeof(int)));
     TSU_exp_wrlProto (-i1, pv1);
   }
 

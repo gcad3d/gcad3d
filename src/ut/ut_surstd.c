@@ -276,12 +276,15 @@ List_functions_end:
 }
 
 
-//=================================================================
-  int UT3D_cv_scir__ (int *pNr, Point *pa, int paSiz, ObjGX *oxi) {
-//=================================================================
-// UT3D_cv_scir__            get boundary-points from SURCIR (tesselated fan)
-// returns array of points; max. 4
-// see also UT3D_cv_sru_ UT3D_cv_pls__
+//===========================================================================
+  int UT3D_cv_scir__ (int *pNr, Point *pa, int paSiz, ObjGX *oxi, int mode) {
+//===========================================================================
+/// \code
+/// UT3D_cv_scir__            get boundary-points from SURCIR (tesselated fan)
+///   mode   0=perm, fix PRCV; 1=temp, do not use PRCV; 2=unknown
+/// returns array of points; max. 4
+/// see also UT3D_cv_sru_ UT3D_cv_pls__
+/// \endcode
 
   int       i1, ityp;
   long      dbi;
@@ -297,7 +300,7 @@ List_functions_end:
   if(oxi->typ != Typ_SURCIR) goto L_err1;
 
   return UT3D_npt_obj (pNr, pa, paSiz,
-                       Typ_ObjGX, oxi->data, oxi->siz, UT_DISP_cv);
+                       Typ_ObjGX, oxi->data, oxi->siz, UT_DISP_cv, mode);
 
 
 /*
@@ -579,7 +582,7 @@ List_functions_end:
 
     // obj aus DB holen
     if(oxp1->form == Typ_Index) {
-      ind = (long)oxp1->data;
+      ind = LONG_PTR(oxp1->data);
       ox1 = DB_GetObjGX (oxp1->typ, ind);
     } else ox1 =  *oxp1;
     // printf("   c1: typ=%d form=%d\n",ox1.typ,ox1.form);
@@ -927,7 +930,7 @@ List_functions_end:
           pTab = (Point*)memSeg1->start;
           ptNr = UME_ck_free(memSeg1) / sizeof(Point);
           // CCV -> 3D-Polygon umwandeln
-          i1 = UT3D_pta_ox_lim (&ptNr, pTab, ox1.data, 0, NULL, UT_DISP_cv);
+          i1 = UT3D_pta_ox_lim (&ptNr, pTab, ox1.data, 0, NULL, UT_DISP_cv, 2);
           if(i1 < 0) return i1;
           // 3D-Polygon -> Plane
           UT3D_pl_pta (&pl1, ptNr, pTab);

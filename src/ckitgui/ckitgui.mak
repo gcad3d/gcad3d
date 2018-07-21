@@ -48,6 +48,10 @@ run:
 	make -f $(PRJNAM).mak
 	export LD_LIBRARY_PATH=$(gcad_dir_bin) && $(gcad_dir_bin)/$(PRJNAM)
 
+deb:
+	make -f $(PRJNAM).mak
+	export LD_LIBRARY_PATH=$(gcad_dir_bin) && gdb $(gcad_dir_bin)/$(PRJNAM) 
+
 
 .c.o:
 	$(CC) -c $(GUICP) $(CPDEB) $<

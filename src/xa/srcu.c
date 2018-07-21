@@ -90,14 +90,12 @@ see also:
 
 #include "../db/ut_DB.h"               // DB_
 
-#include "../xa/xa.h"                  // AP_STAT WC_modnam
+#include "../xa/xa.h"                  // AP_STAT AP_mod_fnam
 #include "../xa/xa_ed_mem.h"           // ObjSRC APED_onam_search
 #include "../xa/xa_ui.h"               // APF_EndTab,
 #include "../xa/xa_msg.h"              // MSG_read
 #include "../xa/xa_sele.h"             // Typ_goGeom
 #include "../xa/xa_mem.h"              // IE_outTxt
-
-
 
 
 
@@ -411,14 +409,13 @@ static double SRCU_val_cen;             // centervalue
 // returns max nr of sourceObjects in sourceString <sSrc> 
 // sSrc must be '\0'-terminated
 
-  int   its;
-
-  its = 10 + strlen(sSrc) / 2;
+  // int   its;
+  // its = 10 + strlen(sSrc) / 2;
   // its = 8 + (strlen(sSrc)/3);
 
     // printf("ex SRCU_tsMax %d\n",its);
 
-  return its;
+  return 6 + UTX_chrNr (sSrc) / 2;
 
 }
 
@@ -464,7 +461,7 @@ static double SRCU_val_cen;             // centervalue
   SRCU_ln_pri[ll] = '\0';
 
   // cut objName of SRCU_ln_pri
-  APED_onam_cut (SRCU_ln_pri);
+  APED_onam_cut (SRCU_ln_pri, NULL);
 
   // skip definition-header
   p2 = strchr (p1, '=');
@@ -490,7 +487,7 @@ static double SRCU_val_cen;             // centervalue
   itsMax = SRCU_tsMax (p2);
     // printf(" itsMax=%d siz=%d\n",itsMax,itsMax * sizeof(ObjTXTSRC));
 
-  tso = MEM_alloc_tmp (itsMax * sizeof(ObjTXTSRC));
+  tso = MEM_alloc_tmp ((int)(itsMax * sizeof(ObjTXTSRC)));
   // SRC_txo_getSpc__ (&tso); // get memspc & init
   itsAct = APED_txo_srcLn__ (tso, itsMax, p2);
     // printf(" _txo_srcLn__ %d\n",itsAct);
@@ -893,7 +890,7 @@ static double SRCU_val_cen;             // centervalue
 
 
   DL_hili_off (-1L);             //  -1 = unhilite all
-  GL_temp_delete ();              // unhilite vectors
+  GL_temp_del_all ();              // unhilite vectors
 
 
   // remove Toolbar
@@ -915,7 +912,7 @@ static double SRCU_val_cen;             // centervalue
 
   AP_User_reset ();
 
-  // GL_temp_delete (); // alle temp. obj loeschen ..
+  // GL_temp_del_all (); // alle temp. obj loeschen ..
 
   // // uncheck checkbox "Measure"
   // UI_ckb_meas (FALSE);
@@ -977,7 +974,7 @@ static double SRCU_val_cen;             // centervalue
   char   *p1;
 
 
-  static MemTab(ObjSRC) depTab = MemTab_empty;
+  static MemTab(ObjSRC) depTab = _MEMTAB_NUL;
 
 
   // printf("SRCU_work__ %d\n",mode);
@@ -1017,9 +1014,9 @@ static double SRCU_val_cen;             // centervalue
 
 
   // sort
-  ia1 = (int*)MEM_alloc_tmp (inr * sizeof(int));
+  ia1 = (int*)MEM_alloc_tmp ((int)(inr * sizeof(int)));
   if(!ia1) {TX_Error("SRCU_work__ EOM1"); return -1;}
-  ia2 = (int*)MEM_alloc_tmp (inr * sizeof(int));
+  ia2 = (int*)MEM_alloc_tmp ((int)(inr * sizeof(int)));
   if(!ia2) {TX_Error("SRCU_work__ EOM2"); return -1;}
   for(l1=0; l1 < inr; ++l1) ia1[l1] = depTab.data[l1].lnr;
   UTI_ni_ind_sort (ia2, ia1, inr); // sort

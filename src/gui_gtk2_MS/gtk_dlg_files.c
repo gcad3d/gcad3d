@@ -183,7 +183,7 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
     w2 = gtk_entry_new ();
     gtk_widget_set_size_request (w2, 40, ysiz); // DOES NOT WORK FOR GTK+3.2.0
     gtk_container_add (GTK_CONTAINER (box1), w2);
-    gtk_entry_set_text ((GtkEntry*)w2, filterI);
+    // gtk_entry_set_text ((GtkEntry*)w2, filterI);
     gtk_widget_show (w2);
 
 

@@ -33,7 +33,9 @@ void OS(){}
 \file  ../ut/ut_os_aix.c
 \brief opsys functions for unix (AIX, Linux)
 \code
-Includefile: ../ut/ut_os.h
+Needs:
+#include "../ut/ut_os.h"               // OS_ ..
+-ldl (unix)
 =====================================================
 List_functions_start:
 
@@ -46,6 +48,9 @@ OS_os_bits               returns 32 or 64
 OS_date                  Datum (als iyear, imon, iday) holen
 OS_date1                 Format: 2002/09/04-13:30:33
 OS_time                  Zeit (ihour, imin, isec) holen
+OS_timA_now              get timestamp-string "now"; |2017-10-14 10:32:07|
+OS_timA_diff_s           get difftime in seconds of two timestrings
+OS_tim_timA              get timestamp from time-string
 OS_rTime                 returns time in sec's, (res = mycrosec's)
 OS_prc_time_start        returns processor-time
 OS_prc_time_diff         returns processor-time
@@ -99,6 +104,7 @@ OS_file_waitExist        wait max <maxTim> secords for existence of file <fn>
 OS_file_readm1           read complete file into memory
 OS_file_zip              compress/uncompress file
 OS_file_concat           concatenate 2 files  (fno = fn1 + fn2)
+OS_file_compare_A        compare 2 files ascii
 OS_file_date_m           get last modification-date of file
 OS_FilSiz                query filesize
 OS_filterff              sort & filter file
@@ -106,6 +112,7 @@ OS_filterff              sort & filter file
 OS_dll_do                load dll, start function, unload dll
 OS_dll_run               load dll, start function, unload dll
 OS_dll__                 load dll| start function| unload dll
+OS_dll_build             (re)build dll
 OS_dll_close             close dll
 
 List_functions_end:
@@ -1343,6 +1350,99 @@ static char txbuf[256];
 
 
 //================================================================
+  int OS_timA_now (char *sts1) {
+//================================================================
+// get timestamp-string "now";  |2017-10-14 10:32:07|
+//   size of sts1 >= 32
+
+  long   i1;
+  time_t tim1;        // timestamp
+  struct tm *ts1;      // time-structure
+
+
+  // get tim1 = timestamps "now"
+  tim1 = time (0);
+
+  // get time-structure ts1 from timestamp tim1
+  ts1 = localtime (&tim1);
+
+  // get sts1 = timestamp-string sts1 from time-structure ts1
+  strftime (sts1, 32, "%Y-%m-%d %H:%M:%S", ts1);
+    printf ("  ex OS_timA_now |%s|\n",sts1);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_tim_timA (struct tm *tm, char *stA) {
+//================================================================
+/// \code
+/// OS_tim_timA            get timestamp from time-string
+/// timestring format: |2017-10-14 10:32:07|
+/// \endcode
+
+
+  int    iy, im, id;
+
+  // printf("OS_tim_timA |%s|\n",stA);
+
+
+  sscanf (stA, "%4d-%2d-%2d %2d:%2d:%2d",
+          &iy, &im, &id,
+          &tm->tm_hour, &tm->tm_min, &tm->tm_sec);
+
+
+  tm->tm_year = iy - 1900;
+  tm->tm_mon  = im - 1;
+  tm->tm_mday  = id;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_timA_diff_s (double *dd, char *sts1, char *sts2) {
+//================================================================
+/// \code
+/// get difftime in seconds of two timestrings
+/// timestring format: |2017-10-14 10:32:07|
+/// see OS_timA_now
+/// \endcode
+
+  time_t tim1, tim2;         // timestamps
+  struct tm ts1, ts2;        // time-structure
+
+  // get time-structure ts1 from timestamp-string sts1
+  memset(&ts1, 0, sizeof(struct tm));
+  // strptime(sts1, "%Y-%m-%d %H:%M:%S", &ts1);
+  OS_tim_timA (&ts1, sts1);
+
+  // make unix-timestamp tim1 from time-structure ts1
+  tim1 = mktime (&ts1);
+
+
+  // get time-structure ts2 from timestamp-string sts2
+  memset(&ts2, 0, sizeof(struct tm));
+  // strptime(sts2, "%Y-%m-%d %H:%M:%S", &ts2);
+  OS_tim_timA (&ts2, sts2);
+
+  // make unix-timestamp tim2 from time-structure ts1
+  tim2 = mktime (&ts2);
+
+
+  // get d1 = Diff.Time in Sec (nur auf Sec. genau) als double !
+  *dd = difftime (tim1, tim2);
+    printf ("ex-OS_timA_diff_s %f secs\n",*dd);
+
+  return 0;
+
+}
+
+
+//================================================================
   double OS_prc_time_diff (double timStart) {
 //================================================================
 /// \code
@@ -1427,7 +1527,10 @@ static char txbuf[256];
 //======================== Perform OS - Command =========
   int OS_system (char *buf) {
 //======================== Perform OS - Command =========
+/// \code
 /// OS_system                  Perform OS-Command; wait for completion (system)
+///   do not wait: use OS_exec
+/// \endcode
 
 // Spezialversion fuer AIX + CATIA.
 
@@ -1494,7 +1597,10 @@ static char txbuf[256];
 //================================================================
   int OS_exec (char* txt) {
 //================================================================
+/// \code
 /// OS_exec                  Perform OS-Command; do not wait for completion.
+///   do wait: use OS_system
+/// \endcode
 
 // es geht nur system mit &
 
@@ -2126,8 +2232,8 @@ static char txbuf[256];
 
   sprintf(cbuf,"cp -f \"%s\" \"%s\"",oldNam,newNam);
   // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
-
   printf("OS_file_copy |%s|\n",cbuf);
+
   return system (cbuf);
 
   // return 0;
@@ -2155,12 +2261,14 @@ static char txbuf[256];
 //========================================================================
   int OS_file_delete (char *fNam) {
 //========================================================================
+/// \code
 /// delete File; NO Wildcards !
-// MS u Unix gleich.
+/// MS u Unix gleich.
+/// retCod: 0=OK; -1=Error.
+/// \endcode
 
 
-  remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
-  return 0;
+  return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
 
 }
 
@@ -2314,6 +2422,61 @@ static int   (*up1)();
 }
 
 
+///===================================================================
+  int OS_dll_build (char *dllNam) {
+///===================================================================
+/// \code
+/// OS_dll_build             (re)build dll
+/// wenn .mak vorh: compile/link
+/// \endcode
+
+// dllNam   zB "xa_ige_r.so"   (ohne Pfad, mit Filetyp).
+
+  int  irc;
+  char cbuf[256];         // char cbuf[512];
+
+
+
+  printf("OS_dll_build |%s|\n",dllNam);
+
+
+  // sprintf(cbuf, "%sxa/%s",OS_get_bas_dir(),dllNam);
+  sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+  // ".so" -> ".mak"
+  strcpy(&cbuf[strlen(cbuf)-3], ".mak");
+    printf(" exist: |%s|\n",cbuf);
+  if(OS_checkFilExist (cbuf, 1) == 0) goto L_err_nof;
+
+
+  TX_Print(".. compile .. link .. %s",dllNam);
+
+
+  // sprintf(cbuf, "cd %sxa;make -f %s",OS_get_bas_dir(),dllNam);
+  sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
+    printf(" OS_dll_build 2 |%s|\n",cbuf);
+
+
+  // ".so" -> ".mak"
+  strcpy(&cbuf[strlen(cbuf)-3], ".mak OS=");
+  strcat(cbuf, OS_os_s());
+    // printf(" .. cbuf1 2 |%s|\n",cbuf);
+  // "make -f %s.mmak"
+  printf("|%s|\n",cbuf);
+
+
+  irc = system(cbuf);
+  if(irc != 0) TX_Error("Error build %s",dllNam);
+
+  return irc;
+
+  L_err_nof:
+    TX_Print("***** %s does not exist ..",cbuf);
+
+    return 0;
+
+}
+
+
 //================================================================
   int OS_dll_close (void **dl1) {
 //================================================================
@@ -2451,7 +2614,7 @@ static int   (*up1)();
     sprintf(s1, "%s.so",(char*)fDat);
       printf(" dll=|%s|\n",s1); fflush(stdout);
   
-    if(DLL_build__ (s1) != 0) {
+    if(OS_dll_build (s1) != 0) {
        TX_Error("OS_dll__: compile/link %s",s1);
        return -1;
     }
@@ -2645,6 +2808,26 @@ static int   (*up1)();
 
 
 //================================================================
+  int OS_file_compare_A (char *fn1, char *fn2) {
+//================================================================
+// OS_file_compare_A                   compare 2 files ascii
+// RetCode: 0=files_not_different, -1=different_files.
+// MS-Win: FC
+
+  char   s1[280];
+
+
+  sprintf (s1, "diff -q %s %s", fn1, fn2);
+  // returns 0 for identical files
+  // sprintf (s1, "cmp -s %s %s", fn1, fn2);
+
+
+  return OS_system (s1);
+
+}
+
+
+//================================================================
   char* OS_get_imgConv1  () {
 //================================================================
 /// returns jpg2bmp-converter-program; eg /usr/bin/djpeg
@@ -2664,7 +2847,7 @@ static int   (*up1)();
 
 
   // printf(" **** jpg2bmp-converter djpeg does not exist\n");
-  MSG_pri_1 ("NOEX_fil", "jpg2bmp-converter");
+  MSG_pri_1 ("NOEX_fil", "jpg2bmp-converter djpeg");
 
 
   return "";
@@ -2689,7 +2872,7 @@ static int   (*up1)();
 
   if(iStat > 0) return &fn1[0];
 
-  MSG_pri_1 ("NOEX_fil", "bmp2jpg-converter");
+  MSG_pri_1 ("NOEX_fil", "bmp2jpg-converter cjpeg");
 
   return "";
 

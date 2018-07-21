@@ -671,7 +671,7 @@ static char  *GUI_ed1_lcSet;
   GtkTextIter it1;
 
 
-  printf("GUI_edi_Write %ld %ld\n",*txlen,maxlen);
+  // printf("GUI_edi_Write %ld %ld\n",*txlen,maxlen);
   // printf(" FilBuf0: %c %c %c %c\n",txbuf[0],txbuf[1], txbuf[2],txbuf[3]);
   // printf("|"); UTX_dump_c__(txbuf,(int)*txlen);printf("|");
   // printf("|"); UTX_dump_s__(txbuf,(int)*txlen);printf("|");

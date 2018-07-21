@@ -102,7 +102,7 @@ List_functions_end:
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
 #include "../xa/xa_mem.h"              // mem_cbuf1
-#include "../xa/xa.h"                  // WC_modact_nam_nam
+#include "../xa/xa.h"                  // AP_modact_nam_nam
 
 #include "../exp/prt_w.h"              // ich
 
@@ -695,7 +695,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
   fprintf(fp1, "%%!PS-Adobe-2.0 EPSF-2.0\n");
-  fprintf(fp1, "%%%%Title: %s\n",WC_modnam);
+  fprintf(fp1, "%%%%Title: %s\n",AP_mod_fnam);
   fprintf(fp1, "%%%%CreationDate: %s\n", OS_date1());
 
 
@@ -942,7 +942,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
   fprintf(fp1, "%%!PS-Adobe-2.0 EPSF-2.0\n");
-  fprintf(fp1, "%%%%Title: %s\n",WC_modnam);
+  fprintf(fp1, "%%%%Title: %s\n",AP_mod_fnam);
   fprintf(fp1, "%%%%CreationDate: %s\n", OS_date1());
 
   if(irot == 0) {
@@ -1461,7 +1461,7 @@ PS - Bitmap; unused.
   fprintf(fp1, "/scanline %d 1 mul string def\n",iw);
   fprintf(fp1, "%d %d 8 [ %d 0 0 %d 0 0 ]\n",iw,ih,iw,ih);
   fprintf(fp1, "{ currentfile scanline readhexstring pop } image\n");
-  // fprintf(fp1, "%s  // Open-baseDir\n",AP_dir_open);
+  // fprintf(fp1, "%s  // Open-baseDir\n",AP_mod_dir);
 
   // in Datei raus
   AP_PrintWrHex (fp1, (unsigned char*)dat, ilen, igray);

@@ -228,7 +228,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
 
   // APP_browse__ (LOG_A_fnam);
-  APP_edit (LOG_A_fnam);
+  APP_edit (LOG_A_fnam, 0);
 
   if(istat) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {

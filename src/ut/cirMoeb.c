@@ -1003,12 +1003,12 @@ L_outOfSpace:
 
     // tangents of circle parallel to line
     UT2D_pt_tranorptvclen (&qt, &(ci2->pc), &v1, fabs(ci2->rad));
-    if (UT2D_sid_ptvc (&qt, &(ln1->p1), &v1) != 0) {
+    if (UT2D_sid_ptvc__ (&qt, &(ln1->p1), &v1) != 0) {
       UT2D_ln_ptvc (&lT[*nrt], &qt, &v1);	    
       ++(*nrt);
     }	    
     UT2D_pt_tranorptvclen (&qt, &(ci2->pc), &v1, -fabs(ci2->rad));
-    if (UT2D_sid_ptvc (&qt, &(ln1->p1), &v1) != 0) {
+    if (UT2D_sid_ptvc__ (&qt, &(ln1->p1), &v1) != 0) {
       UT2D_ln_ptvc (&lT[*nrt], &qt, &v1);	    
       ++(*nrt);
     }	    
@@ -1021,7 +1021,7 @@ L_outOfSpace:
     pt2 = (Point2*)ox2->data;
 
     // parallel line through point
-    if (UT2D_sid_ptvc (pt2, &(ln1->p1), &v1) != 0) {
+    if (UT2D_sid_ptvc__ (pt2, &(ln1->p1), &v1) != 0) {
       UT2D_ln_ptvc (&lT[0], pt2, &v1);
       *nrt = 1;
     }      
@@ -1133,12 +1133,12 @@ L_outOfSpace:
 
     // touch points of parallel lines (to lines 1,2) on circle ci3
     UT2D_pt_tranorptvclen (&qT[nrq], &(ci3->pc), &v1, fabs(ci3->rad));
-    if (UT2D_sid_ptvc (&qT[nrq], &(ln1->p1), &v1) != 0) {
-      if (UT2D_sid_ptvc (&qT[nrq], &(ln2->p1), &v1) != 0) ++nrq;
+    if (UT2D_sid_ptvc__ (&qT[nrq], &(ln1->p1), &v1) != 0) {
+      if (UT2D_sid_ptvc__ (&qT[nrq], &(ln2->p1), &v1) != 0) ++nrq;
     }
     UT2D_pt_tranorptvclen (&qT[nrq], &(ci3->pc), &v1, -fabs(ci3->rad));
-    if (UT2D_sid_ptvc (&qT[nrq], &(ln1->p1), &v1) != 0) {
-      if (UT2D_sid_ptvc (&qT[nrq], &(ln2->p1), &v1) != 0) ++nrq;
+    if (UT2D_sid_ptvc__ (&qT[nrq], &(ln1->p1), &v1) != 0) {
+      if (UT2D_sid_ptvc__ (&qT[nrq], &(ln2->p1), &v1) != 0) ++nrq;
     }
   }
 
@@ -1191,8 +1191,8 @@ L_outOfSpace:
     }	      
 
     // point pt3
-    if (UT2D_sid_ptvc (pt3, &(ln1->p1), &v1) != 0) {
-      if (UT2D_sid_ptvc (pt3, &(ln2->p1), &v1) != 0) {
+    if (UT2D_sid_ptvc__ (pt3, &(ln1->p1), &v1) != 0) {
+      if (UT2D_sid_ptvc__ (pt3, &(ln2->p1), &v1) != 0) {
 	qT[0] = *pt3;      
         nrq = 1;
       }	      
@@ -1610,7 +1610,7 @@ L_outOfSpace:
       pt2 = (Point2*)(ox2->data);
       // LINE-POINT intersection
       UT2D_vc_ln (&vc, ln1);
-      if (UT2D_sid_ptvc (pt2, &(ln1->p1), &vc) == 0) {
+      if (UT2D_sid_ptvc__ (pt2, &(ln1->p1), &vc) == 0) {
         *xp1 = *xp2 = *pt2;
 	return 1;
       }
@@ -1633,7 +1633,7 @@ L_outOfSpace:
       ln2 = (Line2*)(ox2->data);
       // POINT-LINE intersection
       UT2D_vc_ln (&vc, ln2);
-      if (UT2D_sid_ptvc (pt1, &(ln2->p1), &vc) == 0) {
+      if (UT2D_sid_ptvc__ (pt1, &(ln2->p1), &vc) == 0) {
         *xp1 = *xp2 = *pt1;
 	      return 1;
       }	      

@@ -822,7 +822,7 @@ char myMemspc[50000];
 
 
   // 1.obj: define typ of supporting surface (planar)
-  OGX_SET_OBJ (&oa[0], Typ_Typ, Typ_Int4, 1, (void*)Typ_SURPLN);
+  OGX_SET_OBJ (&oa[0], Typ_Typ, Typ_Int4, 1, PTR_INT(Typ_SURPLN));
 
   // 2.obj: boundary; 3,4: holes
   OGX_SET_INDEX (&oa[1], Typ_CV, id1);

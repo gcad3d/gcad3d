@@ -2,8 +2,11 @@
 # help usage                        ./do h 
 # Development-Start gcad3d          ./do
 
+# must be started in directory ${DIR_DEV}gcad3d/src/APP/
 
-# get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
+
+
+# get DIR_DEV DIR_BIN gcad_dir_dev gcad_dir_bin
 . ../options.sh
 
 echo "gcad_dir_dev: " ${gcad_dir_dev}
@@ -24,10 +27,11 @@ if test "$1" = "help"; then
   echo "./do c                 # compile & link core"
   echo "./do all               # compile & link corelibs"
   echo "./do allDemos          # compile & link demos"
-# echo "./do cp2serv1          # copy -> server before build"
+  echo "./do processes         # compile & link NC-processes"
+  echo "./do fDep              # compile & link list of files (see fDep.sh)"
   echo "./do *.mak             # link a plugin (for the first time)"
   echo "./do                   # start"
-  echo "./do d                 # start with debugger"
+  echo "./do debug             # start with debugger"
   echo "./do trc               # start with mtrace"
   echo "./do ud                # display userDoc"
   echo "./do dd                # display devDoc"
@@ -37,26 +41,25 @@ if test "$1" = "help"; then
   echo "./do g2                # display ut_geo3d.c"
   echo "./do g3                # display ut_geo3d.c"
   echo "./do gmon              # analyze time"
-  echo "./do setup             # Customize the development environment"
   echo "./do edm               # edit model"
+  echo "./do msg-files         # tools for language-files: ls lang*.csh"
   exit 0
 fi
 
 
-
+# rebuild all
 if test "$1" = "complete"; then
-  ./del_obj.sh
-# create xa_gui_(VGUI).so
-  make -f gcad_gui__.mak
-# create link xa_gui.so <- xa_gui_(VGUI).so
-  make -f gcad_gui__.mak link
+./del_obj.sh
+# create xa_gui_(VGUI).so and create link xa_gui.so <- xa_gui_(VGUI).so
+./do gui-gtk2
+./do gui-gtk3
 # create core
-  make -f gcad3d.mak
+./do c
 # create core-dll's
-  make -f gcad3d.mak all
+./do all
 # create demo-plugins
-  make -f gcad3d.mak allDemos
-  exit 0
+./do allDemos
+exit 0
 fi
 
 
@@ -66,54 +69,82 @@ if test "$1" = "delete"; then
 fi
 
 
+if test "$1" = "gui-gtk2"; then
+# test if gtk2 installed and set as active gui-version          
+../gui_version_set.sh gtk2
+if [ $? -ne 0 ] ; then
+  exit 0
+fi
+# compile ..
+./do guiinit
+  exit 0
+fi
+
+
+if test "$1" = "gui-gtk3"; then
+# test if gtk3 installed and set as active gui-version
+../gui_version_set.sh gtk3
+if [ $? -ne 0 ] ; then
+  exit 0
+fi
+# compile ..
+./do guiinit
+  exit 0
+fi
+
+
+
 if test "$1" = "guiinit"; then
-  vi ../options.mak
   make -f gcad_gui__.mak delete
-  make -f gcad_gui__.mak
+  make -f gcad_gui_lnk.mak
   make -f gcad_gui__.mak link
   exit 0
 fi
 
 
+# compile active gui-lib
 if test "$1" = "gui"; then
-  make -f gcad_gui__.mak
+  make -f gcad_gui_lnk.mak
   make -f gcad_gui__.mak link
   exit 0
 fi
 
 
-#if test "$1" = "cp2serv1"; then
-#  cp -f ${gcad_dir_bin}/gCAD3D ${DirBinSer}/.
-#  cp  -f ${gcad_dir_bin}/*.so ${DirBinSer}/.
-#  cp -rf ${gcad_dir_bin}/plugins ${DirBinSer}/.
-#  exit 0
-#fi
-
-
+# compile core; gui-libs must already exist
 if test "$1" = "c"; then
   rm -f *.o
   make -f gcad3d.mak
   exit 0
 fi
 
+
+# build gcad3d-coreLibs
 if test "$1" = "all"; then
   make -f gcad3d.mak all
   exit 0
 fi
 
+
+# build gcad3d-plugins
 if test "$1" = "allDemos"; then
   make -f gcad3d.mak allDemos
   exit 0
 fi
 
-if test "$1" = "guiinit"; then
-  ./gui_init.sh
+
+# build gcad3d-NC-processes
+if test "$1" = "processes"; then
+  make -f gcad3d.mak processes   ????
   exit 0
 fi
 
-if test "$1" = "gui"; then
-  make -f xa_gui_gtk.mak
-  make link -f gui_util.mak
+
+
+if test "$1" = "fDep"; then
+  rm -f *.o
+  # create fDep.txt = list of file ; input = file t1 created by cbrowse !
+  ./fDep.sh
+  make -f gcad3d.mak
   exit 0
 fi
 
@@ -127,6 +158,7 @@ if test "$1" = "dd"; then
   exit 0
 fi
 
+# ReCreate development-documentation (doxygen must be installed):
 if test "$1" = "udd"; then
   cd ../../doc && ./gcad_doxygen.sh > t1
   exit 0
@@ -157,12 +189,6 @@ if test "$1" = "edm"; then
   exit 0
 fi
 
-if test "$1" = "setup"; then
-  ./dev_setup.sh
-  ./do complete
-  exit 0
-fi
-
 
 # check filetyp
 ftyp=`echo $1 | cut -d"." -f2-`
@@ -189,12 +215,12 @@ if [ "$OSTYPE" = "Linux" ] ; then
 
 
 # icons; if not set: /usr/share/gcad3d/
-  export gcad_dir_bas=${gcad_dir_dev}/
+# export gcad_dir_bas=${gcad_dir_dev}
 
 # executables (shared-libs ..)
 # export gcad_dir_bin=${DirBasSer}/gCAD3D/binLinux${bitNr}/
 # export gcad_dir_bin=${DirBasSer}/binLinux${bitNr}/
-  export gcad_dir_bin=${gcad_dir_bin}/
+# export gcad_dir_bin=${gcad_dir_bin}
   export LD_LIBRARY_PATH=${gcad_dir_bin}
 
 # def is /usr/share/gcad3d/
@@ -239,7 +265,7 @@ if [ "$1" = "gmon" ] ; then
 
 #-----------------------------------------------------
 # d = debug
-elif [ "$1" = "d" ] ; then
+elif [ "$1" = "debug" ] ; then
   gdb ${exeNam} $* -x gCAD3D.gdb
   #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0

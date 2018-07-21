@@ -31,7 +31,7 @@ enum Typ_Cmd1 {
    T_DIM,       T_DIMA,      T_LDR,       T_LOFT,      T_FSUB,      // 35-39
    T_PRJ,       T_TRA,       T_ROT,       T_MIR,       T_TXA,       // 40-44
    T_DIMD,      T_DIMR,      T_DIM3,      T_REC,       T_INT,       // 45-49
-   T_RSYS,      T_51_UNUSED, T_RBSP,      T_ARC1,      T_CTRL,      // 50-54
+   T_RSYS,      T_REPL,      T_RBSP,      T_ARC1,      T_CTRL,      // 50-54
    T_LDRP,      T_LDRC,      T_LDRS,      T_CTLG,      T_ISO,       // 55-59
    T_FW,        T_CX,        T_PTAB,      T_MSH,       T_CLOT,      // 60-64
    T_TNG,       T_IMP,       T_BSP1,      T_PARL,      T_BLEND,     // 65-69
@@ -53,9 +53,9 @@ int    APT_decode_inp    (int , int *, double *);
 int    APT_decode_ccv2   (ObjGX *cv1,int aus_anz,int aus_typ[],double aus_tab[]);
 
 
-int    APT_decode_ausdr (int *aus_typ,double *aus_tab,int aus_siz,char** data);
-int    APT_decode_ausdr1 (int* aus_typ,double* aus_tab,int aus_siz,char* data);
-int    APT_decode_func(int* w_typ,double* w_tab,int w_siz,char* func,char* ausd);
+// int    APT_decode_ausdr (int *aus_typ,double *aus_tab,int aus_siz,char** data);
+// int    APT_decode_ausdr1 (int* aus_typ,double* aus_tab,int aus_siz,char* data);
+// int    APT_decode_func(int* w_typ,double* w_tab,int w_siz,char* func,char* ausd);
 
 int    APT_store_obj     (int*,  long*,  int,  int*,  double*);
 
@@ -64,7 +64,7 @@ char*  APT_cp_ausd       (char*, char*, int);
 char*  APT_get_Val       (double*, char*, double);
 char*  APT_get_Txt       (char*, char*, double);
 void   APT_get_TxAll     (char* outBuf, char* inBuf, double offset);
-void   APT_get_String    (char*, char*, double);
+int    APT_get_String    (char*, char*, double);
 int    APT_solv_mod      (Point2 *, int);
 int    APT_solv_mod_1    (Point2 *, int, int *, int);
 int    APT_solv_x_max    (double *, Point2 *, int, int *);

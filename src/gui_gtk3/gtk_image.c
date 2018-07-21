@@ -73,7 +73,7 @@ see tst_gtk_image.c
 // local vars:
 static int       icoNr;
        GdkPixbuf **IcoTab;
-static GtkWidget  *TUT_win;
+static GtkWidget  *TUT_win=NULL;
 
 
 
@@ -82,6 +82,8 @@ static GtkWidget  *TUT_win;
 extern GtkWidget *UI_act_wi;
 
 
+#define VIEWTIME_T 400
+#define VIEWTIME_M 200
 
 
 //================================================================
@@ -128,6 +130,8 @@ extern GtkWidget *UI_act_wi;
 /// Input: ii=mousebutton; 1|2|3
 /// \endcode
 
+
+  int        i1;
   GtkWidget  *img;
   GdkScreen  *screen;
   GdkVisual  *visual;
@@ -135,6 +139,12 @@ extern GtkWidget *UI_act_wi;
 
 
   // printf("GUI_TUT_m__ %d\n",ii);
+
+
+  // if(GTK_IS_WINDOW(TUT_win))
+  // i1 = gtk_window_is_active(GTK_WINDOW(TUT_win)); // 0=yes, 1=no
+  // if(i1)
+    // { printf(" GUI_TUT_m__ skip..\n"); return 0;}
 
 
   TUT_win = gtk_window_new (GTK_WINDOW_POPUP);
@@ -184,7 +194,7 @@ extern GtkWidget *UI_act_wi;
 
 
   // start timer for window-removal
-  g_timeout_add (800, GUI_TUT_CB_tmr, TUT_win);
+  g_timeout_add (VIEWTIME_M, GUI_TUT_CB_tmr, TUT_win);
 
 
   return 0;
@@ -222,7 +232,7 @@ extern GtkWidget *UI_act_wi;
                          gdk_cursor_new (GDK_BLANK_CURSOR));
 
   // start timer for window-removal
-  g_timeout_add (800, GUI_TUT_CB_tmr, TUT_win);
+  g_timeout_add (VIEWTIME_T, GUI_TUT_CB_tmr, TUT_win);
 
   return 0;
 

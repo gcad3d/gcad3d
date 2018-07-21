@@ -37,8 +37,8 @@ void OGX_SET_OBJ (ObjGX *ox, int oTyp, int oForm, int oSiz, void *oDat);
 /// aux is used with binary-meshes for the type of faces;
 /// replaces: ox.typ   = oTyp;
 ///           ox.form  = oForm;           // type of oDat
-///           ox.siz   = oSiz;            // size of oDat
-///           ox->data = (void*)oDat;
+///           ox.siz   = oSiz;            // number of records in *data;
+///           ox->data = (void*)oDat;     // data; structure = oForm
 ///           ox->aux  = (int)aux;        // eg GL_TRIANGLE_FAN
 /// \endcode
 void OGX_SET_OBJ_aux (ObjGX *ox, int typ, int form, int siz, void *dat, int aux);
@@ -101,7 +101,7 @@ void OGX_SET_Float8 (ObjGX *ox, int f8typ, double *float8);
 ///           ox.typ   = dbTyp;
 ///           ox->data = (void*)int4;
 /// \endcode
-void OGX_SET_INT (int *typ, int *subTyp, ObjGX *ox);
+void OGX_SET_INT (int *typ, int *ival, ObjGX *ox);
 #define OGX_SET_INT(dbTyp,ii4,ox){\
   (ox)->typ = (dbTyp);\
   (ox)->form = Typ_Int4;\
@@ -110,10 +110,19 @@ void OGX_SET_INT (int *typ, int *subTyp, ObjGX *ox);
 
 
 
-/// \brief OGX_SET_INT  create complexObject (ObjGX) from (typ, int4)
+/// \brief OGX_GET_INT              get index out of complexObject
+/// \code
+/// replaces: (int)ind = (long)oxi->data;   (if oxi->form == Typ_Index)
+/// \endcode
+#define OGX_GET_INT(ox)\
+  (long)(ox)->data
+
+
+
+/// \brief OGX_SET_COLOR       create complexObject (ObjGX) from (typ, int4)
 /// \code
 /// replaces: ox.form  = Typ_Int4;
-///           ox.typ   = dbTyp;
+///           ox.typ   = Typ_Color;
 ///           ox->data = (void*)int4;
 /// \endcode
 void OGX_SET_COLOR (ObjGX *ox, ColRGB *col);
@@ -124,13 +133,19 @@ void OGX_SET_COLOR (ObjGX *ox, ColRGB *col);
   (ox)->data = (void*)(*((long*)(col)));}
 
 
+/// \brief OGX_GET_COLOR      get pointer to Typ_Color
+// #define OGX_GET_COLOR(ox)\
+  // (ColRGB)(ox)->data
 
-/// \brief OGX_GET_INT              get index out of complexObject
-/// \code
-/// replaces: (int)ind = (long)oxi->data;   (if oxi->form == Typ_Index)
-/// \endcode
-#define OGX_GET_INT(ox)\
-  (long)(ox)->data
+
+// INCLUDE_FULL defined only in ../ut/ut_ox_base.c
+#define _OGX_NUL { 0, 0, NULL, 0, 0, 0 }
+#ifndef INCLUDE_FULL
+extern ObjGX OGX_NUL;
+#else
+ObjGX OX_NUL = _OGX_NUL;
+#endif
+
 
 
 

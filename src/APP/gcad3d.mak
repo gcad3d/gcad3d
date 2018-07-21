@@ -4,7 +4,8 @@
 # make all                     build all basis-DLL's xa_XX.so
 # make allDemos                build all demo-DLL's xa_XX.so
 #
-# gcad_dir_dev and gcad_dir_bin must be set (. ../options.sh)
+# USING SYMBOLS (. ../options.sh):
+# gcad_dir_dev gcad_dir_bin hTyp
 #
 
 #OPSYS = `uname`
@@ -16,28 +17,28 @@ EXENAM  = gCAD3D
 include gcad_src.mak
 
 
-# get VGUI BITS OS CC MK
-include ../options.mak
+# get VGUI 
+VGUI := $(shell cat ../gcad_gui_version)
 
 
 # get debug-settings DEB CPDEB LKDEB
 include deb.umak
 
 
-## get SRCGUI (filList), GUICP (compile with gui), GUILIB (link with gui)
-#include ../gui/gui_$(VGUI).mak
-
-
 # OpenGL-binding: SRCGLB GLBLIB
-include glb_$(OS).mak
+#include glb_$(OS).mak
+SRCGLB = ../xa/GL_C-KIT.c
+
 
 
 # OpenGL: get OGLLIB
-include ogl.mak
+#include ogl.mak
+OGLLIB = -lGLU -lGL
 
 
 # get SRCOS
-include srcOS.mak
+#include srcOS.mak
+SRCOS = ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
 
 
 # get OBJ* from SRC* and VPATH
@@ -68,11 +69,9 @@ LKFLG = $(LKDEF) $(LKDEB) -rdynamic
 
 
 #=============================================================
-# Mainmodule linken und das tagfile fuer alle obj3-sourcen machen
-#default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGUI) $(OBJGLB) $(OBJOS)
+# create core
 default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 	@echo "====================== link ======================"
-	@echo "OS=" $(OS) 
 	@echo "gcad_dir_bin=" $(gcad_dir_bin) 
 #	@echo "OBJ1=" $(OBJ1) "==================="
 #	@echo "SRC3=" $(SRC3) "==================="
@@ -96,7 +95,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 #endif
 
 #	if test $(gcad_dir_bin) != $(DIRBIN); then mv -f $(gcad_dir_bin)/$(EXENAM) $(DIRBIN)/.; fi
-	ctags --excmd=number -f ../tags/src_h.tag $(SRC3)
+	ctags -f ../tags/src_h.tag $(SRC3)
 
 #	ctags --excmd=number -f ut.tag $(SRCG)
 #	etags -f ut.tag $(SRCG) $(SRC3)
@@ -107,23 +106,27 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 #=============================================================
 # Alle Basis-DLL's xa_XX.so linken
 all:
-	@echo "link core-dll's, MK=|"$(MK)"|"
-	find . -maxdepth 1 -name "xa_*.mak" -exec $(MK) -f {} "OS=${OS}" \;
+	@echo "link core-dll's .."
+	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} \;
+#	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "OS=${OS}" \;
 
 
 
 #=============================================================
 # Alle Demo-DLL's xa_XX.so linken
 allDemos:
+	@echo "link plugins .."
 # test if plugins/ exist - else create
 	mkdir -p "$(gcad_dir_bin)/plugins"
 #	if [ ! -f "$(gcad_dir_bin)/plugins" ]; then\
 # mkdir "$(gcad_dir_bin)/plugins";\
 # fi
-	find . -maxdepth 1 -name "Demo*.mak" -exec $(MK) -f {} "OS=${OS}" \;
-	find . -maxdepth 1 -name "APP_*.mak" -exec $(MK) -f {} "OS=${OS}" \;
-	find . -maxdepth 1 -name "PRC_*.mak" -exec $(MK) -f {} "OS=${OS}" \;
+	find . -maxdepth 1 -name "Demo*.mak" -exec make -f {} \;
+	find . -maxdepth 1 -name "APP_*.mak" -exec make -f {} \;
+	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} \;
+#	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} "OS=${OS}" \;
 	# link PP's for PRC_cut1
+	mkdir -p "$(gcad_dir_bin)plugins/cut1"
 	make -f ../prc/cut1/G-Code.mak
 #	$(MK) -f 3Dfrom2D.mak "OS=${OS}"
 
@@ -165,6 +168,7 @@ objlst:
 
 #=============================================================
 # write list of all sourcefiles into file files; see gcad_src.mak
+# used for cscope, DocuDevel (doxygen)
 srclst:
 	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
@@ -172,7 +176,7 @@ srclst:
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
-	@echo ../xa/tst*.c >> srcFiles
+	@echo ../xa/test*.c ../xa/tst*.c ../xa/infotext*.c >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../APP/Demo*.c >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles

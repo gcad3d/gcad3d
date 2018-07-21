@@ -1,4 +1,6 @@
 @echo off
+:: Create the MS-Windows package; selfextracting, eg gCAD3D-2.40-win32.exe
+:: Software-Layout see ../../doc/html/SW_layout_en.htm
 
 REM =====================================================================
 REM create <outDir>\gCAD3D-<version>.exe
@@ -88,6 +90,7 @@ copy gCAD3D.ico                  %outDirP%\.
 copy unInstall.ico               %outDirP%\.
 copy ..\doc\gCAD3D_MS-Win.txt    %outDirP%\doc\.
 
+REM gcad3d.bat is created by gCAD3D.nsi
 
 
 
@@ -109,11 +112,11 @@ copy ..\icons\*                  %outDirP%\icons\.
 
 
 REM Startmodell 
-copy %dirMdl%\sample_activity_modval_1.gcad     %outDirD%\tmp\Model
+REM copy %dirMdl%\sample_activity_modval_1.gcad     %outDirD%\tmp\Model
 
 REM copy Demomodelle -> dat
 copy %dirMdl%\samp*.*              %outDirD%\dat\.
-copy %dirMdl%\Renault1.gcad        %outDirD%\dat\.
+REM copy %dirMdl%\Renault1.gcad        %outDirD%\dat\.
 copy %dirMdl%\Haus1.gcad           %outDirD%\dat\.
 copy %dirMdl%\Haus*.jpg            %outDirD%\dat\.
 copy %dirMdl%\DachWS4.jpg          %outDirD%\dat\.

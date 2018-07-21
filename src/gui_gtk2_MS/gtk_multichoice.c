@@ -609,6 +609,9 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
     if(i1 != 0xff0d) return FALSE;             // GDK_Return
     i1 = -2;
 
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
 
   } else if (typ == GDK_BUTTON_RELEASE) {
       // printf(" key CR\n");
@@ -881,8 +884,12 @@ static void *ptx;     // the active menu-txt
 
   if(i1 == 0) {   // disactivate
     iTyp = TYP_EventRelease;
+
   } else {        // activate
     iTyp = TYP_EventPress;
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
   }
 
 

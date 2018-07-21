@@ -1,4 +1,4 @@
-# make -f DemoKondensatorplatte.mak
+# . ../options.sh && make -f Demo_gui_plate.mak
 
 DLLNAM = plugins/Demo_gui_plate
 

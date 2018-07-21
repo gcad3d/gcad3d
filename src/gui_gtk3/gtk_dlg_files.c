@@ -222,7 +222,7 @@ void* GUI_file_get () { return UI_FileWin; }
     w2 = gtk_entry_new ();
     gtk_widget_set_size_request (w2, 40, ysiz); // DOES NOT WORK FOR GTK+3.2.0
     gtk_container_add (GTK_CONTAINER (box1), w2);
-    gtk_entry_set_text ((GtkEntry*)w2, GUI_dlg1.filtI);
+    // gtk_entry_set_text ((GtkEntry*)w2, GUI_dlg1.filtI);
     gtk_widget_show (w2);
 
 
@@ -274,7 +274,7 @@ void* GUI_file_get () { return UI_FileWin; }
 /// \code
 /// GUI_File_save          save file
 /// Input:      
-///   filNam     file to save
+///   filNam     file to save (<filename>.<filetyp>)
 ///   fSiz       size of filNam in chars
 ///   dirNam     directory or "." (active directory)
 ///   dSiz       size of dirNam in chars

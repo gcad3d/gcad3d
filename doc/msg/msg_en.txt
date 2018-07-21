@@ -96,6 +96,7 @@ MMbtSid=sideview (Y-Z)
 MMbtAxo=axonometric view
 MMbtSca=compute scale and viewcenter automatic
 MMbtScf=display a space of ~ 6000 x 6000 x 6000 mm
+MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
 MMrbRel=display cursorposition on the active constructionplane
 MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
@@ -131,8 +132,9 @@ RotCen=define new rotation-center:\
 \-=rotate display (Ctrl-drag_mouse) and select red star
 ViewOn=display hidden objects; select objects to display
 HideOn=select objects to hide
-CAD_On=select CAD-Function / select object with right mouseb.
-MAN_On=new point: Alt-P; newline: right_mousebutton; ..
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=CAD: select Function / select object with right mouseb.
+MAN_On=MAN: new point: Alt-P; newline: right_mousebutton; ..
 MD_On=select object / key ObjID Enter / Exit: Ctrl right mouseb.
 
 CADname=Objektname / info (search it with "Search/Name")
@@ -140,6 +142,7 @@ CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=cancel function. Does not save active object. Edit-mode: Cancel twice, right mousebutton  - edit.
+CADclear=clear active CAD-inputfield
 CADsave=save active obj., goto next obj. Right mousebutton, Enterkey.
 
 PT_cartes__offset=point; select or key; [offsetvalues for X/Y/Z]
@@ -293,6 +296,7 @@ Typ_modCTRL=Key PgUp / PgDwn  ("CTRL" = Controlpoints)
 Typ_modREV=Key PgUp / PgDwn  ("REV" = reverse)
 Typ_modCX=ey PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Key Text / Modify-Edit
 TYP_FilNam=Key Filename / middle Mousebutt.(F5=FileList) / sel.Model
@@ -311,6 +315,7 @@ VR0=no Variables defined ..
 
 FILT02=Pointfilter Vertex
 FILT03=give position of cursor on selected obj ..
+FILT04=select or keyIn obj to dump ..
 FILT05=add following selections/keyIn to group, end group with Tab-Key
 FILT06=select Line|Circ|Curve to modify ..
 FILT07=select surf to modify ..

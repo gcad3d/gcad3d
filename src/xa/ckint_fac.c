@@ -89,16 +89,16 @@ List_functions_end:
 
   
   UT2D_vc_2pt (&v1, f1, f2);
-  i11 = UT2D_sid_ptvc (e1, f1, &v1);
-  i12 = UT2D_sid_ptvc (e2, f1, &v1);
+  i11 = UT2D_sid_ptvc__ (e1, f1, &v1);
+  i12 = UT2D_sid_ptvc__ (e2, f1, &v1);
 
   UT2D_vc_2pt (&v2, f2, f3);
-  i21 = UT2D_sid_ptvc (e1, f2, &v2);
-  i22 = UT2D_sid_ptvc (e2, f2, &v2);
+  i21 = UT2D_sid_ptvc__ (e1, f2, &v2);
+  i22 = UT2D_sid_ptvc__ (e2, f2, &v2);
 
   UT2D_vc_2pt (&v3, f3, f1);
-  i31 = UT2D_sid_ptvc (e1, f3, &v3);
-  i32 = UT2D_sid_ptvc (e2, f3, &v3);
+  i31 = UT2D_sid_ptvc__ (e1, f3, &v3);
+  i32 = UT2D_sid_ptvc__ (e2, f3, &v3);
 
   // allg. Tests
   irc = UT2D_ckint_EdgFac1 (&i11,&i12, &i21,&i22, &i31,&i32);
@@ -123,16 +123,16 @@ List_functions_end:
   UT2D_vc_2pt (&v1, e1, e2);
 
   if(s1 == 0) {                    // test if e1-e2  X f1-f2 intersects
-    i1 = UT2D_sid_ptvc (f1, e1, &v1);
-    i2 = UT2D_sid_ptvc (f2, e1, &v1);
+    i1 = UT2D_sid_ptvc__ (f1, e1, &v1);
+    i2 = UT2D_sid_ptvc__ (f2, e1, &v1);
 
   } else if(s2 == 0) {            // test if e1-e2  X f2-f3 intersects
-    i1 = UT2D_sid_ptvc (f2, e1, &v1);
-    i2 = UT2D_sid_ptvc (f3, e1, &v1);
+    i1 = UT2D_sid_ptvc__ (f2, e1, &v1);
+    i2 = UT2D_sid_ptvc__ (f3, e1, &v1);
 
   } else {                        // test if e1-e2  X f3-f1 intersects
-    i1 = UT2D_sid_ptvc (f3, e1, &v1);
-    i2 = UT2D_sid_ptvc (f1, e1, &v1);
+    i1 = UT2D_sid_ptvc__ (f3, e1, &v1);
+    i2 = UT2D_sid_ptvc__ (f1, e1, &v1);
   }
     printf(" _ckint_ i1=%d i2=%d\n",i1,i2);
 
@@ -295,19 +295,19 @@ List_functions_end:
 
 
   UT2D_vc_2pt (&v1, a1, a2);
-  i11 = UT2D_sid_ptvc (b1, a1, &v1);
-  i12 = UT2D_sid_ptvc (b2, a1, &v1);
-  i13 = UT2D_sid_ptvc (b3, a1, &v1);
+  i11 = UT2D_sid_ptvc__ (b1, a1, &v1);
+  i12 = UT2D_sid_ptvc__ (b2, a1, &v1);
+  i13 = UT2D_sid_ptvc__ (b3, a1, &v1);
 
   UT2D_vc_2pt (&v2, a2, a3);
-  i21 = UT2D_sid_ptvc (b1, a2, &v2);
-  i22 = UT2D_sid_ptvc (b2, a2, &v2);
-  i23 = UT2D_sid_ptvc (b3, a2, &v2);
+  i21 = UT2D_sid_ptvc__ (b1, a2, &v2);
+  i22 = UT2D_sid_ptvc__ (b2, a2, &v2);
+  i23 = UT2D_sid_ptvc__ (b3, a2, &v2);
 
   UT2D_vc_2pt (&v3, a3, a1);
-  i31 = UT2D_sid_ptvc (b1, a3, &v3);
-  i32 = UT2D_sid_ptvc (b2, a3, &v3);
-  i33 = UT2D_sid_ptvc (b3, a3, &v3);
+  i31 = UT2D_sid_ptvc__ (b1, a3, &v3);
+  i32 = UT2D_sid_ptvc__ (b2, a3, &v3);
+  i33 = UT2D_sid_ptvc__ (b3, a3, &v3);
     printf(" i11=%2d i12=%2d i13=%2d\n",i11,i12,i13);
     printf(" i21=%2d i22=%2d i23=%2d\n",i21,i22,i23);
     printf(" i31=%2d i32=%2d i33=%2d\n",i31,i32,i33);

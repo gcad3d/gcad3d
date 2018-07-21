@@ -8,9 +8,10 @@
 *.so
 *.o
 *~
+.nfs*
 core
 .git/
-src/gMsh/
+src/my*/
 doc/gcad/
 doc/gui/
 binLinux32/

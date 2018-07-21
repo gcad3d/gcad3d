@@ -34,6 +34,22 @@ Colors:
  #1522 = ADVANCED_FACE( '', ( #3022 ), #3023, .T. );
 see also CURVE_STYLE
 
+// Assembly1.stp:
+#990=COLOUR_RGB('LIGHT_BLUE',0.0,0.660000026226044,1.0);
+#991=DRAUGHTING_PRE_DEFINED_CURVE_FONT('continuous');
+#992=CURVE_STYLE('',#991,POSITIVE_LENGTH_MEASURE(0.1),#990);
+#993=FILL_AREA_STYLE_COLOUR('',#990);
+#994=FILL_AREA_STYLE('',(#993));
+#995=SURFACE_STYLE_FILL_AREA(#994);
+#996=SURFACE_SIDE_STYLE('',(#995));
+#997=SURFACE_STYLE_USAGE(.BOTH.,#996);
+#998=PRESENTATION_STYLE_ASSIGNMENT((#992,#997));
+// #999=DRAUGHTING_PRE_DEFINED_COLOUR('green');
+// #1000=CURVE_STYLE('',#991,POSITIVE_LENGTH_MEASURE(0.1),#999);
+#1448=STYLED_ITEM('',(#998),#1446);
+#1446=GEOMETRIC_CURVE_SET('',(#1436,#1439));
+
+
 -----------------------------------------------------
 Modifications:
 2017-04-07 new format trimmed-curve in gcad. RF.
@@ -158,7 +174,7 @@ List_functions_end:
 
 ===================================================================
 Step-Specif/documentation siehe ../exp/stp_w.c
-/mnt/serv1/Devel/dev/gCAD3D/formate/step/part203.exp.html
+/mnt/serv1/Devel/dev/gCAD3D/formate/step/DIP-3631.pdf
 
 
 Gesamte Datei einlesen; Zeilenende ist ";" alle brauchbaren Daten in eigenen
@@ -205,11 +221,9 @@ geoTab    STP_I2      List of models;
 
 //----------------------------------------------------------------
 TESTMETHODE   DEBUG:
- fix tst.c    make -f tst.mak
-
- if compiled with -DDEB:
-   all testoutput of "printd" goes into file <tempDir>/debug.dat
-   see AP_deb_stat
+  activate AP_deb_stat (1) in STP_r__
+    if compiled with -DDEB:
+    all testoutput of "printd" goes into file <tempDir>/debug.dat
 
  f. Debug im ../.gdbinit     break OS_debug_dll_  u. run tst3
   make -f xa_stp_r.mak&&./go d
@@ -475,10 +489,10 @@ typedef struct {int iPROD; char *nam; } STP_MDL;
 // typedef_MemTab(int);
 typedef_MemTab(STP_I2);
 typedef_MemTab(STP_MDL);
-// MemTab(int) mdlTab = MemTab_empty;
-MemTab(STP_MDL) mdlTab = MemTab_empty;
-MemTab(STP_I2) refTab = MemTab_empty;
-MemTab(STP_I2) geoTab = MemTab_empty;
+// MemTab(int) mdlTab = _MEMTAB_NUL;
+MemTab(STP_MDL) mdlTab = _MEMTAB_NUL;
+MemTab(STP_I2) refTab = _MEMTAB_NUL;
+MemTab(STP_I2) geoTab = _MEMTAB_NUL;
 
 
 
@@ -675,7 +689,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   // TEST ONLY: set debug -> ON   ( vi ~/gCAD3D/tmp/debug.dat )
   // start debugging (following prints -> debug-file)
-  AP_deb_stat (1);
+  // AP_deb_stat (1);          // 1=debug-ON (open file); 
 
 
   s_tab = NULL;
@@ -1169,19 +1183,16 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   if(mdlNr > 1) {
 
+    // get modelname of the mainModel > mdl.nam
     // test if all PRODUCTs are used by NEXT_ASSEMBLY_USAGE_OCCURRENCE;
     // if not: create a mainModel usind this unused models.
     // irc = STP_r_mdl_sm ();  // returns nr of unused models
-
-    STP_r_mdl_main1 ();   // get modelname of the mainModel > mdl.nam
+    STP_r_mdl_main1 ();
+    // STP_r_mdl_main0 ();
       // printd(" main = |%s|\n",mdl.nam);
+    // if(irc <= 0) {
 // goto L_exit;
 
-    // if(irc <= 0) {
-
-      // // find modelname of topmost (main-) model -> mdl.nam
-      // // STP_r_mdl_main1 ();
-      // STP_r_mdl_main0 ();
 
     // rename mainModel -> Model_
     if(mdl.nam) {
@@ -1191,10 +1202,9 @@ static int    errTyp;       // 0=report error with TX_Print; else not
       OS_file_rename (s1, s2);
     }
 
-    // join all files tmp/Model_* into file tmp/Mod.dat
+    // join all files tmp/Model_* into file tmp/Model
     sprintf(s1,"%sMod.dat",OS_get_tmp_dir());
-    Mod_sav__ (0, s1, 1);
-
+    Mod_sav_i (1);
 // goto L_exit;
 // exit(0);
 
@@ -1209,21 +1219,23 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
     // rename model -> importFileNme
     sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mdl.nam);
-    sprintf(s2,"%sMod.dat",OS_get_tmp_dir());
+    sprintf(s2,"%sModel",OS_get_tmp_dir());
       // printd(" rename %s -> %s\n",mdl.nam,s2);
     OS_file_rename (s1, s2);
 
 
   }
 
-  // load this model into memory (removes all tmp/Model_*)
-  // the following = from AP_Mod_load
-    // printf(" WC_modnam=|%s|\n",WC_modnam);
-  sprintf(s1,"%sMod.dat",OS_get_tmp_dir());
+
+  //----------------------------------------------------------------
+  // load model <tmp>/Model into memory (removes all tmp/Model_*)
+  // the following = from AP_Mod_load__
+    // printf(" AP_mod_fnam=|%s|\n",AP_mod_fnam);
+  sprintf(s1,"%sModel",OS_get_tmp_dir());
   Mod_load__ (0, s1, 1);
   Mod_mkList (0);       // create ../tmp/Mod.lst
   Brw_Mdl_init ();       // fill browserWin
-  Mod_chg_tit ();        // set WC_modnam as new title on top
+  Mod_chg_tit ();        // set AP_mod_fnam as new title on top
   ED_Reset ();           // ED_lnr_act resetten
   ED_work_END (0);
 
@@ -1515,7 +1527,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
   printd("STP_r_mdl_sm\n");
 
   // get tempspace for list of unused PRODUCTs.
-  iaProd = (int*) MEM_alloc_tmp (mdlNr * sizeof(int));
+  iaProd = (int*) MEM_alloc_tmp ((int)(mdlNr * sizeof(int)));
   if(!iaProd) {TX_Error("STP_r_mdl_sm EOM"); return -1;}
 
 
@@ -9935,7 +9947,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   // printf("============================ \n");
-  // printf("STP_r_decCvUni |%s|\n",cbuf);
+  printd("STP_r_decCvUni |%s|\n",cbuf);
 
 
   irc = STP_r_savInit (SC_QUASI_UNIFORM_CURVE, &cbuf);
@@ -9948,6 +9960,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   if(i1 != 1) TX_Print("STP_r_decCvUni E001 %d",i1);
 
   // decode & save Links in Klammern
+  i1 = 0;  // all links
   irc = STP_r_decLinkB (&i1, &cbuf);
   if(irc < -1) return irc;
 
@@ -11605,7 +11618,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   // printf("STP_r_decDbs %d |",*iNr);UTX_dump_s__(*cbuf);printf("|\n");
-  printd("STP_r_decDbs %d |%s|\n",*iNr,*cbuf);
+  // printd("STP_r_decDbs %d |%s|\n",*iNr,*cbuf);
 
   iend = *iNr;
   if(iend < 1) iend = 99999;
@@ -11621,10 +11634,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   // save double --> s_dat
     // printf("  %d save db %f\n",*iNr,d1);
-    p1 = s_dat.next; printd(" p1=%p\n",p1);
+    // p1 = s_dat.next; printd(" p1=%p\n",p1);
   mp1 = UME_save (&s_dat, &d1, sizeof(double));
   if(!mp1) {TX_Error("STP_r_decDbs E001"); return -3;}
-    printd(" p1=%lf\n",*((double*)p1));
+    // printd(" p1=%lf\n",*((double*)p1));
 
   if(irc == 0) {
     if(*iNr < iend) goto L_nxt_l;
@@ -11682,7 +11695,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   *cbuf = p2;
 
-    printd("ex STP_r_decDb1 %lf\n",*db);
+    // printd("ex STP_r_decDb1 %lf\n",*db);
 
   // skip terminating characters  "," or ")" or "),"
   return STP_r_skipTer1 (cbuf);
@@ -11986,7 +11999,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   // *iNr = 0;    // 0 = all Links
   irc = STP_r_decLinks (iNr, &p1);  // decode & save Links
-  if(irc < 0) return irc;
+  if(irc < 0) goto L_exit;
   // (irc == 1): ')' already skipped
 
 
@@ -12002,9 +12015,9 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   *cbuf = p1;
 
 
-  // printd("ex STP_r_decLinkB irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
-  // UTX_dump_s__ (*cbuf); printf("|\n");
-
+  L_exit:
+    // printd("ex STP_r_decLinkB irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
+    // UTX_dump_s__ (*cbuf); printf("|\n");
 
   return irc;
 
@@ -12025,6 +12038,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 // RetCod -2 - Fehler; stop.
 
   int   irc, i1, iend;
+  void  *mp1;
+
 
   // printd("STP_r_decLinks %d |%s|\n",*iNr,*cbuf);
 
@@ -12041,8 +12056,9 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   *iNr += 1;
 
   // save Link --> s_dat
-    // printf("  %d save Link %d\n",*iNr,i1);
-  UME_save (&s_dat, &i1, sizeof(int));
+  mp1 = UME_save (&s_dat, &i1, sizeof(int));
+  if(!mp1) return -2;
+    // printd("  %d saved-link %d\n",*iNr,i1);
 
   if(irc == 0) {
     if(*iNr < iend) goto L_nxt_l;
@@ -12053,7 +12069,6 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
       irc = 2;
     }
   }
-
 
 
   // printd("ex STP_r_decLinks irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
@@ -12079,7 +12094,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   char  *p1, *p2;
 
 
-  // printd("STP_r_decLink1 |%s|\n",*cbuf);
+  printd("STP_r_decLink1 |%s|\n",*cbuf);
 
   p1 = *cbuf;
 

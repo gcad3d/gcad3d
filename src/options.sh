@@ -1,48 +1,59 @@
 #!/bin/sh
-# set gcad_dir_dev and gcad_dir_bin 
+#
+# set symbols: gcad_dir_dev gcad_dir_bin hTyp
+# Using symbols DIR_DEV and DIR_BIN.
+#
+# DIR_DEV     home of sourcefiles, scripts, linkjobs, packages
+# DIR_BIN     home of objects, executables, libraries
+#
+# start ${DIR_DEV}gcad3d/src/options.sh
+#
+#
 # must be set before gcad3d.mak - export gcad_dir_dev and gcad_dir_bin or:
 # . ../options.sh
 #
-# gcad_dir_dev: src/, icons/, doc/, README ..
-# gcad_dir_bin: *.o, *.so, gCAD3D, plugins/*.so
+# gcad_dir_dev:     src/, icons/, doc/, README ..
+# gcad_dir_bin:     *.o, *.so, gCAD3D, plugins/*.so
+# hTyp              eg "Linux_x86_64"
 #
-# config 1: development;  src on server, bin local.
-#           is active, if DIR_DEV and DIR_BIN are set 
 #
-# config 2: src local, bin local
-#           unset DIR_DEV, DIR_BIN
-
-# see also ../options.mak
+# see also ../../doc/html/SW_layout_en.htm
 
 
 
-bitNr=`getconf LONG_BIT`
-
-export OS=Linux${bitNr}
-
-
-if [ ! -n "$DIR_DEV" ]; then
-# not set to server: set to local
-DIR_DEV=${HOME}/devel/
-fi
-
-if [ ! -n "$DIR_BIN" ]; then
-# vi.sh
-DIR_BIN=${HOME}/devel/bin/
-fi
+#bitNr=`getconf LONG_BIT`
+#export OS=Linux${bitNr}
 
 
+#if [ ! -n "$DIR_DEV" ]; then
+## not set to server: set to local
+#DIR_DEV=${HOME}/devel/
+#fi
+#if [ ! -n "$DIR_BIN" ]; then
+## vi.sh
+#DIR_BIN=${HOME}/devel/bin/
+#fi
+#export gcad_dir_dev=${DIR_DEV}gcad3d/
+#export gcad_dir_bin=${HOME}/devel/binLinux${bitNr}
 
-gcad_dir_dev=${DIR_DEV}gcad3d/
-# sources; local or server
+
+export hTyp=`uname -s`_`uname -i`
+
+# gcad_dir_dev      home of sourcefiles, scripts, linkjobs, packages
+export gcad_dir_dev=${DIR_DEV}gcad3d/
+
+# gcad_dir_bin      home of objects, executables, libraries
+export gcad_dir_bin=${DIR_BIN}gcad3d/${hTyp}/
 
 
-# gcad_dir_bin = objs,exes,libs -
-# gcad_dir_bin on server: 
-#export gcad_dir_bin=${gcad_dir_dev}gCAD3D/binLinux${bitNr}
 
-# gcad_dir_bin on SSD:
-export gcad_dir_bin=${HOME}/devel/binLinux${bitNr}
+mkdir -p ${gcad_dir_bin}
+mkdir -p ${gcad_dir_bin}plugins/
+mkdir -p ${gcad_dir_bin}plugins/cut1/
+
+
+echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
+echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
 
 # use it with ". ./options.sh"
 #

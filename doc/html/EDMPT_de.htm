@@ -1,0 +1,104 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>CVED_de.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<h2>CAD - Kurve editieren</h2>
+
+<A HREF='#F1'>Funktion aktivieren</A>
+
+<A HREF='#F10'>Punkte Ändern</A>
+<A HREF='#F11'>Punkte Löschen</A>
+<A HREF='#F12'>Punkte Einfügen</A>
+
+<A HREF='#F2'>Punkte in einer Ebene verschieben</A>
+<A HREF='#F3'>Punkte entlang Vektor verschieben</A>
+<A HREF='#F4'>Punkte um einen fixen Vektor verschieben</A>
+
+<A HREF='#F20'>Fertig</A>
+
+
+<p><a name="F1"><h3>Funktion aktivieren</h3></a></p>
+Aufruf: nur im CAD-Modus;
+  ein Objekt mit verschiebbaren Punkten (P,L,C,S)
+  mit rechter Maustaste selektieren, "edit curve"
+
+
+
+<p><a name="F2"><h3>Kurvenpunkte in einer Ebene verschieben</h3></a></p>
+Checkbox "plane" aktivieren.
+Definition der Ebene in der der Punkt verschoben wird:
+  Standard ist die aktive Konstruktionsebene.
+  Eingabe in das Eingabefeld:
+    Eingabe von "RZ" für die X-Y-Ebene
+    oder "RX" (Y-Z-Ebene) oder "RY" (X-Z-Ebene)
+    oder selektieren einer definierten Ebene ("R#").
+    oder selektieren einer Ebene im Browser.
+
+
+<p><a name="F3"><h3>Kurvenpunkte entlang Vektor verschieben</h3></A></p>
+Checkbox "vector" aktivieren.
+Definition eines Vektors, auf dem der Punkt verschoben wird:
+  Standard ist der Normalvektor der aktiven Ebene ("DZ" zB für Ebene "RZ")
+  oder Eingabe in das Eingabefeld:
+  - Standardvektor (DX,DY, DZ, DIX, DIX, oder DIZ) -
+  - oder selektieren eines Vektors im Browser
+  - oder Definition einer Ebene (es wird ihr Normalvektor benutzt)
+
+
+
+<p><a name="F4"><h3>Kurvenpunkte um einen fixen Vektor verschieben</h3></A></p>
+Checkbox "vector" aktivieren / definieren (wie oben)
+  "Länge"  Vektorlänge eingeben
+
+
+
+<p><a name='F10'><h3>Ändern</h3></A></p>
+Punkte mit der Maus verschieben.
+
+Es werden alle verschiebbaren Punkte des Objekts als gelbe Rechtecke
+ angezeigt. Das gelbe Rechteck selektieren -
+Es werden nun alle vom gewählten Punkt abhängigen Objekte dynamisch
+ modifiziert.
+
+  Beenden mit linker Maustaste.
+  Weiter mit "Speichern / Abbrechen".
+ 
+ 
+
+<p><a name='F11'><h3>Löschen</h3></A></p>
+Punkte löschen:
+
+Nur bei Kurven mit mehr als 3 Punkten.
+  Den zu löschenden Punkt selektieren.</p>
+  Weiter mit "Speichern / Abbrechen".
+
+
+
+<p><a name='F12'><h3>Einfügen</h3></A></p>
+Punkte einfügen:
+Nur bei Kurven mit mehr als 3 Punkten.
+Die aktive Kurve an jener Position selektieren, wo der Punkt
+eingefügt werden soll.
+  Weiter mit "Speichern / Abbrechen".
+
+
+<b>Speichern / Abbrechen</b>
+ Abbrechen - vorherigen Zustand wieder herstellen; (auch Esc)
+ Speichern - den aktiven Punkt temporär speichern. (auch rechte Maustaste)
+
+
+
+<p><a name='F20'><h3>Fertig</h3></A></p>
+Beenden mit dem "Exit"-Button oder rechter Maustaste.
+
+Änderungen nach Beenden verwerfen: UNDO-icon.
+
+
+</PRE>
+</BODY>
+</HTML>

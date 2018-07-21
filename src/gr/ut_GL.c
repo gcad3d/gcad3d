@@ -49,19 +49,20 @@ Modifications:
 
 Function-groups:
 
-GR_Cre..      create dynamic-DB-obj, DL-record and display obj
-GR_Disp_..    create DL-record, display obj. Do not create DB-record.
-GR_Draw..     display obj. Do not create DB-record, DL-record.
+GL_Draw..     open DispList, create openGl-obj, close DispList.
+GL_view_      create new dispList-record OR draw into open dispList
+GL_Disp_      add openGl-obj into already open DispList
 
 =====================================================
 List_functions_start:
 
 GL_DrawPoint
+GL_view_npt           display n points using GL_POINTS
 GL_Draw_ray
 GL_DrawLine
 GL_DrawLtab           display group of lines
 GL_DrawPoly2D         2D-Polygon on plane Z=zval
-GL_DrawPolySc         Scaled Polygon
+// GL_DrawPolySc         Scaled Polygon
 GL_DrawCvIpTab        draw polygon from indexTable; open or closed
 GL_DrawPoly           polygon
 GL_Draw_cvp_dir       polygon and direction-arrow
@@ -70,11 +71,12 @@ GL_DrawDima           Angular Dimension
 GL_DrawDimdia         Diameter-Dimension
 GL_DrawDimrad         Radius-Dimension
 GL_DrawLdr
-GL_DrawTxtA           Text; .. ??
+GL_DrawTxtA           text alphanum.(fixed size, horiz)
 GL_Draw_Tag           Text + Farbiges Rechteck ?
 GL_DrawSymV3          oriented vector-symbols;  SYM_ARROW SYM_SQUARE
 GL_DrawVec            Vector true length; SYM_VEC
 GL_DrawSymB           display bitmap symbols SYM_TRI_S SYM_STAR_S ..
+GL_view_nsymB         display n points using bitmap-symbols
 GL_Draw_tra           display symbolic TraRot (rotation)
 GL_DrawAngA           draw angle with arrowhead
 GL_DrawSymVX          display plane / axisSystem [with x,y,z-characters
@@ -83,36 +85,56 @@ GL_DrawSymVTL         display vector-symbol with true length at 2D-ScreenCenter
 GL_Draw_obj           Draw 1-n Polygons as GL_LINE_STRIPs from ObjGX
 GL_Draw_rbez          draw rational bezier curve
 
--------------- draw into open open GL-List -----------------------------
-GL_Draw_Ini                Init Flaechen 
-GL_Draw_Ini1               Init Lines,Curves|Flaechen
-GL_DrawLn_Ini              Init Lines,Curves
+-------------- init / close GL-List -----------------------------
+GL_view_ini__         init GL_Disp_*
+GL_Draw_Ini           Init Flaechen 
+GL_Draw_Ini1          Init Lines,Curves|Flaechen
+GL_DrawLn_Ini         Init Lines,Curves
 GL_Surf_Ini
-GL_EndList,GL_EndList1,GL_EndList2                      close GL-Ausgaben
+GL_EndList            close GL-Ausgaben
+GL_EndList1           close GL-Ausgaben
+GL_EndList2           close GL-Ausgaben
+
+GL_att_pt             set attribute for points  see INF_COL_PT
+GL_att_cv             set lineAttribute         see INF_COL_CV
+GL_att_su             set surfaceAttribute      see INF_COL_SYMB
+GL_att_sym            set symbol-attribute      see INF_COL_SYMB
+GL_att_OnTop_set      set/reset "overwrite-all"
+GL_att_OnTop__        set "overwrite-all"
+GL_att_OnTopOff       reset "overwrite-all"
+
+-------------- draw into open open GL-List -----------------------------
+GL_Disp_npt           display points (GL_POINTS)
 GL_Disp_ray
 GL_Disp_ln                                              Ausgabe GL_LINES
 GL_Disp_ln2                                             Ausgabe GL_LINES
 GL_Disp_ci2                                             Ausgabe 2D-Circ
 GL_Disp_cv                                              Ausgabe Polygon
-GL_Disp_cv2                                             Ausgabe Polygon
+GL_Disp_cv2z          display 2D-polygon with z-value
+GL_Disp_inpt          disp polygon from indexed points; open or closed.
 GL_Disp_rbez          draw rational bezier curve
 GL_DrawCirSc                                            Ausgabe Circ ..
+GL_Disp_pln__         display plane/rectangle
 GL_Disp_arrh          display arrowhead
 GL_Disp_vSym          add vectorsymbols (true length) into open displist
 GL_Disp_vc            add normalized vector (SYM_ARROW) into open displist
 GL_Disp_symV          add vectorsymbols eg SYM_ARROH SYM_VEC into open displist
-GL_Disp_symB          add bitmapsymbols into open displist
-GL_Disp_2D_box1                                not-zooming 2D-box
-GL_Disp_2D_box2                    unused      zoomed 2D-fields (DrawPixels)
+GL_Disp_symB          add bitmapsymbol into open displist
+GL_Disp_nsymB         add bitmapsymbols into open displist
+GL_Disp_txtA          text alphanum.(fixed size, horiz) position
+GL_Disp_txt2D         text alphanum.(fixed size, horiz)
+GL_Disp_tag2D         display coloured rectangle
+// GL_DispTag1           display coloured rectangle
+// GL_DispTag2           display coloured rectangle
+GL_Displ_ntri         display triangles from points
+GL_Disp_nfac          display triangles from Fac3
+GL_Disp_nifac         display indexed-Opengl-patch (type,indexTable,points)
+GL_Disp_patch         display Opengl-patch (type & n-points)
+GL_Disp_ipatch        display indexed-Opengl-patch (type,indexTable,points)
+GL_Disp_sur           Draw 1-n Planar Patches from ObjGX (binary mesh)
+GL_Disp_2D_box1       not-zooming 2D-box
+GL_Disp_2D_box2   unused      zoomed 2D-fields (DrawPixels)
 GL_Disp_sq1           Disp. quadrat. Flaeche 
-GL_Disp_sur           Draw 1-n Planar Patches from ObjGX
-GL_Disp_face          display face from points
-GL_Disp_iface         display face from indexed-points
-GL_DispTag1           display coloured rectangle
-GL_DispTag2           display coloured rectangle
-GL_icons_Pos          get position for 2D-icons
-GL_icons_dispVcPln    draw VectorSelector and StdPlaneselector
-GL_icons_dispTags     draw 2D-tag-icons
 
 GL_GetCen             get center of grWin in userCoords
 GL_get_Scale          get GL_Scale;
@@ -134,6 +156,8 @@ GL_query_ViewZ        return GL_cen.z;
 GL_pos_move_2D        move 3D-point with 2D-offset
 GL2D_pos_move         relative move of the screenPos in screencoords      INLINE
 
+GL_ptSc_ptUc          userCoord -> screenCoord
+GL_ptUc_ptSc          ScreenCoords -> UserCoords
 GL_Uk2Sk              userCoord -> screenCoord
 GL_Sk2Uk              screenCoord -> userCoord
 
@@ -162,7 +186,7 @@ GL_InitAFont
 GL_InitGFont
 GL_InitGF2
 GL_InitSymb
-GL_Init_Siz           init clipping planes
+// GL_Init_Siz           init clipping planes
 GL_DefineView
 GL_DefineDisp
 
@@ -176,8 +200,8 @@ GL_Delete             DispList zuruecksetzen;
 GL_last_del           delete last obj of DL, if its DB-index is 0
 GL_Regen1             reset GR_TAB_IND (remove unused recs at end)
 
-GL_temp_Delete        eine bestimmte loeschen ..
-GL_temp_delete        alle temp. obj loeschen ..
+GL_temp_del_1        eine bestimmte loeschen ..
+GL_temp_del_all        alle temp. obj loeschen ..
 GL_temp_GetInd        get index of last created temp-obj
 GL_GetInd_temp        returns next free temp-obj-ind
 GL_GetInd_last_temp   return last temp-obj-index.
@@ -199,11 +223,38 @@ GL_tst_pta             testen der GL_Disp_pta
 List_functions_end:
 =====================================================
 
-\endcode *//*----------------------------------------
+\endcode */
+#ifdef globTag
+ void INF_GL__(){}
+#endif
+/*
+//================================================================
+  OpenGL-displist
+//================================================================
+
+OpenGL-displist is stored in OpenGL with glNewList();
+  this index is returned from selections (redraw with GR_MODE_SELECT; GR_selTab)
+  All GL-List-records can be redrawn (GL_Redraw).
+
+OpenGL-displist has different groups of objects;
+  DL-group-offsets                                see INF_GL_offTab
+
+The GL-index for temp-obj's is 1-DL_base_font1.
+  Temporary obj's have no DB-record and no DL-record but a GL-record.
+  GL-index of the CAD-inputObjects are -2 to -7;  see IE_GET_INP_DLI
+  GL-dispList-index -8 to -10: outputObjects of WC_Work1; see DLI_TMP 
+
+The GL-index of normal objects is >= DL_base__;
+  the corresponding DL-index is (GL-ind - DL_base__).
 
 
 
+Functions: GL_fix_DL_ind   get GL-index from DL-index
+           glNewList       start new GL-List
 
+
+
+//================================================================
 cursorPosition in userCoords on constructionPlane & on viewPlane ist noch
   ziemlich durcheinander. Betrifft:
   UI_GR_MotionNotify   setzt GR_CurUk mit cursorPosition on constructionPlane
@@ -294,20 +345,25 @@ Setup GL: UI_GR_WinInit.
 ===========================================================================
 Funktionsweise View-Transformationen:
 
+ GL_cen (Point) Der Bildschirmmittelpunkt in Userkoords (kleines Achsenkreuz)
+
+ GL_eyeX (Vector) Die Sichtlinie; zeigt vom Mittelpkt zum Auge (verkehrt);
+ GL_eyeZ (Vector) ist ein zugehoeriger Vektor (der OpenGL-UpVektor);
+         zeigt parallel zum FensterRand nach oben (2D-up-vector).
+         Get 2D-horizontal-vector by UT3D_vc_perp2vc (&vcy, &GL_eyeZ, &GL_eyeX);
+ GL_eye_pln  plane normal to the GL_eyeX 
+         GL_eyeX is the Z-vector of GL_eye_pln;
+         GL_eyeZ is the Y-vector of GL_eye_pln.
+         OpenGL GL_EYE_PLANE ???
+
+ GL_view_pln (Plane) View-Plane; gelbes Rechteck.
+ GL_constr_pln (Plane) ConstPlane; gruen.
+
 Es gibt ein View-Plane (gelb) und eine ConstructionPlane (gruen).
 Die View-Plane ist immer parallel zur X-Y-Plane.
  Rotate erfolgt durch drehen (immer um die Z-Achse) und kippen (die 
    Kippachse liegt immer in der View-Plane und geht durch den
    Bildschirmmittelpunkt.
-
- GL_view_pln (Plane) View-Plane; gelbes Rechteck.
- GL_constr_pln (Plane) ConstPlane; gruen.
-
- GL_cen (Point) Der Bildschirmmittelpunkt in Userkoords (kleines Achsenkreuz)
- GL_eyeX (Vector) Die Sichtlinie; zeigt vom Mittelpkt zum Auge (verkehrt);
- GL_eyeZ (Vector) ist ein zugehoeriger Vektor (der OpenGL-UpVektor);
-         zeigt parallel zum FensterRand nach oben (2D-up-vector).
-         Get 2D-horizontal-vector by UT3D_vc_perp2vc (&vcy, &GL_eyeZ, &GL_eyeX);
 
 
 GL_Do_Pan__
@@ -421,7 +477,7 @@ Farbe/Dicke:
 
 --------- Symbol anzeigen ------------
   UI_GR_DrawInit ();
-  GL_temp_delete ();  // alle temp-Obj. loeschen
+  GL_temp_del_all ();  // alle temp-Obj. loeschen
   GL_DrawSymB (&dli, 0, SYM_TRI_B, &pt1);
   GL_Redraw ();
   UI_GR_DrawExit ();
@@ -469,7 +525,8 @@ cl -c ut_GL.c
 
 
 #include "../ut/ut_geo.h"                // Point-def
-#include "../ut/ut_msh.h"                // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"                // 
 #include "../ut/ut_TX.h"                 // TX_Error
 #include "../ut/ut_cast.h"               // INT_PTR
@@ -580,7 +637,8 @@ extern int       IE_modify;
 
 
 
-
+// indexarray for GL_Disp_nifac
+static MemTab(int) GL_MIFA = {NULL, 0, 0, sizeof(int), Typ_Int4, 10, 0, 0};
 
 
 // static double     GL_sur_act;       // fuer den Drehmittelpunkt
@@ -757,6 +815,9 @@ static unsigned char GL_transpTab[4] = { 254, 250, 128, 64};
 static int  GL_stat_blend = 0;                      // transparent = OFF
 
 
+static int  GL_stat_OnTop = 0;   // 0=normal, 1="overwrite-all" (DL_OnTop__)
+
+
 
 
 
@@ -773,15 +834,16 @@ static int  GL_stat_blend = 0;                      // transparent = OFF
 
 // GL_Scr_Siz_X/Y: Size of the grafic-window (=Viewport) in ScreenCoords;
 // top left is 0,0. Als doubles !
-static double GL_Scr_Siz_X, GL_Scr_Siz_Y;
+       double GL_Scr_Siz_X, GL_Scr_Siz_Y;
 
-static double GL_Svfakt;     // Screen-Verzerrungsfaktor;
-
+       double GL_fakt;       //
 
 // GL_Scale depends on GL_ModSiz. See GL_Set_Scale() AP_scale
-static double GL_Scale = 1.0;
+// usercoords = screencoords / (GL_Scale * GL_fakt)
+// screencoords = usercoords * (GL_Scale * GL_fakt)
+       double GL_Scale = 1.0;
 static double GL_Scale_back = 1.0;
-static double GL2D_Scale = 1.0;
+       double GL2D_Scale = 1.0;
 static double GL_SclNorm;
 
 
@@ -799,10 +861,11 @@ static Plane  GL_view_pln;
 
 /// GL_cen: centerpoint of the Viewport (in UserCoords).
 /// Is always in GL_view_pln
-static Point  GL_cen = {0., 0., 0.};
+       Point  GL_cen = {0., 0., 0.};
 // GL_cen.z ist immer Z-ViewPlane  (GL_query_ViewZ, GL_Set_Cen, GL_GetCen)
 
-static Point GL_icons_Ori;  // position of 2D-icons in userCoords
+/// GLBT_ori = lower right point on GL_eye_pln in userCoords
+// Point GLBT_ori;
 
 
 /// \brief screenOrientation
@@ -811,28 +874,27 @@ static Point GL_icons_Ori;  // position of 2D-icons in userCoords
 /// GL_eyeX goes from the screenCenter to the eye
 /// GL_eyeZ goes up - always vertical, parallel to the window outline
 /// GL_eyeY always is horizontal, parallel to the window outline
+/// GL_eye_pln     plane normal to the GL_eyeX, hor along GL_eyeY ..
 /// \endcode
-static Vector GL_eyeX={0.,0.,1.};
-static Vector GL_eyeZ={0.,1.,0.};
-static Vector GL_eyeY={1.,0.,0.};
+static Plane  GL_eye_pln;
+       Vector *GL_eyeX;
+       Vector *GL_eyeY;
+       Vector *GL_eyeZ;
 
-// alte Version:
-// static double GL_cen_X, GL_cen_Y, GL_cen_Z;
-// static double GL_ang_X, GL_ang_Y, GL_ang_Z;
-// Vector            GL_view_vz;
-
+// transformation-angles for the active view; rotate GL_angX, then GL_angZ
+       double GL_angZ, GL_angX;
 
 
 // ????????????: ViewportSize (der sichtbare Bereich), in Userkoord's.
 
 // GL_Siz_ is Modelsize/2; used for the OpenGL-Viewing-volume
-static double GL_Siz_X, GL_Siz_Y, GL_Siz_Z;
+// static double GL_Siz_X, GL_Siz_Y, GL_Siz_Z;
 
 
-static GLdouble GL_ModSiz = 500., GL_ModScale;
+       GLdouble GL_ModSiz = 500., GL_ModScale;
 
 
-static double GL_box_X1,GL_box_X2,GL_box_Y1,GL_box_Y2;
+// static double GL_box_X1,GL_box_X2,GL_box_Y1,GL_box_Y2;
 
 
 
@@ -849,7 +911,7 @@ static int      GL_Func_Act;
 
 
 // die zum Umrechnen Screen- > UserCoord erforderl. Tabellen
-static GLint    GL_Viewp[4];     // x-left, y-low, width, heigth
+       GLint    GL_Viewp[4];     // x-left, y-low, width, heigth
 static GLdouble GL_MatMod[16], GL_MatProj[16];
 
 
@@ -870,18 +932,12 @@ static int GL_initMode = 0;
 //================================================================
  
 
-static int GL_mode_draw_select = GR_MODE_DRAW;    // 0
+int GL_mode_draw_select = GR_MODE_DRAW;    // 0
                               // GR_MODE_SELECT      1
                               // GR_MODE_FEEDBACK    2
 static int GL_mode_feed = 0;                          // 0=Print, 1=ReScale
 static int GL_mode_wire_shade =  GR_STATE_WIRE;
 
-static int GL_vcSelStat = 0;  // 0=vectorSelect not active; else=yes,
-                              // index of vec to display; -1=none
-static int GL_plnSelStat = 0; // 0=planeSelect not active; else=yes.
- 
-       int GL_ViewModTimStamp = 0; // timeStamp of last view-modification;
-                              // is incremented with pan/rotate/scale/resize view
 
 
 
@@ -906,43 +962,18 @@ Die GL_Draw - Routinen retournieren den DL-Index, der dann in der DB
  gespeichert werden muss; zum Loeschen bzw aendern erforderlich.
 
 
-DL-Symbol-Liste (von 1-DL_base__):
---------------------------------
-001     -
-002-031 Temporäre Objekte.
-032-128 Bitmapobjekte des Alfatext-Font
-129     Der ScaleBackBefehl.
-130-138 Bitmap-Symbole
-139     der Vektor
-140-149 Vektor-Symbole (skaliert)
-150-199 Ln_AttribTab (DL_base_LnAtt + Ln_Attrib_siz)
-200-296 GrafFont (200=Blank=Ascii 32)
-297     DL_Ind_Scale2D
-298     Point-Typ-Call DL_base_PtAtt
-299     DL_Img_ScBack  (scale images)
-300     DL_base__
+====================================================================*/
+#ifdef globTag
+void INF_GL_offTab (){}
+#endif
 
-*/
-
+// definitions of objects in the GL-displaylist. See ../gr/ut_GL.h
 static GLuint
-  // DL_Ind_nxt    =   0,         // der naechste freie Displistplatz
-  DL_Ind_tmp    =   1,         // der naechste frei Platz fur tempObj
-  DL_base_font1 =  32,         // Ende des tempObj-Bereichs
-  DL_Ind_ScBack = 129,  // Befehl zum Zurueckskalieren f. glPopMNatrix
-  DL_base_LnAtt = 150,  // LineAttributes until DL_base_PtAtt
-  DL_base_PtAtt = 195,  // PointAttributes until DL_base_font2
-  DL_base_font2 = 200,  // Ende des tempObj-Bereichs
-  DL_Ind_Scl2D  = 297,  // DL_Set_Scl2D
-  DL_Ind_Cen2D  = 298,  // 2D-screenCenter  DL_Set_Cen2D
-  DL_Img_ScBack = 299,  // scale  images
-  DL_base_mod   = 300,  // hier beginnt die DL fuer die Overlay-Models.
-  DL_base__;              // ab hier die normalen Objekte.
-
-//char    DL_sho_Tab[DL_siz];
-
-static  int  DL_FontOff;       //=DL_base_font2-32; 
+  DL_Ind_tmp    =   1,  // next free temp-space-index (1-DL_base_font1)
+  DL_base__;            // first index of normal objects
 
 
+static  int  DL_FontOff;       //=DL_base_font2-32;  DL_base_font1
 
 
 
@@ -974,11 +1005,11 @@ GLuint GL_fix_DL_ind  (long*);
 
   printf("GL_Test \n");
 
-  UT3D_vc_perp2vc (&vcy, &GL_eyeZ, &GL_eyeX);
+  UT3D_vc_perp2vc (&vcy, GL_eyeZ, GL_eyeX);
 
-  UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX: ");
+  UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
   UT3D_stru_dump (Typ_VC, &vcy,     "    vcy: ");
-  UT3D_stru_dump (Typ_VC, &GL_eyeZ, "GL_eyeZ: ");
+  UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
 
   // GL_cen = ScreenCenter in usercoords
   GL_actUsrPos = GL_GetViewPos ();
@@ -987,9 +1018,9 @@ GLuint GL_fix_DL_ind  (long*);
   UT3D_stru_dump (Typ_PT, &GL_actUsrPos, "ViewPos: ");
 
   // Sichtlinie (zeigt vom Mittelpkt zum Auge)
-  GR_Disp_vc (&GL_eyeX, &GL_actUsrPos, 9, 0);
+  GR_Disp_vc (GL_eyeX, &GL_actUsrPos, 9, 0);
   GR_Disp_vc (&vcy, &GL_actUsrPos, 8, 0);
-  GR_Disp_vc (&GL_eyeZ, &GL_actUsrPos, 7, 0);
+  GR_Disp_vc (GL_eyeZ, &GL_actUsrPos, 7, 0);
 
   return 0;
 
@@ -1046,6 +1077,133 @@ GLuint GL_fix_DL_ind  (long*);
 }
 */
  
+
+//================================================================
+  int GL_att_pt (int ptTyp) {
+//================================================================
+/// \code
+/// GL_att_pt             set attribute for points
+///   ptTyp        eg. ATT_PT_GREEN                see INF_COL_PT
+/// close GL-list with GL_EndList1(0)
+/// \endcode
+
+
+  glDisable (GL_LIGHTING);
+
+  // glPointSize & glColor3fv
+  glCallList (DL_base_PtAtt + ptTyp);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_att_cv (int cvTyp) {
+//================================================================
+/// \code
+/// GL_att_cv             set lineAttribute
+///   cvTyp          eg Typ_Att_top1             see INF_COL_CV
+/// close GL-list with GL_EndList1(0)
+/// see also GL_DrawLn_Ini
+/// \endcode
+
+
+  glDisable (GL_LIGHTING);
+
+  // attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
+
+  glCallList (DL_base_LnAtt + cvTyp);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_att_su (int suTyp) {
+//================================================================
+// GL_att_su             set surfaceAttribute      see INF_COL_SYMB
+// see also GL_DrawLn_Ini
+
+
+  glEnable (GL_LIGHTING);
+
+  glColor3fv (GL_col_tab[suTyp]);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_att_sym (int icol) {
+//================================================================
+/// \code
+/// GL_att_sym            set symbol-attribute 
+///   icol         color of symbols            see INF_COL_SYMB
+/// use before GL_Disp_nsymB ..
+/// Example: ?
+/// \endcode
+
+  glDisable (GL_LIGHTING);
+
+  glColor3fv (GL_col_tab[icol]);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_att_OnTop_set (int mode) {
+//================================================================
+/// \code
+/// GL_att_OnTop_set      set/reset "overwrite-all"
+/// using  glDepthFunc (GL_ALWAYS);
+/// used by GL_DrawSymB
+/// \endcode
+
+  // printf("GL_att_OnTop_set %d\n",mode);
+
+  GL_stat_OnTop = mode;
+
+  return 0;
+
+}
+
+
+//================================================================
+   int GL_att_OnTop__ () {
+//================================================================
+/// GL_att_OnTop__        set "overwrite-all"
+
+
+  // printf("GL_att_OnTop__ \n");
+
+  glNewList (DL_OnTop__, GL_COMPILE);
+    glDisable (GL_DEPTH_TEST);
+    glDepthFunc (GL_ALWAYS);
+  glEndList ();
+
+  return 0;
+
+}
+
+//================================================================
+   int GL_att_OnTopOff () {
+//================================================================
+/// GL_att_OnTopOff       reset "overwrite-all"
+
+
+  glNewList (DL_OnTopOff, GL_COMPILE);
+    glDepthFunc (GL_LEQUAL);
+  glEndList ();
+
+  return 0; 
+    
+} 
+
 
 //================================================================
   int GL_ck_sel_PT (Point *pt1) {
@@ -1301,7 +1459,7 @@ GLuint GL_fix_DL_ind  (long*);
 
   if(!texSize)  {
     glGetIntegerv (GL_MAX_TEXTURE_SIZE, &texSize);
-      printf(" GL_MAX_TEXTURE_SIZE = %d\n",texSize);
+      // printf(" GL_MAX_TEXTURE_SIZE = %d\n",texSize);
   }
 
 
@@ -1340,6 +1498,7 @@ GLuint GL_fix_DL_ind  (long*);
 
 
   if(GL_stat_blend != 0) {
+    // end transparency
     glDisable (GL_BLEND);
     glEnable (GL_DEPTH_TEST);
     GL_stat_blend = 0;
@@ -1354,8 +1513,11 @@ GLuint GL_fix_DL_ind  (long*);
 //=====================================================================
   int GL_EndList1 (int mode) {
 //=====================================================================
-// mode = 0 fuer Lines, Curves .. (ohne glDisable (GL_LIGHTING);)
-// mode = 1 fuer Flaechen (schattieren .. = Default);
+/// \code
+/// mode = 0 fuer Lines, Curves and surfs .. (ohne glDisable (GL_LIGHTING);)
+/// mode = 1 fuer Flaechen (schattieren .. = Default);
+///   (GL_LIGHTING enabled = defaultmode)
+/// \endcode
 
   if(mode < 1) glEnable (GL_LIGHTING);
 
@@ -1376,36 +1538,6 @@ GLuint GL_fix_DL_ind  (long*);
   glEndList ();
 
   return 0;
-
-}
-
-
-//=====================================================================
-  void GL_Reframe () {
-//=====================================================================
-
-  // printf("GL_Reframe siz=%f,%f,%f\n",GL_Siz_X,GL_Siz_Y,GL_Siz_Z);
-
-
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity ();
-
-
-
-    GL_box_X1 = GL_cen.x - GL_Siz_X;
-    GL_box_X2 = GL_cen.x + GL_Siz_X;
-    
-    GL_box_Y1 = GL_cen.y - GL_Siz_Y;
-    GL_box_Y2 = GL_cen.y + GL_Siz_Y;
-
-/*
-    GL_box_Z1 = GL_cen_Z - GL_Siz_Z;
-    GL_box_Z2 = GL_cen_Z + GL_Siz_Z;
-*/
-
-
-    GL_Reframe1 ();
-
 
 }
 
@@ -1441,10 +1573,10 @@ GLuint GL_fix_DL_ind  (long*);
 //=====================================================================
 // Parallelprojektion
 
+  float fx1, fy1, fz1;
 
-  //TX_Print("GL_Reframe1 siz=%f,%f,%f",GL_Siz_X,GL_Siz_Y,GL_Siz_Z);
 
-
+  // printf("GL_Reframe1 GL_cen.z = %f %f %f\n",GL_cen.x,GL_cen.y,GL_cen.z);
 
 /*
     TX_Print("GL_Reframe1 x=%f,%f y=%f,%f z=%f,%f",
@@ -1454,95 +1586,34 @@ GLuint GL_fix_DL_ind  (long*);
 */
 
 
-/*
-    glOrtho (GL_box_X1, GL_box_X2, 
-             GL_box_Y1, GL_box_Y2,
-             GL_box_Z1, GL_box_Z2);
-*/
+
+    fx1 = GL_Scr_Siz_X * GL_fakt;     // / 2;
+    fy1 = GL_Scr_Siz_Y * GL_fakt;     // / 2;
+    fz1 = GL_ModSiz * 10000.0;
+
+    glOrtho (-fx1, fx1, -fy1, fy1, -fz1, fz1);
 
 
 
+  // if (GL_Scr_Siz_X > GL_Scr_Siz_Y) {
+    // glOrtho (-GL_ModSiz, GL_ModSiz,
+             // -GL_ModSiz*GL_Svfakt, GL_ModSiz*GL_Svfakt,
+             // -GL_Siz_Z,  GL_Siz_Z);
 
-
-/*
-  if (GL_Scr_Siz_X < GL_Scr_Siz_Y) {
-    //glOrtho (-GL_ModSiz, GL_ModSiz, -GL_ModSiz*h/w, GL_ModSiz*h/w, GL_ModSiz_Z_LO, GL_ModSiz_Z_HI);
-    glOrtho (GL_box_X1, GL_box_X2, 
-             GL_box_Y1*GL_Scr_Siz_Y/GL_Scr_Siz_X, GL_box_Y2*GL_Scr_Siz_Y/GL_Scr_Siz_X,
-             GL_box_Z1, GL_box_Z2);
-
-  } else {
-    //glOrtho (-GL_ModSiz*w/h, GL_ModSiz*w/h, -GL_ModSiz, GL_ModSiz, GL_ModSiz_Z_LO, GL_ModSiz_Z_HI);
-    glOrtho (GL_box_X1*GL_Scr_Siz_X/GL_Scr_Siz_Y, GL_box_X2*GL_Scr_Siz_X/GL_Scr_Siz_Y, 
-             GL_box_Y1, GL_box_Y2,
-             GL_box_Z1, GL_box_Z2);
-
-  }
-*/
-
-
-  if (GL_Scr_Siz_X <= GL_Scr_Siz_Y) {
-    glOrtho (-GL_ModSiz, GL_ModSiz,
-             -GL_ModSiz*GL_Svfakt, GL_ModSiz*GL_Svfakt,
-             -GL_Siz_Z,  GL_Siz_Z);
-  } else {
-    glOrtho (-GL_ModSiz*GL_Svfakt, GL_ModSiz*GL_Svfakt,
-             -GL_ModSiz, GL_ModSiz,
-             -GL_Siz_Z,  GL_Siz_Z);
-  }
-
-
-
-/*
-Das folgende bringt nix
-  // den Mittelpunkt genau in die Mitte der beiden Z-Ebenen legen !
-  // dazu die aktuelle Z-Höhe holen
-  if (GL_Scr_Siz_X <= GL_Scr_Siz_Y) {
-    glOrtho (
-             -GL_ModSiz-GL_cen_X, GL_ModSiz-GL_cen_X,
-             -GL_ModSiz*GL_Svfakt-GL_cen_Y, GL_ModSiz*GL_Svfakt-GL_cen_Y,
-             -d2,  d2);
-  } else {
-    glOrtho (
-             -GL_ModSiz*GL_Svfakt-GL_cen_X, GL_ModSiz*GL_Svfakt-GL_cen_X,
-             -GL_ModSiz-GL_cen_Y, GL_ModSiz-GL_cen_Y,
-             -d2,  d2);
-}
-*/
-
-
-
-/*
-  // Diese Version ist mit glScaled; geht gut aber mit den Clipping-Problemen.
-  //glOrtho (-GL_ModSiz, GL_ModSiz, -GL_ModSiz, GL_ModSiz, -GL_ModSiz, GL_ModSiz);
-  // Establish clipping volume (left, right, bottom, top, near, far)
-  if (GL_Scr_Siz_X <= GL_Scr_Siz_Y) {
-    //glOrtho (-GL_ModSiz, GL_ModSiz, -GL_ModSiz*h/w, GL_ModSiz*h/w, GL_ModSiz_Z_LO, GL_ModSiz_Z_HI);
-    glOrtho (-GL_ModSiz, GL_ModSiz,
-             -GL_ModSiz*GL_Scr_Siz_Y/GL_Scr_Siz_X, GL_ModSiz*GL_Scr_Siz_Y/GL_Scr_Siz_X,
-             -GL_ModSiz*1000., GL_ModSiz*1000.);
-
-  } else {
-    //glOrtho (-GL_ModSiz*w/h, GL_ModSiz*w/h, -GL_ModSiz, GL_ModSiz, GL_ModSiz_Z_LO, GL_ModSiz_Z_HI);
-    glOrtho (-GL_ModSiz*GL_Scr_Siz_X/GL_Scr_Siz_Y, GL_ModSiz*GL_Scr_Siz_X/GL_Scr_Siz_Y,
-             -GL_ModSiz, GL_ModSiz,
-             -GL_ModSiz*1000., GL_ModSiz*1000.);
-
-  }
-*/
+  // } else {
+    // glOrtho (-GL_ModSiz*GL_Svfakt, GL_ModSiz*GL_Svfakt,
+             // -GL_ModSiz, GL_ModSiz,
+             // -GL_Siz_Z,  GL_Siz_Z);
+  // }
 
 
 }
-
-
-
-
-
 
 
 //=====================================================================
   void GL_Translate () {
 //=====================================================================
+//  update GL(DL_Ind_Scl2D) GL(DL_Ind_Cen2D)
 
   /* GLdouble augX, augY, augZ,   cenX, cenY, cenZ,   upX, upY, upZ; */
 
@@ -1556,82 +1627,6 @@ Das folgende bringt nix
   DL_Set_Scl2D ();   // set horizontal-vector
 
   return;
-
-  //glMatrixMode (GL_MODELVIEW);
-  //glLoadIdentity ();
-
-
-  // fuer die neue Methode hier glOrtho zu !
-  GL_Reframe ();
-
-
-  GL_Translate1 ();
-
-
-  /* alle spaeter fuer Proj erforderlichen Matrizen lesen */
-  GL_GetGLMat0 ();
-
-  /* glPopMatrix (); */
-
-  /* Die Normalebene auf die Displayplane errechnen. */
-  // ersetzt durch GL_eyeX
-  // GL_GetNormal0 ();
-
-}
-
-
-
-
-//=====================================================================
-  void GL_Translate1 () {
-//=====================================================================
-//  Scale, Rotate, Translate
-// Die Projektionsmatrix ist immer auf null. Verändern bringt nix.
-
-
-  //TX_Print("GL_Translate1 Scale=%f, cen=%f,%f,%f",GL_Scale,GL_cen_X,GL_cen_Y,GL_cen_Z);
-
-
-  //glMatrixMode (GL_MODELVIEW);
-  //glLoadIdentity ();
-
-/*
-  GL_Aug_X =  0.;
-  GL_Aug_Y =  0.;
-  GL_Aug_Z =  5.;
-
-  TX_Print("GL_Translate1 Aug=%f,%f,%f",GL_Aug_X, GL_Aug_Y, GL_Aug_Z);
-
-
-  gluLookAt(
-            GL_Aug_X, GL_Aug_Y, GL_Aug_Z, 
-            0., 0., 0.,
-            0., 1., 0.);
-
-*/
-
-
-
-
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity ();
-
-
-  glScaled (GL_Scale, GL_Scale, GL_Scale);
-
-
-  // glRotated (GL_ang_X, 1.0, 0.0, 0.0);
-  // glRotated (GL_ang_Y, 0.0, 1.0, 0.0);
-  // glRotated (GL_ang_Z, 0.0, 0.0, 1.0);
-
-  //d1 = WC_ask_actZsur () / 2.0;
- 
-
-  glTranslated (-GL_cen.z, -GL_cen.z, -GL_cen.z);
-
-
-
-
 
 }
 
@@ -1739,6 +1734,7 @@ Das folgende bringt nix
 //================================================================
   int DL_Set_Cen2D () {
 //================================================================
+// store screencenter in OpenGL in DispListRecord <DL_Ind_Cen2D>
 // move into 2D-screenCenter-position
 // usage:
 // glCallList (DL_Ind_Cen2D);   // move into 2D-screenCenter-position
@@ -1774,7 +1770,7 @@ Das folgende bringt nix
   double  ay, az, scl;
 
 
-  UT3D_2angr_vc (&az, &ay, &GL_eyeY);
+  UT3D_2angr_vc (&az, &ay, GL_eyeY);
   az = UT_DEGREES(az); //  ???
   // ay = UT_DEGREES(ay);
 
@@ -1805,6 +1801,8 @@ Das folgende bringt nix
 
 // this routine is called at every change of the view-scale !
 
+
+  // printf("GL_ScalBack %f\n",sc);
 
 
   // die Ruecktransformation in DL_Ind_ScBack speichern
@@ -1903,15 +1901,6 @@ Das folgende bringt nix
 
 
 //================================================================
-  void GL_Redra_mode (int mode) {
-//================================================================
-
-  GL_mode_draw_select = mode;
-
-}
-
-
-//================================================================
   int GL_backgrnd_1 (int mode) {
 //================================================================
 // permanent white background 0=ON, 1=OFF
@@ -1989,13 +1978,13 @@ Das folgende bringt nix
 
 static int errOld = 123;
 
-  int     irc, i1, i2, sx, sy, dx, dy, imode, trlNr, iXor=0, *ia, errAct;
+  int     irc, i1, sx, sy, dx, dy, imode, trlNr, iXor=0, errAct;
   int     attInd, attAct;
   long    l1, gaNr;
   int     att_def[GR_ATT_TAB_SIZ];
   double  ay, az;
   float   fa[4];
-  char    *ta, *p1, *p2;
+  // char    *ta, *p1, *p2;
   // float   *colb;
   Point   eye;
   ModelBas *mb;
@@ -2006,7 +1995,7 @@ static int errOld = 123;
   // printf("GL_Redraw %d %ld\n",DL_Ind_tmp,GR_TAB_IND);
   // printf("GL_Redraw mode=%d feed=%d\n",GL_mode_draw_select,GL_mode_feed);
   // printf("  AP_stat.sysStat=%d\n",AP_stat.sysStat);
-  // printf("GL_Redraw GL_cen_Z=%f\n",GL_cen_Z);
+  // printf("GL_Redraw GL_cen = %f %f %f\n",GL_cen.x,GL_cen.y,GL_cen.z);
 
 
   if(AP_stat.sysStat < 2) return;
@@ -2031,6 +2020,12 @@ static int errOld = 123;
   // if(GL_test_error ()) return;
 
   // if(ED_query_mode () == 1) return; // ? removed 2013-10-22 for modify-value.
+
+
+  //----------------------------------------------------------------
+  // reset "Symbols-on-top"
+  GL_stat_OnTop = 0;
+
 
 
   //----------------------------------------------------------------
@@ -2089,6 +2084,9 @@ static int errOld = 123;
 
 
 
+  //================================================================
+  // fix GL_PROJECTION_MATRIX & GL_MODELVIEW_MATRIX
+
   // nicht f SELECT (PROJ-Mat. schon fertig geladen)
   // ist fuer FEEDBACK aber auch erforderlich !
   if(GL_mode_draw_select != GR_MODE_SELECT) {
@@ -2117,16 +2115,15 @@ static int errOld = 123;
   glScaled (GL_Scale, GL_Scale, GL_Scale);
 
 
-
   // eye-Punkt errechnen; GL_eyeX zeigt von GL_cen -> eye
   // GL_eyeX == umgekehrte Sichtlinie !!
-  UT3D_pt_traptvc (&eye, &GL_cen, &GL_eyeX);
+  UT3D_pt_traptvc (&eye, &GL_cen, GL_eyeX);
 
 
   // Eye-Position und Eye-Vektor setzen
   gluLookAt (eye.x,      eye.y,      eye.z,
              GL_cen.x,   GL_cen.y,   GL_cen.z,
-             GL_eyeZ.dx, GL_eyeZ.dy, GL_eyeZ.dz);
+             GL_eyeZ->dx, GL_eyeZ->dy, GL_eyeZ->dz);
 
 
 
@@ -2181,28 +2178,30 @@ static int errOld = 123;
   if(GL_mode_draw_select == GR_MODE_DRAW) {
       // printf(" draw Achsenkreuz ..\n");
 
+    glDisable (GL_DEPTH_TEST);
+    glDepthFunc (GL_ALWAYS);
+    glDisable (GL_LIGHTING);
+    glLineWidth   (1.0);                       // 1 ist am duennsten !
+
+
+    // display grid; not in Viewer
+    if(imode != UI_MODE_VWR)
+      GL_grid__ (&GL_constr_pln, WC_sur_mat, WC_sur_imat);
+
 
     // das absolute Achsenkreuz setzen. Immer genau in Bildschirmmitte.
     glPushMatrix ();
-    glTranslated (GL_cen.x, GL_cen.y, GL_cen.z);          // das RotCen
-    glDisable (GL_LIGHTING);
-    glColor3fv   (GL_col_tab[8]);             // was 12 grauweiss
-    glLineWidth   (1.0);                       // 1 ist am duennsten !
-    glDepthFunc (GL_NOTEQUAL); // geht so leider ned ..
-    // glCallList ((GLuint)SYM_AXIS1); // ohne x-y-z
-    glCallList ((GLuint)SYM_AXIS);     // mit x-y-z-Characters
-    glDepthFunc (GL_LEQUAL);      // reset = Standard
-    glEnable (GL_LIGHTING);
+      glTranslated (GL_cen.x, GL_cen.y, GL_cen.z);          // das RotCen
+      // scale = ModSiz / 500.;
+      glScaled (GL_SclNorm, GL_SclNorm, GL_SclNorm);
+      glColor3fv   (GL_col_tab[8]);             // was 12 grauweiss
+      // glCallList ((GLuint)SYM_AXIS1); // ohne x-y-z
+      glCallList ((GLuint)SYM_AXIS);     // mit x-y-z-Characters
     glPopMatrix ();
 
 
     GL_Func_Act = FUNC_Idle;
 
-
-    // Viewer: skip Achsenkreuz und Planes
-    if(imode == UI_MODE_VWR)  goto L_L1;
-
-    GL_grid__ (&GL_constr_pln, WC_sur_mat, WC_sur_imat);
 
     // im aktuellen Origin ein Achsenkreuz (mit X-Y-Z-characters)
     // glCallList (DL_base_LnAtt + Typ_Att_Symb);
@@ -2228,28 +2227,24 @@ static int errOld = 123;
     // az = UT_DEGREES(az);
     // ay = UT_DEGREES(ay) - 90.;
     glPushMatrix ();
-    glDisable (GL_LIGHTING);
-    // glTranslated (GL_constr_pln.po.x, GL_constr_pln.po.y, GL_constr_pln.po.z);
-    // glRotated (az, 0.0, 0.0, 1.0);   // um Z drehen
-    // glRotated (ay, 0.0, -1.0, 0.0);  // um Y drehen
 
-    UT3D_m4_loadpl (m1, &GL_constr_pln);
-      // UT3D_stru_dump (Typ_M4x4, m1, "new m1:");
-    glMultMatrixd ((double*)m1);
+      UT3D_m4_loadpl (m1, &GL_constr_pln);
+        // UT3D_stru_dump (Typ_M4x4, m1, "new m1:");
+      glMultMatrixd ((double*)m1);
 
-    // glColor3f (0.f, 1.f, 0.f);       // gruen
-    glColor3f (1.f, 0.f, 0.f);       // rot
-    // glCallList ((GLuint)SYM_PLANE);
-    // glScaled (1.0, 1.0, 1.0);
-    glCallList ((GLuint)SYM_AXIS);
-    glEnable (GL_LIGHTING);
+      // glColor3f (0.f, 1.f, 0.f);       // gruen
+      glColor3f (1.f, 0.f, 0.f);       // rot
+      glScaled (GL_SclNorm, GL_SclNorm, GL_SclNorm);
+      glCallList ((GLuint)SYM_AXIS);
+     
     glPopMatrix ();
 
   }
 
 
+  //=========================================================================
   L_L1:
-  // nur bei select:
+  // selectMode-only: prepare namestack.
   if(GL_mode_draw_select == GR_MODE_SELECT) {
 
     glInitNames();               // Init NameStack.
@@ -2271,17 +2266,13 @@ static int errOld = 123;
   // printf(" vor mainRedr:%d\n",GL_mode_wire_shade);
   if(GL_mode_draw_select == GR_MODE_DRAW) {
     glEnable  (GL_LIGHTING);       // Licht EIN
+    glEnable (GL_DEPTH_TEST);
+    glDepthFunc (GL_LEQUAL);
 
   } else {
     glDisable (GL_LIGHTING);       // SEL & FEED 2009-07-16
   }
 
-/*
-  // if enabled: draw Vector Selector.
-  if((GL_vcSelStat) || (GL_plnSelStat))
-    GL_icons_dispVcPln ();
-  // glCallList ((GLuint)297);
-*/
 
   // HIDDEN: die Farbe durch Hintergrundfarbe ersetzen.
   // if(GL_mode_wire_shade == GR_STATE_HID1)
@@ -2303,8 +2294,8 @@ static int errOld = 123;
 
 
 
-  //============== DRAW ============================================
-  // Die Hauptschleife.
+  //=========================================================================
+  // mainloop display.
   //   1) hilited obj's
   //   2) transparent obj's
   // Man kann Hili nicht in der 1. Schleife machen,
@@ -2701,7 +2692,6 @@ static int errOld = 123;
       // printf(" _Redraw L_hili__: %ld\n",l1);
       // printf(" gl-2 %ld",l1);
     glCallList ((GLuint)l1 + DL_base__);           // execute (draw)
-
     // if(iXor) { glDisable(GL_COLOR_LOGIC_OP); iXor = 0; }
   }
 
@@ -2719,6 +2709,7 @@ static int errOld = 123;
 
   glDisable (GL_LINE_SMOOTH);
   // glEnable (GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);  // reset
 
 
   // glDisable (GL_BLEND);
@@ -2729,7 +2720,8 @@ static int errOld = 123;
   // PointAttributes Reset
   GL_InitPtAtt (-1);
 
-  // glLineWidth   (0.0);
+  // reset lineWidth
+  glLineWidth   (1.0);
 
 
 /*
@@ -2796,33 +2788,15 @@ static int errOld = 123;
   //----------------------------------------------------------------
   L_fertig:
     // printf(" L_fertig:\n");
-  // only for CAD
-  if(UI_InpMode != UI_MODE_CAD) goto L_exit;
-  if((GL_mode_draw_select != GR_MODE_DRAW)    && 
-     (GL_mode_draw_select != GR_MODE_SELECT))     goto L_exit;
-  // if enabled: draw Vector Selector.
-  if((GL_vcSelStat) || (GL_plnSelStat))
-    GL_icons_dispVcPln ();
 
-  // 2D-buttons
-  sele_get_icons (&i1, &ia, &ta, &p2);
-  if(i1 > 0) {
-    p1 = ta;
-    for(i2=0; i2<i1; ++i2) {
-      GL_icons_dispTags (i2, p1, p2[i2]);
-      p1 += 32;  // next string
-    }
-  }
+  
 
-
-  // reset overwrite ..
-  glDepthFunc (GL_LEQUAL);    // reset Default
-  // glDepthRange (0., 1.);
-  // if(GL_mode_wire_shade == GR_STATE_SHADE)
-    // glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-
-  glDisable (GL_LINE_SMOOTH);  // macht Lines dick ..
-
+  //----------------------------------------------------------------
+  // disp CAD-2D-icons ..  // only for CAD
+  // not for GR_MODE_SELECT GR_MODE_FEEDBACK GR_MODE_PRINT1 ..
+  if(GL_mode_draw_select == GR_MODE_DRAW)
+    // disp 2D-OpenGL-buttons, Vector/PlaneSelector (GL_Redraw)
+    GLBT_Redraw ();
 
 
   //----------------------------------------------------------------
@@ -2840,7 +2814,7 @@ static int errOld = 123;
 GEHT NED ..
   long l1;
  
-  // GL_temp_delete ();
+  // GL_temp_del_all ();
 
   for(l1=1; l1<DL_Ind_tmp; ++l1) {
     // printf(" call temp.o %ld\n",l1);
@@ -2866,7 +2840,8 @@ GEHT NED ..
 
   glGetDoublev (GL_MODELVIEW_MATRIX, GL_MatMod);    // get Model-Matrix
 
-  // GL_dump_Mat0 ();
+    // GL_dump_Mat0 ();
+
 }
 
 
@@ -2874,7 +2849,7 @@ GEHT NED ..
   int GL_dump_Mat0 () {
 //================================================================
 
-  int   i1;
+  int   i1, i2, i3;
 
   // Viewport-Matrix */
   printf("...GL_VIEWPORT\n");
@@ -2882,50 +2857,34 @@ GEHT NED ..
 
   // Proj.-Matrix
   printf("...GL_PROJECTION_MATRIX\n");
-  for(i1=0;i1<16;++i1) printf("[%d]%f ",i1,GL_MatProj[i1]);
+  for(i1=0;i1<4;++i1) {
+    for(i2=0;i2<4;++i2) {
+      i3 = i1 * 4 + i2;
+      printf("% 10.4f ",GL_MatProj[i3]);
+    }
+    printf("\n");
+  }
 
 
   // Model-Matrix
   printf("\n...GL_MODELVIEW_MATRIX\n");
-  for(i1=0;i1<16;++i1) printf("[%d]%f ",i1,GL_MatMod[i1]);
-
-  printf("\n");
+  for(i1=0;i1<4;++i1) {
+    for(i2=0;i2<4;++i2) {
+      i3 = i1 * 4 + i2;
+      printf("% 10.4f ",GL_MatMod[i3]);
+    }
+    printf("\n");
+  }
 
   return 0;
 
 }
 
 
-/*
-//=====================================================================
-  void GL_GetNormal0 () {
-//=====================================================================
-// Die Normalebene auf die Displayplane errechnen.
-// (genau normal zum Beobachter - genau in Blickrichtung) 
-
-  double     ux1,uy1,uz1,ux2,uy2,uz2;
-
-
-
-  GL_Sk2Uk (&ux1, &uy1, &uz1,  0.,0.,0.);
-  GL_Sk2Uk (&ux2, &uy2, &uz2,  0.,0.,-1.);
-
-  GL_view_vz.dx = ux2 - ux1;
-  GL_view_vz.dy = uy2 - uy1;
-  GL_view_vz.dz = uz2 - uz1;
-
-  UT3D_vc_setLength (&GL_view_vz, &GL_view_vz, 1.);
-
-  // printf("ex GL_GetNormal0 %f,%f,%f\n",GL_view_vz.dx,GL_view_vz.dy,GL_view_vz.dz);
-
-}
-*/
-
-
 //================================================================
-  int GL_pt2_pt3 (Point *pt2, Point *pt3) {
+  int GL_ptSc_ptUc (Point *pt2, Point *pt3) {
 //================================================================
-/// GL_pt2_pt3             Userkoords > Screenkoords.
+/// GL_ptSc_ptUc             Userkoords > Screenkoords.
 
   gluProject (pt3->x, pt3->y, pt3->z,
               GL_MatMod, GL_MatProj, GL_Viewp,
@@ -2935,7 +2894,22 @@ GEHT NED ..
 
 }
 
- 
+
+//================================================================
+  int GL_ptUc_ptSc (Point *ptu, Point *pts) {
+//================================================================
+/// GL_ptUc_ptSc             Screenkoords.  -> Userkoords
+
+  gluUnProject (pts->x, pts->y, pts->z,
+                GL_MatMod, GL_MatProj, GL_Viewp,
+                &ptu->x, &ptu->y, &ptu->z);
+
+  return 0;
+
+}
+
+
+
 /*=====================================================================*/
   void GL_Uk2Sk (double *sx, double *sy, double *sz,
                  double  ux, double  uy, double  uz) {
@@ -2948,7 +2922,9 @@ Userkoords > Screenkoords.
 
   // GL_GetGLMat0 (); // hier nur test
 
-  gluProject (ux, uy, uz, GL_MatMod, GL_MatProj, GL_Viewp, sx, sy, sz);
+  gluProject (ux, uy, uz,
+              GL_MatMod, GL_MatProj, GL_Viewp,
+              sx, sy, sz);
 
   // printf(" ex GL_Uk2Sk  %f,%f,%f\n", *sx, *sy, *sz);
 
@@ -3084,7 +3060,7 @@ Screenkoords > Userkoords.
   DL_base__ = DL_base_mod;
 
 
-  GL_Init1();
+  GL_Init1 ();
 
 
 
@@ -3125,7 +3101,8 @@ Screenkoords > Userkoords.
 
   // damit in W32 nicht sooft Crash in GLU32 nach GLT_spp_
   GLT_exit ();
-  GLT_init ();
+  GLT_init__ ();
+  // GLT_init_ts ();    // new grid-tesselator 2017-06-27
 
 }
 
@@ -3145,12 +3122,17 @@ Screenkoords > Userkoords.
 */
 
 
-//***********************************************************************
+//================================================================
   void GL_Init_View () {
-//***********************************************************************
-// alle viewParameter zuruecksetzen
+//================================================================
+// reset all view-parameters; 
 // UI_GR_DrawInit/UI_GR_DrawExit muss aussen sein !
+// Input:
+//   GL_initMode  0=init 1=change-scale
+//   GL_Scr_Siz_X,GL_Scr_Siz_Y         sceensize in screenCoords
+//   GL_ModSiz
 
+  double  sx;
 
   // printf("GL_Init_View %d\n",GL_initMode);
 
@@ -3158,21 +3140,24 @@ Screenkoords > Userkoords.
   //----------------------------------------------------------------
   if(GL_initMode == 0) {
 
-    GL_Set_Scale (1.0);
-    GL_cen.x = 0.; GL_cen.y = 0.; GL_cen.z = 0.;
+    // init GL_view_pln
+    UT3D_pl_XYZ (&GL_view_pln); // first load; 0,0,0, dx,dy,dz;
+
+    // get sx = shorter side of screen in screencoords
+    sx = (double)IMIN(GL_Scr_Siz_X,GL_Scr_Siz_Y);
+
+    // set scale to fit for -(GL_ModSiz/2) to +(GL_ModSiz/2)
+    GL_Scale = sx * 2. / GL_ModSiz;
+
+    // init the GL_eye_pln and its vectors
+    GL_eye_upd (0, 1);
+
+    // set scale to fit for -(GL_ModSiz/2) to +(GL_ModSiz/2)
+    // DL_Set_Cen2D DL_Set_Scl2D GL_Redraw
+    GL_Set_Scale (GL_Scale);
+    // set GL2D_Scale, GL_Scale_back, GL(DL_Img_ScBack), GL(DL_Ind_ScBack)
 
   }
-
-    // UT3D_stru_dump (Typ_PT, &GL_cen, " GL_cen:");
-
-
-  /* GL_Scale = 1.0; */
-  /* GL_Scale_back = 1.0; */
-
-  // GL_ang_X = 0.0;
-  // GL_ang_Y = 0.0;
-  // GL_ang_Z = 0.0;
-
 
 
 
@@ -3180,9 +3165,6 @@ Screenkoords > Userkoords.
   // GL_sur_act = GL_cen_Z;
   // GL_SetConstrPln ();
 
-
-  UT3D_pl_XYZ (&GL_view_pln); // first load
-  GL_SetViewPln ();
 
 
 /*
@@ -3194,7 +3176,7 @@ Screenkoords > Userkoords.
 */
 
 
-  GL_Init_Siz ();       // init clipping planes
+  // GL_Init_Siz ();       // init clipping planes
 
 
   // printf("GL_Init_View: siz=%f,%f,%f\n",GL_Siz_X,GL_Siz_Y,GL_Siz_Z);
@@ -3211,6 +3193,9 @@ Screenkoords > Userkoords.
 //================================================================
 /// \code
 /// Change Views Function. Set GL_eyeX, GL_eyeZ.
+/// GL must be open (UI_GR_DrawInit)
+/// keep GL_cen, GL_Scale;
+/// Input:
 ///   mode  FUNC_ViewTop|FUNC_ViewFront|FUNC_ViewSide|FUNC_ViewIso
 ///         FUNC_Init
 /// \endcode
@@ -3218,63 +3203,71 @@ Screenkoords > Userkoords.
   // Vector vcn;
 
 
-  // printf("GL_DefineView %d\n",mode);
+  printf("GL_DefineView mode=%d GL_actView=%d\n",mode,GL_actView);
 
   if(mode == FUNC_Init) mode = GL_actView;
 
   GL_actView = mode;
-  UI_VW_upd (GL_actView);  // enable/disable active view-button
+
+
+  // enable/disable active view-button
+  UI_VW_upd (GL_actView);
   
 
   switch (mode) {
 
 
+    //----------------------------------------------------------------
     /* von oben, XY */
     case FUNC_ViewTop:
-              GL_eyeX.dx = 0.; GL_eyeX.dy = 0.; GL_eyeX.dz = 1.;
-              GL_eyeZ.dx = 0.; GL_eyeZ.dy = 1.; GL_eyeZ.dz = 0.;
-              GL_eyeY.dx = 1.; GL_eyeY.dy = 0.; GL_eyeY.dz = 0.;
-              GL_Translate ();
+              GL_eyeX->dx = 0.; GL_eyeX->dy = 0.; GL_eyeX->dz = 1.;
+              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 1.; GL_eyeZ->dz = 0.;
+              GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
       break;
 
 
+    //----------------------------------------------------------------
     /* von vorn, YZ */
     case FUNC_ViewFront:
-              GL_eyeX.dx = 0.; GL_eyeX.dy = -1.; GL_eyeX.dz = 0.;
-              GL_eyeZ.dx = 0.; GL_eyeZ.dy = 0.; GL_eyeZ.dz = 1.;
-              GL_eyeY.dx = 1.; GL_eyeY.dy = 0.; GL_eyeY.dz = 0.;
-              GL_Translate ();
+              GL_eyeX->dx = 0.; GL_eyeX->dy = -1.; GL_eyeX->dz = 0.;
+              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
+              GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
+              // GL_Translate ();
       break;
 
 
+    //----------------------------------------------------------------
     /* von der Seite, XZ */
     case FUNC_ViewSide:
-              GL_eyeX.dx = 1.; GL_eyeX.dy = 0.; GL_eyeX.dz = 0.;
-              GL_eyeZ.dx = 0.; GL_eyeZ.dy = 0.; GL_eyeZ.dz = 1.;
-              GL_eyeY.dx = 0.; GL_eyeY.dy = 1.; GL_eyeY.dz = 0.;
-              GL_Translate ();
+              GL_eyeX->dx = 1.; GL_eyeX->dy = 0.; GL_eyeX->dz = 0.;
+              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
+              GL_eyeY->dx = 0.; GL_eyeY->dy = 1.; GL_eyeY->dz = 0.;
+              // GL_Translate ();
       break;
 
 
+    //----------------------------------------------------------------
     case FUNC_ViewIso:
-              GL_eyeX.dx = 1.; GL_eyeX.dy = -1.; GL_eyeX.dz = 1.;
-              UT3D_vc_setLength (&GL_eyeX, &GL_eyeX, 1.);
+              GL_eyeX->dx = 1.; GL_eyeX->dy = -1.; GL_eyeX->dz = 1.;
+              UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
 
-              UT3D_vc_3db (&GL_eyeY, 1., 1., 0.);
-              UT3D_vc_setLength (&GL_eyeY, &GL_eyeY, 1.);
+              UT3D_vc_3db (GL_eyeY, 1., 1., 0.);
+              UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
 
-              UT3D_vc_perp2vc (&GL_eyeZ, &GL_eyeX, &GL_eyeY);
-                // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX: ");
-                // UT3D_stru_dump (Typ_VC, &GL_eyeZ, "GL_eyeZ: ");
-              GL_Translate ();
+              UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
+                // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
+                // UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
+
       break;
 
 
-    case FUNC_ViewReframe:
-      GL_Reframe ();
-      break;
+    // case FUNC_ViewReframe:
+      // GL_Reframe ();
+      // break;
 
 
+    //----------------------------------------------------------------
+    // Scal.Fix butAll
     case FUNC_ViewReset:
               GL_initMode = 0;      // change scale !
               GL_Init_View ();
@@ -3287,16 +3280,20 @@ Screenkoords > Userkoords.
       break;
   }
 
-  ++GL_ViewModTimStamp;      // view modified ..
+  // keep GL_cen, GL_Scale; GL_eyeX,Y,Z changed..
+
+  GL_eye_upd (1, 1); // update GL_eye_pln and GL_angZ,GL_angX
+  DL_Set_Scl2D ();   // set horizontal-vector
+
 
   GL_Redraw ();
 
 
     // TESTBLOCK
     // printf("ex GL_DefineView:\n");
-    // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX");
-    // UT3D_stru_dump (Typ_VC, &GL_eyeY, "GL_eyeY");
-    // UT3D_stru_dump (Typ_VC, &GL_eyeZ, "GL_eyeZ");
+    // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX");
+    // UT3D_stru_dump (Typ_VC, GL_eyeY, "GL_eyeY");
+    // UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ");
     // END TESTBLOCK
 
 }
@@ -3676,17 +3673,17 @@ Screenkoords > Userkoords.
 // vorher testen, ob es DL-Records mit Links into DL-Table gibt !!!!
 
 
-  GLuint   DL_ind, ianz;
+  GLuint   gli;
 
 
-  DL_ind = (GLuint)ind + DL_base__;
+  gli = (GLuint)ind + DL_base__;
 
 
-  // printf("GL_Del1 %ld %d\n",ind,DL_ind);
+  printf("GL_Del1 %ld %d\n",ind,gli);
 
 
-  if (glIsList(DL_ind)) {
-    glDeleteLists (DL_ind, 1);
+  if (glIsList(gli)) {
+    glDeleteLists (gli, 1);
   }
 
   return 0;
@@ -3754,12 +3751,15 @@ Screenkoords > Userkoords.
 // see GL_last_del
 // see DL_disp_reset does also del refModels & activate parents of deletetd childs
 
-  long    ii;
+  long    gli;
 
 
-  ii = GR_TAB_IND - dli;
+  gli = GR_TAB_IND - dli;
 
-  glDeleteLists (ii, 1);
+  // printf("DL_set__ dli=%ld gli=%ld\n",dli,gli);
+
+
+  glDeleteLists (gli, 1);
 
   GR_TAB_IND =  dli;
 
@@ -3774,35 +3774,37 @@ Screenkoords > Userkoords.
 // delete last obj of DL, if its DB-index is 0
 // (CAD creates temporary preview-elements)
 
-  long ii;
+  long      dli;
+  GLuint    gli;
 
 
-  ii = GR_TAB_IND - 1;
+  dli = GR_TAB_IND - 1;
 
-  // printf("GL_last_del %ld\n",ii);
+  // printf("GL_last_del dli=%ld\n",dli);
   // return; // TEST ONLY
 
-  if(ii < 0) return;
+  if(dli < 0) return;
 
-  if(GR_ObjTab[ii].ind != 0) return;
+  if(GR_ObjTab[dli].ind != 0) return;
   
-  glDeleteLists (ii, 1);
+  gli = (GLuint)dli + DL_base__;
+  glDeleteLists (gli, 1);
 
-  GR_TAB_IND = ii;
+  GR_TAB_IND = dli;
 
 }
 
 
 //=====================================================================
-  void GL_temp_Delete (long ind) {
+  void GL_temp_del_1 (long ind) {
 //=====================================================================
 /// \code
 /// delete object in temp-area of DispList
-/// see also GL_temp_delete
+/// see also GL_temp_del_all
 /// \endcode
 
 
-  // printf("GL_temp_Delete %ld\n",ind);
+  // printf("GL_temp_del_1 %ld\n",ind);
 
   // DL_Ind_tmp    =   ind;
 
@@ -3819,7 +3821,7 @@ Screenkoords > Userkoords.
 
 
 //=====================================================================
-  void GL_temp_delete () {
+  void GL_temp_del_all () {
 //=====================================================================
 /// delete ALL objects in temp-area of DispList
 
@@ -3828,7 +3830,7 @@ Screenkoords > Userkoords.
   // glDeleteLists schliessen !
 
 
-  // printf("GL_temp_delete \n");
+  // printf("GL_temp_del_all \n");
 
 
   // glDeleteLists (1, 1);
@@ -4112,7 +4114,7 @@ static Point ptOri;
   if(i1 < 4) goto L_exit;
 
   // get buffer (alloca)
-  fBuf = MEM_alloc_tmp (i1 * sizeof(GLfloat));
+  fBuf = MEM_alloc_tmp ((int)(i1 * sizeof(GLfloat)));
   if(fBuf == NULL) {TX_Error("GL_RubberBox_draw EOF"); goto L_exit;}
 
 
@@ -4426,6 +4428,68 @@ static Point ptOri;
 
 
 //================================================================
+  int GL_sel_hits (long *ia, GLuint *selBuf, int hits) {
+//================================================================
+// retCod = nr of ID's in ia
+// selBuf-structure: n records of structure:
+//   0=wordNr (nr of words); 1=minZ, 2=maxZ, 3-(3+wordNr-1)=names
+ 
+  int     i1, iNr = 0, namNr, ihit, ind;
+  long    oNam;
+
+
+
+  // printf("GL_sel_hits hits=%d\n",hits);
+
+
+  ihit  = 0;
+  ind   = -1;
+
+
+  CheckNext:
+
+    ++ind;
+    namNr = selBuf[ind];
+
+      // printf(" next [0]=%d [1]=%d [2]=%d [3]=%d [4]=%d\n",
+                // selBuf[ind], selBuf[ind+1], selBuf[ind+2],
+                // selBuf[ind+3], selBuf[ind+4]);
+
+    ++ind;   // z1 = selectBuf[ind];
+    ++ind;   // z2 = selectBuf[ind];
+
+
+    // manchmal kommen leere Records ..
+    if(namNr < 1) {
+        // printf(" skip empty rec\n");
+      goto CheckNext;
+    }
+
+
+    // get the ID's
+    for(i1=0; i1<namNr; ++i1) {
+      ++ind;
+      oNam = selBuf[ind];
+      // copy out
+      ia[iNr] = oNam;
+      ++iNr;
+        // printf("GL_sel_hits: Sel: i1=%d oNam=%ld namNr=%d iNr=%d\n",
+               // i1,oNam,namNr,iNr);
+      ++ihit;
+    }
+
+    if(ihit < hits) goto CheckNext;
+  //----------------------------------------------------------------
+
+
+  Fertig:
+
+  return iNr;
+
+}
+
+
+//================================================================
   int GL_sel_rect (ObjDB **dla,
                    int bx, int by, int bdx, int bdy) {
 //================================================================
@@ -4453,8 +4517,8 @@ static Point ptOri;
 //   GLuint   selectBuf[BUF_SIZ];
   GLuint   *selectBuf, BUF_SIZ;
 //...................................
-  int      ihit, i1, i2, i3, imax,typ, att, namAnz, pick, selNr, *ip;
-  long     l1, ind, oNam, apt_ind;
+  int      ihit, i1, i2, i3, imax, typ, att, namAnz, pick, selNr, *ip;
+  long     l1, ind, oNam, apt_ind, dbi, *ia;
   int      hits;  // ATTENTION: GLuint hits makes Error with "if(hits < 1)" !!
   Point    pt1;
   GLfloat  f1;
@@ -4462,130 +4526,104 @@ static Point ptOri;
 
 
 
-  // printf("GL_sel_rect siz=%ld %d %d %d %d\n",GR_Siz_selTab,bx,by,bdx,bdy);
+  // printf("GL_sel_rect siz=%ld sx=%d sy=%d dx=%d dy=%d\n",
+         // GR_Siz_selTab,bx,by,bdx,bdy);
 
 
-  // fix GL-bufferspace ..
+  GL_sel_nr_set (0);   // GR_nr_selTab = 0;
+  selNr = 0;           // fuer no select !
+
+
+  //----------------------------------------------------------------
+  // test  selection of 2D-button or obj of Vector/PlaneSelector
+  GLBT_sel__  (&typ, &dbi, &i1, bx, by);
+  if(typ) {
+    // if(ii) GR_nr_selTab = 0;   // highest priority; overwrite underlying objs
+    // useless here - 1.obj !
+    GL_sel_add_DB (dla, dbi, typ);
+    if(i1) return 1;
+  }
+
+
+  //----------------------------------------------------------------
+  // // save active PROJECTION-matrix, then init
+  glMatrixMode (GL_PROJECTION);
+  // save active matrix
+  glPushMatrix ();
+  // load Defaultmat.
+  glLoadIdentity ();
+
+
+
+  //----------------------------------------------------------------
+  // start select
+
+  // Init Sel. Buffer (BEFORE switching to select)
   selectBuf = (int*)memspc501;
   BUF_SIZ = sizeof(memspc501) / sizeof(GLuint);
-  // BUF_SIZ = 1000; // TEST ONLY !
-    // printf(" GL_sel_rect-BUF_SIZ=%d\n",BUF_SIZ);
-
-
-  glGetIntegerv (GL_VIEWPORT, GL_Viewp);            // get Viewport-Matrix
-
-
-//----------------------------------------------------------------
-// GL_Select
-
-  // switch to ProjectionMode
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();  // load Defaultmat.
-
-  // Init Sel. Buffer
   glSelectBuffer (BUF_SIZ, selectBuf);
 
-
   glRenderMode (GL_SELECT);
-  //glRenderMode (GL_FEEDBACK);
-  // GL_mode_draw_select = GR_MODE_SELECT;    // statt DispList,Farben Names.
-  GL_Redra_mode (GR_MODE_SELECT);
+  GL_mode_draw_select = GR_MODE_SELECT;
+
+  // Init NameStack.
+  glInitNames();
+  glPushName((GLuint)0);       // Muss sein. Damit ein Name am Stack ist,
+
+  // define pick-window (rectangle 5x5 pixels)
+  // - changes active (PROJECTION)-matrix !
+  glGetIntegerv (GL_VIEWPORT, GL_Viewp);            // get Viewport-Matrix
+  gluPickMatrix ((double)bx, (double)by,  (double)bdx,  (double)bdy, GL_Viewp);
 
 
-  // Viewport rund um die SelectPosition einrichten.
-  // gluPickMatrix (px, py, GL_pickSiz, GL_pickSiz, GL_Viewp);
-  // (xCen,yCen, width,heigt) als 4 doubles in screenCoords
-  gluPickMatrix (bx, by, bdx, bdy, GL_Viewp);
-    // printf("   pickport = %f,%f",px,py);
+  //----------------------------------------------------------------
+  // redraw all objs to be picked
 
-
-  // glOrtho
-    // printf(" gl_sel 1\n");
+  // glOrtho - 3D
   GL_Reframe1 (); // ganz wichtig !
   // redraw all
 
-    // printf(" gl_sel 2\n");
+  // redraw all objs to be picked
   DL_Redraw ();
 
-  // Abschliessen, Buffer fuellen
+  // close, fill buffer
   hits = glRenderMode (GL_RENDER);
-    // printf(" hits=%d\n",hits);
-
+    // printf(" 3D-hits=%d\n",hits);
 
   // restore 
-  // GL_mode_draw_select = GR_MODE_DRAW;
-  GL_Redra_mode (GR_MODE_DRAW);
+  GL_mode_draw_select = GR_MODE_DRAW;
 
-
-//-----------------------------------------------------------------
-// GL_Select2
-
-  ihit  = 0;
-  ind   = -1;
-  GL_sel_nr_set (0);
-  selNr = 0;       // fuer no select !
-
-
-  if(hits < 0) {
-    TX_Print("ERROR: selectbuffer overflow ...");
+  if(hits < 1) {
+    if(hits < 0) TX_Print("ERROR: selectbuffer overflow ...");
     goto Fertig;
   }
 
 
-  CheckNext:
 
-    ++ihit;
-    if(ihit > hits) goto Fertig;
+  //-----------------------------------------------------------------
+  // analyze OpenGL-buffer selectBuf; add objs into dla
+// TODO: use GL_sel_hits
 
-      // printf(" next %d %d %d\n",selectBuf[ind],selectBuf[ind+1],
-                // selectBuf[ind+4]);
+  ia = (long*) MEM_alloc_tmp ((int)(hits * sizeof(long)));
 
-    ++ind;
-    namAnz = selectBuf[ind];
+  i1 = GL_sel_hits (ia, selectBuf, hits);
 
-    ++ind;   // z1 = selectBuf[ind];
-    ++ind;   // z2 = selectBuf[ind];
-
-
-    // manchmal kommen leere Records ..
-    if(namAnz < 1) {
-        // printf(" skip empty rec\n");
-      goto CheckNext;
-    }
+  // save
+  for(i2=0; i2<i1; ++i2)
+    selNr = GL_sel_add__ (ia[i2]);
+    // selNr = GL_sel_add_DL (dla, ia[i2]);
 
 
-    for(i1=0; i1<namAnz; ++i1) {
-      ++ind;
-      oNam = selectBuf[ind];   // get the DL-index
-        // printf("_Select2: Sel: #=%d oNam=%ld\n",i1,oNam);
-        // DL_DumpObj__ (oNam);
-    }
-
-
-    // skip obj, if it is not pickable
-    if(oNam < GR_TAB_IND) {
-      if ((GR_ObjTab[oNam].pick) == ON) {
-          // printf(" skip unpickable %ld\n",oNam);
-        goto CheckNext;
-      }
-    }
-
-
-    // typ = DL_GetObj (oNam, &apt_ind, &att);
-    // typ     = DL_GetTyp (oNam);
-    // apt_ind = DL_get_dbi (oNam);
-    // printf(" .... save[%d] dli=%d typ=%d ind=%ld pick=%d\n",selNr,
-                  // oNam,typ,apt_ind,pick);
-
-
-    // save
-    selNr = GL_sel_add_DL (dla, oNam);
-
-    goto CheckNext;
   //----------------------------------------------------------------
-
-
   Fertig:
+
+  // replace saved matrix
+  glMatrixMode (GL_PROJECTION);
+  glPopMatrix ();
+  // back to normal rendering
+  // glMatrixMode (GL_MODELVIEW);
+
+
 
   *dla = GR_selTab;
 
@@ -4641,17 +4679,53 @@ static Point ptOri;
 
 
 //================================================================
+  int GL_sel_add__ (long dli) {
+//================================================================
+
+  int    ii, i1, typ, *ia;
+  long   l1, dbi;
+  char   *ta, *stat;
+  
+
+  // printf("GL_sel_add__ %ld\n",dli);
+
+
+  // realloc space in dla if necessary
+  if(GR_nr_selTab >= GR_Siz_selTab) {
+    if(GL_selTab_realloc() < 0) {
+      TX_Error("GL_sel_add_DL E001");
+      return -1;
+    }
+  }
+
+  GR_selTab[GR_nr_selTab].dlInd = dli;
+  GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
+  GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
+
+  ++GR_nr_selTab;
+
+    // printf("ex GL_sel_add__ %d\n",GR_nr_selTab);
+
+  return GR_nr_selTab;
+
+}
+
+
+
+
+//================================================================
   int GL_sel_add_DL (ObjDB **dla, long dli) {
 //================================================================
 // add DL-obj into selectionBuffer GR_selTab
+extern int GLBT_vcSelStat;
 
 
   int    ii, i1, typ, *ia;
-  long   l1;
+  long   l1, dbi;
   char   *ta, *stat;
 
 
-  // printf("GL_sel_add_DL %ld\n",dli);
+  printf("GL_sel_add_DL %ld\n",dli);
 
 
   // realloc space in dla if necessary
@@ -4664,45 +4738,10 @@ static Point ptOri;
   }
 
 
-  // test VectorSelect, 2D-button-selection
-  if(dli >= GR_TAB_IND) {
-    l1 = GR_TAB_IND - dli - 1;
-      printf(" GL_sel_add_DL l1=%ld\n",l1);
-
-    if(l1 <= -11L) {             // 2D-button selected
-      ii = -l1 - 11;
-      // get typTable & textTable for iconTags
-      sele_get_icons (&i1, &ia, &ta, &stat);
-      typ = ia[ii];       // typ = Typ_modREV;
-      l1 = 0;
-      GR_nr_selTab = 0;   // highest priority; overwrite underlying objs
-
-
-    } else if(l1 < -7L) {        // StdPlane  8-10
-      typ = Typ_PLN;
-      l1 += 7;
-
-		} else {                    // stdVec selected  1-7
-      typ = Typ_VC;
-      if(l1 == -7L) l1 = GL_vcSelStat;
-      // // test if already (underlying) objs selected; skip these
-      // for(i1=GR_nr_selTab-1; i1>=0; --i1) {
-        // if(GR_selTab[i1].dlInd != 0) GR_nr_selTab 
-      // }
-    }
-      // printf(" selTyp=%d selDli=%ld\n",typ,l1);
-
-    GR_selTab[GR_nr_selTab].dlInd = -1L;      // do not display
-    GR_selTab[GR_nr_selTab].dbInd = l1;       // DB_VCX_IND
-    GR_selTab[GR_nr_selTab].typ   = typ;
-
-
-  } else {
-    // normal obj selected ..
-    GR_selTab[GR_nr_selTab].dlInd = dli;
-    GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
-    GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
-  }
+  // normal obj selected ..
+  GR_selTab[GR_nr_selTab].dlInd = dli;
+  GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
+  GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
 
   ++GR_nr_selTab;
 
@@ -5324,7 +5363,10 @@ static long dli;
 //=====================================================================
   int GL_SetViewPln () {
 //=====================================================================
+// does only update the Z-value of the GL_view_pln
 // GL_view_pln setzen aus GL_view_pln, GL_cen.z; (hier ist Z-Wert aufgerechnet !)
+// Inputs:
+//   
 
 static double old_view_Z = 0.;
 
@@ -5347,7 +5389,7 @@ static double old_view_Z = 0.;
     }
   }
 
-      // UT3D_stru_dump (Typ_PLN, &GL_view_pln,"&new GL_view_pln:");
+      // UT3D_stru_dump (Typ_PLN, &GL_view_pln,"ex-GL_view_pln:");
 
   return 0;
 
@@ -5521,7 +5563,7 @@ static double old_view_Z = 0.;
 
   // Linie pt2 / GL_view_vz mit der Userebene schneiden
   // UT3D_pt_intptvcpl_ (&pto, &GL_view_pln, pti, &GL_view_vz);
-  UT3D_pt_intptvcpl_ (&pto, &GL_view_pln, pti, &GL_eyeX);
+  UT3D_pt_intptvcpl_ (&pto, &GL_view_pln, pti, GL_eyeX);
 
   // printf("ex GL_GetViewPt: %f,%f,%f\n",pto.x,pto.y,pto.z);
 
@@ -5554,7 +5596,7 @@ static double old_view_Z = 0.;
 
   *curPos = GL_actUsrPos;  // curPos on viewPlane
 
-  *eyeVec = GL_eyeX;
+  *eyeVec = *GL_eyeX;
 
     // UT3D_stru_dump (Typ_PT, curPos, "  curPos: ");
     // UT3D_stru_dump (Typ_VC, eyeVec, "  eyeVec: ");
@@ -5570,7 +5612,7 @@ static double old_view_Z = 0.;
 // GL_GetEyeX            Sichtstrahl retournieren
 // GL_eyeX zeigt zum Auge.
 
-  return GL_eyeX;
+  return *GL_eyeX;
 
 }
 
@@ -5624,20 +5666,23 @@ static double old_view_Z = 0.;
 /// compute cursorPosition in userCoords
 
 
-  GLdouble   mx, my ,mz;
+  GLdouble   sx, sy ,sz;
   Point      pt1;
 
   // printf("GL_GetCurPos %d %d\n",GL_mouse_x_act,GL_mouse_y_act);
 
 
   // Screenkoords des indizierten Punktes
-  mx = GL_mouse_x_act;
-  my = GL_Scr_Siz_Y - GL_mouse_y_act;
-  mz = 0.0;
+  sx = GL_mouse_x_act;
+  sy = GL_Scr_Siz_Y - GL_mouse_y_act;
+  sz = 0.;
 
 
-  // Userkoords
-  GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, mx, my, mz);
+  // Screenkoords > Userkoords
+  gluUnProject (sx, sy, sz,
+                GL_MatMod, GL_MatProj, GL_Viewp,
+                &pt1.x, &pt1.y, &pt1.z);
+  // GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, mx, my, mz);
     // printf ("  Uk=%f %f %f\n",pt1.x,pt1.y,pt1.z);
 
 
@@ -5714,8 +5759,8 @@ static double old_view_Z = 0.;
   } else {
     // FUNC_ViewTop FUNC_ViewIso
     // Linie pt2 / GL_eyeX mit der Userebene schneiden
-    // irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, &pt1, &GL_eyeX);
-    irc = UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, &GL_eyeX);
+    // irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, &pt1, GL_eyeX);
+    irc = UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, GL_eyeX);
     if(irc == 0) UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
   }
 
@@ -5779,13 +5824,13 @@ static double old_view_Z = 0.;
 
   } else {
     // Linie pt2 / GL_eyeX mit der Userebene schneiden
-    irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, pt1, &GL_eyeX);
+    irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, pt1, GL_eyeX);
     if(irc == 0) UT3D_pt_projptpl (&pt2, &GL_constr_pln, pt1);
   }
 
 
   // UT3D_stru_dump (Typ_PT,  &pt1, "PT:");
-  // UT3D_stru_dump (Typ_VC,  &GL_eyeX, "VC:");
+  // UT3D_stru_dump (Typ_VC,  GL_eyeX, "VC:");
   // UT3D_stru_dump (Typ_PLN, &GL_constr_pln, "GL_constr_pln:");
 
   // printf(" ex GL_GetConstrPos %f %f %f\n",pt2.x, pt2.y, pt2.z);
@@ -5825,20 +5870,13 @@ static double old_view_Z = 0.;
 /// screencenter in userCoords (returns GL_cen)
 /// see also GL_GetViewSizU
 
-  Point pt1;
-
-  pt1.x = GL_cen.x;
-  pt1.y = GL_cen.y;
-  pt1.z = GL_cen.z;
-
-  // printf(" ex GL_Get_Cen %f %f %f\n",pt1.x, pt1.y, pt1.z);
-  return pt1;
+  return GL_cen;
 
 }
 
 
 //================================================================
-  void GL_GetViewSizU (double *sx,  double *sy) {
+  int GL_GetViewSizU (double *sx,  double *sy) {
 //================================================================
 /// return size of graficWindow in userCoords
 /// see also GL_GetCen
@@ -5856,10 +5894,11 @@ static double old_view_Z = 0.;
 
   AP_Get_scale (&dy); // get 
   *sy = dy * 2.;
-  *sx = *sy * GL_Svfakt;
+  *sx = *sy * (GL_Scr_Siz_X/GL_Scr_Siz_Y);  // GL_Svfakt;
 
-    // printf(" GL_GetViewSizU %f %f\n",*sx,*sy);
+    printf("ex-GL_GetViewSizU %f %f\n",*sx,*sy);
 
+  return 0;
 
 }
 
@@ -5903,7 +5942,7 @@ static double old_view_Z = 0.;
   pt1.z = GL_cen.z;
 
   // mit der Userebene schneiden
-  UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, &GL_eyeX);
+  UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, GL_eyeX);
 
 
 
@@ -5927,9 +5966,89 @@ static double old_view_Z = 0.;
 }
 
 
+//================================================================
+  int GL_eye_upd (int modPln, int modOri) {
+//================================================================
+// update GL_eye_pln and GL_angZ,GL_angX
+// GL must be open (UI_GR_DrawInit)
+// Input
+//   modPln 0 init GL_eye_pln
+//          1 update GL_eye_pln - GL_cen changed
+//   modOri 1 update GL_angZ,GL_angX (rot.angles for the active view)
+
+
+  // double       lx, ly;
+  // Vector       vc1;
+
+
+
+  // printf("------------ GL_eye_upd %d %d\n",modPln,modOri);
+  // UT3D_stru_dump (Typ_PT, &GL_cen, "  GL_cen: ");
+
+
+
+  //----------------------------------------------------------------
+  if(modPln == 0) {
+
+    // init the GL_eye_pln and its vectors
+    UT3D_pl_XYZ (&GL_eye_pln); // first load; 0,0,0, dx,dy,dz;
+
+    GL_eyeY = &GL_eye_pln.vx;
+    GL_eyeZ = &GL_eye_pln.vy;
+    GL_eyeX = &GL_eye_pln.vz;
+
+    GL_cen = UT3D_PT_NUL;
+
+ 
+
+
+  //----------------------------------------------------------------
+  } else if(modPln == 1) {
+    // 1 = update GL_cen
+    // oldCen = GL_eye_pln.po;
+    UT3D_pl_ptpl (&GL_eye_pln, &GL_cen);
+
+  }
+
+
+  //================================================================
+  if(modOri == 1) {
+
+    // get GL_angZ, GL_angX = rot.angles for the active view
+    UT3D_2angr_2vc (&GL_angX, &GL_angZ, GL_eyeY, GL_eyeZ);
+  }
+
+
+  //----------------------------------------------------------------
+/*
+    // TESTBLOCK
+    // test position
+    { long dl1 = -2L; Point pt1; //, oldCen;
+      // gl must be open !  GL_DrawSymB gets clipped if outside
+      // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_TRI_B, &GLBT_ori);
+      pt1 = GLBT_ori;
+      lx = 200 / GL_Scale;
+      // pt1.x -= lx;
+      GL_DrawSymV (&dl1, SYM_SQUARE, ATT_COL_RED, &pt1, 1.);
+    }
+    UT3D_stru_dump (Typ_PLN, &GL_eye_pln, "ex-GL_eye_upd %d %d",modPln,modOri);
+    UT3D_stru_dump (Typ_VC, GL_eyeY, "  GL_eyeY=hor.");
+    UT3D_stru_dump (Typ_VC, GL_eyeZ, "  GL_eyeZ=vert..");
+    UT3D_stru_dump (Typ_VC, GL_eyeX, "  GL_eyeX=up.");
+    UT3D_stru_dump (Typ_PT, &GLBT_ori, "  GLBT_ori: ");
+    // END TESTBLOCK
+*/
+
+
+  return 0;
+
+}
+
+
 //======================================================================
   void GL_Do_Pan__ (int x, int y) {
 //======================================================================
+// move view according to mousemovement
 
   double   xAbst, yAbst;
   Point    pt1, pt2;
@@ -5991,13 +6110,16 @@ static double old_view_Z = 0.;
     // printf("  GL_cen = %lf,%lf,%lf\n",GL_cen.x, GL_cen.y, GL_cen.z);
 
 
+  //----------------------------------------------------------------
   L_fertig:
+
+  // GL_cen modified; update
+
+  // update GL_eye_pln center
+  GL_eye_upd (1, 0);
+
+  // update the DispListRecord for the GL_cen
   DL_Set_Cen2D ();  // set new 2D-screenCenter-position
-
-  ++GL_ViewModTimStamp;    // view modified ..
-
-  // GL_Translate1 ();
-  // GL_GetGLMat0 ();
 
   // L_fertig:
     // printf("    GL_Do_Pan__ %f %f %f\n",GL_cen.x,GL_cen.y,GL_cen.z);
@@ -6165,6 +6287,7 @@ static double old_view_Z = 0.;
   void GL_Do_Rot__ (int x, int y) {
 //======================================================================
 // rotate view.
+// GL must be open (UI_GR_DrawInit)
 // Input:
 //   x,y     the mouseposition
 
@@ -6175,37 +6298,20 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_Do_Rot__ %d %d\n",x,y);
-  // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX: ");
+  // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
 
 
   // get relative movement of mouse from last stored position
   GL_Do_Idle (&dx, &dy, x, y);
 
 
-  /* ------------------------------------------------ */
-  /* Rotate */
+  //----------------------------------------------------------------
+  // d1 = angle to tilt
+  // d2 = angle to rotate
   d1 = dy / 5.0;
   d2 = dx / 5.0;
+    // printf(" _Do_Rot__ d1=%f d2=%f\n",d1,d2);
 
-/*
-    GL_ang_X = GL_ang_X - d1;
-    //GL_ang_Y = GL_ang_Y + d2;
-    GL_ang_Z = GL_ang_Z + d2;
-
-    if(GL_ang_X < 0.)   {GL_ang_X = GL_ang_X + 360.;}
-    if(GL_ang_X > 360.) {GL_ang_X = GL_ang_X - 360.;}
-
-    if(GL_ang_Y < 0.)   {GL_ang_Y = GL_ang_Y + 360.;}
-    if(GL_ang_Y > 360.) {GL_ang_Y = GL_ang_Y - 360.;}
-
-    if(GL_ang_Z < 0.)   {GL_ang_Z = GL_ang_Z + 360.;}
-    if(GL_ang_Z > 360.) {GL_ang_Z = GL_ang_Z - 360.;}
-*/
-
-  // printf("GL_Do_Rot__ %f %f %f\n",GL_ang_X,GL_ang_Y,GL_ang_Z);
-  // printf("GL_Do_Rot__ %f %f\n",d2,d1);
-
-  // d2 = 0.;
 
 
   //================================================================
@@ -6213,18 +6319,20 @@ static double old_view_Z = 0.;
   //
   // wenn der Sichtvektor GL_eyeX ident mit Z-Vektor:
   // den GL_eyeZ um den GL_eyeX drehen
-  zFlag = UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_Ang2);
+  // test if eye-vector is parallel to active Z-vector
+  zFlag = UT3D_comp2vc_d (GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_Ang2);
   if(zFlag == 1) {
-    // only for top-view: keep GL_eyeX; rotate GL_eyeZ.
-    UT3D_vc_rotvcangr (&GL_eyeZ, UT_RADIANS(d2), &GL_eyeZ, &GL_eyeX);
+    // yes, top-view is active;
+    // keep GL_eyeX; rotate GL_eyeZ.
+    UT3D_vc_rotvcangr (GL_eyeZ, UT_RADIANS(d2), GL_eyeZ, GL_eyeX);
     goto L_kippen;
   }
 
 
   // arbitrary view: rotate GL_eyeX & GL_eyeZ around UT3D_VECTOR_Z
-  // UT3D_stru_dump (Typ_VC,  &GL_eyeX, " old eyeX:");
-  UT3D_vc_rotvcangr (&GL_eyeX, UT_RADIANS(d2), &GL_eyeX, &UT3D_VECTOR_Z);
-  UT3D_vc_rotvcangr (&GL_eyeZ, UT_RADIANS(d2), &GL_eyeZ, &UT3D_VECTOR_Z);
+  // UT3D_stru_dump (Typ_VC,  GL_eyeX, " old eyeX:");
+  UT3D_vc_rotvcangr (GL_eyeX, UT_RADIANS(d2), GL_eyeX, &UT3D_VECTOR_Z);
+  UT3D_vc_rotvcangr (GL_eyeZ, UT_RADIANS(d2), GL_eyeZ, &UT3D_VECTOR_Z);
 
 
 
@@ -6236,42 +6344,47 @@ static double old_view_Z = 0.;
   L_kippen:
 
   // get vcn = normalvector (negativ horizontal)
-  UT3D_vc_perp2vc (&GL_eyeY, &GL_eyeX, &GL_eyeZ);
-  UT3D_vc_setLength (&GL_eyeY, &GL_eyeY, 1.);
-  // UT3D_stru_dump (Typ_VC,  &GL_eyeX, " old eyeX:");
-  // UT3D_stru_dump (Typ_VC,  &GL_eyeZ, " old eyeZ:");
+  UT3D_vc_perp2vc (GL_eyeY, GL_eyeX, GL_eyeZ);
+  UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
+  // UT3D_stru_dump (Typ_VC,  GL_eyeX, " old eyeX:");
+  // UT3D_stru_dump (Typ_VC,  GL_eyeZ, " old eyeZ:");
 
 
   // arbitrary view:
   // rotate GL_eyeX & GL_eyeZ around GL_eyeY
-  UT3D_vc_rotvcangr (&GL_eyeX, UT_RADIANS(d1), &GL_eyeX, &GL_eyeY);
-  UT3D_vc_rotvcangr (&GL_eyeZ, UT_RADIANS(d1), &GL_eyeZ, &GL_eyeY);
+  UT3D_vc_rotvcangr (GL_eyeX, UT_RADIANS(d1), GL_eyeX, GL_eyeY);
+  UT3D_vc_rotvcangr (GL_eyeZ, UT_RADIANS(d1), GL_eyeZ, GL_eyeY);
 
 
   // GL_eyeZ normal auf GL_eyeX machen (makes more precise)
-  UT3D_vc_setLength (&GL_eyeX, &GL_eyeX, 1.);
+  UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
     // UT3D_stru_dump (Typ_VC,  &GL_eyeX, " eyeX:");
+
+  L_setY:
   // recreate y from x and z
-  UT3D_vc_perp2vc (&GL_eyeY, &GL_eyeZ, &GL_eyeX);
+  UT3D_vc_perp2vc (GL_eyeY, GL_eyeZ, GL_eyeX);
   // recreate z from x and y
-  UT3D_vc_perp2vc (&GL_eyeZ, &GL_eyeX, &GL_eyeY);
+  UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
+    // UT3D_stru_dump (Typ_VC,  GL_eyeY, " X = eyeY:");
+    // UT3D_stru_dump (Typ_VC,  GL_eyeZ, " Y = eyeZ:");
+    // UT3D_stru_dump (Typ_VC,  GL_eyeX, " Z = eyeX:");
 
 
   
   //================================================================
   // check if View is top, front, side or isoview. Set GL_actView.
   // top
-  if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 1) {
+  if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewTop;
     UI_VW_upd (GL_actView);
 
   // front
-  } else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1) == 1) {
+  } else if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewFront;
     UI_VW_upd (GL_actView);
 
   // side
-  } else if(UT3D_comp2vc_d(&GL_eyeX, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1) == 1) {
+  } else if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1) == 1) {
     GL_actView = FUNC_ViewSide;
     UI_VW_upd (GL_actView);
 
@@ -6281,10 +6394,12 @@ static double old_view_Z = 0.;
   }
 
 
-  ++GL_ViewModTimStamp;    // view modified ..
+  //----------------------------------------------------------------
+  // keep GL_Cen; GL_eyeZ, GL_eyeX, GL_eyeY fixed.
+
+  GL_eye_upd (-1, 1);
 
   DL_Set_Scl2D ();   // set horizontal-vector
-  // GL_Redraw ();
 
   return;
 
@@ -6311,12 +6426,13 @@ static double old_view_Z = 0.;
   void GL_Do_Scale__ (int x, int y) {
 //======================================================================
 /// modify scale according to mousemovement
+// GL must be open (UI_GR_DrawInit)
 
   int    dx, dy;
   double zoomfakt;
 
-  // printf("GL_Do_Scale__ %d %d\n",x,y);
 
+  // printf("GL_Do_Scale__ %d %d\n",x,y);
 
   //----------------------------------------------------------------
 
@@ -6346,22 +6462,21 @@ static double old_view_Z = 0.;
   // printf("GL_Do_Scale__ %f\n",zoomfakt);
 
 
-  // den Sichtvektor um zoomfakt verkuerzen/verlaengern
-// removed 2011-10-23
-  // GL_eyeX.dx *= zoomfakt;
-  // GL_eyeX.dy *= zoomfakt;
-  // GL_eyeX.dz *= zoomfakt;
-  // UT3D_stru_dump (Typ_VC, &GL_eyeX, " new eyeX:");
-
-
-
 
   //----------------------------------------------------------------
   L_work1:
 
-  ++GL_ViewModTimStamp;    // view modified ..
+  // check min - max
+  GL_Scale = DLIM2 (GL_Scale * zoomfakt, SCALE_MIN, SCALE_MAX);
+    // printf(" GL_Scale=%lf\n",GL_Scale);
 
-  GL_Set_Scale (GL_Scale * zoomfakt);
+  // update GLBT_ori
+  GL_eye_upd (-1, 0);
+
+  // update GL_Scale AP_scale GL2D_Scale GL_Scale_back
+  //  GL(DL_Ind_ScBack) GL(DL_Ind_Cen2D)
+  GL_Set_Scale (GL_Scale);
+
 
   return;
 
@@ -6426,11 +6541,11 @@ static double old_view_Z = 0.;
   // double a1, a2, a3;
 
 
-  view[0] = GL_eyeX.dx;
-  view[1] = GL_eyeX.dy;
-  view[2] = GL_eyeX.dz;
+  view[0] = GL_eyeX->dx;
+  view[1] = GL_eyeX->dy;
+  view[2] = GL_eyeX->dz;
 
-  // UT3D_3angr_2vc (&a1, &a2, &a3, &GL_eyeX, &GL_eyeZ);
+  // UT3D_3angr_2vc (&a1, &a2, &a3, GL_eyeX, GL_eyeZ);
   // view[0] = UT_DEGREES(a1);
   // view[1] = UT_DEGREES(a2);
   // view[2] = UT_DEGREES(a3);
@@ -6442,9 +6557,9 @@ static double old_view_Z = 0.;
 
   view[6] = GL_Scale;
 
-  view[7] = GL_eyeZ.dx;
-  view[8] = GL_eyeZ.dy;
-  view[9] = GL_eyeZ.dz;
+  view[7] = GL_eyeZ->dx;
+  view[8] = GL_eyeZ->dy;
+  view[9] = GL_eyeZ->dz;
 
   return 0;
 
@@ -6462,8 +6577,8 @@ static double old_view_Z = 0.;
   printf("GL_View_dump \n");
 
   UT3D_stru_dump (Typ_PT, &GL_cen, "_cen: "); 
-  UT3D_stru_dump (Typ_PT, &GL_eyeX, "eyeX: "); 
-  UT3D_stru_dump (Typ_PT, &GL_eyeZ, "eyeZ: "); 
+  UT3D_stru_dump (Typ_PT, GL_eyeX, "eyeX: "); 
+  UT3D_stru_dump (Typ_PT, GL_eyeZ, "eyeZ: "); 
 
   printf("_scl: %f\n",GL_Scale);
 
@@ -6475,8 +6590,9 @@ static double old_view_Z = 0.;
  
 
 //=================================================================
-  int GL_View_set         (double *view) {
+  int GL_View_set (double *view) {
 //=================================================================
+// restore view from data (GL_eyeX, GL_cen, scale, GL_eyeZ)
 // braucht nachfolgend GL_Redraw od GR_Redraw
 // Input:
 //   view          view from 10 numbers;
@@ -6489,6 +6605,7 @@ static double old_view_Z = 0.;
 // see GL_View_get GL_View_dump
 
   int    i1;
+  Point  ptc;
   double a1, a2, a3;
 
 
@@ -6497,34 +6614,35 @@ static double old_view_Z = 0.;
   // for(i1=0; i1<10; ++i1) printf(" %d=%f\n",i1,view[i1]);
 
 
-  GL_eyeX.dx = view[0];
-  GL_eyeX.dy = view[1];
-  GL_eyeX.dz = view[2];
-  if(UT3D_compvc0(&GL_eyeX, 0.1) == 1) GL_eyeX = UT3D_VECTOR_X;
-  else UT3D_vc_setLength (&GL_eyeX, &GL_eyeX, 1.);
+
+  GL_eyeX->dx = view[0];
+  GL_eyeX->dy = view[1];
+  GL_eyeX->dz = view[2];
+  if(UT3D_compvc0(GL_eyeX, 0.1) == 1) *GL_eyeX = UT3D_VECTOR_X;
+  else UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
   
-
-  GL_cen.x = view[3];
-  GL_cen.y = view[4];
-  GL_cen.z = view[5];
-
-  GL_eyeZ.dx = view[7];
-  GL_eyeZ.dy = view[8];
-  GL_eyeZ.dz = view[9];
-  if(UT3D_compvc0(&GL_eyeX, 0.1) == 1) GL_eyeZ = UT3D_VECTOR_Z;
-  else UT3D_vc_setLength (&GL_eyeZ, &GL_eyeZ, 1.);
-
-    // UT3D_stru_dump (Typ_VC, &GL_eyeZ, "  GL_eyeZ/2:");
-
+  GL_eyeZ->dx = view[7];
+  GL_eyeZ->dy = view[8];
+  GL_eyeZ->dz = view[9];
+  if(UT3D_compvc0(GL_eyeX, 0.1) == 1) *GL_eyeZ = UT3D_VECTOR_Z;
+  else UT3D_vc_setLength (GL_eyeZ, GL_eyeZ, 1.);
+    // UT3D_stru_dump (Typ_VC, GL_eyeZ, "  GL_eyeZ/2:");
 
   // recreate GL_eyeY
-  UT3D_vc_perp2vc (&GL_eyeY, &GL_eyeZ, &GL_eyeX);
+  UT3D_vc_perp2vc (GL_eyeY, GL_eyeZ, GL_eyeX);
 
+
+  //----------------------------------------------------------------
+  // get ptc = windowCenter in userCoords
+  ptc.x = view[3];
+  ptc.y = view[4];
+  ptc.z = view[5];
+
+  // set Z-value in GL_view_pln; origin=GL_cen,  keep plane 
   GL_SetViewPln ();
 
-  UI_GR_DrawInit ();
-  GL_Set_Scale (view[6]);     // MAKES A REDRAW !
-  UI_GR_DrawExit ();
+  // set GL_Scale,GL_cen,GL_eye_pln, GL2D.. backscales ..
+  GL_Rescale (view[6], &ptc);
 
   APT_set_view_stat ();       // do not autoScale ..
 
@@ -6536,7 +6654,8 @@ static double old_view_Z = 0.;
 //=================================================================
   void GL_Set_Scale (double Scale) {
 //=================================================================
-// Set GL_Scale GL_Scale_back GL2D_Scale AP_scale
+// Set GL_Scale GL_Scale_back GL2D_Scale AP_scale GL_Redraw
+// GL must be open (UI_GR_DrawInit) !
 
 // GL_Scale depends on GL_ModSiz;
 // GL2D_Scale not !
@@ -6555,44 +6674,51 @@ static double old_view_Z = 0.;
 // see also GL_SclNorm
 
 
-  float f_scl;
+  double f_scl;
 
 
-  // printf("SSSSSSSSSS GL_Set_Scale %f\n",Scale);
+  // printf("SSSSSSSSSS GL_Set_Scale %f GL_fakt=%f\n",Scale,GL_fakt);
+
 
 
   GL_Scale = DLIM2 (Scale, SCALE_MIN, SCALE_MAX);  // check min - max
     // printf(" GL_Scale=%lf\n",GL_Scale);
 
-  GL_Scale_back = 1. / GL_Scale;          // soll immer gleich grosz sein
-    // printf(" GL_Scale_back=%lf\n",GL_Scale_back);
+  AP_Set_scale (GL_ModSiz / GL_Scale);  // = usiz=hor siz in userCoords
 
+
+  //----------------------------------------------------------------
   // GL2D_Scale = GL_ModScale / (GL_Scale * 100.);
   GL2D_Scale = GL_ModSiz / (GL_Scale * 500.);
     // printf(" GL2D_Scale=%lf\n",GL2D_Scale);
 
-  AP_Set_scale (GL_ModSiz / GL_Scale);  // = usiz=hor siz in userCoords
 
-
-
+  //----------------------------------------------------------------
   // die Ruecktransformation in DL_Ind_ScBack speichern
+
+  // always same size
+  GL_Scale_back = 1. / GL_Scale; 
+    // printf(" GL_Scale_back=%lf\n",GL_Scale_back);
+
   GL_ScalBack (GL_Scale_back);
 
 
-  // die Ruecktransformation fuer Images
-  f_scl = GL_Scale;
+  //----------------------------------------------------------------
+  // set backScaling for Images
+  f_scl = GL_Scale / GL_fakt;
+    // printf(" f_scl=%lf\n",f_scl);
+
   glNewList (DL_Img_ScBack, GL_COMPILE);
-    // glPushMatrix ();
     glPixelZoom ((GLfloat)f_scl, (GLfloat)f_scl);
   glEndList ();
 
 
+  //----------------------------------------------------------------
+  //  update GL(DL_Ind_Scl2D) GL(DL_Ind_Cen2D)
   GL_Translate ();
-
 
   // if(ED_query_mode() != ED_mode_go)
   GL_Redraw ();
-
 
 
 }
@@ -6617,27 +6743,16 @@ static double old_view_Z = 0.;
 
   GL_Resize (GL_Scr_Siz_X, GL_Scr_Siz_Y);
 
-  GL_Translate ();  // dzt unused
+  GL_Translate ();
 
 }
 
-
-
-//=======================================================================
-  int GL_Get_Cen (Point *cen) {
-//=======================================================================
-/// screencenter in userCoords
-
-  *cen = GL_cen;
-
-  return 0;
-
-}
 
 
 //=======================================================================
  int GL_Set_Cen (Point *Ucen) {
 //=======================================================================
+// see GL_GetCen
 
   // UT3D_stru_dump (Typ_PT, Ucen, "GL_Set_Cen:");
   // UT3D_stru_dump (Typ_PT, &GL_cen, "   old cen:");
@@ -6955,80 +7070,40 @@ static double old_view_Z = 0.;
 
 
 //================================================================
-  void GL_Rescale (double Usiz, Point *Ucen) {
+  void GL_Rescale (double scl, Point *Ucen) {
 //================================================================
 /// \code
+/// set GL_Scale,GL_cen,GL_eye_pln, GL2D.. backscales ..
 /// Input:
-///   Usiz      size of window (horiz) in usercoords
-///   Ucen      position of center of window in usercoords
+///   scl       GL_Scale
+///   Ucen      GL_cen
+///   GL_eyeX,Y,Z must have been set before.
 /// \endcode
 
 
-  double   d1;
+  // double   d1, scl;
 
 
-  printf("GL_Rescale Usiz=%f Ucen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
-  printf("   GL_ModSiz=%f\n",GL_ModSiz);
-
-
-  // if    (Usiz < 0.000000001) Usiz = 0.000000001;
-  d1 = APT_ModSiz / 2000.;  // UT_DISP_cv;    2017-04-10
-  if    (Usiz < d1) Usiz = d1;
-  else if(Usiz > 100000000.) Usiz =  100000000.;
-
+  // printf("GL_Rescale scl=%f Ucen=%f,%f,%f\n",scl,Ucen->x,Ucen->y,Ucen->z);
+  // printf("   GL_ModSiz=%f\n",GL_ModSiz);
 
   // set center of screen in usercoords
   GL_cen = *Ucen;
 
-  //GL_cen_Z = WC_ask_actZsur ();
-  // GL_sur_act = GL_cen_Z;
+  GL_Scale = scl;
 
 
-
-
-/*
-  // Ucen soll der Darstellungsmittelpunkt sein. Weil das dispCen dzt aber
-  // doppelt verarbeitet wird, muss manipuliert werden!
-
-  // zuesrt mal errechnen, wo Ucen auf der Screen zu liegen käme; dann die
-  // ScreenKoordDifferenz zum aktiven ScreenCen dazuzählen u. retour in UKoords. 
-
-  // das IST-Cen in S-Koord
-  GL_Uk2Sk (&s1x,     &s1y,     &s1z,
-            GL_cen_X, GL_cen_Y, GL_cen_Z);
-  TX_Print(" s1=%f,%f,%f",s1x,s1y,s1z);
-
-
-  // das Soll-Cen in S-Koord
-  GL_Uk2Sk (&s2x,     &s2y,     &s2z,
-            Ucen->x, Ucen->y, Ucen->z);
-  TX_Print(" s2=%f,%f,%f",s2x,s2y,s2z);
-*/
-
-
-
-
-
-
-/*
-  GL_cen_X = Ucen->x / 2.;
-  GL_cen_Y = Ucen->y / 2.;
-  GL_cen_Z = Ucen->z / 2.;
-  Usiz = Usiz * 2.;
-*/
-
-
-
-
-  //TX_Print("GL_Rescale cen=%f,%f,%f siz=%f",GL_cen_X,GL_cen_Y,GL_cen_Z);
-
-
+  //----------------------------------------------------------------
   UI_GR_DrawInit ();
 
-  // 0.8 passt ganz genau ins Fenster; damit beim drehen nix zu goss ist ..
-  GL_Set_Scale (GL_ModSiz / Usiz * 1.25);
-  // GL_Translate ();
-  // GL_Redraw ();
+  // update GL_eye_pln and GLBT_ori
+  GL_eye_upd (1, 1);
+
+  // update GL_Scale AP_scale GL2D_Scale GL_Scale_back
+  //  GL(DL_Ind_ScBack) GL(DL_Ind_Cen2D) GL_Redraw
+  GL_Set_Scale (GL_Scale);
+
+  // GL_Reframe1 (); // TEST
 
   UI_GR_DrawExit ();
 
@@ -7069,19 +7144,17 @@ static double old_view_Z = 0.;
 /// GL_fix_DL_ind        make OpenGL-dispListIndex from dli (add DL_base__)
 ///
 /// Input:
-///   ind >= 0     normal obj; add DL_base__
-///   ind == -1    korrigierten DL-index retournieren (next temp-Nr vergeben)
-///   ind <= -2    fixer temp-Index (max -DL_base_font1)
+///   ind       <= -2    fixed temp-Index;  > -DL_base_font1; < -1;
+///             == -1    next free temp-DL-index; > -DL_base_font1; < -1;
+///             >= 0     normal obj; add DL_base__
 ///
 /// Output:
-///   ind     in >= 0   DL_base__ added ..
-///           in == -1  (returns next free (2 - <DL_base_font1 - 1>)
-///           in <= -2  *= -1   (returns 2 - <DL_base_font1 - 1>)
-///   RetCod:      OpenGL-dispListIndex
+///   ind       in >= 0   DL_base__ added ..
+///             in == -1  returns next free (> 1; < DL_base_font1)
+///             in <= -2  fixed temp-Index (*= -1)
+///   RetCod:   OpenGL-dispListIndex
 ///              
-///
 /// \endcode
-
 
 
   int      i1;
@@ -7174,6 +7247,7 @@ static double old_view_Z = 0.;
   int GL_DrawLn_Ini (long *ind, int attInd) {
 //=======================================================================
 // Init Linear-Figure
+//   attInd                    see INF_COL_CV
 // see also GL_Draw_Ini
 
 
@@ -7447,6 +7521,100 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 }
 
 
+//=========================================================================
+  int GL_view_npt (Point *pta, int ptNr, int att, long dbi) {
+//=========================================================================
+// GL_view_npt     display n points using GL_POINTS
+//   att         eg ATT_PT_GREEN;                            see INF_COL_PT
+//   dbi    0L   do not use DispList (write into open DispList)
+//         -1L   use dynamic DispList
+//         >=1   use/overwrite existing DispList
+//
+// see also GL_view_nsymB
+
+
+  // printf("GL_view_npt %d %d %ld\n",ptNr,att,dbi);
+  // {int i1;for(i1=0;i1<ptNr;++i1)UT3D_stru_dump (Typ_PT,&pta[i1],"p[%d]",i1);}
+
+  GL_view_ini__ (dbi, Typ_PT, Typ_Att_PT);
+
+  GL_att_pt (att);
+
+  GL_Disp_npt (pta, ptNr);    // adds points into open displayList
+
+  if(dbi) GL_EndList1 (0);           // glEndList
+
+  return 0;
+
+}
+
+
+//============================================================================
+  int GL_view_nsymB (Point *pta, int ptNr, int symCol, int symTyp, long dbi) {
+//============================================================================
+// GL_view_nsymB     display n points using bitmap-symbols
+//   symCol      color of symbols; eg ATT_COL_RED;      see INF_COL_SYMB
+//   symTyp      type of symbol; eg SYM_STAR_S;         see INF_BITMAP_SYMBOLS 
+//   att         see INF_COL_SYMB (eg ATT_COL_BLUE ..)
+//   dbi    0L   do not use DispList (write into open DispList)
+//         -1L   use dynamic DispList
+//         >=1   use/overwrite existing DispList
+//
+// see also GL_view_npt UFA_view__ GL_Disp_symB GL_DrawSymB
+
+
+  GL_view_ini__ (dbi, Typ_SymB, symTyp);
+
+  GL_att_sym (symCol);
+
+  GL_Disp_nsymB (pta, ptNr, symTyp);
+
+  if(dbi) GL_EndList1 (0);           // glEndList
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_view_ini__ (long dbi, int oTyp, int attInd) {
+//================================================================
+/// \code
+/// GL_view_ini__         init GL_Disp_*
+///   dbi      0L   do not use DispList (write into open DispList)
+///            -1L   use dynamic DispList
+///            -2 to -7: GL-index of the CAD-inputObjects
+///            -8 to -10: outputObjects of WC_Work1; see DLI_TMP
+///            >=1   use/overwrite existing DispList; see DL_SetInd
+///   oTyp        eg. Typ_PT|Typ_CVBSP|Typ_SUR           see INF_OTYP
+///   attInd      eg. Typ_Att_Fac1                       see INF_ATT_CV
+///
+/// see eg GL_view_npt
+/// see INF_GL__
+/// \endcode
+
+  long    dli;
+  GLuint  dlInd;
+
+
+  if(dbi) {
+    if(dbi > 0) {
+      DL_SetInd (dbi);  // dbi >= 0: overwrite existing DL-record
+    }
+    // get new|existing index into DL-record-table; write|update record.
+    dli = DL_StoreObj (oTyp, dbi, attInd);
+
+    // see GL_Surf_Ini ..
+    // get dlInd = GL-record-index;
+    dlInd = GL_fix_DL_ind (&dli);
+    glNewList (dlInd, GL_COMPILE);
+  }
+
+  return 0;
+
+}
+
+
 //***********************************************************************
   void GL_Draw_Ini (long *ind, int attInd) {
 //***********************************************************************
@@ -7623,7 +7791,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
     // printf("GL_DrawLine ind=%ld att=%d\n",*ind,iAtt);
     // UT3D_stru_dump(Typ_LN, ln1, "GL_DrawLine %d",attInd);
-    // printf(" DL_base_LnAtt=%d\n",DL_base_LnAtt);
+    // printf("  DL_base_LnAtt=%d attInd=%d\n",DL_base_LnAtt,attInd);
 
 
 
@@ -7730,6 +7898,23 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
 //================================================================
+  void GL_Disp_npt (Point *pa, int ptNr) {
+//================================================================
+// display points; attribs: GL_att_pt(); see INF_COL_PT
+// adds points into open displayList
+
+  int    i1;
+
+
+  glBegin (GL_POINTS);
+    for(i1=0; i1<ptNr; ++i1)
+      glVertex3dv ((double*)&pa[i1]);
+  glEnd ();
+
+}
+
+
+//================================================================
   void GL_Disp_ln (Point *p1, Point *p2) {
 //================================================================
 
@@ -7761,7 +7946,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   int    attInd;
   long   i1;
-  GLuint dlInd;
+  GLuint gli;
   // Ind_Att_ln  *lnAtt=(Ind_Att_ln*)&iAtt;
 
 
@@ -7776,22 +7961,16 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   // attInd = lnAtt->indAtt;   // index into GR_AttLnTab
   attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
 
-  // den DL-Index (+ Offset) holen)  
-  dlInd = GL_fix_DL_ind (ind);
+  // den GL-Index (+ Offset) holen)  
+  gli = GL_fix_DL_ind (ind);
 
-  glNewList (dlInd, GL_COMPILE);
+  glNewList (gli, GL_COMPILE);
 
   glDisable (GL_LIGHTING);
 
   glCallList (DL_base_LnAtt + attInd);
 
-
-  glBegin (GL_LINE_STRIP);
-    for (i1 = 0; i1 < ianz; i1++) {
-      //TX_Print(" plvert %d = %f,%f,%f",i1,pta[i1].x, pta[i1].y, pta[i1].z);
-      glVertex3d (pta[i1].x, pta[i1].y, zval);
-    }
-  glEnd();
+  GL_Disp_cv2z (ianz, pta, zval);
 
   glEnable (GL_LIGHTING);
 
@@ -7815,6 +7994,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 }
 
  
+/*
 //================================================================
   int GL_DrawPolySc (long *ind, int attInd, int ianz, Point *pTab) {
 //================================================================
@@ -7862,13 +8042,13 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   return 0;
 }
-
+*/
  
 //================================================================
   int GL_DrawCvIpTab (long *ind, int att,
                       int *iba, int ibNr, Point *pTab, int mode) {
 //================================================================
-// draw polygon from indexTable; open or closed.
+// GL_DrawCvIpTab    draw polygon from indexTable; open or closed.
 //  mode=0   open
 //  mode=1   closed; add point pTab[iba[0]];
 
@@ -7889,16 +8069,16 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   glCallList (DL_base_LnAtt + att);
 
 
+  GL_Disp_inpt (ibNr, pTab, iba, mode);
+/*
   glBegin (GL_LINE_STRIP);
-
   for (i1 = 0; i1 < ibNr; i1++) {
     // UT3D_stru_dump (Typ_PT, &pTab[iba[i1]], "%d P[%d]",i1,iba[i1]);
     glVertex3dv ((double*)&pTab[iba[i1]]);
   }
-
   if(mode == 1) glVertex3dv ((double*)&pTab[iba[0]]);  // closed
-
   glEnd();
+*/
 
   glEnable (GL_LIGHTING);
 
@@ -7934,9 +8114,10 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
     // printf(" p[%ld] %lf %lf %lf\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
 
 
+  // get vector for last segment
   ipe = ianz - 1;
   UT3D_vc_2pt (&vc1, &pTab[ipe], &pTab[ipe - 1]);
-    UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+    // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
 
   UT3D_2angr_vc (&az, &ay, &vc1);
     // printf(" az=%lf ay=%lf\n",az,ay);
@@ -7956,16 +8137,12 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   glNewList (dlInd, GL_COMPILE);
 
-  glDisable (GL_LIGHTING);
+    glDisable (GL_LIGHTING);
 
-  glCallList (DL_base_LnAtt + attInd);
+    glCallList (DL_base_LnAtt + attInd);
 
-    //----------------------------------------------------------------
-    glBegin (GL_LINE_STRIP);
-    for (i1 = 0; i1 < ianz; i1++) glVertex3dv ((double*)&pTab[i1]);
-    glEnd();
+    GL_Disp_cv (ianz, pTab);
 
-    //----------------------------------------------------------------
     glPushMatrix ();
 
     // Transl und Scale: Reihenfolge wichtig !
@@ -8001,7 +8178,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   int    attInd;
   long   i1;
-  GLuint dlInd;
+  GLuint gli;
 
 
   // printf("GL_DrawPoly ind=%ld att=%d ptNr=%d\n",*ind,attInd,ianz);
@@ -8012,27 +8189,15 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
   // den DL-Index (+ Offset) holen)  
-  dlInd = GL_fix_DL_ind (ind);
+  gli = GL_fix_DL_ind (ind);
 
-  glNewList (dlInd, GL_COMPILE);
+  glNewList (gli, GL_COMPILE);
 
   glDisable (GL_LIGHTING);
 
   glCallList (DL_base_LnAtt + attInd);
 
-
-  // if(ianz == 2)
-    // glBegin (GL_LINES);
-  // else
-    glBegin (GL_LINE_STRIP);
-
-    for (i1 = 0; i1 < ianz; i1++) {
-      // printf(" plvert %d = %f,%f,%f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
-      // glVertex3d (pTab[i1].x, pTab[i1].y, pTab[i1].z);
-      glVertex3dv ((double*)&pTab[i1]);
-    }
-
-  glEnd();
+  GL_Disp_cv (ianz, pTab);
 
   glEnable (GL_LIGHTING);
 
@@ -8520,29 +8685,6 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //======================================================================
-  int GL_DrawLStrip (Point *pTab, int ptAnz) {
-//======================================================================
-
-  int   i1;
-
-
-  printf("GL_DrawLStrip %d\n",ptAnz);
-
-
-  glBegin (GL_LINE_STRIP);
-    for (i1 = 0; i1<ptAnz; i1++) {
-      // printf(" plvert %d = %f,%f,%f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
-      // glVertex3d (pTab[i1].x, pTab[i1].y, pTab[i1].z);
-      glVertex3dv ((double*)&pTab[i1]);
-    }
-  glEnd();
-
-  return 0;
-
-}
-
-
-//======================================================================
   int GL_DrawStrip1 (Point *ps, Point *pa1, Point *pa2, int ptAnz) {
 //======================================================================
 // Displ. Streifen, durch Startpunkt 2 Polygone beschrieben (ruled Surf)
@@ -8986,12 +9128,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //==================================================================
-  void GL_DrawFtab (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
+  void GL_Disp_nfac (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
 //==================================================================
+// GL_Disp_nfac           display triangles from Fac3
 // Input:
 //   fNr      nr of faces in fTab
 //   col      .vsym: 0=ON=shade; 1=OFF=symbolic
 // 
+// see GL_Disp_nifac  (indexed Fac3 - faces)
 // TODO: texture; see TSU_DrawSurMsh (make function for both)
 
  
@@ -8999,7 +9143,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   char     glCol[4];
   Vector   GL_norm;
 
-  // printf("GL_DrawFtab %d\n",fNr);
+  // printf("GL_Disp_nfac %d\n",fNr);
   // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
 
 
@@ -9060,6 +9204,79 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   return;
+
+}
+
+
+//================================================================================
+  int GL_Disp_nifac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va, int oTyp) {
+//================================================================================
+// GL_Disp_nifac           display indexed-Opengl-patch (type,indexTable,points)
+//   add faces into open GL-list using glDrawElements
+// Input:
+//   fNr      nr of faces in fa
+//   fa       faces 
+//   ia       (fNr * 3) indices into pa
+//   pa       all points
+//   va       normalvectors; one for each point
+//   oTyp     Typ_SUR
+//            Typ_SURPLN - planar - only first vector in ts1->va used;
+//
+// see GL_Disp_ipatch (display indexed-Opengl-patch (type,indexTable,points))
+// see GL_Disp_nfac
+
+
+  int    i1, ii, iNr, *ifa;
+  long   l1;
+
+
+  printf("GL_Disp_nifac %d\n",fNr);
+
+
+
+  if(oTyp == Typ_SURPLN) {
+    glNormal3fv ((float*)va);
+  } else {
+    glEnableClientState (GL_NORMAL_ARRAY);
+    glNormalPointer (GL_FLOAT, 0, va);       // same number as vertices !
+  }
+
+
+  // activate and specify pointer to vertex array
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glVertexPointer (3, GL_DOUBLE, 0, pa);
+
+
+  // check spc for indexarray
+  iNr = fNr * 3;
+  if(iNr > MEMTAB_RMAX(&GL_MIFA)) {
+    MEMTAB_RESET_IND(&GL_MIFA);
+    MemTab_add (&GL_MIFA, &l1, NULL, iNr, 2);
+  }
+
+  // make a indexarray from Fac3
+  ii = 0;
+  ifa = MEMTAB_DAT (&GL_MIFA);
+  for(i1=0; i1<fNr; ++i1) {
+    ifa[ii++] = ia[fa[i1].i1];
+    ifa[ii++] = ia[fa[i1].i2];
+    ifa[ii++] = ia[fa[i1].i3];
+      // printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-1],ifa[ii-2],ifa[ii-3]);
+  }
+
+  // ifa -> OpenGL
+  glDrawElements (GL_TRIANGLES, iNr, GL_UNSIGNED_INT, ifa);
+
+
+  glDisableClientState (GL_INDEX_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+
+  if(oTyp == Typ_PLN)
+    glDisableClientState (GL_NORMAL_ARRAY);
+
+
+
+  return 0;
 
 }
 
@@ -9268,7 +9485,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
         // GL_Disp_vc (&vc1, pa, 11);
         // UT3D_vc_setLength (&vc1, &vc1, 1.);
         // UT3D_stru_dump (Typ_VC, &vc1, "_DrawSur0: vc");
-      GL_Disp_face (actPP->aux, cNr, pa);
+      GL_Disp_patch (actPP->aux, cNr, pa);
       continue;
 
 
@@ -9351,7 +9568,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
             // UT3D_vc_setLength (&vc1, &vc1, 1.);
             // GL_Disp_vc (&vc1, actCont->data, 9);
         if(iCol < 1) GL_ColSet (&GL_defCol);
-        GL_Disp_face (actCont->aux, actCont->siz, actCont->data);
+        GL_Disp_patch (actCont->aux, actCont->siz, actCont->data);
         continue;
 
 
@@ -9470,33 +9687,30 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_Disp_face (int gTyp, int ptNr, Point *pa) {
+  int GL_Disp_patch (int gTyp, int ptNr, Point *pa) {
 //================================================================
+// GL_Disp_patch       display Opengl-patch (type & n-points)
 // gTyp: 4=GL_TRIANGLES 5=GL_TRIANGLE_STRIP 6=GL_TRIANGLE_FAN
 // unused: 0=GL_POINTS; 1=GL_LINES; 2=GL_LINE_LOOP ?
 //   3=GL_LINE_STRIP ? 0=GL_POLYGON
 // prepare with glNormal3dv
 // default sense-of-rotation for OpenGL-frontside is CCW, CW for rear.
-// see also GL_Disp_iface
+// see also GL_Disp_ipatch
 
   int  i1;
 
-  // printf("GL_Disp_face pNr=%d gTyp=%d\n",ptNr,gTyp);
+  // printf("GL_Disp_patch pNr=%d gTyp=%d\n",ptNr,gTyp);
   // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump (Typ_PT, &pa[i1], "P[%d]",i1);
   // GR_Disp_pTab (ptNr, pa, SYM_STAR_S, 2);
   //// gTyp=6=GL_TRIANGLE_FAN
 
 
-  if(ptNr < 3) {
-    // printf(" *************** GL_Disp_face E001 *******\n");
-    return 0;
-  }
+  if(ptNr < 3) return -1;
 
 
   glBegin (gTyp);
-  for(i1=0; i1<ptNr; ++i1) {
-    glVertex3dv ((double*)&pa[i1]);
-  }
+
+  for(i1=0; i1<ptNr; ++i1) glVertex3dv ((double*)&pa[i1]);
 
   glEnd ();
 
@@ -9505,10 +9719,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //====================================================================
-  int GL_Disp_iface (int gTyp, int iNr, int *ia, Point *pa) {
+  int GL_Disp_ipatch (int gTyp, int iNr, int *ia, Point *pa) {
 //====================================================================
-// display face from  indexed-points
-// without glNewList
+// GL_Disp_ipatch           display indexed-Opengl-patch (type,indexTable,points)
+// add faces into open GL-list using glBegin,glVertex3dv,glEnd
 // Input:
 //   gTyp: type of triangles in ia; eg GL_TRIANGLES
 //         bitVal-16 set: face is planar; else not.
@@ -9527,7 +9741,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //      \ /
 //       4
 //
-// see also GL_Disp_face
+// see GL_Disp_nifac (display indexed faces (Fac3))
+// see GL_Disp_nfac  (faces (Fac3), not indexed)
+// see GL_Disp_patch
 // see also TSU_exp_stlFac TSU_exp_objFac TSU_exp_wrl1Fac TSU_exp_wrl2Fac
 //     TSU_exp_dxf1Fac
 
@@ -9535,7 +9751,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int      i1, i2, i3, ii, ii1, ii2, ii3, iPln;
   Vector   vcn;
 
-  // printf("GL_Disp_iface gTyp=%d iNr=%d\n",gTyp,iNr);
+  // printf("GL_Disp_ipatch gTyp=%d iNr=%d\n",gTyp,iNr);
   // for(i1=0;i1<iNr;++i1) { i2 = ia[i1];
    // printf(" %d P[%d]=%lf,%lf,%lf\n",i1,i2,pa[i2].x,pa[i2].y,pa[i2].z); }
   //// gTyp=6=GL_TRIANGLE_FAN
@@ -9550,7 +9766,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   if(iNr < 3) {
-    // printf(" *************** GL_Disp_face E001 *******\n");
+    // printf(" *************** GL_Disp_patch E001 *******\n");
     return 0;
   }
 
@@ -9610,7 +9826,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     ii1 = ia[0];
     ii2 = ia[1];
     ii3 = ia[2];
-      // printf(" ii1=%d ii2=%d ii3=%d\n",ii1,ii2,ii3);
+      // printf(" Disp_iface-1-ii1=%d ii2=%d ii3=%d\n",ii1,ii2,ii3);
     UT3D_vc_perp3pt (&vcn, &pa[ii1], &pa[ii2], &pa[ii3]);
     glNormal3dv ((double*)&vcn);    // normalVec
     glVertex3dv ((double*)&pa[ii1]);
@@ -9620,6 +9836,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     if(iPln) {  // planar
       for(i1=3; i1<iNr; ++i1) {
         ii3 = ia[i1];
+          // printf(" Disp_iface-p-ii3=%d\n",ii3);
         glVertex3dv ((double*)&pa[ii3]);
       }
       goto L_end;
@@ -9633,7 +9850,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       ++i3;
       if(i3 >= iNr) goto L_5_end;
       ii3 = ia[i3];
-        printf(" ii1=%d ii2=%d ii3=%d\n",ii1,ii2,ii3);
+        // printf(" Disp_iface-2-ii3=%d\n",ii3);
       // UT3D_vc_perp3pt (&vcn, &pa[ii1], &pa[ii2], &pa[ii3]);
       // glNormal3dv ((double*)&vcn);    // normalVec
       glVertex3dv ((double*)&pa[ii3]);
@@ -9643,7 +9860,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       ++i3;           // 3 2 4
       if(i3 >= iNr) goto L_5_end;
       ii3 = ia[i3];
-        // printf(" ii1=%d ii2=%d ii3=%d\n",ii1,ii2,ii3);
+        // printf(" Disp_iface-3-ii3=%d\n",ii3);
       // UT3D_vc_perp3pt (&vcn, &pa[ii1], &pa[ii2], &pa[ii3]);
       // glNormal3dv ((double*)&vcn);    // normalVec
       glVertex3dv ((double*)&pa[ii3]);
@@ -9677,7 +9894,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 // Draw 1-n Polygons as GL_LINE_STRIP's.
 // Does not create the DL-Record.
 // Since pta is a surface,
-// att = Linetyp; for surfs Typ_Att_Fac1
+// att = Linetyp; for surfs Typ_Att_Fac1    See INF_COL_CV
 // Typ_SUR muss vsym gesetzt haben, sonst kein Hilite !
 // Typ_CV geht so auch ..
 //
@@ -9735,6 +9952,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   p2       endpkt Leader
 //   ltyp     -1=keineLeaderline; else typ of Leaderline
 //   scl      0: skaliert mit Zoom; else immer gleiche Size
+// PROBLEM: if origin of image gets out of window, image disappears. See below.
+//   use texture ?
 
 
   int    irc, ix, iy, pixSiz, ltyp;
@@ -9747,12 +9966,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   symNam = tx1->txt;  // ImageFilename
-  scl    = tx1->scl;
+  scl    = tx1->scl;  // * GL_fakt;
   ltyp   = tx1->ltyp; // Linetyp Leaderline; -1=no Leaderline
   p1     = &tx1->p1;
   p2     = &tx1->p2;
 
-  printf("GL_Draw_BMP |%s| dli=%ld scl=%f dbi=%ld\n",symNam,*dli,scl,dbi);
+
+  // printf("GL_Draw_BMP |%s| dli=%ld scl=%f dbi=%ld GL_fakt=%f\n",
+         // symNam,*dli,scl,dbi,GL_fakt);
 
 
   // provide BitmapFile for <symNam> as file <bNam> in <tmpDir>
@@ -9769,6 +9990,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // Bitmapdaten --> mSpc
   pixSiz = bmp_load (&mSpc, &ix, &iy, bNam);
+    // printf(" bmp_load-pixSiz=%d ix=%d iy=%d\n",pixSiz,ix,iy);
   // if(pixSiz < 0) return -1;
 
 
@@ -9812,25 +10034,29 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // glPixelStorei (GL_PACK_SKIP_PIXELS, 0);
 
   glRasterPos3d (p1->x, p1->y, p1->z);
-  // glRasterPos2f (-50.f,   25.f);
-  // glRasterPos2i (150, 50);
 
   glPushMatrix ();
 
+
   if(fabs(scl) > UT_TOL_min1) {
+    // scale is NOT 0.; image does not resize with user-scale;
+    // image is a tag with always same size.
     f_scl = scl;
     glPixelZoom (f_scl, f_scl);
   } else {
+    // scale is 0.; image resizes with user-scale;
+    // has alwas same size compared to geomtry on image
     glCallList (DL_Img_ScBack);  // scale;
   }
 
 
-  // // verschieben auf links mitte
-  // // geht ned, weil ma den Scalefaktor ned dynamisch veraendern kann.
-  // x1 = 0.;
-  // y1 = -(iy*GL_Scale) / 2;
-  // // y1 = -iy / 2;
-  // glBitmap (0,0, 0.f,0.f, x1,y1, NULL);
+  // PROBLEM: if origin of image gets out of window, image disappears
+  // move to midpoint of image
+  // MIDPOINT SHOULD BE THE USER-DEFINED-POINT.
+  // x1 = ix / GL2D_Scale / 2.;
+  // y1 = iy / GL2D_Scale / 2.;
+    // printf(" x1=%f y1=%f GL2D_Scale=%f\n",x1,y1,GL2D_Scale);
+  // glBitmap (0,0, 0.f,0.f, -x1, -y1, NULL);
 
 
 
@@ -9844,7 +10070,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
                  mSpc);             // data
 
   } else {
-    // for 8-bit-colour:
+    // for 8-bit-gray:
     glDrawPixels (ix, iy,           // width, height
                  GL_LUMINANCE,      //GL_GREEN,
                  GL_UNSIGNED_BYTE,
@@ -9894,7 +10120,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 /// Input:
 ///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
 ///   attInd     Color ATT_COL_BLACK ATT_COL_RED ATT_COL_GREEN .. (../ut/func_types.h)
-///   symTyp     type of symbol (../ut/func_types.h)
+///   symTyp     type of symbol (../ut/gr_types.h)
 ///              SYM_TRI_S   Dreieck
 ///              SYM_STAR_S  Sternderl
 ///              SYM_CIR_S   Kreis klein
@@ -9912,16 +10138,23 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // den DL-Index (+ Offset) holen)  
   dlInd = GL_fix_DL_ind (ind);
+    // printf(" _DrawSymB dli=%d ind=%ld\n",dlInd,*ind);
+
 
   glNewList (dlInd, GL_COMPILE);
 
   glDisable (GL_LIGHTING);
+
+  // set "on-top"
+  if(GL_stat_OnTop) glCallList ((GLuint)DL_OnTop__);
 
   // glCallList (DL_base_LnAtt + Typ_Att_Symb);
   glColor3fv    (GL_col_tab[attInd]);
 
   glRasterPos3d (pt1->x, pt1->y, pt1->z);
   glCallList ((GLuint)symTyp);
+
+  // if(GL_stat_OnTop) glCallList ((GLuint)DL_OnTopOff);
 
   glEnable (GL_LIGHTING);
 
@@ -10315,7 +10548,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // get mem for circSeg
-  pta = MEM_alloc_tmp ((ptNr + 4) * sizeof(Point));   // 2012-01-17 - was 2
+  pta = MEM_alloc_tmp ((int)((ptNr + 4) * sizeof(Point)));  // 2012-01-17 - was 2
 
 
   // compute circSegPoints - rotate pt1
@@ -10406,6 +10639,36 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
+  int GL_Disp_pln__ (double lnS) {
+//================================================================
+// display plane / rectangle
+// lnS = length side; active position = LowLeft
+
+  Point p1;
+
+    glBegin (GL_LINE_LOOP);
+
+      p1.x=lnS; p1.y=lnS; p1.z=0.0;
+      glVertex3d (p1.x, p1.y, p1.z);
+
+      p1.x=-lnS; p1.y=lnS;
+      glVertex3d (p1.x, p1.y, p1.z);
+
+      p1.x=-lnS; p1.y=-lnS;
+      glVertex3d (p1.x, p1.y, p1.z);
+
+      p1.x=lnS; p1.y=-lnS;
+      glVertex3d (p1.x, p1.y, p1.z);
+
+    glEnd ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
    int GL_Disp_arrh (Point *p1, Point *p2, Vector *vcn) {
 //================================================================
 // GL_Disp_arrh          display arrowhead
@@ -10444,7 +10707,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // sclNorm = 5. * GL_SclNorm;
   // sclNorm = scale * GL_SclNorm;
-  sclNorm = scale / 10.;                // f SYM_VEC notwendig !
+  sclNorm = scale; // / 10.;                // f SYM_VEC notwendig !
 
   UT3D_2angr_vc (&az, &ay, vc1);
 
@@ -10455,7 +10718,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   glPushAttrib (GL_CURRENT_BIT);  // save colourSettings
 
-  glCallList (DL_base_LnAtt + att);
+  glCallList (DL_base_LnAtt + att);     // activate colour,lineTyp,thickness.
 
   GL_Disp_symV (symTyp, pt1, az, ay, sclNorm);
 
@@ -10493,16 +10756,15 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //================================================================
   int GL_Disp_symB (int symTyp, Point *pt1) {
 //================================================================
+/// \code
 /// GL_Disp_symB          add bitmapsymbols into open displist
+///   symTyp          SYM_TRI_S SYM_STAR_S ..    see INF_BITMAP_SYMBOLS
+///
+/// set attributes with GL_att_sym (ATT_COL_BLUE); see INF_COL_SYMB
+/// see also GL_view_nsymB
+/// \endcode
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "GL_Disp_symB: ");
-
-
-  // den DL-Index (+ Offset) holen)
-  // dlInd = GL_fix_DL_ind (ind);
-
-  // glNewList (dlInd, GL_COMPILE);
 
   glDisable (GL_LIGHTING);
 
@@ -10514,10 +10776,52 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   glEnable (GL_LIGHTING);
 
-  // glEndList ();
-
-
    return 0;
+
+}
+
+
+//================================================================
+  int GL_Disp_nsymB (Point *pta, int ptNr, int symTyp) {
+//================================================================
+/// \code
+/// GL_Disp_nsymB         display bitmap symbols
+///   symTyp          SYM_TRI_S SYM_STAR_S ..    see INF_BITMAP_SYMBOLS
+/// \endcode
+
+  int i1;
+
+
+  for(i1=0; i1<ptNr; ++i1) {
+    glRasterPos3dv ((double*)&pta[i1]);
+    glCallList ((GLuint)symTyp);
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_Displ_ntri (int triNr, Point *pta) {
+//================================================================
+// GL_Displ_ntri         display triangles from points
+// see also GL_Disp_nfac (Fac3)
+
+  int   i1, i2;
+
+  glBegin (GL_TRIANGLES);
+
+  i2 = -1;
+  for(i1=0; i1<triNr; ++i1) {
+      glVertex3dv ((double*)&pta[++i2]);
+      glVertex3dv ((double*)&pta[++i2]);
+      glVertex3dv ((double*)&pta[++i2]);
+  }
+
+  glEnd ();
+
+  return 0;
 
 }
 
@@ -10698,7 +11002,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // get memSpc for points
-  pta = MEM_alloc_tmp  (ptNr * sizeof(Point));
+  pta = MEM_alloc_tmp  ((int)(ptNr * sizeof(Point)));
 
   pta[0] = pt1;
 
@@ -10765,7 +11069,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   //----------------------------------------------------------------
   // get space for wPoint-array
-  pwa = MEM_alloc_tmp (sizeof(wPoint) * ptNr);
+  pwa = MEM_alloc_tmp ((int)(sizeof(wPoint) * ptNr));
 
   // transfer rbsp-curve from format point[3] + weight into format point[4]
   UT3D_wPTn_ptn_wn (pwa, rb1->ptNr, rb1->cptab, rb1->wtab);
@@ -10803,19 +11107,44 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_Disp_cv2 (int pnr, Point2 *pta) {
+  int GL_Disp_cv2z (int pnr, Point2 *pta, double zVal) {
 //================================================================
-// 2D-Polygon in eine offene Displiste zufuegen
+// GL_Disp_cv2z          display 2D-polygon with z-value
+
 
   int i1;
 
-  // printf("GL_Disp_cv2 %d\n",pnr);
+  // printf("GL_Disp_cv2z %d %lf\n",pnr,zVal);
 
   glBegin (GL_LINE_STRIP);
     for (i1 = 0; i1 < pnr; i1++) {
       // printf(" plvert %d = %f,%f,%f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
-      glVertex3d (pta[i1].x, pta[i1].y, 0.);
+      glVertex3d (pta[i1].x, pta[i1].y, zVal);
     }
+  glEnd();
+
+
+  return 0;
+
+}
+
+//================================================================
+  int GL_Disp_inpt (int pnr, Point *pta, int *iba, int mode) {
+//================================================================
+// GL_Disp_inpt    disp polygon from indexTable; open or closed.
+
+  int i1;
+
+  printf("GL_Disp_inpt %d\n",pnr);
+
+  glBegin (GL_LINE_STRIP);
+    for (i1 = 0; i1 < pnr; i1++) {
+      // printf(" plvert %d = %f,%f,%f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
+      glVertex3dv ((double*)&pta[iba[i1]]);
+    }
+
+  if(mode == 1) glVertex3dv ((double*)&pta[iba[0]]);  // closed
+
   glEnd();
 
 
@@ -10914,7 +11243,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawSymVTL \n");
-  // UT3D_stru_dump (Typ_VC, &GL_eyeX, "  eyeVec: ");
+  // UT3D_stru_dump (Typ_VC, GL_eyeX, "  eyeVec: ");
 
   // scl = *uScal * GL2D_Scale;
   // scl = *uScal * GL_SclNorm / 10.;
@@ -10959,18 +11288,20 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //=============================================================================
 /// \code
 /// GL_DrawSymV3          draw oriented vector-symbols;
-/// symTyp:
-///   SYM_ARROW     draw line with arrowhead with normalized (always same) length
-///   SYM_SQUARE    draw rectangle normal to vc1
-///   SYM_PLANE     draw filled rectangle normal to vc1
-///   SYM_AXIS1     draw x,y,z.axis normal to vc1
-///   SYM_AXIS      draw x,y,z.axis with x,y-characters normal to vc1
-///   SYM_CROSS     draw cross (X) normal to vc1
-///   SYM_CROSS1    draw symbolic scissor normal to vc1
-///   SYM_TRIANG    draw triangle normal to vc1
-///   SYM_ARROH     draw 2D-arrowhead-only in the x-y-plane
-///   SYM_ARRO3H    draw 3D-arrowhead-only along vc1
-///   SYM_LENGTH    draw line with lenght from scale; not normalized.
+/// Input:
+///   symTyp:
+///     SYM_ARROW     draw line with arrowhead, length normalized
+///     SYM_SQUARE    draw rectangle normal to vc1
+///     SYM_PLANE     draw filled rectangle normal to vc1
+///     SYM_AXIS1     draw x,y,z.axis normal to vc1
+///     SYM_AXIS      draw x,y,z.axis with x,y-characters normal to vc1
+///     SYM_CROSS     draw cross (X) normal to vc1
+///     SYM_CROSS1    draw symbolic scissor normal to vc1
+///     SYM_TRIANG    draw triangle normal to vc1
+///     SYM_ARROH     draw 2D-arrowhead-only in the x-y-plane
+///     SYM_ARRO3H    draw 3D-arrowhead-only along vc1
+///     SYM_LENGTH    draw line with lenght from scale; not normalized.
+///   att             color; eg ATT_COL_RED     see INF_COL_SYMB
 ///
 /// dli = -2L; GL_DrawSymV3 (&dli, SYM_ARROW, 12, &pt1, &vcz, 20.);
 /// dli = -3L; GL_DrawSymV3 (&dli, SYM_SQUARE, 12, &pt1, &vcz, 1.);
@@ -11176,7 +11507,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
                   mSpc);
 
   } else {
-    // specify texture-parameters  8-bit-colours:
+    // specify texture-parameters  8-bit-gray:
     glTexImage2D (GL_TEXTURE_2D,
                   0,                    // Level    0
                   3, //GL_RGB,          // internalFormat/nr of components
@@ -11633,19 +11964,48 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   glDisable (GL_LIGHTING);
 
-  glCallList (DL_base_LnAtt + Typ_Att_Symb);
-
-  if(att) glColor3fv (GL_col_tab[att]);
-
-  glRasterPos3d (P1->x, P1->y, P1->z);
-
-  // glPushAttrib (GL_LIST_BIT);
-  glCallLists (strlen(txt), GL_UNSIGNED_BYTE, (GLubyte *) txt);
-  // glPushAttrib (GL_LIST_BIT);
+  // display text
+  GL_att_cv (att);
+  GL_Disp_txtA (P1, txt);
 
   glEnable (GL_LIGHTING);
 
   glEndList ();
+
+
+}
+
+
+//=========================================================================
+  void GL_Disp_txtA (Point *P1, char *txt) {
+//=========================================================================
+// GL_Disp_txtA          display text alphanumeric
+
+// Alfatext ist dzt nur am 0-Punkt (links unten) selektierbar !
+// see also GL_txt__
+
+
+  GLuint dlInd;
+    
+
+  // printf("GL_DrawTxtA %d %f %f %f |%s|\n",*ind,P1->x, P1->y, P1->z,txt);
+    
+  
+  // activate colour,lineTyp,thickness.
+  // glCallList (DL_base_LnAtt + Typ_Att_Symb);
+
+  // if(att) glColor3fv (GL_col_tab[att]);
+
+  // set to lower left charPos
+  glRasterPos3d (P1->x, P1->y, P1->z);
+  // move 3 pixels right 1 pixel up
+  glBitmap (0,0, 0.f,0.f, 3.f, 1.f, NULL);
+
+  // draw text
+  GL_Disp_txt2D (txt);
+  // glPushAttrib (GL_LIST_BIT);
+  // glCallLists (strlen(txt), GL_UNSIGNED_BYTE, (GLubyte *) txt);
+  // glPushAttrib (GL_LIST_BIT);
 
 
 }
@@ -12565,6 +12925,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 ///        bMod wird auch aus txt via '[#' extrahiert !
 /// ptx    der Textmittelpunkt unten
 /// txAng  in Degrees
+/// ay     ?
+/// az     ?
 /// scale: AP_txdimsiz oder AP_txsiz oder explizite NoteSize.
 ///
 /// see also GL_DrawTxtG
@@ -12578,9 +12940,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  // printf("GL_txt__ |%s| bMod=%d ang=%f scl=%f chw=%f\n",txt,bMod,txAng,
-          // scale,GR_tx_chw);
-  // printf(" dMod=%d pos=%f %f %f\n",dMod,ptx->x, ptx->y, ptx->z);
+  // printf("GL_txt__ txt=|%s| dMod=%d bMod=%d ang=%f scl=%f chw=%f\n",
+         // txt, dMod, bMod, txAng, scale, GR_tx_chw);
+  // printf("  ay=%f az=%f pos=%f,%f,%f\n",ay, az, ptx->x, ptx->y, ptx->z);
 
 
   if(txt == NULL) {printf("***** GL_txt__ E001 \n"); return -1;}
@@ -12696,6 +13058,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // scale
   scl = GTX_scale (scale);
+    // printf(" scl=%f\n",scl);
   glScaled (scl, scl, scl);
 
 
@@ -12776,7 +13139,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
   // draw character; initialized with GL_InitGFont
-  glCallList ((GLuint)i2+DL_FontOff);
+  glCallList ((GLuint)i2+DL_FontOff); 
+    // printf(" i2=%d Off=%d\n",i2,DL_FontOff);
 
 
   ++i1;
@@ -12937,7 +13301,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
 
-  GL_Disp_cv2 (pNr, pa);
+  // GL_Disp_cv2 (pNr, pa);
+  GL_Disp_cv2z (pNr, pa, 0.);
 
 
   return 0;
@@ -13218,8 +13583,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   float size, ang;
 
 
-  // printf("GL_DrawTxtG %ld att=%d pos=%f,%f |%s|\n",*ind,att,pt1->x,pt1->y,txt);
-  // printf("    siz=%f  ang=%f|\n",size,ang);
+  // printf("GL_DrawTxtG ind=%ld att=%d\n",*ind,att);
+  // UT3D_stru_dump(Typ_GTXT, tx1, " tx1: ");
 
 
   txt  = tx1->txt;
@@ -13230,8 +13595,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   if(size < 0.001) size = AP_txsiz;
 
 
-  // // get chrNr=max_nr_of_chars and lNr=nr_of_lines
+  // get chrNr=max_nr_of_chars and lNr=nr_of_lines
   GR_gtx_BlockWidth__ (&chrNr, &lNr, txt);
+    // printf(" chrNr=%d lNr=%d\n",chrNr,lNr);
 
 
   // store in GText
@@ -13806,7 +14172,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // die Displist löschen
   GL_Del0 (Typ_ALL_OBJS);
 
-  GL_temp_delete ();
+  GL_temp_del_all ();
 
   GL_Init1 ();
 
@@ -13837,6 +14203,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 }
 
 
+/*
 //================================================================
   int GL_Init_Siz () {
 //================================================================
@@ -13848,17 +14215,18 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // Prevent a divide by zero
   if(GL_Scr_Siz_Y == 0) GL_Scr_Siz_Y = 1;
+  if(GL_Scr_Siz_X == 0) GL_Scr_Siz_X = 1;
 
 
-  if (GL_Scr_Siz_X < GL_Scr_Siz_Y) {
-    GL_Siz_X = GL_ModSiz / 2.;
-    GL_Siz_Y = GL_ModSiz * GL_Scr_Siz_Y / GL_Scr_Siz_X / 2.;
+  // if (GL_Scr_Siz_X < GL_Scr_Siz_Y) {
+    // GL_Siz_X = GL_ModSiz / 2.;
+    // GL_Siz_Y = GL_ModSiz * GL_Scr_Siz_Y / GL_Scr_Siz_X / 2.;
 
-  } else {
-    GL_Siz_X = GL_ModSiz * GL_Scr_Siz_X / GL_Scr_Siz_Y / 2.;
-    GL_Siz_Y = GL_ModSiz / 2.;
+  // } else {
+    // GL_Siz_X = GL_ModSiz * GL_Scr_Siz_X / GL_Scr_Siz_Y / 2.;
+    // GL_Siz_Y = GL_ModSiz / 2.;
 
-  }
+  // }
 
   // Wert zB 1: CutPlane die Obj schneidet.
   GL_Siz_Z = GL_ModSiz * 1000;          // normal 2010-12-05
@@ -13872,7 +14240,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   return 0;
 
 }
-
+*/
 
 //================================================================
   void GL_Resize (int w, int h) {
@@ -13887,44 +14255,37 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   if(w > 0) {
     GL_Scr_Siz_X = w;
+    if(GL_Scr_Siz_X <= 0) GL_Scr_Siz_X = 1;
     GL_Scr_Siz_Y = h;
+    if(GL_Scr_Siz_Y <= 0) GL_Scr_Siz_Y = 1;
   }
 
 
 
-  GL_Init_Siz ();       // init clipping planes
+  // GL_Init_Siz ();       // init clipping planes
 
 
 
   // ScreenVerzerrungsfaktur (fuer glortho)
-  if (GL_Scr_Siz_X <= GL_Scr_Siz_Y) {
-    GL_Svfakt = GL_Scr_Siz_Y/GL_Scr_Siz_X;
-  } else {
-    GL_Svfakt = GL_Scr_Siz_X/GL_Scr_Siz_Y;
-  }
+  // if (GL_Scr_Siz_X <= GL_Scr_Siz_Y) {
+    // GL_Svfakt = GL_Scr_Siz_Y/GL_Scr_Siz_X;
+  // } else {
+    // GL_Svfakt = GL_Scr_Siz_X/GL_Scr_Siz_Y;
+  // }
+    // printf(" GL_Svfakt=%f\n",GL_Svfakt);
 
 
 
   // Set Viewport to window dimensions
   glViewport(0, 0, (float)GL_Scr_Siz_X, (float)GL_Scr_Siz_Y);
 
-  glGetIntegerv (GL_VIEWPORT, GL_Viewp);            // get Viewport-Matrix
-  /* TX_Print("GL_Viewp %d %d %d %d",GL_Viewp[0], */
-                                  /* GL_Viewp[1],GL_Viewp[2],GL_Viewp[3]); */
+
+  // update view - glOrtho
+  GL_Reframe1 ();
 
 
-
-  // Reset coordinate system
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  GL_Reframe ();
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-
-  ++GL_ViewModTimStamp;    // view modified ..
+  // GL_PROJECTION_MATRIX & GL_MODELVIEW_MATRIX does not change !
+  glGetIntegerv (GL_VIEWPORT, GL_Viewp);
 
 
 }
@@ -13951,6 +14312,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
 
+  GL_ModSiz = NewModSiz;
+
+  // normalized scale (for vectors with default-lngth)
+  GL_SclNorm = GL_ModSiz / 500.;
+
+  // size-factor for glOrtho
+  GL_fakt = GL_ModSiz / 500.;
+
 
   // ModSiz holen. Wenn sie sich geändert hat, ReInit erforderlich !
     UI_GR_DrawInit ();
@@ -13960,9 +14329,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     }
 
 
-    GL_ModSiz = NewModSiz;
 
-    GL_SclNorm = GL_ModSiz / 500.;   // fuer immer gleich grosse Vektoren ..
 
 
     // if(WC_modact_ind < 0) {  // Achtung: DL loeschen loescht SubModels !!!!
@@ -14301,8 +14668,11 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   for (i1 = 32; i1 < 127; i1++) {
     /* TX_Print("  loadchar %d\n",i1); */
     glNewList (i1, GL_COMPILE);
-      /* breite,h÷he,x_o, y_o, x_incr, y_incr,  adress */
-    glBitmap (8, 13, 0.f, 2.f, 10.f, 0.f, bitmap_font1[i1-32]);
+    // set bitmap
+    glBitmap (GLTXA_sizCX, GLTXA_sizCY,      // font - width,height
+              0.f, 2.f,                      // dist to move before display
+              GLTXA_sizBX, 0.f,              // dist to move after display
+              bitmap_font1[i1-32]);          // bitmap
     glEndList ();
   }
 
@@ -14315,33 +14685,23 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 //=======================================================================
 // die GrafCharacters auf DL-Pos 200-296 beginnend mit dem blank laden.
 
-
-
   int     i1, ianz, ilen;
   char    *p1, *p2, mode[50];
-  double  cx[50], cy[50];
-
-
+  Point2  pta[50];
 
 
   DL_FontOff = DL_base_font2-32;   // 200-32
 
-
-
-
   // printf("GGGGGGGGGGGGGGGGG GL_InitGFont\n");
 
 
-
-
-  // fuer alle Syms call GL_InitGF2
+  // for all Syms call GL_InitGF2
     
   for(i1=0; i1<128; ++i1) {
 
-    p1=GL_vfont1[i1];
+    p1 = GL_vfont1[i1];
     if(p1 == NULL) break;
-    
-    ilen=strlen(p1);
+    ilen = strlen(p1);
 
     // printf(" %d |%s| len=%d\n",i1,p1,ilen);
 
@@ -14359,8 +14719,8 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     mode[ianz] = *p1;
     ++p1;
 
-    cx[ianz] = strtod (p1,&p2); p1 = p2; ++p1;
-    cy[ianz] = strtod (p1,&p2); p1 = p2;
+    pta[ianz].x = strtod (p1,&p2); p1 = p2; ++p1;
+    pta[ianz].y = strtod (p1,&p2); p1 = p2;
     if(ianz >= 50) printf("GL_InitGFont E001 |%s|\n",p1);
     else ++ianz;
     goto L_Next;
@@ -14369,7 +14729,8 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     //---------------------------------------
     L_Work0:
     // printf(" L_Work %d\n",ianz);
-    GL_InitGF2 (i1, ianz, mode, cx, cy);
+    // GL_InitGF2 (i1, ianz, mode, cx, cy);
+    GL_InitGF2 (i1, ianz, mode, pta);
 
   }
 
@@ -14379,9 +14740,16 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
 
 //=================================================================
-  int GL_InitGF2 (int ind, int ianz, char mode[], double cx[], double cy[]) {
+  int GL_InitGF2 (int ind, int ianz, char mode[], Point2 *pta) {
 //=================================================================
-// in: table of m od l plus cx,cy
+/// \code
+/// create charater from table of m od l plus cx,cy
+/// Input:
+///   ind    DL-index
+///   ianz   nr of mode-pta-records
+///   mode   m (move) or l (line)
+///   pta    endpoints
+/// \endcode
   
   int      i2, ianf, iend;
   GLuint   DL_ind;
@@ -14390,13 +14758,11 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   DL_ind = (GLuint) DL_FontOff + 32 + ind;
 
 
-  // printf("GL_InitGF2 ------------- %d\n",DL_ind);
+  // printf("GL_InitGF2 DL_ind=%d ianz=%d\n",DL_ind,ianz);
+  // for(i2=0;i2<ianz;++i2)printf("%d %c %f,%f\n",i2,mode[i2],pta[i2].x,pta[i2].y);
+
   
-
-
   glNewList (DL_ind, GL_COMPILE);
-
-
 
 
   //----------------------------------------
@@ -14414,27 +14780,22 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   if(mode[iend] == 'l') goto L_Work1;
 
 
-
-
   L_Work2:     // VON ianf - (iend-1) ausgeben
   
+  // GL_Disp_cv2z (iend-ianf, &pta[ianf], 0.);
   glBegin (GL_LINE_STRIP);
-  // printf(" ----\n");
-
   for(i2=ianf; i2<iend; ++i2) {
-    // printf(" l %d = %f %f\n",i2,cx[i2],cy[i2]);
-    glVertex3d (cx[i2], cy[i2], 0.0);
+    glVertex3d (pta[i2].x, pta[i2].y, 0.0);
+      // printf(" l %d = %f %f\n",i2,cx[i2],cy[i2]);
   }
-
   glEnd ();
+
 
 
   if(iend < ianz) {
     ianf=iend;
     goto L_Work1;
   }
-
-
 
 
   //----------------------------------------
@@ -14464,7 +14825,8 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
   // printf("GL_InitSymb \n");
 
-
+  GL_att_OnTop__ ();
+  GL_att_OnTopOff ();
 
 
   /* ----------------  SYM_TRI_S ------------------------------------ */
@@ -14991,6 +15353,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 //=====================================================================
   int GL_InitInfo () {
 //=====================================================================
+// glDrawElements needs GL_VERSION > 2.0
 
   printf("GL_InitInfo\n");
 
@@ -14998,6 +15361,8 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   printf("GL_RENDERER:    %s\n",glGetString(GL_RENDERER));
   printf("GL_VERSION:     %s\n",glGetString(GL_VERSION));
   // printf("GL_EXTENSIONS:  %s\n",glGetString(GL_EXTENSIONS));
+  // glGetIntegerv (GL_MAJOR_VERSION, &i1);
+  // glGetIntegerv (GL_MINOR_VERSION, &i1);
 
   printf("GLU_VERSION:    %s\n",gluGetString(GLU_VERSION));
   printf("GLU_EXTENSIONS: %s\n",gluGetString(GLU_EXTENSIONS));
@@ -15017,7 +15382,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   char   cbuf1[256];
 
 
-  // printf("GL_Init__ %d %d %d\n",mode,width,height);
+  printf("GL_Init__ mode=%d %d %d\n",mode,width,height);
 
   GL_pickSiz = 8;
 
@@ -15139,19 +15504,24 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   }
 
   // Die DL-Basis neu anlegen.
-  if(mode == 0) GL_Init0 ();
+  if(mode == 0) {
+    GL_Init0 ();
+    GL_InitAFont ();
+    GL_InitGFont ();             // den Graf-Char-Font initialisieren
+    GL_InitSymb ();              // die Symbole generieren > DL
+  }
 
-  GL_InitAFont ();
 
   DL_InitAttTab ();            // load file ltyp.rc int GR_AttTab
 
   GL_InitPtAtt (-3);           // create point-attributes
 
-  GL_InitSymb ();              // die Symbole generieren > DL
 
-  GL_InitGFont ();             // den Graf-Char-Font initialisieren
 
   GR_InitGFPar (AP_txdimsiz);  // Graf.FontParameter setzen
+
+
+
 
   GL_Init_View ();
 
@@ -15889,7 +16259,7 @@ static float  xpos, ypos;
 
   // project GL_cen auf die constPlane
   UT3D_pt_projptpl (&ptc, gPln, &GL_cen);
-  // irc = UT3D_pt_intptvcpl_ (&pto, &GL_constr_pln, &ptc, &GL_eyeX);
+  // irc = UT3D_pt_intptvcpl_ (&pto, &GL_constr_pln, &ptc, GL_eyeX);
     // UT3D_stru_dump (Typ_PT, &ptc, "ptc:");
     // GL_Disp_symB (SYM_STAR_S, &ptc);
 
@@ -15967,13 +16337,8 @@ static float  xpos, ypos;
  
   //----------------------------------------------------------------
   glPushMatrix ();
-  glDisable (GL_LIGHTING);
 
   glColor3fv   (GL_col_grid);
-
-  // glLoadIdentity ();  // kills the gluLookAt (zoom/pan) - settings
-  // glMultMatrixd ((double*)m41);
-
 
   glBegin (GL_LINES);
 
@@ -15997,7 +16362,6 @@ static float  xpos, ypos;
 
   glEnd ();
 
-  glEnable (GL_LIGHTING);
   glPopMatrix ();
 
 
@@ -16006,441 +16370,8 @@ static float  xpos, ypos;
 }
 
 
-//================================================================
-  int GL_plnSel_init (int ii, int mode) {
-//================================================================
-// Input:
-//   ii   0=planeSelect not active; else=yes.
-//   mode 0=do not redraw;
-//        1=DL_Redraw;
-// RetCod:
-//   GL_plnSelStat before modification
-    
-  int    iDo, oldStat;
-    
-
-  // printf("GL_plnSel_init %d %d\n",ii,GL_vcSelStat);
-    
-
-  oldStat = GL_plnSelStat;
-    
-  // if(mode == 2) goto L_exit;
-    
-  // if(GL_plnSelStat != ii) iDo = 1;
-  // else                    iDo = 0;
-
-
-  GL_plnSelStat = ii;
-
-  // if(iDo) {
-    // if(mode) DL_Redraw ();
-  // }
-
-  L_exit:
-  return oldStat;
-
-}
-
-
-//================================================================
-  int GL_vcSel_init (int ii, int mode) {
-//================================================================
-// Input:
-//   ii   0=vectorSelect not active; else=yes (index of vec to display; -1=none)
-//        -1 = display defaultVectors, but no DB-vector.
-//   mode 0=do not redraw;
-//        1=DL_Redraw;
-//        2=query only (RetCod = GL_vcSelStat)
-// RetCod:
-//   GL_vcSelStat before modification
- 
-  int    iDo, oldStat;
-
-
-  // printf("GL_vcSel_init %d %d mode=%d\n",ii,GL_vcSelStat,mode);
-
-
-  oldStat = GL_vcSelStat;
-
-  if(mode == 2) goto L_exit;
-
-  // if(GL_vcSelStat != ii) iDo = 1;
-  // else                   iDo = 0;
-
- 
-  GL_vcSelStat = ii;
-
-  // if(iDo) {
-    // if(mode) DL_Redraw ();
-  // }
-
-  L_exit:
-  return oldStat;
-
-}
-
-
-//================================================================
-  int GL_icons_dispTags (int iNr, char *txt, char stat) {
-//================================================================
-// display tag # iNr with tagText txt
-// Input:
-//   stat    0=normal, 1=dimmed
-
-  static int ixPos;
-
-  int      iLen, ii, ix, i1, i2, iColTag;
-  Point    pt1;
-  GLuint   gli;
-  // char     s1[32];
-  float    fx, fy;
-
-
-  // printf("GL_icons_dispTags iNr=%d |%s|%c|\n",iNr,txt,stat);
-
-  if(iNr < 1) ixPos = 0;
-
-  GL_icons_Pos ();   // get GL_icons_Ori
-
-  iLen = strlen(txt);
-  ixPos += iLen + 2;
-    // printf(" ixPos=%d\n",ixPos);
-
-
-  glDisable (GL_LIGHTING);
-  glDepthFunc (GL_ALWAYS);
-
-  // glPushMatrix ();
-
-
-  gli = GR_TAB_IND;
-
-
-    if(GL_mode_draw_select == GR_MODE_SELECT)
-      glLoadName (gli + 10 + iNr);
-
-
-    // move from GL_icons_Ori to lower left tag-pos
-    // posX
-    // i1 = -80 + (-160 * (iNr + 1));  // 200 132
-    i1 = -80 + (-30 * ixPos);  // 200 132
-    // posY
-    i2 = -82;
-      // printf(" 2D-icons move i1=%d i2=%d\n",i1,i2);
-    GL_pos_move_2D (&pt1, &GL_icons_Ori, i1, i2);
-
-    // adapt size to textlength
-    if(stat == '0') iColTag = 5;    // 5=Gelb, COL_GELB
-    else            iColTag = 10;   // 10=COL_DIMMED
-    // sizX
-    ix = ((iLen + 1) * 30) + 15;  // 22
-    GL_DispTag2 (&pt1, ix, 52, iColTag);
-
-
-    glColor3fv   (GL_col_tab[0]);
-    // glRasterPos3dv ((double*)&GL_icons_Ori);
-    glRasterPos3dv ((double*)&pt1);
-
-    // 2D-move of position  (active positon is startpoint of 1. 
-    fx = 8;
-    fy = 4;
-    GL2D_pos_move (fx, fy);
-
-
-    // glRasterPos3d (ptt0.x, ptt0.y, ptt0.z);
-    // strcpy(s1, "REV");
-    glCallLists (iLen, GL_UNSIGNED_BYTE, (GLubyte*)txt);
-
-
-  //----------------------------------------------------------------
-  // done -
-  // glPopMatrix ();
-
-  glEnable (GL_LIGHTING);
-
- 
-  return 0;
-
-}
-
-
-//================================================================
-  int GL_icons_Pos () {
-//================================================================
-// used by GL_icons_dispVcPln GL_icons_dispTags
-// returns GL_icons_Ori
-
-  int          i1, i2;
-  double       d1, d2, d3;
-  Point        pt1;
-  // Vector       vc1;
-  // Plane        pln1;
-
-static int     vcSelTimStamp = -1;
-
-  if(vcSelTimStamp == GL_ViewModTimStamp) return 0;
-
-  vcSelTimStamp = GL_ViewModTimStamp;
-
-
-  // compute position pt0 
-
-
-  // get d1,d2,d3 = point - lower right position in screencoords
-  GL_GetScrSiz (&i1, &i2);
-    // printf(" GL_Scr_Siz_X=%d GL_Scr_Siz_Y=%d\n",i1,i2);
-  d1 = (double)i1 * 0.9;
-  d2 = (double)i2 * 0.1;
-  d3 = 0.;
-    // printf(" posS = %lf %lf %lf\n",d1, d2, d3);
-
-
-  // pt1 -> UserCoords
-  GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, d1, d2, d3);
-    // UT3D_stru_dump (Typ_PT, &pt1, "posU1: ");
-
-
-  // mit der Userebene schneiden
-  // vc1 = GL_GetEyeX ();
-  // GL_GetViewPln (&pln1);
-  UT3D_pt_intptvcpl_ (&GL_icons_Ori, &GL_view_pln, &pt1, &GL_eyeX);
-    // UT3D_stru_dump (Typ_PT, &GL_icons_Ori, "posU2: ");
-
-    // test position
-    // { long dl1 = -2L;
-      // GL_DrawSymB (&dl1, 2, SYM_CIR_S, &GL_icons_Ori); // red circ
-    // }
-
-
-  return 0;
-
-}
-
-
-//================================================================
-  int GL_icons_dispVcPln () {
-//================================================================
-// draw VectorSelector and StdPlaneselector; at end of gl-list.
-
-#define SIZ_vcSel    120      // length of vectors
-#define SCL_plnSel   1.5
-
-  int     i1, i2, selId;
-  long    dl1, dli;
-  GLuint  gli;
-  double  lv;
-  char    s1[32];
-  Point   p1 = {0., 0., 0.}, p2 = {100., 0., 0.};
-  Point   pt1, pt2, pt3, pt4, pt5, pt6, pt7;
-  Vector  vc1;
-
-static GLfloat glColx[] = {0.0, 0.0, 1.0, 0.0};
-static GLfloat glColy[] = {0.0, 1.0, 0.0, 0.0};
-static GLfloat glColz[] = {1.0, 1.0, 1.0, 0.0};
-static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
-
-
-
-  // printf("GL_icons_dispVcPln\n");
-  // printf("GL_icons_dispVcPln %ld %ld\n",vcSelTimStamp,GL_ViewModTimStamp);
-  // printf("  GR_TAB_IND=%ld\n",GR_TAB_IND);
-
-
-  if(GL_mode_draw_select == GR_MODE_SELECT) selId = 1;
-  else                                      selId = 0;
-
-  GL_icons_Pos ();   // get GL_icons_Ori
-
-
-  // fit size
-  lv = SIZ_vcSel * GL2D_Scale;    // 2011-10-23
-    // printf(" sc=%lf lv=%lf\n",sc,lv);
-
- 
-
-  //================================================================
-  // compute points, then draw
-  L_draw:
-  //
-  // X = 1,2
-  pt1 = GL_icons_Ori;
-  pt1.x += lv;
-  pt2 = GL_icons_Ori;
-  pt2.x -= lv;
-
-  // Y = 3,4
-  pt3 = GL_icons_Ori;
-  pt3.y += lv;
-  pt4 = GL_icons_Ori;
-  pt4.y -= lv;
-
-  // Z = 5,6
-  pt5 = GL_icons_Ori;
-  pt5.z += lv;
-  pt6 = GL_icons_Ori;
-  pt6.z -= lv;
-
-
-  //----------------------------------------------------------------
-  // pt7 = active DB-vector
-  if(GL_vcSelStat > 0) {
-    vc1 = DB_GetVector ((long)GL_vcSelStat);
-    UT3D_vc_setLength (&vc1, &vc1, lv);
-    UT3D_pt_traptvc (&pt7, &GL_icons_Ori, &vc1);
-  }
-
-
-
-  //----------------------------------------------------------------
-  // UI_GR_DrawInit ();
-
-  // dl1 = -2L;
-  // gli = GL_fix_DL_ind (&dl1);
-  gli = GR_TAB_IND;
-    // printf(" vcSel gli=%d\n",gli);
-
-  // gli = 1;
-  // glNewList (gli, GL_COMPILE);
-  // if(GL_mode_draw_select == GR_MODE_SELECT)
-  // glPushMatrix ();
-
-  // glCallList (DL_Ind_ScBack);           // ScaleBack
-
-  glDisable (GL_LIGHTING);
-  glDepthFunc (GL_ALWAYS);
-
-
-  //----------------------------------------------------------------
-  glCallList (DL_base_LnAtt + 0);     // reset last hili !
-
-
-  //----- display StandardVectors ----------------------------------
-  if(GL_vcSelStat) {
-
-    // X
-    glColor3fv   (glColx);
-    if(selId) glLoadName(gli);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt1);
-    glEnd ();
-
-    if(selId) glLoadName(gli + 3);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt2);
-    glEnd ();
-
-
-    // Y
-    glColor3fv   (glColy);
-    if(selId) glLoadName(gli + 1);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt3);
-    glEnd ();
-
-    if(selId) glLoadName(gli + 4);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt4);
-    glEnd ();
-
-
-    // Z
-    glColor3fv   (glColz);
-    if(selId) glLoadName(gli + 2);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt5);
-    glEnd ();
-
-    if(selId) glLoadName(gli + 5);
-    glBegin (GL_LINES);
-      glVertex3dv ((double*)&GL_icons_Ori);
-      glVertex3dv ((double*)&pt6);
-    glEnd ();
-
-
-
-    //----- display defined DB-Vector dbi=GL_vcSelStat ----------
-    if(GL_vcSelStat > 0) {
-      glColor3fv   (glColv);
-      if(selId) glLoadName(gli + 6);
-      glBegin (GL_LINES);
-        glVertex3dv ((double*)&GL_icons_Ori);
-        glVertex3dv ((double*)&pt7);
-      glEnd ();
-    }
-
-
-
-    //----- display characters x y for StandardVectors ----------
-    // display x y   see APT_disp_TxtA
-    glColor3fv   (glColx);
-    glRasterPos3dv ((double*)&pt1);
-    glCallList ((GLuint)120);           // "x"
-  
-    glColor3fv   (glColy);
-    glRasterPos3dv ((double*)&pt3);
-    glCallList ((GLuint)121);           // "y"
-
-
-
-    //----- display ID of defined DB-Vector dbi=GL_vcSelStat ----------
-    if(GL_vcSelStat > 0) {
-      glColor3fv   (glColv);
-      glRasterPos3dv ((double*)&pt7);
-      // strcpy(s1, "D21");
-      sprintf(s1, "D%d",GL_vcSelStat);
-      i1 = strlen(s1);
-      glCallLists (i1, GL_UNSIGNED_BYTE, (GLubyte*)s1);
-    }
-  }
-
-
-  //----------------------------------------------------------------
-  //----- display StandardPlanes -----------------------------------
-  if(GL_plnSelStat) {
-    glPushMatrix ();
-
-      glColor3fv   (glColz);
-      if(selId) glLoadName(gli + 9);
-      // glRasterPos3d (GL_icons_Ori.x, GL_icons_Ori.y, GL_icons_Ori.z);
-      glTranslated (GL_icons_Ori.x, GL_icons_Ori.y, GL_icons_Ori.z);
-      glScaled (SCL_plnSel, SCL_plnSel, SCL_plnSel);
-      glCallList ((GLuint)SYM_SQUARE);
-
-      glColor3fv   (glColy);
-      if(selId) glLoadName(gli + 8);
-      glRotated (90., 1., 0., 0.);
-      glCallList ((GLuint)SYM_SQUARE);
-
-      glColor3fv   (glColx);
-      if(selId) glLoadName(gli + 7);
-      glRotated (90., 0., 1., 0.);
-      glCallList ((GLuint)SYM_SQUARE);
-
-    glPopMatrix ();
-  }
-
-
-
-  //----------------------------------------------------------------
-  // done -
-  glEnable (GL_LIGHTING);
-  // glPopMatrix ();
-  // glEndList ();
-
-  // glCallList ((GLuint)gli);
-  // UI_GR_DrawExit ();
-
-
-  return 0;
-
-}
-
-
+/*
+// UNUSED
 //================================================================
   int GL_DispTag2 (Point *oPos, int iSizX, int iSizY, int iCol) {
 //================================================================
@@ -16455,8 +16386,8 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
           // iSizX,iSizY,iCol);
 
 
-  UT3D_vc_multvc (&vcy, &GL_eyeY, GL2D_Scale);       // scale Y-vec
-  UT3D_vc_multvc (&vcz, &GL_eyeZ, GL2D_Scale);       // scale Z-vec
+  UT3D_vc_multvc (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
+  UT3D_vc_multvc (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
 
 
   UT3D_vc_multvc (&vch, &vcy, (double)iSizX); 
@@ -16483,20 +16414,72 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   return 0;
 
 }
+*/
+
+//================================================================
+  int GL_Disp_txt2D (char *sTxt) {
+//================================================================
+// GL_Disp_txtA          text alphanum.(fixed size, horiz)
+// rasterPosition must have been set
+// sTxt   null-terminated string to display
+//
+// set rasterPosition: glRasterPos3dv (&point_userCoords);
+// display single char 'x': glCallList ((GLuint)120);
+// color must be set before glRasterPos3dv !!
+
+  glCallLists (strlen(sTxt), GL_UNSIGNED_BYTE, (GLubyte*)sTxt);
+
+  return 0;
+
+}
+
+//================================================================
+  int GL_Disp_tag2D (int iSizX, int iSizY, int ColGL) {
+//================================================================
+/// \code
+/// GL_Disp_tag2D         display coloured rectangle
+/// iSizX,iSizY     tagSize in screenCoords. Use GL2D_Scale for same size.
+/// ColGL           GL_RED or GL_GREEN or GL_BLUE
+/// rasterPosition must have been set
+/// \endcode
+
+  int            mSiz;
+  unsigned char  *cBuf;
 
 
+  // printf("GL_Disp_tag2D iSizX=%d iSizY=%d col=%d\n",iSizX,iSizY,ColGL);
+
+  mSiz = iSizX * iSizY;
+
+  // fBuf = MEM_alloc_tmp (i1 * sizeof(GLfloat));
+  // MEM_set_1recn (fBuf, &fCol, i1, sizeof(GLfloat));
+  // glDrawPixels (100, 12, GL_GREEN, GL_FLOAT, fBuf);
+
+  cBuf = MEM_alloc_tmp (mSiz);
+  if(!cBuf) {TX_Print("***** GL_Disp_tag2D EOM"); return -1;}
+
+  memset ((void*)cBuf, 200, mSiz);   // 255=max.saturation; 100=dark
+
+
+  glDrawPixels (iSizX, iSizY, GL_GREEN, GL_UNSIGNED_BYTE, cBuf);
+
+
+  return 0;
+
+}
+
+
+/* UNUSED
 //================================================================
   int GL_DispTag1 (int iSizX, int iSizY, int iCol) {
 //================================================================
-// display coloured rectangle
+// display rectangle
 // using glBitmap, not selctable !
-// position of lower left corner must have been set.
+// position of lower left corner must have been set (glRasterPos3dv)
 
   int            i1, mSiz;
   unsigned char  *cBuf;
 
-
-  GL_Test ();
 
 
   // compute memSiz
@@ -16529,6 +16512,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 }
 
 
+// UNUSED
 //================================================================
   int GL_pos_move_2D (Point *po, Point *pi, int idx, int idy) {
 //================================================================
@@ -16539,7 +16523,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 // Output:
 //   po        point in userCoords
 
-// see also DL_Set_Cen2D
+// see also GL2D_pos_move DL_Set_Cen2D
 
   Vector     vcz, vcy, vch, vcv;
 
@@ -16548,8 +16532,8 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   // printf(" GL_ModScale=%lf\n",GL_ModScale);
 
 
-  UT3D_vc_multvc (&vcy, &GL_eyeY, GL2D_Scale);       // scale Y-vec
-  UT3D_vc_multvc (&vcz, &GL_eyeZ, GL2D_Scale);       // scale Z-vec
+  UT3D_vc_multvc (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
+  UT3D_vc_multvc (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
 
   UT3D_vc_multvc (&vch, &vcy, (double)idx);
   UT3D_vc_multvc (&vcv, &vcz, (double)idy);
@@ -16560,6 +16544,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   return 0;
 
 }
+*/
 
 
 //================================================================

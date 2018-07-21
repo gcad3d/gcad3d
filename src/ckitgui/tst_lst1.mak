@@ -1,5 +1,5 @@
 # Link & run:
-#   make run -f tst_lst1.mak
+#  . ../options.sh && make run -f tst_lst1.mak
 
 
 

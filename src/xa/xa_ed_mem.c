@@ -26,6 +26,7 @@ Modifications:
 */
 #ifdef globTag
  void APED(){}
+ void OSRC(){}
 #endif
 /*!
 \file  ../xa/xa_ed_mem.c
@@ -40,6 +41,7 @@ APED_oid_dbo_all           make name from typ and DB-index  (all types)
 APED_find_dbo              Search last DefinitionLine for DB-obj
 APED_search_defLn          Search last DefinitionLine for obj
 APED_nxt_def_typ           Search next DefinitionLine of objectTyp
+APED_defDbo_skip           skip definition-header (skip eg "P20=")
 
 APED_objID_defLn           copy definitionHdr out (left of '=')
 APED_ck_defLn              check if Line cBuf is a Definitionline
@@ -74,7 +76,11 @@ APED_nxt_obj               find next obj in string; skip brackets.
 APED_search_dbLimits       search highest indices
 
 APED_txo_srcLn__           analyze sourceline > ObjTXTSRC[]
+APED_txo_modObj_get        get all modifyable-objects out of atomic-objects
+APED_txo_find_parent       get 1. parent of subObj <ip> typ=Typ_PT
 APED_txo_dump              dump ObjTXTSRC[]
+APED_txo_find_ptVal        find points with values in tso
+// APED_txo_cpy               copy iNr records of tso0 starting at iRec -> tso1
 
 APED_VcTra_reset           delete Vec's&Tra's after progLine x in DB
 
@@ -97,7 +103,7 @@ APED_dbo_oid
 APT_decode_ausdr
 APT_decode_inp
 ../xa/srcu.c         Dynamic update numeric strings  SRCU_..
-../xa/xa_src.c       create sourceCode
+SRC   ../xa/xa_src.c       create sourceCode from atomicObjs, dbo ..
 
 \endcode *//*----------------------------------------
 
@@ -131,16 +137,20 @@ see also ../xa/xa_ed.c   ED_
 #include "../ci/NC_apt.h"              // T_RBSP
 
 #include "../xa/xa_mem.h"              // mem_cbuf1
-#include "../xa/xa_ed_mem.h"           // ObjSRC
 #include "../xa/xa_sele.h"             // Typ_FncPrv
-
+#define INCLUDE_FULL
+#include "../xa/xa_ed_mem.h"           // ObjSRC OSRC_NUL
+#undef INCLUDE_FULL
 #include "../db/ut_DB.h"               // DB_
+
+
+typedef_MemTab(ObjDB);
 
 
 //================================================================
 // EXTERNALS:
 // aus xa.c:
-extern char      AP_ED_oNam[64];        // objectName of active Line
+extern char      AP_ED_oNam[128];        // objectName of active Line
 
 
 // ex ../ut/ut_txfil.c
@@ -159,6 +169,25 @@ extern char *CopTxtTab[];
 extern char  MOpTxtStr[];
 
 
+
+//================================================================
+  int APED_defDbo_skip (char **txso) {
+//================================================================
+// APED_defDbo_skip           skip definition-header (skip eg "P20=")
+
+  char   *p1;
+
+  p1 = strchr(*txso, '=');
+  if(!p1) return -1;
+
+  ++p1;  // skip '='
+  while(*p1 == ' ') ++p1;    // skip blanks
+
+  *txso = p1;
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -437,11 +466,12 @@ extern char  MOpTxtStr[];
 
 
 //================================================================
-  int APED_onam_cut (char *cbuf) {
+  int APED_onam_cut (char *cbuf, char *onam) {
 //================================================================
 /// \code
 /// APED_onam_cut              cut/copy objName
-/// cut cbuf at " #"  and copy the following text -> AP_ED_oNam
+/// cut cbuf at " #"  and copy the following text -> onam
+/// onam size 128
 /// MODIFIES cbuf !
 /// \endcode
 
@@ -463,8 +493,11 @@ extern char  MOpTxtStr[];
       if(*(p1+1) != '#') {++p1; goto L_search_nxt;}
       // Name found
       *p1 = '\0'; // cut off
-      p1 += 2;    // skip ' #'
-      strcpy(AP_ED_oNam, p1);
+      if(onam) {
+        p1 += 2;    // skip ' #'
+        if(strlen(p1) > 128) {TX_Error("APED_onam_cut E1"); return -1;}
+        strcpy(onam, p1);
+      }
         // printf(" extract AP_ED_oNam |%s|\n",AP_ED_oNam);
     }
 
@@ -499,8 +532,8 @@ extern char  MOpTxtStr[];
 
   llnew = strlen(sNew);
 
-  // printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
-  // printf(" new |%s|\n",sNew);
+  printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
+  printf(" new |%s|\n",sNew);
   // printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
 
 
@@ -514,7 +547,7 @@ extern char  MOpTxtStr[];
     // printf(" old |");UTX_dump_cnl(cPos1,60);printf("| ll=%d\n",llact);
 
 
-  // test if sNew != actLine
+  // test if sNew != actLine. If yes: no modifications.
   if(llnew == llact) {
     if(!strncmp(sNew, cPos1, llnew)) return 1;
   }
@@ -526,6 +559,8 @@ extern char  MOpTxtStr[];
   UTF_comment_line (cPos1, 1, &cs);
 
 
+  //----------------------------------------------------------------
+  // insert line sNew
   // get pos of nxt line
   // cPos = UTF_GetnextLnPos (cPos);
   lNew = lNr + 1;
@@ -550,6 +585,11 @@ extern char  MOpTxtStr[];
   }
 
 
+  //----------------------------------------------------------------
+  // update DL: increment all (lineNrs >= lNew)
+  DL_lnr_incr (lNew);
+
+ 
   // report changed-record to UNDO
   UNDO_chg_add (lNr, 0);
 
@@ -788,13 +828,15 @@ extern char  MOpTxtStr[];
 
 
 //================================================================
-  int APED_ck_defLn (char *p1) {
+  int APED_ck_defLn (char **p2, char *p1) {
 //================================================================
 /// \code
 /// check if Line cBuf is a Definitionline;
 /// find 1. delimiter; it must be '='.
-/// RetCod = 0: yes, p1 is a Definitionline.
-///         -1: No.
+/// Output:
+///   p2       first char following '=' (only if retCod == 0)
+///   RetCod   0: yes, p1 is a Definitionline.
+///           -1: No.
 ///
 /// see also APED_search_defLn PRG_ck_defLn APED_dec_defLn
 /// \endcode
@@ -813,7 +855,7 @@ extern char  MOpTxtStr[];
 
   while (*p1  == ' ') ++p1;
 
-  if(*p1 == '=') return 0;
+  if(*p1 == '=') {*p2 = ++p1; return 0;}
 
   return -1;
 
@@ -1191,11 +1233,11 @@ extern char  MOpTxtStr[];
   // get sourecLineNr from memory
   // get objName
   APED_oid_dbo__ (oNam, typ, dbi);
-    // printf("  _find_dbo %d %d oNam=|%s|\n",typ,dbi,oNam);
+    // printf("  _find_dbo typ=%d dbi=%ld oNam=|%s|\n",typ,dbi,oNam);
 
   // search definition-line 
   irc = APED_search_defLn (&cp1, lNr, &lLen, oNam, -1, 0);
-    // printf(" irc=%d lNr=%d |%s|\n",irc,lNr,oNam);
+    // printf(" irc=%d lNr=%ld |%s|\n",irc,*lNr,oNam);
   if(irc < 0) {TX_Print("APED_find_dbo E001"); return -1;}
 
   *dli = -1;
@@ -1210,7 +1252,7 @@ extern char  MOpTxtStr[];
 
   // get dli from dbo
   *dli = DL_find_obj (typ, dbi, -1L);
-  if(*dli < 0) {TX_Print("APED_find_dbo E002"); return -1;}
+  if(*dli < 0) {TX_Print("APED_find_dbo E2 %d %ld",typ,dbi); return -1;}
 
   // get lNr from dli
   irc = DL_Get_lNr_dli (lNr, *dli);
@@ -1628,10 +1670,10 @@ extern char  MOpTxtStr[];
   int APED_find_dep__ (MemTab(ObjSRC) *oa, int typ, long dbi) {
 //================================================================
 /// \code
-/// APED_find_dep__            find all depending sourceObjs
+/// APED_find_dep__            find all depending sourceObjs (childs)
 ///  Example:
 /// #include "../ut/ut_memTab.h"           // MemTab
-/// MemTab(ObjSRC) delTab = MemTab_empty;
+/// MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 /// APED_find_dep__ (&delTab, typ, dbi);
 ///   printf(" nr of dep.objs = %d\n",delTab.rNr);
 /// MemTab_free (&delTab);
@@ -1667,8 +1709,7 @@ extern char  MOpTxtStr[];
   // search & add all depending objects
   APED_find_dep_nxt (oa, typ, dbi, lnr, 0);
 
-
-    // MemTab_dump (oa); // Testoutput only:
+    // MemTab_dump (oa, "ex-_find_dep__"); // Testoutput only:
 
 
   return 0;
@@ -2047,7 +2088,7 @@ extern char  MOpTxtStr[];
   Point *pt1;
 
 
-  // printf("APED_pt_chge ipt=%d |%s| l=%d\n",ipt,cps,lso);
+  // printf("APED_pt_chge ipt=%ld cps=|%s| lso=%d\n",ipt,cps,lso);
 
   // if(ipt >= 0) {
     // sprintf(s1, "P%d", ipt);
@@ -2179,7 +2220,7 @@ extern char  MOpTxtStr[];
 ///
 ///  Example:
 /// #include "../ut/ut_memTab.h"           // MemTab
-/// MemTab(ObjSRC) parTab = MemTab_empty;
+/// MemTab(ObjSRC) parTab = _MEMTAB_NUL;
 /// APED_find_par__ (&parTab, typ, dbi);
 /// MemTab_dump (&parTab);
 /// MemTab_free (&parTab);
@@ -2325,11 +2366,15 @@ extern char  MOpTxtStr[];
   exprNr[0] = 0;      // first,second or third value in bracket
   fncAct = 0;
 
+
   // find startpos of next expression;
   // see also UTX_get_word UTX_wTab_srcLn
   cp1 = sln;
 
-  cpe = cp1 + strlen(sln);
+
+  // get cpe = endPos of expression; '\0' or '\n'
+  ii = strcspn(cp1, "\n");
+  cpe = &sln[ii];
 
 
 
@@ -2346,7 +2391,7 @@ extern char  MOpTxtStr[];
       return its;
     }
     exprNr[iLev] += 1;
-      // printf("L_nextExpr: its=%d cp1=|%s|\n",its,cp1);
+      // printf("L_nextExpr:its=%d cp1=|",its);UTX_dump_cnl(cp1,50);printf("|\n");
 
 
   //----------------------------------------------------------------
@@ -2467,10 +2512,10 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   // 1. & 2. chars not digits. Isolate first word.
   L_3:
-    // find pos. of next delimiter (" (,\0)
-    cp2 = strpbrk (cp2, " (,)#+-/*");
-    if(!cp2) cp2 = cpe;
-      // printf(" deli=|%c|\n",*cp2);
+    // find cp2 = pos. of next delimiter (" (,\0)
+    ii = strcspn (cp2, " (,)#+-/*\n");
+    cp2 = &cp2[ii];
+      // printf(" L_3:ii=%d deli=|%c|\n",ii,*cp2);
 
     // cp1=start of word; cp2=delimiter
     ii = cp2 - cp1;
@@ -2607,6 +2652,152 @@ extern char  MOpTxtStr[];
 }
 
 
+//==========================================================================
+  int APED_txo_modObj_get (int *pma, ObjTXTSRC *soi, int rMax,
+                           int typ, char *stx) {
+//==========================================================================
+// - get all modifyable-objects with typ=<typ> out of soi into pma
+// modifyable-object: Typ_NumString
+// Input: 
+//   soi     1-n atomic-objects - eg from APED_txo_srcLn__
+//   rMax    size of pma
+//   typ     type of modifyable-objects to find; Typ_PT [not yet: Typ_Val]
+//   stx     sourceText unused
+// Output:
+//   pma     list of ObjSRC-records with modifyable objs
+//           0=not-modifyable; 1=point-3-values; [not yet: 2=value-single]
+//   retCod  nr of objects in pma
+
+
+  int      iri, ipar, oNr;
+
+
+  printf("APED_txo_modObj_get typ=%d rMax=%d\n|%s|\n",typ,rMax,stx);
+  APED_txo_dump (soi, stx, "_modObj_get-soi");
+
+  // APED_txo_init (soo);  // txo[0].typ = TYP_FuncEnd;
+
+  iri = -1;
+  oNr = 0;
+
+  // find next startPos ips of obj to find ..
+  L_nxt_obj:
+  ++iri;           printf(" nxt-iri=%d ipar=%d\n",iri,soi[iri].ipar);
+
+  L_nxt_ck:
+
+    if(soi[iri].typ == TYP_FuncEnd) goto L_exit;
+
+    // find next primary obj
+    if(soi[iri].ipar != -1) goto L_nxt_obj;
+
+    // test if is a DB-obj of form <typ>
+    if(soi[iri].form == Typ_ObjDB) {
+      if(typ == DB_Typ_Char (&stx[soi[iri].ioff])) {
+        ++iri;
+        goto L_Mod;
+      }
+    }
+  
+
+    // skip all but <typ>
+    if(soi[iri].form != typ) goto L_nxt_obj;  // L_notMod;
+
+
+
+    ipar = iri;
+    for(;;) {
+      ++iri;
+      if(soi[iri].ipar != ipar) break;              //  next obj
+      if(soi[iri].form != Typ_NumString) goto L_notMod;
+    }
+
+    // all components of obj are modifyable
+    L_Mod:
+      pma[oNr] = 1;  //  0=not; 1=point-3-values; 2=value-single
+      ++oNr;
+      if(oNr > rMax) goto L_err1;
+      goto L_nxt_ck;
+
+
+    L_notMod:
+      pma[oNr] = 0;  // not mod.
+      ++oNr;
+      if(oNr > rMax) goto L_err1;
+      // continue - 
+      goto L_nxt_obj;
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // APED_txo_dump (soo, stx, "_modObj_get-soo");
+    printf("ex-_modObj_get oNr=%d\n",oNr);
+    for(iri=0; iri<oNr;++iri) printf(" pma[%d] = %d\n",iri,pma[iri]);
+    // END TESTBLOCK
+
+  return oNr;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+    TX_Error("APED_txo_modObj_get E1");
+    return -1;
+
+}
+
+
+//===============================================================
+  int APED_txo_find_parent (int *typ, long *dbi,
+                            ObjTXTSRC *tso, char *txso, int ip) {
+//===============================================================
+// APED_txo_find_parent        get 1. parent of subObj <ip> typ=Typ_PT
+// Input:
+
+  int  its=-1, npt=-1, ipar;
+  char objID[64];
+
+
+  printf("APED_txo_find_parent %d\n",ip);
+  APED_txo_dump (tso, txso, "_find_parent-tso");
+
+
+  for(;;) {
+    ++its;      printf(" nxt-its=%d\n",its);
+    if(tso[its].typ == TYP_FuncEnd) break;
+
+    if(tso[its].form != Typ_PT) continue;     // skip all but points
+    ++npt;
+    if(npt < ip) continue;                    // find point # ip
+
+    ipar = its;
+
+    for(;;) {
+      ++its;
+      if(tso[its].ipar != ipar) break;         //  end of subObj
+
+      if(tso[its].form == Typ_ObjDB) {
+        // get objID out of txso
+        strncpy (objID, &txso[tso[its].ioff], tso[its].ilen);
+        objID[tso[its].ilen] = '\0';
+          printf(" find_parent-objID=|%s|\n",objID);
+        APED_dbo_oid (typ, dbi, objID);
+        return 0;
+      }
+    }
+
+  }
+
+  *typ = Typ_Error;
+  *dbi = 0L;
+
+  return -1;
+
+}
+
+
 //================================================================
   int APED_txo_dump (ObjTXTSRC *tso, char *sl, char *auxTxt) {
 //================================================================
@@ -2644,6 +2835,40 @@ extern char  MOpTxtStr[];
   return 0;
 
 }
+
+
+/* UNUSED:
+//========================================================================
+  int APED_txo_add (ObjTXTSRC *tso, int tsoSiz,
+                    ObjTXTSRC *tsi, int iRec, int iNr) {
+//========================================================================
+// APED_txo_cpy       copy iNr records of tso0 starting at iRec -> tso1
+// TODO: update ipar-index
+
+
+  int    i1, i2, ie;
+
+  printf("APED_txo_add iRec=%d iNr=%d, siz=%d\n",iRec,iNr,tsoSiz);
+
+  if(iRec + iNr >= tsoSiz) {TX_Error("APED_txo_add E1 %d",tsoSiz); return -1;}
+
+  // find end in tso
+  for(i1=0; i1<tsoSiz; ++i1) {
+    if(tso[i1].typ == TYP_FuncEnd) {i2 = i1; goto L_cpy;}
+  }
+  TX_Error("APED_txo_add E2"); return -1;
+
+  L_cpy:
+  ie = iRec + iNr;
+  for(i1=iRec; i1<ie; ++i1) { tso[i2] = tsi[i1]; ++i2; }
+  tso[i2].typ = TYP_FuncEnd;
+
+    // APED_txo_dump (tso1, "", "ex-_txo_cpy");
+
+  return 0;
+
+}
+*/
 
 
 //====================== EOF =============================

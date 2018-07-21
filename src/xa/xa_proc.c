@@ -361,7 +361,7 @@ char **process_CmdTab;     // was NCCmdTab
   // test if addOn-prog is active
   if(AP_stat.APP_stat == 0) {
     // core-active
-    // save the active Submodel WC_modact_nam -> TempFile
+    // save the active Submodel AP_modact_nam -> TempFile
     Mod_sav_tmp ();
     goto L_1;
   }

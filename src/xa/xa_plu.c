@@ -82,7 +82,6 @@ List_functions_end:
 //===============================================================
 // Externe Variablen:
 // defined in ../xa/xa.c (with extern invalidated)
-extern char AP_dir_save[128];     // directory for SAVE
 
 
 

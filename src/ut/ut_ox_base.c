@@ -36,11 +36,15 @@ void OGX(){}
 =====================================================
 List_functions_start:
 
-OGX_SET_OBJ             create complexObject (ObjGX) from binObj (struct)
-OGX_SET_INDEX           create complexObject (ObjGX) from DB-Obj (dbTyp,dbInd)
+OGX_SET_OBJ             complexObject from binObj (typ,form,siz,dat)
+OGX_SET_OBJ_aux         complexObject from binObj with aux
+OGX_SET_INDEX           complexObject from DB-Obj (dbTyp,dbInd) (form=Typ_Index)
 OGX_GET_INDEX           get DB-typ and DB-index out of complexObject
-OGX_SET_INT             create complexObject (ObjGX) from DB-Obj (dbTyp,dbInd)
-OGX_GET_INT             get index out of complexObject
+OGX_SET_INT             complexObject from typ=int data=int (form=Typ_Int4)
+OGX_GET_INT             get index out of complexObject (long from data-pointer)
+OGX_SET_Float8          complexObject from (typ, float8)
+OGX_SET_COLOR           complexObject from ColRGB
+OGX_NUL                 empty complexObject (_OGX_NUL)
 
 OGX_ox_copy_ox          complexObj-group from a group of objs.
 OGX_ox_ato1             complexObj from 1 atomicObj (ausTyp/ausTab)
@@ -112,8 +116,9 @@ see tst_UTO.c
 #include "../ut/ut_memTab.h"            // MemTab_..
 #include "../ut/ut_txt.h"               // term_buf
 
+#define INCLUDE_FULL
 #include "../ut/ut_ox_base.h"
-
+#undef INCLUDE_FULL
 
 
 /// \brief relocationDataRecord
@@ -1266,7 +1271,7 @@ static void*  relPos;
   ObjGX    ox1, *pox1, *pox2;
   ObjGX    *op0, *op1, *op2;
   Memspc   tmpSpc=UME_NEW;
-  void     *vp0, *vp1, *vp2, *vpn;
+  void     *vp1;
   char     s1[32];
 
 
@@ -1299,8 +1304,9 @@ static void*  relPos;
   // UME_init (&tmpSpc, memspc51, sizeof(memspc51));
   // tmpSpc1 = MEM_alloc_tmp  (1000);
   // UME_malloc (&tmpSpc, 1000, 1000);
-  UME_alloc_tmp (&tmpSpc, 1000);
-    printf(" free %d\n",UME_ck_free(&tmpSpc));
+  // UME_alloc_tmp (&tmpSpc, 1024);
+  vp1 = MEM_alloc_tmp (1024);
+  UME_init (&tmpSpc, vp1, 1024);
 
 
   // copy iNr objs -> tmpSpc (serialize, no delocate, w|wo isolate)

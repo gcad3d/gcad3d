@@ -99,7 +99,8 @@ tStat:
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../xa/xa_mem.h"              // memspc51
 #include "../ut/func_types.h"               // SYM_STAR_S
 

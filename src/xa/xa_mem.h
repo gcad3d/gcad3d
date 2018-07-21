@@ -29,5 +29,8 @@ extern char IE_buf[mem_cbuf1_SIZ];
 extern char IE_outTxt[mem_cbuf1_SIZ];
 
 
+// TODO: char memspcLocks[4] for memspc501 memspc201 memspc101 memspc102
+// function MemSpcLock (ind, 1) = locked, 0 = free
+
 
 //=================== EOF ==============================

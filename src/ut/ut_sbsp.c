@@ -711,6 +711,7 @@ Beispiel ptUNr=2 ptVNr=4:
 //=======================================================================
   int UT3D_uvNr_sbsp (int *iu, int *iv, SurBSpl *sur, Memspc *wrkSeg) {
 //=======================================================================
+// get nr of rows,columns for grid of points with tolerance < UT_DISP_cv
 // die optimale Anzahl von Punkten in U- und V-Richtung ermitteln
 // nr of points for bspl-surf
 // es gibt <ptVNr>  U-Kurven; jede U-Kurve hat <ptUNr> Punkte.
@@ -1017,17 +1018,19 @@ L_outOfWorkSpace:
 
 
 //======================================================================
-  int UT3D_ptgrid_sbsp (Point *pTab, double *du, double *dv,
+  int UT3D_ptgrid_sbsp (Point *p3Tab, Point *p2Tab, Vector *vTab,
+                        double *du, double *dv,
                         SurBSpl *sbs, int iu, int iv, Memspc *workSeg) {
 //======================================================================
 // Ein Grundraster mit gleichmaessigen Parameterabstaenden generieren
 // In:  iu, iv: Anzahl der gewuenschten Punkte in u/v-Richtung
-// Out: pTab - iu * iv Punkte
-//      *du, *dv - der Parameterabstand
+// Out: p3Tab       iu * iv points; NULL for none
+//      vTab        normalvectors; NULL for none
+//      *du, *dv    parameters
 
 
-  int      ii, irc;
-  double   uMin, uMax, vMin, vMax, uu, vv;
+  int      ii, irc, mode;
+  double   uMin, uMax, vMin, vMax, uu, vv, tol;
 
 
   // printf("UT3D_ptgrid_sbsp iu=%d iv=%d ii=%d\n",iu,iv,iu * iv);
@@ -1039,6 +1042,19 @@ L_outOfWorkSpace:
   vMax = sbs->kvTabV[sbs->ptVNr + sbs->degV];
     // printf("UT3D_ptgrid_sbsp uMin=%f uMax=%f  vMin=%f vMax=%f\n",
            // uMin, uMax, vMin, vMax);
+
+
+  if(p3Tab) {
+    if(vTab) mode = 0; // points & vectors
+    else mode = 1;     // points
+  } else {
+    mode = 2;          // vectors
+  }
+
+  // tol = 0.2;
+  // uMin -= tol;   uMax += tol;
+  // vMin -= tol;   vMax += tol;
+
 
 
   *du = (uMax - uMin) / (iu - 1);
@@ -1054,14 +1070,21 @@ L_outOfWorkSpace:
 
 
   L_nxt_u:
+  if(p2Tab) {
+    p2Tab[ii].x = uu;
+    p2Tab[ii].y = vv;
+    p2Tab[ii].z = 0.;
+  }
     // printf(" L_nxt_u: %d u=%f v=%f\n",ii,uu,vv);
-  irc = UT3D_pt_evparsbsp (&pTab[ii], sbs, uu, vv, workSeg);
+  irc = UT3D_ptvc_evparsbsp (&p3Tab[ii], &vTab[ii], mode, 0,
+                             sbs, uu, vv, workSeg);
+  // irc = UT3D_pt_evparsbsp (&p3Tab[ii], sbs, uu, vv, workSeg);
   if (irc < 0) return -1;
-  ++ii;
-    // printf("(u,v)= (%f,%f)   pt= %f %f %f\n",uu,vv,
-           // pTab[ii].x,pTab[ii].y,pTab[ii].z);
-    // APT_disp_SymB (SYM_TRI_S, 2, &pTab[ii]);
+    // printf(" %d (u,v)= (%f,%f)   pt= %f %f %f\n",ii,uu,vv,
+           // p3Tab[ii].x,p3Tab[ii].y,p3Tab[ii].z);
+    // APT_disp_SymB (SYM_TRI_S, 2, &p3Tab[ii]);
 
+  ++ii;
   uu += *du;
   if(uu < uMax) goto L_nxt_u;
 
@@ -1128,6 +1151,7 @@ L_outOfWorkSpace:
 // um Testviereck errechnen und ein neues Testviereck definieren.
 //
 // see also SUR_pt2_prjptsur !
+// TODO: du,dv,iu,iv, - eigentlich überbestimmt; ?
 
 
   int     i1, i2, i3, iu1, iv1, iloop, plMain, iul, iur, ivu, ivo;
@@ -1701,6 +1725,7 @@ L_outOfWorkSpace:
   // init b-spline u-curve
   bspl->ptNr  = sur->ptUNr;
   bspl->deg   = sur->degU;
+  bspl->dir   = 0;                          // forward
   bspl->kvTab = sur->kvTabU;
   bspl->v0    = sur->kvTabU[0];
   bspl->v1    = sur->kvTabU[sur->ptUNr+sur->degU];
@@ -1734,7 +1759,7 @@ L_outOfWorkSpace:
 
 
   //----------------------------------------------------------------
-  // randKurve  U (U0-U1 / V0)
+  // randKurve  U (U0-U1 / V0)        // U along X; V along Y
   UT3D_bsp_sbspU (&cv1, 0, sur);
 
   // CurvRBSpl -> polygon
@@ -1919,6 +1944,7 @@ L_outOfWorkSpace:
   // init b-spline u-curve
   bspl->ptNr  = sur->ptVNr;
   bspl->deg   = sur->degV;
+  bspl->dir   = 0;                          // forward
   bspl->kvTab = sur->kvTabV;
   bspl->v0    = sur->kvTabV[0];
   bspl->v1    = sur->kvTabV[sur->ptVNr+sur->degV];

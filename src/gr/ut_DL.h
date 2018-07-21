@@ -48,7 +48,7 @@ long DL_get_dbi      (long dli);
 long DL_GetTrInd     (long dli);
 // int  DL_Get_GrAtt    (GR_Att* att1, long Ind);
 // DL_Att DL_GetAtt     (long dli);
-unsigned long DL_get_iatt (long dli);
+unsigned int DL_get_iatt (long dli);
 
 long DL_find_smObj (int typ, long DBind, long DLend, int imod);
 long DL_find_obj (int typ, long ind, long DLend);

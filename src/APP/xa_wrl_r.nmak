@@ -1,4 +1,4 @@
-# make -f xa_wrl_r.mak
+# nmake -f xa_wrl_r.nmak
 
 DLLNAM = xa_wrl_r
 

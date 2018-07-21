@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+  <TITLE>CAD_Base_de.htm</TITLE>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <meta name="description" content="gCAD3D-Format-Spezifikation">
+  <meta name="keywords" content="3D CAD-Format Spezifikation">
+  <meta name="date" content="2018-05-07T11:33:09+0200" >
+  <meta name="author" content="Franz Reiter" >
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<B>Codes und Formate:</B>
+
+____________________________________________________________________________
+
+<a href="gC_codes_def_de.htm">- Definitionscodes</a>  erzeugen geometrische Objekte,
+                    das Format ist: {ObjektName} = {Parameter}
+                    zB. "P20=P(100 0 0)"
+
+<a href="gC_codes_wrk_de.htm">- Bearbeitungscodes</a> Zustandsänderungen, die sofort ausgeführt werden
+                    bestehen aus einer direkten Anweisung;
+                    zB "DEFCOL 0 0 220"    (Standardfarbe blau)
+                     SHOW (hide) ATTL (Lineattributes) ATTS (Surfaceattributes)
+                     MODE (Anzeige ..)
+
+<a href="Appli_de.htm">- Programmcodes</a>     steuern den Ablauf der codes;
+                    zB "PRI "P20=" P20"   (print point P20)
+                     IF JUMP CALL EXIT DEBUG ..
+
+<A HREF='gCAD3D_formats_de.htm#fmt_f'>Dateiformat</A>
+
+<a href="http://www.gcad3d.org/devdoc/pag_pdm.htm">Binärformate</a>
+
+____________________________________________________________________________
+</PRE>
+</BODY>
+</HTML>

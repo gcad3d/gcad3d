@@ -504,20 +504,20 @@ __declspec(dllexport) int VR2_r__ (char*);
 
 // #include "../ut/ut_umem.h"             // UME_
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
-#include "../ut/ut_memTab.h"           // MemTab_..
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
 
-typedef_MemTab(int);
-typedef_MemTab(Point);
-typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
+// typedef_MemTab(int);
+// typedef_MemTab(Point);
+// typedef_MemTab(Fac3);
+// typedef_MemTab(EdgeLine);
 
 
 //----------------------------------------------------------------
@@ -544,14 +544,14 @@ static char    *useTab[siz_useTab];
 
 static ColRGB  newCol, actCol;
 
-static MemTab(Point) pTab = MemTab_empty;        // table of Point's
+static MemTab(Point) pTab = _MEMTAB_NUL;        // table of Point's
 
 static int     *iTab, iTabSiz, iTabNr;           // memspc501
 
 
-static MemTab(Fac3) fTab = MemTab_empty;         // table of Fac3's
-static MemTab(EdgeLine) eTab = MemTab_empty;     // table of EdgeLine's
-static MemTab(int) eDat = MemTab_empty;          // dataSpace for all EdgeLines
+static MemTab(Fac3) fTab = _MEMTAB_NUL;         // table of Fac3's
+static MemTab(EdgeLine) eTab = _MEMTAB_NUL;     // table of EdgeLine's
+static MemTab(int) eDat = _MEMTAB_NUL;          // dataSpace for all EdgeLines
 // static int     *iTab=NULL;                       // memspc201
 // static int     vTabSiz, vTabNr;
 

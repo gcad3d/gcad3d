@@ -40,7 +40,7 @@ GLT_comm_work  common of 2 contours -> ContTab
 
 - internal:
 GLU_alloc
-GLT_init
+GLT_init__
 GLT_comb_reset
 GLT_exit
 GLT_comm_CB    add vertex
@@ -199,10 +199,11 @@ se gluTessNormal() to reverse the sign of the supplied normal.
 #include <GL/glu.h>
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_ox_base.h"            // OGX_SET_..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_cast.h"             // PTR_LONG
-#include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/ut_tin.h"              // TYP_EDGLN_BL
+#include "../ut/ut_face.h"              // MSH_EDGLN_BL
 
 #include "../db/ut_DB.h"               //
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
@@ -291,7 +292,7 @@ GLU_CB GLU_CB_tess_end ();
 // typedef_MemTab(int);
 // typedef_MemTab(char);
 // typedef_MemTab(Point);
-typedef_MemTab(IndTab);
+// typedef_MemTab(IndTab);
 
 
 //------------- statics new version ------------------------------
@@ -343,6 +344,7 @@ static int              GLU_flag;
 // rgba sind floats!
 // es muss nur static memspc fuer die daten zur Verfuegung gestellt werden
 // dieser Platz wird benoetigt bis nach gluTessEndPolygon.
+// MUST set dataOut to address of static stored vertex coords !
 // INPUT:
 //   coords        point
 // OUTPUT:
@@ -354,13 +356,13 @@ static char c1=0;
   // Point    *p1;
 
 
-  // printf(" GLU_CB_tess_newPt %lf %lf %lf\n",coords[0],coords[1],coords[2]);
+  printf(" GLU_CB_tess_newPt %lf %lf %lf\n",coords[0],coords[1],coords[2]);
 
   if(GLU_Err) return;
 
   // add point to GLU_pmt
   i1 = MEMTAB_IND (GLU_pmt);
-    // printf(" GLU_CB_tess_newPt-i1=%d\n",i1);
+    printf("    _CB_tess_newPt-i1=%d\n",i1);
 
   irc = MemTab_add (GLU_pmt, &l1, coords, 1, 0);
   if(irc) {
@@ -371,6 +373,7 @@ static char c1=0;
     GLU_Err = 1;
     return;
   }
+
   // give pointer to point stored
   *dataOut = (GLdouble*)MEMTAB__ (GLU_pmt, i1);
     // printf(" datPos = %p\n",*dataOut);
@@ -410,14 +413,14 @@ static char c1=0;
   long     l1;
 
 
-  // printf(" GLU_CB_tess_pt %9.2lf %9.2lf %9.2lf\n",
-        // ((Point*)pt1)->x,((Point*)pt1)->y,((Point*)pt1)->z);
+  printf(" GLU_CB_tess_pt %9.2lf %9.2lf %9.2lf\n",
+        ((Point*)pt1)->x,((Point*)pt1)->y,((Point*)pt1)->z);
 
 
   // find point-index
   // problem if GLU_pmt did realloc !
   idr = MEMTAB_IND_POS (GLU_pmt, pt1);
-    // printf(" idr=%d\n",idr);
+    printf("    _CB_tess_pt-idr=%d \n",idr);
 
   // add point-index to indexList GLU_ia
   MemTab_add (GLU_imt, &l1, &idr, 1, 0);
@@ -429,11 +432,12 @@ static char c1=0;
   if(GLU_pst) {
     // get status for point idr to set bit-0
     c1 = MEMTAB__ (GLU_pst, idr);
-    *c1 |= 8;   // set bit-0 
+    *c1 |= 8;   // set bit-3 
+      // printf(" pst-1[%d]=%d\n",idr,*c1);
       // GR_Disp_pt ((Point*)pt1, SYM_TRI_S, ATT_COL_YELLOW);
     // if this point is on boundary: its flag is GL_TRUE 
     if(GLU_flag) *c1 |= 1;   // set bit-0 
-      // printf(" pst[%d]=%d\n",idr,*c1);
+      // printf(" pst-2[%d]=%d\n",idr,*c1);
 
   }
 
@@ -482,7 +486,7 @@ static char c1=0;
   // printf("XXXXXXXXXXXXXXXXXXX  GLU_CB_tess_end \n");
 
   // create record in GLU_fmt
-  el1.typi = TYP_EDGLN_FAC;
+  el1.typi = MSH_PATCH;
   el1.iNr  = GLU_pNr;
   el1.aux  = GLU_typ;
   ii = MEMTAB_IND (GLU_imt) - GLU_pNr;
@@ -490,7 +494,7 @@ static char c1=0;
   el1.ibeg = ii;
   MemTab_add (GLU_fmt, &l1, &el1, 1, 0);
 
-    // GR_Disp_iface (GLU_typ, 4, GLU_pNr, MEMTAB__ (GLU_imt, el1.ibeg),
+    // GR_Disp_ipatch (GLU_typ, 4, GLU_pNr, MEMTAB__ (GLU_imt, el1.ibeg),
                    // MEMTAB_DAT (GLU_pmt));
     // tess_test_disp_face (&el1, GLU_pmt, GLU_imt);
 
@@ -503,21 +507,23 @@ static char c1=0;
 
 //===================================================================
   int GLU_tess__ (MemTab(IndTab) *fmt,
-                  MemTab(char)     *pst,
-                  MemTab(int)      *imt,
-                  MemTab(Point)    *pmt,
+                  MemTab(char)   *pst,
+                  MemTab(int)    *imt,
+                  MemTab(Point)  *pmt,
                   MemTab(IndTab) *cmt,
-                  GridBoxH *gb,
-                  Vector *vcz) {
+                  GridBox        *gb,
+                  Vector         *vcz) {
 //===================================================================
+// 2017-09-03 gb->p1 changed to gb->pMin; if(gb->p1) changed to if(vcz) ... ???
 // tesselate outerBoundary with holes above grid-quads.
 // All contours must be CCW; all contours must have lastPoint == firstPoint.
 // Input:
 //   itNr   nr of contours (outerBoundary + holes) = nr of records in itBnd
 //   itBnd  boundaries; all points must be in pmt; all indices must be in imt
-//          .ibeg is startindex in imt, .iNr is nr of records in imt;
-//   gb     gridBox; all points must be in pmt, starting at gb->p1; no indices
-//          or NULL for direct tesselation
+//          .ibeg is startindex in imt, .iNr is nr of records in imt
+//          all boundaries must be CCW
+//   gb     gridBox; all points must be in pmt, starting at gb->p1;
+//          no indices  or NULL for direct tesselation
 //   vcz    for 2D-tesselation NULL; else normalvector
 //   imt    point-indices
 //   pmt    points
@@ -587,7 +593,8 @@ static char c1=0;
 
 
   //================================================================
-  if(gb) {
+  // if(gb->p1) {
+  if(vcz) {
     // gridbox(CCW) + outerbound(CCW) = 2 = ON
     // gridbox(CCW) + outerbound(CCW) - innerbound(CW) = 1 = OFF
     // Fill ABSolute values Greater than EQual to TWO 
@@ -603,18 +610,21 @@ static char c1=0;
 
   }
 
+
   // triangles, not boundary-lines
   gluTessProperty(ot1, GLU_TESS_BOUNDARY_ONLY, GL_FALSE);
 
-  // define tol: tut gar nix ..
-  // gluTessProperty(ot1, GLU_TESS_TOLERANCE, UT_TOL_cv);
+  // define tol: tut gar nix ..  soll 2D-tol
+  gluTessProperty(ot1, GLU_TESS_TOLERANCE, 0.); //0.01); //UT_TOL_cv);
+    printf(" UT_TOL_cv=%f\n",UT_TOL_cv);
+
 
   // normalvector
   if(vcz) {
     gluTessNormal(ot1, vcz->dx, vcz->dy, vcz->dz);
       UT3D_stru_dump(Typ_VC, vcz, " vcz:");
   } else {
-    gluTessNormal (ot1, 0., 0.,  -1.);
+    gluTessNormal (ot1, 0., 0.,  -1); //-1.);
     // defines inside-outsied; +1=inside..??
   }
 
@@ -629,7 +639,8 @@ static char c1=0;
 
     //----------------------------------------------------------------
     // all gridboxes out
-    if(!gb) goto L_OB;
+    // if(!gb->p1) goto L_OB;
+    if(!vcz) goto L_OB;
 
 
     // create gridboxes
@@ -637,17 +648,18 @@ static char c1=0;
     p1Nr = gb->iy - 1;
     p2Nr = gb->ix - 1;
       // printf(" p1Nr=%d p2Nr=%d\n", p1Nr, p2Nr);
-    pa = gb->p1;   // first point of gridbox
+    pa = &gb->pMin;   // first point of gridbox
+    // i1 = loop vertical
     for(i1=0; i1<p1Nr; ++i1) {
       // loop horizontal with i2
-      ii = i1 * gb->ix;  // ipos of 1. point in row
+      ii = i1 * gb->ix;  // ipos of 1. point in horiz. row
       for(i2=0; i2<p2Nr; ++i2) {
         // CCW:
         ip1 = ii;
         ip2 = ii + 1;
         ip3 = ii + gb->ix + 1;
         ip4 = ii + gb->ix;
-          // printf(" iga = %d %d %d %d\n",ip1,ip2,ip3,ip4);
+          printf(" iga = %d %d %d %d\n",ip1,ip2,ip3,ip4);
           // UT3D_stru_dump (Typ_PT, &pa[ip1], "ip1");
           // UT3D_stru_dump (Typ_PT, &pa[ip2], "ip2");
           // UT3D_stru_dump (Typ_PT, &pa[ip3], "ip3");
@@ -670,8 +682,9 @@ static char c1=0;
 
     //----------------------------------------------------------------
     L_OB:
-      // printf(" L_OB:\n");
+      printf(" L_OB: itNr=%d\n",itNr);
     // all boundaries out; last point not necessary.
+    // all boundaries must be CCW; inner boundaries must be reversed !
     if(itNr < 1) goto L_end;
     pa   = MEMTAB_DAT(pmt);
     // outer-boundary has correct direction; revert all inner-bounds.
@@ -679,6 +692,8 @@ static char c1=0;
     p2Nr = itAct->iNr;
     --p2Nr;  // remove last point (else (BUG) GLU returns this pt as new pt)
     ia   = MEMTAB__ (imt, itAct->ibeg);
+      printf(" OB-tess-p2Nr=%d\n",p2Nr);
+
 
     gluTessBeginContour (ot1);
     for(i2=0; i2 < p2Nr; ++i2) {
@@ -688,10 +703,13 @@ static char c1=0;
     }
     gluTessEndContour (ot1);
 
+
     if(GLU_Err) {gluTessEndPolygon(ot1); goto L_glu_err;}
         // printf(" nach kontur OB\n");
 
+
     // give inner-bounds
+    if(itNr < 2) goto L_end;
     for(i1=1; i1<itNr; ++i1) {
       itAct = &itBnd[i1];
         // printf(" IB %d\n",i1);
@@ -699,6 +717,7 @@ static char c1=0;
       p2Nr = itAct->iNr;
       --p2Nr;  // remove last point (else (BUG) GLU returns this pt as new pt)
       --p2Nr;
+        printf(" IB-tess-p2Nr=%d\n",p2Nr);
       ia   = MEMTAB__ (imt, itAct->ibeg);
       for(i2=p2Nr; i2>=0; --i2) {
         ii = ia[i2];
@@ -712,7 +731,7 @@ static char c1=0;
 
 
   L_end:
-  gluTessEndPolygon(ot1);
+  gluTessEndPolygon(ot1);  // starts tesselation - using callbacks
     // printf(" nach gluTessEndPolygon\n");
 
   // delete tess-obj, free mem.
@@ -783,6 +802,8 @@ static char c1=0;
 
 
   GLT_pta = (Point*)realloc(GLT_pta, newSiz * sizeof(Point));
+    // printf(" GLT_alloc_pta newSiz=%ld\n",newSiz);
+
 
   if(GLT_pta == NULL) {
     TX_Error ("******** out of memory - GLT_alloc_pta *********");
@@ -798,7 +819,7 @@ static char c1=0;
   // AP_errStat_set (2);  // restart !!
 
   // GLT_exit ();
-  // GLT_init ();
+  // GLT_init__ ();
 
 
   return -10;   // gesamte Flaeche nochmal ..
@@ -942,7 +963,7 @@ static char c1=0;
   // printf("ex GLU_alloc %d %d %d\n",Ind,GLU_CombSiz,newSiz);
 
   // GLT_exit ();
-  // GLT_init ();
+  // GLT_init__ ();
 
   // AP_errStat_set (2);  // restart !!
 
@@ -956,12 +977,12 @@ static char c1=0;
 
 
 //=========================================================
-  int GLT_init () {
+  int GLT_init__ () {
 //=========================================================
 // init userfunction; ganz am Anfang und bei jeden new; sonst nie.
 
 
-  // printf("GLT_init\n");
+  // printf("GLT_init__\n");
 
 
 
@@ -1059,7 +1080,8 @@ static char c1=0;
 // add new vertex to mesh.
 // dataOut ist ein kompletter VERTEX; x,y,z,r,g,b,a;
 // rgba sind floats!
-// es muss nur static memspc fuer die daten zur Verfuegung gestellt werden ?
+// es muss static memspc fuer die daten zur Verfuegung gestellt werden !
+// MUST set dataOut to address of static stored vertex coords !
 // dieser Platz wird benoetigt bis nach gluTessEndPolygon.
 
 
@@ -1225,7 +1247,7 @@ static char c1=0;
   // if(GLT_pln_ini() < 0) return -1;
 
   // NUR TEST: Init
-  // GLT_exit (); GLT_init ();
+  // GLT_exit (); GLT_init__ ();
 
 
   //=============================================================
@@ -1758,7 +1780,7 @@ static int ptOff;
   GLT_cta[GLT_cta_ind].form = Typ_Int4;
   GLT_cta[GLT_cta_ind].siz  = 1;
   // (long)GLT_cta[GLT_cta_ind].data = sTyp;
-  GLT_cta[GLT_cta_ind].data = (void*)sTyp;
+  GLT_cta[GLT_cta_ind].data = PTR_LONG(sTyp);
 
   // next Contour
   return GLT_cta_inc ();
@@ -1805,11 +1827,13 @@ static int ptOff;
   // sCol->cg = 66;
   // sCol->cb = 99;
 
-  GLT_cta[GLT_cta_ind].typ  = Typ_Color;
-  GLT_cta[GLT_cta_ind].form = Typ_Int4;
-  GLT_cta[GLT_cta_ind].siz  = 1;
-  // (long)GLT_cta[GLT_cta_ind].data = *((long*)sCol);
-  GLT_cta[GLT_cta_ind].data = (void*)(*((long*)sCol));
+
+  // GLT_cta[GLT_cta_ind].typ  = Typ_Color;
+  // GLT_cta[GLT_cta_ind].form = Typ_Int4;
+  // GLT_cta[GLT_cta_ind].siz  = 1;
+  // GLT_cta[GLT_cta_ind].data = (void*)(*((long*)sCol));
+
+  OGX_SET_COLOR(&GLT_cta[GLT_cta_ind], sCol);
 
   // next Contour
   return GLT_cta_inc ();
@@ -2304,11 +2328,11 @@ static int ptOff;
   } else { GLU_Err = -3; goto L_Err; }
 
   // create color = patch
-  GLT_ppa[GLT_ppa_ind].typ  = Typ_Color;
-  GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
-  GLT_ppa[GLT_ppa_ind].siz  = 1;
-  // (long)GLT_ppa[GLT_ppa_ind].data = *((long*)&GL_actCol);
-  GLT_ppa[GLT_ppa_ind].data = (void*)(*((long*)&GL_actCol));
+  // GLT_ppa[GLT_ppa_ind].typ  = Typ_Color;
+  // GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
+  // GLT_ppa[GLT_ppa_ind].siz  = 1;
+  // GLT_ppa[GLT_ppa_ind].data = (void*)(*((long*)&GL_actCol));
+  OGX_SET_COLOR(&GLT_cta[GLT_ppa_ind], &GL_actCol);
 
   return 0;
 
@@ -2328,7 +2352,6 @@ static int ptOff;
   GLT_ppa[GLT_ppa_ind].typ  = Typ_Texture;
   GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
   GLT_ppa[GLT_ppa_ind].siz  = 1;
-  // (long)GLT_ppa[GLT_ppa_ind].data = *((long*)&GL_actCol);
   GLT_ppa[GLT_ppa_ind].data = PTR_INT (ptNr);
 
   return 0;
@@ -2354,9 +2377,7 @@ static int ptOff;
   GLT_ppa[GLT_ppa_ind].typ  = Typ_Typ;
   GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
   GLT_ppa[GLT_ppa_ind].siz  = 1;
-  l1 = ptNr;
-  // (long)GLT_ppa[GLT_ppa_ind].data = l1;
-  GLT_ppa[GLT_ppa_ind].data = (void*)l1;
+  GLT_ppa[GLT_ppa_ind].data = PTR_INT(ptNr);
 
 
 

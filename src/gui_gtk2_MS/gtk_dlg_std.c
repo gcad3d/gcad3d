@@ -794,9 +794,17 @@ static MemObj UI_DialogEntryWin;
     iTyp = TYP_EventPress;
     // ikey = ((GdkEventButton*)ev)->button;
 
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
+
   } else if(typ == GDK_BUTTON_RELEASE) {
     iTyp = TYP_EventRelease;
     // ikey = ((GdkEventButton*)ev)->button;
+
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (0);
+
 
   } else return 0;
 

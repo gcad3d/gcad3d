@@ -34,6 +34,7 @@ void SRC(){}
 =====================================================
 List_functions_start:
 
+SRC_src_pt3__       "P(<x> <y> <z>)" from *Point
 SRC_src_ato         sourceObj (text) from atomicObjs
 SRC_src_dbo         create sourceCode of requested type from Database-object
 SRC_src_isol_ato1   convert DB-obj (typ, DB-index) into isolated sourceCode (text)
@@ -49,6 +50,8 @@ SRC_LnAc_ptDbo   create L() or C() from obj dbTyp,dbi at position pti
 SRC_fmt__        write sourceCode formatted for depending obj; eg "D(P1 P2)"
 SRC_fmt_tab      write sourceCode formatted for depending obj; eg "D(P1 P2)"
 SRC_fmt_sub      format sourceObj (text) for compound-DB-obj
+
+SRC_dump__       dump modelsource
 
 List_functions_end:
 =====================================================
@@ -75,8 +78,9 @@ AP_obj_add_obj AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 #include <stdarg.h>                    // va_list
 
 #include "../ut/ut_geo.h"              // Point ...
-
-#include "../ut/ut_elli.h"             // Point ...
+#include "../ut/ut_txt.h"              // UTX_db10__
+#include "../ut/ut_elli.h"             //
+#include "../ut/ut_os.h"
 
 #include "../db/ut_DB.h"               // DB_GetCurv
 
@@ -94,6 +98,84 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
 
+//================================================================
+  int SRC_dump__ (int mode) {
+//================================================================
+// SRC_dump__       dump modelsource
+//   mode   0=into html-file;
+//          1=into console
+
+  char   cbuf1[256];
+  FILE   *fpo;
+
+
+    // prepare APTsource: MAN-Mode: copy Edi --> memory.
+    AP_SRC_mem_edi ();
+    // write mem (UTF_FilBuf0) --> file
+
+    // open temp. html-File
+    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+
+    if(mode == 0) {
+      // open html
+      UTX_htm_fop (&fpo, cbuf1);
+      // cat data -> file
+      UTF_wri_f__ (fpo);
+      // close
+      UTX_htm_fcl (&fpo);
+      // disp file
+      APP_browse__ (cbuf1);
+
+    } else {
+      UTF_wri_f__ (stdout);
+
+    }
+
+  return 0;
+
+}
+
+
+//=================================================================
+  int SRC_src_pt3_10 (char *s1, Point *pt1) {
+//=================================================================
+/// \code
+/// write struct Point* to string "P(<x> <y> <z>)" precision 10
+/// NO leading blank, precision = 10 digits
+/// 
+/// \endcode
+
+
+  char  *p1;
+
+  // printf("AP_obj_add_pt %f %f %f\n",pt1->x,pt1->y,pt1->z);
+
+
+  strcpy (s1, "P(");
+  s1 += 2;
+
+  p1 = UTX_db10__ (s1, pt1->x);
+
+  *p1 = ' ';
+  ++p1;
+
+  p1 = UTX_db10__  (p1, pt1->y);
+
+  *p1 = ' ';
+  ++p1;
+
+  p1 = UTX_db10__ (p1, pt1->z);
+
+  strcpy (p1, ")");
+
+    // printf("ex-SRC_src_pt3_10 |%s|\n",s1);
+
+  return 0;
+
+}
+
+
+ 
 //================================================================
   int SRC_src_ato (char *os, int oSiz, int impTyp, ObjAto *ato) {
 //================================================================

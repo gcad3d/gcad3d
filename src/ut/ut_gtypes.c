@@ -112,7 +112,7 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   "SUR",    "SurCon", "SurTor", "SurRU",  "SurRV",     // 50-
   "SurSwp", "SurBsp", "SurRBsp","SurPln", "SurTps",
   "SurHat", "SurCir", "SurStrip","SurBnd","SurMsh",    // 60-
-  "SurPtab","SurFac3","SurFacQ","SurTri", "-",
+  "SurPtab","SurFac3","SurFacQ","SurTri", "SurSup",
   "SurGL_", "SurGLpp","SurGLpo","SurGLis","SurEdg"};   // 70-
 
   static char *TypTxtTab80[]={
@@ -135,7 +135,7 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   "Dit",    "Joint",  "Proc"};
 
   static char *TypTxtTab130[]={   /// geom. parameters
-  "Val",    "X-coord","Y-coord","Z-coord","DistX",     // 130-
+  "Val",    "X-coord","Y-coord","Z-coord","DistX",     // 130- TYP_IS_GEOMPAR
   "DistY",  "DistZ",  "Angle",  "Radius", "Dist",
   "Par1",   "UVal",   "VVal",   "------", "------",    // 140-
   "------", "------", "------", "------", "------"};
@@ -147,27 +147,28 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   "Tool",   "------", "------", "------", "------"};
 
   static char *TypTxtTab170[]={   /// dataFormats
-  "Data",   "Int1",   "Int2",   "Int4",   "Float4",    // 170-
-  "Float8", "Int4Tab","-",      "-",      "-",
+  "Data",   "Int1",   "Int2",   "Int4",   "Int8",      // 170-
+  "Float4", "Float8", "-",      "-",      "-",
   "poly--", "poly1-", "poly3-", "polyD3", "-",         // 180-
   "Mat3x2", "Mat3x3", "Mat4x3", "Mat4x4", "-"};        // 185-
   static char *TypTxtTab190[]={   /// text
   "Text",   "String", "StrDel", "StrDel1","FncNam",    // 190-
   "FilNam", "CtlgPart","NumString","ConstVal","ConstObj"};
   static char *TypTxtTab200[]={   /// containers
-  "Memspc", "MemTab", "ObjRange","ObjSRC","ObjGX",     // 200-
-  "------", "------", "ObjDB",  "------", "------"};
+  "Memspc", "MemTab", "IndTab", "ObjRange","ObjSRC",   // 200-
+  "ObjGX",  "------", "------", "ObjDB",  "------"};
   static char *TypTxtTab210[]={   /// transformations
   "Tra",    "TraTra", "TraRot", "TraMat", "------"};   // 210-
   static char *TypTxtTab220[]={   /// operators
   "Ope__",  "OpeEQ",  "OpeNE",  "OpeLT",  "OpeGT",     // 220-
-  "OpeGE",  "OpeLE",  "OpeAND", "OpeOR",  "Ope---"};
-  static char *TypTxtTab230[]={   /// modifiers  TYP_IS_MOD
-  "Mod",    "Mod1--", "Mod2--", "ModCWCCW","ModREV",   // 230-
+  "OpeGE",  "OpeLE",  "OpeAND", "OpeOR",  "Mod"};
+  static char *TypTxtTab230[]={                        /// modifiers  TYP_IS_MOD
+  "ModRep", "Mod1--", "Mod2--", "ModCWCCW","ModREV",   // 230-
   "ModCX",  "ModCTRL","ModPERP","ModPARL","ModHIX",
   "Mod---", "Mod---", "Mod---", "Mod---", "Mod---",    // 240-
   "ModCCW", "ModCW",  "ModIN",  "ModOUT", "ModAux",
-  "ModUNL", "------", "------", "------", "------"};   // 250-
+  "ModUNL", "------", "------", "------", "------",    // 250-
+  "------", "------", "------", "------", "Undef" };
   // static char *TypTxtTab250[]={   /// events
   // "MsBtL",  "MsBrM",  "MsBtR",  "MsBt2L", "------",    // 250-
   // "------", "------", "------", "------", "------"};
@@ -177,9 +178,9 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   static char *TypTxtTab270[]={   /// function parameters
   "ALL",    "Done",   "NULL",   "Last",   "SIZ",       // 270-
   "------", "------", "------", "------", "------",
-  "OpmPlus","OpmMinus","OpmMult","OpmDiv","------",    // 280-
+  "OpmPlus","OpmMinus","OpmMult","OpmDiv","------",    // 280-   TYP_IS_OPM
   "------", "------", "------", "------", "------",
-  "FcmSQRT","FcmSIN", "FcmCOS", "FcmTAN", "FcmASIN",   // 290-
+  "FcmSQRT","FcmSIN", "FcmCOS", "FcmTAN", "FcmASIN",   // 290-   TYP_IS_FCM
   "FcmACOS","FcmATAN","FcmABS", "FcmFIX", "FcmRND"};
   static char *TypTxtTab1000[]={   /// selectionGroups
   "goGeom", "goPrim", "goGeo1", "goGeo2", "goGeo3",    // 1000-
@@ -267,7 +268,7 @@ char  *ObjCodTab[] = {
   "PRJ",         "TRA",         "ROT",         "MIR",         "TXA",
   "DIMD",        "DIMR",        "DIM3",        "REC",         "INT",
 // 50
-  "RSYS",        "UNUSED",      "RBSP",        "ARC1",         "CTRL",
+  "RSYS",        "REPL",        "RBSP",        "ARC1",         "CTRL",
   "LDRP",        "LDRC",        "LDRS",        "CTLG",         "ISO",
 // 60
   "FW",          "CX",          "PTAB",        "MSH",          "CLOT",
@@ -391,7 +392,7 @@ char  *ObjCodTab[] = {
 ///   typ,ind    DB-obj
 /// Output:
 ///   buf        name for DB-obj
-/// see also APED_oid_dbo_all AP_typ_2_bastyp AP_cre_defHdr
+/// see also APED_dbo_oid APED_oid_dbo_all AP_typ_2_bastyp AP_cre_defHdr
 /// \endcode
 
 // FuncNam should be APED_oid_dbo_all
@@ -454,6 +455,9 @@ char  *ObjCodTab[] = {
 
 
   } else if((typ == Typ_SUR)      ||
+            (typ == Typ_SURSUP)   ||
+            (typ == Typ_SURTPS)   ||
+            (typ == Typ_SURSWP)   ||
             (typ == Typ_SURRU)    ||
             (typ == Typ_SURRV)    ||
             (typ == Typ_SURCIR)   ||
@@ -480,7 +484,8 @@ char  *ObjCodTab[] = {
     sprintf(buf, "N%ld", ind);
 
 
-  } else if((typ == Typ_Model) ||
+  } else if((typ == Typ_Model)    ||
+            (typ == Typ_SubModel) ||
             (typ == Typ_Mock))        {
     sprintf(buf, "M%ld", ind);
 
@@ -623,7 +628,7 @@ char  *ObjCodTab[] = {
   // char  *buf;
 
 
-  // printf("APED_dbo_oid |%s| %p\n",txtIn,defInd);
+  // printf("APED_dbo_oid |%s|\n",txtIn);
 
   *defTyp = Typ_Error;
   *defInd = 0L;
@@ -663,7 +668,7 @@ char  *ObjCodTab[] = {
 
   // numerisch ?
   // printf(" txt[1]=|%c|\n",txt[1]);
-  if (isdigit(txt[1])) {
+  if((isdigit(txt[1])) || (txt[1] == '-')) {
     *defInd = atoi (&txt[1]);
     rc = 0;
     goto Fertig;
@@ -1018,9 +1023,10 @@ char  *ObjCodTab[] = {
 */
 
 //================================================================
-  int    DB_Typ_Char      (char* auxBuf) {
+  int DB_Typ_Char (char* auxBuf) {
 //================================================================
 /// \code
+/// return type from obj-definition ("PT" or "LN") or obj-ID ("eg "P20")
 /// Text > int-3D-Typ
 /// give typ(int) from text "PT" --> Typ_PT
 /// see also AP_src_typ__ (objTypTxt from typ)
@@ -1030,14 +1036,17 @@ char  *ObjCodTab[] = {
   //TX_Print("DB_Typ_Char /%s/",auxBuf);
 
 
-  if(!strcmp (auxBuf, "PT")) {
+  // if(!strcmp (auxBuf, "PT")) {
+  if(auxBuf[0] == 'P') {
     return Typ_PT;
 
-  } else if(!strcmp (auxBuf, "LN")) {
+  // } else if(!strcmp (auxBuf, "LN")) {
+  } else if(auxBuf[0] == 'L') {
     return Typ_LN;
 
 
-  } else if(!strcmp (auxBuf, "CI")) {
+  // } else if(!strcmp (auxBuf, "CI")) {
+  } else if(auxBuf[0] == 'C') {
     return Typ_CI;
 
 

@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-alle UT3D_ci auslager -> ut_circ1.c
+alle UT3D_ci auslagern -> ut_circ1.c
 remove ObjG2, ObjG
 polygon (_pta_ _cv_) auslagern nach ut_npt (UT3D_cv_..)
 
@@ -81,6 +81,9 @@ UT3D_angr_vc2vc           compute angle of vec in Refsys (to X-axis)
 UT3D_angr_vcpl_z          compute ang. of vec in Refsys (to X-axis, around Z-axis)
 UT3D_angr_vcpl_tilt       compute angle of vec in Refsys (to XY-plane)
 UT3D_angr_2pl             opening angle of 2 planes
+UT3D_angrR_vc             get rotation-angle for vector
+UT3D_angrT_vc             get tilt-angle for vector
+UT3D_2angr_2vc            get transf.angles for a refSys from its X-and Y-axis
 UT3D_2angr_vc             2 opening angels of vec (Y-ang = kipp, Z-ang = dreh)
 UT3D_3angr_2vc            3 opening angels (3D-position) from X and Z-vec
 UT3D_atan_vcpl            Anstieg (tan) der Geraden vci bezueglich Ebene pli
@@ -129,8 +132,9 @@ UT3D_par1_ci_angr         get parameter 0-1 for circ from opening-angle
 UT3D_par1_ci_pt           get parameter 0-1 for point on circ
 
 -------------- points --------------------------------------
-UT3D_swap2pt              swap 2 2D-points
-UT3D_comp2pt              compare 2 points
+UT3D_swap2pt              swap 2 2D-points                            INLINE
+UT3D_comp2pt              compare 2 points                            INLINE
+UT3D_ck2D_equ_2pt         2D-compare of 2 3D-points with tolerance    INLINE
 UT3D_comp4pt              compare 4 points
 UT3D_pt_ck_npt            compare point / points
 UT3D_pt_ck_ptvc           check if point is on unlimited line (point-vector)
@@ -181,7 +185,7 @@ UT3D_pt_mid_pta           arithm. Mittelwert der Punktetabelle pTab
 UT3D_pt_midci             midpoint of a circ
 UT3D_pt_std_ci            90/180/270-deg-point of circ
 UT3D_ptvcpar_std_dbo      get typical points & tangent-vector for DB-obj
-UT3D_ptvcpar_std_obj      get typical points & tangent-vector for obj
+UT3D_ptvcpar1_std_obj      get typical points & tangent-vector for obj
 UT3D_pt_opp2pt            opposite point (p1 = center)
 UT3D_pt_oppptptvc         point opposite line (= 180 deg rot.)
 UT3D_2pt_oppptvclen       2 opposite points (center, vector, dist)
@@ -338,7 +342,7 @@ UT3D_ln_inv               invert (change p1, p2)          INLINE
 UT3D_ln_unlim             set  length for construction-line
 UT3D_ln_6db               line from 2 * 3 doubles
 UT3D_ln_ln2               3D-Line from 2D-Line (Z=0)
-UT3D_ln_2pt2              LN = PT - PT
+UT3D_ln_2pt2              3D-Line from 2D-points (Z=0)
 UT3D_ln_ptvc              Line = PT + VC                  INLINE
 UT3D_ln_ptpt              Line = Point, Point             INLINE
 UT3D_ln_tra_vc            translate line
@@ -717,11 +721,99 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 }
 
 
+//================================================================
+  int UT3D_angrR_vc (double *ar, Vector *vc1) {
+//================================================================
+// UT3D_angrR_vc     get rotation-angle for vector
+// vc1 must be normalized
+// see UT3D_angrT_vc UT3D_2angr_vc
+
+  // angle from top-view
+  *ar = ACOS(vc1->dx);
+
+  if(vc1->dy < 0.) *ar *= -1.;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_angrT_vc (double *at, Vector *vc1) {
+//================================================================
+// UT3D_angrT_vc     get tilt-angle for vector
+// vc1 must be normalized
+// angle-values -90-deg to +90-deg;  not up to 180 !
+// see UT3D_angrR_vc UT3D_2angr_vc
+
+  Vector2   vcxz;
+
+
+  // UT3D_stru_dump (Typ_VC, vc1, "UT3D_angrT_vc ");
+
+  
+  // Seitenansicht X-Z aus Richtung -Y
+  vcxz.dx = sqrt((vc1->dx*vc1->dx)+(vc1->dy*vc1->dy));
+  vcxz.dy = vc1->dz;
+
+
+  // normalize
+  UT2D_vc_setLength (&vcxz, &vcxz, 1.);
+
+  // get angle 
+  *at = ACOS(vcxz.dx);   // always positiv;
+
+  if(vc1->dz < 0.) *at *= -1.;
+
+    // printf(" ex-angrT_vc %f\n",*at);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_2angr_2vc (double *angX, double *angZ,
+                      Vector *vcX, Vector *vcY) {
+//================================================================
+/// \code
+/// UT3D_2angr_2vc   get transf.angles for a refSys from its X-and Y-axis
+/// angX = tilt.Angle (rotate around X-axis), angZ = rotate around Z-axis
+/// using: rotate first GL_angX then GL_angZ  (see GLBT_view_set)
+/// see also UQT_vcar_qt
+/// \endcode
+
+
+  // UT3D_stru_dump (Typ_VC, vcX, "UT3D_2angr_2vc - vcX");
+  // UT3D_stru_dump (Typ_VC, vcY, "                 vcY");
+
+
+  // angZ = rot.Angle
+  UT3D_angrR_vc (angZ, vcX);  // rot.Angle from X-axis
+  *angZ = UT_DEGREES(*angZ) * -1.;
+
+  // angX = tilt.Angle
+  UT3D_angrT_vc (angX, vcY);  // tilt.Angle from Y-axis
+  *angX = UT_DEGREES(*angX) * -1.;
+
+
+  if((*angZ < 0.) && (vcY->dx > 0.)) *angX = 180. - *angX;
+  if((*angZ > 0.) && (vcY->dx < 0.)) *angX = -180. - *angX;
+
+
+    // printf("ex UT3D_2angr_2vc angX=%f angZ=%f\n",*angX,*angZ);
+
+  return 0;
+
+}
+
+
 //=======================================================================
   int UT3D_2angr_vc (double *az, double *ay, Vector *vc1) {
 //=======================================================================
 /// \code
 /// UT3D_2angr_vc           2 opening angels of vec (Y-ang = kipp, Z-ang = dreh)
+/// ay only -90-deg to +90-deg ! For full range use UT3D_2angr_2vc
 /// vc1 entspricht der X-Achse; dise wird so gedreht, dass dann vc1 
 /// Die Winkel sind so gesetzt, dass die X-Achse einer DL-Liste dann in
 ///  Richtung vc1 zeigt. (soll Z-Achse benutzt werden: ay -= 90. degree.)
@@ -730,6 +822,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 //   1) um Z-Achse Winkel az drehen
 //   2) um (neue) Y-Achse Winkel ay drehen (neue Y-Achse liegt noch in der
 //      absoluten XY-Ebene.
+// see UT3D_angrR_vc UT3D_angrT_vc
 
   Vector2 vcxy, vcxz;
 
@@ -4144,7 +4237,10 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   // get senseOfRotation for pa on backplane mode
   sr = UT3D_sr_npt_bp (ptNr, pa, mode);
-  if(!sr) sr = 1; // 0 -> 1 (CCW)
+    // printf(" sr=%d\n",sr); // 0=CCW;1=CW
+  if(!sr) sr = 1;   // 0 -> 1 (CCW)
+  else    sr = -1;  // 1 -> -1; 2017-05-15 
+
   
 
   // nochmal invertieren wenn Ebene verkehrt ..
@@ -6052,6 +6148,7 @@ Returncodes:
   Point UT3D_pt_pt2 (Point2 *pt20) {
 //====================================================================
 /// UT3D_pt_pt2               3D-Point = 2D-Point
+// TODO make it inline
 
   Point  pt;
 
@@ -6288,8 +6385,8 @@ Tests:
                             int pType, int dbtyp, long dbi) {
 //=======================================================================
 /// \code
-/// UT3D_ptvcpar_std_obj   get typical points & tangent-vector for DB-obj
-/// see UT3D_ptvcpar_std_obj
+/// UT3D_ptvcpar1_std_obj   get typical points & tangent-vector for DB-obj
+/// see UT3D_ptvcpar1_std_obj
 /// \endcode
 
   ObjGX   oxi;
@@ -6297,18 +6394,18 @@ Tests:
 
   OGX_SET_INDEX (&oxi, dbtyp, dbi);
 
-  return UT3D_ptvcpar_std_obj (pto, vco, par,
+  return UT3D_ptvcpar1_std_obj (pto, vco, par,
                                pType, Typ_ObjGX, &oxi);
 
 }
 
 
 //=======================================================================
-  int UT3D_ptvcpar_std_obj (Point *pto, Vector *vco, double *par,
+  int UT3D_ptvcpar1_std_obj (Point *pto, Vector *vco, double *par,
                             int pType, int cvTyp, void *cvDat) {
 //=======================================================================
 /// \code
-/// UT3D_ptvcpar_std_obj     get typical points & tangent-vector for obj
+/// UT3D_ptvcpar1_std_obj     get typical points & tangent-vector for obj
 ///                       (start, end, mid, ..)
 ///   (parametric points, typical points, standardpoints, characteristic points)
 ///
@@ -6344,7 +6441,7 @@ Tests:
   void    *vp1;
 
 
-  // printf("UT3D_ptvcpar_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
+  // printf("UT3D_ptvcpar1_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
 
   irc = 0;
 
@@ -6658,22 +6755,22 @@ Tests:
     case Typ_ObjGX:
       i1 = UTO_obj_getp (&vp1, &i2, cvDat);
       if(i1 < 0) return -1;
-      if(i2 > 1) TX_Print("**** UT3D_ptvcpar_std_obj I001");
+      if(i2 > 1) TX_Print("**** UT3D_ptvcpar1_std_obj I001");
 
       // recursion
-      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, vp1);
+      UT3D_ptvcpar1_std_obj (pto, vco, par, pType, i1, vp1);
       break;
 
 
     //----------------------------------------------------------------
     case Typ_CVTRM:
       // Typ_CVTRM can have form=Typ_ObjGX (contour) 
-      //   or form=Typ_CVTRM(sungle trimmed curve)
+      //   or form=Typ_CVTRM(single trimmed curve)
       cp1 = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
       UTO_cv_cvtrm (&i1, cp1, NULL, (CurvCCV*)cvDat);
 // TODO: spline, clot has v0-point, v1-point in CurvCCV-struct (io0, ip1) !?
       // recursion
-      UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, cp1);
+      UT3D_ptvcpar1_std_obj (pto, vco, par, pType, i1, cp1);
       break;
 
 
@@ -6684,12 +6781,12 @@ Tests:
 
 
     // TESTBLOCK
-    if(irc >= 0) {
-      // if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
+    // if(irc >= 0) {
+      // if(par) printf("ex UT3D_ptvcpar1_std_obj par=%lf\n",*par);
       // if(pto) UT3D_stru_dump (Typ_PT, pto, "ex ptvcpar_std_obj");
       // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
       // if(vco) GR_Disp_vc (vco, pto, 9, 1);
-    }
+    // }
     // END TESTBLOCK
 
 
@@ -6698,7 +6795,7 @@ Tests:
 
   //----------------------------------------------------------------
   L_err_FNI:  // function not implemented
-    UT3D_stru_dump (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_std_obj");
+    UT3D_stru_dump (cvTyp, cvDat, " *** ERR UT3D_ptvcpar1_std_obj");
     return MSG_STD_ERR (ERR_func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
 
 }
@@ -7789,8 +7886,8 @@ liegt. ohne acos.
    Vector   vl;
 
 
-  UT3D_stru_dump (Typ_LN, ln, "UT3D_pt_projptln");
-  UT3D_stru_dump (Typ_PT, pt, "              pt");
+  // UT3D_stru_dump (Typ_LN, ln, "UT3D_pt_projptln");
+  // UT3D_stru_dump (Typ_PT, pt, "              pt");
 
 
   /* change line into vector vl */
@@ -7799,7 +7896,7 @@ liegt. ohne acos.
 
   irc = UT3D_pt_projptptvc (pp, &nlen, &ppp, pt, &ln->p1, &vl);
   if(irc < 0) goto L_exit;
-    printf(" nlen=%lf ppp=%lf\n",nlen,ppp);
+    // printf(" nlen=%lf ppp=%lf\n",nlen,ppp);
 
 
   // compare pp-ln.p1
@@ -7817,9 +7914,9 @@ liegt. ohne acos.
   if(ndist) *ndist = nlen;
   if(par1) *par1 = ppp;
 
-    UT3D_stru_dump (Typ_PT, pp, "ex UT3D_pt_projptln irc=%d",irc);
-    if(ndist) printf(" ndist=%lf\n",*ndist);
-    if(par1) printf(" par1=%lf\n",*par1);
+    // UT3D_stru_dump (Typ_PT, pp, "ex UT3D_pt_projptln irc=%d",irc);
+    // if(ndist) printf(" ndist=%lf\n",*ndist);
+    // if(par1) printf(" par1=%lf\n",*par1);
   
 
   return irc;
@@ -12133,6 +12230,7 @@ Version 2 - auch Mist
 }
 
 
+/* replaced by UT3D_ln_ptpt
 //====================================================================
   void  UT3D_ln_2pt (Line *ln1, Point *pta, Point *pte) {
 //====================================================================
@@ -12145,6 +12243,7 @@ Version 2 - auch Mist
   return;
 
 }
+*/
 
 
 //====================================================================
@@ -13982,7 +14081,11 @@ FEHLER: pos's koennen gleich sein !
 //================================================================
 /// \code
 /// UT3D_ptvc_ox              get axis (PT+VC) from PT|LN|CI|PLN
+/// retCod     0=OK-pta-vca; 1=vca-only; -1=error
 /// \endcode
+
+  int  irc = 0;
+
 
     // rotAxis setzen; Punkt TSU_prx + Vector *vca
     if(oxi->form == Typ_PT) {
@@ -13998,6 +14101,10 @@ FEHLER: pos's koennen gleich sein !
      *pta = ((Circ*)oxi->data)->pc;
      *vca = ((Circ*)oxi->data)->vz;
 
+    } else if(oxi->form == Typ_VC) {
+     *vca = *((Vector*)oxi->data);
+     irc = 1;
+
     } else if(oxi->form == Typ_PLN) {
      // UT3D_stru_dump (Typ_PLN, TSU_obj1.vp, "Axis");
      *pta = ((Plane*)oxi->data)->po;
@@ -14010,7 +14117,7 @@ FEHLER: pos's koennen gleich sein !
 
   // GR_Disp_vc (vca, pta, 1, 0);
 
-  return 0;
+  return irc;
 
 }
 
@@ -14028,6 +14135,7 @@ FEHLER: pos's koennen gleich sein !
 ///   pTyp       type of parameter;
 ///                 0=normalized parameter (0-1)
 ///                 1=native parameter; any value ..
+///   par        parametervalue accord. pTyp
 /// see also UT3D_pt_evparcrv UT3D_vc_tng_crv_pt
 /// \endcode
 
@@ -18570,7 +18678,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   if(!va1) {
     // get local space
-    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp ((int)(sizeof(double) * *nrp));
   }
 
   for(i1=0; i1 < *nrp; ++i1) {
@@ -18614,7 +18722,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   if(!va1) {
     // get local space
-    va1 = MEM_alloc_tmp (sizeof(double) * *nrp);
+    va1 = MEM_alloc_tmp ((int)(sizeof(double) * *nrp));
   }
 
 

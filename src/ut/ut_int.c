@@ -68,7 +68,7 @@ UTO_obj_trim
 
 #include "../ut/ut_geo.h"              // Point ...
 
-#include "../ut/func_types.h"               // SYM_..
+#include "../ut/func_types.h"          // SYM_..
 #include "../gr/tess_su.h"             // TypTsuSur
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
@@ -426,10 +426,10 @@ UTO_obj_trim
   // (triangles are pointers into tesselated data !)
   surNr = surSiz;
   triNr = triSiz;
-  irc = TSU_tsu2tria__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, spc1);
+  irc = TSU_ntria_bMsh__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, spc1);
 /*
     //----TEST:----------
-    printf("ex TSU_tsu2tria__ irc=%d surNr=%d\n",irc,surNr);
+    printf("ex TSU_ntria_bMsh__ irc=%d surNr=%d\n",irc,surNr);
     for(i1=0; i1<surNr; ++i1) {
       printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",i1,
              surTab[i1].ip1,surTab[i1].ip2,surTab[i1].typ);
@@ -1453,8 +1453,8 @@ static  CurvElli          el1;
 
   //----------------------------------------------------------------
   // get space for triangles --> triTab
-  // tess_siz1 (&sur1Siz, &tri1Siz, spc1);
-  // tess_siz1 (&sur2Siz, &tri2Siz, spc2);
+  // tess_triaNr_bMsh (&sur1Siz, &tri1Siz, spc1);
+  // tess_triaNr_bMsh (&sur2Siz, &tri2Siz, spc2);
 
   sur1Tab = (TypTsuSur*)memspc51;
   sur1Siz = sizeof(memspc101) / sizeof(TypTsuSur);
@@ -1468,13 +1468,13 @@ static  CurvElli          el1;
   // (triangles are pointers into tesselated data !)
   sur1Nr = sur1Siz;
   tri1Nr = tri1Siz;
-  irc = TSU_tsu2tria__ (sur1Tab, &sur1Nr, sur1Siz,
+  irc = TSU_ntria_bMsh__ (sur1Tab, &sur1Nr, sur1Siz,
                         tri1Tab, &tri1Nr, tri1Siz, spc1);
     // printf(" tri1Nr=%d\n",tri1Nr);
 
 /*
     //----TEST:----------
-    printf("ex TSU_tsu2tria__ irc=%d sur1Nr=%d\n",irc,sur1Nr);
+    printf("ex TSU_ntria_bMsh__ irc=%d sur1Nr=%d\n",irc,sur1Nr);
     for(i1=0; i1<sur1Nr; ++i1) {
       printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",i1,
              sur1Tab[i1].ip1,sur1Tab[i1].ip2,sur1Tab[i1].typ);
@@ -1506,13 +1506,13 @@ static  CurvElli          el1;
   // (triangles are pointers into tesselated data !)
   sur2Nr = sur2Siz;
   tri2Nr = tri2Siz;
-  irc = TSU_tsu2tria__ (sur2Tab, &sur2Nr, sur2Siz,
+  irc = TSU_ntria_bMsh__ (sur2Tab, &sur2Nr, sur2Siz,
                         tri2Tab, &tri2Nr, tri2Siz, spc2);
     // printf(" tri2Nr=%d\n",tri2Nr);
 
 /*
     //----TEST:----------
-    printf("ex TSU_tsu2tria__ irc=%d sur2Nr=%d\n",irc,sur2Nr);
+    printf("ex TSU_ntria_bMsh__ irc=%d sur2Nr=%d\n",irc,sur2Nr);
     for(i1=0; i1<sur2Nr; ++i1) {
       printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",i1,
              sur2Tab[i1].ip1,sur2Tab[i1].ip2,sur2Tab[i1].typ);

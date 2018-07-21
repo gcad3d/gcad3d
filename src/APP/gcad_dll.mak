@@ -1,9 +1,10 @@
 # include-File to link gCAD3D-Plugins (DLLs)
 # gcad_dir_bin must be set (. ../options.sh)
+#
+# used symbols: gcad_dir_bin VGUI
 
-
-# get CC VGUI 
-include ../options.mak
+# get VGUI 
+VGUI := $(shell cat ../gcad_gui_version)
 
 
 # debug-settings DEB CPDEB LKDEB
@@ -34,14 +35,14 @@ VPATH := $(gcad_dir_bin):$(DIRSRC1)
 CC = gcc
 
 
-ifeq "$(OS)" "Linux32"
+ifeq "$(hTyp)" "Linux_i386"
 FTYP = so
 CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 CPPFLG = -fPIC $(CPDEB)
 LKFLG = -shared -export-dynamic
 endif
 
-ifeq "$(OS)" "Linux64"
+ifeq "$(hTyp)" "Linux_x86_64"
 FTYP = so
 CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 CPPFLG = -fPIC $(CPDEB)
@@ -59,7 +60,7 @@ endif
 #=====================================================================
 #default:
 default:	$(OBJ1)
-#	@echo "gcad_dir_bin = "$(gcad_dir_bin)
+	@echo "gcad_dll build $(DLLNAM) gui = $(VGUI) .."
 	@echo $(VPATH)
 	@echo $(OBJ1)
 	@echo ====================== Link ======================

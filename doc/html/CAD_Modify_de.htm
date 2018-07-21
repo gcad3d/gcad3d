@@ -108,10 +108,14 @@ Ein Objekt verschieben (Translation)
 ErgebnisObjekt = TRA Obj_to_move Vektor [Länge]
   TRA Obj_to_move: dieses Objekt wird verschoben
   <a href="CAD_Base_de.htm#D">Vektor</a>
+  length       Vektorlänge (optional)
+  replace-duplicate  ob erzeugendes Objekt bleiben oder abgedeckt werden soll;
+               Standard = beide Objekte sind sichtbar (kopieren).
+               Bild-hinunter drücken - "REPL" - nur neues Objekt ist sichtbar
+
   
-Derzeit werden immer neue Objekte angelegt.  
-Offen: die Verschiebeung nicht parametrisch, sondern permanent ausgeben
-  (das Basisobjekt ändern).
+Es wird ein neues, verschobenes Objekt - eine Kopie - angelegt.  
+Permanente Translation des Basisobjektes mit "Group/move objects of group"
 
 
 # Objekte um einen Vektor verschieben (REV: Gegenrichtung).
@@ -119,9 +123,13 @@ Offen: die Verschiebeung nicht parametrisch, sondern permanent ausgeben
 P20=P(100,0,0)
 P21=TRA P20 D(0 0 100)
 
+# "TRafo transl"  (define Transformation)
 T20=D(10 10 10)
+# "TRAnslate obj (VC)"  - kopieren
 P22=TRA P21 T20
 # traVC (T20 im Beispiel): siehe Transformation
+# P22 ersetzen:
+P23=TRA P22 D(0 0 100) REPL
 
 
 

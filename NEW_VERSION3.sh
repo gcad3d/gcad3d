@@ -1,10 +1,9 @@
 #!/bin/sh
 
-# ./NEW_VERSION2.sh
-# start in <baseDir>/gcad3d/
+# ./NEW_VERSION3.sh
 
-basDir=`pwd`
 
+basDir=${DIR_DEV}gcad3d
 
 
 # create source-package (<basDir>/packages/gCAD3D-#.##-src.zip)
@@ -13,7 +12,8 @@ cd ${basDir}/src
 
 
 
-# create docu-package (<basDir>/packages/gCAD3D-doc-#.##.zip)
+# create doc-package (${DIR_DEV}gcad3d/packages/gCAD3D-doc-#.##.zip)
+# (user-doc and dev-doc)
 cd ${basDir}/doc
 ./packDoc.sh
 

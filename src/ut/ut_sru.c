@@ -201,12 +201,12 @@ double SRU_parsru_utLn2 ();
       if(objo == NULL) goto L_exit;
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
       // modify p1-p2 with parameter dp
       UT3D_pt_evpar2pt (&((Line*)objo)->p1, dp, &p1, &p3);
       UT3D_pt_evpar2pt (&((Line*)objo)->p2, dp, &p2, &p4);
@@ -227,12 +227,12 @@ double SRU_parsru_utLn2 ();
       }
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
       // vz1-vz2 antiparallel ?
       if(UT3D_sid_2vc(&((Circ*)dat1)->vz, &((Circ*)dat2)->vz) < 0)
         MEM_swap__(&p3, &p4, sizeof(Point));
@@ -557,7 +557,7 @@ double SRU_parsru_utLn2 ();
       // UTO_dump_s_  ((ObjGX*)oxx, " CCV:");
       // UTO_dump__ ((ObjGX*)oxx, " CCV:");
     *ptNr = ptMax;
-    irc = UT3D_pta_ox_lim (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv);
+    irc = UT3D_pta_ox_lim (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv, 2);
     if(irc < 0) return -1;
       // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
       // for(i1=0;i1<*ptNr;++i1) UT3D_stru_dump(Typ_PT,&pTab[i1]," pt[%d]=",i1);

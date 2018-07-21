@@ -4,11 +4,11 @@
 # includes Linux and MS-windows version
 # start in <basDir>/src
 
-version=`cat gcad_version`
-
-
-cd ..
+cd ${DIR_DEV}gcad3d
 basDir=`pwd`
+
+
+version=`cat src/gcad_version`
 
 
 rm -f gCAD3D-src.zip

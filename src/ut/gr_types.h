@@ -13,6 +13,9 @@ Korr:
 // #define STAT_normal        1
 
 
+#ifdef globTag
+void INF_ATT_CV (){}
+#endif
 // attributes for lines,curves
 #define Typ_Att_PT         0   // jellow
 #define Typ_Att_def        1   // blue
@@ -24,14 +27,21 @@ Korr:
 #define Typ_Att_Symb       7
 #define Typ_Att_hili       8  // white
 #define Typ_Att_hili1      9  // red, thick=3
-#define Typ_Att_dim       10
+#define Typ_Att_dim       10   // unlimited lines
 #define Typ_Att_top1      11
 #define Typ_Att_top2      12   // used for parent-obj's
 
+
+#ifdef globTag
+void INF_BITMAP_SYMBOLS (){}
+#endif
+// bitmapsymbols for GL_Disp_symB color: GL_att_sym
 #define SYM_TRI_S        130   // Bitmap tringle small
 #define SYM_STAR_S       131   // star, small
 #define SYM_CIR_S        132   // Bitmap circle small
-#define SYM_TRI_B        133   // Bitmap tringle big
+#define SYM_TRI_B        133   // Bitmap triangle big
+
+
 
 #define SYM_VEC          139   // das Vektorsymb (nicht skaliert)
 
@@ -49,14 +59,23 @@ Korr:
 
 #define SYM_CLIPBOX      150   // internal use, Vektor; unused ..
 
-// colors for Typ_PT:
+#ifdef globTag
+void INF_COL_PT (){}
+#endif
+// color of point(-symbols); value = thickness
+// GL_att_pt GL_InitPtAtt
 #define ATT_PT_BLACK       0
 #define ATT_PT_HILI        1
 #define ATT_PT_DIMMED      2
 #define ATT_PT_GREEN       3
 #define ATT_PT_YELLOW      4
 
-// colors for Typ_SymB:
+
+#ifdef globTag
+void INF_COL_SYMB (){}
+#endif
+// color of symbols (text, ..) and (tesselated) surfaces
+// Definition: GL_col_tab in ../gr/ut_GL.c
 #define ATT_COL_BLACK      0
 #define ATT_COL_RED        2
 #define ATT_COL_GREEN      3

@@ -50,6 +50,9 @@ Modifications:
 =====================================================
 List_functions_start:
 
+UCBS_EvPtBspCrv           Evaluate point <-- bspline curve
+UCBS_NxtPtBspCrv          Next point <-- bspline curve & point
+UCBS_XPtsBspCrvNet        Intersection points <-- bspline curve net
 UCBS_BspCrvPts            Bspline curve <-- points 
 UCBS_CpyBspCrv            Copy <-- bspline curve 
 UCBS_CrssParVecBspCrvs    Cross parametervector <-- bspline curves
@@ -57,12 +60,10 @@ UCBS_CtrlPtsIntpol        Controlpoints of interpolating bsp.crv. <-- points
 UCBS_DegElevBspCrv        Degree elevate <-- bspline curve 
 UCBS_DifKntsKntVecBspCrv  Difference knots <-- knotvector, bspline curve 
 UCBS_DirIndIsoBspSur      Dir. indep. isopar. bspline curve <-- bspline surface 
-UCBS_EvPtBspCrv           Evaluate point <-- bspline curve
 UCBS_IsoBspCrvBspSur      Isoparametric bspline curve <-- bspline surface
 UCBS_MkeCmpBspCrvs        Compatible bspline curves <-- bspline curves 
 UCBS_MrgKntVecBspCrvs     Merge knotvectors <-- bspline curves 
 UCBS_NrmKntVecBspCrv      Normalize knotvector <-- bspline curve 
-UCBS_NxtPtBspCrv          Next point <-- bspline curve & point
 UCBS_OffSurBspCrv         Offset surface bspline curve <-- bspline curve
 UCBS_PrepCoons3BspCrvs    Prepare Coonspatch <-- 3 bspline curves
 UCBS_PtUBspCrv            Point <-- U-parameter bspline curve
@@ -70,8 +71,9 @@ UCBS_RefKntVecBspCrv      Refine knotvector <-- bspline curve
 UCBS_RevBspCrv            Reverse <-- bspline curve
 UCBS_SubDivBspCrv         Subdivision <-- bspline curve
 UCBS_TypCon2BspCrvs       Type of connection <-- 2 bspline curves
-UCBS_XPtsBspCrvNet        Intersection points <-- bspline curve net
 UCBS_3BspCrvsBspCrv       3 bspline curves <-- bspline curve
+UCBS_Comp2BspCrvs         Compose <-- 2 bspline curves
+UCBS_TrfKntVecBspCrv      Transform knotvector <-- bspline curve
 
 List_functions_end:
 =====================================================
@@ -2511,9 +2513,6 @@ L_outOfSpace:
   TX_Error("UCBS_TrfKntVecBspCrv: out of space");
   return -1;
 }
-
-
-/*=============================== eof ===================================*/
 
 
 /*=============================== eof ===================================*/

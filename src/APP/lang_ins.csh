@@ -27,11 +27,12 @@ echo $*
 # set fn = msg_de.txt
 
 
-foreach fn (`ls -1 | grep msg_...txt`)
-# echo change $fn
+foreach fn (`ls ../../doc/msg/* | grep msg_...txt`)
+ echo change $fn
   cp -f $fn actMsgFil.txt
   sed "/^$s1/r actMsgLn.txt" actMsgFil.txt > $fn
 end
+
 
 ENDE:
 exit(0)

@@ -102,9 +102,9 @@ OLD VERSION:
 // local vars:
 // static GIO_WinTree winDel;
 static void *winDel;
-// static MemTab(stru_Del) delTab = MemTab_empty;
+// static MemTab(stru_Del) delTab = _MEMTAB_NUL;
 
-static MemTab(ObjSRC) delTab = MemTab_empty;
+static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
 
 // prototypes:
@@ -588,13 +588,12 @@ static MemTab(ObjSRC) delTab = MemTab_empty;
   long           dbi, ld;
   char           oNam[32];
   ObjSRC         *o2, *o3;
-  MemTab(ObjSRC) dTab = MemTab_empty;
-  MemTab(ObjSRC) oTab = MemTab_empty;
+  MemTab(ObjSRC) dTab = _MEMTAB_NUL;
+  MemTab(ObjSRC) oTab = _MEMTAB_NUL;
 
 
   // printf("Del_tab__ %d\n",ii);
   // for(i1=0;i1<ii;++i1)UT3D_stru_dump(Typ_Group,&gTab[i1]," gT[%d]\n",i1);
-
 
 
   UI_block__ (1, 1, 1);  // block UI
@@ -680,12 +679,15 @@ static MemTab(ObjSRC) delTab = MemTab_empty;
   for(i2=0; i2 < oTab.rNr; ++i2) {
     o2 = &(oTab.data[i2]);
       // printf("[%d] typ=%d dbi=%d\n",i2,o2->typ,o2->dbi);
-    iRec = UNDO_grp_add (o2->lnr, iDel);    // add to undoTab
+    UNDO_grp_add (o2->lnr, iDel);    // add to undoTab
     ++iDel;
   }
 
+  // get record #=0 of active group (last =iRec
+  iRec = UNDO_recNr__ ();
+
   // delete the active undo-grp & update display
-    UNDO_dump ();
+    // UNDO_dump ("Del_tab__");
   UNDO_grp_del (iRec);
 
 

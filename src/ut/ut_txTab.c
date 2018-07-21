@@ -34,6 +34,8 @@ void UtxTab(){}
 \file  ../ut/ut_txTab.c
 \brief list of strings (0-terminated); add, find, ..
 \code
+NEEDS:
+../ut/ut_umem.h       ../ut/ut_umem.c                     UME_..
 =====================================================
 List_functions_start:
 
@@ -218,10 +220,13 @@ void TX_Error (char* txt, ...);
   return 0;
 }
 
- int UTI_round_i2b (int i1) { 
-  int   ii=0;
-  while(i1) {i1 /= 2; ++ii;}
-  return ii;
+ int UTI_round_i2b (int ii) { 
+  int   ib = -1;
+  if(ii < 2) return 0;
+  ii *= 2;
+  --ii;
+  while(ii) {ii /= 2; ++ib;}
+  return ib;
 }
 
   int UTI_round_b2i (int i1) {
@@ -654,6 +659,7 @@ void TX_Error (char* txt, ...);
 
   if(iNr < 0) return NULL;
   if(iNr >= tab->iNr) return NULL;
+  if(!tab->tab) return NULL;
 
   return &tab->tab[tab->ind[iNr]];
 

@@ -305,7 +305,7 @@ L_InErr:
     UTP_param_p0p1px (&tTab[0], ts, te, tm);
   }
 
-  UT3D_pt_pt (&xpt, &ptm, 0.);
+  UT3D_pt_ptz (&xpt, &ptm, 0.);
   if(yFlip) xpt.y = -xpt.y;
   UT3D_pt_traptm3 (&xpTab[0], mc, &xpt);
     // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
@@ -432,7 +432,7 @@ L_InErr:
   L_finish:
   tTab[0] = tx1;
   if(yFlip) pt1.y = -pt1.y;
-  UT3D_pt_pt (&xp1, &pt1, 0.);
+  UT3D_pt_ptz (&xp1, &pt1, 0.);
   UT3D_pt_traptm3 (&xpTab[0], mc, &xp1);
     // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
   *nxp = 1;
@@ -478,21 +478,21 @@ L_InErr:
   double   rm, aSeg;
 
 
-  UT3D_stru_dump (Typ_CVCLOT, clt, "UT3D_ptNr_clot");
-  printf(" tol=%lf\n",tol);
+  // UT3D_stru_dump (Typ_CVCLOT, clt, "UT3D_ptNr_clot");
+  // printf(" tol=%lf\n",tol);
 
 
   hv = clt->pc / SR_PI;         // SQRT(PI)
   ts = hv * clt->cs; // >=0
   te = hv * clt->ce; // >=0
-  tt = te-ts;
-    printf(" ts=%lf te=%lf tt=%lf\n",ts,te,tt);
+  tt = fabs(te-ts);
+    // printf(" ts=%lf te=%lf tt=%lf\n",ts,te,tt);
 
 
   rm = clt->pc;  // 100.; // medium radius
   aSeg = UT2D_angr_ciSec (tol, rm);
   *pNr =  tt / aSeg;
-    printf(" pNr=%d aSeg=%lf\n",*pNr,aSeg);
+    // printf(" pNr=%d aSeg=%lf\n",*pNr,aSeg);
 
   return 0;
 

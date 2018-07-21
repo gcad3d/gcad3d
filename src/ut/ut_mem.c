@@ -53,7 +53,9 @@ MEM_chg_rec               change a record in mem (change line; delete+insert)
 MEM_del_str               delete n chars out of string
 MEM_del_IndRec            delete 1 integer from intArray
 MEM_del_DbRec             delete 1 double in double-Array
+MEM_del_ShRec             delete 1 short in short-Array
 MEM_del_nrec              delete <delRecNr> records from table
+MEM_inv_btab              invert table of bytes; 1/2/3 --> 3/2/1
 MEM_inv_itab              invert table of intData; 1/2/3 --> 3/2/1
 MEM_inv_dtab              invert table of dbData; 1/2/3 --> 3/2/1
 MEM_inv_rtab              invert table of dataRecords; 1/2/3 --> 3/2/1
@@ -70,7 +72,6 @@ MEM_get_file              read file -> mem
 List_functions_end:
 =====================================================
 - see also:
-MEM_alloc_tmp             get temp-space
 UTX_memstr
 UTX_memFind
 UTX_memFind1
@@ -82,7 +83,7 @@ memcpy
 memmove
 memset
 UTA_reallTab
-
+MEM_alloc_tmp
 \endcode *//*----------------------------------------
 
 */
@@ -355,7 +356,7 @@ UTA_reallTab
 
 
   if(strSiz > OBJ_SIZ_MAX) {
-    tmpSpc = MEM_alloc_tmp (strSiz);
+    tmpSpc = MEM_alloc_tmp ((int)strSiz);
     memcpy (tmpSpc, stru1, strSiz);
     memcpy (stru1, stru2, strSiz);
     memcpy (stru2, tmpSpc, strSiz);
@@ -607,6 +608,17 @@ UTA_reallTab
 
 }
 
+//================================================================
+  int MEM_del_ShRec (int *recNr, void *recTab, int ipos) {
+//================================================================
+/// \code
+/// MEM_del_ShRec          delete 1 short in short-Array
+/// recNr  is decremented
+/// \endcode
+
+  return MEM_del_nrec (recNr, recTab, ipos, 1, sizeof(short));
+
+}
 
 //==========================================================================
   int MEM_del_nrec (int *recNr, void *recTab,
@@ -658,6 +670,31 @@ UTA_reallTab
 
 }
 
+
+//================================================================
+  int MEM_inv_btab (int recNr, char *recTab) {
+//================================================================
+/// MEM_inv_btab              invert table of bytes; 1/2/3 --> 3/2/1
+
+  int    inach, ivon;
+
+  // printf("MEM_inv_btab %d\n",ptNr);
+
+  inach = 0;
+  ivon = recNr - 1;
+
+  L_umd_next:
+  // printf("   vert. %d -> %d\n",ivon,inach);
+  MEM_swap_byte (&recTab[inach], &recTab[ivon]);
+  ++inach;
+  --ivon;
+  if(inach < ivon) goto L_umd_next;
+
+  // int i1;for(i1=0;i1<recNr;++i1)printf(" [%d]=%d\n",i1,recTab[i1]);
+
+  return 0;
+
+}
 
 
 //================================================================

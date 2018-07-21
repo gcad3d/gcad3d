@@ -33,8 +33,8 @@ Modifications:
 =====================================================
 List_functions_start:
 
-Tess_sur__      tesselate, display sweep-surface
-Tess_sSym__     draw symbolic sweep-surf
+Tess_sur__           tesselate, display sweep-surface
+Tess_sSym__          draw symbolic sweep-surf
 Tess_sSym_swp__
 Tess_sSym_swp_1
 Tess_sSym_swp_2
@@ -81,12 +81,12 @@ TESTMODELS:
 
 
 #include "../ut/ut_geo.h"                 // Point ...
-#include "../ut/ut_msh.h"                 // Fac3 ..
-#include "../ut/ut_memTab.h"              // MemTab_..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_os.h"                  // OS_..
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
-#include "../ut/ut_tin.h"                 // TYP_EDGLN_OB
+#include "../ut/ut_face.h"                 // MSH_EDGLN_OB
 #include "../ut/ut_col.h"                 // COL_INT32
 #include "../ut/gr_types.h"                  // UI_Func... SYM_..
 
@@ -102,16 +102,17 @@ TESTMODELS:
 // typedef_MemTab(int);
 // typedef_MemTab(char);
 // typedef_MemTab(Point);
-typedef_MemTab(IndTab);
+// typedef_MemTab(IndTab);
+
 typedef_MemTab(SegBnd);
 typedef_MemTab(BndSur);
 
 
-static MemTab(Point)    pas1 = MemTab_empty;
-static MemTab(Point)    pa2D = MemTab_empty;
-static MemTab(char)     pst2D = MemTab_empty;
-static MemTab(int)      ia2D = MemTab_empty;
-static MemTab(IndTab)   ca2D = MemTab_empty;
+static MemTab(Point)    pas1 = _MEMTAB_NUL;
+static MemTab(Point)    pa2D = _MEMTAB_NUL;
+static MemTab(char)     pst2D = _MEMTAB_NUL;
+static MemTab(int)      ia2D = _MEMTAB_NUL;
+static MemTab(IndTab)   ca2D = _MEMTAB_NUL;
 
 
 // tesselation-data for sweep-surfaces
@@ -144,6 +145,7 @@ typedef struct {int typ, A_id, B_id;
 
 // from ../ci/NC_Main.h
 extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
+extern long    AP_dli_act;      // index dispList
 
 // from ../gr/tess_su.c:
 extern int     TSU_mode;   // 0=normal darstellen; 1=speichern
@@ -180,9 +182,9 @@ extern Point     *GLT_pta;
   IndTab    *itAct;     
   TessDat__ td1;
 
-  GridBoxH  gbh1;
+  GridBox  gbh1;
   IndTab    *itBnd;
-  MemTab(IndTab) fmt=MemTab_empty;
+  MemTab(IndTab) fmt=_MEMTAB_NUL;
   ColRGB    *col1;
 
   // int TSU_mode, TSU_sStyl, APT_dispSOL; // GLOBAL !
@@ -397,6 +399,7 @@ extern Point     *GLT_pta;
   if(TSU_mode == 0) {
     dli = DL_StoreObj (Typ_SUR, dbi, att);
     GR_Draw_iSur (&dli, att, &fmt, &ia2D, &pas1);
+    AP_dli_act = dli;
 
   } else {
     // iSur -> Sur
@@ -536,7 +539,7 @@ extern Point     *GLT_pta;
   // spine:   typ=td1->typPath data=td1->datPath
   // get contour
   pNr = 0;
-  i1 = UT3D_npt_obj (&pNr, &pTab[0], pMax, td1->typCov, td1->datCov, 1, tol);
+  i1 = UT3D_npt_obj (&pNr, &pTab[0], pMax, td1->typCov, td1->datCov, 1, tol, 2);
   if(i1 < 0) return -1;
   // transfer points onto basic-plane pl1
   for(i1=0; i1<pNr; ++i1) {
@@ -586,7 +589,8 @@ extern Point     *GLT_pta;
   // pNr = pMax - ipa; // max nr of points
   // UT3D_npt_obj (&pNr, &pTab[ipa], td1->typPath, td1->datPath, 1, tol);
   pNr = 0; // max nr of points
-  UT3D_npt_obj (&pNr, &pTab[ipa], pMax - ipa, td1->typPath, td1->datPath, 1, tol);
+  UT3D_npt_obj (&pNr, &pTab[ipa], pMax - ipa, td1->typPath, td1->datPath,
+                1, tol, 1);
 
   // add as curve
   OGX_SET_OBJ (&cvTab[cvNr], Typ_PT, Typ_PT, pNr, &pTab[ipa]);
@@ -693,7 +697,7 @@ extern Point     *GLT_pta;
 //   pa2D      add 2D-points here
 //   ia2d      add indices into pa2D here
 //   pst2D     add point-status
-//   ca2D      add contour as TYP_EDGLN_OB
+//   ca2D      add contour as MSH_EDGLN_OB
 //   RetCod    bNr = nr of boundaries
 //
 // see TSU_tr_init_ Tess_bound_SRU__ Tess_bound_SCIR Tess_bound_SURPLN
@@ -816,7 +820,7 @@ extern Point     *GLT_pta;
   // add boundary to ca2D
   cnt1.ibeg = iii;    // startindex in ia2D
   cnt1.iNr  = MEMTAB_IND (&ia2D) - iii;   // nr of points
-  cnt1.typi = TYP_EDGLN_OB;
+  cnt1.typi = MSH_EDGLN_OB;
   cnt1.aux  = 0; //GL_TRIANGLES; // WHY ?
   irc = MemTab_add (&ca2D, &ld, &cnt1, 1, 0);
   if(irc < 0) return irc;
@@ -1216,7 +1220,7 @@ extern Point     *GLT_pta;
 
 
 //================================================================
-  int Tess_sur_grd__ (GridBoxH *gbh1, TessDat__ *td1) {
+  int Tess_sur_grd__ (GridBox *gbh1, TessDat__ *td1) {
 //================================================================
 // compute all gridbox-points; add these points to pa2D
 // Input:
@@ -1230,7 +1234,7 @@ extern Point     *GLT_pta;
 // see TSU_tr_init_
 
 
-  // static GridBoxH gb;
+  // static GridBox gb;
   static Point    ptll;
 
   int         iip, pNr, i1, typCov;
@@ -1247,11 +1251,12 @@ extern Point     *GLT_pta;
 
 
   //----------------------------------------------------------------
-  // find p21-p22 = boundingbox of all pa2D-points
 
   pNr = MEMTAB_IND (&pa2D);
   pa = MEMTAB_DAT (&pa2D);
      // for(i1=0;i1<pNr;++i1) UT3D_stru_dump(Typ_PT, &pa[i1]," p2[%d]",i1);
+
+  // find p21-p22 = boundingbox of all pa2D-points (boundaries)
   UT2D_rect_pta3 (&p21, &p22, pa, pNr);
     // UT3D_stru_dump (Typ_PT2, &p21, " p21");
     // UT3D_stru_dump (Typ_PT2, &p22, " p22");
@@ -1282,7 +1287,7 @@ extern Point     *GLT_pta;
   // fill gridbox
   // get lower-leftpoint of boundingbox = startpoint of gridbox;
   ptll = UT3D_pt_pt2 (&p21);
-  gbh1->p1 = &ptll;
+  gbh1->pMin = ptll;
 
   gbh1->dx   =   dx;
   gbh1->dy   =   dy;
@@ -1312,7 +1317,7 @@ extern Point     *GLT_pta;
     datCov = tdSwp->datCov;
     gbh1->iy = ((CurvPoly*)datCov)->ptNr;
     // get normalized values for points
-    da = (double*)MEM_alloc_tmp (sizeof(double) * iy);
+    da = (double*)MEM_alloc_tmp ((int)(sizeof(double) * iy));
     UT3D_plg_npar1_npar (da, datCov);
     // add gridbox-points with y-valTab da
     pNr = UT3D_grd_ptya (&pa2D, gbh1, da);
@@ -1337,10 +1342,8 @@ extern Point     *GLT_pta;
 
 
   //----------------------------------------------------------------
-  // save pointer to points in gb.p1
-  gbh1->p1 = MEMTAB__ (&pa2D, iip);
-
-  // *pgb = &gb;
+  // save lower left point to points in gb.pMin
+  gbh1->pMin = *((Point*)MEMTAB__ (&pa2D, iip));
 
   return 0;
 
@@ -1355,7 +1358,7 @@ extern Point     *GLT_pta;
 // add all points -> pa2D
 // add status for all points -> pst2D
 // add links to points -> ia2d
-// add contour as TYP_EDGLN_OB -> ca2D
+// add contour as MSH_EDGLN_OB -> ca2D
 // add all data necessary for 2D -> 3D -> 2D into td1
 //   RetCod    bNr = nr of boundaries
 // see Tess_sol__
@@ -1412,8 +1415,8 @@ extern Point     *GLT_pta;
 
   // get space for bSur's
   sNr = MEMTAB_IND (fmt);   // nr of bSur
-  bSur = (void*) MEM_alloc_tmp (sizeof(ObjGX) * sNr);
-  bFac = (void*) MEM_alloc_tmp (sizeof(ObjGX) * sNr);
+  bSur = (void*) MEM_alloc_tmp ((int)(sizeof(ObjGX) * sNr));
+  bFac = (void*) MEM_alloc_tmp ((int)(sizeof(ObjGX) * sNr));
 
 
   // Create mesh (topmost obj)
@@ -1427,7 +1430,7 @@ extern Point     *GLT_pta;
       UT3D_stru_dump (Typ_IndTab, itAct, "it[%d]",i1);
     // get space for points
     pNr = itAct->iNr;
-    p2a = (void*) MEM_alloc_tmp (sizeof(Point) * pNr);
+    p2a = (void*) MEM_alloc_tmp ((int)(sizeof(Point) * pNr));
     // copy points -> pa
     ia1 = &ia0[itAct->ibeg];
     for(i2=0; i2<pNr; ++i2) {

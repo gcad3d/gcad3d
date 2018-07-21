@@ -2,7 +2,6 @@
 
   int   UTF_clear_     ();
   long  UTF_offset_    (char* cpos);
-  void  UTF_load_      (char* txbuf, long *txlen);
   int   UTF_add_file   (char* fn);
   int   UTF_add_line   (char* txt);
   int   UTF_add_nl     ();
@@ -31,6 +30,9 @@
   // int   UTF_del_rest   (char *text);
 
   long  UTF_GetLinLen  (char **lEnd, char *lStart);
+
+// test if model is empty
+#define UTF_EMPTY UTF_GetLen0() < 24
 
 
 /*==================== EOF =================*/

@@ -30,12 +30,17 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void TSU(){}
+#endif
 /*!
 \file  ../gr/tess_su.c
 \brief Tesselate Surfaces 
 \code
 =====================================================
 List_functions_start:
+
+TSU_nfac_ipatch__    get indexed-triangles from indexed-Opengl-patch using IndTab
 
 TSU_DrawSurT_        Hauptentry
 TSU_DrawSurTRV       unbegrenzte RevSur
@@ -48,6 +53,10 @@ TSU_DrawSurTess      draw tesselated surf
 
 TSU_Init
 TSU_tessObj
+
+TSU_ntria_bMsh__    triangles from binary-mesh
+TSU_ntria_bMsh_p
+TSU_ntria_bMsh_sur
 
 List_functions_end:
 =====================================================
@@ -185,8 +194,8 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include <GL/glu.h>
 
 #include "../ut/ut_geo.h"                 // Point ...
-#include "../ut/ut_msh.h"                 // Fac3 ..
-#include "../ut/ut_memTab.h"              // MemTab_..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_os.h"                  // OS_..
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
@@ -199,10 +208,10 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include "../xa/xa_ga.h"                  // GA_tex_ga2tr
 
 
-typedef_MemTab(int);
-typedef_MemTab(Point);
-typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
+// typedef_MemTab(int);
+// typedef_MemTab(Point);
+// typedef_MemTab(Fac3);
+// typedef_MemTab(EdgeLine);
 
 
 
@@ -210,6 +219,7 @@ typedef_MemTab(EdgeLine);
 // aus ../ci/NC_Main.h
 extern double  WC_ask_ModSiz ();
 extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
+extern long    AP_dli_act;      // index dispList
 
 // aus ../gr/ut_GL.c:
 extern ColRGB  GL_actCol;
@@ -319,7 +329,7 @@ static TSU_struct1 *TSU_mSpc;
 
  
 //================================================================
-  int TSU_dli_get () {
+  long TSU_dli_get () {
 //================================================================
 // get active DispListIndex TSU_dli
  
@@ -485,7 +495,7 @@ static int oldMode = 0;
   int TSU_tess_sTab (ObjGX **spc1, int *sTyp, long *sTab, int sNr) {
 //==================================================================
 // tesselate Surf # i1 --> spc1
-// see also INT_intplsur TSU_tsu2tria__
+// see also INT_intplsur TSU_ntria_bMsh__
 // Input:
 //   sTyp           DB-types (Typ_SUR|Typ_SOL)
 //   sTab           DB-indices
@@ -530,7 +540,7 @@ static int oldMode = 0;
   ObjAtt *ga1;
 
 
-  printf("TSU_tessObj %d %ld\n",typ,ind);
+  // printf("TSU_tessObj %d %ld\n",typ,ind);
   // UT3D_stru_dump (Typ_PLN, pln, "");
 
 
@@ -626,14 +636,16 @@ static int oldMode = 0;
  
 
 //===========================================================================
-  int TSU_tsu2tria__ (TypTsuSur *surTab, int *surNr, int surSiz,
+  int TSU_ntria_bMsh__ (TypTsuSur *surTab, int *surNr, int surSiz,
                       Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi) {
 //===========================================================================
 // make Triangles from Mockup-struct (TSU-Record (GL_Sur's + GL_PP's))
 // Input:
 //   oxi ist ein tesselated-dataBlock. See TSU_tess_sTab tess_dump_f_
 // Output:
-//   surTab[surNr]
+//   surTab[surNr]  UNUSED
+//   surNr          UNUSED
+//   surSiz         UNUSED
 //   triTab[triNr]
 //   retCod         -1 triSiz too small
 //                  -2 surSiz too small
@@ -642,6 +654,7 @@ static int oldMode = 0;
 // TypTsuSur:
 //   p1,p2 unused
 //   aux structure of data; 4=GL_TRIANGLES|5=GL_TRIANGLE_STRIP|6=GL_TRIANGLE_FAN
+// was TSU_tsu2tria__
 
 
   int     i1, irc, i3, rSiz, totSiz, Snr, Pnr, pAct, cNr, cAct;
@@ -650,11 +663,11 @@ static int oldMode = 0;
   ObjGX   *actPP, *actCont;
 
 
-  // tess_dump_f_ (oxi, "TSU_tsu2tria__");
+  // tess_dump_f_ (oxi, "TSU_ntria_bMsh__");
   // printf(" surSiz=%d triSiz=%d\n",surSiz,triSiz);
-  // UTO_dump_s_ (oxi, "TSU_tsu2tria__");
-  // UTO_dump_s_ (&oxi[0], "TSU_tsu2tria__-0");
-  // UTO_dump_s_ (&oxi[1], "TSU_tsu2tria__-1");
+  // UTO_dump_s_ (oxi, "TSU_ntria_bMsh__");
+  // UTO_dump_s_ (&oxi[0], "TSU_ntria_bMsh__-0");
+  // UTO_dump_s_ (&oxi[1], "TSU_ntria_bMsh__-1");
 
 
   i1     = 0;
@@ -706,7 +719,7 @@ static int oldMode = 0;
 
     } else if(actPP->form == Typ_PT) {
       // add points in actCont to surTab and triTab
-      if(TSU_tsu2tria_sur (surTab, surNr, surSiz,
+      if(TSU_ntria_bMsh_sur (surTab, surNr, surSiz,
                            triTab, triNr, triSiz,
                            actPP, &surTyp) < 0) return -1;
     }
@@ -724,7 +737,7 @@ static int oldMode = 0;
 
       if(actCont->form == Typ_PT) {
         // add points in actCont to surTab and triTab
-        if(TSU_tsu2tria_sur (surTab, surNr, surSiz,
+        if(TSU_ntria_bMsh_sur (surTab, surNr, surSiz,
                              triTab, triNr, triSiz,
                              actCont, &surTyp) < 0) return -1;
       }
@@ -752,7 +765,7 @@ static int oldMode = 0;
 
 
     // TESTBLOCK
-    // printf("ex TSU_tsu2tria__ triNr=%d\n",*triNr);
+    // printf("ex TSU_ntria_bMsh__ triNr=%d\n",*triNr);
     // for(i1=0; i1<*triNr; ++i1) {
       // printf(">>>> tria %d:\n",i1);
       // GR_Disp_tria (&triTab[i1], 9);
@@ -769,14 +782,14 @@ static int oldMode = 0;
 
   //----------------------------------------------------------------
   L_Err2:
-    TX_Error("TSU_tsu2tria__ E002 typ %d",oxi->typ);
+    TX_Error("TSU_ntria_bMsh__ E002 typ %d",oxi->typ);
     return -1;
 
 }
 
 
 //=============================================================================
-  int TSU_tsu2tria_sur (TypTsuSur *surTab, int *surNr, int surSiz,
+  int TSU_ntria_bMsh_sur (TypTsuSur *surTab, int *surNr, int surSiz,
                         Triangle *triTab, int *triNr, int triSiz,
                         ObjGX *oxi, int *surTyp) {
 //=============================================================================
@@ -793,9 +806,9 @@ static int oldMode = 0;
 
 
   // create triangles from points
-  TSU_tsu2tria_rec (triTab, triNr, triSiz, oxi, surTyp);
+  TSU_ntria_bMsh_p (triTab, triNr, triSiz, oxi, surTyp);
   if(*triNr >= triSiz) {
-    TX_Print("**** TSU_tsu2tria_sur E001");
+    TX_Print("**** TSU_ntria_bMsh_sur E001");
     return -1;
   }
 
@@ -804,7 +817,7 @@ static int oldMode = 0;
   surTab[*surNr].ip2 = *triNr - 1;
   *surNr += 1;
   if(*surNr >= surSiz) {
-    TX_Print("**** TSU_tsu2tria_sur E002");
+    TX_Print("**** TSU_ntria_bMsh_sur E002");
     return -2;
   }
   surTab[*surNr].ip1 = *triNr;
@@ -816,7 +829,7 @@ static int oldMode = 0;
 
 
 //=============================================================================
-  int TSU_tsu2tria_rec (Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi,
+  int TSU_ntria_bMsh_p (Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi,
                         int *surTyp) {
 //=============================================================================
 // save ptTab in oxi as Triangles
@@ -837,14 +850,14 @@ static int oldMode = 0;
 
 
 
-  // printf("TSU_tsu2tria_rec GL-Typ=%d siz=%d triNr=%d\n",
+  // printf("TSU_ntria_bMsh_p GL-Typ=%d siz=%d triNr=%d\n",
                            // oxi->aux, oxi->siz, *triNr);
-  // UTO_dump_s_ (oxi, "TSU_tsu2tria_rec");
+  // UTO_dump_s_ (oxi, "TSU_ntria_bMsh_p");
 
 
 
   if(oxi->siz < 3) {
-    printf(" ********** TSU_tsu2tria_rec I001 ***************\n");
+    printf(" ********** TSU_ntria_bMsh_p I001 ***************\n");
     return 0;
   }
 
@@ -878,7 +891,7 @@ static int oldMode = 0;
       i3 = i2 + 1;
 
 
-      TSU_tsu2tria_add (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
+      UTRI_tria_3pt (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
         // printf("  %d %d %d\n",i1,i2,i3);
 
       if(i3 >= ie) goto L_fertig;
@@ -912,7 +925,7 @@ static int oldMode = 0;
       i2 = i3;
       ++i3;          // 1 2 3       3 4 5
 
-      TSU_tsu2tria_add (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
+      UTRI_tria_3pt (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
         // printf("  %d %d %d\n",i1,i2,i3);
 
       if(i3 >= ie) goto L_fertig;
@@ -921,7 +934,7 @@ static int oldMode = 0;
       // i2 bleibt
       ++i3;           // 3 2 4
 
-      TSU_tsu2tria_add (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
+      UTRI_tria_3pt (triTab, triNr, triSiz, &pTab[i1],&pTab[i2],&pTab[i3]);
         // printf("  %d %d %d\n",i1,i2,i3);
 
       if(i3 >= ie) goto L_fertig;
@@ -960,7 +973,7 @@ static int oldMode = 0;
       i1 = i2;
       ++i2;
 
-      TSU_tsu2tria_add (triTab, triNr, triSiz, &pTab[i0],&pTab[i1],&pTab[i2]);
+      UTRI_tria_3pt (triTab, triNr, triSiz, &pTab[i0],&pTab[i1],&pTab[i2]);
         // printf("  %d %d %d\n",i0,i1,i2);
 
       if(i2 < ie) goto L_f_nxt;
@@ -971,7 +984,7 @@ static int oldMode = 0;
 
     //================================================================
     default:
-      TX_Error("TSU_tsu2tria_rec E001 %d",oxi->aux);
+      TX_Error("TSU_ntria_bMsh_p E001 %d",oxi->aux);
       return -1;
 
   }
@@ -980,46 +993,9 @@ static int oldMode = 0;
   //================================================================
   L_fertig:
 
-    // printf(" ex TSU_tsu2tria_rec triNr=%d\n",*triNr);
+    // printf(" ex TSU_ntria_bMsh_p triNr=%d\n",*triNr);
 
   if(*triNr >= triSiz) return -1;
-
-  return 0;
-
-}
-
-
-//================================================================
-  int TSU_tsu2tria_add (Triangle *triTab, int *triNr, int triSiz,
-                        Point *p1, Point *p2, Point *p3) {
-//================================================================
-// add 1 triangle       als 3 Pointer --> triTab[*triNr];
-// der Pointer auf den 1. Punkt zB ist        triTab[i1].pa[0]
-
-  int    it;
-
-
-  it = *triNr;
-
-  // printf("TSU_tsu2tria_add %d\n",it);
-  // GR_Disp_pt (p1, SYM_STAR_S, 2);
-  // GR_Disp_pt (p2, SYM_STAR_S, 2);
-  // GR_Disp_pt (p3, SYM_STAR_S, 2);
-
-
-  if(it >= triSiz) {
-    TX_Error("TSU_tsu2tria_add EOM");
-    return -1;
-  }
-
-
-  triTab[it].pa[0] = p1;
-  triTab[it].pa[1] = p2;
-  triTab[it].pa[2] = p3;
-
-  ++it;
-  *triNr = it;
-
 
   return 0;
 
@@ -1579,7 +1555,7 @@ static int   patNr;     // nr of Patches
 // RCIR 3 or 4 points only.
 
   int       ptNr, i1;
-  long      dli;
+  // long      dli;
   Point     pa[5], *pTab;
   ObjGX     oo, cvTab;
   ColRGB    *col;
@@ -1604,7 +1580,7 @@ static int   patNr;     // nr of Patches
   //----------------------------------------------------------------
   // get all points of RCIR > pTab
   ptNr = 0;
-  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi);
+  i1 = UT3D_cv_scir__ (&ptNr, pa, 5, oxi, 2);
   if(i1 < 0) return i1;
   pTab = pa;
 
@@ -1623,9 +1599,10 @@ static int   patNr;     // nr of Patches
     oo.siz  = 1;
     oo.data = &cvTab;
 
-    dli = DL_StoreObj (Typ_SUR, ind, att);
+    TSU_dli = DL_StoreObj (Typ_SUR, ind, att);
     // draw GL-curve
-    GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+    GL_Draw_obj (&TSU_dli, Typ_Att_Fac1, &oo);
+    AP_dli_act = TSU_dli;
     return 0;
 
   }
@@ -1734,7 +1711,7 @@ static int   patNr;     // nr of Patches
   if(i1 < 0) {
     if(i1 == -10) {
       GLT_exit ();
-      GLT_init ();
+      GLT_init__ ();
       goto L_draw;          // realloc
     }
     // TX_Error("GLT_spp_pp E001 %d",i1);
@@ -1747,6 +1724,7 @@ static int   patNr;     // nr of Patches
   if(TSU_mode == 0) {
     TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
     GL_DrawSur (&TSU_dli, att, gSur);
+    AP_dli_act = TSU_dli;
 
   } else {
     TSU_store (gSur);
@@ -1886,6 +1864,7 @@ static int   patNr;     // nr of Patches
     // if(((ColRGB*)&att)->vtex != 0) GL_Tex_End ();
     if(iTex != 0)  GL_Tex_End ();
     else           GL_EndList ();
+    AP_dli_act = TSU_dli;
   }
 
   return 0;
@@ -2090,7 +2069,10 @@ static int   patNr;     // nr of Patches
 
 
   L_fertig:
-  if(TSU_mode == 0) GL_EndList ();
+  if(TSU_mode == 0) {
+    GL_EndList (); 
+    AP_dli_act = TSU_dli;
+  }
 
   // GR_DrawStrip macht schon GLT_stor_rec (1, !!      2008-11-09
   // else              GLT_stor_rec (1, NULL, NULL, 0);
@@ -2117,7 +2099,7 @@ static int   patNr;     // nr of Patches
 
   int       i1, i2, i3, ii, is, *iTab, pgNr, pNr, fNr, styl, iTex;
   int       flag1, *iba, ibNr;
-  long      dli;
+  // long      dli;
   char      fNam[256];
   // Mesh      ms1;
   ColRGB    *col1;
@@ -2127,8 +2109,8 @@ static int   patNr;     // nr of Patches
   int       iTexBas, iTexRef;
 
 
-  MemTab(Point) pTab = MemTab_empty;
-  MemTab(Fac3) fTab = MemTab_empty;
+  MemTab(Point) pTab = _MEMTAB_NUL;
+  MemTab(Fac3) fTab = _MEMTAB_NUL;
 
   MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
   MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
@@ -2143,7 +2125,7 @@ static int   patNr;     // nr of Patches
 
 
   // load PointFile  (write: lxml_read) pTab=malloc !
-  i1 = MSH_bload_pTab (&pTab, WC_modact_nam, pgNr);
+  i1 = MSH_bload_pTab (&pTab, AP_modact_nam, pgNr);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -1;}
 
 
@@ -2151,7 +2133,7 @@ static int   patNr;     // nr of Patches
 
   // check if bin.meshfile exists
   // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), WC_modact_ind, apt_ind);
-  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), WC_modact_nam, apt_ind);
+  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, apt_ind);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
@@ -2178,7 +2160,7 @@ static int   patNr;     // nr of Patches
   // load MeshFile    fTab=malloc !
   L_f_load:
   // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact_ind, apt_ind);
-  i1 = MSH_bload_fTab (&fTab, NULL, NULL, WC_modact_nam, apt_ind);
+  i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, apt_ind);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
   flag1 = 1;
 
@@ -2278,13 +2260,14 @@ static int   patNr;     // nr of Patches
 
 
   // ausgeben ..
-  GR_DrawFtab (pTab.data, fTab.data, fTab.rNr, col1);
+  GR_Disp_nfac (pTab.data, fTab.data, fTab.rNr, col1);
 
 
   if(TSU_mode == 0) {                                // 0=draw, 1=store
     // if(((ColRGB*)&att)->vtex != 0)
     if(iTex != 0) GL_Tex_End ();
     else          GL_EndList ();
+    AP_dli_act = TSU_dli;
   }
 
 
@@ -2327,7 +2310,7 @@ static int   patNr;     // nr of Patches
 // TSU_DrawSurBsp       unbegrenzte BSP-Sur
 
   int       irow1, irow2, i1, i2;
-  long      ptNr, dli;
+  long      ptNr;
   double    d1, d2;
   Point     *pTab, *pt1, *pt2;
   SurBSpl   *sub1;
@@ -2342,7 +2325,7 @@ static int   patNr;     // nr of Patches
   // UT3D_stru_dump (Typ_SURBSP, sub1, "SBS");
     ////  GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
     // Version1: das Kontrollpolygon darstellen
-    // GR_DrawTriaStrip (&dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
+    // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
 
 
   // fix style; shaded/symbolic
@@ -2362,7 +2345,7 @@ static int   patNr;     // nr of Patches
 
   //----------------------------------------------------------------
   if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
 
 
   // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
@@ -2414,7 +2397,8 @@ static int   patNr;     // nr of Patches
     // display pt1 + pTab as fan
     L_fan_disp:
       // printf(" DrawTriaFan %ld\n",sub1->ptVNr);
-    GR_DrawTriaFan (&dli, att, pt1, sub1->ptVNr, pTab);
+    GR_DrawTriaFan (&TSU_dli, att, pt1, sub1->ptVNr, pTab);
+    AP_dli_act = TSU_dli;
     return 0;
   }
 
@@ -2444,12 +2428,13 @@ static int   patNr;     // nr of Patches
 
 
   // alle Punkte ermitteln  (get irow1*irow2 points)
-  UT3D_ptgrid_sbsp (pTab, &d1,&d2, sub1, irow1,irow2, &workSeg);
+  UT3D_ptgrid_sbsp (pTab, NULL, NULL, &d1,&d2, sub1, irow1,irow2, &workSeg);
     // for(i1=0; i1<(irow1*irow2); ++i1)
     // UT3D_stru_dump (Typ_PT, &pTab[i1], "pTab[%d]",i1);
 
   // ausgeben ..
-  GR_DrawTriaStrip (&dli, att, irow1, irow2, pTab, Typ_SURBSP);
+  GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURBSP);
+  AP_dli_act = TSU_dli;
 
   if(i1 == 1) free (pTab);
 
@@ -2470,7 +2455,7 @@ static int   patNr;     // nr of Patches
 //================================================================
 // TSU_DrawSurRBsp      unbegrenzte RBSP-Sur
 
-  long      ptNr, dli;
+  long      ptNr;
   int       i1, irow1, irow2;
   double    d1, d2;
   Point     *pTab;
@@ -2483,7 +2468,7 @@ static int   patNr;     // nr of Patches
 
     // UT3D_stru_dump (Typ_SURRBSP, rsub1, "SRBS");
     // GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
-    // GR_DrawTriaStrip (&dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
+    // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
 
 
 
@@ -2502,7 +2487,7 @@ static int   patNr;     // nr of Patches
 
   //----------------------------------------------------------------
   if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
 
 
   // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
@@ -2529,7 +2514,10 @@ static int   patNr;     // nr of Patches
   UT3D_ptgrid_srbsp (pTab, &d1,&d2, rsub1, irow1,irow2, &workSeg);
 
   // ausgeben ..
-  GR_DrawTriaStrip (&dli, att, irow1, irow2, pTab, Typ_SURRBSP);
+  GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURRBSP);
+
+  AP_dli_act = TSU_dli;
+
 
   if(i1 == 1) free (pTab);
 
@@ -2678,6 +2666,7 @@ static int   patNr;     // nr of Patches
   if(TSU_mode == 0) {
     TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
     GL_DrawSur (&TSU_dli, att, gSur);
+    AP_dli_act = TSU_dli;
 
   } else {
     TSU_store (gSur);
@@ -2690,7 +2679,7 @@ static int   patNr;     // nr of Patches
   L_err:
     if(i1 == -10) {
       GLT_exit ();
-      GLT_init ();
+      GLT_init__ ();
       goto L_draw;          // realloc
     }
     // TX_Error("GLT_spp_pp E001 %d",i1);
@@ -2709,7 +2698,7 @@ static int   patNr;     // nr of Patches
 // memspc201 memspc501 memspc53 memspc54 memspc55
 
   int       ptNr, irow1, irow2;
-  long      dli;
+  // long      dli;
   double    d1, d2;
   Point     *pTab;
   Memspc    workSeg;
@@ -2722,7 +2711,7 @@ static int   patNr;     // nr of Patches
   ptNr = sizeof(memspc501) / sizeof(Point);
 
 
-  dli = DL_StoreObj (Typ_SURBSP, apt_ind, att);
+  TSU_dli = DL_StoreObj (Typ_SURBSP, apt_ind, att);
 
 
 
@@ -2734,10 +2723,12 @@ static int   patNr;     // nr of Patches
 
   // alle Punkte ermitteln
   // SUSbsp_aux1 (pTab, &workSeg, irow1, irow2, sub1);
-  UT3D_ptgrid_sbsp (pTab, &d1,&d2, sus, irow1,irow2, &workSeg);
+  UT3D_ptgrid_sbsp (pTab, NULL, NULL, &d1,&d2, sus, irow1,irow2, &workSeg);
 
   // ausgeben ..
-  GR_DrawTriaStrip (&dli, att, irow1, irow2, pTab, Typ_SURBSP);
+  GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURBSP);
+
+  AP_dli_act = TSU_dli;
 
 
   return 0;
@@ -3125,7 +3116,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   //-----------------------------------------------------------
   // test GLU-version, init memspc, init GLU-tesselator
-  if(GLT_init() < 0) return -1;
+  if(GLT_init__ () < 0) return -1;
 
 
 
@@ -3299,6 +3290,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   if(TSU_mode == 0) {
     TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
     GL_DrawSur (&TSU_dli, att, gSur);
+    AP_dli_act = TSU_dli;
 
   } else {
     TSU_store (gSur);
@@ -3446,9 +3438,9 @@ memspc102  TSU_grid  Vergleichspunkteraster
     ii += (cTab[ic].iNr + 2);
   }
     // printf(" nr pts=%d\n",ii);
-  tTab = (Point*)MEM_alloc_tmp (sizeof(Point) * (ii));
+  tTab = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * ii));
   if(!tTab) {TX_Error("TSU_srv_con_2cylCon EOM1"); return -1;}
-  iTab = (int*)MEM_alloc_tmp (sizeof(int) * *cNr);
+  iTab = (int*)MEM_alloc_tmp ((int)(sizeof(int) * *cNr));
   if(!iTab) {TX_Error("TSU_srv_con_2cylCon EOM2"); return -1;}
 
 
@@ -4758,7 +4750,8 @@ uOff abhaengig von Aussenkonturtyp:
     TSU_dat[4] = i1; // iu
     TSU_dat[5] = i2; // iv
     UME_init (&wrkSpc, memspc53, sizeof(memspc53));
-    UT3D_ptgrid_sbsp (TSU_grid,&TSU_dat[6],&TSU_dat[7],TSU_sbsp,i1,i2,&wrkSpc);
+    UT3D_ptgrid_sbsp (TSU_grid, NULL, NULL, &TSU_dat[6], &TSU_dat[7],
+                      TSU_sbsp, i1, i2, &wrkSpc);
     // printf("  du=%f dv=%f\n",TSU_dat[6],TSU_dat[7]);
 
 
@@ -8301,7 +8294,7 @@ static double du,dv;
     // printf(" L_find:\n");
 
   // get tempSpace
-  tTab = (Point*)MEM_alloc_tmp (sizeof(Point) * (iNr+3));
+  tTab = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * (iNr+3)));
   if(!tTab) {TX_Error("TSU_srv_con_cycX2_ EOM"); return -1;}
 
   for(i1=1; i1<iNr; ++i1) {
@@ -9574,6 +9567,28 @@ static Point pta;
 
 
 }
+
+
+//=======================================================================
+  int TSU_nfac_ipatch__ (Fac3 *fTab, int *nf, IndTab *ipat, int *iTab) {
+//=======================================================================
+/// \code
+/// get indexed-triangles from indexed-Opengl-patch using IndTab
+/// Output:
+///   nf       nr of triangles in fTab
+///
+/// see also:
+/// UTRI_triaNr_patch          get nr of triangles for [indexed-]opengl-patch
+/// TSU_nfac_ipatch_ts1            using TessStru
+/// \endcode
+
+
+  // UT3D_stru_dump (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
+
+  return UFA_nfac_ipatch (fTab, nf, ipat->aux, ipat->iNr, &iTab[ipat->ibeg]);
+
+}
+
 
 
 //========== EOF =================================================

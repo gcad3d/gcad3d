@@ -26,6 +26,8 @@ touch ../ut/ut_geo2d.c && ./do c
 
 */
 
+#define _UT3D_VECTOR_NUL { 0., 0., 0. }
+
 
 // CurvPrcv
 #define _PRCV_NUL { 0L, 0, 0, 0,\
@@ -38,6 +40,19 @@ touch ../ut/ut_geo2d.c && ./do c
                     (unsigned short)0, (unsigned short)0,\
                     (short)0, (short)0, (char)0, (char)-1, (char)-1, (char)0 };
 //                  typ,      us1;      dir,     clo,      trm,      uc1;
+
+// GridBox
+#define _GRIDBOX_NUL {{0.,0.,0.}, 0,0,0, 0.,0.,0.}
+
+
+// GridBox
+#define _ColRGB_NUL { 100,100,100, 0,  0,  0,  0,  1}
+//                     r   g   b  uu  tra sym tex col
+
+
+// IndTab
+#define _INDTAB_NUL  { 0,0,  0,0,0,0}
+
 
 //================================================================
 // constant geometric objects:
@@ -59,6 +74,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 
 extern const CurvCCV UT3D_CCV_NUL;
 extern const CurvPrcv UT3D_PRCV_NUL;
+extern const GridBox GRIDBOX_NUL;
 
  
 //----------------------------------------------------------------
@@ -74,7 +90,8 @@ const Vector2 UT2D_VECTOR_NUL = { 0.0, 0.0 };
 const Vector2 UT2D_VECTOR_X   = { 1.0, 0.0 };
 const Vector2 UT2D_VECTOR_Y   = { 0.0, 1.0 };
 
-const Vector  UT3D_VECTOR_NUL = { 0.0, 0.0, 0.0 };
+const Vector  UT3D_VECTOR_NUL = _UT3D_VECTOR_NUL;
+// const Vector  UT3D_VECTOR_NUL = { 0.0, 0.0, 0.yy0 };
 
 const Vector  UT3D_VECTOR_X   = { 1.0, 0.0, 0.0 };
 const Vector  UT3D_VECTOR_Y   = { 0.0, 1.0, 0.0 };
@@ -101,8 +118,10 @@ const Mat_4x4 UT3D_MAT_4x4    = { {1.0, 0.0, 0.0, 0.0},
 
 
 
-const CurvCCV UT3D_CCV_NUL    = _CCV_NUL;
+const CurvCCV  UT3D_CCV_NUL   = _CCV_NUL;
 const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
+const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
+const IndTab   INDTAB_NUL     = _INDTAB_NUL;
 
 #endif
 

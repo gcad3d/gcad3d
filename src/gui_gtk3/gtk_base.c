@@ -157,10 +157,10 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
   // translate some keys ..
   switch (ikey) {
-    case 65434: // ff9a:
+    case 65434: // ff9a -> 0xff55
       ikey = GUI_KeyPageUp;
       break;
-    case 65435: // ff9b:
+    case 65435: // ff9b: -> 0xff56
       ikey = GUI_KeyPageDown;
       break;
   }
@@ -916,6 +916,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 /// \code
 /// add infotext (tooltip) to last created widget.
 /// \n starts new line.
+/// how to add new message: see INF_MSG_new
 /// \endcode
 
 // Buch S.111

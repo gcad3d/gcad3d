@@ -41,7 +41,6 @@ List_functions_start:
 
 UTF_clear_          Memory loeschen
 UTF_offset_         eine Charpos (ev ex UTF_GetLinNr) in Offset umrechnen
-UTF_load_           text direct ins Memory
 UTF_add_line        eine Zeile hinten anfuegen
 UTF_add_nl          ein '\n' hintanfuegen, wenn nicht vorh.
 UTF_add_file        Buffer1 in den Hauptbuffer umkopieren.
@@ -57,6 +56,7 @@ UTF_comment_chg     change (insert/remove char cs (eg '_')) first char  UNUSED
 UTF_comment_line    modify 1. (last) char of line
 UTF_wrf_line        eine Zeile in ein File rausschreiben
 
+UTF_EMPTY           test if model is empty                                  INLINE
 UTF_GetPos2         returns Startpos & Endpos of Buf0.
 UTF_GetLen0         liefert die Laenge des UTF_FilBuf0 UTF_FilBuf0Len.
 UTF_GetLinNr        Liefert Zeile mit Zeilennummer lNr u. ihre Laenge
@@ -512,7 +512,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
   L_exit:
 
-    AP_mdl_modified_set ();
+    // AP_mdl_modified_set ();
 
     // printf("ex UTF_comment_line:\n");
     // UTX_dump_cnl (&UTF_FilBuf0[ii], ll); printf("\n");
@@ -635,7 +635,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
                  cPos, llold);
 
     // nun stimmt cPos von UTF_GetPosLnr nicht mehr !!
-    AP_mdl_modified_set();
+    // AP_mdl_modified_set();
 
   } else {
     printf("*** UTF_chg_line I001\n");
@@ -671,7 +671,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
                  newRec, llnew, cPos, llold);
 
     // nun stimmt cPos von UTF_GetPosLnr nicht mehr !!
-    AP_mdl_modified_set();
+    // AP_mdl_modified_set();
 
   } else {
     printf("*** UTF_chg_line I001\n");
@@ -732,6 +732,8 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //============================================================================
   int UTF_alloc__ (long newSiz) {
 //============================================================================
+// realloc more memSpace for UTF_FilBuf0
+
 
   printf("::::UTF_alloc__ %ld %ld %ld\n",newSiz,UTF_FilBuf0Siz,UTF_FilBuf0Len);
 
@@ -1078,9 +1080,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
-  // printf("UTF_GetPosLnr lNr=%d lNr_old=%d\n",lNr,lNr_old);
-  // printf("UTF_GetPosLnr %d lNr_old=%d bufNr=%d Buf0Stat=%d\n",
-          // lNr,lNr_old,bufNr,UTF_FilBuf0Stat);
+  // printf("UTF_GetPosLnr lNr=%ld lNr_old=%ld\n", lNr, lNr_old);
+  // printf("  UTF_FilBuf0Len=%ld fSizOld=%ld\n",UTF_FilBuf0Len,fSizOld);
+
 
 
   pos_eof = UTF_FilBuf0 + UTF_FilBuf0Len; // die EOF-Position
@@ -1125,7 +1127,8 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
 
   ln_end = strchr(ln_start, 10);  // das naechste LF suchen
-    // printf("next |%s|\n",ln_end);
+    // display next 60 chars
+    // UTX_dump_cnl (ln_end+1, 60); printf(" _GetPosLnr %ld\n",lNr_old);
 
 
   // wenns am oder hinter dem EOF liegt-
@@ -1167,9 +1170,10 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   Fertig:
   *llen = lnLen;
 
-    // printf("ex UTF_GetPosLnr llen=%d, lNr=%d |",*llen,lNr);
-    // if(ln_pos) UTX_dump_cnl (ln_pos, 40);
-    // printf("|\n");
+    // TESTBLOCK
+    // printf("ex UTF_GetPosLnr llen=%ld, lNr=%ld |",*llen,lNr);
+    // if(ln_pos) UTX_dump_cnl (ln_pos, 40); printf("|\n");
+    // ENd TESTBLOCK
 
   return ln_pos;
 
@@ -1262,8 +1266,8 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
     il = mem_cbuf1_SIZ-2;
   }
   if(lbuf) {
-    strncpy (lbuf, cpos, il);
-    lbuf[il] = '\0';
+    // copy line
+    UTX_CP__ (lbuf, cpos, il);
   }
 
 
@@ -1337,29 +1341,12 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
     // printf(" exit: UTF_FilBuf0Len=%ld\n",UTF_FilBuf0Len);
 
-  AP_mdl_modified_set ();
+  // AP_mdl_modified_set ();
 
 
     // UTF_dump__ ();
 
   return 0;
-
-}
-
-
-//===========================================================================
-  void UTF_load_ (char* txbuf, long *txlen) {
-//===========================================================================
-// wird von draussen beladen !
-
-  // *txlen = UTF_FilBuf0Len = *txlen;
-
-  // memcpy (UTF_FilBuf0, txbuf, *txlen);
-  // UTF_FilBuf0[UTF_FilBuf0Len] = '\0';
-
-  AP_mdl_modified_set();
-
-  return;
 
 }
 
@@ -1511,7 +1498,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
     // printf("ex UTF_add_file Len=%d Siz=%d\n",UTF_FilBuf0Len,UTF_FilBuf0Siz);
 
   // new file has been loaded; its yet unmodified ..
-  AP_mdl_modified_reset ();
+  // AP_mdl_modified_reset ();
   // but modelbox = invalid
   AP_mdlbox_invalid_set ();
 
@@ -1814,7 +1801,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   UTF_FilBuf0Len += cNr;
   UTF_FilBuf0[UTF_FilBuf0Len] = '\0';
 
-  AP_mdl_modified_set ();
+  // AP_mdl_modified_set ();
 
     // printf(" insPos2 |%s|\n",insPos);
     // printf(" UTF_FilBuf0|%s|\n",UTF_FilBuf0);
@@ -1892,7 +1879,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   UTF_FilBuf0Len += UTF_FilBuf1Len;
   UTF_FilBuf0[UTF_FilBuf0Len] = '\0';
 
-  AP_mdl_modified_set ();
+  // AP_mdl_modified_set ();
 
   // clear Buf1
   UTF_clear1 ();

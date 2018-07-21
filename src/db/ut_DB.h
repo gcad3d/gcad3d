@@ -10,6 +10,9 @@ BRAUCHT vorher include ut_geo.h !!!
 
 */
 
+// #define DB_dump_dbo UT3D_dump_dbo
+// 
+
 // DB_isFree_<obj>           test if obj is free
 // if(DB_isFree_ModRef (&mdr_tab[i1]))     printf("yes-its free \n");
 // if(!(DB_isFree_ModRef (&mdr_tab[i1])))  printf("no, is in use\n");
@@ -51,6 +54,9 @@ BRAUCHT vorher include ut_geo.h !!!
 #define DB_PLX_IND        -1   ///< RX
 #define DB_PLY_IND        -2   ///< RY
 #define DB_PLZ_IND        -3   ///< RZ
+#define DB_PLIX_IND       -4   ///< RIX
+#define DB_PLIY_IND       -5   ///< RIY
+#define DB_PLIZ_IND       -6   ///< RIZ
 
 
 extern long APT_VR_SIZ;

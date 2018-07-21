@@ -49,7 +49,7 @@ UTRA_nobj_tra           apply transf. to ObjGX-Table
 UTRA_app_dbo            transform DB-object (typ,DB-ind) and store in DB
 UTRA_app_out            apply transformation, copy into outputspace
 UTRA_app__              apply transformation, 
-UTRA_app_x              apply Transformation to struct; NOT object.
+UTRA_app_obj              apply Transformation to struct; NOT object.
 UTRA_app_ox             apply Transformation to complex-obj
 UTRA_app_pt             apply all defined Transformations to a point
 UTRA_app_pt2            apply all defined Transformations to a 2D-point
@@ -822,11 +822,11 @@ WC_sur_mat WC_sur_imat
   // printf("UTRA_app__ otyp=%d oform=%d iNr=%d\n",otyp,oform,iNr);
 
 
-  // transform (UTRA_app_x)
+  // transform (UTRA_app_obj)
   // transform
-  irc = UTRA_app_x (&poo, oform, iNr, obji, wrkSpc);
+  irc = UTRA_app_obj (&poo, oform, iNr, obji, wrkSpc);
   if(irc < 0) return irc;
-    // UT3D_stru_dump (oform, poo, "ex UTRA_app_x");
+    // UT3D_stru_dump (oform, poo, "ex UTRA_app_obj");
 
 
   // is output a single data-record or a ox
@@ -857,12 +857,12 @@ WC_sur_mat WC_sur_imat
 
 
 //============================================================================
-  int UTRA_app_x (void **poo, int otyp, int iNr, void *obji, Memspc *wrkSpc) {
+  int UTRA_app_obj (void **poo, int otyp, int iNr, void *obji, Memspc *wrkSpc) {
 //============================================================================
 /// \code
 /// apply Transformation to struct; NOT object. 
 /// init Transformation with UTRA_def__
-/// objo    must have appropriate size (>= OBJ_UNKNOWN or UTO_siz_stru(otyp))
+/// the memspace for the output-object poo is in wrkSpc
 ///  
 /// Input:
 ///   otyp     form of obji;
@@ -889,7 +889,7 @@ WC_sur_mat WC_sur_imat
 
 
   // printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \n");
-  // printf("UTRA_app_x otyp=%d iNr=%d\n",otyp,iNr);
+  // printf("UTRA_app_obj otyp=%d iNr=%d\n",otyp,iNr);
   // UME_dump (wrkSpc, "wrkSpc:");
   // UT3D_stru_dump (otyp, obji, "obji:");
     // geht ned ... UTO_dump__ (obji, "UTRA_app__");
@@ -1165,7 +1165,7 @@ WC_sur_mat WC_sur_imat
       // translate points
       i1 = ((SurStripe*)obji)->ptUNr * ((SurStripe*)obji)->ptVNr;
       oxi = ((SurStripe*)obji)->pTab;
-      UTRA_app_x (&opo, Typ_ObjGX, i1, oxi, wrkSpc);
+      UTRA_app_obj (&opo, Typ_ObjGX, i1, oxi, wrkSpc);
       // copy Sur
       *(SurStripe*)objo = *(SurStripe*)obji;
       // change address
@@ -1364,7 +1364,7 @@ WC_sur_mat WC_sur_imat
         }
           // printf(" _APP_X ObjGX typ=%d ??????????????????\n",oxi->form);
         // point (eg for RCIR):
-        UTRA_app_x ((void**)&ox2, oxi->form, oxi->siz, oxi->data, wrkSpc);
+        UTRA_app_obj ((void**)&ox2, oxi->form, oxi->siz, oxi->data, wrkSpc);
         oxo = &((ObjGX*)objo)[i1];
         oxo->data = ox2;
           // UT3D_stru_dump (Typ_ObjGX, oxo, "obj-tra[%d]",i1);
@@ -1375,34 +1375,34 @@ WC_sur_mat WC_sur_imat
 
     //================================================================
     default:
-      TX_Error("UTRA_app_x E001 %d",otyp);
+      TX_Error("UTRA_app_obj E001 %d",otyp);
       return -1;
   }
 
 
     // if(!irc)UT3D_stru_dump (otyp, objo, "ex UTRA_app__");
     // // if(!irc)GR_Disp_obj (otyp, objo, 8, 4);
-    // printf("ex UTRA_app_x irc=%d aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",irc);
+    // printf("ex UTRA_app_obj irc=%d aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",irc);
 
 
   return irc;
 
 
   L_E002:
-    TX_Error("UTRA_app_x E002 - no workspace for %d",otyp);
+    TX_Error("UTRA_app_obj E002 - no workspace for %d",otyp);
     return -1;
 
   L_EOM:
-    TX_Error("UTRA_app_x EOM");
+    TX_Error("UTRA_app_obj EOM");
     return -1;
 
   L_E_INR:
-    TX_Error("UTRA_app_x E_INR %d %d",otyp,iNr);
+    TX_Error("UTRA_app_obj E_INR %d %d",otyp,iNr);
     return -1;
 
 
   err_not_yet:
-   TX_Error("UTRA_app_x function not yet implemented");
+   TX_Error("UTRA_app_obj function not yet implemented");
       return -1;
 }
 

@@ -884,7 +884,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   if(ism >= dxfr_blockTab.iNr) goto L_exit;
 
   pf = UtxTab__ (ism, &dxfr_blockTab);     // get string (subModelName)
-    printf(" nxt sm %d |%s|\n",ism,pf);
+    // printf(" nxt sm %d |%s|\n",ism,pf);
 
   // reset DB
   WC_Init_all (0);

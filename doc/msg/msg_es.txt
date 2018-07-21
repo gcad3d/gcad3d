@@ -98,6 +98,7 @@ MMbtSid=Sideview (Y-Z)
 MMbtAxo=Ver axonométrica
 MMbtSca=calcular la escala y viewcenter automático
 MMbtScf=mostrar un espacio de ~ 6000 x 6000 x 6000 mm
+MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
 
 MMrbVwr=Visor
@@ -114,8 +115,9 @@ RotCen=definir la rotación nuevo centro: \
 \=- Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
 ViewOn=mostrar los objetos ocultos, seleccionar objetos para mostrar
 HideOn=seleccionar objetos para ocultar
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
 CAD_On=CAD seleccione Función / select object con mouseb derecha.
-MAN_On=Punto nuevo: Alt-P; nueva línea: right_mousebutton; ..
+MAN_On=MAN: Punto nuevo: Alt-P; nueva línea: right_mousebutton; ..
 MD_On=objeto de seleccionar / clave ObjID de entrar / salir: mouseb Ctrl derecha.
 
 CADPT=Puntos
@@ -140,6 +142,7 @@ CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=cancel function. Does not save active object. Edit-mode: Cancel twice, right mousebutton  - edit.
+CADclear=clear active CAD-inputfield
 CADsave=guardar obj activa., Obj siguiente GOTO. Derecho mousebutton, Enterkey.
 
 PT_cartes__offset=Punto; offsetvalues [Seleccionar o la tecla, para X / Y / Z]
@@ -293,6 +296,7 @@ Typ_modCTRL=número RePág / PgDwn ("Ctrl" = Controlpoints)
 Typ_modREV=número RePág / PgDwn ("REV" = inverso)
 Typ_modCX=ey RePág / PgDwn ("CX" = en)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=número de Texto / Modificar-Edit
 TYP_FilNam=número Nombre del archivo / Mousebutt medio. (F5 = FileList) / sel.Model
@@ -311,6 +315,7 @@ VR0=ninguna variable definida ..
 
 FILT02=Pointfilter Vertex
 FILT03=dar la posición del cursor en una selección de obj ..
+FILT04=select or keyIn obj to dump ..
 FILT05=agrega las siguientes selecciones / keyIn al grupo, el grupo final con ficha número
 FILT06=Línea seleccione | Circ | Curva de modificar ..
 FILT07=Surf seleccionar modificar ..

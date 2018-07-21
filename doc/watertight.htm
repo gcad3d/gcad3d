@@ -1,0 +1,32 @@
+<HTML>
+<HEAD>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+<h2>
+Watertight solids for gCAD3D
+</h2>
+
+
+gCAD3D does not provide watertight solids yet.
+  All curves are polygonalized individually;
+  the common boundary of two sufaces side-by-side is polygonalized twice;
+  this can cause small slits between the boundaries.
+
+<b>gCAD3D V2.35 changes:</b>
+- all curve-modifications (eg CUT) create now trimmed-curves
+  eg the result of trimming a circle is a (trimmed -) curve;
+  eg "S20 = CUT C20 L20" // trimmed-curve S20 = cut circle C20 with line L20
+- all curves now have a polygonal-representation with BoundaryMarks
+  the display- function uses the polygonal-representation;
+  the functions for polygonal-representation are PRCV_*.
+
+<b>TODO  V2.36:</b>
+- modify surface-functions to use the polygonal-representation of its boundaries
+
+</PRE>
+</BODY>
+</HTML>

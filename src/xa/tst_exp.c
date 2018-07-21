@@ -33,7 +33,8 @@ gCad_sel_CB
 #include <time.h>                           // CLOCKS_PER_SEC
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_msh.h"              // Fac3 ..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
@@ -65,8 +66,8 @@ gCad_sel_CB
 
 
 // extern GtkWidget *ckb_Bar1, *ckb_Bar2;
-extern char      WC_modnam[128];
-extern char      AP_dir_save[128];
+extern char      AP_mod_fnam[128];
+extern char      AP_mod_dir[128];
 
 
 // static char  tmpSpc1[1000];
@@ -299,7 +300,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_dxf_r.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -334,7 +335,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_ige_r.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -377,7 +378,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_stp_r.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -474,7 +475,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_vr2_r.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -524,13 +525,13 @@ extern long       GR_TAB_IND;
 
   TX_Print("tst_exp_vrml1\n");
 
-  strcpy(WC_modnam, ".0.wrl");
+  strcpy(AP_mod_fnam, ".0.wrl");
 
   AP_stat.subtyp = 0;  // VRML1
 
   UI_save__ (1);
 
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
 
   return 0;
 
@@ -542,9 +543,9 @@ extern long       GR_TAB_IND;
 //================================================================
 
   TX_Print("tst_exp_stl\n");
-  strcpy(WC_modnam, "unknown.stl");
+  strcpy(AP_mod_fnam, "unknown.stl");
   UI_save__ (1);
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
 
   return 0;
 
@@ -556,9 +557,9 @@ extern long       GR_TAB_IND;
 //================================================================
   
   TX_Print("tst_exp_obj\n");
-  strcpy(WC_modnam, "unknown.obj");
+  strcpy(AP_mod_fnam, "unknown.obj");
   UI_save__ (1);
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
   
   return 0;
   
@@ -576,7 +577,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_print_pdf.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -603,14 +604,14 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_dxf_w.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
   // export
-  strcpy(WC_modnam, "unknown.dxf");
+  strcpy(AP_mod_fnam, "unknown.dxf");
   UI_save__ (1);
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
 
   return 0;
 
@@ -630,15 +631,15 @@ extern long       GR_TAB_IND;
   
   // Compile, Link.
   strcpy(cbuf, "xa_stp_w.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
   
   
   // export
-  strcpy(WC_modnam, "unknown.stp");
+  strcpy(AP_mod_fnam, "unknown.stp");
   UI_save__ (1);
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
   
   return 0;
 
@@ -658,15 +659,15 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_svg_w.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
 
   // export
-  strcpy(WC_modnam, "unknown.svg");
+  strcpy(AP_mod_fnam, "unknown.svg");
   UI_save__ (1);
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
 
   return 0;
 
@@ -685,7 +686,7 @@ extern long       GR_TAB_IND;
   
   // Compile, Link.
   strcpy(cbuf, "xa_print__.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
   
@@ -707,13 +708,13 @@ extern long       GR_TAB_IND;
 
   TX_Print("tst_exp_vrml2\n");
 
-  strcpy(WC_modnam, ".0.wrl");
+  strcpy(AP_mod_fnam, ".0.wrl");
 
   AP_stat.subtyp = 1;  // VRML2
 
   UI_save__ (1);
 
-  UTX_ftyp_cut (WC_modnam);   // remove Filetyp !!!
+  UTX_ftyp_cut (AP_mod_fnam);   // remove Filetyp !!!
 
   return 0;
 
@@ -740,7 +741,7 @@ extern long       GR_TAB_IND;
 
   // Compile, Link.
   strcpy(cbuf, "xa_wrl_r.so");
-  irc = DLL_build__ (cbuf);
+  irc = OS_dll_build (cbuf);
   printf(" build=%d\n",irc);
   if(irc != 0) return -1;
 
@@ -1149,10 +1150,10 @@ extern long       GR_TAB_IND;
   // export (native) alle objects of obj-list --> file
   char cbuf1[256], cbuf2[256];
   
-  sprintf(cbuf1, "%s.dat",WC_modnam);
+  sprintf(cbuf1, "%s.dat",AP_mod_fnam);
   sprintf(cbuf2, "%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   GUI_save__ ("save Group native",      // titletext
-            AP_dir_save,                // path
+            AP_mod_dir,                // path
             cbuf2,                      // directoryList
             cbuf1,                      // defaultModelname
             (void*)Grp_exp);

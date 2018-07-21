@@ -212,6 +212,7 @@ Doku: ../exp/ige/version6.pdf
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
@@ -1491,7 +1492,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj1->typ;
-    ind = (long)obj1->data;
+    ind = LONG_PTR(obj1->data);
     // printf(" o1: typ=%d ind=%d\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);
@@ -1544,6 +1545,7 @@ Retour: der Index.
   ox1.typ   = Typ_goGeo1;
   ox1.form  = Typ_Index;
   ox1.siz   = 2;
+// TODO: use Typ_Int8
   ox1.data  = (void*)&iTab;
   IGE_w_obj (&ox1, 0, 0, fp_o1, fp_o2);
 
@@ -1804,7 +1806,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj1->typ;
-    ind = (long)obj1->data;
+    ind = LONG_PTR(obj1->data);
     printf(" o1: typ=%d ind=%ld\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);
@@ -1822,7 +1824,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj2->typ;
-    ind = (long)obj2->data;
+    ind = LONG_PTR(obj2->data);
     printf(" o2: typ=%d ind=%ld\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);

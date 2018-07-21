@@ -422,7 +422,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   int GR_DrawFan () {return 0;}
   int GR_DrawStrip () {return 0;}
   int GR_DrawTriaStrip () {return 0;}
-  void GR_DrawFtab () {}
+  void GR_Disp_nfac () {}
   void GR_CreLine () {}
   void GR_CreDitto2 () {}
   void GR_CreSol__ () {}
@@ -498,7 +498,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GL_InitPtAtt () {}
   void GL_Del0 () {}
   void GL_Delete () {}
-  void GL_temp_delete () {}
+  void GL_temp_del_all () {}
   void DL_hili_off () {}
   void GL_Clear () {}
   void GL_View_set () {}

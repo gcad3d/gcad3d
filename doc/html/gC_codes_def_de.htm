@@ -1,0 +1,1318 @@
+<HTML>
+<HEAD>
+  <TITLE>CAD_Base_de.htm</TITLE>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <meta name="description" content="gCAD3D-Codes-Spezifikation">
+  <meta name="keywords" content="3D CAD-Format Spezifikation">
+  <meta name="date" content="2018-05-07T11:35:08+0200" >
+  <meta name="author" content="Franz Reiter" >
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="de-AT">
+<PRE>
+
+
+<B>Definitionscodes</B>
+
+<A HREF='#codes0'>Format Definitionscodes allgemein</A>
+
+<A HREF='#V'>Variable</A>
+<A HREF='#P'>Punkte</A>
+<A HREF='#L'>Linien</A>
+<A HREF='#D'>Vektor / Richtung</A>
+<A HREF='#C'>Kreis</A>
+<A HREF='#S'>Kurven</A>
+<A HREF='CAD_PLN_de.htm'>Ebene / Referenzsystem</A>
+<A HREF='format_gcad_A_en.htm'>Flächen</A>
+<A HREF='#B'>Solids</A>
+<A HREF='#N'>Texte / Vermaßung</A>
+<A HREF='#M'>Modelle</A>
+<A HREF='#T'>Transformationen</A>
+<A HREF='CAD_Activ_de.htm'>Interaktionen</A>
+<A HREF='CAD_Joint_de.htm'>Joints</A>
+<A HREF='#U'>Gruppe</A>
+
+
+____________________________________________________________________________
+<p><a name="codes0"><B>Format Definitionscodes allgemein:</B></a></p>
+
+Das Format ist: {ObjektName} = {Parameter}
+
+<b>ObjektName</b>  (Database-ID):
+  Besteht aus dem Kennbuchstaben ('Codeletter') und dem DB-Index;
+  Beispiel:   P123 ist ein Punkt mit der Nummer 123.
+
+
+<p><a name="Codeletters"></a></p>
+<b>Kennbuchstaben:</b>
+  A=Area           (Fläche)
+  B=Body           (Solid)
+  C=Circle         (Kreis)
+  D=Direction      (Vektor)
+  I=Interaktion
+  J=Joint
+  L=Line           (Linie)
+  M=Model          (Submodel, Mockup-Model, Normteil)
+  N=Note           (Text, Vermaßung, Tag, Bitmap-Image)
+  P=Point          (Punkte)
+  R=Refsys         (Referenzsystem, Ebene)
+  S=Spline         (Spline, Polygon, Kegelschnitt, zusammengesetzte Kurve(CCV))
+  T=Transformation (Translation od Rotation)
+  U=Union          (Gruppe)
+  V=Variable       (numer. Wert)
+
+
+<b>DB-Index:</b>
+  0 kann nicht verwendet werden (ist das aktuelle Objekt)
+  ist eine positive Zahl für permanente Objekte,
+  ist eine negative Zahl für temporäre Objekte, die dynamisch erzeugt werden.
+
+
+ 
+ 
+____________________________________________________________________________
+<p><a name="V"></a></p>
+<h2>Variable</h2>
+Kennbuchstabe einer Variablen ist V.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_Var_de.htm">CAD-Funktionen Variable</a>
+
+
+
+
+<b>Direktzuweisung einer Variablen:</b>
+Beipiel:
+V20=10
+
+<b>Es können folgende Konstanten benutzt werden:</b>
+RAD_360    PI * 2           6.2831853071795862319
+RAD_180    PI               3.1415926535897932384
+RAD_90     PI / 2           1.5707963267948965579
+RAD_1      PI / 180         0.0174532925199432954
+SR_3       SQRT(3)          1.732050808
+SR_2       SQRT(2)          1.414213562
+
+Beispiel:
+V21=V20*TAN(RAD_90)
+
+<b>Es können folgende Funktionen benutzt werden:</b>
+den /X/Y/Z-Koordinatenwert eines Punktes übernehmen:
+V21=X(P20)
+
+den Radius eines Kreises übernehmen:
+V20=C20
+
+Länge zwischen 2 Punkten:
+V20 = P20 P21
+
+Länge einer Strecke:
+V20 = L20
+
+Normalabstand eines Punktes von einer Strecke:
+V20 = P20 L20
+
+die Grundrechnungsarten + - / *
+V20=10
+V21=V20+10
+# ergibt 20 
+V22=10 + V21 * 3
+# ergibt 70
+V22=10+V21 * 3
+# !! ergibt 90  - entspricht V22=(10+V21)*3
+V20=20 *2
+# !! Error - "20*2"  oder "20 * 2"
+   
+die Potenzfunktion ^
+V1=4^0.5
+# ergibt 2  (4 hoch 0.5)
+  
+die mathemat. Funktionen (SQRT() SIN() COS() TAN() ASIN() ACOS() ATAN()):
+V23=SQRT(V22)
+
+Absolutwert (das Vorzeichen ist immer positiv)
+V24=ABS(V20)
+
+Integerzahl - den Rest hinter dem Komma abschneiden
+V25=FIX(1.8)
+# ergibt 1.0
+
+Runden. 1.3 wird zu 1.0, 1.8 wird zu 2.0, -1.3 wird zu -1.0, -1.8 wird zu -2.0.
+ V26=RND(V20)
+
+
+Numer. Variablen indirekt durch Funktion VAL() übernehmen; Beispiel:
+ C10=P10 VAL(C5)
+ (es wird der Radius des C5 übernommen). 
+
+
+Anzeige des Inhalts von Variablen:
+PRI "V26 = " V26
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="P"></a></p>
+<h2>Punkt</h2>
+Kennbuchstabe eines Punktes ist P.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_PT_de.htm">CAD-Funktionen Punkt</a>
+siehe auch <a href="CAD_input_de.htm#_PT_">Punkt in Eingabefeld</a>
+siehe auch <a href="#P_Copy">Punkt aus Kopierfunktion</a>
+
+
+
+<b>Selektion von Punkten auf Linearen Objekten:</b>
+Anfangs- / Endpunkt einer Line; Seite: 1 = Startpunkt; 2 = Endpunkt.
+ P20=L20 MOD(1)
+Anfangs- / Endpunkt eines Kreises: 1=Startpunkt, 2=Endpunkt.
+ P28=C22 MOD(2)
+Anfangs- / Endpunkt einer Kurve, entsprechend Seite.
+ P10=S10 Seite
+
+
+Endpunkte eines Polygons:
+ P10=S{Polygon} MOD({PunktNummer})
+Eckpunkt eines Polygon aus einer Kontur:
+ P# = P(S{ccv} MOD({ccvSegNr}) MOD({polgonPtNr}))
+Punkte innerhalb der Endpunkte werden parametrisch dargestellt:
+ P# = P({baseObj} {lpar})
+ Beispiel - Punkt in der Mitte des Objekt Line-20:
+ P20=P(L20 0.5)
+ Punkt auf einer Konturlinie:
+ P = P(S{ccv} MOD({ccvSegNr}) {lpar})
+
+  
+Der Punkt mit Index 0 ist zu jeder Zeit die aktuelle Position, kann also
+nur für einen Arbeitsschritt verwendet werden.
+
+
+
+<p><a name="P_Copy"></a></p>
+<b>Punkt aus Kopierfunktion (parametrisch)</b>
+Diese Formate werden bei Selektionsfunktionen erzeugt:
+
+# Punkt auf Linie, Kreis, Polygon, Spline:
+P({obj} {Parameterwert})
+
+
+# Start- oder Endpunkt von Linie/Kreis/Polygon/Spline
+# oder Punkt auf einem Polygonpunkt:
+P({obj} MOD({PunktNummer}))
+
+
+# Punkt auf Linie/Kreis/Polygon/Spline in einer CCV
+P({obj} MOD({CCV-SegmentNummer}) {Parameterwert})
+
+
+# Start- oder Endpunkt von Linie/Kreis/Polygon/Spline in einer CCV
+# oder Punkt auf einem Polygonpunkt in einer CCV:
+P({obj} MOD({CCV-SegmentNummer}) MOD({PunktNummer}))
+
+
+# Parametrischer Punkt auf einer Flaeche:
+"P(A# {uPar} {vPar})"
+
+
+<u>Beispiel:</u>
+# Punkt in der Mitte des 1.Segmentes der CCV S26:
+P(S26 MOD(1) 0.5)
+
+  
+<b>Standardformate:</b>
+
+P21=P(10,20,30)
+  3D-Punkt absolut
+
+
+P2=P1,D1
+  Punkt P1 um den Vektors D1 verschieben.
+
+
+P2=P1,D1,Abstand
+  Punkt P1 in Richtung des Vektors D1 um den Abstand abst verschieben.
+
+
+P11=R1 P10
+  Transformation des Punktes P10 in das Referenzsysten R1 (Ebene R1).
+P11=R1 10 0
+  Punkt P11 wird auf der X-Achse des Referenzsystems R1 liegen.
+
+
+P11=P10 R1
+  Projektion des Punktes P10 auf die Ebene R1.
+
+
+P3=P2,X(10),Y(10)
+  Punkt relativ (im Abstand 10,10 von p2)
+
+
+P5=P4,ANG(90),Abstand
+  Polar relativ (Basispunkt, Winkel, Abstand)
+
+
+P3=P1,P2
+  Punkt in der Mitte erzeugen.
+
+
+P3=P1,D(P1,P2),Abstand
+  Eine Strecke abtragen.
+  Punkt mit bestimmtem Abstand von P1 in Richtung P1 -> P2 abschlagen.
+  Die Richtung wird bestimmt durch den Winkel der Strecke P1 -> P2.
+
+
+P11=P1,D(L1),Abstand
+  Eine Strecke von einem Punkt weg entlang einer Linie mit bestimmtem Abstand abtragen.
+
+
+P2=P1,D(L1),Abstand,Normalabstand
+  Eine Strecke von einem Punkt weg abtragen.
+  Der Abstand wird in die Richtung der Linie abgetragen,
+  der Normalabstand wird normal zur Linie abgetragen. Beispiel:
+p1=p1,d(l1),val(100),val(50)
+  P1 wird 100 mm in Richtung l1 verschoben, dann wird er 50 mm in Richtung normal
+  zu l1 verschoben
+
+
+P3=P1,P2,Winkel
+  Punkt drehen (Mittelpunkt,Ausgangsposition,Winkel) Beispiel:
+P3=P1,P2,ANG(180)
+  P2 wird 180 Grad um P1 gedreht.
+
+
+P1=L1,Seite
+  Anfangs- oder Endpunkt einer Linie (entsprechend Seite)
+
+P2=P1,L1
+  Punkt auf Linie projizieren.
+
+P4=L1 L2
+  Schnittpunkt Linie - Linie
+
+P41=L20 A20
+  Schnittpunkt Linie - B-SplineFläche
+
+P6=C1
+   Kreismittelpunkt
+
+P7=P1 C1 [Seite]
+  Punkt normal auf Kreis (wird auf den Kreis projiziert).
+  Die Standardlösung ist der nähere Punkt.
+  MOD(2) definiert den entfernten Punkt.
+
+
+P5=L1 C1 Seite
+    Schnittpunkt Linie- Kreis.
+
+
+P6=C1 C2 Seite
+    Schnittpunkt 2-er Kreise
+
+
+
+  Punkt auf Kurve projizieren:
+  Punkt = Punkt Kurve {PunktNummer}
+P11=P1 S10 MOD(1)
+  P1-P11 bilden nun eine Normale auf S10 im Punkt P11.
+  MOD(1) = Seite - erste Lösung.
+<!--    (Nichtimplementiert: Kommt P11 ausserhalb von S10 zu liegen, so wird die Kurve mit einer Tangente durch den Endpunkt verlängert.) Punkt auf Fläche projizieren. Punkt = Punkt Fläche [punktNummer] P12=P1 A20 MOD(1) Einen Punkt auf einem Objekt durch Parameter erzeugen Objekt: Linie/Kreis/Kurve/Fläche Parameterbereich ist 0 bis 1; 0.5 definiert also die Mitte. Bei Flächen sind zwei Parameterwerte erforderlich (U und V; Laengs- und Querrichtung). Beispiel: # Mittelpunkt einer Linie: P23=C20 VAL(.5) # Mittelpunkt einer B-SplineFläche: P23=A20 0.5 0.5
+ -->
+
+
+Der Punkt mit Index 0 ist zu jeder Zeit die aktuelle Position, kann also
+nur für einen Arbeitsschritt verwendet werden.
+
+
+
+<i>Implizite Punktdefinitionen:</i>
+Beispiel für Endpunkte der Linie mit P(L20 MOD(1)):
+L20=P(-300 10) P(-260 40)
+N21=DIM P(L20 MOD(1)) P(L20 MOD(2)) P(-280 -40) ANG(0)
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="L"></a></p>
+<h2>Linie</h2>
+Kennbuchstabe einer Linie ist L.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_LN_de.htm">CAD-Funktionen Linie</a>
+siehe auch <a href="#L_Copy">Linie aus Kopierfunktion</a>
+
+
+
+Definition einer Linie durch:
+- Eingabe einer Linie (mit der Tastatur:)
+  durch Eingabe einer definierten Linie; zB "L12"
+  durch Eingabe von 2 Punkten; zB "P(0 0 0) P(10 0 0)"
+  durch Eingabe von Punkt und Winkel; zB "P(10 0 0) ANG(45)"
+  durch Eingabe von Punkt und Vektor; zB "P20 D(0 0 1)"
+  Horizontale Linie: Eingabe des Y-Wertes; zB "Y(10)"
+  Vertikale Linie: Eingabe des X-Wertes; zB "X(10)"
+
+- Selektion einer Line
+  liefert die Bezeichnung; zB "L20"
+
+- Selektion einerLine in einer Kontur (CCV):
+    L(S{ccv} MOD({ccvSegNr}))
+  Polygonsegment aus einer CCV:
+    L(S{ccv} MOD({ccvSegNr}) MOD({polgonSegNr}))
+
+
+
+<p><a name="L_Copy"></a></p>
+  <h2>Linie aus Kopierfunktion</h2>
+Diese Formate werden bei Selektionsfunktionen erzeugt:
+
+# Linie von Polygonsegment
+# oder Linie von Linie in einer CCV:
+L({obj} MOD({SegmentNummer}))
+
+# Linie von Polygonsegment in einer CCV:
+L({obj} MOD({CCV-SegmentNummer}) MOD({SegmentNummer}))
+
+
+<u>Beispiel:</u>
+# Line vom 1.Segmente der CCV S26 (einer Linie):
+L(S26 MOD(1))
+
+
+
+
+<b>Standardformate:</b>
+
+L1=P1 P(100 100)
+  Linie zwischen 2 Punkten
+
+
+L2=Y(10)
+L2=DX P20 Y(10) Z(10)
+  Linie parallel zur aktuellen X-Achse; durch einen Punkt.
+  Es kann ein Y-Offset und/oder Z-Offset definiert werden.
+
+
+L1=X(10)
+L2=DY P20
+  Linie parallel zur aktuellen Y-Achse; durch einen Punkt.
+  Es kann ein X-Offset und/oder Z-Offset definiert werden.
+
+
+L2=DZ P20
+  Linie parallel zur aktuellen Z-Achse; durch einen Punkt.
+  Es kann ein X-Offset und/oder Y-Offset definiert werden.
+
+
+  Linie durch Punkt mit fixem Winkel
+L3=P1 ANG(45)
+
+
+  Linie durch Punkt mit Richtung (Vektor)
+L4=P1 D(L1)
+  parallel zu Linie L1 oder:
+L = P L
+
+
+  Line durch Punkt und die Z-Achse von Kreis/Ebene:
+L = P C
+L = P R
+
+
+L4=P1 D(L1) ANG(90)
+  Linie durch Punkt mit Winkel relativ zu anderer Linie.
+  ANG(0): parallel zu Linie L1; ANG(90): normal.
+
+
+  Linie parallel zu Linie mit Abstand.
+L8=L1 Abstand Seite
+L8=L1 VAL(10) HIY
+
+
+  Linie als Mittellinie (wenn l1, l2 parallel)
+  oder als Winkelhalbierende (durch den Schnittpunkt).
+L9=L1 L2
+
+
+  Linie als Winkelhalbierende, zusätzlich drehen.
+L9=L1 L2 ANG(90)
+
+
+
+  Line tangential an Kreis, parallel zu Linie.
+L1=TNG C1 D(L1) MOD(1)
+
+  Linie tangential an Kreis mit fixem Winkel
+L1=TNG C1 D(ANG(45)) MOD(1)
+
+  Linie tangential durch Punkt P10 an Kurve S10.
+L10=TNG P10 S10 MOD(1)
+
+  Linie durch Punkt tangential an Kreis
+L5=TNG P1 C1 MOD(1)
+
+  Linie tangential an 2 Kreise       (Ort: in out)
+L5=TNG C1 C2 MOD(2)
+
+
+
+  Schnittlinie zwischen zwei Ebenen.
+L10=R20 R21
+
+  Projektion einer Linie auf eine Ebene.
+L21=L20 R20
+
+
+
+
+
+<i>Implizite Liniendefinitionen:</i>
+L20=L(Startpunkt Endpunkt)
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="D"></a></p>
+<h2>Vektor / Richtung</h2>
+Kennbuchstabe eines Vektors ist D ("Direction").
+____________________________________________________________________________
+
+siehe auch <a href="CAD_Vec_de.htm">CAD-Funktionen Vektor / Richtung</a>
+siehe auch <a href="CAD_input_de.htm#_Vec_">Vektor in Eingabefeld</a>
+siehe auch <a href="#D_Copy">Vektor aus Kopierfunktion</a>
+
+
+
+Ein Vektor definiert eine Richtung und ist an keine Position gebunden.
+
+Es gibt folgende Standardvektoren:
+  DX DY DZ
+  entsprechend den Standardachsrichtungen;
+
+  DIX DIY DIZ
+  entsprechen den inversen Standardachsrichtungen
+
+
+Darstellung von Vektoren:
+- Vektoren werden nur temporär dargestellt;
+- Standardvektoren werden rechts unten dargestellt
+- Auswahl der definierten Vektoren durch die PageUp/PageDown(Bild)-Tasten;
+- Normierte Vektoren (mit Länge 1) sind strichliert, sonst als volle Linie.
+
+
+Definition eines Vektors durch:
+- Selektion einer Linie oder von 2 Punkten oder eines Polygons
+- Selektion eines Kreises oder einer Ebene (Normalvektor)
+- Auswahl eines Standardvektors aus den rechts unten dargestellten Vektoren
+- Auswahl eines definierten Vektors durch die PageUp/PageDown(Bild)-Tasten;
+- Eingabe eines Vektors mit der Tastatur:
+  DX oder DY oder DZ oder invers dazu DIX DIY DIZ
+  oder Eingabe eines definierten Vektors; zB "D12"
+  oder Eingabe der X/Y/Z-Komponenten; "D(0 0 1)" definiert einen Z-Vektor
+  durch einen oder zwei Winkel; zB "D(ANG(45))" oder "D(ANG(45) ANG(45))"
+    (siehe <a href="CAD_Base_de.htm#ANGR">[Drehwinkel,]</a> <a href="CAD_Base_de.htm#ANGT">[Kippwinkel]</a>);
+
+
+Als letzter Parameter kann bei Vektordefinitionen "REV" angegeben werden
+  (Vektor wird verkehrt = Revers dargestellt).
+
+Als vorletzter Parameter kann bei Vektordefinitionen
+  die Vektorlänge angegeben werden.
+  Beispiel: "DX 2" oder "DX 2 REV"
+
+
+<u>Beispiel:</u>
+# Vektor 1 = Richtung negative X-Achse
+D1=DIX
+# Vektor 2 = in Richtung x=1, y=1 in der XY-Ebene
+D2=D(1 1 0)
+
+
+
+<p><a name="D_Copy"></a></p>
+  <b>Vektor aus Kopierfunktion</b>
+Diese Formate werden bei Selektionsfunktionen erzeugt:
+
+# Vektor von Linie:
+D(L{nr})
+<u>Beispiel:</u>
+L20=P(0 0 0) P(100 10 0)
+D20=D(L20)
+
+# Vektor von Polygonsegment
+# oder Vektor von Linie in einer CCV:
+D({obj} MOD({SegmentNummer}))
+
+
+# Vektoren auf Kreis, B-Spline, Klothoide, Ellipse:
+ D#={C#|S#}) {lpar})
+<u>Beispiel:</u>
+# Vektor an einem Punkt am Kreis:
+C20=P(0 0 0) 12
+D20=D(C20 0.5)
+
+
+# Vektor von Linie in einer CCV
+# oder Vektor von Polygonsegment in einer CCV:
+P({obj} MOD({CCV-SegmentNummer}) MOD({SegmentNummer}))
+<u>Beispiel:</u>
+# Vektor vom 1.Segmente der CCV S26 (einer Linie):
+P(S26 MOD(1))
+
+
+<b>Standardformate:</b>
+
+  Definition Vektor durch Richtung und Länge.
+  D=D(dx,dy[,dz]) [Länge] ["REV"]
+D1=DX 100
+D2=D(10 0)
+D3=D(0.7 0 0.7) 100
+
+
+D3=ANG(30) 100
+  Definition 2D-Vektor durch 2D-Winkel und Vektorlänge (optional).
+  Der Winkel definiert die Richtung in der X-Y-Ebene.
+
+
+D4=ANG(90) ANG(30) 100
+  Definition Vektor durch Drehwinkel, Kippwinkel und Vektorlänge (optional).
+  Zuerst drehen um die Z-Achse, dann drehen um die neue Y-Achse.
+  ANG(0) ANG(0)      - ergibt Vektor 1,0,0
+  ANG(90) ANG(0)     - ergibt Vektor 0,1,0
+  ANG(90) ANG(30)    - ergibt Vektor 0,0.9,0.5
+  ANG(180) ANG(30)    - ergibt Vektor -0.9,0,0.5
+
+
+D5=P1 P2
+D5=P1 P2 100
+  Vektor D5 als Strecke von P1 nach P2. Länge optional.
+
+
+D6=L10 100
+  Vektor in Richtung der Linie; Länge optional.
+
+
+Haupt/Nebenachsen von Circ, Ellipse, Plane durch Modifier:
+  1 = Z-Achse (Normalvektor)
+  2 = X-Achse (Ellipse: Hauptachse),
+  3 = Y-Achse (Ellipse: Nebenachse),
+  4 = inverse X-Achse
+  5 = inverse Y-Achse
+  Beispiel:
+D20 = C20 MOD(2)
+  liefert die X-Achse des C20
+
+
+Normalvektoren:
+D=Circle MOD(1)
+D=Ellipse MOD(1)
+D=Plane
+D=Point Point Point
+D=Line Line
+D=Line Point
+D=Vector Line
+D=Vector Point Point
+
+(Alle zusätzlich mit Länge und "REV" möglich).
+
+  Beispiele:
+D7=C10 100
+# Vektor in Richtung der Z-Achse von Kreis C10, Länge 100
+
+
+D7=R10 REV
+# Vektor in die umgekehrte Richtung der Z-Achse von Ebene R10.
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="C"></a></p>
+<h2>Kreis / Kreisbogen (Circle / Arc)</h2>
+Kennbuchstabe eines Keises / Kreisbogens ist C.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_CI_de.htm">CAD-Funktionen Kreis / Kreisbogen (Circle / Arc)</a>
+
+
+
+Definition eines Kreises durch:
+
+Definition eines Kreisbogens durch:
+- C(Startpunkt Endpunkt Mittelpunkt [Z-Achse] [Drehrichtung])
+- C(Endpunkt Mittelpunkt [Z-Achse] [Drehrichtung])
+  Punkte hier nur mit Index "P20" oder direkt "xKoord yKoord [Z(zKoord]"
+  Beispiel: | C(25 0 0 25 0 0)
+  Fehlt der Startpunkt, so wird der Endpunkt der letzten P(), L() oder C() - Definition benutzt.
+
+- Selektion eines Kreises
+  liefert die Bezeichnung; zB "C20"
+
+- Selektion eines Kreises in einer Kontur (CCV):
+  C(S{ccv} MOD({ccvSegNr}))
+
+
+Sehnentoleranz:
+  Die Sehnentoleranz für die Darstellung der Kreise kann direkt gesetzt werden
+    in Standards/Tolerances mit "Toleranzen zur Darstellung - Polygon".
+  Weiters wird auch durch Verändern der Modelsize (MODSIZ) die Sehnentoleranz
+    gesetzt.
+
+
+Parameter Drehrichtung:
+
+<b>CW</b>   (clockwise, im Uhrzeigersinn) oder
+<b>CCW</b>  (counterclockwise, Gegenuhrzeigersinn)
+Die Angabe von CCW ist nicht erforderlich (Standard).
+
+
+Der Drehsinn ist gültig, wenn die Drehachse zum Auge des Betrachters zeigt.
+# Kreis kopieren
+C2=C1
+
+
+<b>Standardformate:</b>
+
+# konzentr. Kreise. Negative Radiusdifferenz verkleinert den Kreis.
+C2=C1 {Radiusdifferenz}
+
+
+# Mittelpunkt, Punkt am Umfang [Z-Achsvektor]
+C3=P1 P2
+C3=P1 P2 D(1 0 1)
+
+
+# Mittelpunkt, tangential  an Line / Circ
+C1=P1 L1
+C1=P1 C1
+
+
+# Tangential an 2 Elemente, Radius.
+# C1=P1,L1,Radius,Seite
+# C2=P1,C1,Radius,Seite
+# C5=L1,L2,Radius,Seite
+# C5=L1,C1,Radius,Seite
+# C5=C1,C2,Radius,Seite
+L1=X(10)
+L2= Y(10)
+C1=L1 L2 VAL(5) MOD(1)
+
+
+# 2 Punkte am Umfang, Radius. Seite: auf der sich der Mittelpunkt befindet.
+# C1=P1 P2 Radius Seite Z-Achs-Vektor
+P20=P(98.6 5.4 0)
+P21=P(114.5 -15.2 0)
+C22=P20 P21 VAL(12) MOD(1) DZ
+
+
+# Punkt am Umfang, Tangente, Radius.
+# C1=P1 L1 Radius Seite
+L20=P(44.6 -32.8 0) P(86.5 -69.3 0)
+P26=P(56.2 -35.5 0)
+C21=P26 L20 VAL(8) MOD(2)
+
+
+# Punkt am Umfang, tangential an Kreis.
+# C2=P1 C1 Radius Seite
+C20=P(114.5 -15.2 0) VAL(12) DZ
+P27=P(96.9 -19.7 0)
+C21=P27 C20 VAL(8) MOD(1)
+
+
+# Kreis durch drei Punkte am Umfang
+C20=P(0 0) P(10 0) P(10 10)
+
+
+
+
+<b>Kreisbögen (begrenzte Kreise):</b>
+
+  Mittelpunkt Startpunkt Drehwinkel Z-Achs-Vektor
+C21=ARC P20 P21 ANG(90) DZ
+
+
+  Circ=ARC Startpunkt Endpunkt Mittelpunkt [Z-Achse] [Drehrichtung]
+  Kreisbogen aus Startpunkt Endpunkt Mittelpunkt (Mittelpunktsachse, Drehrichtung)
+  Drehrichtung: CW (Uhrzeigersinn) oder CCW (Gegenuhrzeigersinn, Standard).
+  Der Drehsinn ist gültig, wenn die Drehachse zum Auge des Betrachters zeigt.
+C20=ARC P1 P2 P3
+C31=ARC P(10,0,10) P(0,10,10) P(0,0,10)
+C32=ARC P(10,0,0) P(0,0,10) P(0,0,0) D(0,1,0) CW
+
+
+  Circ = ARC Startpunkt, Endpunkt, Radius, Z-Achse
+  Kreisbogen aus Startpunkt Endpunkt Radius Mittelpunktsachse
+  Radius: positiv fuer Uhrzeigersinn, negativ fuer Gegenuhrzeigersinn.
+C21=ARC P(251 23 0) P(189 75 0) VAL(50) DZ
+
+
+  Kreisbogen durch Startpunkt, Startrichtung und Radius.
+  Startrichtung: die Tangente an den Kreis im Starpunkt. Ein Vektor.
+  Angle: Öffnungswinkel, optional; Standard ist 360 Grad.
+  Achsvektor optional.
+  [CW/CCW] ist die Drehrichtung; optional ("CW").
+# Beispiel: Endtangente einer Klothoide als Startrichtung.
+S20=CLOT P(0 0 0) DX ANG(30) 0 10
+P20=P(S20 1)
+D20=TNG P20 S20
+C20=ARC P20 D20 25 ANG(30)
+
+
+  Kreisbogen durch drei Punkte am Umfang
+C20=ARC1 P(0 0) P(10 0) P(10 10)
+
+
+
+
+<b>Implizite Definition von Kreisen / Kreisbögen:</b>
+
+C({Startpunkt} {Endpunkt} {Mittelpunkt} [Z-Achse] [Drehrichtung])
+C({Endpunkt} {Mittelpunkt} [Z-Achse] [Drehrichtung])
+
+Punkte hier nur mit Index "P20" oder direkt "xKoord yKoord [Z(zKoord]"
+Beispiel:  C(25 0 0 25 0 0)
+<!-- Fehlt der Startpunkt, so wird der Endpunkt der letzten
+  P(), L() oder C() - Definition benutzt. -->
+
+
+
+<b>Kreis aus Kopierfunktion</b>
+Diese Formate werden bei Selektionsfunktionen erzeugt
+
+  Kreis aus CCV:
+C(S{ccv} MOD({ccvSegNr}))
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="S"></a></p>
+<h2>Kurven</h2>
+Kennbuchstabe der Kurven ist S (Spline).
+____________________________________________________________________________
+
+siehe auch <a href="CAD_CV_de.htm">CAD-Funktionen für Kurven</a>
+
+
+
+Polygon
+Ellipse
+Klothoide
+Freiformkurve (B-Spline)
+Kontur (zusammengesetzte Kurve)
+
+Polynomische Kurve  (derzeit nur von Import-Programmen oder MANuell)
+  
+  
+  
+<b>Standardformate Ellipse:</b>
+
+  Ellipse aus Mittelpunkt, Endpunkt Hauptachse, Endpunkt Nebenachse:
+S1=ELL P(100 0) P(150 0) P(100 20)
+
+
+  Ellipse aus Mittelpunkt, Vektor Hauptachse, Vektor Nebenachse:
+S1=ELL P(100 0) D(10 0) D(0 5)
+  (die Vektoren definieren Richtung und Länge der Haupt- und Nebenachse)
+
+
+  Begrenzte Ellipse aus Mittelpunkt, Vektor Hauptachse, Vektor Nebenachse,
+  Startpunkt und Endpunkt:
+S1=ELL P(0 0) D(10 0) D(0 5) P(10 0) P(-10 0)
+
+
+  Ellipse aus Projektion von Kreis auf Ebene:
+S20 = ELL C20 R20
+
+
+
+<b>Standardformate Polygon:</b>
+
+  Parallelogram aus einem Punkt und 2 Vektoren:
+  S= REC pt1 vec1 vec2
+  (Vektoren: Richtung und Länge !)
+S20=REC P(100 0 0) D(50 0 0) D(0 12 0)
+
+<!--   2D-Polygon aus Punkten:
+  S#=POL2,2D-point1,2D-point2<,2D-point3, .. 2D-pointn>
+P20=10 10
+S20=POL2 P20 P(10,0) P(20,10) P(30,30)
+ -->
+
+  Polygon aus Punkten:
+  S#=POL,point1,point2<,point3, .. pointn>
+P20=P(10,10)
+P21=P(20,20,15)
+P22=P(25,20)
+S24=POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)
+
+
+  Polygon auf Ebene projizieren:
+  S#=POL Polygon Refsys
+S20=POL P(30,0) P(30,10,10) P(40,30,20)
+S21=POL S20 R0
+
+
+  3D-Polygon aus B-Spline:
+  S#=POL,B-Spline,Toleranz
+
+
+
+<b>Standardformate Klothoide:</b>
+
+  Klothoid-Kurve erzeugen (eine planare Spirale durch Fresnel-Integrale).
+  StartPoint   Startpunkt
+  StartVector  StartRichtung  (Vektor oder Winkel)
+  Angle        Differenzwinkel Startrichtung - Richtung am Endpunkt
+                positiv: Uhrzeigersinn (CW); negativ: Gegenuhrzeigersinn (CCW).
+  StartRadius  Radius beim Startpunkt oder 0 für unendlich
+  EndRadius    Radius beim Endpunkt oder 0 für unendlich
+  [Z-Axis]     Normalvektor; optional.
+
+S20=CLOT P(0 0 0) ANG(0) ANG(30) 0 10
+
+Beispielmodel siehe sample_cloth1.gcad
+
+Export einer Klothoid-Kurve:
+  DXF:  Ausgabe als POLYLINE.
+  Iges: Ausgabe als Entity 106 (CopiousData, Form 12 = 3D-Polygon).
+
+
+
+
+<b>Standardformate B-Splinekurve:</b>
+
+  B-Spline aus Kontrollpunkten / Knotenvektor:
+  S-bsp = BSP,ptNr,degree,controlpoints,knotvector,Startparameter,Endparameter
+    ptNr = Anzahl von Kontrollpunkten
+    controlpoints: die Kontrollpunkte; Anzahl = ptNr, 3 Werte (X/Y/Z).
+    knotvector: die Abstandsparameter; Anzahl = ptNr + degree + 1.
+S20=BSP,6,3,-178,109,0,-166,128,0,-144,109,0,-109,112,0,-106,134,0,-119,138,
+ 0,0,0,0,0,0.333333,0.666667,1,1,1,1,0,1
+
+
+  B-Spline aus Punkten:
+  S-bsp = BSP {points} [,degree] [,CTRL]
+  CTRL: ob die definierten Punkte Durchgangspunkte oder Kontrollpunkte sind.
+P20=P(78,9)
+P21=P(66,28)
+P22=P(44,9,25)
+P23=P(9,12)
+P24=P(6,34)
+# B-Spline from Points
+S20=BSP,P20,P21,P22,P23,P24
+
+
+  B-Spline aus Polygon:
+  S-bsp = BSP {Polygon} [,degree] [,CTRL]
+  CTRL: ob die definierten Punkte Durchgangspunkte oder Kontrollpunkte sind.
+P20=P(78,9)
+P21=P(66,28)
+P22=P(44,9,25)
+P23=P(9,12)
+P24=P(6,34)
+# B-Spline from Points
+S20=BSP,P20,P21,P22,P23,P24
+# Polygon from Points:
+DRAW OFF
+S21=POL,P20,P21,P22,P23,P24
+# BSpline from Polygon
+DRAW ON
+S22=BSP,S21
+
+
+  B-Spline = Isoparametrische Kurve aus einer Flaeche
+  Dzt nur aus B-SplineFläche, Punkteingabe statt Parameterwert noch nicht implementiert
+  S-bsp = ISO {B-SplineFläche} {Parameterwert} [{Richtung}]
+    Richtung:  "CX" definiert QuerRichtung; keine Angabe: LängsRichtung;
+      (Modifier CX = across; Default = along)
+# Querschnittkurve in der Mitte der Surface A20:
+S20=ISO A20 0.5 CX
+
+
+
+<b>Standardformate Kontur (zusammengesetzte Kurve):</b>
+
+Kontur ("Concatenated Curve" - CCV)
+Die Kontur beginnt und endet an einem Punkt.
+Elemente: Punkte, Linien, Kreise, Kurven.
+Im Anschluss an Kreise und Kurven kann die Drehrichtung (CW oder CCW) definiert werden.
+Es werden automatisch Normalen an Linien und Kreisbögen gebildet.
+
+Format:
+S#=CCV {Konturelemente}
+
+Beispiel:
+C20=P(39,26) VAL(22)
+S20=CCV P(7,25) C20 CW P(35,58)
+
+
+
+<!--
+ 2D-CompositeCurve aus 2D-Polygon:
+Eine 2D-CompositeCurve besteht aus Kreisen/Linien
+S#=CCV2, 2D-Polygon, Toleranz
+Beispiel:
+P20=P(78,9)
+P21=P(66,28)
+P22=P(44,9,25)
+P23=P(9,12)
+P24=P(6,34)
+
+# Poly from Points
+DRAW OFF
+S20=POL,
+& P20,P21,P22,P23,P24
+
+# BSpline from Poly
+DRAW ON
+S21=BSP,S20,2
+
+# Poly from BSpline
+DRAW OFF
+S22=POL,S21,0.05
+
+# 2DPoly from Poly
+DRAW OFF
+S23=POL2,S22,R22,0.05
+
+# 2DCirc/Line from 2DPoly
+DRAW ON
+S24=CCV2,S23,0.05
+-->
+
+
+
+
+<b>Standardformate Polynomische Kurve:</b>
+
+  Polynomische Kurve aus Polynomwerten:
+  S#=PSP3,arc1{,arc2, .. arcn}
+  Polynomische Kurve mit 1-n Arcs.
+  Ein Arc besteht aus 13 Zahlen; dem Abstandswert und den Polynomwerten
+  xa, ya, za, xb, yb, zb, xc, yc, zc und xd, yd, zd.
+  xa, ya, za definieren einen Durchgangspunkt.
+S20=PSP3,0,3.84815,0.967105,0,0.577021,0.207039,0,0,0,0,-0.169071,0.140166,0,
+ 1,4.2561,1.31431,0,0.069808,0.627537,0,-0.507212,0.420498,0,0.341924,
+ -0.327596,0,2,4.16062,2.03475,0,0.081155,0.485747,0,0.518559,-0.562288,0,
+ -0.183075,0.224101,0,3,4.57726,2.18231,0,0.56905,0.033474,0,-0.030664,
+ 0.110016,0,-0.060996,-0.13481,0,4,5.05465,2.19099,0,0.324734,-0.150924,0,
+ -0.213651,-0.294414,0,0.071217,0.098138,0,5,5.23695,1.84379,0,0.111083,
+ -0.445338,0,0,0,0,0.427303,0.588828,0
+
+
+
+
+____________________________________________________________________________
+<p><a name="B"></a></p>
+<h2>Solids (Bodies)</h2>
+Kennbuchstabe der Solids ist B (Body).
+____________________________________________________________________________
+
+siehe auch <a href="CAD_SOL_de.htm">CAD-Funktionen für Solids (Bodies)</a>
+
+
+Konus
+Torus
+Kugel
+Prisma
+
+____________________________________________________________________________
+<b>Kugel:</b>
+
+# Kugel aus Mittelpunkt Radius:
+B1=SPH P(0 0 0) 12
+
+# Kugel aus Kreis:
+C1=P(0 0 0) 12
+B2=SPH C1
+
+
+
+<b>Konischer Körper (Kegel):</b>
+
+  B2=CON Mittelpunkt_1 Mittelpunkt_2 Radius_1 Radius_2
+B20=CON P(0 0 0) P(100 0 0) VAL(60) VAL(40)
+
+
+  B3=CON Kreis_1 Kreis_2
+C20=P(0 0 0) VAL(100) DX
+C21=P(100 0 0) VAL(40) DX
+B20=CON C20 C21
+
+
+  B1=CON BasisKreis Punkt_Kegelspitze
+
+
+
+<b>Torus / Kreisring:</b>
+
+
+  B#=TOR Mittelpunkt Hauptachse Radius_Hauptkreis Radius_Nebenkreis
+  
+  B#=TOR L C                                // Achse Aussenkreis
+  B#=TOR C C                                // Hauptkreis Aussenkreis
+  B#=TOR R C                                // Basisebene Aussenkreis
+  
+  Die Achse des Hautkreises ist die Hauptachse.
+  Die Nebenkreisachse liegt immer normal auf Hauptachse.
+  Radius_Hauptkreis ist ganz an der Aussenseite; ist also immer positiv.
+  Modifikator_Aussen_Innen: erforderlich zur Auswahl einer Variante,
+    bei der der Radius_Hauptkreis kleiner als der Radius_Nebenkreis ist.
+
+B20=TOR P(0 0 0) DZ VAL(100) VAL(25)
+C20=P(100 0 0) VAL(25) DY
+B20=TOR P(0 0 0) DZ C20
+
+
+
+<b>Prisma:</b>
+
+  B=PRISM planare_Basisflaeche Vektor/Point/Dicke
+  
+  planare_Basisflaeche: geschlossenes Polygon / Kreis /Ellipse
+  Die gegenüberliegende Fläche kann ein Punkt sein oder durch einen Vektor
+  oder die Dicke (z.B. Blechdicke) definiert sein.
+
+# Prisma aus Parallelogram und Vektor
+S20=REC P(100 0 0) D(50 0 0) D(0 12 0)
+B20=PRISM S20 D(0 0 10)
+
+# Prisma aus Kreis mit Dicke (Zylinderhöhe)
+C20=P(289 -20.8 0) VAL(125) DZ
+B20=PRISM C20 25
+
+# Prisma konisch aus Polygon
+P20=P(768 -457 0)
+S20=POL P20 P(930 -474 0) P(1029 -251 0) P(971 -246 0) P(891 -412 0) P(801 -407 0) P20
+B21=PRISM S20  P(900 -500 200)
+
+
+
+
+
+
+____________________________________________________________________________
+<p><a name="N"></a></p>
+<h2>Notes / Dimensions</h2>
+Kennbuchstabe der Notes / Dimensions ist N.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_TxtG_de.htm">CAD-Funktionen für Notes / Dimensions</a>
+
+
+
+  Die Schriftgröße für Texte und Vermaßung wird definiert durch
+DEFTX {Textsiz} {DimTextSiz} {TextGeneralScale} {AnzahlNachkommstellen}
+  oder interaktiv in Standards/Text.
+  Defaultwerte in der Datei {base}/xa/gCAD3D.rc.
+
+
+
+<i>Offen:</i>
+TEXTE UND VERMASZUNG WERDEN NOCH NICHT NACH IGS, DXF EXPORTIERT.
+Für interaktive Modifikation der Parameter Mpfeile, Mlinien und Zusatztext sollte
+e ein Userinterface erstellt werden.
+
+
+
+
+____________________________________________________________________________
+<p><a name="M"></a></p>
+<h2>Modelle</h2>
+Kennbuchstabe von Models ist M.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_Model_de.htm">CAD-Funktionen für Modelle</a>
+
+
+
+Ein Modell (eine Zusammenstellung - Assembly) kann aus mehreren 
+  Modellen (subModels) bestehen.
+
+
+
+____________________________________________________________________________
+<p><a name="T"></a></p>
+<h2>Transformationen</h2>
+Kennbuchstabe von Transformationen ist T.
+____________________________________________________________________________
+
+siehe auch <a href="CAD_Tra_de.htm">CAD-Funktionen zur Definition von Transformationen</a>
+siehe auch <a href="CAD_Modify_de.htm#F2">CAD-Funktionen zum Benutzen von Transformationen</a>
+
+
+
+
+
+____________________________________________________________________________
+
+
+
+
+<p><a name="CWCCW"><h2>Drehrichtung</h2></a></p>
+  CW      (clockwise, im Uhrzeigersinn) oder
+  CCW     (counterclockwise, Gegenuhrzeigersinn)
+  Die Angabe von CCW ist nicht erforderlich (Standard).
+  Der Drehsinn ergibt sich in der Draufsicht, wenn also die Drehachse
+    zum Auge des Betrachters zeigt.
+
+
+
+
+
+<p><a name="ANGR"><h2>Drehwinkel (Rotate)</h2></a></p>
+    Die Drehung erfolgt um die Z-Achse der aktiven Konstruktionsebene.
+    Eingabe direkt: Winkel
+    Eingabe indirekt: ANG(Winkel)
+    Ausgabeformat: ANG({Winkel}); zB:
+      ANG(30)  - Drehung um 30 Grad
+
+  # Winkelwert
+  ANG (Winkelwert [REV])
+  # Richtungsvektor
+  ANG (D [ANG()/REV])
+  # Linie (Richtung)
+  ANG (L [ANG()/REV])
+  # 2 Punkte (Richtung)
+  ANG (P P [ANG()/REV])
+
+Im Modus CAD kann durch die PgUp / PgDown - Taste eine zusätzlicher (relativer)
+ Winkelwert von jeweils +90 Grad aufaddiert werden. (Es muss zuvor eine
+  Richtungsangabe gemacht worden sein (zB eine Linie selektieren)).
+
+
+<p><a name="ANGT"><h2>Kippwinkel (Tilt)</h2></a></p>
+Die Drehung (das Kippen) erfolgt um die neue  -
+  (durch eine Z-Achs-Drehung entstandene) Y-Achse.
+  Ein Kippwinkel von 90 Grad liefert die Z-Achse (unabhängig vom Drehwinkel).
+  
+Ausgabeformat: ANG({Winkel}); zB:
+  ANG(30)  - Drehung um 30 Grad
+
+Beispiel drehen und Kippen:
+  ANG(90) ANG(30)
+  Es wird das Objekt 90 Grad um die Z-Achse gedreht;
+  die Kippachse entspricht nun der alten X-Achse; um diese Kippachse
+  wird nun um 30 Grad hochgekippt.
+  Ein negativer Kippwinkel dreht in die Gegenrichtung.
+  
+  
+
+
+<p><a name="MOD1"><h2>Seite 1/2</h2></a></p>
+ Seite:    mit PageUp/Down-Taste;
+    1, 2 seitlich rechts / links;
+    Ausgabeformat: MOD(1)   oder MOD(2)
+  
+
+
+<p><a name="TSZ"><h2>Zusatztext mit Sonderzeichen</h2></a></p>
+Ein Sonderzeichen wird durch eine Folge von 2 Zeichen generiert.
+ [d   Durchmesserzeichen
+ [g   Gradzeichen (Winkel)
+ [+   +- Zeichen
+ ['   doppeltes Hochkomma (")
+ [/   hochgestellt
+ [\   tiefgestellt
+ [n   neue Zeile (Return, CR)
+ [%   wird durch Standardtext ersetzt. Wenn im Text kein [% enthalten ist,
+      wird der Standardtext ganz an den Textbeginn gestellt.
+ [-   keinen Standardtext einfügen.
+ [[   ein "["
+ [0 bis [9  nur N=DIM3 und N=LDRP: Anzahl Nachkommastellen der MassZahlen
+     (muss am Beginn des Textblocks stehen)
+ [V20]  expandieren einer numer. Variablen (V20 im Beispiel)
+
+
+Beispiel:
+"[+ 0.2"
+
+
+<p><a name="NMP"><h2>MaßPfeile</h2></a></p>
+werden definiert durch die Angabe einer Zahl mit 2 Ziffern;
+je eine Ziffer für eine der beiden Maszpfeile;
+Keine Angabe oder -1: Beide Pfeile automatisch erzeugen.
+
+  0         kein Maszpfeil
+  1   <     Pfeil nach links
+  2   >     Pfeil nach rechts
+  3   /     Schrägstrich
+  4   ><    Pfeile nach links und rechts
+
+Beispiel:
+"12"  entspricht einem Pfeil nach links und nach rechts, 
+
+
+<p><a name="NMH"><h2>Maßhilfslinien</h2></a></p>
+werden definiert durch die Angabe einer Zahl mit 2 Ziffern;
+je eine Ziffer für eine der beiden Maßhilfslinien;
+  0 = keine Hilfslinie,
+  1 = Volllinie
+Default ist 11  ( zwei Volllinien)
+
+
+<p><a name="iCol"><h2>Farbe</h2></a></p>
+    0 = schwarz
+    1 = DefCol
+    2 = rot
+    3 = grün
+    4 = blau
+    5 = gelb
+    6 = violett
+    7 = hellblau
+    8 = weiss
+
+
+
+<p><a name="symFnam"><h2>Symbolische Dateibezeichnungen:</h2></a></p>
+Eine symbolische Dateibezeichnung besteht aus
+"{symbolischer_Pfad}/{Dateiname}"
+Alle symbolischen Pfade sind in Datei {base}xa/dir.lst definiert.
+Das Symbol ist frei wählbar.
+Pfad interaktiv definieren mit der Funktion "Standards/Directories".
+Standardverzeichnis ist {base}/dat; das Zugriffsysmbol für dieses
+  Verzeichnis ist "Data".
+  
+Beispiel symbolische Dateibezeichnungen:
+"Data/Niet1.dat"
+
+
+
+
+____________________________________________________________________________
+<p><a name="U"><h2>Gruppe</h2></a></p>
+Kennbuchstabe für Gruppe ist U.
+____________________________________________________________________________
+
+Selektieren Sie die Objekte der Gruppe - die Objekete werden gehilitet.
+Aus der Gruppe entfernen durch nochmaliges Selektieren.
+Weiter zum nächsten Eingabefeld mit der Tab-Taste. 
+
+Beispiel:
+# Gruppe aus 2 Flächen
+U(A20 A21)
+
+
+
+
+
+____________________________________________________________________________
+In den CAD-Eingabefeldern können als Zahlenwerte (zB für Radius) nur Variablen,
+PI, die Grundrechnungsarten und mathemat. Funktionen benutzt werden (nicht die Funktionen X,Y,Z sowie L, C).
+
+
+____________________________________________________________________________
+Senden sie Fehlerberichte, Verbesserungsvorschläge
+  an franz.reiter@cadcam.co.at
+</PRE>
+</BODY>
+</HTML>

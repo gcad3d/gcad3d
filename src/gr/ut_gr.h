@@ -74,8 +74,8 @@
   int GR_Disp_box (Point *p1, Point *p2, int att);
   int GR_Disp_pln (Plane *pl1, int att);
 
-  int GR_Disp_face (int gTyp, int icol, int pNr, Point *pa);
-  int GR_Disp_iface (int gTyp, int icol, int iNr, int *ia, Point *pa);
+  int GR_Disp_patch (int gTyp, int icol, int pNr, Point *pa);
+  int GR_Disp_ipatch (int gTyp, int icol, int iNr, int *ia, Point *pa);
   int GR_Disp_fan (Point *ps, Point *pa1, Point *pa2, int pNr, int att);
   int GR_Disp_spu (int pNr, Point *pTab, int att);
   int GR_Disp_spu1 (int pNr, Point *pTab, int att);

@@ -1,7 +1,5 @@
-# use mit make -f G-Code.mak
-# 1. Parameter = inputfilename
-# ./G-Code /home/fwork/gCAD3D/tmp/nc.apt
-
+# . ../options.sh && make -f ../prc/cut1/G-Code.mak
+#
 
 EXENAM  = G-Code
 
@@ -16,8 +14,7 @@ OBJ2 =\
 
 
 # get OUTDIR CC VGUI
-include ../options.mak
-
+#include ../options.mak
 
 
 ADDLIBS = -lm
@@ -33,9 +30,10 @@ LKFLG = -lm
 
 
 $(EXENAM): $(OBJ1) $(OBJ2)
+	@echo "build $(EXENAM) -> $(gcad_dir_bin)"
 	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(LKFLG)
 	ctags --excmd=number -f ut.tag $(SRC2)
-	cp $(EXENAM) $(OUTDIR)/plugins/cut1/.
+	mv -f $(EXENAM) $(gcad_dir_bin)plugins/cut1/.
 
 
 # vi holt fuer Alt f (grep) damit seine Sourcefileliste

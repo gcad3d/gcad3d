@@ -32,13 +32,19 @@
 
 #define INT_8_MAX            127    // max val signed char
 #define INT_16_MAX         32767    // max val signed short
-#define INT_24_MAX      16777215    // ?
+#define INT_24_MAX       8388608    // ?
 #define INT_32_MAX    4294967295    // ?
 
 #define UINT_8_MAX           255
 #define UINT_16_MAX        65535
+#define UINT_24_MAX     16777216
 
-#define FLT_32_MAX 9999999999999.999
+#define FLT_32_MAX      9999999999999.999
+//                      1234567890123
+#define FLT_32_MIN1     0.000001
+
+#define FLT_64_MAX      99999999999999999999999999999999999999
+#define FLT_64_MIN1     0.0000000000000001
 
 
 // EOF

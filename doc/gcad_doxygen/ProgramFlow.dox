@@ -182,6 +182,10 @@ UI_butCB                      Callback fuer Menufuncs, Buttons, ...
           DB_StoreCurv
         APT_Draw__
          DB_GetCurv
+         APT_DrawCurv
+         APT_DrawDimen
+         APT_DrawTxtA          2D-Text
+         APT_DrawTxtG          3D-Text
          APT_DrawCurv          APT_DrawCirc
           GL_DrawPoly2D         GR_DrawCirc
           GL_DrawPoly

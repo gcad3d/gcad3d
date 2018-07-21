@@ -78,6 +78,10 @@ List_functions_end:
 
 
 
+// ex ../ci/NC_Main.c
+extern long      AP_dli_act;      // index dispList
+
+
 // aus ../gr/ut_GLU.c:
 extern Point     *GLT_pta;
 extern long      GLT_pta_SIZ;
@@ -200,6 +204,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
 
+  AP_dli_act = dli;
+
 
   // printf("ex GL_sSym_srus\n");
   return 0;
@@ -293,6 +299,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
   GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+
+  AP_dli_act = dli;
 
 
   // printf("ex GL_sSym_spl\n");
@@ -576,6 +584,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
 
+  AP_dli_act = dli;
 
   // printf("ex GL_sSym_srv\n");
   return 0;
@@ -686,7 +695,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
   GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
-
+  AP_dli_act = dli;
 
     // printf("ex GL_sSym_sbsp\n");
 
@@ -804,6 +813,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
   GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  AP_dli_act = dli;
 
 
   // printf("ex GL_sSym_sbsp\n");

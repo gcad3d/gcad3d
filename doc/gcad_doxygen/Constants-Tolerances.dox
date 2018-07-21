@@ -16,6 +16,7 @@
 \ref ut_const.h        Basic constants math (int,double-MIN|MAX)
 \ref ut_tol_const.h    Basic constants tolerances (UT_TOL_..)
 \ref ut_geo_const.h    Basic constants geometry.
+\ref ut_types.h        max/min-values for signed/unsigned char/short/int
 </pre>
 
 

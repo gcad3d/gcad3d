@@ -96,6 +96,7 @@ MMbtSid=Vista laterale (Y-Z)
 MMbtAxo=Vista assonometrica
 MMbtSca=Adatta le dimensioni e centra automaticamente la vista
 MMbtScf=Visualizza uno spazio di circa 6000 x 6000 x 6000 mm
+MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
 MMrbRel=display cursorposition on the active constructionplane
 MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
@@ -114,8 +115,9 @@ RotCen=definire un nuovo centro di rotazione: \
 \=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
 ViewOn=visualizza gli oggetti nascosti, seleziona gli oggetti da visualizzare
 HideOn=seleziona gli oggetti da nascondere
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
 CAD_On=Funzione CAD di selezione: seleziona gli oggetti con il pulsante destro.
-MAN_On=Nuovo Punto: Alt-P; nuova linea: pulsante destro del mouse; ..
+MAN_On=MAN: Nuovo Punto: Alt-P; nuova linea: pulsante destro del mouse; ..
 MD_On=Seleziona l'oggetto / ObjID tasto Enter / Exit: mouseb Ctrl destro.
 
 CADPT=Punti
@@ -140,6 +142,7 @@ CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=Visualizza nel browser un testo di aiuto per la funzione attiva
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=Esce dalla funzione. Non salva l'oggetto attivo. Edit-mode: Cancel twice, right mousebutton  - edit.
+CADclear=clear active CAD-inputfield
 CADsave=salva l'oggetto attivo, Vai all'oggetto successivo. MouseButton destro, tasto Enter.
 
 PT_cartes__offset=Punto da coordinate: seleziona o digita i valori di offset [per X / Y / Z]
@@ -293,6 +296,7 @@ Typ_modCTRL=PagSu / PgDwn ("CTRL \" = punti di controllo)
 Typ_modREV=PagSu / PgDwn ("REV" = inversa)
 Typ_modCX=ey PgUp / PgDwn ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Digita il Testo / Modifica il testo
 TYP_FilNam=Digita il nome del file / Medio Mousebutt. (F5 = FileList) / sel.Model
@@ -311,6 +315,7 @@ VR0=Variabili non definite ..
 
 FILT02=Pointfilter Vertex
 FILT03=assegna la posizione del cursore su una selezione di obj ..
+FILT04=select or keyIn obj to dump ..
 FILT05=aggiungi le seguenti selezioni / keyIn al gruppo, il gruppo di termina con Tab-Key
 FILT06=seleziona Linea | Cerchio | Curva da modificare ..
 FILT07=Seleziona la superficie da modificare ..

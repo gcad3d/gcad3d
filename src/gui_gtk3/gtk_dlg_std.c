@@ -342,7 +342,7 @@ static MemObj thisWin;
 
 
   // get static list of integers for user-data
-  ia = (int*) MEM_alloc_tmp (sizeof(int) * bNr);
+  ia = (int*) MEM_alloc_tmp ((int)(sizeof(int) * bNr));
 
   for(i1=0; i1<bNr; ++i1) {
     if(border > 0) GUI_spc__ (&box1, 0, border);
@@ -871,9 +871,17 @@ static MemObj thisWin;
     iTyp = TYP_EventPress;
     // ikey = ((GdkEventButton*)ev)->button;
 
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (1);
+
+
   } else if(typ == GDK_BUTTON_RELEASE) {
     iTyp = TYP_EventRelease;
     // ikey = ((GdkEventButton*)ev)->button;
+
+    // ScreenCast ON: draw mouse ..
+    if(AP_tutStat_get()) GUI_TUT_m__ (0);
+
 
   } else return 0;
                       
@@ -952,6 +960,9 @@ static MemObj thisWin;
 
   int   i1, iRes;
   char  *p1, *filename;
+
+
+  printf("GUI_Dialog_run \n");
 
 
   iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !

@@ -1,6 +1,7 @@
 #! /bin/csh
 
 # example: 
+# ./lang_find.csh Typ_modRepl
 
 echo "find ln " $1
 
@@ -14,7 +15,7 @@ START:
 #set fNam = msg_de.txt
 
 
-foreach fn (`ls -1 | grep msg_...txt`)
+foreach fn (`ls ../../doc/msg/* | grep msg_...txt`)
   echo "-------- File" $fn
   grep $1 $fn
 end

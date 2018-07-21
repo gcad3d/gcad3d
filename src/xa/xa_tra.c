@@ -276,7 +276,7 @@ static int otra_typ2[]={
 
     printf(" clear step 2\n");
 
-  GL_temp_delete (); // alle temp. obj loeschen ..
+  GL_temp_del_all (); // alle temp. obj loeschen ..
   DL_disp_reset (ED_get_lnr_act());
   DL_Redraw ();
 
@@ -305,7 +305,7 @@ static int otra_typ2[]={
     WC_set_obj_stat (0);        // perm
     UI_GR_Sel_Filter (0);       // reset function
 
-    GL_temp_delete ();          // alle temp. obj loeschen ..
+    GL_temp_del_all ();          // alle temp. obj loeschen ..
     DL_disp_reset (ED_get_lnr_act());
     DL_Redraw ();
 

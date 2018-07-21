@@ -207,7 +207,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
   AP_User_reset ();
 
-  GL_temp_delete (); // alle temp. obj loeschen ..
+  GL_temp_del_all (); // alle temp. obj loeschen ..
 
   // uncheck checkbox "Measure"
   UI_ckb_meas (FALSE);
@@ -380,7 +380,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       p1 = GUI_entry_get (&Meas_e2);
       if(strlen(p1) > 0) {
         GUI_entry_set (&Meas_e2, "");
-        GL_temp_Delete (-3L);     // clear circ 2
+        GL_temp_del_1 (-3L);     // clear circ 2
         DL_Redraw ();
         Meas_ie = 1;
         Meas_upd_styp ();             // update select-typ
@@ -391,7 +391,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       p1 = GUI_entry_get (&Meas_e1);
       if(strlen(p1) > 0) {
         GUI_entry_set (&Meas_e1, "");
-        GL_temp_Delete (-2L);     // clear circ 1
+        GL_temp_del_1 (-2L);     // clear circ 1
         DL_Redraw ();
         Meas_ie = 0;
         Meas_upd_styp ();             // update select-typ
@@ -723,7 +723,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   dli = -4L;
 
   if(pt1 == NULL) {
-    GL_temp_Delete (dli);
+    GL_temp_del_1 (dli);
     return 0;
   }
 

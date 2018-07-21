@@ -116,6 +116,8 @@ extern ColRGB     AP_defcol;
   int SurMod_sel_CB (int src, long dli) {
 //=========================================================
 // userselection callback
+// user has selected surface
+
 
   int    irc, i1, styp, typ;
   long   dbi;
@@ -155,8 +157,11 @@ extern ColRGB     AP_defcol;
       printf(" col-actStat=%d\n",i1);
     GA_Col__ (dli, i1, styp, dbi);
     if(i1 == 2) {
+      // 2:  select_as_new_color
       TX_Print("new active color is #%02x%02x%02x",  // %d,%d,%d ..",
         AP_actcol.cr,AP_actcol.cg,AP_actcol.cb);
+      // report new col in panel
+      UI_WinSurfCol (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB5));
     }
 
 
@@ -311,7 +316,7 @@ extern ColRGB     AP_defcol;
   int UI_colSel (ColRGB *cSel) {
 //================================================================
 /// \code
-/// user has selected new active color
+/// user has selected new active color in color-selector
 /// see UI_WinDefTx
 /// see TSU_exp_wrlCol
 /// see Col_set__

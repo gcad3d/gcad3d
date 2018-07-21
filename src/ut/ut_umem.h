@@ -13,12 +13,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
-
-
 -----------------------------------------------------
 *//*!
 \file ../ut/ut_umem.h
-\ingroup grp_ut_obj
+\brief includes for Memspc - ../ut/ut_umem.c
+// prerequis: ../ut/ut_mem.h
 */
 
 
@@ -36,12 +35,12 @@ typedef struct {void *start, *next, *end;
 
 
   int   UME_init (Memspc *memSpc, void* objDat, int osiz);
-  int   UME_alloc_tmp (Memspc *memSpc, long spcSiz);
   int   UME_malloc (Memspc *memSpc, long spcSiz, long memInc);
   void* UME_save (Memspc *memSpc, void* objDat, int osiz);
   void* UME_reserve (Memspc *memSpc, int osiz);
   int   UME_add (Memspc *memSpc, int osiz);
   int   UME_adjust (Memspc *memSpc, void* newStart);
+  int   UME_ck_tot (Memspc *memSpc);
   int   UME_ck_free (Memspc *memSpc);
   int   UME_set_free (int sizFree, Memspc *memSpc);
   int   UME_dump    (Memspc *memSpc, char *txt);
@@ -57,30 +56,28 @@ typedef struct {void *start, *next, *end;
   long  UME_get_used (Memspc *memSpc);
 
 
-/// init Memspc
+/// \code
+/// UME_NEW    init Memspc
+/// Example:   Memspc    tmpSpc=UME_NEW;
+/// \endcode
 #define UME_NEW {NULL, NULL, NULL, 0}
 
 
 /// \code
-/// UME_alloc_tmp                allocate temp. space for Memspc
-/// DO NOT GET > 100000 byte
-/// memspace exists until active function returns (using alloca)
-/// MUST BE INLINE; after return of function memspace is lost !
-/// Example:
-/// Memspc   tmpSpc=UME_NEW;
-/// UME_alloc_tmp (&tmpSpc, 1000);   // get a Memspc size = 1000 bytes
-/// \endcode
-int   UME_alloc_tmp (Memspc*, long);
-#define UME_alloc_tmp(memSeg,memsiz)\
-  UME_init (memSeg, MEM_alloc_tmp(memsiz), memsiz)
-
-
 /// UME_get_next          get actual memSpacePosition (.next; next free position)
+/// Example: see UME_set_next
+/// \endcode
 #define UME_get_next(memSeg) ((memSeg)->next)
 
 
+/// \code
 /// UME_set_next          set actual memSpacePosition (.next; next free position)
 /// reset after UME_get_next (regain memspace)
+/// Example:
+///  mSpc = UME_get_next (wrkSpc);  // get free pos in wrkSpc; not yet reserve.
+///  .. use remaining space in wrkSpc
+///  UME_set_next (mSpc, wrkSpc);   // restore wrkSpc
+/// \endcode
 #define UME_set_next(memPos,memSeg) (memSeg)->next=memPos
 
 

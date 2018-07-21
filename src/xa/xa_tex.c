@@ -554,6 +554,7 @@ static TexBas *actTexBas;
 
   // printf("Tex_getBitmap |%s|\n",symNam);
 
+
   if(!symNam) return -3;
 
   // create safe-name fron symbolic-name
@@ -563,8 +564,8 @@ static TexBas *actTexBas;
 
 
   // create Bitmapfilename from safe-name
-  sprintf(bNam,"%s%s.bmp",OS_get_tmp_dir(),safNam);
-    // printf(" getBitmap-bNam1 |%s|\n",bNam);
+  sprintf(bNam, "%s%s.bmp", OS_get_tmp_dir(), safNam);
+    // printf(" getBitmap-bNam |%s|\n",bNam);
 
 
   // check if TextureFile (bmp) existes;
@@ -574,9 +575,10 @@ static TexBas *actTexBas;
 
 
   // get real filename from symbolic filename -> fNam
-  irc = Mod_get_path (fNam, symNam);
+  // irc = Mod_get_path (fNam, symNam);
+  irc = Mod_fNam_sym (fNam, symNam);
   if(irc < 0) return -1;
-    // printf(" fNam |%s|\n",fNam);
+    // printf(" ex-fNam_sym- |%s|%s|\n",fNam,symNam);
 
 
   // check if sourcefiles exists
@@ -585,7 +587,7 @@ static TexBas *actTexBas;
 
   // get filetyp of symNam
   UTX_ftyp_s (fTyp, symNam, 1);
-    // printf(" fTyp |%s|\n",fTyp);
+    // printf(" fTyp = |%s|\n",fTyp);
 
 
   //----------------------------------------------------------------
@@ -616,7 +618,6 @@ static TexBas *actTexBas;
 
   // djpeg -bmp fnIn.jpg > fnOut.bmp
   sprintf(cbuf, "%s -bmp \"%s\" > \"%s\"",OS_get_imgConv1(),fNam,bNam);
-  // sprintf(cbuf, "djpeg -bmp \"%s\" > \"%s\"",fNam,bNam);
     // printf(" |%s|\n",cbuf);
   OS_system(cbuf);
 

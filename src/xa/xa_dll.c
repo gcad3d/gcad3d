@@ -18,7 +18,7 @@
 TODO:
 Noch hierher kopieren:
  DLL_run2
- DLL_build__
+ OS_dll_build
 
 -----------------------------------------------------
 Modifications:
@@ -28,20 +28,20 @@ Modifications:
 */
 /*!
 \file  ../xa/xa_dll.c
-\brief DLL-UtilityProgs 
+\brief DLL-UtilityProgs  OS-indep.
 \code
 =====================================================
 List_functions_start:
 
 DLL_run1         connect oder run oder unload DLL.
 DLL_run2         build & connect & run & unload DLL.
-DLL_build__      Compile, Link.
 
 List_functions_end:
 =====================================================
 
 See also:
 OS_dll__
+OS_dll_build      Compile, Link.
 OS_debug_dll_
 
 \endcode *//*----------------------------------------
@@ -277,7 +277,7 @@ OS_debug_dll_
     // reOpen Messagefiles ..
     MSG_const_init (AP_lang);
     MSG_Init (AP_lang);
-    if(DLL_build__ (soNam) != 0) {
+    if(OS_dll_build (soNam) != 0) {
        TX_Print("***** Error compile/link %s",soNam);
        return -1;
     }
@@ -351,7 +351,7 @@ OS_debug_dll_
     // reOpen Messagefiles ..
     MSG_const_init (AP_lang);
     MSG_Init (AP_lang);
-    if(DLL_build__ (soNam) != 0) {
+    if(OS_dll_build (soNam) != 0) {
        TX_Print("***** Error compile/link %s",soNam);
        return -1;
     }
@@ -405,9 +405,9 @@ OS_debug_dll_
 
 }
 
-
+/*
 ///===================================================================
-  int DLL_build__ (char *dllNam) {
+  int OS_dll_build (char *dllNam) {
 ///===================================================================
 /// wenn .mak vorh: compile/link
 
@@ -418,7 +418,7 @@ OS_debug_dll_
 
 
 
-  printf("DLL_build__ |%s|\n",dllNam);
+  printf("OS_dll_build |%s|\n",dllNam);
 
 
 #ifdef _MSC_VER
@@ -460,7 +460,7 @@ OS_debug_dll_
 
   // sprintf(cbuf, "cd %sxa;make -f %s",OS_get_bas_dir(),dllNam);
   sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
-    printf(" DLL_build__ 2 |%s|\n",cbuf);
+    printf(" OS_dll_build 2 |%s|\n",cbuf);
 
 
   // ".so" -> ".mak"
@@ -487,6 +487,6 @@ OS_debug_dll_
     return 0;
 
 }
-
+*/
 
 //====================== EOF =============================

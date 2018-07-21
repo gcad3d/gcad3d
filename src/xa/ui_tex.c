@@ -102,7 +102,7 @@ Update: update TexRef-UserData; apply Texture.
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
-extern char      AP_dir_open[128], AP_sym_open[64]; // das Verzeichnis fuer OPEN
+extern char      AP_mod_dir[128], AP_mod_sym[64]; // das Verzeichnis fuer OPEN
 
 
 
@@ -242,14 +242,14 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 
   printf("UI_Tex_Load |%s|%s|\n",fnam,dirNam);
 
-  AP_set_dir_open (dirNam);  // copy dir -> AP_dir_open; load AP_sym_open
+  AP_set_dir_open (dirNam);  // copy dir -> AP_mod_dir; load AP_mod_sym
 
   // get keepFlag from UI_Tex__
   // i1 = UI_Tex__ (NULL, (void*)UI_FuncUCB6);
   // i1 = 1;
 
   // save & load Texture
-  irc = Tex_addBas__ (fnam, AP_sym_open, 0);
+  irc = Tex_addBas__ (fnam, AP_mod_sym, 0);
   if(irc < 0) return -1;
 
   // display textureName
@@ -510,7 +510,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
       // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
       GUI_List2 ("select Texturefile", // titletext
-              AP_dir_open,             // Pfadname des activeDirectory
+              AP_mod_dir,             // Pfadname des activeDirectory
               cbuf,                    // Liste der directories
               (void*)UI_Tex_Load);      // CallBack der Liste
 */
@@ -703,7 +703,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
     case UI_FuncKill:
       UI_GR_Sel_Filter (actFilt);  // reset
 
-      GL_temp_Delete (2L);  // delete red frame
+      GL_temp_del_1 (2L);  // delete red frame
 
       // EXIT
       GUI_Win_kill (&win0);

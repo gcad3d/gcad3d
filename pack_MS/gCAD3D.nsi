@@ -131,7 +131,11 @@ Section -Post
   FileWrite $0 "set gcad_dir_doc=$INSTDIR\doc\$\r$\n"
   FileWrite $0 "set gcad_dir_local=$APPDATA\$\r$\n"
   FileWrite $0 "REM set gcad_dir_dev=$\r$\n"
-  FileWrite $0 "$\"%gcad_dir_bin%$\"gCAD3D.exe %*$\r$\n"
+  FileWrite $0 "if .debug==.%1 ($\r$\n"
+  FileWrite $0 "windbg \"%gcad_dir_bin%\gCAD3D.exe\"$\r$\n"
+  FileWrite $0 ") else ($\r$\n"
+  FileWrite $0 "\"%gcad_dir_bin%gCAD3D.exe\" %*$\r$\n"
+  FileWrite $0 ")$\r$\n"
   FileClose $0
 
   ; write cacls-File

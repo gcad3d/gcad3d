@@ -94,6 +94,7 @@ cc -c xa_obj_txt.c
 
 
 #include "../ut/ut_geo.h"         // OFF, ON ..
+#include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../db/ut_DB.h"           // APT_LN_SIZ
 #include "../xa/xa_obj_txt.h"      // AP_obj_blank
@@ -360,8 +361,8 @@ static long su_ind;
   int AP_obj_add_pt (char *ED_buf1, Point *pt1) {
 //=================================================================
 /// \code
-/// add struct Point* to string  " P(x y [z])"
-///   10 digits after comma
+/// add struct Point* to string  " P(<x> <y> [<z>])"
+/// leading blank, precision = 10 digits
 /// see  AP_obj_add_pt_rp (reduced precision)
 /// \endcode
 
@@ -373,21 +374,14 @@ static long su_ind;
 
 
       strcat (ED_buf1, "P(");
-      // UTX_add_fl_u2 (ED_buf1, pt1->x, pt1->y);
       UTX_add_fl_10  (ED_buf1, pt1->x);
-      // UTX_add_fl_f  (ED_buf1, pt1->x, 10);
-      // UTX_del_foll0 (ED_buf1);
       strcat (ED_buf1, " ");
       UTX_add_fl_10  (ED_buf1, pt1->y);
-      // UTX_add_fl_f  (ED_buf1, pt1->y, 10);
-      // UTX_del_foll0 (ED_buf1);
 
 
       if(!UTP_compdb0(pt1->z,UT_TOL_pt)) {
         strcat (ED_buf1, " ");
         UTX_add_fl_10  (ED_buf1, pt1->z);
-        // UTX_add_fl_f  (ED_buf1, pt1->z, 10);
-        // UTX_del_foll0 (ED_buf1);
       }
       strcat (ED_buf1, ")");
 
@@ -401,8 +395,8 @@ static long su_ind;
   int AP_obj_add_pt2 (char *ED_buf1, Point2 *pt1) {
 //=================================================================
 /// \code
-/// add 2D-point-coordinates to string  " P(x y)"
-///   10 digits after comma
+/// add struct Point2* to string  " P(<x> <y>)"
+/// leading blank, precision = 10 digits
 /// \endcode
 
   // printf("AP_obj_add_pt %f %f %f\n",pt1->x,pt1->y,pt1->z);
@@ -413,14 +407,9 @@ static long su_ind;
 
 
       strcat (ED_buf1, "P(");
-      // UTX_add_fl_u2 (ED_buf1, pt1->x, pt1->y);
       UTX_add_fl_10  (ED_buf1, pt1->x);
-      // UTX_add_fl_f  (ED_buf1, pt1->x, 10);
-      // UTX_del_foll0 (ED_buf1);
       strcat (ED_buf1, " ");
       UTX_add_fl_10  (ED_buf1, pt1->y);
-      // UTX_add_fl_f  (ED_buf1, pt1->y, 10);
-      // UTX_del_foll0 (ED_buf1);
       strcat (ED_buf1, ")");
 
   return 0;
@@ -431,24 +420,21 @@ static long su_ind;
 //=================================================================
   int AP_obj_add_pt3 (char *ED_buf1, Point *pt1) {
 //=================================================================
-/// keine Blanks vorn u hint
+/// \code
+/// add struct Point* to string  "<x> <y> [Z(<z>)]"
+/// NO leading blank, precision = 10 digits
+/// \endcode
 
   // printf("AP_obj_add_pt %f %f %f\n",pt1->x,pt1->y,pt1->z);
 
 
   UTX_add_fl_10  (ED_buf1, pt1->x);
-  // UTX_add_fl_f  (ED_buf1, pt1->x, 10);
-  // UTX_del_foll0 (ED_buf1);
   strcat (ED_buf1, " ");
   UTX_add_fl_10  (ED_buf1, pt1->y);
-  // UTX_add_fl_f  (ED_buf1, pt1->y, 10);
-  // UTX_del_foll0 (ED_buf1);
 
   if(!UTP_compdb0(pt1->z,UT_TOL_pt)) {
     strcat (ED_buf1, " Z(");
     UTX_add_fl_10  (ED_buf1, pt1->z);
-    // UTX_add_fl_f  (ED_buf1, pt1->z, 10);
-    // UTX_del_foll0 (ED_buf1);
     strcat (ED_buf1, ")");
   }
 
@@ -617,6 +603,7 @@ static long su_ind;
 
   if(ED_buf1[0] == '\0') return ;
 
+  // get last char
   c1 = ED_buf1[strlen(ED_buf1)-1];
 
   if((c1 == '=')||(c1 == '(')||(c1 == ' ')) return;
@@ -1118,7 +1105,7 @@ static long su_ind;
 
 
   int      typ, form, irc, ciMode, i1, i2, iNr, *ia;
-  long     *lTab;
+  long     *lTab, l1;
   double   d1, *da;
   char     cbuf[240], *cp1;
 
@@ -1359,12 +1346,13 @@ static long su_ind;
 
     //-----------------------------------------
     } else if (form == Typ_Index) {
-      // ia = (long*)o1->data;
+/*
       ia = o1->data;
         // printf(" ip1=%d ip2=%d\n",ia[0],ia[1]);
       AP_obj_add_obj (ED_buf1, Typ_PT, ia[0]);
       AP_obj_add_obj (ED_buf1, Typ_PT, ia[1]);
-
+*/
+     AP_obj_add_obj (ED_buf1, Typ_LN, LONG_PTR(o1->data)); // 2017-04-28
 
 
 
@@ -2117,7 +2105,7 @@ static long su_ind;
       ox1 = &oTab[0];
       if(ox1->form == Typ_Index) {
         // printf(" o1 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_obj (ED_buf1, ox1->typ, (long)ox1->data);
+        AP_obj_add_obj (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;
@@ -2139,7 +2127,7 @@ static long su_ind;
       ox1 = &oTab[1];
       if(ox1->form == Typ_Index) {
         // printf(" o2 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_obj (ED_buf1, ox1->typ, (long)ox1->data);
+        AP_obj_add_obj (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;

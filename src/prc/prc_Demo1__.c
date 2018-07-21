@@ -86,8 +86,8 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 
 #define cmd_SIZ 100
 int     cmd_anz;
-int     cmd_typ[cmd_SIZ];
-double  cmd_tab[cmd_SIZ];
+int     *cmd_typ;
+double  *cmd_tab;
 
 
 Point actPos;
@@ -109,8 +109,9 @@ Point actPos;
 ///   data     additional text for nc-func NCCmdTab[iFnc]
 
 
-  int    i1;
-  Point  pt1;
+  int       i1;
+  Point     pt1;
+  ObjAto    ato1;
 
 
   printf("----------- Demo1 ------------------- \n");
@@ -127,7 +128,12 @@ Point actPos;
   // ..
 
   // decode input
-  cmd_anz = APT_decode_ausdr (cmd_typ, cmd_tab, cmd_SIZ, &data);
+  // cmd_anz = APT_decode_ausdr (cmd_typ, cmd_tab, cmd_SIZ, &data);
+  ATO_getSpc_tmp__ (&ato1, cmd_SIZ);
+  ATO_ato_srcLn__ (&ato1, data);
+  cmd_anz = ato1.nr;
+  cmd_typ = ato1.typ;
+  cmd_tab = ato1.val;
 
     for(i1=0; i1<cmd_anz; ++i1)
     printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);

@@ -41,6 +41,7 @@ Korr:
 #include "../ut/gr_types.h"               // SYM_* ATT_* Typ_Att_* LTYP_*
 #include "../ut/AP_types.h"               // Typ_PT ..
 #include "../ut/ut_mem.h"                 // MEM_*
+#include "../ut/ut_uti.h"                 // UTI UTP BIT I* D* 
 #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 // ../gui/gui_types.h
 // ../ut/func_types.h                        // ATT_COL_. SYM_. Typ_Att_
@@ -203,7 +204,8 @@ typedef struct {double x, y, z, w;}                                 wPoint;
 typedef struct {double dx, dy;}                                     Vector2;
 // size = 16
 
-// typedef struct {float dx, dy, dz;}                                  Vectorf;
+/// 3D-vector, Typ_VC3F
+typedef struct {float dx, dy, dz;}                                  Vec3f;
 
 /// 3D-vector, Typ_VC
 typedef struct {double dx, dy, dz;}                                 Vector;
@@ -213,13 +215,13 @@ typedef struct {double dx, dy, dz;}                                 Vector;
 
 //....................... containerobjects: ................................
 
-/// \brief Index-table; Typ_IndTab
+/// \brief Index-table; Typ_IndTab; _INDTAB_NUL
 /// \code
 ///  ibeg   begin-index; points to first object of index-list
 ///  iNr    nr of objects in index-list
 ///  typi   typ of indextable (form int4)
 ///  typd   typ of datatable
-///  aux    for TYP_EDGLN_FAC: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
+///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 ///  stat   -
 /// \endcode
 typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
@@ -263,26 +265,30 @@ typedef struct {long dbInd, dlInd; short typ, stat;}                ObjDB;
 typedef struct {long dbi, dli, lnr; char *lPos; int iPar, typ, ll;} ObjSRC;
 
 
-/// \brief ObjTXTSRC type of expression of sourceObject
+/// \brief Typ_ObjTXTSRC type of expression of sourceObject 
 /// \code
 /// typ,form    type & form of expression; see SRC_txo_srcLn__()
 /// ilen        length in chars of obj
 /// ipar        index to parent (into tso); -1=primary level.
 /// ioff        offset in chars from start of codestring.
+/// see APED_txo_..
 /// \endcode
 typedef struct {short typ, form, ilen, ipar; int ioff;}             ObjTXTSRC;
 
 
-/// \brief atomicObjects
+/// \brief atomicObjects Typ_ObjAto ATO_
 /// \code
 /// nr         nr of used records
 /// siz        nr of typ,val - records
 /// txsiz      size of txt (if(!txt))
 /// ilev       level; -1=primary level. NULL=unused
 /// txt        for strings; NULL for none (was APT_defTxt)
+/// spcTyp     0=malloc-type=can-reallocate; 1=fixed-CANNOT-reallocate; 3=stack
+///
+/// see ../xa/xa_ato.h _OBJATO_NUL
 /// \endcode
 typedef struct {int nr, siz, txsiz; int *typ; double *val; short *ilev;
-                char *txt;}                                         ObjAto;
+                char *txt; char spcTyp, uu1, uu2, uu3;}             ObjAto;
 
 
 /// do not use; replaced by ObjGX.
@@ -556,22 +562,22 @@ typedef struct {int ptNr;Point *cptab;double *wtab;double va, vb;}  CurvRBez;
 // typedef struct {void *cv1; void *cv2; int cTyp;}                    CurvVec;
 
 
-/// \brief Clothoid curve   Typ_CVCLOT
+/// \brief Clothoid curve   Typ_CVCLOT    ../ut/cvClot.c
 /// \code
-/// stp     ... startpoint
-/// stv     ... startvector
-/// plv     ... normalvector of plane of curve (not parallel stv)
-/// pc      ... curvetype parameter (>0)
-/// cs      ... curvature at startpoint (>=0)
-/// ce      ... curvature at endpoint (>=0, !=cs)
-/// lr      ... 0/1 <=> left/right bended curve
+/// stp        startpoint
+/// stv        startvector
+/// plv        normalvector of plane of curve (not parallel stv)
+/// pc         curvetype parameter (>0)
+/// cs         curvature at startpoint (>=0)
+/// ce         curvature at endpoint (>=0, !=cs)
+/// lr         0/1 <=> left/right bended curve
 /// \endcode
 typedef struct {Point stp; Vector stv, plv;
             double pc, cs, ce; int lr;}                             CurvClot;
 
 
 
-/// \brief polygonal_representation_of_curve    CurvPrcv
+/// \brief polygonal_representation_of_curve    CurvPrcv         functions:  PRCV
 /// \code
 /// dbi        database index of basecurve;
 /// mdli       subModelNr; 0-n = sind in Submodel; -1=main
@@ -977,8 +983,8 @@ typedef struct {long ind;
 ///        hidden = ((disp == 1)&&(hili == 1))
 /// pick   0=unpickable, 1=pickable
 /// unvis  0=visible; 1=obj does not have graph. representation
-/// sChd   0=independent; 1=Child-state is active; this obj has a parent.
-/// sPar   0=independent; 1=Parent-state is active.
+/// sChd   0=independent; 1=Child-state is active; obj is child - has parent(s)
+/// sPar   0=independent; 1=Parent-state is active; obj is parent; has child(s)
 /// grp_1  0=belongs to active Group, 1=not
 /// \endcode
 typedef struct {long ind, ipcv, lNr, irs;
@@ -1007,12 +1013,14 @@ typedef struct {Mat_4x3 ma; Vector vz; double angr;}                TraRot;
 typedef struct {int typ; long ind; char *data;}                     Activity;
 
 
-/// \brief Typ_BoxH
+/// \brief Typ_GridBox _GRIDBOX_NUL
 /// \code
-/// horizontal gridBox; position of startpoint p1 is bottom left 
-/// ix, iy, iz    nr of points in a row
+/// horizontal/vertical gridBox
+/// pMin          position of lower left startpoint (xMin, yMin, zMin)
+/// dx, dy, dz    size of a gridsection
+/// ix, iy, iz    nr of points in x-direction, y-direction, z-direction
 /// \endcode
-typedef struct {Point *p1; double dx, dy, dz; int ix, iy, iz;}      GridBoxH;
+typedef struct {Point pMin; int ix, iy, iz; double dx, dy, dz;}     GridBox;
 
 
 
@@ -1076,12 +1084,12 @@ typedef struct {int i1, i2;}                                        Edg3;
 /// \code
 ///  iNr    nr of objects in ia
 ///  ia     Indexes into pointTable
-///  typ    TYP_EDGLN_BL   2 EdgeLine (BreakLine)
-///         TYP_EDGLN_IB   3 InnerBound
-///         TYP_EDGLN_OB   4 OuterBound
-///         TYP_EDGLN_AB   5 OuterBound - automatic created
-///         TYP_EDGLN_FAC  6 faces (eg from GLU)
-///  aux    for TYP_EDGLN_FAC: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
+///  typ    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+///         MSH_EDGLN_IB   3 InnerBound
+///         MSH_EDGLN_OB   4 OuterBound
+///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
+///         MSH_PATCH  6 faces (eg from GLU)
+///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 /// \endcode
 typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
 
@@ -1129,11 +1137,11 @@ typedef struct {int ipt, nbsid;}                                    SegBnd;
 /// \code
 /// suID    surface-ID (DB-index A)
 /// contNr  contour-nr; first1=1, ..
-/// typb    TYP_EDGLN_BL   2 EdgeLine (BreakLine)
-///         TYP_EDGLN_IB   3 InnerBound
-///         TYP_EDGLN_OB   4 OuterBound
-///         TYP_EDGLN_AB   5 OuterBound - automatic created
-///         TYP_EDGLN_FAC  6 faces (eg from GLU)
+/// typb    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+///         MSH_EDGLN_IB   3 InnerBound
+///         MSH_EDGLN_OB   4 OuterBound
+///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
+///         MSH_PATCH  6 faces (eg from GLU)
 /// typt    Typ_SURCIR   (fan)
 ///         Typ_SURSTRIP (strip)
 /// dir     0=undefined; 1=CCW; -1=CW
@@ -1210,20 +1218,6 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 // prototypes for gcad_ut_geo.c
 
 //----------------------------------------------------------------
- int    UTP_comp_0  (double);
- int    UTP_compdb0 (double, double);
- int    UTP_comp2db (double, double, double);
- int    UTP_comp2x2db (double d11,double d12,double d21,double d22,double tol);
- int    UTP_db_ck_in2db (double v, double v1, double v2);
- int    UTP_db_ck_in2dbTol (double v, double v1, double v2, double tol);
- int    UTP_db_cknear_2db (double *db, double *d1, double *d2);
- int    UTP_db_cknear_ndb (double db1, int dbNr, double *dbTab);
- double UTP_min_d3 (double *d1, double *d2, double *d3);
- double UTP_max_d3 (double *d1, double *d2, double *d3);
- double UTP_db_rnd1sig (double);
- double UTP_db_rnd2sig (double);
-
-
  int    UT1D_ndb_npt_bp (double *da, Point *pa, int pNr, int bp);
 
  double UT_DEGREES (double);
@@ -1296,12 +1290,17 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UT2D_2slen_2pt_vc__ (double *dx, double *dy,
                              Point2 *px, Point2 *pl, Vector2 *vl);
 
- int    UT2D_sid_2vc (Vector2 *v1, Vector2 *v2, double tol);
- int    UT2D_sidPerp_2vc (Vector *v1, Vector *v2);
+ // int    UT2D_sid_2vc (Vector2 *v1, Vector2 *v2, double tol);  // DO NOT USE
+ int    UT2D_sid_2vc__ (Vector2 *v1, Vector2 *v2);
+ int    UT2D_sid_2vc_tol (Vector2 *v1, Vector2 *v2, double *tol);
+ // int    UT2D_sid_ptvc__ (Point2*, Point2*, Vector2*);            // DO NOT USE
+ int    UT2D_sid_ptvc____ (Point2*, Point2*, Vector2*);
+ int    UT2D_sid_ptvc___tol (Point2*, Point2*, Vector2*, double*);
  int    UT2D_sid_3pt (Point2 *pt,  Point2 *p1, Point2 *p2);
- int    UT2D_sidPerp_3pt (Point2 *p1, Point2 *p2, Point2 *p3);
- int    UT2D_sid_ptvc (Point2*, Point2*, Vector2*);
+
+ int    UT2D_sidPerp_2vc (Vector *v1, Vector *v2);
  int    UT2D_sidPerp_ptvc (Point2 *pt,  Point2 *pl, Vector2 *vl);
+ int    UT2D_sidPerp_3pt (Point2 *p1, Point2 *p2, Point2 *p3);
 
  int    UT3D_sid_2vc (Vector *v1, Vector *v2);
  int    UT3D_sid_3pt (Point *p1, Point *p2, Point *p3);
@@ -1309,6 +1308,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UT3D_sid_ptptvc (Point *ptx, Point *pto, Vector *vz);
 
  int    UT2D_parLn_pt2pt (double *d1, Point2 *p1, Point2 *p2, Point2 *px);
+ double UT2D_par_nor_2vc (Vector2 *vc1, Vector2 *vc2);
 
  double UT2D_ar_3pt (Point2 *p1, Point2 *p2, Point2 *p3);
 
@@ -1362,7 +1362,10 @@ extern const Mat_4x4 UT3D_MAT_4x4;
                         Point2*,Point2*,Point2*,Point2*);
  int    UT2D_pt_int2ln (Point2*, Line2*, Line2*);
  int    UT2D_pt_intptvcy (Point2 *pto, Point2 *ptl, Vector2 *vcl, double yVal);
- int    UT2D_pt_intlny (Point2 *pto, Point2 *lp1, Point2 *lp2, double yVal);
+ int    UT2D_pt_intlny (Point2 *pto, Point2 *lp1, Point2 *lp2, double yVal,
+                        double tol);
+ int    UT2D_pt_intlnx (Point2 *pto, Point2 *lp1, Point2 *lp2, double xVal,
+                        double tol);
  int    UT2D_pt_int2pt2vc (Point2 *ip, Point2 *pt1, Vector2 *vc1,
                                      Point2 *pt2, Vector2 *vc2);
  int    UT2D_pt_int2vc2pt (Point2 *, Point2 *, Vector2 *, Point2 *, Vector2 *);
@@ -1520,7 +1523,7 @@ void   UT3D_pt_sub_pt2 (Point *, Point *, Point2 *);
 void   UT3D_pt_sub_pt3 (Point *, Point2 *);
 void   UT3D_pt_tra_pt_dx (Point*, Point*, double);
 void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
-// void   UT3D_pt_traptvc (Point *, Point *, Vector *);
+void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_trapt2vc (Point *po,Point *pi,Vector *vc1, Vector *vc2);
@@ -1661,7 +1664,7 @@ int    UT3D_comp2ln (Line *pa1, Line *pa2, double tol);
 int    UT3D_ln_ck_on_ln (Point*,Point*,Point*,Point*,Point*,Point*,double tol);
 int    UT3D_ln_ck_parpl (double *dist, Line *ln, Plane *pl, double tol);
 void   UT3D_ln_6db (Line*, double, double, double, double, double, double);
-void   UT3D_ln_2pt (Line *ln1, Point *pta, Point *pte);
+void   UT3D_ln_ptpt (Line *ln1, Point *pta, Point *pte);
 void   UT3D_ln_2pt2 (Line *ln1, Point2 *pta, Point2 *pte);
 int    UT3D_ln_int2pl (Line *ln, Plane *pl1, Plane *pl2);
 int    UT3D_ln_tng_ci_ci (Line *ln1, Circ *ci1, Circ *ci2, int sNr);
@@ -1796,7 +1799,7 @@ int UT3D_ptvc_intbox (Point *pl, Vector *vl, Point *bp1, Point *bp2);
 int UT3D_ln_intbox (Line *ln1, Point *bp1, Point *bp2);
 
 
-// void   UT3D_tria_pta_fac(Triangle*, Fac3*, Point*);
+// void   UT3D_tria_fac(Triangle*, Fac3*, Point*);
 
 int    UT3D_m3_inirot_angr (Mat_4x3 ma, Point *pa, Vector *va, double angr);
 void   UT3D_m3_loadpl   (Mat_4x3, Plane *);
@@ -1833,124 +1836,6 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 //================================================================
 // inline functions
 
-#define IABS(i)    (((i)<0)?-(i):(i))         ///< abs(int); always positive
-#define ISIGN(i)   ((i>=0)?(1):(-1))          ///< sign of int; +1 or -1
-
-/// change 0 -> 1, 1 -> 0;                   i1 = ICHG01 (i1);
-#define ICHG01(i)  (((i)>0)?(0):(1))
-
-// ICHG0-1                   change 0 > -1, 1 > -2, 2 > -3 
-#define ICHG0x1(ii) ((ii * -1) - 1)
-
-
-/// IMIN: return the smaller of 2 values
-/// IMIN (val2,val2)     return val1 if val1<val2 else return val2
-#define IMIN(x,y)  (((x)<(y))?(x):(y))
-
-/// IMAX: return the bigger of 2 values
-/// IMAX (val1,val2)     return val1 if val1>val2 else return val2
-#define IMAX(x,y)  (((x)>(y))?(x):(y))
-
-
-/// ILIM01                   returns 0 (ii <= 0) or 1 (ii >= 1)
-#define ILIM01(ii) (((ii) > 0)?1:0)
-
-
-/// ILIM0x1                   returns 0 (ii >= 0) or -1 (ii <= -1)
-#define ILIMm10(ii) (((ii) < 0)?-1:0)
-
-
-/// ILIM0X                    returns x = between 0 and hi
-#define ILIM0X(x,hi) (((x)>(hi))?(hi):(((x)<0)?0:(x)))
-/// \code
-/// ii = ILIM2 (i1, 10, 20);
-///   returns 10 if i1<10; else returns 20 if i1>20; else returns i1.
-/// \endcode
-
-
-/// ILIM2                     returns x = between lo and hi
-#define ILIM2(x,lo,hi) (((x)>(hi))?(hi):(((x)<(lo))?(lo):(x)))
-/// \code
-/// ii = ILIM2 (i1, 10, 20);
-///   returns 10 if i1<10; else returns 20 if i1>20; else returns i1.
-/// \endcode
-
-
-/// ILIMCK1                   check if x is between 0 and lim
-/// \code
-///   returns 0 if ix is between 0 and lim; else 1.
-/// ii = ILIMCK1 (x, 10);
-/// \endcode
-#define ILIMCK1(x,lim) (((x)>(lim))?(1):(((x)<(0))?(1):(0)))
-
-
-/// ILIMCK2                   check if x is between hi and lo
-/// \code
-///   returns 0 if ix is between iHi and iLo; else 1.
-///   lo hi must be ascending. For int and double.
-/// ii = ILIMCK2 (x, 10, 20);
-/// \endcode
-#define ILIMCK2(x,lo,hi) (((x)>(hi))?(1):(((x)<(lo))?(1):(0)))
-
-
-/// I_XOR_2I                        XOR exclusive or;
-/// \code
-///  0,0 -> 0;                       printf(" %d\n",I_XOR_2I(0,0));
-///  0,1 -> 1;
-///  1,0 -> 1;
-///  1,1 -> 0;
-/// \endcode
-#define I_XOR_2I(i1,i2)i1 ^ i2
-
-
-/// UTN_LIMCK__                  check if x is between v1 and v2
-/// \code
-///   returns 0 if x is between v1 and v2; else 1 (not between v1 and v2).
-///   lo hi can be ascending or descending. For int and double.
-/// d1 = UTN_LIMCK__ (x, 1., 2.);
-/// \endcode
-// ? for ascending; : for descending.
-#define UTN_LIMCK__(x,v1,v2) (((v1)<(v2))\
-?(((x)>(v2))?(1):(((x)<(v1))?(1):(0)))\
-:(((x)>(v1))?(1):(((x)<(v2))?(1):(0))))
-
-
-///  char --> int;   eg get 1 from '1'
-///   same as (int = charDig - 48) or (int = charDig - '0')
-#define ICHAR(x) ((x) & 15)
-
-
-/// \brief UTI_iNr_chrNr       give nr of ints for n characters (not including \0)
-/// \code
-///   makes 2 from 4  (4 chars + \0 needs 2 ints to store in int-words)
-/// \endcode
-#define UTI_iNr_chrNr(i1) (((i1) >> 2) + 1)   // (((i1) + 4) / 4)
-
-/// FDABS                     absolute value of float
-#define FDABS(df) ((df>=0.f)?(df):(-df))
-
-#define DMIN(x,y)  (((x)<(y))?(x):(y))
-#define DMAX(x,y)  (((x)>(y))?(x):(y))
-
-/// DLIM01                     0 if (d1 >= 0.); 1 if (d1 < 0.)
-#define DLIM01(dd) ((dd >= 0.)?0:1)
-/// \code
-/// i1 = DLIM01 (d1);
-///   returns 0 if (d1 >= 0.); else returns 1 if (d1 < 0.)
-/// \endcode
-
-/// DLIM2                     returns x = between lo and hi
-#define DLIM2(x,lo,hi) (((x)>(hi))?(hi):(((x)<(lo))?(lo):(x)))
-/// \code
-/// di = DLIM2 (d1, 0., 10.);
-///   returns 0 if d1<0; else returns 10 if d1>10; else returns d1.
-/// \endcode
-
-#define DSIGN(d)   ((d>=0.)?(1):(-1))         ///< sign of double; +1 or -1
-#define DSIGTOL(d,t) ((d>t)?(1):((d<-(t))?(-1):(0))) ///< d>t=1; d<-t=-1; else 0
-
-#define ACOS(dCos) ((dCos>=1.)?(0.):((dCos<=-1.)?(RAD_180):acos(dCos)))
-
 /// UT_RADIANS                radians from degrees
 #define UT_RADIANS(angDeg) ((angDeg)*(RAD_1))
 /// UT_DEGREES                degrees from radians
@@ -1958,62 +1843,6 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 
 #define UT3D_vc_crossprod2vc      UT3D_vc_perp2vc
 #define UT2D_acos_innerprod2vc    UT2D_acos_2vc
-
-
-//----------------------------------------------------------------
-/// \brief UTP_comp_0             compare double (double == 0.0 + - UT_TOL_min1)
-/// \code
-/// Retcode 0:   db <> 0.0
-///         1:   db = 0.0
-/// UTP_comp_0 (1.);   // returns 0  (false, not equal to 0.0)
-/// UTP_comp_0 (0.);   // returns 1  (true, is equal 0)
-/// see also UTP_db_comp_0
-/// \endcode
-#define UTP_comp_0(db) (fabs(db) < UT_TOL_min1)
-
-
-/// \brief UTP_comp2db               compare 2 doubles (with tolerance)
-/// \code
-/// Retcode 0 = Differenz der Werte > tol   - different
-/// Retcode 1 = Differenz der Werte < tol   - ident
-/// \endcode
-#define UTP_comp2db(d1,d2,tol) (fabs(d2-d1) < (tol))
-
-
-/// \brief UTP_px_paramp0p1px        Zahl aus p0, p1 und Parameterwert
-/// \code
-/// see also UTP_param_p0p1px
-/// Example: p0=5, p1=10, par=0.5; retVal=7.5.
-/// \endcode
-#define UTP_px_paramp0p1px(p0,p1,par)\
-  ((p1) - (p0)) * (par) + (p0);
-
-
-double UTP_db_comp_0 (double);
-/// UTP_db_comp_0              if fabs(d1) < UT_TOL_min1) d1 = 0.;
-#define UTP_db_comp_0(d1) ((fabs(d1) < UT_TOL_min1) ? 0.0 : d1)
-
-
-
-//----------------------------------------------------------------
-// set/clr/get bits in byte|short|int|long; see also ../ut/ut_BitTab.h
-
-/// BIT_SET                 set bits;    BITSET(data,value)
-/// data:        byte|short|int|long
-/// data,value:  value of bit to set (1|2|4..)
-#define BIT_SET(i,b) (i)|=(b)
-
-/// BIT_CLR                 clear bits;  BITCLR(data,value)
-/// data:        byte|short|int|long
-/// data,value:  value of bit to test (1|2|4..)
-/// Example: BITCLR(i1,3);    // clear bit-0 and bit-1 of i1
-#define BIT_CLR(i,b) (i)&=~(b)
-
-/// BIT_GET                 filter bits;  BITGET(data,value)
-/// data:        byte|short|int|long to test
-/// data,value:  value of bit to test (1|2|4..)
-/// RetCod: 0 (not set) or value (set)
-#define BIT_GET(i,b) ((i)&(b))
 
 
 //----------------------------------------------------------------
@@ -2129,7 +1958,7 @@ double UTP_db_comp_0 (double);
 /// UT2D_sar_2vc        signed area of 2 vectors (scalarprod)
 /// sign gives side
 /// UT2D_crossprod_2vc        crossprod of 2 2D-Vectors
-// see UT2D_sid_2vc  (test if v2 is CCW (pos) or CW (neg) from v1)
+// see UT2D_sid_2vc__  (test if v2 is CCW (pos) or CW (neg) from v1)
 // #define UT2D_crossprod_2vc UT2D_sar_2vc
 #define UT2D_sar_2vc(v1,v2)\
  ((v1)->dx * (v2)->dy - (v1)->dy * (v2)->dx)
@@ -2183,6 +2012,19 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 /// UT2D_vc_perpvc            vector = perpendic. to vector ( + 90 degrees)
 #define UT2D_vc_perpvc(vo,vi){\
   double _dx = (vi)->dx; (vo)->dx = -(vi)->dy; (vo)->dy = _dx;}
+
+
+/// UT2D_vcPerpAppr_vc_len create vector with fixed length normal to vector
+/// approximation (not precise)
+/// Vector2 vp, vc={ 0.5, -1.}; double dd = 0.1;
+/// UT2D_vcPerpAppr_vc_len (&vp, &vc, &dd); printf(" dx=%f dy=%f\n",vp.dx,vp.dy);
+void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
+#define UT2D_vcPerpAppr_vc_len(vco,vci,len){\
+ if(fabs((vci)->dx) > fabs((vci)->dy))\
+ {(vco)->dx = 0.; (vco)->dy = ((vci)->dx > 0.) ? *len : -*len;}\
+ else\
+ {(vco)->dy = 0.; (vco)->dx = ((vci)->dy > 0.) ? -*len : *len;}}
+
 
 /// UT2D_vc_perp2pt           vector = perpendic. to Line ( + 90 degrees)
 #define UT2D_vc_perp2pt(vo,p1,p2){\
@@ -2306,7 +2148,7 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 
 
 /// UT3D_pt_ptz               3D-Point = 2D-Point + Z-Val
-#define UT3D_pt_pt(pt3,pt2,zVal){\
+#define UT3D_pt_ptz(pt3,pt2,zVal){\
   memcpy((pt3), (pt2), sizeof(Point)); (pt3)->z = (zVal);}
 
 /// UT3D_pt_multpt                po = pi * d
@@ -2540,21 +2382,33 @@ void   UT3D_vc_div_d (Vector*, Vector*, double);
  (vo)->dy = ((v1)->dy + (v2)->dy) / 2.;\
  (vo)->dz = ((v1)->dz + (v2)->dz) / 2.;}
 
+
 /// \brief UT3D_comp2pt              compare 2 points with tolerance
 /// \code
 /// RC = 0: Punkte nicht gleich; Abstand > tol.
 /// RC = 1: Punkte sind gleich; Abstand < tol.
 /// Example:
 ///   if(UT3D_comp2pt(&pt1, &pt2, UT_TOL_pt) != 0) printf(" identical points\n");
+/// see also UTP_comp2db
 /// \endcode
 int    UT3D_comp2pt (Point *, Point *, double);
 #define UT3D_comp2pt(p1,p2,tol)\
   ((fabs((p2)->x - (p1)->x) < tol) &&\
    (fabs((p2)->y - (p1)->y) < tol) &&\
    (fabs((p2)->z - (p1)->z) < tol))
-  // ((UTP_comp2db((p1)->x,(p2)->x,(tol))) &&\
-   // (UTP_comp2db((p1)->y,(p2)->y,(tol))) &&\
-   // (UTP_comp2db((p1)->z,(p2)->z,(tol))))
+
+
+/// \brief UT3D_ck2D_equ_2pt          2D-compare of 2 3D-points with tolerance
+/// \code
+/// RC = 0: Punkte nicht gleich; Abstand > tol.
+/// RC = 1: Punkte sind gleich; Abstand < tol.
+/// Example:
+///   if(UT3D_ck2D_equ_2pt(&pt1,&pt2,UT_TOL_pt) != 0) printf(" equal points\n");
+/// \endcode
+int    UT3D_ck2D_equ_2pt (Point*, Point*, double);
+#define UT3D_ck2D_equ_2pt(p1,p2,tol)\
+  ((fabs((p2)->x - (p1)->x) < tol) &&\
+   (fabs((p2)->y - (p1)->y) < tol))
 
 
 /// UT3D_ln_inv                Invert 3D-Line
@@ -2606,8 +2460,8 @@ int    UT3D_comp2pt (Point *, Point *, double);
 ///                            0+1 -> 2; 1+2 -> 0; 2+0 -> 1.
 #define UT3D_ind3Tria_2ind(i1,i2) (IABS((i1)+(i2)-3))
 
-/// UT3D_tria_pta_fac          create triangle from Fac3
-#define UT3D_tria_pta_fac(tri,fac,pTab){\
+/// UT3D_tria_fac          create triangle from Fac3
+#define UT3D_tria_fac(tri,fac,pTab){\
  (tri)->pa[0] = &(pTab)[(fac)->i1];\
  (tri)->pa[1] = &(pTab)[(fac)->i2];\
  (tri)->pa[2] = &(pTab)[(fac)->i3];}
@@ -2627,6 +2481,12 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 
 
 //----------------------------------------------------------------
+/// check if typ is a DB-object (); returns 0=no; 1=yes.
+#define TYP_IS_DBO(typ) ((typ>Typ_Error)&&(typ<Typ_Val))
+
+/// check if typ is a curve (+-/*); returns 0=no; 1=yes.
+#define TYP_IS_CV(typ) ((typ>=Typ_CV)&&(typ<Typ_PLN))
+
 /// check if typ is a math.operator (+-/*); returns 0=no; 1=yes.
 #define TYP_IS_OPM(typ) ((typ>=TYP_OpmPlus)&&(typ<Typ_FcmSQRT))
 
@@ -2640,11 +2500,13 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 #define TYP_IS_MOD(typ) ((typ>=Typ_modif)&&(typ<TYP_FuncInit)||\
  (typ>=Typ_FncVAR1)&&(typ<Typ_EOT))
 
+
+//----------------------------------------------------------------
 /// check if typ is a selectionGroup; returns 0=no; 1=yes.
 #define TYP_IS_SELGRP(typ) ((typ>=Typ_goGeom)&&(typ<Typ_FncVAR1))
 // #define TYP_IS_SELGRP(typ) ((typ>=Typ_goGeom)&&(typ<Typ_FncVAR1)||\
  // (typ==Typ_lFig))
 
+// see also DL_typ_is_visTyp
 
-
-//=============== EOF ============================================
+// EOF

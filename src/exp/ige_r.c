@@ -947,8 +947,8 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   double  d1;
   FILE    *fp1 = NULL;
 
-  printf("\n\n===============================================\n");
-  printf("IGE_r__ |%s|\n",fnam);
+  // printf("\n\n===============================================\n");
+  // printf("IGE_r__ |%s|\n",fnam);
 
 
   impStat = 0;
@@ -3651,17 +3651,17 @@ static  int oCnt1, oCnt2;
   ox1->typ  = Typ_CVTRM;
   ox1->form = Typ_Index;
   ox1->siz  = indNr;
-  ox1->data = iTab;
 
 
   // bei Size==1 ist Index in data !
   if(indNr == 1) {
     dbi = ra[1];
-    ox1->data = (void*)dbi;  // see also OGX_SET_INDEX
+    ox1->data = PTR_LONG(dbi);  // see also OGX_SET_INDEX
     // ox1->data = (long)dbi;      // see also OGX_SET_INDEX
 
   } else {
     // Tabelle mitgeben; objIndices statt D-Line-Nr's
+    ox1->data = iTab;
     for(i1=0; i1<indNr; ++i1) {
       // printf(" ra[%d]=%f\n",i1,ra[i1+1]);
       i2 = ra[i1+1];
@@ -4007,7 +4007,7 @@ static  int oCnt1, oCnt2;
   objTab[0].typ  = Typ_Error; // typ/ind(=data) wird spaeter ersetzt
   objTab[0].form = Typ_Index;
   objTab[0].siz  = 1;
-  objTab[0].data = (void*)i1;
+  objTab[0].data = PTR_LONG(i1);
   objTab[0].dir  = 0;
 
 
@@ -4025,7 +4025,7 @@ static  int oCnt1, oCnt2;
   objTab[1].typ  = Typ_Error;  // typ/ind(=data) wird spaeter ersetzt
   objTab[1].form = Typ_Index;
   objTab[1].siz  = 1;
-  objTab[1].data = (void*)i1;
+  objTab[1].data = PTR_LONG(i1);
   objTab[1].dir  = if1;
 
 
@@ -4617,6 +4617,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
   ox1->typ  = Typ_SUR;
   ox1->form = Typ_Index;
   ox1->siz  = iNr + 3;
+// TODO: use Typ_Int8
   ox1->data = iTab;
 
 
@@ -4660,6 +4661,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
   ox1->typ  = Typ_SUR;
   ox1->form = Typ_Index;
   ox1->siz  = iNr + 4;
+// TODO: use Typ_Int8
   ox1->data = iTab;
 
 

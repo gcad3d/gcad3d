@@ -371,7 +371,7 @@ static FILE     *uo = NULL;
 
 
 //===============================================================
-  int UT3D_dump__ (TxtTab *sTab, int typ, void *data, char *txt,
+  int UT3D_dump__ (TxtTab *sTab, int typ, void *data, char *iTxt,
                   int ipar, int mode) {
 //===============================================================
 // create info-textstrings describing binary object typ/data (structured)
@@ -398,7 +398,7 @@ static FILE     *uo = NULL;
   void     *v1;
   int      irc, i1, i2, i3, ptNr, sTyp, *ia;
   long     dbi, il1;
-  char     oNam[32], s1[64], s2[64], cbuf[256], *cps, *cp1;
+  char     oNam[32], s1[64], s2[64], cbuf[256], txt[240], *cps, *cp1;
   double   d1, *dp;
   Point    *p1, *ptAr;
   Point2   *pt2Ar;
@@ -483,7 +483,19 @@ static FILE     *uo = NULL;
 
 
 
-  cps = &cbuf[6];
+  cps = &cbuf[6];    // size max 250 !
+
+  // get text with max.length of 240
+  i1 = strlen(iTxt);
+  if(i1) {
+    if(i1 < 240) strcpy(txt, iTxt);
+    else {
+      strncpy(txt, iTxt, 240);
+      txt[240] = '\0';
+    }
+  } else {
+    txt[0] = '\0';
+  }
 
   //----------------------------------------------------------------
   if(typ == Typ_PT2) {
@@ -498,10 +510,8 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_PT) {
     p1 = data;
-    if(strlen(txt)) {
-      sprintf(cps,"Point %s",txt);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    }
+    sprintf(cps,"Point %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
     i3 = sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
     if(i3 > 60) strcpy (cps, "(Point) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
@@ -510,10 +520,8 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_WPT) {
     wpt = data;
-    if(strlen(txt)) {
-      sprintf(cps,"wPoint %s",txt);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    }
+    sprintf(cps,"wPoint %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
     sprintf(cps,"(wPoint) %9.3f,%9.3f,%9.3f w=%9.3f",wpt->x,wpt->y,wpt->z,wpt->w);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 

@@ -117,7 +117,7 @@ _____________________________________
 Linux Build:
 
 Prerequisites:
-gcad3d (eg from git-repository) in <dirXX>/devel/gcad3d
+gcad3d (eg from git-repository) in <dirXX>/gcad3d
 Default: <dirXX> = ${HOME}
 
 

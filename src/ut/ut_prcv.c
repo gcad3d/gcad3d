@@ -179,6 +179,10 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 /// used only when new model is activated
 /// \endcode
 
+
+  UT3D_stru_dump (Typ_PRCV, &PRCV0, " PRCV_free__ ");
+
+
   if(!PRCV0.fTmp) {
 
     if(PRCV0.npt)   free (PRCV0.npt);
@@ -258,6 +262,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   // printf("\n========================= PRCV_get_dbo__ typ=%d dbi=%ld siz=%d\n",
          // prc1->typ,prc1->dbi,prc1->siz);
+  // UT3D_stru_dump (Typ_PRCV, prc1, " PRCV_get_dbo__-prc1 ");
 
 
   // test for CCV (must resolv)
@@ -401,7 +406,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 //================================================================
   int PRCV_get_dbo_add_tc (CurvPrcv *prc1, CurvCCV *cvi) {
 //================================================================
-// add trimmed-curve ccv1 to prc1
+// add trimmed-curve cvi to prc1
 //
 // read basecurve of ccv1 into prc2;
 // find limited segment and add to prc1.
@@ -413,9 +418,10 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   CurvCCV  ccv1;
   CurvPrcv prc2;
 
-  // printf("---------------------------------- \n");
+  // printf("----------------PRCV_get_dbo_add_tc ------------------ \n");
   // UT3D_stru_dump (Typ_CVTRM, cvi, " PRCV_get_dbo_add_tc-cvi ");
   // UT3D_stru_dump (Typ_PRCV, prc1, " PRCV_get_dbo_add_tc-prc1 ");
+  // PRCV_dump__ (2, prc1, " prc1");
 
 
   // if basic-curve of ccv1 is also trimmedCurve: modify in ccv1:
@@ -578,6 +584,9 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   // free prc2
   // PRCV_rdf_free (&prc2);
     // printf("ex PRCV_get_dbo_add_tc\n");
+    // if(cvi->dbi == 21L)
+    // UT3D_stru_dump (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
+    // PRCV_dump__ (2, prc1, " prc1");
 
 
   return 0;
@@ -631,7 +640,12 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
         // identical; skip first point
         --ptNr;
         ++ips;
-      } else printf("**** PRCV_get_tc_add_prc I002\n");
+      } else {
+        printf("**** PRCV_get_tc_add_prc I002\n");
+        UT3D_stru_dump (Typ_PT, &prc1->npt[i1], "prc1[%d]",i1);
+        UT3D_stru_dump (Typ_PT, &prc2->npt[ips], "prc2[%d]",ips);
+        // return -1;
+      }
     }
     // copy
     memcpy (&prc1->npt[prc1->ptNr], &prc2->npt[ips], sizeof(Point) * ptNr);
@@ -1844,11 +1858,13 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_memspc_add %d\n",ptNr);
+  // UT3D_stru_dump (Typ_PRCV, prc, "  prc ");
+  // PRCV_dump__ (2, prc, "  prc-in");
 
   if(ptNr < 1 ) return 0;
 
 
-  if(prc->fTmp = 2) {
+  if(prc->fTmp == 2) {
     // empty; malloc.
     prc->npt  = (Point*)malloc(sizeof(Point) * ptNr);
     prc->npar = (double*)malloc(sizeof(double) * ptNr);
@@ -1859,13 +1875,13 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   }
 
 
-  if(prc->fTmp = 1) {
+  if(prc->fTmp == 1) {
     // heap-Error     See PRCV_memspc_ini.
     TX_Error ("PRCV_rdf__ EOM-1");
     return -1;
   }
 
-  if(prc->fTmp = 0) {
+  if(prc->fTmp == 0) {
     // 0=malloc-realloc;
     prc->npt  = (Point*)realloc(prc->npt, sizeof(Point) * ptNr);
     prc->npar = (double*)realloc(prc->npar, sizeof(double) * ptNr);
@@ -1883,6 +1899,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   if(!prc->npt) return -2;
   if(!prc->npar) return -2;
   if(!prc->nipt) return -2;
+
+    // PRCV_dump__ (2, prc, "ex-PRCV_memspc_add");
 
   return 0;
 
@@ -2125,7 +2143,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   int PRCV_dump_1 (int ii, CurvPrcv *prc) {
 //================================================================
 
-  char   s1[80];
+  char   s1[80], s2[32];
 
 
   if(ii < 0) {
@@ -2134,13 +2152,20 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   }
 
 
-  if(prc->npar[ii] == UT_VAL_MAX) strcpy(s1, "    -undef-");
+  if((prc->npar[ii] < -FLT_32_MAX) || (prc->npar[ii] > FLT_32_MAX))
+    strcpy(s1, "    -undef-");
   else sprintf (s1, "%11.3f", prc->npar[ii]);
 
-  printf("%5d pt = %11.3f %11.3f %11.3f   par %s   dbi %5ld\n", ii,
+
+  if((prc->nipt[ii] < -INT_32_MAX) || (prc->nipt[ii] > INT_32_MAX)) 
+    strcpy(s2, "  ---");
+  else sprintf (s2, "%5ld", prc->nipt[ii]);
+
+
+  printf("%5d pt = %11.3f %11.3f %11.3f   par %s   dbi %s\n", ii,
          prc->npt[ii].x, prc->npt[ii].y, prc->npt[ii].z,
-         s1, // prc->npar[ii],
-         prc->nipt[ii]);
+         s1,    // prc->npar[ii],
+         s2);   // prc->nipt[ii]);
 
 
   return 0;
@@ -2175,7 +2200,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // print marked-points
     } else {
-      if(prc->npar[i1] != UT_VAL_MAX) {
+      // if(prc->npar[i1] != UT_VAL_MAX) {
+      if((prc->npar[i1] > -FLT_32_MAX) && (prc->npar[i1] < FLT_32_MAX)) {
         iatt = ATT_COL_RED;
         // printf("prc.npar[%d] = %lf\n",i1,prc->npar[i1]);
         printf("%5d pt = %11.3f %11.3f %11.3f   par %11.3f   dbi %5ld\n", i1,

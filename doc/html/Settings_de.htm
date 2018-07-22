@@ -186,17 +186,8 @@ Das symbolische Verzeichnis '.' wird durch das momentan aktive Verzeichnis erset
 
 ____________________________________________________________________________
 <p><a name="Start"></a></p>
-<h2>Programmstart / Startparameter:</h2>
+<h2>Startparameter:</h2>
 
-<b>Programmstart:</b>
-  Es wird automatisch Modell {base}/tmp/Model eingelesen.
-  Submodels haben die Dateinamen {base}/tmp/Model_{submodelName}.
-  Sie können diese Dateien durch beliebige Vorlaufprogramme erstellen.
-  Datei {base}/tmp/Model wird am Programmende automat. erstellt.
-  
-  
-
-<b>Startparameter:</b>
 Beim Start koennen folgende Parameter angegeben werden:
   comp              // compile DLL's - Checkbox aktivieren
   exit              // normaler Programmstop (mit sichern)
@@ -222,14 +213,15 @@ Nicht definierte Parameter:
 
 <i>Beispiele:</i>
 
-./gCAD3D load sample_activ_1.gcad noTB noMB
-  Modell sample_activ_1 aus dem zuletzt benutzen Verzeichnis (DirIn) laden,
+gcad3d Data/sample_mockup1.gcad noTB noMB
+  Modell sample_mockup1.gcad aus dem (symbolischen) Verzeichnis Data laden,
   Toolbar und Meldungsfenster ausblenden
  
  
-./gCAD3D comp defLoad tst3
-  dynam. Kompilieren EIN, Standardmodell laden und
-  DLL (shared library) tst3 laden und starten
+gcad3d comp defLoad tst3
+  Zuletzt benutztes Modell laden,
+  dynam. Kompilieren EIN, und
+  DLL (shared library) tst3 entladen, kompilieren, laden und starten
 
  
 ____________________________________________________________________________

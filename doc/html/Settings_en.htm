@@ -173,16 +173,8 @@ The symbolic directory '.' is replaced by the currently active directory
 
 ____________________________________________________________________________
 <p><a name="Start"></a></p>
-<h2>Startup / Startup Parameters:</h2>
+<h2>Startup Parameters:</h2>
 
-<b>Startup:</b>
-  The model {base}/tmp/Model will automatically be opened on startup.
-  Submodels are given the filename {base}/tmp/Model_{submodelName}.
-  You can create these files with any preprocessing program.
-  The file {base}/tmp/Model is automatically created when the program ends.
-   
-
-<b>Startup Parameters:</b>
 The program can be started with the following parameters:
   comp              // compile dll's - activate checkbox
   exit              // normal Programmstop (with saving)
@@ -208,14 +200,14 @@ Undefined parameters:
 
 <i>Examples:</i>
 
-./gCAD3D load sample_activ_1.gcad noTB noMB
-  Load model "sample_activ_1" from the last directory used (DirIn),
+gcad3d Data/sample_mockup1.gcad noTB noMB
+  Load model "sample_mockup1" from the (symbolic) directory Data,
   hide toolbar and message window.
  
  
-./gCAD3D comp defLoad tst3
-  Dynamically download and compile dll (shared library) TST3,
-  and startup with default model.
+gcad3d comp defLoad tst3
+  Start with last used model, 
+  dynamically unload compile and reload dll (shared library) tst3.
 
  
 ____________________________________________________________________________

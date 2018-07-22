@@ -176,7 +176,7 @@ static Vector prj_vc;      // projectionDirection
   CurvCCV  *ccva;
 
 
-  printf("UPRJ_app_pt prj_typ=%d\n",prj_typ);
+  // printf("UPRJ_app_pt prj_typ=%d\n",prj_typ);
   // UT3D_stru_dump (prj_typ, prj_tg, "target:");
   // UT3D_stru_dump (Typ_VC, &prj_vc, "  prj_vc:");
 
@@ -220,9 +220,9 @@ static Vector prj_vc;      // projectionDirection
   if(prj_typ != Typ_CVPOL) goto L_CVELL;
     i1 = 16;   // maxPoints
     irc = UT3D_pt_projptplg (&i1, pa, da, prj_tg, p1);
-      printf(" irc=%d i1=%d\n",irc,i1);
-      for(i2=0; i2<i1; ++i2) 
-      UT3D_stru_dump (Typ_PT, &pa[i2], " pa[%d] - da=%lf",i2,&da[i2]);
+      // printf(" irc=%d i1=%d\n",irc,i1);
+      // for(i2=0; i2<i1; ++i2) 
+      // UT3D_stru_dump (Typ_PT, &pa[i2], " pa[%d] - da=%lf",i2,&da[i2]);
     APT_set_modMax (i1);
     if(irc < 0) return -1;
     if(i1 < 1) return 0;

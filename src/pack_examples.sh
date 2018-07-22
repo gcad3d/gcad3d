@@ -29,14 +29,13 @@ tempDir=../packages/tmp
 # set outDir for outputfile examples.gz
 outDir=${gcad_dir_dev}packages
 
-#dirMdl=/mnt/serv1/Devel/cadfiles/gcad/
-dirMdl=gCAD3D
 
 rm -rf ${tempDir}
 /bin/mkdir -p  ${tempDir}
 #cp .gitignore ${tempDir}/.
 
 
+# create outDirectory  ${tempDir}
 echo " start mkdir " ${tempDir}
 /bin/mkdir -p ${tempDir}/cfg
 /bin/mkdir -p ${tempDir}/tmp
@@ -58,14 +57,10 @@ echo " - copy to   "${tempDir}"/dat/"
 #cp dat/Boot_Dach_V1.gcad ${tempDir}/tmp/Model
 #/bin/cp ${dirMdl}sample_activity_modval_1.gcad ${tempDir}/tmp/Model
 
-# copy example-models
-/bin/cp dat/samp*.*           ${tempDir}/dat/.
-/bin/cp dat/Haus1.gcad        ${tempDir}/dat/.
-/bin/cp dat/Haus*.jpg         ${tempDir}/dat/.
-/bin/cp dat/DachWS4.jpg       ${tempDir}/dat/.
-/bin/cp dat/SteinMarmor1.jpg  ${tempDir}/dat/.
-/bin/cp dat/Niet1.gcad        ${tempDir}/dat/.
-/bin/cp dat/Schrau1.gcad      ${tempDir}/dat/.
+
+#-----------------------------------------------------------
+# copy example-models  (see pack_models.sh)
+/bin/cp dat/*                 ${tempDir}/dat/.
 
 /bin/cp prg/demo_*.gcap       ${tempDir}/prg/.
 /bin/cp prg/CirPat.gcap       ${tempDir}/prg/.

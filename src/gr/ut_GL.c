@@ -9286,7 +9286,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //================================================================
 // display surface
 // Input:
-//   ind        dbi
+//   ind        dbi;  (glNewList; do DL_StoreObj|DL_SetInd before)
+//              NULL for add into to open DL
+//                (do DL_StoreObj,GL_Surf_Ini before; GL_EndList after)
 //   att        ColRGB*   color|texture
 //   bMsh       binMsh (tesselated surf)
 //
@@ -9330,9 +9332,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     GL_Tex_End ();
 
   } else {
-    GL_Surf_Ini (ind, (void*)&att);
+    if(*ind) GL_Surf_Ini (ind, (void*)&att);
     irc = GL_Disp_sur (bMsh);
-    GL_EndList ();
+    if(*ind) GL_EndList ();
   }
 
 /*
@@ -9351,6 +9353,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_Disp_sur (ObjGX *bMsh) {
 //================================================================
 // Draw 1-n Planar Patches; each Patch with 1 vektor and 1-n closed Contours.
+// DispList must be open (see GL_DrawSur)
 // Input: 
 //   bMsh     binMsh (tesselated surf)
 //
@@ -10177,8 +10180,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GLuint dlInd;
 
 
-  // printf("GL_DrawSymV %ld %d\n",*ind,symTyp);
-  // printf("  pos=%f,%f,%f sc=%f\n",pt1->x,pt1->y,pt1->z,scale);
+  printf("GL_DrawSymV %ld %d\n",*ind,symTyp);
+  printf("  pos=%f,%f,%f sc=%f\n",pt1->x,pt1->y,pt1->z,scale);
 
 
 
@@ -15149,7 +15152,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
   // SYM_TRIANG - ein Dreieck ==================================
   DL_ind = (GLuint)SYM_TRIANG;
-  d1 = GL_ModScale / 3.;
+  d1 = GL_ModScale / 50.;   // 3.;
 
   glNewList (DL_ind, GL_COMPILE);
 

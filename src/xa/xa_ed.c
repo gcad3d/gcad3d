@@ -1732,6 +1732,7 @@ static int lnr1, lnr2;
     if(iStat == 1) {
       if(!strcmp(mem_cbuf1,"ENDGATAB")) {
         iStat = 0;
+          // GA_dump__ (NULL);
         goto L_nxt_ln;
       }
 
@@ -2266,7 +2267,8 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
 
   // reset hilite of last obj
   if(UI_InpMode == UI_MODE_MAN)             // 2012-10-29
-    DL_disp_hili_last (OFF);
+     DL_hili_off (-2L);
+    // DL_disp_hili_last (OFF);
 
 
   // wurde der Cursor zurueckgesetzt (nur was wegloewschen)
@@ -2366,7 +2368,7 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
   if(UI_InpMode == UI_MODE_MAN) {           // 2011-04-10
 
     if(WC_get_obj_stat() == 0) GL_temp_del_1 (DLI_TMP);   // remove tempObj
-    DL_disp_hili_last (ON);             // hilite last obj of DL
+    DL_hili_on (-2L); // DL_disp_hili_last (ON); // hilite last obj of DL
 
   } else if(UI_InpMode == UI_MODE_CAD) {    // 2011-08-25
     if(IE_get_Func() < 0) {

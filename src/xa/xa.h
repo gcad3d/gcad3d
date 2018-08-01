@@ -18,6 +18,7 @@
 /// batch      0=interaktiv, 1=Batchmode.
 /// texture    0=no, hardware does not accept textures; 1=Yes, Ok.
 /// build      Compile,Linker not checked/not available; 1=available.
+/// comp       Compile plugins off; 1=on.
 /// APP_stat   0=mainActive; 1=<APP_act_nam> (plugin) active.
 /// TUT_stat   ScreeCast on=1  off=0
 /// subtyp     0=VRML1, 1=VRML2
@@ -42,7 +43,8 @@ typedef struct {int errLn; short sysStat, errStat;
                           tstDllStat:1,
                           mdl_modified:1,
                           mdl_box_valid:1,
-                          uuBits:21;
+                          comp:1,
+                          uuBits:20;
                 char      cadIniM, cadIniS, subtyp;}           AP_STAT;
 
 
@@ -74,7 +76,6 @@ extern char AP_sym_prg[64];       // symbolic directory for programs
 
 extern char AP_errText[128];      // errortext for minor errors
 extern char AP_printer[80];       // Printer
-extern char AP_browser[80];       // HTML-browser
 extern char AP_editor[80];        // TextEditor
 extern char AP_lang[4];           // en or de
 

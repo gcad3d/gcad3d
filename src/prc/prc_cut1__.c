@@ -16,7 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+- use TCPOS ZSUR1 CLEAR
+- make Tool right,left,off /G42,G41,G40
+- make PRISM for workpath
 
 -----------------------------------------------------
 Modifications:
@@ -42,8 +44,11 @@ PRCE_tb_exit
 PRCE_lst_postprocs
 
 PRCE_disp__         display cut-path; lin or circ.
-PRCE_disp_ln
-PRCE_disp_ci
+PRCE_disp_ln__
+PRCE_disp_ci__
+PRCE_disp_sur_ini   init / close display planar surface
+PRCE_disp_circ_sid  circ-side-surface
+PRCE_disp_circ_bot  circ-bottom-surface
 PRCE_disp_txt
 
 PRCE_Out_ck_plg     test polygon normal/revers
@@ -57,6 +62,42 @@ PRCE_Out_write_txt
 
 List_functions_end:
 =====================================================
+
+
+
+FROM  = defines the starting position in the machine (G92).
+        Correlates the CAD-position with the machine-position.
+        At the machine: set the tooltip manually to the defined position, start.
+        Z-Val -= active tool-length.
+ZSUR1 = actZsur1 = workPlane; position of the tooltip above/below CAD-Obj-Zero;
+        in workPlane the toolTip makes all work-movements (GO).
+CLEAR = actZclr1 = retract toolTip to <CLEAR> units above CAD-Obj-Zero;
+        clear-position is used for all rapid-movements (RP).
+TEC     tool-definition (ToolLength and radius)
+TCPOS   toolChangePosition. Change tool:
+        retract at ToolchangeHeight; move to toolChangePosition; change tool.
+
+ Z-val rapid (RP) = CLEAR
+ Z-val work (GO)  = ZSUR1
+
+                    +--+
+                    |  |  rapid-position of tool
+                    |  |
+                    |  |
+.....x..............+..+............ CLEAR (safePlane)........................
+     |
+   CLEAR                   +--+     ..............................x
+     |                     |  |                                   |
+.....x..... _______________|  |__ ......CAD-Obj-Zero......x..  toolLength  ...
+           |               |  |  |                      ZSUR1     |
+           |               +--+  |  ....workPlane.........x.......x...........
+           |                     |
+           |                     |
+           |_____________________|
+
+
+see ../prc/prc_cut1__.h     NCCmdTab = list of all NC-words
+
 
 \endcode *//*----------------------------------------
 
@@ -92,6 +133,7 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../xa/xa_ui.h"               // APF_*
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa.h"                  // APP_act_*
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
 #include "../ut/func_types.h"               // SYM_TRIANG
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
@@ -104,13 +146,19 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 
 //================================================================
 // EXTERN
+// from ../ci/NC_Main.h
+extern long    AP_dli_act;      // index dispList
+
 // ex ../ci/NC_Main.c
 extern double    APT_ModSiz;
 
 
 // ex ../xa/xa.c
 // extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
-extern double  *SRC_ato_tab;
+extern double    *SRC_ato_tab;
+extern int       WC_modact_ind;         // -1=primary Model is active;
+                                        // else subModel is being created
+
 
 // ex ../xa/xa_ui.c:
 // extern MemObj ckb_man, ckb_vwr;
@@ -119,42 +167,54 @@ extern MemObj UIw_Box_TB;    // toolbarBox
 
 
 //================================================================
-// LOCAL
-typedef struct {double rad, len;} Tool;
-#define TLTABSIZ 100
+// LOCAL DATA
 
-Point   oldPos;
-Point   actPos;
-Circ    actCir;               // current circ (G2|G3)
-
-double  actZsur1;
-double  actZclr1;
-
-int     rapid = -1;           // ON=0; OFF=1;
-int     tlActNr = -1;
-// int     tlActSid = 0;   // (RI LE OFF)   def = off
-
-char    outBuf[256];
-Tool    tlTab[TLTABSIZ];
-
-#define cmd_SIZ 100
-int     cmd_anz;
-int     *cmd_typ;
-double  *cmd_tab;
-
+#define VERSION "1.1"
 
 #define iAtt_rp      20     // rapid; without tool
 #define iAtt_cut     21     // cut  (with tool)
 #define iAtt_tlrp    22     // rapid with tool
 
 
+typedef struct {double rad, len;} Tool;
+#define TLTABSIZ 100
+static Tool    tlTab[TLTABSIZ];
+
+static Point   oldPos;
+static Point   actPos;
+static Circ    actCir;               // current circ (G2|G3)
+
+static double  actZsur1;             // Z-val of working-plane
+static double  actZclr1;             // Clearence-distance
+
+static int     rapid;                // ON=0; OFF=1;
+static int     tlActNr;     
+// int     tlActSid = 0;   // (RI LE OFF)   def = off
+
+static char    outBuf[256];
+
+#define cmd_SIZ 100
+static int     cmd_anz;
+static int     *cmd_typ;
+static double  *cmd_tab;
+
+static int     PRCE_mode=0;        // 0 = Edit, > 1 = postProc spprc is active
+static FILE    *PRCE_fpo=NULL;     // nc-outfile
+static char    spprc[128];         // postproc
+
+static double TL_length, TL_rad;  // length, radius of active tool
+static Vector TL_vcz;       // Z-axis of tool
+static Point  TL_tcp;       // toolChangePosition
+
+static int    TL_dbTyp;     // db-typ of active obj
+static long   TL_dbi;       // dbi of active obj
+
+
 static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
-int     PRCE_mode=0;        // 0 = Edit, > 1 = postProc spprc is active
-FILE    *PRCE_fpo=NULL;     // nc-outfile
-char    spprc[128];         // postproc
 
 
+//================================================================
 // LOCAL PROTOTYPES:
   char** PRCE_lst_postprocs (char *sproc);
   int PRCE_selMen_cb (MemObj *mo, void **data);
@@ -175,15 +235,16 @@ char    spprc[128];         // postproc
 
 
   int       i1;
+  long      dli;
   Point     pt1;
   ObjAto    ato1;
 
 
-  // printf("------------- cut1 ------------------ \n");
-  // if(iFnc>=0)printf("PRCE__ |%s|%s| %d\n",NCCmdTab[iFnc],data,iFnc);
-  // else printf("PRCE__ %d |%s|\n",iFnc,data);
-  // printf("  PRCE_mode=%d\n",PRCE_mode);
-  // printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
+  printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
+  if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
+  else printf("PRCE__ %d |%s|\n",iFnc,data);
+  printf("  PRCE_mode=%d\n",PRCE_mode);
+  printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
 
 
   // function ?
@@ -202,8 +263,8 @@ char    spprc[128];         // postproc
   cmd_typ = ato1.typ;
   cmd_tab = ato1.val;
 
-    // for(i1=0; i1<cmd_anz; ++i1)
-    // printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);
+    for(i1=0; i1<cmd_anz; ++i1)
+    printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);
 
 
 
@@ -214,39 +275,36 @@ char    spprc[128];         // postproc
       i1 = APT_decode_pt1 (&actPos, 0, cmd_typ, cmd_tab);
       if(i1 < 0) goto L_err_par;
 
-      // fix actPos-Z
-      actPos.z = actZsur1;
+      // subract tool-length
+      if(tlActNr) actPos.z -= TL_length;
+        UT3D_stru_dump (Typ_PT, &actPos, " FROM ");
 
       if(PRCE_mode) { // NC-out
         // "FROM pos"
         PRCE_Out_write_ln ("FROM ");
 
       } else {  // disp
-        APT_disp_SymV1 (SYM_TRIANG, 0, &actPos, 0.5);     // Dreieck klein
+        // APT_disp_SymV1 (SYM_TRIANG, 9, &actPos, 0.25);     // Dreieck klein
+        dli = -3L;
+        GL_DrawSymB (&dli, ATT_COL_RED, SYM_TRI_B, &actPos);
       }
       oldPos = actPos;
+      rapid = OFF;        // next go up to safe-plane
       goto L_hist;
 
 
     //================================================================
     case 2:    // GO
-        if(tlActNr < 0) {
-          tlActNr = 0;
-          // DEfault-tool-radius:
-          if(tlTab[0].rad == -1.) tlTab[0].rad = APT_ModSiz / 500.;
-          if(PRCE_mode) { // NC-out
-            PRCE_Out_write_txt ("TL 1");
-          }
-        }
       if(rapid == ON) {          // 0=ON; 1=OFF;
         rapid = OFF;
         // go down to working-Z ("G1 <oldPos> <newZ>
           // printf(" tool down ..\n"); PRCE_Out_write_txt (" tool down ..");
         actPos = oldPos;
-        // actPos.z -= actZclr1;
+        // set z = workPlane
         actPos.z = actZsur1;
         PRCE_Out__ ("G1 ");
           // PRCE_Out_write_txt (" tool is down ..");
+
       } else if (rapid == -1) {
         rapid = OFF;
       }
@@ -267,51 +325,55 @@ char    spprc[128];         // postproc
 
       if(iFnc == 3) { // RP
         actPos = pt1;
+
       } else {        // RPR
         actPos.x += pt1.x;
         actPos.y += pt1.y;
         actPos.z += pt1.z;
       }
 
-      // fix actPos-Z
-      actPos.z = actZsur1 + actZclr1;
-        // printf(" .. fixed z = %f\n",actPos.z);
 
-
-      if(PRCE_mode) { // NC-out
-        // write "RP" out
-        if(rapid != ON) PRCE_Out_write_txt ("RP");  // sofort "RP" raus
-        // write path out ("G1 pos")
-        PRCE_Out_write_ln ("G1 ");
-
-      } else {  // disp ln rapid
-        if(tlActNr >= 0) i1 = iAtt_tlrp;
-        else             i1 = iAtt_rp;
-        PRCE_disp_ln (i1);
-      }
-      oldPos = actPos;
-      rapid = ON;
+      // move rapid -> actPos
+      PRCE_RP_do ();
       goto L_hist;
 
 
     //================================================================
     case 20:    // TL  see ../nc/nc_wcut1_work.c :450
+      // "TL 0" unload tool.   "TL 1"
       if(cmd_typ[0] == Typ_Val) {
-        i1 = cmd_tab[0] - 1;
-        if(i1 >= TLTABSIZ) {TX_Error("PRCE__ overflow toolTable"); return -1;}
-
+        i1 = cmd_tab[0];
+        if(i1 >= TLTABSIZ) {
+          TX_Error("PRCE__ overflow toolTable");
+          return -1;
+        }
+        // do toolChange
+        PRCE_TL_do (i1);
+ 
+/*
         // if(rapid == OFF): go ut to clearSurf
         if(rapid == OFF) PRCE_Out_clr_up ();
 
-        if(tlTab[i1].rad < UT_TOL_cv) tlTab[i1].rad = APT_ModSiz / 100.;
-        tlActNr = i1;
+        if(i1 < 1) {
+          // no tool
+          TL_rad = APT_ModSiz / 100.;
+          TL_length = 0.;
+          tlActNr = 0;
+        } else {
+          // if(tlTab[i1].rad < UT_TOL_cv) tlTab[i1].rad = APT_ModSiz / 100.;
+          TL_rad = tlTab[i1].rad;
+          TL_length = tlTab[i1].len;
+          tlActNr = i1;
+        }
 
-        sprintf(outBuf, "TL %d",tlActNr+1);
+        sprintf(outBuf, "TL %d",tlActNr);
         if(PRCE_mode) { // NC-out
           PRCE_Out_write_txt (outBuf);
         } else {
           PRCE_disp_txt (outBuf);
         }
+*/
+
       }
       goto L_hist;
 
@@ -332,8 +394,20 @@ char    spprc[128];         // postproc
 
 
     //================================================================
+    case 15:    // INL
+      //
+      if(PRCE_mode) { // NC-out
+        PRCE_Out_write_txt (data);
+      } else {
+        PRCE_disp_txt (data);
+      }
+      goto L_exit;
+
+
+
+    //================================================================
     case 35:    // TEC
-      i1 = cmd_tab[0] - 1;
+      i1 = cmd_tab[0];
       if(i1 >= TLTABSIZ) {TX_Error("PRCE__ overflow toolTable"); return -1;}
       if(cmd_anz >= 2) tlTab[i1].rad = cmd_tab[1];
       if(cmd_anz >= 3) tlTab[i1].len = cmd_tab[2];
@@ -357,18 +431,25 @@ char    spprc[128];         // postproc
       actZsur1 = cmd_tab[0];
       goto L_exit;
 
+    //================================================================
+    case 21:    // TCPOS  toolChangePosition
+      i1 = APT_decode_pt1 (&TL_tcp, 0, cmd_typ, cmd_tab);
+      if(i1 < 0) goto L_err_par;
+        UT3D_stru_dump (Typ_PT, &TL_tcp, " TL_tcp");
+      goto L_exit;
+
 
     //================================================================
     default: 
-      TX_Error("PRCE__ E001");
+      TX_Error("PRCE__ E001-%d",iFnc);
       return -1;
 
   }
 
 
   L_hist:
-    PRCE_hist_save();
-
+    // store APT_line_act,oldPos,tlActNr,rapid
+    PRCE_hist_save (&oldPos, &tlActNr, &rapid);
 
   L_exit:
     // printf("exit PRCE__ ..\n\n");
@@ -389,28 +470,106 @@ char    spprc[128];         // postproc
 }
 
 
+//================================================================
+  int PRCE_TL_do (int tlNew) {
+//================================================================
+// retract at ToolchangeHeight; move to toolChangePosition; change tool.
+
+  printf("PRCE_TL_do %d\n",tlNew);
+
+  // retract at ToolchangeHeight
+  // if(rapid == OFF): go ut to clearSurf
+  if(rapid == OFF) { PRCE_Out_clr_up (); rapid = ON; }
+
+
+  // check if TCPOS defined
+  if(UT3D_pt_isFree(&TL_tcp)) goto L_change;
+
+  // move to toolChangePosition
+  actPos = TL_tcp;
+  PRCE_RP_do ();
+
+
+  //----------------------------------------------------------------
+  // change tool
+  L_change:
+  // set tlActNr TL_rad TL_length
+  if(tlNew < 1) {
+    // no tool
+    TL_rad = APT_ModSiz / 100.;
+    TL_length = 0.;
+    tlActNr = 0;
+
+  } else {
+    // if(tlTab[tlNew].rad < UT_TOL_cv) tlTab[tlNew].rad = APT_ModSiz / 100.;
+    TL_rad = tlTab[tlNew].rad;
+    TL_length = tlTab[tlNew].len;
+    tlActNr = tlNew;
+  }
+
+  sprintf(outBuf, "TL %d",tlActNr);
+
+
+  if(PRCE_mode) { // NC-out
+    PRCE_Out_write_txt (outBuf);
+  } else {
+    PRCE_disp_txt (outBuf);
+  }
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int PRCE_RP_do () {
+//================================================================
+// move rapid to actPos
+
+  int  i1;
+
+  // set z = safePlane
+  actPos.z = actZclr1;
+    // printf(" .. fixed z = %f\n",actPos.z);
+
+
+  if(PRCE_mode) { // NC-out
+    // write "RP" out
+    if(rapid != ON) PRCE_Out_write_txt ("RP");  // sofort "RP" raus
+    // write path out ("G1 pos")
+    PRCE_Out_write_ln ("G1 ");
+
+  } else {  // disp ln rapid
+    if(tlActNr >= 0) i1 = iAtt_tlrp;
+    else             i1 = iAtt_rp;
+    PRCE_disp_ln__ (i1);
+  }
+
+  oldPos = actPos;
+  rapid = ON;
+
+  return 0;
+
+}
+ 
+
 //===========================================================================
   int PRCE_disp__ (char *wTyp)  {
 //===========================================================================
 // display cut-path; lin or circ.
-
-#define TAB_SIZ 1000
-
-static  Line   ln1, ln2;
-static  Circ   ci1, ci2;
-static  ObjGX  ox1, oxTab[2];
-
-  int    i1, ii;
-  double d1;
-  Vector vcx, vcy, vcix, vciy;
-static  Point  pta[TAB_SIZ], p1, p2;
+// Input:
+//   wTyp                "G1 "|"G2 "|"G3 "  / linear,circ-cw,ccw
+//   static global:
+//   TL_rad              the active tool
+//   oldPos,actPos
 
 
-  // printf("PRCE_disp__ |%s|\n",wTyp);
-  // printf(" TL[%d] = %f %f\n",tlActNr,tlTab[tlActNr].rad,tlTab[tlActNr].len);
 
-
-  if((tlActNr < 0)||(tlActNr >= TLTABSIZ)) return -1;
+  printf("PRCE_disp__ |%s|\n",wTyp);
+  // printf("  TL[%d] rad = %f len = %f\n",tlActNr, TL_rad, TL_length);
+  // UT3D_stru_dump (Typ_PT, &oldPos, "  oldPos");
+  UT3D_stru_dump (Typ_PT, &actPos, "  actPos");
 
 
   //----------------------------------------------------------------
@@ -418,232 +577,228 @@ static  Point  pta[TAB_SIZ], p1, p2;
   if((wTyp[1] != '2')&&(wTyp[1] != '3')) goto L_path_lin;
 
 
-  // circ-side-surface - only if tool-length defined: height
-  // ruled surf from 2 circles
-  d1 = tlTab[tlActNr].len;
-  if(d1 > UT_TOL_cv) {
-
-    ci1 = actCir;
-    ci2 = ci1;
-
-    ci2.p1.z = ci1.p1.z + d1;
-    ci2.p2.z = ci1.p2.z + d1;
-    ci2.pc.z = ci1.pc.z + d1;
-
-    oxTab[0].typ  = Typ_CI;
-    oxTab[0].form = Typ_CI;
-    oxTab[0].siz  = 1;
-    oxTab[0].data = &ci1;
-
-    oxTab[1].typ  = Typ_CI;
-    oxTab[1].form = Typ_CI;
-    oxTab[1].siz  = 1;
-    oxTab[1].data = &ci2;
-
-    ox1.typ   = Typ_SURRU;
-    ox1.form  = Typ_ObjGX;
-    ox1.siz   = 2;
-    ox1.data  = oxTab;
-
-      // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur1 ");
-      // UTO_dump__ (&ox1, " lin.surf ");
-
-    GR_DrawSur (&ox1, 5, -1L);
-  }
-
-
+    // circ-side-surface - only if tool-length defined: height
+    if(TL_rad > UT_TOL_cv) PRCE_disp_circ_sid (actCir);
 
     // circ-bottom-surface
-    ci1 = actCir;
-      // UT3D_stru_dump (Typ_CI, &ci1, "ci1");
-    d1 = tlTab[tlActNr].rad;
-
-    // circ (not surf) if rad=0
-    if(d1 < UT_TOL_cv) goto L_circ;
-
-    // + pt normal to pc-p1
-    UT3D_vc_tng_ci_pt (&vcx, &ci1.p1, &ci1);
-    UT3D_vc_setLength (&vcx, &vcx, -d1);
-      // UT3D_stru_dump (Typ_VC, &vcx, "vcx:");
-    UT3D_pt_traptvc (&pta[0], &ci1.p1, &vcx);
-    ii = 1;
-
-    // outer circ from p1 -> p2
-    // move startPt
-    UT3D_pt_traptptlen (&ci1.p1, &ci1.p1, &ci1.pc, -d1);
-    // move endPt
-    UT3D_pt_traptptlen (&ci1.p2, &ci1.p2, &ci1.pc, -d1);
-    // fix radius
-    if(ci1.rad > 0.) ci1.rad += d1;
-    else             ci1.rad -= d1;
-
-    UT3D_cv_ci (&pta[ii], &i1, &ci1, TAB_SIZ-ii, UT_DISP_cv);
-    ii += i1;
-
-    // + pt normal to pc-p1
-    ci1 = actCir;
-    UT3D_vc_tng_ci_pt (&vcx, &ci1.p2, &ci1);
-    UT3D_vc_setLength (&vcx, &vcx, d1);
-      // UT3D_stru_dump (Typ_VC, &vcx, "vcx:");
-    UT3D_pt_traptvc (&pta[ii], &ci1.p2, &vcx);
-    ii += 1;
-
-
-    // inner circ from p2 -> p1
-    // move startPt
-    UT3D_pt_traptptlen (&ci1.p1, &ci1.p1, &ci1.pc, d1);
-    // move endPt
-    UT3D_pt_traptptlen (&ci1.p2, &ci1.p2, &ci1.pc, d1);
-    // revert this circ
-    UT3D_ci_inv1 (&ci1);
-    // fix radius
-    if(ci1.rad > 0.) ci1.rad -= d1;
-    else             ci1.rad += d1;
-
-    UT3D_cv_ci (&pta[ii], &i1, &ci1, TAB_SIZ-ii, UT_DISP_cv);
-    ii += i1;
-
-    oxTab[0].typ  = Typ_Typ;   // OGX_SET_INT
-    oxTab[0].form = Typ_Int4;
-    oxTab[0].siz  = 1;
-    oxTab[0].data = PTR_INT(Typ_SURPLN);
-
-    oxTab[1].typ  = Typ_PT;
-    oxTab[1].form = Typ_PT;
-    oxTab[1].siz  = ii;
-    oxTab[1].data = pta;
-
-    ox1.typ   = Typ_SUR;
-    ox1.form  = Typ_ObjGX;
-    ox1.siz   = 2;
-    ox1.data  = oxTab;
-
-      // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur1 ");
-      // UTO_dump__ (&ox1, " lin.surf ");
-
-    GR_DrawSur (&ox1, 5, -1L);
-
+    PRCE_disp_circ_bot ();
     return 0;
 
 
   //----------------------------------------------------------------
   // linear path (surf) ..
   L_path_lin:
-  // lin-side-surface - only if tool-length defined: height
-  d1 = tlTab[tlActNr].len;
-  if(d1 > UT_TOL_cv) {
-    ln1.p1 = oldPos;
-    ln1.p2 = actPos;
 
-    ln2.p1 = oldPos;
-    ln2.p2 = actPos;
-    ln2.p1.z = ln1.p1.z + d1;
-    ln2.p2.z = ln1.p2.z + d1;
+    // line (not surf) if rad=0
+    if(TL_rad < UT_TOL_cv) goto L_line;
 
-    oxTab[0].typ  = Typ_LN;
-    oxTab[0].form = Typ_LN;
-    oxTab[0].siz  = 1;
-    oxTab[0].data = &ln1;
+    // line (not surf) if only z-value of position is different
+    if((UTP_comp2db(oldPos.x, actPos.x, UT_TOL_cv)) &&
+       (UTP_comp2db(oldPos.y, actPos.y, UT_TOL_cv))) goto L_line;
 
-    oxTab[1].typ  = Typ_LN;
-    oxTab[1].form = Typ_LN;
-    oxTab[1].siz  = 1;
-    oxTab[1].data = &ln2;
 
-    ox1.typ   = Typ_SURRU;
-    ox1.form  = Typ_ObjGX;
-    ox1.siz   = 2;
-    ox1.data  = oxTab;
+    // lin-side-surface - only if tool-length defined: height
+    if(TL_length > UT_TOL_cv) PRCE_disp_ln_sid (&oldPos, &actPos);
 
-      // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur1 ");
-      // UTO_dump__ (&ox1, " lin.surf ");
 
-    GR_DrawSur (&ox1, 5, -1L);
-  }
+    // lin-bottom-surface - path - width = radius * 2
+    PRCE_disp_ln_bot (&oldPos, &actPos);
+
+    return 0;
 
 
   //----------------------------------------------------------------
-  // lin-bottom-surface - path - width = radius * 2
-  d1 = tlTab[tlActNr].rad;
+  L_line:
+    PRCE_disp_ln__ (Typ_Att_go);
+    return 0;
 
-  // line (not surf) if only z-value of position is different
-  if((UTP_comp2db(oldPos.x, actPos.x, UT_TOL_cv)) &&
-     (UTP_comp2db(oldPos.y, actPos.y, UT_TOL_cv))) goto L_line;
 
-  // line (not surf) if rad=0
-  if(d1 < UT_TOL_cv) goto L_line;
+  //----------------------------------------------------------------
+  L_circ:
+    PRCE_disp_ci__ ();
+    return 0;
 
-  // get vcx = vector of length=radius direction = oldPos -> actPos
-  UT3D_vc_2ptlen (&vcx, &oldPos, &actPos, d1);
+}
+
+
+
+//================================================================
+  int PRCE_disp_ln_sid (Point *pt1, Point *pt2) {
+//================================================================
+
+
+  Vector vcz;
+  Point  pta[8];
+
+
+  // up-along TL_vcz
+  UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
+    UT3D_stru_dump (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
+
+  pta[0] = *pt2;
+  UT3D_pt_traptvc (&pta[1], pt2, &vcz);
+  UT3D_pt_traptvc (&pta[2], pt1, &vcz);
+  pta[3] = *pt1;
+  pta[4] = pta[0];
+
+  PRCE_disp_sPln (pta, 5);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int PRCE_disp_ln_bot (Point *pt1, Point *pt2) {
+//================================================================
+// lin-bottom-surface - path - width = radius * 2
+
+  Vector vcx, vcy, vcix, vciy;
+  Point  pta[8];
+
+
+  // create linear path; offset = 0;
+  // get vcx = vector from pt1 -> pt2, length = tool-radius
+  UT3D_vc_2ptlen (&vcx, pt1, pt2, TL_rad);
     // UT3D_stru_dump (Typ_VC, &vcx, "vcx:");
 
   // get vcy = vector of length=radius normal to vcx
   UT3D_vc_perp2vc (&vcy, (Vector*)&UT3D_VECTOR_Z, &vcx);
     // UT3D_stru_dump (Typ_VC, &vcy, "vcy:");
 
+  // invert vcx, vcy
   UT3D_vc_invert (&vcix, &vcx);
     // UT3D_stru_dump (Typ_VC, &vcix, "vcix:");
   UT3D_vc_invert (&vciy, &vcy);
     // UT3D_stru_dump (Typ_VC, &vciy, "vciy:");
 
 
-  UT3D_pt_traptvc (&pta[0], &actPos, &vcx);
-  UT3D_pt_traptvc (&pta[1], &actPos, &vcy);
-  UT3D_pt_traptvc (&pta[2], &oldPos, &vcy);
-  UT3D_pt_traptvc (&pta[3], &oldPos, &vcix);
-  UT3D_pt_traptvc (&pta[4], &oldPos, &vciy);
-  UT3D_pt_traptvc (&pta[5], &actPos, &vciy);
+  // create polygon
+  //    2                                   1
+  //      --------------------------------
+  //     /                                 \
+  // 3  <  x pt1                 pt2  x  >  0
+  //     \                                 /
+  //      --------------------------------
+  //    4                                   5
+
+  UT3D_pt_traptvc (&pta[0], pt2, &vcx);
+  UT3D_pt_traptvc (&pta[1], pt2, &vcy);
+  UT3D_pt_traptvc (&pta[2], pt1, &vcy);
+  UT3D_pt_traptvc (&pta[3], pt1, &vcix);
+  UT3D_pt_traptvc (&pta[4], pt1, &vciy);
+  UT3D_pt_traptvc (&pta[5], pt2, &vciy);
   pta[6] = pta[0];
 
-    oxTab[0].typ  = Typ_Typ;   // OGX_SET_INT
-    oxTab[0].form = Typ_Int4;
-    oxTab[0].siz  = 1;
-    oxTab[0].data = PTR_INT(Typ_SURPLN);
-
-    oxTab[1].typ  = Typ_PT;
-    oxTab[1].form = Typ_PT;
-    oxTab[1].siz  = 7;
-    oxTab[1].data = pta;
-
-    ox1.typ   = Typ_SUR;
-    ox1.form  = Typ_ObjGX;
-    ox1.siz   = 2;
-    ox1.data  = oxTab;
-
-      // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur2 ");
-      // UTO_dump__ (&ox1, " lin.surf ");
-
-    GR_DrawSur (&ox1, 5, -1L);
+  PRCE_disp_sPln (pta, 7);
 
   return 0;
-
-
-  //----------------------------------------------------------------
-  L_line:
-    PRCE_disp_ln (Typ_Att_go);
-    return 0;
-
-
-  //----------------------------------------------------------------
-  L_circ:
-    PRCE_disp_ci ();
-    return 0;
-
-
-
 
 }
 
 
+//================================================================
+  int PRCE_disp_circ_sid () {
+//================================================================
+ 
+  Vector vcz;
+  Circ   *ci1;
+  ObjGX  ox1, oxTab[2];
+
+
+  // UT3D_stru_dump (Typ_CI, &actCir, " PRCE_disp_circ_sid ");
+
+  ci1 = &actCir;
+  UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
+
+  oxTab[0].typ  = Typ_CI;
+  oxTab[0].form = Typ_CI;
+  oxTab[0].siz  = 1;
+  oxTab[0].data = ci1;
+
+  oxTab[1].typ  = Typ_VC;
+  oxTab[1].form = Typ_VC;
+  oxTab[1].siz  = 1;
+  oxTab[1].data = &vcz;
+
+  ox1.typ   = Typ_SURRU;
+  ox1.form  = Typ_ObjGX;
+  ox1.siz   = 2;
+  ox1.data  = oxTab;
+
+    // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur1 ");
+    // UTO_dump__ (&ox1, " lin.surf ");
+
+  // add surf to active DL
+  GR_DrawSur (&ox1, 5, 0L);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int PRCE_disp_circ_bot () {
+//================================================================
+// circ-bottom-surface
+
+  int      irc, i1, ptNr;
+  Point    *pa3;
+  Circ     *cii;
+
+
+  cii = &actCir;
+  
+  // UT3D_stru_dump (Typ_CI, cii, " PRCE_disp_circ_bot ");
+
+
+
+  // get polygon for actCir from TL_dbTyp, TL_dbi
+  // get pa3 = circular polygon         see GR_DrawCirc
+  if(TL_dbi > 0) {
+    // get polygon from file
+    irc = PRCV_npt_dbo__ (&pa3, &ptNr, Typ_CI, TL_dbi, WC_modact_ind);
+    if(irc < 0) return -1;
+
+  } else {
+    ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
+    // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
+    pa3 = (Point*)MEM_alloc_tmp((int)(sizeof(Point)*ptNr));
+    // get pa3 = circular polygon (compute)
+    UT3D_npt_ci (pa3, ptNr, cii);
+    // UT3D_cv_ci (GLT_pta, &ptNr, ci1, ptAnz, UT_DISP_cv);
+  }
+
+
+  for(i1=0; i1<ptNr; ++i1) {
+    // set z = workPlane
+    pa3[i1].z = actZsur1;
+      // UT3D_stru_dump (Typ_PT, &pa3[i1], " P-%d", i1);
+  }
+
+    // TESTBLOCK
+    printf(" _circ_bot-ptNr=%d\n",ptNr);
+    // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump(Typ_PT,&pa3[i1]," P-%d",i1);
+    // TESTBLOCK END
+
+  for(i1=1; i1<ptNr; ++i1) 
+    PRCE_disp_ln_bot (&pa3[i1 - 1], &pa3[i1]);
+
+
+  return 0;
+
+}
+
+ 
 //===========================================================================
-  int PRCE_disp_ln (int iatt)  {
+  int PRCE_disp_ln__ (int iatt)  {
 //===========================================================================
 // 
 
   long   dli;
   Line   ln1;
 
-  // printf("PRCE_disp_ln \n");
+  // printf("PRCE_disp_ln__ \n");
   // UT3D_stru_dump (Typ_PT, &oldPos, " oldPos ");
   // UT3D_stru_dump (Typ_PT, &actPos, " actPos ");
 
@@ -659,7 +814,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
 //===========================================================================
-  int PRCE_disp_ci ()  {
+  int PRCE_disp_ci__ ()  {
 //===========================================================================
 // 
 
@@ -673,6 +828,55 @@ static  Point  pta[TAB_SIZ], p1, p2;
 }
 
 
+//===========================================================================
+  int PRCE_disp_sur_ini (int mode)  {
+//===========================================================================
+// init display planar surface
+// mode   0=init, 1=close
+
+  int   att = 5;
+  long  dbi, dli;
+
+
+  printf("PRCE_disp_sur_ini %d\n",mode);
+
+  if(mode) goto L_close;
+    dbi = -1L;
+    dli = DL_StoreObj (Typ_SUR, dbi, att);
+    GL_Surf_Ini (&dli, (void*)&att);
+    return 0;
+
+
+  L_close:
+    GL_EndList ();
+    return 0;
+
+}
+
+
+//===========================================================================
+  int PRCE_disp_sPln (Point *pta, int ptNr)  {
+//===========================================================================
+// display planar surface
+
+
+  int   att = 5;
+  static long   dli = -1L;
+
+
+  // printf("PRCE_disp_sPln ptNr=%d dli=%ld\n",ptNr,dli);
+  // {int i1; for(i1=0;i1<ptNr;++i1) UT3D_stru_dump(Typ_PT,&pta[i1],"P-%d",i1);}
+
+
+  // disp surf-planar-unperf.
+  // draw into active DL-record
+  GR_Draw_spu (NULL, att, ptNr, pta);
+
+  return 0;
+
+}
+
+
 //================================================================
   int PRCE_disp_txt (char *txt) {
 //================================================================
@@ -680,6 +884,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
   long   dli;
 
+  UT3D_stru_dump (Typ_PT, &oldPos, " PRCE_disp_txt |%s|",txt);
 
   dli = DL_StoreObj (Typ_SymV, -1L, 0);
 
@@ -729,7 +934,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
       fprintf (PRCE_fpo,"$$-----------------------------------------\n");
       fprintf (PRCE_fpo,"$$ %s\n",OS_date1());
       fprintf (PRCE_fpo,"$$ MODEL %s\n",AP_mod_fnam);
-      fprintf (PRCE_fpo,"$$ PROCESSOR %s\n",&APP_act_proc[4]);
+      fprintf (PRCE_fpo,"$$ PROCESSOR %s V-%s\n",&APP_act_proc[4],VERSION);
       fprintf (PRCE_fpo,"$$ PROCESS %s\n",&APP_act_nam[8]);
       fprintf (PRCE_fpo,"$$-----------------------------------------\n");
       fprintf (PRCE_fpo,"G90\n");
@@ -746,7 +951,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
   } else if(!strncmp(data, "RESET ", 6)) {
     // set back in source
     i1 = atoi(&data[6]);
-    PRCE_hist_reset (i1);
+    PRCE_hist_reset (&oldPos, &tlActNr, &rapid, i1);
 
 
   //----------------------------------------------------------------
@@ -781,6 +986,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
                     "TL   (toolchange)",
                     "RP   (rapid)",
                     "FROM (startpos)",
+                    "INL  (insert line)",
                     "OK   (continue)",
                     "\0"};
 
@@ -810,7 +1016,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
 // callback of popup-menu UI_GR_selMen_init
 
 
-  int   iEv, isel, iTyp;
+  int   iEv, isel;
   long  ind;
   char  s1[64], s2[16];
 
@@ -836,6 +1042,9 @@ static  Point  pta[TAB_SIZ], p1, p2;
       strcpy(s1, "FROM ");
       break;
     case 4:
+      strcpy(s1, "INL ");
+      break;
+    case 5:
       strcpy(s1, "");  // 2015-06-23
       s1[0] = 13;
       s1[1] = '\0';
@@ -855,11 +1064,18 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
   // printf("PRCE_init_dat \n");
 
-  rapid = -1;
-  actPos = UT3D_PT_NUL;
-  tlActNr = -1;
-  actZsur1 = 0.;
-  actZclr1 = APT_ModSiz / 100.;
+  TL_length = 0.;
+  TL_vcz = UT3D_VECTOR_Z;
+
+  rapid     = -1;
+  actPos    = UT3D_PT_NUL;
+  tlActNr   = 0;
+  TL_length = APT_ModSiz / 200.;
+  TL_rad    = APT_ModSiz / 400.;
+  actZsur1  = 0.;
+  actZclr1  = APT_ModSiz / 100.;
+
+  UT3D_pt_setFree (&TL_tcp);
 
   return 0;
 
@@ -869,11 +1085,9 @@ static  Point  pta[TAB_SIZ], p1, p2;
 //===========================================================================
   int PRCE_cmd_work__ (char *data) {
 //===========================================================================
-// WORK L C S                        was ../nc/nc_wcut1_work.c
+// WORK L C S ("GO <obj>")            was ../nc/nc_wcut1_work.c
 
-  int     i1, ii, ityp, ptNr, ptMax, rNr;
-  long    dbi;
-  double  d1;
+  int     i1, ii, ptNr, ptMax, rNr;
   void    *vp1;
   char    s1[32];
   Point   *pta;
@@ -881,40 +1095,38 @@ static  Point  pta[TAB_SIZ], p1, p2;
   ObjGX   ox1;
 
 
-  // printf("PRCE_cmd_work__ |%s|\n",data);
+  printf("PRCE_cmd_work__ |%s| cmd_anz=%d\n",data,cmd_anz);
 
-  // end rapid
-        // if(rapid != ON) ??
+  PRCE_disp_sur_ini (0);   // open new DispList
 
 
   // loop tru obj's
   for(ii=0; ii<cmd_anz; ++ii) {
 
-    ityp = cmd_typ[ii];
-    dbi = cmd_tab[ii];
-      // printf(" %d typ=%d tab=%f\n",ii,ityp,aus_tab[ii]);
-      // printf("...........PRCE_cmd_work__........................... \n");
-      // printf(" next work %d typ=%d tab=%ld\n",ii,ityp,dbi);
+    TL_dbTyp = cmd_typ[ii];
+    TL_dbi = cmd_tab[ii];
+      printf("...........PRCE_cmd_work__........................... \n");
+      printf(" next work %d TL_dbTyp=%d TL_dbi=%ld\n",ii,TL_dbTyp,TL_dbi);
 
 
-    oldPos = actPos;
+    // oldPos = actPos;
 
 
     //----------------------------------------------------------------
-    if(ityp == Typ_PT) {          // line - nxt point - absolut
-      i1 = DB_GetObjDat (&vp1, &rNr, ityp, dbi);
+    if(TL_dbTyp == Typ_PT) {          // line - nxt point - absolut
+      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       actPos = *((Point*)vp1);
-      // add actZsur1 to point
-      actPos.z += actZsur1;
+      // set z = workPlane
+      actPos.z = actZsur1;
       PRCE_Out__ ("G1 ");
       continue;
     }
 
 
     //----------------------------------------------------------------
-    if(ityp == Typ_VC) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, ityp, dbi);
+    if(TL_dbTyp == Typ_VC) {          // line - nxt point - relative
+      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       UT3D_pt_traptvc (&actPos, &actPos, (Vector*)vp1);
       PRCE_Out__ ("G1 ");
@@ -923,8 +1135,8 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
     //----------------------------------------------------------------
-    if(ityp == Typ_LN) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, ityp, dbi);
+    if(TL_dbTyp == Typ_LN) {          // line - nxt point - relative
+      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       pta = (void*)memspc101;
       ptNr = 2;
@@ -935,14 +1147,14 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
     //----------------------------------------------------------------
-    if(ityp == Typ_CI) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, ityp, dbi);
+    if(TL_dbTyp == Typ_CI) {          // line - nxt point - relative
+      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       actCir = *((Circ*)vp1);
-      // add actZsur1 to circle
-      actCir.p1.z += actZsur1;
-      actCir.p2.z += actZsur1;
-      actCir.pc.z += actZsur1;
+      // set z = workPlane
+      actCir.p1.z = actZsur1;
+      actCir.p2.z = actZsur1;
+      actCir.pc.z = actZsur1;
       // normal/revers ?
       PRCE_Out_ck_C (s1);
       // output ..
@@ -952,14 +1164,14 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
     //----------------------------------------------------------------
-    if(ityp == Typ_CV) {          // line - nxt point - relative
+    if(TL_dbTyp == Typ_CV) {          // line - nxt point - relative
       // was wcg_OutBSP
       pta = (void*)memspc101;
       ptNr = sizeof(memspc101) / sizeof(Point);
       // get polygon from curve UT3D_npt_ox__ 
       //   bspl_pol_bsp bspl_cv_bsp bspl_cvpol_cvbsp
       //   APT_DrawCurv APT_decode_conv_pol
-      OGX_SET_INDEX (&ox1, ityp, dbi);
+      OGX_SET_INDEX (&ox1, TL_dbTyp, TL_dbi);
       i1 = UT3D_npt_ox__ (&ptNr, pta, &ox1, UT_DISP_cv);
       if(i1 < 0) return i1;
       goto L_do_polygon;
@@ -967,19 +1179,21 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
     //----------------------------------------------------------------
-    TX_Error("PRCE_cmd_work__ E002 obj typ %d unsupported ..",ityp);
+    TX_Error("PRCE_cmd_work__ E002 obj typ %d unsupported ..",TL_dbTyp);
     return -1;
 
 
     //----------------------------------------------------------------
     L_do_polygon:
       // add actZsur1 to polygon
-      for(i1=0; i1<ptNr; ++i1) pta[i1].z += actZsur1;
+      for(i1=0; i1<ptNr; ++i1) pta[i1].z = actZsur1 - TL_length;
       // normal/revers ?
       PRCE_Out_ck_plg (s1, ptNr, pta);
       // output polygon
       for(i1=0; i1<ptNr; ++i1) {
         actPos = pta[i1];
+        // set z = workPlane
+        actPos.z = actZsur1;
         PRCE_Out__ ("G1 ");
       }
       continue;
@@ -988,6 +1202,8 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
 
   //----------------------------------------------------------------
+  PRCE_disp_sur_ini (1);   // close DispList
+
   return 0;
 
 
@@ -1103,7 +1319,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
     if(rapid == ON) {
       if(tlActNr >= 0) ii = iAtt_tlrp;
       else             ii = iAtt_rp;
-      PRCE_disp_ln (ii);
+      PRCE_disp_ln__ (ii);
 
     } else {
       PRCE_disp__ (wTyp);
@@ -1123,8 +1339,8 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
     // printf(" tool up ..\n");// PRCE_Out_write_txt (" tool up ..");
   actPos = oldPos;
-  // actPos.z += actZclr1;
-  actPos.z = actZsur1 + actZclr1;
+  // set z = safePlane
+  actPos.z = actZclr1;
   PRCE_Out__ ("G1 ");
     // printf(" tool is up ..\n");// PRCE_Out_write_txt (" tool is up ..");
 
@@ -1165,7 +1381,7 @@ static  Point  pta[TAB_SIZ], p1, p2;
 
   char    s1[64]="", s2[64]="", s3[64]="";
 
-  // printf("PRCE_Out_write_ln |%s| %f %f %f\n",wTyp,actPos.x,actPos.y,actPos.z);
+  printf("PRCE_Out_write_ln |%s| %f %f %f\n",wTyp,actPos.x,actPos.y,actPos.z);
 
 
   // strcpy (outBuf, wTyp);
@@ -1366,7 +1582,7 @@ static int pp_id=0;
   PRCE_func__ ("EXIT__");
 
   // clear DL and history
-  PRCE_hist_reset (-1);
+  PRCE_hist_reset (NULL, NULL, NULL, -1);
 
   // DL_hili_off (-1L);             //  -1 = unhilite all
 
@@ -1396,7 +1612,9 @@ static int pp_id=0;
 // ls -1 <bindir>plugins/<processor>/* > <fnam>
 // processor without leading "PRC_"
 
-  static char *optNone[] = {"none",NULL};
+  // static char *optNone[] = {"none",NULL};
+  static char *optNone[] = {"gCAD3D-APT",NULL};
+
   int   i1;
   char  s1[256], s2[256], **optLst;
     
@@ -1436,7 +1654,7 @@ static int pp_id=0;
 
   char   fnLog[256];
 
-  // printf("PRCE_pp__ |%s|\n",spprc);
+  printf("PRCE_pp__ |%s|\n",spprc);
 
   //----------------------------------------------------------------
     // WC_PP_open (1);
@@ -1475,7 +1693,8 @@ static int pp_id=0;
 
   //----------------------------------------------------------------
   // do postprocessing
-  if(!strcmp(spprc, "none")) return 0;
+  // if(!strcmp(spprc, "none")) return 0;
+  if(!strcmp(spprc, "gCAD3D-APT")) return 0;
 
 
   // delete logfile

@@ -359,9 +359,9 @@ static char *os_ico_dir;
     sprintf(AP_printer, "lpr -l -P%s",OS_get_printer());
 #endif
 
-    // get browser
-    p1 = OS_get_browser();
-    UTX_cp_left (AP_browser, p1, 79);
+    // // get browser
+    // p1 = OS_get_browse_htm();
+    // UTX_cp_left (AP_browser, p1, 79);
 
     // get editor
     p1 = OS_get_edi();

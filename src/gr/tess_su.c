@@ -1807,7 +1807,7 @@ static int   patNr;     // nr of Patches
 
   //================================================================
   if(TSU_mode == 0)  {      // 0=draw; 1=store
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+    if(apt_ind) TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
 
     // init GL-obj Surf; mit od ohne texture ..
     // if(((ColRGB*)&att)->vtex != 0) {
@@ -1832,7 +1832,7 @@ static int   patNr;     // nr of Patches
 
     } else {
       // GL_Draw_Ini (&TSU_dli, att);
-      GL_Surf_Ini (&TSU_dli, (void*)&att);
+      if(apt_ind) GL_Surf_Ini (&TSU_dli, (void*)&att);
     }
 
 
@@ -1862,8 +1862,11 @@ static int   patNr;     // nr of Patches
   L_fertig:
   if(TSU_mode == 0) {                                // 0=draw, 1=store
     // if(((ColRGB*)&att)->vtex != 0) GL_Tex_End ();
-    if(iTex != 0)  GL_Tex_End ();
-    else           GL_EndList ();
+    if(iTex != 0) {
+      GL_Tex_End ();
+    } else {
+      if(apt_ind) GL_EndList ();
+    }
     AP_dli_act = TSU_dli;
   }
 

@@ -98,8 +98,8 @@ all:
 allDemos:
 	@echo ================ Build all Demo-DLL's =========================
 	for /f %%a in ('dir/b Demo*.nmak') do nmake -f %%a
-	for /f %%a in ('dir/b APP_*.nmak') do nmake -f %%a
 	for /f %%a in ('dir/b PRC_*.nmak') do nmake -f %%a
+#	for /f %%a in ('dir/b APP_*.nmak') do nmake -f %%a
 #	nmake -f 3Dfrom2D.nmak "OS=MS32"
 # link PP's for PRC_cut1
 	cd ..\prc\cut1

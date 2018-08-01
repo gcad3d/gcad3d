@@ -1,5 +1,7 @@
 # Link & run:
 #  nmake -f gcad3d.nmak
+# needs gCAD3D.def with names of funcs, vars to export into gCAD3D.lib
+# else problem linking dll's.
 
 PRJNAM = gCAD3D
 

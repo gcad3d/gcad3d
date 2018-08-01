@@ -124,35 +124,36 @@ SectionEnd
 Section -Post
 
 
-  ; write startFile
-  FileOpen $0 $INSTDIR\gCAD3D.bat w
-  FileWrite $0 "@ECHO OFF$\r$\n"
-  FileWrite $0 "set gcad_dir_bin=$INSTDIR\binMS32\$\r$\n"
-  FileWrite $0 "set gcad_dir_doc=$INSTDIR\doc\$\r$\n"
-  FileWrite $0 "set gcad_dir_local=$APPDATA\$\r$\n"
-  FileWrite $0 "REM set gcad_dir_dev=$\r$\n"
-  FileWrite $0 "if .debug==.%1 ($\r$\n"
-  FileWrite $0 "windbg \"%gcad_dir_bin%\gCAD3D.exe\"$\r$\n"
-  FileWrite $0 ") else ($\r$\n"
-  FileWrite $0 "\"%gcad_dir_bin%gCAD3D.exe\" %*$\r$\n"
-  FileWrite $0 ")$\r$\n"
-  FileClose $0
+; write startFile
+FileOpen $0 $INSTDIR\gCAD3D.bat w
+FileWrite $0 "@ECHO OFF$\r$\n"
+FileWrite $0 "set gcad_dir_bin=$INSTDIR\binMS32\$\r$\n"
+FileWrite $0 "set gcad_dir_doc=$INSTDIR\doc\$\r$\n"
+FileWrite $0 "set gcad_dir_local=$APPDATA\$\r$\n"
+FileWrite $0 "REM set gcad_dir_dev=$\r$\n"
+FileWrite $0 "if .debug==.%1 ($\r$\n"
+FileWrite $0 "windbg $\"%gcad_dir_bin%\gCAD3D.exe$\"$\r$\n"
+FileWrite $0 ") else ($\r$\n"
+FileWrite $0 "$\"%gcad_dir_bin%gCAD3D.exe$\" %*$\r$\n"
+FileWrite $0 ")$\r$\n"
+FileClose $0
 
-  ; write cacls-File
-  FileOpen $0 $INSTDIR\install1.bat w
-  FileWrite $0 "@ECHO OFF$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\tmp$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\dat$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\cfg$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\prg$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\ctlg$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\Profile$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\Schrau$\" /t /e /c /p everyone:f$\r$\n"
-  FileWrite $0 "cacls $\"$APPDATA\symEl1$\" /t /e /c /p everyone:f$\r$\n"
-  FileClose $0
+; write cacls-File
+ExecWait '"$INSTDIR\gCAD3D.bat"'
+FileOpen $0 $INSTDIR\install1.bat w
+FileWrite $0 "@ECHO OFF$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\tmp$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\dat$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\cfg$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\prg$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\ctlg$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\Profile$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\Schrau$\" /t /e /c /p everyone:f$\r$\n"
+FileWrite $0 "cacls $\"$APPDATA\symEl1$\" /t /e /c /p everyone:f$\r$\n"
+FileClose $0
 
-  ; fix cacls
-  ExecWait '"$INSTDIR\install1.bat"'
+; fix cacls
+ExecWait '"$INSTDIR\install1.bat"'
 
 
   WriteUninstaller "$INSTDIR\uninst.exe"

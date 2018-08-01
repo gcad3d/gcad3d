@@ -4,9 +4,9 @@ DLLNAM = plugins/Demo_gui_plate
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/Demo_gui_plate.c
+	../APP/Demo_gui_plate.c
 
-DIRSRC1 := ../xa/
+DIRSRC1 := ../APP/
 
 include gcad_dll.mak
 

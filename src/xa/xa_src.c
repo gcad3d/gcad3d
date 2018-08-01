@@ -124,7 +124,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       // close
       UTX_htm_fcl (&fpo);
       // disp file
-      APP_browse__ (cbuf1);
+      OS_browse_htm (cbuf1, NULL);
 
     } else {
       UTF_wri_f__ (stdout);

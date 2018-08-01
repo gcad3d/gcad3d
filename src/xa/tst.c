@@ -133,7 +133,7 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
 
   //================================================================
   i1 = tst__ (0);       goto L_end;   // // exit plugin
-  i1 = tst_surfaces (0);       goto L_end;   // // exit plugin
+  // i1 = tst_surfaces (0);       goto L_end;   // // exit plugin
   // if(i1 == 0) return 0;     // keep plugin alive
   //================================================================
   // TEST EXPORT_DLL'S:
@@ -150,7 +150,7 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   // UI_menCB (NULL, "new");
   // tst_imp_gcad ();
   // tst_imp_dxf ();
-  tst_imp_igs ();
+  // tst_imp_igs ();
   // tst_imp_vrml1 (); // test import VRML-1
   // tst_imp_vrml2 (); // test import VRML-2
   // tst_imp_stp (); // tst_imp_exp.c  Test Import/Export-functions
@@ -171,13 +171,67 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
 
 }
 
+//=========================================================
+  int tst_sel_CB (int src, long dl_ind) {
+//=========================================================
+// userselection callback
+
+  printf("tst_sel_CB src=%d ind=%ld\n",src,dl_ind);
+
+  return 0;
+
+}
+
+//=========================================================
+  int tst_key_CB (int key) {
+//=========================================================
+// userKeyin callback
+
+  printf("tst_key_CB %d\n",key);
+
+  switch (key) {
+
+    case GUI_KeyEsc:
+    case 'q':
+      // DL_hili_off (-1L);         //  -1 = unhilite all
+      // DL_Redraw ();               // Redraw DispList
+      gCad_fini ();
+      // PED_CB1 (NULL, "Exit");
+      break;
+    case 'l':
+      tst__ (0);
+      break;
+    case 'u':
+      tst__ (1);
+      break;
+    case 't':
+      printf(" GUI_Win_exist=%d\n",GUI_Win_exist ("Export/Print"));
+      break;
+  }
+
+  return 0;
+
+}
+
+//=========================================================
+  int gCad_fini () {
+//=========================================================
+// dll being unloaded - reset Input, kill all open windows !!!
+
+  TX_Print("...... gCad_fini tst");
+  AP_User_reset ();      // close application
+  return 0;
+
+}
+
+
 
 //================================================================
   int tst__ (int ii) {
 //================================================================
 
 
-  SurRBSpl su1;
+  // SurRBSpl su1;
 
   char   s1[256],sy[64],sd[128],sn[128],st[32], cift;
 
@@ -185,16 +239,19 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   printf("\n\ntst__ 2018-05-21\n");
 
 
-  UT3D_srbsp_tst_dspicv (&su1);
+  // OS_browse_htm ("/mnt/serv1/Devel/gcad3d/doc/html/PRC_cut1_en.htm", NULL);
+  // OS_browse_htm ("/mnt/serv1/Devel/gcad3d/doc/html/PRC_cut1_en.htm","#AUX");
+  OS_browse_htm ("X:\\Devel\\gcad3d\\doc\\html\\PRC_cut1_en.htm", NULL);
+  OS_browse_htm ("X:\\Devel\\gcad3d\\doc\\html\\PRC_cut1_en.htm","#AUX");
 
   return 0;
 
 }
  
 
-#include "../xa/xa_ed_mem.h"               // AP_SRCLN_BUF__  
-#include "../ut/ut_txfil.h"            // UTF_GetPosLnr
-#include "../ut/ut_os.h"               // OS_ ..
+// #include "../xa/xa_ed_mem.h"               // AP_SRCLN_BUF__  
+// #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
+// #include "../ut/ut_os.h"               // OS_ ..
 
 
 /*

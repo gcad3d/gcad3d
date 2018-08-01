@@ -1277,7 +1277,9 @@ Returncodes:
     //----------------------------------------------------------------
     } else {
       // is standard-object(s) (P,L,C)
-      if(oxi->siz > 1) TX_Print("UT3D_pta_ox_lim E002-TODO");
+      if(oxi->siz > 1) {
+        TX_Print("UT3D_pta_ox_lim E002-TODO");
+      }
       otyp = form;
       oo   = oxTab;
     }

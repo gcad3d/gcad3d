@@ -13,7 +13,6 @@ AP_argNr
 AP_argv
 AP_box_pm1
 AP_box_pm2
-AP_browser
 AP_cmp_typ
 APcol_actCol__
 APcol_actColTra
@@ -152,8 +151,6 @@ AP_open__
 APP_act_nam
 APP_act_proc
 APP_act_typ
-APP_browse__
-APP_browse_label
 appDat_aload
 appdat_open__
 APP_dli_start
@@ -839,7 +836,6 @@ DL_alloc__
 DL_AttLn_store
 DL_child_set
 DL_disp_def
-DL_disp_hili_last
 DL_disp_PL
 DL_disp_reset
 DL_Draw_obj
@@ -2297,7 +2293,8 @@ OMN_popup_Brw
 OMN_selMen_MAN_M3_empty
 OPAR_get_src
 OS_beep
-OS_browse_
+OS_browse_htm
+OS_browser
 OS_checkDirExist
 OS_checkFilExist
 OS_check_isDir
@@ -2346,7 +2343,7 @@ OS_FilSiz
 OS_filterff
 OS_get_bas_dir
 OS_get_bin_dir
-OS_get_browser
+OS_get_browse_htm
 OS_get_cfg_dir
 OS_get_curDir
 OS_get_dialog

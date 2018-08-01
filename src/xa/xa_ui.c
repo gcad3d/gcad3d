@@ -4358,9 +4358,11 @@ IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
       UI_src_mem (1);
   }
 
+  // primary source memory not editor
+  AP_src = AP_SRC_MEM;
 
-   AP_src = AP_SRC_MEM;  // 2011-05-29  after MAN necessary !
-
+  // reset hidden-state after hilite
+  DL_hili_off (-2);
 
   return 0;
 
@@ -5140,7 +5142,7 @@ See UI_but__ (txt);
 
   L_out:
   UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-  APP_browse__ (cbuf1);
+  OS_browse_htm (cbuf1, NULL);
 
   return 0;
 
@@ -5168,7 +5170,7 @@ See UI_but__ (txt);
   DB_dump_f (fpo, typ);              // dump
   UTX_htm_fcl (&fpo);                // close
   // disp file
-  APP_browse__ (cbuf1);
+  OS_browse_htm (cbuf1, NULL);
 
 
   return 0;
@@ -5740,7 +5742,7 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%cindex_%s.htm", OS_get_doc_dir(), fnam_del, AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 /*
   //-------------------------------------------------
@@ -5749,7 +5751,7 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%cgCAD3D_en.htm", OS_get_doc_dir(), fnam_del);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
   
 
   //-------------------------------------------------
@@ -5758,79 +5760,79 @@ See UI_but__ (txt);
     // strcpy(AP_lang, "de");
     // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
     sprintf(cbuf1, "%shtml%ctransl_en.htm", OS_get_doc_dir(), fnam_del);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 */
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staVWR")) {
     sprintf(cbuf1, "%shtml%cVWR_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
     // sprintf(cbuf1, "%sgCAD3D_startVWR_%s.htm",OS_get_doc_dir(),AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staMAN")) {
     sprintf(cbuf1, "%shtml%cgCAD3D_startMAN_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staCAD")) {
     // sprintf(cbuf1, "%shtml%cCAD_examples_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
     sprintf(cbuf1, "%shtml%cCAD_using_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docSearch")) {
     sprintf(cbuf1, "%shtml%cSearch_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docIact")) {
     sprintf(cbuf1, "%shtml%cCAD_Activ_%s.htm",OS_get_doc_dir(),fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docTex")) {
     sprintf(cbuf1, "%shtml%cTextures_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCatalog")) {
     sprintf(cbuf1, "%shtml%cCatalog_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   // } else if(!strcmp(cp1, "docAppli")) {
     // sprintf(cbuf1, "%sAppli_%s.htm",OS_get_doc_dir(),AP_lang);
-    // APP_browse__ (cbuf1);
+    // OS_browse_htm (cbuf1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docPlugin")) {
     sprintf(cbuf1, "%shtml%cPlugin_%s.htm",OS_get_doc_dir(),
             fnam_del, AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCTRL")) {
     sprintf(cbuf1, "%shtml%cRemoteControl_%s.htm",OS_get_doc_dir(),
             fnam_del, AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docWC_g")) {
     sprintf(cbuf1, "%shtml%cwcut_de.htm",OS_get_doc_dir(), fnam_del);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
 
   } else if(!strcmp(cp1, "docTransl")) {
     sprintf(cbuf1, "%shtml%ctransl_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
 
@@ -5957,6 +5959,11 @@ See UI_but__ (txt);
       // printf(" Bar2=%d\n",i1);
     if(i1 == 0) GUI_set_show (&ToolBar2, ON);   // 0);
     else        GUI_set_show (&ToolBar2, OFF);  // 1);
+
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "Comp")) {
+    AP_stat.comp = GUI_menu_checkbox_get (&ckb_compl);
 
 
   //-------------------------------------------------
@@ -6267,7 +6274,7 @@ See UI_but__ (txt);
     UTX_htm_fop (&fpo, cbuf1);    // open
     GA_dump__ (fpo);
     UTX_htm_fcl (&fpo);                // close
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
   //======================================================
@@ -6288,7 +6295,7 @@ See UI_but__ (txt);
     DB_dump_ModBas ();
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
 
@@ -6301,7 +6308,7 @@ See UI_but__ (txt);
     Grp_dump ();
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
 
@@ -6325,7 +6332,7 @@ See UI_but__ (txt);
     UT3D_dump_txt("Size-Text:     %f",AP_txsiz);
     UT3D_dump_txt("Size-Dim.:     %f",AP_txdimsiz);
     UT3D_dump_txt("Scale-Text:    %f",GR_tx_scale);
-    UT3D_dump_txt("Browser:       %s",OS_get_browser());
+    UT3D_dump_txt("Browser:       %s",OS_get_browse_htm());
     UT3D_dump_txt("Printer:       %s",OS_get_printer());
     UT3D_dump_txt("Editor:        %s",OS_get_edi());
     UT3D_dump_txt("Terminal:      %s",OS_get_term());
@@ -6340,7 +6347,7 @@ See UI_but__ (txt);
     UT3D_stru_dump (TYP_FuncAdd, cbuf2, "");    // put out the file 
 
     UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
-    APP_browse__ (cbuf1);
+    OS_browse_htm (cbuf1, NULL);
 
 
 
@@ -6851,7 +6858,8 @@ box1
 
       //----------------------------------------------------------------
       // Entries von "Options"
-      ckb_compl = GUI_menu_checkbox__ (&men_opt, "compile DLLs", 0, NULL, NULL);
+      ckb_compl = GUI_menu_checkbox__ (&men_opt, "compile DLLs", 0,
+                                 UI_menCB, (void*)"Comp");
         MSG_Tip ("MMopDll");
 
       // ckb_Iact = GUI_menu_checkbox__ (&men_opt, "Interaction", 0, NULL, NULL);
@@ -6859,25 +6867,25 @@ box1
       // GUI_menu_checkbox_set (&ckb_Iact, TRUE);
 
       ckb_Bar1 = GUI_menu_checkbox__ (&men_opt, "MainToolBar", 1,
-                                UI_menCB,(void*)"Bar1");
+                                UI_menCB, (void*)"Bar1");
         MSG_Tip ("MMopTb1");
       // GUI_menu_checkbox_set (&ckb_Bar1, TRUE);
 
       ckb_Bar2 = GUI_menu_checkbox__ (&men_opt,"MessageToolBar", 1,
-                                UI_menCB,(void*)"Bar2");
+                                UI_menCB, (void*)"Bar2");
         MSG_Tip ("MMopTb2");
       // GUI_menu_checkbox_set (&ckb_Bar2, TRUE);
 
       ckb_Tut =  GUI_menu_checkbox__ (&men_opt,"ScreenCast ON", 0,
-                                UI_menCB,(void*)"TUT_ON");
+                                UI_menCB, (void*)"TUT_ON");
         // MSG_Tip ("MMopBrw");
 
       ckb_Brw =  GUI_menu_checkbox__ (&men_opt,"BrowserWindow OFF", 0,
-                                UI_menCB,(void*)"BRW_OFF");
+                                UI_menCB, (void*)"BRW_OFF");
         MSG_Tip ("MMopBrw");
 
       ckb_rctl =  GUI_menu_checkbox__ (&men_opt,"RemoteControl OFF", 0,
-                                UI_menCB,(void*)"RCTL_OFF");
+                                UI_menCB, (void*)"RCTL_OFF");
 
       GUI_menu_entry (&men_opt, "Uninstall",UI_menCB, (void*)"uninst");
 
@@ -9732,7 +9740,7 @@ box1
   int UI_def_browser () {
 //================================================================
 
-  GUI_Dialog_e2b ("Html-Browser:", AP_browser, 80, "OK", "Cancel");
+  GUI_Dialog_e2b ("Html-Browser:", OS_browser, 80, "OK", "Cancel");
 
   return 0;
     

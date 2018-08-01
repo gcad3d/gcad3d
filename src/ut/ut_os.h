@@ -18,7 +18,7 @@ Korr:
   double OS_prc_time_diff (double timStart);
   double OS_prc_time_start ();
   int    OS_system (char *buf);
-  int    OS_browse_ (char *filnam);
+  int    OS_browse_htm (char *filnam, char *label);
   void   OS_Wait   (int millisecs);
   void   OS_beep   ();
   char*  OS_prc__  ();
@@ -46,7 +46,7 @@ Korr:
 
   char*  OS_get_edi       ();
   char*  OS_get_lang      ();
-  char*  OS_get_browser   ();
+  char*  OS_get_browse_htm   ();
   char*  OS_get_printer   ();
   char*  OS_get_imgConv1  ();
   char*  OS_get_vwr_ps    ();
@@ -69,5 +69,16 @@ Korr:
   int    OS_file_sig_wait  (int mode, void *data);
 
   int    OS_stdout__ (int mode, char *fn);
+
+
+
+//----------------------------------------------------------------
+// exported VARS:     (in ../ut/ut_os_aix.c and ../ut/ut_os_w32.c without extern)
+#ifdef LOCAL_DEF_VAR
+char OS_browser[80] = {"\0"};                         // HTML-browser
+#else
+extern char OS_browser[80];                           // HTML-browser
+#endif
+
 
 /* ====================== EOF ============================ */

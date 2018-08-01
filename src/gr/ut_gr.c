@@ -1572,7 +1572,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  // printf("GR_DrawCirc um %f,%f,%f\n",cii->pc.x,cii->pc.y,cii->pc.z);
+  // printf("GR_DrawCirc dbi=%ld pc %f,%f,%f\n",dbi,cii->pc.x,cii->pc.y,cii->pc.z);
   // printf ("  von %f,%f,%f\n",cii->p1.x,cii->p1.y,cii->p1.z);
   // printf ("  bis %f,%f,%f\n",cii->p2.x,cii->p2.y,cii->p2.z);
   // printf ("  vz  %f,%f,%f\n",cii->vz.dx,cii->vz.dy,cii->vz.dz);
@@ -1602,10 +1602,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-
-  /*======================================================================*/
-  /*  test 2D - circle */
-  /*======================================================================*/
+/*
+  //======================================================================//
+  //  test 2D - circle //
+  //======================================================================//
 
   if(fabs(ci1->vz.dx) > UT_TOL_min1) goto L_3D_Circ;
   if(fabs(ci1->vz.dy) > UT_TOL_min1) goto L_3D_Circ;
@@ -1643,7 +1643,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   return 0;
-
+*/
 
 
   /*======================================================================*/
@@ -2137,11 +2137,17 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   int GR_DrawSur (ObjGX *oxi, int att, long apt_ind) {
 //=============================================================================
 /// \code
-/// siehe auch APT_DrawSur
-/// oxi=Input.
+/// see also APT_DrawSur
+/// Input:
+///   oxi            surface; see list below
+///   att            color|texture
+///   apt_ind        0 = do-NOT-create-new-DL-record (add into already open DL-rec)
+///                  >0 create new DL-record
+///                  overwrite existing DL-record: see DL_SetInd
 /// Output:
 ///   AP_dli_act     dispListIndex of surf created
-/// 
+///
+/// ------------------------------------------------------
 /// GR_DrawSur
 ///   GR_DrawSurPtab                   -
 ///   TSU_DrawSurT_
@@ -4704,7 +4710,8 @@ int GR_Delete (long ind)                               {return 0;}
 
   // Ausgeben
   if(TSU_mode == 0) {
-    dli = DL_StoreObj (Typ_SUR, *ind, att);
+    if(ind) dli = DL_StoreObj (Typ_SUR, *ind, att);
+    else dli = 0L;
     GL_DrawSur (&dli, att, gSur);
     AP_dli_act = dli;
 

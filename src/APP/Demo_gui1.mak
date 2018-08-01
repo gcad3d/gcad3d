@@ -1,4 +1,4 @@
-# make -f Demo_gui1.mak
+# . ../options.sh && make -f Demo_gui1.mak
 
 
 DLLNAM = plugins/Demo_gui1

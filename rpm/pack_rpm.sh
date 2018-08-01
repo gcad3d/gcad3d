@@ -30,7 +30,7 @@ rpm -qipl ${DIR_DEV}gcad3d/rpm/RPMS/${hTyp}/*
 /bin/mv -f ${DIR_DEV}gcad3d/rpm/RPMS/${hTyp}/* ${DIR_DEV}gcad3d/packages/.
 
 
-a# TODO:
+# TODO:
 # add into uninstall-process: remove ~/gCAD3D manually
 #   (see ../debian/_control/prerm)
 

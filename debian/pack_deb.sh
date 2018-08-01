@@ -206,7 +206,6 @@ mv -f debian.deb ${outDir}/${packNam}
 
 echo "${outDir}/${packNam} created."
 
-rm -rf ${debDir}/examples.gz
 rm -rf ${instDir}
 
 exit

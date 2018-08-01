@@ -651,7 +651,8 @@ static ObjAtt GA_DefRec;
   gaNr = GA_recNr;
   ++GA_recNr;
 
-  // printf("ex GA_addRec %d\n",gaNr);
+    // printf("ex GA_addRec %ld\n",gaNr);
+
   return gaNr;
 
 }
@@ -1942,7 +1943,7 @@ static ObjAtt GA_DefRec;
   }
 
 
-    GA_dump_1 (gaNr, stdout);    // 2013-08-15
+    // GA_dump_1 (gaNr, stdout, "GA_Tra__");    // 2013-08-15
 
 
   if(dli < 0) return 0;  // preload = entry vor Draw
@@ -2161,7 +2162,7 @@ static ObjAtt GA_DefRec;
           GA_recNr,GA_SIZ);
 
   for(i1=0; i1<GA_recNr; ++i1) {
-    GA_dump_1 (i1, fpo);
+    GA_dump_1 (i1, fpo, " ");
   }
 
   return 0;
@@ -2170,7 +2171,7 @@ static ObjAtt GA_DefRec;
 
 
 ///================================================================
-  int GA_dump_1 (long i1, FILE *fpo) {
+  int GA_dump_1 (long i1, FILE *fpo, char *txt) {
 ///================================================================
  
   int    typ;
@@ -2180,7 +2181,7 @@ static ObjAtt GA_DefRec;
 
     typ = GA_ObjTab[i1].typ;
 
-    fprintf(fpo,"  %ld typ=%3d ind=%6ld disp=%d",i1, typ,GA_ObjTab[i1].ind,
+    fprintf(fpo," %s %ld typ=%3d ind=%6ld disp=%d",txt,i1,typ,GA_ObjTab[i1].ind,
       GA_ObjTab[i1].disp);
 
     if((typ == Typ_SUR)  ||                   // surfs

@@ -64,7 +64,7 @@ OS_sys1                  get systemCommand (popen)
 OS_exec                  Perform OS-Command; do not wait for completion.
 OS_spawn_wait            execute command and wait explicit
 OS_edit_                 edit File (OS_get_edi, OS_system)
-OS_browse_               display file in HTML-browser
+OS_browse_htm               display file in HTML-browser
 OS_err1                  print errno
 
 OS_check_isDir           is this dir (or file ..)
@@ -79,7 +79,7 @@ OS_get_curDir            get current directory
 OS_get_lang              getenv("LANG")
 OS_get_edi               liefert bei Linux "gedit"
 OS_get_printer           get 1. word of /etc/printcap
-OS_get_browser           liefert konqueror/mozilla/netscape
+OS_get_browse_htm           liefert konqueror/mozilla/netscape
 OS_get_term              liefert bei Linux "xterm "
 OS_get_dialog            check if zenity is installed
 OS_get_imgConv1          returns jpg2bmp-converter; eg /usr/bin/djpeg
@@ -183,7 +183,6 @@ _______________________________________________________________________________
 
 #include "../ut/ut_txt.h"         // fnam_del_s
 
-#include "../ut/ut_os.h" 
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
 
@@ -191,23 +190,30 @@ _______________________________________________________________________________
 #define PTRSIZ             sizeof(void*)   // 4 || 8
 
 
-// static char os_bin_dir[256];
-// static char os_bas_dir[256];
-// static char os_tmp_dir[256];
-// static char os_doc_dir[256];
-// static char os_ico_dir[256];
-// static char os_loc_dir[256];
+
+#define LOCAL_DEF_VAR          // damit wird "extern" im Includefile geloescht !
+#include "../ut/ut_os.h" 
+#undef LOCAL_DEF_VAR           // reset extern ..
 
 
+
+
+
+//_____________________________________
+// exported VARS:
+
+
+//_____________________________________
+// static VARS:
 // wird von div Funktionen retourniert !
 static char txbuf[256];
-
-// static void os_txTab = NULL;
 
 
 //_____________________________________
 // EXTERNALS:
 // aus xa.c:
+
+
 
 
 //================================================================
@@ -880,39 +886,41 @@ static char txbuf[256];
 
 
 //================================================================
-  char* OS_get_browser  () {
+  char* OS_get_browse_htm  () {
 //================================================================
 /// returns html-browser; eg "mozilla"
 // "1>null 2>null" zugefuegt; sonst geht der OS-output ins ouFile !
 
-// TODO: use xdg-open ?
 
 
-  txbuf[0] = '\0';
+  if(OS_browser[0]) return OS_browser;
 
-  if(system("which firefox 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "firefox");
 
-  else if(system("which konqueror 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "konqueror");
+  // most important last !
+  if(system("which konqueror 1>/dev/null 2>/dev/null") == 0)
+    strcpy(OS_browser, "konqueror");
 
   else if(system("which mozilla 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "mozilla");
+    strcpy(OS_browser, "mozilla");
 
   else if(system("which netscape 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "netscape");
+    strcpy(OS_browser, "netscape");
+
+  else if(system("which firefox 1>/dev/null 2>/dev/null") == 0)
+    strcpy(OS_browser, "firefox");
 
   else if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "xdg-open");
+    strcpy(OS_browser, "xdg-open");
 
-  if(strlen(txbuf) < 2) {
+
+  if(strlen(OS_browser) < 2) {
     printf(" **** no HTML-Browser found\n");
     return "";
   }
 
-    printf(" OS_get_browser |%s|\n",txbuf);
+    printf(" OS_get_browse_htm |%s|\n",OS_browser);
 
-  return txbuf;
+  return OS_browser;
 }
 
 
@@ -1030,28 +1038,70 @@ static char txbuf[256];
 
 
 //================================================================
-  int OS_browse_ (char *filnam) {
+  int OS_browse_htm (char *fNam, char *label) {
 //================================================================
 /// \code
-/// html-browse <filnam>
-/// do not wait for end of process.
+/// html-browse <filnam>[<label>]; do not wait for end of process.
+/// Input:
+///   fNam        full filename of html-file;  NULL = <temp>/temp.htm
+///   label        html-label starting with '#'; eg "#L1";  NULL = none
 /// \endcode
 
-  char  cbuf[256], *p1;
+  char  s1[256], s2[400], *p1, *p2;
 
-  p1 = OS_get_browser();
+  p1 = OS_get_browse_htm ();
 
+  //----------------------------------------------------------------
   if(p1 == NULL) {
-    sprintf(cbuf,"** ERROR: cannot find a browser to display file  %s ",filnam);
+    sprintf(s2,"** ERROR: cannot find a browser to display file  %s ",fNam);
     // GUI_Dialog (NULL, cbuf);
-    TX_Print (cbuf);
+    TX_Print (s2);
     return -1;
   }
 
-  sprintf(cbuf, "%s %s 2>/dev/null &",p1,filnam);
 
-  printf("OS_browse_ |%s|\n",cbuf);
-  OS_system(cbuf);
+  //----------------------------------------------------------------
+  // test if file given; else use <temp>/temp.htm
+  if(fNam == NULL) {
+    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
+
+  } else {
+    strcpy(s1, fNam);
+  }
+
+
+  //----------------------------------------------------------------
+  // test if file exists; if not: change language to "en"
+  if(OS_checkFilExist (s1, 1)) goto L_disp;
+  TX_Print ("%s - file does not exist", s1);
+
+  // file does not exist; change language to "en"
+  // extract langCode (2 chars)
+  p2 = strrchr (s1, '.');
+  if(!p2) return -1;
+  p2 -= 2;
+  strncpy (p2, "en", 2);
+
+  // test if file exists;
+  if(OS_checkFilExist (s1, 1) == 0) {
+    TX_Print ("%s - file does not exist", s1);
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // display file fNam with AP_browser
+  L_disp:
+
+
+  if(label) {
+    sprintf(s2, "%s file:%s%s 2>/dev/null &", p1, s1, label);
+  } else {
+    sprintf(s2, "%s %s 2>/dev/null &", p1, s1);
+  }
+
+  printf("OS_browse_htm |%s|\n",s2);
+  OS_system (s2);
 
   return 0;
 
@@ -2442,6 +2492,7 @@ static int   (*up1)();
 
   // sprintf(cbuf, "%sxa/%s",OS_get_bas_dir(),dllNam);
   sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak");
     printf(" exist: |%s|\n",cbuf);

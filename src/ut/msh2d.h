@@ -10,7 +10,7 @@ typedef struct {
                  MemTab   pa2;      // Point2 2D-points
                  MemTab   pa3;      // Point  3D-points
                  MemTab   vc3;      // Vec3f  normalVectors
-                 MemTab   fac;      // Fac3   indexed faces
+                 MemTab(Fac3)   fac;      // Fac3   indexed faces
                  MemTab   fnb;      // Fac3   neighbour-faces
                  GridBox  gbx;
                  double   tol;

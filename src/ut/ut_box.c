@@ -1130,7 +1130,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   double  r1;
   Circ    ci1;
 
-  UT3D_stru_dump (Typ_TOR, to1, "UT3D_box_Torus");
+  // UT3D_stru_dump (Typ_TOR, to1, "UT3D_box_Torus");
 
   r1 = to1->r1 + to1->r2;
 

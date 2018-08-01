@@ -69,7 +69,7 @@ List_functions_start:
 
 PRCV_set_dbo__      create PRCV from bin.obj
 PRCV_set_obj_dbi    create PRCV for bin.obj (must have DB-index)
-PRCV_set_basCv          create PRCV for basicCurve
+PRCV_set_basCv      create PRCV for basicCurve
 PRCV_set_seg        add curve from vs to ve to PRCV
 PRCV_set_find       get previous-parameter and next-parameter
 
@@ -80,6 +80,7 @@ PRCV_get_dbo_add_tc add trimmed-curve ccv1 to prc1
 PRCV_get_tc_add_pa  add point to prc1
 PRCV_get_tc_add_prc add <ptNr> points from prc2 starting at point <ips> to prc1
 PRCV_get_tc_find    find index in from parameter or dbi in PRCV
+
 PRCV_memspc_ini     init memspc for CurvPrcv
 PRCV_memspc_add     add space
 PRCV_free__         free PRCV0 (new-model)
@@ -119,13 +120,28 @@ Every trimmed-curve (CurvCCV) refers to a basic-curve (typ,dbi).
 
 Every basic-curve has a PRCV (polygonal_representation_of_curve)
   The PRCV (struct CurvPrcv) is in a file;
-    filename is tmp_dir/[M<subModelNr>]S<surf#>.odat
+    filename is tmp_dir/[M<subModelNr>]<DB-typ><DB-ind>.odat
 
   Struct CurvPrcv is a polygonal_representation_of_curve -
     - a list of points (npt),
     - a list of the paramter-values of this points (npar), 
     - a list of the DB-indices of this points (nipt).
   
+
+----------------------------------------
+PRCV = Polygonic Represetation of CurVe.
+
+PRCV_set_obj_dbi():
+  Create new Curve (eg circle, bspl, ..):
+    Compute a 3D-polygon from parameters, write it into PRCV-file
+
+  Create CCV:
+    CCV is 1-n trimmed-curves.
+    The trimmed curve has a basic-curve end 2 trim-points.
+    The trim-points must be added into the PRCV of the basic-curve.
+
+
+
 
 ----------------------------------------
 Memspc PRCV0 is used for getting the primary PRCV; realloc if too small;
@@ -463,7 +479,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     TX_Error ("PRCV_get_dbo_add_tc E1-%d-%ld",ccv1.typ,ccv1.dbi);
     return -1;
   }
-    // PRCV_dump__ (2, &prc2);
+
+    // PRCV_dump__ (2, &prc2, "  _dbo_add_tc-prc2-1");
 
 
   // find startIndex ips in prc2
@@ -712,6 +729,9 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_get_tc_find vx=%lf ipdb=%ld\n",vx,ipdb);
+  // UT3D_stru_dump (Typ_PRCV, prc, " _tc_find");
+  // PRCV_dump__ (2, prc, " _tc_find");
+
 
   ii = -1;
 
@@ -797,6 +817,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 /// \endcode
 
 // does not write CCV. CCV is composed at runtime
+// For trimmed-curves (CCV) find basic-curve and add the trim-points.
 
  
   int      irc, ptNr, i1, i2, oTyp, siz, typBas, x0x, x1x, siz_mspc1;
@@ -835,7 +856,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // ccv1 = copy next trimmedCurve
     ccv1 = &((CurvCCV*)obj)[i1];
-       // printf("--------------------- CCV [%d] \n",i1);
+       // printf("--------------------- CCV [%d] of %d\n",i1,oNr);
        // UT3D_stru_dump (Typ_CVTRM, ccv1, " ccv[%d]: ",i1);
 
     // Lines: direct (no PRCV-file)
@@ -916,6 +937,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     PRCV_memspc_ini (&prc1, -1, mspc1, siz_mspc1);
 
 
+    // read basecurve into prc1
     irc = PRCV_rdf__ (&prc1);
     if(irc < 0) {
       TX_Error ("PRCV_set_obj_dbi E1-%d-%ld",prc1.typ,prc1.dbi); 
@@ -941,7 +963,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
     // both values already exist: done.
-    if(x0x && x1x) return 0;
+    if(x0x && x1x) continue;    // 2018-07-24
 
 
   
@@ -1213,7 +1235,9 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   // printf("PRCV_set_seg form=%d vs=%lf ve=%lf ipdbs=%ld ipdbe=%ld\n",form,
          // vs,ve,ipdbs,ipdbe);
-    // UT3D_stru_dump (form, cvBas, " PRCV_set_seg - cvBas ");
+  // UT3D_stru_dump (form, cvBas, "  _set_seg - cvBas ");
+  // PRCV_dump__ (2, prc, "  _set_seg-prc-in");
+    
 
 
   // create a copy of cvBas
@@ -1236,6 +1260,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   //----------------------------------------------------------------
   ptNr = 0;
+  // create pTab=polygon of curve form/cvMod
   irc = UT3D_npt_obj (&ptNr, pTab, tabSiz, form, cvMod, 1, UT_DISP_cv, 0);
   if(irc < 0) {
     printf("**** PRCV_set_seg UT3D_npt_obj %d\n",irc);
@@ -1269,7 +1294,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // TESTBLOCK
     // printf("ex PRCV_set_seg prc.ptNr=%d iis=%d ptNr=%d\n",prc->ptNr,iis,ptNr);
-    // PRCV_dump__ (2, prc);
+    // PRCV_dump__ (2, prc, "ex-_set_seg");
     // END TESTBLOCK
 
 
@@ -1877,7 +1902,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   if(prc->fTmp == 1) {
     // heap-Error     See PRCV_memspc_ini.
-    TX_Error ("PRCV_rdf__ EOM-1");
+    TX_Error ("PRCV_memspc_add EOM-1");
     return -1;
   }
 
@@ -1921,7 +1946,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
 
-  // printf("PRCV_wrf__ M%d %ld\n",prc->mdli,prc->dbi);
+  // printf("PRCV_wrf__ M%d %d %ld\n",prc->mdli,prc->typ,prc->dbi);
+  // PRCV_dump__ (2, prc, "  PRCV_wrf__");
 
 
   PRCV_fnam__ (ofid, prc);
@@ -1973,6 +1999,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     sprintf(fno, "%s%c%ld.odat", OS_get_tmp_dir(),cTyp,prc->dbi);
   }
 
+    // printf(" ex-PRCV_fnam__ |%s|\n",fno);
+
   return 0;
 
 }
@@ -1987,7 +2015,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   PRCV_fnam__ (fn1, prc);
 
-  return (OS_FilSiz (fn1) * 1.5);
+  return (512 + OS_FilSiz (fn1));
 
 }
 
@@ -2020,6 +2048,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // UT3D_stru_dump (Typ_PRCV, prc, "PRCV_rdf__: ");
+
 
   // if(!prc->fTmp) { TX_Error("PRCV_rdf__ E001"); return -1; }
 

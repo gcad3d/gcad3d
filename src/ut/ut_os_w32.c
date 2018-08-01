@@ -82,7 +82,6 @@ Braucht advapi32.lib (f. GetUserName).
 
 #include "../ut/ut_txt.h"              // fnam_del_s
 #include "../ut/func_types.h"          // FUNC_..
-#include "../ut/ut_os.h"
 
 
 #define YES                0
@@ -92,7 +91,27 @@ Braucht advapi32.lib (f. GetUserName).
 
 
 
+#define LOCAL_DEF_VAR      // damit wird "extern" im Includefile geloescht !
+#include "../ut/ut_os.h"
+#undef LOCAL_DEF_VAR        // reset extern ..
+
+
+
+
+//_____________________________________
+// exported VARS:
+
+
+//_____________________________________
+// static VARS:
+// wird von div Funktionen retourniert !
 static char txbuf[256];
+
+
+//_____________________________________
+// EXTERNALS:
+// aus xa.c:
+
 
 
 //----------------------------------------------------------------
@@ -597,15 +616,79 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
-  int OS_browse_ (char *filnam) {
+  int OS_browse_htm (char *fNam, char *label) {
 //================================================================
+/// \code
+/// html-browse <filnam>[<label>]; do not wait for end of process.
+/// Input:
+///   fNam        full filename of html-file;  NULL = <temp>/temp.htm
+///   label        html-label starting with '#'; eg "#L1";  NULL = none
+/// \endcode
 
-  char  cbuf[256];
+  char  s1[256], s2[400], *p1, *p2;
 
-  sprintf(cbuf, "start %s %s",OS_get_browser(),filnam);
+  p1 = OS_get_browse_htm ();
 
-  printf("OS_browse_ |%s|\n",cbuf);
-  OS_system(cbuf);
+  //----------------------------------------------------------------
+  if(p1 == NULL) {
+    sprintf(s2,"** ERROR: cannot find a browser to display file  %s ",fNam);
+    // GUI_Dialog (NULL, cbuf);
+    TX_Print (s2);
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // test if file given; else use <temp>/temp.htm
+  if(fNam == NULL) {
+    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
+
+  } else {
+    strcpy(s1, fNam);
+  }
+
+
+  //----------------------------------------------------------------
+  // test if file exists; if not: change language to "en"
+  if(OS_checkFilExist (s1, 1)) goto L_disp;
+  TX_Print ("%s - file does not exist", s1);
+
+  // file does not exist; change language to "en"
+  // extract langCode (2 chars)
+  p2 = strrchr (s1, '.');
+  if(!p2) return -1;
+  p2 -= 2;
+  strncpy (p2, "en", 2);
+
+  // test if file exists;
+  if(OS_checkFilExist (s1, 1) == 0) {
+    TX_Print ("%s - file does not exist", s1);
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // display file fNam with AP_browser
+  L_disp:
+
+
+  if(label) {
+    // with label:
+    // not for hh:
+    sprintf(s2, "start %s file:%s%s", p1, s1, label);
+  } else {
+    // without label:
+    sprintf(s2, "start %s %s", p1, s1);
+  }
+
+  printf("OS_browse_htm |%s|\n",s2);
+  OS_system (s2);
+
+
+  // char  cbuf[256];
+  // sprintf(cbuf, "start %s %s",OS_get_browse_htm(),filnam);
+  // printf("OS_browse_htm |%s|\n",cbuf);
+  // OS_system(cbuf);
 
   return 0;
 
@@ -613,18 +696,21 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
-  char* OS_get_browser  () {
+  char* OS_get_browse_htm  () {
 //================================================================
 // returns html-browser
 
 
-  // i1=0: found; !=0: does not exist
-  //if(system("which netscape") == 0)  return "netscape";
-  // return ("iexplore");
+  if(OS_browser[0]) return OS_browser;
 
-  // hh kann das direktZustellen nicht (zB "CAD_CV_de.htm#F6")
-  strcpy(txbuf, "hh");
-  return txbuf;
+
+  // strcpy(OS_browser, "firefox");
+  strcpy(OS_browser, "explorer");
+  // strcpy(OS_browser, "iexplore");
+  // strcpy(OS_browser, "hh");
+
+
+  return OS_browser;
 
 
   //printf(" **** kein HTML-Browser gefunden\n");

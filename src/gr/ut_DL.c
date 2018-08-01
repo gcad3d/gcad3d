@@ -62,7 +62,7 @@ DL_SetTmpObj            store DL-record (only for active vector)
 
 DL_hili_on              set obj hilited
 DL_hili_off             reset hilited
-DL_disp_hili_last       (change) hilite last obj of DL
+// DL_disp_hili_last       (change) hilite last obj of DL
 // DL_disp_hili            hilite Obj of line lNr
 
 DL_unvis__              set/reset unvisible-bit;
@@ -330,7 +330,7 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
        long   DL_ind_act=-1L;       //  -1: create a new DL-Rec;
                                     // >=0: modify existing DL-Rec.
                                     // Default = creat new (-1)
-
+static long   DL_hidden = -1L;
 
 
 
@@ -1255,15 +1255,17 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 /// \endcode
 
 
+// static long oldDli = -1L;
 
-  long l1;
+  long dli;
 
 
-  // printf("DL_hili_on %ld von %ld\n",ind,GR_TAB_IND);
+  // printf("DL_hili_on %ld of %ld DL_hidden=%ld\n",ind,GR_TAB_IND,DL_hidden);
   // printf(" hili=%d disp=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
   // printf(" typ=%d\n",GR_ObjTab[ind].typ);
 
 
+  //----------------------------------------------------------------
   if(ind >= 0) {         // Hili Obj.
     if(ind >= GR_TAB_IND) ind = GR_TAB_IND-1;
 
@@ -1274,22 +1276,15 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
     // if((GR_ObjTab[ind].hili == 1)&&(GR_ObjTab[ind].disp == 1)) return -1;
     if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) return -1;
 
-
     GR_ObjTab[ind].hili  = ON;   // ON=0
     GR_ObjTab[ind].disp  = OFF;  // OFF=1
-
-    // // ACHTUNG: Parentobjects haben defektes iatt !!
-    // if(GR_ObjTab[ind].sPar == 1) {
-      // l1 = GR_ObjTab[ind].iatt;
-      // GR_ObjTab[ind].iatt = GR_ObjTab[l1].iatt;
-      // GR_ObjTab[ind].sPar = 0;
-    // }
 
     return 0;
   }
 
 
 
+  //----------------------------------------------------------------
   if(ind == -1) {         // Tabelle löschen
     DL_hili_off (ind);
     return 0;
@@ -1297,23 +1292,30 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
 
+  //----------------------------------------------------------------
   if(ind == -2) {         // das zuletzt gearbeitete Obj hiliten
     if(GR_TAB_IND > 0) {
-      l1 = GR_TAB_IND - 1;
+      dli = GR_TAB_IND - 1;
 
       // test for VC
-      if(GR_ObjTab[l1].typ == Typ_VC) {
-        UI_disp_vec1 (Typ_Index, PTR_LONG(GR_ObjTab[l1].ind), NULL);
+      if(GR_ObjTab[dli].typ == Typ_VC) {
+        UI_disp_vec1 (Typ_Index, PTR_LONG(GR_ObjTab[dli].ind), NULL);
+
       } else {
-        // printf("  _HiliObj l1=%d\n",l1);
-        GR_ObjTab[l1].hili  = ON;    // hi=0; di=1;
-        GR_ObjTab[l1].disp  = OFF;
+        // if dl[dli] == hidden (1,1): set DL_hidden = dli; 
+        if(DL_OBJ_IS_HIDDEN(GR_ObjTab[dli])) DL_hidden = dli;
+
+        // set obj[dli] = hilite (1,0);
+        GR_ObjTab[dli].hili  = ON;    // hi=0; di=1;
+        GR_ObjTab[dli].disp  = OFF;
+          // printf("  _HiliObj dli=%d\n",dli);
       }
     }
     return 0;
   }
 
 
+  //----------------------------------------------------------------
   printf("DL_hili_on Err %ld\n",ind);
 
   return -2;
@@ -1340,42 +1342,58 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   long  l1;
 
 
-  // printf("DL_hili_off %ld\n",ind);
+  // printf("DL_hili_off %ld of %ld DL_hidden=%ld\n",ind,GR_TAB_IND,DL_hidden);
   // if(ind>=0)printf("hi=%d di=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
 
 
 
+  //----------------------------------------------------------------
   if(ind >= 0) {         // UnHili Obj.
+
     // skip hidden obj's; 2015-09-26
-    // if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) goto L_exit;
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) goto L_exit;
-    GR_ObjTab[ind].hili  = OFF;   // OFF=1
+    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) return 0;
+
+    // set normal (0,1)
     GR_ObjTab[ind].disp  = ON;    // ON=0
-    goto L_exit;
+    GR_ObjTab[ind].hili  = OFF;   // OFF=1
+
+    return 0;
   }
 
 
-
-
-  if(ind == -1) {         // Tabelle löschen
+  //----------------------------------------------------------------
+  if(ind == -1) {
+    // reset all hilited to normal
     ii = 0;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       //TX_Print("reset hili=%d disp=%d",GR_ObjTab[l1].hili,GR_ObjTab[l1].disp);
+
       // skip hidden; 2015-09-26
-      // if((GR_ObjTab[ind].disp)&&(GR_ObjTab[ind].hili)) continue;
-      if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) continue;
+      // if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) continue;
+
+      // change hilite (1,0)  --> normal (0,1)
       if(GR_ObjTab[l1].hili == ON) {
-        GR_ObjTab[l1].hili  = OFF;
+
         // hier sollte man nachsehen ob Layer ueberhaupt aktiv ist usw !!
         GR_ObjTab[l1].disp  = ON;
+        GR_ObjTab[l1].hili  = OFF;
         ++ii;
       }
     }
+
+    // reset hidden-state (hidden=1,1) after hilite (hili=1,0)
+    DL_hili_off (-3);
+
     return ii;
   }
 
 
+  //----------------------------------------------------------------
   if(ind == -2) {         // das zuletzt gearbeitete Obj unhiliten
+
+    // reset hidden-state (hidden=1,1) after hilite (hili=1,0)
+    DL_hili_off (-3);
+
       // printf("DL_hili_off  -2 %ld\n",l1);
     DL_hili_off (GR_TAB_IND - 1);
 /*
@@ -1390,8 +1408,24 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
 
 
-  L_exit:
-    // printf("DL_hili_off Err %ld\n",ind);
+  //----------------------------------------------------------------
+  if(ind == -3) {  // reset hidden-state of active-obj (last obj in DL) after hilite
+
+    // reset hidden-state (hidden=1,1) after hilite (hili=1,0)
+    if(DL_hidden >= 0) {
+      // set dl[DL_hidden] = hidden (1,1),
+      GR_ObjTab[DL_hidden].hili  = OFF;
+      GR_ObjTab[DL_hidden].disp  = OFF;
+      DL_hidden = -1L;
+    }
+    return 0;
+  }
+
+
+
+
+  //----------------------------------------------------------------
+  printf("**** DL_hili_off Err %ld\n",ind);
 
   return -1;
 
@@ -2064,13 +2098,14 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
   int DL_SetInd (long dli) {
 //================================================================
 /// \code
-/// DL_SetInd               modify (do not create new DL-Record)
+/// DL_SetInd               modify (overwrite, do not create new DL-Record)
 /// Input:
 ///   dli     -1  default = create new DL-Record. Reset.
 ///          <-1  temporary obj (without DL-record)
 ///           >0  DL_StoreObj does not creat new DL-Record  (modify object)
 ///
 /// DL_StoreObj create or overwrite DispList-record and restores to -1
+/// Add into already open DL-record: see GR_DrawSur, GR_Draw_spu.
 /// \endcode
 
   // printf("########################## DL_SetInd %ld\n",dli);
@@ -4493,11 +4528,14 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 */
 
 
+/* UNUSED
 //================================================================
   int DL_disp_hili_last (int mode) {
 //================================================================
 /// DL_disp_hili_last       hilite last obj of DL
 
+
+  printf("DL_disp_hili_last \n");
 
   if(mode == ON) {
     // hilite last obj of DL
@@ -4513,7 +4551,6 @@ static int    DL_disp_act;          // der Status des Hide-Attribut .disp
 }
 
 
-/* UNUSED
 //=======================================================================
   int DL_disp_hili (long lNr) {
 //=======================================================================

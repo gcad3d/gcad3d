@@ -31,17 +31,18 @@ ____________________________________________________________________________
 
 
 -) Create all geometric objects to be processed with mode CAD or MAN
-  or load model "sample_PRC_cut1_1"
 
--) Create new process: "Process/Create",
-  Processname "proc1", Processor PRC_cut1.
+-) Create new process: select "Process/CreateProcess",
+  modify proposed Processname "proc1",
+  select Processor "PRC_cut1"
+  select "OK"
 
 -) Activate process:
   in browser-window, select proc1 with right mousebutton "aktivate".
 
 -) Define startposition:
   in grafic-window, right mousebutton: "FROM";
-    (in edit-window wird "FROM" ausgegeben)
+    (in edit-window "FROM" is displayed)
   in grafic-window select point with left mousebutton (eg P27)
     (in edit-window the point is added)
   Finish line:
@@ -56,7 +57,7 @@ ____________________________________________________________________________
 
 -) Define machining-commands:
   in grafic-window, right mousebutton: "GO";
-  in grafic-window select a garfic object (line, circle curve)
+  in grafic-window select a grafic object (line, circle curve)
     with the left mousebutton (eg S21)
   Finish line.
     (in edit-window "GO S21" is displayed)
@@ -98,6 +99,12 @@ TEC toolNr radius [height]
   radius (tool-radius-radius); Angabe 0: facial-surface is not displayed.
   height (tool-length); keine Angabe: processing-path is not displayed.
 
+
+TCPOS toolChangePosition
+  Does before toolChange:
+    retract at CLEAR-plane, move to toolChangePosition.
+
+
 Example:
 # Tool 1: Radius=10, length=50.
 TEC 1 10 50
@@ -128,7 +135,6 @@ RPR X-distance,Y-distance[,Z-distance]
   Output: "RP", "G1 coordinates"
 
 
-
 GO Geom.Obj
   Machining. Define one ore more geometric objects (lines, circles, curves).
   Example: "GO P10 L20 S20"
@@ -145,12 +151,12 @@ ____________________________________________________________________________
 
 ZSUR1 <Z-Wert>
   Z-level of machining surface
-  This value is added to all Z-values.
+  For all machining-movements this value is used.
 
 
 CLEAR <Z-Wert>
   Safety-distance (Clearence).
-  For all RAPID-movements this value is added.
+  For all RAPID-movements this value is used.
 
 
 
@@ -158,15 +164,16 @@ ____________________________________________________________________________
 <p><a name="AUX"></a></p>
 <B>Auxiliary_functions</B>
 
+INL <text>
+  INSERT. Text will be copied into the NC-program.
+  Example: key "INL M00".
+
 COOL ON / OFF
   Coolant.
   Will be copied into the NC-program.
 
 FED <Feedrate>
   Will be copied into the NC-program.
-
-INS <text>
-  INSERT. Text will be copied into the NC-program
 
 STOP <parameter>
   Will be copied into the NC-program.
@@ -185,10 +192,15 @@ ____________________________________________________________________________
 <B>Example Process cut1:</B>
 
 Load model sample_PRC_cut1_1.gcad (File/OpenModel "sample_PRC_cut1_1.gcad")
+
 Activate procDemo1 ("procDemo1","activate" in browser with right mousebutton)
-Start prozessor (select Postproc. "none");
-Check output-file ~/gCAD3D/tmp/nc.apt;
-finish with Button "Exit".
+
+Start prozessor (select Postproc. "G-Code") in toolbar below;
+
+Check output-file ~/gCAD3D/tmp/nc.apt (filename see info-window below);
+
+finish with Button "Exit" in toolbar.
+
 
 
 ____________________________________________________________________________
@@ -219,7 +231,7 @@ STOP 1                         M01
 
 COOL ON / OFF                  M07 / M09
 FED {Vorschubwert}             F{Vorschubwert}
-INS {text}                     {text}
+INL {text}                     {text}
 
 FINI                           -
 
@@ -231,6 +243,52 @@ G0,G1  Coordinates of endpoint: X,Y,Z absolut
 
 G2,G3  Coordinates of endpoint: X,Y,Z absolut
        Coordinates of circle-center: I,J,K absolut
+
+
+____________________________________________________________________________
+
+
+
+FROM  = defines the starting position in the machine (G92).
+        Correlates the CAD-position with the machine-position.
+        At the machine: set the tooltip manually to the defined position, start.
+        Z-Val -= active tool-length.
+ZSUR1 = actZsur1 = workPlane; position of the tooltip above/below CAD-Obj-Zero;
+        in workPlane the toolTip makes all work-movements (GO).
+CLEAR = actZclr1 = retract toolTip to <CLEAR> units above CAD-Obj-Zero;
+        clear-position is used for all rapid-movements (RP).
+TEC     tool-definition (ToolLength and radius)
+TCPOS   toolChangePosition. Change tool:
+        retract at ToolchangeHeight; move to toolChangePosition.
+
+ Z-val rapid (RP) = CLEAR
+ Z-val work (GO)  = ZSUR1
+
+                    +--+
+                    |  |  rapid-position of tool
+                    |  |
+                    |  |
+.....x..............+..+............ CLEAR (safePlane)........................
+     |
+   CLEAR                   +--+     ..............................x
+     |                     |  |                                   |
+.....x..... _______________|  |__ ......CAD-Obj-Zero......x..  toolLength  ...
+           |               |  |  |                      ZSUR1     |
+           |               +--+  |  ....workPlane.........x.......x...........
+           |                     |
+           |                     |
+           |_____________________|
+
+
+see ../prc/prc_cut1__.h     NCCmdTab = list of all NC-words
+
+
+
+
+
+
+____________________________________________________________________________
+2018-07-30 V-1.1. TCPOS new. RF.
 
 
 ____________________________________________________________________________

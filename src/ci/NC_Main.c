@@ -3457,6 +3457,7 @@ APT_stat_act:
   if(defTyp >= Typ_PLN) goto L_attribs;
   // if(!defInd) goto L_attribs;   // temporary-mode
   if(APT_obj_stat) goto L_attribs;   // temporary-mode 
+  // create PRCV for DB-obj
   irc = PRCV_set_dbo__ (defTyp, defInd);
   if(irc < 0) return -1;
 
@@ -3550,8 +3551,7 @@ APT_stat_act:
   // find GA-rec if already exist
   gaNr = GA_find__ (basTyp, defInd);
   if(gaNr < 0) goto L_draw;           // skip, no GA-Record exists
-
-
+    // GA_dump_1 (gaNr, stdout, "  _work_def-1");    // 2013-08-15
 
 
 
@@ -3599,7 +3599,8 @@ APT_stat_act:
 
   //----------------------------------------------------------------
   // surfaces-attributes (color, symbolic, texture)
-  } else if(basTyp == Typ_SUR) {
+  } else if((basTyp == Typ_SUR) ||
+            (basTyp == Typ_SOL)) {
     iAtt = ga1->iatt;       // iatt is a ColRGB
       // UT3D_stru_dump (Typ_Color, &iAtt, " col ex GA: ");
     if(TSU_mode == 0) {  // nur bei Draw, nicht bei Store
@@ -4536,17 +4537,18 @@ APT_stat_act:
 
   int       i1, otyp, icod;
   long      ind;
-  char      auxBuf[256];
+  char      auxBuf[256], *p1;
   Point     pt1;
   ObjAto    ato1;
 
 
-  // printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
-  // if(data)printf("  data=|%s|\n",*data);
+  printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
+  if(data)printf("  data=|%s|\n",*data);
 
 
   // test if its a command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
   icod = UTX_wTab_ck (AppCodTab, cmd);
+    printf("  _AppCodTab-icod=%d\n",icod);
   if(icod < 0) return -2;
 
 
@@ -4574,6 +4576,18 @@ APT_stat_act:
       // DLL-starten
       return AP_exec_dll (*data);
 
+    //----------------------------------------------------------------
+    case TAC_PROCESS:
+      // APT_get_Txt (auxBuf, *data, ato1.val[1]);   // processorname
+      // data="<processName> <processor>"; get blank 
+      p1 = strchr (*data, ' ');
+      if(!p1) goto Fehler1;
+      ++p1;
+        // printf(" _AppCodTab-PROCESS-auxBuf=|%s|\n",auxBuf);
+        // printf(" w1=|%s|\n",APP_act_proc);
+      // load & init processor
+      return PRC_init (p1);
+      // break;
   }
 
 
@@ -4749,15 +4763,6 @@ APT_stat_act:
     //----------------------------------------------------------------
     case TAC_ATTS:
       return APT_work_ATTS (ato1.nr, ato1.typ, ato1.val);
-
-    //----------------------------------------------------------------
-    case TAC_PROCESS:
-      APT_get_Txt (auxBuf, *data, ato1.val[1]);   // processorname
-        // printf(" auxBuf=|%s|\n",auxBuf);
-        // printf(" w1=|%s|\n",APP_act_proc);
-      // load & init processor
-      PRC_init (auxBuf);
-      break;
 
     //----------------------------------------------------------------
     case TAC_DIM:
@@ -9632,7 +9637,8 @@ dzt unused
 //================================================================
 /// \code
 /// APT_disp_SymV1    display symbols in x-y-plane (not rotated symbols)
-/// att:    symtyp; SYM_TRIANG, SYM_AXIS, SYM_SQUARE, SYM_CROSS
+///   typ:    symtyp; SYM_TRIANG, SYM_AXIS, SYM_SQUARE, SYM_CROSS
+///   att:    symtyp; SYM_TRIANG, SYM_AXIS, SYM_SQUARE, SYM_CROSS
 /// oriented symbols in x-y-plane: see APT_disp_SymV2
 /// \endcode
 

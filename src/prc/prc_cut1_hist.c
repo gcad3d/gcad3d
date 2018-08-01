@@ -55,9 +55,9 @@ When user goes back in source, restore corresponding position and status.
 // #include "../ut/ut_umem.h"         // UME_reserve
 #include "../ut/ut_geo.h"
 
-extern Point   oldPos;
-extern int     tlActNr;
-extern int     rapid;
+// extern Point   oldPos;
+// extern int     tlActNr;
+// extern int     rapid;
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_DEPRECATE
@@ -100,7 +100,7 @@ static int hist_nr = 0;
 
 
 //================================================================
-  int PRCE_hist_save () {
+  int PRCE_hist_save (Point *oldPos, int *tlActNr, int *rapid) {
 //================================================================
 
   // int    i1;
@@ -118,10 +118,10 @@ static int hist_nr = 0;
 
 
   //----------------------------------------------------------------
-  nc_hist[hist_nr].lNr = APT_line_act;
-  nc_hist[hist_nr].pos = oldPos;
-  nc_hist[hist_nr].tlNr = tlActNr;
-  nc_hist[hist_nr].rpd = rapid;
+  nc_hist[hist_nr].lNr  = APT_line_act;
+  nc_hist[hist_nr].pos  = *oldPos;
+  nc_hist[hist_nr].tlNr = *tlActNr;
+  nc_hist[hist_nr].rpd  = *rapid;
 
   ++hist_nr;
 
@@ -134,15 +134,15 @@ static int hist_nr = 0;
 }
 
 
-//================================================================
-  int PRCE_hist_reset (int lNr) {
-//================================================================
+//========================================================================
+  int PRCE_hist_reset (Point *oldPos, int *tlActNr, int *rapid, int lNr) {
+//========================================================================
 // set back in source
 
   int    ii;
 
 
-  // printf("PRCE_hist_reset %d\n",lNr);
+  printf("PRCE_hist_reset %d\n",lNr);
   // PRCE_hist_dump();
 
 
@@ -183,9 +183,9 @@ static int hist_nr = 0;
   // record found; reset.
   L_found:
     hist_nr = ii + 1;
-    oldPos = nc_hist[ii].pos;
-    tlActNr = nc_hist[ii].tlNr;
-    rapid = nc_hist[ii].rpd;
+    *oldPos = nc_hist[ii].pos;
+    *tlActNr = nc_hist[ii].tlNr;
+    *rapid = nc_hist[ii].rpd;
 
       // printf(" reset rec=%d %f,%f,%f t=%d r=%d\n",ii,
         // oldPos.x,oldPos.y,oldPos.z,tlActNr,rapid);

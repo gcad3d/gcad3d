@@ -163,7 +163,7 @@ UI_butCB                      Callback fuer Menufuncs, Buttons, ...
           APT_decode_ell
           APT_decode_pol
           APT_decode_bsp
-          APT_decode_ccv
+          APT_decode_ccv__
             AP_cont_nxt       Kontursucher ..
           APT_decode_pln1     Plane/Refsys
           APT_decode_pln2     Plane   R = PERP ..

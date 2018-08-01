@@ -1,13 +1,13 @@
-# make -f DemoPlugin_Mousemove.mak
+# . ../options.sh && make -f DemoPlugin_Mousemove.mak
 
 
 DLLNAM = plugins/DemoPlugin_Mousemove
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Mousemove.c
+	../APP/DemoPlugin_Mousemove.c
 
-DIRSRC1 := ../xa/
+DIRSRC1 := ../APP/
 
 include gcad_dll.mak
 

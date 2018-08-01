@@ -67,7 +67,7 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../xa/xa_ui.h"               // APF_*
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa.h"                  // APP_act_*
-
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
 #include "../ut/func_types.h"               // SYM_TRIANG
 

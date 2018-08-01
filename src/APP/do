@@ -13,7 +13,7 @@ echo "gcad_dir_dev: " ${gcad_dir_dev}
 echo "gcad_dir_bin: " ${gcad_dir_bin}
 
 
-cmdVi=${DIR_BIN}'vi.sh'
+cmdVi="${DIR_DEV}gcad3d/src/vi.sh"
 #cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
 #echo $cmdVi
 

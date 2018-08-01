@@ -227,7 +227,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
   }
 
 
-  // APP_browse__ (LOG_A_fnam);
+  // OS_browse_htm (LOG_A_fnam);
   APP_edit (LOG_A_fnam, 0);
 
   if(istat) {

@@ -2308,7 +2308,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// defaults -> cfg/xa.rc
 
   FILE    *fp1 = NULL;
-  char    txbuf[512];
+  char    txbuf[512], *p1;
 
 
   // printf("AP_defaults_write |%s|%s|\n",AP_mod_dir,AP_mod_fnam);
@@ -2340,7 +2340,8 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // Zeile 3: Browser f. Help ..
-  sprintf(txbuf, "%s  // act. html-browser",AP_browser);
+  if(!OS_browser[0]) OS_get_browse_htm ();
+  sprintf(txbuf, "%s  // act. html-browser",OS_browser);
   fprintf(fp1, "%s\n", txbuf);
 
 
@@ -2558,7 +2559,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// read defaults from <base>/cfg/xa.rc
 ///  1   AP_mod_dir
 ///  2   AP_lang
-///  3   AP_browser
+///  3   OS_browser
 ///  4   AP_printer
 ///  5   AP_mod_fnam
 ///  6   AP_mod_ftyp
@@ -2604,8 +2605,8 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // Zeile 3: Browser f. Help ..
   fgets (txbuf, 120, fp1);
-  sscanf(txbuf, "%s",AP_browser); // only 1. word, rest is comment
-  printf(" AP_browser=|%s|\n",AP_browser);
+  sscanf(txbuf, "%s",OS_browser); // only 1. word, rest is comment
+  printf(" OS_browser=|%s|\n",OS_browser);
 
 
   // Zeile 4: Defaultprinter
@@ -2981,8 +2982,8 @@ remote control nur in VWR, nicht MAN, CAD;
   printf("AP_exec_dll |%s|\n",cbuf);
 
 
-  // compile_DLL - Checkbox abfragen -> l1
-  UI_AP (UI_FuncGet, UID_ckb_comp, (void*)&iComp);   // 1=no; 0=yes.
+  // compile_DLL - test Checkbox UID_ckb_comp 
+  iComp = ICHG01(AP_stat.comp);
     printf(" comp=%d\n",iComp);
 
 

@@ -44,7 +44,6 @@ List_functions_start:
 APP_Help               simple help
 APP_Open               select file from list, callback.
 APP_Save               simple save
-APP_browse__
 APP_edit
 APP_htm_fop            open a temp-file for a html-dumpFile
 APP_htm_print          write into open htm-file
@@ -108,16 +107,18 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
   // void  (*xa_test)();
 
- 
+/*
 //================================================================
-  int APP_browse_label (char *fNam, char *label) {
+  int OS_browse_htm (char *fNam, char *label) {
 //================================================================
 /// \code
-/// html-browse <filnam>
+/// html-browse <filnam>#<label>
 /// do not wait for end of process.
-/// filnam = NULL    using default <temp>/temp.htm
+/// Input:
+///   filnam         full filename of html-file;  NULL = <temp>/temp.htm
+///   label          html-label starting with '#'; eg "#L1"
 ///
-/// see OS_browse_
+/// see OS_browse_htm
 /// \endcode
 
 // "firefox file:///mnt/serv1/Devel/dev/gCAD3D/doc/CAD_AC_de.htm#F6"
@@ -125,7 +126,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   char s1[256], s2[320], *p1;
 
 
-  printf("APP_browse_label |%s|%s|\n",fNam,label);
+  printf("OS_browse_htm |%s|%s|\n",fNam,label);
     
 
   //----------------------------------------------------------------
@@ -150,54 +151,63 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   //----------------------------------------------------------------
   // display file fNam with AP_browser
   L_disp:
+    return OS_browse_htm (fNam, label);
 
+  // // add label to filename makes:
+  // // browser unix: firefox|xdg-open|?
+  // // <browser> file:<fnam>#<label>
+  // // <browser> <fnam>
+  // if(strlen(label)) {
+    // sprintf(s1, "file:%s%s", fNam,label);
+  // } else {
+    // strcpy(s1, fNam);
+  // }
+// 
+// #ifdef _MSC_VER
+  // sprintf(s2, "start %s %s",AP_browser,s1);
+// #else
+  // // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
+  // // "file://" - problems with "../fn"
+  // sprintf(s2, "%s %s 2>/dev/null &",AP_browser,s1);
+// #endif
+// 
+  // printf("OS_browse_htm |%s|\n",s2);
+  // OS_system(s2);
+// 
+  // TX_Print ("- display %s", s2);
+// 
+  // return 0;
+// 
+// 
+ //  
+// 
+  // strcat(s1, label);
+// 
+  // return OS_browse_htm (s1);
 
-  // add label to filename
-  sprintf(s1, "file:%s%s", fNam,label);
-
-
-
-
-#ifdef _MSC_VER
-  sprintf(s2, "start %s %s",AP_browser,s1);
-#else
-  // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
-  // "file://" - problems with "../fn"
-  sprintf(s2, "%s %s 2>/dev/null &",AP_browser,s1);
-#endif
-
-  printf("APP_browse__ |%s|\n",s2);
-  OS_system(s2);
-
-  TX_Print ("- display %s", s2);
-
-  return 0;
-
-
-  
-
-  strcat(s1, label);
-
-  return APP_browse__ (s1);
 
 }
 
 
 //================================================================
-  int APP_browse__ (char *filnam) {
+  int OS_browse_htm (char *filnam) {
 //================================================================
 /// \code
 /// html-browse <filnam>
 /// do not wait for end of process.
 /// filnam = NULL    using default <temp>/temp.htm
 ///
-/// see OS_browse_
+/// see OS_browse_htm
 /// \endcode
 
 // "firefox file:///mnt/serv1/Devel/dev/gCAD3D/doc/CAD_AC_de.htm#F6"
 
 
   char  cbuf[280], s1[256], *fNam, *p1;
+
+
+
+  printf("OS_browse_htm in |%s|\n",filnam);
 
 
   if(filnam == NULL) {
@@ -231,23 +241,26 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   //----------------------------------------------------------------
   // display file fNam with AP_browser
   L_disp:
+    return OS_browse_htm (fNam, "");
 
-#ifdef _MSC_VER
-  sprintf(cbuf, "start %s %s",AP_browser,fNam);
-#else
-  // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
-  // "file://" - problems with "../fn"
-  sprintf(cbuf, "%s %s 2>/dev/null &",AP_browser,fNam);
-#endif
-
-  printf("APP_browse__ |%s|\n",cbuf);
-  OS_system(cbuf);
-
-  TX_Print ("- display %s", fNam);
-
-  return 0;
+// 
+// #ifdef _MSC_VER
+  // sprintf(cbuf, "start %s %s",AP_browser,fNam);
+// #else
+  // // sprintf(cbuf, "%s file://%s 2>/dev/null &",AP_browser,fNam);
+  // // "file://" - problems with "../fn"
+  // sprintf(cbuf, "%s %s 2>/dev/null &",AP_browser,fNam);
+// #endif
+// 
+  // printf("OS_browse_htm |%s|\n",cbuf);
+  // OS_system(cbuf);
+// 
+  // TX_Print ("- display %s", fNam);
+// 
+  // return 0;
 
 }
+*/
 
 
 //================================================================
@@ -312,7 +325,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
   printf("APP_Help |%s|%s|%s|\n",appNam,label,AP_lang);
 
-
+  // cbuf1 = "<docdir>/<app>_<lang>.htm"
   sprintf(cbuf1, "%shtml%c%s_%s.htm",
           OS_get_doc_dir(), fnam_del, appNam, AP_lang);
 
@@ -335,7 +348,8 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
     TX_Print(" - using English version.");
   }
 
-  APP_browse_label (cbuf1, label);
+  if((label) && strlen(label)) OS_browse_htm (cbuf1, label);
+  else OS_browse_htm (cbuf1, NULL);
 
   return 0;
 
@@ -415,7 +429,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 //================================================================
 // APP_htm_fop            open a temp-file for a html-dumpFile
 
-// close with UTX_htm_fcl(); display with APP_browse__ (NULL);
+// close with UTX_htm_fcl(); display with OS_browse_htm (NULL);
 // if used in plugin: use APP_htm_print to write into file
 //   MS-Win does in a plugin not write into a file, opened from core !!
 

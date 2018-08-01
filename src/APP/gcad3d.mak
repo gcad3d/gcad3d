@@ -122,8 +122,8 @@ allDemos:
 # mkdir "$(gcad_dir_bin)/plugins";\
 # fi
 	find . -maxdepth 1 -name "Demo*.mak" -exec make -f {} \;
-	find . -maxdepth 1 -name "APP_*.mak" -exec make -f {} \;
 	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} \;
+#	find . -maxdepth 1 -name "APP_*.mak" -exec make -f {} \;
 #	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} "OS=${OS}" \;
 	# link PP's for PRC_cut1
 	mkdir -p "$(gcad_dir_bin)plugins/cut1"

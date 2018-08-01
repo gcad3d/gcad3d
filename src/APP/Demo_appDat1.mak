@@ -1,4 +1,4 @@
-# make -f Demo_appDat1.mak
+# . ../options.sh && make -f Demo_appDat1.mak
 
 
 DLLNAM = plugins/Demo_appDat1
@@ -7,7 +7,7 @@ DLLNAM = plugins/Demo_appDat1
 SRC1 =\
 	../APP/Demo_appDat1.c
 
-DIRSRC1 := ../xa/
+DIRSRC1 := ../APP/
 
 include gcad_dll.mak
 

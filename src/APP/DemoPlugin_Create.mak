@@ -1,13 +1,13 @@
-# make -f DemoPlugin_Create.mak
+# . ../options.sh && make -f DemoPlugin_Create.mak
 
 
 DLLNAM = plugins/DemoPlugin_Create
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Create.c
+	../APP/DemoPlugin_Create.c
 
-DIRSRC1 := ../xa/
+DIRSRC1 := ../APP/
 
 include gcad_dll.mak
 

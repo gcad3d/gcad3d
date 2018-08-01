@@ -164,6 +164,7 @@ char **process_CmdTab;     // was NCCmdTab
 // Input:
 //   ii     1-n load xa_nc_<prcNam>.dll
 //          0   call connected function with parameter fdat
+//   retCod  -1= error-build;
 
 
 // OS_dll__ in ../ut/ut_os_aix.c ../ut/ut_os_w32.c
@@ -172,9 +173,9 @@ char **process_CmdTab;     // was NCCmdTab
   char         s1[256];
 
 
-  // printf("PRC_init |%s|\n",dllNam);
-  // printf("  procNr = %d\n",NC_procNr);
-  // printf("  APP_act_proc |%s|\n",APP_act_proc);
+  printf("PRC_init |%s|\n",dllNam);
+  printf("  procNr = %d\n",NC_procNr);
+  printf("  APP_act_proc |%s|\n",APP_act_proc);
 
 
   if(NC_procNr) {
@@ -188,6 +189,15 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   //----------------------------------------------
+  // recompile dll 
+  if(AP_stat.comp) {
+    sprintf(s1, "%s.so",dllNam);
+    irc = OS_dll_build (s1);
+    if(irc) return -1;
+  }
+
+
+  //----------------------------------------------
   // fix DLL-FileName
 #ifdef _MSC_VER
   sprintf(s1, "%splugins\\%s.dll",OS_get_bin_dir(), dllNam);
@@ -195,6 +205,7 @@ char **process_CmdTab;     // was NCCmdTab
   sprintf(s1, "%splugins/%s.so",OS_get_bin_dir(), dllNam);
 #endif
     // printf(" so=|%s|\n",s1);
+
 
 
   // load dll 
@@ -232,7 +243,7 @@ char **process_CmdTab;     // was NCCmdTab
   char         s1[256];
 
 
-  // printf("PRC__ %d |%s|\n",mode,data);
+  printf("PRC__ mode=%d |%s|\n",mode,data);
   // printf("  processor |%s|\n",APP_act_proc);
 
 
@@ -407,6 +418,9 @@ char **process_CmdTab;     // was NCCmdTab
     GUI_radiobutt_set (&ckb_man);
   }
 
+  // test errcode
+  if(AP_stat.errStat) return -1;
+
 
   // test if processor is defined
     // printf("  APP_act_proc |%s|\n",APP_act_proc);
@@ -478,16 +492,19 @@ static char sproc[128];
       }
 
       prc_win = GUI_Win__ ("Create Process", PRC_Cre_ui__, "");
+
       boxv0 = GUI_box_v (&prc_win, "");
-      box0 = GUI_box_h (&boxv0, "");
-      box1 = GUI_box_v (&box0, "");
-      box2 = GUI_box_v (&box0, "");
+
+      box1 = GUI_box_h (&boxv0, "");
 
 
-      GUI_label__ (&box1, "Processname: ", "l");
-      GUI_label__ (&box1, "Processor: ", "l");
+      prc1 = GUI_entry__ (&box1, "Processname: ", "proc1", NULL, NULL, "16e");
 
-      prc1 = GUI_entry__ (&box2, NULL, "proc1", NULL, NULL, "16e");
+
+      box2 = GUI_box_h (&boxv0, "");
+
+      // GUI_label__ (&box1, "Processname: ", "l");
+      GUI_label__ (&box2, "Processor:   ", "l");
 
 
       // get list-of-processes into optLst; display

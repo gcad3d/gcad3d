@@ -1,13 +1,13 @@
-# make -f DemoPlugin_Hili.mak
+# . ../options.sh && make -f DemoPlugin_Hili.mak
 
 
 DLLNAM = plugins/DemoPlugin_Hili
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../xa/DemoPlugin_Hili.c
+	../APP/DemoPlugin_Hili.c
 
-DIRSRC1 := ../xa/
+DIRSRC1 := ../APP/
 
 include gcad_dll.mak
 

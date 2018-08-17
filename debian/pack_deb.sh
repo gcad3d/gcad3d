@@ -53,10 +53,15 @@ echo "Version =" ${Version}
 
 
 bitNr=`getconf LONG_BIT`
-if [ "${bitNr}" = "32" ] ; then
-platform="i386"
+mach=`uname -m`
+
+if [ "${mach}" = "armv7l" ] ; then
+# raspi
+ platform="armhf"
+elif [ "${bitNr}" = "32" ] ; then
+ platform="i386"
 else
-platform="amd64"
+ platform="amd64"
 fi
 
 

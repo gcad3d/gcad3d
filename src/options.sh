@@ -37,7 +37,7 @@
 #export gcad_dir_bin=${HOME}/devel/binLinux${bitNr}
 
 
-export hTyp=`uname -s`_`uname -i`
+export hTyp=`uname -s`_`uname -m`
 
 # gcad_dir_dev      home of sourcefiles, scripts, linkjobs, packages
 export gcad_dir_dev=${DIR_DEV}gcad3d/

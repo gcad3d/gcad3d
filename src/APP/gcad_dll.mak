@@ -49,6 +49,15 @@ CPPFLG = -fPIC $(CPDEB)
 LKFLG = $(LKDEF) -shared
 endif
 
+# Raspi:
+ifeq "$(hTyp)" "Linux_armv7l"
+FTYP = so
+CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
+CPPFLG = -fPIC $(CPDEB)
+LKFLG = $(LKDEF) -shared
+endif
+
+
 #ifeq "$(OS)" "MSGCC32"
 #FTYP = dll
 #gcad_dir_bin=../bin$(OS)

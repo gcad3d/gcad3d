@@ -91,18 +91,13 @@ rm -rf ${instDir}
 /bin/cp ${debDir}/_control/p* ${instDir}/DEBIAN/.
 
 
-# fix "Version" in ${instDir}/DEBIAN/control
-if [ "${bitNr}" = "32" ] ; then
-cat ${debDir}/_control/control32 | sed "s/<VERSION>/$Version/" > ${instDir}/DEBIAN/control
-else
-cat ${debDir}/_control/control64 | sed "s/<VERSION>/$Version/" > ${instDir}/DEBIAN/control
-fi
-
+# ${instDir}/DEBIAN/control - select debian-controlfile for active platform
+# and fix "Version"
+cat ${debDir}/_control/control_${platform} | sed "s/<VERSION>/$Version/" > ${instDir}/DEBIAN/control
 
 
 # copy startscript /usr/bin/gcad3d -> /usr/bin/gcad3d
 /bin/cp ${debDir}/gcad3d ${instDir}/usr/bin/.
-
 
 
 # copy executable and dynLibs -> /usr/lib/gCAD3D/binLinux32|64

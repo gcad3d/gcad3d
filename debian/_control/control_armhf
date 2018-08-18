@@ -1,0 +1,17 @@
+Package: gcad3d
+Version: <VERSION>
+Architecture: armhf
+Section: graphics
+Priority: optional
+Depends: libc6 (>= 2.4), libgtk2.0-0 | libgtk-3-0, zenity, libjpeg-progs
+Installed-Size: 4400
+Maintainer: Franz Reiter <support@gcad3d.org>
+Homepage: http://www.gcad3d.org
+Description: 3D CAD-CAM Application
+  with
+    * import and export-programs (Step, Iges, VRML, DXF, SVG ..),
+    * integrated 3D-OpenGL viewer,
+    * program interpreter for geometry and NC commands in 3D,
+    * integrated NC processor.
+    * programming interface for userprograms (plugins).
+  Start gCAD3D in Graphics-menu or "gcad3d" from console.

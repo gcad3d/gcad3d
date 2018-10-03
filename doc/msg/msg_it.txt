@@ -60,7 +60,6 @@ MMmdOnm=visualizza un elenco catalogato di oggetti
 MMmdDel=cancella gli oggetti
 MMmdEdi=modifica il campo di input attivo con l'Editor di sistema / F3
 MMmdCln=rimuove in modo definitivo tutte le linee soppresse / F4
-MMmdDlo=annulla (cancella l'ultima operazione, Ctrl-Z)
 MMmdRlo=ripristina (ripristina l'ultima operazione annullata; Ctrl-Y)
 
 MMinVpt=fornisce i parametri di visualizzazione Viewport (in interazione aperta)
@@ -243,6 +242,7 @@ TRAnslate_obj__PLN_=Sposta un oggetto in un diverso sistema di riferimento (pian
 TRAnsform_obj__Tra_=Trasla o ruota un oggetto (Verschiebung) o  (Verdrehung)
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=proiezione di un elemento del progetto su una superficie
+Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=specchio: riflette gli oggetti in un linea
 Mirror_about_plane=specchio: riflette gli oggetti in un piano
 ISOparametric_Curve_from_Surf=curva estratta da: superficie (da parametri (s)); [CX (tutta; Default = lungo)]

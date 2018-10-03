@@ -1041,7 +1041,7 @@ List_functions_end:
 
   // pM = Mittelpunkt p0-p2
   UT3D_pt_mid2pt (&pM, &spi->cpTab[0], &spi->cpTab[2]);
-    // GR_Disp_pt (&pM, SYM_TRI_B, 2);
+    // GR_Disp_pt (&pM, SYM_SQU_B, 2);
 
 
   // create normalvec from pM to Cen
@@ -1067,7 +1067,7 @@ List_functions_end:
   // c = Radius ab pM in Richtung p1-->pM
   // UT3D_pt_traptptlen (&cpo->pc, &pM, &spi->cpTab[1], -x);
   UT3D_pt_traptvclen (&cpo->pc, &pM, &vmc, -x);
-    // GR_Disp_pt (&cpo->pc, SYM_TRI_B, 2);
+    // GR_Disp_pt (&cpo->pc, SYM_SQU_B, 2);
 
 
   // create arc from p0-p2

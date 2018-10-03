@@ -60,7 +60,6 @@ MMmdOnm=display a list of objects
 MMmdDel=delete objects
 MMmdEdi=modify active inputfield with systemEditor / F3
 MMmdCln=remove all deleted Lines permanent / F4
-MMmdDlo=undo (delete last operation; Ctrl-Z)
 MMmdRlo=redo (restore last operation; Ctrl-Y)
 
 MMinVpt=give ViewportParameters (into open Interaction)
@@ -137,7 +136,7 @@ CAD_On=CAD: select Function / select object with right mouseb.
 MAN_On=MAN: new point: Alt-P; newline: right_mousebutton; ..
 MD_On=select object / key ObjID Enter / Exit: Ctrl right mouseb.
 
-CADname=Objektname / info (search it with "Search/Name")
+CADname=objectname / info (search it with "Search/Name")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
@@ -240,9 +239,10 @@ CUT__trim__obj=Trim linear elements (line/curve) with one or two cutting element
 INT__intersect__obj=Intersectionpoint or -curve from intersection of 2 elements
 TRAnslate_obj__VC_=move element along vector [length]
 TRAnslate_obj__PLN_=Move an object to a different reference system (plane) [TRA - invert transformation]
-TRAnsform_obj__Tra_=Objekt verschieben (Verschiebung) oder drehen (Verdrehung)
+TRAnsform_obj__Tra_=move or rotate object
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=Project element onto a surface
+Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Mirror: reflect objects across line
 Mirror_about_plane=Mirror: reflect objects across plane
 ISOparametric_Curve_from_Surf=extract curve from surface (from paramtere(s)); [CX (across; Default = along)]
@@ -347,9 +347,7 @@ PEDe2=*** ERROR: cannot analyze Plane/Vector
 PEDe3=*** ERROR: cannot insert point ..
 
 TED_no=no Texture is active
-TED_ldf=load image
 TED_ldf=load texture from imagefile
-TED_ldn=reload
 TED_ldn=reload imagefile
 TED_rem=remove
 TED_miy=mirror vertical

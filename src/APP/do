@@ -30,6 +30,8 @@ if test "$1" = "help"; then
   echo "./do processes         # compile & link NC-processes"
   echo "./do fDep              # compile & link list of files (see fDep.sh)"
   echo "./do *.mak             # link a plugin (for the first time)"
+  echo "./do debug_ON          # debug ON for following builds (development)"
+  echo "./do debug_OFF         # debug OFF for following builds (production)"
   echo "./do                   # start"
   echo "./do debug             # start with debugger"
   echo "./do trc               # start with mtrace"
@@ -138,6 +140,23 @@ if test "$1" = "processes"; then
   exit 0
 fi
 
+
+# debug ON for following builds (development, see ./deb.mak)
+# in file ./deb.mak change "DEB ="   -> "DEB = 1"
+if test "$1" = "debug_ON"; then
+  /bin/cp -f ./deb.mak ./t1
+  cat ./t1 | sed "s/DEB = 2/DEB = 1/" > ./deb.mak
+  exit 0
+fi
+
+
+# debug OFF for following builds (production, see ./deb.mak)
+# in file ./deb.mak change "DEB ="   -> "DEB = 2"
+if test "$1" = "debug_OFF"; then
+  /bin/cp -f ./deb.mak ./t1
+  cat ./t1 | sed "s/DEB = 1/DEB = 2/" > ./deb.mak
+  exit 0
+fi
 
 
 if test "$1" = "fDep"; then

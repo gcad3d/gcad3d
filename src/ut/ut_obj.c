@@ -2837,8 +2837,8 @@ static char cOff[64];
 ///   ox1      obj as ObjGX
 /// Output:
 ///   objOut   datastruct, typ = RetCode
-///   RetCod = typ of datastruct (form). CCV: returns Typ_ObjGX.
-///       -1 = Error
+///   RetCod   >0   typ of datastruct (form). CCV: returns Typ_ObjGX.
+///            <=0  Error
 /// 
 /// CCV:     rc=Typ_ObjGX
 /// Polygon: rc=Typ_CVPOL;  objOut=CurvPoly
@@ -3043,6 +3043,7 @@ static ObjGX  *odb;
 
     } else {
       TX_Error("UTO_obj_getp E002_%d_%d",ox1->typ,ox1->form);
+      return -1;
     }
 
 
@@ -3062,6 +3063,7 @@ static ObjGX  *odb;
 
     } else {
       TX_Error("UTO_obj_getp E003_%d_%d",ox1->typ,ox1->form);
+      return -1;
     }
 
 
@@ -3079,7 +3081,6 @@ static ObjGX  *odb;
     } else {
       TX_Error("UTO_obj_getp E001 Typ_Model %d",ox1->form);
       return -1;
-
     }
 
 

@@ -1431,9 +1431,10 @@ static IE_rec_txt cad_lst__[]={
   "TRAnsform obj (Tra)",    "TRA",    // 4
   "REV (reverse) curve",    "REV",    // 5
   "Project obj (Prj)",      "PRJ",    // 6
-  "Mirror about line",      "MIR",    // 7
-  "Mirror about plane",     "MIR",    // 8
-  "ISOparametric Curve from Surf", "ISO",  // 9
+  "Parallel obj (offset)",  "PARL",   // 7
+  "Mirror about line",      "MIR",    // 8
+  "Mirror about plane",     "MIR",    // 9
+  "ISOparametric Curve from Surf", "ISO",  // 10
   "",""};
 
 
@@ -1473,16 +1474,20 @@ static IE_rec_stru IE_cad__[]={
    6, Typ_VC,      "[Direction-VEC none=normal]",
    6, Typ_mod1,    "[SolutionNr]",
    6, Typ_modRepl, "[replace REPL] duplicate",
+  // "Parallel obj (offset)",  "PARL",   // 7
+   7, Typ_goGeom,  "basic obj",      // L C S A
+   7, Typ_Val,     "offset dist",
+   7, Typ_Val,     "[basic surf]",
   // "Mirror obj        ",   "MIR",
-   7, Typ_goGeom,  "obj to mirror",
-   7, Typ_LN,      "mirrorline",
-  // "Mirror about plane",   "MIR",
    8, Typ_goGeom,  "obj to mirror",
-   8, Typ_PLN,     "mirrorplane",
+   8, Typ_LN,      "mirrorline",
+  // "Mirror about plane",   "MIR",
+   9, Typ_goGeom,  "obj to mirror",
+   9, Typ_PLN,     "mirrorplane",
   // "ISOparametric Curve from Surf", "ISO",
-   9, Typ_goGeom,  "Surface",
-   9, Typ_goGeo8,  "Parameter/Point",
-   9, Typ_modCX,   "[across]",
+  10, Typ_goGeom,  "Surface",
+  10, Typ_goGeo8,  "Parameter/Point",
+  10, Typ_modCX,   "[across]",
   -1, -1,          ""};
 
 
@@ -1578,7 +1583,7 @@ static IE_rec_stru IE_cad_Ace[]={
                         //  0     1     2     3     4   
 static char *IE_FncTab[]={"CUT","INT","TRA","PRJ","MIR",
                         //  5     6     7     8     9  
-                          "ISO","REV","IMP",""};
+                          "ISO","REV","IMP","PARL",""};
 /// index into IE_FncTab
 static int  IE_FncNr = -1;
 
@@ -4747,11 +4752,11 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
 
-  // printf(">>>> IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
-  // printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
-  // printf(" IE_buf=|%s|\n",IE_buf);
-  // printf(" IE_EdFnc=%d\n",IE_EdFnc);
-  // printf(" IE_cad_typ=%d IE_objInd=%d\n",IE_cad_typ,IE_objInd);
+  printf(">>>> IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
+  printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
+  printf(" IE_buf=|%s|\n",IE_buf);
+  printf(" IE_EdFnc=%d\n",IE_EdFnc);
+  printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
 
 
   if(!IE_lst_act) return 0;         // Drama - woher ??
@@ -4831,8 +4836,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   //================================================================
   // Fix Header.
   // test ob ObjHeader offen (CUT, TRA ...)
-    // printf("  Fix Header. mod=%d func=%d typ=%d ind=%ld\n",IE_modify,IE_FuncTyp,
-           // IE_cad_typ,IE_objInd);
+    printf("  Fix Header. mod=%d func=%d typ=%d ind=%ld\n",IE_modify,IE_FuncTyp,
+           IE_cad_typ,IE_objInd);
 
   // no objHdr necessary for activate|reset ConstrPlane
   if(IE_FuncTyp == IE_Func_CADEnv) goto L_start;         // ActiveCADEnv
@@ -4846,7 +4851,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // set IE_FncNr to index in list IE_FncTab
   // wenn eine Function aus CUT/INT/TRA aktive, Index IE_FncNr setzen.
   IE_FncNr = UTX_cmp_word_wordtab (IE_FncTab, fncAct);
-    // printf("  IE_FncNr=%d fncAct=|%s|\n",IE_FncNr,fncAct);
+    printf("  IE_FncNr=%d fncAct=|%s|\n",IE_FncNr,fncAct);
   if(IE_FncNr < 0) goto L_start;
 
 
@@ -4854,7 +4859,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   if(IE_modify == 1) {
     // mode=Modify: keep original Header
     APED_dbo_oid (&IE_cad_typ, &IE_objInd, IE_modifHdr);
-    // printf(" modify; copy header %d %d\n",IE_cad_typ,IE_objInd);
+      printf(" modify; copy header %d %ld\n",IE_cad_typ,IE_objInd);
     strcpy(IE_outTxt, IE_modifHdr);
     // display name of new outpt-obj in field IE_entHdr
     IE_set_txtHdr ();
@@ -4862,13 +4867,11 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   }
 
 
-
-
   //----------------------------------------------------------------
   // handle Grp 12 (IE_Func_Modify: INT,CUT,PRJ,MIR,ISO: get resultingObjTyp
   // get type and name of resulting-obj for modify-curve-functions, eg CUT
   // CUT returns CurvCCV (trimmed-curve) for all input-curves
-    // printf(" handle Grp 12 FncNr=%d\n",IE_FncNr);
+    printf(" handle Grp 12 FncNr=%d\n",IE_FncNr);
   IE_cad_typ = IE_cad_test_typ (ep);
   if(IE_cad_typ == Typ_Error) goto L_not_ok;
   goto L_start;
@@ -5192,6 +5195,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   char   *p1;
 
 
+  printf("IE_cad_test_typ IE_FncNr=%d\n",IE_FncNr);
+
+
   // fix header for 0=CUT (typ of resulting obj unknown !)
   if(IE_FncNr == 0) {   // "CUT"
     IE_cad_typ = Typ_CVTRM;
@@ -5285,11 +5291,14 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
       // L_HdrKeep:
       // Header generieren
       APED_oid_dbo__ (IE_outTxt, IE_cad_typ, IE_objInd);
-        // printf(" new hr |%s|\n",IE_outTxt);
+        printf(" new hdr |%s|\n",IE_outTxt);
 
       // display name of new outpt-obj in field IE_entHdr
       IE_set_txtHdr ();
     }
+
+
+    printf("ex-IE_cad_test_typ IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
 
   return IE_cad_typ;
 

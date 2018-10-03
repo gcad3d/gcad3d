@@ -307,10 +307,10 @@ char myMemspc[50000];
 
 
 
-  // bitmap symbols: SYM_TRI_S SYM_STAR_S SYM_TRI_B
+  // bitmap symbols: SYM_TRI_S SYM_STAR_S SYM_SQU_B
   // att: att=0=Def, 1=sw, 2=rot, 4=bl.
   UT3D_pt_3db (&pt1, 200., 200., 50.); APT_disp_SymB (SYM_TRI_S,  0, &pt1);
-  UT3D_pt_3db (&pt1, 200., 250., 50.); APT_disp_SymB (SYM_TRI_B,  1, &pt1);
+  UT3D_pt_3db (&pt1, 200., 250., 50.); APT_disp_SymB (SYM_SQU_B,  1, &pt1);
   UT3D_pt_3db (&pt1, 200., 300., 50.); APT_disp_SymB (SYM_STAR_S, 2, &pt1);
 
 

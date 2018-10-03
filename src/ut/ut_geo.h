@@ -756,7 +756,7 @@ typedef struct {Point pt; float size, dir; char *txt;
 /// p2   Startpoint leaderline
 /// typ  0=Text, 1=Image, 2=Tag, 3=Balloon  4=PointCoord
 ///      5=Symbol SYM_STAR_S (Stern klein) 6=Symbol SYM_TRI_S (Dreieck klein)
-///      7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_TRI_B (Viereck)
+///      7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_SQU_B (Viereck)
 ///      9=Vector (normalized)            10=Vector (true length)
 ///     11=Arrowhead (normalized)
 /// txt  Text or ImageFilename; none: noteindex
@@ -1274,6 +1274,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  double UT2D_lenB_2pt (Point2 *p1, Point2 *p2);
  double UT2D_lenS_2pt (Point2 *p1, Point2 *p2);
  double UT2D_lenS_vc  (Vector2 *vc1);
+ int    UT2D_lenq_ck_pt_ln (Point2 *pa, Point2 *pb, Point2 *px, double distq);
  int    UT2D_minLenB_4pt (double *dp,Point2*,Point2*,Point2*,Point2*);
  int    UT3D_minLen_3pt (double*,Point*,Point*,Point*);
  int    UT3D_minLen_4pt (double*,Point*,Point*,Point*,Point*);
@@ -1332,6 +1333,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_pt_2db (Point2 *, double, double);
  int    UT3D_pt_pt2bp (Point *p3, Point2 *p2, int bp);
  void   UT2D_pt_addpt (Point2 *, Point2 *);
+ void   UT2D_pt_add_vc__ (Point2 *, Vector *);
  void   UT2D_pt_sub_pt3 (Point2 *, Point *);
  void   UT2D_pt_opp2pt (Point2 *, Point2 *, Point2 *);
  void   UT2D_pt_mid2pt (Point2 *, Point2 *, Point2 *);
@@ -1358,6 +1360,9 @@ extern const Mat_4x4 UT3D_MAT_4x4;
                                Point *ptp, Vector *vcp);
  int    UT3D_ptDi_intptvcpln (Point *ip, double *dist,
                               Plane *pl, Point *pt, Vector *vln);
+ int    UT2D_pt_int_4pt (Point2 *px, double *tol,
+                         Point2 *pa, Point2 *pb,
+                         Point2 *pc, Point2 *pd);
  int    UT2D_pt_int4pt (Point2*,double*,double*,double*,
                         Point2*,Point2*,Point2*,Point2*);
  int    UT2D_pt_int2ln (Point2*, Line2*, Line2*);
@@ -1526,6 +1531,7 @@ void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
 void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist);
+void   UT3D_pt_tra_pt_pt_mult (Point *pt3, Point *pt1, Point *pt2, double fakt);
 void   UT3D_pt_trapt2vc (Point *po,Point *pi,Vector *vc1, Vector *vc2);
 void   UT3D_pt_trapt2vc2len (Point *,Point *,Vector *,double,Vector *,double);
 void   UT3D_pt_tra_pt_2vc_2par (Point *,Point *,Vector *,double,Vector *,double);
@@ -1902,6 +1908,11 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
  (po)->x = (po)->x + (p1)->x;\
  (po)->y = (po)->y + (p1)->y;}
 
+/// UT2D_pt_add_vc__            add vector:  pt += vc
+#define UT2D_pt_add_vc__(pt,vc){\
+ (pt)->x += (vc)->dx;\
+ (pt)->y += (vc)->dy;}
+
 /// UT2D_pt_sub_pt               subtract point p2 from p1
 #define UT2D_pt_sub_pt(po,p1,p2){\
  (po)->x = (p1)->x - (p2)->x;\
@@ -1928,18 +1939,19 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
  (po)->y = (vi)->dy * (d) + (pi)->y;\
  (po)->z = (vi)->dy * (d) + (pi)->z;}
 
+
 //----------------------------------------------------------------
 /// \code
 /// UT2D_slen_vc_vcNo         signed length of vector on norm.vector
 /// vnab must be normalized;  else returns (slen * length_of_vAB)
-///
-///             C 
-///           . |                   A-C  = vector vac
-///         .   |                   A-B  = vector vnab  (normalized)
-///        .    |
-///      .      |
-///    A-----_--+---------B
-///    |--slen--|
+///        .
+///   neg     pos   C 
+///        .      . |                   A-C  = vector vac
+///             .   |                   A-B  = vector vnab  (normalized)
+///        .   .    |
+///          .      |
+///        A-----_--+---------B
+///        |--slen--|
 ///
 ///  Input:
 ///    (Vector2)vAC;
@@ -1954,14 +1966,22 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 #define UT2D_skp_2vc(v1,v2)\
  ((v1)->dx * (v2)->dx + (v1)->dy * (v2)->dy)
 
+
 //----------------------------------------------------------------
 /// UT2D_sar_2vc        signed area of 2 vectors (scalarprod)
 /// sign gives side
+///              X
+///           v2/        pos  (0-1)
+///            /
+/// ----------X---v1----------->  0
+///            
+///                      neg  (-1 - 0)
 /// UT2D_crossprod_2vc        crossprod of 2 2D-Vectors
 // see UT2D_sid_2vc__  (test if v2 is CCW (pos) or CW (neg) from v1)
 // #define UT2D_crossprod_2vc UT2D_sar_2vc
 #define UT2D_sar_2vc(v1,v2)\
  ((v1)->dx * (v2)->dy - (v1)->dy * (v2)->dx)
+
 
 //----------------------------------------------------------------
 /// UT3D_acos_vc2pt      cos of opening angle of vec-(pt-pt) (dot=scalarprod) DOT

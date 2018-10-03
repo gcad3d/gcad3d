@@ -394,6 +394,7 @@ APT_ObjU_anz
 APT_OPSTOP_stat
 APT_parent_hide
 APT_parent_set
+APT_PARL__
 APT_PL_IND
 APT_pln_tra
 APT_PL_SIZ
@@ -528,6 +529,7 @@ AttLn_Get_ind
 AttLn_Set1
 bitmap_font1
 bitmap_symb_circ_s
+bitmap_symb_squ__
 bitmap_symb_star_s
 bitmap_symb_tri_b
 bitmap_symb_tri_s
@@ -3290,6 +3292,7 @@ UT2D_lenB_2pt
 UT2D_len_cir
 UT2D_len_ciSec
 UT2D_len_ptln
+UT2D_lenq_ck_pt_ln
 UT2D_ln_4db
 UT2D_lncoe_ln
 UT2D_LnInvertPoint
@@ -3334,6 +3337,7 @@ UT2D_pt_int2ln
 UT2D_pt_int2pt2vc
 UT2D_pt_int2vc2pt
 UT2D_pt_int4pt
+UT2D_pt_int_4pt
 UT2D_pt_int_elc_ln
 UT2D_pt_intlnln
 UT2D_pt_intlnx
@@ -3534,6 +3538,7 @@ UT3D_cbsp_clt
 UT3D_cbsp_dbo
 UT3D_cbsp_ell
 UT3D_cbsp_ox
+UT3D_cbsp_parl_pln
 UT3D_cbsp_trim
 UT3D_CCV_NUL
 UT3D_ChkPlanPts
@@ -3550,6 +3555,7 @@ UT3D_ci_cip3
 UT3D_ci_cipt180
 UT3D_ci_cipt360
 UT3D_ci_ciptrd
+UT3D_ci_cirad
 UT3D_ci_intplsph
 UT3D_ci_inv1
 UT3D_ci_inv2
@@ -3623,6 +3629,7 @@ UT3D_el_ci
 UT3D_elcoe_el
 UT3D_el_el2pt
 UT3D_el_elcoe
+UT3D_el_el_parl
 UT3D_el_elpt180
 UT3D_el_inv1
 UT3D_el_inv2
@@ -3718,6 +3725,12 @@ UT3D_npt_ell
 UT3D_npt_fac
 UT3D_npt_obj
 UT3D_npt_ox__
+UT3D_npt_parl_pl__
+UT3D_npt_parl_pl_int
+UT3D_npt_parl_pln
+UT3D_npt_parl_pl_oNxt
+UT3D_npt_parl_pl_oPrv
+UT3D_npt_parl_pl_stat
 UT3D_npt_tria
 UT3D_npt_trmCv
 UT3D_nstru_dump
@@ -3766,6 +3779,7 @@ UT3D_plcoe_pl
 UT3D_pl_ell
 UT3D_plg_lvTab
 UT3D_plg_npar1_npar
+UT3D_plg_parl_pln
 UT3D_plg_projplgpln
 UT3D_plg_pta
 UT3D_pl_invert
@@ -3964,6 +3978,7 @@ UT3D_pt_trapt3vc3len
 UT3D_pt_traptm3
 UT3D_pt_traptm4
 UT3D_pt_traptptlen
+UT3D_pt_tra_pt_pt_mult
 UT3D_pt_traptvclen
 UT3D_pt_tra_pt_vc_par
 UT3D_pt_txt

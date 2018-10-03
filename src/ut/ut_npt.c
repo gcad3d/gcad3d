@@ -37,10 +37,11 @@ UT3D_pta_ox_lim            polygon and segNr from complex-obj  (eg CCV)
 UT3D_npt_ox__              polygon from complex-obj  (eg CCV)
 UT3D_npt_obj               Polygon from bin-obj (typ,struct)
 UT3D_npt_trmCv             polygon from trimmed-curve
-UT3D_pta_plg               Polygon from PolygonCurve
+UT3D_pta_plg               get points from polygon-curve; relimited
 UT3D_pta_bsp               Polygon from bSpline
 UT3D_npt_fac               closed polygon (4 points) from indexed-triangle (Fac3)
 UT3D_npt_tria              closed polygon (4 points) from Triangle
+UT3D_npt_parl_pln          polygon parallel polygon on plane, dist
 
 UT3D_pta_sus               SurStd-Boundary -> Polygon umwandeln
 
@@ -600,16 +601,17 @@ UT3D_npt_ci                circular polygon
 //===========================================================================
   int UT3D_pta_plg (int *ptNr, Point *pTab, CurvPoly *plg) {
 //===========================================================================
-/*
-UT3D_pta_plg               Punktetabelle (relimited) aus PolygonCurve
+/// \code
+/// UT3D_pta_plg               get points from polygon-curve; relimited
+/// 
+/// Input:
+///   ptNr          size of pta (should be plg->ptNr)
+/// 
+/// Returncodes:
+///   0 = OK
+///  -1 = out of tempSpace
+/// \endcode
 
-Input:
-  ptNr          size of pta (should be plg->ptNr)
-
-Returncodes:
-  0 = OK
- -1 = out of tempSpace
-*/
 
   int      irc, over, pNr, ipe, ptMax;
   double   d1, vTot;
@@ -650,6 +652,7 @@ Returncodes:
   if(UT3D_comp2pt(&cv1.cpTab[0], &cv1.cpTab[ipe], UT_TOL_pt)) { // UT3D_ck_plgclo
       // printf(" yes, closed ..\n");
 
+    // test if v0==v1 (closed, but starting & ending at same position, not startPt)
     if(UTP_comp2db(cv1.v0, cv1.v1, UT_TOL_min1)) {
         // printf(" yes, equal ..\n");
       // yes, v0 == v1

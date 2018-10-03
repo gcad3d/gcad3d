@@ -60,7 +60,6 @@ MMmdOnm=mostrar una lista de objetos de
 MMmdDel=eliminar objetos
 MMmdEdi=modificar inputfield activa con systemEditor / F3
 MMmdCln=quitar todas las líneas permanentes suprimido / F4
-MMmdDlo=deshacer (suprimir la última operación, Ctrl-Z)
 MMmdRlo=rehacer (última operación de restauración; Ctrl-Y)
 
 MMinVpt=dar ViewportParameters (en la interacción abierta)
@@ -137,7 +136,7 @@ CADINT=Interactios, joints
 CADANA=Analizar
 CADCP=Constructionplane
 
-CADname=Objektname / info (búsqueda con "Buscar / Nombre")
+CADname=objectname / info (búsqueda con "Buscar / Nombre")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
@@ -240,9 +239,10 @@ CUT__trim__obj=Trim elementos lineales (línea / curva) con uno o dos elementos 
 INT__intersect__obj=Intersectionpoint o la curva de intersección de 2 elementos de
 TRAnslate_obj__VC_=Elemento se mueven a lo largo de vector [largo]
 TRAnslate_obj__PLN_=mover un objeto a un sistema de referencia diferentes (avión) [TRA - transformación invertido]
-TRAnsform_obj__Tra_=verschieben Objekt (Verschiebung) drehen Oder (Verdrehung)
+TRAnsform_obj__Tra_=move or rotate object
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=elemento del proyecto en una superficie de
+Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Mirror: reflect objects across line
 Mirror_about_plane=espejo: reflejar los objetos a través de avión
 ISOparametric_Curve_from_Surf=extracto de la curva de la superficie (de paramtere (s)); [CX (a través, por defecto =)]

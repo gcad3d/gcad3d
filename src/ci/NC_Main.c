@@ -4542,13 +4542,13 @@ APT_stat_act:
   ObjAto    ato1;
 
 
-  printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
-  if(data)printf("  data=|%s|\n",*data);
+  // printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
+  // if(data)printf("  data=|%s|\n",*data);
 
 
   // test if its a command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
   icod = UTX_wTab_ck (AppCodTab, cmd);
-    printf("  _AppCodTab-icod=%d\n",icod);
+    // printf("  _AppCodTab-icod=%d\n",icod);
   if(icod < 0) return -2;
 
 
@@ -5129,7 +5129,7 @@ Ablauf Makro:
   ObjAto    ato1;
 
 
-  printf("APT_work_TPC_CALL |%s|\n",*data);
+  // printf("APT_work_TPC_CALL |%s|\n",*data);
 
 
   // get memSpc for ato
@@ -5137,7 +5137,7 @@ Ablauf Makro:
 
   // decode data
   ATO_ato_srcLn__ (&ato1, *data);
-    ATO_dump__ (&ato1, " start _TPC_CALL");
+    // ATO_dump__ (&ato1, " start _TPC_CALL");
 
 
     // im Editmode nix tun, sonst ja
@@ -9513,7 +9513,7 @@ dzt unused
 //===========================================================================
 /// \code
 /// display AlfaText
-///   typ     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
 /// \endcode
 
 
@@ -9545,7 +9545,7 @@ dzt unused
 /// \code
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 /// Input:
-///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 ///   att      see INF_COL_SYMB
 /// see also GL_DrawSymB
 /// \endcode
@@ -9565,7 +9565,7 @@ dzt unused
 /// \code
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 /// Input:
-///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 ///   att      see INF_COL_SYMB
 /// see also GL_DrawSymB
 /// \endcode
@@ -9593,7 +9593,7 @@ dzt unused
 /// \code
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 /// Input:
-///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 ///   att      see INF_COL_SYMB
 /// see also GL_DrawSymB
 /// \endcode

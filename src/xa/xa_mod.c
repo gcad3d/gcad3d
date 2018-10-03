@@ -1167,7 +1167,7 @@ static char *fnam;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
-  // printf("Mod_sav_i savActMdl=%d\n",savActMdl);
+  printf("Mod_sav_i savActMdl=%d\n",savActMdl);
 
   irc = -1;
 

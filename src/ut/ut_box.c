@@ -1360,7 +1360,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   //================================================================
   } else {       // typ > 4  =  symbol
      //  5=Symbol SYM_STAR_S (Stern klein) 6=Symbol SYM_TRI_S (Dreieck klein)
-     //  7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_TRI_B (Viereck)
+     //  7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_SQU_B (Viereck)
      //  9=Vector (normalized)            10=Vector (true length)
 
     UT3D_box_extend (p1, p2, &tx1->p1);

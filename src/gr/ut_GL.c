@@ -478,7 +478,7 @@ Farbe/Dicke:
 --------- Symbol anzeigen ------------
   UI_GR_DrawInit ();
   GL_temp_del_all ();  // alle temp-Obj. loeschen
-  GL_DrawSymB (&dli, 0, SYM_TRI_B, &pt1);
+  GL_DrawSymB (&dli, 0, SYM_SQU_B, &pt1);
   GL_Redraw ();
   UI_GR_DrawExit ();
 
@@ -6025,7 +6025,7 @@ static double old_view_Z = 0.;
     // test position
     { long dl1 = -2L; Point pt1; //, oldCen;
       // gl must be open !  GL_DrawSymB gets clipped if outside
-      // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_TRI_B, &GLBT_ori);
+      // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_SQU_B, &GLBT_ori);
       pt1 = GLBT_ori;
       lx = 200 / GL_Scale;
       // pt1.x -= lx;
@@ -10127,7 +10127,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 ///              SYM_TRI_S   Dreieck
 ///              SYM_STAR_S  Sternderl
 ///              SYM_CIR_S   Kreis klein
-///              SYM_TRI_B   Viereck
+///              SYM_SQU_B   Viereck
 /// \endcode
 
 
@@ -11138,7 +11138,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   int i1;
 
-  printf("GL_Disp_inpt %d\n",pnr);
+  // printf("GL_Disp_inpt %d\n",pnr);
 
   glBegin (GL_LINE_STRIP);
     for (i1 = 0; i1 < pnr; i1++) {
@@ -11648,7 +11648,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   0  SYM_STAR_S
 //   1  SYM_TRI_S
 //   2  SYM_CIR_S
-//   3  SYM_TRI_B
+//   3  SYM_SQU_B
 //   4  vector normalized
 //   5  vector with length from scale; not normalized
 //   6  arrowhead
@@ -11711,7 +11711,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glCallList ((GLuint)SYM_CIR_S);
 
   } else if(typ == 3) {
-    glCallList ((GLuint)SYM_TRI_B);
+    glCallList ((GLuint)SYM_SQU_B);
   }
   // werden via rectangle angezeigt ...
   // DL_setTagSiz (*ind, 0, 0); // ??
@@ -11797,7 +11797,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 /*
   //----------------------------------------------------------------
-  // symTyp > 4 sind Symbols; 5=SYM_STAR_S 6=SYM_TRI_S 7=SYM_TRI_B
+  // symTyp > 4 sind Symbols; 5=SYM_STAR_S 6=SYM_TRI_S 7=SYM_SQU_B
   // SymbolColor = atta.
   if(symTyp < 5) goto L_draw_Tag;
   symTyp -= 5;
@@ -11828,7 +11828,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glCallList ((GLuint)SYM_CIR_S);
 
   } else if(symTyp == 3) {
-    glCallList ((GLuint)SYM_TRI_B);
+    glCallList ((GLuint)SYM_SQU_B);
   }
   // werden via rectangle angezeigt ...
   DL_setTagSiz (*ind, 0, 0); // ??
@@ -14862,7 +14862,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
   glNewList (DL_ind, GL_COMPILE);
-    /* breite,hoehe,x_o, y_o, x_incr, y_incr,  adress */
+    // breite,hoehe,x_o, y_o, x_incr, y_incr,  adress
   glBitmap (8, 8, 4.0f, 4.0f, 0.0f, 0.0f, bitmap_symb_circ_s);
   glEndList ();
 
@@ -14870,14 +14870,34 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
 
 
-  /* --------------  SYM_TRI_B -------------------------------------- */
+  // --------------  SYM_SQU_S --------------------------------------
+  DL_ind = (GLuint)SYM_SQU_S;
+  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+  glNewList (DL_ind, GL_COMPILE);
+    // breite,hoehe,x_o, y_o, x_incr, y_incr,  adress
+  glBitmap (8, 8, 4.0f, 4.0f, 0.0f, 0.0f, bitmap_symb_squ__);
+  glEndList ();
+
+
+  // --------------  SYM_TRI_B --------------------------------------
   DL_ind = (GLuint)SYM_TRI_B;
   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
   glNewList (DL_ind, GL_COMPILE);
-    /* breite,hoehe,x_o, y_o, x_incr, y_incr,  adress */
+    // breite,hoehe,x_o, y_o, x_incr, y_incr,  adress
+  glBitmap (16, 16, 8.0f, 6.0f, 0.0f, 0.0f, bitmap_symb_tri_b);
+  glEndList ();
+
+
+  // --------------  SYM_SQU_B --------------------------------------
+  DL_ind = (GLuint)SYM_SQU_B;
+  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+  glNewList (DL_ind, GL_COMPILE);
+    // breite,hoehe,x_o, y_o, x_incr, y_incr,  adress
   // glBitmap (16, 16, 8.0f, 8.0f, 0.0f, 0.0f, bitmap_symb_tri_b);
-  glBitmap (10, 10, 5.0f, 5.0f, 0.0f, 0.0f, bitmap_symb_tri_b);
+  glBitmap (12, 12, 6.0f, 6.0f, 0.0f, 0.0f, bitmap_symb_squ__);
   glEndList ();
 
 

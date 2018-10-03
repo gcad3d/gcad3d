@@ -2,7 +2,7 @@
 
 # insert a line xy after line starting with $1
 # example:
-#./lang_ins.csh Project_obj__Prj_ Mirror_about_line Mirror: reflect objects
+#./lang_ins.csh Project_obj__Prj_ "Parallel_obj_=xx (offset-curve or surface)"
 
 echo $1 $2
 

@@ -193,7 +193,7 @@ EDMPT_mousemove_CB
 
 
 #define EDMPT_SYM_COL   ATT_COL_RED // color for pointSymbols (star) GL_col_tab
-#define EDMPT_SYM_ID    SYM_TRI_B   // ID for pointSymbols
+#define EDMPT_SYM_ID    SYM_SQU_B   // ID for pointSymbols
 
 
 #define DLI_TMP_POS   -2L           // position (small red circle)
@@ -1858,8 +1858,8 @@ static FILE      *EDMPT_fp_dep = NULL;
   // MemTab(ObjTXTSRC) mt0, mt1;
 
 
-  printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
-  printf("EDMPT_ptab_get typ=%d dbi=%ld\n",actTyp,actDbi);
+  // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
+  // printf("EDMPT_ptab_get typ=%d dbi=%ld\n",actTyp,actDbi);
 
   actPtn = 0;
 
@@ -1881,14 +1881,14 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // get unmodif. source of active obj; skip, defHdr; cut objName
   EDMPT_src_get_src (&txso);
-    printf(" _get_ptab code=|%s|\n",txso);
+    // printf(" _get_ptab code=|%s|\n",txso);
 
 
   //----------------------------------------------------------------
   // get source-objects into tso0 from sourcline txso
 
   // get temp-space for ts0
-  itsMax = SRCU_tsMax (txso);    printf(" itsMax=%d\n",itsMax);
+  itsMax = SRCU_tsMax (txso);    // printf(" itsMax=%d\n",itsMax);
   i1 = itsMax * sizeof(ObjTXTSRC);  // bytes
   ts0 = (ObjTXTSRC*) MEM_alloc_tmp (i1);
   // MemTab_spc (&mt0, ts0, i1, sizeof(ObjTXTSRC), Typ_ObjTXTSRC);
@@ -1896,10 +1896,10 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // analyze sourceline; get source-objects -> ts0
   txoNr = APED_txo_srcLn__ (ts0, itsMax, txso);
-    printf(" _txo_srcLn__ txoNr=%d\n",txoNr);
+    // printf(" _txo_srcLn__ txoNr=%d\n",txoNr);
   if(txoNr < 1) { printf(" EDMPT_ptab_get ERR1 %d\n",txoNr); return txoNr; }
   // mt0.rNr = irc;
-    APED_txo_dump (ts0, txso, "_get_ptab-ts0");
+    // APED_txo_dump (ts0, txso, "_get_ptab-ts0");
 
 
 
@@ -1911,14 +1911,14 @@ static FILE      *EDMPT_fp_dep = NULL;
   // get ato2=atomic-objects of ts0
   irc = ATO_ato_txo__ (&ato2, ts0, txso);
   if(irc < 0) {TX_Print("EDMPT_ptab_get E3"); return -1;}
-     ATO_dump__ (&ato2, "_get_ptab-ato2-1");
+     // ATO_dump__ (&ato2, "_get_ptab-ato2-1");
 
 
   //----------------------------------------------------------------
   // - get DB-objects from modifyable-points (ATO_ato_eval__)
   irc = ATO_ato_eval__ (&ato2);
   if(irc < 0) {TX_Print("EDMPT_ptab_get E4"); return -1;}
-     ATO_dump__ (&ato2, "_get_ptab-ato2-2");
+     // ATO_dump__ (&ato2, "_get_ptab-ato2-2");
      
 
   //================================================================
@@ -1994,9 +1994,9 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
     // TESTBLOCK
-    EDMPT_dump_atab ();
-    EDMPT_dump_ptab ();
-    printf("ex EDMPT_ptab_get %d\n",actPtn);
+    // EDMPT_dump_atab ();
+    // EDMPT_dump_ptab ();
+    // printf("ex EDMPT_ptab_get %d\n",actPtn);
     // END TESTBLOCK
 
 

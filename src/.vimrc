@@ -100,7 +100,7 @@ map <C-F> :call JUMP_FILE()
 
 
 " Ctl-H = display vim-Doku - help
-map <C-H> :edit ${DIR_BIN}.vimdoc
+map <C-H> :edit ${HOME}/.vim/.vimdoc
 " Alt-H  geht ned !
 
 
@@ -124,10 +124,10 @@ map p [i
 
 
 " q = quit
-map q :q
+nmap q :q
 " Shift-q   quit mit :q!
 " Ctl-Q / Ctl-S  DO NOT USE
-map Q  :q!
+"map Q  :q!
 
 
 " Ctl-R: edit tagobject (Ctrl ])
@@ -157,6 +157,7 @@ iab //E //========== EOF =================================================
 
 
 "-------------------------------- FUNCTIONS
+
 " edit (gleichnamiges) Includefile
 :function EDINCFIL ()
 "let Fn1 = "echo " . expand("%") . "|cut -f1 -d\".\""
@@ -322,11 +323,7 @@ endwhile
 :endfunction
 
 
-
-"------------------------------- vim-bkmTool
-":highlight bkmToolLtab ctermbg=darkred guibg=darkred
-":autocmd BufEnter * :call bkmTool#BkmHili()
-"nmap bb :call bkmTool#BkmToggle()
-"nmap <C-B> :call bkmTool#BkmShow()
+"----------- bookmarks
+:source ~/.vim/vi-bookmarks.vim
 
 " EOF

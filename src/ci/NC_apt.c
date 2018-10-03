@@ -277,7 +277,8 @@ extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;            // Constr.Plane
 extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
-extern int       WC_modact_ind;           // -1=primary Model is active
+extern int       WC_modact_ind;         // -1=primary Model is active;
+                                        // else subModel is being created
 extern int       aus_SIZ;
 extern AP_STAT   AP_stat;
 
@@ -18001,6 +18002,13 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
     //----------------------------------------------------------------
+    } else if((int)aus_tab[0] == T_PARL) { // offset-curve or surface
+      i1 = APT_PARL__ (&ox1, &APTSpcObj, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
+        // printf(" APT_modMax1=%d\n",APT_modMax1);
+      if(i1 < 0) return -1;
+
+
+    //----------------------------------------------------------------
     } else if((int)aus_tab[0] == T_REV) {  // reverse obj
       i1 = APT_REV__ (&ox1, &APTSpcObj, aus_anz, aus_typ, aus_tab);
         // printf(" APT_modMax1=%d\n",APT_modMax1);
@@ -21810,6 +21818,118 @@ static Line lno;
   return -1;
 
 }
+
+
+//================================================================
+  int APT_PARL__  (ObjGX *oxo, Memspc *oSpc,
+                  int aus_anz, int aus_typ[], double aus_tab[],
+                  Memspc *tSpc) {
+//================================================================
+/// \code
+/// offset-curve or surface
+///
+/// Input:    
+///   aus_*   object to be offset (surf or curv), basic surf (default: Constr.Plane)
+/// Output:
+///   oxo     new (parallel) obj
+/// RetCod:   0     OK;
+///          -3     object not yet complete
+///   APT_modMax1 (global) nr of solutions
+/// \endcode
+
+// TODO: replace WC_sur_act.vz with inputPlane
+
+  int     irc, ii, outTyp;
+  void    *oCv, *oIn;
+  Vector  vc1, vc2;
+
+
+  printf("---------------------------------------------- \n");
+  printf("APT_PARL__ %d\n",aus_anz);
+  for(ii=0; ii<aus_anz; ++ii) {
+    printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
+  }
+
+  outTyp = aus_typ[1];
+
+
+  L_typ:
+
+  switch (outTyp) {
+    //----------------------------------------------------------------
+    case Typ_LN:
+      oCv = UME_reserve (oSpc, sizeof(Line));
+      oIn = (void*)DB_get_LN ((long)aus_tab[1]);
+      // normalVector =  WC_sur_act.vz
+      UT3D_vc_ln (&vc1, oIn);
+      UT3D_vc_setLength (&vc1, &vc1, 1.);
+      // get vecY from vecX=Line and vecZ=WC_sur_act.vz
+      UT3D_vc_perp2vc (&vc2, &WC_sur_act.vz, &vc1);
+      UT3D_vc_multvc (&vc1, &vc2, aus_tab[2]);
+      UT3D_ln_tra_vc ((Line*)oCv, oIn, &vc1);
+      OGX_SET_OBJ (oxo, Typ_LN, Typ_LN, 1, oCv);
+      break;
+
+    //----------------------------------------------------------------
+    case Typ_CI:
+      oCv = UME_reserve (oSpc, sizeof(Circ));
+      oIn = DB_get_CI ((long)aus_tab[1]);
+      // change radius += aus_tab[2]
+      UT3D_ci_cirad (oCv, oIn, ((Circ*)oIn)->rad + aus_tab[2]);
+      OGX_SET_OBJ (oxo, Typ_CI, Typ_CI, 1, oCv);
+      break;
+
+    //----------------------------------------------------------------
+    case Typ_CVELL:
+      oCv = UME_reserve (oSpc, sizeof(CurvElli));
+      DB_GetObjDat (&oIn, &ii, Typ_CV, (long)aus_tab[1]);
+      UT3D_el_el_parl (oCv, oIn, aus_tab[2]);
+      OGX_SET_OBJ (oxo, Typ_CVELL, Typ_CVELL, 1, oCv);
+      break;
+
+    //----------------------------------------------------------------
+    // case Typ_CVCLOT:
+      // oCv = UME_reserve (oSpc, sizeof(CurvClot));
+      // oIn = DB_get_CI ((long)aus_tab[1]);
+      // break;
+
+    //----------------------------------------------------------------
+    case Typ_CVPOL:
+      DB_GetObjDat (&oIn, &ii, Typ_CV, (long)aus_tab[1]);
+      oCv = UME_reserve (oSpc, sizeof(CurvPoly));
+      irc = UT3D_plg_parl_pln (oCv, oIn, &WC_sur_act.vz, aus_tab[2], oSpc);
+      if(irc < 0) return -1;
+      OGX_SET_OBJ (oxo, Typ_CVPOL, Typ_CVPOL, 1, oCv);
+      break;
+
+    //----------------------------------------------------------------
+    case Typ_CVBSP:
+      oCv = UME_reserve (oSpc, sizeof(CurvBSpl));
+      irc = UT3D_cbsp_parl_pln (oCv,
+                                (long)aus_tab[1], WC_modact_ind,
+                                &WC_sur_act.vz, aus_tab[2], oSpc, tSpc);
+      if(irc < 0) return -1;
+      OGX_SET_OBJ (oxo, Typ_CVBSP, Typ_CVBSP, 1, oCv);
+      break;
+
+    //----------------------------------------------------------------
+    case Typ_CV:
+      DB_get_CV (&outTyp, (long)aus_tab[1]);
+      goto L_typ;
+
+    //----------------------------------------------------------------
+    default:
+      TX_Error("APT_PARL__ E001 %d",outTyp);
+      return -1;
+  }
+
+    UT3D_stru_dump(outTyp, oCv, "  ex-APT_PARL__");
+
+
+  return 0;
+
+}
+
 
 //================================================================
   int APT_REV__  (ObjGX *oxo, Memspc *oSpc,

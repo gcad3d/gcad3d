@@ -306,7 +306,6 @@ Testprog: ../ut/tst_memTab.c
 
 
 //=========================================================================
-  // int MemTab_add (MemTab *memTab, long *spcOff,
   int MemTab_add (void *mtbv, long *spcOff,
                   void* objDat, int recNr, int mode) {
 //=========================================================================
@@ -324,23 +323,23 @@ Testprog: ../ut/tst_memTab.c
 ///                 2=check (now MT has at least <recNr> free records)
 ///                 4=save; but create <recNr> copies of record <objDat>
 /// Output:
-///   memTab->rNr   nr of records already in use (including objDat)
+///   mtbv->rNr   nr of records already in use (including objDat)
 ///   spcOff        displacement-offset; 0: no reallocate.
 /// RetCode 
 ///   0             OK
 ///   1             OK after reallocate
 ///  -1             outOfMemory-Error.
 /// 
-/// memTab:
-///   memTab->rMax  nr of records already allocated
-///   memTab->rNr   nr of records already in use
-///   memTab->rSiz  recordsize in bytes
+/// mtbv:
+///   mtbv->rMax  nr of records already allocated
+///   mtbv->rNr   nr of records already in use
+///   mtbv->rSiz  recordsize in bytes
 /// 
 /// Ablauf:
 ///   if (recNr > 0)  get space for <recNr> records.
 ///   else            get space for <recNrFree> records.
 ///   if (objDat == NULL)  do not save, do malloc/realloc.
-///   recNrFree =  UTI_round_b2i(memTab->incSiz)
+///   recNrFree =  UTI_round_b2i(mtbv->incSiz)
 ///
 /// Examples:
 /// // typedef_MemTab(Point);
@@ -517,6 +516,9 @@ Testprog: ../ut/tst_memTab.c
 //================================================================
 // MemTab_check        check free space to memSpc; malloc/realloc if necessary.
 // does not update data-pointer
+
+
+  // printf("MemTab_check recNr=%d\n",recNr);
 
   return MemTab_add (memTab, spcOff, NULL, recNr, 2);
 

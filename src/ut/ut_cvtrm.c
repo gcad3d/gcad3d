@@ -1940,7 +1940,11 @@ inline int isLeft( Point P0, Point P1, Point P2 ) {
 //===================================================================
   int wn_PnPoly (Point P, Point* V, int n) {
 //===================================================================
-// wn_PnPoly(): winding number test for a point in a polygon
+// wn_PnPoly(): winding number test for a point in a closed polygon
+// winding number: 1 if point is inside a CCW-circ
+//   2 if inside a second circle CCW 
+//   0 if inside a CW-circle inside CCW-circle
+//
 //      Input:   P = a point,
 //               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
 //      Return:  wn = the winding number (=0 only if P is outside V[])
@@ -1968,10 +1972,12 @@ inline int isLeft( Point P0, Point P1, Point P2 ) {
   int cn_PnPoly (int ptNr, Point2 *pa, Point2 P)  {
 //=================================================================
 // cn_PnPoly(): crossing number test for a point in a polygon
+// polygon must not be self-intersecting
 //      Input:   P = a point,
 //               pa[] = vertex points of a polygon pa[n+1] with pa[n]=V[0]
 //      Return:  0 = outside, 1 = inside
 // This code is patterned after [Franklin, 2000]
+// intersect point P with ray through pa; even nr of intersections = outside.
 
 
   int    i1, cn;

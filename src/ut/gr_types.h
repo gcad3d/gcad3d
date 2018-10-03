@@ -17,19 +17,19 @@ Korr:
 void INF_ATT_CV (){}
 #endif
 // attributes for lines,curves
-#define Typ_Att_PT         0   // jellow
+#define Typ_Att_PT         0   // black
 #define Typ_Att_def        1   // blue
-#define Typ_Att_go         2
-#define Typ_Att_rp         3
-#define Typ_Att_Fac        4
-#define Typ_Att_Fac1       5
-#define Typ_Att_Fac2       6
-#define Typ_Att_Symb       7
-#define Typ_Att_hili       8  // white
-#define Typ_Att_hili1      9  // red, thick=3
-#define Typ_Att_dim       10   // unlimited lines
-#define Typ_Att_top1      11
-#define Typ_Att_top2      12   // used for parent-obj's
+#define Typ_Att_go         2   // black dashed
+#define Typ_Att_rp         3   // black dash-dot
+#define Typ_Att_Fac        4   // red
+#define Typ_Att_Fac1       5   // blue thick2
+#define Typ_Att_Fac2       6   // gray
+#define Typ_Att_Symb       7   // yellow thick3
+#define Typ_Att_hili       8   // green thick3
+#define Typ_Att_hili1      9   // red thick=3 
+#define Typ_Att_dim       10   // dimmed 1 (unlimited lines)
+#define Typ_Att_top1      11   // black thick4
+#define Typ_Att_top2      12   // red dashed thick2 (parent-obj's)
 
 
 #ifdef globTag
@@ -39,7 +39,9 @@ void INF_BITMAP_SYMBOLS (){}
 #define SYM_TRI_S        130   // Bitmap tringle small
 #define SYM_STAR_S       131   // star, small
 #define SYM_CIR_S        132   // Bitmap circle small
-#define SYM_TRI_B        133   // Bitmap triangle big
+#define SYM_SQU_S        134   // Bitmap square small
+#define SYM_TRI_B        135   // Bitmap tringle big
+#define SYM_SQU_B        136   // Bitmap square big
 
 
 

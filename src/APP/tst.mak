@@ -9,6 +9,7 @@ DLLNAM = plugins/tst
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
  ../xa/tst.c\
+ ../xa/tst1.c\
 #../xa/tst_exp.c\
 #../xa/tst_surfaces.c\
 #../xa/tst_new.c\

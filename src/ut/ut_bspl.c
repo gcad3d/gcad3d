@@ -61,6 +61,7 @@ UT3D_cbsp_2pt              create BSP-Curv from Line
 UT3D_cbsp_ci               create BSP-Curv from Circ
 UT3D_cbsp_ell              create BSP-Curv from Ellipse
 UT3D_cbsp_clt              create BSP-Curv from Clothoid
+UT3D_cbsp_parl_pln         Bspl-Curv parallel to Bspl-Curv on plane, dist
 bspl_bsp_ptn               make B-spline cvo from pointTable pTab
 UT3D_cbsp_2cbsp            join 2 BSP-Curves
 UT3D_cbsp_trim             trim a bspline-curve
@@ -1393,6 +1394,68 @@ once again, with U/V changed.
 
 
   return irc;
+
+}
+
+
+//===============================================================================
+  int UT3D_cbsp_parl_pln (CurvBSpl *cvo,
+                          long dbi, int mdli, Vector *vz, double dist,
+                          Memspc *memSeg1, Memspc *tmpSeg) {
+//===============================================================================
+// UT3D_cbsp_parl_pln         Bspl-Curv parallel to Bspl-Curv on plane, dist
+// Output:
+//   cvo          outCurve,  all data for cvo is in memSeg1
+
+
+  int      irc, ii, ptNr, ptNo, iClo;
+  CurvBSpl *cvi;
+  Point    *pta, *pTabi;
+
+
+  printf("UT3D_cbsp_parl_pln dbi=%ld\n",dbi);
+  // UT3D_stru_dump (Typ_CVBSP, cvi, "UT3D_cbsp_parl_pln");
+
+
+  DB_GetObjDat ((void**)&cvi, &ii, Typ_CV, dbi);
+
+  // iClo = cvi->clo;
+  iClo = UT3D_bsp_ck_closed_tr (cvi);
+
+
+  // get the PRCE for this curve
+  irc = PRCV_npt_dbo__ (&pTabi, &ptNr, Typ_CV, dbi, mdli);
+    printf(" _npt_dbo__ irc=%d ptNr=%d\n",irc,ptNr);
+
+    // TESTBLOCK
+    // GL_view_npt (pTabi, ptNr, ATT_PT_GREEN, -1L);
+    // END TESTBLOCK
+
+
+  // get spc f pTabo in tmpSeg
+  pta = UME_reserve (tmpSeg, sizeof(Point) * ptNr);
+  if(!pta) {
+    TX_Error("Out of tempSpace in UT3D_plg_parl_pln");
+    return -1;
+  }
+
+
+  // offset pTabi -> pta
+  irc = UT3D_npt_parl_pln (pta, &ptNo, pTabi, ptNr, vz, dist, iClo);
+  if(irc < 0) return -1;
+
+    // TESTBLOCK
+    // GL_view_npt (pta, ptNo, ATT_PT_GREEN, -1L);
+    // END TESTBLOCK
+
+
+  // get bspl-curv from polygon
+  UT3D_bsp_pta__ (cvo, ptNo, pta, UT_TOL_cv, memSeg1, tmpSeg);
+
+
+    UT3D_stru_dump (Typ_CVBSP, cvo, " ex-UT3D_cbsp_parl_pln");
+
+  return 0;
 
 }
 

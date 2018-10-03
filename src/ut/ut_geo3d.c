@@ -132,8 +132,8 @@ UT3D_par1_ci_angr         get parameter 0-1 for circ from opening-angle
 UT3D_par1_ci_pt           get parameter 0-1 for point on circ
 
 -------------- points --------------------------------------
-UT3D_swap2pt              swap 2 2D-points                            INLINE
-UT3D_comp2pt              compare 2 points                            INLINE
+UT3D_swap2pt              swap 2 points                               INLINE
+UT3D_comp2pt              compare 2 points with tol.                  INLINE
 UT3D_ck2D_equ_2pt         2D-compare of 2 3D-points with tolerance    INLINE
 UT3D_comp4pt              compare 4 points
 UT3D_pt_ck_npt            compare point / points
@@ -185,7 +185,7 @@ UT3D_pt_mid_pta           arithm. Mittelwert der Punktetabelle pTab
 UT3D_pt_midci             midpoint of a circ
 UT3D_pt_std_ci            90/180/270-deg-point of circ
 UT3D_ptvcpar_std_dbo      get typical points & tangent-vector for DB-obj
-UT3D_ptvcpar1_std_obj      get typical points & tangent-vector for obj
+UT3D_ptvcpar1_std_obj     get typical points & tangent-vector for obj
 UT3D_pt_opp2pt            opposite point (p1 = center)
 UT3D_pt_oppptptvc         point opposite line (= 180 deg rot.)
 UT3D_2pt_oppptvclen       2 opposite points (center, vector, dist)
@@ -194,6 +194,7 @@ UT3D_pt_tra_pt_dy         Point = Point + dy                  (INLINE)
 UT3D_pt_traptvc           Point = Point + Vector              (INLINE)
 UT3D_pt_traptivc          Point = Point - Vector              (INLINE)
 UT3D_pt_traptmultvc       point = point + (vector * factor)   (INLINE)
+UT3D_pt_tra_pt_pt_mult    point = segment p1-p2 * fakt
 UT3D_pt_traptvclen        transl. point into dir vc dist. lenv
 UT3D_pt_tra_pt_vc_par     transl. point into dir vc dist. lenv (vcLen=1)
 UT3D_pt_trapt2vc          transl. point into 2 directions
@@ -369,6 +370,7 @@ UT3D_ci_cip2              change endpoint of circ
 UT3D_ci_ciangr            change endpoint of circ from angle
 UT3D_ci_setangr           fix angle from p1-p2
 UT3D_ci_cip3              change start- and endpoint of circ
+UT3D_ci_cirad             change radius of circ
 UT3D_ci_cipt180           change circ -> 180 deg-circ; keep dir
 UT3D_ci_cipt360           change circ -> 360 deg-circ; keep dir
 UT3D_ci_ptvcr             Circ from center, axis, radius
@@ -1045,6 +1047,8 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 ///  1 = OK; dist gives the minimum distance.
 ///  2 = OK; lines are crossing, dist=0, ip1=ip2, but outside lineSegment.
 ///  3 = OK; lines are crossing, dist=0, ip1=ip2 and inside lineSegment.
+///
+/// see UT2D_ptvc_ck_int2pt
 /// \endcode
 
 
@@ -1462,25 +1466,25 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   qtol = tol * tol;
 
 
-  printf("UT3D_pt_int2pt2vcn_lim tol=%f qtol=%lf\n",tol,qtol);
-  UT3D_stru_dump (Typ_PT, pta, " pta =");
-  UT3D_stru_dump (Typ_VC, vab, " vab=");
-  UT3D_stru_dump (Typ_PT, ptc, " ptc =");
-  UT3D_stru_dump (Typ_VC, vcd, " vcd=");
+  // printf("UT3D_pt_int2pt2vcn_lim tol=%f qtol=%lf\n",tol,qtol);
+  // UT3D_stru_dump (Typ_PT, pta, " pta =");
+  // UT3D_stru_dump (Typ_VC, vab, " vab=");
+  // UT3D_stru_dump (Typ_PT, ptc, " ptc =");
+  // UT3D_stru_dump (Typ_VC, vcd, " vcd=");
 
 
   UT3D_vc_2pt (&vac, pta, ptc);
 
   lqab = UT3D_skp_2vc (vab, vab);  // q-length of vab (length*length)
-    printf(" lqab=%f\n",lqab);
+    // printf(" lqab=%f\n",lqab);
 
 
   s_ab_ac = UT3D_skp_2vc (&vac, vab);
-    printf(" s_ab_ac=%f\n",s_ab_ac);
+    // printf(" s_ab_ac=%f\n",s_ab_ac);
 
 
   par1 = s_ab_ac / lqab;
-    printf(" par-ab = %f\n",par1);
+    // printf(" par-ab = %f\n",par1);
 
 
 
@@ -1490,12 +1494,12 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   s_cd_ac *= -1.;
 
   par2 = s_cd_ac / lqcd;
-    printf(" par-cd = %f\n",par2);
+    // printf(" par-cd = %f\n",par2);
 
 
   // get vector ax
   UT3D_vc_multvc (&vax, vab, par1);
-    UT3D_stru_dump (Typ_VC, &vax, " vax =");
+    // UT3D_stru_dump (Typ_VC, &vax, " vax =");
 
 
   // px from vax
@@ -1532,8 +1536,8 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   if(ux_ab) *ux_ab = par1;
   if(ux_cd) *ux_cd = par2;
 
-    printf("ex UT3D_pt_int2pt2vcn_lim irc=0 par-ab=%f ipar-cd=%f\n",par1,par2);
-    UT3D_stru_dump (Typ_PT, px, " px =");
+    // printf("ex UT3D_pt_int2pt2vcn_lim irc=0 par-ab=%f ipar-cd=%f\n",par1,par2);
+    // UT3D_stru_dump (Typ_PT, px, " px =");
 
 
   return 0;
@@ -1969,7 +1973,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   //----------------------------------------------------------------
   L_parall:
-    printf(" L_parall\n");
+    // printf(" L_parall\n");
   // get normal dist of c on ab
   // Parameter of e on ab
   u_ab = s_ab_ac / s_ab_ab;
@@ -4454,8 +4458,6 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc_:");
 
-
-  // die Koordinate mit dem hoechsten Wert stillegen ..
   dx = fabs(vc1->dx);
   dy = fabs(vc1->dy);
   dz = fabs(vc1->dz);
@@ -6246,7 +6248,7 @@ Returncodes:
 
   *pto = p1;
 
-  // GR_Disp_pt (pto, SYM_TRI_B, 2);
+  // GR_Disp_pt (pto, SYM_SQU_B, 2);
 
   return 0;
 
@@ -6306,7 +6308,7 @@ Tests:
 
 
   // UT3D_stru_dump (Typ_PT, po, "ex UT3D_pt_midci");
-  // GR_Disp_pt (po, SYM_TRI_B, 2);
+  // GR_Disp_pt (po, SYM_SQU_B, 2);
 }
 
 
@@ -7333,7 +7335,7 @@ liegt. ohne acos.
 
   // px = project point pi -> line pl/vl  (UT3D_pt_projptptvc)
   UT3D_pt_projptptvc (&px, &d1, NULL, pi, pl, vl);
-    // GR_Disp_pt(&px, SYM_TRI_B, 2);
+    // GR_Disp_pt(&px, SYM_SQU_B, 2);
 
   // po = pi opposite px
   po->x = px.x - (pi->x - px.x);
@@ -7583,6 +7585,18 @@ liegt. ohne acos.
 }
 
 
+//==============================================================================
+  void UT3D_pt_tra_pt_pt_mult (Point *pt3, Point *pt1, Point *pt2, double fakt) {
+//==============================================================================
+// UT3D_pt_tra_pt_pt_mult     p3 = segment p1-p2 * fakt
+
+
+  pt3->x = pt1->x + (pt2->x - pt1->x) * fakt;
+  pt3->y = pt1->y + (pt2->y - pt1->y) * fakt;
+  pt3->z = pt1->z + (pt2->z - pt1->z) * fakt;
+
+}
+ 
 
 //======================================================================
   int UT3D_pt_tracirlen (Point *pto, Point *pti, Circ *cii, double clen) {
@@ -12406,6 +12420,32 @@ Version 2 - auch Mist
   } else {
     return 0;
   }
+}
+
+
+//================================================================
+  int UT3D_ci_cirad (Circ *cio, Circ *cii, double rad) {
+//================================================================
+// UT3D_ci_cirad             change radius of circ
+
+
+  double d1;
+
+    // UT3D_stru_dump (Typ_CI, cii, "UT3D_ci_cirad");
+
+  *cio = *cii;
+  cio->rad = rad;
+  d1 = rad /  cii->rad;
+
+  // set p1,p2
+  // transl point from p2 along p1-p2 * fakt
+  UT3D_pt_tra_pt_pt_mult (&cio->p1, &cii->pc, &cii->p1, d1);
+  UT3D_pt_tra_pt_pt_mult (&cio->p2, &cii->pc, &cii->p2, d1);
+
+    // UT3D_stru_dump (Typ_CI, cio, " ex-UT3D_ci_cirad");
+
+  return 0;
+
 }
 
 
@@ -17587,8 +17627,8 @@ Mat_4x4-vertical   (used by OpenGL !)
 
 
   // TEST ONLY
-  // GR_Disp_pt (po1, SYM_TRI_B, 2);
-  // GR_Disp_pt (po2, SYM_TRI_B, 2);
+  // GR_Disp_pt (po1, SYM_SQU_B, 2);
+  // GR_Disp_pt (po2, SYM_SQU_B, 2);
   // UT3D_ln_ptpt(&ln1,po1,po2);GR_Disp_ln(&ln1,2);
 
 

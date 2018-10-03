@@ -221,13 +221,13 @@ List_functions_end:
 
 
   // check space for fNr records
-  irc = MemTab_check (&fTab, &ld, fNr);
+  irc = MemTab_check ((MemTab*)&fTab, &ld, fNr);
   if(irc < 0) goto L_EOM;
   fTab.rNr = fNr;
 
   // get space for eNr records
   // if(eNr > 0) {
-    irc = MemTab_check (&eTab, &ld, eNr);
+    irc = MemTab_check ((MemTab*)&eTab, &ld, eNr);
     if(irc < 0) goto L_EOM;
   // }
 
@@ -273,7 +273,7 @@ List_functions_end:
     MemTab_sav (&eTab, &ld, &el1, 1);
 
     // check space for points
-    irc = MemTab_check (&eDat, &ld, pNr);
+    irc = MemTab_check ((MemTab*)&eDat, &ld, pNr);
     if(irc < 0) goto L_EOM;
 
     // read & save points
@@ -564,6 +564,7 @@ List_functions_end:
   MemTab mt1;
   FILE   *fp1;
 
+
   // printf("MSH_bload_fTabf |%s|\n",fNam);
 
   if((fp1=fopen(fNam,"rb")) == NULL) {
@@ -582,19 +583,21 @@ List_functions_end:
   //----------------------------------------------------------------
   // read nr of faces
   fread(&iNr, sizeof(int), 1, fp1);
-    // printf(" nr_fTab=%d\n",iNr);
+    // printf("  nr_fTab=%d\n",iNr);
 
   // clear fTab
   fTab->rNr = 0;
 
-  // check space for iNr records
-  irc = MemTab_check (fTab, &ld, iNr);
-  if(irc < 0) goto L_EOM;
-
-  // load faces
-  iSiz = sizeof(Fac3);  // fTab->rSiz;
-  fread(fTab->data, iSiz, iNr, fp1);
-  fTab->rNr = iNr;
+  if(iNr) {
+    // check space for iNr records
+    irc = MemTab_check ((MemTab*)fTab, &ld, iNr);
+    if(irc < 0) goto L_EOM;
+  
+    // load faces
+    iSiz = sizeof(Fac3);  // fTab->rSiz;
+    fread(fTab->data, iSiz, iNr, fp1);
+    fTab->rNr = iNr;
+  }
 
 
   //----------------------------------------------------------------
@@ -605,13 +608,15 @@ List_functions_end:
   if(eTab) {
     // clear eTab
     eTab->rNr = 0;
-    // check space for iNr records
-    irc = MemTab_check (eTab, &ld, iNr);
-    if(irc < 0) goto L_EOM;
-    // load EdgeLines
-    iSiz = eTab->rSiz;
-    fread(eTab->data, iSiz, iNr, fp1);
-    eTab->rNr = iNr;
+    if(iNr) {
+      // check space for iNr records
+      irc = MemTab_check ((MemTab*)eTab, &ld, iNr);
+      if(irc < 0) goto L_EOM;
+      // load EdgeLines
+      iSiz = eTab->rSiz;
+      fread(eTab->data, iSiz, iNr, fp1);
+      eTab->rNr = iNr;
+    }
 
   } else {
     lSiz = iNr * sizeof(int);
@@ -623,18 +628,20 @@ List_functions_end:
   //----------------------------------------------------------------
   // load EdgeData
   fread(&iNr, sizeof(int), 1, fp1);
-    // printf(" nr_eTab=%d\n",iNr);
+    // printf(" nr_eDat=%d\n",iNr);
 
   if(eDat) {
     // clear eDat
     eDat->rNr = 0;
-    // get space for iNr records
-    irc = MemTab_check (eDat, &ld, iNr);
-    if(irc < 0) goto L_EOM;
-    // load EdgeData
-    iSiz = eDat->rSiz;
-    fread(eDat->data, iSiz, iNr, fp1);
-    eDat->rNr = iNr;
+    if(iNr) {
+      // get space for iNr records
+      irc = MemTab_check ((MemTab*)eDat, &ld, iNr);
+      if(irc < 0) goto L_EOM;
+      // load EdgeData
+      iSiz = eDat->rSiz;
+      fread(eDat->data, iSiz, iNr, fp1);
+      eDat->rNr = iNr;
+    }
 
   } else {
     lSiz = iNr * sizeof(int);

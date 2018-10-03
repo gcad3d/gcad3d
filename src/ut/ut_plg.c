@@ -34,7 +34,7 @@ plg = struct CurvPoly; pointTable + lengthTable + limitParameters v0,v1.
 =====================================================
 List_functions_start:
 
-UT3D_ck_plgclo             check if polygon is closed
+UT3D_ck_plgclo             check if polygon is closed and untrimmed
 UT3D_ck_plgparlim          check if knotVal == start | endPt
 UT3D_ck_plgpar1lim         check if par == start | endPt
 UT3D_ck_pta_maxDev         get max.deviation of a pointTable
@@ -53,6 +53,7 @@ UT3D_pt_int2plg            intersect 2 polygons
 UT3D_plg_pta               PolygonCurve aus Punktetabelle
 UT3D_plg_lvTab             create new lengthTable lvTab
 UT3D_plg_projplgpln        Polygon = project Polygon -> Plane
+UT3D_plg_parl_pln          Polygon = parallel to polygon in plane, dist
 
 UT3D_parplg_plgpt          get knotvalue from point on polygon
 UT3D_par_par1plg           get knotvalue from parameter 0-1
@@ -505,7 +506,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   int UT3D_ck_plgclo (CurvPoly *plg) {
 //================================================================
 /// \code
-/// UT3D_ck_plgclo             check if polygon is closed
+/// UT3D_ck_plgclo             check if polygon is closed and untrimmed
 /// rc =  1:  No, polygon not closed
 /// rc =  0:  YES, polygon is closed AND endpoint == end_of_curve
 /// rc = -1:  NO, polygon is closed BUT endpoint is trimmed
@@ -539,6 +540,73 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 */
 
   return -1; // closed, but trimmed
+
+}
+
+
+//===============================================================================
+  int UT3D_plg_parl_pln (CurvPoly *plgo, CurvPoly *plgi, Vector *vz, double dist,
+                         Memspc *memSeg1) {
+//===============================================================================
+// UT3D_plg_parl_pln          Polygon = parallel to polygon on plane, dist
+// Input:
+//   vz    normalvektor of plane for plgo
+
+  int    irc, ptNr, ptNo, iClo;
+  double *vTabi, *vTabo, d1, d2;
+  Point  *pTabi, *pTabo;
+  Vector vc1, vc2;
+
+
+  UT3D_stru_dump (Typ_CVPOL, plgi, "UT3D_plg_parl_pln");
+
+  *plgo = *plgi;
+
+  ptNr  = plgi->ptNr;
+  pTabi = plgi->cpTab;
+  vTabi = plgi->lvTab;
+  // iClo  = plgi->clo;
+  iClo = UT3D_ck_plgclo (plgi);
+
+  // get spc f ptNr points in memSeg1
+  pTabo = UME_reserve (memSeg1, sizeof(Point) * ptNr);
+  if(!pTabo) {
+    TX_Error("Out of tempSpace in UT3D_plg_parl_pln");
+    return -1;
+  }
+
+  // get spc f ptNr doubles in memSeg1
+  vTabo = UME_reserve (memSeg1, sizeof(double) * ptNr);
+  if(!vTabo) {
+    TX_Error("Out of tempSpace in UT3D_plg_parl_pln");
+    return -1;
+  }
+
+
+  //----------------------------------------------------------------
+  // update cpTab pTabo
+  // offset pTabi -> pTabo
+  irc = UT3D_npt_parl_pln (pTabo, &ptNo, pTabi, ptNr, vz, dist, iClo);
+  if(irc < 0) return -1;
+
+
+  //----------------------------------------------------------------
+  // update lvTab vTabo
+  d1 = UT3D_plg_lvTab (vTabo, pTabo, ptNo);
+  d2 = d1 / plgi->v1;
+
+  // update trimValues
+  plgo->v0 = plgi->v0 * d2;
+  plgo->v1 = plgi->v1 * d2;
+
+  plgo->cpTab = pTabo;
+  plgo->lvTab = vTabo;
+
+  plgo->ptNr = ptNo;
+
+    UT3D_stru_dump (Typ_CVPOL, plgo, " ex-UT3D_plg_parl_pln");
+
+  return 0;
 
 }
 
@@ -1333,16 +1401,22 @@ Returncodes:
 //===========================================================================
   int UT3D_pta_ccw_plg (int *ptNr, Point *pta, CurvPoly *plg) {
 //===========================================================================
-/*
-UT3D_pta_plg               Punktetabelle (relimited) aus PolygonCurve
+/// \code
+/// UT3D_pta_plg               Punktetabelle (relimited) aus PolygonCurve
+/// Get (relimited) poylygon from PolygonCurve (eg for display).
+/// PolygonCurve must be fwd (see UT3D_pta_plg).
+/// 
+/// Input:
+///   ptNr          size of pta (should be plg->ptNr)
+/// 
+/// Returncodes:
+///   0 = OK
+///  -1 = out of tempSpace
+/// 
+/// 
+/// TODO: add points to pta (problem UT3D_comp2pt(&pTab[i2], &pta[iOut - 1]...)
+/// \endcode
 
-Input:
-  ptNr          size of pta (should be plg->ptNr)
-
-Returncodes:
-  0 = OK
- -1 = out of tempSpace
-*/
 
   int    i1, i2, irc, maxPt, iOut, iClo;
   double *lTab, d1, d2, over;
@@ -1351,7 +1425,7 @@ Returncodes:
 
   // printf("....................................................... \n");
   // printf("UT3D_pta_ccw_plg ptNr=%d v0=%f v1=%f\n",plg->ptNr,plg->v0,plg->v1);
-  // UT3D_stru_dump(Typ_CVPOL, plg, "");
+  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_pta_ccw_plg");
   
 
   maxPt = *ptNr;
@@ -1370,7 +1444,7 @@ Returncodes:
 
 
   //------------------------------------------------------------------
-  // Startpunkt berechnen.
+  // find startpoint
   for(i1=1; i1<plg->ptNr; ++i1) {
     // printf(" l1:[%d] p=%f\n",i1,lTab[i1]);
     // printf(" pi[%d]=%f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
@@ -1399,10 +1473,10 @@ Returncodes:
   }
 
 
-  // increment points
   // test if 1. point is identical
   if(UT3D_comp2pt(&pTab[i2], &pta[iOut - 1], UT_TOL_pt)) ++i2;
 
+  // add following oints
   for(i1=i2; i1<plg->ptNr; ++i1) {
       // printf(" nxt l2:[%d] p=%f\n",i1,lTab[i1]);
     if(iOut >= maxPt) goto L_err1;  // overflow outArray 
@@ -1420,18 +1494,23 @@ Returncodes:
 
   *ptNr = iOut;
 
+  // already at end ?
+  if(UTP_comp2db(lTab[plg->ptNr - 1], plg->v1, UT_TOL_pt)) goto L_9;
 
 
   //------------------------------------------------------------------
   L_ende:
     // printf(" L_ende: i2=%d\n",i2);
+  // test if endpoint
   // Endpunkt erechnen.
   d1 = plg->v1 - lTab[i2-1];
-  // printf(" i2=%d d1=%f\n",i2,d1);
+    // printf(" i2=%d d1=%f\n",i2,d1);
   UT3D_pt_traptptlen (&pta[iOut], &pTab[i2-1], &pTab[i2], d1);
   // printf(" pe[%d]=%f %f %f\n",iOut,pta[iOut].x,pta[iOut].y,pta[iOut].z);
   ++iOut;
 
+
+  L_9:
   *ptNr = iOut;
 
 

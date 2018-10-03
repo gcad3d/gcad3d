@@ -111,6 +111,7 @@ UT2D_len_2pt              distance pt - pt
 UT2D_lenB_2pt             max(dx|dy)-distance point-point
 UT2D_lenS_2pt             dx+dy-distance point-point      INLINE
 UT2D_lenq_2pt             quadr. distance pt - pt         INLINE
+UT2D_lenq_ck_pt_ln        check if min. dist. point-lineSegment > distq
 UT2D_len_ptln             minimal dist. from point to line
 UT2D_3len_ptln            minimal dist. from point to line + normalDist
 UT2D_slen_vc_vc__         signed length of vector on vector
@@ -162,6 +163,7 @@ UT2D_pt_pt3               2D-Point = 3D-Point                          INLINE
 UT2D_pt_2db               2D-Point = 2 doubles (x, y)                  INLINE
 UT2D_pt_pt3bp             2D-Point = 3D-Point on Backplane (inline)
 UT2D_pt_addpt             Add two points:      po += p1                INLINE
+UT2D_pt_add_vc__          add vector:  pt += vc                        INLINE
 UT2D_pt_opp2pt            opposite point (p1 = center)
 UT2D_pt_mid2pt            midpoint between 2 points
 UT2D_pt_mid_npt           midpoint from n points
@@ -187,7 +189,8 @@ UT2D_pt_projpt2pt         pp = project point pt to lineSegment p1-p2
 UT2D_pt_projptln          point = project point to line
 UT2D_2pt_projptci         project point to circle
 UT2D_pt_projptci          project point to Arc (segment of circle)
-UT2D_pt_int4pt            intersection 2 lines
+UT2D_pt_int_4pt           intersection of 2 limited 2D-lines
+UT2D_pt_int4pt  REPLACED with UT2D_pt_int_4pt intersection 2 lines
 UT2D_pt_intptvcy          intersection line (pt-vc) - horizontal line
 UT2D_pt_intlny            intersection linesegment - horizontal (unlim.) line
 UT2D_pt_intlnx            intersection linesegment - vertical (unlim.) line
@@ -1618,6 +1621,104 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
 //============================================================================
+  int UT2D_lenq_ck_pt_ln (Point2 *pa, Point2 *pb, Point2 *px, double distq) {
+//============================================================================
+// UT2D_lenq_ck_pt_ln        check if min. dist. point-lineSegment > distq
+// Input
+//   pa,pb     limited line segment
+//   px        get minimal-distance from px to lineSegment pa,pb
+//   distq     minDist * minDist
+// Output:
+//   retCod    0 min.dist pt-line > minDist
+//            -1 min.dist pt-line <= minDist; px is near pa (left of pa)
+//            -2 min.dist pt-line <= minDist; px is near pb (right of pb)
+//            -3 min.dist pt-line <= minDist; px is between pa-pb
+//            -9 Error; pa-pb (vcl) has length 0
+///
+///                  px
+///                  /|
+///             vcp/  |qp                    qp = quadr. dist px-pe
+///              /    |
+///       -1   /      |pe         -2         pe = px projected onto pa-pb
+///           pa------+-------pb
+///                  vcl
+///  -0.5     0      0.5      1.0     1.5    pe_ab (parameter of px along pa-pb)
+
+
+  int     irc, is;
+  double  dMinq, dq, det, dd, s_ab_ab, s_ab_ax, pe_ab;
+  Vector2 vcp, vcl, vae, vec;
+
+  // printf("------------------------------------- \n");
+  // printf("UT2D_lenq_ck_pt_ln distq=%f\n",distq);
+  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
+  // UT3D_stru_dump (Typ_PT2, pb, "  pe");
+  // UT3D_stru_dump (Typ_PT2, px, "  px");
+
+
+  UT2D_vc_2pt (&vcp, pa, px);
+  UT2D_vc_2pt (&vcl, pa, pb);
+
+
+  //----------------------------------------------------------------
+  // get pe_ab = length parameter of px projected onto line
+
+  s_ab_ab = UT2D_skp_2vc (&vcl, &vcl);  // skp mit sich selbst = Laenge^2
+  if(s_ab_ab == 0.0) {
+      // printf("UT2D_lenq_ck_pt_ln - vcl has length 0; No solution!\n");
+    return -9;
+  }
+
+  s_ab_ax = UT2D_skp_2vc (&vcl, &vcp);  // gibt Wert fuer e relativ zu s_ab_ab
+  // Parameterwert von e zwischen a-b
+  pe_ab = s_ab_ax / s_ab_ab;
+    // printf(" pe_ab=%f\n",pe_ab);
+
+
+  //----------------------------------------------------------------
+  if(pe_ab < 0.) {
+    // px=left_of_pa;
+    // get dq = quadratic distance px-pa
+    UT2D_lenq_2pt (&dq, px, pa);
+      // printf(" -dq1= %f\n",dq);
+    if(dq <= distq) return -1;
+
+
+
+  //----------------------------------------------------------------
+  } else if(pe_ab > 1.) {
+    // px=right_of_pb;
+    // get dq = quadratic distance px-pb
+    UT2D_lenq_2pt (&dq, px, pb);
+      // printf(" -dq2= %f\n",dq);
+    if(dq <= distq) return -2;
+
+
+  //----------------------------------------------------------------
+  } else {
+    // px=between_pa-pb.
+    // get dq = quadratic normal distance px-line
+
+    // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
+    UT2D_vc_multvc (&vae, &vcl, pe_ab);
+
+    // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
+    UT2D_vc_sub2vc (&vec, &vcp, &vae);
+
+    dq = UT2D_skp_2vc (&vec, &vec);
+      // printf(" -dq3= %f\n",dq);
+    if(dq <= distq) return -3;
+  }
+
+
+
+  //----------------------------------------------------------------
+  return 0;
+
+}
+
+
+//============================================================================
   double UT2D_len_ptln (Point2 *pt, Point2 *pa, Point2 *pe) {
 //============================================================================
 /// \code
@@ -1627,6 +1728,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 // feststellen, ob der normalpunkt auf oder ausserhalb Line ist
 // Auf Line: den Abstand pt-NormalPt liefern (mit Vorzeichen)
 // nicht auf Line: den Abstand zum naeheren Endpunkt liefern
+// see UT2D_lenq_ck_pt_ln
 
 
   int     irc;
@@ -3648,12 +3750,282 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 }
 
 
+//================================================================
+  int UT2D_pt_int_4pt (Point2 *px, double *tol,
+                       Point2 *pa, Point2 *pb,
+                       Point2 *pc, Point2 *pd) {
+//================================================================
+/// \code
+/// UT2D_pt_int_4pt      intersection of 2 limited 2D-lines
+/// Output:
+///   pti         intersectionpoint (only for retCode=0)
+///   retCode:    -1 no intersection of limited lines
+///                0 normal intersection
+///                2 pa=pc;
+///                3 pa=pd;
+///                4 pb=pc;
+///                5 pb=pd;
+///                6 pa on pc-pd
+///                7 pb on pc-pd
+///                8 pc on pa-pb
+///                9 pd on pa-pb
+///               10 parallel and connected
+///               11 parallel and overlapping
+///
+/// a-b = ln1    c-d = ln2   e = u_c_ab   f = u_d_ab
+///                       d
+///                      /.
+///                     / .
+///                 ln2/  .
+///                   /   .
+///                  /    .
+///                 /     .
+///       a-----e--x------f-------------b
+///             | /            ln1
+///             |/
+///             c
+///
+///
+/// \endcode
+
+// see UT2D_pt_int4pt UT2D_2par_int2pt2vc
+
+
+  int     irc;
+  int     lx1, lx2, ly1, ly2, hx1, hx2, hy1, hy2;
+  double  q1, q2, qq, dab, dcd, d1, d2;
+  Vector2 vab, vcd, vac;
+
+
+  // TESTBLOCK
+  // printf("----------------------------------- \n");
+  // printf("UT2D_pt_int_4pt tol=%f\n",*tol);
+  // printf("{{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f}}\n",
+         // pa->x,pa->y,pb->x,pb->y,
+         // pc->x,pc->y,pd->x,pd->y);
+  // GR_Disp_ln2 (pa, pb, 0);
+  // GR_Disp_ln2 (pc, pd, 0);
+  // END TESTBLOCK
+
+
+
+
+  //==================================================================
+  // boxtest
+
+  irc = -1;
+
+  lx1 = DMIN (pa->x, pb->x);   // low x pa-pb
+  hx2 = DMAX (pc->x, pd->x);   // hi  x pc-pd
+  if(hx2 < lx1 - *tol) goto L_exit;
+
+  lx2 = DMIN (pc->x, pd->x);
+  hx1 = DMAX (pa->x, pb->x);
+  if(lx2 > hx1 + *tol) goto L_exit;
+
+  ly1 = DMIN (pa->y, pb->y);
+  hy2 = DMAX (pc->y, pd->y);
+  if(hy2 < ly1 - *tol) goto L_exit;
+
+  ly2 = DMIN (pc->y, pd->y);
+  hy1 = DMAX (pa->y, pb->y);
+  if(ly2 > hy1 + *tol) goto L_exit;
+
+
+  //==================================================================
+  UT2D_vc_2pt (&vab, pa, pb);
+  UT2D_vc_2pt (&vcd, pc, pd);
+  UT2D_vc_2pt (&vac, pa, pc);
+    // UT3D_stru_dump(Typ_VC2, &vab," vab ");
+    // UT3D_stru_dump(Typ_VC2, &vcd," vcd ");
+    // UT3D_stru_dump(Typ_VC2, &vac," vac ");
+
+
+  q1 = vab.dy * vcd.dx;
+  q2 = vab.dx * vcd.dy;
+  qq = q1 - q2;
+    // printf(" qq=%f q1=%f q2=%f\n",qq,q1,q2);
+
+
+  // check for parallel
+  if (fabs(qq) > 0.0001) goto L_not_parall;
+
+
+  q1 = vab.dy * vac.dx;
+  q2 = vab.dx * vac.dy;
+  qq = q1 - q2;
+    // printf(" qq=%f q1=%f q2=%f\n",qq,q1,q2);
+
+  // check for collinear (all points on same line)
+  if (fabs(qq) > 0.0001) goto L_not_collin;
+
+
+  //==================================================================
+  // lines sind collinear (alle Punkte auf der gleichen Linie)
+  L_collin:
+    // printf(" L_collin:\n");
+
+  irc = 10;   // parallel and connected
+
+  // Tests ob Linien beruehren ..
+  if(fabs(hx1-lx2) < *tol) goto L_exit;
+  if(fabs(hy1-ly2) < *tol) goto L_exit;
+
+  irc = 11;   // parallel and overlapping
+  goto L_exit;
+
+
+  //==================================================================
+  L_not_collin:  // parallel, aber nicht auf der gleichen Linie
+    // printf(" L_not_collin:\n");
+
+  // Normalabstand
+  d1 = (vab.dx*vac.dy - vab.dy*vac.dx) / qq;
+    // printf(" d1=%f\n",d1);
+
+  if (fabs(d1) < *tol) goto L_collin;
+
+  // parallel, aber nicht auf der gleichen Linie
+  // Abstand ist > Tol; also keine Verbindung moeglich
+  irc = -1;
+  goto L_exit;
+
+
+  //==================================================================
+  L_not_parall:
+    // printf(" L_not_parall:\n");
+
+  // dab ist der Abstand des Schnittpunkts auf vab; 0=pa, 1=pb.
+  // dcd ist der Abstand des Schnittpunkts auf vcd; 0=pc, 1=pd.
+
+  dab = (vcd.dx*vac.dy - vcd.dy*vac.dx) / qq;
+  dcd = (vab.dx*vac.dy - vab.dy*vac.dx) / qq;
+    // printf(" dab=%f dcd=%f\n",dab,dcd);
+
+
+
+  //----------------------------------------------------------------
+  // test for equal endpoints
+  if(dab < 0.5) {              // px near pa
+    if(dcd < 0.5) {            // px near pa AND px near pc;
+      if(fabs(pa->x - pc->x) > *tol) goto L_test_sp;
+      if(fabs(pa->y - pc->y) > *tol) goto L_test_sp;
+      // RC =  2   Yes; pa=pc;
+      irc = 2;
+      goto L_exit;
+
+    } else {                 // px near pa AND px near pd
+      if(fabs(pa->x - pd->x) > *tol) goto L_test_sp;
+      if(fabs(pa->y - pd->y) > *tol) goto L_test_sp;
+      // RC =  3   Yes; pa=pd;
+      irc = 3;
+      goto L_exit;
+
+    }
+
+  } else {                   // px near pb
+    if(dcd < 0.5) {     // test pb=pc
+      if(fabs(pb->x - pc->x) > *tol) goto L_test_sp;
+      if(fabs(pb->y - pc->y) > *tol) goto L_test_sp;
+      // RC =  4   Yes; pb=pc;
+      irc = 4;
+      goto L_exit;
+
+    } else {           // test pb=pd
+      if(fabs(pb->x - pd->x) > *tol) goto L_test_sp;
+      if(fabs(pb->y - pd->y) > *tol) goto L_test_sp;
+      // RC =  5   Yes; pb=pd;
+      irc = 5;
+      goto L_exit;
+    }
+  }
+
+
+  //----------------------------------------------------------------
+  // endpoints not identical; test min. distance px - line
+  L_test_sp:
+
+  // get px = intersectionPoint
+  px->x = pa->x + vab.dx * dab;
+  px->y = pa->y + vab.dy * dab;
+    // printf(" L_test_sp: %f,%f\n",px->x,px->y);
+
+
+  // test if line near intersectionPoint 
+  if(dab < 0.) {
+    // px outside pa
+    if(dcd < 0.)  goto L_OUT;
+    if(dcd > 1.)  goto L_OUT;
+    // px near pa and between pc-pd; test dist pa-px
+    if(fabs(px->x - pa->x) > *tol) goto L_OUT;
+    if(fabs(px->y - pa->y) > *tol) goto L_OUT;
+    // pa on pc-pd; RC=6
+    irc = 6;
+    goto L_exit;
+
+
+  } else if(dab > 1.) {
+    // px outside pb
+    if(dcd < 0.)  goto L_OUT;
+    if(dcd > 1.)  goto L_OUT;
+    // px near pb and between pc-pd; test dist pb-px
+    if(fabs(px->x - pb->x) > *tol) goto L_OUT;
+    if(fabs(px->y - pb->y) > *tol) goto L_OUT;
+    // pb on pc-pd; RC=7
+    irc = 7;
+    goto L_exit;
+
+
+  } else if(dcd < 0.) {
+    // px outside pc
+    if(dab < 0.)  goto L_OUT;
+    if(dab > 1.)  goto L_OUT;
+    // px near pc and between pa-pb; test dist pc-px
+    if(fabs(px->x - pc->x) > *tol) goto L_OUT;
+    if(fabs(px->y - pc->y) > *tol) goto L_OUT;
+    // pc on pa-pb; RC=8
+    irc = 8;
+    goto L_exit;
+
+
+  } else if(dcd > 1.) {
+    // px outside pd
+    if(dab < 0.)  goto L_OUT;
+    if(dab > 1.)  goto L_OUT;
+    // px near pd and between pa-pb; test dist pd-px
+    if(fabs(px->x - pd->x) > *tol) goto L_OUT;
+    if(fabs(px->y - pd->y) > *tol) goto L_OUT;
+    // pd on pa-pb; RC=9
+    irc = 9;
+    goto L_exit;
+  }
+
+
+  // RC = 0   px between pa-pb = normal intersection
+  irc = 0;
+  goto L_exit;
+
+
+  //=====================================================
+  L_OUT:   // no intersectioPoint
+  irc = -1;
+
+
+  //=====================================================
+  L_exit:
+    // printf("ex UT2D_pt_int_4pt irc=%d px=%f,%f d=%f,%f\n",
+           // irc,px->x,px->y,dab,dcd);
+
+  return irc;
+
+}
 
 //=======================================================================
   int UT2D_pt_int4pt (Point2 *ps, double *dp1, double *dp2, double *tol,
                       Point2 *p1,Point2 *p2,Point2 *p3,Point2 *p4) {
 //=======================================================================
 /// \code
+/// DO NOT USE - REPLACED WITH UT2D_pt_int_4pt
 /// intersection of 2 limited lines, tolerance.
 /// Info, ob Schnittpunkt ident mit p1 oder p2 (p3,p4 werden nicht getestet)
 /// Info, ob p1-p2 und p3-p4 uebereinanderliegen (ueberlappen)
@@ -6407,7 +6779,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     // nun ist p1,p2,p3 ein Dreieck aus dem polygon pa von 3
     // aufeinanderfolgenden Punkten; p2 ist der mittlere.
     FLAE += pa[i2].x * (pa[i3].y - pa[i1].y);
-    // printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
+      printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
   }
 
 

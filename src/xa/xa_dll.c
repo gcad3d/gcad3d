@@ -234,8 +234,10 @@ OS_debug_dll_
     sprintf(cbuf, "%splugins%c%s",OS_get_bin_dir(),fnam_del,soNam);
     if(OS_checkFilExist (cbuf, 1) == 0) {
       // does not exist:
-      TX_Error("AP_exec_dll E001 |%s|",cbuf);
-      return -1;
+      if(ccFlg > 0) {
+        TX_Error("AP_exec_dll E001 |%s|",cbuf);
+        return -1;
+      }
     }
 
 

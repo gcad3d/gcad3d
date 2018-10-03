@@ -1,5 +1,13 @@
 Version 2.40 / 2018-06-07
 
+- new remote-command "exit"
+- Bugfixes ("UME_alloc EOM" ..)
+
+
+
+===========================================================================
+Version 2.40 / 2018-06-07
+
 - new function File/Open last-used;
 - Startup-parameters changed, see www.gCAD3D.org/doc/Settings_en.htm#Start
 - redesign of curves (for watertight-models curves now have polygon-files)

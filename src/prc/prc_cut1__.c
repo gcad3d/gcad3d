@@ -286,7 +286,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
       } else {  // disp
         // APT_disp_SymV1 (SYM_TRIANG, 9, &actPos, 0.25);     // Dreieck klein
         dli = -3L;
-        GL_DrawSymB (&dli, ATT_COL_RED, SYM_TRI_B, &actPos);
+        GL_DrawSymB (&dli, ATT_COL_RED, SYM_SQU_B, &actPos);
       }
       oldPos = actPos;
       rapid = OFF;        // next go up to safe-plane

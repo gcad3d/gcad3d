@@ -2888,7 +2888,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   //-----------------------------------------------------------
   // Testdisp. 3D-Input-Konturen
   // erste Pt of 1.k.
-  // GR_Disp_pTab (1,cTab[0].pa,SYM_TRI_B,2); // 1.Pt
+  // GR_Disp_pTab (1,cTab[0].pa,SYM_SQU_B,2); // 1.Pt
   // GR_Disp_pTab (cTab[0].iNr,cTab[0].pa,SYM_STAR_S, 2); // letzter
   printf("---- %d contours with %d points \n",cNr,cTab[0].iNr);
   for(i1=0; i1<cNr; ++i1) {
@@ -4114,7 +4114,7 @@ uOff abhaengig von Aussenkonturtyp:
 
 
       // DispKonturkreisStartpunkt und Z-vec
-      // GR_Disp_pt(&((Circ*)TSU_ox2.data)->p1, SYM_TRI_B, 2);
+      // GR_Disp_pt(&((Circ*)TSU_ox2.data)->p1, SYM_SQU_B, 2);
       // GR_Disp_vc(&((Circ*)TSU_ox2.data)->vz,&((Circ*)TSU_ox2.data)->pc,2,0);
 
 
@@ -6726,8 +6726,8 @@ static double du,dv;
 
   // // TestDisplay BoxPoints Lochkonturen (Eckpunkte der 2D-Rechtecke):
   // for(i1=1;i1<cNr; ++i1) {
-    // GR_Disp_pt(&cTab[i1].p1,SYM_TRI_B,2);
-    // GR_Disp_pt(&cTab[i1].p2,SYM_TRI_B,2);
+    // GR_Disp_pt(&cTab[i1].p1,SYM_SQU_B,2);
+    // GR_Disp_pt(&cTab[i1].p2,SYM_SQU_B,2);
   // }
   // return 0;
   //----------------------------------------------------------------
@@ -6838,8 +6838,8 @@ static double du,dv;
   // Boxpunkte der Rasterbox ermitteln (boxp1, boxp2)
   UT3D_box_pts (&boxp1, &boxp2, bcTab[bcAct].iNr, bcTab[bcAct].p2a);
     // GR_Disp_box (&boxp1, &boxp2, 9);
-    // GR_Disp_pt(&boxp1, SYM_TRI_B, 3);
-    // GR_Disp_pt(&boxp2, SYM_TRI_B, 3);
+    // GR_Disp_pt(&boxp1, SYM_SQU_B, 3);
+    // GR_Disp_pt(&boxp2, SYM_SQU_B, 3);
     // return 0;  // NUR TEST !!
 
 
@@ -7073,7 +7073,7 @@ static double du,dv;
 
 /*
   //--------TestDisplay Beg
-  for(i1=0;i1<cNr;++i1) GR_Disp_pTab (cTab[i1].iNr,cTab[i1].pa,SYM_TRI_B,0);
+  for(i1=0;i1<cNr;++i1) GR_Disp_pTab (cTab[i1].iNr,cTab[i1].pa,SYM_SQU_B,0);
   for(i1=0;i1<cNr;++i1) GR_Disp_cv (cTab[i1].pa, cTab[i1].iNr, 2);
   for(i1=0;i1<cNr;++i1) GR_Disp_spu (cTab[i1].iNr,cTab[i1].pa,5);
   // Test nVec:
@@ -7346,8 +7346,8 @@ static double du,dv;
 
   // printf("TSU_fix_ax_crx %d %d\n",*ptNr,TSU_pintNr);
   // GR_Disp_pTab (*ptNr, pTab, SYM_TRI_S, 2);
-  // if(TSU_pintNr > 0) GR_Disp_pt (&TSU_pint[0], SYM_TRI_B, 1);
-  // if(TSU_pintNr > 1) GR_Disp_pt (&TSU_pint[1], SYM_TRI_B, 1);
+  // if(TSU_pintNr > 0) GR_Disp_pt (&TSU_pint[0], SYM_SQU_B, 1);
+  // if(TSU_pintNr > 1) GR_Disp_pt (&TSU_pint[1], SYM_SQU_B, 1);
 
 
   // for symbolic surfaces: do not insert pole-extraPoints
@@ -7652,7 +7652,7 @@ static double du,dv;
   //----- 3D-Punkte -> 2D-Punkte------------------------------
   // UT3D_pt_3db (&p31, -21.281300,26.952000,3.309900);
   UT3D_pt_3db (&p31, -19.767331,28.314988,3.477292);
-  GR_Disp_pt (&p31, SYM_TRI_B, 1);
+  GR_Disp_pt (&p31, SYM_SQU_B, 1);
 
 
   irc = TSU_tr_2D_3D_sbsp (&p21, &p31);
@@ -7666,7 +7666,7 @@ static double du,dv;
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   irc = TSU_tr_3D_2D_sbsp (&p31, &p21);
-  GR_Disp_pt (&p31, SYM_TRI_B, 2);
+  GR_Disp_pt (&p31, SYM_SQU_B, 2);
 
   DL_Redraw ();
   return 0;
@@ -7990,7 +7990,7 @@ static double du,dv;
 
   // CircCenter auf Achse projiz.
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &TSU_ac1.pc,&TSU_prx,&TSU_vrx);
-    // GR_Disp_pt(&pt1, SYM_TRI_B, 2);
+    // GR_Disp_pt(&pt1, SYM_SQU_B, 2);
   UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
     // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
   UT3D_vc_perp2vc (&vc2, &vc1, &TSU_vrx);
@@ -8037,8 +8037,8 @@ static double du,dv;
 
   // 3D-Box machen
   UT3D_box_pts (&pb1, &pb2, pNr, pTab);
-  // GR_Disp_pt(&pb1, SYM_TRI_B, 2);
-  // GR_Disp_pt(&pb2, SYM_TRI_B, 2);
+  // GR_Disp_pt(&pb1, SYM_SQU_B, 2);
+  // GR_Disp_pt(&pb2, SYM_SQU_B, 2);
 
 
   // Box aufs doppelte vergroessern
@@ -8055,14 +8055,14 @@ static double du,dv;
   UT3D_box_extend (&pb1, &pb2, &pt1);
   UT3D_pt_oppptptvc (&pt1, &pb2, &TSU_prx, &TSU_vrx);
   UT3D_box_extend (&pb1, &pb2, &pt1);
-  // GR_Disp_pt(&pb1, SYM_TRI_B, 2);
-  // GR_Disp_pt(&pb2, SYM_TRI_B, 2);
+  // GR_Disp_pt(&pb1, SYM_SQU_B, 2);
+  // GR_Disp_pt(&pb2, SYM_SQU_B, 2);
   // GR_Disp_box (&pb1, &pb2, 2);
 
   // KonturLine in dieser Box begrenzen
   UT3D_ln_intbox (&TSU_ln1, &pb1, &pb2);
-  // GR_Disp_pt(&TSU_ln1.p1, SYM_TRI_B, 2);
-  // GR_Disp_pt(&TSU_ln1.p2, SYM_TRI_B, 2);
+  // GR_Disp_pt(&TSU_ln1.p1, SYM_SQU_B, 2);
+  // GR_Disp_pt(&TSU_ln1.p2, SYM_SQU_B, 2);
   // GR_Disp_ln (&TSU_ln1, 2);
   // UT3D_stru_dump (Typ_LN, &TSU_ln1, "TSU_ln1");
 
@@ -8088,12 +8088,12 @@ static double du,dv;
   L_nVec:
 
     UT3D_pt_mid2pt (&pt1, &TSU_ln1.p1,&TSU_ln1.p2); // Mittelpkt Konturlinie
-      // GR_Disp_pt(&pt1, SYM_TRI_B, 2);
+      // GR_Disp_pt(&pt1, SYM_SQU_B, 2);
     UT3D_vc_2pt (&vc1, &TSU_ln1.p1,&TSU_ln1.p2);    // vec <- Konturlinie
 
     // Schnitt einer Normalebene auf Konturlinie mit Achse
     UT3D_pt_intperp2ln (&pt2, &pt1, &vc1, &TSU_prx, &TSU_vrx);
-      // GR_Disp_pt(&pt2, SYM_TRI_B, 2);
+      // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
     UT3D_vc_2pt (&TSU_vn, &pt1, &pt2);
       // GR_Disp_vc (&TSU_vn, &pt1, 2, 0);
 
@@ -9026,7 +9026,7 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMin;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_Disp_pt(&pt2, SYM_TRI_B, 2);
+    // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &pt2,&TSU_prx,&TSU_vrx);
@@ -9038,7 +9038,7 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMax;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_Disp_pt(&pt2, SYM_TRI_B, 2);
+    // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d2,NULL, &pt2,&TSU_prx,&TSU_vrx);
@@ -9100,7 +9100,7 @@ static Point pta;
     actDir = TSU_dir;
     UT3D_pt_projptptvc(&pta, &d1, NULL,
                        &((Circ*)TSU_ox2.data)->pc, &TSU_prx,&TSU_vrx);
-      // GR_Disp_pt(&pta, SYM_TRI_B, 2);
+      // GR_Disp_pt(&pta, SYM_SQU_B, 2);
   }
 
 

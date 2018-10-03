@@ -416,10 +416,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //====================================================================
-  void GR_DrawTxtA (long *ind, int attInd, Point *pt1, char *txt) {
+  void GR_DrawTxtA (long *ind, int att, Point *pt1, char *txt) {
 //====================================================================
 /// \code
-///   attInd  colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
 ///   pt1     Position bottom left.
 /// \endcode
 
@@ -427,7 +427,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   Point   ptTr;
 
   // if(APT_2d_to_3d_mode == OFF) {
-    GL_DrawTxtA (ind, attInd, pt1, txt);
+    GL_DrawTxtA (ind, att, pt1, txt);
 
   // } else {
     // UT3D_pt_traptm3 (&ptTr, APT_2d_to_3d_Mat, pt1);
@@ -3109,7 +3109,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   int  GR_DrawCvPol (long *ind, int attInd, CurvPoly *plg1) {
 //=====================================================================
 
-  int    ptNr;
+  int    irc, ptNr;
   Point  *pTab;
   MemTab(Point) mtPt = _MEMTAB_NUL;
 
@@ -3125,10 +3125,11 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // PolygonCurve -> relimited Polygon
-  UT3D_pta_plg (&ptNr, pTab, plg1);
+  irc = UT3D_pta_plg (&ptNr, pTab, plg1);
+  if(irc) return -1;
 
 
-  //erhaelt das Polygon als fertiges Array (mit Screenkoords)
+  // erhaelt das Polygon als fertiges Array (mit Screenkoords)
   GL_DrawPoly (ind, attInd, ptNr, pTab);
 
 
@@ -3414,7 +3415,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// GR_Disp_txi       display integer at position
 ///   att     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 ///
-/// see also GR_Disp_message GR_Disp_npti
+/// see also GR_Disp_message GR_Disp_npti GR_Disp_txi2
 /// \endcode
 
   char cbuf[32];
@@ -3435,7 +3436,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// GR_Disp_txi2       Testdisplay integer at 2D-point
-/// att: see GR_Disp_tx
+///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
 /// \endcode
 
   char    cbuf[32];
@@ -3459,7 +3460,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay Text
-/// att: see GR_Disp_tx
+///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
 /// \endcode
 
   Point   p3;
@@ -3478,7 +3479,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay Text
-///   att     colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
 /// \endcode
 
   UT3D_stru_dump(Typ_PT, pt1, "GR_Disp_tx: |%s|",txt);
@@ -3498,7 +3499,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// Input:
 ///   typ:  SYM_STAR_S (Sternderl)
 ///         SYM_TRI_S (Dreieck)
-///         SYM_TRI_B (Viereck)
+///         SYM_SQU_B (Viereck)
 ///   att:  colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 /// \endcode
 
@@ -3518,7 +3519,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay 2D-Point als Symbol
-/// typ: SYM_STAR_S (Sternderl) SYM_TRI_S (Dreieck) SYM_TRI_B (Viereck)
+/// typ: SYM_STAR_S (Sternderl) SYM_TRI_S (Dreieck) SYM_SQU_B (Viereck)
 /// att: 1=sw, 2=rot 4=bl
 /// \endcode
 
@@ -3576,7 +3577,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// \code
 /// Testdisplay ptNr points and point-numbers
 /// typ: see GR_Draw_obj/GR_Draw_obj/Typ_SymB
-///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 /// ptAtt: color for point-symbols; see GR_Draw_obj/Typ_SymB
 ///      ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|..
 /// txAtt: color for point-numbers; see GR_Draw_obj/Typ_SymB
@@ -3601,7 +3602,7 @@ int GR_Delete (long ind)                               {return 0;}
 /// \code
 /// Testdisplay ptNr points with bitmap-symbols (star, triangle, ..)
 /// typ: see GR_Draw_obj/GR_Draw_obj/Typ_SymB
-///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 /// att: see INF_COL_SYMB       GR_Draw_obj/Typ_SymB
 ///      ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|..
 ///
@@ -3637,7 +3638,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay Points als kleines 3-Eck
-/// typ: SYM_STAR_S (Sternderl) SYM_TRI_S (Dreieck) SYM_TRI_B (grosses Viereck)
+/// typ: SYM_STAR_S (Sternderl) SYM_TRI_S (Dreieck) SYM_SQU_B (grosses Viereck)
 /// att:                 see ~/gCAD3D/cfg/ltyp.rc
 /// \endcode
 
@@ -5083,7 +5084,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 
-  printf("GR_Disp_nfac fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
+  // printf("GR_Disp_nfac fNr=%d TSU_mode=%d\n",fNr,TSU_mode);
   // UT3D_stru_dump (Typ_Color, &GL_actCol, "  GL_actCol:");
 
 
@@ -5469,7 +5470,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 ///              ATT_COL_HILI|ATT_COL_DIMMED
 ///            Typ_CI|Typ_CVBSP|Typ_PLN:   see INF_COL_CV
 ///   mode     Typ_PT|Typ_CI|Typ_CV*: unused;
-///            Typ_SymB: SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_TRI_B
+///            Typ_SymB: SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 ///            Typ_PLN:  1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis;
 /// 
 /// Vectors: GR_Disp_vc

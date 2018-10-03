@@ -74,6 +74,7 @@ UT3D_el_projcipl          ellipse = project CIR -> PLN
 UT3D_el_elcoe             Ellipse <-- coeff-data (IGES)
 UT3D_el_elpt180           change elli -> 180 deg-elli; keep dir
 UT3D_el_el2pt             change start- and endpoint of elli
+UT3D_el_el_parl           parallel curve (distance)
 UT3D_elcoe_el             CoeffEllipse(IGES) <-- ellipse
 UT3D_el_inv1              turn direction and p1/p2 (same display !)
 UT3D_el_inv2              turn direction (do not swap p1,p2)
@@ -438,6 +439,72 @@ cl -c ut_geo.c
   el1->p2 = *p2;
 
   // UT3D_stru_dump (Typ_CVELL, el1, "ex UT3D_el_el2pt\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+   int UT3D_el_el_parl (CurvElli *el2, CurvElli *el1, double dist) {
+//================================================================
+// UT3D_el_el_parl           parallel curve (distance)
+
+  int        i360;
+  double     d1, d2;
+  Vector     vc1, vc2, vcy;
+
+  UT3D_stru_dump (Typ_CVELL, el1, "UT3D_el_el_parl");
+
+
+  // copy
+  *el2 = *el1;
+
+  // get tangents at endpoints
+  i360 = UT3D_ck_el360 (el1);
+  if(i360) {
+    UT3D_vc_tangel (&vc1, &el1->p1, el1);
+    UT3D_vc_tangel (&vc2, &el1->p2, el1);
+      UT3D_stru_dump (Typ_VC, &vc1, " vc1");
+      UT3D_stru_dump (Typ_VC, &vc2, " vc2");
+  }
+
+
+  // update va
+  d1 = UT3D_len_vc (&el1->va);
+  d2 = (d1 + dist) / d1;            
+  UT3D_vc_multvc (&el2->va, &el1->va, d2);
+
+
+  // update vb
+  d1 = UT3D_len_vc (&el1->vb);
+  d2 = (d1 + dist) / d1;
+  UT3D_vc_multvc (&el2->vb, &el1->vb, d2);
+
+
+  
+
+  if(i360) {
+    // update p1
+    // get tangent vc1 of p1; get normal to tangent; offset dist.
+    // get vecY from vecX=Curv and vecZ
+    UT3D_vc_perp2vc (&vcy, &el1->vz, &vc1);
+    UT3D_vc_multvc (&vc1, &vcy, dist);
+    UT3D_pt_traptvc (&el2->p1, &el1->p1, &vc1);
+
+    // update p2
+    UT3D_vc_perp2vc (&vcy, &el1->vz, &vc2);
+    UT3D_vc_multvc (&vc1, &vcy, dist);
+    UT3D_pt_traptvc (&el2->p2, &el1->p2, &vc1);
+
+  } else {
+    el2->p1 = el2->pc;
+    UT3D_pt_add_vc__ (&el2->p1, &el2->va);
+    el2->p2 = el2->p1;
+  }
+
+
+    UT3D_stru_dump (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
 
   return 0;
 

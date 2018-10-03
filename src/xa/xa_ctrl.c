@@ -223,13 +223,13 @@ static int ctrlStat = 0;
   double d1;
   char   cmd[64], s1[64], s2[128], s3[128], 
          *wPos1, *wPos2, *wPos3, *p1, cd;
-  char   *cmdTab[] = {
-         "PRINT", "VIEW", "SHOW",    "ATTL", "ATTS",
-         "DUMP",  "MODE", "ZOOMALL", NULL};
+  // char   *cmdTab[] = {
+         // "PRINT", "VIEW", "SHOW",    "ATTL", "ATTS",
+         // "DUMP",  "MODE", "ZOOMALL", NULL};
          
 
 
-  // printf("CTRL_CB_do__  |%s|\n", parCmd);
+  printf("CTRL_CB_do__  |%s|\n", parCmd);
 
 /*
   // DO NOT USE mem_cbuf1; WC_Work__ is using it !
@@ -484,11 +484,23 @@ static int ctrlStat = 0;
 
   //----------------------------------------------------------------
   // USER
+  } else if(!strcmp(cmd, "EXIT")) {                      // 2018-09-18
+    sprintf(sBufOut, "user-exit");
+    CTRL_write__ ();
+    AP_work__ ("crashEx", NULL);
+    return 1;
+
+
+
+  //----------------------------------------------------------------
+  // USER
   } else if(!strcmp(cmd, "USER")) {
     iUserCB = 1;                           // block RemCmd-input
     UI_block__ (-1, 0, 0);                 // reset input & cursor
     AP_UserSelection_get (CTRL_sel_CB);
     return 1;
+
+
 
 
 

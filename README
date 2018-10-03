@@ -134,6 +134,12 @@ Execute:
 # goto APP-directory
 cd ${DIR_DEV}gcad3d/src/APP/
 
+# set debug-switch OFF (production, see ./deb.mak):
+./do debug_OFF
+
+# or set debug-switch ON (development, see ./deb.mak):
+./do debug_ON
+
 # rebuild application gcad3d:
 ./do complete
 
@@ -294,6 +300,7 @@ Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
 __________________________________________________________________
 History:
 
+2018-10-03 V2.41 Bugfixes. RF.
 2018-06-07 V2.40 Bugfixes, preparations for "watertight". RF.
 2017-04-18 V2.35 Bugfixes, preparations for "watertight". RF.
 2016-10-05 V2.34 Bugfixes. RF.

@@ -32,6 +32,20 @@ ctags -f ../tags/infotext.tag ../xa/infotext.c
 void INF(){                   /*! \code
 the following can be used in Doxygen (Programming-Helpfiles.dox)
 and with the tagfiles (../tags/infotext.tag)
+
+INF_types       list of    Typ_x    and corresponding struct
+INF_COL_CV      list of colors for curves
+INF_tol__       tolerances
+
+INF_struct_ObjGX
+
+INF_OGX_DBO
+INF_OGX_SUR__
+INF_OGX_SUR_TPS
+INF_OGX_SUR_PLN
+
+INF_MSG_new     create new message
+
 \endcode */}
 
 
@@ -39,7 +53,7 @@ and with the tagfiles (../tags/infotext.tag)
 void INF_types (){        /*! \code
 
 shortNam   funcGrp      struct    form          descr
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
                         double    Typ_VAR       numer. variable
                         Vector    Typ_VC
   pt       UT3D_        Point     Typ_PT        point
@@ -53,9 +67,9 @@ shortNam   funcGrp      struct    form          descr
                         CurvClot  Typ_CVCLOT    ClothoidCurve
                         CurvCCV   Typ_CVTRM
 
-  obj      UTO_         typ+data  int+void*     binary-obj
+  obj      UTO_         typ+data  int+void*     binary-obj               INF_ObjGX
                         ObjBin    - undef !
-  ox       OGX_         ObjGX     Typ_ObjGX     complex-object
+  ox       OGX          ObjGX     Typ_ObjGX     complex-object
   dbo      DB_          typ+dbi   int+long      DB-object (dataBase)
                         ObjDB     Typ_ObjDB
   ato      ATO_         ObjAto    Typ_ObjAto    atomic-object
@@ -65,10 +79,23 @@ shortNam   funcGrp      struct    form          descr
   odl      DL_          DL_Att    - undef !     DisplayListRecord
 
 see also ../../doc/gcad_doxygen/NamingConventions.txt
-\endcode */}
 
 
-void INF_OGX_DBO (){        /*! \code
+
+
+
+\endcode */} void INF_ObjGX (){        /*! \code
+ObjGX                 complex-object         definition
+OGX                   ../ut/ut_ox_base.c     functions
+
+INF_OGX_DBO
+INF_OGX_SUR__
+INF_OGX_SUR_TPS
+INF_OGX_SUR_PLN
+
+
+
+\endcode */} void INF_OGX_DBO (){        /*! \code
 - data-base-object (objectType and dataBaseIndex)
 
 struct ObjGX
@@ -166,7 +193,7 @@ Defaultvalues - from file ~/gCAD3D/cfg/ltyp.rc:
   7 990  0  3         // yellow thick3     Typ_Att_Symb
   8 090  0  3         // green  thick3     Typ_Att_hili
   9 822  0  4         // hilite thick4     Typ_Att_hili1
- 10 447  0  1         // dimmed thick4     Typ_Att_dim
+ 10 447  0  1         // dimmed thick1     Typ_Att_dim
  11 000  0  4         // black  thick4     Typ_Att_top1
  12 900  2  2         // red dashed thick2 Typ_Att_top2
 #
@@ -304,6 +331,25 @@ or                     ./lang_mod.csh keyWd 'new text'
   save the lang.files: ./lang_save.csh
   restore              ./lang_rest.csh
 \endcode */}
+
+
+
+void INF_tol__ (){        /*! \code
+tolerances
+../../doc/gcad_doxygen/Constants-Tolerances.dox
+
+../ut/ut_tol_const.h    Basic constants CAD tolerances (UT_TOL_..)
+  UT_TOL_pt         identical Points-tolerence
+  UT_TOL_cv         max analytical deviation for curves  
+
+../ut/ut_geo_const.h    Basic constants geometry (UT3D_PT_NUL, UT3D_VECTOR_X, ..
+
+../ut/ut_const.h        Basic constants math (int,double-MIN|MAX)
+
+../ut/ut_types.h        max/min-values for signed/unsigned char/short/int
+
+\endcode */}
+
 
 
 

@@ -48,6 +48,7 @@ def_MemTab(void) MemTab;
 // prototypes:
 int MemTab_ini (void *memTab, int rSiz, int typ, int incSiz);
 int MemTab_add (void *memTab, long *spcOff, void* objDat, int recNr, int mode);
+int MemTab_check (MemTab *memTab, long *spcOff, int recNr);
 // inline:
 void MEMTAB_tmpSpc_get (MemTab *memTab, int rTot);
 void MEMTAB_tmpSpc_free (MemTab*);

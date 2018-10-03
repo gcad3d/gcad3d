@@ -60,7 +60,6 @@ MMmdOnm=afficher une liste d'objets
 MMmdDel=supprimer des objets
 MMmdEdi=modifier inputField active avec systemEditor / F3
 MMmdCln=Supprimez toutes les lignes supprimées permanente / F4
-MMmdDlo=défaire (supprimer la dernière opération; Ctrl-Z)
 MMmdRlo=redo (dernière opération de restauration; Ctrl-Y)
 
 MMinVpt=donner ViewportParameters (en interaction ouverte)
@@ -137,7 +136,7 @@ CADINT=Interactios, joints
 CADANA=Analyser
 CADCP=Constructionplane
 
-CADname=Objektname / info (il recherche avec "Search / Name")
+CADname=objectname / info (il recherche avec "Search / Name")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
@@ -240,9 +239,10 @@ CUT__trim__obj=éléments linéaires Trim (ligne / courbe) avec un ou deux élé
 INT__intersect__obj=Intersectionpoint ou courbe de l'intersection de 2 éléments
 TRAnslate_obj__VC_=Déplacer l'élément long de vecteur [longueur]
 TRAnslate_obj__PLN_=Déplacer un objet à un système de référence différentes (plan) [TRA - transformation interverti]
-TRAnsform_obj__Tra_=verschieben Objekt (Verschiebung) drehen oder (Verdrehung)
+TRAnsform_obj__Tra_=move or rotate object
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=élément de projet sur une surface
+Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Mirror: reflect objects across line
 Mirror_about_plane=Mirror: refléter les objets sur plan
 ISOparametric_Curve_from_Surf=extrait de la courbe de la surface (de paramtere (s)); [CX (en face; Default = long)]

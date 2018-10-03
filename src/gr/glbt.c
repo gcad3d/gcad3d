@@ -755,7 +755,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 /*
   // test disp vector-rectangle
   UT3D_stru_dump (Typ_PT, &GLBT_ori, "GLBT_ori");
-  // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_TRI_B, &GLBT_ori);
+  // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_SQU_B, &GLBT_ori);
   pt1 = GLBT_ori;
 
   // move the symbol along x and y

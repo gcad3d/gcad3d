@@ -60,7 +60,6 @@ MMmdOnm=Objektliste mit Objektnamen anzeigen;
 MMmdDel=Objekte löschen
 MMmdEdi=ändern des aktiven Eingabefeldes mit dem Systemeditor / F3
 MMmdCln=alle gelöschten Objekte permanent entfernen / F4
-MMmdDlo=Löschen - zuletzt erzeugtes Objekt / Strg-Z
 MMmdRlo=Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
 
 MMinVpt=Ausgabe der Parameter für die aktuelle Ansicht als Text
@@ -243,6 +242,7 @@ TRAnslate_obj__PLN_=Objekt verschieben in anderes Referenzsystem (Ebene) [TRA - 
 TRAnsform_obj__Tra_=Objekt verschieben (Verschiebung) oder drehen (Verdrehung)
 REV__reverse__curve=Kurve umdrehen
 Project_obj__Prj_=Objekt auf Fläche projizieren.
+Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Objekte um eine Linie spiegeln
 Mirror_about_plane=Objekte um eine Ebene spiegeln
 ISOparametric_Curve_from_Surf=Kurve aus einer Fläche extrahieren (von Parameterwert(en)); [CX (Querrichtung)]
@@ -347,9 +347,7 @@ PEDe2=FEHLER: Ebene/Vektor kann nicht analysiert werden ..
 PEDe3=FEHLER: Punkt konnte nicht eingefügt werden ..
 
 TED_no=es ist keine Textur aktiv
-TED_ldf=Bild laden
 TED_ldf=Textur aus Datei laden
-TED_ldn=neu laden
 TED_ldn=Bilddatei neu laden
 TED_rem=entfernen
 TED_miy=vertikal spiegeln

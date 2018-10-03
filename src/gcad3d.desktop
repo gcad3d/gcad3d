@@ -13,8 +13,8 @@ Terminal=false
 # Translations
 GenericName[de]=CAD-CAM-Anwendung
 Name[de]=gCAD3D
-Icon[de]=gCAD3D
+Icon[de]=gcad3d
 Comment[ru]=3D САПР
 GenericName[ru]=САПР
-Name[ru]=gCAD3D
+Name[ru]=gcad3d
 Icon[ru]=gCAD3D

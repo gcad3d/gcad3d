@@ -89,7 +89,7 @@ void INF_OTYP (){}
 #define Typ_CVELL2C       36  ///< S   CurvEll2C centerPosition
 #define Typ_CVBEZ2        37  ///< S   CurvBez2
 #define Typ_CVTRM         38  ///< S   CurvCCV
-#define Typ_CurvAssy      39  ///< S   CurvAssy
+#define Typ_CurvAssy      39  ///< S   CurvAssy        UNUSED
 
 /// DB-surfs 40-79
 #define Typ_PLN           40  ///< R  plane/Refsys

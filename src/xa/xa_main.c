@@ -253,12 +253,12 @@ static char *os_ico_dir;
   system(txbuf2);
 
 
-  // copy desktop-link -> ~/gCAD3D/gCAD3D.desktop
-  sprintf(txbuf2, "cp -f /usr/share/gcad3d/gCAD3D.desktop %s.",
+  // copy desktop-link -> ~/gCAD3D/gcad3d.desktop
+  sprintf(txbuf2, "cp -f /usr/share/applications/gcad3d.desktop %s.",
           OS_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
-  sprintf(txbuf2, "chmod +x %sgCAD3D.desktop",
+  sprintf(txbuf2, "chmod +x %sgcad3d.desktop",
           OS_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);

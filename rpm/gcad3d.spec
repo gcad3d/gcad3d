@@ -91,7 +91,7 @@ install -p %{docDir}/html/*.js   %{outDir}/usr/share/doc/gcad3d/html/.
 mkdir -p %{outDir}/usr/share/doc/gcad3d/msg
 install -p %{docDir}/msg/*.txt  %{outDir}/usr/share/doc/gcad3d/msg/.
 
-# copy desktop-starter -> /usr/share/applications/gCAD3D.desktop
+# copy desktop-starter -> /usr/share/applications/gcad3d.desktop
 mkdir -p %{outDir}/usr/share/applications
 install -p ${gcad_dir_dev}src/gcad3d.desktop  %{outDir}/usr/share/applications/.
 

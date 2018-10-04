@@ -833,7 +833,7 @@ Anzahl Funktionen         2638
 ===========================================================================
 Neu in Version 1.084 / 2007-07-07
 
-ge‰ndert:
+ge√§ndert:
 - Iges-Import from AutoDesk-Inventor
 
 
@@ -841,7 +841,7 @@ ge‰ndert:
 ===========================================================================
 Neu in Version 1.082 / 2007-06-17
 
-ge‰ndert:Butt
+ge√§ndert:Butt
 - Fehler bei CATALOG korrigiert
 
 
@@ -910,7 +910,7 @@ neue Funktionen:
 - neues Objekt Note mit Kreis (N Text,LN,Circle; N=LDRC)
 - neues Objekt Symbol Stern, .. Vektoren (N Symbol; N=LDRS)
 
-ge‰ndert:
+ge√§ndert:
 - BlockNote (N=TAG); Parameterreihenfolge geaendert.
 
 Anzahl Programmzeilen   209117
@@ -924,11 +924,11 @@ Neu in Version 1.00 / 2006-05-10
 neue Funktionen:
 - CAD: Linetyp interaktiv modifizieren
 - CAD: SurfaceStyle (shaded od. symbolic)  interaktiv modifizieren
-- CAD: Parametrische Definition f¸r Punkte auf Line,Circ, Curve.
-- CAD: Parametrische Definition f¸r Segmente von Polygon, CCV.
+- CAD: Parametrische Definition f√ºr Punkte auf Line,Circ, Curve.
+- CAD: Parametrische Definition f√ºr Segmente von Polygon, CCV.
 - VRML1-Export von Submodellen (Assemblies)
 
-ge‰ndert:
+ge√§ndert:
 - Displayprobleme bei modifizierten Elementen (CUT ..) korrigiert
 - NC-Replay-Fehler korrigiert.
 - STEP-Import: Fehler bei sehr grossen Modellen korrigiert
@@ -948,7 +948,7 @@ neue Funktionen:
 - Interaktiv: Gruppe bilden und (native) exportieren.
 - Interaktiv: Circ - neue Funktionen
 
-ge‰ndert:
+ge√§ndert:
 - Keyword MOCK obsolet
 - Fehlerkorrekturen ..
 
@@ -963,10 +963,10 @@ Neu in Version 0.96 / 2005-11-10
 
 neue Funktionen:
 - STEP-Import (ISO-10303-21 - AP203/AP214). Getestet mit CATIA-V4 und CATIA-V5.
-  Noch nicht unterst¸tzt: Rational-B-SplineCurves.
+  Noch nicht unterst√ºtzt: Rational-B-SplineCurves.
 - CAD-Funktion Prisma (Solid)
 
-ge‰ndert:
+ge√§ndert:
 - VRML1: Problem zu grosse Importmodelle korr.
 - Fehlerkorrekturen bei Tesselate und Export VRML1.
 
@@ -988,7 +988,7 @@ neue Funktionen:
 - Solids: Prisma von Parallelogramm (B=PRISM parallelogramm vektor)
 - VRML1: Sphere und Cone.
 
-ge‰ndert:
+ge√§ndert:
 - Linux: GTK+2 (bisher GTK+1.2); gtkglarea statisch gelinkt.
 - MS-Win: GTK+2 + GtkGLExt (bisher GTK+1.2 + gtkglarea)
 - Fehlerkorrektur bei Import VRML1 und Import Iges
@@ -1006,7 +1006,7 @@ Neu in Version 0.93 / 2005-05-11:
 neue Funktionen:
 - Symbole als selektierbare Objekte (N=TAG ..)
 
-ge‰ndert:
+ge√§ndert:
 - Fehlerkorrektur bei Import VRML1 und Import Iges
 - Fehlerkorrektur bei Import Bitmaps (padding)
 - Fehlerkorrektur bei Export Mockup (VRML1, OBJ, TESS)
@@ -1023,18 +1023,18 @@ Neu in Version 0.92 / 2005-04-11:
 neue Funktionen:
 - Import/Export von VRML-1-Files als Mockup-Modelle (nur FaceSets)
 - Import/Export von WaveFront-OBJ-Files (nur Faces)
-- Interaktionen kˆnnen mit allen Darstellungsobjekten verbunden werden
+- Interaktionen k√∂nnen mit allen Darstellungsobjekten verbunden werden
 - Interaktion Modellaufruf (wie HTML - HREF)
 - Interaktion Programmaufruf (Plugin starten)
-- Interaktion Ansichtsposition (Viewport) ver‰ndern
-- Transformation von Kurven und Fl‰chen (Translation, Rotation, Transformation)
+- Interaktion Ansichtsposition (Viewport) ver√§ndern
+- Transformation von Kurven und Fl√§chen (Translation, Rotation, Transformation)
 - Transformation in anderes Referenzsystem
 - Transformation aus Referenzsystem in das Hauptachsensystem
 - Darstellung von Bitmaps (nur uncompressed BMP-Files)
-- Toolbar und Messagebar kˆnnen ausgeblendet werden (Vollbild)
+- Toolbar und Messagebar k√∂nnen ausgeblendet werden (Vollbild)
 
-ge‰ndert:
-- Aufbau der Fl‰chen vom Typ_SURCIR und Typ_SURSTRIP
+ge√§ndert:
+- Aufbau der Fl√§chen vom Typ_SURCIR und Typ_SURSTRIP
 - Bitmap-Notes; "N#=TXA .." ersetzt durch "N#=TAG 0 .."
 
 Anzahl Programmzeilen   160773
@@ -1046,17 +1046,17 @@ Anzahl Funktionen         2060
 Neu in Version 0.90 / 2004-12-30:
 
 neue Funktionen:
-- Iges/Dxf-Modelle kˆnnen als Startparameter angegeben werden (aus Filebrowser)
+- Iges/Dxf-Modelle k√∂nnen als Startparameter angegeben werden (aus Filebrowser)
 - neuer Funktionsmodul "Viewer"
 - File/Open: DXF/IGS - Modelle werden nun automatisch importiert.
-- Dimensions fertiggestellt (Linear-, Winkel-, Radiusvermaﬂung)
+- Dimensions fertiggestellt (Linear-, Winkel-, Radiusverma√üung)
 - Texte: Sonderzeichen, Textsize nun in den Defaults.
-- CAD-Funktion Suchen/Lˆschen/Modifizieren verbessert
+- CAD-Funktion Suchen/L√∂schen/Modifizieren verbessert
 - CAD: direkte Selektion von Objektendpunkten, Polygonpunkten ..
 - DXF-Import von LWPOLYLINE u DIMENSION u MTEXT
 - neue Kreisdefinition:Circ = Mittelpunkt Startpunkt Drehwinkel Z-Achse
 
-ge‰ndert:
+ge√§ndert:
 - Definition Alfatext   (N#=TXA <Position> <Text>    -    TXA kommt dazu)
 - Kreisdefinition Circ = Mittelpunkt Radius:    -   Z-Achsvektor hinzu ("DZ").
 - struct Dimen: char dtyp zu.
@@ -1064,8 +1064,8 @@ ge‰ndert:
 
 
 Noch nicht implementierte Funktionen:
-- Erzeugen von B-Spline Fl‰chen (dzt nur via Import Iges)
-- Funktionen zur Erzeugung von Schnittkurven von Fl‰chen
+- Erzeugen von B-Spline Fl√§chen (dzt nur via Import Iges)
+- Funktionen zur Erzeugung von Schnittkurven von Fl√§chen
 - gelochte Schraffuren
 - Zeichnungsableitung 2D -> 3D
 
@@ -1081,8 +1081,8 @@ Neu in Version 0.86 / 2004-10-10:
 
 
 neue Funktionen:
-- Viewer: Mittelpunkt f¸r 3D-Rotation durch Selektion eines beliebigen Vertex
-- CAD: RevolutionSurfaces (Rotationsfl‰chen)
+- Viewer: Mittelpunkt f√ºr 3D-Rotation durch Selektion eines beliebigen Vertex
+- CAD: RevolutionSurfaces (Rotationsfl√§chen)
 - CAD: Funktion CUT (trimmen von linearen Elementen)
 - CAD: Funktion TRANSLATE (verschieben / drehen von linearen Elementen)
 - CAD: Funktion PROJECT (lineare Elemente auf Ebene projizieren)
@@ -1090,7 +1090,7 @@ neue Funktionen:
 - CAD: Analysefunktionen (Objekt dekodieren,  Abstand / Normalabstand messen)
 - Iges-Import: Getrimmte, gelochte RuledSurfaces (144 - 118) und
                getrimmte, gelochte RevolutionSurfaces (144 - 120).
-- Iges-Export: B-Spline Fl‰chen Ent. 128 und Rev.Surfaces, Ent. 120.
+- Iges-Export: B-Spline Fl√§chen Ent. 128 und Rev.Surfaces, Ent. 120.
 - DXF-Export: Ellipsen und B-Spline-Kurven werden als POLYLINE ausgegeben.
 
 
@@ -1113,7 +1113,7 @@ neue Funktionen:
 
 
 geaendert:
-- Definition f. gelochte planare Fl‰chen
+- Definition f. gelochte planare Fl√§chen
 
 
 Anzahl Programmzeilen   126304
@@ -1204,7 +1204,7 @@ Neu in Version 0.74 / 2003-09-15:
 Neu in Version 0.72 / 2003-08-04:
 
 - Schnittpunkte Circ/B-Spline, Circ/Ellipse, Ellipse/Ellipse, Ellipse/B-Spline.
-- interaktives Objekt Polygon (im Men¸ Kurven - S)
+- interaktives Objekt Polygon (im Men√º Kurven - S)
 - proj. PT -> Polygon, Tangente an Polygon
 - Schnittpunkte Polygon - Line, Circle, Ellipse, B-Spline, Polygon.
 - Kreise: Bei Vollkreisen mit Z-Vektor nach -Z nun Z-Vektor immer nach +Z

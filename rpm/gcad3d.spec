@@ -24,6 +24,8 @@ Source:  https://github.com/gcad3d/gcad3d
 Group: Applications/Graphics
 BuildRoot: ../rpm/
 #Requires: libGL.so.1 libGLU.so.1
+Requires: tar
+Requires: zenity
 
 
 

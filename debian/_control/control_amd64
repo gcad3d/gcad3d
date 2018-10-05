@@ -3,7 +3,7 @@ Version: <VERSION>
 Architecture: amd64
 Section: graphics
 Priority: optional
-Depends: libc6 (>= 2.4), libgtk2.0-0 | libgtk-3-0, zenity, libjpeg-progs
+Depends: libc6 (>= 2.4), libgtk2.0-0 | libgtk-3-0, zenity, libjpeg-progs, tar
 Installed-Size: 4400
 Maintainer: Franz Reiter <support@gcad3d.org>
 Homepage: http://www.gcad3d.org

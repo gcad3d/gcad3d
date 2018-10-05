@@ -1,9 +1,6 @@
 LANG__=English
 
-MM0=display functions:\
-\move:=  Shift + drag mouse (do not push mousebuttons)\
-\rotate:=Ctrl + drag mouse\
-\zoom:=  Shift + Ctrl + drag mouse
+MM0=display functions:\-move:=Shift + drag mouse (do not push mousebuttons)\-rotate:=Ctrl + drag mouse\-zoom:=Shift + Ctrl + drag mouse
 
 MMclear=clear modelspace
 MMmock=only OBJ-models; ON: import model; OFF: load model, modify and export not possible.
@@ -53,7 +50,7 @@ MMmdMdp=modify the Position of a subModel
 MMmdCvC=change curves into circles
 MMmdLty=change Linetyp (Colour, Linetyp, LineThick) of Lines/Circs/Curves
 MMmdSst=change SurfaceStyle to shaded or symbolic (wireframe)
-MMmdSco=change Color of Surface to active Color)
+MMmdSco=change Color of Surface to active Color
 MMmdpsr=make Surface transparent
 MMmdStx=make textured surface
 MMmdOnm=display a list of objects
@@ -67,7 +64,7 @@ MMinTxt=MAN: paste textBuffer after delete or ctrl X
 
 MMsePcp=give Coordinates of cursor on construction-plane at next selection
 MMsePop=give parametric point of cursor on selected object at next selection
-MMseLoO=get line from a segment of a polygon or countour at next selection
+MMseLoO=get line from a segment of a polygon or contour at next selection
 
 MMgrAdd=add obj to group; remove from Group, if already selected
 MMgrSav=save all objects of Group into File (native)
@@ -126,9 +123,7 @@ CADINT=Interactions, joints
 CADANA=Analyze
 CADCP=Constructionplane
 
-RotCen=define new rotation-center:\
-\-=select (existing) vertex or -\
-\-=rotate display (Ctrl-drag_mouse) and select red star
+RotCen=define new rotation-center:\-=select (existing) vertex or -\-=rotate display (Ctrl-drag_mouse) and select red star
 ViewOn=display hidden objects; select objects to display
 HideOn=select objects to hide
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
@@ -199,16 +194,16 @@ S_Contour_CCV_____PT_LN_CIR_CRV=Contour (composite curve - CCV) from startpoint,
 A_Planar_Surf__trim_punch_=Planar surface from boundary (circle/polygon/contour) [islands (circle/polygon/contour)]
 A_Spheric_Surf__Axis_Rad__=Spherical surface from axis, radius [angle-x1,x2] [angle-y1,y2]
 A_Cylinder_Surf__Axis_Rad__= Cylindrcal surface from axis, radius [angle-x1,x2] [angle-y1,y2]
-A_Revolved_Surf__Axis_Contour_=Revolved surface from axis, contourline (line/circle/b-spline), [startangle] [endangle] height1 (parameter or point), height2 (parameter or point)
+A_Revolved_Surf__Axis_Contour_=Revolved surface from axis, contourline (line/circle/b-spline), [startangle], [endangle], height1 (parameter or point), height2 (parameter or point)
 A_Extrusion_Surf__Contour_Vec_= Ruled surface from linear element (line/circle/b-spline) and vector
 A_Sweep_Surf__Contour_Path_=surface from path (spine) and contour (eg pipe)
 A_Loft_Surf__Curves_across_=Freeform surface from vertical sectioncurves (line/circle/b-spline)
 A_Loft_Surf__Curves_along_across_=Freeform surface from horizontal and vertical sectioncurves (line/circle/b-spline)
-A_supported_trimmed_punched=Trimmed surface from supporting surface, boundarycurve [islands ...] 
+A_supported_trimmed_punched=Trimmed surface from supporting surface, boundarycurve [islands ...]
 A_Hatch___Schraffur=Hatched surface from boundarycurve, linedistance, angle.
 
 B_Conus_PT_PT_R_R=Cone from 2 points and 2 radii
-B_Conus_Circ_height_radius=Cone from from circle, height and radius
+B_Conus_Circ_height_radius=Cone from circle, height and radius
 B_Torus_Axis_R_R=Torus from central axis, outer radius and inner radius
 B_Torus_Axis_CI=Torus from axis and circle
 B_Sphere_Center_radius=Sphere from center, radius/point/circle
@@ -294,7 +289,7 @@ Typ_mod1=Key PgUp/Dwn (selects alternate versions)
 Typ_modCWCCW=ReversButton; PgUp/Dwn; Key "CW" (clockwise)
 Typ_modCTRL=Key PgUp / PgDwn  ("CTRL" = Controlpoints)
 Typ_modREV=Key PgUp / PgDwn  ("REV" = reverse)
-Typ_modCX=ey PgUp / PgDwn  ("CX" = across)
+Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
@@ -324,7 +319,7 @@ FILT14=select surf to apply texture
 FILT15=select surf to load texture
 FILT16=modify position: select subModel
 FILT18=get point as parametric-point of next selected obj ..
-FILT19=get line from a segment of a polygon or countour at next selection ..
+FILT19=get line from a segment of a polygon or contour at next selection ..
 
 DIR_NEW=select new directory (no symbol exists)
 DIR_SYM=select symbolic directory (from existing symbol)
@@ -340,10 +335,10 @@ PEDmod3=Save (ri.Mousebutt.) or Cancel (Esc-key)
 PEDmov=move point (move mouse); -  end with right mousebutton ..
 PEDdel=Delete point: select point (yellow square, Sym-#) to delete / Modify / Exit: ri.Mousebutt.
 PEDins=Insert point: select position on curve - where to insert point / Delete / Modify / Exit: ri.Mousebutt.
-PEDine=***ERROR: select insertposition on active curve ..
+PEDine=*** ERROR: select insertposition on active curve ..
 PEDerrSel=*** ERROR: cannot use selected object ..
 PEDe1=*** ERROR: PointEditor is active ..
-PEDe2=*** ERROR: cannot analyze Plane/Vector
+PEDe2=*** ERROR: cannot analyze Plane/Vector ..
 PEDe3=*** ERROR: cannot insert point ..
 
 TED_no=no Texture is active
@@ -368,7 +363,7 @@ MMcbMea=measure between 2 points
 Meas_in=Measure: select 2 points; end with right mousebutton.
 LST_err1=list overflow; enter text for filter
 SEL_fnam=select or key filename
-SEL_sDir=Give symbolic pathname for dir.  {0}
+SEL_sDir=Give symbolic pathname for dir  {0}
 SEL_ko=Object  {0}  cannot be used ..
 OVER_fil=overwrite file  {0}
 OVER_mdl=overwrite submodel  {0}
@@ -387,7 +382,7 @@ SN_Rem=remove from active group
 SN_TxtNot=search all objects [NOT] containing infotext
 SN_DepNot=search all objects [NOT] depending from object "depends"
 
-ERRCAD0=ERROR: function CAD must be active ..
+ERRCAD0=*** ERROR: function CAD must be active ..
 pluginErr0=rebuild not possible - compiler or linker not found.
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}

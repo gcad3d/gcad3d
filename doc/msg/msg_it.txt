@@ -1,6 +1,9 @@
 LANG__=Italian
 
-MM0=funzioni di visualizzazione:\-spostare:=Shift + muovere il mouse senza premere i pulsanti\-ruotare:=Ctrl + muovere il mouse\-zoom:=Shift + Ctrl + muovere il mouse
+MM0=funzioni di visualizzazione:
+MM1=spostare:=Shift + muovere il mouse senza premere i pulsanti
+MM2=ruotare:=Ctrl + muovere il mouse
+MM3=zoom:=Shift + Ctrl + muovere il mouse
 
 MMclear=nuovo modello
 MMmock=solo per modelli OBJ; ON: importa i modelli; OFF: non è possibile caricare modelli, modificarli e esportarli.
@@ -123,7 +126,10 @@ CADINT=Interazioni e Joints
 CADANA=Analizza
 CADCP=Piano di costruzione
 
-RotCen=definire un nuovo centro di rotazione: \=- Seleziona un vertice esistente o - \=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
+RotCen0=definire un nuovo centro di rotazione:
+RotCen1=- Seleziona un vertice esistente o -
+RotCen2=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
+
 ViewOn=visualizza gli oggetti nascosti, seleziona gli oggetti da visualizzare
 HideOn=seleziona gli oggetti da nascondere
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

@@ -1,6 +1,9 @@
 LANG__=Malay
 
-MM0=fungsi paparan:\-alih:=Shift + seret tetikus (jangan tolak butangtetikus)\-putar:=Ctrl + seret tetikus\-zum:=Shift + Ctrl + seret tetikus
+MM0=fungsi paparan:
+MM1=alih:=Shift + seret tetikus (jangan tolak butangtetikus)
+MM2=putar:=Ctrl + seret tetikus
+MM3=zum:=Shift + Ctrl + seret tetikus
 
 MMclear=kosongkan ruangmodel
 MMmock=hanya model-OBJ; HIDUP: import model; MATI: muat model, ubahsuai dan eksport adalah mustahil.
@@ -123,7 +126,10 @@ CADINT=Interaksi, pertemuan
 CADANA=Analisis
 CADCP=SatahPembinaan
 
-RotCen=takrif pusat-putaran baharu: pilih (sedia ada) puncak atau putar paparan (Ctrl-seret_tetikus) dan pilih bintang merah
+RotCen0=takrif pusat-putaran baharu:
+RotCen1=- pilih (sedia ada) puncak atau -
+RotCen2=- putar paparan (Ctrl-seret_tetikus) dan pilih bintang merah
+
 ViewOn=papar objek tersembunyi; pilih objek untuk dipaparkan
 HideOn=pilih objek untuk disembunyikan
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

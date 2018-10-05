@@ -1,6 +1,9 @@
 LANG__=Dutch
 
-MM0=display functions:\-move:=Shift + drag mouse (do not push mousebuttons)\-rotate:=Ctrl + drag mouse\-zoom:=Shift + Ctrl + drag mouse
+MM0=display functions:
+MM1=move:=Shift + drag mouse (do not push mousebuttons)
+MM2=rotate:=Ctrl + drag mouse
+MM3=zoom:=Shift + Ctrl + drag mouse
 
 MMclear=clear modelspace
 MMmock=only OBJ-models; ON: import model; OFF: load model, modify and export not possible.
@@ -123,7 +126,10 @@ CADINT=Interactions, joints
 CADANA=Analyze
 CADCP=Constructionplane
 
-RotCen=define new rotation-center:\-=select (existing) vertex or -\-=rotate display (Ctrl-drag_mouse) and select red star
+RotCen0=define new rotation-center:
+RotCen1=- select (existing) vertex or -
+RotCen2=- rotate display (Ctrl-drag_mouse) and select red star
+
 ViewOn=display hidden objects; select objects to display
 HideOn=select objects to hide
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

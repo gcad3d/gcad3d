@@ -1,6 +1,9 @@
 LANG__=Deutsch
 
-MM0=Steuerung Anzeigefunktionen:\-verschieben:=Shift + Maus verschieben (keine Maustaste drücken)\-drehen:=Strg + Maus verschieben\-vergrössern:=Shift + Strg + Maus verschieben
+MM0=Steuerung Anzeigefunktionen:
+MM1=-verschieben:=Shift + Maus verschieben (keine Maustaste drücken)
+MM2=-drehen:=Strg + Maus verschieben
+MM3=-vergrössern:=Shift + Strg + Maus verschieben
 
 MMclear=aktives Modell löschen
 MMmock=nur OBJ-Modelle; Ein: Importieren;  Aus: nur laden, kein Modifizieren, kein Export möglich.
@@ -123,7 +126,10 @@ CADINT=Interaktion, Joints
 CADANA=Analysieren
 CADCP=Konstruktionsebene
 
-RotCen=neuen Rotationsmittelpunkt definieren:\-=einen beliebigen Punkt (existierenden Vertex) selektieren oder -\-=Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
+RotCen0=neuen Rotationsmittelpunkt definieren:
+RotCen1=-einen beliebigen Punkt (existierenden Vertex) selektieren oder -
+RotCen2=-ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
+
 ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
 HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

@@ -1,6 +1,9 @@
 LANG__=French
 
-MM0=affichage funcions:\-move:=Maj + faire glisser la souris (ne pas pousser MouseButtons)\-pivoter:=Ctrl + faire glisser la souris\-zoom:=Maj + Ctrl + mouvement de la souris
+MM0=affichage funcions:
+MM1=move:=Maj + faire glisser la souris (ne pas pousser MouseButtons)
+MM2=pivoter:=Ctrl + faire glisser la souris
+MM3=zoom:=Maj + Ctrl + mouvement de la souris
 
 MMclear=modelspace clair
 MMmock=seulement OBJ-modèles, ON: modèle d'importation; OFF: modèle de charge, de modifier et d'exportation n'est pas possible.
@@ -123,7 +126,10 @@ CADINT=Interactions, joints
 CADANA=Analyser
 CADCP=Constructionplane
 
-RotCen=définir nouvelle rotation-Center: \=- Select (existant) vertex ou - \=- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
+RotCen0=définir nouvelle rotation-Center:
+RotCen1=- Select (existant) vertex ou -
+RotCen2=- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
+
 ViewOn=affichage des objets cachés, objets sélectionner pour les afficher
 HideOn=Sélectionner les objets à cacher
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

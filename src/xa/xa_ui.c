@@ -2682,7 +2682,9 @@ static char LstBuf[LstSiz][32];
   UI_vwz__ (0, 0L);
 
 
-  MSG_pri_0 ("RotCen");
+  MSG_pri_0 ("RotCen0");
+  MSG_pri_0 ("RotCen1");
+  MSG_pri_0 ("RotCen2");
   // TX_Print("neue Drehebene definieren:");
   // TX_Print(" - Vertex (Endpunkt einer Linie selektieren oder");
   // TX_Print(" - Ansicht drehen bis Punktekette sichtbar - dann Punkt waehlen");

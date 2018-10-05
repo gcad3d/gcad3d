@@ -566,6 +566,9 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   if((!strcmp(txbuf,"de")) ||
      (!strcmp(txbuf,"en")) ||
      (!strcmp(txbuf,"fr")) ||
+     (!strcmp(txbuf,"ru")) ||
+     (!strcmp(txbuf,"ms")) ||
+     (!strcmp(txbuf,"es")) ||
      (!strcmp(txbuf,"it"))) goto L_exit;
 
 

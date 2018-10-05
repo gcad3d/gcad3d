@@ -1,9 +1,6 @@
 LANG__=Deutsch
 
-MM0=Steuerung Anzeigefunktionen:\
-\verschieben:=Shift + Maus verschieben (keine Maustaste drücken)\
-\drehen:=Strg + Maus verschieben\
-\vergrössern:=Shift + Strg + Maus verschieben
+MM0=Steuerung Anzeigefunktionen:\-verschieben:=Shift + Maus verschieben (keine Maustaste drücken)\-drehen:=Strg + Maus verschieben\-vergrössern:=Shift + Strg + Maus verschieben
 
 MMclear=aktives Modell löschen
 MMmock=nur OBJ-Modelle; Ein: Importieren;  Aus: nur laden, kein Modifizieren, kein Export möglich.
@@ -54,9 +51,9 @@ MMmdCvC=Kurven in Kreise umwandeln
 MMmdLty=ändern Linientyp (Farbe-Linientyp-Linedicke) von Linien/Kreisen/Kurven
 MMmdSst=ändern Fläche: schattiert oder symbolisch (Drahtmodell) oder transparent
 MMmdSco=ändern Flächenfarbe: in aktive Farbe ändern
-MMmdpsr=ändern Flächentransparenz: 0% (solid), 50%, 10%
+MMmdpsr=ändern Flächentransparenz
 MMmdStx=Fläche mit Textur (Foto) belegen.
-MMmdOnm=Objektliste mit Objektnamen anzeigen; 
+MMmdOnm=Objektliste mit Objektnamen anzeigen
 MMmdDel=Objekte löschen
 MMmdEdi=ändern des aktiven Eingabefeldes mit dem Systemeditor / F3
 MMmdCln=alle gelöschten Objekte permanent entfernen / F4
@@ -109,16 +106,6 @@ MMcbMD=Objekt suchen / modifizieren / löschen (Strg linke-Maustaste od. Strg-F)
 MMundo=Löschen - zuletzt erzeugtes Objekt / Strg-Z
 MMredo=Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
 
-RotCen=neuen Rotationsmittelpunkt definieren:\
-\-=einen beliebigen Punkt (existierenden Vertex) selektieren oder -\
-\-=Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
-ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
-HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
-VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
-CAD_On=CAD-Funktion selektieren / Objekt mit rechter Maustaste selektieren
-MAN_On=MAN: neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
-MD_On=Objekt selektieren / Objektbezeichnung + Enter eingeben  / Beenden: Strg-rechte Maustaste
-
 CADPT=Punkte
 CADLN=Linien
 CADCI=Kreise
@@ -136,6 +123,14 @@ CADINT=Interaktion, Joints
 CADANA=Analysieren
 CADCP=Konstruktionsebene
 
+RotCen=neuen Rotationsmittelpunkt definieren:\-=einen beliebigen Punkt (existierenden Vertex) selektieren oder -\-=Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
+ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
+HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=CAD-Funktion selektieren / Objekt mit rechter Maustaste selektieren
+MAN_On=MAN: neuen Punkt: Alt-P, neue Zeile: rechte Maustaste; ..
+MD_On=Objekt selektieren / Objektbezeichnung + Enter eingeben  / Beenden: Strg-rechte Maustaste
+
 CADname=ObjektName / Zusatzinformation (suchen mit "Search/Name")
 CADhelpCAD=Info über die Bedienung von CAD im HTML-Browser anzeigen
 CADhelpFunc=Info über die aktive CAD-Funktion im HTML-Browser anzeigen
@@ -150,13 +145,13 @@ PT_translate=Punkt verschieben; Basispunkt, Richtung, [Abstand,] [Normalabstand]
 PT_rotate=Punkt verdrehen; Mittelpunkt, Ausgangsposition, Winkel [Drehachse]
 PT_endpoints_center_focus___=Charakteristische Punkte (Mittel-, Anfangs- End-, Fokus für Ellipsen; Eckpunkte für Polygone, Splines)
 PT_Mid_Cornerpoint_PT_PT__VC_=Mittelpunkt oder Eckpunkt von 2 Punkten
-PT_parametric_on_LN_CIR_CRV_SUR=Punkt auf Linie/Kreis/Kurve/Fläche durch Parameter erzeugen;
+PT_parametric_on_LN_CIR_CRV_SUR=Punkt auf Linie/Kreis/Kurve/Fläche durch Parameter erzeugen
 
 LN_PT__PT=Linie zwischen 2 Punkten;
 LN_parallel=Linie parallel zu Linie/Vektor
 LN_PT_Direct__Length_Rot_Angle_TiltAngle_=Linie durch Punkt, Richtung, [Länge,] [Drehwinkel (Z-Achse),] [Kippwinkel (X-Y-Ebene)]
 LN_LN_Dist____________parall_=Linie parallel zu Linie mit Abstand, Position (1-4).
-LN_LN_LN__Rot_Angle_TiltAngle___mid_=Linie = Mittellinie; [im Schnittpunkt verdrehen: Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)]]
+LN_LN_LN__Rot_Angle_TiltAngle___mid_=Linie = Mittellinie; [im Schnittpunkt verdrehen: Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)]
 LN_tangent_to_line_circ_curve=Linie tangential an 2 Objekte (Punkt/Richtung/Kreis/Ellipse/Bspline)
 
 CIR_Cen_Radius__Z_Axis_=Kreis aus Mittelpunkt, Radius [Achs-Vektor]
@@ -198,9 +193,9 @@ S_Contour_CCV_____PT_LN_CIR_CRV=Kontur aus Startpunkt, Kurven, Endpunkt. Verschn
 
 A_Planar_Surf__trim_punch_=Planare Fläche aus Randkurve (Kreis/Polygon/Kontur) [Inseln (Kreis/Polygon/Kontur)]
 A_Spheric_Surf__Axis_Rad__=Kugelfläche aus Achse, Radius [Winkel-X1,X2] [Winkel-Y1,Y2]
-A_Cylinder_Surf__Axis_Rad__=Zylinderfläche aus Achse, Radius [Winkel-X1,X2, Winkel-Y1,Y2]
+A_Cylinder_Surf__Axis_Rad__= Zylinderfläche aus Achse, Radius [Winkel-X1,X2, Winkel-Y1,Y2]
 A_Revolved_Surf__Axis_Contour_=Rotationsfläche aus Achse, Konturlinie (Linie/Kreis/B-Spline), Startwinkel, Endwinkel, Höhe1 (Parameter/Punkt), Höhe2 (Parameter/Punkt)
-A_Extrusion_Surf__Contour_Vec_=Regelfläche aus Grundelement und Vektor
+A_Extrusion_Surf__Contour_Vec_= Regelfläche aus Grundelement und Vektor
 A_Sweep_Surf__Contour_Path_=Fläche von Leitkuve und Profil (zB Schlauch)
 A_Loft_Surf__Curves_across_=Freiformflaeche aus Querschnittkurven (Linie/Kreis/B-Spline)
 A_Loft_Surf__Curves_along_across_=Freiformfläche aus Längsschnittkurven und Querschnittkurven (Linie/Kreis/B-Spline)
@@ -230,7 +225,7 @@ N_Image_Pos_Filename=Foto (normal zum Betrachter, Maßstab fix od dyn.)
 
 M_internal_Model=internes Submodel; Position, Maßstab [Ausrichtung]
 M_external_Model=externes Submodel; Position, Maßstab [Ausrichtung]
-M_CatalogPart= Normteil; Position, Maßstab [Ausrichtung]
+M_CatalogPart=Normteil; Position, Maßstab [Ausrichtung]
 
 TRafo_transl=Verschiebung aus Richtung [Länge]
 TRafo_rot=Verdrehung aus DrehAchse, DrehWinkel
@@ -384,7 +379,7 @@ CADinit=Speichern: OK / rechte Maustaste / Enter-Taste; Abbrechen: Cancel / Esc-
 SN_New=Neue Gruppe erstellen (von gesamtem Modell)
 SN_Add=Zur aktuellen Gruppe zufügen (von gesamtem Modell)
 SN_Rem=Aus aktueller Gruppe entfernen
-SN_TxtNot=alle Objekte suchen, die Infotext [NICHT] enthalten 
+SN_TxtNot=alle Objekte suchen, die Infotext [NICHT] enthalten
 SN_DepNot=alle Objekte suchen, die [NICHT] von Objekt "depends" abhängig sind
 
 ERRCAD0=FEHLER: Funktion CAD muss aktiv sein ..

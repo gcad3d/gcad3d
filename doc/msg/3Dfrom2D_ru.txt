@@ -1,0 +1,5 @@
+# Messages for Application 3Dfrom2D
+TOP=вид сверху
+SIDE=вид сбоку
+FRONT=вид спереди
+# EOF

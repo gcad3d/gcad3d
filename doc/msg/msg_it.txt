@@ -1,9 +1,6 @@
 LANG__=Italian
 
-MM0=Funzioni di visualizzazione: \
-\=spostare: Shift + muovere il mouse senza premere i pulsanti \
-\=ruotare: Ctrl + muovere il mouse \
-\=zoom: Shift + Ctrl + muovere il mouse
+MM0=funzioni di visualizzazione:\-spostare:=Shift + muovere il mouse senza premere i pulsanti\-ruotare:=Ctrl + muovere il mouse\-zoom:=Shift + Ctrl + muovere il mouse
 
 MMclear=nuovo modello
 MMmock=solo per modelli OBJ; ON: importa i modelli; OFF: non è possibile caricare modelli, modificarli e esportarli.
@@ -53,7 +50,7 @@ MMmdMdp=modifica la posizione di un sottomodello
 MMmdCvC=Trasforma le curve in cerchi
 MMmdLty=Cambia stile (Colore, Tipo, Spessore) delle Linee / Cerchi / Curve
 MMmdSst=cambia stile delle superfici da piene a ombrate o grigliate (filiformi wireframe)
-MMmdSco=cambia il colore delle superfici colore attivo)
+MMmdSco=cambia il colore delle superfici colore attivo
 MMmdpsr=rende la superficie trasparente
 MMmdStx=rende la superficie strutturata
 MMmdOnm=visualizza un elenco catalogato di oggetti
@@ -109,16 +106,6 @@ MMcbMD=Ricerca / Modifica / Elimina oggetti (Ctrl + tasto sinistro del mouse o C
 MMundo=annulla (cancella l'ultima operazione, Ctrl-Z)
 MMredo=ripristina (l'ultima operazione), Ctrl-Y)
 
-RotCen=definire un nuovo centro di rotazione: \
-\=- Seleziona un vertice esistente o - \
-\=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
-ViewOn=visualizza gli oggetti nascosti, seleziona gli oggetti da visualizzare
-HideOn=seleziona gli oggetti da nascondere
-VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
-CAD_On=Funzione CAD di selezione: seleziona gli oggetti con il pulsante destro.
-MAN_On=MAN: Nuovo Punto: Alt-P; nuova linea: pulsante destro del mouse; ..
-MD_On=Seleziona l'oggetto / ObjID tasto Enter / Exit: mouseb Ctrl destro.
-
 CADPT=Punti
 CADLN=Linee
 CADCI=Cerchi
@@ -135,6 +122,14 @@ CADCUT=Taglio, Intersezione, Spostamento, Rotazione, Duplicazione
 CADINT=Interazioni e Joints
 CADANA=Analizza
 CADCP=Piano di costruzione
+
+RotCen=definire un nuovo centro di rotazione: \=- Seleziona un vertice esistente o - \=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
+ViewOn=visualizza gli oggetti nascosti, seleziona gli oggetti da visualizzare
+HideOn=seleziona gli oggetti da nascondere
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=Funzione CAD di selezione: seleziona gli oggetti con il pulsante destro.
+MAN_On=MAN: Nuovo Punto: Alt-P; nuova linea: pulsante destro del mouse; ..
+MD_On=Seleziona l'oggetto / ObjID tasto Enter / Exit: mouseb Ctrl destro.
 
 CADname=informazioni sull'oggetto (ricerca con "Cerca / Nome")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
@@ -198,9 +193,9 @@ S_Contour_CCV_____PT_LN_CIR_CRV=Contorno (curva composita - CCV) da: punto inizi
 
 A_Planar_Surf__trim_punch_=superficie planare da: confine (cerchio / poligoni / contorno) [isole (cerchio / poligoni / contorno)]
 A_Spheric_Surf__Axis_Rad__=superficie sferica da: asse, raggio [angolo-x1, x2] [angolo-y1, y2]
-A_Cylinder_Surf__Axis_Rad__=superficie cilindrica da: asse, raggio [angolo-x1, x2] [angolo-y1, y2]
-A_Revolved_Surf__Axis_Contour_=superficie di rivoluzione da: asse, contorno (linea / cerchio / b-spline), [startAngle] [endangle] altezza1 (parametro o punto), altezza2 (parametro o punto)
-A_Extrusion_Surf__Contour_Vec_=superficie rigata da: un elemento lineare (linea / cerchio / b-spline) e il vettore
+A_Cylinder_Surf__Axis_Rad__= superficie cilindrica da: asse, raggio [angolo-x1, x2] [angolo-y1, y2]
+A_Revolved_Surf__Axis_Contour_=superficie di rivoluzione da: asse, contorno (linea / cerchio / b-spline), [startAngle], [endangle], altezza1 (parametro o punto), altezza2 (parametro o punto)
+A_Extrusion_Surf__Contour_Vec_= superficie rigata da: un elemento lineare (linea / cerchio / b-spline) e il vettore
 A_Sweep_Surf__Contour_Path_=surface from path (spine) and contour (eg pipe)
 A_Loft_Surf__Curves_across_=superficie a forma libera da: sectioncurves verticale (linea / cerchio / b-spline)
 A_Loft_Surf__Curves_along_across_=superficie a forma libera da: sectioncurves orizzontale e verticale (linea / cerchio / b-spline)
@@ -239,7 +234,7 @@ CUT__trim__obj=Taglia elementi lineari (linea / curva) con uno o due elementi di
 INT__intersect__obj=Punto o curva di intersezione di 2 elementi
 TRAnslate_obj__VC_=Sposta un elemento lungo un vettore [lunghezza]
 TRAnslate_obj__PLN_=Sposta un oggetto in un diverso sistema di riferimento (piano) [TRA - trasformazione invertito]
-TRAnsform_obj__Tra_=Trasla o ruota un oggetto (Verschiebung) o  (Verdrehung)
+TRAnsform_obj__Tra_=trasla o ruota un oggetto
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=proiezione di un elemento del progetto su una superficie
 Parallel_obj__offset_=parallel object (offset-curve or surface)
@@ -294,7 +289,7 @@ Typ_mod1=PagSu / DWN (seleziona versioni alternative)
 Typ_modCWCCW=ReversButton; PgUp / DWN; Key \ "CW \" (in senso orario)
 Typ_modCTRL=PagSu / PgDwn ("CTRL \" = punti di controllo)
 Typ_modREV=PagSu / PgDwn ("REV" = inversa)
-Typ_modCX=ey PgUp / PgDwn ("CX" = across)
+Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
@@ -343,12 +338,12 @@ PEDins=Inserisci un punto: seleziona la posizione sulla curva - dove inserire il
 PEDine=*** ERROR: seleziona il punto di inserimento sulla curva attiva ..
 PEDerrSel=*** ERRORE: non è possibile utilizzare l'oggetto selezionato ..
 PEDe1=*** ERROR: PointEditor è attiva ..
-PEDe2=*** ERROR: non si può analizzare Piano / Vettore
+PEDe2=*** ERROR: non si può analizzare Piano / Vettore ..
 PEDe3=*** ERRORE: non è possibile inserire il punto ..
 
 TED_no=Texture non è attivo
-TED_ldf=carica l'immagine
-TED_ldn=ricarica
+TED_ldf=load texture from imagefile
+TED_ldn=reload imagefile
 TED_rem=rimuovi
 TED_miy=specchio verticale
 TED_mix=specchio orizzontale
@@ -387,7 +382,7 @@ SN_Rem=rimuovi dal gruppo attivo
 SN_TxtNot=cerca tutti gli oggetti che [NON] contengono il testo informativo
 SN_DepNot=cerca tutti gli oggetti che [NON] dipendono dall'oggetto "depends"
 
-ERRCAD0=ERRORE: deve essere attivata la funzione CAD ..
+ERRCAD0=*** ERRORE: deve essere attivata la funzione CAD ..
 pluginErr0=rebuild not possible - compilatore o collegamento non trovato..
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}

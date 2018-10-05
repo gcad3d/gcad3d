@@ -1,0 +1,5 @@
+# Messages for Application 3Dfrom2D
+TOP=Vista dall'alto
+SIDE=Vista laterale
+FRONT=Vista frontale
+# EOF

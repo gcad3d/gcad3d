@@ -6489,7 +6489,7 @@ Example (scan line):
   // datei neu oeffnen
   // printf("UTX_setup_get fopen|%s|\n",fnam);
   if((fpi=fopen(fnam,"r")) == NULL) {
-    if(mode > 0) TX_Print("UTX_setup_get E001");
+    if(mode > 0) TX_Print("UTX_setup_get E001 %s",fnam);
     goto L_errEx;
   }
 

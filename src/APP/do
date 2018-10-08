@@ -32,6 +32,7 @@ if test "$1" = "help"; then
   echo "./do *.mak             # link a plugin (for the first time)"
   echo "./do debug_ON          # debug ON for following builds (development)"
   echo "./do debug_OFF         # debug OFF for following builds (production)"
+  echo "./do pack_examples     # create examples.gz"
   echo "./do                   # start"
   echo "./do debug             # start with debugger"
   echo "./do trc               # start with mtrace"
@@ -159,6 +160,13 @@ if test "$1" = "debug_OFF"; then
 fi
 
 
+# create ${gcad_dir_dev}examples.gz
+if test "$1" = "pack_examples"; then
+  ../pack_examples.sh
+  exit 0
+fi
+
+
 if test "$1" = "fDep"; then
   rm -f *.o
   # create fDep.txt = list of file ; input = file t1 created by cbrowse !
@@ -234,7 +242,8 @@ if [ "$OSTYPE" = "Linux" ] ; then
 
 
 # icons; if not set: /usr/share/gcad3d/
-# export gcad_dir_bas=${gcad_dir_dev}
+# gcad_dir_bas used for icons/
+  export gcad_dir_bas=${gcad_dir_dev}
 
 # executables (shared-libs ..)
 # export gcad_dir_bin=${DirBasSer}/gCAD3D/binLinux${bitNr}/

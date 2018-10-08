@@ -8045,6 +8045,7 @@ box1
   int UI_lang_men (int *lngNr, char lngCode[][4], char lngName[][40],
                    MemObj *mo) {
 //===================================================================
+// add menu of radiobuttons for loaded languages
  
   int    i1, ia, ie, ii;
   MemObj m1, ma, me;
@@ -8053,6 +8054,7 @@ box1
   printf("UI_lang_men |%s|\n",AP_lang);
 
   // find installed languages and language-names
+  // get list of loaded languages an language-names
   MSG_lng_init (lngNr, lngCode, lngName);
 
 
@@ -8061,6 +8063,7 @@ box1
   ie = -1;
   ii = 0;
   for(i1=0; i1 < *lngNr; ++i1) {
+    // add radiobutton
       // printf(" lng %d |%s|%s|\n",i1,lngCode[i1],lngName[i1]);
     m1 = GUI_menu_radiobutt__ (mo,lngName[i1],ii,UI_chg_lang,(void*)lngCode[i1]);
     if(!ii) ++ii;  // 0=new menu; 1=add to menu

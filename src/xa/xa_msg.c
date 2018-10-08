@@ -225,7 +225,7 @@ static char*  MSG_tab=NULL;
 static FILE   *APP_MSG_fp=NULL;
 static FILE   *MSG_fp=NULL;
 
-#define MSG_bSiz 256
+#define MSG_bSiz 512
 static char   MSG_buf[MSG_bSiz];
 
 
@@ -317,6 +317,8 @@ char *MSG_STD_tab[]={
   char   *cp1, *cp2, *cp3;
 
 
+  // printf("MSG_fread |%s| %d\n",key,bufSiz);
+
   //----------------------------------------------------------------
   if(!fpIn) {printf("MSG_fread E000\n"); return NULL;}    // 2011-03-16
 
@@ -329,22 +331,34 @@ char *MSG_STD_tab[]={
   // loop tru file ..
   L_nxt:
     // read next line > sbuf
-    if(fgets (sbuf, 319, fpIn) == NULL) {++iloop; goto L_restart;}
+    if(fgets (sbuf, bufSiz, fpIn) == NULL) {++iloop; goto L_restart;}
       // printf(" |%s|\n",sbuf);
 
-
+    // skip different key
     if(strncmp(sbuf, key, ilen)) goto L_nxt;
-    // if(sbuf[ilen] != ' ') goto L_nxt;
-    if((sbuf[ilen] != ' ')&&(sbuf[ilen] != '=')) goto L_nxt;  // 2015-11-14
 
-    // found it ..
+    // if(sbuf[ilen] != ' ') goto L_nxt;
+    // if((sbuf[ilen] != ' ')&&(sbuf[ilen] != '=')) goto L_nxt;  // 2015-11-14
+
+    // found key ..
     cp1 = &sbuf[ilen + 1];        // skip the key
-    UTX_pos_skipLeadBlk (cp1);
+    // UTX_pos_skipLeadBlk (cp1);
       // printf("   MSG_read 1 |%s|\n",sbuf);
 
+    // remove the \n
+    cp2 = UTX_CleanCR (cp1);
+
+    L_br_nxt:
+      cp2 = strstr (cp1, "<br>");
+      if(cp2) {
+        *cp2 = ' '; ++cp2; *cp2 = '\n'; ++cp2; *cp2 = ' '; ++cp2; *cp2 = ' ';
+        goto L_br_nxt;
+      }
+
+/*
     cp2 = UTX_CleanCR (cp1);            // remove the \n
 
-    // check for continuation-line
+    // check for continuation-line (old version: txt\\n + \nxtln\\n ...)
     L_cont:
       --cp2;
       if(*cp2 == '\\') {
@@ -359,7 +373,8 @@ char *MSG_STD_tab[]={
         cp2 = UTX_CleanCR (cp2);
         goto L_cont;
       }
-        // printf("ex MSG_read 1 |%s|%s|\n",sbuf,cp1);
+*/
+        // printf("ex MSG_read 1 |%s|\n",cp1);
 
     return cp1;
 
@@ -547,7 +562,7 @@ char *MSG_STD_tab[]={
   if(MSG_fp) fclose (MSG_fp);
 
   sprintf(fnam, "%smsg%cmsg_%s.txt",OS_get_doc_dir(),fnam_del,lang);
-    // printf(" msgfile = |%s|\n",fnam);
+    printf("MSG_Init msgfile = |%s|\n",fnam);
 
 
   if((MSG_fp=fopen(fnam,"r")) == NULL) {
@@ -668,7 +683,7 @@ char *MSG_STD_tab[]={
   char    sbuf2[200], *cp1, *cp2;
 
 
-  // printf("MSG_get__ key=|%s| msgSiz=%d\n",key,msgSiz);
+  printf("MSG_get__ key=|%s| msgSiz=%d\n",key,msgSiz);
 
 
   vsprintf(sbuf2, fmt, *va);
@@ -1012,6 +1027,7 @@ char *MSG_STD_tab[]={
   int MSG_lng_init (int *lngNr, char lngCode[][4], char lngName[][40]) {
 //======================================================================
 // provide list of supported languages an language-names
+//   find all msg_<LANG>.txt files  in <docdir>/msg/
 
   int    ii, iNr, lNr;
   char   *p1, cbuf1[256], *pl;
@@ -1057,7 +1073,7 @@ char *MSG_STD_tab[]={
       // printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
 
 
-    // - get value of LANG__ of all files
+    // - get value of LANG__ of all existing language-files
     MSG_Init (lngCode[lNr]);
     // p1 = MSG_get_str ("LANG__");
     pl = MSG_get_str ("LANG__");
@@ -1076,6 +1092,13 @@ char *MSG_STD_tab[]={
 
   //----------------------------------------------------------------
   *lngNr = lNr;
+
+
+    // TESTBLOCK
+    // printf("------ ex MSG_lng_init %d \n",lNr);
+    // for(ii=0; ii<lNr; ++ii) printf(" %d |%s|%s|\n",ii,lngCode[ii],lngName[ii]);
+    // END TESTBLOCK
+
 
   return 0;
 

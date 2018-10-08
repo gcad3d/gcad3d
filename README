@@ -48,10 +48,10 @@ support@gcad3d.org
 __________________________________________________________________
 Linux Prerequisites:
 
-  running gCAD3D:
+  for running gCAD3D:
     OpenGL-libs (libGL and libGLU)
-    .deb: libjpeg-turbo-progs (djpeg and cjpeg)
-    .rpm: libjpeg-turbo-utils (djpeg and cjpeg)
+    .deb: libjpeg-progs (djpeg and cjpeg) zenity tar
+    .rpm: libjpeg-turbo-utils (djpeg and cjpeg) zenity tar
 
 
   for modifications of gCAD3D:
@@ -61,18 +61,18 @@ Linux Prerequisites:
 
   for modifications of the gui-system C-KIT-GUI-GTK:
     Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
-      OpenGL-development-files (eg mesa-common-dev, libglu1-mesa-dev).
-      Installation of gtk3-development-files; eg for debian-os:
-        sudo apt-get install libgtk-3-dev
-        Optional:
-        sudo apt-get install libgtk-3-doc
-        sudo apt-get install gtk-3-examples
-      Installation of gtk2-development-files; eg for debian-os:
-        sudo apt-get install libgtk2.0-dev
-        Optional:
-        sudo apt-get install libgtk2.0-doc
-        sudo apt-get install gtk2.0-examples
+      OpenGL-development-files 
+        mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
+      gtk3-development-files
+        libgtk-3-dev
+        libgtk-3-doc gtk-3-examples             optional
+      and or gtk2-development-files
+        libgtk2.0-dev
+        libgtk2.0-doc gtk2.0-examples           optional
 
+
+        Installation eg for debian-os:
+          sudo apt-get install <package>
 
   for modification of the documentation:
     doxygen
@@ -80,6 +80,39 @@ Linux Prerequisites:
 
   for building debian-package:
     fakeroot, lintian
+
+  for building rpm-package:
+    ?
+
+
+__________________________________________________________________
+Linux install binary-version:
+
+Debian:
+- Download package gCAD3D-#.##-bin-amd64.de
+  - interactiv: select package with eg "software-center"
+  - or from terminal:
+  sudo gdebi gCAD3D-#.##-bin-amd64.deb
+
+
+RPM:
+- Download package gcad3d-#.##-#.x86_64.rpm
+  - from terminal:
+  sudo rpm -i gcad3d-#.##-#.x86_64.rpm
+
+
+
+__________________________________________________________________
+Linux uninstall:
+
+Debian:
+sudo apt-get --purge remove gcad3d
+
+RPM:
+rpm -qa | grep -i gcad3d                 # find <pknNam>
+sudo rpm -e <pknNam>
+
+
 
 
 __________________________________________________________________
@@ -93,6 +126,8 @@ cd devel
 
 # get all files into ~/devel/gcad3d/*
 git clone https://github.com/gcad3d/gcad3d
+
+
 
 
 __________________________________________________________________
@@ -113,23 +148,25 @@ mkdir -p binLinux64/plugins
 
 
 
-_____________________________________
+
+__________________________________________________________________
 Linux Build:
 
 Prerequisites:
 gcad3d (eg from git-repository) in <dirXX>/gcad3d
-Default: <dirXX> = ${HOME}
+Default: <dirXX> = ${HOME}/devel
 
 
-Setup environment:
-cd <dirXX>/gcad3d/
-The development environment is using the directories $DIR_DEV and $DIR_BIN.
-Edit devconf_git.sh if necessary:
-Set DIR_DEV = <dirXX>
-Set DIR_BIN = <dirXX>/bin/
-Execute:
+# Setup environment:
+# The development environment is using the directories $DIR_DEV and $DIR_BIN.
+# Edit devconf_git.sh if necessary:
+# Set DIR_DEV = <dirXX>
+# Set DIR_BIN = <dirXX>/bin/
+# do eg.:
+cd ${HOME}/devel/gcad3d/ 
 . ./devconf_git.sh
-
+echo ${DIR_DEV}                         # ~/devel/
+echo ${DIR_BIN}                         # ~/devel/bin/
 
 # goto APP-directory
 cd ${DIR_DEV}gcad3d/src/APP/

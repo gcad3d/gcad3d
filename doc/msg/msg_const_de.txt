@@ -1,4 +1,4 @@
-MSG_ok= Ja 
+MSG_ok=Ja
 MSG_cancel=Abbrechen
 MSG_save=Speichern
 MSG_insert=Einfügen
@@ -31,7 +31,7 @@ MSG_GrpRemTyp=alle dieses Typs aus Gruppe entfernen
 MSG_GrpRemOTs=alle anderen Typen aus Gruppe entfernen
 MSG_upd=update
 MSG_all=alle
-MSG_no= Nein
+MSG_no=Nein
 MSG_Error=Fehler
 MSG_cpyMdl=in Eingabefeld kopieren
 MSG_getPar=suche Eltern-Objekte
@@ -39,4 +39,4 @@ MSG_getChd=suche Kind-Objekte
 MSG_modNam=Objektname ändern
 MSG_cvEd=edit curve
 MSG_GrpInv=Gruppe invertieren
-#EOF
+#eof

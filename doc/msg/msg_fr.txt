@@ -1,9 +1,6 @@
 LANG__=French
 
-MM0=Affichage funcions: \
-\=move: Maj + faire glisser la souris (ne pas pousser MouseButtons) \
-\=pivoter: Ctrl + faire glisser la souris \
-\=Zoom: Maj + Ctrl + mouvement de la souris
+MM0=affichage funcions:<br>-move:=Maj + faire glisser la souris (ne pas pousser MouseButtons)<br>-pivoter:=Ctrl + faire glisser la souris<br>-zoom:=Maj + Ctrl + mouvement de la souris
 
 MMclear=modelspace clair
 MMmock=seulement OBJ-modèles, ON: modèle d'importation; OFF: modèle de charge, de modifier et d'exportation n'est pas possible.
@@ -13,7 +10,7 @@ MMfDel=supprimer le fichier
 MMfRen=renommer le fichier
 MMfCpy=de copie de fichiers
 MMfPrt=Imprimer / plot
-MMexit=Exit Program
+MMexit=exit program
 MMsma=activer le sous-modèle ou d'autres mainmodel
 MMsmcp=mainmodel emménager dans submodel
 MMsmcr=créer de nouveaux sous-modèle
@@ -53,8 +50,8 @@ MMmdMdp=modifier la position d'un sous-modèle
 MMmdCvC=Changement courbes en cercles
 MMmdLty=changement Linetyp (couleur, Linetyp, LineThick) de lignes / Circ / Courbes
 MMmdSst=changement SurfaceStyle à l'ombre ou symbolique (fil de fer)
-MMmdSco=changement de couleur de la surface active Color)
-MMmdpsr=faire surface transparente
+MMmdSco=changement de couleur de la surface active Color
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=faire surface texturée
 MMmdOnm=afficher une liste d'objets
 MMmdDel=supprimer des objets
@@ -67,7 +64,7 @@ MMinTxt=MAN: TextBuffer coller après effacement ou Ctrl X
 
 MMsePcp=donner Coordonnées du curseur sur la construction d'avion à la sélection suivante
 MMsePop=donnent le point paramétrique du curseur sur l'objet sélectionné à la prochaine sélection
-MMseLoO=get line from a segment of a polygon or countour at next selection
+MMseLoO=get line from a segment of a polygon or contour at next selection
 
 MMgrAdd=obj ajouter au groupe, retirer du groupe, s'il est déjà sélectionné
 MMgrSav=enregistrer tous les objets de groupe dans le fichier (natif)
@@ -90,7 +87,7 @@ MMcb3dv=inhibent 3D Rotation; ON / OFF
 MMcbSha=affichage des surfaces ombragées ou wireframe
 
 MMbtTop=topview (X-Y)
-MMbtFro=FrontView (X-Z)
+MMbtFro=frontview (X-Z)
 MMbtSid=sideview (Y-Z)
 MMbtAxo=vue axonométrique
 MMbtSca=calculer échelle et viewcenter automatique
@@ -109,34 +106,32 @@ MMcbMD=Rechercher / Modifier / Supprimer OBJ (Ctrl + leftMouseButt ou Ctrl-F)
 MMundo=défaire (supprimer la dernière opération; Ctrl-Z)
 MMredo=redo (dernière opération de restauration; Ctrl-Y)
 
-RotCen=définir nouvelle rotation-Center: \
-\=- Select (existant) vertex ou - \
-\=- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
-ViewOn=affichage des objets cachés, objets sélectionner pour les afficher
-HideOn=Sélectionner les objets à cacher 
-VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
-CAD_On=CAD sélectionnez-Function / select object avec mouseb droite.
-MAN_On=MAN: nouveau point: Alt-P; nouvelle ligne: right_mousebutton; ..
-MD_On=choisir objet / key ObjID Entrée / Sortie: Ctrl mouseb droite.
-
 CADPT=Points
 CADLN=Lines
 CADCI=Circles
 CADPLN=Planes
 CADVC=Vecteurs
 CADVAR=Variables
-CADCV=Curves (Ellipse, Polygone, Spline, Clothoid, Contour (courbe composite))
+CADCV=Curves (Ellipse, Polygon, Spline, Clothoid, Contour (composite curve))
 CADSUR=Surfaces
 CADSOL=Bodies
 CADDIM=texte, les dimensions
 CADMDL=sous-modèles
 CADTR=Transformations
 CADCUT=Trim, déplacer, rotation, d'un projet, d'un miroir
-CADINT=Interactios, joints
+CADINT=Interactions, joints
 CADANA=Analyser
 CADCP=Constructionplane
 
-CADname=objectname / info (il recherche avec "Search / Name")
+RotCen=définir nouvelle rotation-Center:<br>- Select (existant) vertex ou - <br>- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
+ViewOn=affichage des objets cachés, objets sélectionner pour les afficher
+HideOn=Sélectionner les objets à cacher
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=CAD sélectionnez-Function / select object avec mouseb droite.
+MAN_On=MAN: nouveau point: Alt-P; nouvelle ligne: right_mousebutton; ..
+MD_On=choisir objet / key ObjID Entrée / Sortie: Ctrl mouseb droite.
+
+CADname=Objectname / info (il recherche avec "Search / Name")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
@@ -147,7 +142,7 @@ CADsave=mettre obj active., Obj prochaine GOTO. Droit mousebutton, Enterkey.
 PT_cartes__offset=Point ; sélectionner ou de clés; offsetvalues [pour X / Y / Z]
 PT_polar=polaires, relativ; Basepoint, Rotationangle (Z-Axis), [Tiltangle (plan xy),] Distance
 PT_translate=point de se déplacer; Basepoint, Direction, [Distance,] [NormalDistance]
-PT_rotate=rotation point; Centerpoint, Startposition, Angle [Axis]
+PT_rotate=rotate point; Centerpoint, Startposition, Angle [Axis]
 PT_endpoints_center_focus___=characteristic points (center-, start-, end-; focus for ellipses, cornerpoints for polygons, splines)
 PT_Mid_Cornerpoint_PT_PT__VC_=midpoint or cornerpoint of 2 points
 PT_parametric_on_LN_CIR_CRV_SUR=Point de paramètre (s) en ligne / cercle / Courbe / Surface
@@ -198,9 +193,9 @@ S_Contour_CCV_____PT_LN_CIR_CRV=Contour (courbe composite - CCV) de point de dé
 
 A_Planar_Surf__trim_punch_=surface plane de Boundary (cercle / Polygone / contour) [îles (cercle / polygone / contour)]
 A_Spheric_Surf__Axis_Rad__=surface sphérique de l'axe, rayon [angle-x1, x2] [angle-y1, y2]
-A_Cylinder_Surf__Axis_Rad__=surface Cylindrcal de l'axe, rayon [angle-x1, x2] [angle-y1, y2]
-A_Revolved_Surf__Axis_Contour_=surface par révolution d'axe, contourline (ligne / cercle / B-splines), [startAngle] [endAngle] height1 (paramètre ou le point), height2 (paramètre ou point)
-A_Extrusion_Surf__Contour_Vec_=Surface réglée de l'élément linéaire (ligne / cercle / B-splines) et le vecteur
+A_Cylinder_Surf__Axis_Rad__= surface Cylindrcal de l'axe, rayon [angle-x1, x2] [angle-y1, y2]
+A_Revolved_Surf__Axis_Contour_=surface par révolution d'axe, contourline (ligne / cercle / B-splines), [startAngle], [endAngle], height1 (paramètre ou le point), height2 (paramètre ou point)
+A_Extrusion_Surf__Contour_Vec_= Surface réglée de l'élément linéaire (ligne / cercle / B-splines) et le vecteur
 A_Sweep_Surf__Contour_Path_=surface from path (spine) and contour (eg pipe)
 A_Loft_Surf__Curves_across_=surface de Freeform sectioncurves verticale (ligne / cercle / b-spline)
 A_Loft_Surf__Curves_along_across_=surface de Freeform sectioncurves horizontale et verticale (ligne / cercle / b-spline)
@@ -208,15 +203,15 @@ A_supported_trimmed_punched=surface découpée de la surface portante, boundaryc
 A_Hatch___Schraffur=surface issus d'boundarycurve, linedistance, angle.
 
 B_Conus_PT_PT_R_R=cône de 2 points et 2 rayons
-B_Conus_Circ_height_radius=Cone from from circle, height and radius
+B_Conus_Circ_height_radius=Cone from circle, height and radius
 B_Torus_Axis_R_R=Torus de l'axe central, rayon externe et interne de rayon
 B_Torus_Axis_CI=Torus de l'axe et le cercle
 B_Sphere_Center_radius=Sphère du centre, rayon / point / cercle
 B_Prism_Base_Thick_Point_Cone_=Prism de la zone de base (cercle / polygone / contour) et de l'épaisseur / Point
 B_Prism_Base_Vec=Prism de la zone de base (cercle / polygone / contour) et le vecteur
 
-N_DIM__hor_vert_parall_=dimension linéaire 2D
-N_DIM3_X_Y_Z_parl=dimension linéaire 3D
+N_DIM__hor_vert_parall_=Dimension linéaire 2D
+N_DIM3_X_Y_Z_parl=Dimension linéaire 3D
 N_DIM__Angle=Angle dimension 2D
 N_DIM__Dmr=Diamètre dimension 2D
 N_DIM__Radius=Dimension du rayon 2D
@@ -273,7 +268,7 @@ Typ_YVal=touche Y-Val; Sel PT
 Typ_ZVal=pièce Z-Val; Sel PT
 Typ_Angle=Angle: Key Val (deg.); Sel LN / PT-PT; Key PgUp / Dwn
 Typ_PLN=Sel PLN; Key PgDwn (ConstrPln)
-Typ_SOL=Sel Conus / Torus
+Typ_SOL=Sel Conus/Torus
 Typ_goPrim=Sel PT / LN / CIR
 Typ_lFig=Sel LN / CIR / CRV
 Typ_goGeom=Sel Object
@@ -287,14 +282,14 @@ Typ_goGeo7=pièce Val (Angle-Degree); Sel PT
 Typ_goGeo8=pièce Val; Sel PT
 Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + VC (PgUp) / PT + PLN
 Typ_goRadius=pièce Radius; Sel PT / CIR
-Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
+Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_Tra=pièce PgUp / Dwn (Transformation choisir)
 Typ_modAux=pièce PgUp / Dwn
 Typ_mod1=pièce PgUp / Dwn (sélectionne d'autres versions)
 Typ_modCWCCW=ReversButton; PgUp / Dwn; key "CW" (horaire)
 Typ_modCTRL=pièce PgUp / PgDwn ("CTRL" = Controlpoints)
 Typ_modREV=pièce PgUp / PgDwn ("REV" = inverse)
-Typ_modCX=ey PgUp / PgDwn ("CX" = diamètre)
+Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
@@ -311,7 +306,7 @@ Typ_Group=Sel obj d'ajouter au groupe, sortie en touche Tab
 
 XAesc=abort utilisateur (ESC-clés)
 VC0=n Vektors définis ..
-Vr0=pas de variables définies ..
+VR0=pas de variables définies ..
 
 FILT02=Pointfilter Vertex
 FILT03=donner la position du curseur sur certaines obj ..
@@ -324,7 +319,7 @@ FILT14=Surf choisir d'appliquer la texture
 FILT15=surfer choisir de charger la texture
 FILT16=modifier la position: sélectionnez submodel
 FILT18=donner paramétrique-point de la prochaine sélectionnés obj ..
-FILT19=get line from a segment of a polygon or countour at next selection ..
+FILT19=get line from a segment of a polygon or contour at next selection ..
 
 DIR_NEW=nouveau répertoire sélectionnez (aucun symbole existe)
 DIR_SYM=répertoire symbolique de sélectionner (à partir de symbole actuel)
@@ -343,12 +338,12 @@ PEDins=point Insérer: place de choix sur la courbe - où le point d'insérer / 
 PEDine=*** ERROR: insertposition sélectionnez la courbe active ..
 PEDerrSel=*** ERREUR: ne peut pas utiliser l'objet sélectionné ..
 PEDe1=*** ERROR: PointEditor est active ..
-PEDe2=*** ERREUR: impossible d'analyser Plane / Vector
+PEDe2=*** ERREUR: impossible d'analyser Plane / Vector ..
 PEDe3=*** ERREUR: impossible d'insérer le point ..
 
 TED_no=pas de texture est actif
-TED_ldf=Charger l'image
-TED_ldn=Recharger
+TED_ldf=load texture from imagefile
+TED_ldn=reload imagefile
 TED_rem=supprimer
 TED_miy=miroir vertical
 TED_mix=miroir horizontal
@@ -368,7 +363,7 @@ MMcbMea=measure between 2 points
 Meas_in=Measure: select 2 points; end with right mousebutton.
 LST_err1=list overflow; enter text for filter
 SEL_fnam=select or key filename
-SEL_sDir=Give symbolic pathname for dir.  {0}
+SEL_sDir=Give symbolic pathname for dir  {0}
 SEL_ko=Object  {0}  cannot be used ..
 OVER_fil=overwrite file  {0}
 OVER_mdl=overwrite submodel  {0}
@@ -379,7 +374,7 @@ ModColIn=define new Color, then select surface ..
 ModTraIn=define 50% or 80%, then select surface or body ..
 ModSstIn=define new surfacestyle, then select surface or body ..
 ModLtyIn=define new linetype, then select line or curve ..
-CADinit=OK or right mousebtton or Enter-key; Abort: Cancel or Esc-key.
+CADinit=Save: OK or right mousebtton or Enter-key; Abort: Cancel or Esc-key.
 
 SN_New=create new group (from complete model)
 SN_Add=add to active group (from complete model)
@@ -387,7 +382,7 @@ SN_Rem=remove from active group
 SN_TxtNot=search all objects [NOT] containing infotext
 SN_DepNot=search all objects [NOT] depending from object "depends"
 
-ERRCAD0=ERROR: function CAD must be active ..
+ERRCAD0=*** ERROR: function CAD must be active ..
 pluginErr0=rebuild not possible - compiler or linker not found.
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}

@@ -1,15 +1,15 @@
-LANG__=English
+LANG__=Galician
 
 MM0=display functions:<br>-move:=Shift + drag mouse (do not push mousebuttons)<br>-rotate:=Ctrl + drag mouse<br>-zoom:=Shift + Ctrl + drag mouse
 
-MMclear=clear modelspace
+MMclear=limpar espacio modelo
 MMmock=only OBJ-models; ON: import model; OFF: load model, modify and export not possible.
 MMsave=save native (.gcad-format)
 MMcomp=compress native Models (.gcad) with gzip (.gcaz)
-MMfDel=delete File
+MMfDel=borrar Arquivo
 MMfRen=rename File
-MMfCpy=copy File
-MMfPrt=print / plot
+MMfCpy=copiar Arquivo
+MMfPrt=imprimir / plotear
 MMexit=exit program
 MMsma=activate mainmodel or other submodel
 MMsmcp=move mainmodel into submodel

@@ -1,4 +1,4 @@
-LANG__=English
+LANG__=Dutch
 
 MM0=display functions:<br>-move:=Shift + drag mouse (do not push mousebuttons)<br>-rotate:=Ctrl + drag mouse<br>-zoom:=Shift + Ctrl + drag mouse
 
@@ -10,7 +10,7 @@ MMfDel=delete File
 MMfRen=rename File
 MMfCpy=copy File
 MMfPrt=print / plot
-MMexit=exit program
+MMexit=programma afsluiten
 MMsma=activate mainmodel or other submodel
 MMsmcp=move mainmodel into submodel
 MMsmcr=create new submodel
@@ -106,12 +106,12 @@ MMcbMD=Search / Modify / Delete obj  (Ctrl+leftMouseButt or Ctrl-F)
 MMundo=undo (delete last operation; Ctrl-Z)
 MMredo=redo (restore last operation; Ctrl-Y)
 
-CADPT=Points
-CADLN=Lines
-CADCI=Circles
-CADPLN=Planes
+CADPT=Punten
+CADLN=Lijnen
+CADCI=Cirkels
+CADPLN=Vlakken
 CADVC=Vectors
-CADVAR=Variables
+CADVAR=Variabelen
 CADCV=Curves (Ellipse, Polygon, Spline, Clothoid, Contour (composite curve))
 CADSUR=Surfaces
 CADSOL=Bodies

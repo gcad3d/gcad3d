@@ -117,7 +117,7 @@ chmod 0755 ${instDir}/usr/lib/gCAD3D/binLinux${bitNr}/plugins/cut1/*
 chmod 0644 ${instDir}/usr/share/gcad3d/examples.gz
 
 
-# copy desktop-starter -> /usr/share/applications/gCAD3D.desktop
+# copy desktop-starter -> /usr/share/applications/gcad3d.desktop
 /bin/cp -f ${gcad_dir_dev}src/gcad3d.desktop ${instDir}/usr/share/gcad3d/.
 chmod 0644 ${instDir}/usr/share/gcad3d/gcad3d.desktop
 
@@ -137,7 +137,7 @@ chmod 0644 ${instDir}/usr/share/gcad3d/icons/*
 
 
 #copy -> /usr/share/doc/gcad3d/
-#../debian/gCAD3D/debian/usr/share/doc/gcad3d/changelog.gz,copyright,gCAD3D.ico,gCAD3D.desktop
+#../debian/gCAD3D/debian/usr/share/doc/gcad3d/changelog.gz,copyright,gCAD3D.ico,gcad3d.desktop
 #cp /usr/share/common-licenses/GPL-3 ${instDir}/usr/share/doc/gcad3d/copyright
 /bin/cp ${basDir}/LICENSE           ${instDir}/usr/share/doc/gcad3d/copyright
 /bin/cp ${debDir}/changelog         ${instDir}/usr/share/doc/gcad3d/.

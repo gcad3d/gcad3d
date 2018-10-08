@@ -867,6 +867,8 @@ static char txbuf[256];
     if((!strcmp(txbuf,"de")) ||
        (!strcmp(txbuf,"en")) ||
        (!strcmp(txbuf,"fr")) ||
+       (!strcmp(txbuf,"ru")) ||
+       (!strcmp(txbuf,"ms")) ||
        (!strcmp(txbuf,"es")) ||
        (!strcmp(txbuf,"it"))) goto L_exit;
   }

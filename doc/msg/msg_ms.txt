@@ -1,0 +1,398 @@
+LANG__=Malay
+
+MM0=fungsi paparan:<br>-alih:=Shift + seret tetikus (jangan tolak butangtetikus)<br>-putar:=Ctrl + seret tetikus<br>-zum:=Shift + Ctrl + seret tetikus
+
+MMclear=kosongkan ruangmodel
+MMmock=hanya model-OBJ; HIDUP: import model; MATI: muat model, ubahsuai dan eksport adalah mustahil.
+MMsave=simpan  (.gcad-format) tabii
+MMcomp=mampat Model tabii (.gcad) dengan gzip (.gcaz)
+MMfDel=padam Fail
+MMfRen=nama semula Fail
+MMfCpy=salin Fail
+MMfPrt=cetak / plot
+MMexit=keluar dari program
+MMsma=aktifkan modelutama atau lain-lain submodel
+MMsmcp=alih modelutama ke dalam submodel
+MMsmcr=cipta submodel baharu
+MMsmsf=simpan submodel aktif ke dalam fail
+MMsmlf=muat failmodel sebagai submodel
+MMsmre=namakan semula submodel aktif
+MMsmde=padam submodel aktif
+MMsmmp=ubahsuai Kedudukan subModel
+
+MMopBnd=papar Garisanpinggir; HIDUP / MATI
+MMopDll=kompil dan paut program-pemalam sebelum mula; HIDUP / MATI
+MMopInt=aktifkan interaksi; HIDUP / MATI
+MMopTb1=papar PalangAlatUtama (di atas grafik); HIDUP / MATI
+MMopTb2=papar PalangAlatMesej (di bawah grafik); HIDUP / MATI
+MMopBrw=papar pelayarObjek (di sebelah kiri grafik); HIDUP / MATI
+
+MMdsps=simpan pandangan aktif
+MMdspsr=pulih pandangan tersimpan dan simpan pandangan aktif
+MMdspr=pulih pandangan tersimpan
+
+MMdspon=papar namaobjek dan arah-(-kerja)
+MMdspdir=papar arah lekung
+MMdsppt=papar titik (P) hidup / mati (hanya dalam VWR)
+MMdsppl=papar satah (R) hidup / mati (hanya dalam VWR)
+MMdspso=papar bingkai wayar Pepejal atau terlorek (Sfera/Kon/Torus/Kiub)
+
+MMstTol=takrif saizModel dan Hadterima
+MMstTxl=takrif saizTeks untuk Nota dan Dimensi
+MMstCol=takrif-warnaModel-Lalai
+MMstLty=takrif jenisGarisan (Warna-JenGaris-TebGaris) untuk Garisan/Bulatan/Lekung
+MMstDir=takrif direktoriModel
+MMstBrw=takrif Pelayar untuk bantuan / dokumentasi
+MMstEdi=takrif Penyunting
+
+MMmdMsi=tetapkan saiz dan had terima model
+MMmdMdp=ubahsuai Kedudukan subModel
+MMmdCvC=ubah lekung menjadi bulatan
+MMmdLty=ubah jenisGarisan (Warna-JenGaris-TebGaris) untuk Garisan/Bulatan/Lekung
+MMmdSst=ubah GayaPermukaan ke terlorek atau simbolik (bingkai wayar)
+MMmdSco=ubah Warna Permukaan menjadi Warna aktif
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
+MMmdStx=jadikan permukaan bertekstur
+MMmdOnm=papar satu senarai objek
+MMmdDel=padam objek
+MMmdEdi=ubahsuai medaninput aktif dengan penyuntingSistem / F3
+MMmdCln=buang semua Garisan dipadam secara kekal / F4
+MMmdRlo=buat semula (pulihkan operasi terakhir; Ctrl-Y)
+
+MMinVpt=beri ParameterPortPandang (ke Interaksi terbuka)
+MMinTxt=MAN: tampal Penimbalteks selepas padam atau ctrl X
+
+MMsePcp=beri Koordinat kursor pada satah-pembinaan di pemilihan berikutnya
+MMsePop=beri titik parametrik kursor pada objek terpilih di pemilihan berikutnya
+MMseLoO=dapatkan garisan dari segmen poligon atau kontur pada pemilihan berikutnya
+
+MMgrAdd=tambah obj ke dalam kumpulan; buang dari Kumpulan, jika sudah terpilih
+MMgrSav=simpan semua objek Kumpulan ke dalam Fail (tabii)
+MMcaMod=Ubahsuai bahagianpiawai
+MMcaCre=Cipta Katalog baharu bahagianpiawai
+MMcaDel=Padam Katalog bahagianpiawai
+MMapSta=Muat dan mulakan aplikasi (skrip)
+MMapEdi=sunting aplikasi aktif
+MMapCre=Cipta Aplikasi baharu
+MMapDel=Padam Aplikasi
+
+MMbtgo=jana semula semua objek sehingga objek aktif
+MMbtstp=cipta semula objek aktif
+MMbtend=jana semula semua objek
+MMenZva=tetapkan nilai-Z bagi satahPandangan aktif
+MMcbRot=takrif pusat-putaran untuk putaran interaktif
+MMcbHid=jangan papar objek terpilih
+MMcbVie=papar semula objek tersembunyi
+MMcb3dv=sekat Putaran-3D: HIDUP / MATI
+MMcbSha=papar permukaan terlorek atau berbingkai wayar
+
+MMbtTop=pandangan atas (X-Y)
+MMbtFro=pandangan atas (X-Z)
+MMbtSid=pandangan sisi (Y-Z)
+MMbtAxo=pandangan aksonometrik
+MMbtSca=kira skala dan pusatPandangan berautomatik
+MMbtScf=papar ruang bagi ~ 6000 x 6000 x 6000 mm
+MMbtScg=scale to active group
+MMbtVwpt=simpan / pulihkan port pandangan semasa (Ctr-V, Ctrl-KursorKanan)
+MMrbRel=papar kedudukan kursor pada satah pembinaan aktif
+MMrbAbs=papar kedudukan kursor pada satah pembinaan aktif sebagai koordinat mutlak
+
+MMrbVwr=Pelihat
+MMrbNCw=tidak aktif
+MMrbCad=Penyunting-Objek-CAD berinteraktif
+MMcbSN=gelintar objek, tambah/ubahsuai nama-objek
+MMrbMan=mod manual (cipta/ubahsuai objek dengan penyuntingTeks)
+MMcbMD=Gelintar / Ubahsuai / Padam obj (Ctrl+ButTetikusKiri atau Ctrl+F)
+MMundo=buat asal (padam operasi terakhir; Ctrl-Z)
+MMredo=buat semula (pulihkan operasi terakhir; Ctrl-Y)
+
+CADPT=Titik
+CADLN=Garisan
+CADCI=Bulatan
+CADPLN=Satah
+CADVC=Vektor
+CADVAR=Pembolehubah
+CADCV=Lekung (Elips, Poligon, Spline, Clothoid, Kontur (lekung komposit))
+CADSUR=Permukaan
+CADSOL=Jasad
+CADDIM=Teks, Dimensi
+CADMDL=Submodel
+CADTR=Penjelmaan
+CADCUT=Kerat. silang, alih, putar, unjur, cermin
+CADINT=Interaksi, pertemuan
+CADANA=Analisis
+CADCP=SatahPembinaan
+
+RotCen=takrif pusat-putaran baharu:<br>-pilih (sedia ada) puncak atau<br>-putar paparan (Ctrl-seret_tetikus) dan pilih bintang merah
+ViewOn=papar objek tersembunyi; pilih objek untuk dipaparkan
+HideOn=pilih objek untuk disembunyikan
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=pilih Fungsi-CAD / pilih objek dengan buttetikus kanan.
+MAN_On=titik baharu: Alt-P; barisbaharu: butangtetikus_kanan; ..
+MD_On=pilih objek / key ObjID Enter / Keluar: Ctrl buttetikus kanan.
+
+CADname=NamaObjek / maklumat (gelintar ia dengan "Gelintar/Nama")
+CADhelpCAD=papar teks-bantuan bagaimana hendak guna CAD dalam tetigkapPelayar-html
+CADhelpFunc=papar Teks-bantuan untuk tahu Fungsi aktif dalam tetigkapPelayar-html
+CADhelpInput=papar Teks-bantuan untuk tahu medanInput dalam tetigkapPelayar-html
+CADexit=batal fungsi. Jangan simpan objek aktif. Mod-sunting: Batal dua kali, butTetikus kanan - sunting.
+CADclear=clear active CAD-inputfield
+CADsave=simpan obj. aktif, pergi ke obj berikutnya. ButTetikus kanan, Enterkey.
+
+PT_cartes__offset=titik; pilih atau key; [nilaiofset untuk X/Y/Z]
+PT_polar=polar, relativ; Titikdasar, Sudutputaran (paksi-Z), [Sudutcondong (satah-X-Y),] Jarak
+PT_translate=alih titik; Titikdasar, Arah, [Jarak,] [JarakBiasa]
+PT_rotate=putar titik; Titikpusat, Kedudukanmula. Sudut [Paksi]
+PT_endpoints_center_focus___=titik aksara (pusat-, mula-, tamat-; fokus untuk elips, titikbucu untuk poligon, spline)
+PT_Mid_Cornerpoint_PT_PT__VC_=titiktengah atau titikbucu bagi 2 titik
+PT_parametric_on_LN_CIR_CRV_SUR=Titik dari parameter(s) pada Garisan/Bulatan/Lekung/Permukaan
+
+LN_PT__PT=Garisan diantara 2 titik
+LN_parallel=Garisan selari dengan garisan/vektor
+LN_PT_Direct__Length_Rot_Angle_TiltAngle_=Garisan mengikut titik dan arah, [length,] [Rot.Angle (Z-Axis),] [TiltAngle (X-Y-plane)]
+LN_LN_Dist____________parall_=Garisan selari dengan garisan; jarak, kedudukan (1-4).
+LN_LN_LN__Rot_Angle_TiltAngle___mid_=Garisan = garisantengah; [putar dalam titikpersilangan: Sudautputaran (paksi-Z), [Sudutcondong (satah-X-Y)]
+LN_tangent_to_line_circ_curve=garisan bertangen dengan 2 objek (titik/arah/bulatan/elips/bspline)
+
+CIR_Cen_Radius__Z_Axis_=Bulatan dari pusat, jejari [Paksi]
+CIR_Cen_Tang=Bulatan dari pusat, bertangen dengan titik/garisan/bulatan
+CIR_Tang_Tang_Radius=Bulatan bertangen dengan dua unsur, dengan jejari tetap
+CIR_Tang_Tang_Tang=Bulatan bertangen dengan 3 unsur
+ARC_Cen_Ang1_Ang2_Radius=Lekung dengan tengah, sudut mula, sudut akhir dan jejari
+ARC_Cen_PT_Angle=Lekung dengan pusat, titik mula dan sudut buka
+ARC_PT_PT_Radius=Lekung dengan titik mula, titik akhir dan jejari
+ARC_PT_Tang_Radius__Angle_=Lekung dengan titik mula dan arah mula dan jejari [sudut buka]
+ARC_PT_PT_Cen=Lekung dengan titik mula, titik akhir, pusat
+ARC_PT_PT_PT=Lekung dengan 3 titik mula pada lekuk
+
+PLN_Z_Axis__X_Axis_=Satah dari asalan, paksi-Z (vektorbiasa), [vektor-paksi-x atau titik pada paksi-x]
+PLN_X_Axis__Y_Axis_=Satah dari asalan, vektorpaksi-X, [vektor-paksi-y atau titik pada paksi-y]
+PLN_PT_Plane_Offset_Angle=Plane with new origin and/or rotated around Z-axis
+
+VEC_cartes__polar=Verktor dari garisan atau vektor atau carta. [panjang] [REV (pusingan)]
+VEC_polar_______Angles_Length_=Verktor dari Sudut.Put (Paksi-Z), [SudutCondong (satah-X-Y)] [panjang] [REV (pusingan)]
+VEC_from_objects=Vektor = tangen dengan lekung (Bulatan/Elips/B-spline/Clothoid) dari titik ke lekung
+
+V_Variable___Value=pembolehubah dari nilai
+V_X_Y_Z_part_PT_VC=pembolehubah dari bahagian-X -Y atau -Z bagi titik atau vektor.
+V_PT_PT_Dist__Direction_=pembolehubah = panjang diantara 2 titik [arah -vektor]
+V_LN___Length=pembolehubah = panjang garisan
+V_PT___LN_Perp_Dist_=pembolehubah = jarak biasa bagi titik ke objek linear
+V_CIR__Radius=pembolehubah = jejari bulatan
+
+S_Ellipse_Center_AxisEndPoint_Point=Elips dari pusat, paksi utama titik akhr, titik pada elips
+S_Ellipse_Center_Axes__EndPoints_=elips (terhad) dari pusat, paksi utama vektor, paksi sekunder vektor, titik mula, titik akhir
+S_Polygon___Points___=Poligon dari titik
+S_Polygon___Rectangle=Segiempat selari dari titikbucu dan 2 vektor
+S_BSpline___Points___=B-Spline dari titik; [CTRL (titikkawalan/titik-tuju)]
+S_BSpline___Polygon___=B-Spline dari poligon; [CTRL (titikkawalan/titik-tuju)]
+S_BSpline___convert___join_obj_s=B-Spline = cantum (sambung) garisan/bulat/b-spline
+S_Clotoid=Clothoid dari TitikMula, VektorMula, Sudut, JejariMula, JejariAkhir [Paksi-Z]
+S_connection_lines___Points___=menyambung garisan diantara titik
+S_Contour_CCV_____PT_LN_CIR_CRV=Kontur (lekung komposit - CCV) dari titimula, lekung, titikakhir. Persilangan dan pengeratan automatik.
+
+A_Planar_Surf__trim_punch_=Permukaan bersatah dari sempadan (circle/polygon/contour) [islands (circle/polygon/contour)]
+A_Spheric_Surf__Axis_Rad__=Permukaan bersfera dari paksi, jejari [sudut-x1,x2] [sudut-y1,y2]
+A_Cylinder_Surf__Axis_Rad__= Permukaan berselinder dari paksi, jejari [sudut-x1,x2] [sudut-y1,y2]
+A_Revolved_Surf__Axis_Contour_=Permukaan berputar dari paksi, contourline (line/circle/b-spline), [startangle], [endangle], height1 (parameter atau titik), height2 (parameter atau titik)
+A_Extrusion_Surf__Contour_Vec_= Permukaan berpembaris dari unsur linear (line/circle/b-spline) dan vektor
+A_Sweep_Surf__Contour_Path_=permukaan dari laluan (spine) dan kontur (spt paip)
+A_Loft_Surf__Curves_across_=Permukaan bentuk bebas dari lekung seksyen menegak (line/circle/b-spline)
+A_Loft_Surf__Curves_along_across_=Permukaan bentuk bebas dari lekung seksyen menegak dan mengufuk (line/circle/b-spline)
+A_supported_trimmed_punched=Permukan terpangkas dari permukaan disokong, lekungsempadan [islands ...]
+A_Hatch___Schraffur=Permukaan terlorek dari lekungsempadan, jarakgarisan, sudut.
+
+B_Conus_PT_PT_R_R=Kon dari 2 titik dan 2 radii
+B_Conus_Circ_height_radius=Kon dari bulatan, tinggi dan jejari
+B_Torus_Axis_R_R=Torus dari paksi tengah, jejari luar dan jejari dalam
+B_Torus_Axis_CI=Torus dari paksi dan bulatan
+B_Sphere_Center_radius=Sfera dari pusat, jejari/titik/bulatan
+B_Prism_Base_Thick_Point_Cone_=Prisma dari kawasan tapak (bulatan/poligon/kontur) dan ketebalan/Titik
+B_Prism_Base_Vec=Prisma dari kawasan tapak (bulatan/poligon/kontur) dan vektor
+
+N_DIM__hor_vert_parall_=Dimensi linear 2D
+N_DIM3_X_Y_Z_parl=Dimensi linear 3D
+N_DIM__Angle=Dimensi sudut 2D
+N_DIM__Dmr=Dimensi diameter 2D
+N_DIM__Radius=Dimensi jejari 2D
+N_PointPos_LN=Koordinat-3D bagi titik dengan garisan pendahulu
+N_Text=Teks-3D dengan saiz pembolehubah, arah dan aksara khas.
+N_Text_LN=Teks dengan 1 atau 2 garisanpendahulu-2D, [dengan anak panah]
+N_Text_LN_Circle=Teks dengan bulatan dan garisanpendahulu-2D
+N_TextTag_LN=Blokteks-2D [dengan garisanpendahulu]
+N_Symbol=Simbol (0-5, bintang/segitiga/bulatan/segiempat/anakpanah1/anakpanah2)
+N_Image_Pos_Filename=Imej (biasa dengan pelihat, skala tetap atau dinamik)
+
+M_internal_Model=submodel dalaman; kedudukan, skala [orientasi]
+M_external_Model=submodul dalaman; kedudukan, skala [orientasi]
+M_CatalogPart=Bahagianpiawai; kedudukan, skala [orientasi]
+
+TRafo_transl=Terjemahan dari arah [panjang]
+TRafo_rot=Putaran dari paksi, sudut
+
+CUT__trim__obj=Kerat unsur linear (garisan/lekung) dengan satu atau dua unsur potong
+INT__intersect__obj=Titikpersilangan atau lekung- dari persilangan 2 unsur
+TRAnslate_obj__VC_=alih unsur sepanjang vektor [panjan]
+TRAnslate_obj__PLN_=Alih sebuah objek ke sistem rujukan lain (satah) [TRA - penjelmaan songsang]
+TRAnsform_obj__Tra_=move or rotate object
+REV__reverse__curve=reverse curve
+Project_obj__Prj_=Unjur unsur ke dalam sebuah permukaan
+Parallel_obj__offset_=parallel object (offset-curve or surface)
+Mirror_about_line=Cermin: pantul objek merentasi garisan
+Mirror_about_plane=Cermin: pantul objek merentasi satah
+ISOparametric_Curve_from_Surf=ekstrak lekung dari permukaan (dari parameter(s)); [CX (merentasi; Lalai = along)]
+
+Interact_connect=sambung objek dengan interaksi
+Joint_export=eksport objek (titik atau teks)
+Joint_import=import objek (titik atau teks) dari submodel
+
+Analyze_Point_Posi_=Papar koordinat titik
+Analyze_Obj_=Papar jenis objek dan koordinat
+Analyze_Dist__PT_PT=Ukur jarak diantara 2 titik
+Analyze_Dist__PT_Obj=Ukur jarak biasa diantara titik - objek
+Analyze_Vertex=Papar koordinat titik puncak (titik-3D dipaparkan)
+
+ActiveConstrPlane=aktifkan satahpembinaan dari satah
+Reset_ConstrPlane=tetap semula satahpembinaan (aktifkan sistem-koordinat-piawai)
+
+Typ_Val=Key Val / PgUp / PgDwn / Sel LN (Len.) / Sel Cir (Radius)
+Typ_PT=Sel PT (pada obj) / Indicate PT / key coords
+Typ_LN=Sel LN
+Typ_AC=Sel CIR
+Typ_VC=Vector: Key PgUp/Dwn / D[I]X/Y/Z / dx dy [dz] ANG(ax) [ANG(az)]; Sel LN/Cir/Elli/Surf/PLN/PT+PT / "REV" (turn)
+Typ_CV=Sel CRV
+Typ_CVCCV=Sel CCV
+Typ_CVPOL=Sel Polygon
+Typ_XVal=Key X-Val; Sel PT
+Typ_YVal=Key Y-Val; Sel PT
+Typ_ZVal=Key Z-Val; Sel PT
+Typ_Angle=Sudut: Key Val(Deg.); Sel LN / PT-PT; Key PgUp/Dwn
+Typ_PLN=Sel PLN; Key PgDwn (ConstrPln)
+Typ_SOL=Sel Kon/Torus
+Typ_goPrim=Sel PT/LN/CIR
+Typ_lFig=Sel LN/Cir/CRV
+Typ_goGeom=Sel Objek
+Typ_goGeo1=Sel LN/Cir/CRV/PLN
+Typ_goGeo2=Sel Bul atau Elips
+Typ_goGeo3=Sel PT/LN/Cir/CRV, CW/CCW
+Typ_goGeo4=Sel VC / LN / PLN
+Typ_goGeo5=Sel CIR/ELL/CCV
+Typ_goGeo6=Key Sudut (darjah); Sel Vec/LN dari arah; ButangSongsang
+Typ_goGeo7=Key Val(Sudut-Darjah); Sel PT
+Typ_goGeo8=Key Val; Sel PT
+Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (PgUp) / PT+PLN
+Typ_goRadius=Key Jejari; Sel PT / Cir
+Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
+Typ_Tra=Key PgUp/Dwn (pilih Penjelmaan)
+Typ_modAux=Key PgUp/Dwn
+Typ_mod1=Key PgUp/Dwn (pilih versi lain)
+Typ_modCWCCW=ReversButton; PgUp/Dwn; Key "CW" (lawanjam)
+Typ_modCTRL=Key PgUp / PgDwn  ("CTRL" = Titikkawalan)
+Typ_modREV=Key PgUp / PgDwn  ("REV" = songsang)
+Typ_modCX=Key PgUp / PgDwn  (\"CX\" = merentasi)
+Typ_modUnlim=Tanpa Had; PgUp atau PgDwn atau key "UNL" atau "UNL1" atau "UNL2"
+Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
+Typ_Txt=masukkan teks / key PgUp / PgDwn
+Typ_String=Key Teks / Ubahsuai-Sunting
+TYP_FilNam=Key Namafail / butTetikus tengah(F5=SenaraiFail) / sel.Model
+Typ_CtlgPart=Key  Katalog/Bahagian / Buttetikus(F5=SenaraiFail) / sel.BahagianKatalog
+Typ_Model=Key namaModel / sel.Model
+Typ_SubModel=Key namaModel / butTetikus tengah(F5) / sel.Model
+Typ_Str_Dir1=Key X / Y / Z / P / PgUp/Dwn
+Typ_Val_symTyp=Key 0 (Bintang) 1 (Segitiga.) 2 (Bul) 3 (Segiempat.)
+Typ_Joint=key gabung / pilih gabung
+Typ_apDat=Key data khusu-aplikasi
+Typ_Group=Sel obj's untuk tamba ke dalam kumpulan; keluar dengan kekunci-Tab
+
+XAesc=penguna henti paksa (kekunci-esc)
+VC0=tiada Vektor ditakrif ..
+VR0=tiada Pembolehubah ditakrif ..
+
+FILT02=Tapistitik Puncak
+FILT03=beri kedudukan kursor pada obj terpilih ..
+FILT04=select or keyIn obj to dump ..
+FILT05=tambah pemilihan/KeyIn berikut ke dalam kumpulan, tamatkan kumpulan dengan Kekunci-Tab
+FILT06=pilih Garisan/Bul/Lekung untuk diubahsuai ..
+FILT07=pilih surf untuk ubahsuai ..
+FILT13=pilih surf untuk buang tekstur
+FILT14=pilih surf untuk laksana tekstur
+FILT15=pilih surf untuk muat tekstur
+FILT16=ubahsuai kedudukan: pilih subModel
+FILT18=dapatkan titik sebagai titik-parametrik bagi obj terpilih berikutnya ..
+FILT19=dapatkan garisan dari segmen poligon atau kontur pada pemilihan berikutnya ..
+
+DIR_NEW=pilih direktori baharu (tiada simbol wujud)
+DIR_SYM=pilih direktori simbolik (dari simbol sedia ada)
+
+PEDnopt=Objek tidak mempunyai titk bolehalih ..
+PEDnrpt=Objek mempunyai {0} titik bolehalih ..
+PEDsav=simpan pengubahsuaian (ButTetikus.kan.)
+PEDcanc=batal pemberitahuan (kekunci-Esc)
+PEDlink=pecah pautan ke obj {0} ?
+PEDmod1=beri satah atau vektor / pilih titik (petak kuning, Sym-#) / Padam / Sisip / Keluar: Buttetikus.kan.
+PEDmod2=beri satah atau vektor / pilih titik (petak kuning, Sym-#) / Keluar: Buttetikus.kan.
+PEDmod3=Simpan (Buttetikus.kan.) atau Batal (kekunci-Esc)
+PEDmov=alih titik (gerak tetikus); tamat dengan butangtetikus kanan ..
+PEDdel=Padam titik: pilih titik (petak kuning, Sym-#) untuk padam / Ubahsuai / Keluar: Buttetikus.kan.
+PEDins=Sisip titik: pilih kedudukan pada lekung - lokasi hendak sisip titik / Padam / Ubahsuai / Keluar: Buttetikus.kan.
+PEDine=*** RALAT: pilih kedudukanpilih pada lekung aktif ..
+PEDerrSel=*** RALAT: tidak dapat guna objek terpilih ..
+PEDe1=*** RALAT: PenyuntingTitik aktif ..
+PEDe2=*** RALAT: tidak dapat analisis Satah/Vektor ..
+PEDe3=*** RALAT: tidak dapat sisip titik ..
+
+TED_no=tiada Tekstur aktif
+TED_ldf=load texture from imagefile
+TED_ldn=reload imagefile
+TED_rem=buang
+TED_miy=cermin menegak
+TED_mix=cermin mengufuk
+TED_sz1=suai muat
+TED_sz2=saiz tetap
+TED_can=tetap semula kemudian keluar (kekunci-Esc)
+TED_end=simpan kemudian keluar (kekunci-Return)
+
+UIWTms=SaizModel. Semua nilai berikut akan dikira semula.
+UIWTcv=sisihan maks. untuk lekung (had terima untuk anggaran lekung -> poligon)
+UIWTdi=sisihan-paparan maks. untuk bulatan, lekung
+UIWTsm=hanya tetapkan untuk model aktif atau laksana untuk semua subModel
+UIWTmo=aktifkan saizmodel / hadterima dari atas
+UIWTre=tetap semula semua nilai ke lalai (saizmodel 500)
+
+MMcbMea=ukur diantara 2 titik
+Meas_in=Ukur: pilih 2 titik; tamatkan dengan butang tetikus kanan.
+LST_err1=senarai melimpah; masukkan teks untuk tapis
+SEL_fnam=pilih atau key nama fail
+SEL_sDir=Beri nama laluan simbolik untuk dir {0}
+SEL_ko=Objek {0} tidak dapat digunakan ..
+OVER_fil=tulis-ganti fail {0}
+OVER_mdl=tulis-ganti submodel {0}
+NOEX_fil=fail {0} tidak wujud
+NOEX_mdl=subModel {0} tidak wujud
+NOEX_dir=direktori {0} tidak wujud
+ModColIn=takrif Warna baharu, kemudian pilih permukaan ..
+ModTraIn=takrif 50% atau 80%, kemudian pilih permukaan atau jasad ..
+ModSstIn=takrif gayapermukaan baharu, kemudian pilih permukaan atau jasad ..
+ModLtyIn=takrif jenisgarisan baharu, kemudian pilih garisan atau lekung ..
+CADinit=Simpan: OK atau butang tetikus kanan atau kekunci-Enter; Henti Paksa: Batal atau kekunci-Esc.
+
+SN_New=cipta kumpulan baharu (dari model lengkap)
+SN_Add=tambah ke dalam kumpulan aktif (dari model lengkap)
+SN_Rem=buang dari kumpulan aktif
+SN_TxtNot=gelintar semua objek [BUKAN] mengandungi teksmaklumat
+SN_DepNot=gelintar semua objek [BUKAN] bergantung dari objek "depends"
+
+ERRCAD0=*** RALAT: fungsi CAD mesti aktif ..
+pluginErr0=bina semula adalah mustahil - pengkompil atau pemaut tidak ditemui.
+pluginErr1=Ralat dalam pemalam {0} ; dihenti paksa.
+FileOp=membuka fail {0}
+SAVusm=Simpan submodel {0} yang tidak digunakan ?
+
+ED1CW=input terakhir ikut jam
+ED1CCW=input terakhir lawan jam
+ED1MOD+=pilih varian-solusi berikutnya
+ED1MOD-=pilih varian-solusi terdahulu
+ED1<<<=satu input di belakang (sebelum menyisip)
+ED1>>>=satu input di hadapan (selepas menyisip)
+
+EOF

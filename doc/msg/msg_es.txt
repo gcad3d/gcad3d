@@ -1,9 +1,6 @@
 LANG__=Spanish
 
-MM0=Funcions pantalla:\
-\=jugada: Mayús + arrastre con el ratón (no empuje MouseButtons)\
-\=girar: Ctrl + arrastre con el ratón\
-\=Zoom: Mayús + Ctrl + arrastre con el ratón
+MM0=funcions pantalla:<br>-jugada:=Mayús + arrastre con el ratón (no empuje MouseButtons)<br>-girar:=Ctrl + arrastre con el ratón<br>-zoom:=Mayús + Ctrl + arrastre con el ratón
 
 MMclear=Modelspace claro
 MMmock=sólo OBJ-modelos; SOBRE: el modelo de importación; OFF: el modelo de carga, modificar y exportación no es posible.
@@ -12,7 +9,7 @@ MMcomp=comprimir modelos nativos (. GCAD) con gzip (. Gcaz)
 MMfDel=borrar el archivo
 MMfRen=cambiar el nombre de archivo
 MMfCpy=copia de archivos
-MMfPrt=Imprimir 
+MMfPrt=Imprimir
 MMexit=salida de Programa
 MMsma=activar submodelo mainmodel u otros
 MMsmcp=Mainmodel mover en submodelo
@@ -53,8 +50,8 @@ MMmdMdp=modificar la posición de un submodelo de
 MMmdCvC=Las curvas de cambio en los círculos
 MMmdLty=cambio Linetyp (color, Linetyp, LineThick) de las líneas / Circs / Curvas de
 MMmdSst=cambio SurfaceStyle a la sombra o simbólica (alambre)
-MMmdSco=cambio de color de la superficie de color activo)
-MMmdpsr=hacer superficie transparente
+MMmdSco=cambio de color de la superficie de color activo
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=hacer superficie texturada
 MMmdOnm=mostrar una lista de objetos de
 MMmdDel=eliminar objetos
@@ -88,17 +85,17 @@ MMcbHid=no se muestran los objetos seleccionados
 MMcbVie=volver a mostrar los objetos ocultos
 MMcb3dv=inhibir 3D de rotación; ON / OFF
 MMcbSha=Pantalla de superficies sombreadas o alambre
-MMrbRel=display cursorposition on the active constructionplane
-MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
 
-MMbtTop=Topview (X-Y)
-MMbtFro=Frontview (X-Z)
-MMbtSid=Sideview (Y-Z)
+MMbtTop=topview (X-Y)
+MMbtFro=frontview (X-Z)
+MMbtSid=sideview (Y-Z)
 MMbtAxo=Ver axonométrica
 MMbtSca=calcular la escala y viewcenter automático
 MMbtScf=mostrar un espacio de ~ 6000 x 6000 x 6000 mm
 MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
+MMrbRel=display cursorposition on the active constructionplane
+MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
 
 MMrbVwr=Visor
 MMrbNCw=no activa
@@ -108,16 +105,6 @@ MMrbMan=el modo manual (crear / modificar objetos con editor de texto)
 MMcbMD=Buscar / Modificar / Eliminar obj (Ctrl + leftMouseButt o Ctrl-F)
 MMundo=deshacer (suprimir la última operación, Ctrl-Z)
 MMredo=rehacer (última operación de restauración; Ctrl-Y)
-
-RotCen=definir la rotación nuevo centro: \
-\=- Seleccione (existentes) vértice o - \
-\=- Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
-ViewOn=mostrar los objetos ocultos, seleccionar objetos para mostrar
-HideOn=seleccionar objetos para ocultar
-VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
-CAD_On=CAD seleccione Función / select object con mouseb derecha.
-MAN_On=MAN: Punto nuevo: Alt-P; nueva línea: right_mousebutton; ..
-MD_On=objeto de seleccionar / clave ObjID de entrar / salir: mouseb Ctrl derecha.
 
 CADPT=Puntos
 CADLN=Líneas
@@ -136,7 +123,15 @@ CADINT=Interactios, joints
 CADANA=Analizar
 CADCP=Constructionplane
 
-CADname=objectname / info (búsqueda con "Buscar / Nombre")
+RotCen=definir la rotación nuevo centro:<br>- Seleccione (existentes) vértice o - <br>- Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
+ViewOn=mostrar los objetos ocultos, seleccionar objetos para mostrar
+HideOn=seleccionar objetos para ocultar
+VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze
+CAD_On=CAD seleccione Función / select object con mouseb derecha.
+MAN_On=MAN: Punto nuevo: Alt-P; nueva línea: right_mousebutton; ..
+MD_On=objeto de seleccionar / clave ObjID de entrar / salir: mouseb Ctrl derecha.
+
+CADname=Objectname / info (búsqueda con "Buscar / Nombre")
 CADhelpCAD=display a Help-text how to use CAD in a html-browserwindow
 CADhelpFunc=display a Help-text for active Function in a html-browserwindow
 CADhelpInput=display a Help-text for active inputfield in html-browserwindow
@@ -180,7 +175,7 @@ VEC_from_objects=Vector = tangente a la curva (Circ / Elipse / B-spline / Clotoi
 
 V_Variable___Value=Variable de valor
 V_X_Y_Z_part_PT_VC=Variable de V_X_Y_Z_part_PT_VC de X-Y-Z-o parte de un punto o vector.
-V_PT_PT_Dist__Direction_== longitud variable entre 2 puntos [direction -vector]
+V_PT_PT_Dist__Direction_=longitud variable entre 2 puntos [direction -vector]
 V_LN___Length=Variable = longitud de una línea de
 V_PT___LN_Perp_Dist_=Variable = distancia normal de un punto a un objeto lineal
 V_CIR__Radius=Variable = radio de un círculo
@@ -198,9 +193,9 @@ S_Contour_CCV_____PT_LN_CIR_CRV=Contorno (curva compuesta - CCV) de StartPoint, 
 
 A_Planar_Surf__trim_punch_=superficie plana de la frontera (círculo / polígono / contorno) [islas (círculo / polígono / contorno)]
 A_Spheric_Surf__Axis_Rad__=superficie esférica del eje, radio [ángulo x1, x2] [ángulo y1, y2]
-A_Cylinder_Surf__Axis_Rad__=superficie Cylindrcal del eje, radio [ángulo x1, x2] [ángulo y1, y2]
-A_Revolved_Surf__Axis_Contour_=Revuelto superficie del eje, contourline (línea / círculo / B-spline), [startAngle] [endangle] height1 (parámetro o punto), altura2 (parámetro o punto)
-A_Extrusion_Surf__Contour_Vec_=Superficie reglada del elemento lineal (línea / círculo / B-spline) y vector
+A_Cylinder_Surf__Axis_Rad__= superficie Cylindrcal del eje, radio [ángulo x1, x2] [ángulo y1, y2]
+A_Revolved_Surf__Axis_Contour_=Revuelto superficie del eje, contourline (línea / círculo / B-spline), [startAngle], [endangle], height1 (parámetro o punto), altura2 (parámetro o punto)
+A_Extrusion_Surf__Contour_Vec_= Superficie reglada del elemento lineal (línea / círculo / B-spline) y vector
 A_Sweep_Surf__Contour_Path_=surface from path (spine) and contour (eg pipe)
 A_Loft_Surf__Curves_across_=superficie de forma libre de sectioncurves vertical (línea / círculo / B-spline)
 A_Loft_Surf__Curves_along_across_=superficie de forma libre de sectioncurves horizontal y vertical (línea / círculo / B-spline)
@@ -208,7 +203,7 @@ A_supported_trimmed_punched=Superficie recortada de superficie de apoyo, boundar
 A_Hatch___Schraffur=superficie Nacido de boundarycurve, linedistance, ángulo.
 
 B_Conus_PT_PT_R_R=Cono de 2 puntos y 2 radios de
-B_Conus_Circ_height_radius=Cone from from circle, height and radius
+B_Conus_Circ_height_radius=Cone from circle, height and radius
 B_Torus_Axis_R_R=Torus de eje central, el radio interior y exterior de radio
 B_Torus_Axis_CI=Torus del eje y el círculo
 B_Sphere_Center_radius=Esfera de centro, radio / punto / círculo
@@ -294,7 +289,7 @@ Typ_mod1=número RePág / DWN (selecciona versiones alternativas)
 Typ_modCWCCW=ReversButton; RePág / Dwn; número "CW" (sentido horario)
 Typ_modCTRL=número RePág / PgDwn ("Ctrl" = Controlpoints)
 Typ_modREV=número RePág / PgDwn ("REV" = inverso)
-Typ_modCX=ey RePág / PgDwn ("CX" = en)
+Typ_modCX=número RePág / PgDwn ("CX" = en)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
@@ -343,12 +338,12 @@ PEDins=punto de inserción: Seleccionar la posición de la curva - dónde insert
 PEDine=*** ERROR: insertposition seleccionar en la curva de activos ..
 PEDerrSel=*** ERROR: No se puede utilizar el objeto seleccionado ..
 PEDe1=*** ERROR: PointEditor es activo ..
-PEDe2=*** ERROR: No se puede analizar Avión / Vector
+PEDe2=*** ERROR: No se puede analizar Avión / Vector ..
 PEDe3=*** ERROR: No se puede insertar el punto ..
 
 TED_no=ninguna de ellas se activa
-TED_ldf=la imagen de carga
-TED_ldn=recarga
+TED_ldf=load texture from imagefile
+TED_ldn=reload imagefile
 TED_rem=quitar
 TED_miy=espejo vertical
 TED_mix=espejo horizontal
@@ -368,7 +363,7 @@ MMcbMea=measure between 2 points
 Meas_in=Measure: select 2 points; end with right mousebutton.
 LST_err1=list overflow; enter text for filter
 SEL_fnam=select or key filename
-SEL_sDir=Give symbolic pathname for dir.  {0}
+SEL_sDir=Give symbolic pathname for dir  {0}
 SEL_ko=Object  {0}  cannot be used ..
 OVER_fil=overwrite file  {0}
 OVER_mdl=overwrite submodel  {0}
@@ -379,7 +374,7 @@ ModColIn=define new Color, then select surface ..
 ModTraIn=define 50% or 80%, then select surface or body ..
 ModSstIn=define new surfacestyle, then select surface or body ..
 ModLtyIn=define new linetype, then select line or curve ..
-CADinit=OK or right mousebtton or Enter-key; Abort: Cancel or Esc-key.
+CADinit=Save: OK or right mousebtton or Enter-key; Abort: Cancel or Esc-key.
 
 SN_New=create new group (from complete model)
 SN_Add=add to active group (from complete model)
@@ -387,9 +382,9 @@ SN_Rem=remove from active group
 SN_TxtNot=search all objects [NOT] containing infotext
 SN_DepNot=search all objects [NOT] depending from object "depends"
 
-ERRCAD0=ERROR: function CAD must be active ..
+ERRCAD0=*** ERROR: function CAD must be active ..
 pluginErr0=rebuild not possible - compiler or linker not found.
-pluginErr1=Error in plugin  {0} ; terminated.
+pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}
 SAVusm=Save unused submodel  {0}  ?
 

@@ -1,9 +1,6 @@
 LANG__=Malay
 
-MM0=fungsi paparan:
-MM1=alih:=Shift + seret tetikus (jangan tolak butangtetikus)
-MM2=putar:=Ctrl + seret tetikus
-MM3=zum:=Shift + Ctrl + seret tetikus
+MM0=fungsi paparan:<br>-alih:=Shift + seret tetikus (jangan tolak butangtetikus)<br>-putar:=Ctrl + seret tetikus<br>-zum:=Shift + Ctrl + seret tetikus
 
 MMclear=kosongkan ruangmodel
 MMmock=hanya model-OBJ; HIDUP: import model; MATI: muat model, ubahsuai dan eksport adalah mustahil.
@@ -54,7 +51,7 @@ MMmdCvC=ubah lekung menjadi bulatan
 MMmdLty=ubah jenisGarisan (Warna-JenGaris-TebGaris) untuk Garisan/Bulatan/Lekung
 MMmdSst=ubah GayaPermukaan ke terlorek atau simbolik (bingkai wayar)
 MMmdSco=ubah Warna Permukaan menjadi Warna aktif
-MMmdpsr=jadikan Permukaan lutsinar
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=jadikan permukaan bertekstur
 MMmdOnm=papar satu senarai objek
 MMmdDel=padam objek
@@ -126,10 +123,7 @@ CADINT=Interaksi, pertemuan
 CADANA=Analisis
 CADCP=SatahPembinaan
 
-RotCen0=takrif pusat-putaran baharu:
-RotCen1=- pilih (sedia ada) puncak atau -
-RotCen2=- putar paparan (Ctrl-seret_tetikus) dan pilih bintang merah
-
+RotCen=takrif pusat-putaran baharu:<br>-pilih (sedia ada) puncak atau<br>-putar paparan (Ctrl-seret_tetikus) dan pilih bintang merah
 ViewOn=papar objek tersembunyi; pilih objek untuk dipaparkan
 HideOn=pilih objek untuk disembunyikan
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

@@ -1,9 +1,6 @@
 LANG__=Italian
 
-MM0=funzioni di visualizzazione:
-MM1=spostare:=Shift + muovere il mouse senza premere i pulsanti
-MM2=ruotare:=Ctrl + muovere il mouse
-MM3=zoom:=Shift + Ctrl + muovere il mouse
+MM0=funzioni di visualizzazione:<br>-spostare:=Shift + muovere il mouse senza premere i pulsanti<br>-ruotare:=Ctrl + muovere il mouse<br>-zoom:=Shift + Ctrl + muovere il mouse
 
 MMclear=nuovo modello
 MMmock=solo per modelli OBJ; ON: importa i modelli; OFF: non è possibile caricare modelli, modificarli e esportarli.
@@ -54,7 +51,7 @@ MMmdCvC=Trasforma le curve in cerchi
 MMmdLty=Cambia stile (Colore, Tipo, Spessore) delle Linee / Cerchi / Curve
 MMmdSst=cambia stile delle superfici da piene a ombrate o grigliate (filiformi wireframe)
 MMmdSco=cambia il colore delle superfici colore attivo
-MMmdpsr=rende la superficie trasparente
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=rende la superficie strutturata
 MMmdOnm=visualizza un elenco catalogato di oggetti
 MMmdDel=cancella gli oggetti
@@ -126,10 +123,7 @@ CADINT=Interazioni e Joints
 CADANA=Analizza
 CADCP=Piano di costruzione
 
-RotCen0=definire un nuovo centro di rotazione:
-RotCen1=- Seleziona un vertice esistente o -
-RotCen2=- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
-
+RotCen=definire un nuovo centro di rotazione:<br>- Seleziona un vertice esistente o - <br>- Ruota la vista con Ctrl+muovi_mouse e seleziona una stella rossa
 ViewOn=visualizza gli oggetti nascosti, seleziona gli oggetti da visualizzare
 HideOn=seleziona gli oggetti da nascondere
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

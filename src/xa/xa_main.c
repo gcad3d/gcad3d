@@ -468,9 +468,6 @@ kopieren geht nicht mehr -
 
 
   MSG_pri_0 ("MM0");
-  MSG_pri_0 ("MM1");
-  MSG_pri_0 ("MM2");
-  MSG_pri_0 ("MM3");
   // TX_Write ("display funcions:");
   // TX_Write ("move:   Shift + drag mouse (do not push mousebuttons)");
   // TX_Write ("rotate: Ctrl + drag mouse");

@@ -1,9 +1,6 @@
 LANG__=Português
 
-MM0=display functions:
-MM1=move:=Shift + drag mouse (do not push mousebuttons)
-MM2=rotate:=Ctrl + drag mouse
-MM3=zoom:=Shift + Ctrl + drag mouse
+MM0=display functions:<br>-move:=Shift + drag mouse (do not push mousebuttons)<br>-rotate:=Ctrl + drag mouse<br>-zoom:=Shift + Ctrl + drag mouse
 
 MMclear=clear modelspace
 MMmock=only OBJ-models; ON: import model; OFF: load model, modify and export not possible.
@@ -54,7 +51,7 @@ MMmdCvC=change curves into circles
 MMmdLty=change Linetyp (Colour, Linetyp, LineThick) of Lines/Circs/Curves
 MMmdSst=change SurfaceStyle to shaded or symbolic (wireframe)
 MMmdSco=change Color of Surface to active Color
-MMmdpsr=make Surface transparent
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=make textured surface
 MMmdOnm=display a list of objects
 MMmdDel=delete objects
@@ -126,10 +123,7 @@ CADINT=Interactions, joints
 CADANA=Analyze
 CADCP=Constructionplane
 
-RotCen0=define new rotation-center:
-RotCen1=- select (existing) vertex or -
-RotCen2=- rotate display (Ctrl-drag_mouse) and select red star
-
+RotCen=define new rotation-center:<br>- select (existing) vertex or -<br>- rotate display (Ctrl-drag_mouse) and select red star
 ViewOn=display hidden objects; select objects to display
 HideOn=select objects to hide
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

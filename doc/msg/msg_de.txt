@@ -1,9 +1,6 @@
 LANG__=Deutsch
 
-MM0=Steuerung Anzeigefunktionen:
-MM1=-verschieben:=Shift + Maus verschieben (keine Maustaste drücken)
-MM2=-drehen:=Strg + Maus verschieben
-MM3=-vergrössern:=Shift + Strg + Maus verschieben
+MM0=Steuerung Anzeigefunktionen:<br>-verschieben:=Shift + Maus verschieben (keine Maustaste drücken)<br>-drehen:=Strg + Maus verschieben<br>-vergrössern:=Shift + Strg + Maus verschieben
 
 MMclear=aktives Modell löschen
 MMmock=nur OBJ-Modelle; Ein: Importieren;  Aus: nur laden, kein Modifizieren, kein Export möglich.
@@ -54,7 +51,7 @@ MMmdCvC=Kurven in Kreise umwandeln
 MMmdLty=ändern Linientyp (Farbe-Linientyp-Linedicke) von Linien/Kreisen/Kurven
 MMmdSst=ändern Fläche: schattiert oder symbolisch (Drahtmodell) oder transparent
 MMmdSco=ändern Flächenfarbe: in aktive Farbe ändern
-MMmdpsr=ändern Flächentransparenz
+MMmdpsr=ändern Flächentransparenz: 0% (solid), 50%, 10%
 MMmdStx=Fläche mit Textur (Foto) belegen.
 MMmdOnm=Objektliste mit Objektnamen anzeigen
 MMmdDel=Objekte löschen
@@ -126,10 +123,7 @@ CADINT=Interaktion, Joints
 CADANA=Analysieren
 CADCP=Konstruktionsebene
 
-RotCen0=neuen Rotationsmittelpunkt definieren:
-RotCen1=-einen beliebigen Punkt (existierenden Vertex) selektieren oder -
-RotCen2=-ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
-
+RotCen=neuen Rotationsmittelpunkt definieren:<br>-einen beliebigen Punkt (existierenden Vertex) selektieren oder -<br>-Ansicht drehen (Strg-Maus-bewegen bis Punktekette sichtbar) - ein rotes Sternsymbol selektieren
 ViewOn=Objekte selektieren, die wieder eingeblendet werden sollen ..
 HideOn=Objekte selektieren, die ausgeblendet werden sollen ..
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

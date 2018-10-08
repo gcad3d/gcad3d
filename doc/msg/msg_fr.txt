@@ -1,9 +1,6 @@
 LANG__=French
 
-MM0=affichage funcions:
-MM1=move:=Maj + faire glisser la souris (ne pas pousser MouseButtons)
-MM2=pivoter:=Ctrl + faire glisser la souris
-MM3=zoom:=Maj + Ctrl + mouvement de la souris
+MM0=affichage funcions:<br>-move:=Maj + faire glisser la souris (ne pas pousser MouseButtons)<br>-pivoter:=Ctrl + faire glisser la souris<br>-zoom:=Maj + Ctrl + mouvement de la souris
 
 MMclear=modelspace clair
 MMmock=seulement OBJ-modèles, ON: modèle d'importation; OFF: modèle de charge, de modifier et d'exportation n'est pas possible.
@@ -54,7 +51,7 @@ MMmdCvC=Changement courbes en cercles
 MMmdLty=changement Linetyp (couleur, Linetyp, LineThick) de lignes / Circ / Courbes
 MMmdSst=changement SurfaceStyle à l'ombre ou symbolique (fil de fer)
 MMmdSco=changement de couleur de la surface active Color
-MMmdpsr=faire surface transparente
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=faire surface texturée
 MMmdOnm=afficher une liste d'objets
 MMmdDel=supprimer des objets
@@ -126,10 +123,7 @@ CADINT=Interactions, joints
 CADANA=Analyser
 CADCP=Constructionplane
 
-RotCen0=définir nouvelle rotation-Center:
-RotCen1=- Select (existant) vertex ou -
-RotCen2=- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
-
+RotCen=définir nouvelle rotation-Center:<br>- Select (existant) vertex ou - <br>- Pivoter l'affichage (Ctrl-drag_mouse) et étoile rouge Sélectionner
 ViewOn=affichage des objets cachés, objets sélectionner pour les afficher
 HideOn=Sélectionner les objets à cacher
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

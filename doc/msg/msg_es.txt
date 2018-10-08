@@ -1,9 +1,6 @@
 LANG__=Spanish
 
-MM0=funcions pantalla:
-MM1=jugada:=Mayús + arrastre con el ratón (no empuje MouseButtons)
-MM2=girar:=Ctrl + arrastre con el ratón
-MM3=zoom:=Mayús + Ctrl + arrastre con el ratón
+MM0=funcions pantalla:<br>-jugada:=Mayús + arrastre con el ratón (no empuje MouseButtons)<br>-girar:=Ctrl + arrastre con el ratón<br>-zoom:=Mayús + Ctrl + arrastre con el ratón
 
 MMclear=Modelspace claro
 MMmock=sólo OBJ-modelos; SOBRE: el modelo de importación; OFF: el modelo de carga, modificar y exportación no es posible.
@@ -54,7 +51,7 @@ MMmdCvC=Las curvas de cambio en los círculos
 MMmdLty=cambio Linetyp (color, Linetyp, LineThick) de las líneas / Circs / Curvas de
 MMmdSst=cambio SurfaceStyle a la sombra o simbólica (alambre)
 MMmdSco=cambio de color de la superficie de color activo
-MMmdpsr=hacer superficie transparente
+MMmdpsr=make Surface transparent: 0% (solid), 50%, 10%
 MMmdStx=hacer superficie texturada
 MMmdOnm=mostrar una lista de objetos de
 MMmdDel=eliminar objetos
@@ -126,10 +123,7 @@ CADINT=Interactios, joints
 CADANA=Analizar
 CADCP=Constructionplane
 
-RotCen0=definir la rotación nuevo centro:
-RotCen1=- Seleccione (existentes) vértice o -
-RotCen2=- Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
-
+RotCen=definir la rotación nuevo centro:<br>- Seleccione (existentes) vértice o - <br>- Rotar la pantalla (Ctrl-drag_mouse) y la estrella roja, seleccione
 ViewOn=mostrar los objetos ocultos, seleccionar objetos para mostrar
 HideOn=seleccionar objetos para ocultar
 VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze

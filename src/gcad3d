@@ -13,7 +13,7 @@ hTyp=`uname -s`_`uname -i`
 # <gcad_dir_bin>                   executable, dll's     ReadOnly
 # <gcad_dir_bin>plugins/           dll's                 ReadOnly
 #export gcad_dir_bin=/usr/lib/gCAD3D/binLinux${osVer}/
-export gcad_dir_bin=/usr/lib64/gcad3d/${hTyp}/
+export gcad_dir_bin=/usr/lib/gcad3d/${hTyp}/
 
 # <gcad_dir_bas>examples.gz        local-setup           RO
 # <gcad_dir_bas>icons/             icons                 RO
@@ -35,11 +35,11 @@ export gcad_dir_bin=/usr/lib64/gcad3d/${hTyp}/
 #export gcad_dir_dev=${HOME}/
 
 
-# if menu is unvisible: (ubuntu 11):
-if [ -n "$UBUNTU_MENUPROXY" ]; then
-  echo "disactivate ubuntu-global-menu"
-  export UBUNTU_MENUPROXY=
-fi
+## if menu is unvisible: (ubuntu 11):
+#if [ -n "$UBUNTU_MENUPROXY" ]; then
+#  echo "disactivate ubuntu-global-menu"
+#  export UBUNTU_MENUPROXY=
+#fi
 
 # start it ..
 #dirname $0`/gCAD3Dx32

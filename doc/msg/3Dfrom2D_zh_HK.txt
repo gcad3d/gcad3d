@@ -1,5 +1,0 @@
-# Messages for Application 3Dfrom2D
-TOP=頂視
-SIDE=側視
-FRONT=正視
-# EOF

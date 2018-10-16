@@ -1,4 +1,4 @@
-gCAD3D
+gCAD3D                                                                 2018-10-16
 
 provides functions for -
       import and export of cad-models and pictures (bitmaps)
@@ -56,13 +56,17 @@ Linux Prerequisites:
 
   for modifications of gCAD3D:
     gcc, ctags, build-essential.
-    (eg sudo apt-get install build-essential)
+    git gitk cscope ..
+    for .cpp-files on CentOS: gcc-c++
+
+
+  for modifications of gCAD3D-grafic-functions:
+      OpenGL-development-files 
+        mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
 
 
   for modifications of the gui-system C-KIT-GUI-GTK:
     Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
-      OpenGL-development-files 
-        mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
       gtk3-development-files
         libgtk-3-dev
         libgtk-3-doc gtk-3-examples             optional
@@ -70,9 +74,6 @@ Linux Prerequisites:
         libgtk2.0-dev
         libgtk2.0-doc gtk2.0-examples           optional
 
-
-        Installation eg for debian-os:
-          sudo apt-get install <package>
 
   for modification of the documentation:
     doxygen
@@ -82,11 +83,15 @@ Linux Prerequisites:
     fakeroot, lintian
 
   for building rpm-package:
-    ?
+    rpmbuild
+
+  Installation eg for debian-os:
+    sudo apt-get install <package>
+
 
 
 __________________________________________________________________
-Linux install binary-version:
+Linux install binary-version of gcad3d:
 
 Debian:
 - Download package gCAD3D-#.##-bin-amd64.de
@@ -103,7 +108,7 @@ RPM:
 
 
 __________________________________________________________________
-Linux uninstall:
+Linux uninstall gcad3d:
 
 Debian:
 sudo apt-get --purge remove gcad3d
@@ -112,7 +117,7 @@ RPM:
 rpm -qa | grep -i gcad3d                 # find <pknNam>
 sudo rpm -e <pknNam>
 
-
+All local settings, models in directory $HOME/gCAD3D must be removed manually.
 
 
 __________________________________________________________________
@@ -153,20 +158,19 @@ __________________________________________________________________
 Linux Build:
 
 Prerequisites:
-gcad3d (eg from git-repository) in <dirXX>/gcad3d
+gcad3d-sources (eg from git-repository) in <dirXX>/gcad3d
 Default: <dirXX> = ${HOME}/devel
 
 
 # Setup environment:
 # The development environment is using the directories $DIR_DEV and $DIR_BIN.
-# Edit devconf_git.sh if necessary:
-# Set DIR_DEV = <dirXX>
-# Set DIR_BIN = <dirXX>/bin/
-# do eg.:
-cd ${HOME}/devel/gcad3d/ 
-. ./devconf_git.sh
-echo ${DIR_DEV}                         # ~/devel/
-echo ${DIR_BIN}                         # ~/devel/bin/
+# The default-values are:
+# DIR_DEV = ${HOME}/devel/
+# DIR_BIN = ${HOME}/devel/bin/
+# For other directories export <dirXX> to DIR_DEV / DIR_BIN; check:
+echo $DIR_DEV
+echo $DIR_BIN
+
 
 # goto APP-directory
 cd ${DIR_DEV}gcad3d/src/APP/
@@ -182,8 +186,51 @@ cd ${DIR_DEV}gcad3d/src/APP/
 
 # now the application should be complete -
 
-# test it (start gcad3d)
+# before first start unpack examples into test-environment
+./do init_examples
+
+# test it (start gcad3d) in local test-environment.
+# For the userfiles directory ${DIR_DEV}gcad3d/gCAD3D/ will be used.
 ./do
+
+
+
+#---------------------------------------------------
+# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
+cd ${DIR_DEV}gcad3d/debian
+./pack_deb.sh
+
+# install deb-package into system
+sudo -E ./do install_deb
+
+# remove deb-package from system
+sudo ./do uninstall_deb
+
+
+
+#---------------------------------------------------
+# create rpm-package (binary, gcad3d-#.##-1.<$HOSTTYPE>.rpm):
+cd ${DIR_DEV}gcad3d/rpm
+./pack_rpm.sh
+
+# install rpm-package into system 
+sudo -E ./do install_rpm
+
+# remove rpm-package from system
+sudo ./do uninstall_rpm
+
+
+
+#---------------------------------------------------
+# create source-package ((${DIR_DEV}gcad3d/packages/gCAD3D_src_<version>.zip)
+./do pack_src
+# starts ${DIR_DEV}gcad3d/src/pack_src.sh
+
+
+# create doc-package (${DIR_DEV}gcad3d/packages/gCAD3D-doc-#.##.zip)
+# (user-doc and dev-doc)
+./do pack_doc
+# starts ${DIR_DEV}gcad3d/doc/packDoc.sh
 
 
 # ReCreate development-documentation (doxygen must be installed):
@@ -192,28 +239,6 @@ cd ${DIR_DEV}gcad3d/doc
 
 # view development-documentation:
 xdg-open ${DIR_DEV}gcad3d/doc/gcad/index.htm
-
-
-# create source-package ((${DIR_DEV}gcad3d/packages/gCAD3D_<version>-src.zip)
-${DIR_DEV}gcad3d/src/pack_src.sh
-
-# create doc-package (${DIR_DEV}gcad3d/packages/gCAD3D-doc-#.##.zip)
-# (user-doc and dev-doc)
-${DIR_DEV}gcad3d/doc/packDoc.sh
-
-# create package ${DIR_DEV}gcad3d/packages/examples.gz
-#   examples.gz will be extracted by gcad3d in userSpace
-${DIR_DEV}gcad3d/src/pack_examples.sh
-
-# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
-cd ${DIR_DEV}gcad3d/debian
-./pack_deb.sh
-
-# create rpm-package (binary, gcad3d-#.##-1.<$HOSTTYPE>.rpm):
-cd ${DIR_DEV}gcad3d/rpm
-./pack_rpm.sh
-
-
 
 
 
@@ -331,21 +356,6 @@ Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
   cd %HOMEPATH%\devel\gcad3d
   hh doc\gcad\index.htm
 
-
-
-
-__________________________________________________________________
-History:
-
-2018-10-03 V2.41 Bugfixes. RF.
-2018-06-07 V2.40 Bugfixes, preparations for "watertight". RF.
-2017-04-18 V2.35 Bugfixes, preparations for "watertight". RF.
-2016-10-05 V2.34 Bugfixes. RF.
-2016-05-12 V2.32 new: export jpg, pdf. RF.
-2016-03-16 V2.30 Demo_toolbar2, DXF-export BLOCKS, bugfixes. RF.
-2015-08-21 V2.28 Demo_toolbar1, Demo_appDat1, UNDO-plugin, bugfixes. RF.
-2015-06-22 V2.26 Bugfixes. RF.
-2015-03-14 V2.25 MS-Win version added to git. RF.
 
 
 // EOF

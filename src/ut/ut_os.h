@@ -45,7 +45,7 @@ Korr:
   char*  OS_get_doc_dir   ();
 
   char*  OS_get_edi       ();
-  char*  OS_get_lang      ();
+  int    OS_get_lang      (char *sLang);
   char*  OS_get_browse_htm   ();
   char*  OS_get_printer   ();
   char*  OS_get_imgConv1  ();

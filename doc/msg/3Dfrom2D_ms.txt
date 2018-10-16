@@ -1,5 +1,0 @@
-# Messages for Application 3Dfrom2D
-TOP=Pandangan Atas
-SIDE=Pandangan Sisi
-FRONT=Pandangan Hadapan
-# EOF

@@ -51,6 +51,10 @@ UI_askExit            ?
 UI_VW_upd             enable/disable active view-button
 UI_VW_set             enable/disable active view-button
 
+UI_CAD_ON
+UI_CAD_reload
+UI_CAD_OFF
+
 UI_winTX_prt          print into message-window
 UI_winTX_prf          write file to message-window
 UI_winTX_rmLast       delete last textoutputline
@@ -403,7 +407,7 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
   // int UI_sur_act_CB2 (GtkWidget *parent, void *data);
   // gint UI_ButtonPress (GtkWidget *widget, GdkEventMotion *event);
   int UI_RelAbsCB (MemObj *mo, void **data);
-  int UI_chg_lang (MemObj *mo, void **data);
+  int UI_lang_chg (MemObj *mo, void **data);
   int UI_def_browser ();
   int UI_def_editor ();
   int UI_open_last ();
@@ -4184,6 +4188,35 @@ static char LstBuf[LstSiz][32];
 
 
 //================================================================
+  int UI_CAD_reload () {
+//================================================================
+// reload CAD-toolbox (language changed)
+
+  int    i1;
+
+
+
+  if(GUI_OBJ_IS_VALID(&tbCad)) {
+      printf("UI_CAD_reload-1\n");
+    // delete CAD-menu's (was already loaded)
+    tbCad = GUI_toolbox_del (&tbCad);
+    // reload all 
+    tbCad = UI_cad (&UIw_Box_TB, NULL);
+  }
+
+
+  // hide if not active
+  i1 = GUI_radiobutt_get (&ckb_cad);     // 1=active, 0=not
+  if(!i1)  GUI_set_show (&tbCad, 0);
+
+
+
+  return 0;
+
+}
+
+ 
+//================================================================
   int UI_CAD_ON () {
 //================================================================
 // activate CAD
@@ -6609,12 +6642,12 @@ box1
   // char   *surLst[]={"XY","XZ","YZ",NULL};
 
 
-#define LNG_MAX_NR 16
-  typedef  char lngCode[4];
-  typedef  char lngName[40];
-  static lngCode    TabLngCode[LNG_MAX_NR];
-  lngName    *TabLngName;
-  int        lngNr;
+// #define LNG_MAX_NR 16
+//   typedef  char lngCode[4];
+//   typedef  char lngName[40];
+//   static lngCode    TabLngCode[LNG_MAX_NR];
+//   lngName    *TabLngName;
+//   int        lngNr;
 
 
 
@@ -7293,13 +7326,11 @@ box1
       actwi = GUI_menu_entry   (&men_hlp, "---",     NULL,       NULL);
 
 
-      // add installed languages
-      TabLngName = (void*) MEM_alloc_tmp (LNG_MAX_NR * 40);
-      lngNr = LNG_MAX_NR;
-      UI_lang_men (&lngNr, TabLngCode, TabLngName, &men_hlp);
+      // add List of installed languages
+      UI_lang_men (&men_hlp);
 
 
-      GUI_menu_entry(&men_hlp,"make translation", UI_menCB,(void*)"docTransl");
+      GUI_menu_entry(&men_hlp,"other language", UI_menCB,(void*)"docTransl");
 
 
 
@@ -8042,34 +8073,44 @@ box1
 
 
 //===================================================================
-  int UI_lang_men (int *lngNr, char lngCode[][4], char lngName[][40],
-                   MemObj *mo) {
+  int UI_lang_men (MemObj *mo) {
 //===================================================================
 // add menu of radiobuttons for loaded languages
  
-  int    i1, ia, ie, ii;
+  int    i1, ia, ie, ii, lngNr;
+  char     *lngLst;   // size 0
+  char     *lngName;  // size 40
   MemObj m1, ma, me;
 
 
   printf("UI_lang_men |%s|\n",AP_lang);
 
-  // find installed languages and language-names
-  // get list of loaded languages an language-names
-  MSG_lng_init (lngNr, lngCode, lngName);
+
+  // get list of loaded languages (lngCode[lngNr]);
+  lngNr = AP_lngTab_get (&lngLst);
+
+  // get list of names of loaded languages (lngName[lngNr]);
+  lngName = (char *) MEM_alloc_tmp (lngNr * 40);
+  for(i1=0; i1 < lngNr; ++i1) {
+    // get name of lang i1
+    AP_lngNam_get (&lngName[i1 * 40], &lngLst[i1 * 4]);
+  }
 
 
-  // create menu-entry.
+
+  //----------------------------------------------------------------
+  // create menu-entry (lngNr buttons with names of loaded languages)
   ia = -1;
   ie = -1;
   ii = 0;
-  for(i1=0; i1 < *lngNr; ++i1) {
+  for(i1=0; i1 < lngNr; ++i1) {
     // add radiobutton
       // printf(" lng %d |%s|%s|\n",i1,lngCode[i1],lngName[i1]);
-    m1 = GUI_menu_radiobutt__ (mo,lngName[i1],ii,UI_chg_lang,(void*)lngCode[i1]);
+    m1 = GUI_menu_radiobutt__ (mo,&lngName[i1*40],ii,UI_lang_chg,&lngLst[i1*4]);
     if(!ii) ++ii;  // 0=new menu; 1=add to menu
 
     // keep language AP_lang
-    if (!strcmp(AP_lang, lngCode[i1])) {
+    if (!strcmp(AP_lang, &lngLst[i1*4])) {
       ia = i1;
       ma = m1;
     }
@@ -8090,12 +8131,12 @@ box1
   }
 
 
-    printf(" lang-activate |%s|\n",lngCode[ia]);
+    printf(" lang-activate |%s|\n",&lngLst[ia*4]);
   GUI_menu_radiobutt_set (&ma);
-  strcpy(AP_lang, lngCode[ia]);
+  // strcpy(AP_lang, lngLst[ia]);
+  // init lang
   MSG_const_init (AP_lang);
   MSG_Init (AP_lang);
-
 
   return 0;
 
@@ -8103,13 +8144,13 @@ box1
 
 
 //================================================================
-  int UI_chg_lang (MemObj *mo, void **data) {
+  int UI_lang_chg (MemObj *mo, void **data) {
 //================================================================
 
   char    *cp1;
 
 
-  printf("UI_chg_lang |%s|%s| %d\n",GUI_DATA_S1,AP_lang,AP_stat.sysStat); 
+  printf("UI_lang_chg |%s|%s| %d\n",GUI_DATA_S1,AP_lang,AP_stat.sysStat); 
 
   if(AP_stat.sysStat < 2) return 0;
 
@@ -8118,17 +8159,24 @@ box1
   cp1 = GUI_DATA_S1;
   if(!strcmp(cp1, AP_lang)) return 0;
 
-    // printf("UI_chg_lang |%s|%s|\n",cp1,AP_lang); 
+    // printf("UI_lang_chg |%s|%s|\n",cp1,AP_lang); 
 
 
   strcpy(AP_lang, cp1);
 
+  // load msg/msg_const_c2l<AP_lang>de.txt
   MSG_const_init (AP_lang);
+  // open file msg/msg_<sLang>.txt on lun MSG_fp
   MSG_Init (AP_lang);
 
+  // change CAD-toolbox-text
+  UI_CAD_reload ();
+
+  // reDisplay init-text
+  TX_Print("***** languge modified *****");
+  MSG_pri_0 ("MM0");
 
   TX_Print("HOW TO IMPROVE DOCUMENTATION: see Help/Translations");
-  TX_Print("***** Exit and Restart gcad (languge modified) *****");
 
 
   return 0;

@@ -1,11 +1,14 @@
 # compile nn.c -> nn.o
+
+#$(gcad_dir_bin)/%.o:
+
 .c.o:
-	@echo ====================== C $@ ========================
+	@echo ====================== compile $@ ========================
 	@echo "VPATH="$(VPATH)
 	$(CC) -c $(CPFLG) $<
-#	if test $(@D) != "../xa"; then mv $(@F) $@; fi
+	#	if test $(@D) != "../xa"; then mv $(@F) $@; fi
 	mv -f $(@F) $(gcad_dir_bin).
-#	etags -f $(*F).tag $<
+	#	etags -f $(*F).tag $<
 	rm -f ../tags/$(*F).tag
 	ctags -f ../tags/$(*F).tag -IMemTab --c-kinds=dfstvx --tag-relative=yes --excmd=pattern $<
 

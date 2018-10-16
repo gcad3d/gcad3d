@@ -1,5 +1,0 @@
-# Messages for Application 3Dfrom2D
-TOP=VistaDeCima
-SIDE=VistaLateral
-FRONT=FistaFrontal
-# EOF

@@ -254,6 +254,7 @@ static int       UI_act_Id;
   char* GUI_Win_tit (void *gtkWin) {
 //================================================================
  
+
   return (char*)gtk_window_get_title (GTK_WINDOW(gtkWin));
 
 }

@@ -32,7 +32,8 @@ Modifications:
 List_functions_start:
 
 main              main for interactive gcad
-TODO              missing function
+AP_lngTab_get     get list of installed languages
+AP_lngTab_set     set list of installed languages
 
 List_functions_end:
 =====================================================
@@ -71,6 +72,7 @@ Batch-main ist in xa_batch.c.
 #include "../xa/xa_mem.h"
 #include "../xa/xa_sele.h"             // Typ_goGeom
 #include "../xa/xa.h"                  // AP_mod_fnam
+#include "../xa/xa_msg.h"              // MSG_get_str
 #include "../xa/gcad_version.h"        // INIT_TXT
 
 
@@ -94,6 +96,15 @@ static char *os_cfg_dir;
 static char *os_tmp_dir;
 static char *os_doc_dir;
 static char *os_ico_dir;
+
+
+#define LNG_MAX_NR 16
+typedef  char lngCode[4];
+static lngCode lngTab[LNG_MAX_NR];
+static int     lngNr;
+
+
+
 
 
 
@@ -147,11 +158,11 @@ static char *os_ico_dir;
   UtxTab_init__ (&AP_TxTab1); 
 
 
-
+/*
   // set Defaultlanguage
   strcpy(AP_lang, OS_get_lang());
     printf(" AP_lang=|%s|\n",AP_lang);
-
+*/
 
 
   AP_argNr = paranz;
@@ -170,13 +181,24 @@ static char *os_ico_dir;
 
 
 
-  // get application-directories
+  // get application-directories: OS_get_doc_dir
   AP_get_dir__ ();
 
 
   // get all directories
   strcpy(txbuf1, argv[0]);
-  OS_Init_ (txbuf1);
+  OS_Init_ (txbuf1);             // zenity ?
+
+
+  // get system-language
+  i1 = OS_get_lang (txbuf1);
+
+  // set AP_lang = language
+  strncpy(AP_lang, txbuf1, 3);
+    printf(" AP_lang |%s|\n",AP_lang);
+
+  // set list of loaded languages
+  AP_lngTab_set ();
 
 
   // display debug-switch
@@ -233,7 +255,7 @@ static char *os_ico_dir;
   // //   if yes: goto L_startup_defaults;  else unpack examples.gz
 
 
-
+  // test if gCAD3D/cfg/gCAD3D.rc exists; if not: unpack examples.gz
   // sprintf(txbuf1, "%scfg/gCAD3D.rc",OS_get_bas_dir());
   sprintf(txbuf1, "%sgCAD3D.rc", OS_get_cfg_dir());
     printf(" test configfile |%s|\n",txbuf1);
@@ -253,8 +275,9 @@ static char *os_ico_dir;
   system(txbuf2);
 
 
-  // copy desktop-link -> ~/gCAD3D/gcad3d.desktop
-  sprintf(txbuf2, "cp -f /usr/share/applications/gcad3d.desktop %s.",
+/*
+  // copy desktop-link -> ~/gCAD3D/gCAD3D.desktop
+  sprintf(txbuf2, "cp -f /usr/share/gcad3d/gcad3d.desktop %s.",
           OS_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
@@ -262,6 +285,7 @@ static char *os_ico_dir;
           OS_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
+*/
 
 #endif
 
@@ -467,6 +491,7 @@ kopieren geht nicht mehr -
   // TX_Write (txbuf1);
 
 
+  // display init-text
   MSG_pri_0 ("MM0");
   // TX_Write ("display funcions:");
   // TX_Write ("move:   Shift + drag mouse (do not push mousebuttons)");
@@ -612,6 +637,7 @@ kopieren geht nicht mehr -
   int AP_get_dir__ () {
 //================================================================
 // get application-directories
+// OS_get_doc_dir
 
   char    *p1, *p2, s1[512];
 
@@ -662,11 +688,13 @@ kopieren geht nicht mehr -
 
   } else {
 #ifdef _MSC_VER
-    strcpy(s1, os_bin_dir);           // ("/home/fwork/binLinux32/")
+    // MS-WIN
+    strcpy(s1, os_bin_dir);
     UTX_endDelChar (s1, fnam_del);    // remove last char ('/')
     UTX_endDelWord (s1, fnam_del, 0); // remove last word (keep '/')
     // strcat(s1, "icons\\");
 #else
+    // Linux
     strcpy(s1, "/usr/share/gcad3d/");
 #endif
   }
@@ -747,7 +775,8 @@ kopieren geht nicht mehr -
     UTX_endDelWord (s1, fnam_del, 0); // remove last word (keep '/')
     strcat(s1, "doc\\");
 #else
-    strcpy(s1, "/usr/share/doc/gcad3d/");
+    // strcpy(s1, "/usr/share/doc/gcad3d/");
+    strcpy(s1, "/usr/share/gcad3d/doc/");
 #endif
     p1 = s1;
   }
@@ -805,6 +834,115 @@ kopieren geht nicht mehr -
       printf("%s\n",s1);
       GUI_MsgBox (s1);
       exit(0);
+
+}
+
+
+//================================================================
+  int AP_lngNam_get (char *lngNam, char *lngCode) {
+//================================================================
+// was MSG_lng_init
+// provide list of supported languages and language-names
+//   find all msg_<LANG>.txt files  in <docdir>/msg/
+
+  char *pl;
+
+  // printf(" AP_lngNam_get |%s|\n",lngCode);
+
+  // - get value of LANG__ of all existing language-files
+  MSG_Init (lngCode);
+  pl = MSG_get_str ("LANG__");
+  if(!pl) return -1;
+
+  strcpy (lngNam, pl);
+    // printf(" lang = |%s|\n",lngNam);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_lngTab_get (char **lngLst) {
+//================================================================
+// was MSG_lng_init
+// provide list of supported languages and language-names
+//   find all msg_<LANG>.txt files  in <docdir>/msg/
+
+  *lngLst = &lngTab[0][0];
+
+  return lngNr;
+
+}
+
+
+//================================================================
+  int AP_lngTab_set () {
+//================================================================
+// was MSG_lng_init
+// provide list of supported languages and language-names
+//   find all msg_<LANG>.txt files  in <docdir>/msg/
+
+  int    ii, iNr, lNr;
+  char   *p1, cbuf1[256], *pl;
+
+// uu
+// sssss();
+
+  // printf("MSG_lng_init %d\n",*lngNr);
+
+
+  //----------------------------------------------------------------
+  // - make list of all <docdir>/msg/msg_*.txt
+
+#ifdef _MSC_VER
+  sprintf(cbuf1,"%smsg",OS_get_doc_dir());
+#else
+  sprintf(cbuf1,"%smsg/",OS_get_doc_dir());
+#endif
+
+
+  ii = strlen (cbuf1);
+    printf(" _scan_- %d |%s|\n",ii,cbuf1);
+
+  iNr = 0;
+  OS_dir_scan_ (cbuf1, &iNr);   // Init
+    // printf(" _scan_%d |%s|\n",ii,cbuf1);
+
+  lNr = 0;
+  for(;;)  {
+    OS_dir_scan_ (cbuf1, &iNr);
+      // printf(" _scan_%d |%s|\n",iNr,cbuf1);
+    if(iNr < 0) break;
+    p1 = strstr (&cbuf1[ii], "msg_");
+    if(!p1) continue;
+
+    // if(strncmp(&cbuf1[ii], "msg_", 4)) continue;
+    p1 += 4;
+    if(!strncmp(p1, "const", 4)) continue;
+
+
+    // extract & copy language-code
+    strncpy (lngTab[lNr], p1, 2);
+    lngTab[lNr][2] = '\0';
+      // printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
+
+    if(lNr < LNG_MAX_NR) ++lNr;
+  }
+
+
+
+  //----------------------------------------------------------------
+  lngNr = lNr;
+
+
+    // TESTBLOCK
+    printf("------ ex AP_lngTab_set %d \n",lNr);
+    for(ii=0; ii<lNr; ++ii) printf(" %d |%s|\n",ii,lngTab[ii]);
+    // END TESTBLOCK
+
+
+  return 0;
 
 }
 

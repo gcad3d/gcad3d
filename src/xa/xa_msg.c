@@ -71,7 +71,6 @@ MSG_err_1       print errormessage with 1 parameter, formatted ..
 MSG_get_wTab    get a table of words from integers
 MSG_get_str     get message from string (get key from string; 0 parameters)
 MSG_Init        open / reopen
-MSG_lng_init    find supported languages ..
 
 MSG_get__
 MSG_read
@@ -401,6 +400,7 @@ char *MSG_STD_tab[]={
 //================================================================
 /// get application-message with 0 parameters.
 
+
   char    *cp1;
 
   cp1 = APP_MSG_read (MSG_buf, MSG_bSiz, key);
@@ -551,6 +551,7 @@ char *MSG_STD_tab[]={
 //================================================================
   int MSG_Init (char *lang) {
 //================================================================
+// open file msg/msg_<sLang>.txt on lun MSG_fp
 
   char     fnam[200];
 
@@ -562,7 +563,7 @@ char *MSG_STD_tab[]={
   if(MSG_fp) fclose (MSG_fp);
 
   sprintf(fnam, "%smsg%cmsg_%s.txt",OS_get_doc_dir(),fnam_del,lang);
-    printf("MSG_Init msgfile = |%s|\n",fnam);
+    // printf("MSG_Init msgfile = |%s|\n",fnam);
 
 
   if((MSG_fp=fopen(fnam,"r")) == NULL) {
@@ -837,7 +838,7 @@ char *MSG_STD_tab[]={
 //================================================================
   int MSG_const_init (char *sLang) {
 //================================================================
-// load file msg/msg_const_de.txt -> MSG_tab
+// load file msg/msg_const_<sLang>.txt -> MSG_tab
   
   int    i1, siz1, siz_, ls;
   long   l1;
@@ -1017,88 +1018,6 @@ char *MSG_STD_tab[]={
   // TEST:
   // for(i1=0;i1<txTab->iNr; ++i1)
      // printf(" txTab[%d]=|%s|\n",i1,UtxTab__(i1,txTab));
-
-  return 0;
-
-}
-
-
-//======================================================================
-  int MSG_lng_init (int *lngNr, char lngCode[][4], char lngName[][40]) {
-//======================================================================
-// provide list of supported languages an language-names
-//   find all msg_<LANG>.txt files  in <docdir>/msg/
-
-  int    ii, iNr, lNr;
-  char   *p1, cbuf1[256], *pl;
-
-
-
-  // printf("MSG_lng_init %d\n",*lngNr);
-
-
-  //----------------------------------------------------------------
-  // - make list of all <docdir>/msg/msg_*.txt
-
-#ifdef _MSC_VER
-  sprintf(cbuf1,"%smsg",OS_get_doc_dir());
-#else
-  sprintf(cbuf1,"%smsg/",OS_get_doc_dir());
-#endif
-
-
-  ii = strlen (cbuf1);
-    // printf(" _scan_- %d |%s|\n",ii,cbuf1);
-
-  iNr = 0;
-  OS_dir_scan_ (cbuf1, &iNr);   // Init
-    // printf(" _scan_%d |%s|\n",ii,cbuf1);
-
-  lNr = 0;
-  for(;;)  {
-    OS_dir_scan_ (cbuf1, &iNr);
-      // printf(" _scan_%d |%s|\n",iNr,cbuf1);
-    if(iNr < 0) break;
-    p1 = strstr (&cbuf1[ii], "msg_");
-    if(!p1) continue;
-
-    // if(strncmp(&cbuf1[ii], "msg_", 4)) continue;
-    p1 += 4;
-    if(!strncmp(p1, "const", 4)) continue;
-
-
-    // extract & copy language-code
-    strncpy (lngCode[lNr], p1, 2);
-    lngCode[lNr][2] = '\0';
-      // printf(" n.scan |%s| %d |%s|\n",lngCode[lNr], lNr, cbuf1);
-
-
-    // - get value of LANG__ of all existing language-files
-    MSG_Init (lngCode[lNr]);
-    // p1 = MSG_get_str ("LANG__");
-    pl = MSG_get_str ("LANG__");
-    if(!pl) continue;
-
-    strcpy (lngName[lNr], pl);
-      // printf(" lang = |%s|\n",lngName[lNr]);
-    ++lNr;
-    if(lNr >= *lngNr) {
-      TX_Error("MSG_msg_init E001");
-      return 0;
-    }
-  }
-
-
-
-  //----------------------------------------------------------------
-  *lngNr = lNr;
-
-
-    // TESTBLOCK
-    // printf("------ ex MSG_lng_init %d \n",lNr);
-    // for(ii=0; ii<lNr; ++ii) printf(" %d |%s|%s|\n",ii,lngCode[ii],lngName[ii]);
-    // END TESTBLOCK
-
 
   return 0;
 

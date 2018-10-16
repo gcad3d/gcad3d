@@ -10,7 +10,7 @@ VGUI := $(shell cat ../gcad_gui_version)
 
 
 # get debug-settings DEB
-include deb.umak
+include deb.mak
 
 
 # get SRCGUI (filList), GUICP (compile with gui), GUILIB (link with gui)

@@ -1,5 +1,0 @@
-# Messages for Application 3Dfrom2D
-TOP=Bovenaanzicht
-SIDE=Zijaanzicht
-FRONT=Vooraanzicht
-# EOF

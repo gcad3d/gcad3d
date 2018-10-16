@@ -2,12 +2,13 @@
 
 echo "postinst gcad3d"
 
-PKGNAM=gCAD3D
+# PKGNAM=gCAD3D
 
 
 osVer=`getconf LONG_BIT`
 gcad_dir_bin=/usr/lib/gCAD3D/binLinux${osVer}
 echo "gcad_dir_bin: $gcad_dir_bin"
+
 
 # create link for active gui-dll
 libInf=`ldconfig -p | grep "libgtk-x11-2"`
@@ -26,7 +27,7 @@ fi
 # install menu on freedesktop:
 if [ ! -z "`which xdg-desktop-menu`" ]; then
   echo "install gCAD3D in freedesktop - menu Applications/Graphics .."
-  xdg-desktop-menu install --novendor /usr/share/gcad3d/${PKGNAM}.desktop
+  xdg-desktop-menu install --novendor /usr/share/gcad3d/gcad3d.desktop
 fi
 
 

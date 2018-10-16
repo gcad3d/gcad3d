@@ -2,13 +2,13 @@
 
 echo "prerm"
 
-PKGNAM=gCAD3D
+# PKGNAM=gCAD3D
 
 
 # remove menu on freedesktop:
 if [ ! -z "`which xdg-desktop-menu`" ]; then
   echo xdg-desktop-menu uninstall ${PKGNAM}.desktop
-  xdg-desktop-menu uninstall ${PKGNAM}.desktop
+  xdg-desktop-menu uninstall gcad3d.desktop
 fi
 
 

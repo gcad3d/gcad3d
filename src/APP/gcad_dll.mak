@@ -8,7 +8,7 @@ VGUI := $(shell cat ../gcad_gui_version)
 
 
 # debug-settings DEB CPDEB LKDEB
-include deb.umak
+include deb.mak
 
 
 # OpenGL: get OGLLIB
@@ -30,9 +30,12 @@ else
 OBJ1 := $(patsubst %.c,%.o, $(notdir $(SRC1)))
 endif
 
+
+# objects-directory AND source-directories
 VPATH := $(gcad_dir_bin):$(DIRSRC1)
 
 CC = gcc
+#CC = g++
 
 
 ifeq "$(hTyp)" "Linux_i386"
@@ -68,9 +71,9 @@ endif
 
 #=====================================================================
 #default:
-default:	$(OBJ1)
+default: $(OBJ1)
 	@echo "gcad_dll build $(DLLNAM) gui = $(VGUI) .."
-	@echo $(VPATH)
+	@echo " VPATH: $(VPATH)"
 	@echo $(OBJ1)
 	@echo ====================== Link ======================
 	cd $(gcad_dir_bin) &&\
@@ -105,5 +108,4 @@ srclst:
 #=====================================================================
 # ACHTUNG: case of filename muss genau stimmen, else xx.o Datei nicht gefunden
 include compile.mak
-
 # EOF

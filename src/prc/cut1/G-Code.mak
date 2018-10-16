@@ -28,6 +28,8 @@ CXFLG = -O0 -g3 -Wall
 
 LKFLG = -lm
 
+VPATH = $(gcad_dir_bin):../prc/cut1/
+
 
 $(EXENAM): $(OBJ1) $(OBJ2)
 	@echo "build $(EXENAM) -> $(gcad_dir_bin)"

@@ -22,7 +22,7 @@ VGUI := $(shell cat ../gcad_gui_version)
 
 
 # get debug-settings DEB CPDEB LKDEB
-include deb.umak
+include deb.mak
 
 
 # OpenGL-binding: SRCGLB GLBLIB
@@ -107,8 +107,15 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 # Alle Basis-DLL's xa_XX.so linken
 all:
 	@echo "link core-dll's .."
-	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} \;
-#	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "OS=${OS}" \;
+# create makeFiles.lst = list of makefiles
+	rm -f makeFiles.lst
+	find . -maxdepth 1 -name "xa_*.mak" -exec echo {} >> makeFiles.lst \;
+# read list, build ..
+	while read line; do \
+	echo $$line; \
+	make -f $$line; \
+	if [ $$? -ne 0 ]; then exit 1; fi \
+	done < makeFiles.lst
 
 
 
@@ -118,17 +125,33 @@ allDemos:
 	@echo "link plugins .."
 # test if plugins/ exist - else create
 	mkdir -p "$(gcad_dir_bin)/plugins"
-#	if [ ! -f "$(gcad_dir_bin)/plugins" ]; then\
-# mkdir "$(gcad_dir_bin)/plugins";\
-# fi
-	find . -maxdepth 1 -name "Demo*.mak" -exec make -f {} \;
-	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} \;
-#	find . -maxdepth 1 -name "APP_*.mak" -exec make -f {} \;
-#	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} "OS=${OS}" \;
-	# link PP's for PRC_cut1
 	mkdir -p "$(gcad_dir_bin)plugins/cut1"
+# create makeFiles.lst = list of makefiles
+	rm -f makeFiles.lst
+	find . -maxdepth 1 -name "Demo*.mak" -exec echo {} >> makeFiles.lst \;
+	find . -maxdepth 1 -name "PRC_*.mak" -exec echo {} >> makeFiles.lst \;
+# read list, build ..
+	while read line; do \
+	echo $$line; \
+	make -f $$line; \
+	if [ $$? -ne 0 ]; then exit 1; fi \
+	done < makeFiles.lst
+	# link PP's for PRC_cut1
 	make -f ../prc/cut1/G-Code.mak
-#	$(MK) -f 3Dfrom2D.mak "OS=${OS}"
+	if [ $$? -ne 0 ]; then exit 1; fi \
+
+
+##	if [ ! -f "$(gcad_dir_bin)/plugins" ]; then\
+## mkdir "$(gcad_dir_bin)/plugins";\
+## fi
+#	#find . -maxdepth 1 -name "Demo*.mak" -exec make -f {} \;
+#	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} \;
+##	find . -maxdepth 1 -name "APP_*.mak" -exec make -f {} \;
+##	find . -maxdepth 1 -name "PRC_*.mak" -exec make -f {} "OS=${OS}" \;
+#	# link PP's for PRC_cut1
+#	mkdir -p "$(gcad_dir_bin)plugins/cut1"
+#	make -f ../prc/cut1/G-Code.mak
+##	$(MK) -f 3Dfrom2D.mak "OS=${OS}"
 
 
 

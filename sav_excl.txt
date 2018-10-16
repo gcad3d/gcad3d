@@ -17,7 +17,10 @@ doc/gui/
 binLinux32/
 binLinux64/
 binMS32/
-packages/
-gCAD3D/tmp/
+packages/tmp/
+packages/g*
+gCAD3D/
 debian/gCAD3D/
 debian/exa_dir/
+*/t1*
+*/t2*

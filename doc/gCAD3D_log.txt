@@ -1,9 +1,15 @@
-Version 2.40 / 2018-06-07
+
+===========================================================================
+Version 2.42 / 2018-10-16
+
+- .deb and .rpm-packing reorganized, doc-directories changed,
+- help-menu rewritten; new languages added;
+
+===========================================================================
+Version 2.41 / 2018-06-07
 
 - new remote-command "exit"
 - Bugfixes ("UME_alloc EOM" ..)
-
-
 
 ===========================================================================
 Version 2.40 / 2018-06-07

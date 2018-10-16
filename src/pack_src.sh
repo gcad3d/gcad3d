@@ -4,26 +4,52 @@
 # includes Linux and MS-windows version
 # start in <basDir>/src
 
-cd ${DIR_DEV}gcad3d
-basDir=`pwd`
+docDir=${DIR_DEV}gcad3d/doc
+srcDir=${DIR_DEV}gcad3d/src
+instDir=${DIR_DEV}gcad3d/packages
 
 
-version=`cat src/gcad_version`
+Version=`cat ${srcDir}/gcad_version`
+Product="gCAD3D-src"
+packNam="${Product}-${Version}"
+fileNam=${instDir}/${packNam}.zip
 
 
-rm -f gCAD3D-src.zip
+cd ${DIR_DEV}gcad3d/
+
+echo "- create ${fileNam} started .."
+
+
+
+#-----------------------------------------------------
+#cd ${DIR_DEV}gcad3d
+#basDir=`pwd`
+#version=`cat src/gcad_version`
+
+
+rm -f ${fileNam}
 
 zip gCAD3D-src.zip\
- ${basDir}/TODO ${basDir}/README ${basDir}/LIC* ${basDir}/sav_excl.txt -r\
- ${basDir}/src\
- ${basDir}/icons\
- ${basDir}/pack_MS\
- ${basDir}/binMS32\
- ${basDir}/doc\
- -x "${basDir}/doc/gcad/*" "*.tag" "*.obj" "*.exp" "*.pdb" "*.lib" "*/my*"
+ TODO README LIC* sav_excl.txt -r\
+ src\
+ icons\
+ rpm\
+ debian\
+ pack_MS\
+ binMS32\
+ doc\
+ -x "doc/gcad/*" "*.tag" "*.obj" "*.exp" "*.pdb" "*.lib" "*/my*"
+if [ $? -ne 0 ]; then
+  echo "****** ERROR zip *******"
+  exit 1;
+fi
 
 
-mv gCAD3D-src.zip ${basDir}/packages/gCAD3D_${version}-src.zip
+
+mv gCAD3D-src.zip ${fileNam}
+
+
+echo "****** File ${fileNam} created."
 
 
 # eof

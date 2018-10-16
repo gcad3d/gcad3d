@@ -25,16 +25,18 @@
 #export OS=Linux${bitNr}
 
 
-#if [ ! -n "$DIR_DEV" ]; then
-## not set to server: set to local
-#DIR_DEV=${HOME}/devel/
-#fi
-#if [ ! -n "$DIR_BIN" ]; then
-## vi.sh
-#DIR_BIN=${HOME}/devel/bin/
-#fi
-#export gcad_dir_dev=${DIR_DEV}gcad3d/
-#export gcad_dir_bin=${HOME}/devel/binLinux${bitNr}
+if [ ! -n "$DIR_DEV" ]; then
+# not set to server: set to local
+export DIR_DEV=${HOME}/devel/
+fi
+
+if [ ! -n "$DIR_BIN" ]; then
+# vi.sh
+export DIR_BIN=${HOME}/devel/bin/
+fi
+
+
+
 
 
 export hTyp=`uname -s`_`uname -m`

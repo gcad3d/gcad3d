@@ -30,8 +30,8 @@ Necessary symbols:
 
   $DIR_DEV must have sourcfiles
 
-  $DIR_BIN will receive all objectsi, libs and executables
-    in ${DIR_BIN}/gcad3d/ ???
+  $DIR_BIN will receive all objects, libs and executables
+    in ${DIR_BIN}/gcad3d/ 
 
 
 
@@ -42,13 +42,16 @@ ${gcad_dir_bin} = ${HOME}/devel/binLinux${bitNr}
 
 Programfiles:
   ${gcad_dir_dev}src/*          all sourcefiles
-  ${gcad_dir_dev}debian/*       package-creation-files debian
+  ${gcad_dir_dev}doc/*          textfiles, html
+  ${gcad_dir_dev}icons/*        icons
+  ${gcad_dir_dev}debian/*       package-creation-files Debian, Ubuntu, .. (.deb)
+  ${gcad_dir_dev}rpm/*          package-creation-files CentOS, Suse, ..   (.rpm)
   ${gcad_dir_dev}pack_MS/*      package-creation-files MS-Win
   ${gcad_dir_dev}packages/*     packages for all OS
 
 
 Userfiles:
-  ${gcad_dir_dev}gCAD3D/
+  ${gcad_dir_dev}gCAD3D/*       configfiles, testmodels .. for app
 
 
 Symbols set by gcad-startup-script:
@@ -63,6 +66,7 @@ Symbols set by gcad-startup-script:
 
 Create-package-debian:
   ${DIR_DEV}gcad3d/debian/pack_deb.sh
+
 
 ____________________________________________________________________________
 <p><a name="DEV_MS"></a></p>
@@ -86,18 +90,18 @@ ____________________________________________________________________________
 
 Programfiles:
   /usr/bin/gcad3d                            Startscript for main-executable
-  /usr/lib/gCAD3D/binLinux64/gCAD3D          main-executable
-  /usr/lib/gCAD3D/binLinux64/*.so            shared libs for main-executable
-  /usr/lib/gCAD3D/binLinux64/plugins/*.so    plugins (shared libs)
-  /usr/lib/gCAD3D/binLinux64/plugins/cut1/*  processes (NC-programs, executables)
+  /usr/lib/gcad3d/Linux_x86_64/gCAD3D        main-executable
+  /usr/lib/gcad3d/Linux_x86_64/*.so          shared libs for main-executable
+  /usr/lib/gcad3d/Linux_x86_64/plugins/*.so  plugins (shared libs)
+  /usr/lib/gcad3d/Linux_x86_64/plugins/cut1/* processes (NC-programs, executables)
   /usr/share/menu/gcad3d                     menufile for package gcad3d
-  /usr/share/pixmaps/gCAD3D.xpm              icon for menufile
-  /usr/share/applications/gcad3d.desktop           Desktop-starter
+  /usr/share/pixmaps/gcad3d.xpm              icon for menufile
+  /usr/share/gcad3d/gcad3d.desktop           Desktop-starter
   /usr/share/gcad3d/examples.gz              zipfile for userspace
   /usr/share/gcad3d/icons/*                  icons for executable
-  /usr/share/doc/gcad3d/changelog.Debian.gz, copyright
-  /usr/share/doc/gcad3d/html/*               documentation
-  /usr/share/doc/gcad3d/msg/*                software-message-files
+  /usr/share/gcad3d/doc/html/*               documentation
+  /usr/share/gcad3d/doc/msg/*                software-message-files
+  /usr/share/doc/gcad3d/changelog.Debian.gz, copyright, NEWS, README
 
 Userfiles:
   $HOME/gCAD3D/tmp/                          temporary files
@@ -118,17 +122,17 @@ ___________________________________________________
 
 Programfiles:
   /usr/bin/gcad3d                            Startscript for main-executable
-  /usr/lib64/gcad3d/Linux_x86_64/gCAD3D      main-executable
-  /usr/lib64/gcad3d/Linux_x86_64/*.so        shared libs for main-executable
-  /usr/lib64/gcad3d/Linux_x86_64/plugins/*.so   plugins (shared libs)
-  /usr/lib64/gCAD3D/Linux_x86_64/plugins/cut1/* processes (NC-programs, executables)
+  /usr/lib/gcad3d/Linux_x86_64/gCAD3D        main-executable
+  /usr/lib/gcad3d/Linux_x86_64/*.so          shared libs for main-executable
+  /usr/lib/gcad3d/Linux_x86_64/plugins/*.so  plugins (shared libs)
+  /usr/lib/gcad3d/Linux_x86_64/plugins/cut1/* processes (NC-programs, executables)
   /usr/share/applications/gcad3d.desktop     Desktop-starter
-  /usr/share/pixmaps/gCAD3D.xpm              icon for Desktop-starter
+  /usr/share/pixmaps/gcad3d.xpm              icon for Desktop-starter
   /usr/share/gcad3d/examples.gz              zipfile for userspace
   /usr/share/gcad3d/icons/*                  icons for executable
-  /usr/share/doc/gcad3d/changelog.Debian.gz, copyright
-  /usr/share/doc/gcad3d/html/*               documentation
-  /usr/share/doc/gcad3d/msg/*                software-message-files
+  /usr/share/gcad3d/doc/html/*               documentation
+  /usr/share/gcad3d/doc/msg/*                software-message-files
+  /usr/share/doc/gcad3d/LICENSE, README, NEWS
 
 Userfiles:
   $HOME/gCAD3D/tmp/                          temporary files

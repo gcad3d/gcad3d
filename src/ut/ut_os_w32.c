@@ -530,57 +530,34 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
-  char* OS_get_lang  () {
+  int OS_get_lang  (char *sLang) {
 //================================================================
-// returns language  de|en|fr|it|es
+/// returns system-language; eg "de" or "en"
+/// retCod: 0=OK; -1= defaulted to "en"
 
+
+  int  i1;
   char *p1;
-
-/*
-  p1 = getenv("LANG");
-  if(p1) {
-    sprintf(txbuf, "%s",p1);
-    txbuf[0] = tolower (txbuf[0]);
-    txbuf[1] = tolower (txbuf[1]);
-    txbuf[2] = '\0';
-    // test if language is known
-    if((!strcmp(txbuf,"de")) ||
-       (!strcmp(txbuf,"en")) ||
-       (!strcmp(txbuf,"fr")) ||
-       (!strcmp(txbuf,"es")) ||
-       (!strcmp(txbuf,"it"))) goto L_exit;
-  }
-*/
 
 
 
   // i1 = GetSystemDefaultUILanguage ();
-  GetLocaleInfoA (LOCALE_SYSTEM_DEFAULT, LOCALE_SABBREVLANGNAME, txbuf, 240);
-  txbuf[0] = tolower (txbuf[0]);
-  txbuf[1] = tolower (txbuf[1]);
-  txbuf[2] = '\0';
+  i1 = GetLocaleInfoA (LOCALE_SYSTEM_DEFAULT, LOCALE_SABBREVLANGNAME, txbuf, 240);
+  if(i1) {
+    txbuf[0] = tolower (txbuf[0]);
+    txbuf[1] = tolower (txbuf[1]);
+    txbuf[2] = '\0';
+    i1 = 0;
+  } else {
+    printf("**** ERROR OS_get_lang *****************\n");
+    strcpy(sLang, "en");
+    i1 = -1;
+  }
 
-  if(!strcmp(txbuf,"ge")) { strcpy(txbuf,"de"); goto L_exit; }
-  if(!strcmp(txbuf,"sp")) { strcpy(txbuf,"es"); goto L_exit; }
-
-  if((!strcmp(txbuf,"de")) ||
-     (!strcmp(txbuf,"en")) ||
-     (!strcmp(txbuf,"fr")) ||
-     (!strcmp(txbuf,"ru")) ||
-     (!strcmp(txbuf,"ms")) ||
-     (!strcmp(txbuf,"es")) ||
-     (!strcmp(txbuf,"it"))) goto L_exit;
-
-
-
-  L_set_def:
-    // printf("**** $LANG |%s| not supported.\n",p1);
-
-  strcpy(txbuf, "en");
 
   L_exit:
-  // printf("ex OS_get_lang |%s|\n",txbuf);
-  return txbuf;
+    printf("ex OS_get_lang |%s|\n",sLang);
+  return i1;
 
 }
 

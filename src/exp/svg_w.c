@@ -529,6 +529,7 @@ extern int     APT_dispPT;
 // write obj ox1 -> svg-file
 // see also dxfw_rec
 
+
   int      typ, i1, i2, i3, i4, i5, i6, i7, i8;
   double   d1, d2;
 

@@ -847,42 +847,32 @@ static char txbuf[256];
 
 
 //================================================================
-  char* OS_get_lang  () {
+  int OS_get_lang  (char *sLang) {
 //================================================================
-/// returns language; eg "de" or "en"
+/// returns system-language; eg "de" or "en"
+/// retCod: 0=OK; -1= defaulted to "en"
 
+  int  i1=0;
   char *p1;
 
 
-  p1 = getenv("LANG");
+  p1 = getenv("LANG");     printf("OS_get_lang |%s|\n",p1);
+
 
   if(p1) {
-    snprintf(txbuf, 3, "%s",p1);
+    // get first 2 chars + terminating '\0'
+    snprintf(sLang, 3, "%s",p1);
       // printf(" txbuf=|%s|\n",txbuf);
 
-
-    // test if language is known
-    UTX_chg_2_lower (txbuf);
-
-    if((!strcmp(txbuf,"de")) ||
-       (!strcmp(txbuf,"en")) ||
-       (!strcmp(txbuf,"fr")) ||
-       (!strcmp(txbuf,"ru")) ||
-       (!strcmp(txbuf,"ms")) ||
-       (!strcmp(txbuf,"es")) ||
-       (!strcmp(txbuf,"it"))) goto L_exit;
+  } else {
+    printf("**** ERROR OS_get_lang *****************\n");
+    strcpy(sLang, "en");
+    i1 = -1;
   }
 
-  L_set_def:
-    printf("**** $LANG |%s| not supported.\n",p1);
+    printf("ex OS_get_lang |%s|\n",sLang);
 
-  strcpy(txbuf, "en");
-
-  L_exit:
-
-    // printf("ex OS_get_lang |%s|\n",txbuf);
-
-  return txbuf;
+  return i1;
 
 }
 

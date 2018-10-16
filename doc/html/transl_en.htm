@@ -13,34 +13,28 @@
 Find message- and info-files in these directories -
   (see symbol {docdir} in gcad-startup):
 Linux:
-  /usr/share/doc/gcad3d/
+  /usr/share/gcad3d/doc/msg/    and
+  /usr/share/gcad3d/doc/html/
 MS-Win:
   "%ProgramFiles%\gCAD3D\doc"
 
 
 To add a new language provide the files:
-msg/msg_{languageCode}.txt
+    ../msg/msg_{languageCode}.txt
   and
-msg/msg_const_{languageCode}.txt
-
-
-languageCode consists of 2 characters;
-Linux: 
-
-MS-Win:
+    ../msg/msg_const_{languageCode}.txt
 
 
 
 First line of msg/msg_{languageCode}.txt provides the language-name.
 
 If a file msg/msg_{languageCode}.txt exists,
-  gcad will provide this language (see menu "Help").
+  gcad will provide this language in  menu "Help".
 
 
 The documentation ({docdir}/html/) also is using {languageCode}.
 The user-documentation is:
-{docdir}/html/gCAD3D_{languageCode}.htm
-eg. (Linux, english) /usr/share/doc/gcad3d/html/gCAD3D_en.htm
+eg. (Linux, english) /usr/share/gcad3d/doc/html/gCAD3D_en.htm
 
 
 

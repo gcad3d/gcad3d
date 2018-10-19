@@ -8176,7 +8176,11 @@ box1
   TX_Print("***** languge modified *****");
   MSG_pri_0 ("MM0");
 
-  TX_Print("HOW TO IMPROVE DOCUMENTATION: see Help/Translations");
+  // for full functionanlity restart gcad3d.
+  MSG_pri_0 ("Lang_chg1");
+
+
+  // TX_Print("HOW TO IMPROVE DOCUMENTATION: see Help/Translations");
 
 
   return 0;

@@ -246,20 +246,30 @@ if [ $? -ne 0 ] ; then
 fi
 # compile ..
 ./do guiinit
-  exit 0
+  exit $?
 fi
 
 
 
 if test "$1" = "guiinit"; then
+  # delete objs.(see ../gui/gui_gtk#.mak)
   make -f gcad_gui__.mak delete
-  if [ $? -ne 0 ]; then exit 1; fi
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI delete *******"
+    exit 1;
+  fi
 
   make -f gcad_gui_lnk.mak
-  if [ $? -ne 0 ]; then exit 1; fi
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI build so *******"
+    exit 1;
+  fi
 
   make -f gcad_gui__.mak link
-  if [ $? -ne 0 ]; then exit 1; fi
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI make link to so *******"
+    exit 1;
+  fi
 
   exit 0
 fi

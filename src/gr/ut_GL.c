@@ -5951,7 +5951,7 @@ static double old_view_Z = 0.;
   GL_cen.y = pt2.y;
   // GL_cen.z = pt2.z;    // MUSS gleich sein !!
   // printf("  new cen=%f,%f,%f\n",GL_cen.x, GL_cen.y, GL_cen.z);
-  TX_Print("ViewCenter %9.3f,%9.3f,%9.3f\n",GL_cen.x, GL_cen.y, GL_cen.z);
+  // TX_Print("ViewCenter %9.3f,%9.3f,%9.3f\n",GL_cen.x, GL_cen.y, GL_cen.z);
 
   DL_Set_Cen2D ();  // set ew 2D-screenCenter-position
 

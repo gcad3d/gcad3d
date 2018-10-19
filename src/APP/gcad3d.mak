@@ -5,7 +5,7 @@
 # make allDemos                build all demo-DLL's xa_XX.so
 #
 # USING SYMBOLS (. ../options.sh):
-# gcad_dir_dev gcad_dir_bin hTyp
+# gcad_dir_dev gcad_dir_bin
 #
 
 #OPSYS = `uname`

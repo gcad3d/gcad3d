@@ -1,10 +1,15 @@
 # include-File to link gCAD3D-Plugins (DLLs)
 # gcad_dir_bin must be set (. ../options.sh)
 #
-# used symbols: gcad_dir_bin VGUI
+# USING SYMBOLS:
+# gcad_dir_bin SRC1
+# 
 
 # get VGUI 
 VGUI := $(shell cat ../gcad_gui_version)
+
+# eg Linux_x86_64
+hTyp := $(shell echo "`uname -s`_`uname -m`")
 
 
 # debug-settings DEB CPDEB LKDEB
@@ -22,6 +27,7 @@ include srcOS.mak
 ifndef gcad_dir_bin
 $(error ERROR - gcad_dir_bin undefined. Start with "./do c" or do ". ../options.sh")
 endif
+
 
 
 ifeq "$(SRCTYP)" "cpp"
@@ -72,9 +78,8 @@ endif
 #=====================================================================
 #default:
 default: $(OBJ1)
-	@echo "gcad_dll build $(DLLNAM) gui = $(VGUI) .."
+	@echo "gcad_dll build $(DLLNAM) gui: $(VGUI) hTyp: $(hTyp)"
 	@echo " VPATH: $(VPATH)"
-	@echo $(OBJ1)
 	@echo ====================== Link ======================
 	cd $(gcad_dir_bin) &&\
 	$(CC) -o $(DLLNAM).$(FTYP) $(LKDEB) $(OBJ1)\

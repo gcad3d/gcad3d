@@ -387,6 +387,7 @@ pluginErr0=rebuild not possible - compiler or linker not found.
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}
 SAVusm=Save unused submodel  {0}  ?
+Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=last input clockwise
 ED1CCW=last input counterclockwise

@@ -9,14 +9,8 @@
 VGUI := $(shell cat ../gcad_gui_version)
 
 
-# get debug-settings DEB
-include deb.mak
-
-
 # get SRCGUI (filList), GUICP (compile with gui), GUILIB (link with gui)
 include ../gui/gui_$(VGUI).mak
-
-
 
 
 DLLNAM = xa_gui_$(VGUI)

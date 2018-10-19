@@ -387,6 +387,7 @@ pluginErr0=Neukompilierung nicht möglich - Compiler oder Linker nicht gefunden.
 pluginErr1=Fehler in Anwendungsprogramm  {0} ; Abbruch.
 FileOp=beim Öffnen von Datei  {0}
 SAVusm=nicht benutztes Submodel  {0}  speichern ?
+Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=Drehrichtung Uhrzeigersinn für letzte Eingabe
 ED1CCW=Drehrichtung Gegenuhrzeigersinn für letzte Eingabe

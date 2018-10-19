@@ -75,9 +75,9 @@ install ${gcad_dir_dev}src/gcad3d %{outDir}/usr/bin/gcad3d
 
 
 # copy executable and libs -> /usr/lib/gcad3d/Linux_x86_64/.
-mkdir -p %{outDir}/usr/lib/gcad3d/%{hTyp}
-mkdir -p %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins
-mkdir -p %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
+mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}
+mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins
+mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
 
 install -m 755 ${gcad_dir_bin}/gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 ${gcad_dir_bin}/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
@@ -87,10 +87,10 @@ install -m 755 ${gcad_dir_bin}/plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/p
 
 
 # copy demo-models, icons, help-files
-mkdir -p %{outDir}/usr/share/gcad3d
-mkdir -p %{outDir}/usr/share/gcad3d/icons
-mkdir -p %{outDir}/usr/share/gcad3d/doc/html
-mkdir -p %{outDir}/usr/share/gcad3d/doc/msg
+mkdir -p -m 755 %{outDir}/usr/share/gcad3d
+mkdir -p -m 755 %{outDir}/usr/share/gcad3d/icons
+mkdir -p -m 755 %{outDir}/usr/share/gcad3d/doc/html
+mkdir -p -m 755 %{outDir}/usr/share/gcad3d/doc/msg
 
 install -m 644 ${gcad_dir_dev}packages/examples.gz %{outDir}/usr/share/gcad3d/.
 install -m 644 %{icoDir}/*.png        %{outDir}/usr/share/gcad3d/icons/.
@@ -104,21 +104,21 @@ install -m 644 %{docDir}/msg/*.txt    %{outDir}/usr/share/gcad3d/doc/msg/.
 
 
 # copy desktop-starter -> /usr/share/applications/gcad3d.desktop
-mkdir -p %{outDir}/usr/share/applications
+mkdir -p -m 755 %{outDir}/usr/share/applications
 
 install -m 644 ${gcad_dir_dev}src/gcad3d.desktop  %{outDir}/usr/share/applications/.
 
 
 
 # copy pixmap for desktop-starter -> /usr/share/pixmaps/gcad3d.xpm
-mkdir -p %{outDir}/usr/share/pixmaps
+mkdir -p -m 755 %{outDir}/usr/share/pixmaps
 install -m 644 %{icoDir}/gCAD3D.xpm %{outDir}/usr/share/pixmaps/gcad3d.xpm
 
 
 
 
 # copy README LICENSE LICENSE_GPLv3.txt gCAD3D_log.txt -> /usr/share/doc/gcad3d/
-mkdir -p %{outDir}/usr/share/doc/gcad3d
+mkdir -p -m 755 %{outDir}/usr/share/doc/gcad3d
 
 install -m 644 ${gcad_dir_dev}README             %{outDir}/usr/share/doc/gcad3d/.
 install -m 644 ${gcad_dir_dev}LICENSE            %{outDir}/usr/share/doc/gcad3d/.

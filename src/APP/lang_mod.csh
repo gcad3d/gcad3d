@@ -19,8 +19,8 @@ START:
 # END TESTBLOCK
 set keyWd = $1
 shift
-echo $keyWd
-echo $*
+#echo $keyWd
+#echo $*
 
 
 foreach fn (`ls ../../doc/msg/* | grep msg_...txt`)

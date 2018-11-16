@@ -271,8 +271,8 @@ void INF_OTYP (){}
 #define Typ_IndTab       202   ///< IndTab, container
 #define Typ_ObjRange     203   ///< ObjRange
 #define Typ_ObjSRC       204   ///< ObjSRC
-#define Typ_ObjGX        205   ///< ObjGX
-#define Typ_ObjG2        206   ///< deprec
+#define Typ_ObjGX        205   ///< ObjGX,  container
+#define Typ_ObjTab       206   ///< ObjTab, container         was Typ_ObjG2
 #define Typ_ObjTXTSRC    207   ///< ObjTXTSRC 
 #define Typ_ObjDB        208   ///< ObjDB
 #define Typ_ObjAto       209   ///< ObjAto

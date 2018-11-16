@@ -130,6 +130,7 @@ zB. Absolut-Bit setzen (mit OR):      obj.att = obj.att | ATT_BIT_ABS;
 // these additional memory-spaces cannot be allocated in OBJ_UNKNOWN.
 // For this curves additional 'Memspc' is necessary.
 typedef struct {char dat[OBJ_SIZ_MAX];} Obj_Geo_Unknown;
+// see ObjBin
 
 
 
@@ -244,6 +245,27 @@ typedef struct {short typ, form; void *data;
 // size = 12
 
 
+/// \brief table of binary-objects      ObjTab    Typ_ObjTab
+/// \code
+/// oSiz   size of oTyp, oDat
+/// oNr    used nr of objects int oTyp, oDat
+/// oTyp   table of types
+/// oDat   table of pointers to binary-object into oSpc
+/// oSpc   keeps the binary-objects
+/// spcTypTyp type of space for oTyp and oDat
+/// spcTypSpc type of space for oSpc
+///        spcTyp  0=no-space-given;
+///                1=malloc-type=can-reallocate,must-free;     MEMSPCTYP_MALLOC__
+///                2=malloc-type=can-reallocate,must-NOT-free; MEMSPCTYP_MALLOC_FIX
+///                2=fixed-CANNOT-reallocate;must-free;        
+///                3=fixed-CANNOT-reallocate;must-NOT-free;    MEMSPCTYP_FIX__
+///                4=stack,CANNOT-reallocate,must-NOT-free;    MEMSPCTYP_STACK
+/// \endcode
+typedef struct {void **oDat; Memspc oSpc; int *oTyp, oSiz, oNr;
+                char spcTypTyp, spcTypSpc, uu2, uu3;}               ObjTab;
+// size = 64
+
+
 /// \brief Typ_Group DB-Objects        Typ_ObjDB
 /// \code
 /// typ   DB-typ
@@ -326,6 +348,7 @@ typedef union {Point pt; Vector vc; Line ln; Circ ci;}              ObjUX;
 
 
 typedef struct {int typ; char obj[OBJ_SIZ_MAX];}                    ObjBin;
+// see Obj_Geo_Unknown
 
 
 /// \brief ContourCurve
@@ -1331,7 +1354,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_swap2pt (Point2 *p1, Point2 *p2);
  Point2 UT2D_pt_pt3 (Point *);
  void   UT2D_pt_2db (Point2 *, double, double);
- int    UT3D_pt_pt2bp (Point *p3, Point2 *p2, int bp);
+ int    UT3D_pt_tra_pt2_bp (Point *p3, Point2 *p2, int bp, double *bph);
  void   UT2D_pt_addpt (Point2 *, Point2 *);
  void   UT2D_pt_add_vc__ (Point2 *, Vector *);
  void   UT2D_pt_sub_pt3 (Point2 *, Point *);
@@ -1753,7 +1776,7 @@ ObjG   UT3D_obj_ci  (Circ*);
 // ObjG   UT3D_obj_obj2 (ObjG2 *o2);
 
 int    UT3D_bp_2pt (Point *pt1, Point *pt2);
-int    UT3D_bp_vc_ (Vector*);
+int    UT3D_bp_vc__ (Vector*);
 int    UT3D_bp_vcz (Vector*);
 void   UT3D_pl_XYZ (Plane *pl1);
 int    UT3D_pl_bpdb (Plane *plo, int bp, double dbc);

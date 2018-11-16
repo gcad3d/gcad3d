@@ -1280,7 +1280,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 ///   typSel      typ of selected obj
 ///   indSel      DB-ind of selected obj
 ///   subtypSel   type of curve if typSel=Typ_CV
-///   ccvtypSel   typ of selected obj inside CCV if typSel=Typ_CCV
+///   ccvtypSel   typ of selected obj inside CCV if typSel=Typ_CVTRM
 ///   iSeg        segmentNr in Polygon or in CCV
 ///   iSubSeg     segmentNr of Polygon inside CCV
 ///   lpar        Curveparameter 0-1 if sSel<0

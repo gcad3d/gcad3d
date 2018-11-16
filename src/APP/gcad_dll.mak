@@ -44,18 +44,31 @@ CC = gcc
 #CC = g++
 
 
-ifeq "$(hTyp)" "Linux_i386"
-FTYP = so
-CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
-CPPFLG = -fPIC $(CPDEB)
-LKFLG = -shared -export-dynamic
-endif
-
-ifeq "$(hTyp)" "Linux_x86_64"
+# compile and linkOptions; default = 64-bit "Linux_x86_64"
 FTYP = so
 CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 CPPFLG = -fPIC $(CPDEB)
 LKFLG = $(LKDEF) -shared
+
+ifeq "$(hTyp)" "Linux_i386"
+FTYP = so
+CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP) -Wno-implicit
+CPPFLG = -fPIC $(CPDEB)
+LKFLG = -shared -export-dynamic
+endif
+
+ifeq "$(hTyp)" "Linux_i586"
+FTYP = so
+CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP) -Wno-implicit
+CPPFLG = -fPIC $(CPDEB)
+LKFLG = -shared -export-dynamic
+endif
+
+ifeq "$(hTyp)" "Linux_i686"
+FTYP = so
+CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP) -Wno-implicit
+CPPFLG = -fPIC $(CPDEB)
+LKFLG = -shared -export-dynamic
 endif
 
 # Raspi:
@@ -69,7 +82,6 @@ endif
 
 #ifeq "$(OS)" "MSGCC32"
 #FTYP = dll
-#gcad_dir_bin=../bin$(OS)
 #LKFLG = -shared gCAD3D.lib
 #endif
 

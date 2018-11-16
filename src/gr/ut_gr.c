@@ -120,6 +120,7 @@ GR_Disp_iSur          display tesselated faces (using fmt pmt imt)
 GR_Draw_obj           display obj from typ+struct
 GR_Draw_ox            display of ObjGX-structs
 GR_Draw_dbo           display DB-obj (typ+dbInd)
+GR_Draw_otb           disp binary-object-table
 GR_Draw_vc            display 3D-Vector; length true or normalized
 GR_Draw_spu
 GR_DrawSup
@@ -127,9 +128,11 @@ GR_DrawSup
 GR_create_dummy       create a dummy DL-record; in DL and in GL.
 GR_CrePoint
 GR_DrawPoint
+GR_Draw_ln2           draw 2D-line
 GR_CreLine
 GR_DrawLine
 GR_CreCirc
+GR_Draw_ci2           draw 2D-circle
 GR_DrawCirc
 GR_CrePoly
 GR_DrawPoly
@@ -1512,6 +1515,80 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
+//====================================================================
+  void GR_Draw_ci2 (long *dli, long dbi, int attInd, Circ2 *cii) {
+//====================================================================
+/// \code
+///   GR_Draw_ci2          draw 2D-circle
+/// Input:
+///   ind          dli
+///   attInd       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+/// \endcode
+
+  int     ptNr;
+  double  z1=0.;
+  Point2  *pa2;
+
+
+  UT3D_stru_dump (Typ_CI2, cii, "GR_Draw_ci2 dli=%ld, dbi=%ld att=%d",
+                  *dli, dbi, attInd);
+    
+
+  // fix nr of points according to modelsize
+  ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
+     printf(" ptNr=%d\n",ptNr);
+
+  // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
+  pa2 = (Point2*)MEM_alloc_tmp((int)(sizeof(Point2)*ptNr));
+
+
+  // circ2 -> polygon
+  UT2D_npt_ci (pa2, ptNr, cii);
+
+
+// TODO: backplane,z-val ??
+  // display polygon
+  // z1 = ci1->pc.z;
+  GL_DrawPoly2D (dli, attInd, ptNr, pa2, z1);
+
+
+  // disp direction
+  if(APT_dispDir) {
+    int   ipe;
+    Point pt31, pt32;
+    ipe = ptNr - 1;
+    // make 3D-points
+    pt31 = UT3D_pt_pt2z (&pa2[ipe], z1);
+    pt32 = UT3D_pt_pt2z (&pa2[ipe - 1], z1);
+    APT_disp_dir (&pt31, &pt32);
+  }
+
+}
+
+
+
+
+//====================================================================
+  void GR_Draw_ln2 (long *ind, int iAtt, Line2 *ln1) {
+//====================================================================
+/// \code
+///   GR_Draw_ln2          draw 2D-line
+/// Input:
+///   ind          dli
+///   attInd       see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
+/// \endcode
+// see GR_DrawLine GR_Disp_cv
+
+  // UT3D_stru_dump(Typ_LN2, ln1, "GR_Draw_ln2 %d", iAtt);
+
+  GL_Draw_ln2 (ind, iAtt, ln1);
+
+  // disp direction
+  if(APT_dispDir) {
+    APT_disp_dir (&ln1->p2, &ln1->p1);
+  }
+
+}
 
 
 //====================================================================
@@ -1525,7 +1602,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 /// \endcode
 
 
-  Line lnTr;
+  // Line lnTr;
 
 
   // printf("GR_DrawLine %f,%f,%f\n",ln1->p1.x,ln1->p1.y,ln1->p1.z);
@@ -1571,25 +1648,17 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-
-  // printf("GR_DrawCirc dbi=%ld pc %f,%f,%f\n",dbi,cii->pc.x,cii->pc.y,cii->pc.z);
-  // printf ("  von %f,%f,%f\n",cii->p1.x,cii->p1.y,cii->p1.z);
-  // printf ("  bis %f,%f,%f\n",cii->p2.x,cii->p2.y,cii->p2.z);
-  // printf ("  vz  %f,%f,%f\n",cii->vz.dx,cii->vz.dy,cii->vz.dz);
-  // printf ("  rad=%f\n",cii->rad);
+  // UT3D_stru_dump (Typ_CI, cii, "GR_DrawCirc %ld",dbi);
   // printf("GR_DrawCirc UT_DISP_cv=%f\n",UT_DISP_cv);
 
 
+/*
   // if(APT_3d_mode == ON) goto L_3D_Circ;
-
 
   // find nr of points necessary
   // fix nr of points according to modelsize
   ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
      // printf(" ptNr=%d\n",ptNr);
-
-
-
 
   // ist ein refsys aktiv ?
   // if(APT_2d_to_3d_mode == ON) {
@@ -1600,9 +1669,6 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     ci1 = cii;
   // }
 
-
-
-/*
   //======================================================================//
   //  test 2D - circle //
   //======================================================================//
@@ -1611,40 +1677,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   if(fabs(ci1->vz.dy) > UT_TOL_min1) goto L_3D_Circ;
   if((fabs(ci1->vz.dz) - 1.0) > UT_TOL_min1) goto L_3D_Circ;
 
-
-  // printf(" draw 2D_Circ\n");
-
-
-  // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
-  pa2 = (Point2*)MEM_alloc_tmp((int)(sizeof(Point2)*ptNr));
-
-  // make 2D-circ from 3D-circ
-  UT2D_ci_ci3 (&ci2, ci1);
-
-  // circ2 -> polygon
-  UT2D_npt_ci (pa2, ptNr, &ci2);
-
-
-  // display polygon
-  z1 = ci1->pc.z;
-  GL_DrawPoly2D (dli, attInd, ptNr, pa2, z1);
-
-
-  // disp direction
-  if(APT_dispDir) {
-    int   ipe;
-    Point pt31, pt32;
-    ipe = ptNr - 1;
-    // make 3D-points
-    pt31 = UT3D_pt_pt2z (&pa2[ipe], z1);
-    pt32 = UT3D_pt_pt2z (&pa2[ipe - 1], z1);
-    APT_disp_dir (&pt31, &pt32);
-  }
-
-
-  return 0;
+  // see GR_Draw_ci2
 */
-
 
   /*======================================================================*/
   /*  3D-Circle */
@@ -1660,10 +1694,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     if(irc < 0) return -1;
 
   } else {
+    // fix nr of points according to modelsize
+    ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
+       // printf(" ptNr=%d\n",ptNr);
     // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
     pa3 = (Point*)MEM_alloc_tmp((int)(sizeof(Point)*ptNr));
     // get pa3 = circular polygon (compute)
-    UT3D_npt_ci (pa3, ptNr, ci1);
+    UT3D_npt_ci (pa3, ptNr, cii);
     // UT3D_cv_ci (GLT_pta, &ptNr, ci1, ptAnz, UT_DISP_cv);
   }
 
@@ -1701,7 +1738,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   form = cv1->form;
 
-  printf("GR_DrawCurv dli=%ld att=%d\n",*dli,att);
+  // printf("GR_DrawCurv dli=%ld att=%d\n",*dli,att);
   // UT3D_stru_dump (Typ_ObjGX, cv1, "  cv1:");
 
 
@@ -2893,47 +2930,50 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   int GR_DrawCvCCV (long *dli, long dbi, int att, ObjGX *cv1, Memspc *tbuf1) {
 //============================================================================
 // display DB-obj - trimmed-curve 
+// att unused !?
 
-  int    irc, ptNr, paSiz;
+  int    irc, ptNr, paSiz, iAtt;
   int    ipe;
-  void   *msPos;
+  void   *msPos = NULL;
   Point  *pta;
 
 
   // printf("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD \n");
   // UTO_dump__ (cv1, "GR_DrawCvCCV dbi=%ld",dbi);
+  // UT3D_stru_dump (Typ_Memspc, tbuf1, "tbuf1-1");
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
 
 
-  msPos = UME_get_next (tbuf1);  // keep free pos of tbuf1
 
-/*
-  // get space for points in tbuf1
-  paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
-  pta = UME_reserve (tbuf1, paSiz * sizeof(Point));
-  ptNr = 0;
-  irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, cv1, UT_DISP_cv);
-  if(irc < 0) return -1;
-*/
 
   //----------------------------------------------------------------
   // get pta = polygon 
   if((dbi > 0)&&(APT_obj_stat == 0)) {
+  // if(APT_obj_stat == 0) {
     // CCV -> Polygon from polygonal representation;
     irc = PRCV_npt_dbo__ (&pta, &ptNr, Typ_CVTRM, dbi, WC_modact_ind);
     if(irc < 0) return -1;
 
-  } else {
 
+  //----------------------------------------------------------------
+  } else {
     // CCV -> Polygon - dynamic view only.
     // get space for points in tbuf1
+    msPos = UME_get_next (tbuf1);  // keep free pos of tbuf1
     paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
+      // printf("  paSiz-1 = %d points\n",paSiz);
+    if(paSiz < 0) {
+      // empty; get stack-space
+      UME_init (tbuf1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+      paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
+        // printf("  paSiz-2 = %d points\n",paSiz);
+    }
     pta = UME_reserve (tbuf1, paSiz * sizeof(Point));
     // ptNr = 0;
     ptNr = paSiz; // 2017-09-26
-    // CCV -> Polygon
+    // CCV -> Polygon.                   Was UT3D_npt_trmCv ()
     irc = UT3D_pta_ox_lim (&ptNr, pta, cv1, 0, NULL, UT_DISP_cv, APT_obj_stat);
-      // printf("nach UT3D_pta_cvcomp %d %d\n",irc,ptNr);
+      // printf(" ex-UT3D_pta_cvcomp irc=%d ptNr=%d\n",irc,ptNr);
     if(irc < 0) return -1;
   }
 
@@ -2953,19 +2993,37 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     // END TESTBLOCK
 
 
-    // APT_dispDir=1; // TEST !
+    // APT_obj_stat   0=OK, 1=workmode (obj in statu nascendi
+    // APT_dispDir    1=display ObjDirection; 0=not
 
+
+  if(APT_obj_stat) iAtt = Typ_Att_hili1;  // hilite for statu-nascendi
+  else             iAtt = Typ_Att_hili;   // normal
+
+  // display
+  GL_DrawPoly (dli, iAtt, ptNr, pta);
+
+
+  // display ObjDirection; also in  statu-nascendi ("S0=CCV ..")
+  if((APT_dispDir)||(APT_obj_stat)) {
+    // disp-dir or statu-nascendi is on
+    APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
+  }
+
+
+/*
   if((!APT_dispDir)&&(*dli > 0)) {
     // display normal without direction-arrow
     // for CCV in statu nascendi ("S0=CCV .."): display also direction
     GL_DrawPoly (dli, Typ_Att_hili, ptNr, pta);
 
   } else {
-    // disp curve with direction-arrow
+    // disp curve hilited with direction-arrow
     GL_Draw_cvp_dir (dli, Typ_Att_hili1, ptNr, pta);
   }
+*/
 
-  UME_set_next (msPos, tbuf1);   // restore wrkSpc
+  if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
 
   return 0;
 
@@ -3820,7 +3878,7 @@ int GR_Delete (long ind)                               {return 0;}
   // pta  = (Point*)memspc101;
   // ptNr = sizeof(memspc101) / sizeof(Point);
 
-  UME_connect (pta, tbuf1); 
+  pta = UME_get_next (tbuf1); 
   ptNr = UME_ck_free (tbuf1) / sizeof(Point);
      printf(" _Disp_ccv - %d free points\n",ptNr);
 
@@ -5468,8 +5526,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 ///              ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|
 ///              ATT_COL_YELLOW|ATT_COL_MAGENTA|ATT_COL_CYAN|ATT_COL_WHITE
 ///              ATT_COL_HILI|ATT_COL_DIMMED
-///            Typ_CI|Typ_CVBSP|Typ_PLN:   see INF_COL_CV
-///   mode     Typ_PT|Typ_CI|Typ_CV*: unused;
+///            Typ_CI|Typ_LN|Typ_CV*|Typ_PLN:   see INF_COL_CV
+///   mode     Typ_PT|Typ_LN|Typ_CI|Typ_CV*: unused;
 ///            Typ_SymB: SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
 ///            Typ_PLN:  1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis;
 /// 
@@ -5487,14 +5545,14 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   int       irc, oTyp, i1;
   long      dbi;
   void      *p1;
-  ObjGX     *ox2, ogx;
-  Memspc    tSpc1;
   void      *o1;
   Point     pt1;
   DL_Att    *att1;
+  ObjGX     *ox2, ogx;
+  Memspc    tSpc1 = UME_NEW;
 
 
-  // printf("GR_Draw_obj dli=%ld att=%d form=%d\n",*dli,att,form);
+  printf("GR_Draw_obj dli=%ld att=%d form=%d\n",*dli,att,form);
   // UT3D_stru_dump (typ, obj, "  obj");
 
 
@@ -5535,11 +5593,21 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
       break;
 
     //================================================================
+    case Typ_LN2:
+      GR_Draw_ln2 (dli, att, (Line2*)obj);
+      break;
+
+    //================================================================
     case Typ_CI:
       dbi = DL_get_dbi (*dli);
       GR_DrawCirc (dli, dbi, att, (Circ*)obj);
       break;
 
+    //================================================================
+    case Typ_CI2:
+      dbi = DL_get_dbi (*dli);
+      GR_Draw_ci2 (dli, dbi, att, (Circ2*)obj);
+      break;
 
     //================================================================
     case Typ_CVELL:
@@ -5561,10 +5629,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_CVTRM:
-      UME_init (&tSpc1, memspc201, sizeof(memspc201));
-      // GR_DrawCvCCV (dli, att, obj, &tSpc1);
       OGX_SET_OBJ (&ogx, Typ_CVTRM, Typ_CVTRM, oNr, obj);
-      dbi = DL_get_dbi (*dli);
+      // dbi = DL_get_dbi (*dli);
+      dbi = ((CurvCCV*)obj)->dbi;
+        printf(" CVTRM-dbi=%ld dli=%ld\n",dbi,*dli);
+      // UME_init (&tSpc1, memspc201, sizeof(memspc201));
+      // GR_DrawCvCCV (dli, att, obj, &tSpc1);
       GR_DrawCvCCV (dli, dbi, att, &ogx, &tSpc1);
       break;
 
@@ -5589,6 +5659,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
       TSU_DrawSurTBSP ((SurBSpl*)obj, att, -1L);
       break;
 
+    //================================================================
+    case Typ_ObjTab:     // binary-objects-table
+      GR_Draw_otb (dli, att, obj); // ObjTab
+      break;
 
 
     //================================================================
@@ -5665,6 +5739,48 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   dli = DL_StoreObj (typ, -1L, att);
 
   return GR_Draw_dbo (&dli, typ, dbi, att, mode);
+
+}
+
+
+//================================================================
+  int GR_Draw_otb (long *dli, int att, ObjTab *otb1) {
+//================================================================
+// GR_Draw_otb           disp binary-object-table
+// does not support not-connected-objects !
+
+  int    irc, i1, pnr, paSiz;
+  double tol;
+  Point  *pta;
+
+
+  printf("GR_Draw_otb att=%d oNr=%d\n",att,otb1->oNr);
+  UT3D_stru_dump (Typ_ObjTab, otb1, "GR_Draw_otb-1");
+
+
+  // get stack-space for points
+  pta = MEM_alloc_tmp (SPC_MAX_STK);
+  paSiz = SPC_MAX_STK / sizeof(Point);
+  pnr = 0;
+  tol = UT_DISP_cv;
+    printf("  paSiz = %d points tol=%f\n",paSiz,tol);
+
+
+  // make a polygon from otb1 and disp objects
+  irc = UT3D_pta_otb (&pnr, pta, otb1, paSiz, tol);
+  if(irc < 0) return -1; 
+
+
+  // open GL mode=0(curves)
+  GL_Draw_Ini1 (dli, att, 0);
+
+  // glBegin(GL_LINE_STRIP);..glEnd();
+  GL_Disp_cv (pnr, pta);
+
+  // close GL
+  GL_EndList1 (0);
+
+  return 0;
 
 }
 

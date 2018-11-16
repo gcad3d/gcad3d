@@ -64,6 +64,10 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+see also CVTRM__otb__         create trimmed-curve from object-table
+
+
+CNTF creates contour (trimmed-curves) from user-selections.
 
 */
 

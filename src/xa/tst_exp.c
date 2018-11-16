@@ -1267,27 +1267,6 @@ extern long       GR_TAB_IND;
 //================================================================
 
 
-//================================================================
-  int UT3D_hbp_bppt (double *hbp, int bp, Point *pt) {
-//================================================================
-// Hoehenwert der Backplane aus Punkt uebernehmen
-
-
-  if(bp == 0) {        // BCKPLN_YZ
-    *hbp = pt->x;
-
-  } else if(bp == 1) { // BCKPLN_XZ
-    *hbp = pt->y;
-
-  } else if(bp == 2) { // BCKPLN_XY
-    *hbp = pt->z;
-  }
-
-  printf("ex UT3D_hbp_bppt %f\n",*hbp);
-  return 0;
-
-}
-
 
 //===========================================================================
   int UT3D_3ipt_ckfar_npt (int *i1, int *i2, int *i3, int pNr, Point *pTab) {

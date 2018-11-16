@@ -37,6 +37,14 @@ void UTO(){}
 =====================================================
 List_functions_start:
 
+--------- 2D functions for curves: ---------------------
+UTO2_pt_mid_obj         get centerpoint of 2D-obj
+
+UTO2_TNG_vc_obj         get point on 2D-curve (tangent from vector)
+UTO2_TNG_pt_obj         get point on 2D-curve (tangent from point)
+
+
+--------- 3D - functions ----------------------------
 --------- functions for curves: ---------------------
 UTO_ck_curvLimTyp       check if CurveLimits are Points or parameters
 UTO_ck_curvForm         check if objTyp is ObjGX or other typ
@@ -85,7 +93,6 @@ UTO_ptnr_std_obj        get nr of characteristic points for obj
 
 UTO_pt_eval_par1_dbo    get point from 0-1-parameter (curve from typ/ind)
 UTO_pt_midnobj          get midpoint of n objects
-UTO2_pt_mid_obj         get centerpoint of 2D-obj
 UT3D_vcn_cvo            Normalvector an (planare) Curve
 UT3D_vc_tng_crv_pt      vector tangent to curve at point
 
@@ -100,8 +107,6 @@ UTO_trim_2par1          trim (modify) obj from dataStruct by 2 parameters
 
 UTO_TNG_cv_cv           get tangent curve - curve (P,C,S; not D,A,B)
 UTO_TNG_vc_cv           get tangent vector - curve (P,C,S; not D,A,B)
-UTO2_TNG_vc_obj         get point on 2D-curve (tangent from vector)
-UTO2_TNG_pt_obj         get point on 2D-curve (tangent from point)
 UTO_TNG_maxSol          return max nr of tangent-solutions for objtype
 
 // UTO_obj_appprj          project obj > Plane         OBSOLETE: USE UPRJ_app__
@@ -8855,10 +8860,10 @@ static int traAct;
 
   *otyp = cvtrm->typ;    // 2014-07-20
 
-  // get base-curve
-  if(!cvi) {   // 2016-06-26
-    // for lines no base-curve necess. (have ip0,ip1)
-    if(cvtrm->typ != Typ_LN) {
+  // for lines no base-curve necess. (have ip0,ip1)
+  if(cvtrm->typ != Typ_LN) {
+    // get base-curve
+    if(!cvi) {   // 2016-06-26
       // base-curve not given; get it ..
       if(!cvtrm->dbi) {
         TX_Error("UTO_cv_cvtrm no-cvi;no-dbi.");
@@ -8866,7 +8871,7 @@ static int traAct;
       }
       irc = UTO_get_DB (&cvi, &oNr, otyp, cvtrm->dbi);
       if(irc < 0) return -1;
-        // UT3D_stru_dump (*otyp, cvi, " cvi");
+        // UT3D_stru_dump (*otyp, cvi, " _cvtrm-cvi");
         // printf("UTO_cv_cvtrm otyp=%d\n",*otyp);
     }
   }
@@ -9106,7 +9111,7 @@ static int traAct;
   }
 
 
-    // UT3D_stru_dump (*otyp, cvo, "ex UTO_cv_cvtrm");
+    // UT3D_stru_dump (*otyp, cvo, "ex-UTO_cv_cvtrm");
     // printf("____________________________________ \n");
 
 

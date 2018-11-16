@@ -29,6 +29,7 @@
   // void GR_DrawTxtG  (long *ind, int attInd,
                     // Point *pt1, float size, float ang, char *txt);
   void GR_DrawPoint (long*, int, Point*);
+  void GR_Draw_ln2  (long *ind, int iAtt, Line2 *ln1);
   void GR_DrawLine  (long *ind, int attInd, Line *ln1);
   int  GR_DrawCirc  (long *dli, long dbi, int attInd, Circ *ci1);
   void GR_DrawPoly  (long *ind, int attInd, int, Point*);

@@ -239,6 +239,8 @@ in IE_cad_init1: den Header fuer das neue Obj generieren und irgendwo darstellen
 
 
 ------------------------------------------
+Check if CAD is active:
+  if(UI_InpMode != UI_MODE_CAD) ..
 Die aktive Menuegruppe ist IE_FuncTyp (0=point .... 12=CUT/TRA/PRJ..)
   und auch menGrpInd
 Die aktive MenueUntergruppe ist IE_FuncSubTyp (in Gruppe 12: 0=CUT, 1=TRA..)
@@ -3300,7 +3302,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 // Input:
 //   typSel     ist der Typ des sel. Objekts ex DL;
-//              Curves kommen als Typ_CCV oder Typ_CV (kein CV-subTyp !)
+//              Curves kommen als Typ_CVTRM oder Typ_CV (kein CV-subTyp !)
 //   ind        DB-index
 // Output:
 //   IE_outTxt  object as string
@@ -3718,6 +3720,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
+
+  // exit if CAD not yet initialized
+  if(UI_InpMode != UI_MODE_CAD) return 0;
 
 
   //----------------------------------------------------------------
@@ -4752,11 +4757,11 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
 
-  printf(">>>> IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
-  printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
-  printf(" IE_buf=|%s|\n",IE_buf);
-  printf(" IE_EdFnc=%d\n",IE_EdFnc);
-  printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
+  // printf(">>>>-IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
+  // printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
+  // printf(" IE_buf=|%s|\n",IE_buf);
+  // printf(" IE_EdFnc=%d\n",IE_EdFnc);
+  // printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
 
 
   if(!IE_lst_act) return 0;         // Drama - woher ??
@@ -4836,8 +4841,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   //================================================================
   // Fix Header.
   // test ob ObjHeader offen (CUT, TRA ...)
-    printf("  Fix Header. mod=%d func=%d typ=%d ind=%ld\n",IE_modify,IE_FuncTyp,
-           IE_cad_typ,IE_objInd);
+    // printf("  Fix Header. mod=%d func=%d typ=%d ind=%ld\n",IE_modify,IE_FuncTyp,
+           // IE_cad_typ,IE_objInd);
 
   // no objHdr necessary for activate|reset ConstrPlane
   if(IE_FuncTyp == IE_Func_CADEnv) goto L_start;         // ActiveCADEnv
@@ -4851,7 +4856,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // set IE_FncNr to index in list IE_FncTab
   // wenn eine Function aus CUT/INT/TRA aktive, Index IE_FncNr setzen.
   IE_FncNr = UTX_cmp_word_wordtab (IE_FncTab, fncAct);
-    printf("  IE_FncNr=%d fncAct=|%s|\n",IE_FncNr,fncAct);
+    // printf("  IE_FncNr=%d fncAct=|%s|\n",IE_FncNr,fncAct);
   if(IE_FncNr < 0) goto L_start;
 
 
@@ -4859,7 +4864,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   if(IE_modify == 1) {
     // mode=Modify: keep original Header
     APED_dbo_oid (&IE_cad_typ, &IE_objInd, IE_modifHdr);
-      printf(" modify; copy header %d %ld\n",IE_cad_typ,IE_objInd);
+      // printf(" modify; copy header %d %ld\n",IE_cad_typ,IE_objInd);
     strcpy(IE_outTxt, IE_modifHdr);
     // display name of new outpt-obj in field IE_entHdr
     IE_set_txtHdr ();
@@ -4871,7 +4876,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // handle Grp 12 (IE_Func_Modify: INT,CUT,PRJ,MIR,ISO: get resultingObjTyp
   // get type and name of resulting-obj for modify-curve-functions, eg CUT
   // CUT returns CurvCCV (trimmed-curve) for all input-curves
-    printf(" handle Grp 12 FncNr=%d\n",IE_FncNr);
+    // printf(" handle Grp 12 FncNr=%d\n",IE_FncNr);
   IE_cad_typ = IE_cad_test_typ (ep);
   if(IE_cad_typ == Typ_Error) goto L_not_ok;
   goto L_start;

@@ -26,11 +26,18 @@
 /// start   startpos of memspc
 /// next    first free pos of memspc
 /// end     position of start + memspcSiz
-/// typ     0. Reserved.
+/// spcTypc type of space for oSpc
+///        spcTyp  0=no-space-given;
+///                1=malloc-type=can-reallocate,must-free;
+///                2=malloc-type=can-reallocate,must-NOT-free;
+///                2=fixed-CANNOT-reallocate;must-free;
+///                3=fixed-CANNOT-reallocate;must-NOT-free;
+///                4=stack,CANNOT-reallocate,must-NOT-free;
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz) bytes
 /// \endcode
 typedef struct {void *start, *next, *end;
-                unsigned char typ, incSiz, u3, u4;}                 Memspc;
+                unsigned char spcTyp, incSiz, u3, u4;}                 Memspc;
+// size 32
 
 
 
@@ -45,7 +52,7 @@ typedef struct {void *start, *next, *end;
   int   UME_set_free (int sizFree, Memspc *memSpc);
   int   UME_dump    (Memspc *memSpc, char *txt);
   int   UME_del (Memspc *memSpc, void *nach, void *von, ...);
-  void  UME_connect (void *memPos, Memspc *memSeg);
+  void  UME_reset (Memspc *memSpc);
 
   int   UME_reall_add (long *spcOff, Memspc *memSpc, long addSiz);
   int   UME_realloc (long *spcOff, Memspc *memSpc, long newSiz);
@@ -86,6 +93,10 @@ typedef struct {void *start, *next, *end;
 #define UME_get_start(memSeg) (memSeg)->start
 
 
+/// UME_reset             reset Memspc
+#define UME_reset(memSeg) ((memSeg)->next = (memSeg)->start)
+
+
 /// UME_get_used          get used space
 #define UME_get_used(memSeg) ((char*)(memSeg)->next - (char*)(memSeg)->start)
 
@@ -94,7 +105,7 @@ typedef struct {void *start, *next, *end;
 ///   use UME_get_next
 /// Output:
 ///   memPos        next free position in memSeg (as void*)
-#define UME_connect(memPos,memSeg)(memPos)=(memSeg)->next
+// #define UME_connect(memPos,memSeg)(memPos)=(memSeg)->next
 
 
 // /// UME_TMP_FILE          allocate temp.memspace for file

@@ -414,7 +414,7 @@ pa sind die outermost points entlang X und Y.
 
   // pb1 liegt nun ganz links unten.
   // make 3D-point from 2D-point & backplane
-  UT3D_pt_pt2bp (&p31, &pb1, bp);
+  UT3D_pt_tra_pt2_bp (&p31, &pb1, bp);
     // UT3D_stru_dump(Typ_PT, &p31, " p31=");
 
 
@@ -481,13 +481,13 @@ pa sind die outermost points entlang X und Y.
   // compute size; output -> ssx,ssy
   p21.x = pb2.x;
   p21.y = pb1.y;
-  UT3D_pt_pt2bp (&p31, &p21, bp);
+  UT3D_pt_tra_pt2_bp (&p31, &p21, bp);
   UT3D_ptDi_intptvcptvc (&p3x, &d1, &p31, &vc1, po, vz);
     // UT3D_stru_dump(Typ_PT, &p3x, " p3x=");
 
   p21.x = pb1.x;
   p21.y = pb2.y;
-  UT3D_pt_pt2bp (&p31, &p21, bp);
+  UT3D_pt_tra_pt2_bp (&p31, &p21, bp);
   UT3D_ptDi_intptvcptvc (&p3y, &d1, &p31, &vc1, po, vz);
     // UT3D_stru_dump(Typ_PT, &p3y, " p3y=");
 

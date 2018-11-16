@@ -39,6 +39,7 @@ UT3D_npt_obj               Polygon from bin-obj (typ,struct)
 UT3D_npt_trmCv             polygon from trimmed-curve
 UT3D_pta_plg               get points from polygon-curve; relimited
 UT3D_pta_bsp               Polygon from bSpline
+UT3D_pta_otb               polygon from binary-object-table
 UT3D_npt_fac               closed polygon (4 points) from indexed-triangle (Fac3)
 UT3D_npt_tria              closed polygon (4 points) from Triangle
 UT3D_npt_parl_pln          polygon parallel polygon on plane, dist
@@ -562,6 +563,13 @@ UT3D_npt_ci                circular polygon
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_ObjTab) {
+    ptn = ptSiz - *ptNr;
+    irc = UT3D_pta_otb  (&ptn, &pTab[*ptNr], data, ptn, tol);
+    *ptNr += ptn;
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_ObjGX) {
     // recurse
     ptMax = ptSiz - *ptNr;
@@ -708,6 +716,43 @@ UT3D_npt_ci                circular polygon
 
 
 //================================================================
+  int UT3D_pta_otb (int *ptNr, Point *pTab,
+                    ObjTab *otb1, int ptMax, double tol) {
+//================================================================
+// UT3D_pta_otb               polygon from binary-object-table
+
+
+  int    irc, i1;
+
+
+  printf("UT3D_pta_otb oNr=%d ptMax=%d tol=%f\n",otb1->oNr,ptMax,tol);
+
+
+
+  // make a polygon from otb1 and disp objects
+  for(i1=0; i1<otb1->oNr; ++i1) {
+      printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; \n");
+      printf(" otb1[%d] typ=%d\n",i1,otb1->oTyp[i1]);
+      UT3D_stru_dump (otb1->oTyp[i1], otb1->oDat[i1], " _Draw_otb-otb1_%d",i1);
+
+    // connected-objects: remove last endPt (== next startPt)
+    if(i1) *ptNr -= 1;
+
+    // add obj as polygon to pta
+    irc = UT3D_npt_obj (ptNr, pTab, ptMax,
+                        otb1->oTyp[i1], otb1->oDat[i1], 1, tol, 1);
+      printf(" ex-npt_obj irc=%d pnr=%d\n", irc, *ptNr);
+      UT3D_nstru_dump (Typ_PT, *ptNr, pTab, "pTab");
+    if(irc < 0) return -1;
+
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
   int UT3D_pta_bsp (int *ptNr, Point *pTab,
                     CurvBSpl *cvi, int ptMax, double tol) {
 //========================================================================
@@ -740,7 +785,6 @@ UT3D_npt_ci                circular polygon
     // cv1.v0 = 0.5;
     // cv1.v1 = 0.1;
     // cv1.dir = 1;
-
 
 
   if(cvi->dir) {
@@ -1165,11 +1209,13 @@ UT3D_npt_ci                circular polygon
 /// \code
 /// UT3D_pta_ox_lim            get polygon and segNr from complex-obj  (eg CCV)
 /// Input:
-///   ptn    max Nr of points !
+///   ptn    max Nr of points (size of pta)
 ///   iLim    0  do not fill limTab;
 ///          >0 fill limTab; iLim == size of limTab.
 ///   mode   0=perm, fix PRCV; 1=temp, do not use PRCV; 2=unknown
 /// OutPut: 
+///   ptn    nr of points in pta
+///   pta
 ///   limTab points to startIndices of the segnments into pta; terminated by -1.
 ///          can be NULL
 ///          pta[limTab[1]] =  startPoint of 2. segment;
@@ -1188,7 +1234,7 @@ UT3D_npt_ci                circular polygon
   ObjGX     *ox1, *ox2;
 
 
-  // printf("======= UT3D_pta_ox_lim ================================ \n");
+  // printf("======= UT3D_pta_ox_lim ================================ %d\n",*ptn);
   // if(oxi->form == 0) exit(-1); // AP_debug__ ("UT3D_pta_ox_lim E001");
   // printf("UT3D_pta_ox_lim iLim=%d ptMax=%d\n",iLim,*ptn);
   // // UT3D_stru_dump (Typ_ObjGX, oxi, "UT3D_pta_ox_lim:\n");
@@ -1216,6 +1262,7 @@ UT3D_npt_ci                circular polygon
     if(iMax < 2) goto L_EOM;
 
       // TESTBLOCK
+      // printf(".................... \n");
       // printf(" _oStart i1=%d typ=%d form=%d oNr=%d ptNr=%d iMax=%d\n",i1,
              // typ,form,oNr,ptNr,iMax);
       // END TESTBLOCK
@@ -1254,6 +1301,7 @@ UT3D_npt_ci                circular polygon
     } else if(typ == Typ_CVTRM) {
       // resolv CCV - get standard-obj from trimmed-obj
       if(i1 == 0) {
+        // first obj of curve .. ??
         if(iLim > 0) {
           i2 = iLim - 1;
           if(i2 <= oNr) goto L_LIM;
@@ -1262,19 +1310,21 @@ UT3D_npt_ci                circular polygon
       }
       pcc = &((CurvCCV*)oxTab)[i1];
         // UT3D_stru_dump (Typ_CVTRM, pcc," pcc[%d]",i1);
+/*
       if(pcc->dbi) {
         // db-obj; get its PRCV in UT3D_npt_obj
         oo = (void*)pcc;
         otyp = form;
 
       } else {
+*/
         // change trimmed curve into standard curve
         otyp = pcc->typ;
         irc = UTO_cv_cvtrm (&otyp, cv1, NULL, pcc);
         if(irc < 0) return -1;
-          // UT3D_stru_dump (otyp, cv1, " ex cv_cvtrm");
+          // UT3D_stru_dump (otyp, cv1, " ex-cv_cvtrm");
         oo = (void*)cv1;
-      }
+      // }
 
 
     //----------------------------------------------------------------
@@ -1286,6 +1336,11 @@ UT3D_npt_ci                circular polygon
       otyp = form;
       oo   = oxTab;
     }
+
+
+      // TESTBLOCK
+      // UT3D_stru_dump (otyp, oo, " otyp-oo-1");
+      // END TESTBLOCK
 
 
     if(i1 > 0) { --ptNr; ++iMax; }  // first point already exists

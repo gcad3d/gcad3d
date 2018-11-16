@@ -1,4 +1,4 @@
-gCAD3D                                                                 2018-10-16
+gCAD3D                                                                 2018-11-16
 
 provides functions for -
       import and export of cad-models and pictures (bitmaps)
@@ -48,24 +48,12 @@ support@gcad3d.org
 __________________________________________________________________
 Linux Prerequisites:
 
-  for running gCAD3D:
-    OpenGL-libs (libGL and libGLU)
-    .deb: libjpeg-progs (djpeg and cjpeg) zenity tar
-    .rpm: libjpeg-turbo-utils (djpeg and cjpeg) zenity tar
 
+  for compile, link gCAD3D:
+    gcc, ctags, build-essential, zenity, tar
+    libjpeg-turbo-utils (djpeg and cjpeg)
+       for .cpp-files gcc-c++ (optional)
 
-  for modifications of gCAD3D:
-    gcc, ctags, build-essential.
-    git gitk cscope ..
-    for .cpp-files on CentOS: gcc-c++
-
-
-  for modifications of gCAD3D-grafic-functions:
-      OpenGL-development-files 
-        mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
-
-
-  for modifications of the gui-system C-KIT-GUI-GTK:
     Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
       gtk3-development-files
         libgtk-3-dev
@@ -74,10 +62,15 @@ Linux Prerequisites:
         libgtk2.0-dev
         libgtk2.0-doc gtk2.0-examples           optional
 
+    OpenGL-development-files 
+      mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
+
+
+  for modifications of gCAD3D:
+    git gitk cscope ..
 
   for modification of the documentation:
     doxygen
-
 
   for building debian-package:
     fakeroot, lintian
@@ -85,8 +78,13 @@ Linux Prerequisites:
   for building rpm-package:
     rpmbuild
 
-  Installation eg for debian-os:
+
+
+  Installation of packages eg for debian-os:
     sudo apt-get install <package>
+
+  Installation of packages for eg Fedora:
+    sudo dnf install <package>
 
 
 
@@ -164,12 +162,10 @@ Default: <dirXX> = ${HOME}/devel
 
 # Setup environment:
 # The development environment is using the directories $DIR_DEV and $DIR_BIN.
-# The default-values are:
-# DIR_DEV = ${HOME}/devel/
-# DIR_BIN = ${HOME}/devel/bin/
-# For other directories export <dirXX> to DIR_DEV / DIR_BIN; check:
-echo $DIR_DEV
-echo $DIR_BIN
+# The default-value for sources, binaries, is:
+export DIR_DEV=${HOME}/devel/
+export DIR_BIN=${HOME}/devel/bin/
+# For other directories export appropriate.
 
 
 # goto APP-directory

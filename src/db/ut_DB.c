@@ -16,6 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
+- DB_save__ DB_load__ - change fNames "DB__<mdlNam>".dat -> <mdlNam>.mdat;
+  <mdlNam> must be safe-name; how get real-name from safe-name ?
+
 - DB_StoreXXX test if already defined ((!(DB_isFree_XXX)
   if yes: ERROR. Before set-free when going back in code (loop tru all
    DL-records beeing deleted).  ED_work_CurSet, ED_work_END, ..
@@ -7571,7 +7574,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   long DB_dbo_get_free (int typ) {
 //====================================================================
 /// \code
-/// returns next free DB-index
+/// returns next free DB-index; 0=Error
 /// \endcode
 
 // was DB_dbo_get_free

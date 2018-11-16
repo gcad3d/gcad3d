@@ -47,4 +47,11 @@
 #define FLT_64_MIN1     0.0000000000000001
 
 
+//----------------------------------------------------------------
+#define MEMSPCTYP_NONE         0    // no memspace
+#define MEMSPCTYP_MALLOC__     1    // malloc-type=can-reallocate,must-free
+#define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,must-NOT-free;
+#define MEMSPCTYP_FIX__        4    // fixed-CANNOT-reallocate;must-NOT-free
+#define MEMSPCTYP_STACK        5    // stack,CANNOT-reallocate,must-NOT-free
+
 // EOF

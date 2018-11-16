@@ -1753,7 +1753,7 @@ static long   DL_hidden = -1L;
 
   // printf("LLLLLLLLLLLLLL DL_Init LLLLLLLLLLLLLLLL\n");
 
-  GL_InitCol (10);
+  // GL_InitCol (10);
 
 
   // Nicht im "store-tesselated-Vertices"-Modus

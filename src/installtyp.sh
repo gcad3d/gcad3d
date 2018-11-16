@@ -3,7 +3,7 @@
 # get (return) the install-type; "rpm" or "deb"
 
 
-if [ ! -z "`which rpmbuild`" ] ; then
+if [ ! -z "`which rpm`" ] ; then
   echo "rpm"
 else
   echo "deb"

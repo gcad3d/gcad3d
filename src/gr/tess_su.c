@@ -6097,7 +6097,7 @@ static Plane  RS_pl;
     // Line:
     UT3D_vc_ln (&vc1, (Line*)TSU_ox2.data);
     vc1 = TSU_vrx;   // Backplane der RotAxis besser ?
-    RS_bp = UT3D_bp_vc_ (&vc1);
+    RS_bp = UT3D_bp_vc__ (&vc1);
 // exit(0);
     return 0;
   }

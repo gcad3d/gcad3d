@@ -69,15 +69,16 @@ input       pt 2pt  ..
  ipatch indexed-Opengl-patch; type, indexTable, points.
 
  ox   Complex-Object                     ObjGX
- oid  ObjectID                           string       (of DB-object eg "P20")
- onam object-name                        string (eg: onam="height" for oid=V20)
- ccv  Concatenated-Curve (ObjGX)
+ otb  struct ObjTab - table of binaray objects
  crv  linear object; LN,CI,EL,CV ..      typ+struct
  sur  planimetric obj; plane, surf       typ+struct
  obj,ost  object-structure; any object   typ+struct
  dbo  DB-object; any obj                 typ+dbInd
+ ccv  Concatenated-Curve (ObjGX)
  ato  atomic-object; any obj             austyp/austab (int/double)
  src  Source-object (text)
+ oid  ObjectID                           string       (of DB-object eg "P20")
+ onam object-name                        string (eg: onam="height" for oid=V20)
 
 Line = linesegment (2 points, both sides limited (lnLL)
 Ray  = 1 point and 1 vector; limited on one side (lnLU).

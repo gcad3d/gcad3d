@@ -2026,7 +2026,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
   UT3D_vc_2pt (&vc1, &pb1, &pb2);        // vec from box
     // GR_Disp_vc (&vc1, &pb1, 12, 1); 
-  bp = UT3D_bp_vc_ (&vc1);               // backplane from vector
+  bp = UT3D_bp_vc__ (&vc1);               // backplane from vector
     // printf(" bp=%d\n",bp);
 
 

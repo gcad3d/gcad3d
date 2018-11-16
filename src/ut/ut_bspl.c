@@ -1339,7 +1339,7 @@ once again, with U/V changed.
   // UT3D_stru_dump (Typ_CI, ci1, "UT3D_cbsp_ci:");
 
   // save tmpSeg-pos
-  UME_connect (memPos,tmpSeg);
+  memPos = UME_get_next (tmpSeg);
 
   // put pTab into tmpSeg
   pTab = tmpSeg->next;
@@ -1475,7 +1475,7 @@ once again, with U/V changed.
   // UT3D_stru_dump (Typ_CVELL, el1, "UT3D_cbsp_ell:");
 
   // save tmpSeg-pos
-  UME_connect (memPos,tmpSeg);
+  memPos = UME_get_next (tmpSeg);
 
   // put pTab into tmpSeg
   pTab = tmpSeg->next;

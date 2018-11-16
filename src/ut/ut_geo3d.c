@@ -170,7 +170,7 @@ UT3D_pt_pt2z              3D-Point = 2D-Point auf bestimmter Z-Hoehe
 UT3D_pt_3db               Point = 3 doubles (x, y, z)
 UT3D_pt_vc                copy
 UT3D_pt_txt               Point from text
-UT3D_pt_pt2bp             3D-point from 2D-point & backplane
+UT3D_pt_tra_pt2_bp             3D-point from 2D-point & backplane
 UT3D_pt_addpt             Add two points:      po += p1                INLINE
 UT3D_pt_add_pt2           add 2D-point         po += p1                INLINE
 UT3D_pt_add2pt            Add two points:      po = p1 + p2
@@ -423,7 +423,7 @@ UT3D_obj_vctra DO NOT USE translate Obj
 
 -------------- backPlane ---------------------------------------
 UT3D_bp_2pt               returns main-BackPlaneNr (0-2) from 2 points
-UT3D_bp_vc_               returns main-BackPlaneNr (0-2) from vec
+UT3D_bp_vc__               returns main-BackPlaneNr (0-2) from vec
 UT3D_bp_vcz               returns main-BackPlaneNr (0-2) from normalvec
 UT3D_bp_pta               backplane from n points
 
@@ -4423,7 +4423,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   int      bp;
   double   d1, d2, d3;
   
-  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc_:");
+  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc__:");
 
   
   // die Koordinate mit dem hoechsten Wert stillegen ..
@@ -4456,7 +4456,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
   double   dx, dy, dz;
 
-  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc_:");
+  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc__:");
 
   dx = fabs(vc1->dx);
   dy = fabs(vc1->dy);
@@ -4486,7 +4486,7 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
   int      bp;
   double   d1, d2, d3;
 
-  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc_:");
+  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc__:");
 
 
   // die Koordinate mit dem hoechsten Wert stillegen ..
@@ -9907,28 +9907,28 @@ liegt. ohne acos.
 */
 
 
-//================================================================
-  int UT3D_pt_pt2bp (Point *p3, Point2 *p2, int bp) {
-//================================================================
+//=====================================================================
+  int UT3D_pt_tra_pt2_bp (Point *p3, Point2 *p2, int bp, double *bph) {
+//=====================================================================
 /// make 3D-point from 2D-point & backplane
 
   if       (bp == BCKPLN_XY) {
     p3->x = p2->x;
     p3->y = p2->y;
-    p3->z = 0.;
+    p3->z = *bph;
 
   } else if(bp == BCKPLN_XZ) {
     p3->x = p2->x;
-    p3->y = 0.;
+    p3->y = *bph;
     p3->z = p2->y;
 
   } else if(bp == BCKPLN_YZ) {
-    p3->x = 0.;
+    p3->x = *bph;
     p3->y = p2->x;
     p3->z = p2->y;
   }
 
-  // UT3D_stru_dump(Typ_PT, p3, "ex UT3D_pt_pt2bp p3=");
+  // UT3D_stru_dump(Typ_PT, p3, "ex UT3D_pt_tra_pt2_bp p3=");
 
   return 0;
 
@@ -11279,7 +11279,7 @@ Version 2 - auch Mist
 
 
   // backplane from vector
-  bp = UT3D_bp_vc_ (&vcb);
+  bp = UT3D_bp_vc__ (&vcb);
 
 
   // nun 2 opposite 2D-vecs bilden
@@ -17597,7 +17597,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   // find Backplane
   UT3D_vc_2pt (&vc1, p11,p12);
-  bp = UT3D_bp_vc_(&vc1);
+  bp = UT3D_bp_vc__(&vc1);
   // printf(" bp=%d\n",bp);
 
 
@@ -18164,7 +18164,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 /// \code
 /// UT3D_bp_2pt         returns main-BackPlaneNr (0-2) from 2 points
 /// eg all points in XY-plane return 2 = BCKPLN_XY
-/// see also UT3D_bp_pta UT3D_bp_vc_
+/// see also UT3D_bp_pta UT3D_bp_vc__
 /// \endcode
 
 // Hauptebene mit dem hoechsten Wert waehlen; zb fuer UT3D_parpt_lnbp
@@ -18175,16 +18175,16 @@ Mat_4x4-vertical   (used by OpenGL !)
     // GR_Disp_vc (&vc1, &p1, 2, 1);
 
   // backplane from vector
-  return UT3D_bp_vc_ (&vc1);
+  return UT3D_bp_vc__ (&vc1);
 
 }
  
 
 //================================================================
-  int UT3D_bp_vc_ (Vector *vc1) {
+  int UT3D_bp_vc__ (Vector *vc1) {
 //================================================================
 /// \code
-/// UT3D_bp_vc_      returns main-BackPlaneNr (0-2) from vec
+/// UT3D_bp_vc__      returns main-BackPlaneNr (0-2) from vec
 /// 
 /// eine Hilfsebene auswaehlen; Input ist ein Vektor;
 /// es wird jene Hauptebene mit dem hoechsten Wert gewaehlt.
@@ -18197,7 +18197,7 @@ Mat_4x4-vertical   (used by OpenGL !)
   int      mode;
   double   dx, dy, dz;
 
-  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc_:");
+  // UT3D_stru_dump(Typ_VC, vc1, "UT3D_bp_vc__:");
 
 
   // die Koordinate mit dem hoechsten Wert stillegen ..
@@ -18205,6 +18205,7 @@ Mat_4x4-vertical   (used by OpenGL !)
   dy = fabs(vc1->dy);
   dz = fabs(vc1->dz);
 
+// ACHTUNG: macht Mist mit eg 1,0,0; use UT3D_bp_vcz or UT3D_bp_vc_ck
   if(dy < dx) {             // X > Y
     if(dz < dy) mode = BCKPLN_XY;     // 2 = skip Z-Coord
     else        mode = BCKPLN_XZ;     // 1 = skip Y-Coord (y am kleinsten)
@@ -18213,7 +18214,7 @@ Mat_4x4-vertical   (used by OpenGL !)
     else        mode = BCKPLN_YZ;     // 0 = skip X-Coord (x am kleinsten)
   }
 
-  // printf("ex UT3D_bp_vc_ %d\n",mode);
+  // printf("ex UT3D_bp_vc__ %d\n",mode);
 
   return mode;
 
@@ -18277,7 +18278,7 @@ Mat_4x4-vertical   (used by OpenGL !)
     // GR_Disp_vc (&vc1, &p1, 2, 1);
 
   // backplane from vector
-  return UT3D_bp_vc_ (&vc1);
+  return UT3D_bp_vc__ (&vc1);
 
 }
 

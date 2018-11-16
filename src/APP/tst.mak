@@ -10,6 +10,7 @@ DLLNAM = plugins/tst
 SRC1 =\
  ../xa/tst.c\
  ../xa/tst1.c\
+../xa/tst_ut_objtab.c\
 #../xa/tst_exp.c\
 #../xa/tst_surfaces.c\
 #../xa/tst_new.c\
@@ -27,7 +28,8 @@ SRC1 =\
 #../xa/tst_ogl.c\
 
 
-DIRSRC1 := ../xa/:../ut/:../gl2ps/
+DIRSRC1 := ../xa/:../ut/:
+#DIRSRC1 := ../xa/:../ut/:../gl2ps/
 
 include gcad_dll.mak
 

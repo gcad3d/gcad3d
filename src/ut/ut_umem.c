@@ -39,10 +39,10 @@ void UME(){}
 =====================================================
 List_functions_start:
 
-UME_init              init Memspc with existing space
-UME_malloc            init Memspc, malloc
-UME_realloc
+UME_malloc            init Memspc (malloc, can realloc, must free)
+UME_init              init with fixed or stack-space (no realloc, no free)
 UME_free
+UME_reset             reset Memspc
 
 UME_save              save Obj -> Memspc
 UME_reall_save        save and reallocate if necessary
@@ -59,7 +59,7 @@ UME_get_start         get startPosition of Memspc (NULL = uninitialized) INLINE
 UME_get_used          get used space                              INLINE
 UME_ck_free           return free space
 UME_ck_tot            report total space
-UME_dump              display free space
+UME_dump              print space total / used
 
 MEM_alloc_tmp         allocate mem for active function (temp.space)
 UME_TMP_FILE          allocate temp.memspace for file             INLINE
@@ -76,9 +76,12 @@ UME_connect           DO NOT USE (use UME_get_next)               INLINE
 UME_add               DO NOT USE (use UME_reserve)
 UME_NEW               setup. unused
 
+UME_realloc           internal
+
 List_functions_end:
 =====================================================
 - see also:
+INF_MEM__
 ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
 
 \endcode *//*----------------------------------------
@@ -86,37 +89,32 @@ List_functions_end:
 
 
 
+Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
+
 - usage examples:
 
+--------------------------
+  // get tempspace (stack, only valid in acive func):
   Memspc   memSeg1;
-  int      *iTab;
-
-  // tempspace :
   UME_init (&memSeg1, MEM_alloc_tmp (oSiz), oSiz);
 
 --------------------------
-  or:
+  // get fixed space (stack, only valid in acive func)
+  int      *iTab, iNr, i1;
   char     memspc51[50000];
   UME_init (&memSeg1, memspc51, sizeof(memspc51));
-  UME_connect (iTab, &memSeg1);           // give space to iTab
-  iSiz = UME_ck_free (&memSeg1);          // query free size in bytes
-  UME_reserve (&memSeg1, iNr * sizeof(int));  // reserve spc for iNr long's
+  iTab = UME_reserve (&memSeg1, iNr * sizeof(int));  // reserve spc for iNr int's
+  for(i1=0;i1<iNr;++i1) iTab[i1] = i1;    // write into memSeg1
   ...                                     // (increments memSeg1.next !)
   UME_set_free (-1, &memSeg1);            // reset memSeg1
 
 --------------------------
-  or:
-  // query max nr of points in &memSeg1
-  ipMax = UME_ck_free (&memSeg1) / sizeof(Point);
-  // reserve space for ipMax points in memSeg1
-  pTab = UME_reserve (&memSeg1, ipMax * sizeof(Point));
-
---------------------------
-  or:
-  // need max nr of points + parameters for all points ..
-  paSiz = UME_ck_free (&memSeg1) / (sizeof(Point) + sizeof(double));
-  pTab = UME_reserve (&memSeg1, paSiz * sizeof(Point));
-  UME_connect (vTab, &memSeg1);
+  // malloc space for ptNr points
+  irc = UME_malloc (&memSeg1, ptNr * sizeof(Point), 100 * sizeof(Point));
+  // copy pta = array of ptNr points -> memSeg1
+  ptp = UME_save (&memSeg1, pta, ptNr * sizeof(Point));
+  .. 
+  UME_free (&memSeg1);
 
 
 \endcode *//*----------------------------------------
@@ -136,6 +134,7 @@ List_functions_end:
 
 #include "../ut/ut_cast.h"
 #include "../ut/ut_umem.h"              // Memspc
+#include "../ut/ut_types.h"             // MEMSPCTYP_..
 #include "../ut/ut_umb.h"               // UMB_
 #include "../ut/ut_TX.h"                // TX_Error
 
@@ -268,6 +267,11 @@ List_functions_end:
   void  *oldAdr;
 
 
+  if(memSpc->spcTyp != MEMSPCTYP_MALLOC__) {
+    TX_Error("UME_realloc E1");
+    return -1;
+  }
+
   actSiz = (char*)memSpc->next - (char*)memSpc->start;
 
   printf("::::UME_realloc %ld %ld %p\n",newSiz,actSiz,memSpc->start);
@@ -278,22 +282,9 @@ List_functions_end:
   memSpc->start = realloc(memSpc->start, newSiz);
 
   if(memSpc->start == NULL) {
-    TX_Error ("******** out of memory - UME_realloc *********");
+    TX_Error ("UME_realloc EOM *********");
     return -1;
   }
-
-
-/* muss nun manuell gemacht werden !
-  if(UME_CB__) {
-    if(oldAdr != memSpc->start) {
-      if(UME_CB__ (oldAdr, memSpc->start) < 0) {
-        TX_Error ("UME_malloc_CB E001");
-        return -1;
-      }
-    }
-  }
-*/
-
 
   memSpc->next  = (char*)memSpc->start + actSiz;
   memSpc->end   = (char*)memSpc->start + newSiz;
@@ -308,12 +299,35 @@ List_functions_end:
 }
 
 
+//=======================================================================
+  int UME_init (Memspc *memSpc, void* objDat, int osiz) {
+//=======================================================================
+/// \code
+/// UME_init              init with fixed or stack-space (no realloc, no free)
+/// \endcode
+// see also ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
+
+
+
+  // printf("UME_init  siz=%d\n",osiz); fflush (stdout);
+
+  memSpc->start = objDat;
+  memSpc->next  = objDat;
+  // memSpc->end   = objDat + osiz;
+  memSpc->end   = (char*)objDat + osiz;
+
+  memSpc->spcTyp = MEMSPCTYP_FIX__;
+
+  return 0;
+
+}
+
+
 //================================================================
   int UME_malloc (Memspc *memSpc, long spcSiz, long memInc) {
 //================================================================
 /// \code
-/// malloc <spcSiz> bytes and provide it in memSpc.
-/// Call UME_malloc only once!
+/// UME_malloc            init Memspc (malloc, can realloc, must free)
 /// Memspace must be freed with UME_free
 /// Input:
 ///   spcSiz  malloc this size
@@ -341,12 +355,14 @@ List_functions_end:
   memSpc->start = realloc(memSpc->start, spcSiz);
 
   memSpc->next  = memSpc->start;
-  memSpc->end   = (char*)memSpc->start + spcSiz;
 
   if(memSpc->start == NULL) {
     TX_Error ("******** out of memory - UME_malloc *********");
     return -1;
   }
+
+  memSpc->end   = (char*)memSpc->start + spcSiz;
+  memSpc->spcTyp = MEMSPCTYP_MALLOC__;
 
 
   // printf("ex UME_malloc %d %p\n",spcSiz,memSpc->start);
@@ -395,6 +411,7 @@ List_functions_end:
 }
 */
 
+
 //=======================================================================
   int UME_free (Memspc *memSpc) {
 //=======================================================================
@@ -407,55 +424,13 @@ List_functions_end:
 
   // printf("::::UME_free %p\n",memSpc->start);
 
+  if(memSpc->spcTyp > MEMSPCTYP_MALLOC__) return 1;
+
   if(memSpc->start) free (memSpc->start);
 
   memSpc->start = NULL;
 
-  // UME_CB__ = NULL;
-
-  return 0;
-
-}
-
-
-//=======================================================================
-  int UME_init (Memspc *memSpc, void* objDat, int osiz) {
-//=======================================================================
-/// \code
-/// UME_init              init Memspc
-/// 
-/// puts memSpc as first Record into objDat; gives back its Adress.
-/// 
-///   Examples:
-/// char     memspc51[50000];
-/// Memspc   memSeg1;
-/// int      *iTab, sizTab;
-/// // attach memspc51
-/// UME_init (&memSeg1, memspc51, sizeof(memspc51));
-/// 
-/// // give whole space to iTab; do not fix memspc.next
-/// UME_connect (iTab, &memSeg1);
-/// // set max size for iTab
-/// sizTab = UME_ck_free (&memSeg1) / sizeof(int);
-/// 
-/// // reserve 100 int's in memSeg1; update memspc.next.
-/// iTab = UME_reserve (&memSeg1, 100 * sizeof(int));
-/// // give the remaining space to (char*)cbuf
-/// UME_connect (cbuf, memSeg1);
-/// // query size of cbuf
-/// cbufSiz = UME_ck_free (memSeg1);
-/// 
-/// see also ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
-/// \endcode
-
-
-
-  // printf("UME_init  siz=%d\n",osiz); fflush (stdout);
-
-  memSpc->start = objDat;
-  memSpc->next  = objDat;
-  // memSpc->end   = objDat + osiz;
-  memSpc->end   = (char*)objDat + osiz;
+  memSpc->spcTyp = 0;
 
   return 0;
 
@@ -502,6 +477,7 @@ List_functions_end:
   actPos = memSpc->next;
 
   if(((char*)memSpc->next + osiz) > (char*)memSpc->end) {
+    TX_Print("***** UME_reserve E001 - OUT OF SPACE\n");
     printf("UME_reserve E001 - OUT OF SPACE\n");
     return NULL;
   }
@@ -775,7 +751,7 @@ List_functions_end:
 //=======================================================================
   int UME_dump (Memspc *memSpc, char *txt) {
 //=======================================================================
-/// UME_dump              display free space
+/// UME_dump              print space total / used
 
 
   printf("%s Memspc- used=%ld total=%ld\n",txt,

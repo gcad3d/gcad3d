@@ -2388,6 +2388,7 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
 
     // TESTBLOCK
     // UT3D_nstru_dump (Typ_CVTRM, ccNr, cca, " ex APT_decode_ccv__ :");
+    // UTO_dump__ (ocv, "ex-APT_decode_ccv__");
     // END TESTBLOCK
 
   return 0;
@@ -2527,7 +2528,7 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
 
 
   cv1->typ   = Typ_CVTRM;  // Typ_CVTRM2;
-  cv1->form  = Typ_ObjG2;
+  cv1->form  = Typ_CVTRM;  // Typ_ObjG2;
   cv1->siz   = oTabNr;
   cv1->data  = memspc51;
 

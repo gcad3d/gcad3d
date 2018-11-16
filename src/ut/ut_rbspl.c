@@ -472,7 +472,7 @@ List_functions_end:
   // space in memSeg1 / 4   (point(3 doubles) + 1 double(parameter))
   paSiz = UME_ck_free (memSeg1) / (sizeof(Point) + sizeof(double));
   pTab = UME_reserve (memSeg1, paSiz * sizeof(int));
-  UME_connect (vTab, memSeg1);
+  vTab = UME_get_next (memSeg1);
 
 
   // get the polygon. Die richtige Loesung (wenn mehrere Loesungen moeglich)

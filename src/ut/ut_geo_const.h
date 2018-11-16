@@ -45,10 +45,13 @@ touch ../ut/ut_geo2d.c && ./do c
 #define _GRIDBOX_NUL {{0.,0.,0.}, 0,0,0, 0.,0.,0.}
 
 
-// GridBox
+// ColRGB
 #define _ColRGB_NUL { 100,100,100, 0,  0,  0,  0,  1}
 //                     r   g   b  uu  tra sym tex col
 
+// ObjTab
+#define _ObjTab_NUL { NULL, UME_NEW, NULL, 0,0,\
+                      (char)0, (char)0, (char)0, (char)0 };
 
 // IndTab
 #define _INDTAB_NUL  { 0,0,  0,0,0,0}
@@ -122,6 +125,7 @@ const CurvCCV  UT3D_CCV_NUL   = _CCV_NUL;
 const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
 const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
 const IndTab   INDTAB_NUL     = _INDTAB_NUL;
+const ObjTab   ObjTab_NUL     = _ObjTab_NUL;
 
 #endif
 

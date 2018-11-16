@@ -119,11 +119,13 @@ void   GL_Rescale           (double, Point*);
 
 void   GL_Draw_Ini          (long*, int);
 void   GL_Disp_ln           (Point*, Point*);
-int    GL_Disp_patch         (int gTyp, int ptNr, Point *pa);
-int    GL_Disp_ipatch        (int gTyp, int iNr, int *ia, Point *pa);
+void   GL_Disp_ln2          (Point2 *p1, Point2 *p2);
+int    GL_Disp_patch        (int gTyp, int ptNr, Point *pa);
+int    GL_Disp_ipatch       (int gTyp, int iNr, int *ia, Point *pa);
 void   GL_Disp_npt          (Point *pa, int ptNr);
 
 void   GL_DrawPoint         (long*, int, Point*);
+void   GL_Draw_ln2          (long *ind, int iAtt, Line2 *ln1);
 void   GL_DrawLine          (long*, int, Line*);
 void   GL_DrawLtab          (long *ind, int attInd, Line *lna, int lNr);
 void   GL_DrawVec           (long*, int, Point*, Vector*);

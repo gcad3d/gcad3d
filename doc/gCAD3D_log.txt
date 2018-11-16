@@ -1,5 +1,12 @@
 
 ===========================================================================
+Version 2.43 / 2018-11-16
+
+- bugfix "gtk.h: no such file" for i586, i686
+- new language (malai) added;
+
+
+===========================================================================
 Version 2.42 / 2018-10-16
 
 - .deb and .rpm-packing reorganized, doc-directories changed,

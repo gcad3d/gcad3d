@@ -156,7 +156,7 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   "FilNam", "CtlgPart","NumString","ConstVal","ConstObj"};
   static char *TypTxtTab200[]={   /// containers
   "Memspc", "MemTab", "IndTab", "ObjRange","ObjSRC",   // 200-
-  "ObjGX",  "------", "------", "ObjDB",  "------"};
+  "ObjGX",  "ObjTab", "ObjTXTS","ObjDB",  "ObjAto"};   // 205-
   static char *TypTxtTab210[]={   /// transformations
   "Tra",    "TraTra", "TraRot", "TraMat", "------"};   // 210-
   static char *TypTxtTab220[]={   /// operators

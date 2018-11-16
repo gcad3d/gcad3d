@@ -59,6 +59,7 @@ List_functions_start:
 GL_DrawPoint
 GL_view_npt           display n points using GL_POINTS
 GL_Draw_ray
+GL_Draw_ln2           display 2D-line
 GL_DrawLine
 GL_DrawLtab           display group of lines
 GL_DrawPoly2D         2D-Polygon on plane Z=zval
@@ -588,7 +589,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 extern int        WC_stat_bound;  // ON/OFF; Draw boundary of Flächen od nicht
 extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
-// extern int        AP_txNkNr;            // Nachkommastellen
+extern ColRGB     AP_defcol;
 
 
 // Parameter zum Grafic-Font ex ut_gtx.c:
@@ -3060,16 +3061,21 @@ Screenkoords > Userkoords.
   DL_base__ = DL_base_mod;
 
 
+  // int default-color
+  GL_Init_col ();
+
+
   GL_Init1 ();
 
 
 
   // die DefCol setzen ..
-  GL_InitCol (10);
+  // GL_InitCol (10);
 
 }
 
 
+ 
 
 //=====================================================================
   void GL_Init1 () {
@@ -4069,7 +4075,7 @@ static Point ptOri;
 // Z-height-problem: can glDepthFunc (GL_ALWAYS); help ?
 
 
-  int     i1, i2;
+  int     i1, i2, iSpc;
   GLfloat *fBuf, fx, fy;
 
   static GLfloat fCol=0.5f;
@@ -4078,6 +4084,12 @@ static Point ptOri;
   // printf("GL_RubberBox_draw %f %f %f %d %d %d\n",ptOri->x,ptOri->y,ptOri->z,
           // rb_dx,rb_dy,mode);
 
+  // compute buffersize
+  i1 = abs(rb_dx * rb_dy);
+    // printf(" _RubberBox_draw %d (%d X %d)\n",i1,rb_dx,rb_dy);
+
+  // is size 0 (rb_dx or rb_dx is 0)
+  if(i1 < 4) return 0;
 
 
     // TEST ONLY
@@ -4107,14 +4119,17 @@ static Point ptOri;
   // i2 = ptOri->y;
   // glRasterPos2i (i1, i2);
 
-  // compute buffersize
-  i1 = abs(rb_dx * rb_dy);
-
-  // is size 0 (rb_dx or rb_dx is 0)
-  if(i1 < 4) goto L_exit;
 
   // get buffer (alloca)
-  fBuf = MEM_alloc_tmp ((int)(i1 * sizeof(GLfloat)));
+  i2 = i1 * sizeof(GLfloat);
+
+  if(i2 >= SPC_MAX_STK) {
+    fBuf = malloc (i2);
+    iSpc = 1;
+  } else {
+    fBuf = MEM_alloc_tmp (i2);
+    iSpc = 0;
+  }
   if(fBuf == NULL) {TX_Error("GL_RubberBox_draw EOF"); goto L_exit;}
 
 
@@ -4149,6 +4164,9 @@ static Point ptOri;
   // glFlush(); // must flush here
   glFlush();
   glDrawBuffer (GL_BACK);
+
+
+  if(iSpc) free (fBuf);
 
   return 0;
 
@@ -5480,7 +5498,7 @@ static double old_view_Z = 0.;
   GLuint dlInd;
 
 
-  // UT3D_stru_dump (Typ_Color, nxtCol, "GL_DefColSet");
+  UT3D_stru_dump (Typ_Color, nxtCol, "GL_DefColSet");
 
   // if(!strncmp((void*)&actCol,(void*)nxtCol,3)) return 0;
 
@@ -7766,6 +7784,29 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
 //================================================================
+  void GL_Draw_ln2 (long *ind, int iAtt, Line2 *ln1) {
+//================================================================
+// GL_Draw_ln2           display 2D-line
+
+  int         attInd;
+  GLuint      dlInd;
+
+
+  attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
+
+  dlInd = GL_fix_DL_ind (ind);
+
+
+  glNewList (dlInd, GL_COMPILE);
+    glDisable (GL_LIGHTING);
+    glCallList (DL_base_LnAtt + attInd);
+    GL_Disp_ln2 (&ln1->p2, &ln1->p1);
+  glEndList ();
+
+}
+
+
+//================================================================
   void GL_DrawLine (long *ind, int iAtt, Line *ln1) {
 //================================================================
 /// \code
@@ -7929,6 +7970,9 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 //================================================================
   void GL_Disp_ln2 (Point2 *p1, Point2 *p2) {
 //================================================================
+
+  // printf("GL_Disp_ln2  p1 %f %f\n", p1->x, p1->y);
+  // printf("             p2 %f %f\n", p2->x, p2->y);
 
   glBegin (GL_LINES);
     glVertex3d (p1->x, p1->y, 0.);
@@ -14350,6 +14394,40 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
+  int GL_Init_col () {
+//================================================================
+
+  int  ic = 12;  // defColNr in GL_col_tab
+
+
+  // set DefCol GL_defCol ..
+  GL_defCol.cr = (int)(GL_col_tab[ic][0]*255.f);
+  GL_defCol.cg = (int)(GL_col_tab[ic][1]*255.f);
+  GL_defCol.cb = (int)(GL_col_tab[ic][2]*255.f);
+
+  GL_actCol = GL_defCol;
+
+  // set AP_defcol
+  AP_SetCol__ (&GL_actCol);
+
+    // UT3D_stru_dump (Typ_Color, &GL_defCol, "  GL_defCol:");
+
+  glDisable (GL_BLEND);          // fuer nach einem transparenten Model ..
+  glEnable (GL_DEPTH_TEST);
+  glEnable (GL_LIGHTING);
+  GL_stat_blend = 0;
+
+  glColor3fv (GL_col_tab[ic]);
+
+
+  return 0;
+
+}
+
+
+
+/* replaced by GL_Init_col
+//================================================================
   int GL_InitCol (int ic) {
 //================================================================
 // muss innerhalb glNewList gerufen werden ..
@@ -14359,14 +14437,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf("GL_InitCol %d\n",ic);
 
 
-
-
   // die DefCol GL_defCol setzen ..
-/*
-  AP_SetCol3i ((int)((double)0.88*255.),
-               (int)((double)0.88*255.),
-               (int)((double)0.95*255.), 1);  // 0.88,0.88,0.95
-*/
   AP_SetCol3i ((int)(GL_col_tab[12][0]*255.f),
                (int)(GL_col_tab[12][1]*255.f),
                (int)(GL_col_tab[12][2]*255.f), 1);  // 0.88,0.88,0.95
@@ -14383,6 +14454,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   return 0;
 
 }
+*/
 
 
 //================================================================

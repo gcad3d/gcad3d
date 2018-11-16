@@ -35,7 +35,8 @@ and with the tagfiles (../tags/infotext.tag)
 
 INF_types       list of    Typ_x    and corresponding struct
 INF_COL_CV      list of colors for curves
-INF_tol__       tolerances
+INF_tol__       tolerances constants
+INF_MEM__       get memSpc ..
 
 INF_struct_ObjGX
 
@@ -45,6 +46,9 @@ INF_OGX_SUR_TPS
 INF_OGX_SUR_PLN
 
 INF_MSG_new     create new message
+
+INF_workflow__  sequence functions
+INF_NamingConventions                 ../../doc/gcad_doxygen/NamingConventions.txt
 
 \endcode */}
 
@@ -65,7 +69,7 @@ shortNam   funcGrp      struct    form          descr
                         CurvBSpl  Typ_CVBSP
                         CurvRBSpl Typ_CVRBSP
                         CurvClot  Typ_CVCLOT    ClothoidCurve
-                        CurvCCV   Typ_CVTRM
+           CVTRM_       CurvCCV   Typ_CVTRM     TrimmedCurve
 
   obj      UTO_         typ+data  int+void*     binary-obj               INF_ObjGX
                         ObjBin    - undef !
@@ -79,6 +83,7 @@ shortNam   funcGrp      struct    form          descr
   odl      DL_          DL_Att    - undef !     DisplayListRecord
 
 see also ../../doc/gcad_doxygen/NamingConventions.txt
+empty prototypes (eg UT3D_PT_NUL) see ../ut/ut_geo_const.h
 
 
 
@@ -351,7 +356,35 @@ tolerances
 \endcode */}
 
 
+void INF_MEM__ (){        /*! \code
+  get memSpc ..
 
+MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
+Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
+TxtTab            Textstrings                  UtxTab_       ../ut/ut_txTab.c
+MEM_alloc_tmp     temporary memspc
+
+
+../xa/xa_mem.h    includefile static memSpaces
+
+
+../../doc/gcad_doxygen/Tools-MemoryFunctions.dox
+
+\endcode */}
+
+
+void INF_workflow__ (){        /*! \code
+ sequence functions
+
+WC_Work1                      execute codeline
+  APT_work_def                handle definition-line
+    APT_store_obj             store in DB
+    APT_Draw__                display
+  APT_work_AppCodTab          do eg HIDE VIEW MODSIZ DEFTX EXECM ..
+  APT_do_auxCmd               do eg R# or G#
+
+
+\endcode */}
 
 /* \verbatim */
 #endif

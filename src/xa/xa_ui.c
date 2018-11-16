@@ -5109,21 +5109,26 @@ See UI_but__ (txt);
 
   L_disp:
 
-  // TEST ONLY:
-  // UTO_dump__ (vp, "UI_dump__"); // return 0;
-  // UTO_dump_s_ (vp, "UI_dump_obj"); return 0; // nur ObjGX !
+    // TESTBLOCK
+    // if(oNr > 1) UT3D_nstru_dump (oTyp, oNr, vp, cbuf2);
+    // else UT3D_stru_dump (oTyp, vp, cbuf2);                  // dump obj ..
+    // UTO_dump__ (vp, "UI_dump__"); // return 0;
+    // UTO_dump_s_ (vp, "UI_dump_obj"); return 0; // nur ObjGX !
+    // END TESTBLOCK
 
 
+  // open file
   sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
   UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
+
 
   // write objID  & typ
   UT3D_stru_dump (Typ_Txt, AP_src_typ__(oTyp), "%s        ",cbuf2);
 
-  // UTO_dump_obj (TYP_FuncInit, vp, 1);          // init level
 
-  // UTO_dump_obj (oTyp, vp, oNr);                  // dump obj ..
-  UT3D_stru_dump (oTyp, vp, cbuf2);                  // dump obj ..
+  // dump obj ..
+  if(oNr > 1) UT3D_nstru_dump (oTyp, oNr, vp, cbuf2);
+  else        UT3D_stru_dump (oTyp, vp, cbuf2);                  // dump obj ..
 
 
   //----------------------------------------------------------------

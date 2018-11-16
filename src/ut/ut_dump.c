@@ -403,8 +403,8 @@ static FILE     *uo = NULL;
   Point    *p1, *ptAr;
   Point2   *pt2Ar;
   // Ray      *lnr;
-  Line     *l1;
-  Line2    *l2;
+  Line     *ln1;
+  Line2    *ln2;
   Circ     *c1;
   Circ2    *c2;
   Circ2C   *c2c;
@@ -568,23 +568,23 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_LN2) {
-    l2 = data;
-    sprintf(cps,"2D-Line %s typ = %d",txt,l2->typ);
+    ln2 = data;
+    sprintf(cps,"2D-Line %s typ = %d",txt,ln2->typ);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CI);
-    sprintf(cps,"(Line2).p1=%9.3f,%9.3f",l2->p1.x,l2->p1.y);
+    sprintf(cps,"(Line2).p1=%9.3f,%9.3f",ln2->p1.x,ln2->p1.y);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(Line2).p2=%9.3f,%9.3f",l2->p2.x,l2->p2.y);
+    sprintf(cps,"(Line2).p2=%9.3f,%9.3f",ln2->p2.x,ln2->p2.y);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_LN) {
-    l1 = data;
-    sprintf(cps,"Line %s ltyp = %d",txt,l1->typ);
+    ln1 = data;
+    sprintf(cps,"Line %s ltyp = %d",txt,ln1->typ);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_LN);
-    sprintf(cps,"(Line).p1=%9.3f,%9.3f,%9.3f",l1->p1.x,l1->p1.y,l1->p1.z);
+    sprintf(cps,"(Line).p1=%9.3f,%9.3f,%9.3f",ln1->p1.x,ln1->p1.y,ln1->p1.z);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(Line).p2=%9.3f,%9.3f,%9.3f",l1->p2.x,l1->p2.y,l1->p2.z);
+    sprintf(cps,"(Line).p2=%9.3f,%9.3f,%9.3f",ln1->p2.x,ln1->p2.y,ln1->p2.z);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -1444,6 +1444,12 @@ static FILE     *uo = NULL;
     }
 
 
+  //----------------------------------------------------------------
+  } else if(typ == Typ_ObjTab)   {     // ObjTab see ObjTab_dump
+    sprintf(cps,"ObjTable nr=%d siz=%d",
+            ((ObjTab*)data)->oNr, ((ObjTab*)data)->oSiz);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+      // ObjTab_dump (data, 1, "");
 
 
   //----------------------------------------------------------------
@@ -1765,9 +1771,10 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_Memspc) {
-    sprintf(cps,"  free = %d",UME_ck_free((Memspc*)data));
+    sprintf(cps,"Memspc %s",txt);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"  tot = %d",UME_ck_tot((Memspc*)data));
+    sprintf(cps,"  free = %d  tot = %d",
+            UME_ck_free((Memspc*)data), UME_ck_tot((Memspc*)data));
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 

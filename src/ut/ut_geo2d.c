@@ -2031,7 +2031,6 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //========================================================================
 /// \code
 /// UT2D_slen_nor2vc          signed length of normal of 2 vectors
-/// both vectors need not to be normalized.
 /// If v1 = normalized use UT2D_slen_nor_vc_vcNo.
 ///            x
 ///           /|
@@ -2049,7 +2048,6 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
   double  d1;
-  Vector2 nv2;
 
   // UT3D_stru_dump (Typ_PT2, p1, "UT2D_slen_nor2vc");
   // UT3D_stru_dump (Typ_PT2, p2, "             p2 ");
@@ -2066,13 +2064,8 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
     return -1;
   }
 
-  // nv2 = Normalvektor (v2)
-  nv2.dx = v2->dy;
-  nv2.dy = -v2->dx;
-
   // abst = skalarprod (v1, nv2) / Laenge(v1)
-  // d1 = fabs(v1.dx * nv2.dx + v1.dy * nv2.dy) / d1;
-  *slen = (v1->dx * nv2.dx + v1->dy * nv2.dy) / d1;
+  *slen = (v1->dx * v2->dy - v1->dy * v2->dx) / d1;
 
     // printf("ex UT2D_slen_nor2vc %f\n",d1);
 
@@ -2085,7 +2078,8 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //========================================================================
 /// \code
 /// UT2D_slen_nor_vc_vcNo     signed length of normal of 2 vectors (1 normalized)
-/// v1 must be normalized     (else slen *= length_of_V1)
+/// v1 must be normalized     (else slen /= length_of_V1)
+/// see also UT2D_slen_nor_2pt_vcNo UT2D_slen_nor2vc
 ///            x
 ///           /|
 ///          / |
@@ -2107,12 +2101,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // UT3D_stru_dump (Typ_PT2, p2, "             p2 ");
   // UT3D_stru_dump (Typ_PT2, p3, "             p3 ");
 
-  // nv2 = Normalvektor (v2)
-  nv2.dx = v2->dy;
-  nv2.dy = -v2->dx;
-
-  // dist = skalarprod (v1, nv2) / Laenge(v1)
-  *slen = v1->dx * nv2.dx + v1->dy * nv2.dy;
+  *slen = v1->dx * v2->dy - v1->dy * v2->dx;
 
     // printf("ex UT2D_slen_nor_vc_vcNo %f\n",d1);
 

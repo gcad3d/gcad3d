@@ -91,11 +91,14 @@ void* MEM_alloc_tmp (int);
 #define MEM_alloc_tmp(siz) _alloca(siz + 64)
 //#define MEM_alloc_tmp(siz) alloca(siz)
 #else
-#define MEM_alloc_tmp(siz)\
- alloca(siz);\
- if(siz >= SPC_MAX_STK) printf("*** ERR MEM_alloc_tmp |%s| %d\n",__func__,(int)siz);\
- fflush(stdout)
+#define MEM_alloc_tmp(siz) alloca(siz)
 #endif
+
+// #define MEM_alloc_tmp(siz)\
+//  alloca(siz);\
+//  if(siz >= SPC_MAX_STK) printf("*** ERR MEM_alloc_tmp |%s| %d\n",__func__,(int)siz);\
+//  fflush(stdout)
+// #endif
 
 
 /// UME_TMP_FILE          allocate temp.memspace for file

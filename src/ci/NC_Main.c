@@ -3969,7 +3969,7 @@ APT_stat_act:
   ObjGX     *ox1;
   // AText     *atx1;
   // GText     *gtx1;
-  Memspc    tSpc1;
+  Memspc    tSpc1 = UME_NEW;
 
 
   // printf("APT_Draw__ typ=%d ind=%ld iAtt=%d\n",typ,ind,iAtt);
@@ -4050,7 +4050,7 @@ APT_stat_act:
     case Typ_CVCLOT:
     case Typ_CVTRM:
         po = DB_GetCurv (ind);
-        UME_init (&tSpc1, memspc201, sizeof(memspc201));
+        // UME_init (&tSpc1, memspc201, sizeof(memspc201));
         APT_DrawCurv (iAtt, ind, (ObjGX*)po, WC_sur_Z, &tSpc1);
       break;
 

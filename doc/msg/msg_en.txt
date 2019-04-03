@@ -59,8 +59,8 @@ MMmdEdi=modify active inputfield with systemEditor / F3
 MMmdCln=remove all deleted Lines permanent / F4
 MMmdRlo=redo (restore last operation; Ctrl-Y)
 
-MMinVpt=give ViewportParameters (into open Interaction)
-MMinTxt=MAN: paste textBuffer after delete or ctrl X
+MMinVpt=prints ViewportParameters into active CAD - inputfield
+MMinTxt=MAN: paste textBuffer after delete or ctrl-X
 
 MMsePcp=give Coordinates of cursor on construction-plane at next selection
 MMsePop=give parametric point of cursor on selected object at next selection
@@ -97,7 +97,7 @@ MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
 MMrbRel=display cursorposition on the active constructionplane
 MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
 
-MMrbVwr=Viewer
+MMrbVwr=Viewer (display and anlysis only, no modifications)
 MMrbNCw=not active
 MMrbCad=interactive CAD-Object-Editor
 MMcbSN=search object, add/modify object-name
@@ -171,7 +171,7 @@ PLN_PT_Plane_Offset_Angle=Plane with new origin and/or rotated around Z-axis
 
 VEC_cartes__polar=Vector from line or vector or cartes. [length] [REV (turn)]
 VEC_polar_______Angles_Length_=Vector from Rot.Angle (Z-Axis), [TiltAngle (X-Y-plane)] [length] [REV (turn)]
-VEC_from_objects=Vector = tangent to curve (Circ/Ellipse/B-spline/Clothoid) from point on curve
+VEC_from_objects=Vector=tangent to curve (Circ/Ellipse/B-spline/Clothoid) from point on curve
 
 V_Variable___Value=variable from value
 V_X_Y_Z_part_PT_VC=variable from X- Y- or Z-part of a point or vector.
@@ -186,7 +186,7 @@ S_Polygon___Points___=Polygon from points
 S_Polygon___Rectangle=Parallelogram from cornerpoint and 2 vectors
 S_BSpline___Points___=B-Spline from points; [CTRL (controlpoints/through-points)]
 S_BSpline___Polygon___=B-Spline from polygon; [CTRL (controlpoints/through-points)]
-S_BSpline___convert___join_obj_s=B-Spline = join (connect) lines/circs/b-splines
+S_BSpline___convert___join_obj_s=join lines,circles,b-splines. Result is b-spline.
 S_Clotoid=Clothoid from StartPoint, StartVector, Angle, StartRadius, EndRadius [Z-Axis]
 S_connection_lines___Points___=connecting lines between points
 S_Contour_CCV_____PT_LN_CIR_CRV=Contour (composite curve - CCV) from startpoint, curves, endpoint. Automatic intersecting and trimming.
@@ -283,6 +283,7 @@ Typ_goGeo8=Key Val; Sel PT
 Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (PgUp) / PT+PLN
 Typ_goRadius=Key Radius; Sel PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
+Typ_go_RA=Sel Plane (R) or surface (A)
 Typ_Tra=Key PgUp/Dwn (select Transformation)
 Typ_modAux=Key PgUp/Dwn
 Typ_mod1=Key PgUp/Dwn (selects alternate versions)
@@ -310,7 +311,7 @@ VR0=no Variables defined ..
 
 FILT02=Pointfilter Vertex
 FILT03=give position of cursor on selected obj ..
-FILT04=select or keyIn obj to dump ..
+FILT04=analyze object; select or keyIn objectname
 FILT05=add following selections/keyIn to group, end group with Tab-Key
 FILT06=select Line|Circ|Curve to modify ..
 FILT07=select surf to modify ..

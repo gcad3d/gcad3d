@@ -59,8 +59,8 @@ MMmdEdi=ändern des aktiven Eingabefeldes mit dem Systemeditor / F3
 MMmdCln=alle gelöschten Objekte permanent entfernen / F4
 MMmdRlo=Wiederherstellen - zuletzt gelöschtes Objekt / Strg-Y
 
-MMinVpt=Ausgabe der Parameter für die aktuelle Ansicht als Text
-MMinTxt=Ausgabe Textpuffer (nach Entf oder Strg X) / Strg Entf
+MMinVpt=Ausgabe der Parameter der aktuellen Ansicht in das aktive CAD - Eingabefeld
+MMinTxt=MAN: Ausgabe Textpuffer nach Entf oder Strg-X
 
 MMsePcp=Ausgabe Mausposition auf der Konstruktionsebene - nächste Selektion
 MMsePop=Ausgabe Mausposition als parametrischer Punkt am selektierten Objekt - nächste Selektion
@@ -97,7 +97,7 @@ MMbtVwpt=aktuelle Ansicht speichern / wiederherstellen (Ctr-V, Ctrl-CursorRechts
 MMrbRel=Cursorposition auf der aktiven Konstruktionsebene anzeigen
 MMrbAbs=Cursorposition auf der aktiven Konstruktionsebene absolut anzeigen
 
-MMrbVwr=Viewer (nur Anzeige und Analyse, kein Editieren)
+MMrbVwr=Viewer (nur Anzeige und Analyse, keine Modifikationen)
 MMrbNCw=nicht aktiv
 MMrbCad=interaktiver CAD-Objekt-Editor
 MMcbSN=Objekte suchen, Objektname/info zufügen
@@ -186,7 +186,7 @@ S_Polygon___Points___=Polygon aus Punkten
 S_Polygon___Rectangle=Parallelogram aus einem Eckpunkt und 2 Vektoren
 S_BSpline___Points___=B-Spline aus Punkten [CTRL (Kontrollpunkte/Durchganspunkte)]
 S_BSpline___Polygon___=B-Spline aus Polygon [CTRL (Kontrollpunkte/Durchganspunkte)]
-S_BSpline___convert___join_obj_s=B-Spline = Verbindung aus mehrerern Linien/Kreisbögen/B-SplineKurven
+S_BSpline___convert___join_obj_s=Linien,Kreisbögen,B-SplineKurven verbinden. Ergebnis ist B-Spline.
 S_Clotoid=Klothoide aus Startpunkt, StartRichtung, Winkel, StartRadius, EndRadius [Normalvektor]
 S_connection_lines___Points___=Verbindungslinien zwischen Punkten
 S_Contour_CCV_____PT_LN_CIR_CRV=Kontur aus Startpunkt, Kurven, Endpunkt. Verschneiden und Begrenzen erfolgt automatisch.
@@ -283,6 +283,7 @@ Typ_goGeo8=Wert eing. / Sel PT
 Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (Bild-Tasten) / PT+PLN
 Typ_goRadius=Radius eing. / Sel PT / Cir
 Typ_goGeoSUSU=Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
+Typ_go_RA=Select Ebene (R) oder Fläche (A)
 Typ_Tra=Bild-Tasten/ (select Transformation)
 Typ_modAux=Bild-Tasten
 Typ_mod1=Bild-Tasten/ (Version ändern)
@@ -310,7 +311,7 @@ VR0=es sind keine Variablen definiert ..
 
 FILT02=Punktfilter Vertex
 FILT03=Punktposition am sel. Obj. liefern ..
-FILT04=Objekt analysieren; auswählen oder Objektname mit Tastatur eingeben -
+FILT04=Objekt analysieren; auswählen oder Objektname mit Tastatur eingeben
 FILT05=alle nachfolgend selektierten Objekte zur Gruppe zufügen / Ende mit  Tab-Taste
 FILT06=Linie|Kreis|Kurve sel. (Ändern)
 FILT07=Fläche sel. (Ändern)

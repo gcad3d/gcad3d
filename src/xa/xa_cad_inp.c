@@ -816,6 +816,11 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_go_RA) {         // plane|surface
+    goto L_ato0;
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_go_LCS) {   
     // Typ_go_LCS: L|C|S(Ell,Bsp,Plg,CCV)   NOT P|Sur|Sol;
     goto L_ato0;
@@ -915,12 +920,11 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
   // printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \n");
-  // printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
-  // printf(" nxt typ=%d\n",aus_typ[*ind]);
-
-  // for(i1=*ind; i1<aus_anz; ++i1) {
-    // printf("  %d aus_typ=%d txtTab=%s\n",i1,aus_typ[i1], txtTab[i1]);
-  // }
+  printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
+  printf(" nxt typ=%d\n",aus_typ[*ind]);
+  for(i1=*ind; i1<aus_anz; ++i1) {
+    printf("  %d aus_typ=%d txtTab=%s\n",i1,aus_typ[i1], txtTab[i1]);
+  }
 
 
 
@@ -1198,7 +1202,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
   Fertig:
-    // printf("ex IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
+    printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
   return 1;
 
 
@@ -1209,7 +1213,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //__________________________________________________
   L_Err:
   buf[0] = '\0';
-  // printf("ex IE_txt2par1  ******* nix gefunden *********\n");
+    printf("ex-IE_txt2par1  ******* nix gefunden *********\n");
   return -1;
 
 }

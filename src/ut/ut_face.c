@@ -219,7 +219,7 @@ UT2D_ck_pt_in_tria__
   int    i1, ii, is, ie, fNr;
   Fac3   f1;
 
-  // UT3D_stru_dump (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
+  // DEB_dump_obj__ (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
 
   ii = 0;
 
@@ -348,7 +348,7 @@ UT2D_ck_pt_in_tria__
   Point2  *pf1, *pf2, *pf3, *pp;
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "UFA_if_find_ptmsh: ");
+  // DEB_dump_obj__ (Typ_PT, pt1, "UFA_if_find_ptmsh: ");
 
 
   // check if point is in Triangle or on its boundary
@@ -450,7 +450,7 @@ UT2D_ck_pt_in_tria__
   // make vs = vector-segment
   ps1 = (Point2*)&pa[ips];
   UT2D_vc_2pt (&vs, ps1, (Point2*)ps2);
-    // UT3D_stru_dump (Typ_VC2, &vs, "  vs:");
+    // DEB_dump_obj__ (Typ_VC2, &vs, "  vs:");
 
 
   // loop tru iTab;
@@ -878,8 +878,8 @@ UT2D_ck_pt_in_tria__
     // flip
       // printf(" flip1 %d/%d %d/%d\n",if1,esn1,if2,esn2);
     UFA_2fac_flip (if1, esn1, if2, esn2, fa, fnb);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if1], "f[%d]",if1);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if2], "f[%d]",if2);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if1], "f[%d]",if1);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if2], "f[%d]",if2);
     // if((saf[if1] == 2)||(saf[if2] == 2))   // update BreakLine
       // UFA_opt_saf (if1, if2, ie1, ie2, ie3, ie4, eTab, saf);
     ++iNr;
@@ -908,8 +908,8 @@ UT2D_ck_pt_in_tria__
     // flip
       // printf(" flip2 %d/%d %d/%d\n",if1,esn1,if2,esn2);
     UFA_2fac_flip (if1, esn1, if2, esn2, fa, fnb);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if1], "f[%d]",if1);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if2], "f[%d]",if2);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if1], "f[%d]",if1);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if2], "f[%d]",if2);
     // if((saf[if1] == 2)||(saf[if2] == 2))   // update BreakLine
       // UFA_opt_saf (if1, if2, ie1, ie2, ie3, ie4, eTab, saf);
     ++iNr;
@@ -938,8 +938,8 @@ UT2D_ck_pt_in_tria__
     // flip
       // printf(" flip3 %d/%d %d/%d\n",if1,esn1,if2,esn2);
     UFA_2fac_flip (if1, esn1, if2, esn2, fa, fnb);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if1], "f[%d]",if1);
-      // UT3D_stru_dump (Typ_Fac3, &fa[if2], "f[%d]",if2);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if1], "f[%d]",if1);
+      // DEB_dump_obj__ (Typ_Fac3, &fa[if2], "f[%d]",if2);
     // if((saf[if1] == 2)||(saf[if2] == 2))   // update BreakLine
       // UFA_opt_saf (if1, if2, ie1, ie2, ie3, ie4, eTab, saf);
     ++iNr;
@@ -3674,7 +3674,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   printf("UFA_view_nifac %d\n",fNr);
 
 
-  GL_view_ini__ (dbi, oTyp, Typ_Att_Fac1);
+  GL_view_ini__ (dbi, oTyp, Typ_Att_dash_long);
 
   GL_att_su (ATT_COL_YELLOW); // INF_COL_SYMB
 
@@ -3733,8 +3733,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     if(dbi > 0) {
       DL_SetInd (dbi);
     }
-    dli = DL_StoreObj (Typ_GL_Sur, dbi, Typ_Att_Fac1);
-    GL_Draw_Ini (&dli, Typ_Att_Fac1);  // init cv/surf, glNewList < GL_fix_DL_ind
+    dli = DL_StoreObj (Typ_GL_Sur, dbi, Typ_Att_dash_long);
+    GL_Draw_Ini (&dli, Typ_Att_dash_long);  // init cv/surf, glNewList < GL_fix_DL_ind
   }
 
 
@@ -3806,7 +3806,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   
   // disp faceNr in gravity-centerPoint
   if(iTx) {
-    GL_att_cv (Typ_Att_def);
+    GL_att_cv (Typ_Att_blue);
     i1 = 0;
     for(ii=ifs; ii<ife; ++ii) {
       if(fa[ii].st < 0) continue;   // skip deleted faces
@@ -3820,12 +3820,12 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   // disp normalvector in gravity-centerPoint
   if(iVc) {
-    GL_att_cv (Typ_Att_def);
+    GL_att_cv (Typ_Att_blue);
     i1 = 0;
     for(ii=ifs; ii<ife; ++ii) {
       UT3D_vc_perp3pt (&vcn, &pa[fa[ii].i1], &pa[fa[ii].i2], &pa[fa[ii].i3]);
       // UT3D_vc_setLength (&vcn, &vcn, 1.);
-        // UT3D_stru_dump (Typ_VC, &vcn, " vcn: ");
+        // DEB_dump_obj__ (Typ_VC, &vcn, " vcn: ");
       // GL_Disp_vSym (SYM_ARROW, &pgc, &vcn, 10., 0); //ATT_COL_HILI);
       GL_Disp_vc (&vcn, &pgca[i1], ATT_COL_CYAN);
       ++i1;
@@ -3877,9 +3877,9 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   Point   pta[3];
 
 
-  pta[0] = UT3D_pt_pt2z (&pa[fa1->i1], zVal);
-  pta[1] = UT3D_pt_pt2z (&pa[fa1->i2], zVal);
-  pta[2] = UT3D_pt_pt2z (&pa[fa1->i3], zVal);
+  UT3D_pt_pt2_z (&pta[0], &pa[fa1->i1], zVal);
+  UT3D_pt_pt2_z (&pta[1], &pa[fa1->i2], zVal);
+  UT3D_pt_pt2_z (&pta[2], &pa[fa1->i3], zVal);
 
 
   return GL_Displ_ntri (1, pta);

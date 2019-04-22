@@ -46,6 +46,7 @@ IMOD                      int - division with remainder (modul0)         INLINE
 ISIGN                     get sign of int; +1 or -1                      INLINE
 ICHAR                     get integer from character-digit               INLINE
 
+I_BIN                     get int from binary                            INLINE
 UTI_I32_2I16              get int from 2 shorts                          INLINE
 UTI_hiI16_I32             get hi (left) short out of 32-bit-int          INLINE
 UTI_loI16_I32             get lo (right) short out of 32-bit-int         INLINE
@@ -60,6 +61,7 @@ I_XOR_2I                  XOR exclusive or 2 ints                        INLINE
 UTI_add_uniq              add int uniq to list
 UTI_deleq                 delete equal records form 2 intLists
 UTI_findeq                find 2 gleiche Elemente in 2 IntegerListen
+UTI_is_seq_2i_ring        test if 2 ints are sequentional in closed group
 UTI_i2_sort               sort 2 integers                                INLINE
 UTI_ni_sort               sort integerList
 UTI_ni_ind_sort           return sorted indexarray for integerarray
@@ -67,11 +69,15 @@ UTI_ind_iTab_i            get index of int in iTab
 UTI_iNr_chrNr             give nr of ints for n characters (not including \0) INL
 UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)
 UTI_div4diff              get nr of missing bytes for modulo-4.
+UTI_round_4up             round integer up to 4                          INLINE
 UTI_round_32up            round integer up to 32                         INLINE
 UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
 UTI_round_b2i             make integer from byte (back from UTI_round_i2b)
 UTI_sum_row               sum up row from 1 to iend
 UTI_ndig_int              split integer into digits
+
+UTI_ni_ObjRange           get list of integers of ObjRanges
+UTI_checksum__            get checksum for data
 
 --------- integers and doubles
 ILIMCK1                   check if x is between 0 and lim                INLINE
@@ -89,7 +95,9 @@ DMOD                      double - division with remainder (module)      INLINE
 DSIGN                     sign of double; +1 or -1                       INLINE
 DSIGTOL                   sign of double with tolerance; +1 or -1        INLINE
 DLIM01                    0 if (d1 >= 0.); 1 if (d1 < 0.)                INLINE
+DLIM10                    1 if (d1 >= 0.); 0 if (d1 < 0.)                INLINE
 DLIM2                     limits double between hi and lo-value          INLINE
+SQRT                      sqrt (sqrt(0.) gives -nan)                     INLINE
 ACOS                      cos                                            INLINE
 UTP_min_3                 find minimum double of 3; returns 0|1|2
 UTP_min_d3                find minimum double of 3; returns double.
@@ -102,6 +110,7 @@ UTP_max                   find minimum double out of dbTab
 UTP_dbRec_max             find maximum double out of dbRecords
 UTP_db_cknear_2db         find nearest double out of 2 doubles
 UTP_db_cknear_ndb         find nearest double out of dbTab
+UTP_db_ckNxt_ndb          find next double out of dbTab
 UTP_db_ck_in2db           test if value of v is between v1 / v2
 UTP_db_ck_in2dbTol        test if value of v is between v1 / v2
 UTP_2db_ck_in4db          die beiden inneren Werte aus 4 Zahlen finden
@@ -164,12 +173,82 @@ UTA_  functions for pointers (addresses)
 #include <string.h>
 
 
-#include "../ut/ut_geo.h"
+#include "../ut/ut_geo.h"             // including ../ut/ut_uti.h
 
 
 
 // PROTOTYPES:
   int UTI_ni_ind_CB_sort (void **i1, void **i2);
+
+
+
+
+
+
+//================================================================
+  int UTI_ni_ObjRange (int *ia, ObjRange *ora, int orNr) {
+//================================================================
+// UTI_ni_ObjRange                get list of integers of ObjRanges
+// Input:
+//   orNr  nr of ObjRange-records
+// Output:
+//   ia    list of ints of orNr ObjRange-records  (get size if ia=NULL)
+//   retCod  necessary size of ia (only if ia=NULL)
+// ia must have size >= size reported if (ia=NULL)
+
+  int   io, ir, i1, i2, ii;
+
+  io = 0;
+
+  if(!ia) {
+    // ia = NULL: reported size of ia
+    for(ir=0; ir<orNr; ++ir) if(ora[ir].oNr) io += ora[ir].oNr;
+      // printf("ex-ni_ObjRange siz=%d \n",io);
+    return io;
+  }
+
+  for(ir=0; ir < orNr; ++ir) {
+    if(ora[0].oNr) {
+      i1 = ora[ir].ind;
+      i2 = i1 + ora[ir].oNr;
+      for(ii=i1; ii<i2; ++ii) {
+        ia[io] = ii;
+        ++io;
+      }
+    }
+  }
+
+    // TESTBLOCK
+    // printf("ex-ni_ObjRange ia %d\n",io);
+    // for(i1=0; i1<io; ++i1) printf(" ni[%d] = %d\n",i1,ia[i1]);
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//================================================================
+  UINT_32 UTI_checksum__ (void *buf, int bufLen) {
+//================================================================
+// UTI_checksum__                   get checksum for data
+// Adler-32bit-checksum
+// Retcode = checksum
+
+  int       i1;
+  UINT_8    *ps = buf;
+  UINT_32   ic1 = 1, ic2 = 0;
+
+  for (i1 = 0; i1 < bufLen; i1++) {
+    ic1 = (ic1 + ps[i1]) % 65521;
+    ic2 = (ic2 + ic1) % 65521;
+  }
+
+    // printf("ex-UTI_checksum__  %d  len=%d\n",(ic2 << 16) | ic1,bufLen);
+
+  return (ic2 << 16) | ic1;
+
+}
 
 
 //================================================================
@@ -445,6 +524,22 @@ UTA_  functions for pointers (addresses)
     // printf(" iia[%d]=%d; ia[%d]=%d\n",i1,iia[i1], ia[i1],ia[iia[i1]]);
 
   return 0;
+
+}
+
+
+//================================================================
+  int UTI_is_seq_2i_ring (int i1, int i2, int iNr) {
+//================================================================
+// test if 2 ints are sequentional in closed group (have sequential indexes)
+// returns 0=No; 1=Yes
+// Example: if group has 7 members then index 0 and 6 are connected !
+//   also connected: 0,6; 6,0; 3,4; i4,5; 4,3 ..
+//   not connected:  3,5 ..
+
+  if(i1+i2+1 == iNr) return 1;
+
+  return (abs(i1-i2) == 1 ? 1 : 0);
 
 }
 
@@ -783,39 +878,36 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 
 
 //================================================================
-  UTP_2db_ck_in2db (double r1Start, double r1End,
+  int UTP_2db_ck_in2db (double r1Start, double r1End,
                     double r2Start, double r2End) {
 //================================================================
 // test if range2 overlaps range1
 // range1: from r1Start - r1End;
 // range2: from r2Start - r2End;
+//
+// DOES NOT TEST TOLERANCE; see UT2D_ck_2par_pt_in_2par_2pt
+//
 // Retcod:
-//      -2 outLow  r2Start r2End r1Start r1End
-//      -1 overlap r2Start r1Start r2End r1End
-//       0 enclose r1Start r2Start r2End r1End
-//       1 overlap r1Start r2Start r1End r2End
-//       2 outHigh r1Start r1End r2Start r2End
-//
-//
-// RC=-4                     1s-----------1e
+//    -4                     1s-----------1e      outLow
 //              2s------2e
 //
-// RC=-3        1s------1e
+//    -3        1s------1e                        outHigh
 //                           2s--------2e
 //
-// RC=-2            1s-----------1e
+//    -2            1s-----------1e               overlap low
 //              2s--------2e
 //
-// RC=-1        1s-----------1e
+//    -1        1s-----------1e                   overlap high
 //                  2s-----------2e
 //
-// RC=1          1s-----------1e
+//    1          1s-----------1e                  enclose cv2
 //                  2s-----2e
 //
-// RC=2             1s-----1e
-//              2s------------2e
+//    2             1s-----1e                     enclose cv1
+//              2s------------2e          
 //
-
+//
+// see also UT2D_ck_2par_pt_in_2par_2pt
 
   int  irc;
 
@@ -826,15 +918,16 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
   if(r2Start > r2End) MEM_swap_2db (&r2Start, &r2End);
 
 
-  if (r2End < r1Start) {
+  if (r2End <= r1Start) {
     irc = -4;
 
 
-  } else if (r2Start > r1End) {
+  } else if (r2Start >= r1End) {
     irc = -3;
 
 
-  } else if (r1Start > r2Start) {
+  } else if (r1Start > r2Start) { 
+    //  2s___1s---
     if (r2End > r1End) {
       irc = 2;
     } else {
@@ -842,7 +935,8 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
     }
 
 
-  } else if (r2Start > r1Start) {
+  } else {
+    //  1s---2s___
     if (r2End < r1End) {
       irc = 1;
     } else {
@@ -1215,6 +1309,32 @@ if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 
   if(fabs(*db - *d1) < fabs(*db - *d2)) return 0;
   else                                  return 1;
+
+}
+
+
+//=======================================================================
+  int UTP_db_ckNxt_ndb (double db1, int dbNr, double *dbTab) {
+//=======================================================================
+/// UTP_db_ckNxt_ndb          find next double out of dbTab
+/// Output:
+///   retCod   index of value >= db1 into dbTab
+///            -1  if db1 > dbTab[dbNr - 1]
+
+
+  int    i1, ind;
+  double d1;
+
+
+  ind = 0;
+  d1  = UT_VAL_MAX;
+
+
+  for(i1=0; i1<dbNr; ++i1) {
+    if(dbTab[i1] > db1) return i1;
+  }
+
+  return -1;
 
 }
 

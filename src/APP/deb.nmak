@@ -1,7 +1,6 @@
 # Debug 1=Debug-ON
 #       2=Distribute;DebugOFF
-
-!include ..\APP\deb.mak
+# DEB is set in options.nmak
 
 !if "$(DEB)"=="1"
 CPDEB = -DDEB /Zi

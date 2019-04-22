@@ -5,6 +5,12 @@
 \ref Debug-settings-tools
 \ref Debug-functions
 \ref Debug-core-function
+
+
+ERR_SET1        set callback-address for SIGSEGV-errors
+ERR_raise       create SIGSEGV-error; eg. for exit dll immediately
+ERR_RESET       reset error-callback
+
 </pre>
 
 

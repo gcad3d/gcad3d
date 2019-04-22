@@ -149,11 +149,9 @@ Ein oder mehrere Objekte in eine B-SplineKurve umwandeln und verbinden,
 EingabeElemente:  Punkte, Linien, Kreisbögen,
                   Polygone, Ellipsen, Klotoiden, B-SplineKurven
 
-smoothFactor:     0 = keine Verrundung,     max. 1.
-                  nur für Polygone:
-                    -1 = keine Verrundung;
-                     0 = durch die Punkte,
-                     1 = durch die Kontrollpunkte.
+smoothFactor:     negative Werte: degree 1 (Polygon)
+                  positive Werte: degree 2 or 3;
+                  höhere Werte - mehr Kontrollpunkte.
                   
 
 

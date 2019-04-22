@@ -217,6 +217,23 @@ solutionNr:      1-n, PgUp/PgDown keys.
 
 
 <p><a name="F7"></a></p>
+  <h2>Parallel obj (offset)       PARL</h2>
+Create a parallel object.
+Until now only for planar curves.
+  basic obj                 select curve
+  offset dist               keyIn distance
+  [basic plane/surf]        optional - define plane of curve
+  [nr of contour; 0=all]    if result has more than one curves:
+                            no input or 1 gives first curve ..
+  [rounded/edges]           no rounding of corners; until now only for circle, line
+
+Example:
+S23=PARL S21 VAL(3)
+# creates curve S21 parallel to curve S20, distance is 3.
+
+
+
+<p><a name="F8"></a></p>
   <h2>Mirror about line       MIR</h2>
 Reflect objects across a line
   Currently, only for linear elements, plane, not surfaces.
@@ -224,13 +241,13 @@ Reflect objects across a line
 resulting object = MIR object line
 
 
-Beispiel:
+Example:
 S20=MIR S20 L20
 # Curve S20 is mirrored across line L20
 
 
 
-<p><a name="F8"></a></p>
+<p><a name="F9"></a></p>
 <h2>Mirror obj (Plane)      MIR</h2>
  Reflect objects across a plane
    Currently, only for linear elements, not surfaces
@@ -243,7 +260,7 @@ S20=MIR S20 L20
 
 
 
-<p><a name="F9"></a></p>
+<p><a name="F10"></a></p>
 <h2>ISOparametric Curve from Surf         ISO</h2>
  Extracts an isoparametric curve from a surface.
   Currently only B-Spline surface. Entering point or parameter value has not yet been implemented 

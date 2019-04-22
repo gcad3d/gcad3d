@@ -115,12 +115,12 @@ double SRU_parsru_utLn2 ();
     // get the parametric points on both baseCurves
     // create line from this points
     // 1. obj.
-      UT3D_stru_dump (Typ_ObjGX, &oTab[0], "obj:\n");
-    typ1 = UTO_obj_getp (&dat1, &i1, &oTab[0]);  // get data-struct
-      UT3D_stru_dump (typ1, dat1, "typ1=%d obj:\n",typ1);
+      DEB_dump_obj__ (Typ_ObjGX, &oTab[0], "obj:\n");
+    typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
+      DEB_dump_obj__ (typ1, dat1, "typ1=%d obj:\n",typ1);
     UT3D_pt_evparcrv (&((Line*)objo)->p1, dp, typ1, dat1);
     // 2. obj.
-    typ1 = UTO_obj_getp (&dat1, &i1, &oTab[1]);
+    typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[1]);
     if(typ1 == Typ_VC) {
       // translate p1 um vector ..
       UT3D_pt_traptvc (&((Line*)objo)->p2, &((Line*)objo)->p1, (Vector*)dat1);
@@ -136,7 +136,7 @@ double SRU_parsru_utLn2 ();
   //  dp=0
   if(dp < UT_TOL_min1) {
     // get type of SRU-obj1
-    *oTyp = UTO_obj_getp (&dat1, &i1, &oTab[0]);  // get data-struct
+    *oTyp = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
     if(objo == NULL) goto L_exit;
     // copy obj1
     i1 = UTO_siz_stru (*oTyp);
@@ -148,13 +148,13 @@ double SRU_parsru_utLn2 ();
   // dp=1
   } else if (dp > 1. - UT_TOL_min1) {
     // get type of SRU-obj2
-    *oTyp = UTO_obj_getp (&dat2, &i1, &oTab[1]);  // get data-struct
+    *oTyp = UTO_objDat_ox (&dat2, &i1, &oTab[1]);  // get data-struct
     // SRU from obj & Vector:
     if(*oTyp == Typ_VC) {
       vc1 = *(Vector*)dat2;   // copy vector
-        UT3D_stru_dump (Typ_VC, &vc1, "vc1:");
+        DEB_dump_obj__ (Typ_VC, &vc1, "vc1:");
       // get obj1
-      *oTyp = UTO_obj_getp (&dat1, &i1, &oTab[0]);  // get data-struct
+      *oTyp = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
       if(objo == NULL) goto L_exit;
       // translate obj1
       UTRA_def__ (1, Typ_VC, &vc1);
@@ -173,10 +173,10 @@ double SRU_parsru_utLn2 ();
   // dp>0; dp<1
   } else {
 
-    typ1 = UTO_obj_getp (&dat1, &i1, &oTab[0]);  // get data-struct
-    typ2 = UTO_obj_getp (&dat2, &i1, &oTab[1]);  // get data-struct
-      // UT3D_stru_dump (typ1, dat1, "dat1:\n");
-      // UT3D_stru_dump (typ2, dat2, "dat2:\n");
+    typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
+    typ2 = UTO_objDat_ox (&dat2, &i1, &oTab[1]);  // get data-struct
+      // DEB_dump_obj__ (typ1, dat1, "dat1:\n");
+      // DEB_dump_obj__ (typ2, dat2, "dat2:\n");
       printf(" typ1=%d typ2=%d\n",typ1,typ2);
 
 
@@ -201,12 +201,12 @@ double SRU_parsru_utLn2 ();
       if(objo == NULL) goto L_exit;
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
-      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_start, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_end, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
-      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_start, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_end, typ2, dat2);
       // modify p1-p2 with parameter dp
       UT3D_pt_evpar2pt (&((Line*)objo)->p1, dp, &p1, &p3);
       UT3D_pt_evpar2pt (&((Line*)objo)->p2, dp, &p2, &p4);
@@ -227,12 +227,12 @@ double SRU_parsru_utLn2 ();
       }
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_0, typ1, dat1);
-      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_1, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p1, NULL, NULL, Ptyp_start, typ1, dat1);
+      irc = UT3D_ptvcpar1_std_obj (&p2, NULL, NULL, Ptyp_end, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_0, typ2, dat2);
-      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_1, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p3, NULL, NULL, Ptyp_start, typ2, dat2);
+      irc = UT3D_ptvcpar1_std_obj (&p4, NULL, NULL, Ptyp_end, typ2, dat2);
       // vz1-vz2 antiparallel ?
       if(UT3D_sid_2vc(&((Circ*)dat1)->vz, &((Circ*)dat2)->vz) < 0)
         MEM_swap__(&p3, &p4, sizeof(Point));
@@ -307,13 +307,13 @@ double SRU_parsru_utLn2 ();
 
   // get datastructs -> od1, od2
   // curves: get curve-subtyp (Typ_CVELL,Typ_CVBSP)
-  typ1 = UTO_obj_getp (&od1, &rNr, &oa[io1]);
-  typ2 = UTO_obj_getp (&od2, &rNr, &oa[io2]);
-  // if(typ1 == Typ_CV) typ1 = UTO_obj_getp (&od1, &oa[io1]);
-  // if(typ2 == Typ_CV) typ2 = UTO_obj_getp (&od2, &oa[io2]);
+  typ1 = UTO_objDat_ox (&od1, &rNr, &oa[io1]);
+  typ2 = UTO_objDat_ox (&od2, &rNr, &oa[io2]);
+  // if(typ1 == Typ_CV) typ1 = UTO_objDat_ox (&od1, &oa[io1]);
+  // if(typ2 == Typ_CV) typ2 = UTO_objDat_ox (&od2, &oa[io2]);
     printf(" typ1=%d io1=%d typ2=%d io2=%d\n",typ1,io1,typ2,io2);
-    UT3D_stru_dump (typ1, od1, "  od1:");
-    UT3D_stru_dump (typ2, od2, "  od2:");
+    DEB_dump_obj__ (typ1, od1, "  od1:");
+    DEB_dump_obj__ (typ2, od2, "  od2:");
 
 
   // get 2 polygons of datastructs od1, od2
@@ -534,7 +534,9 @@ double SRU_parsru_utLn2 ();
   //-------------------------------
   } else if(typ == Typ_CVELL) {
     // UT3D_cv_ell (pTab, ptNr, (CurvElli*)oxx, ptMax, -1.);
-    UT3D_npt_ell (*ptNr, pTab,  (CurvElli*)oxx);
+    *ptNr = ptMax;
+    irc = UT3D_npt_ell (ptNr, pTab,  (CurvElli*)oxx);
+    if(irc < 0) return -1;
 
 
   //-------------------------------
@@ -554,13 +556,13 @@ double SRU_parsru_utLn2 ();
 
   //-------------------------------
   } else if(typ == Typ_ObjGX) {
-      // UTO_dump_s_  ((ObjGX*)oxx, " CCV:");
-      // UTO_dump__ ((ObjGX*)oxx, " CCV:");
+      // DEB_dump_ox_s_  ((ObjGX*)oxx, " CCV:");
+      // DEB_dump_ox_0 ((ObjGX*)oxx, " CCV:");
     *ptNr = ptMax;
     irc = UT3D_pta_ox_lim (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv, 2);
     if(irc < 0) return -1;
       // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
-      // for(i1=0;i1<*ptNr;++i1) UT3D_stru_dump(Typ_PT,&pTab[i1]," pt[%d]=",i1);
+      // for(i1=0;i1<*ptNr;++i1) DEB_dump_obj__(Typ_PT,&pTab[i1]," pt[%d]=",i1);
 
 
   //-------------------------------
@@ -627,8 +629,8 @@ static Vector vca, vce;
     irc = SRU_pt_evparcrv (&px2, 1., 2);
     UT3D_vc_2pt (&vca, &pa, &px1);
     UT3D_vc_2pt (&vce, &pe, &px2);
-      UT3D_stru_dump (Typ_VC, &vca, " vca=");
-      UT3D_stru_dump (Typ_VC, &vce, " vce=");
+      DEB_dump_obj__ (Typ_VC, &vca, " vca=");
+      DEB_dump_obj__ (Typ_VC, &vce, " vce=");
       // GR_Disp_vc (&vca, &pa, 2, 1);
       // GR_Disp_vc (&vce, &pe, 2, 1);
     return irc;
@@ -637,7 +639,7 @@ static Vector vca, vce;
 
 
   //---------------------------------------------------------
-  UT3D_stru_dump (Typ_PT, pt3, "......................\nUT3D_parsru_pt ");
+  DEB_dump_obj__ (Typ_PT, pt3, "......................\nUT3D_parsru_pt ");
   GR_Disp_pt (pt3, SYM_STAR_S, 2);
 
 
@@ -736,10 +738,10 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     irc = SRU_pt_evparcrv (&ln75.p1, 0.75, 1);
     irc = SRU_pt_evparcrv (&ln75.p2, 0.75, 2);
 
-    // UT3D_stru_dump (Typ_LN, &ln0, " ln0=\n");
-    // UT3D_stru_dump (Typ_LN, &ln25, " ln25=\n");
-    // UT3D_stru_dump (Typ_LN, &ln50, " ln50=\n");
-    // UT3D_stru_dump (Typ_LN, &ln75, " ln75=\n");
+    // DEB_dump_obj__ (Typ_LN, &ln0, " ln0=\n");
+    // DEB_dump_obj__ (Typ_LN, &ln25, " ln25=\n");
+    // DEB_dump_obj__ (Typ_LN, &ln50, " ln50=\n");
+    // DEB_dump_obj__ (Typ_LN, &ln75, " ln75=\n");
 
 /*
       // printf("UT3D_parsru_pt Init %d %d\n",SRU_typ1,SRU_typ2);
@@ -752,8 +754,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     // vecs der Verbindungslinien
     UT3D_vc_2pt (&vca, &pa, &px1);
     UT3D_vc_2pt (&vce, &pe, &px2);
-      // UT3D_stru_dump (Typ_VC, &vca, " vca=");
-      // UT3D_stru_dump (Typ_VC, &vce, " vce=");
+      // DEB_dump_obj__ (Typ_VC, &vca, " vca=");
+      // DEB_dump_obj__ (Typ_VC, &vce, " vce=");
       // GR_Disp_vc (&vca, &pa, 2, 1);
       // GR_Disp_vc (&vce, &pe, 2, 1);
 */
@@ -811,7 +813,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
       UT3D_vc_merge2vc(&cloVc0, &vc1, &vc2);
       // UT3D_vc_merge2vc(&cloVc1, &vc3, &vc4);
       cloTot = (d1 + d2) / 2.;
-      // UT3D_stru_dump(Typ_VC, &cloVc0,"cloTot=%f cloVc0=",cloTot);
+      // DEB_dump_obj__(Typ_VC, &cloVc0,"cloTot=%f cloVc0=",cloTot);
     }
 */
 
@@ -822,7 +824,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   //---------------------------------------------------------
   // printf("============================================= \n");
-  // UT3D_stru_dump (Typ_PT, pt3, "UT3D_parsru_pt:");
+  // DEB_dump_obj__ (Typ_PT, pt3, "UT3D_parsru_pt:");
   // GR_Disp_pt (pt3, SYM_TRI_S, 2);
 
   irc = 0;
@@ -1027,8 +1029,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   // aus den 4 Punkten 2 Verbindungslinien machen
   UT3D_vc_2pt (&vc1, &ln1.p1, &ln1.p2);
   UT3D_vc_2pt (&vc2, &ln2.p1, &ln2.p2);
-    // UT3D_stru_dump (Typ_VC, &vc1, " vc1=");
-    // UT3D_stru_dump (Typ_VC, &vc2, " vc2=");
+    // DEB_dump_obj__ (Typ_VC, &vc1, " vc1=");
+    // DEB_dump_obj__ (Typ_VC, &vc2, " vc2=");
     // GR_Disp_vc (&vc1, &ln1.p1, 1, 1);
     // GR_Disp_vc (&vc2, &ln2.p1, 1, 2);
 
@@ -1218,17 +1220,17 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   // irc = UT3D_pt_evparcrv (pto, lpar, typ, oxp);
   // ACHTUNG: *oxp entspricht *void; (oxp == **void)
   irc = UT3D_pt_evparcrv (pto, lpar, typ, oxp);
-  // UT3D_stru_dump (Typ_PT, pto, " evpar %d",irc);
+  // DEB_dump_obj__ (Typ_PT, pto, " evpar %d",irc);
   if(irc < 0) return irc;
 
   // translate
   if(trFlag == 1) {
-    // UT3D_stru_dump (Typ_VC, SRU_obj2->vc, "  transl:");
+    // DEB_dump_obj__ (Typ_VC, SRU_obj2->vc, "  transl:");
     UT3D_pt_traptvc (pto, pto, (Vector*)SRU_obj2);
   }
 
 
-  // UT3D_stru_dump (Typ_PT, pto, "ex SRU_pt_evparcrv %d",irc);
+  // DEB_dump_obj__ (Typ_PT, pto, "ex SRU_pt_evparcrv %d",irc);
 
   return irc;
 }
@@ -1285,7 +1287,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
 
   // printf("SRU_parsru_intObj =========================\n");
-  // UT3D_stru_dump (typ, objIn, "SRU_parsru_intObj - in");
+  // DEB_dump_obj__ (typ, objIn, "SRU_parsru_intObj - in");
   // if(typ == Typ_PT) GR_Disp_pt (objIn, SYM_STAR_S, 2);
 
 
@@ -1307,7 +1309,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
       // already found;
       irc = SRU_pt_evparcrv (&ln1.p1, u1, 1);
       irc = SRU_pt_evparcrv (&ln1.p2, u1, 2);
-        // UT3D_stru_dump (Typ_LN, &ln1, "  utPtIni found ln1");
+        // DEB_dump_obj__ (Typ_LN, &ln1, "  utPtIni found ln1");
       *pU = u1;
       *ptx = *((Point*)objIn);
       goto L_comp_V;
@@ -1398,8 +1400,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   if(iloop > 12) {
     printf("SRU_parsru_intObj E001\n");
-    // UT3D_stru_dump (Typ_PT, &px1, "  px1");
-    // UT3D_stru_dump (Typ_PT, &px2, "  px2");
+    // DEB_dump_obj__ (Typ_PT, &px1, "  px1");
+    // DEB_dump_obj__ (Typ_PT, &px2, "  px2");
     // UT3D_pt_mid2pt (ptx, &px1, &px2);
 
   } else {
@@ -1429,12 +1431,12 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   L_comp_V:
   // errechnet *parV aus ln1 und ptx.
-  UT3D_parpt_3pt (pV, ptx, &ln1.p1,  &ln1.p2);
+  UT3D_par_pt_2pt (pV, ptx, &ln1.p1,  &ln1.p2);
 
 
     // testdisplay PT
     // printf("ex SRU_parsru_intObj %d %f %f iloop=%d\n",irc,*pU,*pV,iloop);
-    // UT3D_stru_dump (Typ_PT, ptx, "  ptx");
+    // DEB_dump_obj__ (Typ_PT, ptx, "  ptx");
 
   return irc;
 
@@ -1484,11 +1486,11 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     }
 */
 
-  // UT3D_stru_dump (Typ_LN, &ln0, "ln0:\n");
-  // UT3D_stru_dump (Typ_LN, &ln25, "ln25:\n");
-  // UT3D_stru_dump (Typ_LN, &ln50, "ln50:\n");
-  // UT3D_stru_dump (Typ_LN, &ln75, "ln75:\n");
-  // UT3D_stru_dump (Typ_LN, &ln100, "ln100:\n");
+  // DEB_dump_obj__ (Typ_LN, &ln0, "ln0:\n");
+  // DEB_dump_obj__ (Typ_LN, &ln25, "ln25:\n");
+  // DEB_dump_obj__ (Typ_LN, &ln50, "ln50:\n");
+  // DEB_dump_obj__ (Typ_LN, &ln75, "ln75:\n");
+  // DEB_dump_obj__ (Typ_LN, &ln100, "ln100:\n");
 
   // GR_Disp_ln (&SRU_ln0, 9);
   // GR_Disp_ln (&SRU_ln1, 9);
@@ -1522,7 +1524,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   Vector  vc1;
 
 
-  // UT3D_stru_dump(Typ_PT, objIn, "SRU_parsru_utPtIni");
+  // DEB_dump_obj__(Typ_PT, objIn, "SRU_parsru_utPtIni");
 
 
   distold = UT_VAL_MAX;
@@ -1829,7 +1831,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     // GR_Disp_pt (ptx, SYM_STAR_S, 3);
 
   // den Parameter fuer plm auf Strecke px1-px2 errechnen
-  UT3D_parpt_3pt (&par1, ptx, px1, px2);
+  UT3D_par_pt_2pt (&par1, ptx, px1, px2);
     // printf(" par1=%f\n",par1);
 
 

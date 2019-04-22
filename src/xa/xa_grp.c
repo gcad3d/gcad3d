@@ -415,7 +415,7 @@ static int      GrpNr  = 0;
   char  s1[256], s2[32];
 
   sprintf(s1," %d objects in group ==============", GrpNr);
-  UT3D_stru_dump(Typ_Txt, s1, "");
+  DEB_dump_obj__(Typ_Txt, s1, "");
 
 
   for(i1=0; i1<GrpNr; ++i1) {
@@ -425,7 +425,7 @@ static int      GrpNr  = 0;
     sprintf(s1,"[%4d] %-12s  typ=%d dbi=%ld dli=%ld stat=%d",i1,s2,
       GrpTab[i1].typ,GrpTab[i1].dbInd,GrpTab[i1].dlInd,GrpTab[i1].stat);
 
-    UT3D_stru_dump(Typ_Txt, s1, "");
+    DEB_dump_obj__(Typ_Txt, s1, "");
   }
 
   return 0;

@@ -60,11 +60,11 @@ You must delete the logfile.
 
 Example usage:
 
-#include "../ut/ut_log.h"                  // MSG_typ_*
+#include "../ut/ut_log.h"                  // MSG_ERR_typ_*
 
   sprintf(fn, "%sLog_xy.txt", OS_get_tmp_dir());
   LOG_A_set_fnam (fn);
-  LOG_A__ (MSG_typ_ERR, " err xyz - retCod=%d",irc);
+  LOG_A__ (MSG_ERR_typ_ERR, " err xyz - retCod=%d",irc);
   ..
   LOG_A_exit ((int)errNr);
 
@@ -87,7 +87,7 @@ Example usage:
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../xa/xa_msg.h"              // MSG_typ_*
+#include "../xa/xa_msg.h"              // MSG_ERR_typ_*
 
 
 
@@ -155,9 +155,9 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 /// \code
 /// LOG                    write message into logfile
 /// Input:
-///   msgTyp     MSG_typ_INF = 0
-///              MSG_typ_WNG = 1
-///              MSG_typ_ERR = 2
+///   msgTyp     MSG_ERR_typ_INF = 0
+///              MSG_ERR_typ_WNG = 1
+///              MSG_ERR_typ_ERR = 2
 ///
 /// see also gis_msg__
 /// \endcode

@@ -62,6 +62,9 @@ make run -f hello-world.mak "OS=Linux32"
  
   printf("callback_button1\n");
 
+
+  GUI_MsgBox ("callback_button1");
+
   return 1;
 
 }
@@ -75,7 +78,6 @@ make run -f hello-world.mak "OS=Linux32"
 
   // init
   GUI_Init__ ("");
-
 
   // Create Mainwindow
   window = GUI_Win__ ("Gtk-Toolbox test", GUI_main_quit, "");

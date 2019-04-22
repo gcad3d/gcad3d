@@ -194,13 +194,13 @@ extern Point     *GLT_pta;
 
   // printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT \n");
   // printf("Tess_sur__ %ld\n",dbi);
-    // UTO_dump__ (ox1, "A%ld",dbi);
+    // DEB_dump_ox_0 (ox1, "A%ld",dbi);
 
 
   //----------------------------------------------------------------
-  sTyp = UTO_obj_getp (&sDat, &i1, oxi);
+  sTyp = UTO_objDat_ox (&sDat, &i1, oxi);
   if(sTyp < 1) return -1;
-    // UT3D_stru_dump (sTyp, sDat, "sDat: ");
+    // DEB_dump_obj__ (sTyp, sDat, "sDat: ");
 
 
   if(TSU_mode == 0) {  //0=disp; 1=store.
@@ -238,7 +238,7 @@ extern Point     *GLT_pta;
   //----------------------------------------------------------------
   // TEST SYMBOLIC
   col1 = COL_INT32(&att);   // col1 = (ColRGB*)&att;
-    // UT3D_stru_dump (Typ_Color, col1, "sur-col1");
+    // DEB_dump_obj__ (Typ_Color, col1, "sur-col1");
   TSU_sStyl = 0;            // 0=ON=shade; 1=OFF=symbolic
   if(TSU_mode == 0)  {      // 0=draw; 1=store
     if((APT_dispSOL == OFF) || (col1->vsym   == 1)) TSU_sStyl = 1;
@@ -348,7 +348,7 @@ extern Point     *GLT_pta;
 
     // Testdisp. 2D-faces
     // ii = MEMTAB_IND (&fmt); for(i1=0;i1<ii;++i1)
-      // UT3D_stru_dump(Typ_IndTab,MEMTAB__ (&fmt,i1),"fmt[%d]",i1);
+      // DEB_dump_obj__(Typ_IndTab,MEMTAB__ (&fmt,i1),"fmt[%d]",i1);
     // GR_Disp_iSur (att, &fmt, &ia2D, &pa2D);  return -1;
 
 
@@ -429,7 +429,7 @@ extern Point     *GLT_pta;
 
 
   // printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT \n");
-  // UT3D_stru_dump (sTyp, sDat, "Tess_sSym__:");
+  // DEB_dump_obj__ (sTyp, sDat, "Tess_sSym__:");
 
 
 
@@ -458,7 +458,7 @@ extern Point     *GLT_pta;
 // see also GL_sSym_spl
 
 
-  // UT3D_stru_dump (Typ_SURSWP, sDat, "Tess_sSym_swp__:");
+  // DEB_dump_obj__ (Typ_SURSWP, sDat, "Tess_sSym_swp__:");
   // printf("  td1.typ=%d\n",td1->typ);
 
 
@@ -507,8 +507,8 @@ extern Point     *GLT_pta;
   TessDat_SWP *td1;
 
 
-  // UT3D_stru_dump (Typ_SURSWP, sDat, "Tess_sSym_swp_1:");
-  // UT3D_stru_dump (Typ_PLN, &td1->pl1, "  SWP-pl1:");
+  // DEB_dump_obj__ (Typ_SURSWP, sDat, "Tess_sSym_swp_1:");
+  // DEB_dump_obj__ (Typ_PLN, &td1->pl1, "  SWP-pl1:");
 
   td1 = (TessDat_SWP*)tdSwp->td;
   tol = tdSwp->tol;
@@ -543,7 +543,7 @@ extern Point     *GLT_pta;
   if(i1 < 0) return -1;
   // transfer points onto basic-plane pl1
   for(i1=0; i1<pNr; ++i1) {
-    UT3D_pt_traptm3 (&pTab[i1], im0, &pTab[i1]);
+    UT3D_pt_tra_pt_m3 (&pTab[i1], im0, &pTab[i1]);
       // GR_Disp_obj (Typ_PT, &pTab[i1], ATT_PT_GREEN, 0);
   }
 
@@ -607,7 +607,7 @@ extern Point     *GLT_pta;
 
   // display
   dli = DL_StoreObj (Typ_SUR, suID, att);
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
 
 
   return 0;
@@ -637,7 +637,7 @@ extern Point     *GLT_pta;
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
-  // UT3D_stru_dump (Typ_PLN, pl0, "Tess_sSym_swp_2");
+  // DEB_dump_obj__ (Typ_PLN, pl0, "Tess_sSym_swp_2");
   // GR_Disp_obj (Typ_PLN, pl0, 8, 4);
 
 
@@ -669,7 +669,7 @@ extern Point     *GLT_pta;
   // transfer all points onto pl1
   UT3D_m3_loadpl (m1, &pl1);
   for(i1=0; i1<pNr; ++i1) {
-    UT3D_pt_traptm3 (&pao[i1], m1, &pai[i1]);
+    UT3D_pt_tra_pt_m3 (&pao[i1], m1, &pai[i1]);
       // GR_Disp_obj (Typ_PT, &pao[i1], ATT_PT_YELLOW, 0);
   }
 
@@ -720,8 +720,8 @@ extern Point     *GLT_pta;
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
   // printf("Tess_sur_bnd_swp__ %ld\n",suID);
-  // UTO_dump__ (ox1, "Tess_sur_bnd_swp A[%ld]",suID);
-  // UT3D_stru_dump (Typ_SURSWP, swp, "Tess_sur_bnd_swp__:");
+  // DEB_dump_ox_0 (ox1, "Tess_sur_bnd_swp A[%ld]",suID);
+  // DEB_dump_obj__ (Typ_SURSWP, swp, "Tess_sur_bnd_swp__:");
 
 
   //----------------------------------------------------------------
@@ -730,12 +730,12 @@ extern Point     *GLT_pta;
   // get contour (typCov,indCov)
   typCov = DB_GetObjDat (&datCov, &i1, swp->typCov, swp->indCov);
     // printf("typCov=%d \n",typCov);
-    // UT3D_stru_dump (typCov, datCov, "SWP-Cov=");
+    // DEB_dump_obj__ (typCov, datCov, "SWP-Cov=");
 
 
   // get path    (typPath,indPath)
   typPath = DB_GetObjDat (&datPath, &i1, swp->typPath, swp->indPath);
-    // UT3D_stru_dump (typPath, datPath, "SWP-Path=");
+    // DEB_dump_obj__ (typPath, datPath, "SWP-Path=");
 
 
   // save all necessary data for tessel. -> td1
@@ -857,8 +857,8 @@ extern Point     *GLT_pta;
 
 
   // printf("Tess_sur_td__ \n");
-  // UT3D_stru_dump (typCov, datCov, "  datCov:");
-  // UT3D_stru_dump (typPath, datPath, "  datPath:");
+  // DEB_dump_obj__ (typCov, datCov, "  datCov:");
+  // DEB_dump_obj__ (typPath, datPath, "  datPath:");
 
     
   td1->typ     = Typ_SURSWP;
@@ -901,7 +901,7 @@ extern Point     *GLT_pta;
     td1->dy = -1.;
     // get basic-plane from polygon
     UT3D_pl_obj (&tdSWP->plb, typCov, datCov);
-      // UT3D_stru_dump (Typ_VC, &tdSWP->plb, "  plb");
+      // DEB_dump_obj__ (Typ_VC, &tdSWP->plb, "  plb");
 
 
   //----------------------------------------------------------------
@@ -930,7 +930,7 @@ extern Point     *GLT_pta;
   // vz of pl1 must go into direction of path; if not: invert !
   // get vc1 = startvector of path
   UT3D_ptvc_tng_crv_par (NULL, &vc1, typPath, datPath, 0, 0.);
-    // UT3D_stru_dump (Typ_VC, &vc1, "  vc1");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "  vc1");
   // vc1=startvec of path; z-vec of plane plb
   i1 = UT3D_sid_2vc (&vc1, &tdSWP->plb.vz);
     // printf(" sid=%d\n",i1);
@@ -1006,8 +1006,8 @@ extern Point     *GLT_pta;
 
 
 
-  // UT3D_stru_dump (Typ_CI, ciCov, "Tess_sur_td_ci_obj ciCov:");
-  // UT3D_stru_dump (typPath, datPath, "  datPath:");
+  // DEB_dump_obj__ (Typ_CI, ciCov, "Tess_sur_td_ci_obj ciCov:");
+  // DEB_dump_obj__ (typPath, datPath, "  datPath:");
 
 
   td1->typ     = Typ_SURSWP;
@@ -1086,7 +1086,7 @@ extern Point     *GLT_pta;
 // get 2D-point from 3D-point on cylinder
 // see TSU_tr_2D_3D_con
 
-  UT3D_stru_dump (Typ_PT, pt3, "Tess_tr_2D_3D_con: ");
+  DEB_dump_obj__ (Typ_PT, pt3, "Tess_tr_2D_3D_con: ");
 
   return 0;
 
@@ -1099,12 +1099,12 @@ extern Point     *GLT_pta;
 // get 3D-point from 2D-point on sweep-surface
 // see TSU_tr_3D_2D_con
 
-  // UT3D_stru_dump (Typ_PT, pt2, "Tess_tr_3D_2D_swp: ");
-  // UT3D_stru_dump (Typ_CON, &con->con, " icon.con: ");
+  // DEB_dump_obj__ (Typ_PT, pt2, "Tess_tr_3D_2D_swp: ");
+  // DEB_dump_obj__ (Typ_CON, &con->con, " icon.con: ");
 
   UT3D_pt_par_swp (pt3, pt2->x, pt2->y, swp);
 
-    // UT3D_stru_dump (Typ_PT, pt3, "  pt3: ");
+    // DEB_dump_obj__ (Typ_PT, pt3, "  pt3: ");
     // APT_disp_SymB (SYM_TRI_S, 2, pt3);
 
   return 0;
@@ -1131,7 +1131,7 @@ extern Point     *GLT_pta;
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
   // printf("UT3D_pt_par_swp %lf %lf\n",parU,parV);
-  // UT3D_stru_dump (Typ_PLN, &swp->pl1, "  pl1:");
+  // DEB_dump_obj__ (Typ_PLN, &swp->pl1, "  pl1:");
   // printf(" typPath=%d typCov=%d\n",swp->typPath, swp->typCov);
 
   // if(parU < 0.3) return 0; // TEST ONLY
@@ -1154,8 +1154,8 @@ extern Point     *GLT_pta;
   UT3D_pl_pto_vcz_vcx (&pl1, &pt1, &vc1, &swp->pl1.vx);
   swp->pl1 = pl1;
     // GR_Disp_obj (Typ_PLN, &pl1, 8, 4);
-    // UT3D_stru_dump (Typ_PLN, &swp->pl1, "  pl1:");
-    // UT3D_stru_dump (Typ_PLN, &pl1, "  pl1:");
+    // DEB_dump_obj__ (Typ_PLN, &swp->pl1, "  pl1:");
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "  pl1:");
 
 
 
@@ -1171,7 +1171,7 @@ extern Point     *GLT_pta;
     // get 3D-point from knotVal (real-lenght)
     UT3D_pt_evalplg (&pt1, swp->datCov, d1);
       // GR_Disp_obj (Typ_PT, &pt1, ATT_PT_GREEN, 0);
-      // UT3D_stru_dump (Typ_PT, &pt1, "  pt1:");
+      // DEB_dump_obj__ (Typ_PT, &pt1, "  pt1:");
     // get dx,dy on basic-plan swp->plb
     UT3D_vc_2pt (&vc1, &swp->plb.po, &pt1);
     UT3D_2par_vc_vcx_vcy (&pt21.x, &pt21.y, &vc1, &swp->plb.vx, &swp->plb.vy);
@@ -1254,12 +1254,12 @@ extern Point     *GLT_pta;
 
   pNr = MEMTAB_IND (&pa2D);
   pa = MEMTAB_DAT (&pa2D);
-     // for(i1=0;i1<pNr;++i1) UT3D_stru_dump(Typ_PT, &pa[i1]," p2[%d]",i1);
+     // for(i1=0;i1<pNr;++i1) DEB_dump_obj__(Typ_PT, &pa[i1]," p2[%d]",i1);
 
   // find p21-p22 = boundingbox of all pa2D-points (boundaries)
   UT2D_rect_pta3 (&p21, &p22, pa, pNr);
-    // UT3D_stru_dump (Typ_PT2, &p21, " p21");
-    // UT3D_stru_dump (Typ_PT2, &p22, " p22");
+    // DEB_dump_obj__ (Typ_PT2, &p21, " p21");
+    // DEB_dump_obj__ (Typ_PT2, &p22, " p22");
 
 
   rx = td1->rx;
@@ -1427,7 +1427,7 @@ extern Point     *GLT_pta;
   ia0 = MEMTAB__ (imt, 0);
   for(i1=0; i1<sNr; ++i1) {
     itAct = MEMTAB__ (fmt, i1);
-      UT3D_stru_dump (Typ_IndTab, itAct, "it[%d]",i1);
+      DEB_dump_obj__ (Typ_IndTab, itAct, "it[%d]",i1);
     // get space for points
     pNr = itAct->iNr;
     p2a = (void*) MEM_alloc_tmp ((int)(sizeof(Point) * pNr));
@@ -1444,16 +1444,16 @@ extern Point     *GLT_pta;
   }
 
     // dump bMsh
-    // UTO_dump_s_ (&bMsh, "sur-tess:");
-    // UTO_dump__ (&bMsh, "sur-tess:");
+    // DEB_dump_ox_s_ (&bMsh, "sur-tess:");
+    // DEB_dump_ox_0 (&bMsh, "sur-tess:");
 
 
 /*
   //----------------------------------------------------------------
   // TEST: display bMsh
   { long    dli;
-    dli = DL_StoreObj (Typ_SUR, -1L, Typ_Att_Fac1);
-    GL_DrawSur (&dli, Typ_Att_Fac1, &bMsh);
+    dli = DL_StoreObj (Typ_SUR, -1L, Typ_Att_dash_long);
+    GL_DrawSur (&dli, Typ_Att_dash_long, &bMsh);
   }
 
   //----------------------------------------------------------------
@@ -1482,17 +1482,17 @@ extern Point     *GLT_pta;
   void   *datCov, *datPath;
 
 
-  // UT3D_stru_dump (Typ_SURSWP, swp, "Tess_ptNr_SURSWP:");
+  // DEB_dump_obj__ (Typ_SURSWP, swp, "Tess_ptNr_SURSWP:");
   
 
   // get contour (typCov,indCov)
   typCov = DB_GetObjDat (&datCov, &rNr, swp->typCov, swp->indCov);
-    // UT3D_stru_dump (typCov, datCov, "SWP-Cov=");
+    // DEB_dump_obj__ (typCov, datCov, "SWP-Cov=");
 
   
   // get path    (typPath,indPath)
   typPath = DB_GetObjDat (&datPath, &rNr, swp->typPath, swp->indPath);
-    // UT3D_stru_dump (typPath, datPath, "SWP-Path=");
+    // DEB_dump_obj__ (typPath, datPath, "SWP-Path=");
 
 
   iu = UT3D_ptNr_obj (typPath, datPath, tol);

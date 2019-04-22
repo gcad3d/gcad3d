@@ -220,7 +220,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   printf("gCad_main ex  xa_obj_r.dll\n");
-  // UTO_dump_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
+  // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
 
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT_PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
@@ -431,7 +431,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
       if(vTab == NULL) {TX_Error("obj_readTess__ EOM"); return -1;}
     }
     vTab[vNr] = opt;
-    // UT3D_stru_dump (Typ_PT, &vTab[vNr], "V[%d]:",vNr);
+    // DEB_dump_obj__ (Typ_PT, &vTab[vNr], "V[%d]:",vNr);
     ++vNr;
   }
   rewind(fpi);
@@ -527,7 +527,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
     for(i1=0; i1<pNr; ++i1) {       // write pointTable
       pTab[i1] = vTab[ia[i1]];
-      // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]:",i1);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]:",i1);
     }
 
     ox3.siz  = pNr;
@@ -560,10 +560,10 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   // tess_dump_f_ (impSpc->start, "ex obj_readTess__");
-  // UTO_dump_s_ (impSpc->start, "ex obj_readTess__");
-  // UTO_dump__ (impSpc->start, "ex obj_readTess__");
+  // DEB_dump_ox_s_ (impSpc->start, "ex obj_readTess__");
+  // DEB_dump_ox_0 (impSpc->start, "ex obj_readTess__");
   // l1 = -1;
-  // GL_DrawSur(&l1, Typ_Att_Fac1, impSpc->start+sizeof(ObjGX));
+  // GL_DrawSur(&l1, Typ_Att_dash_long, impSpc->start+sizeof(ObjGX));
   // TSU_DrawSurTess (impSpc->start);
 
 
@@ -794,7 +794,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   // UtxTab_dump (&colNam);
   // for(i1=0;i1<colNr;++i1)
-    // UT3D_stru_dump(Typ_Color,&colTab.data[i1]," col%d=",i1);
+    // DEB_dump_obj__(Typ_Color,&colTab.data[i1]," col%d=",i1);
 
   return 0;
 
@@ -821,7 +821,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   opt.y = UTX_db_tx (&p1, p1) *-1.; ++p1;
 
 
-    // UT3D_stru_dump (Typ_PT, &opt, "ex obj_r_vert");
+    // DEB_dump_obj__ (Typ_PT, &opt, "ex obj_r_vert");
 
   return 0;
 

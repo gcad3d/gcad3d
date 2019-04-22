@@ -563,7 +563,7 @@ static char c1=0;
 
 
   // printf("================ GLU_tess__ elNr=%d\n",MEMTAB_IND (cmt));
-  // UT3D_stru_dump (Typ_VC, vcz, "  vcz:");
+  // DEB_dump_obj__ (Typ_VC, vcz, "  vcz:");
 
   GLU_Err = 0;
 
@@ -622,7 +622,7 @@ static char c1=0;
   // normalvector
   if(vcz) {
     gluTessNormal(ot1, vcz->dx, vcz->dy, vcz->dz);
-      UT3D_stru_dump(Typ_VC, vcz, " vcz:");
+      DEB_dump_obj__(Typ_VC, vcz, " vcz:");
   } else {
     gluTessNormal (ot1, 0., 0.,  -1); //-1.);
     // defines inside-outsied; +1=inside..??
@@ -660,10 +660,10 @@ static char c1=0;
         ip3 = ii + gb->ix + 1;
         ip4 = ii + gb->ix;
           printf(" iga = %d %d %d %d\n",ip1,ip2,ip3,ip4);
-          // UT3D_stru_dump (Typ_PT, &pa[ip1], "ip1");
-          // UT3D_stru_dump (Typ_PT, &pa[ip2], "ip2");
-          // UT3D_stru_dump (Typ_PT, &pa[ip3], "ip3");
-          // UT3D_stru_dump (Typ_PT, &pa[ip4], "ip4");
+          // DEB_dump_obj__ (Typ_PT, &pa[ip1], "ip1");
+          // DEB_dump_obj__ (Typ_PT, &pa[ip2], "ip2");
+          // DEB_dump_obj__ (Typ_PT, &pa[ip3], "ip3");
+          // DEB_dump_obj__ (Typ_PT, &pa[ip4], "ip4");
 
         gluTessBeginContour (ot1);
           gluTessVertex (ot1, (double*)&pa[ip1], (double*)&pa[ip1]);
@@ -699,7 +699,7 @@ static char c1=0;
     for(i2=0; i2 < p2Nr; ++i2) {
       ii = ia[i2];
       gluTessVertex (ot1, (double*)&pa[ii], (double*)&pa[ii]);
-        // UT3D_stru_dump (Typ_PT, &pa[ii], " OB p[%d] ii=%d",i2,ii);
+        // DEB_dump_obj__ (Typ_PT, &pa[ii], " OB p[%d] ii=%d",i2,ii);
     }
     gluTessEndContour (ot1);
 
@@ -722,7 +722,7 @@ static char c1=0;
       for(i2=p2Nr; i2>=0; --i2) {
         ii = ia[i2];
         gluTessVertex (ot1, (double*)&pa[ii], (double*)&pa[ii]);
-          // UT3D_stru_dump (Typ_PT, &pa[ii], " IB-C%d p[%d] ii=%d",i1,i2,ii);
+          // DEB_dump_obj__ (Typ_PT, &pa[ii], " IB-C%d p[%d] ii=%d",i1,i2,ii);
       }
       gluTessEndContour (ot1);
       if(GLU_Err) {gluTessEndPolygon(ot1); goto L_glu_err;}
@@ -1066,7 +1066,7 @@ static char c1=0;
   int i1;
 
   for(i1=0; i1<GLU_CombNr; ++i1) 
-         UT3D_stru_dump(Typ_PT, &GLU_CombTab[i1], " comb[%d]",i1);
+         DEB_dump_obj__(Typ_PT, &GLU_CombTab[i1], " comb[%d]",i1);
 
   return 0;
 
@@ -1144,7 +1144,7 @@ static char c1=0;
 
 
   // printf("================================= GLT_spu_ %d\n",pNr);
-  // UT3D_stru_dump (Typ_VC, vcz, "  vcz:");
+  // DEB_dump_obj__ (Typ_VC, vcz, "  vcz:");
 
 
   //=============================================================
@@ -1187,7 +1187,7 @@ static char c1=0;
         // for(i2=ipa; i2<ipe; ++i2) {
         for(i2=0; i2<iNr; ++i2) {
           // gluTessVertex(ot1, (double*)&pTab[i2], (double*)&pTab[i2]);
-          // UT3D_stru_dump(Typ_PT, &pta[i2], " spu[%d]",i2);
+          // DEB_dump_obj__(Typ_PT, &pta[i2], " spu[%d]",i2);
           gluTessVertex(ot1, (double*)&pta[i2], (double*)&pta[i2]);
           // if(i2==5){gluTessEndContour(ot1);gluTessBeginContour(ot1);}
         }
@@ -1226,7 +1226,7 @@ static char c1=0;
       // iNr = cTab[i1].iNr;  
       // pta = cTab[i1].pa;
       // for(i2=0; i2<iNr; ++i2) {
-        // UT3D_stru_dump (Typ_PT, &pta[i2], " c-%d  pt[%d]",i1,i2);
+        // DEB_dump_obj__ (Typ_PT, &pta[i2], " c-%d  pt[%d]",i1,i2);
       // }
     // }
 
@@ -1234,7 +1234,7 @@ static char c1=0;
   // if((cNr < 1)||(cNr > 2)) {
     // printf("--------------------- GLT_spp__ %d\n",cNr);
     // // UT3D_vc_invert (vcz, vcz);
-    // UT3D_stru_dump (Typ_VC, vcz, "   vcz");
+    // DEB_dump_obj__ (Typ_VC, vcz, "   vcz");
   // }
 
 
@@ -1368,7 +1368,7 @@ static char c1=0;
 
 
   // printf("=====================GLT_diff_work comm_Max=%d\n",*p1Nr);
-  // UT3D_stru_dump (Typ_VC, vcz, "  vcz:");
+  // DEB_dump_obj__ (Typ_VC, vcz, "  vcz:");
 
 
   // GLT_exit ();  ot1 = gluNewTess();  // TEST
@@ -1447,7 +1447,7 @@ static char c1=0;
     for(i1=0; i1<pNr-1; ++i1) {
     // for(i1=0; i1<pNr; ++i1) {
       // for(i1=pNr-1; i1>=0; --i1) {    // wenn CW-Inputkontur !
-      // UT3D_stru_dump(Typ_PT, &pTab[i1], "A:%d",i1);
+      // DEB_dump_obj__(Typ_PT, &pTab[i1], "A:%d",i1);
       gluTessVertex(ot1, (double*)&pTab[i1], (double*)&pTab[i1]);
     }
     gluTessEndContour(ot1);
@@ -1470,12 +1470,12 @@ static char c1=0;
 
       if(cTab[i1].dir == '-') {
         for(i2=0; i2<iNr; ++i2) {     // skips pt[iNr]
-          // UT3D_stru_dump(Typ_PT, &pta[i2], "-I%d %d",i1,i2);
+          // DEB_dump_obj__(Typ_PT, &pta[i2], "-I%d %d",i1,i2);
           gluTessVertex(ot1, (double*)&pta[i2], (double*)&pta[i2]);
         }
       } else {
         for(i2=iNr-1; i2>=0; --i2) {     // skips pt[0]
-          // UT3D_stru_dump(Typ_PT, &pta[i2], "+I%d %d",i1,i2);
+          // DEB_dump_obj__(Typ_PT, &pta[i2], "+I%d %d",i1,i2);
           gluTessVertex(ot1, (double*)&pta[i2], (double*)&pta[i2]);
         }
       }
@@ -1538,7 +1538,7 @@ static char c1=0;
 
 
   // printf("================ GLT_comm_work p1=%d p2=%d\n",p1Nr,p2Nr);
-  // UT3D_stru_dump (Typ_VC, vcz, "  vcz:");
+  // DEB_dump_obj__ (Typ_VC, vcz, "  vcz:");
 
 
   GLU_comm_tab    = p3Tab; // output of GLT_comm_CB
@@ -1624,7 +1624,7 @@ static char c1=0;
 
       for(i1=0; i1<p2Nr-1; ++i1) {
       // for(i1=p2Nr-2; i1>=0; --i1) {
-        // UT3D_stru_dump(Typ_PT, &p2Tab[i1], "1:%d",i1);
+        // DEB_dump_obj__(Typ_PT, &p2Tab[i1], "1:%d",i1);
         // printf(" out[%d]=%f,%f,%f\n",i1,p2Tab[i1].x,p2Tab[i1].y,p2Tab[i1].z);
         // fwrite(&p2Tab[i1], sizeof(Point), 1, ft);
         gluTessVertex(ot1, (double*)&p2Tab[i1], (double*)&p2Tab[i1]);
@@ -1640,7 +1640,7 @@ static char c1=0;
 
       for(i1=0; i1<p1Nr-1; ++i1) {
       // for(i1=p1Nr-2; i1>=0; --i1) {
-        // UT3D_stru_dump(Typ_PT, &p1Tab[i1], "2:%d",i1);
+        // DEB_dump_obj__(Typ_PT, &p1Tab[i1], "2:%d",i1);
         // printf(" inn[%d]=%f,%f,%f\n",i1,p1Tab[i1].x,p1Tab[i1].y,p1Tab[i1].z);
         // fwrite(&p1Tab[i1], sizeof(Point), 1, ft);
         gluTessVertex(ot1, (double*)&p1Tab[i1], (double*)&p1Tab[i1]);
@@ -1815,7 +1815,7 @@ static int ptOff;
 // see also GLT_stor_rec (5,
 
 
-  // UT3D_stru_dump (Typ_Color, sCol, "GLT_spp_Col ");
+  // DEB_dump_obj__ (Typ_Color, sCol, "GLT_spp_Col ");
 
 
   GLT_ppa[GLT_ppa_ind].siz  += 1;             // + col

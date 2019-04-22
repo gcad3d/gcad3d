@@ -914,7 +914,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   // d1 = DMIN (fabs(d1), fabs(d2));
   if((fabs(d1) > APT_ModSiz)||(fabs(d2) > APT_ModSiz)) {
     UT3D_pt_mid2pt (&pt1, (Point*)&dTab[2], (Point*)&dTab[5]);
-    UT3D_stru_dump (Typ_PT, &pt1, "imp-center");
+    DEB_dump_obj__ (Typ_PT, &pt1, "imp-center");
 
 
     if(doOff == OFF) {
@@ -931,7 +931,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
       UT3D_vc_pt (&vc1, &pt1);
       UT3D_vc_invert (&vc1, &vc1);
-      UT3D_stru_dump (Typ_VC, &vc1, "transl.Vec:");
+      DEB_dump_obj__ (Typ_VC, &vc1, "transl.Vec:");
       UTRA_def__ (1, Typ_VC, &vc1);
     }
 
@@ -1244,7 +1244,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
       op1 = &ox1;
     // }
 
-    // UTO_dump__ (op1, 1);
+    // DEB_dump_ox_0 (op1, 1);
 
     irc = dxfw_rec (op1, fp); // Element ausgeben
     // printf(" ex dxfw_rec %d\n",irc);
@@ -1799,9 +1799,9 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     ptMax = sizeof(memspc53) / sizeof(Point);
     // ELL -> Polygon: Tol tol od UT_TOL_pt ?
     // irc = UT3D_cv_ell (pTab1,&pTab1Nr,cv1->data,ptMax,UT_TOL_pt);
-    pTab1Nr = UT3D_ptNr_ell (cv1->data, UT_TOL_pt);
-    if(pTab1Nr > ptMax) goto L_EOM;
-    UT3D_npt_ell (pTab1Nr, pTab1, cv1->data);
+    i1 = UT3D_ptNr_ell (cv1->data, UT_TOL_pt);
+    if(i1 > ptMax) goto L_EOM;
+    UT3D_npt_ell (&pTab1Nr, pTab1, cv1->data);
 
     goto L_translate;
 
@@ -1839,7 +1839,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     // translate
     DB_GetRef(&pl1, m1, iTra);
     for(i1=0; i1<pTab1Nr; ++i1) {
-      UT3D_pt_traptm3 (&pTab1[i1], m1, &pTab1[i1]);
+      UT3D_pt_tra_pt_m3 (&pTab1[i1], m1, &pTab1[i1]);
     }
 */
 

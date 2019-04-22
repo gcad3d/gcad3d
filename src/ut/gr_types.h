@@ -17,12 +17,12 @@ Korr:
 void INF_ATT_CV (){}
 #endif
 // attributes for lines,curves
-#define Typ_Att_PT         0   // black
-#define Typ_Att_def        1   // blue
-#define Typ_Att_go         2   // black dashed
-#define Typ_Att_rp         3   // black dash-dot
+#define Typ_Att_def        0   // black
+#define Typ_Att_blue       1   // blue
+#define Typ_Att_dash__     2   // black dashed
+#define Typ_Att_dash_dot   3   // black dash-dot
 #define Typ_Att_Fac        4   // red
-#define Typ_Att_Fac1       5   // blue thick2
+#define Typ_Att_dash_long  5   // blue thick2
 #define Typ_Att_Fac2       6   // gray
 #define Typ_Att_Symb       7   // yellow thick3
 #define Typ_Att_hili       8   // green thick3

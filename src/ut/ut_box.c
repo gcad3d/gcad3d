@@ -43,14 +43,23 @@ UT2D_ckBoxinBox2          check if Box2 is complete in Box1
 UT2D_pt_ck_inBox          check if point is inside box
 UT2D_pt_ck_inBoxTol       check if point p is inside box p1-p2
 
-UT2D_box_inpt             2D-bounding-box for indexed-points
-UT2D_rect_pts             bounding rectangle <-- 2D-points
-UT2D_rect_inpt3           bbox for indexed point-array  <<<
-UT2D_rect_pta3            bounding rectangle <-- 3D-points
 UT2D_box_ini0             init box
 UT2D_box_extend           Box mit point vergroessern
-UT23D_box_addTol          add tolerance to box (enlarge box)
+UT2D_box_obj              make box of 2 bin.objs
+UT2D_box_2pt__            make box of 2 points
+UT2D_box_2pt_tol          make box of 2 points + tol
+UT2D_box_ci2              box 2D-circ
+UT2D_box_inpt             2D-bounding-box for indexed-points
+UT2D_rect_inpt3           bbox for indexed point-array  <<<
+UT2D_rect_pts             bounding rectangle <-- 2D-points
+UT2D_rect_pta3            bounding rectangle <-- 3D-points
+UT2D_box_addTol           add tolerance to box (enlarge box)
 
+BBX2__ext_ptLL            extend lower left point of 2D-box
+BBX2__ext_ptUR            extend upper right point of 2D-box
+BBX2__nbbx                get box around boxes
+
+UT2D_box_dump
 
 ---------------- 3D ------------------------
 UT3D_ckBoxinBox1          check if 2 boxes overlap
@@ -63,8 +72,8 @@ UT3D_box_ck_empty         test if box is empty
 UT3D_box_ix_npt           get bounding-box for n points and find extreme points
 UT3D_box_ini0             init box
 UT3D_box_pts              bounding box <-- points
-UT3D_box_2pt              make box of 2 points
-UT3D_box_2pttol           make box of 2 points + tol
+UT3D_box_2pt__              make box of 2 points
+UT3D_box_2pt_tol           make box of 2 points + tol
 UT3D_box_tria             make box from triangle
 UT3D_box_extend           Box mit point vergroessern
 see also UT3D_box_ox
@@ -111,6 +120,7 @@ GR_Disp_box                disp boundingBox
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>                         // for ...
 
 
 #include "../ut/ut_geo.h"
@@ -134,12 +144,68 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
 
+//================================================================
+  int BBX2__ext_ptLL (BBox2 *bbx, Point2 *pt1) {
+//================================================================
+// extend lower left point of 2D-box 
+// see also UT2D_box_extend
+
+
+  if(pt1->x < bbx->pb1.x) bbx->pb1.x = pt1->x;
+  if(pt1->y < bbx->pb1.y) bbx->pb1.y = pt1->y;
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int BBX2__ext_ptUR (BBox2 *bbx, Point2 *pt1) {
+//================================================================
+// extend upper right point of 2D-box 
+// see also UT2D_box_extend
+
+
+  if(pt1->x > bbx->pb2.x) bbx->pb2.x = pt1->x;
+  if(pt1->y > bbx->pb2.y) bbx->pb2.y = pt1->y;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int BBX2__nbbx (BBox2 *bbxO, BBox2 *bbxa, int bbxNr) {
+//================================================================
+// get box around boxes
+
+  int   i1;
+
+  printf("BBX2__nbbx %d\n",bbxNr);
+
+  // copy 1. box
+  *bbxO = bbxa[0];
+
+  for(i1=1; i1<bbxNr; ++i1) {
+      DEB_dump_obj__ (Typ_BBox2, &bbxa[i1], "bbx2[%d]",i1);
+    BBX2__ext_ptLL (bbxO, &bbxa[i1].pb1);
+    BBX2__ext_ptUR (bbxO, &bbxa[i1].pb2);
+  }
+
+
+    // GR_Disp_box2 (&bbxO->pb1, &bbxO->pb2, Typ_Att_hili);
+
+  return 0;
+
+}
+
 
 //================================================================
   int UT2D_box_addTol (Point2 *pb1, Point2 *pb2, double tol) {
 //================================================================
 /// \code
-/// UT23D_box_addTol           add tolerance to box
+/// UT2D_box_addTol            add tolerance to box
 /// \endcode
 
   pb1->x -= tol;
@@ -228,9 +294,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /// \endcode
 
 
-    // UT3D_stru_dump(Typ_PT2, pt1, "UT2D_box_extend");
-    // UT3D_stru_dump(Typ_PT2, pb1, " _ext pb1i=");
-    // UT3D_stru_dump(Typ_PT2, pb2, " _ext pb2i=");
+    // DEB_dump_obj__(Typ_PT2, pt1, "UT2D_box_extend");
+    // DEB_dump_obj__(Typ_PT2, pb1, " _ext pb1i=");
+    // DEB_dump_obj__(Typ_PT2, pb2, " _ext pb2i=");
 
 
   if(pt1->x < pb1->x) pb1->x = pt1->x;
@@ -239,8 +305,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   if(pt1->y < pb1->y) pb1->y = pt1->y;
   if(pt1->y > pb2->y) pb2->y = pt1->y;
 
-    // UT3D_stru_dump(Typ_PT2, pb1, " _ext pb1o=");
-    // UT3D_stru_dump(Typ_PT2, pb2, " _ext pb2o=");
+    // DEB_dump_obj__(Typ_PT2, pb1, " _ext pb1o=");
+    // DEB_dump_obj__(Typ_PT2, pb2, " _ext pb2o=");
 
   return 0;
 
@@ -267,6 +333,219 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 }
 
 
+//================================================================
+  int UT2D_box_ci2 (Point2 *pb1, Point2 *pb2, Circ2 *ci1) {
+//================================================================
+// UT2D_box_ci2              box 2D-circ
+
+  double   a1, a2, d1;
+  Point2   ptx;
+
+
+  // DEB_dump_obj__ (Typ_CI2, ci1, "UT2D_box_ci2");
+  // GR_Disp_ci2 (ci1, Typ_Att_blue);
+
+
+  // set d1 = fabs(rad)
+  d1 = fabs(ci1->rad);
+
+  // ck 360-deg
+  if(!UT2D_ck_ci360(ci1)) {
+    pb1->x = ci1->pc.x - d1;
+    pb1->y = ci1->pc.y - d1;
+    pb2->x = ci1->pc.x + d1;
+    pb2->y = ci1->pc.y + d1;
+    goto L_exit;
+  }
+
+  // init box with p1,p2
+  UT2D_box_2pt__ (pb1, pb2, &ci1->p1, &ci1->p2);
+
+  // get a1,a2 = angles at startPt and endPt; 0 < a1 < a2 < 720 deg
+  a1 = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+  UT2D_ANGR_ADD_4PI (a1, a2, ci1->ango);
+    // printf(" box_ci2-a1 = %f a2 = %f\n",a1,a2);
+
+  if(a2 < a1) MEM_swap_2db (&a1, &a2);
+
+
+
+  //----------------------------------------------------------------
+  // test all 90 deg from 0 to 720 deg
+  L_nxt_0:
+  if(a1 > RAD_90) goto L_nxt_5;
+
+  // test if circ goes tru 0 deg; yes = add dx
+  if(!DLIM3(0., a1, a2)) {
+      // printf(" box_ci2-0 add\n");
+    ptx.x = ci1->pc.x + d1;
+    ptx.y = ci1->pc.y;
+    UT2D_box_extend (pb1, pb2, &ptx);
+  }
+
+  // test if circ goes tru 90 deg; yes = add dy
+  if(!DLIM3(RAD_90, a1, a2)) {
+      // printf(" box_ci2-90 add\n");
+    ptx.x = ci1->pc.x;
+    ptx.y = ci1->pc.y + d1;
+    UT2D_box_extend (pb1, pb2, &ptx);
+  }
+
+  // test if circ goes tru 180 deg; yes = add -dx
+  L_nxt_5:
+  if(a2 < RAD_180) goto L_exit;
+  if(!DLIM3(RAD_180, a1, a2)) {
+      // printf(" box_ci2-180 add\n");
+    ptx.x = ci1->pc.x - d1;
+    ptx.y = ci1->pc.y;
+    UT2D_box_extend (pb1, pb2, &ptx);
+  }
+
+  // test if circ goes tru 270 deg; yes = add -dy
+  if(!DLIM3(RAD_270, a1, a2)) {
+      // printf(" box_ci2-270 add\n");
+    ptx.x = ci1->pc.x;
+    ptx.y = ci1->pc.y - d1;
+    UT2D_box_extend (pb1, pb2, &ptx);
+  }
+
+  // test also 2pi -> 4Pi
+  L_nxt_9:
+  if(a2 >= RAD_360) {
+    a1 -= RAD_360;
+    a2 -= RAD_360;
+    goto L_nxt_0;
+  }
+
+  L_exit:
+    // TESTBLOCK
+    // GR_Disp_box2 (pb1, pb2, Typ_Att_dash__);
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//===========================================================================
+  int UT2D_box_2pt__ (Point2 *pb1, Point2 *pb2, Point2 *pt1, Point2 *pt2) {
+//===========================================================================
+/// UT2D_box_2pt__           make box of 2 points
+
+
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_box_2pt\n");
+  // DEB_dump_obj__ (Typ_PT, pt2, "");
+
+
+  if(pt1->x < pt2->x) {
+    pb1->x = pt1->x;
+    pb2->x = pt2->x;
+  } else {
+    pb1->x = pt2->x;
+    pb2->x = pt1->x;
+  }
+
+  if(pt1->y < pt2->y) {
+    pb1->y = pt1->y;
+    pb2->y = pt2->y;
+  } else {
+    pb1->y = pt2->y;
+    pb2->y = pt1->y;
+  }
+
+  // GR_Disp_box (pb1, pb2, 2);
+
+  return 0;
+
+}
+
+
+//==============================================================================
+  int UT2D_box_obj (Point2 *pb1, Point2 *pb2, int typ, void *obj, double *tol) {
+//==============================================================================
+// UT2D_box_obj                  make box of 2 bin.objs
+
+
+  if(typ == Typ_LN2) {
+    UT2D_box_2pt_tol (pb1, pb2, &((Line2*)obj)->p1, &((Line2*)obj)->p2, *tol);
+
+  } else if(typ == Typ_CI2) {
+    UT2D_box_ci2 (pb1, pb2, (Circ2*)obj);
+    UT2D_box_addTol (pb1, pb2, *tol);
+
+  } else {
+    TX_Error("UT2D_box_obj E1 %d",typ);
+    return -1;
+  }
+
+    // TESTBLOCK
+    // GR_Disp_box2 (pb1, pb2, Typ_Att_dash__);
+    // END TESTBLOCK
+
+
+  return 0;
+
+}
+
+
+//===========================================================================
+  int UT2D_box_2pt_tol (Point2 *pb1, Point2 *pb2, Point2 *pt1, Point2 *pt2,
+                       double tol) {
+//===========================================================================
+/// UT2D_box_2pt_tol         make box of 2 points + tol
+
+
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_box_2pt\n");
+  // DEB_dump_obj__ (Typ_PT, pt2, "");
+
+
+  if(pt1->x < pt2->x) {
+    pb1->x = pt1->x - tol;
+    pb2->x = pt2->x + tol;
+  } else {
+    pb1->x = pt2->x - tol;
+    pb2->x = pt1->x + tol;
+  }
+
+  if(pt1->y < pt2->y) {
+    pb1->y = pt1->y - tol;
+    pb2->y = pt2->y + tol;
+  } else {
+    pb1->y = pt2->y - tol;
+    pb2->y = pt1->y + tol;
+  }
+
+  // GR_Disp_box (pb1, pb2, 2);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_box_dump (Point2 *p1, Point2 *p2, char *txt, ...) {
+//================================================================
+// see DEB_dump__ Typ_PT2
+
+  char       cbuf[256];
+  va_list    va;
+
+
+  va_start(va,txt);
+  vsprintf(cbuf,txt,va);
+  va_end(va);
+
+  printf("UT2D_box_dump %s\n",cbuf);
+
+  printf("(Point2) %9.3f,%9.3f\n",p1->x,p1->y);
+  printf("(Point2) %9.3f,%9.3f\n",p2->x,p2->y);
+
+
+
+
+  return 0;
+
+}
 
 
 //=======================================================================
@@ -575,20 +854,20 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
 //===========================================================================
-  int UT3D_box_2pt (Point *pb1, Point *pb2, Point *pt1, Point *pt2) {
+  int UT3D_box_2pt__ (Point *pb1, Point *pb2, Point *pt1, Point *pt2) {
 //===========================================================================
-/// UT3D_box_2pt         make box of 2 points
+/// UT3D_box_2pt__         make box of 2 points
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "UT3D_box_2pt\n");
-  // UT3D_stru_dump (Typ_PT, pt2, "  ");
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_box_2pt\n");
+  // DEB_dump_obj__ (Typ_PT, pt2, "  ");
 
 
   // if((fabs(pt1->x) > UT_VAL_MAX) ||
      // (fabs(pt1->y) > UT_VAL_MAX) ||
      // (fabs(pt1->z) > UT_VAL_MAX)) {
   // if(isnan(pt1->x)) {
-    // printf("***** UT3D_box_2pt I001\n");
+    // printf("***** UT3D_box_2pt__ I001\n");
     // return 0;
   // }
 
@@ -630,7 +909,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /// UT3D_box_tria             make box from triangle
 
 
-  UT3D_box_2pt (pb1, pb2, tr->pa[0], tr->pa[1]);  // make box of p1,p2
+  UT3D_box_2pt__ (pb1, pb2, tr->pa[0], tr->pa[1]);  // make box of p1,p2
   UT3D_box_extend (pb1, pb2, tr->pa[2]);          // Box mit p3 vergroessern.
   if(tol > 0.)
   UT3D_box_addTol (pb1, pb2, tol);
@@ -643,14 +922,14 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
 //===========================================================================
-  int UT3D_box_2pttol (Point *pb1, Point *pb2, Point *pt1, Point *pt2,
+  int UT3D_box_2pt_tol (Point *pb1, Point *pb2, Point *pt1, Point *pt2,
                        double tol) {
 //===========================================================================
-/// UT3D_box_2pttol         make box of 2 points + tol
+/// UT3D_box_2pt_tol         make box of 2 points + tol
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "UT3D_box_2pt\n");
-  // UT3D_stru_dump (Typ_PT, pt2, "");
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_box_2pt\n");
+  // DEB_dump_obj__ (Typ_PT, pt2, "");
 
 
   if(pt1->x < pt2->x) {
@@ -693,9 +972,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /// \endcode
 
 
-    // UT3D_stru_dump(Typ_PT, pt1, "UT3D_box_extend");
-    // UT3D_stru_dump(Typ_PT, pb1, " _ext pb1i=");
-    // UT3D_stru_dump(Typ_PT, pb2, " _ext pb2i=");
+    // DEB_dump_obj__(Typ_PT, pt1, "UT3D_box_extend");
+    // DEB_dump_obj__(Typ_PT, pb1, " _ext pb1i=");
+    // DEB_dump_obj__(Typ_PT, pb2, " _ext pb2i=");
 
 
   if(pt1->x < pb1->x) pb1->x = pt1->x;
@@ -708,8 +987,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   if(pt1->z > pb2->z) pb2->z = pt1->z;
 
 
-    // UT3D_stru_dump(Typ_PT, pb1, " _ext pb1o=");
-    // UT3D_stru_dump(Typ_PT, pb2, " _ext pb2o=");
+    // DEB_dump_obj__(Typ_PT, pb1, " _ext pb1o=");
+    // DEB_dump_obj__(Typ_PT, pb2, " _ext pb2o=");
 
   return 0;
 
@@ -774,9 +1053,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_PT, p, "UT3D_pt_ck_inBoxTol %f pt\n",tol);
-  // UT3D_stru_dump (Typ_PT, p1, "  ",tol);
-  // UT3D_stru_dump (Typ_PT, p2, "  ",tol);
+  // DEB_dump_obj__ (Typ_PT, p, "UT3D_pt_ck_inBoxTol %f pt\n",tol);
+  // DEB_dump_obj__ (Typ_PT, p1, "  ",tol);
+  // DEB_dump_obj__ (Typ_PT, p2, "  ",tol);
 
 
   if(UTP_db_ck_in2dbTol (p->x, p1->x, p2->x, tol) != 0) return 1;
@@ -819,9 +1098,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   // printf("UT3D_box_ck_intLn: ============================== tol=%f\n",tol);
-  // UT3D_stru_dump (Typ_LN, ln, "ln:");
-  // UT3D_stru_dump (Typ_PT, pmin, "pmin:");
-  // UT3D_stru_dump (Typ_PT, pmax, "pmax:");
+  // DEB_dump_obj__ (Typ_LN, ln, "ln:");
+  // DEB_dump_obj__ (Typ_PT, pmin, "pmin:");
+  // DEB_dump_obj__ (Typ_PT, pmax, "pmax:");
 
   // init
   rc = 1;
@@ -884,8 +1163,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   // { Point pt1={-1008.122, -142.314,    0.000};
     // if(!UT3D_pt_ck_inBoxTol(pmin,pmax,&pt1,tol)) {
       // printf("-------------- rc=%d\n",rc);
-      // UT3D_stru_dump (Typ_PT, pmin, " pmin");
-      // UT3D_stru_dump (Typ_PT, pmax, " pmax");
+      // DEB_dump_obj__ (Typ_PT, pmin, " pmin");
+      // DEB_dump_obj__ (Typ_PT, pmax, " pmax");
       // GR_Disp_box (pmin, pmax, 0);
     // }
   // }
@@ -929,8 +1208,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   // UT3D_vc_2pt (&vc1, &pbc, p1);
   // UT3D_vc_2pt (&vc2, &pbc, &ppc);
-  // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
-  // UT3D_stru_dump (Typ_VC, &vc2, "vc2");
+  // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
+  // DEB_dump_obj__ (Typ_VC, &vc2, "vc2");
 
   // BoxSiz = Abst**2 von BoxCenter / BoxEckpunkt
   d1 = UT3D_lenq_PtPt (&pbc, p1) + (tol * tol);
@@ -983,9 +1262,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   int    i1, i2;
   Vector vl;
 
-  // UT3D_stru_dump (Typ_LN, ln1, "UT3D_ln_intbox\n");
-  // UT3D_stru_dump (Typ_PT, bp1, "  bp1");
-  // UT3D_stru_dump (Typ_PT, bp2, "  bp2");
+  // DEB_dump_obj__ (Typ_LN, ln1, "UT3D_ln_intbox\n");
+  // DEB_dump_obj__ (Typ_PT, bp1, "  bp1");
+  // DEB_dump_obj__ (Typ_PT, bp2, "  bp2");
 
 
   i1 = UT3D_pt_ck_inBoxTol (bp1, bp2, &ln1->p1, UT_TOL_pt);
@@ -1010,7 +1289,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   }
 
 
-  // UT3D_stru_dump (Typ_LN, ln1, "ex UT3D_ln_intbox\n");
+  // DEB_dump_obj__ (Typ_LN, ln1, "ex UT3D_ln_intbox\n");
 
   return 0;
 
@@ -1034,8 +1313,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   // printf("UT3D_ptvc_intbox\n");
-  // UT3D_stru_dump (Typ_PT, pl, "  pl");
-  // UT3D_stru_dump (Typ_VC, vl, "  vl");
+  // DEB_dump_obj__ (Typ_PT, pl, "  pl");
+  // DEB_dump_obj__ (Typ_VC, vl, "  vl");
 
 
   // mit einer X-Plane, einer Y-Plane und einer Z-Plane schneiden
@@ -1115,7 +1394,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
   L_fertig:
-  // UT3D_stru_dump (Typ_PT, pl, "ex UT3D_ptvc_intbox");
+  // DEB_dump_obj__ (Typ_PT, pl, "ex UT3D_ptvc_intbox");
 
   return 0;
 
@@ -1130,7 +1409,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   double  r1;
   Circ    ci1;
 
-  // UT3D_stru_dump (Typ_TOR, to1, "UT3D_box_Torus");
+  // DEB_dump_obj__ (Typ_TOR, to1, "UT3D_box_Torus");
 
   r1 = to1->r1 + to1->r2;
 
@@ -1151,7 +1430,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   int UT3D_box_Prism (Point *pb1, Point *pb2, ObjGX *pr1) {
 //================================================================
 
-  UT3D_stru_dump (Typ_PRI, pr1, "UT3D_box_Prism");
+  DEB_dump_obj__ (Typ_PRI, pr1, "UT3D_box_Prism");
 
 
   // work both contours
@@ -1174,7 +1453,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point     po, p1, p2;
 
 
-  // UT3D_stru_dump (Typ_CON, co1, " UT3D_box_Conus ");
+  // DEB_dump_obj__ (Typ_CON, co1, " UT3D_box_Conus ");
 
 
   // get bottom-circ
@@ -1205,7 +1484,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   Point     p1, p2;
 
-  // UT3D_stru_dump (Typ_SPH, sp1, " UT3D_box_Sphere ");
+  // DEB_dump_obj__ (Typ_SPH, sp1, " UT3D_box_Sphere ");
 
   UT3D_pt_traptmultvc (&p1, &sp1->pc, &WC_sur_act.vx, sp1->rad)
 
@@ -1249,7 +1528,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   int     irc;
 
-  // UT3D_stru_dump (Typ_ATXT, tx1, "UT3D_box_AText");
+  // DEB_dump_obj__ (Typ_ATXT, tx1, "UT3D_box_AText");
   
 
 
@@ -1274,7 +1553,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // get image-size sx, sy
     irc = GR_img_get_obj (&typ, &pll, &sx, &sy, &dx, &dy, tx1);
     if(irc < 0) return -1;
-      // UT3D_stru_dump (Typ_PT, &pll, "pll");
+      // DEB_dump_obj__ (Typ_PT, &pll, "pll");
       // printf(" sx=%d sy=%d\n",sx,sy);
   
     // change Textpoint --> Screencoords
@@ -1286,7 +1565,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     dsy += dy;
     GL_Sk2Uk (&pll.x, &pll.y, &pll.z,  dsx, dsy, dsz);
       // GR_Disp_pt (&pll, SYM_STAR_S, ATT_COL_RED);
-      // UT3D_stru_dump(Typ_PT, &pll, " pll=");
+      // DEB_dump_obj__(Typ_PT, &pll, " pll=");
 
     UT3D_box_extend (p1, p2, &pll);
 
@@ -1298,7 +1577,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // change upper-right --> UserCoords
     GL_Sk2Uk (&pur.x, &pur.y, &pur.z,  dsx, dsy, dsz);
       // GR_Disp_pt (&pur, SYM_STAR_S, ATT_COL_RED);
-      // UT3D_stru_dump(Typ_PT, &pur, " pur=");
+      // DEB_dump_obj__(Typ_PT, &pur, " pur=");
   
     UT3D_box_extend (p1, p2, &pur);
     goto L_ldr;
@@ -1322,7 +1601,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
       // printf(" rdc=%lf\n",rdc);
 
     UT3D_pt_tra_pt_dx (&ptc, &tx1->p1, rdc);
-      // UT3D_stru_dump(Typ_PT, &ptc, " ptc=");
+      // DEB_dump_obj__(Typ_PT, &ptc, " ptc=");
       // GR_Disp_pt (&ptc, SYM_STAR_S, ATT_COL_RED);
 
     UT3D_pt_tra_pt_dy (&pb1, &tx1->p1, -rdc);
@@ -1350,7 +1629,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     bw = sLen * cw;
 
     UT3D_pt_tra_pt_dx (&pb2, &tx1->p1, bw);
-      // UT3D_stru_dump(Typ_PT, &pb2, " pb2=");
+      // DEB_dump_obj__(Typ_PT, &pb2, " pb2=");
       // GR_Disp_pt (&pb2, SYM_STAR_S, ATT_COL_RED);
 
     UT3D_box_extend (p1, p2, &pb2);
@@ -1401,7 +1680,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point   *pt1;
 
 
-  UT3D_stru_dump (Typ_Dim3, dim1, "UT3D_box_Dim3");
+  DEB_dump_obj__ (Typ_Dim3, dim1, "UT3D_box_Dim3");
 
   pt1 = DB_get_PT (dim1->ip1);
   UT3D_box_extend (p1, p2, pt1);
@@ -1426,7 +1705,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point   pt1;
 
 
-  // UT3D_stru_dump (Typ_Dimen, dim1, "UT3D_box_Dimen");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "UT3D_box_Dimen");
 
   pt1 = UT3D_pt_pt2 (&dim1->p1);
   UT3D_box_extend (p1, p2, &pt1);
@@ -1460,7 +1739,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point2    p21, p22, p23;
 
 
-  // UT3D_stru_dump (Typ_GTXT, tx1, "UT3D_box_GText");
+  // DEB_dump_obj__ (Typ_GTXT, tx1, "UT3D_box_GText");
   // GR_gxt_dump ();
   
 
@@ -1511,7 +1790,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // GR_Disp_pt (&tx1->pt, SYM_STAR_S, ATT_COL_GREEN);
     // GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
     // GR_Disp_pt (&pt2, SYM_STAR_S, ATT_COL_RED);
-    // UT3D_stru_dump (Typ_PT, &pt1, " _GText-pt1");
+    // DEB_dump_obj__ (Typ_PT, &pt1, " _GText-pt1");
     // GR_Disp_box  (&pt1, &pt2, 9);
 
 
@@ -1533,16 +1812,16 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   ModelBas   *mdb;
   
 
-  UT3D_stru_dump (Typ_Model, mdr, "UT3D_box_mdr");
+  DEB_dump_obj__ (Typ_Model, mdr, "UT3D_box_mdr");
 
   // create transformation-matrix
   UT3D_m3_load_povxvz (m31, &mdr->po, &mdr->vx, &mdr->vz);
-    UT3D_stru_dump (Typ_M4x3, m31, " m31 ");
+    DEB_dump_obj__ (Typ_M4x3, m31, " m31 ");
 
   // get box of basicModel of ModelReference
   imdb = mdr->modNr;
   mdb = DB_get_ModBas (imdb);
-    UT3D_stru_dump (Typ_SubModel, mdb, " basicModel:");
+    DEB_dump_obj__ (Typ_SubModel, mdb, " basicModel:");
 
   // test if box is empty; 1=empty; 0=not
   irc = UT3D_box_ck_empty (&mdb->pb1, &mdb->pb2);
@@ -1557,8 +1836,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   DB_load__ (mdb->mnam);
   // get box for subModel 
   UT3D_box_mdl__ (p1, p2, mdr->modNr, 0);
-    UT3D_stru_dump (Typ_PT, p1, " p1:");
-    UT3D_stru_dump (Typ_PT, p2, " p2:");
+    DEB_dump_obj__ (Typ_PT, p1, " p1:");
+    DEB_dump_obj__ (Typ_PT, p2, " p2:");
   // reload main-DB
   DB_load__ ("");
 
@@ -1574,11 +1853,11 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   // transform the box-points
   *p1 = mdb->pb1;
   *p2 = mdb->pb2;
-  UT3D_pt_traptm3 (p1, m31, p1);
-  UT3D_pt_traptm3 (p2, m31, p2);
+  UT3D_pt_tra_pt_m3 (p1, m31, p1);
+  UT3D_pt_tra_pt_m3 (p2, m31, p2);
 
-    // UT3D_stru_dump (Typ_PT, p1, " ex box_mdr p1");
-    // UT3D_stru_dump (Typ_PT, p2, " ex box_mdr p2");
+    // DEB_dump_obj__ (Typ_PT, p1, " ex box_mdr p1");
+    // DEB_dump_obj__ (Typ_PT, p2, " ex box_mdr p2");
 
   return 0;
 
@@ -1696,8 +1975,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   //----------------------------------------------------------------
     // TESTBLOCK
     // printf("::::::::::::::::::::::::: ex UT3D_box_mdl__: ::::::::::: \n");
-    // UT3D_stru_dump (Typ_PT, &pb1, "pb1");
-    // UT3D_stru_dump (Typ_PT, &pb2, "pb2");
+    // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+    // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
     // END TESTBLOCK
 
   *PB1 = pb1;
@@ -1725,6 +2004,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   int         i1, ibm, iNr, sNr, frm1, typ0, typ1;
   void        *o1;
   Point       *pta, p1, p2, ps1, ps2;
+  Point2      *p2a;
   Vector      vcy;
   ObjGX       *ox1, *oxa;
   ModelBas    *mb;
@@ -1737,9 +2017,9 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // if(form == Typ_ObjGX) {
        // oxa = obj;
        // for(i1=0; i1<oNr; ++i1) {
-         // UTO_dump__ (&oxa[i1], "_box_obja");
+         // DEB_dump_ox_0 (&oxa[i1], "_box_obja");
        // }
-    // } else UT3D_stru_dump (form, obj, "_box_obja");
+    // } else DEB_dump_obj__ (form, obj, "_box_obja");
     // if(typ0 == 80) AP_debug__ ("UT3D_box_obja");
     // END TESTBLOCK
 
@@ -1803,6 +2083,16 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     iNr = ((CurvPoly*)obj)->ptNr;
     for(i1=0;i1<iNr; ++i1)
       UT3D_box_extend (pb1, pb2, &pta[i1]);
+
+
+  //----------------------------------------------------------------
+  } else if(form == Typ_CVPOL2) {
+    p2a = ((CurvPol2*)obj)->pTab;
+    iNr = ((CurvPol2*)obj)->ptNr;
+    for(i1=0;i1<iNr; ++i1) {
+      p1 = UT3D_pt_pt2 (&p2a[i1]);
+      UT3D_box_extend (pb1, pb2, &p1);
+    }
 
 
   //----------------------------------------------------------------
@@ -1893,7 +2183,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
     for(i1=0; i1<oNr; ++i1) {
       ox1 = &oxa[i1];
-        // UT3D_stru_dump (Typ_ObjGX, ox1, " _obja ox1");
+        // DEB_dump_obj__ (Typ_ObjGX, ox1, " _obja ox1");
 
       // must resolv Typ_Index; UT3D_box_obja cannot do it (typ missing)
       if(ox1->form == Typ_Index) {
@@ -1983,7 +2273,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // get mb = basic-model (struct ModelBas)
     ibm = ((ModelRef*)obj)->modNr;
     mb = DB_get_ModBas (ibm);
-      // UT3D_stru_dump (Typ_SubModel, mb, "_box_obja-mb");
+      // DEB_dump_obj__ (Typ_SubModel, mb, "_box_obja-mb");
 
     // test if model is empty (UT3D_box_ini0); yes: exit.
     if(mb->pb1.x == UT_VAL_MAX) return 0;
@@ -2001,26 +2291,26 @@ extern double     AP_txsiz;       // Notes-Defaultsize
      ps1 = mb->pb1;
      ps2 = mb->pb2;
     }
-      // UT3D_stru_dump (Typ_PT, &ps1, "_box_obja-ps1-0");
-      // UT3D_stru_dump (Typ_PT, &ps2, "_box_obja-ps2-0");
+      // DEB_dump_obj__ (Typ_PT, &ps1, "_box_obja-ps1-0");
+      // DEB_dump_obj__ (Typ_PT, &ps2, "_box_obja-ps2-0");
 
     // get y-axis for model-reference
     UT3D_vc_perp2vc (&vcy, &((ModelRef*)obj)->vz, &((ModelRef*)obj)->vx);
-      // UT3D_stru_dump (Typ_VC, &vcy, "_box_obja-vcy");
+      // DEB_dump_obj__ (Typ_VC, &vcy, "_box_obja-vcy");
       // printf(" WC_sur_ind=%d\n",WC_sur_ind);
 
     // p1,p2 = translate points ps1,ps2 into active refSys WC_sur_act
     p1 = ((ModelRef*)obj)->po;
     p2 = ((ModelRef*)obj)->po;
-      // UT3D_stru_dump (Typ_PT, &p1, "_box_obja-p1-p2");
+      // DEB_dump_obj__ (Typ_PT, &p1, "_box_obja-p1-p2");
     UT3D_pt_add_3vc_3par (&p1,
                           &((ModelRef*)obj)->vx, &vcy, &((ModelRef*)obj)->vz,
                           ps1.x, ps1.y, ps1.z);
     UT3D_pt_add_3vc_3par (&p2,
                           &((ModelRef*)obj)->vx, &vcy, &((ModelRef*)obj)->vz,
                           ps2.x, ps2.y, ps2.z);
-      // UT3D_stru_dump (Typ_PT, &p1, "_box_obja-p1-3");
-      // UT3D_stru_dump (Typ_PT, &p2, "_box_obja-p2-3");
+      // DEB_dump_obj__ (Typ_PT, &p1, "_box_obja-p1-3");
+      // DEB_dump_obj__ (Typ_PT, &p2, "_box_obja-p2-3");
 
     UT3D_box_extend (pb1, pb2, &p1);
     UT3D_box_extend (pb1, pb2, &p2);
@@ -2105,7 +2395,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   oxa = su1->pTab;
   for(i1=0; i1<ii; ++i1) {
     // get obj from ObjGX
-    typ = UTO_obj_getp (&px, &i2, &oxa[i1]);
+    typ = UTO_objDat_ox (&px, &i2, &oxa[i1]);
     if(typ == Typ_PT) UT3D_box_extend (pb1, pb2, px);
     else printf("**** UT3D_box_surStripe E001 %d\n",typ);
   }
@@ -2146,15 +2436,15 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   L_RU_vc:
   // get start/endpoint for curve ox1[0]; then translate with vec ox1[1]
-  // UTO_pt_ox  (&pta, oa, Ptyp_0|Ptyp_1);
-  irc = UT3D_ptvcpar1_std_obj (&pta[0], NULL, NULL, Ptyp_0, Typ_ObjGX, oa);
-  irc = UT3D_ptvcpar1_std_obj (&pta[1], NULL, NULL, Ptyp_1, Typ_ObjGX, oa);
+  // UTO_pt_ox  (&pta, oa, Ptyp_start|Ptyp_end);
+  irc = UT3D_ptvcpar1_std_obj (&pta[0], NULL, NULL, Ptyp_start, Typ_ObjGX, oa);
+  irc = UT3D_ptvcpar1_std_obj (&pta[1], NULL, NULL, Ptyp_end, Typ_ObjGX, oa);
 
   UT3D_box_extend (pb1, pb2, &pta[0]);
   UT3D_box_extend (pb1, pb2, &pta[1]);
 
   // get vc1 from ox1[1]
-  UTO_obj_getp (&vc1, &i1, &oa[1]);
+  UTO_objDat_ox (&vc1, &i1, &oa[1]);
 
   // translate with vec ox1[1]
   UT3D_pt_traptvc (&pta[0], &pta[0], vc1);
@@ -2231,20 +2521,20 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   SurSwp    *su1;
 
 
-  UT3D_stru_dump (Typ_ObjGX, ox1, "UT3D_box_surSwp");
+  DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surSwp");
 
   // get path, box
   su1 = (SurSwp*)ox1->data;
   typ = su1->typPath;
   dbi = su1->indPath;
-  UTO_get_DB (&obj, &ii, &typ, dbi);
+  UTO_objDat_dbo (&obj, &ii, &typ, dbi);
   UT3D_box_obja (pb1, pb2, typ, ii, obj);
 
 
   // get cov, box
   typ = su1->typCov;
   dbi = su1->indCov;
-  UTO_get_DB (&obj, &ii, &typ, dbi);
+  UTO_objDat_dbo (&obj, &ii, &typ, dbi);
   UT3D_box_obja (pb1, pb2, typ, ii, obj);
 
   return 0;
@@ -2265,7 +2555,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   ObjGX       *oxa, *ox2;
 
 
-  // UT3D_stru_dump (Typ_ObjGX, ox1, "UT3D_box_surPln");
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surPln");
 
   oxa = ox1->data;
 
@@ -2295,7 +2585,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /// \endcode
 
 
-  UT3D_stru_dump (Typ_SUR, sus, "UT3D_box_SurStd");  fflush (stdout);
+  DEB_dump_obj__ (Typ_SUR, sus, "UT3D_box_SurStd");  fflush (stdout);
 
   return 0;
 
@@ -2316,11 +2606,11 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   char    obj1[OBJ_SIZ_MAX];
 
 
-  // UT3D_stru_dump (Typ_CVTRM, ccv, "UT3D_box_ccv");  fflush (stdout);
+  // DEB_dump_obj__ (Typ_CVTRM, ccv, "UT3D_box_ccv");  fflush (stdout);
 
   // make a normal struct of trimmed-curve
   UTO_cv_cvtrm (&typ1, obj1, NULL, ccv);
-    // UT3D_stru_dump (typ1, obj1, " ccv-obj1");
+    // DEB_dump_obj__ (typ1, obj1, " ccv-obj1");
 
 
   // resolv subCurve
@@ -2354,7 +2644,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   //----------------------------------------------------------------
   if(oxi->typ == Typ_LN) {
-    UTO_obj_getp (&xu, &i1, oxi);
+    UTO_objDat_ox (&xu, &i1, oxi);
     UT3D_box_extend (pb1, pb2, &((Line*)xu)->p1);
     UT3D_box_extend (pb1, pb2, &((Line*)xu)->p2);
     // see also UT3D_box_model
@@ -2482,7 +2772,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point    px;
 
 
-  // UT3D_stru_dump (Typ_LN, ln1, "UT3D_box_ln");
+  // DEB_dump_obj__ (Typ_LN, ln1, "UT3D_box_ln");
 
 
   switch(ln1->typ) {
@@ -2519,8 +2809,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   //----------------------------------------------------------------
   L_exit:
-    // UT3D_stru_dump (Typ_PT, p1, "-p1");
-    // UT3D_stru_dump (Typ_PT, p2, "-p2");
+    // DEB_dump_obj__ (Typ_PT, p1, "-p1");
+    // DEB_dump_obj__ (Typ_PT, p2, "-p2");
 
   return 0;
 
@@ -2544,15 +2834,15 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point    px;
 
 
-  // UT3D_stru_dump (Typ_CI, ci1, "UT3D_box_ci");
+  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_box_ci");
 
 
 
   // get vx, vy from vz  
   UT3D_vc_perp2vc (&vx, &WC_sur_act.vy, &ci1->vz);
   UT3D_vc_perp2vc (&vy, &ci1->vz, &WC_sur_act.vx);
-    // UT3D_stru_dump (Typ_VC, &vx, "-vx");
-    // UT3D_stru_dump (Typ_VC, &vy, "-vy");
+    // DEB_dump_obj__ (Typ_VC, &vx, "-vx");
+    // DEB_dump_obj__ (Typ_VC, &vy, "-vy");
 
   // multiply with radius
   rda = fabs(ci1->rad);
@@ -2560,8 +2850,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   UT3D_vc_multvc (&vx, &vx, rda);
   UT3D_vc_multvc (&vy, &vy, rda);
-    // UT3D_stru_dump (Typ_VC, &vx, "-vx");
-    // UT3D_stru_dump (Typ_VC, &vy, "-vy");
+    // DEB_dump_obj__ (Typ_VC, &vx, "-vx");
+    // DEB_dump_obj__ (Typ_VC, &vy, "-vy");
 
 
   // check 360 deg
@@ -2630,8 +2920,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   //----------------------------------------------------------------
   L_exit:
-    // UT3D_stru_dump (Typ_PT, p1, "-p1");
-    // UT3D_stru_dump (Typ_PT, p2, "-p2");
+    // DEB_dump_obj__ (Typ_PT, p1, "-p1");
+    // DEB_dump_obj__ (Typ_PT, p2, "-p2");
 
   return 0;
 
@@ -3006,8 +3296,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 /
 
     printf("::::::::::::::::::::::::: ex UT3D_box_model: ::::::::::: \n");
-    UT3D_stru_dump (Typ_PT, &pb1, "pb1");
-    UT3D_stru_dump (Typ_PT, &pb2, "pb2");
+    DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+    DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
 
   *PB1 = pb1;
   *PB2 = pb2;

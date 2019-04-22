@@ -1539,8 +1539,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   printf("STP_w_SURBSP %s\n",oid);
-  UT3D_stru_dump (Typ_SURBSP, su1, "SurBSpl");
-  // UTO_dump__ (oxi, "SurBSpl");
+  DEB_dump_obj__ (Typ_SURBSP, su1, "SurBSpl");
+  // DEB_dump_ox_0 (oxi, "SurBSpl");
     
 
   fprintf(stpw_fp,"/* Bspline-Surface %s */\n",oid);
@@ -1677,8 +1677,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   printf("STP_w_SURRU %s %d\n",oid,mode);
-  UT3D_stru_dump (srTab[0].form, srTab[0].data, "SurRU[0]=");
-  UT3D_stru_dump (srTab[1].form, srTab[1].data, "SurRU[1]=");
+  DEB_dump_obj__ (srTab[0].form, srTab[0].data, "SurRU[0]=");
+  DEB_dump_obj__ (srTab[1].form, srTab[1].data, "SurRU[1]=");
   // oTab = sru->data;
 
 
@@ -1731,17 +1731,17 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   printf("STP_w_SURRV %s\n",oid);
-  UT3D_stru_dump (Typ_SURRV, srv, "SurRev=");
+  DEB_dump_obj__ (Typ_SURRV, srv, "SurRev=");
 
 
   // get centerline
   typCen = DB_GetObjDat (&vpCen, &rNr, srv->typCen, srv->indCen);
-    UT3D_stru_dump (typCen, vpCen, "Cen=");
+    DEB_dump_obj__ (typCen, vpCen, "Cen=");
 
 
   // get Cov
   typCov = DB_GetObjDat (&vpCov, &rNr, srv->typCov, srv->indCov);
-    UT3D_stru_dump (typCov, vpCov, "Cov=");
+    DEB_dump_obj__ (typCov, vpCov, "Cov=");
 
 
 
@@ -1847,8 +1847,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   UT3D_vc_ln (&vcl, ln1);
   UT3D_vc_setLength (&vcl, &vcl, 1.);
 
-    UT3D_stru_dump (Typ_VC, &vcl, "vcl");
-    UT3D_stru_dump (Typ_VC, &pl1->vz, "vz");
+    DEB_dump_obj__ (Typ_VC, &vcl, "vcl");
+    DEB_dump_obj__ (Typ_VC, &pl1->vz, "vz");
 
   
   // get opening-angle of axis-centerline
@@ -1889,7 +1889,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     
     
   printf("STP_w_SURCIR %s\n",oid);
-  UTO_dump__ (oxi, "S-planar");
+  DEB_dump_ox_0 (oxi, "S-planar");
 
 
   // init plb
@@ -1970,7 +1970,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   printf("STP_w_SURTP__ %s\n",oid);
-  UTO_dump__ (oxi, "SURTP__");
+  DEB_dump_ox_0 (oxi, "SURTP__");
 
 
   iba = (int*)MEM_alloc_tmp ((int)(oxi->siz * sizeof(int)));
@@ -1990,7 +1990,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // next record is outer-boundary
   ob = &oa[io];
-    // UTO_dump__ (ob, "outer-boundary[%d]",io);
+    // DEB_dump_ox_0 (ob, "outer-boundary[%d]",io);
 
   // create outer boundary as EDGE_LOOP
   // FACE_OUTER_BOUND < outerBoundary ob
@@ -2005,7 +2005,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   ++cnAct;
   if(io >= oxi->siz) goto L_w1;
   ob = &oa[io];
-      // UTO_dump__ (ob, "inner-bound[%d]",io);
+      // DEB_dump_ox_0 (ob, "inner-bound[%d]",io);
 
     // create inner boundaries as EDGE_LOOP
     // FACE_BOUND from innerBoundary ob
@@ -2122,10 +2122,10 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE \n");
-  UTO_dump__ (oxi, "STP_w_EDGE_LOOP_b stat=%d",plb->stat);
+  DEB_dump_ox_0 (oxi, "STP_w_EDGE_LOOP_b stat=%d",plb->stat);
 
   // get contour-data (resolv links)
-  typ = UTO_obj_getp (&odc, &ii, oxi); 
+  typ = UTO_objDat_ox (&odc, &ii, oxi); 
 
   // typ = oxi->typ;
   ia = &ipc;
@@ -2135,7 +2135,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
     //----------------------------------------------------------------
     case Typ_ObjGX:           // CCV
-      // UTO_dump__ (odc, " CCV:");
+      // DEB_dump_ox_0 (odc, " CCV:");
       ia = (int*)MEM_alloc_tmp ((int)(((ObjGX*)odc)->siz * sizeof(int)));
       iNr = STP_w_CVCCV (plb, ia, odc, "", 3);
       break;
@@ -2159,7 +2159,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
     //----------------------------------------------------------------
     case Typ_CVPOL:
-        // UT3D_stru_dump (Typ_CVPOL, odc, " PLG:");
+        // DEB_dump_obj__ (Typ_CVPOL, odc, " PLG:");
       // ORIENTED_EDGE < EDGE_CURVE < outerBoundary
       ipc = STP_w_CVPOL (plb, (CurvBSpl*)odc, "", 3);
       break;
@@ -2382,7 +2382,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
  
   char    s1[128];
 
-  UT3D_stru_dump (Typ_PT, pt1, "STP_w_PT");
+  DEB_dump_obj__ (Typ_PT, pt1, "STP_w_PT");
   // if(strlen(oid)) fprintf(stpw_fp,"/* Point %s */\n",oid);
 
 
@@ -2405,7 +2405,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   // int     ip1;
   char    s1[128];
   
-  UT3D_stru_dump (Typ_VC, vc1, "STP_w_VC_d");
+  DEB_dump_obj__ (Typ_VC, vc1, "STP_w_VC_d");
 
 
   sprintf(s1, "#%d=DIRECTION('',(%lf,%lf,%lf))",
@@ -2427,7 +2427,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   char    s1[128];
 
-  UT3D_stru_dump (Typ_VC, vc1, "STP_w_VCdv");
+  DEB_dump_obj__ (Typ_VC, vc1, "STP_w_VCdv");
 
 
   STP_w_VC_d (vc1, oid); // DIRECTION
@@ -2629,7 +2629,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   // printf("STP_w_AC__ %s\n",oid);
-  UT3D_stru_dump (Typ_CI, ac1, "STP_w_AC__ %s",oid);
+  DEB_dump_obj__ (Typ_CI, ac1, "STP_w_AC__ %s",oid);
   // if(oid[0]) fprintf(stpw_fp,"/* Circle %s */\n",oid);
 
 
@@ -2875,7 +2875,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   Vector  vcn;
 
 
-  UT3D_stru_dump (Typ_CVPOL, cv1, "STP_w_CVPOL");
+  DEB_dump_obj__ (Typ_CVPOL, cv1, "STP_w_CVPOL");
   fprintf(stpw_fp,"/* Polygon %s */\n",oid);
 
   // define points
@@ -2945,7 +2945,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get startpoint
     // UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
+    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
     ip1 = STP_w_PT (&pt1, "");
   }
 
@@ -2956,7 +2956,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get endpoint
     // UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
+    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
     ip2 = STP_w_PT (&pt1, "");
   }
 
@@ -3010,7 +3010,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
 
-  UT3D_stru_dump (Typ_CVPOL, cv1, "STP_w_CVPOL");
+  DEB_dump_obj__ (Typ_CVPOL, cv1, "STP_w_CVPOL");
 
 
   fprintf(stpw_fp,"/ Polygon %s /\n",oid);
@@ -3099,7 +3099,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   ObjGX   *oxa, *ox1;
 
   printf("STP_w_CVCCV %s %d\n",oid,mode);
-  UT3D_stru_dump (Typ_ObjGX, cv, "CCV");
+  DEB_dump_obj__ (Typ_ObjGX, cv, "CCV");
 
   fprintf(stpw_fp,"/* CompositeCurve %s */\n",oid);
 
@@ -3120,7 +3120,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   iNr = 0;
   for(i1=0; i1<cv->siz; ++i1) {
     ox1 = &oxa[i1];
-      UTO_dump__ (ox1, " CCV[%d]",i1);
+      DEB_dump_ox_0 (ox1, " CCV[%d]",i1);
 
     // skip data, form=Typ_CVTRM
     if(ox1->form == Typ_CVTRM) {
@@ -3129,12 +3129,12 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     //----------------------------------------------------------------
     } else if(ox1->typ == Typ_PT) {
       if(i1 == 0) {
-        UTO_obj_getp ((void**)&pt1, &ii, ox1);
+        UTO_objDat_ox ((void**)&pt1, &ii, ox1);
         actPos = *pt1;
         continue;
       }
       ln1.p1 = actPos;
-      UTO_obj_getp ((void**)&pt1, &ii, ox1);
+      UTO_objDat_ox ((void**)&pt1, &ii, ox1);
       ln1.p2 = *pt1;
       actPos = *pt1;
       // skip 
@@ -3143,29 +3143,29 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     //----------------------------------------------------------------
     // Lines: LINE > TRIMMED_CURVE > COMPOSITE_CURVE_SEGMENT
     } else if(ox1->typ == Typ_LN) {
-      UTO_obj_getp (&odc, &ii, ox1);
+      UTO_objDat_ox (&odc, &ii, ox1);
       ii = STP_w_LN (odc, "", mode);
       actPos = ((Line*)odc)->p2;
 
     //----------------------------------------------------------------
     // CIRCLE > TRIMMED_CURVE > COMPOSITE_CURVE_SEGMENT
     } else if(ox1->typ == Typ_CI) {
-      UTO_obj_getp (&odc, &ii, ox1);
-        // UT3D_stru_dump (Typ_CI, odc, " CCV[%d]",i1);
+      UTO_objDat_ox (&odc, &ii, ox1);
+        // DEB_dump_obj__ (Typ_CI, odc, " CCV[%d]",i1);
       ii = STP_w_AC_CC (NULL, odc, "", mode);
       actPos = ((Circ*)odc)->p2;
 
     //----------------------------------------------------------------
     // B_SPLINE_CURVE > TRIMMED_CURVE > COMPOSITE_CURVE_SEGMENT
     } else if(ox1->typ == Typ_CVBSP) {
-      UTO_obj_getp (&odc, &ii, ox1);
-        UT3D_stru_dump (Typ_CVBSP, odc, " CCV[%d]",i1);
+      UTO_objDat_ox (&odc, &ii, ox1);
+        DEB_dump_obj__ (Typ_CVBSP, odc, " CCV[%d]",i1);
       ii = STP_w_CVBSP (NULL, &actPos, odc, "", mode);
 
     //----------------------------------------------------------------
     } else if(ox1->typ == Typ_CVELL) {
-      UTO_obj_getp (&odc, &ii, ox1);
-        UT3D_stru_dump (Typ_CVELL, odc, " CCV[%d]",i1);
+      UTO_objDat_ox (&odc, &ii, ox1);
+        DEB_dump_obj__ (Typ_CVELL, odc, " CCV[%d]",i1);
       ii = STP_w_EL_CC (NULL, odc, "", mode);
       actPos = ((CurvElli*)odc)->p2;
 
@@ -3249,7 +3249,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   Vector  vcn;
 
 
-  UT3D_stru_dump (Typ_CVBSP, cv1, "STP_w_CVBSP %d",mode);
+  DEB_dump_obj__ (Typ_CVBSP, cv1, "STP_w_CVBSP %d",mode);
 
 
   fprintf(stpw_fp,"/* Bspline-Curve %s */\n",oid);
@@ -3325,8 +3325,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get startpoint, endpoint
   // UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
-  UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_CVBSP, cv1);
-  UT3D_ptvcpar1_std_obj (&pt2, NULL, NULL, Ptyp_1, Typ_CVBSP, cv1);
+  UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
+  UT3D_ptvcpar1_std_obj (&pt2, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
   *actPos = pt2;
 
   if(cv1->v1 > cv1->v0) {
@@ -3723,7 +3723,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     GR_Disp_box  (&plb->pb1, &plb->pb2, 2);
 
   // get backPlane from 3D-box
-  plb->bp = UT3D_bp_2pt (&plb->pb1, &plb->pb2);
+  plb->bp = UT3D_bp_perp_2pt (&plb->pb1, &plb->pb2);
     printf(" bp=%d\n",plb->bp);
 
   // get normalvector plb->vz from backPlane and extreme-points

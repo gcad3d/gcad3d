@@ -956,7 +956,7 @@ static long su_ind;
 
 
 
-  // UTO_dump__ (o1, "\n\n\nAP_obj_2_txt");
+  // DEB_dump_ox_0 (o1, "\n\n\nAP_obj_2_txt");
   // printf("AP_obj_2_txt-typ=%d form=%d siz=%d ind=%ld\n",((ObjGX*)o1)->typ,
             // ((ObjGX*)o1)->form,((ObjGX*)o1)->siz,ind);
 
@@ -1140,7 +1140,7 @@ static long su_ind;
     // printf(" typ==done\n");
   // }
   // }
-  // UT3D_stru_dump (Typ_ObjGX, o1, "AP_stru_2_txt");
+  // DEB_dump_obj__ (Typ_ObjGX, o1, "AP_stru_2_txt");
 
 
 
@@ -1196,7 +1196,7 @@ static long su_ind;
 
   // printf("AP_stru_2_txt typ=%d form=%d siz= %d ind=%d bufLen=%d\n",typ,form,
                 // o1->siz,ind,bufLen);
-  // UTO_dump__ (o1, "AP_stru_2_txt");
+  // DEB_dump_ox_0 (o1, "AP_stru_2_txt");
 
 
 
@@ -2258,7 +2258,7 @@ static long su_ind;
     if(form == Typ_Txt) goto L_add_text;
 
       subsp = o1->data;  // data = memspc55 !!
-      // UT3D_stru_dump (Typ_SURBSP, subsp, "SURBSP:");
+      // DEB_dump_obj__ (Typ_SURBSP, subsp, "SURBSP:");
 
       UTX_add_i_u (ED_buf1, subsp->ptUNr);
       strcat(ED_buf1,",");
@@ -2335,7 +2335,7 @@ static long su_ind;
 
 
       srbsp = o1->data;  // data = memspc55 !!
-      // UT3D_stru_dump (Typ_SURBSP, srbsp, "SURBSP:");
+      // DEB_dump_obj__ (Typ_SURBSP, srbsp, "SURBSP:");
 
       UTX_add_i_u (ED_buf1, srbsp->ptUNr);
       strcat(ED_buf1,",");
@@ -2560,7 +2560,7 @@ static long su_ind;
     }
 
     mdr = o1->data;
-      // UT3D_stru_dump (Typ_Model, mdr, "ModRef - ");
+      // DEB_dump_obj__ (Typ_Model, mdr, "ModRef - ");
 
     // catalog-part | ditto ?
     DB_mdlTyp_iBas (&i1, mdr->modNr);
@@ -2634,7 +2634,7 @@ static long su_ind;
   //----------------------------------------------------------------
   L_unknown_form:
   TX_Print("AP_stru_2_txt: unknown form %d; typ %d\n",form,typ);
-  UTO_dump__ (o1, "");
+  DEB_dump_ox_0 (o1, "");
   // TX_Error("AP_stru_2_txt: unknown form %d; typ %d\n",form,typ);
   // exit(0);
   goto  L_err_1;

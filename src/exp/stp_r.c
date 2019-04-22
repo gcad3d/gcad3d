@@ -3841,7 +3841,7 @@ static Point p1, p2;
 
   // wird bei CARTESIAN_POINT gerufen ...
   if(mode == 1) {
-    // UT3D_stru_dump (Typ_PT, s_tab[s_Nr].sDat, "    ext.");
+    // DEB_dump_obj__ (Typ_PT, s_tab[s_Nr].sDat, "    ext.");
     // Werte ausserhalb der Norm eliminieren (C4 hat schreckliches ..)
     pp = (Point*)s_tab[s_Nr].sDat;
     if((fabs(pp->x) > VAL_INFIN) ||
@@ -3855,8 +3855,8 @@ static Point p1, p2;
 
 
   if(mode == 2) {
-    // UT3D_stru_dump (Typ_PT, &p1, "box-p1:");
-    // UT3D_stru_dump (Typ_PT, &p2, "box-p2:");
+    // DEB_dump_obj__ (Typ_PT, &p1, "box-p1:");
+    // DEB_dump_obj__ (Typ_PT, &p2, "box-p2:");
     modSiz = UTP_db_rnd5 (UT3D_len_2pt (&p1, &p2));
     // printf(" ModSiz --> %d\n",modSiz);
   }
@@ -4153,7 +4153,7 @@ static Point p1, p2;
     //----------------------------------------------------------------
     case SC_CARTESIAN_POINT:
       // nur 3 doubles 
-      // UT3D_stru_dump (Typ_PT, so1->sDat, "");
+      // DEB_dump_obj__ (Typ_PT, so1->sDat, "");
 
       // make obj, save-> gCad, stor gC-Typ & Index -> s_tab
       irc = STP_r_creObj1 (sInd, Typ_PT, Typ_PT, so1->sDat);
@@ -4562,7 +4562,7 @@ static Point p1, p2;
 
   vc1 = s_tab[sInd].sDat;
 
-  if(sInd==4226)UT3D_stru_dump (Typ_VC, vc1, "STP_r_creVc1:");
+  if(sInd==4226)DEB_dump_obj__ (Typ_VC, vc1, "STP_r_creVc1:");
 
 
   // Vektoren: test for Defaultvecs (DX/DY/DZ)
@@ -5100,10 +5100,10 @@ static Point p1, p2;
   // zuerst 2 doubles (v0/v1); skip.
   pa = STP_r_getSkip (pa, sizeof(double)*2);
     // printf(" v0=%f v1=%f\n",da[0],da[1]);
-    // UT3D_stru_dump (Typ_PT, &pa[0], " v0");
-    // UT3D_stru_dump (Typ_PT, &pa[1], " v1");
-    // UT3D_stru_dump (Typ_PT, s_tab[i1].sDat, " p1");
-    // UT3D_stru_dump (Typ_PT, s_tab[i2].sDat, " p2");
+    // DEB_dump_obj__ (Typ_PT, &pa[0], " v0");
+    // DEB_dump_obj__ (Typ_PT, &pa[1], " v1");
+    // DEB_dump_obj__ (Typ_PT, s_tab[i1].sDat, " p1");
+    // DEB_dump_obj__ (Typ_PT, s_tab[i2].sDat, " p2");
 
   if(UT3D_comp2pt(&pa[0],  &pt1, UT_TOL_cv) == 1) {  // 1=gleich
     if(UT3D_comp2pt(&pa[1],&pt2, UT_TOL_cv) == 1) goto L_skip;
@@ -5131,7 +5131,8 @@ static Point p1, p2;
   AP_obj_add_obj (gTxt, Typ_PT, s_tab[i1].gInd);
   AP_obj_add_obj (gTxt, Typ_PT, s_tab[i2].gInd);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
-  iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  // iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  iTyp = Typ_CV;  // 2019-04-20  all trimmed-curves -> S
   irc = STP_r_creObj1 (sInd, iTyp, Typ_Txt, gTxt);
   if(irc < 0) return irc;
 
@@ -5159,10 +5160,10 @@ static Point p1, p2;
   da = s_tab[ibc].gDat;
   if(da == NULL) goto L_cut;
     // printf(" v0=%f v1=%f\n",da[0],da[1]);
-    // UT3D_stru_dump (Typ_PT, &pa[0], " v0");
-    // UT3D_stru_dump (Typ_PT, &pa[1], " v1");
-    // UT3D_stru_dump (Typ_PT, s_tab[i1].sDat, " p1");
-    // UT3D_stru_dump (Typ_PT, s_tab[i2].sDat, " p2");
+    // DEB_dump_obj__ (Typ_PT, &pa[0], " v0");
+    // DEB_dump_obj__ (Typ_PT, &pa[1], " v1");
+    // DEB_dump_obj__ (Typ_PT, s_tab[i1].sDat, " p1");
+    // DEB_dump_obj__ (Typ_PT, s_tab[i2].sDat, " p2");
 
   // check if CUT necessary or useless ..
   // check if intersectionValues are identical with v0,v1
@@ -5185,7 +5186,8 @@ static Point p1, p2;
   AP_obj_add_val (gTxt, u1);
   AP_obj_add_val (gTxt, u2);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
-  iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  // iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  iTyp = Typ_CV;  // 2019-04-20  all trimmed-curves -> S
   irc = STP_r_creObj1 (sInd, iTyp, Typ_Txt, gTxt);
   if(irc < 0) return irc;
 
@@ -6042,7 +6044,7 @@ static Point p1, p2;
 
   cv1.v0 = cv1.kvTab[0];
   cv1.v1 = cv1.kvTab[i3-1];
-    // UT3D_stru_dump (Typ_CVBSP, &cv1, "");
+    // DEB_dump_obj__ (Typ_CVBSP, &cv1, "");
 
 
 
@@ -6063,7 +6065,7 @@ static Point p1, p2;
   if(irc < 0) {TX_Error("STP_r_creSpl1 EOM4"); return -4;}
   UT3D_pt_evalparCv (&pa[0], &cv1, cv1.v0);
   UT3D_pt_evalparCv (&pa[1], &cv1, cv1.v1);
-    // UT3D_stru_dump (Typ_CVBSP, &cv1, "");
+    // DEB_dump_obj__ (Typ_CVBSP, &cv1, "");
 
 
   irc = STP_r_creObj1 (sInd, Typ_CVBSP, Typ_CVBSP, &cv1);
@@ -6254,7 +6256,7 @@ static Point p1, p2;
 
 
   // fertig, ausgeben ..
-  // UT3D_stru_dump (Typ_CVRBSP, &cv1, "&cv1:");
+  // DEB_dump_obj__ (Typ_CVRBSP, &cv1, "&cv1:");
 
 
   //================================================================
@@ -6898,7 +6900,7 @@ if(strlen(gTxt) > 20) exit(0);
 
 
   // STP_r_PLN_AXIS2 (&pl1, isa); // get Plane from AXIS
-    // UT3D_stru_dump (Typ_PLN, &pl1, "cone:");
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "cone:");
 
 
 
@@ -7378,7 +7380,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   if(irc < 0) return irc;
 
     // TEST:
-    // UT3D_stru_dump (Typ_SURBSP, &su1, "");
+    // DEB_dump_obj__ (Typ_SURBSP, &su1, "");
     // if((su1.ptVNr + su1.degV + 1) == 17) return -4;
     // for(i1=0;i1<12;++i1){if(i1<6)su1.kvTabU[i1]=0.;else su1.kvTabU[i1]=1.;}
     // for(i1=0;i1<10;++i1){if(i1<5)su1.kvTabV[i1]=0.;else su1.kvTabV[i1]=1.;}
@@ -7478,7 +7480,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
       // printf(" %d lpt=%d ipt=%d\n",i1,lpt,ipt);
     STP_r_PT_CARTPT (&su1.cpTab[i1], ipt);  // copy point
       // STP_r_dispSym1 (52, &su1.cpTab[i1]);
-      // UT3D_stru_dump (Typ_PT, &su1.cpTab[i1], "P[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &su1.cpTab[i1], "P[%d]",i1);
   }
 
 
@@ -7616,7 +7618,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   //----------------------------------------------------------------
     // TEST:
-    // UT3D_stru_dump (Typ_SURRBSP, &su1, "Step-su1");
+    // DEB_dump_obj__ (Typ_SURRBSP, &su1, "Step-su1");
 
   // testen, ob man Rat.B-SplSurf degraden kann
   // create object, save obj
@@ -9312,7 +9314,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // printf(" ori=%d\n",ii);
   STP_r_PT_CARTPT (&pt1, ii);
     printd("  ori=%lf %lf %lf\n",pt1.x,pt1.y,pt1.z);
-    // UT3D_stru_dump (Typ_PT, &pt1, "  ori pt1:");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "  ori pt1:");
 
 
   // get the Z-vec
@@ -9330,7 +9332,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     UT3D_vc_setLength (&vc2, &vc2, 1.);
   }
     printd("  vcZ=%lf %lf %lf\n",vc2.dx,vc2.dy,vc2.dz);
-    // UT3D_stru_dump (Typ_VC, &vc2, "  vz:");
+    // DEB_dump_obj__ (Typ_VC, &vc2, "  vz:");
 
 
   // get the X-vec
@@ -9349,7 +9351,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     // printf(" zVc=%d\n",ii);
     STP_r_VC_DIR (&vc1, ii);           // X-Vec --> vc1
     UT3D_vc_setLength (&vc1, &vc1, 1.);
-      // UT3D_stru_dump (Typ_VC, &vc1, "  vx:");
+      // DEB_dump_obj__ (Typ_VC, &vc1, "  vx:");
 
     // plane from Origin, X-vec, Z-Vec
     UT3D_pl_pto_vcx_vcz (pl1, &pt1, &vc1, &vc2);
@@ -9357,7 +9359,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     printd("  vcX=%lf %lf %lf\n",vc1.dx,vc1.dy,vc1.dz);
 
 
-    // UT3D_stru_dump (Typ_PLN, pl1, "STP_r_PLN_AXIS2:");
+    // DEB_dump_obj__ (Typ_PLN, pl1, "STP_r_PLN_AXIS2:");
 
   return 0;
 
@@ -9383,7 +9385,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     return -1;
   }
 
-  // UT3D_stru_dump (Typ_PT, pt1, "r_PT:");
+  // DEB_dump_obj__ (Typ_PT, pt1, "r_PT:");
 
   return 0;
 
@@ -9413,7 +9415,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   memcpy (pt1, s_tab[i1].sDat, sizeof(Point));
 
-  // UT3D_stru_dump (Typ_PT, pt1, " PT_VERT %d #%d:",sInd,s_tab[sInd].sInd);
+  // DEB_dump_obj__ (Typ_PT, pt1, " PT_VERT %d #%d:",sInd,s_tab[sInd].sInd);
 
   return 0;
 
@@ -9434,7 +9436,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   memcpy (pt1, s_tab[is].sDat, sizeof(Point));
 
-  // UT3D_stru_dump (Typ_PT, pt1, " PT_CART %d:",sInd);
+  // DEB_dump_obj__ (Typ_PT, pt1, " PT_CART %d:",sInd);
 
   return 0;
 
@@ -9451,7 +9453,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   
   memcpy (vc1, s_tab[is].sDat, sizeof(Vector));
     
-  // UT3D_stru_dump (Typ_VC, vc1, " VC_DIR:");
+  // DEB_dump_obj__ (Typ_VC, vc1, " VC_DIR:");
     
   return 0;
     
@@ -9556,7 +9558,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // memcpy (d1, s_tab[i1].sDat, sizeof(double));
 
 
-  // UT3D_stru_dump (Typ_VC, vc1, " VC_VEC:");
+  // DEB_dump_obj__ (Typ_VC, vc1, " VC_VEC:");
 
   return 0;
 
@@ -9678,7 +9680,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     // return -2;
   // }
 
-  // UT3D_stru_dump (Typ_PT, s_tab[s_Nr].sDat, "ex STP_r_sav3DB");
+  // DEB_dump_obj__ (Typ_PT, s_tab[s_Nr].sDat, "ex STP_r_sav3DB");
   return 0;
 
 }

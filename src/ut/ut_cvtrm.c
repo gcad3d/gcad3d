@@ -42,6 +42,7 @@ CVTRM__dbo               create trimmedCurve from DB-lFig
 CVTRM__obj               create trimmed-curve from obj (form,struct,dbi)
 CVTRM__plg_2par          create trimmed-curve from polygon and parameters
 CVTRM__plg_iseg          get trimmed-curve from segment of polygon
+CVTRM_ocv_otb__          create trimmed-curve from object-table
 
 UT3D_obj_ccv_segnr       get obj (typ,data) from segment of CCV.
 
@@ -141,6 +142,89 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
 
+//================================================================
+  int CVTRM_ocv_otb__ (ObjGX *ocv, Memspc *oSpc, ObjTab *otb1) {
+//================================================================
+// CVTRM_ocv_otb__            create trimmed-curve from object-table
+// Input:
+//   otb1      objs in
+//   oSpc      memspc for trimmed-curve
+
+  int        i1;
+  long       lOff, ipp;
+  Line       *ln1;
+  Circ       *ci1;
+  CurvCCV    *cvTab, cv1 = _CCV_NUL;
+
+
+  // printf("CVTRM_ocv_otb__ oNr=%d\n",otb1->oNr); fflush (stdout);
+
+  // get memSpace for (otb1->oNr) ccv's
+  // cvTab = UME_reserve (oSpc, sizeof(CurvCCV) * (otb1->oNr));
+  cvTab = UME__getSpc (oSpc, &lOff, sizeof(CurvCCV) * (otb1->oNr));
+  if(!cvTab) {TX_Error("CVTRM_ocv_otb__ E1"); return -1;}
+
+
+  //----------------------------------------------------------------
+  for(i1=0; i1 < otb1->oNr; ++i1) {
+      // printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; \n");
+      // printf(" otb1[%d] typ=%d\n",i1,otb1->oTyp[i1]);
+      // DEB_dump_obj__ (otb1->oTyp[i1], otb1->oDat[i1], "otb1_%d",i1);
+
+    cv1 = UT3D_CCV_NUL;   // empty
+    cv1.v0 = 0.;
+    cv1.v1 = 1.;
+    
+    //----------------------------------------------------------------
+    if(otb1->oTyp[i1] == Typ_LN) {
+      cv1.typ = Typ_LN;
+      ln1 = otb1->oDat[i1];
+      if(!i1) cv1.ip0 = DB_StorePoint (-1L, &ln1->p1);
+      else    cv1.ip0 = ipp;
+      ipp = DB_StorePoint (-1L, &ln1->p2);
+
+    //----------------------------------------------------------------
+    } else if(otb1->oTyp[i1] == Typ_CI) {
+      cv1.typ = Typ_CI;
+      ci1 = otb1->oDat[i1];
+      if(!i1) cv1.ip0 = DB_StorePoint (-1L, &ci1->p1);
+      else    cv1.ip0 = ipp;
+      ipp = DB_StorePoint (-1L, &ci1->p2);
+      // store circ in DB
+      cv1.dbi = DB_StoreCirc (-1L, ci1);
+      // create PRCV
+      PRCV_set_obj_dbi (Typ_CI, ci1, 1, Typ_CI, cv1.dbi);
+
+    //----------------------------------------------------------------
+    } else {TX_Error("CVTRM_ocv_otb__ E2"); return -1;}
+
+    cv1.ip1 = ipp;  // set endPt = startPt of following curve
+
+      // TESTBLOCK
+      // DEB_dump_obj__ (Typ_CVTRM, &cv1, " cv1_%d",i1);
+      // GR_Disp_obj (Typ_CVTRM, &cv1, Typ_Att_Symb, 0);
+      // END TESTBLOCK
+
+    // add cv1 -> cvTab
+    cvTab[i1] = cv1;
+  }
+
+
+  //----------------------------------------------------------------
+  // CCV from oiboTab2
+  ocv->typ  = Typ_CVTRM;
+  ocv->form = Typ_CVTRM; // Typ_CCV;
+  ocv->siz  = otb1->oNr;
+  ocv->data = cvTab;
+
+    // TESTBLOCK
+    // DEB_dump_ox_0 (ocv, "ex-CVOFF2_ccv__");
+    // fflush (stdout);
+    // END TESTBLOCK
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -179,15 +263,15 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   cvtrm->dbi = dbi;
 
   // get parameters as 0-1
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_0, form, data);
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_1, form, data);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, data);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, data);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, data);
   cvtrm->dir = dir;
   cvtrm->clo = clo;
 
-    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex-CVTRM__obj");
+    // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__obj");
 
   return 0;
 
@@ -210,7 +294,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 /// \endcode
   
   
-  // UT3D_stru_dump (Typ_CVPOL,  plg, " CVTRM__plg_2par");
+  // DEB_dump_obj__ (Typ_CVPOL,  plg, " CVTRM__plg_2par");
   
   *cvo = UT3D_CCV_NUL;      // copy empty CurvCCV
 
@@ -222,7 +306,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   cvo->v0 = UT3D_par1_parplg (kv0, plg);
   cvo->v1 = UT3D_par1_parplg (kv1, plg);
 
-    // UT3D_stru_dump (Typ_CVTRM, cvo, " ex CVTRM__plg_iseg");
+    // DEB_dump_obj__ (Typ_CVTRM, cvo, " ex CVTRM__plg_iseg");
 
   return 0;
 
@@ -241,7 +325,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   void     *obj;
 
 
-  // UT3D_stru_dump (Typ_CVTRM, tcv, " CVTRM_basCv_trmCv");
+  // DEB_dump_obj__ (Typ_CVTRM, tcv, " CVTRM_basCv_trmCv");
 
 
   L_nxt:
@@ -263,7 +347,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   *basCv = obj;
 
     // printf(" ex _basCv_trmCv pTyp=%d pDbi=%ld\n",*pTyp,*pDbi);
-    // UT3D_stru_dump (*pTyp, *basCv, " ex _basCv_trmCv");
+    // DEB_dump_obj__ (*pTyp, *basCv, " ex _basCv_trmCv");
 
   return 0;
 
@@ -285,7 +369,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   int cyc = 1;
 
 
-  // UT3D_stru_dump (Typ_CVTRM, cvt, " CVTRM_ck_cyc");
+  // DEB_dump_obj__ (Typ_CVTRM, cvt, " CVTRM_ck_cyc");
 
 
   switch (cvt->typ) {
@@ -382,7 +466,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
   // printf("UT3D_obj_ccv_segnr is=%d\n",is);
-  // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparccv: ");
+  // DEB_dump_obj__ (Typ_ObjGX, cv1, " _pt_segparccv: ");
 
 
   if(cv1->form != Typ_CVTRM) {
@@ -399,7 +483,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   // get segment nr <is> as curve-data (change point -> line)
   cca = (CurvCCV*)cv1->data;
   cc1 = &cca[is];
-    // UT3D_stru_dump (Typ_CVTRM, cc1, " cc1: ");
+    // DEB_dump_obj__ (Typ_CVTRM, cc1, " cc1: ");
 
 /*
   //----------------------------------------------------------------
@@ -426,7 +510,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
   //----------------------------------------------------------------
   L_done:
-    // UT3D_stru_dump (*typ, obj, "ex UT3D_obj_ccv_segnr: ");
+    // DEB_dump_obj__ (*typ, obj, "ex UT3D_obj_ccv_segnr: ");
   return 0;
 
 }
@@ -448,8 +532,8 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
   // printf("UT3D_crv_segccv %d\n",is);
-  // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparccv: ");
-  // UTO_dump__ (cv1, " _crv_segccv: ");
+  // DEB_dump_obj__ (Typ_ObjGX, cv1, " _pt_segparccv: ");
+  // DEB_dump_ox_0 (cv1, " _crv_segccv: ");
 
 
   irc = UT3D_obj_segccv (oxo, is, cv1);
@@ -461,32 +545,32 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   if(oxo->typ == Typ_PT) {
 
     // den Endpunkt laden ..
-    UTO_obj_getp (&pp, oxo);
+    UTO_objDat_ox (&pp, oxo);
     ln->p2 = *pp;
-      // UT3D_stru_dump (Typ_PT, &ln->p2, " endPt: ");
+      // DEB_dump_obj__ (Typ_PT, &ln->p2, " endPt: ");
 
     // es ist ein (End)Punkt; den Startpunkt dazu beschaffen.
     irc = UT3D_obj_segccv (oxo, is-1, cv1);
     if(irc < 0) return -1;
     if(oxo->typ == Typ_PT) {
-      UTO_obj_getp (&pp, oxo);
+      UTO_objDat_ox (&pp, oxo);
       ln->p1 = *pp;
 
     } else {
       // data des objekts beschaffen ..
-      oTyp = UTO_obj_getp (&oDat, oxo);
+      oTyp = UTO_objDat_ox (&oDat, oxo);
       // den Endpunkt des objekts beschaffen ..
       irc = UTO_2pt_limstru (NULL, &ln->p1, NULL, NULL, oTyp, oDat);
       if(irc < 0) return -1;
     }
-      // UT3D_stru_dump (Typ_PT, &ln->p1, " startPt: ");
+      // DEB_dump_obj__ (Typ_PT, &ln->p1, " startPt: ");
     oxo->typ  = Typ_LN;
     oxo->form = Typ_LN;
     oxo->siz  = 1;
     oxo->data = ln;
   }
 
-  // UTO_dump__ (oxo, "ex _crv_segccv:");
+  // DEB_dump_ox_0 (oxo, "ex _crv_segccv:");
 
   *typ = oxo->typ;
 
@@ -511,7 +595,7 @@ REPLACED by UT3D_obj_ccv_segnr
   ObjGX    *oTab, *oSeg, ox1;
 
   // printf("UT3D_obj_segccv %d\n",is);
-  // UTO_dump__ (cv1, "cv1:\n");
+  // DEB_dump_ox_0 (cv1, "cv1:\n");
 
   // das erste Seg ist immer ein Punkt; in diesem Fall sofort
   // das folgende liefern ..
@@ -523,7 +607,7 @@ REPLACED by UT3D_obj_ccv_segnr
   oTab = cv1->data;
   oSeg = &oTab[is];
     // printf(" typ=%d form=%d\n",oSeg->typ,oSeg->form);
-    // UTO_dump__ (oSeg, "seg:\n");
+    // DEB_dump_ox_0 (oSeg, "seg:\n");
 
 
   // if(oSeg->typ == Typ_PT) {
@@ -531,10 +615,10 @@ REPLACED by UT3D_obj_ccv_segnr
     // // line als dynam. Line zwischenspeichern ?
       // printf("  line from point ..\n");
     // // get endpoint of previous segment
-    // // UTO_obj_getp ();
+    // // UTO_objDat_ox ();
     // // UTO_2pt_limstru ();
     // // get endpoint
-    // // UTO_obj_getp
+    // // UTO_objDat_ox
     // // line -> oxo           UTO_stru_2_obj
     // oxo->typ = Typ_LN;
     // oxo->form = Typ_LN;
@@ -549,13 +633,13 @@ REPLACED by UT3D_obj_ccv_segnr
     *oxo = DB_GetObjGX (oSeg->typ, ind);
 
   } else {
-    // oTyp = UTO_obj_getp (&od, oSeg);
+    // oTyp = UTO_objDat_ox (&od, oSeg);
     // if(oTyp < 0) return -1;
     TX_Error("UT3D_obj_segccv E001");
     return -1;
   }
 
-  // UT3D_stru_dump (Typ_ObjGX, oxo, "ex UT3D_obj_segccv");
+  // DEB_dump_obj__ (Typ_ObjGX, oxo, "ex UT3D_obj_segccv");
 
   return 0;
 
@@ -579,7 +663,7 @@ REPLACED by UT3D_obj_ccv_segnr
   irc = UT3D_obj_segccv (&ox1, is, cv1);
   if(irc < 0) return -1;
 
-  // UT3D_stru_dump (Typ_ObjGX, &ox1, "  _ci_segccv ox1:\n");
+  // DEB_dump_obj__ (Typ_ObjGX, &ox1, "  _ci_segccv ox1:\n");
 
 
   if(ox1.form != typ) {
@@ -623,7 +707,7 @@ REPLACED by UT3D_obj_ccv_segnr
   Point    *pTab;
 
 
-  UT3D_stru_dump (Typ_ObjGX, cv1, "UT3D_seg_objSel\n");
+  DEB_dump_obj__ (Typ_ObjGX, cv1, "UT3D_seg_objSel\n");
 
 
   pTab = (void*)memspc55;
@@ -725,7 +809,7 @@ REPLACED by UT3D_obj_ccv_segnr
   Point   actScrPos, actUsrPos;
 
 
-  UT3D_stru_dump (Typ_LN, ln1, "UT3D_segpar_sel_LN");
+  DEB_dump_obj__ (Typ_LN, ln1, "UT3D_segpar_sel_LN");
 
 
   // test if p1 selected
@@ -749,8 +833,8 @@ REPLACED by UT3D_obj_ccv_segnr
   // actScrPos = GL_actScrPos = ?
   // actUsrPos = GL_actUsrPos = ?
   GL_GetActSelPos (&actUsrPos, &actScrPos);
-    UT3D_stru_dump (Typ_PT, &actUsrPos, " actUsrPos");
-    UT3D_stru_dump (Typ_PT, &actScrPos, " actScrPos");
+    DEB_dump_obj__ (Typ_PT, &actUsrPos, " actUsrPos");
+    DEB_dump_obj__ (Typ_PT, &actScrPos, " actScrPos");
 
   // length of line in 2D
   ll = UT3D_len_2pt (&ln1->p1, &ln1->p2);
@@ -919,7 +1003,7 @@ REPLACED by UT3D_obj_ccv_segnr
   typ = oxi.typ;
   *isNr = 1;
     printf(" sel-l0: typ=%d is=%d\n",typ,is[0]);
-    UT3D_stru_dump (Typ_PT, &spt, "  spt:\n");
+    DEB_dump_obj__ (Typ_PT, &spt, "  spt:\n");
 
 
 
@@ -955,7 +1039,7 @@ REPLACED by UT3D_obj_ccv_segnr
     // printf(" is2=%d\n",is2);
   irc = GL_selPt (&iSeg, &iPt, &spt, i3, &pTab[i1], iNr, iTab);
     // printf(" -selPt irc=%d iSeg=%d iPt=%d\n",irc,iSeg,iPt);
-    // UT3D_stru_dump (Typ_PT, &spt, "  spt = ");
+    // DEB_dump_obj__ (Typ_PT, &spt, "  spt = ");
 
 
   *isNr = 2;          // size of is
@@ -1071,7 +1155,7 @@ REPLACED by UT3D_obj_ccv_segnr
   // if(irc < 0) return -1;
 
   // oxi = ox1;
-    // UT3D_stru_dump (Typ_ObjGX, &oxi, "CCV-Seg:\n");
+    // DEB_dump_obj__ (Typ_ObjGX, &oxi, "CCV-Seg:\n");
   // typ = AP_typ_2_bastyp (oxi.typ);
   // typ = oxi.typ;   // wird zum erkennen von CVPOL gebraucht ..
 
@@ -1199,7 +1283,7 @@ REPLACED by UT3D_obj_ccv_segnr
   Point    *pTab, spt;
 
 
-  // UT3D_stru_dump (Typ_PT, p1, "UT3D_segpar_ccvSel ");
+  // DEB_dump_obj__ (Typ_PT, p1, "UT3D_segpar_ccvSel ");
 
 
   pTab = (void*)memspc55;
@@ -1268,7 +1352,7 @@ REPLACED by UT3D_obj_ccv_segnr
   ObjGX    *oTab, *oSeg;
 
 
-  // UT3D_stru_dump (Typ_PT, p1, "UT3D_segpar_ptccv ");
+  // DEB_dump_obj__ (Typ_PT, p1, "UT3D_segpar_ptccv ");
 
 
   pTab = (void*)memspc55;
@@ -1317,9 +1401,9 @@ REPLACED by UT3D_obj_ccv_segnr
   oTab = cv1->data;
   oSeg = &oTab[iSeg];
     // printf(" typ=%d form=%d\n",oSeg->typ,oSeg->form);
-    // UTO_dump__ (oSeg, "seg:\n");
+    // DEB_dump_ox_0 (oSeg, "seg:\n");
 
-  oTyp = UTO_obj_getp (&od, oSeg);
+  oTyp = UTO_objDat_ox (&od, oSeg);
   if(oTyp < 0) return -1;
 
   // get Parameter from object
@@ -1361,7 +1445,7 @@ REPLACED by UT3D_obj_ccv_segnr
   char      cvo[OBJ_SIZ_MAX];
 
 
-  UT3D_stru_dump (Typ_CVTRM, ccv, "UT3D_2pt_ccv1_lim: ");
+  DEB_dump_obj__ (Typ_CVTRM, ccv, "UT3D_2pt_ccv1_lim: ");
 
 
   //----------------------------------------------------------------
@@ -1417,7 +1501,7 @@ REPLACED by UT3D_obj_ccv_segnr
   if(irc < 0) return -1;
 
     
-    UT3D_stru_dump (Typ_LN, lno, "ex UT3D_ln_ccv_pt");
+    DEB_dump_obj__ (Typ_LN, lno, "ex UT3D_ln_ccv_pt");
 
   return 0;
 
@@ -1438,7 +1522,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // printf("UT3D_pt_ccv_segnr_par1 is=%d par1=%lf\n",is,ps);
-  // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparccv: ");
+  // DEB_dump_obj__ (Typ_ObjGX, cv1, " _pt_segparccv: ");
 
 
   // get typ,data from seg.<is> 
@@ -1454,7 +1538,7 @@ REPLACED by UT3D_obj_ccv_segnr
   L_par:
   irc = UT3D_pt_evparcrv (po, ps, typ, cvo);
 
-    // UT3D_stru_dump (Typ_PT, po, "ex UT3D_pt_ccv_segnr_par1");
+    // DEB_dump_obj__ (Typ_PT, po, "ex UT3D_pt_ccv_segnr_par1");
 
   // exit(0);
   return irc;
@@ -1480,8 +1564,8 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // printf("UT3D_pt_segparccv %d %f\n",is,ps);
-  // UT3D_stru_dump (Typ_ObjGX, cv1, " _pt_segparccv: ");
-  // UTO_dump__ (cv1, " _pt_segparccv: ");
+  // DEB_dump_obj__ (Typ_ObjGX, cv1, " _pt_segparccv: ");
+  // DEB_dump_ox_0 (cv1, " _pt_segparccv: ");
 
 
 
@@ -1515,7 +1599,7 @@ REPLACED by UT3D_obj_ccv_segnr
   Plane  pl1;
 
 
-  // UTO_dump__(oi, "UT3D_vcn_cvtrm:");
+  // DEB_dump_ox_0(oi, "UT3D_vcn_cvtrm:");
 
 
   if(oi->typ != Typ_CVTRM) return -1;
@@ -1535,7 +1619,7 @@ REPLACED by UT3D_obj_ccv_segnr
   wrkSpc->start = ptTab;   // reset memspc
 
   // Normalvec entsprechend Drehsinn:
-  ibp = UT3D_bp_vcz (&pl1.vz);
+  ibp = UT3D_bp_perp_vc (NULL, &pl1.vz);
   isr = UT3D_sr_polc (ptNr-1, ptTab, &pl1.vz, ibp);
   // printf(" isr=%d\n",isr);
   if(isr < 0)  UT3D_vc_invert (vco, vco);
@@ -1563,9 +1647,9 @@ REPLACED by UT3D_obj_ccv_segnr
   double   ang1, v0, v1, dd;
 
 
-  // UT3D_stru_dump (form, cvBas, "CVTRM_basCv_trmCv_con");
-  // UT3D_stru_dump (Typ_CVTRM, cv1, " _trmCv_con-1");
-  // UT3D_stru_dump (Typ_CVTRM, cv2, " _trmCv_con-2");
+  // DEB_dump_obj__ (form, cvBas, "CVTRM_basCv_trmCv_con");
+  // DEB_dump_obj__ (Typ_CVTRM, cv1, " _trmCv_con-1");
+  // DEB_dump_obj__ (Typ_CVTRM, cv2, " _trmCv_con-2");
 
 
   //----------------------------------------------------------------
@@ -1617,7 +1701,7 @@ REPLACED by UT3D_obj_ccv_segnr
   //----------------------------------------------------------------
   L_exit:
 
-    // UT3D_stru_dump (Typ_CVTRM, cv2, " ex  _trmCv_con");
+    // DEB_dump_obj__ (Typ_CVTRM, cv2, " ex  _trmCv_con");
 
   return 0;
 
@@ -1662,7 +1746,7 @@ REPLACED by UT3D_obj_ccv_segnr
   dbi = cca[iNr - 1].dbi;
   form = DB_GetObjDat (data, &oNr, typ, dbi);
     // printf(" form1=%d oNr=%d\n",form,oNr);
-    // UT3D_stru_dump (form, *data, " _basCv-1");
+    // DEB_dump_obj__ (form, *data, " _basCv-1");
 
 
   // resolv trimmed-curve
@@ -1714,8 +1798,8 @@ REPLACED by UT3D_obj_ccv_segnr
 
     // TESTBLOCK
     // printf("ex CVTRM__basCv__ iNr=%d\n",iNr);
-    // UT3D_stru_dump (Typ_CVTRM, cv2, " _trmCv__-cv2");
-    // UT3D_stru_dump (form, *data, " _trmCv__-data");
+    // DEB_dump_obj__ (Typ_CVTRM, cv2, " _trmCv__-cv2");
+    // DEB_dump_obj__ (form, *data, " _trmCv__-data");
     // TESTBLOCK
 
   return 0;
@@ -1805,8 +1889,8 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // get parameters as 0-1
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_0, form, obj);
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_1, form, obj);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, obj);
+  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, obj);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, obj);
@@ -1816,7 +1900,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   L_exit:
 
-    // UT3D_stru_dump (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
+    // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
 
   return 0;
 
@@ -1852,7 +1936,7 @@ REPLACED by UT3D_obj_ccv_segnr
     irc = DB_GetObjDat  ((void**)&plgi, &oNr, Typ_CV, dbi);
     if(irc < 0) return -2;
   }
-    // UT3D_stru_dump (Typ_CVPOL, plgi, " _plg_iseg-plgi");
+    // DEB_dump_obj__ (Typ_CVPOL, plgi, " _plg_iseg-plgi");
 
 
   // get parameters of segment iseg
@@ -1898,7 +1982,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   printf("UT3D_pt_endptccv \n");
-  UT3D_stru_dump (Typ_CVTRM, ccv1, "ccv1:\n");
+  DEB_dump_obj__ (Typ_CVTRM, ccv1, "ccv1:\n");
 
 
 
@@ -1931,14 +2015,14 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
 //===================================================================
-inline int isLeft( Point P0, Point P1, Point P2 ) {
+inline int isLeft( Point2 P0, Point2 P1, Point2 P2 ) {
 //===================================================================
 
   return ( (P1.x - P0.x) * (P2.y - P0.y) - (P2.x - P0.x) * (P1.y - P0.y) );
 }
 
 //===================================================================
-  int wn_PnPoly (Point P, Point* V, int n) {
+  int wn_PnPoly (Point2 P, Point2* V, int n) {
 //===================================================================
 // wn_PnPoly(): winding number test for a point in a closed polygon
 // winding number: 1 if point is inside a CCW-circ

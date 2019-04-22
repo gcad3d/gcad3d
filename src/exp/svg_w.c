@@ -568,7 +568,7 @@ extern int     APT_dispPT;
 
     case Typ_CI:
       SVG_w_setLtyp ();
-        // UT3D_stru_dump (Typ_CI,  ox1->data, " Circ:");
+        // DEB_dump_obj__ (Typ_CI,  ox1->data, " Circ:");
       // test for full circle
       if(UT3D_ck_ci360 ((Circ*)ox1->data) == 0) goto L_CI__;
 
@@ -787,7 +787,7 @@ Typ_Model   // ModelReference
   double   d1, d2, x1, y1, x2, y2, rx, ry, ax;
 
 
-  // UT3D_stru_dump (Typ_CI2, ci21, "SVG_w_cir_2r:");
+  // DEB_dump_obj__ (Typ_CI2, ci21, "SVG_w_cir_2r:");
 
 
   d1 = ci21->p1.x;
@@ -841,7 +841,7 @@ Typ_Model   // ModelReference
 
 
   // printf("SVG_w_crv \n");
-    // UT3D_stru_dump (Typ_CVBSP, cv1, "");
+    // DEB_dump_obj__ (Typ_CVBSP, cv1, "");
     //SVG_w_plg (cv1->ptNr, cv1->cpTab);
 
 
@@ -942,13 +942,13 @@ Typ_Model   // ModelReference
 // |"M"sx sy "A"rx ry angX-Axis large iDir ex ey|
 // <path id="pt1" d="M10 150 A15 15 0 1 1 25 165"/>
 // {Point p1, p2, pc; Vector vz, va, vb; int dir;}
-  
+
   int      i1, i2;
   double   d1, d2, as, ao, x1, y1, x2, y2, rx, ry, ax;
   CurvEll2C   el2c;
 
   // printf("SVG_w_ell_r \n");
-    // UT3D_stru_dump (Typ_CVELL, el1, "");
+    // DEB_dump_obj__ (Typ_CVELL, el1, "");
 
       UT2D_elc_el3 (&el2c, el1);
 
@@ -966,7 +966,7 @@ Typ_Model   // ModelReference
 
       // large; 0=small;1=large;
       // d1 = UT3D_ango_el (el1);
-      UT2D_2angr_el (&as, &ao, &el2c);
+      UT2D_2angr_el2c_c (&as, &ao, &el2c);
         // printf(" ang0 1,2 = %f %f\n",d3,d1,d2);
       if(fabs(ao) > RAD_180) { i1 = 1; } else { i1 = 0; }
 
@@ -1152,7 +1152,7 @@ Typ_Model   // ModelReference
 
   // printf("SVG_w_gtxt__ |%s|\n",tx1->txt);
   // printf(" tx1->size=%f AP_txsiz=%f\n",tx1->size,AP_txsiz);
-  // UT3D_stru_dump (Typ_GTXT, tx1, "SVG_w_gtxt__");
+  // DEB_dump_obj__ (Typ_GTXT, tx1, "SVG_w_gtxt__");
 
 
 
@@ -1304,7 +1304,7 @@ Typ_Model   // ModelReference
 
 
   // printf("SVG_w_dim__ \n");
-  // UT3D_stru_dump (Typ_Dimen, dim1, "");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "");
 
   strcpy (SVG_sAtt, " style=\"&st_c_dim;\"");
 
@@ -1567,7 +1567,7 @@ Typ_Model   // ModelReference
 
   // get center of grWin in userCoords
   ptc = GL_GetCen ();
-    // UT3D_stru_dump (Typ_PT,  &ptc, " GL_cen:");
+    // DEB_dump_obj__ (Typ_PT,  &ptc, " GL_cen:");
 
 
   // get size of graficWindow in userCoords

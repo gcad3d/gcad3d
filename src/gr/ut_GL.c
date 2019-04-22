@@ -157,6 +157,7 @@ GL_query_ViewZ        return GL_cen.z;
 GL_pos_move_2D        move 3D-point with 2D-offset
 GL2D_pos_move         relative move of the screenPos in screencoords      INLINE
 
+GL_pt2_get_pt         get point on 2D-plane from 3D-point
 GL_ptSc_ptUc          userCoord -> screenCoord
 GL_ptUc_ptSc          ScreenCoords -> UserCoords
 GL_Uk2Sk              userCoord -> screenCoord
@@ -534,7 +535,7 @@ cl -c ut_GL.c
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
 #include "../ut/func_types.h"                 // ATT_LN_RAY
 
-#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
 #include "../db/ut_DB.h"                 // DB_get_ModBas
 
 
@@ -546,7 +547,7 @@ cl -c ut_GL.c
 #include "../gr/ut_GL_bitmaps.h"
 #include "../gr/vf.h"                   /* der vektorfont */
 
-#include "../xa/xa_msg.h"               // MSG_STD_ERR
+#include "../xa/xa_msg.h"               // MSG_ERR__
 #include "../xa/xa_uid.h"               // UID_ouf_coz
 // #include "../xa/xa_edi__.h"             // ED_mode_enter
 #include "../xa/xa_ed.h"                // ED_mode_*
@@ -572,12 +573,12 @@ extern Att_ln     GR_AttLnTab[GR_ATT_TAB_SIZ];                //AttributTable
 extern ObjAtt  *GA_ObjTab;        // die PermanentAttributeTable
 extern int     GA_recNr;          // die aktuelle Anzahl von Records
 
-// ex xa_ui.c:
+// ex ../xa/xa_ui.c:
 extern int       UI_InpMode;
 extern char      UI_stat_view, UI_stat_hide;
 
 
-// aus xa.c
+// aus ../xa/xa.c
 extern AP_STAT   AP_stat;
 extern  int       WC_modact_ind;    // -1=primary Model is active
 extern Plane      WC_sur_act;     // die Konstruktionsebene
@@ -1008,15 +1009,15 @@ GLuint GL_fix_DL_ind  (long*);
 
   UT3D_vc_perp2vc (&vcy, GL_eyeZ, GL_eyeX);
 
-  UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
-  UT3D_stru_dump (Typ_VC, &vcy,     "    vcy: ");
-  UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
+  DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX: ");
+  DEB_dump_obj__ (Typ_VC, &vcy,     "    vcy: ");
+  DEB_dump_obj__ (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
 
   // GL_cen = ScreenCenter in usercoords
   GL_actUsrPos = GL_GetViewPos ();
 
   // CurPos in usercoords:
-  UT3D_stru_dump (Typ_PT, &GL_actUsrPos, "ViewPos: ");
+  DEB_dump_obj__ (Typ_PT, &GL_actUsrPos, "ViewPos: ");
 
   // Sichtlinie (zeigt vom Mittelpkt zum Auge)
   GR_Disp_vc (GL_eyeX, &GL_actUsrPos, 9, 0);
@@ -1049,8 +1050,8 @@ GLuint GL_fix_DL_ind  (long*);
 
 
   // printf("GL_selSubPt %d\n",iNr);
-  // UT3D_stru_dump (Typ_PT, ptx, "ptx: ");
-  // for(i1=0;i1<iNr;++i1) UT3D_stru_dump (Typ_PT, &pTab[i1], "p[%d]: ",i1);
+  // DEB_dump_obj__ (Typ_PT, ptx, "ptx: ");
+  // for(i1=0;i1<iNr;++i1) DEB_dump_obj__ (Typ_PT, &pTab[i1], "p[%d]: ",i1);
 
 
   // get GL_actScrPos & GL_actUsrPos
@@ -1063,7 +1064,7 @@ GLuint GL_fix_DL_ind  (long*);
 
     // Vertex --> 2D
     GL_Uk2Sk (&p22.x, &p22.y, &d1, pTab[i1].x, pTab[i1].y, pTab[i1].z);
-      // UT3D_stru_dump (Typ_PT2, &p22, " pTab[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT2, &p22, " pTab[%d]",i1);
 
     dx = fabs(actScrPos.x - p22.x);
     dy = fabs(actScrPos.y - p22.y);
@@ -1227,7 +1228,7 @@ GLuint GL_fix_DL_ind  (long*);
 
   // change point into screenCoords
   GL_Uk2Sk (&p21.x, &p21.y, &p21.z, pt1->x, pt1->y, pt1->z);
-    // UT3D_stru_dump (Typ_PT, &p21, " p21");
+    // DEB_dump_obj__ (Typ_PT, &p21, " p21");
 
 
   // mit startpos vergleichen (immer)
@@ -1293,7 +1294,7 @@ GLuint GL_fix_DL_ind  (long*);
   }
 
   // printf("GL_selPt ptNr=%d iNr=%d\n",ptNr,iNr);
-  // for(i1=0;i1<ptNr;++i1)UT3D_stru_dump(Typ_PT2,&pTab[i1],"pTab[%d]",i1);
+  // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT2,&pTab[i1],"pTab[%d]",i1);
   // if(iNr > 0) {i1=0;
   // while(iTab[i1] >= 0) {printf(" iTab[%d]=%d\n",i1,iTab[i1]);++i1;}}
   // printf(" GL_pickSiz=%d\n",GL_pickSiz);
@@ -1301,12 +1302,12 @@ GLuint GL_fix_DL_ind  (long*);
 
   // get GL_actScrPos & GL_actUsrPos
   GL_GetActSelPos (&actUsrPos, &actScrPos);
-    // UT3D_stru_dump (Typ_PT, &actScrPos, " actScrPos");
-    // UT3D_stru_dump (Typ_PT, &actUsrPos, " actUsrPos");
+    // DEB_dump_obj__ (Typ_PT, &actScrPos, " actScrPos");
+    // DEB_dump_obj__ (Typ_PT, &actUsrPos, " actUsrPos");
 
   // change 1. point into screenCoords
   GL_Uk2Sk (&p21.x, &p21.y, &d1, pTab[0].x, pTab[0].y, pTab[0].z);
-    // UT3D_stru_dump (Typ_PT2, &p21, " pTab[0]");
+    // DEB_dump_obj__ (Typ_PT2, &p21, " pTab[0]");
 
   // mit startpos vergleichen (immer)
   dx = fabs(actScrPos.x - p21.x);
@@ -1349,7 +1350,7 @@ GLuint GL_fix_DL_ind  (long*);
     //-------------------------------------
     // Vertex --> 2D (screenCoords)
     GL_Uk2Sk (&p22.x, &p22.y, &d1, pTab[i1].x, pTab[i1].y, pTab[i1].z);
-      // UT3D_stru_dump (Typ_PT2, &p22, " pTab[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT2, &p22, " pTab[%d]",i1);
 
     if(iSegLastPt == i1)   {      // test ob genau am Punkt ...
       // wenn der Screenabstand (in Pixeln) kleiner als die Toleranz,
@@ -1409,7 +1410,7 @@ GLuint GL_fix_DL_ind  (long*);
   L_done:
 
     // printf("ex GL_selPt pSel=%d is=%d\n",*pSel,*is);
-    // UT3D_stru_dump (Typ_PT, spt, "  spt:");
+    // DEB_dump_obj__ (Typ_PT, spt, "  spt:");
     // exit(0);
 
   return 0;
@@ -2230,7 +2231,7 @@ static int errOld = 123;
     glPushMatrix ();
 
       UT3D_m4_loadpl (m1, &GL_constr_pln);
-        // UT3D_stru_dump (Typ_M4x4, m1, "new m1:");
+        // DEB_dump_obj__ (Typ_M4x4, m1, "new m1:");
       glMultMatrixd ((double*)m1);
 
       // glColor3f (0.f, 1.f, 0.f);       // gruen
@@ -2566,7 +2567,7 @@ static int errOld = 123;
 
 
     // OK; hilite this obj ....
-    // printf("hili %ld typ=%d ind=%ld\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
+      // printf("hili %ld typ=%d ind=%ld\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
 
 
     if(GL_mode_draw_select == GR_MODE_SELECT) {
@@ -2618,9 +2619,9 @@ static int errOld = 123;
       // check if symbolic
       if((APT_dispSOL == OFF) ||
          ((ColRGB*)&(GR_ObjTab[l1].iatt))->vsym == 1) {
-        // yes, symbolic - uses att Typ_Att_Fac1
+        // yes, symbolic - uses att Typ_Att_dash_long
           // printf(" disp symbolic ..\n");
-        attInd = Typ_Att_Fac1;
+        attInd = Typ_Att_dash_long;
         goto L_hili_curv;
       }
 
@@ -2648,7 +2649,7 @@ static int errOld = 123;
       glClear (GL_DEPTH_BUFFER_BIT);  // damit wirds ganz oben gezeichnet ..
       // glDepthFunc (GL_NOTEQUAL);
       glEnable (GL_LINE_SMOOTH);  // macht Lines dicker; uebergeht glLineWidth
-      attInd = Typ_Att_Fac1;   // fuer Surfs im Ditto ..
+      attInd = Typ_Att_dash_long;   // fuer Surfs im Ditto ..
       goto L_hili_curv;
     }
 
@@ -2681,13 +2682,15 @@ static int errOld = 123;
     L_hili_curv:
       // printf(" L_hili_curv: attInd=%d l1=%ld att_def=%d\n",
               // attInd,l1,att_def[attInd]);
+
     if(att_def[attInd] != ON) {
-        // printf(" ... hili change %ld > hili\n",attInd);
+        // printf(" ... hili change %d > hili\n",attInd);
       att_def[attInd] = ON;
       GL_InitNewAtt (1, attInd);
       // glEnable(GL_CULL_FACE);
       // glDepthFunc (GL_NOTEQUAL);
     }
+
 
     L_hili__:
       // printf(" _Redraw L_hili__: %ld\n",l1);
@@ -3186,7 +3189,7 @@ Screenkoords > Userkoords.
 
 
   // printf("GL_Init_View: siz=%f,%f,%f\n",GL_Siz_X,GL_Siz_Y,GL_Siz_Z);
-  // UT3D_stru_dump (Typ_PLN,&GL_view_pln," GL_view_pln:");
+  // DEB_dump_obj__ (Typ_PLN,&GL_view_pln," GL_view_pln:");
 
 }
 
@@ -3261,8 +3264,8 @@ Screenkoords > Userkoords.
               UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
 
               UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
-                // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
-                // UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
+                // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX: ");
+                // DEB_dump_obj__ (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
 
       break;
 
@@ -3297,9 +3300,9 @@ Screenkoords > Userkoords.
 
     // TESTBLOCK
     // printf("ex GL_DefineView:\n");
-    // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX");
-    // UT3D_stru_dump (Typ_VC, GL_eyeY, "GL_eyeY");
-    // UT3D_stru_dump (Typ_VC, GL_eyeZ, "GL_eyeZ");
+    // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX");
+    // DEB_dump_obj__ (Typ_VC, GL_eyeY, "GL_eyeY");
+    // DEB_dump_obj__ (Typ_VC, GL_eyeZ, "GL_eyeZ");
     // END TESTBLOCK
 
 }
@@ -3685,7 +3688,7 @@ Screenkoords > Userkoords.
   gli = (GLuint)ind + DL_base__;
 
 
-  printf("GL_Del1 %ld %d\n",ind,gli);
+  // printf("GL_Del1 %ld %d\n",ind,gli);
 
 
   if (glIsList(gli)) {
@@ -5400,14 +5403,14 @@ static double old_view_Z = 0.;
     if(fabs(dz) > UT_TOL_pt) {
       // UT3D_pt_traptvclen (&pt1, &GL_view_pln.po, &GL_view_pln.vz, dz);
       GL_view_pln.po.z = GL_cen.z;
-      // UT3D_stru_dump (Typ_PT, &t1, "&new po:");
+      // DEB_dump_obj__ (Typ_PT, &t1, "&new po:");
       UT3D_pl_ptpl (&GL_view_pln, &GL_view_pln.po); // nur move Nullpunkt
       old_view_Z = GL_cen.z;
-      // UT3D_stru_dump (Typ_PLN, &GL_view_pln,"&new GL_view_pln:");
+      // DEB_dump_obj__ (Typ_PLN, &GL_view_pln,"&new GL_view_pln:");
     }
   }
 
-      // UT3D_stru_dump (Typ_PLN, &GL_view_pln,"ex-GL_view_pln:");
+      // DEB_dump_obj__ (Typ_PLN, &GL_view_pln,"ex-GL_view_pln:");
 
   return 0;
 
@@ -5430,7 +5433,7 @@ static double old_view_Z = 0.;
 
   // printf("GL_SetConstrPln %f\n",WC_sur_Z);
   // printf("   ED_mode=%d\n",ED_query_mode());
-  // UT3D_stru_dump (Typ_PLN, &WC_sur_act, " new GL_constr_pln:");
+  // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, " new GL_constr_pln:");
 
 
   GL_constr_pln = WC_sur_act;
@@ -5443,7 +5446,7 @@ static double old_view_Z = 0.;
   if(fabs(WC_sur_Z) > UT_TOL_pt) {
 
     UT3D_pt_traptvclen (&pt1, &WC_sur_act.po,  &WC_sur_act.vz, WC_sur_Z);
-    // UT3D_stru_dump (Typ_PT, &pt1, "&new po:");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "&new po:");
     UT3D_pl_ptpl (&GL_constr_pln, &pt1);
 
   }
@@ -5472,7 +5475,7 @@ static double old_view_Z = 0.;
 
   *nxtCol = GL_defCol;
 
-  // UT3D_stru_dump (Typ_Color, nxtCol, "ex GL_DefColGet");
+  // DEB_dump_obj__ (Typ_Color, nxtCol, "ex GL_DefColGet");
   
   return 0;
 
@@ -5498,7 +5501,7 @@ static double old_view_Z = 0.;
   GLuint dlInd;
 
 
-  UT3D_stru_dump (Typ_Color, nxtCol, "GL_DefColSet");
+  // DEB_dump_obj__ (Typ_Color, nxtCol, "GL_DefColSet");
 
   // if(!strncmp((void*)&actCol,(void*)nxtCol,3)) return 0;
 
@@ -5552,13 +5555,13 @@ static double old_view_Z = 0.;
 //================================================================
 // activate color for surfaces.
 
-  UT3D_stru_dump (Typ_Color, &newCol, "GL_SetCol");
+  DEB_dump_obj__ (Typ_Color, &newCol, "GL_SetCol");
 
   if(!strncmp((void*)&actCol,(void*)&newCol,3)) return 0;
 
   actCol = newCol;
 
-  UT3D_stru_dump (Typ_Color, &newCol, "  activate color: ");
+  DEB_dump_obj__ (Typ_Color, &newCol, "  activate color: ");
   glColor3ub (newCol.cr, newCol.cg, newCol.cb); // glColor3ubv
 
   return 0;
@@ -5575,8 +5578,8 @@ static double old_view_Z = 0.;
   Point pto;
 
   // printf("GL_GetViewPt: %f,%f,%f\n",pti->x,pti->y,pti->z);
-  // UT3D_stru_dump (Typ_PLN, &WC_sur_act, "&WC_sur_act:");
-  // UT3D_stru_dump (Typ_PLN, &GL_view_pln, "&GL_view_pln:");
+  // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, "&WC_sur_act:");
+  // DEB_dump_obj__ (Typ_PLN, &GL_view_pln, "&GL_view_pln:");
 
 
   // Linie pt2 / GL_view_vz mit der Userebene schneiden
@@ -5616,8 +5619,8 @@ static double old_view_Z = 0.;
 
   *eyeVec = *GL_eyeX;
 
-    // UT3D_stru_dump (Typ_PT, curPos, "  curPos: ");
-    // UT3D_stru_dump (Typ_VC, eyeVec, "  eyeVec: ");
+    // DEB_dump_obj__ (Typ_PT, curPos, "  curPos: ");
+    // DEB_dump_obj__ (Typ_VC, eyeVec, "  eyeVec: ");
 
   return 0;
 
@@ -5667,8 +5670,8 @@ static double old_view_Z = 0.;
 /// \endcode
 
   // printf("GL_GetActSelPos:\n");
-  // UT3D_stru_dump(Typ_PT, &GL_actUsrPos, "posUsr:");
-  // UT3D_stru_dump(Typ_PT, &GL_actScrPos, "posScr:");
+  // DEB_dump_obj__(Typ_PT, &GL_actUsrPos, "posUsr:");
+  // DEB_dump_obj__(Typ_PT, &GL_actScrPos, "posScr:");
 
   *posUsr = GL_actUsrPos;
   *posScr = GL_actScrPos;
@@ -5725,7 +5728,7 @@ static double old_view_Z = 0.;
 
 // GL_view_pln
 // GL_GetConstrPos tut das gleiche fuer GL_constr_pln
-// see also UI_GR_Indicate - hat UT3D_pt_traptm3 (.. WC_sur_imat ..) ??
+// see also UI_GR_Indicate - hat UT3D_pt_tra_pt_m3 (.. WC_sur_imat ..) ??
 // in UI_GR_MotionNotify wird GR_CurUk via GL_GetConstrPos gesetzt; 
 
   int      irc;
@@ -5735,11 +5738,11 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_GetViewPos\n");
-  // UT3D_stru_dump (Typ_PLN, &GL_view_pln, " GL_view_pln:");
+  // DEB_dump_obj__ (Typ_PLN, &GL_view_pln, " GL_view_pln:");
 
 
   //TX_Print ("GL_GetViewPos %d %d",GL_mouse_x_act,GL_mouse_y_act);
-    // UT3D_stru_dump (Typ_PT, &GL_actUsrPos, "ViewPos: ");
+    // DEB_dump_obj__ (Typ_PT, &GL_actUsrPos, "ViewPos: ");
     // return GL_actUsrPos;
 
 
@@ -5760,27 +5763,8 @@ static double old_view_Z = 0.;
     // printf("    GL_GetViewPos pt1 %f %f %f\n",pt1.x, pt1.y, pt1.z);
 */
 
-
-// see GL_GetConstrPos ?
-  if(GL_actView == FUNC_ViewFront)  {
-    pt1.y = 0;
-    UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
-    pt2.y = pt1.z;
-
-
-  } else if(GL_actView == FUNC_ViewSide) {
-    pt1.x = 0;
-    UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
-    pt2.x = pt1.z;   // 2017-04-12
-
-
-  } else {
-    // FUNC_ViewTop FUNC_ViewIso
-    // Linie pt2 / GL_eyeX mit der Userebene schneiden
-    // irc = UT3D_pt_intptvcpl_ (&pt2, &GL_constr_pln, &pt1, GL_eyeX);
-    irc = UT3D_pt_intptvcpl_ (&pt2, &GL_view_pln, &pt1, GL_eyeX);
-    if(irc == 0) UT3D_pt_projptpl (&pt2, &GL_view_pln, &pt1);
-  }
+  // get point on 2D-plane (GL_view_pln) from 3D-point
+  GL_pt2_get_pt (&pt2, &pt1);
 
 
     // printf(" ex GL_GetViewPos %f %f %f\n",pt2.x, pt2.y, pt2.z);
@@ -5822,12 +5806,12 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_GetConstrPos %f %f %f\n",pt1->x,pt1->y,pt1->z);
-  // UT3D_stru_dump (Typ_PLN, &GL_constr_pln, "&GL_constr_pln:");
-  // UT3D_stru_dump (Typ_PLN, &GL_view_pln, "&GL_view_pln:");
+  // DEB_dump_obj__ (Typ_PLN, &GL_constr_pln, "&GL_constr_pln:");
+  // DEB_dump_obj__ (Typ_PLN, &GL_view_pln, "&GL_view_pln:");
 
 
   // printf ("GL_GetConstrPos %d %d\n",GL_mouse_x_act,GL_mouse_y_act);
-  // UT3D_stru_dump (Typ_VC, &GL_eyeX, "GL_eyeX");
+  // DEB_dump_obj__ (Typ_VC, &GL_eyeX, "GL_eyeX");
 
 
   if(GL_actView == FUNC_ViewFront)  {
@@ -5847,9 +5831,9 @@ static double old_view_Z = 0.;
   }
 
 
-  // UT3D_stru_dump (Typ_PT,  &pt1, "PT:");
-  // UT3D_stru_dump (Typ_VC,  GL_eyeX, "VC:");
-  // UT3D_stru_dump (Typ_PLN, &GL_constr_pln, "GL_constr_pln:");
+  // DEB_dump_obj__ (Typ_PT,  &pt1, "PT:");
+  // DEB_dump_obj__ (Typ_VC,  GL_eyeX, "VC:");
+  // DEB_dump_obj__ (Typ_PLN, &GL_constr_pln, "GL_constr_pln:");
 
   // printf(" ex GL_GetConstrPos %f %f %f\n",pt2.x, pt2.y, pt2.z);
 
@@ -6001,7 +5985,7 @@ static double old_view_Z = 0.;
 
 
   // printf("------------ GL_eye_upd %d %d\n",modPln,modOri);
-  // UT3D_stru_dump (Typ_PT, &GL_cen, "  GL_cen: ");
+  // DEB_dump_obj__ (Typ_PT, &GL_cen, "  GL_cen: ");
 
 
 
@@ -6049,11 +6033,11 @@ static double old_view_Z = 0.;
       // pt1.x -= lx;
       GL_DrawSymV (&dl1, SYM_SQUARE, ATT_COL_RED, &pt1, 1.);
     }
-    UT3D_stru_dump (Typ_PLN, &GL_eye_pln, "ex-GL_eye_upd %d %d",modPln,modOri);
-    UT3D_stru_dump (Typ_VC, GL_eyeY, "  GL_eyeY=hor.");
-    UT3D_stru_dump (Typ_VC, GL_eyeZ, "  GL_eyeZ=vert..");
-    UT3D_stru_dump (Typ_VC, GL_eyeX, "  GL_eyeX=up.");
-    UT3D_stru_dump (Typ_PT, &GLBT_ori, "  GLBT_ori: ");
+    DEB_dump_obj__ (Typ_PLN, &GL_eye_pln, "ex-GL_eye_upd %d %d",modPln,modOri);
+    DEB_dump_obj__ (Typ_VC, GL_eyeY, "  GL_eyeY=hor.");
+    DEB_dump_obj__ (Typ_VC, GL_eyeZ, "  GL_eyeZ=vert..");
+    DEB_dump_obj__ (Typ_VC, GL_eyeX, "  GL_eyeX=up.");
+    DEB_dump_obj__ (Typ_PT, &GLBT_ori, "  GLBT_ori: ");
     // END TESTBLOCK
 */
 
@@ -6316,7 +6300,7 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_Do_Rot__ %d %d\n",x,y);
-  // UT3D_stru_dump (Typ_VC, GL_eyeX, "GL_eyeX: ");
+  // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX: ");
 
 
   // get relative movement of mouse from last stored position
@@ -6348,7 +6332,7 @@ static double old_view_Z = 0.;
 
 
   // arbitrary view: rotate GL_eyeX & GL_eyeZ around UT3D_VECTOR_Z
-  // UT3D_stru_dump (Typ_VC,  GL_eyeX, " old eyeX:");
+  // DEB_dump_obj__ (Typ_VC,  GL_eyeX, " old eyeX:");
   UT3D_vc_rotvcangr (GL_eyeX, UT_RADIANS(d2), GL_eyeX, &UT3D_VECTOR_Z);
   UT3D_vc_rotvcangr (GL_eyeZ, UT_RADIANS(d2), GL_eyeZ, &UT3D_VECTOR_Z);
 
@@ -6364,8 +6348,8 @@ static double old_view_Z = 0.;
   // get vcn = normalvector (negativ horizontal)
   UT3D_vc_perp2vc (GL_eyeY, GL_eyeX, GL_eyeZ);
   UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
-  // UT3D_stru_dump (Typ_VC,  GL_eyeX, " old eyeX:");
-  // UT3D_stru_dump (Typ_VC,  GL_eyeZ, " old eyeZ:");
+  // DEB_dump_obj__ (Typ_VC,  GL_eyeX, " old eyeX:");
+  // DEB_dump_obj__ (Typ_VC,  GL_eyeZ, " old eyeZ:");
 
 
   // arbitrary view:
@@ -6376,16 +6360,16 @@ static double old_view_Z = 0.;
 
   // GL_eyeZ normal auf GL_eyeX machen (makes more precise)
   UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
-    // UT3D_stru_dump (Typ_VC,  &GL_eyeX, " eyeX:");
+    // DEB_dump_obj__ (Typ_VC,  &GL_eyeX, " eyeX:");
 
   L_setY:
   // recreate y from x and z
   UT3D_vc_perp2vc (GL_eyeY, GL_eyeZ, GL_eyeX);
   // recreate z from x and y
   UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
-    // UT3D_stru_dump (Typ_VC,  GL_eyeY, " X = eyeY:");
-    // UT3D_stru_dump (Typ_VC,  GL_eyeZ, " Y = eyeZ:");
-    // UT3D_stru_dump (Typ_VC,  GL_eyeX, " Z = eyeX:");
+    // DEB_dump_obj__ (Typ_VC,  GL_eyeY, " X = eyeY:");
+    // DEB_dump_obj__ (Typ_VC,  GL_eyeZ, " Y = eyeZ:");
+    // DEB_dump_obj__ (Typ_VC,  GL_eyeX, " Z = eyeX:");
 
 
   
@@ -6594,9 +6578,9 @@ static double old_view_Z = 0.;
 
   printf("GL_View_dump \n");
 
-  UT3D_stru_dump (Typ_PT, &GL_cen, "_cen: "); 
-  UT3D_stru_dump (Typ_PT, GL_eyeX, "eyeX: "); 
-  UT3D_stru_dump (Typ_PT, GL_eyeZ, "eyeZ: "); 
+  DEB_dump_obj__ (Typ_PT, &GL_cen, "_cen: "); 
+  DEB_dump_obj__ (Typ_PT, GL_eyeX, "eyeX: "); 
+  DEB_dump_obj__ (Typ_PT, GL_eyeZ, "eyeZ: "); 
 
   printf("_scl: %f\n",GL_Scale);
 
@@ -6644,7 +6628,7 @@ static double old_view_Z = 0.;
   GL_eyeZ->dz = view[9];
   if(UT3D_compvc0(GL_eyeX, 0.1) == 1) *GL_eyeZ = UT3D_VECTOR_Z;
   else UT3D_vc_setLength (GL_eyeZ, GL_eyeZ, 1.);
-    // UT3D_stru_dump (Typ_VC, GL_eyeZ, "  GL_eyeZ/2:");
+    // DEB_dump_obj__ (Typ_VC, GL_eyeZ, "  GL_eyeZ/2:");
 
   // recreate GL_eyeY
   UT3D_vc_perp2vc (GL_eyeY, GL_eyeZ, GL_eyeX);
@@ -6772,8 +6756,8 @@ static double old_view_Z = 0.;
 //=======================================================================
 // see GL_GetCen
 
-  // UT3D_stru_dump (Typ_PT, Ucen, "GL_Set_Cen:");
-  // UT3D_stru_dump (Typ_PT, &GL_cen, "   old cen:");
+  // DEB_dump_obj__ (Typ_PT, Ucen, "GL_Set_Cen:");
+  // DEB_dump_obj__ (Typ_PT, &GL_cen, "   old cen:");
 
 
   GL_cen.x = Ucen->x;
@@ -6811,7 +6795,7 @@ static double old_view_Z = 0.;
   pt1.x = fa[0];
   pt1.y = fa[1];
   pt1.z = fa[2];
-    // UT3D_stru_dump (Typ_PT, &pt1, "GL_Rescal1:");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "GL_Rescal1:");
     // if(fabs(pt1.z) > 1.) printf(" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 
 
@@ -6847,8 +6831,8 @@ static double old_view_Z = 0.;
 
 
   printf("GL_Rescal0 0000000000000000000000000\n");
-  UT3D_stru_dump (Typ_PT, pb1, "pb1");
-  UT3D_stru_dump (Typ_PT, pb2, "pb2");
+  DEB_dump_obj__ (Typ_PT, pb1, "pb1");
+  DEB_dump_obj__ (Typ_PT, pb2, "pb2");
 
 
   count = 0;
@@ -6972,8 +6956,8 @@ static double old_view_Z = 0.;
   L_free:
   free(fBuf);
 
-  // UT3D_stru_dump (Typ_PT, pb1, " sc-pb1:");
-  // UT3D_stru_dump (Typ_PT, pb2, " sc-pb2:");
+  // DEB_dump_obj__ (Typ_PT, pb1, " sc-pb1:");
+  // DEB_dump_obj__ (Typ_PT, pb2, " sc-pb2:");
   printf(" vNr=%d\n",vNr);
 
   if(vNr < 1) return -1;
@@ -6990,17 +6974,17 @@ static double old_view_Z = 0.;
   sy = pb2->y;
   sz = pb2->z;
   GL_Sk2Uk (&pt2.x,&pt2.y,&pt2.z,  sx,sy,sz);
-  // UT3D_stru_dump (Typ_PT, &pt1, " sc-pt1:");
-  // UT3D_stru_dump (Typ_PT, &pt2, " sc-pt2:");
+  // DEB_dump_obj__ (Typ_PT, &pt1, " sc-pt1:");
+  // DEB_dump_obj__ (Typ_PT, &pt2, " sc-pt2:");
 
 
   // make box of 2 points    - die 2 pt's liegen nun ganz verkehrt ..
-  UT3D_box_2pt (pb1, pb2, &pt1, &pt2);
+  UT3D_box_2pt__ (pb1, pb2, &pt1, &pt2);
 
 
   // printf("ex GL_Rescal0\n"); // Usercoords !
-  // UT3D_stru_dump (Typ_PT, pb1, " pb1:");
-  // UT3D_stru_dump (Typ_PT, pb2, " pb2:");
+  // DEB_dump_obj__ (Typ_PT, pb1, " pb1:");
+  // DEB_dump_obj__ (Typ_PT, pb2, " pb2:");
 
 
   return 0;
@@ -7349,7 +7333,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   // Record!
   if(col) {
     if(col->color == 0) {
-      // UT3D_stru_dump (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
+      // DEB_dump_obj__ (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
       glColor3ubv ((unsigned char*)&GL_defCol);
     } else {
       glColor3ubv ((unsigned char*)col);
@@ -7410,8 +7394,8 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
   // printf("GL_Tex_Ini TexNr=%d ind=%ld\n",tb->texNr,*ind);
-    // UT3D_stru_dump (Typ_VC, &tr->vx, "  vx:");
-    // UT3D_stru_dump (Typ_VC, &tr->vy, "  vy:");
+    // DEB_dump_obj__ (Typ_VC, &tr->vx, "  vx:");
+    // DEB_dump_obj__ (Typ_VC, &tr->vy, "  vy:");
 
 
   dlInd = GL_fix_DL_ind (ind);
@@ -7552,9 +7536,9 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
   // printf("GL_view_npt %d %d %ld\n",ptNr,att,dbi);
-  // {int i1;for(i1=0;i1<ptNr;++i1)UT3D_stru_dump (Typ_PT,&pta[i1],"p[%d]",i1);}
+  // {int i1;for(i1=0;i1<ptNr;++i1)DEB_dump_obj__ (Typ_PT,&pta[i1],"p[%d]",i1);}
 
-  GL_view_ini__ (dbi, Typ_PT, Typ_Att_PT);
+  GL_view_ini__ (dbi, Typ_PT, Typ_Att_def);
 
   GL_att_pt (att);
 
@@ -7605,7 +7589,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 ///            -8 to -10: outputObjects of WC_Work1; see DLI_TMP
 ///            >=1   use/overwrite existing DispList; see DL_SetInd
 ///   oTyp        eg. Typ_PT|Typ_CVBSP|Typ_SUR           see INF_OTYP
-///   attInd      eg. Typ_Att_Fac1                       see INF_ATT_CV
+///   attInd      eg. Typ_Att_dash_long                       see INF_ATT_CV
 ///
 /// see eg GL_view_npt
 /// see INF_GL__
@@ -7717,7 +7701,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   glDisable (GL_LIGHTING);
 
-  // glCallList (DL_base_LnAtt + Typ_Att_PT);
+  // glCallList (DL_base_LnAtt + Typ_Att_def);
   // glCallList (DL_base_LnAtt + attInd);
 
   glCallList (DL_base_PtAtt + attInd);
@@ -7767,7 +7751,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   Point    p1, p2;
 
-  UT3D_stru_dump(Typ_Ray, lnr, "GL_Disp_ray");
+  DEB_dump_obj__(Typ_Ray, lnr, "GL_Disp_ray");
 
   UT3D_pt_traptmultvc (&p2, &lnr->p, &lnr->v, GL_ModSiz);
 
@@ -7831,7 +7815,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
     // printf("GL_DrawLine ind=%ld att=%d\n",*ind,iAtt);
-    // UT3D_stru_dump(Typ_LN, ln1, "GL_DrawLine %d",attInd);
+    // DEB_dump_obj__(Typ_LN, ln1, "GL_DrawLine %d",attInd);
     // printf("  DL_base_LnAtt=%d attInd=%d\n",DL_base_LnAtt,attInd);
 
 
@@ -7905,7 +7889,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
   // printf("GL_DrawLtab %d\n",lNr);
-  // UT3D_stru_dump(Typ_LN, ln1, "GL_DrawLine %d",attInd);
+  // DEB_dump_obj__(Typ_LN, ln1, "GL_DrawLine %d",attInd);
   // printf(" DL_base_LnAtt=%d\n",DL_base_LnAtt);
 
   attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
@@ -7925,7 +7909,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
     for(i1=0; i1 < lNr; ++i1) {
       glVertex3dv ((double*)&lna[i1].p1);
       glVertex3dv ((double*)&lna[i1].p2);
-        // UT3D_stru_dump(Typ_LN, &lna[i1], "  _DrawLine %d",i1);
+        // DEB_dump_obj__(Typ_LN, &lna[i1], "  _DrawLine %d",i1);
     }
 
     glEnd ();
@@ -7983,24 +7967,21 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
 //==============================================================================
-  void GL_DrawPoly2D (long *ind,int iAtt, int ianz, Point2 pta[], double zval) {
+  void GL_DrawPoly2D (long *ind, int iAtt, int ptNr, Point2 pta[], double zval) {
 //==============================================================================
 // 2D-Polygon on plane Z=zval
 
 
-  int    attInd;
-  long   i1;
+  int    attInd, i1;
   GLuint gli;
   // Ind_Att_ln  *lnAtt=(Ind_Att_ln*)&iAtt;
 
 
-  // printf("GL_DrawPoly2D: ind=%ld ptNr=%d Z=%lf\n",*ind,ianz,zval);
-  // UT3D_stru_dump (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
+  // printf("GL_DrawPoly2D: ind=%ld ptNr=%d Z=%lf\n",*ind,ptNr,zval);
+  // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
+  // for(i1=0;i1<ptNr; ++i1)
+    // printf(" pt2 %d = %f,%f\n",i1,pta[i1].x,pta[i1].y);
 
-
-  // for(i1=0;i1<ianz; ++i1) {
-    // printf("pt2 %d = %f,%f\n",i1,pta[i1].x,pta[i1].y);
-  // }
 
   // attInd = lnAtt->indAtt;   // index into GR_AttLnTab
   attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
@@ -8014,7 +7995,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
   glCallList (DL_base_LnAtt + attInd);
 
-  GL_Disp_cv2z (ianz, pta, zval);
+  GL_Disp_cv2z (ptNr, pta, zval);
 
   glEnable (GL_LIGHTING);
 
@@ -8117,7 +8098,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 /*
   glBegin (GL_LINE_STRIP);
   for (i1 = 0; i1 < ibNr; i1++) {
-    // UT3D_stru_dump (Typ_PT, &pTab[iba[i1]], "%d P[%d]",i1,iba[i1]);
+    // DEB_dump_obj__ (Typ_PT, &pTab[iba[i1]], "%d P[%d]",i1,iba[i1]);
     glVertex3dv ((double*)&pTab[iba[i1]]);
   }
   if(mode == 1) glVertex3dv ((double*)&pTab[iba[0]]);  // closed
@@ -8161,7 +8142,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   // get vector for last segment
   ipe = ianz - 1;
   UT3D_vc_2pt (&vc1, &pTab[ipe], &pTab[ipe - 1]);
-    // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
 
   UT3D_2angr_vc (&az, &ay, &vc1);
     // printf(" az=%lf ay=%lf\n",az,ay);
@@ -8229,7 +8210,9 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   // for(i1=0;i1<ianz;++i1)
     // printf(" p[%ld] %lf %lf %lf\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
 
-  attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
+
+  // attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
+attInd = iAtt;
 
 
   // den DL-Index (+ Offset) holen)  
@@ -8436,7 +8419,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   glNewList (dlInd, GL_COMPILE);
 
   glCallList (DL_base_LnAtt + attInd);
-  // glCallList (DL_base_LnAtt + Typ_Att_Fac1);
+  // glCallList (DL_base_LnAtt + Typ_Att_dash_long);
 
 
   // Man darf innen / aussen nicht vertauschen (Farbe beim schattieren).
@@ -8450,7 +8433,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
           GRU_calc_normal2(&GL_norm,
              GL_ptArr20,&GL_ptArr21[i1-1],&GL_ptArr21[i1],z1,z2);
           UT3D_vc_invert (&GL_norm, &GL_norm);
-          // UT3D_stru_dump (Typ_VC, &GL_norm, "vz");
+          // DEB_dump_obj__ (Typ_VC, &GL_norm, "vz");
           glNormal3dv ((double*)&GL_norm);
         }
         glVertex3d (GL_ptArr21[i1].x,GL_ptArr21[i1].y,z2);
@@ -8466,7 +8449,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
           GRU_calc_normal2(&GL_norm,
              GL_ptArr21,&GL_ptArr20[i1],&GL_ptArr20[i1+1],z1,z2);
           UT3D_vc_invert (&GL_norm, &GL_norm);
-          // UT3D_stru_dump (Typ_VC, &GL_norm, "vz");
+          // DEB_dump_obj__ (Typ_VC, &GL_norm, "vz");
           glNormal3dv ((double*)&GL_norm);
         }
         glVertex3d (GL_ptArr20[i1].x,GL_ptArr20[i1].y,z1);
@@ -8700,7 +8683,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // TEST:
-  // for(i1=0; i1<ptNr; ++i1)  UT3D_stru_dump (Typ_PT, &pta[i1], "P[%d]:",i1);
+  // for(i1=0; i1<ptNr; ++i1)  DEB_dump_obj__ (Typ_PT, &pta[i1], "P[%d]:",i1);
 
 
   // alle Dreiecke umdrehen GL_CW; Def=GL_CCW ?
@@ -8777,7 +8760,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // Normalvektor des ersten Dreiecks
   GRU_calc_normal(&GL_norm, ps, &pa1[0], &pa2[0]);
   // GRU_calc_normal(&GL_norm, ps, &pa2[0], &pa1[0]);
-  // UT3D_stru_dump (Typ_VC, &GL_norm, "norm:");
+  // DEB_dump_obj__ (Typ_VC, &GL_norm, "norm:");
   glNormal3dv ((double*)&GL_norm);
 
 
@@ -8866,8 +8849,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // printf("----------------------------------------------- \n");
   // printf("GL_DrawStrip2 %d %d\n",ptNr,TSU_mode);
-  // for(i1=0;i1<ptNr;++i1)UT3D_stru_dump(Typ_PT,&pa[i1]," pa[%d]:",i1);
-  // for(i1=0;i1<ptNr;++i1)UT3D_stru_dump(Typ_PT,&pb[i1]," pb[%d]:",i1);
+  // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pa[i1]," pa[%d]:",i1);
+  // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pb[i1]," pb[%d]:",i1);
   // GR_Disp_pTab (ptNr, pa, SYM_TRI_S, 2); // ACHTUNG: keine Flaeche !!
   // GR_Disp_pTab (ptNr, pb, SYM_TRI_S, 2);
   // return 0;
@@ -8936,7 +8919,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
     GRU_calc_normal(&GL_norm1, &pa[i0], &pb[i0], &pa[i1]);
     glNormal3dv ((double*)&GL_norm1);
-      // UT3D_stru_dump (Typ_VC, &GL_norm1, " nvc1[%d]:",i1);
+      // DEB_dump_obj__ (Typ_VC, &GL_norm1, " nvc1[%d]:",i1);
     // TestDisp Vektor:
     // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pa[i1], &GL_norm1, 10.);
 
@@ -8946,7 +8929,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
     GRU_calc_normal(&GL_norm2, &pa[i1], &pb[i0], &pb[i1]);
     glNormal3dv ((double*)&GL_norm2);
-      // UT3D_stru_dump (Typ_VC, &GL_norm2, " nvc2[%d]:",i1);
+      // DEB_dump_obj__ (Typ_VC, &GL_norm2, " nvc2[%d]:",i1);
     // TestDisp Vektor:
     // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pb[i1], &GL_norm2, 10.);
 
@@ -9347,7 +9330,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawSur %ld vtex=%d\n",*ind,((ColRGB*)&att)->vtex);
-  // UT3D_stru_dump (Typ_Color, &att, "  att:");
+  // DEB_dump_obj__ (Typ_Color, &att, "  att:");
 
   
 
@@ -9483,8 +9466,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   pNr =  bMsh->siz;
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSS GL_Disp_sur %d patches\n",pNr);
-  // UTO_dump__ (bMsh, "GL_DrawSur");
-  // UTO_dump_s_ (bMsh, "GL_DrawSur");
+  // DEB_dump_ox_0 (bMsh, "GL_DrawSur");
+  // DEB_dump_ox_s_ (bMsh, "GL_DrawSur");
 /*
   // for(pAct=0; pAct<pNr; ++pAct) {
     // actPP = &((ObjGX*)bMsh->data)[pAct];
@@ -9499,7 +9482,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   
   // nur ein Col-Rec; bei tess wird defCol gleich als erster Rec ausgegeben ..
   if(bMsh->typ == Typ_Color) {
-      // UT3D_stru_dump (Typ_Color, &bMsh->data, "_DrawSurC1:");
+      // DEB_dump_obj__ (Typ_Color, &bMsh->data, "_DrawSurC1:");
     // glColor3ubv ((unsigned char*)&bMsh->data);
     GL_ColSet ((ColRGB*)&bMsh->data);
     iCol = 1;
@@ -9531,14 +9514,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       glNormal3dv ((double*)&vc1);
         // GL_Disp_vc (&vc1, pa, 11);
         // UT3D_vc_setLength (&vc1, &vc1, 1.);
-        // UT3D_stru_dump (Typ_VC, &vc1, "_DrawSur0: vc");
+        // DEB_dump_obj__ (Typ_VC, &vc1, "_DrawSur0: vc");
       GL_Disp_patch (actPP->aux, cNr, pa);
       continue;
 
 
     //---------------------------------------------------
     } else if(actPP->form == Typ_SPH) {
-      // UT3D_stru_dump (Typ_SPH, actPP->data, "");
+      // DEB_dump_obj__ (Typ_SPH, actPP->data, "");
       GL_disp_sph (&((Sphere*)actPP->data)->pc,
                     ((Sphere*)actPP->data)->rad, APT_dispSOL);   // sStyl
       continue;
@@ -9546,7 +9529,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
     //---------------------------------------------------
     } else if(actPP->form == Typ_CON) {
-      // UT3D_stru_dump (Typ_SPH, actPP->data, "");
+      // DEB_dump_obj__ (Typ_SPH, actPP->data, "");
       GL_disp_cone ((Conus*)actPP->data, 7, APT_dispSOL);
       continue;
 
@@ -9572,7 +9555,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     //---------------------------------------------------
     if(actPP->form != Typ_ObjGX) {
       TX_Error("GL_Disp_sur E001 %d %d",actPP->typ,actPP->form);
-      // UTO_dump__ (bMsh, "GL_DrawSur");
+      // DEB_dump_ox_0 (bMsh, "GL_DrawSur");
       return -1;
     }
       // printf(" _Disp_sur typ=%d\n",actPP->typ);
@@ -9590,15 +9573,15 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       //---------------------------------------------------
       if(actCont->form == Typ_VC) {
         // Normalvektor
-          // UT3D_stru_dump (Typ_VC, actCont->data, "_DrawSur2: c%d",cAct);
+          // DEB_dump_obj__ (Typ_VC, actCont->data, "_DrawSur2: c%d",cAct);
           // vc1 = *((Vector*)actCont->data);  // NUR TEST f GR_Disp_vc
-          // UT3D_stru_dump (Typ_VC, &vc1, "");
+          // DEB_dump_obj__ (Typ_VC, &vc1, "");
         glNormal3dv ((double*)actCont->data);
         continue;
 
       //---------------------------------------------------
       } else if(actCont->typ == Typ_Color) {
-          // UT3D_stru_dump (Typ_Color, &actCont->data, "_DrawSurC3: c%d",cAct);
+          // DEB_dump_obj__ (Typ_Color, &actCont->data, "_DrawSurC3: c%d",cAct);
         GL_ColSet ((ColRGB*)&actCont->data);
         iCol = 1;
         continue;
@@ -9658,7 +9641,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_ColSet WC_modact_ind=%d\n",WC_modact_ind);
-  // UT3D_stru_dump (Typ_Color, pCol, "GL_ColSet ");
+  // DEB_dump_obj__ (Typ_Color, pCol, "GL_ColSet ");
   // printf("GL_ColSet vtra=%d WC_modact_ind=%d\n",pCol->vtra,WC_modact_ind);
 
   memcpy(glCol, col, 3); 
@@ -9691,7 +9674,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glDisable (GL_BLEND); // to overwrite transparency 2013-08-20
 
     if(col->color == 0) {
-        // UT3D_stru_dump (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
+        // DEB_dump_obj__ (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
       glColor3ubv ((unsigned char*)&GL_defCol);
     } else {
       glColor3ubv (glCol);
@@ -9747,7 +9730,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int  i1;
 
   // printf("GL_Disp_patch pNr=%d gTyp=%d\n",ptNr,gTyp);
-  // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump (Typ_PT, &pa[i1], "P[%d]",i1);
+  // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__ (Typ_PT, &pa[i1], "P[%d]",i1);
   // GR_Disp_pTab (ptNr, pa, SYM_STAR_S, 2);
   //// gTyp=6=GL_TRIANGLE_FAN
 
@@ -9923,7 +9906,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   for(i1=0; i1<iNr; ++i1) {
     ii = ia[i1];
     glVertex3dv ((double*)&pa[ii]);
-      // UT3D_stru_dump (Typ_PT, &pa[ii], NULL);
+      // DEB_dump_obj__ (Typ_PT, &pa[ii], NULL);
   }
 
 
@@ -9941,7 +9924,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 // Draw 1-n Polygons as GL_LINE_STRIP's.
 // Does not create the DL-Record.
 // Since pta is a surface,
-// att = Linetyp; for surfs Typ_Att_Fac1    See INF_COL_CV
+// att = Linetyp; for surfs Typ_Att_dash_long    See INF_COL_CV
 // Typ_SUR muss vsym gesetzt haben, sonst kein Hilite !
 // Typ_CV geht so auch ..
 //
@@ -9968,7 +9951,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_Draw_obj \n");
-  // UTO_dump__ (oxi, "GL_Draw_obj");
+  // DEB_dump_ox_0 (oxi, "GL_Draw_obj");
   
 
   GL_Draw_Ini (dli, att);  // init Linetype
@@ -10335,7 +10318,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Vector vcn;
   Point  pt1;
 
-  UT3D_stru_dump(Typ_VC, vc1, "GL_DrawCirSc a=%f vc=",ang1);
+  DEB_dump_obj__(Typ_VC, vc1, "GL_DrawCirSc a=%f vc=",ang1);
   // GR_Disp_vc (vc1, ptc, 2, 0);
   // GR_Disp_pt (ptc, SYM_STAR_S, 2);
 
@@ -10432,7 +10415,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //=============================================================================
-  void GL_DrawVec (long *ind,int att,Point *pt1,Vector *vc1){
+  void GL_DrawVec (long *ind, int att, Point *pt1, Vector *vc1){
 //=============================================================================
 /// \code
 /// draw vector with ist correct length;
@@ -10455,8 +10438,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  // printf("GL_DrawVec ind=%d att=%d p=%f,%f,%f  v=%f,%f,%f\n",*ind,att,
-               // pt1->x,pt1->y,pt1->z, vc1->dx,vc1->dy,vc1->dz);
+  // printf("GL_DrawVec att=%d\n", att);
+  // DEB_dump_obj__ (Typ_PT, pt1, "pt1");
+  // DEB_dump_obj__ (Typ_VC, vc1, "vc1");
 
 
   scale = UT3D_len_vc (vc1) / 10.;  // der ARROW hat Laenge 10
@@ -10512,7 +10496,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   printf("GL_Draw_tra %ld %d\n",*dli,att);
-  UT3D_stru_dump (Typ_TraRot, tra, "TraRot:");
+  DEB_dump_obj__ (Typ_TraRot, tra, "TraRot:");
 
 
   // a1 = angle
@@ -10527,7 +10511,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // get axis
   vz = tra->vz;
   // UT3D_vc_setLength (&vc1, &vc1, 1.);
-    // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
 
 
   // get vx from vz
@@ -10570,9 +10554,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawAngA %f\n",*ang1);
-  // UT3D_stru_dump (Typ_PT, ptc, "  ptc ");
-  // UT3D_stru_dump (Typ_VC, vx, "  vcx ");
-  // UT3D_stru_dump (Typ_VC, vz, "  vcz ");
+  // DEB_dump_obj__ (Typ_PT, ptc, "  ptc ");
+  // DEB_dump_obj__ (Typ_VC, vx, "  vcx ");
+  // DEB_dump_obj__ (Typ_VC, vz, "  vcz ");
   // GR_Disp_pt (ptc, SYM_STAR_S, 2);
   // GR_Disp_vc (vcx, ptc, 2, 0);
   // GR_Disp_vc (vcz, ptc, 5, 0);
@@ -10584,7 +10568,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // rd1 = GL_get_SclNorm (200.);
   rd1 = 260 * GL2D_Scale;
   UT3D_pt_traptvclen (&pt1, ptc, &vcx, rd1);
-    // UT3D_stru_dump (Typ_PT, &pt1, "  pt1 ");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "  pt1 ");
     // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
 
 
@@ -10647,8 +10631,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf("GL_Disp_vc %d\n",att);
   // printf(" GL2D_Scale=%lf\n",GL2D_Scale);
   // printf(" GL_SclNorm=%lf\n",GL_SclNorm);
-  // UT3D_stru_dump (Typ_PT, pt1, "  pt1");
-  // UT3D_stru_dump (Typ_VC, vc1, "  vc1");
+  // DEB_dump_obj__ (Typ_PT, pt1, "  pt1");
+  // DEB_dump_obj__ (Typ_VC, vc1, "  vc1");
 
 
   scl = 10. * GL_SclNorm;
@@ -10748,8 +10732,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   double  ay, az, sclNorm;
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "GL_Disp_vSym pt=");
-  // UT3D_stru_dump (Typ_PT, vc1, "GL_Disp_vSym vc=");
+  // DEB_dump_obj__ (Typ_PT, pt1, "GL_Disp_vSym pt=");
+  // DEB_dump_obj__ (Typ_PT, vc1, "GL_Disp_vSym vc=");
 
 
   // sclNorm = 5. * GL_SclNorm;
@@ -11022,8 +11006,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_Disp_ci2 ao=%f\n",ao);
-  // UT3D_stru_dump (Typ_PT2, pc, "  pc:");
-  // UT3D_stru_dump (Typ_PT2, p1, "  p1:");
+  // DEB_dump_obj__ (Typ_PT2, pc, "  pc:");
+  // DEB_dump_obj__ (Typ_PT2, p1, "  p1:");
 
 
   vcz = UT3D_VECTOR_Z;  // od Z-vec der ConstrPln ?
@@ -11103,7 +11087,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  UT3D_stru_dump (Typ_CVRBEZ, rb1, "GL_Disp_rbez");
+  DEB_dump_obj__ (Typ_CVRBEZ, rb1, "GL_Disp_rbez");
 
   ptMax = 50;  // nr of subdivisions of polygon
 
@@ -11237,10 +11221,15 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
  
   Mat_4x4   m1;
   GLuint    dlInd;
+  double    scl;
 
 
   // printf("GL_DrawSymVX att=%d typ=%d\n",att,typ);
-  // UT3D_stru_dump (Typ_PLN, pln1, " pln1-");
+  // DEB_dump_obj__ (Typ_PLN, pln1, " pln1-");
+  // printf(" SymVX-GL_SclNorm=%f\n",GL_SclNorm);
+
+
+  scl = scale * GL_SclNorm;
 
 
   // den DL-Index (+ Offset) holen)
@@ -11254,9 +11243,12 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
     glPushMatrix ();
 
+    // get 4x4 matrix
     UT3D_m4_loadpl (m1, pln1);
 
     glMultMatrixd ((double*)m1);
+
+    glScaled (scl, scl, scl);
 
     if((typ & 1) > 0)                   // bit 1
     glCallList ((GLuint)SYM_SQUARE);
@@ -11290,7 +11282,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawSymVTL \n");
-  // UT3D_stru_dump (Typ_VC, GL_eyeX, "  eyeVec: ");
+  // DEB_dump_obj__ (Typ_VC, GL_eyeX, "  eyeVec: ");
 
   // scl = *uScal * GL2D_Scale;
   // scl = *uScal * GL_SclNorm / 10.;
@@ -11364,7 +11356,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // printf("GL_DrawSymV3 Typ=%d p=%f,%f,%f  v=%f,%f,%f sc=%f\n",symTyp,
                // pt1->x,pt1->y,pt1->z,vc1->dx,vc1->dy,vc1->dz,scale);
-  // UT3D_stru_dump (Typ_VC, vc1, "vc1");
+  // DEB_dump_obj__ (Typ_VC, vc1, "vc1");
   // printf("  GL2D_Scale=%lf\n",GL2D_Scale);
 
 
@@ -11589,7 +11581,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_LoadTex %d %d\n",*ind,tex->texNr);
-  // UT3D_stru_dump (Typ_TEXB, tex, "GL_LoadTex: ");
+  // DEB_dump_obj__ (Typ_TEXB, tex, "GL_LoadTex: ");
 
 
   irc = Mod_get_path (cBuf, tex->fnam);
@@ -11702,8 +11694,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawTxtsym ind=%ld typ=%d att%d scl=%f\n",*ind,typ,att,scl);
-  // UT3D_stru_dump (Typ_PT, pts, " pts:");
-  // UT3D_stru_dump (Typ_VC, vc1, " vec:");
+  // DEB_dump_obj__ (Typ_PT, pts, " pts:");
+  // DEB_dump_obj__ (Typ_VC, vc1, " vec:");
 
 
   if(typ > 4) {
@@ -11816,7 +11808,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_Draw_Tag sizBuf=%d dli=%d DL_ind=%d\n",sizBuf,*dli,DL_ind);
-  // UT3D_stru_dump (Typ_PT, pTxt, " pos:");
+  // DEB_dump_obj__ (Typ_PT, pTxt, " pos:");
   // printf(" symTyp=%d atta=%d attl=%d\n",symTyp,atta,attl);
   // printf(" txt=|%s|\n",txt);
 
@@ -12123,7 +12115,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GL_Disp_ln2 (&p3a, &p3e);
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (0, 0, &pt3, txAng, 0., 0., AP_txdimsiz, outText);
 */
@@ -12154,7 +12146,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GL_Disp_ln2 (&lnd.p1, &lnd.p2);
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (0, 0, &pt3, atx, 0., 0., AP_txdimsiz, outText);
 
@@ -12240,7 +12232,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GL_Disp_ln2 (&p3a, &p3e);
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (0, 0, &pt3, txAng, 0., 0., AP_txdimsiz, outText);
 
@@ -12278,7 +12270,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GL_Disp_ln2 (&lnd.p1, &lnd.p2);
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (0, 0, &pt3, atx, 0., 0., AP_txdimsiz, outText);
 
@@ -12340,7 +12332,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // draw Text
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (1, 0, &pt3, atx, 0., 0., AP_txdimsiz, outText);
 
@@ -12357,7 +12349,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   char     dimText[32], outText[128];
 
   // printf("GL_DrawDima \n");
-  // UT3D_stru_dump (Typ_Dimen, dim1, "GL_DrawDima");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "GL_DrawDima");
 
   // ps = den Schnittpunkt der beiden Hilfslinien errechnen
   // a1 = UT2D_angr_ptpt (&ps, &dim1->p1);
@@ -12459,13 +12451,13 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GL_Disp_ci2 (&ps, &ptm, am);
 
   // draw Maszpfeile
-  UT2D_vc_perpvc (&vc1, &vc1);
-  UT2D_vc_perpvc (&vc2, &vc2);
+  UT2D_vc_rot_90_ccw (&vc1, &vc1);
+  UT2D_vc_rot_90_ccw (&vc2, &vc2);
   GL_txt_ar2 (ia1, &pt3a, &vc1);
   GL_txt_ar2 (ia2, &pt3e, &vc2);
 
   // draw Text
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   pt3 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (iout, 0, &pt3, UT_DEGREES(txAng), 0., 0., AP_txdimsiz, outText);
 
@@ -12492,7 +12484,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   char    outText[256];
 
 
-  // UT3D_stru_dump (Typ_Dimen, dim1, "GL_DrawLdr");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "GL_DrawLdr");
 
 
  // get leaderlines, dimensionline, symbolpositions, symboldirection,value,text
@@ -12522,7 +12514,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   p31 = UT3D_pt_pt2 (&ptx);
   GL_txt__ (2, 0, &p31, atx, 0., 0., AP_txdimsiz, outText);
 
@@ -12590,7 +12582,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     GL_Disp_ln2 (&dim1->p2, &p3);
 
   // a1 ist der fertige textBlockWinkel
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   if(dim1->p3.x != UT_DB_LEER) pt3 = UT3D_pt_pt2 (&dim1->p3);
   else                         pt3 = UT3D_pt_pt2 (&dim1->p2);
 
@@ -12621,7 +12613,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Point   *pp1, *pp2, *pp3, pm1, pm2, pa1, pa2, ptx;
 
 
-  // UT3D_stru_dump (Typ_Dim3, dim3, "GL_DrawDim3");
+  // DEB_dump_obj__ (Typ_Dim3, dim3, "GL_DrawDim3");
   // printf(" att=%d\n",att);
 
 
@@ -12889,7 +12881,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   char    outText[256];
 
 
-  // UT3D_stru_dump (Typ_Dimen, dim1, "GL_DrawDimen");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "GL_DrawDimen");
   // printf(" att=%d\n",att);
 
   // att = 1;  dann schwarz; aber kein Hilite !!
@@ -12914,7 +12906,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   i1 = dim1->ld / 10;
     // printf("Leadertypes = %d,%d\n",i1,i2);
 
-  // glCallList (DL_base_LnAtt + Typ_Att_PT);
+  // glCallList (DL_base_LnAtt + Typ_Att_def);
 
   // Leaderline 1
   if(i1 == 1) GL_Disp_ln2 (&ll1.p1, &ll1.p2);
@@ -12936,7 +12928,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   //------------- den text raus----------------------
-  glPassThrough (1.0);  // Typ_Att_def = dick
+  glPassThrough (1.0);  // Typ_Att_blue = dick
   a1 = dim1->a1;
   p31 = UT3D_pt_pt2 (&dim1->p3);
   GL_txt__ (0, bMod, &p31, a1, 0., 0., AP_txdimsiz, outText);
@@ -13246,8 +13238,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   Point pt1;
 
-  // UT3D_stru_dump (Typ_PT, p1, "GL_Disp_sq1\n ");
-  // UT3D_stru_dump (Typ_PT, p2, " ");
+  // DEB_dump_obj__ (Typ_PT, p1, "GL_Disp_sq1\n ");
+  // DEB_dump_obj__ (Typ_PT, p2, " ");
   // GL_Disp_ln (p1, p2);  // TEST
 
 
@@ -13299,8 +13291,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_txt_ar2 %d\n",hd);
-  // UT3D_stru_dump (Typ_PT2, ptx, "pt:");
-  // UT3D_stru_dump (Typ_VC2, vc, "vc:");
+  // DEB_dump_obj__ (Typ_PT2, ptx, "pt:");
+  // DEB_dump_obj__ (Typ_VC2, vc, "vc:");
 
 
   // Arrowhead1: pa1 - pt3a - pa2.
@@ -13369,8 +13361,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_txt_ar %d\n",hd);
-  // UT3D_stru_dump (Typ_PT2, ptx, "pt:");
-  // UT3D_stru_dump (Typ_VC2, vc, "vc:");
+  // DEB_dump_obj__ (Typ_PT2, ptx, "pt:");
+  // DEB_dump_obj__ (Typ_VC2, vc, "vc:");
 
 
   // Arrowhead1: pa1 - pt3a - pa2.
@@ -13449,7 +13441,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   printf("GL_DrawTxtLBG dli=%ld dbi=%ld\n",*dli,dbi);
-  UT3D_stru_dump (Typ_ATXT, tx1, " tx1:");
+  DEB_dump_obj__ (Typ_ATXT, tx1, " tx1:");
 
 
   //----------------------------------------------------------------
@@ -13534,8 +13526,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   
 
   // printf("GL_DrawTxtLG dli=%d\n",*dli);
-  // UT3D_stru_dump (Typ_PT, pTxt, " pTxt:");
-  // UT3D_stru_dump (Typ_PT, pLdr, " pLdr:");
+  // DEB_dump_obj__ (Typ_PT, pTxt, " pTxt:");
+  // DEB_dump_obj__ (Typ_PT, pLdr, " pLdr:");
   // printf(" txt=|%s|\n",txt);
 
 
@@ -13631,7 +13623,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawTxtG ind=%ld att=%d\n",*ind,att);
-  // UT3D_stru_dump(Typ_GTXT, tx1, " tx1: ");
+  // DEB_dump_obj__(Typ_GTXT, tx1, " tx1: ");
 
 
   txt  = tx1->txt;
@@ -13650,7 +13642,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // store in GText
   tx1->xSiz = chrNr;
   tx1->ySiz = lNr;
-    // UT3D_stru_dump (Typ_GTXT, tx1, "GL_DrawTxtG");
+    // DEB_dump_obj__ (Typ_GTXT, tx1, "GL_DrawTxtG");
 
 
   // Init GL-Ausgaben
@@ -13689,8 +13681,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_DrawDitto %ld %ld\n",dlNr,dlInd);
-  // UT3D_stru_dump (Typ_PT, p1, "pt-new");
-  // UT3D_stru_dump (Typ_PT, po, "pt-old");
+  // DEB_dump_obj__ (Typ_PT, p1, "pt-new");
+  // DEB_dump_obj__ (Typ_PT, po, "pt-old");
   // return 0;
 
 
@@ -13733,8 +13725,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // printf("GL_DrawDitto1 dlNr=%ld dlInd=%ld\n",dlNr,dlInd);
   // printf("  az1=%f ay=%f az2=%f scl=%f\n",az1,ay,az2,scl);
-  // UT3D_stru_dump (Typ_PT, p1, "pt-new");
-  // UT3D_stru_dump (Typ_PT, po, "pt-old");
+  // DEB_dump_obj__ (Typ_PT, p1, "pt-new");
+  // DEB_dump_obj__ (Typ_PT, po, "pt-old");
   // DL_DumpObjTab ();
   // return 0;
 
@@ -13893,11 +13885,11 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   printf("GL_DrawModel %d %s\n",mdr->modNr,mdb->mnam);
-  UT3D_stru_dump (Typ_Model, mdr, "mdr:\n");
-  UT3D_stru_dump (Typ_SubModel, mdb, "mdb:\n");
-  UT3D_stru_dump(Typ_PT, &mdr->po, "  po=");
-  // UT3D_stru_dump(Typ_VC, &mdr->vx, "  vx=");
-  // UT3D_stru_dump(Typ_VC, &mdr->vz, "  vz=");
+  DEB_dump_obj__ (Typ_Model, mdr, "mdr:\n");
+  DEB_dump_obj__ (Typ_SubModel, mdb, "mdb:\n");
+  DEB_dump_obj__(Typ_PT, &mdr->po, "  po=");
+  // DEB_dump_obj__(Typ_VC, &mdr->vx, "  vx=");
+  // DEB_dump_obj__(Typ_VC, &mdr->vz, "  vz=");
   // printf("  mdb %d po=%f,%f,%f\n",mdr->modNr,mdb->po.x,mdb->po.y,mdb->po.z);
   // printf("  mdb ind %d siz %d\n",mdb->DLind,mdb->DLsiz);
 
@@ -13916,12 +13908,12 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // die relative Verschiebung von pmr in eine absolute umwandeln
   if(WC_sur_ind != 0) {
-    UT3D_vc_travcm3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
-    // UT3D_vc_travcm3 (&vcx, WC_sur_imat, &vcx);
-    // UT3D_vc_travcm3 (&vcz, WC_sur_imat, &vcz);
-    UT3D_stru_dump(Typ_PT, &pmr, "  transl.pmr=");
-    UT3D_stru_dump(Typ_VC, &vcx, "  transl.vcx=");
-    UT3D_stru_dump(Typ_VC, &vcz, "  transl.vcz=");
+    UT3D_vc_tra_vc_m3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
+    // UT3D_vc_tra_vc_m3 (&vcx, WC_sur_imat, &vcx);
+    // UT3D_vc_tra_vc_m3 (&vcz, WC_sur_imat, &vcz);
+    DEB_dump_obj__(Typ_PT, &pmr, "  transl.pmr=");
+    DEB_dump_obj__(Typ_VC, &vcx, "  transl.vcx=");
+    DEB_dump_obj__(Typ_VC, &vcz, "  transl.vcz=");
   }
 
 
@@ -13944,7 +13936,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   UT3D_m4_loadpl (m1, &GL_constr_pln);
-    // UT3D_stru_dump (Typ_M4x4, m1, "new m1:");
+    // DEB_dump_obj__ (Typ_M4x4, m1, "new m1:");
   glMultMatrixd (m1);
 
 
@@ -14046,11 +14038,11 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("\nGL_DrawModel %d |%s|\n",mdr->modNr,mdb->mnam);
-  // UT3D_stru_dump (Typ_Model, mdr, "mdr:\n");
-  // UT3D_stru_dump (Typ_SubModel, mdb, "mdb:\n");
-  // UT3D_stru_dump(Typ_PT, &mdr->po, "  po=");
-  // UT3D_stru_dump(Typ_VC, &mdr->vx, "  vx=");
-  // UT3D_stru_dump(Typ_VC, &mdr->vz, "  vz=");
+  // DEB_dump_obj__ (Typ_Model, mdr, "mdr:\n");
+  // DEB_dump_obj__ (Typ_SubModel, mdb, "mdb:\n");
+  // DEB_dump_obj__(Typ_PT, &mdr->po, "  po=");
+  // DEB_dump_obj__(Typ_VC, &mdr->vx, "  vx=");
+  // DEB_dump_obj__(Typ_VC, &mdr->vz, "  vz=");
   // printf("  mdb %d po=%f,%f,%f\n",mdr->modNr,mdb->po.x,mdb->po.y,mdb->po.z);
   // printf("  mdb ind %ld siz %ld\n",mdb->DLind,mdb->DLsiz);
   // printf("  GL_IndTab[%ld]=%ld\n",mdb->DLind,GL_IndTab[mdb->DLind]);
@@ -14064,7 +14056,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   if(lstSiz < 0) {
-    return MSG_STD_ERR (ERR_subModel_undefined, " sm '%s'", mdb->mnam);
+    return MSG_ERR__ (ERR_subModel_undefined, " sm '%s'", mdb->mnam);
   }
 
 
@@ -14082,13 +14074,13 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   if(WC_sur_ind != 0) {
     // die relative Verschiebung von pmr in eine absolute umwandeln
-    UT3D_vc_travcm3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
+    UT3D_vc_tra_vc_m3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
     // die relative Orientiereung des Model in eine absolute umwandeln
-    UT3D_vc_travcm3 (&vcx, WC_sur_mat, &vcx);
-    UT3D_vc_travcm3 (&vcz, WC_sur_mat, &vcz);
-    // UT3D_stru_dump(Typ_PT, &pmr, "  transl.pmr=");
-    // UT3D_stru_dump(Typ_VC, &vcx, "  transl.vcx=");
-    // UT3D_stru_dump(Typ_VC, &vcz, "  transl.vcz=");
+    UT3D_vc_tra_vc_m3 (&vcx, WC_sur_mat, &vcx);
+    UT3D_vc_tra_vc_m3 (&vcz, WC_sur_mat, &vcz);
+    // DEB_dump_obj__(Typ_PT, &pmr, "  transl.pmr=");
+    // DEB_dump_obj__(Typ_VC, &vcx, "  transl.vcx=");
+    // DEB_dump_obj__(Typ_VC, &vcz, "  transl.vcz=");
   }
 
 
@@ -14410,7 +14402,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // set AP_defcol
   AP_SetCol__ (&GL_actCol);
 
-    // UT3D_stru_dump (Typ_Color, &GL_defCol, "  GL_defCol:");
+    // DEB_dump_obj__ (Typ_Color, &GL_defCol, "  GL_defCol:");
 
   glDisable (GL_BLEND);          // fuer nach einem transparenten Model ..
   glEnable (GL_DEPTH_TEST);
@@ -14628,6 +14620,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     return -1;
   }
 
+  // open dl-record <dli>
   glNewList (dli, GL_COMPILE);
     // printf(" _InitNewAtt dli=%d\n",dli);
 
@@ -14997,10 +14990,10 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     p2.x=d1;  p2.y=0.;  p2.z=d2;
     p3.x=d1;  p3.y=d4;  p3.z=-d3;
     p4.x=d1;  p4.y=-d4; p4.z=-d3;
-      // UT3D_stru_dump (Typ_PT, &p1, " P1: ");
-      // UT3D_stru_dump (Typ_PT, &p2, " P2: ");
-      // UT3D_stru_dump (Typ_PT, &p3, " P3: ");
-      // UT3D_stru_dump (Typ_PT, &p4, " P4: ");
+      // DEB_dump_obj__ (Typ_PT, &p1, " P1: ");
+      // DEB_dump_obj__ (Typ_PT, &p2, " P2: ");
+      // DEB_dump_obj__ (Typ_PT, &p3, " P3: ");
+      // DEB_dump_obj__ (Typ_PT, &p4, " P4: ");
 
     glBegin (GL_LINE_STRIP);
       glVertex3dv ((double*)&po);
@@ -15969,7 +15962,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   // give Memory back ..
   free(feedBuffer);
 
-  UT3D_stru_dump(Typ_PT, pts, "ex GL_SelVert__ %d:",irc);
+  DEB_dump_obj__(Typ_PT, pts, "ex GL_SelVert__ %d:",irc);
 
   return irc;
 
@@ -16349,25 +16342,25 @@ static float  xpos, ypos;
 
   // get origin of active constrPlane as pt1
   // UT3D_m3_get (&pto, 3, WC_sur_mat);
-    // UT3D_stru_dump (Typ_M4x3, WC_sur_mat, "WC_sur_mat:");
+    // DEB_dump_obj__ (Typ_M4x3, WC_sur_mat, "WC_sur_mat:");
 
 
   // project GL_cen auf die constPlane
   UT3D_pt_projptpl (&ptc, gPln, &GL_cen);
   // irc = UT3D_pt_intptvcpl_ (&pto, &GL_constr_pln, &ptc, GL_eyeX);
-    // UT3D_stru_dump (Typ_PT, &ptc, "ptc:");
+    // DEB_dump_obj__ (Typ_PT, &ptc, "ptc:");
     // GL_Disp_symB (SYM_STAR_S, &ptc);
 
 
   // get screencenter on constrPlane
   // ptc = GL_GetConstrPos (&GL_cen);
-    // UT3D_stru_dump (Typ_PT, &GL_cen, " GL_cen:");
+    // DEB_dump_obj__ (Typ_PT, &GL_cen, " GL_cen:");
   // geht ned, da sofort viel zu weit draussen ..
 
 
   // get screencenter on refsys constrPlane (inv tr)
-  UT3D_pt_traptm3 (&pto, gImat, &ptc);
-    // UT3D_stru_dump (Typ_PT, &pto, "pto:");
+  UT3D_pt_tra_pt_m3 (&pto, gImat, &ptc);
+    // DEB_dump_obj__ (Typ_PT, &pto, "pto:");
 
 
   // vector origin -> centerpoint
@@ -16379,17 +16372,17 @@ static float  xpos, ypos;
   // UT3D_m3_loadpl (m31, &GL_constr_pln);
   // UT3D_m3_copy (m31, WC_sur_mat);
   // UT3D_m3_load_o (m31, &pto);
-    // UT3D_stru_dump (Typ_M4x3, m31, "WC_sur_mat:");
+    // DEB_dump_obj__ (Typ_M4x3, m31, "WC_sur_mat:");
 
   // UT3D_m4_loadpl (m41, &GL_constr_pln);
   // UT3D_m4_load_o (m41, &UT3D_PT_NUL);
   // UT3D_m4_load_o (m1, &ptc);
-    // UT3D_stru_dump (Typ_M4x4, m41, "bas m1:");
+    // DEB_dump_obj__ (Typ_M4x4, m41, "bas m1:");
 
   // UT3D_vc_multvc (&vc2, (Vector*)&ptc, 1. / GL_Scale);
-    // UT3D_stru_dump (Typ_VC, &vc2, "vc2:");
+    // DEB_dump_obj__ (Typ_VC, &vc2, "vc2:");
 
-    // UT3D_pt_traptm3 (&p4, WC_sur_mat, &pto);
+    // UT3D_pt_tra_pt_m3 (&p4, WC_sur_mat, &pto);
     // GL_Disp_symB (SYM_STAR_S, &p4);
 
 
@@ -16401,16 +16394,16 @@ static float  xpos, ypos;
   p1.x -= d1;
   p2.x += d1;
 
-    // UT3D_stru_dump (Typ_PT, &p1, "new p1:");
-    // UT3D_stru_dump (Typ_PT, &p2, "new p2:");
+    // DEB_dump_obj__ (Typ_PT, &p1, "new p1:");
+    // DEB_dump_obj__ (Typ_PT, &p2, "new p2:");
 
-  UT3D_pt_traptm3 (&p1, gMat, &p1);
-  UT3D_pt_traptm3 (&p2, gMat, &p2);
+  UT3D_pt_tra_pt_m3 (&p1, gMat, &p1);
+  UT3D_pt_tra_pt_m3 (&p2, gMat, &p2);
 
   vc1.dx = 0.;
   vc1.dy = -dy;
   vc1.dz = 0.;
-  UT3D_vc_travcm3 (&vc1, WC_sur_mat, &vc1);
+  UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
 
 
   // vert lines
@@ -16421,13 +16414,13 @@ static float  xpos, ypos;
   p3.y -= d1;
   p4.y += d1;
 
-  UT3D_pt_traptm3 (&p3, WC_sur_mat, &p3);
-  UT3D_pt_traptm3 (&p4, WC_sur_mat, &p4);
+  UT3D_pt_tra_pt_m3 (&p3, WC_sur_mat, &p3);
+  UT3D_pt_tra_pt_m3 (&p4, WC_sur_mat, &p4);
 
   vc2.dx = -dy;
   vc2.dy = 0.;
   vc2.dz = 0.;
-  UT3D_vc_travcm3 (&vc2, WC_sur_mat, &vc2);
+  UT3D_vc_tra_vc_m3 (&vc2, WC_sur_mat, &vc2);
 
  
   //----------------------------------------------------------------
@@ -16439,8 +16432,8 @@ static float  xpos, ypos;
 
     for(i1=0; i1<iNr; ++i1) {
       // transform point
-      // UT3D_pt_traptm3 (&p3, m31, &p1);
-      // UT3D_pt_traptm3 (&p4, m31, &p2);
+      // UT3D_pt_tra_pt_m3 (&p3, m31, &p1);
+      // UT3D_pt_tra_pt_m3 (&p4, m31, &p2);
 
       glVertex3dv ((double*)&p1);
       glVertex3dv ((double*)&p2);
@@ -16562,6 +16555,47 @@ static float  xpos, ypos;
   return 0;
 
 }
+
+
+//================================================================
+  int GL_pt2_get_pt (Point *pt2, Point *pt1) {
+//================================================================
+// GL_pt2_get_pt       get point on 2D-plane from 3D-point
+// intersect GL_eyeX with the 2D-plane GL_view_pln
+
+// TODO: Z = GL_cen.z ?
+
+  int    irc;
+
+
+// see GL_GetConstrPos ?
+  if(GL_actView == FUNC_ViewFront)  {
+    pt1->y = 0.;
+    UT3D_pt_projptpl (pt2, &GL_view_pln, pt1);
+    pt2->y = pt1->z;
+
+
+  } else if(GL_actView == FUNC_ViewSide) {
+    pt1->x = 0;
+    UT3D_pt_projptpl (pt2, &GL_view_pln, pt1);
+    pt2->x = pt1->z;   // 2017-04-12
+
+
+  } else {
+    // FUNC_ViewTop FUNC_ViewIso
+    // Linie pt2 / GL_eyeX mit der Userebene schneiden
+// TODO: get mat imat of GL_view_pln; use UT3D_pt_tra_pt_m3 ?
+    irc = UT3D_pt_intptvcpl_ (pt2, &GL_view_pln, pt1, GL_eyeX);
+    if(irc == 0) UT3D_pt_projptpl (pt2, &GL_view_pln, pt1);
+  }
+
+
+    // DEB_dump_obj__ (Typ_PT, pt2, "ex-GL_pt2_get_pt");
+
+  return 0;
+
+}
+
 
 
 /* UNUSED
@@ -16700,10 +16734,10 @@ static float  xpos, ypos;
   o1.data = cvTab;
 
 
-  dli = DL_StoreObj (Typ_CV, 0L, Typ_Att_Fac1);
+  dli = DL_StoreObj (Typ_CV, 0L, Typ_Att_dash_long);
      // Typ_SUR muss vsym=1 haben (Hili!)
 
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &o1);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &o1);
 
   return 0;
 

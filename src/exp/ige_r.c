@@ -795,7 +795,7 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
 
   // printf("AP_ImportIg_CB typ=%d siz=%d impInd=%d\n",ox1->typ,ox1->siz,impInd);
   // printf(" IG_modNam=|%s|\n",IG_modNam);
-  // if(impInd==2224) UTO_dump__ (ox1, "iI=2224");
+  // if(impInd==2224) DEB_dump_ox_0 (ox1, "iI=2224");
 
 
 
@@ -1047,7 +1047,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   
   // TESTAUGABEN__________________
-  // UTO_dump__ (impTab[2224].data, "iI=2224");
+  // DEB_dump_ox_0 (impTab[2224].data, "iI=2224");
   // IGE_r_dump_impTab (2224);
   // return 0;
   // TESTAUGABEN__________________
@@ -1686,7 +1686,7 @@ static  int oCnt1, oCnt2;
     trNr  = impTab[ii].trInd;
     trInd = IGE_r_dNr2ind (trNr);
     if(trInd >= impNr) {TX_Print("IGE_r_P__ E003"); goto L_continue;}
-      // UT3D_stru_dump (Typ_PLN, impTab[trInd].data, " _tra__R %d",trInd);
+      // DEB_dump_obj__ (Typ_PLN, impTab[trInd].data, " _tra__R %d",trInd);
 
     UT3D_m3_loadpl (IG_trMat, impTab[trInd].data);
     vp1 = impTab[ii].data;
@@ -1707,38 +1707,38 @@ static  int oCnt1, oCnt2;
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 116) {   // point
-      UTO_obj_tra_m3 (vp1, Typ_PT, vp1, IG_trMat);
+      UTO_obj_tra_obj_m3 (vp1, Typ_PT, vp1, IG_trMat);
       goto L_continue;
 
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 110) {   // Line
-      UTO_obj_tra_m3 (vp1, Typ_LN, vp1, IG_trMat);
+      UTO_obj_tra_obj_m3 (vp1, Typ_LN, vp1, IG_trMat);
       goto L_continue;
 
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 100) {   // circ
-      // UT3D_stru_dump (Typ_CI, vp1, " vor ");
-      UTO_obj_tra_m3 (vp1, Typ_CI, vp1, IG_trMat);
+      // DEB_dump_obj__ (Typ_CI, vp1, " vor ");
+      UTO_obj_tra_obj_m3 (vp1, Typ_CI, vp1, IG_trMat);
       goto L_continue;
 
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 104) {    // elli
-      UTO_obj_tra_m3 (vp1, Typ_CVELL, vp1, IG_trMat);
+      UTO_obj_tra_obj_m3 (vp1, Typ_CVELL, vp1, IG_trMat);
       goto L_continue;
 
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 212) {  // text
-      UTO_obj_tra_m3 (&((GText*)vp1)->pt, Typ_PT, &((GText*)vp1)->pt, IG_trMat);
+      UTO_obj_tra_obj_m3 (&((GText*)vp1)->pt, Typ_PT, &((GText*)vp1)->pt, IG_trMat);
       goto L_continue;
 
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 214) {   //  Leader / Arrrow
-      UTO_obj_tra_m3 (vp1, Typ_LN, vp1, IG_trMat);
+      UTO_obj_tra_obj_m3 (vp1, Typ_LN, vp1, IG_trMat);
       goto L_continue;
 
 
@@ -1746,7 +1746,7 @@ static  int oCnt1, oCnt2;
     } else if(impTab[ii].fTyp == 106) {    // 2D/3D-polygon
       pp1 = vp1;  // Point[]
       for(i1=0; i1<impTab[ii].siz; ++i1) {
-        UT3D_pt_traptm3 (&pp1[i1], IG_trMat, &pp1[i1]);
+        UT3D_pt_tra_pt_m3 (&pp1[i1], IG_trMat, &pp1[i1]);
       }
       goto L_continue;
 
@@ -1754,7 +1754,7 @@ static  int oCnt1, oCnt2;
 
     //----------------------------------------------------------------
     } else if(impTab[ii].fTyp == 108) {     // plane
-      UTO_obj_tra_m3 (vp1, Typ_PLN, vp1, IG_trMat);
+      UTO_obj_tra_obj_m3 (vp1, Typ_PLN, vp1, IG_trMat);
       goto L_continue;
 
 
@@ -1776,12 +1776,12 @@ static  int oCnt1, oCnt2;
       cbs1 = vp1;
       // if((cbs1->deg == 1)&&(cbs1->ptNr == 2)) {        // Line !!
       if(impTab[ii].typ == Typ_LN) {        // Line !!
-        UTO_obj_tra_m3 (vp1, Typ_LN, vp1, IG_trMat);
+        UTO_obj_tra_obj_m3 (vp1, Typ_LN, vp1, IG_trMat);
         goto L_continue;
       }
       for(i1=0; i1<cbs1->ptNr; ++i1) {
         pp1 = &cbs1->cpTab[i1];
-        UT3D_pt_traptm3 (pp1, IG_trMat, pp1);
+        UT3D_pt_tra_pt_m3 (pp1, IG_trMat, pp1);
       }
       goto L_continue;
 
@@ -1799,7 +1799,7 @@ static  int oCnt1, oCnt2;
       UT3D_m3_get ((void*)&mr1->vx, 0, IG_trMat);
       UT3D_m3_get ((void*)&mr1->vz, 2, IG_trMat);
       // mr1.vx = ?? // IG_trMat
-      // UTO_obj_tra_m3 ((void*)&p1, Typ_PT, (void*)ra, IG_trMat);
+      // UTO_obj_tra_obj_m3 ((void*)&p1, Typ_PT, (void*)ra, IG_trMat);
       goto L_continue;
 
 
@@ -1903,7 +1903,7 @@ static  int oCnt1, oCnt2;
     // printf("  >>> IG_trNr=%d i=%d\n",IG_trNr,IG_dNr);
     // CRASH wenn trMat noch nicht geladen !
     if(impTab[IG_dNr].data != NULL) {
-      UT3D_stru_dump (Typ_PLN, impTab[IG_dNr].data, "_124");
+      DEB_dump_obj__ (Typ_PLN, impTab[IG_dNr].data, "_124");
       // Plane -> Mat_4x3
       UT3D_m3_loadpl (IG_trMat, impTab[IG_dNr].data);
     }
@@ -2108,13 +2108,13 @@ static  int oCnt1, oCnt2;
   // char cbuf[64]; sprintf(cbuf, "i%d",impInd); UME_dump (&impSpc, cbuf);
   // if(impInd == 3) {
     // IGE_r_dump_impTab (impInd);
-    // // // UTO_dump__ (&ox1, "iI=2224");
-    // UT3D_stru_dump (impTab[impInd].form, impTab[impInd].data, "iI=2224");
+    // // // DEB_dump_ox_0 (&ox1, "iI=2224");
+    // DEB_dump_obj__ (impTab[impInd].form, impTab[impInd].data, "iI=2224");
     // exit(0);
   // }
   // if(impInd > 2224) {
     // i1 = 2224;
-    // UT3D_stru_dump(Typ_PT,&((CurvBSpl*)impTab[i1].data)->cpTab[0],"2224.p0");
+    // DEB_dump_obj__(Typ_PT,&((CurvBSpl*)impTab[i1].data)->cpTab[0],"2224.p0");
   // }
   // TESTAUGABE-------------------------
 
@@ -2572,7 +2572,7 @@ static  int oCnt1, oCnt2;
          impTab[ind].fTyp, impTab[ind].fInd,
          impTab[ind].typ, impTab[ind].form, impTab[ind].ind);
 
-  UT3D_stru_dump (impTab[ind].form, impTab[ind].data, " [%d].data\n",ind);
+  DEB_dump_obj__ (impTab[ind].form, impTab[ind].data, " [%d].data\n",ind);
 
   return 0;
 
@@ -2653,7 +2653,7 @@ static  int oCnt1, oCnt2;
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    UTO_obj_tra_m3 ((void*)&ln1, Typ_LN, (void*)&ln1, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&ln1, Typ_LN, (void*)&ln1, IG_trMat);
   }
 */
 
@@ -2668,7 +2668,7 @@ static  int oCnt1, oCnt2;
   // *el = UTO_stru_2_obj (Typ_LN, Typ_LN, &ln1);
   OGX_SET_OBJ (el, Typ_LN, Typ_LN, 1, &ln1);
 
-  // UT3D_stru_dump(Typ_LN, &ln1, "ex IGE_r_110 tr=%d\n",IG_trNr);
+  // DEB_dump_obj__(Typ_LN, &ln1, "ex IGE_r_110 tr=%d\n",IG_trNr);
 
   return 0;
 
@@ -2691,7 +2691,7 @@ static  int oCnt1, oCnt2;
   // Transformation (D-Zeile Wert 7)?
   if(IG_trNr != 0) {
     // printf("    vz=%f,%f,%f\n",IG_trMat[0][2],IG_trMat[1][2],IG_trMat[2][2]);
-    UTO_obj_tra_m3 ((void*)&ci1, Typ_CI, (void*)&ci1, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&ci1, Typ_CI, (void*)&ci1, IG_trMat);
   }
 */
 
@@ -2734,7 +2734,7 @@ static  int oCnt1, oCnt2;
   // den Radius messen
   ci1->rad = UT3D_len_2pt (&ci1->pc, &ci1->p1);
 
-  // UT3D_stru_dump (Typ_AC, ci1, "ex IGE_r_circ:\n");
+  // DEB_dump_obj__ (Typ_AC, ci1, "ex IGE_r_circ:\n");
 
   return 0;
 
@@ -2769,7 +2769,7 @@ static  int oCnt1, oCnt2;
   ox1->siz      = 1;
   ox1->data     = &pl1;
 
-  // UT3D_stru_dump (Typ_PLN, &pl1, "ex IGE_r_124:\n");
+  // DEB_dump_obj__ (Typ_PLN, &pl1, "ex IGE_r_124:\n");
 
   return 0;
 
@@ -2829,17 +2829,17 @@ static  int oCnt1, oCnt2;
   if(irc < 0) return -2;
 
 
-    // UT3D_stru_dump (Typ_CVELL, &el1, "vor UTO_obj_tra_m3\n");
+    // DEB_dump_obj__ (Typ_CVELL, &el1, "vor UTO_obj_tra_obj_m3\n");
 
 
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    UTO_obj_tra_m3 ((void*)&el1, Typ_CVELL, (void*)&el1, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&el1, Typ_CVELL, (void*)&el1, IG_trMat);
   }
 */
 
-    // UT3D_stru_dump (Typ_CVELL, &el1, "nach UTO_obj_tra_m3\n");
+    // DEB_dump_obj__ (Typ_CVELL, &el1, "nach UTO_obj_tra_obj_m3\n");
 
   // *ox = UTO_stru_2_obj (Typ_CVELL, Typ_CVELL, &el1);
   OGX_SET_OBJ (ox, Typ_CVELL, Typ_CVELL, 1, &el1);
@@ -2912,7 +2912,7 @@ static  int oCnt1, oCnt2;
     IGE_r_work_3 (iori);
     if(impTab[iori].ind == 0) {TX_Print("IGE_rw_190 E001"); return -2; }
   }
-    // UT3D_stru_dump (Typ_PT, impTab[iori].data, "_rw_190-%d-ori\n",dori);
+    // DEB_dump_obj__ (Typ_PT, impTab[iori].data, "_rw_190-%d-ori\n",dori);
 
 
   // get Z-Axis
@@ -2924,7 +2924,7 @@ static  int oCnt1, oCnt2;
       return -2;
     }
   }
-    // UT3D_stru_dump (Typ_VC, impTab[ivz].data, "_rw_190-%d-vz\n",dvz);
+    // DEB_dump_obj__ (Typ_VC, impTab[ivz].data, "_rw_190-%d-vz\n",dvz);
 
 
   // get X-Axis
@@ -2934,7 +2934,7 @@ static  int oCnt1, oCnt2;
       IGE_r_work_3 (ivx);
       if(impTab[ivx].ind == 0) {TX_Print("IGE_rw_190 E003"); return -2; }
     }
-      // UT3D_stru_dump (Typ_VC, impTab[ivx].data, "_rw_190-%d-vx\n",dvx);
+      // DEB_dump_obj__ (Typ_VC, impTab[ivx].data, "_rw_190-%d-vx\n",dvx);
   }
 
 
@@ -2951,7 +2951,7 @@ static  int oCnt1, oCnt2;
     UT3D_pl_ptvc (pl1, impTab[iori].data, impTab[ivz].data);
 
   }
-    // UT3D_stru_dump (Typ_PLN, pl1, "_rw_190\n");
+    // DEB_dump_obj__ (Typ_PLN, pl1, "_rw_190\n");
 
 
   // *ox1 = UTO_stru_2_obj (Typ_PLN, Typ_PLN, pl1);
@@ -3001,7 +3001,7 @@ static  int oCnt1, oCnt2;
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    UTO_obj_tra_m3 ((void*)&pl1, Typ_PLN, (void*)ra, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&pl1, Typ_PLN, (void*)ra, IG_trMat);
   }
 */
 
@@ -3081,7 +3081,7 @@ static  int oCnt1, oCnt2;
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    for(i1=0; i1<ptAnz; ++i1) UT3D_pt_traptm3 (&pTab1[i1],IG_trMat,&pTab1[i1]);
+    for(i1=0; i1<ptAnz; ++i1) UT3D_pt_tra_pt_m3 (&pTab1[i1],IG_trMat,&pTab1[i1]);
     // ox1 = memspc55;
     // UTO_ox_tra (&ox1, &el, IG_trMat);
   }
@@ -3129,7 +3129,7 @@ static  int oCnt1, oCnt2;
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    UTO_obj_tra_m3 ((void*)&IG_tx1.pt, Typ_PT, (void*)&IG_tx1.pt, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&IG_tx1.pt, Typ_PT, (void*)&IG_tx1.pt, IG_trMat);
   }
 */
 
@@ -3211,7 +3211,7 @@ static  int oCnt1, oCnt2;
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
   // Transformation ?
   if(IG_trNr != 0) {
-    UTO_obj_tra_m3 ((void*)&ln1, Typ_LN, (void*)&ln1, IG_trMat);
+    UTO_obj_tra_obj_m3 ((void*)&ln1, Typ_LN, (void*)&ln1, IG_trMat);
   }
 */
 
@@ -3252,7 +3252,7 @@ static  int oCnt1, oCnt2;
 
 
     // for(i1=0; i1<=polNr; ++i1) {
-      // UT3D_stru_dump (Typ_Polynom3, &polTab[i1], "pol3[%d]",i1);
+      // DEB_dump_obj__ (Typ_Polynom3, &polTab[i1], "pol3[%d]",i1);
     // }
 
 
@@ -3272,7 +3272,7 @@ static  int oCnt1, oCnt2;
   UME_save (&impSpc, (void*)polTab, (polNr+1)*sizeof(polynom_d3));
 
 
-  // UTO_dump__ (ox1, "ex IGE_r_112");
+  // DEB_dump_ox_0 (ox1, "ex IGE_r_112");
   // printf("ex IGE_r_112 %d\n",IG_ia1[1]);
 
 
@@ -3395,7 +3395,7 @@ static  int oCnt1, oCnt2;
   // if((impInd == 2232)||(impInd == 2466)) {
     // i1 = 2224;
     // printf(" [%d].data=%p\n",i1,impTab[i1].data);
-    // UT3D_stru_dump (impTab[i1].form, impTab[i1].data, "iI=2224");
+    // DEB_dump_obj__ (impTab[i1].form, impTab[i1].data, "iI=2224");
   // }
 
 
@@ -3535,11 +3535,11 @@ static  int oCnt1, oCnt2;
     lnt.p1   = pTab1[0];
     lnt.p2   = pTab1[1];
     if(IG_trNr != 0) {
-      UTO_obj_tra_m3 ((void*)&lnt, Typ_LN, (void*)&lnt, IG_trMat);
+      UTO_obj_tra_obj_m3 ((void*)&lnt, Typ_LN, (void*)&lnt, IG_trMat);
     }
 
     // mit ps, pe begrenzen
-    // UT3D_stru_dump(Typ_LN, &lnt, "ex 126");
+    // DEB_dump_obj__(Typ_LN, &lnt, "ex 126");
     // printf(" 126=Line; v0=%f v1=%f\n",ps,pe);
     UT3D_pt_evparln (&ln1.p1, ps, &lnt);
     UT3D_pt_evparln (&ln1.p2, pe, &lnt);
@@ -3576,7 +3576,7 @@ static  int oCnt1, oCnt2;
     // *ox1 = *ox2;
     for(i1=0; i1<IG_cvBSpl.ptNr; ++i1) {
       pp1 = &IG_cvBSpl.cpTab[i1];
-      UT3D_pt_traptm3 (pp1, IG_trMat, pp1);
+      UT3D_pt_tra_pt_m3 (pp1, IG_trMat, pp1);
     }
   }
 */
@@ -3621,7 +3621,7 @@ static  int oCnt1, oCnt2;
   // if((impInd == 2232)||(impInd == 2466)) {
     // i1 = 2224;
     // printf(" [%d].data=%p\n",i1,impTab[i1].data);
-    // UT3D_stru_dump (impTab[i1].form, impTab[i1].data, "iI=2224");
+    // DEB_dump_obj__ (impTab[i1].form, impTab[i1].data, "iI=2224");
   // }
   
 
@@ -4300,10 +4300,10 @@ static  int oCnt1, oCnt2;
   // Version 2: einen Body-Konus ausgeben
   // B=CON center1 center2 radius1 radius2
   if(IG_trNr != 0) {
-    UT3D_pt_traptm3 (&ptc, IG_trMat, &ptc);
-    UT3D_vc_travcm3 (&vz,  IG_trMat, &vz);
-    UT3D_pt_traptm3 (&pt1, IG_trMat, &pt1);
-    UT3D_pt_traptm3 (&pt2, IG_trMat, &pt2);
+    UT3D_pt_tra_pt_m3 (&ptc, IG_trMat, &ptc);
+    UT3D_vc_tra_vc_m3 (&vz,  IG_trMat, &vz);
+    UT3D_pt_tra_pt_m3 (&pt1, IG_trMat, &pt1);
+    UT3D_pt_tra_pt_m3 (&pt2, IG_trMat, &pt2);
   }
 
   // create Conus
@@ -4339,7 +4339,7 @@ static  int oCnt1, oCnt2;
 
   // den Kreis holen;
   cip1 = (Circ*)impTab[iCov].data;
-  // UT3D_stru_dump (Typ_AC, cip1, "CI-TOR:");
+  // DEB_dump_obj__ (Typ_AC, cip1, "CI-TOR:");
 
   // Cir-Center auf die Drehachse projizieren
   UT3D_pt_projptptvc (&ptc, &sTor.r1, &cip1->pc, &ptc, &vz);
@@ -4362,7 +4362,7 @@ static  int oCnt1, oCnt2;
   UT3D_vc_2pt (&vc1, &ptc, &cip1->pc);
 
 
-  UT3D_pt_midci (&pt1, cip1);
+  UT3D_pt_mid_ci (&pt1, cip1);
   UT3D_pt_projptptvc (&pt2, &d1, &pt1, &ptc, &vz);
   UT3D_vc_2pt (&vc2, &pt2, &pt1);
 
@@ -5146,7 +5146,7 @@ static ImpSubmodel *im1;
     UT3D_m3_get ((void*)&mr1.vx, 0, IG_trMat);
     UT3D_m3_get ((void*)&mr1.vz, 2, IG_trMat);
     // mr1.vx = ?? // IG_trMat
-    // UTO_obj_tra_m3 ((void*)&p1, Typ_PT, (void*)ra, IG_trMat);
+    // UTO_obj_tra_obj_m3 ((void*)&p1, Typ_PT, (void*)ra, IG_trMat);
   }
 */
 

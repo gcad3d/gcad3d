@@ -3487,10 +3487,10 @@ static ModelRef modR2;
 
 
       // TESTBLOCK
-      // UT3D_stru_dump (Typ_SubModel, mb, "mb:\n");
+      // DEB_dump_obj__ (Typ_SubModel, mb, "mb:\n");
       // DL_DumpObjTab ();
-      // UT3D_stru_dump (Typ_PT, &AP_box_pm1, " pm1:");
-      // UT3D_stru_dump (Typ_PT, &AP_box_pm2, " pm2:");
+      // DEB_dump_obj__ (Typ_PT, &AP_box_pm1, " pm1:");
+      // DEB_dump_obj__ (Typ_PT, &AP_box_pm2, " pm2:");
       // END TESTBLOCK
 
 
@@ -3978,6 +3978,7 @@ static ModelRef modR2;
 
   // read Submodels
   // loop tru ../tmp/Mod.lst
+  irc = -1;
   while (!feof (fp1)) {
     if (fgets (s1, 256, fp1) == NULL) break;
     UTX_CleanCR (s1);   // in s1 ist nun Modename
@@ -3988,20 +3989,23 @@ static ModelRef modR2;
       // printf(" ex UtxTab_find %d\n",ii);
     if(ii >= 0) continue;
 
-    // save or delete subModel <s1>
-    // sprintf(s2, "Save unused submodel %s ?",s1);
-    MSG_get_1 (s2, 256, "SAVusm", "%s", s1);
+    if(irc < 0) {
+      // save or delete subModel <s1>
+      // sprintf(s2, "Save unused submodel %s ?",s1);
+      MSG_get_1 (s2, 256, "SAVusm", "%s", s1);
 
-    strcpy(sbt[0],  MSG_const__(MSG_cancel));  // "Cancel");
-    strcpy(sbt[1],  MSG_const__(MSG_no));      // "NO");
-    strcpy(sbt[2],  MSG_const__(MSG_ok));      // "YES");
+      strcpy(sbt[0],  MSG_const__(MSG_cancel));  // "Cancel");
+      strcpy(sbt[1],  MSG_const__(MSG_no));      // "NO");
+      strcpy(sbt[2],  MSG_const__(MSG_ok));      // "YES");
 
-    buttons[0] = sbt[0];
-    buttons[1] = sbt[1];
-    buttons[2] = sbt[2];
-    buttons[3] = NULL;
-    irc = GUI_DialogEntry (s2, NULL, 0, buttons, 5);
-      // printf("after GUI_DialogYN\n");
+      buttons[0] = sbt[0];
+      buttons[1] = sbt[1];
+      buttons[2] = sbt[2];
+      buttons[3] = NULL;
+      irc = GUI_DialogEntry (s2, NULL, 0, buttons, 5);
+        // printf("after GUI_DialogYN\n");
+    }
+
 
     if(irc == 2) {        // YES = SAVE
       UtxTab_add (mdlTab, s1);

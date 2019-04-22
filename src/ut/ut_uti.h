@@ -26,22 +26,29 @@ Korr:
 // prototypes
 
 //----------------------------------------------------------------
- int    UTP_comp_0  (double);
- int    UTP_compdb0 (double, double);
- int    UTP_comp2db (double, double, double);
- int    UTP_comp2x2db (double d11,double d12,double d21,double d22,double tol);
- int    UTP_db_ck_in2db (double v, double v1, double v2);
- int    UTP_db_ck_in2dbTol (double v, double v1, double v2, double tol);
- int    UTP_db_cknear_2db (double *db, double *d1, double *d2);
- int    UTP_db_cknear_ndb (double db1, int dbNr, double *dbTab);
- double UTP_min_d3 (double *d1, double *d2, double *d3);
- double UTP_max_d3 (double *d1, double *d2, double *d3);
- double UTP_db_rnd1sig (double);
- double UTP_db_rnd2sig (double);
+ int     UTP_comp_0  (double);
+ int     UTP_compdb0 (double, double);
+ int     UTP_comp2db (double, double, double);
+ int     UTP_comp2x2db (double d11,double d12,double d21,double d22,double tol);
+ int     UTP_db_ck_in2db (double v, double v1, double v2);
+ int     UTP_db_ck_in2dbTol (double v, double v1, double v2, double tol);
+ int     UTP_db_cknear_2db (double *db, double *d1, double *d2);
+ int     UTP_db_cknear_ndb (double db1, int dbNr, double *dbTab);
+ double  UTP_min_d3 (double *d1, double *d2, double *d3);
+ double  UTP_max_d3 (double *d1, double *d2, double *d3);
+ double  UTP_db_rnd1sig (double);
+ double  UTP_db_rnd2sig (double);
+ UINT_32 UTI_checksum__ (void *buf, int bufLen);
 
 
 //================================================================
 // inline functions
+
+
+// I_BIN                  get int from binary  
+// Example: i1 = I_BIN(110);  // sets i1 = 6
+#define I_BIN(iBin) 0b##iBin
+
 
 #define IABS(i)    (((i)<0)?-(i):(i))         ///< abs(int); always positive
 #define ISIGN(i)   ((i>=0)?(1):(-1))          ///< sign of int; +1 or -1
@@ -138,6 +145,11 @@ int IMOD (int *iNr, int *iRem, int ival, int idiv);
 #define ICHAR(x) ((x) & 15)
 
 
+// UTI_round_4up              round integer up to 4
+//   eg 2 -> 4; 4 -> 4;  5 -> 8;
+#define UTI_round_4up(ii) (ii + 3) & ~0x3
+
+
 // UTI_round_32up              round integer up to 32
 //   eg 2 -> 32; 14 -> 32;  60 -> 64; 1036 -> 1056
 #define UTI_round_32up(ii) ii + 32 & ~31
@@ -188,23 +200,46 @@ double DMOD (int *iNr, double *dRem, double dval, double ddiv);
 
 
 /// DLIM01                     0 if (d1 >= 0.); 1 if (d1 < 0.)
+int DLIM01 (double dd);
 #define DLIM01(dd) ((dd >= 0.)?0:1)
 /// \code
 /// i1 = DLIM01 (d1);
 ///   returns 0 if (d1 >= 0.); else returns 1 if (d1 < 0.)
 /// \endcode
 
+
+/// DLIM10                     1 if (d1 >= 0.); 0 if (d1 < 0.)
+int DLIM10 (double dd);
+#define DLIM10(dd) ((dd >= 0.)?1:0)
+/// \code
+/// i1 = DLIM10 (d1);
+///   returns 1 if (d1 >= 0.); else returns 0 if (d1 < 0.)
+/// \endcode
+
+
+
 /// DLIM2                     returns x = between lo and hi
+double DLIM2 (double, double, double);
 #define DLIM2(x,lo,hi) (((x)>(hi))?(hi):(((x)<(lo))?(lo):(x)))
 /// \code
 /// di = DLIM2 (d1, 0., 10.);
 ///   returns 0 if d1<0; else returns 10 if d1>10; else returns d1.
 /// \endcode
 
+/// DLIM3                     test if x outside lo - hi
+int DLIM3 (double, double, double);
+#define DLIM3(x,lo,hi) (((x)>(hi))?(1):(((x)<(lo))?(-1):(0)))
+/// \code
+/// returns -1 if x < lo; else returns 1 if x > hi; else returns 0
+/// \endcode
 
-#define DSIGN(d)   ((d>=0.)?(1):(-1))         ///< sign of double; +1 or -1
+/// DSIGN                     sign of double; +1 or -1
+int DSIGN (double);
+#define DSIGN(d)   ((d>=0.)?(1):(-1))
+// see also DLIM01 
 
 /// DSIGTOL                              sign of double with tolerance (-1|0|1)
+int DSIGTOL (double, double);
 #define DSIGTOL(dd,tol) ((dd>tol)?(1):((dd<-(tol))?(-1):(0)))
 /// \code
 /// replacing code:
@@ -212,8 +247,6 @@ double DMOD (int *iNr, double *dRem, double dval, double ddiv);
 ///   else if (dd < 0.)   rc =  1;
 ///   else                rc = -1;
 /// \endcode
-
-#define ACOS(dCos) ((dCos>=1.)?(0.):((dCos<=-1.)?(RAD_180):acos(dCos)))
 
 
 //----------------------------------------------------------------
@@ -225,6 +258,7 @@ double DMOD (int *iNr, double *dRem, double dval, double ddiv);
 /// UTP_comp_0 (0.);   // returns 1  (true, is equal 0)
 /// see also UTP_db_comp_0
 /// \endcode
+int UTP_comp_0 (double);
 #define UTP_comp_0(db) (fabs(db) < UT_TOL_min1)
 
 
@@ -233,14 +267,17 @@ double DMOD (int *iNr, double *dRem, double dval, double ddiv);
 /// Retcode 0 = Differenz der Werte > tol   - different
 /// Retcode 1 = Differenz der Werte < tol   - ident
 /// \endcode
+int UTP_comp2db (double, double, double);
 #define UTP_comp2db(d1,d2,tol) (fabs(d2-d1) < (tol))
 
 
-/// \brief UTP_px_paramp0p1px        Zahl aus p0, p1 und Parameterwert
+/// \brief UTP_px_paramp0p1px        value_x from valStart, valEnd, param_x
 /// \code
 /// see also UTP_param_p0p1px
+/// param_x   between 0. to 1.
 /// Example: p0=5, p1=10, par=0.5; retVal=7.5.
 /// \endcode
+double UTP_px_paramp0p1px (double, double, double);
 #define UTP_px_paramp0p1px(p0,p1,par)\
   ((p1) - (p0)) * (par) + (p0);
 
@@ -251,24 +288,49 @@ double UTP_db_comp_0 (double);
 
 
 
+
+//----------------------------------------------------------------
+// sqrt(0) makes -nan
+// SQRT_12 - multiply first and second parameter
+double SQRT_12 (double, double, double);
+#define SQRT_12(dd,d1,d2){\
+ dd = (d1*d1) - (d2*d2);\
+ dd = fabs(dd) > UT_TOL_min1 ? sqrt(dd) : 0.;}
+
+
+// sqrt(0) makes -nan
+double SQRT__ (double);
+#define SQRT__(dd) (fabs(dd) > UT_TOL_min1 ? sqrt(dd) : 0.)
+
+
+
+
+double ACOS (double);
+#define ACOS(dCos) ((dCos>=1.)?(0.):((dCos<=-1.)?(RAD_180):acos(dCos)))
+
+
+
 //----------------------------------------------------------------
 // set/clr/get bits in byte|short|int|long; see also ../ut/ut_BitTab.h
 
 /// BIT_SET                 set bits;    BITSET(data,value)
 /// data:        byte|short|int|long
 /// data,value:  value of bit to set (1|2|4..)
+int BIT_SET (int, int);
 #define BIT_SET(i,b) (i)|=(b)
 
 /// BIT_CLR                 clear bits;  BITCLR(data,value)
 /// data:        byte|short|int|long
 /// data,value:  value of bit to test (1|2|4..)
 /// Example: BITCLR(i1,3);    // clear bit-0 and bit-1 of i1
+int BIT_CLR (int, int);
 #define BIT_CLR(i,b) (i)&=~(b)
 
 /// BIT_GET                 filter bits;  BITGET(data,value)
 /// data:        byte|short|int|long to test
 /// data,value:  value of bit to test (1|2|4..)
 /// RetCod: 0 (not set) or value (set)
+int BIT_GET (int, int);
 #define BIT_GET(i,b) ((i)&(b))
 
 

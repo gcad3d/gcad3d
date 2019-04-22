@@ -5,19 +5,20 @@
 # must have defined DIR_DEV and DIR_BIN
 
 %define hTyp %(echo "`uname -s`_`uname -i`")
+%define	gcad_version %(cat ${DIR_DEV}gcad3d/src/gcad_version)
 %define gcad_dir_dev "${DIR_DEV}gcad3d/"
-%define gcad_dir_bin "${DIR_BIN}gcad3d/${hTyp}/"
-%define gcad_version %(cat ${gcad_dir_dev}src/gcad_version)
+# gcad_dir_bin = ?
+%define gcad_dir_bin "${DIR_BIN}gcad3d/%{hTyp}/"
 %define outDir $RPM_BUILD_ROOT
-%define icoDir "${gcad_dir_dev}icons"
-%define docDir "${gcad_dir_dev}doc"
+%define icoDir "%{gcad_dir_dev}icons"
+%define docDir "%{gcad_dir_dev}doc"
 
 
 
 
 
 Summary: 3D - CADCAM - software
-Name: gcad3d
+Name:		gcad3d
 Version: %{gcad_version}
 Release: 1
 License: GPLv3+
@@ -58,18 +59,21 @@ Requires: zenity
 
 #####################################################################
 %install
-echo "gcad_dir_dev = " ${gcad_dir_dev}
-echo "gcad_dir_bin = " ${gcad_dir_bin}
-echo "outDir = " %{outDir}
-echo "icoDir = " %{icoDir}
 echo "hTyp = " %{hTyp}
 echo "gcad_version = " %{gcad_version}
+echo "DIR_DEV = " ${DIR_DEV}
+echo "DIR_BIN = " ${DIR_BIN}
+echo "gcad_dir_dev = " %{gcad_dir_dev}
+echo "gcad_dir_bin = " %{gcad_dir_bin}
+echo "outDir = " %{outDir}
+echo "icoDir = " %{icoDir}
+echo "docDir = " %{docDir}
 
 
 # copy startscript /usr/bin/gcad3d -> /usr/bin/gcad3d
 mkdir -p %{outDir}/usr/bin
 
-install ${gcad_dir_dev}src/gcad3d %{outDir}/usr/bin/gcad3d
+install %{gcad_dir_dev}src/gcad3d %{outDir}/usr/bin/gcad3d
 
 
 
@@ -79,10 +83,10 @@ mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}
 mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins
 mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
 
-install -m 755 ${gcad_dir_bin}/gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
-install -m 755 ${gcad_dir_bin}/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
-install -m 755 ${gcad_dir_bin}/plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
-install -m 755 ${gcad_dir_bin}/plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
+install -m 755 %{gcad_dir_bin}/gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}/plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
+install -m 755 %{gcad_dir_bin}/plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
 
 
 
@@ -92,7 +96,7 @@ mkdir -p -m 755 %{outDir}/usr/share/gcad3d/icons
 mkdir -p -m 755 %{outDir}/usr/share/gcad3d/doc/html
 mkdir -p -m 755 %{outDir}/usr/share/gcad3d/doc/msg
 
-install -m 644 ${gcad_dir_dev}packages/examples.gz %{outDir}/usr/share/gcad3d/.
+install -m 644 %{gcad_dir_dev}packages/examples.gz %{outDir}/usr/share/gcad3d/.
 install -m 644 %{icoDir}/*.png        %{outDir}/usr/share/gcad3d/icons/.
 install -m 644 %{icoDir}/*.xpm        %{outDir}/usr/share/gcad3d/icons/.
 install -m 644 %{icoDir}/*.bmp        %{outDir}/usr/share/gcad3d/icons/.
@@ -106,7 +110,7 @@ install -m 644 %{docDir}/msg/*.txt    %{outDir}/usr/share/gcad3d/doc/msg/.
 # copy desktop-starter -> /usr/share/applications/gcad3d.desktop
 mkdir -p -m 755 %{outDir}/usr/share/applications
 
-install -m 644 ${gcad_dir_dev}src/gcad3d.desktop  %{outDir}/usr/share/applications/.
+install -m 644 %{gcad_dir_dev}src/gcad3d.desktop  %{outDir}/usr/share/applications/.
 
 
 
@@ -120,9 +124,9 @@ install -m 644 %{icoDir}/gCAD3D.xpm %{outDir}/usr/share/pixmaps/gcad3d.xpm
 # copy README LICENSE LICENSE_GPLv3.txt gCAD3D_log.txt -> /usr/share/doc/gcad3d/
 mkdir -p -m 755 %{outDir}/usr/share/doc/gcad3d
 
-install -m 644 ${gcad_dir_dev}README             %{outDir}/usr/share/doc/gcad3d/.
-install -m 644 ${gcad_dir_dev}LICENSE            %{outDir}/usr/share/doc/gcad3d/.
-install -m 644 ${gcad_dir_dev}doc/gCAD3D_log.txt %{outDir}/usr/share/doc/gcad3d/NEWS
+install -m 644 %{gcad_dir_dev}README             %{outDir}/usr/share/doc/gcad3d/.
+install -m 644 %{gcad_dir_dev}LICENSE            %{outDir}/usr/share/doc/gcad3d/.
+install -m 644 %{gcad_dir_dev}doc/gCAD3D_log.txt %{outDir}/usr/share/doc/gcad3d/NEWS
 
 
 

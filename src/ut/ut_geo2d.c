@@ -29,8 +29,8 @@ Modifications:
 2002-02-12 UT3D_angr_2vc__: UTP_comp_0 -> fabs. RF.
 2001-10-16 UT3D_ci_obj2 u. UT3D_ci_obj: vz zu. RF.
 2001-04-22 UT3D_vc_cistart,UT3D_pt_traptptlen neu zu.
-2001-04-21 UT3D_vc_travcm3 korr.
-2001-04-19 UT3D_vc_travcm3,UT3D_pl_XYZ neu zu.
+2001-04-21 UT3D_vc_tra_vc_m3 korr.
+2001-04-19 UT3D_vc_tra_vc_m3,UT3D_pl_XYZ neu zu.
 2001-04-18 Unterschiede zu HNT:\wc3\wincut_ut_geo.cpp:
            UT3D_vc_crossprod2vc; ident mit UT3D_vc_perp2vc
 
@@ -48,6 +48,8 @@ List_functions_start:
 
 -------------- 1D ----------------------------------
 UT1D_ndb_npt_bp           copy the backplane-part of a pointTable
+UT2D_lva_plg              get length-value table for polygon
+UT2D_pva_lva              change length-table lva into parameter-value-table pva
 
 -------------- 2D ----------------------------------
 
@@ -71,14 +73,17 @@ UT2D_sidPerp_ptvc         compare if pt is right/on/left of a normal to pt+vc
 
 -------------- area sense_of_rotation -------------------------------------
 UT2D_ar_3pt               get (signed) area of triangle
-UT2D_srar_3pt             Umlaufsinn und Flaeche eines 2D-triangle
-UT2D_srar_polc            Umlaufsinn und Flaeche eines closed polygon
-UT2D_srar_inpt            Umlaufsinn und Flaeche eines indexed closed polygon
-UT2D_srar_inpt3           Umlaufsinn und Flaeche eines indexed closed 3D-polygon
+UT2D_srar_3pt             get sense-of-rotation and area of 2D-triangle
+UT2D_srar_polc            get sense-of-rotation and area of closed polygon
+UT2D_srar_inpt            get sense-of-rotation and area of indexed closed polygon
+UT2D_srar_inpt3           get sense-of-rot. and area of indexed closed 3D-polygon
+UT2D_sr_ci                get sense_of_rotation of a circ                    INLINE
 
 -------------- angles -------------------------------------
 UT_RADIANS                angle (radians) = angle (degrees) (inline)
 UT_DEGREES                angle (degrees) = angle (radians) (inline)
+UT2D_ANGR_ADD_4PI         get angle of endpoint of circ  (0 to 4Pi)
+UT2D_ANGR_ADD_2PI         get angle of endpoint of circ  (-2Pi to 2Pi) 
 UT2D_angr_set_2angr       set aa following as. Do not modify as.
 UT2D_angr_set             change to val >= 0 <= RAD_360
 UT2D_angd_set             change to val >= 0 <= 360
@@ -95,10 +100,11 @@ UT2D_angr_triri_ab        right-angled tri: angle alfa from sides a and b
 UT2D_angr_ptpt            angle (radians) = pt > pt
 UT2D_angr_vc              angle (radians) = vector (0-360)
 UT2D_angr_2ln             angle (rad.) between 2 Lines
-UT2D_angr_2vc             angle (rad.) between 2 Vectors
-UT2D_angr_2vc_sr          get opening angle of 2 vectors with sense of rot
-UT2D_angr_3ptdr           Oeffnungswinkel von 2 Vektoren entspr. Umlaufsinn
+UT2D_angr_2vc_ccw         angle (rad.) between 2 Vectors
+UT2D_angr_3pt_sr          get opening angle of 3 points with sense of rot
 UT2D_angr_ci              openingAngle of circle (pa,pe,pc,rad/dreh)
+UT2D_angr_ck_inAc         check if Point ptx/angle-apx is on arc ci1/aps-ape
+
 UT2D_angr_perpangr        angle + 90 degree (perp. to angle)
 UT2D_circQuad23_angr      returns if angle is quadrant 2 or 3 (CCW from 1-4)
 UT2D_circQuad34_angr      returns if angle is quadrant 3 or 4 (CCW from 1-4)
@@ -118,8 +124,8 @@ UT2D_slen_vc_vc__         signed length of vector on vector
 UT2D_slen_vc_vcNo         signed length of vector on norm.vector
 UT2D_slen_pt_pt_vc__      signed length of point onto vector
 UT2D_slen_nor2vc          signed length of normal of 2 vectors
-UT2D_slen_nor_vc_vcNo     signed length of normal of 2 vectors (1 normalized)
-UT2D_slenq_ptptvc         signed quadr.Distance pt-pt in Richtung vec
+UT2D_slenq_nor_2vc     signed length of normal of 2 vectors (1 normalized)
+UT2D_slenq_3pt         signed quadr.Distance pt-pt in Richtung vec
 UT2D_slen_nor_2pt_vc__    signed length of normal of point onto vector
 UT2D_slen_nor_2pt_vcNo    signed length of normal of point onto norm.vector
 UT2D_slen_nor3pt          signed length of normal of point - line
@@ -127,7 +133,7 @@ UT2D_nlenq_3pt            give quadr.Distance from point to line
 UT2D_nlenq_2vc            give quadr.Distance from vec on vec (point to line)
 UT2D_2slen_2pt_vc__       relative coords (dx,dy) of point along/normal to line
 UT2D_2slen_vc_vc__        relative coords (dx,dy) of vector on vector
-UT2D_minLenB_4pt          min lenght between 2 lines
+UT2D_minLenB_4pt          min lenght between 2 lines (estimation)
 UT2D_len_cir              length circular arc (pa,pe,pc,rad/dreh)
 UT2D_len_cia              length arc (from rad & angle)        INLINE
 UT2D_sDist_ciSeg          height of segment of circle from angle
@@ -139,9 +145,12 @@ UT2D_parpt_2pt            parameter of point on linesegment
 UT2D_par_nor_2vc          parameter height to lenght
 UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_par_3pt              parameter of point projected on line from 2 points
+UT2D_ck_2par_pt_in_2par_2pt   test if 2 collinear curves overlap, connect
+UT2D_ck_par_pt_in_2par_2pt    test if point is in curve, out or ident
+UT2D_par_ck_inLn          test if point ptx is on lineSeg lp1-lp2
 
 -------------- points --------------------------------------
-UT2D_comp2pt              compare 2 2D-points
+UT2D_comp2pt              compare 2 2D-points with tol.
 UT2D_comp4pt              compare 4 2D-points
 UT2D_pt_ck_onLine         check if point is on 2D-linesegment
 UT2D_pt_ck_inLine         check 2D-point on line segment or beyond limits
@@ -158,37 +167,56 @@ UT2D_pt_ck_int4pt         check if 2 lines intersect/touch
 UT2D_i4pt_npt             find indices of extreme-points;
 
 UT2D_pt_pt                2D-Point = 3D-Point                          INLINE
-UT2D_npt_npt              tab of 2D-Points = tab of 3D-Points (copy X,Y)
 UT2D_pt_pt3               2D-Point = 3D-Point                          INLINE
 UT2D_pt_2db               2D-Point = 2 doubles (x, y)                  INLINE
-UT2D_pt_pt3bp             2D-Point = 3D-Point on Backplane (inline)
+UT2D_pt_tra_pt3_bp        2D-Point = 3D-Point on Backplane (inline)
 UT2D_pt_addpt             Add two points:      po += p1                INLINE
 UT2D_pt_add_vc__          add vector:  pt += vc                        INLINE
+UT2D_pt_pt_mult_vc        point = point + (vector * parameter)         INLINE
 UT2D_pt_opp2pt            opposite point (p1 = center)
 UT2D_pt_mid2pt            midpoint between 2 points
 UT2D_pt_mid_npt           midpoint from n points
+UT2D_pt_mid_ci            get midpoint of circle
+UT2D_pt_mid_ci_2pt        get midpoint of 2 points on circ
 UT2D_pt_parvc_pt_vc       point on Linesegment + parametric value.
 UT2D_pt_cic_par           get 2D-point from par on 2D-circ in centerPos
 UT2D_pt_par_ci            point on circle from parameter
 UT2D_ptx_ci_pty           x-val of point on circle from y-val on circle
-UT2D_pt_traptvc           2D-Point = 2D-Point + 2D-Vector     INLINE
+UT2D_pt_par_plg           point on polygon from parameter
+
+UT2D_ptvcpar1_std_obj     get typical-point/tangent-vector for obj
+
+UT2D_pt_traptvc           2D-Point = 2D-Point + 2D-Vector                   INLINE
 UT2D_pt_traptvclen        transl. point into dir vc dist. lenv
 UT2D_pt_tra2ptlen         transl. point p1 into dir p1 -> p2 dist. lenv
-UT2D_pt_traPtPtPar        transl. pt with parameter along p1-p2
+UT2D_pt_tra_pt_pt_par     transl. pt with parameter along p1-p2
+UT2D_pt_tra_pt_pt_mult    p3 = segment p1-p2 * fakt
 UT2D_pt_tra3ptlen         transl. point p1 into dir p2 -> p3 dist. lenv
 UT2D_pt_tra2pt2len        transl. point into dir p1 -> p2 dist. dx and normal dy
 UT2D_pt_tra2pt3len        dir=from p1 on p1->p2 offset dx and normal dy; length
+UT2D_pt_tra_pt_2vc_2par   transl. point into 2 directions
 UT2D_pt_traptangrlen      transl. point into dir ang dist. lenv
 UT2D_pt_tranor2ptlen      transl. point normal to p1 - p2 dist. lenv
 UT2D_pt_tranorptvclen     transl. point normal to vec dist. lenv
 UT2D_pt_traptvc2len       transl. point into dir vc dist. dx and normal dy
-UT2D_pt_tracirlen         transl. point circular length
+UT2D_pt_tra_pt_ci_len     transl. point circular length
+UT2D_pt_tra_pt3_rsys      transf. 3D-Point => 2D-Point
+
 UT2D_pt_rotptangr         rotate a point around centerpoint
+UT2D_pt_rot_90_ccw_2pt    rotate p1 90 deg CCW around pc
+UT2D_pt_rot_90_cw_2pt     rotate p1 90 deg CW around pc
+UT2D_pt_rot90_ci_pt       rotate point px 90 deg around pc
+UT2D_pt_rot180_ci_pt      rotate point px 180 deg around pc
+
 UT2D_pt_projptptvc        point = project point to line (pt+vc)
 UT2D_pt_projpt2pt         pp = project point pt to lineSegment p1-p2
 UT2D_pt_projptln          point = project point to line
 UT2D_2pt_projptci         project point to circle
 UT2D_pt_projptci          project point to Arc (segment of circle)
+
+UT2D_pt_int_2lnl          intersection of 2 limited lines
+UT2D_2pt_int_ln_ci        intersection of  limited-line  limited-circle
+UT2D_2pt_int_ci_ci        intersection of 2 limited circles
 UT2D_pt_int_4pt           intersection of 2 limited 2D-lines
 UT2D_pt_int4pt  REPLACED with UT2D_pt_int_4pt intersection 2 lines
 UT2D_pt_intptvcy          intersection line (pt-vc) - horizontal line
@@ -203,96 +231,110 @@ UT2D_2pt_intciptvc        intersect Circle - Line (pt+vc); both unlimited
 UT2D_2pt_intlnci          intersect Line x Circ; both limited or unlimited
 UT2D_2pt_intcici          intersect 2 (unlimited) Circles
 UT2D_2pt_int2ci           intersect Circ x Circ; both limited or unlimited
+
 UT2D_ptx_tang_cic_pt      get x-value where Y=0 of tangent to circle
-UT2D_pt_tng_ci_vc         tangent with fixed vector to circ
-UT2D_pt_tng_ci_pt         tangent from point (outside circ) to circ
+UT2D_pt_tng_ci_vc         get tangent-pt on circ parallel to vector
+UT2D_pt_tng_ci_pt         get tangent-pt from point (outside circ) to circ
 UT2D_pt_traptm2           einen 2D-Punkt mit 3x2-Matrix transformieren
-UT2D_pt_obj2              2D-Obj > 2D-Point
-UT2D_pt_traptm3           apply transformation to point (from 4x3-matrix)
+UT2D_pt_tra_pt_m3         apply transformation to point (from 4x3-matrix)
+UT2D_pt_tra_pt3_m3        apply transformation to point (from 4x3-matrix)
+UT2D_pt_obj2              2D-Obj > 2D-Point                          DO NOT USE
 
 -------------- lines -------------------------------------
 UT2D_ln_ptpt              2D-Line from 2 2D-points                   INLINE
 UT2D_ln_ptvc              2D-Line from 2D-point and 2D-vector        INLINE
-UT2D_ln_ln3               2D-Line aus 3D-Line
+UT2D_ln_ln3__               2D-Line aus 3D-Line
+
+UT2D_ln_tra_ln3_rsys      transf. 3D-Line => 2D-Line
+UT2D_ln_tra_ln3_m3        transf. 3D-line => 2D-line
+UT2D_ln_tra_ln3_bp        get 2D-line on backplane from 3D-line
+UT2D_ln_parl_ln           get 2D-line parallel to line with offset
 UT2D_ln_4db               2D-Line from 4 doubles
-UT2D_ln_obj2              2D-Obj > 2D-Line
+UT2D_ln_obj2              2D-Obj > 2D-Line                           DO NOT USE
 UT2D_lncoe_ln             coefficients of 2D Line (k, d)
 UT2D_ln_pts_dmax          line <-- points with max. distance of pointTab
-UT3D_ln_inv               invert (change p1, p2)
+UT2D_ln_inv               invert (change p1, p2)
 
 UT2D_ptvc_ck_int2pt       check if Line|Ray Pt-Vec intersects Line Pt-Pt
 
 -------------- vectors -------------------------------------
-UT2D_comp2vc              compare 2 vectors for parallel and antiparallel
-UT2D_comp2vc_p            compare 2 vectors for parallel
+UT2D_vc_ck_0              compare vector for 0,0,
+UT2D_ck_parla_2vc         compare 2 vectors for parallel and antiparallel
+UT2D_ck_parl_2vc          compare 2 vectors for parallel
+UT2D_ckvc_parl            test 2 (normalized) vectors for parallel
 UT2D_ckvc_hori            test if vector is horizontal
 UT2D_ckvc_vert            test if vector is vertical
-UT2D_ckvc_parl            test if 2 vectors parallel
 UT2D_ckvc_in2vc           check if v2 is between v1 and v3
 UT2D_ckvc_inA_vc_vc       check if v2 is between v1 and v3 (parall.& antiparall.)
 UT2D_parvc_2vc            parameter of distance of vec1 projected on vec2
 UT2D_2parvc_3vc           project end of vec1 along vec2 on vec3
 UT2D_vc_pt                Vector from 0,0 -> point
 UT2D_vc_2db               2D-Vector = 2 doubles (x, y)
-UT2D_vc_vc3               2D-Vector from 3D-Vector                         INLINE
+UT2D_vc_vc3               2D-Vector from 3D-Vector                          INLINE
 UT2D_vc_angr              2D-Vector =  angle (radians)
 UT2D_vc_angrlen           2DVector =  angle (radians) + Length
-UT2D_vc_vc3BP             2D-Vector = 3D-Vector on Backplane (inline)
-UT2D_vc_2pt               2D-Vector = 2D-Point -> 2D-Point   INLINE
+UT2D_vc_setLen_vc         set lenght of vco = length of vci
+UT2D_vc_vc3_bp             2D-Vector = 3D-Vector on Backplane (inline)
+UT2D_vc_2pt               2D-Vector = 2D-Point -> 2D-Point                  INLINE
 UT2D_vc_2pt3              2D-Vector = 3D-Point -> 3D-Point
-UT2D_vc_2pt3_bp           2D-Vector = (3D-Point -> 3D-Point) on Backplane
+UT2D_vc_2pt3_bp           2D-vector from 2 3D-points on backplane
 UT2D_vc_2ptlen            2D-Vector = 2D-Point -> 2D-Point, set Length
 UT2D_vc_ln                2D-Vector = 2D-LineStartPoint -> 2D-LineEndPoint
-UT2D_vc_cipt              Tang.Vektor an einem Punkt pt des Kreises errechnen
-UT2D_vc_tng_ci_pt         tangent to circ tru point on circ
-UT2D_vc_invert            2D-Vector invert (change direction)              INLINE
-UT2D_vc_add2vc            v3 = v1 + v2                ADD                  INLINE
-UT2D_vc_sub2vc            v3 = v1 - v2                SUB                  INLINE
-UT2D_vc_multvc            vo = vi * d                 MULT                 INLINE
-UT2D_vcPerpAppr_vc_len    vector with fixed length normal to vector        INLINE
-UT2D_vc_perpvc            vector = perpendic. to vector ( + 90 degrees)
-UT2D_vc_perp2pt           vector = perpendic. to Line ( + 90 degrees)
+UT2D_vc_invert            2D-Vector invert (change direction)               INLINE
+UT2D_vc_add2vc            v3 = v1 + v2                ADD                   INLINE
+UT2D_vc_sub2vc            v3 = v1 - v2                SUB                   INLINE
+UT2D_vc_multvc            vo = vi * d                 MULT                  INLINE
+UT2D_vcPerpAppr_vc_len    vector with fixed length normal to vector         INLINE
+UT2D_vc_rot_90_ccw        vector = perpendic. to vector (rot 90 deg CCW)    INLINE
+UT2D_vc_rot_90_cw         vector = perpendic. to vector (rot 90 deg CW)     INLINE
+UT2D_vc_rot_90_sr         rotate vector 90 deg CCW or CW around axis
+UT2D_vc_perp2pt           vector = perpendic. to Line ( + 90 degrees)       INLINE
 UT2D_vc_normalize         change to length 1
 UT2D_vc_setLength         change 2D-Vectorlength
-UT2D_vc_mid2vc            vector = middle between 2 vectors
+UT2D_vc_setLen_vc         set lenght of vco = length of vci
+UT2D_vc_mid_2vc__            vector = middle between 2 vectors
 UT2D_vc_merge2vc          merge 2 vectors   vNew = (v1 + v2) / 2
 UT2D_vc_rotangr           rotate a 2D_vector
+
+UT2D_vc_tra_vc3_rsys      transf. 3D-Vector => 2D-Vector
+UT2D_vc_tra_vc3_m3        transf. 3D-vector => 2D-Vector (with 4x3-matrix)
 UT2D_vc_travcm2           2D-vector transformation (3x2-matrix)
 UT2D_vc_tra_vcx_vcy       translate vector int refsys from vcx,vcy
+UT2D_vc_tng_ci_pt         tangential vector to circ tru point on circ
 
 -------------- Circ2C --------------------------------------
 UT2D_cic_ci3              get 2D-circle in centerPosition from 3D-circ
 
 -------------- Circ2 --------------------------------------
+UT2D_ck_ci180             check if circ is 180-degree-circ
 UT2D_angr_ciSec           opening angle of Secant of Circ
 UT2D_len_ciSec            cmp length of secant from radius + heght of secant
 UT2D_compPtOnAc           is Point on Arc
 UT2D_ck_ci360             check if circ is 360-degree-circ
 UT2D_ci_ci3               2D-Circ = 3D-Circ
+UT2D_ci_tra_ci3_rsys      transf. 3D-circle => 2D-circle
+UT2D_ci_tra_ci3_m3        transf. 3D-circle => 2D-circle
+UT2D_ci_tra_ci3_bp        get 2D-circle on backplane from 3D-circle
+UT2D_ci_parl_ci           get circ2 parallel to circ1 with offset
+UT2D_ci_ci_rad            change radius of circ; keep sense of rotation
+UT2D_ci_ciangr            change endpoint of circ from angle
 UT2D_ci_ptrd              360-deg 2D-Circ from center, radius
 UT2D_ci_pt2vcrd           circ from center, 2 vectors & radius
 UT2D_ci_ptvcpt            durch Punkt+Richtung, durch 2. Punkt
 UT2D_ci_ptvcptvc          durch Punkt+Richtung, tangential an Linie (pt+vc)
 UT2D_ci_ptvcci            durch Punkt+Richtung, tangential an Circ (pc+r)
-UT2D_ci_obj2              2D-Circ = 2D-ObjG
 UT2D_ci_2vc2ptrd          2D-Circ; verrundet 2 Lines; 4 Lösungen
 UT2D_ci_ciptvcrd          2D-Circ; verrundet Circ/Line; 4 Lösungen
+UT2D_ci_cip1              change startpoint of circ
+UT2D_ci_cip2              change endpoint of circ
+UT2D_ci_obj2              2D-Circ = 2D-ObjG                         DO NOT USE
+
+-------------- CurvPol2 Typ_CVPOL2 see UPLG -----------
 
 -------------- GrafObj - (see also UTO_) ---------------
 UT2D_obj_obj3             change 3D-Obj > 2D-Obj (remove Z-val)     DO NOT USE
 UT2D_obj_ci2              change 2D-Circ > 2D-Obj                   DO NOT USE
 UT2D_void_obj2            change ObjG2-Objekt -> data-Obj           DO NOT USE
-
--------------- polygon --------------------------------
-UT2D_cv_ci                change circle > polygon (schnell)         DO NOT USE
-UT2D_cv_ci_               get circular polygon from circle
-UT2D_cv_ln                Linearstueck -> Polygon / Anzahl
-UT2D_npt_ci               circular polygon
-UT2D_cv_cin               Circ -> Polygon / Anzahl
-UT2D_cv_ci360             Vollkreis --> Polygon
-UT2D_cv_inv               Punktetabelle umdrehen
-UT2D_cv3_linear           delete unnecesary straight points
-UT2D_is_convex_inpt       check if indexed contour is convex | concave
 
 -------------- transformation ------------------------------
 UT2D_m2_load              2D-Achsensystem (Verdrehvektor, Ori.) into 3x2 Mat
@@ -341,9 +383,10 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
 #include "../ut/ut_TX.h"                  // TX_Error
 
-
 #include "../ut/ut_const.h"               // the constants ..
 #include "../ut/ut_tol_const.h"           // the constants ..
+
+#include "../xa/xa_msg.h"                 // MSG_* ERR_*
 
 #define INCLUDE_FULL
 #include "../ut/ut_geo_const.h"           // the constants ..
@@ -359,7 +402,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
  /// \code
 /// UT2D_parpt_2pt         parameter of point on linesegment
 /// pa - pb gives a line, pc is projected onto this line, giving e.
-/// Returns the parameter e.
+/// Returns the parameter e (distance of point pc alang pa-pb; 0.5 = midpoint)
 ///
 ///             pc
 ///              |
@@ -377,13 +420,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 /// \endcode
 
   int       irc;
-  double    s_ab_ab, s_ab_ac, pe_ab;
-  Vector2   vab, vac, vae;
+  double    s_ab_ab, s_ab_ac;
+  Vector2   vab, vac;
 
 
-  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
-  // UT3D_stru_dump (Typ_PT2, pb, "  pb");
-  // UT3D_stru_dump (Typ_PT2, pc, "  pc");
+  // DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  // DEB_dump_obj__ (Typ_PT2, pb, "  pb");
+  // DEB_dump_obj__ (Typ_PT2, pc, "  pc");
 
 
   UT2D_vc_2pt (&vab, pa, pb);           // vab = Vector a-b
@@ -397,24 +440,6 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // Parameterwert von e zwischen a-b
   *par = s_ab_ac / s_ab_ab;
     // printf(" pe_ab=%f\n",*par);
-
-  return 0;
-
-}
-
-
-//==========================================================================
-  int UT2D_npt_npt (Point2 *p2a, Point *pa, int pNr) {
-//==========================================================================
-/// \code
-/// UT2D_npt_npt              tab of 2D-Points = tab of 3D-Points (copy X,Y)
-/// \endcode
-
-// es sollte Normalvektor benutzt werden; dzt copy X- & Y-Coord only.
-
-  int    i1;
-
-  for(i1=0; i1<pNr; ++i1) UT2D_pt_pt (&p2a[i1], &pa[i1]);
 
   return 0;
 
@@ -452,10 +477,10 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
   // printf("UT2D_ptvc_ck_int2pt %d\n",mode);
-  // UT3D_stru_dump (Typ_PT2, p1s, " p1s:");
-  // UT3D_stru_dump (Typ_VC2, v1, " v1:");
-  // UT3D_stru_dump (Typ_PT2, p2s, " p2s:");
-  // UT3D_stru_dump (Typ_PT2, p2e, " p2e:");
+  // DEB_dump_obj__ (Typ_PT2, p1s, " p1s:");
+  // DEB_dump_obj__ (Typ_VC2, v1, " v1:");
+  // DEB_dump_obj__ (Typ_PT2, p2s, " p2s:");
+  // DEB_dump_obj__ (Typ_PT2, p2e, " p2e:");
   // GR_Disp_pt2 (p1s, SYM_STAR_S, 0);
   // GR_Disp_vc2 (v1, p1s, 0, 0);
   // GR_Disp_ln2 (p2s, p2e, 9);
@@ -600,6 +625,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 }
 
 
+/* replace by INLINE-func
 //================================================================
   double UT2D_angr_set_2angr (double as, double aa, int sr) {
 //================================================================
@@ -635,7 +661,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   return aa;
 
 }
-
+*/
 
 //================================================================
   int UT2D_angr_set (double *angr) {
@@ -1226,9 +1252,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2 v1, v2;
 
 
-  // UT3D_stru_dump (Typ_PT2, p3, "UT2D_sidPerp_3pt  p3");
-  // UT3D_stru_dump (Typ_PT2, p1, "p1");
-  // UT3D_stru_dump (Typ_PT2, p2, "p2");
+  // DEB_dump_obj__ (Typ_PT2, p3, "UT2D_sidPerp_3pt  p3");
+  // DEB_dump_obj__ (Typ_PT2, p1, "p1");
+  // DEB_dump_obj__ (Typ_PT2, p2, "p2");
 
 
   UT2D_vc_2pt (&v1, p1, p2);
@@ -1374,7 +1400,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //======================================================================
   double UT2D_angr_ptpt (Point2 *pt1, Point2 *pt2) {
 //======================================================================
-/// UT2D_angr_ptpt            angle (radians) = pt > pt
+/// UT2D_angr_ptpt            angle (radians) = pt > pt (0 - 2Pi)
 
 
   Vector2  vc1;
@@ -1392,7 +1418,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double UT2D_angr_vc (Vector2 *vc) {
 //======================================================================
 /// \code
-/// UT2D_angr_vc              angle (radians) = vector (0-360)
+/// UT2D_angr_vc              angle (radians) = vector (0-2Pi)
 /// returns 0 - RAD_360 (PI * 2)
 /// Example: (1,1) returns RAD_45 (0.785)
 /// \endcode
@@ -1463,100 +1489,76 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   Vector2   vc1, vc2;
 
-  /* ------------------------------------------ */
-
-  /*  Lines > Vectors */
   UT2D_vc_ln (&vc1, ln1);
   UT2D_vc_ln (&vc2, ln2);
 
-  return UT2D_angr_2vc (&vc1, &vc2);
+  return UT2D_angr_2vc_ccw (&vc1, &vc2);
 
 }
 
 
 //================================================================
-  double UT2D_angr_2vc (Vector2 *vc1i, Vector2 *vc2i) {
+  double UT2D_angr_2vc_ccw (Vector2 *vc1i, Vector2 *vc2i) {
 //================================================================
 /// \code
-/// UT2D_angr_2vc             angle (rad.) between 2 Vectors
-/// Die Vektoren muessen CCW liegen; vc1 entspricht der X-Achse; vc2 CCW davon.
+/// UT2D_angr_2vc_ccw             angle (rad.) between 2 Vectors
+/// returns the angle CCW.
 /// \endcode
 
-  double    angr;
   Vector2   vc1, vc2;
 
 
 
-  /*  > Länge 1 */
+  //  > Länge 1 
   UT2D_vc_setLength (&vc1, vc1i, 1.);
   UT2D_vc_setLength (&vc2, vc2i, 1.);
 
-  // printf("UT2D_angr_2vc vc1=%f,%f\n",vc1.dx,vc1.dy);
+  // printf("UT2D_angr_2vc_ccw vc1=%f,%f\n",vc1.dx,vc1.dy);
   // printf("              vc2=%f,%f\n",vc2.dx,vc2.dy);
 
 
-  /*  Check for 180 Grad */
-  if((UTP_comp_0(vc1.dx+vc2.dx))&&(UTP_comp_0(vc1.dy+vc2.dy))) {
-    /* TX_Print(" 180 Grad!"); */
-    return RAD_180;
-  }
-
-
-  //  Skalarprodukt = Winkel; pos im Q1 & 3.
-  angr = acos(UT2D_acos_2vc (&vc1, &vc2));
-    // printf(" angr=%f\n",angr);
-
-
-  //  oben - unten mit Z-Vektor; neg wenn vc2 > 180 deg (vc1=X-achse)
-  // liefert von 0 bis 180 rad normal;
-  // ab 180 Grad werden negative Werte geliefert,
-  // aber als rest auf 360 Grad. Also kommt bei 190 Grad -170!
-    // printf(" Xprod=%f\n",UT2D_crossprod_2vc(&vc1, &vc2));
-  // if (UT2D_crossprod_2vc(&vc1, &vc2) < 0.)  angr = RAD_360 - angr;
-  if (UT2D_sar_2vc(&vc1, &vc2) < 0.)  angr = RAD_360 - angr;
-
-  // printf("ex UT2D_angr_2ln %f\n",angr);
-
-  return angr;
+  return UT2D_angr_2vcn_ccw (&vc1, &vc2);
 
 }
 
 
 //===========================================================================
-  double UT2D_angr_3ptdr (Point2 *pa, Point2 *pe, Point2 *pc, int dreh) {
+  double UT2D_angr_3pt_sr (Point2 *ps, Point2 *pe, Point2 *pc, int sri) {
 //===========================================================================
 /// DO NOT USE; use UT2D_angr_ci
-// UT2D_angr_3ptdr        Öffnungswinkel von 2 Vektoren entsprechend Umlaufsinn
-// dreh: CW od CCW
-// 
-// Den Öffnungswinkel von 2 Vektoren (Kreis) entsprechend Umlaufsinn errechnen;
-// Der Winkel ist immer positiv !
+// UT2D_angr_3pt_sr        get angle between 3 points with sense of rot
+// Input: 
+//   sri       sense-of-rotation; CW (-1) or CCW (1)
+// Output:
+//   retcod    angle according sense-of-rotation; always positiv
+//
 
+  int      sr;
+  double   ao;
+  Vector2  vc1, vc2;
+  
+  sr = (sri > 0) ? 0 : 1;     // change to 0=CCW; 1=CW;
 
-  double  wa, we, wd;
-
-
-  wa = UT2D_angr_ptpt (pc, pa);
-  we = UT2D_angr_ptpt (pc, pe);
-
-
-  /*  Befindet sich Winkel w1 zwischen Winkel wa und we ?? */
-  if(dreh == CCW) {
-
-    while (we < wa)  { we += RAD_360; }
-    wd = we - wa;
-
-
+  if(sr) {
+    UT2D_vc_2pt (&vc1, pc, pe);
+    UT2D_vc_2pt (&vc2, pc, ps);
   } else {
-    while (wa < we)  { wa += RAD_360; }
-    wd = wa - we;
-
+    UT2D_vc_2pt (&vc1, pc, ps);
+    UT2D_vc_2pt (&vc2, pc, pe);
   }
 
+  //  > Länge 1 
+  UT2D_vc_setLength (&vc1, &vc1, 1.);
+  UT2D_vc_setLength (&vc2, &vc2, 1.);
 
-  // printf("ex UT2D_angr_3ptdr %f %f %f\n",wd,wa,we);
+  // compute angle 
+  ao = UT2D_angr_2vcn_ccw (&vc1, &vc2); 
 
-  return wd;
+  // if(sr) ao *= -1;
+
+    // printf("ex-UT2D_ao %f / %f\n",ao,UT_DEGREES(ao));
+
+  return ao;
 
 }
 
@@ -1650,10 +1652,10 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2 vcp, vcl, vae, vec;
 
   // printf("------------------------------------- \n");
-  // printf("UT2D_lenq_ck_pt_ln distq=%f\n",distq);
-  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
-  // UT3D_stru_dump (Typ_PT2, pb, "  pe");
-  // UT3D_stru_dump (Typ_PT2, px, "  px");
+  printf("UT2D_lenq_ck_pt_ln distq=%f\n",distq);
+  DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  DEB_dump_obj__ (Typ_PT2, pb, "  pe");
+  DEB_dump_obj__ (Typ_PT2, px, "  px");
 
 
   UT2D_vc_2pt (&vcp, pa, px);
@@ -1706,7 +1708,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
     UT2D_vc_sub2vc (&vec, &vcp, &vae);
 
     dq = UT2D_skp_2vc (&vec, &vec);
-      // printf(" -dq3= %f\n",dq);
+      printf(" -dq3= %f\n",dq);
     if(dq <= distq) return -3;
   }
 
@@ -1735,9 +1737,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double  d1, dx, dy;
 
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_len_ptln  pt");
-  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
-  // UT3D_stru_dump (Typ_PT2, pe, "  pe");
+  // DEB_dump_obj__ (Typ_PT2, pt, "UT2D_len_ptln  pt");
+  // DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  // DEB_dump_obj__ (Typ_PT2, pe, "  pe");
 
 
   irc = UT2D_3len_ptln (&d1, &dx, &dy, pt, pa, pe);
@@ -1776,9 +1778,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2 vl, vp;
 
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_3len_ptln  pt");
-  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
-  // UT3D_stru_dump (Typ_PT2, pe, "  pe");
+  // DEB_dump_obj__ (Typ_PT2, pt, "UT2D_3len_ptln  pt");
+  // DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  // DEB_dump_obj__ (Typ_PT2, pe, "  pe");
 
 
 
@@ -1851,13 +1853,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
 
 //====================================================================
-  int UT2D_slenq_ptptvc (double *qlen,
+  int UT2D_slenq_3pt (double *qlen,
                          Point2 *pa, Point2 *pb, Point2 *pc) {
 //====================================================================
 /// \code
-/// UT2D_slenq_ptptvc         signed quadr.Distance pt-pt in Richtung vec
+/// UT2D_slenq_3pt         signed quadr.Distance pt-pt in Richtung vec
 /// pa - pb gives a line, pc is projected onto this line, giving e.
-/// Returns the quadr. length pa - e.
+/// Returns qlen = the quadr. length pa - e.
 ///
 ///             pc
 ///              |
@@ -1880,9 +1882,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2   vab, vac, vae;
 
 
-  // UT3D_stru_dump (Typ_PT2, pa, "  pa");
-  // UT3D_stru_dump (Typ_PT2, pb, "  pb");
-  // UT3D_stru_dump (Typ_PT2, pc, "  pc");
+  // DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  // DEB_dump_obj__ (Typ_PT2, pb, "  pb");
+  // DEB_dump_obj__ (Typ_PT2, pc, "  pc");
 
 
   UT2D_vc_2pt (&vab, pa, pb);           // vab = Vector a-b
@@ -1966,9 +1968,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double  d1;
   Vector2 v1, v2;
 
-  // UT3D_stru_dump (Typ_PT2, p1, "UT2D_slen_nor3pt");
-  // UT3D_stru_dump (Typ_PT2, p2, "             p2 ");
-  // UT3D_stru_dump (Typ_PT2, p3, "             p3 ");
+  // DEB_dump_obj__ (Typ_PT2, p1, "UT2D_slen_nor3pt");
+  // DEB_dump_obj__ (Typ_PT2, p2, "             p2 ");
+  // DEB_dump_obj__ (Typ_PT2, p3, "             p3 ");
 
 
 
@@ -2012,11 +2014,11 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double   sk;
   Vector2  v2;
 
-  // UT3D_stru_dump (Typ_VC2, v1, "UT2D_slen_nor_2pt_vcNo\n");
+  // DEB_dump_obj__ (Typ_VC2, v1, "UT2D_slen_nor_2pt_vcNo\n");
 
   // Vec v2 = p1 -> p2 (UT2D_vc_2pt)
   UT2D_vc_2pt (&v2, p1, p2);
-  // UT3D_stru_dump (Typ_VC2, &v2, "");
+  // DEB_dump_obj__ (Typ_VC2, &v2, "");
 
   sk = v1->dx * v2.dy - v1->dy * v2.dx;
   // printf(" sk=%f\n",sk);
@@ -2031,7 +2033,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //========================================================================
 /// \code
 /// UT2D_slen_nor2vc          signed length of normal of 2 vectors
-/// If v1 = normalized use UT2D_slen_nor_vc_vcNo.
+/// If v1 = normalized use UT2D_slenq_nor_2vc.
 ///            x
 ///           /|
 ///          / |
@@ -2049,9 +2051,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   double  d1;
 
-  // UT3D_stru_dump (Typ_PT2, p1, "UT2D_slen_nor2vc");
-  // UT3D_stru_dump (Typ_PT2, p2, "             p2 ");
-  // UT3D_stru_dump (Typ_PT2, p3, "             p3 ");
+  // DEB_dump_obj__ (Typ_PT2, p1, "UT2D_slen_nor2vc");
+  // DEB_dump_obj__ (Typ_PT2, p2, "             p2 ");
+  // DEB_dump_obj__ (Typ_PT2, p3, "             p3 ");
 
   // d1 = Laenge(v1)
   d1 = sqrt(v1->dx*v1->dx + v1->dy*v1->dy);
@@ -2074,10 +2076,10 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 }
 
 //========================================================================
-  int UT2D_slen_nor_vc_vcNo (double *slen, Vector2 *v1, Vector2 *v2) {
+  int UT2D_slenq_nor_2vc (double *slen, Vector2 *v1, Vector2 *v2) {
 //========================================================================
 /// \code
-/// UT2D_slen_nor_vc_vcNo     signed length of normal of 2 vectors (1 normalized)
+/// UT2D_slenq_nor_2vc     signed length of normal of 2 vectors (1 normalized)
 /// v1 must be normalized     (else slen /= length_of_V1)
 /// see also UT2D_slen_nor_2pt_vcNo UT2D_slen_nor2vc
 ///            x
@@ -2097,13 +2099,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   Vector2 nv2;
 
-  // UT3D_stru_dump (Typ_PT2, p1, "UT2D_slen_nor2vc");
-  // UT3D_stru_dump (Typ_PT2, p2, "             p2 ");
-  // UT3D_stru_dump (Typ_PT2, p3, "             p3 ");
+  // DEB_dump_obj__ (Typ_PT2, p1, "UT2D_slen_nor2vc");
+  // DEB_dump_obj__ (Typ_PT2, p2, "             p2 ");
+  // DEB_dump_obj__ (Typ_PT2, p3, "             p3 ");
 
   *slen = v1->dx * v2->dy - v1->dy * v2->dx;
 
-    // printf("ex UT2D_slen_nor_vc_vcNo %f\n",d1);
+    // printf("ex UT2D_slenq_nor_2vc %f\n",d1);
 
   return 0;
 
@@ -2252,7 +2254,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 /// \code
 /// UT2D_nlenq_2vc            give quadr.Distance from vec on vec (point to line)
 /// pa - pb gives a line, pc is projected onto this line, giving e.
-/// Returns the qadr.length pc - e.
+/// Returns the qadr.length pc - e, unsigned.
 ///
 ///           pc
 ///           /|
@@ -2260,6 +2262,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 ///       /    |qlen
 ///     /      |
 ///    pa------+-------pb
+///            pe
 ///           vab
 /// -  0      0.5      1.0     1.5
 /// \endcode
@@ -2282,6 +2285,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
   UT2D_vc_sub2vc (&vec, vac, &vae);
 
+  // vc * vc = quadratic-length
   *qlen = UT2D_skp_2vc (&vec, &vec);
 
     // printf("ex UT2D_nlenq_3pt %f\n",*qlen);
@@ -2354,108 +2358,139 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 }
 
 
-//=======================================================================
-  int UT2D_angr_2vc_sr (double *ao, Vector2 *vc1, Vector2 *vc2, int sr) {
-//=======================================================================
+//==========================================================================
+  double UT2D_angr_ci (Point2 *ps, Point2 *pe, Point2 *pc, double rad_in) {
+//==========================================================================
 /// \code
-/// UT2D_angr_2vc_sr        get opening angle of 2 vectors with sense of rot
+///
+/// UT2D_angr_ci              openingAngle of circle (ps,pe,pc,rad/dreh)
+///   sign of rad_in gives the sense-of-rotation; pos. = CCW; neg = CW
+///   pc-ps and pc-pe must have length fabs(rad_in)
 /// Input:
-///   sr      1=CCW; else CW
+///   ps,pe,pc  startpoint, endpoint, centerpoint of circle
+///   rad_in    radius; negativ for CW-circles !
+/// Output:
+///   retcod    openingAngle corresponding to sense-of-rotation; negativ for CW.
 /// \endcode
 
 
-  if(sr > 0) { // CCW
-    *ao = UT2D_angr_2vc (vc1, vc2);
+  int      sr;
+  double   ao, dr;
+  Vector2  vc1, vc2;
 
-  } else {     // CW
-    *ao = UT2D_angr_2vc (vc2, vc1) * -1.;
+
+  // DEB_dump_obj__ (Typ_PT2, ps, "UT2D_angr_ci - ps r = %f",rad_in);
+  // DEB_dump_obj__ (Typ_PT2, pe, "             - pe");
+  // DEB_dump_obj__ (Typ_PT2, pc, "             - pc");
+
+
+  sr = DLIM01(rad_in);   // 0 if (rad >= 0.) = CCW; 1 if (rad < 0.) > = CW
+
+  if(sr) {
+    UT2D_vc_2pt (&vc1, pc, pe);
+    UT2D_vc_2pt (&vc2, pc, ps);
+  } else {
+    UT2D_vc_2pt (&vc1, pc, ps);
+    UT2D_vc_2pt (&vc2, pc, pe);
   }
-    printf("ex UT2D_angr_2vc_sr %lf\n",*ao);
 
-  return 0;
+
+  // make length = 1
+  dr = fabs(rad_in);
+  UT2D_vc_div_d (&vc1, &vc1, dr);
+  UT2D_vc_div_d (&vc2, &vc2, dr);
+    // DEB_dump_obj__ (Typ_VC2, &vc1, "    vc1");
+    // DEB_dump_obj__ (Typ_VC2, &vc2, "    vc2");
+
+  // compute angle 
+  ao = UT2D_angr_2vcn_ccw (&vc1, &vc2);
+
+  if(sr) ao *= -1;
+
+    // printf("ex-UT2D_ao %f / %f\n",ao,UT_DEGREES(ao));
+
+  return ao;
 
 }
 
 
-//======================================================================
-  double UT2D_angr_ci (Point2 *pa,Point2 *pe,Point2 *pc,double rad_in) {
-//======================================================================
+//==========================================================================
+  double UT2D_angr_2vcn_ccw (Vector2 *vc1, Vector2 *vc2) {
+//==========================================================================
 /// \code
 ///
-/// UT2D_angr_ci              openingAngle of circle (pa,pe,pc,rad/dreh)
-/// 
-/// Der Winkel ist bei CW-Kreisen immer negativ (-360 - 0 - 360).
-/// 
-/// 
-/// Achtung: rad gibt auch die Drehrichtung !
-///   CCW = rad > 0 ;
-///   CW  = rad < 0 ;
+/// UT2D_angr_2vcn_ccw              openingAngle of 2 vectors of length 1 (CCW)
+///   pc-ps and pc-pe must have length fabs(rad_in)
+/// Output:
+///   retcod    openingAngle between the 2 vectors CCW
 /// \endcode
 
-/*
-  Point2 p1={5,0}, p2={4,3}, pc={0,0}; double rd=5; // CCW 0 / 36 (36)
-  Point2 p1={5,-0.1}, p2={4,-3}, pc={0,0}; double rd=5; // CCW 1-324
-  Point2 p1={5,0}, p2={0,5}, pc={0,0}; double rd=5; // CCW 0 / 90 (90)
-  Point2 p1={-4,-3}, p2={4,-3}, pc={0,0}; double rd=5; // CCW 230 / 330 (106)
-  Point2 p1={5,0}, p2={-4,3}, pc={0,0}; double rd=5; // CCW 0 / 143  (143)
-  Point2 p1={5,0}, p2={-4,-3}, pc={0,0}; double rd=5; // CCW 0 / 216 (216)
 
-  Point2 p1={5,0.1}, p2={4,3}, pc={0,0}; double rd=-5; // CW 0 / 36 (-323)
-  Point2 p1={5,0}, p2={0,5}, pc={0,0}; double rd=-5; // CW 0 / 90 (-270)
-  Point2 p1={5,0}, p2={-4,3}, pc={0,0}; double rd=-5; // CW 0 / 143 (-216)
-  Point2 p1={5,0}, p2={-4,-3}, pc={0,0}; double rd=-5; // CW 0 / 216 (-143)
-  Point2 p1={-4,-3}, p2={4,-3}, pc={0,0}; double rd=-5; // CW 230 / 330 (-253)
-  Point2 p1={-3,4}, p2={3,4}, pc={0,0}; double rd=-5;   //  CW 230 / 60
+  double   ao, d1, s_ci1_c2, sar;
 
-  Point2 p1={5,0}, p2={-5,0}, pc={0,0}; double rd=-5; //  180 / -180
-  Point2 p1={5,0}, p2={5,0}, pc={0,0}; double rd=5; // 360 / -360
-
-  ao = UT2D_angr_ci (&p1,&p2,&pc, rd);
+     
+  // DEB_dump_obj__ (Typ_PT2, ps, "UT2D_angr_ci - ps r = %f",rad_in);
+  // DEB_dump_obj__ (Typ_PT2, pe, "             - pe");
+  // DEB_dump_obj__ (Typ_PT2, pc, "             - pc");
 
 
-*/
+  //  Check for 360 deg
+  d1 = UT_TOL_min1;
+  if((fabs(vc1->dx-vc2->dx) < d1)&&(fabs(vc1->dy-vc2->dy) < d1)) {
+      // printf("--360-deg-circ\n");
+    ao = RAD_360;
+    goto L_exit;
+  } 
 
-  double   ao;
-  Vector2  vc1, vc2;
-
-
-  // printf("UT2D_angr_ci pa=%f,%f pe=%f,%f\n",pa->x,pa->y,pe->x,pe->y);
-  // printf("             pc=%f,%f r=%f\n",pc->x,pc->y,rad_in);
-
-
-
-  if((UTP_compdb0(pa->x-pe->x,UT_TOL_pt))    &&
-     (UTP_compdb0(pa->y-pe->y,UT_TOL_pt))) {
-    // printf("Vollkreis\n");
-    if(rad_in > 0.) ao = RAD_360;
-    else ao = -RAD_360;
-    goto Fertig;
+    
+  //  Check for 180 deg
+  if((fabs(vc1->dx+vc2->dx) < d1)&&(fabs(vc1->dy+vc2->dy) < d1)) {
+      // printf("--180-deg-circ d1=%f\n",d1);
+    ao = RAD_180;
+    goto L_exit;
   }
 
 
+  //----------------------------------------------------------------
+  // get CCW-angle vc1-vc2
 
-  UT2D_vc_2pt (&vc1, pc, pa);
-  UT2D_vc_2pt (&vc2, pc, pe);
+  //  Skalarprodukt = pos in Q1 & Q4.
+  s_ci1_c2 = UT2D_skp_2vc (vc1, vc2);
+    // printf(" s_ci1_c2 = %f\n",s_ci1_c2);
+
+  sar = UT2D_sar_2vc (vc1, vc2);
+    // printf(" sar = %f\n",sar);
+
+  if(fabs(sar) > 0.5) {
+    ao = acos(s_ci1_c2);
+      // printf(" acos %f %f\n",ao,UT_DEGREES(ao));
+    // 45-135 
+    // 225-315
+    if(sar < 0.) ao = RAD_360 - ao;
 
 
-  /* TX_Print("     vc1=%f,%f",vc1.dx,vc1.dy); */
-  /* TX_Print("     vc2=%f,%f",vc2.dx,vc2.dy); */
+  } else {
+    ao = asin(sar);
+      // printf(" asin %f %f\n",ao,UT_DEGREES(ao));
+    if(s_ci1_c2 < 0.) {
+      // left side only
+      // 135-225:
+         ao = RAD_180 - ao;   // 180-225
 
-
-
-  /*  ao = Oeffnungswinkel - see UT2D_angr_2vc_sr */
-  if(rad_in > 0.) {
-    ao  = UT2D_angr_2vc (&vc1, &vc2);
-  } else  {
-    ao  = UT2D_angr_2vc (&vc2, &vc1);
-    ao = -ao;
+    } else {
+      // right side only
+      // 315-45
+      if(sar < 0.) ao = RAD_360 + ao;   // right side, below: 315-0
+      // right side, above - 0-45 OK
+    }
   }
-    // printf("  ao=%f %f\n",ao,UT_DEGREES(ao));
+
+    // printf(" i1-ao = %f %f\n",ao,UT_DEGREES(ao));
 
 
-  Fertig:
+  L_exit:
 
-    // printf("ex UT2D_angr_ci %f / %f\n",ao,UT_DEGREES(ao));
+    // printf("ex-UT2D_angr_2vcn_ccw %f / %f\n",ao,UT_DEGREES(ao));
 
   return ao;
 
@@ -2708,13 +2743,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2  vp;
 
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
-  // UT3D_stru_dump (Typ_PT2, pl, "  pl");
-  // UT3D_stru_dump (Typ_VC2, vl, "  vl");
+  // DEB_dump_obj__ (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
+  // DEB_dump_obj__ (Typ_PT2, pl, "  pl");
+  // DEB_dump_obj__ (Typ_VC2, vl, "  vl");
 
 
   UT2D_vc_2pt (&vp, pl, pt);
-    // UT3D_stru_dump (Typ_VC2, &vp, "  vp");
+    // DEB_dump_obj__ (Typ_VC2, &vp, "  vp");
 
   d1 = vl->dx * vp.dy - vp.dx * vl->dy;
     // printf(" d1=%f\n",d1);
@@ -2745,12 +2780,12 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   Vector2  vp;
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
-  // UT3D_stru_dump (Typ_PT2, pl, "  pl");
-  // UT3D_stru_dump (Typ_VC2, vl, "  vl");
+  // DEB_dump_obj__ (Typ_PT2, pt, "UT2D_sid_ptvc__ pt");
+  // DEB_dump_obj__ (Typ_PT2, pl, "  pl");
+  // DEB_dump_obj__ (Typ_VC2, vl, "  vl");
 
   UT2D_vc_2pt (&vp, pl, pt);
-    // UT3D_stru_dump (Typ_VC2, &vp, "  vp");
+    // DEB_dump_obj__ (Typ_VC2, &vp, "  vp");
 
   return UT2D_sid_2vc_tol (vl, &vp, tol);
 
@@ -2987,22 +3022,23 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //=========================================================================
-  void UT2D_pt_traPtPtPar (Point2 *po, Point2 *p1, Point2 *p2, double d1) {
+  void UT2D_pt_tra_pt_pt_par (Point2 *po, Point2 *p1, Point2 *p2, double d1) {
 //=========================================================================
 /// \code
-/// UT2D_pt_traPtPtPar      transl. pt with parameter along p1-p2
+/// UT2D_pt_tra_pt_pt_par      transl. pt with parameter along p1-p2
 ///
+/// see UT3D_pt_tra_pt_pt_par
 /// see UT3D_pt_evpar2pt UT3D_vc_multvc UT2D_pt_traptvc
 /// \endcode
 
-  // printf("UT2D_pt_traPtPtPar %f\n",d1);
-  // UT3D_stru_dump (Typ_PT2, p1, " p1");
-  // UT3D_stru_dump (Typ_PT2, p2, " p2");
+  // printf("UT2D_pt_tra_pt_pt_par %f\n",d1);
+  // DEB_dump_obj__ (Typ_PT2, p1, " p1");
+  // DEB_dump_obj__ (Typ_PT2, p2, " p2");
 
   po->x = p1->x + (d1 * (p2->x - p1->x));
   po->y = p1->y + (d1 * (p2->y - p1->y));
 
-    // UT3D_stru_dump (Typ_PT2, po, "ex UT2D_pt_traPtPtPar ");
+    // DEB_dump_obj__ (Typ_PT2, po, "ex UT2D_pt_tra_pt_pt_par ");
 
   return;
 
@@ -3131,6 +3167,33 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //========================================================================
+  void UT2D_pt_tra_pt_2vc_2par (Point2 *po, Point2 *pi,
+                                Vector2 *vc1, double l1,
+                                Vector2 *vc2, double l2) {
+//========================================================================
+/// \code
+/// UT2D_pt_tra_pt_2vc_2par   transl. point into 2 directions
+/// distance = vc. * l. (real dist if vc has length=1)
+/// po, pi can have same address.
+/// retour: UT3D_2par_vc_vcx_vcy
+/// \endcode
+
+
+  // DEB_dump_obj__ (Typ_PT, pi, "UT3D_pt_tra_pt_2vc_2par: ");
+  // DEB_dump_obj__ (Typ_VC, vc1, "    vc1:");
+  // DEB_dump_obj__ (Typ_VC, vc2, "    vc2:");
+
+  po->x = pi->x + (vc1->dx * l1) + (vc2->dx * l2);
+  po->y = pi->y + (vc1->dy * l1) + (vc2->dy * l2);
+
+  // printf("ex UT3D_pt_tra_pt_2vc_2par %lf %lf %lf\n",po->x,po->y,po->z);
+  // printf("                %f %f %f\n",pi->x,pi->y,pi->z);
+  // printf("                %f %f %f %f\n",vc->dx,vc->dy,vc->dz,lenv);
+
+}
+
+
+//========================================================================
   void UT2D_pt_traptangrlen (Point2 *po,Point2 *pi,double ar,double lenv) {
 //========================================================================
 /// UT2D_pt_traptangrlen      move point; direction from angle, distance=lenv
@@ -3232,14 +3295,18 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //======================================================================
-  void UT2D_pt_tracirlen(Point2 *pe, Point2 *pa, Point2 *pc,
-                         double rad, double clen) {
+  void UT2D_pt_tra_pt_ci_len (Point2 *pe, Point2 *pa, Point2 *pc,
+                              double rad, double clen) {
 //======================================================================
 /// \code
-/// UT2D_pt_tracirlen         transl. point circular length
-///
-/// rad  = Radius; Pos.Val = CCW; neg.Val =CW.
-/// clen = arcLenght
+/// UT2D_pt_tra_pt_ci_len         transl. point circular length
+/// Input:
+///   rad    Radius; Pos.Val = CCW; neg.Val =CW.
+///   clen   arcLenght, pos = fwd,  neg = bwd
+///   pa     point to rotate around pc
+///   pc     center of circle
+/// Output:
+///   pe     pa moved <clen> units around pc
 /// \endcode
 
 
@@ -3247,12 +3314,12 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   double   ao;
 
 
-  /*  Oeffnungswinkel */
+  //  angle to move
   ao = clen/rad;
 
   UT2D_pt_rotptangr (pe, pc, pa, ao);
 
-  /* TX_Print(" ex UT2D_pt_tracirlen %f,%f oe=%f",pe->x,pe->y,ao); */
+  /* TX_Print(" ex UT2D_pt_tra_pt_ci_len %f,%f oe=%f",pe->x,pe->y,ao); */
 
   return;
 
@@ -3291,6 +3358,87 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 }
 
 
+//===========================================================================
+  int UT2D_pt_rot_90_ccw_2pt (Point2 *po, Point2 *pc, Point2 *p1) {
+//===========================================================================
+/// \code
+/// UT2D_pt_rot_90_ccw_2pt      rotate p1 90 deg CCW around pc
+/// \endcode
+
+
+  double  dx;
+
+
+  dx = p1->x - pc->x;
+
+  po->x = pc->x - p1->y + pc->y;
+  po->y = pc->y + dx;
+
+  return 0;
+
+}
+
+
+//===========================================================================
+  int UT2D_pt_rot_90_cw_2pt (Point2 *po, Point2 *pc, Point2 *p1) {
+//===========================================================================
+/// \code
+/// UT2D_pt_rot_90_cw_2pt      rotate p1 90 deg CW around pc
+/// \endcode
+
+
+  double  dx;
+
+
+  dx = p1->x - pc->x;
+
+  po->x = pc->x + p1->y - pc->y;
+  po->y = pc->y - dx;
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT2D_pt_rot90_ci_pt (Point2 *pto, Point2 *pc, Point2 *px, int sr) {
+//=======================================================================
+// UT2D_pt_rot90_ci_pt           rotate point px 90 deg around pc
+// Input:
+//   sr     sense-of-rotation; 0=CCW, 1=CW
+
+  Vector2  vc1;
+  
+  
+  // cv1 = normal to pc - px
+  UT2D_vc_perp2pt (&vc1, pc, px);
+
+  if(sr) UT2D_vc_invert (&vc1, &vc1);
+
+  // pto = pc + vc1
+  UT2D_pt_traptvc (pto, pc, &vc1);
+  
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT2D_pt_rot180_ci_pt (Point2 *pto, Point2 *pc, Point2 *px) {
+//=======================================================================
+// UT2D_pt_rot180_ci_pt           rotate point px 180 deg around pc
+  
+  Vector2  vc1;
+
+  UT2D_vc_2pt (&vc1, pc, px);
+  UT2D_vc_invert (&vc1, &vc1);
+  UT2D_pt_traptvc (pto, pc, &vc1);
+
+  return 0;
+
+}
+
+
 //=========================================================================
   int UT2D_par_2vc (double *pl, Vector2 *v1, Vector2 *v2) {
 //=========================================================================
@@ -3316,9 +3464,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   double  Det, dd;
 
 
-  Det = v2->dx * v2->dx + v2->dy * v2->dy;
+  Det = v2->dx * v2->dx + v2->dy * v2->dy;    // UT2D_skp_2vc
 
-  if(Det == 0.0) {
+  if(Det < UT_TOL_min2) {
     // printf("UT3D_parvc_2vc - No solution!\n");
     *pl = 0.;
     return -1;
@@ -3356,7 +3504,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 ///    0  OK
 ///   -1  v1-v2 aufeinander Normal; pl = 0.
 ///
-/// see also UT3D_parpt_3pt
+/// see also UT3D_par_pt_2pt
 /// \endcode
 
 
@@ -3415,9 +3563,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 
-  // UT3D_stru_dump (Typ_PT2, pt, "UT2D_pt_projpt2pt");
-  // UT3D_stru_dump (Typ_PT2, p1, "    p1:");
-  // UT3D_stru_dump (Typ_PT2, p2, "    p2:");
+  // DEB_dump_obj__ (Typ_PT2, pt, "UT2D_pt_projpt2pt");
+  // DEB_dump_obj__ (Typ_PT2, p1, "    p1:");
+  // DEB_dump_obj__ (Typ_PT2, p2, "    p2:");
   // printf("   UT_TOL_min1=%f\n",UT_TOL_min1);
   // printf("   UT_TOL_pt=%f\n",UT_TOL_pt);
 
@@ -3426,7 +3574,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   // vp = linstartpoint > ext.point
   UT2D_vc_2pt (&vp, p1, pt);
-    // UT3D_stru_dump (Typ_VC2, &vp, "    vp:");
+    // DEB_dump_obj__ (Typ_VC2, &vp, "    vp:");
 
   // length of Line
   lenl = UT2D_len_vc (&vl);
@@ -3449,7 +3597,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // compute prjPt on p1+vector
   pp->x = p1->x + (vl.dx * sprod);
   pp->y = p1->y + (vl.dy * sprod);
-    // UT3D_stru_dump (Typ_PT2, pp, "    pp:");
+    // DEB_dump_obj__ (Typ_PT2, pp, "    pp:");
 
 
   // signed Normalabstand
@@ -3596,7 +3744,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   pto->y = yVal;
 
 
-  // UT3D_stru_dump (Typ_PT2, pto, "ex UT2D_pt_intptvcy:  ");
+  // DEB_dump_obj__ (Typ_PT2, pto, "ex UT2D_pt_intptvcy:  ");
   // GR_Disp_pt2 (pto, SYM_STAR_S, 0);
 
   return 0;
@@ -3624,7 +3772,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 //     UT2D_pt_2db (&p1, 0., 0.);
 //     UT2D_pt_2db (&p2, 10., 10.);
 //     irc = UT2D_pt_intlny (&p0, &p1, &p2, 0., UT_TOL_min1);
-//       UT3D_stru_dump(Typ_PT, &p0, "irc=%d",irc);
+//       DEB_dump_obj__(Typ_PT, &p0, "irc=%d",irc);
 
 
 
@@ -3664,7 +3812,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                                (lp2->x - lp1->x));
    pto->y = yVal;
 
-    // UT3D_stru_dump (Typ_PT2, pto, "ex UT2D_pt_intlny:  ");
+    // DEB_dump_obj__ (Typ_PT2, pto, "ex UT2D_pt_intlny:  ");
 
   return 0;
 
@@ -3692,7 +3840,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 //     UT2D_pt_2db (&p1, 0., 0.);
 //     UT2D_pt_2db (&p2, 10., 10.);
 //     irc = UT2D_pt_intlnx (&p0, &p1, &p2, 0., UT_TOL_min1);
-//       UT3D_stru_dump(Typ_PT, &p0, "irc=%d",irc);
+//       DEB_dump_obj__(Typ_PT, &p0, "irc=%d",irc);
 
 
 
@@ -3733,7 +3881,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                                (lp2->x - lp1->x));
 
 
-  // UT3D_stru_dump (Typ_PT2, pto, "ex UT2D_pt_intlnx:  ");
+  // DEB_dump_obj__ (Typ_PT2, pto, "ex UT2D_pt_intlnx:  ");
   return 0;
 
 }
@@ -3825,9 +3973,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   UT2D_vc_2pt (&vab, pa, pb);
   UT2D_vc_2pt (&vcd, pc, pd);
   UT2D_vc_2pt (&vac, pa, pc);
-    // UT3D_stru_dump(Typ_VC2, &vab," vab ");
-    // UT3D_stru_dump(Typ_VC2, &vcd," vcd ");
-    // UT3D_stru_dump(Typ_VC2, &vac," vac ");
+    // DEB_dump_obj__(Typ_VC2, &vab," vab ");
+    // DEB_dump_obj__(Typ_VC2, &vcd," vcd ");
+    // DEB_dump_obj__(Typ_VC2, &vac," vac ");
 
 
   q1 = vab.dy * vcd.dx;
@@ -4045,10 +4193,10 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   //printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
 
 
-  // UT3D_stru_dump(Typ_PT2, p1," p1 ");
-  // UT3D_stru_dump(Typ_PT2, p2," p2 ");
-  // UT3D_stru_dump(Typ_PT2, p3," p3 ");
-  // UT3D_stru_dump(Typ_PT2, p4," p4 ");
+  // DEB_dump_obj__(Typ_PT2, p1," p1 ");
+  // DEB_dump_obj__(Typ_PT2, p2," p2 ");
+  // DEB_dump_obj__(Typ_PT2, p3," p3 ");
+  // DEB_dump_obj__(Typ_PT2, p4," p4 ");
 
 
   //==================================================================
@@ -4084,9 +4232,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   UT2D_vc_2pt (&vcs, p1, p3);
 
 
-  // UT3D_stru_dump(Typ_VC2, &vc1," vc1 ");
-  // UT3D_stru_dump(Typ_VC2, &vc2," vc2 ");
-  // UT3D_stru_dump(Typ_VC2, &vcs," vcs ");
+  // DEB_dump_obj__(Typ_VC2, &vc1," vc1 ");
+  // DEB_dump_obj__(Typ_VC2, &vc2," vc2 ");
+  // DEB_dump_obj__(Typ_VC2, &vcs," vcs ");
 
 
   q1 = vc1.dy * vc2.dx;
@@ -4360,8 +4508,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
   printf("UT2D_pt_intlnln %d %d\n",ln1Mode,ln2Mode);
-    UT3D_stru_dump(Typ_LN2, ln1, "");
-    UT3D_stru_dump(Typ_LN2, ln2, "");
+    DEB_dump_obj__(Typ_LN2, ln1, "");
+    DEB_dump_obj__(Typ_LN2, ln2, "");
 
 
   irc2 = -1;
@@ -4431,24 +4579,27 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 //================================================================
-  int UT2D_2par_int2pt2vc (double *par1, double *par2,
+  int UT2D_2par_int2pt2vc (double *para,
                           Point2 *pa, Vector2 *vab,
                           Point2 *pc, Vector2 *vcd) {
 //================================================================
 /// \code
-/// UT2D_2par_int2pt2vc     intersect 2 unlimitedLines; gives 2 parameters
+/// UT2D_2par_int2pt2vc     intersect 2 lines; gives 2 parameters
 /// Input:
 ///   pa-vab   Line1 (pa-pb)
 ///   pc-vcb   Line2 (pc-pd)
 /// Output:
-///   par1 = Parameter of IntersectPt auf pa-pb
-///   par2 = Parameter of IntersectPt auf pc-pd
-///   irc = -1 = parallel
-///   irc =  0 = OK;
+///   para[0]  retCode  0: Parameter of IntersectPt auf pa-pb
+///            retCode -1: parameter of pc on Line1 (pa-pb)
+///   para[1]  retCode  0: Parameter of IntersectPt auf pc-pd
+///            retCode -1: parameter of pd on Line1 (pa-pb)
+///   para[2]  retCode -1: quadratic distance of lines
+///   retCode   0  Ok; normal intersection; parameters out in par1, par2
+///            -1  parallel, quadratic offset-distance out in para[2]
 ///
 ///                         d
 ///                        /.
-///                       / .
+///                   vcd / .
 ///                      /  .
 ///                     /   .
 ///                    c    .
@@ -4456,35 +4607,83 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 ///                  . .    .
 ///                 .  .    .
 ///          a-----+---e----f-----------------------b
-///               ip
+///               ip                      vab
 /// \endcode
 
   int       irc;
-  double    s_ab_ab, s_ab_ac, s_ab_cd, s_ac_cd, s_cd_cd, q0, q1, q2;
-  Vector2   vac;  //, vad;
-  Point2    pm1, pm2;
+  double    s_ab_ab, s_ab_ac, s_ab_ad, s_ab_cd, s_ac_cd, s_cd_cd, q0, q1, q2,
+            lq_c_ab, lq_d_ab, pe_ab, pf_ab;
+  Vector2   vac, vad, vae, vaf, vec, vfd;
+  Point2    pd, pm1, pm2;
+
+
 
   // printf("UT2D_2par_int2pt2vc \n");
-  // UT3D_stru_dump (Typ_PT2, pa,  " pa =");
-  // UT3D_stru_dump (Typ_VC2, vab, " vab =");
-  // UT3D_stru_dump (Typ_PT2, pc,  " pc =");
-  // UT3D_stru_dump (Typ_VC2, vcd, " vcd =");
+  // DEB_dump_obj__ (Typ_PT2, pa,  " pa =");
+  // DEB_dump_obj__ (Typ_VC2, vab, " vab =");
+  // DEB_dump_obj__ (Typ_PT2, pc,  " pc =");
+  // DEB_dump_obj__ (Typ_VC2, vcd, " vcd =");
+  // GR_Disp_vc2 (vab, pa, Typ_Att_blue, 1);
+  // GR_Disp_vc2 (vcd, pc, Typ_Att_blue, 1);
 
 
+  //----------------------------------------------------------------
+  UT2D_vc_2pt (&vac, pa, pc);          // vac = Vector a-c
+  UT2D_pt_traptvc (&pd, pc, vcd);      // pd = pc + vcd
+  UT2D_vc_2pt (&vad, pa, &pd);         // vad = Vector a-d
+    // DEB_dump_obj__ (Typ_VC, &vac, " vac =");
+
+  s_ab_ac = UT2D_skp_2vc (vab, &vac);  // gibt Wert fuer e relativ zu s_ab_ab
+  s_ab_ad = UT2D_skp_2vc (vab, &vad);  // gibt Wert fuer f relativ zu s_ab_ab
+  s_ab_ab = UT2D_skp_2vc (vab, vab);   // skp mit sich selbst = Laenge^2
+
+
+  //----------------------------------------------------------------
   // check for lines parallel or antiparallel
-  if (UT2D_comp2vc_p (vab, vcd, UT_TOL_min1)) {
-    //printf("UT3D_pt_int2ln parallel error\n");
+
+  // get lq_c_ab = quadratic distance ptc - vab:
+  // Parameterwert von e zwischen a-b
+  pe_ab = s_ab_ac / s_ab_ab;
+
+  // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
+  UT2D_vc_multvc (&vae, vab, pe_ab);
+
+  // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
+  UT2D_vc_sub2vc (&vec, &vac, &vae);
+
+  // vc * vc = quadratic-length
+  lq_c_ab = UT2D_skp_2vc (&vec, &vec);
+    // printf(" lq_c_ab = %f pe_ab = %f\n",lq_c_ab,pe_ab);
+
+
+  // get lq_d_ab = quadratic distance ptd - vab:
+  // Parameterwert von f zwischen a-b
+  pf_ab = s_ab_ad / s_ab_ab;
+
+  // Multip. des Vektors a-b mit Parameterwert von f ergibt den Vektor a-f
+  UT2D_vc_multvc (&vaf, vab, pf_ab);
+
+  // Subtraktion (Vec-a-d - Vec-a-f) = Vec-f-d
+  UT2D_vc_sub2vc (&vfd, &vad, &vaf);
+
+  // vc * vc = quadratic-length
+  lq_d_ab = UT2D_skp_2vc (&vfd, &vfd);
+    // printf(" lq_d_ab = %f pe_ab = %f\n",lq_d_ab,pf_ab);
+
+
+  // test difference ec - fd
+  if(fabs(lq_c_ab - lq_d_ab) < UT_TOL_min1) {
+      // printf(" PARALLEL\n"); // PARALLEL !
+    para[0] = pe_ab;
+    para[1] = pf_ab;
+    para[2] = lq_c_ab;
     irc = -1;
-    // UT3D_pt_projptptvc (&ip2, dist, p1, p3, &v);
     goto Done;
   }
 
 
-  UT2D_vc_2pt (&vac, pa, pc);           // vac = Vector a-c
-    // UT3D_stru_dump (Typ_VC, &vac, " vac =");
-
-  s_ab_ab = UT2D_skp_2vc (vab, vab);  // skp mit sich selbst = Laenge^2
-  s_ab_ac = UT2D_skp_2vc (vab, &vac);  // gibt Wert fuer e relativ zu s_ab_ab
+  //----------------------------------------------------------------
+  // vectors not parallel ..
   s_ab_cd = UT2D_skp_2vc (vab, vcd);
   s_ac_cd = UT2D_skp_2vc (&vac, vcd);
   s_cd_cd = UT2D_skp_2vc (vcd, vcd);
@@ -4494,22 +4693,16 @@ UT2D_pt_mid2pt                  midpoint between 2 points
     // printf(" s_ac_cd=%f\n",s_ac_cd);
     // printf(" s_cd_cd=%f\n",s_cd_cd);
 
-  // q1 = param vom pi1 auf ab  (zw 0 und 1)
-  // q2 = param vom pi2 auf cd  (zw 0 und 1)
-  // q0 = (s_ab_ab * s_cd_cd) - (s_ab_cd * s_ab_cd);
-  // if(fabs(q0) < UT_TOL_min1) return 1;
-  // *par1 = ((s_ab_ac * s_cd_cd) - (s_ab_cd * s_ac_cd)) / q0;
-  // *par2 = ((s_ab_ac * s_ab_cd) - (s_ab_ab * s_ac_cd))  / q0;
 
   q0 = s_ab_ab * s_cd_cd - s_ab_cd * s_ab_cd;
 
-  if(fabs(q0) < UT_TOL_min2) {irc = -1; goto Done;}
+  // if(fabs(q0) < UT_TOL_min2) {irc = -1; goto Done;}
 
   q1 = (s_ab_ac * s_cd_cd) - (s_ac_cd * s_ab_cd);
 
-  *par1 = q1 / q0;
+  para[0] = q1 / q0;
 
-  *par2 = ((s_ab_cd * (*par1)) - s_ac_cd) / s_cd_cd;
+  para[1] = ((s_ab_cd * para[0]) - s_ac_cd) / s_cd_cd;
 
   irc = 0;
 
@@ -4519,18 +4712,18 @@ UT2D_pt_mid2pt                  midpoint between 2 points
       ip1.x = pa->x + *par1 * vab->dx;
       ip1.y = pa->y + *par1 * vab->dy;
       ip1.z = pa->z + *par1 * vab->dz;
-      UT3D_stru_dump (Typ_PT, &ip1, " ip1 =");
+      DEB_dump_obj__ (Typ_PT, &ip1, " ip1 =");
   
       ip2.x = pc->x + *par2 * vcd->dx;
       ip2.y = pc->y + *par2 * vcd->dy;
       ip2.z = pc->z + *par2 * vcd->dz;
-      UT3D_stru_dump (Typ_PT, &ip2, " ip2 =");
+      DEB_dump_obj__ (Typ_PT, &ip2, " ip2 =");
     }
     // TESTBLOCK:
 */
 
   Done:
-    // printf("ex UT2D_2par_int2pt2vc irc=%d par1=%f par2=%f\n",irc,*par1,*par2);
+    // printf("ex UT2D_2par_int2pt2vc irc=%d par1=%f par2=%f\n",irc,para[0],para[1]);
 
   return irc;
 
@@ -4734,7 +4927,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                                                 Point2 *pl, Vector2 *vl) {
 //==========================================================================
 /// \code
-/// UT2D_2pt_intciptvc        intersect Circle - Line (pt+vc)
+/// UT2D_2pt_intciptvc        intersect Circle - Line (pt+vc); both unlimited
 /// 
 /// ip1 immer jener Punkt, 
 /// 
@@ -4926,8 +5119,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
   // printf("UT2D_2pt_intlnci %d %d\n",lnMode,ciMode);
-    // UT3D_stru_dump(Typ_LN2, ln, "");
-    // UT3D_stru_dump(Typ_CI2, ci, "");
+    // DEB_dump_obj__(Typ_LN2, ln, "");
+    // DEB_dump_obj__(Typ_CI2, ci, "");
 
 
 
@@ -5024,8 +5217,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 /*
   printf("UT2D_2pt_int2ci:\n");
-  UT3D_stru_dump(Typ_CI2, ci1, "   ci1: mode=%d\n",ci1Mode);
-  UT3D_stru_dump(Typ_CI2, ci2, "   ci2: mode=%d\n",ci2Mode);
+  DEB_dump_obj__(Typ_CI2, ci1, "   ci1: mode=%d\n",ci1Mode);
+  DEB_dump_obj__(Typ_CI2, ci2, "   ci2: mode=%d\n",ci2Mode);
 */
 
   irc2 = -1;
@@ -5160,47 +5353,52 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /*=====================================================================*/
 /*=====================================================================*/
 
-
 //======================================================================
-  int UT2D_comp2vc (Vector2 *v1, Vector2 *v2, double tol) {
+  int UT2D_ck_parla_2vc (Vector2 *v1, Vector2 *v2, double tol) {
 //======================================================================
 /// \code
-/// UT2D_comp2vc              compare 2 vectors for parallel and antiparallel
+/// UT2D_ck_parla_2vc          compare 2 vectors for parallel and antiparallel
 /// Vectors must not be normalized.
-/// tol applies to length 1
+/// tol applies to length 1; 0.02 = ~ 1 deg
 /// Returns 1 if parallel=yes, else 0.
-/// if(UT2D_comp2vc(&vc1, &vc2, UT_TOL_pt)) printf("  parallel=yes");
+/// retCode:   0  vectors NOT parallel
+///            1  vectors are parallel
+///            2  vectors are antiparallel
 /// \endcode
 
-  short  i1;
+  int     i1;
   Vector2 vc1, vc2;
 
-  /* same length necessary */
+  // get same length 1.
   UT2D_vc_normalize (&vc1, v1);
   UT2D_vc_normalize (&vc2, v2);
 
   i1 =  (UTP_comp2db (vc1.dx, vc2.dx, tol)) &&
-        (UTP_comp2db (vc1.dy, vc2.dy, tol));
+        (UTP_comp2db (vc1.dy, vc2.dy, tol));    // 1=parallel; 0=not.
 
-  /* TX_Print("ex UT2D_comp2vc %d %f,%f %f,%f",i1,vc1.dx, vc1.dy,vc2.dx, vc2.dy); */
+  if(i1) return 1;
 
-  if (i1) return i1;
 
   UT2D_vc_invert (&vc2, &vc2);
 
-  return ((UTP_comp2db (vc1.dx, vc2.dx, tol)) &&
-          (UTP_comp2db (vc1.dy, vc2.dy, tol)));
+  i1 =  (UTP_comp2db (vc1.dx, vc2.dx, tol)) &&
+        (UTP_comp2db (vc1.dy, vc2.dy, tol));   // 1=parallel; 0=not.
+
+  if(i1) return 2;
+  return 0;
 
 }
 
 
 //======================================================================
-  int UT2D_comp2vc_p (Vector2 *v1, Vector2 *v2, double tol) {
+  int UT2D_ck_parl_2vc (Vector2 *v1, Vector2 *v2, double tol) {
 //======================================================================
 /// \code
-/// UT2D_comp2vc_p            compare 2 vectors for parallel
-/// Compare directions; lenght is normalized (tol applies to length 1)
-/// Returns 1 wenn parallel, else 0.
+/// UT2D_ck_parl_2vc            compare 2 vectors for parallel
+/// Compare directions; vectors must be normalized (length 1)
+/// tol applies to length 1; 0.02 = ~ 1 deg
+/// retCode:   0  vectors NOT parallel
+///            1  vectors are parallel
 /// \endcode
 
   Vector2 vc1, vc2;
@@ -5239,8 +5437,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   double sk;
 
 
-  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc__");
-  // UT3D_stru_dump (Typ_VC, v2, "              ");
+  // DEB_dump_obj__ (Typ_VC, v1, "UT3D_sid_2vc__");
+  // DEB_dump_obj__ (Typ_VC, v2, "              ");
 
   // see UT2D_sar_2vc
   sk = v1->dx * v2->dy - v2->dx * v1->dy;
@@ -5275,8 +5473,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   Vector2 vl, v2l, vr, v2r;
 
 
-  // UT3D_stru_dump (Typ_VC2, v1, "UT2D_sid_2vc_tol");
-  // UT3D_stru_dump (Typ_VC2, v2, "              ");
+  // DEB_dump_obj__ (Typ_VC2, v1, "UT2D_sid_2vc_tol");
+  // DEB_dump_obj__ (Typ_VC2, v2, "              ");
 
   // get vector for tolerance above (left-side)
   UT2D_vcPerpAppr_vc_len (&vl, v1, tol);
@@ -5341,8 +5539,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   int    irc;
   double sk;
 
-  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc");
-  // UT3D_stru_dump (Typ_VC, v2, "              ");
+  // DEB_dump_obj__ (Typ_VC, v1, "UT3D_sid_2vc");
+  // DEB_dump_obj__ (Typ_VC, v2, "              ");
 
   // see UT2D_sar_2vc
   sk = v1->dx * v2->dy - v2->dx * v1->dy;
@@ -5379,8 +5577,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 
-  // UT3D_stru_dump (Typ_VC, v1, "UT3D_sid_2vc");
-  // UT3D_stru_dump (Typ_VC, v2, "              ");
+  // DEB_dump_obj__ (Typ_VC, v1, "UT3D_sid_2vc");
+  // DEB_dump_obj__ (Typ_VC, v2, "              ");
 
 
   sk = v1->dx * v2->dx + v1->dy * v2->dy;
@@ -5410,7 +5608,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_VC2, vc1, "UT2D_ckvc_hori:");
+  // DEB_dump_obj__ (Typ_VC2, vc1, "UT2D_ckvc_hori:");
 
 // test vector for (1,0)
   if((fabs(vc1->dx) > UT_TOL_min0)&&(fabs(vc1->dy) < UT_TOL_min1)) return 0;
@@ -5433,7 +5631,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_VC2, vc1, "UT2D_ckvc_vert:");
+  // DEB_dump_obj__ (Typ_VC2, vc1, "UT2D_ckvc_vert:");
 
 // test vector for (0,1)
   if((fabs(vc1->dx) < UT_TOL_min1)&&(fabs(vc1->dy) > UT_TOL_min0)) return 0;
@@ -5590,6 +5788,7 @@ UT2D_vc_angr            2DVector =  angle (radians)
 //================================================================
   int UT2D_vc_2pt3_bp (Vector2 *vo, Point *p1, Point *p2, int bp) {
 //================================================================
+/// UT2D_vc_2pt3_bp            2D-vector from 2 3D-points on backplane
 /// 2D-Vector = (3D-Point -> 3D-Point) on Backplane
 
   if       (bp == BCKPLN_XY) {         // skip z
@@ -5658,9 +5857,9 @@ UT2D_vc_angr            2DVector =  angle (radians)
 
 
 //================================================================
-  void UT2D_vc_perpvc (Vector2 *vp, Vector2 *vc) {
+  void UT2D_vc_rot_90_ccw (Vector2 *vp, Vector2 *vc) {
 //================================================================
-// UT2D_vc_perpvc            vector = perpendic. to vector ( + 90 degrees)
+// UT2D_vc_rot_90_ccw            vector = perpendic. to vector ( + 90 degrees)
 
 
   double d1;
@@ -5670,7 +5869,7 @@ UT2D_vc_angr            2DVector =  angle (radians)
   vp->dx = -vc->dy;
   vp->dy = d1;
 
-  // printf("UT2D_vc_perpvc %f %f\n",vp->dx,vp->dy);
+  // printf("UT2D_vc_rot_90_ccw %f %f\n",vp->dx,vp->dy);
   // printf("               %f %f\n",vc->dx,vc->dy);
 
 }
@@ -5690,7 +5889,7 @@ UT2D_vc_angr            2DVector =  angle (radians)
   vp->dx = -dy;
   vp->dy = dx;
 
-  // printf("UT2D_vc_perpvc %f %f\n",vp->dx,vp->dy);
+  // printf("UT2D_vc_rot_90_ccw %f %f\n",vp->dx,vp->dy);
   // printf("               %f %f\n",vc->dx,vc->dy);
 
 }
@@ -5745,16 +5944,18 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
 //=====================================================================
-  void UT2D_vc_mid2vc (Vector2 *vm, Vector2 *v1, Vector2 *v2) {
+  void UT2D_vc_mid_2vc__ (Vector2 *vm, Vector2 *v1, Vector2 *v2) {
 //=====================================================================
 /// \code
-/// UT2D_vc_mid2vc            vector = midVector between 2 vectors
+/// UT2D_vc_mid_2vc__            vector = midVector between 2 vectors
+/// Input:
+///   v1, v2    must not have same length.
+/// Output:
+///   vm        midVector; length undefined.
 /// \endcode
 // 
 // VM ist mittig zwischen v1 und v2 (CCW, vom Schnittpunkt aus).
 // Die Vektoren normieren, dann addieren - ergibt winkelhalbierenden Vektor.
-// 
-// Achtung: gegenparallel . ergibt 0!
 
 
   Vector2 vc1, vc2;
@@ -5767,14 +5968,14 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   vm->dx = vc1.dx + vc2.dx;
   vm->dy = vc1.dy + vc2.dy;
 
-  /* 1,0 / 0,1 makes 0,0: fix that */
+  // v1=1,0; v2=0,1 (antiparallel) makes 0,0: fix that
   if ((UTP_comp_0 (vm->dx)) &&
       (UTP_comp_0 (vm->dy))) {
-    /* vm = normal to v1 */
-    UT2D_vc_perpvc (vm, &vc1);
+    // vm = normal to v1
+    UT2D_vc_rot_90_ccw (vm, &vc1);
   }
 
-  /* printf("UT2D_vc_mid2vc %f %f\n",vm->dx,vm->dy); */
+  /* printf("UT2D_vc_mid_2vc__ %f %f\n",vm->dx,vm->dy); */
   /* printf("               %f %f\n",vc1.dx,vc1.dy); */
   /* printf("               %f %f\n",vc2.dx,vc2.dy); */
 
@@ -5786,12 +5987,13 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   void UT2D_vc_merge2vc (Vector2 *vm, Vector2 *v1, Vector2 *v2) {
 //================================================================
 /// UT2D_vc_merge2vc          merge 2 vectors   vNew = (v1 + v2) / 2
+/// can result in 0,0 !!
 
 
   vm->dx = (v1->dx + v2->dx) / 2.;
   vm->dy = (v1->dy + v2->dy) / 2.;
 
-  // UT3D_stru_dump (Typ_VC2, vm, "ex UT2D_vc_merge2vc:");
+  // DEB_dump_obj__ (Typ_VC2, vm, "ex UT2D_vc_merge2vc:");
 
 }
 
@@ -5846,9 +6048,9 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 // see also UT2D_vc_tra_vcx_vcy UT3D_nlen_projvcvc UT3D_nlen_projvcvc
 
 
-  UT3D_stru_dump(Typ_VC2, vc1, "UT2D_2par_vc_vcx_vcy vc1:");
-  UT3D_stru_dump(Typ_VC2, vcx, "  vcx:");
-  UT3D_stru_dump(Typ_VC2, vcy, "  vcy:");
+  DEB_dump_obj__(Typ_VC2, vc1, "UT2D_2par_vc_vcx_vcy vc1:");
+  DEB_dump_obj__(Typ_VC2, vcx, "  vcx:");
+  DEB_dump_obj__(Typ_VC2, vcy, "  vcy:");
 
   *dx = (vcx->dx * vc1->dx + vcx->dy * vc1->dy);
   *dy = (vcy->dx * vc1->dx + vcy->dy * vc1->dy);
@@ -6090,12 +6292,12 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
 //======================================================================
-  int UT2D_ck_ci360 (Circ *ci1) {
+  int UT2D_ck_ci360 (Circ2 *ci1) {
 //======================================================================
 /// \code
 /// UT2D_ck_ci360             check if circ is 360-degree-circ
 /// RC = 0:   YES, is 360DegCirc
-/// RC = 1:   NO
+/// RC = 1:   NO,  has NOT 360 deg ..
 /// if(UT2D_ck_ci360 == YES) ...
 /// \endcode
 
@@ -6105,10 +6307,11 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   // tol = UT_TOL_pt * fabs(ci1->rad);
   tol = UT_TOL_pt;
 
-  if(UTP_comp2db (fabs(ci1->ango), RAD_360, tol) == 1) irc = YES; // 1=diff < tol
-  else irc = NO;
+  // get 0=different; 1=ident
+  if(UTP_comp2db (fabs(ci1->ango), RAD_360, tol) == 1) irc = 0; // 1=diff < tol
+  else irc = 1;
 
-  // UT3D_stru_dump (Typ_CI, ci1, "ex UT3D_ck_ci360 %d\n",irc);
+  // DEB_dump_obj__ (Typ_CI, ci1, "ex UT3D_ck_ci360 %d\n",irc);
 
   return irc;
 
@@ -6186,7 +6389,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   /*  den Öffnungswinkel errechnen */
-  d1 = UT2D_angr_2vc (vc1, vc2);
+  d1 = UT2D_angr_2vc_ccw (vc1, vc2);
 
   /*  die Strecke zum Mittelpunkt = Radius/sin(Öffnungswinkel/2) */
   d2 = rad1 / sin(d1/2.0);
@@ -6198,7 +6401,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   /*  einen Vektor in Richtung der Winkelhalbierenden */
-  UT2D_vc_mid2vc (&vcn, vc2, vc1); /*  Winkelhalbierende > vc22 */
+  UT2D_vc_mid_2vc__ (&vcn, vc2, vc1); /*  Winkelhalbierende > vc22 */
   /* TX_Print(" vcn=%f,%f",vcn.dx,vcn.dy); */
 
   /*  die Strecke von pt20 weg in Richtung vcn abtragen */
@@ -6312,17 +6515,57 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     }
 
 
-  // nur Testausgaben:
-  printf("ex UT2D_ci_ciptvcrd: %d\n",i2);
-  for(i1=0;i1<i2;++i1) {
-    TX_Print(" sol %d %f,%f",i1,pta[i1].x,pta[i1].y);
-  }
-
-
+    // TESTBLOCK
+    // printf("ex UT2D_ci_ciptvcrd: %d\n",i2);
+    // for(i1=0;i1<i2;++i1) {
+      // TX_Print(" sol %d %f,%f",i1,pta[i1].x,pta[i1].y);
+    // }
+    // END TESTBLOCK
 
   return i2;
 
 }
+
+
+//======================================================================
+  int UT2D_ci_cip1 (Circ2 *ci1, Point2 *p1) {
+//======================================================================
+/// UT2D_ci_cip1              change startpoint of circ
+
+
+  // DEB_dump_obj__ (Typ_PT2, p1, "UT2D_ci_cip1 ");
+  // DEB_dump_obj__ (Typ_CI2, ci1, "");
+
+  ci1->p1 = *p1;
+
+  // get openingAngle
+  ci1->ango = UT2D_angr_ci (&ci1->p1, &ci1->p2, &ci1->pc, ci1->rad);
+
+    // DEB_dump_obj__ (Typ_CI2, ci1, "ex UT2D_ci_cip1");
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int UT2D_ci_cip2 (Circ2 *ci1, Point2 *p2) {
+//======================================================================
+/// UT2D_ci_cip2              change endpoint of circ
+
+  // DEB_dump_obj__ (Typ_PT2, p2, "UT3D_ci_cip2 ");
+
+  ci1->p2 = *p2;
+
+  // get openingAngle
+  ci1->ango = UT2D_angr_ci (&ci1->p1, &ci1->p2, &ci1->pc, ci1->rad);
+
+    // DEB_dump_obj__ (Typ_CI2, ci1, "ex UT2D_ci_cip2\n");
+
+  return 0;
+
+}
+
 
 
 /*=====================================================================*/
@@ -6342,7 +6585,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
   void    *vp;
 
-  // UT3D_stru_dump (Typ_ObjGX, oi, "UT2D_obj_obj3:");
+  // DEB_dump_obj__ (Typ_ObjGX, oi, "UT2D_obj_obj3:");
 
 
   if(oi->form == Typ_PT) {
@@ -6352,7 +6595,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
   } else if(oi->form == Typ_LN) {
     vp = UME_reserve (memSeg, sizeof(Line2));
-    UT2D_ln_ln3 ((Line2*)vp, ((Line*)oi->data));
+    UT2D_ln_ln3__ ((Line2*)vp, ((Line*)oi->data));
     OGX_SET_OBJ (oo, Typ_LN2, Typ_LN2, 1, vp);
 
   } else if(oi->form == Typ_CI) {
@@ -6365,7 +6608,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     return -1;
   }
 
-  // UT3D_stru_dump (Typ_ObjGX, oo, "ex UT2D_obj_obj3:");
+  // DEB_dump_obj__ (Typ_ObjGX, oo, "ex UT2D_obj_obj3:");
 
   return 0;
 
@@ -6628,126 +6871,19 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 /*=====================================================================*/
 
 
-//================================================================
-  int UT2D_cv3_linear (int *pNr, Point *pTab, double tol) {
-//================================================================
-/// \code
-/// UT2D_cv3_linear              delete unnecesary straight points
-/// alle Punkte die innerhalb tol liegen aus pTab entfernen.
-/// ACHTUNG: pTab sind 3D-Punkte; Z ignorieren !
-/// \endcode
-
-
-  int     ii, i1, i3, ie;
-  double  dl;
-  // char    ptStat[10000];   // max Anz Points pro Kontur
-  char    *ptStat;
-  // statt ptStat koennte man pt2a[x].x auf VAL_MAX setzen und dann danach suchen
-
-  ie = *pNr - 1;  // index auf last point
-
-
-
-  // printf("UT2D_cv3_linear %d\n",*pNr);
-
-
-  if(*pNr < 3) return 0;
-
-  // get memspc for ptStat
-  ptStat = MEM_alloc_tmp (*pNr);
-  if(!ptStat) {TX_Error("UT2D_cv3_linear EOM"); return -1;}
-
-
-  ptStat[0]  = 0;  // keep point
-  ptStat[ie] = 0;  // keep point
-
-  i1 = 0;
-  i3 = 2;
-
-
-  //----------------------------------------------------------------
-  L_test:
-  // printf("----- L_test: i2=%d i3=%d\n",i1,i3);
-
-  for(ii=i1+1; ii<i3; ++ii) {
-    dl = fabs(UT2D_slen_nor3pt ((void*)&pTab[i1],
-                                (void*)&pTab[ii],
-                                (void*)&pTab[i3]));
-    // printf("   dl[%d]=%f\n",ii,dl);
-    if(dl > tol) goto L_accept;
-  }
-
-  // alle Punkte zwischen i1 und i3 sind unnutz.
-  ptStat[i3-1] = 1;   // delete point;
-  i3 += 1;
-  if(i3 <= ie) goto L_test;
-  goto L_remove;
-
-
-  //----------------------------------------------------------------
-  L_accept:
-  // der Punkt i3-1 muss bleiben.
-  // Alle Punkte zwischen i1 und i3-1 entfernen.
-  // i3-1 wird dann zu i1.
-    // GR_Disp_pt (&pTab[i3-1], SYM_STAR_S, 2);
-  ptStat[i3-1] = 0;  // keep point
-  i1 = i3-1;
-  i3 += 1;
-  if(i3 <= ie) goto L_test;
-
-
-
-  //----------------------------------------------------------------
-  L_remove:
-  UT3D_cv_delia (pNr, pTab, ptStat);
-
-  // printf("ex UT2D_cv3_linear %d\n",*pNr);
-
-  return 0;
-
-}
-
-
-//======================================================================
-  int UT2D_cv_inv (int ptNr, Point2 *pta) {
-//======================================================================
-/// UT2D_cv_inv               Punktetabelle umdrehen
-
-  int    inach, ivon, iSiz;
-
-
-  // printf("UT2D_cv_inv %d\n",ptNr);
-
-  iSiz = sizeof(Point2);
-  inach = 0;
-  ivon = ptNr - 1;
-
-
-  L_umd_next:
-  // printf("   vert. %d -> %d\n",ivon,inach);
-  MEM_swap__ (&pta[inach], &pta[ivon], iSiz);
-  ++inach;
-  --ivon;
-  if(inach < ivon) goto L_umd_next;
-
-
-  return 0;
-
-}
-
-
 //=================================================================
   int UT2D_srar_polc (double *aro, int ptNr, Point2 *pa)  {
 //=================================================================
 /// \code
-/// UT2D_srar_polc                         nach Karl Sauer 2004-04-07
-/// Umlaufsinn (sr=sense of rotation) und Flaeche (ar=area) eines
-/// geschlossenen 2D-Polygons (polc) berechnen.
-/// 
-/// ptNr = Anzahl Punkte ohne den letzten == ersten Punkt !
-/// pa   = PunkteTabelle ohne den letzten == ersten Punkt !
-/// RetCod = 1 = CCW
-///         -1 = CW
+/// UT2D_srar_polc            get sense-of-rotation and area of closed polygon
+/// Karl Sauer 2004-04-07
+/// Input:
+///   ptNr     nr of points without last (= first) point
+///   pa       array of points of closed polygon
+/// Output:
+///  aro       area; positiv = CCW, negativ = CW.
+///  RetCod    1  = CCW
+///            -1 = CW
 /// \endcode
    
   double   FLAE;
@@ -6768,7 +6904,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
     // nun ist p1,p2,p3 ein Dreieck aus dem polygon pa von 3
     // aufeinanderfolgenden Punkten; p2 ist der mittlere.
     FLAE += pa[i2].x * (pa[i3].y - pa[i1].y);
-      printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
+      // printf(" %d %d %d - %f\n",i1,i2,i3,FLAE);
   }
 
 
@@ -7016,7 +7152,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   lc = UT2D_len_cir (&ad, p1, p2, pc, rdc);
 
     // fixe punktezahl; Oeffnungswinkel
-    // ad = UT2D_angr_3ptdr (p1, p2, pc, dreh);
+    // ad = UT2D_angr_3pt_sr (p1, p2, pc, dreh);
     // if(dreh < 0) ad = -ad;
 
   if(ptAnz < 0) {
@@ -7095,462 +7231,6 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 */
 
 
-//================================================================
-  int UT2D_npt_ci (Point2 *pa, int pNr, Circ2 *ci1) {
-//================================================================
-/// \code
-/// UT2D_npt_ci               circular polygon
-/// see also UT2D_cv_cin UT2D_pt_rotptangr
-/// \endcode
-
-  int        i1, segNr;
-  double     ai;
-  Mat_3x2    m1;
-
-
-  // printf("UT2D_npt_ci %d\n",pNr);
-  // UT3D_stru_dump (Typ_CI2, ci1, "");
-
-
-  segNr = pNr - 1;
-
-  if(pNr < 3) {
-    pa[0] = ci1->p1;
-    goto Fertig;
-  }
-
-
-  // den Incrementalwinkel ai errechnen
-  ai = fabs(ci1->ango) / segNr;
-  if(ci1->rad < 0.) ai = -ai;
-    // printf(" ai=%f\n",ai);
-
-
-  // init rotation around 0,0
-  UT2D_m2_init_rot (m1, ai, (Point2*)&UT2D_PT_NUL);
-  // UT2D_vc_angr (&vc1, ai);
-  // UT2D_m2_load (m1, &vc1, &UT2D_PT_NUL);
-
-
-  // startpt
-  // rund um eine Achse im Nullpunkt drehen
-  pa[0].x = ci1->p1.x - ci1->pc.x;
-  pa[0].y = ci1->p1.y - ci1->pc.y;
-
-
-  //  die Punkte rumdrehen
-  for(i1=1; i1<segNr; ++i1) {
-    UT2D_pt_traptm2 (&pa[i1], m1, &pa[i1-1]);
-  }
-
-
-  // Mittelpunkte aufaddieren
-  for(i1=0; i1<segNr; ++i1) {
-    pa[i1].x += ci1->pc.x;
-    pa[i1].y += ci1->pc.y;
-    // TX_Print(" %d %f,%f,%f",i1,cv[i1].x,cv[i1].y,cv[i1].z);
-  }
-
-
-  // Endpunkt
-  Fertig:
-  pa[segNr] = ci1->p2;
-
-
-    // Testausgaben:
-    // printf("ex UT3D_npt_ci %d\n",pNr);
-    // for(i1=0; i1<pNr; ++i1) {
-      // GR_Disp_pt2 (&pa[i1], SYM_TRI_S, 2);
-      // GR_Disp_txi2 (&pa[i1], i1, 0);
-      // GR_Disp_cv2 (pa, pNr, 9);
-      // UT3D_stru_dump (Typ_PT, &cv[i1], " P[%d]=",i1);
-    // }
-
-
-  return 0;
-
-}
-
-
-//================================================================
-  void UT2D_cv_ci360 (Point2 *cv, int ptNr, double rd, Point2 *ptCen) {
-//================================================================
-/// \code
-/// Vollkreis --> Polygon.
-/// insgesamt ptNr Punkt; erster und letzter sind gleich.
-/// \endcode
-
-  int    i1;
-  double da, aa;
-  Point2 *pta;
-
-
-  // UT3D_stru_dump (Typ_PT2, ptCen, "UT2D_cv_ci360 %d %f",ptNr, rd);
-
-
-  pta = cv;
-
-  da = RAD_360 / (double)(ptNr-1);
-
-  aa = 0.;
-
-  for (i1=0; i1<ptNr; ++i1) {
-    pta->x = sin(aa) * rd + ptCen->x;
-    pta->y = cos(aa) * rd + ptCen->y;
-    // GR_Disp_pt (pta, SYM_STAR_S, 2);
-    aa += da;
-    ++pta;
-  }
-
-  pta->x = rd + ptCen->x;
-  pta->y = ptCen->y;
-
-  // GR_Disp_cv2 (cv, ptNr, 5);
-}
-
-
-//===============================================================
-  int UT2D_cv_ln (Point2 *cv, int ptAnz, Point2 *p1, Point2 *p2) {
-//===============================================================
-/// \code
-/// UT2D_cv_ln         Linearstueck -> Polygon.
-/// \endcode
-// 
-// In/Out: *ptAnz wird nur in 2 geandert, wenn < 2.
-
-
-  int    ind, iend, ianz;
-  double dx, dy;
-
-
-
-  // printf("UT2D_cv_ln %d\n",ptAnz);
-  // printf("           %f,%f\n",p1->x,p1->y);
-  // printf("           %f,%f\n",p2->x,p2->y);
-
-
-  // erster Pt
-  cv[0] = *p1;
-
-
-  if(ptAnz < 2) {
-    ind = 0;
-    goto L_fertig;
-  }
-
-  ianz = ptAnz - 1;
-  dx = (p2->x - p1->x) / ianz;
-  dy = (p2->y - p1->y) / ianz;
-
-  ind  = 0;
-  iend = ptAnz-2;
-
-
-  L_nxt_pt:
-  ++ind;
-
-  cv[ind].x = p1->x + (dx * ind);
-  cv[ind].y = p1->y + (dy * ind);
-
-  if(ind < iend) goto L_nxt_pt;
-
-
-  L_fertig:
-  ++ind;
-  cv[ind] = *p2;
-
-
-/*
-  // nur Testausg:
-  printf("ex UT2D_cv_ln %d\n",ptAnz);
-  for(ind=0; ind<ptAnz; ++ind) {
-    printf("        %d %f,%f\n",ind,cv[ind].x,cv[ind].y);
-  }
-*/
-
-  return 0;
-
-}
-
-
-//==========================================================================
-  int UT2D_cv_ci_ (Point2 *pa, int *ptNr, Circ2 *ci1, int ptMax, double tol) {
-//==========================================================================
-///UT2D_cv_ci_               get circular polygon from circle
-
-  int    pNr;
-
-
-  // fix nr of points according to modelsize
-  if (tol < 0.0) {
-    pNr = ptMax;
-  } else {
-    pNr = UT2D_ptNr_ci (fabs(ci1->rad), fabs(ci1->ango), tol);
-    if(pNr > ptMax)  pNr = ptMax;
-  }
-     // printf(" pNr=%d\n",pNr);
-
-
-  // circ -> polygon
-  UT2D_npt_ci (pa, pNr, ci1);
-
-
-  *ptNr = pNr;
-
-  return 0;
-
-}
- 
-
-//=========================================================================
-  int UT2D_cv_ci (Point2 cv[],int *ptanz,
-                  Point2 *pa, Point2 *pe, Point2 *pm, int idiv) {
-//=========================================================================
-/// \code
-/// UT2D_cv_ci                change circle > polygon
-/// 
-/// nur CCW. Max 64 Segments. Sehr schnell.
-/// Erstes und letztes Segment haben unterschiedliche Groesse.
-/// 
-/// the circle is divided into 64/idiv segments.
-/// \endcode
-
-// idiv - divide nr of segments; 1 > max 64 segments, 2 > max 32 segments ..
-//   idiv 1-4; 1=feines Polygon (64 Punkte f. Vollkreis), 2 groeber (32).
-//   3 hat nur mehr 24 Ecken, 4 nur mehr 16.
-// 
-// max 10 vertices for 45 degrees; so a max of 65 vertices is possible.
-// The first and the last segment have different sizes !
-
-
-  static double sinwin[8] = { .0490677,.1467305,.2429802,.3368899,
-            .4275551,.5141027,.5956993,.671559 };
-  static double coswin[8] = { .9987955,.9891765,.9700313,.9415441,
-            .9039893,.8577286,.8032075,.7409511 };
-
-  static int astep = 6;
-  static int ianz = 7;
-
-  int       i1, i2, ia, ie, ipos, istep;
-  double    wa, we, mx, my, crad, dx1[8], dy1[8];
-
-  Vector2   va, ve;
-
-
-// -------------------------------------------------------------
-/*
-  printf("UT2D_cv_ci %f,%f\n",pa->x,pa->y);
-  printf("       %f,%f\n",pe->x,pe->y);
-  printf("       %f,%f\n",pm->x,pm->y);
-*/
-
-
-  mx = pm->x;
-  my = pm->y;
-
-  if(idiv < 1) idiv = 1;
-  if(idiv > 4) idiv = 4;
-
-  /* idiv = 2; */
-
-  istep = astep * idiv;
-  /* TX_Print(" idiv=%d istep=%d",idiv,istep); */
-
-  /* vectors to start - endpoint */
-  UT2D_vc_2pt (&va, pm, pa);
-  UT2D_vc_2pt (&ve, pm, pe);
-
-  /* radius */
-  crad = UT2D_len_vc (&va);
-  /* angles */
-  wa = UT2D_angd_angr (UT2D_angr_vc (&va));
-  we = UT2D_angd_angr (UT2D_angr_vc (&ve));
-
-  if (we <= wa) { we += 360.; }
-
-  /* first seg min (istep/2)  max 1.5*istep */
-  ia = (int) (wa + (istep / 2));
-  ie = (int) (we - (istep / 2));
-
-
-  /* copy 1. point */
-  cv[0].x = pa->x;
-  cv[0].y = pa->y;
-
-
-  ipos = 0;
-
-
-  /* 45 deg of cir */
-  /* for (i1 = 0; i1 <= ianz; i1 += idiv) { */
-  for (i1 = 0; i1 <= ianz; ++i1) {
-        dx1[i1] = coswin[i1] * crad;
-        dy1[i1] = sinwin[i1] * crad;
-  }
-
-
-
-  while (ie >= 0) {
-    /* printf("  ia=%d, ie=%d\n",ia,ie); */
-
-
-    /*  0-45  deg ------------------- */
-    if ((ie >= 0) && (ia < 45)) {
-
-      i1 = 0;
-      for (i2 = 0; i2 < 45; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = dx1[i1] + mx;
-          cv[ipos].y = dy1[i1] + my;
-        }
-        i1 += idiv;;
-      }
-    }
-
-
-    /* 45-90  deg ------------------- */
-    if ((ie >= 45) && (ia < 90)) {
-
-    i1 = ianz;
-    for (i2 = 45; i2 < 90; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = dy1[i1] + mx;
-          cv[ipos].y = dx1[i1] + my;
-        }
-        i1 -= idiv;;
-      }
-    }
-
-
-    /* 90-135  deg ------------------ */
-    if ((ie >= 90) && (ia < 135)) {
-
-    i1 = 0;
-    for (i2 = 90; i2 < 135; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = -dy1[i1] + mx;
-          cv[ipos].y = dx1[i1] + my;
-        }
-        i1 += idiv;;
-      }
-    }
-
-
-    /* 135-180  deg ------------------ */
-    if ((ie >= 135) && (ia < 180)) {
-
-    i1 = ianz;
-    for (i2 = 135; i2 < 180; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = -dx1[i1] + mx;
-          cv[ipos].y = dy1[i1] + my;
-        }
-        i1 -= idiv;;
-      }
-    }
-
-
-    /* 180-225  deg ------------------- */
-    if ((ie >= 180) && (ia < 225)) {
-
-    i1 = 0;
-    for (i2 = 180; i2 < 225; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = -dx1[i1] + mx;
-          cv[ipos].y = -dy1[i1] + my;
-        }
-        i1 += idiv;;
-      }
-    }
-    /* 225-270  deg ------------------- */
-    if ((ie >= 225) && (ia < 270)) {
-
-    i1 = ianz;
-    for (i2 = 225; i2 < 270; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = -dy1[i1] + mx;
-          cv[ipos].y = -dx1[i1] + my;
-        }
-        i1 -= idiv;;
-      }
-    }
-
-
-    /* 270-315  deg ------------------- */
-    if ((ie >= 270) && (ia < 315)) {
-
-    i1 = 0;
-    for (i2 = 270; i2 < 315; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = dy1[i1] + mx;
-          cv[ipos].y = -dx1[i1] + my;
-        }
-        i1 += idiv;;
-      }
-    }
-
-
-    /* 315-360  deg ------------------- */
-    if ((ie >= 315) && (ia < 360)) {
-
-    i1 = ianz;
-    for (i2 = 315; i2 < 360; i2 += istep) {
-        if (ie < i2) { goto Done; }
-        if (ia < i2) {
-          ++ipos;
-          cv[ipos].x = dx1[i1] + mx;
-          cv[ipos].y = -dy1[i1] + my;
-        }
-        i1 -= idiv;;
-      }
-    }
-
-
-    /* Done -------------------- */
-    Done:
-    ia += -360;
-    ie += -360;
-  }
-
-  /* copy last point */
-  ++ipos;
-  cv[ipos].x = pe->x;
-  cv[ipos].y = pe->y;
-
-
-  ++ipos;                   /*  Anzahl statt maxIndex */
-  *ptanz = ipos;
-
-
-/*
-  // nur Testausgaben:
-  for (i1=0; i1 < ipos; i1++) {
-    TX_Print("%d %f,%f\n",i1,cv[i1].x,cv[i1].y);
-  }
-*/
-
-
-  return 0;
-
-}
-
-
-
-
 /*=====================================================================*/
 /*=====================================================================*/
 /*=====================================================================*/
@@ -7582,7 +7262,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
                         Point2 *p1a,Point2 *p1e,Point2 *p2a,Point2 *p2e) {
 //==============================================================================
 /// \code
-/// UT2D_minLenB_4pt          min lenght between 2 lines
+/// UT2D_minLenB_4pt          min lenght between 2 lines (estimation)
+///   returns dp = sum of dx + dy; not the correct length !
 /// dp ist Streckensumme entlang der Hauptachsen - nicht genau Laenge !
 /// rc = 1  p1e - p2a hat geringsten Abstand
 /// rc = 2  p1a - p2a hat geringsten Abstand
@@ -7595,10 +7276,10 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   int       ii;
   double    da[4];
 
-  // UT3D_stru_dump(Typ_PT, p1a, "p1a:");
-  // UT3D_stru_dump(Typ_PT, p1e, "p1e:");
-  // UT3D_stru_dump(Typ_PT, p2a, "p2a:");
-  // UT3D_stru_dump(Typ_PT, p2e, "p2e:");
+  // DEB_dump_obj__(Typ_PT, p1a, "p1a:");
+  // DEB_dump_obj__(Typ_PT, p1e, "p1e:");
+  // DEB_dump_obj__(Typ_PT, p2a, "p2a:");
+  // DEB_dump_obj__(Typ_PT, p2e, "p2e:");
 
 
   da[0] = fabs(p2a->x - p1e->x) + fabs(p2a->y - p1e->y);
@@ -7619,6 +7300,54 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 }
 
+
+/*
+//----------------------------------------------------------------
+        // find nearest distance of 4 points      UT2D_minLenq_4pt
+- returns quadr.length and rectCod (which points)  UT2D_lenq_2pt
+see UT2D_minLenB_4pt
+
+
+//----------------------------------------------------------------
+        // find nearest distance LN-LN    UT2D_minLenq_ln_ln
+- find nearPt1,nearPt2 = min lenght between 4 points    UT2D_minLenB_4pt
+- dist = nearPt1,nearPt2;
+  end
+TODO: test intersection (dist=0 !)
+BUG-INTERSECTION = dist 0 / retCod 0 = intersecting !!!!
+- oder side mit vorzeichen ? along obj1
+- if points are on same side ..
+
+
+//----------------------------------------------------------------
+        // find nearest distance LN-CI            UT2D_minLenq_ln_ci
+- find nearPt1,nearPt2 = min lenght between 4 points    UT2D_minLenB_4pt
+- find inters.points xpc of line nearPt1-cen.ci;
+- test if xpc on arc;
+- if xpc not on arc then goto Exit:
+- if xpc is on arc then nearPt2 = xpc; goto Exit:
+- Exit: dist = nearPt1,nearPt2;
+  end
+TODO: test intersection (dist=0 !)
+
+
+//----------------------------------------------------------------
+        // find nearest distance CI-CI            UT2D_minLenq_ci_ci
+- find nearPt1,nearPt2 = min lenght between 4 points    UT2D_minLenB_4pt
+- find inters.points xp1,xp2 of line cen.ci1-cen.ci2;
+- test if xp1 on arc1;
+- test if xp2 on arc2;
+- if xp1 not on arc1 AND xp2 not on arc2 then goto Exit:
+- if xp1 is on arc1 AND xp2 is on arc2 then
+    nearPt1 = xp1; nearPt2 = xp2; goto Exit:
+- if xp1 is on arc1 AND xp2 not on arc2:
+    nearPt1 = inters.point cen.ci1 - nearPt2; goto Exit:
+- xp1 is not arc1 AND xp2 is on arc2:
+    nearPt2 = inters.point cen.ci2 - nearPt1; goto Exit:
+- Exit: dist = nearPt1,nearPt2;
+  end
+TODO: test intersection (dist=0 !)
+*/
 
 
 //============================================================================
@@ -7642,10 +7371,10 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   // printf("UT2D_pt_ck_int4pt\n");
-  // UT3D_stru_dump(Typ_PT2, pi1," p1=");
-  // UT3D_stru_dump(Typ_PT2, pi2," p2=");
-  // UT3D_stru_dump(Typ_PT2, pi3," p3=");
-  // UT3D_stru_dump(Typ_PT2, pi4," p4=");
+  // DEB_dump_obj__(Typ_PT2, pi1," p1=");
+  // DEB_dump_obj__(Typ_PT2, pi2," p2=");
+  // DEB_dump_obj__(Typ_PT2, pi3," p3=");
+  // DEB_dump_obj__(Typ_PT2, pi4," p4=");
 
 
   irc = 0;
@@ -7657,9 +7386,9 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   UT2D_vc_2pt (&vcs, pi1, pi3);
 
 
-  // UT3D_stru_dump(Typ_VC2, &vc1," vc1 ");
-  // UT3D_stru_dump(Typ_VC2, &vc2," vc2 ");
-  // UT3D_stru_dump(Typ_VC2, &vcs," vcs ");
+  // DEB_dump_obj__(Typ_VC2, &vc1," vc1 ");
+  // DEB_dump_obj__(Typ_VC2, &vc2," vc2 ");
+  // DEB_dump_obj__(Typ_VC2, &vcs," vcs ");
 
 
   q1 = vc1.dy * vc2.dx;
@@ -7777,7 +7506,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   // printf("UT2D_i4pt_npt %d\n",pNr);
-  // for(i1=0;i1<pNr;++i1) UT3D_stru_dump (Typ_PT2,&ptab[i1],"P[%d]",i1);
+  // for(i1=0;i1<pNr;++i1) DEB_dump_obj__ (Typ_PT2,&ptab[i1],"P[%d]",i1);
 
 
   if (pNr < 1) {
@@ -7918,15 +7647,14 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 }
 
 
-//======================================================================
+//========================================================================
   int UT2D_pt_ck_inLine (Point2 *p1, Point2 *p2, Point2 *p3, double tol) {
-//======================================================================
+//========================================================================
 // UT2D_pt_ck_inLine      Author: Thomas Backmeister       3.6.2003
 /// \code
 /// UT2D_pt_ck_inLine      check 2D-point on line segment
 /// 
-/// 
-/// Check if a 3. 2D-point lies inside the line segment defined by two 2D-points.
+/// Check if a 2D-point lies inside the line segment defined by two 2D-points.
 /// It is assumed that the 2D-point is ON the line defined by the two 2D-points.
 /// 
 /// IN:
@@ -7938,35 +7666,64 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 /// Returncodes:
 ///   0 = the 2D-point lies outside the segment
 ///   1 = the 2D-point lies inside the segment
+///   2 = p1 == p3
+///   3 = p2 == p3
 /// \endcode
 
 
-  int rc;
-  double l1, l2, l3, lt;
-  Vector2 v1, v2, v3;
+  int     rc = 0;
+  double  sq12, sq13, parPt;
+  Vector2 vl, vp;
 
-  //printf("UT2D_pt_ck_inLine: check 2D-point on line segment\n");
 
-  // init
-  rc = 0;
+  // DEB_dump_obj__ (Typ_PT2, p3, "UT2D_pt_ck_inLine p3");
+  // DEB_dump_obj__ (Typ_PT2, p1, "                  p1");
+  // DEB_dump_obj__ (Typ_PT2, p2, "                  p2");
 
   // vectors from 2D-point to 2D-point
-  UT2D_vc_2pt (&v1, p1, p2);
-  UT2D_vc_2pt (&v2, p1, p3);
-  UT2D_vc_2pt (&v3, p2, p3);
+  UT2D_vc_2pt (&vl, p1, p2);
+  UT2D_vc_2pt (&vp, p1, p3);
+    // DEB_dump_obj__ (Typ_VC2, &vp, " vp");
 
   // square of length of vectors
-  l1 = v1.dx * v1.dx + v1.dy * v1.dy;
-  l2 = v2.dx * v2.dx + v2.dy * v2.dy;
-  l3 = v3.dx * v3.dx + v3.dy * v3.dy;
+  sq12 = vl.dx * vl.dx + vl.dy * vl.dy;   // UT2D_skp_2vc
+  sq13 = vl.dx * vp.dx + vl.dy * vp.dy;
+    // printf(" sq12=%f sq13=%f\n",sq12,sq13);
 
-  // check 2D-point position
-  lt = l1 + tol;
-  if (l2 <= lt && l3 <= lt) rc = 1;
+  parPt = sq13 / sq12;
+    // printf(" parPt = %f\n",parPt);
 
-  return rc;
+  if(parPt < 0.5) {
+    // p3 near p1; compare p1-p3
+    if(fabs(p1->x - p3->x) > tol) goto L_ck_1;
+    if(fabs(p1->y - p3->y) > tol) goto L_ck_1;
+    // yes; p1==p3
+    rc = 2;
+    goto L_exit;
+
+  } else {
+    // p3 near p2; compare p2-p3
+    if(fabs(p2->x - p3->x) > tol) goto L_ck_2;
+    if(fabs(p2->y - p3->y) > tol) goto L_ck_2;
+    // yes; p2==p3
+    rc = 3;
+    goto L_exit;
+  }
+
+  L_ck_1:
+    // p3 near p1
+    if(parPt < 0.) rc = -1;
+    goto L_exit;
+
+
+  L_ck_2:
+    // p3 near p2
+    if(parPt > 1.) rc = -1;
+
+
+  L_exit:
+    return rc;
 }
-
 
 
 //================================================================
@@ -8012,8 +7769,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   int     wn;               // windingNr
 
 
-  //for(i1=0; i1<pNr; ++i1) UT3D_stru_dump (Typ_PT2, &pTab[i1], "pa[%d]=",i1);
-  //UT3D_stru_dump (Typ_PT2, ptx, "ptx=");
+  //for(i1=0; i1<pNr; ++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1], "pa[%d]=",i1);
+  //DEB_dump_obj__ (Typ_PT2, ptx, "ptx=");
 
   --pNr;       // plg must be closed; last_point == first_point
   wn = 0;
@@ -8075,7 +7832,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   if (np < 3) return 1;
 
   // allocate memory
-  ptab1 = (Point2*) malloc (np * sizeof(Point2));
+  // ptab1 = (Point2*) malloc (np * sizeof(Point2));
+  ptab1 = (Point2*) MEM_alloc_tmp (np * sizeof(Point2));
 
   // copy points
   for (i1=0; i1<np; ++i1) {
@@ -8103,7 +7861,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   else rc = 1;
 
   // free memory
-  if (ptab1 != NULL) free (ptab1);
+  // if (ptab1 != NULL) free (ptab1);
 
   return rc;
 }
@@ -8128,8 +7886,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
   UT2D_vc_2pt (&v1, po, p1);
   UT2D_vc_2pt (&v2, po, p2);
-    // UT3D_stru_dump (Typ_VC2, &v1, " v1");
-    // UT3D_stru_dump (Typ_VC2, &v2, " v2");
+    // DEB_dump_obj__ (Typ_VC2, &v1, " v1");
+    // DEB_dump_obj__ (Typ_VC2, &v2, " v2");
 
 
   return UT2D_pt_ck_inpt2vc (px, po, &v1, &v2);
@@ -8166,8 +7924,8 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   Vector2  vp;
 
 
-  // UT3D_stru_dump (Typ_VC2, v1, " v1");
-  // UT3D_stru_dump (Typ_VC2, v2, " v2");
+  // DEB_dump_obj__ (Typ_VC2, v1, " v1");
+  // DEB_dump_obj__ (Typ_VC2, v2, " v2");
 
 
   // test for po = px
@@ -8175,7 +7933,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
   UT2D_vc_2pt (&vp, po, px);
-    // UT3D_stru_dump (Typ_VC2, &vp, " vp");
+    // DEB_dump_obj__ (Typ_VC2, &vp, " vp");
 
 
   // baseline po-v1: check if px is on the same side as v2
@@ -8357,7 +8115,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
   double xx, xh, xl, yh, yl, d1, d2;
 
 
-  // UT3D_stru_dump (Typ_PT, ptx, "UT2D_pt_ck_inCv3");
+  // DEB_dump_obj__ (Typ_PT, ptx, "UT2D_pt_ck_inCv3");
   // printf(" pNr=%d\n",pNr);
 
   xh = ptx->x + UT_TOL_pt;  // hi
@@ -8738,7 +8496,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 
 
   // vc2 = eine Normale an vct (auf Linie pt-vc2 liegt pc2) - nach oben
-  UT2D_vc_perpvc (&vc2, vct);
+  UT2D_vc_rot_90_ccw (&vc2, vct);
 
 
   // typ_dreh=1: gegenlaeufig;  -1=gleichlaeufig.
@@ -8949,18 +8707,20 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 
 
 //=======================================================================
-  int UT2D_vc_cipt (Vector2 *vc1, Point2 *pc, Point2 *pt, int cdir) {
+  int UT2D_vc_tng_ci_pt (Vector2 *vc1, Point2 *pc, Point2 *pt, int cdir) {
 //=======================================================================
 /// den TangentialVektor an einem Punkt pt des Kreises errechnen
+/// Input:
+///   cdir     0=ccw  1=cw;   get it with DLIM01(circ->rad)
 
 
   UT2D_vc_2pt (vc1, pc, pt);
 
-  UT2D_vc_perpvc (vc1, vc1);
+  UT2D_vc_rot_90_ccw (vc1, vc1);
 
-  if(cdir < 0) UT2D_vc_invert (vc1, vc1);
+  if(cdir) UT2D_vc_invert (vc1, vc1);
 
-  // printf("ex UT2D_vc_cipt %f,%f\n",vc1->dx,vc1->dy);
+  // printf("ex UT2D_vc_tng_ci_pt %f,%f\n",vc1->dx,vc1->dy);
 
   return 0;
 
@@ -8981,7 +8741,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 /// \endcode       
                    
                    
-  // UT3D_stru_dump (Typ_CI, ci3, "UT2D_ci2c_ci3: ");
+  // DEB_dump_obj__ (Typ_CI, ci3, "UT2D_ci2c_ci3: ");
   
   
   // get basePlane of Circ; vx = pc-p1; vz = circ-vz.
@@ -9000,8 +8760,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 //================================================================
   int UT2D_ci_ci3 (Circ2 *ci2, Circ *ci3) {
 //================================================================
-/// UT2D_ci_ci3                  2D-Circ = 3D-Circ
-
+/// UT2D_ci_ci3                  2D-Circ = 3D-Circ   (cut off z-coord)
 
 
   ci2->p1.x = ci3->p1.x;
@@ -9052,6 +8811,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
                        Vector2 *vc1, Vector2 *vc2, double *rdc) {
 //================================================================
 // UT2D_ci_pt2vcrd           circ from center, 2 vectors & radius
+// rdc gives sense-of-rotation; pos. is CCW; neg. is CW.
 
   double rdca;
 
@@ -9106,7 +8866,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   if(len_s_e < UT_TOL_min1) goto L_Err1;
 
   // Normalvektor auf vcs
-  UT2D_vc_perpvc (&vcs_n, vcs);
+  UT2D_vc_rot_90_ccw (&vcs_n, vcs);
 
 
   // pe auf die Normale zum ps projizieren
@@ -9294,7 +9054,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // Mat_3x2  m1;
   // UT2D_m3_init_rot (m1, UT_RADIANS (90.)); // 90 deg CCW
   // remove centerpoint
-  // UT2D_pt_traptm3 (&p2, m1, &p1);          // apply
+  // UT2D_pt_tra_pt_m3 (&p2, m1, &p1);          // apply
   // add centerpoint
 
 // see also UT2D_m2_load
@@ -9582,11 +9342,46 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 }
 
 
+//=====================================================================
+  void UT2D_pt_tra_pt3_m3 (Point2 *p2o, Mat_4x3 mata, Point* p3i) {
+//=====================================================================
+/// \code
+/// UT2D_pt_tra_pt3_m3          apply transformation to point (from 4x3-matrix)
+/// 
+/// p2 and p1 may be identical
+///
+///        VX             VY            VZ        Nullpunkt
+///  [0][0]=vx.dx   [0][1]=vy.dx  [0][2]=vz.dx   [0][3]=o.x
+///  [1][0]=vx.dy   [1][1]=vy.dy  [1][2]=vz.dy   [1][3]=o.y
+///  [2][0]=vx.dz   [2][1]=vy.dz  [2][2]=vz.dz   [2][3]=o.z
+///
+/// printf("    vz=%f,%f,%f\n",(*mata)[0][2],(*mata)[1][2],(*mata)[2][2]);
+/// \endcode
+
+
+  double x, y, z;
+
+
+  x = p3i->x;
+  y = p3i->y;
+  z = p3i->z;
+    // printf("UT3D_pt_tra_pt_m3    %f,%f,%f",x,y,z);
+
+
+  p2o->x = mata[0][0]*x + mata[0][1]*y + mata[0][2]*z + mata[0][3];
+  p2o->y = mata[1][0]*x + mata[1][1]*y + mata[1][2]*z + mata[1][3];
+
+
+  /* printf("ex UT3D_pt_tra_pt_m3 %f,%f,%f",p2->x,p2->y,p2->z); */
+
+}
+
+
 //================================================================
-  void UT2D_pt_traptm3 (Point2 *p2, Mat_4x3 mata, Point2 *p1) {
+  void UT2D_pt_tra_pt_m3 (Point2 *p2, Mat_4x3 mata, Point2 *p1) {
 //================================================================
 /// \code
-/// UT2D_pt_traptm3           apply transformation to point (from 4x3-matrix)
+/// UT2D_pt_tra_pt_m3           apply transformation to point (from 4x3-matrix)
 /// p2 und p1 duerfen ident sein
 /// \endcode
 
@@ -9649,6 +9444,117 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 /// \endcode
 
   *ptx = sqrt (*rd * *rd - *pty * *pty);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_pva_lva (double *pva, double *lva, int vNr) {
+//================================================================
+// UT2D_pva_lva         change length-table lva into parameter-value-table pva
+
+  int    i1,i2;
+  double lTot;
+
+
+  lTot = lva[vNr - 1];
+  i2 = vNr - 1;
+  pva[0] = 0.;
+  pva[i2] = 1.;
+
+  for(i1=1; i1<i2; ++i1) {
+    pva[i1] = lva[i1] / lTot;
+  }
+
+    for(i1=0;i1<vNr;++i1) printf(" pva_lva %d = %f\n",i1,pva[i1]);
+
+  return 0;
+
+}
+
+
+//================================================================
+  double UT2D_lva_plg (double *lva, Point2 *pta, int ptNr) {
+//================================================================
+// UT2D_lva_plg              get length-value-table for polygon
+//   Input:
+//     lva        size must be ptNr
+//   Output:
+//     lva       
+//    
+// see UT3D_plg_lvTab
+
+  int      i1, i2;
+  double   d1, lTot;
+
+
+  lTot   = 0.;
+  lva[0] = 0.;
+
+  for(i1=1; i1<ptNr; ++i1) {
+    d1 = UT2D_len_2pt (&pta[i1 - 1], &pta[i1]);
+    lTot += d1;
+    lva[i1] = lTot;
+  }
+
+    for(i1=0;i1<ptNr;++i1) printf(" lva_plg %d = %f\n",i1,lva[i1]);
+
+  return lTot;
+
+}
+
+
+//================================================================
+  int UT2D_pt_par_plg (Point2 *pto, double du, CurvPol2 *cvp) {
+//================================================================
+// UT2D_pt_par_plg           point on polygon from parameter
+// see also UT3D_pt_evalplg UT3D_par_par1plg
+
+  int     iSeg;
+  double  *lva, *pva, lTot, lpar, pln, *v1, *v2;
+  Point2  *p1, *p2;
+
+
+  // printf("UT2D_pt_par_plg  %f\n",du);
+  // DEB_dump_obj__ (Typ_CVPOL2, cvp, " UT2D_pt_par_plg ");
+
+
+  // build lva = length-value-table
+  lva = MEM_alloc_tmp ((int)(cvp->ptNr * sizeof(double)));
+  lTot = UT2D_lva_plg (lva, cvp->pTab, cvp->ptNr);
+    // printf(" lTot=%f\n",lTot);
+
+
+  // // change length-table lva into parameter-value-table pva
+  // UT2D_pva_lva (pva, lva, cvp->ptNr);
+
+
+  // change 01-parameter du into length-parameter
+  lpar = du * lTot;
+    // printf(" lpar=%f\n",lpar);
+
+
+  // find segmentNr in pva from curve-parameter
+  // iSeg = UT2D_iseg_par (lpar, cvp);
+  iSeg = UTP_db_ckNxt_ndb (lpar, cvp->ptNr, lva);
+    // printf(" iSeg=%d\n",iSeg);
+  if(iSeg < 0) iSeg = cvp->ptNr - 1;
+
+
+  // get line-parameter on segment from curve-parameter
+  v1 = &lva[iSeg-1];
+  v2 = &lva[iSeg];
+  pln = (lpar - *v1) / (*v2 - *v1);
+    // printf(" pln=%f v1=%f v2=%f\n",pln,*v1,*v2);
+
+
+  // get pto = position on segment 
+  p1 = &cvp->pTab[iSeg-1];
+  p2 = &cvp->pTab[iSeg];
+  UT2D_pt_tra_pt_pt_par (pto, p1, p2, pln);
+
 
   return 0;
 
@@ -9803,7 +9709,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   int UT2D_ckvc_parl (Vector2 *v1, Vector2 *v2, double tol) {
 //================================================================
 /// \code
-/// test if 2 vectors parallel
+/// UT2D_ckvc_parl            test 2 (normalized) vectors for parallel
 /// tol = max distance of v1 from v2.
 /// BOTH VECTORS MUST BE NORMALIZED.
 ///
@@ -9820,15 +9726,15 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 ///   -1      not parallel.
 /// \endcode
 
-// see also UT2D_ckvc_in2vc
+// see also UT2D_ck_parl_2vc UT2D_ckvc_in2vc
 
   double   d1;
 
   // printf("UT2D_ckvc_parl %f\n",tol);
-  // UT3D_stru_dump (Typ_VC2, v1, "  v1:");
-  // UT3D_stru_dump (Typ_VC2, v2, "  v2:");
+  // DEB_dump_obj__ (Typ_VC2, v1, "  v1:");
+  // DEB_dump_obj__ (Typ_VC2, v2, "  v2:");
 
-  UT2D_slen_nor_vc_vcNo (&d1, v1, v2);
+  UT2D_slenq_nor_2vc (&d1, v1, v2);
     // printf(" _ck_parl-d1=%f\n",d1);
 
   if(fabs(d1) < tol) return 0;
@@ -9886,7 +9792,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //=======================================================================
   int UT2D_pt_tng_ci_vc (Point2 *ptg, Circ2 *ci, Vector2 *vt, int isol) {
 //=======================================================================
-// UT2D_pt_tng_ci_vc          tangent with fixed vector to circ
+// UT2D_pt_tng_ci_vc          get tangent-pt on circ parallel to vector
 // imod      0 = point at y-axis (vc1=x-axis; ci1.vz=z-axis)
 //           1 = point at negative y-axis
 
@@ -9898,8 +9804,8 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // printf("UT2D_pt_tng_ci_vc %d\n",isol);
 
   // get normal to vc1 (normal=y from vc1=x and ci.vz
-  UT2D_vc_perpvc (&vcn, vt);
-    // UT3D_stru_dump (Typ_VC, &vcn, "  vcn:");
+  UT2D_vc_rot_90_ccw (&vcn, vt);
+    // DEB_dump_obj__ (Typ_VC, &vcn, "  vcn:");
 
 
   // translate circ.pc length=radius along vcn
@@ -9918,7 +9824,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   int UT2D_pt_tng_ci_pt (Point2 *ptg, Circ2 *ci, Point2 *pt1, int isol) {
 //=======================================================================
 
-/// UT2D_pt_tng_ci_pt              tangent from point (outside circ) to circ
+/// UT2D_pt_tng_ci_pt              tangent-pt from point (outside circ) to circ
 /// RetCod:
 ///    1      point is on circle
 ///    0      OK
@@ -9933,19 +9839,20 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
   // printf("====================================== \n");
   // printf("UT2D_pt_tng_ci_pt %d\n",isol);
-  // UT3D_stru_dump(Typ_PT2, pt1, "  pt1:");
-  // UT3D_stru_dump(Typ_CI2, ci, "  ci:");
+  // DEB_dump_obj__(Typ_PT2, pt1, "  pt1:");
+  // DEB_dump_obj__(Typ_CI2, ci, "  ci:");
 
   // d1 = dist pt1-cen
   d1 = UT2D_len_2pt (pt1, &ci->pc);
 
-  sr = DSIGN (ci->rad);
+  // sr = DSIGN (ci->rad);
+  sr = DLIM01 (ci->rad);
   d2 = fabs(ci->rad);
 
   // test if pt1 is on circle
   if(UTP_comp2db (d1, d2, UT_TOL_pt) == 1) {
       // printf(" PT ON CIRC\n");
-    UT2D_vc_cipt (&vc1, &ci->pc, pt1, sr);
+    UT2D_vc_tng_ci_pt (&vc1, &ci->pc, pt1, sr);
     if(isol) d2 *= -1.;   // invert direction
     UT2D_pt_traptvclen (ptg, pt1, &vc1, d2);
     // vom pc dx,dy in Richtg pc-pt1 abtragen
@@ -9975,7 +9882,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
   Fertig:
     // GR_Disp_pt2 (ptg, SYM_TRI_S, 2);
-    // UT3D_stru_dump(Typ_PT2, ptg, "  ptg:");
+    // DEB_dump_obj__(Typ_PT2, ptg, "  ptg:");
     // printf("ex UT3D_pt_tangptci %d\n",irc);
 
   return irc;
@@ -10001,6 +9908,117 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // GR_Disp_pt2 (ptc, SYM_STAR_S, 0);
 
   return 0;
+
+}
+
+
+//================================================================
+  int UT2D_pt_mid_ci (Point2 *pto, Circ2 *ci1) {
+//================================================================
+// UT2D_pt_mid_ci            get midpoint of circle
+
+
+  int       sr, sri = -1;
+  double    ao, a1;
+  Vector2   vc1, vc2, vm;
+
+  DEB_dump_obj__ (Typ_CI2, ci1, "UT3D_pt_mid_ci");
+
+  sr = DLIM01(ci1->rad);  // 0=CCW, 1=CW
+
+  // test 360-deg-circ
+  ao = fabs(ci1->ango);
+
+  // test 360-deg-circ
+  if(fabs(RAD_360 - ao) < UT_TOL_min1)  {
+    // opposite point for 360-deg-circ
+    UT2D_pt_opp2pt (pto, &ci1->pc, &ci1->p1);
+    goto L_exit;
+  }
+
+  // vc1 = circCen -> circStartPt           
+  UT2D_vc_2pt (&vc1, &ci1->pc, &ci1->p1);
+
+  // 180-deg-circ: 
+  a1 = fabs(RAD_180 - ao);
+  if(a1 < UT_TOL_min1) {
+    if(sr) {
+      UT2D_vc_rot_90_cw (&vm, &vc1);
+    } else {
+      UT2D_vc_rot_90_ccw (&vm, &vc1);
+    }
+    UT2D_pt_traptvc (pto, &ci1->pc, &vm);
+    goto L_exit;
+  }
+
+  // vc2 = circCen -> circEndPt
+  UT2D_vc_2pt (&vc2, &ci1->pc, &ci1->p2);
+
+  // test 170-190
+  if(a1 < RAD_10) {
+    // rot vc1 90 deg CCW
+    UT2D_vc_rot_90_sr (&vc1, &vc1, sr);
+    // rot vc2 90 deg CW
+    sri = ICHG01(sr);
+    UT2D_vc_rot_90_sr (&vc2, &vc2, sri);
+  }
+
+  // vm = midVec
+  vm.dx = vc1.dx + vc2.dx;
+  vm.dy = vc1.dy + vc2.dy;
+
+  // if ango > 180: invert !!
+  if((sri < 0)&&(ao > RAD_180)) UT2D_vc_invert (&vm, &vm);
+
+  // pto = circCen along vm length = radius
+  UT2D_pt_traptvclen (pto, &ci1->pc, &vm, fabs(ci1->rad));
+
+
+  L_exit:
+    // DEB_dump_obj__ (Typ_PT, po, "ex UT3D_pt_mid_ci");
+    // GR_Disp_pt2 (pto, SYM_SQU_B, 2);
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT2D_pt_mid_ci_2pt (Point2 *ptm, Point2 *p1, Point2 *p2, Point2 *pc,
+                          double *rad, double *tol) {
+//=======================================================================
+// get midpoint of 2 points on circ
+// Output:
+//   ptm    point on arc in the mid of p1 - p2
+//   retCod   0 OK
+//            1 arc too short  (< tol)
+
+  int      irc = 0;
+  double   qdist, rdc, dx, fx;
+  Point2   ptx;
+  Vector2  vc1;
+
+
+  // test if dist p1-p2 < tol; yes: return 1
+  UT2D_lenq_2pt (&qdist, p1, p2);                // printf(" qdist=%f\n",qdist);
+  if(qdist < (*tol * *tol)) {irc = 1; goto L_exit;}
+
+  // ptx = midPoint of p1, p2;
+  UT2D_pt_mid2pt (&ptx, p1, p2);
+
+  // dx = dist ptx - ptm  / x = r - sqrt(r**2 - h**2)
+  dx = *rad - sqrt((*rad * *rad) - (qdist/4));   // printf(" dx=%f\n",dx);
+
+  // faktor pc-ptx -> pc-ptm
+  fx = *rad / (*rad - dx);                       // printf(" fx=%f\n",fx);
+
+  UT2D_vc_2pt (&vc1, pc, &ptx);
+
+  UT2D_pt_pt_mult_vc (ptm, pc, &vc1, fx);
+
+  L_exit:
+    // DEB_dump_obj__ (Typ_PT2, ptm, "ex-UT2D_pt_mid_ci_2pt %d",irc);
+  return irc;
 
 }
 
@@ -10037,16 +10055,16 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
   // printf("UT2D_2pt_ck_int_2pt tol=%f\n",*tol);
-  // UT3D_stru_dump (Typ_PT2, p1, " p1");
-  // UT3D_stru_dump (Typ_PT2, p2, " p2");
-  // UT3D_stru_dump (Typ_PT2, p3, " p3");
-  // UT3D_stru_dump (Typ_PT2, p4, " p4");
+  // DEB_dump_obj__ (Typ_PT2, p1, " p1");
+  // DEB_dump_obj__ (Typ_PT2, p2, " p2");
+  // DEB_dump_obj__ (Typ_PT2, p3, " p3");
+  // DEB_dump_obj__ (Typ_PT2, p4, " p4");
 
   
   //==================================================================
   // get v12 = linesegment 1
   UT2D_vc_2pt (&v12, p1, p2);
-    // UT3D_stru_dump (Typ_VC2, &v12, " v12");
+    // DEB_dump_obj__ (Typ_VC2, &v12, " v12");
 
   tol1 = *tol;
 
@@ -10159,8 +10177,8 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     goto L_normal;
       // printf(" is-normal !\n");
   }
-    // UT3D_stru_dump (Typ_PT2, &pb3, " -h-pb3");
-    // UT3D_stru_dump (Typ_PT2, &pb4, " -h-pb4");
+    // DEB_dump_obj__ (Typ_PT2, &pb3, " -h-pb3");
+    // DEB_dump_obj__ (Typ_PT2, &pb4, " -h-pb4");
     // printf(" isparl-2=%d\n",isparl);
 
 
@@ -10177,7 +10195,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // printf(" normal..\n");
 
   // normal to v12
-  UT2D_vc_perpvc (&vn, &v12);
+  UT2D_vc_rot_90_ccw (&vn, &v12);
 
   // set s13vl = if p3 is far left of a normal line tru p1 (with tolerance)
   if(is4on) ph3 = *p3;
@@ -10329,57 +10347,6 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
 //================================================================
-  int UT2D_is_convex_inpt (int pNr, int *ia, Point2 *pa)  {
-//================================================================
-// check if indexed contour is convex | concave
-// Output:
-//   retCod:  -1  contour is convex ("O")
-//           >=0  contour is concave ("L"); pointIndex of first concave segments
-//                - contour is concave arount point [ia[ii]]
-// TESTPROG: UT2D_test_is_convex_inpt
-// see also UT3D_isConvx_ptTab UFA_opt_ckCvx UFA_opt_ckOpt
-
-  int      ii, i1, ie;
-  double   d1;
-  Vector2  v01, v12, ve0;
- 
-
-  // printf("UT2D_is_convex_inpt %d\n",pNr);
-  // for(i1=0;i1<pNr;++i1)printf(" %d",ia[i1]);
-  // printf(" \n");
-
-
-
-
-  ie = pNr - 1;
-  // closing segment
-  ve0.dx = pa[ia[ie]].x - pa[ia[0]].x;
-  ve0.dy = pa[ia[ie]].y - pa[ia[0]].y;
-  v01 = ve0;
-
-  i1 = -1;
-  for(ii=1; ii < pNr; ++ii) {
-    ++i1;
-    v12.dx = pa[ia[i1]].x - pa[ia[ii]].x;
-    v12.dy = pa[ia[i1]].y - pa[ia[ii]].y;
-    // crossprod of v01 - v12
-    d1 = -v01.dy * v12.dx + v01.dx * v12.dy;
-      // printf(" isConvex v12=%d,%d  %f\n",i1,ii,d1);
-    if(d1 < 0.) return i1;  // concave arount point [ia[ii]]
-    v01 = v12;
-  }
-  // test last segment - closing segment
-      // printf(" isConvex v12=%d,%d  %f\n",i1,ii,d1);
-  d1 = -v01.dy * ve0.dx + v01.dx * ve0.dy;
-  if(d1 < 0.) return ie;
-
-
-  return -1;
-
-}
-
-
-//================================================================
   double UT2D_par_nor_2vc (Vector2 *vc1, Vector2 *vc2) {
 //================================================================
 /// parameter height to lenght
@@ -10403,11 +10370,11 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   double  _dx, pn;
   Vector2 vcn;
 
-  // UT3D_stru_dump (Typ_VC2, vc1, "UT2D_par_nor_2vc vc1");
-  // UT3D_stru_dump (Typ_VC2, vc2, "                 vc2");
+  // DEB_dump_obj__ (Typ_VC2, vc1, "UT2D_par_nor_2vc vc1");
+  // DEB_dump_obj__ (Typ_VC2, vc2, "                 vc2");
 
 
-  // rotate vc1 90 deg (UT2D_vc_perpvc)                                <<<<<
+  // rotate vc1 90 deg (UT2D_vc_rot_90_ccw)                                <<<<<
   _dx = vc1->dx;
   vcn.dx = -vc1->dy;
   vcn.dy = _dx;
@@ -10451,10 +10418,10 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
   // printf("UT2D_ck_pt_in_tria__: tol=%f \n",*tol);
-  // UT3D_stru_dump (Typ_PT2, px, "   px:");
-  // UT3D_stru_dump (Typ_PT2, p1, "   p1:");
-  // UT3D_stru_dump (Typ_PT2, p2, "   p2:");
-  // UT3D_stru_dump (Typ_PT2, p3, "   p3:");
+  // DEB_dump_obj__ (Typ_PT2, px, "   px:");
+  // DEB_dump_obj__ (Typ_PT2, p1, "   p1:");
+  // DEB_dump_obj__ (Typ_PT2, p2, "   p2:");
+  // DEB_dump_obj__ (Typ_PT2, p3, "   p3:");
     // GR_Disp_pt2 (px, SYM_STAR_S, 4);
     // GR_Disp_ln2 (p1, p2, 0);
     // GR_Disp_ln2 (p1, p3, 0);
@@ -10593,6 +10560,1671 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // printf("ex UT2D_ck_pt_in_tria_tol %d\n",irc);
 
   return irc;
+
+}
+
+
+//================================================================
+  int UT2D_vc_rot_90_sr (Vector2 *vcOut, Vector2 *vcIn, int sr) {
+//================================================================
+// UT2D_vc_rot_90_sr           rotate vector 90 deg CCW or CW around axis
+// Input:
+//   sr      0=CCW, 1=CW
+
+  double _dx;
+
+  if(sr) {
+    // rotate vector 90 deg CW around axis
+    _dx = -vcIn->dx; vcOut->dx = vcIn->dy; vcOut->dy = _dx;
+
+  } else {
+    // rotate vector 90 deg CCW around axis
+    _dx = vcIn->dx; vcOut->dx = -vcIn->dy; vcOut->dy = _dx;
+  }
+
+  return 0;
+
+}
+
+
+/* UU
+//================================================================
+  double UT2D_minLenq_ln_ln (Line2 *ln1, Line2 *ln2) {
+//================================================================
+/// rc = 1  p1e - p2a hat geringsten Abstand
+/// rc = 2  p1a - p2a hat geringsten Abstand
+/// rc = 3  p1e - p2e hat geringsten Abstand
+/// rc = 4  p1a - p2e hat geringsten Abstand
+
+
+  int       ii;
+  double    da[4];
+
+  UT2D_lenq_2pt (&da[0], &ln1->p2, &ln2->p1);
+  UT2D_lenq_2pt (&da[1], &ln1->p1, &ln2->p1);
+  UT2D_lenq_2pt (&da[2], &ln1->p2, &ln2->p2);
+  UT2D_lenq_2pt (&da[3], &ln1->p1, &ln2->p2);
+
+  ii = UTP_min (4, da);
+
+    printf("ex-UT2D_minLenq_ln_ln %d %lf\n",ii,da[ii]);
+
+
+  return da[ii];
+
+}
+*/
+
+
+//======================================================================
+  int UT2D_ck_2par_pt_in_2par_2pt (Point2 pts1, Point2 pte1,
+                                   Point2 pts2, Point2 pte2,
+                                   double pars1, double pare1,
+                                   double pars2, double pare2,
+                                   double *tol) {
+//======================================================================
+/// UT2D_ck_2par_pt_in_2par_2pt          test if 2 collinear curves overlap, connect
+/// Input:
+///   pvx    parameter of ptx along lineSeg pts-pte
+/// Input:
+///   pts1,pte1    start- and endPoints of curve1
+///   pars1,pare1  parameters of start- and endPoints of curve1
+///   pts2,pte2    start- end endPoints of curve2
+///   pars2,pare2  parameters of start- and endPoints of curve2
+///   tol          point-tolerance
+/// Output:
+///   retCod -1 = curves are not connected
+///          -2 = the 2D-point lies outside the segment - after / near  CircEndPt
+///           0 = the 2D-point lies inside the segment
+///           1 = pts == ptx
+///           2 = pte == ptx
+///
+///
+///  -1       |--cvx--|   |--cvx--|        curves are not connected
+///
+///   0,1     |--cv2--N--cv1--|            connected at pts1
+///   2,3     |--cv1--N--cv2--|            connected at pte1
+///
+///   4,5     N--cv1,2--|--cv--|           connected at pts1 (maybe also on pte11
+///   8,9     |--cv--|--cv1,2--N           connected at pte1
+///
+///  16                                    overlapping
+///
+// see also UTP_2db_ck_in2db
+
+
+  int   irc0, ircl2;
+
+  // printf(" UT2D_ck_2par_pt_in_2par_2pt tol %f\n",*tol);
+  // DEB_dump_obj__ (Typ_PT2, &pts1, "  pts1 %f",pars1);
+  // DEB_dump_obj__ (Typ_PT2, &pte1, "  pte1 %f",pare1);
+  // DEB_dump_obj__ (Typ_PT2, &pts2, "  pts1 %f",pars2);
+  // DEB_dump_obj__ (Typ_PT2, &pte2, "  pte1 %f",pare2);
+
+
+  // if line2 is antiparallel to line1:
+  if(pars2 > pare2) {
+    ircl2 = 1;
+    MEM_swap_2db (&pars2, &pare2);
+    MEM_swap__ (&pts2, &pte2, sizeof(Point2));
+  } else ircl2 = 0;
+    // printf(" ircl2=%d\n",ircl2); // 0=fwd, 1=bwd
+
+  // irc0 = UTP_2db_ck_in2db (pars1, pare1, pars2, pare2);
+    // printf(" ck_in2db %d\n",irc0);
+
+
+
+  //----------------------------------------------------------------
+  if(pare2 < pare1) {
+    // cv2 ends before cv1-end;
+    // test connected pte2-pts1
+    if(UT2D_comp2pt(&pte2,&pts1,*tol)) {irc0=0; goto L_exit;}
+    if(pare2 < pars1) {irc0 = -1; goto L_exit;}
+  }
+
+
+  //----------------------------------------------------------------
+  if(pars2 > pars1) {
+    // cv2 starts after cv1-start
+    // test connected pte1-pts2
+    if(UT2D_comp2pt(&pte1,&pts2,*tol)) {irc0=2; goto L_exit;}
+    if(pars2 > pare1) {irc0 = -1; goto L_exit;}
+  }
+
+
+  //----------------------------------------------------------------
+   // test 1s-2s
+   if(UT2D_comp2pt(&pts1,&pts2,*tol)) {irc0=4; goto L_exit;}
+
+   // test 1e-2e
+   if(UT2D_comp2pt(&pte1,&pte2,*tol)) {irc0=8; goto L_exit;}
+
+
+  //----------------------------------------------------------------
+  // some kind of overlapping ..
+  irc0=16;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex-ck_2par_pt_in_2par_2pt %d irc0=%d ircl2=%d\n",
+           // irc0 + ircl2,irc0,ircl2);
+
+  return (irc0 + ircl2);
+
+}
+
+
+//================================================================
+  int UT2D_pt_int_2lnl (int *ipa, Point2 *ptx,
+                        Line2 *ln1, Line2 *ln2, double *tol) {
+//================================================================
+// UT2D_pt_int_2lnl              intersection of 2 limited lines
+// box-test should be already done.
+// Output:
+//   ipa     status of intersectionpoint
+//           -1   no intersection
+//            0   normal intersection in segments
+//            1   startPt ln1 == on ln2
+//            2   endtPt ln1 == on ln2
+//            4   startPt ln2 == on ln1
+//            5   startPt ln1 == startPt ln2
+//            6   endtPt ln1 == startPt ln2
+//            8   endtPt ln2 == on ln1
+//            9   startPt ln1 == endtPt ln2
+//           10   endtPt ln1 == endtPt ln2
+//   ptx     intersectionpoint
+//   retCod  -1   no intersection
+//            0   normal intersection in segments
+//            >0  parallel and overlapping; see UT2D_ck_2par_pt_in_2par_2pt
+//
+//
+/// a-b = ln1    c-d = ln2   e = u_c_ab   f = u_d_ab
+///                       d
+///                      /.
+///                     / .
+///                 ln2/  .
+///                   /   .
+///                  /    .
+///                 /     .
+///       a-----e--x------f-------------b
+///             | /            ln1
+///             |/
+///             c
+///
+///
+
+// see UT2D_pt_int_4pt UT2D_pt_int4pt UT2D_2pt_ck_int_2pt
+
+ 
+  int      irc0, ircl1, ircl2;
+  double   qtol, para[3], parls, parle;
+  Vector2  vc1, vc2;
+
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXX UT2D_pt_int_2lnl tol = %f\n",*tol);
+  // DEB_dump_obj__ (Typ_LN2, ln1, "  ln1");
+  // DEB_dump_obj__ (Typ_LN2, ln2, "  ln2");
+  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_Disp_ln2 (&ln2->p1, &ln2->p2, Typ_Att_blue);
+
+
+  parls = 0.;   // relimited or reverse ?
+  parle = 1.;   // relimited or reverse ?
+
+
+  UT2D_vc_2pt (&vc1, &ln1->p1, &ln1->p2);    // vec a-b
+  UT2D_vc_2pt (&vc2, &ln2->p1, &ln2->p2);    // vec c-d
+
+
+  // get intersection-parameters on both lines
+  irc0 = UT2D_2par_int2pt2vc (para, &ln1->p1, &vc1, &ln2->p1, &vc2);
+    // printf(" int2pt2vc-irc irc0=%d para %f %f %f\n",irc0,para[0],para[1],para[2]);
+  if(!irc0) goto L_not_parall;
+
+
+  //----------------------------------------------------------------
+  // lines are parallel, para[2] = quadratic offset-distance
+  // test dist > tol
+  *ipa = -1;
+  qtol = *tol * *tol;
+  if(para[2] > qtol) {irc0 = -1; goto L_exit;}
+
+  // lines are collinear.
+  // test connected / overlapping
+  irc0 = UT2D_ck_2par_pt_in_2par_2pt (ln1->p1, ln1->p2, ln2->p1, ln2->p2,
+                                      parls,   parle,   para[0], para[1], tol);
+  goto L_exit;
+
+
+
+  //----------------------------------------------------------------
+  L_not_parall:
+    // printf(" L_not_parall:\n");
+
+  // get intersPt from vc1 * para[0]
+  UT2D_vc_multvc (&vc1, &vc1, para[0]);
+  *ptx = ln1->p1;
+  UT2D_pt_add_vc__ (ptx, &vc1);
+    // GR_Disp_pt2 (ptx, SYM_TRI_S, ATT_COL_RED);
+
+
+  //----------------------------------------------------------------
+  // test if points from parameters para[0],para[1] are on limited line
+
+
+  // test if ptx outside ln1 (test para[0] = parameter of point along ln1)
+  // ircl1 = UT2D_par_ck_inLn (ptx, &para[0], &ln1->p1, &ln1->p2, tol);
+  ircl1 = UT2D_ck_par_pt_in_2par_2pt (ptx, &ln1->p1, &ln1->p2,
+                                      &para[0], &parls, &parle, tol);
+      // printf(" ircl1=%d\n",ircl1);
+  if(ircl1 < 0) { irc0 = -1; goto L_exit; }
+
+  // test if ptx outside ln2 (test para[1] = parameter of point along ln2)
+  // ircl2 = UT2D_par_ck_inLn (ptx, &parxl2, &ln2->p1, &ln2->p2, tol);
+  ircl2 = UT2D_ck_par_pt_in_2par_2pt (ptx, &ln2->p1, &ln2->p2,
+                                      &para[1], &parls, &parle, tol);
+      // printf(" ircl2=%d\n",ircl2);
+  if(ircl2 < 0) { irc0 = -1; goto L_exit; }
+
+  *ipa = ircl1 + ircl2 * 4;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+      // printf("ex-UT2D_pt_int_2lnl irc0=%d ipa=%d\n",irc0,*ipa);
+    return irc0;
+
+}
+
+
+//================================================================
+  int UT2D_ci_parl_ci (Circ2 *ci2, Circ2 *ci1, double *dist) {
+//================================================================
+// UT2D_ci_parl_ci         get circ2 parallel to circ1 with offset
+// retCod    0    OK
+//          -1    degenerated; radius < UT_TOL_pt
+//
+// see UT2D_ci_ci_rad
+
+  double    d1;
+
+
+  // printf("-------------------------------- \n");
+  // DEB_dump_obj__ (Typ_CI2, ci1, "UT2D_ci_parl_ci %f",*dist);
+  // GR_Disp_ci2 (ci1, Typ_Att_Symb);
+
+
+  // same center, direction, angle.
+  *ci2 = *ci1;
+
+  // fix angle and factor if sense changes
+  if(ci1->rad > 0.) {
+    // CCW
+    // add dist to rad
+    ci2->rad += *dist;
+    // factor length
+    d1 = fabs(ci2->rad) / fabs(ci1->rad);
+    if(ci2->rad < 0.) {
+        // printf(" parl_ci- CCW changes to CW\n");
+      d1 *= -1.;
+      ci2->ango = ci1->ango - RAD_360;
+    }
+
+  } else {
+    // CW
+    // add dist to rad
+    ci2->rad -= *dist;
+    // factor length
+    d1 = fabs(ci2->rad) / fabs(ci1->rad);
+    if(ci2->rad > 0.) {
+        // printf(" parl_ci- CW changes to CCW\n");
+      d1 *= -1.;
+      ci2->ango = ci1->ango + RAD_360;
+    }
+  }
+    // printf(" parl_ci d1=%f r2=%f a2=%f\n",d1,ci2->rad,ci2->ango);
+
+  // test radius < tolerance
+  if(fabs(ci2->rad) < UT_TOL_pt) {
+    ci2->p1 = ci2->pc;
+    ci2->p2 = ci2->pc;
+    return -1;
+  }
+
+  // set p1 along pc-p1
+  UT2D_pt_tra_pt_pt_par (&ci2->p1, &ci2->pc, &ci2->p1, d1);
+
+  // set p2 along pc-p2
+  UT2D_pt_tra_pt_pt_par (&ci2->p2, &ci2->pc, &ci2->p2, d1);
+    
+    // TESTBLOCK
+    // GR_Disp_ci2 (ci2, Typ_Att_hili);
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_ci_ci_rad (Circ2 *cio, Circ2 *cii, double rad) {
+//================================================================
+// UT2D_ci_ci_rad             change radius of circ; keep sense of rotation
+// 
+// Input:
+//   rad        new radius
+//
+// see UT3D_ci_cirad UT2D_ci_parl_ci
+
+  double d1;
+
+
+  // DEB_dump_obj__ (Typ_CI2, cii, "UT2D_ci_ci_rad r = %f",rad);
+
+  *cio = *cii;
+  cio->rad = rad * DSIGN(cii->ango);
+  d1 = fabs(rad / cii->rad);
+
+  // set p1,p2
+  // transl point from pc along p1-p2 * fakt
+  UT2D_pt_tra_pt_pt_par (&cio->p1, &cii->pc, &cii->p1, d1);
+  UT2D_pt_tra_pt_pt_par (&cio->p2, &cii->pc, &cii->p2, d1);
+
+    // DEB_dump_obj__ (Typ_CI2, cio, " ex-UT2D_ci_ci_rad");
+
+  return 0;
+
+}
+
+
+//========================================================================
+  int UT2D_ptvcpar1_std_obj (Point2 *pto, Vector2 *vco, double *par,
+                             int pType, int cvTyp, void *cvDat) {
+//========================================================================
+/// UT2D_ptvcpar1_std_obj          get typical-point/tangent-vector for obj
+///
+/// Input:
+///   pto        NULL for no output
+///   vco        NULL for no output
+///   par        NULL for no output
+///   pType      which points to compute (eg Ptyp_start|Ptyp_end ../ut/AP_types.h)
+///              -1 or less: get controlpoint of polygon|spline (-1 is first)
+///   cvTyp      type of cvDat; eg Typ_LN2
+///   cvDat      line/curve, eg struct Line
+///   cvPar      parameter (for pType Ptyp_param)
+/// Output:
+///   pto        point out
+///   vco        vector out  not-normalized
+///   par        parameter out (0-1)
+///   retcod     0=ok, -1=Error
+///
+
+// see UT3D_ptvcpar1_std_obj
+
+
+
+  // printf("UT2D_ptvcpar1_std_obj cvTyp=%d pType=%d\n",cvTyp,pType);
+
+
+  switch (cvTyp) {
+
+    case Typ_LN2:
+      if(pType == Ptyp_start) {
+        if(pto) *pto = ((Line2*)cvDat)->p1;
+        if(par) *par = 0.;
+      } else if(pType == Ptyp_end) {
+        if(pto) *pto = ((Line2*)cvDat)->p2;
+        if(par) *par = 1.;
+      } else if(pType == Ptyp_mid) {
+        if(pto) UT2D_pt_mid2pt (pto, &((Line2*)cvDat)->p1, &((Line2*)cvDat)->p2);
+        if(par) *par = 0.5;
+      } else goto L_err_FNI;
+      if(vco) UT2D_vc_ln (vco, (Line2*)cvDat);
+      break;
+
+
+    case Typ_CI2:
+      if(pType == Ptyp_start) {
+        if(pto) *pto = ((Circ2*)cvDat)->p1;
+        if(vco) UT2D_vc_tng_ci_pt (vco, &((Circ2*)cvDat)->pc,
+                              &((Circ2*)cvDat)->p1, DLIM01(((Circ2*)cvDat)->rad));
+        if(par) *par = 0.;
+      } else if(pType == Ptyp_end) {
+        if(pto) *pto = ((Circ2*)cvDat)->p2;
+        if(vco) UT2D_vc_tng_ci_pt (vco, &((Circ2*)cvDat)->pc,
+                              &((Circ2*)cvDat)->p2, DLIM01(((Circ2*)cvDat)->rad));
+        if(par) *par = 1.;
+      } else if(pType == Ptyp_mid) {
+        if(pto) UT2D_pt_mid_ci (pto, (Circ2*)cvDat);
+        if(par) *par = 0.5;
+        if(vco) goto L_err_FNI;
+      } else goto L_err_FNI;
+      break;
+
+
+    default:
+      TX_Error("UT2D_ptvcpar1_std_obj Etyp_%d",cvTyp);
+      return -1;
+  }
+
+    // TESTBLOCK
+    // if(vco) DEB_dump_obj__ (Typ_VC2, vco, "ex-UT2D_ptvcpar1_std_obj");
+    // if(pto) DEB_dump_obj__ (Typ_PT2, pto, "ex-UT2D_ptvcpar1_std_obj");
+    // END TESTBLOCK
+
+  return 0;
+
+
+  //----------------------------------------------------------------
+  L_err_FNI:  // function not implemented
+    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT2D_ptvcpar1_std_obj");
+    return MSG_ERR__ (ERR_func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
+
+}
+
+
+//================================================================
+  int UT2D_ln_parl_ln (Line2 *ln2, Line2 *ln1, double *dist) {
+//================================================================
+// UT2D_ln_parl_ln         get 2D-line parallel to line with offset
+
+  Vector2  vc2, vc1;
+
+
+  // DEB_dump_obj__ (Typ_LN2, ln1, "UT2D_ln_parl_ln");
+
+
+  *ln2 = *ln1;
+
+  // make normal vector to ln1 
+  UT2D_vc_perp2pt (&vc2, &ln1->p1, &ln1->p2);
+
+  // normalize vec
+  UT2D_vc_setLength (&vc2, &vc2, 1.);
+    // DEB_dump_obj__ (Typ_VC2, &vc2, "vc2");
+
+  // set lenght = dist
+  UT2D_vc_multvc (&vc1, &vc2, *dist);
+    // DEB_dump_obj__ (Typ_VC2, &vc1, "vc1");
+
+  // move points
+  UT2D_pt_add_vc__ (&ln2->p1, &vc1);
+  UT2D_pt_add_vc__ (&ln2->p2, &vc1);
+
+    // DEB_dump_obj__ (Typ_LN2, ln2, "ex-UT2D_ln_parl_ln");
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT2D_vc_ck_0 (Vector2 *v1) {
+//=======================================================================
+/// \code
+/// UT2D_vc_ck_0           compare vector for 0,0,
+///
+/// Retcode 0:   v1 <> 0,0
+///         1:   v1 = 0,0
+///
+/// if(UT2D_vc_ck_0 (&vz)) printf("vec is null !\n");
+/// \endcode
+
+
+  // DEB_dump_obj__ (Typ_VC2,  v1, "UT2D_vc_ck_0: ");
+
+  if(fabs(v1->dx) > UT_TOL_min2) return 0;
+  if(fabs(v1->dy) > UT_TOL_min2) return 0;
+
+  // if((v1->dx == 0.)&&(v1->dy == 0.)&&(v1->dz == 0.)) return 1;
+
+  return 1;
+}
+
+
+//================================================================
+  int UT2D_ci_tra_ci3_bp (Circ2 *ci2, Circ *ci3, int bpi) {
+//================================================================
+// UT2D_ci_tra_ci3_bp            get 2D-circle on backplane from 3D-circle
+// see also UT2D_ci_ci3
+
+// ACHTUNG: bp kann verkehrte Z-Achse haben;
+
+
+  if       (bpi == BCKPLN_XY) {
+    ci2->p1.x = ci3->p1.x; ci2->p1.y = ci3->p1.y;
+    ci2->p2.x = ci3->p2.x; ci2->p2.y = ci3->p2.y;
+    ci2->pc.x = ci3->pc.x; ci2->pc.y = ci3->pc.y;
+    if(ci3->vz.dz < 0.) goto L_rev;
+
+  } else if(bpi == BCKPLN_XZ) {
+    ci2->p1.x = ci3->p1.x; ci2->p1.y = ci3->p1.z;
+    ci2->p2.x = ci3->p2.x; ci2->p2.y = ci3->p2.z;
+    ci2->pc.x = ci3->pc.x; ci2->pc.y = ci3->pc.z;
+    if(ci3->vz.dy > 0.) goto L_rev;
+
+  } else if(bpi == BCKPLN_YZ) {
+    ci2->p1.x = ci3->p1.y; ci2->p1.y = ci3->p1.z;
+    ci2->p2.x = ci3->p2.y; ci2->p2.y = ci3->p2.z;
+    ci2->pc.x = ci3->pc.y; ci2->pc.y = ci3->pc.z;
+    if(ci3->vz.dx < 0.) goto L_rev;
+  }
+
+  ci2->rad  = ci3->rad;
+  ci2->ango = ci3->ango;
+  goto L_exit;
+
+
+  L_rev:
+    ci2->rad  = -ci3->rad;
+    ci2->ango = -ci3->ango;
+
+  L_exit:
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_ln_tra_ln3_bp (Line2 *lno, Line *lni, int bpi) {
+//================================================================
+// UT2D_ln_tra_ln3_bp           get 2D-line on backplane from 3D-line
+
+  UT2D_pt_tra_pt3_bp (&lno->p1, &lni->p1, bpi);
+  UT2D_pt_tra_pt3_bp (&lno->p2, &lni->p2, bpi);
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int UT2D_ck_par_pt_in_2par_2pt (Point2 *ptx, Point2 *pts, Point2 *pte,
+                                  double *pvx, double *pvs, double *pve,
+                                  double *tol) {
+//======================================================================
+/// UT2D_ck_par_pt_in_2par_2pt           test if point is in curve, out or ident
+/// Input:
+///   pvx    parameter of ptx along lineSeg pts-pte
+/// Output:
+///   retCod -1 = the 2D-point lies outside the segment - before / near CircStartPt
+///          -2 = the 2D-point lies outside the segment - after / near  CircEndPt
+///           0 = the 2D-point lies inside the segment
+///           1 = pts == ptx
+///           2 = pte == ptx
+///
+///
+///   -1    1      0      2    -2 
+///         |----->>------|
+///
+
+
+  int    irc1 = 0;
+      
+
+  // printf("UT2D_ck_par_pt_in_2par_2pt pvx=%f pvs=%f pve=%f\n",*pvx,*pvs,*pve);
+  
+
+  // test forward | backward
+  if(*pvs < *pve) goto L_fwd;
+
+  // backward; (pvs > pve)
+  if(*pvx > ((*pvs + *pve) / 2.)) {
+    // ptx near pts; compare
+    if(fabs(pts->x - ptx->x) > *tol) goto L_bck_1;
+    if(fabs(pts->y - ptx->y) > *tol) goto L_bck_1;
+    // yes; pts==ptx
+    irc1 = 1;
+
+  } else {
+
+    // ptx near pte; compare
+    if(fabs(pte->x - ptx->x) > *tol) goto L_bck_2;
+    if(fabs(pte->y - ptx->y) > *tol) goto L_bck_2;
+    // yes; pte==ptx
+    irc1 = 2;
+  }
+    goto L_ck_exit;
+
+
+  L_bck_1:
+    // ptx near pts - test before
+    if(*pvx > *pvs) irc1 = -1;
+    goto L_ck_exit;
+
+
+  L_bck_2:
+    // ptx near pte - test after
+    if(*pvx < *pve) irc1 = -2;
+    goto L_ck_exit;
+
+
+
+  //----------------------------------------------------------------
+  // forward; (pvs < pve)
+  L_fwd:
+  if(*pvx < ((*pvs + *pve) / 2.)) { 
+    // ptx near pts; compare
+    if(fabs(pts->x - ptx->x) > *tol) goto L_fck_1;
+    if(fabs(pts->y - ptx->y) > *tol) goto L_fck_1;
+    // yes; pts==ptx
+    irc1 = 1;
+
+  } else {
+    
+    // ptx near pte; compare
+    if(fabs(pte->x - ptx->x) > *tol) goto L_fck_2;
+    if(fabs(pte->y - ptx->y) > *tol) goto L_fck_2;
+    // yes; pte==ptx
+    irc1 = 2;
+  }
+    goto L_ck_exit;
+
+
+  L_fck_1:
+    // ptx near pts - test before
+    if(*pvx < *pvs) irc1 = -1;
+    goto L_ck_exit;
+
+
+  L_fck_2:
+    // ptx near pte - test after
+    if(*pvx > *pve) irc1 = -2;
+    goto L_ck_exit;
+
+
+  //----------------------------------------------------------------
+  L_ck_exit:
+    // printf(" ex-pt_ck_in_2par_2pt %d\n",irc1);
+  return irc1;
+
+}
+
+
+//============================================================================
+  int UT2D_angr_ck_inAc (Point2 *ptx, double *apx,
+                         Circ2 *ci1, double *aps, double *ape, double *tol) {
+//============================================================================
+/// UT2D_angr_ck_inAc        check if Point ptx/angle-apx is on arc ci1/aps-ape
+///
+///   retCod -2 = the 2D-point lies outside the segment - before / near CircStartPt
+///          -1 = the 2D-point lies outside the segment - after / near  CircEndPt
+///           0 = the 2D-point lies inside the segment
+///           1 = cp1 == ptx
+///           2 = cp2 == ptx
+///
+///   aps,ape from UT2D_ANGR_ADD_4PI  apx from UT2D_angr_ptpt
+
+/// see also UT2D_par_ck_inLn
+
+  int    irc1 = 0;
+  double a_mid;
+  double ax;
+
+
+  // printf("UT2D_angr_ck_inAc apx=%f aps=%f ape=%f\n",*apx,*aps,*ape);
+
+  // ax = (*apx < *aps) ? *apx + RAD_360 : *apx;
+  ax = ((*ape >= RAD_360)&&(*apx < *aps)) ? *apx + RAD_360 : *apx;
+    // printf(" ck_inAc-ax=%f\n",ax);
+
+
+
+  // test if apx near aps or near ape
+  a_mid = (*aps + *ape) / 2.;
+  if(ax < a_mid) {
+    // apx near aps; compare ps-ptx
+    if(fabs(ci1->p1.x - ptx->x) > *tol) goto L_ck_1;
+    if(fabs(ci1->p1.y - ptx->y) > *tol) goto L_ck_1;
+    // yes; ci1==ptx
+    irc1 = 1; 
+
+
+  } else {
+    // apx near ape; compare pe-ptx
+    if(fabs(ci1->p2.x - ptx->x) > *tol) goto L_ck_2;
+    if(fabs(ci1->p2.y - ptx->y) > *tol) goto L_ck_2;
+    // yes; ci2==ptx
+    irc1 = 2;
+  }
+
+  goto L_ck_exit;
+
+
+  L_ck_1:
+    // ptx near p1
+    if(ax < *aps) irc1 = -2;
+    goto L_ck_exit;
+
+
+  L_ck_2:
+    // ptx near p2
+    if(ax > *ape) irc1 = -1;
+
+
+  L_ck_exit:
+    // printf(" ex-angr_ck_inAc irc=%d apx=%f\n",irc1,*apx);
+
+  return irc1;
+
+}
+
+
+//================================================================
+  int UT2D_par_ck_inLn (Point2 *ptx, double *parx,
+                        Point2 *lp1, Point2 *lp2, double *tol) {
+//================================================================
+/// UT2D_par_ck_inLn              test if point ptx is on lineSeg lp1-lp2
+/// Input:
+///   parx    parameter of ptx along lineSeg lp1-lp2
+/// Output:
+///   retCod -2 = the 2D-point lies outside the segment (far-left) near lp1
+///          -1 = the 2D-point lies outside the segment (far-right) near lp2
+///           0 = the 2D-point lies inside the segment
+///           1 = lp1 == ptx
+///           2 = lp2 == ptx
+
+
+// see also UT2D_pt_ck_inLine
+
+  int  irc1 = 0;
+
+
+  // printf("UT2D_par_ck_inLn parx=%f \n",*parx);
+
+
+  // test if pt0 outside ln1
+  if(*parx < 0.5) {
+    // pt0 near p1; compare p1-p3
+    if(fabs(lp1->x - ptx->x) > *tol) goto L_ck_1;
+    if(fabs(lp1->y - ptx->y) > *tol) goto L_ck_1;
+    // yes; lp1==ptx
+    irc1 = 1;
+    goto L_ck_exit;
+
+  } else {
+
+    // pt0 near p2; compare p2-p3
+    if(fabs(lp2->x - ptx->x) > *tol) goto L_ck_2;
+    if(fabs(lp2->y - ptx->y) > *tol) goto L_ck_2;
+    // yes; lp2==ptx
+    irc1 = 2;
+    goto L_ck_exit;
+  }
+    goto L_ck_exit;
+
+
+  L_ck_1:
+    // ptx near lp1 - far-left
+    if(*parx < 0.) irc1 = -2;
+    goto L_ck_exit;
+
+
+  L_ck_2:
+    // ptx near lp2 - far-right
+    if(*parx > 1.) irc1 = -1; 
+
+
+  L_ck_exit:
+    // printf(" ex-par_ck_inLn %d\n",irc1);
+  return irc1;
+
+}
+
+
+//================================================================
+  int UT2D_2pt_int_ci_ci (int *ipa, Point2 *pta,
+                          Circ2 *ci1, Circ2 *ci2, double *tol) {
+//================================================================
+// Output:
+//   pta       intersectionpoints 0 and 1
+//   ipa       status of intersectionpoints
+//           -1   no intersection
+//            0   normal intersection in segments
+//            1   startPt ci1 == on ci2 
+//            2   endtPt ci1 == on ci2
+//            4   startPt ci2 == on ci1
+//            5   startPt ci1 == startPt ci2
+//            6   endtPt ci1 == startPt ci2
+//            8   endtPt ci2 == on ci1
+//            9   startPt ci1 == endtPt ci2
+//           10   endtPt ci1 == endtPt ci2
+//   retCod    -1  no intersection, outside
+//             -2  no intersection, circles concentric or inside
+//              0  normal intersections in 1 or 2 points
+//              1  ci1 touches ci2 outside (pta[0], ipa[0])
+//              2  ci1 touches ci2 inside (pta[0], ipa[0])
+//  
+//                                  ...
+//            . - .             .    | ci2        
+//          ci1 |    .       .       |        
+//              |      .   .         |
+//              |        0           |
+//              |      . | .         |
+//              |     .  |  .        |
+//              |    .   |   .       |
+//              |    .   |   .       |
+//              a----|---h---|-------b------
+//              |    .   |   .       |
+//              |    .   |   .       |
+//              |     .  |  .        |
+//              |      . | .         |
+//              |        1           |    
+//              |      .  .          |          
+//              |    .       .       |
+//            ' - '             .    |
+//                                  ...
+//
+//
+//
+//
+//   a = circCenter ci1
+//   b = circCenter ci2
+//   0 = pta[0] (intersectionpoint 0, pt0)
+//   1 = pta[1] (intersectionpoint 1, pt1)
+//   r1 = radius ci1
+//   r2 = radius ci2
+//   dab = distance a - b
+//   dah
+//   dh0
+//
+//   h = Point2 ph (circCenter projected onto line a-b);
+//   parh = parameter of point ph along a-b
+//   dch  = distance circCenter c - ph
+//   dh1  = distance ph - 1 
+//
+//
+
+  int     irc0 = 0, irc_p0c1, irc_p1c1, irc_p0c2, irc_p1c2, src1, src2;
+  double  r1, r2, r_12, s_ab_ab, dab, dah, dh0, d1, qr1, qr2;
+  double  fx, fy, a1s, a1e, a2s, a2e, ap0, ap1;
+  Vector2 vab;
+  Point2  pt0, pt1, pth;
+
+
+  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC UT2D_2pt_int_ci_ci\n");
+  // DEB_dump_obj__(Typ_CI2, ci1, " UT2D_2pt_int_ci_ci-ci1");
+  // DEB_dump_obj__(Typ_CI2, ci2, "                   -ci2");
+  // GR_Disp_ci2 (ci1, Typ_Att_blue);
+  // GR_Disp_ci2 (ci2, Typ_Att_blue);
+  // TESTBLOCK
+  // ipa[0] = 0;
+  // ipa[1] = -1;
+  // pta[0].x = -228.710;
+  // pta[0].y = 24.959;
+  // return 0;
+  // END TESTBLOCK
+
+
+  r1 = fabs(ci1->rad);
+  r2 = fabs(ci2->rad);
+  r_12 = r1 + r2;
+
+  // get vab = vector ptcc1 -ptcc2
+  UT2D_vc_2pt (&vab, &ci1->pc, &ci2->pc);
+    // DEB_dump_obj__(Typ_VC2, &vab, " -vab");
+
+  // get dab = distance a - b (circCenter ci1 - ci2)
+  s_ab_ab = UT2D_skp_2vc (&vab, &vab);     // skp mit sich selbst = Laenge^2
+  dab = sqrt(s_ab_ab);
+    // printf(" dab=%f  %f\n",dab,s_ab_ab);
+
+
+  //----------------------------------------------------------------
+  // test touch
+  if(dab > r1) {
+    // outside
+    // test touch outside
+    if(fabs(dab - r_12) < *tol) {
+      // touch outside
+      irc0 = 1;
+      d1 = r1 / dab;
+      goto L_touch;
+    }
+    // test outside
+    if(dab > r_12) goto L_err_1;           // outside ..
+
+  } else {
+    // concentric or inside
+    // test touch concentric or inside
+    if(r1 > r2) {
+      if(fabs(r1 - dab - r2) < *tol) {
+        // touch inside
+        irc0 = 2;
+        d1 = -(r1 / dab);
+        goto L_touch;
+      }
+      if(r1 > dab + r2) goto L_err_2;    // concentric or inside
+
+
+    } else {
+      if(fabs(r2 - dab - r1) < *tol) {
+        // touch inside
+        irc0 = 2;
+        d1 = -(r1 / dab);
+        goto L_touch;
+      }
+      if(r2 > dab + r1) goto L_err_2;    // concentric or inside
+    }
+  }
+  goto L_ptx;
+
+  L_touch:
+    ipa[0] = 0;
+    ipa[1] = -1;
+      // printf(" d1=%f\n",d1);
+    pt0.x = ci1->pc.x + vab.dx*d1;
+    pt0.y = ci1->pc.y + vab.dy*d1;
+      // TESTBLOCK
+      // GR_Disp_pt2 (&pt0, SYM_TRI_S, ATT_COL_RED);
+      // DEB_dump_obj__(Typ_PT2, &pt0, " -pt0-touch");
+      // END TESTBLOCK
+    goto L_check_on_arc1;
+
+
+
+  //----------------------------------------------------------------
+  // get intersectionpoint
+  L_ptx:
+  qr1 = r1 * r1;
+  qr2 = r2 * r2;
+  dah = (qr1 - qr2 + s_ab_ab) / (2 * dab);
+  d1 = qr1 - (dah * dah);
+  dh0 = SQRT__ (d1);
+    // printf(" dah=%f dh0=%f\n",dah,dh0);
+
+  // pt0 = ci1->pc;
+  // pt0.x += dah;
+  // pt0.y += dhc;
+
+  fx = vab.dx / dab;
+  fy = vab.dy / dab;
+
+  pth.x = ci1->pc.x + dah * fx;
+  pth.y = ci1->pc.y + dah * fy;
+
+  pt0.x = pth.x + dh0 * fy;
+  pt0.y = pth.y - dh0 * fx;
+
+
+  if(!irc0) {
+    // does not touch
+    pt1.x = pth.x - dh0 * fy;
+    pt1.y = pth.y + dh0 * fx;
+  }
+
+
+    // TESTBLOCK
+    // printf(" irc0 = %d\n",irc0);
+    // // GR_Disp_pt2 (&pt0, SYM_TRI_S, ATT_COL_RED);
+    // // if(!irc0) GR_Disp_pt2 (&pt1, SYM_TRI_S, ATT_COL_RED);
+    // DEB_dump_obj__(Typ_PT2, &pt0, " -pt0");
+    // if(!irc0) DEB_dump_obj__(Typ_PT2, &pt1, " -pt1");
+    // END TESTBLOCK
+  
+
+
+  //----------------------------------------------------------------
+  // test if intersectionpoint(s) pt0,pt1 are on limited arc c1
+  L_check_on_arc1:
+
+  // get d1 = angle at startPt of circ
+  a1s = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+
+  // get a1,a2 = angles at startPt,endPt as consecutive vals from 0 to RAD_720
+  // makes a1 >= 0 <= 360; a2 >= a1 <= 720;   eg a1=270; a2=540
+  UT2D_ANGR_ADD_4PI (a1s, a1e, ci1->ango);
+    // printf(" int_ci_ci-1 a1s=%f a1e=%f ango=%f\n",a1s,a1e,ci1->ango);
+
+  // get ap0 = angle of pt0 on ci1
+  ap0 = UT2D_angr_ptpt (&ci1->pc, &pt0);
+
+  // get sense-rotation; 0=CCW; 1=CW
+  src1 = DLIM01 (ci1->rad);
+
+  // set ap0 following acs
+  ap0 = UT2D_angr_set_2angr_sr (a1s, ap0, src1);
+    // printf(" ex-set_2angr_sr ap0=%f a1s=%f a1e=%f\n",ap0, a1s, a1e);
+
+
+  // check if ap0 is on arc ci1; 1=no-outside arc; 0=yes-between-a1-a2
+  // irc_p0c1 = UT2D_angr_ck_inAc (&pt0, &ap0, ci1, &a1, &a2, tol);
+  irc_p0c1 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ci1->p1, &ci1->p2,
+                                       &ap0, &a1s, &a1e, tol);
+    // printf(" int_ci_ci-irc_p0c1 %d ap0=%lf\n",irc_p0c1,ap0);
+
+  if(!irc0) {
+    // does not touch
+    // get ap1 = angle of pt1 on ci1
+    ap1 = UT2D_angr_ptpt (&ci1->pc, &pt1);
+
+    // set ap1 following acs
+    ap1 = UT2D_angr_set_2angr_sr (a1s, ap1, src1);
+      // printf(" ex-set_2angr_sr ap1=%f a1s=%f a1e=%f\n",ap1, a1s, a1e);
+
+    // check if ap1 is on arc ci1; 1=no-outside arc; 0=yes-between-a1-a2
+    // irc_p1c1 = UT2D_angr_ck_inAc (&pt1, &ap1, ci1, &a1, &a2, tol);
+    irc_p1c1 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ci1->p1, &ci1->p2,
+                                         &ap1, &a1s, &a1e, tol);
+      // printf(" int_ci_ci-irc_p1c1 %d ap1=%f\n",irc_p1c1,ap1);
+  } else irc_p1c1 = -1;
+
+  // if both points outside: exit
+  if((irc_p0c1 < 0)&&(irc_p1c1 < 0)) goto L_err_1;
+
+
+
+  //----------------------------------------------------------------
+  // test if intersectionpoint(s) pt0,pt1 are on limited arc c2
+  // L_check_on_arc2__:
+
+  // get d1 = angle at startPt of circ
+  a2s = UT2D_angr_ptpt (&ci2->pc, &ci2->p1);
+
+  // get a1,a2 = angles at startPt,endPt as consecutive vals from 0 to RAD_720
+  // makes a1 >= 0 <= 360; a2 >= a1 <= 720;   eg a1=270; a2=540
+  UT2D_ANGR_ADD_4PI (a2s, a2e, ci2->ango);
+    // printf(" int_ci_ci-2 a2s=%f a2e=%f ango=%f\n",a2s,a2e,ci2->ango);
+
+  // get sense-rotation; 0=CCW; 1=CW
+  src2 = DLIM01 (ci2->rad);
+
+  // ignore pt0 if not on ci1
+  if(irc_p0c1 < 0) {irc_p0c2 = -1; goto L_check_on_arc2_1;}
+
+  // get ap0 = angle of pt0 on ci1
+  ap0 = UT2D_angr_ptpt (&ci2->pc, &pt0);
+
+  // set ap0 following acs
+  ap0 = UT2D_angr_set_2angr_sr (a2s, ap0, src2);
+    // printf(" ex-set_2angr_sr-p0-ci2 ap0=%f a2s=%f a2e=%f\n",ap0, a2s, a2e);
+
+  // check if pt0 is on arc2; 1=no-outside arc; 0=yes-between-a1-a2
+  // irc_p0c2 = UT2D_angr_ck_inAc (&pt0, &ap0, ci2, &a1, &a2, tol);
+  irc_p0c2 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ci2->p1, &ci2->p2,
+                                       &ap0, &a2s, &a2e, tol);
+    // printf(" int_ci_ci-irc_p0c2=%d ap0=%lf\n",irc_p0c2,ap0);
+
+
+  L_check_on_arc2_1:     // test if pt1 is on ci2
+
+  // ignore pt1 if touching
+  if(irc0) {irc_p1c2 = -1; goto L_fix_ipa;}
+
+  // ignore pt1 if not on ci1
+  if(irc_p1c1 < 0) {irc_p1c2 = -1; goto L_fix_ipa;}
+
+  
+  // get ap1 = angle of pt1 on ci1
+  ap1 = UT2D_angr_ptpt (&ci2->pc, &pt1);
+
+  // set ap1 following acs
+  ap1 = UT2D_angr_set_2angr_sr (a2s, ap1, src2);
+    // printf(" ex-set_2angr_sr-p1-ci2 ap1=%f a2s=%f a2e=%f\n",ap1, a2s, a2e);
+
+  // check if pt1 is on arc; 1=no-outside arc; 0=yes-between-a1-a2
+  // irc_p1c2 = UT2D_angr_ck_inAc (&pt1, &ap1, ci2, &a1, &a2, tol);
+  irc_p1c2 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ci2->p1, &ci2->p2,
+                                         &ap1, &a2s, &a2e, tol);
+    // printf(" int_ci_ci-irc_p1c2=%d ap1=%f\n",irc_p1c2,ap1);
+
+
+
+  //----------------------------------------------------------------
+  // fix ipa ...
+  L_fix_ipa:
+  // if both points outside: exit
+  if((irc_p0c2 < 0)&&(irc_p1c2 < 0)) goto L_err_1;
+
+    if((irc_p0c1 >= 0)&&(irc_p0c2 >= 0)) {
+      ipa[0] = irc_p0c1 + irc_p0c2 * 4;
+      pta[0] = pt0;
+    } else ipa[0] = -1;
+  
+    if((irc_p1c1 >= 0)&&(irc_p1c2 >= 0)) {
+      ipa[1] = irc_p1c1 + irc_p1c2 * 4;
+      pta[1] = pt1;
+    } else ipa[1] = -1;
+  
+      // printf("ex-int_ci_ci: irc0=%d icc1: %d %d icc2: %d %d ipa: %d %d\n",
+             // irc0, irc_p0c1, irc_p1c1, irc_p0c2, irc_p1c2, ipa[0], ipa[1]);
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // if(ipa[0] >= 0) 
+    // DEB_dump_obj__(Typ_PT2, &pta[0], "   pta[0] %d",ipa[0]);
+    // if(ipa[1] >= 0)
+    // DEB_dump_obj__(Typ_PT2, &pta[1], "   pta[1] %d",ipa[1]);
+    // END TESTBLOCK
+
+  return irc0;
+
+  return 0;
+
+
+  //----------------------------------------------------------------
+  L_err_1:   // no intersection at all
+    irc0 = -1;
+    ipa[0] = -1;
+    ipa[1] = -1;
+    goto L_exit;
+
+  L_err_2:   // no intersection at all
+    irc0 = -2;
+    ipa[0] = -1;
+    ipa[1] = -1;
+    goto L_exit;
+
+}
+
+
+//================================================================
+  int UT2D_2pt_int_ln_ci (int *ipa, Point2 *pta,
+                          Line2 *ln1, Circ2 *ci1, double *tol) {
+//================================================================
+// Output:
+//   pta       intersectionpoints 0 and 1
+//   ipa       status of intersectionpoints
+//           -1   no intersection
+//            0   normal intersection in segments
+//            1   startPt ln1 == on ci1
+//            2   endtPt ln1 == on ci1
+//            4   startPt ci1 == on ln1
+//            5   startPt ln1 == startPt ci1
+//            6   endtPt ln1 == startPt ci1
+//            8   endtPt ci1 == on ln1
+//            9   startPt ln1 == endtPt ci1
+//           10   endtPt ln1 == endtPt ci1
+//   retCod    -1  no intersection
+//              0  normal intersections in 1 or 2 points
+//              1  ln1 touches ci1 (pta[0]=pt, ipa[0]=0)
+//
+//
+//                                      . - .
+//                                   .    |    . ci1
+//                                 .      |      .
+//                                .       |       .
+//                                |       c       | 
+//                                .     / | \r    .
+//                                 .  /   |   \  .
+//         a-------------------------0----h----1---------b
+//                                      ' - '
+//   a = ln1->p1 (startPt line)
+//   b = ln1->p2 (endPt line)
+//   c = circCenter
+//   0 = pta[0] (intersectionpoint 0, pt0)
+//   1 = pta[1] (intersectionpoint 1, pt1)
+//   h = Point2 ph (circCenter projected onto line a-b);
+//   r = raduis rd1
+//   parh = parameter of point ph along a-b
+//   dch  = distance circCenter c - ph
+//   dh1  = distance ph - 1 
+//
+//
+//
+// see also UT2D_2pt_intlnci UT2D_2pt_intciptvc UT2D_pt_ck_inAc UT2D_pt_ck_inLine
+//   UT2D_pt_ck_inLine
+
+  int       irc0, ircl1, ircl2, ircc1, ircc2, irc1, irc2, i1, src;
+  double    dch, dh1, rd1, d1, dx, dy,
+            acs, ace, acp0, acp1,
+            s_ab_ab, s_ab_ac, s_ab_a0, s_ab_a1, parh, parls, parle, parp0, parp1;
+  Vector2   vab, vac, vch, va0;
+  Point2    pt0, pt1, ph;
+
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci\n");
+  // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
+  // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
+  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_Disp_ci2 (ci1, Typ_Att_blue);
+
+
+
+  //----------------------------------------------------------------
+  // get point ph (circCenter projected onto line a-b)
+  // see also UT2D_parpt_2pt UT2D_pt_projptptvc
+  UT2D_vc_2pt (&vab, &ln1->p1, &ln1->p2);     // vab = Vector a-b
+  UT2D_vc_2pt (&vac, &ln1->p1, &ci1->pc);     // vac = Vector a-c
+
+  s_ab_ab = UT2D_skp_2vc (&vab, &vab);  // skp mit sich selbst = Laenge^2
+  s_ab_ac = UT2D_skp_2vc (&vab, &vac);  // param. val. of h on a-b
+    // printf("s_ab_ab=%f s_ab_ac=%f \n",s_ab_ab,s_ab_ac);
+
+
+  // param. val. of h on a-b
+  parh = s_ab_ac / s_ab_ab;
+    // printf(" parh = %f\n",parh);
+
+  // get point ph
+  UT2D_pt_pt_mult_vc (&ph, &ln1->p1, &vab, parh);
+    // DEB_dump_obj__(Typ_PT2, &ph, "ph");
+    // GR_Disp_pt2 (&ph, SYM_TRI_S, ATT_COL_RED);
+
+
+
+  //----------------------------------------------------------------
+  // test touch circ (dist == rad)
+
+  // vch = line (circCenter - ph)
+  UT2D_vc_2pt (&vch, &ci1->pc, &ph);
+
+  // get dch = distance (circCenter - ph)
+  dch = sqrt(vch.dx*vch.dx + vch.dy*vch.dy);
+    // printf(" dch = %f\n",dch);
+
+  if(dch < *tol) {
+    // line goes tru circCenter;
+    TX_Error("UT2D_2pt_int_ln_ci TODO I1"); return -1;
+    // see UT2D_parpt_2pt UT2D_pt_projptptvc
+  }
+
+  // get rd1 = radius
+  rd1 = fabs(ci1->rad);
+
+  // test touch circ: rad+tol = outside
+  // d1 = rd1 - dch;
+    // printf(" d1=%f rd1=%f\n",d1,rd1);
+  // if(d1 > *tol) { irc0 = -1; goto L_exit; }   // outside
+  // else if(d1 < -(*tol)) irc0 = 0;                      // between
+
+  if(dch > (rd1 + *tol)) goto L_err__;                 // outside
+  else if(dch < (rd1 - *tol)) irc0 = 0;                // between
+  else irc0 = 1;                                       // touching
+    // printf(" irc0 = %d\n",irc0);
+
+
+
+
+  //----------------------------------------------------------------
+  // get intersectionPoints pt0, pt1 on line
+
+  // case ln1==horiz | ln1 == vertical ??
+
+  // dh1 = dist ph - pt1
+  // dh1 = (rd1*rd1) - (dch*dch);
+  // if(fabs(dh1) > UT_TOL_min1) dh1 = sqrt(dh1);
+  SQRT_12 (dh1, rd1, dch);
+    // printf(" dh1 = %f\n",dh1);
+
+  // get d1 = faktor (circCenter - ph) -> (ph - pt1)
+  d1 = dh1 / dch;
+
+  // get vector (ph - pt1)
+  dx = vch.dx * d1;
+  dy = vch.dy * d1;
+
+  // ip = translate vector (ph - pt1) normal to dir vch
+  pt0.x = ph.x - dy;
+  pt0.y = ph.y + dx;
+
+  if(!irc0) {
+    // does not touch
+    pt1.x = ph.x + dy;
+    pt1.y = ph.y - dx;
+  }
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_PT2, &pt0, " pt0");
+    // GR_Disp_pt2 (&pt0, SYM_TRI_S, ATT_COL_RED);
+    // if(!irc0) DEB_dump_obj__ (Typ_PT2, &pt1, " pt1");
+    // if(!irc0) GR_Disp_pt2 (&pt1, SYM_TRI_S, ATT_COL_RED);
+    // END TESTBLOCK
+
+
+
+  //----------------------------------------------------------------
+  // test if points pt0,pt1 are on limited line
+
+  // // vh0 = Vector ph - pt0
+  // UT2D_vc_2pt (&vh0, &ph, &pt0);
+
+  // test vh0 = 0
+  // if(UT2D_vc_ck_0(&vh0)) {
+  // if(UT2D_comp2pt(&pt0,&ph,CO2DAT.tol1)) {
+    // // ph==pt0; vh0 = 0,0;  startPt or endPt
+    // if(s_ab_ac > (s_ab_ab / 2.)) parp0 = 1.;
+    // else                         parp0 = 0.;
+
+  // } else {
+    UT2D_vc_2pt (&va0, &ln1->p1, &pt0);
+    s_ab_a0 = UT2D_skp_2vc (&vab, &va0);
+    parp0 = s_ab_a0 / s_ab_ab;
+    d1 = parh - parp0;
+    parp1 = parh + d1;
+
+    // UT2D_vc_2pt (&va1, &ph, &pt0);
+    // s_ab_a1 = UT2D_skp_2vc (&vab, &vh0);
+    // parp1 = s_ab_a1 / s_ab_ab;
+    // s_ab_h1 = UT2D_skp_2vc (&vab, &vh0);
+    // d1 = fabs(s_ab_h1 / s_ab_ab);
+    // d1 = s_ab_h1 / s_ab_ab;
+    // parp0 = parh - d1;
+    // parp1 = parh + d1;
+  // }
+    // printf(" parp0=%f parp1=%f d1=%f\n",parp0,parp1,d1);
+
+  parls = 0.;   // relimited or reverse ?
+  parle = 1.;   // relimited or reverse ?
+
+
+  // test if pt0 outside ln1 (test parh = parameter of point ph along a-b)
+  // ircl1 = UT2D_par_ck_inLn (&pt0, &parp0, &ln1->p1, &ln1->p2, tol);
+  ircl1 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ln1->p1, &ln1->p2,
+                                      &parp0, &parls, &parle, tol);
+  if(ircl1 < 0) ipa[0] = -1;    // pt0 outside
+      // printf(" ircl1=%d\n",ircl1);
+
+  if(!irc0) {
+    // does not touch
+    // test if pt1 outside ln1 (test parh = parameter of point ph along a-b)
+    // ircl2 = UT2D_par_ck_inLn (&pt1, &parp1, &ln1->p1, &ln1->p2, tol);
+    ircl2 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ln1->p1, &ln1->p2,
+                                        &parp1, &parls, &parle, tol);
+    if(ircl2 < 0) ipa[1] = -1;    // pt1 outside
+      // printf(" ircl2=%d\n",ircl2);
+  } else ircl2 = -1;
+
+  // if both points outside: exit
+  if((ircl1 < 0)&&(ircl2 < 0)) goto L_err__;
+
+
+
+  //----------------------------------------------------------------
+  // test if points pt0,pt1 are on limited arc
+
+  // ignore pt0 if not on ln
+  if(ircl1 < 0) {ircc1 = -1; goto L_check_on_arc_1;}
+
+  // test if pt0 is on arc
+
+  // get acs = angle at startPt of circ
+  acs = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+    // printf(" box_ci2-acs-1 %f\n",acs);
+
+  // get acs,ace = angles at startPt,endPt as consecutive vals from 0 to 4Pi
+  // makes acs >= 0 <= 360; ace >= acs <= 720;   eg acs=270; ace=540
+  UT2D_ANGR_ADD_4PI (acs, ace, ci1->ango);
+    // printf(" box_ci2-acs = %f ace = %f ango = %f\n",acs,ace,ci1->ango);
+
+  // get sense-rotation; 0=CCW; 1=CW
+  src = DLIM01 (ci1->rad);
+
+  // ignore pt0 if not on line
+  if(ircl1 >= 0) {
+    // get acp0 = angle of pt0 on ci1
+    acp0 = UT2D_angr_ptpt (&ci1->pc, &pt0);
+
+    // set acp0 following acs
+    acp0 = UT2D_angr_set_2angr_sr (acs, acp0, src);
+
+    // check if acp0 is on arc; 1=no-outside arc; 0=yes-between-acs-ace
+    // ircc1 = UT2D_angr_ck_inAc (&pt0, &acp0, ci1, &acs, &ace, tol);
+    ircc1 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ci1->p1, &ci1->p2,
+                                        &acp0, &acs, &ace, tol);
+  } else ircc1 = -1;
+    // printf(" box_ci2-ircc1=%d acp0=%f\n",ircc1,acp0);
+
+
+  L_check_on_arc_1:
+  // test if pt1 is on arc
+
+  // ignore pt1 if touching
+  if(irc0) {ircc2 = -1; goto L_fix_ipa;}
+
+  // ignore pt1 if not on line
+  if(ircl2 < 0) {ircc2 = -1; goto L_fix_ipa;}
+
+  if(ircl1 < 0) {
+    // get acs = angle at startPt of circ
+    acs = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+      // printf(" box_ci2-acs-1 %f\n",acs);
+
+    // get acs,ace = angles at startPt,endPt as consecutive vals from 0 to 4Pi
+    // makes acs >= 0 <= 360; ace >= acs <= 720;   eg acs=270; ace=540
+    UT2D_ANGR_ADD_4PI (acs, ace, ci1->ango);
+      // printf(" box_ci2-acs = %f ace = %f ango = %f\n",acs,ace,ci1->ango);
+
+    // get sense-rotation; 0=CCW; 1=CW
+    src = DLIM01 (ci1->rad);
+  }
+
+  // get acp1 = angle of pt1 on ci1
+  acp1 = UT2D_angr_ptpt (&ci1->pc, &pt1);
+    // printf(" acp1-1=%f\n",acp1);
+
+  // set acp1 following acs
+  acp1 = UT2D_angr_set_2angr_sr (acs, acp1, src);
+    // printf(" acp1-2=%f\n",acp1);
+
+  // check if acp1 is on arc; 1=no-outside arc; 0=yes-between-acs-ace
+  // ircc2 = UT2D_angr_ck_inAc (&pt1, &acp1, ci1, &acs, &ace, tol);
+  ircc2 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ci1->p1, &ci1->p2,
+                                      &acp1, &acs, &ace, tol);
+    // printf(" box_ci2-ircc2=%d acp1=%f\n",ircc2,acp1);
+
+
+
+
+  //----------------------------------------------------------------
+  // fix ipa ...
+  L_fix_ipa:
+    // if both points outside: exit
+    if((ircc1 < 0)&&(ircc2 < 0)) goto L_err__;
+
+    if((ircl1 >= 0)&&(ircc1 >= 0)) {
+      ipa[0] = ircl1 + ircc1 * 4;
+      pta[0] = pt0;
+    } else ipa[0] = -1;
+
+    if((ircl2 >= 0)&&(ircc2 >= 0)) {
+      ipa[1] = ircl2 + ircc2 * 4;
+      pta[1] = pt1;
+    } else ipa[1] = -1;
+ 
+      // printf("ex-int_ln_ci irc0=%d icl=%d,%d icc=%d,%d ipa=%d,%d\n",
+             // irc0, ircl1, ircl2, ircc1, ircc2, ipa[0], ipa[1]);
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // if(!ipa[0] >= 0) DEB_dump_obj__(Typ_PT2, &pta[0], "   pta[0] %d",ipa[0]);
+    // if(!ipa[1] >= 0) DEB_dump_obj__(Typ_PT2, &pta[1], "   pta[1] %d",ipa[1]);
+    // exit(0);
+    // END TESTBLOCK
+
+
+  return irc0;
+
+
+  L_err__:   // no intersection at all
+    irc0 = -1;
+    ipa[0] = -1;
+    ipa[1] = -1;
+    goto L_exit;
+
+}
+
+
+//======================================================================
+  int UT2D_ck_ci180 (Circ2 *ci1) {
+//======================================================================
+/// \code
+/// UT3D_ck_ci180             check if circ is 180-degree-circ
+/// RC = 0:   YES, is 180-deg-circ
+/// RC = 1:   NO
+/// if(UT2D_ck_ci180 == YES) ...
+/// \endcode
+
+  int    irc;
+  double tol;
+
+  // tol = UT_TOL_pt * fabs(ci1->rad);
+  tol = UT_TOL_pt;
+
+  if(UTP_comp2db (fabs(ci1->ango), RAD_180, tol) == 1) irc = YES; // 1=diff < tol
+  else irc = NO;
+
+  // DEB_dump_obj__ (Typ_CI, ci1, "ex UT3D_ck_ci180 %d\n",irc);
+     
+  return irc;
+
+}
+
+
+//================================================================
+  int UT2D_vc_setLen_vc (Vector2 *vco, Vector2 *vci) {
+//================================================================
+//  UT2D_vc_setLen_vc              set lenght of vco = length of vci
+
+
+  double leni, leno, fm;
+
+  leno = UT2D_len_vc (vco);
+
+  if(fabs(leno) < UT_TOL_min2)  {*vco = UT2D_VECTOR_NUL; return -1;}
+
+  leni = UT2D_len_vc (vci);
+
+  fm = leni / leno;   // printf("UT2D_vc_setLen_vc %f %f %f\n",fm,leni,leno);
+ 
+  UT2D_vc_multvc (vco, vco, fm);
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int UT2D_ci_ciangr (Circ2 *ci, double ao2) {
+//======================================================================
+/// UT2D_ci_ciangr              change endpoint of circ from angle
+/// Input:
+///   ao2   new angle in rad; >0. = CCW; <0 = CW; 
+///         sign does also change the sense-of-rotation;
+
+
+  ci->ango = ao2;
+  ci->rad  = DSIGN(ao2) * fabs(ci->rad);
+
+
+  UT2D_pt_rotptangr (&ci->p2, &ci->pc, &ci->p1, ao2);
+
+  // DEB_dump_obj__ (Typ_CI2, ci1, "ex UT2D_ci_ciangr\n");
+
+  return 0;
+
+}
+
+
+//====================================================================
+  int UT2D_vc_tra_vc3_rsys (Vector2 *vc2, Vector *vc3, Refsys *rSys) {
+//====================================================================
+// UT2D_vc_tra_vc3_rsys            transf. 3D-Vector => 2D-Vector
+
+  if(rSys->bpi >= 0) {
+    // transf. onto Backplane
+    UT2D_vc_tra_vc3_bp (vc2, vc3, rSys->bpi);
+    return 0;
+
+  } else {
+    // transf. onto free plane (4x3-matrix)
+    UT2D_vc_tra_vc3_m3 (vc2, rSys->mat2, vc3);
+    return 0;
+  }
+
+}
+
+
+//====================================================================
+  int UT2D_pt_tra_pt3_rsys (Point2 *pt2, Point *pt3, Refsys *rSys) {
+//====================================================================
+// UT2D_pt_tra_pt3_rsys            transf. 3D-Point => 2D-Point
+
+  if(rSys->bpi >= 0) {
+    // transf. onto Backplane
+    UT2D_pt_tra_pt3_bp (pt2, pt3, rSys->bpi);
+    return 0;
+
+  } else {
+    // transf. onto free plane (4x3-matrix)
+    UT2D_pt_tra_pt3_m3 (pt2, rSys->mat2, pt3);
+    return 0;
+  }
+
+}
+
+
+//================================================================
+  int UT2D_ln_tra_ln3_rsys (Line2 *ln2, Line *ln3, Refsys *rSys) {
+//================================================================
+// UT2D_ln_tra_ln3_rsys            transf. 3D-Line => 2D-Line
+
+  if(rSys->bpi >= 0) {
+    // transf. onto Backplane
+    return UT2D_ln_tra_ln3_bp (ln2, ln3, rSys->bpi);
+
+  } else {
+    // transf. onto free plane (4x3-matrix)
+    return UT2D_ln_tra_ln3_m3 (ln2, ln3, rSys->mat2);
+  }
+
+}
+
+
+//================================================================
+  int UT2D_ci_tra_ci3_rsys (Circ2 *ci2, Circ *ci3, Refsys *rSys) {
+//================================================================
+// UT2D_ci_tra_ci3_rsys            transf. 3D-circle => 2D-circle
+
+  if(rSys->bpi >= 0) {
+    // transf. onto Backplane
+    return UT2D_ci_tra_ci3_bp (ci2, ci3, rSys->bpi);
+
+  } else {
+    // transf. onto free plane (4x3-matrix)
+    return UT2D_ci_tra_ci3_m3 (ci2, ci3, rSys->mat2);
+  }
+
+}
+
+
+//================================================================
+  int UT2D_ln_tra_ln3_m3 (Line2 *ln2, Line *ln3, Mat_4x3 trmat) {
+//================================================================
+// UT2D_ln_tra_ln3_m3            transf. 3D-line => 2D-line
+
+  char    oxxx[OBJ_SIZ_MAX];
+
+  UT3D_ln_tra_ln_m3 ((Line*)oxxx, trmat, ln3);
+
+  UT2D_ln_ln3__ (ln2, (Line*)oxxx);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_ci_tra_ci3_m3 (Circ2 *ci2, Circ *ci3, Mat_4x3 trmat) {
+//================================================================
+// UT2D_ci_tra_ci3_m3            transf. 3D-circle => 2D-circle
+
+  char    oxxx[OBJ_SIZ_MAX];
+
+  UT3D_ci_tra_ci_m3 ((Circ*)oxxx, trmat, ci3);
+
+  return UT2D_ci_ci3 (ci2, (Circ*)oxxx);
 
 }
 

@@ -123,7 +123,7 @@ static FILE  *finLun;                    // swapfile for large input
 
   write (poutLun, sBufOut, sSiz);
 
-  printf("OS_CTL_write__ |%s|\n",sBufOut);
+  // printf("OS_CTL_write__ |%s|\n",sBufOut);
 
   return 0;
 }
@@ -235,7 +235,7 @@ static FILE  *finLun;                    // swapfile for large input
   cEnd = &sBuf[cNr];
   *cEnd = '\0';
   --cEnd;
-    printf(" read pin %d |%s|\n",cNr,sBuf);
+    // printf(" read pin %d |%s|\n",cNr,sBuf);
 
 
   cPos = sBuf;
@@ -257,7 +257,7 @@ static FILE  *finLun;                    // swapfile for large input
   sl = cNxt - cPos;  // skip the \n
   ++cNxt;
   if(cNxt >= cEnd) cNxt = NULL;
-    printf("  cNxt=|%s| sl=%d finSiz=%d\n",cNxt,sl,finSiz);
+    // printf("  CTL_read__cNxt=|%s| sl=%d finSiz=%d\n",cNxt,sl,finSiz);
 
   // get outspc
   po = IE_buf;      // size mem_cbuf1_SIZ!
@@ -283,7 +283,7 @@ static FILE  *finLun;                    // swapfile for large input
   finSiz = 0;
   cPos = cNxt;
 
-    printf("ex OS_CTL_read__ |%s|\n",po);
+    // printf("ex OS_CTL_read__ |%s|\n",po);
 
   return po;
 
@@ -294,7 +294,7 @@ static FILE  *finLun;                    // swapfile for large input
   // add text into swapfile.
   L_input_broken:
     sl = cEnd - cPos + 1;
-      printf("  CTRL_read__ sl=%d\n",sl);
+      // printf("  CTRL_read__ sl=%d\n",sl);
 
   // cPos ist the start of the line; sl is the lenght.
   fwrite (cPos, sl, 1, finLun);

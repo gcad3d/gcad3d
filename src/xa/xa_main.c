@@ -180,6 +180,10 @@ static int     lngNr;
   AP_deb_fp = NULL;
 
 
+  // init size-of-structs-Table
+  irc = UTO_siz_stru (TYPE_STRU_NR);
+  if(irc < 0) return -1;
+
 
   // get application-directories: OS_get_doc_dir
   AP_get_dir__ ();
@@ -367,7 +371,7 @@ static int     lngNr;
 
 
 
-    // allererster Start: Defaults generieren u schreiben
+    // first Start: create & write defaults
   L_write_defaults:
       printf(" first start ..\n");
     // create Defaults
@@ -390,6 +394,9 @@ static int     lngNr;
     // get editor
     p1 = OS_get_edi();
     UTX_cp_left (AP_editor, p1, 79);
+
+    // strcpy(AP_winSiz, "-1000,-690   // size of application-window");
+    strcpy(AP_winSiz, "-1000,-600   // size of application-window");
 
     AP_defaults_write(); // defaults    -> ~/gCAD3D/cfg/xa.rc
     AP_defaults_dir();   // defaultdirs -> ~/gCAD3D/cfg/dir.lst

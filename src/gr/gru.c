@@ -32,9 +32,6 @@ Modifications:
 List_functions_start:
 
 GRU_angr3_vxvz       wie UT3D_3angr_2vc, jedoch degrees out
-GRU_teileArc         2D-Arc > 2D-Polygon
-GRU_teileArc1
-GRU_teileLin
 GRU_calc_normal
 GRU_calc_normal2
 
@@ -122,7 +119,7 @@ List_functions_end:
   for(i3=0; i3<i2; ++i3) ppa[i3+i1] = &p2a[i3];
   ii = i1 + i2;
 
-    // for(i1=0;i1<ii;++i1) UT3D_stru_dump(Typ_PT,ppa[i1],"ppa[%d]=",i1);
+    // for(i1=0;i1<ii;++i1) DEB_dump_obj__(Typ_PT,ppa[i1],"ppa[%d]=",i1);
 
 
   //----------------------------------------------------------------
@@ -154,7 +151,7 @@ List_functions_end:
 
 
   // printf("GGGGGGGGGGGGGGGGGGGGGGGG GRU_tex_pos1 GGGGGGGGGGGGGGGGGGGGGGGG\n");
-    // UTO_dump__ (os, "GL_DrawSur");
+    // DEB_dump_ox_0 (os, "GL_DrawSur");
 
 
   // get space for a table of pointers
@@ -169,7 +166,7 @@ List_functions_end:
 
   // get normalvektor to surf
   TSU_get_vec (&vz, os);
-    // UT3D_stru_dump (Typ_VC, &vz, " vz");
+    // DEB_dump_obj__ (Typ_VC, &vz, " vz");
 
 
   // get vectors, origin and size
@@ -201,7 +198,7 @@ List_functions_end:
   p1.x = rtex->px;
   p1.y = rtex->py;
   p1.z = rtex->pz;
-    // UT3D_stru_dump(Typ_PT, &p1, "GRU_tex_pos9 p1");
+    // DEB_dump_obj__(Typ_PT, &p1, "GRU_tex_pos9 p1");
 
 
 
@@ -333,7 +330,7 @@ pa sind die outermost points entlang X und Y.
 
 
   // printf("GRU_tex_rec %d\n",pNr);
-    // UT3D_stru_dump (Typ_VC, vz, " vz");
+    // DEB_dump_obj__ (Typ_VC, vz, " vz");
     // for(i1=0;i1<pNr;++i1)GR_Disp_pt (ppa[i1], SYM_TRI_S, ATT_COL_RED);
 
 
@@ -371,8 +368,8 @@ pa sind die outermost points entlang X und Y.
       // printf(" invert y ..\n");
   }
 
-    // UT3D_stru_dump (Typ_VC, &rtex->vx, " vx");
-    // UT3D_stru_dump (Typ_VC, &rtex->vy, " vy");
+    // DEB_dump_obj__ (Typ_VC, &rtex->vx, " vx");
+    // DEB_dump_obj__ (Typ_VC, &rtex->vy, " vy");
 
 
 /*
@@ -400,22 +397,22 @@ pa sind die outermost points entlang X und Y.
   
   // get table of 2D-points from backplane and pointers
   for(i1=0; i1<pNr; ++i1) {
-    UT2D_pt_pt3bp (&p21, ppa[i1], bp);
-      // UT3D_stru_dump(Typ_PT2 , &p21, "p21[%d]=",i1);
+    UT2D_pt_tra_pt3_bp (&p21, ppa[i1], bp);
+      // DEB_dump_obj__(Typ_PT2 , &p21, "p21[%d]=",i1);
 
     // extend 2D-Box
     UT2D_box_extend (&pb1, &pb2, &p21);
   }
 
-    // UT3D_stru_dump(Typ_PT2, &pb1, " _ext pb1o=");
-    // UT3D_stru_dump(Typ_PT2, &pb2, " _ext pb2o=");
+    // DEB_dump_obj__(Typ_PT2, &pb1, " _ext pb1o=");
+    // DEB_dump_obj__(Typ_PT2, &pb2, " _ext pb2o=");
 
 
 
   // pb1 liegt nun ganz links unten.
   // make 3D-point from 2D-point & backplane
   UT3D_pt_tra_pt2_bp (&p31, &pb1, bp);
-    // UT3D_stru_dump(Typ_PT, &p31, " p31=");
+    // DEB_dump_obj__(Typ_PT, &p31, " p31=");
 
 
   // get vector from Backplane
@@ -425,7 +422,7 @@ pa sind die outermost points entlang X und Y.
   // nun den p31 (liegt auf der Backplane) retourprojizieren auf die Ebene.
   // p32 = project p31 along vc1 onto plane po-vz
   UT3D_ptDi_intptvcptvc (&p3o, &d1, &p31, &vc1, po, vz);
-    // UT3D_stru_dump(Typ_PT, &p3o, " p3o=");
+    // DEB_dump_obj__(Typ_PT, &p3o, " p3o=");
 */
 
   //----------------------------------------------------------------
@@ -466,7 +463,7 @@ pa sind die outermost points entlang X und Y.
 
   dy  = UT3D_slen_2ptvc (po, ppa[ii2], &rtex->vy);
     // printf(" _tex_rec dy=%f\n",dy);
-    // UT3D_stru_dump (Typ_PT, po, " po");
+    // DEB_dump_obj__ (Typ_PT, po, " po");
 
 
 
@@ -483,13 +480,13 @@ pa sind die outermost points entlang X und Y.
   p21.y = pb1.y;
   UT3D_pt_tra_pt2_bp (&p31, &p21, bp);
   UT3D_ptDi_intptvcptvc (&p3x, &d1, &p31, &vc1, po, vz);
-    // UT3D_stru_dump(Typ_PT, &p3x, " p3x=");
+    // DEB_dump_obj__(Typ_PT, &p3x, " p3x=");
 
   p21.x = pb1.x;
   p21.y = pb2.y;
   UT3D_pt_tra_pt2_bp (&p31, &p21, bp);
   UT3D_ptDi_intptvcptvc (&p3y, &d1, &p31, &vc1, po, vz);
-    // UT3D_stru_dump(Typ_PT, &p3y, " p3y=");
+    // DEB_dump_obj__(Typ_PT, &p3y, " p3y=");
 
   // size dx/dy:
   // dx = pb2.x - pb1.x;
@@ -520,7 +517,7 @@ pa sind die outermost points entlang X und Y.
 
 
   // printf("GGGGGGGGGGGGGGGGGGGGGGGG GRU_tex_pos3 %d GGGGGGGGGGGGGG\n",pNr);
-  // for(i1=0; i1<10; ++i1) UT3D_stru_dump (Typ_PT, &pa[i1], " p1[%d]:",i1);
+  // for(i1=0; i1<10; ++i1) DEB_dump_obj__ (Typ_PT, &pa[i1], " p1[%d]:",i1);
 
   rtex->vx = UT3D_VECTOR_X;
   rtex->vy = UT3D_VECTOR_Y;
@@ -585,8 +582,8 @@ pa sind die outermost points entlang X und Y.
   int   irc;
 
   // printf("GRU_angr3_vxvz:\n");
-  // UT3D_stru_dump (Typ_VC, vx, "vx:");
-  // UT3D_stru_dump (Typ_VC, vz, "vz:");
+  // DEB_dump_obj__ (Typ_VC, vx, "vx:");
+  // DEB_dump_obj__ (Typ_VC, vz, "vz:");
 
  
   // wenn vz=Nullvektor, keine Transformation
@@ -609,143 +606,6 @@ pa sind die outermost points entlang X und Y.
   // printf("ex GRU_angr3_vxvz %d %f %f %f\n",irc,*az1,*ay,*az2);
 
   return irc;
-
-}
-
-
-//=====================================================================
-  int GRU_teileArc (Point2 *pta, int *ptAnz, ObjG2 *o1) {
-//=====================================================================
-  // 2D-Arc > 2D-Polygon.
-
-  int     idisp, i1, i2;
-  Point2  p20, p21, p22, auxA[70];
-
-
-  //TX_Print("GRU_teileArc p1=%f,%f p2=%f,%f",o1->p1.x,o1->p1.y,o1->p2.x,o1->p2.y);
-  //TX_Print("            pc=%f,%f r=%f",o1->pc.x,o1->pc.y,o1->rad);
-
-
-  p22 = o1->pc;
-
-  // idisp 1-4; 1=feines Polygon (64 Punkte f. Vollkreis), 2 gröber (32).
-  // 3 hat nur mehr 24 Ecken, 4 nur mehr 16.
-  idisp = 2;
-
-
-
-  if(o1->rad > 0.0) {
-    p20 = o1->p1;
-    p21 = o1->p2;
-    UT2D_cv_ci (pta, ptAnz, &p20, &p21, &p22, idisp);
-
-  } else {
-    p20 = o1->p2;
-    p21 = o1->p1;
-    UT2D_cv_ci (auxA, ptAnz, &p20, &p21, &p22, idisp);
-    i2 = *ptAnz;
-    for(i1=0; i1<*ptAnz; ++i1) {
-      --i2;
-      pta[i1] = auxA[i2];
-    }
-
-
-  }
-
-
-
-
-  return 1;
-
-}
-
-
-
-
-//=====================================================================
-  int GRU_teileArc1 (Point2 *pta, int ptAnz, ObjG2 *o1) {
-//=====================================================================
-
-
-  int     i1;
-  double  l_ges, step, abst, ao;
-  Point2  p20, p21, p2c;
-
-
-  //TX_Print("GRU_teileArc1 ptAnz = %d p1=%f,%f r=%f",ptAnz,o1->p1.x,o1->p1.y,o1->rad);
-  //TX_Print("   p2=%f,%f  pc=%f,%f",o1->p2.x,o1->p2.y,o1->pc.x,o1->pc.y);
-
-
-  p20 = o1->p1;
-  p21 = o1->p2;
-  p2c = o1->pc;
-
-  l_ges = UT2D_len_cir (&ao, &p20, &p21, &p2c, o1->rad);
-
-  step = l_ges / (ptAnz - 1);             // Streckenincrement
-
-  //TX_Print(" l_ges=%f step=%f",l_ges,step);
-
-
-  pta[0] = p20;                           // der Startpunkt
-
-  abst = 0.0;
-  for(i1=1; i1<(ptAnz-1); ++i1) {
-    abst += step;
-    UT2D_pt_tracirlen (&pta[i1], &p20, &p2c, o1->rad, abst);
-    //TX_Print(" GRU_teileArc1 comp %d %f,%f",i1,pta[i1].x,pta[i1].y);
-  }
-
-  pta[ptAnz-1] = p21;                      // der Endpunkt
-
-  return 1;
-
-}
-
-
-
-
-
-
-//=====================================================================
-   int GRU_teileLin (Point2 *pta, int ptAnz, Point2 *p1, Point2 *p2) {
-//=====================================================================
-// Die Strecke von p1 nach p2 in ptAnz Stuecke aufteilen und
-// die Punkte nach pta abliefern.
-
-  int      i1;
-  double   l_ges, step, abst;
-  Vector2  vc1;
-
-
-  //--------------------------------------------------------------------
-  l_ges = UT2D_len_2pt (p1, p2);
-
-  step = l_ges / (ptAnz - 1);
-
-  pta[0] = *p1;                                     // der Startpunkt
-
-  UT2D_vc_2pt (&vc1, p1, p2);
-
-  abst = 0.0;
-  for(i1=1; i1<(ptAnz-1); ++i1) {
-    abst += step;
-    UT2D_pt_traptvclen (&pta[i1], p1, &vc1, abst);
-    //TX_Print(" GRU_teileLin comp %d %f,%f",i1,pta[i1].x,pta[i1].y);
-  }
-
-  pta[ptAnz-1] = *p2;                               // der Endpunkt
-
-
-/*
-  // Test only
-  for(i1=0; i1<ptAnz; ++i1) {
-    TX_Print(" GRU_teileLin %d %f,%f",i1,pta[i1].x,pta[i1].y);
-  }
-*/
-
-
-  return 1;
 
 }
 

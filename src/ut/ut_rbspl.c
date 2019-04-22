@@ -38,7 +38,7 @@ RBSP transformieren ....
 UTRA_app_obj
 UTO_obj_apptra
 UTO_ox_tra
-UTO_obj_tra_m3
+UTO_obj_tra_obj_m3
 
 -----------------------------------------------------
 Modifications:
@@ -126,7 +126,7 @@ List_functions_end:
   Memspc wrkSpc;
 
 
-  UT3D_stru_dump (Typ_PT, pt, "UT3D_par_rbsp_pt:");
+  DEB_dump_obj__ (Typ_PT, pt, "UT3D_par_rbsp_pt:");
 
 
   memSpc = MEM_alloc_tmp (TABSIZ2);
@@ -236,7 +236,7 @@ List_functions_end:
   cvo->v0 = cvi->va;
   cvo->v1 = cvi->vb;
 
-    // UT3D_stru_dump (Typ_CVRBSP, cvo, "ex UT3D_rbsp_rbez");
+    // DEB_dump_obj__ (Typ_CVRBSP, cvo, "ex UT3D_rbsp_rbez");
 
   return 0;
 
@@ -270,7 +270,7 @@ List_functions_end:
   irc = UT3D_rbez_rbsp (&siztab2, &bcvtab2, memSeg1, rbsp1);
   if(irc < 0) goto Fertig;
     for(i1=0; i1<siztab2; ++i1)
-       // UT3D_stru_dump (Typ_CVRBEZ, &bcvtab2[i1], " rbez[%d]",i1);
+       // DEB_dump_obj__ (Typ_CVRBEZ, &bcvtab2[i1], " rbez[%d]",i1);
 
   // init
   xptSiz  = *nxp;
@@ -309,7 +309,7 @@ List_functions_end:
     memSeg1->next = memPos0;
 
       // for(i1=0; i1 < *nxp; ++i1)
-      // UT3D_stru_dump (Typ_PT, &xptab[i1], " xptab[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &xptab[i1], " xptab[%d]",i1);
 
     return irc;
 
@@ -355,13 +355,13 @@ List_functions_end:
   // Bezier curves from each b-spline curve
   irc = UT3D_bez_bspl__ (&bezTab1, memSeg1, bspl1);
   if(irc < 0) goto Fertig;
-    // UTO_dump__ (&bezTab1, "bezTab < bspl-cv");
+    // DEB_dump_ox_0 (&bezTab1, "bezTab < bspl-cv");
 
   // rat-bezier-curves from rat-b-spline curve
   irc = UT3D_rbez_rbsp (&siztab2, &bcvtab2, memSeg1, bspl2);
   if(irc < 0) goto Fertig;
     for(i1=0; i1<siztab2; ++i1)
-       // UT3D_stru_dump (Typ_CVRBEZ, &bcvtab2[i1], " rbez[%d]",i1);
+       // DEB_dump_obj__ (Typ_CVRBEZ, &bcvtab2[i1], " rbez[%d]",i1);
 
   // init
   xptSiz  = *nxp;
@@ -409,7 +409,7 @@ List_functions_end:
 
 
       // for(i1=0; i1 < *nxp; ++i1)
-      // UT3D_stru_dump (Typ_PT, &xptab[i1], " xptab[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &xptab[i1], " xptab[%d]",i1);
 
 
     return irc;
@@ -460,8 +460,8 @@ List_functions_end:
 
 
   // printf("UT3D_pt_projptrbspl nxp=%d tol=%f\n",*nxp,tol);
-  // UT3D_stru_dump (Typ_PT, pt, "");
-  // UT3D_stru_dump (Typ_CVRBSP, cv, "");
+  // DEB_dump_obj__ (Typ_PT, pt, "");
+  // DEB_dump_obj__ (Typ_CVRBSP, cv, "");
 
   memPos0 = memSeg1->next;     // save memSeg1
 
@@ -515,11 +515,11 @@ List_functions_end:
   // test which parameter has ii on the segments
   // first segment:
   i1 = ii - 1;
-  if(i1 >= 0) UT3D_parpt_3pt (&d1, pt, &pTab[i1], &pTab[ii]);
+  if(i1 >= 0) UT3D_par_pt_2pt (&d1, pt, &pTab[i1], &pTab[ii]);
   else        d1 = -1;
   // second segment:
   i2 = ii + 1;
-  if(i2 < pnr) UT3D_parpt_3pt (&d2, pt, &pTab[ii], &pTab[i2]);
+  if(i2 < pnr) UT3D_par_pt_2pt (&d2, pt, &pTab[ii], &pTab[i2]);
   else        d2 = -1;
     // printf(" d1=%f d2=%f\n",d1,d2);
 
@@ -641,7 +641,7 @@ List_functions_end:
 
 
   // printf("UT3D_obj_cnvt_rbspl\n");
-  // UT3D_stru_dump (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl in:");
+  // DEB_dump_obj__ (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl in:");
 
   irc = -1;
 
@@ -742,7 +742,7 @@ List_functions_end:
   // gesamtlen < UT_DISP_cv; nix tun ..
   // hier zB ein sehr kurzer Arc (3 PT's) der kleiner als tol ist ..
   // TX_Print("UT3D_obj_cnvt_rbspl I2C1");
-  // UT3D_stru_dump (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
+  // DEB_dump_obj__ (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
   goto L_std_circ;
 
   
@@ -763,7 +763,7 @@ List_functions_end:
   // check if its a sqare
   if(spi->ptNr != 4) goto L_std_circ;
     // printf("L_Circ_deg3:\n");
-    // UT3D_stru_dump (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
+    // DEB_dump_obj__ (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
     // TX_Print("UT3D_obj_cnvt_rbspl I002 %d",spi->ptNr);    exit(0);
 
 
@@ -849,7 +849,7 @@ List_functions_end:
 
   // ok, degrade this to B-Spline.
   // printf(" UT3D_obj_cnvt_rbspl EEEEEEEEEEE\n");
-  // UT3D_stru_dump (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
+  // DEB_dump_obj__ (Typ_CVRBSP, spi, "UT3D_obj_cnvt_rbspl");
   // exit(0);
 
 
@@ -883,7 +883,7 @@ List_functions_end:
   L_exit:
 
   // printf("ex UT3D_obj_cnvt_rbspl %d\n",irc);
-  // if(irc > 0) UTO_dump__ (opo, "ex UT3D_obj_cnvt_rbspl");
+  // if(irc > 0) DEB_dump_ox_0 (opo, "ex UT3D_obj_cnvt_rbspl");
 
   return irc;
 
@@ -1017,9 +1017,9 @@ List_functions_end:
   Vector vmc, vp1p2;
 
   // printf("UT3D_ci_rbspl3 w=%f\n",spi->cpTab[2]);
-  // UT3D_stru_dump (Typ_PT, &spi->cpTab[0], "p0: ");
-  // UT3D_stru_dump (Typ_PT, &spi->cpTab[1], "p1: ");
-  // UT3D_stru_dump (Typ_PT, &spi->cpTab[2], "p2: ");
+  // DEB_dump_obj__ (Typ_PT, &spi->cpTab[0], "p0: ");
+  // DEB_dump_obj__ (Typ_PT, &spi->cpTab[1], "p1: ");
+  // DEB_dump_obj__ (Typ_PT, &spi->cpTab[2], "p2: ");
     // GR_Disp_pt (&spi->cpTab[0], SYM_STAR_S, 2);
     // GR_Disp_pt (&spi->cpTab[1], SYM_STAR_S, 2);
     // GR_Disp_pt (&spi->cpTab[2], SYM_STAR_S, 2);
@@ -1073,7 +1073,7 @@ List_functions_end:
   // create arc from p0-p2
   UT3D_ci_cip3 (cpo, &spi->cpTab[0], &spi->cpTab[2]);
 
-  // UT3D_stru_dump (Typ_CI, cpo, "ex UT3D_ci_rbspl3\n");
+  // DEB_dump_obj__ (Typ_CI, cpo, "ex UT3D_ci_rbspl3\n");
 
   return 0;
 
@@ -1092,7 +1092,7 @@ List_functions_end:
   Vector vc1, vc2;
 
 
-  // UT3D_stru_dump (Typ_CVRBSP, bsp, "UT3D_ptNr_rbsp:\n");
+  // DEB_dump_obj__ (Typ_CVRBSP, bsp, "UT3D_ptNr_rbsp:\n");
 
 
   if(bsp->ptNr < 3) {*iu = 2; return 0;}
@@ -1121,7 +1121,7 @@ List_functions_end:
   UT3D_vc_2pt (&vc2, &bsp->cpTab[0], &bsp->cpTab[1]);
 
   for(i3=2; i3<bsp->ptNr; ++i3) {
-      // UT3D_stru_dump(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
+      // DEB_dump_obj__(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
       // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
     d1 = d2;
     vc1 = vc2;
@@ -1178,7 +1178,7 @@ List_functions_end:
 
   // printf("UT3D_cv_rbsp ptNr=%d deg=%d tol=%f\n",cv1->ptNr,cv1->deg,tol);
   // printf("          v0=%f v1=%f ptMax=%d\n",cv1->v0,cv1->v1,ptMax);
-  // UT3D_stru_dump (Typ_CVRBSP, cv1, "");
+  // DEB_dump_obj__ (Typ_CVRBSP, cv1, "");
 
 
   ptOut = 0;
@@ -1247,7 +1247,7 @@ List_functions_end:
   // den ersten Pt sofort raus
   // irc = bspl_eval_Pt (ianz, ideg, ptCrv, vTab, kvs, &pTab[ptOut]);
   irc = UT3D_pt_evparCrvRBSpl (&pTab[ptOut], &d1, cv1, kvs);
-    // UT3D_stru_dump (Typ_PT, &pTab[ptOut], " kvs=%f StartPt",kvs);
+    // DEB_dump_obj__ (Typ_PT, &pTab[ptOut], " kvs=%f StartPt",kvs);
   if(dTab) dTab[ptOut] = kvs;
   ++ptOut;          // der aktuelle Punkt ist immer pTab[ptOut-1].
 
@@ -1268,7 +1268,7 @@ List_functions_end:
   uStack[ptStackNr] = kve;
   // irc = bspl_eval_Pt (ianz, ideg, ptCrv, vTab, kve, &ptStack[ptStackNr]);
   irc = UT3D_pt_evparCrvRBSpl (&ptStack[ptStackNr], &d1, cv1, kve);
-    // UT3D_stru_dump (Typ_PT, &ptStack[ptStackNr], " kve=%f EndPt",kve);
+    // DEB_dump_obj__ (Typ_PT, &ptStack[ptStackNr], " kve=%f EndPt",kve);
   ++ptStackNr;
 
   pts = pTab[0];
@@ -1384,7 +1384,7 @@ List_functions_end:
   //------- Testausg------
   // printf("ex UT3D_cv_rbsp ptNr=%d\n",ptOut);
   // for(i1=0;i1<ptOut;++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]=",i1);
     // APT_disp_SymB (SYM_TRI_S, 2, &pTab[i1]);
   // }
   //------- Testausg------
@@ -1464,7 +1464,7 @@ List_functions_end:
 
   // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
   // printf("UT3D_pt_evparCrvRBSpl %lf\n",u);
-  // UT3D_stru_dump (Typ_CVRBSP, rbspl, "");
+  // DEB_dump_obj__ (Typ_CVRBSP, rbspl, "");
 
 
   // some abbreviations
@@ -1552,7 +1552,7 @@ List_functions_end:
   // release work space
   workSeg->next = memstart;
 
-    // UT3D_stru_dump (Typ_PT, pt, "ex UT3D_pt_evparCrvRBSpl:");
+    // DEB_dump_obj__ (Typ_PT, pt, "ex UT3D_pt_evparCrvRBSpl:");
 
   return 0;
 
@@ -1799,7 +1799,7 @@ Returncodes:
     return -1;
 	}	
 	
-  UT3D_stru_dump (Typ_VC, tg, "ex UT3D_vc_evparCrvRBSpl:");
+  DEB_dump_obj__ (Typ_VC, tg, "ex UT3D_vc_evparCrvRBSpl:");
 	return 0;
 }
 
@@ -1861,7 +1861,7 @@ Returncodes:
 
   // print data of rational b-spline curve
   // UT3D_rbspl (&rbspl);
-  // UT3D_stru_dump (Typ_CVRBSP, rbspl, "rbspl:");
+  // DEB_dump_obj__ (Typ_CVRBSP, rbspl, "rbspl:");
 
 
   return 0;

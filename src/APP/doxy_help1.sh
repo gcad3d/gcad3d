@@ -5,11 +5,11 @@ echo "doxy_help1.sh start"
 echo $*
 
 
-bitNr=`getconf LONG_BIT`
-OS=Linux${bitNr}
-OUTDIR=../../bin$OS
+#bitNr=`getconf LONG_BIT`
+#OS=Linux${bitNr}
+#OUTDIR=../../bin$OS
 
-filNam=${OUTDIR}/doxy_help1
+filNam=${gcad_dir_bin}doxy_help1
 echo "help-file=" ${filNam}
 
 # TEST ONLY
@@ -24,7 +24,7 @@ fi
 
 
 # create Files.dox
-./${filNam} $*
-#gdb ./${filNam}
+${filNam} $*
+#gdb ${filNam}
 
 # eof

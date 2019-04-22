@@ -277,7 +277,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
       // subract tool-length
       if(tlActNr) actPos.z -= TL_length;
-        UT3D_stru_dump (Typ_PT, &actPos, " FROM ");
+        DEB_dump_obj__ (Typ_PT, &actPos, " FROM ");
 
       if(PRCE_mode) { // NC-out
         // "FROM pos"
@@ -321,7 +321,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
       i1 = APT_decode_pt1 (&pt1, 0, cmd_typ, cmd_tab);
       if(i1 < 0) goto L_err_par;
-        // UT3D_stru_dump (Typ_PT, &pt1, " pt-rel ");
+        // DEB_dump_obj__ (Typ_PT, &pt1, " pt-rel ");
 
       if(iFnc == 3) { // RP
         actPos = pt1;
@@ -435,7 +435,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
     case 21:    // TCPOS  toolChangePosition
       i1 = APT_decode_pt1 (&TL_tcp, 0, cmd_typ, cmd_tab);
       if(i1 < 0) goto L_err_par;
-        UT3D_stru_dump (Typ_PT, &TL_tcp, " TL_tcp");
+        DEB_dump_obj__ (Typ_PT, &TL_tcp, " TL_tcp");
       goto L_exit;
 
 
@@ -568,8 +568,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   printf("PRCE_disp__ |%s|\n",wTyp);
   // printf("  TL[%d] rad = %f len = %f\n",tlActNr, TL_rad, TL_length);
-  // UT3D_stru_dump (Typ_PT, &oldPos, "  oldPos");
-  UT3D_stru_dump (Typ_PT, &actPos, "  actPos");
+  // DEB_dump_obj__ (Typ_PT, &oldPos, "  oldPos");
+  DEB_dump_obj__ (Typ_PT, &actPos, "  actPos");
 
 
   //----------------------------------------------------------------
@@ -609,7 +609,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   //----------------------------------------------------------------
   L_line:
-    PRCE_disp_ln__ (Typ_Att_go);
+    PRCE_disp_ln__ (Typ_Att_dash__);
     return 0;
 
 
@@ -633,7 +633,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   // up-along TL_vcz
   UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
-    UT3D_stru_dump (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
+    DEB_dump_obj__ (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
 
   pta[0] = *pt2;
   UT3D_pt_traptvc (&pta[1], pt2, &vcz);
@@ -660,17 +660,17 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   // create linear path; offset = 0;
   // get vcx = vector from pt1 -> pt2, length = tool-radius
   UT3D_vc_2ptlen (&vcx, pt1, pt2, TL_rad);
-    // UT3D_stru_dump (Typ_VC, &vcx, "vcx:");
+    // DEB_dump_obj__ (Typ_VC, &vcx, "vcx:");
 
   // get vcy = vector of length=radius normal to vcx
   UT3D_vc_perp2vc (&vcy, (Vector*)&UT3D_VECTOR_Z, &vcx);
-    // UT3D_stru_dump (Typ_VC, &vcy, "vcy:");
+    // DEB_dump_obj__ (Typ_VC, &vcy, "vcy:");
 
   // invert vcx, vcy
   UT3D_vc_invert (&vcix, &vcx);
-    // UT3D_stru_dump (Typ_VC, &vcix, "vcix:");
+    // DEB_dump_obj__ (Typ_VC, &vcix, "vcix:");
   UT3D_vc_invert (&vciy, &vcy);
-    // UT3D_stru_dump (Typ_VC, &vciy, "vciy:");
+    // DEB_dump_obj__ (Typ_VC, &vciy, "vciy:");
 
 
   // create polygon
@@ -706,7 +706,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   ObjGX  ox1, oxTab[2];
 
 
-  // UT3D_stru_dump (Typ_CI, &actCir, " PRCE_disp_circ_sid ");
+  // DEB_dump_obj__ (Typ_CI, &actCir, " PRCE_disp_circ_sid ");
 
   ci1 = &actCir;
   UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
@@ -726,8 +726,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   ox1.siz   = 2;
   ox1.data  = oxTab;
 
-    // UT3D_stru_dump (Typ_ObjGX, &ox1, " lin.sur1 ");
-    // UTO_dump__ (&ox1, " lin.surf ");
+    // DEB_dump_obj__ (Typ_ObjGX, &ox1, " lin.sur1 ");
+    // DEB_dump_ox_0 (&ox1, " lin.surf ");
 
   // add surf to active DL
   GR_DrawSur (&ox1, 5, 0L);
@@ -749,7 +749,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   cii = &actCir;
   
-  // UT3D_stru_dump (Typ_CI, cii, " PRCE_disp_circ_bot ");
+  // DEB_dump_obj__ (Typ_CI, cii, " PRCE_disp_circ_bot ");
 
 
 
@@ -773,12 +773,12 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   for(i1=0; i1<ptNr; ++i1) {
     // set z = workPlane
     pa3[i1].z = actZsur1;
-      // UT3D_stru_dump (Typ_PT, &pa3[i1], " P-%d", i1);
+      // DEB_dump_obj__ (Typ_PT, &pa3[i1], " P-%d", i1);
   }
 
     // TESTBLOCK
     printf(" _circ_bot-ptNr=%d\n",ptNr);
-    // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump(Typ_PT,&pa3[i1]," P-%d",i1);
+    // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pa3[i1]," P-%d",i1);
     // TESTBLOCK END
 
   for(i1=1; i1<ptNr; ++i1) 
@@ -799,8 +799,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   Line   ln1;
 
   // printf("PRCE_disp_ln__ \n");
-  // UT3D_stru_dump (Typ_PT, &oldPos, " oldPos ");
-  // UT3D_stru_dump (Typ_PT, &actPos, " actPos ");
+  // DEB_dump_obj__ (Typ_PT, &oldPos, " oldPos ");
+  // DEB_dump_obj__ (Typ_PT, &actPos, " actPos ");
 
 
         dli = -1;
@@ -865,7 +865,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
   // printf("PRCE_disp_sPln ptNr=%d dli=%ld\n",ptNr,dli);
-  // {int i1; for(i1=0;i1<ptNr;++i1) UT3D_stru_dump(Typ_PT,&pta[i1],"P-%d",i1);}
+  // {int i1; for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pta[i1],"P-%d",i1);}
 
 
   // disp surf-planar-unperf.
@@ -884,11 +884,11 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   long   dli;
 
-  UT3D_stru_dump (Typ_PT, &oldPos, " PRCE_disp_txt |%s|",txt);
+  DEB_dump_obj__ (Typ_PT, &oldPos, " PRCE_disp_txt |%s|",txt);
 
   dli = DL_StoreObj (Typ_SymV, -1L, 0);
 
-  // Typ_Att_PT = gelb; Typ_Att_hili1 = rot
+  // Typ_Att_def = gelb; Typ_Att_hili1 = rot
   GL_DrawTxtA (&dli, Typ_Att_hili1, &oldPos, txt);
 
   return 0;
@@ -1292,8 +1292,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
   // printf("PRCE_Out__ |%s| PRCE_mode=%d\n",wTyp,PRCE_mode);
-  // UT3D_stru_dump (Typ_PT, &oldPos, "oldPos ");
-  // UT3D_stru_dump (Typ_PT, &actPos, "actPos ");
+  // DEB_dump_obj__ (Typ_PT, &oldPos, "oldPos ");
+  // DEB_dump_obj__ (Typ_PT, &actPos, "actPos ");
 
 
   // test if newPos == currentPos

@@ -156,7 +156,7 @@ APT_work_PrgCodTab
 #include "../db/ut_DB.h"              // DB_get_ModRef
 
 #include "../xa/xa_mem.h"             // memspc011
-#include "../xa/xa_msg.h"             // MSG_STD_ERR
+#include "../xa/xa_msg.h"             // MSG_ERR__
 
 
 
@@ -362,7 +362,8 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 /// Retcod:
 ///    0 = success ( = type: catalogModel)
 ///   -1 = Error: cannot find part in catalog
-///   -3 = Error   4 = error open catalogFile
+///   -2 = Error: error open catalogFile
+///   -3 = Error
 /// \endcode
 
 // catPart decodieren in catalogName,PartName.
@@ -437,7 +438,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   // open catalogFileName
   if((fp1=fopen(memspc011, "r")) == NULL) {
-    MSG_STD_ERR (ERR_file_open, "'%s'", memspc011);
+    MSG_ERR__ (ERR_file_open, "'%s'", memspc011);
     return -2;
   }
 

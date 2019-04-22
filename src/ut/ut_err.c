@@ -31,9 +31,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-ERR_init
-ERR_RESET
-ERR_cb1
+ERR_SET1        set callback-address for SIGSEGV-errors
+ERR_RESET       reset error-callback
+ERR_raise       create SIGSEGV-error; eg. for exit dll immediately
+
+ERR_init        internal
+ERR_cb1         internal
 
 List_functions_end:
 =====================================================
@@ -112,6 +115,19 @@ static jmp_buf       err_buf;
 
 
 
+//================================================================
+  int ERR_raise (char *txt) {
+//================================================================
+
+  printf("ERR_raise %s\n",txt);
+
+  raise(SIGSEGV);  // stop dll
+
+  return 0;
+
+}
+
+ 
 //================================================================
   int ERR_init () {
 //================================================================

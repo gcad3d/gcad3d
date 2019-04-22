@@ -1,4 +1,4 @@
-# make -f xa_stp_w.mak
+# . ../options.sh && make -f xa_stp_w.mak
 
 DLLNAM = xa_stp_w
 

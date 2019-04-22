@@ -226,7 +226,7 @@ extern int     APT_dispDir;
   char     *txt;
 
 
-  // printf("IE_ed1_mod \n");
+  printf("IE_ed1_mod \n");
 
   if(!GUI_OBJ_IS_VALID(&IE_edWin1))  return -1;
 
@@ -248,12 +248,16 @@ extern int     APT_dispDir;
   // i1 = GUI_Ed_Read (&IE_ed1_wText, IE_buf, &IE_bufMax);
   i1 = GUI_edi_Read (IE_buf, &IE_bufSiz, 0L, -1L, &IE_edWin1);
   if(i1 < 0) {TX_Print("IE_ed1_mod E001"); return 0;}
-    // printf("IE_buf=|%s| Siz=%ld\n",IE_buf,IE_bufSiz);
+    printf("IE_buf=|%s| Siz=%ld\n",IE_buf,IE_bufSiz);
 
 
   //----------------------------------------------------------------
   if(!strcmp(txt, "OK")) {
-    IE_cad_OK ();  // OK-Button druecken
+    // IE_cad_OK ();  // OK-Button druecken
+    // write IE_buf -> active CAD-inputfield
+    // IE_inp_set (IE_buf);
+    // GUI_update__ ();
+    IE_inp_chg (-1);  // next inputfield
     return 0;
   }
 
@@ -394,7 +398,7 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  // printf("IE_ed1_CB EV=%d\n",GUI_DATA_EVENT);
+  printf("IE_ed1_CB EV=%d\n",GUI_DATA_EVENT);
 
 
   if(GUI_DATA_EVENT == TYP_EventEnter) {

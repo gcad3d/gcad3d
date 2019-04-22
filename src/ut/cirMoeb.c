@@ -677,9 +677,9 @@ L_outOfSpace:
 
 
   // printf("UCV_Touch3Lns: Touching circles <-- 3 pairwise unpar. lines\n");
-  // UT3D_stru_dump(Typ_ObjGX, &oxT[0], "o[0]");
-  // UT3D_stru_dump(Typ_ObjGX, &oxT[1], "o[1]");
-  // UT3D_stru_dump(Typ_ObjGX, &oxT[2], "o[2]");
+  // DEB_dump_obj__(Typ_ObjGX, &oxT[0], "o[0]");
+  // DEB_dump_obj__(Typ_ObjGX, &oxT[1], "o[1]");
+  // DEB_dump_obj__(Typ_ObjGX, &oxT[2], "o[2]");
 
    
   // check input & get lines
@@ -696,12 +696,12 @@ L_outOfSpace:
   UT2D_vc_ln (&v3, ln3);
 
   // middle vectors of v1,v2 and v2,v3
-  UT2D_vc_mid2vc (&v12, &v1, &v2);
-  UT2D_vc_mid2vc (&v23, &v2, &v3);
+  UT2D_vc_mid_2vc__ (&v12, &v1, &v2);
+  UT2D_vc_mid_2vc__ (&v23, &v2, &v3);
 
   // perpendicular vectors to v12,v23
-  UT2D_vc_perpvc (&v12p, &v12);
-  UT2D_vc_perpvc (&v23p, &v23);
+  UT2D_vc_rot_90_ccw (&v12p, &v12);
+  UT2D_vc_rot_90_ccw (&v23p, &v23);
 
   // intersection of lines 1,2 and 2,3
   rc = UT2D_pt_int2ln (&A, ln1, ln2);
@@ -1153,8 +1153,8 @@ L_outOfSpace:
     // vector of line 3	  
     UT2D_vc_ln (&v3, ln3);
 
-    // check if all 3 lines are parallel
-    if (UT2D_comp2vc (&v1, &v3, UT_TOL_PAR)) return 0;
+    // check if all 3 lines are parallel or antiparallel; 0=no, else yes
+    if (UT2D_ck_parla_2vc (&v1, &v3, UT_TOL_PAR)) return 0;
 
     // 2 parallel lines to line 3 at distance dl
     UT2D_pt_tranor2ptlen (&pT[0], &ln3->p1, &ln3->p2, dl);
@@ -1425,7 +1425,7 @@ L_outOfSpace:
       ln1 = memSeg->next;
       rc = UME_add (memSeg, sizeof(Line2));
       if (rc < 0) goto L_outOfSpace;
-      UT2D_vc_perpvc (&vn, &vn);
+      UT2D_vc_rot_90_ccw (&vn, &vn);
       UT2D_ln_ptvc (ln1, &p1, &vn);
       OGX_SET_OBJ (oxi, Typ_LN2, Typ_LN2, 1, ln1);
     }
@@ -1599,7 +1599,7 @@ L_outOfSpace:
       *xp2 = UT2D_PT_INFTY;
       rc = UT2D_pt_int2ln (xp1, ln1, ln2);   // Thomas: UT2D_PtInt2Lns
         // printf(" rc-int2ln=%d\n",rc);
-	      // UT3D_stru_dump (Typ_PT2, xp1, "xp1:");
+	      // DEB_dump_obj__ (Typ_PT2, xp1, "xp1:");
       if (rc > 0) return 2;
       else {                         // lines parallel ..
         *xp1 = UT2D_PT_INFTY;	      

@@ -1801,7 +1801,7 @@ typedef_MemTab(ObjRange);
 
 
   L_done:
-      // UTO_dumpRange (&PRG_internTab);
+      // DEB_dump_ObjRange (&PRG_internTab);
       // printf(" ex PRG_dlg__\n");
     return 0;
 

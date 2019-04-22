@@ -1,4 +1,4 @@
-# make -f xa_svg_w.mak 
+# . ../options.sh && make -f xa_svg_w.mak 
 
 DLLNAM = xa_svg_w
 

@@ -748,7 +748,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // d1 = DMIN (fabs(d1), fabs(d2));
   if((fabs(d1) > APT_ModSiz)||(fabs(d2) > APT_ModSiz)) {
     UT3D_pt_mid2pt (&pt1, (Point*)&dTab[2], (Point*)&dTab[5]);
-    // UT3D_stru_dump (Typ_PT, &pt1, "imp-center");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "imp-center");
 
 
     if(dxf_iTra == 0) {
@@ -764,7 +764,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 */
       UT3D_vc_pt (&vc1, &pt1);
       UT3D_vc_invert (&vc1, &vc1);
-      // UT3D_stru_dump (Typ_VC, &vc1, "transl.Vec:");
+      // DEB_dump_obj__ (Typ_VC, &vc1, "transl.Vec:");
       UTRA_def__ (1, Typ_VC, &vc1);
       // report the transl.Vec to the user
       sprintf(mem_cbuf1,"# DXF-IMPORT-TRANSLATION-VECTOR:");
@@ -1005,7 +1005,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   char   *pmn;
 
 
-  // UT3D_stru_dump (Typ_Model, mdr, "dxfr_sm__ - ");
+  // DEB_dump_obj__ (Typ_Model, mdr, "dxfr_sm__ - ");
 
 
   // get modelname
@@ -2154,8 +2154,8 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         cvPlg->v1    = 0.;
         cvPlg->dir   = 0;      // 0=fwd, 1=bwd.
         OGX_SET_OBJ (*el, Typ_CVPOL, Typ_CVPOL, 1, cvPlg);
-          // UTO_dump__ (*el, "CVPOL-PT");
-          // UTO_dump_s_ (*el, "CVPOL-PT");
+          // DEB_dump_ox_0 (*el, "CVPOL-PT");
+          // DEB_dump_ox_s_ (*el, "CVPOL-PT");
         goto FERTIG;
 
 
@@ -2192,14 +2192,14 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         // get refSys m1 (use autocad-arbitrary-axis-algorithm)
         dxfr_load_mat (m1, &vz);
         // translate the origin into the new axisSystem
-        UT3D_pt_traptm3 (&pt1, m1, &pt1);
+        UT3D_pt_tra_pt_m3 (&pt1, m1, &pt1);
         // rotate matrix if 50 = angle given
         UT3D_m3_get (&vc1, 0, m1);
         UT3D_m3_get (&vc2, 2, m1);
         if(UTP_comp_0(recwin[0])) {
           d1 = -UT_RADIANS(recwin[0]);
           UT3D_m3_inirot_angr (m2, NULL, &vc2, d1);
-          UT3D_vc_travcm3 (&vc1, m2, &vc1);
+          UT3D_vc_tra_vc_m3 (&vc1, m2, &vc1);
         }
 
       } else {
@@ -2230,13 +2230,13 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
       modr1->vz    = vc2;              // Z-vector
       // modr1->mnam  = BlockNam;
       modr1->modNr = i1;      // index in dxfr_blockTab
-        // UT3D_stru_dump (Typ_Model, modr1, "Insert - ");
+        // DEB_dump_obj__ (Typ_Model, modr1, "Insert - ");
 
       (*el)->typ  = Typ_Model;
       (*el)->form = Typ_Model;
       (*el)->siz  = 1;
       (*el)->data = modr1;
-        // UTO_dump__ (*el, "EL:");
+        // DEB_dump_ox_0 (*el, "EL:");
 
       goto FERTIG;
 
@@ -2481,7 +2481,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
       // 10,20,30 = controlpoints
       cvbsp->cpTab = dxf_pa;
-        // UT3D_stru_dump (Typ_CVBSP, cvbsp, "");
+        // DEB_dump_obj__ (Typ_CVBSP, cvbsp, "");
 
       OGX_SET_OBJ (*el, Typ_CVBSP, Typ_CVBSP, 1, cvbsp);
       goto FERTIG;
@@ -2501,11 +2501,11 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
       // vc1.dy = recy[1];
       // vc1.dz = recz[1];
       vc1 = *((Vector*)&dxfr_pta_10[1]);
-        // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+        // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
 
       // vz = der z-vektor UT3D_VECTOR_Z
       UT3D_vc_perp2vc (&vc2, (Vector*)&UT3D_VECTOR_Z, &vc1);
-        // UT3D_stru_dump (Typ_VC, &vc2, "vc2");
+        // DEB_dump_obj__ (Typ_VC, &vc2, "vc2");
 
       // 40=dxfr_d_40=Hauptachse/Nebenachse
       d1 = UT3D_len_vc (&vc1) * dxfr_d_40;  // len. Nebenachse
@@ -2518,7 +2518,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
       OGX_SET_OBJ (*el, Typ_CVELL, Typ_CVELL, 1, elli1);
 
-        // UT3D_stru_dump (Typ_CVELL, el, "");
+        // DEB_dump_obj__ (Typ_CVELL, el, "");
 
       goto FERTIG;
 
@@ -2600,13 +2600,13 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
           // Pt 0 auf ExtL1 u ExtL2 projizieren, Mitte nehmen ..
           // UT2D_pt_2db (&p21, recx[0],recy[0]);
           p21 =  UT2D_pt_pt3 (&dxfr_pta_10[0]);
-            // UT3D_stru_dump (Typ_PT2, &p21, "~~~~~~~~~~~~~~~~~ dim-1");
+            // DEB_dump_obj__ (Typ_PT2, &p21, "~~~~~~~~~~~~~~~~~ dim-1");
           UT2D_vc_angr (&vc21, d1);
-          UT2D_vc_perpvc (&vc21, &vc21);
+          UT2D_vc_rot_90_ccw (&vc21, &vc21);
           UT2D_pt_projptptvc (&p22, &p21, &dim1->p1, &vc21);
           UT2D_pt_projptptvc (&p23, &p21, &dim1->p2, &vc21);
-            // UT3D_stru_dump (Typ_PT2, &p22, "         p22");
-            // UT3D_stru_dump (Typ_PT2, &p23, "         p23");
+            // DEB_dump_obj__ (Typ_PT2, &p22, "         p22");
+            // DEB_dump_obj__ (Typ_PT2, &p23, "         p23");
           UT2D_pt_mid2pt (&dim1->p3, &p22, &p23);
         }
 
@@ -2633,9 +2633,9 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
           // UT2D_pt_2db (&dim1->p3, recx[6],recy[6]);
           dim1->p3 = UT2D_pt_pt3 (&dxfr_pta_10[6]);
         }
-            // UT3D_stru_dump (Typ_PT2, &dim1->p1, "~~~~~~~~~~~~~~~~~ dim2-4");
-            // UT3D_stru_dump (Typ_PT2, &dim1->p2, "                  dim2-0");
-            // UT3D_stru_dump (Typ_PT2, &dim1->p3, "                  dim2-1");
+            // DEB_dump_obj__ (Typ_PT2, &dim1->p1, "~~~~~~~~~~~~~~~~~ dim2-4");
+            // DEB_dump_obj__ (Typ_PT2, &dim1->p2, "                  dim2-0");
+            // DEB_dump_obj__ (Typ_PT2, &dim1->p3, "                  dim2-1");
 
         // 3-4: extensionLine 1
         // UT2D_pt_2db (&p21, recx[3],recy[3]);
@@ -2655,7 +2655,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         // Annahme erforderlich: Winkel kann 180 Grad nicht ueberschreiten !
         // UT2D_pt_2db (&p20, recx[6],recy[6]);
         p20 = UT2D_pt_pt3 (&dxfr_pta_10[6]);
-            // UT3D_stru_dump (Typ_PT2, &p20, "16,26:");
+            // DEB_dump_obj__ (Typ_PT2, &p20, "16,26:");
         // get p2c=intersectionpoint
         UT2D_pt_int2pt2vc (&p2c, &p21, &vc21, &p22, &vc22);
         i1 = UT2D_sidPerp_ptvc (&p20, &p2c, &vc21);
@@ -2685,7 +2685,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         // wenn 1 == 0,0,0
         if(UT2D_comp2pt(&dim1->p3,(Point2*)&UT2D_PT_NUL,UT_TOL_pt) == 1) {
           UT2D_pt_2db (&p20, recx[6],recy[6]);
-            // UT3D_stru_dump (Typ_PT2, &p20, "                  dim2-6");
+            // DEB_dump_obj__ (Typ_PT2, &p20, "                  dim2-6");
           // p2c = Schnittpunkt
           UT2D_pt_int4pt(&p2c,&d3,&d4,&dim1->p1,&p21,&dim1->p2,&p22);
           // Radius aus 6 berechnen
@@ -2888,7 +2888,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   act_typ = 0;
 
     // TESTAUSG:
-    // UTO_dump__ (*el, "DXF-out");
+    // DEB_dump_ox_0 (*el, "DXF-out");
 
   return 0;
 
@@ -2927,7 +2927,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // ci1-> typ = Typ_CI;
 
 
-  UT3D_pt_traptm3 (&ci1->pc, m1, ptc);
+  UT3D_pt_tra_pt_m3 (&ci1->pc, m1, ptc);
 
 
   // Punkt = Drehung um Center pt20
@@ -2940,7 +2940,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   pt2.y  = ptc->y + pt21.y;
   pt2.z  = ptc->z;
 
-  UT3D_pt_traptm3 (&ci1->p1, m1, &pt2);
+  UT3D_pt_tra_pt_m3 (&ci1->p1, m1, &pt2);
 
   UT2D_pt_rotptangr (&pt21, (Point2*)&UT2D_PT_NUL, &pt20, UT_RADIANS(we));
   //TX_Print("rotiert: %f,%f",pt21.x,pt21.y);
@@ -2949,7 +2949,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   pt2.y  = ptc->y + pt21.y;
   pt2.z  = ptc->z;
 
-  UT3D_pt_traptm3 (&ci1->p2, m1, &pt2);
+  UT3D_pt_tra_pt_m3 (&ci1->p2, m1, &pt2);
 
   ci1->rad = crd;
 
@@ -3172,8 +3172,8 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
   if((iAct - iSta) > 1) goto L_plg_2;
   // export Line (2 points only) ----------------------------
-  UT2D_pt_pt (&ln1.p1, &dxf_pa[iSta]);
-  UT2D_pt_pt (&ln1.p2, &dxf_pa[iSta+1]);
+  ln1.p1 = UT2D_pt_pt3 (&dxf_pa[iSta]);
+  ln1.p2 = UT2D_pt_pt3 (&dxf_pa[iSta+1]);
   OGX_SET_OBJ (&o1, Typ_LN, Typ_LN2, 1, &ln1);
   ln1.typ = 0;   // 2015-01-07
   dxf_r_src_out (&o1);
@@ -3279,9 +3279,9 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // printf("\n\ndxf_r_src_out typ=%d form=%d siz=%d\n",
           // ox1->typ,ox1->form,ox1->siz);
   // gdb_halt ();
-  // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) UTO_dump__ (ox1, "ox1-1");
+  // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) DEB_dump_ox_0 (ox1, "ox1-1");
   // if((ox1->typ >= 120)&&(ox1->typ <= Typ_Process)) {
-  // UTO_dump__ (ox1, "ox1-1");  // TODO crash m Typ_CVPOL/CarveDiem
+  // DEB_dump_ox_0 (ox1, "ox1-1");  // TODO crash m Typ_CVPOL/CarveDiem
   // printf(" dxf_iTra=%d\n",dxf_iTra);
   // UTRA_dump__ ();  // disp translObj
   // }
@@ -3295,7 +3295,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   }
 
     // TEST ONLY
-    // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) UTO_dump__ (ox1, "ox1-2");
+    // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) DEB_dump_ox_0 (ox1, "ox1-2");
     // END TEST ONLY
 
 

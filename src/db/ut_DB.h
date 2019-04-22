@@ -10,7 +10,7 @@ BRAUCHT vorher include ut_geo.h !!!
 
 */
 
-// #define DB_dump_dbo UT3D_dump_dbo
+// #define DB_dump_dbo DEB_dump_dbo
 // 
 
 // DB_isFree_<obj>           test if obj is free

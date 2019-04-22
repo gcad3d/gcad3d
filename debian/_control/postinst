@@ -6,7 +6,8 @@ echo "postinst gcad3d"
 
 
 osVer=`getconf LONG_BIT`
-gcad_dir_bin=/usr/lib/gCAD3D/binLinux${osVer}
+hTyp=`uname -s`_`uname -i`
+gcad_dir_bin=/usr/lib/gcad3d/${hTyp}
 echo "gcad_dir_bin: $gcad_dir_bin"
 
 

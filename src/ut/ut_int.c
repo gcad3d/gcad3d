@@ -101,7 +101,7 @@ UTO_obj_trim
   // printf("INT2_pta_lna %d %f %f %f\n",*oNr,UT_TOL_pt,UT_TOL_cv,UT_DISP_cv);
   // for(i1=0; i1<*oNr; ++i1) {
     // // GR_Disp_ln2 (&lTab[i1].p1, &lTab[i1].p2, 9);
-    // UT3D_stru_dump (Typ_LN2, &lTab[i1], "L[%d]=",i1);
+    // DEB_dump_obj__ (Typ_LN2, &lTab[i1], "L[%d]=",i1);
   // }
 
 
@@ -299,7 +299,7 @@ UTO_obj_trim
       // for(i1=0; i1<pNr; ++i1) {
         // for(i2=0; i2<pNr; ++i2) {
           // if(iTab[i2] == ii) {
-            // UT3D_stru_dump (Typ_PT2, &pTab[i2], "%d P[%d]=",i1,i2);
+            // DEB_dump_obj__ (Typ_PT2, &pTab[i2], "%d P[%d]=",i1,i2);
             // ++ii;
             // break;
           // }
@@ -320,7 +320,7 @@ UTO_obj_trim
       // ii in iTab suchen; iTab-Index = ptab-Index; diesen Punkt raus, ..
       for(i2=0; i2<pNr; ++i2) {
          if(iTab[i2] == ii) {
-           // UT3D_stru_dump (Typ_PT2, &pTab[i2], "%d P[%d]=",i1,i2);
+           // DEB_dump_obj__ (Typ_PT2, &pTab[i2], "%d P[%d]=",i1,i2);
            pto[i1] =  pTab[i2];
            ++ii;
            break;
@@ -347,7 +347,7 @@ UTO_obj_trim
     // printf("ex INT2_pta_lna:%d \n",pNr);
     // pTab = (Point2*)oTab;
     // for(i1=0; i1<pNr; ++i1)
-      // UT3D_stru_dump (Typ_PT2, &pTab[i1], "P[%d]=",i1);
+      // DEB_dump_obj__ (Typ_PT2, &pTab[i1], "P[%d]=",i1);
     // GR_Disp_cv2 (pTab, pNr, 9);
 
   return 0;
@@ -435,9 +435,9 @@ UTO_obj_trim
              surTab[i1].ip1,surTab[i1].ip2,surTab[i1].typ);
       for(i2=surTab[i1].ip1; i2<=surTab[i1].ip2; ++i2) {
         printf(" tri %d:\n",i2);
-        UT3D_stru_dump (Typ_PT, triTab[i2].pa[0], "  p1=");
-        UT3D_stru_dump (Typ_PT, triTab[i2].pa[1], "  p2=");
-        UT3D_stru_dump (Typ_PT, triTab[i2].pa[2], "  p3=");
+        DEB_dump_obj__ (Typ_PT, triTab[i2].pa[0], "  p1=");
+        DEB_dump_obj__ (Typ_PT, triTab[i2].pa[1], "  p2=");
+        DEB_dump_obj__ (Typ_PT, triTab[i2].pa[2], "  p3=");
       }
     }
     return 0;
@@ -488,13 +488,13 @@ UTO_obj_trim
       // GR_Disp_pTab (oTab[i1].siz, pTab, SYM_STAR_S, 2);
       GR_Disp_cv (pTab, oTab[i1].siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
-        // UT3D_stru_dump(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
+        // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
     }
     return -1;
 */
     //--------------------------------------
-    // UTO_dump_s_ (oSpc.start, "Group of Polygons:");
+    // DEB_dump_ox_s_ (oSpc.start, "Group of Polygons:");
     //--------------------------------------
     // return 0;
 
@@ -521,7 +521,7 @@ UTO_obj_trim
     // for(i1=0; i1<oxp->siz; ++i1) {
       // pTab = oTab[i1].data;
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
-        // UT3D_stru_dump(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
+        // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
     // }
     // return 0;
@@ -538,7 +538,7 @@ UTO_obj_trim
   *oTyp = oo1.form;
   *oDat = oo1.data;
 
-    // UT3D_stru_dump (*oTyp, *oDat, "ex INT_intplsur\n");
+    // DEB_dump_obj__ (*oTyp, *oDat, "ex INT_intplsur\n");
 
     //----TEST:----------
     // printf(" oTyp=%d\n",oTyp);
@@ -551,8 +551,8 @@ UTO_obj_trim
   for(i1=0; i1<i2; ++i1) {
     (char*)oxp += sizeof(ObjGX); // obj 1 from group
     printf(" OOOOOOOOOOOOOOOOOOOOOOO %d\n",i1);
-    // UTO_dump_s_ (oxp, "oxp");
-    UTO_dump__ (oxp, "oxp %d",i1);
+    // DEB_dump_ox_s_ (oxp, "oxp");
+    DEB_dump_ox_0 (oxp, "oxp %d",i1);
   }
   //-------TESTAUSGABE----------
 
@@ -568,7 +568,7 @@ UTO_obj_trim
   // *((Line*)xSpc) = *((Line*)oxp->data);
   memcpy (xSpc, oxp->data, OBJ_SIZ_MAX);
 
-  UTO_dump__ (xSpc, "xSpc %d",i1);
+  DEB_dump_ox_0 (xSpc, "xSpc %d",i1);
 */
 
 /*
@@ -618,8 +618,8 @@ static  CurvElli          el1;
   Point    pt1, pt2, pt3;
 
 
-  // UT3D_stru_dump (Typ_PLN, pli, "INT_intplcon:\n");
-  // UT3D_stru_dump (Typ_CON, coi, "");
+  // DEB_dump_obj__ (Typ_PLN, pli, "INT_intplcon:\n");
+  // DEB_dump_obj__ (Typ_CON, coi, "");
 
 
   // Winkel ConeAchse - PlaneNormalachse
@@ -720,8 +720,8 @@ static  CurvElli          el1;
   Vector   vc1;
 
 
-  // UT3D_stru_dump (Typ_PLN, pln, "INT_intpltor:\n");
-  // UT3D_stru_dump (Typ_TOR, tor, "");
+  // DEB_dump_obj__ (Typ_PLN, pln, "INT_intpltor:\n");
+  // DEB_dump_obj__ (Typ_TOR, tor, "");
 
 
 
@@ -942,8 +942,8 @@ static  CurvElli          el1;
   L_nxt:
     iFound = 0;
     reDo = 0;
-      // UT3D_stru_dump (Typ_PT, p1, "nxt ia ");
-      // UT3D_stru_dump (Typ_PT, p2, "nxt ie ");
+      // DEB_dump_obj__ (Typ_PT, p1, "nxt ia ");
+      // DEB_dump_obj__ (Typ_PT, p2, "nxt ie ");
 
     for(i1=0; i1<lnNr; ++i1) {
       if(cTab[i1] > 0) continue; // skip already  done lines
@@ -1046,7 +1046,7 @@ static  CurvElli          el1;
     if(ii >= 0) pTab[ptNr] = lnTab[ii].p2;
     else        pTab[ptNr] = lnTab[-ii].p1;
     // printf(" L_add_i1: %f %f %f\n",pTab[ptNr].x,pTab[ptNr].y,pTab[ptNr].z);
-      // UT3D_stru_dump (Typ_LN, &lnTab[abs(ii)], "");
+      // DEB_dump_obj__ (Typ_LN, &lnTab[abs(ii)], "");
     ++ptNr;
   }
 
@@ -1090,7 +1090,7 @@ static  CurvElli          el1;
 
 
 
-  // UTO_dump_s_ (ox0, "ex INT_ln2pta__:");
+  // DEB_dump_ox_s_ (ox0, "ex INT_ln2pta__:");
 
   return 0;
 
@@ -1143,8 +1143,8 @@ static  CurvElli          el1;
 
   // printf("INT_pta2crv__ siz=%d mod=%d\n",((ObjGX*)oSpc->start)->siz,imod);
   // printf("   oTyp=%d\n",*oTyp);
-    // UTO_dump_s_ ((ObjGX*)oSpc->start, "INT_pta2crv__");
-    // UTO_dump__ ((ObjGX*)oSpc->start, "INT_pta2crv__");
+    // DEB_dump_ox_s_ ((ObjGX*)oSpc->start, "INT_pta2crv__");
+    // DEB_dump_ox_0 ((ObjGX*)oSpc->start, "INT_pta2crv__");
 
 
 
@@ -1222,7 +1222,7 @@ static  CurvElli          el1;
     if(irc < 0) goto L_eop;  // gibts nicht ..
 
     // approx
-    irc = UT3D_bsp_pta__ (cvBsp, ptNr, pTab, UT_TOL_cv, pSpc, tSpc);
+    irc = UT3D_bsp_pta__ (cvBsp, ptNr, pTab, UT_TOL_cv, 1., pSpc, tSpc);
     if(irc < 0) return irc;
 
     // change obj to BSpl-Curve
@@ -1265,8 +1265,8 @@ static  CurvElli          el1;
 
 
   //----------------------------------------------------------------
-    // UTO_dump_s_ ((ObjGX*)oSpc->start, "ex INT_pta2crv__");
-    // UTO_dump__ ((ObjGX*)oSpc->start, "INT_pta2crv__");
+    // DEB_dump_ox_s_ ((ObjGX*)oSpc->start, "ex INT_pta2crv__");
+    // DEB_dump_ox_0 ((ObjGX*)oSpc->start, "INT_pta2crv__");
   return iMaxNr;
 
 
@@ -1480,9 +1480,9 @@ static  CurvElli          el1;
              sur1Tab[i1].ip1,sur1Tab[i1].ip2,sur1Tab[i1].typ);
       for(i2=sur1Tab[i1].ip1; i2<=sur1Tab[i1].ip2; ++i2) {
         printf(" tri %d:\n",i2);
-        UT3D_stru_dump (Typ_PT, tri1Tab[i2].pa[0], "  p1=");
-        UT3D_stru_dump (Typ_PT, tri1Tab[i2].pa[1], "  p2=");
-        UT3D_stru_dump (Typ_PT, tri1Tab[i2].pa[2], "  p3=");
+        DEB_dump_obj__ (Typ_PT, tri1Tab[i2].pa[0], "  p1=");
+        DEB_dump_obj__ (Typ_PT, tri1Tab[i2].pa[1], "  p2=");
+        DEB_dump_obj__ (Typ_PT, tri1Tab[i2].pa[2], "  p3=");
         // GR_Disp_tria (&tri1Tab[i2], 9);
       }
     }
@@ -1518,9 +1518,9 @@ static  CurvElli          el1;
              sur2Tab[i1].ip1,sur2Tab[i1].ip2,sur2Tab[i1].typ);
       for(i2=sur2Tab[i1].ip1; i2<=sur2Tab[i1].ip2; ++i2) {
         printf(" tri %d:\n",i2);
-        UT3D_stru_dump (Typ_PT, tri2Tab[i2].pa[0], "  p1=");
-        UT3D_stru_dump (Typ_PT, tri2Tab[i2].pa[1], "  p2=");
-        UT3D_stru_dump (Typ_PT, tri2Tab[i2].pa[2], "  p3=");
+        DEB_dump_obj__ (Typ_PT, tri2Tab[i2].pa[0], "  p1=");
+        DEB_dump_obj__ (Typ_PT, tri2Tab[i2].pa[1], "  p2=");
+        DEB_dump_obj__ (Typ_PT, tri2Tab[i2].pa[2], "  p3=");
         // GR_Disp_tria (&tri2Tab[i2], 9);
       }
     }
@@ -1581,7 +1581,7 @@ static  CurvElli          el1;
 
 /*
     // TESTS:
-    UTO_dump_s_ (oSpc.start, "Group of Polygons:");
+    DEB_dump_ox_s_ (oSpc.start, "Group of Polygons:");
     oxp1 = (ObjGX*)oSpc.start;
     printf(" typ=%d form=%d\n",oxp1->typ,oxp1->form);
     printf(" Nr of concatenated curves = siz = %d\n",oxp1->siz);
@@ -1594,7 +1594,7 @@ static  CurvElli          el1;
       // GR_Disp_pTab (oTab[i1].siz, pTab, SYM_STAR_S, 2);
       GR_Disp_cv (pTab, oxp2->siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
-        // UT3D_stru_dump(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
+        // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
     }
     return -1;
@@ -1629,7 +1629,7 @@ static  CurvElli          el1;
       pTab = oTab[i1].data;
       GR_Disp_cv (pTab, oTab[i1].siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
-        // UT3D_stru_dump(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
+        // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
     }
     return 0;
@@ -1649,24 +1649,24 @@ static  CurvElli          el1;
   *oTyp = oo1.form;
   *oDat = oo1.data;
 
-    // UT3D_stru_dump (*oTyp, *oDat, "ex INT_intsursur\n");
+    // DEB_dump_obj__ (*oTyp, *oDat, "ex INT_intsursur\n");
 
 /*
   //-------TESTAUSGABE----------
   printf(" oTyp=%d\n",*oTyp);
   oxp1 = oDat;
-  UTO_dump_s_ (oxp1, "xSpc");
+  DEB_dump_ox_s_ (oxp1, "xSpc");
   if(oxp1->typ == Typ_CVBSP) {
     GR_Disp_CvBSp (oxp1->data, 9);
-    UT3D_stru_dump(Typ_CVBSP, oxp1->data, "");
+    DEB_dump_obj__(Typ_CVBSP, oxp1->data, "");
   }
   oxp1 = (ObjGX*)oSpc.start;
   i2 = oxp1->siz;
   for(i1=0; i1<i2; ++i1) {
     (char*)oxp1 += sizeof(ObjGX); // obj 1 from group
     printf(" OOOOOOOOOOOOOOOOOOOOOOO %d\n",i1);
-    // UTO_dump_s_ (oxp1, "oxp1");
-    UTO_dump__ (oxp1, "oxp1 %d",i1);
+    // DEB_dump_ox_s_ (oxp1, "oxp1");
+    DEB_dump_ox_0 (oxp1, "oxp1 %d",i1);
   }
   //-------TESTAUSGABE----------
 */
@@ -1683,7 +1683,7 @@ static  CurvElli          el1;
   // *((Line*)xSpc) = *((Line*)oxp1->data);
   memcpy (xSpc, oxp1->data, OBJ_SIZ_MAX);
 
-  UTO_dump__ (xSpc, "xSpc %d",i1);
+  DEB_dump_ox_0 (xSpc, "xSpc %d",i1);
 */
 
 

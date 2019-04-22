@@ -206,11 +206,12 @@ Testprog: ../ut/tst_memTab.c
 #include <string.h>
 
 
+#include "../ut/ut_types.h"               // INT_8 - UINT_64
 #include "../ut/AP_types.h"
 #include "../ut/ut_memTab.h"
-#include "../ut/ut_uti.h"              // UTI_round_32up
-#include "../ut/ut_cast.h"             // INT_PTR
-#include "../ut/ut_types.h"            // UINT_8_MAX
+#include "../ut/ut_uti.h"                 // UTI_round_32up
+#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_types.h"               // UINT_8_MAX
 
 
 
@@ -361,7 +362,7 @@ Testprog: ../ut/tst_memTab.c
 
   // printf("MemTab_add max=%d used=%d siz=%d nr=%d\n",
           // memTab->rMax, memTab->rNr, memTab->rSiz, recNr);
-  // UT3D_stru_dump (Typ_MemTab, memTab, " _add-in");
+  // DEB_dump_obj__ (Typ_MemTab, memTab, " _add-in");
 
 
   *spcOff = 0;
@@ -449,7 +450,7 @@ Testprog: ../ut/tst_memTab.c
   L_exit:
 
     // printf("ex UME_alloc_add max=%d used=%d\n",memTab->rMax,memTab->rNr);
-    // UT3D_stru_dump (Typ_MemTab, memTab, "ex-_add");
+    // DEB_dump_obj__ (Typ_MemTab, memTab, "ex-_add");
 
   return irc;
 
@@ -713,7 +714,7 @@ Testprog: ../ut/tst_memTab.c
 
   // copy mt1
   mt2 = *mt1;
-     // UT3D_stru_dump (Typ_MemTab, &mt2, " -mt-act");
+     // DEB_dump_obj__ (Typ_MemTab, &mt2, " -mt-act");
 
 
   // overwrite mt1
@@ -732,7 +733,7 @@ Testprog: ../ut/tst_memTab.c
     rNr = ii - mt2.rMax + 4;
     MemTab_add (mt1, &l1, NULL, rNr, 2);    // can overwrite rNr
       // printf(" _rdf-add %d records\n",rNr);
-      // UT3D_stru_dump (Typ_MemTab, mt1, " -mt-add");
+      // DEB_dump_obj__ (Typ_MemTab, mt1, " -mt-add");
     mt1->rNr = ii;
   }
 
@@ -761,7 +762,7 @@ Testprog: ../ut/tst_memTab.c
 
   
 
-  UT3D_stru_dump (Typ_MemTab, memTab, "MemTab_dump");
+  DEB_dump_obj__ (Typ_MemTab, memTab, "MemTab_dump");
 
   if(memTab->rNr < 1)  { printf(".. empty ..\n"); return -1;}
 
@@ -778,7 +779,7 @@ Testprog: ../ut/tst_memTab.c
   data = MEMTAB_DAT (memTab);
   for(i1=0; i1<memTab->rNr; ++i1) {
     vp = PTR_INT((int)data[i1]);
-    UT3D_stru_dump (ityp, vp, "[%d]",i1);
+    DEB_dump_obj__ (ityp, vp, "[%d]",i1);
   }
   return 0;
 
@@ -794,7 +795,7 @@ Testprog: ../ut/tst_memTab.c
   for(i1=0; i1<memTab->rNr; ++i1) {
     vp = PTR_INT(ia[i1]);
       // printf(" i4[%d]=%ld\n",i1,(long)vp);
-    UT3D_stru_dump (ityp, vp, "[%d]",i1);
+    DEB_dump_obj__ (ityp, vp, "[%d]",i1);
   }
   return 0;
 
@@ -807,7 +808,7 @@ Testprog: ../ut/tst_memTab.c
 
   for(i1=0; i1<memTab->rNr; ++i1) {
       // printf(" data=%d\n",*((int*)data));
-    UT3D_stru_dump (ityp, data, "[%d]",i1);
+    DEB_dump_obj__ (ityp, data, "[%d]",i1);
     data += isiz;
   }
 

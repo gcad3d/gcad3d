@@ -80,14 +80,14 @@ List_functions_end:
   double   vry;
 
 
-  // UT3D_stru_dump (Typ_VC, vc1, "VR_vc_cad2vr:");
+  // DEB_dump_obj__ (Typ_VC, vc1, "VR_vc_cad2vr:");
 
   vry = vc1->dy;
 
   vc1->dy = vc1->dz;
   vc1->dz =  -vry;
 
-  // UT3D_stru_dump (Typ_VC, vc1, "ex VR_vc_cad2vr:");
+  // DEB_dump_obj__ (Typ_VC, vc1, "ex VR_vc_cad2vr:");
 
   return 0;
 

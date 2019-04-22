@@ -38,7 +38,7 @@ Needs:
 ../ut/ut_umem.h       ../ut/ut_umem.c                     UME_..
 ../ut/ut_txTab.h      ../ut/ut_txTab.c                    UtxTab_init_..
 ../ut/ut_os.h         ../ut/ut_os_aix.c                   OS_FilSiz ..
-../xa/xa_msg.c        ../xa/xa_msg.h                      MSG_STD__ MSG_get_1 ..
+../xa/xa_msg.c        ../xa/xa_msg.h                      MSG_ERR_out MSG_get_1 ..
 ../ut/ut_types.h      -                                   FLT_32_MAX
 -                     ../ut/ut_mem.c                      MEM_chg_str ..
 -                     ../ut/ut_utx_dummy.c
@@ -101,6 +101,7 @@ UTX_chg_chr1           in cBuf alle oldChr aendern in newChr
 UTX_chg_nr             change following int-number
 UTX_chg_str1           change substring in string
 UTX_chg_str2           change <sOld> into <sNew> in <sDat>
+UTX_chg_left_del       change left part of string to deli
 UTX_chg_right          change right side of string (replace equal nr of chars)
 UTX_chg_2_upper        change string to uppercase; skip textStrings("")
 UTX_chg_2_lower        change string to lowercase (see "_upper")
@@ -2648,6 +2649,46 @@ static char   TX_buf2[128];
 }
 
 
+//=====================================================================
+  int UTX_chg_left_del (char *str, int sLen, char *sNew, char deli) {
+//=====================================================================
+// UTX_chg_left_del    change left part of string to deli
+//   find pos of deli in str; change left part of str including deli.
+// Input:
+//   sLen       size of str
+//   sNew       let str start with <sNew> 
+// Output:
+//   str        modified
+//   retCod     0=OK; -1=stringlength too small; -2=deli-not-found
+
+
+  long    lAct, ll, lNew;
+  char    *p1;
+
+  // printf("UTX_chg_left_del |%s|%s| l=%d del=|%c|\n",str,sNew,sLen,deli);
+
+  // find deli
+  p1 = strchr (str, deli);
+  if(!p1) return -2;
+
+  ll = p1 - str + 1;
+  lAct = strlen(str);
+  lNew = strlen(sNew);
+    // printf(" _left_del-lAct=%ld ll=%ld lNew=%ld\n",lAct,ll,lNew);
+  if((lAct - ll + lNew) > sLen) return -1;
+
+  // change
+  ++lAct;  // add \0 (EOS)
+  MEM_chg_rec (str, &lAct, sNew, lNew, str, ll);
+
+
+    // printf("ex-UTX_chg_left_del |%s|\n",str);
+
+  return 0;
+
+}
+
+
 //================================================================
   int UTX_chg_right (char *s1, char *s2) {
 //================================================================
@@ -3926,7 +3967,7 @@ Das folgende ist NICHT aktiv:
 
   // write to tempfile
   if((fpo = fopen (fnTmp, "w")) == NULL) {
-    MSG_STD_ERR (ERR_file_open, "'%s'", fnTmp);
+    MSG_ERR__ (ERR_file_open, "'%s'", fnTmp);
     return -1;
   }
   fprintf(fpo, "%s\n", newLn);

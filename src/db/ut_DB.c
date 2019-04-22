@@ -65,7 +65,7 @@ DB_dump__          dump complete DB
 DB_dump_dyn__      dump all dynamic objects of type<typ>
 DB_dump_f          dump all objects of type<typ> into open file
 DB_dump_Activ      dump all activities
-DB_dump_dbo        UT3D_dump_dbo   dump DB-obj
+DB_dump_dbo        DEB_dump_dbo   dump DB-obj
 
 DB_save__          gesamte DB -> Datei raus
 DB_load__          gesamte DB aus Datei einlesen
@@ -106,6 +106,7 @@ DB_StoreLine
 DB_StoreCirc
 DB_StoreCvEll
 DB_StoreCvPlg
+DB_StoreCvPl2
 DB_StoreClot
 DB_StoreCvBsp
 DB_StoreObjGX
@@ -512,7 +513,7 @@ Vector     DB_vc0;
   int DB_test__ () {
 //================================================================
 
-  UT3D_stru_dump (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
+  DEB_dump_obj__ (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
 
   return 0;
 
@@ -745,7 +746,7 @@ Vector     DB_vc0;
   vc_dyn[-DB_VCIZ_IND] = UT3D_VECTOR_IZ;
   DYN_VC_IND = 6;
     // printf(" DB_Init DYN_VC_IND=%ld\n",DYN_VC_IND);
-    // UT3D_stru_dump (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
+    // DEB_dump_obj__ (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
   
 
 
@@ -1367,7 +1368,7 @@ Vector     DB_vc0;
     if(DB_isFree_PLN(&pln_dyn[Ind])) {
       TX_Error (" Dyn.Plane %d undefined",Ind);
     }
-      // UT3D_stru_dump(Typ_PLN, &pln_dyn[Ind], "ex DB_get_PLN:");
+      // DEB_dump_obj__(Typ_PLN, &pln_dyn[Ind], "ex DB_get_PLN:");
     return &pln_dyn[Ind];
   }
 
@@ -1378,7 +1379,7 @@ Vector     DB_vc0;
     TX_Error (" Dyn.Plane %d undefined",Ind);
   }
 
-  // UT3D_stru_dump(Typ_PLN, &pln_tab[Ind], "ex DB_get_PLN:");
+  // DEB_dump_obj__(Typ_PLN, &pln_tab[Ind], "ex DB_get_PLN:");
   return &pln_tab[Ind];
 
 }
@@ -1428,7 +1429,7 @@ Vector     DB_vc0;
     } else {
       *ityp = cv_dyn[Ind].form;
     }
-      // UT3D_stru_dump (*ityp, cv_dyn[Ind].data, "get_CV:");
+      // DEB_dump_obj__ (*ityp, cv_dyn[Ind].data, "get_CV:");
     return cv_dyn[Ind].data;
 
   } else {
@@ -1438,7 +1439,7 @@ Vector     DB_vc0;
     } else {
       *ityp = cv_tab[Ind].form;
     }
-      // UT3D_stru_dump (*ityp, cv_tab[Ind].data, "get_CV:");
+      // DEB_dump_obj__ (*ityp, cv_tab[Ind].data, "get_CV:");
     return cv_tab[Ind].data;
   }
 
@@ -1456,7 +1457,7 @@ Vector     DB_vc0;
 /// Liefert einen ObjGX-Record von jedem DB-Obj.
 /// Error:      o.typ == Typ_Error;
 ///
-/// get datastruct of DB-obj: see DB_GetObjDat or UTO_obj_getp
+/// get datastruct of DB-obj: see DB_GetObjDat or UTO_objDat_ox
 /// \endcode
 
 
@@ -1618,8 +1619,8 @@ Vector     DB_vc0;
     }
 
 
-    // UT3D_stru_dump(Typ_ObjGX, &ox1, "ex DB_GetObjGX:\n");
-    // UT3D_stru_dump(ox1.typ, ox1.data, "ex DB_GetObjGX:\n");
+    // DEB_dump_obj__(Typ_ObjGX, &ox1, "ex DB_GetObjGX:\n");
+    // DEB_dump_obj__(ox1.typ, ox1.data, "ex DB_GetObjGX:\n");
 
   return ox1;
 
@@ -1657,13 +1658,13 @@ Vector     DB_vc0;
 ///   oNr         nr of structs of type <Retcode>
 ///   Retcode     type of datastruct pDat
 ///               Typ_Error  (0)   obj unused
-///               -1               UTO_obj_getp - error
+///               -1               UTO_objDat_ox - error
 /// 
-/// see UTO_get_DB
-/// see also DB_GetObjGX UTO_obj_getp ....
+/// see UTO_objDat_dbo
+/// see also DB_GetObjGX UTO_objDat_ox ....
 /// \endcode
 
-// OFFEN: replace UTO_get_DB with DB_GetObjDat
+// OFFEN: replace UTO_objDat_dbo with DB_GetObjDat
 
 
   ObjGX  ox1;
@@ -1698,7 +1699,7 @@ Vector     DB_vc0;
   ox1 = DB_GetObjGX (dbTyp, dbInd);
 
   // get data-struct from ObjGX
-  return UTO_obj_getp (pDat,  oNr, &ox1);
+  return UTO_objDat_ox (pDat,  oNr, &ox1);
 
 }
 
@@ -1828,7 +1829,7 @@ Vector     DB_vc0;
         // if(apt_ind >= dyn_pt_max) return -1; // skip dynam. obj
         pt1 = DB_GetPoint (apt_ind);
         if(tra_ind != 0) {
-          UT3D_pt_traptm3 (&pt1, mat_tab[tra_ind], &pt1);
+          UT3D_pt_tra_pt_m3 (&pt1, mat_tab[tra_ind], &pt1);
         }
         *o1  = UT3D_obj_pt (&pt1);
         break;
@@ -1838,8 +1839,8 @@ Vector     DB_vc0;
         // if(apt_ind >= dyn_ln_max) return -1; // skip dynam. obj
         ln1 = DB_GetLine (apt_ind);
         if(tra_ind != 0) {
-          UT3D_pt_traptm3 (&ln1.p1, mat_tab[tra_ind], &ln1.p1);
-          UT3D_pt_traptm3 (&ln1.p2, mat_tab[tra_ind], &ln1.p2);
+          UT3D_pt_tra_pt_m3 (&ln1.p1, mat_tab[tra_ind], &ln1.p1);
+          UT3D_pt_tra_pt_m3 (&ln1.p2, mat_tab[tra_ind], &ln1.p2);
         }
         *o1  = UT3D_obj_ln (&ln1);
         break;
@@ -1850,9 +1851,9 @@ Vector     DB_vc0;
         // if(apt_ind >= dyn_ci_max) return -1; // skip dynam. obj
         ci1 = DB_GetCirc (apt_ind);
         if(tra_ind != 0) {
-          UT3D_pt_traptm3 (&ci1.p1, mat_tab[tra_ind], &ci1.p1);
-          UT3D_pt_traptm3 (&ci1.p2, mat_tab[tra_ind], &ci1.p2);
-          UT3D_pt_traptm3 (&ci1.pc, mat_tab[tra_ind], &ci1.pc);
+          UT3D_pt_tra_pt_m3 (&ci1.p1, mat_tab[tra_ind], &ci1.p1);
+          UT3D_pt_tra_pt_m3 (&ci1.p2, mat_tab[tra_ind], &ci1.p2);
+          UT3D_pt_tra_pt_m3 (&ci1.pc, mat_tab[tra_ind], &ci1.pc);
           ci1.vz.dx  = mat_tab[tra_ind][0][2];
           ci1.vz.dy  = mat_tab[tra_ind][1][2];
           ci1.vz.dz  = mat_tab[tra_ind][2][2];
@@ -2192,9 +2193,9 @@ long DB_GetDynInd (int typ) {
 
 /*
   // nur Test:
-  UT3D_stru_dump(Typ_ObjGX, tx_out, "ex DB_GetGTxt");
-  // UT3D_stru_dump(tx_out->form, tx_out->data, "ex DB_GetGTxt");
-  // UTO_dump__ (tx_out, "ex DB_GetGTxt");
+  DEB_dump_obj__(Typ_ObjGX, tx_out, "ex DB_GetGTxt");
+  // DEB_dump_obj__(tx_out->form, tx_out->data, "ex DB_GetGTxt");
+  // DEB_dump_ox_0 (tx_out, "ex DB_GetGTxt");
   // gt1 = tx_tab[Ind].data;
   // printf(" DB_GetGTxt %ld pt=%f,%f\n",Ind,tx_out->pt.x,tx_out->pt.y);
   // printf(" GTxt |%s|\n",tx_out->txt);
@@ -2204,7 +2205,7 @@ long DB_GetDynInd (int typ) {
       GText     *gtx1;
       gtx1 = tx_out->data;
       printf(" GText %p |%s|\n",gtx1->txt,gtx1->txt);
-      UT3D_stru_dump(Typ_GTXT, gtx1, "ex DB_GetGTxt:");
+      DEB_dump_obj__(Typ_GTXT, gtx1, "ex DB_GetGTxt:");
     }
   }
 */
@@ -2432,7 +2433,7 @@ long DB_StoreATxt (long Ind, AText *atx1) {
   txo->siz   = 1;
   txo->data  = gtNew;
 
-  // UT3D_stru_dump (Typ_ATXT, gtNew, "ex DB_StoreATxt");
+  // DEB_dump_obj__ (Typ_ATXT, gtNew, "ex DB_StoreATxt");
 
 
   return dbi;
@@ -2476,7 +2477,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   txo->data  = gtNew;
 
   
-    // UT3D_stru_dump(Typ_GTXT, gtNew, "ex DB_StoreGTxt:");
+    // DEB_dump_obj__(Typ_GTXT, gtNew, "ex DB_StoreGTxt:");
     // printf(" txt=%p\n",gtNew->txt);
 
 
@@ -2659,13 +2660,13 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 //***********************************************************************
 
 
-  // UT3D_stru_dump(Typ_PLN, pl1, "DB_StoreRef RefSys %d\n",Ind);
+  // DEB_dump_obj__(Typ_PLN, pl1, "DB_StoreRef RefSys %d\n",Ind);
 
 
   if(Ind < 0) {
     Ind = DB_GetDynInd(Typ_PLN);
     pln_dyn[-Ind] = *pl1;
-    // UT3D_stru_dump(Typ_PLN, &pln_dyn[-Ind], "ex DB_StoreRef RefSys %d\n",Ind);
+    // DEB_dump_obj__(Typ_PLN, &pln_dyn[-Ind], "ex DB_StoreRef RefSys %d\n",Ind);
 
 
   //---------------- normal ---------------------------
@@ -2681,7 +2682,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
     }
 
     pln_tab[Ind] = *pl1;
-    // UT3D_stru_dump(Typ_PLN, &pln_tab[Ind], "ex DB_StoreRef RefSys %d\n",Ind);
+    // DEB_dump_obj__(Typ_PLN, &pln_tab[Ind], "ex DB_StoreRef RefSys %d\n",Ind);
 
   }
 
@@ -2887,8 +2888,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   // printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \n");
   // printf("DB_StoreSol dbi=%ld typ=%d form=%d\n",*dbi,bd1->typ,bd1->form);
   // printf(" APT_SO_IND=%ld APT_SO_SIZ=%ld\n",APT_SO_IND,APT_SO_SIZ);
-  // UTO_dump_s_ (bd1, "DB_StoreSol-in\n");
-  // UTO_dump__ (bd1, "DB_StoreSol-in\n");
+  // DEB_dump_ox_s_ (bd1, "DB_StoreSol-in\n");
+  // DEB_dump_ox_0 (bd1, "DB_StoreSol-in\n");
   
 
 
@@ -2902,8 +2903,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 
   //---- Anf Testausg:
   // oxo = DB_GetSol (*dbi);
-  // UTO_dump_s_ (oxo, "DB_StoreSol-out\n");
-  // UTO_dump__ (oxo, "DB_StoreSol-out\n");
+  // DEB_dump_ox_s_ (oxo, "DB_StoreSol-out\n");
+  // DEB_dump_ox_0 (oxo, "DB_StoreSol-out\n");
   // printf("xxxxxxxxxxxxxxxxxxx ex DB_StoreSol %ld\n",*dbi);
   // exit(0);
   //---- End Testausg:
@@ -2952,7 +2953,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   void     *cPos1, *cPos2, *cPos3, *cPos4;
 
   // printf("DB_StoreSurBsp %d\n",Ind);
-  // UT3D_stru_dump (Typ_SURRV, si, "DB_StoreSurBsp %d\n",Ind);
+  // DEB_dump_obj__ (Typ_SURRV, si, "DB_StoreSurBsp %d\n",Ind);
 
   Ind = DB_Store_hdr_su (&so, Ind);
 
@@ -3000,7 +3001,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 
 
   // printf("DB_StoreSurStripe %ld\n",Ind);
-  // UT3D_stru_dump (Typ_SURSTRIP, si, "DB_StoreSurStripe %ld\n",Ind);
+  // DEB_dump_obj__ (Typ_SURSTRIP, si, "DB_StoreSurStripe %ld\n",Ind);
     
   // get parent-record so
   Ind = DB_Store_hdr_su (&so, Ind);
@@ -3039,7 +3040,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   void     *cPos1, *cPos2, *cPos3, *cPos4, *cPos5;
 
   // printf("DB_StoreSurRBsp %d\n",Ind);
-  // UT3D_stru_dump (Typ_SURRBSP, si, "DB_StoreSurBsp %d\n",Ind);
+  // DEB_dump_obj__ (Typ_SURRBSP, si, "DB_StoreSurBsp %d\n",Ind);
 
 
   Ind = DB_Store_hdr_su (&so, Ind);
@@ -3091,7 +3092,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   ObjGX    *so;
 
   // printf("DB_StoreSurRV %d\n",Ind);
-  // UT3D_stru_dump (Typ_SURRV, si, "DB_StoreSurRV %d\n",Ind);
+  // DEB_dump_obj__ (Typ_SURRV, si, "DB_StoreSurRV %d\n",Ind);
 
   Ind = DB_Store_hdr_su (&so, Ind);
 
@@ -3173,8 +3174,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
     l1 = Ind;
     irc = DB_store_stru (&cPos1, Typ_ObjGX, ox1->data, ox1->siz, &l1);
 */
-      // UTO_dump_s_ (oxo, "DB_StoreSur-out\n");
-      // UTO_dump__ (oxo, "DB_StoreSur-out\n");
+      // DEB_dump_ox_s_ (oxo, "DB_StoreSur-out\n");
+      // DEB_dump_ox_0 (oxo, "DB_StoreSur-out\n");
       // exit(0);
   }
 
@@ -3360,7 +3361,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 /// keine dynam. models
 
   // printf("DB_StoreModel %ld %d %ld\n",Ind,md1->typ,md1->form);
-  // UT3D_stru_dump (Typ_Model, md1->data, " ModelRef: ");
+  // DEB_dump_obj__ (Typ_Model, md1->data, " ModelRef: ");
 
 
   if(Ind < 0) {
@@ -3428,7 +3429,7 @@ int DB_del_Mod__ () {
     return &mdr_tab[0];
   }
 
-    // UT3D_stru_dump (Typ_Model, &mdr_tab[Ind], "mr:");
+    // DEB_dump_obj__ (Typ_Model, &mdr_tab[Ind], "mr:");
 
   return &mdr_tab[Ind];
 
@@ -3446,7 +3447,7 @@ int DB_del_Mod__ () {
   for(i1=0; i1<APT_AC_SIZ; ++i1) {
     // if(ac_tab[i1].typ == Typ_Error) continue;
     if(DB_isFree_Act (&ac_tab[i1])) continue;
-    UT3D_stru_dump (Typ_Activ, &ac_tab[i1], " ac_tab[%d]",i1);
+    DEB_dump_obj__ (Typ_Activ, &ac_tab[i1], " ac_tab[%d]",i1);
   }
 
   return 0;
@@ -3459,7 +3460,7 @@ int DB_del_Mod__ () {
 //================================================================
 /// \code
 /// dump all objects of type<typ> into open file
-/// see also UT3D_dump_dbo
+/// see also DEB_dump_dbo
 /// \endcode
 
 
@@ -3694,7 +3695,7 @@ int DB_del_Mod__ () {
   for(i1=1; i1<APT_PT_SIZ; ++i1) {
     // if(pt_tab[i1].x == UT_VAL_MAX) continue;
     if(DB_isFree_PT (&pt_tab[i1])) continue;
-    UT3D_stru_dump(Typ_PT, &pt_tab[i1], "  %d ",i1);
+    DEB_dump_obj__(Typ_PT, &pt_tab[i1], "  %d ",i1);
   }
 
 
@@ -3702,7 +3703,7 @@ int DB_del_Mod__ () {
   for(i1=1; i1<APT_PT_SIZ; ++i1) {
     // if(ln_tab[i1].p1.x == UT_VAL_MAX) continue;
     if(DB_isFree_LN (&ln_tab[i1])) continue;
-    UT3D_stru_dump(Typ_LN, &ln_tab[i1], "  %d ",i1);
+    DEB_dump_obj__(Typ_LN, &ln_tab[i1], "  %d ",i1);
   }
 
 
@@ -3710,7 +3711,7 @@ int DB_del_Mod__ () {
   for(i1=1; i1<APT_CI_SIZ; ++i1) {
     // if(ci_tab[i1].p1.x == UT_VAL_MAX) continue;
     if(DB_isFree_CI (&ci_tab[i1])) continue;
-    UT3D_stru_dump(Typ_CI, &ci_tab[i1], "  %d ",i1);
+    DEB_dump_obj__(Typ_CI, &ci_tab[i1], "  %d ",i1);
   }
 
 
@@ -3723,10 +3724,10 @@ int DB_del_Mod__ () {
     form = cv_tab[i1].form;
     p1 = AP_src_typ__(typ);
     if(form != Typ_ObjGX) {
-      UT3D_stru_dump (form, cv_tab[i1].data, "  %d %s",i1,p1);
+      DEB_dump_obj__ (form, cv_tab[i1].data, "  %d %s",i1,p1);
     } else {  // CCV
       printf("  %d %s ===========================\n",i1,p1);
-      UTO_dump_1 (&cv_tab[i1], "");
+      DEB_dump_ox_1 (&cv_tab[i1], "");
     }
   }
 
@@ -3739,10 +3740,10 @@ int DB_del_Mod__ () {
     form = su_tab[i1].form;
     p1 = AP_src_typ__(typ);
     if(form != Typ_ObjGX) {
-      UT3D_stru_dump (form, su_tab[i1].data, "  %d %s",i1,p1);
+      DEB_dump_obj__ (form, su_tab[i1].data, "  %d %s",i1,p1);
     } else {  // CCV
       printf("  %d %s ===========================\n",i1,p1);
-      UTO_dump_1 (&su_tab[i1], "");
+      DEB_dump_ox_1 (&su_tab[i1], "");
     }
   }
 
@@ -3751,7 +3752,7 @@ int DB_del_Mod__ () {
   for(i1=0; i1<APT_MR_SIZ; ++i1) {
     // if(mdr_tab[i1].po.x == UT_VAL_MAX) continue;
     if(DB_isFree_ModRef (&mdr_tab[i1])) continue;
-    UT3D_stru_dump (Typ_Model, &mdr_tab[i1], "  %3d ",i1);
+    DEB_dump_obj__ (Typ_Model, &mdr_tab[i1], "  %3d ",i1);
   }
 
   
@@ -3773,12 +3774,12 @@ int DB_del_Mod__ () {
 
   printf(" %ld basic models:\n",DYN_MB_IND);
   for(i1=0; i1<DYN_MB_IND; ++i1) {
-    UT3D_stru_dump (Typ_SubModel, &mdb_dyn[i1], "  %d ",i1);
+    DEB_dump_obj__ (Typ_SubModel, &mdb_dyn[i1], "  %d ",i1);
   }
 
-  UT3D_stru_dump (Typ_Txt, "\nMainmodel:", "");
-  UT3D_stru_dump (Typ_PT, &AP_box_pm1, " pb1 ");
-  UT3D_stru_dump (Typ_PT, &AP_box_pm2, " pb2 ");
+  DEB_dump_obj__ (Typ_Txt, "\nMainmodel:", "");
+  DEB_dump_obj__ (Typ_PT, &AP_box_pm1, " pb1 ");
+  DEB_dump_obj__ (Typ_PT, &AP_box_pm2, " pb2 ");
 
   return 0;
 
@@ -3796,7 +3797,7 @@ int DB_del_Mod__ () {
   for(i1=0; i1<=APT_MR_IND; ++i1) {
     // if(mdr_tab[i1].po.x == UT_VAL_MAX) continue;
     if(DB_isFree_ModRef (&mdr_tab[i1])) continue;
-    UT3D_stru_dump (Typ_Model, &mdr_tab[i1], "  M%d ",i1);
+    DEB_dump_obj__ (Typ_Model, &mdr_tab[i1], "  M%d ",i1);
   }
 
   return 0;
@@ -3839,7 +3840,7 @@ int DB_del_Mod__ () {
   mra = mdr_tab;
   if(DB_isFree_ModRef (&mra[dbi])) return -1;
 
-    // UT3D_stru_dump (Typ_Model, &mra[i1], "  M%d ",i1);
+    // DEB_dump_obj__ (Typ_Model, &mra[i1], "  M%d ",i1);
   *mdlNam = DB_mdlNam_iBas (mra[dbi].modNr);
     // printf("M%d = %s\n",dbi,*mdlNam);
 
@@ -3887,7 +3888,7 @@ int DB_del_Mod__ () {
   mra = mdr_tab;
   if(DB_isFree_ModRef (&mra[dbi])) return -1;
 
-    // UT3D_stru_dump (Typ_Model, &mra[i1], "  M%d ",i1);
+    // DEB_dump_obj__ (Typ_Model, &mra[i1], "  M%d ",i1);
   mb = DB_get_ModBas (mra[dbi].modNr);
 
   *mdlTyp = mb->typ;
@@ -4315,7 +4316,7 @@ loop tru all nodes; testbm=node[i1].mod;
     return NULL;
   }
 
-    // UT3D_stru_dump (Typ_SubModel, &mdb_dyn[Ind], "mb:");
+    // DEB_dump_obj__ (Typ_SubModel, &mdb_dyn[Ind], "mb:");
 
   return &mdb_dyn[Ind];
 
@@ -4433,7 +4434,7 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   long dbi;
 
 
-  // UT3D_stru_dump(Typ_VC, vc1, "DB_StoreVector %ld  ",Ind);
+  // DEB_dump_obj__(Typ_VC, vc1, "DB_StoreVector %ld  ",Ind);
   // DB_test__();
 
 
@@ -5775,7 +5776,7 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   long dbi;
 
 
-  // UT3D_stru_dump(Typ_PT, pt1, "DB_StorePoint %d:",Ind);
+  // DEB_dump_obj__(Typ_PT, pt1, "DB_StorePoint %d:",Ind);
 
 
   //---------------- Dynam. ---------------------------
@@ -5820,7 +5821,7 @@ Vector DB_GetVector (long Ind) {
   Vector vc1;
 
   // printf("DB_GetVector %d %d %d\n",Ind,DYN_VC_SIZ,APT_VC_SIZ);
-  // UT3D_stru_dump (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
+  // DEB_dump_obj__ (Typ_VC, &vc_dyn[1], "vc_dyn[1]:");
 
 
   if(Ind < 0) {
@@ -5883,7 +5884,7 @@ Point DB_GetPoint (long Ind) {
   }
 
   // printf("DB_GetPoint %d=%f,%f,%f\n",Ind,pt1.x,pt1.y,pt1.z);
-  // UT3D_stru_dump (Typ_PT, &pt1, "ex DB_GetPoint %d",Ind);
+  // DEB_dump_obj__ (Typ_PT, &pt1, "ex DB_GetPoint %d",Ind);
   
 
   return pt1;
@@ -5910,7 +5911,7 @@ long DB_StoreLine (long Ind, Line* ln1) {
   long dbi;
 
 
-  // UT3D_stru_dump (Typ_LN, ln1, "DB_StoreLine %d",Ind);
+  // DEB_dump_obj__ (Typ_LN, ln1, "DB_StoreLine %d",Ind);
   // printf(" APT_LN_SIZ=%d\n",APT_LN_SIZ);
 
 
@@ -6125,7 +6126,7 @@ void* DB_cPos () {
 
 
 //====================================================================
-void* DB_cSav(long size, void *data) {
+void* DB_cSav (long size, void *data) {
 //====================================================================
 /// \code
 /// <size> Bytes aus data nach DB_CDAT speichern.
@@ -6139,8 +6140,16 @@ void* DB_cSav(long size, void *data) {
   int    irc;
 
 
-  // printf("DB_cSav siz=%d free %d\n",size,UME_ck_free(&DB_CSEG));
+  // printf("DB_cSav siz=%ld free %d\n",size,UME_ck_free(&DB_CSEG));
 
+  // round up to 4
+  size = UTI_round_4up (size);
+
+  // if(size < (long)sizeof(void*)) {
+  if(size < 4) {
+    TX_Error("DB_cSav E1");
+    return NULL;
+  }
 
 
   //if((DB_CSEG.next + size) > DB_CSEG.end) {
@@ -6168,7 +6177,7 @@ void* DB_cSav(long size, void *data) {
 
 
 //====================================================================
-void* DB_cGet(void *data, void *pos, long size) {
+void* DB_cGet (void *data, void *pos, long size) {
 //====================================================================
 /// returns newPos = pos + size
 
@@ -6435,7 +6444,7 @@ long DB_StoreCvBsp (long Ind, CurvBSpl *cvbsp) {
 
   // printf("===================================== \n");
   // printf("DB_StoreCvBsp %d\n",Ind);
-  // UT3D_stru_dump (Typ_CVBSP, cvbsp, "S%d", Ind);
+  // DEB_dump_obj__ (Typ_CVBSP, cvbsp, "S%d", Ind);
 
   cPos1 = DB_cPos ();
 
@@ -6464,7 +6473,7 @@ long DB_StoreCvBsp (long Ind, CurvBSpl *cvbsp) {
   cvo->data   = cPos3;
 
   // printf(" CvBsp-posi=%p\n",cPos3);
-  // UT3D_stru_dump (Typ_CVBSP, cvo->data, "S%d", Ind);
+  // DEB_dump_obj__ (Typ_CVBSP, cvo->data, "S%d", Ind);
 
   return Ind;
 
@@ -6482,7 +6491,7 @@ long DB_StoreCvRBsp (long Ind, CurvRBSpl *cvbsp) {
 
 
   // printf("DB_StoreCvRBsp %d\n",Ind);
-  // UT3D_stru_dump (Typ_CVRBSP, cvbsp, "S%d-1:", Ind);
+  // DEB_dump_obj__ (Typ_CVRBSP, cvbsp, "S%d-1:", Ind);
 
 
   cPos1 = DB_cPos ();
@@ -6518,7 +6527,54 @@ long DB_StoreCvRBsp (long Ind, CurvRBSpl *cvbsp) {
   cvo->data   = cPos4;
 
   // printf(" CvRBsp-posi=%p\n",cPos4);
-  // UT3D_stru_dump (Typ_CVRBSP, cvo->data, "S%d:2", Ind);
+  // DEB_dump_obj__ (Typ_CVRBSP, cvo->data, "S%d:2", Ind);
+
+  return Ind;
+
+}
+
+//====================================================================
+long DB_StoreCvPl2 (long Ind, CurvPol2 *cvplg, int iNew) {
+//====================================================================
+// save data cvplg -> DB and write parent-ox
+//   iNew = 0; new data; save curve & Dataspace
+//          1; Derived (copied) curve; do not save lvTab,cpTab
+
+// iNew unused - UTO_CUT__ uses UTO_copy_stru !
+
+
+  long      l1;
+  void      *cPos1, *cPos2, *cPos3, *cPos4;
+  ObjGX     *cvo;
+  CurvPol2  cv1;
+
+
+  // printf("DB_StoreCvPlg %ld iNew=%d\n",Ind,iNew);
+  // DEB_dump_obj__ (Typ_CVPOL, cvplg, "plg");
+      
+  cv1 = *cvplg;   // copy
+
+  // get DB-index (for dynam.obj's only) and get pointer to parent-ox-record
+  Ind = DB_Store_hdr_cv (&cvo, Ind);
+
+
+  cPos1 = DB_cPos ();
+
+  // save cpTab
+  l1 = sizeof(Point2) * cv1.ptNr;
+  cPos2 = DB_cSav (l1, (void*)cv1.pTab);
+  cv1.pTab = cPos1;
+    
+  // save curve
+  l1 = sizeof(CurvPol2);
+  cPos3 = DB_cSav (l1, &cv1);
+  if(cPos3 == NULL) return -2;
+
+
+  cvo->typ  = Typ_CVPOL2;
+  cvo->form = Typ_CVPOL2;
+  cvo->siz  = 1;
+  cvo->data = cPos2;
 
   return Ind;
 
@@ -6538,11 +6594,13 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
   long      l1;
   void      *cPos1, *cPos2, *cPos3, *cPos4;
   ObjGX     *cvo;
+  CurvPoly  cv1;
 
 
   // printf("DB_StoreCvPlg %ld iNew=%d\n",Ind,iNew);
-  // UT3D_stru_dump (Typ_CVPOL, cvplg, "plg");
+  // DEB_dump_obj__ (Typ_CVPOL, cvplg, "plg");
 
+  cv1 = *cvplg;   // copy
 
   // get DB-index (for dynam.obj's only) and get pointer to parent-ox-record
   Ind = DB_Store_hdr_cv (&cvo, Ind);
@@ -6550,27 +6608,26 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
 
   cPos1 = DB_cPos ();
 
-  // save lvTab,cpTab
+  // save cpTab
+  l1 = sizeof(Point) * cv1.ptNr;
+  cPos2 = DB_cSav (l1, (void*)cv1.cpTab);
+  cv1.cpTab = cPos1;
+
+
+  // save lvTab
   // if(!iNew) {
+  // if(cv1.lvTab) {
     // save lvTab
-    l1 = sizeof(double) * cvplg->ptNr;
-    cPos2 = DB_cSav(l1, (void*)cvplg->lvTab);
-
-    // save cpTab
-    l1 = sizeof(Point) * cvplg->ptNr;
-    cPos3 = DB_cSav(l1, (void*)cvplg->cpTab);
+    l1 = sizeof(double) * cv1.ptNr;
+    cPos3 = DB_cSav (l1, (void*)cv1.lvTab);
+    cv1.lvTab = cPos2;
   // }
 
-  // save Polygon
+
+  // save curve
   l1 = sizeof(CurvPoly);
-  cPos4 = DB_cSav(l1, (void*)cvplg);
+  cPos4 = DB_cSav (l1, &cv1);
   if(cPos4 == NULL) return -2;
-
-  // fix posis
-  // if(!iNew) {
-    ((CurvPoly*)cPos3)->lvTab = cPos1;
-    ((CurvPoly*)cPos3)->cpTab = cPos2;
-  // }
 
 
   cvo->typ  = Typ_CVPOL;
@@ -6615,7 +6672,7 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
 
 
     // for(l1=0; l1<cvNew->segNr; ++l1)
-    // UT3D_stru_dump (Typ_ObjGX, &((ObjGX*)cvNew->cvtab)[l1], "[%d]", l1);
+    // DEB_dump_obj__ (Typ_ObjGX, &((ObjGX*)cvNew->cvtab)[l1], "[%d]", l1);
 
     printf("ex DB_StoreObjGX %d\n",Ind);
 
@@ -6637,7 +6694,7 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
     
   // printf("===================================== \n");
   // printf("DB_StoreCvCCV %d\n",Ind);
-  // UT3D_stru_dump (Typ_CVTRM, cvi, "S%d", Ind);
+  // DEB_dump_obj__ (Typ_CVTRM, cvi, "S%d", Ind);
 
   // get adress where to stor primary obj
   Ind = DB_Store_hdr_cv (&cvo, Ind);        
@@ -6727,7 +6784,7 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   // printf("======================================================== \n");
   // printf("\nDB_StoreCurv DBI=%ld typ=%d form=%d siz=%d iNew=%d\n",
           // Ind,cv1->typ,cv1->form,cv1->siz,iNew);
-  // UTO_dump__ (cv1, "DB_StoreCurv");
+  // DEB_dump_ox_0 (cv1, "DB_StoreCurv");
   // printf("after dump 1 DB_StoreCurv --------------------\n");
 
 
@@ -6786,18 +6843,17 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   //============ Typ_CVPOL2 =======================
   L_typ_pol2:
   if(form != Typ_CVPOL2) goto L_typ_bsp;
-
+  Ind = DB_StoreCvPl2 (Ind, cv1->data, iNew);
+/*
   Ind = DB_Store_hdr_cv (&cvo, Ind);  // get pointer --> cv_tab or cv_dyn
-
   cvo->typ    = cv1->typ;
   cvo->form   = cv1->form;
   cvo->siz    = cv1->siz;
   cvo->data  = DB_cPos ();
-
   // save points
   l1 = sizeof(Point2) * cv1->siz;
   DB_cSav(l1, (void*)cv1->data);
-
+*/
   goto L_fertig;
 
 
@@ -6849,6 +6905,7 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   L_typ_nn:
   Ind = -1;
   TX_Error("DB_StoreCurv unknown form %d",form);
+  DEB_dump_ox_0 (cv1, "ERR-DB_StoreCurv");
 
 
 
@@ -6896,8 +6953,8 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   // printf("ex DB_GetCurv %ld typ=%d form=%d\n",Ind,cv_out->typ,cv_out->form);
 /*
   if(cv_out->typ != Typ_Error) {
-    UTO_dump_s_ (cv_out, "ex DB_GetCurv\n");
-    UTO_dump__ (cv_out, "ex DB_GetCurv\n");
+    DEB_dump_ox_s_ (cv_out, "ex DB_GetCurv\n");
+    DEB_dump_ox_0 (cv_out, "ex DB_GetCurv\n");
   }
 */
 
@@ -7146,7 +7203,7 @@ void DB_StoreTool (long Ind, BTool *tl1) {
 
   // printf("=================================== \n");
   // printf("DB_StoreActiv %d\n",Ind);
-  // UT3D_stru_dump (Typ_Activ, data, "in DB_StoreActiv:");
+  // DEB_dump_obj__ (Typ_Activ, data, "in DB_StoreActiv:");
 
 
   if(Ind < 0) {
@@ -7189,7 +7246,7 @@ void DB_StoreTool (long Ind, BTool *tl1) {
   // printf(" |%c| %d\n",p1[i1-1],i1);
   
 
-  // UT3D_stru_dump (Typ_Activ, &ac_tab[Ind], "ex DB_StoreActiv:");
+  // DEB_dump_obj__ (Typ_Activ, &ac_tab[Ind], "ex DB_StoreActiv:");
   // DB_dump_Activ ();
 
   return 0;
@@ -8531,8 +8588,8 @@ long DB_QueryCurv (Point *pt1) {
 
 
   // printf("DB_store_obj ind=%ld typ=%d form=%d\n",*ind,ox1->typ,ox1->form);
-  // UTO_dump_s_ (ox1, "DB_store_obj-in\n");
-  // UTO_dump__ (ox1, "DB_store_obj-in\n");
+  // DEB_dump_ox_s_ (ox1, "DB_store_obj-in\n");
+  // DEB_dump_ox_0 (ox1, "DB_store_obj-in\n");
   
   irc = 0;
   iForm = ox1->form;
@@ -8633,8 +8690,8 @@ long DB_QueryCurv (Point *pt1) {
               // oxo->typ,oxo->form,*ind);
   // printf(" oxo-posi=%p\n",cPos1);
 
-  // UTO_dump_s_ (oxo, "DB_store_obj-out\n");
-  // UTO_dump__ (oxo, "DB_store_obj-out\n");
+  // DEB_dump_ox_s_ (oxo, "DB_store_obj-out\n");
+  // DEB_dump_ox_0 (oxo, "DB_store_obj-out\n");
 
 
   return irc;
@@ -8678,7 +8735,7 @@ long DB_QueryCurv (Point *pt1) {
 
   // printf("--------------------- \n");
   // printf("DB_store_stru typ=%d form=%d ind=%ld iNr=%d\n",typ,form,*ind,iNr);
-  // UT3D_stru_dump (form, os1, "DB_store_stru-"); not for ox !
+  // DEB_dump_obj__ (form, os1, "DB_store_stru-"); not for ox !
 
 
 
@@ -8887,7 +8944,7 @@ long DB_QueryCurv (Point *pt1) {
       for(i1=0; i1<iNr; ++i1) {
         // ox1 = &((ObjGX*)os1)[i1];
         ox1 = &oTab[i1];
-          // UT3D_stru_dump(Typ_ObjGX, ox1, "oTab[%d]", i1);
+          // DEB_dump_obj__(Typ_ObjGX, ox1, "oTab[%d]", i1);
 // Typ_Data Unused ??
         if(ox1->typ == Typ_Data) {
           cPos1 = DB_cPos ();
@@ -8917,7 +8974,7 @@ long DB_QueryCurv (Point *pt1) {
           // printf(" new dyn.Ind=%d (form=%d)\n",l1,ox1->form);
         // save dynam. Index in its parent-record
         OGX_SET_INDEX (ox1, ox1->typ, l1);
-          // UT3D_stru_dump(Typ_ObjGX, ox1, "new oTab[%d]\n",i1);
+          // DEB_dump_obj__(Typ_ObjGX, ox1, "new oTab[%d]\n",i1);
       }
       break;
 
@@ -8938,8 +8995,8 @@ long DB_QueryCurv (Point *pt1) {
 
     //---- Anf Testausg:
     // ox1 = DB_GetCurv (*ind);
-    // UTO_dump_s_ (ox1, "DB_store_stru-out\n");
-    // UTO_dump__ (ox1, "DB_store_stru-out\n");
+    // DEB_dump_ox_s_ (ox1, "DB_store_stru-out\n");
+    // DEB_dump_ox_0 (ox1, "DB_store_stru-out\n");
     // printf("----------- ex DB_store_stru typ=%d ind=%ld\n",typ,*ind);
     // exit(0);
     //---- End Testausg:

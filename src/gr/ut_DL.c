@@ -180,7 +180,7 @@ INIT:
 
   DL_InitAttRec (ind, col, ltyp, lthick); // ein neues Attribut definieren.
   // Die ersten 13 Entries sind vordefiniert; 
-    DL_InitAttRec (Typ_Att_PT,    1, 0, 4);
+    DL_InitAttRec (Typ_Att_def,    1, 0, 4);
 
   Die Standardattrib's    - see Func. DL_InitAttTab() ex File ltyp.rc
 
@@ -250,8 +250,8 @@ cc -c -g3 -Wall ut_DL.c
 #include "../ut/ut_os.h"                 // OS_ ..
 #include "../ut/ut_col.h"                // COL_INT32
 
-#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
-#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
 #include "../gr/vf.h"                    // GL_vf1_CS
 
 #include "../db/ut_DB.h"                 // DB_GetPoint ..
@@ -450,7 +450,7 @@ static long   DL_hidden = -1L;
   }
 
   // printf("ex DL_txtgetInfo %d / %d %d / %d %d\n",*typ,*sx,*sy,*dx,*dy);
-  // UT3D_stru_dump(Typ_PT, p1, " TagposLU=");
+  // DEB_dump_obj__(Typ_PT, p1, " TagposLU=");
 
   return 0;
 
@@ -861,8 +861,8 @@ static long   DL_hidden = -1L;
       strcpy(mem_cbuf1, "MODBOX");
       AP_obj_add_pt (mem_cbuf1, &AP_box_pm1);
       AP_obj_add_pt (mem_cbuf1, &AP_box_pm2);
-        // UT3D_stru_dump (Typ_PT, &AP_box_pm1, "AP_box_pm1");
-        // UT3D_stru_dump (Typ_PT, &AP_box_pm2, "AP_box_pm2");
+        // DEB_dump_obj__ (Typ_PT, &AP_box_pm1, "AP_box_pm1");
+        // DEB_dump_obj__ (Typ_PT, &AP_box_pm2, "AP_box_pm2");
         // printf(" _dynDat1|%s|\n",mem_cbuf1);
       fprintf(fpo, "%s\n", mem_cbuf1);
     }
@@ -897,7 +897,7 @@ static long   DL_hidden = -1L;
     AP_obj_add_val (mem_cbuf1, WC_sur_Z);
     strcat(mem_cbuf1, " ");
     strcat(mem_cbuf1, AP_Get_ConstPl_Z(Typ_PLN));
-      // UT3D_stru_dump (Typ_PLN, &WC_sur_act, "WC_sur_act");
+      // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, "WC_sur_act");
       // printf(" _dynDat1- WC_sur_Z=%lf\n",WC_sur_Z);
       // printf(" _dynDat1|%s|\n",mem_cbuf1);
     fprintf(fpo, "%s\n", mem_cbuf1);
@@ -1263,6 +1263,7 @@ static long   DL_hidden = -1L;
   // printf("DL_hili_on %ld of %ld DL_hidden=%ld\n",ind,GR_TAB_IND,DL_hidden);
   // printf(" hili=%d disp=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
   // printf(" typ=%d\n",GR_ObjTab[ind].typ);
+  // if(ind >= 0) DL_DumpObj__ (ind);
 
 
   //----------------------------------------------------------------
@@ -1278,6 +1279,10 @@ static long   DL_hidden = -1L;
 
     GR_ObjTab[ind].hili  = ON;   // ON=0
     GR_ObjTab[ind].disp  = OFF;  // OFF=1
+
+      // DL_DumpObj__ (ind);
+      // printf("ex-DL_hili_on\n");
+
 
     return 0;
   }
@@ -2393,7 +2398,8 @@ static long   DL_hidden = -1L;
 //================================================================
 // DL_DumpObjTab           dump complete DL
 
-  long l1;
+  long   l1;
+  char   s1[32];
 
   TX_Print("#### DL_DumpObjTab %ld",GR_TAB_IND);
 
@@ -3247,7 +3253,7 @@ static long   DL_hidden = -1L;
     y1 = pt1->y;
     z1 = pt1->z;
   // } else {
-    // UT3D_pt_traptm3 (&ptTr, APT_2d_to_3d_Mat, pt1);
+    // UT3D_pt_tra_pt_m3 (&ptTr, APT_2d_to_3d_Mat, pt1);
     // x1 = ptTr.x;
     // y1 = ptTr.y;
     // z1 = ptTr.z;
@@ -3270,7 +3276,7 @@ static long   DL_hidden = -1L;
   int DL_ReScaleObj (ObjGX *oxi) {
 //====================================================================
   
-  // UTO_dump__ (oxi, "DL_ReScaleObj");
+  // DEB_dump_ox_0 (oxi, "DL_ReScaleObj");
 
 
    // DL_ReScalePoint(&pt1);
@@ -3337,8 +3343,8 @@ static long   DL_hidden = -1L;
 
 
   // printf("DL_ReScale_box \n");
-  // UT3D_stru_dump (Typ_PT, pb1, "pb1");
-  // UT3D_stru_dump (Typ_PT, pb2, "pb2");
+  // DEB_dump_obj__ (Typ_PT, pb1, "pb1");
+  // DEB_dump_obj__ (Typ_PT, pb2, "pb2");
   // printf(" pb1 = %f %f %f\n",pb1->x,pb1->y,pb1->z);
   // printf(" pb2 = %f %f %f\n",pb2->x,pb2->y,pb2->z);
 
@@ -3346,7 +3352,7 @@ static long   DL_hidden = -1L;
     
   // get origin from box of tess-model; but only if very far outside ..
   // tess_origin_box (&pOri, pb1, pb2); 
-    // UT3D_stru_dump (Typ_PT, &pOri, "pOri");
+    // DEB_dump_obj__ (Typ_PT, &pOri, "pOri");
     
     
   //----------------------------------------------------------------
@@ -3455,8 +3461,8 @@ static long   DL_hidden = -1L;
     d1 *= 2.;
     if(ii < 10)  goto L_retry;
   }
-    // UT3D_stru_dump (Typ_PT, &pb1, "-pb1:");
-    // UT3D_stru_dump (Typ_PT, &pb2, "-pb2:");
+    // DEB_dump_obj__ (Typ_PT, &pb1, "-pb1:");
+    // DEB_dump_obj__ (Typ_PT, &pb2, "-pb2:");
 
   // printf("DL_ReScale__ L2\n");
 
@@ -3464,8 +3470,8 @@ static long   DL_hidden = -1L;
   // zusatzl die Notes beruecksichtigen ..
   i2 = DL_ReScale_Notes (&pb1, &pb2);
     // printf(" d1=%f scalN-i2=%d\n",d1,i2);
-    // UT3D_stru_dump (Typ_PT, &pb1, " pb1:");
-    // UT3D_stru_dump (Typ_PT, &pb2, " pb2:");
+    // DEB_dump_obj__ (Typ_PT, &pb1, " pb1:");
+    // DEB_dump_obj__ (Typ_PT, &pb2, " pb2:");
 
 
   if((i1 < 0)&&(i2 < 0)) {
@@ -3497,7 +3503,7 @@ static long   DL_hidden = -1L;
 
 
   L_reset:
-    // UT3D_stru_dump (Typ_PT, &pm, " center pm=");
+    // DEB_dump_obj__ (Typ_PT, &pm, " center pm=");
     // printf(" new scale = %f\n",d1);
 
   GL_vcSel_init (ivs, 0);      // reset VectorSelector
@@ -3530,8 +3536,8 @@ static long   DL_hidden = -1L;
 
   printf("DL_ReScale_Notes \n");
 
-      // UT3D_stru_dump(Typ_PT, pb1, "  pb1i=");
-      // UT3D_stru_dump(Typ_PT, pb2, "  pb2i=");
+      // DEB_dump_obj__(Typ_PT, pb1, "  pb1i=");
+      // DEB_dump_obj__(Typ_PT, pb2, "  pb2i=");
 
   pNr = -1;
 
@@ -3563,14 +3569,14 @@ static long   DL_hidden = -1L;
 
     // change RO --> UserCoords
     GL_Sk2Uk (&p2.x, &p2.y, &p2.z,  dsx, dsy, dsz);
-      // UT3D_stru_dump(Typ_PT, &p2, " RO=");
+      // DEB_dump_obj__(Typ_PT, &p2, " RO=");
 
     // use RO
     UT3D_box_extend (pb1, pb2, &p2);   ++pNr;
   }
 
-      // UT3D_stru_dump(Typ_PT, pb1, "  pb1o=");
-      // UT3D_stru_dump(Typ_PT, pb2, "  pb2o=");
+      // DEB_dump_obj__(Typ_PT, pb1, "  pb1o=");
+      // DEB_dump_obj__(Typ_PT, pb2, "  pb2o=");
 
   return pNr;
 
@@ -4629,7 +4635,7 @@ static long   DL_hidden = -1L;
 //       GL_DrawVc1 (&dli, 12, NULL, o1);
 // 
 //     } else if(typ == Typ_Tra) {
-//       UT3D_stru_dump (Typ_ObjGX, o1, "_tra=");
+//       DEB_dump_obj__ (Typ_ObjGX, o1, "_tra=");
 //       UI_disp_tra (o1);
 //     }
 

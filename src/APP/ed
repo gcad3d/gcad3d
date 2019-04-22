@@ -14,7 +14,7 @@ export EDITOR
 #echo ${OS}
 
 
-# get bitNr BINLOC gcad_dir_bin DirBasSer
+# get DIR_DEV DIR_BIN gcad_dir_bin
 . ../options.sh
 
 # create list of gcad-sourcefiles in file srcFiles

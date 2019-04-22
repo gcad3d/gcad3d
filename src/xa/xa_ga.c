@@ -1921,7 +1921,7 @@ static ObjAtt GA_DefRec;
   if(mode != 0) {  // nur apply
     // nur wenn dzt keine Spezialfarbe aktiv
     if(((ColRGB*)&GA_ObjTab[gaNr].iatt)->color == 0) {
-      // UT3D_stru_dump (Typ_Color, &AP_defcol, "Def-Color:  ");
+      // DEB_dump_obj__ (Typ_Color, &AP_defcol, "Def-Color:  ");
       GA_ObjTab[gaNr].iatt = *((long*)&AP_defcol);  // overwrites tra 
       ((ColRGB*)&GA_ObjTab[gaNr].iatt)->color = 1;
 
@@ -2079,7 +2079,7 @@ static ObjAtt GA_DefRec;
 
 
   col = COL_INT32(&GA_ObjTab[gaNr].iatt); // col = (ColRGB*)&GA_ObjTab[gaNr].iatt;
-    // UT3D_stru_dump (Typ_Color, col, " col ex ga ");
+    // DEB_dump_obj__ (Typ_Color, col, " col ex ga ");
 
   if(sStyl == 1) {               // reset style to 1=normal
     col->vsym = 0;

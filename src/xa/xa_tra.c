@@ -228,7 +228,7 @@ static int otra_typ2[]={
 
   // decode Zeile -> obj1
   irc = APT_obj_expr (&obj1, otra.typ, cPos);
-    UTO_dump__ (&obj1, "old obj:");
+    DEB_dump_ox_0 (&obj1, "old obj:");
 
 
   // gesamte ModelRef merken
@@ -341,13 +341,13 @@ static int otra_typ2[]={
     APT_obj_expr (&pt1, Typ_PT, cp1);
     APT_obj_expr (&pt2, Typ_PT, cp2);
     UT3D_vc_2pt (&vc1, &pt1, &pt2);
-      // UT3D_stru_dump(Typ_VC, &vc1, "p-p");
+      // DEB_dump_obj__(Typ_VC, &vc1, "p-p");
 
 
   // distance & Axis: Vektor bilden
   } else if(strlen(cp3) > 0) {
     APT_obj_expr (&vc1, Typ_VC, cp3);
-      // UT3D_stru_dump(Typ_VC, &vc1, "vc");
+      // DEB_dump_obj__(Typ_VC, &vc1, "vc");
 
 
   } else {
@@ -361,7 +361,7 @@ static int otra_typ2[]={
   if(strlen(cp4) > 0) {
     APT_obj_expr (&d1, Typ_Val, cp4);
     UT3D_vc_setLength (&vc1, &vc1, d1);
-      // UT3D_stru_dump(Typ_VC, &vc1, "l");
+      // DEB_dump_obj__(Typ_VC, &vc1, "l");
   }
 
 
@@ -372,7 +372,7 @@ static int otra_typ2[]={
 
   // den ModelOrigin um vc1 verschieben
   UT3D_pt_traptvc (&otra.mr1.po, &otra.mr1.po, &vc1);
-    // UT3D_stru_dump (Typ_Model, &otra.mr1, "");
+    // DEB_dump_obj__ (Typ_Model, &otra.mr1, "");
 
   goto L_modify;
 
@@ -437,7 +437,7 @@ static int otra_typ2[]={
 
 
   // das ModelRef mr1 (po,vx,vz) transformieren ...
-  UTRA_def__ (1, Typ_TraMat, ima);
+  UTRA_def__ (1, Typ_M4x3, ima);
   // UTRA_app__ (objo, oSiz, otyp, 1, obji, NULL);
   UTRA_app_pt (&otra.mr1.po, &otra.mr1.po);
   UTRA_app_vc (&otra.mr1.vx, &otra.mr1.vx);
@@ -461,7 +461,7 @@ static int otra_typ2[]={
   UT3D_m3_loadpl (ma, &pl1);
 
   // das ModelRef mr1 (po,vx,vz) transformieren ...
-  UTRA_def__ (1, Typ_TraMat, ma);
+  UTRA_def__ (1, Typ_M4x3, ma);
   // UTRA_app__ (objo, oSiz, otyp, 1, obji, NULL);
   UTRA_app_pt (&otra.mr1.po, &otra.mr1.po);
   UTRA_app_vc (&otra.mr1.vx, &otra.mr1.vx);
@@ -689,7 +689,7 @@ static int otra_typ2[]={
 
   if(rTyp == Typ_PT) {   // disply red circle for points
     irc = APT_obj_expr (&pt1, rTyp, mem_cbuf1);
-      UT3D_stru_dump(Typ_PT, &pt1, "  vtx pt1:");
+      DEB_dump_obj__(Typ_PT, &pt1, "  vtx pt1:");
     if(irc == 0) {
       dl1 = -1;
       GL_DrawSymB (&dl1, Typ_Att_hili1, SYM_CIR_S, &pt1);  // Circ red
@@ -714,7 +714,7 @@ static int otra_typ2[]={
     // UI_GR_SelVert (&pt1);
     // save point in dynTab ?
     GL_SelVert__ (&pt1);
-      UT3D_stru_dump(Typ_PT, &pt1, "  VertexPos:",i1);
+      DEB_dump_obj__(Typ_PT, &pt1, "  VertexPos:",i1);
 
 
     // // distance pp1 - pt1

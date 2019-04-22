@@ -593,7 +593,7 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
 
   // printf("Del_tab__ %d\n",ii);
-  // for(i1=0;i1<ii;++i1)UT3D_stru_dump(Typ_Group,&gTab[i1]," gT[%d]\n",i1);
+  // for(i1=0;i1<ii;++i1)DEB_dump_obj__(Typ_Group,&gTab[i1]," gT[%d]\n",i1);
 
 
   UI_block__ (1, 1, 1);  // block UI

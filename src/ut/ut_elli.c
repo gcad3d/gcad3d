@@ -33,7 +33,16 @@ Modifications:
 List_functions_start:
 
 UT3D_ptNr_ell             get nr of points for ellipse
+UT2D_ptNr_el2c            get nr of points for centerPos-ellipse
 UT3D_npt_ell              polygon from ellipse, fixed nr of points
+UT2D_npt_elc              get 2D-polygon for ellipse in centerPos
+UT3D_npt_tra_npt_elc      transform ellipse-CenterPos-polygon to 3D
+UT2D_npt_tra_el2          transform ellipse-CenterPos-polygon onto el2
+UT2D_ell_tra_ell3_rsys    transf. 3D-ellipse => 2D-ellipse
+UT3D_ell_tra_ell2_rsys    transf. 2D-ellipse => 3D-ellipse
+UT3D_el_tra_el_m3         transf. 3D-ellipse (matrix Mat_4x3)
+UT3D_el_tra_el2_bp        transf. 2D-ellipse => 3D-backplane
+UT3D_el_el2               2D-ellipse -> 3D-ellipse (z=0)
 
 UT3D_par1_el_pt           get parameter (0-1) for point on ellipse
 UT3D_par1_angr_ell    UU  parametric-Angle --> par 0-1
@@ -42,7 +51,7 @@ UT3D_ck_el360             check if elli is 360-degree-elli
 UT3D_angr_par1_ell        par 0-1  -->  parametric-Angle
 UT3D_angr_elpt            real angle for point on elli
 UT3D_angr_el_corr         get angle-circ from angle of elli.
-UT2D_2angr_el             get starting- and opening angle of ellipse
+UT2D_2angr_el2c_c             get starting- and opening angle of ellipse
 UT3D_ango_el          UU  opening angle of ellipse
 UT3D_lne_ell              get dist center-focus for ellipse
 UT3D_pt_ell_lim_del       remove points outside limited ellipse
@@ -78,10 +87,10 @@ UT3D_el_el_parl           parallel curve (distance)
 UT3D_elcoe_el             CoeffEllipse(IGES) <-- ellipse
 UT3D_el_inv1              turn direction and p1/p2 (same display !)
 UT3D_el_inv2              turn direction (do not swap p1,p2)
+UT3D_el_cpyDef_el         copy defaults (ango,srot,clo,trm)
+UT3D_el_cpyDef_el2        copy defaults (ango,srot,clo,trm)
 
--------------- CurvEll2C -------------------------------------
-UT2D_elc_el3              make 2D-ell in centerPos from 3D-ell
-UT2D_angr_elc_pt          get angle for point on 2D-elli in centerPos.
+-------------- CurvEll2 --------------------------------------
 UT2D_pt_el_ptx            get y-coord of point on elli
 UT2D_pt_el_pty            get x-coord of point on elli
 UT2D_pt_elangd            pt from angle, rMaj, rMin.
@@ -89,10 +98,18 @@ UT2D_pt_elangd            pt from angle, rMaj, rMin.
 UT2D_vc_tang_el2          tangent thru point ON 2D-ellipse
 UT2D_vc_tang_elc          tangent thru point ON 2D-ellipse/centerPos
 UT2D_pt_int_elc_ln        intersection of ellipse - line (ell.in centerPos)
-UT2D_pt_tng_ell_vc        get tangent vector-ellipse.
+UT2D_pt_tng_ell_vc        get tangent-pt on ellipse parallel to vector
 UT2D_pt_tng_ell_pt        get tangent point-ellipse.
 UT2D_pt_tng_ell_ptMaj     tangents point-ellipse; point on majorAxis
 UT2D_pt_tng_ell_ptMin     tangents point-ellipse; point on minorAxis
+UT2D_el_cpyDef_el3        copy defaults (ango,srot,clo,trm)
+
+-------------- CurvEll2C -------------------------------------
+UT2D_elc_el3              make 2D-ell in centerPos from 3D-ell
+UT2D_elc_el2              2D-elli in centerPos from  2D-ellipse
+UT2D_2angr_el2c__              compute angs, ango
+UT2D_angr_elc_pt          get angle for point on 2D-elli in centerPos.
+UT2D_elc_cpyDef_el2       copy defaults (ango,srot,clo,trm)
 
 List_functions_end:
 =====================================================
@@ -259,7 +276,7 @@ cl -c ut_geo.c
   UT3D_vc_perp2vc (&eo->vb, &ci->vz, &eo->va);
   // UT3D_vc_setLength (&eo->vb, &eo->vb, fabs(ci->rad));
 
-    // UT3D_stru_dump (Typ_CVELL, eo, "ex UT3D_el_ci:");
+    // DEB_dump_obj__ (Typ_CVELL, eo, "ex UT3D_el_ci:");
 
   return 0;
 
@@ -272,7 +289,7 @@ cl -c ut_geo.c
 // UT3D_el_inv1              turn direction and p1/p2 (same display !)
 
 
-  // UT3D_stru_dump (Typ_CVELL, el1, "UT3D_el_inv1");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_el_inv1");
 
   MEM_swap__(&el1->p1, &el1->p2, sizeof(Point));
 
@@ -293,7 +310,7 @@ cl -c ut_geo.c
   if(el1->srot) el1->srot = 0;
   else          el1->srot = 1;
 
-  // UT3D_stru_dump (Typ_CVELL, el1, "ex UT3D_el_inv1");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_inv1");
 
   return 0;
 
@@ -315,7 +332,7 @@ cl -c ut_geo.c
 
 
   // printf("UT3D_angr_par1_ell %f\n",par1);
-  // UT3D_stru_dump (Typ_CVELL, el1, "");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "");
 
 
   if(UT3D_ck_el360(el1) == 0) {
@@ -326,8 +343,8 @@ cl -c ut_geo.c
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el1);
 
-  // get as, ao
-  UT2D_2angr_el (&as, &ango, &el2c);
+  // get as, ao (angles of the corresponding circle)
+  UT2D_2angr_el2c_c (&as, &ango, &el2c);
 
   aa = as + (ango * par1);
 
@@ -402,14 +419,17 @@ cl -c ut_geo.c
 
 
   if(UT3D_lenB_vc(&el1->va) < UT_TOL_cv) return -2; // degenerated
+  if(UT3D_lenB_vc(&el1->vb) < UT_TOL_cv) return -2; // degenerated
 
+  // d1 = UT3D_lenB_2pt (&el1->p1, &el1->p2);
+  // if(d1 < UT_TOL_pt) return 0;
+  // return 1;
 
-  // irc = UT3D_comp2pt (&el1->p1, &el1->p2, UT_TOL_pt);
-  d1 = UT3D_lenB_2pt (&el1->p1, &el1->p2);
+  // 0=no, 1=yes
+  irc = UT3D_comp2pt (&el1->p1, &el1->p2, UT_TOL_pt);
 
-  if(d1 < UT_TOL_pt) return 0;
+  return ICHG01(irc);   // change 0 > 1, 1 > 0.
 
-  return 1;
 
 }
 
@@ -419,12 +439,12 @@ cl -c ut_geo.c
 //======================================================================
 // UT3D_el_elpt180           change elli -> 180 deg-elli; keep dir
 
-  UT3D_stru_dump (Typ_PT, p1, "UT3D_el_elpt180");
+  DEB_dump_obj__ (Typ_PT, p1, "UT3D_el_elpt180");
 
   el1->p1 = *p1;
   UT3D_pt_opp2pt (&el1->p2, &el1->pc, &el1->p1);
 
-  UT3D_stru_dump (Typ_CVELL, el1, "ex UT3D_el_elpt180\n");
+  DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_elpt180\n");
 
   return 0;
 
@@ -438,7 +458,7 @@ cl -c ut_geo.c
   el1->p1 = *p1;
   el1->p2 = *p2;
 
-  // UT3D_stru_dump (Typ_CVELL, el1, "ex UT3D_el_el2pt\n");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_el2pt\n");
 
   return 0;
 
@@ -454,7 +474,7 @@ cl -c ut_geo.c
   double     d1, d2;
   Vector     vc1, vc2, vcy;
 
-  UT3D_stru_dump (Typ_CVELL, el1, "UT3D_el_el_parl");
+  DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_el_el_parl");
 
 
   // copy
@@ -465,8 +485,8 @@ cl -c ut_geo.c
   if(i360) {
     UT3D_vc_tangel (&vc1, &el1->p1, el1);
     UT3D_vc_tangel (&vc2, &el1->p2, el1);
-      UT3D_stru_dump (Typ_VC, &vc1, " vc1");
-      UT3D_stru_dump (Typ_VC, &vc2, " vc2");
+      DEB_dump_obj__ (Typ_VC, &vc1, " vc1");
+      DEB_dump_obj__ (Typ_VC, &vc2, " vc2");
   }
 
 
@@ -504,7 +524,7 @@ cl -c ut_geo.c
   }
 
 
-    UT3D_stru_dump (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
+    DEB_dump_obj__ (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
 
   return 0;
 
@@ -549,7 +569,7 @@ cl -c ut_geo.c
 }
 
 
-/* REPLACED WITH UT2D_2angr_el
+/* REPLACED WITH UT2D_2angr_el2c_c
 //================================================================
   double UT3D_ango_el (CurvElli *el1) {
 //================================================================
@@ -604,8 +624,8 @@ cl -c ut_geo.c
   Point2   pt20;
   
 
-  printf("UT3D_ptvc_eval_ell_par par=%lf pTyp=%d\n",par,pTyp);
-  UT3D_stru_dump (Typ_CVELL, el1, "  el1:");
+  // printf("UT3D_ptvc_eval_ell_par par=%lf pTyp=%d\n",par,pTyp);
+  // DEB_dump_obj__ (Typ_CVELL, el1, "  el1:");
 
   
   //----------------------------------------------------------------
@@ -627,7 +647,7 @@ cl -c ut_geo.c
   // translate -> 3D
   UT3D_pt_trapt2vc2len(&ptt, &el1->pc, &el1->va, pt20.x, &el1->vb, pt20.y);
     // GR_Disp_pt (&ptt, SYM_STAR_S, 2);
-    UT3D_stru_dump(Typ_PT, &ptt, "  ptt:");
+    // DEB_dump_obj__(Typ_PT, &ptt, "  ptt:");
 
   // copy point out
   if(pto) *pto = ptt;
@@ -657,7 +677,7 @@ cl -c ut_geo.c
 
 
   // printf("UT3D_pt_eval_ell_par1 %f\n",par1);
-  // UT3D_stru_dump (Typ_CVELL, el1, " el1");
+  // DEB_dump_obj__ (Typ_CVELL, el1, " el1");
 
   return UT3D_ptvc_eval_ell_par (pto, NULL, el1, 0, par1);
  
@@ -744,9 +764,9 @@ cl -c ut_geo.c
 
 
   // printf("UT3D_el_ptc_ptx_pt \n");
-  // UT3D_stru_dump(Typ_PT, ptc, "  PTC:");
-  // UT3D_stru_dump(Typ_PT, ptx, "  PTX:");
-  // UT3D_stru_dump(Typ_PT, pt1, "  PT1:");
+  // DEB_dump_obj__(Typ_PT, ptc, "  PTC:");
+  // DEB_dump_obj__(Typ_PT, ptx, "  PTX:");
+  // DEB_dump_obj__(Typ_PT, pt1, "  PT1:");
 
 
   el1->pc  = *ptc;
@@ -773,9 +793,12 @@ cl -c ut_geo.c
   UT3D_vc_perp2vc (&el1->vb, &el1->vz, &el1->va);
   UT3D_vc_setLength (&el1->vb, &el1->vb, db);
 
-  el1->srot = 0;
+  el1->srot = 0;           // CCW
+  el1->ango = RAD_360;     // =undefined
+  el1->trm  = 1;           // not trimmed (a basic curve)
+  el1->clo  = 0;           // yes closed
 
-  // UT3D_stru_dump(Typ_CVELL, el1, "ex UT3D_el_ptc_ptx_pt:");
+  // DEB_dump_obj__(Typ_CVELL, el1, "ex UT3D_el_ptc_ptx_pt:");
 
   return 0;
 
@@ -792,9 +815,9 @@ cl -c ut_geo.c
 /// \endcode
 
 
-  // UT3D_stru_dump(Typ_PT,ptc,"                CEN=");
-  // UT3D_stru_dump(Typ_PT,vcx,"                VCX=");
-  // UT3D_stru_dump(Typ_PT,vcy,"                VCY=");
+  // DEB_dump_obj__(Typ_PT,ptc,"                CEN=");
+  // DEB_dump_obj__(Typ_PT,vcx,"                VCX=");
+  // DEB_dump_obj__(Typ_PT,vcy,"                VCY=");
   // printf("                a1=%f a2=%f dir=%d\n",a1,a2,idir);
 
 
@@ -809,7 +832,7 @@ cl -c ut_geo.c
 
   el->srot = idir;
 
-  // UT3D_stru_dump(Typ_CVELL,el"ex UT3D_el_pt2vc2a");
+  // DEB_dump_obj__(Typ_CVELL,el"ex UT3D_el_pt2vc2a");
 
 
   return 0;
@@ -928,8 +951,8 @@ cl -c ut_geo.c
 
 
   printf("UT3D_pt_tng_ell_vc__ %d\n",isol);
-    // UT3D_stru_dump (Typ_VC, vct, "  vct:");
-    // UT3D_stru_dump (Typ_CVELL, cv1, "  bsp:");
+    // DEB_dump_obj__ (Typ_VC, vct, "  vct:");
+    // DEB_dump_obj__ (Typ_CVELL, cv1, "  bsp:");
 
 
 // get ellipseCenter & vector onto constructionPlane
@@ -939,21 +962,21 @@ cl -c ut_geo.c
 // ell.center & vector -> 2D
   el2pc = UT2D_pt_pt3 (&pt1);
   UT2D_vc_vc3 (&v2t, &vc1);
-    // UT3D_stru_dump (Typ_VC2, &v2t, "  v2t:");
+    // DEB_dump_obj__ (Typ_VC2, &v2t, "  v2t:");
     // GR_Disp_vc2 (&v2t, &el2pc, 7, 0);
 
 // get majAx in 2D (not centerPos)
   vc1 = UTRA_vc_abs2rel__ (&cv1->va);    // abs -> rel
   UT2D_vc_vc3 (&el2va, &vc1);            // 3D -> 2D
-    // UT3D_stru_dump (Typ_VC2, &el2va, "  el2va:");
+    // DEB_dump_obj__ (Typ_VC2, &el2va, "  el2va:");
 
 // get vector to centerposition
   UT2D_2slen_vc_vc__ (&v2ct.dx, &v2ct.dy, &v2t, &el2va);
-    // UT3D_stru_dump (Typ_VC2, &v2ct, "  v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, "  v2ct:");
 
 // normalize v2t
   UT2D_vc_setLength (&v2ct, &v2ct, 1.);
-    // UT3D_stru_dump (Typ_VC2, &v2ct, " norm-v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, " norm-v2ct:");
 
 // get ellipse in centerposition
   elc.a = UT3D_len_vc(&cv1->va);
@@ -988,7 +1011,7 @@ cl -c ut_geo.c
 // set v2ct -> format (1,k);
   v2ct.dy /= v2ct.dx;
   v2ct.dx = 1.;
-    // UT3D_stru_dump (Typ_VC2, &v2ct, " 1,k-v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, " 1,k-v2ct:");
 
   k = v2ct.dy;
   kk = k * k;
@@ -1008,7 +1031,7 @@ cl -c ut_geo.c
 //----------------------------------------------------------------
   L_out:
 // transform point p2co back from centerposition to constructionPlane
-    // UT3D_stru_dump (Typ_PT2, &p2co, "  p2co:");
+    // DEB_dump_obj__ (Typ_PT2, &p2co, "  p2co:");
 // p2o.x along va; p2o.y normal to va
   UT2D_pt_traptvc2len (&p2o, &el2pc, &el2va, p2co.x, p2co.y);
     // GR_Disp_pt2 (&p2o, SYM_STAR_S, 0);
@@ -1017,7 +1040,7 @@ cl -c ut_geo.c
   pt1 = UT3D_pt_pt2 (&p2o);
   *pto = UTRA_pt_rel2abs__ (&pt1);
 
-    // UT3D_stru_dump (Typ_PT, pto, "  pto:");
+    // DEB_dump_obj__ (Typ_PT, pto, "  pto:");
 
   return 0;
 
@@ -1042,8 +1065,9 @@ cl -c ut_geo.c
   Point2    pt2;
 
 
-  printf("UT2D_vc_tang_el2 pt %lf %lf\n",pt1->x,pt1->y);
-  UT3D_stru_dump (Typ_CVELL2, pt1, "UT3D_vc_tangel pt");
+  // printf("UT2D_vc_tang_el2 pt %lf %lf\n",pt1->x,pt1->y);
+  // DEB_dump_obj__ (Typ_CVELL2, pt1, "UT3D_vc_tangel pt");
+
 
   // get length va, vb
   a = UT2D_len_vc (&el2->va);
@@ -1063,7 +1087,7 @@ cl -c ut_geo.c
   // transfer tangent back
   UT2D_vc_tra_vcx_vcy (vct, &vc1, &vcx, &vcy);
 
-    printf("ex UT2D_vc_tang_el2 %lf %lf\n",vct->dx,vct->dy);
+    // printf("ex UT2D_vc_tang_el2 %lf %lf\n",vct->dx,vct->dy);
 
  return 0;
 
@@ -1086,7 +1110,7 @@ cl -c ut_geo.c
   double   x0;
   Point2   p22;
 
-  printf("UT2D_vc_tang_elc pt %lf %lf da %lf \n",p21->x,p21->y,da);
+  // printf("UT2D_vc_tang_elc pt %lf %lf da %lf \n",p21->x,p21->y,da);
 
 
   // get x-value where tangent to outer-circle of elli in centerPos crosses
@@ -1100,7 +1124,7 @@ cl -c ut_geo.c
     UT2D_vc_setLength (vc21, vc21, 1.);
   }
 
-    printf("ex UT2D_vc_tang_elc vc1 %lf %lf\n",vc21->dx,vc21->dy);
+    // printf("ex UT2D_vc_tang_elc vc1 %lf %lf\n",vc21->dx,vc21->dy);
 
   return 0;
 
@@ -1124,7 +1148,7 @@ cl -c ut_geo.c
   Point  ph, ps;
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "UT3D_vc_tangel pt");
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_vc_tangel pt");
 
 
   // ph = pt1 auf die hauptachse projizieren
@@ -1199,38 +1223,70 @@ cl -c ut_geo.c
 
 
 //================================================================
-  int UT3D_ptNr_ell (CurvElli *el3, double tol) {
+  int UT2D_ptNr_el2c (CurvEll2C *el2c, double tol) {
 //================================================================
-// UT3D_ptNr_ell                 get nr of points for ellipse
+// UT2D_ptNr_el2c                get nr of points for centerPos-ellipse
+// get nr of points of corresponding circle; estimation only
 
   int         pNr;
-  double      as, ao, lMin;
-  CurvEll2C   el2c;
+  double      as, ao, rdc;
 
 
-  // UT3D_stru_dump (Typ_CVELL, el3, "UT3D_ptNr_ell:");
+  // DEB_dump_obj__ (Typ_CVELL2C, el2c, "UT2D_ptNr_el2c");
 
 
   // if(UT3D_ck_el360 (el3) == 0) { ao = RAD_360; goto L_1;}
-  // ao = _UT3D_ango_el (el3);
+  // Problem not starting at as=0 !?
+  if(UT2D_comp2pt (&el2c->p1, &el2c->p2, UT_TOL_pt)) {
+    el2c->ango = RAD_360;
+    el2c->angs = 0.;
+    goto L_1;
+  }
+
+
+  // get as & ao = the angles of the corresponding circle
+  UT2D_2angr_el2c_c (&as, &ao, el2c);
+    // printf(" as=%f ao=%f\n",as,ao);
+
+  // // get the corrected angles into el2c
+  // UT2D_2angr_el2c__ (el2c);
+  
+
+  L_1:
+
+    rdc = DMAX(fabs(el2c->a),fabs(el2c->b));
+
+    pNr = UT2D_ptNr_ci (rdc, fabs(el2c->ango), tol) + 4;
+
+      // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex-UT2D_ptNr_el2c");
+      // printf("ex-UT2D_ptNr_el2c pNr=%d\n",pNr);
+
+  return pNr;
+
+}
+
+
+//================================================================
+  int UT3D_ptNr_ell (CurvElli *el3, double tol) {
+//================================================================
+// UT3D_ptNr_ell                 get nr of points for ellipse
+// get nr of points of corresponding circle; estimation only
+//
+
+  int         pNr;
+  CurvEll2C   el2c;
+
+
+  // DEB_dump_obj__ (Typ_CVELL, el3, "UT3D_ptNr_ell:");
+
 
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el3);
-    // UT3D_stru_dump (Typ_CVELL2C, &el2c, "  el2c:");
+    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
 
-  // get as & ao
-  UT2D_2angr_el (&as, &ao, &el2c);
-    // printf(" as=%f ao=%f\n",as,ao);
+  L_1:
 
-  // L_1:
-  // lMin = UT3D_len_vc (&el3->vb);  // length minor axis
-  lMin = UT3D_len_vc (&el3->va);  // length major axis
-
-  pNr = UT2D_ptNr_ci (fabs(lMin), fabs(ao), tol);
-
-    // printf("ex UT3D_ptNr_ell pNr=%d ao=%lf lMin=%lf\n",pNr,ao,lMin);
-
-  return pNr;
+  return UT2D_ptNr_el2c (&el2c, tol);
 
 }
 
@@ -1260,100 +1316,77 @@ cl -c ut_geo.c
 }
 
  
-//================================================================
-  int UT3D_npt_ell (int ptNr, Point *pa, CurvElli *el3) {
-//================================================================
-// UT3D_npt_ell         polygon from ellipse, fixed nr of points
-// get ptNr from UT3D_ptNr_ell
+//===========================================================================
+  int UT2D_npt_tra_el2 (int pNr, Point2 *pa, CurvEll2 *el2, CurvEll2C *elc) {
+//===========================================================================
+// UT2D_npt_tra_el2          transform ellipse-CenterPos-polygon onto el2
+// see 
 
-  int        i1, ip, is360;
-  int        q23, q34;
-  double     dx, dy, xPar, yPar;
-  double     as, ae, ao, ai, aa;
-  double     acs, ace;
-  double     UT3D_angr_el_corr();
-  Vector     vcx, vcy;
-  Point2     pt21;
-  CurvEll2C  el2c;
+  int        i1;
+  Vector2    vcx, vcy;
 
-
-  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
-  // UT3D_stru_dump (Typ_CVELL, el3, "UT3D_npt_ell %d",ptNr);
-  // printf("UT3D_npt_ell %d\n",ptNr);
-
-
-  if(ptNr < 2) return -1;
-
-  // make el2c from ell
-  UT2D_elc_el3 (&el2c, el3);
-    // UT3D_stru_dump (Typ_CVELL2C, &el2c, "  el2c");
 
   // get va, vb with length=1
-  UT3D_vc_div_d (&vcx, &el3->va, el2c.a);
-  UT3D_vc_div_d (&vcy, &el3->vb, el2c.b);
-
-  // get as, ao
-  // as=angle at startpoint; ao=opening-angle; ao = endAngle
-  UT2D_2angr_el (&as, &ao, &el2c);
-  ae = as + ao;
-    // printf(" _npt_ell as=%lf ae=%lf ao=%lf\n",as,ae,ao);
+  UT2D_vc_div_d (&vcx, &el2->va, elc->a);
+  UT2D_vc_div_d (&vcy, &el2->vb, elc->b);
 
 
-  // check for 360-deg 0=not, 1=yes
-  is360 = UTP_comp2db (RAD_360, fabs(ao), UT_TOL_Ang1);
-
-  // get corrected angle for as
-  acs = UT3D_angr_el_corr (as, el2c.a, el2c.b);
-    // printf(" acs=%lf as=%lf\n",acs,as);
-
-  // get corrected angle for ae
-  ace = UT3D_angr_el_corr (ae, el2c.a, el2c.b);
-    // printf(" ace=%lf ae=%lf\n",ace,ae);
-
-  if(is360) {
-     // printf(" ell=360; sr=%d\n",el2c.sr);
-   if(el2c.srot == 0) ace = acs + RAD_360;  // 1=CCW, else CW.
-   else               ace = acs - RAD_360;
-
-  } else {
-    // make ace following acs
-    ace = UT2D_angr_set_2angr (acs, ace, el2c.srot);
+  // parametric-point (0-1): multiply va,vb, done !
+  // move from pc along vcx, vcx and multiply
+  for(i1=0; i1<pNr; ++i1) {
+    UT2D_pt_tra_pt_2vc_2par (&pa[i1], &el2->pc,
+                             &vcx, pa[i1].x,
+                             &vcy, pa[i1].y);
   }
-    // printf(" korr.acs=%lf ace=%lf ae=%lf sr=%d\n",acs,ace,ae,el2c.sr);
 
-  
-  ao = ace - acs;
-  ai = ao / (ptNr-1);
+    // DEB_dump_nobj__ (Typ_PT2, pNr, pa, "ex-UT2D_npt_tra_el2");
+    // GR_Disp_cv2 (pa, pNr, Typ_Att_top2);
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int UT2D_npt_elc (int *pNr, Point2 *pa, CurvEll2C *el2c, double tol) {
+//======================================================================
+// UT2D_npt_elc              get 2D-polygon for ellipse in centerPos
+//  Input:
+//    pNr    size of pa     get it from UT3D_ptNr_ell
+//
+// el2c->ango must have been set with UT3D_ptNr_ell or UT2D_ptNr_el2c
+// see UT3D_npt_ell
+
+
+  int        ip, pnMax, ptNr;
+  double     rdc, aa, ai;
+
+
+  // DEB_dump_obj__ (Typ_CVELL2C, el2c, "UT2D_npt_elc pNr=%d",*pNr);
+  // printf("  ell2c-ango=%f angs=%f\n",el2c->ango,el2c->angs);
+
+  ptNr = *pNr;
+
+
+  //----------------------------------------------------------------
+  // increment angle
+  ai = el2c->ango / (ptNr-1);
     // printf(" ao=%lf ai=%lf\n",ao,ai);
 
-
-//----------------------------------------------------------------
   ip = 0;
-  aa = acs;
+  aa = el2c->angs;
 
   // copy first point
-  pa[0] = el3->p1;
+  pa[0] = el2c->p1;
   --ptNr;     // catch last point - to copy
   goto L_nxtPt1;
 
   L_nxtPt0:
       // printf(" ip=%d aa=%lf\n",ip,aa);
 
-    // UT2D_pt_elangd (&pt21, el2c.a, el2c.b, aa);
     // get point on 2D-elli
-    pt21.x = el2c.a * cos(aa);
-    pt21.y = el2c.b * sin(aa);
-      // if(ao < 6)
-      // GR_Disp_pt (&pt21, SYM_STAR_S, 2);
-
-    // parametric-point (0-1): multiply va,vb, done !
-    // move from pc along vcx, vcx and multiply
-    UT3D_pt_tra_pt_2vc_2par (&pa[ip], &el3->pc,
-                              &vcx, pt21.x,
-                              &vcy, pt21.y);
-      // if(ao < 6)
-      // GR_Disp_pt (&pa[ip], SYM_TRI_S, ATT_COL_YELLOW);
-
+    pa[ip].x = el2c->a * cos(aa);
+    pa[ip].y = el2c->b * sin(aa);
 
     L_nxtPt1:
       ++ip;
@@ -1362,12 +1395,115 @@ cl -c ut_geo.c
 
 
   // copy last point
-  pa[ptNr] = el3->p2;
+  pa[ptNr] = el2c->p2;
   ++ptNr;
 
+  *pNr = ptNr;
 
+    // DEB_dump_nobj__ (Typ_PT2, ptNr, pa, "ex-UT2D_npt_elc");
+    // GR_Disp_cv2 (pa, ptNr, Typ_Att_top2);
+
+  return 0;
+
+}
+
+
+//===========================================================================
+  int UT3D_npt_tra_npt_elc (Point *pa, Point2 *p2a, int pNr,
+                            CurvElli *el, CurvEll2C *elc) {
+//===========================================================================
+// UT3D_npt_tra_npt_elc          transform ellipse-CenterPos-polygon to 3D
+
+  int        i1;
+  Vector     vcx, vcy;
+
+
+  // get va, vb with length=1
+  UT3D_vc_div_d (&vcx, &el->va, elc->a);
+  UT3D_vc_div_d (&vcy, &el->vb, elc->b);
+
+
+  // parametric-point (0-1): multiply va,vb, done !
+  // move from pc along vcx, vcx and multiply
+  for(i1=0; i1<pNr; ++i1) {    
+    UT3D_pt_tra_pt_2vc_2par (&pa[i1], &el->pc,
+                             &vcx, p2a[i1].x,
+                             &vcy, p2a[i1].y);
+  }
+
+    // DEB_dump_nobj__ (Typ_PT2, pNr, pa, "ex-UT3D_npt_tra_el2");
+    // GR_Disp_cv2 (pa, pNr, Typ_Att_top2);
+
+  return 0;
+    
+}   
+
+
+//================================================================
+  int UT3D_npt_ell (int *ptNr, Point *pa, CurvElli *el3) {
+//================================================================
+// UT3D_npt_ell         polygon from ellipse, fixed nr of points
+// Input:
+//   ptNr    size of pa; get it from UT3D_ptNr_ell
+//   pa      points, size ptNr
+// Output:
+//   pa      polygon
+//
+// TODO: use UT2D_npt_elc 
+
+/*
+  int        i1, ip, is360;
+  int        q23, q34;
+  double     dx, dy, xPar, yPar;
+  double     as, ae, ao, ai, aa;
+  double     acs, ace;
+  double     UT3D_angr_el_corr();
+  Vector     vcx, vcy;
+  Point2     pt21;
+*/
+
+  int        irc, pNr;
+  long       l1;
+  double     rdc;
+  Point2     *p2a;
+  CurvEll2C  el2c;
+
+
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
+  // DEB_dump_obj__ (Typ_CVELL, el3, "UT3D_npt_ell ptNr=%d",*ptNr);
+
+
+  // make el2c from ell
+  UT2D_elc_el3 (&el2c, el3);
+    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c");
+
+  // get angs and ango -- corrected;
+  UT2D_2angr_el2c__ (&el2c);
+
+  // get correct ptNr for ellipse
+  rdc = DMAX(fabs(el2c.a),fabs(el2c.b));
+  pNr = UT2D_ptNr_ci (rdc, fabs(el2c.ango), UT_DISP_cv);
+  if(pNr > *ptNr) {TX_Error("UT3D_npt_ell EOM"); return -1;}
+     // printf(" npt_ell pNr=%d\n",pNr);
+
+  // get space for 2D-points
+  l1 = sizeof(Point2) * pNr;
+  p2a = MEM_alloc_tmp (l1);
+
+  // get 2D-polygon for elc
+  irc = UT2D_npt_elc (&pNr, p2a, &el2c, UT_DISP_cv);
+  if(irc < 0) return -1;
+
+  // transform ellipse-CenterPos-polygon to 3D
+  UT3D_npt_tra_npt_elc (pa, p2a, pNr, el3, &el2c);
+
+  *ptNr = pNr;
+
+
+    // printf("ex-UT3D_npt_ell ptNr=%d\n",*ptNr);
+    // DEB_dump_nobj__ (Typ_PT, *ptNr, pa, "pa:");
     // GR_Disp_cv (pa, ptNr, 8);
-    // UT3D_nstru_dump (Typ_PT, ptNr, pa, "pa:");
 
   return 0;
 
@@ -1414,7 +1550,7 @@ cl -c ut_geo.c
 
   // printf("UT3D_cv_ell ptmax=%d stol=%f dir=%d\n",ptmax,stol,el->dir);
   // printf(" *numpt=%d\n",*numpt);
-  // UT3D_stru_dump(Typ_CVELL, el, "");
+  // DEB_dump_obj__(Typ_CVELL, el, "");
 
   // init
   rc = 0;
@@ -1477,9 +1613,9 @@ cl -c ut_geo.c
     UT3D_vc_2pt (&v2, &(el->pc), &(el->p2));
 
     // transform ellipse start- and endpoint
-    UT3D_vc_travcm3 (&vt, ima, &v1);
+    UT3D_vc_tra_vc_m3 (&vt, ima, &v1);
     UT3D_pt_3db (&p1, vt.dx, vt.dy, vt.dz);
-    UT3D_vc_travcm3 (&vt, ima, &v2);
+    UT3D_vc_tra_vc_m3 (&vt, ima, &v2);
     UT3D_pt_3db (&p2, vt.dx, vt.dy, vt.dz);
 
     if (UT3D_comp2pt (&p1, &p2, UT_TOL_pt)) {
@@ -1528,7 +1664,7 @@ cl -c ut_geo.c
 
     // transform points to original coordinate system
     for (i1=0; i1<*numpt; ++i1) {
-      UT3D_pt_traptm3 (&cv[i1], ma, &cv[i1]);
+      UT3D_pt_tra_pt_m3 (&cv[i1], ma, &cv[i1]);
       cv[i1].x += el->pc.x;
       cv[i1].y += el->pc.y;
       cv[i1].z += el->pc.z;
@@ -1561,12 +1697,12 @@ cl -c ut_geo.c
   ci.vz = UT3D_VECTOR_Z;
 
   // transform ellipse start- and endpoint
-  UT3D_vc_travcm3 (&vp1, ima, &v1);
+  UT3D_vc_tra_vc_m3 (&vp1, ima, &v1);
   vp1.dx *= lai;
   vp1.dy *= lbi;
   // UT3D_pt_traptvclen (&ci.p1, (Point*)&UT3D_PT_NUL, &vt, ci.rad);
 
-  UT3D_vc_travcm3 (&vp2, ima, &v2);
+  UT3D_vc_tra_vc_m3 (&vp2, ima, &v2);
   vp2.dx *= lai;
   vp2.dy *= lbi;
   // UT3D_pt_traptvclen (&ci.p2, (Point*)&UT3D_PT_NUL, &vt, ci.rad);
@@ -1587,7 +1723,7 @@ cl -c ut_geo.c
   // } else {
     // ci.ango = UT3D_angr_ci (&ci);
   // }
-  // // UT3D_stru_dump(Typ_AC, &ci, "f ango f elli");
+  // // DEB_dump_obj__(Typ_AC, &ci, "f ango f elli");
 
 
   // // 2005.10.20; RF - verbessert Ungenauigkeiten ..
@@ -1603,7 +1739,7 @@ cl -c ut_geo.c
   // for (i1=0; i1<*numpt; ++i1) {
     // cv[i1].x *= a1;
     // cv[i1].y *= b1;
-    // UT3D_pt_traptm3 (&cv[i1], ma, &cv[i1]);
+    // UT3D_pt_tra_pt_m3 (&cv[i1], ma, &cv[i1]);
     // cv[i1].x += el->pc.x;
     // cv[i1].y += el->pc.y;
     // cv[i1].z += el->pc.z;
@@ -1614,7 +1750,7 @@ cl -c ut_geo.c
 
   // circ from center, 2 vectors & radius
   UT2D_ci_pt2vcrd (&ci2, &UT2D_PT_NUL, &vp1, &vp2, &ci.rad);
-    UT3D_stru_dump (Typ_CI2, &ci2, " ell-ci2=");
+    DEB_dump_obj__ (Typ_CI2, &ci2, " ell-ci2=");
 
   if(UT3D_comp2pt(&el->p1, &el->p2, UT_TOL_pt) == 1) {
     if(el->dir < 0) ci.ango = -RAD_360;
@@ -1661,10 +1797,10 @@ cl -c ut_geo.c
   p1.z = 0.;
   // verkehrt; sonst werden 2D-Punkte ueberschrieben
   for (i1 = *numpt-2; i1 > 0; --i1) {   
-    // UT3D_stru_dump (Typ_PT2, &pa2[i1], "P%d:\n",i1);
+    // DEB_dump_obj__ (Typ_PT2, &pa2[i1], "P%d:\n",i1);
     p1.x = pa2[i1].x * a1;
     p1.y = pa2[i1].y * b1;
-    UT3D_pt_traptm3 (&cv[i1], ma, &p1);
+    UT3D_pt_tra_pt_m3 (&cv[i1], ma, &p1);
     cv[i1].x += el->pc.x;
     cv[i1].y += el->pc.y;
     cv[i1].z += el->pc.z;
@@ -1741,17 +1877,7 @@ cl -c ut_geo.c
     elo->srot = ICHG01(eli->srot);
   }
 
-
-
-/* 
-  printf("ex UT3D_el_projcipl pc=%f,%f,%f\n",elo->pc.x,elo->pc.y,elo->pc.z);
-  printf("        p1=%f,%f,%f\n",elo->p1.x,elo->p1.y,elo->p1.z);
-  printf("        p2=%f,%f,%f\n",elo->p2.x,elo->p2.y,elo->p2.z);
-  printf("        va=%f,%f,%f\n",elo->va.dx,elo->va.dy,elo->va.dz);
-  printf("        vb=%f,%f,%f\n",elo->vb.dx,elo->vb.dy,elo->vb.dz);
-  printf("        vz=%f,%f,%f\n",elo->vz.dx,elo->vz.dy,elo->vz.dz);
-*/
-
+    DEB_dump_obj__ (Typ_CVELL, elo, "ex-UT3D_el_projelpl\n");
 
   return 0;
 
@@ -1786,7 +1912,7 @@ cl -c ut_geo.c
   Plane  plci;
 
 
-  // UT3D_stru_dump (Typ_AC, ci, "UT3D_el_projcipl:");
+  // DEB_dump_obj__ (Typ_AC, ci, "UT3D_el_projcipl:");
 
 
   // determine plane of circle
@@ -1849,7 +1975,7 @@ cl -c ut_geo.c
   }
 
 
-  // UT3D_stru_dump (Typ_CVELL, el, "ex UT3D_el_projcipl:\n");
+    DEB_dump_obj__ (Typ_CVELL, el, "ex-UT3D_el_projcipl\n");
 
   return 0;
 }
@@ -1927,7 +2053,7 @@ cl -c ut_geo.c
   UT3D_m3_invm3 (ima, ma);
 
   // transform point
-  UT3D_pt_traptm3 (&pp, ima, &pp);
+  UT3D_pt_tra_pt_m3 (&pp, ima, &pp);
   u = pp.x;
   v = pp.y; 
 
@@ -2028,7 +2154,7 @@ L_AbsCoord:
 
   // point(s) in absolute coordinates
   for (i1=0; i1<(*numpe); ++i1) {
-    UT3D_pt_traptm3 (&pe[i1], ma, &pe[i1]);
+    UT3D_pt_tra_pt_m3 (&pe[i1], ma, &pe[i1]);
     pe[i1].x += ell->pc.x;
     pe[i1].y += ell->pc.y;
     pe[i1].z += ell->pc.z;
@@ -2037,7 +2163,7 @@ L_AbsCoord:
 
     // TEST
     // for (i1=0; i1<(*numpe); ++i1)
-    // UT3D_stru_dump (Typ_PT, &pe[i1], " pe[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pe[i1], " pe[%d]",i1);
     // printf("ex UT3D_pt_projptel\n");
     // END TEST
 
@@ -2137,7 +2263,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     // printf(" vy = %f %f\n",vy.dx,vy.dy);
     // printf(" vt = %f %f\n",vt.dx,vt.dy);
   UT2D_m2_loadtravcm2 (ma, &vx, &vy, &vt);
-    // UT3D_stru_dump (Typ_M3x2, ma, "_elcoe/ma\n");
+    // DEB_dump_obj__ (Typ_M3x2, ma, "_elcoe/ma\n");
 
   // main axis vector
   va.dx = sqrt (-q1 / (ec->a * q2));
@@ -2189,7 +2315,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_pt_traptvc (&(el.p2), &(el.pc), &v2);
 
 
-  // UT3D_stru_dump (Typ_CVELL, &el, "");
+  // DEB_dump_obj__ (Typ_CVELL, &el, "");
 
   *obj = el;
 
@@ -2435,8 +2561,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_m3_invm3 (ima, ma);
 
   // transform line points
-  UT3D_pt_traptm3 (&p1, ima, &(ln->p1));
-  UT3D_pt_traptm3 (&p2, ima, &(ln->p2));
+  UT3D_pt_tra_pt_m3 (&p1, ima, &(ln->p1));
+  UT3D_pt_tra_pt_m3 (&p2, ima, &(ln->p2));
 
   // 2D-line
   ln2.p1.x = p1.x;
@@ -2513,7 +2639,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // transform intersection points to original coordinate system
   for (i1=0; i1<*np; ++i1) {
-    UT3D_pt_traptm3 (&xp[i1], ma, &xp[i1]);
+    UT3D_pt_tra_pt_m3 (&xp[i1], ma, &xp[i1]);
   }
 
 
@@ -2629,8 +2755,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   L_fertig:
 
-    // if(irc >= 1) UT3D_stru_dump (Typ_PT2, p1, "  pt1:");
-    // if(irc >= 2) UT3D_stru_dump (Typ_PT2, p2, "  pt2:");
+    // if(irc >= 1) DEB_dump_obj__ (Typ_PT2, p1, "  pt1:");
+    // if(irc >= 2) DEB_dump_obj__ (Typ_PT2, p2, "  pt2:");
 
   return irc;
 
@@ -2665,8 +2791,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
   // printf("UT3D_vc_tng_elpt__ \n");
-  // UT3D_stru_dump (Typ_PT, pt1, "  pt:");
-  // UT3D_stru_dump (Typ_CVELL, el1, "  ell:");
+  // DEB_dump_obj__ (Typ_PT, pt1, "  pt:");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "  ell:");
 
 
   UT3D_vc_2pt (&vcp, &el1->pc, pt1);
@@ -2728,7 +2854,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   ln21.p1.y = 0.;
   ln21.p2.x = 0.;
   ln21.p2.y = c / (aa * pt.y);
-    // UT3D_stru_dump (Typ_LN2, &ln21, "  ln21:");
+    // DEB_dump_obj__ (Typ_LN2, &ln21, "  ln21:");
 
 
 // the intersectionLine ln21 is: p1=x,0  p2=0,y
@@ -2739,8 +2865,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 // get normalized 3D-vectors vna and vnb
   UT3D_vc_div_d (&vna, &el1->va, el2c.a);
   UT3D_vc_div_d (&vnb, &el1->vb, el2c.b);
-    // UT3D_stru_dump (Typ_VC, &vna, "  vna:");
-    // UT3D_stru_dump (Typ_VC, &vnb, "  vnb:");
+    // DEB_dump_obj__ (Typ_VC, &vna, "  vna:");
+    // DEB_dump_obj__ (Typ_VC, &vnb, "  vnb:");
 
 // select solution
   if(sidMaj < 0) UT2D_swap2pt (&pi1, &pi2);
@@ -2751,7 +2877,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_multvc (&vhx, &vna, pi1.x);
   UT3D_vc_multvc (&vhy, &vnb, pi1.y);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
-    // UT3D_stru_dump (Typ_PT, &po, "  po:");
+    // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
 
 // return the vector pt1-po
@@ -2797,7 +2923,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   Point      po;
 
 
-  // UT3D_stru_dump(Typ_PT, pt1, "UT3D_vc_tng_elptMaj");
+  // DEB_dump_obj__(Typ_PT, pt1, "UT3D_vc_tng_elptMaj");
 
 
   ea = UT3D_len_vc (&el1->va);
@@ -2834,14 +2960,14 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // get normalized 3D-vectors vna and vnb
   UT3D_vc_div_d (&vna, &el1->va, ea);
   UT3D_vc_div_d (&vnb, &el1->vb, eb);
-    // UT3D_stru_dump (Typ_VC, &vna, "  vna:");
-    // UT3D_stru_dump (Typ_VC, &vnb, "  vnb:");
+    // DEB_dump_obj__ (Typ_VC, &vna, "  vna:");
+    // DEB_dump_obj__ (Typ_VC, &vnb, "  vnb:");
 
 // transfer pi1 back into 3D-position
   UT3D_vc_multvc (&vhx, &vna, dx);
   UT3D_vc_multvc (&vhy, &vnb, dye);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
-    // UT3D_stru_dump (Typ_PT, &po, "  po:");
+    // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
 // return the vector pt1-po
   UT3D_vc_2pt (vco, pt1, &po);
@@ -2886,7 +3012,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   Vector     vhx, vhy;
   Point      po;
 
-  // UT3D_stru_dump(Typ_PT, pt1, "UT3D_vc_tng_elptMin");
+  // DEB_dump_obj__(Typ_PT, pt1, "UT3D_vc_tng_elptMin");
 
 
   ea = UT3D_len_vc (&el1->va);
@@ -2923,14 +3049,14 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // get normalized 3D-vectors vna and vnb
   UT3D_vc_div_d (&vna, &el1->va, ea);
   UT3D_vc_div_d (&vnb, &el1->vb, eb);
-    // UT3D_stru_dump (Typ_VC, &vna, "  vna:");
-    // UT3D_stru_dump (Typ_VC, &vnb, "  vnb:");
+    // DEB_dump_obj__ (Typ_VC, &vna, "  vna:");
+    // DEB_dump_obj__ (Typ_VC, &vnb, "  vnb:");
 
 // transfer pi1 back into 3D-position
   UT3D_vc_multvc (&vhx, &vna, dxe);
   UT3D_vc_multvc (&vhy, &vnb, dy);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
-    // UT3D_stru_dump (Typ_PT, &po, "  po:");
+    // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
 // return the vector pt1-po
   UT3D_vc_2pt (vco, pt1, &po);
@@ -2979,7 +3105,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
                             Vector2 *vct, CurvEll2 *cv1, int isol) {
 //==================================================================
 /// \code
-/// get tangent vector-ellipse.
+/// get tangent-pt on ellipse parallel to vector
 /// ellipse and vector must be planar to constr.Plane.
 ///   isol    0=solution-1; 1=solution-2;
 /// 2013-04-23 Backmeister, Reiter
@@ -3000,17 +3126,17 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
   // printf("UT2D_pt_tng_ell_vc %d\n",isol);
-    // UT3D_stru_dump (Typ_VC, vct, "  vct:");
-    // UT3D_stru_dump (Typ_CVELL2, cv1, "  ell:");
+    // DEB_dump_obj__ (Typ_VC, vct, "  vct:");
+    // DEB_dump_obj__ (Typ_CVELL2, cv1, "  ell:");
 
 
 // get vector to centerposition
   UT2D_2slen_vc_vc__ (&v2ct.dx, &v2ct.dy, vct, &cv1->va);
-    // UT3D_stru_dump (Typ_VC2, &v2ct, "  v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, "  v2ct:");
 
 // normalize v2t
   UT2D_vc_setLength (&v2ct, &v2ct, 1.);
-    // UT3D_stru_dump (Typ_VC2, &v2ct, " norm-v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, " norm-v2ct:");
 
 // get ellipse in centerposition
   elc.a = UT2D_len_vc(&cv1->va);
@@ -3044,7 +3170,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 // set v2ct -> format (1,k);
   v2ct.dy /= v2ct.dx;
   v2ct.dx = 1.;
-    // UT3D_stru_dump (Typ_VC2, &v2ct, " 1,k-v2ct:");
+    // DEB_dump_obj__ (Typ_VC2, &v2ct, " 1,k-v2ct:");
 
   k = v2ct.dy;
   kk = k * k;
@@ -3064,11 +3190,11 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //----------------------------------------------------------------
   L_out:
 // transform point p2co back from centerposition to constructionPlane
-    UT3D_stru_dump (Typ_PT2, &p2co, "  p2co:");
+    DEB_dump_obj__ (Typ_PT2, &p2co, "  p2co:");
 // p2o.x along va; p2o.y normal to va
   UT2D_pt_traptvc2len (pto, &cv1->pc, &cv1->va, p2co.x, p2co.y);
     // GR_Disp_pt2 (pto, SYM_STAR_S, 0);
-    // UT3D_stru_dump (Typ_PT, pto, "  pto:");
+    // DEB_dump_obj__ (Typ_PT, pto, "  pto:");
 
   return 0;
 
@@ -3142,8 +3268,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   Vector2    vcp;
 
   // printf("UT2D_pt_tng_ell_ptMaj %d %d\n",sid,isol);
-  // UT3D_stru_dump(Typ_PT, pt1, "  pt1:");
-  // UT3D_stru_dump(Typ_CVELL2, el1, "  el1:");
+  // DEB_dump_obj__(Typ_PT, pt1, "  pt1:");
+  // DEB_dump_obj__(Typ_CVELL2, el1, "  el1:");
 
 
   ea = UT2D_len_vc (&el1->va);
@@ -3229,8 +3355,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
   // printf("UT3D_vc_tng_elptMin %d %d\n",sid,isol);
-  // UT3D_stru_dump(Typ_PT, pt1, "  pt1:");
-  // UT3D_stru_dump(Typ_CVELL2, el1, "  el1:");
+  // DEB_dump_obj__(Typ_PT, pt1, "  pt1:");
+  // DEB_dump_obj__(Typ_CVELL2, el1, "  el1:");
 
 
   ea = UT2D_len_vc (&el1->va);
@@ -3299,8 +3425,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
   // printf("UT2D_pt_tng_ell_pt isol=%d\n",isol);
-  // UT3D_stru_dump (Typ_PT, pt1, "  pt:");
-  // UT3D_stru_dump (Typ_CVELL2, el1, "  ell:");
+  // DEB_dump_obj__ (Typ_PT, pt1, "  pt:");
+  // DEB_dump_obj__ (Typ_CVELL2, el1, "  ell:");
 
 
   // vector vcp = elCen - pt
@@ -3373,15 +3499,15 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   ln21.p1.y = 0.;
   ln21.p2.x = 0.;
   ln21.p2.y = c / (aa * pt.y);
-    // UT3D_stru_dump (Typ_LN2, &ln21, "  ln21:");
+    // DEB_dump_obj__ (Typ_LN2, &ln21, "  ln21:");
     // GR_Disp_ln2 (&ln21.p1, &ln21.p2, 9);
 
 
 // the intersectionLine ln21 is: p1=x,0  p2=0,y
 // make 2D-intersection of ellipse with this line
   irc = UT2D_pt_int_elc_ln (&pi1, &pi2, &ln21, &el2c);
-    // UT3D_stru_dump (Typ_PT2, &pi1, "  pi1:");
-    // UT3D_stru_dump (Typ_PT2, &pi2, "  pi2:");
+    // DEB_dump_obj__ (Typ_PT2, &pi1, "  pi1:");
+    // DEB_dump_obj__ (Typ_PT2, &pi2, "  pi2:");
 
 // select solution
   if(sidMaj < 0) UT2D_swap2pt (&pi1, &pi2);
@@ -3429,10 +3555,10 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
 //=================================================================
-  int UT2D_2angr_el (double *angs, double *ango, CurvEll2C *el2c) {
+  int UT2D_2angr_el2c_c (double *angs, double *ango, CurvEll2C *el2c) {
 //=================================================================
 /// \code
-/// UT2D_2angr_el              get starting- and opening angle of ellipse
+/// UT2D_2angr_el2c_c          get angles of ellipse-corresponding-circle
 /// angs    real-angle between major-axis and startpoint
 /// ango    real-opening-angle between startpoint and endpoint 
 ///           CCW ?
@@ -3468,9 +3594,59 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   *angs = as;
   *ango = ae - as;
 
-    // printf("ex UT2D_2angr_el as=%lf ao=%lf ae=%lf\n",*angs,*ango,ae);
+    // printf("ex-UT2D_2angr_el2c_c as=%lf ao=%lf ae=%lf\n",*angs,*ango,ae);
 
   return 0;
+}
+
+
+//================================================================
+  int UT2D_elc_el2 (CurvEll2C *el2c,  CurvEll2 *eli) {
+//================================================================
+// UT2D_elc_el2              2D-elli in centerPos from  2D-ellipse
+// see UT2D_elc_el3  UT3D_npt_ell
+
+  Vector2     vc1, vcx, vcy;
+
+
+  // DEB_dump_obj__ (Typ_CVELL2, eli, "UT2D_elc_el2");
+
+
+  // copy defaults CurvElli (ango,srot,clo,trm)
+  UT2D_elc_cpyDef_el2 (el2c, eli);
+
+  // get axes length
+  el2c->a = UT2D_len_vc (&eli->va);
+  el2c->b = UT2D_len_vc (&eli->vb);
+    // printf(" a=%lf b=%lf\n",el2c->a,el2c->b);
+
+  // TEST ONLY:
+    // get parameters of el3->p1 on el3->va and el3->vb
+    // el2c->p1.x = UT3D_slen_2ptvc (&el3->pc, &el3->p1, &el3->va);
+    // el2c->p1.y = UT3D_slen_2ptvc (&el3->pc, &el3->p1, &el3->vb);
+    // el2c->p2.x = UT3D_slen_2ptvc (&el3->pc, &el3->p2, &el3->va);
+    // el2c->p2.y = UT3D_slen_2ptvc (&el3->pc, &el3->p2, &el3->vb);
+      // printf(" p1 = %lf %lf\n",el2c->p1.x,el2c->p1.y);
+      // printf(" p2 = %lf %lf\n",el2c->p2.x,el2c->p2.y);
+  // TEST ONLY:
+
+
+  // get normalized axes
+  UT2D_vc_div_d (&vcx, &eli->va, el2c->a);
+  UT2D_vc_div_d (&vcy, &eli->vb, el2c->b);
+
+  UT2D_vc_2pt (&vc1, &eli->pc, &eli->p1);
+  UT2D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
+    // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
+    // GR_Disp_vc (&vc1, &el3->pc, 7, 1);
+
+  UT2D_vc_2pt (&vc1, &eli->pc, &eli->p2);
+  UT2D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
+
+    // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex-UT2D_elc_el2");
+
+  return 0;
+
 }
 
 
@@ -3478,26 +3654,26 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   int UT2D_elc_el3 (CurvEll2C *el2c,  CurvElli *el3) {
 //================================================================
 // UT2D_elc_el3              make 2D-ell in centerPos from 3D-ell
+// see UT2D_elc_el2
 
   Vector      vc1, vcx, vcy;
 
 
   // printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE \n");
-  // UT3D_stru_dump (Typ_CVELL, el3, "UT2D_elc_el3");
+  // DEB_dump_obj__ (Typ_CVELL, el3, "UT2D_elc_el3");
   // GR_Disp_vc (&el3->va, &el3->pc, 5, 1);
   // GR_Disp_vc (&el3->vb, &el3->pc, 5, 1);
 
 
   // if(el3->dir > 0) el2c->dir = -1;    // 2016-10-30
   // else             el2c->dir = 1;
-  el2c->srot = el3->srot;
-  el2c->clo = el3->clo;
+
+  // copy defaults (ango,srot,clo,trm)
+  UT2D_elc_cpyDef_el3 (el2c, el3);
 
   el2c->a = UT3D_len_vc (&el3->va);
   el2c->b = UT3D_len_vc (&el3->vb);
     // printf(" a=%lf b=%lf\n",el2c->a,el2c->b);
-
-
 
   // TEST ONLY:
     // get parameters of el3->p1 on el3->va and el3->vb
@@ -3514,14 +3690,76 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_div_d (&vcy, &el3->vb, el2c->b);
 
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p1);
-    // UT3D_stru_dump (Typ_VC, &vc1, " vc pc-p1:");
+    // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
   UT3D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
     // GR_Disp_vc (&vc1, &el3->pc, 7, 1);
 
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p2);
   UT3D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
 
-    // UT3D_stru_dump (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
+    // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_2angr_el2c__ (CurvEll2C *el2c) {
+//================================================================
+// UT2D_2angr_el2c__              compute angs, ango (corrected angles)
+
+
+
+  int        is360;
+  // double     dx, dy, xPar, yPar;
+  // double     as, ae, ao, ai, aa, lMin;
+  double     as, ae, ao, acs, ace, aco;
+  double     UT3D_angr_el_corr();
+  // Vector     vcx, vcy;
+  // Point2     pt21;
+
+
+  // printf("UT2D_2angr_el2c__\n");
+
+
+  // get as, ao
+  // as=angle at startpoint; ao=opening-angle of corresponding-circle
+  UT2D_2angr_el2c_c (&as, &ao, el2c);
+  ae = as + ao;
+    // printf(" _npt_ell as=%lf ae=%lf ao=%lf\n",as,ae,ao);
+
+  // check for 360-deg 0=not, 1=yes
+  is360 = UTP_comp2db (RAD_360, fabs(ao), UT_TOL_Ang1);
+
+  // get corrected angle for as
+  acs = UT3D_angr_el_corr (as, el2c->a, el2c->b);
+    // printf(" acs=%lf as=%lf\n",acs,as);
+
+  // get corrected angle for ae
+  ace = UT3D_angr_el_corr (ae, el2c->a, el2c->b);
+    // printf(" ace=%lf ae=%lf\n",ace,ae);
+
+  if(is360) {
+      // printf(" ell=360; sr=%d\n",el2c.sr);
+    if(el2c->srot == 0) {
+      ace = acs + RAD_360;  // 1=CCW, else CW.
+    } else {
+      ace = acs - RAD_360;
+    }
+
+  } else {
+    // make ace following acs
+    ace = UT2D_angr_set_2angr_sr (acs, ace, el2c->srot);
+  }
+  // total angle
+  aco = ace - acs;
+
+  el2c->angs = acs;
+  el2c->ango = aco;
+
+    // printf("ex-UT2D_2angr_el2c__ angs=%lf ango=%lf ace=%lf srot=%d\n",
+            // el2c->angs, el2c->ango, ace, el2c->srot);
 
   return 0;
 
@@ -3555,18 +3793,18 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
-  UT3D_stru_dump (Typ_CVELL, el1, "UT3D_par1_el_pt el1:");
-  UT3D_stru_dump (Typ_PT, pt1, "  pt1:");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_par1_el_pt el1:");
+  // DEB_dump_obj__ (Typ_PT, pt1, "  pt1:");
 
 
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el1);
-    UT3D_stru_dump (Typ_CVELL2C, &el2c, "  el2c:");
+    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
 
 
   // get startAngle & opening-angle of elli
-  UT2D_2angr_el (&as, &ao, &el2c);
-    printf(" as=%lf ao=%lf\n",as,ao);
+  UT2D_2angr_el2c_c (&as, &ao, &el2c);
+    // printf(" as=%lf ao=%lf\n",as,ao);
 
 
 /*
@@ -3585,24 +3823,168 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // get pt on 2D-elli in centerPos from pt on 3D-elli
   UT2D_pt_ptel3 (&pt21, pt1, el1);
-    UT3D_stru_dump (Typ_PT2, &pt21, "  pt21:");
+    // DEB_dump_obj__ (Typ_PT2, &pt21, "  pt21:");
 
   // get angr on innerCirc
   aa = UT2D_angr_vc ((Vector2*)&pt21);
-    printf(" aa-1=%f\n",aa);
+    // printf(" aa-1=%f\n",aa);
 
 
   // aa should be between as,ae. Do not modify as.
-  aa = UT2D_angr_set_2angr (as, aa, el2c.srot);
-    printf(" aa-2=%f\n",aa);
+  aa = UT2D_angr_set_2angr_sr (as, aa, el2c.srot);
+    // printf(" aa-2=%f\n",aa);
 
   // change angr da into par1 du (du = ao / piTwo)
   ae = as + ao;
-    printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
+    // printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
 
   UTP_param_p0p1px (du, as, ae, aa);
 
-    printf("ex UT3D_par1_el_pt du=%lf ao=%lf\n",*du,ao);
+    // printf("ex UT3D_par1_el_pt du=%lf ao=%lf\n",*du,ao);
+
+  return 0;
+
+}
+
+
+//=========================================================================
+  int UT2D_ell_tra_ell3_rsys (CurvEll2 *elo, CurvElli *eli, Refsys *rSys) {
+//=========================================================================
+// UT2D_ell_tra_ell3_rsys             transf. 3D-ellipse => 2D-ellipse
+
+  // DEB_dump_obj__ (Typ_CVELL, eli, "UT2D_ell_tra_ell3_m3");
+
+
+  if(rSys->bpi >= 0) {
+    // transf. onto Backplane
+    UT2D_pt_tra_pt3_bp (&elo->p1, &eli->p1, rSys->bpi);
+    UT2D_pt_tra_pt3_bp (&elo->p2, &eli->p2, rSys->bpi);
+    UT2D_pt_tra_pt3_bp (&elo->pc, &eli->pc, rSys->bpi);
+
+    UT2D_vc_tra_vc3_bp (&elo->va, &eli->va, rSys->bpi);
+    UT2D_vc_tra_vc3_bp (&elo->vb, &eli->vb, rSys->bpi);
+
+  } else {
+    // transf. onto free plane (4x3-matrix)
+    UT2D_pt_tra_pt3_m3 (&elo->p1, rSys->mat2, &eli->p1);
+    UT2D_pt_tra_pt3_m3 (&elo->p2, rSys->mat2, &eli->p2);
+    UT2D_pt_tra_pt3_m3 (&elo->pc, rSys->mat2, &eli->pc);
+  
+    UT2D_vc_tra_vc3_m3 (&elo->va, rSys->mat2, &eli->va);
+    UT2D_vc_tra_vc3_m3 (&elo->vb, rSys->mat2, &eli->vb);
+
+  }
+
+  // copy defaults CurvElli (ango,srot,clo,trm)
+  UT2D_el_cpyDef_el3 (elo, eli);
+
+
+    // DEB_dump_obj__ (Typ_CVELL2, elo, "ex-UT2D_ell_tra_ell3_m3");
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UT3D_ell_tra_ell2_rsys (CurvElli *el3, CurvEll2 *el2, Refsys *rSys) {
+//=======================================================================
+// UT3D_ell_tra_ell2_rsys            transf. 2D-ellipse => 3D-ellipse
+
+  CurvElli  elx;
+
+
+  // DEB_dump_obj__ (Typ_CVELL2, el2, "UT3D_ell_tra_ell2_rsys");
+  // DEB_dump_obj__ (Typ_Refsys, rSys, "rSys");
+
+
+  if(rSys->bpi >= 0) {
+    // transf. from Backplane
+    return UT3D_el_tra_el2_bp (el3, el2, rSys->bpi, &rSys->bpd);
+
+  } else {
+    // transf. from free plane (4x3-matrix)
+    UT3D_el_el2 (&elx, el2);
+    UT3D_el_tra_el_m3 (el3, &elx, rSys->mat1);
+    return 0;
+  }
+
+}
+
+
+//======================================================================
+  void UT3D_el_tra_el_m3 (CurvElli *elo, CurvElli *eli, Mat_4x3 trmat) {
+//======================================================================
+/// UT3D_el_tra_el_m3           transf. 3D-ellipse
+// see UT3D_el_tra_el_m3
+
+  // DEB_dump_obj__ (Typ_CVELL, eli, "UT3D_el_tra_el_m3");
+
+
+  UT3D_pt_tra_pt_m3 (&elo->p1, trmat, &eli->p1);
+  UT3D_pt_tra_pt_m3 (&elo->p2, trmat, &eli->p2);
+  UT3D_pt_tra_pt_m3 (&elo->pc, trmat, &eli->pc);
+
+  UT3D_vc_tra_vc_m3 (&elo->va, trmat, &eli->va);
+  UT3D_vc_tra_vc_m3 (&elo->vb, trmat, &eli->vb);
+  UT3D_vc_tra_vc_m3 (&elo->vz, trmat, &eli->vz);
+
+  UT3D_vc_normalize (&elo->vz, &elo->vz);
+
+  // copy defaults CurvElli (ango,srot,clo,trm)
+  UT3D_el_cpyDef_el (elo, eli);
+
+    // DEB_dump_obj__ (Typ_CVELL, eli, "ex-UT3D_el_tra_el_m3");
+
+}
+
+
+//=============================================================================
+  int UT3D_el_tra_el2_bp (CurvElli *elo, CurvEll2 *eli, int bpi, double *bpd) {
+//=============================================================================
+// UT3D_el_tra_el2_bp           transf. 2D-ellipse => 3D-backplane
+
+  // printf("UT3D_el_tra_el2_bp bpi = %d bpd = %f\n",bpi,*bpd);
+  // DEB_dump_obj__ (Typ_CVELL2, eli, "UT3D_el_tra_el2_bp");
+
+
+  UT3D_pt_tra_pt2_bp (&elo->p1, &eli->p1, bpi, bpd);
+  UT3D_pt_tra_pt2_bp (&elo->p2, &eli->p2, bpi, bpd);
+  UT3D_pt_tra_pt2_bp (&elo->pc, &eli->pc, bpi, bpd);
+
+  UT3D_vc_tra_vc2_bp (&elo->va, &eli->va, bpi, bpd);
+  UT3D_vc_tra_vc2_bp (&elo->vb, &eli->vb, bpi, bpd);
+
+  // get normalvector for backplane bpi
+  UT3D_vc_perp_bp (&elo->vz, bpi);
+
+  // copy defaults CurvElli (ango,srot,clo,trm)
+  UT3D_el_cpyDef_el2 (elo, eli);
+
+    // DEB_dump_obj__ (Typ_CVELL, elo, "ex-UT3D_el_tra_el2_bp");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_el_el2 (CurvElli *elo, CurvEll2 *eli) {
+//================================================================
+// UT3D_el_el2                      2D-ellipse -> 3D-ellipse (z=0)
+
+
+  UT3D_pt_pt2_0 (&elo->p1, &eli->p1);
+  UT3D_pt_pt2_0 (&elo->p2, &eli->p2);
+  UT3D_pt_pt2_0 (&elo->pc, &eli->pc);
+
+  UT3D_vc_vc2 (&elo->va, &eli->va);
+  UT3D_vc_vc2 (&elo->vb, &eli->vb);
+
+  elo->vz = UT3D_VECTOR_Z;
+
+  // copy defaults CurvElli (ango,srot,clo,trm)
+  UT3D_el_cpyDef_el2 (elo, eli);
 
   return 0;
 

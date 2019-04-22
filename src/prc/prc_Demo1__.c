@@ -146,7 +146,7 @@ Point actPos;
     case 0:   // FROM                          was APT_work_NCCmd
       i1 = APT_decode_pt1 (&actPos, 0, cmd_typ, cmd_tab);
       if(i1 < 0) goto L_err_par;
-      UT3D_stru_dump (Typ_PT, &actPos, " pt-rel ");
+      DEB_dump_obj__ (Typ_PT, &actPos, " pt-rel ");
       break;
 
 

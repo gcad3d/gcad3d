@@ -7,7 +7,7 @@
 
 # bits; 32|64
 osVer=`getconf LONG_BIT`
-gcad_dir_bin=../../binLinux${osVer}
+#gcad_dir_bin=../../binLinux${osVer}
 
 
 # Liste aller KernSourcefiles -> srcFiles
@@ -51,7 +51,10 @@ echo " = Anzahl Programmzeilen"
 #-----------------------------------------------------
 # get nr of functions
 rm -rf /tmp/t2
-./ut1_stat.sh ${gcad_dir_bin}/gCAD3D
+
+echo ${gcad_dir_bin}
+./ut1_stat.sh ${gcad_dir_bin}gCAD3D
+
 find ${gcad_dir_bin} -maxdepth 1 -name "xa_*.so" -exec ./ut1_stat.sh {} \;
 
 

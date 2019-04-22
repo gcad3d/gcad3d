@@ -132,7 +132,7 @@ int tess_analyz_CB (ObjGX*);
   int tess_dump_f_ (ObjGX *oxi, char *txt) {
 //=======================================================================
 // dump obj - structured display
-// see UTO_dump_1
+// see DEB_dump_ox_1
 
   int  irc, i1, rSiz, totSiz;
   char cbuf[32];
@@ -161,7 +161,7 @@ int tess_analyz_CB (ObjGX*);
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
 
   sprintf(cbuf, "Rec %d",i1);
-  UTO_dump_s_ (oxi, cbuf);
+  DEB_dump_ox_s_ (oxi, cbuf);
 
   // (char*)oxi += rSiz;
   oxi = (ObjGX*)((char*)oxi + rSiz);
@@ -356,7 +356,7 @@ int tess_analyz_CB (ObjGX*);
   // den gesamten BLOCK schreiben !!!!
   fwrite ((void*)oxi, rSiz, 1, fpo);
     // UTI_dump__ (oxi, rSiz);
-    // UTO_dump__ (oxi, "tess_write_f_-rec");
+    // DEB_dump_ox_0 (oxi, "tess_write_f_-rec");
 
 /*
   // funktioniert nicht richtig :
@@ -417,7 +417,7 @@ int tess_analyz_CB (ObjGX*);
 
   L_next:
   if(oxi->typ  == Typ_Done)  goto L_fertig;
-    // UTO_dump__ (oxi, "tess_reloc_f_ %d",rNr);
+    // DEB_dump_ox_0 (oxi, "tess_reloc_f_ %d",rNr);
 
 
   // erster Record muss size of following Record sein
@@ -429,7 +429,7 @@ int tess_analyz_CB (ObjGX*);
 
   // relocate record
   UTO_reloc_obj (oxi, pDist);
-  // UTO_dump__ (oxi, "nach tess_reloc_obj");
+  // DEB_dump_ox_0 (oxi, "nach tess_reloc_obj");
 
   // (char*)oxi += rSiz;
   oxi = (ObjGX*)((char*)oxi + rSiz);
@@ -516,7 +516,7 @@ int tess_analyz_CB (ObjGX*);
         pTab = oxs->data;
         // pt's transformieren
         for(i3=0; i3<oxs->siz; ++i3) {
-          UT3D_pt_traptm3 (&pTab[i3], m1, &pTab[i3]);
+          UT3D_pt_tra_pt_m3 (&pTab[i3], m1, &pTab[i3]);
         }
 
       }
@@ -910,7 +910,7 @@ int tess_analyz_CB (ObjGX*);
   } else {
     printf("***** tess_analyz_sur E001: typ=%d form=%d siz=%d\n",
            oxi->typ,oxi->form,oxi->siz);
-    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    DEB_dump_obj__(Typ_ObjGX, oxi, " _origin_sur oxi");
     return -1;
   }
 
@@ -1041,7 +1041,7 @@ use in GL_disp_sph
   sp1 = oxi->data;
 
 
-  UT3D_stru_dump (Typ_SPH, sp1, " sp1: ");
+  DEB_dump_obj__ (Typ_SPH, sp1, " sp1: ");
 
 
   // dli = DL_StoreObj (Typ_SUR, -1L, 1);  // typ, dbi, att
@@ -1082,7 +1082,7 @@ use in GL_disp_cone
   co1 = oxi->data;
 
 
-  UT3D_stru_dump (Typ_CON, co1, " co1: ");
+  DEB_dump_obj__ (Typ_CON, co1, " co1: ");
 
   // dli = DL_StoreObj (Typ_SUR, -1L, 1);
   // GL_Surf_Ini (&dli, NULL);
@@ -1391,8 +1391,8 @@ use in GL_disp_cone
   L_fertig:
 
       // TESTBLOCK
-      // UT3D_stru_dump(Typ_PT, pb1, "ex-tess_box_get pb1=");
-      // UT3D_stru_dump(Typ_PT, pb2, "ex-tess_box_get pb2=");
+      // DEB_dump_obj__(Typ_PT, pb1, "ex-tess_box_get pb1=");
+      // DEB_dump_obj__(Typ_PT, pb2, "ex-tess_box_get pb2=");
       // END TESTBLOCK
 
     return 0;
@@ -1425,7 +1425,7 @@ use in GL_disp_cone
   } else {
     printf("***** tess_box_sur E001: typ=%d form=%d siz=%d\n",
            oxi->typ,oxi->form,oxi->siz);
-    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    DEB_dump_obj__(Typ_ObjGX, oxi, " _origin_sur oxi");
     return -1;
   }
 
@@ -1509,7 +1509,7 @@ use in GL_disp_cone
 
   co1 = oxi->data;
 
-  UT3D_stru_dump (Typ_CON, co1, " UT3D_box_Conus ");
+  DEB_dump_obj__ (Typ_CON, co1, " UT3D_box_Conus ");
 
   // get bottom-circ
   po = co1->pl.po;
@@ -1544,7 +1544,7 @@ use in GL_disp_cone
 
   sp1 = oxi->data;
 
-  // UT3D_stru_dump (Typ_SPH, sp1, " UT3D_box_Sphere ");
+  // DEB_dump_obj__ (Typ_SPH, sp1, " UT3D_box_Sphere ");
 
   UT3D_pt_traptmultvc (&p1, &sp1->pc, &WC_sur_act.vx, sp1->rad)
 
@@ -1588,7 +1588,7 @@ use in GL_disp_cone
   for(i1=0; i1<pNr; ++i1) {
     UT3D_box_extend (pb1, pb2, &pTab[i1]);
       // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
-      // UT3D_stru_dump(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
+      // DEB_dump_obj__(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
   }
 
 
@@ -1632,7 +1632,7 @@ use in GL_disp_cone
     *pOri = UT3D_PT_NUL;
   }
 
-    UT3D_stru_dump (Typ_PT, pOri, "ex tess_origin_box");
+    DEB_dump_obj__ (Typ_PT, pOri, "ex tess_origin_box");
 
   return 0;
 
@@ -1707,7 +1707,7 @@ use in GL_disp_cone
   } else {
     printf("***** tess_origin_set_sur E001: typ=%d form=%d siz=%d\n",
            oxi->typ,oxi->form,oxi->siz);
-    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    DEB_dump_obj__(Typ_ObjGX, oxi, " _origin_sur oxi");
     return -1;
   }
 
@@ -1807,7 +1807,7 @@ use in GL_disp_cone
   for(i1=0; i1<pNr; ++i1) {
     UT3D_pt_sub_pt3 (&pTab[i1], pOri);
       // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
-      // UT3D_stru_dump(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
+      // DEB_dump_obj__(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
   }
 
 
@@ -1903,7 +1903,7 @@ use in GL_disp_cone
   } else {
     printf("***** tess_analyz_sur E001: typ=%d form=%d siz=%d\n",
            oxi->typ,oxi->form,oxi->siz);
-    UT3D_stru_dump(Typ_ObjGX, oxi, " _origin_sur oxi");
+    DEB_dump_obj__(Typ_ObjGX, oxi, " _origin_sur oxi");
     return -1;
   }
 

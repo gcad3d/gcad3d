@@ -42,6 +42,7 @@ List_functions_start:
 AP_get_modnam       returns AP_mod_fnam
 AP_get_fnam_symDir  get filename of symbolic directories (dir.lst)
 AP_get_dir_open
+AP_get_WC_modact_ind 
 AP_set_dir_open
 AP_set_dir_save
 AP_set_modsiz
@@ -182,7 +183,7 @@ Coordinates:
   in DB transformed.
 
 Wann und wo wird transformiert ?
-  in den APT_decode_functions; zB via UT3D_pt_traptm3 (., WC_sur_mat, ..
+  in den APT_decode_functions; zB via UT3D_pt_tra_pt_m3 (., WC_sur_mat, ..
   APT_decode_ausdr() provides WCS-coords; transf. is done in APT_decode_pt().
     (from eg P20=P(1 2 3))
 
@@ -485,6 +486,14 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 }
 
+
+//================================================================
+  int AP_get_WC_modact_ind () {
+//================================================================
+
+  return WC_modact_ind;
+
+}
 
 
 //================================================================
@@ -801,7 +810,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //=================================================================
   int AP_obj_analyze (int typ, long ind) {
 //=================================================================
-// alt; replace by UT3D_stru_dump (see IE_analyz__)
+// alt; replace by DEB_dump_obj__ (see IE_analyz__)
 // siehe DemoPlugin_Resolv.c
 
   ObjG     el;
@@ -2305,7 +2314,7 @@ remote control nur in VWR, nicht MAN, CAD;
 //====================================================================
   int AP_defaults_write () {
 //====================================================================
-/// defaults -> cfg/xa.rc
+/// defaults -> ../../gCAD3D/cfg/xa.rc
 
   FILE    *fp1 = NULL;
   char    txbuf[512], *p1;
@@ -2325,50 +2334,50 @@ remote control nur in VWR, nicht MAN, CAD;
   }
 
 
-  // Zeile 1: Open-baseDir
+  // line 1: Open-baseDir
   strcpy(txbuf, AP_mod_dir);
   if(txbuf[strlen(txbuf)-1] != fnam_del) strcat(txbuf, fnam_del_s);
   strcat(txbuf, "   // Dir for open");
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 2: Language
+  // line 2: Language
   // sprintf(txbuf, "%s  // act. language",OS_get_lang());
   sprintf(txbuf, "%s  // act. language",AP_lang);
   txbuf[2] = '\0';
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 3: Browser f. Help ..
+  // line 3: Browser f. Help ..
   if(!OS_browser[0]) OS_get_browse_htm ();
   sprintf(txbuf, "%s  // act. html-browser",OS_browser);
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 4: Defaultprinter
+  // line 4: Defaultprinter
   sprintf(txbuf, "%s  // act. printCommand",AP_printer);
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 5: Modelname
+  // line 5: Modelname
   fprintf(fp1, "%s  // act. Modelname\n", AP_mod_fnam);
 
 
-  // Zeile 6: act. Filetype
+  // line 6: act. Filetype
   fprintf(fp1, "%s  // act. Filetype\n", AP_mod_ftyp);
   // strcpy(txbuf, AP_mod_dir);
   // if(txbuf[strlen(txbuf)-1] != fnam_del) strcat(txbuf, fnam_del_s);
   // strcat(txbuf, "   // act. Filetype");
 
 
-  // Zeile 7: program-Dir
+  // line 7: program-Dir
   strcpy(txbuf, AP_dir_prg);
   if(txbuf[strlen(txbuf)-1] != fnam_del) strcat(txbuf, fnam_del_s);
   strcat(txbuf, "   // Dir for programs");
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 8: active application
+  // line 8: active application
   if(APP_act_typ == 1) {
     sprintf(txbuf, "APP %s   // active application",APP_act_nam);
   } else if(APP_act_typ == 2) { 
@@ -2381,10 +2390,15 @@ remote control nur in VWR, nicht MAN, CAD;
   fprintf(fp1, "%s\n", txbuf);
 
 
-  // Zeile 9: Editor
+  // line 9: Editor
   sprintf(txbuf, "%s   // Texteditor",AP_editor);
   fprintf(fp1, "%s\n", txbuf);
 
+
+  // line 10: size of application-window
+  // "-1000,-690"  // size of application-window
+  sprintf(txbuf, "%s   // size of application-window",AP_winSiz);
+  fprintf(fp1, "%s\n", txbuf);
 
 
   fclose(fp1);
@@ -2566,6 +2580,7 @@ remote control nur in VWR, nicht MAN, CAD;
 ///  7   AP_dir_prg
 ///  8   APP_act_typ, APP_act_nam
 ///  9   AP_editor
+/// 10   AP_winSiz
 ///
 /// AP_defaults_write
 /// \endcode
@@ -2655,9 +2670,18 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // Zeile 9: Texteditor
-  fgets (txbuf, 120, fp1);
-  sscanf(txbuf, "%s",AP_editor); // only 1. word, rest is comment
-  printf(" AP_editor=|%s|\n",AP_editor);
+  if(fgets (txbuf, 120, fp1)) {
+    sscanf(txbuf, "%s",AP_editor); // only 1. word, rest is comment
+    printf(" AP_editor=|%s|\n",AP_editor);
+  }
+
+
+  // line 10: size of application-window; def = "-1000,-690" see UI_win_main
+  if(fgets (txbuf, 120, fp1)) {
+    sscanf(txbuf, "%s",AP_winSiz); // only 1. word, rest is comment
+  } else strcpy(AP_winSiz, "-1000,-690");
+    printf(" AP_winSiz=|%s|\n",AP_winSiz);
+
 
 
   fclose(fp1);
@@ -2858,16 +2882,34 @@ remote control nur in VWR, nicht MAN, CAD;
 //               1 = OK; cmd & cmd1 done
 
 
-  int       i1, i2;
+  int       irc, i1;
   long      l1;
 
 
   printf("AP_work__ |%s|\n",cmd);
 
+/*
+    // TESTBLOCK
+    if(!strcmp(cmd, "test")) {
+      // UI_wait_Esc ();
+      return 0;
+    }
+    // END TESTBLOCK
+*/
+
+
+  //------------------------------------------------------------
+  // rcmd = start with remoteCommandFile
+  if(!strcmp(cmd, "rcmd")) {
+    // copy file <cmd1> -> <tmpDir>rcmd.txt
+    irc = AP_rcmd (cmd1);
+    if(!irc) AP_stat.start_rcmd = 1;
+    return 1;
+
 
   //------------------------------------------------------------
   // exit = shutdown
-  if(!strcmp(cmd, "exit")) {
+  } else if(!strcmp(cmd, "exit")) {
     UI_win_main (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
     return 0;
 
@@ -2969,6 +3011,34 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
+  int AP_rcmd (char *fNam) {
+//================================================================
+// copy file <cmd1> -> <tmpDir>rcmd.txt
+
+  char    s1[400];
+
+  printf("AP_rcmd |%s|\n",fNam);
+
+
+  // test if fNam exists
+  if(!OS_checkFilExist(fNam, 1)) {
+    TX_Error ("start remoteCommandFile - file not exists");
+    return -1;
+  }
+
+
+  // copy file <fNam> -> <tmpDir>rcmd.txt
+  sprintf(s1, "%srcmd.txt", OS_get_tmp_dir());
+    printf("AP_rcmd-to |%s|\n",s1);
+  OS_file_copy (fNam, s1);
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_exec_dll (char *cbuf) {
 //================================================================
 /// start DLL
@@ -3017,8 +3087,12 @@ remote control nur in VWR, nicht MAN, CAD;
   i1 = ERR_SET1 ();
   if(i1) {
     MSG_get_1 (s2, 256, "pluginErr1", "%s", txbuf);
-    TX_Print("*****  %s *****\n",s2);
     printf("*****  %s *****\n",s2);
+    // unload plugin <APP_act_nam>
+    DLL_run2 ("", -1);
+    // redraw
+    DL_Redraw ();
+    TX_Print("*****  %s *****\n",s2);
     return 0;
     // GUI_MsgBox (" Error in protected_routine1");    // if gtk not yet active
     // gtk_exit(1);
@@ -3843,7 +3917,7 @@ remote control nur in VWR, nicht MAN, CAD;
       return -1;
     }
 
-  // UT3D_stru_dump(Typ_VC, vco, "ex AP_vec_txt");
+  // DEB_dump_obj__(Typ_VC, vco, "ex AP_vec_txt");
   return 0;
 
 }
@@ -4205,11 +4279,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // get userCoords
   // UI_GR_get_actPosA (&p1);
-    // UT3D_stru_dump (Typ_PT, &p1, "userC");
+    // DEB_dump_obj__ (Typ_PT, &p1, "userC");
   // GR_get_constPlnPos (&p1);
-    // UT3D_stru_dump (Typ_PT, &p1, "worldC");
+    // DEB_dump_obj__ (Typ_PT, &p1, "worldC");
   // p1 = DB_GetPoint (24L);
-    // UT3D_stru_dump (Typ_PT, &p1, "P24");
+    // DEB_dump_obj__ (Typ_PT, &p1, "P24");
 
 
 
@@ -4499,7 +4573,7 @@ static char cbuf[32];
 
   L_draw1:
 
-    // UT3D_stru_dump (Typ_PT, pt, "ex AP_PT2EyeBp %d:",bp);
+    // DEB_dump_obj__ (Typ_PT, pt, "ex AP_PT2EyeBp %d:",bp);
 
   return bp;
 
@@ -4643,10 +4717,10 @@ static char cbuf[32];
 
 
   printf("AP_PT2EyePln  |%c|\n",plnTyp[0]);
-    UT3D_stru_dump (Typ_PT, p1, "  p1:");
-    UT3D_stru_dump (Typ_PT, p2, "  p2:");
-    UT3D_stru_dump (Typ_PT, pt, "  pt:");
-    UT3D_stru_dump (Typ_VC, vcs, "  vc:");
+    DEB_dump_obj__ (Typ_PT, p1, "  p1:");
+    DEB_dump_obj__ (Typ_PT, p2, "  p2:");
+    DEB_dump_obj__ (Typ_PT, pt, "  pt:");
+    DEB_dump_obj__ (Typ_VC, vcs, "  vc:");
 
 
   // change first char of plnTyp to uppercase
@@ -4788,7 +4862,7 @@ static char cbuf[32];
 
   //----------------------------------------------------------------
 
-    UT3D_stru_dump (Typ_PT, pt, "ex AP_PT2EyePln %d:",bp);
+    DEB_dump_obj__ (Typ_PT, pt, "ex AP_PT2EyePln %d:",bp);
 
   return bp;
 

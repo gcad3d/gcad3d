@@ -399,8 +399,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   // Mittelpunkte pc1 (bottom), pc2 (top).
   UT3D_pt_3db (&pc1, 0., 0., 0.);
   UT3D_pt_3db (&pc2, 0., 0., con->h);
-  UT3D_pt_traptm3 (&pc1, ma, &pc1);
-  UT3D_pt_traptm3 (&pc2, ma, &pc2);
+  UT3D_pt_tra_pt_m3 (&pc1, ma, &pc1);
+  UT3D_pt_tra_pt_m3 (&pc2, ma, &pc2);
 
 
   // PunkteTabelle bottom und top befuellen und transformieren
@@ -416,8 +416,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     pa2[i1].y = sa[i1]*d2;
     pa2[i1].z = con->h;
 
-    UT3D_pt_traptm3 (&pa1[i1], ma, &pa1[i1]);
-    UT3D_pt_traptm3 (&pa2[i1], ma, &pa2[i1]);
+    UT3D_pt_tra_pt_m3 (&pa1[i1], ma, &pa1[i1]);
+    UT3D_pt_tra_pt_m3 (&pa2[i1], ma, &pa2[i1]);
     // glVertex3dv ((double*)&pa1[i1]);
     // glVertex3dv ((double*)&pa2[i1]);
   }
@@ -453,10 +453,10 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   //======= disp solid =============================================
   L_sol:
-    // UT3D_stru_dump (Typ_PT, &pc1, "  pc1:");
-    // for(i1=0;i1<hNr;++i1)UT3D_stru_dump (Typ_PT,&pa1[i1], "  pa1[%d]:",i1);
-    // UT3D_stru_dump (Typ_PT, &pc2, "  pc2:");
-    // for(i1=0;i1<hNr;++i1)UT3D_stru_dump (Typ_PT,&pa2[i1], "  pa2[%d]:",i1);
+    // DEB_dump_obj__ (Typ_PT, &pc1, "  pc1:");
+    // for(i1=0;i1<hNr;++i1)DEB_dump_obj__ (Typ_PT,&pa1[i1], "  pa1[%d]:",i1);
+    // DEB_dump_obj__ (Typ_PT, &pc2, "  pc2:");
+    // for(i1=0;i1<hNr;++i1)DEB_dump_obj__ (Typ_PT,&pa2[i1], "  pa2[%d]:",i1);
 
 
   //----------------------------------------------------------------
@@ -595,7 +595,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].x = cah[ih] * dh;
       pa1[ih].y = sah[ih] * dh;
       pa1[ih].z = 0.;
-      UT3D_pt_traptm3 (&pa1[ih], ma, &pa1[ih]);
+      UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
         // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[ih]);
     }
@@ -607,7 +607,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].x = cah[ih] * dh;
       pa1[ih].y = sah[ih] * dh;
       pa1[ih].z = 0.;
-      UT3D_pt_traptm3 (&pa1[ih], ma, &pa1[ih]);
+      UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
         // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[ih]);
     }
@@ -620,7 +620,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[iv].x = dh + (cav[iv] * dv);
       pa1[iv].y = 0.;
       pa1[iv].z = sav[iv] * dv;
-      UT3D_pt_traptm3 (&pa1[iv], ma, &pa1[iv]);
+      UT3D_pt_tra_pt_m3 (&pa1[iv], ma, &pa1[iv]);
         // GR_Disp_pt (&pa1[iv], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[iv]);
     }
@@ -652,7 +652,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].x = cah[ih] * (dh + cav[iv] * dv);
       pa1[ih].y = sah[ih] * (dh + cav[iv] * dv);
       pa1[ih].z = sav[iv] * dv;
-      UT3D_pt_traptm3 (&pa1[ih], ma, &pa1[ih]);
+      UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
         // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
     }
     i1 += hNr;
@@ -693,8 +693,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // printf("GL_disp_prism %d %d\n",p1Nr,p2Nr);
   // for(i1=0; i1<p2Nr; ++i1) {
-   // UT3D_stru_dump(Typ_PT, &pa1[i1], "1-%d",i1);
-   // UT3D_stru_dump(Typ_PT, &pa2[i1], "2-%d",i1); }
+   // DEB_dump_obj__(Typ_PT, &pa1[i1], "1-%d",i1);
+   // DEB_dump_obj__(Typ_PT, &pa2[i1], "2-%d",i1); }
 
 
 
@@ -772,7 +772,6 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // generieren Deckflaeche
   GR_DrawSup (p2Nr, pa2, iCon);
-
 
 
 

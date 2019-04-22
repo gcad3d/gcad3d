@@ -552,7 +552,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
 
   printf("Meas_normal |%s|\n",sObj);
-  UT3D_stru_dump (Typ_PT, pt1, "  pt1: ");
+  DEB_dump_obj__ (Typ_PT, pt1, "  pt1: ");
 
 
   dynPti = DB_dyn__ (0, Typ_PT, 0L);    // save state of dyn-points
@@ -563,7 +563,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   //----------------------------------------------------------------
   // get binObj typ2,obj2 from sObj
   oTyp = APT_obj_expr ((void*)obj2, 0, sObj);
-    UT3D_stru_dump (oTyp, obj2, "Meas_normal-1");
+    DEB_dump_obj__ (oTyp, obj2, "Meas_normal-1");
 
 
   // if obj is line: make unlimited line (else UPRJ_app__ error)
@@ -586,7 +586,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
     TX_Print("Meas_normal E1");
     return -1;
   }
-    UT3D_stru_dump (Typ_ObjGX, &ox1, "Meas_normal-2");
+    DEB_dump_obj__ (Typ_ObjGX, &ox1, "Meas_normal-2");
 
   *pto = *((Point*)ox1.data);
 
@@ -645,7 +645,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   if(Meas_ie != 0) goto L_upd1;
 
     APT_obj_expr (&pt1, Typ_PT, p1);
-      UT3D_stru_dump (Typ_PT, &pt1, "spt1: ");
+      DEB_dump_obj__ (Typ_PT, &pt1, "spt1: ");
 
     // diplay pt1
     dl1 = -2L;
@@ -670,7 +670,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       } else {
         Meas_normal (&pt2, &pt1, p2);
       }
-        UT3D_stru_dump (Typ_PT, &pt2, "spt2: ");
+        DEB_dump_obj__ (Typ_PT, &pt2, "spt2: ");
 
       // diplay pt2
       dl1 = -3L;

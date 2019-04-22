@@ -110,7 +110,7 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
 
 
   // printf("====================================== UT3D_obj_cnvt_srbsp in:\n");
-  // UT3D_stru_dump (Typ_SURRBSP, spi, "");
+  // DEB_dump_obj__ (Typ_SURRBSP, spi, "");
   // return -1;  // TEST ONLY
   irc = -1;
 
@@ -360,7 +360,7 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
 
   // TESTOUT:
   // printf("ex UT3D_obj_cnvt_srbsp |%s|\n",cBuf);
-  // if(irc == 0) UTO_dump_s_ (opo, "ex UT3D_obj_cnvt_srbsp");
+  // if(irc == 0) DEB_dump_ox_s_ (opo, "ex UT3D_obj_cnvt_srbsp");
   // TESTOUT:
 
   return irc;
@@ -397,7 +397,7 @@ Returncodes:
 
 
   // printf("zzzzzzzzzz  UT3D_pt_evparsrbsp %f,%f\n",u,v);
-  // UT3D_stru_dump (Typ_SURRBSP, sur, "");
+  // DEB_dump_obj__ (Typ_SURRBSP, sur, "");
 
 
   // space for v-curve control points
@@ -449,7 +449,7 @@ Returncodes:
   // release work space
   workSeg->next = memstart;
 
-  // UT3D_stru_dump (Typ_PT, pt, "ex UT3D_pt_evparsrbsp %f %f:",u,v);
+  // DEB_dump_obj__ (Typ_PT, pt, "ex UT3D_pt_evparsrbsp %f %f:",u,v);
     // exit(0);
   return 0;
 
@@ -475,7 +475,7 @@ L_outOfWorkSpace:
   *pNr = 0;
 
 
-  // UT3D_stru_dump (Typ_SURBSP, sur, "UT3D_cv_srbspout %d\n",pMax);
+  // DEB_dump_obj__ (Typ_SURBSP, sur, "UT3D_cv_srbspout %d\n",pMax);
 
 
   //----------------------------------------------------------------
@@ -772,7 +772,7 @@ L_outOfWorkSpace:
 
 /*
   //==== TESTAUSG: ================================
-  UT3D_stru_dump(Typ_PT, pti,
+  DEB_dump_obj__(Typ_PT, pti,
          "\n=============================================\n"
          "UT3D_parsbsp_pt uNr=%d vNr=%d du=%f dv=%f\n",
           uNr,vNr,dui,dvi);
@@ -963,7 +963,7 @@ L_outOfWorkSpace:
       // GR_Disp_vc(&vcz, pti, 2, 1);
       UT3D_2angr_vc (&az, &ay, &vcz);
       // printf(" az=%f ay=%f\n",az,ay);
-      plMain = UT3D_bp_vcz (&vcz);
+      plMain = UT3D_bp_perp_vc (NULL, &vcz);
       // printf(" plMain=%d\n",plMain);
     }
 
@@ -1222,7 +1222,7 @@ L_outOfWorkSpace:
   // letzter Punkt der ersten Kurve
   i1 = 0;
   i2 = su1->ptUNr - 1;
-    // UT3D_stru_dump (Typ_PT,  &su1->cpTab[i1], " p[i1]");
+    // DEB_dump_obj__ (Typ_PT,  &su1->cpTab[i1], " p[i1]");
 
   if(UT3D_comp2pt(&su1->cpTab[i1],
                   &su1->cpTab[i2], UT_DISP_cv) == 0) goto L_exit;
@@ -1231,7 +1231,7 @@ L_outOfWorkSpace:
 
   i1 = su1->ptUNr * (su1->ptVNr - 1);
   i2 = (su1->ptUNr * su1->ptVNr) - 1;
-    // UT3D_stru_dump (Typ_PT,  &su1->cpTab[i1], " p[i1]");
+    // DEB_dump_obj__ (Typ_PT,  &su1->cpTab[i1], " p[i1]");
 
   if(UT3D_comp2pt(&su1->cpTab[i1],
                   &su1->cpTab[i2], UT_DISP_cv) == 0) goto L_exit;
@@ -1269,7 +1269,7 @@ L_outOfWorkSpace:
   rbspl->cpTab = &(sur->cpTab[vNr*sur->ptUNr]);
   rbspl->wTab  = &(sur->wTab[vNr*sur->ptUNr]);
 
-  // UT3D_stru_dump (Typ_CVRBSP, rbspl, "ex UT3D_rbsp_srbspU");
+  // DEB_dump_obj__ (Typ_CVRBSP, rbspl, "ex UT3D_rbsp_srbspU");
 
   return 0;
 
@@ -1319,7 +1319,7 @@ L_outOfWorkSpace:
     wa[i1]  = sur->wTab[i2];
   }
 
-  // UT3D_stru_dump (Typ_CVRBSP, rbspl, "ex UT3D_rbsp_srbspV");
+  // DEB_dump_obj__ (Typ_CVRBSP, rbspl, "ex UT3D_rbsp_srbspV");
 
   return 0;
 
@@ -1357,7 +1357,7 @@ L_outOfWorkSpace:
 
   // eine Rat.B-Spline Surf. laden
   UT3D_srbsp_tst_load (&su1, &tbuf1);
-  // UT3D_stru_dump (Typ_SURRBSP, su1.data, "");
+  // DEB_dump_obj__ (Typ_SURRBSP, su1.data, "");
   sur = su1.data;
   
 

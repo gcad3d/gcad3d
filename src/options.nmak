@@ -4,7 +4,9 @@
 VGUI = gtk2_MS
 #VGUI = gtk3   MS not yet ..
 
-
+# Debug 1=Development; Debug-ON
+#       2=Distribute;  Debug-OFF
+DEB = 1
 
 # do not modify ....
 #BITS = $(shell getconf LONG_BIT)  MS ?

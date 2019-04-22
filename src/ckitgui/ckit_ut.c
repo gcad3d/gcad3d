@@ -49,6 +49,7 @@ TX_Print
 TX_Error
 TX_Write
 
+DEB_dump_obj__
 MSG_get_1              DUMMY
 MSG_err_1              DUMMY
 MSG_pri_1              DUMMY
@@ -508,6 +509,21 @@ int AP_tutStat_get () {
   return 0;
 }
 
+
+int DEB_dump_obj__ (int typ, void *data, char *txt, ...) {
+  char    TX_buf1[1024];
+  va_list va;
+
+  printf("DEB_dump_obj__: %s\n",txt);
+  va_start(va,txt);
+  strcpy(TX_buf1, "*** DEB_dump_obj__: ");
+                // o1234567890123456789
+  vsprintf(&TX_buf1[20],txt,va);
+  va_end(va);
+  TX_Write (TX_buf1);
+
+  return 0;
+}
 
 
 

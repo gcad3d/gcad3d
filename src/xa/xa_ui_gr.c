@@ -312,7 +312,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 // CAN BE RECURSIVE !  (AP_init__)
 
 
-  int     i1;
+  int     i1, i2;
 
 
   // printf("UI_GL_draw__ event=%d %d %d\n",
@@ -339,8 +339,9 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   //----------------------------------------------------------------
   L_Config:
   if(GUI_DATA_EVENT != TYP_EventConfig) goto L_draw;       // 306
-  if(AP_stat.sysStat < 2) {
 
+  if(AP_stat.sysStat < 2) {
+    // GUI (OpenGL) not yet up; 
     i1 = ERR_SET1 ();
     if(i1) {
       printf("Fehler beim Aktivieren von OpenGL\n");
@@ -350,7 +351,6 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
     }
 
     GUI_gl_set_active (1, mo);
-      // config
       GL_Init__ (0, GUI_DATA_I1, GUI_DATA_I2); // width, height);
     GUI_gl_set_active (0, mo);
 
@@ -362,11 +362,14 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
     // setup view-buttons; primary statup
     GL_DefineView (FUNC_Init);
 
-    return 0; // mit diesem event kein enter_notify_event möglich !
+    return 0;
 
   }
 
+// TODO:  cannot change windowsize from program; only manually ..
+// TODO:  cannot reduce windowsize manually ..
 
+  // resize window
   GUI_gl_set_active (1, mo);
     GL_Resize (GUI_DATA_I1, GUI_DATA_I2); // width, height);
   GUI_gl_set_active (0, mo);
@@ -3352,7 +3355,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
 /
   // if((WC_sur_ind != 0)&&(UI_RelAbs == 0)) {
-    // UT3D_pt_traptm3 (&pt1, WC_sur_imat, &GR_CurUk);
+    // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &GR_CurUk);
   // } else {
     // pt1 = GR_CurUk;
   // }
@@ -3511,7 +3514,7 @@ static  Point  selPos;
 
   // get mouseposition in userCoords
   sele_get_pos (&selPos);
-    // UT3D_stru_dump (Typ_PT, &selPos, " selPos");
+    // DEB_dump_obj__ (Typ_PT, &selPos, " selPos");
 
   reqTyp = sele_get_reqTyp ();
     // printf(" reqTyp=%d\n",reqTyp);
@@ -3753,7 +3756,7 @@ static  Point  selPos;
 
     // test for component of curve; eg provide also line for polygon
       // printf(" ck-subCurv typ=%d dbi=%ld reqTyp=%d\n",typ,dbi,reqTyp);
-      // UT3D_stru_dump (Typ_PT, &selPos, "ex sele_get_pos");
+      // DEB_dump_obj__ (Typ_PT, &selPos, "ex sele_get_pos");
     // returns up to 3 obj's in sca; subCurve S, P and D.
     sele_ck_subCurv (sca, typ, dbi, &selPos);
 
@@ -3799,7 +3802,7 @@ static  Point  selPos;
 
 
       // get all parents of DB-obj
-        // UT3D_dump_dbo (Typ_CV, dbi, " _subCurv-add-CV");
+        // DEB_dump_dbo (Typ_CV, dbi, " _subCurv-add-CV");
       oPar = OSRC_NUL;
       oPar.typ  = typ;
       oPar.dbi  = dbi;
@@ -5729,7 +5732,7 @@ static Point   pt1;
 
   // in UCS umrechnen ..
   if(WC_sur_ind != 0) {
-    UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+    UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
   }
 
 
@@ -5824,7 +5827,7 @@ static Point   pt1;
 /// \endcode
 
 // retour into worldCoords:
-// if(WC_sur_ind != 0) UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+// if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 
 
   // printf("UI_GR_get_actPosA GR_CurUk=%f,%f,%f\n",
@@ -5835,7 +5838,7 @@ static Point   pt1;
   // die PosKoord. GR_CurUk in ein Ausgabefenster geschr. werden.
   // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
   if((WC_sur_ind != 0)&&(UI_RelAbs == 0)) {
-    UT3D_pt_traptm3 (curPosAbs, WC_sur_imat, &GR_CurUk);
+    UT3D_pt_tra_pt_m3 (curPosAbs, WC_sur_imat, &GR_CurUk);
   } else {
     *curPosAbs = GR_CurUk;
   }
@@ -5975,8 +5978,8 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
   // retour ins absolute ..
   if(WC_sur_ind != 0) {
-    UT3D_pt_traptm3 (&pt2, WC_sur_imat, &pt1);
-      UT3D_stru_dump (Typ_PT, &pt1, "pt-ind: ");
+    UT3D_pt_tra_pt_m3 (&pt2, WC_sur_imat, &pt1);
+      DEB_dump_obj__ (Typ_PT, &pt1, "pt-ind: ");
   } else {
     pt2 = pt1;
   }
@@ -6045,10 +6048,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     // MAN only: display indicated position
     // ( CAD removes this symbold selective if necessary)
     if(UI_InpMode == UI_MODE_MAN) {
-        // UT3D_stru_dump (Typ_PT, &pt2, "MAN-pt2:");
+        // DEB_dump_obj__ (Typ_PT, &pt2, "MAN-pt2:");
 
       if(WC_sur_ind != 0) {
-        UT3D_pt_traptm3 (&pt2, WC_sur_mat, &pt2);
+        UT3D_pt_tra_pt_m3 (&pt2, WC_sur_mat, &pt2);
       }
 
       // l1 = -2;
@@ -6095,7 +6098,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
         // printf(" Obj2PP %d %ld\n",GR_selTyp,GR_selDbi);
       // GL_MousePos (&pSel);
       // GL_GetActSelPos (&pSel, &pS2);
-        // UT3D_stru_dump (Typ_PT, &pSel, "pSel:");
+        // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
         // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
       sele_get_pos (&pSel);
 
@@ -6133,7 +6136,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
         // printf(" Obj2LN %d %ld\n",GR_selTyp,GR_selDbi);
       // GL_MousePos (&pSel);
       sele_get_pos (&pSel);
-        // UT3D_stru_dump (Typ_PT, &pSel, "pSel:");
+        // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
         // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
 
       // temp.display of position - nur im MAN-Mode
@@ -6193,7 +6196,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
         // printf(" Obj2P %d %ld\n",GR_selTyp,GR_selDbi);
       // get coords of sel. Obj
       GL_MousePos (&pSel);
-        // UT3D_stru_dump (Typ_PT, &pSel, "pSel:");
+        // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
       // new objTyp
       GR_selTyp = Typ_TmpPT;
       sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
@@ -6210,7 +6213,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // // give parametric-point from cursorposition on selected object
         // // printf(" Obj2PP %d %ld\n",GR_selTyp,GR_selDbi);
       // GL_MousePos (&pSel);
-        // // UT3D_stru_dump (Typ_PT, &pSel, "pSel:");
+        // // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
         // // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
       // // temp.display of position - nur im MAN-Mode
       // if(UI_InpMode == UI_MODE_MAN) {
@@ -6716,7 +6719,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     if(typ == Typ_Model) {
       // ModelReference
       mrRec = DB_get_ModRef (dbi); 
-      // UT3D_stru_dump (typ, mrRec, "M%d:",ind);
+      // DEB_dump_obj__ (typ, mrRec, "M%d:",ind);
       // den BasisModelRecord holen
       mbRec = DB_get_ModBas (mrRec->modNr);
       sprintf(s1, "%sf %s (Model %s)",sf,buf,mbRec->mnam);

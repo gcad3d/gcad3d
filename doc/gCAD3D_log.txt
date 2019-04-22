@@ -1,3 +1,15 @@
+===========================================================================
+Version 2.44 / 2019-04-10
+
+- CAD: new offset-curves for all planar curves (for cutting, milling)
+- CAD: Modify TRAnslate and TRAnform can use trimmed curves
+- CAD: Curves "BSpline < convert & join obj's" can use trimmed curves
+- RemoteControl: new command "WAIT_ESC" (wait until ESC-key is pressed)
+- new startparameter "start remoteCommandFile"; see www.gCAD3D.org/doc/Settings_en.htm#Start
+
+Programlines (C)  463510
+Functions           4752
+
 
 ===========================================================================
 Version 2.43 / 2018-11-16

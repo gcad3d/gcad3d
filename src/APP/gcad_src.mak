@@ -70,16 +70,17 @@ SRC1 =\
   ../xa/xa_obj_txt.c ../xa/xa_mod.c     ../xa/xa_edi__.c   ../xa/xa_ed.c\
   ../xa/xa_ed_mem.c  ../xa/xa_src.c     ../xa/xa_ato.c     ../xa/xa_grp.c\
   ../xa/xa_ga.c      ../xa/xa_dll.c     ../xa/xa_app.c     ../xa/xa_appDat.c\
-  ../xa/catalog.c    ../xa/ckint_fac.c  ../db/ut_DB.c      ../db/ut_dbo.c\
-  ../ci/NC_Main.c    ../ci/NC_apt.c\
+  ../xa/catalog.c    ../xa/ckint_fac.c  ../xa/cvoff2.c\
+  ../db/ut_DB.c      ../db/ut_dbo.c\
+  ../ci/NC_Main.c    ../ci/NC_apt.c     ../ut/ut3d_npt.c   ../ut/ut2d_npt.c\
   ../ut/ut_gtypes.c  ../ut/ut_ox_base.c ../ut/ut_transform.c ../ut/ut_ui_TX.c\
   ../ut/ut_pspl.c    ../ut/ut_bspl.c    ../ut/ut_rbspl.c   ../ut/ut_bsp_approx.c\
   ../ut/cvClot.c     ../ut/utemp.c      ../ut/cirMoeb.c    ../ut/ut_col.c\
   ../ut/ut_srv.c     ../ut/ut_sru.c     ../ut/ut_dump.c    ../ut/ut_err.c\
-  ../ut/ut_surstd.c  ../ut/ut_sbsp.c    ../ut/ut_srbsp.c   ../ut/ut_npt.c\
+  ../ut/ut_surstd.c  ../ut/ut_sbsp.c    ../ut/ut_srbsp.c   ../ut/ut_objtab.c\
   ../ut/ut_bez.c     ../ut/ut_rbez.c    ../ut/ut_tria.c    ../ut/ut_quat.c\
   ../ut/ut_plg.c     ../ut/ut_cvtrm.c   ../ut/ut_elli.c    ../ut/ut_cvApp.c\
-  ../ut/ut_sdc.c     ../ut/tri_orient.c ../ut/ut_project.c ../ut/cv_parl_pln.c\
+  ../ut/ut_sdc.c     ../ut/tri_orient.c ../ut/ut_project.c\
   ../ut/ut_tess.c    ../ut/ut_hatch.c   ../ut/ut_log.c\
   ../ut/ubs.c        ../ut/ubscrv.c     ../ut/ubssur.c     ../ut/sbsu1.c\
   ../ut/u3d.c        ../ut/ut_cvoff.c   ../ut/ut_msh.c     ../ut/ut_face.c\
@@ -91,20 +92,23 @@ SRC1 =\
   ../ut/ut_txTab.c   ../ut/ut_int.c     ../ut/ut_uti.c     ../ut/byteorder.c\
   ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/ut_os__.c    ../ut/ut_BitTab.c\
 
-# ../ut/ut_objtab.c
 # ../xa/tess2dg.c
 # ../ut/ut_prcv.c
 # ../ut/ut_cntf.c
 # ../exp/ut_exp.c\
 # ../xa/xa_cont.c     replaced by ../ut/ut_cntf.c
+# ../ut/cv_parl_pln.c replaced by ../xa/cvoff2.c
 
 # sources of applications; not used in batch
 SRCA =\
-  ../exp/bmp_ut.c   ../exp/lwo_r.c     ../exp/lxml.c      ../exp/ds3_r.c\
-  ../exp/ige_w.c    ../exp/prt_w.c     ../exp/print_pdf.c ../exp/csv_ut.c\
-  ../gr/ut_gr.c     ../gr/ut_GL.c      ../gr/ut_DL.c      ../gr/ut_gtx.c\
-  ../gr/gru.c       ../gr/ut_dim.c\
-  ../gr/gl_sSym.c   ../gr/gl_solids.c
+  ../exp/bmp_ut.c\
+  ../exp/csv_ut.c    ../exp/print_pdf.c\
+  ../exp/ds3_r.c     ../exp/ige_w.c     ../exp/prt_w.c\
+  ../exp/lwo_r.c\
+  ../exp/lxml.c\
+  ../gr/ut_gr.c      ../gr/ut_GL.c      ../gr/ut_DL.c      ../gr/ut_gtx.c\
+  ../gr/gru.c        ../gr/ut_dim.c\
+  ../gr/gl_sSym.c    ../gr/gl_solids.c
 
 # ../wc/wcut.c      ../wc/wc_pock.c    ../wc/ut_nc.c\
 # ../ci/NC_drill.c\
@@ -113,17 +117,18 @@ SRCA =\
 
 # ../ut/ut_tess.c\
 # ../ut/ut_surstd.c\
-# ../exp/dxf_w.c
-# ../exp/wrl_ut.c\
-# ../exp/obj_ut.c\
-# ../wc/wc_g.c      ../wc/wc_t.c\
+
+# Files in plugins:
+# ../exp/ige_r.c ../exp/svg_w.c ../exp/vr2_r.c ../exp/wrl_ut.c
+# ../exp/dxf_w.c ../exp/dxf_r.c ../exp/dxf_ut.c
+# ../exp/stl_r.c ../exp/obj_ut.c ../exp/stp_w.c ../exp/stp_r.c
 
 
 # wichtige includefiles fuer etags (damit sind Inlinefunctions im tagFile)
 SRC3 =\
-  ../ut/ut_geo.h ../ut/ut_txt.h ../ut/ut_BitTab.h\
-  ../ut/ut_types.h ../ut/gr_types.h ../ut/AP_types.h\
-  ../ut/ut_mem.h ../ut/ut_umem.h ../db/ut_DB.h ../xa/xa_sele.h 
+  ../ut/ut_geo.h     ../ut/ut_txt.h    ../ut/ut_BitTab.h\
+  ../ut/ut_types.h   ../ut/gr_types.h  ../ut/AP_types.h\
+  ../ut/ut_mem.h     ../ut/ut_umem.h   ../db/ut_DB.h      ../xa/xa_sele.h 
 # ../gtk/ut_gtk.h
 
 

@@ -8,7 +8,8 @@
 # set SW-Version
 Version=`cat ${DIR_DEV}gcad3d/src/gcad_version`
 
-# set ${platform} - x86_64|i386
+# set ${platform} - x86_64|i386|i586|i686
+# see ../debian/platform_deb.sh     only x86_64|i386 - ??
 #platform=`uname -s`_`uname -i`
 platform=`uname -i`
 

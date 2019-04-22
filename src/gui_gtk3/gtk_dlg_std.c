@@ -223,7 +223,7 @@ static MemObj UI_DialogEntryWin;
 /// GUI_Dialog_e2b         dialogWindow w. entry, 2 Buttons, waiting.
 ///
 /// Input
-///   txt         label
+///   txt         label (newline with \n)
 ///   entry       entrytext, in & out
 ///   eSiz        size of inputfield entry (max. nr of chars)
 ///   tb1         caption button 1

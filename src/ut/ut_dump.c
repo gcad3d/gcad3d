@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+Difference DEB_dump_ox_0 - DEB_dump_obj__
 
 -----------------------------------------------------
 Modifications:
@@ -31,31 +31,43 @@ Modifications:
 =====================================================
 List_functions_start:
 
-UT3D_stru_dump          dump object
-UT3D_nstru_dump         dump n object's
-UT3D_dump_n             dump n object's
-UT3D_dump__             dump object
-UT3D_dump_dbo           dump DB-object
-UT3D_dump_txt
-OVR_dump_add
+DEB_dump_ox_0           dump object
+DEB_dump_obj__          dump object
+DEB_dump_obj_1          dump n bin-obj's and its pointers, do not resolve.
+DEB_dump_nobj__         dump n object's
+DEB_dump_nobj_1         dump bin-obj
+
+DEB_dump_ox__           dump complex-obj (ObjGX)
+DEB_dump_ox_1
+DEB_dump_ox_s_          dump obj - structured display
+DEB_dump_ox_s1
+DEB_dump_ox_sWri
+
+DEB_dump_dbo            dump DB-object
+DEB_dump_ObjRange
+
+DEB_dump_ntxt           dump n object's
+DEB_dump_txt
+DEB_dump__              dump object
 
 List_functions_end:
 =====================================================
 see also
 DBO_dump__
-UT3D_dump_txt
+DEB_dump_ox_0              dump ObjGX
+DEB_dump_txt
 \endcode *//*----------------------------------------
 
 
 
-  UT3D_stru_dump (Typ_PT, &pt1, "indicatedPos=");
+  DEB_dump_obj__ (Typ_PT, &pt1, "indicatedPos=");
 
-  UT3D_stru_dump (TYP_FuncAdd, fnam, "");    // dump file
+  DEB_dump_obj__ (TYP_FuncAdd, fnam, "");    // dump file
 
   sprintf(cbuf, "\n put out this text ..\n");
-  UT3D_stru_dump(Typ_Txt, cbuf, "");
+  DEB_dump_obj__(Typ_Txt, cbuf, "");
 
-  UT3D_dump_txt("Date:          %s",OS_date1());
+  DEB_dump_txt("Date:          %s",OS_date1());
 
 
 */
@@ -82,6 +94,12 @@ UT3D_dump_txt
 #include "../xa/xa_ico.h"              // ICO_PT,
 
 
+// prototypes:
+  typedef_MemTab(ObjRange);
+
+  int DEB_dump_obj__ (int typ, void *data, char *txt, ...);
+  int DEB_dump_ox_0 (ObjGX *oxi, char *txt, ...);
+  int DEB_dump_ox_1 (ObjGX *oxi, char *txt, ...);
 
 
 // LOCAL:
@@ -91,9 +109,9 @@ UT3D_dump_txt
 
 
 //====================================================================
-  int UT3D_nstru_dump (int form, int oNr, void *obj, char *txt) {
+  int DEB_dump_nobj__ (int form, int oNr, void *obj, char *txt) {
 //====================================================================
-/// UT3D_dump_n             dump n object's
+/// DEB_dump_ntxt             dump n object's
 
   int      i1;
   long     il1;
@@ -101,13 +119,13 @@ UT3D_dump_txt
   void     *vp1;
 
 
-  printf("UT3D_nstru_dump typ=%d txt=|%s|\n",form,txt);
+  printf("DEB_dump_nobj__ typ=%d txt=|%s|\n",form,txt);
 
   il1 = UTO_siz_stru (form);
 
   for(i1=0; i1<oNr; ++i1) {
     sprintf(oNam, " %s[%d]", txt, i1);
-    UT3D_stru_dump (form, obj, oNam);
+    DEB_dump_obj__ (form, obj, oNam);
     // obj += il1;
     obj = (char*)obj + il1;
   }
@@ -118,7 +136,7 @@ UT3D_dump_txt
 
 
 //================================================================
-  int UT3D_dump_txt (char* txt, ...) {
+  int DEB_dump_txt (char* txt, ...) {
 //================================================================
 /// formatiertes Rausschreiben; wie bei printf.
 /// Beispiel:
@@ -138,7 +156,7 @@ UT3D_dump_txt
     // cbuf1[256] ='\0';
   // }
 
-  UT3D_stru_dump (Typ_Txt, cbuf1, "");
+  DEB_dump_obj__ (Typ_Txt, cbuf1, "");
 
   return 0;
 
@@ -146,15 +164,15 @@ UT3D_dump_txt
 
 
 //================================================================
-  int UT3D_dump_dbo (int typ, long dbi, char *txx) {
+  int DEB_dump_dbo (int typ, long dbi, char *txx) {
 //================================================================
-/// UT3D_dump_dbo            dump DB-object
+/// DEB_dump_dbo            dump DB-object
 
   int     i1, iNr, oSiz;
   char    oid[40],  *data;
 
 
-  printf("UT3D_dump_dbo %d %ld |%s|\n",typ,dbi,txx);
+  printf("DEB_dump_dbo %d %ld |%s|\n",typ,dbi,txx);
 
   APED_oid_dbo__  (oid, typ, dbi);
 
@@ -165,7 +183,7 @@ UT3D_dump_txt
 
   // dump data
   for(i1=0; i1<iNr; ++i1) {
-    UT3D_stru_dump (typ, (void*)data, " %s %s",oid,txx);
+    DEB_dump_obj__ (typ, (void*)data, " %s %s",oid,txx);
     data += oSiz;
   }
 
@@ -176,16 +194,16 @@ UT3D_dump_txt
 
 
 //===============================================================
-  int UT3D_stru_dump (int typ, void *data, char *txt, ...) {
+  int DEB_dump_obj__ (int typ, void *data, char *txt, ...) {
 //===============================================================
 /// \code
-/// UT3D_stru_dump            Testausgabe Geom.Element.
+/// DEB_dump_obj__            Testausgabe Geom.Element.
 /// typ = TYP_FuncInit:  ab nun Ausgabe -> Datei "txt"  (Open File)
 /// typ = TYP_FuncEnd:   ab nun wiederAusgabe -> term.  (Close File)
 /// typ = TYP_FuncInit1: ab nun Ausgabe -> FILE "txt"  (File must be open)
 /// typ = TYP_FuncExit:  ab nun wiederAusgabe -> term.  (does not close File)
 ///
-/// resolv ObjGX: see UTO_dump__
+/// resolv ObjGX: see DEB_dump_ox_0
 /// \endcode
 
 
@@ -199,7 +217,7 @@ static FILE     *uo = NULL;
   va_list    va;
 
 
-  // printf("UT3D_stru_dump typ=%d txt=|%s|\n",typ,txt);
+  // printf("DEB_dump_obj__ typ=%d txt=|%s|\n",typ,txt);
 
 
 
@@ -210,7 +228,7 @@ static FILE     *uo = NULL;
     // if(uo) fclose (uo);  GEHT nicht mit stdout; kein reOpen moeglich
     uo = NULL;
     if((uo=fopen(txt,"w")) == NULL) {
-        TX_Print("UT3D_stru_dump open Error |%s|",txt);
+        TX_Print("DEB_dump_obj__ open Error |%s|",txt);
         return -1;
     }
     if(data) {
@@ -278,13 +296,13 @@ static FILE     *uo = NULL;
   irc = -1;
   i1 = 100000;  // space for outputdata
   tmpSpc = (char*) malloc (i1); 
-  if(!tmpSpc) {TX_Print("***** UT3D_stru_dump EOM *****"); return -1;}
+  if(!tmpSpc) {TX_Print("***** DEB_dump_obj__ EOM *****"); return -1;}
   UtxTab_init_spc (&txTab1, tmpSpc, i1);
 
   // create strings of infos about struct
-  i1 = UT3D_dump__ (&txTab1, typ, data, cbuf, -1, 0);
+  i1 = DEB_dump__ (&txTab1, typ, data, cbuf, -1, 0);
   if(i1 < 0) goto L_exit;
-    // printf(" UT3D_stru_dump - nach UT3D_dump__\n");
+    // printf(" DEB_dump_obj__ - nach DEB_dump__\n");
 
 
   // add infos about struct to node parNd
@@ -309,7 +327,7 @@ static FILE     *uo = NULL;
   free (tmpSpc);
   // es ist kein UtxTab_free erforderlich - tmpSiz liegt in tempspace !!!!!!
 
-    // printf("ex UT3D_stru_dump\n");
+    // printf("ex DEB_dump_obj__\n");
 
   return irc;
 
@@ -317,7 +335,7 @@ static FILE     *uo = NULL;
 
 
 //=======================================================================
-  int UT3D_dump_n (TxtTab *sTab, int form, void *obj, int oNr, char *txt,
+  int DEB_dump_ntxt (TxtTab *sTab, int form, void *obj, int oNr, char *txt,
                   int ipar, int mode) {
 //=======================================================================
 /// \code
@@ -342,10 +360,10 @@ static FILE     *uo = NULL;
   void     *vp1;
 
 
-  // printf("UT3D_dump_n form=%d txt=|%s| oNr=%d ipar=%d\n",form,txt,oNr,ipar);
+  // printf("DEB_dump_ntxt form=%d txt=|%s| oNr=%d ipar=%d\n",form,txt,oNr,ipar);
 
 
-  if(oNr < 2) return UT3D_dump__ (sTab, form, obj, txt, ipar, mode);
+  if(oNr < 2) return DEB_dump__ (sTab, form, obj, txt, ipar, mode);
 
   sprintf (oNam, "123456 %s %s - %d records", AP_src_typ__(form), txt, oNr);
   UT3D_dump_add (sTab, oNam, ipar, ICO_CV);
@@ -357,7 +375,7 @@ static FILE     *uo = NULL;
 
     sprintf(oNam, " %s[%d]", txt, i1);
 
-    irc = UT3D_dump__ (sTab, form, obj, oNam, ipar, mode);
+    irc = DEB_dump__ (sTab, form, obj, oNam, ipar, mode);
     if(irc < 0) return irc;
 
     // obj += il1;
@@ -371,7 +389,7 @@ static FILE     *uo = NULL;
 
 
 //===============================================================
-  int UT3D_dump__ (TxtTab *sTab, int typ, void *data, char *iTxt,
+  int DEB_dump__ (TxtTab *sTab, int typ, void *data, char *iTxt,
                   int ipar, int mode) {
 //===============================================================
 // create info-textstrings describing binary object typ/data (structured)
@@ -386,22 +404,22 @@ static FILE     *uo = NULL;
 //   characters 0-3 = level (ParentRecordNr)
 //   characters 4-5 = IconNr
 
-// UT3D_dump__ < UTO_dump__: typ is ox->form !
+// DEB_dump__ < DEB_dump_ox_0: typ is ox->form !
 
 // icons see ../gtk/ut_tree_it.h
 // ICO_data for binary data,
 // ICO_link for links into DB
 
-//see UT3D_stru_dump
+//see DEB_dump_obj__
 
 
   void     *v1;
   int      irc, i1, i2, i3, ptNr, sTyp, *ia;
   long     dbi, il1;
-  char     oNam[32], s1[64], s2[64], cbuf[256], txt[240], *cps, *cp1;
+  char     oNam[32], s1[64], s2[64], cbuf[512], txt[240], *cps, *cp1;
   double   d1, *dp;
   Point    *p1, *ptAr;
-  Point2   *pt2Ar;
+  Point2   *p2, *pt2Ar;
   // Ray      *lnr;
   Line     *ln1;
   Line2    *ln2;
@@ -424,7 +442,8 @@ static FILE     *uo = NULL;
   Verts      *verts1;
   Faces      *faces1;
   Edges      *edges1;
-  CurvPoly   *plg;
+  CurvPoly   *plg3;
+  CurvPol2   *plg2;
   Polynom1   *pol1;
   Polynom3   *pol3;
   polynom_d3 *pold3;
@@ -456,11 +475,12 @@ static FILE     *uo = NULL;
   wPoint   *wpt;
   CurvPrcv *prcv;
   GridBox  *gb1;
+  Mat_4x3  *m43;
   // EdgSur   *esa;
 
 
 
-  // printf("UT3D_dump__ typ=%d txt=|%s| ipar=%d\n",typ,txt,ipar);
+  // printf("DEB_dump__ typ=%d txt=|%s| ipar=%d\n",typ,txt,ipar);
   // printf(" data=%p\n",data);
 
 
@@ -474,16 +494,17 @@ static FILE     *uo = NULL;
 */
 
 
+/*  TODO: do -not use in dll (else no fallback..)
   i1 = ERR_SET1 ();
   if(i1) {
-    TX_Print("***** ERROREXIT UT3D_dump__ %d *****\n",typ);
+    TX_Print("***** ERROREXIT DEB_dump__ %d *****\n",typ);
     irc = -1;
     goto L_done;
   }
+*/
 
 
-
-  cps = &cbuf[6];    // size max 250 !
+  cps = &cbuf[6];    // size max 512
 
   // get text with max.length of 240
   i1 = strlen(iTxt);
@@ -499,10 +520,11 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   if(typ == Typ_PT2) {
-    p1 = data;
+    // p1 = data;
     sprintf(cps,"Point2 %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(Point2) %9.3f,%9.3f", p1->x, p1->y);
+    i3 = sprintf(cps,"(Point2) %9.3f,%9.3f",((Point2*)data)->x,((Point2*)data)->y);
+    if(i3 > 60) strcpy (cps, "(Point) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -640,9 +662,8 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
     sprintf(cps,"(CurvEll2C).p2=%9.3f,%9.3f",el2c->p2.x,el2c->p2.y);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(CurvEll2).a=%9.3f",el2c->a);
-    UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps,"(CurvEll2).b=%9.3f",el2c->b);
+    sprintf(cps,"(CurvEll2C).a=%9.3f  b=%9.3f  angs=%9.3f  ango=%9.3f",
+            el2c->a, el2c->b, el2c->angs, el2c->ango);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
   
 
@@ -661,7 +682,8 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
     sprintf(cps,"(CurvEll2).vb=%9.3f,%9.3f",e2->vb.dx,e2->vb.dy);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps,"(CurvEll2).sr=%d clo=%d trm=%d",e2->srot,e2->clo,e2->trm);
+    sprintf(cps,"(CurvEll2).ango=%9.3f sr=%d clo=%d trm=%d",
+            e2->ango, e2->srot, e2->clo, e2->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -682,7 +704,8 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
     sprintf(cps,"(CurvElli).vz=%9.3f,%9.3f,%9.3f",e1->vz.dx,e1->vz.dy,e1->vz.dz);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
-    sprintf(cps,"(CurvElli).sr=%d .clo=%d .trm=%d",e1->srot,e1->clo,e1->trm);
+    sprintf(cps,"(CurvElli).ango=%9.3f sr=%d clo=%d trm=%d",
+            e1->ango, e1->srot, e1->clo, e1->trm);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -755,27 +778,48 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVPOL) {
-    plg = data;
+    plg3 = data;
     sprintf(cps,"Polygon %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
     sprintf(cps,"(CurvPoly).ptNr=%d v0=%.3f v1=%.3f dir=%d clo=%d trm=%d",
-            plg->ptNr, plg->v0, plg->v1, plg->dir, plg->clo, plg->trm);
+            plg3->ptNr, plg3->v0, plg3->v1, plg3->dir, plg3->clo, plg3->trm);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
     strcpy (s1, "---");
-    for(i1=0; i1<plg->ptNr; ++i1) {
+    for(i1=0; i1<plg3->ptNr; ++i1) {
       // if(i1>50) break;
-      if(plg->lvTab) sprintf(s1, "%.3f", plg->lvTab[i1]);
+      if(plg3->lvTab) sprintf(s1, "%.3f", plg3->lvTab[i1]);
       else dp = NULL;
       sprintf(cps," p[%d] = %.3f %.3f %.3f lv=%s",i1,
-              plg->cpTab[i1].x,
-              plg->cpTab[i1].y,
-              plg->cpTab[i1].z,
+              plg3->cpTab[i1].x,
+              plg3->cpTab[i1].y,
+              plg3->cpTab[i1].z,
               s1);                  // lvTab
         // printf(" p[%d] |%s|\n",i1,cps);
       i2 = UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
       if(i2 < 0) break;
     }
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVPOL2) {
+    plg2 = data;
+    sprintf(cps,"2D-Polygon %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
+    sprintf(cps,"(CurvPol2).ptNr=%d", plg2->ptNr);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
+    strcpy (s1, "---");
+    for(i1=0; i1<plg2->ptNr; ++i1) {
+      // if(plg2->lvTab) sprintf(s1, "%.3f", plg2->lvTab[i1]);
+      // else dp = NULL;
+      sprintf(cps," p[%d] = %.3f %.3f",i1,
+              plg2->pTab[i1].x,
+              plg2->pTab[i1].y);
+        // printf(" p[%d] |%s|\n",i1,cps);
+      i2 = UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+      if(i2 < 0) break;
+    }
+
 
 
   //----------------------------------------------------------------
@@ -907,9 +951,29 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_Refsys) {
+    sprintf(cps,"Refsys %s       bpi = %d bpd = %9.3f",txt,
+            ((Refsys*)data)->bpi, ((Refsys*)data)->bpd);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PLN);
+    sprintf(s1, " pln");
+    DEB_dump__ (sTab, Typ_PLN, ((Refsys*)data)->pln, s1, 0, 0);
+    if(((Refsys*)data)->bpi == -2) {
+      sprintf(cps," -- undefined --");
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    } else {
+    // if(((Refsys*)data)->bpi == -1) {
+      sprintf(s1, " mat1");
+      DEB_dump__ (sTab, Typ_M4x3, ((Refsys*)data)->mat1, s1, 0, 0);
+      sprintf(s1, " mat2");
+      DEB_dump__ (sTab, Typ_M4x3, ((Refsys*)data)->mat2, s1, 0, 0);
+    }
+
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_PLN) {
     pln = data;
-    sprintf(cps,"Plane %s",txt);
+    sprintf(cps,"Plane %s       p = %9.3f",txt, pln->p);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PLN);
     sprintf(cps," .po=%9.3f,%9.3f,%9.3f",pln->po.x,pln->po.y,pln->po.z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
@@ -1047,11 +1111,11 @@ static FILE     *uo = NULL;
 /*
     // display also Centerline and ContourCurve
     i1 = srv->typCen;
-    UTO_get_DB (&v1, &i1, &i2, srv->indCen);
-    UT3D_stru_dump (i1, v1, "Centerline:\n");
+    UTO_objDat_dbo (&v1, &i1, &i2, srv->indCen);
+    DEB_dump_obj__ (i1, v1, "Centerline:\n");
     i1 = srv->typCov;
-    UTO_get_DB (&v1, &i1, &i2, srv->indCov);
-    UT3D_stru_dump (i1, v1, "ContourCurve:\n");
+    UTO_objDat_dbo (&v1, &i1, &i2, srv->indCov);
+    DEB_dump_obj__ (i1, v1, "ContourCurve:\n");
 */
 
 
@@ -1143,7 +1207,7 @@ static FILE     *uo = NULL;
       i3 = i1 * sus->ptUNr;
       for(i2=0; i2<sus->ptUNr; ++i2) {
         sprintf(s1, " row %d pt %d ",i1,i2);
-        UT3D_dump__ (sTab, ox->form, ox->data, s1, i2, 0);
+        DEB_dump__ (sTab, ox->form, ox->data, s1, i2, 0);
         ++ox;
       }
     }
@@ -1256,13 +1320,15 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_M4x3) {
     ma = data;
     // Mat_4x3[3][4]; RecLen = 4
-    sprintf(cps," M43VX=%9.3f,%9.3f,%9.3f",ma[0],ma[4],ma[8]);
+    sprintf(cps,"(Mat_4x3)  %s", txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps," VX=%9.3f,%9.3f,%9.3f",ma[0],ma[4],ma[8]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"    VY=%9.3f,%9.3f,%9.3f",ma[1],ma[5],ma[9]);
+    sprintf(cps," VY=%9.3f,%9.3f,%9.3f",ma[1],ma[5],ma[9]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"    VZ=%9.3f,%9.3f,%9.3f",ma[2],ma[6],ma[10]);
+    sprintf(cps," VZ=%9.3f,%9.3f,%9.3f",ma[2],ma[6],ma[10]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"    PO=%9.3f,%9.3f,%9.3f",ma[3],ma[7],ma[11]);
+    sprintf(cps," PO=%9.3f,%9.3f,%9.3f",ma[3],ma[7],ma[11]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1273,7 +1339,7 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_M4x4) {
     ma = data;
     // Mat_4x4[4][4]; RecLen = 4
-    sprintf(cps," M43VX=%9.3f,%9.3f,%9.3f,%9.3f",ma[0],ma[4],ma[8],ma[12]);
+    sprintf(cps," M44VX=%9.3f,%9.3f,%9.3f,%9.3f",ma[0],ma[4],ma[8],ma[12]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    VY=%9.3f,%9.3f,%9.3f,%9.3f",ma[1],ma[5],ma[9],ma[13]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1366,11 +1432,11 @@ static FILE     *uo = NULL;
     // get objStruct from dbo
     // irc = UTO_get_dbo (&sTyp, &v1, &i3, ox->typ, dbi);
     sTyp = ox->typ;
-    irc = UTO_get_DB (&v1, &i3, &sTyp, dbi);
+    irc = UTO_objDat_dbo (&v1, &i3, &sTyp, dbi);
     if(irc < 0) goto L_err1;
 
     // objViewer
-    UT3D_dump__ (sTab, sTyp, v1, oNam, i2, 0);
+    DEB_dump__ (sTab, sTyp, v1, oNam, i2, 0);
 */
 
 
@@ -1411,7 +1477,7 @@ static FILE     *uo = NULL;
     i2 = sTab->iNr - 1;  // parentRecordNr
 
 
-// TODO: use UT3D_dump_n ...............
+// TODO: use DEB_dump_ntxt ...............
     // loop tru records
     il1 = UTO_siz_stru (ox->form);
     v1 = ox->data;
@@ -1423,19 +1489,19 @@ static FILE     *uo = NULL;
       // Typ_Index --------------------
       if(ox->form == Typ_Index) {
           // OGX_SET_INDEX (ox->typ, (long)v1, &oo1); // create a ObjGX
-          // UT3D_dump__ (sTab, Typ_Index, &oo1, oNam, i2, -1);
-          UT3D_dump__ (sTab, Typ_Index, v1, oNam, i2, 0);
+          // DEB_dump__ (sTab, Typ_Index, &oo1, oNam, i2, -1);
+          DEB_dump__ (sTab, Typ_Index, v1, oNam, i2, 0);
 
 
       // Typ_ObjGX --------------------
       } else if(ox->form == Typ_ObjGX) {
           // printf(" subOGX[%d] typ=%d form=%d\n",i1,v1->typ,v1->form);
-        UT3D_dump__ (sTab, ox->form, v1, oNam, i2, 0);
+        DEB_dump__ (sTab, ox->form, v1, oNam, i2, 0);
 
 
       // data-struct --------------------
       } else {
-        irc = UT3D_dump__ (sTab, ox->form, v1, "", i2, 0);
+        irc = DEB_dump__ (sTab, ox->form, v1, "", i2, 0);
         if(irc < 0) return irc;
       }
 
@@ -1445,11 +1511,11 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_ObjTab)   {     // ObjTab see ObjTab_dump
+  } else if(typ == Typ_ObjTab)   {     // ObjTab see OTB_dump
     sprintf(cps,"ObjTable nr=%d siz=%d",
             ((ObjTab*)data)->oNr, ((ObjTab*)data)->oSiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-      // ObjTab_dump (data, 1, "");
+      // OTB_dump (data, 1, "");
 
 
   //----------------------------------------------------------------
@@ -1466,16 +1532,19 @@ static FILE     *uo = NULL;
     cvccv = data;  // CurvCCV
     // sprintf(cps,"ConcatCurve %s",txt);
     // UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
-    sprintf(cps,"CurvCCV %s  typ=%d dbi=%ld ip0=%ld ip1=%ld",txt,
-            cvccv->typ, cvccv->dbi, cvccv->ip0, cvccv->ip1);
+    sprintf(cps,
+      "CurvCCV %s  typ=%d dbi=%ld ip0=%ld ip1=%ld",
+      txt, cvccv->typ, cvccv->dbi, cvccv->ip0, cvccv->ip1);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     if(cvccv->v0 == UT_VAL_MAX) strcpy(s1, " -undef- ");
     else sprintf (s1, "%9.3f", cvccv->v0);
     if(cvccv->v1 == UT_VAL_MAX) strcpy(s2, " -undef- ");
     else sprintf (s2, "%9.3f", cvccv->v1);
-    sprintf(cps,
-            "   v0 = %s on seg %3d    v1 = %s on seg %3d   dir%3d clo%3d trm%3d",
-            s1, cvccv->is0, s2, cvccv->is1, cvccv->dir, cvccv->clo, cvccv->trm);
+    sprintf(cps, "   v0 = %s on seg %3d    v1 = %s on seg %3d",
+            s1, cvccv->is0, s2, cvccv->is1);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps, "   dir%3d clo%3d trm%3d stat%3d",
+            cvccv->dir, cvccv->clo, cvccv->trm, cvccv->stat);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1505,6 +1574,35 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_BBox)   {
+    sprintf(cps,"BBox %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    p1 = &((BBox*)data)->pb1;
+    i3 = sprintf(cps,"(Point-LL) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    if(i3 > 60) strcpy (cps, "(Point-LL) not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    p1 = &((BBox*)data)->pb2;
+    i3 = sprintf(cps,"(Point-UR) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    if(i3 > 60) strcpy (cps, "(Point-UR) not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_BBox2)   {
+    sprintf(cps,"BBox2 %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    p2 = &((BBox2*)data)->pb1;
+    i3 = sprintf(cps,"(Point-LL) %9.3f,%9.3f",p2->x,p2->y);
+    if(i3 > 60) strcpy (cps, "(Point-LL) not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    p2 = &((BBox2*)data)->pb2;
+    i3 = sprintf(cps,"(Point-UR) %9.3f,%9.3f",p2->x,p2->y);
+    if(i3 > 60) strcpy (cps, "(Point-UR) not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+
+
+
+  //----------------------------------------------------------------
   } else if((typ == Typ_Model) ||                  // ModelRef
             (typ == Typ_Mock))     {
     mdr = data;
@@ -1525,7 +1623,7 @@ static FILE     *uo = NULL;
 
     // // zusaetzlich noch das BasicModel ausdrucken ..
     // mdb = DB_get_ModBas (mdr->modNr);
-    // UT3D_stru_dump (Typ_SubModel, mdb, "BasicModel %d:\n",mdr->modNr);
+    // DEB_dump_obj__ (Typ_SubModel, mdb, "BasicModel %d:\n",mdr->modNr);
 
 
 
@@ -1773,8 +1871,10 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_Memspc) {
     sprintf(cps,"Memspc %s",txt);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"  free = %d  tot = %d",
-            UME_ck_free((Memspc*)data), UME_ck_tot((Memspc*)data));
+    sprintf(cps,"  free = %d  tot = %d spcTyp=%d",
+            UME_ck_free((Memspc*)data),
+            UME_ck_tot((Memspc*)data),
+            ((Memspc*)data)->spcTyp);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1803,7 +1903,7 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else {
-    TX_Error("UT3D_dump__ E001_%d",typ);
+    TX_Error("DEB_dump__ E001_%d",typ);
     irc = -1;
     goto L_done;
   }
@@ -1812,9 +1912,9 @@ static FILE     *uo = NULL;
 
 
   L_done:
-    // printf("ex UT3D_dump__\n");
+    // printf("ex DEB_dump__\n");
 
-  ERR_RESET ();
+  // ERR_RESET ();
 
   return irc;
 
@@ -1852,5 +1952,713 @@ static FILE     *uo = NULL;
 
 }
 
+
+//================================================================
+  int DEB_dump_ox__ (void *obj1) {
+//================================================================
+
+  int irc;
+
+  printf("DEB_dump_ox__ pos=%ld --------------------\n",(long)obj1);
+
+  irc = DEB_dump_nobj_1 (obj1, Typ_ObjGX, 1, 0);
+
+  printf("DEB_dump_ox__ end ------------------------\n");
+
+  return irc;
+
+}
+
+
+//================================================================
+  int DEB_dump_nobj_1 (void *obj1, int typ, int iNr, int deloc) {
+//================================================================
+// deloc   0=absolut address, 1=delocated (relative adress)
+
+  int    i1, iSiz, sTyp, sForm;
+  char   *po;
+  void   *sPtr;
+
+static void*  relPos;
+
+
+  printf("DEB_dump_nobj_1 pos=%ld typ=%d iNr=%d deloc=%d\n",(long)obj1,
+          typ,iNr,deloc);
+
+  if(deloc == 0) {
+    relPos = obj1;
+      printf(" set relPos %ld\n",(long)relPos);
+  }
+
+
+  iSiz = UTO_siz_stru (typ);
+  if(iSiz <= 0) {
+    TX_Error("DEB_dump_ox__ E000 %d %d\n",typ,iNr);
+    goto L_err_ex;
+  }
+
+
+  // save pointerPos
+  po = (char*)obj1;
+
+
+  //----------------------------------------------------------------
+  // it is a struct with pointers; 
+  // loop tru primary ObjGX-Record(s)
+  for(i1=0; i1<iNr; ++i1) {
+
+    //----------------------------------------------------------------
+    if(typ == Typ_ObjGX) {
+
+      printf(" ObjGX[%d]: typ=%d form=%d siz=%d data=%ld dir=%d\n",i1,
+              ((ObjGX*)po)->typ,
+              ((ObjGX*)po)->form,
+              ((ObjGX*)po)->siz,
+              (long)((ObjGX*)po)->data,
+              ((ObjGX*)po)->dir);
+
+      sTyp  = ((ObjGX*)po)->typ;               // get child-typ
+      sForm = ((ObjGX*)po)->form;              // get type of structure of child
+        // printf(" i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
+
+      // ignore all primary ObjGX-Records with no child-data
+      if(sTyp  == Typ_Typ)   goto L_GX_nxt;    // hat keine data
+      if(sForm == Typ_Index) goto L_GX_nxt;    // hat keine data
+      if(sForm == Typ_Int4)  goto L_GX_nxt;    // hat keine data
+
+      sPtr  = ((ObjGX*)po)->data;
+
+      // set offset
+      if(((ObjGX*)po)->dir == 1)
+        sPtr = MEM_ptr_mov (sPtr, LONG_PTR(relPos));
+
+      // RECURSE
+      DEB_dump_nobj_1 (sPtr,
+                        ((ObjGX*)po)->form,
+                        ((ObjGX*)po)->siz,
+                        ((ObjGX*)po)->dir);
+
+    } else {
+      DEB_dump_obj_1 (obj1, typ, "");
+
+    }
+
+    L_GX_nxt: // proceed to next ObjGX-ParentRecord ..
+    po += iSiz;
+
+  }
+
+  L_fertig:
+  return 0;
+
+
+  L_err_ex:
+    return -1;
+
+}
+
+
+//================================================================
+  int DEB_dump_obj_1 (void *obj, int typ, char *txt) {
+//================================================================
+// deloc   0=absolut address, 1=delocated (relative adress)
+
+  int    i1, iSiz, sTyp, sForm;
+
+  //----------------------------------------------------------------
+  if(typ == Typ_PT) {
+    printf("  %ld (Point) %9.3f,%9.3f,%9.3f\n", (long)obj,
+           ((Point*)obj)->x,
+           ((Point*)obj)->y,
+           ((Point*)obj)->z);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVPOL) {
+    printf("  %ld (CurvPoly) ptNr=%d v0=%.3f v1=%.3f lvTab=%ld cpTab=%ld\n",
+           (long)obj,
+           ((CurvPoly*)obj)->ptNr,
+           ((CurvPoly*)obj)->v0,
+           ((CurvPoly*)obj)->v1,
+           (long)((CurvPoly*)obj)->lvTab,
+           (long)((CurvPoly*)obj)->cpTab);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_GTXT) {
+    printf("  %ld (Graph.Text) %9.3f,%9.3f,%9.3f size=%.2f dir=%.2f\n",
+           (long)obj,
+           ((GText*)obj)->pt.x,
+           ((GText*)obj)->pt.y,
+           ((GText*)obj)->pt.z,
+           ((GText*)obj)->size,
+           ((GText*)obj)->dir);
+    printf("   txt=%ld\n",
+           (long)((GText*)obj)->txt);
+
+
+  //----------------------------------------------------------------
+  } else {
+    DEB_dump_obj__ (typ, obj, "typ=%d", typ);
+  }
+
+  return 0;
+
+}
+
+
+/*
+//================================================================
+  int UTO_dump_obj (int typ, void *vp, int iNr) {
+//================================================================
+/// \code
+/// typ   form of vp
+/// vp    ist eine dem Typ entrrechende struct
+/// iNr   nr of structs of typ typ in vp
+/// see also DEB_dump_ox_0 UI_dump_obj
+/// \endcode
+
+
+static int iLev;
+
+  int    irc, i0, i1, i2, osiz, *iTab;
+  long   l1;
+  void   *vp1;
+  char   cbuf1[256], cbuf2[64];
+  ObjGX  *oxi, *ox1, *ox2, o1;
+
+
+  if(typ == TYP_FuncInit) {iLev = 0; return 0;}
+  ++iLev;
+
+
+  // printf("UTO_dump_obj typ=%d iNr=%d iLev=%d\n",typ,iNr,iLev);
+
+
+  // check if its a ObjGX or a struct ...
+  if((typ == Typ_ObjGX)  ||                       // oTab
+     (typ == Typ_SURRU)  ||                       // 2 x Typ_ObjGX
+     (typ == Typ_SURCIR) ||
+     (typ == Typ_SURSTRIP))      goto L_ox;       // typ=SURCIR, form=ObjGX
+
+
+     // (typ == Typ_CVTRM)  ||
+     // (typ == Typ_SURRV)  ||                       // 2 x Typ_ObjGX
+     // (typ == Typ_GTXT)   ||
+     // (typ == Typ_SURBSP) ||// 158 158 hat direkt data !
+
+
+
+  // unresolvable objects:
+  if((typ == Typ_Error))  {
+    DEB_dump_obj__(typ, vp, "");
+    goto L_done;
+  }
+
+
+  osiz = UTO_siz_stru (typ);
+  if(osiz < 1) return -1;
+    // printf(" typ=%d osiz=%d\n",typ,osiz);
+
+  
+  // display struct(s)
+  for(i1=0; i1<iNr; ++i1) {
+    if(iNr > 1) sprintf(cbuf2," o[%d]",i1);
+    else  cbuf2[0] = '\0';
+    DEB_dump_obj__ (typ, vp, cbuf2);
+    // vp = &((char*)vp)[osiz];
+    // (char*)vp += osiz;
+    vp = (char*)vp + osiz;
+  }
+  goto L_done;
+
+
+  //================================================================
+  // typ = ObjGX
+  // Typ_ObjGX, Typ_CVTRM, Typ_SURCIR sind ObjGX
+  L_ox:
+  DEB_dump_obj__(Typ_ObjGX, vp, "");
+
+  for(i0=0; i0<iNr; ++i0) {
+    // printf(" next i0=%d %d -------------------------\n",i0,iNr);
+
+    if(iNr > 1) {
+      sprintf(cbuf2, "------- subObj %d / %d -------",iLev,i0+1);
+      DEB_dump_obj__(Typ_Txt, cbuf2, "");
+    }
+
+    // osiz = UTO_siz_stru (oxi->form);
+    // if(osiz < 1) return -1;
+
+    oxi = &((ObjGX*)vp)[i0];
+      // printf(" oxi-typ=%d form=%d siz=%d\n",oxi->typ,oxi->form,oxi->siz);
+
+
+    if(oxi->form == Typ_ObjGX) {
+      // auch data ist ObjGX
+
+
+      //----------- typ & form = ObjGX -------------------------
+      for(i1=0; i1<oxi->siz; ++i1) {
+        if(oxi->siz > 1) {
+          sprintf(cbuf2, "======= subObj %d / %d =======",iLev,i1+1);
+          DEB_dump_obj__(Typ_Txt, cbuf2, "");
+        }
+        ox1 = &((ObjGX*)oxi->data)[i1];
+        DEB_dump_obj__(Typ_ObjGX, ox1, "");
+
+        if(ox1->typ == Typ_Typ) {  // form=surfTyp; zB Typ_SURPLN
+          DEB_dump_obj__(ox1->form, ox1, "");
+          continue;
+        }
+
+        if(ox1->form == Typ_Txt) {  // siz ist bei Typ_Txt die strlen !!
+          continue;                 // Beispiel ?
+        }
+
+        if(ox1->form == Typ_Index) {
+          if(ox1->siz < 2) {
+              l1 = (long)ox1->data;
+              // printf(" resInd-1 %d typ=%d\n",l1,oxi->typ);
+              o1 = DB_GetObjGX (ox1->typ, l1);
+              // printf(" o1-typ=%d form=%d siz=%d\n",o1.typ,o1.form,o1.siz);
+              irc = UTO_dump_obj (o1.typ, o1.data, o1.siz);  // recurse
+              if(irc < 0) return irc;
+    
+          } else {
+            iTab = (int*)ox1->data;
+            for(i1=0; i1<ox1->siz; ++i1) {
+              l1 = iTab[i1];
+              // printf(" resInd %d %d typ=%d\n",i1,l1,oxi->typ);
+              o1 = DB_GetObjGX (ox1->typ, l1);
+              // printf(" o1-typ=%d form=%d siz=%d\n",o1.typ,o1.form,o1.siz);
+              irc = UTO_dump_obj (o1.typ, o1.data, o1.siz);  // recurse
+              if(irc < 0) return irc;
+            }
+          }
+          continue;
+        }
+
+        irc = UTO_dump_obj (Typ_ObjGX, ox1, 1); // recurse
+        // irc = UTO_dump_obj (Typ_ObjGX, ox1, ox1->siz); // recurse
+        // das folgende geht ned, weil Typ_Index aufgeloest werden muss ...
+        // irc = UTO_dump_obj (ox1->form, ox1->data, ox1->siz); // recurse
+        if(irc < 0) return irc;
+      }
+
+
+    } else if(oxi->form == Typ_Index) {
+      //----------- typ ObjGX, form = form_of_struct ----------------
+      // ACHTUNG: wenn siz=1, dann ist data selbst die zahl; else ist
+      // Date eine Int-Tabelle !
+      if(oxi->siz < 2) {
+          l1 = (long)oxi->data;
+          // printf(" resInd-1 %d typ=%d\n",l1,oxi->typ);
+          o1 = DB_GetObjGX (oxi->typ, l1);
+          irc = UTO_dump_obj (o1.typ, o1.data, o1.siz);  // recurse
+          if(irc < 0) return irc;
+
+      } else {
+        iTab = (int*)oxi->data;
+        for(i1=0; i1<oxi->siz; ++i1) {
+          l1 = iTab[i1];
+          // printf(" resInd %d %d typ=%d\n",i1,l1,oxi->typ);
+          o1 = DB_GetObjGX (oxi->typ, l1);
+          irc = UTO_dump_obj (o1.typ, o1.data, o1.siz);  // recurse
+          if(irc < 0) return irc;
+        }
+      }
+
+
+    } else {
+      //----------- typ ObjGX, form = form_of_struct ----------------
+      irc = UTO_dump_obj (oxi->form, oxi->data, oxi->siz);
+      if(irc < 0) return irc;
+    }
+  }
+
+
+
+  //================================================================
+  L_done:
+  --iLev;
+
+  // printf("ex UTO_dump_obj %d\n",iLev);
+  return 0;
+
+}
+*/
+
+
+
+//================================================================
+  int DEB_dump_ObjRange (MemTab(ObjRange) *oTab) {
+//================================================================
+/// \code
+/// RetCod:
+///   0      yes typ/ind is inside a range-obj;
+///  -1      no.
+/// \endcode
+
+  int    i1;
+
+  printf("======== DEB_dump_ObjRange %d =========== \n",oTab->rNr);
+
+  for(i1=0; i1< oTab->rNr; ++i1) {
+    printf("or[%d].typ=%d ind=%ld oNr=%d\n",i1,
+      oTab->data[i1].typ,
+      oTab->data[i1].ind,
+      oTab->data[i1].oNr);
+
+  }
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int DEB_dump_ox_0 (ObjGX *oxi, char *txt, ...) {
+//=======================================================================
+/// dump complex-object (Typ_ObjGX)
+
+  int irc;
+  void     *v1;
+  va_list  va;
+
+  va_start(va,txt);
+  v1  = va_arg(va,void*);
+  va_end(va);
+
+
+  printf("DEB_dump_ox_0 start -------------------------- %s\n",txt);
+    irc = DEB_dump_ox_1 (oxi, txt, v1); 
+  printf("DEB_dump_ox_0 exit  -------------------------------\n");
+
+  return irc;
+
+}
+
+
+//=======================================================================
+  int DEB_dump_ox_1 (ObjGX *oxi, char *txt, ...) {
+//=======================================================================
+
+
+  int      irc, i1, i2, i3, ii, form, typ;
+  long     l1, *la;
+  char     cbuf[256], *p1, s1[60];
+  void     *op1, *vp, *vo;
+  va_list  va;
+  ObjGX    ox1, *oTab, *o2;
+
+
+  va_start(va,txt);
+  vp  = va_arg(va,void*);
+  va_end(va);
+
+  sprintf(cbuf,txt,vp);
+
+
+  printf("DEB_dump_ox_1 |%s| typ=%d form=%d siz=%d dir=%d aux=%d\n",cbuf,
+             oxi->typ,oxi->form,oxi->siz,oxi->dir,oxi->aux);
+
+
+  //----------------------------------------------------------------
+  if(oxi->form != Typ_ObjGX) {
+    if(oxi->siz < 2) {
+      // p1 = AP_src_typ__(oxi->typ);
+      DEB_dump_obj__ (oxi->form, oxi->data, "");
+    } else {
+      p1 = oxi->data;
+      l1 = UTO_siz_stru (oxi->form);
+      for(i3=0; i3 < oxi->siz; ++i3) {
+        sprintf (s1, "[%d]", i3);
+        DEB_dump_obj__ (oxi->form, p1, s1);
+        p1 += l1;
+      }
+    }
+    return 0;
+  }
+/*
+    p1 = AP_src_typ__(oxi->typ);
+    if(oxi->siz < 2) {
+      if(oxi->siz < 1) {    // size 0 ???
+        return DEB_dump_obj__ (Typ_ObjGX, oxi, p1);
+      }
+      return DEB_dump_obj__ (oxi->form, oxi->data, p1);
+    } else {
+      return DEB_dump_nobj__ (oxi->form, oxi->siz, oxi->data, p1);
+    }
+*/
+
+
+  //----------------------------------------------------------------
+  // resolv ObjGX
+  oTab = oxi->data;
+  form = oxi->form;
+
+  for(i1=0; i1 < oxi->siz; ++i1) {
+    o2 = &oTab[i1];
+    printf(" data[%d] typ=%d form=%d siz=%d\n",i1,o2->typ,o2->form,o2->siz);
+    // bei Typ==Typ_Size ist data die (long)size !
+
+    if(o2->form == Typ_ObjGX) {
+      i2 = DEB_dump_ox_1 (o2,"sub");      // recurse !!
+      if(i2 < 0) {
+        printf("******** DEB_dump_ox_1 E002 %d %d \n",oxi->typ,oxi->form);
+        return -1;
+      }
+
+    } else if(o2->form == Typ_Index) {
+      // if (nr of records == 1): index == data; else its a pointer to long*
+      if(o2->siz > 1) {  // data = pointer to long*
+// TODO: use Typ_Int8
+        la = (long*) (o2->data);   // 2013-12-29 for SURCIR
+      } else { // data = index
+        // la = &(o2->data);  // OK, but warning ..
+        l1 = LONG_PTR (o2->data);
+        la = &l1;
+      }
+
+      ii = 0;
+      // printf("    ................ start\n");
+      L_ind_n:
+          printf(" [%d] = Link to DB-object %c%ld\n",ii,AP_typChar_typ(o2->typ),la[ii]);
+        ox1 = DB_GetObjGX (o2->typ, la[ii]);
+        i2 = DEB_dump_ox_1 (&ox1,"subInd");
+        if(i2 < 0) {
+          printf("******** DEB_dump_ox_1 E001 %d %d \n",oxi->typ,oxi->form);
+          return -1;
+        }
+        ++ii;
+        if(ii < o2->siz) goto L_ind_n;
+      // printf("    ................ exit\n");
+
+
+    } else if(o2->form == Typ_Txt) {
+      break;  // siz ist bei Typ_Txt die strlen !!
+
+
+    } else {
+    if(o2->siz < 2) {
+      // p1 = AP_src_typ__(oxi->typ);
+      DEB_dump_obj__ (o2->form, o2->data, "");
+    } else { 
+      p1 = o2->data;
+      l1 = UTO_siz_stru (oxi->form);
+      for(i3=0; i3 < oxi->siz; ++i3) { 
+        sprintf (s1, "[%d]", i3);
+        DEB_dump_obj__ (o2->form, p1, s1);
+        p1 += l1;
+      }
+    }
+    return 0;
+
+        // printf(" dump_1 typ=%d form=%d siz=%d\n",o2->typ,o2->form,o2->siz);
+      // sprintf(cbuf, "O[%d]:",i1);
+/*
+      if(o2->siz < 2) {
+        if(o2->siz < 1) {    // size 0 ???
+          DEB_dump_obj__ (Typ_ObjGX, oxi, "");
+        }
+        DEB_dump_obj__ (o2->form, o2->data, "");
+      } else {
+        DEB_dump_nobj__ (o2->form, o2->siz, o2->data, "");
+      }
+*/
+    }
+
+
+  }
+
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int DEB_dump_ox_s_ (ObjGX *oxi, char *txt) {
+//=======================================================================
+/// \code
+/// dump complex-obj - structured display
+/// see DEB_dump_ox_0 - dump also all subObjects
+/// \endcode
+
+  int irc;
+
+  // DEB_dump_ox_0 (oxi, "DEB_dump_ox_s_");
+
+  printf("=================== DEB_dump_ox_s_ %s ============ \n",txt);
+  DEB_dump_ox_s1 (NULL, txt);         // init
+
+  // display ParentObj
+  DEB_dump_ox_sWri (oxi, "");
+
+  if(oxi->form == Typ_ObjGX) {
+    irc = DEB_dump_ox_s1 (oxi, txt);  // work
+  }
+
+  printf("=================== ex DEB_dump_ox_s_ %s ============ \n",txt);
+
+  return irc;
+
+}
+
+
+//=======================================================================
+  int DEB_dump_ox_sWri (ObjGX *oxi, char *cOff) {
+//=======================================================================
+/// \code
+/// structured display; write Line
+/// see DEB_dump_ox_1
+/// \endcode
+
+  int   i1;
+  long  l1, *iTab;
+  char  auxBuf1[64], auxBuf2[64];
+
+
+  // printf(" .._dump_sWri |%s| typ=%d form=%d siz=%d\n",cOff,
+          // oxi->typ,oxi->form,oxi->siz);
+
+
+  printf("%s typ=%s(%d) form=%s(%d) siz=%d dir=%d",cOff,
+                AP_src_typ__(oxi->typ),oxi->typ,
+                AP_src_typ__(oxi->form), oxi->form,
+                oxi->siz, oxi->dir);
+
+  if(oxi->aux) printf(" aux=%d",oxi->aux);
+
+
+  //----------------------------------------------------------------
+  if(oxi->form == Typ_Index) {
+
+    if(oxi->siz == 1) {
+      l1 = LONG_PTR(oxi->data);
+      APED_oid_dbo__ (auxBuf1, oxi->typ, l1);
+      printf(" (%s)",auxBuf1);
+
+
+    } else {
+// TODO: use Typ_Int8
+      iTab = (long*)(oxi->data);
+      printf(" (");
+      for(i1=0; i1<oxi->siz; ++i1) {
+        APED_oid_dbo__ (auxBuf1, oxi->typ, iTab[i1]);
+        if(i1 > 0) printf(" ");
+        printf("%s",auxBuf1);
+      }
+      printf(")");
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(oxi->form == Typ_Int4) {
+
+      // l1 = LONG_PTR(oxi->data);
+      // printf(" value=%ld",l1);
+      i1 = INT_PTR(oxi->data);
+      printf(" value=%d",i1);
+  }
+
+  printf("\n");
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int DEB_dump_ox_s1 (ObjGX *oxi, char *txt) {
+//=======================================================================
+/// \code
+/// structured display
+/// see DEB_dump_ox_1
+/// \endcode
+
+
+static char cOff[64];
+
+  int      i1, i2, i3, typ;
+  long     dbi;
+  void     *v1;
+  char     cbuf[256];
+  ObjGX    ox1, *op1, *op2;
+
+
+  // init cOff
+  if(oxi == NULL) {strcpy(cOff,"  "); return 0;}
+
+
+
+  // printf("DEB_dump_ox_s1 %s typ=%d form=%d siz=%d dir=%d\n",txt,
+                        // oxi->typ,oxi->form,oxi->siz,oxi->dir);
+
+
+  // display ParentObj
+  if(oxi->form != Typ_ObjGX) {
+    DEB_dump_ox_sWri (oxi, cOff);     // print obj
+    // muss bleiben fuer zB Subrecords of CCV
+    return 0;
+  }
+
+
+  // loop tru obj's
+  for(i1=0; i1<oxi->siz; ++i1) {
+    op1 = &((ObjGX*)oxi->data)[i1];
+      // printf(" _s1-[%d] %d %d %d\n",i1,op1->typ,op1->form,op1->siz);
+    DEB_dump_ox_sWri (op1, cOff);     // print obj
+
+    if(op1->form == Typ_ObjGX) {
+      strcat(cOff, "  ");
+      for(i2=0; i2<op1->siz; ++i2) {
+        op2 = &((ObjGX*)op1->data)[i2];
+        i3 = DEB_dump_ox_s1 (op2,"");    // recurse
+        if(i3 < 0) {
+          printf("******** DEB_dump_ox_1 E002 %d %d \n",oxi->typ,oxi->form);
+          return -1;
+        }
+      }
+      i2 = strlen(cOff) - 2; if(i2 > 0) cOff[i2] = '\0';
+
+
+    } else if(op1->form == Typ_Index) {
+      // aufloesen ..
+      if(op1->siz < 2) {  // Index else (long*)-Tabelle
+        dbi = LONG_PTR(op1->data);
+          // printf(" res-index-typ=%d dbi=%ld\n",op1->typ,dbi);
+        ox1 = DB_GetObjGX (op1->typ, dbi);
+      } else {
+// TODO: use Typ_Int8
+        ox1 = *op1;
+      }
+
+      strcat(cOff, "  ");
+      DEB_dump_ox_sWri (&ox1, cOff);     // print obj
+
+      if(ox1.form == Typ_ObjGX) {
+        // printf("    ................ start\n");
+        strcat(cOff, "  ");
+        i2 = DEB_dump_ox_s1 (&ox1,"");     // recurse
+        if(i2 < 0) {
+          printf("******** DEB_dump_ox_1 E001 %d %d \n",oxi->typ,oxi->form);
+          return -1;
+        }
+        // printf("    ................ exit\n");
+        i2 = strlen(cOff) - 2; if(i2 > 0) cOff[i2] = '\0';
+      }
+      i2 = strlen(cOff) - 2; if(i2 > 0) cOff[i2] = '\0';
+    }
+
+    // if(op1->form == Typ_Txt) break;  // siz ist bei Typ_Txt die strlen !!
+
+  }
+
+
+  return 0;
+
+}
 
 // EOF

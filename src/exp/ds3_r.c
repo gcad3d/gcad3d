@@ -212,7 +212,7 @@ static int read_string() {
     ++i1;
   }
 
-  printf("read_string %d |%s|\n",i1,txbuf);
+    // printf("read_string %d |%s|\n",i1,txbuf);
 
   return i1;
 
@@ -229,7 +229,7 @@ static int read_mesh (unsigned long clen) {
   int           vTab[3];
 
 
-  printf("read_mesh %ld\n",clen);
+  // printf("read_mesh %ld\n",clen);
 
   tlen = 0;
 
@@ -245,7 +245,7 @@ static int read_mesh (unsigned long clen) {
 
       case 0x4110:  // vertices
         vNr = read_short();
-          printf("vNr=%ld\n",vNr);
+          // printf("vNr=%ld\n",vNr);
         for(i1=0; i1<vNr; ++i1) {
           fread(&ptAct[0], sizeof(float), 1, fpi);
           fread(&ptAct[1], sizeof(float), 1, fpi);
@@ -257,7 +257,7 @@ static int read_mesh (unsigned long clen) {
 
       case 0x4120:  // faces
         fNr = read_short();
-          printf("fNr=%ld\n",fNr);
+          // printf("fNr=%ld\n",fNr);
         for(i1=0; i1<fNr; ++i1) {
           vTab[0] = read_short();
           vTab[1] = read_short();
@@ -296,7 +296,7 @@ static int read_object (unsigned long clen) {
   unsigned long id, ilen, pos, tlen;
 
 
-  printf("read_object %ld\n",clen);
+  // printf("read_object %ld\n",clen);
   // fseek(fpi, clen-6, SEEK_CUR); // skip
 
   // zuerst den Namen lesen

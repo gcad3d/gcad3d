@@ -195,32 +195,32 @@ extern long       GR_TAB_IND;
   ox1 = DB_GetObjGX (Typ_SUR, 21L);
 
 
-    UTO_dump_s_ (&ox1, "A##");
-    UTO_dump__ (&ox1, "A##");
-    // UT3D_stru_dump (Typ_AC, ci1, "C21:\n");
+    DEB_dump_ox_s_ (&ox1, "A##");
+    DEB_dump_ox_0 (&ox1, "A##");
+    // DEB_dump_obj__ (Typ_AC, ci1, "C21:\n");
 
     // UTO_obj_Disp__ (&ox1, &memSeg1, 2, SYM_STAR_S);
     // return 0;
 
-    // UTO_dump__ (oc2, "A20");  // CCV
+    // DEB_dump_ox_0 (oc2, "A20");  // CCV
 
     // UTO_obj_Disp__ (&ox1, &memSeg1, 2, SYM_STAR_S);
     // UTO_obj_Disp__ (datSpc1, &memSeg1, 2, SYM_STAR_S);
     // UTO_obj_Disp__ (oc2, &memSeg1, 2, SYM_STAR_S);
     // return 0;
 
-  // UT3D_stru_dump (Typ_LN, ln1, "L20:");
-  // UT3D_stru_dump (Typ_LN, ln2, "L21:");
-  // UT3D_stru_dump(iTyp1, ov1, "obj-CCV:");
-  // UT3D_stru_dump(iTyp2, ov2, "obj-CV:");
+  // DEB_dump_obj__ (Typ_LN, ln1, "L20:");
+  // DEB_dump_obj__ (Typ_LN, ln2, "L21:");
+  // DEB_dump_obj__(iTyp1, ov1, "obj-CCV:");
+  // DEB_dump_obj__(iTyp2, ov2, "obj-CV:");
 
 
   // trMat zu R generieren
   UT3D_m3_loadpl (m1, pl1);
-  // UT3D_stru_dump (Typ_ObjM4x3, m1, "m1\n");
+  // DEB_dump_obj__ (Typ_ObjM4x3, m1, "m1\n");
   // inv. trMat zu R20 generieren
   UT3D_m3_invm3 (mi1, m1);
-  // UT3D_stru_dump (Typ_ObjM4x3, mi1, "mi1\n");
+  // DEB_dump_obj__ (Typ_ObjM4x3, mi1, "mi1\n");
 
 
   // Translation:
@@ -229,8 +229,8 @@ extern long       GR_TAB_IND;
 
 
   // TRANSFORMATION:
-  // UTRA_def__ (1, Typ_TraMat, m1);
-  UTRA_def__ (1, Typ_TraMat, mi1);
+  // UTRA_def__ (1, Typ_M4x3, m1);
+  UTRA_def__ (1, Typ_M4x3, mi1);
 
 
   // tra struct's
@@ -252,8 +252,8 @@ extern long       GR_TAB_IND;
   UTRA_app_obj (datSpc1, &i1, &ox1, &memSeg1);  // Sur CCV
   // UTRA_app_obj (datSpc1, &i1, &ox2, &memSeg1);  // Sur 2 Cir
 
-  UTO_dump_s_ (datSpc1, "obj-translated");
-  UTO_dump__ (datSpc1, "obj-translated");  // CCV
+  DEB_dump_ox_s_ (datSpc1, "obj-translated");
+  DEB_dump_ox_0 (datSpc1, "obj-translated");  // CCV
 
   UTO_obj_Disp__ (datSpc1, &memSeg1, 2, SYM_STAR_S);
 
@@ -764,7 +764,7 @@ extern long       GR_TAB_IND;
   mdr->vz  = UT3D_VECTOR_NUL;
   mdr->scl =  1.;
 
-  UT3D_stru_dump (Typ_Model, mdr, "ModRef:");
+  DEB_dump_obj__ (Typ_Model, mdr, "ModRef:");
 
   GR_DrawModel (1L, Typ_Att_Fac, mdr);
 
@@ -914,24 +914,24 @@ extern long       GR_TAB_IND;
   // lp1 = DB_get_LN (20L);
 
   // ci1 = DB_get_CI (20L);
-    // UT3D_stru_dump (Typ_AC, ci1, "C21:\n");
+    // DEB_dump_obj__ (Typ_AC, ci1, "C21:\n");
 
   // ell1 = DB_get_CV (&i1, 21L); // Typ_CVELL CurvElli
   // clo1 = DB_get_CV (&i1, 20L); // Typ_CVCLOT CurvClot
   // plg1 = DB_get_CV (&i1, 20L); // Typ_CVPOL CurvPoly
   // bsp1 = DB_get_CV (&i1, 21L); // Typ_CVRBSP CurvBSpl
-    // UT3D_stru_dump (Typ_CVPOL, plg1, "");
+    // DEB_dump_obj__ (Typ_CVPOL, plg1, "");
 
   // plp1 = DB_get_PLN (23L);
-    // UT3D_stru_dump (Typ_PLN, plp1, "Plane");
+    // DEB_dump_obj__ (Typ_PLN, plp1, "Plane");
 
   // ox1 = DB_GetSur (2L, 1);
-    // UT3D_stru_dump (Typ_ObjGX, ox1, "");
+    // DEB_dump_obj__ (Typ_ObjGX, ox1, "");
     // if(ox1->typ == Typ_SURMSH) .. // 160
 
-  // UT3D_stru_dump (Typ_SURRBSP, ox1->data, "");
+  // DEB_dump_obj__ (Typ_SURRBSP, ox1->data, "");
   // srb = ox1->data;
-     // ox1 = DB_GetTra (20L); UTO_dump__ (ox1, "T20");
+     // ox1 = DB_GetTra (20L); DEB_dump_ox_0 (ox1, "T20");
 
   // ox1 = DB_GetGTxt (21L);
 
@@ -1173,7 +1173,7 @@ extern long       GR_TAB_IND;
   CurvRBSpl *spi;
 
   rbsp = DB_get_CV (&i1, 4L);
-  UT3D_stru_dump (Typ_CVRBSP, rbsp, "");
+  DEB_dump_obj__ (Typ_CVRBSP, rbsp, "");
 
   spi = rbsp;
 
@@ -1182,7 +1182,7 @@ extern long       GR_TAB_IND;
 
   irc = UT3D_obj_cnvt_rbspl (&o1, spi, &tbuf1);
   if(irc >= 0) {
-    UT3D_stru_dump (Typ_AC, o1.data, "ex UT3D_ci_rbspl3\n");
+    DEB_dump_obj__ (Typ_AC, o1.data, "ex UT3D_ci_rbspl3\n");
     GR_Disp_ac (o1.data, 9);
   }
 
@@ -1195,9 +1195,9 @@ extern long       GR_TAB_IND;
   // weiter bei // UT3D_ci_3pt (...)
   // get S1
   // rbsp = DB_get_CV (&i1, 19L); // 5-8   conrod:11 12 13 14 15 19 20
-  // UT3D_stru_dump (i1, rbsp, "rbsp");
+  // DEB_dump_obj__ (i1, rbsp, "rbsp");
   op1 = DB_GetSur (18L, 1); // conrod A4/5 A7/8 A9/10 A28 A30
-  // UT3D_stru_dump (Typ_SURRBSP, op1->data, "");
+  // DEB_dump_obj__ (Typ_SURRBSP, op1->data, "");
   srb = op1->data;
 
 
@@ -1322,7 +1322,7 @@ extern long       GR_TAB_IND;
 
   *rMin = UT_VAL_MAX;
   for(i1=2; i1<pNr; ++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "p[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "p[%d]",i1);
 
     // radius zw 3 punkten
     UT3D_rdc_3pt (&d1, &pTab[i1-2], &pTab[i1-1], &pTab[i1]);

@@ -286,7 +286,7 @@ Returncodes:
   for (i1=0; i1<*nxp; ++i1) {
     if(UT3D_comp2pt(&xp, &xptab[i1], UT_TOL_pt) == 1) goto L_End;
   }
-    // UT3D_stru_dump (Typ_PT, &xp, "  xp[%d]=",*nxp);
+    // DEB_dump_obj__ (Typ_PT, &xp, "  xp[%d]=",*nxp);
 
   // save intersection point
   xptab[*nxp] = xp;
@@ -1047,11 +1047,11 @@ Returncodes:
     printf("3. GORDON bspline surface\n\n");	  
   for(i1=0; i1<cvNrU; ++i1) {
     printf("U1[%d] pt=%d\n",i1,cvTU[i1]->ptNr);
-    UT3D_stru_dump (Typ_CVBSP, cvTU[i1], "U1[%d]",i1);
+    DEB_dump_obj__ (Typ_CVBSP, cvTU[i1], "U1[%d]",i1);
   }
   for(i1=0; i1<cvNrV; ++i1) {
     printf("U2[%d] pt=%d\n",i1,cvTV[i1]->ptNr);
-    UT3D_stru_dump (Typ_CVBSP, cvTV[i1], "U2[%d]",i1);
+    DEB_dump_obj__ (Typ_CVBSP, cvTV[i1], "U2[%d]",i1);
   }
 */
 
@@ -1083,10 +1083,10 @@ Returncodes:
 /*
     // TEST ONLY
     for(i1=0; i1<cvNrU; ++i1) {
-      UT3D_stru_dump (Typ_CVBSP, &bspT1[i1], "U1[%d]",i1);
+      DEB_dump_obj__ (Typ_CVBSP, &bspT1[i1], "U1[%d]",i1);
     }
     for(i1=0; i1<cvNrV; ++i1) {
-      UT3D_stru_dump (Typ_CVBSP, &bspT2[i1], "U2[%d]",i1);
+      DEB_dump_obj__ (Typ_CVBSP, &bspT2[i1], "U2[%d]",i1);
     }
     // TEST ONLY
 */
@@ -1103,7 +1103,7 @@ Returncodes:
     // test curve-curve intersection points
     for (i1=0; i1<cvNrU; ++i1) {
       for (i2=0; i2<cvNrV; ++i2) {
-        UT3D_stru_dump (Typ_PT, &XTab[i1*cvNrV+i2], "XTab U%d V%d:",i1,i2);
+        DEB_dump_obj__ (Typ_PT, &XTab[i1*cvNrV+i2], "XTab U%d V%d:",i1,i2);
         // cre_obj (Typ_PT, Typ_PT, 1, (void*)&(XTab[i1*cvNrV+i2]));
         }	  
     } 
@@ -1124,7 +1124,7 @@ Returncodes:
   if (rc < 0) return -2;
     // printf("skinned surface L1 through V-curves:\n");
     // printf("L1: degU=%d degV=%d ptU=%d ptV=%d\n",degU,dcV,L1.ptUNr,L1.ptVNr);
-    // UT3D_stru_dump (Typ_SURBSP, &L1, "L1:");
+    // DEB_dump_obj__ (Typ_SURBSP, &L1, "L1:");
     //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &L1);
 
 
@@ -1135,7 +1135,7 @@ Returncodes:
   if (rc < 0) return -2;
     // printf("skinned surface L2 through U-curves:\n");
     // printf("L2: degU=%d degV=%d ptU=%d ptV=%d\n",dcU,degV,L2.ptUNr,L2.ptVNr);
-    // UT3D_stru_dump (Typ_SURBSP, &L2, "L2");
+    // DEB_dump_obj__ (Typ_SURBSP, &L2, "L2");
     //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &L2);
 
 
@@ -1150,7 +1150,7 @@ Returncodes:
   if (rc < 0) return -2;
     // printf("tensorproduct surface T through X-points of U/V-curves:\n");
     //printf("(degU,degV)= (%d, %d)\n\n", degU, degV);
-    //UT3D_stru_dump (158, &T, "");
+    //DEB_dump_obj__ (158, &T, "");
     //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &T);
 
 
@@ -1176,7 +1176,7 @@ Returncodes:
   for (s1=0; s1<3; ++s1) {
     printf("Sur %d: degU=%d degV=%d  ptU=%d ptV=%d\n", s1,
             surTo[s1].degU, surTo[s1].degV, surTo[s1].ptUNr, surTo[s1].ptVNr);
-    // UT3D_stru_dump (158, &(surTo[s1]), "");
+    // DEB_dump_obj__ (158, &(surTo[s1]), "");
     //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &(surTo[s1]));
   }	
   // TESTAUSGABEN
@@ -1202,14 +1202,14 @@ Returncodes:
     rc = UCBS_IsoBspCrvBspSur (&isocrv, memSeg, gsur, pvTV[i1], 2);
     if (rc < 0) return -2;
     cre_obj (Typ_CVBSP, Typ_CVBSP, 1, (void*)&isocrv);
-    UT3D_stru_dump (10, &isocrv, "");
+    DEB_dump_obj__ (10, &isocrv, "");
   }
   // V-isocurves of Gordon surface
   for (i1=0; i1<cvNrV; ++i1) {
     rc = UCBS_IsoBspCrvBspSur (&isocrv, memSeg, gsur, pvTU[i1], 1);
     if (rc < 0) return -2;
     cre_obj (Typ_CVBSP, Typ_CVBSP, 1, (void*)&isocrv);
-    UT3D_stru_dump (10, &isocrv, "");
+    DEB_dump_obj__ (10, &isocrv, "");
   }
 */
 
@@ -2554,7 +2554,7 @@ Returncodes:
   // printf("------------------------------------------------------ \n");
   // printf("USBS_SkinSurBspCrvs dir=%d ncv=%d sep=%d\n",dirUV,ncv,usep); 
   // for(i1=0; i1<ncv; ++i1) {
-    // UT3D_stru_dump (Typ_CVBSP, &bspTab[i1], "  bspTab[%d]",i1);
+    // DEB_dump_obj__ (Typ_CVBSP, &bspTab[i1], "  bspTab[%d]",i1);
   // }
 
 

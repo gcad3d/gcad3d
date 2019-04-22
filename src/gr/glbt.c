@@ -602,7 +602,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   // get startPosition for buttons
   // get ptu = LR-windowCorner in userCoords
   UT3D_pt_3db (&ptu, GL_Scr_Siz_X - (GLBT_POS_ORI * 2), 2, 0.);
-    // UT3D_stru_dump (Typ_PT, &ptu, " ptu:");
+    // DEB_dump_obj__ (Typ_PT, &ptu, " ptu:");
 
   // set GL-rasterPos = ptu
   glRasterPos3dv ((double*)&ptu);
@@ -715,7 +715,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
     sy = 100;
     UT3D_pt_3db (&pts, sx, sy, 0.);
     GL_ptUc_ptSc (&ptu, &pts);
-       UT3D_stru_dump (Typ_PT, &ptu, "  ptu: ");
+       DEB_dump_obj__ (Typ_PT, &ptu, "  ptu: ");
     glBegin (GL_QUADS);
     glVertex3dv ((double*)&ptu);
     ptu.x += 10.;
@@ -738,7 +738,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
     sy = 100;
     UT3D_pt_3db (&pts, sx, sy, 0.);
     // GL_ptUc_ptSc (&ptu, &pts);
-      // UT3D_stru_dump (Typ_PT, &ptu, " ptu:");
+      // DEB_dump_obj__ (Typ_PT, &ptu, " ptu:");
     glRasterPos3dv ((double*)&pts);
 
   // glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
@@ -754,7 +754,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   //----------------------------------------------------------------
 /*
   // test disp vector-rectangle
-  UT3D_stru_dump (Typ_PT, &GLBT_ori, "GLBT_ori");
+  DEB_dump_obj__ (Typ_PT, &GLBT_ori, "GLBT_ori");
   // GL_DrawSymB (&dl1, ATT_COL_RED, SYM_SQU_B, &GLBT_ori);
   pt1 = GLBT_ori;
 
@@ -762,7 +762,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   lux = -200. / (GL_Scale * GL_fakt);  // get usercoords
   luy =   50. / (GL_Scale * GL_fakt);
   UT3D_pt_trapt2vc2len (&pt1, &GLBT_ori, GL_eyeY, lux, GL_eyeZ, luy);
-    UT3D_stru_dump (Typ_PT,  &pt1, " pt1: ");
+    DEB_dump_obj__ (Typ_PT,  &pt1, " pt1: ");
 
   GL_DrawSymV (&dl1, SYM_SQUARE, ATT_COL_RED, &pt1, 1.);
 */
@@ -913,7 +913,7 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 
       vc1 = DB_GetVector ((long)GLBT_vcSelStat);
       UT3D_vc_setLength (&vc1, &vc1, lv);
-        // UT3D_stru_dump (Typ_VC, &vc1, " D%d",GLBT_vcSelStat);
+        // DEB_dump_obj__ (Typ_VC, &vc1, " D%d",GLBT_vcSelStat);
 
       glColor3fv   (glColv);
       if(gli) glLoadName(7);

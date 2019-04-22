@@ -26,13 +26,12 @@
 /// start   startpos of memspc
 /// next    first free pos of memspc
 /// end     position of start + memspcSiz
-/// spcTypc type of space for oSpc
-///        spcTyp  0=no-space-given;
-///                1=malloc-type=can-reallocate,must-free;
-///                2=malloc-type=can-reallocate,must-NOT-free;
-///                2=fixed-CANNOT-reallocate;must-free;
-///                3=fixed-CANNOT-reallocate;must-NOT-free;
-///                4=stack,CANNOT-reallocate,must-NOT-free;
+/// spcTyp  type of space for oSpc
+///           0=no-space-given;                             MEMSPCTYP_NONE
+///           1=malloc-type=can-reallocate,must-free;       MEMSPCTYP_MALLOC__
+///           2=malloc-type=can-reallocate,must-NOT-free;   MEMSPCTYP_MALLOC_FIX
+///           3=fixed-CANNOT-reallocate;must-free;          MEMSPCTYP_FIX
+///           4=static|stack,CANNOT-realloce,must-NOT-free; MEMSPCTYP_TMP
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz) bytes
 /// \endcode
 typedef struct {void *start, *next, *end;
@@ -44,6 +43,8 @@ typedef struct {void *start, *next, *end;
   int   UME_init (Memspc *memSpc, void* objDat, int osiz);
   int   UME_malloc (Memspc *memSpc, long spcSiz, long memInc);
   void* UME_save (Memspc *memSpc, void* objDat, int osiz);
+  void* UME__getSpc (Memspc *memSpc, long *spcOff, long addSiz);
+  int   UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz);
   void* UME_reserve (Memspc *memSpc, int osiz);
   int   UME_add (Memspc *memSpc, int osiz);
   int   UME_adjust (Memspc *memSpc, void* newStart);
@@ -54,6 +55,7 @@ typedef struct {void *start, *next, *end;
   int   UME_del (Memspc *memSpc, void *nach, void *von, ...);
   void  UME_reset (Memspc *memSpc);
 
+  int   UME_reall__ (long *spcOff, Memspc *memSpc, void *newNext);
   int   UME_reall_add (long *spcOff, Memspc *memSpc, long addSiz);
   int   UME_realloc (long *spcOff, Memspc *memSpc, long newSiz);
   int   UME_reall_save (long *spcOff, Memspc *memSpc, void* objDat, int osiz);

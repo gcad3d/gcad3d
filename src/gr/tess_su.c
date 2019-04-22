@@ -19,7 +19,7 @@ TODO:
  use TSU_obj1 for TSU_ln1 TSU_ac1 TSU_bs1 ..
 ..................d...........
  dzt crasht Mesa nach einem realloc TSU_store !!!!!!!!
- UTO_objx_get ersetzen durch UTO_obj_getp; dazu muss TSU_obj1, TSU_obj2
+ UTO_objx_get ersetzen durch UTO_objDat_ox; dazu muss TSU_obj1, TSU_obj2
    in typ void* geaendert werden !
 
 -----------------------------------------------------
@@ -541,7 +541,7 @@ static int oldMode = 0;
 
 
   // printf("TSU_tessObj %d %ld\n",typ,ind);
-  // UT3D_stru_dump (Typ_PLN, pln, "");
+  // DEB_dump_obj__ (Typ_PLN, pln, "");
 
 
   // draw
@@ -665,9 +665,9 @@ static int oldMode = 0;
 
   // tess_dump_f_ (oxi, "TSU_ntria_bMsh__");
   // printf(" surSiz=%d triSiz=%d\n",surSiz,triSiz);
-  // UTO_dump_s_ (oxi, "TSU_ntria_bMsh__");
-  // UTO_dump_s_ (&oxi[0], "TSU_ntria_bMsh__-0");
-  // UTO_dump_s_ (&oxi[1], "TSU_ntria_bMsh__-1");
+  // DEB_dump_ox_s_ (oxi, "TSU_ntria_bMsh__");
+  // DEB_dump_ox_s_ (&oxi[0], "TSU_ntria_bMsh__-0");
+  // DEB_dump_ox_s_ (&oxi[1], "TSU_ntria_bMsh__-1");
 
 
   i1     = 0;
@@ -773,7 +773,7 @@ static int oldMode = 0;
     // for(ii=0; ii<surNr; ++ii)
       // printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",ii,
              // surTab[ii].ip1,surTab[ii].ip2,surTab[ii].typ);
-    // for(ii=0;ii<triNr;++ii) UT3D_stru_dump (Typ_Tria,&triTab[ii],"tria");
+    // for(ii=0;ii<triNr;++ii) DEB_dump_obj__ (Typ_Tria,&triTab[ii],"tria");
     // END TESTBLOCK
 
 
@@ -852,7 +852,7 @@ static int oldMode = 0;
 
   // printf("TSU_ntria_bMsh_p GL-Typ=%d siz=%d triNr=%d\n",
                            // oxi->aux, oxi->siz, *triNr);
-  // UTO_dump_s_ (oxi, "TSU_ntria_bMsh_p");
+  // DEB_dump_ox_s_ (oxi, "TSU_ntria_bMsh_p");
 
 
 
@@ -869,7 +869,7 @@ static int oldMode = 0;
 
     // TESTBLOCK
     // for(i1=0; i1<ie; ++i1) {
-      // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
       // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
     // }
     // GR_Disp_pTab (oxi->siz, pTab, SYM_STAR_S, 2);
@@ -1032,7 +1032,7 @@ static int oldMode = 0;
     if(actPP->form == Typ_PT) {
       // Normalvektor auf planares Polygon
       if(UT3D_vc_perppta(&vc1, actPP->siz, actPP->data) < 0) continue;
-          // UT3D_stru_dump (Typ_VC, &vc1, " p[%d]-v:",cAct);
+          // DEB_dump_obj__ (Typ_VC, &vc1, " p[%d]-v:",cAct);
       irc = 0;
       continue;
     }
@@ -1051,9 +1051,9 @@ static int oldMode = 0;
 
       // Normalvektor ?
       if(actCont->form == Typ_VC) {
-          // UT3D_stru_dump (Typ_VC, actCont->data, "_DrawSur2: c%d",cAct);
+          // DEB_dump_obj__ (Typ_VC, actCont->data, "_DrawSur2: c%d",cAct);
         vc1 = *((Vector*)actCont->data);  // NUR TEST f GR_Disp_vc
-          // UT3D_stru_dump (Typ_VC, &vc1, " c[%d]-v:",cAct);
+          // DEB_dump_obj__ (Typ_VC, &vc1, " c[%d]-v:",cAct);
         irc = 0;
         continue;
       }
@@ -1067,7 +1067,7 @@ static int oldMode = 0;
 
 
   if(irc != 0) printf("TSU_get_vec kein vector !!!!!!!!!!!!! \n");
-  // else UT3D_stru_dump (Typ_VC, &vc1, "TSU_get_vec: ");
+  // else DEB_dump_obj__ (Typ_VC, &vc1, "TSU_get_vec: ");
 
   return irc;
 
@@ -1139,7 +1139,7 @@ static int   patNr;     // nr of Patches
       // geht so ned ..printf(" -_stored recSiz=%d\n",(long)(SurRec->data));
 
     ++TSU_mSpc->sNr;   // Anzahl Records
-      // UTO_dump__ (TSU_mSpc->mSpc, "ex TSU_store");
+      // DEB_dump_ox_0 (TSU_mSpc->mSpc, "ex TSU_store");
 
     oldSiz = -1;
 
@@ -1234,7 +1234,7 @@ static int   patNr;     // nr of Patches
   for(i1=0; i1<ptNr; ++i1) {       // write pointTable
     *pTab = pa1[i1];  (char*)pTab += sizeof(Point);
     *pTab = pa2[i1];  (char*)pTab += sizeof(Point);
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]:",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]:",i1);
   }
 
   (char*)TSU_mSpc->mPos += recSiz;
@@ -1280,7 +1280,7 @@ static int   patNr;     // nr of Patches
   *pTab = pa1[0];     (char*)pTab += sizeof(Point);
   for(i1=0; i1<ptNr; ++i1) {       // write pointTable
     *pTab = pa2[i1];  (char*)pTab += sizeof(Point);
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]:",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]:",i1);
   }
 
   (char*)TSU_mSpc->mPos += recSiz;
@@ -1358,8 +1358,8 @@ static int   patNr;     // nr of Patches
 
   // printf("-------------------------------\n");
   // printf("TSU_store free=%d\n",TSU_mSpc->mFree);
-  // UTO_dump_s_ (gSur, "TSU_store:");
-  // UTO_dump__ (gSur, "TSU_store:");
+  // DEB_dump_ox_s_ (gSur, "TSU_store:");
+  // DEB_dump_ox_0 (gSur, "TSU_store:");
 
 
   // NUR TEST:
@@ -1373,7 +1373,7 @@ static int   patNr;     // nr of Patches
   // recSiz = OGX_siz__ (gSur, 1);          - same size !
     // printf(" recSiz/0=%ld\n",recSiz);
 
-    // OGX_DEB_dump_obj (gSur, Typ_ObjGX, 1, 0);
+    // DEB_dump_nobj_1 (gSur, Typ_ObjGX, 1, 0);
 
 
 
@@ -1439,8 +1439,8 @@ static int   patNr;     // nr of Patches
     TSU_mSpc->mPos = HdrRec;
     goto L_more_mem;
   }
-    // UTO_dump_s_ (TSU_mSpc->mPos, "nach UTO_copy_obj");
-    // UTO_dump__ (TSU_mSpc->mPos, "nach UTO_copy_obj");
+    // DEB_dump_ox_s_ (TSU_mSpc->mPos, "nach UTO_copy_obj");
+    // DEB_dump_ox_0 (TSU_mSpc->mPos, "nach UTO_copy_obj");
 
 
   
@@ -1461,7 +1461,7 @@ static int   patNr;     // nr of Patches
   ++(TSU_mSpc->sNr);   // Anzahl
     // printf(" -_ex TSU_store %d\n",TSU_mSpc->sNr);
 
-    // UTO_dump__ (TSU_mSpc->mSpc, "ex TSU_store");
+    // DEB_dump_ox_0 (TSU_mSpc->mSpc, "ex TSU_store");
 
   return 0;
 
@@ -1491,7 +1491,7 @@ static int   patNr;     // nr of Patches
   // printf("============================================ \n");
   // printf("TSU_DrawSurT_ ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
           // oxi->typ,oxi->form,oxi->siz);
-  // UTO_dump__ (oxi, "Sur %d:",apt_ind);
+  // DEB_dump_ox_0 (oxi, "Sur %d:",apt_ind);
   // for(i1=0; i1<oxi->siz; ++i1)
     // printf("SurT_ %d typ=%d form=%d\n",i1,
            // ((ObjGX*)oxi->data)[i1].typ,
@@ -1601,7 +1601,7 @@ static int   patNr;     // nr of Patches
 
     TSU_dli = DL_StoreObj (Typ_SUR, ind, att);
     // draw GL-curve
-    GL_Draw_obj (&TSU_dli, Typ_Att_Fac1, &oo);
+    GL_Draw_obj (&TSU_dli, Typ_Att_dash_long, &oo);
     AP_dli_act = TSU_dli;
     return 0;
 
@@ -1684,9 +1684,9 @@ static int   patNr;     // nr of Patches
   // Orientieren der Konturen;
   // Umdrehungsrichtung feststellen und merken.
   // in cTab.dir; '+'=counterclockwise, '-'=clockwise
-  plMain = UT3D_bp_vcz (&vc1); // Berechnungsebene definieren
+  plMain = UT3D_bp_perp_vc (NULL, &vc1); // Berechnungsebene definieren
 
-  // UT3D_stru_dump (Typ_VC, &vc1, "plMain=%d; vc1=",plMain);
+  // DEB_dump_obj__ (Typ_VC, &vc1, "plMain=%d; vc1=",plMain);
 
   i1 = UT3D_sr_polc (cTab.iNr, cTab.pa, &vc1, plMain);
   if(i1 > 0) cTab.dir = '-';
@@ -1756,7 +1756,7 @@ static int   patNr;     // nr of Patches
 
   // printf("TSU_DrawSurTRU ind=%ld \n",apt_ind);
   // printf("  TSU_mode=%d\n",TSU_mode);  // 0=draw; 1=store
-  // UTO_dump_s_ (oxi, "TSU_DrawSurTRU");
+  // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTRU");
 
 
   // init, Anzahl von Polygonpunkten fuer beide Seiten bestimmen.
@@ -1899,7 +1899,7 @@ static int   patNr;     // nr of Patches
   // printf("TSU_DrawSurTRV %d %d\n",oxi->typ,oxi->form);
   // printf(" v0=%lf\n",((SurRev*)oxi->data)->v0);
   // printf(" v1=%lf\n",((SurRev*)oxi->data)->v1);
-  // UT3D_stru_dump (Typ_SURRV, oxi->data, "SRV:");   
+  // DEB_dump_obj__ (Typ_SURRV, oxi->data, "SRV:");   
 
 
 
@@ -1923,9 +1923,9 @@ static int   patNr;     // nr of Patches
   irc = TSU_tr_init_ (oxi);
   if(irc < 0) return irc;
 
-  // UT3D_stru_dump (Typ_PT, &TSU_prx, "TRV: TSU_prx");
-  // UT3D_stru_dump (Typ_VC, &TSU_vrx, "TRV: TSU_vrx");
-  // UTO_dump__ (&TSU_ox2, "TRV: Contour");
+  // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TRV: TSU_prx");
+  // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TRV: TSU_vrx");
+  // DEB_dump_ox_0 (&TSU_ox2, "TRV: Contour");
 
   
 
@@ -1952,7 +1952,7 @@ static int   patNr;     // nr of Patches
 
     // TestDisp Contour
     // GR_Disp_pTab (ptNr, p1Tab, SYM_TRI_S, 2);  return -1;
-    // for(i1=0;i1<ptNr;++i1)UT3D_stru_dump (Typ_PT,&p1Tab[i1]," p1Tab[%d]:",i1);
+    // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__ (Typ_PT,&p1Tab[i1]," p1Tab[%d]:",i1);
 
 
   //----------------------------------------------------------------
@@ -2120,7 +2120,7 @@ static int   patNr;     // nr of Patches
 
 
   // printf("TSU_DrawSurMsh A%d DL_ind_act=%d\n",apt_ind,DL_ind_act);
-    // UT3D_stru_dump (Typ_ObjGX, oxi, "");
+    // DEB_dump_obj__ (Typ_ObjGX, oxi, "");
 
   // PointGroupNumber = (int)data (Typ_Index)
   pgNr = OGX_GET_INT (oxi);
@@ -2325,7 +2325,7 @@ static int   patNr;     // nr of Patches
 
 
   // printf("TSU_DrawSurBsp %ld\n",apt_ind);
-  // UT3D_stru_dump (Typ_SURBSP, sub1, "SBS");
+  // DEB_dump_obj__ (Typ_SURBSP, sub1, "SBS");
     ////  GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
     // Version1: das Kontrollpolygon darstellen
     // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
@@ -2417,7 +2417,7 @@ static int   patNr;     // nr of Patches
 
     // printf(" DrawSurBsp uNr=%d vNr=%d ptNr=%ld\n",irow1,irow2,ptNr);
     // for(i1=0; i1<(irow1*irow2); ++i1)
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "pTab[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "pTab[%d]",i1);
 
 
   if(ptNr < (irow1 * irow2)) {
@@ -2433,7 +2433,7 @@ static int   patNr;     // nr of Patches
   // alle Punkte ermitteln  (get irow1*irow2 points)
   UT3D_ptgrid_sbsp (pTab, NULL, NULL, &d1,&d2, sub1, irow1,irow2, &workSeg);
     // for(i1=0; i1<(irow1*irow2); ++i1)
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "pTab[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "pTab[%d]",i1);
 
   // ausgeben ..
   GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURBSP);
@@ -2469,7 +2469,7 @@ static int   patNr;     // nr of Patches
 
   rsub1 = oxi->data;
 
-    // UT3D_stru_dump (Typ_SURRBSP, rsub1, "SRBS");
+    // DEB_dump_obj__ (Typ_SURRBSP, rsub1, "SRBS");
     // GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
     // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
 
@@ -2793,7 +2793,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   // erstes Obj ist die Stuetzflaeche
   // UTO_obj_get (&oxp1, &oTab[0]);
-  UTO_obj_getp (&oxp1, &rNr, &oTab[0]);       // 2014-02-08 (replaces UTO_obj_get)
+  UTO_objDat_ox (&oxp1, &rNr, &oTab[0]);       // 2014-02-08 (replaces UTO_obj_get)
     // printf(" Stuetz.typ=%d form=%d siz=%d\n",oxp1->typ,oxp1->form,oxp1->siz);
 
   // Planar ?
@@ -3037,8 +3037,8 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
     // Testdisp boundingBoxen
     // printf(" boundingbox Kontur %d:\n",i1);
-    // UT3D_stru_dump (Typ_PT2, &cTab[i1].p1, "P1[%d]=",i1);
-    // UT3D_stru_dump (Typ_PT2, &cTab[i1].p2, "P2[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT2, &cTab[i1].p1, "P1[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT2, &cTab[i1].p2, "P2[%d]=",i1);
     // GR_Disp_box (&cTab[i1].p1, &cTab[i1].p2, 9);
     // GR_Disp_pt2 (&cTab[i1].p1, SYM_STAR_S, 4);
     // GR_Disp_pt2 (&cTab[i1].p2, SYM_STAR_S, 4);
@@ -3549,11 +3549,11 @@ memspc102  TSU_grid  Vergleichspunkteraster
   // TESTDISPLAY:
     printf(" c1pNr=%d c2pNr=%d\n",c1pNr, c2pNr);
   for(i1=0; i1<c1pNr; ++i1) {
-    // UT3D_stru_dump (Typ_PT2, &cTab[0].p2a[i1], "C1P[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT2, &cTab[0].p2a[i1], "C1P[%d]=",i1);
     printf(" p[0,%d] %lf %lf\n",i1,cTab[0].p2a[i1].x,cTab[0].p2a[i1].y);
   }
   for(i1=0; i1<c2pNr; ++i1) {
-    // UT3D_stru_dump (Typ_PT2, &cTab[1].p2a[i1], "C2P[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT2, &cTab[1].p2a[i1], "C2P[%d]=",i1);
     printf(" p[1,%d].x = %f\n",i1,cTab[1].p2a[i1].x);
   }
 // exit(0);
@@ -3721,7 +3721,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   // printf("============================================ \n");
   // printf("TSU_tr_init_ typ=%d form=%d siz=%d dir=%d\n",oxi->typ,oxi->form,
                        // oxi->siz,oxi->dir);
-  // UTO_dump__ (oxi, "tr_init:");
+  // DEB_dump_ox_0 (oxi, "tr_init:");
 
 
 
@@ -3753,7 +3753,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     // Konus ist im 2D in Zentrumslage;
     // zur Transformation in die echte Lage die Matrizen laden.
     UT3D_m3_loadpl (TSU_mat, &TSU_con->pl);
-    // UT3D_stru_dump (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
+    // DEB_dump_obj__ (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
 
     // Matrix invertieren
     UT3D_m3_invm3 (TSU_imat, TSU_mat);
@@ -3813,7 +3813,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
     // zuerst die Matrix laden
     UT3D_m3_loadpl (TSU_mat, &TSU_tor->pl);
-    // UT3D_stru_dump (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
+    // DEB_dump_obj__ (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
     // Matrix invertieren
     UT3D_m3_invm3 (TSU_imat, TSU_mat);
 
@@ -3906,7 +3906,7 @@ uOff abhaengig von Aussenkonturtyp:
     TSU_dat[1] = srv1->ang2;
     TSU_dat[2] = srv1->v0;
     TSU_dat[3] = srv1->v1;
-      // UT3D_stru_dump (Typ_SURRV, srv1, "dump SurRV:"); //  return -1;
+      // DEB_dump_obj__ (Typ_SURRV, srv1, "dump SurRV:"); //  return -1;
 
     // die Winkel korrigieren; muessen im Bereich -2Pi bis +2Pi sein
     // und aufsteigend.
@@ -3918,9 +3918,9 @@ uOff abhaengig von Aussenkonturtyp:
     // printf("Cen-typ=%d ind=%d\n",srv1->typCen, srv1->indCen);
     TSU_ox1 = DB_GetObjGX ((int)srv1->typCen, srv1->indCen);
     // if(TSU_ox1.typ == Typ_Error) return -1;
-    typ1 = UTO_obj_getp (&TSU_obj1, &rNr, &TSU_ox1);
+    typ1 = UTO_objDat_ox (&TSU_obj1, &rNr, &TSU_ox1);
     if(typ1 < 0) return -1;
-      // UTO_dump__ (&TSU_ox1, "Axis");
+      // DEB_dump_ox_0 (&TSU_ox1, "Axis");
       // printf("  o1=%d\n",typ1);
 
 
@@ -3928,9 +3928,9 @@ uOff abhaengig von Aussenkonturtyp:
     // printf("Cov=%d %d\n",srv1->typCov, srv1->indCov);
     TSU_ox2 = DB_GetObjGX ((int)srv1->typCov, srv1->indCov);
     // if(TSU_ox2.typ == Typ_Error) return -1;
-    typ2 = UTO_obj_getp (&TSU_obj2, &rNr, &TSU_ox2);
+    typ2 = UTO_objDat_ox (&TSU_obj2, &rNr, &TSU_ox2);
     if(typ2 < 0) return -1;
-      // UTO_dump__ (&TSU_ox2, "Contour");
+      // DEB_dump_ox_0 (&TSU_ox2, "Contour");
       // printf("  o2=%d\n",typ2);
 
 
@@ -3954,7 +3954,7 @@ uOff abhaengig von Aussenkonturtyp:
      // GR_Disp_vc (&TSU_vrx, &TSU_prx, 1, 0);
 
     } else if(TSU_ox1.form == Typ_PLN) {
-     // UT3D_stru_dump (Typ_PLN, TSU_obj1.vp, "Axis");
+     // DEB_dump_obj__ (Typ_PLN, TSU_obj1.vp, "Axis");
      TSU_prx = ((Plane*)TSU_obj1.vp)->po;
      TSU_vrx = ((Plane*)TSU_obj1.vp)->vz;
      // UT3D_vc_setLength (&TSU_vrx, &TSU_vrx, 1.);  // f UT3D_pt_rotptptvcangr
@@ -3966,8 +3966,8 @@ uOff abhaengig von Aussenkonturtyp:
     }
 */
 
-    // UT3D_stru_dump (Typ_PT, &TSU_prx, "TSU_prx");
-    // UT3D_stru_dump (Typ_VC, &TSU_vrx, "TSU_vrx");
+    // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TSU_prx");
+    // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TSU_vrx");
     // GR_Disp_vc (&TSU_vrx, &TSU_prx, 1, 0);
 
 
@@ -4092,7 +4092,7 @@ uOff abhaengig von Aussenkonturtyp:
 
       TSU_ln1.p1 = pt1;
       TSU_ln1.p2 = pt2;
-        // UT3D_stru_dump (Typ_LN, &TSU_ln1, " -TSU_ln1-");
+        // DEB_dump_obj__ (Typ_LN, &TSU_ln1, " -TSU_ln1-");
 // exit(0);
 
 
@@ -4181,7 +4181,7 @@ uOff abhaengig von Aussenkonturtyp:
         // TSU_dat[5]: 1:  Hauptradius < Nebenradius (Eifoermig)
         // TSU_dat[5]: 2:  Hauptradius > Nebenradius (standard)
         // pt2 als Mittelpunkt des Kreisbogens ..
-        UT3D_pt_midci (&pt2, &TSU_ac1);
+        UT3D_pt_mid_ci (&pt2, &TSU_ac1);
         // befindet sich Circ-Center auf gleicher Seite der Achse wie pt2 ?
         // ist winkel pt1-pc / pt1-pt2 groesser oder kleiner 180 ?
         i1 = UT3D_sid_3pt (&pt1, &TSU_ac1.pc, &pt2);
@@ -4204,7 +4204,7 @@ uOff abhaengig von Aussenkonturtyp:
         // UT3D_pt_projptci (&pt2, &pt1, &TSU_ac1);
         UT3D_pt_projptci (&pt2, &pt1, &TSU_ac1);
         UT3D_ci_cipt360 (&TSU_ac1, &pt2);
-        UT3D_stru_dump (Typ_CI, TSU_ox2.data, " KonturCirc SurRV:");
+        DEB_dump_obj__ (Typ_CI, TSU_ox2.data, " KonturCirc SurRV:");
 */
 
         // echter Torus: TSU_dir setzen
@@ -4228,7 +4228,7 @@ uOff abhaengig von Aussenkonturtyp:
       // v0/v1 sind Vertikalwinkel in Rad zur Achse Refsys.
       i1 = 0;
         // printf(" v0=%f v1=%f\n",srv1->v0,srv1->v1);
-        // UT3D_stru_dump (Typ_CI, &TSU_ac1, " KonturCirc RV1:");
+        // DEB_dump_obj__ (Typ_CI, &TSU_ac1, " KonturCirc RV1:");
       if(fabs(srv1->v0) > UT_TOL_min1) {
         UT3D_pt_evparci (&pt1, srv1->v0, &TSU_ac1);
           // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
@@ -4245,7 +4245,7 @@ uOff abhaengig von Aussenkonturtyp:
         UT3D_ci_cip3 (&TSU_ac1, &pt1, &pt2);   // fix ango
         // TSU_ox2.data = &TSU_ac1;
       }
-        // UT3D_stru_dump (Typ_CI, &TSU_ac1, " KonturCirc RV2:");
+        // DEB_dump_obj__ (Typ_CI, &TSU_ac1, " KonturCirc RV2:");
 
 
       // vOff aus dem Kreisradius errechnen
@@ -4312,7 +4312,7 @@ uOff abhaengig von Aussenkonturtyp:
       // man kann innen/aussen scheinbar nicht feststellen (Curve kann ja auch
       // kreisfoermig sein !)
 
-      // UT3D_stru_dump (Typ_CVBSP, (CurvBSpl*)TSU_ox2.data, "");
+      // DEB_dump_obj__ (Typ_CVBSP, (CurvBSpl*)TSU_ox2.data, "");
 
       // v0/v1 auf die Werte des Spline korrigieren !
       TSU_dat[2] = ((CurvBSpl*)TSU_ox2.data)->v0;
@@ -4406,8 +4406,8 @@ uOff abhaengig von Aussenkonturtyp:
       }
       UT3D_m3_loadpl (TSU_mat, &TSU_pln);
       UT3D_m3_invm3 (TSU_imat, TSU_mat);
-        // UT3D_stru_dump (Typ_M4x3, TSU_mat, " TSU_mat:");
-        // UT3D_stru_dump (Typ_M4x3, TSU_imat, " TSU_imat:");
+        // DEB_dump_obj__ (Typ_M4x3, TSU_mat, " TSU_mat:");
+        // DEB_dump_obj__ (Typ_M4x3, TSU_imat, " TSU_imat:");
 
 
     } else {
@@ -4474,16 +4474,16 @@ uOff abhaengig von Aussenkonturtyp:
     typ2 = ox2->typ;
 
     // objDaten holen
-    typ1 = UTO_obj_getp (&TSU_obj1, &rNr, ox1); //typ = nun spezieller Kurventyp
+    typ1 = UTO_objDat_ox (&TSU_obj1, &rNr, ox1); //typ = nun spezieller Kurventyp
     if(typ1 < 0) return -1;
-    typ2 = UTO_obj_getp (&TSU_obj2, &rNr, ox2);
+    typ2 = UTO_objDat_ox (&TSU_obj2, &rNr, ox2);
     if(typ2 < 0) return -1;
 
       // printf(" typ1=%d typ2=%d\n",typ1,typ2);
       // printf(" 1: form=%d siz=%d dir=%d\n",ox1->form,ox1->siz,ox1->dir);
       // printf(" 2: form=%d siz=%d dir=%d\n",ox2->form,ox2->siz,ox2->dir);
-      // UT3D_stru_dump (typ1, TSU_obj1, "ox1");
-      // UT3D_stru_dump (typ2, TSU_obj2, "ox2");
+      // DEB_dump_obj__ (typ1, TSU_obj1, "ox1");
+      // DEB_dump_obj__ (typ2, TSU_obj2, "ox2");
 
 
     // uOff = 1 / Anzahl_Ecken;
@@ -4626,8 +4626,8 @@ uOff abhaengig von Aussenkonturtyp:
       // invert direction if z-vectors are different (more than 180 deg)
       if(((typ1 == Typ_CI)||(typ1 == Typ_CVELL))   &&
          ((typ2 == Typ_CI)||(typ2 == Typ_CVELL)))      {
-          UT3D_stru_dump (Typ_CI, TSU_obj1, "C1:");
-          UT3D_stru_dump (Typ_CI, TSU_obj2, "C2:");
+          DEB_dump_obj__ (Typ_CI, TSU_obj1, "C1:");
+          DEB_dump_obj__ (Typ_CI, TSU_obj2, "C2:");
         i2 = UT3D_sid_2vc (&vc1, &vc2);
         if(i2 < 0) {
           // ox2->dir = ICHG01 (ox2->dir);
@@ -4640,7 +4640,7 @@ uOff abhaengig von Aussenkonturtyp:
 
 
     // TEST:
-    // if(typ2 == Typ_VC) UT3D_stru_dump (Typ_VC, TSU_obj2.vc, "VC:");
+    // if(typ2 == Typ_VC) DEB_dump_obj__ (Typ_VC, TSU_obj2.vc, "VC:");
 
 
 
@@ -4667,7 +4667,7 @@ uOff abhaengig von Aussenkonturtyp:
 
 
     TSU_sbsp = oxi->data;
-      // UT3D_stru_dump (TSU_typ_,  TSU_sbsp, "     init SurBSP\n");
+      // DEB_dump_obj__ (TSU_typ_,  TSU_sbsp, "     init SurBSP\n");
 
     TSU_tr_2D_3D_pt = TSU_tr_2D_3D_sbsp;
     TSU_tr_3D_2D_pt = TSU_tr_3D_2D_sbsp;
@@ -4771,7 +4771,7 @@ uOff abhaengig von Aussenkonturtyp:
 
 
     TSU_srbsp = oxi->data;
-      // UT3D_stru_dump (TSU_typ_,  TSU_sbsp, "     init SurBSP\n");
+      // DEB_dump_obj__ (TSU_typ_,  TSU_sbsp, "     init SurBSP\n");
 
     TSU_tr_2D_3D_pt = TSU_tr_2D_3D_srbsp;
     TSU_tr_3D_2D_pt = TSU_tr_3D_2D_srbsp;
@@ -4958,7 +4958,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     //================================================================
     // printf(" TSU_typ_=%d TSU_pintNr=%d\n",TSU_typ_,TSU_pintNr);
-    // UT3D_stru_dump (Typ_PT, TSU_pint, "TSU_pint[0]");
+    // DEB_dump_obj__ (Typ_PT, TSU_pint, "TSU_pint[0]");
     // fuer alle Konturen 3D-Punkte -> 2D-Punkte
     intNr = 0;
     // TSU_pint1Flag = 0;
@@ -4975,7 +4975,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     // 2D_points from 3D-points
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
-        // UT3D_stru_dump(Typ_PT, &pTab[i2],"c%d p%d",i1,i2);
+        // DEB_dump_obj__(Typ_PT, &pTab[i2],"c%d p%d",i1,i2);
       irc = (*TSU_tr_2D_3D_pt)(&p2Tab[ip], &pTab[i2]);    // 3D-Pt -> 2D-Pt
         // printf(" P2[%d]=%lf,%lf\n",ip,p2Tab[ip].x,p2Tab[ip].y);
 
@@ -5093,7 +5093,7 @@ uOff abhaengig von Aussenkonturtyp:
     GR_Disp_pTab (cTab[i1].iNr, pTab, SYM_STAR_S, 2);
     GR_Disp_cv (pTab, cTab[i1].iNr, 2);
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
-      // UT3D_stru_dump (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
      GR_Disp_txi (&pTab[i2], i2, 1);
     }
   }
@@ -5603,7 +5603,7 @@ geht nicht. Raus, 2005-11-01
   for(i1=0; i1<*cNr; ++i1) {
     pTab = cTab[i1].p2a;
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
-      UT3D_stru_dump (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
+      DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
       // GR_Disp_pt (&pTab[i2], SYM_TRI_S, 2);
     }
   }
@@ -5688,7 +5688,7 @@ geht nicht. Raus, 2005-11-01
     // GR_Disp_pTab (cTab[i1].iNr, pTab, SYM_TRI_S, 0);
     // GR_Disp_cv (pTab, cTab[i1].iNr, 2);
     // for(i2=0; i2<cTab[i1].iNr; ++i2) {
-      // UT3D_stru_dump (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
       // GR_Disp_pt (&pTab[i2], SYM_TRI_S, 0);
     // }
   }
@@ -5733,7 +5733,7 @@ static Point  ptOld;
   // UT3D_pt_evparscon (&pt2o->x, &pt2o->y, pti, TSU_imat);
   
   // zuerst in den Nullpunkt transferieren ...
-  UT3D_pt_traptm3 (&pt31, TSU_imat, pti);  // Punkt transformieren
+  UT3D_pt_tra_pt_m3 (&pt31, TSU_imat, pti);  // Punkt transformieren
 
   // X = Hoehe
   pt2o->x = pt31.z;
@@ -5780,7 +5780,7 @@ static Point  ptOld;
   pt2o->z = 0.;
 
 
-  // UT3D_stru_dump (Typ_PT2, &pt2o, "ex _2D_3D_con: ");
+  // DEB_dump_obj__ (Typ_PT2, &pt2o, "ex _2D_3D_con: ");
   // GR_Disp_pt (pt2o, SYM_STAR_S, 2);
 
   return 0;
@@ -5838,14 +5838,14 @@ static Point  ptOld;
 
 
 
-  // UT3D_stru_dump (Typ_PT, pti, "\nSUStor2_pt_pt3: ");
+  // DEB_dump_obj__ (Typ_PT, pti, "\nSUStor2_pt_pt3: ");
 
   // UT3D_parstor_pt (&u, &v, pti, TSU_tor, TSU_imat);
 
 
   // zuerst in den Nullpunkt transferieren ...
-  UT3D_pt_traptm3 (&pt3i, TSU_imat, pti);  // Punkt transformieren
-  // UT3D_stru_dump (Typ_PT, &pt3i, "           pt3i: ");
+  UT3D_pt_tra_pt_m3 (&pt3i, TSU_imat, pti);  // Punkt transformieren
+  // DEB_dump_obj__ (Typ_PT, &pt3i, "           pt3i: ");
 
 
   // X = Winkel Aussenkreis; der Punkt liegt immer auf diesem Vektor
@@ -5862,7 +5862,7 @@ static Point  ptOld;
   vc2.dx = UT2D_len_vc ((Vector2*)&pt3i) - TSU_tor->r1 + TSU_tor->r2;
   vc2.dy = pt3i.z;
 
-  // UT3D_stru_dump (Typ_VC2, &vc2, "           vc2: ");
+  // DEB_dump_obj__ (Typ_VC2, &vc2, "           vc2: ");
 
   pto->y = UT2D_angr_vc (&vc2);
   // printf(" ang2=%f\n",pto->y);
@@ -5936,7 +5936,7 @@ static Point  ptOld;
 
   pto->z = 0.;
 
-  // UT3D_stru_dump (Typ_PT2, &pto-> "ex SUStor2_pt_pt3: ");
+  // DEB_dump_obj__ (Typ_PT2, &pto-> "ex SUStor2_pt_pt3: ");
   ptOld   = pt3i;
 
   return 0;
@@ -5976,7 +5976,7 @@ static Point  ptOld;
   }
 
   // printf("================================================== \n");
-  // UT3D_stru_dump(Typ_PT, p3, "TSU_tr_2D_3D_sph:");
+  // DEB_dump_obj__(Typ_PT, p3, "TSU_tr_2D_3D_sph:");
 
 
   if(p3->x == UT_VAL_MAX) {           // Pol oben
@@ -5995,7 +5995,7 @@ static Point  ptOld;
 
   L_exit:
   p2->z=0.;
-  // UT3D_stru_dump(Typ_PT, p2, "ex TSU_tr_2D_3D_sph:");
+  // DEB_dump_obj__(Typ_PT, p2, "ex TSU_tr_2D_3D_sph:");
 
 
   return 0;
@@ -6017,11 +6017,11 @@ static Point  ptOld;
     return 0;
   }
 
-  // UT3D_stru_dump(Typ_PT, p2, "TSU_tr_2D_3D_sph:");
+  // DEB_dump_obj__(Typ_PT, p2, "TSU_tr_2D_3D_sph:");
 
   UT3D_pt_evparsph (p3, rds, p2->x, p2->y, TSU_mat);
 
-  // UT3D_stru_dump(Typ_PT, p3, "ex TSU_tr_3D_2D_sph:");
+  // DEB_dump_obj__(Typ_PT, p3, "ex TSU_tr_3D_2D_sph:");
 
   return 0;
 
@@ -6070,12 +6070,12 @@ static Plane  RS_pl;
     // TESTDISPLAYS ------------
     printf("TSU_tr_2D_3D_srv init TSU_form_=%d\n",TSU_form_);
     printf(" tol=%f\n",UT_TOL_cv);
-    UT3D_stru_dump(Typ_PT, &TSU_prx, "prx:");
-    UT3D_stru_dump(Typ_VC, &TSU_vrx, "vrx:");
-    if(TSU_form_==Typ_LN) UT3D_stru_dump(Typ_LN,TSU_ox2.data,"Cont:");
-    if(TSU_form_==Typ_CI) UT3D_stru_dump(Typ_CI,TSU_ox2.data,"Cont:");
+    DEB_dump_obj__(Typ_PT, &TSU_prx, "prx:");
+    DEB_dump_obj__(Typ_VC, &TSU_vrx, "vrx:");
+    if(TSU_form_==Typ_LN) DEB_dump_obj__(Typ_LN,TSU_ox2.data,"Cont:");
+    if(TSU_form_==Typ_CI) DEB_dump_obj__(Typ_CI,TSU_ox2.data,"Cont:");
     if(TSU_form_==Typ_CI) GR_Disp_ac (TSU_ox2.data, 9);
-    if(TSU_form_==Typ_CVBSP) UT3D_stru_dump(Typ_CVBSP,TSU_ox2.data,"Cont:");
+    if(TSU_form_==Typ_CVBSP) DEB_dump_obj__(Typ_CVBSP,TSU_ox2.data,"Cont:");
     // TESTDISPLAYS end --------
 */
     // oldAng1 = 0.;
@@ -6097,7 +6097,7 @@ static Plane  RS_pl;
     // Line:
     UT3D_vc_ln (&vc1, (Line*)TSU_ox2.data);
     vc1 = TSU_vrx;   // Backplane der RotAxis besser ?
-    RS_bp = UT3D_bp_vc__ (&vc1);
+    RS_bp = UT3D_bp_perp_vc (NULL, &vc1);
 // exit(0);
     return 0;
   }
@@ -6105,7 +6105,7 @@ static Plane  RS_pl;
 
 
   // printf("================================================== \n");
-  // UT3D_stru_dump(Typ_PT, pti, "TSU_tr_2D_3D_srv:");
+  // DEB_dump_obj__(Typ_PT, pti, "TSU_tr_2D_3D_srv:");
   // printf("  TSU_pintAct=%d\n",TSU_pintAct);
   // GR_Disp_pt (pti, SYM_STAR_S, 2);
 
@@ -6113,11 +6113,11 @@ static Plane  RS_pl;
   // ptc = proj 3D-PT -> Ax;
   UT3D_pt_projptptvc (&ptc, &rdc, NULL, pti, &TSU_prx, &TSU_vrx);
   // GR_Disp_pt (&ptc, SYM_TRI_S, 2);
-  // UT3D_stru_dump(Typ_PT, &ptc, "ptc");
+  // DEB_dump_obj__(Typ_PT, &ptc, "ptc");
   
   // create Plane RS_pl in ptc normal to axis
   UT3D_pl_ptpl (&RS_pl, &ptc);
-  // UT3D_stru_dump(Typ_PLN, &RS_pl, "RS_pl");
+  // DEB_dump_obj__(Typ_PLN, &RS_pl, "RS_pl");
 
 
   //----------------------------------------------------------------
@@ -6129,7 +6129,8 @@ static Plane  RS_pl;
     // GR_Disp_pt (&ptx, SYM_STAR_S, 4);
 
     // Schnittpunkt auf Konturkurve: Parameter suchen, -> Y
-    pt2->y = UT3D_parpt_lnbp (&ptx, (Line*)TSU_ox2.data, RS_bp);
+    // pt2->y = UT3D_parpt_lnbp (&ptx, (Line*)TSU_ox2.data, RS_bp);
+    UT3D_parpt_ln__ (& pt2->y, &ptx, (Line*)TSU_ox2.data); // 2019-04-12
 
     goto L_x_0;
 
@@ -6191,7 +6192,7 @@ Besseres Verfahren waere:
       TX_Error("TSU_tr_2D_3D_srv E004");
       // GR_Disp_pln (&RS_pl, 2);
       // GR_Disp_pt (pti, SYM_STAR_S, 2);
-      // UT3D_stru_dump(Typ_PT, pti, " E004-pos:");
+      // DEB_dump_obj__(Typ_PT, pti, " E004-pos:");
       // pa[0] = TSU_pint[1];
       // Punkt rausloeschen mit MEM_del_nrec ??
       // pNr = 1;
@@ -6316,9 +6317,9 @@ Besseres Verfahren waere:
   //  ptc
   //         ptx
   UT3D_vc_2pt (&vc1, &ptc, pti);
-    // UT3D_stru_dump(Typ_VC, &vc1, "vc1:");
+    // DEB_dump_obj__(Typ_VC, &vc1, "vc1:");
   UT3D_vc_2pt (&vc2, &ptc, &ptx);
-    // UT3D_stru_dump(Typ_VC, &vc2, "vc2:");
+    // DEB_dump_obj__(Typ_VC, &vc2, "vc2:");
 
   pt2->x = UT3D_angr_3vc__ (&TSU_vrx, &vc2, &vc1);
 
@@ -6434,7 +6435,7 @@ Besseres Verfahren waere:
 
 
 
-  // UT3D_stru_dump (Typ_PT, pt2, "TSU_tr_3D_2D_srv %d",TSU_form_);
+  // DEB_dump_obj__ (Typ_PT, pt2, "TSU_tr_3D_2D_srv %d",TSU_form_);
 
 
 
@@ -6477,7 +6478,7 @@ Besseres Verfahren waere:
 
 
   //----------------------------------------------------------------
-    // UT3D_stru_dump (Typ_PT, &pt1, "     pt1=");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "     pt1=");
 
 
   // den Punkt pt1 um den Winkel X-Wert weiterdrehen
@@ -6499,7 +6500,7 @@ Besseres Verfahren waere:
   Point  pt1;
 
 
-  // UT3D_stru_dump(Typ_PT, pt3, "TSU_tr_2D_3D_sru: ");
+  // DEB_dump_obj__(Typ_PT, pt3, "TSU_tr_2D_3D_sru: ");
 
 
   pt2->z = 0.;
@@ -6559,7 +6560,7 @@ static double du,dv;
 
 
 
-  // UT3D_stru_dump(Typ_PT, pti,"==================\nTSU_tr_2D_3D_sbsp");
+  // DEB_dump_obj__(Typ_PT, pti,"==================\nTSU_tr_2D_3D_sbsp");
 
   UME_init (&wrkSpc, memspc53, sizeof(memspc53));
 
@@ -6590,13 +6591,13 @@ static double du,dv;
   Memspc    wrkSpc;
 
 
-  // UT3D_stru_dump(Typ_PT, pt2,"TSU_tr_3D_2D_sbsp");
+  // DEB_dump_obj__(Typ_PT, pt2,"TSU_tr_3D_2D_sbsp");
 
   UME_init (&wrkSpc, memspc53, sizeof(memspc53));
 
   irc = UT3D_pt_evparsbsp (pt3, TSU_sbsp, pt2->x, pt2->y, &wrkSpc);
 
-  // UT3D_stru_dump(Typ_PT, pt3,"ex TSU_tr_3D_2D_sbsp");
+  // DEB_dump_obj__(Typ_PT, pt3,"ex TSU_tr_3D_2D_sbsp");
 
   return irc;
 
@@ -6628,7 +6629,7 @@ static double du,dv;
 
 
 
-  // UT3D_stru_dump(Typ_PT, pti,"==================\nTSU_tr_2D_3D_srbsp");
+  // DEB_dump_obj__(Typ_PT, pti,"==================\nTSU_tr_2D_3D_srbsp");
 
   UME_init (&wrkSpc, memspc53, sizeof(memspc53));
 
@@ -6660,13 +6661,13 @@ static double du,dv;
   Memspc    wrkSpc;
 
 
-  // UT3D_stru_dump(Typ_PT, pt2,"TSU_tr_3D_2D_srbsp");
+  // DEB_dump_obj__(Typ_PT, pt2,"TSU_tr_3D_2D_srbsp");
 
   UME_init (&wrkSpc, memspc53, sizeof(memspc53));
 
   irc = UT3D_pt_evparsrbsp (pt3, TSU_srbsp, pt2->x, pt2->y, &wrkSpc);
 
-  // UT3D_stru_dump(Typ_PT, pt3,"ex TSU_tr_3D_2D_srbsp");
+  // DEB_dump_obj__(Typ_PT, pt3,"ex TSU_tr_3D_2D_srbsp");
 
   return irc;
 
@@ -6993,7 +6994,7 @@ static double du,dv;
 
 
   // printf("TSU_box_Draw1 %d dir=%d\n",ptNr,TSU_dir);
-  // UT3D_stru_dump (Typ_VC, vc1, "   vc1");
+  // DEB_dump_obj__ (Typ_VC, vc1, "   vc1");
 
 
   poTab = (Point*)memspc52;
@@ -7109,7 +7110,7 @@ static double du,dv;
  
   // TESTBLOCK
   // printf("TSU_box_vec typ=%d tol2D=%f\n",TSU_typ_,TSU_tol2D);
-  // for(i1=0;i1<4;++i1) UT3D_stru_dump(Typ_PT,&tBox[i1]," P[%d]",i1);
+  // for(i1=0;i1<4;++i1) DEB_dump_obj__(Typ_PT,&tBox[i1]," P[%d]",i1);
 
   // TestDisplay 3D-Box
   Point pa[5];
@@ -7304,7 +7305,7 @@ static double du,dv;
   // GL_Disp_vc (&pm, pVec);
   // GR_Disp_vc (pVec, &pm, 9, 0);
     // UT3D_vc_invert (pVec, pVec);
-    // UT3D_stru_dump (Typ_VC, pVec, "ex TSU_box_vec");
+    // DEB_dump_obj__ (Typ_VC, pVec, "ex TSU_box_vec");
     // if(UT3D_compvc0(pVec, 0.1) == 1) exit(0);
   // TESTBLOCK
    
@@ -7428,7 +7429,7 @@ static double du,dv;
 
     // test Segmentstartpunkt
     if(irc == 0)  {           // po=p1
-      // UT3D_stru_dump (Typ_PT, &TSU_pint[i2], "  >>>  irc=0 [%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &TSU_pint[i2], "  >>>  irc=0 [%d]",i1);
       // insert 1 new point; 1. pt has X=UT_VAL_MAX; 2. point has coords !
       pTab[i1-1] = TSU_pint[i2];  // replace point
       MEM_ins_nrec (ptNr, pTab, i1, &TSU_pint[i2], 1, sizeof(Point));
@@ -7439,7 +7440,7 @@ static double du,dv;
 
 
     } else if(irc == 2)  {   // po=p2
-      // UT3D_stru_dump (Typ_PT, &TSU_pint[i2], "  >>>  irc=2 [%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &TSU_pint[i2], "  >>>  irc=2 [%d]",i1);
       // insert 1 new point; 1. pt has X=UT_VAL_MAX; 2. point has coords !
       pTab[i1] = TSU_pint[i2];  // replace point
       pTab[i1].x = d1;
@@ -7452,7 +7453,7 @@ static double du,dv;
 
     // befindet sich Polpunkt auf dem LineSegment ?
     } else if(irc == 1) {    // between p1-p2
-      // UT3D_stru_dump (Typ_PT, &TSU_pint[i2], "  >>>  irc=1 [%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &TSU_pint[i2], "  >>>  irc=1 [%d]",i1);
       // insert 2 new points; 1. pt has X=UT_VAL_MAX; 2. point has coords !
       pta[0] = TSU_pint[i2];
       pta[0].x = d1;
@@ -7490,7 +7491,7 @@ static double du,dv;
   //================================================================
   L_done:
   // printf("ex TSU_fix_ax_crx %d\n",*ptNr);
-  // for(i1=0; i1<*ptNr; ++i1) UT3D_stru_dump (Typ_PT, &pTab[i1], " p[%d]",i1);
+  // for(i1=0; i1<*ptNr; ++i1) DEB_dump_obj__ (Typ_PT, &pTab[i1], " p[%d]",i1);
   // GR_Disp_pTab (*ptNr, pTab, SYM_TRI_S, 2);
   // exit(0);
 
@@ -7570,7 +7571,7 @@ static double du,dv;
   L_fertig:
   *ptNr = inach;
   // printf("ex TSU_delPt %d\n",inach);
-  // for(i1=0; i1<inach; ++i1) UT3D_stru_dump(Typ_PT2,&pt2a[i1],"P2[%d]=",i1);
+  // for(i1=0; i1<inach; ++i1) DEB_dump_obj__(Typ_PT2,&pt2a[i1],"P2[%d]=",i1);
 
   return 0;
 
@@ -7602,7 +7603,7 @@ static double du,dv;
 
   sbsp = oxi.data;
 
-  // UT3D_stru_dump (Typ_SURBSP, sbsp, "");
+  // DEB_dump_obj__ (Typ_SURBSP, sbsp, "");
 
 
 
@@ -7656,7 +7657,7 @@ static double du,dv;
 
 
   irc = TSU_tr_2D_3D_sbsp (&p21, &p31);
-  UT3D_stru_dump(Typ_PT, &p21, " p21:");
+  DEB_dump_obj__(Typ_PT, &p21, " p21:");
   return 0;
   p21.z=0.;
   p21.x=1.01575;
@@ -7692,7 +7693,7 @@ static double du,dv;
   ox1 = oxi->data; // Stuetzflaeche = Conus
   printf("     ox1 %d %d %d\n",ox1->typ,ox1->form,ox1->siz);
 
-  UTO_obj_getp (&ox2, &i1, ox1);
+  UTO_objDat_ox (&ox2, &i1, ox1);
   printf("     ox2 %d %d %d\n",ox2->typ,ox2->form,ox2->siz);
 
   con = ox2->data;
@@ -7711,14 +7712,14 @@ static double du,dv;
 
   // fix Matrix zur Tansformation in Nulllage
   UT3D_m3_loadpl (mat, &con->pl);
-  // UT3D_stru_dump (Typ_M4x3,  mat, "              _mat:\n");
+  // DEB_dump_obj__ (Typ_M4x3,  mat, "              _mat:\n");
   UT3D_m3_invm3 (imat, mat);
-  // UT3D_stru_dump (Typ_M4x3, imat, "              imat:\n");
+  // DEB_dump_obj__ (Typ_M4x3, imat, "              imat:\n");
 
   // einen Punkt des Konus -> Nullage transferieren
   UT3D_pt_traptvclen (&p31, &con->pl.po, &con->pl.vz, d2);
-  UT3D_pt_traptm3 (&p21, imat, &p31);
-  UT3D_stru_dump(Typ_PT, &p21, "Spitze:");
+  UT3D_pt_tra_pt_m3 (&p21, imat, &p31);
+  DEB_dump_obj__(Typ_PT, &p21, "Spitze:");
 
 
 
@@ -7770,7 +7771,7 @@ static double du,dv;
   ox1 = oxi->data; // Stuetzflaeche = Torus
   printf("     ox1 %d %d %d\n",ox1->typ,ox1->form,ox1->siz);
 
-  UTO_obj_getp (&ox2, &i1, ox1);
+  UTO_objDat_ox (&ox2, &i1, ox1);
   printf("     ox2 %d %d %d\n",ox2->typ,ox2->form,ox2->siz);
 
   tor = ox2->data;
@@ -7779,9 +7780,9 @@ static double du,dv;
 
   // fix Matrix zur Tansformation in Nulllage
   UT3D_m3_loadpl (mat, &tor->pl);
-  // UT3D_stru_dump (Typ_M4x3,  mat, "              _mat:\n");
+  // DEB_dump_obj__ (Typ_M4x3,  mat, "              _mat:\n");
   UT3D_m3_invm3 (imat, mat);
-  // UT3D_stru_dump (Typ_M4x3, imat, "              imat:\n");
+  // DEB_dump_obj__ (Typ_M4x3, imat, "              imat:\n");
 
 
 
@@ -7905,10 +7906,10 @@ static double du,dv;
   oTab = oxi.data;
 
   // SRU:
-  typ1 = UTO_obj_getp (&ox1, &i1, &oTab[0]);
-  typ2 = UTO_obj_getp (&ox2, &i1, &oTab[1]);
-  // UT3D_stru_dump(typ1, ox1, "o1-----:");
-  // UT3D_stru_dump(typ2, ox2, "o2-----:");
+  typ1 = UTO_objDat_ox (&ox1, &i1, &oTab[0]);
+  typ2 = UTO_objDat_ox (&ox2, &i1, &oTab[1]);
+  // DEB_dump_obj__(typ1, ox1, "o1-----:");
+  // DEB_dump_obj__(typ2, ox2, "o2-----:");
 
 
 
@@ -7968,12 +7969,12 @@ static double du,dv;
   UT3D_pt_projptptvc(&pt1,&d1,&((Circ*)TSU_ox2.data)->pc,&TSU_prx,&TSU_vrx);
 
   UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
-  UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+  DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
   UT3D_vc_perp2vc (&vc2, &vc1, &((Circ*)TSU_ox2.data)->vz);
-  UT3D_stru_dump (Typ_VC, &vc2, "vc2");
+  DEB_dump_obj__ (Typ_VC, &vc2, "vc2");
   // test ob gleiche Richtung ..
   d1 = UT3D_acos_2vc (&TSU_vrx, &vc2);
-  UT3D_stru_dump (Typ_VC, &TSU_vrx, " acos vrx = %f",d1);
+  DEB_dump_obj__ (Typ_VC, &TSU_vrx, " acos vrx = %f",d1);
   if(d1 >= 0.) { // Umdrehen nur merken, am Ende alle Konturen umdrehen.
     TSU_dir = 1; // nicht umdrehen
   } else {
@@ -7992,7 +7993,7 @@ static double du,dv;
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &TSU_ac1.pc,&TSU_prx,&TSU_vrx);
     // GR_Disp_pt(&pt1, SYM_SQU_B, 2);
   UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
-    // UT3D_stru_dump (Typ_VC, &vc1, "vc1");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
   UT3D_vc_perp2vc (&vc2, &vc1, &TSU_vrx);
     // GR_Disp_vc (&vc2, &TSU_ac1.p1, 2, 0);
     // GR_Disp_vc (&TSU_ac1.vz, &TSU_ac1.pc, 2, 0);
@@ -8064,7 +8065,7 @@ static double du,dv;
   // GR_Disp_pt(&TSU_ln1.p1, SYM_SQU_B, 2);
   // GR_Disp_pt(&TSU_ln1.p2, SYM_SQU_B, 2);
   // GR_Disp_ln (&TSU_ln1, 2);
-  // UT3D_stru_dump (Typ_LN, &TSU_ln1, "TSU_ln1");
+  // DEB_dump_obj__ (Typ_LN, &TSU_ln1, "TSU_ln1");
 
 
   
@@ -9153,7 +9154,7 @@ static Point pta;
 
   L_1:
 
-  // UT3D_stru_dump (Typ_CI, cio, "ex TSU_sph_1");
+  // DEB_dump_obj__ (Typ_CI, cio, "ex TSU_sph_1");
 
   return 0;
 
@@ -9200,7 +9201,7 @@ static Point pta;
   Line   lnx;
 
 
-  // UT3D_stru_dump (Typ_CI, cii, "TSU_srv_tor_01:");
+  // DEB_dump_obj__ (Typ_CI, cii, "TSU_srv_tor_01:");
   // GR_Disp_ac (cii, 8);
 
   irc = 0;
@@ -9236,7 +9237,7 @@ static Point pta;
 /*
   // den vz umdrehen, wenn kreis auf anderer Seite liegt !
   // den Mittelpunkt des Inputkreises; 2 x crossprod = Normalvektor.
-  UT3D_pt_midci (&ptm, cii);
+  UT3D_pt_mid_ci (&ptm, cii);
     // GR_Disp_pt (&ptm, SYM_TRI_S, 4);
   UT3D_vc_perpvc2pt (&cio->vz, &TSU_vrx, &cii->pc, &ptm);
   UT3D_vc_setLength (&cio->vz, &cio->vz, 1.);
@@ -9316,8 +9317,8 @@ static Point pta;
 
   Vector   vcc;
 
-  // UT3D_stru_dump (Typ_PT, pt1, "TSU_srv_ac_nvc pc:");
-  // UT3D_stru_dump (Typ_VC, &TSU_vrx, " TSU_vrx:");
+  // DEB_dump_obj__ (Typ_PT, pt1, "TSU_srv_ac_nvc pc:");
+  // DEB_dump_obj__ (Typ_VC, &TSU_vrx, " TSU_vrx:");
 
 
   // vec CircCenter --> Achse
@@ -9329,7 +9330,7 @@ static Point pta;
 
   UT3D_vc_setLength (nvc, nvc, 1.);
 
-  // UT3D_stru_dump (Typ_VC, nvc, "ex TSU_srv_ac_nvc:");
+  // DEB_dump_obj__ (Typ_VC, nvc, "ex TSU_srv_ac_nvc:");
 
   return 0;
 
@@ -9346,7 +9347,7 @@ static Point pta;
   Vector   vcc;
 
 
-  // UT3D_stru_dump (Typ_CI, cii, "TSU_srv_tor_03:");
+  // DEB_dump_obj__ (Typ_CI, cii, "TSU_srv_tor_03:");
 
   *cio = *cii; // copy cir
 
@@ -9370,13 +9371,13 @@ static Point pta;
   cio->ango = RAD_360;
 
     // GR_Disp_ac (cio, 2);
-    // UT3D_stru_dump (Typ_CI, TSU_ox2.data, " KonturCirc SurRV:");
+    // DEB_dump_obj__ (Typ_CI, TSU_ox2.data, " KonturCirc SurRV:");
 
 
   // // Richtung TSU_dir setzen .
   // TSU_dir = 1;
 
-  // UT3D_stru_dump (Typ_CI, cio, "ex TSU_srv_tor_03:");
+  // DEB_dump_obj__ (Typ_CI, cio, "ex TSU_srv_tor_03:");
 
   return 0;
 
@@ -9399,7 +9400,7 @@ static Point pta;
 
   UT3D_vc_perp2vc (&TSU_pln.vy, &TSU_pln.vz, &TSU_pln.vx);
 
-  // UT3D_stru_dump (Typ_PLN, &TSU_pln, "ex TSU_sph_pln:\n");
+  // DEB_dump_obj__ (Typ_PLN, &TSU_pln, "ex TSU_sph_pln:\n");
 
   return 0;
 
@@ -9425,7 +9426,7 @@ static Point pta;
   Point   ptm;
 
 
-  // UT3D_stru_dump (Typ_CI, cii, "TSU_sph_1");
+  // DEB_dump_obj__ (Typ_CI, cii, "TSU_sph_1");
 
 
   *cio = *cii; // copy cir
@@ -9445,7 +9446,7 @@ static Point pta;
   
   // den vz umdrehen, wenn kreis auf anderer Seite liegt !
   // den Mittelpunkt des Inputkreises; 2 x crossprod = Normalvektor.
-  // UT3D_pt_midci (&ptm, cii);
+  // UT3D_pt_mid_ci (&ptm, cii);
   // UT3D_vc_perpvc2pt (&cio->vz, &TSU_vrx, &cii->pc, &ptm);
 
 
@@ -9481,7 +9482,7 @@ static Point pta;
   L_1:
   // tangentialvektor an einen Punkt in der Mitte des Circ;
   // ist dieser vec eher parallel zur Achse oder eher antiparallel ?
-  UT3D_pt_midci (&pt1, cio);
+  UT3D_pt_mid_ci (&pt1, cio);
   UT3D_vc_tng_ci_pt (&vc1, &pt1, cio);
 
   i1 = UT3D_sid_2vc(&vc1, &TSU_vrx);
@@ -9494,7 +9495,7 @@ static Point pta;
 */
 
 
-  // UT3D_stru_dump (Typ_CI, cio, "ex TSU_sph_1");
+  // DEB_dump_obj__ (Typ_CI, cio, "ex TSU_sph_1");
 
   return irc;
 
@@ -9516,7 +9517,7 @@ static Point pta;
   // return 0;
 
 
-  att = Typ_Att_Fac1; // statt att kommt modNr; wer braucht diese ?
+  att = Typ_Att_dash_long; // statt att kommt modNr; wer braucht diese ?
 
   if(oxi == NULL) {printf("TSU_DrawSurTess E000\n"); return -1;}
 
@@ -9544,8 +9545,8 @@ static Point pta;
   // (char*)oxi += sizeof(ObjGX); // skip SizeRecord
   ++oxi; // skip SizeRecord
 
-    // UTO_dump_s_ (oxi, "TSU_DrawSurTess");
-    // UTO_dump__ (oxi, "TSU_DrawSurTess");
+    // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTess");
+    // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");
 
   irc = GL_Disp_sur (oxi);
 
@@ -9560,12 +9561,12 @@ static Point pta;
 
   L_Err1:
     TX_Error("TSU_DrawSurTess E001 form %d",oxi->form);
-    // UTO_dump__ (oxi, "TSU_DrawSurTess");
+    // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");
     return -1;
 
   L_Err2:
     TX_Error("TSU_DrawSurTess E002 typ %d",oxi->typ);
-    // UTO_dump__ (oxi, "TSU_DrawSurTess");
+    // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");
     return -1;
 
 
@@ -9586,7 +9587,7 @@ static Point pta;
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
+  // DEB_dump_obj__ (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
 
   return UFA_nfac_ipatch (fTab, nf, ipat->aux, ipat->iNr, &iTab[ipat->ibeg]);
 

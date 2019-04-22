@@ -74,7 +74,7 @@ List_functions_end:
   clot.cs  = 0.;
   clot.ce  = 0.1;  // 0.3 - 0.1
   clot.lr  = 0;
-  UT3D_stru_dump (Typ_CVCLOT, &clot, "clot=");
+  DEB_dump_obj__ (Typ_CVCLOT, &clot, "clot=");
   UT3D_npt_clot (pTab, &ptNr, Typ_CVCLOT, &clot, 0.01);
     GR_Disp_cv (pTab, ptNr, 9);
 
@@ -188,12 +188,12 @@ L_InErr:
   Point    xpt, xp1;
   Vector   xvc;
   Vector2  vc1, vc2;
-  double   d1, dm, d2, t1, tm, t2, ts, te, tMin, tolq, dMin, p1, p2, dx, dd;
+  double   da1[3], da2[3], d1, dm, d2, t1, tm, t2, ts, te, tMin, tolq, dMin, dx, dd;
 
 
   // printf("UT3D_pt_intclotptvc %d tol=%f\n",*nxp,tol);
-  // UT3D_stru_dump (Typ_PT, lpt, " lpt:");
-  // UT3D_stru_dump (Typ_VC, lvc, " lvc:");
+  // DEB_dump_obj__ (Typ_PT, lpt, " lpt:");
+  // DEB_dump_obj__ (Typ_VC, lvc, " lvc:");
     // GR_Disp_pt (lpt, SYM_STAR_S, 0);
 
 
@@ -206,7 +206,7 @@ L_InErr:
   // get the Transformation matrix > mc, the startpoint > pts and
   // the startParameter > cl
   UCV_TrfMatCltCrv (mc, &pt1, &ts, (CurvClot*)cv);
-    // UT3D_stru_dump (Typ_PT2, &pt1, "pt1:");
+    // DEB_dump_obj__ (Typ_PT2, &pt1, "pt1:");
     // GR_Disp_pt2 (&pt1, SYM_STAR_S, 0);
 
 
@@ -224,13 +224,13 @@ L_InErr:
 
   // translate point
   UT3D_m3_invm3 (imc, mc);             // get inv. mat
-  UT3D_pt_traptm3 (&xp1, imc, lpt);    // translate point to search
-  UT3D_vc_travcm3 (&xvc, imc, lvc);    // translate vector
+  UT3D_pt_tra_pt_m3 (&xp1, imc, lpt);    // translate point to search
+  UT3D_vc_tra_vc_m3 (&xvc, imc, lvc);    // translate vector
 
 
   // check left/right bend of clothoid polygon
   if(yFlip) { xp1.y = -xp1.y; xvc.dy = -xvc.dy; }
-    // UT3D_stru_dump (Typ_PT, &xp1, "xp1:");
+    // DEB_dump_obj__ (Typ_PT, &xp1, "xp1:");
     // GR_Disp_pt2 (&xp1, SYM_STAR_S, 0);
     // GR_Disp_vc2 (&xvc, &xp1, 9, 0);
 
@@ -240,7 +240,7 @@ L_InErr:
   // t2 = te - ts;
   t2 = te;
   UCV_Ev2DNxtPtCltCrv (&pt2, cv, ts, &pt1, t2);
-    // UT3D_stru_dump (Typ_PT2, &pt2, "pt2:");
+    // DEB_dump_obj__ (Typ_PT2, &pt2, "pt2:");
     // GR_Disp_pt2 (&pt2, SYM_STAR_S, 0);
 
   dd = 0.5;
@@ -257,37 +257,37 @@ L_InErr:
     // printf(" iTry=%d t1=%f tm=%f t2=%f\n",iTry,t1,tm,t2);
   // get ptm using old point pt1 with its parameter t1
   UCV_Ev2DNxtPtCltCrv (&ptm, cv, t1, &pt1, tm);
-    // UT3D_stru_dump (Typ_PT2, &ptm, "ptm:");
+    // DEB_dump_obj__ (Typ_PT2, &ptm, "ptm:");
     // GR_Disp_pt2 (&ptm, SYM_STAR_S, 1);
 
 
   // welcher der 3 Punkte pt1/ptm/pt2 liegt am naechsten lpt/lvc ?
   // UT3D_lenq_PtLn UT3D_nlenq_3pt UT3D_nlenq_2ptvc 
   UT2D_vc_2pt (&vc1, &pt1, &ptm);
-  UT2D_2par_int2pt2vc (&p1, &dx, &pt1, &vc1, &xp1, &xvc);
+  UT2D_2par_int2pt2vc (da1, &pt1, &vc1, &xp1, &xvc);
   UT2D_vc_2pt (&vc2, &ptm, &pt2);
-  UT2D_2par_int2pt2vc (&p2, &dx, &ptm, &vc2, &xp1, &xvc);
+  UT2D_2par_int2pt2vc (da2, &dx, &ptm, &vc2, &xp1, &xvc);
     // printf(" p1=%f p2=%f\n",p1,p2);
-  d1 = fabs(p1 - 0.5);
-  d2 = fabs(p2 - 0.5);
+  d1 = fabs(da1[0] - 0.5);
+  d2 = fabs(da2[0] - 0.5);
     // printf(" d1=%f d2=%f\n",d1,d2);
 
 
 
   if(d1 < d2) {   // next point between p1-pm
     // printf(" p1-pm\n");
-    dd = p1;
+    dd = da1[0];
     // compute intersectionpoint
-    UT2D_pt_parvc_pt_vc (&ptx, &pt1, p1, &vc1);
+    UT2D_pt_parvc_pt_vc (&ptx, &pt1, da1[0], &vc1);
     if(UT2D_comp2pt(&ptx, &ptm, tol)) goto L_finish;
 
     t2 = tm;
 
   } else {        // next point between pm-p2
     // printf(" pm-p2\n");
-    dd = p2;
+    dd = da2[0];
     // compute intersectionpoint
-    UT2D_pt_parvc_pt_vc (&ptx, &ptm, p2, &vc2);
+    UT2D_pt_parvc_pt_vc (&ptx, &ptm, da2[0], &vc2);
     if(UT2D_comp2pt(&ptx, &ptm, tol)) goto L_finish;
 
     pt1 = ptm;
@@ -305,15 +305,15 @@ L_InErr:
     UTP_param_p0p1px (&tTab[0], ts, te, tm);
   }
 
-  UT3D_pt_ptz (&xpt, &ptm, 0.);
+  UT3D_pt_pt2_0 (&xpt, &ptm);
   if(yFlip) xpt.y = -xpt.y;
-  UT3D_pt_traptm3 (&xpTab[0], mc, &xpt);
+  UT3D_pt_tra_pt_m3 (&xpTab[0], mc, &xpt);
     // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
   *nxp = 1;
 
 
   // printf("ex UT3D_pt_intclotptvc par=%f\n",tTab[0]);
-  // UT3D_stru_dump (Typ_PT, &xpTab[0], " xp:");
+  // DEB_dump_obj__ (Typ_PT, &xpTab[0], " xp:");
 
 
   return 0;
@@ -340,14 +340,14 @@ L_InErr:
 
 
   // printf("UT3D_pt_prjclotpt %d tol=%f\n",*nxp,tol);
-  // UT3D_stru_dump (Typ_PT, lpt, "lpt:");
+  // DEB_dump_obj__ (Typ_PT, lpt, "lpt:");
   // GR_Disp_pt (lpt, SYM_STAR_S, 0);
 
 
   // get the Transformation matrix > mc, the startpoint > pts and
   // the startParameter > cl
   UCV_TrfMatCltCrv (mc, &pt1, &ts, (CurvClot*)cv);
-    // UT3D_stru_dump (Typ_PT2, &pt1, "pt1:");
+    // DEB_dump_obj__ (Typ_PT2, &pt1, "pt1:");
     // GR_Disp_pt2 (&pt1, SYM_STAR_S, 0);
 
 
@@ -365,12 +365,12 @@ L_InErr:
 
   // translate point
   UT3D_m3_invm3 (imc, mc);             // get inv. mat
-  UT3D_pt_traptm3 (&xp1, imc, lpt);    // translate point to search
+  UT3D_pt_tra_pt_m3 (&xp1, imc, lpt);    // translate point to search
 
 
   // check left/right bend of clothoid polygon
   if(yFlip) xp1.y = -xp1.y;
-    // UT3D_stru_dump (Typ_PT, &xp1, "xp1:");
+    // DEB_dump_obj__ (Typ_PT, &xp1, "xp1:");
     // GR_Disp_pt2 (&xp1, SYM_STAR_S, 0);
 
 
@@ -378,7 +378,7 @@ L_InErr:
   t1 = ts;
   t2 = te;
   UCV_Ev2DNxtPtCltCrv (&pt2, cv, ts, &pt1, t2);
-    // UT3D_stru_dump (Typ_PT2, &pt2, "pt2:");
+    // DEB_dump_obj__ (Typ_PT2, &pt2, "pt2:");
     // GR_Disp_pt2 (&pt2, SYM_STAR_S, 0);
 
 
@@ -399,8 +399,8 @@ L_InErr:
     // printf(" iTry=%d t1=%f t2=%f d1=%f d2=%f\n",iTry,t1,t2,d1,d2);
   UCV_Ev2DNxtPtCltCrv (&pt1, cv, tx2, &pt2, t1);
   UCV_Ev2DNxtPtCltCrv (&pt2, cv, t1, &pt1, t2);
-    // UT3D_stru_dump (Typ_PT2, &pt1, "  pt1:");
-    // UT3D_stru_dump (Typ_PT2, &pt2, "  pt2:");
+    // DEB_dump_obj__ (Typ_PT2, &pt1, "  pt1:");
+    // DEB_dump_obj__ (Typ_PT2, &pt2, "  pt2:");
     // GR_Disp_pt2 (&pt1, SYM_STAR_S, 1);
     // GR_Disp_pt2 (&pt2, SYM_STAR_S, 1);
 
@@ -432,14 +432,14 @@ L_InErr:
   L_finish:
   tTab[0] = tx1;
   if(yFlip) pt1.y = -pt1.y;
-  UT3D_pt_ptz (&xp1, &pt1, 0.);
-  UT3D_pt_traptm3 (&xpTab[0], mc, &xp1);
+  UT3D_pt_pt2_0 (&xp1, &pt1);
+  UT3D_pt_tra_pt_m3 (&xpTab[0], mc, &xp1);
     // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
   *nxp = 1;
 
 
   // printf("ex UT3D_pt_prjclotpt par=%f\n",tTab[0]);
-  // UT3D_stru_dump (Typ_PT, &xpTab[0], " xp:");
+  // DEB_dump_obj__ (Typ_PT, &xpTab[0], " xp:");
 
 
   return 0;
@@ -457,7 +457,7 @@ L_InErr:
   int    ptNr;
   Point  ptx;
 
-  // UT3D_stru_dump (Typ_PT, pti, "UT3D_par_clotpt: ");
+  // DEB_dump_obj__ (Typ_PT, pti, "UT3D_par_clotpt: ");
 
   ptNr = 1;
   UT3D_pt_prjclotpt (&ptNr, &ptx, par, pti, cv, tol);
@@ -478,7 +478,7 @@ L_InErr:
   double   rm, aSeg;
 
 
-  // UT3D_stru_dump (Typ_CVCLOT, clt, "UT3D_ptNr_clot");
+  // DEB_dump_obj__ (Typ_CVCLOT, clt, "UT3D_ptNr_clot");
   // printf(" tol=%lf\n",tol);
 
 
@@ -537,7 +537,7 @@ L_InErr:
   // the startParameter > cl
   UCV_TrfMatCltCrv (mc, &pt1, &ts, clt);
     // printf(" cv.cs=%f cv.ce=%f\n",((CurvClot*)cv)->cs,((CurvClot*)cv)->ce);
-    // UT3D_stru_dump (Typ_M4x3, mc, "mc:");
+    // DEB_dump_obj__ (Typ_M4x3, mc, "mc:");
 
   // Endparameter from EndCurvatur
   // te = ((CurvClot*)cv)->pc * ((CurvClot*)cv)->ce / SR_PI;
@@ -566,7 +566,8 @@ L_InErr:
       // printf(" ts=%f te=%f dc=%f iDir=%d\n",ts,te,dc,iDir);
 
   // den Startpunkt raus
-  UT2D_pt_pt ((void*)&pTab[0], &pt1);    // pTab[0] = pt1;
+  // pTab[0] = UT2D_pt_pt3 (&pt1);
+  pTab[0] = UT3D_pt_pt2 (&pt1);
 
 
   tt = te-ts;   // total
@@ -628,7 +629,7 @@ L_InErr:
   // Punkte 2D -> 3D transformieren ..
   for(i1=0; i1<i2; ++i1) {
     pTab[i1].z = 0.;
-    UT3D_pt_traptm3 (&pTab[i1], mc, &pTab[i1]);
+    UT3D_pt_tra_pt_m3 (&pTab[i1], mc, &pTab[i1]);
       // GR_Disp_pt2 (&pTab[i1], SYM_STAR_S, 0);
   }
     // GR_Disp_cv (pTab, i2, 9);
@@ -831,22 +832,22 @@ Returncode:
   UT3D_vc_vc2 (&ths, &tgs);
   vz = UT3D_VECTOR_Z;
   UT3D_m3_load_povxvz (ma, &qts, &ths, &vz);
-    // UT3D_stru_dump (Typ_M4x3, ma, "ma:");
+    // DEB_dump_obj__ (Typ_M4x3, ma, "ma:");
   UT3D_m3_invm3 (ima, ma);
-    // UT3D_stru_dump (Typ_M4x3, ima, "ima:");
+    // DEB_dump_obj__ (Typ_M4x3, ima, "ima:");
   UT3D_m3_load_povxvz (mb, &(cl->stp), &(cl->stv), &(cl->plv));
-    // UT3D_stru_dump (Typ_M4x3, mb, "mb:");
+    // DEB_dump_obj__ (Typ_M4x3, mb, "mb:");
   UT3D_m3_multm3 (mc, mb, ima);
 
   // rt = get origin of mat ima
   rt.x = ima[0][3];
   rt.y = ima[1][3];
   rt.z = ima[2][3];
-    // UT3D_stru_dump (Typ_PT, &rt, "rt1:");
-  UT3D_pt_traptm3 (&rt, mb, &rt);
-    // UT3D_stru_dump (Typ_PT, &rt, "rt2:");
+    // DEB_dump_obj__ (Typ_PT, &rt, "rt1:");
+  UT3D_pt_tra_pt_m3 (&rt, mb, &rt);
+    // DEB_dump_obj__ (Typ_PT, &rt, "rt2:");
   UT3D_m3_load_o (mc, &rt);
-    // UT3D_stru_dump (Typ_M4x3, mc, "mc:");
+    // DEB_dump_obj__ (Typ_M4x3, mc, "mc:");
 
 
   return 0;
@@ -924,11 +925,11 @@ Returncodes:
   }    
 
   // transformed curvepoint at c
-  UT3D_pt_traptm3 (pt, mc, &qt);
+  UT3D_pt_tra_pt_m3 (pt, mc, &qt);
 
   if (sw != 0) {
     // transformed tangent vector at c
-    UT3D_pt_traptm3 (&ptg, mc, &ptg);
+    UT3D_pt_tra_pt_m3 (&ptg, mc, &ptg);
     UT3D_vc_2pt (tg, pt, &ptg);
     UT3D_vc_normalize (tg, tg);
   }	  
@@ -1149,7 +1150,7 @@ L_2D_Done:
 
   // transform 3D-polygon
   for (i1=0; i1<(*ptNr); ++i1)
-    UT3D_pt_traptm3 (&((*pTab)[i1]), mc, &((*pTab)[i1]));
+    UT3D_pt_tra_pt_m3 (&((*pTab)[i1]), mc, &((*pTab)[i1]));
 
   return 0;
 

@@ -367,7 +367,7 @@ extern ColRGB     AP_defcol;
 
 
   printf("UI_WinSurfCol %d\n",i1);
-  // UT3D_stru_dump (Typ_Color, &AP_actcol, "AP_actcol: ");
+  // DEB_dump_obj__ (Typ_Color, &AP_actcol, "AP_actcol: ");
 
 
   switch (i1) {

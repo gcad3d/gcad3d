@@ -118,7 +118,7 @@ see also:
   // set out-segment-startpoint normal to in-segment-startpoint
   pTabo[0] = pTabi[0];
   UT3D_pt_add_vc__ (&pTabo[0], &vcy);
-    UT3D_stru_dump (Typ_PT, &pTabo[0], "  pto-0");
+    DEB_dump_obj__ (Typ_PT, &pTabo[0], "  pto-0");
 
 
 
@@ -132,14 +132,14 @@ see also:
     // last stored out-point is pTabo[io],
     // vector for next outSeg = vcOld (vec of last inSeg)
     // find intersection with in-seg[iiAct]
-      UT3D_stru_dump (Typ_VC, &vcOld, "  vcOld");
+      DEB_dump_obj__ (Typ_VC, &vcOld, "  vcOld");
 
     // keep index of parallel inSeg
     iTab[io] = iiAct;
 
     // vcAct = vector of next input-segment
     UT3D_vc_2pt (&vcAct, &pTabi[iiAct], &pTabi[iiAct+1]);
-      UT3D_stru_dump (Typ_VC, &vcAct, "  vcAct");
+      DEB_dump_obj__ (Typ_VC, &vcAct, "  vcAct");
 
     // vcy = normal to next input-segment
     UT3D_vc_perp2vc  (&vcy, vz, &vcAct);
@@ -158,7 +158,7 @@ see also:
     // get intersectionpoint from vcAct * d2
     UT3D_vc_multvc (&vco2, &vcAct, d2);
     UT3D_pt_add_vc__ (&pTabo[io+1], &vco2);
-      UT3D_stru_dump (Typ_VC, &vco2, "  vco2");
+      DEB_dump_obj__ (Typ_VC, &vco2, "  vco2");
 
     // if segmentLength < UT_TOL_cv skip seg
     if(UT3D_comp2pt (&pTabo[io], &pTabo[io+1], UT_TOL_cv)) goto L_int_nxt9;
@@ -166,7 +166,7 @@ see also:
 
     // test if new seg vco1 is parallel or antiparalell to vcOld (previous inSeg)
     UT3D_vc_2pt (&vco1, &pTabo[io], &pTabo[io+1]);
-      UT3D_stru_dump (Typ_VC, &vco1, "  vco1");
+      DEB_dump_obj__ (Typ_VC, &vco1, "  vco1");
     i1 =  UT3D_comp2vc_p (&vcOld, &vco1, UT_TOL_min1); // 1=parl, else not
       printf(" dir-of-iiAct=%d is %d\n",iiAct,i1);
     // if out-segment goes reverse: overwrite pTabo[io]
@@ -184,8 +184,8 @@ see also:
       // set old outPt to intersectionPt
       UT3D_vc_multvc (&vco2, &vcAct, d2);
       UT3D_pt_add_vc__ (&pTabo[io], &vco2);
-        UT3D_stru_dump (Typ_PT, &pTabo[io], "  overwrite: pto[%d]",io);
-        // UT3D_stru_dump (Typ_VC, &vco2, "  vco2");
+        DEB_dump_obj__ (Typ_PT, &pTabo[io], "  overwrite: pto[%d]",io);
+        // DEB_dump_obj__ (Typ_VC, &vco2, "  vco2");
       // set vcOld to 
       --iiOld;
       goto L_int_nxt9;
@@ -196,7 +196,7 @@ see also:
     ++io;
     vcOld = vcAct;
     iiOld = iiAct;
-      UT3D_stru_dump (Typ_PT, &pTabo[io], "  pto-%d",io);
+      DEB_dump_obj__ (Typ_PT, &pTabo[io], "  pto-%d",io);
 
 
 
@@ -217,7 +217,7 @@ see also:
     UT3D_vc_multvc (&vcy, &vcy, dist);
     pTabo[io] = pTabi[ii1];
     UT3D_pt_add_vc__ (&pTabo[io], &vcy);
-      UT3D_stru_dump (Typ_PT, &pTabo[io], "  last=%d",io);
+      DEB_dump_obj__ (Typ_PT, &pTabo[io], "  last=%d",io);
 
     *ptNo = io + 1;  // points = segments + 1
 
@@ -242,7 +242,7 @@ see also:
     printf("ex-UT3D_npt_parl_pln %d\n",*ptNo);
     GR_Disp_npti (*ptNo, pTabo, SYM_TRI_S, ATT_COL_RED, ATT_COL_YELLOW);
     for(i1=0; i1< *ptNo; ++i1) {
-      UT3D_stru_dump (Typ_PT,&pTabo[i1], "%d",i1);
+      DEB_dump_obj__ (Typ_PT,&pTabo[i1], "%d",i1);
     }
  
   return 0;
@@ -256,9 +256,11 @@ see also:
                          Vector *vz, double dist, int iClo) {
 //=========================================================================
 // UT3D_npt_parl_pln          polygon parallel polygon on plane, dist
+//   polgon-out is in same plane as polygon-in;
 // Input:
 //   pTabi,ptNi  contour; pTabo must have size >= ptNi
 //   iClo        closed; 0=yes, 1=not_closed;
+//   dist        offset
 // Output:
 //   ptNo        nr of points out; < ptNi
 //   pTabo       contour parallel to pTabi;
@@ -297,7 +299,7 @@ see also:
   UT3D_vc_multvc (&vc1, &vc2, dist);
   pTabo[ii1] = pTabi[ii1];
   UT3D_pt_add_vc__ (&pTabo[ii1], &vc1);
-    UT3D_stru_dump (Typ_PT, &pTabo[ii1], "  last-%d",ii1);
+    DEB_dump_obj__ (Typ_PT, &pTabo[ii1], "  last-%d",ii1);
 
 
 
@@ -314,7 +316,7 @@ see also:
     UT3D_vc_multvc (&vc1, &vc1, d1);
     pTabo[iin] = pTabo[i1];
     UT3D_pt_add_vc__ (&pTabo[iin], &vc1);
-      UT3D_stru_dump (Typ_PT, &pTabo[iin], "  %d",iin);
+      DEB_dump_obj__ (Typ_PT, &pTabo[iin], "  %d",iin);
   }
 
   *ptNo = ptNi;
@@ -338,7 +340,7 @@ see also:
   // find intersectionpoints, remove islands
   L_ck_rev:
     // TESTBLOCK
-    GR_Disp_cv (pTabo, ptNi, Typ_Att_go);
+    GR_Disp_cv (pTabo, ptNi, Typ_Att_dash__);
     // END TESTBLOCK
 
   // find intersectionpoints, remove islands
@@ -535,7 +537,7 @@ see also:
     UT3D_pt_add_vc__ (&pTabo[iNxt], &vc1);
   }
 
-    UT3D_stru_dump (Typ_PT, &pTabo[iNxt], "  %d",iNxt);
+    DEB_dump_obj__ (Typ_PT, &pTabo[iNxt], "  %d",iNxt);
 
   // if closed & first point: set also last point.
   if(!iClo) {
@@ -646,7 +648,7 @@ see also:
 
   // get out-seg
   UT3D_vc_2pt (&vco, &pTabo[iSeg], &pTabo[oNxt]);
-    UT3D_stru_dump (Typ_VC, &vco, " vco %d-%d",iSeg,oNxt);
+    DEB_dump_obj__ (Typ_VC, &vco, " vco %d-%d",iSeg,oNxt);
 
   // skip segment if too short (< UT_TOL_cv)
     printf(" lenB_vc=%f tol=%f\n",UT3D_lenB_vc (&vco),UT_TOL_cv);
@@ -785,7 +787,7 @@ see also:
                                  &pTabo[i2], &pTabo[i2+1], UT_TOL_cv);
       printf(" int- i1=%d X i2=%d  irc=%d\n",i1,i2,irc);
     if(irc) goto L_bwd;
-      UT3D_stru_dump (Typ_PT, &ptx, " ptx");
+      DEB_dump_obj__ (Typ_PT, &ptx, " ptx");
 
 
     //----------------------------------------------------------------

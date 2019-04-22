@@ -5,36 +5,141 @@ needs
 #include "../xa/xa_msg.h"              // MSG_*
 
 Messagetext: ../../doc/msg/msg_const_de.txt
+
+
+
+
+-----------------------------------------------------
+TODO:
+- different languages for errorcodes MSG_ERR_tab in ../xa/xa_msg.c
+
+
+// errorcodes               severity                               iErr
+  ERR_internal = -99,       // 3  internal error, exit right nowa   -99
+
+  ERR_TODO_E,               // 2  error, exit right now             -98
+
+  ERR_TODO_I,               // 1  info only - TODO                  -97
+  ERR_func_not_impl,        // 1  "function not implemented"
+  ERR_subModel_undefined,   // 1  subModel_undefined
+  ERR_db_obj_undefined,     // 1  db-obj_undefined
+  ERR_file_open,            // 1  file_open error
+
+  ERR_unsupported           // 0
+
+
+// severity:
+//   3  error-internal; exit right now, stop and unload plugin
+//   2  error-unrecoverable; stop/break active operation;
+//   1  error-continue next level;
+//   0  error-continue normal; info only;
+
+
+// - ERR_get_severity from errorCode
+#define ERR_severity_3     ERR_internal
+#define ERR_severity_2     ERR_TODO_E
+#define ERR_severity_1     ERR_file_open
+
+  if(iErr <= ERR_internal)        iSev = 3;   // MSG_ERR_typ_BRK
+  else if(iErr <= ERR_TODO_E)     iSev = 2;   // MSG_ERR_typ_ERR
+  else if(iErr <= ERR_file_open)  iSev = 1;   // MSG_ERR_typ_WNG
+  else                            iSev = 0;   // MSG_ERR_typ_INF
+
+// MSG_ERR_typ_xx == severity; MSG_ERR_typ_BRK
+// text zu severity MSG_ERR_txt
+ MSG_ERR_typ_ERR
+
+
+es sollte verknüpft sein:
+    errorCode severity textMessage
+eg   -99       1       internal error
+
+.......................................
+Example:
+    int irc = ERR_TODO_E;
+    MSG_ERR__ (irc, "%d %d",i1,i2);
+    return irc;
+  }
+  if(irc < ERR_severity_2)  return -1;
+
+
+
+-----------------------------------------------------
+
 */
 
 
 
 
-int MSG_STD_ERR (int ikey, ...);
+//================================================================
+// ERROR-MESSAGES 
+//================================================================
 
-// keys for standard-Messages MSG_STD_ERR;
-// text for messages in MSG_STD_tab in ../xa/xa_msg.c
-enum {
-  ERR_func_not_impl,        ///< "function not implemented"
-  ERR_subModel_undefined,   ///< subModel_undefined,
-  ERR_db_obj_undefined,     ///< db-obj_undefined,
-  ERR_file_open,            ///< file_open error
-  ERR_internal,             ///< internal error
-  ERR_unused
+
+// severity from errorCode;
+//   3  error-internal; exit right now, stop and unload plugin
+//   2  error-unrecoverable; stop/break active operation;
+//   1  error-continue next level;
+//   0  error-continue normal; info only;
+// eg: if(iErr <= ERR_severity_2) printf(" severity is 2 or 3\n");
+#define ERR_severity_3     ERR_internal
+#define ERR_severity_2     ERR_TODO_E
+#define ERR_severity_1     ERR_file_open
+
+
+// messagetype for MSG_ERR_out; see MSG_ERR_txt in ../xa/xa_msg.c
+#define MSG_ERR_typ_INF     0
+#define MSG_ERR_typ_WNG     1
+#define MSG_ERR_typ_ERR     2
+#define MSG_ERR_typ_BRK     3
+
+int MSG_ERR_out (int msgTyp, const char *fnc, int ikey, char *txt, ...);
+
+
+/// \code
+/// MSG_ERR__             errormessage (key, additional_text)
+/// Input:
+///   iErr      errorcode; see enum ERR_codes below
+/// Output:     TX_Error "<MSG_ERR_txt> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
+///   retCod    ??
+/// Example:  return MSG_ERR__ (func_not_impl, "/ cvTyp %d", cvTyp);
+///   how to add new STD-message:
+///    - add key in enum above;
+///    - add text for key in MSG_ERR_tab in ../xa/xa_msg.c
+///
+///  return MSG_ERR__ (ERR_internal, "memspc not free");
+/// \endcode
+int MSG_ERR__ (int iErr, ...);
+#define MSG_ERR__(iErr,...)\
+ MSG_ERR_out (MSG_ERR_typ_ERR,__func__,iErr,__VA_ARGS__)
+
+
+// keys for error-Messages MSG_ERR__;
+// text for messages in MSG_ERR_tab in ../xa/xa_msg.c
+enum ERR_codes {
+  ERR_internal = -99,       // 3  internal error, exit right now    -99
+  ERR_EOM,                  // 2  out of memory, exit right now     -98
+  ERR_TODO_E,               // 2  error, exit right now             -97
+  ERR_TODO_I,               // 1  info only - TODO                  -96
+  ERR_func_not_impl,        // 1  function not implemented
+  ERR_subModel_undefined,   // 1  subModel_undefined
+  ERR_db_obj_undefined,     // 1  db-obj_undefined
+  ERR_file_open,            // 1  file_open error
+  ERR_TEST,                 // 1  testExit
+  ERR_unsupported           // 0
 };
 
-
-// messagetype for MSG_STD__; see MSG_STD_code in ../xa/xa_msg.c
-#define MSG_typ_INF     0
-#define MSG_typ_WNG     1
-#define MSG_typ_ERR     2
-
-int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...);
+// MSG_ERR_sev                   get severity (1|2|3) from errorcode (< 0)
+#define MSG_ERR_sev(iErr)\
+ ((iErr<=ERR_severity_1)?((iErr<=ERR_severity_2)?((iErr<=ERR_severity_3)?3:2):1):0)
 
 
 
 
 
+//================================================================
+// SYSTEM-MESSAGES 
+//================================================================
 // keys for constant-messages; MSG_const__ ()
 // messageText:  ../../doc/msg/msg_const_en.txt
 // modify messages: cd ../../doc/msg/  vi msg_const_*.txt
@@ -64,8 +169,8 @@ enum {
 
 
 /*
-// char **MSG_STD_code; ee ../xa/xa_msg.c
-extern char *MSG_STD_code[];
+// char **MSG_ERR_txt; ee ../xa/xa_msg.c
+extern char *MSG_ERR_txt[];
 
 // char **MSG_STD_tab; see ../xa/xa_msg.c
 extern char *MSG_STD_tab[];
@@ -77,19 +182,6 @@ extern char *MSG_STD_tab[];
 #define __func__ __FUNCTION__
 #endif
 
-/// \code
-/// MSG_STD_ERR             errormessage (key, additional_text)
-/// Input:
-///   ikey    see enum below
-/// Output:   TX_Error "<MSG_STD_code> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
-/// Example:  return MSG_STD_ERR (func_not_impl, "/ cvTyp %d", cvTyp);
-///   how to add new STD-message:
-///    - add key in enum below;
-///    - add text for key in ../xa/xa_msg.c MSG_STD_tab
-/// \endcode
-
-#define MSG_STD_ERR(ikey,...)\
- MSG_STD__ (MSG_typ_ERR,__func__,ikey,__VA_ARGS__)
 
 
 // EOF

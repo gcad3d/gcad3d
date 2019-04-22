@@ -38,7 +38,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-CTRL_CB__      mainentry (idle-callback)
+CTRL_CB__      mainentry (idle-callback); init pipes ..
+CTRL_CB_do__   executes commands
+CTRL_mod__     modify line, update ..
+CTRL_write__   write answer sBufOut -> pipe poutLun;
+CTRL_sel_CB    callback user-selection
+CTRL_f_do__    execute remoteCommandFile
 
 List_functions_end:
 =====================================================
@@ -175,6 +180,13 @@ static int ctrlStat = 0;
     }
 
     ctrlStat = 1;
+
+
+    // start remoteCommandFile
+    if(AP_stat.start_rcmd) {
+      AP_stat.start_rcmd = 0;
+      CTRL_f_do__ ();
+    }
   }
 
 
@@ -186,13 +198,13 @@ static int ctrlStat = 0;
   // get input from pipe, test if input is complete 
   cmdLn = OS_CTL_read__ (&ii);
   if(!cmdLn) return 1;
-    printf(" new cmd = |%s|\n",cmdLn);
+    // printf(" new cmd = |%s|\n",cmdLn);
 
 
 
   // remote-command exists, execute ..
   irc = CTRL_CB_do__ (cmdLn);
-    printf(" after CTRL_CB_do__ %d\n",irc);
+    // printf(" after CTRL_CB_do__ %d\n",irc);
 
 
 
@@ -229,7 +241,7 @@ static int ctrlStat = 0;
          
 
 
-  printf("CTRL_CB_do__  |%s|\n", parCmd);
+  // printf("CTRL_CB_do__  |%s|\n", parCmd);
 
 /*
   // DO NOT USE mem_cbuf1; WC_Work__ is using it !
@@ -483,12 +495,22 @@ static int ctrlStat = 0;
 
 
   //----------------------------------------------------------------
-  // USER
+  // EXIT
   } else if(!strcmp(cmd, "EXIT")) {                      // 2018-09-18
     sprintf(sBufOut, "user-exit");
     CTRL_write__ ();
     AP_work__ ("crashEx", NULL);
     return 1;
+
+
+  //----------------------------------------------------------------
+  // WAIT_ESC
+  } else if(!strcmp(cmd, "WAIT_ESC")) {
+    // iUserCB = 1;                           // block RemCmd-input
+    TX_Print("***** waiting for ESC - key ... ");
+    UI_wait_Esc ();
+    // UI_block__ (-1, 0, 0);                 // reset input & cursor
+    goto L_done;
 
 
 
@@ -518,7 +540,7 @@ static int ctrlStat = 0;
   // write answer sBufOut -> pipe poutLun;
   L_done:
   CTRL_write__ ();
-    printf(" after CTRL_write__ ..\n");
+    // printf(" after CTRL_write__ ..\n");
 
 
 
@@ -588,7 +610,7 @@ static int ctrlStat = 0;
   i1 = strlen(sBufOut);
 
 
-  printf("CTRL_write__ |%s| %d\n",sBufOut,i1);
+  // printf("CTRL_write__ |%s| %d\n",sBufOut,i1);
 
 
 #ifndef _MSC_VER
@@ -644,6 +666,40 @@ static int ctrlStat = 0;
 
   iUserCB = 0;
  
+  return 0;
+
+}
+
+
+//================================================================
+  int CTRL_f_do__ () {
+//================================================================
+// CTRL_f_do__    execute remoteCommandFile
+// commandfile is <tmpDir>rcmd.txt
+
+  char    s1[400], s2[256];
+
+#ifdef _MSC_VER
+  // MS-Win
+  // copy test_release.cmd X:\Devel\gcad3d\gCAD3D\tmp\CTRLpin
+
+  // sprintf(s1, "%srcmd.txt", OS_get_tmp_dir());
+  // sprintf(s2, "%sCTRLpin", OS_get_tmp_dir());
+    // printf(" copy |%s|%s|\n",s1,s2);
+  // OS_file_copy (s1, s2);
+  sprintf(s1, "copy/y %srcmd.txt %sCTRLpin &",
+          OS_get_tmp_dir(), OS_get_tmp_dir());
+    printf("CTRL_f_do__ |%s|\n",s1);
+  OS_system (s1);
+
+#else
+  // Unix
+  sprintf(s1, "cat %srcmd.txt > %sCTRLpin &",
+          OS_get_tmp_dir(), OS_get_tmp_dir());
+    printf("CTRL_f_do__ |%s|\n",s1);
+  OS_system (s1);
+#endif
+
   return 0;
 
 }

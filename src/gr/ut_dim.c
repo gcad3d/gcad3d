@@ -59,7 +59,7 @@ see also dxfw_gxt
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
-#include "../ut/func_types.h"                 // Typ_Att_PT, SYM_TRI_S, ..
+#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
 
 #include "../db/ut_DB.h"      // DB_GetVar
 
@@ -456,7 +456,7 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
 
 
   // printf("GR_dim_ang__ ----------------------------\n");
-  // UT3D_stru_dump (Typ_Dimen, dim1, "");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "");
 
   pt1 = (Point2*)&dim1->p1;
   pt2 = (Point2*)&dim1->p2;
@@ -464,9 +464,9 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
     // GR_Disp_pt2 (pt1, SYM_TRI_S, 3);
     // GR_Disp_pt2 (pt2, SYM_TRI_S, 3);
     // GR_Disp_pt2 (pt3, SYM_TRI_S, 3);
-    // UT3D_stru_dump (Typ_PT2, pt1, "pt1");
-    // UT3D_stru_dump (Typ_PT2, pt2, "pt2");
-    // UT3D_stru_dump (Typ_PT2, pt3, "pt3");
+    // DEB_dump_obj__ (Typ_PT2, pt1, "pt1");
+    // DEB_dump_obj__ (Typ_PT2, pt2, "pt2");
+    // DEB_dump_obj__ (Typ_PT2, pt3, "pt3");
 
 
   // ps = den Schnittpunkt der beiden Hilfslinien errechnen

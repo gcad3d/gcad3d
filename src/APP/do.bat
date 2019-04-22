@@ -143,9 +143,9 @@ set gcad_exe=%gcad_dir_bin%gCAD3D.exe
 
 
 if .debug==.%1 (
-windbg "%gcad_dir_bin%gCAD3D.exe"
+windbg "%gcad_dir_bin%gCAD3D.exe" %2
 ) else (
-"%gcad_dir_bin%gCAD3D.exe" %1
+"%gcad_dir_bin%gCAD3D.exe" %*
 )
 
 

@@ -9,7 +9,7 @@
   ObjGX* OGX_oxm_copy_ox (Memspc *mSpo, ObjGX *oTab, int iNr, int isolate);
   ObjGX* OGX_oxm_copy_obj (Memspc *mSpo,
                       void *obji, int typ, int iNr, int isolate);
-
+  long OGX_is_dbo (ObjGX *oxi);
 
 
 
@@ -30,6 +30,16 @@ void OGX_SET_OBJ (ObjGX *ox, int oTyp, int oForm, int oSiz, void *oDat);
   (ox)->data = (oDat);\
   (ox)->dir = 0;}
 
+
+/// OGX_GET_OBJ             get type and data of binary-obj
+/// replaces: oTyp = ox.form;
+///           oDat = ox->data;
+///           oNr  = ox.siz;            // number of records in *data;
+void OGX_GET_OBJ (int *oTyp, void **oDat, int *oNr, ObjGX *ox);
+#define OGX_GET_OBJ(oTyp,oDat,oNr,ox){\
+  *(oTyp) = (ox)->form;\
+  *(oDat) = (ox)->data;\
+  *(oNr)  = (ox)->siz;}
 
 
 /// OGX_SET_OBJ_aux            create complexObject (ObjGX) with aux.data
@@ -136,6 +146,11 @@ void OGX_SET_COLOR (ObjGX *ox, ColRGB *col);
 /// \brief OGX_GET_COLOR      get pointer to Typ_Color
 // #define OGX_GET_COLOR(ox)\
   // (ColRGB)(ox)->data
+
+
+/// OGX_is_dbo              check if struct is a DB-obj
+/// returns  0 (oxi is NOT dbo) else the DB-index
+#define OGX_is_dbo(oxi) ((oxi)->form == Typ_Index ? (long)(oxi)->data : 0L)
 
 
 // INCLUDE_FULL defined only in ../ut/ut_ox_base.c

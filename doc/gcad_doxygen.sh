@@ -7,33 +7,37 @@
 # UPDATE files src/gcad_version and src/gcad_date
 # ReCreate documentation:   ./gcad_doxygen.sh
 
+# necessary vars: gcad_dir_dev gcad_dir_bin (../options.sh)
+
+
+
+# path from doxygen-outputDirectory -> srcBase
+dox_path_src="${gcad_dir_dev}src"
+export dox_path_src
+
+# path from doxygen-InputfileDirectory -> sourceBasedirectory
+# start create doc here ..
+srcBase="${dox_path_src}/APP"
+
+# path from srcBase -> doxygen-InputfileDirectory
+doxBase="${gcad_dir_dev}doc/gcad_doxygen"
+
+# path from srcBase -> doxygen-outputDirectory
+doxy_path_out="${gcad_dir_dev}doc/gcad"
+export doxy_path_out
+
+# doxgen will remove gcad_dir_dev from all filenames
+# see STRIP_FROM_PATH in Doxyfile
+
 
 
 
 # version, date, project-name
-version=`cat ../src/gcad_version`
-date=`cat ../src/gcad_date`
+version=`cat ${dox_path_src}/gcad_version`
+date=`cat ${dox_path_src}/gcad_date`
 doxy_prj_nam="gCAD3D $version"
 export doxy_prj_nam
 
-
-# path from doxygen-InputfileDirectory -> sourceBasedirectory
-# start create doc here ..
-srcBase="../src/APP"
-
-# path from srcBase -> doxygen-InputfileDirectory
-doxBase="../../doc/gcad_doxygen"
-
-# path from srcBase -> doxygen-outputDirectory
-doxy_path_out="../../doc/gcad"
-export doxy_path_out
-
-# path from doxygen-outputDirectory -> srcBase
-dox_path_src="../../src"
-export dox_path_src
-
-doxy_path_base=`pwd`
-export doxy_path_base
 
 # sourcedirectories
 srcDirs="\
@@ -51,6 +55,7 @@ srcDirs="\
 "
 export srcDirs
 
+echo "srcDirs = " ${srcDirs}
 
 # all dox-files; this makes the main-menu.
 # Do not change first line (sourcedirectories)
@@ -112,11 +117,10 @@ cat ${doxBase}/Download | sed "s/<VERSION>/$version/g" > ${doxBase}/Download.dox
 # create file ../src/APP/srcFiles (a list of sourcefiles)
 # get bitNr DIR_DEV gcad_dir_dev gcad_dir_bin
 echo "Create list of sourcefiles"
-. ../options.sh
-make -f gcad3d.mak srclst
+make -f ${gcad_dir_dev}/src/APP/gcad3d.mak srclst
 
 echo "doxy_help1 Sourcefiles_gcad"
-./doxy_help1.sh "Sourcefiles_gcad"
+${gcad_dir_dev}/src/APP/doxy_help1.sh "Sourcefiles_gcad"
 mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gcad.dox
 #vi ${doxBase}/Sourcefiles_gcad.dox
 #exit
@@ -129,7 +133,7 @@ echo "Create list of GUI-files"
 make -f gcad_gui_lnk.mak srclst
 
 echo "doxy_help1 Sourcefiles_gui"
-./doxy_help1.sh "Sourcefiles_gui"
+${gcad_dir_dev}/src/APP/doxy_help1.sh "Sourcefiles_gui"
 mv -f Sourcefiles.dox ${doxBase}/Sourcefiles_gui.dox
 #vi ${doxBase}/Sourcefiles_gui.dox
 #exit

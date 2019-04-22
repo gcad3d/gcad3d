@@ -45,9 +45,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-MSG_STD_ERR     errormessage (key, additional_text) 
-MSG_STD__       error/warning/info
+-------------- ERROR-MESSAGES ----------------------------------
+MSG_ERR__       errormessage (key, additional_text) 
+MSG_ERR_out     error/warning/info
+MSG_ERR_sev     get severity (1|2|3) from errorcode (< 0)
 
+-------------- SYSTEM-MESSAGES ----------------------------------
 APP_MSG_pri_0   print message with 0 parameter (TX_Print)
 APP_MSG_pri_1   print formatted message with 1 parameter (TX_Print)
 APP_MSG_err_0   error (TX_Error)
@@ -118,7 +121,7 @@ Functions APP_MSG_*
 Get messages, identified by a integer; ../xa/xa_msg.h eg func_not_impl
 
 Examples:
-  MSG_STD_ERR (func_not_impl, "E001 - %d",4);
+  MSG_ERR__ (func_not_impl, "E001 - %d",4);
 
   
 
@@ -228,23 +231,32 @@ static FILE   *MSG_fp=NULL;
 static char   MSG_buf[MSG_bSiz];
 
 
-char *MSG_STD_code[]={
-  "-",             // MSG_typ_INF
-  "***",           // MSG_typ_WNG
-  "*** ERROR:"     // MSG_typ_ERR
+
+//================================================================
+// ERROR-MESSAGES 
+//================================================================
+
+char *MSG_ERR_txt[]={
+  "-",             // MSG_ERR_typ_INF
+  "*** WNG:",      // MSG_ERR_typ_WNG
+  "*** ERROR:"     // MSG_ERR_typ_ERR
+  "*** BREAK:"     // MSG_ERR_typ_BRK
 };
 
 
-/// messages for MSG_STD__ MSG_STD_ERR
-char *MSG_STD_tab[]={
-  "function not implemented",    ///< 0 func_not_impl,
-  "subModel undefined",          ///< 1 subModel_undefined,
-  "DB-object undefined",         ///< 2 db_obj_undefined,
-  "file open",                   ///< 3 file_open,
-  "internal",                    ///< 4 internal Error,
+/// messages for MSG_ERR_out MSG_ERR__
+char *MSG_ERR_tab[]={
+  "internal error - exit",                ///< 0 internal Error,
+  "memtab out of memory error",           ///< 1 error, exit right now
+  "not implemented yet error - exit",     ///< 1 error, exit right now
+  "not implemented yet error - info",     ///< 2 info only - TODO
+  "function not implemented",             ///< 3 func_not_impl,
+  "subModel undefined",                   ///< 4 subModel_undefined,
+  "DB-object undefined",                  ///< 5 db_obj_undefined,
+  "file open",                            ///< 6 file_open,
+  "testExit",                             ///< 7 testExit,
   "uu"
 };
-
 
 
 
@@ -1025,42 +1037,55 @@ char *MSG_STD_tab[]={
 
 
 //=======================================================================
-  int MSG_STD__ (int msgTyp, const char *fnc, int ikey, char *txt, ...) {
+  int MSG_ERR_out (int msgTyp, const char *fnc, int iErr, char *txt, ...) {
 //=======================================================================
 /// \code
-/// MSG_STD__     error/warning/info
-///   msgTyp:     MSG_typ_ERR|MSG_typ_WNG|MSG_typ_INF
+/// MSG_ERR_out     error/warning/info; use with MSG_ERR__
+///   msgTypr       MSG_ERR_typ_ERR|MSG_ERR_typ_WNG|MSG_ERR_typ_INF
+///   iErr          errorcode; see ERR_codes
 ///
-/// output:       TX_Error|TX_Print; 
-/// retCod        0   for MSG_typ_INF
-///               -1  for MSG_typ_WNG
-///               -99 for MSG_typ_ERR
+/// output:       TX_Error ..
+///   retCod      errorcode = iErr (< 0)
 ///
-/// see also MSG_STD_ERR
+/// see also MSG_ERR__ MSG_ERR_sev
 /// \endcode
 
   va_list va;
-  int     irc = 0;
+  int     irc = 0, iSev, iKey;
   char    s1[400];
 
 
-  // printf("MSG_STD__ %d |%s| %d\n",msgTyp,fnc,ikey);
+  printf("MSG_ERR_out %d |%s| %d\n",msgTyp,fnc,iErr);
+  printf("  ERR_internal=%d\n",ERR_internal);
+
 
   va_start (va, txt);
   vsprintf (s1, txt, va);
   va_end (va);
-    // printf(" s1=|%s|\n",s1);
+  iKey = iErr - ERR_internal;   // ERR_internal = first element in enum-list
+    printf(" s1=|%s| iKey=%d\n",s1,iKey);
 
 
 
-  TX_Print ("%s %s(): %s %s", MSG_STD_code[MSG_typ_ERR],
+  // TX_Print ("%s %s(): %s %s", MSG_ERR_txt[MSG_ERR_typ_ERR],
+                     // fnc,
+                     // MSG_ERR_tab[ikey],
+                     // s1);
+
+  TX_Print ("%s %s in %s() - %s", MSG_ERR_txt[MSG_ERR_typ_ERR],
+                     MSG_ERR_tab[iKey],
                      fnc,
-                     MSG_STD_tab[ikey],
                      s1);
 
-  if(msgTyp == MSG_typ_ERR) {AP_errStat_set (1); irc = -99;}
-  if(msgTyp == MSG_typ_WNG) irc = -1;
-  return irc;
+
+  // if(msgTyp == MSG_ERR_typ_ERR) {AP_errStat_set (1); irc = -99;}
+  // if(msgTyp == MSG_ERR_typ_WNG) irc = -1;
+  // return irc;
+
+  iSev = MSG_ERR_sev (iErr);
+  if(iSev > 1) AP_errStat_set (1);
+
+  return iErr;
 
 }
 

@@ -124,11 +124,12 @@ extern int       WC_modact_ind;         // -1=primary Model is active;
   "Tag",    "------", "------", "------", "------"};
 
   static char *TypTxtTab100[]={
-  "SymBmp", "SymVec", "SymRef", "SymRef2","Texture",  // 100-
-  "TEXB",   "TEXR",   "Box",    "EdgLn",  "------"};
+  "SymBmp", "SymVec", "SymRef", "SymRef2","------",    // 100-
+  "Texture","TEXB",   "TEXR",   "------", "------"};
 
   static char *TypTxtTab110[]={
-  "TmpPT",  "Vertex", "EyePT",  "------", "------"};   // 110-
+  "BBox",   "BBox2",  "GrdBox",  "EdgLn", "------",    // 110-
+  "TmpPT",  "Vertex", "EyePT",   "TmpGrp","------"}; 
 
   static char *TypTxtTab120[]={
   "Part",   "Grp",    "ModBas", "Model",  "Mockup",    // 120-
@@ -764,7 +765,8 @@ char  *ObjCodTab[] = {
   else if(typ < 50)       p1 = TypTxtTab40[typ - 40];
   else if(typ < 80)       p1 = TypTxtTab50[typ - 50];
   else if(typ < 90)       p1 = TypTxtTab80[typ - 80];
-  else if(typ < 110)      p1 = TypTxtTab90[typ - 90];
+  else if(typ < 100)      p1 = TypTxtTab90[typ - 90];
+  else if(typ < 110)      p1 = TypTxtTab100[typ - 100];
   else if(typ < 120)      p1 = TypTxtTab110[typ - 110];
   else if(typ < 130)      p1 = TypTxtTab120[typ - 120];
   else if(typ < 150)      p1 = TypTxtTab130[typ - 130];

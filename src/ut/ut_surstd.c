@@ -187,7 +187,7 @@ List_functions_end:
   Point     pt1; // TEST ONLY
 
 
-   // UT3D_stru_dump(Typ_PT, pt3i, "SUR_pt2_prjptsur: ");
+   // DEB_dump_obj__(Typ_PT, pt3i, "SUR_pt2_prjptsur: ");
 
 
   // get type of surface
@@ -210,7 +210,7 @@ List_functions_end:
 
     // get 2D-coords of pt1
     TSU_tr_2D_3D_sbsp (pt2o, pt3i);
-      // UT3D_stru_dump(Typ_PT2, pt2o, "");
+      // DEB_dump_obj__(Typ_PT2, pt2o, "");
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_sbsp (&pt1, pt2o);
@@ -230,7 +230,7 @@ List_functions_end:
     // get 2D-coords of pt1
     // UT3D_parsru_pt (&pt2o->x, &pt2o->y, pt3i);
     TSU_tr_2D_3D_sru (pt2o, pt3i);
-      // UT3D_stru_dump(Typ_PT2, pt2o, "ex TSU_tr_2D_3D_sru:");
+      // DEB_dump_obj__(Typ_PT2, pt2o, "ex TSU_tr_2D_3D_sru:");
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_sru (&pt1, pt2o);
@@ -249,7 +249,7 @@ List_functions_end:
 
     // get 2D-coords of pt1
     TSU_tr_2D_3D_srv (pt2o, pt3i);
-      // UT3D_stru_dump(Typ_PT2, pt2o, "");
+      // DEB_dump_obj__(Typ_PT2, pt2o, "");
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_srv (&pt1, pt2o);
@@ -293,7 +293,7 @@ List_functions_end:
 
 
   // printf("UT3D_cv_scir__ %d\n",oxi->typ);
-  // UTO_dump_s_ (oxi, "RCIR");
+  // DEB_dump_ox_s_ (oxi, "RCIR");
 
 
   //----------------------------------------------------------------
@@ -317,7 +317,7 @@ List_functions_end:
     if(oa->form == Typ_Index) {
       OGX_GET_INDEX (&ityp, &dbi, oa);
       pa[i1] = DB_GetPoint (dbi);
-        // UT3D_stru_dump(Typ_PT, &pa[i1], "  pa[%d]:",i1);
+        // DEB_dump_obj__(Typ_PT, &pa[i1], "  pa[%d]:",i1);
 
     } else {
       TX_Error("UT3D_cv_scir__ E_CIR %d %d",oxi->form,oxi->siz);
@@ -396,7 +396,7 @@ List_functions_end:
     cv1 = pDat;
     irc = UT3D_plg_pta (cv1, cTab[i1].pa, cTab[i1].iNr, memSeg1);
     if(irc < 0) goto L_EOM;
-      UT3D_stru_dump (Typ_CVPOL, cv1, "Cv[%d]:",i1);
+      DEB_dump_obj__ (Typ_CVPOL, cv1, "Cv[%d]:",i1);
 
     *oSiz = *oSiz - sizeof(CurvPoly);
     if(*oSiz < 1024) goto L_EOM;
@@ -404,8 +404,8 @@ List_functions_end:
   }
 
 
-  // UTO_dump_s_ (oSpc, "ex sup_ContTab");
-  // UTO_dump__ (oSpc, "ex sup_ContTab");
+  // DEB_dump_ox_s_ (oSpc, "ex sup_ContTab");
+  // DEB_dump_ox_0 (oSpc, "ex sup_ContTab");
 
   // UTO_obj_Disp__ (oSpc, NULL, 0);
   // SUR_Disp_Sur (oSpc, memSeg1, 0);
@@ -449,10 +449,10 @@ List_functions_end:
 
 
   // printf("SUP_orient %d\n",cNr);
-  // UT3D_stru_dump (Typ_VC, vcz, "    vcz:\n");
+  // DEB_dump_obj__ (Typ_VC, vcz, "    vcz:\n");
 
 
-  plMain = UT3D_bp_vcz (vcz); // Berechnungsebene definieren
+  plMain = UT3D_bp_perp_vc (NULL, vcz); // Berechnungsebene definieren
 
 
   for(i1=0; i1<cNr; ++i1) {
@@ -586,7 +586,7 @@ List_functions_end:
       ox1 = DB_GetObjGX (oxp1->typ, ind);
     } else ox1 =  *oxp1;
     // printf("   c1: typ=%d form=%d\n",ox1.typ,ox1.form);
-    // UTO_dump__ (&ox1, "in SUP_load_c");
+    // DEB_dump_ox_0 (&ox1, "in SUP_load_c");
 
     // add Contour -> pTab u icTab
     irc = SUP_addBound (cTab,cNr,cMax, pTab,pMax, &ox1, UT_DISP_cv);
@@ -647,7 +647,7 @@ List_functions_end:
                           // oxi->typ,oxi->form,tol);
   // printf(" pTab-posi=%p\n",pTab);
   // printf(" oxi-data-posi=%p\n",oxi->data);
-  // UTO_dump_s_ (oxi, "_addBound");
+  // DEB_dump_ox_s_ (oxi, "_addBound");
 
 
   if(!oxi->typ) return -1;  // no outer-boundary
@@ -718,7 +718,7 @@ List_functions_end:
   // beim Durchgang durch die Achse einen oder 2 Punkte einfuegen.
   TSU_fix_ax_crx (&ptNr, pTab);
     // for(i1=1; i1<ptNr; ++i1) {
-      // UT3D_stru_dump(Typ_PT, &pTab[i1], "boundP[%d]");
+      // DEB_dump_obj__(Typ_PT, &pTab[i1], "boundP[%d]");
     // }
 
 
@@ -758,9 +758,9 @@ List_functions_end:
   // den vom P0 groessten Abstand suchen;
   // wenn ein Abstand groesser als tol, sofort exit.
   L_test:
-      // UT3D_stru_dump(Typ_PT, &pTab[0], "  p[0]");
+      // DEB_dump_obj__(Typ_PT, &pTab[0], "  p[0]");
   for(i1=1; i1<pNr; ++i1) {
-      // UT3D_stru_dump(Typ_PT, &pTab[i1], "  p[%d]",i1);
+      // DEB_dump_obj__(Typ_PT, &pTab[i1], "  p[%d]",i1);
     UT3D_vc_2pt (&vc1, &pTab[0], &pTab[i1]);
     if(fabs(vc1.dx) > tol) goto L_exit;
     if(fabs(vc1.dy) > tol) goto L_exit;
@@ -809,7 +809,7 @@ List_functions_end:
 
 
   // printf("UT3D_ptvc_sur typ=%d form=%d\n", su1->typ,su1->form);
-  // UTO_dump__ (su1, "");
+  // DEB_dump_ox_0 (su1, "");
 
 
   // check surTyp
@@ -821,13 +821,13 @@ List_functions_end:
       // printf(" siz=%d\n",su1->siz);
     ox1p = su1->data;
     ox2p = &ox1p[1];   // Aussenkontur
-      // UTO_dump__ (ox2p, "Boundary:");
+      // DEB_dump_ox_0 (ox2p, "Boundary:");
     if(ox2p->form != Typ_Index) return -1;
     dbi = LONG_PTR (ox2p->data);
 
     // load Boundary from DB
     oTyp = DB_GetObjDat (&o1, &i2, ox2p->typ, dbi);
-      // UT3D_stru_dump (oTyp, o1, "o1:\n");
+      // DEB_dump_obj__ (oTyp, o1, "o1:\n");
 
     if(oTyp == Typ_CI) {
       // get centerpoint & vz from Circ
@@ -850,8 +850,8 @@ List_functions_end:
     } else return -1;
 
 
-      // UT3D_stru_dump (Typ_PT, pto, "pto:\n");
-      // UT3D_stru_dump (Typ_VC, vco, "vco:\n");
+      // DEB_dump_obj__ (Typ_PT, pto, "pto:\n");
+      // DEB_dump_obj__ (Typ_VC, vco, "vco:\n");
     return 0;
 
 
@@ -860,8 +860,8 @@ List_functions_end:
       // 2 boundaryCurves
       ox1p = &((ObjGX*)su1->data)[0];
       ox2p = &((ObjGX*)su1->data)[1];
-        // UT3D_stru_dump (Typ_ObjGX, ox1p, "ox1p:\n");
-        // UT3D_stru_dump (Typ_ObjGX, ox2p, "ox2p:\n");
+        // DEB_dump_obj__ (Typ_ObjGX, ox1p, "ox1p:\n");
+        // DEB_dump_obj__ (Typ_ObjGX, ox2p, "ox2p:\n");
       // if(ox1p->form == Typ_LN) {
         // if(ox1p->form == Typ_VC) {
           // // normalvec
@@ -969,8 +969,8 @@ List_functions_end:
 
 
   L_fertig:
-  UT3D_stru_dump(Typ_PT, pto, "ex UT3D_ptvc_sus PT=");
-  UT3D_stru_dump(Typ_VC, vco, "                 VC=");
+  DEB_dump_obj__(Typ_PT, pto, "ex UT3D_ptvc_sus PT=");
+  DEB_dump_obj__(Typ_VC, vco, "                 VC=");
 
   return 0;
 
@@ -990,7 +990,7 @@ List_functions_end:
 
 
   // zuerst in den Nullpunkt transferieren ...
-  UT3D_pt_traptm3 (&pt31, imat, pti);  // Punkt transformieren
+  UT3D_pt_tra_pt_m3 (&pt31, imat, pti);  // Punkt transformieren
 
 
   // X = Hoehe
@@ -1041,17 +1041,17 @@ List_functions_end:
   pt1.x = actR * cos(parV);
   pt1.y = actR * sin(parV);
   pt1.z = parU;                  // die Hoehe
-  // UT3D_stru_dump (Typ_PT, &pt1, "           pt1: ");
+  // DEB_dump_obj__ (Typ_PT, &pt1, "           pt1: ");
 
 
 
   // RueckTrafo in die Normallage
-  UT3D_pt_traptm3 (pto, mat, &pt1);  // Punkt transformieren
-  // UT3D_stru_dump (Typ_PT, &pt2, "           pt2: ");
+  UT3D_pt_tra_pt_m3 (pto, mat, &pt1);  // Punkt transformieren
+  // DEB_dump_obj__ (Typ_PT, &pt2, "           pt2: ");
 
 
 
-  // UT3D_stru_dump (Typ_PT, ptr, "ex SUScon_pt_pt2: ");
+  // DEB_dump_obj__ (Typ_PT, ptr, "ex SUScon_pt_pt2: ");
 
   return 0;
 
@@ -1071,7 +1071,7 @@ List_functions_end:
   long    dli;
 
 
-  // UT3D_stru_dump (Typ_CON, co1, "UT3D_pt_projptbcon");
+  // DEB_dump_obj__ (Typ_CON, co1, "UT3D_pt_projptbcon");
 
   // pts = proj Pt -> Hauptachse.
   UT3D_pt_projptptvc (&pts, &ls, NULL, pti, &co1->pl.po, &co1->pl.vz);
@@ -1133,7 +1133,7 @@ List_functions_end:
 
 
   L_fertig:
-  // UT3D_stru_dump (Typ_PT, pto, "ex UT3D_pt_projptbcon");
+  // DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_pt_projptbcon");
 
   return 0;
 
@@ -1184,13 +1184,13 @@ List_functions_end:
   Vector2  vc2;
   Point    pt31;
 
-  // UT3D_stru_dump (Typ_PT, pti, "UT3D_parsph_pt: ");
+  // DEB_dump_obj__ (Typ_PT, pti, "UT3D_parsph_pt: ");
 
 
 
   // zuerst in den Nullpunkt transferieren ...
-  UT3D_pt_traptm3 (&pt31, imat, pti);  // Punkt transformieren
-    // UT3D_stru_dump (Typ_PT, &pt31, "           pt31: ");
+  UT3D_pt_tra_pt_m3 (&pt31, imat, pti);  // Punkt transformieren
+    // DEB_dump_obj__ (Typ_PT, &pt31, "           pt31: ");
 
 
 
@@ -1205,7 +1205,7 @@ List_functions_end:
   vc2.dx = UT2D_len_vc ((Vector2*)&pt31);
   vc2.dy = pt31.z;
 
-  // UT3D_stru_dump (Typ_VC2, &vc2, "           vc2: ");
+  // DEB_dump_obj__ (Typ_VC2, &vc2, "           vc2: ");
 
   *parV = UT2D_angr_vc(&vc2);
   // printf(" ang2=%f\n",pto->y);
@@ -1241,17 +1241,17 @@ List_functions_end:
   cosa = cos(parV);
 
 
-  // UT3D_stru_dump (Typ_PT, &pt1, "           pt1: ");
+  // DEB_dump_obj__ (Typ_PT, &pt1, "           pt1: ");
 
   pt1.x = rds * cosa * cosi;
   pt1.y = rds * cosa * sini;
   pt1.z = rds * sina;
 
   // RueckTrafo in die Normallage
-  UT3D_pt_traptm3 (pto, mat, &pt1);  // Punkt transformieren
-  // UT3D_stru_dump (Typ_PT, &pt2, "           pt2: ");
+  UT3D_pt_tra_pt_m3 (pto, mat, &pt1);  // Punkt transformieren
+  // DEB_dump_obj__ (Typ_PT, &pt2, "           pt2: ");
 
-  // UT3D_stru_dump (Typ_PT, pto, "ex UT3D_pt_evparstor: ");
+  // DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_pt_evparstor: ");
 
   return 0;
 
@@ -1350,12 +1350,12 @@ List_functions_end:
 
 
 
-  // UT3D_stru_dump (Typ_PT, pti, "           pti: ");
+  // DEB_dump_obj__ (Typ_PT, pti, "           pti: ");
 
 
   // zuerst in den Nullpunkt transferieren ...
-  UT3D_pt_traptm3 (&pt31, imat, pti);  // Punkt transformieren
-  // UT3D_stru_dump (Typ_PT, &pt31, "           pt31: ");
+  UT3D_pt_tra_pt_m3 (&pt31, imat, pti);  // Punkt transformieren
+  // DEB_dump_obj__ (Typ_PT, &pt31, "           pt31: ");
 
 
   // X = Winkel Aussenkreis; der Punkt liegt immer auf diesem Vektor
@@ -1372,7 +1372,7 @@ List_functions_end:
   vc2.dx = UT2D_len_vc ((Vector2*)&pt31) - tor->r1 + tor->r2;
   vc2.dy = pt31.z;
 
-  // UT3D_stru_dump (Typ_VC2, &vc2, "           vc2: ");
+  // DEB_dump_obj__ (Typ_VC2, &vc2, "           vc2: ");
 
   *parV = UT2D_angr_vc(&vc2);
   // printf(" ang2=%f\n",pto->y);
@@ -1415,7 +1415,7 @@ List_functions_end:
   cosa = cos(parV);
 
 
-  // UT3D_stru_dump (Typ_PT, &pt1, "           pt1: ");
+  // DEB_dump_obj__ (Typ_PT, &pt1, "           pt1: ");
 
   pt1.x = ((tor->r1-tor->r2) + tor->r2 * cosa) * cosi;
   pt1.y = ((tor->r1-tor->r2) + tor->r2 * cosa) * sini;
@@ -1423,12 +1423,12 @@ List_functions_end:
 
 
   // RueckTrafo in die Normallage
-  UT3D_pt_traptm3 (pto, mat, &pt1);  // Punkt transformieren
-  // UT3D_stru_dump (Typ_PT, &pt2, "           pt2: ");
+  UT3D_pt_tra_pt_m3 (pto, mat, &pt1);  // Punkt transformieren
+  // DEB_dump_obj__ (Typ_PT, &pt2, "           pt2: ");
 
 
 
-  // UT3D_stru_dump (Typ_PT, pto, "ex UT3D_pt_evparstor: ");
+  // DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_pt_evparstor: ");
 
   return 0;
 
@@ -1445,7 +1445,7 @@ List_functions_end:
   Circ    ci1;
 
 
-  // UT3D_stru_dump (Typ_TOR, to1, "UT3D_pt_projptbtor");
+  // DEB_dump_obj__ (Typ_TOR, to1, "UT3D_pt_projptbtor");
 
   // pti auf den hauptkreis projizieren, dann retour -> pti mit r2.
 
@@ -1464,7 +1464,7 @@ List_functions_end:
   UT3D_pt_traptptlen (pto, &pt1, pti, to1->r2);
 
 
-  // UT3D_stru_dump (Typ_PT, pto, "ex UT3D_pt_projptbtor");
+  // DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_pt_projptbtor");
 
   return 0;
 
@@ -1502,7 +1502,7 @@ List_functions_end:
 
 
   // printf("SUR_ck_typ %d %d\n",o1->typ,o1->form);
-  // UTO_dump_s_ (o1, "SUR_ck_typ");
+  // DEB_dump_ox_s_ (o1, "SUR_ck_typ");
 
   *sSur = o1;
 

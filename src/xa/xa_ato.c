@@ -457,7 +457,7 @@ extern double NcoValTab[];
     *aTyp = ((ObjGX*)o1)->form;
     vp1 = ((ObjGX*)o1)->data;
   }
-    // UT3D_stru_dump (*aTyp, vp1, "  obj_ato-vp1:");
+    // DEB_dump_obj__ (*aTyp, vp1, "  obj_ato-vp1:");
 
 
 
@@ -2073,7 +2073,7 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   // printf("ATO_ato_obj_pt iseg=%d outTyp=%d typ=%d\n",iseg,outTyp,typ);
   // ATO_dump__ (ato, " _obj_pt-in");
-  // UT3D_stru_dump (typ, o1, " _obj_pt-in");
+  // DEB_dump_obj__ (typ, o1, " _obj_pt-in");
 
 
   //----------------------------------------------------------------

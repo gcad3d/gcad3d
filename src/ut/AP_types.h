@@ -47,7 +47,7 @@ void INF_OTYP (){}
 ///
 /// Get infoText for types: AP_src_typ__ ();
 /// See also xa_sele.h
-/// SEE (UPDATE) ALSO TypTxtTab** in ../ut/ut_gtypes.c
+/// SEE (UPDATE) ALSO TypTxtTab0 in ../ut/ut_gtypes.c
 /// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
 /// \endcode
 
@@ -81,7 +81,7 @@ void INF_OTYP (){}
 #define Typ_CVCLOT        28  ///< S   ClothoidCurve  (CurvClot)
 #define Typ_CVLNA         29  ///< S   array of lines (form=Typ_LN)
 #define Typ_CV2           30  ///< S   all 2D-curves
-#define Typ_CVPOL2        31  ///< S   CurvPoly-2D
+#define Typ_CVPOL2        31  ///< S   CurvPoly-2D    (CurvPol2)
 #define Typ_CVPSP2        32  ///< S   polynom_?
 #define Typ_CVBSP2        33  ///< S   CurvBSpl2
 #define Typ_CVRBSP2       34  ///< S   CurvRBSpl-2D
@@ -92,7 +92,8 @@ void INF_OTYP (){}
 #define Typ_CurvAssy      39  ///< S   CurvAssy        UNUSED
 
 /// DB-surfs 40-79
-#define Typ_PLN           40  ///< R  plane/Refsys
+#define Typ_PLN           40  ///< R  Plane
+#define Typ_Refsys        41  ///< -  Refsys
 #define Typ_SUR           50  ///< A all surfaces (support-surface, bounded)
 // SupportSurfaces (nicht getrimmt,gelocht):
 #define Typ_SURCON        51  ///< Conus (unused)
@@ -155,17 +156,20 @@ void INF_OTYP (){}
 #define Typ_SymRef       102  ///<     SymRef
 #define Typ_SymRef2      103  ///<     SymRef2
 
-#define Typ_Texture      104     ///< index to TexRef
-#define Typ_TEXB         105     ///< Base-Texture    TexBas
-#define Typ_TEXR         106     ///< Ref-Texture     TexRef
-#define Typ_GridBox         107     ///< symbolic box, GridBox
-#define Typ_EdgeLine     108     ///< EdgeLine (../ut/ut_msh.h)
+#define Typ_Texture      105     ///< index to TexRef
+#define Typ_TEXB         106     ///< Base-Texture    TexBas
+#define Typ_TEXR         107     ///< Ref-Texture     TexRef
+
+#define Typ_BBox         110     ///< bounding-box, 3D
+#define Typ_BBox2        111     ///< bounding-box, 2D
+#define Typ_GridBox      112     ///< symbolic box, GridBox
+#define Typ_EdgeLine     113     ///< EdgeLine (../ut/ut_msh.h)
 
 /// temp objs
-#define Typ_TmpPT        110     ///< temporary Point
-#define Typ_Vertex       111  ///< Vertex; point on existing object
-#define Typ_EyePT        112     ///y eye-point
-#define Typ_TmpGrp       113     ///< temporary Point
+#define Typ_TmpPT        115     ///< temporary Point
+#define Typ_Vertex       116  ///< Vertex; point on existing object
+#define Typ_EyePT        117     ///y eye-point
+#define Typ_TmpGrp       118     ///< temporary Point
 // #define Typ_TmpLN        111     ///< temporary Line
 // #define Typ_TmpVC        113     ///< temporary Vector
 // #define Typ_TmpSym       114     ///< temporary Symbol
@@ -183,6 +187,8 @@ void INF_OTYP (){}
 #define Typ_Ditto        125  ///< mockup-subModel (unvisible)
 #define Typ_Joint        126  ///< connection, exported;
 #define Typ_Process      127  
+#define Typ_GEOB_2D      128  ///< geometric obj binary format 2D
+#define Typ_GEOB_3D      129  ///< geometric obj binary format 3D
 
 
 /// END OF DB-OBJECTS
@@ -273,7 +279,7 @@ void INF_OTYP (){}
 #define Typ_ObjSRC       204   ///< ObjSRC
 #define Typ_ObjGX        205   ///< ObjGX,  container
 #define Typ_ObjTab       206   ///< ObjTab, container         was Typ_ObjG2
-#define Typ_ObjTXTSRC    207   ///< ObjTXTSRC 
+#define Typ_ObjBin       207   ///< ObjBin  binary-object             
 #define Typ_ObjDB        208   ///< ObjDB
 #define Typ_ObjAto       209   ///< ObjAto
 
@@ -282,7 +288,7 @@ void INF_OTYP (){}
 #define Typ_Tra          210  ///< all transformations
 #define Typ_TraTra       211  ///< Translation dzt unused; Typ_VC used
 #define Typ_TraRot       212  ///< Rotation TraRot
-#define Typ_TraMat       213  ///< Matrixtransformation
+// #define Typ_TraMat       213  ///< Matrixtransformation
 
 
 /// operators
@@ -368,6 +374,7 @@ void INF_OTYP (){}
 #define Typ_FcmFIX       298
 #define Typ_FcmRND       299
 
+#define TYPE_STRU_NR     300  ///<   nr of obj-struct-types
 
 // ../gui/gui_types.h     400-499      TYP_Event* TYP_Device* TYP_GUI_*
 
@@ -375,9 +382,11 @@ void INF_OTYP (){}
 
 
 //----------------------------------------------------------------
-#define BCKPLN_XY          2  ///< Z-Vec BCKVEC_Z
-#define BCKPLN_XZ          1  ///< Y-Vec BCKVEC_Y 
-#define BCKPLN_YZ          0  ///< X-Vec BCKVEC_X
+#define BCKPLN_XY          2  ///< Z-Vec BCKVEC_Z  parall. X-Y
+#define BCKPLN_XZ          1  ///< Y-Vec BCKVEC_Y  parall. X-Z
+#define BCKPLN_YZ          0  ///< X-Vec BCKVEC_X  parall. Y-Z
+#define BCKPLN_FREE       -1  ///< free-3D-plane; use matrix-transformations
+#define BCKPLN_UNDEF      -2  ///< undefined
 
 #define BCKVEC_Z           2  ///< Z-Vec BCKPLN_XY
 #define BCKVEC_Y           1  ///< Y-Vec BCKPLN_XZ
@@ -415,8 +424,8 @@ void INF_OTYP (){}
 
 // UT3D_ptvc_obj UTO_2pt_limstru UTO_ptnr_std_obj
 #define Ptyp_def      0    ///< default
-#define Ptyp_0        1    ///< startpoint (0-deg-point)
-#define Ptyp_1        2    ///< endpoint
+#define Ptyp_start    1    ///< startpoint (0-deg-point)
+#define Ptyp_end      2    ///< endpoint
 #define Ptyp_90_deg   4    ///< 25 % point        1     Circ, elli: 90-deg-point
 #define Ptyp_mid      8    ///< midpoint          1     Circ, elli: 180-deg-point
 #define Ptyp_270_deg 16    ///< 75 % point        1     Circ, elli: 270-deg-point

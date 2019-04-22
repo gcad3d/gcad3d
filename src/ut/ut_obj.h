@@ -1,5 +1,5 @@
 
-  int UTO_get_DB  (void **oxo, int *oNr, int *otyp, long dbInd);
+  int UTO_objDat_dbo  (void **oDat, int *oNr, int *oTyp, long dbInd);
   int UTO_sav_ost (int *dbTyp, long *dbInd,
                    int typ, int form, int siz, void *obj);
 
@@ -9,7 +9,7 @@
   // int   UTO_get_ELL     (ObjX *oxo, ObjGX *oxi);
   // int   UTO_objx_get    (ObjX *oxo, ObjGX *oxi);
 
-int   UTO_obj_getp     (void **objOut, int *oNr, ObjGX *ox1);
+int   UTO_objDat_ox     (void **objOut, int *oNr, ObjGX *ox1);
 // int   UTO_2pt_lim_ox   (Point *ps,Point *pe, double *v1,double *v2,ObjGX *oxi);
 int   UTO_pt_eval_par1_dbo (Point *pto, double lpar, int typ, long ind);
 int   UTO_parpt_pt_dbo (double *lpar, Point *pti, int typ, long ind);
@@ -28,8 +28,8 @@ int   UTO_npt_Tes      (int *pNr, Point **ppa, ObjGX *os);
   void* UTO_save__       (Memspc *memSpc, void* objDat, int osiz);
   int   UTO_Memspc_init  (Memspc *memSpc, void* objDat, int osiz);
 
-  int   UTO_dump__       (ObjGX *xTab, char *txt, ...);
-  int   UTO_dump_1       (ObjGX *xTab, char *txt, ...);
+  int   DEB_dump_ox_0       (ObjGX *xTab, char *txt, ...);
+  int   DEB_dump_ox_1       (ObjGX *xTab, char *txt, ...);
 
   int   UTO_invert       (ObjGX *oxi);
 

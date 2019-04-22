@@ -22,14 +22,14 @@ input       pt 2pt  ..
 <outputObjs> / <inputObjs> ------------------------------------
   object types:
 
- pt    Point, Typ_PT
- npt   table of points = PointArray = Polygon; was pta
- plg   CurvPoly, Typ_CVPOL, Polygon with parameterTable
+ pt    Point/Typ_PT (pt3), Point2/Typ_PT (pt2);
+ npt   table of points = PointArray;
  inpt  indexed polygon (index table to table of points)
  vc    Vector, Typ_VC
  vc1   Vector with length=1 (normalized)
  ln    Line, Typ_LN
  nln   array of Lines, Typ_LN
+ plg   CurvPoly/Typ_CVPOL, CurvPol2/Typ_CVPOL2, Polygon (3D with parameterTable)
  ci    Circ; Typ_CI, ac,  trimmed-circle
  ell   CurvElli, Typ_CVELL, Ellipse
  pln   Plane, Typ_PLN; Ebene.
@@ -57,8 +57,9 @@ input       pt 2pt  ..
  spu   Surf-planar-unperforated;  spp Surf-planar-perforated.
  sus   SurStd, StandardSurface.
  Tes   tesselated surface (openGlSurface)
+ rsys  struct Refsys = plane, Mat_4x3, inverted mat, backplane;  Typ_Refsys
 
- box   Box Tri (box besser -> bbox (boundingBox))
+ bbox  boundingBox
  tria  Triangle (3 points (pointers))
  rbox  rectangleBox; Viereck)
  edg   Edge (Kante)
@@ -102,6 +103,8 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  bp    BackPlane; XY, XZ, ZY
  hbp   Hoehenwert einer BackPlane
  gcp   gravity-center-point (Schwerpunkt)
+ lva   length-value-table
+ pva   parameter-value-table
 
 <property>
  clo     closed (curve, surface)

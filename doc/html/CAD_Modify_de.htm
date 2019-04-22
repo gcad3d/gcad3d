@@ -209,6 +209,23 @@ S20=PRJ S20 R20 D20
 
 
 <p><a name="F7"></a></p>
+  <h2>Parallel obj (offset)       PARL</h2>
+Ein paralleles Objekt erzeugen.
+Derzeit nur planare Kurven.
+  basic obj                 Kurve auswählen
+  offset dist               Eingabe Abstand
+  [basic plane/surf]        optional - Ebene der Kurve
+  [nr of contour; 0=all]    wenn mehrere geschlossene Kurven entstehen;
+                            keine Eingabe oder 1 ist erste Kurve
+  [rounded/edges]           keine Verrundung von Ecken; dzt nur Kreis und Linie.
+
+Beispiel:
+S23=PARL S21 VAL(3)
+# ergibt Kurve S21 parallel zu Kurve S20 mit Abstand 3.
+
+
+
+<p><a name="F8"></a></p>
   <h2>Mirror about line       MIR</h2>
 Objekte um eine Line spiegeln.
   Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
@@ -222,7 +239,7 @@ S20=MIR S20 L20
 
 
 
-<p><a name="F8"></a></p>
+<p><a name="F9"></a></p>
   <h2>Mirror about plane      MIR</h2>
 Objekte um eine Ebene spiegeln.
   Derzeit nur für lineare Elemente, Ebene, nicht Flächen.
@@ -236,7 +253,7 @@ S20=MIR S20 R20
 
 
 
-<p><a name="F9"></a></p>
+<p><a name="F10"></a></p>
   <h2>ISOparametric Curve from Surf         ISO</h2>
 
 Isoparametrische Kurve aus einer Flaeche extrahieren.

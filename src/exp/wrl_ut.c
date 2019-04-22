@@ -313,7 +313,7 @@ static maRec  *maTab;
 
   // printf("gCad_main ex DLL xa_WRL_R\n");
   // return 0;  // TEST
-  // UTO_dump_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
+  // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
 
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT_PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
@@ -449,7 +449,7 @@ static maRec  *maTab;
 
   // relocate record
   UTO_reloc_obj (ox1, pDist);
-  // UTO_dump__ (ox1, "nach UTO_reloc_obj");
+  // DEB_dump_ox_0 (ox1, "nach UTO_reloc_obj");
 
   // (char*)ox1 += rSiz;
   ox1 = (void*)((char*)ox1 + rSiz);
@@ -662,7 +662,7 @@ static maRec  *maTab;
   pt1.x = UTX_db_tx (&p1, p1); ++p1;
   pt1.y = UTX_db_tx (&p1, p1); ++p1;
   pt1.z = UTX_db_tx (&p1, p1); ++p1;
-    // UT3D_stru_dump (Typ_PT, &pt1, "  vTab[%d]",vTabNr);
+    // DEB_dump_obj__ (Typ_PT, &pt1, "  vTab[%d]",vTabNr);
 
   vTab[vTabNr] = pt1;
   if(vTabNr < vTabSiz) ++vTabNr;
@@ -913,7 +913,7 @@ static maRec  *maTab;
 
   if(trMatStat == 0) return 0;
 
-    // UT3D_stru_dump (Typ_M4x3, &maTab[level-1].ma,
+    // DEB_dump_obj__ (Typ_M4x3, &maTab[level-1].ma,
                     // "wrl1_r_dec_MatTra old %d\n",level-1);
 
 
@@ -923,7 +923,7 @@ static maRec  *maTab;
 
   maTab[level].stat = 0;         // als veraendert markieren !
 
-  // UT3D_stru_dump (Typ_M4x3, &maTab[level].ma,
+  // DEB_dump_obj__ (Typ_M4x3, &maTab[level].ma,
                      // "ex wrl1_r_dec_MaTra %d\n",level);
 
   trMatStat = 0;
@@ -947,7 +947,7 @@ static maRec  *maTab;
 
   if(trMatStat != 0) {
     printf("wrl1_r_dec_matrix I001\n");
-    // UT3D_stru_dump (Typ_M4x3, trMat, "wrl1_r_dec_matrix I001\n");
+    // DEB_dump_obj__ (Typ_M4x3, trMat, "wrl1_r_dec_matrix I001\n");
   }
 
 
@@ -975,7 +975,7 @@ static maRec  *maTab;
 
   trMatStat = 1;
 
-  // UT3D_stru_dump (Typ_M4x3, trMat, "ex wrl1_r_dec_matrix:\n");
+  // DEB_dump_obj__ (Typ_M4x3, trMat, "ex wrl1_r_dec_matrix:\n");
 
   return 0;
 
@@ -1008,7 +1008,7 @@ static maRec  *maTab;
   if(trScStat == 0) return 0;
 
   // printf("wrl1_r_trm_Trl %d %f %f %f\n",level,trSc[0],trSc[1],trSc[2]);
-  // UT3D_stru_dump (Typ_M4x3, maTab[level].ma, "wrl1_r_dec_Scale:\n");
+  // DEB_dump_obj__ (Typ_M4x3, maTab[level].ma, "wrl1_r_dec_Scale:\n");
 
 
   UT3D_m3_get ((double*)&v1, 0, maTab[level].ma);
@@ -1034,7 +1034,7 @@ static maRec  *maTab;
   // und die Matrix als veraendert markieren
   maTab[level].stat = 0;
 
-  // UT3D_stru_dump (Typ_M4x3,maTab[level].ma,"ex wrl1_r_dec_Scale %d\n",level);
+  // DEB_dump_obj__ (Typ_M4x3,maTab[level].ma,"ex wrl1_r_dec_Scale %d\n",level);
 
   return 0;
 
@@ -1053,7 +1053,7 @@ static maRec  *maTab;
   if(trVcStat == 0) return 0;
 
   // printf("wrl1_r_trm_Trl %d\n",level);
-  // UT3D_stru_dump (Typ_M4x3, maTab[level].ma, "wrl1_r_trm_Trl:\n");
+  // DEB_dump_obj__ (Typ_M4x3, maTab[level].ma, "wrl1_r_trm_Trl:\n");
 
 
   // move origin
@@ -1063,7 +1063,7 @@ static maRec  *maTab;
   // und die Matrix als veraendert markieren
   maTab[level].stat = 0;
 
-  // UT3D_stru_dump (Typ_M4x3, maTab[level].ma, "ex wrl1_r_trm_Trl %d\n",level);
+  // DEB_dump_obj__ (Typ_M4x3, maTab[level].ma, "ex wrl1_r_trm_Trl %d\n",level);
 
   return 0;
 
@@ -1088,9 +1088,9 @@ static int levOld = -1;
 
   if((level != levOld)||(maTab[level].stat != 1)) {
 
-    // UT3D_stru_dump (Typ_M4x3, maTab[level].ma, "wrl1_r_trm_upd %d\n",level);
+    // DEB_dump_obj__ (Typ_M4x3, maTab[level].ma, "wrl1_r_trm_upd %d\n",level);
 
-    UTRA_def__ (1, Typ_TraMat, maTab[level].ma);
+    UTRA_def__ (1, Typ_M4x3, maTab[level].ma);
     maTab[level].stat = 1;
 
     // den scale errechnen:
@@ -1138,7 +1138,7 @@ static int levOld = -1;
 
 
   // printf(" NEW COLOUR:\n");
-  // UT3D_stru_dump (Typ_Color, &newCol, "wrl1_r_dec_col: ");
+  // DEB_dump_obj__ (Typ_Color, &newCol, "wrl1_r_dec_col: ");
 
   *((int*)&actCol) = *((int*)&newCol);
 
@@ -1183,7 +1183,7 @@ static int levOld = -1;
   // if(maTab[level].stat > 0)
     UTRA_app_pt (&sph1.pc, &ptc);
 
-    // UT3D_stru_dump (Typ_PT, &ptc, " ptc");
+    // DEB_dump_obj__ (Typ_PT, &ptc, " ptc");
     // GR_Disp_pt (&sph1.pc, SYM_STAR_S, 2);
 
 
@@ -1274,8 +1274,8 @@ static int levOld = -1;
 
   ptc1.y = -(height / 2.);
   ptc2.y = height / 2.;
-  // UT3D_stru_dump (Typ_PT, &ptc1, " ptc1:");
-  // UT3D_stru_dump (Typ_PT, &ptc2, " ptc2:");
+  // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1:");
+  // DEB_dump_obj__ (Typ_PT, &ptc2, " ptc2:");
 
   // if(maTab[level].stat > 0) {
     UTRA_app_pt (&ptc1, &ptc1);
@@ -1289,14 +1289,14 @@ static int levOld = -1;
 
 
 
-  // UT3D_stru_dump (Typ_PT, &ptc1, " ptc1:");
-  // UT3D_stru_dump (Typ_PT, &ptc2, " ptc2:");
+  // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1:");
+  // DEB_dump_obj__ (Typ_PT, &ptc2, " ptc2:");
   // GR_Disp_pt (&ptc1, SYM_STAR_S, 2);
   // GR_Disp_pt (&ptc2, SYM_STAR_S, 2);
 
 
-  // UT3D_stru_dump (Typ_PT, &ptc1, " ptc1");
-  // UT3D_stru_dump (Typ_PT, &ptc2, " ptc2");
+  // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1");
+  // DEB_dump_obj__ (Typ_PT, &ptc2, " ptc2");
   // GR_Disp_ln1 (&ptc1, &ptc2, 2);
 
 
@@ -1482,7 +1482,7 @@ static int levOld = -1;
         // pTab[i3] = vTab[iTab[i2]];
       // else
         UTRA_app_pt (&pTab[i3], &vTab[iTab[i2]]);
-      // UT3D_stru_dump (Typ_PT, &pTab[i3], "P %d %d %d",i3,iTab[i2],i2);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i3], "P %d %d %d",i3,iTab[i2],i2);
       ++i3;
     }
 
@@ -1504,7 +1504,7 @@ static int levOld = -1;
   // Ende nur fuers dump erforderl !
     // wrl1_r_out_end ();
     // tess_dump_f_ (ox1, "ex wrl1_r_dec_ifs");
-    // UTO_dump_s_ (ox2, "ex wrl1_r_dec_ifs");
+    // DEB_dump_ox_s_ (ox2, "ex wrl1_r_dec_ifs");
 
 
   L_exit:

@@ -161,10 +161,10 @@ static TexRef actTr;             // active TexRef (for Restore)
 
   // get actObj from DB -------------------------------------
   form = typ;
-  irc = UTO_get_DB (&actObj, &i1, &form, dbi);
+  irc = UTO_objDat_dbo (&actObj, &i1, &form, dbi);
   if(irc < 0) return irc;
     // printf(" form=%d\n",form);
-    // UT3D_stru_dump (form, actObj, "actObj: ");
+    // DEB_dump_obj__ (form, actObj, "actObj: ");
 
 
   actDli = dli;
@@ -589,7 +589,7 @@ extern int       KeyStatCtrl;
 
   itr = Tex_getRefInd ();
   Tex_getRef (&tr, itr);
-    UT3D_stru_dump (Typ_TEXR, tr, "TR[%d]: ",itr);
+    DEB_dump_obj__ (Typ_TEXR, tr, "TR[%d]: ",itr);
 
   // save active TexRef (for Restore)
   actTr = *tr;

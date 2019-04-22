@@ -499,7 +499,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
 
   // get data
   ox1 = DB_GetGTxt (dbi);
-    // UT3D_stru_dump (Typ_ObjGX, ox1, "GR_img_get_dbi N%ld", dbi);
+    // DEB_dump_obj__ (Typ_ObjGX, ox1, "GR_img_get_dbi N%ld", dbi);
 
   if((ox1->form != Typ_ATXT) && (ox1->form != Typ_Tag)) return -1;
 
@@ -532,7 +532,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   void      *obj;
 
 
-  // UT3D_stru_dump (Typ_ATXT, atx1, "GR_img_get_obj");
+  // DEB_dump_obj__ (Typ_ATXT, atx1, "GR_img_get_obj");
   // printf(" GL2D_Scale=%f\n",GL2D_Scale);
 
 

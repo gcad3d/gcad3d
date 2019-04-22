@@ -839,7 +839,8 @@ Returncode:
   l1 = deg1 + deg2 + 1;
 
   // allocate memory
-  pol = (double*) malloc (l1 * sizeof(double));
+  // pol = (double*) malloc (l1 * sizeof(double));
+  pol = (double*) MEM_alloc_tmp (l1 * sizeof(double));
 
   // product of polynomials
   for (k1=0; k1<l1; ++k1) {
@@ -858,7 +859,7 @@ Returncode:
   }
 
   // free memory
-  if (pol != NULL) free (pol);
+  // if (pol != NULL) free (pol);
 
   return 0;
 }

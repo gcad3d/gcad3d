@@ -213,12 +213,12 @@ extern const Point2  UT2D_PT_INFTY;
   // midnormal between p1,p2
   UT2D_pt_mid2pt (&p12, p1, p2);
   UT2D_vc_2pt (&v12, p1, p2);
-  UT2D_vc_perpvc (&v12, &v12);
+  UT2D_vc_rot_90_ccw (&v12, &v12);
 
   // midnormal between p2,p3
   UT2D_pt_mid2pt (&p23, p2, p3);
   UT2D_vc_2pt (&v23, p2, p3);
-  UT2D_vc_perpvc (&v23, &v23);
+  UT2D_vc_rot_90_ccw (&v23, &v23);
 
   // center of circle
   rc = UT2D_pt_int2pt2vc (&(ci->pc), &p12, &v12, &p23, &v23);
@@ -315,7 +315,7 @@ extern const Point2  UT2D_PT_INFTY;
 
       // touchpoints on circle 1 of tangential lines through m1
       m1i = UT2D_CiInvertPoint (&m1, &(ci1->pc), fabs(ci1->rad));
-      UT2D_vc_perpvc (&vn, &vg);
+      UT2D_vc_rot_90_ccw (&vn, &vg);
       rc = UT2D_2pt_intciptvc (&p1, &q1, &(ci1->pc), fabs(ci1->rad), &m1i, &vn);
       if (rc != 0) return -1; // 2 different intersection points expected!
 
@@ -396,7 +396,7 @@ L_Done:
   UT2D_vc_ln (&v2, l2);
 
   // point on middleline of lines
-  UT2D_vc_mid2vc (&vm, &v1, &v2);
+  UT2D_vc_mid_2vc__ (&vm, &v1, &v2);
   UT2D_pt_traptvc (&m1, &Z, &vm);
 
   // radius of a circle about m1 touching the lines
@@ -410,7 +410,7 @@ L_Done:
 
   if (rc < 0) {
     // point on 2. middleline of lines
-    UT2D_vc_perpvc (&vm, &vm);
+    UT2D_vc_rot_90_ccw (&vm, &vm);
     UT2D_pt_traptvc (&m1, &Z, &vm);
 
     // radius of a circle about m1 touching the lines

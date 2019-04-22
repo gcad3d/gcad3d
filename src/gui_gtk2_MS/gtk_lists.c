@@ -1681,7 +1681,7 @@ extern int    UI_umbId;
 */
 
   // add scrolled_win into box0
-  GUI_w_pack1 (pTyp, box0, scrolled_win, opts);
+  GUI_w_pack1 (0, box0, scrolled_win, opts);  // pTyp unused;
 
 
   // gtk_widget_show (scrolled_win);

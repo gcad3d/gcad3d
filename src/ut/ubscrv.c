@@ -787,12 +787,12 @@ Returncodes:
 
 
   // printf("UCBS_RevBspCrv: Reverse <-- bspline curve\n");
-  // UT3D_stru_dump(Typ_CVBSP, bsp, "bsp-in:");
+  // DEB_dump_obj__(Typ_CVBSP, bsp, "bsp-in:");
 
   // make a copy of bsp
   rc = UCBS_CpyBspCrv (bspr, memSeg, bsp);
   if (rc < 0) return -1;
-    // UT3D_stru_dump(Typ_CVBSP, bspr, "bsp-copied:");
+    // DEB_dump_obj__(Typ_CVBSP, bspr, "bsp-copied:");
 
   // knotvector
   c = bspr->kvTab[0] + bspr->kvTab[bspr->ptNr+bspr->deg];
@@ -840,7 +840,7 @@ Returncodes:
   bspr->v1 = c - bsp->v0;
 */
 
-  // UT3D_stru_dump(Typ_CVBSP, bspr, "bsp-inverted:");
+  // DEB_dump_obj__(Typ_CVBSP, bspr, "bsp-inverted:");
 
   return 0;
 }
@@ -936,7 +936,7 @@ Returncodes:
     if (rc < 0) return -1;
     if (nxp < 1) goto L_InErr;
     (*pvTU)[i1] = pvT[0];
-      // UT3D_stru_dump (Typ_PT, &xpT[0], " U0-V%d pvTU=%f",i1,(*pvTU)[i1]);
+      // DEB_dump_obj__ (Typ_PT, &xpT[0], " U0-V%d pvTU=%f",i1,(*pvTU)[i1]);
   }
 
 
@@ -966,7 +966,7 @@ Returncodes:
     if (rc < 0) return -1;
     if (nxp < 1) goto L_InErr;
     (*pvTV)[i1] = pvT[0];
-      // UT3D_stru_dump (Typ_PT, &xpT[0], " U%d-V0 pvTV=%f",i1,(*pvTV)[i1]);
+      // DEB_dump_obj__ (Typ_PT, &xpT[0], " U%d-V0 pvTV=%f",i1,(*pvTV)[i1]);
   }
 
 
@@ -978,7 +978,7 @@ Returncodes:
       rc = UCBS_EvPtBspCrv (&((*xpTab)[k1+i2]), &(bspTU[i1]), (*pvTU)[i2],
 		            workSeg);
       if (rc < 0) return -1;
-        // UT3D_stru_dump (Typ_PT, &((*xpTab)[k1+i2]), " V0-U%d pt[%d]",i2,k1+i2);
+        // DEB_dump_obj__ (Typ_PT, &((*xpTab)[k1+i2]), " V0-U%d pt[%d]",i2,k1+i2);
     }
   }
 
@@ -1050,10 +1050,13 @@ Returncodes:
   if (rc < 0) return -2;
 
   // init curve
-  bsp->deg = deg;
+  bsp->deg  = deg;
   bsp->ptNr = np;
-  bsp->v0 = bsp->kvTab[deg];
-  bsp->v1 = bsp->kvTab[np];
+  bsp->v0   = bsp->kvTab[deg];
+  bsp->v1   = bsp->kvTab[np];
+  bsp->dir  = 0;                    // 0=fwd
+  bsp->clo  = -1;                   // -1=undef
+  bsp->trm  = 1;                    // 1=not-trimmed
 
   // controlpoints of interpolating bspline curve
   rc = UCBS_CtrlPtsIntpol (bsp->cpTab, np, pTab, deg, bsp->kvTab,
@@ -2029,8 +2032,8 @@ Returncodes:
 
   //printf("\nUCBS_OffSurBspCrv: Off. sur. bspline curve <-- bspline curve\n");
 
-  //UT3D_stru_dump( 10, bspl, "" );  // bspline curve
-  //UT3D_stru_dump( 158, sur, "" );  // bspline surface
+  //DEB_dump_obj__( 10, bspl, "" );  // bspline curve
+  //DEB_dump_obj__( 158, sur, "" );  // bspline surface
   
   // init offbspl
   offbspl->ptNr = bspl->ptNr;
@@ -2198,8 +2201,8 @@ Returncodes:
   t = bspl->v0 + (bspl->v1 - bspl->v0) / 3.0;
   rc = UCBS_SubDivBspCrv (bsplTab[0], memSeg1, &bh, workSeg, bspl, t); 
   if (rc < 0) return rc;
-  //UT3D_stru_dump( 10, bsplTab[0], "bsplTab[0]" );
-  //UT3D_stru_dump( 10, &bh, "bh" );
+  //DEB_dump_obj__( 10, bsplTab[0], "bsplTab[0]" );
+  //DEB_dump_obj__( 10, &bh, "bh" );
   
   t = bh.v0 + (bh.v1 - bh.v0) / 2.0;
   rc = UCBS_SubDivBspCrv (bsplTab[1], memSeg1, bsplTab[2], memSeg1,
@@ -2249,8 +2252,8 @@ Returncodes:
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
   // printf("UCBS_Comp2BspCrvs: Compose <-- 2 bspline curves\n");
-  // UT3D_stru_dump(Typ_CVBSP, cv1, "  cv1:");
-  // UT3D_stru_dump(Typ_CVBSP, cv2, "  cv2:");
+  // DEB_dump_obj__(Typ_CVBSP, cv1, "  cv1:");
+  // DEB_dump_obj__(Typ_CVBSP, cv2, "  cv2:");
 
 
   // save start of workspace
@@ -2339,7 +2342,7 @@ Returncodes:
   // release workspace
   workSeg->next = workStart;
 
-    // UT3D_stru_dump(Typ_CVBSP, cvo, "ex  cvo:");
+    // DEB_dump_obj__(Typ_CVBSP, cvo, "ex  cvo:");
 
   return 0;
 

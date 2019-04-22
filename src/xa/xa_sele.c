@@ -276,7 +276,7 @@ static int    bck_GR_NoConstrPln;
 
 
   // printf("sele_ck_subCurv %d %ld\n",typ,dbi);
-  // UT3D_stru_dump (Typ_PT, selPos, " selPos");
+  // DEB_dump_obj__ (Typ_PT, selPos, " selPos");
 
 
   for(ii=0; ii<3; ++ii) sca[ii].typ = Typ_Error;
@@ -647,7 +647,7 @@ static int    bck_GR_NoConstrPln;
   if(GR_selBasTyp == Typ_PT) {
     // point selected:
     typ = Typ_PT;
-    // UTO_get_DB (pts, &i1, &typ, GR_selDbi);
+    // UTO_objDat_dbo (pts, &i1, &typ, GR_selDbi);
     *pts = DB_GetPoint (GR_selDbi);
     irc = 1;
 
@@ -659,7 +659,7 @@ static int    bck_GR_NoConstrPln;
     // return -1;
   }
 
-    UT3D_stru_dump (Typ_PT, pts, "ex sele_get_selPos %d",irc);
+    DEB_dump_obj__ (Typ_PT, pts, "ex sele_get_selPos %d",irc);
 
   return irc;
 
@@ -1176,6 +1176,17 @@ static int    bck_GR_NoConstrPln;
 
 
   //================================================================
+  // Typ_go_RA REQUESTED ..
+  //================================================================
+  } else if(GR_reqTyp == Typ_go_RA) {
+    // these objs can be used directly:
+    if((GR_selTyp == Typ_SUR)   ||
+       (GR_selTyp == Typ_PLN))     goto L_exit;
+    // these objs can be converted:
+
+
+
+  //================================================================
   // Typ_goGeoSUSU REQUESTED ..
   //================================================================
   } else if(GR_reqTyp == Typ_goGeoSUSU) {
@@ -1618,7 +1629,7 @@ raus 2011-07-29
       // invert transformation if ConstrPln is set;
       //   will be inverted in APT_decode_pt
       if(WC_sur_ind != 0) {
-        UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+        UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
       }
 */
       UTX_Clear (GR_selNam);
@@ -2207,6 +2218,13 @@ raus 2011-07-29
     case Typ_go_LR:    // Line,Plane
       sele_set_types (Typ_PLN,
                       Typ_LN,
+                      0);
+      break;
+
+
+    case Typ_go_RA:    // Plane,surface
+      sele_set_types (Typ_PLN,
+                      Typ_SUR,
                       0);
       break;
 

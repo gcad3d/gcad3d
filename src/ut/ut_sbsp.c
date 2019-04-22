@@ -189,7 +189,7 @@ Beispiel ptUNr=2 ptVNr=4:
 
   L_exit:
 
-    // UT3D_stru_dump (Typ_SURBSP, su1, "ex UT3D_sbsp_ncv");
+    // DEB_dump_obj__ (Typ_SURBSP, su1, "ex UT3D_sbsp_ncv");
 
   return irc;
 
@@ -222,8 +222,8 @@ Beispiel ptUNr=2 ptVNr=4:
   // startpoint of first U-curve = startpoint of first V-curve
   pu0 = &cu0->cpTab[0];
   pv0 = &cv0->cpTab[0];
-    // UT3D_stru_dump (Typ_PT, pu0, "  suf");
-    // UT3D_stru_dump (Typ_PT, pv0, "  svf");
+    // DEB_dump_obj__ (Typ_PT, pu0, "  suf");
+    // DEB_dump_obj__ (Typ_PT, pv0, "  svf");
   if(!UT3D_comp2pt (pu0, pv0, UT_TOL_cv)) {
     goto L_err;
   }
@@ -232,8 +232,8 @@ Beispiel ptUNr=2 ptVNr=4:
   // endpoint of first U-curve = startpoint of last V-curve
   pu0 = &cu0->cpTab[cu0->ptNr - 1];
   pv0 = &cv1->cpTab[0];
-    // UT3D_stru_dump (Typ_PT, pu0, "  euf");
-    // UT3D_stru_dump (Typ_PT, pv0, "  svl");
+    // DEB_dump_obj__ (Typ_PT, pu0, "  euf");
+    // DEB_dump_obj__ (Typ_PT, pv0, "  svl");
   if(!UT3D_comp2pt (pu0, pv0, UT_TOL_cv)) {
     goto L_err;
   }
@@ -242,8 +242,8 @@ Beispiel ptUNr=2 ptVNr=4:
   // startpoint of last U-curve = endpoint of first V-curve
   pu0 = &cu1->cpTab[0];
   pv0 = &cv0->cpTab[cv0->ptNr - 1];
-    // UT3D_stru_dump (Typ_PT, pu0, "  sul");
-    // UT3D_stru_dump (Typ_PT, pv0, "  ev0");
+    // DEB_dump_obj__ (Typ_PT, pu0, "  sul");
+    // DEB_dump_obj__ (Typ_PT, pv0, "  ev0");
   if(!UT3D_comp2pt (pu0, pv0, UT_TOL_cv)) {
     goto L_err;
   }
@@ -252,8 +252,8 @@ Beispiel ptUNr=2 ptVNr=4:
   // endpoint of last U-curve = endpoint of last V-curve
   pu0 = &cu1->cpTab[cu1->ptNr - 1];
   pv0 = &cv1->cpTab[cv1->ptNr - 1];
-    // UT3D_stru_dump (Typ_PT, pu0, "  eul");
-    // UT3D_stru_dump (Typ_PT, pv0, "  evl");
+    // DEB_dump_obj__ (Typ_PT, pu0, "  eul");
+    // DEB_dump_obj__ (Typ_PT, pv0, "  evl");
   if(!UT3D_comp2pt (pu0, pv0, UT_TOL_cv)) {
     goto L_err;
   }
@@ -295,8 +295,8 @@ Beispiel ptUNr=2 ptVNr=4:
   // printf("===================================================== \n");
   // printf("UT3D_sbsp_2ncv nr1=%d nr2=%d\n",cv1Nr,cv2Nr);
   // printf(" deg1=%d deg2=%d\n",deg1,deg2);
-  // for(i1=0;i1<cv1Nr;++i1) UT3D_stru_dump(Typ_CVBSP,cv1tab[i1], "1-%d",i1);
-  // for(i1=0;i1<cv2Nr;++i1) UT3D_stru_dump(Typ_CVBSP,cv2tab[i1], "2-%d",i1);
+  // for(i1=0;i1<cv1Nr;++i1) DEB_dump_obj__(Typ_CVBSP,cv1tab[i1], "1-%d",i1);
+  // for(i1=0;i1<cv2Nr;++i1) DEB_dump_obj__(Typ_CVBSP,cv2tab[i1], "2-%d",i1);
 
 
   // check for degenerated (1-curve only)
@@ -423,7 +423,7 @@ Beispiel ptUNr=2 ptVNr=4:
 
   // printf("================================================\n");
   // printf("UT3D_obj_cnvt_sbsp ptUNr=%d ptVNr=%d\n",su1->ptUNr,su1->ptVNr);
-  // UT3D_stru_dump (Typ_SURBSP,  su1, "UT3D_obj_cnvt_sbsp\n");
+  // DEB_dump_obj__ (Typ_SURBSP,  su1, "UT3D_obj_cnvt_sbsp\n");
 
 
 
@@ -451,7 +451,7 @@ Beispiel ptUNr=2 ptVNr=4:
   //================================================================
   if((su1->ptUNr != 2)||(su1->ptVNr != 2)) goto L_U2;
 
-  // UT3D_stru_dump(Typ_SURBSP, su1, " BSP 2x2");
+  // DEB_dump_obj__(Typ_SURBSP, su1, " BSP 2x2");
 
   // Planar ?          A20=S(POL ...)
   d1 = UT3D_sbs_ck_planar (su1);
@@ -570,7 +570,7 @@ Beispiel ptUNr=2 ptVNr=4:
   oTab[1].siz  = 1;
   oTab[1].data = (void*)cv2;
 
-  // UTO_dump__ (ox1, "ex UT3D_obj_cnvt_sbsp:");
+  // DEB_dump_ox_0 (ox1, "ex UT3D_obj_cnvt_sbsp:");
   // GR_Disp_sru (ox1, 5);
 
   goto L_fertig;
@@ -608,7 +608,7 @@ Beispiel ptUNr=2 ptVNr=4:
     // feststellen ob geschlossen
     // letzter Punkt der ersten Kurve
     i1 = su1->ptUNr * (su1->ptVNr - 1);
-      // UT3D_stru_dump (Typ_PT,  &su1->cpTab[i1], " p[i1]");
+      // DEB_dump_obj__ (Typ_PT,  &su1->cpTab[i1], " p[i1]");
 
     if(UT3D_comp2pt(&su1->cpTab[0],
                     &su1->cpTab[i1], UT_DISP_cv) == 1) {
@@ -642,7 +642,7 @@ Beispiel ptUNr=2 ptVNr=4:
   // letzter Punkt der ersten Kurve
   i1 = 0;
   i2 = su1->ptUNr - 1;
-    // UT3D_stru_dump (Typ_PT,  &su1->cpTab[i1], " p[i1]");
+    // DEB_dump_obj__ (Typ_PT,  &su1->cpTab[i1], " p[i1]");
 
   if(UT3D_comp2pt(&su1->cpTab[i1],
                   &su1->cpTab[i2], UT_DISP_cv) == 0) goto L_exit;
@@ -651,7 +651,7 @@ Beispiel ptUNr=2 ptVNr=4:
 
   i1 = su1->ptUNr * (su1->ptVNr - 1);
   i2 = (su1->ptUNr * su1->ptVNr) - 1;
-    // UT3D_stru_dump (Typ_PT,  &su1->cpTab[i1], " p[i1]");
+    // DEB_dump_obj__ (Typ_PT,  &su1->cpTab[i1], " p[i1]");
 
   if(UT3D_comp2pt(&su1->cpTab[i1],
                   &su1->cpTab[i2], UT_DISP_cv) == 0) goto L_exit;
@@ -684,7 +684,7 @@ Beispiel ptUNr=2 ptVNr=4:
 
   // printf("UT3D_sbs_ck_planar ptUNr=%d ptVNr=%d\n",su1->ptUNr,su1->ptVNr);
 
-  // UT3D_stru_dump(Typ_SURBSP, su1, "");
+  // DEB_dump_obj__(Typ_SURBSP, su1, "");
 
   pTab = su1->cpTab;
   i2 = su1->ptUNr * su1->ptVNr;
@@ -698,7 +698,7 @@ Beispiel ptUNr=2 ptVNr=4:
   // hier koennte man nur square holen, erst am Ende sqrt machen.
   for(i1=0; i1<i2; ++i1) {
     d1 = fabs(UT3D_slen_ptpl (&pTab[i1], &pl1));
-    // UT3D_stru_dump(Typ_PT, &pTab[i1], " d1=%f P[%d]=",d1,i1);
+    // DEB_dump_obj__(Typ_PT, &pTab[i1], " d1=%f P[%d]=",d1,i1);
     if(d1 > dMax) dMax = d1;
   }
 
@@ -832,7 +832,7 @@ Beispiel ptUNr=2 ptVNr=4:
   Vector vc1, vc2;
 
 
-  // UT3D_stru_dump (Typ_SURBSP, sbs, "SUSbsp_ck_tol");
+  // DEB_dump_obj__ (Typ_SURBSP, sbs, "SUSbsp_ck_tol");
 
 
 
@@ -852,7 +852,7 @@ Beispiel ptUNr=2 ptVNr=4:
     UT3D_vc_2pt (&vc2, &sbs->cpTab[i3-2], &sbs->cpTab[i3-1]);
 
     for(i2=2; i2<sbs->ptUNr; ++i2) {
-      // UT3D_stru_dump(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
+      // DEB_dump_obj__(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
       vc1 = vc2;
       UT3D_vc_2pt (&vc2, &sbs->cpTab[i3-1], &sbs->cpTab[i3]);
       d1 = UT3D_angr_2vc__ (&vc1, &vc2);
@@ -895,7 +895,7 @@ Beispiel ptUNr=2 ptVNr=4:
     lTot = UT3D_len_2pt (&sbs->cpTab[i1],&sbs->cpTab[i1+i3]);
     UT3D_vc_2pt (&vc2, &sbs->cpTab[i1],&sbs->cpTab[i1+i3]);
     for(i2=2; i2<sbs->ptVNr; ++i2) {
-      // UT3D_stru_dump(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
+      // DEB_dump_obj__(Typ_PT, &sbs->cpTab[i3], "P[%d][%d]=",i1,i2);
       vc1 = vc2;
       UT3D_vc_2pt (&vc2,&sbs->cpTab[((i2-1)*i3)+i1],&sbs->cpTab[(i2*i3)+i1]);
       d1 = UT3D_angr_2vc__(&vc1, &vc2);
@@ -1178,7 +1178,7 @@ L_outOfWorkSpace:
 
 /*
   //==== TESTAUSG: ================================
-  UT3D_stru_dump(Typ_PT, pti,
+  DEB_dump_obj__(Typ_PT, pti,
          "\n=============================================\n"
          "UT3D_parsbsp_pt uNr=%d vNr=%d du=%f dv=%f\n",
           uNr,vNr,dui,dvi);
@@ -1369,7 +1369,7 @@ L_outOfWorkSpace:
       // GR_Disp_vc(&vcz, pti, 2, 1);
       UT3D_2angr_vc (&az, &ay, &vcz);
       // printf(" az=%f ay=%f\n",az,ay);
-      plMain = UT3D_bp_vcz (&vcz);
+      plMain = UT3D_bp_perp_vc (NULL, &vcz);
       // printf(" plMain=%d\n",plMain);
     }
 
@@ -1524,7 +1524,7 @@ L_outOfWorkSpace:
   void     *memstart;
 
   // printf("UT3D_ptvc_evparsbsp %d %f,%f\n",mode,pu,pv);
-  // UT3D_stru_dump (Typ_SURBSP, sbs, "  suBsp:");
+  // DEB_dump_obj__ (Typ_SURBSP, sbs, "  suBsp:");
 
 
   memstart = workSeg->next;
@@ -1534,7 +1534,7 @@ L_outOfWorkSpace:
   // B-Spline in Richtg V mit U=pu erzeugen
   irc = UT3D_bspV_sbsp_u (&bspl, sbs, pu, workSeg);
   if(irc < 0) goto L_fertig;
-    // UT3D_stru_dump (Typ_CVBSP, &bspl, "  cvBspV:");
+    // DEB_dump_obj__ (Typ_CVBSP, &bspl, "  cvBspV:");
 
 
   // Punkt auf Curve
@@ -1552,7 +1552,7 @@ L_outOfWorkSpace:
   if(iDir < 2) {
     UT3D_vc_evalparCv (&vtv, &bspl, pv);
       // GR_Disp_vc (&vtv, pto, 1, 0);
-      // UT3D_stru_dump (Typ_VC, &vtv, "  vcv:");
+      // DEB_dump_obj__ (Typ_VC, &vtv, "  vcv:");
 
     if(iDir == 1) {
       *vn = vtv;
@@ -1568,13 +1568,13 @@ L_outOfWorkSpace:
   // B-Spline in Richtg U mit v=pv erzeugen
   irc = UT3D_bspU_sbsp_v (&bspl, sbs, pv, workSeg);
   if(irc < 0) goto L_fertig;
-    // UT3D_stru_dump (Typ_CVBSP, &bspl, "  cvBspU:");
+    // DEB_dump_obj__ (Typ_CVBSP, &bspl, "  cvBspU:");
 
 
   // Tangente in p=pu
   UT3D_vc_evalparCv (&vtu, &bspl, pu);
     // GR_Disp_vc (&vtu, &pt1, 1, 0);
-    // UT3D_stru_dump (Typ_VC, &vtu, "  vcu:");
+    // DEB_dump_obj__ (Typ_VC, &vtu, "  vcu:");
 
   if(iDir == 2) {
     *vn = vtu;
@@ -1587,7 +1587,7 @@ L_outOfWorkSpace:
   UT3D_vc_perp2vc (vn, &vtu, &vtv);
   UT3D_vc_setLength (vn, vn, 1.);
     // GR_Disp_vc (vn, pto, 0, 0);
-    // UT3D_stru_dump (Typ_VC, vn, "  vn:");
+    // DEB_dump_obj__ (Typ_VC, vn, "  vn:");
 
 
 
@@ -1733,7 +1733,7 @@ L_outOfWorkSpace:
   // control points of u-curve
   bspl->cpTab = &(sur->cpTab[vNr*sur->ptUNr]);
 
-  // UT3D_stru_dump (Typ_CVRBSP, bspl, "ex UT3D_bsp_sbspU");
+  // DEB_dump_obj__ (Typ_CVRBSP, bspl, "ex UT3D_bsp_sbspU");
 
   return 0;
 
@@ -1755,7 +1755,7 @@ L_outOfWorkSpace:
   *pNr = 0;
 
 
-  // UT3D_stru_dump (Typ_SURBSP, sur, "UT3D_cv_sbspout %d\n",pMax);
+  // DEB_dump_obj__ (Typ_SURBSP, sur, "UT3D_cv_sbspout %d\n",pMax);
 
 
   //----------------------------------------------------------------
@@ -1963,7 +1963,7 @@ L_outOfWorkSpace:
     pta[i1] = sur->cpTab[i2];
   }
 
-  // UT3D_stru_dump (Typ_CVBSP, bspl, "ex UT3D_bsp_sbspV");
+  // DEB_dump_obj__ (Typ_CVBSP, bspl, "ex UT3D_bsp_sbspV");
 
   return 0;
 
@@ -1989,8 +1989,8 @@ L_outOfWorkSpace:
 
 
   // printf("UT3D_pt_intlnsbs siz=%d\n",xpSiz);
-  // UT3D_stru_dump (Typ_LN, ln, " ln:");
-  // UT3D_stru_dump (Typ_SURBSP, sbs, " sbs:");
+  // DEB_dump_obj__ (Typ_LN, ln, " ln:");
+  // DEB_dump_obj__ (Typ_SURBSP, sbs, " sbs:");
 
 
   UME_init (&mem1Seg, memspc51, sizeof(memspc51));

@@ -167,10 +167,10 @@ Returncodes:
 /*
   printf(" bez-test-%d\n",it1);
     if(it1 == 16) {
-      UT3D_stru_dump(Typ_PT, &pmin1, " &pmin1=");
-      UT3D_stru_dump(Typ_PT, &pmax1, " &pmax1=");
-      UT3D_stru_dump(Typ_PT, &pmin2, " &pmin2=");
-      UT3D_stru_dump(Typ_PT, &pmax2, " &pmax2=");
+      DEB_dump_obj__(Typ_PT, &pmin1, " &pmin1=");
+      DEB_dump_obj__(Typ_PT, &pmax1, " &pmax1=");
+      DEB_dump_obj__(Typ_PT, &pmin2, " &pmin2=");
+      DEB_dump_obj__(Typ_PT, &pmax2, " &pmax2=");
       GR_Disp_box (&pmin1, &pmax1, 2);
       GR_Disp_box (&pmin2, &pmax2, 5);
       GR_Disp_txi (&pmin1, it1, 2);
@@ -226,8 +226,8 @@ Returncodes:
 /*
       // TEST-ONLY
       if(it1 == 16) {
-      // UT3D_stru_dump(Typ_LN, &l1, " bez-ln1");
-      // UT3D_stru_dump(Typ_LN, &l2, " bez-ln2");
+      // DEB_dump_obj__(Typ_LN, &l1, " bez-ln1");
+      // DEB_dump_obj__(Typ_LN, &l2, " bez-ln2");
       GR_Disp_ln (&l1, 2);
       GR_Disp_ln (&l2, 5);
       }
@@ -270,7 +270,7 @@ Returncodes:
     }
 
     // save intersection point
-     // UT3D_stru_dump(Typ_PT, &xp1, "  save xp1[%d]",*nxp);
+     // DEB_dump_obj__(Typ_PT, &xp1, "  save xp1[%d]",*nxp);
     xptab[*nxp] = xp1;
     ++(*nxp);
   }
@@ -427,8 +427,8 @@ Returncodes:
 
 
   // printf("UT3D_pt_intplbez pNr=%d tol=%f\n",*pNr,tol);
-  // UT3D_stru_dump (Typ_PLN,   pln, "");
-  // UT3D_stru_dump (Typ_CVBEZ, bcv, "");
+  // DEB_dump_obj__ (Typ_PLN,   pln, "");
+  // DEB_dump_obj__ (Typ_CVBEZ, bcv, "");
 
 
 
@@ -480,7 +480,7 @@ Returncodes:
     irc = UT3D_pt_intptvcpl_ (&pa[*pNr], pln, &bcv->cptab[0], &vc1);
     if(irc == 1) ++(*pNr);
     // GR_Disp_pt (&pa[*pNr-1], SYM_TRI_S, 0);
-    // UT3D_stru_dump (Typ_PT, &pa[*pNr-1], " intplbez P[%d]=",*pNr-1);
+    // DEB_dump_obj__ (Typ_PT, &pa[*pNr-1], " intplbez P[%d]=",*pNr-1);
 
   }
 
@@ -505,7 +505,7 @@ Returncodes:
   Point   pt1, pt2, pts, pte, ptStack[20];
 
 
-  UT3D_stru_dump (Typ_CVBEZ, bez, "UT3D_pta_bez ptMax=%d\n",ptMax);
+  DEB_dump_obj__ (Typ_CVBEZ, bez, "UT3D_pta_bez ptMax=%d\n",ptMax);
 
 
   ianz  = bez->ptNr - 1;
@@ -519,7 +519,7 @@ Returncodes:
   // den ersten Pt sofort raus
   ptOut = 0;
   irc = UT3D_bez_eval_Pt (&pTab[ptOut], bez, kvs);
-    // UT3D_stru_dump (Typ_PT, &pTab[ptOut], "P[%d]=",ptOut);
+    // DEB_dump_obj__ (Typ_PT, &pTab[ptOut], "P[%d]=",ptOut);
   ++ptOut;          // der aktuelle Punkt ist immer pTab[ptOut-1].
 
 
@@ -605,7 +605,7 @@ Returncodes:
   // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
   // printf("ex UT3D_pta_bez ptNr=%d\n",ptOut);
   // for(ianz=0;ianz<ptOut;++ianz)
-    // UT3D_stru_dump (Typ_PT, &pTab[ianz], "P[%d]=",ianz);
+    // DEB_dump_obj__ (Typ_PT, &pTab[ianz], "P[%d]=",ianz);
   //------- Testausg------
 
 
@@ -1085,7 +1085,7 @@ Returncode:
 
   // control points of transformed curve
   for (i1=0; i1<=bcv->ptNr-1; ++i1) {
-    UT3D_pt_traptm3 (&(bcvt->cptab[i1]), mata, &(bcv->cptab[i1]));
+    UT3D_pt_tra_pt_m3 (&(bcvt->cptab[i1]), mata, &(bcv->cptab[i1]));
   }
 
 
@@ -1215,7 +1215,7 @@ Returncodes:
   rc = UTM_pol_Bernstein (&polB);
   if (rc < 0) return rc;
     // Testausg polB
-    // UT3D_stru_dump (Typ_Polynom_, &polB, "Polynom_ polB =\n");
+    // DEB_dump_obj__ (Typ_Polynom_, &polB, "Polynom_ polB =\n");
 
 
 
@@ -1497,8 +1497,8 @@ Returncodes:
 
 
   // Testausg:
-  // UT3D_stru_dump (Typ_CVBEZ2, bcv1, "  Out - bcv1:\n");
-  // UT3D_stru_dump (Typ_CVBEZ2, bcv2, "  Out - bcv2:\n");
+  // DEB_dump_obj__ (Typ_CVBEZ2, bcv1, "  Out - bcv1:\n");
+  // DEB_dump_obj__ (Typ_CVBEZ2, bcv2, "  Out - bcv2:\n");
 
 
   return 0;
@@ -1545,8 +1545,8 @@ Returncodes:
 
 
   // printf("UT3D_pt_projptbez\n");
-    // UT3D_stru_dump (Typ_CVBEZ, bcv, "UT3D_pt_projptbez: bcv\n");
-    // UT3D_stru_dump (Typ_PT, pt, "   pt->bez:");
+    // DEB_dump_obj__ (Typ_CVBEZ, bcv, "UT3D_pt_projptbez: bcv\n");
+    // DEB_dump_obj__ (Typ_PT, pt, "   pt->bez:");
 
 
 
@@ -1584,13 +1584,13 @@ Returncodes:
   rc = UT3D_bez_trabezm3 (&bcvt, memSeg1, bcv, mata);
   if (rc < 0) return rc;
     // Testausg. Kurve
-    // UT3D_stru_dump (Typ_CVBEZ, &bcvt, "nach trabezm3:\n");
+    // DEB_dump_obj__ (Typ_CVBEZ, &bcvt, "nach trabezm3:\n");
 
   // 1. derivation of Bezier curve
   rc = UT3D_bez_deriv1 (&bcvd, memSeg1, bcv);
   if (rc < 0) return rc;
     // Testausg. Kurve
-    // UT3D_stru_dump (Typ_CVBEZ, &bcvd, "nach deriv1:\n");
+    // DEB_dump_obj__ (Typ_CVBEZ, &bcvd, "nach deriv1:\n");
 
 
   // x-, y- and z- polynomial of transformed Bezier curve
@@ -1598,14 +1598,14 @@ Returncodes:
   rc = UT3D_pol_bez (&polb1, memSeg1, &bcvt);
   if (rc < 0) return rc;
     // Testausg. Polynom
-    // UT3D_stru_dump (Typ_Polynom3, &polb1, "Polynom3 polb1 =\n");
+    // DEB_dump_obj__ (Typ_Polynom3, &polb1, "Polynom3 polb1 =\n");
 
 
   // x-, y- and z- polynomial of 1. derivation Bezier curve
   rc = UT3D_pol_bez (&polb2, memSeg1, &bcvd);
   if (rc < 0) return rc;
     // Testausg. Polynom
-    // UT3D_stru_dump (Typ_Polynom3, &polb2, "Polynom3 polb2 =\n");
+    // DEB_dump_obj__ (Typ_Polynom3, &polb2, "Polynom3 polb2 =\n");
 
 
   // space fuer polm reservieren und init
@@ -1632,7 +1632,7 @@ Returncodes:
     }
   }
     // Testausg. Polynom
-    // UT3D_stru_dump (Typ_Polynom1, &polb, "Polynom1 polb =\n");
+    // DEB_dump_obj__ (Typ_Polynom1, &polb, "Polynom1 polb =\n");
 
 
 
@@ -1641,7 +1641,7 @@ Returncodes:
   rc = UT2D_bez_pol (&bcv2, memSeg1, &polb);
   if (rc < 0) return rc;
     // Testausg. Kurve
-    // UT3D_stru_dump (Typ_CVBEZ2, &bcv2, "nach pol:\n");
+    // DEB_dump_obj__ (Typ_CVBEZ2, &bcv2, "nach pol:\n");
 
 
   // init ztab and reserve space

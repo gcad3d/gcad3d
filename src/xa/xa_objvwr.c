@@ -133,6 +133,9 @@ static MemObj winOvr;
 
 
   // printf("OVR__ typ=%d txt=|%s|\n",typ,txt);
+  if(oNr == 1)
+    DEB_dump_obj__ (typ, data, "OVR__");
+
 
 
   // create window
@@ -145,7 +148,7 @@ static MemObj winOvr;
 
   
   // create strings of infos about struct in txTab1
-  UT3D_dump_n (&txTab1, typ, data, oNr, txt, -1, 0);
+  DEB_dump_ntxt (&txTab1, typ, data, oNr, txt, -1, 0);
     // UtxTab_dump (&txTab1);
 
 
@@ -283,7 +286,7 @@ static MemObj winOvr;
 
   // get objStruct from dbo
   // irc = UTO_get_dbo (&typ, &vp1, &oNr, typ, dbi);
-  irc = UTO_get_DB (&vp1, &oNr, &typ, dbi);
+  irc = UTO_objDat_dbo (&vp1, &oNr, &typ, dbi);
   if(irc < 0) return -1;
 
 
@@ -291,7 +294,7 @@ static MemObj winOvr;
   OVR__ (typ, vp1, oNr, oNam);
 
 
-  // _UT3D_stru_dump (typ, vp1, oNam);
+  // _DEB_dump_obj__ (typ, vp1, oNam);
 
   return 0;
 

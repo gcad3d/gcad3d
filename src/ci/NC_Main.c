@@ -1609,7 +1609,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
   GL_temp_del_all ();
 
 
-  pt1 = UT3D_pt_pt2(&actPosU);
+  pt1 = UT3D_pt_pt2 (&actPosU);
 
   // printf("  PosKreuz=%f,%f\n",pt1.x,pt1.y);
   GR_tmpSym (SYM_CROSS, &pt1);                  // 0 = das Positionskreuz
@@ -2131,7 +2131,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
   // get the mdb_dyn-Record.
   mb = DB_get_ModBas (mbNr);
   if(mb == NULL) goto L_err1;
-    // UT3D_stru_dump (Typ_SubModel, mb, "  mb:");
+    // DEB_dump_obj__ (Typ_SubModel, mb, "  mb:");
 
   if(mb->DLsiz >= 0) goto L_fertig;   // ja, Model bereits geladen
 
@@ -2240,7 +2240,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
     TX_Print("subModel %s empty ? ..",mb->mnam);
   }
 
-  // UT3D_stru_dump (Typ_SubModel, mb, "mb nach Mod_load_allsm:\n");
+  // DEB_dump_obj__ (Typ_SubModel, mb, "mb nach Mod_load_allsm:\n");
   // if(mb->DLsiz < 0) exit(0);      
 
   // bei Aufruf von "M0=.." gibts keine zugehoerige Line;
@@ -3602,7 +3602,7 @@ APT_stat_act:
   } else if((basTyp == Typ_SUR) ||
             (basTyp == Typ_SOL)) {
     iAtt = ga1->iatt;       // iatt is a ColRGB
-      // UT3D_stru_dump (Typ_Color, &iAtt, " col ex GA: ");
+      // DEB_dump_obj__ (Typ_Color, &iAtt, " col ex GA: ");
     if(TSU_mode == 0) {  // nur bei Draw, nicht bei Store
       if(GA_hasTexture(iAtt) == 1) {
         // get TextureReference-Index
@@ -3973,7 +3973,7 @@ APT_stat_act:
 
 
   // printf("APT_Draw__ typ=%d ind=%ld iAtt=%d\n",typ,ind,iAtt);
-  // UT3D_stru_dump (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
+  // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
   // printf("  APT_obj_stat=%d UP_level=%d\n",APT_obj_stat,UP_level);
   // printf("  WC_mode=%d ED_query_mode=%d\n",WC_mode,ED_query_mode());
   // if(typ==Typ_SUR) printf("  S:vtex=%d\n",((ColRGB*)&iAtt)->vtex);
@@ -3986,7 +3986,7 @@ APT_stat_act:
 
     case Typ_PT:
         po = DB_get_PT (ind);
-          // UT3D_stru_dump (Typ_PT, (Point*)po, " PT-po: ");
+          // DEB_dump_obj__ (Typ_PT, (Point*)po, " PT-po: ");
 
         if(APT_obj_stat == 1) {  // 1=temp                 // 2013-03-16
           // get the temp-dispListindex for the active CAD-inputfield
@@ -4063,12 +4063,12 @@ APT_stat_act:
         // gtx1 = DB_GetGTxt (ind);
         ox1 = DB_GetGTxt (ind);
           // printf(" NOTE-typ=%d\n",ox1->typ);
-          // UT3D_stru_dump(Typ_ObjGX, ox1, "ex DB_GetGTxt:");
+          // DEB_dump_obj__(Typ_ObjGX, ox1, "ex DB_GetGTxt:");
 
         // if(UP_level >= 0) break;       // in UP-s nix darstellen
 
         if(ox1->form == Typ_Dimen) {
-            // APT_DrawDimen (Typ_Att_def, ind, ox1);  // 2009-07-12
+            // APT_DrawDimen (Typ_Att_blue, ind, ox1);  // 2009-07-12
             APT_DrawDimen (iAtt, ind, ox1);
 
         } else if(ox1->form == Typ_ATXT) {
@@ -4093,7 +4093,7 @@ APT_stat_act:
           // gtx1 = ox1->data;
           // if(gtx1->size >= 0.) {
             // APT_DrawTxtG (0, &gtx1.pt, gtx1.size, gtx1.dir, gtx1.txt);
-            // APT_DrawTxtG (Typ_Att_def, ind, gtx1);   // 2009-07-12
+            // APT_DrawTxtG (Typ_Att_blue, ind, gtx1);   // 2009-07-12
             // APT_DrawTxtG (iAtt, ind, gtx1);
             APT_DrawTxtG (iAtt, ind, ox1->data);
           // }
@@ -4163,7 +4163,7 @@ APT_stat_act:
     case Typ_Model:
     case Typ_Mock:
       po = DB_get_ModRef (ind);
-      // APT_DrawModel (Typ_Att_Fac, ind, mod1);  // Typ_Att_Fac1 ?
+      // APT_DrawModel (Typ_Att_Fac, ind, mod1);  // Typ_Att_dash_long ?
       APT_DrawModel (((ModelRef*)po)->modNr, ind, (ModelRef*)po);
       break;
 
@@ -4680,9 +4680,9 @@ APT_stat_act:
         APED_oid_dbo__ (auxBuf, ato1.typ[5],(long)ato1.val[5]);
         AP_Set_ConstPl_Z (auxBuf);
       }
-        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vx, "VX=");
-        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vy, "VY=");
-        // UT3D_stru_dump(Typ_VC, &WC_sur_act.vz, "VZ=");
+        // DEB_dump_obj__(Typ_VC, &WC_sur_act.vx, "VX=");
+        // DEB_dump_obj__(Typ_VC, &WC_sur_act.vy, "VY=");
+        // DEB_dump_obj__(Typ_VC, &WC_sur_act.vz, "VZ=");
       // das plane.p setzen !
       UT3D_pl_ptpl (&WC_sur_act, &pt1);
       // GL_constr_pln setzen aus WC_sur_act, WC_sur_Z;
@@ -5768,9 +5768,9 @@ Ablauf Makro:
       AP_Set_ConstPl_Z (auxBuf);
     }
 
-      // UT3D_stru_dump(Typ_VC, &WC_sur_act.vx, "VX=");
-      // UT3D_stru_dump(Typ_VC, &WC_sur_act.vy, "VY=");
-      // UT3D_stru_dump(Typ_VC, &WC_sur_act.vz, "VZ=");
+      // DEB_dump_obj__(Typ_VC, &WC_sur_act.vx, "VX=");
+      // DEB_dump_obj__(Typ_VC, &WC_sur_act.vy, "VY=");
+      // DEB_dump_obj__(Typ_VC, &WC_sur_act.vz, "VZ=");
 
 
     // das plane.p setzen !
@@ -6026,7 +6026,7 @@ Ablauf Makro:
       if(aus_typ[4] != Typ_Val) goto Fehler1;
       Pock_CUT_CIRC (&actPosU,aus_tab[1],aus_tab[2],aus_tab[3],aus_tab[4]);
       NC_set_actPos (&actPosU);
-        // UT3D_stru_dump (Typ_PT2, &actPosU, "n.CUT_CIRC actPosU:");
+        // DEB_dump_obj__ (Typ_PT2, &actPosU, "n.CUT_CIRC actPosU:");
       goto Fertig;
 
 
@@ -6036,7 +6036,7 @@ Ablauf Makro:
       if(aus_typ[2] != Typ_Val) goto Fehler1;
       Pock_POCK_CIRC (&actPosU, aus_tab[1], aus_tab[2]);
       NC_set_actPos (&actPosU);
-        // UT3D_stru_dump (Typ_PT2, &actPosU, "n.POCK_CIR actPosU:");
+        // DEB_dump_obj__ (Typ_PT2, &actPosU, "n.POCK_CIR actPosU:");
       goto Fertig;;
       
     } else {
@@ -7557,8 +7557,8 @@ Ablauf Makro:
 
 
 
-    // UT3D_stru_dump (Typ_PT2, &actPosU, "from actPosU");
-    // UT3D_stru_dump (Typ_PT2, &actPosUtr, "from actPosUtr");
+    // DEB_dump_obj__ (Typ_PT2, &actPosU, "from actPosU");
+    // DEB_dump_obj__ (Typ_PT2, &actPosUtr, "from actPosUtr");
     // printf(" WC_mode=%d\n",WC_mode);
 
 
@@ -8820,7 +8820,7 @@ Wenn gespiegelt - Drehrichtung umdrehen
     printf("APT_transform _tra=%d\n",APT_tra);
     // printf(" pt1=%f,%f,%f\n",pt1->x,pt1->y,pt1->z);
 
-    UT3D_pt_traptm3 (pt1, APT_mat_tra, pt1);
+    UT3D_pt_tra_pt_m3 (pt1, APT_mat_tra, pt1);
 
 
 
@@ -9304,7 +9304,7 @@ dzt unused
   char   cBuf[256];
 
 
-  // UT3D_stru_dump (Typ_ATXT, tx1, "APT_DrawTxtA");
+  // DEB_dump_obj__ (Typ_ATXT, tx1, "APT_DrawTxtA");
   // printf("  typ=%d ind=%ld\n",typ,apt_ind);
 
 
@@ -9364,7 +9364,7 @@ dzt unused
 
 
   printf("APT_LoadTex %d\n",apt_ind);
-  UT3D_stru_dump (Typ_ObjGX, otx, "_LoadTex:");
+  DEB_dump_obj__ (Typ_ObjGX, otx, "_LoadTex:");
 
   // tex = otx->data;
 
@@ -9455,7 +9455,7 @@ dzt unused
   if(APT_Stat_Draw == OFF) return 0;
 
   ox1 = DB_GetSur (apt_ind, 1);
-    // UTO_dump_s_ (ox1, "APT_DrawSur\n");
+    // DEB_dump_ox_s_ (ox1, "APT_DrawSur\n");
 
   return GR_DrawSur (ox1, att, apt_ind);
 
@@ -9513,7 +9513,7 @@ dzt unused
 //===========================================================================
 /// \code
 /// display AlfaText
-///   att     colorIndex; eg Typ_Att_def; see INF_ATT_CV
+///   att     colorIndex; eg Typ_Att_blue; see INF_ATT_CV
 /// \endcode
 
 
@@ -9572,7 +9572,7 @@ dzt unused
 
   long    l1;
 
-  // UT3D_stru_dump (Typ_PT, pt1, "APT_disp_SymB: ");
+  // DEB_dump_obj__ (Typ_PT, pt1, "APT_disp_SymB: ");
 
   if(APT_Stat_Draw == OFF) return 0;      // OFF=1
 
@@ -9600,7 +9600,7 @@ dzt unused
 
   long    l1;
 
-  // UT3D_stru_dump (Typ_PT, pt1, "APT_disp_SymB: ");
+  // DEB_dump_obj__ (Typ_PT, pt1, "APT_disp_SymB: ");
 
   l1 = DL_StoreObj (Typ_SymB, -1L, 0);
 
@@ -9729,7 +9729,7 @@ dzt unused
   if(APT_Stat_Draw == OFF) return;
 
   printf("APT_disp_SymV3 typ=%d %f,%f,%f\n",typ,pt1->x,pt1->y,pt1->z);
-  UT3D_stru_dump (Typ_VC, vc1, "  vc1:");
+  DEB_dump_obj__ (Typ_VC, vc1, "  vc1:");
 
   // Achtung! Als Attribut wird der Symboltyp gespeichert !!!
   // AP_dli_act = DL_StoreObj (Typ_SymV, (long)0, typ);
@@ -9896,11 +9896,12 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
   double d1;
   char   oNam[32];
   Point  pTx, *pta;
+  Point2 p2x;
   Vector vc1;
 
 
   // printf("APT_disp_nam %d %ld\n",typ,ind);
-  // UT3D_stru_dump (typ, e1, "APT_disp_nam:");
+  // DEB_dump_obj__ (typ, e1, "APT_disp_nam:");
 
 
   if(!APT_dispNam) return;
@@ -9931,7 +9932,7 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 
 
     case Typ_CI:
-      UT3D_pt_midci (&pTx, (Circ*)e1);
+      UT3D_pt_mid_ci (&pTx, (Circ*)e1);
       break;
 
 
@@ -9951,6 +9952,13 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
       // ? (pta, e1, d1);  // pt for nameTxt
       // UT3D_vc_evalplg (&vc1, (CurvPoly*)e1, d1);
       break;
+
+
+    case Typ_CVPOL2:
+      UT2D_pt_par_plg (&p2x, 0.5, e1);
+      pTx = UT3D_pt_pt2 (&p2x);
+      break;
+
 
     case Typ_ATXT:
       pTx = ((AText*)e1)->p1;
@@ -10158,7 +10166,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   // char  oNam[8];
 
-  // UT3D_stru_dump(Typ_PT, pt1, "APT_DrawPoint %d",dbi);
+  // DEB_dump_obj__(Typ_PT, pt1, "APT_DrawPoint %d",dbi);
   // printf("   Draw=%d disp=%d\n",APT_Stat_Draw,APT_dispPT);
   // printf(" _DrawPoint Typ=%d ind=%ld\n",Typ,dbi);
 
@@ -10239,7 +10247,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUUUUUU ");
   // printf("APT_DrawCirc %ld\n",dbi);
-  // UT3D_stru_dump (Typ_CI, ci1, "APT_DrawCirc: ");
+  // DEB_dump_obj__ (Typ_CI, ci1, "APT_DrawCirc: ");
 
 
   // // check if obj already exists
@@ -10337,8 +10345,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
   // printf("APT_DrawCurv: typ=%d form=%d att=%d ind=%ld\n",
              // cv1->typ,cv1->form,att,dbi);
   // printf("  APT_2d_to_3d_mode=%d\n",APT_2d_to_3d_mode);
-  // UTO_dump__ (cv1, "Curv:");
-  // UTO_dump_s_ (cv1, "Curv:");
+  // DEB_dump_ox_0 (cv1, "Curv:");
+  // DEB_dump_ox_s_ (cv1, "Curv:");
 
 
   // if(APT_2d_to_3d_mode != OFF) {
@@ -10386,7 +10394,10 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   } else if(typ == Typ_CVPOL2) {
     AP_dli_act = DL_StoreObj (Typ_CVPOL2, dbi, att);
-    GL_DrawPoly2D (&AP_dli_act, att, ox1->siz, ox1->data, zval);
+    GL_DrawPoly2D (&AP_dli_act, att,
+                   ((CurvPol2*)ox1->data)->ptNr, ((CurvPol2*)ox1->data)->pTab,
+                   zval);
+    if(APT_dispNam) APT_disp_nam (Typ_CVPOL2, dbi, ox1->data);
 
 
   } else if(typ == Typ_CVELL) {
@@ -10405,7 +10416,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
     // GR_DrawCVComp (&AP_dli_act, att, ox1, tbuf1);
 
   } else if(typ == Typ_CVTRM) {
-    AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, Typ_Att_hili);
+    if(!att) att = Typ_Att_blue;
+    AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, att);
     // GR_DrawCvCCV (&AP_dli_act, att, ox1->data, tbuf1);
     GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1, tbuf1);
 
@@ -10751,7 +10763,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
     return -1;
   }
     // printf(" dbTyp=%d i1=%d\n",dbTyp,i1);
-    // UT3D_stru_dump (dbTyp, op1, "APT_obj_expr-2");
+    // DEB_dump_obj__ (dbTyp, op1, "APT_obj_expr-2");
 
 
   // test if dbTyp == typ
@@ -10887,7 +10899,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
     // irc = APT_decode_curv (data, aus_anz, aus_typ, aus_tab);
     irc = APT_decode_cv (data, &i1, aus_anz, aus_typ, aus_tab);
     // typ = ((ObjGX*)data)->typ;
-    typ = Typ_ObjGX; // nur f UT3D_stru_dump !!!
+    typ = Typ_ObjGX; // nur f DEB_dump_obj__ !!!
 
 
   } else if(typ == Typ_PLN) {
@@ -10940,7 +10952,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   L_exit:
 
     // if(irc >= 0)
-    // UT3D_stru_dump (typ, data, "ex APT_obj_ato - irc=%d",irc);
+    // DEB_dump_obj__ (typ, data, "ex APT_obj_ato - irc=%d",irc);
 
   return irc;
 

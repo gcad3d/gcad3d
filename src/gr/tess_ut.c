@@ -455,7 +455,7 @@ static char layNam[] = "0";
 
   // ACHTUNG: der letzte Punkt ist nicht gleich dem ersten; fehlt also !
   // ie += TSU_ptNr;    // TSU_ptNr + siz
-  // for(i1=0;i1<oxi->siz;++i1) UT3D_stru_dump(Typ_PT,&pTab[i1],"p[%d]",i1);
+  // for(i1=0;i1<oxi->siz;++i1) DEB_dump_obj__(Typ_PT,&pTab[i1],"p[%d]",i1);
 
 
 
@@ -620,7 +620,7 @@ f 1 6 7
   if((void*)sCol) TSU_exp_objCol (0, sCol);
 
   for(i1=0; i1<ie; ++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
     // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
 
     // change orientation: obj-y = cad-z; obj-z = cad-y * -1   2013-08-19
@@ -809,7 +809,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   if((void*)newCol) {
-    // UT3D_stru_dump (Typ_Color, newCol, "TSU_exp_objCol ");
+    // DEB_dump_obj__ (Typ_Color, newCol, "TSU_exp_objCol ");
 
 
     // init mtlTab
@@ -892,7 +892,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   // printf("TSU_exp_objMtl %d\n",iNr);
-  // UT3D_stru_dump (Typ_Color, newCol, "");
+  // DEB_dump_obj__ (Typ_Color, newCol, "");
 
 
     fprintf(TSU_fp,"newmtl Matl.%d\n",iNr);
@@ -935,9 +935,9 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   // printf("TSU_exp_wrl1Mat:\n");
-  // UT3D_stru_dump (Typ_VC, vcx, "vx=");
-  // UT3D_stru_dump (Typ_VC, vcz, "vz=");
-  // UT3D_stru_dump (Typ_PT, pto, "po=");
+  // DEB_dump_obj__ (Typ_VC, vcx, "vx=");
+  // DEB_dump_obj__ (Typ_VC, vcz, "vz=");
+  // DEB_dump_obj__ (Typ_PT, pto, "po=");
 
 
     fprintf(TSU_fp," MatrixTransform { matrix\n");
@@ -1012,9 +1012,9 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   // printf("TSU_exp_wrl2Mat:\n");
-  // UT3D_stru_dump (Typ_VC, vx, "vx=");
-  // UT3D_stru_dump (Typ_VC, vz, "vz=");
-  // UT3D_stru_dump (Typ_PT, po, "po=");
+  // DEB_dump_obj__ (Typ_VC, vx, "vx=");
+  // DEB_dump_obj__ (Typ_VC, vz, "vz=");
+  // DEB_dump_obj__ (Typ_PT, po, "po=");
 
 
   // origin from cad-coords -> vr-coords
@@ -1117,7 +1117,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   // letzter Punkt nicht notwendig.
   for(i1=0; i1<ie; ++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
     // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
     // GR_Disp_txi (&pTab[i1], i1, 0);
 
@@ -1516,7 +1516,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   fprintf(TSU_fp,"texCoord TextureCoordinate{point [\n");
 
   Tex_getRef (&tr, iTex);     // get TexRef-record from TexRef-index
-    // UT3D_stru_dump (Typ_TEXR, tr, "TexRef[%d]:\n",iTex);
+    // DEB_dump_obj__ (Typ_TEXR, tr, "TexRef[%d]:\n",iTex);
   po.x = tr->px;
   po.y = tr->py;
   po.z = tr->pz;
@@ -1542,8 +1542,8 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   // UT3D_vc_setLenLen (&vx, 
   UT3D_vc_setLength (&vx, &tr->vx, dx);
   UT3D_vc_setLength (&vy, &tr->vy, dy);
-    // UT3D_stru_dump(Typ_VC, &vx, "vx");
-    // UT3D_stru_dump(Typ_VC, &vy, "vy");
+    // DEB_dump_obj__(Typ_VC, &vx, "vx");
+    // DEB_dump_obj__(Typ_VC, &vy, "vy");
 
   for(i1=0; i1<pNr; ++i1) {
     // dx = UT3D_skp_2ptvc (&po, &pTab[i1], &vx);
@@ -1599,7 +1599,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   // printf("---------------------------------------------\n");
   // printf("TSU_exp_wrl2Fac ptNr=%d glTyp=%d iTex=%d\n",oxi->siz,oxi->aux,iTex);
-  // if(sCol) UT3D_stru_dump (Typ_Color, sCol, " sCol ");
+  // if(sCol) DEB_dump_obj__ (Typ_Color, sCol, " sCol ");
   // fprintf(TSU_fp, "# TSU_exp_wrl2Fac\n");
     // for(i1=0; i1<oxi->siz; ++i1)
       // printf(" P[%d] %f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z);
@@ -1632,7 +1632,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   // letzter Punkt nicht notwendig.
   for(i1=0; i1<ie; ++i1) {
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
     // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
     // GR_Disp_txi (&pTab[i1], i1, 0);
 
@@ -1824,8 +1824,8 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   // printf("\nTSU_exp_fac %d %d %d\n",oxi->typ,oxi->form,oxi->siz);
-  // UTO_dump_s_ (oxi, "TSU_exp_fac");
-  // UTO_dump__ (oxi, "TSU_exp_fac");
+  // DEB_dump_ox_s_ (oxi, "TSU_exp_fac");
+  // DEB_dump_ox_0 (oxi, "TSU_exp_fac");
 
   i1Nr = oxi->siz;              // ex Sur  211 143 5
 
@@ -1928,7 +1928,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
 
-  // UT3D_stru_dump (Typ_Color, newCol, "TSU_exp_wrl2Col ");
+  // DEB_dump_obj__ (Typ_Color, newCol, "TSU_exp_wrl2Col ");
 
   f1 = newCol->cr;
   f1 /= 255;
@@ -2098,7 +2098,7 @@ static FILE *fpo = NULL;
   char   cBuf[80];
 
 
-  // if(newCol) UT3D_stru_dump (Typ_Color, newCol, "TSU_exp_wrlCol ");
+  // if(newCol) DEB_dump_obj__ (Typ_Color, newCol, "TSU_exp_wrlCol ");
   // printf("   actModNam=|%s|\n",actModNam);
 
 
@@ -2225,7 +2225,7 @@ static FILE *fpo = NULL;
 
 
       // DefaultColor main ausgeben
-      // UT3D_stru_dump (Typ_Color, &AP_defcol, "GL_DefColGet");
+      // DEB_dump_obj__ (Typ_Color, &AP_defcol, "GL_DefColGet");
       strcpy(actModNam, "main");  // name of subModel being resolved ...
       // TSU_exp_wrl2Col (&AP_defcol);
 
@@ -2746,7 +2746,7 @@ static FILE *fpo = NULL;
     if(iNr == 0) {                       // 0=first call
       // hier colors falsch ..
       // GL_DefColGet (&defCol);            // get DefaultColor
-      // UT3D_stru_dump (Typ_Color, &defCol, "GL_DefColGet");
+      // DEB_dump_obj__ (Typ_Color, &defCol, "GL_DefColGet");
       // TSU_exp_wrl2Col (&defCol);
       // TSU_exp_wrl2Col (&AP_defcol);
     }

@@ -22,6 +22,7 @@
 #define Typ_goAxis      1011  ///< RotAxis LN/PT+PT/PT+LN/PT+VC/PLN
 #define Typ_go_LCS      1012  ///< Line,Circ,Curv
 #define Typ_go_LR       1013  ///< Line,Plane
+#define Typ_go_RA       1014  ///< plane|surface
 
 // selectionModifiers
 #define Typ_FncVAR1     1020  ///< next DB-var

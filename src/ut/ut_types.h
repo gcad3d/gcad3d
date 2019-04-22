@@ -14,7 +14,7 @@
 #define INT_32    INT32          // int  INT BOOL LONG32
 #define INT_64    INT64          // long long
 #define UINT_8    unsigned char  // unsigned char  BYTE UINT8
-#define UINT_16   UINT16         // unsigned short WORD
+#define UINT_16   unsigned short //UINT16         // unsigned short WORD
 #define UINT_32   uint32_t       // unsigned int DWORD UINT ULONG32
 #define UINT_64   uint64_t       // unsigned long long
 #else
@@ -24,7 +24,7 @@
 #define INT_32    int32_t        // int
 #define INT_64    int64_t        // __s64 long long
 #define UINT_8    unsigned char  // unsigned char __u8
-#define UINT_16   uint16_t       // __u16  unsigned short
+#define UINT_16   unsigned short // __u16  uint16_t unsigned short
 #define UINT_32   uint32_t       // __u32  unsigned int
 #define UINT_64   uint64_t       // __u64  unsigned long long
 #endif
@@ -50,8 +50,8 @@
 //----------------------------------------------------------------
 #define MEMSPCTYP_NONE         0    // no memspace
 #define MEMSPCTYP_MALLOC__     1    // malloc-type=can-reallocate,must-free
-#define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,must-NOT-free;
-#define MEMSPCTYP_FIX__        4    // fixed-CANNOT-reallocate;must-NOT-free
-#define MEMSPCTYP_STACK        5    // stack,CANNOT-reallocate,must-NOT-free
+#define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,CANNOT-free;
+#define MEMSPCTYP_FIX          3    // fixed-CANNOT-reallocate;must-free
+#define MEMSPCTYP_TMP          4    // static|stack,CANNOT-reallocate,CANNOT-free
 
 // EOF

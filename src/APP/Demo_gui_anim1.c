@@ -266,11 +266,11 @@ static MemObj    win0;
 
     // get ModRef
     mr = DB_get_ModRef (ind);
-      // UT3D_stru_dump (Typ_Mock, mr, "M%d:",ind);
+      // DEB_dump_obj__ (Typ_Mock, mr, "M%d:",ind);
 
     // get baseModel
     mb = DB_get_ModBas (mr->modNr);
-      // UT3D_stru_dump (Typ_Model, mb, "Ditto:");
+      // DEB_dump_obj__ (Typ_Model, mb, "Ditto:");
 
     // save BasePoints, Angles ..
     ptb = mr->po;

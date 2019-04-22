@@ -217,7 +217,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
   // TEST:
   // for(i1=70; i1<80; ++i1)
-    // UT3D_stru_dump (Typ_PT, &LM_pTab.data[i1], " _r_savPt1 %d",i1);
+    // DEB_dump_obj__ (Typ_PT, &LM_pTab.data[i1], " _r_savPt1 %d",i1);
 
 
 
@@ -260,8 +260,8 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
   // // TEST:
   // for(i1=70; i1<80; ++i1)
-    // UT3D_stru_dump (Typ_PT, &LM_pTab.data[i1], " _r_savPt2 %d",i1);
-    // UT3D_stru_dump (Typ_PT, &LM_pTab.data[77], " P77");
+    // DEB_dump_obj__ (Typ_PT, &LM_pTab.data[i1], " _r_savPt2 %d",i1);
+    // DEB_dump_obj__ (Typ_PT, &LM_pTab.data[77], " P77");
 
 
 
@@ -398,7 +398,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
   long    ld;
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "lxml_r_savPt %d",id);
+  // DEB_dump_obj__ (Typ_PT, pt1, "lxml_r_savPt %d",id);
 
 
 /*
@@ -547,7 +547,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
     // TESTONLY:
     // if((fc1->i1 == 77)||(fc1->i2 == 77)||(fc1->i3 == 77)) {
       // printf(" face-%d-%d-%d\n",fc1->i1,fc1->i2,fc1->i3);
-      // UT3D_stru_dump (Typ_PT, &pa[78], " P78");
+      // DEB_dump_obj__ (Typ_PT, &pa[78], " P78");
     // }
 
 

@@ -348,12 +348,12 @@ static FILE      *EDMPT_fp_dep = NULL;
   // set basic type
   basTyp = AP_typ_2_bastyp (typ);
     printf(" basTyp=%d\n",basTyp);
-    // UT3D_stru_dump (actTyp, actObj, "actObj: ");
+    // DEB_dump_obj__ (actTyp, actObj, "actObj: ");
 
 
   // get actObj from DB (for insert points into POL, BSP)
   form = basTyp;
-  irc = UTO_get_DB (&actObj, &i1, &form, dbi);
+  irc = UTO_objDat_dbo (&actObj, &i1, &form, dbi);
   if(irc < 0) return irc;
 
   actDli = dli;
@@ -755,7 +755,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       // } else {
         // if(actPtp) UT3D_pl_ptpl (&EDMPT_offObj, actPtp);
       }
-        // UT3D_stru_dump(EDMPT_offTyp, &EDMPT_offObj, "EDMPT_offObj:");
+        // DEB_dump_obj__(EDMPT_offTyp, &EDMPT_offObj, "EDMPT_offObj:");
 
       // start modify-curve
       // EDMPT_mousemove_CB (0,0);          // start - draw curve
@@ -816,7 +816,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   // get actObj from DB (for insert points into POL, BSP)
   basTyp = AP_typ_2_bastyp (actTyp);
   form = basTyp;
-  irc = UTO_get_DB (&actObj, &i1, &form, actDbi);
+  irc = UTO_objDat_dbo (&actObj, &i1, &form, actDbi);
   if(irc < 0) return irc;
 
   return 0;
@@ -929,7 +929,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // overwrite the active DB-point
   *actPtp = EDMPT_newPos__ ();
-    // UT3D_stru_dump (Typ_PT, actPtp, "  actPtp-2:");
+    // DEB_dump_obj__ (Typ_PT, actPtp, "  actPtp-2:");
 
   // reposition the cursorSymbol
   EDMPT_curSym_set (actPtp);
@@ -988,7 +988,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   printf("EDMPT_newPos__ \n");
   printf("  EDMPT_offTyp=%d\n",EDMPT_offTyp);
-  UT3D_stru_dump(EDMPT_offTyp, &EDMPT_offObj, "  EDMPT_offObj:");
+  DEB_dump_obj__(EDMPT_offTyp, &EDMPT_offObj, "  EDMPT_offObj:");
 
 
   if(EDMPT_stat == 3) {     // fixed: add vector to active-point-position
@@ -1000,11 +1000,11 @@ static FILE      *EDMPT_fp_dep = NULL;
   // get eye-point & eye-vector
   UI_GR_get_actPosA (&actCurPos);   // get GR_CurUk
   UTRA_pt_ucs2wcs (&actCurPos);
-    UT3D_stru_dump (Typ_PT, &actCurPos, "  inPos: ");
+    DEB_dump_obj__ (Typ_PT, &actCurPos, "  inPos: ");
 
 
   vc2 = GL_GetEyeX ();
-    // UT3D_stru_dump (Typ_VC, &vc2, "  eyeVec: ");
+    // DEB_dump_obj__ (Typ_VC, &vc2, "  eyeVec: ");
 
 
 
@@ -1129,13 +1129,13 @@ static FILE      *EDMPT_fp_dep = NULL;
     actInd = i2;                            // index into actPta
       printf(" actPti = %ld actInd=%d\n",actPti,actInd);
     actPtp = DB_get_PT (actPti);            // get DB-index of point
-      UT3D_stru_dump(Typ_PT, actPtp, "  actPtp:");
+      DEB_dump_obj__(Typ_PT, actPtp, "  actPtp:");
 
     // fix plane (set point = planeOrigin)
     if(EDMPT_mode == 0) {
       if(EDMPT_offTyp == Typ_PLN) {
         UT3D_pl_ptpl (&EDMPT_offObj, actPtp);
-          // UT3D_stru_dump(EDMPT_offTyp, &EDMPT_offObj, "EDMPT_offObj:");
+          // DEB_dump_obj__(EDMPT_offTyp, &EDMPT_offObj, "EDMPT_offObj:");
       }
     }
 
@@ -1224,7 +1224,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // set "Symbols-on-top"
     GL_att_OnTop_set (1);
     for(i1=0; i1<actPtn; ++i1) {
-        // UT3D_stru_dump (Typ_PT, &actPta[i1], "   actPta[%d]",i1);
+        // DEB_dump_obj__ (Typ_PT, &actPta[i1], "   actPta[%d]",i1);
       APT_disp_SymB (EDMPT_SYM_ID, EDMPT_SYM_COL, &actPta[i1]);
     }
     DL_Redraw ();  // resets "Symbols-on-top"
@@ -1247,7 +1247,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     for(i1=0; i1<actAto.nr; ++i1) {
       if(actAto.typ[i1] != Typ_PT) continue;
       l1 = actAto.val[i1];
-        // UT3D_stru_dump (Typ_PT, &actPta[i2], " save actPta %d -> %d",i2,l1);
+        // DEB_dump_obj__ (Typ_PT, &actPta[i2], " save actPta %d -> %d",i2,l1);
       DB_StorePoint (l1, &actPta[i2]);
       ++i2;
     }
@@ -1981,10 +1981,10 @@ static FILE      *EDMPT_fp_dep = NULL;
     li = ato2.val[i1];              // get li = pointIndex
     actPta[i2] = DB_GetPoint (li);   // // copy point
     ++i2;
-      // UT3D_stru_dump (Typ_PT, &actPta[i2], "   DB-pt[%d]",li);
+      // DEB_dump_obj__ (Typ_PT, &actPta[i2], "   DB-pt[%d]",li);
 
     // if refSys is active: transform ..
-    // if(lRef > 0) UT3D_pt_traptm3 (&actPta[i2], mRef, &actPta[i2]);
+    // if(lRef > 0) UT3D_pt_tra_pt_m3 (&actPta[i2], mRef, &actPta[i2]);
   }
 
   actPtn = i2;
@@ -2020,7 +2020,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     if(actAto.typ[i1] != Typ_PT) continue;
     dbi = actAto.val[i1];
     pt1 = DB_get_PT (dbi);
-    UT3D_stru_dump (Typ_PT, pt1, "   DB-pt[%d]",dbi);
+    DEB_dump_obj__ (Typ_PT, pt1, "   DB-pt[%d]",dbi);
   }
 
 
@@ -2039,7 +2039,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   printf("EDMPT_dump_ptab %d\n",actPtn);
 
   for(i1=0; i1 < actPtn; ++i1)
-    UT3D_stru_dump (Typ_PT, &actPta[i1], "actPta[%d]", i1);
+    DEB_dump_obj__ (Typ_PT, &actPta[i1], "actPta[%d]", i1);
 
 
   return 0;
@@ -2207,7 +2207,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // get pt1 = new position
     dbi = actAto.val[i1];                   // index of nxt point
     pt1 = DB_get_PT (dbi);
-      UT3D_stru_dump (Typ_PT, pt1, " _src_mod-pt1-%d;dbi=%d",iPt,dbi);
+      DEB_dump_obj__ (Typ_PT, pt1, " _src_mod-pt1-%d;dbi=%d",iPt,dbi);
 
     // find cp2 = startPos of next implicit-point
     irc = APED_pt_find (&cp2, &sLen, &cp3, cp1);
@@ -2424,10 +2424,10 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   // translate insertpoint actInsPt
-    // UT3D_stru_dump (Typ_PT, &actInsPt, "   actInsPt:");
+    // DEB_dump_obj__ (Typ_PT, &actInsPt, "   actInsPt:");
   if(WC_sur_ind) {
-    UT3D_pt_traptm3 (&actInsPt, WC_sur_imat, &actInsPt);
-      // UT3D_stru_dump (Typ_PT, &actInsPt, "   actInsPt-transl:");
+    UT3D_pt_tra_pt_m3 (&actInsPt, WC_sur_imat, &actInsPt);
+      // DEB_dump_obj__ (Typ_PT, &actInsPt, "   actInsPt-transl:");
   }
     
 
@@ -2722,7 +2722,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       if(DB_VC_isFree (dbi)) goto L_err;
       EDMPT_offObj.vz = DB_GetVector (dbi);
     }
-      // UT3D_stru_dump(Typ_VC, &EDMPT_offObj.vz, "EDMPT_offObj.vz:");
+      // DEB_dump_obj__(Typ_VC, &EDMPT_offObj.vz, "EDMPT_offObj.vz:");
 
 
   } else if(EDMPT_offTyp == Typ_PLN) {
@@ -2732,7 +2732,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   
 
     // printf("ex EDMPT_get_offObj EDMPT_offTyp=%d\n",EDMPT_offTyp);
-    // UT3D_stru_dump(EDMPT_offTyp, &EDMPT_offObj, "  EDMPT_offObj:");
+    // DEB_dump_obj__(EDMPT_offTyp, &EDMPT_offObj, "  EDMPT_offObj:");
 
 
   return 0;
@@ -2811,20 +2811,20 @@ static FILE      *EDMPT_fp_dep = NULL;
   UI_GR_get_actPosA (&pt1);
 
 
-  UT3D_stru_dump (Typ_PT, &pt1, "EDMPT_ins_pt: pt1");
+  DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_ins_pt: pt1");
   printf("  actTyp=%d\n",actTyp);
   printf("  UT_DISP_cv=%f\n",UT_DISP_cv);
 
 
   //----------------------------------------------------------------
   if(actTyp == Typ_CVBSP) {
-      UT3D_stru_dump (Typ_CVBSP, actObj, " _ins_pt-actObj");
+      DEB_dump_obj__ (Typ_CVBSP, actObj, " _ins_pt-actObj");
 
     // project point onto curve
     i1 = pTabSiz;
     irc = UT3D_pt_projptbspl (&i1, pta, da, actObj, &pt1);
     if(irc < 0) {TX_Print("UT3D_pt_projptbspl Error %d",irc);return -1;}
-      UT3D_stru_dump (Typ_PT, &pta[0], " _ins_pt-prj");
+      DEB_dump_obj__ (Typ_PT, &pta[0], " _ins_pt-prj");
     pt1 = pta[0];
 
     // get parameter from point
@@ -2874,7 +2874,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   //----------------------------------------------------------------
   // save insert point ..
   actInsPt = pt1;
-    UT3D_stru_dump (Typ_PT, &actInsPt, "ex-_ins_pt");
+    DEB_dump_obj__ (Typ_PT, &actInsPt, "ex-_ins_pt");
   return 0;
 
 
@@ -2958,7 +2958,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   pt1 = DB_GetPoint (22L);
-  UT3D_stru_dump (Typ_PT, &pt1, "ex DB_GetPoint 22");
+  DEB_dump_obj__ (Typ_PT, &pt1, "ex DB_GetPoint 22");
 
 
   return 0;

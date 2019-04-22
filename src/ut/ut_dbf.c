@@ -477,7 +477,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
     // printf("ex DBF_getVal siz=%d\n",*sizVal);
     // printf(" val=|%s|\n",val);
-    // OGX_DEB_dump__ (val);
+    // DEB_dump_ox__ (val);
 
   return 0;
 

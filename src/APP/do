@@ -21,49 +21,51 @@ cmdVi="${DIR_DEV}gcad3d/src/vi.sh"
 
 
 if test "$1" = "help"; then
-  echo "---------------------------------------------------------------------"
-  echo "./do debug_ON           # debug ON for following builds (development)"
-  echo "./do debug_OFF          # debug OFF for following builds (production)"
-  echo "./do complete           # compile, link all."
-  echo "./do                    # start gcad3d in local-test-environment"
-  echo "---------------------------------------------------------------------"
-  echo "./do install_test_deb   # test-install into system (sudo -E)"
-  echo "./do uninstall_test_deb # remove test-installation (sudo)"
-  echo "./do pack_deb           # create gCAD3D.<version>-<machine>.deb"
-  echo "./do install_deb        # install into system (sudo -E)"
-  echo "./do uninstall_deb      # remove installation (sudo)"
-  echo "---------------------------------------------------------------------"
-  echo "./do pack_rpm           # create gCAD3D.<version>-<machine>.rpm"
-  echo "./do install_rpm        # install into system (sudo -E)"
-  echo "./do uninstall_rpm      # remove installation (sudo)"
-  echo "---------------------------------------------------------------------"
-  echo "./do pack_src           # create zip-file of sources "
-  echo "./do pack_doc           # create zip-file of complete doc"
-  echo "./do init_examples      # unpack examples.gz into $HOME"
-  echo "./do delete             # delete all objects"
-  echo "./do guiinit            # change gui-version"
-  echo "./do gui                # rebuild xa_gui_gtk-*.so"
-  echo "./do c                  # compile & link core"
-  echo "./do all                # compile & link corelibs"
-  echo "./do allDemos           # compile & link demos"
-  echo "./do processes          # compile & link NC-processes"
-  echo "./do fDep               # compile & link list of files (see fDep.sh)"
-  echo "./do *.mak              # link a plugin (for the first time)"
-  echo "./do debug              # start with debugger"
-  echo "./do trc                # start with mtrace"
-  echo "---------------------------------------------------------------------"
-  echo "./do ud                 # display userDoc"
-  echo "./do dd                 # display devDoc"
-  echo "./do udd                # update & display devDoc"
-  echo "./do gty                # display AP_types.h"
-  echo "./do gh                 # display ut_geo.h"
-  echo "./do g2                 # display ut_geo3d.c"
-  echo "./do g3                 # display ut_geo3d.c"
-  echo "./do gmon               # analyze time"
-  echo "./do edm                # edit model"
-  echo "./do msg-files          # tools for language-files: ls lang*.csh"
-  echo "---------------------------------------------------------------------"
-  exit 0
+echo "---------------------------------------------------------------------"
+echo "./do debug_ON           # debug ON for following builds (development)"
+echo "./do debug_OFF          # debug OFF for following builds (production)"
+echo "./do complete           # compile, link all."
+echo "./do                    # start gcad3d in local-test-environment"
+echo "---------------------------------------------------------------------"
+echo "./do install_test_deb   # test-install into system (sudo -E)"
+echo "./do uninstall_test_deb # remove test-installation (sudo)"
+echo "./do pack_deb           # create gCAD3D.<version>-<machine>.deb"
+echo "./do install_deb        # install into system (sudo -E)"
+echo "./do uninstall_deb      # remove installation (sudo)"
+echo "---------------------------------------------------------------------"
+echo "./do pack_rpm           # create gCAD3D.<version>-<machine>.rpm"
+echo "./do install_rpm        # install into system (sudo -E)"
+echo "./do uninstall_rpm      # remove installation (sudo)"
+echo "---------------------------------------------------------------------"
+echo "./do pack_src           # create zip-file of sources "
+echo "./do pack_doc           # create zip-file of complete doc"
+echo "./do init_examples      # unpack examples.gz into $HOME"
+echo "./do delete             # delete all objects"
+echo "./do guiinit            # change gui-version"
+echo "./do gui                # rebuild xa_gui_gtk-*.so"
+echo "./do c                  # compile & link core"
+echo "./do all                # compile & link corelibs"
+echo "./do allDemos           # compile & link demos"
+echo "./do processes          # compile & link NC-processes"
+echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
+echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
+echo "./do *.mak              # link a plugin (for the first time)"
+echo "./do debug              # start with debugger"
+echo "./do trc                # start with mtrace"
+echo "---------------------------------------------------------------------"
+echo "./do ud                 # display userDoc"
+echo "./do dd                 # display devDoc"
+echo "./do udd                # update & display devDoc"
+echo "./do gty                # display AP_types.h"
+echo "./do gh                 # display ut_geo.h"
+echo "./do g2                 # display ut_geo3d.c"
+echo "./do g3                 # display ut_geo3d.c"
+echo "./do gmon               # analyze time"
+echo "./do edm                # edit model"
+echo "./do inf                # update infotext.c"
+echo "./do msg-files          # tools for language-files: ls lang*.csh"
+echo "---------------------------------------------------------------------"
+exit 0
 fi
 
 
@@ -312,14 +314,19 @@ if test "$1" = "processes"; then
 fi
 
 
-
-if test "$1" = "fDep"; then
-  rm -f *.o
-  # create fDep.txt = list of file ; input = file t1 created by cbrowse !
-  ./fDep.sh
-  make -f gcad3d.mak
-  exit 0
+# find & touch all files using symbol <sym_x>
+if test "$1" = "fnd_sym"; then
+  ../APP/fnd_sym.sh $2
+  exit $?
 fi
+
+
+# find & touch all files with #include <incFilNam>". cscope must be installed.
+if test "$1" = "fnd_inc"; then
+  ../APP/fnd_inc.sh $2
+  exit $?
+fi
+
 
 if test "$1" = "ud"; then
   firefox ../../doc/html/index_de.htm 2>/dev/null &
@@ -333,7 +340,8 @@ fi
 
 # ReCreate development-documentation (doxygen must be installed):
 if test "$1" = "udd"; then
-  cd ../../doc && ./gcad_doxygen.sh > t1
+# cd ../../doc && ./gcad_doxygen.sh > t1
+  ../../doc/gcad_doxygen.sh
   exit 0
 fi
 
@@ -359,6 +367,11 @@ fi
 
 if test "$1" = "edm"; then
    $cmdVi "${gcad_dir_dev}gCAD3D/tmp/Model"
+  exit 0
+fi
+
+if test "$1" = "inf"; then
+  ctags -f ../tags/infotext.tag ../xa/infotext.c
   exit 0
 fi
 
@@ -413,8 +426,8 @@ if [ "$OSTYPE" = "Linux" ] ; then
   exeNam=${gcad_dir_bin}gCAD3D
 
 
-
 # change configfiles to unix if last start was with MS-Windows
+# if no file X.lock exists, no switching is done
 if [ -f MS.lock ]; then
   cfgDir=${gcad_dir_dev}gCAD3D/cfg/
   echo "set dir.lst & xa.rc -> Unix"

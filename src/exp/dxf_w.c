@@ -372,7 +372,7 @@ __declspec(dllexport) int DXFW__ (char*);
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
-#include "../xa/xa_msg.h"                 // MSG_typ_*
+#include "../xa/xa_msg.h"                 // MSG_ERR_typ_*
 #include "../xa/xa_mem.h"                 // memspc501
 #include "../xa/xa.h"                     // AP_STAT
 
@@ -746,7 +746,7 @@ int DXFW_test (char *txt1) {
 
 
   // printf("dxfw_ELLIPSE \n");
-  // UT3D_stru_dump (Typ_CVELL, cv1, "cv1:");
+  // DEB_dump_obj__ (Typ_CVELL, cv1, "cv1:");
 
 
   fprintf(fp_in,"0\nELLIPSE\n");
@@ -797,7 +797,7 @@ int DXFW_test (char *txt1) {
 
 
   printf("dxfw_SPLINE \n");
-  // UT3D_stru_dump (Typ_CVBSP, cv1, "cv1:");
+  // DEB_dump_obj__ (Typ_CVBSP, cv1, "cv1:");
 
   fprintf(fp_in,"0\nSPLINE\n");
 
@@ -966,7 +966,7 @@ int DXFW_test (char *txt1) {
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
       dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
       UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
-      UT3D_pt_traptm3 (&pt1, im1, &ci1->pc);
+      UT3D_pt_tra_pt_m3 (&pt1, im1, &ci1->pc);
       //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
 
 
@@ -1022,9 +1022,9 @@ int DXFW_test (char *txt1) {
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
       dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
       UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
-      UT3D_pt_traptm3 (&ptc, im1, &ci1->pc);
-      UT3D_pt_traptm3 (&pt1, im1, &ci1->p1);
-      UT3D_pt_traptm3 (&pt2, im1, &ci1->p2);
+      UT3D_pt_tra_pt_m3 (&ptc, im1, &ci1->pc);
+      UT3D_pt_tra_pt_m3 (&pt1, im1, &ci1->p1);
+      UT3D_pt_tra_pt_m3 (&pt2, im1, &ci1->p2);
       //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
 
 
@@ -1195,7 +1195,7 @@ usw.
   double         d1;
 
 
-  // UT3D_stru_dump (Typ_GTXT, tx1, "DXFW_TEXT");
+  // DEB_dump_obj__ (Typ_GTXT, tx1, "DXFW_TEXT");
 
 
   fprintf(fpo,"0\nTEXT\n");
@@ -1258,7 +1258,7 @@ usw.
   Vector2       vc21, vc22;
 
 
-  UT3D_stru_dump (Typ_Dimen, dim1, "=========== DXFW_DIM");
+  DEB_dump_obj__ (Typ_Dimen, dim1, "=========== DXFW_DIM");
 
 
 
@@ -1309,7 +1309,7 @@ usw.
     // 0: startPt of dimension-line
     a1 = UT_RADIANS(dim1->a1);
     UT2D_vc_angr (&vc21, a1);   // vc21 = along dimension-line
-    UT2D_vc_perpvc (&vc22, &vc21);   // vc22 = extension-line
+    UT2D_vc_rot_90_ccw (&vc22, &vc21);   // vc22 = extension-line
     UT2D_vc_invert (&vc22, &vc22); 
     // prj defPt1 -> extLine1
     UT2D_pt_projptptvc (&pt21, &dim1->p3, &dim1->p1, &vc22);
@@ -1679,7 +1679,7 @@ usw.
 
 
     // write Triangles
-    // for(ii=0;ii<triNr;++ii) UT3D_stru_dump (Typ_Tria,&triTab[ii],"tria");
+    // for(ii=0;ii<triNr;++ii) DEB_dump_obj__ (Typ_Tria,&triTab[ii],"tria");
   icol = 173;  // TODO
   for(ii = 0; ii < triNr; ++ii) {
     tr1 = &triTab[ii];
@@ -1728,14 +1728,14 @@ usw.
   mr = ox1->data;
   mbi = mr->modNr;
   mbo = DB_get_ModBas (mbi);
-    // UT3D_stru_dump (Typ_Model, mr, "mr:");
-    // UT3D_stru_dump (Typ_SubModel, mbo, "  mbo:");
+    // DEB_dump_obj__ (Typ_Model, mr, "mr:");
+    // DEB_dump_obj__ (Typ_SubModel, mbo, "  mbo:");
 
   vz1 = &(WC_sur_act.vz);
   vz2 = &(mr->vz);   // vz of subModel
-    // UT3D_stru_dump (Typ_VC, vz1, "  vz:");
-    // UT3D_stru_dump (Typ_VC, vz2, "  vz-sm:");
-    // UT3D_stru_dump (Typ_VC, &mr->vx, "  vx-sm:");
+    // DEB_dump_obj__ (Typ_VC, vz1, "  vz:");
+    // DEB_dump_obj__ (Typ_VC, vz2, "  vz-sm:");
+    // DEB_dump_obj__ (Typ_VC, &mr->vx, "  vx-sm:");
 
   // get modeltype (native or mockup)
   mTyp = mbo->typ;
@@ -1762,14 +1762,14 @@ usw.
 
   // change OCS(ECS) -> WCS
   irc = dxfw_load_mat (m1, vz2);
-    UT3D_stru_dump (Typ_VC, vz2, " vz2:");
-    UT3D_stru_dump (Typ_M4x3, m1, "m1:");
+    DEB_dump_obj__ (Typ_VC, vz2, " vz2:");
+    DEB_dump_obj__ (Typ_M4x3, m1, "m1:");
   if(irc) {
     // new Z not parallel to old Z
     // inverse matrix
     UT3D_m3_invm3 (mi1, m1);
     // translate the origin into the new axisSystem
-    UT3D_pt_traptm3 (&p1, mi1, &mr->po);
+    UT3D_pt_tra_pt_m3 (&p1, mi1, &mr->po);
 
   } else {
     p1 = mr->po;
@@ -2034,7 +2034,7 @@ usw.
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, oTab[i1].dbInd);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_typ_ERR, "DXFW_main typ=%d dbi=%ld",
+      LOG_A__ (MSG_ERR_typ_ERR, "DXFW_main typ=%d dbi=%ld",
                oTab[i1].typ,oTab[i1].dbInd);
       ++dxfw_errNr;
       continue;

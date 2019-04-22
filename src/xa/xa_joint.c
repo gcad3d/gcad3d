@@ -159,8 +159,8 @@ extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = ma
   // get primary object
   // jnt = UME_get_start (spcObj);
   jnt = vp1;
-    // UTO_dump__ (jnt, "JNT_imp__");
-    // UTO_dump_s_ (jnt, "JNT_imp__");
+    // DEB_dump_ox_0 (jnt, "JNT_imp__");
+    // DEB_dump_ox_s_ (jnt, "JNT_imp__");
 
 
   //----------------------------------------------------------------
@@ -188,8 +188,8 @@ extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = ma
 
 
   // printf("JNT_exp__ indJnt=%d\n",indJnt);
-  // UTO_dump__ (jnt, "JNT_exp__");
-  // UTO_dump_s_ (jnt, "APT_decode_Joint");
+  // DEB_dump_ox_0 (jnt, "JNT_exp__");
+  // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
   // printf(" WC_modact_ind=%d\n",WC_modact_ind);
 
 

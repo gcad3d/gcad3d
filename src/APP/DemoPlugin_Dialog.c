@@ -140,7 +140,7 @@ __declspec(dllexport) int gCad_fini ();
 
     if(att1.typ == Typ_PT) {
       pt1 = DB_GetPoint (att1.ind);
-      // UT3D_stru_dump (Typ_PT, &pt1, "sel.P%d",att1.ind);
+      // DEB_dump_obj__ (Typ_PT, &pt1, "sel.P%d",att1.ind);
 
     } else {
       TX_Error (" select point or indicate position");

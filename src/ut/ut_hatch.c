@@ -190,7 +190,7 @@ List_functions_end:
     spi[isp] = i1;  // Segmentindex merken
 
     // Testdisplay intPoint
-    // idl=-1;pt1=UT3D_pt_pt2(&spa[isp]);GR_CrePoint(&idl,Typ_Att_PT,&pt1);
+    // idl=-1;pt1=UT3D_pt_pt2(&spa[isp]);GR_CrePoint(&idl,Typ_Att_def,&pt1);
 
     if(isp < HATCH_SIZ_SPA) ++isp;
     else TX_Error("UT_hatch_2D E001");
@@ -307,7 +307,7 @@ List_functions_end:
 
   // TEST
   for(i1=0; i1<lni; ++i1) {
-    UT3D_stru_dump (Typ_LN2,&ln2a[i1],"L[%d] %d %d\n",i1,ln2ia[i1],ln2ie[i1]);
+    DEB_dump_obj__ (Typ_LN2,&ln2a[i1],"L[%d] %d %d\n",i1,ln2ia[i1],ln2ie[i1]);
     // Testdisplay Line
     UT3D_ln_2pt2(&ln1,&ln2a[i1].p1,&ln2a[i1].p2);
     idl=0; GR_CreLine(&idl,1,&ln1);
@@ -382,7 +382,7 @@ List_functions_end:
 /*
   // nur TEST: Anzeige 3D-Polygon
   for(i1=0; i1<ptNr; ++i1) {
-    UT3D_stru_dump (Typ_PT, &pta[i1], "P[%d]=",i1);
+    DEB_dump_obj__ (Typ_PT, &pta[i1], "P[%d]=",i1);
     // APT_disp_SymB (SYM_TRI_S, 2, &pta[i1]);
   }
 */
@@ -394,7 +394,7 @@ List_functions_end:
 
   // die Plane aus dem Punktearray errechnen
   UT3D_pl_pta (&pl1, ptNr, pta);
-    // UT3D_stru_dump (Typ_PLN, &pl1, "HatchPlane:  ");
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "HatchPlane:  ");
 
 
   // Plane -> Tramat
@@ -410,11 +410,11 @@ List_functions_end:
   // printf(" vor ck_srot:\n");
   for(i1=0; i1<ptNr; ++i1) {
 
-    UT3D_pt_traptm3 (&pt1, imat, &pta[i1]);
+    UT3D_pt_tra_pt_m3 (&pt1, imat, &pta[i1]);
     pt2a[i1] = UT2D_pt_pt3 (&pt1);
 
     // TESTAUSG:
-    // UT3D_stru_dump (Typ_PT2, &pt2a[i1], "P2[%d]=",i1);
+    // DEB_dump_obj__ (Typ_PT2, &pt2a[i1], "P2[%d]=",i1);
     // dli=0;pt1=UT3D_pt_pt2(&pt2a[i1]);APT_disp_SymB (SYM_TRI_S, 2, &pt1);
   }
 
@@ -440,7 +440,7 @@ List_functions_end:
 
   // TEST NACH umdrehen:
   // printf(" nach ck_srot:\n");
-  // for(i1=0; i1<ptNr; ++i1) UT3D_stru_dump (Typ_PT2,&pt2a[i1],"P2[%d]=",i1);
+  // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT2,&pt2a[i1],"P2[%d]=",i1);
   // dli=DL_StoreObj (Typ_CVPOL, -1L, 2);
 
   // bis hier gleich in SUS_tess_pln
@@ -478,7 +478,7 @@ List_functions_end:
 /*
   // TESTAUSG hatchlines
   for(i1=0; i1<ln2Nr; ++i1) {
-    UT3D_stru_dump (Typ_LN2,&ln2a[i1],"L[%d] %d %d\n",i1,ln2ia[i1],ln2ia[i1]);
+    DEB_dump_obj__ (Typ_LN2,&ln2a[i1],"L[%d] %d %d\n",i1,ln2ia[i1],ln2ia[i1]);
     UT3D_ln_2pt2(&ln1,&ln2a[i1].p1,&ln2a[i1].p2);
     dli=0; GR_CreLine(&dli,1,&ln1);
   }
@@ -496,11 +496,11 @@ List_functions_end:
     ln1.p1 = UT3D_pt_pt2 (&ln2a[i1].p1);
     ln1.p2 = UT3D_pt_pt2 (&ln2a[i1].p2);
 
-    UT3D_pt_traptm3 (&lTab[i1].p1, trmat, &ln1.p1);
-    UT3D_pt_traptm3 (&lTab[i1].p2, trmat, &ln1.p2);
+    UT3D_pt_tra_pt_m3 (&lTab[i1].p1, trmat, &ln1.p1);
+    UT3D_pt_tra_pt_m3 (&lTab[i1].p2, trmat, &ln1.p2);
 
     // hatchlines anzeigen
-    // UT3D_stru_dump (Typ_LN,&lTab[i1],"L[%d]\n",i1);
+    // DEB_dump_obj__ (Typ_LN,&lTab[i1],"L[%d]\n",i1);
     // dli = -1; GR_CreLine (&dli, 1, &lTab[i1]);
   }
 

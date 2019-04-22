@@ -101,7 +101,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
     wpa[i1].y = pta[i1].y * wa[i1];
     wpa[i1].z = pta[i1].z * wa[i1];
     wpa[i1].w = wa[i1];
-      UT3D_stru_dump (Typ_WPT, &wpa[i1], "wpa [%d]=",i1);
+      DEB_dump_obj__ (Typ_WPT, &wpa[i1], "wpa [%d]=",i1);
   }
 
   return 0;
@@ -222,7 +222,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
   Point   pt1, pt2, pts, pte, ptStack[20];
 
 
-  UT3D_stru_dump (Typ_CVRBEZ, rbez, "UT3D_pta_rbez ptMax=%d\n",ptMax);
+  DEB_dump_obj__ (Typ_CVRBEZ, rbez, "UT3D_pta_rbez ptMax=%d\n",ptMax);
 
   TX_Print("ERROR: UT3D_pta_rbez not yet implemented");
 
@@ -1089,7 +1089,7 @@ Returncodes:
   CurvRBez *rbTab;
 
 
-  // UT3D_stru_dump (Typ_CVRBSP, rbsp, "UT3D_rbez_rbsp");
+  // DEB_dump_obj__ (Typ_CVRBSP, rbsp, "UT3D_rbez_rbsp");
 
 
   // get spc for wPoints
@@ -1220,7 +1220,7 @@ Returncodes:
         rbTab[i1].cptab[i2].z = Qw[ii].z / w;
       }
       rbTab[i1].wtab[i2] = w;
-        // UT3D_stru_dump (Typ_PT, &rbTab[i1].cptab[i2], "c%d p%d",i1,i2);
+        // DEB_dump_obj__ (Typ_PT, &rbTab[i1].cptab[i2], "c%d p%d",i1,i2);
         // printf(" w=%lf\n",rbTab[i1].wtab[i2]);
     }
   }
@@ -1234,7 +1234,7 @@ Returncodes:
 /*
   for(i1=0; i1<nrCv; ++i1) {
     CurvRBSpl crbsp;
-    UT3D_stru_dump (Typ_CVRBEZ, &rbTab[i1], " rbez[%d]",i1);
+    DEB_dump_obj__ (Typ_CVRBEZ, &rbTab[i1], " rbez[%d]",i1);
     if(i1 != 3) continue;
     // make rbspl from rbez
     UT3D_rbsp_rbez (&crbsp, &rbTab[i1], memSeg1);
@@ -1358,7 +1358,7 @@ Returncodes:
   // transform control points
   for (i1=0; i1<4; ++i1) {
     for (i2=0; i2<3; ++i2) {
-      UT3D_pt_traptm3 (&(rbTab[i1].cptab[i2]), ma, &(rbTab[i1].cptab[i2]));
+      UT3D_pt_tra_pt_m3 (&(rbTab[i1].cptab[i2]), ma, &(rbTab[i1].cptab[i2]));
     }
   }
 
@@ -1469,7 +1469,7 @@ Returncodes:
   // transform control points
   for (i1=0; i1<4; ++i1) {
     for (i2=0; i2<3; ++i2) {
-      UT3D_pt_traptm3 (&(rbTab[i1].cptab[i2]), ma, &(rbTab[i1].cptab[i2]));
+      UT3D_pt_tra_pt_m3 (&(rbTab[i1].cptab[i2]), ma, &(rbTab[i1].cptab[i2]));
     }
   }
 
@@ -1487,7 +1487,7 @@ Returncodes:
   Vector   vcx, vcy;
 
 
-  // UT3D_stru_dump (Typ_CI, ci1, "UT3D_rbez_ci_180");
+  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_rbez_ci_180");
 
 
   if(fabs(ci1->ango) > RAD_270) *nrCv = 2;
@@ -1496,11 +1496,11 @@ Returncodes:
 
   // vcx = vector pc -> p1
   UT3D_vc_2pt (&vcx, &ci1->pc, &ci1->p1);
-    // UT3D_stru_dump (Typ_VC, &vcx, "vcx");
+    // DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
 
   // vcy = normal to vcx and vz
   UT3D_vc_perp2vc (&vcy, &ci1->vz, &vcx);
-    // UT3D_stru_dump (Typ_VC, &vcy, "vcy");
+    // DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
 
 
   return UT3D_rbez_180 (nrCv, rba, memSeg1, &ci1->pc, &vcx, &vcy);
@@ -1518,16 +1518,16 @@ Returncodes:
   Vector   vcx, vcy;
 
 
-  // UT3D_stru_dump (Typ_CVELL, el1, "UT3D_rbez_el_180");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_rbez_el_180");
 
 
   // vcx = vector pc -> p1
   vcx = el1->va;
-    // UT3D_stru_dump (Typ_VC, &vcx, "vcx");
+    // DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
 
   // vcy = normal to vcx and vz
   vcy = el1->vb;
-    // UT3D_stru_dump (Typ_VC, &vcy, "vcy");
+    // DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
 
 
   // if p2 == p1 then 180-deg else 360-deg
@@ -1563,7 +1563,7 @@ Returncodes:
   CurvRBez *rb1;
     
 
-  // UT3D_stru_dump (Typ_CI, ci1, "UT3D_rbez_ci_180");
+  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_rbez_ci_180");
 
 
   iCv = 0;
@@ -1643,11 +1643,11 @@ Returncodes:
 
   // vcx = vector pc -> p1
   UT3D_vc_2pt (&vcx, &ci1->pc, &ci1->p1);
-    // UT3D_stru_dump (Typ_VC, &vcx, "vcx");
+    // DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
 
   // vcy = normal to vcx and vz
   UT3D_vc_perp2vc (&vcy, &ci1->vz, &vcx);
-    // UT3D_stru_dump (Typ_VC, &vcy, "vcy");
+    // DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
 
   return UT3D_rbez_360 (rb1, memSeg1, &ci1->pc, &vcx, &vcy);
 
@@ -1662,10 +1662,10 @@ Returncodes:
 
 
   vcx = el1->va;
-    // UT3D_stru_dump (Typ_VC, &vcx, "vcx");
+    // DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
 
   vcy = el1->vb;
-    // UT3D_stru_dump (Typ_VC, &vcy, "vcy");
+    // DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
 
 
   return UT3D_rbez_360 (rb1, memSeg1, &el1->pc, &vcx, &vcy);
@@ -1747,7 +1747,7 @@ Returncodes:
   rb1->wtab[4] = 1.;
   rb1->wtab[5] = 5.;
 
-    // UT3D_stru_dump (Typ_CVRBEZ, rb1, "UT3D_rbez_360");
+    // DEB_dump_obj__ (Typ_CVRBEZ, rb1, "UT3D_rbez_360");
     // { long dli = -1L; //GL_Draw_rbez (&dli, 1, rb1); }
       // GR_Disp_rbez (rb1, 1); }
 
@@ -1788,7 +1788,7 @@ Returncodes:
 
 
   // printf("000000000000000000000000000000000000000 \n");
-  // UT3D_stru_dump (Typ_CI, ci1, "UT3D_rbez_ci_0");
+  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_rbez_ci_0");
 
 
   // get *nrCv = nr of curves
@@ -1930,7 +1930,7 @@ Returncodes:
 
   // printf("===================================== \n");
   // printf("UT3D_rbez_ci__\n");
-  // UT3D_stru_dump (Typ_CI, ci, "  ci");
+  // DEB_dump_obj__ (Typ_CI, ci, "  ci");
   // UME_dump(memSeg1, "      memSeg1:");
 
 
@@ -1950,7 +1950,7 @@ Returncodes:
   // TEST ONLY:
   for(i1=0; i1 < *nrCv; ++i1) {
     long dli = -1L;
-    // UT3D_stru_dump (Typ_CVRBEZ, &rba[i1], "ex rbez_ci");
+    // DEB_dump_obj__ (Typ_CVRBEZ, &rba[i1], "ex rbez_ci");
     // GL_Draw_rbez (&dli, 9, &rba[i1]);
     GR_Disp_rbez (&rba[i1], 9);
   }

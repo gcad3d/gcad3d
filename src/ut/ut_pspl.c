@@ -103,7 +103,7 @@ List_functions_end:
 
   pola = cvi->data;
 
-  UT3D_pt_traptm3 (&pt0, trmat, (Point*)&UT3D_PT_NUL);
+  UT3D_pt_tra_pt_m3 (&pt0, trmat, (Point*)&UT3D_PT_NUL);
 
     for(i1=0; i1<cvi->siz; ++i1) {
       pol1 = pola[i1];
@@ -111,7 +111,7 @@ List_functions_end:
       pt1.x = pol1.x.a;
       pt1.y = pol1.y.a;
       pt1.z = pol1.z.a;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.a = pt1.x;
       pol1.y.a = pt1.y;
       pol1.z.a = pt1.z;
@@ -119,7 +119,7 @@ List_functions_end:
       pt1.x = pol1.x.b;
       pt1.y = pol1.y.b;
       pt1.z = pol1.z.b;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.b = pt1.x - pt0.x;
       pol1.y.b = pt1.y - pt0.y;
       pol1.z.b = pt1.z - pt0.z;
@@ -127,7 +127,7 @@ List_functions_end:
       pt1.x = pol1.x.c;
       pt1.y = pol1.y.c;
       pt1.z = pol1.z.c;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.c = pt1.x - pt0.x;
       pol1.y.c = pt1.y - pt0.y;
       pol1.z.c = pt1.z - pt0.z;
@@ -135,7 +135,7 @@ List_functions_end:
       pt1.x = pol1.x.d;
       pt1.y = pol1.y.d;
       pt1.z = pol1.z.d;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.d = pt1.x - pt0.x;
       pol1.y.d = pt1.y - pt0.y;
       pol1.z.d = pt1.z - pt0.z;
@@ -168,7 +168,7 @@ List_functions_end:
 
 
   // printf("pspl_pol_psp ptMax=%d tol=%f\n",ptMax,tol);
-  // UTO_dump__ (cv1, "pspl_pol_psp");
+  // DEB_dump_ox_0 (cv1, "pspl_pol_psp");
   
 
 

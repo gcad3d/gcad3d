@@ -538,15 +538,25 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
   int  i1;
   char *p1;
+  // char *cmd={"reg query \"HKCU\Control Panel\International\" /v LocaleName"};
 
 
+  // reg query "HKCU\Control Panel\International" /v LocaleName
+  // returns eg "... REG_SZ   de_DE"
+  // OS_sys1 (txbuf, sizeof(txbuf), cmd);
 
   // i1 = GetSystemDefaultUILanguage ();
-  i1 = GetLocaleInfoA (LOCALE_SYSTEM_DEFAULT, LOCALE_SABBREVLANGNAME, txbuf, 240);
+  // i1 = GetUserDefaultLocaleName (txbuf,240);
+  // i1 = GetLocaleInfoA (LOCALE_SYSTEM_DEFAULT, LOCALE_SABBREVLANGNAME,txbuf,240);
+  i1 = GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SABBREVLANGNAME,txbuf,240);
+  // i1=GetLocaleInfoA(LOCALE_USER_DEFAULT,LOCALE_SENGLANGUAGE,txbuf,240);//German
+    // printf("   W32-OS_get_lang-1 |%s| %d\n",txbuf,i1);
+
+
   if(i1) {
-    txbuf[0] = tolower (txbuf[0]);
-    txbuf[1] = tolower (txbuf[1]);
-    txbuf[2] = '\0';
+    sLang[0] = tolower (txbuf[0]);
+    sLang[1] = tolower (txbuf[1]);
+    sLang[2] = '\0';
     i1 = 0;
   } else {
     printf("**** ERROR OS_get_lang *****************\n");
@@ -556,7 +566,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
   L_exit:
-    printf("ex OS_get_lang |%s|\n",sLang);
+    printf("ex-W32-OS_get_lang |%s|\n",sLang);
   return i1;
 
 }

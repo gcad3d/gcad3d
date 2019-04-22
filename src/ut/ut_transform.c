@@ -34,7 +34,7 @@ void UTRA(){}
 =====================================================
 List_functions_start:
 
-UTRA_obj_coordSys_pln   change coordinateSytem onto refSys from plane or back
+// UTRA_obj_coordSys_pln   change objCoords 3D->2D or 2D->3D
 UTRA_obj_abs2rel__      obj from 3D-absolut onto 3D-constructionPlane
 UTRA_obj_rel2abs__      obj from 3D-constructionPlane to 3D-absolut
 
@@ -78,6 +78,7 @@ UTRA_app_oTab    DO NOT USE  apply transf. to ObjGX-table
 List_functions_end:
 =====================================================
 - see also:
+../xa/test_3D_to_2D.c         Test worldCoords (3D) -> constructionPlane
 UT3D_m3_load
 UT3D_m3_load_o
 UT3D_m3_get
@@ -140,7 +141,7 @@ Mat_4x3:
   UT3D_m3_invm3 (mi1, m1);       // inv. trMat zu m1 generieren
   // mi1: obj von einer Plane in Nullage transformieren
   // m1: obj aus Nullage in Refsys m1 (pl1) transportieren
-  UTRA_def__ (1, Typ_TraMat, mi1);
+  UTRA_def__ (1, Typ_M4x3, mi1);
   UTRA_app__ (datSpc1, .. Typ_LN, ln2, NULL);
 
 
@@ -174,7 +175,7 @@ Typ_TraRot:
  2) drehen (ptOut = Rotation(ptIn))
  3) zurueckverschieben  (ptOut += Origin)
 
-Typ_TraMat: 
+Typ_M4x3: 
  -) transformieren (ptOut = Transformation(ptIn));
 
 
@@ -246,7 +247,7 @@ int UTRA_app_vc (Vector*, Vector*);
 
   for(i1=0; i1<TRA_NR; ++i1) {
     printf(" TRA_TYP[%d] = %d\n",i1,TRA_TYP[i1]);
-    UT3D_stru_dump (Typ_TraRot, &TRA_TAB[i1], "");
+    DEB_dump_obj__ (Typ_TraRot, &TRA_TAB[i1], "");
   }
 
   printf("=========== End UTRA_dump__ ===========\n");
@@ -269,7 +270,7 @@ int UTRA_app_vc (Vector*, Vector*);
 
   // printf("UTRA_app_ox \n");
   // UTRA_dump__ ();  // disp translObj
-  // UTO_dump__ (ox1, "ox1");
+  // DEB_dump_ox_0 (ox1, "ox1");
 
 
   // is output a single data-record or a ox
@@ -286,7 +287,7 @@ int UTRA_app_vc (Vector*, Vector*);
 
     // transform
     irc = UTRA_app__ (poo, ox1->typ, ox1->form, ox1->siz, ox1->data, wrkSpc);
-      // UT3D_stru_dump (ox1->form, poo, "poo irc=%d",irc);
+      // DEB_dump_obj__ (ox1->form, poo, "poo irc=%d",irc);
 
     // std-struct; make ObjGX from obj
     OGX_SET_OBJ (ox2, ox1->typ, ox1->form, ox1->siz, poo);
@@ -310,11 +311,11 @@ int UTRA_app_vc (Vector*, Vector*);
 // TODO !
 /
     if(WC_sur_ind != 0) {
-      UT3D_pt_traptm3 (&ln_out->p1, WC_sur_mat, &pta);
-      UT3D_vc_travcm3 (&vc1, WC_sur_mat, &vc1);
-if(WC_sur_ind != 0) UT3D_vc_travcm3 (&vc1, WC_sur_imat, &vc1);
+      UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
+      UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
+if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(WC_sur_ind != 0) UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -335,11 +336,11 @@ WC_sur_mat WC_sur_imat
 // TODO !
 /
     if(WC_sur_ind != 0) {
-      UT3D_pt_traptm3 (&ln_out->p1, WC_sur_mat, &pta);
-      UT3D_vc_travcm3 (&vc1, WC_sur_mat, &vc1);
-if(WC_sur_ind != 0) UT3D_vc_travcm3 (&vc1, WC_sur_imat, &vc1);
+      UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
+      UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
+if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(WC_sur_ind != 0) UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -363,7 +364,7 @@ WC_sur_mat WC_sur_imat
 ///   trNr    immer mit 1 beginnen; max TRA_TAB_SIZ.
 ///   typ     Typ_VC      data must be: Vector        (Translation)
 ///           Typ_TraRot                TraRot        (Rotation)
-///           Typ_TraMat                Mat_4x3       (Transformation)
+///           Typ_M4x3                Mat_4x3       (Transformation)
 ///
 /// Example:
 ///   UTRA_def__ (1, Typ_VC, &vc1);
@@ -400,10 +401,10 @@ WC_sur_mat WC_sur_imat
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_TraMat) {           // Transformation
+  } else if(typ == Typ_M4x3) {           // Transformation
     // UTRA_pt_tr = UTRA_app_pt;
     memcpy (tr1->ma, data, sizeof(Mat_4x3));
-      // UT3D_stru_dump (Typ_M4x3, ma, "UTRA_def__ TraMat\n");
+      // DEB_dump_obj__ (Typ_M4x3, ma, "UTRA_def__ TraMat\n");
 
 
   //----------------------------------------------------------------
@@ -433,7 +434,7 @@ WC_sur_mat WC_sur_imat
   int    i1, iAct, iForm, iNr, oSiz;
   ObjGX  *oo,  *oi;
 
-  // UTO_dump__ (oai, "UTRA_nobj_tra:");
+  // DEB_dump_ox_0 (oai, "UTRA_nobj_tra:");
 
   for(iAct=0; iAct<oNr; ++iAct) {
 
@@ -494,7 +495,7 @@ WC_sur_mat WC_sur_imat
     }
   }
 
-  // UTO_dump__ (oao, "ex UTRA_nobj_tra:");
+  // DEB_dump_ox_0 (oao, "ex UTRA_nobj_tra:");
 
 
   return 0;
@@ -522,7 +523,7 @@ WC_sur_mat WC_sur_imat
 ///   oSiz   freier Restplatz in objo
 ///   wrkSpc fuer Daten (structs) von oGX-Objekten
 /// 
-/// see UTO_obj_tra_m3 oder UTO_ox_tra
+/// see UTO_obj_tra_obj_m3 oder UTO_ox_tra
 /// \endcode
 
   int   irc, iForm;
@@ -534,8 +535,8 @@ WC_sur_mat WC_sur_imat
   printf("UTRA_app_obj oSiz=%ld\n",*oSiz);
   // printf("         obji-typ=%d form=%d siz=%d\n",((ObjGX*)obji)->typ,
             // ((ObjGX*)obji)->form,((ObjGX*)obji)->siz);
-  // UTO_dump_s_ (obji, "UTRA_app_obj in");
-  UTO_dump__ (obji, "UTRA_app_obj in");
+  // DEB_dump_ox_s_ (obji, "UTRA_app_obj in");
+  DEB_dump_ox_0 (obji, "UTRA_app_obj in");
 
 
 
@@ -555,8 +556,8 @@ WC_sur_mat WC_sur_imat
   // (char*)objo +=  oldSiz - *oSiz;
   objo =  (char*)objo + (oldSiz - *oSiz);
 
-    // UTO_dump_s_ (pi, "Obj isolated");
-    // UTO_dump__ (pi, "Obj isolated");
+    // DEB_dump_ox_s_ (pi, "Obj isolated");
+    // DEB_dump_ox_0 (pi, "Obj isolated");
     // UTO_obj_Disp__ (pi, &wrkSpc, 2, SYM_STAR_S);
 
 
@@ -564,8 +565,8 @@ WC_sur_mat WC_sur_imat
   irc = UTRA_app_oTab (objo, oSiz, pi, wrkSpc);
 
 
-    UTO_dump__ (pi, "UTRA_app_obj out");
-    // UTO_dump_s_ (pi, "UTRA_app_obj out");
+    DEB_dump_ox_0 (pi, "UTRA_app_obj out");
+    // DEB_dump_ox_s_ (pi, "UTRA_app_obj out");
 
   return irc;
 }
@@ -693,31 +694,33 @@ WC_sur_mat WC_sur_imat
   // get a ObjGX of the obj to transform
   ox2 = DB_GetObjGX (*typ, *dbi);
   if(ox2.typ == Typ_Error) return -1;
-    // UT3D_stru_dump (Typ_ObjGX, &ox2, "ox2");
-    // UTO_dump_s_  (&ox2, "UTRA_app_dbo-in");
+    // DEB_dump_obj__ (Typ_ObjGX, &ox2, "ox2");
+    // DEB_dump_ox_s_  (&ox2, "UTRA_app_dbo-in");
 
 
   // transform curve|surf|sol (ObjGX)
   // CV: returns the parent-record (ObjGX*) in tmpSpc !
   fTyp = UTRA_app__ (tmpSpc, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
   if(fTyp < 0) return fTyp;
-    // if(fTyp) UTO_dump__ (tmpSpc, "ex UTRA_app__");
-    // else     UT3D_stru_dump (ox2.form, tmpSpc, "ex UTRA_app__");
+    // if(fTyp) DEB_dump_ox_0 (tmpSpc, "ex UTRA_app__");
+    // else     DEB_dump_obj__ (ox2.form, tmpSpc, "ex UTRA_app__");
+
+
 
 
 /*
       // TEST ONLY
-      fTyp = UTO_ck_dbsTyp (ox2.form);  // 0=struct(D,P,L,C); 1=oGX(S,A,B);
+  fTyp = UTO_ck_dbsTyp (ox2.form);  // 0=struct(D,P,L,C); 1=oGX(S,A,B);
       printf(" fTyp=%d\n",fTyp);
       if(!fTyp) {
         vp1 = tmpSpc;
         oNr = 1;
-          UT3D_stru_dump (ox2.form, tmpSpc, "APT_tra_obj-out:");
+          DEB_dump_obj__ (ox2.form, tmpSpc, "APT_tra_obj-out:");
       } else {
         vp1 = ((ObjGX*)tmpSpc)->data;
         oNr = ((ObjGX*)tmpSpc)->siz;
-          UTO_dump_s_  (tmpSpc, "APT_tra_obj-out:");
-          UTO_dump__ (tmpSpc, "APT_tra_obj-out:");
+          DEB_dump_ox_s_  (tmpSpc, "APT_tra_obj-out:");
+          DEB_dump_ox_0 (tmpSpc, "APT_tra_obj-out:");
       }
       // END TEST ONLY
 */
@@ -726,13 +729,14 @@ WC_sur_mat WC_sur_imat
     // save the complete obj in DB
     *dbi = -1L;
 
-    if(fTyp == 0) {                // 2016-06-08 sample_dil2.gcad
+    // if(fTyp == 0) {                // 2016-06-08 sample_dil2.gcad
+    // if(ox2.form == Typ_ObjGX) {
       // simple structs;
       vp1 = tmpSpc;
-    } else {
-      // complex (Curves, surfs, bodies
-      vp1 = ((ObjGX*)tmpSpc)->data;
-    }
+    // } else {
+      // // complex (Curves, surfs, bodies
+      // vp1 = ((ObjGX*)tmpSpc)->data;
+    // }
     irc = DB_store_stru (&vp1, ox2.typ, ox2.form, vp1, ox2.siz, dbi);
     if(irc < 0) return irc;
 
@@ -759,12 +763,15 @@ WC_sur_mat WC_sur_imat
   Point  pt1;
 
 
+  printf("UTRA_app_CCV \n");
+
+
   memcpy(objo, obji, sizeof(CurvCCV));
 
 
   // transform basicCurve typ.dbi
   // printf("UTRA_app_CCV typ=%d\n",obji->typ);
-  // UT3D_stru_dump (Typ_CVTRM, obji, "in");
+  // DEB_dump_obj__ (Typ_CVTRM, obji, "in");
 
 
   if(obji->dbi) {
@@ -793,6 +800,10 @@ WC_sur_mat WC_sur_imat
       // printf(" ip1-1=%ld ip0-2=%ld\n",obji->ip1,objo->ip1);
   }
 
+  // reset stat (no PRCV yet)
+  objo->stat = 0;
+
+
   return 0;
 
 }
@@ -814,44 +825,35 @@ WC_sur_mat WC_sur_imat
 ///              SABNT: returns parent-record (ObjGX)
 ///   RetCod     type of struct (0|1) from UTO_ck_dbsTyp
 
-  int     irc, fTyp;
-  // Memspc  tSpc1;
-  void    *poo;
+  int     irc, i1, fTyp, ls;
+  char    oo[OBJ_SIZ_MAX];
+  void    *poo = oo;
 
 
   // printf("UTRA_app__ otyp=%d oform=%d iNr=%d\n",otyp,oform,iNr);
 
 
-  // transform (UTRA_app_obj)
-  // transform
-  irc = UTRA_app_obj (&poo, oform, iNr, obji, wrkSpc);
-  if(irc < 0) return irc;
-    // UT3D_stru_dump (oform, poo, "ex UTRA_app_obj");
+
+  for(i1=0; i1<iNr; ++i1) {
+    // transform (UTRA_app_obj)
+    // transform
+    irc = UTRA_app_obj (&poo, oform, 1, obji, wrkSpc);
+    if(irc < 0) return irc;
+
+      // END TESTBLOCK
+      // DEB_dump_obj__ (oform, poo, "after-UTRA_app_obj");
+      // END TESTBLOCK
 
 
-  // is output a single data-record or a ox
-  fTyp = UTO_ck_dbsTyp (otyp);  // 0=struct(D,P,L,C); 1=oGX(S,A,B);
-     // printf(" fTyp=%d\n",fTyp);
+    ls = UTO_siz_stru(oform);
+    memcpy (objo, poo, ls);
 
-
-  if(!fTyp) {
-    // 0=struct(D,P,L,C)
-    // copy data-record from poo -> objo
-    memcpy (objo, poo, OBJ_SIZ_MAX);
-
-  } else {
-    // 1=oGX(S,A,B)
-    // for curves .. use UTO_ox_stru (create ox for curve|surf)
-    // make ObjGX from datastruct
-    OGX_SET_OBJ ((ObjGX*)objo, otyp, oform, iNr, poo);
-    // UTO_ox_stru (oxo, ox2.typ, ox2.form, ox2.siz, &APTSpcObj);
-    // if(i1 < 0) return -1;
-      // UTO_dump_s_  (objo, "APT_tra_obj-out:");
-      // UTO_dump__   (objo, "APT_tra_obj-out:");
+    objo = (char*)objo + ls;
+    obji = (char*)obji + ls;
   }
 
 
-  return fTyp;
+  return 0;
 
 }
 
@@ -873,14 +875,14 @@ WC_sur_mat WC_sur_imat
 ///   poo      obj with new coordinates; obj-typ=otyp; spc in wrkSpc 
 ///   RetCod   0=OK; -1=EOM
 ///
-/// see UTO_obj_tra_m3 oder UTO_ox_tra
+/// see UTO_obj_tra_obj_m3 oder UTO_ox_tra
 /// TODO: add parameter outTyp (now: outTyp == inTyp).
 /// \endcode
 
 // see also UTRA_obj_abs2rel__
 
 
-  int       irc, i1, i2, i3, i4, typ, iForm, iSiz, sSiz;
+  int       irc, i1, i2, i3, i4, typ, iForm, iSiz, rSiz;
   long      l1, dbi, oldSiz;
   char      *pi, *po, *po1, *pw;
   Point     *pa1, *pa2, p1;
@@ -891,44 +893,37 @@ WC_sur_mat WC_sur_imat
   // printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \n");
   // printf("UTRA_app_obj otyp=%d iNr=%d\n",otyp,iNr);
   // UME_dump (wrkSpc, "wrkSpc:");
-  // UT3D_stru_dump (otyp, obji, "obji:");
-    // geht ned ... UTO_dump__ (obji, "UTRA_app__");
+  // DEB_dump_obj__ (otyp, obji, "obji:");
+    // geht ned ... DEB_dump_ox_0 (obji, "UTRA_app__");
 
 
   irc = 0;
-  objo = UME_get_next (wrkSpc); // get position of free space; no reserve yet
-  *poo = objo;
+  if(wrkSpc) {
+    objo = UME_get_next (wrkSpc); // get position of free space; no reserve yet
+    *poo = objo;
+  } else {
+    objo = *poo;
+  }
 
 
   switch (otyp) {
 
     //================================================================
-    case Typ_VAR:
-      if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(double)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(double);
-      // if(*oSiz < 0) goto L_EOM;
-
-      *(double*)objo = *(double*)obji;   // copy val
-        // UT3D_stru_dump (Typ_VAR, objo, "trVARo:");
-
-      break;
+    case Typ_VAR:                     // copy only
+      rSiz = sizeof(double);
+      goto L_copy;
 
 
     //================================================================
     case Typ_PT:
-      if(UME_add (wrkSpc, sizeof(Point) * iNr) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Point);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Point) * iNr) < 0) goto L_EOM;
+      }
 
       L_PT_nxt:
       UTRA_app_pt (objo, obji);
-        // UT3D_stru_dump (Typ_PT, objo, "trPTo:");
-        // printf(" app_tra PT siz=%d\n",*oSiz);
-      if(iNr > 1) {  // obji hat mehrere points !
+      if(iNr > 1) {
         --iNr;
-        // (char*)obji += sizeof(Point);
-        // (char*)objo += sizeof(Point);
         obji = (char*)obji + sizeof(Point);
         objo = (char*)objo + sizeof(Point);
         goto L_PT_nxt;
@@ -937,25 +932,34 @@ WC_sur_mat WC_sur_imat
 
 
     //================================================================
-    case Typ_VC:
-      if(iNr > 1) goto L_E_INR;
-      // ACHTUNG: Vektor wird nur kopiert; used for B=TRA B D() wenn B aus
-      // Rectangle + Vektor besteht.
-        // UT3D_stru_dump (Typ_VC, obji, "trVCi:");
-      // *oSiz -= sizeof(Vector);
-      // if(*oSiz < 0) goto L_EOM;
-      if(UME_add (wrkSpc, sizeof(Vector)) < 0) goto L_EOM;
+    case Typ_PT2:
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Point2) * iNr) < 0) goto L_EOM;
+      }
 
-      *(Vector*)objo = *(Vector*)obji;   // copy vz
+      L_PT2_nxt:
+      UTRA_app_pt2 (objo, obji);
+      if(iNr > 1) {  
+        --iNr;
+        obji = (char*)obji + sizeof(Point2);
+        objo = (char*)objo + sizeof(Point2);
+        goto L_PT_nxt;
+      }
       break;
+
+
+    //================================================================
+    case Typ_VC:                    // copy only
+      rSiz = sizeof(Vector);
+      goto L_copy;
 
 
     //================================================================
     case Typ_LN:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Line)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Line);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Line)) < 0) goto L_EOM;
+      }
 
       ((Line*)objo)->typ = ((Line*)obji)->typ;
       UTRA_app_pt (&((Line*)objo)->p1, &((Line*)obji)->p1);
@@ -966,9 +970,9 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_LN2:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Line2)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Line2);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Line2)) < 0) goto L_EOM;
+      }
 
       UTRA_app_pt2 (&((Line2*)objo)->p1, &((Line2*)obji)->p1);
       UTRA_app_pt2 (&((Line2*)objo)->p2, &((Line2*)obji)->p2);
@@ -979,12 +983,13 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_CI2:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Circ2)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Circ2);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Circ2)) < 0) goto L_EOM;
+      }
 
-        // UT3D_stru_dump (Typ_CI, obji, "trACi:");
-      *(Circ2*)objo = *(Circ2*)obji;   // copy vz & rad & ango
+        // DEB_dump_obj__ (Typ_CI, obji, "trACi:");
+      // copy vz & rad & ango
+      *(Circ2*)objo = *(Circ2*)obji;
       // transl pc
       UTRA_app_pt2 (&((Circ2*)objo)->pc, &((Circ2*)obji)->pc);
       // transl p1
@@ -993,18 +998,18 @@ WC_sur_mat WC_sur_imat
       if(UT2D_ck_ci360((Circ2*)obji) == 0)
         ((Circ2*)objo)->p2 = ((Circ2*)objo)->p1;  // 360 deg: copy p1
       else      // transl p2
-         UTRA_app_pt2 (&((Circ2*)objo)->p2, &((Circ2*)obji)->p2);
+        UTRA_app_pt2 (&((Circ2*)objo)->p2, &((Circ2*)obji)->p2);
 
-        // UT3D_stru_dump (Typ_CI, objo, "trACo:");
+        // DEB_dump_obj__ (Typ_CI, objo, "trACo:");
       break;
 
 
     //================================================================
     case Typ_CI:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Circ)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Circ);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Circ)) < 0) goto L_EOM;
+      }
 
       UTRA_tra_ci (objo, obji);
       break;
@@ -1013,13 +1018,13 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_GTXT:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(GText)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(GText);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(GText)) < 0) goto L_EOM;
+      }
 
       memcpy(objo, obji, sizeof(GText));
 
-      // UT3D_pt_traptm3 ((Point*)pe, trmat, &tx1->pt);
+      // UT3D_pt_tra_pt_m3 ((Point*)pe, trmat, &tx1->pt);
       UTRA_app_pt (&((GText*)objo)->pt, &((GText*)obji)->pt);
       break;
 
@@ -1028,13 +1033,13 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_Dimen:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Dimen)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Dimen);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Dimen)) < 0) goto L_EOM;
+      }
 
       memcpy(objo, obji, sizeof(Dimen));
 
-      // UT3D_pt_traptm3 ((Point*)pe, trmat, &tx1->pt);
+      // UT3D_pt_tra_pt_m3 ((Point*)pe, trmat, &tx1->pt);
       UTRA_app_pt2 (&((Dimen*)objo)->p1, &((Dimen*)obji)->p1);
       UTRA_app_pt2 (&((Dimen*)objo)->p2, &((Dimen*)obji)->p2);
       UTRA_app_pt2 (&((Dimen*)objo)->p3, &((Dimen*)obji)->p3);
@@ -1045,9 +1050,9 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_PLN:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(Plane)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(Plane);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(Plane)) < 0) goto L_EOM;
+      }
 
       UTRA_tra_pln (objo, obji);
       break;
@@ -1056,9 +1061,10 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_CVELL:
       if(iNr > 1) goto L_E_INR;
-      if(UME_add (wrkSpc, sizeof(CurvElli)) < 0) goto L_EOM;
-      // *oSiz -= sizeof(CurvElli);
-      // if(*oSiz < 0) goto L_EOM;
+      if(wrkSpc) {
+        if(UME_add (wrkSpc, sizeof(CurvElli)) < 0) goto L_EOM;
+      }
+
       UTRA_tra_ell (objo, obji);
       break;
 
@@ -1093,7 +1099,7 @@ WC_sur_mat WC_sur_imat
   } else if(typ == Typ_CVPSP3) {
     pola = cvi->data;
 
-    UT3D_pt_traptm3 (&pt0, trmat, &UT3D_PT_NUL);
+    UT3D_pt_tra_pt_m3 (&pt0, trmat, &UT3D_PT_NUL);
 
     for(i1=0; i1<cvi->siz; ++i1) {
       pol1 = pola[i1];
@@ -1101,7 +1107,7 @@ WC_sur_mat WC_sur_imat
       pt1.x = pol1.x.a;
       pt1.y = pol1.y.a;
       pt1.z = pol1.z.a;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.a = pt1.x;
       pol1.y.a = pt1.y;
       pol1.z.a = pt1.z;
@@ -1109,7 +1115,7 @@ WC_sur_mat WC_sur_imat
       pt1.x = pol1.x.b;
       pt1.y = pol1.y.b;
       pt1.z = pol1.z.b;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.b = pt1.x - pt0.x;
       pol1.y.b = pt1.y - pt0.y;
       pol1.z.b = pt1.z - pt0.z;
@@ -1117,7 +1123,7 @@ WC_sur_mat WC_sur_imat
       pt1.x = pol1.x.c;
       pt1.y = pol1.y.c;
       pt1.z = pol1.z.c;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.c = pt1.x - pt0.x;
       pol1.y.c = pt1.y - pt0.y;
       pol1.z.c = pt1.z - pt0.z;
@@ -1125,7 +1131,7 @@ WC_sur_mat WC_sur_imat
       pt1.x = pol1.x.d;
       pt1.y = pol1.y.d;
       pt1.z = pol1.z.d;
-      UT3D_pt_traptm3 (&pt1, trmat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, trmat, &pt1);
       pol1.x.d = pt1.x - pt0.x;
       pol1.y.d = pt1.y - pt0.y;
       pol1.z.d = pt1.z - pt0.z;
@@ -1197,7 +1203,7 @@ WC_sur_mat WC_sur_imat
       if(irc < 0) goto L_EOM;
       ((SurRev*)objo)->indCov = dbi;
 
-      // UT3D_stru_dump (Typ_SURRV, objo, "SurRV-out\n");
+      // DEB_dump_obj__ (Typ_SURRV, objo, "SurRV-out\n");
       break;
 
 
@@ -1237,7 +1243,7 @@ WC_sur_mat WC_sur_imat
       if(iNr > 1) goto L_E_INR;
       if(UME_add (wrkSpc, sizeof(Conus)) < 0) goto L_EOM;
       // if(wrkSpc == NULL) goto L_E002; // need spc for points
-        // UT3D_stru_dump (Typ_CON, obji, "trCONi:");
+        // DEB_dump_obj__ (Typ_CON, obji, "trCONi:");
       // *oSiz -= sizeof(Conus);
       // if(*oSiz < 0) goto L_EOM;
       // copy the whole struct (keep r r h )
@@ -1249,7 +1255,7 @@ WC_sur_mat WC_sur_imat
       UTRA_app_vc (&((Plane*)opo)->vx, &((Plane*)opi)->vx);
       UTRA_app_vc (&((Plane*)opo)->vy, &((Plane*)opi)->vy);
       UTRA_app_vc (&((Plane*)opo)->vz, &((Plane*)opi)->vz);
-        // UT3D_stru_dump (Typ_CON, objo, "trCONo:");
+        // DEB_dump_obj__ (Typ_CON, objo, "trCONo:");
       break;
 
 
@@ -1259,14 +1265,14 @@ WC_sur_mat WC_sur_imat
       if(iNr > 1) goto L_E_INR;
       if(UME_add (wrkSpc, sizeof(Sphere)) < 0) goto L_EOM;
       // if(wrkSpc == NULL) goto L_E002; // need spc for points
-        // UT3D_stru_dump (Typ_SPH, obji, "trSPHi:");
+        // DEB_dump_obj__ (Typ_SPH, obji, "trSPHi:");
       // *oSiz -= sizeof(Sphere);
       // if(*oSiz < 0) goto L_EOM;
       // copy the whole struct (keep r r h )
       memcpy(objo, obji, sizeof(Sphere));
       // transform center
       UTRA_app_pt (&((Sphere*)objo)->pc, &((Sphere*)obji)->pc);
-        // UT3D_stru_dump (Typ_SPH, objo, "trSPHo:");
+        // DEB_dump_obj__ (Typ_SPH, objo, "trSPHo:");
       break;
 
 
@@ -1276,7 +1282,7 @@ WC_sur_mat WC_sur_imat
       if(iNr > 1) goto L_E_INR;
       if(UME_add (wrkSpc, sizeof(Torus)) < 0) goto L_EOM;
       // if(wrkSpc == NULL) goto L_E002; // need spc for points
-        // UT3D_stru_dump (Typ_TOR, obji, "trTORi:");
+        // DEB_dump_obj__ (Typ_TOR, obji, "trTORi:");
       // *oSiz -= sizeof(Torus);
       // if(*oSiz < 0) goto L_EOM;
       // copy the whole struct (keep r r h )
@@ -1288,7 +1294,7 @@ WC_sur_mat WC_sur_imat
       UTRA_app_vc (&((Plane*)opo)->vx, &((Plane*)opi)->vx);
       UTRA_app_vc (&((Plane*)opo)->vy, &((Plane*)opi)->vy);
       UTRA_app_vc (&((Plane*)opo)->vz, &((Plane*)opi)->vz);
-        // UT3D_stru_dump (Typ_TOR, objo, "trTORo:");
+        // DEB_dump_obj__ (Typ_TOR, objo, "trTORo:");
       break;
 
 
@@ -1302,7 +1308,7 @@ WC_sur_mat WC_sur_imat
 
       memcpy(objo, obji, sizeof(ModelRef));
 
-      // UT3D_pt_traptm3 ((Point*)pe, trmat, &tx1->pt);
+      // UT3D_pt_tra_pt_m3 ((Point*)pe, trmat, &tx1->pt);
       UTRA_app_pt (&((ModelRef*)objo)->po, &((ModelRef*)obji)->po);
       UTRA_app_vc (&((ModelRef*)objo)->vx, &((ModelRef*)obji)->vx);
       UTRA_app_vc (&((ModelRef*)objo)->vz, &((ModelRef*)obji)->vz);
@@ -1313,7 +1319,7 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_Index:  // this is a ObjGX
       // must return a objGX with dbi=dynamic-obj of DB-object
-        UT3D_stru_dump (Typ_ObjGX, obji, "tr-Ind:");
+        DEB_dump_obj__ (Typ_ObjGX, obji, "tr-Ind:");
       memcpy (objo, obji, sizeof(ObjGX));
       OGX_GET_INDEX (&typ, &dbi, (ObjGX*)obji);
       irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
@@ -1339,16 +1345,16 @@ WC_sur_mat WC_sur_imat
 
          // TESTBLOCK
          // printf(" otyp=%d iNr=%d\n",otyp,iNr);
-         // UTO_dump__ (objo, "obj to tra");
+         // DEB_dump_ox_0 (objo, "obj to tra");
          // for(i1=0; i1 < iNr; ++i1)
-         // UT3D_stru_dump (Typ_ObjGX, &ox1[i1], "obj-to-tra[%d]",i1);
+         // DEB_dump_obj__ (Typ_ObjGX, &ox1[i1], "obj-to-tra[%d]",i1);
          // END TESTBLOCK
 
 
       for(i1=0; i1 < iNr; ++i1) {  // Recursion !
         // UTRA_app__ cannot get typ&form&data; resolv links now !
         oxi = &((ObjGX*)obji)[i1];
-          // UT3D_stru_dump (Typ_ObjGX, &ox1[i1], "ox-tra[%d]",i1);
+          // DEB_dump_obj__ (Typ_ObjGX, &ox1[i1], "ox-tra[%d]",i1);
         if(oxi->typ == Typ_Typ) continue;
         if(oxi->form == Typ_Index) {
           OGX_GET_INDEX (&typ, &dbi, oxi);
@@ -1367,7 +1373,7 @@ WC_sur_mat WC_sur_imat
         UTRA_app_obj ((void**)&ox2, oxi->form, oxi->siz, oxi->data, wrkSpc);
         oxo = &((ObjGX*)objo)[i1];
         oxo->data = ox2;
-          // UT3D_stru_dump (Typ_ObjGX, oxo, "obj-tra[%d]",i1);
+          // DEB_dump_obj__ (Typ_ObjGX, oxo, "obj-tra[%d]",i1);
       }
         // printf("ex-app-ox\n");
       break;
@@ -1380,12 +1386,25 @@ WC_sur_mat WC_sur_imat
   }
 
 
-    // if(!irc)UT3D_stru_dump (otyp, objo, "ex UTRA_app__");
+    // if(!irc)DEB_dump_obj__ (otyp, objo, "ex UTRA_app__");
     // // if(!irc)GR_Disp_obj (otyp, objo, 8, 4);
     // printf("ex UTRA_app_obj irc=%d aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",irc);
 
 
   return irc;
+
+
+  //----------------------------------------------------------------
+  L_copy:
+    // copy iNr records of size rSiz
+    if(iNr < 2) memcpy (objo, obji, rSiz);
+    else {
+      for(i1=0; i1 < iNr; ++i1) {
+        memcpy (objo, obji, rSiz);
+        objo = ((char*)objo + rSiz);
+        obji = ((char*)obji + rSiz);
+      }
+    }
 
 
   L_E002:
@@ -1451,7 +1470,7 @@ WC_sur_mat WC_sur_imat
 //================================================================
 /// \code
 /// apply a single Transformation to a 2D-point.
-/// see also UT3D_pt_traptm3 UTRA_pt_traptm3
+/// see also UT3D_pt_tra_pt_m3 UTRA_pt_traptm3
 /// \endcode
 
   double   x, y;
@@ -1459,7 +1478,7 @@ WC_sur_mat WC_sur_imat
   Mat_4x3  *ma;
 
 
-  // UT3D_stru_dump (Typ_PT, p1, "UTRA_tra_pt %d",typ);
+  // DEB_dump_obj__ (Typ_PT, p1, "UTRA_tra_pt %d",typ);
 
 
   //----------------------------------------------------------------
@@ -1486,7 +1505,7 @@ WC_sur_mat WC_sur_imat
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_TraMat) {           // Transformation
+  } else if(typ == Typ_M4x3) {           // Transformation
 
     ma = &tra->ma;
 
@@ -1515,7 +1534,7 @@ WC_sur_mat WC_sur_imat
 //================================================================
 /// \code
 /// apply a single Transformation to a point.
-/// see also UT3D_pt_traptm3 UTRA_pt_traptm3
+/// see also UT3D_pt_tra_pt_m3 UTRA_pt_traptm3
 /// \endcode
 
   double   x, y, z;
@@ -1523,7 +1542,7 @@ WC_sur_mat WC_sur_imat
   Mat_4x3  *ma;
 
 
-  // UT3D_stru_dump (Typ_PT, p1, "UTRA_tra_pt %d",typ);
+  // DEB_dump_obj__ (Typ_PT, p1, "UTRA_tra_pt %d",typ);
 
   
   //----------------------------------------------------------------
@@ -1553,7 +1572,7 @@ WC_sur_mat WC_sur_imat
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_TraMat) {           // Transformation
+  } else if(typ == Typ_M4x3) {           // Transformation
 
     ma = &tra->ma;
 
@@ -1585,6 +1604,9 @@ WC_sur_mat WC_sur_imat
 /// apply all defined Transformations to a Vector.
 
   int   i1;
+ 
+
+  // DEB_dump_obj__ (Typ_VC, v1, "UTRA_app_vc");
 
   *v2 = *v1;
 
@@ -1594,6 +1616,7 @@ WC_sur_mat WC_sur_imat
   }
 
     // GR_Disp_vc (v2, NULL, 0, 0);
+    // DEB_dump_obj__ (Typ_VC, v2, "ex-UTRA_app_vc");
 
   return 0;
 
@@ -1611,7 +1634,7 @@ WC_sur_mat WC_sur_imat
   Mat_4x3  *ma;
 
 
-  // UT3D_stru_dump (Typ_VC, v1, "UTRA_tra_vc %d",typ);
+  // DEB_dump_obj__ (Typ_VC, v1, "UTRA_tra_vc %d",typ);
 
 
   //----------------------------------------------------------------
@@ -1623,7 +1646,7 @@ WC_sur_mat WC_sur_imat
 
   //----------------------------------------------------------------
   } else if((typ == Typ_TraRot) ||           // Rotation
-            (typ == Typ_TraMat)) {           // Transformation
+            (typ == Typ_M4x3)) {           // Transformation
 
     ma = &tra->ma;
 
@@ -1659,7 +1682,7 @@ WC_sur_mat WC_sur_imat
   double x, y, z;
 
   // printf("UTRA_pt_traptm3\n");
-  // UT3D_stru_dump (Typ_PT, p1, "UTRA_pt_traptm3");
+  // DEB_dump_obj__ (Typ_PT, p1, "UTRA_pt_traptm3");
 
 
   // Rotate: normalize (--> origin)
@@ -1715,7 +1738,7 @@ WC_sur_mat WC_sur_imat
 
   double x, y, z;
 
-  // UT3D_stru_dump (Typ_VC, p1, "UTRA_tra_vc-vci:");
+  // DEB_dump_obj__ (Typ_VC, p1, "UTRA_tra_vc-vci:");
 
 
   //----------------------------------------------------------------
@@ -1727,7 +1750,7 @@ WC_sur_mat WC_sur_imat
 
   //----------------------------------------------------------------
   } else if((traAct == Typ_TraRot)  ||
-            (traAct == Typ_TraMat))    {
+            (traAct == Typ_M4x3))    {
 
     UTRA_pt_travcm3 (p2, p1);
 
@@ -1740,7 +1763,7 @@ WC_sur_mat WC_sur_imat
   }
 
 
-    // UT3D_stru_dump (Typ_VC, p2, "UTRA_tra_vc-vco:");
+    // DEB_dump_obj__ (Typ_VC, p2, "UTRA_tra_vc-vco:");
 
   return 0;
 }
@@ -1757,14 +1780,14 @@ WC_sur_mat WC_sur_imat
 /// \endcode
 
 
-  // UT3D_stru_dump (Typ_PT, ptOri, "UTRA_inirotZ_pt_angr ");
+  // DEB_dump_obj__ (Typ_PT, ptOri, "UTRA_inirotZ_pt_angr ");
 
   UT3D_m3_iniZrot_angr (tr1->ma, ptOri, ar);
 
   tr1->angr = ar;
   tr1->vz   = UT3D_VECTOR_Z;
 
-    // UT3D_stru_dump (Typ_M4x3, *ma1, "UTRA_inirotZ_pt_angr: ma\n");
+    // DEB_dump_obj__ (Typ_M4x3, *ma1, "UTRA_inirotZ_pt_angr: ma\n");
 
   return 0;
 
@@ -1785,7 +1808,7 @@ WC_sur_mat WC_sur_imat
   tr1->angr = ar;
   tr1->vz   = *va;  // copy vec
 
-  // UT3D_stru_dump (Typ_M4x3, *ma1, "UTRA_inirot_pt_vc_angr: ma\n");
+  // DEB_dump_obj__ (Typ_M4x3, *ma1, "UTRA_inirot_pt_vc_angr: ma\n");
 
 
   return 0;
@@ -1805,7 +1828,7 @@ WC_sur_mat WC_sur_imat
 //   // erste ist mi1 (von einer Plane in Nullage transportieren)
 //   UTRA_inirotZ_pt_angr (&tr1, NULL, UT_RADIANS(5.)); // zweite; eine Rotation
 //   UTRA_m3_multm3 (mb, mi1, tr1.ma);
-//   UTRA_def__ (1, Typ_TraMat, mb);
+//   UTRA_def__ (1, Typ_M4x3, mb);
 //   UTRA_app__ ..
 
 // see also UT3D_m3_multm3 UT3D_m4_addrot
@@ -1816,8 +1839,8 @@ WC_sur_mat WC_sur_imat
 
     int           i, zeile, spalte, i1;
 
-  UT3D_stru_dump (Typ_M4x3, ma, "mult: ma\n");
-  UT3D_stru_dump (Typ_M4x3, mb, "mult: mb\n");
+  DEB_dump_obj__ (Typ_M4x3, ma, "mult: ma\n");
+  DEB_dump_obj__ (Typ_M4x3, mb, "mult: mb\n");
 
 /*
   for( i=0; i<3; i++ ) {
@@ -1932,7 +1955,7 @@ WC_sur_mat WC_sur_imat
 
 
 
-  UT3D_stru_dump (Typ_M4x3, m3, "mult: m3\n");
+  DEB_dump_obj__ (Typ_M4x3, m3, "mult: m3\n");
 
 }
 
@@ -1942,8 +1965,12 @@ WC_sur_mat WC_sur_imat
                       Memspc *ma) {
 //================================================================
 /// \code
-/// get curves from 3D-constructionPlane to 2D
-/// removes Z-coordinate !
+/// UTRA_obj2_obj3__              get 2D-obj from 3D-obj-in-plane
+/// removes Z-coordinate; must have z == dpd
+///   eg get curves from 3D-constructionPlane to 2D
+/// Input:
+///   ma          required only for CurvBSpl;
+///               else set o2 to spc of size>=OBJ_SIZ_MAX and ma=NULL
 /// \endcode
 
   int      i1, i2;
@@ -1951,38 +1978,40 @@ WC_sur_mat WC_sur_imat
 
 
   // printf("UTRA_obj2_obj3__ %d\n",typ3);
-  // UT3D_stru_dump(typ3, o3, "  o3:");
+  // DEB_dump_obj__(typ3, o3, "  o3:");
 
   switch (typ3) {
 
     case Typ_PT:
       *typ2 = Typ_PT2;
-      *o2 = UME_reserve (ma, sizeof(Point2));
+      if(ma) *o2 = UME_reserve (ma, sizeof(Point2));
       *(Point2*)*o2 = UT2D_pt_pt3 ((Point*)o3);
       break;
 
       case Typ_LN:
       *typ2 = Typ_LN2;
-      *o2 = UME_reserve (ma, sizeof(Line2));
+      if(ma) *o2 = UME_reserve (ma, sizeof(Line2));
+      ((Line2*)*o2)->typ = ((Line*)o3)->typ;
+// UT2D_ln_ln3
       ((Line2*)*o2)->p1 = UT2D_pt_pt3 (&((Line*)o3)->p1);
       ((Line2*)*o2)->p2 = UT2D_pt_pt3 (&((Line*)o3)->p2);
       break;
 
     case Typ_VC:
       *typ2 = Typ_VC2;
-      *o2 = UME_reserve (ma, sizeof(Vector2));
+      if(ma) *o2 = UME_reserve (ma, sizeof(Vector2));
       UT2D_vc_vc3 ((Vector2*)*o2, (Vector*)o3);
       break;
   
     case Typ_CI:
       *typ2 = Typ_CI2;
-      *o2 = UME_reserve (ma, sizeof(Circ2));
+      if(ma) *o2 = UME_reserve (ma, sizeof(Circ2));
       UT2D_ci_ci3 (*o2, o3);
       break;
 
     case Typ_CVELL:
       *typ2 = Typ_CVELL2;
-      *o2 = UME_reserve (ma, sizeof(CurvEll2));
+      if(ma) *o2 = UME_reserve (ma, sizeof(CurvEll2));
       ((CurvEll2*)*o2)->p1 = UT2D_pt_pt3 (&((CurvElli*)o3)->p1);
       ((CurvEll2*)*o2)->p2 = UT2D_pt_pt3 (&((CurvElli*)o3)->p2);
       ((CurvEll2*)*o2)->pc = UT2D_pt_pt3 (&((CurvElli*)o3)->pc);
@@ -1992,10 +2021,9 @@ WC_sur_mat WC_sur_imat
       ((CurvEll2*)*o2)->srot = ((CurvElli*)o3)->srot;
       break;
 
-
-
     case Typ_CVBSP:
       *typ2 = Typ_CVBSP2;
+// UT2D_bsp_tra_bsp3_m3
       *o2 = UME_reserve (ma, sizeof(CurvBSpl2));
       memcpy (*o2, o3, sizeof(CurvBSpl2));
       i2 = ((CurvBSpl*)o3)->ptNr;
@@ -2011,7 +2039,7 @@ WC_sur_mat WC_sur_imat
   }
 
 
-    // UT3D_stru_dump(*typ2, *o2, "ex UTRA_obj2_obj3__:");
+    // DEB_dump_obj__(*typ2, *o2, "ex UTRA_obj2_obj3__:");
 
   return 0;
 
@@ -2046,7 +2074,7 @@ WC_sur_mat WC_sur_imat
   }
 
   // return UTRA_obj_m3__ (robj, typ, aobj, WC_sur_imat, memDat1);
-  UTRA_def__ (1, Typ_TraMat, WC_sur_imat);
+  UTRA_def__ (1, Typ_M4x3, WC_sur_imat);
   return UTRA_app__ (robj, typ, typ, 1, aobj, memDat1);
 
 }
@@ -2071,43 +2099,43 @@ WC_sur_mat WC_sur_imat
 
 
   printf("UTRA_obj_abs2rel__ typ=%d iref=%d\n",typ,WC_sur_ind);
-  UT3D_stru_dump(typ, aobj, "  aobj:");
+  DEB_dump_obj__(typ, aobj, "  aobj:");
 exit(0);
 
 
   switch (typ) {
 
     case Typ_PT:
-      UT3D_pt_traptm3 (robj, mat, aobj);
+      UT3D_pt_tra_pt_m3 (robj, mat, aobj);
       break;
 
     case Typ_LN:
-      UT3D_pt_traptm3 (&((Line*)robj)->p1, mat, &((Line*)aobj)->p1);
-      UT3D_pt_traptm3 (&((Line*)robj)->p2, mat, &((Line*)aobj)->p2);
+      UT3D_pt_tra_pt_m3 (&((Line*)robj)->p1, mat, &((Line*)aobj)->p1);
+      UT3D_pt_tra_pt_m3 (&((Line*)robj)->p2, mat, &((Line*)aobj)->p2);
       break;
 
     case Typ_CI:
       *(Circ*)robj = *(Circ*)aobj;  // copy vz & rad & ango
-      UT3D_pt_traptm3 (&((Circ*)robj)->pc, mat, &((Circ*)aobj)->pc);
-      UT3D_pt_traptm3 (&((Circ*)robj)->p1, mat, &((Circ*)aobj)->p1);
+      UT3D_pt_tra_pt_m3 (&((Circ*)robj)->pc, mat, &((Circ*)aobj)->pc);
+      UT3D_pt_tra_pt_m3 (&((Circ*)robj)->p1, mat, &((Circ*)aobj)->p1);
       if(UT3D_ck_ci360((Circ*)aobj) == 0)
         ((Circ*)robj)->p2 = ((Circ*)robj)->p1;  // 360 deg: copy p1
       else
-        UT3D_pt_traptm3 (&((Circ*)robj)->p2, mat, &((Circ*)aobj)->p2);
-      UT3D_vc_travcm3 (&((Circ*)robj)->vz, mat, &((Circ*)aobj)->vz);
+        UT3D_pt_tra_pt_m3 (&((Circ*)robj)->p2, mat, &((Circ*)aobj)->p2);
+      UT3D_vc_tra_vc_m3 (&((Circ*)robj)->vz, mat, &((Circ*)aobj)->vz);
       break;
 
     case Typ_CVELL:
       *(CurvElli*)robj = *(CurvElli*)aobj;  // copy vz & rad & ango
-      UT3D_pt_traptm3 (&((CurvElli*)robj)->pc, mat, &((CurvElli*)aobj)->pc);
-      UT3D_pt_traptm3 (&((CurvElli*)robj)->p1, mat, &((CurvElli*)aobj)->p1);
+      UT3D_pt_tra_pt_m3 (&((CurvElli*)robj)->pc, mat, &((CurvElli*)aobj)->pc);
+      UT3D_pt_tra_pt_m3 (&((CurvElli*)robj)->p1, mat, &((CurvElli*)aobj)->p1);
       if(UT3D_ck_el360((CurvElli*)aobj) == 0)
         ((CurvElli*)robj)->p2 = ((CurvElli*)robj)->p1;  // 360 deg: copy p1
       else
-        UT3D_pt_traptm3 (&((CurvElli*)robj)->p2, mat, &((CurvElli*)aobj)->p2);
-      UT3D_vc_travcm3 (&((CurvElli*)robj)->va, mat, &((CurvElli*)aobj)->va);
-      UT3D_vc_travcm3 (&((CurvElli*)robj)->vb, mat, &((CurvElli*)aobj)->vb);
-      UT3D_vc_travcm3 (&((CurvElli*)robj)->vz, mat, &((CurvElli*)aobj)->vz);
+        UT3D_pt_tra_pt_m3 (&((CurvElli*)robj)->p2, mat, &((CurvElli*)aobj)->p2);
+      UT3D_vc_tra_vc_m3 (&((CurvElli*)robj)->va, mat, &((CurvElli*)aobj)->va);
+      UT3D_vc_tra_vc_m3 (&((CurvElli*)robj)->vb, mat, &((CurvElli*)aobj)->vb);
+      UT3D_vc_tra_vc_m3 (&((CurvElli*)robj)->vz, mat, &((CurvElli*)aobj)->vz);
       break;
 
     case Typ_CVPOL:
@@ -2119,7 +2147,7 @@ exit(0);
       pa2 = UME_reserve (memDat1, sizeof(Point) * i2);
       if(!pa2) goto L_EOM;
       for(i1=0; i1<i2; ++i1)
-        UT3D_pt_traptm3 (&pa2[i1], mat, &pa1[i1]);
+        UT3D_pt_tra_pt_m3 (&pa2[i1], mat, &pa1[i1]);
       ((CurvPoly*)robj)->cpTab = pa2;
       // was ist mit der lvTab ? dzt nix !
       break;
@@ -2135,7 +2163,7 @@ exit(0);
       pa2 = UME_reserve (memDat1, sizeof(Point) * i2);
       if(!pa2) goto L_EOM;
       for(i1=0; i1<i2; ++i1)
-        UT3D_pt_traptm3 (&pa2[i1], mat, &pa1[i1]);
+        UT3D_pt_tra_pt_m3 (&pa2[i1], mat, &pa1[i1]);
       ((CurvBSpl*)robj)->cpTab = pa2;
       break;
 
@@ -2147,7 +2175,7 @@ exit(0);
 
 
   L_exit:
-    UT3D_stru_dump(typ, robj, "ex _abs2rel__:");
+    DEB_dump_obj__(typ, robj, "ex _abs2rel__:");
   return 0;
 
 
@@ -2180,7 +2208,7 @@ exit(0);
     UT3D_pl_p (pl2);
 
     // GR_Disp_obj (Typ_PLN, pl2, 8, 4);
-    // UT3D_stru_dump (Typ_PLN, pl2, "pl2");
+    // DEB_dump_obj__ (Typ_PLN, pl2, "pl2");
 
   return 0;
 
@@ -2203,8 +2231,8 @@ exit(0);
   double ao;
   Vector rx;
 
-  UT3D_stru_dump (Typ_VC, vc1, "UTRA_inirot_2vc vc1");
-  UT3D_stru_dump (Typ_VC, vc2, " vc2");
+  DEB_dump_obj__ (Typ_VC, vc1, "UTRA_inirot_2vc vc1");
+  DEB_dump_obj__ (Typ_VC, vc2, " vc2");
 
   // rotation-axis = crossprod vc1-vc2
   UT3D_vc_perp2vc (&rx, vc1, vc2);
@@ -2248,7 +2276,7 @@ exit(0);
 // see UTRA_pt_rel2abs__
   
   // printf("UTRA_obj_rel2abs__ %d\n",typ);
-  // UT3D_stru_dump(typ, robj, "  robj:");
+  // DEB_dump_obj__(typ, robj, "  robj:");
 
   
   if(WC_sur_ind == 0) {
@@ -2257,7 +2285,7 @@ exit(0);
   }
 
   // return UTRA_obj_m3__ (aobj, typ, robj, WC_sur_mat, memDat1);
-  UTRA_def__ (1, Typ_TraMat, WC_sur_mat);
+  UTRA_def__ (1, Typ_M4x3, WC_sur_mat);
   return UTRA_app__ (aobj, typ, typ, 1, robj, memDat1);
 
 }
@@ -2270,7 +2298,7 @@ exit(0);
 // see also UTRA_obj_rel2abs__
 
   if(WC_sur_ind)
-  UT3D_pt_traptm3 (pt1, WC_sur_mat, pt1);
+  UT3D_pt_tra_pt_m3 (pt1, WC_sur_mat, pt1);
 
   return 0;
 
@@ -2284,7 +2312,7 @@ exit(0);
 // see also UTRA_obj_abs2rel__
 
   if(WC_sur_ind)
-  UT3D_pt_traptm3 (pt1, WC_sur_imat, pt1);
+  UT3D_pt_tra_pt_m3 (pt1, WC_sur_imat, pt1);
 
   return 0;
 
@@ -2298,6 +2326,7 @@ exit(0);
                              Plane *pl1, int mode,  Memspc *memSpc) {
 //===========================================================================
 /// \code
+/// UTRA_obj_coordSys_pln          change objCoords 3D->2D or 2D->3D
 /// change coordinateSytem onto refSys from plane or back
 /// get local coordinates of 3D-obj on refSys from 3D-object with world-coords
 /// get world-coordinates of 3D-obj on local refSys from plane
@@ -2320,7 +2349,7 @@ exit(0);
   Mat_4x3    ma, ima;
 
 
-  UT3D_stru_dump (typi, obji, "UTRA_obj_coordSys_pln");
+  DEB_dump_obj__ (typi, obji, "UTRA_obj_coordSys_pln");
 
 
   //----------------------------------------------------------------
@@ -2328,9 +2357,9 @@ exit(0);
   if(!pl1) {
     // no plane given: use active construction-plane
     if(mode == 1) {
-      UTRA_def__ (1, Typ_TraMat, WC_sur_imat);
+      UTRA_def__ (1, Typ_M4x3, WC_sur_imat);
     } else {
-      UTRA_def__ (1, Typ_TraMat, WC_sur_mat);
+      UTRA_def__ (1, Typ_M4x3, WC_sur_mat);
     }
 
   } else {
@@ -2338,9 +2367,9 @@ exit(0);
     UT3D_m3_loadpl (ma, pl1);
     if(mode == 1) {
       UT3D_m3_invm3 (ima, ma);           // invert trMat
-      UTRA_def__ (1, Typ_TraMat, ima);
+      UTRA_def__ (1, Typ_M4x3, ima);
     } else {
-      UTRA_def__ (1, Typ_TraMat, ma);
+      UTRA_def__ (1, Typ_M4x3, ma);
     }
   }
 
@@ -2360,12 +2389,12 @@ exit(0);
   Point      *pai, *pao;
 
 
-  // UT3D_stru_dump (Typ_CVPOL, cvi, "UTRA_tra_plg");
+  // DEB_dump_obj__ (Typ_CVPOL, cvi, "UTRA_tra_plg");
 
 
   // copy curve
   *cvo = *cvi;      // copy ptNr
-    // UT3D_stru_dump (Typ_CVPOL, cvo, "    _app_plg");
+    // DEB_dump_obj__ (Typ_CVPOL, cvo, "    _app_plg");
 
   // reserve Space for pNr points in objSpc
   cvo->cpTab = UME_get_next (memSpc);
@@ -2398,11 +2427,11 @@ exit(0);
   Point      *pai, *pao;
 
 
-  // UT3D_stru_dump (Typ_CVBSP, cvi, "UTRA_tra_cbsp");
+  // DEB_dump_obj__ (Typ_CVBSP, cvi, "UTRA_tra_cbsp");
 
   // copy curve
   *cvo = *cvi;      // copy ptNr deg ..
-    // UT3D_stru_dump (Typ_CVBSP, cvo, "    _app_plg");
+    // DEB_dump_obj__ (Typ_CVBSP, cvo, "    _app_plg");
 
   // reserve Space for pNr points in objSpc
   cvo->cpTab = memSpc->next;
@@ -2428,11 +2457,11 @@ exit(0);
 //================================================================
 
 
-  // UT3D_stru_dump (Typ_CVELL, cvi, "UTRA_tra_ell-in");
+  // DEB_dump_obj__ (Typ_CVELL, cvi, "UTRA_tra_ell-in");
 
   // copy curve
   *cvo = *cvi;      // copy ptNr
-    // UT3D_stru_dump (Typ_CVELL, cvo, "    _app_ell");
+    // DEB_dump_obj__ (Typ_CVELL, cvo, "    _app_ell");
 
   UTRA_app_pt (&cvo->pc, &cvi->pc);
   UTRA_app_pt (&cvo->p1, &cvi->p1);
@@ -2445,7 +2474,7 @@ exit(0);
   UTRA_app_vc (&cvo->vb, &cvi->vb);
   UTRA_app_vc (&cvo->vz, &cvi->vz);
 
-    // UT3D_stru_dump (Typ_CVELL, cvo, "ex UTRA_tra_ell");
+    // DEB_dump_obj__ (Typ_CVELL, cvo, "ex UTRA_tra_ell");
 
   return 0;
 
@@ -2456,7 +2485,7 @@ exit(0);
   int UTRA_tra_ci (Circ *cvo, Circ *cvi) {
 //================================================================
 
-  // UT3D_stru_dump (Typ_CI, cvi, "UTRA_tra_ci");
+  // DEB_dump_obj__ (Typ_CI, cvi, "UTRA_tra_ci");
 
 
   // copy curve
@@ -2470,6 +2499,8 @@ exit(0);
   else  UTRA_app_pt (&cvo->p2, &cvi->p2);
 
   UTRA_app_vc (&cvo->vz, &cvi->vz);
+  // UT3D_vc_setLength (&cvo->vz, &cvo->vz, 1.);
+
 
   return 0;
 

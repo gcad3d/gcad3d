@@ -329,7 +329,7 @@ static int    *IG_subObjTab, IG_subObjNr;
 // wenn VZ ein reiner Z-vektor, kann man CIRC u Ellipse ohne TrMat ausgeben
 // RC=0: vc1 == ein reiner Z-vektor.
 
-  // UT3D_stru_dump (Typ_VC, vc1, "IGE_defMat");
+  // DEB_dump_obj__ (Typ_VC, vc1, "IGE_defMat");
 
   if(fabs(vc1->dx) > UT_TOL_min1) return 1;
   if(fabs(vc1->dy) > UT_TOL_min1) return 1;
@@ -420,9 +420,9 @@ static int    *IG_subObjTab, IG_subObjNr;
     UT3D_m3_invm3 (im1, m1);
 
     // nun die 3 Punkte auf die Plane (im1) umrechnen
-    UT3D_pt_traptm3 (&IGE_ci1.p1, im1, &ci1->p1);
-    UT3D_pt_traptm3 (&IGE_ci1.p2, im1, &ci1->p2);
-    UT3D_pt_traptm3 (&IGE_ci1.pc, im1, &ci1->pc);
+    UT3D_pt_tra_pt_m3 (&IGE_ci1.p1, im1, &ci1->p1);
+    UT3D_pt_tra_pt_m3 (&IGE_ci1.p2, im1, &ci1->p2);
+    UT3D_pt_tra_pt_m3 (&IGE_ci1.pc, im1, &ci1->pc);
 
     // Radius kopieren
     IGE_ci1.rad = ci1->rad;
@@ -458,11 +458,11 @@ static int    *IG_subObjTab, IG_subObjNr;
     UT3D_m3_invm3 (im1, m1);
 
     // nun die 3 Punkte auf die Plane (im1) umrechnen
-    UT3D_pt_traptm3 (&IGE_el1.p1, im1, &el1->p1);
-    UT3D_pt_traptm3 (&IGE_el1.p2, im1, &el1->p2);
-    UT3D_pt_traptm3 (&IGE_el1.pc, im1, &el1->pc);
-    UT3D_vc_travcm3 (&IGE_el1.va, im1, &el1->va);
-    UT3D_vc_travcm3 (&IGE_el1.vb, im1, &el1->vb);
+    UT3D_pt_tra_pt_m3 (&IGE_el1.p1, im1, &el1->p1);
+    UT3D_pt_tra_pt_m3 (&IGE_el1.p2, im1, &el1->p2);
+    UT3D_pt_tra_pt_m3 (&IGE_el1.pc, im1, &el1->pc);
+    UT3D_vc_tra_vc_m3 (&IGE_el1.va, im1, &el1->va);
+    UT3D_vc_tra_vc_m3 (&IGE_el1.vb, im1, &el1->vb);
     IGE_el1.vz = UT3D_VECTOR_Z;
 
     // wenn z negativ: p1 -p2 vertauschen
@@ -931,7 +931,7 @@ Retour: der Index.
   /* --------------- Point -------------------------------------- */
   if (igtyp == IG_EntPT) {
     // add Point-Coords
-    UTO_obj_getp (&xu, &rNr, el);
+    UTO_objDat_ox (&xu, &rNr, el);
     IGE_w_rPP (fp_o2, (Point*)xu);
     /* add (3.) int - 0 */
     IGE_w_rP1 (fp_o2, 1, 0, 0.);
@@ -940,7 +940,7 @@ Retour: der Index.
 
   /* --------------- Line -------------------------------------- */
   } else if (igtyp == IG_EntLN) {
-    UTO_obj_getp (&xu, &rNr, el);
+    UTO_objDat_ox (&xu, &rNr, el);
     // ln1 = el->data;
     // IGE_w_rPP (fp_o2, &ln1->p1);
     // IGE_w_rPP (fp_o2, &ln1->p2);
@@ -952,8 +952,8 @@ Retour: der Index.
   /* --------------- Arc -------------------------------------- */
   } else if (igtyp == IG_EntCI) {
     // ci1 = el->data;
-    UTO_obj_getp (&ci1, &rNr, el);
-    // UT3D_stru_dump (Typ_CI, ci1, " exp:");
+    UTO_objDat_ox (&ci1, &rNr, el);
+    // DEB_dump_obj__ (Typ_CI, ci1, " exp:");
     pm = ci1->pc;
 
 
@@ -1323,7 +1323,7 @@ Retour: der Index.
 
     ox2 = &oTab[i1];
     // printf(" CCV[%d] typ=%d form=%d\n",i1, ox2->typ,ox2->form);
-    // UTO_dump__ (ox2, "CCV[%d]",i1);
+    // DEB_dump_ox_0 (ox2, "CCV[%d]",i1);
 
     if(ox2->typ == Typ_PT) {
       IGE_w_obj (ox2, 0, 0, fp_o1, fp_o2);
@@ -1510,11 +1510,11 @@ Retour: der Index.
 
   // den Endpunkt von Obj1 -> pt1
   // UTO_2pt_lim_dbo (&pt1, typ, ind, 1);  //// mode; 1=Startpt 
-  irc = UT3D_ptvcpar_std_dbo (&pt1, NULL, NULL, Ptyp_1, typ, ind);
+  irc = UT3D_ptvcpar_std_dbo (&pt1, NULL, NULL, Ptyp_end, typ, ind);
 
   // den Vektor -> vc1
   // UTO_obj_get (&vc1, obj2);
-  UTO_obj_getp (&ox1, &rNr, obj2);
+  UTO_objDat_ox (&ox1, &rNr, obj2);
 
   // pt1 + cv1 -> pt2
   // UT3D_pt_traptvc (&pt2, &pt1, &vc1);

@@ -113,23 +113,24 @@ List_functions_end:
 see also: ../ut/ut_ccv.c   trimmed-curve functions
 
 
-----------------------------------------
+//----------------------------------------------------------------
+PRCV = Polygonic Represetation of CurVe.
+
+Every basic-curve (except Line) has a PRCV (polygonal_representation_of_curve)
+  The PRCV (struct CurvPrcv) is in a file;
+    filename is tmp_dir/[M<subModelNr>]<DB-typ><DB-ind>.odat
+
+Struct CurvPrcv is a polygonal_representation_of_curve -
+  - a list of points (npt),
+  - a list of the paramter-values of this points (npar), 
+  - a list of the DB-indices of this points (nipt).
+
 Every trimmed-curve (CurvCCV) refers to a basic-curve (typ,dbi).
   More than one trimmed-curves can point to the same basic-curve.
 
 
-Every basic-curve has a PRCV (polygonal_representation_of_curve)
-  The PRCV (struct CurvPrcv) is in a file;
-    filename is tmp_dir/[M<subModelNr>]<DB-typ><DB-ind>.odat
-
-  Struct CurvPrcv is a polygonal_representation_of_curve -
-    - a list of points (npt),
-    - a list of the paramter-values of this points (npar), 
-    - a list of the DB-indices of this points (nipt).
-  
 
 ----------------------------------------
-PRCV = Polygonic Represetation of CurVe.
 
 PRCV_set_obj_dbi():
   Create new Curve (eg circle, bspl, ..):
@@ -196,7 +197,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 /// \endcode
 
 
-  UT3D_stru_dump (Typ_PRCV, &PRCV0, " PRCV_free__ ");
+  // DEB_dump_obj__ (Typ_PRCV, &PRCV0, " PRCV_free__ ");
 
 
   if(!PRCV0.fTmp) {
@@ -221,13 +222,14 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 /// PRCV_npt_dbo__      get polygon for DB-obj
 /// Output:
 ///   pta        returns a pointer to <ptNr> points; do not free.
+///   retCod     0=OK, else error
 /// \endcode
 
   int    irc;
 
 
-  // printf("PRCV_npt_dbo__ typ=%d dbi=%ld\n",typ,dbi);
-
+  // printf("PRCV_npt_dbo__ typ=%d dbi=%ld mdli=%d\n",typ,dbi,mdli);
+  
 
   // get PRCV from DB-obj (typ/dbi)
   PRCV0.typ  = AP_typ_2_bastyp (typ);
@@ -278,7 +280,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   // printf("\n========================= PRCV_get_dbo__ typ=%d dbi=%ld siz=%d\n",
          // prc1->typ,prc1->dbi,prc1->siz);
-  // UT3D_stru_dump (Typ_PRCV, prc1, " PRCV_get_dbo__-prc1 ");
+  // DEB_dump_obj__ (Typ_PRCV, prc1, " PRCV_get_dbo__-prc1 ");
 
 
   // test for CCV (must resolv)
@@ -296,8 +298,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // ccv1 = next trimmedCurve
     ccv1 = &((CurvCCV*)obj)[i1];
-       // printf("--------------------- CCV [%d] \n",i1);
-       // UT3D_stru_dump (Typ_CVTRM, ccv1, " ccv[%d]: ",i1);
+       // printf("--------------------- _get_dbo__CCV [%d] \n",i1);
+       // DEB_dump_obj__ (Typ_CVTRM, ccv1, " ccv[%d]: ",i1);
 
     //----------------------------------------------------------------
     // add line
@@ -356,7 +358,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_get_tc_add_pa %d\n",ptNr);
-  // for(irc=0;irc<ptNr;++irc)UT3D_stru_dump(Typ_PT, &pta[irc], "pt[%d]:",irc);
+  // for(irc=0;irc<ptNr;++irc)DEB_dump_obj__(Typ_PT, &pta[irc], "pt[%d]:",irc);
   // printf(" tol=%f\n",UT_TOL_cv);
 
 
@@ -409,7 +411,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   // get line from CCV and add it to output
   otyp = Typ_LN;
   UTO_cv_cvtrm (&otyp, &ln1, NULL, cvi);
-    // UT3D_stru_dump (Typ_LN, &ln1, "PRCV_get_dbo_add_ln");
+    // DEB_dump_obj__ (Typ_LN, &ln1, "PRCV_get_dbo_add_ln");
 
   pta[0] = ln1.p1;
   pta[1] = ln1.p2;
@@ -434,9 +436,10 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   CurvCCV  ccv1;
   CurvPrcv prc2;
 
+
   // printf("----------------PRCV_get_dbo_add_tc ------------------ \n");
-  // UT3D_stru_dump (Typ_CVTRM, cvi, " PRCV_get_dbo_add_tc-cvi ");
-  // UT3D_stru_dump (Typ_PRCV, prc1, " PRCV_get_dbo_add_tc-prc1 ");
+  // DEB_dump_obj__ (Typ_CVTRM, cvi, " PRCV_get_dbo_add_tc-cvi ");
+  // DEB_dump_obj__ (Typ_PRCV, prc1, " PRCV_get_dbo_add_tc-prc1 ");
   // PRCV_dump__ (2, prc1, " prc1");
 
 
@@ -445,7 +448,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   // - get v0 and v1 of trimmedCurve on basicCurve (ccv1.v0 and ccv1.v1)
   irc = CVTRM__basCv__ (&ccv1, &cvBas, cvi);
   if(irc < 0) return -1;
-    // UT3D_stru_dump (Typ_CVTRM, &ccv1, "     _get_dbo_add_tc-ccv1 ");
+    // DEB_dump_obj__ (Typ_CVTRM, &ccv1, "     _get_dbo_add_tc-ccv1 ");
     
 
   // if basic-curve == line: get line and add to prc1.
@@ -602,7 +605,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   // PRCV_rdf_free (&prc2);
     // printf("ex PRCV_get_dbo_add_tc\n");
     // if(cvi->dbi == 21L)
-    // UT3D_stru_dump (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
+    // DEB_dump_obj__ (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
     // PRCV_dump__ (2, prc1, " prc1");
 
 
@@ -627,8 +630,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_get_tc_add_prc ptNr=%d ips=%d idir=%d\n",ptNr,ips,idir);
-  // UT3D_stru_dump (Typ_PRCV, prc1, "tc_add_prc-prc1");
-  // UT3D_stru_dump (Typ_PRCV, prc2, "tc_add_prc-prc2");
+  // DEB_dump_obj__ (Typ_PRCV, prc1, "tc_add_prc-prc1");
+  // DEB_dump_obj__ (Typ_PRCV, prc2, "tc_add_prc-prc2");
   // PRCV_dump__ (2, prc2, " prc2");
 
 
@@ -659,8 +662,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
         ++ips;
       } else {
         printf("**** PRCV_get_tc_add_prc I002\n");
-        UT3D_stru_dump (Typ_PT, &prc1->npt[i1], "prc1[%d]",i1);
-        UT3D_stru_dump (Typ_PT, &prc2->npt[ips], "prc2[%d]",ips);
+        // DEB_dump_obj__ (Typ_PT, &prc1->npt[i1], "prc1[%d]",i1);
+        // DEB_dump_obj__ (Typ_PT, &prc2->npt[ips], "prc2[%d]",ips);
         // return -1;
       }
     }
@@ -678,8 +681,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // test first
     if(i1 > 0) {
-        // UT3D_stru_dump (Typ_PT, &prc1->npt[i1 - 1], "prc1");
-        // UT3D_stru_dump (Typ_PT, &prc2->npt[i2], "prc2");
+        // DEB_dump_obj__ (Typ_PT, &prc1->npt[i1 - 1], "prc1");
+        // DEB_dump_obj__ (Typ_PT, &prc2->npt[i2], "prc2");
       if(UT3D_comp2pt(&prc1->npt[i1 - 1], &prc2->npt[i2], UT_TOL_cv)) {
         // identical; skip first point
         --ptNr;
@@ -702,7 +705,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   prc1->ptNr += ptNr;
 
 
-    // PRCV_dump__ (2, prc1, "nach PRCV_get_tc_add_prc");
+    // PRCV_dump__ (2, prc1, "ex-PRCV_get_tc_add_prc");
 
 
   return 0;
@@ -729,7 +732,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_get_tc_find vx=%lf ipdb=%ld\n",vx,ipdb);
-  // UT3D_stru_dump (Typ_PRCV, prc, " _tc_find");
+  // DEB_dump_obj__ (Typ_PRCV, prc, " _tc_find");
   // PRCV_dump__ (2, prc, " _tc_find");
 
 
@@ -773,7 +776,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   L_exit:
     if(ii < 0) TX_Print("***** PRCV_get_tc_find E1 vx=%lf ipdb=%ld",vx,ipdb);
 
-    // printf("ex PRCV_get_tc_find %d vx=%lf ipdb=%ld\n",ii,vx,ipdb);
+    // printf("ex PRCV_get_tc_find ii=%d vx=%lf ipdb=%ld\n",ii,vx,ipdb);
 
   return ii;
 
@@ -787,19 +790,74 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 // create PRCV for DB-obj (typ/dbi)
 // Input:
 //   typ,dbi  dbo baseCurve
+//
+// dbo (typ,dbi) can be a circle or polygon or CCV.
+// ccv has 1-n trimmed-curves.
+// trimmed-curves has a baseCurve which can be a circle .. or a trimmed-curve.
+// The baseCurve can have no PRCV yet; test it / create it.
 
-  int      form, oNr;
+
+  int      irc, form, oNr, ii, ls;
   void     *obj;
+  CurvCCV  *cvt;
 
 
-  // printf("PRCV_set_dbo__ %d %ld\n",typ,dbi);
+  // printf("PPPPPPPPPPPP PRCV_set_dbo__ %d %ld\n",typ,dbi);
 
 
+  // get data for dbo
   form = DB_GetObjDat (&obj, &oNr, typ, dbi);
-    // printf(" form=%d\n",form);
+    // printf(" _set_dbo__-form=%d oNr=%d\n",form,oNr);
 
 
-  return PRCV_set_obj_dbi (form, obj, oNr, typ, dbi);
+
+  //----------------------------------------------------------------
+  if(form != Typ_CVTRM) goto L_normal;
+
+  cvt = obj;
+  // ls = UTO_siz_stru (Typ_CVTRM);
+
+  for(ii=0; ii<oNr; ++ii) {
+
+      // TESTBLOCK
+      // printf(" ----------------- PRCV_set_dbo__ nxt %d\n",ii);
+      // DEB_dump_obj__ (form, cvt, " obj[%d]",ii);
+      // END TESTBLOCK
+
+
+    // trimmed-curve: if its baseCurve does not yet have PRCV: create it.
+    // check if baseCurve already exists
+    if(cvt[ii].typ == Typ_LN) goto L_nxt;  // no PRCV for lines
+    if(cvt[ii].dbi < 0) {
+      // test if PRCV already exists
+      if(cvt[ii].stat == 0) {
+        // recurse - create PRCV for baseCurve of this trimmed-curve
+        irc = PRCV_set_dbo__ ((int)cvt[ii].typ, cvt[ii].dbi);
+        if(irc < 0) {TX_Error("PRCV_set_dbo__ E1"); return irc;}
+        // PRCV for basCurve created ..
+        cvt[ii].stat = 1;
+      }
+    }
+  
+  
+    L_nxt:
+    continue;
+    // ls = UTO_siz_stru (form);
+    // obj = (char*)obj + ls;
+    // cvt = (char*)cvt + ls;
+  }
+
+
+  //----------------------------------------------------------------
+  L_normal:
+  // create PRCV
+  irc =  PRCV_set_obj_dbi (form, obj, oNr, typ, dbi);
+  if(irc < 0) {TX_Error("PRCV_set_dbo__ E2"); return irc;}
+
+
+    // printf("ex-PRCV_set_dbo__\n");
+
+  return irc;
 
 }
 
@@ -831,7 +889,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   CurvPrcv prc1;
 
 
-  // printf("======================= PRCV_set_obj_dbi typ=%d dbi=%ld\n",typ,dbi);
+  // printf("============= PRCV_set_obj_dbi typ=%d form=%d dbi=%ld\n",typ,form,dbi);
+  // DEB_dump_obj__ (form, obj, "PRCV_set_obj_dbi");
 
 
   if(typ == Typ_LN) return 1;
@@ -841,9 +900,6 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     return -1;
   }
 
-
-  // form = DB_GetObjDat (&obj, &oNr, typ, dbi);
-    // printf(" form=%d\n",form);
 
 
   //----------------------------------------------------------------
@@ -857,7 +913,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     // ccv1 = copy next trimmedCurve
     ccv1 = &((CurvCCV*)obj)[i1];
        // printf("--------------------- CCV [%d] of %d\n",i1,oNr);
-       // UT3D_stru_dump (Typ_CVTRM, ccv1, " ccv[%d]: ",i1);
+       // DEB_dump_obj__ (Typ_CVTRM, ccv1, " ccv[%d]: ",i1);
 
     // Lines: direct (no PRCV-file)
     if(ccv1->typ == Typ_LN) continue;
@@ -868,7 +924,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     CVTRM__basCv__ (&ccv2, &cvBas, ccv1);
     typBas = ccv2.typ;
     dbiBas = ccv2.dbi;
-      // UT3D_stru_dump (typBas, cvBas, " cvBas");
+      // DEB_dump_obj__ (typBas, cvBas, " cvBas");
 
     // Lines: direct (no PRCV-file)
     if(ccv2.typ == Typ_LN) continue;
@@ -943,24 +999,20 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
       TX_Error ("PRCV_set_obj_dbi E1-%d-%ld",prc1.typ,prc1.dbi); 
       return -1;
     }
-      // PRCV_dump__ (&prc1);
+      // PRCV_dump__ (2, &prc1, "PRCV_set_obj_dbi-bc");
 
     // index last point
     ipe = prc1.ptNr - 1;
 
-
     // find previous-parameter v0s and next-parameter v0e for v0x
     x0x = PRCV_set_find (&ipdb0s, &ip0s, &v0s,
                          &ipdb0e, &ip0e, &v0e, &prc1, &v0x);
-      // printf(" x0x=%d ip0s=%ld ip0e=%ld v0s=%lf v0e=%lf\n",x0x,ip0s,ip0e,v0s,v0e);
-
-
+      // printf("x0x=%d ip0s=%ld ip0e=%ld v0s=%lf v0e=%lf\n",x0x,ip0s,ip0e,v0s,v0e);
 
     // find previous-parameter v1s and next-parameter v1e for v1x
     x1x = PRCV_set_find (&ipdb1s, &ip1s, &v1s,
                          &ipdb1e, &ip1e, &v1e, &prc1, &v1x);
-      // printf(" x1x=%d ip1s=%ld ip1e=%ld v1s=%lf v1e=%lf\n",x1x,ip1s,ip1e,v1s,v1e);
-
+      // printf("x1x=%d ip1s=%ld ip1e=%ld v1s=%lf v1e=%lf\n",x1x,ip1s,ip1e,v1s,v1e);
 
     // both values already exist: done.
     if(x0x && x1x) continue;    // 2018-07-24
@@ -973,7 +1025,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
     PRCV0.dbi  = prc1.dbi;
     PRCV0.mdli = prc1.mdli;
     PRCV0.ptNr = 0;
-      // UT3D_stru_dump (Typ_PRCV, &PRCV0, "_set_dbo_-PRCV0");
+      // DEB_dump_obj__ (Typ_PRCV, &PRCV0, "_set_dbo_-PRCV0");
 
     
     // check / prepare space; at least for additional (prc1.ptNr + 10) points
@@ -1235,18 +1287,18 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   // printf("PRCV_set_seg form=%d vs=%lf ve=%lf ipdbs=%ld ipdbe=%ld\n",form,
          // vs,ve,ipdbs,ipdbe);
-  // UT3D_stru_dump (form, cvBas, "  _set_seg - cvBas ");
+  // DEB_dump_obj__ (form, cvBas, "  _set_seg - cvBas ");
   // PRCV_dump__ (2, prc, "  _set_seg-prc-in");
     
 
 
   // create a copy of cvBas
   memcpy (cvMod, cvBas, OBJ_SIZ_MAX);
-    // UT3D_stru_dump (form, cvMod, " PRCV_set_seg - cvMod1 ");
+    // DEB_dump_obj__ (form, cvMod, " PRCV_set_seg - cvMod1 ");
 
   // set limitpoints / modify v0, v1
   UTO_set_ptlim (form, cvMod, NULL, &vs, NULL, &ve);
-    // UT3D_stru_dump (form, cvMod, " PRCV_set_seg - cvMod2 ");
+    // DEB_dump_obj__ (form, cvMod, " PRCV_set_seg - cvMod2 ");
 
 
   //----------------------------------------------------------------
@@ -1270,7 +1322,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
     // TESTBLOCK
     // printf(" iis-neu=%d ptNr=%d\n",iis,ptNr);
-    // for(i1=0;i1<ptNr;++i1) UT3D_stru_dump(Typ_PT,&pTab[i1],"pTab[%d]=",i1);
+    // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pTab[i1],"pTab[%d]=",i1);
     // END TESTBLOCK
 
 
@@ -1454,7 +1506,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_set_basCv form=%d dbi=%ld\n",form,dbi);
-  // UT3D_stru_dump (form, cvBas, " PRCV_set_basCv ");
+  // DEB_dump_obj__ (form, cvBas, " PRCV_set_basCv ");
 
 
   //----------------------------------------------------------------
@@ -1462,7 +1514,8 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   ptNr = UT3D_ptNr_obj (form, cvBas, UT_DISP_cv);
   if(ptNr < 2) {TX_Error ("PRCV_set_basCv E2-TODO"); return -1;}
 
-  tabSiz = ptNr + 12;
+  if(form == Typ_CVBSP) tabSiz = (ptNr * 3) + 12;
+  else                  tabSiz = ptNr + 12;
     // printf(" tabSiz=%d\n",tabSiz);
 
 
@@ -1567,7 +1620,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   printf("--------------------------------- \n");
-  UT3D_stru_dump (Typ_CVTRM, ccvi, " PRCV_insert__ ccvi");
+  DEB_dump_obj__ (Typ_CVTRM, ccvi, " PRCV_insert__ ccvi");
  
 
   // prcBas.dbi  = ccvi->dbi;
@@ -1703,9 +1756,9 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   printf("=========================================== \n");
   printf("PRCV_ccv__ mode=%d iatt=%d\n",mode,iAtt);
-  UT3D_stru_dump (Typ_CVTRM, ccvi, " ccvi");
-  UT3D_dump_dbo (Typ_PT, ccvi->ip0, " ip0");
-  UT3D_dump_dbo (Typ_PT, ccvi->ip1, " ip1");
+  DEB_dump_obj__ (Typ_CVTRM, ccvi, " ccvi");
+  DEB_dump_dbo (Typ_PT, ccvi->ip0, " ip0");
+  DEB_dump_dbo (Typ_PT, ccvi->ip1, " ip1");
 
 
   prc.typ  = AP_typ_2_bastyp (form);
@@ -1787,7 +1840,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   if(mode & 4) {
     dli = DL_StoreObj (Typ_CI, ccvi->dbi, iAtt);
       printf(" DISP: dli=%ld\n",dli);
-      // for(i1=0;i1<prc.ptNr;++i1) UT3D_stru_dump(Typ_PT,&prc.npt[i1],"%d",i1);
+      // for(i1=0;i1<prc.ptNr;++i1) DEB_dump_obj__(Typ_PT,&prc.npt[i1],"%d",i1);
     GL_DrawPoly (&dli, iAtt, prc.ptNr, prc.npt);
   }
 
@@ -1883,7 +1936,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   // printf("PRCV_memspc_add %d\n",ptNr);
-  // UT3D_stru_dump (Typ_PRCV, prc, "  prc ");
+  // DEB_dump_obj__ (Typ_PRCV, prc, "  prc ");
   // PRCV_dump__ (2, prc, "  prc-in");
 
   if(ptNr < 1 ) return 0;
@@ -2047,7 +2100,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
 
-  // UT3D_stru_dump (Typ_PRCV, prc, "PRCV_rdf__: ");
+  // DEB_dump_obj__ (Typ_PRCV, prc, "PRCV_rdf__: ");
 
 
   // if(!prc->fTmp) { TX_Error("PRCV_rdf__ E001"); return -1; }
@@ -2070,7 +2123,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
 
   fread(&fPrc, sizeof(CurvPrcv), 1, fp1);
-    // UT3D_stru_dump (Typ_PRCV, &fPrc, "_rdf_");
+    // DEB_dump_obj__ (Typ_PRCV, &fPrc, "_rdf_");
 
   ptNr = fPrc.ptNr;
   tabSiz = ptNr + 10;
@@ -2081,7 +2134,10 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   //----------------------------------------------------------------
   // not enough memspc. malloc-realloc; heap-Error; empty-malloc.
   irc = PRCV_memspc_add (prc, tabSiz + PRCV0_INC_PTNR);
-  if(irc < 0) return -1;
+  if(irc < 0) {
+    printf("**** PRCV_rdf__ EOM\n");
+    return -1;
+  }
 
 
   //----------------------------------------------------------------
@@ -2096,7 +2152,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   fclose(fp1);
 
 
-    // UT3D_stru_dump (Typ_PRCV, prc, "ex PRCV_rdf__: ");
+    // DEB_dump_obj__ (Typ_PRCV, prc, "ex PRCV_rdf__: ");
     // PRCV_dump__ (2, prc, "ex PRCV_rdf__");
     // printf("ex PRCV_rdf__ ptNr=%d\n",prc->ptNr);
 
@@ -2109,7 +2165,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   int PRCV_rdf_free (CurvPrcv *prc) {
 //================================================================
  
-  // UT3D_stru_dump (Typ_PRCV, prc, "PRCV_rdf_free");
+  // DEB_dump_obj__ (Typ_PRCV, prc, "PRCV_rdf_free");
   // PRCV_dump__ (2, prc, "PRCV_rdf_free");
 
 
@@ -2141,7 +2197,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   CurvPrcv  prc;
 
 
-  // printf("PRCV_dump_dbo %d %d %ld\n",mode,dbTyp,dbi);
+  printf("PRCV_dump_dbo %d %d %ld\n",mode,dbTyp,dbi);
 
   // if((dbTyp == Typ_LN)      ||
      // (dbTyp == Typ_CVTRM)) goto L_e1;   hier nicht form !
@@ -2156,7 +2212,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   irc = PRCV_rdf__ (&prc);
   if(irc < 0) return -1;
 
-  // PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
+  PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
 
   PRCV_rdf_free (&prc);
 
@@ -2265,7 +2321,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
   long     dbi;
 
 
-  // UT3D_stru_dump (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
+  // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
 
   // clear CurvPrcv PRCV0
   PRCV0.ptNr = 0;

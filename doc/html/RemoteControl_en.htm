@@ -13,7 +13,7 @@ Last update: 2013-02-25
  
 <A HREF='#rc1'>What is RemoteControl</A>
 
-<A HREF='#PRI'>PRINT</A>(text)          // print text (into messagewindow)
+<A HREF='#PRI'>PRI</A>(text)            // print text (into messagewindow)
 <A HREF='#ADD'>ADD</A>(code)            // process and store source-objects
 <A HREF='#ADF'>ADDFILE</A>(filNam)      // process and store cad-objects in file 
 <A HREF='#MOD'>MOD</A>(code)            // modify cad-code, update
@@ -47,6 +47,7 @@ GETMODSIZ            // get current modelsize
 <A HREF='#USE'>USER</A>                 // get object from user (selection); Esc: empty.
 <A HREF='#DUM'>DUMP</A>(list)           // dump list to console-window
 <A HREF='#MOD'>MODE</A>(widget,off|on)  // hide or show subwindows: browser, menu, toolbars ..
+WAIT_ESC             // stop until ESC - key becomes pressed
 EXIT                 // shut down gcad3d
 
 
@@ -57,16 +58,17 @@ __________________________________________________________________________
 With RemoteControl you can control the cad-program gCAD3D from programs.
 All programming languages can be used, even shell-scripts.
 For input and output 2 pipes (Linux; MS-Windows: Files) are used.
-Input and output is done with textcodes, not binary.
-
+Input/outputpipe are created in directory {tmpdir};
+  for default-installation this is:
 Linux:
-  The inputpipe is ${HOME}/gCAD3D/tmp/CTRLpin;
+  the inputpipe is ${HOME}/gCAD3D/tmp/CTRLpin;
   the outputpipe is ${HOME}/gCAD3D/tmp/CTRLpout.
 MS_Windows:
   Input from %APPDATA%\gCAD3D\tmp\CTRLpin
   Output to %APPDATA%\gCAD3D\tmp\CTRLpout
 
 
+Input and output is done with textcodes, not binary.
 You can send commands from a terminalprogram (Linux: xterm oder gnome-terminal; MS-Windows: cmd)
   to gcad (example: clear active model):
 Linux:
@@ -116,14 +118,14 @@ Please send improved examples or examples for other programming-languages to
 
 __________________________________________________________________________
 <p><a name="PRI"></a></p>
-PRINT(text)          // print text (into messagewindow)
+PRI(text)              // print text (into messagewindow)
 
 Objects (points, vectors, variables) are decoded.
 
 Example:
-echo 'print("TestPrint 1")' > ~/gCAD3D/tmp/CTRLpin
+echo 'pri("TestPrint 1")' > ~/gCAD3D/tmp/CTRLpin
 # display coordinates of point p1 and vector D1 with:
-echo 'print("P1 = ",P1," D1 = ",D1)' > ~/gCAD3D/tmp/CTRLpin
+echo 'pri("P20 = ",P20," D20 = ",D20)' > ~/gCAD3D/tmp/CTRLpin
 
 
 __________________________________________________________________________

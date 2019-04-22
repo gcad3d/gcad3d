@@ -87,11 +87,14 @@ static  int         GLB_x_id = 0;
   Colormap    xcolormap;
   int         attributes[] = {
                 GLX_RGBA,
-                GLX_RED_SIZE, 1,
-                GLX_GREEN_SIZE, 1,
-                GLX_BLUE_SIZE, 1,
+                // GLX_RED_SIZE, 0,
+                // GLX_GREEN_SIZE, 0,
+                // GLX_BLUE_SIZE, 0,
+                // GLX_ACCUM_RED_SIZE, 0,
+                // GLX_ACCUM_GREEN_SIZE, 0,
+                // GLX_ACCUM_BLUE_SIZE, 0,
+                GLX_DEPTH_SIZE, 16,
                 GLX_DOUBLEBUFFER, True,
-                GLX_DEPTH_SIZE, 24,
                 None };
 
   GLB_x_id = 0;   // reset
@@ -112,10 +115,10 @@ static  int         GLB_x_id = 0;
   root = RootWindow (GLB_display, xscreen);
   xcolormap = XCreateColormap (GLB_display, root, xvisual->visual, AllocNone);
 
-  glXGetConfig (GLB_display, xvisual, GLX_RED_SIZE, &i1);
-    printf(" GLX_RED_SIZE=%d\n",i1);
-  glXGetConfig (GLB_display, xvisual, GLX_DEPTH_SIZE, &i1);
-    printf(" GLX_DEPTH_SIZE=%d\n",i1);
+  // glXGetConfig (GLB_display, xvisual, GLX_RED_SIZE, &i1);
+    // printf(" GLX_RED_SIZE=%d\n",i1);
+  // glXGetConfig (GLB_display, xvisual, GLX_DEPTH_SIZE, &i1);
+    // printf(" GLX_DEPTH_SIZE=%d\n",i1);
 
 // Gtk2 only:
   //colormap = gdk_x11_colormap_foreign_new (visual, xcolormap);

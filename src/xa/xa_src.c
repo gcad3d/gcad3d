@@ -473,7 +473,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   // printf("SRC_vc_ptDbo %d %ld\n", dbTyp,dbi);
-  // UT3D_stru_dump (Typ_PT, pti, "  pti");
+  // DEB_dump_obj__ (Typ_PT, pti, "  pti");
 
 
   // LN
@@ -691,7 +691,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   printf("SRC_parPt_ptDbo  %d %ld\n",selTyp,dbi);
-  UT3D_stru_dump (Typ_PT, pti, "  pti:");
+  DEB_dump_obj__ (Typ_PT, pti, "  pti:");
 
 
   dbTyp = AP_typ_2_bastyp (selTyp);  // 2013-04-08
@@ -926,12 +926,12 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   L_vtx_1:          // M  >  P
     GL_SelVert__ (&pt1);
-      // UT3D_stru_dump (Typ_PT, &pt1, "sel.Vert:");
+      // DEB_dump_obj__ (Typ_PT, &pt1, "sel.Vert:");
 
     // invert transformation if ConstrPln is set;
     //   will be inverted in APT_decode_pt
     if(WC_sur_ind != 0) {
-      UT3D_pt_traptm3 (&pt1, WC_sur_imat, &pt1);
+      UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
     }
 
     AP_obj_add_pt (outBuf, &pt1);
@@ -1226,7 +1226,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
     // // den dem Cursor naechsten vertex holen ..
     // GL_SelVert__ (&pt1);
-      // UT3D_stru_dump (Typ_PT, &pt1, "sel.Vert:");
+      // DEB_dump_obj__ (Typ_PT, &pt1, "sel.Vert:");
 
     // das Polygon der selektierten CCV holen
     // den selektieren Punkt auf der Curve feststellen (segmentNr und Abstand)
@@ -1617,7 +1617,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     sele_get_pos (&pts);
     pti = &pts;
   }
-    // UT3D_stru_dump(Typ_PT, pti, " SRC_src_pt_dbo-pti");
+    // DEB_dump_obj__(Typ_PT, pti, " SRC_src_pt_dbo-pti");
 
 
   // get tempSpc for ato (with max 6 records)
@@ -1632,13 +1632,13 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   //---------------------------------------------------------------
-  irc = UTO_get_DB (&o1, &iNr, &iTyp, iDbi);
+  irc = UTO_objDat_dbo (&o1, &iNr, &iTyp, iDbi);
     // printf(" _get_DB-irc=%d iTyp=%d iNr=%d\n",irc,iTyp,iNr);
   if(irc < 0) {
     TX_Print ("**** cannot analyze DB-obj");
     return -1;
   }
-    // UT3D_stru_dump (iTyp, o1, " SRC_src_pt_dbo-o1");
+    // DEB_dump_obj__ (iTyp, o1, " SRC_src_pt_dbo-o1");
 
 
   // get selected obj
@@ -1696,7 +1696,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
     // loop tru CCV
     for(i1=0; i1<iNr; ++i1) {
-        // UT3D_stru_dump (Typ_CVTRM, &ccva[i1], " ccv[%d]",i1);
+        // DEB_dump_obj__ (Typ_CVTRM, &ccva[i1], " ccv[%d]",i1);
       iTyp = ccva[i1].typ;
       // get o2=basicCurve from trimmedCurve
       irc = UTO_cv_cvtrm (&iTyp, o2, NULL, &ccva[i1]);

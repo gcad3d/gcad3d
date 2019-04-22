@@ -27,6 +27,7 @@
 /// tstDllStat 0=normal (OFF); 1=testdll_ON
 /// mdl_modified   UNUSED
 /// mdl_box_valid  AP_mdlbox_invalid_ck - 0=valid, 1=void,invalid
+/// start_rcmd 0=no; 1=start-remoteCommandFile
 /// iActStat   0=normal, 1=Interactivity_ON
 /// cadIniM    CAD - init - mainFunction
 /// cadIniS    CAD - init - subFunction
@@ -36,15 +37,16 @@ typedef struct {int errLn; short sysStat, errStat;
                           texture:1,
                           build:1,
                           APP_stat:1,
-                          TUT_stat:1,
+                          TUT_stat:1,      // 5
                           jntStat:1,
                           debStat:1,
                           iActStat:1,
                           tstDllStat:1,
-                          mdl_modified:1,
+                          mdl_modified:1,  // 10
                           mdl_box_valid:1,
                           comp:1,
-                          uuBits:20;
+                          start_rcmd:1,
+                          uuBits:19;
                 char      cadIniM, cadIniS, subtyp;}           AP_STAT;
 
 
@@ -78,6 +80,7 @@ extern char AP_errText[128];      // errortext for minor errors
 extern char AP_printer[80];       // Printer
 extern char AP_editor[80];        // TextEditor
 extern char AP_lang[4];           // en or de
+extern char AP_winSiz[32];        // size of application-window "-1000,-690"
 
 extern int  APP_act_typ;          // type of APP_act_nam: 0=none;
                                   // 1=applic. 2=process 3=plugin 4=remote;

@@ -24,9 +24,12 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void UPLG(){}
+#endif
 /*!
 \file  ../ut/ut_plg.c
-\brief PolygonCurve 
+\brief PolygonCurve  with lengthTable (struct CurvPoly)
 \code
 pta = pointTable
 plg = struct CurvPoly; pointTable + lengthTable + limitParameters v0,v1.
@@ -34,6 +37,10 @@ plg = struct CurvPoly; pointTable + lengthTable + limitParameters v0,v1.
 =====================================================
 List_functions_start:
 
+--------------------- 2D ----------------------------------------------
+UT2D_plg_tra_plg3_m3       transf. 3D-polygon => 2D-polygon
+
+--------------------- 3D ----------------------------------------------
 UT3D_ck_plgclo             check if polygon is closed and untrimmed
 UT3D_ck_plgparlim          check if knotVal == start | endPt
 UT3D_ck_plgpar1lim         check if par == start | endPt
@@ -43,6 +50,9 @@ UT3D_ck_plg_par_trm        test if point is on clipped parts
 UT3D_pt_evalplg            Punkt auf PolygonCurve aus Parameterwert
 UT3D_pt_projptplg          proj PT -> PolygonCurve
 UT3D_pt_plg_lim            get limits (startpoint, endpoint, parameters)
+UT3D_plg_upd               update polygon (fix lvTab iClo, set fwd, not_trimmed)
+
+UT3D_plg_tra_plg2_rsys     transf. 2D-polygon => 3D-polygon
 UT3D_pt_intlnplg           intersect line and polygon
 UT3D_pt_intciplg           intersect circle and polygon
 UT3D_pt_intelplg           intersect ellipse and polygon
@@ -50,10 +60,10 @@ UT3D_pt_intbspplg          intersect b-spline curve and polygon
 UT3D_pt_intplplg           intersect Plane polygon
 UT3D_pt_int2plg            intersect 2 polygons
 
-UT3D_plg_pta               PolygonCurve aus Punktetabelle
+UT3D_plg_pta               PolygonCurve from points
+UT3D_plg_npt               PolygonCurve from points; untrimmed, no lvTab
 UT3D_plg_lvTab             create new lengthTable lvTab
 UT3D_plg_projplgpln        Polygon = project Polygon -> Plane
-UT3D_plg_parl_pln          Polygon = parallel to polygon in plane, dist
 
 UT3D_parplg_plgpt          get knotvalue from point on polygon
 UT3D_par_par1plg           get knotvalue from parameter 0-1
@@ -74,6 +84,9 @@ UT3D_2pt_segnln            get segment from lineTable
 
 List_functions_end:
 =====================================================
+UNUSED:
+//UT3D_plg_parl_pln          Polygon = parallel to polygon in plane, dist
+
 see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   UT3D_2vc_pta UT3D_vc_perpptai
   UT3D_pta_ck_planar UT3D_rMin_pta UT3D_pta_dbo UT3D_cv_*
@@ -98,6 +111,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL
 #include "../ut/ut_plg.h"
 
 #include "../ut/func_types.h"                  // SYM_SQUARE ..
@@ -119,7 +133,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   int   iis, iie, iseg, ipt, itot;
 
 
-  // UT3D_stru_dump (Typ_CVPOL, plg, " UPLG_2par_iseg %d",is);
+  // DEB_dump_obj__ (Typ_CVPOL, plg, " UPLG_2par_iseg %d",is);
 
 
   itot = plg->ptNr - 1;
@@ -210,7 +224,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
     
 
     
-  printf("UT3D_pt_plg_lim \n");
+  // printf("UT3D_pt_plg_lim \n");
 
 
   if(p1) UT3D_pt_evalplg (p1, cv1, cv1->v0);
@@ -220,8 +234,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   // if(v2) *v2 = cv1->v1;
   if(v2) *v2 = UT3D_par1_parplg (&cv1->v1, cv1);
 
-    if(v1) printf(" v1=%lf\n",*v1);
-    if(v2) printf(" v2=%lf\n",*v2);
+    // if(v1) printf(" v1=%lf\n",*v1);
+    // if(v2) printf(" v2=%lf\n",*v2);
 
   return 0;
 
@@ -239,9 +253,9 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   Vector   v1, v2;
 
 
-  printf("ULN3_segNr_par_prj_pt_nln %d\n",lNr);
-  UT3D_stru_dump (Typ_PT, pti, " pti");
-  for(i1=0;i1<lNr;++i1) UT3D_stru_dump (Typ_LN,&lTab[i1]," ln[%d]",i1);
+  // printf("ULN3_segNr_par_prj_pt_nln %d\n",lNr);
+  // DEB_dump_obj__ (Typ_PT, pti, " pti");
+  // for(i1=0;i1<lNr;++i1) DEB_dump_obj__ (Typ_LN,&lTab[i1]," ln[%d]",i1);
 
 
   dd = UT_VAL_MAX;
@@ -271,7 +285,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   }
 
 
-  printf("ex _segNr_par_prj_pt_nln %d %f\n",*is,*ps);
+  // printf("ex _segNr_par_prj_pt_nln %d %f\n",*is,*ps);
 
   if(*is < 0) return -1;
 
@@ -305,7 +319,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   i2  = 0;
 
   for(i1=2; i1<ptNr; ++i1) {
-      // UT3D_stru_dump (Typ_PT, &pTab[i1], " p[%d]",i1);
+      // DEB_dump_obj__ (Typ_PT, &pTab[i1], " p[%d]",i1);
     UT3D_nlenq_3pt (&d1, &pTab[i1 - 2], &pTab[i1 - 1], &pTab[i1]);
     if(d1 > dev) {
       dev = d1;
@@ -447,7 +461,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
       
 
   // printf("UT3D_2pt_segnln %d\n",is);
-  // UT3D_stru_dump(Typ_LN, plg, "  ");
+  // DEB_dump_obj__(Typ_LN, plg, "  ");
     
   *p1 = lna[is].p1;
   *p2 = lna[is].p2;
@@ -471,7 +485,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
   // printf("UT3D_2pt_plg_iseg %d\n",is);
-  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_2pt_plg_iseg");
+  // DEB_dump_obj__(Typ_CVPOL, plg, "UT3D_2pt_plg_iseg");
 
 
   if(is < 1) {
@@ -492,7 +506,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   UT3D_pt_evalplg (p2, plg, par2);
 
 
-    // UT3D_stru_dump(Typ_PT, p2, "_2pt_segplg-p2");
+    // DEB_dump_obj__(Typ_PT, p2, "_2pt_segplg-p2");
 
 
   return 0;
@@ -543,7 +557,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 }
 
-
+/* UNUSED 
 //===============================================================================
   int UT3D_plg_parl_pln (CurvPoly *plgo, CurvPoly *plgi, Vector *vz, double dist,
                          Memspc *memSeg1) {
@@ -558,7 +572,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   Vector vc1, vc2;
 
 
-  UT3D_stru_dump (Typ_CVPOL, plgi, "UT3D_plg_parl_pln");
+  DEB_dump_obj__ (Typ_CVPOL, plgi, "UT3D_plg_parl_pln");
 
   *plgo = *plgi;
 
@@ -604,12 +618,12 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
   plgo->ptNr = ptNo;
 
-    UT3D_stru_dump (Typ_CVPOL, plgo, " ex-UT3D_plg_parl_pln");
+    DEB_dump_obj__ (Typ_CVPOL, plgo, " ex-UT3D_plg_parl_pln");
 
   return 0;
 
 }
-
+*/
 
 //=========================================================================
   int UT3D_plg_projplgpln (CurvPoly *plgo, CurvPoly *plgi, Plane *pln, 
@@ -665,7 +679,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 
 
   // printf("UT3D_pt_evalplg par=%lf\n",parPlg);
-  // UT3D_stru_dump (Typ_CVPOL, plg, "  plg:");
+  // DEB_dump_obj__ (Typ_CVPOL, plg, "  plg:");
 
 
   pTab = plg->cpTab;
@@ -737,8 +751,8 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   Line   lnp;
 
 
-  // UT3D_stru_dump (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
-  // UT3D_stru_dump (Typ_LN, ln, " ln ");
+  // DEB_dump_obj__ (Typ_CVPOL, plg, "UT3D_pt_intlnplg ");
+  // DEB_dump_obj__ (Typ_LN, ln, " ln ");
 
 
   // init
@@ -750,7 +764,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
     // line from 2 consecutive polygon points
     lnp.p1 = plg->cpTab[i1];
     lnp.p2 = plg->cpTab[i1+1];
-      // UT3D_stru_dump (Typ_LN, &lnp, " lnp[%d]",i1);
+      // DEB_dump_obj__ (Typ_LN, &lnp, " lnp[%d]",i1);
 
     // intersect lnp with line
     // rc = UT3D_pt_int2ln (&ip1, &ip2, &dist, &lnp, ln);
@@ -867,7 +881,7 @@ Returncodes:
 
   // printf("ex UT3D_pt_intciplg: %d\n",*nxp);
   // for(i1=0;i1<*nxp;++i1)
-    // UT3D_stru_dump (Typ_PT, &xptab[i1], " %d %f",i1,vtab[i1]);
+    // DEB_dump_obj__ (Typ_PT, &xptab[i1], " %d %f",i1,vtab[i1]);
   return 0;
 }
 
@@ -1254,14 +1268,14 @@ Returncodes:
   int   rc, i1;
 
 
-  // UT3D_stru_dump(Typ_PT, pt, "UT3D_parplg_plgpt");
-  // UT3D_stru_dump(Typ_CVPOL, plg, "  plg:");
+  // DEB_dump_obj__(Typ_PT, pt, "UT3D_parplg_plgpt");
+  // DEB_dump_obj__(Typ_CVPOL, plg, "  plg:");
 
 
   for (i1=0; i1<plg->ptNr-1; ++i1) {
 
-    // UT3D_stru_dump(Typ_PT, &plg->cpTab[i1], " p[%d]",i1);
-    // UT3D_stru_dump(Typ_PT, &plg->cpTab[i1+1], " p[%d]",i1+1);
+    // DEB_dump_obj__(Typ_PT, &plg->cpTab[i1], " p[%d]",i1);
+    // DEB_dump_obj__(Typ_PT, &plg->cpTab[i1+1], " p[%d]",i1+1);
     rc = UT3D_pt_ck_onLine (&plg->cpTab[i1], &plg->cpTab[i1+1], pt, UT_TOL_pt);
     // -1:Point outside 0:pt==cpTab[i1], 1:pt between, 2:pt==cpTab[i1+1]
 
@@ -1304,7 +1318,7 @@ Returncodes:
 
 
   // printf("UT3D_vc_evalplg %f\n",pVal);
-  // UT3D_stru_dump(Typ_CVPOL, plg, "");
+  // DEB_dump_obj__(Typ_CVPOL, plg, "");
 
 
   pTab = plg->cpTab;
@@ -1351,7 +1365,7 @@ Returncodes:
   }
 
   L_done:
-  // UT3D_stru_dump(Typ_VC, vco, "ex UT3D_vc_evalplg:");
+  // DEB_dump_obj__(Typ_VC, vco, "ex UT3D_vc_evalplg:");
   return 0;
 
 }
@@ -1425,7 +1439,7 @@ Returncodes:
 
   // printf("....................................................... \n");
   // printf("UT3D_pta_ccw_plg ptNr=%d v0=%f v1=%f\n",plg->ptNr,plg->v0,plg->v1);
-  // UT3D_stru_dump(Typ_CVPOL, plg, "UT3D_pta_ccw_plg");
+  // DEB_dump_obj__(Typ_CVPOL, plg, "UT3D_pta_ccw_plg");
   
 
   maxPt = *ptNr;
@@ -1517,7 +1531,7 @@ Returncodes:
   //------------------------------------------------------------------
   L_exit:
     // TEST-ONLY
-    // for(i1=0;i1<*ptNr;++i1) UT3D_stru_dump(Typ_PT,&pta[i1],"pta[%d]",i1);
+    // for(i1=0;i1<*ptNr;++i1) DEB_dump_obj__(Typ_PT,&pta[i1],"pta[%d]",i1);
     // TEST-ONLY
 
   return 0;
@@ -1563,7 +1577,7 @@ Returncodes:
 
   // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
   // printf("UT3D_pt_projptplg Pt = %f %f %f\n",pt->x,pt->y,pt->z);
-  // UT3D_stru_dump (Typ_CVPOL, plg, " plg ");
+  // DEB_dump_obj__ (Typ_CVPOL, plg, " plg ");
 
 
   nxMax = *nxp;
@@ -1636,7 +1650,7 @@ Returncodes:
   dd = UT_VAL_MAX;
   for(i1=0; i1<iOut; ++i1) {
     d1 = UT3D_lenB_2pt (&pto[i1], pt);
-      // UT3D_stru_dump (Typ_PT, &pto[i1], " pto[%d] ",i1);
+      // DEB_dump_obj__ (Typ_PT, &pto[i1], " pto[%d] ",i1);
       // printf(" %d _lenB_ = %f\n",i1,d1);
     if(d1 >= dd) continue;
       ii = i1;
@@ -1718,6 +1732,8 @@ Returncodes:
 
 Returncode:
   totalLength = v1 = endParaamter; startPrameter v0 = 0.0.
+
+// see also UT2D_lva_plg
 */
 
   int      i1;
@@ -1742,28 +1758,44 @@ Returncode:
 }
 
 
+//================================================================
+  int UT3D_plg_npt (CurvPoly *plg1, Point *pta, int ptNr) {
+//================================================================
+// UT3D_plg_npt               PolygonCurve from points; untrimmed, no lvTab
+
+  memcpy (plg1, &UT3D_PLG_NUL, sizeof(CurvPoly));
+
+  plg1->ptNr  = ptNr;
+  plg1->cpTab = pta;
+
+    // DEB_dump_obj__ (Typ_CVPOL, plg1, "ex-UT3D_plg_npt");
+
+  return 0;
+
+}
+
+
 //===========================================================================
   int UT3D_plg_pta (CurvPoly *plg1, Point *pta, int ptNr, Memspc *memSeg1) {
 //===========================================================================
-/* Polygon -> PolygonCurve; von vo -> v1; vor und rueck (v0>v1)!
-Returncodes:
-  0 = OK
- -1 = out of tempSpace
-*/
-
+// UT3D_plg_pta                      create PolygonCurve from n-points
+// Input:
+//   pta[ptNr]      points
+//   memSeg1        memspace for the points
+// Output:
+//   retCod         0=OK, -1=EOM
+// Polygon -> PolygonCurve; von vo -> v1; vor und rueck (v0>v1)!
+//
 // cpTab: es werden alle Punkte -> memSeg1 kopiert.
 // lvTab: wird in memSeg1 erstellt !
 
 // // cpTab: es wird nur der pointer auf pta gespeichert;
 
 
-  int     i1;
+  int     i1, iClo;
   long    oSiz;
   double  d1, lTot, *lTab;
   Point   *pTab;
-
-
-
 
 
 
@@ -1777,33 +1809,20 @@ Returncodes:
   memcpy(pTab, pta, oSiz);
 
 
-  // // nicht die Punkte kopieren; nur den Pointer merken.
-  // pTab = pta;
-
-
   // provide memory for controlpoints
-  lTab        = memSeg1->next;
-  i1 = UME_add (memSeg1, sizeof(double) * ptNr);
+  lTab = memSeg1->next;
+  oSiz = sizeof(double) * ptNr;
+  i1 = UME_add (memSeg1, oSiz);
   if(i1 < 0) goto L_eom;
 
   // laengen errechnen und -> lTab kopieren
   lTot = UT3D_plg_lvTab (lTab, pTab, ptNr);
 
-/*
-  lTot    = 0.;
-  lTab[0] = 0.;
-  
-  for(i1=1; i1<ptNr; ++i1) {
-    // printf(" plg.cp[%d]=%9.2f %9.2f %9.2f\n",i1,
-            // pTab[i1].x,pTab[i1].y,pTab[i1].z);
 
-    d1 = UT3D_len_2pt(&pTab[i1], &pTab[i1-1]);
-    lTot += d1;
-    lTab[i1] = lTot;
-    // printf(" [%d] %f l=%f\n",i1,d1,lTot);
-  }
-*/
-
+  // get iClo = closed; 0=closed, 1=not_closed, -1=undefined
+  // see INF_struct_closed UT3D_ck_plgclo 
+  if(UT3D_comp2pt(&pTab[0], &pTab[ptNr - 1], UT_TOL_pt) == 0) iClo = 1;
+  else iClo = 0;
 
 
   plg1->ptNr  = ptNr;
@@ -1811,10 +1830,11 @@ Returncodes:
   plg1->lvTab = lTab;
   plg1->v0    = 0.;
   plg1->v1    = lTot;
+  plg1->dir   = 0;    // 0=fwd
+  plg1->clo   = iClo;
+  plg1->trm   = 1;    // 1=not_trimmed
 
   return 0;
-
-
 
 
   L_eom:
@@ -1833,7 +1853,7 @@ Returncodes:
   double ds, dd;
 
 
-  // UT3D_stru_dump (Typ_CVPOL, cv1, "UT3D_plg_npar1_npar");
+  // DEB_dump_obj__ (Typ_CVPOL, cv1, "UT3D_plg_npar1_npar");
 
 
   ds = cv1->v0;
@@ -1940,12 +1960,14 @@ Returncodes:
 // get segmentNr from parameter
 //   up          parameter
 //   segNr       first seg is 0 (cpTab[0]-cpTab[1]) ..
+//
+// TODO: use UTP_db_ckNxt_ndb
 
   int    i1;
   double u1;
 
   // printf("UPLG_iseg_par %f\n",up);
-  // UT3D_stru_dump (Typ_CVPOL, cv1, "");
+  // DEB_dump_obj__ (Typ_CVPOL, cv1, "");
 
   *segNr = cv1->ptNr - 2;
   for(i1=1; i1 < cv1->ptNr - 1; ++i1) {
@@ -1960,6 +1982,131 @@ Returncodes:
 }
 
 
+//================================================================
+  int UT3D_plg_tra_plg2_rsys (CurvPoly *cvo, CurvPol2 *cvi,
+                              Refsys *rSys, Memspc *mSpc) {
+//================================================================
+/// UT3D_plg_tra_plg2_rsys           transf. 2D-polygon => 3D-polygon
+
+
+  int     irc, i1, pNr;
+  long    l1;
+  double  lva;
+  Point2  *pa2;
+  Point   *pa3;
+
+  // DEB_dump_obj__ (Typ_CVPOL2, cvi, "UT3D_plg_tra_plg2_m3");
+  // DEB_dump_obj__ (Typ_Memspc, mSpc, " mSpc");
+  
+  pNr = cvi->ptNr;
+  pa2 = cvi->pTab;
+    
+  
+  // get p3a = space for 3D-points in mSpc
+  l1 = sizeof(Point) * pNr;
+  pa3 = UME_reserve (mSpc, l1);
+  if(!pa3) {TX_Error("UT2D_plg_tra_plg3_m3 EOM-1"); return -1;}
+    
+
+  // transfer points -> 3D
+  UT3D_npt_tra_npt2_rsys (pNr, pa3, pa2, rSys);
+
+
+  cvo->ptNr  = pNr;
+  cvo->cpTab = pa3;
+
+  // update polygon (fix lvTab iClo, set fwd, not_trimmed)
+  return UT3D_plg_upd (cvo, mSpc);
+
+}
+
+
+//================================================================
+  int UT2D_plg_tra_plg3_rsys (CurvPol2 *cvo, CurvPoly *cvi,
+                              Refsys *rSys, Memspc *mSpc) {
+//================================================================
+/// UT2D_plg_tra_plg3_m3           transf. 3D-polygon => 2D-polygon
+
+  int     irc, i1, pNr;
+  long    l1;
+  Point2  *pa2;
+  Point   *pa3;
+
+  // DEB_dump_obj__ (Typ_CVPOL, cvi, "UT2D_plg_tra_plg3_rsys");
+  // DEB_dump_obj__ (Typ_Refsys, rSys, " rSys");
+
+
+  pNr = cvi->ptNr;
+  pa3 = cvi->cpTab;
+
+  // get pa3 = tempspace for 3D-points on stack
+  l1 = sizeof(Point) * pNr;
+  pa3 = MEM_alloc_tmp (l1);
+    
+  // get trimmed polygon of CurvPoly
+  irc = UT3D_pta_plg (&pNr, pa3, cvi);
+
+  // get p2a = space for 2D-points in mSpc
+  l1 = sizeof(Point2) * pNr;
+  pa2 = UME_reserve (mSpc, l1);
+  if(!pa2) {TX_Error("UT2D_plg_tra_plg3_rsys EOM"); return -1;}
+
+  // transfer points -> 2D
+  UT2D_npt_tra_npt3_rsys (pNr, pa2, pa3, rSys);
+    
+  cvo->ptNr = pNr;
+  cvo->pTab = pa2;
+
+    // DEB_dump_obj__ (Typ_CVPOL2, cvo, "ex-UT2D_plg_tra_plg3_rsys");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_plg_upd (CurvPoly *cv1, Memspc *mSpc) {
+//================================================================
+// UT3D_plg_upd              update polygon (fix lvTab iClo, set fwd, not_trimmed)
+// TODO: use UT3D_plg_upd in UT3D_plg_pta
+
+  int     pNr, iClo;
+  long    l1;
+  double  lTot, *lva;
+  Point   *pa3;
+
+
+  pa3 = cv1->cpTab;
+  pNr = cv1->ptNr;
+
+
+  // get space for length-value-table lvTab
+  l1 = sizeof(double) * pNr;
+  lva = UME_reserve (mSpc, l1);
+  if(!lva) {TX_Error("UT3D_plg_upd EOM"); return -1;}
+
+  // create lvTab
+  lTot = UT3D_plg_lvTab (lva, pa3, pNr);
+
+  // get iClo = closed; 0=closed, 1=not_closed, -1=undefined
+  // see INF_struct_closed UT3D_ck_plgclo 
+  if(UT3D_comp2pt(&pa3[0], &pa3[pNr - 1], UT_TOL_pt) == 0) iClo = 1;
+  else iClo = 0;
+
+
+  cv1->lvTab = lva;
+  cv1->v0    = 0.;
+  cv1->v1    = lTot;
+  cv1->dir   = 0;    // 0=fwd
+  cv1->clo   = iClo;
+  cv1->trm   = 1;    // 1=not_trimmed
+
+
+    // DEB_dump_obj__ (Typ_CVPOL, cv1, "ex-UT3D_plg_upd");
+
+  return 0;
+
+}
 
 
 //===================== EOF ===========================

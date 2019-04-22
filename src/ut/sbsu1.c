@@ -382,11 +382,11 @@ List_functions_end:
   ci.vz = UT3D_VECTOR_Z;
 
   // transform ellipse start- and endpoint
-  UT3D_vc_travcm3 (&vt, ima, &v1);
+  UT3D_vc_tra_vc_m3 (&vt, ima, &v1);
   vt.dx *= lai;
   vt.dy *= lbi;
   UT3D_pt_traptvclen (&(ci.p1), (Point*)&UT3D_PT_NUL, &vt, ci.rad);
-  UT3D_vc_travcm3 (&vt, ima, &v2);
+  UT3D_vc_tra_vc_m3 (&vt, ima, &v2);
   vt.dx *= lai;
   vt.dy *= lbi;
   UT3D_pt_traptvclen (&(ci.p2), (Point*)&UT3D_PT_NUL, &vt, ci.rad);
@@ -399,7 +399,7 @@ List_functions_end:
   // transform back sample-point into original coordinate-system
   po->x *= la / fabs(ci.rad);
   po->y *= lb / fabs(ci.rad);
-  UT3D_pt_traptm3 (po, ma, po);
+  UT3D_pt_tra_pt_m3 (po, ma, po);
 
   // add center-point of ellipse
   // UT3D_pt_addwpt (po, &(el->pc), 1.0);

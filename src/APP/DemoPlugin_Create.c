@@ -387,7 +387,7 @@ char myMemspc[50000];
   UT3D_vc_3db (&ci1.vz,   0.,   -1.,   0.);
   ci1.rad  = 100.;
   ci1.ango = UT3D_angr_ci__ (&ci1);  // MUST provide opening angle !
-  id1=0; GR_CreCirc (&id1, Typ_Att_def, &ci1);
+  id1=0; GR_CreCirc (&id1, Typ_Att_blue, &ci1);
   printf(" circ %ld\n",id1);
 
 
@@ -507,7 +507,7 @@ char myMemspc[50000];
   OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
 
   // draw ruled surf
-  TSU_DrawSurT_ (&os, Typ_Att_Fac1, 0L);
+  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -523,11 +523,11 @@ char myMemspc[50000];
 
   // create ruled surf from 2 lines
   OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
-    // UTO_dump__ (&os, "SURRU ln+ln:");
-    // UTO_dump_s_ (&os, "SURRU ln+ln:");
+    // DEB_dump_ox_0 (&os, "SURRU ln+ln:");
+    // DEB_dump_ox_s_ (&os, "SURRU ln+ln:");
 
   // display
-  TSU_DrawSurT_ (&os, Typ_Att_Fac1, 0L);
+  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -545,12 +545,12 @@ char myMemspc[50000];
 
   // Circ from center, startpoint, axis, opening angle
   UT3D_ci_ptptvcangr (&ci1, &pt1, &pt2, &v1, UT_RADIANS(-120.));
-    UT3D_stru_dump (Typ_CI, &ci1, "ci1");
+    DEB_dump_obj__ (Typ_CI, &ci1, "ci1");
   OGX_SET_OBJ (&oa[1], Typ_CI, Typ_CI, 1, &ci1);
 
   // ruled obj from line & circ
   OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
-  TSU_DrawSurT_ (&os, Typ_Att_Fac1, 0L);
+  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -560,7 +560,7 @@ char myMemspc[50000];
   UT3D_pt_3db (&pt2, 450.,  0.,   0.);
   id1 = 1;
   // cylinder (ID, att, cen1, cen2, rad1, rad2)
-  GR_CreCyl (&id1, Typ_Att_Fac1, &pt1, &pt2, 15., 35.);
+  GR_CreCyl (&id1, Typ_Att_dash_long, &pt1, &pt2, 15., 35.);
 
 
 
@@ -568,7 +568,7 @@ char myMemspc[50000];
   id1 = 1;
   UT3D_pt_3db (&pt1, 450.,  0.,   0.);
   // disc (ID, att, cen, vector, inner_rad, outer_rad)
-  GR_CreDisk (&id1, Typ_Att_Fac1, &pt1, &UT3D_VECTOR_Z, -35., -50.0);
+  GR_CreDisk (&id1, Typ_Att_dash_long, &pt1, &UT3D_VECTOR_Z, -35., -50.0);
 
 
 
@@ -579,7 +579,7 @@ char myMemspc[50000];
   UT3D_pt_3db (&pa[1], 350.,  350.,   0.);
   UT3D_pt_3db (&pa[2], 350.,  350.,  75.);
   UT3D_pt_3db (&pa[3], 350.,  300.,  75.);
-  GR_CreTriaFan (&id1, Typ_Att_Fac1, pa, 3, &pa[1]);
+  GR_CreTriaFan (&id1, Typ_Att_dash_long, pa, 3, &pa[1]);
 
 
 
@@ -596,7 +596,7 @@ char myMemspc[50000];
   UT3D_pt_3db (&pa[7], 350.,  450.,  50.);
   UT3D_pt_3db (&pa[8], 350.,  500.,  50.);
 
-  GR_CreTriaStrip (&id1, Typ_Att_Fac1, 3, 3, pa);
+  GR_CreTriaStrip (&id1, Typ_Att_dash_long, 3, 3, pa);
 
 
   return 0;
@@ -657,7 +657,7 @@ char myMemspc[50000];
 
   UTO_sav_ost (&dbTyp, &dbInd, Typ_SURRV, Typ_SURRV, 1, (void*)&srv);
   // OGX_SET_OBJ (&os, Typ_SURRV, Typ_SURRV, 1, &srv);
-  // TSU_DrawSurT_ (&os, Typ_Att_Fac1, 0L);
+  // TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
   
 
 
@@ -765,10 +765,10 @@ char myMemspc[50000];
 
   //----------------------------------------------------------------
   // display
-  il = DL_StoreObj (Typ_SUR, 20L, Typ_Att_Fac1);  // identifier 20
-  // UTO_dump_s_ (&gSur, "sur-tess:");
-  // UTO_dump__ (&gSur, "sur-tess:");
-  GL_DrawSur (&il, Typ_Att_Fac1, &gSur);
+  il = DL_StoreObj (Typ_SUR, 20L, Typ_Att_dash_long);  // identifier 20
+  // DEB_dump_ox_s_ (&gSur, "sur-tess:");
+  // DEB_dump_ox_0 (&gSur, "sur-tess:");
+  GL_DrawSur (&il, Typ_Att_dash_long, &gSur);
 
 
   return 0;
@@ -806,7 +806,7 @@ char myMemspc[50000];
   UME_init (&memSeg1, myMemspc, sizeof(myMemspc));  // init memoryseg (tempspc)
   UT3D_plg_pta (&plg1, pp1, 5, &memSeg1);           // PolgonCurve from pt-tab
   OGX_SET_OBJ (&otmp, Typ_CVPOL, Typ_CVPOL, 1, &plg1);
-    // UT3D_stru_dump(Typ_CVPOL, otmp.data, "plg1:");
+    // DEB_dump_obj__(Typ_CVPOL, otmp.data, "plg1:");
   id1 = DB_StoreCurv (DB_QueryNxtFree(Typ_CV, 1), &otmp, 0);  // save in DB
 
 
@@ -831,13 +831,13 @@ char myMemspc[50000];
 
   // all -> container
   OGX_SET_OBJ (&os, Typ_SUR, Typ_ObjGX, 4, &oa);
-    UTO_dump__ (&os, "os=");
+    DEB_dump_ox_0 (&os, "os=");
 
   // draw
   ids = DB_QueryNxtFree(Typ_SUR, 1);
   irc = DB_StoreSur (&ids, &os);
 
-  TSU_DrawSurT_ (&os, Typ_Att_Fac1, ids);
+  TSU_DrawSurT_ (&os, Typ_Att_dash_long, ids);
   
   return 0;
 
@@ -876,7 +876,7 @@ char myMemspc[50000];
 
 
   // display surf - planar - unperforated
-  GR_Disp_spu (5, pp1, Typ_Att_Fac1);
+  GR_Disp_spu (5, pp1, Typ_Att_dash_long);
 
 
   return 0;

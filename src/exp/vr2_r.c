@@ -707,7 +707,7 @@ static double  newRot[4], newpRot[4];  // rotation
 
   // load default-matrix
   UT3D_m3_copy (&maTab[0], UT3D_MAT_4x3);
-    // UT3D_stru_dump (Typ_M4x3, &maTab[0], "maTab[0]");
+    // DEB_dump_obj__ (Typ_M4x3, &maTab[0], "maTab[0]");
 
 
   // decode
@@ -1767,9 +1767,9 @@ static double  newRot[4], newpRot[4];  // rotation
 
     // transform points & vectors
     VR_pt_vr2cad (&pt1);
-    UT3D_pt_traptm3 (&pt1, maTab[iTra], &pt1);
-    UT3D_vc_travcm3 (&vc1, maTab[iTra], &vc1);
-    UT3D_vc_travcm3 (&vc2, maTab[iTra], &vc2);
+    UT3D_pt_tra_pt_m3 (&pt1, maTab[iTra], &pt1);
+    UT3D_vc_tra_vc_m3 (&vc1, maTab[iTra], &vc1);
+    UT3D_vc_tra_vc_m3 (&vc2, maTab[iTra], &vc2);
 
     sprintf(mem_cbuf1, "S%ld=REC ",iCrv);
     AP_obj_add_pt (mem_cbuf1, &pt1);
@@ -1800,7 +1800,7 @@ static double  newRot[4], newpRot[4];  // rotation
     pt1 = UT3D_PT_NUL;
 
     // transform points & vectors
-    UT3D_pt_traptm3 (&pt1, maTab[iTra], &pt1);
+    UT3D_pt_tra_pt_m3 (&pt1, maTab[iTra], &pt1);
 
     sprintf(mem_cbuf1, "B%ld=SPH ",iSol);
     AP_obj_add_pt (mem_cbuf1, &pt1);
@@ -1831,8 +1831,8 @@ static double  newRot[4], newpRot[4];  // rotation
     // transform points & vectors
     VR_pt_vr2cad (&pt1);
     VR_pt_vr2cad (&pt2);
-    UT3D_pt_traptm3 (&pt1, maTab[iTra], &pt1);
-    UT3D_pt_traptm3 (&pt2, maTab[iTra], &pt2);
+    UT3D_pt_tra_pt_m3 (&pt1, maTab[iTra], &pt1);
+    UT3D_pt_tra_pt_m3 (&pt2, maTab[iTra], &pt2);
 
     sprintf(mem_cbuf1, "B%ld=CON ",iSol);
     AP_obj_add_pt (mem_cbuf1, &pt1);
@@ -1863,8 +1863,8 @@ static double  newRot[4], newpRot[4];  // rotation
     // transform points & vectors
     VR_pt_vr2cad (&pt1);
     VR_pt_vr2cad (&pt2);
-    UT3D_pt_traptm3 (&pt1, maTab[iTra], &pt1);
-    UT3D_pt_traptm3 (&pt2, maTab[iTra], &pt2);
+    UT3D_pt_tra_pt_m3 (&pt1, maTab[iTra], &pt1);
+    UT3D_pt_tra_pt_m3 (&pt2, maTab[iTra], &pt2);
 
     sprintf(mem_cbuf1, "B%ld=CON ",iSol);
     AP_obj_add_pt (mem_cbuf1, &pt1);
@@ -1882,7 +1882,7 @@ static double  newRot[4], newpRot[4];  // rotation
     // transform points & vectors
     for(i1=0; i1<pTab.rNr; ++i1) {
       VR_pt_vr2cad (&pTab.data[i1]);
-      UT3D_pt_traptm3 (&pTab.data[i1], maTab[iTra], &pTab.data[i1]);
+      UT3D_pt_tra_pt_m3 (&pTab.data[i1], maTab[iTra], &pTab.data[i1]);
     }
 
     // test PTAB or POLygon
@@ -1954,7 +1954,7 @@ static double  newRot[4], newpRot[4];  // rotation
     // transform points & vectors
     for(i1=0; i1<pTab.rNr; ++i1) {
       VR_pt_vr2cad (&pTab.data[i1]);
-      UT3D_pt_traptm3 (&pTab.data[i1], maTab[iTra], &pTab.data[i1]);
+      UT3D_pt_tra_pt_m3 (&pTab.data[i1], maTab[iTra], &pTab.data[i1]);
     }
 
     // add -1 as last index
@@ -2008,7 +2008,7 @@ static double  newRot[4], newpRot[4];  // rotation
     // transform points & vectors
     VR_pt_vr2cad (&newpTra);
     UT3D_pt_3db (&pt1, newpTra[0],newpTra[1],newpTra[2]);
-    UT3D_pt_traptm3 (&pt1, maTab[iTra], &pt1);
+    UT3D_pt_tra_pt_m3 (&pt1, maTab[iTra], &pt1);
     // get vz -> vc1, vx -> vc2
     // UT3D_m3_get (&vc1, 2, maTab[iTra]);
     // UT3D_m3_get (&vc2, 0, maTab[iTra]);
@@ -2190,7 +2190,7 @@ static double  newRot[4], newpRot[4];  // rotation
 
   //================================================================
   L_upd_exit:
-    // UT3D_stru_dump (Typ_M4x3, &maTab[iTra], "maTab[%d]",iTra);
+    // DEB_dump_obj__ (Typ_M4x3, &maTab[iTra], "maTab[%d]",iTra);
 
   return 0;
 
@@ -2229,7 +2229,7 @@ static double  newRot[4], newpRot[4];  // rotation
   pt1.x = UTX_db_tx (&p1, p1); ++p1;
   pt1.y = UTX_db_tx (&p1, p1); ++p1;
   pt1.z = UTX_db_tx (&p1, p1); ++p1;
-    // UT3D_stru_dump (Typ_PT, &pt1, "  vTab[%d]",vTabNr);
+    // DEB_dump_obj__ (Typ_PT, &pt1, "  vTab[%d]",vTabNr);
 
 
   // save point; realloc if necessary ..

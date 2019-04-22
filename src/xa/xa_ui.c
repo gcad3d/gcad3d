@@ -43,9 +43,9 @@ UI_block_get          query if functions, input, cursor is blocked
 UI_block_input        activate / disactivate keystrokes & grafic_selections
 UI_func_stat_set__    activate / disactivate Functions.
 UI_func_stat_set_tab  activate / disactivate Functions.
-UI_mBars_off           entspr. SM Menuebar sensitiv machen oder abdunkeln
 UI_wait_Esc           Wait for pressing the Esc-Key ...
-UI_askEscape          alle pending events abarbeiten;
+UI_wait_time          wait <msTim> millisecs or stop with Esc
+UI_askEscape          get state of Esc-key (work all pending events before)
 UI_askExit            ?
 
 UI_VW_upd             enable/disable active view-button
@@ -1084,10 +1084,39 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 
 
 //================================================================
+  int UI_wait_time (int msTim) {
+//================================================================
+/// \code
+/// UI_wait_time                     wait <msTim> millisecs or stop with Esc
+///  hold Esc pressed until "stopped with key Esc"
+/// see also UI_wait_Esc
+/// \endcode
+
+  int     i1;
+
+
+  TX_Print ("key Esc to stop .......\n");
+
+  DL_Redraw ();
+  OS_Wait (msTim);
+
+  // update all windows; get state of Esc-key; 1=up, -1=down
+  i1 = UI_askEscape();          printf(" UI_wait_time Esc=%d\n",i1);
+  if(i1 < 0) {
+    TX_Print ("stopped with key Esc .......\n");
+    return 1;
+  }
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int UI_wait_Esc () {
 //================================================================
-
-// Wait for pressing the Esc-Key ...
+// UI_wait_Esc                     wait for pressing the Esc-Key ...
 // Problem: man muesste den Key resetten, damit er nicht nochmal durchgeht,
 // oder fuer ca 0.5 sec als nicht gedrueckt setzen ...
  // (auf off setzen und von einem Timer wieder einschalten lassen ...
@@ -1117,10 +1146,12 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 //=====================================================================
   int UI_askEscape () {
 //=====================================================================
-// alle pending events abarbeiten;
-// RC =  1 = OFF  Esc nicht gedrueckt
-// RC = -1        Escape-taste ist gerade gedrueckt
-//
+/// \code
+/// UI_askEscape          get state of Esc-key (work all pending events before)
+/// RC =  1 = OFF  Esc up (not pressed)
+/// RC = -1        Escape-taste is down (pressed) at the moment
+///
+/// \endcode
 
 
   // printf("UI_askEscape\n");
@@ -3176,12 +3207,12 @@ static char LstBuf[LstSiz][32];
   // get typical point for activity-object -> pt1
   OGX_SET_INDEX (&ox1, ac1->typ, ac1->ind);
   // irc = UTO_pt_ox (&pt1, &ox1);
-  irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_0, Typ_ObjGX, &ox1);
+  irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_ObjGX, &ox1);
   if(irc < 0) {
     TX_Print ("UI_disp_activ E001 %d %d",ac1->typ,ac1->ind);
     return -1;
   }
-    // UT3D_stru_dump (Typ_PT, &pt1, " activ-pt1:");
+    // DEB_dump_obj__ (Typ_PT, &pt1, " activ-pt1:");
 
 
   if(mode) {
@@ -3192,7 +3223,7 @@ static char LstBuf[LstSiz][32];
   } else {
     sprintf(s1, "I%ld",dbi);
     dli = DL_StoreObj (Typ_Activ, dbi, 0);
-    iCol = Typ_Att_PT;
+    iCol = Typ_Att_def;
   }
 
 
@@ -3225,8 +3256,8 @@ static char LstBuf[LstSiz][32];
   jnt = UME_get_start (spcObj);
 
   // printf("UI_disp_joint mode=%d indJnt=%d\n",mode,indJnt);
-  // UTO_dump__ (jnt, "JNT_exp__");
-  // UTO_dump_s_ (jnt, "APT_decode_Joint");
+  // DEB_dump_ox_0 (jnt, "JNT_exp__");
+  // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
   // printf(" WC_modact_ind=%d\n",WC_modact_ind);
 
 
@@ -3251,7 +3282,7 @@ static char LstBuf[LstSiz][32];
     TX_Print ("UI_disp_joint E001 %d %d",jnt->typ,jnt->form);
     return -1;
   }
-    // UT3D_stru_dump (Typ_PT, pt1, " joint-pt1:");
+    // DEB_dump_obj__ (Typ_PT, pt1, " joint-pt1:");
 
 
   if(mode) {
@@ -3262,7 +3293,7 @@ static char LstBuf[LstSiz][32];
   } else {
     sprintf(s1, "J%ld",indJnt);
     dli = DL_StoreObj (Typ_Joint, indJnt, 0);
-    iCol = Typ_Att_PT;
+    iCol = Typ_Att_def;
   }
 
 
@@ -3301,7 +3332,7 @@ static char LstBuf[LstSiz][32];
 
 
   // printf("UI_disp_vec1 %d\n",typ);
-  // if(pos) UT3D_stru_dump (Typ_PT, &pt1, "  pos:");
+  // if(pos) DEB_dump_obj__ (Typ_PT, &pt1, "  pos:");
   // else    printf("  pos=NULL\n");
 
 
@@ -3318,13 +3349,13 @@ static char LstBuf[LstSiz][32];
   } else {
     pt1 = GL_GetCen();               // Mittelpunkt Bildschirm
   }
-    // UT3D_stru_dump (Typ_PT, &pt1, "cen in UI_disp_vec1");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "cen in UI_disp_vec1");
 
 
   if(typ == Typ_Index) {
     // vc1 = DB_GetVector(*((long*)data));
     vc1 = DB_GetVector(LONG_PTR(data));
-      // UT3D_stru_dump (Typ_VC, &vc1, " vc1 UI_disp_vec1");
+      // DEB_dump_obj__ (Typ_VC, &vc1, " vc1 UI_disp_vec1");
     if(&vc1 == &UT3D_VECTOR_Z) return -1;
 
 
@@ -3345,7 +3376,7 @@ static char LstBuf[LstSiz][32];
 
   //----------------------------------------------------------------
   // display vc1 at position pt1
-    // UT3D_stru_dump (Typ_VC, &vc1, "vc1 in UI_disp_vec1");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "vc1 in UI_disp_vec1");
 
   dli = DLI_TMP;  // als temp. obj anlegen ..
 
@@ -3405,7 +3436,7 @@ static char LstBuf[LstSiz][32];
   printf("UI_disp_vec2 %ld\n",ind);
 
   ox1 = DB_GetTra (ind);
-    // UTO_dump__ (ox1, "T[%d]:",ind);
+    // DEB_dump_ox_0 (ox1, "T[%d]:",ind);
 
 
   return UI_disp_tra (ox1);
@@ -3485,7 +3516,7 @@ static char LstBuf[LstSiz][32];
   Vector  vx, vz;
 
 
-  // UTO_dump__ (tra, "UI_disp_tra ");
+  // DEB_dump_ox_0 (tra, "UI_disp_tra ");
 
 
   // GL_temp_del_all (); // alle temp. obj loeschen ..
@@ -5056,7 +5087,7 @@ See UI_but__ (txt);
 //================================================================
 /// \code
 /// UI_dump_obj   dump DB-object  into file & display with browser
-/// see also UTO_dump__
+/// see also DEB_dump_ox_0
 /// \endcode
 
   int    i1, i2, oTyp, oNr;
@@ -5092,7 +5123,7 @@ See UI_but__ (txt);
     sprintf(cbuf3, " - temporary object - vectorSymbol");
 
   } else {
-    i1 = UTO_get_DB (&vp, &oNr, &oTyp, ind);   // typ wird auf ObjGX gesetzt !
+    i1 = UTO_objDat_dbo (&vp, &oNr, &oTyp, ind);   // typ wird auf ObjGX gesetzt !
     if(oNr >= 0) goto L_disp;
     sprintf(cbuf3, " - temporary object");
   }
@@ -5110,25 +5141,25 @@ See UI_but__ (txt);
   L_disp:
 
     // TESTBLOCK
-    // if(oNr > 1) UT3D_nstru_dump (oTyp, oNr, vp, cbuf2);
-    // else UT3D_stru_dump (oTyp, vp, cbuf2);                  // dump obj ..
-    // UTO_dump__ (vp, "UI_dump__"); // return 0;
-    // UTO_dump_s_ (vp, "UI_dump_obj"); return 0; // nur ObjGX !
+    // if(oNr > 1) DEB_dump_nobj__ (oTyp, oNr, vp, cbuf2);
+    // else DEB_dump_obj__ (oTyp, vp, cbuf2);                  // dump obj ..
+    // DEB_dump_ox_0 (vp, "UI_dump__"); // return 0;
+    // DEB_dump_ox_s_ (vp, "UI_dump_obj"); return 0; // nur ObjGX !
     // END TESTBLOCK
 
 
   // open file
   sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
-  UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
+  DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
 
   // write objID  & typ
-  UT3D_stru_dump (Typ_Txt, AP_src_typ__(oTyp), "%s        ",cbuf2);
+  DEB_dump_obj__ (Typ_Txt, AP_src_typ__(oTyp), "%s        ",cbuf2);
 
 
   // dump obj ..
-  if(oNr > 1) UT3D_nstru_dump (oTyp, oNr, vp, cbuf2);
-  else        UT3D_stru_dump (oTyp, vp, cbuf2);                  // dump obj ..
+  if(oNr > 1) DEB_dump_nobj__ (oTyp, oNr, vp, cbuf2);
+  else        DEB_dump_obj__ (oTyp, vp, cbuf2);                  // dump obj ..
 
 
   //----------------------------------------------------------------
@@ -5139,7 +5170,7 @@ See UI_but__ (txt);
 
   GA_getRec (&ga1, iga);  // get the ga-record
   sprintf(cbuf2, "\n\nAttributes:");
-  UT3D_stru_dump(Typ_Txt, cbuf2, "");
+  DEB_dump_obj__(Typ_Txt, cbuf2, "");
 
 
   // surf's : Color, Transparenz, Style, Style;
@@ -5148,23 +5179,23 @@ See UI_but__ (txt);
 /*
     if(col1->color == 0) {
       sprintf(cbuf2, " Color = Default");
-      UT3D_stru_dump(Typ_Txt, cbuf2, "");
+      DEB_dump_obj__(Typ_Txt, cbuf2, "");
     } else {
 */
     if(col1->color > 0) {
-      UT3D_stru_dump (Typ_Color, col1, " ");         // write color
+      DEB_dump_obj__ (Typ_Color, col1, " ");         // write color
     }
     if(col1->vtra > 0) {
       sprintf(cbuf2, " Transparency = %d",col1->vtra);
-      UT3D_stru_dump(Typ_Txt, cbuf2, "");
+      DEB_dump_obj__(Typ_Txt, cbuf2, "");
     }
     if(col1->vtex > 0) {
       i1 = GA_tex_ga2tr (iga);
       Tex_getRef (&tr, i1);
-      UT3D_stru_dump (Typ_TEXR, tr, "Texture-Reference[%d]:\n",i1);
+      DEB_dump_obj__ (Typ_TEXR, tr, "Texture-Reference[%d]:\n",i1);
       i1 = tr->ibas;
       Tex_getBas__ (&tb, i1);
-      UT3D_stru_dump (Typ_TEXB, tb, "Basic-Texture[%d]:\n",i1);
+      DEB_dump_obj__ (Typ_TEXB, tb, "Basic-Texture[%d]:\n",i1);
     }
 
 
@@ -5173,13 +5204,13 @@ See UI_but__ (txt);
             (typ == Typ_CI)   ||
             (typ == Typ_CV))     {
     sprintf(cbuf2, "  Linetyp = %d\n",ga1->iatt);
-    UT3D_stru_dump(Typ_Txt, cbuf2, "");
+    DEB_dump_obj__(Typ_Txt, cbuf2, "");
   }
 
 
 
   L_out:
-  UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
+  DEB_dump_obj__ (TYP_FuncEnd, (void*)"htm", "");
   OS_browse_htm (cbuf1, NULL);
 
   return 0;
@@ -6320,19 +6351,19 @@ See UI_but__ (txt);
     // UI_dump__ (Typ_Model);
 
     sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
-    UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
+    DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
     // il1 = DB_dbo_get_free (Typ_Model);
     sprintf(cbuf2, "\nReference models:\n"); // APT_MR_IND
-    UT3D_stru_dump(Typ_Txt, cbuf2, "");
+    DEB_dump_obj__(Typ_Txt, cbuf2, "");
     DB_dump_ModRef ();
 
     // i1 = DB_get_ModBasNr ();
     sprintf(cbuf2, "\nBasic models:\n");  // DYN_MB_IND
-    UT3D_stru_dump(Typ_Txt, cbuf2, "");
+    DEB_dump_obj__(Typ_Txt, cbuf2, "");
     DB_dump_ModBas ();
 
-    UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
+    DEB_dump_obj__ (TYP_FuncEnd, (void*)"htm", "");
     OS_browse_htm (cbuf1, NULL);
 
 
@@ -6341,11 +6372,11 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "dumpGrp")) {
 
     sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
-    UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
+    DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
     Grp_dump ();
 
-    UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
+    DEB_dump_obj__ (TYP_FuncEnd, (void*)"htm", "");
     OS_browse_htm (cbuf1, NULL);
 
 
@@ -6354,37 +6385,37 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "dumpStd")) {     // dump standards
 
     sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
-    UT3D_stru_dump (TYP_FuncInit, (void*)"htm", cbuf1);
+    DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
     
-    UT3D_dump_txt("Date:          %s",OS_date1());
-    UT3D_dump_txt("User:          %s",OS_get_user());
-    UT3D_dump_txt("Language:      %s",AP_lang);
-    UT3D_dump_txt("Basedirectory: %s",OS_get_bas_dir());
-    UT3D_dump_txt("Tempdirectory: %s",OS_get_tmp_dir());
-    UT3D_dump_txt("Bin.directory: %s",OS_get_bin_dir());
-    UT3D_dump_txt("Model:         %s",AP_mod_fnam);
-    UT3D_dump_txt("Modelsize:     %f",APT_ModSiz);
-    UT3D_dump_txt("Tol.Points:    %f",UT_TOL_pt);
-    UT3D_dump_txt("Tol.Curves:    %f",UT_TOL_cv);
-    UT3D_dump_txt("Tol.Display:   %f",UT_DISP_cv);
-    UT3D_dump_txt("Size-Text:     %f",AP_txsiz);
-    UT3D_dump_txt("Size-Dim.:     %f",AP_txdimsiz);
-    UT3D_dump_txt("Scale-Text:    %f",GR_tx_scale);
-    UT3D_dump_txt("Browser:       %s",OS_get_browse_htm());
-    UT3D_dump_txt("Printer:       %s",OS_get_printer());
-    UT3D_dump_txt("Editor:        %s",OS_get_edi());
-    UT3D_dump_txt("Terminal:      %s",OS_get_term());
+    DEB_dump_txt("Date:          %s",OS_date1());
+    DEB_dump_txt("User:          %s",OS_get_user());
+    DEB_dump_txt("Language:      %s",AP_lang);
+    DEB_dump_txt("Basedirectory: %s",OS_get_bas_dir());
+    DEB_dump_txt("Tempdirectory: %s",OS_get_tmp_dir());
+    DEB_dump_txt("Bin.directory: %s",OS_get_bin_dir());
+    DEB_dump_txt("Model:         %s",AP_mod_fnam);
+    DEB_dump_txt("Modelsize:     %f",APT_ModSiz);
+    DEB_dump_txt("Tol.Points:    %f",UT_TOL_pt);
+    DEB_dump_txt("Tol.Curves:    %f",UT_TOL_cv);
+    DEB_dump_txt("Tol.Display:   %f",UT_DISP_cv);
+    DEB_dump_txt("Size-Text:     %f",AP_txsiz);
+    DEB_dump_txt("Size-Dim.:     %f",AP_txdimsiz);
+    DEB_dump_txt("Scale-Text:    %f",GR_tx_scale);
+    DEB_dump_txt("Browser:       %s",OS_get_browse_htm());
+    DEB_dump_txt("Printer:       %s",OS_get_printer());
+    DEB_dump_txt("Editor:        %s",OS_get_edi());
+    DEB_dump_txt("Terminal:      %s",OS_get_term());
 
 
     // dump stdCol AP_defcol
-    UT3D_stru_dump (Typ_Color, &AP_defcol, "DefaultColor:  ");
-    UT3D_stru_dump (Typ_Color, &AP_actcol, "Active-Color:  ");
+    DEB_dump_obj__ (Typ_Color, &AP_defcol, "DefaultColor:  ");
+    DEB_dump_obj__ (Typ_Color, &AP_actcol, "Active-Color:  ");
 
     AP_get_fnam_symDir (cbuf2);
-    UT3D_dump_txt ("\nSymbolicDirectories (%s):\n",cbuf2);
-    UT3D_stru_dump (TYP_FuncAdd, cbuf2, "");    // put out the file 
+    DEB_dump_txt ("\nSymbolicDirectories (%s):\n",cbuf2);
+    DEB_dump_obj__ (TYP_FuncAdd, cbuf2, "");    // put out the file 
 
-    UT3D_stru_dump (TYP_FuncEnd, (void*)"htm", "");
+    DEB_dump_obj__ (TYP_FuncEnd, (void*)"htm", "");
     OS_browse_htm (cbuf1, NULL);
 
 
@@ -6401,6 +6432,19 @@ See UI_but__ (txt);
     UI_def_editor ();
     // GUI_GetText1 ("define Editor", "Texteditor:",
                   // AP_editor, -180, UI_def_editor);
+
+  //======================================================
+  } else if(!strcmp(cp1, "defWinsiz")) {
+    sscanf(AP_winSiz,"-%d,-%d",&i1,&i2);
+    sprintf(s1, " %d %d ",i1,i2);
+    irc = GUI_Dialog_e2b ("Windowsize, Format: width height\n - restart to apply",
+                          s1, 80, "OK", "Cancel");
+    if(irc == 0) {
+        printf(" defWinsiz |%s|\n",s1);
+      sscanf(s1," %d %d", &i1, &i2); 
+      sprintf(AP_winSiz,"-%d,-%d   // size of application-window",i1,i2);
+        printf(" AP_winSiz |%s|\n",AP_winSiz);
+    }
 
 
   //======================================================
@@ -6690,8 +6734,13 @@ box1
 
 
 
-      // Create Mainwindow
-      winMain = GUI_Win__ (NULL, UI_win_main, "-1000,-690");
+      // Create Mainwindow. Windowsize (AP_winSiz)
+// TODO:  cannot change windowsize from program; only manually ..
+// TODO:  cannot reduce windowsize manually ..
+      // winMain = GUI_Win__ (NULL, UI_win_main, "-1000,-690");
+      // winMain = GUI_Win__ (NULL, UI_win_main, "-600,-600");
+      // winMain = GUI_Win__ (NULL, UI_win_main, "-2000e,-1600e");
+      winMain = GUI_Win__ (NULL, UI_win_main, AP_winSiz);
       // GUI_obj_init (); // TEMP_ONLY - remove with GUI_Win__
 
 
@@ -7018,6 +7067,11 @@ box1
       GUI_menu_entry   (&wtmp4, "Editor", UI_menCB,  (void*)"defEditor");
       MSG_Tip ("MMstEdi"); //
         // GUI_Tip  ("define Editor");
+
+      GUI_menu_entry   (&wtmp4, "WindowSize", UI_menCB,  (void*)"defWinsiz");
+      // MSG_Tip ("MMstEdi"); //
+        // GUI_Tip  ("define Editor");
+
 
 
       //----------------------------------------------------------------
@@ -7738,8 +7792,9 @@ box1
       // winGR = UI_GR_Init (600, 0);
       // gtk_container_add (GTK_CONTAINER (wtmp1), winGR);
       // gtk_widget_show (winGR);
-      // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-400e");
-      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,e");
+      // defaultsize 600x400 pixels; cannot be made smaller (no GL-callback !)
+      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-600e");
+      // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,e");
 
       // connect the mouse-move events
       GUI_gl_ev_move (&winGR, UI_GL_move__);

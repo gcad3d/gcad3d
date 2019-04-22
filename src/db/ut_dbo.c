@@ -125,7 +125,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
     *typ = Typ_TmpPT;
     *dbi = 0;
     UI_GR_get_actPosA (&pt1);
-      // UT3D_stru_dump (Typ_PT, &pt1, "indicatedPos=");
+      // DEB_dump_obj__ (Typ_PT, &pt1, "indicatedPos=");
     DB_StorePoint (0L, &pt1);   // save as point[0]
     return 0;
   }
@@ -157,7 +157,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   oNr = 1;
   oTyp = typ;
 
-  irc = UTO_get_DB (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
+  irc = UTO_objDat_dbo (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
   if(irc < 0) {
     printf(" - temporary object\n");
     return -1;
@@ -166,7 +166,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   // UTO_dump_obj (oTyp, vp, oNr);                  // dump obj ..
   oSiz = UTO_siz_stru (oTyp);
   for(i1=0; i1<oNr; ++i1) {
-    UT3D_stru_dump (oTyp, vp, "%d",i1);
+    DEB_dump_obj__ (oTyp, vp, "%d",i1);
     oTyp += oSiz;
   }
 

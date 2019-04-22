@@ -193,6 +193,7 @@ objlst:
 # write list of all sourcefiles into file files; see gcad_src.mak
 # used for cscope, DocuDevel (doxygen)
 srclst:
+	@echo $(MK)
 	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
 	@echo $(SRCB) >> srcFiles
@@ -203,7 +204,13 @@ srclst:
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../APP/Demo*.c >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
-	find . -maxdepth 1 -name "xa_*.mak" -exec $(MK) -f {} "add_srclst" \;
+	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "add_srclst" \;
+
+
+
+#=====================================================================
+add_srclst:
+	@echo $(SRC1) >> srcFiles
 
 
 

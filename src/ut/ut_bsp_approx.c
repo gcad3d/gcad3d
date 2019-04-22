@@ -17,7 +17,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+ - set bsp->clo in UT3D_bspl_l2appr, UCBS_BspCrvPts
 
 -----------------------------------------------------
 Modifications:
@@ -66,16 +66,18 @@ List_functions_end:
 
 //====================================================================
   int UT3D_bsp_pta__ (CurvBSpl *cvo, int ptNr, Point *pTab, double tol,
-                      Memspc *memSeg, Memspc *workSeg) {
+                      double smf, Memspc *memSeg, Memspc *workSeg) {
 //====================================================================
 /// UT3D_bsp_pta__      approximante polygon to b-spline-curve.
+/// Input:
+///   smf         smoothFactor; > 1 reduces nr-of-points
 
  
   int    irc, iDeg, iMod3D, ncp, i1, i2;
   double d0, d1, d2;
 
 
-  // printf("UT3D_bsp_pta__ %d %f\n",ptNr,tol);
+  // printf("UT3D_bsp_pta__ ptNr=%d tol=%f smf=%f\n",ptNr,tol,smf);
 
 
   iMod3D = 2;      // 1=2D (x,y); 2=3D.
@@ -107,20 +109,31 @@ List_functions_end:
   L_1:
     // printf(" ncp=%d\n",ncp);
 
-// ACHTUNG: mehr geht dzt nicht; sonst in USBS_GordSurBspCrvNet zu große
+// ACHTUNG: mehr als 25 geht dzt nicht; sonst in USBS_GordSurBspCrvNet zu große
 // L1- oder L2-Surface, diese machen dann out-of-mem !
-    if(ncp > 25) {
-      printf("UT3D_bsp_pta__ I001 ncp reduced\n");
-      ncp = 25;
+    // if(ncp > 32) {
+      // printf("UT3D_bsp_pta__ I001 ncp reduced\n");
+      // ncp = 32;
+    // }
+    if(fabs(smf) > 0.1) {
+      ncp *= fabs(smf);
+        // printf(" bsp_pta__ncp > %d\n",ncp);
     }
 
+    if(ncp > ptNr) ncp = ptNr;
 
+    if(smf <= 0.)     iDeg = 1;
+    else if(ncp > 25) iDeg = 3;
 
     // approximate
     irc = UT3D_bspl_l2appr (cvo, memSeg, ptNr, pTab,
                            iMod3D, iDeg, ncp, workSeg);
     if(irc < 0) return -1;
 
+
+      // TESTBLOCK
+      // DEB_dump_obj__ (Typ_CVBSP, cvo, "ex-UT3D_bsp_pta__");
+      // END TESTBLOCK
 
 
 
@@ -129,10 +142,10 @@ List_functions_end:
 }
 
 
-//================================================================
+//=========================================================================
   int UT3D_bspl_l2appr (CurvBSpl *crv, Memspc *memSeg, int np, Point *pTab,
 									      int xy, int deg, int ptNr, Memspc *workSeg) {
-//================================================================
+//=========================================================================
 // UT3D_bspl_l2appr     Author: Thomas Backmeister       5.12.2003
 // 
 /// \code
@@ -165,7 +178,7 @@ List_functions_end:
 	double *p1Tab, *cp1Tab;
   void *memStart;
 					
-  // printf("\nUT3D_bspl_l2appr: l2-approximating bspline-curve\n");
+  // printf("\nUT3D_bspl_l2appr: np=%d ptNr=%d deg=%d",np,ptNr,deg);
 
 	// space for knotvector
   crv->kvTab = memSeg->next;
@@ -245,6 +258,10 @@ List_functions_end:
 
 	// release workspace
 	workSeg->next = memStart;
+
+  crv->dir = 0;     // 0=fwd
+  crv->clo = -1;    // -1=undefined
+  crv->trm = 1;     // 1=not_trimmed
 
   return 0;
 

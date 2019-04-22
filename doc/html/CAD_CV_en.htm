@@ -147,11 +147,9 @@ Convert and connect one or more objects into a B-Spline curve,
 Input elements:  Points, lines, arcs,
                  polygons, ellipses, clothoids or B-Spline-curves.
 
-smoothFactor: 0 = no rounding, max. 1.
-                  only for polygons:
-                    -1 = no rounding
-                     0 = through points,
-                     1 = through controlpoints.
+smoothFactor:     negativ value: degree 1 (polygon)
+                  positive value: degree 2 or 3;
+                  higher values - more controlpoints
 
 
 Example:

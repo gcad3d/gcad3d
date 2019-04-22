@@ -446,11 +446,11 @@ Returncodes:
   // see UT3D_pl1_tria
   UT3D_vc_perp3pt (&pl1.vz, p1, p2, p3); // normalVector of triangle
   UT3D_vc_setLength (&pl1.vz, &pl1.vz, 1.);
-    // UT3D_stru_dump (Typ_VC, &pl1.vz, "pl1.vz:");
+    // DEB_dump_obj__ (Typ_VC, &pl1.vz, "pl1.vz:");
 
   // create pl1.p from po & vz
   UT3D_pl_ptpl (&pl1, p1);
-    // UT3D_stru_dump (Typ_PLN, &pl1, "pl1:");
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "pl1:");
 
   // int. pti-vp with plane
   irc = UT3D_ptDi_intptvcpln (pto, &d1, &pl1, pti, vp);
@@ -481,10 +481,10 @@ Returncodes:
 
 
   // printf("UT3D_lenq_PtTria\n");
-  // UT3D_stru_dump (Typ_PT, p, "  pd:");
-  // UT3D_stru_dump (Typ_PT, p1, "  pa:");
-  // UT3D_stru_dump (Typ_PT, p2, "  pb:");
-  // UT3D_stru_dump (Typ_PT, p3, "  pc:");
+  // DEB_dump_obj__ (Typ_PT, p, "  pd:");
+  // DEB_dump_obj__ (Typ_PT, p1, "  pa:");
+  // DEB_dump_obj__ (Typ_PT, p2, "  pb:");
+  // DEB_dump_obj__ (Typ_PT, p3, "  pc:");
 
 
   UT3D_vc_2pt (&p1p2, p1, p2);
@@ -560,11 +560,11 @@ Returncodes:
 
 
   // printf("UT3D_lenq_PlnTria\n");
-  // UT3D_stru_dump (Typ_PT, plnO, "  plnO:");
-  // UT3D_stru_dump (Typ_VC, plnZ, "  plnZ:");
-  // UT3D_stru_dump (Typ_PT, p1,   "  pa:");
-  // UT3D_stru_dump (Typ_PT, p2,   "  pb:");
-  // UT3D_stru_dump (Typ_PT, p3,   "  p3:");
+  // DEB_dump_obj__ (Typ_PT, plnO, "  plnO:");
+  // DEB_dump_obj__ (Typ_VC, plnZ, "  plnZ:");
+  // DEB_dump_obj__ (Typ_PT, p1,   "  pa:");
+  // DEB_dump_obj__ (Typ_PT, p2,   "  pb:");
+  // DEB_dump_obj__ (Typ_PT, p3,   "  p3:");
 
 
   // die slenq von allen 3 Punkten auf die Plane holen;
@@ -887,11 +887,11 @@ Returncodes:
   Point2  *p1, *p2, *p3, *e1, *e2;
   Vector2 v1, v2, v3, vl;
 
-  UT3D_stru_dump (Typ_PT, pl2, "UTRI_ln_int_LnFac - lp2: ");
-  // UT3D_stru_dump (Typ_PT, pl1, "  pl1: ");
-  // UT3D_stru_dump (Typ_PT, pf1, "  pf1: ");
-  // UT3D_stru_dump (Typ_PT, pf2, "  pf2: ");
-  // UT3D_stru_dump (Typ_PT, pf3, "  pf3: ");
+  DEB_dump_obj__ (Typ_PT, pl2, "UTRI_ln_int_LnFac - lp2: ");
+  // DEB_dump_obj__ (Typ_PT, pl1, "  pl1: ");
+  // DEB_dump_obj__ (Typ_PT, pf1, "  pf1: ");
+  // DEB_dump_obj__ (Typ_PT, pf2, "  pf2: ");
+  // DEB_dump_obj__ (Typ_PT, pf3, "  pf3: ");
 
 
   p1 = (Point2*)pf1;
@@ -1018,12 +1018,12 @@ Returncodes:
     i1 = UT2D_pt_int2pt2vc (&ip2, e1, &vl, p3, &v3);
     UT3D_pt_ipl_2ptpt2 (ip, pf3, pf1, &ip2);
   }
-    UT3D_stru_dump (Typ_PT2, &ip2, "  ip2: ");
+    DEB_dump_obj__ (Typ_PT2, &ip2, "  ip2: ");
 
     
   //----------------------------------------------------------------
   L_exit:
-    UT3D_stru_dump (Typ_PT, ip, "ex UTRI_ln_int_LnFac  %d ",irc);
+    DEB_dump_obj__ (Typ_PT, ip, "ex UTRI_ln_int_LnFac  %d ",irc);
   return irc;
 
 }
@@ -1144,7 +1144,7 @@ Returncodes:
     // lni->p1 = *(tria->pa[i0]);
     lni->p1 = *ppi0;
       // printf(" add %d\n",i0);
-      // UT3D_stru_dump(Typ_PT, &lni->p1, " p1 -> ");
+      // DEB_dump_obj__(Typ_PT, &lni->p1, " p1 -> ");
     pl1 = &lni->p2;
     i1 = 1;
   }
@@ -1275,28 +1275,28 @@ Returncodes:
   // make plane plt1 of tria1
   // vc1=p0-p1, vc2=p0-p2, vcn1=crossProd vc1-vc2
   UT3D_pl1_tria (&plt1, tri1);
-    // UT3D_stru_dump(Typ_PLN, &plt1, " plt1");
+    // DEB_dump_obj__(Typ_PLN, &plt1, " plt1");
     // GR_Disp_vc (&plt1.vz, &plt1.po, 8, 0);
 
 
   // make plane plt2 of tria2
   // vc1=p0-p1, vc2=p0-p2, vcn2=crossProd vc1-vc2
   UT3D_pl1_tria (&plt2, tri2);
-    // UT3D_stru_dump(Typ_PLN, &plt2, " plt2");
+    // DEB_dump_obj__(Typ_PLN, &plt2, " plt2");
     // GR_Disp_vc (&plt2.vz, &plt2.po, 9, 0);
 
 
   // inters. tri1 mit Plane of tri2
   irc = UT3D_ln_intTriaPln (&lnt1, tri1, &plt2);
   if(irc < 0) return irc;
-    // UT3D_stru_dump(Typ_LN, &lnt1, " lnt1");
+    // DEB_dump_obj__(Typ_LN, &lnt1, " lnt1");
     // GR_Disp_ln (&lnt1, 8);
 
 
   // inters. tri2 mit Plane of tri1
   irc = UT3D_ln_intTriaPln (&lnt2, tri2, &plt1);
   if(irc < 0) return irc;
-    // UT3D_stru_dump(Typ_LN, &lnt2, " lnt2");
+    // DEB_dump_obj__(Typ_LN, &lnt2, " lnt2");
     // GR_Disp_ln (&lnt2, 11);
 
 
@@ -1434,7 +1434,7 @@ Returncodes:
 
 
   L_exit:
-    UT3D_stru_dump (Typ_PT, pto, "ex UT3D_pt_projPtTria %d %f",irc,*dd);
+    DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_pt_projPtTria %d %f",irc,*dd);
   return irc;
 
 }
@@ -1482,7 +1482,7 @@ see UT2D_pt_intptvcy UT2D_pt_int2vc2pt UT3D_2ln_tngTriPlSph
 
 
   // vector normal to line
-  UT2D_vc_perpvc (&vnl, &vcl);
+  UT2D_vc_rot_90_ccw (&vnl, &vcl);
 
 
   // intersection
@@ -1529,8 +1529,8 @@ see UT2D_pt_intptvcy UT2D_pt_int2vc2pt UT3D_2ln_tngTriPlSph
   UTP_param_p0p1px (&d0, d1, d2, rc);
     // printf(" d0=%f\n",d0);
 
-  UT2D_pt_traPtPtPar (ps, ls, le, d0);
-  UT2D_pt_traPtPtPar (py, &p1, &p2, d0);
+  UT2D_pt_tra_pt_pt_par (ps, ls, le, d0);
+  UT2D_pt_tra_pt_pt_par (py, &p1, &p2, d0);
   irc = 0;
   goto L_done;
 
@@ -1883,10 +1883,10 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   Vector2   nv, v1x;
 
 
-  // UT3D_stru_dump (Typ_PT2, px, "UT2D_ck_pt_in_tria__:");
-  // UT3D_stru_dump (Typ_PT2, p1, "   p1:");
-  // UT3D_stru_dump (Typ_PT2, p2, "   p2:");
-  // UT3D_stru_dump (Typ_PT2, p3, "   p3:");
+  // DEB_dump_obj__ (Typ_PT2, px, "UT2D_ck_pt_in_tria__:");
+  // DEB_dump_obj__ (Typ_PT2, p1, "   p1:");
+  // DEB_dump_obj__ (Typ_PT2, p2, "   p2:");
+  // DEB_dump_obj__ (Typ_PT2, p3, "   p3:");
     // GR_Disp_pt2 (px, SYM_STAR_S, 4);
     // GR_Disp_ln2 (p1, p2, 0);
     // GR_Disp_ln2 (p1, p3, 0);
@@ -2002,7 +2002,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 // all 4 points must be in the same Plane !
 
 
-  int      bp;
+  int      bpi;
   Point2   p21, p22, p23, p2x;
   Point    pb1, pb2;
   Vector   vc1;
@@ -2018,7 +2018,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
   // get a backplane
-  UT3D_box_2pt (&pb1, &pb2, p1, p2);     // make box of p1,p2
+  UT3D_box_2pt__ (&pb1, &pb2, p1, p2);     // make box of p1,p2
   UT3D_box_extend (&pb1, &pb2, p3);      // Box mit p3 vergroessern.
 
   // hier testen ob px inside box ??
@@ -2026,15 +2026,15 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
   UT3D_vc_2pt (&vc1, &pb1, &pb2);        // vec from box
     // GR_Disp_vc (&vc1, &pb1, 12, 1); 
-  bp = UT3D_bp_vc__ (&vc1);               // backplane from vector
-    // printf(" bp=%d\n",bp);
+  bpi = UT3D_bp_perp_vc (NULL, &vc1);               // backplane from vector
+    // printf(" bpi=%d\n",bpi);
 
 
   // make 2D-points
-  UT2D_pt_pt3bp (&p21, p1, bp);
-  UT2D_pt_pt3bp (&p22, p2, bp);
-  UT2D_pt_pt3bp (&p23, p3, bp);
-  UT2D_pt_pt3bp (&p2x, px, bp);
+  UT2D_pt_tra_pt3_bp (&p21, p1, bpi);
+  UT2D_pt_tra_pt3_bp (&p22, p2, bpi);
+  UT2D_pt_tra_pt3_bp (&p23, p3, bpi);
+  UT2D_pt_tra_pt3_bp (&p2x, px, bpi);
 
 
   // 2D-check if point is inside Triangle

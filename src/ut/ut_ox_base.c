@@ -37,6 +37,7 @@ void OGX(){}
 List_functions_start:
 
 OGX_SET_OBJ             complexObject from binObj (typ,form,siz,dat)
+OGX_GET_OBJ             get type and data of binary-obj
 OGX_SET_OBJ_aux         complexObject from binObj with aux
 OGX_SET_INDEX           complexObject from DB-Obj (dbTyp,dbInd) (form=Typ_Index)
 OGX_GET_INDEX           get DB-typ and DB-index out of complexObject
@@ -46,14 +47,15 @@ OGX_SET_Float8          complexObject from (typ, float8)
 OGX_SET_COLOR           complexObject from ColRGB
 OGX_NUL                 empty complexObject (_OGX_NUL)
 
-OGX_ox_copy_ox          complexObj-group from a group of objs.
 OGX_ox_ato1             complexObj from 1 atomicObj (ausTyp/ausTab)
+OGX_ox_copy_ox          complexObj-group from a group of objs.
 
 OGX_oxm_copy_ox         copy iNr complexObjects into Memspc (serialize)
 OGX_oxm_copy_obj        copy (serialize) obj into a Memspc
 OGX_ox_copy__           copy (serialize) a ObjGX-Tree into a single memChunk.
 OGX_ox_copy_obj
 OGX_ck_reloc            check if struct is relocatable without modifications
+OGX_is_dbo              check if struct is a DB-obj                          INLINE
 
 OGX_deloc__             serialize (make all pointers relative)
 OGX_reloc__             deserialize (relocate all pointers)
@@ -62,10 +64,6 @@ OGX_reloc_adr           relocate a pointer.
 
 OGX_siz__               return size of complete ObjGX-Tree; 
 OGX_siz_obj             return size of complete ObjGX-Tree;
-
-OGX_DEB_dump__
-OGX_DEB_dump_obj
-OGX_DEB_dump_stru       dump stru and its pointers, do not resolve.
 
 -------------- TESTFUNCTIONS --------------
 OGX_tst__               test 
@@ -81,7 +79,7 @@ List_functions_end:
 Functions resolving ObjGX-Trees:
 OGX_ox_copy_obj
 OGX_reloc_ox
-OGX_DEB_dump_obj + OGX_DEB_dump_stru
+DEB_dump_nobj_1 + DEB_dump_obj_1
 OGX_siz_obj
 UTRA_app_oTab
 UPRJ_app_obj UNUSED - see UPRJ_app__
@@ -240,7 +238,7 @@ typedef_MemTab(ObjRange);
 
   // printf("8888888888888888888888888888888888888888888888888888 \n");
   // printf("OGX_oxm_copy_ox iNr=%d isol=%d\n",iNr,isolate);
-  // for(i1=0; i1<iNr; ++i1) UT3D_stru_dump (Typ_ObjGX,&oTab[i1],"oTab[%d]",i1);
+  // for(i1=0; i1<iNr; ++i1) DEB_dump_obj__ (Typ_ObjGX,&oTab[i1],"oTab[%d]",i1);
 
 
   // reserve space for primary struct
@@ -401,7 +399,7 @@ typedef_MemTab(ObjRange);
 
   printf("OGX_ox_copy_obj oSiz=%ld typ=%d iNr=%d isol=%d\n",
          *oSiz,typ,iNr,isolate);
-  // if(typ==Typ_Model) UT3D_stru_dump (typ, obji, "obji");
+  // if(typ==Typ_Model) DEB_dump_obj__ (typ, obji, "obji");
   // if(*oSiz > 1000000) gdb_halt ();
 
 
@@ -426,7 +424,7 @@ typedef_MemTab(ObjRange);
   *oSiz -= rSiz;                     // reduce outSpace-size
   *objo = (void*)(po + rSiz);        // fix next free outputPos
     printf(" oSiz=%ld rSiz=%d\n",*oSiz,rSiz);
-    if(typ==Typ_Model) UT3D_stru_dump (typ, po, "po");
+    if(typ==Typ_Model) DEB_dump_obj__ (typ, po, "po");
 
 
 
@@ -556,7 +554,7 @@ typedef_MemTab(ObjRange);
       memcpy (*objo, ((ModelRef*)pi)->mnam, 4);
       *oSiz -= 4;
       *objo = (char*)*objo + 4; // *objo += 4;
-        UT3D_stru_dump (Typ_Model, po, "model");
+        DEB_dump_obj__ (Typ_Model, po, "model");
 */
 
     //----------------------------------------------------------------
@@ -574,7 +572,7 @@ typedef_MemTab(ObjRange);
 
   //================================================================
   L_fertig:
-  // UTO_dump__ (objo, "ex OGX_ox_copy_obj");
+  // DEB_dump_ox_0 (objo, "ex OGX_ox_copy_obj");
   return 0;
 
 
@@ -785,7 +783,7 @@ typedef_MemTab(ObjRange);
 
   //================================================================
   L_fertig:
-  // UTO_dump__ (objo, "ex OGX_reloc_ox");
+  // DEB_dump_ox_0 (objo, "ex OGX_reloc_ox");
   return 0;
 
   L_err_adr:
@@ -977,7 +975,7 @@ typedef_MemTab(ObjRange);
 
   //================================================================
   L_fertig:
-  // UTO_dump__ (objo, "ex OGX_reloc_ox");
+  // DEB_dump_ox_0 (objo, "ex OGX_reloc_ox");
   return 0;
 
   // L_err_adr:
@@ -987,161 +985,6 @@ typedef_MemTab(ObjRange);
     return -1;
 
 }
-
-
-//================================================================
-  int OGX_DEB_dump__ (void *obj1) {
-//================================================================
-
-  int irc;
-
-  printf("OGX_DEB_dump__ pos=%ld --------------------\n",(long)obj1);
-
-  irc = OGX_DEB_dump_obj (obj1, Typ_ObjGX, 1, 0);
-
-  printf("OGX_DEB_dump__ end ------------------------\n");
-
-  return irc;
-
-}
-
-
-//================================================================
-  int OGX_DEB_dump_obj (void *obj1, int typ, int iNr, int deloc) {
-//================================================================
-// deloc   0=absolut address, 1=delocated (relative adress)
-
-  int    i1, iSiz, sTyp, sForm;
-  char   *po;
-  void   *sPtr;
-
-static void*  relPos;
-
-
-  printf("OGX_DEB_dump_obj pos=%ld typ=%d iNr=%d deloc=%d\n",(long)obj1,
-          typ,iNr,deloc);
-
-  if(deloc == 0) {
-    relPos = obj1;
-      printf(" set relPos %ld\n",(long)relPos);
-  }
-
-
-  iSiz = UTO_siz_stru (typ);
-  if(iSiz <= 0) {
-    TX_Error("OGX_DEB_dump__ E000 %d %d\n",typ,iNr);
-    goto L_err_ex;
-  }
-
-
-  // save pointerPos
-  po = (char*)obj1;
-
-
-  //----------------------------------------------------------------
-  // it is a struct with pointers; 
-  // loop tru primary ObjGX-Record(s)
-  for(i1=0; i1<iNr; ++i1) {
-
-    //----------------------------------------------------------------
-    if(typ == Typ_ObjGX) {
-
-      printf(" ObjGX[%d]: typ=%d form=%d siz=%d data=%ld dir=%d\n",i1,
-              ((ObjGX*)po)->typ,
-              ((ObjGX*)po)->form,
-              ((ObjGX*)po)->siz,
-              (long)((ObjGX*)po)->data,
-              ((ObjGX*)po)->dir);
-
-      sTyp  = ((ObjGX*)po)->typ;               // get child-typ
-      sForm = ((ObjGX*)po)->form;              // get type of structure of child
-        // printf(" i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
-
-      // ignore all primary ObjGX-Records with no child-data
-      if(sTyp  == Typ_Typ)   goto L_GX_nxt;    // hat keine data
-      if(sForm == Typ_Index) goto L_GX_nxt;    // hat keine data
-      if(sForm == Typ_Int4)  goto L_GX_nxt;    // hat keine data
-
-      sPtr  = ((ObjGX*)po)->data;
-
-      // set offset
-      if(((ObjGX*)po)->dir == 1)
-        sPtr = MEM_ptr_mov (sPtr, LONG_PTR(relPos));
-
-      // RECURSE
-      OGX_DEB_dump_obj (sPtr,
-                        ((ObjGX*)po)->form,
-                        ((ObjGX*)po)->siz,
-                        ((ObjGX*)po)->dir);
-
-    } else {
-      OGX_DEB_dump_stru (obj1, typ, "");
-
-    }
-
-    L_GX_nxt: // proceed to next ObjGX-ParentRecord ..
-    po += iSiz;
-
-  }
-
-  L_fertig:
-  return 0;
-
-
-  L_err_ex:
-    return -1;
-
-}
-
-
-//================================================================
-  int OGX_DEB_dump_stru (void *obj, int typ, char *txt) {
-//================================================================
-// deloc   0=absolut address, 1=delocated (relative adress)
-
-  int    i1, iSiz, sTyp, sForm;
-
-  //----------------------------------------------------------------
-  if(typ == Typ_PT) {
-    printf("  %ld (Point) %9.3f,%9.3f,%9.3f\n", (long)obj,
-           ((Point*)obj)->x,
-           ((Point*)obj)->y,
-           ((Point*)obj)->z);
-
-
-  //----------------------------------------------------------------
-  } else if(typ == Typ_CVPOL) {
-    printf("  %ld (CurvPoly) ptNr=%d v0=%.3f v1=%.3f lvTab=%ld cpTab=%ld\n",
-           (long)obj,
-           ((CurvPoly*)obj)->ptNr,
-           ((CurvPoly*)obj)->v0,
-           ((CurvPoly*)obj)->v1,
-           (long)((CurvPoly*)obj)->lvTab,
-           (long)((CurvPoly*)obj)->cpTab);
-
-
-  //----------------------------------------------------------------
-  } else if(typ == Typ_GTXT) {
-    printf("  %ld (Graph.Text) %9.3f,%9.3f,%9.3f size=%.2f dir=%.2f\n",
-           (long)obj,
-           ((GText*)obj)->pt.x,
-           ((GText*)obj)->pt.y,
-           ((GText*)obj)->pt.z,
-           ((GText*)obj)->size,
-           ((GText*)obj)->dir);
-    printf("   txt=%ld\n",
-           (long)((GText*)obj)->txt);
-
-
-  //----------------------------------------------------------------
-  } else {
-    UT3D_stru_dump (typ, obj, "typ=%d", typ);
-  }
-
-  return 0;
-
-}
-
 
 
 
@@ -1193,7 +1036,7 @@ static void*  relPos;
   irc = OGX_deloc__ (pox1, oSiz);
   if(irc < 0) return -1;
 
-  OGX_DEB_dump__ (pox1);
+  DEB_dump_ox__ (pox1);
 // exit(0);
 
 
@@ -1222,8 +1065,8 @@ static void*  relPos;
 
   //----------------------------------------------------------------
   // dump data
-  OGX_DEB_dump__ (pox2);
-  UT3D_stru_dump (Typ_ObjGX, pox2, "pox2");
+  DEB_dump_ox__ (pox2);
+  DEB_dump_obj__ (Typ_ObjGX, pox2, "pox2");
   // OGX_dump__ (pox1, "tst_UTO");
 
 
@@ -1283,13 +1126,13 @@ static void*  relPos;
   // create GText
   tx1.pt = pt2; tx1.size = 2.5; tx1.dir = 45.; tx1.txt = s1;
   strcpy(s1, "ABCD");
-  UT3D_stru_dump (Typ_GTXT, &tx1, "tx1");
+  DEB_dump_obj__ (Typ_GTXT, &tx1, "tx1");
 
 
   //----------------------------------------------------------------
   // create polgyon-curve; with a pointer inside.
   cv1.ptNr=4; cv1.v0=0.; cv1.v1=30.; cv1.lvTab=da1; cv1.cpTab=pa1;
-  UT3D_stru_dump (Typ_CVPOL, &cv1, "cv1");
+  DEB_dump_obj__ (Typ_CVPOL, &cv1, "cv1");
 
 
   //----------------------------------------------------------------
@@ -1316,8 +1159,8 @@ static void*  relPos;
   printf("9999999999999999999999999999999999999999999999999 \n");
   // dump tree
   // pox1 = UME_get_start (&tmpSpc);
-  UT3D_stru_dump (Typ_ObjGX, pox1, "--------------- pox1 -------------\n");
-  OGX_DEB_dump__ (pox1);
+  DEB_dump_obj__ (Typ_ObjGX, pox1, "--------------- pox1 -------------\n");
+  DEB_dump_ox__ (pox1);
 
 
 
@@ -1352,8 +1195,8 @@ static void*  relPos;
   UME_set_free (mSiz2, spcObj1);
 
 
-  UT3D_stru_dump (Typ_ObjGX, pox2, "--------------- pox2 -------------\n");
-  OGX_DEB_dump__ (pox2);
+  DEB_dump_obj__ (Typ_ObjGX, pox2, "--------------- pox2 -------------\n");
+  DEB_dump_ox__ (pox2);
 
 
   // UME_free (&tmpSpc);

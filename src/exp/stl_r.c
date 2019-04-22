@@ -126,7 +126,7 @@ __declspec(dllexport) int obj_read__ (char*);
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../ut/ut_txt.h"
-#include "../ut/func_types.h"                 // Typ_Att_Fac1
+#include "../ut/func_types.h"                 // Typ_Att_dash_long
 
 
 
@@ -178,7 +178,7 @@ int main () {
   Memspc  *impSpc;
 
   // printf("gCad_main ex DLL xa_stl_r\n");
-  // UTO_dump_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
+  // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
 
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT_PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
@@ -550,7 +550,7 @@ int main () {
 
   for(i1=0; i1<3; ++i1) {       // copy pointTable
     pTab[i1] = pta[i1];
-    // UT3D_stru_dump (Typ_PT, &pTab[i1], "P[%d]:",i1);
+    // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]:",i1);
   }
 
   ++impDat.oNr;
@@ -622,11 +622,11 @@ int main () {
 
 
   // tess_dump_f_ (impDat.impSpc->start, "ex obj_readTess__");
-  // UTO_dump_s_ (impDat.impSpc->start, "ex obj_readTess__");
-  // UTO_dump__ (impDat.impSpc->start, "ex obj_readTess__");
+  // DEB_dump_ox_s_ (impDat.impSpc->start, "ex obj_readTess__");
+  // DEB_dump_ox_0 (impDat.impSpc->start, "ex obj_readTess__");
   // l1 = -1;
-  // GL_DrawSur(&l1, Typ_Att_Fac1, impDat.impSpc->start+sizeof(ObjGX));
-  // TSU_DrawSurTess (&l1, Typ_Att_Fac1, impDat.impSpc->start);
+  // GL_DrawSur(&l1, Typ_Att_dash_long, impDat.impSpc->start+sizeof(ObjGX));
+  // TSU_DrawSurTess (&l1, Typ_Att_dash_long, impDat.impSpc->start);
 
 
 

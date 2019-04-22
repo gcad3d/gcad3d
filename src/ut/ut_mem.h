@@ -7,9 +7,6 @@
 
 
  // ut_mem.o:
- int MEM_swap__      (void *stru1, void* stru2, long strSiz);
-
-
  int MEM_ins_rec     (void *insPos, long movSiz, void *insDat, long insSiz);
  int MEM_chg_rec     (void *datStart, long *datSiz,
                       void *insDat,   long insSiz,
@@ -28,6 +25,13 @@
 //----------------------------------------------------------------
 /// compare memoryspaces (n bytes); returns 0 for equal.
 #define MEM_cmp__ memcmp
+
+/// swap 2 structs
+void MEM_swap__ (void *stru1, void* stru2, long strSiz);
+#define MEM_swap__(sp1,sp2,sSiz){\
+ char *sx = MEM_alloc_tmp(sSiz);\
+ memcpy(sx,sp1,sSiz); memcpy(sp1,sp2,sSiz); memcpy(sp2,sx,sSiz);}
+// Example: MEM_swap__ (&pt1,&pt2,sizeof(Point));
 
 /// swap 2 bytes
 void MEM_swap_byte  (char *c1, char *c2);
@@ -60,8 +64,6 @@ void MEM_swap_2vp    (void **v1, void **v2);
   void *_v3 = *(v1); *(v1) = *(v2); *(v2) = _v3;}
 // void MEM_swap_2vp (void **p1, void **p2)
 
-// swap structs: MEM_swap__ ();
-
 /// \code
 /// MEM_ptr_mov         move a pointer <dist> bytes
 /// Example:
@@ -74,22 +76,14 @@ void MEM_swap_2vp    (void **v1, void **v2);
 /// MEM_alloc_tmp             allocate mem for active function
 /// >>>>  USE ONLY IF SIZE < SPC_MAX_STK byte  <<<<
 /// calls alloca; memspace exists until active function returns.
-/// ptab = (Point*) MEM_alloc_tmp (nr_of_points * sizeof(Point));
+/// Example:
+///   ptab = (Point*) MEM_alloc_tmp (nr_of_points * sizeof(Point));
 /// ATTENTION: MinGW: use also alloca, not _alloca !!!
 /// ATTENTION: MS needs more space!
 /// \endcode
 void* MEM_alloc_tmp (int);
-/*
 #ifdef _MSC_VER
 #define MEM_alloc_tmp(siz) _alloca(siz + 64)
-//#define MEM_alloc_tmp(siz) alloca(siz)
-#else
-#define MEM_alloc_tmp(siz) alloca(siz)
-#endif
-*/
-#ifdef _MSC_VER
-#define MEM_alloc_tmp(siz) _alloca(siz + 64)
-//#define MEM_alloc_tmp(siz) alloca(siz)
 #else
 #define MEM_alloc_tmp(siz) alloca(siz)
 #endif
@@ -101,7 +95,7 @@ void* MEM_alloc_tmp (int);
 // #endif
 
 
-/// UME_TMP_FILE          allocate temp.memspace for file
+/// MEM_alloc_file          allocate temp.memspace for existing file
 int MEM_alloc_file (void**, long*,  char*);
 #define MEM_alloc_file(fBuf, fSiz, fNam)\
  *fSiz = OS_FilSiz (fNam);\
@@ -116,6 +110,19 @@ int MEM_alloc_file (void**, long*,  char*);
 //   *fSiz = OS_FilSiz (fNam);\
 //  alloca(*fSiz);
 // #endif
+
+
+// returns 0 - memspc MUST be freed
+//         1 - memspc CANNOT be freed
+#define MEM_CANNOT_FREE(mTyp)\
+ (mTyp != MEMSPCTYP_MALLOC__)&&(mTyp != MEMSPCTYP_FIX)
+
+
+// returns 0 - memspc CANNOT be freed
+//         1 - memspc MUST be freed
+#define MEM_MUST_FREE(mTyp)\
+ (mTyp == MEMSPCTYP_MALLOC__)||(mTyp == MEMSPCTYP_FIX)
+
 
 
 

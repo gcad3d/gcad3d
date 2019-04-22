@@ -354,7 +354,7 @@ List_functions_end:
 
 
   // printf("dxfr_load_mat \n");
-  // UT3D_stru_dump (Typ_VC, vz, "dxfr_load_mat vz:");
+  // DEB_dump_obj__ (Typ_VC, vz, "dxfr_load_mat vz:");
   // DXFW_test ("2");
 
 
@@ -372,7 +372,7 @@ List_functions_end:
   irc = 0;
   // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
-    // UT3D_stru_dump (Typ_VC, &vx, " vx:");
+    // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
 
   UT3D_vc_perp2vc (&vy, vz, &vx);
 
@@ -401,9 +401,9 @@ List_functions_end:
 
 
     // TESTBLOCK
-    // UT3D_stru_dump (Typ_VC, &vx, " vx:");
-    // UT3D_stru_dump (Typ_VC, &vy, " vy:");
-    // UT3D_stru_dump (Typ_M4x3, m1, " irc=%d m1:",irc);
+    // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
+    // DEB_dump_obj__ (Typ_VC, &vy, " vy:");
+    // DEB_dump_obj__ (Typ_M4x3, m1, " irc=%d m1:",irc);
     // END TESTBLOCK
 
 

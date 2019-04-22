@@ -103,8 +103,8 @@ static Vector prj_vc;      // projectionDirection
 
 
   // printf("UPRJ_def__ typ=%d oNr=%d\n",typ,oNr);
-  // UT3D_stru_dump (typ, target, "target:");
-  // UT3D_stru_dump (Typ_VC, vc1, "vc1:");
+  // DEB_dump_obj__ (typ, target, "target:");
+  // DEB_dump_obj__ (Typ_VC, vc1, "vc1:");
 
 
   prj_typ     = typ;
@@ -177,8 +177,8 @@ static Vector prj_vc;      // projectionDirection
 
 
   // printf("UPRJ_app_pt prj_typ=%d\n",prj_typ);
-  // UT3D_stru_dump (prj_typ, prj_tg, "target:");
-  // UT3D_stru_dump (Typ_VC, &prj_vc, "  prj_vc:");
+  // DEB_dump_obj__ (prj_typ, prj_tg, "target:");
+  // DEB_dump_obj__ (Typ_VC, &prj_vc, "  prj_vc:");
 
 
   //----------------------------------------------------------------
@@ -222,14 +222,14 @@ static Vector prj_vc;      // projectionDirection
     irc = UT3D_pt_projptplg (&i1, pa, da, prj_tg, p1);
       // printf(" irc=%d i1=%d\n",irc,i1);
       // for(i2=0; i2<i1; ++i2) 
-      // UT3D_stru_dump (Typ_PT, &pa[i2], " pa[%d] - da=%lf",i2,&da[i2]);
+      // DEB_dump_obj__ (Typ_PT, &pa[i2], " pa[%d] - da=%lf",i2,&da[i2]);
     APT_set_modMax (i1);
     if(irc < 0) return -1;
     if(i1 < 1) return 0;
     // *p2 = pa[imod];
     // get nearest point
     *p2 = pa[UT3D_ipt_cknearn_npt (p1, pa, i1, APT_get_mod1())];
-      // UT3D_stru_dump (Typ_PT, p2, " i1=%d p2:",i1);
+      // DEB_dump_obj__ (Typ_PT, p2, " i1=%d p2:",i1);
     return 1;
 
 
@@ -240,7 +240,7 @@ static Vector prj_vc;      // projectionDirection
     irc = UT3D_pt_projptel (&i1, pa, prj_tg, p1);
 // TODO: limited curve ?
       // printf(" projptel-irc=%d i1=%d\n",irc,i1);
-      // UT3D_stru_dump (Typ_PT, &pa[0], " p0:");
+      // DEB_dump_obj__ (Typ_PT, &pa[0], " p0:");
     APT_set_modMax (i1);
     if(irc) return -1;
     if(i1 < 1) return 0;
@@ -308,7 +308,7 @@ static Vector prj_vc;      // projectionDirection
   if(prj_typ != Typ_PLN) goto L_SURMSH;
   irc = UT3D_ptDi_intptvcpln (p2, &dist, prj_tg, p1, &prj_vc);
   if(irc < 1) return -1;
-    // UT3D_stru_dump (Typ_PT, p2, "  p2:");
+    // DEB_dump_obj__ (Typ_PT, p2, "  p2:");
   return 1;
 
 
@@ -345,21 +345,21 @@ static Vector prj_vc;      // projectionDirection
     // printf(" surfTyp=%d\n",i1); // 162=Typ_SURTPS
   i1 = SUR_ck_typ (&sTyp, &ox2, &i2, ox1);
     // printf(" surfTyp=%d %d %d\n",sTyp,i1,i2); // 155=Typ_SURPLN
-    // UT3D_stru_dump (Typ_ObjGX, ox2, "  suppSur ox2:");
+    // DEB_dump_obj__ (Typ_ObjGX, ox2, "  suppSur ox2:");
 
 
   if(sTyp != Typ_SURPLN) goto E_NI;
   // get plane for SURPLN
   UT3D_ptvc_sur (&pt1, &pl1.vz, NULL, ox1);
-    // UT3D_stru_dump (Typ_PT, &pt1, "  pt1:");
-    // UT3D_stru_dump (Typ_VC, &pl1.vz, "  pl1.vz:");
+    // DEB_dump_obj__ (Typ_PT, &pt1, "  pt1:");
+    // DEB_dump_obj__ (Typ_VC, &pl1.vz, "  pl1.vz:");
   if(!UT3D_compvcNull(&prj_vc)) vc1 = prj_vc;
   else vc1 = pl1.vz;
-    // UT3D_stru_dump (Typ_VC, &vc1, "  vc1:");
+    // DEB_dump_obj__ (Typ_VC, &vc1, "  vc1:");
   UT3D_pl_ptpl (&pl1, &pt1);
   irc = UT3D_ptDi_intptvcpln (p2, &dist, &pl1, p1, &vc1);
   if(irc < 1 ) return -1;
-    // UT3D_stru_dump (Typ_PT, p2, "  p2:");
+    // DEB_dump_obj__ (Typ_PT, p2, "  p2:");
   return 1;
 
 
@@ -398,9 +398,9 @@ static Vector prj_vc;      // projectionDirection
   double   dist;
   Point    ptx;
 
-  // UT3D_stru_dump (Typ_VC, v1, "UPRJ_app_vc:");
-  // UT3D_stru_dump (Typ_VC, &prj_vc, "  prj_vc:");
-  // UT3D_stru_dump (Typ_PLN, prj_tg, "  Plane:");
+  // DEB_dump_obj__ (Typ_VC, v1, "UPRJ_app_vc:");
+  // DEB_dump_obj__ (Typ_VC, &prj_vc, "  prj_vc:");
+  // DEB_dump_obj__ (Typ_PLN, prj_tg, "  Plane:");
   // GR_Disp_vc (v1, NULL, 8, 1);
 
 
@@ -413,9 +413,9 @@ static Vector prj_vc;      // projectionDirection
   // memcpy(v2, &ptx, sizeof(Vector));  // copy
 
 
-    // UT3D_stru_dump (Typ_PT, &ptx, "  ptx:");
+    // DEB_dump_obj__ (Typ_PT, &ptx, "  ptx:");
     // GR_Disp_vc (v2, NULL, 9, 1);
-    // UT3D_stru_dump (Typ_VC, v2, "ex UPRJ_app_vc:");
+    // DEB_dump_obj__ (Typ_VC, v2, "ex UPRJ_app_vc:");
 
   return 0;
 
@@ -439,7 +439,7 @@ static Vector prj_vc;      // projectionDirection
 
 
 
-  // UT3D_stru_dump (Typ_CI, c1, "UPRJ_app_ci:");
+  // DEB_dump_obj__ (Typ_CI, c1, "UPRJ_app_ci:");
 
   e2 = obo;
 
@@ -448,7 +448,7 @@ static Vector prj_vc;      // projectionDirection
 
   // minorAxis vb is the intersectionLine of Plane -circPlane
   UT3D_vc_perp2vc (&e2->vb, &((Plane*)prj_tg)->vz, &c1->vz);
-    // UT3D_stru_dump (Typ_VC, &e2->vb, "_app_ci vb:");
+    // DEB_dump_obj__ (Typ_VC, &e2->vb, "_app_ci vb:");
 
   // check if vz is normal to projection-plane
   // jes: circle ..
@@ -460,7 +460,7 @@ static Vector prj_vc;      // projectionDirection
     UT3D_vc_2pt (&vc1, &c1->pc, &e2->pc);
     UT3D_ci_tracivc (c2, c1, &vc1);            // move circ
     // UT3D_el_ci (e2, &ch1);   // Circ -> Ellipse
-      // UT3D_stru_dump (Typ_CI, e2, "_app_ci:");
+      // DEB_dump_obj__ (Typ_CI, e2, "_app_ci:");
     return Typ_CI;
   }
 
@@ -484,7 +484,7 @@ static Vector prj_vc;      // projectionDirection
   // point > new plane
   UPRJ_app_pt (&pt1, &pt1);
   UT3D_vc_2pt (&e2->va, &e2->pc, &pt1);
-    // UT3D_stru_dump (Typ_VC, &e2->va, "va:");
+    // DEB_dump_obj__ (Typ_VC, &e2->va, "va:");
 
 
 
@@ -494,7 +494,7 @@ static Vector prj_vc;      // projectionDirection
 
   e2->vz = ((Plane*)prj_tg)->vz;
   
-    // UT3D_stru_dump (Typ_CVELL, e2, "Ell=");
+    // DEB_dump_obj__ (Typ_CVELL, e2, "Ell=");
     // GR_Disp_ell (e2, 9);
 
   return Typ_CVELL;
@@ -520,7 +520,7 @@ static Vector prj_vc;      // projectionDirection
 
   // copy Elli; copy vz
   *eo = *ei;
-    // UT3D_stru_dump (Typ_CVELL, eo, "Ell=");
+    // DEB_dump_obj__ (Typ_CVELL, eo, "Ell=");
 
   // transf elli
   UPRJ_app_pt (&eo->pc, &ei->pc);
@@ -543,12 +543,12 @@ static Vector prj_vc;      // projectionDirection
   // get the endpoints of the old axes in plane as p1, p2
   UT3D_pt_traptvc (&ph, &ei->pc, &ei->va);
   UPRJ_app_pt (&p1, &ph);
-    // UT3D_stru_dump (Typ_PT, &p1, "p1=");
+    // DEB_dump_obj__ (Typ_PT, &p1, "p1=");
     // GR_Disp_pt (&p1, SYM_STAR_S, ATT_COL_RED);
 
   UT3D_pt_traptvc (&ph, &ei->pc, &ei->vb);
   UPRJ_app_pt (&p2, &ph);
-    // UT3D_stru_dump (Typ_PT, &p2, "p2=");
+    // DEB_dump_obj__ (Typ_PT, &p2, "p2=");
     // GR_Disp_pt (&p2, SYM_STAR_S, ATT_COL_RED);
 
 
@@ -607,7 +607,7 @@ static Vector prj_vc;      // projectionDirection
   L_exit:
     // printf(" angr in  va-vb = %lf\n",UT3D_angr_2vc__(&ei->va,&ei->vb));
     // printf(" angr out va-vb = %lf\n",UT3D_angr_2vc__(&eo->va,&eo->vb));
-    // UT3D_stru_dump (Typ_CVELL, eo, "ex UPRJ_app_el:");
+    // DEB_dump_obj__ (Typ_CVELL, eo, "ex UPRJ_app_el:");
     // GR_Disp_ell (eo, 9);
 
   return 0;
@@ -625,7 +625,7 @@ static Vector prj_vc;      // projectionDirection
   Point  pt1, pt2, *pa1, *pa2;
 
 
-  UT3D_stru_dump (Typ_CVPOL, cvi, "UPRJ_app_plg");
+  DEB_dump_obj__ (Typ_CVPOL, cvi, "UPRJ_app_plg");
 
   *cvo = *cvi;      // copy ptNr, v0, v1, *lvTab
 
@@ -657,7 +657,7 @@ static Vector prj_vc;      // projectionDirection
   // create new lengthTable lvTab
   d1 = UT3D_plg_lvTab (da, pa2, pNr);       // create lvTab
     // for(i1=0;i1<pNr;++i1) printf(" lv[%d]=%lf\n",i1,da[i1]);
-    // UT3D_stru_dump(Typ_CVPOL, objo, "plg-prj-tmp:");
+    // DEB_dump_obj__(Typ_CVPOL, objo, "plg-prj-tmp:");
 
 
   // check if plg is closed und untrimmed.
@@ -681,7 +681,7 @@ static Vector prj_vc;      // projectionDirection
 
 
 
-  // UT3D_stru_dump (Typ_CVPOL, cvo, "Plg-out");
+  // DEB_dump_obj__ (Typ_CVPOL, cvo, "Plg-out");
   // GR_Disp_pol (cvo, 9);
 
   return 0;
@@ -698,7 +698,7 @@ static Vector prj_vc;      // projectionDirection
   Point  pt1, pt2, *pa1, *pa2;
 
 
-  // UT3D_stru_dump (Typ_CVBSP, cvi, "UPRJ_app_bsp");
+  // DEB_dump_obj__ (Typ_CVBSP, cvi, "UPRJ_app_bsp");
 
 
   // copy BSP (ptnr, deg, v0, v1, *kvTab) --> objo
@@ -724,7 +724,7 @@ static Vector prj_vc;      // projectionDirection
 
   // Start- und Endpunkt bleiben bestehen ..
 
-  // UT3D_stru_dump (Typ_CVBSP, cvo, "Bsp-out");
+  // DEB_dump_obj__ (Typ_CVBSP, cvo, "Bsp-out");
   // GR_Disp_CvBSp (cvo, 9, objSpc);
 
   return 0;
@@ -757,7 +757,7 @@ static Vector prj_vc;      // projectionDirection
 /// \endcode
 
 // see UTRA_app__
-// see UTO_obj_tra_m3
+// see UTO_obj_tra_obj_m3
 // see UTO_ox_tra
 // see UTO_obj_appprj
 
@@ -766,7 +766,7 @@ static Vector prj_vc;      // projectionDirection
 
 
   printf("UPRJ_app__ %d %d\n",ityp,iNr);
-  UT3D_stru_dump (ityp, obji, "obji:");
+  DEB_dump_obj__ (ityp, obji, "obji:");
 
   irc = 0;
 
@@ -778,12 +778,12 @@ static Vector prj_vc;      // projectionDirection
 
     //================================================================
     case Typ_PT:
-        // UT3D_stru_dump (Typ_PT, obji, "trPTi:");
+        // DEB_dump_obj__ (Typ_PT, obji, "trPTi:");
       objo = objSpc->next;
       if(UME_add (objSpc, iNr * sizeof(Point)) < 0) goto L_EOM;
       L_PT_nxt:
       irc = UPRJ_app_pt (objo, obji);
-        // UT3D_stru_dump (Typ_PT, objo, "trPTo:");
+        // DEB_dump_obj__ (Typ_PT, objo, "trPTo:");
         // printf(" app_tra PT siz=%d\n",*oSiz);
       if(iNr > 1) {  // obji hat mehrere points !
         --iNr;
@@ -799,10 +799,10 @@ static Vector prj_vc;      // projectionDirection
       if(iNr > 1) goto L_E_INR;
       objo = objSpc->next;
       if(UME_add (objSpc, sizeof(Line)) < 0) goto L_EOM;
-        // UT3D_stru_dump (Typ_LN, obji, "trLNi:");
+        // DEB_dump_obj__ (Typ_LN, obji, "trLNi:");
       UPRJ_app_pt (&((Line*)objo)->p1, &((Line*)obji)->p1);
       UPRJ_app_pt (&((Line*)objo)->p2, &((Line*)obji)->p2);
-        // UT3D_stru_dump (Typ_LN, objo, "trLNo:");
+        // DEB_dump_obj__ (Typ_LN, objo, "trLNo:");
         // printf("  UPRJ_app__ LN siz=%d\n",*oSiz);
       break;
 
@@ -853,7 +853,7 @@ static Vector prj_vc;      // projectionDirection
 
   OGX_SET_OBJ (oxo, otyp, otyp, 1, objo);
     // printf("ex UPRJ_app__ irc=%d oTyp=%d\n",irc,otyp);
-    // UTO_dump__ (oxo, "ex UPRJ_app__ irc=%d");
+    // DEB_dump_ox_0 (oxo, "ex UPRJ_app__ irc=%d");
   return irc;
 
 
@@ -898,7 +898,7 @@ static Vector prj_vc;      // projectionDirection
 ///   objSpc fuer Daten (structs) von oGX-Objekten
 /// \endcode
 
-// see UTRA_app_obj UTO_obj_tra_m3 oder UTO_ox_tra
+// see UTRA_app_obj UTO_obj_tra_obj_m3 oder UTO_ox_tra
 
   int   irc, oldSiz, iForm;
   char  *pi;
@@ -907,8 +907,8 @@ static Vector prj_vc;      // projectionDirection
   // printf("UPRJ_app_obj %d\n",*oSiz);
   // printf("         obji-typ=%d form=%d siz=%d\n",((ObjGX*)obji)->typ,
             // ((ObjGX*)obji)->form,((ObjGX*)obji)->siz);
-  // UTO_dump_s_ (obji, "UPRJ_app_obj in");
-  // UTO_dump__ (obji, "UPRJ_app_obj in");
+  // DEB_dump_ox_s_ (obji, "UPRJ_app_obj in");
+  // DEB_dump_ox_0 (obji, "UPRJ_app_obj in");
 
 
   iForm = ((ObjGX*)obji)->form;
@@ -923,16 +923,16 @@ static Vector prj_vc;      // projectionDirection
   objo =  (char*)objo + (oldSiz - *oSiz);
 
 
-  // UTO_dump_s_ (pi, "Obj isolated");
-  // UTO_dump__ (pi, "Obj isolated");
+  // DEB_dump_ox_s_ (pi, "Obj isolated");
+  // DEB_dump_ox_0 (pi, "Obj isolated");
   // UTO_obj_Disp__ (pi, &objSpc, 2, SYM_STAR_S);
 
 
   // oberste struct ist ein ObjGX;
   irc = UPRJ_app_oTab (objo, oSiz, pi, objSpc);
 
-  // UTO_dump__ (pi, "UPRJ_app_obj out");
-  // UTO_dump_s_ (pi, "UPRJ_app_obj out");
+  // DEB_dump_ox_0 (pi, "UPRJ_app_obj out");
+  // DEB_dump_ox_s_ (pi, "UPRJ_app_obj out");
 
   return irc;
 }

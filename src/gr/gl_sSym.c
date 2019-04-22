@@ -202,7 +202,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
 
   AP_dli_act = dli;
 
@@ -269,7 +269,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pMax = sizeof(memspc53) / sizeof(Point);
       pNr = pMax;
       // get sur-record
-      sTyp = UTO_obj_getp (&sur, &rNr, ox1);
+      sTyp = UTO_objDat_ox (&sur, &rNr, ox1);
       if(sTyp != Typ_ObjGX) {TX_Error("GL_sSym_spl E001"); return -1;}
       // create polygon <= outLine of suppSur
       if(((ObjGX*)sur)->form == Typ_SURBSP) {
@@ -298,7 +298,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
 
   AP_dli_act = dli;
 
@@ -401,11 +401,11 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // ACHTUNG vermutlich muss man hier auch TSU_srv_tor_01 benutzen uva ...
   // wenn oci ein Vollkreis ist, den Startpunkt ganz innen setzen ...
-  // cTyp = UTO_obj_getp ((void**)&ocp, &rNr, &oci);
+  // cTyp = UTO_objDat_ox ((void**)&ocp, &rNr, &oci);
   cTyp = srv1->typCov;
-  UTO_get_DB (&cvCov, &rNr, &cTyp, srv1->indCov);
+  UTO_objDat_dbo (&cvCov, &rNr, &cTyp, srv1->indCov);
   if(cTyp == Typ_CI) {
-      // UT3D_stru_dump(Typ_CI, ocp, " srv-cont1:");
+      // DEB_dump_obj__(Typ_CI, ocp, " srv-cont1:");
     UT3D_pt_projptptvc (&pta, &d1, NULL, &((Circ*)cvCov)->pc, &pta, &vca);
       // GR_Disp_pt (&pta, SYM_STAR_S, 4);
     // SEE ALSO TSU_srv_tor_03 !
@@ -415,7 +415,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       UT3D_vc_perpvc2pt (&cic.vz, &vca, &pta, &cic.pc);
       UT3D_pt_traptptlen (&cic.p1, &cic.pc, &pta, fabs(cic.rad));
       cic.p2 = cic.p1;
-        // UT3D_stru_dump(Typ_CI, &cic, " srv-cont2:");
+        // DEB_dump_obj__(Typ_CI, &cic, " srv-cont2:");
         // GR_Disp_ac (&cic, 9);
         // GR_Disp_pt (&cic.p1, SYM_STAR_S, 3);
       dbi = DB_StoreCirc (-1L, &cic);
@@ -450,7 +450,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   // ObjGX from CurvCCV
   OGX_SET_OBJ (&oxo, Typ_CVTRM, Typ_CVTRM, 1, &oco);
     // UTO_obj_Disp__ (&oco, &wrkSeg, 9);
-    // UTO_dump__ (&oco, "contour:");
+    // DEB_dump_ox_0 (&oco, "contour:");
 
 
   // oxo in Polygon pcTab umwandeln ...
@@ -582,7 +582,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
 
   AP_dli_act = dli;
 
@@ -610,7 +610,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   Memspc    wrkSeg;
 
 
-  // UT3D_stru_dump (Typ_SURBSP, sur, "GL_sSym_sbsp:");
+  // DEB_dump_obj__ (Typ_SURBSP, sur, "GL_sSym_sbsp:");
 
 
   ii = 0;
@@ -694,7 +694,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
   AP_dli_act = dli;
 
     // printf("ex GL_sSym_sbsp\n");
@@ -724,7 +724,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   Memspc    wrkSeg;
 
 
-  // UT3D_stru_dump (Typ_SURRBSP, sur, "GL_sSym_srbsp:");
+  // DEB_dump_obj__ (Typ_SURRBSP, sur, "GL_sSym_srbsp:");
 
 
   ii = 0;
@@ -812,7 +812,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
-  GL_Draw_obj (&dli, Typ_Att_Fac1, &oo);
+  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
   AP_dli_act = dli;
 
 

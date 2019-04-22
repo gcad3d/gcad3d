@@ -173,7 +173,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   printf("======================== cvNr=%d ==============\n",cvNr);
 
   for(i1=0; i1<cvNr; ++i1) 
-    UT3D_stru_dump (Typ_CVTRM, &cva[i1], "cca[%d]",i1);
+    DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "cca[%d]",i1);
 
   printf("================ end CNTF =====================\n");
 
@@ -191,7 +191,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(irc < 0) return -1;
 
   for(i1=0; i1<ptNr; ++i1) 
-    UT3D_stru_dump (Typ_PT, &pta[i1], "pta[%d]",i1);
+    DEB_dump_obj__ (Typ_PT, &pta[i1], "pta[%d]",i1);
 
   dli = -1L;
   GL_DrawPoly (&dli, Typ_Att_hili, ptNr, pta);
@@ -302,7 +302,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // TESTBLOCK
   // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
-  // UT3D_stru_dump (Typ_ObjGX,oxi,"CNTF_add__");
+  // DEB_dump_obj__ (Typ_ObjGX,oxi,"CNTF_add__");
   // printf(" isr=%d old.typ=%d newTyp=%d\n",isr,old.typ,new.typ);
   // END TESTBLOCK
 
@@ -337,8 +337,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   } else {
     // get startPt and endtPt of newObj
-    irc = UT3D_ptvcpar1_std_obj (&new.pts,NULL,&new.v0, Ptyp_0, new.typ, new.obj);
-    irc = UT3D_ptvcpar1_std_obj (&new.pte,NULL,&new.v1, Ptyp_1, new.typ, new.obj);
+    irc = UT3D_ptvcpar1_std_obj (&new.pts,NULL,&new.v0, Ptyp_start, new.typ, new.obj);
+    irc = UT3D_ptvcpar1_std_obj (&new.pte,NULL,&new.v1, Ptyp_end, new.typ, new.obj);
     new.ip0 = 0;
     new.ip1 = 0;
   }
@@ -376,8 +376,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   L_sta_2:
 
     // TESTBLOCK
-    // UT3D_stru_dump (Typ_PT, &new.pts, " new.pts");
-    // UT3D_stru_dump (Typ_PT, &new.pte, " new.pte");
+    // DEB_dump_obj__ (Typ_PT, &new.pts, " new.pts");
+    // DEB_dump_obj__ (Typ_PT, &new.pte, " new.pte");
     // printf(" ccNr=%d v0=%lf v1=%lf dir=%d clo=%d\n",
             // ccNr,new.v0,new.v1,new.dir,new.clo);
     // END TESTBLOCK
@@ -515,7 +515,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // get normal-point (project old.pte onto new.obj)
   irc = CNTF_normalPt (&pt1, &old.pte, &par1, new.typ, new.obj);
-    // UT3D_stru_dump (Typ_PT, &pt1, " _normalPt-pt1-irc=%d",irc);
+    // DEB_dump_obj__ (Typ_PT, &pt1, " _normalPt-pt1-irc=%d",irc);
   // circ & elli: parameter nmust refer to the parent-circle !
   // if(new.cer) par1 = 1. - par1;
   // 0  pt1 == old.pte; point is on new.obj. old=new; Done.
@@ -580,8 +580,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // printf("CNTF_cvco_lfig_pt \n");
-  // UT3D_stru_dump (Typ_PT, &old.pte, "  _lfig_pt-old-pte");
-  // UT3D_stru_dump (Typ_PT, &new.pts, "  _lfig_pt-new-pts");
+  // DEB_dump_obj__ (Typ_PT, &old.pte, "  _lfig_pt-old-pte");
+  // DEB_dump_obj__ (Typ_PT, &new.pts, "  _lfig_pt-new-pts");
 
 
 
@@ -601,7 +601,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // get normal-point; (pt1 = project new.pts onto old.obj)
   irc = CNTF_normalPt (&pt1, &new.pts, &par1, old.typ, old.obj);
   // if(old.cer) par1 = 1. - par1;
-    // UT3D_stru_dump (Typ_PT, &pt1, " pt1-irc=%d",irc);
+    // DEB_dump_obj__ (Typ_PT, &pt1, " pt1-irc=%d",irc);
   // 0  pt1 == new.pts; old.pte = pt1. Out old. old=new; Done.
   // 1  old.pte = pt1. Out old. Out LN old.pte-pt1; old=new; Done.
   // -1: no connection
@@ -662,8 +662,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // printf("CNTF_cvco_lfig_lfig %d\n",imod);
-  // UT3D_stru_dump (Typ_PT, &old.pts, " old.pts ");
-  // UT3D_stru_dump (Typ_PT, &old.pte, " old.pte ");
+  // DEB_dump_obj__ (Typ_PT, &old.pts, " old.pts ");
+  // DEB_dump_obj__ (Typ_PT, &old.pte, " old.pte ");
 
 
   // only if 1. and 2. obj. present (later do not reverse old):
@@ -842,9 +842,9 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   printf("-------------CNTF_dump %s\n",txt);
 
-  UT3D_stru_dump (cf1->typ, cf1->obj," obj");
-  UT3D_stru_dump (Typ_PT, &cf1->pts," pts");
-  UT3D_stru_dump (Typ_PT, &cf1->pte," pte");
+  DEB_dump_obj__ (cf1->typ, cf1->obj," obj");
+  DEB_dump_obj__ (Typ_PT, &cf1->pts," pts");
+  DEB_dump_obj__ (Typ_PT, &cf1->pte," pte");
 
   printf(" v0=%lf v1=%lf dbi=%ld ip0=%ld ip1=%ld\n",
          cf1->v0,cf1->v1,cf1->dbi,cf1->ip0,cf1->ip1);
@@ -916,8 +916,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   double d1;
 
 
-  // UT3D_stru_dump (Typ_PT, pt1, "CNTF_normalPt ");
-  // UT3D_stru_dump (typ, obj, "   obj ");
+  // DEB_dump_obj__ (Typ_PT, pt1, "CNTF_normalPt ");
+  // DEB_dump_obj__ (typ, obj, "   obj ");
 
 
   // irc = APT_decode_cvco_prj1 (&ptAct, &d_oe_ne,
@@ -931,7 +931,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // get par1 = parameter of pt2 on obj
   irc = UTO_par1_pt_pt_obj (par1, pt2, typ, obj);
-    // UT3D_stru_dump (Typ_PT, pt2, " _normalPt-pt2");
+    // DEB_dump_obj__ (Typ_PT, pt2, " _normalPt-pt2");
     // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par1);
 
   // get d1 = estimated length pt1 - pt2
@@ -1015,7 +1015,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   UME_free (&wrkSeg);
 
     // printf("ex CNTF_int__ %d par1=%lf par2=%lf\n",irc,*par1,*par2);
-    // UT3D_stru_dump (Typ_PT, ptx, " ptx ");
+    // DEB_dump_obj__ (Typ_PT, ptx, " ptx ");
 
   return irc;
 
@@ -1042,8 +1042,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // printf("CNTF_selPt %d\n",iNr);
-  // UT3D_stru_dump (Typ_PT, &old.pts, " old.pts ");
-  // for(ii=0;ii<iNr;++ii) UT3D_stru_dump(Typ_PT,&pta[ii]," pta[%d] ",ii);
+  // DEB_dump_obj__ (Typ_PT, &old.pts, " old.pts ");
+  // for(ii=0;ii<iNr;++ii) DEB_dump_obj__(Typ_PT,&pta[ii]," pta[%d] ",ii);
 
 
   // check which intersectionPoint ist nearest to endPt
@@ -1107,8 +1107,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // printf("CNTF_add_ln %ld %ld\n",*ip0,*ip1);
-  // UT3D_stru_dump (Typ_PT, &old.pts, "  _add_ln-old-pts");
-  // UT3D_stru_dump (Typ_PT, &old.pte, "  _add_ln-old-pte");
+  // DEB_dump_obj__ (Typ_PT, &old.pts, "  _add_ln-old-pts");
+  // DEB_dump_obj__ (Typ_PT, &old.pte, "  _add_ln-old-pte");
 
 
   // test equal point
@@ -1187,7 +1187,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 // using old.pts - old.pte for ip0, ip1 !
 
 
-  // UT3D_stru_dump (Typ_CVTRM, cc1, " CNTF_out_cvtrm %d",ccNr);
+  // DEB_dump_obj__ (Typ_CVTRM, cc1, " CNTF_out_cvtrm %d",ccNr);
   // if(*ccNr == 3) AP_debug__ ("APT_decode_cvco_out 3");
 
 

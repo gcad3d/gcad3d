@@ -190,7 +190,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
   // get curve
   form = DB_GetObjDat (&data, &oNr, cTyp, dbi);
     // printf(" form1=%d oNr=%d\n",form,oNr);
-    // UT3D_stru_dump (form, data, " _basCv-1"); 
+    // DEB_dump_obj__ (form, data, " _basCv-1"); 
 
   if(form == Typ_CVTRM) {
 

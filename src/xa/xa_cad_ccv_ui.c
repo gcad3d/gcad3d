@@ -84,6 +84,7 @@ static int winTyp;   // 0=std (with REV & MOD)
 
 // PROTOS:
   int IE_ccv__ (MemObj *mo, void **data);
+  // int IE_ccv_keyb (MemObj *mo, void **data);
 
 
 
@@ -177,6 +178,7 @@ extern int     APT_dispDir;
 
 
 
+
 //================================================================
   void IE_ccv_set_winTyp (int typ) {
 //================================================================
@@ -225,7 +227,7 @@ extern int     APT_dispDir;
 
 
   txt = GUI_DATA_S1;
-    printf("IE_ccv_mod  /%s/\n",txt);
+    // printf("IE_ccv_mod  /%s/\n",txt);
 
   // IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));   // raise win
 
@@ -247,6 +249,10 @@ extern int     APT_dispDir;
   //----------------------------------------------------------------
   if(!strcmp(txt, "OK")) {
     IE_cad_OK ();  // OK-Button druecken
+    // write IE_buf -> active CAD-inputfield
+    // IE_inp_set (IE_buf);
+    // GUI_update__ ();
+    // IE_inp_chg (-1);  // next inputfield
     return 0;
   }
 
@@ -294,7 +300,7 @@ extern int     APT_dispDir;
 
   //----------------------------------------------------------------
   if(strcmp(txt, "PREVIEW")) {
-
+    L_prev_3:
     // modify Buffer; add od change word
     // CW, CCW, DEL(Esc),  ..
     IE_ccv_cw (&cPos, txt);
@@ -370,6 +376,7 @@ extern int     APT_dispDir;
   int IE_ccv_CB (MemObj *mo, void **data) {
 //=====================================================================
 // keyb-callback from GroupWindow IE_ccv__
+// BUT Tab-Key goes to UI_GL_keys__ -> IE_inp_chg
 
 // TODO: =TYP_EventEnter
 
@@ -378,7 +385,7 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  // printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
+  printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
 
 /*
   if(GUI_DATA_EVENT == TYP_EventEnter) {
@@ -471,6 +478,18 @@ extern int     APT_dispDir;
 
 }
 
+
+ /*
+//=====================================================================
+  int IE_ccv_keyb (MemObj *mo, void **data) {
+//=====================================================================
+
+  printf(" key=%d\n",*(int*)data[2]);
+
+  return 0;
+
+}
+*/
  
 //=====================================================================
   int IE_ccv__ (MemObj *mo, void **data) {
@@ -485,7 +504,9 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
 
 
   i1 = GUI_DATA_I1;
-  // printf("IE_ccv__ %d\n",i1);
+
+
+  printf("IE_ccv__ %d\n",i1);
 
 
   switch (i1) {
@@ -549,6 +570,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
         MSG_Tip ("CADsave");
 
 
+      // GUI_Win_ev_key (&win0, IE_ccv_keyb);
       GUI_Win_up (NULL, &win0, 0);
       GUI_Win_go (&win0);
 

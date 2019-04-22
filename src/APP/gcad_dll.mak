@@ -48,7 +48,7 @@ CC = gcc
 FTYP = so
 CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 CPPFLG = -fPIC $(CPDEB)
-LKFLG = $(LKDEF) -shared
+LKFLG = $(LKDEF) -shared -export-dynamic
 
 ifeq "$(hTyp)" "Linux_i386"
 FTYP = so

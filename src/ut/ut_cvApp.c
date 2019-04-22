@@ -16,6 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
+- rename -> cvAppox_
   ..
 
 -----------------------------------------------------
@@ -545,7 +546,7 @@ int main () {
   L_1:
   // Sind die Tangenten parallel ?
   // 1 Grad = 0.017;     0.1 Grad = 0.0017
-  if(UT2D_comp2vc_p (vcs, &vce, 0.0017) == 0) goto L_0;
+  if(UT2D_ck_parl_2vc (vcs, &vce, 0.0017) == 0) goto L_0;
 
     // Line od Bogen-Bogen
     irc = cvApp_2B (pts, &pTab[iend], &vce);
@@ -872,9 +873,9 @@ int main () {
 
   // Wie lang ist Arc1 ?
   // Kann leider auch retour gehen !
-  idir = 1;
-  if(r1 < 0.) idir = -1;
-  UT2D_vc_cipt (&vc1, &c1, &c1s, idir);
+  // idir = 1; if(r1 < 0.) idir = -1;
+  idir = DLIM01(r1);
+  UT2D_vc_tng_ci_pt (&vc1, &c1, &c1s, idir);
   len_ac = UT2D_slen_pt_pt_vc__ (&ci, &c1s, &vc1);
   // printf(" BB2: len_ac1=%f\n",len_ac);
   if(len_ac < UT_TOL_ln) return -1;
@@ -882,9 +883,9 @@ int main () {
 
   // Wie lang ist Arc2 ?
   // Kann leider auch retour gehen !
-  idir = 1;
-  if(r2 < 0.) idir = -1;
-  UT2D_vc_cipt (&vc1, &c2, &ci, idir);
+  // idir = 1; if(r2 < 0.) idir = -1;
+  idir = DLIM01(r2);
+  UT2D_vc_tng_ci_pt (&vc1, &c2, &ci, idir);
   len_ac = UT2D_slen_pt_pt_vc__ (pte, &ci, &vc1);
   // printf(" BB2: len_ac2=%f\n",len_ac);
   if(len_ac < UT_TOL_ln) return -1;
@@ -1263,8 +1264,9 @@ int main () {
     TX_Error("cvApp_loadLastVec E1");
     return -1;
   }
-  idir = 1; if(oTab0[i1].rad < 0.) idir = -1;
-  UT2D_vc_cipt (vc1, &oTab0[i1].pc, &oTab0[i1].p2, idir);
+  // idir = 1; if(oTab0[i1].rad < 0.) idir = -1;
+  idir = DLIM01(oTab0[i1].rad);
+  UT2D_vc_tng_ci_pt (vc1, &oTab0[i1].pc, &oTab0[i1].p2, idir);
 
 
 

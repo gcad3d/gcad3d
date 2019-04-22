@@ -75,7 +75,7 @@ List_functions_end:
   if(typ1 == Typ_PLN) {
     // get Plane
     typ1 = DB_GetObjDat (&pDat1, &rNr, oSrv->typCen, oSrv->indCen);
-      // UT3D_stru_dump (typ1, pDat1, "Spine:\n");
+      // DEB_dump_obj__ (typ1, pDat1, "Spine:\n");
     *ptSpi = ((Plane*)pDat1)->po;
     *vcSpi = ((Plane*)pDat1)->vz;
   }
@@ -118,8 +118,8 @@ List_functions_end:
 
 
   printf("SRV_CvIso_parsrv %f %d \n",dp,iDir);
-  // UTO_dump__ (srv, "");
-  // UT3D_stru_dump (Typ_SURRV, oSrv, "");
+  // DEB_dump_ox_0 (srv, "");
+  // DEB_dump_obj__ (Typ_SURRV, oSrv, "");
 
 
   oSrv = (SurRev*)srv->data;
@@ -226,7 +226,7 @@ List_functions_end:
       // return -1;
     // }
     UT3D_m3_inirot_angr (dRot.ma, &ptSpi, &dRot.vz, dRot.angr);
-      // UT3D_stru_dump (Typ_TraRot, &dRot, "TraRot:\n");
+      // DEB_dump_obj__ (Typ_TraRot, &dRot, "TraRot:\n");
     UTRA_def__ (1, Typ_TraRot, &dRot);
     UTRA_app__ (objo, *oTyp, *oTyp, 1, oAux, memSeg);
 

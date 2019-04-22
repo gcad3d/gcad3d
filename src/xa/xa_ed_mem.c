@@ -2095,7 +2095,7 @@ extern char  MOpTxtStr[];
 
   // } else {   // dynamic point
     pt1 = DB_get_PT (ipt);
-      // UT3D_stru_dump (Typ_PT, pt1, "DB-pt[%d]",ipt);
+      // DEB_dump_obj__ (Typ_PT, pt1, "DB-pt[%d]",ipt);
     // see also AP_obj_add_pt
     strcpy(s1, "P(");
     AP_obj_add_nval (s1, 3, (double*)pt1);

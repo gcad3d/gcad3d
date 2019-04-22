@@ -53,7 +53,8 @@ rm -f ${DIR_DEV}gcad3d/rpm/SRPMS/*
 
 
 echo "-----------------------------------------"
-echo "- $fnam created -"
+#echo "- $fnam created -"
+echo "- ${DIR_DEV}gcad3d/packages/${packNam} created -"
 
 
 exit 0

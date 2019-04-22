@@ -96,7 +96,7 @@ List_functions_end:
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_TX.h"               // TX_Print
 
-#include "../xa/xa_msg.h"              // MSG_typ_*
+#include "../xa/xa_msg.h"              // MSG_ERR_typ_*
 #include "../xa/xa_mem.h"              // memspc51
 #include "../xa/xa.h"                  // AP_modact_nam
 
@@ -764,7 +764,7 @@ List_functions_end:
 
 
   // printf("MSH_ibnd_ptn %d ibSiz = %d\n",pNr,*ibNr);
-  // for(i1=0;i1<pNr;++i1) UT3D_stru_dump (Typ_PT,&pa[i1],"P[%d]",i1);
+  // for(i1=0;i1<pNr;++i1) DEB_dump_obj__ (Typ_PT,&pa[i1],"P[%d]",i1);
 
   i1 = sizeof(memspc501) / sizeof(Point2);  // 16 byte
   if(i1 < pNr) {
@@ -786,7 +786,7 @@ List_functions_end:
 
   // transport all points > 2D (pa -> p2a)
   // and set indexArray ipa
-  UT2D_npt_npt (p2a, pa, pNr);
+  UT2D_npt_npt3 (p2a, pa, pNr);
 
 
   // get boundary into iba
@@ -835,7 +835,7 @@ List_functions_end:
 
 
   // printf("MSH_ibnd_pt2n %d ibSiz = %d\n",p2Nr,*ibNr);
-  // for(i1=0;i1<p2Nr;++i1) UT3D_stru_dump (Typ_PT2,&p2a[i1],"P[%d]",i1);
+  // for(i1=0;i1<p2Nr;++i1) DEB_dump_obj__ (Typ_PT2,&p2a[i1],"P[%d]",i1);
 
   ibSiz = *ibNr;
 
@@ -1192,7 +1192,7 @@ List_functions_end:
   MemTab_free (&pTab);
 
 
-    // UT3D_stru_dump (Typ_PT, pto, "ex MSH_pt_prjptmsh_ %d",i1);
+    // DEB_dump_obj__ (Typ_PT, pto, "ex MSH_pt_prjptmsh_ %d",i1);
 
 
   return i1;
@@ -1254,7 +1254,7 @@ List_functions_end:
         // point ouside mesh
 // TODO: gis-offset ?  // gis_log_pt3 (&pa1[i1]);  // report errPos
         LOG_A_pt3 (&pa1[i1]);  // report errPos
-        LOG_A__ (MSG_typ_ERR, "point[%d] outside mesh - deleted", i2);
+        LOG_A__ (MSG_ERR_typ_ERR, "point[%d] outside mesh - deleted", i2);
         // TX_Error("point[%d] - %f %f outside mesh - deleted", i1,
                  // pa1[i1].x,pa1[i1].y);
         MEM_del_nrec (ptNr, pa1, i1, 1, sizeof(Point));
@@ -1311,11 +1311,11 @@ List_functions_end:
   Plane   pl1;
 
 
-  // UT3D_stru_dump (Typ_PT, pti, "MSH_pt_prjptmsh1 fNr=%d pNr=%d",fNr,pNr);
+  // DEB_dump_obj__ (Typ_PT, pti, "MSH_pt_prjptmsh1 fNr=%d pNr=%d",fNr,pNr);
   // printf("MSH_pt_prjptmsh1 tol=%f\n",tol);
 
   p2i = UT2D_pt_pt3 (pti);
-    // UT3D_stru_dump (Typ_PT2, &p2i, "p2i=");
+    // DEB_dump_obj__ (Typ_PT2, &p2i, "p2i=");
 
 
   vp = (Vector*)&UT3D_VECTOR_Z;  // projectionVector
@@ -1369,10 +1369,10 @@ List_functions_end:
   p1 = &pa[ii1];
   p2 = &pa[ii2];
   p3 = &pa[ii3];
-    // UT3D_stru_dump (Typ_PT, p1, "p1=");
-    // UT3D_stru_dump (Typ_PT, p2, "p2=");
-    // UT3D_stru_dump (Typ_PT, p3, "p3=");
-    // UT3D_stru_dump (Typ_VC, &pl1.vz, "vz=");
+    // DEB_dump_obj__ (Typ_PT, p1, "p1=");
+    // DEB_dump_obj__ (Typ_PT, p2, "p2=");
+    // DEB_dump_obj__ (Typ_PT, p3, "p3=");
+    // DEB_dump_obj__ (Typ_VC, &pl1.vz, "vz=");
 
 
   // compute intersectionpoint pto (Z fixed)
@@ -1380,11 +1380,11 @@ List_functions_end:
   // get pl1.vz = normalVector of triangle
   UT3D_vc_perp3pt (&pl1.vz, p1, p2, p3);
   UT3D_vc_setLength (&pl1.vz, &pl1.vz, 1.);
-    // UT3D_stru_dump (Typ_VC, &pl1.vz, "pl1.vz:");
+    // DEB_dump_obj__ (Typ_VC, &pl1.vz, "pl1.vz:");
 
   // set plane-origin, create pl1.p
   UT3D_pl_ptpl (&pl1, p1);
-    // UT3D_stru_dump (Typ_PLN, &pl1, "pl1:");
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "pl1:");
   // intersect plane with pti-vp (vp=Z-vec)
   ix = UT3D_ptDi_intptvcpln (pto, &d1, &pl1, pti, vp);
 
@@ -1470,7 +1470,7 @@ List_functions_end:
 
 
   // printf("MSH_npt_prjcvmsh_  %d\n",plgNr);
-  // for(i1=0;i1<plgNr;++i1) UT3D_stru_dump (Typ_PT,&pPlg[i1],"p[%d]=",i1);
+  // for(i1=0;i1<plgNr;++i1) DEB_dump_obj__ (Typ_PT,&pPlg[i1],"p[%d]=",i1);
   // MSH_dump_fTab (fTab->data, fTab->rNr);
 
 
@@ -1772,7 +1772,7 @@ List_functions_end:
 /*
     printf("ex MSH_npt_prjcvmsh_\n");
     for(i1=0;i1<outNr;++i1) {
-      UT3D_stru_dump (Typ_PT, &pOut[i1], "  pOut[%d]:",i1);
+      DEB_dump_obj__ (Typ_PT, &pOut[i1], "  pOut[%d]:",i1);
       // GR_Disp_pt (&pOut[i1], SYM_STAR_S, 2);
     }
 */

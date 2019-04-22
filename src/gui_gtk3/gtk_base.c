@@ -209,7 +209,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   // test temporary block UI_tmpSpc
   tm = GUI_obj__ ();
   if(UME_get_used(tm) <= sizeof(int)) goto L_nxt;  // int 
-    // UT3D_stru_dump (Typ_Memspc, tm, "UI_tmpSpc");
+    // DEB_dump_obj__ (Typ_Memspc, tm, "UI_tmpSpc");
 
 
     printf(" temp blockNr=%d\n",*((int*)tm->start));

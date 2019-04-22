@@ -435,7 +435,7 @@ static TexBas *actTexBas;
 /// update the userparamters of the active texture
 // activeTexture is TexRefAct; set it with ??
 
-  // UT3D_stru_dump (Typ_TEXR, rtex, "Tex_TexRef_UpdU");
+  // DEB_dump_obj__ (Typ_TEXR, rtex, "Tex_TexRef_UpdU");
 
   if(TexRefAct >= TexRefNr) return -1;         // skips 0,0
 
@@ -963,7 +963,7 @@ GL_LoadTex
 
   *tex = &TexRefTab[ind];
 
-    // UT3D_stru_dump (Typ_TEXR, *tex, "TB[%d]:  ",ind);
+    // DEB_dump_obj__ (Typ_TEXR, *tex, "TB[%d]:  ",ind);
 
   return 0;
 
@@ -1099,7 +1099,7 @@ GL_LoadTex
   TexRef  *tr;
  
 
-  if(fpo) UT3D_stru_dump (TYP_FuncInit1, fpo, NULL);
+  if(fpo) DEB_dump_obj__ (TYP_FuncInit1, fpo, NULL);
 
   // dump GA-records
   GA_dump_tex (fpo);  // alle GA-records mit textures raus ..
@@ -1108,17 +1108,17 @@ GL_LoadTex
   // dump TexRef-records
   for(i1=0; i1<TexRefNr; ++i1) {
     tr = &TexRefTab[i1];
-    UT3D_stru_dump (Typ_TEXR, tr, "Texture-Reference[%d]:\n",i1);
+    DEB_dump_obj__ (Typ_TEXR, tr, "Texture-Reference[%d]:\n",i1);
   }
 
 
   // dump TexBas-records
   for(i1=0; i1<TexBasNr; ++i1) {
     tb = &TexBasTab[i1];
-    UT3D_stru_dump (Typ_TEXB, tb, "Basic-Texture[%d]:\n",i1);
+    DEB_dump_obj__ (Typ_TEXB, tb, "Basic-Texture[%d]:\n",i1);
   }
 
-  if(fpo) UT3D_stru_dump (TYP_FuncExit, NULL, NULL);
+  if(fpo) DEB_dump_obj__ (TYP_FuncExit, NULL, NULL);
 
   return 0;
 

@@ -283,6 +283,7 @@ Typ_goGeo8=Digita il valore; Seleziona PT
 Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + VC (PgUp) / PT + PLN
 Typ_goRadius=Digita il valore del Raggio; Seleziona PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
+Typ_go_RA=Sel Plane (R) or surface (A)
 Typ_Tra=PagSu / DWN (seleziona una trasformazione)
 Typ_modAux=PagSu / DWN
 Typ_mod1=PagSu / DWN (seleziona versioni alternative)

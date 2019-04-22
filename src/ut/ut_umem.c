@@ -39,44 +39,55 @@ void UME(){}
 =====================================================
 List_functions_start:
 
-UME_malloc            init Memspc (malloc, can realloc, must free)
-UME_init              init with fixed or stack-space (no realloc, no free)
-UME_free
-UME_reset             reset Memspc
+MEM_alloc_tmp         allocate mem for active function (temp.space)
+MEM_MUST_FREE         1=memspc MUST be freed                               INLINE
+MEM_CANNOT_FREE       1=memspc CANNOT be freed                             INLINE
 
-UME_save              save Obj -> Memspc
-UME_reall_save        save and reallocate if necessary
-UME_reall_add         add and reallocate if necessary
+UME_NEW               setup                                                INLINE
+UME_malloc            init Memspc (malloc, does realloc, must free)
+UME_init              init with fixed or stack-space (NO realloc, no free)
+UME_reset             reset Memspc
+UME_free              free complete
+
+UME_nStru_get         get memspace for rNr records of size rSiz, no reserve
+UME__getSpc           reserve space, reallocate if necessary
+UME__copy             save data, reallocate if necessary
+
+UME_reserve           get memSpacePos from datasize; reserve space; NO realloc
+UME_adjust            set new memSpacePos; (reserve space; set .next) NO realloc
+UME_save              copy data > Memspc;  NO realloc
 
 UME_del               remove space (toPos - fromPos)
-
-UME_reserve           get memSpacePos & reserve space
-UME_adjust            set memSpacePos (reserve space; set .next)
 UME_set_free          correct free space (release n bytes)
 
-UME_get_next          get actual memSpacePosition                 INLINE
-UME_get_start         get startPosition of Memspc (NULL = uninitialized) INLINE
-UME_get_used          get used space                              INLINE
+UME_get_next          get actual memSpacePosition                          INLINE
+UME_get_start         get startPosition of Memspc (NULL = uninitialized)   INLINE
+UME_get_used          get used space                                       INLINE
 UME_ck_free           return free space
 UME_ck_tot            report total space
 UME_dump              print space total / used
 
-MEM_alloc_tmp         allocate mem for active function (temp.space)
-UME_TMP_FILE          allocate temp.memspace for file             INLINE
-
-UME_obj_reserve       reserve space in Memspc and return a MemObj
-UME_obj_get           get object-position from MemObj
-UME_obj_invalid_set   set MemObj=Error
-UME_obj_dump          dump MemObj
-
+MEM_alloc_file        allocate temp.memspace for existing file              INLINE
 UME_write__           write memSpc into file
 UME_read__            read file into Memspc
 
-UME_connect           DO NOT USE (use UME_get_next)               INLINE
-UME_add               DO NOT USE (use UME_reserve)
-UME_NEW               setup. unused
+UME_obj_IS_VALID
+UME_realloc           realloc to newSiz internal
 
-UME_realloc           internal
+----- funcs for MemObj ------------------------
+UME_obj_reserve       reserve space in Memspc and return a MemObj
+UME_obj_get           get object-position from MemObj
+UME_obj_save
+UME_obj_invalid_set   set MemObj=Error
+UME_obj_dump          dump MemObj
+PTR_MEMOBJ
+MEMOBJ_PTR
+
+UME_connect           DO NOT USE (use UME_get_next)                        INLINE
+UME_add    DO NOT USE Occupy spc. NO realloc.
+
+UME_reall_add         reserve space, reallocate if necessary   
+UME_reall_save        save data, reallocate if necessary
 
 List_functions_end:
 =====================================================
@@ -94,27 +105,43 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 - usage examples:
 
 --------------------------
-  // get tempspace (stack, only valid in acive func):
-  Memspc   memSeg1;
-  UME_init (&memSeg1, MEM_alloc_tmp (oSiz), oSiz);
+  // malloc space; does realloc, must free
+  int i1, *ipa;
+  Memspc oSpc=UME_NEW;          // define (empty) memSpc;
+
+  // malloc space for ptNr points; increment with space for 100 points if too small
+  irc = UME_malloc (&oSpc, ptNr * sizeof(Point), 100 * sizeof(Point));
+  if(irc < 0) return -1;
+
+  // copy pta = array of ptNr points -> oSpc
+  irc = UME__copy (&oSpc, NULL, pta, ptNr * sizeof(Point));
+  if(irc < 0) return -1;
+
+  // get spc for 10 ints; save ints
+  ipa = (int*) UME__getSpc (&oSpc, NULL, sizeof(int) * 10);
+  if(!ipa) return -1;
+  // copy data -> oSpc
+  for(i1=0;i1<10;++i1) ipa[i1] = i1;
+
+  .. 
+  UME_free (&oSpc);
+
 
 --------------------------
-  // get fixed space (stack, only valid in acive func)
+  // get tempspace (stack, only valid in acive func, no realloc):
+  Memspc   tmpSeg1;
+  UME_init (&tmpSeg1, MEM_alloc_tmp (oSiz), oSiz);
+
+
+--------------------------
+  // get fixed space (stack, only valid in acive func, no realloc)
   int      *iTab, iNr, i1;
   char     memspc51[50000];
-  UME_init (&memSeg1, memspc51, sizeof(memspc51));
-  iTab = UME_reserve (&memSeg1, iNr * sizeof(int));  // reserve spc for iNr int's
-  for(i1=0;i1<iNr;++i1) iTab[i1] = i1;    // write into memSeg1
-  ...                                     // (increments memSeg1.next !)
-  UME_set_free (-1, &memSeg1);            // reset memSeg1
-
---------------------------
-  // malloc space for ptNr points
-  irc = UME_malloc (&memSeg1, ptNr * sizeof(Point), 100 * sizeof(Point));
-  // copy pta = array of ptNr points -> memSeg1
-  ptp = UME_save (&memSeg1, pta, ptNr * sizeof(Point));
-  .. 
-  UME_free (&memSeg1);
+  UME_init (&tmpSeg1, memspc51, sizeof(memspc51));
+  iTab = UME_reserve (&tmpSeg1, iNr * sizeof(int));  // reserve spc for iNr int's
+  for(i1=0;i1<iNr;++i1) iTab[i1] = i1;    // write into tmpSeg1
+  ...                                     // (increments tmpSeg1.next !)
+  UME_set_free (-1, &tmpSeg1);            // reset tmpSeg1
 
 
 \endcode *//*----------------------------------------
@@ -134,14 +161,17 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
 #include "../ut/ut_cast.h"
 #include "../ut/ut_umem.h"              // Memspc
+#include "../ut/ut_mem.h"               // MEM_..
 #include "../ut/ut_types.h"             // MEMSPCTYP_..
 #include "../ut/ut_umb.h"               // UMB_
 #include "../ut/ut_TX.h"                // TX_Error
 
-
+#include "../ut/AP_types.h"             // Typ_Memspc
 
 // static int (*UME_CB__)();    // Deklaration realloc-Callback
 
+
+const Memspc UME_NUL = UME_NEW;
 
 
 
@@ -255,11 +285,13 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   int UME_realloc (long *spcOff, Memspc *memSpc, long newSiz) {
 //=======================================================================
 /// \code
-/// memspc vergroessern; die Pointer start, next und end korrigieren.
+/// UME_realloc           realloc to newSiz internal
+/// 
 /// Input:
 ///   newSiz   is new total size of memSpc
 /// Output:
 ///   spcOff   distance from active memSpc->start to new memSpc->start
+///   retCod   0=OK; -1=Error
 /// \endcode
 
 
@@ -267,17 +299,27 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   void  *oldAdr;
 
 
-  if(memSpc->spcTyp != MEMSPCTYP_MALLOC__) {
-    TX_Error("UME_realloc E1");
-    return -1;
+  // test if can realloc
+  if((memSpc->spcTyp < MEMSPCTYP_MALLOC__)    ||
+     (memSpc->spcTyp > MEMSPCTYP_MALLOC_FIX))     {
+
+    // if no allocation yet; change to MEMSPCTYP_MALLOC__
+    if(memSpc->spcTyp == MEMSPCTYP_NONE) {
+      memSpc->spcTyp = MEMSPCTYP_MALLOC__;
+    } else {
+      DEB_dump_obj__ (Typ_Memspc, memSpc, "UME_realloc E1");
+      TX_Error("UME_realloc E1");
+      return -1;
+    }
   }
 
+
   actSiz = (char*)memSpc->next - (char*)memSpc->start;
+  oldAdr = memSpc->start;
 
   printf("::::UME_realloc %ld %ld %p\n",newSiz,actSiz,memSpc->start);
 
 
-  oldAdr = memSpc->start;
 
   memSpc->start = realloc(memSpc->start, newSiz);
 
@@ -289,7 +331,10 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   memSpc->next  = (char*)memSpc->start + actSiz;
   memSpc->end   = (char*)memSpc->start + newSiz;
 
-  *spcOff = (char*)memSpc->start - (char*)oldAdr;
+  if(spcOff) {
+    *spcOff = (char*)memSpc->start - (char*)oldAdr;
+      printf(" realloc-spcOff =%ld\n",*spcOff);
+  }
 
 
   // printf("ex UME_realloc %d %d %p\n",newSiz,actSiz,memSpc->start);
@@ -309,14 +354,17 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
 
 
-  // printf("UME_init  siz=%d\n",osiz); fflush (stdout);
+  // printf("UME_init  siz=%d pos=%p\n",osiz,objDat);
+  // fflush (stdout);
 
   memSpc->start = objDat;
   memSpc->next  = objDat;
   // memSpc->end   = objDat + osiz;
   memSpc->end   = (char*)objDat + osiz;
 
-  memSpc->spcTyp = MEMSPCTYP_FIX__;
+  memSpc->spcTyp = MEMSPCTYP_TMP;
+
+    // UME_dump (memSpc, "ex-UME_init");
 
   return 0;
 
@@ -330,14 +378,14 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 /// UME_malloc            init Memspc (malloc, can realloc, must free)
 /// Memspace must be freed with UME_free
 /// Input:
-///   spcSiz  malloc this size
+///   spcSiz  malloc this size in bytes
 ///   memInc  if reallocate: increase <memInc> bytes
 /// Output:
 ///   RetCode 0=OK; -1=outOfMemory-Error.
 /// 
 /// Example:
 /// Memspc tmpSpc=UME_UME_NEW;
-/// UME_malloc (&tmpSpc, 100 *sizeof(int), 50 *sizeof(int));
+/// UME_malloc (&tmpSpc, 1000 * sizeof(int), 500 * sizeof(int));
 /// ...
 /// UME_free (&tmpSpc);
 /// \endcode
@@ -424,13 +472,14 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
   // printf("::::UME_free %p\n",memSpc->start);
 
-  if(memSpc->spcTyp > MEMSPCTYP_MALLOC__) return 1;
+  if(MEM_CANNOT_FREE(memSpc->spcTyp)) return 1;
 
   if(memSpc->start) free (memSpc->start);
 
-  memSpc->start = NULL;
-
-  memSpc->spcTyp = 0;
+  
+  *memSpc = UME_NUL;
+  // memSpc->start = NULL;
+  // memSpc->spcTyp = MEMSPCTYP_NONE;  // 0
 
   return 0;
 
@@ -459,8 +508,16 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 //================================================================
 /// \code
 /// UME_reserve           get memSpacePos & reserve space
-/// RetCode: the address (starting-Position) of the memSpace;
-///   NULL if EOM (not enough memspace)
+/// returns position for osiz data and sets this space occupied;
+/// but does not copy any data.
+/// Only for temp-space; does NOT reallocate.
+///   RetCode      the address (starting-Position) of the memSpace;
+///                NULL if EOM (not enough memspace)
+/// Example:
+///   ipa = (int*) UME_reserve (&oSpc, sizeof(int) * 10);
+///   for(i1=0;i1<10;++i1) ipa[i1] = i1;
+///
+/// see also UME_nStru_get
 /// \endcode
 
   void *actPos;
@@ -474,13 +531,12 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
     return NULL;
   }
 
-  actPos = memSpc->next;
-
   if(((char*)memSpc->next + osiz) > (char*)memSpc->end) {
     TX_Print("***** UME_reserve E001 - OUT OF SPACE\n");
-    printf("UME_reserve E001 - OUT OF SPACE\n");
     return NULL;
   }
+
+  actPos = memSpc->next;
 
   memSpc->next = (char*)memSpc->next + osiz;
 
@@ -495,23 +551,21 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 /// \code
 /// DO NOT USE (use UME_reserve)
 ///
-/// UME_add               den next-Pointer korrigieren (Obj. manuell speichern)
+/// UME_add               occupy memspc; does not save data; does NOT realloc.
+///
+///   RetCod   0=OK, -1=OutOfSpace
 /// 
-/// RetCod 0=OK, -1=OutOfSpace
+/// Example:
 /// 
-/// Platz reservieren; wird nachfolgend NICHT mit UME_save belegt.
-/// 
-/// Achtung Reihenfolge:
-/// 
-/// 1) den Pointer merken
+///   // get pointer for data;
 ///   Point  *pTab;
 ///   pTab = UME_get_next (&memSeg1);    // pTab = (Point*)memSeg1.next;
 /// 
-/// 2) den Platz reservieren (aendert den Pointer memSeg1->next)
+///   // reserve space for ptNr points, check if OK
 ///   i1 = UME_add (&memSeg1, sizeof(Point) * ptNr);
-///   if(i1 < 0) goto L_eom;  // Test ob genug Platz im memSeg
+///   if(i1 < 0) goto L_eom;
 /// 
-/// 3) den Platz belegen
+///   // copy data from pta -> memSeg1    
 ///   memcpy (pTab, pta, sizeof(Point) * ptNr);
 /// \endcode
 
@@ -539,9 +593,38 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
 
 //================================================================
+  int UME_reall__ (long *spcOff, Memspc *memSpc, void *newNext) {
+//================================================================
+
+
+  int  irc;
+  long totSiz, incSiz;
+  void *newEnd;
+
+
+  // get size-to-increase defined in UME_malloc
+  incSiz = UTI_round_b2i(memSpc->incSiz);
+    // printf("UME_reall__ %ld %ld\n", newNext - memSpc->next, incSiz);
+
+  // newEnd = (void*)((char*)memSpc->end + incSiz);
+  // test if enough for addSiz
+  // while(newEnd < newNext) newEnd = (void*)((char*)newEnd + incSiz);
+
+  newEnd = (char*)newNext + incSiz;
+
+  totSiz = (char*)newEnd - (char*)memSpc->start;
+    printf("  reall__-totSiz=%ld\n",totSiz);
+
+  return UME_realloc (spcOff, memSpc, totSiz);
+
+}
+
+
+//================================================================
  int UME_reall_add (long *spcOff, Memspc *memSpc, long addSiz) {
 //================================================================
 /// \code
+/// UME_reall_add         reserve space, reallocate if necessary
 /// add = allocate Space for <addSiz> bytes; reallocate if necessary.
 /// next-Pointer is incremented <addSiz> bytes
 /// Input:
@@ -560,26 +643,16 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   newNext = (char*)memSpc->next + addSiz;
 
 
+  // test enough space
   if((newNext >= memSpc->end)||(addSiz == 0)) {
     // printf("     actSiz=%d\n",(char*)memSpc->end-(char*)memSpc->start);
 
-    // (char*)newEnd = (char*)memSpc->end + UME_INC;
-    incSiz = UTI_round_b2i(memSpc->incSiz);
-    printf("UME_reall_add %ld %ld\n",addSiz,incSiz);
-    newEnd = (void*)((char*)memSpc->end + incSiz);
-
-    // while(newEnd < newNext) (char*)newEnd += UME_INC;
-    while(newEnd < newNext) newEnd = (void*)((char*)newEnd + incSiz);
-
-    totSiz = (char*)newEnd - (char*)memSpc->start;
-    // printf("     totSiz=%d %d\n",totSiz,UME_INC);
-
-    irc = UME_realloc (spcOff, memSpc, totSiz);
-    if(irc < 0) { TX_Error("UME_reall_add EOM"); return irc;}
+    // realloc
+    irc = UME_reall__ (spcOff, memSpc, newNext);
+    if(irc < 0) return -1;
 
     // next ist changed; add the requested space
     newNext = (char*)memSpc->next + addSiz;
-
 
   } else {
     *spcOff = 0;
@@ -592,16 +665,108 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 }
 
 
+//================================================================
+ void* UME__getSpc (Memspc *memSpc, long *spcOff, long addSiz) {
+//================================================================
+/// \code
+/// UME__getSpc         reserve space, reallocate if necessary
+///   allocate Space for <addSiz> bytes; reallocate if necessary.
+///    next-Pointer is incremented <addSiz> bytes
+/// Input:
+///   addSiz   occupy <addSiz> bytes in memSpc
+///            0: increase memSpc (size defined in UME_malloc)
+///   spcOff   NULL = caller does not need offset
+/// Output:
+///   spcOff   displacement-offset; 0: no reallocate.
+///   RetCode  position where to store data with size <addSiz>
+///            NULL = Error
+/// \endcode
+
+
+  int  irc;
+  long totSiz, oldSiz, incSiz;
+  void *newNext, *oldNext;
+
+
+  oldNext = memSpc->next;
+  newNext = (char*)oldNext + addSiz;
+
+
+// 2019-03-17
+  if(addSiz < sizeof(void*)) {
+    printf("**** UME__getSpc I1\n");
+    return oldNext; 
+  }
+
+
+  // test enough space
+  if((newNext >= memSpc->end)||(addSiz == 0)) {
+    // printf("     actSiz=%d\n",(char*)memSpc->end-(char*)memSpc->start); 
+
+    oldSiz  = (char*)memSpc->next - (char*)memSpc->start;
+
+    // realloc (changes memSpc)
+    irc = UME_reall__ (spcOff, memSpc, newNext);
+    if(irc < 0) return NULL;
+
+    // next ist changed; add the requested space
+    oldNext = (char*)memSpc->start + oldSiz;
+    newNext = (char*)oldNext + addSiz;
+    
+  } else {
+    if(spcOff) *spcOff = 0;
+  } 
+
+  memSpc->next = newNext;
+
+  return oldNext;
+
+}
+
+
+//============================================================================
+  int UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz) {
+//============================================================================
+/// \code
+/// UME__copy           save data, reallocate if necessary
+///   next-Pointer is incremented <osiz> bytes and
+///   <osiz> bytes from position <objDat> are saved into memSpc.
+/// Input:
+///   oSiz     nr of bytes to save
+///   objDat   data to be saved in memSpc
+/// Output:
+///   spcOff   displacement-offset; 0: no reallocate.
+///   RetCode  0=OK; -1=outOfMemory-Error.
+/// \endcode
+
+
+  int    irc;
+  void   *vpd;
+  long   l1;
+
+
+  vpd = UME__getSpc (memSpc, spcOff, osiz);
+  if(!vpd) return -1;
+
+  // copy data
+  memcpy (vpd, objDat, osiz);
+
+  return 0;
+
+}
+
+
+/*
 //============================================================================
   int UME_reall_save (long *spcOff, Memspc *memSpc, void* objDat, int osiz) {
 //============================================================================
 /// \code
-/// UME_reall_save              save Obj -> Memspc
-/// next-Pointer is incremented <addSiz> bytes and
-/// <osiz> bytes from position <objDat> are saved into memSpc.
+/// UME_reall_save        save data, reallocate if necessary
+///   next-Pointer is incremented <osiz> bytes and
+///   <osiz> bytes from position <objDat> are saved into memSpc.
 /// Input:
 ///   oSiz     nr of bytes to save
-///   objDat   date to be saved in memSpc
+///   objDat   data to be saved in memSpc
 /// Output:
 ///   spcOff   displacement-offset; 0: no reallocate.
 ///   RetCode  0=OK; -1=outOfMemory-Error.
@@ -616,17 +781,17 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
           // memSpc->next - memSpc->start,    // next-start
           // memSpc->end - memSpc->start);    // tot = end - start
 
+
   newNext = (char*)memSpc->next + osiz;
 
   *spcOff = 0;
 
   if((char*)newNext < (char*)memSpc->end) goto L_save;
-
     // printf("     actSiz=%d\n",(char*)memSpc->end-(char*)memSpc->start);
 
     // (char*)newEnd = (char*)memSpc->end + UME_INC;
     incSiz = UTI_round_b2i(memSpc->incSiz);
-    printf("UME_reall_add %d %ld\n",osiz,incSiz);
+      printf("UME_reall_add %d %ld\n",osiz,incSiz);
     newEnd = (void*)((char*)memSpc->end + incSiz);
 
     // while(newEnd < newNext) (char*)newEnd += UME_INC;
@@ -642,26 +807,26 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
     newNext = (char*)memSpc->next + osiz;
 
 
-
-
   L_save:
+  // copy data
   memcpy(memSpc->next, objDat, osiz);
 
-  // memSpc->next += osiz;
+  // update pointer to free space
   memSpc->next = (char*)newNext;
 
   return 0;
 
 }
+*/
 
 
 //=======================================================================
   void* UME_save (Memspc *memSpc, void* objDat, int osiz) {
 //=======================================================================
 /// \code
-/// UME_save              save Obj -> Memspc
+/// UME_save              copy data > Memspc; does NOT realloc
 /// RetCode: the address (starting-Position) of the memSpace;
-///   NULL if EOM
+///          NULL if EOM
 /// \endcode
 
   void *actPos;
@@ -933,6 +1098,35 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   mo.ioff = iErr + 4;
 
   return (mo);
+
+}
+
+
+//=====================================================================
+  int UME_nStru_get (void **ptr, int rNr, int rSiz, Memspc *memSpc) {
+//=====================================================================
+// UME_nStru_get         get memspace for rNr records of size rSiz
+// Input:
+//   rNr      0=reserve total space, else get space for <rNr> structs
+//   rSiz     size of struct in bytes
+// Output:
+//   ptr      memspc for <retCod> structs in memSpc
+//   retCod   -1=EOM-error; else nr of allocated structs
+
+  int    oNr;
+
+  printf("UME_npt_get__ rNr=%d rSiz=%d\n",rNr,rSiz);
+
+  oNr = (UME_ck_free (memSpc) / rSiz) - 1;
+
+  if(oNr < rNr) return -1;
+
+  if(!rNr) rNr = oNr;
+
+  // *ptr = UME_reserve (memSpc, rNr * rSiz);
+  *ptr = memSpc->next;
+
+  return rNr;
 
 }
 

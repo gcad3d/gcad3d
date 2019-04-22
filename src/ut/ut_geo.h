@@ -58,19 +58,20 @@ Korr:
 */
 
 // angles ..
-#define RAD_360   6.2831853071795862319    ///< 360 Grad
-#define RAD_270   4.7123889803846896739    ///< 270 Grad
-#define RAD_225   3.92699081698724151736   ///< 225 Grad
-#define RAD_180   3.14159265358979323846   ///< 180 Grad
-#define RAD_135   2.3561944901923448368    ///< 135 Grad
-#define RAD_120   2.0943951023931953735    ///< 120 Grad
-#define RAD_90    1.5707963267948965579    ///<  90 Grad
-#define RAD_60    1.0471975511965976313    ///<  60 Grad
-#define RAD_45    0.7853981633974482789    ///<  45 Grad
-#define RAD_30    0.5235987755982988156    ///<  30 Grad
-#define RAD_10    0.174532925199432954     ///<  10 Grad
-#define RAD_1     0.0174532925199432954    ///<   1 Grad
-#define RAD_01    0.0017453292519943295    ///<   0.1 Grad
+#define RAD_360   6.2831853071795862319    ///< 360 degree
+#define RAD_315   5.497787144              ///< 315
+#define RAD_270   4.7123889803846896739    ///< 270
+#define RAD_225   3.92699081698724151736   ///< 225
+#define RAD_180   3.14159265358979323846   ///< 180
+#define RAD_135   2.3561944901923448368    ///< 135
+#define RAD_120   2.0943951023931953735    ///< 120
+#define RAD_90    1.5707963267948965579    ///<  90
+#define RAD_60    1.0471975511965976313    ///<  60
+#define RAD_45    0.7853981633974482789    ///<  45
+#define RAD_30    0.5235987755982988156    ///<  30
+#define RAD_10    0.174532925199432954     ///<  10
+#define RAD_1     0.0174532925199432954    ///<   1 degree
+#define RAD_01    0.0017453292519943295    ///<   0.1
 #define RAD_1_360 0.15915494309189534561   ///<  1 / 6.28 
 #define SR_3      1.7320508075688772       ///< SQRT(3)
 #define SR_2      1.4142135623730951       ///< SQRT(2)
@@ -119,9 +120,10 @@ zB. Absolut-Bit setzen (mit OR):      obj.att = obj.att | ATT_BIT_ABS;
 #define ATT_BIT_LIM          2
 
 
-/// OBJ_SIZ_MAX        max. obj-size (for get, copy ..)
+/// OBJ_SIZ_MAX        max. obj-size (for get, copy ..) see UTO_siz_stru
 // max = CurvElli;         160 = 6 Points + 16 byte | 20 doubles
-#define OBJ_SIZ_MAX        160
+#define OBJ_SIZ_MAX        256
+
 
 /// OBJ_UNKNOWN        get memoryspace for any type of object (has maximum size)
 // Size of OBJ_UNKNOWN is OBJ_SIZ_MAX bytes.
@@ -129,8 +131,9 @@ zB. Absolut-Bit setzen (mit OR):      obj.att = obj.att | ATT_BIT_ABS;
 // For curves with point-tables (polygon, spline) and value-arrays (splines)
 // these additional memory-spaces cannot be allocated in OBJ_UNKNOWN.
 // For this curves additional 'Memspc' is necessary.
-typedef struct {char dat[OBJ_SIZ_MAX];} Obj_Geo_Unknown;
-// see ObjBin
+//typedef struct {char dat[OBJ_SIZ_MAX];} ObjUnknown;
+typedef char ObjUnknown[OBJ_SIZ_MAX];
+// see also ObjBin
 
 
 
@@ -245,25 +248,32 @@ typedef struct {short typ, form; void *data;
 // size = 12
 
 
-/// \brief table of binary-objects      ObjTab    Typ_ObjTab
+/// \brief table of binary-objects      ObjTab    Typ_ObjTab    INF_ObjTab
 /// \code
-/// oSiz   size of oTyp, oDat
+/// oSiz   size of oTyp, oDat (max. nr. of records)
 /// oNr    used nr of objects int oTyp, oDat
 /// oTyp   table of types
 /// oDat   table of pointers to binary-object into oSpc
 /// oSpc   keeps the binary-objects
-/// spcTypTyp type of space for oTyp and oDat
-/// spcTypSpc type of space for oSpc
-///        spcTyp  0=no-space-given;
-///                1=malloc-type=can-reallocate,must-free;     MEMSPCTYP_MALLOC__
-///                2=malloc-type=can-reallocate,must-NOT-free; MEMSPCTYP_MALLOC_FIX
-///                2=fixed-CANNOT-reallocate;must-free;        
-///                3=fixed-CANNOT-reallocate;must-NOT-free;    MEMSPCTYP_FIX__
-///                4=stack,CANNOT-reallocate,must-NOT-free;    MEMSPCTYP_STACK
+/// xDat   auxilary-objects; type = xTyp, NULL = none
+/// pba1   upper right boxpoints of objects (if boxTyp > 0)
+/// xTyp   type of objects at xDat; 0=none, else eg BBox2|BBox ..
+/// fmtb   format of binary obj's: Typ_GEOB_2D|Typ_GEOB_3D
+/// spcTyp type of memSpace for oTyp oDat pba1 pba2
+///          0=no-space-given;                             MEMSPCTYP_NONE
+///          1=malloc-type=can-reallocate,must-free;       MEMSPCTYP_MALLOC__
+///          2=malloc-type=can-reallocate,must-NOT-free;   MEMSPCTYP_MALLOC_FIX
+///          3=fixed-CANNOT-reallocate;must-free;          MEMSPCTYP_FIX
+///          4=static|stack,CANNOT-realloce,must-NOT-free; MEMSPCTYP_TMP
+///
+/// Functions: OTB_
+/// ObjTab = 	list of [oTyp, pointer to obj, Memspc for obj, aux.obj]
 /// \endcode
-typedef struct {void **oDat; Memspc oSpc; int *oTyp, oSiz, oNr;
-                char spcTypTyp, spcTypSpc, uu2, uu3;}               ObjTab;
-// size = 64
+typedef struct {void **oDat, *xDat; Memspc oSpc; 
+                int *oTyp, oSiz, oNr; UINT_16 xSiz;
+                short xTyp, fmtb; char spcTyp, u2, u3,u4;}          ObjTab;
+// size = ??
+// use xDat = BBox2 eg ((BBox2*)otb->xDat)[ii].pb1
 
 
 /// \brief Typ_Group DB-Objects        Typ_ObjDB
@@ -313,7 +323,7 @@ typedef struct {int nr, siz, txsiz; int *typ; double *val; short *ilev;
                 char *txt; char spcTyp, uu1, uu2, uu3;}             ObjAto;
 
 
-/// do not use; replaced by ObjGX.
+/// \brief          DO NOT USE; replaced by ObjGX.
 /// \code
 /// primitive 2D-object.
 /// \endcode
@@ -347,8 +357,14 @@ typedef union {Point pt; Vector vc; Line ln; Circ ci;}              ObjUX;
 */
 
 
+/// \brief binary-object    Typ_ObjBin
+/// \code
+/// can only hold L C R Elli; 
+/// For curves with point-tables (polygon, spline) and value-arrays (splines)
+/// these additional memory-spaces must be allocated in additional Memspc
+/// \endcode
 typedef struct {int typ; char obj[OBJ_SIZ_MAX];}                    ObjBin;
-// see Obj_Geo_Unknown
+// see also ObjUnknown
 
 
 /// \brief ContourCurve
@@ -373,6 +389,8 @@ typedef struct {Point *pa; Point *p2a; int iNr;
 /// oNr     nr of obj's; index of last obj is (ind + nr - 1)
 /// \endcode
 typedef struct {long ind; unsigned typ:8, oNr:24;}                  ObjRange;
+
+
 
 
 
@@ -444,9 +462,9 @@ typedef struct {Point p1, p2, pc; Vector vz; double rad, ango;}     Circ;
 /// clo        closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
 /// trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
 /// \endcode
-typedef struct {Point2 p1, p2; double a, b;
+typedef struct {Point2 p1, p2; double a, b; double angs, ango;
                 char srot, clo, trm, uu2;}                          CurvEll2C;
-// size = ?
+// size = 56
 
 /// \brief ellipse, Typ_CVELL2
 /// \code
@@ -460,9 +478,9 @@ typedef struct {Point2 p1, p2; double a, b;
 /// clo        closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
 /// trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
 /// \endcode
-typedef struct {Point2 p1, p2, pc; Vector2 va, vb;
+typedef struct {Point2 p1, p2, pc; Vector2 va, vb; double ango;
                 char srot, clo, trm, uu2;}                          CurvEll2;
-// size = ?
+// size = 96
 
 /// \brief ellipse, Typ_CVELL
 /// \code
@@ -473,18 +491,22 @@ typedef struct {Point2 p1, p2, pc; Vector2 va, vb;
 /// va     .. major axis (lenght!)
 /// vb     .. minor axis (lenght!)
 /// srot       direction; 0=CCW, 1=CW.  See INF_struct_dir.
-/// clo        closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
+/// clo        closed; 0=yes, 1=not_closed; -1=undefined; -2=degen
 /// trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
 /// \endcode
-typedef struct {Point p1, p2, pc; Vector vz, va, vb;
+typedef struct {Point p1, p2, pc; Vector vz, va, vb; double ango;
                 char srot, clo, trm, uu2;}                          CurvElli;
-// size = 148
+// size = 160
 
 
-/// do not use; replaced by ObjGX
-typedef struct {int typ, cvnr, ind1, ind2; Point p1, p2;
-                 long ID1, ID2;}                                    Curv;
-// size = 
+/// \brief Curve: 2D-polygon, Typ_CVPOL2
+/// \code
+/// ptNr        number of points
+/// pTab[ptNr]  cornerpoints
+/// \endcode
+typedef struct {int ptNr; Point2 *pTab;}                            CurvPol2;
+//   dir:  only necessary for closed, cyclic curve
+//   size =
 
 
 /// \brief Curve: polygon, Typ_CVPOL
@@ -492,14 +514,14 @@ typedef struct {int typ, cvnr, ind1, ind2; Point p1, p2;
 /// ptNr    ... number of control points
 /// v0      ... start parameter (len-offset)
 /// v1      ... end parameter (len-offset)
-/// lvTab[ptNr] length absolut
+/// lvTab[ptNr] length absolut NULL = undefined
 /// cpTab[ptNr] cornerpoints
 /// dir        direction; 0=fwd, 1=bwd. See INF_struct_dir.
 /// clo        closed; 0=yes, 1=not_closed; -1=undefined; -2=degen
 /// trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
 /// \endcode
 typedef struct {int ptNr; double v0, v1, *lvTab; Point *cpTab;
-                char dir, clo, trm, uu2;}                           CurvPoly;
+                char dir, clo, trm, uu4;}                           CurvPoly;
 //   dir:  only necessary for closed, cyclic curve
 //   size = 28
 
@@ -616,7 +638,7 @@ typedef struct {long dbi; int mdli, ptNr, siz;
                 short typ; char fTmp, uu1;}                         CurvPrcv;
 
 
-/// \brief Trimmed curve      CurvCCV        Typ_CVTRM
+/// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
 /// \code
 /// typ        type basic curve (L,C,S)
 /// dbi        database index basic curve (0=undef)
@@ -632,10 +654,11 @@ typedef struct {long dbi; int mdli, ptNr, siz;
 ///            1=backward, reverse; curve along descending parameters.
 /// clo        closed; 0=yes, 1=not_closed; -1=undefined; see INF_struct_closed
 //  trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
+/// stat       0=uninitialized;=baseCurvePRCV-exists;
 /// \endcode
 typedef struct {double v0, v1; long dbi, ip0, ip1; 
                 unsigned short is0, is1; 
-                short typ, us1; char dir, clo, trm, uc1;}          CurvCCV;
+                short typ, us1; char dir, clo, trm, stat;}         CurvCCV;
 // size = 36
 
 
@@ -656,9 +679,25 @@ typedef struct {long dbi;
 /// \brief 3D-plane, Typ_PLN
 /// \code
 /// (pln.vz.dx * p.x) + (pln.vz.dy * p.y) + (pln.vz.dz * p.z) + pln.p = 0
+/// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
+/// bpv    longest vector of plane
 /// \endcode
 typedef struct {Point po; Vector vx, vy, vz; double p;}             Plane;
-// size = 104
+// size = 112
+
+
+/// \brief Typ_Refsys
+/// \code
+/// mat1   from Plane; does eg 2D->3D
+/// mat2   inverted mat1; does eg 3D->2D
+/// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
+/// bpv    longest vector of plane
+/// bpd    distance from origint to backplane
+/// \endcode
+typedef struct {Plane *pln; Mat_4x3 mat1, mat2; double bpd;
+                char bpi, bpv, uu3, uu4;}                           Refsys;
+// size = -
+
 
 
 /// \brief Hatch  Typ_SURHAT
@@ -745,6 +784,25 @@ typedef struct {long ptUNr, ptVNr; int degU, degV;
                 double v0U, v1U, v0V, v1V, *kvTabU, *kvTabV, *wTab;
                 Point *cpTab;}                                      SurRBSpl;
 // size = 64
+
+
+
+/// \brief bounding-box 2D
+/// \code
+/// pb1     lower left boxPoint
+/// pb2     upper right boxPoint
+/// \endcode
+typedef struct {Point2 pb1, pb2;}                                   BBox2;     
+// size = 32
+
+
+/// \brief bounding-box 3D
+/// \code
+/// ind     index of first obj
+/// oNr     nr of obj's; index of last obj is (ind + nr - 1)
+/// \endcode
+typedef struct {Point pb1, pb2;}                                    BBox;   
+
 
 
 /// \brief color, Typ_Color
@@ -1215,9 +1273,15 @@ extern const char   UT_CHR_NULL;
 extern const Point2  UT2D_PT_NUL;
 extern const Point   UT3D_PT_NUL;
 
+extern const Point2 UT2D_PT_INFTY;
+
 extern const Vector2 UT2D_VECTOR_NUL;
 extern const Vector2 UT2D_VECTOR_X;
 extern const Vector2 UT2D_VECTOR_Y;
+
+extern const Vector2 UT2D_VECTOR_IX;
+extern const Vector2 UT2D_VECTOR_IY;
+
 
 extern const Vector  UT3D_VECTOR_NUL;
 
@@ -1242,6 +1306,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 
 //----------------------------------------------------------------
  int    UT1D_ndb_npt_bp (double *da, Point *pa, int pNr, int bp);
+ double UT2D_lva_plg (double *lva, Point2 *pta, int ptNr);
 
  double UT_DEGREES (double);
  double UT_RADIANS (double);
@@ -1251,7 +1316,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UT2D_angr_set (double *angr);
  int    UT2D_2angr_set (double *ang1, double *ang2, int irot);
  double UT2D_angr_2angr (double ang1, double ang2, int irot);
- double UT2D_angr_set_2angr (double as, double aa, int sr);
+ // double UT2D_angr_set_2angr (double as, double aa, int sr);
  int    UT2D_ptNr_ci  (double rdc, double ao, double tol);
 
  int    UT2D_solvtriri_a (double *a, double b, double c);
@@ -1283,8 +1348,9 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  double UT3D_angr_vcpl_tilt (Plane *pl1, Vector *vc1);
  double UT3D_angr_vc2vc (Vector *vc1, Vector *vcx, Vector *vcy);
  double UT3D_angr_2pl (Plane* pl1, Plane* pl2);
- double UT2D_angr_2vc (Vector2 *, Vector2 *);
- double UT2D_angr_3ptdr (Point2 *, Point2 *, Point2 *, int);
+ double UT2D_angr_2vc_ccw (Vector2 *, Vector2 *);
+ double UT2D_angr_2vcn_ccw (Vector2 *, Vector2 *);
+ double UT2D_angr_3pt_sr (Point2 *, Point2 *, Point2 *, int);
  double UT3D_angr_4pt (Point *p11, Point *p12, Point *p21, Point *p22);
  double UT2D_angr_ci (Point2 *pa,Point2 *pe,Point2 *pc,double rad_in);
  double UT3D_angr_ci_p1_pt (Circ *ci1, Point *pti);
@@ -1304,10 +1370,10 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UT3D_minLen_npt (Point *p0, Point *pa, int pNr);
  double UT2D_len_ptln (Point2 *pt, Point2 *pa, Point2 *pe);
  int    UT2D_3len_ptln (double*, double*, double*, Point2*, Point2*, Point2*);
- int    UT2D_slenq_ptptvc (double *qlen, Point2 *pa, Point2 *pb, Point2 *pc);
+ int    UT2D_slenq_3pt (double *qlen, Point2 *pa, Point2 *pb, Point2 *pc);
  double UT2D_slen_nor3pt (Point2 *p1, Point2 *p2, Point2 *p3);
  int    UT2D_slen_nor2vc (double *slen, Vector2 *v1, Vector2 *v2);
- int    UT2D_slen_nor_vc_vcNo (double *slen, Vector2 *v1, Vector2 *v2);
+ int    UT2D_slenq_nor_2vc (double *slen, Vector2 *v1, Vector2 *v2);
  double UT2D_slen_nor_2pt_vc__ (Point2 *pt,  Point2 *pl, Vector2 *vl);
  double UT2D_slen_nor_2pt_vcNo (Vector2 *v1, Point2 *p1, Point2 *p2);
  int    UT2D_2slen_vc_vc__ (double *dx, double *dy, Vector2 *vp, Vector2 *vl);
@@ -1362,7 +1428,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_pt_mid2pt (Point2 *, Point2 *, Point2 *);
  void   UT2D_pt_traptvc (Point2 *, Point2 *, Vector2 *);
  void   UT2D_pt_tra2ptlen (Point2 *, Point2 *, Point2 *, double);
- void   UT2D_pt_traPtPtPar (Point2 *po, Point2 *p1, Point2 *p2, double d1);
+ void   UT2D_pt_tra_pt_pt_par (Point2 *po, Point2 *p1, Point2 *p2, double d1);
  void   UT2D_pt_tra3ptlen (Point2 *, Point2 *, Point2 *, Point2 *,double);
  void   UT2D_pt_tra2pt2len (Point2 *,Point2 *,Point2 *,double,double);
  void   UT2D_pt_tra2pt3len (Point2 *,Point2 *,Point2 *,double,double,double);
@@ -1371,7 +1437,8 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_pt_tranor2ptlen (Point2 *,Point2 *,Point2 *,double);
  void   UT2D_pt_tranorptvclen (Point2 *, Point2 *, Vector2 *, double);
  void   UT2D_pt_traptvc2len (Point2 *,Point2 *,Vector2 *,double,double);
- void   UT2D_pt_tracirlen (Point2 *, Point2 *, Point2 *, double, double);
+ void   UT3D_ln_tra_ln_m3 (Line *lno, Mat_4x3 trmat, Line *lni);
+ void   UT2D_pt_tra_pt_ci_len (Point2 *, Point2 *, Point2 *, double, double);
  void   UT2D_pt_rotptangr (Point2*,Point2*,Point2*,double);
  int    UT2D_pt_projptptvc (Point2 *, Point2 *, Point2 *, Vector2 *);
  int    UT2D_pt_projpt2pt(Point2 *pp,  double *len,
@@ -1408,15 +1475,16 @@ extern const Mat_4x4 UT3D_MAT_4x4;
 
  void   UT2D_ln_ptpt (Line2*, Point2*, Point2*);
  void   UT2D_ln_ptvc (Line2*, Point2*, Vector2*);
- void   UT2D_ln_ln3 (Line2 *ln2, Line *ln3);
+ void   UT2D_ln_ln3__ (Line2 *ln2, Line *ln3);
  void   UT2D_ln_inv (Line2 *ln1);
  void   UT2D_ln_4db (Line2 *ln2, double xs, double ys, double xe, double ye);
  Line2  UT2D_ln_obj2 (ObjG2*);
  int    UT2D_lncoe_ln (double *k, double *d, Line2 *ln);
  int    UT2D_ln_pts_dmax (Line2 *ln, int np, Point2 *ptab, double tol);
 
- int    UT2D_comp2vc (Vector2*, Vector2*, double);
- int    UT2D_comp2vc_p (Vector2*, Vector2*, double);
+
+ int    UT2D_ck_parla_2vc (Vector2*, Vector2*, double);
+ int    UT2D_ck_parl_2vc (Vector2*, Vector2*, double);
  int    UT2D_ckvc_in2vc (Vector2 *v1, Vector2 *v2, Vector2 *v3);
  void   UT2D_vc_vc3 (Vector2*, Vector*);
  int    UT2D_2parvc_3vc(double*,double*,Vector2*,Vector2*,Vector2*);
@@ -1430,11 +1498,12 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_vc_ln  (Vector2 *, Line2 *);
  void   UT2D_vc_invert (Vector2 *, Vector2 *);
  int    UT3D_vc_Zup (Vector *v2, Vector *v1);
- void   UT2D_vc_perpvc (Vector2 *, Vector2 *);
+ void   UT2D_vc_rot_90_ccw (Vector2 *, Vector2 *);
+ void   UT2D_vc_rot_90_cw (Vector2 *, Vector2 *);
  void   UT2D_vc_perp2pt (Vector2 *, Point2 *, Point2 *);
  void   UT2D_vc_normalize (Vector2*,Vector2*);
  void   UT2D_vc_setLength (Vector2 *, Vector2 *, double);
- void   UT2D_vc_mid2vc (Vector2*,Vector2*,Vector2*);
+ void   UT2D_vc_mid_2vc__ (Vector2*,Vector2*,Vector2*);
  void   UT2D_vc_merge2vc (Vector2 *vm, Vector2 *v1, Vector2 *v2);
  void   UT2D_vc_rotangr (Vector2 *,Vector2 *,double);
  void   UT2D_vc_travcm2 (Vector2 *vo, Mat_3x2 mata, Vector2 *vi);
@@ -1479,7 +1548,7 @@ void   UT2D_m2_init_rot (Mat_3x2 ma, double angle, Point2 *cen);
 /*===============================================================*/
 
 
-int    UT3D_stru_dump (int typ, void *data, char *txt, ...);
+int    DEB_dump_obj__ (int typ, void *data, char *txt, ...);
 
 
 double UT3D_len_vc (Vector *);
@@ -1501,7 +1570,7 @@ double UT3D_slen_2ptvc (Point *p1, Point *p2, Vector *vc);
 double UT3D_slen_ptpl (Point *pt, Plane *pl);
 double UT3D_nlen_2ptvc (Point *p1, Point *pv, Vector *vc);
 double UT3D_nlen_3pt (Point *p1, Point *p2, Point *p3);
-int    UT3D_parpt_3pt (double *pl, Point *ptx, Point *pl1, Point *pl2);
+int    UT3D_par_pt_2pt (double *pl, Point *ptx, Point *pl1, Point *pl2);
 int    UT3D_parpt_ptvc (double *pl, Point *ptx, Point *pt1, Vector *vc1);
 double UT3D_parpt_lnbp (Point *pti, Line *ln1, int bp);
 double UT3D_par1_ci_angr (Circ *ci1, double angr);
@@ -1530,14 +1599,15 @@ void   UT3D_swap2pt (Point *p1, Point *p2);
 int    UT3D_comp4pt (Point *p1a,Point *p1e,Point *p2a,Point *p2e,double tol);
 int    UT3D_compptpl (Point*, Plane*);
 Point  UT3D_pt_pt2 (Point2 *);
+void   UT3D_pt_pt2_0 (Point *, Point2 *);                            // INLINE
 Point  UT3D_pt_pt2z (Point2 *pt20, double zVal);
+void   UT3D_pt_pt2_z (Point *, Point2 *, double);                    // INLINE
 void   UT3D_pt_3db (Point *, double, double, double);
 void   UT3D_pt_vc (Point*, Vector*);
 void   UT3D_pt_txt (Point *, char *);
 void   UT3D_pt_mid2pt (Point *, Point *, Point *);
 int    UT3D_pt_mid_pta (Point *pto, Point *pTab, int ptNr);
-void   UT3D_pt_midci (Point *, Circ *);
-//     UT3D_pt_multvc(po,pi,vi,d);    INLINE
+void   UT3D_pt_mid_ci (Point *, Circ *);
 void   UT3D_pt_opp2pt (Point *, Point *, Point *);
 int    UT3D_pt_oppptptvc (Point *po, Point *pi, Point *pl, Vector *vl);
 int    UT3D_2pt_oppptvclen (Point*,Point*,Point*,Vector*,double);
@@ -1554,7 +1624,7 @@ void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
 void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist);
-void   UT3D_pt_tra_pt_pt_mult (Point *pt3, Point *pt1, Point *pt2, double fakt);
+void   UT3D_pt_tra_pt_pt_par (Point *pt3, Point *pt1, Point *pt2, double fakt);
 void   UT3D_pt_trapt2vc (Point *po,Point *pi,Vector *vc1, Vector *vc2);
 void   UT3D_pt_trapt2vc2len (Point *,Point *,Vector *,double,Vector *,double);
 void   UT3D_pt_tra_pt_2vc_2par (Point *,Point *,Vector *,double,Vector *,double);
@@ -1620,8 +1690,8 @@ int UT3D_pt_evparln (Point *pto, double lpar, Line *ln1);
 int UT3D_pt_evparci (Point *pto, double lpar, Circ *ci1);
 
 int    UT3D_pt_m3 (Point *pto, Mat_4x3 ma);
-void   UT2D_pt_traptm3  (Point2 *p2, Mat_4x3 mata, Point2 *p1);
-void   UT3D_pt_traptm3  (Point*, Mat_4x3, Point*);
+void   UT2D_pt_tra_pt_m3  (Point2 *p2, Mat_4x3 mata, Point2 *p1);
+void   UT3D_pt_tra_pt_m3  (Point*, Mat_4x3, Point*);
 void   UT3D_pt_traptm4 (Point *p2, Mat_4x4 ma, Point *p1);
 
 int    UT2D_ptvc_ck_int2pt (int mode, Point2 *p1s, Vector2 *v1,
@@ -1661,7 +1731,7 @@ void   UT3D_vc_angr (Vector *vc, double angr);
 void   UT3D_vc_2angr (Vector *, double, double);
 void   UT3D_vc_2vc (Vector *, Vector *, Vector *);
 void   UT3D_vc_ln (Vector *, Line *);
-int    UT3D_vc_bp (Vector *vn, int bp);
+int    UT3D_vcz_bp (Vector *vn, int bp);
 void   UT3D_vc_invert (Vector*, Vector*);
 // int    UT3D_vc_add2vc (Vector *v3, Vector *v1, Vector *v2);
 // int    UT3D_vc_sub2vc (Vector *v3, Vector *v1, Vector *v2);
@@ -1677,6 +1747,7 @@ void   UT3D_vc_normalize (Vector*,Vector*);
 void   UT3D_vc_setLength (Vector *, Vector *, double);
 int    UT3D_vc_setLenLen (Vector *vco,Vector *vci,double newLen,double actLen);
 int    UT3D_vc_tng_ci_pt (Vector *vt, Point *p1, Circ *ci);
+int    UT3D_vc_rot_90_sr (Vector *vcOut, Vector *vcAxis, Vector *vcIn, int sr);
 int    UT3D_vc_rotangr (Vector *vco, Vector *vci, double *ar);
 void   UT3D_vc_rot3angr (Vector *,Vector *, double, double, double);
 int    UT3D_vc_rotvcvcangr (Vector *vo, Vector *va, Vector *vi, double angr);
@@ -1686,7 +1757,7 @@ int    UT3D_vc_projvcnvc (Vector *vo, Vector *vi, Vector *vz);
 void   UT3D_vc_projvcpl (Vector *, Plane *, Vector *);
 int    UT3D_vc_mirvcpl (Vector *vco, Vector *vci, Plane *pln);
 int    UT3D_vc_mirvcln (Vector *vco, Vector *vci, Line *ln);
-void   UT3D_vc_travcm3 (Vector *b, Mat_4x3 ma, Vector *a);
+void   UT3D_vc_tra_vc_m3 (Vector *b, Mat_4x3 ma, Vector *a);
 void   UT3D_vc_travcm4 (Vector *b, Mat_4x4 ma, Vector *a);
 
 int    UT3D_comp2ln (Line *pa1, Line *pa2, double tol);
@@ -1723,7 +1794,7 @@ int    UT3D_ptNr_ci (Circ *ci1, double tol);
 int    UT3D_ci_inv1 (Circ *ci1);
 int    UT3D_ci_inv2 (Circ *ci1);
 int    UT3D_ci_inv3 (Circ *ci1);
-Circ   UT3D_ci_ci2  (Circ2*);
+void   UT3D_ci_ci2  (Circ*, Circ2*);
 Circ   UT3D_ci_obj2 (ObjG2 *);
 Circ   UT3D_ci_obj (ObjG *ci_in);
 int    UT3D_ci_ptvcrd (Circ *ci, Point *ps, Vector *vs, double rd,
@@ -1743,6 +1814,7 @@ int UT3D_ci_ptrd2vc2angr (Circ *ci, Point *pc, double rd,
 int UT3D_ci_ptvcpt2angr (Circ *ci,
                            Point *pc, Point *p1, Vector *vz,
                            double a1, double a2);
+void UT3D_ci_tra_ci_m3 (Circ *cio, Mat_4x3 trmat, Circ *cii);
 
 // source ../ut/ut_elli.c
 int UT3D_ck_el360 (CurvElli *el1);
@@ -1775,11 +1847,12 @@ ObjG   UT3D_obj_ln  (Line*);
 ObjG   UT3D_obj_ci  (Circ*);
 // ObjG   UT3D_obj_obj2 (ObjG2 *o2);
 
-int    UT3D_bp_2pt (Point *pt1, Point *pt2);
-int    UT3D_bp_vc__ (Vector*);
-int    UT3D_bp_vcz (Vector*);
+int    UT3D_bp_perp_2pt (Point *pt1, Point *pt2);
+int    UT3D_bp_perp_vc (int*, Vector*);
+int    UT3D_bp_pta (int pNr, Point *pa);
+
 void   UT3D_pl_XYZ (Plane *pl1);
-int    UT3D_pl_bpdb (Plane *plo, int bp, double dbc);
+int    UT3D_pl_bp (Plane *plo, int bp, double dbc);
 int    UT3D_pl_3pt (Plane *, Point *, Point *, Point *);
 int    UT3D_pl_ptvc (Plane *, Point *, Vector *);
 int    UT3D_pl_ptvzpl (Plane *pl, Point *pt, Vector *vcz, Plane *basPln);
@@ -1788,7 +1861,7 @@ int    UT3D_pl_pto_vcz_vcx (Plane *pl1, Point *po, Vector *vz, Vector *vx);
 void   UT3D_pl_pto_vcx_vcz (Plane *pl1, Point *po, Vector *vx, Vector *vz);
 void   UT3D_pl_pto_vcx_vcy (Plane *pl1, Point *po, Vector *vx, Vector *vy);
 void   UT3D_pl_pto_vcz_ptx (Plane *pl1, Point *po, Vector *vz, Point *ptx);
-int    UT3D_pl_ln (Plane *pln, Line *lna);
+int    UT3D_pl_perp_ln (Plane *pln, Line *lna);
 void   UT3D_pl_2ln (Plane *pl1, Line *ln1, Line *ln2);
 int    UT3D_pl_ci (Plane *pl1, Circ *ci1);
 int    UT3D_pl_nobj (Plane *pl1, int oNr, ObjGX *oTab);
@@ -1814,8 +1887,8 @@ int UT2D_pt_ck_inBoxTol (Point2 *p1, Point2 *p2, Point2 *p, double tol);
 int UT3D_cv_boxxy (Point* pb1,double x1,double x2,double y1,double y2);
 int UT2D_box_ini0 (Point2 *pt1, Point2 *pt2);
 int UT3D_box_extend (Point* pb1, Point* pb2, Point* pt1);
-int UT3D_box_2pt (Point *pb1, Point *pb2, Point *pt1, Point *pt2);
-int UT3D_box_2pttol (Point *pb1, Point *pb2, Point *pt1, Point *pt2,double tol);
+int UT3D_box_2pt__ (Point *pb1, Point *pb2, Point *pt1, Point *pt2);
+int UT3D_box_2pt_tol (Point *pb1, Point *pb2, Point *pt1, Point *pt2,double tol);
 int UT3D_box_pts (Point *pmin, Point *pmax, int nump, Point *ptab);
 int UT3D_box_tria (Point *pb1, Point *pb2, Triangle *tr, double tol);
 int UT3D_box_addTol (Point *pb1, Point *pb2, double tol);
@@ -1875,6 +1948,92 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 
 
 //----------------------------------------------------------------
+/// UT2D_angr_set_2angr_sr        set angle following|preceding ang1 (-2Pi to 2Pi)
+///   CCW: change ang2 to a value following ang1; (opening-angle is 0 to 2Pi)
+///   CW:  change ang2 to a value preceding ang1; (opening-angle is -2Pi to 0)
+/// Input:
+///   ang1  angle of startpoint of limited circle; 0-2Pi (in rad)
+///   ang2  angle of endpoint of limited circle; 0-2Pi (in rad)
+///   sr    sense-of-rotation; 0=CCW; 1=CW
+/// Output:
+///   ang2  angle of endpoint of limited circle; -2Pi to 2Pi
+/// \endcode
+double UT2D_angr_set_2angr_sr(double ang1, double ang2, int sr);
+#define UT2D_angr_set_2angr_sr(ang1,ang2,sr)\
+ ((!sr)?((ang1>ang2)?ang2+RAD_360:ang2):((ang1-RAD_360>ang2)?ang2+RAD_360:ang2))
+ // ((!sr)?((ang1>ang2)?ang2+RAD_360:ang2):((ang1<ang2)?ang2-RAD_360:ang2))
+//
+// was UT2D_angr_set_2angr
+// get angle (from 0 to 2Pi) with UT2D_angr_ptpt
+// get sr from rad or ango with DLIM01
+//   if(!sr) if(ang1 > ange) ange += RAD_360;    // CCW
+//   else    if(ang1 < ange) ange -= RAD_360;    // CW
+//           a1 a2 sra -> a2
+// Examples: 5, 4, 0   -> 10        printf(" %f\n",UT2D_angr_set_2angr_sr(5.,4.,0));
+//           2  1  0   ->  7
+//           1  5  0   ->  5
+//           4  2  0   ->  8
+//           4  5  1   -> -1 
+//           1  2  1   -> -4
+//           5  1  1   ->  1
+//           2  4  1   -> -2
+//           7  0  1   ->  6
+
+/// UT2D_ANGR_ADD_4PI         get angle of endpoint of circ  (0 to 4Pi)
+///   from angle at startpoint and opening angle
+///   set angle at start- and endpoint of circle according sense of rotation
+///   sense of rotation from sign of ango; pos = CCW; neg = CW.
+///  Input:
+///    a1    starting angle of circle (must be 0 to 2Pi)
+///    ango  opening angle of circle; CW: (-2Pi - 0) | CCW: (0 - 2Pi)
+///  Output:
+///    a1    angle at startpoint of circle; (0 to 4Pi)   - can become modified
+///    a2    angle at endpoint of circ;     (0 to 4Pi)
+/// 
+#define UT2D_ANGR_ADD_4PI(a1,a2,ango){\
+ a2 = a1 + ango;\
+ if(a2 < 0.) { a1 += RAD_360; a2 += RAD_360;}}\
+ // if(ango > 0.) { a2 = a1 + ango;}\
+//
+// see UT2D_ANGR_ADD_2PI ((-2Pi to 2Pi)
+// see also UT2D_2angr_set UT2D_angr_set_2angr_sr  (-2Pi to 2Pi)
+// Why is (0 to 4Pi) better than (-2Pi to 2Pi):
+//   for (0 to 4Pi) add RAD_360 to new points on arc (UT2D_angr_set_2angr_sr)
+//   for (-2Pi to 2Pi) must add OR SUBTRACT RAD_360
+
+
+
+
+/// UT2D_ANGR_ADD_2PI           get angle of endpoint of circ  (-2Pi to 2Pi) 
+//   DO NOT USE; use UT2D_ANGR_ADD_4PI
+//   get ange from angs and ango;   can modify angs
+/// Input:
+///   angs   angle of startpoint of circ (0 - 2Pi)
+///   ango   opening angle of circle; CW: (-2Pi - 0) | CCW: (0 - 2Pi)
+/// Output:
+///   angs   angle of startpoint of circ (-2Pi - 2Pi)   - can become modified
+///   ange   angle of endpoint of circle (-2Pi - 2Pi)
+///
+/// get angs eg from UT2D_angr_ptpt
+///
+void UT2D_ANGR_ADD_2PI (double ange, double angs, double ango);
+#define UT2D_ANGR_ADD_2PI(ange,angs,ango){\
+ange = angs + ango;\
+if(ange>RAD_360){angs -= RAD_360; ange -= RAD_360;}}\
+///
+/// Examples: angs ango   ->  angs ange
+///            5    5          -1   4
+
+
+// UT2D_sr_ci             return sense of direction; 0=CCW; 1=CW.
+int UT2D_sr_ci (Circ2 *cii);
+#define UT2D_sr_ci(cii) ((cii)->rad >= 0.) ? 0 : 1
+// #define UT2D_sr_ci(cii) (((Circ2*)(cii))->rad >= 0.) ? 0 : 1
+
+
+
+
+//----------------------------------------------------------------
 /// UT2D_lenq_vc         quadr.length of 2D-vector
 #define UT2D_lenq_vc(vc) ((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy)
 
@@ -1895,8 +2054,8 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 
 /// \brief UT2D_comp2pt              compare 2 points
 /// \code
-/// RC = 0: Punkte nicht gleich; Abstand > tol.
-/// RC = 1: Punkte sind gleich; Abstand < tol.
+/// RC = 0: points not identical; distance > tolerance
+/// RC = 1: points are identical; distance < tolerance
 /// \endcode
 #define UT2D_comp2pt(p1,p2,tol)\
   ((fabs((p2)->x - (p1)->x) < tol) &&\
@@ -1913,15 +2072,23 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 #define UT2D_pt_2db(pt2,dx,dy){\
   (pt2)->x = dx; (pt2)->y = dy;}
 
-/// UT2D_pt_pt3               2D-Point = 3D-Point
+/// UT2D_pt_pt3               2D-Point = 3D-Point (cut off z-coord)
 #define UT2D_pt_pt3(pt3)\
   (*(Point2*)pt3)
 
-/// UT2D_pt_pt                2D-Point = 3D-Point
-#define UT2D_pt_pt(pt2,pt3) (memcpy((pt2), (pt3), sizeof(Point2)))
+///// UT2D_pt_pt                2D-Point = 3D-Point
+//#define UT2D_pt_pt(pt2,pt3) (memcpy((pt2), (pt3), sizeof(Point2)))
 
-/// UT2D_pt_pt3bp        2D-Point = 3D-Point on Backplane
-#define UT2D_pt_pt3bp(p2o,p3i,bpi) {\
+/// UT2D_vc_tra_vc3_bp        2D-Vector = 3D-Vector on Backplane
+void UT2D_vc_tra_vc3_bp (Vector2*,Vector*,int);
+#define UT2D_vc_tra_vc3_bp(v2o,v3i,bpi) {\
+  if     (bpi == BCKPLN_XY) {(v2o)->dx = (v3i)->dx; (v2o)->dy = (v3i)->dy;} \
+  else if(bpi == BCKPLN_XZ) {(v2o)->dx = (v3i)->dx; (v2o)->dy = (v3i)->dz;} \
+  else if(bpi == BCKPLN_YZ) {(v2o)->dx = (v3i)->dy; (v2o)->dy = (v3i)->dz;}}
+
+/// UT2D_pt_tra_pt3_bp        2D-Point = 3D-Point on Backplane
+void UT2D_pt_tra_pt3_bp (Point2*,Point*,int);
+#define UT2D_pt_tra_pt3_bp(p2o,p3i,bpi) {\
   if     (bpi == BCKPLN_XY) {(p2o)->x = (p3i)->x; (p2o)->y = (p3i)->y;} \
   else if(bpi == BCKPLN_XZ) {(p2o)->x = (p3i)->x; (p2o)->y = (p3i)->z;} \
   else if(bpi == BCKPLN_YZ) {(p2o)->x = (p3i)->y; (p2o)->y = (p3i)->z;}}
@@ -1935,6 +2102,7 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 #define UT2D_pt_add_vc__(pt,vc){\
  (pt)->x += (vc)->dx;\
  (pt)->y += (vc)->dy;}
+// see UT2D_pt_traptvc
 
 /// UT2D_pt_sub_pt               subtract point p2 from p1
 #define UT2D_pt_sub_pt(po,p1,p2){\
@@ -1955,32 +2123,39 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 #define UT2D_pt_traptvc(po,pi,vc){\
  (po)->x = (pi)->x + (vc)->dx;\
  (po)->y = (pi)->y + (vc)->dy;}
+// see UT2D_pt_add_vc__
 
-/// UT2D_pt_multvc                po = pi + (vi * d)                MULT
-#define UT3D_pt_multvc(po,pi,vi,d){\
+/// UT2D_pt_pt_mult_vc            po = pi + (vi * d)                MULT
+#define UT2D_pt_pt_mult_vc(po,pi,vi,d){\
  (po)->x = (vi)->dx * (d) + (pi)->x;\
- (po)->y = (vi)->dy * (d) + (pi)->y;\
- (po)->z = (vi)->dy * (d) + (pi)->z;}
+ (po)->y = (vi)->dy * (d) + (pi)->y;}
 
 
 //----------------------------------------------------------------
 /// \code
 /// UT2D_slen_vc_vcNo         signed length of vector on norm.vector
 /// vnab must be normalized;  else returns (slen * length_of_vAB)
-///        .
-///   neg     pos   C 
-///        .      . |                   A-C  = vector vac
-///             .   |                   A-B  = vector vnab  (normalized)
-///        .   .    |
-///          .      |
-///        A-----_--+---------B
-///        |--slen--|
+///           0
+///     neg   .  pos   C 
+///           .       /|                   A-C  = vector vac
+///           .     /  |                   A-B  = vector vnab  (normalized)
+///           .   /    |
+/// -0.9      . /      |            0.9
+///    . . .  A--------X---------B    1
+/// -0.9      |--slen--|            0.9
+///           .
+///     neg   .   pos
+///      -0.1 . 0.1
+///           0
 ///
 ///  Input:
 ///    (Vector2)vAC;
 ///    (Vector2)vAB;   if not normalized: returns (slen * length_of_vab)
 ///  Returns:
-///    (double)slen;   negative if C is left of A-B
+///    (double)slen;   - parametric value of distance A-X; X is C normal on A-B
+///                      negative if C is left of a normal to A-B in A
+///                    - the cos of the opening angle of 2 vecs (dot=scalarprod)
+///                    
 /// \endcode
 #define UT2D_slen_vc_vcNo UT2D_skp_2vc
 /// UT2D_skp_2vc        cos of opening angle of 2 vecs (dot=scalarprod) DOT
@@ -1988,16 +2163,21 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 
 #define UT2D_skp_2vc(v1,v2)\
  ((v1)->dx * (v2)->dx + (v1)->dy * (v2)->dy)
+//
+// skp (vx,vx) gives quadratic-length of vx
 
 
 //----------------------------------------------------------------
 /// UT2D_sar_2vc        signed area of 2 vectors (scalarprod)
 /// sign gives side
+///       0.9 1  0.9
 ///              X
 ///           v2/        pos  (0-1)
-///            /
+///   0.1      /          0.1
 /// ----------X---v1----------->  0
-///            
+///  -0.1                -0.1
+///       -0.9  -0.9
+///           -1
 ///                      neg  (-1 - 0)
 /// UT2D_crossprod_2vc        crossprod of 2 2D-Vectors
 // see UT2D_sid_2vc__  (test if v2 is CCW (pos) or CW (neg) from v1)
@@ -2052,9 +2232,13 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
  (vo)->dx = (vi)->dx * (d);\
  (vo)->dy = (vi)->dy * (d);}
 
-/// UT2D_vc_perpvc            vector = perpendic. to vector ( + 90 degrees)
-#define UT2D_vc_perpvc(vo,vi){\
-  double _dx = (vi)->dx; (vo)->dx = -(vi)->dy; (vo)->dy = _dx;}
+/// UT2D_vc_rot_90_ccw            vector = perpendic. to vector ( + 90 degrees)
+#define UT2D_vc_rot_90_ccw(vo,vi)\
+ {double _dx = (vi)->dx; (vo)->dx = -(vi)->dy; (vo)->dy = _dx;}
+
+/// UT2D_vc_rot_90_cw             vector = perpendic. to vector ( + 90 degrees)
+#define UT2D_vc_rot_90_cw(vo,vi)\
+ {double _dx = -(vi)->dx; (vo)->dx = (vi)->dy; (vo)->dy = _dx;}
 
 
 /// UT2D_vcPerpAppr_vc_len create vector with fixed length normal to vector
@@ -2096,6 +2280,13 @@ void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
  (vc)->dy = (ln)->p2.y - (ln)->p1.y;}
 
 
+/// UT2D_vc_tra_vc3_m3        transf. 3D-vector => 2D-Vector (with 4x3-matrix
+void UT2D_vc_tra_vc3_m3 (Vector2*, Mat_4x3, Vector*);
+#define UT2D_vc_tra_vc3_m3(vco,mat,vci)\
+  UT2D_pt_tra_pt3_m3((Point2*)vco,mat,(Point*)vci)
+
+
+
 //----------------------------------------------------------------
 
 // UT2D_ln_ptpt                  2D-Line from 2 2D-points
@@ -2109,8 +2300,8 @@ void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
  (ln)->p2.x = (pt)->x + (vc)->dx;\
  (ln)->p2.y = (pt)->y + (vc)->dy;}
 
-/// UT2D_ln_ln3                   2D-Line = 3D-Line
-#define UT2D_ln_ln3(ln2,ln3){\
+/// UT2D_ln_ln3__                   2D-Line = 3D-Line
+#define UT2D_ln_ln3__(ln2,ln3){\
  (ln2)->p1.x = (ln3)->p1.x;\
  (ln2)->p1.y = (ln3)->p1.y;\
  (ln2)->p2.x = (ln3)->p2.x;\
@@ -2135,6 +2326,13 @@ void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
  (ci2)->rad = (ci3)->rad;\
  (ci2)->ango = (ci3)->ango;}
 */
+
+
+//----------------------------------------------------------------
+// UT3D_sr_ci             return sense of direction; 0=CCW; 1=CW.
+int UT3D_sr_ci (Circ *cii);
+#define UT3D_sr_ci(cii) (((Circ*)(cii))->rad >= 0. ? 0 : 1)
+
 
 
 //----------------------------------------------------------------
@@ -2188,11 +2386,13 @@ void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
 /// \endcode
 #define UT3D_pt_isFree(obj) ((obj)->x == UT_VAL_MAX)
 
+/// UT3D_pt_pt2               3D-Point = 2D-Point + Z-Val 0.
+#define UT3D_pt_pt2_0(pt3,pt2){\
+  memcpy((pt3), (pt2), sizeof(Point2)); (pt3)->z = (0.);}
 
-
-/// UT3D_pt_ptz               3D-Point = 2D-Point + Z-Val
-#define UT3D_pt_ptz(pt3,pt2,zVal){\
-  memcpy((pt3), (pt2), sizeof(Point)); (pt3)->z = (zVal);}
+/// UT3D_pt_pt2z               3D-Point = 2D-Point + Z-Val
+#define UT3D_pt_pt2_z(pt3,pt2,zVal){\
+  memcpy((pt3), (pt2), sizeof(Point2)); (pt3)->z = (zVal);}
 
 /// UT3D_pt_multpt                po = pi * d
 #define UT3D_pt_multpt(po,pi,d){\
@@ -2540,6 +2740,7 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 #define TYP_IS_FCM(typ) ((typ>=Typ_FcmSQRT)&&(typ<310))
 
 /// check if typ is a modifier; returns 0=no; 1=yes.
+///   modifiers: from Typ_modif to TYP_FuncInit
 #define TYP_IS_MOD(typ) ((typ>=Typ_modif)&&(typ<TYP_FuncInit)||\
  (typ>=Typ_FncVAR1)&&(typ<Typ_EOT))
 

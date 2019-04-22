@@ -140,7 +140,7 @@ tStat:
 
 
   printf("OOOOOOOOOOOOOOOOOO UT3D_tria_orient OOOOOOOOOOOOOOOO \n");
-  UT3D_stru_dump (Typ_PT, ptFar, "UT3D_tria_orient");
+  DEB_dump_obj__ (Typ_PT, ptFar, "UT3D_tria_orient");
 
 
 
@@ -714,8 +714,8 @@ tStat:
   Vector    vab, vac, vad, vae, vaf, vag, vah, vfc, vgd, vhe;
 
 
-  // UT3D_stru_dump (Typ_PT, pa, " pa=");
-  // UT3D_stru_dump (Typ_PT, pb, " pb=");
+  // DEB_dump_obj__ (Typ_PT, pa, " pa=");
+  // DEB_dump_obj__ (Typ_PT, pb, " pb=");
 
 
 
@@ -725,8 +725,8 @@ tStat:
 
   pc = tr->pa[0];
   pd = tr->pa[1];
-    // UT3D_stru_dump (Typ_PT, pc, " pc=");
-    // UT3D_stru_dump (Typ_PT, pd, " pd=");
+    // DEB_dump_obj__ (Typ_PT, pc, " pc=");
+    // DEB_dump_obj__ (Typ_PT, pd, " pd=");
 
 
 

@@ -13,7 +13,7 @@ Letzte Änderung: 2013-02-25
 
 <A HREF='#rc1'>Was ist RemoteControl</A>
 
-<A HREF='#PRI'>PRINT</A>(text)          // Text im CAD-Ausgabefenster anzeigen
+<A HREF='#PRI'>PRI</A>(text)            // Text im CAD-Ausgabefenster anzeigen
 <A HREF='#ADD'>ADD</A>(code)            // CAD-Objekte speichern und anzeigen
 <A HREF='#ADF'>ADDFILE</A>(filNam)      // CAD-Objekte aus Datei speichern und anzeigen
 <A HREF='#MODI'>MOD</A>(code)            // CAD-Objekte modifizieren, anzeigen
@@ -47,7 +47,8 @@ GETMODSIZ            // aktuelle Modellgröße abfragen
 <A HREF='#USE'>USER</A>                 // Objekt von Anweder abfragen; Selektion / Abbruch (Esc.)
 <A HREF='#DUM'>DUMP</A>(list)           // Ausgabe einer List in das Konsolfenster
 <A HREF='#MODE'>MODE</A>(widget,off|on)  // Ein/Ausblenden von CAD-Fenstern; Browser, Menü, Toolbars ..
-
+WAIT_ESC             // stop bis ESC - Taste gedrückt wird
+EXIT                 // shut down gcad3d
 
 __________________________________________________________________________
 <p><a name="rc1"></a></p>
@@ -56,8 +57,8 @@ __________________________________________________________________________
 Mit RemoteControl kann gCAD3D programmgesteuert bedient werden.
 Es können alle Programmiersprachen benutzt werden; auch skript-shells.
 Es werden 2 Pipes (Linux; MS-Windows: Files) zur Ein- und Ausgabe benutzt.
-Die Eingabe und die Ausgabe erfolgt mit Textcodes, nicht binär.
-
+Die Ein- Ausgabepipes werden im Verzeichnis {tmpdir} angelegt;
+  bei einer Standardinstallation sind dies:
 Linux:
   Die Eingabepipe ist ${HOME}/gCAD3D/tmp/CTRLpin
   die Ausgabepipe ist ${HOME}/gCAD3D/tmp/CTRLpout
@@ -66,6 +67,7 @@ Windows:
   Ausgabe nach %APPDATA%\gCAD3D\tmp\CTRLpout
 
 
+Die Eingabe und die Ausgabe erfolgt mit Textcodes, nicht binär.
 Mit einem normalen Terminalprogramm (Linux: xterm oder gnome-terminal; MS-Windows: cmd)
 können Kommandos an gcad geschickt werden (zB. aktives Modell löschen):
 Linux:
@@ -118,15 +120,15 @@ Bitte senden Sie verbesserte Programme oder Programme für andere
 
 __________________________________________________________________________
 <p><a name="PRI"></a></p>
-PRINT(text)          // Text im CAD-Ausgabefenster anzeigen
+PRI(text)              // Text im CAD-Ausgabefenster anzeigen
 
 Objekte (Punkte, Vektoren, Variablen) werden dekodiert; die Werte
   werden angezeigt.
 
 Beispiel:
-echo 'print("TestPrint 1")' > ~/gCAD3D/tmp/CTRLpin
+echo 'pri("TestPrint 1")' > ~/gCAD3D/tmp/CTRLpin
 # Anzeige der Koordinaten von Punkt P1 und Vektor D1:
-echo 'print("P1 = ",P1," D1 = ",D1)' > ~/gCAD3D/tmp/CTRLpin
+echo 'pri("P20 = ",P20," D20 = ",D20)' > ~/gCAD3D/tmp/CTRLpin
 
 
 __________________________________________________________________________

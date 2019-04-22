@@ -319,7 +319,7 @@ __declspec(dllexport) int gCad_fini ();
   printf("res_obj %d %ld\n",apt_typ,apt_ind);
 
   
-  // irc = UTO_get_DB (&oxo, &iNr, &apt_typ, apt_ind);        // get DB-record
+  // irc = UTO_objDat_dbo (&oxo, &iNr, &apt_typ, apt_ind);        // get DB-record
   // if(irc < 0) return irc;
 
  
@@ -361,13 +361,13 @@ __declspec(dllexport) int gCad_fini ();
       printf("  Startpt. = %f,%f,%f\n",pt3.x,pt3.y,pt3.z);
       UT3D_pt_evalparCv(&pt3, bs1, bs1->v1);
       printf("  Endpt. = %f,%f,%f\n",pt3.x,pt3.y,pt3.z);
-      UT3D_stru_dump (Typ_CVBSP, bs1, "B-Spline-Curve:\n");
+      DEB_dump_obj__ (Typ_CVBSP, bs1, "B-Spline-Curve:\n");
 
 
 
   //----------------------------------------------------------------
   } else if(ox1.form == Typ_SURBSP) {   // B_Spline_Surf
-    UT3D_stru_dump (ox1.form, ox1.data, "B-Spline-surf:\n");
+    DEB_dump_obj__ (ox1.form, ox1.data, "B-Spline-surf:\n");
 
 
 
@@ -378,7 +378,7 @@ __declspec(dllexport) int gCad_fini ();
 
     if(ox1.typ == Typ_SUR) {
       op1 = DB_GetSur (apt_ind, 1);
-        UT3D_stru_dump (Typ_ObjGX, op1, "");
+        DEB_dump_obj__ (Typ_ObjGX, op1, "");
       // op1->typ: Typ_SUR Typ_SURRU Typ_SURRV Typ_SURCIR Typ_SURSTRIP
       //           Typ_SURBSP Typ_SURRBSP Typ_SURHAT
 
@@ -393,11 +393,11 @@ __declspec(dllexport) int gCad_fini ();
         // 2. obj: outline
         // 3-n. obj: domains (holes)
         oTab = op1->data;
-        UT3D_stru_dump (Typ_ObjGX, &oTab[0], "supportsurface\n");       
+        DEB_dump_obj__ (Typ_ObjGX, &oTab[0], "supportsurface\n");       
         if(op1->siz > 1) 
-        UT3D_stru_dump (Typ_ObjGX, &oTab[1], "outline\n");       
+        DEB_dump_obj__ (Typ_ObjGX, &oTab[1], "outline\n");       
         if(op1->siz > 2) 
-        UT3D_stru_dump (Typ_ObjGX, &oTab[2], "1.domain\n");       
+        DEB_dump_obj__ (Typ_ObjGX, &oTab[2], "1.domain\n");       
       
 
 
@@ -413,7 +413,7 @@ __declspec(dllexport) int gCad_fini ();
 
   //----------------------------------------------------------------
   } else {
-    UT3D_stru_dump (ox1.form, ox1.data, "..\n");
+    DEB_dump_obj__ (ox1.form, ox1.data, "..\n");
   }
 
 

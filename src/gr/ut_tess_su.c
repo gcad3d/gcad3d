@@ -900,7 +900,7 @@ extern Point     *GLT_pta;
     // increment individually
     td1->dy = -1.;
     // get basic-plane from polygon
-    UT3D_pl_obj (&tdSWP->plb, typCov, datCov);
+    UT3D_pl_obj (&tdSWP->plb, typCov, datCov, 1);
       // DEB_dump_obj__ (Typ_VC, &tdSWP->plb, "  plb");
 
 
@@ -912,7 +912,7 @@ extern Point     *GLT_pta;
     d1 = UT3D_len_vc (&((CurvElli*)datCov)->vb);
     td1->dy = UT2D_angr_ciSec (td1->tol, d1) / RAD_360;
     // transfer circ into 2D; get basicPlane -> tdSWP->pl1
-    UT3D_pl_obj (&tdSWP->plb, typCov, datCov);
+    UT3D_pl_obj (&tdSWP->plb, typCov, datCov, 1);
       // GR_Disp_obj (Typ_PLN, &tdSWP->pl1, 8, 4);
 
 

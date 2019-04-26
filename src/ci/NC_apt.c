@@ -2387,7 +2387,7 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
 
 
     // TESTBLOCK
-    // DEB_dump_nobj__ (Typ_CVTRM, ccNr, cca, " ex APT_decode_ccv__ :");
+    // DEB_dump_nobj__ (Typ_CVTRM, ccNr, cca, " ex-APT_decode_ccv__ :");
     // DEB_dump_ox_0 (ocv, "ex-APT_decode_ccv__");
     // END TESTBLOCK
 
@@ -21993,7 +21993,7 @@ static Line lno;
     // get data-struct from dbo
     irc = UTO_objDat_dbo (&oCv, &oNr, &typCv, dbi);
     if(irc) goto L_err1;
-    OGX_SET_OBJ (&oxCv, typCv, typCv, 1, oCv);
+    OGX_SET_OBJ (&oxCv, typCv, typCv, oNr, oCv);
       // DEB_dump_ox_0 (&oxCv, " APT_PARL__-oxCv");
 
 
@@ -22042,7 +22042,7 @@ static Line lno;
 
   } else {
     // no plane defined; get plane from curve
-    irc = UT3D_pl_obj (&pl1, typCv, oCv);
+    irc = UT3D_pl_obj (&pl1, typCv, oCv, oNr);
     if(irc) goto L_err1;
     OGX_SET_OBJ (&oxSur, Typ_PLN, Typ_PLN, 1, &pl1);
   }

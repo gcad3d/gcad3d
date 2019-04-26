@@ -92,7 +92,7 @@ void   APT_DrawTxtG      (int typ, long apt_ind, GText *tx1);
 void   APT_DrawPoint     (int, long, Point *);
 void   APT_DrawLine      (int, long, Line *);
 void   APT_DrawCirc      (int, long, Circ *);
-void   APT_DrawCurv      (int, long, ObjGX *, double, Memspc*);
+void   APT_DrawCurv      (int, long, ObjGX *, double);
 int    APT_DrawModel     (int, long, ModelRef *);
 // void   APT_DrawRFac      (int, ObjG2 *,double,ObjG2 *,double);
 int    APT_DrawSur (int typ, long apt_ind);

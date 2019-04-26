@@ -187,6 +187,7 @@ UT2D_pt_par_plg           point on polygon from parameter
 UT2D_ptvcpar1_std_obj     get typical-point/tangent-vector for obj
 
 UT2D_pt_traptvc           2D-Point = 2D-Point + 2D-Vector                   INLINE
+UT2D_pt_tra_pt_ivc        subtract vector vc from p1 (inverse-vector)       INLINE
 UT2D_pt_traptvclen        transl. point into dir vc dist. lenv
 UT2D_pt_tra2ptlen         transl. point p1 into dir p1 -> p2 dist. lenv
 UT2D_pt_tra_pt_pt_par     transl. pt with parameter along p1-p2
@@ -10844,21 +10845,58 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //================================================================
 // UT2D_ci_parl_ci         get circ2 parallel to circ1 with offset
 // retCod    0    OK
-//          -1    degenerated; radius < UT_TOL_pt
+//          -1    degenerated; radius < UT_TOL_pt; skip this circle
 //
 // see UT2D_ci_ci_rad
 
+  int       irc;
   double    d1;
 
 
   // printf("-------------------------------- \n");
-  // DEB_dump_obj__ (Typ_CI2, ci1, "UT2D_ci_parl_ci %f",*dist);
+  // DEB_dump_obj__ (Typ_CI2, ci1, "UT2D_ci_parl_ci-in %f",*dist);
   // GR_Disp_ci2 (ci1, Typ_Att_Symb);
 
 
   // same center, direction, angle.
   *ci2 = *ci1;
 
+  // fix rad
+  ci2->rad -= *dist;
+
+  // test radius < tolerance
+  if(fabs(ci2->rad) < UT_TOL_pt) {
+    // ci2->p1 = ci2->pc;
+    // ci2->p2 = ci2->pc;
+    irc = -1;
+    goto L_exit;
+  }
+
+
+  if(ci1->rad > 0.) {
+    // CCW
+    // factor length
+    d1 = fabs(ci2->rad) / fabs(ci1->rad);
+    if(ci2->rad < 0.) {
+        // printf(" parl_ci- CCW changes to CW\n");
+      d1 *= -1.;
+      ci2->ango = ci1->ango - RAD_360;
+    }
+  } else {
+    // CW
+    // factor length
+    d1 = fabs(ci2->rad) / fabs(ci1->rad);
+    if(ci2->rad > 0.) {
+        // printf(" parl_ci- CW changes to CCW\n");
+      d1 *= -1.;
+      ci2->ango = ci1->ango + RAD_360;
+    }
+  }
+
+
+
+
+/*
   // fix angle and factor if sense changes
   if(ci1->rad > 0.) {
     // CCW
@@ -10871,7 +10909,6 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
       d1 *= -1.;
       ci2->ango = ci1->ango - RAD_360;
     }
-
   } else {
     // CW
     // add dist to rad
@@ -10884,14 +10921,8 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
       ci2->ango = ci1->ango + RAD_360;
     }
   }
+*/
     // printf(" parl_ci d1=%f r2=%f a2=%f\n",d1,ci2->rad,ci2->ango);
-
-  // test radius < tolerance
-  if(fabs(ci2->rad) < UT_TOL_pt) {
-    ci2->p1 = ci2->pc;
-    ci2->p2 = ci2->pc;
-    return -1;
-  }
 
   // set p1 along pc-p1
   UT2D_pt_tra_pt_pt_par (&ci2->p1, &ci2->pc, &ci2->p1, d1);
@@ -10899,11 +10930,17 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // set p2 along pc-p2
   UT2D_pt_tra_pt_pt_par (&ci2->p2, &ci2->pc, &ci2->p2, d1);
     
+  irc = 0;
+
+
+  L_exit:
+
     // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CI2, ci2, "UT2D_ci_parl_ci-out irc=%d",irc);
     // GR_Disp_ci2 (ci2, Typ_Att_hili);
     // END TESTBLOCK
 
-  return 0;
+  return irc;
 
 }
 
@@ -11033,7 +11070,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   Vector2  vc2, vc1;
 
 
-  // DEB_dump_obj__ (Typ_LN2, ln1, "UT2D_ln_parl_ln");
+  // DEB_dump_obj__ (Typ_LN2, ln1, "UT2D_ln_parl_ln-in");
 
 
   *ln2 = *ln1;
@@ -11762,25 +11799,26 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //   0 = pta[0] (intersectionpoint 0, pt0)
 //   1 = pta[1] (intersectionpoint 1, pt1)
 //   h = Point2 ph (circCenter projected onto line a-b);
-//   r = raduis rd1
+//   r = radius rd1
 //   parh = parameter of point ph along a-b
 //   dch  = distance circCenter c - ph
 //   dh1  = distance ph - 1 
+//   fCen = 1 = line goes tru circCenter, 0 = not.
 //
 //
 //
 // see also UT2D_2pt_intlnci UT2D_2pt_intciptvc UT2D_pt_ck_inAc UT2D_pt_ck_inLine
 //   UT2D_pt_ck_inLine
 
-  int       irc0, ircl1, ircl2, ircc1, ircc2, irc1, irc2, i1, src;
-  double    dch, dh1, rd1, d1, dx, dy,
+  int       irc0, ircl1, ircl2, ircc1, ircc2, irc1, irc2, i1, src, fCen;
+  double    dch, dh1, rd1, d1, dx, dy, lnl,
             acs, ace, acp0, acp1,
             s_ab_ab, s_ab_ac, s_ab_a0, s_ab_a1, parh, parls, parle, parp0, parp1;
-  Vector2   vab, vac, vch, va0;
+  Vector2   vab, vac, vch, va0, vc0;
   Point2    pt0, pt1, ph;
 
 
-  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci\n");
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci tol=%f\n",*tol);
   // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
   // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
   // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
@@ -11821,8 +11859,12 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // printf(" dch = %f\n",dch);
 
   if(dch < *tol) {
-    // line goes tru circCenter;
-    TX_Error("UT2D_2pt_int_ln_ci TODO I1"); return -1;
+    fCen = 1; // line goes tru circCenter;
+      // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
+      // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
+      // TX_Print("************ UT2D_2pt_int_ln_ci dch==0");
+  } else {
+    fCen = 0; // line goes not tru circCenter;
     // see UT2D_parpt_2pt UT2D_pt_projptptvc
   }
 
@@ -11835,9 +11877,13 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // if(d1 > *tol) { irc0 = -1; goto L_exit; }   // outside
   // else if(d1 < -(*tol)) irc0 = 0;                      // between
 
-  if(dch > (rd1 + *tol)) goto L_err__;                 // outside
-  else if(dch < (rd1 - *tol)) irc0 = 0;                // between
-  else irc0 = 1;                                       // touching
+  if(fCen) {
+    irc0 = 0;
+  } else {
+    if(dch > (rd1 + *tol)) goto L_err__;                 // outside
+    else if(dch < (rd1 - *tol)) irc0 = 0;                // between
+    else irc0 = 1;                                       // touching
+  }
     // printf(" irc0 = %d\n",irc0);
 
 
@@ -11846,29 +11892,42 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   //----------------------------------------------------------------
   // get intersectionPoints pt0, pt1 on line
 
-  // case ln1==horiz | ln1 == vertical ??
+  if(fCen) {
+    // line goes tru circCenter
+    lnl = sqrt (s_ab_ab);        // lnl = length of line
+      // printf(" lnl=%f\n",lnl);
+    d1 = rd1 / lnl;
+    // vco = vector circCenter - pt0
+    UT2D_vc_multvc (&vc0, &vab, -d1);
+      // DEB_dump_obj__ (Typ_VC2, &vc0, " vc0");
+    UT2D_pt_traptvc (&pt0, &ci1->pc, &vc0);
+    UT2D_pt_tra_pt_ivc (&pt1, &ci1->pc, &vc0);
 
-  // dh1 = dist ph - pt1
-  // dh1 = (rd1*rd1) - (dch*dch);
-  // if(fabs(dh1) > UT_TOL_min1) dh1 = sqrt(dh1);
-  SQRT_12 (dh1, rd1, dch);
-    // printf(" dh1 = %f\n",dh1);
+  } else {
+    // case ln1==horiz | ln1 == vertical ??
 
-  // get d1 = faktor (circCenter - ph) -> (ph - pt1)
-  d1 = dh1 / dch;
+    // dh1 = dist ph - pt1
+    // dh1 = (rd1*rd1) - (dch*dch);
+    // if(fabs(dh1) > UT_TOL_min1) dh1 = sqrt(dh1);
+    SQRT_12 (dh1, rd1, dch);
+      // printf(" dh1 = %f\n",dh1);
 
-  // get vector (ph - pt1)
-  dx = vch.dx * d1;
-  dy = vch.dy * d1;
+    // get d1 = faktor (circCenter - ph) -> (ph - pt1)
+    d1 = dh1 / dch;
 
-  // ip = translate vector (ph - pt1) normal to dir vch
-  pt0.x = ph.x - dy;
-  pt0.y = ph.y + dx;
+    // get vector (ph - pt1)
+    dx = vch.dx * d1;
+    dy = vch.dy * d1;
 
-  if(!irc0) {
-    // does not touch
-    pt1.x = ph.x + dy;
-    pt1.y = ph.y - dx;
+    // ip = translate vector (ph - pt1) normal to dir vch
+    pt0.x = ph.x - dy;
+    pt0.y = ph.y + dx;
+
+    if(!irc0) {
+      // does not touch
+      pt1.x = ph.x + dy;
+      pt1.y = ph.y - dx;
+    }
   }
 
     // TESTBLOCK
@@ -12016,6 +12075,9 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   //----------------------------------------------------------------
   // fix ipa ...
   L_fix_ipa:
+      // printf("L_fix_ipa: ircc1=%d ircl1=%d ircc2=%d ircl2=%d\n",
+             // ircc1,ircl1,ircc2,ircl2);
+
     // if both points outside: exit
     if((ircc1 < 0)&&(ircc2 < 0)) goto L_err__;
 
@@ -12028,7 +12090,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
       ipa[1] = ircl2 + ircc2 * 4;
       pta[1] = pt1;
     } else ipa[1] = -1;
- 
+
       // printf("ex-int_ln_ci irc0=%d icl=%d,%d icc=%d,%d ipa=%d,%d\n",
              // irc0, ircl1, ircl2, ircc1, ircc2, ipa[0], ipa[1]);
 
@@ -12040,6 +12102,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // TESTBLOCK
     // if(!ipa[0] >= 0) DEB_dump_obj__(Typ_PT2, &pta[0], "   pta[0] %d",ipa[0]);
     // if(!ipa[1] >= 0) DEB_dump_obj__(Typ_PT2, &pta[1], "   pta[1] %d",ipa[1]);
+    // printf("ex-UT2D_2pt_int_ln_ci %d\n",irc0);
     // exit(0);
     // END TESTBLOCK
 

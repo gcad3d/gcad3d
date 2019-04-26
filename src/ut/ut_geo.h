@@ -640,8 +640,8 @@ typedef struct {long dbi; int mdli, ptNr, siz;
 
 /// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
 /// \code
-/// typ        type basic curve (L,C,S)
-/// dbi        database index basic curve (0=undef)
+/// typ        type baseCurv (L,C,S)
+/// dbi        database index baseCurv (0=undef)
 /// is0        segmentNr of start-parameter (for CurvCCV in CurvCCV only)
 /// is1        segmentNr of end-parameter (for CurvCCV in CurvCCV only)
 /// v0         start-parameter on baseCurv (UT_VAL_MAX=undefined)
@@ -2108,6 +2108,11 @@ void UT2D_pt_tra_pt3_bp (Point2*,Point*,int);
 #define UT2D_pt_sub_pt(po,p1,p2){\
  (po)->x = (p1)->x - (p2)->x;\
  (po)->y = (p1)->y - (p2)->y;}
+
+/// UT2D_pt_tra_pt_ivc           subtract vector vc from p1
+#define UT2D_pt_tra_pt_ivc(po,pi,vc){\
+ (po)->x = (pi)->x - (vc)->dx;\
+ (po)->y = (pi)->y - (vc)->dy;}
 
 /// UT2D_pt_opp2pt                opposite point (p1 = center)
 #define UT2D_pt_opp2pt(po,p1,p2){\

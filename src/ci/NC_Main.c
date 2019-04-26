@@ -3969,7 +3969,7 @@ APT_stat_act:
   ObjGX     *ox1;
   // AText     *atx1;
   // GText     *gtx1;
-  Memspc    tSpc1 = UME_NEW;
+  // Memspc    tSpc1 = UME_NEW;
 
 
   // printf("APT_Draw__ typ=%d ind=%ld iAtt=%d\n",typ,ind,iAtt);
@@ -4050,8 +4050,10 @@ APT_stat_act:
     case Typ_CVCLOT:
     case Typ_CVTRM:
         po = DB_GetCurv (ind);
+          // DEB_dump_ox_s_ (po, "ex DB_GetCurv\n");
+          // DEB_dump_ox_0 (po, "ex DB_GetCurv\n");
         // UME_init (&tSpc1, memspc201, sizeof(memspc201));
-        APT_DrawCurv (iAtt, ind, (ObjGX*)po, WC_sur_Z, &tSpc1);
+        APT_DrawCurv (iAtt, ind, (ObjGX*)po, WC_sur_Z);
       break;
 
 
@@ -10314,15 +10316,13 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
 
 //===========================================================================
-  void APT_DrawCurv (int att, long dbi, ObjGX *cv1, double zval,
-                     Memspc *tbuf1) {
+  void APT_DrawCurv (int att, long dbi, ObjGX *cv1, double zval) {
 //===========================================================================
 /// \code
 /// dbi ist DB-index; nicht DL-Index !
 /// see GR_DrawCurv GR_Draw_dbo GR_Disp_dbo UTO_obj_Draw__
 /// Input:
 ///   dbi      dbi
-///   tbuf1    only for Typ_CVTRM
 /// \endcode
 
 
@@ -10419,7 +10419,8 @@ see WC_Init_Modsiz WC_Init_Tol ..
     if(!att) att = Typ_Att_blue;
     AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, att);
     // GR_DrawCvCCV (&AP_dli_act, att, ox1->data, tbuf1);
-    GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1, tbuf1);
+    // GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1, tbuf1);
+    GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1->data, ox1->siz);
 
 // TODO: test for 2D-Curve
   // } else if(typ == Typ_CVTRM2) {

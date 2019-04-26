@@ -2969,26 +2969,45 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 }
 
 
-//============================================================================
-  int GR_DrawCvCCV (long *dli, long dbi, int att, ObjGX *cv1, Memspc *tbuf1) {
-//============================================================================
+//==============================================================================
+  int GR_DrawCvCCV (long *dli, long dbi, int att, CurvCCV *cva, int cvNr) {
+//==============================================================================
 // display DB-obj - trimmed-curve 
 // att unused !?
 
-  int    irc, ptNr, paSiz, iAtt;
-  int    ipe;
-  void   *msPos = NULL;
-  Point  *pta;
+  int       irc, i1, ptNr, pNr, paSiz, iAtt, mode;
+  int       ipe;
+  void      *msPos = NULL;
+  Point     *pta;
+  Memspc    tSpc1 = UME_NEW;
 
+
+
+  // printf("GR_DrawCvCCV cvNr=%d\n",cvNr);
+  // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "%d",i1); 
 
   // printf("DDDDDDDDDDDDDDD  GR_DrawCvCCV dbi=%ld dli=%ld, att=%d\n",dbi,*dli,att);
   // DEB_dump_ox_0 (cv1, "GR_DrawCvCCV");
-  // DEB_dump_obj__ (Typ_Memspc, tbuf1, "tbuf1-1");
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
     // dbi = 0;  // TEST
     // return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-2");
 
 
+    // // get tempSpace
+    UME_init (&tSpc1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+    // get whole space for points
+    paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tSpc1);
+      // printf(" _DrawCvCCV-paSiz = %d\n",paSiz);
+
+    // get polygon
+    ptNr = 0;
+    // mode: ?? 0=use-PRCV; 1=no_PRCV
+    if((dbi > 0)&&(APT_obj_stat == 0)) mode = 0;
+    else                               mode = 1;
+    irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, cva, cvNr, UT_DISP_cv, mode);
+    if(irc < 0) return -1;
+
+/*
   //----------------------------------------------------------------
   // get pta = polygon 
   // if((dbi > 0)&&(APT_obj_stat == 0)) {
@@ -3021,7 +3040,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
       // printf(" ex-UT3D_pta_cvcomp irc=%d ptNr=%d\n",irc,ptNr);
     if(irc < 0) return -1;
   }
-
+*/
 
   //----------------------------------------------------------------
   // point only: Hilite.
@@ -3064,7 +3083,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   }
 */
 
-  if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
+  // if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
 
   return 0;
 
@@ -6014,7 +6033,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   Point     pt1, pt2;
   DL_Att    *att1;
   ObjGX     *ox2, ogx;
-  Memspc    tSpc1 = UME_NEW;
+  // Memspc    tSpc1 = UME_NEW;
 
 
   // printf("GR_Draw_obj dli=%ld att=%d form=%d oNr=%d\n",*dli,att,form,oNr);
@@ -6129,12 +6148,15 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_CVTRM:
+      GR_DrawCvCCV (dli, dbi, att, obj, oNr);
+/*
       OGX_SET_OBJ (&ogx, Typ_CVTRM, Typ_CVTRM, oNr, obj);
       // dbi = DL_get_dbi (*dli);
         // printf(" CVTRM-dbi=%ld dli=%ld\n",dbi,*dli);
       // UME_init (&tSpc1, memspc201, sizeof(memspc201));
       // GR_DrawCvCCV (dli, att, obj, &tSpc1);
       GR_DrawCvCCV (dli, dbi, att, &ogx, &tSpc1);
+*/
       break;
 
     //================================================================

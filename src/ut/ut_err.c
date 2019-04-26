@@ -121,6 +121,8 @@ static jmp_buf       err_buf;
 
   printf("ERR_raise %s\n",txt);
 
+  fflush(stdout);
+
   raise(SIGSEGV);  // stop dll
 
   return 0;

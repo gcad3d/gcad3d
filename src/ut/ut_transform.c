@@ -763,7 +763,7 @@ WC_sur_mat WC_sur_imat
   Point  pt1;
 
 
-  printf("UTRA_app_CCV \n");
+  // printf("UTRA_app_CCV \n");
 
 
   memcpy(objo, obji, sizeof(CurvCCV));

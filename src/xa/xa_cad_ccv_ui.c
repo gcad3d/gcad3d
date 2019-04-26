@@ -655,7 +655,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
 
     //---------------------------------------------------------
     case UI_FuncKill:      // called from extern
-        printf("IE_ccv__ exit\n");
+        // printf("IE_ccv__ exit\n");
       GUI_Win_kill (&win0);
 
 

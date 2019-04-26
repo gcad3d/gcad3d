@@ -7950,7 +7950,7 @@ static int traAct;
 // see also UTO_set_ptlim 
 
 
-  printf("UTO2__pt_set_std_pt typ=%d pType=%d\n",cvTyp,pType);
+  // printf("UTO2__pt_set_std_pt typ=%d pType=%d\n",cvTyp,pType);
 
 
 

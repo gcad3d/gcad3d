@@ -35,12 +35,15 @@ the following can be used in Doxygen (Programming-Helpfiles.dox)
 and with the tagfiles (../tags/infotext.tag)
 
 INF_C-types     [U]INT_[8|16|32]                            ../ut/ut_types.h
-INF_obj-types   object-types and corresponding struct (Point ..)
 INF_const__     constants
 INF_tol__       tolerances
 INF_MEM__       get memSpc ..
 
+INF_obj-types   object-types and corresponding struct (Point ..)
 INF_struct_ObjGX
+INF_struct_dir
+INF_struct_par
+INF_struct_closed
 
 INF_OGX_CV_CCV  concatenated-curve (CCV)
 INF_OGX_DBO
@@ -97,6 +100,8 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
                     int[]                   table of ints            ut_iTab.c
 
 sr                                          sense-of-rotation;       INF_sr
+
+
 
 
 

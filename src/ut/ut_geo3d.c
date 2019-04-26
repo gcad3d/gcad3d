@@ -14938,14 +14938,22 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
 
 //================================================================
-  int UT3D_pl_obj (Plane *pl1, int typ, void *obj) {
+  int UT3D_pl_obj (Plane *pl1, int typ, void *obj, int oNr) {
 //================================================================
 // get basic-plane for obj
 
+  int      irc, ptNr, paSiz;
+  Point    *pta;
+  Memspc   tbuf1;
+
 
   //----------------------------------------------------------------
-  if(typ == Typ_LN) {
-    return UT3D_pl_ln (pl1, obj);
+  if(typ == Typ_PT) {
+    return  UT3D_pl_pta (pl1, oNr, (Point*)obj);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_LN) {
+    return UT3D_pl_ln (pl1, obj);          // TODO: oNr (create pTab of n Lines)
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CI) {
@@ -14964,6 +14972,18 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   } else if(typ == Typ_CVBSP) {
     return UT3D_pl_pta (pl1, ((CurvBSpl*)obj)->ptNr,
                              ((CurvBSpl*)obj)->cpTab);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVTRM) {
+    // get tempSpace
+    UME_init (&tbuf1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+    // get whole space for points
+    paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tbuf1);
+    // get polygon
+    ptNr = 0;
+    irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
+    // get plane from polygon
+    return UT3D_pl_pta (pl1, ptNr, pta);
 
   //----------------------------------------------------------------
   } else {

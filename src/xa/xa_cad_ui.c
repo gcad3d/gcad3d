@@ -5288,7 +5288,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   }
 
 
-  // work
+  // work (preview or display and store; call WC_Work__ WC_Work1)
   irc = ED_work_CAD (ED_get_lnr_act (), IE_outTxt);
     // printf(" after ED_work_CAD %d\n",irc);
   if(irc < 0) {
@@ -8413,11 +8413,11 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   long   dli;
 
 
-  printf("IE_cad_Inp_disp_pln %d\n",iind);
-  DEB_dump_obj__ (Typ_PLN, pln1, "  pln1:");
+  // printf("IE_cad_Inp_disp_pln %d\n",iind);
+  // DEB_dump_obj__ (Typ_PLN, pln1, "  pln1:");
 
   dli = IE_GET_INP_DLI (iind);
-    printf(" dli=%ld\n",dli);
+    // printf(" dli=%ld\n",dli);
 
 
   GL_DrawSymVX (&dli, 9, pln1, 1, 1.);

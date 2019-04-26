@@ -2328,7 +2328,7 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   // add trimmed-curve ccv1 to prc1
   irc = PRCV_get_dbo_add_tc (&PRCV0, ccv1);
-    printf(" _add_tc-irc=%d\n",irc);
+    // printf(" _add_tc-irc=%d\n",irc);
 
 
   *pta = PRCV0.npt;

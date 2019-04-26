@@ -1106,6 +1106,7 @@ const Memspc UME_NUL = UME_NEW;
   int UME_nStru_get (void **ptr, int rNr, int rSiz, Memspc *memSpc) {
 //=====================================================================
 // UME_nStru_get         get memspace for rNr records of size rSiz
+//   but do not (yet) reserve space;
 // Input:
 //   rNr      0=reserve total space, else get space for <rNr> structs
 //   rSiz     size of struct in bytes
@@ -1115,7 +1116,8 @@ const Memspc UME_NUL = UME_NEW;
 
   int    oNr;
 
-  printf("UME_npt_get__ rNr=%d rSiz=%d\n",rNr,rSiz);
+
+  // printf("UME_nStru_get rNr=%d rSiz=%d\n",rNr,rSiz);
 
   oNr = (UME_ck_free (memSpc) / rSiz) - 1;
 

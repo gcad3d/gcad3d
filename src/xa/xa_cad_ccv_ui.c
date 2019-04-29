@@ -506,7 +506,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
   i1 = GUI_DATA_I1;
 
 
-  printf("IE_ccv__ %d\n",i1);
+  // printf("IE_ccv__ %d\n",i1);
 
 
   switch (i1) {

@@ -532,8 +532,8 @@ extern char  MOpTxtStr[];
 
   llnew = strlen(sNew);
 
-  printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
-  printf(" new |%s|\n",sNew);
+  // printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
+  // printf(" new |%s|\n",sNew);
   // printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
 
 
@@ -2672,8 +2672,8 @@ extern char  MOpTxtStr[];
   int      iri, ipar, oNr;
 
 
-  printf("APED_txo_modObj_get typ=%d rMax=%d\n|%s|\n",typ,rMax,stx);
-  APED_txo_dump (soi, stx, "_modObj_get-soi");
+  // printf("APED_txo_modObj_get typ=%d rMax=%d\n|%s|\n",typ,rMax,stx);
+  // APED_txo_dump (soi, stx, "_modObj_get-soi");
 
   // APED_txo_init (soo);  // txo[0].typ = TYP_FuncEnd;
 
@@ -2682,7 +2682,8 @@ extern char  MOpTxtStr[];
 
   // find next startPos ips of obj to find ..
   L_nxt_obj:
-  ++iri;           printf(" nxt-iri=%d ipar=%d\n",iri,soi[iri].ipar);
+  ++iri;
+    // printf(" nxt-iri=%d ipar=%d\n",iri,soi[iri].ipar);
 
   L_nxt_ck:
 
@@ -2734,8 +2735,8 @@ extern char  MOpTxtStr[];
 
     // TESTBLOCK
     // APED_txo_dump (soo, stx, "_modObj_get-soo");
-    printf("ex-_modObj_get oNr=%d\n",oNr);
-    for(iri=0; iri<oNr;++iri) printf(" pma[%d] = %d\n",iri,pma[iri]);
+    // printf("ex-_modObj_get oNr=%d\n",oNr);
+    // for(iri=0; iri<oNr;++iri) printf(" pma[%d] = %d\n",iri,pma[iri]);
     // END TESTBLOCK
 
   return oNr;

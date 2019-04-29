@@ -111,7 +111,6 @@ DL_GetNrSur             get nr of surs in DispList
 DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
 DL_find_obj             Objekt typ=typ APTind=ind in der DL suchen
 DL_find_APPOBJ          find applicationObject
-DL_find_sel             find selected object in DL
 DL_lnr_incr             increment all (lineNrs > lNrX)
 
 DL_Lay_act_g1           activate GroupBit1 des layer Nr. layNr
@@ -141,6 +140,8 @@ DL_ReScaleObj
 
 List_functions_end:
 =====================================================
+UNUSED
+DL_find_sel             find selected object in DL
 
 \endcode */
 #ifdef globTag
@@ -1524,7 +1525,7 @@ static long   DL_hidden = -1L;
   unsigned short modnr;
 
 
-  printf("DL_grp1__ dli=%ld mode=%d %d\n",ind,mode,iUpd);
+  // printf("DL_grp1__ dli=%ld mode=%d %d\n",ind,mode,iUpd);
 
   if(ind < 0) return -1;
 

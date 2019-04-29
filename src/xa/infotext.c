@@ -40,10 +40,8 @@ INF_tol__       tolerances
 INF_MEM__       get memSpc ..
 
 INF_obj-types   object-types and corresponding struct (Point ..)
-INF_struct_ObjGX
-INF_struct_dir
-INF_struct_par
-INF_struct_closed
+INF_obj-IDs     obj-ID is eg "P123"      _oid_
+INF_obj-names   objectName is eg "#height 2 floor" 
 
 INF_OGX_CV_CCV  concatenated-curve (CCV)
 INF_OGX_DBO
@@ -102,7 +100,11 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
 sr                                          sense-of-rotation;       INF_sr
 
 
-
+see -
+INF_struct_ObjGX
+INF_struct_dir
+INF_struct_par
+INF_struct_closed
 
 
 Functions for binaryObjects (form + struct):
@@ -112,6 +114,35 @@ UTO_siz_stru        get size of structure
 
 see also ../../doc/gcad_doxygen/NamingConventions.txt
 empty prototypes (eg UT3D_PT_NUL) see ../ut/ut_geo_const.h
+
+
+================================================================== \endcode */}
+void INF_obj-IDs (){        /*! \code
+obj-ID is eg "P123"      _oid_
+
+APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
+APED_oid_dbo_all    make name from typ and DB-index  (all types)
+SRC_src_dbo         create sourceCode of requested type from Database-object
+APED_oid_vc          get oid for Vector; (DX or DIX or D#)
+
+AP_obj_add_obj      add objname to string
+AP_obj_add_pt       add Point* as "P(xyz)"
+AP_obj_add_vc       add struct Vector* to string  " D(x y z)"
+AP_obj_add_val      add double > text  ( xa_obj_txt.c )
+
+AP_cre_defHdr       create new (unused) objHeader
+AP_src_typ__        get typText from typ (eg "PT" for Typ_PT)
+AP_src_typMod       get modifier-text from (modifier)typ
+APT_decode_print    create sourceObj from atomicObjs (for PRInt-cmd)
+
+
+================================================================== \endcode */}
+void INF_obj-names (){        /*! \code
+objectName is eg "#height 2 floor"
+
+APED_lNr_objNam            get sourcelineNr from ObjName
+APED_onam_search           search objName between ps and pe
+APED_onam_cut              cut/copy objName
 
 
 ================================================================== \endcode */}
@@ -624,6 +655,9 @@ screenCoords     int, pixels, 2D.
 userCoords       double; relativ to the active constrPln
 worldCoords      double, absolut usercoords. DB keeps worldCoords.
 
+SRC-coordinates of objects on a ConstructionPlane are userCoords;
+DB-coordinates of objects on a ConstructionPlane are worldCoords;
+
 Plane     WC_sur_act;    the ConstructionPlane; in xa.c
 int       WC_sur_ind;    DB-Index of the ActiveConstrPlane; 0=none.
 double    WC_sur_Z;      the active Z-Offset to the ConstructionPlane
@@ -737,11 +771,10 @@ DEB_dump_obj_1                dump stru and its pointers, do not resolve.
 
 
 -------------- auxFuncs:
+AP_debug__  ("func xy");       stop in debugger and display message
 UI_wait_time                   wait <msTim> millisecs or stop with Esc
 UI_wait_Esc                    wait for pressing the Esc-Key
 ERR_raise                      exit plugin immediate
-
-AP_debug__  ("func xy");       stop in debugger and display message
 
 see also:  remove graf objects ..
 

@@ -24,6 +24,10 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void DEB(){}
+#endif
+
 /*!
 \file  ../ut/ut_dump.c
 \brief dump structs, objects 
@@ -33,7 +37,7 @@ List_functions_start:
 
 DEB_dump_ox_0           dump object
 DEB_dump_obj__          dump object
-DEB_dump_obj_1          dump n bin-obj's and its pointers, do not resolve.
+DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
 DEB_dump_nobj__         dump n object's
 DEB_dump_nobj_1         dump bin-obj
 
@@ -53,6 +57,7 @@ DEB_dump__              dump object
 List_functions_end:
 =====================================================
 see also
+INF_debug
 DBO_dump__
 DEB_dump_ox_0              dump ObjGX
 DEB_dump_txt

@@ -163,6 +163,7 @@ GR_CreDitto2
 GR_DrawDitto2
 GR_DrawModel
 
+GR_Draw_pln                     display plane (as SYM_SQUARE)
 GR_DrawPlane
 GR_DrawSur
 
@@ -1568,13 +1569,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   Point2  *pa2;
 
 
-  DEB_dump_obj__ (Typ_CI2, cii, "GR_Draw_ci2 dli=%ld, dbi=%ld att=%d",
-                  *dli, dbi, attInd);
+  // DEB_dump_obj__ (Typ_CI2, cii, "GR_Draw_ci2 dli=%ld, dbi=%ld att=%d",
+                  // *dli, dbi, attInd);
     
 
   // fix nr of points according to modelsize
   ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
-     printf(" ptNr=%d\n",ptNr);
+     // printf(" ptNr=%d\n",ptNr);
 
   // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
   pa2 = (Point2*)MEM_alloc_tmp((int)(sizeof(Point2)*ptNr));
@@ -4298,12 +4299,34 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //=========================================================
+  int GR_Draw_pln (long *ind, Plane *pl1, int att) {
+//=========================================================
+/// \code
+/// GR_Draw_pln                     display plane (as SYM_SQUARE)
+/// att          see INF_ATT_CV      eg Typ_Att_def
+///
+/// see also:
+/// GR_DrawPlane                    display plane (as SYM_SQUARE)
+/// \endcode
+
+
+  GL_DrawSymV3 (ind, SYM_SQUARE, att, &pl1->po, &pl1->vz, 1.);
+
+  return 0;
+
+}
+
+
+
+//=========================================================
   int GR_Disp_pln (Plane *pl1, int att) {
 //=========================================================
 /// \code
-/// GR_DrawPlane                    display plane (as SYM_SQUARE)
-/// GR_Disp_pln (&pln1, 2);
+/// GR_Disp_pln                     display plane temp (as SYM_SQUARE)
 /// att          see INF_ATT_CV      eg Typ_Att_def
+///
+/// see also:
+/// GR_DrawPlane                    display plane (as SYM_SQUARE)
 /// \endcode
 
   long dli;

@@ -1069,8 +1069,8 @@ static char *fnam;
   //----------------------------------------------------------------
   L_errEx:
   irc = 1;
-    printf("  _sav_cmp__-1-|%s|\n",lnM1);
-    printf("  _sav_cmp__-2-|%s|\n",lnM2);
+    // printf("  _sav_cmp__-1-|%s|\n",lnM1);
+    // printf("  _sav_cmp__-2-|%s|\n",lnM2);
 
 
 
@@ -1078,7 +1078,7 @@ static char *fnam;
   if(fpM1) fclose (fpM1);
   if(fpM2) fclose (fpM2);
 
-    printf(" ex Mod_sav_cmp__ %d\n",irc);
+    // printf(" ex Mod_sav_cmp__ %d\n",irc);
 
 
   return irc;

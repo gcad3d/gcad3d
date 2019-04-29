@@ -8837,7 +8837,7 @@ liegt. ohne acos.
   // DEB_dump_obj__ (Typ_PT, pti, "");
 
 
-  if(bp == BCKPLN_YZ) {            // Y-Z-Plane, skip X   (x=y, y=z)
+  if(bp == BCKPLN_YZ) {            // Y-Z-Plane, skip X   (x=y, y=z)     0
     dxl = ln1->p2.y - ln1->p1.y;
     dyl = ln1->p2.z - ln1->p1.z;
 
@@ -8845,7 +8845,7 @@ liegt. ohne acos.
     dyp = pti->z    - ln1->p1.z;
 
 
-  } else if(bp == BCKPLN_XZ) {     // X-Z-Plane, skip Y   (x=x, y=z)
+  } else if(bp == BCKPLN_XZ) {     // X-Z-Plane, skip Y   (x=x, y=z)     1
     dxl = ln1->p2.x - ln1->p1.x;
     dyl = ln1->p2.z - ln1->p1.z;
 
@@ -8853,7 +8853,7 @@ liegt. ohne acos.
     dyp = pti->z    - ln1->p1.z;
 
 
-  } else if(bp == BCKPLN_XY) {     // X-Y-Plane, skip Z   (x=x, y=y)
+  } else if(bp == BCKPLN_XY) {     // X-Y-Plane, skip Z   (x=x, y=y)     2
     dxl = ln1->p2.x - ln1->p1.x;
     dyl = ln1->p2.y - ln1->p1.y;
 

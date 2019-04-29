@@ -2207,6 +2207,10 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
 
       // // set box invalid
       // UT3D_pt_setFree (&AP_box_pm1);
+
+      // reset CAD-inputFileds    2019-04-26
+      IE_cad_InpIn__ (-2);
+
     }
 
   }

@@ -5171,7 +5171,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     if(typChar == '<') {
       if(IE_outTxt[strlen(IE_outTxt)-1] != '=') strcat(IE_outTxt, " ");
       p1 = ep[i1];
-      if(!strcmp(p1, "<Group>")) p1 = IE_buf;
+      // if(!strcmp(p1, "<Group>"))     // 2019-04-26
+      p1 = IE_buf;
       UTX_pos_skipLeadBlk (p1);   // skip leading blanks
       strcat(IE_outTxt, p1);
         // printf(" outTxt(group)=|%s|%s|\n",IE_outTxt,IE_buf);
@@ -5929,7 +5930,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
       // printf(" IE_cad_OK add|%s|\n",IE_outTxt);
 
     // save line in memory, Undo-List
-      printf(" cad_OK-ED_srcLn_add |%s|\n",IE_outTxt);
+      // printf(" cad_OK-ED_srcLn_add |%s|\n",IE_outTxt);
     ED_srcLn_add (IE_outTxt, 1);
 
 

@@ -9923,7 +9923,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   double    ao, a1;
   Vector2   vc1, vc2, vm;
 
-  DEB_dump_obj__ (Typ_CI2, ci1, "UT3D_pt_mid_ci");
+  // DEB_dump_obj__ (Typ_CI2, ci1, "UT3D_pt_mid_ci");
 
   sr = DLIM01(ci1->rad);  // 0=CCW, 1=CW
 

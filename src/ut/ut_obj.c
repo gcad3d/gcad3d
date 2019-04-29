@@ -2286,8 +2286,9 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
   } else if(oTyp == Typ_LN) {
-    ibp = UT3D_bp_perp_2pt (&((Line*)oDat)->p1, &((Line*)oDat)->p2); // get backplane
-    *po = UT3D_parpt_lnbp (pti, (Line*)oDat, ibp);
+    // ibp = UT3D_bp_perp_2pt (&((Line*)oDat)->p1, &((Line*)oDat)->p2);
+    // *po = UT3D_parpt_lnbp (pti, (Line*)oDat, ibp);
+    UT3D_parpt_ln__ (po, pti, oDat);     // 2019-04-27
 
 
   } else if(oTyp == Typ_CI) {

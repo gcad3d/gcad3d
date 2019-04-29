@@ -836,11 +836,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  0  o1=ln, o2=ln;  on ln1 == on ln2
   // 
   //          <-----
-  //         |      2                   RC = 0     on o1 == on o1
+  //         |  b   2                   RC = 0     on o1 == on o1
   //         |       2                 
   //         >11111111x111111111
   //      start-->     2        |
-  //                    2       |
+  //                    2     f |
   //                     <------
   //   o1b=set; o1f=set;
   //   o2f=set; o2b=set;
@@ -857,11 +857,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  1  o1=ln, o2=ln;  startPt ln1 == on ln2
   // 
   //          <-----
-  //         |      2                   RC = 1     startPt ln1 == on ci1
+  //         |  b   2                   RC = 1     startPt ln1 == on ci1
   //         |       2                  RC = 1     startPt ci1 == on ci2
   //         >--------x111111111 
   //      start->      2        |
-  //                    2       |
+  //                    2     f |
   //                     <------
   //   o1f=NULL; o1b=unMod.
   //   o2b=set; o2f=set;
@@ -882,11 +882,11 @@ static struct {int ifwd, ibwd,
   // int_ln_ci 1  1  o1=ci, o2=ln;  startPt ln2 == on ci1
   // 
   //          <-----
-  //         |      2                   RC = 4     startPt ci2 == on ln1
+  //         |  b   2                   RC = 4     startPt ci2 == on ln1
   //         |       2                  RC = 4     startPt ci2 == on ci1
   //         >11111111x111111111 
   //      start->      \        |
-  //                    \       |
+  //                    \     f |
   //                     <------
   //   o1f=set; o1b=set.
   //   o2b=NULL; o2f=unMod;
@@ -905,11 +905,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  2  o1=ln, o2=ln;  endPt ln1 == on ln2
   // 
   //          <-----
-  //         |      2                   RC = 2     endPt ln1 == on ci2
+  //         |  b   2                   RC = 2     endPt ln1 == on ci2
   //         |       2                  RC = 8     endPt ci1 == on ln2
   //         >11111111x---------
   //      start->      2        |
-  //                    2       |
+  //                    2    f  |
   //                     <------
   //   o1f=unMod; o1b=NULL.
   //   o2b=set; o2f=set;
@@ -927,11 +927,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  8  o1=ln, o2=ln;  endtPt ln2 == on ln1
   // 
   //          <-----
-  //         |      \                   RC = 8     endPt ci2 == on ci1
+  //         |  b   \                   RC = 8     endPt ci2 == on ci1
   //         |       \
   //         >11111111x111111111
   //      start->      2        |
-  //                    2       |
+  //                    2    f  |
   //                     <------
   //   o1f=set; o1b=set.
   //   o2b=unMod; o2f=NULL;
@@ -948,11 +948,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  5  o1=ln, o2=ln;  startPt ln1 == startPt ln2
   // 
   //          <-----
-  //         |      2                   RC = 5    startPt ln1 == startPt ci1
+  //         |  b   2                   RC = 5    startPt ln1 == startPt ci1
   //         |       2
   //         >--------x111111111
   //      start->      \        |
-  //                    \       |
+  //                    \    f  |
   //                     <------
   //   o1f=NULL; o1b=unMod;
   //   o2b=NULL; o2f=unMod;
@@ -971,11 +971,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  6  o1=ln, o2=ln;  endtPt ln1 == startPt ln2
   // 
   //          <-----
-  //         |      2                   RC = 6    endPt ln1 == startPt ci1
+  //         |  b   2                   RC = 6    endPt ln1 == startPt ci1
   //         |       2                  RC = 9    endPt ci1 == startPt ln1
   //         >11111111x---------        RC = 6    endPt ci1 == startPt ci2
   //      start->      \        |
-  //                    \       |
+  //                    \     f |
   //                     <------
   //   o1f=unMod; o1b=NULL;
   //   o2b=NULL; o2f=unMod;
@@ -992,11 +992,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0  9  o1=ln, o2=ln;  startPt ln1 == endtPt ln2
   // 
   //          <-----
-  //         |      \                   RC = 9    endPt ci2 == startPt ci1
+  //         |  b   \                   RC = 9    endPt ci2 == startPt ci1
   //         |       \
   //         >--------x111111111
   //      start->      2        |
-  //                    2       |
+  //                    2     f |
   //                     <------
   //   o1f=NULL; o1b=unMod;
   //   o2b=unMod; o2f=NULL;
@@ -1015,11 +1015,11 @@ static struct {int ifwd, ibwd,
   // int_2lnl  0 10  o1=ln, o2=ln;  endtPt ln1 == endtPt ln2
   // 
   //          <-----
-  //         |      \                   RC = 10
+  //         |  b   \                   RC = 10
   //         |       \
   //         >11111111x---------
   //      start->      2        |
-  //                    2       |
+  //                    2     f |
   //                     <------
   //   o1f=unMod; o1b=NULL;
   //   o2b=unMod; o2f=NULL;
@@ -1505,11 +1505,13 @@ static struct {int ifwd, ibwd,
 // write all contour-loops into file
 // Input:
 //   oTab1     input-contour 2D
+//   retCod    0=OK; -1??
 // USED MEMSPACES: memspc101,memspc501
 
 
   int     irc, i1, ia[3]= {0,1,2};
   ObjTab  oTab2;
+  Point2  pts, pte;
 
 
   // printf("CVOFF2_save__ \n");
@@ -1571,10 +1573,26 @@ static struct {int ifwd, ibwd,
   if(irc < 0) return MSG_ERR__ (irc, "E7");
   // if(irc < 0) {TX_Error("CVOFF2_otb__ E7 %d",irc); return -1;}
 
+
+  // test if oTab2 closed
+  if(!CO2DAT.iClo) {
+      // printf(" CO2DAT.cNr=%d\n",CO2DAT.cNr);
+    // inputContour is closed; no output if oTab2 not closed
+    i1 = oTab2.oNr - 1;  // last index
+    // get startPt index-0
+    UT2D_ptvcpar1_std_obj (&pts,NULL,NULL, Ptyp_start,oTab2.oTyp[0],oTab2.oDat[0]);
+    // get endPt index-i1
+    UT2D_ptvcpar1_std_obj (&pte,NULL,NULL, Ptyp_end,oTab2.oTyp[i1],oTab2.oDat[i1]);
+    i1 = UT2D_comp2pt (&pts, &pte, UT_DISP_cv);
+    if(!i1) return 0;
+  }
+
+
     // TESTBLOCK
     // DEB_dump_obj__ (Typ_ObjTab, oTab1, "---CVOFF2_int_ci1");
     // OTB_dump (&oTab2, 15, Typ_Att_dash__, "---CVOFF2_int_ci1");
-    // OTB_dump (&oTab2, 1, Typ_Att_dash__, "---CVOFF2_int_ci1");
+    // OTB_dump (&oTab2, 1, 0, "---CVOFF2_int_ci1");
+    // return ERR_TEST;
     // ERR_raise (__func__);
     // END TESTBLOCK
 
@@ -1611,7 +1629,7 @@ static struct {int ifwd, ibwd,
   Point2   pt1;
 
 
-  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC oNr=%d\n",oTabO->oNr);
+  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCC CVOFF2_int_ci1 oNr=%d\n",oTabO->oNr);
   // OTB_dump (oTabO, 1, 0, "CVOFF2_int_ci1");
   // return -1; // TEST ONLY
 
@@ -1620,7 +1638,7 @@ static struct {int ifwd, ibwd,
 
   L_start:
     oNr = oTabO->oNr;
-    if(oNr < 3) goto L_exit;
+    if(oNr < 4) goto L_exit;
     nInt = 0;
     if(CO2DAT.iClo) ii1 = 1;
     else ii1 = 0;
@@ -1687,7 +1705,7 @@ static struct {int ifwd, ibwd,
       obj0 = oTabO->oDat[ii0];
       typ2 = oTabO->oTyp[ii2];
       obj2 = oTabO->oDat[ii2];
-      // test connected
+      // test connected; 0=no, 1=yes
       iConn = UTI_is_seq_2i_ring (ii0, ii2, oNr);
       // intersect
       irc = CVOFF2_int_2o (&pt1, &isRev, iConn, typ0, obj0, typ2, obj2);
@@ -1695,6 +1713,7 @@ static struct {int ifwd, ibwd,
       if(irc < 0) goto L_nxt7__;
 
         // TESTBLOCK
+        // if((irc==5)&&(iConn==1)) {
         // DEB_dump_obj__(Typ_PT2, &pt1, "_ci1-FFFFFF-intersPt %d %d",ii0,ii2);
         // if((ii0==1)&&(ii2==0)) {
         // if((nLoop == 0)&&(nInt == 2)) {
@@ -1803,7 +1822,7 @@ static struct {int ifwd, ibwd,
   ObjTab oTabB=UME_NEW;
     
 
-  // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII \n");
+  // printf("IIIIIIIIIIIIIIIIIIIIIII CVOFF2_int__ oNr=%d\n",oTabO->oNr);
   // OTB_dump (oTabO, 1, 0, "CVOFF2_int__-oTabO");
   // ERR_raise (__func__);
   // return -1; // TEST ONLY
@@ -1868,6 +1887,7 @@ static struct {int ifwd, ibwd,
 
 
         // TESTBLOCK
+        if((irc==5)&&(iConn==1)) {
         // printf("     ii1=%d ii2=%d oNr=%d nInt=%d\n",ii1,ii2,oNr,nInt);
         // DEB_dump_obj__(Typ_PT2, &pt1, "FFFFFFF__ intersPt");
         // if(nInt>64) {
@@ -1876,8 +1896,10 @@ static struct {int ifwd, ibwd,
         // }
         // if(irc == ERR_TODO_E) {
         // if((nLoop == 0)&&(nInt == 0)) {
-          // // OTB_dump (oTabO, 11, 0, "CVOFF2_int__T1");
-          // ERR_raise (__func__); }
+          OTB_dump (oTabO, 11, 0, "CVOFF2_int__T1");
+          // ERR_raise (__func__);
+          return ERR_TODO_E;
+        }
         // END TESTBLOCK
 
 
@@ -2844,8 +2866,9 @@ printf(" ?????????????\n");
 //   isRev    1 = obj1/obj2 swapped; 0 = not;
 
 
-  int       irc, ipa[2];
+  int       irc, ipa[2]={0,0};
   Point2    pta[2];
+
 
   // printf("CVOFF2_int_2o %d X %d iConn=%d\n",typ1,typ2,iConn);
 
@@ -2957,7 +2980,7 @@ printf(" ?????????????\n");
     // printf("ex-int_2o-irc irc=%d ipa0=%d ipa1=%d isRev=%d\n",
             // irc,ipa[0],ipa[1],*isRev);
     // if(irc >= 0) GR_Disp_pt2 (ptx, SYM_TRI_S, ATT_COL_RED);
-    if(irc > 0) AP_debug__ ("CVOFF2_int_2o D1");
+    // if(irc == 5) AP_debug__ ("CVOFF2_int_2o D1");
     // END TESTBLOCK
 
     return irc;

@@ -1037,6 +1037,7 @@ EDMPT_newPos__
 EDMPT_obj_get
 EDMPT_off_CB
 EDMPT_points
+EDMPT_ptab_3D_2D
 EDMPT_ptab_get
 EDMPT_rea_src
 EDMPT_restart_lnk
@@ -1531,6 +1532,7 @@ GR_Draw_obj
 GR_Draw_otb
 GR_Draw_ox
 GR_DrawPlane
+GR_Draw_pln
 GR_DrawPoint
 GR_Draw_pol2
 GR_DrawPoly
@@ -2525,10 +2527,6 @@ PRCV_set_dbo__
 PRCV_set_find
 PRCV_set_obj_dbi
 PRCV_set_seg
-PRCV_test__
-PRCV_test_disp
-PRCV_test_get
-PRCV_test_set
 PRCV_wrf__
 PRG_addRec
 PRG_addWp

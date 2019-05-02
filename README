@@ -229,6 +229,14 @@ sudo ./do uninstall_rpm
 # starts ${DIR_DEV}gcad3d/doc/packDoc.sh
 
 
+# view development-documentation (use with eg ctags)
+cd ${DIR_DEV}gcad3d/src/APP/
+vi ../xa/infotext.c
+# use with eg vim-tags:
+vi -t INF_obj-types
+
+
+# not up-to-date:
 # ReCreate development-documentation (doxygen must be installed):
 cd ${DIR_DEV}gcad3d/doc
 ./gcad_doxygen.sh

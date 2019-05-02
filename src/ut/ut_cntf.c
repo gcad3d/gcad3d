@@ -659,7 +659,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 /// \endcode
 
 
-  int       irc;
+  int       irc, ir1;
   double    par1, par2;
   Point     pt1;
 
@@ -667,16 +667,24 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // printf("CNTF_cvco_lfig_lfig imod=%d ccNr=%d\n",imod,ccNr);
   // DEB_dump_obj__ (Typ_PT, &old.pts, " old.pts ");
   // DEB_dump_obj__ (Typ_PT, &old.pte, " old.pte ");
+  // DEB_dump_obj__ (Typ_PT, &new.pts, " new.pts ");
+  // DEB_dump_obj__ (Typ_PT, &new.pte, " new.pte ");
 
 
-/* 2019-04-26   point bspl/bwd - ln/fwd  BUG
+  // 0: old.pte == new.pts;  1: old.pte == new.pte;
+  irc = CNTF_ck_limPt (&old.pte);
+    // printf(" ck_limPt1-irc=%d\n",irc);
+
   // only if 1. and 2. obj. present (later do not reverse old):
   if(ccNr) goto L_1;
+  
+  if(irc == 0) goto L_1;
+
   // test (old.pts - new.pts / old.pts - new.pte);
-  irc = CNTF_ck_limPt (&old.pts);
-    printf(" _lfig_lfig-test_start %d\n",irc);
-  if(irc < 0) goto L_1; // no connection
-  if(irc == 0) {        // old.pts=new.pts: reverse old ..
+  ir1 = CNTF_ck_limPt (&old.pts);
+    // printf(" _lfig_lfig-ck_limPt %d\n",ir1);
+  if(ir1 < 0) goto L_1; // no connection
+  if(ir1 == 0) {        // old.pts=new.pts: reverse old ..
     CNTF_rev__ (&old);  // reverse old;
     CNTF_out_old ();    // out old;
     new.ip0 = old.ip1;  // old.ipe = new.ips
@@ -684,7 +692,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
-  if(irc == 1) {        // old.pts=new.pte: reverse old & new ..
+  if(ir1 == 1) {        // old.pts=new.pte: reverse old & new ..
     CNTF_rev__ (&old);  // reverse old;
     CNTF_out_old ();    // out old;
     CNTF_rev__ (&new);  // reverse old;
@@ -693,15 +701,13 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
-*/
+
 
 
   // test endpoints (old.pte - new.pts; old.pte - new.pte);
   L_1:
   // if(old.pte == new.pts): out old; old=new; Done.
   // if(old.pte == new.pte): reverse new; old=new; Done.
-  irc = CNTF_ck_limPt (&old.pte);
-    // printf(" ck_limPt1-irc=%d\n",irc);
   //  0: old.pte == new.pts; old=new; Done.
   //  1: old.pte == new.pte; reverse new; old=new; Done.
   // -1: no connection 
@@ -800,7 +806,12 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   old.pend = 1;         // set lfig = pending
 
   L_exit:
+
+    // TESTBLOCK
+    // CNTF_dump (&old, "ex-CNTF_cvco_lfig_lfig old:");
     // printf("ex-CNTF_cvco_lfig_lfig \n");
+    // END TESTBLOCK
+ 
 
   return 0;
 
@@ -846,8 +857,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   int CNTF_dump (cfo *cf1, char *txt) {
 //================================================================
 
-  printf("       CNTF_dump %s\n",txt);
-  // DEB_dump_obj__ (cf1->typ, cf1->obj," obj");
+  printf("------ CNTF_dump %s\n",txt);
+  DEB_dump_obj__ (cf1->typ, cf1->obj," obj");
   // DEB_dump_obj__ (Typ_PT, &cf1->pts," pts");
 
 

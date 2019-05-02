@@ -16,6 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
+- TRIMMED_CURVE (conrd.stp - .CIRCULAR_ARC. and QUASI_UNIFORM_CURVE-.POLYLINE_FORM.
+  does not set correct direction (fwd/bwd) .. 
+
 modSiz nicht gut, da alle CART.PT benutzt werden; besser waere nur Punkte
  von echten Objekten (Flaechen usw) zu benutzen.
 B_SPLINE_CURVE(2,(#9450,#9451,#9452),.CIRCULAR_ARC., ..
@@ -75,6 +78,7 @@ List_functions_start:
 STP_r__                mainentry; Einlesen, intern speichern; abarbeiten
 STP_r_dec0             Inputline zerlegen
 STP_r_dec1             eine Zeile decodieren u intern speichern
+STP_r_decCvTrm         decode step-line TRIMMED_CURVE
 
 STP_r_creMod_Run       main od subModel ausgeben
 STP_r_cre2             resolv and create step-object sInd
@@ -90,8 +94,10 @@ STP_r_creCi_0          Text "ARC P# P# .." generieren ..
 STP_r_creCi_1          create text "ARC ...."
 STP_r_creCi_2          create text "cen rad dz"
 STP_r_creEl1 2         S=ELL 
+STP_r_creCvTrm         create trimmed-Curve from TRIMMED_CURVE
 STP_r_crePln1          cr. R= from AXIS2_PLACEMENT_3D
 STP_r_creSurCyl1       cr. CYLINDRICAL_SURFACE "A=CYL .."
+STP_r_creCont1         create CCV
 STP_r_creSur1          cr. ADVANCED_FACE (A=FSUB)
 STP_r_creSur2          cr. "SPH" "CYL" "SRV"
 STP_r_creSur3          cr. CONICAL_SURFACE "A=SRV .."
@@ -123,11 +129,13 @@ STP_r_savLinkB         1-n bracketed Links decodieren und speichern
 STP_r_savDB            1-n bracketed doubles decodieren und speichern
 
 STP_r_ckTypB           check typ of Obj's in Klammer
+
 STP_r_skipT            skip Textfield
 STP_r_skipB            skip Block (...)
-STP_r_skipLog1   
-STP_r_skipObjNam
+STP_r_skipLog1         skip logical (.T. .F. .DISCONTINUOUS. ..)
+STP_r_skipObjNam       skip ObjName ('Line Origine' or '' or $ ..)
 STP_r_skipWords        skip words (find next ',')
+STP_r_skipTer0         skip terminating character  ","                     INLINE
 STP_r_skipTer1         skip terminating characters  "," or ")" or "),"
 
 STP_r_decIntB
@@ -154,8 +162,10 @@ STP_r_findInd          get s_tab-index of Record from LinkNr
 STP_r_find_sRec_TypIdL1 get index of Recod sTyp dessen ID == L1 of Record iL1
 STP_r_find_sRec_TypL1  find index of Recod sTyp from its L1
 STP_r_find_sRec_TypL2  find index of Recod sTyp from its L2
+STP_r_find_B           find a link in a Link-block
 STP_r_findDetNam       find Detailname for Ditto
 STP_r_findPROD         Index PRODUCT in alle SHAPE_REPRESENTATION eintragen
+STP_r_find_Prod_ProdDef
 STP_r_wrong_SRR        check if REPRESENTATION_RELATIONSHIP is wrong (CATIA-V4)
 
 STP_r_nxtSrec          Init s_tab;
@@ -174,6 +184,7 @@ List_functions_end:
 
 ===================================================================
 Step-Specif/documentation siehe ../exp/stp_w.c
+/mnt/serv1/Devel/cadfiles/step/part203.exp.html
 /mnt/serv1/Devel/dev/gCAD3D/formate/step/DIP-3631.pdf
 
 
@@ -198,8 +209,9 @@ Alle verschiedenen Modelle im Stepfile TopDown decodieren.
 
 // read all step-records; each s_tab is one step-record.
 s_tab[]   s_obj*
+          .sInd  the step-recordID ("#<step-recordID>")
           .sTyp  the StepTyp, eg  SC_CARTESIAN_POINT
-          .sDat  points to data (in s_datSpc)
+          .sDat  points to data (step-Links) in s_datSpc
           .gDat
 
 i_tab     (int*) gives the s_tab-index from a step-link
@@ -239,8 +251,13 @@ STP_r__               mainentry
   STP_r_dec0          decode line & fill s_tab[]
     STP_r_dec1
   .. activate objects
-  STP_r_creMod_Run     create all activated objects
-    STP_r_cre2         create obj
+  STP_r_mdl2geo       find all geometries for mdlTab
+  STP_r_mdl2ref       find all modelReferences for mdlTab
+  STP_r_mdl_export (modelID im)
+    // loop tru geoTab; export all geomObj's of model <im>
+    STP_r_cre2 (sInd)
+      // export geomObj s_tab[sInd]; eg GEOMETRIC_CURVE_SET, TRIMMED_CURVE ..
+
 
 
 
@@ -463,7 +480,7 @@ __declspec(dllexport) int STP_r__ (char*);
 
 
 typedef struct {int sInd, gInd; void *sDat, *gDat;
-                unsigned char sTyp, gTyp, stat, uu;} s_obj;
+                unsigned char sTyp, gTyp, stat, aux;} s_obj;
 // sInd  der StepIndex  aus #<sInd>=
 // gInd  der gCad-APT-Index (nach Speichern; vorher -1)
 // sDat  pointer zum Step-Datenblock --> s_datSpc
@@ -489,7 +506,6 @@ typedef struct {int iPROD; char *nam; } STP_MDL;
 // typedef_MemTab(int);
 typedef_MemTab(STP_I2);
 typedef_MemTab(STP_MDL);
-// MemTab(int) mdlTab = _MEMTAB_NUL;
 MemTab(STP_MDL) mdlTab = _MEMTAB_NUL;
 MemTab(STP_I2) refTab = _MEMTAB_NUL;
 MemTab(STP_I2) geoTab = _MEMTAB_NUL;
@@ -548,6 +564,11 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 // STP_r_get_typ_L        get step-typ from step-link
 #define STP_r_get_typ_L(sLink) (s_tab[i_tab[sLink]].sTyp)
+
+
+// STP_r_skipTer0         skip terminating character  ","                     INLINE
+void STP_r_skipTer0 (char *sBuf);
+#define STP_r_skipTer0(sBuf) if(*sBuf == ',') ++sBuf
 
 
 
@@ -689,7 +710,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   // TEST ONLY: set debug -> ON   ( vi ~/gCAD3D/tmp/debug.dat )
   // start debugging (following prints -> debug-file)
-  // AP_deb_stat (1);          // 1=debug-ON (open file); 
+  // AP_deb_stat (1);          // 1=debug-ON (open file);  OFF: comment-out
 
 
   s_tab = NULL;
@@ -861,7 +882,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 #ifdef DEB
   //---------- TESTDISP tables:
-  STP_r_dump_mdlTab();
+  STP_r_dump_mdlTab("E2");
   STP_r_dump_geoTab();
   STP_r_dump_refTab();
 #endif
@@ -882,12 +903,11 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
   // remove all models without geometry or references
   STP_r_ck_geo_used ();
-    STP_r_dump_geoTab();
 
 
 #ifdef DEB
 // TEST ONLY:
-  STP_r_dump_mdlTab();
+  STP_r_dump_mdlTab("E3");
   STP_r_dump_geoTab();
   STP_r_dump_refTab();
 #endif
@@ -1436,25 +1456,29 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 
 //================================================================
-  int STP_r_dump_mdlTab () {
+  int STP_r_dump_mdlTab (char *txt) {
 //================================================================
 // mdlTab is a list of step-links !
   
+  int     ii;
   long    i1, i2, l2;
   
-  printd("----- STP_r_dump_mdlTab %d (.iPROD Link_of_iPROD .nam) ---------\n",
-         geoTab.rNr);
+  printd("----- STP_r_dump_mdlTab %d %d (.iPROD Link_of_iPROD .nam) %s ------\n",
+         mdlTab.rNr, geoTab.rNr,txt);
+  // MemTab_dump (&mdlTab, "STP_r_dump_mdlTab");
   
   for(i1=0; i1 < mdlTab.rNr; ++i1) {
     // l2 = mdlTab.data[i1].iPROD;
     // if(l2 >= 0) i2 = i_tab[l2];
     // else        i2 = l2;
     // printd(" %d %d #%d\n",i1,i2,l2);
-    printd(" %-8ld #%-8d %-8d |%s|\n",i1,
-           mdlTab.data[i1].iPROD,
-           i_tab[mdlTab.data[i1].iPROD],
-           mdlTab.data[i1].nam);
-
+    i2 = mdlTab.data[i1].iPROD;
+    if(i_tab) {
+      printd(" %-8ld #%-8d %-8d |%s|\n",i1,i2,i_tab[i2],mdlTab.data[i1].nam);
+    } else {
+      printd(" ???\n");
+      // printd(" %-8ld #%-8d |%s|\n",i1,i2,mdlTab.data[i1].nam);
+    }
   }
   
   return 0;
@@ -1619,7 +1643,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 }
 
-
+/* UNUSED
 //================================================================
   int STP_r_mdl_geo (int ii) {
 //================================================================
@@ -1821,27 +1845,27 @@ static int    errTyp;       // 0=report error with TX_Print; else not
       errTyp = 1;  // do not raise TX_Print
       ii = STP_r_find_sRec_TypL1 (SC_SHAPE_REPRES_RS, l2);
           printd(" SRR-1: %d #%d\n",ii,s_tab[ii].sInd);
-/*
-      if(ii < 0) {
-        // SHAPE_REPRESENTATION_RELATIONSHIP CAN BE WRONG !
-        // find SHAPE_REPRESENTATION_RELATIONSHIP
-        //   where L2=L2 of SHAPE_DEFINITION_REPRESENTATION
-        errTyp = 1;  // do not raise TX_Print
-        ii = STP_r_find_sRec_TypL2 (SC_SHAPE_REPRES_RS, l2);
-          printd(" SRR-2:%d\n",ii);
-        if(ii < 0) {
-          // SHAPE_REPRESENTATION_RELATIONSHIP empty: only dittos ?
-          goto L_finish;
-        }
-        // L2 of SRR=SHAPE_REPRESENTATION; so L1 can be geometry.
-        l2 = STP_r_get_L1 (ii);
-        i2 = i_tab[l2];
-        if(s_tab[i2].sTyp == SC_ADVANCED_BREP_SR)     {
-          mdl.iGeo = i2;     // s_tab-index
-          goto L_finish;
-        }
-      }
-*/
+
+//       if(ii < 0) {
+//         // SHAPE_REPRESENTATION_RELATIONSHIP CAN BE WRONG !
+//         // find SHAPE_REPRESENTATION_RELATIONSHIP
+//         //   where L2=L2 of SHAPE_DEFINITION_REPRESENTATION
+//         errTyp = 1;  // do not raise TX_Print
+//         ii = STP_r_find_sRec_TypL2 (SC_SHAPE_REPRES_RS, l2);
+//           printd(" SRR-2:%d\n",ii);
+//         if(ii < 0) {
+//           // SHAPE_REPRESENTATION_RELATIONSHIP empty: only dittos ?
+//           goto L_finish;
+//         }
+//         // L2 of SRR=SHAPE_REPRESENTATION; so L1 can be geometry.
+//         l2 = STP_r_get_L1 (ii);
+//         i2 = i_tab[l2];
+//         if(s_tab[i2].sTyp == SC_ADVANCED_BREP_SR)     {
+//           mdl.iGeo = i2;     // s_tab-index
+//           goto L_finish;
+//         }
+//       }
+
       return STP_r_mdl_geo (ii);
       
 
@@ -1892,8 +1916,8 @@ static int    errTyp;       // 0=report error with TX_Print; else not
     TX_Print("STP_r_mdl_geo E002 %d %d",s_tab[ii].sInd);
     return -1;
 
-
 }
+*/
 
 
 //================================================================
@@ -1921,6 +1945,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
       printd(" geo-iMdl[%d] = %d #%d\n",ig,ii,IND_TAB(ii));
   }
 
+  printd("ex-STP_r_mdl2geo %d\n",geoTab.rNr);
 
   return 0;
 
@@ -3246,6 +3271,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
       // GEOMETRIC_CURVE_SET
       if(!strcmp(dc1, "GEOMETRIC_CURVE_SET")) {
         irc = STP_r_savLinkB (SC_GEOMETRIC_CURVE_SET, &p2);
+        STP_r_geoTab_add ();   // 2019-04-30
         break;
 
       // GEOMETRIC_SET
@@ -3447,6 +3473,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
           actMdl.nam   = p1;
             printd("	add PROD %d |%s|\n",actMdl.iPROD,actMdl.nam);
           MemTab_sav (&mdlTab, &ld, &actMdl, 1);   // add 1 record
+            STP_r_dump_mdlTab ("STP_r_dec1-1");
           break;
 
         // PRODUCT_CATEGORY_RELATIONSHIP
@@ -3612,15 +3639,17 @@ static int    errTyp;       // 0=report error with TX_Print; else not
         // SHAPE_REPRESENTATION
         } else if(!strcmp(dc1, "SHAPE_REPRESENTATION")) {
           // SHAPE_REPRESENTATION('*MASTER',(#169,#182,#191),#45);
-          // Block ... alles AXIS2_PLACEMENT_3D; refSys of dittos.
+          // Block ... AXIS2_PLACEMENT_3D (refSys of dittos)
+          //           or GEOMETRIC_CURVE_SETs
           // Link  --> SHAPE_REPRESENTATION_RELATIONSHIP od 
           //           GEOMETRIC_REPRESENTATION_CONTEXT  od
           //           ADVANCED_BREP_SHAPE_REPRESENTATION ..
-          irc = STP_r_savInit (SC_SHAPE_REPRESENTATION, &p2);
+          // irc = STP_r_savInit (SC_SHAPE_REPRESENTATION, &p2);
+          irc = STP_r_savLinkB (SC_SHAPE_REPRESENTATION, &p2);
           if(irc < 0) return irc;
-          // STP_r_skipB (&p2);
-          // i1 = 1;
-          // irc = STP_r_decLinks (&i1, &p2);  // decode & save Links
+          // STP_r_skipB (&p2); // skip Textfield
+          // i1 = 2;
+          // irc = STP_r_decLinks (&i1, &p2);  // decode & save Links 2019-04-30
           break;
 
         // SHAPE_REPRESENTATION_RELATIONSHIP
@@ -3692,7 +3721,7 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
       // TRIMMED_CURVE
       } else if(!strcmp(dc1, "TRIMMED_CURVE")) {
-        irc = STP_r_decCurv1 (p2);
+        irc = STP_r_decCvTrm (p2);
         break;
       }
 
@@ -4213,7 +4242,7 @@ static Point p1, p2;
 
     //----------------------------------------------------------------
     case SC_TRIMMED_CURVE:    // SEE ALSO STP_r_creCurv1
-      irc = STP_r_creCurv2 (sInd);
+      irc = STP_r_creCvTrm (sInd);
       if(irc < 0) return irc;
       break;
 
@@ -4275,8 +4304,8 @@ static Point p1, p2;
       gTxt[0] = '\0';
       for(i1=0; i1<iNr; ++i1) {
         ii = STP_r_findInd (iap[i1], ii);
-          // printd(" CCV-obj-%d - %d #%d typ=%d\n",i1,
-                  // ii,s_tab[ii].sInd,s_tab[ii].sTyp);
+          printd(" STP_r_cre2-TRM-%d - %d #%d typ=%d\n",i1,
+                  ii,s_tab[ii].sInd,s_tab[ii].sTyp);
         AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
       }
       irc = STP_r_creObj1 (sInd, Typ_CVTRM, Typ_Txt, gTxt);
@@ -4391,7 +4420,8 @@ static Point p1, p2;
     case SC_CONNECTED_EDGE_SET:    // resolv Block of EDGE_CURVEs
       ii = sInd;
       // erste Zahl ist die Anzahl
-      iNr = iap[0];                // printf(" iNr =%d\n",iNr);
+      iNr = iap[0];
+        printd(" SC_GEOMETRIC_SET-iNr =%d\n",iNr);
       ++iap;
       // resolv Block
       for(i1=0; i1<iNr; ++i1) {
@@ -5745,8 +5775,9 @@ static Point p1, p2;
   //----------------------------------------------------------------
   } else {
     TX_Error("STP_r_creCurv1 E003 %d %d %d", sInd, ii, s_tab[ii].sTyp);
-    printf("#%d = %s\n",s_tab[sInd].sInd,STP_r_TypTxt_sTyp(s_tab[sInd].sTyp));
-    printf("#%d = %s\n",s_tab[ii].sInd,STP_r_TypTxt_sTyp(s_tab[ii].sTyp));
+    printd("STP_r_creCurv1 E003 %d %d %d\n", sInd, ii, s_tab[ii].sTyp);
+    printd("  #%d = %s\n",s_tab[sInd].sInd,STP_r_TypTxt_sTyp(s_tab[sInd].sTyp));
+    printd("  #%d = %s\n",s_tab[ii].sInd,STP_r_TypTxt_sTyp(s_tab[ii].sTyp));
     return -1;
   }
 
@@ -5761,10 +5792,10 @@ static Point p1, p2;
 
 
 //================================================================
-  STP_r_creCurv2 (int sInd) {
+  int STP_r_creCvTrm (int sInd) {
 //================================================================
-// create trimmed Curve  from
-// TRIMMED_CURVE (#basis_curve, #trimObj1, #trimObj2)
+// STP_r_creCvTrm         create trimmed-Curve from TRIMMED_CURVE
+// TRIMMED_CURVE (#basis_curve, #trimObj1, #trimObj2, sense-rot)
 
 
   int     irc, ii, *iap, iTyp, i1, i2, iDir;
@@ -5772,7 +5803,7 @@ static Point p1, p2;
 
 
   // printf("=============================================== \n");
-  printd(" STP_r_creCurv2 %d #%d typ=%d\n",sInd,
+  printd(" STP_r_creCvTrm %d #%d typ=%d\n",sInd,
            s_tab[sInd].sInd,s_tab[sInd].sTyp);
 
 
@@ -5790,6 +5821,7 @@ static Point p1, p2;
   iTyp = iap[0];         // printf(" trimTyp=%d\n",iTyp);
   ++iap;
 
+
   // 2. u 3. Link sind die TrimmingObjects; Links auf Points od doubles.
   if(iTyp == 0) {   // Links
     iap = STP_r_getInt (&i1, iap);
@@ -5802,7 +5834,9 @@ static Point p1, p2;
       // printf(" typ=%d vals %f %f\n",iTyp,d1,d2);
   }
 
+  // get sense-rotation
   iap = STP_r_getInt (&iDir, iap);
+    printd ("  CvTrm-iDir=%d",iDir);
 
 
   //................................
@@ -5857,14 +5891,14 @@ static Point p1, p2;
   //................................
   } else if(s_tab[ii].sTyp == SC_BOUNDED_CURVE) {
     // muss noch gemacht werden ...
-    printf("********* STP_r_creCurv2 I001 *********** \n");
-    // TX_Print("STP_r_creCurv2 I001");
+    printf("********* STP_r_creCvTrm I001 *********** \n");
+    // TX_Print("STP_r_creCvTrm I001");
     
 
 
   //................................
   } else {
-    TX_Error("STP_r_creCurv2 %d #%d",s_tab[ii].sTyp,s_tab[sInd].sInd);
+    TX_Error("STP_r_creCvTrm %d #%d",s_tab[ii].sTyp,s_tab[sInd].sInd);
     return -1; //exit(0);
   }
 
@@ -6336,7 +6370,8 @@ static Point p1, p2;
   // loop tru trimmedCurves.
   for(i1=0; i1<iNr; ++i1) {
     ii = STP_r_findInd (iap[i1], ii);
-      printd(" CCVseg %d %d #%d typ=%d\n",i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
+      printd(" STP_r_creCont1-CCV1 %d %d #%d typ=%d\n",
+             i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
     irc = STP_r_creCurv1 (ii);
     if(irc < 0) return irc;
   }
@@ -6356,8 +6391,11 @@ static Point p1, p2;
   gTxt[0] = '\0';
   for(i1=0; i1<iNr; ++i1) {
     ii = STP_r_findInd (iap[i1], ii);
-    // printf(" Crv. %d ind=%d #%d typ=%d\n",i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
+      printd(" STP_r_creCont1-CCV2 %d ind=%d #%d sTyp=%d aux=%d\n",
+             i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp,s_tab[ii].aux);
     AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
+    // if direction of SC_ORIENTED_EDGE is reverse: add " REV"
+    if(s_tab[ii].aux != 0) strcat (gTxt, " REV");            // 2019-04-29
   }
   irc = STP_r_creObj1 (sInd, Typ_CVTRM, Typ_Txt, gTxt);
   if(irc < 0) return irc;
@@ -7925,10 +7963,11 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
     // //----------------------------------------------------------------
-    // case SC_SHAPE_REPRES_RS:
-      // // get L1 of SHAPE_DEFINITION_REPRESENTATION = PRODUCT_DEFINITION_SHAPE
+    case SC_SHAPE_REPRESENTATION:
+      // get L1 of SHAPE_DEFINITION_REPRESENTATION = PRODUCT_DEFINITION_SHAPE
       // l1 = STP_r_get_L1 (iAct);
       // return STP_r_mdl_res__ (i_tab[l1]);
+      goto L_res_l1;
 
 
     //----------------------------------------------------------------
@@ -7984,6 +8023,22 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
       return -1;
 
 
+
+    //----------------------------------------------------------------
+    case SC_GEOMETRIC_CURVE_SET:
+      // find SHAPE_REPRESENTATION where L2- = lAct
+      // get ID-SHAPE_REPRESENTATION where Ltab = ID-GEOMETRIC_CURVE_SET
+// #10 = SHAPE_REPRESENTATION('',(#11,#15,#23),#31);
+// #15 = GEOMETRIC_CURVE_SET('',(#16));
+// OR
+// #10 = GEOMETRICALLY_BOUNDED_WIREFRAME_SHAPE_REPRESENTATION('',(#11,#15),#23);
+// #15 = GEOMETRIC_CURVE_SET('',(#16));
+
+      // get sInd of SHAPE_REPRESENTATION with link -> GEOMETRIC_CURVE_SET
+      ii = STP_r_find_B (SC_SHAPE_REPRESENTATION, s_tab[iAct].sInd);
+      if(ii > 0) goto L_res_ii;
+
+
     //----------------------------------------------------------------
 /*
     case SC_MANIFOLD_SURFACE_SR: // MANIFOLD_SURFACE_SHAPE_REPRESENTATION
@@ -8032,10 +8087,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   L_res_ii:  // resolv next index
     return STP_r_mdl_res__ (ii);
 
-  L_res_l1:  // resolv next step-Link1 of iAct
+  L_res_l1:  // resolv next step-Link1 of iAct, then recursion
     ll = STP_r_get_L1 (iAct);
 
-  L_res_ll:  // resolv next step-link
+  L_res_ll:  // resolv next step-link (recursion)
     return STP_r_mdl_res__ (i_tab[ll]);  // s_tab-index from step-link
 
 
@@ -8760,8 +8815,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   }
 
   // es gibt nix  ..
-  if(!errTyp)
-    TX_Print("STP_r_find_sRec_TypL1 E001 %d #%d",sTyp,lL1);
+  // if(!errTyp)
+    // TX_Print("STP_r_find_sRec_TypL1 E001 %d #%d",sTyp,lL1);
+    printd("**** ERR STP_r_find_sRec_TypL1 E001 %d #%d",sTyp,lL1);
+
 
    i1 = -1;
 
@@ -8814,6 +8871,66 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
             // STP_r_TypTxt_sTyp(sTyp),lL2); }
 
   errTyp = 0;     // reset
+
+  return i1;
+
+}
+
+
+//================================================================
+  int STP_r_find_dump (int sTyp) {
+//================================================================
+
+  int    i1, i2, *ia;
+
+  printd("STP_r_find_dump %d\n",sTyp);
+
+  // find Record typ = sTyp
+  for(i1=0; i1<s_Nr; ++i1) {
+    if(s_tab[i1].sTyp != sTyp) continue;
+    ia = s_tab[i1].sDat;
+    for(i2=0; i2<5; ++i2) {
+      printd(" sdat[%d] = %d\n",i2,ia[i2]);
+    }
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int STP_r_find_B (int sTyp, int iL1) {
+//================================================================
+// STP_r_find_B                find a link in a Link-block
+// returns sInd of record of type sTyp with <iL1> in first linkBlock
+ 
+  int    i1, i2, *ia, iNr;
+
+  // printd("STP_r_find_B %d %d\n",sTyp,iL1);
+ 
+  // find Record typ = sTyp
+  for(i1=0; i1<s_Nr; ++i1) {
+    if(s_tab[i1].sTyp != sTyp) continue;
+
+    // get linkBlock
+    ia = s_tab[i1].sDat;
+    // first int = nr of links
+    iNr = ia[0];
+    ++ia;
+
+    for(i2=0; i2<iNr; ++i2) {
+        // printd(" sdat[%d] = %d\n",i2,ia[i2]);
+      if(ia[i2] == iL1) goto L_exit;
+    }
+  }
+
+  i1 = -1;
+
+
+  L_exit:
+
+    printd("ex-STP_r_find_B %d iL1=%d sTyp=%d\n",i1,iL1,sTyp);
 
   return i1;
 
@@ -9687,8 +9804,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
 //================================================================
-  int STP_r_decCurv1 (char *cbuf) {
+  int STP_r_decCvTrm (char *cbuf) {
 //================================================================
+// STP_r_decCvTrm         decode step-line TRIMMED_CURVE
+//
 // TRIMMED_CURVE('',#54,(#55),(#56),.T.,.CARTESIAN.);
 // TRIMMED_CURVE('',#76,(16.855),(31.999),.T.,.UNSPECIFIED.);
 // TRIMMED_CURVE('',#3367,(CARTESIAN_POINT(#3368)),(CARTES..
@@ -9699,12 +9818,13 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 // direction(fwd-rev): .T.|.F.
 // master_representation trimming_preference:
 //    .CARTESIAN.|.UNSPECIFIED.|.PARAMETER.
-
+//
 // 1 Link     basis_curve
 // 1 int      typ of trim_1,trim_2; 0=Link, 1=Db
 // 1 Link/Db  trim_1
 // 1 Link/Db  trim_2
-// logical 
+// logical    sense-of-rotation (aux)
+// preference unused
 
   int   irc, i1, iNr, iTyp, iForm;
   // char  c1;
@@ -9715,7 +9835,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   printd("============================ \n");
-  printd("STP_r_decCurv1 |%s|\n",cbuf);
+  printd("STP_r_decCvTrm |%s|\n",cbuf);
 
 
   // next s-obj-Record
@@ -9730,11 +9850,12 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   iNr = 1;
   irc = STP_r_decLinks (&iNr, &cbuf);
   if(irc < 0) return irc;
+    // printd(" decCvTrm-_decLinks-1-irc=%d iNr=%d\n",irc,iNr);
 
 
   // check typ of trimObj's
   irc = STP_r_ckTypB (&iTyp, &iForm, cbuf);
-    printd(" n-_ckTypB-irc=%d iTyp=%d iForm=%d\n",irc,iTyp,iForm);
+    printd(" decCvTrm-_ckTypB-1-irc=%d iTyp=%d iForm=%d\n",irc,iTyp,iForm);
   if(irc < 0) return irc;
 
 
@@ -9778,13 +9899,14 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   }
 
 
-    // printf(" cbuf now |%s|\n",cbuf);
+    printd(" decCvTrm-cbuf now |%s|\n",cbuf);
 
 
   // decode Logical (.T./.F.)
   irc = STP_r_decLog1 (&i1, &cbuf);
   UME_save (&s_dat, &i1, sizeof(int)); // save log.
 
+  printd("====================== ex-STP_r_decCvTrm");
 
   return 0;
 
@@ -10934,8 +11056,9 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 // GEOMETRIC_SET('',(#24,#25,#26)) ;
 // GEOMETRIC_CURVE_SET('',(#24,#25,#26)) ;
 // OPEN_SHELL('',(#190,#213,#229,#240)) ;
-
-// Anzahl Links, Links.
+//
+// Output:
+//   function stores nr-of-links, links into s_tab[].sDat
 
   int   irc, iNr;
 
@@ -10984,7 +11107,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 //================================================================
 // ORIENTED_EDGE('',*,*,#266,.F.);
 // 1 EDGE_CURVE
-// 1 Link ...
+// 1 Link, 1 boolean (direction-reverse);
 
 
   int    irc, i1;
@@ -11027,6 +11150,14 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     TX_Error("STP_r_savEdge1 E002 |%s|",cbuf);
     return -2;
   }
+    // printf(" foll-STP_r_decLinks i1=%d,irc=%d\n",i1,irc);
+
+
+  // get orientation; store in s_tab[s_Nr].aux-bit#1
+  irc = STP_r_decLog1 (&i1, &cbuf);    // 2019-04-29
+  if(irc >= -1) s_tab[s_Nr].aux  = i1;
+  else TX_Error("STP_r_savEdge1 E003");
+    // printf(" _savEdge1-orient. [%d].aux=%d irc=%d \n",s_Nr,s_tab[s_Nr].aux,irc);
 
 
   return 0;
@@ -11063,7 +11194,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 //================================================================
   int STP_r_skipTer1 (char **cBuf) {
 //================================================================
-// skip terminating characters  "," or ")" or "),"
+// STP_r_skipTer1               skip terminating characters  "," or ")" or "),"
 // RetCode:  0  wenn ","
 // RetCode: -1  wenn ")"
 // es werden "," oder ")" oder ")," geskippt !
@@ -11304,11 +11435,10 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 // Input:
 //   p1   eg "(#55)"
 // Output:
-//   oTyp=0 oForm=0: direct Link     "(#55)"
-//   oTyp=1 oForm=1: direct double   "(276.3)"
-//   oTyp=0 oForm=2: indirect Link   "(CARTESIAN_POINT(#3368))"
-//   oTyp=1 oForm=3: indirect double "(PARAMETER_VALUE(358.240717106))"
-
+//   oTyp=0 oForm=0: direct-Link     "(#55)" |Link+Value (#21,PARAMETER_VALUE(0.)))
+//   oTyp=1 oForm=1: direct-value    "(276.3)"
+//   oTyp=0 oForm=2: indirect-Link   "(CARTESIAN_POINT(#3368))"
+//   oTyp=1 oForm=3: indirect-value  "(PARAMETER_VALUE(358.240717106))"
 // RetCod:  0  = OK;
 //         -2  = Formatfehler.
 
@@ -11316,7 +11446,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   int irc;
 
-  // printf("STP_r_ckTypB |%s|\n",p1);
+  // printd("STP_r_ckTypB |%s|\n",p1);
 
   L_start1:
   if(*p1 == '(') {
@@ -11919,7 +12049,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   int    irc;
   char   *p1;
 
-  // printf("STP_r_decLinkxB |%s|\n",*cbuf);
+  // printd("STP_r_decLinkxB |%s|\n",*cbuf);
 
   p1 = *cbuf;
 
@@ -11960,7 +12090,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   *cbuf = p1;
 
-  // printf("ex STP_r_decLinkxB |\n");
+  // printf("ex-STP_r_decLinkxB |%s|\n",*cbuf);
   // UTX_dump_s__ (p1); printf("|\n");
 
 
@@ -11974,8 +12104,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 //================================================================
 // decode Links in Klammer eingebettet
 // iNr out:  Anzahl decodierter Links.
-// - must starts with char '('
-// - exists with char after ')'
+// - must start with char '('
+// - exits with char after ')'
 // RetCod  0 - nach (..) war ein ',' (wird geskippt !)
 // RetCod -1 - nach (..) war ein ')' (wird geskippt !)
 // RetCod -2 - Fehler; stop.
@@ -11984,7 +12114,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   char   *p1, *p2;
 
 
-  // printd("STP_r_decLinkB %d |%s|\n",*iNr,*cbuf);
+  printd("STP_r_decLinkB %d |%s|\n",*iNr,*cbuf);
 
   p1 = *cbuf;
 
@@ -11996,7 +12126,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     goto L_start;
   } else {
     TX_Error("STP_r_decLinkB E001 |%s|",*cbuf);
-    return -2;
+    irc = -2;
+    goto L_exit;
   }
 
   // *iNr = 0;    // 0 = all Links
@@ -12009,16 +12140,19 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   if(irc < 1) {
     // end of block was not ')'; skip all until ')'
     p2 = UTX_pos_skipBrack1(p1);
-    if(!p2) {TX_Error("STP_r_decLinkB E000|%s|",*p1); return -1;}
+    if(!p2) {TX_Error("STP_r_decLinkB E000|%s|",*p1); irc = -1; goto L_exit;}
     p1 = ++p2; // skip ')'
   }
 
+
+  // skip ','
+  STP_r_skipTer0 (p1);
 
   *cbuf = p1;
 
 
   L_exit:
-    // printd("ex STP_r_decLinkB irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
+    printd("ex-STP_r_decLinkB irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
     // UTX_dump_s__ (*cbuf); printf("|\n");
 
   return irc;
@@ -12043,7 +12177,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   void  *mp1;
 
 
-  // printd("STP_r_decLinks %d |%s|\n",*iNr,*cbuf);
+  printd("STP_r_decLinks %d |%s|\n",*iNr,*cbuf);
 
   iend = *iNr;
   if(iend < 1) iend = 99999;
@@ -12073,7 +12207,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   }
 
 
-  // printd("ex STP_r_decLinks irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
+  printd("ex-STP_r_decLinks irc=%d iNr=%d |%s|\n",irc,*iNr,*cbuf);
   // UTX_dump_s__ (*cbuf); printf("|\n");
 
   return irc;

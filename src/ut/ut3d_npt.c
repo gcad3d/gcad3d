@@ -222,7 +222,7 @@ UT3D_npt_ci                circular polygon
 ///   ptNr         nr of output-points already in pTab (index of 1. unused point)
 ///   ptSiz        size of pTab
 ///   cvt          trimmed-curves
-///   cvNr          nr of curves in cvt
+///   cvNr         nr of curves in cvt
 ///   mode         0=perm, fix PRCV; 1=temp, do not use PRCV; 2=unknown
 /// Output:
 ///   pTab
@@ -241,7 +241,10 @@ UT3D_npt_ci                circular polygon
 
   // printf("UT3D_npt_trmCv ptSiz=%d ptNr=%d cvNr=%d mode=%d\n",
          // ptSiz,*ptNr,cvNr,mode);
-  // DEB_dump_obj__ (Typ_CVTRM, cvt, " UT3D_npt_trmCv");
+  // if(cvNr == 4) AP_debug__ ("UT3D_npt_trmCv-1");
+  // for(ii=0; ii<ptSiz; ++ii) memcpy(&pTab[ii], &UT3D_PT_NUL, sizeof(Point));
+  // iptNxt = ptSiz;
+  // goto L_exit;
 
 
   // iptNxt = next free pointIndex
@@ -250,20 +253,23 @@ UT3D_npt_ci                circular polygon
   // loop tru all curves
   for(ii=0; ii<cvNr; ++ii) {
     cvt = &cva[ii];
-      // printf("------ npt_trmCv-nxt %d \n",ii);
 
+      // printf("------ npt_trmCv-nxt %d \n",ii);
+      // DEB_dump_obj__ (Typ_CVTRM, cvt, " UT3D_npt_trmCv");
+
+    if(ii > 0)  --iptNxt;        // first point already exists
     paSiz = ptSiz - iptNxt;
     if(paSiz < 2) goto L_EOM;
-    if(ii > 0) { --iptNxt; ++paSiz; }  // first point already exists
 
 
     // test if PRCV exists
     if((!mode) && (cvt->dbi != 0)) {
       // get polygon of trimmedCurve
       irc = PRCV_npt_trmCv (&pa, &nptAct, cvt);
+        // printf(" pt_trmCv-irc=%d nptAct=%d\n",irc,nptAct);
       if(irc < 0) return -2;
       // copy points -> pTab
-      if(nptAct >= paSiz) goto L_EOM;
+      if((iptNxt + nptAct) >= paSiz) goto L_EOM;
       memcpy (&pTab[iptNxt], pa, sizeof(Point) * nptAct);
       goto L_nxt;
     }

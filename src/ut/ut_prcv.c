@@ -774,7 +774,10 @@ static CurvPrcv PRCV0 = _PRCV_NUL;
 
   //----------------------------------------------------------------
   L_exit:
-    if(ii < 0) TX_Print("***** PRCV_get_tc_find E1 vx=%lf ipdb=%ld",vx,ipdb);
+    if(ii < 0) {
+      TX_Print("***** PRCV_get_tc_find E1 vx=%lf ipdb=%ld",vx,ipdb);
+      AP_debug__  ("PRCV_get_tc_find E1");
+    }
 
     // printf("ex PRCV_get_tc_find ii=%d vx=%lf ipdb=%ld\n",ii,vx,ipdb);
 

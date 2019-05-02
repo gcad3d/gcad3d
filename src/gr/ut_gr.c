@@ -2979,13 +2979,17 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   int       irc, i1, ptNr, pNr, paSiz, iAtt, mode;
   int       ipe;
   void      *msPos = NULL;
-  Point     *pta;
+  // Point     *pta;
+#define SIZ_PTA 5000
+  Point     pta[SIZ_PTA];
   Memspc    tSpc1 = UME_NEW;
 
 
 
   // printf("GR_DrawCvCCV cvNr=%d\n",cvNr);
   // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "%d",i1); 
+  // printf(" SPC_MAX_STK=%d\n",SPC_MAX_STK);
+
 
   // printf("DDDDDDDDDDDDDDD  GR_DrawCvCCV dbi=%ld dli=%ld, att=%d\n",dbi,*dli,att);
   // DEB_dump_ox_0 (cv1, "GR_DrawCvCCV");
@@ -2995,10 +2999,14 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
     // // get tempSpace
-    UME_init (&tSpc1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+    // UME_init (&tSpc1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+    // msPos = MEM_alloc_tmp (SPC_MAX_STK);
+    // UME_init (&tSpc1, msPos, SPC_MAX_STK);
+    // UME_malloc (&tSpc1, SPC_MAX_STK, SPC_MAX_STK);
     // get whole space for points
-    paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tSpc1);
+    // paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tSpc1);
       // printf(" _DrawCvCCV-paSiz = %d\n",paSiz);
+    paSiz = SIZ_PTA;
 
     // get polygon
     ptNr = 0;
@@ -3047,7 +3055,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // point only: Hilite.
   if(ptNr < 2) {
     GL_DrawPoint (dli, 0, pta);
-    return 0;
+    goto L_exit;
   }
 
 
@@ -3084,7 +3092,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   }
 */
 
-  // if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
+  L_exit:
+    // UME_free (&tSpc1);
+    // if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
 
   return 0;
 

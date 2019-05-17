@@ -666,10 +666,10 @@ static double  newRot[4], newpRot[4];  // rotation
 
 
   // connect mem
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, inc_pTab);
-  MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
-  MemTab_ini (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
-  MemTab_ini (&eDat, sizeof(int), Typ_Int4, 5);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, inc_pTab);
+  MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
+  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
+  MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 5);
 
 
   iTab    = (int*)memspc501;
@@ -2211,7 +2211,7 @@ static double  newRot[4], newpRot[4];  // rotation
   // printf("VR2_r_dec_points |");UTX_dump_s__(ps, 32);printf("|\n");
 
 
-  MemTab_clear (&pTab);
+  MEMTAB_CLEAR (&pTab);
     // printf(" pTab-rMax=%d\n",pTab.rMax);
 
   p1  = strchr(ps, '[');
@@ -2271,7 +2271,7 @@ static double  newRot[4], newpRot[4];  // rotation
   // printf("VR2_r_dec_index |");UTX_dump_s__(ps, 32);printf("|\n");
 
   iTabNr = -1;
-  MemTab_clear (&fTab);
+  MEMTAB_CLEAR (&fTab);
 
   // search '['
   p1  = strchr(ps, '[');

@@ -939,9 +939,9 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   }
 
   // init memspace for point-indextables imt
-  MemTab_ini (&ol_oSh, sizeof(int), Typ_Int4, 10000);
-  MemTab_ini (&ol_GS, sizeof(int), Typ_Int4, 10000);
-  // MemTab_ini (&olSs, sizeof(int), Typ_Int4, 10000);
+  MemTab_ini__ (&ol_oSh, sizeof(int), Typ_Int4, 10000);
+  MemTab_ini__ (&ol_GS, sizeof(int), Typ_Int4, 10000);
+  // MemTab_ini__ (&olSs, sizeof(int), Typ_Int4, 10000);
 
 
   STP_w_init ();
@@ -952,13 +952,13 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   STP_w_cs__ (&ol_oSh);
 
   // reset obj-list
-  MemTab_clear (&ol_oSh);
+  MEMTAB_CLEAR (&ol_oSh);
 
   // output of yet usused surfaces as OPEN_SHELL
   STP_w_os__ (&ol_oSh);
 
   // reset obj-list
-  MemTab_clear (&ol_oSh);
+  MEMTAB_CLEAR (&ol_oSh);
   // add Refsys to ol_oSh (cannot be empty)
   i1 = 100;
   MemTab_add (&ol_oSh, &l1, &i1, 1, 0);

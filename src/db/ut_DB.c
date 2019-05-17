@@ -143,6 +143,7 @@ DB_mdlNam_iBas     get the name of a basic-model from its basicModelNr
 DB_mdlNam_iRef     get Modelname from DB-index of the Modelreference
 DB_mdlTyp_iBas     get Modeltyp from its basicModelNr
 DB_mdlTyp_iRef     get Modeltyp from DB-index of the Modelreference
+DB_dump_ModNam
 DB_dump_ModBas
 
 DB_StoreModNod     Model-Node (basicModelIndex+parentbasicModelIndex+DB-index)
@@ -3766,6 +3767,32 @@ int DB_del_Mod__ () {
 
 
 //================================================================
+  int DB_dump_ModNam () {
+//================================================================
+// mdb_nam keeps the names of active (sub)model and its subModels;
+// not of all models.
+
+  int   i1, i2, ii;
+
+  printf("--------------- DB_dump_ModNam DB_MNM_IND = %ld\n",DB_MNM_IND);
+
+  ii = 0;
+  i2 = 0;
+
+  L_nxt:
+    i1 = strlen(&mdb_nam[i2]);
+    printf("%5d |%s|\n",ii, &mdb_nam[i2]);
+    i2 += i1 + 1;
+    ++ii;
+    if(i2 < DB_MNM_IND) goto L_nxt;
+
+
+  return 0;
+
+}
+
+ 
+//================================================================
   int DB_dump_ModBas () {
 //================================================================
 /// dump basic-models mdb_dyn
@@ -3812,7 +3839,7 @@ int DB_del_Mod__ () {
 /// Input:
 ///   bmNr     nr of its basic-model
 
-  printf("DB_mdlNam_iBas %d DYN_MB_IND=%ld \n",bmNr,DYN_MB_IND);
+  // printf("DB_mdlNam_iBas %d DYN_MB_IND=%ld \n",bmNr,DYN_MB_IND);
 
   if(bmNr >= DYN_MB_IND) {
     TX_Print("DB_mdlNam_iBas E001");

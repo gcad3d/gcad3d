@@ -38,7 +38,7 @@ zip gCAD3D-src.zip\
  pack_MS\
  binMS32\
  doc\
- -x "doc/gcad/*" "*.tag" "*.obj" "*.exp" "*.pdb" "*.lib" "*/my*"
+ -x "doc/gcad/*" "*.tag" "*.obj" "*.exp" "*.pdb" "*.lib" "*/my*" "*/t1*"
 if [ $? -ne 0 ]; then
   echo "****** ERROR zip *******"
   exit 1;

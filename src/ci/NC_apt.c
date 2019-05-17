@@ -18794,8 +18794,8 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
 
     // free APTSpcObj APTSpcTmp 2019-03-18
-    if(!MEM_CANNOT_FREE(APTSpcObj.spcTyp)) UME_free (&APTSpcObj);
-    if(!MEM_CANNOT_FREE(APTSpcTmp.spcTyp)) UME_free (&APTSpcTmp);
+    if(MEM_MUST_FREE(APTSpcObj.spcTyp)) UME_free (&APTSpcObj);
+    if(MEM_MUST_FREE(APTSpcTmp.spcTyp)) UME_free (&APTSpcTmp);
 
 
   return -AP_stat.errStat;   // 2009-06-20

@@ -265,6 +265,7 @@ gcad_src.mak
 }
  
 
+// UU
 //========================================================================
  int OTB_malloc (ObjTab *oTab, int rNr, int xTyp, int siz2) {
 //========================================================================
@@ -281,7 +282,7 @@ gcad_src.mak
 
   // printf(" OTB_malloc rNr=%d siz2=%d\n", rNr, siz2);
 
-  if(oTab->spcTyp) return MSG_ERR__ (ERR_internal, "memspc not free");
+  if(oTab->spcTyp != MEMTYP_NONE) return MSG_ERR__ (ERR_internal, "memspc not free");
 
   // get space
   vpx = malloc (rNr * sizeof(int));
@@ -301,7 +302,7 @@ gcad_src.mak
   oTab->oNr  = 0;
   oTab->oSiz = rNr;
   oTab->xTyp = xTyp;
-  oTab->spcTyp = MEMSPCTYP_MALLOC__;
+  oTab->spcTyp = MEMTYP_ALLOC__;
 
 
   //----------------------------------------------------------------
@@ -376,7 +377,7 @@ gcad_src.mak
 
   oTab->oNr    = 0;
   oTab->oSiz   = rNr;
-  oTab->spcTyp = MEMSPCTYP_TMP;
+  oTab->spcTyp = MEMTYP_FIXED_PROT;
   oTab->xTyp   = xTyp;
   oTab->fmtb   = fmtb;
 
@@ -407,7 +408,7 @@ gcad_src.mak
 
   UME_free (&oTab->oSpc);
 
-  oTab->spcTyp = MEMSPCTYP_NONE;
+  oTab->spcTyp = MEMTYP_NONE;
 
   return 0;
 

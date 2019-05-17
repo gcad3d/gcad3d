@@ -351,9 +351,10 @@ void INF_OTYP (){}
 /// function parameters
 #define Typ_ALL          270
 #define Typ_Done         271
-#define Typ_NULL         272  ///< nothing, empty; Typ_unknown
+#define Typ_NULL         272  ///< nothing, empty;
 #define Typ_last         273  ///< 
 #define TYP_SIZ          274  ///< nr of defined types
+#define Typ_unknown      275  ///<
 
 
 /// math.operators

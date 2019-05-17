@@ -1688,7 +1688,7 @@ extern char  MOpTxtStr[];
   // printf("APED_find_dep__ typ=%d dbi=%ld\n",typ,dbi);
 
 
-  MemTab_ini (oa, sizeof(ObjSRC), Typ_ObjSRC, 400);
+  MemTab_ini__ (oa, sizeof(ObjSRC), Typ_ObjSRC, 400);
 
 
   // Search dli & last DefinitionLine for root-obj typ,dbi
@@ -2235,7 +2235,7 @@ extern char  MOpTxtStr[];
   // printf("APED_find_par__ typ=%d dbi=%ld\n",typ,dbi);
 
 
-  MemTab_ini (oa, sizeof(ObjSRC), Typ_ObjSRC, 400);
+  MemTab_ini__ (oa, sizeof(ObjSRC), Typ_ObjSRC, 400);
 
 
   // Search dli & last DefinitionLine for root-obj typ,dbi

@@ -138,6 +138,20 @@ Was wenn es nun doppelte subModelNames gibt ?
 
 
 
+=====================================================
+Variables:
+
+AP_modact_nam   "" = main, else modelname of active subModel.
+<dispList>.mod  index basicModel of obj; -1=active (sub)Model
+
+WC_modact_ind   -1=activeModel; 
+
+
+=====================================================
+Functions:
+DB_dump_ModBas    list BasicModels
+
+
 
 =====================================================
 Funktionsweise:
@@ -1239,7 +1253,7 @@ static char *fnam;
   L_PTAB:
   if(surPtab.iNr < 1) goto L_MSH;
 
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
 
   for(ii = 0; ii < surPtab.iNr; ++ii) {
     p1 = UtxTab__ (ii, &surPtab);      // get word from index
@@ -1260,9 +1274,9 @@ static char *fnam;
   L_MSH:
   if(surMsh.iNr < 1) goto L_procs;
 
-  MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
-  MemTab_ini (&eDat, sizeof(int), Typ_Int4, 50);
+  MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
+  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
   for(ii = 0; ii < surMsh.iNr; ++ii) {
     p1 = UtxTab__ (ii, &surMsh);      // get word from index
@@ -2826,10 +2840,6 @@ static ModelRef modR2;
   OS_file_delGrp (cbuf);
 
   sprintf(cbuf, "%s*.bmp",OS_get_tmp_dir());
-  OS_file_delGrp (cbuf);
-
-  // remove all PRCV-files
-  sprintf(cbuf, "%s*.odat",OS_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
   Tex_DelAll ();  // delete all OpenGL-textures

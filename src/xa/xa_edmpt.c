@@ -1991,7 +1991,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   itsMax = SRCU_tsMax (txso);    // printf(" itsMax=%d\n",itsMax);
   i1 = itsMax * sizeof(ObjTXTSRC);  // bytes
   ts0 = (ObjTXTSRC*) MEM_alloc_tmp (i1);
-  // MemTab_spc (&mt0, ts0, i1, sizeof(ObjTXTSRC), Typ_ObjTXTSRC);
+  // MemTab_ini_fixed (&mt0, ts0, i1, sizeof(ObjTXTSRC), Typ_ObjTXTSRC);
 
 
   // analyze sourceline; get source-objects -> ts0

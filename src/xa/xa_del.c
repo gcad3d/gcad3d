@@ -600,7 +600,7 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
 
   // init table for objs to be deleted
-  MemTab_ini (&oTab, sizeof(ObjSRC), Typ_ObjSRC, 100);
+  MemTab_ini__ (&oTab, sizeof(ObjSRC), Typ_ObjSRC, 100);
 
 
   // loop tru group-of-selected-objs

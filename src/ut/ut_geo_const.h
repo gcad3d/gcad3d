@@ -37,8 +37,8 @@ touch ../ut/ut_geo2d.c && ./do c
 // CurvPrcv
 #define _PRCV_NUL { 0L, 0, 0, 0,\
                     NULL, NULL, NULL,\
-                    (short)0, (char)2, (char)0 };
-//                  typ,      fTmp,    uu1
+                    (short)0, (char)MEMTYP_NONE, (char)0 };
+//                  typ,      spcTyp,            uu1
 
 // CurvCCV
 #define _CCV_NUL  { FLT_32_MAX, FLT_32_MAX, 0L, 0L, 0L,\
@@ -58,8 +58,10 @@ touch ../ut/ut_geo2d.c && ./do c
 //                     r   g   b  uu  tra sym tex col
 
 // ObjTab
-#define _OBJTAB_NUL { NULL, NULL, UME_NEW, NULL, 0,0,\
-                      (UINT_16)0, (char)0, (char)0 }
+#define _OBJTAB_NUL { NULL, NULL, UME_NEW,\
+                      NULL, 0, 0, (UINT_16)0,\
+                      (char)MEMTYP_NONE, (char)0, (char)0, (char)0 }
+                      //    spcTyp
 
 // IndTab
 #define _INDTAB_NUL  { 0,0,  0,0,0,0}

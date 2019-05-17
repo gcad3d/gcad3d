@@ -36,7 +36,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
-make -f tst.mak
+. ../options.sh && make -f tst.mak
 nmake -f tst.nmak
 
 

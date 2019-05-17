@@ -1,6 +1,6 @@
 # Debug 1=Development; Debug-ON
 #       2=Distribute;  Debug-OFF
-DEB = 2
+DEB = 1
 
 
 ifeq "$(DEB)" "1"

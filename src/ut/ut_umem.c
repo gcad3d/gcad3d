@@ -42,6 +42,8 @@ List_functions_start:
 MEM_alloc_tmp         allocate mem for active function (temp.space)
 MEM_MUST_FREE         1=memspc MUST be freed                               INLINE
 MEM_CANNOT_FREE       1=memspc CANNOT be freed                             INLINE
+MEM_CANNOT_ALLOC      1=memspc CANNOT be (re)allocated                     INLINE
+MEM_CAN_ALLOC         1=memspc CAN be (re)allocated                        INLINE
 
 UME_NEW               setup                                                INLINE
 UME_malloc            init Memspc (malloc, does realloc, must free)
@@ -299,18 +301,18 @@ const Memspc UME_NUL = UME_NEW;
   void  *oldAdr;
 
 
+  if(memSpc->spcTyp == MEMTYP_NONE) memSpc->spcTyp = MEMTYP_ALLOC__;
+
+
   // test if can realloc
-  if((memSpc->spcTyp < MEMSPCTYP_MALLOC__)    ||
-     (memSpc->spcTyp > MEMSPCTYP_MALLOC_FIX))     {
+  // if((memSpc->spcTyp < MEMSPCTYP_MALLOC__)    ||
+     // (memSpc->spcTyp > MEMSPCTYP_MALLOC_FIX))     {
 
     // if no allocation yet; change to MEMSPCTYP_MALLOC__
-    if(memSpc->spcTyp == MEMSPCTYP_NONE) {
-      memSpc->spcTyp = MEMSPCTYP_MALLOC__;
-    } else {
-      DEB_dump_obj__ (Typ_Memspc, memSpc, "UME_realloc E1");
-      TX_Error("UME_realloc E1");
-      return -1;
-    }
+  if(MEM_CANNOT_ALLOC(memSpc->spcTyp)) {
+    DEB_dump_obj__ (Typ_Memspc, memSpc, "UME_realloc E1");
+    TX_Error("UME_realloc E1");
+    return -1;
   }
 
 
@@ -362,7 +364,7 @@ const Memspc UME_NUL = UME_NEW;
   // memSpc->end   = objDat + osiz;
   memSpc->end   = (char*)objDat + osiz;
 
-  memSpc->spcTyp = MEMSPCTYP_TMP;
+  memSpc->spcTyp = MEMTYP_STACK;
 
     // UME_dump (memSpc, "ex-UME_init");
 
@@ -410,7 +412,7 @@ const Memspc UME_NUL = UME_NEW;
   }
 
   memSpc->end   = (char*)memSpc->start + spcSiz;
-  memSpc->spcTyp = MEMSPCTYP_MALLOC__;
+  memSpc->spcTyp = MEMTYP_ALLOC__;
 
 
   // printf("ex UME_malloc %d %p\n",spcSiz,memSpc->start);

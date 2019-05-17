@@ -122,7 +122,7 @@ List_functions_end:
   // MemTab(Point) pTab = MemTab_Init(sizeof(Point), Typ_PT, 10000);
   MemTab(Point) pTab = _MEMTAB_NUL;
 
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
 
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
@@ -191,9 +191,9 @@ List_functions_end:
 
 
 
-  MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
-  MemTab_ini (&eDat, sizeof(int), Typ_Int4, 50);
+  MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
+  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
 
 
@@ -1159,10 +1159,10 @@ List_functions_end:
   MemTab(EdgeLine) eTab = _MEMTAB_NUL;
   MemTab(int) eDat = _MEMTAB_NUL;
 
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
-  MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
-  MemTab_ini (&eDat, sizeof(int), Typ_Int4, 50);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
+  MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
+  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
 
 

@@ -465,7 +465,7 @@ int DXFW_test (char *txt1) {
 
   // init stringList subModelnames
 #define SIZ_SMTAB 1000
-  MemTab_ini (&dxfw_smTab, sizeof(int), Typ_Int4, SIZ_SMTAB);
+  MemTab_ini__ (&dxfw_smTab, sizeof(int), Typ_Int4, SIZ_SMTAB);
 
 
 

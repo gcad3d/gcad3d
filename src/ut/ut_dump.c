@@ -208,9 +208,9 @@ DEB_dump_txt
 /// typ = TYP_FuncInit1: ab nun Ausgabe -> FILE "txt"  (File must be open)
 /// typ = TYP_FuncExit:  ab nun wiederAusgabe -> term.  (does not close File)
 ///
+/// to dump text-only: use DEB_dump_txt
 /// resolv ObjGX: see DEB_dump_ox_0
 /// \endcode
-
 
 
 static int      DestFlag = 0;
@@ -223,7 +223,6 @@ static FILE     *uo = NULL;
 
 
   // printf("DEB_dump_obj__ typ=%d txt=|%s|\n",typ,txt);
-
 
 
   //----------------------------------------------------------------
@@ -1830,8 +1829,8 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_PRCV) {
     prcv = data;
     // data (pointer) = int-value itself. 2013-12-20
-    sprintf(cps,"%s Prcv typ=%d dbi=%ld siz=%d ptNr=%d fTmp=%d",txt,
-            prcv->typ,prcv->dbi,prcv->siz,prcv->ptNr,prcv->fTmp);
+    sprintf(cps,"%s Prcv typ=%d dbi=%ld mdli=%d siz=%d ptNr=%d spcTyp=%d",txt,
+            prcv->typ,prcv->dbi,prcv->mdli,prcv->siz,prcv->ptNr,prcv->spcTyp);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1885,12 +1884,14 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_MemTab) {
-    sprintf(cps," MemTab %s rNr=%d rMax=%d typ=%d rSiz=%d incSiz=%d use=%d",txt,
+    sprintf(cps,
+      " MemTab %s rNr=%d rMax=%d typ=%d rSiz=%d incSiz=%d spcTyp=%d use=%d",txt,
       ((MemTab*)data)->rNr,
       ((MemTab*)data)->rMax,
       ((MemTab*)data)->typ,
       ((MemTab*)data)->rSiz,
       UTI_round_b2i(((MemTab*)data)->incSiz),
+      ((MemTab*)data)->spcTyp,
       ((MemTab*)data)->use);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 

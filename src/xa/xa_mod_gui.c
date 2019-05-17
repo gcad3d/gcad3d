@@ -60,7 +60,7 @@ List_functions - see ../xa/xa_mod.c
 
 // EXTERNALS:
 // from ../xa/xa.h
-extern  char      AP_modact_nam[128];
+extern  char     AP_modact_nam[128];    // name of the active submodel; ""=(main)
 
 
 

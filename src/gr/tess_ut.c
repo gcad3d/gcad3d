@@ -815,7 +815,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
     // init mtlTab
     if(iMtl < 0) {
       if(!(void*)newCol) return 0;  // defCol only ..
-      MemTab_ini (&colTab, sizeof(ColRGB), Typ_Color, 30);
+      MemTab_ini__ (&colTab, sizeof(ColRGB), Typ_Color, 30);
       MemTab_sav (&colTab, &ld, &AP_defcol, 1);
       iMtl = 0;
       // write "mtllib <modelnam>.mtl"

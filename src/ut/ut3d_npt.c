@@ -40,8 +40,10 @@ UT3D_ck_npt_inCirc        check if points are on circSegment
 
 UT3D_pta_ox_lim            polygon and segNr from complex-obj  (eg CCV)
 UT3D_npt_ox__              polygon from complex-obj  (eg CCV)
-UT3D_npt_obj               Polygon from bin-obj (typ,struct)
-UT3D_npt_trmCv             polygon from trimmed-curve
+UT3D_mtpt_obj              Polygon from bin-obj (typ,struct)
+UT3D_mtpt_trmCv            polygon from trimmed-curve
+// UT3D_npt_obj           DO NOT USE  Polygon from bin-obj (typ,struct)
+// UT3D_npt_trmCv         DO NOT USE  polygon from trimmed-curve
 UT3D_pta_plg               get points from polygon-curve; relimited
 UT3D_pta_bsp               Polygon from bSpline
 UT3D_pta_plg2              get points from 2D-polygon;
@@ -217,6 +219,7 @@ UT3D_npt_ci                circular polygon
                       CurvCCV* cva, int cvNr, double tol, int mode) {
 //===================================================================
 /// \code
+/// DO NOT USE - replaced by UT3D_mtpt_trmCv
 /// UT3D_npt_trmCv                polygon from trimmed-curve
 /// Input:
 ///   ptNr         nr of output-points already in pTab (index of 1. unused point)
@@ -234,13 +237,13 @@ UT3D_npt_ci                circular polygon
 
 
   int       irc, ii, iptNxt, nptAct, paSiz, otyp;
-  Point     *pa;
+  Point     *pa2;
   CurvCCV   *cvt;
   char      cv1[OBJ_SIZ_MAX];
 
 
-  // printf("UT3D_npt_trmCv ptSiz=%d ptNr=%d cvNr=%d mode=%d\n",
-         // ptSiz,*ptNr,cvNr,mode);
+  printf("UT3D_npt_trmCv ptSiz=%d ptNr=%d cvNr=%d mode=%d\n",
+         ptSiz,*ptNr,cvNr,mode);
   // if(cvNr == 4) AP_debug__ ("UT3D_npt_trmCv-1");
   // for(ii=0; ii<ptSiz; ++ii) memcpy(&pTab[ii], &UT3D_PT_NUL, sizeof(Point));
   // iptNxt = ptSiz;
@@ -265,12 +268,15 @@ UT3D_npt_ci                circular polygon
     // test if PRCV exists
     if((!mode) && (cvt->dbi != 0)) {
       // get polygon of trimmedCurve
-      irc = PRCV_npt_trmCv (&pa, &nptAct, cvt);
+      nptAct = paSiz;
+      // irc = PRCV_npt_trmCv (&pa, &nptAct, cvt);
+      // pa2 = MEMTAB__ (mtpa, iptNxt);
+      irc = PRCV_npt_trmCv (&pTab[iptNxt], &nptAct, cvt);
         // printf(" pt_trmCv-irc=%d nptAct=%d\n",irc,nptAct);
       if(irc < 0) return -2;
-      // copy points -> pTab
-      if((iptNxt + nptAct) >= paSiz) goto L_EOM;
-      memcpy (&pTab[iptNxt], pa, sizeof(Point) * nptAct);
+      // // copy points -> pTab
+      // if((iptNxt + nptAct) >= paSiz) goto L_EOM;
+      // memcpy (&pTab[iptNxt], pa2, sizeof(Point) * nptAct);
       goto L_nxt;
     }
 
@@ -293,7 +299,7 @@ UT3D_npt_ci                circular polygon
     *ptNr = iptNxt;
 
     // TESTBLOCK
-    // printf("ex UT3D_npt_trmCv irc=%d ptNr=%d\n",irc,*ptNr);
+    printf("ex-UT3D_npt_trmCv irc=%d ptNr=%d\n",irc,*ptNr);
     // GR_Disp_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
     // {int i1; for(i1=0;i1<*ptNr;++i1)
      // printf(" _npt_ %d = %f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z); }
@@ -564,10 +570,335 @@ UT3D_npt_ci                circular polygon
 
 
 //=======================================================================
+  int UT3D_mtpt_obj (MemTab(Point) *mtpa,
+                     int typ, void *data, int siz, long dbi, int mdli,
+                     double tol, int mode) {
+//=======================================================================
+/// \code
+/// UT3D_mtpt_obj               Polygon from bin-obj (typ,struct)
+///   adds points into mtpa
+/// Input:
+///   ptNr         nr of output-points already in pTab (index of 1. unused point)
+///   ptSiz        size of pTab
+///   typ          type of struct in data
+///   data         curve
+///   siz          nr of objects of type 'typ' in 'data'
+///   mdli         modelindex; eg WC_modact_ind;
+///   mode         0=perm; use PRCV; 1=temp, do not use PRCV; 2=unknown
+/// Output:
+///   ptNr         nr of output-points in pTab
+///   pTab[ptNr]   polygon
+/// RetCod:  0=OK; -1=Error; -2=pTab_overflow;
+///
+/// replaces UT3D_npt_obj
+/// \endcode
+
+
+  int       i1, irc, ptMax, ptn, ptNr, cvTyp, nptFree;
+  long      l1;
+  void      *vp1;
+  Point     *pa1, *pa2;
+  ObjGX     *oa;
+
+
+
+  // printf("UT3D_mtpt_obj typ=%d siz=%d dbi=%ld tol=%lf mode=%d\n",
+          // typ, siz, dbi, tol, mode);
+  // DEB_dump_obj__ (Typ_MemTab, mtpa, " mtpt_obj-mtpa");
+  // DEB_dump_obj__ (typ, data, " __npt_obj");
+
+
+  nptFree = MEMTAB_RFREE(mtpa);
+    // printf(" nptFree=%d\n",nptFree);
+  if(nptFree < 2) goto L_EOM;
+
+
+  ptn = nptFree;
+  pa1 = MEMTAB__ (mtpa, mtpa->rNr);
+  irc = 0;
+
+
+
+  //----------------------------------------------------------------
+  if(typ == Typ_PT)                        {         // 2013-03-19
+    // copy all points -> pTab
+    // if(siz > *ptNr) goto L_EOM; // outTab zu klein
+    if(ptn < siz) goto L_EOM; // outTab zu klein
+    memcpy(pa1, data, siz * sizeof(Point));
+    mtpa->rNr += siz;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVTRM) {
+    // trimmed-curve -> 3D-Polygon 
+    irc = UT3D_mtpt_trmCv (mtpa, (CurvCCV*)data, siz, tol, mode);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_LN) {
+    // Line -> Polygon
+    if(ptn < 2) goto L_EOM; // outTab zu klein
+    pa1[0] = ((Line*)data)->p1;
+    pa1[1] = ((Line*)data)->p2;
+    mtpa->rNr += 2;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_LN2) {
+    // Line -> Polygon
+    if(ptn < 2) goto L_EOM; // outTab zu klein
+    pa1[0] = UT3D_pt_pt2 (&((Line2*)data)->p1);
+    pa1[1] = UT3D_pt_pt2 (&((Line2*)data)->p2);
+    mtpa->rNr += 2;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CI) {
+    // CIRC -> Polygon
+
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // compute points from analytic-curve
+    UT3D_cv_ci (pa1, &ptn, data, nptFree, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVPOL) {
+    // CurvPoly
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_pta_plg (&ptn, pa1, data);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVPOL2) {
+    // CurvPol2
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_pta_plg2 (&ptn, pa1, data);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVELL) {
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    // irc = UT3D_cv_ell (pTab, ptNr, data, *ptNr, tol);
+    ptn = UT3D_ptNr_ell (data, tol);
+    if(ptn > nptFree) {
+      irc = MemTab_add (mtpa, &l1, NULL, ptn, 2);
+      if(irc < 0) goto L_EOM;
+    }
+    irc = UT3D_npt_ell (&ptn, pa1, data);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVCLOT) {
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_npt_clot (pa1, &ptn, data, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVBSP) {
+    // CurvBSpl
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_pta_bsp (&ptn, pa1, data, ptn, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVRBSP) {
+    // CurvRBSpl
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_cv_rbsp (&ptn, pa1, NULL, data, ptn, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Model) {
+    if(ptn < 1) goto L_EOM; // outTab zu klein
+    pa1[0] = ((ModelRef*)data)->po;
+    mtpa->rNr += 1;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_ObjTab) {
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = UT3D_pta_otb (&ptn, pa1, data, ptn, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_ObjGX) {
+    TX_Error("UT3D_mtpt_obj TODO unsupp Typ_ObjGX");
+    return -4;
+/*
+    // recurse
+    ptMax = nptFree;
+        // printf(" _npt_ox start ptMax=%d *ptNr=%d\n",ptMax,*ptNr);
+    ptNr = 0;
+    oa = data;
+    for(i1=0; i1<siz; ++i1) {
+      ptn = ptMax;
+// TODO: replace UT3D_pta_ox_lim with UT3D_mtpt_obj (recursion)
+      irc = UT3D_pta_ox_lim (&ptn, &pa1[ptNr], &oa[i1], 0, NULL, tol, 2);
+      if(irc < 0) return -1;
+      ptMax -= ptn;
+      ptNr += ptn;
+        // printf(" _npt_ox i1=%d ptMax=%d *ptNr=%d\n",i1,ptMax,*ptNr);
+    }
+*/
+
+  //----------------------------------------------------------------
+  } else {
+    TX_Error("UT3D_npt_obj E1-typ %d unsupp",typ);
+    return -1;
+  }
+  goto L_exit;
+
+
+
+  //----------------------------------------------------------------
+  L_prcv:
+    // get points from PRCV
+    irc = PRCV_npt_dbo__ (&pa2, &ptn, typ, dbi, mdli);
+    if(irc < 0) goto L_Err3;
+      // printf("npt_dbo__-ptn=%d \n",ptn);
+
+    // add points (pa2,ptn) to mtpa);
+    irc = MemTab_add (mtpa, &l1, pa2, ptn, 0);
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // MemTab_dump (mtpa, "ex-mtpt_obj-mtpa");
+    // END TESTBLOCK
+
+  return irc;
+
+  //----------------------------------------------------------------
+  L_EOM:
+    TX_Error("UT3D_mtpt_obj pTab overflow");
+    return -2;
+
+  L_Err3:
+    TX_Error("UT3D_mtpt_obj E3");
+    return -3;
+}
+
+
+//===================================================================
+  int UT3D_mtpt_trmCv (MemTab(Point) *mtpa,
+                       CurvCCV* cva, int cvNr, double tol, int mode) {
+//===================================================================
+/// \code
+/// UT3D_mtpt_trmCv                polygon from trimmed-curve
+/// Input:
+///   ptNr         nr of output-points already in pTab (index of 1. unused point)
+///   ptSiz        size of pTab
+///   cvt          trimmed-curves
+///   cvNr         nr of curves in cvt
+///   mode         0=perm, fix PRCV; 1=temp, do not use PRCV; 2=unknown
+/// Output:
+///   pTab
+///   ptNr         nr of output-points in pTab
+///   RetCod:      0=OK; -1=pTab_overflow; Err -2, -3 ..
+///
+/// for group of trimmed-curves (CCV) use UT3D_pta_ox_lim
+/// \endcode
+
+
+  int       irc, ii, otyp, ptn, mdli;
+  long      l1, dbi;
+  Point     *pa2;
+  CurvCCV   *cvt;
+  char      cv1[OBJ_SIZ_MAX];
+
+
+  // printf("UT3D_mtpt_trmCv cvNr=%d mode=%d\n", cvNr, mode);
+  // DEB_dump_obj__ (Typ_MemTab, mtpa, " mtpt_trmCv-mtpa");
+
+  irc = 0;
+
+  // loop tru all curves
+  for(ii=0; ii<cvNr; ++ii) {
+    cvt = &cva[ii];
+
+      // printf("---------------------- npt_trmCv-nxt %d \n",ii);
+      // DEB_dump_obj__ (Typ_CVTRM, cvt, " UT3D_npt_trmCv");
+
+    // first point already exists
+    if(ii > 0)  mtpa->rNr -= 1;
+
+    // test if PRCV exists
+    if((!mode) && (cvt->dbi != 0)) {
+      // PRCV must exist; get points ..
+      ptn = MEMTAB_RFREE(mtpa);
+      pa2 = MEMTAB__ (mtpa, mtpa->rNr);
+      irc = PRCV_npt_trmCv (pa2, &ptn, cvt);
+      if(irc < 0) return -2;
+      mtpa->rNr += ptn;
+      goto L_nxt;
+    }
+
+    // no PRCV exists; change trimmed-curve into standard-curve cv1
+    irc = UTO_cv_cvtrm (&otyp, cv1, NULL, cvt);
+    if(irc < 0) return -1;
+      // DEB_dump_obj__ (otyp, cv1, " mtpt_trmCv-stdCv");
+    // get polygon from standard-curve
+    irc = UT3D_mtpt_obj (mtpa, otyp, cv1, 1, cvt->dbi, 0, tol, mode);
+                        //     form  obj  nr  dbi     mdli
+    if(irc < 0) return -3;
+
+
+    L_nxt:
+      continue;
+  }
+
+
+  L_exit:
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_MemTab, mtpa, "ex-mtpt_trmCv-mtpa");
+    // GR_Disp_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
+    // {int i1; for(i1=0;i1<*ptNr;++i1)
+     // printf(" _npt_ %d = %f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z); }
+    // END TESTBLOCK
+
+  return irc;
+
+  //----------------------------------------------------------------
+  L_EOM:
+    TX_Error("UT3D_mtpt_trmCv EOM");
+    return -1;
+
+}
+
+
+//=======================================================================
   int UT3D_npt_obj (int *ptNr, Point* pTab, int ptSiz,
                     int typ, void *data, int siz, double tol, int mode) {
 //=======================================================================
 /// \code
+/// DO NOT USE - replaced by UT3D_npt_obj
 /// UT3D_npt_obj               Polygon from bin-obj (typ,struct)
 ///   adds points into pTab
 /// Input:
@@ -1503,7 +1834,7 @@ UT3D_npt_ci                circular polygon
           goto L_index_1;
         }
 
-        // add i2 points -> pta
+        // copy i2 points -> pta
         if(i2 > iMax) goto L_EOM;
         memcpy(&pta[ptNr], pa2, i2 * sizeof(Point));
         ptNr += i2;

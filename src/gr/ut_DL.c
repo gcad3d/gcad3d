@@ -4325,7 +4325,7 @@ static long   DL_hidden = -1L;
     DL_oSrc_dli (&oPar, l1);
 
     // clear tempSpc for 128 mtPar-records
-    MemTab_clear (&mtPar);
+    MEMTAB_CLEAR (&mtPar);
 
     // get parents
     OPAR_get_src (&mtPar, &oPar);

@@ -6345,6 +6345,17 @@ See UI_but__ (txt);
     UTX_htm_fcl (&fpo);                // close
     OS_browse_htm (cbuf1, NULL);
 
+  //======================================================
+  } else if(!strcmp(cp1, "dump_prcv")) {
+
+    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
+
+    PRCV_DB_dump ("");
+
+    DEB_dump_obj__ (TYP_FuncEnd, (void*)"htm", "");
+    OS_browse_htm (cbuf1, NULL);
+
 
   //======================================================
   } else if(!strcmp(cp1, "mods")) {
@@ -7224,6 +7235,7 @@ box1
       GUI_menu_entry   (&wtmp8, "Interactions", UI_menCB,     (void*)"ints");
       GUI_menu_entry   (&wtmp8, "Textures", UI_menCB,  (void*)"texs");
       GUI_menu_entry   (&wtmp8, "Graf.Attrib.s", UI_menCB,  (void*)"dump_ga");
+      GUI_menu_entry   (&wtmp8, "polyg.Curves", UI_menCB,  (void*)"dump_prcv");
       GUI_menu_entry   (&wtmp8, "Models", UI_menCB,  (void*)"mods");
       GUI_menu_entry   (&wtmp8, "Group", UI_menCB,  (void*)"dumpGrp");
       GUI_menu_entry   (&wtmp8, "Source", UI_menCB,  (void*)"dumpSrc");

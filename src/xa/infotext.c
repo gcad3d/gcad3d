@@ -109,6 +109,7 @@ INF_struct_closed
 
 Functions for binaryObjects (form + struct):
 UTO_siz_stru        get size of structure
+AP_typ_2_bastyp     get DB-typ from struct-typ
 
 
 
@@ -204,6 +205,19 @@ sense-of-rotation;   0=CCW, 1=CW.
 
 was: 1=CCW, -1=CW
   change to 0=CCW; 1=CW; with:   sr1 = (sr0 > 0) ? 0 : 1;
+
+
+
+================================================================== \endcode */}
+void INF_spcTyp (){        /*! \code
+type of memory-space
+- used in CurvPrcv, MemTab (../ut/ut_memTab.h)
+
+MEMTYP_NONE         0  // undefined/empty;  can-reallocate,   must-NOT-free;
+MEMTYP_ALLOC__      1  // malloc;           can-reallocate,   must-free;
+MEMTYP_ALLOC_PROT   2  // malloc,protected: can-reallocate,   must-NOT-free;
+MEMTYP_FIXED_PROT   3  // malloc,protected; CANNOT-reallocate,must-NOT-free;
+MEMTYP_STACK        4  // stack;            CANNOT-reallocate,must-NOT-free;
 
 
 
@@ -557,6 +571,7 @@ void INF_MEM__ (){        /*! \code
   get memSpc ..
 
 MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
+                                                             ../ut/ut_memTab.h
 Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 TxtTab            Textstrings                  UtxTab_       ../ut/ut_txTab.c
 MEM_alloc_tmp     temporary memspc

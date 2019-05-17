@@ -367,7 +367,7 @@ static MemTab(ObjSRC) parTab = _MEMTAB_NUL;
   //================================================================
   // filter with words in mcl_text
   //----------------------------------------------------------------
-  MemTab_ini (&parTab, sizeof(ObjSRC), Typ_ObjSRC, 400);
+  MemTab_ini__ (&parTab, sizeof(ObjSRC), Typ_ObjSRC, 400);
 
   lNr = 1;     // starting line nr
 

@@ -287,7 +287,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   UtxTab_init__ (&colNam);
 
   // clear colortable colTab
-  MemTab_ini (&colTab, sizeof(ColRGB), Typ_Color, 30);
+  MemTab_ini__ (&colTab, sizeof(ColRGB), Typ_Color, 30);
 
 
   sprintf(mem_cbuf1,"# WaveFront-OBJ-Import %s",fnam);
@@ -747,7 +747,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
       }
       if(colNr < 0) {
         UtxTab_init__ (&colNam);
-        MemTab_ini (&colTab, sizeof(ColRGB), Typ_Color, 30);
+        MemTab_ini__ (&colTab, sizeof(ColRGB), Typ_Color, 30);
         colNr = 0;
       }
       UtxTab_add (&colNam, p1);

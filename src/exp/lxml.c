@@ -151,10 +151,10 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
   printf("lxml_read |%s|\n",fNam);
 
-  MemTab_ini (&LM_pTab, sizeof(Point), Typ_PT, inc_pTab);
-  MemTab_ini (&LM_fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
-  MemTab_ini (&LM_eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
-  MemTab_ini (&LM_eDat, sizeof(int), Typ_Int4, 5);
+  MemTab_ini__ (&LM_pTab, sizeof(Point), Typ_PT, inc_pTab);
+  MemTab_ini__ (&LM_fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
+  MemTab_ini__ (&LM_eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
+  MemTab_ini__ (&LM_eDat, sizeof(int), Typ_Int4, 5);
 
 
 

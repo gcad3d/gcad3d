@@ -559,7 +559,7 @@ char  *ObjCodTab[] = {
     Mod_mNam_mdb (&oid[ii], sSiz, &i1, WC_modact_ind);
   }
 
-    printf("ex APED_oid_dbo_sm |%s|\n",oid);
+    // printf("ex APED_oid_dbo_sm |%s|\n",oid);
 
 
   return 0;

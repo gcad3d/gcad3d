@@ -735,13 +735,13 @@ void STP_r_skipTer0 (char *sBuf);
 
 
   // get mem for tables 
-  i1 = 16 + (il1 / 16000); // siz / inc-siz
-    // printd(" memSizHint i1=%d\n",i1);
+  i1 = 16 + (il1 / 8000); // siz / inc-siz
+    // printf(" memSizHint i1=%d\n",i1);
 
-  // MemTab_ini (&mdlTab, sizeof(int), Typ_Int4, i1);
-  MemTab_ini (&mdlTab, sizeof(STP_MDL), 0, i1);
-  MemTab_ini (&refTab, sizeof(STP_I2), 0, i1);
-  MemTab_ini (&geoTab, sizeof(STP_I2), 0, i1);
+  // MemTab_ini__ (&mdlTab, sizeof(int), Typ_Int4, i1);
+  MemTab_ini__ (&mdlTab, sizeof(STP_MDL), 0, i1);
+  MemTab_ini__ (&refTab, sizeof(STP_I2), 0, i1);
+  MemTab_ini__ (&geoTab, sizeof(STP_I2), 0, i1);
 
 
   // Ausgabezeile
@@ -1474,7 +1474,7 @@ void STP_r_skipTer0 (char *sBuf);
     // printd(" %d %d #%d\n",i1,i2,l2);
     i2 = mdlTab.data[i1].iPROD;
     if(i_tab) {
-      printd(" %-8ld #%-8d %-8d |%s|\n",i1,i2,i_tab[i2],mdlTab.data[i1].nam);
+      printd(" %-8ld #%-8ld %-8d |%s|\n",i1,i2,i_tab[i2],mdlTab.data[i1].nam);
     } else {
       printd(" ???\n");
       // printd(" %-8ld #%-8d |%s|\n",i1,i2,mdlTab.data[i1].nam);

@@ -33,7 +33,7 @@ void MemTab1(){}
 =====================================================
 List_functions_start:
 
-------------------- int's
+------------------- int
 MemTabI_add_s       add n int's to int-table (add consecutive values)
 
 ------------------- IndTab
@@ -41,7 +41,13 @@ MemTabIT_add__      add IndTab = table of int's
 
 List_functions_end:
 =====================================================
+------------------- Point
+UT3D_mtpt_obj
+UT3D_mtpt_trmCv
+
+see also ../ut/ut_memTab.c
 - necessary includes:
+
 
 
 \endcode *//*----------------------------------------
@@ -62,8 +68,6 @@ Testprog: ../ut/tst_memTab.c
 #include "../ut/ut_geo_const.h"        // _INDTAB_NUL
 #include "../ut/ut_memTab.h"
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
-
-
 
 
 

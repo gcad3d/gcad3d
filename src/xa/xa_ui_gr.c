@@ -3807,7 +3807,7 @@ static  Point  selPos;
       oPar.typ  = typ;
       oPar.dbi  = dbi;
       // clear tempSpc for 128 mtPar-records
-      MemTab_clear (&mtPar);
+      MEMTAB_CLEAR (&mtPar);
 
       // get parents
       OPAR_get_src (&mtPar, &oPar);

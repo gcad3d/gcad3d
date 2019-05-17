@@ -1240,7 +1240,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     UI_GR_Sel_Filter (0);      // reset add to group
 
     // clear PRCV-spc
-    PRCV_free__ ();
+    PRCV_init__ ();
 
     // Title oben auf den Mainwinrahmen
     UI_AP (UI_FuncSet, UID_Main_title, NULL);
@@ -4273,47 +4273,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
   printf("AP_test__\n");
 
+  PRCV_DB_dump ("AP_test__");
+
+
   // ED_test__();
 
-  AP_mdlbox_invalid_set ();
-
-  // get userCoords
-  // UI_GR_get_actPosA (&p1);
-    // DEB_dump_obj__ (Typ_PT, &p1, "userC");
-  // GR_get_constPlnPos (&p1);
-    // DEB_dump_obj__ (Typ_PT, &p1, "worldC");
-  // p1 = DB_GetPoint (24L);
-    // DEB_dump_obj__ (Typ_PT, &p1, "P24");
-
-
-
-  // GUI_edi_sel__ (&winED, );
-  // GUI_edi_sel_wrf (&winED, "t1.dat");
-
-/*
-  // unload dll
-  OS_dll_nc (-4, NULL);
-
-  // rebuild dll (
-  OS_dll_build ("xa_nc_cut1.so");
-
-  // init dll
-  PRC_init ("cut1");
-
-  // create the ISO-file; output is <base>/tmp/nc.iso
-  ED_work_PP ();
-*/
-
-
-
-  // NCPROC__ ("test");
-
-
-
-
-
-  //----------------------------------------------
-  // export Mockup - VRML-1
   // TSU_exp__ ("TESS", "/mnt/win_d/dev/gCAD3D/dat/.0.tess"); return 0;
   // TSU_exp__ ("WRL", "/mnt/win_d/dev/gCAD3D/dat/.0.wrl"); return 0;
 

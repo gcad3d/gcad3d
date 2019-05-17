@@ -238,7 +238,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
 //================================================================
 // OPAR_init            init or reset
 
-  MemTab_ini (&ParTab, sizeof(Parent), 0, 100);
+  MemTab_ini__ (&ParTab, sizeof(Parent), 0, 100);
 
 
   return 0;
@@ -365,7 +365,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
 
   } else if(mode == 2) {   // read
     MemTab_rdf (fp1, &ParTab);
-    // if(ParTab.rNr < 1) MemTab_clear (&ParTab);
+    // if(ParTab.rNr < 1) MEMTAB_CLEAR (&ParTab);
 
   }
 

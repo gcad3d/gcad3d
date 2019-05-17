@@ -85,13 +85,15 @@ SRC1 =\
   ../ut/ubs.c        ../ut/ubscrv.c     ../ut/ubssur.c     ../ut/sbsu1.c\
   ../ut/u3d.c        ../ut/ut_cvoff.c   ../ut/ut_msh.c     ../ut/ut_face.c\
   ../gr/tess_su.c    ../gr/ut_tess_su.c ../gr/tess_ut.c    ../gr/tess_vr_ut.c\
-  ../gr/ut_GLU.c     ../gr/glbt.c       ../ut/ut_cntf.c    ../ut/ut_prcv.c\
+  ../gr/ut_GLU.c     ../gr/glbt.c       ../ut/ut_cntf.c\
+  ../ut/ut_prcv__.c  ../ut/ut_prcv_db.c\
   ../ut/ut_geo2d.c   ../ut/ut_geo3d.c   ../ut/ut_iTab.c    ../ut/ut_dbf.c\
   ../ut/ut_obj.c     ../ut/ut_txfil.c   ../ut/ut_txt.c     ../ut/ut_umb.c\
   ../ut/ut_math.c    ../ut/ut_umem.c    ../ut/ut_mem.c     ../ut/ut_box.c\
   ../ut/ut_txTab.c   ../ut/ut_int.c     ../ut/ut_uti.c     ../ut/byteorder.c\
   ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/ut_os__.c    ../ut/ut_BitTab.c\
 
+# ../ut/ut_prcv_f.c - replaced by ../ut/ut_prcv_db.c = PRCV in memSpc
 # ../xa/tess2dg.c
 # ../ut/ut_prcv.c
 # ../ut/ut_cntf.c

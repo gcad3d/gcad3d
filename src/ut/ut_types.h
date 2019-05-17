@@ -48,10 +48,17 @@
 
 
 //----------------------------------------------------------------
-#define MEMSPCTYP_NONE         0    // no memspace
-#define MEMSPCTYP_MALLOC__     1    // malloc-type=can-reallocate,must-free
-#define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,CANNOT-free;
-#define MEMSPCTYP_FIX          3    // fixed-CANNOT-reallocate;must-free
-#define MEMSPCTYP_TMP          4    // static|stack,CANNOT-reallocate,CANNOT-free
+// #define MEMSPCTYP_NONE         0    // no memspace
+// #define MEMSPCTYP_MALLOC__     1    // malloc-type=can-reallocate,must-free
+// #define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,CANNOT-free;
+// #define MEMSPCTYP_FIX          3    // fixed-CANNOT-reallocate;must-free
+// #define MEMSPCTYP_TMP          4    // static|stack,CANNOT-reallocate,CANNOT-free
+
+#define MEMTYP_NONE         0  // no memspace; undefined/empty
+#define MEMTYP_ALLOC__      1  // malloc;           can-reallocate,must-free;
+#define MEMTYP_ALLOC_PROT   2  // malloc,protected: can-reallocate,must-NOT-free;
+#define MEMTYP_FIXED_PROT   3  // malloc,protected; CANNOT-reallocate,must-NOT-free;
+#define MEMTYP_STACK        4  // stack;            CANNOT-reallocate,must-NOT-free;
+
 
 // EOF

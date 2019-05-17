@@ -571,8 +571,10 @@ long   UI_Ed_fsiz;      // Textsize
     ED_load__ ();
   else
 */
-    ED_Reset ();  // ED_lnr_act = 0;
+  ED_Reset ();  // ED_lnr_act = 0;
 
+  // clear PRCV_GRP, delete all PRCV-points
+  PRCV_DB_all_free(1);
 
   // clear Undo-List
   UNDO_clear ();

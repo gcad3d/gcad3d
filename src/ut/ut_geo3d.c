@@ -562,6 +562,13 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
 
 
+//===========================================================================
+typedef_MemTab(Point);
+
+
+
+
+
 
 //======================================================================
   double UT3D_angr_vc2pt (Point *pz, Vector *vz, Point *p1, Point *p2) {
@@ -14944,7 +14951,8 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
   int      irc, ptNr, paSiz;
   Point    *pta;
-  Memspc   tbuf1;
+  // Memspc   tbuf1;
+  MemTab(Point) mtpa = _MEMTAB_NUL;
 
 
   //----------------------------------------------------------------
@@ -14976,14 +14984,21 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
   //----------------------------------------------------------------
   } else if(typ == Typ_CVTRM) {
     // get tempSpace
-    UME_init (&tbuf1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
-    // get whole space for points
-    paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tbuf1);
-    // get polygon
-    ptNr = 0;
-    irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
+    // UME_init (&tbuf1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
+    // // get whole space for points
+    // paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tbuf1);
+    // // get polygon
+    // ptNr = 0;
+    // irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
+    MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                    sizeof(Point), Typ_PT); 
+    irc = UT3D_mtpt_trmCv (&mtpa, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
+    if(irc < 0) { TX_Error("UT3D_pl_obj E1"); return -1;}
     // get plane from polygon
-    return UT3D_pl_pta (pl1, ptNr, pta);
+    // irc = UT3D_pl_pta (pl1, ptNr, pta);
+    irc = UT3D_pl_pta (pl1, mtpa.rNr, (Point*)mtpa.data);
+    if(irc < 0) { TX_Error("UT3D_pl_obj E2"); return -1;}
+    MemTab_free (&mtpa);
 
   //----------------------------------------------------------------
   } else {

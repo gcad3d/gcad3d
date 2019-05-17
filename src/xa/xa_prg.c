@@ -1229,7 +1229,7 @@ typedef_MemTab(ObjRange);
 
   // get mem for FormTab or clear FormTab
   if(FormTab.data == NULL)
-    MemTab_ini (&FormTab, sizeof(FormVar), 0, 100);
+    MemTab_ini__ (&FormTab, sizeof(FormVar), 0, 100);
   // else
     // FormTab.rNr = 0;
     // printf(" FormTab.rMax=%d\n",FormTab.rMax);
@@ -1237,7 +1237,7 @@ typedef_MemTab(ObjRange);
 
   // get mem for PRG_internTab or clear PRG_internTab
   if(PRG_internTab.data == NULL)
-    MemTab_ini (&PRG_internTab, sizeof(ObjRange), Typ_ObjRange, 100);
+    MemTab_ini__ (&PRG_internTab, sizeof(ObjRange), Typ_ObjRange, 100);
   // else
     // PRG_internTab.rNr = 0;
     // printf(" PRG_internTab.rMax=%d\n",PRG_internTab.rMax);

@@ -54,7 +54,7 @@ List_functions_end:
 =====================================================
 see also:
 UTI
-MemTab_ini
+MemTab_ini__
 UtxTab_init__
 
 \endcode *//*----------------------------------------

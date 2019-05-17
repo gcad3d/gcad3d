@@ -256,23 +256,23 @@ extern Point     *GLT_pta;
   //----------------------------------------------------------------
   // get memspc for pNr points
   // 2D-points - REALLOCATE NOT ALLOWED (OpenGL keeps pointers)
-  MemTab_ini (&pa2D, sizeof(Point), Typ_PT, pNr);
+  MemTab_ini__ (&pa2D, sizeof(Point), Typ_PT, pNr);
 
   // 3D-points - REALLOCATE NOT ALLOWED (OpenGL keeps pointers)
-  MemTab_ini (&pas1, sizeof(Point), Typ_PT, pNr);
+  MemTab_ini__ (&pas1, sizeof(Point), Typ_PT, pNr);
 
   // point-flags
-  MemTab_ini (&pst2D, sizeof(char), Typ_Int1, pNr);
+  MemTab_ini__ (&pst2D, sizeof(char), Typ_Int1, pNr);
 
   // tesselated-faces
   ii = pNr / 3;
-  MemTab_ini (&fmt, sizeof(IndTab), Typ_IndTab, ii);
+  MemTab_ini__ (&fmt, sizeof(IndTab), Typ_IndTab, ii);
 
   // point-indextables
-  MemTab_ini (&ia2D, sizeof(int), Typ_Int4, pNr * 2);
+  MemTab_ini__ (&ia2D, sizeof(int), Typ_Int4, pNr * 2);
 
   // contours
-  MemTab_ini (&ca2D, sizeof(IndTab), Typ_IndTab, 100);
+  MemTab_ini__ (&ca2D, sizeof(IndTab), Typ_IndTab, 100);
 
 
 

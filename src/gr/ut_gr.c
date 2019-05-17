@@ -1677,85 +1677,65 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 //====================================================================
 
 
-  int     irc, i1, i2, ptAnz, ptNr, idisp;
-  double  d1, z1;
-  Point   *pa3;
+  int     irc, grMode, ptNr, rMax, mdli;
+  // int     irc, i1, i2, ptAnz, grMode, ptNr, idisp;
+  double  tol;
+  Point   *pta;
   // Point2  p20, p21, p22;
-  Point2  *pa2;
-  Circ2   ci2;
-  Circ    ciTr, *ci1;
+  // Point2  *pa2;
+  // Circ2   ci2;
+  // Circ    ciTr, *ci1;
+  MemTab(Point) mtpa = _MEMTAB_NUL;
 
 
 
+  // printf("GR_DrawCirc %ld UT_DISP_cv=%f\n",dbi,UT_DISP_cv);
   // DEB_dump_obj__ (Typ_CI, cii, "GR_DrawCirc %ld",dbi);
-  // printf("GR_DrawCirc UT_DISP_cv=%f\n",UT_DISP_cv);
 
 
-/*
-  // if(APT_3d_mode == ON) goto L_3D_Circ;
+  // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
+  if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
+  else                               grMode = 1;
 
-  // find nr of points necessary
-  // fix nr of points according to modelsize
-  ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
-     // printf(" ptNr=%d\n",ptNr);
+  // init mtpa and get max stackSpace
+  MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                    sizeof(Point), Typ_PT); 
+  rMax = mtpa.rMax;
 
-  // ist ein refsys aktiv ?
-  // if(APT_2d_to_3d_mode == ON) {
-    // UTO_obj_tra_obj_m3 ((void*)&ciTr, Typ_CI, (void*)cii, APT_2d_to_3d_Mat);
-    // ci1 = &ciTr;
-    // goto L_3D_Circ;
-  // } else {
-    ci1 = cii;
-  // }
+    
+  tol  = UT_DISP_cv;
+  mdli = WC_modact_ind;
+  irc = UT3D_mtpt_obj (&mtpa, Typ_CI, cii, 1, dbi, mdli, tol, grMode);
+  if(irc < 0) {TX_Error("GR_DrawCvCCV E2"); goto L_exit; }
 
-  //======================================================================//
-  //  test 2D - circle //
-  //======================================================================//
+  ptNr = mtpa.rNr;
+  pta  = mtpa.data;
 
-  if(fabs(ci1->vz.dx) > UT_TOL_min1) goto L_3D_Circ;
-  if(fabs(ci1->vz.dy) > UT_TOL_min1) goto L_3D_Circ;
-  if((fabs(ci1->vz.dz) - 1.0) > UT_TOL_min1) goto L_3D_Circ;
-
-  // see GR_Draw_ci2
-*/
-
-  /*======================================================================*/
-  /*  3D-Circle */
-  /*======================================================================*/
-  L_3D_Circ:
-  // printf(" draw 3D_Circ\n");
-
-
-  // get pa3 = circular polygon
-  // if(dbi > 0) {
-  if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
-    // get polygon from file
-    irc = PRCV_npt_dbo__ (&pa3, &ptNr, Typ_CI, dbi, WC_modact_ind);
-    if(irc < 0) return -1;
-
-  } else {
-    // fix nr of points according to modelsize
-    ptNr = UT2D_ptNr_ci (fabs(cii->rad), fabs(cii->ango), UT_DISP_cv);
-       // printf(" ptNr=%d\n",ptNr);
-    // get memory      dzt GLT_pta; better use MEM_alloc_tmp (alloca)
-    pa3 = (Point*)MEM_alloc_tmp((int)(sizeof(Point)*ptNr));
-    // get pa3 = circular polygon (compute)
-    UT3D_npt_ci (pa3, ptNr, cii);
-    // UT3D_cv_ci (GLT_pta, &ptNr, ci1, ptAnz, UT_DISP_cv);
+  // point only: Hilite.
+  if(ptNr < 2) {
+    GL_DrawPoint (dli, 0, pta);
+    goto L_exit;
   }
-
 
   // display polygon
-  GL_DrawPoly (dli, attInd, ptNr, pa3);
-
+  GL_DrawPoly (dli, attInd, ptNr, pta);
 
   // display direction
-  if(APT_dispDir) {
-    int   ipe;
-    ipe = ptNr - 1;
-    APT_disp_dir (&pa3[ipe], &pa3[ipe - 1]);
+  if((APT_dispDir)||(APT_obj_stat)) {
+    // disp-dir or statu-nascendi is on
+    APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
   }
 
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  if(mtpa.rMax > rMax) MemTab_free (&mtpa);
+
+    // TESTBLOCK
+    // printf("ex-GR_DrawCirc \n");
+    // END TESTBLOCK
 
   return 0;
 
@@ -2150,7 +2130,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
 
 
   // printf("GR_DrawSurPtab %d %d\n",att,dbi);
@@ -2976,98 +2956,47 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 // display DB-obj - trimmed-curve 
 // att unused !?
 
-  int       irc, i1, ptNr, pNr, paSiz, iAtt, mode;
-  int       ipe;
-  void      *msPos = NULL;
-  // Point     *pta;
-#define SIZ_PTA 5000
-  Point     pta[SIZ_PTA];
-  Memspc    tSpc1 = UME_NEW;
+  int       irc, grMode, ptNr;
+  double    tol;
+  Point     *pta;
+  MemTab(Point) mtpa = _MEMTAB_NUL;
 
-
-
-  // printf("GR_DrawCvCCV cvNr=%d\n",cvNr);
-  // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "%d",i1); 
-  // printf(" SPC_MAX_STK=%d\n",SPC_MAX_STK);
 
 
   // printf("DDDDDDDDDDDDDDD  GR_DrawCvCCV dbi=%ld dli=%ld, att=%d\n",dbi,*dli,att);
-  // DEB_dump_ox_0 (cv1, "GR_DrawCvCCV");
+  // printf("GR_DrawCvCCV dbi=%ld cvNr=%d\n",dbi,cvNr);
+  // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "%d",i1); 
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
     // dbi = 0;  // TEST
-    // return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-2");
 
 
-    // // get tempSpace
-    // UME_init (&tSpc1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
-    // msPos = MEM_alloc_tmp (SPC_MAX_STK);
-    // UME_init (&tSpc1, msPos, SPC_MAX_STK);
-    // UME_malloc (&tSpc1, SPC_MAX_STK, SPC_MAX_STK);
-    // get whole space for points
-    // paSiz = UME_nStru_get (&pta, 0, sizeof(Point), &tSpc1);
-      // printf(" _DrawCvCCV-paSiz = %d\n",paSiz);
-    paSiz = SIZ_PTA;
-
-    // get polygon
-    ptNr = 0;
-    // mode: ?? 0=use-PRCV; 1=no_PRCV
-    if((dbi > 0)&&(APT_obj_stat == 0)) mode = 0;
-    else                               mode = 1;
-    irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, cva, cvNr, UT_DISP_cv, mode);
-    if(irc < 0) return -1;
-
-/*
-  //----------------------------------------------------------------
-  // get pta = polygon 
-  // if((dbi > 0)&&(APT_obj_stat == 0)) {
-  if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
-  // if(APT_obj_stat == 0) {
-    // CCV -> Polygon from polygonal representation;
-    irc = PRCV_npt_dbo__ (&pta, &ptNr, Typ_CVTRM, dbi, WC_modact_ind);
-    if(irc < 0) return -1;
+  // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
+  if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
+  else                               grMode = 1;
 
 
-  //----------------------------------------------------------------
-  } else {
-    // CCV -> Polygon - dynamic view only.
-    // get space for points in tbuf1
-    msPos = UME_get_next (tbuf1);  // keep free pos of tbuf1
-    paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
-      // printf("  paSiz-1 = %d points\n",paSiz);
-    if(paSiz < 0) {
-      // empty; get stack-space
-      UME_init (tbuf1, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK);
-      paSiz = (UME_ck_free (tbuf1) / sizeof(Point)) - 1;
-        // printf("  paSiz-2 = %d points\n",paSiz);
-    }
-    pta = UME_reserve (tbuf1, paSiz * sizeof(Point));
-    // ptNr = 0;
-    ptNr = paSiz; // 2017-09-26
-    // CCV -> Polygon.                   Was UT3D_npt_trmCv ()
-    irc = UT3D_pta_ox_lim (&ptNr, pta, cv1, 0, NULL, UT_DISP_cv, APT_obj_stat);
-      // DEB_dump_nobj__ (Typ_PT, ptNr, pta, "GR_DrawCvCCV");
-      // printf(" ex-UT3D_pta_cvcomp irc=%d ptNr=%d\n",irc,ptNr);
-    if(irc < 0) return -1;
-  }
-*/
+  // init mtpa and malloc 1000 points
+  MemTab_ini_alloc (&mtpa, sizeof(Point), Typ_PT, 1000);
 
-  //----------------------------------------------------------------
+
+  tol  = UT_DISP_cv;
+  irc = UT3D_mtpt_trmCv (&mtpa, cva, cvNr, tol, grMode);
+  if(irc < 0) {TX_Error("GR_DrawCvCCV E2"); goto L_exit; }
+
+  ptNr = mtpa.rNr;
+  pta  = mtpa.data;
+
+    // TESTBLOCK
+    // printf(" DrawCvCCV-ptNr=%d\n",ptNr);
+    // DEB_dump_nobj__ (Typ_PT, mtpa.rNr, mtpa.data, "_DrawCvCCV-1");
+    // GR_Disp_cv (mtpa.data, mtpa.rNr, Typ_Att_hili); // display temp.
+    // END TESTBLOCK
+
   // point only: Hilite.
   if(ptNr < 2) {
     GL_DrawPoint (dli, 0, pta);
     goto L_exit;
   }
-
-
-    // TESTBLOCK
-    // printf(" _DrawCvCCV-irc=%d ptNr=%d\n",irc,ptNr);
-    // DEB_dump_nobj__ (Typ_PT, ptNr, pta, "CVPOL");
-    // GR_Disp_npti (ptNr, pta, SYM_TRI_S, ATT_COL_RED, ATT_COL_YELLOW);
-    // END TESTBLOCK
-
-
-    // APT_obj_stat   0=OK, 1=workmode (obj in statu nascendi
-    // APT_dispDir    1=display ObjDirection; 0=not
 
   // display
   GL_DrawPoly (dli, att, ptNr, pta);
@@ -3080,23 +3009,19 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
   }
 
-/*
-  if((!APT_dispDir)&&(*dli > 0)) {
-    // display normal without direction-arrow
-    // for CCV in statu nascendi ("S0=CCV .."): display also direction
-    GL_DrawPoly (dli, Typ_Att_hili, ptNr, pta);
+  irc = 0;
 
-  } else {
-    // disp curve hilited with direction-arrow
-    GL_Draw_cvp_dir (dli, Typ_Att_hili1, ptNr, pta);
-  }
-*/
 
+  //----------------------------------------------------------------
   L_exit:
-    // UME_free (&tSpc1);
-    // if(msPos) UME_set_next (msPos, tbuf1);   // restore wrkSpc
+  // free
+  MemTab_free (&mtpa);
 
-  return 0;
+    // TESTBLOCK
+    // printf("ex-GR_DrawCvCCV\n");
+    // END TESTBLOCK
+
+  return irc;
 
 }
 
@@ -3912,7 +3837,7 @@ int GR_Delete (long ind)                               {return 0;}
 //================================================================
   int GR_Disp_ln (Line *ln1, int att) {
 //================================================================
-/// att                 see ~/gCAD3D/cfg/ltyp.rc
+/// att: linetype; see INF_COL_CV
 
   return GR_Disp_cv ((void*)ln1, 2, att);
 
@@ -3922,7 +3847,7 @@ int GR_Delete (long ind)                               {return 0;}
 //================================================================
   int GR_Disp_ln1 (Point *p1, Point *p2, int att) {
 //================================================================
-/// att                 see ~/gCAD3D/cfg/ltyp.rc
+/// att: linetype; see INF_COL_CV
 
   Point   pa[2];
 
@@ -3937,7 +3862,7 @@ int GR_Delete (long ind)                               {return 0;}
 //================================================================
   int GR_Disp_ac (Circ *ci1, int att) {
 //================================================================
-/// att        see ~/gCAD3D/cfg/ltyp.rc
+/// att: linetype; see INF_COL_CV
 
 
   long dli;
@@ -3989,7 +3914,7 @@ int GR_Delete (long ind)                               {return 0;}
     
     
   // if(DispMode) printf("GR_Disp_ccv %d\n",ccv->siz);
-  // printf("GR_DrawCvCCV\n");
+  printf("GR_Disp_ccv\n");
 
   // pta  = (Point*)memspc101;
   // ptNr = sizeof(memspc101) / sizeof(Point);

@@ -256,22 +256,16 @@ typedef struct {short typ, form; void *data;
 /// oDat   table of pointers to binary-object into oSpc
 /// oSpc   keeps the binary-objects
 /// xDat   auxilary-objects; type = xTyp, NULL = none
-/// pba1   upper right boxpoints of objects (if boxTyp > 0)
 /// xTyp   type of objects at xDat; 0=none, else eg BBox2|BBox ..
 /// fmtb   format of binary obj's: Typ_GEOB_2D|Typ_GEOB_3D
-/// spcTyp type of memSpace for oTyp oDat pba1 pba2
-///          0=no-space-given;                             MEMSPCTYP_NONE
-///          1=malloc-type=can-reallocate,must-free;       MEMSPCTYP_MALLOC__
-///          2=malloc-type=can-reallocate,must-NOT-free;   MEMSPCTYP_MALLOC_FIX
-///          3=fixed-CANNOT-reallocate;must-free;          MEMSPCTYP_FIX
-///          4=static|stack,CANNOT-realloce,must-NOT-free; MEMSPCTYP_TMP
+/// spcTyp  type of memory;                                   See INF_spcTyp
 ///
 /// Functions: OTB_
 /// ObjTab = 	list of [oTyp, pointer to obj, Memspc for obj, aux.obj]
 /// \endcode
 typedef struct {void **oDat, *xDat; Memspc oSpc; 
                 int *oTyp, oSiz, oNr; UINT_16 xSiz;
-                short xTyp, fmtb; char spcTyp, u2, u3,u4;}          ObjTab;
+                short xTyp, fmtb; char spcTyp, u2, u3, u4;}         ObjTab;
 // size = ??
 // use xDat = BBox2 eg ((BBox2*)otb->xDat)[ii].pb1
 
@@ -315,7 +309,7 @@ typedef struct {short typ, form, ilen, ipar; int ioff;}             ObjTXTSRC;
 /// txsiz      size of txt (if(!txt))
 /// ilev       level; -1=primary level. NULL=unused
 /// txt        for strings; NULL for none (was APT_defTxt)
-/// spcTyp     0=malloc-type=can-reallocate; 1=fixed-CANNOT-reallocate; 3=stack
+/// spcTyp     type of memory;                                   See INF_spcTyp
 ///
 /// see ../xa/xa_ato.h _OBJATO_NUL
 /// \endcode
@@ -622,7 +616,7 @@ typedef struct {Point stp; Vector stv, plv;
 
 
 
-/// \brief polygonal_representation_of_curve    CurvPrcv         functions:  PRCV
+/// \brief polygonal_representation_of_curve   CurvPrcv   Typ_PRCV   functions: PRCV
 /// \code
 /// dbi        database index of basecurve;
 /// mdli       subModelNr; 0-n = sind in Submodel; -1=main
@@ -631,11 +625,12 @@ typedef struct {Point stp; Vector stv, plv;
 /// npt        Point[ptNr] - polygon
 /// npar       parameter of point on basecurve (UT_VAL_MAX=undefined)
 /// nipt       database index of points; 0=undefined
-/// fTmp       0=malloced-must-free; 1=heapSpc; 2=empty
+/// spcTyp     type of memory;                                   See INF_spcTyp
+/// stat       0=free; 1=in-use
 /// \endcode
 typedef struct {long dbi; int mdli, ptNr, siz;
                 Point *npt; double *npar; long *nipt;
-                short typ; char fTmp, uu1;}                         CurvPrcv;
+                short typ; char spcTyp, stat;}                      CurvPrcv;
 
 
 /// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
@@ -658,7 +653,7 @@ typedef struct {long dbi; int mdli, ptNr, siz;
 /// \endcode
 typedef struct {double v0, v1; long dbi, ip0, ip1; 
                 unsigned short is0, is1; 
-                short typ, us1; char dir, clo, trm, stat;}         CurvCCV;
+                short typ, us1; char dir, clo, trm, stat;}          CurvCCV;
 // size = 36
 
 

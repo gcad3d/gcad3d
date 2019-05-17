@@ -1797,7 +1797,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
     // TESTBLOCK
-    // printf("ex CVTRM__basCv__ iNr=%d\n",iNr);
+    // printf("ex-CVTRM__basCv__ iNr=%d\n",iNr);
     // DEB_dump_obj__ (Typ_CVTRM, cv2, " _trmCv__-cv2");
     // DEB_dump_obj__ (form, *data, " _trmCv__-data");
     // TESTBLOCK

@@ -299,10 +299,10 @@ extern double NcoValTab[];
 
   // test if memspc already got on stack
   if(bNr < SPC_MAX_STK) {
-    ato1->spcTyp = 3;  // stack; do not free
+    ato1->spcTyp = MEMTYP_STACK;  // stack; do not free
   } else {
     ato1->typ = (int*) realloc (ato1->typ, bNr);
-    ato1->spcTyp = 0;   // heap - malloc-type; must be freed
+    ato1->spcTyp = MEMTYP_ALLOC__;   // heap - malloc-type; must be freed
   }
 
   if(!ato1->typ) {TX_Print("ATO_tmpSpc_get1 E1"); return;} 

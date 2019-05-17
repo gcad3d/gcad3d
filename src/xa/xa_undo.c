@@ -259,7 +259,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
 
   // if(undoTab == NULL) undoTab = malloc (sizeof(undoObj) * 100);
-  MemTab_ini (&undoTab, sizeof(undoObj), Typ_Group, 100);
+  MemTab_ini__ (&undoTab, sizeof(undoObj), Typ_Group, 100);
 
 
   // create Label wUndo (display nr of records in undoTab)
@@ -1084,7 +1084,7 @@ static long   dli, dbl;
 
   // printf("UNDO_clear \n");
 
-  MemTab_clear (&undoTab);
+  MEMTAB_CLEAR (&undoTab);
 
   // actGrp = -1;
 

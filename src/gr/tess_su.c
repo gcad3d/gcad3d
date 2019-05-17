@@ -2115,8 +2115,8 @@ static int   patNr;     // nr of Patches
   MemTab(Point) pTab = _MEMTAB_NUL;
   MemTab(Fac3) fTab = _MEMTAB_NUL;
 
-  MemTab_ini (&pTab, sizeof(Point), Typ_PT, 10000);
-  MemTab_ini (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
+  MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
 
 
   // printf("TSU_DrawSurMsh A%d DL_ind_act=%d\n",apt_ind,DL_ind_act);

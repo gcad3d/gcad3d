@@ -859,8 +859,18 @@ static MemObj   lbl0, lbl1, lbl2, rb2, wmcb1, wml, wgl, wnb, wtb;
 
 
   //----------------------------------------------------------------
+  // window with movable border
   GUI_box_paned__ (&box1, &box2, &box0, 0, 0, 100);
 
+  // // or normal
+  // // expand, 10 chars high
+  // box1 = GUI_box_v (&box0, "e,10");
+  // // opengl-box
+  // box2 = GUI_box_v (&box0, "");
+
+
+
+  // display list in box1
   GUI_list1__ (&box1, "list1.dat",
                "1", NULL, UI_butt1_cb, "e");
 
@@ -907,7 +917,11 @@ static MemObj   lbl0, lbl1, lbl2, rb2, wmcb1, wml, wgl, wnb, wtb;
 //================================================================
 //================================================================
 
-int main() { GUI_Init__ (""); tst_gui (); return 0; }
+int main() {
+  GUI_Init__ ("");
+  tst_gui ();
+  return 0;
+}
 
 // #endif
 

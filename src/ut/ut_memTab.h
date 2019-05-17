@@ -18,10 +18,7 @@ for Functions see ../ut/ut_memTab.c
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
 ///         UINT_8_MAX = cannot realloc (fixed space)
 /// use     application-specific
-/// spcTyp  0=malloc-type=can-reallocate,must-free;
-///         1=fixed-CANNOT-reallocate;must-free;
-///         2=fixed-CANNOT-reallocate;must-NOT-free;
-///         3=stack,CANNOT-reallocate,must-NOT-free;
+/// spcTyp  type of memory;                                   See INF_spcTyp
 /// \endcode
 #define def_MemTab(vTyp1)\
   typedef struct {vTyp1 *data; int rMax, rNr, rSiz;\
@@ -37,7 +34,8 @@ for Functions see ../ut/ut_memTab.c
 // #define MemTab(vTyp1) (MemTab_##vTyp1) = { ((void *)0), -1, -1}
 
 // #define _MEMTAB_NUL {NULL, 0, 0, 0, ' ',' ',' ',' '}
-#define _MEMTAB_NUL {NULL, 0, 0, 0}
+#define _MEMTAB_NUL { NULL, 0, 0, 0,\
+                      (char)0, (char)0, (char)0, (char)MEMTYP_NONE }
 
 /// default-typedef (mit void *data)
 def_MemTab(void) MemTab;
@@ -46,7 +44,7 @@ def_MemTab(void) MemTab;
 
 //================================================================
 // prototypes:
-int MemTab_ini (void *memTab, int rSiz, int typ, int incSiz);
+int MemTab_ini__ (void *memTab, int rSiz, int typ, int incSiz);
 int MemTab_add (void *memTab, long *spcOff, void* objDat, int recNr, int mode);
 int MemTab_check (MemTab *memTab, long *spcOff, int recNr);
 // inline:
@@ -59,6 +57,9 @@ void *MEMTAB__ (MemTab *memTab, int ind);
 void *MEMTAB_DAT (MemTab*);
 void *MEMTAB_POS (MemTab*);
 int MEMTAB_IND_POS (MemTab*, void*);
+void MEMTAB_SET_NULL(MemTab*);
+void MEMTAB_CLEAR(MemTab*);
+
 
 
 //================================================================
@@ -86,10 +87,10 @@ int MEMTAB_IND_POS (MemTab*, void*);
  if((mtb1)->rNr < SPC_MAX_STK) (mtb1)->data = _alloca ((mtb1)->rNr + 64);\
  if(!(mtb1)->data) {\
     (mtb1)->data = malloc ((mtb1)->rNr);\
-    (mtb1)->spcTyp = 0;\
+    (mtb1)->spcTyp = MEMTYP_ALLOC__;\
     (mtb1)->incSiz = (mtb1)->rNr / 2;\
   } else {\
-    (mtb1)->spcTyp = 3;\
+    (mtb1)->spcTyp = MEMTYP_STACK;\
     (mtb1)->incSiz = UINT_8_MAX; }\
   (mtb1)->rMax = rTot;\
   (mtb1)->rNr = 0;
@@ -101,18 +102,19 @@ int MEMTAB_IND_POS (MemTab*, void*);
  if((mtb1)->rNr < SPC_MAX_STK) (mtb1)->data = alloca ((mtb1)->rNr);\
  if(!(mtb1)->data) {\
     (mtb1)->data = malloc ((mtb1)->rNr);\
-    (mtb1)->spcTyp = 0;\
+    (mtb1)->spcTyp = MEMTYP_ALLOC__;\
     (mtb1)->incSiz = (mtb1)->rNr / 2;\
   } else {\
-    (mtb1)->spcTyp = 3;\
+    (mtb1)->spcTyp = MEMTYP_STACK;\
     (mtb1)->incSiz = UINT_8_MAX; }\
   (mtb1)->rMax = rTot;\
   (mtb1)->rNr = 0;
 #endif
 
 /// MEMTAB_tmpSpc_free     free memSpace from MEMTAB_tmpSpc_get
+/// see MEM_MUST_FREE
 #define MEMTAB_tmpSpc_free(mtb1)\
-  if((mtb1)->spcTyp < 2) free ((mtb1)->data);
+  if((mtb1)->spcTyp == MEMTYP_ALLOC__) free ((mtb1)->data);
 
 
 
@@ -141,7 +143,7 @@ int MEMTAB_IND_POS (MemTab*, void*);
 
 // MEMTAB_RFREE        get nr of free records                         INLINE
 #define MEMTAB_RFREE(mtb)\
- ((mtb)->rMax - (mtb)->rSiz)
+ ((mtb)->rMax - (mtb)->rNr)
 
 // MEMTAB_DAT          get data-record complete                       INLINE
 #define MEMTAB_DAT(mtb)\
@@ -171,5 +173,15 @@ int MEMTAB_IND_POS (MemTab*, void*);
 #define MEMTAB_IS_EMPTY(mtb)\
   (mtb)->data == NULL
 
+
+// MEMTAB_SET_NULL       set MemTab = _MEMTAB_NUL;
+#define MEMTAB_SET_NULL(mtb){\
+  extern MemTab    MEMTAB_NUL;\
+  memcpy((mtb), &MEMTAB_NUL, sizeof(MemTab));}
+
+
+// MEMTAB_CLEAR        reset  (memTab->rNr = 0;)
+#define MEMTAB_CLEAR(mtb)\
+  (mtb)->rNr = 0
 
 // EOF

@@ -989,7 +989,7 @@ static double SRCU_val_cen;             // centervalue
   if(mode != 0) goto L_upd1;    // 0=init
 
   // get all depending objects, their codeLineNrs, their dli's; not yet srcCode.
-  MemTab_ini (&depTab, sizeof(ObjSRC), Typ_ObjSRC, 400);
+  MemTab_ini__ (&depTab, sizeof(ObjSRC), Typ_ObjSRC, 400);
   APED_find_dep__ (&depTab, typ, dbi);
     // MemTab_dump (&depTab);
   // first obj is primary object.

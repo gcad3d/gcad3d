@@ -1,3 +1,13 @@
+Version 2.44.10 / 2019-06-20
+
+- CAD: projection-plane added to View Top, Front, Side
+- MAN: new function search-object (Ctrl-F)
+- bugfix 'move-points_on_construction-plane'
+- bugfix 'resize-window-smaller'
+- bugfix 'CentOS-nan-crash'
+- bugfix 'Debian-startup-hang-uname'
+
+
 ===========================================================================
 Version 2.44 / 2019-04-10
 

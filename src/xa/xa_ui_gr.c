@@ -182,7 +182,7 @@ cl -c /I ..\include xa_ui_gr.c
 //============ Externe Var: =======================================
 // aus xa.c:
 extern AP_STAT   AP_stat;              // sysStat,errStat..
-extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main
+extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main
 
 // extern void *UI_MainWin;
 extern MemObj    UI_curPos;
@@ -217,6 +217,10 @@ extern int       xa_fl_TxMem;
 
 // aus ../ci/NC_Main.c:
 extern int     APT_dispPT, APT_dispPL, APT_dispSOL;
+
+
+// ex ../gr/ut_gr.c
+extern int GR_actView;
 
 
 // aus ../gr/ut_DL.c:
@@ -338,7 +342,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
   //----------------------------------------------------------------
   L_Config:
-  if(GUI_DATA_EVENT != TYP_EventConfig) goto L_draw;       // 306
+  if(GUI_DATA_EVENT != TYP_EventConfig) goto L_draw;       // 406
 
   if(AP_stat.sysStat < 2) {
     // GUI (OpenGL) not yet up; 
@@ -359,34 +363,43 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
     AP_stat.sysStat = 2;   
 
-    // setup view-buttons; primary statup
-    GL_DefineView (FUNC_Init);
+    // // setup view-buttons; primary startup
+    // GL_DefineView (FUNC_Init);           rem. 2019-06-11
 
     return 0;
 
+  } else {
+    // already up, resize
+    GL_Reshape (GUI_DATA_I1, GUI_DATA_I2); // width, height);
+
+    // get size of mainWindow and store in AP_winSiz
+    GUI_Win_siz_get (NULL, &i1, &i2);
+      // printf(" _GL_draw__-new-siz %d %d\n",i1,i2);
+    sprintf(AP_winSiz,"-%d,-%d", i1, i2);
   }
 
+
+/*
 // TODO:  cannot change windowsize from program; only manually ..
 // TODO:  cannot reduce windowsize manually ..
-
   // resize window
   GUI_gl_set_active (1, mo);
     GL_Resize (GUI_DATA_I1, GUI_DATA_I2); // width, height);
   GUI_gl_set_active (0, mo);
 
   return 0;
-
+*/
 
 
   //----------------------------------------------------------------
-  L_draw:
+  L_draw:     // TYP_EventDraw
   if(AP_stat.sysStat < 2) return 0;
 
 
 
   //----------------------------------------------------------------
+  // STARTUP:
   if(AP_stat.sysStat < 3) {
-    // STARTUP:
     AP_src_new (0);  // 2013-06-19
 
     AP_init__ ();     // work startup-parameters
@@ -405,11 +418,13 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
     if(AP_stat.cadIniM >= 0)
       IE_cad_init__ (AP_stat.cadIniM, AP_stat.cadIniS);
 
+    return 0;
   }
+
 
   
   //----------------------------------------------------------------
-  // DL_Redraw ();
+  // DL_Redraw (); (sysStat >= 3)
   GUI_gl_set_active (1, mo);
     GL_Redraw ();
   GUI_gl_set_active (0, mo);
@@ -2363,11 +2378,14 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
 
     // Ausgabefeld Scale setzen (calls AP_Get_scale() - gets AP_scale);)
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL);
+
+/* 2019-06-17 raus ..
     // Ausgabefeld ViewZ setzen
     d1 = GL_query_ViewZ();
     UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&d1);
+*/
 
-    APT_set_view_stat ();  // APT_view_stat = 1;
+  APT_set_view_stat ();  // APT_view_stat = 1;
 
   UI_block__ (iFunc, iInp, iCur);   // reset block
 
@@ -3354,7 +3372,7 @@ int  UI_GR_selMen_cbSel (MemObj *mo, void **data);
   // die PosKoord. GR_CurUk in ein Ausgabefenster geschr. werden.
   // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
 /
-  // if((WC_sur_ind != 0)&&(UI_RelAbs == 0)) {
+  // if((AP_IS_2D)&&(UI_RelAbs == 0)) {
     // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &GR_CurUk);
   // } else {
     // pt1 = GR_CurUk;
@@ -3779,7 +3797,7 @@ static  Point  selPos;
 
       // get dli
       if(DL_typ_is_visTyp(typ)) {
-        l1 = DL_find_smObj (typ, dbi, -1L, WC_modact_ind);
+        l1 = DL_find_smObj (typ, dbi, -1L, AP_modact_ind);
       } else {
         l1 = -1L;
       }
@@ -3831,7 +3849,7 @@ static  Point  selPos;
         selTab[selNr].dlInd = actPar->dli;  // was DL_find_smObj
         // find dli from typ, dbi
         // selTab[selNr].dlInd = 
-          // DL_find_smObj (parTab[i3].typ, parTab[i3].dbInd, -1L, WC_modact_ind);
+          // DL_find_smObj (parTab[i3].typ, parTab[i3].dbInd, -1L, AP_modact_ind);
         selTab[selNr].stat  = 2;                   // 1=parent of subCurve-obj
         ++selNr;
       }
@@ -5437,18 +5455,23 @@ static  Point  selPos;
 //==================================================================== 
   void UI_GR_view_set_Z1   (double zVal) {
 //==================================================================== 
+// let zVal = distance absolute 0,0,0 to origin of constrPlane
+// TODO: let newOri = point 0,0,0 moved zVal units along constrPlane.VZ;
+//       let constrPlane.ori = newOri;
 
   printf("UI_GR_view_set_Z1 %f\n",zVal);
+  printf("TODO: let newOri = point 0,0,0 moved zVal units along constrPlane.VZ;\n");
+  printf("TODO: let constrPlane.ori = newOri;\n");
 
 
   // das hebt die gelbe Plane, UND das Viewcenter !!!
-  GL_Do_CenRot (zVal);
+  // GL_Do_CenRot (zVal);
 
   // TX_Print("Darstellungsebene geaendert");
 
 
-  // die Ausgabe (Entry Curpos Z) korrigieren
-  UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&zVal);
+  // // die Ausgabe (Entry Curpos Z) korrigieren
+  // UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&zVal);
 
 }
 
@@ -5731,7 +5754,7 @@ static Point   pt1;
   GL_SelVert__ (&pt1); // den dem Cursor naechsten vertex holen
 
   // in UCS umrechnen ..
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
   }
 
@@ -5801,8 +5824,16 @@ static Point   pt1;
   //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
   GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
 
-  // get current curPos in userCoords on constructionPlane
-  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+
+  // if(GR_actView == FUNC_ViewIso) {    rem. 2019-06-11
+    // get current curPos in userCoords on constructionPlane
+    UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+  
+
+  // } else {
+    // printf(" .....UI_CurPos_upd %d\n",GR_actView);
+
+  // }
 
   
   sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
@@ -5827,7 +5858,7 @@ static Point   pt1;
 /// \endcode
 
 // retour into worldCoords:
-// if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+// if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 
 
   // printf("UI_GR_get_actPosA GR_CurUk=%f,%f,%f\n",
@@ -5837,7 +5868,7 @@ static Point   pt1;
 
   // die PosKoord. GR_CurUk in ein Ausgabefenster geschr. werden.
   // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
-  if((WC_sur_ind != 0)&&(UI_RelAbs == 0)) {
+  if((AP_IS_2D)&&(UI_RelAbs == 0)) {
     UT3D_pt_tra_pt_m3 (curPosAbs, WC_sur_imat, &GR_CurUk);
   } else {
     *curPosAbs = GR_CurUk;
@@ -5977,7 +6008,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
   pt1.z = GR_CurUk.z;
 
   // retour ins absolute ..
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_pt_tra_pt_m3 (&pt2, WC_sur_imat, &pt1);
       DEB_dump_obj__ (Typ_PT, &pt1, "pt-ind: ");
   } else {
@@ -6050,7 +6081,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     if(UI_InpMode == UI_MODE_MAN) {
         // DEB_dump_obj__ (Typ_PT, &pt2, "MAN-pt2:");
 
-      if(WC_sur_ind != 0) {
+      if(AP_IS_2D) {
         UT3D_pt_tra_pt_m3 (&pt2, WC_sur_mat, &pt2);
       }
 

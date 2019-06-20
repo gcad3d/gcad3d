@@ -488,7 +488,7 @@ extern int     APT_dispPT;
     if(!irc) continue;
 
     // if(dla.disp   == OFF) continue;           // skip hidden obj's
-    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
+    if(DL_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     SVG_iAtt = dla.iatt;
     SVG_sAtt[0] = '\0';

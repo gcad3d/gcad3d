@@ -251,7 +251,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
   }
 
-  return;
+  return 0;
 
 }
 
@@ -812,7 +812,7 @@ static void *ptx;     // the active menu-txt
   void   *go, *wo;
 
   go = GUI_obj_pos (mo);
-  if(!go) return;
+  if(!go) return 0;
   wo = ((Obj_Unknown*)go)->widget;
 
   return gtk_toggle_button_get_active (wo);

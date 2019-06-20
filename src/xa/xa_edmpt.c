@@ -293,7 +293,7 @@ static MemObj EDMPT_b_ex;     // button exit
 static MemObj EDMPT_w_off;    // entry offsetObj
 static MemObj EDMPT_f_len;    // frame length
 static MemObj EDMPT_e_len;    // entry length
-static MemObj EDMPT_wa1[3];   // Radiobutts 0=Delete 1=Insert; 2=Modify; 3=Exit
+// static MemObj EDMPT_wa1[3];   // Radiobutts 0=Delete 1=Insert; 2=Modify; 3=Exit
 
 static ObjSRC oLnk1;          // eg linked point to modify
 
@@ -399,7 +399,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
 
-  // save active line into tempFile
+  // save active line into <tmpDir>/selection.txt
   sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
   UTF_wrf_line (actlNr, cbuf);
 
@@ -413,7 +413,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // MemTab_dump (&depTab, "  EDMPT_init-_find_dep__");
 
 
-  // write sourcecodes of all depending objects -> file src_dep.txt
+  // write sourcecodes of all depending objects -> file <tmpDir>/src_dep.txt
   irc = EDMPT_dep_sav (&depTab);
   if(irc < 0) return irc;
 
@@ -438,10 +438,10 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   // if actObj is on 2D-plane, then transfer points into 3D
-  if(EDMDAT.irs) EDMPT_ptab_3D_2D ();
+  if(EDMDAT.irs > 0) EDMPT_ptab_3D_2D ();             // see AP_IS_2D
 
 
-  // copy selection.txt -> selection1.txt
+  // copy selection.txt -> <tmpDir>/selection1.txt
   EDMPT_src_save (0);
 
   if(actPtn > 0) goto L_init_ui;
@@ -451,7 +451,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   // test if inputObject has a parent; if yes: use the parentObj to modify !
   //  but if inputObject has more than 1 parents ?
   if(DL_parent_ck_c (dli)) {
-      printf(" .. has parent !\n");
+      // printf(" .. has parent !\n");
     {
       ObjSRC oPar;
       MemTab(ObjSRC) mtPar = _MEMTAB_NUL;
@@ -486,7 +486,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   //----------------------------------------------------------------
   L_init_ui:
-    printf(" L_init_ui:\n");
+    // printf(" L_init_ui:\n");
 
   // test if gui already exists
   if(EDMPT_mode >= 0) goto L_init_ini;
@@ -518,7 +518,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   // init PED-toolbar
   if(GUI_OBJ_IS_VALID(&PEDtb)) {
     // GUI_obj_view (PEDtb);
-      printf(" ---------- show PEDtb\n");
+      // printf(" ---------- show PEDtb\n");
     GUI_set_show (&PEDtb, 1);
 
   } else {
@@ -537,16 +537,14 @@ static FILE      *EDMPT_fp_dep = NULL;
   EDMPT_points (1, 0);        // draw points
 
   sele_reset ();
-  // init modify - only sysmbols selectable
-  // sele_set__ (Typ_SymB);
-  sele_set_types (Typ_SymB,
-                  // Typ_VC,
-                  Typ_PLN,
-                  0);       // make selectable ...
+
+  EDMPT_sel__ (0); // enable selection of Plane + point
+
   sele_setNoConstrPln ();
   // GL_vcSel_init (-1, 1);    // enable VectorSelector
 
 
+  // init Plane
   // if actObj is on 2D-plane, then preset this plane as offsetPlane
   if(EDMDAT.irs) {
     EDMPT_offTyp = Typ_PLN;
@@ -587,7 +585,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 */
 
 
-    printf("ex EDMPT_init mode=%d\n",EDMPT_mode);
+    // printf("ex-EDMPT_init mode=%d\n",EDMPT_mode);
 
   return 0;
 
@@ -598,7 +596,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   int EDMPT_key_CB (int iKey) {
 //================================================================
 
-  printf("EDMPT_key_CB %d\n",iKey);
+  // printf("EDMPT_key_CB %d\n",iKey);
   // printf("EDMPT_stat=%d EDMPT_mode=%d actInd=%d\n",EDMPT_stat,EDMPT_mode,actInd);
 
 
@@ -799,7 +797,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     GUI_set_enable (&EDMPT_f_pln, FALSE);   // lock pln,vec,len
 
-
+    EDMPT_sel__ (1); // enable selection of point only
 
     // modify ----------------------------
     if(EDMPT_mode == 0) { 
@@ -873,12 +871,14 @@ static FILE      *EDMPT_fp_dep = NULL;
   int    i1;
 
   printf("EDMPT_ptab_3D_2D actPtn=%d\n",actPtn);
+  DEB_dump_nobj__ (Typ_PT, actPtn, actPta, "EDMPT_ptab_3D_2D");
+
 
   for(i1=0; i1<actPtn; ++i1) {
     UT3D_pt_tra_pt_m3 (&actPta[i1], EDMDAT.mat1, &actPta[i1]);
   }
 
-  DEB_dump_nobj__ (Typ_PT, actPtn, actPta, "EDMPT_ptab_3D_2D");
+    DEB_dump_nobj__ (Typ_PT, actPtn, actPta, "ex-EDMPT_ptab_3D_2D");
 
   return 0;
 
@@ -934,11 +934,16 @@ static FILE      *EDMPT_fp_dep = NULL;
   int EDMPT_curSym_set (Point *pc) {
 //================================================================
 // EDMPT_curSym_set   set symbor cursor (plane|vector)
+// Input:
+//   EDMPT_offTyp        Typ_PLN|Typ_VC|Typ_Error
 // actCurPos
 
                      
   long      dli = DLI_TMP_CUR;
 
+
+  // printf("EDMPT_curSym_set %d %f\n",EDMPT_offTyp,EDMPT_offLen);
+  // DEB_dump_obj__ (Typ_PT, pc, "  curSym_set-pc: ");
 
   // UI_GR_get_actPosA (&actCurPos);   // get GR_CurUk
   // UTRA_pt_ucs2wcs (&actCurPos);
@@ -1041,7 +1046,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
 // exit modify-update proc
 
-  printf("EDMPT_upd_stop \n");
+  // printf("EDMPT_upd_stop \n");
 
   GL_temp_del_1 (DLI_TMP_CUR);   // delete temp-vec or plane
 
@@ -1137,13 +1142,12 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 }
 
-
 //================================================================
   int EDMPT_points (int mode, int ii) {
 //================================================================
 // point-editor: draw points, delete points
 // mode=1    draw points (init)
-// mode=2    delete all for exit
+// mode=2    delete; ii=1: all for exit; ii=0: only points
 // mode=3    redraw point with index actInd
 // mode=4    create temporary red circ at actPtp
 // mode=5    set pointIndex actInd
@@ -1183,12 +1187,13 @@ static FILE      *EDMPT_fp_dep = NULL;
     if(startInd >= 0) {
       // printf(" ... delete von %ld\n",startInd);
       GL_temp_del_1 (DLI_TMP_POS);     // position-circ
-      GL_temp_del_1 (DLI_TMP_CUR);     // plane|vec
       GL_temp_del_1 (DLI_TMP_CV);      // curve
-      GL_temp_del_1 (DLI_TMP_OFFO);    // offsetObject
       GL_Delete (startInd);  // delete all points (yellow rect's in DL)
     }
-
+    if(ii) {
+      GL_temp_del_1 (DLI_TMP_CUR);     // plane|vec
+      GL_temp_del_1 (DLI_TMP_OFFO);    // offsetObject
+    }
     goto L_exit;
 
 
@@ -1199,7 +1204,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // redraw at new PointPosition
     if(actInd >= 0) {
       dli = startInd + actInd;
-        printf(" startInd=%ld actInd=%d\n",startInd,actInd);
+        // printf(" startInd=%ld actInd=%d\n",startInd,actInd);
       DL_SetInd (dli);               // overwrite this DL-record
       APT_disp_SymB (EDMPT_SYM_ID, ii, actPtp);  // replace point
     }
@@ -1393,7 +1398,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
   int EDMPT_src_get__ (char **txso, int *bufSiz) {
 //================================================================
-// get (unmodifid) source of active obj
+// get new SRC out of file selection.txt
 
   int    i1;
 
@@ -1525,16 +1530,20 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   //----------------------------------------------------------------
-  // radiobuttons plane / vec, entry plane/vector
   EDMPT_f_pln = GUI_box_h (&box1, "");
+/*
+  // radiobuttons plane / vec, entry plane/vector
   EDMPT_wa1[0] = GUI_radiobutt__
            (&EDMPT_f_pln, "plane",               0, EDMPT_CB1, (void*)"Pln", "");
   EDMPT_wa1[1] = GUI_radiobutt__
            (&EDMPT_f_pln, "vector",              1, EDMPT_CB1, (void*)"Vec", "");
+*/
 
+  // entry offsetObj (plane or vector)
   EDMPT_w_off = GUI_entry__(&EDMPT_f_pln, "  ", "", 
                           EDMPT_off_CB, NULL, "8");
 
+  // entry vectorLength
   EDMPT_f_len = GUI_box_h (&box1, "");
   EDMPT_e_len = GUI_entry__(&EDMPT_f_len, MSG_const__(MSG_length),"",
                           EDMPT_len_CB, NULL, "8");
@@ -1564,6 +1573,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   //----------------------------------------------------------------
+  // button exit
   EDMPT_b_ex = GUI_button__
           (&box1, MSG_const__(MSG_exit), EDMPT_CB1, (void*)"Exit", "");
   GUI_spc_h (&box1, 5);
@@ -1609,9 +1619,10 @@ static FILE      *EDMPT_fp_dep = NULL;
   int EDMPT_CB1 (MemObj *mo, void **data) {
 //=====================================================================
 
-  int  i1, form;
-  long l1;
-  char *cp1, cbuf1[256];
+  int    i1, form;
+  long   l1;
+  char   *cp1, cbuf1[256];
+  Vector *vcz;
   
 
   // skip disactivation of radiobutton
@@ -1622,7 +1633,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   cp1 = GUI_DATA_S1;
 
 
-  printf("EDMPT_CB1 |%s| %d %d\n",cp1,actAto.nr,EDMPT_mode);
+  // printf("EDMPT_CB1 |%s| %d %d\n",cp1,actAto.nr,EDMPT_mode);
 
 
   // skip startup
@@ -1652,16 +1663,29 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Vec")) {
-    // display vector
+// TODO: 
+TX_Print("*************** move along vector not yet implemented ....");
+return 0;
+
+    // user has activated checkbox "vector";
     EDMPT_offTyp = Typ_VC;
     // EDMPT_mousemove_CB (0,0);   // redraw modify-symbol
     GUI_set_enable (&EDMPT_f_len, TRUE);    // activate length
     // if(EDMPT_offLen == 0.) {
-      // GUI_set_enable (&EDMPT_f_mod, TRUE);   // ctivate delete insert modify
+      // GUI_set_enable (&EDMPT_f_mod, TRUE);   // activate delete insert modify
     // } else {
     // EDMPT_mode = 3;
       // GUI_set_enable (&EDMPT_f_mod, FALSE);  // disactivate delete insert modify
     // }
+
+    // get Z-vec of active surface
+    vcz = &WC_sur_act.vz;
+    // write Z-vec of active surface into EDMPT_w_off
+
+    // display offsetVec as DLI_TMP_OFFO in screenCenter
+    EDMPT_get_offObj ();
+
+
     actCurPos = EDMPT_newPos__ ();   // get actCurPos = cursor-Position 
     EDMPT_curSym_set (&actCurPos);   // set cursor-symbol vector
     DL_Redraw ();
@@ -1681,7 +1705,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     EDMPT_mode = 2;                    // 0=modify, 1=insert, 2=delete
     EDMPT_msg_mode ();
     sele_reset ();
-    sele_set__ (Typ_SymB);            // enable selection only of point-symbols
+    EDMPT_sel__ (1); // enable selection of point only
     sele_setNoConstrPln ();
     // UI_CursorNo (0);
 
@@ -1720,10 +1744,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     GUI_set_enable (&EDMPT_f_pln, TRUE);
     EDMPT_msg_mode ();
     sele_reset ();
-    sele_set_types (Typ_SymB,
-                    // Typ_VC,
-                    Typ_PLN,
-                    0);             // make selectable ...
+    EDMPT_sel__ (0); // enable selection of Plane + point
     sele_setNoConstrPln ();
     // GL_vcSel_init (-1, 1);          // enable VectorSelector
 
@@ -1749,7 +1770,8 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     if(EDMPT_stat != 3)
       EDMPT_unlock ();           // unlock mainMenu; lock Save|cancel (not fixed)
-    sele_set__ (Typ_SymB);      // enable selection of next point
+
+    EDMPT_sel__ (0); // enable selection of Plane + point
     EDMPT_msg_mode ();
 
 
@@ -1757,9 +1779,6 @@ static FILE      *EDMPT_fp_dep = NULL;
   } else if(!strcmp(cp1, "Canc")) {
     // Cancel; restore last stored obj (selecetion1.txt)
 
-    if(EDMPT_mode != 0) {
-      EDMPT_points (2, 0);          // delete all temp. points
-    }
 
     // if(EDMPT_mode != 0) {
       // insert and delete
@@ -1793,19 +1812,25 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     if(EDMPT_stat != 3)
       EDMPT_unlock ();            // unlock mainMenu; lock Save|cancel (not fixed)
-    sele_set__ (Typ_SymB);       // enable selection of next point
+
+    EDMPT_sel__ (0); // enable selection of Plane + point
+
     EDMPT_msg_mode ();
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Exit")) {
     // save active-obj > codebase (if modif)
-    if(EDMPT_changed > 0) EDMPT_exit_1 ();
+    if(EDMPT_changed > 0) {
+      // get new SRC out of file selection.txt; change SRC in memSpc
+      EDMPT_exit_1 ();
+    }
     EDMPT_CB1 (GUI_ES("Shutdown"));
     
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Shutdown")) {
+    EDMPT_points (2, 1);            // remove all
     AP_UserKeyIn_reset ();
     AP_UserSelection_reset ();      // reset  select
     AP_UserMousemove_reset ();      // reset user-mouseMovementCallback
@@ -1851,6 +1876,31 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   L_exit:
     return 0;
+}
+
+
+//================================================================
+  int EDMPT_sel__ (int mode) {
+//================================================================
+// mode: 0 = enable Plane + point
+// mode: 1 = enable point only
+
+
+  if(mode == 0) {
+    // enable selection of Plane or point
+    sele_set_types (Typ_SymB,
+                    // Typ_VC,
+                    Typ_PLN,
+                    0);
+  } else if(mode == 1) {
+    // enable selection of point only
+    sele_set_types (Typ_SymB,
+                    0);
+  }
+
+
+  return 0;
+
 }
 
 
@@ -2105,7 +2155,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   
 
 //================================================================
-  int EDMPT_dump_atab () {
+  int EDMPT_dump_atab (char *fncInf) {
 //================================================================
 // dump modified point (temporary dynamic points in DB)
   
@@ -2113,7 +2163,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   long   dbi;
   Point  *pt1;
 
-  printf("EDMPT_dump_atab %d\n",actPtn);
+  printf("EDMPT_dump_atab %s actPtn=%d\n",fncInf,actPtn);
 
   for(i1=0; i1 < actAto.nr; ++i1) {
     printf(" actAto typ[%d]=%d val=%f\n",i1,actAto.typ[i1],actAto.val[i1]);
@@ -2207,7 +2257,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   char  *cBuf;
 
 
-  printf("EDMPT_exit_1 %d\n",actAto.nr);
+  // printf("EDMPT_exit_1 %d\n",actAto.nr);
 
   // get (unmodifid) source of active obj
   EDMPT_src_get__ (&cBuf, &siz);
@@ -2224,7 +2274,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   EDMPT_changed = 0;
 
-    printf("ex-EDMPT_exit_1\n");
+    // printf("ex-EDMPT_exit_1\n");
 
 
   return 0;
@@ -2278,7 +2328,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   int   irc, i1, iPt, sLen, ii;
   long  dbi;
   char  *cp1, *cp2, *cp3;
-  Point *pt1;
+  Point pt1;
 
 
   // printf("EDMPT_src_mod |%s|\n",cBuf);
@@ -2306,9 +2356,10 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     // get pt1 = new position
     dbi = actAto.val[i1];                   // index of nxt point
-    pt1 = DB_get_PT (dbi);
+    pt1 = DB_GetPoint (dbi);
       // DEB_dump_obj__ (Typ_PT, pt1, " _src_mod-pt1=%d;dbi=%d",iPt,dbi);
 
+                                     
     // find cp2 = startPos of next implicit-point
     irc = APED_pt_find (&cp2, &sLen, &cp3, cp1);
     if(irc < 0) {TX_Print("PED_src_mod E002"); return -1;}
@@ -2317,13 +2368,24 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
     // test if pointPos is modified
-    irc = UT3D_comp2pt (pt1, &actPta[iPt], UT_TOL_pt);
-    // UTRA_pt_wcs2ucs (pt1);
+    irc = UT3D_comp2pt (&pt1, &actPta[iPt], UT_TOL_pt);
 
     if(irc == 0) {
         // printf(" _src_mod-modified: %d dbi=%ld\n",iPt,dbi);
+
+      // check if modified obj is 2D or 3D
+      if(EDMDAT.irs > 0) {   // see AP_IS_2D
+        // transfer obj-coords from 3D back to 2D.
+        UT3D_pt_tra_pt_m3 (&pt1, EDMDAT.mat2, &pt1);
+          // DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_src_mod-pt %d %d",i1,iPt);
+      }
+        
+      
+
       // 0=diffent points; change implicit-point starting at cp2 -> DB-point dbi
-      APED_pt_chg (&sLen, dbi, cp2, sLen);
+      // APED_pt_chg (&sLen, dbi, cp2, sLen);
+      APED_pt_chg (&sLen, cp2, sLen, &pt1);
+
     }
 
     cp1 = cp2 + sLen;
@@ -2633,7 +2695,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
 // update program starting with line actlNr
 
-  printf("----------------- EDMPT_exit_2 %ld\n",actlNr);
+  // printf("----------------- EDMPT_exit_2 %ld\n",actlNr);
 
   // save permanent
   WC_set_obj_stat (0);
@@ -2641,7 +2703,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   ED_work_CurSet (actlNr);         // go back to line lNr
   ED_work_CurSet (UT_INT_MAX);     // work until end of model
 
-    printf("ex-EDMPT_exit_2\n");
+    // printf("ex-EDMPT_exit_2\n");
 
   return 0;
 
@@ -2803,17 +2865,21 @@ static FILE      *EDMPT_fp_dep = NULL;
   p1 = GUI_entry_get (&EDMPT_w_off);
 
 
-    // printf("EDMPT_get_offObj  EDMPT_w_off=|%s|\n",p1);
+  // get oid of offsetObj (eg "RZ" or "DZ"
+  // printf("EDMPT_get_offObj  EDMPT_w_off=|%s|\n",p1);
 
 
   irc = APED_dbo_oid (&EDMPT_offTyp, &dbi, p1);
-    // printf(" _obj irc=%d %d %d\n",irc,EDMPT_offTyp,dbi);
+    // printf(" _obj irc=%d %d dbi=%ld\n",irc,EDMPT_offTyp,dbi);
+
+
   if(irc < -1) goto L_err;
     // MSG_pri_0 ("PEDe2");
     // TX_Print("**** ERROR: cannot analyze Plane/Vector |%s| ..",p1);
 
 
 
+  //----------------------------------------------------------------
   if(EDMPT_offTyp == Typ_VC) {
     if(irc < 0) {  // "D(..)"
       // wait until closing ")"
@@ -2831,9 +2897,11 @@ static FILE      *EDMPT_fp_dep = NULL;
     pt1 = GL_GetCen ();
     GR_Draw_vc (&dli, &EDMPT_offObj.vz, &pt1, Typ_Att_Symb, 0);
 
+      // DEB_dump_obj__(Typ_PT, &pt1, "EDMPT_offObj_vc-pt1:");
       // DEB_dump_obj__(Typ_VC, &EDMPT_offObj.vz, "EDMPT_offObj.vz:");
 
 
+  //----------------------------------------------------------------
   } else if(EDMPT_offTyp == Typ_PLN) {
     if(DB_PLN_isFree (dbi)) goto L_err;
     DB_GetRef (&EDMPT_offObj, dbi);
@@ -2874,7 +2942,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   // get index into EDMPT_atyp
   ii = EDMPT_get_tabInd (actInd);
 
-    printf("EDMPT_del__ %d %d\n",actInd,ii);
+    // printf("EDMPT_del__ %d %d\n",actInd,ii);
 
 
   // delete temp-point
@@ -2926,9 +2994,9 @@ static FILE      *EDMPT_fp_dep = NULL;
   UI_GR_get_actPosA (&pt1);
 
 
-  DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_ins_pt: pt1");
-  printf("  actTyp=%d\n",actTyp);
-  printf("  UT_DISP_cv=%f\n",UT_DISP_cv);
+  // DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_ins_pt: pt1");
+  // printf("  actTyp=%d\n",actTyp);
+  // printf("  UT_DISP_cv=%f\n",UT_DISP_cv);
 
 
   //----------------------------------------------------------------
@@ -2947,7 +3015,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // UME_init (&tmpSpc1, memspc201, sizeof(memspc201));
     irc = UT3D_parCv_bsplpt (&up, &d1, actObj, &pt1);
     if(irc < 0) {TX_Print("UT3D_parCv_bsplpt Error %d",irc);return -1;}
-      printf(" val. parameter=%f dist=%f\n",up,d1);
+      // printf(" val. parameter=%f dist=%f\n",up,d1);
 
     // point on curve from parameter
     // UT3D_pt_evalparCv (&pt1, actObj, up);
@@ -2960,7 +3028,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // get segmenNr from parameter
     // UME_init (&tmpSpc1, memspc201, sizeof(memspc201));
     bspl_segNr_par (&actInd, up, actObj);
-      printf(" segNr=%d\n",actInd);
+      // printf(" segNr=%d\n",actInd);
 
 
 
@@ -2976,7 +3044,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     pt1 = pta[0];
     UT3D_parplg_plgpt (&up, &pt1, actObj);
     UPLG_iseg_par (&actInd, up, actObj);
-      printf(" actInd=%d up=%f\n",actInd,up);
+      // printf(" actInd=%d up=%f\n",actInd,up);
 
 
 
@@ -2989,7 +3057,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   //----------------------------------------------------------------
   // save insert point ..
   actInsPt = pt1;
-    DEB_dump_obj__ (Typ_PT, &actInsPt, "ex-_ins_pt");
+    // DEB_dump_obj__ (Typ_PT, &actInsPt, "ex-_ins_pt");
   return 0;
 
 
@@ -3005,7 +3073,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
 // lock delete,insert,modify,exit; unlock Save|cancel
 
-  printf("EDMPT_lock \n");
+  // printf("EDMPT_lock \n");
 
 
   GUI_set_enable (&EDMPT_f_mod, FALSE);       // disactivate delete insert modify
@@ -3028,7 +3096,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
 // unlock delete,insert,modify,exit; lock Save|cancel
     
-  printf("EDMPT_unlock \n");
+  // printf("EDMPT_unlock \n");
 
   if(EDMPT_mode == 0) {
     // modify: unlock pln,vec,len

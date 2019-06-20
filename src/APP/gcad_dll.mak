@@ -46,7 +46,7 @@ CC = gcc
 
 # compile and linkOptions; default = 64-bit "Linux_x86_64"
 FTYP = so
-CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
+CPFLG = -fPIC $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP) -Wno-implicit
 CPPFLG = -fPIC $(CPDEB)
 LKFLG = $(LKDEF) -shared -export-dynamic
 
@@ -90,9 +90,11 @@ endif
 #=====================================================================
 #default:
 default: $(OBJ1)
-	@echo "gcad_dll build $(DLLNAM) gui: $(VGUI) hTyp: $(hTyp)"
-	@echo " VPATH: $(VPATH)"
 	@echo ====================== Link ======================
+	@echo "hTyp: $(hTyp)"
+	@echo "ui: $(VGUI)"
+	@echo "gcad_dll build: $(DLLNAM)"
+	@echo "VPATH: $(VPATH)"
 	cd $(gcad_dir_bin) &&\
 	$(CC) -o $(DLLNAM).$(FTYP) $(LKDEB) $(OBJ1)\
   $(GUILIB) $(OGLLIB) $(LKFLG)

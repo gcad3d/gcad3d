@@ -130,6 +130,7 @@ echo "cfgDir=|%cfgDir%|"
 
 REM change configfiles to MS-Windows if last start was with Unix
 if exist UX.lock (
+  echo "set dir.lst & xa.rc -> MS"
   set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
   copy/y %cfgDir%xa.rc %cfgDir%xaUX.rc
   copy/y %cfgDir%dir.lst %cfgDir%dirUX.lst

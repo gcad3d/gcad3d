@@ -63,6 +63,7 @@ GR_Disp_message       switch for textoutput to console (DispMode)
 GR_Disp_obj           tempDisp obj from typ+struct
 GR_Disp_dbo           tempDisp obj from typ+dbInd
 GR_Disp_ox            temp. display of ObjGX-structs
+GR_Draw_oid_dir_npt   disp. ObjID, direction
 
 GR_Disp_txi           display integer at position
 GR_Disp_txi2          Testdisplay integer at 2D-point
@@ -266,7 +267,7 @@ cc -c -g3 -Wall ut_gr.c
 
 //=============== extern glob. vars ======================
 // aus xa.c:
-extern int       WC_modact_ind;           // -1=primary Model is active;
+extern int       AP_modact_ind;           // -1=primary Model is active;
 extern AP_STAT   AP_stat;                 // sysStat,errStat..
 extern ColRGB    AP_defcol;
 
@@ -276,6 +277,8 @@ extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
 extern int     APT_dispDir;
 extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
 extern long    AP_dli_act;            // index dispList
+extern int     APT_dispNam;           // display ObjID
+extern int     APT_dispDir;           // display ObjDirection; 1=yes, 0=not
 
 //  DISP_AC - Toleranz (Sehnenfehler bei der Darstellung von Arcs.
 // extern double    APT_TOL_ac;
@@ -293,6 +296,8 @@ extern long    AP_dli_act;            // index dispList
 
 // aus ../gr/ut_DL.c:
 extern long   DL_ind_act;
+extern DL_Att  *GR_ObjTab;
+
 
 
 // aus ../gr/ut_GLU.c:
@@ -312,9 +317,12 @@ extern int     GL_actTex;
 
 
 /*=============== local glob. vars =======================*/
-long  objInd = 0;
 
-static int DispMode=1;  ///< 0=Aus, 1=Ein.
+int GR_actView = FUNC_ViewIso;
+
+static int   GR_typ = 0;
+static long  GR_dbi = 0;
+static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
@@ -672,34 +680,30 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //====================================================================
-  void GR_DrawPoly (long *ind, int attInd, int ianz, Point* ptarr) {
+  int GR_DrawPoly (long *dli, int attInd, int ptNr, Point* pta) {
 //====================================================================
 // GR_DrawPoly           disp curve from n points
 
 
-  int  i1;
+  int    i1;
+  char   oNam[32];
+  Point  pt1;
 
 
-  // printf("GR_DrawPoly %d\n",ianz);
-
-  if(GLT_pta_SIZ < ianz) {
-    i1 = GLT_alloc_pta (ianz);
-    if(i1 == -1) return;
-  }
+  // printf("GR_DrawPoly %d\n",ptNr);
+  // printf(" APT_dispNam=%d APT_dispDir=%d\n",APT_dispNam,APT_dispDir);
+  // printf(" AP_modact_ind=%d APT_obj_stat=%d\n",AP_modact_ind,APT_obj_stat);
 
 
 
-  for(i1=0; i1 < ianz; ++i1) {
+  // disp polygon
+  GL_DrawPoly (dli, attInd, ptNr, pta);
 
-    // if(APT_2d_to_3d_mode == OFF) {
-      GLT_pta[i1] = ptarr[i1];
+  // disp ObjID / direction
+  GR_Draw_oid_dir_npt (dli, pta, ptNr);
 
-    // } else {
-      // UT3D_pt_tra_pt_m3 (&GLT_pta[i1], APT_2d_to_3d_Mat, &ptarr[i1]);
-    // }
-  }
 
-  GL_DrawPoly (ind, attInd, ianz, GLT_pta);
+  return 0;
 
 }
 
@@ -779,7 +783,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  GR_DrawLine (&dlInd, attInd, ln1);
+  GR_DrawLine (&dlInd, *ind, attInd, ln1);
 
 }
 
@@ -1608,7 +1612,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //====================================================================
-  void GR_Draw_ln2 (long *ind, int iAtt, Line2 *ln1) {
+  void GR_Draw_ln2 (long *ind, long dbi, int iAtt, Line2 *ln1) {
 //====================================================================
 /// \code
 ///   GR_Draw_ln2          draw 2D-line
@@ -1620,6 +1624,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // DEB_dump_obj__(Typ_LN2, ln1, "GR_Draw_ln2 %d", iAtt);
 
+  GR_typ = Typ_LN2;
+  GR_dbi = dbi;
+
+
   GL_Draw_ln2 (ind, iAtt, ln1);
 
   // disp direction
@@ -1630,8 +1638,55 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 }
 
 
+//================================================================
+  int GR_Draw_oid_dir_npt (long *dli, Point *pta, int ptNr) {
+//================================================================
+// GR_Draw_oid_dir_npt             disp. ObjID, direction
+// using GR_typ, GR_dbi
+
+  char  oid[32];
+  Point pt1;
+
+
+  // printf("GR_Draw_oid_dir_npt ptNr=%d\n",ptNr);
+
+
+  // in subModel - no ID, dir
+  if(MDL_IS_SUB) return 0;
+  if(DL_OBJ_IS_HIDDEN(*dli)) return 0;
+
+
+  //----------------------------------------------------------------
+  if(!APT_dispNam) goto L_disp_dir;
+  // display ObjID; see APT_disp_nam
+    printf(" Draw_oid_dir-disp-objID\n");
+  // set oNam = text to display
+  // oNam[0] = '.';
+  oid[0] = '_';
+  APED_oid_dbo__ (&oid[1], GR_typ, GR_dbi);
+  // get pt1 = centerpoint odf polygon
+  UT3D_pt_mid_pta (&pt1, pta, ptNr, 1);
+       DEB_dump_obj__(Typ_PT, &pt1, " pt1: ");
+  // disp ID
+  APT_disp_TxtA (0, &pt1, oid);
+
+
+  //----------------------------------------------------------------
+  L_disp_dir:
+    // display direction
+    if(APT_dispDir) {
+      // disp-dir or statu-nascendi is on
+      APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
+    }
+
+
+  return 0;
+
+}
+
+
 //====================================================================
-  void GR_DrawLine (long *ind, int attInd, Line *ln1) {
+  void GR_DrawLine (long *ind, long dbi, int attInd, Line *ln1) {
 //====================================================================
 /// \code
 ///   Erzeugung einer 3D-Line
@@ -1642,6 +1697,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // Line lnTr;
+  Point  pta[2];
 
 
   // printf("GR_DrawLine %f,%f,%f\n",ln1->p1.x,ln1->p1.y,ln1->p1.z);
@@ -1651,10 +1707,17 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   /* GR_Att (attInd); */
 
+  GR_typ = Typ_LN;
+  GR_dbi = dbi;
 
+  pta[0] = ln1->p1;
+  pta[1] = ln1->p2;
 
   // if(APT_2d_to_3d_mode == OFF) {
-    GL_DrawLine (ind, attInd, ln1);
+  GL_DrawLine (ind, attInd, ln1);
+    // printf(" DrawLine-dbi=%ld dli=%ld\n",dbi,*ind);
+
+
 
   // } else {
     // // od use UTO_obj_tra_obj_m3 ..
@@ -1664,10 +1727,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // }
 
 
-  // disp direction
-  if(APT_dispDir) {
-    APT_disp_dir (&ln1->p2, &ln1->p1);
-  }
+  // disp objID, direction
+  GR_Draw_oid_dir_npt (ind, pta, 2);
 
 }
 
@@ -1692,6 +1753,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf("GR_DrawCirc %ld UT_DISP_cv=%f\n",dbi,UT_DISP_cv);
   // DEB_dump_obj__ (Typ_CI, cii, "GR_DrawCirc %ld",dbi);
 
+  GR_typ = Typ_CI;
+  GR_dbi = dbi;
+
 
   // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
   if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
@@ -1704,7 +1768,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
     
   tol  = UT_DISP_cv;
-  mdli = WC_modact_ind;
+  mdli = AP_modact_ind;
   irc = UT3D_mtpt_obj (&mtpa, Typ_CI, cii, 1, dbi, mdli, tol, grMode);
   if(irc < 0) {TX_Error("GR_DrawCvCCV E2"); goto L_exit; }
 
@@ -1718,13 +1782,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   }
 
   // display polygon
-  GL_DrawPoly (dli, attInd, ptNr, pta);
-
-  // display direction
-  if((APT_dispDir)||(APT_obj_stat)) {
-    // disp-dir or statu-nascendi is on
-    APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
-  }
+  GR_DrawPoly (dli, attInd, ptNr, pta);
 
   irc = 0;
 
@@ -2431,9 +2489,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     i1 = Tess_sur__ (oxi, att, apt_ind);
     if(i1 < 0) {
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
-      if(WC_modact_ind >= 0) {
+      if(MDL_IS_SUB) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(WC_modact_ind));
+        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ind));
       }
       TX_Print(cBuf);
     }
@@ -2448,9 +2506,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     i1 = TSU_DrawSurT_ (oxi, att, apt_ind);
     if(i1 < 0) {
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
-      if(WC_modact_ind >= 0) {
+      if(MDL_IS_SUB) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(WC_modact_ind));
+        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ind));
       }
       TX_Print(cBuf);
     }
@@ -2628,6 +2686,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   // DEB_dump_obj__ (Typ_Model, mdr, " mdr=");
   // return;
 
+  GR_typ = Typ_SubModel;
+  GR_dbi = db_ind;
+
+
 
   if(TSU_mode != 0) {       // 0=Normal 1=Store
     // printf(" DrawModel mit TSU_mode=Store %d\n",mdr->modNr);
@@ -2797,13 +2859,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
     GL_DrawDitto1 (&dli,&mdr->po,&mdb->po,az1,ay,az2,mdr->scl,
                    mdb->DLsiz,mdb->DLind);
 
-  return irc;
-
-
-
-
-
-
+  goto L_dir_npt;
 
 
   //================================================================
@@ -2814,6 +2870,10 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   GL_DrawModel (&dli, att, mdr, mdb);
   // DL_unvis_set (dli, 1);  // 2014-09-13
 
+
+  //----------------------------------------------------------------
+  L_dir_npt:
+  GR_Draw_oid_dir_npt (&dli, &mdr->po, 1);
 
   return 0;
 
@@ -2943,7 +3003,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   irc = UT3D_npt_clot (pta, &ptNr, cl1, UT_DISP_cv);
   if (irc < 0) return -1;
 
-  GL_DrawPoly (ind, att, ptNr, pta);
+  GR_DrawPoly (ind, att, ptNr, pta);
 
   return 0;
 
@@ -2965,10 +3025,13 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // printf("DDDDDDDDDDDDDDD  GR_DrawCvCCV dbi=%ld dli=%ld, att=%d\n",dbi,*dli,att);
   // printf("GR_DrawCvCCV dbi=%ld cvNr=%d\n",dbi,cvNr);
-  // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__ (Typ_CVTRM, &cva[i1], "%d",i1); 
+  // for(irc=0;irc<cvNr;++irc) DEB_dump_obj__ (Typ_CVTRM, &cva[irc], "%d",irc); 
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
     // dbi = 0;  // TEST
 
+
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
   // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
   if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
@@ -2999,15 +3062,9 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
   }
 
   // display
-  GL_DrawPoly (dli, att, ptNr, pta);
+  GR_DrawPoly (dli, att, ptNr, pta);
   // DL_set_iatt (*dli, 1);
 
-
-  // display ObjDirection; also in  statu-nascendi ("S0=CCV ..")
-  if((APT_dispDir)||(APT_obj_stat)) {
-    // disp-dir or statu-nascendi is on
-    APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
-  }
 
   irc = 0;
 
@@ -3207,7 +3264,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //=====================================================================
-  int  GR_DrawCvPol (long *ind, int attInd, CurvPoly *plg1) {
+  int  GR_DrawCvPol (long *dli, int attInd, CurvPoly *plg1) {
 //=====================================================================
 // GR_DrawCvPol          display curve struct CurvPoly
 
@@ -3232,13 +3289,8 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // erhaelt das Polygon als fertiges Array (mit Screenkoords)
-  GL_DrawPoly (ind, attInd, ptNr, pTab);
+  GR_DrawPoly (dli, attInd, ptNr, pTab);
 
-
-  // disp direction (last-point, point before)
-  if(APT_dispDir) {
-    APT_disp_dir (&pTab[ptNr - 1], &pTab[ptNr - 2]);
-  }
 
   // free memspace
   MEMTAB_tmpSpc_free (&mtPt);
@@ -3276,15 +3328,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   //erhaelt das Polygon als fertiges Array (mit Screenkoords)
-  GL_DrawPoly (ind, attInd, ptNr, pTab);
-
-
-  // disp direction
-  if(APT_dispDir) {
-    int   ipe;
-    ipe = ptNr - 1;
-    APT_disp_dir (&pTab[ipe], &pTab[ipe - 1]);
-  }
+  GR_DrawPoly (ind, attInd, ptNr, pTab);
 
 
   return 0;
@@ -3316,7 +3360,7 @@ static int DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // erhaelt das Polygon als fertiges Array
-  GL_DrawPoly (ind, attInd, ptNr, pTab);
+  GR_DrawPoly (ind, attInd, ptNr, pTab);
 
   // exit(0);
   return;
@@ -5384,7 +5428,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
     // bspl -> Polygon using PRCV
-    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, WC_modact_ind);
+    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ind);
     if(irc < 0) return -1;
 
 
@@ -5481,7 +5525,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
     // bspl -> Polygon using PRCV
-    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, WC_modact_ind);
+    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ind);
     if(irc < 0) return -1;
 
 
@@ -5504,15 +5548,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   // display
-  GL_DrawPoly (dli, att, ptNr, pTab);
-
-
-  // disp direction
-  if(APT_dispDir) {
-    int   ipe;
-    ipe = ptNr - 1;
-    APT_disp_dir (&pTab[ipe], &pTab[ipe - 1]);
-  }
+  GR_DrawPoly (dli, att, ptNr, pTab);
 
 
   // // release work space
@@ -5744,15 +5780,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // GR_Disp_pTab (ptNr, pa, SYM_STAR_S, 2);
 
 
-  GL_DrawPoly (ind, att, ptNr, pa);
-
-
-  // disp direction
-  if(APT_dispDir) {
-    int   ipe;
-    ipe = ptNr - 1;
-    APT_disp_dir (&pa[ipe], &pa[ipe - 1]);
-  }
+  GR_DrawPoly (ind, att, ptNr, pa);
 
 
   return 0;
@@ -6043,12 +6071,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_LN:
-      GR_DrawLine (dli, att, (Line*)obj);
+      GR_DrawLine (dli, dbi, att, (Line*)obj);
       break;
 
     //================================================================
     case Typ_LN2:
-      GR_Draw_ln2 (dli, att, (Line2*)obj);
+      GR_Draw_ln2 (dli, dbi, att, (Line2*)obj);
       break;
 
     //================================================================

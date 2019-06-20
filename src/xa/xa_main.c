@@ -396,7 +396,7 @@ static int     lngNr;
     UTX_cp_left (AP_editor, p1, 79);
 
     // strcpy(AP_winSiz, "-1000,-690   // size of application-window");
-    strcpy(AP_winSiz, "-1000,-600   // size of application-window");
+    strcpy(AP_winSiz, "-600,-400   // size of application-window");
 
     AP_defaults_write(); // defaults    -> ~/gCAD3D/cfg/xa.rc
     AP_defaults_dir();   // defaultdirs -> ~/gCAD3D/cfg/dir.lst

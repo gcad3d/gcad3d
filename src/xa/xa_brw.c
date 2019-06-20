@@ -263,7 +263,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   // if(strlen(AP_modact_nam) == 0) {
-  if(Mod_ck_isMain()) {
+  if(MDL_IS_MAIN) {
     Brw_Mdl_upd ();       // fill mdlNod in browserWin
   }
 // return 0;
@@ -276,7 +276,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   // if(strlen(AP_modact_nam) > 0) {
-  if(!Mod_ck_isMain()) {
+  if(!MDL_IS_MAIN) {
     // activate submodel <AP_modact_nam>
     // find submodel
     irc = GUI_tree1_iter_string (&it1, AP_modact_nam, NULL, &winBrw);

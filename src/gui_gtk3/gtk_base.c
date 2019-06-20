@@ -38,6 +38,8 @@ List_functions_start:
 GUI_Init__             must be 1. call ..
 
 GUI_Win__              create new window
+GUI_Win_siz_get        get size of window
+GUI_Win_siz_set        resize window
 GUI_Win_ev_key         add callback for the key-events
 GUI_Win_ev_button      add callback for the mouse-button event
 GUI_Win_go             windowSetup finished; display it ..
@@ -415,6 +417,46 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   GUI_update__ ();  // GUI_DialogEntry needs that ..
 
   return;
+}
+
+//================================================================
+  int GUI_Win_siz_get (MemObj *o_par, int *sizX, int *sizY) {
+//================================================================
+
+  int     pTyp;
+  Obj_Win *g_win;
+  void    *win;
+
+  if(!o_par) {
+    win = UI_MainWin;
+  } else {
+    GUI_obj_typ (&pTyp, (void**)&g_win, o_par);
+    if(!pTyp) return (-1);
+    win = g_win->win;
+  }
+
+  gtk_window_get_size (win, sizX, sizY);
+
+  return 0;
+
+}
+
+
+
+//================================================================
+  int GUI_Win_siz_set (MemObj *o_par, int sizX, int sizY) {
+//================================================================
+
+  int     pTyp;
+  Obj_Win *g_win;
+
+  GUI_obj_typ (&pTyp, (void**)&g_win, o_par);
+  if(!pTyp) return (-1);
+
+  gtk_window_resize (g_win->win, sizX, sizY);
+
+  return 0;
+
 }
 
 
@@ -2102,7 +2144,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   Obj_Unknown   *go;
 
   go = GUI_obj_pos (mo);
-  if(!go) return;
+  if(!go) return 0;
 
   return (go->gio_src);
 

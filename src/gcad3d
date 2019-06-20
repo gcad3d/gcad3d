@@ -6,7 +6,7 @@
 #osVer=`getconf LONG_BIT`
 # 32|64
 #osVer=${HOSTTYPE}
-hTyp=`uname -s`_`uname -i`
+hTyp=`uname -s`_`uname -m`
 
 #export LD_LIBRARY_PATH=`dirname $0`
 

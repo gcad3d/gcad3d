@@ -91,6 +91,7 @@ DL_grp1_copy            copy all DL-obj with groupBit ON --> GroupList
 DL_grp1_nr_get          count nr of objs in group
 
 DL_dbi_is_visTyp        test if typ == visual typ (VC is not)
+DL_IS_HIDDEN            test if obj is hidden                           INLINE
 DL_OBJ_IS_HIDDEN        test if obj is hidden                           INLINE
 DL_OBJ_IS_ACTMDL        test if obj belongs to active model             INLINE
 DL_get__                returns DispList
@@ -272,9 +273,9 @@ cc -c -g3 -Wall ut_DL.c
 
 
 /*=============== Externe Variablen: =======================================*/
-// aus xa.c:
+// aus ../xa/xa.h:
 extern AP_STAT    AP_stat;                    // sysStat,errStat..
-extern  int       WC_modact_ind;
+extern  int       AP_modact_ind;
 extern  int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane      WC_sur_act;     // die Konstruktionsebene
 extern double     WC_sur_Z;       // Konstruktionsebene in Z verschieben !
@@ -487,7 +488,7 @@ static long   DL_hidden = -1L;
     if(GR_ObjTab[dli].typ != Typ_Tag) continue;
 /*
     // test if belongs to subModel
-    if((signed short)GR_ObjTab[dli].modInd != WC_modact_ind) {
+    if((signed short)GR_ObjTab[dli].modInd != AP_modact_ind) {
         printf(" ************ belongs to subModel %d\n",
                (signed short)GR_ObjTab[dli].modInd);
       iNr = GL_sel_add_DL (dlTab, dli);
@@ -496,7 +497,7 @@ static long   DL_hidden = -1L;
 */
     // skip hidden obj
     // if((GR_ObjTab[dli].disp==1)&&(GR_ObjTab[dli].hili == 1)) continue;
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[dli])) continue;    // skip hidden obj's
+    if(DL_IS_HIDDEN(GR_ObjTab[dli])) continue;    // skip hidden obj's
     // if(GR_ObjTab[dli].del  != 0) continue;         // skip deleted
     // if(GR_ObjTab[dli].pick != 0) continue;         // skip unpickable
 
@@ -1043,7 +1044,7 @@ static long   DL_hidden = -1L;
   long  dli;
 
     
-  // printf("DL_hide_all %d %d\n",mode,WC_modact_ind);
+  // printf("DL_hide_all %d %d\n",mode,AP_modact_ind);
 
 
   for(dli=0; dli<GR_TAB_IND; ++dli) {
@@ -1052,7 +1053,7 @@ static long   DL_hidden = -1L;
     if(GR_ObjTab[dli].unvis != 0) continue;
 
     // skip objects not in model <iMdl>:
-    if((INT_16)GR_ObjTab[dli].modInd != WC_modact_ind) continue;
+    if((INT_16)GR_ObjTab[dli].modInd != AP_modact_ind) continue;
 
     if(mode) {
       // redisplay: disp=0; hili=1: visible.
@@ -1276,7 +1277,7 @@ static long   DL_hidden = -1L;
 
     // do not hilite if hidden !   2010-10-10
     // if((GR_ObjTab[ind].hili == 1)&&(GR_ObjTab[ind].disp == 1)) return -1;
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) return -1;
+    if(DL_IS_HIDDEN(GR_ObjTab[ind])) return -1;
 
     GR_ObjTab[ind].hili  = ON;   // ON=0
     GR_ObjTab[ind].disp  = OFF;  // OFF=1
@@ -1309,7 +1310,7 @@ static long   DL_hidden = -1L;
 
       } else {
         // if dl[dli] == hidden (1,1): set DL_hidden = dli; 
-        if(DL_OBJ_IS_HIDDEN(GR_ObjTab[dli])) DL_hidden = dli;
+        if(DL_IS_HIDDEN(GR_ObjTab[dli])) DL_hidden = dli;
 
         // set obj[dli] = hilite (1,0);
         GR_ObjTab[dli].hili  = ON;    // hi=0; di=1;
@@ -1357,7 +1358,7 @@ static long   DL_hidden = -1L;
   if(ind >= 0) {         // UnHili Obj.
 
     // skip hidden obj's; 2015-09-26
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) return 0;
+    if(DL_IS_HIDDEN(GR_ObjTab[ind])) return 0;
 
     // set normal (0,1)
     GR_ObjTab[ind].disp  = ON;    // ON=0
@@ -1375,7 +1376,7 @@ static long   DL_hidden = -1L;
       //TX_Print("reset hili=%d disp=%d",GR_ObjTab[l1].hili,GR_ObjTab[l1].disp);
 
       // skip hidden; 2015-09-26
-      // if(DL_OBJ_IS_HIDDEN(GR_ObjTab[ind])) continue;
+      // if(DL_IS_HIDDEN(GR_ObjTab[ind])) continue;
 
       // change hilite (1,0)  --> normal (0,1)
       if(GR_ObjTab[l1].hili == ON) {
@@ -1558,11 +1559,11 @@ static long   DL_hidden = -1L;
     // loop tru DL
     // if(cbuf1)
     TX_Print ("add all visible objs to group");
-    modnr = WC_modact_ind;
+    modnr = AP_modact_ind;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       // skip hidden
       // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
-      if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;
+      if(DL_IS_HIDDEN(GR_ObjTab[l1])) continue;
       // skip subModels
       // if(GR_ObjTab[l1].modInd != modnr) continue;
       if(DL_OBJ_IS_ACTMDL(GR_ObjTab[l1])) continue;
@@ -2168,6 +2169,7 @@ static long   DL_hidden = -1L;
 ///               <0   temp. Obj m ind. -GR_TAB_IND
 ///               >0   GR_ObjTab-index
 ///    AttInd     attribute (GR_ObjTab[].iatt)
+///               for Typ=Typ_apDat:  subType; eg Typ_constPln
 ///  Global-input:
 //     DL_ind_act -1 = create new DL-record else overwrite existing DL-record
 /// 
@@ -2283,7 +2285,7 @@ static long   DL_hidden = -1L;
 
     GR_ObjTab[dlInd].irs    = WC_sur_ind;
 
-    GR_ObjTab[dlInd].modInd = WC_modact_ind;     // (signed short)
+    GR_ObjTab[dlInd].modInd = AP_modact_ind;     // (signed short)
     GR_ObjTab[dlInd].unvis  = 0;            // Default = visible
     GR_ObjTab[dlInd].sChd   = 0;            // Default = indep.
     GR_ObjTab[dlInd].sPar   = 0;            // Default = indep.
@@ -2406,8 +2408,8 @@ static long   DL_hidden = -1L;
 
 
   
-  printf("#### DL_DumpObjTab %ld WC_modact_ind=%d AP_modact_nam=|%s|\n",
-         GR_TAB_IND, WC_modact_ind, AP_modact_nam);
+  printf("#### DL_DumpObjTab %ld AP_modact_ind=%d AP_modact_nam=|%s|\n",
+         GR_TAB_IND, AP_modact_ind, AP_modact_nam);
 
   for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1);
 
@@ -2465,7 +2467,7 @@ static long   DL_hidden = -1L;
 // ACHTUNG: kann keine Vecs & Vars finden !!!
 
 
-  return DL_find_smObj (typ, DBind, DLend, WC_modact_ind);
+  return DL_find_smObj (typ, DBind, DLend, AP_modact_ind);
 
 }
 
@@ -2483,7 +2485,7 @@ static long   DL_hidden = -1L;
 ///   typ     objTyp (Typ_PT ..)
 ///   DBind   dataBaseIndex of obj to search
 ///   DLend   last DL-Index to check;  -1L = search in complete DL
-///   imod    WC_modact_ind 
+///   imod    AP_modact_ind 
 /// retCode = DispListIndex
 ///      -1   Error; objID not found in DL
 /// \endcode
@@ -2498,12 +2500,12 @@ static long   DL_hidden = -1L;
 
   typ = AP_typ_2_bastyp (typ);
 
-  // ACHTUNG: WC_modact_ind in ein I2 kopieren, da in der DL als I2 gespeichert;
+  // ACHTUNG: AP_modact_ind in ein I2 kopieren, da in der DL als I2 gespeichert;
   // -1 == Main wird sonst nicht gefunden !!!
   modnr = imod;
 
 
-  // printf("DL_find_obj typ=%d dbi=%d modnr=%d\n",typ,DBind,modnr);
+  // printf("DL_find_smObj typ=%d dbi=%ld dle=%ld modnr=%d\n",typ,DBind,DLend,modnr);
   // DL_DumpObjTab ();
 
 
@@ -2512,10 +2514,11 @@ static long   DL_hidden = -1L;
   // von vorn weg suchen; geht nicht - findet parent statt child ..
 
   if(DLend < 0) DLend = GR_TAB_IND - 1;
+    // printf(" DLend=%ld GR_TAB_IND=%ld\n",DLend,GR_TAB_IND);
+
 
   for(l1=DLend; l1>=0; --l1) {
-
-      // printf("DL[%d] typ=%d dbi=%d\n",l1,DL_GetTyp(l1),DL_get_dbi(l1));
+      // printf("DL[%ld] typ=%d dbi=%ld\n",l1,DL_GetTyp(l1),DL_get_dbi(l1));
 
     if(GR_ObjTab[l1].ind    != DBind) continue;
     // skip SubModels
@@ -2526,7 +2529,7 @@ static long   DL_hidden = -1L;
 
     
     typAct = GR_ObjTab[l1].typ;
-      // printf(" dl[%d] typ=%d\n",l1,typAct);
+      // printf(" dl[%ld] typ=%d\n",l1,typAct);
 
 
     if(typAct == typ) {
@@ -2592,7 +2595,7 @@ static long   DL_hidden = -1L;
 
   //=====================================
   L_found:
-    // printf("ex DL_find_obj dli=%d\n",DLind);
+    // printf("ex-DL_find_smObj dli=%ld\n",DLind);
 
   return DLind;
 
@@ -2721,7 +2724,7 @@ static long   DL_hidden = -1L;
 
 
   // printf("DL_Get_dli_lNr %ld\n",*lNr);
-  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
+  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
   // DL_DumpObjTab ();
 
   if(GR_TAB_IND < 1) { *dli = 0; return -1; }
@@ -2730,7 +2733,7 @@ static long   DL_hidden = -1L;
   for(l1 = GR_TAB_IND - 1; l1 >= 0; --l1) {
       // printf(" l1=%d\n",l1);
 
-    if((INT_16)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ind) continue;
     
     if(GR_ObjTab[l1].lNr > *lNr) continue;
     if(GR_ObjTab[l1].lNr != *lNr) irc = 1;
@@ -3547,7 +3550,7 @@ static long   DL_hidden = -1L;
 
     if(GR_ObjTab[l1].typ  != Typ_Tag) continue;
 
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
+    if(DL_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
     // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue; // hidden
 
     // SizeInfo zu Tag/Image holen
@@ -4283,7 +4286,7 @@ static long   DL_hidden = -1L;
 
     // skip all objects not belonging to the active model
     // if((signed short)GR_ObjTab[l1].modInd != -1) continue;  // skip submodels
-    if((INT_16)GR_ObjTab[l1].modInd != WC_modact_ind) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ind) continue;
 
     if(GR_ObjTab[l1].lNr < lNr) continue;
     // if(GR_ObjTab[l1].lNr <= lNr) continue; // DO NOT DELETE LAST OBJ
@@ -4421,8 +4424,8 @@ static long   DL_hidden = -1L;
   // printf("DL_setRefSys %d\n",dli);
 
   if(dli < 1) {
-    if(WC_sur_ind == 0) return 0;
-    NC_setRefsys (0);
+    if(AP_IS_3D) return 0;
+    NC_setRefsys (0L);
     return 0;
   }
 

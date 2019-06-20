@@ -84,6 +84,7 @@ AP_exit__
 AP_ExportIges__
 AP_ExportIges_Model
 AP_ftyp_iftyp
+AP_get_AP_modact_ind
 AP_Get_ConstPl_vz
 AP_Get_ConstPl_Z
 AP_get_dir__
@@ -93,7 +94,6 @@ AP_get_modnam
 AP_get_nxtVec
 AP_Get_scale
 AP_Get_Setup
-AP_get_WC_modact_ind
 AP_hili_obj
 AP_iftyp_ftyp
 AP_Import3ds
@@ -114,7 +114,9 @@ AP_mdlbox_invalid_ck
 AP_mdlbox_invalid_reset
 AP_mdlbox_invalid_set
 AP_mdLev
+AP_modact_ind
 AP_modact_nam
+AP_mod_defSiz
 AP_mod_dir
 AP_mod_fnam
 AP_mod_ftyp
@@ -134,12 +136,12 @@ AP_obj_add_ci2
 AP_obj_add_curPos
 AP_obj_add_cvBsp_b
 AP_obj_add_cvBsp_p
+AP_obj_add_dbo
 AP_obj_add_func1
 AP_obj_add_int
 AP_obj_add_last
 AP_obj_add_ln
 AP_obj_add_nval
-AP_obj_add_obj
 AP_obj_add_pt
 AP_obj_add_pt2
 AP_obj_add_pt3
@@ -197,7 +199,6 @@ AP_SetCol3i
 AP_Set_ConstPl_Z
 AP_set_dir_open
 AP_set_dir_save
-AP_set_modsiz
 AP_Set_scale
 AP_src
 AP_SRC_edi_mem
@@ -1008,6 +1009,7 @@ EDI_goto_lnr
 ED_inc_lnr
 ED_Init
 EDI_set_lnr
+EDI_set_oid_ui
 ED_lnr_act
 ED_lnr_bis__
 ED_lnr_mac
@@ -1043,6 +1045,7 @@ EDMPT_ptab_get
 EDMPT_rea_src
 EDMPT_restart_lnk
 EDMPT_save__
+EDMPT_sel__
 EDMPT_sel_CB
 EDMPT_src_del
 EDMPT_src_get__
@@ -1338,6 +1341,7 @@ GL_RubberBox_stop
 GL_rub_stat
 GL_ScalBack
 GL_Scale
+GL_scr_setSiz
 GL_Scr_Siz_X
 GL_Scr_Siz_Y
 GL_sel_add__
@@ -1423,6 +1427,7 @@ GL_Viewp
 GL_View_set
 GL_widget
 GMVO__
+GR_actView
 GR_Att_act
 GR_AttLnTab
 GR_chgSet
@@ -1530,6 +1535,7 @@ GR_Draw_ln2
 GR_draw_mesh
 GR_DrawModel
 GR_Draw_obj
+GR_Draw_oid_dir_npt
 GR_Draw_otb
 GR_Draw_ox
 GR_DrawPlane
@@ -1748,7 +1754,6 @@ GUI_gl_ev_button
 GUI_gl_ev_butt_upd
 GUI_gl_ev_key
 GUI_gl_ev_move
-GUI_gl_idle1
 GUI_gl_key
 GUI_gl_move
 GUI_gl_set_active
@@ -1896,6 +1901,8 @@ GUI_Win_Id
 GUI_Win_key
 GUI_Win_kill
 GUI_Win_raise
+GUI_Win_siz_get
+GUI_Win_siz_set
 GUI_Win_tit
 GUI_WinTit
 GUI_Win_up
@@ -2236,7 +2243,6 @@ Mod_chg__
 Mod_chg_CB
 Mod_chg_tit
 Mod_chg_x
-Mod_ck_isMain
 Mod_cre__
 Mod_del__
 Mod_del1__
@@ -2344,7 +2350,6 @@ NC_TL_act
 NC_up_act
 NC_work_modeU
 ObjCodTab
-objInd
 OBJTAB_NUL
 OGX_ck_reloc
 OGX_deloc__
@@ -3046,6 +3051,7 @@ UI_Ed_scroll
 UI_Ed_sel
 UI_Ed_sel1
 UI_Ed_sel_ln
+UI_ent_view_Z
 UI_fnamFilt
 UI_Focus
 UI_fontsizX
@@ -3105,6 +3111,7 @@ UI_key_view__
 UI_key_view_decode
 UI_lang_chg
 UI_lang_men
+UI_lb_2D_upd
 UI_lNr
 UI_loadBmp_CB
 UI_loadImg_CB
@@ -3136,7 +3143,6 @@ UI_ouf_scl
 UI_paned_CB
 UI_PRI__
 UI_RelAbs
-UI_RelAbs_act
 UI_RelAbsCB
 UI_ResetCursor
 UI_reset_hide
@@ -3176,7 +3182,6 @@ UI_UserKeyFunc
 UI_UserMousemoveFunc
 UI_UserSelFunc
 UI_viewCB
-UI_view_Z
 UI_view_Z_CB
 UI_VWR_OFF
 UI_VWR_ON
@@ -4621,6 +4626,7 @@ UTX_find_strrchrn
 UTX_find_strrstr
 UTX_find_word1
 UTX_find_wordNr
+UTX_fjoin__
 UTX_f_lifo_add
 UTX_fnam__
 UTX_fnam_abs2rel
@@ -4710,7 +4716,6 @@ WC_Init
 WC_Init_all
 WC_Init_Modsiz
 WC_Init_Tol
-WC_modact_ind
 WC_mod_ori
 WC_setDisp3D
 WC_set_obj_stat

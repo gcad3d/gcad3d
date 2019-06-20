@@ -106,7 +106,7 @@ extern double    APT_ModSiz;
 // Externals aus ../xa/xa.c:
 extern char      AP_mod_fnam[128];
 extern Plane     WC_sur_act;            // die aktive Plane
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
 
 

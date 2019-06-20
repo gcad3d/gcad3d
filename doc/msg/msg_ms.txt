@@ -94,8 +94,7 @@ MMbtSca=kira skala dan pusatPandangan berautomatik
 MMbtScf=papar ruang bagi ~ 6000 x 6000 x 6000 mm
 MMbtScg=scale to active group
 MMbtVwpt=simpan / pulihkan port pandangan semasa (Ctr-V, Ctrl-KursorKanan)
-MMrbRel=papar kedudukan kursor pada satah pembinaan aktif
-MMrbAbs=papar kedudukan kursor pada satah pembinaan aktif sebagai koordinat mutlak
+MMlb2D=2D: relative coordinates on user-defined construction-plane; else absolute coordinates. See CAD Construction-Plane
 
 MMrbVwr=Pelihat
 MMrbNCw=tidak aktif

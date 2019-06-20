@@ -34,7 +34,7 @@ List_functions_start:
 AP_stru_2_txt       convert object-struct -> source-text
 AP_obj_2_txt        change obj to text and save it with UTF_add1_line
 
-AP_obj_add_obj      add typ,Ind; zB Typ_PT,10 --> "P10"
+AP_obj_add_dbo      add typ,Ind; zB Typ_PT,10 --> "P10"
 AP_obj_add_val      add double (10 Nachkommastellen)
 AP_obj_add_nval     add n doubles (10 Nachkommastellen)
 AP_obj_add_int
@@ -862,17 +862,17 @@ static long su_ind;
 
  
 //=================================================================
-  int AP_obj_add_obj (char *ED_buf1, int typ, long ind) {
+  int AP_obj_add_dbo (char *ED_buf1, int typ, long ind) {
 //=================================================================
 /// \code
-/// add objname to string; " L22"
+/// add DB-obj to string; " L22"
 /// Input obj-typ und DB-index
 /// \endcode
 
 
   char     cBuf[64];
 
-  // printf("AP_obj_add_obj %d %d |%s|\n",typ,ind,ED_buf1);
+  // printf("AP_obj_add_dbo %d %d |%s|\n",typ,ind,ED_buf1);
 
 
   // if(ED_buf1[strlen(ED_buf1)-1] != '=')
@@ -881,7 +881,7 @@ static long su_ind;
   APED_oid_dbo__ (cBuf, typ, ind);
   strcat (ED_buf1, cBuf);
 
-    // printf("  ex AP_obj_add_obj %d %d |%s|\n",typ,ind,ED_buf1);
+    // printf("  ex AP_obj_add_dbo %d %d |%s|\n",typ,ind,ED_buf1);
 
   return 0;
 
@@ -1349,10 +1349,10 @@ static long su_ind;
 /*
       ia = o1->data;
         // printf(" ip1=%d ip2=%d\n",ia[0],ia[1]);
-      AP_obj_add_obj (ED_buf1, Typ_PT, ia[0]);
-      AP_obj_add_obj (ED_buf1, Typ_PT, ia[1]);
+      AP_obj_add_dbo (ED_buf1, Typ_PT, ia[0]);
+      AP_obj_add_dbo (ED_buf1, Typ_PT, ia[1]);
 */
-     AP_obj_add_obj (ED_buf1, Typ_LN, LONG_PTR(o1->data)); // 2017-04-28
+     AP_obj_add_dbo (ED_buf1, Typ_LN, LONG_PTR(o1->data)); // 2017-04-28
 
 
 
@@ -2105,7 +2105,7 @@ static long su_ind;
       ox1 = &oTab[0];
       if(ox1->form == Typ_Index) {
         // printf(" o1 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_obj (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
+        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;
@@ -2127,7 +2127,7 @@ static long su_ind;
       ox1 = &oTab[1];
       if(ox1->form == Typ_Index) {
         // printf(" o2 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_obj (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
+        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;
@@ -2177,8 +2177,8 @@ static long su_ind;
         // srv->typCen,srv->indCen, srv->typCov,srv->indCen,
         // srv->ang1, srv->ang2, srv->v0, srv->v1);
 
-    AP_obj_add_obj (ED_buf1, srv->typCen,srv->indCen);
-    AP_obj_add_obj (ED_buf1, srv->typCov,srv->indCov);
+    AP_obj_add_dbo (ED_buf1, srv->typCen,srv->indCen);
+    AP_obj_add_dbo (ED_buf1, srv->typCov,srv->indCov);
     AP_obj_add_val (ED_buf1, UT_DEGREES(srv->ang1));
     AP_obj_add_val (ED_buf1, UT_DEGREES(srv->ang2));
     AP_obj_add_val (ED_buf1, srv->v0);

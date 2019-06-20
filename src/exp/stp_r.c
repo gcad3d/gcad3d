@@ -16,13 +16,17 @@
  *
 -----------------------------------------------------
 TODO:
+Modelsize must be set individually for every subModel. See modsiz.
+  modSiz nicht gut, da alle CART.PT benutzt werden; besser waere nur Punkte
+   von echten Objekten (Flaechen usw) zu benutzen.
+  B_SPLINE_CURVE(2,(#9450,#9451,#9452),.CIRCULAR_ARC., ..
+    create Circle, not RBSP from that ?
+
+...........................................
 - TRIMMED_CURVE (conrd.stp - .CIRCULAR_ARC. and QUASI_UNIFORM_CURVE-.POLYLINE_FORM.
   does not set correct direction (fwd/bwd) .. 
 
-modSiz nicht gut, da alle CART.PT benutzt werden; besser waere nur Punkte
- von echten Objekten (Flaechen usw) zu benutzen.
-B_SPLINE_CURVE(2,(#9450,#9451,#9452),.CIRCULAR_ARC., ..
-  create Circle, not RBSP from that ?
+...........................................
 Colors:
 ../formate/step/Models/LC_X.stp
 #534 = STYLED_ITEM( '', ( #1521 ), #1522 );
@@ -376,10 +380,19 @@ __declspec(dllexport) int STP_r__ (char*);
 
 #include "../xa/xa_mem.h"              // memspc.., mem_cbuf1
 #include "../xa/xa.h"                  // AP_STAT printd
-#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
 
 
 
+//================================================================
+// EXTERNALS:
+// from ../xa/xa.h:
+extern double AP_mod_defSiz;      // DefaultModelsize
+
+
+
+//================================================================
+ // local vars:
 
 #define SC_DIRECTION                    1
 #define SC_CARTESIAN_POINT              2
@@ -534,20 +547,18 @@ static int    errTyp;       // 0=report error with TX_Print; else not
 
 
 
+#define _tab_INC 50000
+#define _dat_INC 5000000        // size for incrementing s_dat
+#define MIND_SIZ 256000         // minimum free size in s_dat
+
+
+//----------------------------------------------------------------
 // prototypes:
   char *STP_r_TypTxt_sTyp (int sTyp);
   void* STP_r_getInt (int *i1, void *ia);
   void* STP_r_getDb (double *d1, void *ia);
   void* STP_r_getSkip (void *pos, long csiz);
 
-
-#define _tab_INC 50000
-#define _dat_INC 5000000        // size for incrementing s_dat
-#define MIND_SIZ 256000         // minimum free size in s_dat
-
-
-
-// Protos:
   char* STP_r_mdl_nam__ (int is);
   // char* STP_r_mdl_nam1 (int iProDefSha);
   // char* STP_r_mdl_nam2 (int iProDef);
@@ -751,6 +762,7 @@ void STP_r_skipTer0 (char *sBuf);
   // UME_init (&s_mSpc, memspc201, sizeof(memspc201));
 
   STP_r_addBox (0);   // init box fuer find Modelsize ...
+  WC_Init_Modsiz (AP_mod_defSiz / 4.);
 
 
   // Init (wird beim Einlesen schon korrigiert).
@@ -833,7 +845,7 @@ void STP_r_skipTer0 (char *sBuf);
 
 #ifdef DEB
     printd("----- s_tab - s_Nr=%d (sInd sTyp) ---------\n",s_Nr);
-    for(i1=0; i1<s_Nr; ++i1) {
+    for(i1=1; i1<s_Nr; ++i1) {
       printd(" %d #%d = %s\n",i1,s_tab[i1].sInd,
              STP_r_TypTxt_sTyp(s_tab[i1].sTyp));
       // UME_dump (&s_dat, "sDat");
@@ -842,8 +854,14 @@ void STP_r_skipTer0 (char *sBuf);
 
   // AP_debug__ ();
 
-
+  // beim Einlesen ist die Toleranz wichtig !
+  // Coupling_Link: wenn ueber 100 werden die Circs in subModel Bushing
+  // nicht begrenzt !
+  // WC_Init_Modsiz (100.);
+  // wird spaeter nochmal gestzt ..
   STP_r_addBox (2);  // compute ModSiz from Box
+  // WC_Init_Modsiz (AP_mod_defSiz);
+  // WC_Init_Modsiz (500.);
 
 
   // find highest step-recordNumber
@@ -1247,29 +1265,11 @@ void STP_r_skipTer0 (char *sBuf);
   }
 
 
-  //----------------------------------------------------------------
-  // load model <tmp>/Model into memory (removes all tmp/Model_*)
-  // the following = from AP_Mod_load__
-    // printf(" AP_mod_fnam=|%s|\n",AP_mod_fnam);
-  sprintf(s1,"%sModel",OS_get_tmp_dir());
-  Mod_load__ (0, s1, 1);
-  Mod_mkList (0);       // create ../tmp/Mod.lst
-  Brw_Mdl_init ();       // fill browserWin
-  Mod_chg_tit ();        // set AP_mod_fnam as new title on top
-  ED_Reset ();           // ED_lnr_act resetten
-  ED_work_END (0);
-
-
-
-
-
-  // activate new modSiz
-  NC_setModSiz ((double)modSiz);
-
 
   irc = 0;
 
 
+  //----------------------------------------------------------------
   L_exit:
   // printf(" i_tab=%p\n",i_tab);
   MemTab_free (&mdlTab);
@@ -1282,7 +1282,25 @@ void STP_r_skipTer0 (char *sBuf);
 
   // stop debugging (following prints -> console)
   AP_deb_stat (0);
- 
+
+
+  //----------------------------------------------------------------
+  if(!irc) {
+    // load model <tmp>/Model into memory (removes all tmp/Model_*)
+    // the following = from AP_Mod_load__
+      // printf(" AP_mod_fnam=|%s|\n",AP_mod_fnam);
+    sprintf(s1,"%sModel",OS_get_tmp_dir());
+    Mod_load__ (0, s1, 1);
+    Mod_mkList (0);       // create ../tmp/Mod.lst
+    Brw_Mdl_init ();       // fill browserWin
+    Mod_chg_tit ();        // set AP_mod_fnam as new title on top
+    ED_Reset ();           // ED_lnr_act resetten
+    ED_work_END (0);
+    // activate new modSiz
+    // NC_setModSiz ((double)modSiz);
+  }
+
+
   // printf("ex STP_r__ |%s|\n",fnam);
   return irc;
 
@@ -1634,7 +1652,7 @@ void STP_r_skipTer0 (char *sBuf);
   int     i1;
 
 
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     s_tab[i1].gInd = -1;
   }
 
@@ -2082,8 +2100,8 @@ void STP_r_skipTer0 (char *sBuf);
     // write subModel into file
     // Buffer + Hidelist in die Datei schreiben (UTF_FilBuf1; see UTF_dump1__)
       // printd(" savSubBuf1 |%s| %d\n",mdl.nam, modSiz);
-    // Mod_savSubBuf1 (mdl.nam, modSiz);
-    Mod_savSubBuf1 (mdlNam, modSiz);
+    Mod_savSubBuf1 (mdl.nam, modSiz);
+    // Mod_savSubBuf1 (mdlNam, 0);
 
   } else {
     irc0 = -1;
@@ -2897,6 +2915,7 @@ void STP_r_skipTer0 (char *sBuf);
   if(((char*)s_dat.next + MIND_SIZ) > (char*)s_dat.end) {
     // reallocate s_dat
     irc = UME_reall_add (&l1, &s_dat, MIND_SIZ);
+      printf(" ***** realloc s_dat ....\n");
     if(irc < 0) {TX_Error("STP_r_dec1 EOM1"); return -4;}
     // if memspace has moved: modify all pointers s_tab[].sDat
     if(l1 != 0) STP_r_reall_CB ((char*)s_dat.start - l1, s_dat.start);
@@ -3067,7 +3086,7 @@ void STP_r_skipTer0 (char *sBuf);
         // CARTESIAN_POINT
         if(!strcmp(dc1, "CARTESIAN_POINT")) {
           irc = STP_r_sav3DB (SC_CARTESIAN_POINT, p2);
-          // der Punkt liegt nun auf s_tab[s_Nr].sDat
+          // // der Punkt liegt nun auf s_tab[s_Nr].sDat
           STP_r_addBox (1);   // extend box
           break;
         }
@@ -3833,10 +3852,18 @@ void STP_r_skipTer0 (char *sBuf);
 
 }
 
-
 //================================================================
   int STP_r_addBox (int mode) {
 //================================================================
+// STP_r_addBox                            compute modelsize
+// Input:
+//   mode      0 1 2 
+// Output:
+//            mode=0:  WC_Init_Modsiz (100.); init box;
+//            mode=1:  extend box with Point <s_tab[s_Nr].sDat>
+//            mode=2:  ??
+
+
 // errechnen einer ModSiz.
 // Das Einlesen der Step-Records erfolgt mit dem gerade aktiven ModSiz. !?
 // Beim Einlesen jedes CARTPT wird mode=1 gerufen == Box bilde.
@@ -3846,8 +3873,9 @@ void STP_r_skipTer0 (char *sBuf);
 
 
 
-static Point p1, p2;
-       Point *pp;
+       double d1;
+static Point  p1, p2;
+       Point  *pp;
 
 #define VAL_INFIN 10000
 
@@ -3855,19 +3883,17 @@ static Point p1, p2;
   // double d1;
 
 
+  //----------------------------------------------------------------
+  // mode=0:  WC_Init_Modsiz (100.); init box;
   if(mode == 0) {
     UT3D_box_ini0 (&p1, &p2);
 
-    // beim Einlesen ist die Toleranz wichtig !
-    // Coupling_Link: wenn ueber 100 werden die Circs in subModel Bushing
-    // nicht begrenzt !
-    WC_Init_Modsiz (100.);
-    // wird spaeter nochmal gestzt ..
-    return 0;
+    goto L_exit;
   }
 
 
-
+  //----------------------------------------------------------------
+  // mode=1: extend box with Point <s_tab[s_Nr].sDat>
   // wird bei CARTESIAN_POINT gerufen ...
   if(mode == 1) {
     // DEB_dump_obj__ (Typ_PT, s_tab[s_Nr].sDat, "    ext.");
@@ -3877,21 +3903,33 @@ static Point p1, p2;
        (fabs(pp->y) > VAL_INFIN) ||
        (fabs(pp->z) > VAL_INFIN))  return 0;
     UT3D_box_extend (&p1, &p2, (Point*)s_tab[s_Nr].sDat);
-    return 0;
+    goto L_exit;
   }
 
 
-
-
+  //----------------------------------------------------------------
+  // mode=2:  compute modSiz from box
   if(mode == 2) {
-    // DEB_dump_obj__ (Typ_PT, &p1, "box-p1:");
-    // DEB_dump_obj__ (Typ_PT, &p2, "box-p2:");
-    modSiz = UTP_db_rnd5 (UT3D_len_2pt (&p1, &p2));
-    // printf(" ModSiz --> %d\n",modSiz);
+    d1 = UT3D_len_2pt (&p1, &p2);
+    if(d1 < UT_DISP_cv) {
+      modSiz = 0;
+
+    } else if(d1 > AP_mod_defSiz) {
+      // see TODO: Modelsize must be set individually for every subModel
+      modSiz = AP_mod_defSiz;
+
+    } else {
+      modSiz = UTP_db_rnd5 (UT3D_len_2pt (&p1, &p2));
+    }
+      
+      // DEB_dump_obj__ (Typ_PT, &p1, " r_addBox-box-p1:");
+      // DEB_dump_obj__ (Typ_PT, &p2, " r_addBox-box-p2:");
+      // printf("  r_addBox-ModSiz modSiz=%d UT3D_len_2pt=%f\n",modSiz,d1);
   }
 
 
-
+  //----------------------------------------------------------------
+  L_exit:
   return 0;
 
 }
@@ -4306,7 +4344,7 @@ static Point p1, p2;
         ii = STP_r_findInd (iap[i1], ii);
           printd(" STP_r_cre2-TRM-%d - %d #%d typ=%d\n",i1,
                   ii,s_tab[ii].sInd,s_tab[ii].sTyp);
-        AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
+        AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
       }
       irc = STP_r_creObj1 (sInd, Typ_CVTRM, Typ_Txt, gTxt);
       if(irc < 0) return irc;
@@ -4592,12 +4630,12 @@ static Point p1, p2;
 
   vc1 = s_tab[sInd].sDat;
 
-  if(sInd==4226)DEB_dump_obj__ (Typ_VC, vc1, "STP_r_creVc1:");
+  // if(sInd==4226)DEB_dump_obj__ (Typ_VC, vc1, "STP_r_creVc1:");
 
 
   // Vektoren: test for Defaultvecs (DX/DY/DZ)
   irc = APED_oid_vc (gTxt, vc1);
-    if(sInd==4226)printf("ex AP_txt_vec irc=%d |%s|\n",irc,gTxt);
+    // if(sInd==4226)printf("ex AP_txt_vec irc=%d |%s|\n",irc,gTxt);
   if(irc != 0) {
     s_tab[sInd].gTyp = Typ_VC;
     s_tab[sInd].gInd = irc;
@@ -4674,7 +4712,7 @@ static Point p1, p2;
 
 
   gTxt[0] = '\0';
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i1].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i1].gInd);
   AP_obj_add_pt (gTxt, &pt2);
 
   // printf(" _creLn0 |%s|\n",gTxt);
@@ -4741,8 +4779,8 @@ static Point p1, p2;
   if(iDir != 0) MEM_swap_int (&i1, &i2);
 
   gTxt[0] = '\0';
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i1].gInd);
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i2].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i1].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i2].gInd);
 
   // make obj, save-> gCad, stor gC-Typ & Index -> s_tab
   irc = STP_r_creObj1 (sInd, Typ_LN, Typ_Txt, gTxt);
@@ -4854,7 +4892,7 @@ static Point p1, p2;
 
 
   gTxt[0] = '\0';
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[ipo].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[ipo].gInd);
   AP_obj_add_pt (gTxt, &pt1);
 
   // make obj, save-> gCad, stor gC-Typ & Index -> s_tab
@@ -5031,8 +5069,8 @@ static Point p1, p2;
   printd("STP_r_creCi_0 %d %d %d\n",i1,i2,iDir);
 
   strcpy(gTxt, "ARC");
-  AP_obj_add_obj (gTxt, Typ_PT, i1);
-  AP_obj_add_obj (gTxt, Typ_PT, i2);
+  AP_obj_add_dbo (gTxt, Typ_PT, i1);
+  AP_obj_add_dbo (gTxt, Typ_PT, i2);
   AP_obj_add_pt (gTxt, pc);
   AP_obj_add_vc (gTxt, vz);
 
@@ -5078,7 +5116,7 @@ static Point p1, p2;
 
     gTxt[0] = '\0';
     AP_obj_add_pt (gTxt, pc);  // cen
-    // AP_obj_add_obj (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);  // cen
+    // AP_obj_add_dbo (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);  // cen
     AP_obj_add_val (gTxt, radc);
     // add Z-vec
     AP_obj_add_vc (gTxt, vz);
@@ -5157,9 +5195,9 @@ static Point p1, p2;
   STP_r_cre2 (i2);  // recurse !
 
   strcpy(gTxt, "CUT");
-  AP_obj_add_obj (gTxt, s_tab[ibc].gTyp, s_tab[ibc].gInd);
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i1].gInd);
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i2].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ibc].gTyp, s_tab[ibc].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i1].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i2].gInd);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
   // iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
   iTyp = Typ_CV;  // 2019-04-20  all trimmed-curves -> S
@@ -5212,7 +5250,7 @@ static Point p1, p2;
   L_cut:
 
   strcpy(gTxt, "CUT");
-  AP_obj_add_obj (gTxt, s_tab[ibc].gTyp, s_tab[ibc].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ibc].gTyp, s_tab[ibc].gInd);
   AP_obj_add_val (gTxt, u1);
   AP_obj_add_val (gTxt, u2);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
@@ -5334,8 +5372,8 @@ static Point p1, p2;
   AP_obj_add_vc0 (gTxt, &vcb);
 
   // add start / endPoints
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i1].gInd);
-  AP_obj_add_obj (gTxt, Typ_PT, s_tab[i2].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i1].gInd);
+  AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i2].gInd);
 
   // make obj, save-> gCad, stor gC-Typ & Index -> s_tab
   irc = STP_r_creObj1 (sInd, Typ_CVELL, Typ_Txt, gTxt);
@@ -5507,7 +5545,7 @@ static Point p1, p2;
     // create point if not yet done
     if(STP_r_crePt0 (ii3) < 0) return -1;
     // add point --> gTxt
-    AP_obj_add_obj (gTxt, Typ_PT, s_tab[ii3].gInd);
+    AP_obj_add_dbo (gTxt, Typ_PT, s_tab[ii3].gInd);
 
     continue;
 
@@ -5528,7 +5566,7 @@ static Point p1, p2;
     // wenn Punkt noch nicht angelegt: anlegen !
     if(STP_r_crePt0 (ii3) < 0) return -1;
     // add point --> gTxt
-    AP_obj_add_obj (gTxt, Typ_PT, s_tab[ii3].gInd);
+    AP_obj_add_dbo (gTxt, Typ_PT, s_tab[ii3].gInd);
 
   }
 
@@ -5556,7 +5594,7 @@ static Point p1, p2;
   }
 
   // add last point --> gTxt
-  AP_obj_add_obj (gTxt, Typ_PT, ii1);
+  AP_obj_add_dbo (gTxt, Typ_PT, ii1);
 
 
   // create polygon
@@ -6393,7 +6431,7 @@ static Point p1, p2;
     ii = STP_r_findInd (iap[i1], ii);
       printd(" STP_r_creCont1-CCV2 %d ind=%d #%d sTyp=%d aux=%d\n",
              i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp,s_tab[ii].aux);
-    AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
+    AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
     // if direction of SC_ORIENTED_EDGE is reverse: add " REV"
     if(s_tab[ii].aux != 0) strcat (gTxt, " REV");            // 2019-04-29
   }
@@ -6492,7 +6530,7 @@ static Point p1, p2;
 
     // create begrenzte Flaeche
     strcpy(gTxt, "FSUB");
-    AP_obj_add_obj (gTxt, s_tab[iss].gTyp, s_tab[iss].gInd);
+    AP_obj_add_dbo (gTxt, s_tab[iss].gTyp, s_tab[iss].gInd);
 
     // printd(" A-out:|%s|\n",gTxt);
     // return 0;
@@ -6566,7 +6604,7 @@ static Point p1, p2;
     // SC_FACE_OUTER_BOUND
       // printf(" add OUTER_BOUND %d ind=%d #%d typ=%d\n",
               // i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
-    AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
+    AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
       // printf(" gTxt=|%s|\n",gTxt);
     // if(i1 == 0) ic1 = ii;
     // if(i1 == 1) ic2 = ii;
@@ -6584,12 +6622,12 @@ static Point p1, p2;
     // cylinder, 3 or more bounds.
     i2 = 0;
     ii = STP_r_findInd (iap[i2], ii);
-    AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);       // first
+    AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);       // first
       printf(" gTxt=|%s|\n",gTxt);
     L_nxtCylObj:
     i2 = iNr -1;
     ii = STP_r_findInd (iap[i2], ii);
-    AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);     // last
+    AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);     // last
       printf(" gTxt=|%s|\n",gTxt);
     --iNr;
     if(iNr > 1) goto L_nxtCylObj;
@@ -6604,7 +6642,7 @@ if(strlen(gTxt) > 20) exit(0);
     // SC_FACE_BOUND
       // printf(" add BOUND %d ind=%d #%d typ=%d\n",
               // i1,ii,s_tab[ii].sInd,s_tab[ii].sTyp);
-    AP_obj_add_obj (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
+    AP_obj_add_dbo (gTxt, s_tab[ii].gTyp, s_tab[ii].gInd);
       // printf(" gTxt=|%s|\n",gTxt);
     // CYLINDRICAL_SURFACE from 2 CIRCLE's can have 2 FACE_BOUND's
     // if(i1 == 0) ic1 = ii;
@@ -6741,7 +6779,7 @@ if(strlen(gTxt) > 20) exit(0);
   STP_r_cre2 (iax);  // create Axis
 
   strcpy(gTxt, "CYL");
-  AP_obj_add_obj (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);  // refsys
+  AP_obj_add_dbo (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);  // refsys
   AP_obj_add_val (gTxt, rdc);
 
   AP_obj_add_val (gTxt, u1);
@@ -6775,7 +6813,7 @@ if(strlen(gTxt) > 20) exit(0);
 
   strcpy(gTxt, "SPH");
 
-  AP_obj_add_obj (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);
   
   AP_obj_add_val (gTxt, rdc);
 
@@ -6838,7 +6876,7 @@ if(strlen(gTxt) > 20) exit(0);
   STP_r_cre2 (iax);
 
   strcpy(gTxt, "CYL");
-  AP_obj_add_obj (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd);
   AP_obj_add_val (gTxt, rdc);
 
 
@@ -7041,7 +7079,7 @@ if(strlen(gTxt) > 20) exit(0);
   // strcat(gTxt, ") L(");
   AP_obj_add_pt (gTxt, &pc);
 
-  AP_obj_add_obj (gTxt, Typ_PT, ipt);
+  AP_obj_add_dbo (gTxt, Typ_PT, ipt);
   strcat(gTxt, ")");
 
     // printf(" gTxt=|%s|\n",gTxt); // return -4;
@@ -7087,7 +7125,7 @@ if(strlen(gTxt) > 20) exit(0);
   STP_r_cre2 (ipo);  // create origin
 
   strcpy(gTxt, "SPH R(");
-  AP_obj_add_obj (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
   strcat(gTxt, ")");
   AP_obj_add_val (gTxt, rdc);
 
@@ -7137,8 +7175,8 @@ if(strlen(gTxt) > 20) exit(0);
 
   // Body erzeugen
   strcpy(gTxt, "TOR");
-  AP_obj_add_obj (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
-  AP_obj_add_obj (gTxt, s_tab[ivz].gTyp, s_tab[ivz].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ivz].gTyp, s_tab[ivz].gInd);
   AP_obj_add_val (gTxt, rd1);
   AP_obj_add_val (gTxt, rd2);
     // printf(" creSur5 |%s|\n",gTxt);
@@ -7197,8 +7235,8 @@ if(strlen(gTxt) > 20) exit(0);
 
   // Surf erzeugen
   strcpy(gTxt, "SRV");
-  AP_obj_add_obj (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd); // Axis
-  AP_obj_add_obj (gTxt, s_tab[ico].gTyp, s_tab[ico].gInd); // contour
+  AP_obj_add_dbo (gTxt, s_tab[iax].gTyp, s_tab[iax].gInd); // Axis
+  AP_obj_add_dbo (gTxt, s_tab[ico].gTyp, s_tab[ico].gInd); // contour
 
   irc = STP_r_creObj1 (sInd, Typ_SUR, Typ_Txt, gTxt);
   if(irc < 0) return irc;
@@ -7246,7 +7284,7 @@ if(strlen(gTxt) > 20) exit(0);
   STP_r_VC_VEC_t (&vc1, ivc);
 
   strcpy(gTxt, "SRU");
-  AP_obj_add_obj (gTxt, s_tab[ico].gTyp, s_tab[ico].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ico].gTyp, s_tab[ico].gInd);
 
   // create Vektor; aber nicht normieren !
   AP_obj_add_vc0 (gTxt, &vc1);
@@ -7778,8 +7816,8 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   STP_r_cre2 (ivz);  // create Z-Vec
 
   sax[0] = '\0';
-  AP_obj_add_obj (sax, s_tab[ipo].gTyp, s_tab[ipo].gInd);
-  AP_obj_add_obj (sax, s_tab[ivz].gTyp, s_tab[ivz].gInd);
+  AP_obj_add_dbo (sax, s_tab[ipo].gTyp, s_tab[ipo].gInd);
+  AP_obj_add_dbo (sax, s_tab[ivz].gTyp, s_tab[ivz].gInd);
 
 
 
@@ -7847,14 +7885,14 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   // add the origin
-  AP_obj_add_obj (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
+  AP_obj_add_dbo (gTxt, s_tab[ipo].gTyp, s_tab[ipo].gInd);
 
   // add the z-vec
-  // AP_obj_add_obj (gTxt, s_tab[ivz].gTyp, s_tab[ivz].gInd);
+  // AP_obj_add_dbo (gTxt, s_tab[ivz].gTyp, s_tab[ivz].gInd);
   STP_r_add_vec (ivz);
 
   // add the x-vec
-  // AP_obj_add_obj (gTxt, s_tab[ivx].gTyp, s_tab[ivx].gInd);
+  // AP_obj_add_dbo (gTxt, s_tab[ivx].gTyp, s_tab[ivx].gInd);
   STP_r_add_vec (ivx);
 
   // printf(" R? = |%s|\n",gTxt);
@@ -8431,7 +8469,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // if( != POINT) ...
 
   if(s_tab[ii].gInd >= 0) {
-    AP_obj_add_obj (gTxt, Typ_PT, s_tab[ii].gInd);
+    AP_obj_add_dbo (gTxt, Typ_PT, s_tab[ii].gInd);
   } else {
     AP_obj_add_pt (gTxt, s_tab[ii].sDat);
   }
@@ -8469,7 +8507,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   
   if(s_tab[ii].gInd >= 0) {
-    AP_obj_add_obj (gTxt, Typ_VC, s_tab[ii].gInd);
+    AP_obj_add_dbo (gTxt, Typ_VC, s_tab[ii].gInd);
   } else {
     AP_obj_add_vc (gTxt, s_tab[ii].sDat);
   } 
@@ -8508,7 +8546,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   iNr = 0;
   wrong_SRR = 0;
 
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
 
     // if(s_tab[i1].sTyp != SC_REPRESENTATION_RELATIONSHIP) continue;
 
@@ -8542,7 +8580,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   L_wrong:   // verkehrt, alle umdrehen.
   printd("***** STP_r_wrong_SRR swap SHAPE_REPRESENTATION_RELATIONSHIP L1,L2\n");
 
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != SC_SHAPE_REPRES_RS) continue;
     ia = s_tab[i1].sDat;
     MEM_swap_int (&ia[0], &ia[1]);
@@ -8578,7 +8616,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
   wrong_ASS = 0;
 
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
      
     // group-record (REPRESENTATION_RELATIONSHIP(),..
     if(s_tab[i1].sTyp != SC_REPRESENTATION_RELATIONSHIP) continue;
@@ -8805,11 +8843,16 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   int     i1, *ia;
 
   // printf("STP_r_find_sRec_TypL1 %s %d\n",STP_r_TypTxt_sTyp(sTyp),lL1);
+  // if((sTyp==72) && lL1==2375)) {
+  // if(sTyp==72) {
+    // for(i1=0; i1<s_Nr; ++i1) STP_dump_s_tab (i1);
+  // }
 
 
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != sTyp) continue;
     ia = s_tab[i1].sDat;
+    if(!ia) continue;
     if(ia[0] != lL1) continue;
     goto L_ok;
   }
@@ -8854,6 +8897,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != sTyp) continue;  // 2014-09-08
     ia = s_tab[i1].sDat;
+    if(!ia) continue;
     if(ia[1] != lL2) continue;
     goto L_ok;
   }
@@ -8886,7 +8930,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   printd("STP_r_find_dump %d\n",sTyp);
 
   // find Record typ = sTyp
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != sTyp) continue;
     ia = s_tab[i1].sDat;
     for(i2=0; i2<5; ++i2) {
@@ -8910,7 +8954,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // printd("STP_r_find_B %d %d\n",sTyp,iL1);
  
   // find Record typ = sTyp
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != sTyp) continue;
 
     // get linkBlock
@@ -8958,7 +9002,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   lL1 = ia[0];
 
   // find Record typ = sTyp
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != sTyp) continue;
     if(s_tab[i1].sInd != lL1) continue;
     goto L_ok;
@@ -9139,14 +9183,14 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   // loop tru PRODUCT's
-  for(i1=0; i1<s_Nr; ++i1) {
+  for(i1=1; i1<s_Nr; ++i1) {
     if(s_tab[i1].sTyp != SC_PRODUCT) continue;
     // printf(".......... nxt Model %d #%d = PRODUCT\n",i1,s_tab[i1].sInd);
 
 
     // find PRODUCT_DEFINITION_FORMATION_WITH_SPECIFIED_SOURCE;
     // its 1.Link must be == #PRODUCT
-    for(i2=0; i2<s_Nr; ++i2) {
+    for(i2=1; i2<s_Nr; ++i2) {
       if(s_tab[i2].sTyp != SC_PRODUCT_DEFINITION_FORMWSS) continue;
       STP_r_getInt (&ii, s_tab[i2].sDat); // get Link -> PRODUCT
       // printf(" %d #%d = PRODUCT_DEFINITION_FORMWSS\n",i2,s_tab[i2].sInd);
@@ -9160,7 +9204,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
     // find PRODUCT_DEFINITION oder PRODUCT_DEFINITION_WITH_ASSOCIATED_DOCUMENTS;
     // its 1.Link must be == #PRODUCT_DEFINITION_FWSS
-    for(i3=0; i3<s_Nr; ++i3) {
+    for(i3=1; i3<s_Nr; ++i3) {
       if(s_tab[i3].sTyp == SC_PRODUCT_DEFINITION) {
         STP_r_getInt (&ii, s_tab[i3].sDat); // get 1.Link -> PRODUCT
         // printf(" %d #%d = PRODUCT_DEFINITION\n",i3,s_tab[i3].sInd);
@@ -9181,7 +9225,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
     // find PRODUCT_DEFINITION_SHAPE;
     // its Link must be == #PRODUCT_DEFINITION
-    for(i4=0; i4<s_Nr; ++i4) {
+    for(i4=1; i4<s_Nr; ++i4) {
       if(s_tab[i4].sTyp != SC_PRODUCT_DEFINITION_SHAPE) continue;
       STP_r_getInt (&ii, s_tab[i4].sDat); // get Link -> PRODUCT
       // printf(" %d #%d = PRODUCT_DEFINITION_SHAPE\n",i4,s_tab[i4].sInd);
@@ -9197,7 +9241,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
     // find SHAPE_DEFINITION_REPRESENTATION;
     // its 1.Link must be == #PRODUCT_DEFINITION_SHAPE
     // its 3.Link = Leer fuer die IndexNr des PRODUCT; setzen !
-    for(i5=0; i5<s_Nr; ++i5) {
+    for(i5=1; i5<s_Nr; ++i5) {
       if(s_tab[i5].sTyp != SC_SHAPE_DEFINITION_REPRES) continue;
       // printf(" %d #%d = SHAPE_DEFINITION_RS\n",i5,s_tab[i5].sInd);
       ip = s_tab[i5].sDat;
@@ -12362,6 +12406,29 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 }
 
 
+//================================================================
+  int STP_dump_s_tab (int ii) {
+//================================================================
+
+  int    i1, i2, *ia;
+
+
+  printf("STP_dump_s_tab %d sTyp=%d %s\n",ii,
+         s_tab[ii].sTyp, STP_r_TypTxt_sTyp(s_tab[ii].sTyp));
+  printf(" sInd=%d\n",s_tab[ii].sInd);
+  ia = s_tab[ii].sDat; 
+  if(!ia) { printf(" empty ..\n"); return 0; }
+
+  i1 = 0;
+  for(i2=0; i2<5; ++i2) {
+    if(ia[i2]) printf(" sDat[%d] = %d\n",i2, ia[i2]);
+  }
+
+  return 0;
+
+}
+
+ 
 //================================================================
   int STP_r_nxtSrec () {
 //================================================================

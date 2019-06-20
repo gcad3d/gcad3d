@@ -42,7 +42,7 @@ List_functions_start:
 AP_get_modnam       returns AP_mod_fnam
 AP_get_fnam_symDir  get filename of symbolic directories (dir.lst)
 AP_get_dir_open
-AP_get_WC_modact_ind 
+AP_get_AP_modact_ind 
 AP_set_dir_open
 AP_set_dir_save
 AP_set_modsiz
@@ -132,6 +132,9 @@ AP_defaults_write   defaults -> tmp/xa.rc
 AP_defaults_dir     defaultdirs -> xa/dir.lst
 AP_defaults_read    read defaults aus <base>/tmp/xa.rc
 AP_Get_Setup        read line out of gCAD3D.rc
+
+AP_IS_2D            test if 2D is ON (if ConstructionPlane is active)
+AP_IS_3D            test if 3D is ON (no user-defined ConstructionPlane is active)
 
 List_functions_end:
 =====================================================
@@ -353,19 +356,10 @@ extern AP_STAT   AP_stat;
 // char      AP_mod_fnam[128];     ///< active Modelname - without path
 // char      AP_modact_nam[128];     ///< name of the active submodel; def=""(main)
 
-// int       WC_modact_ind = -1;         ///< the Nr of the active submodel; -1 = main.
-// the Nr of the active submodel; -1 = main;
-// 0-n: the SubModel is the primary Model ( = is displayed).
+int       AP_modact_ind = -1;     ///< the Nr of the active-model;
+//  -1: the active-model is the primary-Model. The primaryModel can be subModel.
+// 0-n: a SubModel is being created. See INF_subModels
 
-int       WC_modact_ind = -1;
-// While loading subModels WC_modact_ind is the index of the basicModel of the
-//   subModel being loaded.
-// -1=primary Model is active (can also be a submodel);
-//   else a subModel is being loaded.
-// After all subModels have been loaded WC_modact_ind = -1.
-// Diplaylist (DL_Att*) GR_ObjTab[].modInd gives the basicModel-index.
-
-         
 Point     WC_mod_ori;            ///< der Model-Origin
 Plane     WC_sur_act;            ///< the active construction-plane
 double    WC_sur_Z =  0.0;       ///< active Z-value of WC_sur_sur;
@@ -488,10 +482,10 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 //================================================================
-  int AP_get_WC_modact_ind () {
+  int AP_get_AP_modact_ind () {
 //================================================================
 
-  return WC_modact_ind;
+  return AP_modact_ind;
 
 }
 
@@ -501,14 +495,14 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
 // AP_dump_statPg      dump active subModel, active lineNr
 
-// WC_modact_ind     // the Nr of the active submodel; -1 = main.
-// WC_modact_ind  // -1=primary Model is active; else subModel is being created
+// AP_modact_ind     // the Nr of the active submodel; -1 = main.
+// AP_modact_ind  // -1=primary Model is active; else subModel is being created
 // AP_modact_nam    // name of the active submodel; def="" (main)
 
 
 
-  printf("%s WC_modact_ind=%d AP_modact_nam=|%s|\n",txt,
-          WC_modact_ind, AP_modact_nam);
+  printf("%s AP_modact_ind=%d AP_modact_nam=|%s|\n",txt,
+          AP_modact_ind, AP_modact_nam);
 
   printf(" APT_line_act=%d UP_level=%d\n",APT_line_act,UP_level);
 
@@ -1218,7 +1212,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     strcpy(AP_mod_ftyp, "gcad");
     AP_mod_iftyp = Mtyp_Gcad;
 
-    Mod_init__ (); // AP_modact_nam='\0'; WC_modact_ind=-1;
+    Mod_init__ (); // AP_modact_nam='\0'; AP_modact_ind=-1;
 
     // - alle tmp/Model_* loeschen
     Mod_kill__ ();
@@ -2401,6 +2395,11 @@ remote control nur in VWR, nicht MAN, CAD;
   fprintf(fp1, "%s\n", txbuf);
 
 
+  // line 11: DefaultModelsize AP_mod_defSiz
+  sprintf(txbuf, "%f   // DefaultModelsize",AP_mod_defSiz);
+  fprintf(fp1, "%s\n", txbuf);
+
+
   fclose(fp1);
 
     // printf("ex _write\n");
@@ -2679,8 +2678,15 @@ remote control nur in VWR, nicht MAN, CAD;
   // line 10: size of application-window; def = "-1000,-690" see UI_win_main
   if(fgets (txbuf, 120, fp1)) {
     sscanf(txbuf, "%s",AP_winSiz); // only 1. word, rest is comment
-  } else strcpy(AP_winSiz, "-1000,-690");
+  } else strcpy(AP_winSiz, "-600,-400");
     printf(" AP_winSiz=|%s|\n",AP_winSiz);
+
+
+  // line 11: DefaultModelsize AP_mod_defSiz; 500.; see also APT_ModSiz
+  if(fgets (txbuf, 120, fp1)) {
+    sscanf(txbuf, "%lf",&AP_mod_defSiz); // only 1. word, rest is comment
+  } else AP_mod_defSiz = 500.;
+    printf(" DefaultModelsize=%f\n",AP_mod_defSiz);
 
 
 
@@ -2854,6 +2860,7 @@ remote control nur in VWR, nicht MAN, CAD;
 }
 
 
+/* UNUSED
 //====================================================================
   int AP_set_modsiz (double newssiz) {
 //====================================================================
@@ -2870,6 +2877,7 @@ remote control nur in VWR, nicht MAN, CAD;
   return 0;
 
 }
+*/
 
 
 //====================================================================

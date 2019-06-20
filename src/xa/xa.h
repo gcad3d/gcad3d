@@ -2,13 +2,6 @@
 // needs #include "../ut/ut_geo.h"    (Point)
 
 
-/// debug-print (see AP_deb_stat())
-#ifdef DEB
-#define printd if(AP_stat.debStat) AP_deb_print
-#else
-#define printd if(0) printf
-#endif
-
 
 
 /// \code
@@ -80,7 +73,7 @@ extern char AP_errText[128];      // errortext for minor errors
 extern char AP_printer[80];       // Printer
 extern char AP_editor[80];        // TextEditor
 extern char AP_lang[4];           // en or de
-extern char AP_winSiz[32];        // size of application-window "-1000,-690"
+extern char AP_winSiz[64];        // size of application-window "-1000,-690"
 
 extern int  APP_act_typ;          // type of APP_act_nam: 0=none;
                                   // 1=applic. 2=process 3=plugin 4=remote;
@@ -88,6 +81,7 @@ extern int  APP_act_typ;          // type of APP_act_nam: 0=none;
 extern char APP_act_nam[128];     // name of last script- or plugin-program
 extern char APP_act_proc[128];    // name of processor (dll)
 extern long APP_dli_start;        // first free dli (last dli of core-obj's)
+extern double AP_mod_defSiz;      // DefaultModelsize
 
 extern FILE *AP_deb_fp;           ///< debug-file-pointer
 
@@ -141,6 +135,40 @@ extern AP_STAT AP_stat;
 
 // nur temp:
   // void GR_tmpSym (int typ, Point *pt1); // Point !
+
+
+
+//================================================================
+/// debug-print (see AP_deb_stat())
+#ifdef DEB
+#define printd if(AP_stat.debStat) AP_deb_print
+#else
+#define printd if(0) printf
+#endif
+
+
+
+// test if 2D is ON (if ConstructionPlane is active)
+//   if yes: SRC-coordinates are relativ;
+#define AP_IS_2D (WC_sur_ind > 0)
+
+// test if 3D is ON (if no user-defined ConstructionPlane is active)
+#define AP_IS_3D (WC_sur_ind <= 0)
+
+
+
+// test if active model is a subModel being created or the active-model
+//   active-model can be a subModel; see MDL_IS_MAIN
+#define MDL_IS_SUB (AP_modact_ind >= 0)
+
+
+/// MDL_IS_MAIN      check if the active model is the mainmodel
+/// retCode      0   subModel is active
+///              1   the main-model is active
+// test if AP_modact_nam == ""  (mainmodel = ""; else subModelname)
+#define MDL_IS_MAIN ((AP_modact_nam[0] == 0) ? 1 : 0)
+
+
 
 
 

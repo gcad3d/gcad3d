@@ -200,7 +200,7 @@ static GSList *UI_menGrp;
   void   *go, *wo;
 
   go = GUI_obj_pos (mo);
-  if(!go) return;
+  if(!go) return -1;
   wo = ((Obj_Unknown*)go)->widget;
 
   return gtk_check_menu_item_get_active (wo);

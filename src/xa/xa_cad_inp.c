@@ -544,7 +544,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
          (typSel == Typ_PT))         {
         // display, but not yet complete;
         *iAct = 1;   // 1=add
-        *iNxt = 1;   // 0=keep,do not test
+        *iNxt = 0;   // 0=keep,test
         *iDisp = 0;   // 0=display
         return 0;
       }

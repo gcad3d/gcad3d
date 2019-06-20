@@ -60,6 +60,8 @@ UTM_db_bincoeff           compute binomial coefficient
 UTM_db_binquot            compute binomial quotient
 UTM_scale_4db             Scale down 4 double numbers
 
+IS_NAN
+
 List_functions_end:
 =====================================================
 

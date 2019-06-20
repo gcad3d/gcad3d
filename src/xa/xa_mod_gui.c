@@ -49,18 +49,22 @@ List_functions - see ../xa/xa_mod.c
 #include <ctype.h>                    // isdigit
 
 
-#include "../xa/xa_uid.h"             // UID_WinEdit
-#include "../ut/func_types.h"              // UI_FuncSet
+
+#include "../ut/ut_geo.h"              // Point ..
+// #include "../ut/func_types.h"          // UI_FuncSet
+// #include "../ut/ut_umem.h"
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
-#include "../ut/ut_umem.h"
 
-#include "../gui/gui__.h"              // Gtk3
+#include "../xa/xa_uid.h"             // UID_WinEdit
+#include "../xa/xa.h"                 // MDL_IS_MAIN
+
+#include "../gui/gui__.h"              // Gtk
 
 
 // EXTERNALS:
-// from ../xa/xa.h
-extern  char     AP_modact_nam[128];    // name of the active submodel; ""=(main)
+// // from ../xa/xa.h
+// extern  char     AP_modact_nam[128];    // name of the active submodel; ""=(main)
 
 
 
@@ -308,7 +312,7 @@ extern  char     AP_modact_nam[128];    // name of the active submodel; ""=(main
   char  cbuf1[256], newNam[256], mNam[64];
 
 
-  if(Mod_ck_isMain()) {
+  if(MDL_IS_MAIN) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }
@@ -366,7 +370,7 @@ extern  char     AP_modact_nam[128];    // name of the active submodel; ""=(main
 
   printf("Mod_del__\n");
 
-  if(Mod_ck_isMain()) {
+  if(MDL_IS_MAIN) {
     TX_Error("es ist kein Submodel aktiv ..");
     return -1;
   }

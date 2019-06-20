@@ -1628,7 +1628,7 @@ raus 2011-07-29
         // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
       // invert transformation if ConstrPln is set;
       //   will be inverted in APT_decode_pt
-      if(WC_sur_ind != 0) {
+      if(AP_IS_2D) {
         UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
       }
 */

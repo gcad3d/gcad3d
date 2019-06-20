@@ -275,7 +275,7 @@ extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;            // Constr.Plane
 extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
 extern int       aus_SIZ;
 extern AP_STAT   AP_stat;
@@ -1211,7 +1211,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
 
  L_vc:
-   if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
+   if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 
    if(*oTyp == Typ_XVal) {
      *d1 = vc1.dx;
@@ -5131,7 +5131,7 @@ static  TraRot  trr;
   //----------------------------------------------------------------
   // Plane aus Nullpunkt(pt1), Z-Vektor(vcz) und X_Vektor(vcx)
   L_pvxvz:
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_pt_tra_pt_m3 (&pt1, WC_sur_mat, &pt1);
       // DEB_dump_obj__ (Typ_PT, &pt1, " onConstrPln:");
   }
@@ -8174,7 +8174,7 @@ static ModelRef *mod1, modR1;
     pt1 = DB_GetPoint ((long)aus_tab[i1]);
     // der Punkt ist absolutKoordinataen; umrechnen in relative Koordinaten
       // DEB_dump_obj__(Typ_PT, &pt1, "  1.pt=");
-    if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+    if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
       // DEB_dump_obj__(Typ_PT, &pt1, "  2.pt=");
     mod1->po = pt1;
     ++i1;
@@ -8216,7 +8216,7 @@ static ModelRef *mod1, modR1;
   if(aus_typ[i1] == Typ_VC) {
 
     mod1->vz = DB_GetVector ((long)aus_tab[i1]);
-    if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&mod1->vz, WC_sur_imat, &mod1->vz);
+    if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&mod1->vz, WC_sur_imat, &mod1->vz);
     UT3D_vc_setLength (&mod1->vz, &mod1->vz, 1.);
 
     // folgt X-vec ?
@@ -8224,7 +8224,7 @@ static ModelRef *mod1, modR1;
     if((aus_anz > i1)&&(aus_typ[i1] == Typ_VC)) {
       mod1->vx = DB_GetVector ((long)aus_tab[i1]);
       ++i1;
-      if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&mod1->vx, WC_sur_imat, &mod1->vx);
+      if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&mod1->vx, WC_sur_imat, &mod1->vx);
 
     } else {
       // Normalvektor auf vc1, der in der X-Y-Plane liegt.
@@ -8258,7 +8258,7 @@ static ModelRef *mod1, modR1;
 
   // translate
   // if(f_tra != 0) {
-    // if(WC_sur_ind != 0) {
+    // if(AP_IS_2D) {
       // UT3D_pt_tra_pt_m3 (&mod1->po, WC_sur_imat, &mod1->po);
       // UT3D_vc_tra_vc_m3 (&mod1->vx, WC_sur_imat, &mod1->vx);
       // UT3D_vc_tra_vc_m3 (&mod1->vz, WC_sur_imat, &mod1->vz);
@@ -9361,7 +9361,7 @@ static ModelRef *mod1, modR1;
 
   // translate
   if(f_tra != 0) {
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
     }
   }
@@ -12909,7 +12909,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // pt1 allein ist der Ausgabepunkt.
   EX_PT:
   // transport into ActiveConstrPlane
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_pt_tra_pt_m3 (pt_out, WC_sur_mat, &pt1);
   } else {
     *pt_out = pt1;
@@ -12923,7 +12923,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   EX_VC:
     // DEB_dump_obj__ (Typ_VC, &vc1, "EX_VC-vc1:");
   // transport into ActiveConstrPlane
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_pt_vc (&pt1, &vc1);
     UT3D_pt_tra_pt_m3 (pt_out, WC_sur_mat, &pt1);
   } else {
@@ -12937,7 +12937,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
   // pt1+vc1 sind der Ausgabepunkt. Nur vc1 transformieren.
   EX_PTVC:
   // transport nur vc1 into ActiveConstrPlane
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
   }
   UT3D_pt_traptvc (pt_out, &pt1, &vc1);
@@ -13553,7 +13553,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       ++i1;
     }
 
-    if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc2, WC_sur_mat, &vc2);
+    if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc2, WC_sur_mat, &vc2);
     UT3D_pt_traptvc (&pt1, &pt1, &vc2);
     goto Fertig_p_v;
 
@@ -14564,7 +14564,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
   // translate
   if(f_tra != 0) {
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &ln_out->p1);
       UT3D_pt_tra_pt_m3 (&ln_out->p2, WC_sur_mat, &ln_out->p2);
       goto Exit;
@@ -17096,7 +17096,7 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
 
       // l1 now is the index of a standardvector; if a UCS is active:
       // translate the standardvector into the UCS.
-      if(WC_sur_ind != 0) {
+      if(AP_IS_2D) {
         vc1 = DB_GetVector (l1);
         UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
         l1 = DB_StoreVector (-1L, &vc1);
@@ -18764,12 +18764,12 @@ in Zukunft in Funktion APT_decode_func bei "strcmp(funcU, "P")
       // display 
       UI_disp_joint (APT_obj_stat, defInd, &APTSpcObj);
 
-      if(WC_modact_ind < 0) {                    // 0-n = sind Submodel; -1=main
+      if(AP_modact_ind < 0) {                    // 0-n = sind Submodel; -1=main
         if(APT_obj_stat != 0) goto L_jnt_ex;   // temp-mode: do not store ..
 
       } else {
         // hide original obj
-        JNT_parent_hide (aus_typ[0], (long)aus_tab[0], WC_modact_ind);
+        JNT_parent_hide (aus_typ[0], (long)aus_tab[0], AP_modact_ind);
       }
 
       // save data in DBFile
@@ -22366,8 +22366,8 @@ static Line lno;
   L_exit:
 
     // DEB_dump_ox__ (oxo, "ex-APT_CUT__");
-    // DEB_dump_ox_0 (oxo, "ex APT_CUT__");
-    // printf("ex APT_CUT__ CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__\n");
+    // DEB_dump_ox_0 (oxo, "ex-APT_CUT__");
+    // printf("ex-APT_CUT__ CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__\n");
 
   return 0;
 

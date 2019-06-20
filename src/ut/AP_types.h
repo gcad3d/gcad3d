@@ -231,9 +231,10 @@ void INF_OTYP (){}
 #define Typ_Layer        162
 
 #define Typ_APPOBJ       163  /// Typ_apDat 
-#define Typ_apDat        164  ///< application-data Typ_APPOBJ
+#define Typ_apDat        164  ///< application-data Typ_APPOBJ; invisible;
 #define Typ_Tool         165
 #define Typ_PRCV         166  ///< polygonal representation curve
+#define Typ_constPln     167  ///< construction-plane (2D-plane)
 
 
 /// dataFormats (Int, matrix, Polynom..)

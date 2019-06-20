@@ -42,6 +42,8 @@ INF_MEM__       get memSpc ..
 INF_obj-types   object-types and corresponding struct (Point ..)
 INF_obj-IDs     obj-ID is eg "P123"      _oid_
 INF_obj-names   objectName is eg "#height 2 floor" 
+INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
+INF_DBO__       DB-type & DB-index;               (int, long)
 
 INF_OGX_CV_CCV  concatenated-curve (CCV)
 INF_OGX_DBO
@@ -54,6 +56,7 @@ INF_MSG_new     create new message
 
 INF_workflow__  sequence functions  startup CAD
 INF_ConstructionPlane
+INF_subModels
 INF_NamingConventions                 ../../doc/gcad_doxygen/NamingConventions.txt
 INF_debug       errormessages ..      ../../doc/gcad_doxygen/Debugging.dox
 
@@ -126,7 +129,7 @@ APED_oid_dbo_all    make name from typ and DB-index  (all types)
 SRC_src_dbo         create sourceCode of requested type from Database-object
 APED_oid_vc          get oid for Vector; (DX or DIX or D#)
 
-AP_obj_add_obj      add objname to string
+AP_obj_add_dbo      add objname to string
 AP_obj_add_pt       add Point* as "P(xyz)"
 AP_obj_add_vc       add struct Vector* to string  " D(x y z)"
 AP_obj_add_val      add double > text  ( xa_obj_txt.c )
@@ -135,6 +138,54 @@ AP_cre_defHdr       create new (unused) objHeader
 AP_src_typ__        get typText from typ (eg "PT" for Typ_PT)
 AP_src_typMod       get modifier-text from (modifier)typ
 APT_decode_print    create sourceObj from atomicObjs (for PRInt-cmd)
+
+
+================================================================== \endcode */}
+void INF_SRC__ (){        /*! \code
+source (asciiText with objectIDs and functions ..) _src_
+
+TODO:
+AP_stru_2_txt  sollte -> AP_obj_add_ox
+
+
+Files:
+../xa/xa_ed.c          ED_ .. Neutral EditorFunctions (not Gtk-specific)
+../xa/xa_edi__.c       ED_ .. Neutral EditorFunctions (not Gtk-specific)
+../xa/xa_ed_mem.c      APED_  Textfunctions in Memory
+../xa/xa_src.c         SRC_   check, modify, convert source-objects (text)
+
+
+Functions:
+SRC_src_ato            sourceObj (text) from atomicObjs
+
+AP_stru_2_txt       sourceObj (text) from complex-obj
+SRC_src_pt3_10      write struct Point* to string "P(<x> <y> <z>)" precision 10
+AP_obj_add_pt       add struct Point* to string  " P(<x> <y> [<z>])"
+AP_obj_add_dbo      add DBO (typ,dbi) to string
+AP_obj_add_val
+AP_obj_add_vc
+..
+AP_obj_2_txt        change obj to text and save it with UTF_add1_line
+
+
+
+================================================================== \endcode */}
+void INF_DBO__ (){        /*! \code
+
+APED_dbo_oid        get type and dbi from object-ID
+
+UTO_ck_dbsTyp       check object-typ (struct (V,D,P,L,C) or object (S,A,B)) 
+
+DBO_dbo_src__       give DB-Obj (typ and index) from sourceObj eg "L(S1 MOD(1))"
+APED_dbo_oid        give DB-Obj (typ and index) from sourceObj eg "P12"
+
+UTO_dbs_ox          DB-struct (data for VDPLC, ox for SAB) from ox
+DBO_sel__           change selection into DB-object
+DBO_dump__          dump DB-object -> debug-window
+
+DB-objects from atomicObj's:
+ATO_ato_eval__      create dynam DB-obj from atomic-obj
+
 
 
 ================================================================== \endcode */}
@@ -541,6 +592,10 @@ or                     ./lang_mod.csh keyWd 'new text'
   save the lang.files: ./lang_save.csh
   restore              ./lang_rest.csh
 
+see primary language-file:
+  vi ../../doc/msg/msg_en.txt
+  vi ../../doc/msg/msg_de.txt
+
 
 
 ================================================================== \endcode */}
@@ -603,6 +658,7 @@ WC_Work1                      execute codeline
     APT_store_obj             store in DB
       APT_decode_pt
       APT_decode_bsp
+      APT_decode_ccv__
     APT_Draw__                display
       APT_DrawCurv
   APT_work_AppCodTab          do eg HIDE VIEW MODSIZ DEFTX EXECM ..
@@ -664,39 +720,79 @@ UI_GR_CB_Sel2
 
 
 ================================================================== \endcode */}
+INF_subModels (){        /*! \code
+
+mainModel          is the root-model using all subModels
+active-model       is the open subModel or mainModel being modified
+
+// While loading subModels AP_modact_ind is the index of the basicModel of the
+//   subModel being loaded.
+// -1=primary Model is active (can also be a submodel);
+//   else a subModel is being loaded.
+// After all subModels have been loaded AP_modact_ind = -1.
+// Diplaylist (DL_Att*) GR_ObjTab[].modInd gives the basicModel-index.
+
+
+MDL_IS_SUB
+// test if active model is a subModel being created or the active-model
+//   active-model can be a subModel; see MDL_IS_MAIN
+
+MDL_IS_MAIN
+// test if active model is the mainModel
+
+
+
+int      AP_modact_ind
+  //  -1: primary-Model is active. The primaryModel can be subModel.
+  // >=0: subModel is being created.
+
+
+AP_modact_nam
+
+Functions:
+DB_mdlNam_iBas(AP_modact_ind)
+
+
+================================================================== \endcode */}
 INF_ConstructionPlane (){        /*! \code
 
 screenCoords     int, pixels, 2D.
 userCoords       double; relativ to the active constrPln
 worldCoords      double, absolut usercoords. DB keeps worldCoords.
 
-SRC-coordinates of objects on a ConstructionPlane are userCoords;
-DB-coordinates of objects on a ConstructionPlane are worldCoords;
+SRC-coordinates of objects on a ConstructionPlane are userCoords (relativ);
+DB-coordinates of objects on a ConstructionPlane are worldCoords (absolut);
 
-Plane     WC_sur_act;    the ConstructionPlane; in xa.c
-int       WC_sur_ind;    DB-Index of the ActiveConstrPlane; 0=none.
+int       WC_sur_ind;    DB-Index of the ActiveConstrPlane;
+                         (WC_sur_ind > 0)  is 2D      (AP_IS_2D)
+                         (WC_sur_ind <= 0) is 3D      (AP_IS_3D)
 double    WC_sur_Z;      the active Z-Offset to the ConstructionPlane
 char WC_ConstPl_Z[16];   displayed name_of_Constr.Plane; is "DZ" or "R20"
 
+
+Plane     WC_sur_act;    the ConstructionPlane; in xa.c
 Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
+Making constrPlane ON and OFF both create a DL-record Typ_constPln
 
-Functions ConstrPlane:
+
+Functions ConstrPlane:  -------------------------
 DL_setRefSys
-  NC_setRefsys
+  NC_setRefsys      Change active Plane (Refsys)
     GL_SetConstrPln
-DL_GetTrInd
+DL_GetTrInd         get the refsys-nr (dbi of Plane) for DL-record <dli>
 UTRA_pt_ucs2wcs     point from constructionplane (relativ) to absolut (UCS -> WCS)
 UTRA_pt_wcs2ucs     point from absolut to relativ (constructionplane) (WCS -> UCS)
 
-UI_sur_act_CB1      interactive setting of ConstructionPlane
- GL_SetConstrPln    GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
- UI_Set_ConstPl_Z   write Label name_of_Constr.Plane
+GL_SetConstrPln     GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
+UI_Set_ConstPl_Z    write Label name_of_Constr.Plane
 AP_Set_ConstPl_Z    write Label name_of_Constr.Plane
+
 UI_suract_keyIn     mode=2: set & display WC_sur_Z
 AP_Get_ConstPl_Z    gives ConstPLn as text or Z-vec
 AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
+
 
 ../../doc/gcad_doxygen/Userinteractions.dox
 

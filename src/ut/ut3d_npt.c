@@ -583,7 +583,7 @@ UT3D_npt_ci                circular polygon
 ///   typ          type of struct in data
 ///   data         curve
 ///   siz          nr of objects of type 'typ' in 'data'
-///   mdli         modelindex; eg WC_modact_ind;
+///   mdli         modelindex; eg AP_modact_ind;
 ///   mode         0=perm; use PRCV; 1=temp, do not use PRCV; 2=unknown
 /// Output:
 ///   ptNr         nr of output-points in pTab
@@ -1827,7 +1827,7 @@ UT3D_npt_ci                circular polygon
       if((mode == 0)&&(dbi > 0L)) {
         if(dbTyp < Typ_CI) goto L_index_1; // PT,LN = no PRCV
         // get PRCV
-        irc = PRCV_npt_dbo__ (&pa2, &i2, dbTyp, dbi, AP_get_WC_modact_ind());
+        irc = PRCV_npt_dbo__ (&pa2, &i2, dbTyp, dbi, AP_get_AP_modact_ind());
           // printf(" from-PRCV_npt_dbo__-irc=%d i2=%d\n",irc,i2);
         if(irc) {
           printf("**** UT3D_pta_ox_lim I1-dbo=%d,%ld\n",dbTyp,dbi);

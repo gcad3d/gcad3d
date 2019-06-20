@@ -94,8 +94,7 @@ MMbtSca=Vergrösserung und Darstellungsmittelpunkt automatisch errechnen
 MMbtScf=eine Raumgrösse von ca. 6000 x 6000 x 6000 mm darstellen
 MMbtScg=nur aktive Gruppe darstellen
 MMbtVwpt=aktuelle Ansicht speichern / wiederherstellen (Ctr-V, Ctrl-CursorRechts)
-MMrbRel=Cursorposition auf der aktiven Konstruktionsebene anzeigen
-MMrbAbs=Cursorposition auf der aktiven Konstruktionsebene absolut anzeigen
+MMlb2D=2D: relative Koordinaten auf vom Anweder definierter Konstruktionsebene; 3D: absolute Koordinaten. Siehe CAD Construction-Plane
 
 MMrbVwr=Viewer (nur Anzeige und Analyse, keine Modifikationen)
 MMrbNCw=nicht aktiv

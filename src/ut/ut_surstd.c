@@ -679,7 +679,7 @@ List_functions_end:
 
 
 // TODO: use PRCV_npt_dbo__
-  // irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVTRM, dbi, WC_modact_ind);
+  // irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVTRM, dbi, AP_modact_ind);
     // if(irc < 0) return -1;
 
 

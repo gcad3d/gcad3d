@@ -94,8 +94,7 @@ MMbtSca=calculer échelle et viewcenter automatique
 MMbtScf=afficher un espace de ~ 6000 x 6000 x 6000 mm
 MMbtScg=scale to active group
 MMbtVwpt=save / restore current viewport (Ctr-V, Ctrl-CursorRight)
-MMrbRel=display cursorposition on the active constructionplane
-MMrbAbs=display cursorposition on the active constructionplane as absolute coordinates
+MMlb2D=2D: relative coordinates on user-defined construction-plane; else absolute coordinates. See CAD Construction-Plane
 
 MMrbVwr=Viewer
 MMrbNCw=pas actif

@@ -212,7 +212,7 @@ cl -c /I ..\include xa_ed.c
 extern AP_STAT    AP_stat;               // sysStat,errStat..
 extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
-extern int        WC_modact_ind;         // -1=primary Model is active;
+extern int        AP_modact_ind;         // -1=primary Model is active;
 extern ColRGB     AP_defcol;
 // extern int        AP_indCol;
 extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -1677,7 +1677,7 @@ static int lnr1, lnr2;
   char *cbuf, *c1buf, *cPos, *cp1;
 
 
-  // printf("ED_work_dyn ---------\n");
+  // printf("DDDDDDDDDDDDDDDDDDDDDDDDDDDD ---- ED_work_dyn ---------\n");
 
 
   APT_reset_view_stat ();
@@ -1758,12 +1758,15 @@ static int lnr1, lnr2;
   // UTF_del_rest(":DYNAMIC_AREA");
 
 
+  //----------------------------------------------------------------
   // delete gesamten DYNAMIC_DATA-Block
   cPos += 14;
     // printf("delete DYNAMIC_DATA off=%d\n",UTF_offset_(cPos));
-  // printf("cPos=|%s|=end_of-cPos\n",cPos);
+    // printf("cPos=|%s|=end_of-cPos\n",cPos);
   UTF_del_start (cPos);
 
+
+  //----------------------------------------------------------------
   // printf("ex ED_work_dyn\n");
   return 0;
 
@@ -1825,7 +1828,7 @@ static int lnr1, lnr2;
     // clear DB & DL
     AP_Init2 (0);
     // primary model always has modnr=-1
-    WC_modact_ind = -1;
+    AP_modact_ind = -1;
   }
 
   // PRC_init ("cut1");  // (re)init active process
@@ -1908,7 +1911,7 @@ static int lnr1, lnr2;
   // save dynam. data
   // DL_sav_dynDat ();
   DB_save__ ("");
-if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model");
+if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
 
   // scan rekursiv die SourceFiles aller basicModels;
@@ -2401,7 +2404,7 @@ if(WC_modact_ind >= 0) TX_Error("**** TODO: DB_save__ only saves primary Model")
     if(irc >= 0) {           // nur wenn lastObj = geometr.Obj 
       DL_setRefSys (dli);   // RefSys entprechend DL-Record setzen
     } else {
-      if(WC_sur_ind != 0) NC_setRefsys (0);
+      if(AP_IS_2D) NC_setRefsys (0L);
     }
   }
 
@@ -2923,7 +2926,6 @@ static int  actLev=0;
   FILE     *fpo=NULL;
 
 
-  // printf("\nRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR \n");
   // printf("RRRRRRRRRRRRRRRR ED_Run ED_mode=%d\n",ED_mode);
 
 
@@ -2960,7 +2962,7 @@ static int  actLev=0;
 
   // naechste Zeile holen (get a copy !)  returns ++ED_lnr_act
   lNr = ED_Read_Line (cbuf);
-    // printf("nach ED_Read_Line %d |%s|\n",lNr,cbuf);
+    // printf(" ED_Run-nxt lNr=%d |%s|\n",lNr,cbuf);
     // printf(" AP_src=%d UI_InpMode=%d ED_mode=%d\n",AP_src,UI_InpMode,ED_mode);
 
 
@@ -2989,7 +2991,9 @@ static int  actLev=0;
 */
   }
 
-
+  // if(!strcmp(cbuf, "GATAB")) {            // goto L_EOF;
+    // printf(" ************* GATAB in ED_Run ................\n");
+  // }
 
 
   if(!strcmp(cbuf, ":DYNAMIC_DATA")) {            // goto L_EOF;
@@ -3004,7 +3008,7 @@ static int  actLev=0;
   } else if(!strncmp(cbuf, ":ATTRIB:", 8)) {
     GA_decode__ (&cbuf[8]);
     // comment this line out; only in primaryModel.
-    if(WC_modact_ind < 0) {
+    if(AP_modact_ind < 0) {
       cpos = ED_Read_cPos ();
       *cpos = '_'; 
     }
@@ -3233,7 +3237,7 @@ static int  actLev=0;
   //==================================================================
   Fertig:
   // in nicht aktiven subModels: done.
-  if(WC_modact_ind >= 0) return 0;
+  if(MDL_IS_SUB) return 0;
 
   // Das Positionskreuz plazieren (nicht in VWR)
   // if(UI_ask_mode() != UI_MODE_VWR) WC_setPosKreuz();

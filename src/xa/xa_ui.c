@@ -61,7 +61,6 @@ UI_winTX_rmLast       delete last textoutputline
 
 UI_wireCB             set GL-shaden
 UI_sur_act_CB2
-UI_sur_act_CB1
 UI_Set_ConstPl_Z      write out the name of the Constr.Plane
 UI_Set_actPrg         display label actoive program-name
 UI_view_Z_CB
@@ -150,6 +149,7 @@ obsolet:
 // UI_expIsoCB       UNUSED
 // UI_saveCB         UNUSED
 // UI_expNat         UNUSED
+// UI_sur_act_CB1
 UI_EdKeyPress         allback keyPress im editwin UND CAD-Entryfelder
 UI_EdKeyRelease       callback KeyRelease im editwin
 UI_EdButtonPress      klick into Editor-window
@@ -256,7 +256,7 @@ extern int     APT_dispPT, APT_dispPL, APT_dispNam, APT_dispDir;
 // aus xa.c:
 extern AP_STAT   AP_stat;               // sysStat,errStat..
 extern int       AP_ED_cPos;            // die aktuelle CharPos im Edi.
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
 extern double    WC_sur_Z;
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -302,10 +302,11 @@ extern long   UI_Ed_fsiz;      // AptTextsize
          ckb_Brw,   // BrowserWindow OFF
          ckb_rctl,  // RemoteControl OFF
          ckb_impnat, ckb_compr, // ckb_grpAdd,ckb_mod,ckb_del,
+         UI_lb_2D,   // label 2D or 3D
          ckb_vwz;
 
   static MemObj box00, box1, w_test1, ToolBar1, ToolBar2,
-         box1C, box1C1, boxRelAbs,
+         box1C, box1C1,
          box1R, box1S,
          box1C1v, box1C2v, box1C3v, box1C7v,
          box1C1v1h, box1C1v2h,
@@ -350,7 +351,7 @@ extern long   UI_Ed_fsiz;      // AptTextsize
   MemObj      UI_ouf_scl;
   MemObj      UI_sur_act;
   MemObj      UI_sur_Z;
-  MemObj      UI_view_Z;
+  MemObj      UI_ent_view_Z;
   // GtkWidget UI_Refsys,
   MemObj      UI_grpNr, UI_ConstP, UI_GrAttr, UI_lNr, UIw_prg, UIw_typPrg;
 
@@ -1537,12 +1538,14 @@ static char LstBuf[LstSiz][32];
 
   if(ED_query_mode() == ED_mode_go) return 0;
 
-
+  // display active name_of_the_Constr.Plane; eg "RZ" or R20"
   GUI_label_mod (&UI_ConstP, WC_ConstPl_Z);
 
+/*
   // activate the rel - abs checkBoxes
-  if(WC_sur_ind == 0) UI_RelAbs_act (0); // 1=activ, 0=inaktiv.
-  else                UI_RelAbs_act (1);
+  if(AP_IS_3D) UI_RelAbs_act (0); // 1=activ, 0=inaktiv.
+  else         UI_RelAbs_act (1);
+*/
 
   return 0;
 }
@@ -1553,12 +1556,28 @@ static char LstBuf[LstSiz][32];
 //================================================================
   int UI_view_Z_CB (MemObj *mo, void **data) {
 //================================================================
+// keyIn into UI_ent_view_Z
 
-  // printf("UI_sur_Z_CB\n");
+  char   *txt;
+  double  sur_act;
 
 
-  // first focus-in
-  UI_Focus=2;      // wer Focus hat; 0=GL, 1=Edit, 2=ViewZ-Entryfeld
+  printf(" UI_view_Z_CB |%s|\n",GUI_entry_get(mo));
+  
+
+  // // first focus-in
+  // UI_Focus=2;      // wer Focus hat; 0=GL, 1=Edit, 2=ViewZ-Entryfeld
+
+  // UI_suract_keyIn (1);
+
+      txt = GUI_entry_get (&UI_ent_view_Z);
+      sur_act = atof(txt);
+        printf(" UI_view_Z_CB %f\n",sur_act);
+
+      // activate new ViewZ-value
+      UI_GR_view_set_Z1 (sur_act);
+    
+
 
   return 0;
 
@@ -1592,7 +1611,7 @@ static char LstBuf[LstSiz][32];
   double  sur_act;
 
 
-  // printf("UI_suract_keyIn %d\n",mode);
+  printf("UI_suract_keyIn %d\n",mode);
 
 
   switch (mode) {
@@ -1602,7 +1621,7 @@ static char LstBuf[LstSiz][32];
     // mode=1 = new ViewZ
     case 1:
 
-      txt = GUI_entry_get (&UI_view_Z);
+      txt = GUI_entry_get (&UI_ent_view_Z);
       sur_act = atof(txt);
         // printf("got %f\n",sur_act);
 
@@ -3194,11 +3213,11 @@ static char LstBuf[LstSiz][32];
     
   // printf("UI_disp_activ mode=%d dbi=%ld\n",mode,dbi);
   // printf(" typ=%d dbi=%ld\n",ac1->typ,ac1->ind);
-  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
+  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
 
     
   // skip display in subModels
-  if(WC_modact_ind >= 0) {           // 0-n = sind Submodel; -1=main
+  if(MDL_IS_SUB) {           // 0-n = sind Submodel; -1=main
     return 0;
   }
 
@@ -3258,11 +3277,11 @@ static char LstBuf[LstSiz][32];
   // printf("UI_disp_joint mode=%d indJnt=%d\n",mode,indJnt);
   // DEB_dump_ox_0 (jnt, "JNT_exp__");
   // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
-  // printf(" WC_modact_ind=%d\n",WC_modact_ind);
+  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
 
 
   // skip display in subModels
-  if(WC_modact_ind >= 0) {           // 0-n = sind Submodel; -1=main
+  if(MDL_IS_SUB) {           // 0-n = sind Submodel; -1=main
     return 0;
   }
 
@@ -4558,11 +4577,10 @@ See UI_but__ (txt);
 
   //=============================================================
   } else if(!strcmp(cp1, "oNam")) {              // Search/Name
+
 /* 2011-03-03
     if(UI_InpMode == UI_MODE_VWR) {
       TX_Print("***** active in CAD only ..");
-      goto L_exit;
-    }
 */
     // check if Search is active
     i1 = GUI_ckbutt_get (&ckb_such); // 0=not sel, 1=selected.
@@ -6453,8 +6471,13 @@ See UI_but__ (txt);
     if(irc == 0) {
         printf(" defWinsiz |%s|\n",s1);
       sscanf(s1," %d %d", &i1, &i2); 
+      if((i1>0)&&(i1<10000)&&(i2>0)&&(i2<10000)) {
       sprintf(AP_winSiz,"-%d,-%d   // size of application-window",i1,i2);
         printf(" AP_winSiz |%s|\n",AP_winSiz);
+      } else {
+        TX_Print("***** reset winsiz; format: <xSiz>,<ySiz>");
+        strcpy(AP_winSiz, "600,400");
+      }
     }
 
 
@@ -6750,8 +6773,8 @@ box1
 // TODO:  cannot reduce windowsize manually ..
       // winMain = GUI_Win__ (NULL, UI_win_main, "-1000,-690");
       // winMain = GUI_Win__ (NULL, UI_win_main, "-600,-600");
-      // winMain = GUI_Win__ (NULL, UI_win_main, "-2000e,-1600e");
-      winMain = GUI_Win__ (NULL, UI_win_main, AP_winSiz);
+      winMain = GUI_Win__ (NULL, UI_win_main, "-600,-400");
+      // winMain = GUI_Win__ (NULL, UI_win_main, AP_winSiz);
       // GUI_obj_init (); // TEMP_ONLY - remove with GUI_Win__
 
 
@@ -7519,7 +7542,7 @@ box1
                 "Eckpunkte des gewuenschten Ausschnittes waehlen");
       GUI_set_enable (wtmp1, FALSE);
 */
-      UI_view_Z = GUI_entry__ (&box1C7v, NULL, "0.0", UI_view_Z_CB, NULL, "8");
+      UI_ent_view_Z = GUI_entry__ (&box1C7v, NULL, "0.0", UI_view_Z_CB, NULL, "8");
       MSG_Tip ("MMenZva"); //
       // GUI_Tip  ("Z-value of viewplane / "
                 // "Z-Wert der aktuellen Ansichtsebene");
@@ -7615,11 +7638,9 @@ box1
 
 
       //----------------------------------------------------------------
-      // CursorPosition
       frm_act = GUI_frame__ (&box1C, NULL, 0);
-      // box1C2: CursorPosition, rel/abs, Scale.
+      // box1C2: 2D, CursorPosition, Scale.
       box1C2 = GUI_box_h (&frm_act, ",e"); //
-      UI_curPos = GUI_label__(&box1C2,"","");   // l30
 
 
 /*
@@ -7629,7 +7650,6 @@ box1
       GUI_button__ (box1C2, "ConstPln", UI_sur_act_CB1, (void*)l1, 0);
       GUI_Tip  ("select constr.plane / "
                 "Konstruktionsebene auswaehlen");
-*/
 
       // rel abs der MouseCoords
       frm_act = GUI_frame__ (&box1C2, NULL, 0);
@@ -7639,8 +7659,6 @@ box1
       GUI_radiobutt__ (&boxRelAbs, "abs", 1, UI_RelAbsCB, &GUI_FuncUCB2, "");
       MSG_Tip ("MMrbAbs"); //
 
-
-/*
       //  Z-Wert Konstruktionsebene
       UI_sur_Z = GUI_Entry (box1C2, " ConstZ=", "0", UI_sur_Z_CB, -60);
       GUI_Tip  ("Z-value of constr.plane / "
@@ -7651,12 +7669,19 @@ box1
       // actbox = gtk_fixed_new();
       // gtk_fixed_put(GTK_FIXED (actbox), UI_curPos, 0, 0);
 
+      // Label 2D | 3D
+      UI_lb_2D = GUI_label_htm__(&box1C2,"<b> 3D </b>","");
+      MSG_Tip ("MMlb2D");
+      GUI_sep_v (&box1C2, 2);
+
+      // CursorPosition
+      UI_curPos = GUI_label__(&box1C2,"","36");   // l30
 
       // ein Ausgabefeld (Scale) mit rahmen
       frm_act = GUI_frame__ (&box1C2, NULL, 0);
       actbox = GUI_box_h (&frm_act, ""); //
       GUI_label__ (&actbox, " Scale ", "");
-      UI_ouf_scl = GUI_label__ (&actbox, "", "");   // 12e
+      UI_ouf_scl = GUI_label__ (&actbox, "", "16");   // 12e
       // GUI_Tip  ("der aktuelle Vergroesserungsfaktor (Scale)");
 
 
@@ -7805,8 +7830,12 @@ box1
       // gtk_container_add (GTK_CONTAINER (wtmp1), winGR);
       // gtk_widget_show (winGR);
       // defaultsize 600x400 pixels; cannot be made smaller (no GL-callback !)
-      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-600e");
+      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-400e");
       // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,e");
+      // sscanf(AP_winSiz,"%d,%d",&i1,&i2);
+      // sprintf(cbuf1, "%de,%de",i1,i2);
+        // printf(" GUI_gl__-winSiz |%s| %d %d |%s|\n",AP_winSiz,i1,i2,cbuf1);
+      // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, cbuf1); // "-600e,-400e");
 
       // connect the mouse-move events
       GUI_gl_ev_move (&winGR, UI_GL_move__);
@@ -7965,6 +7994,15 @@ box1
 
       // GUI_obj_focus (&winGR);
 
+      // resize to previous size
+      sscanf(AP_winSiz,"-%d,-%d", &i1, &i2);
+        printf(" win_resize-|%s| %d %d\n",AP_winSiz,i1,i2);
+      if((i1<0)||(i1>10000)||(i2<0)||(i2>10000)) {
+        i1 = 600;
+        i2 = 400;
+      }
+      GUI_Win_siz_set (&winMain, i1, i2);
+
       break;
 
 
@@ -8023,6 +8061,21 @@ box1
 
   // return TRUE;
   // printf("ex UI_win_main\n");
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_lb_2D_upd () {
+//================================================================
+
+  if(AP_IS_3D)
+    GUI_label_htm_mod(&UI_lb_2D,"<b> 3D </b>");
+  else
+    GUI_label_htm_mod(&UI_lb_2D,
+                      "<span fgcolor=\"#ff0000\" weight=\"bold\"> 2D </span>");
+
   return 0;
 
 }
@@ -8367,7 +8420,7 @@ box1
   return 0;
 
 }
-*/
+
 
 //=====================================================================
   int UI_RelAbs_act (int mode) {
@@ -8379,6 +8432,7 @@ box1
   return 0;
 
 }
+*/
 
 
 //=====================================================================
@@ -9010,8 +9064,8 @@ box1
 
       GUI_box_h (&box0, "");
 
-        // printf(" WC_modact_ind=%d\n",WC_modact_ind);
-      if(WC_modact_ind < 0) i1 = TRUE;    // MainModel: modify all sM's
+        // printf(" AP_modact_ind=%d\n",AP_modact_ind);
+      if(AP_modact_ind < 0) i1 = TRUE;    // MainModel: modify all sM's
       else                  i1 = FALSE;   // in subModel: modify only active sM.
       ckb_all = GUI_ckbutt__ (&box0, "all subModels", i1, NULL, NULL, "");
       MSG_Tip ("UIWTsm");
@@ -9104,6 +9158,7 @@ box1
       // GL_ChangeModelSize (APT_ModSiz);
 
 
+  //----------------------------------------------------------------
   // ausgeben der Werte
   L_update:
 
@@ -9113,14 +9168,11 @@ box1
       Mod_allmod_MS (APT_ModSiz,UT_TOL_cv,UT_DISP_cv);
     }
 
-
     // update windowFields
-
     // ent_msiz Modelsize
     cbuf1[0] = '\0';
     UTX_add_fl_u (cbuf1, APT_ModSiz);
     GUI_entry_set (&ent_msiz, cbuf1);
-
 
     // ent_cpt = compute - PunktTol  (nur Ausgabe)
     // strcpy(cbuf1, "PunktTol       ");
@@ -9128,12 +9180,10 @@ box1
     UTX_add_fl_u (cbuf1, UT_TOL_pt);
     GUI_entry_set (&ent_tpt, cbuf1);
 
-
     // ent_tcv = Kurventol.
     cbuf1[0] = '\0';
     UTX_add_fl_u (cbuf1, UT_TOL_cv);
     GUI_entry_set (&ent_tcv, cbuf1);
-
 
     // ent_dcv = display Polygon
     cbuf1[0] = '\0';
@@ -9142,20 +9192,21 @@ box1
 
 
 
+  //----------------------------------------------------------------
   L_display:
-  APT_set_view_stat ();  // sonst ein opt. Rescale !
-  // GL_DefineView (FUNC_ViewReset);  // immediate rescale ..
+    APT_set_view_stat ();  // sonst ein opt. Rescale !
+    // GL_DefineView (FUNC_ViewReset);  // immediate rescale ..
+
+    // display modelsize in gtk-label
+    UI_disp_modsiz ();
+
+    // imply END-Button (Redraw)
+    ED_Reset ();  // ED_lnr_act = 0;
+    ED_work_END (0);
 
 
-  // display modelsize in gtk-label
-  UI_disp_modsiz ();
-
-
-  // imply END-Button (Redraw)
-  ED_Reset ();  // ED_lnr_act = 0;
-  ED_work_END (0);
-
-
+  //----------------------------------------------------------------
+  L_exit:
 
   return 0;
 
@@ -9703,8 +9754,8 @@ box1
         d1=*((double*)data);
         sprintf(cbuf, "%.2f",d1);
         // cbuf[0] = '\0'; UTX_add_fl_u(cbuf,d1);
-        // printf("sur=%f  |%s|\n",d1,cbuf);
-        GUI_entry_set (&UI_view_Z, cbuf);
+          printf("  set-UI_ent_view_Z %f |%s|\n",d1,cbuf);
+        GUI_entry_set (&UI_ent_view_Z, cbuf);
         return;
 
 /*

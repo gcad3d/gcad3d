@@ -228,7 +228,7 @@ extern int     GL_actTex;
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
-extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main.
+extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 
@@ -2135,7 +2135,7 @@ static int   patNr;     // nr of Patches
 
 
   // check if bin.meshfile exists
-  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), WC_modact_ind, apt_ind);
+  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ind, apt_ind);
   sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, apt_ind);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
@@ -2153,7 +2153,7 @@ static int   patNr;     // nr of Patches
   MSH_msh0__ (&ms1, iba, &ibNr, pTab, pNr);
   fTab = ms1.f->fTab;
   fNr = ms1.f->fNr;
-  MSH_bsav_fTab (fTab, fNr, WC_modact_ind, apt_ind);
+  MSH_bsav_fTab (fTab, fNr, AP_modact_ind, apt_ind);
   flag1 = 0;
   goto L_draw;
 */
@@ -2162,7 +2162,7 @@ static int   patNr;     // nr of Patches
 
   // load MeshFile    fTab=malloc !
   L_f_load:
-  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, WC_modact_ind, apt_ind);
+  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ind, apt_ind);
   i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, apt_ind);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
   flag1 = 1;

@@ -101,6 +101,7 @@ CNTF creates contour (trimmed-curves) from user-selections.
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/func_types.h"               // SYM_..
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
+#include "../ut/ut_math.h"             // IS_NAN
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
@@ -736,7 +737,14 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // get pt1 = intersectionpoint old-new;
   // get par1 = parameter on old; par2 = parameter on new
   irc = CNTF_int__ (&pt1, &par1, &par2, imod);
-    // printf(" CNTF_int__-rc=%d %f,%f,%f\n",pt1.x,pt1.y,pt1.z);
+    // printf(" CNTF_int__-rc=%d %f,%f,%f\n",irc,pt1.x,pt1.y,pt1.z);
+
+
+    // TESTBLOCK
+    // if(isnan(pt1.x)) AP_debug__  ("CNTF_cvco_lfig_lfig-1");
+    // END TESTBLOCK
+
+
 
   // if(old.cer) par1 = 1. - par1;
   // if(new.cer) par2 = 1. - par2;
@@ -1032,6 +1040,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
     // printf("ex CNTF_int__ %d par1=%lf par2=%lf\n",irc,*par1,*par2);
     // DEB_dump_obj__ (Typ_PT, ptx, " ptx ");
+    if(IS_NAN(*par2)) AP_debug__  ("CNTF_int__-1");
 
   return irc;
 
@@ -1065,17 +1074,21 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // check which intersectionPoint ist nearest to endPt
   L_nxt:
   ii = UT3D_ipt_cknear_npt (&old.pts, pta, iNr);
+  if(iNr < 2) goto L_exit;  
+
 
 
   // test if point ii == old.pts; yes: delete point, try again
   if(UT3D_comp2pt(&pta[ii], &old.pts, tol_cv)) {
-      // printf(" int.pt==actPos;\n");
+      printf(" selPt-int.pt==actPos;\n");
     i1 = iNr;
     MEM_del_nrec (&i1, pta, ii, 1, sizeof(Point));
     MEM_del_nrec (&iNr, va, ii, 1, sizeof(double));
     goto L_nxt;
   }
 
+
+  L_exit:
     // printf("ex CNTF_selPt ii=%d\n",ii);
 
   return ii;

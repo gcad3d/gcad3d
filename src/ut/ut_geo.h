@@ -1601,7 +1601,7 @@ void   UT3D_pt_3db (Point *, double, double, double);
 void   UT3D_pt_vc (Point*, Vector*);
 void   UT3D_pt_txt (Point *, char *);
 void   UT3D_pt_mid2pt (Point *, Point *, Point *);
-int    UT3D_pt_mid_pta (Point *pto, Point *pTab, int ptNr);
+int    UT3D_pt_mid_pta (Point *pto, Point *pTab, int ptNr, int iExact);
 void   UT3D_pt_mid_ci (Point *, Circ *);
 void   UT3D_pt_opp2pt (Point *, Point *, Point *);
 int    UT3D_pt_oppptptvc (Point *po, Point *pi, Point *pl, Vector *vl);

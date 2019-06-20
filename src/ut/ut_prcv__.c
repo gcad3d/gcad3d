@@ -179,7 +179,7 @@ typedef_MemTab(Point);
 //===========================================================================
 // EXTERNALS:
 // from ../xa/xa.c:
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
 
 //===========================================================================
@@ -570,7 +570,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // get prc2 = PRCV for basecurve of ccv1
   prc2.typ    = AP_typ_2_bastyp (ccv1.typ);
   prc2.dbi    = ccv1.dbi;
-  prc2.mdli   = WC_modact_ind;
+  prc2.mdli   = AP_modact_ind;
 
     // load prc2 = basecurve
   irc = PRCV_DB_load (&prc2);
@@ -882,7 +882,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       AP_debug__  ("PRCV_get_tc_find E1");
     }
 
-    // printf("ex PRCV_get_tc_find ii=%d vx=%lf ipdb=%ld\n",ii,vx,ipdb);
+    // printf("ex-PRCV_get_tc_find ii=%d vx=%lf ipdb=%ld\n",ii,vx,ipdb);
 
   return ii;
 
@@ -1015,7 +1015,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   PRCV0_OCC ();         // occupy PRCV0
 
   // index of active model;
-  mdli = WC_modact_ind;
+  mdli = AP_modact_ind;
 
 
   //----------------------------------------------------------------
@@ -1737,7 +1737,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   prc.typ  = dbTyp;
   prc.dbi  = dbi;
-  prc.mdli = WC_modact_ind;
+  prc.mdli = AP_modact_ind;
   prc.siz  = 0;
   prc.spcTyp = MEMTYP_STACK;
 
@@ -1968,7 +1968,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   printf("PRCV_test_get typ=%d dbi=%ld\n",typ,dbi);
 
-  irc = PRCV_npt_dbo__ (&pta, &ptNr, typ, dbi, WC_modact_ind);
+  irc = PRCV_npt_dbo__ (&pta, &ptNr, typ, dbi, AP_modact_ind);
   if(irc < 0) return -1;
     printf(" ex-PRCV_npt_dbo__-ptNr = %d\n",ptNr);
 

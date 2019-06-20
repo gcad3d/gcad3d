@@ -27,26 +27,30 @@ echo "./do debug_OFF          # debug OFF for following builds (production)"
 echo "./do complete           # compile, link all."
 echo "./do                    # start gcad3d in local-test-environment"
 echo "---------------------------------------------------------------------"
-echo "./do install_test_deb   # test-install into system (sudo -E)"
-echo "./do uninstall_test_deb # remove test-installation (sudo)"
+echo "./do gui-gtk3           # set GUI gtk3; this is the default"
+echo "./do gui-gtk2           # set GUI gtk2"
+echo "./do guiinit            # recompile all sources of active GUI-version"
+echo "./do gui                # rebuild xa_gui_gtk-*.so"
+echo "---------------------------------------------------------------------"
+echo "./do c                  # compile & link core"
+echo "./do all                # compile & link corelibs"
+echo "./do allDemos           # compile & link demos"
+echo "./do processes          # compile & link NC-processes"
+echo "---------------------------------------------------------------------"
+echo "./do pack_src           # create zip-file of sources "
+echo "./do pack_doc           # create zip-file of complete doc"
 echo "./do pack_deb           # create gCAD3D.<version>-<machine>.deb"
 echo "./do install_deb        # install into system (sudo -E)"
 echo "./do uninstall_deb      # remove installation (sudo)"
+echo "./do install_test_deb   # test-install into system (sudo -E)"
+echo "./do uninstall_test_deb # remove test-installation (sudo)"
 echo "---------------------------------------------------------------------"
 echo "./do pack_rpm           # create gCAD3D.<version>-<machine>.rpm"
 echo "./do install_rpm        # install into system (sudo -E)"
 echo "./do uninstall_rpm      # remove installation (sudo)"
 echo "---------------------------------------------------------------------"
-echo "./do pack_src           # create zip-file of sources "
-echo "./do pack_doc           # create zip-file of complete doc"
 echo "./do init_examples      # unpack examples.gz into $HOME"
 echo "./do delete             # delete all objects"
-echo "./do guiinit            # change gui-version"
-echo "./do gui                # rebuild xa_gui_gtk-*.so"
-echo "./do c                  # compile & link core"
-echo "./do all                # compile & link corelibs"
-echo "./do allDemos           # compile & link demos"
-echo "./do processes          # compile & link NC-processes"
 echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
 echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
 echo "./do *.mak              # link a plugin (for the first time)"
@@ -64,6 +68,7 @@ echo "./do gmon               # analyze time"
 echo "./do edm                # edit model"
 echo "./do inf                # update infotext.c"
 echo "./do msg-files          # tools for language-files: ls lang*.csh"
+echo "./do tmpClean1          # rm <tmpDir> CTRL* Mod*"
 echo "---------------------------------------------------------------------"
 exit 0
 fi
@@ -429,8 +434,9 @@ if [ "$OSTYPE" = "Linux" ] ; then
 # change configfiles to unix if last start was with MS-Windows
 # if no file X.lock exists, no switching is done
 if [ -f MS.lock ]; then
-  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
   echo "set dir.lst & xa.rc -> Unix"
+  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
+  echo "cfgDir=${cfgDir}"
   /bin/cp -f ${cfgDir}dir.lst ${cfgDir}dirMS.lst
   /bin/cp -f ${cfgDir}xa.rc ${cfgDir}xaMS.rc
   /bin/cp -f ${cfgDir}dirUX.lst ${cfgDir}dir.lst
@@ -475,6 +481,15 @@ elif [ "$1" = "trc" ] ; then
   ${exeNam}
   #mtrace  ${exeNam} $MALLOC_TRACE
   exit 0
+
+
+#-----------------------------------------------------
+# trc ?
+elif [ "$1" = "tmpClean1" ] ; then
+  echo "rm ${gcad_dir_local}gCAD3D/tmp CTRL* Mod*"
+  rm -rf ${gcad_dir_local}gCAD3D/tmp/CTRL* ${gcad_dir_local}gCAD3D/tmp/Mod*
+  exit 0
+
 
 
 #-----------------------------------------------------

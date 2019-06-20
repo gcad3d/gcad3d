@@ -32,7 +32,7 @@ void   WC_EOF            ();
 int    WC_PP_open        (int mode);
 
 void   WC_setDisp3D      (int);
-int    NC_setRefsys      (int);
+int    NC_setRefsys      (long);
 void   NC_setGrafAtt     (int AttInd);
 void   NC_set_actPos     (Point2*);
 int    WC_set_obj_stat   (int stat);

@@ -281,7 +281,8 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  if(DestFlag == 0) uo = stdout;
+  // if(DestFlag == 0) uo = stdout;
+  if(!uo) uo = stdout;
 
   va_start(va,txt);
   vsprintf(cbuf,txt,va);

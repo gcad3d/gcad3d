@@ -11,10 +11,12 @@ Modif:
 void    GUI_Init__      (char *fRC);
 
 MemObj  GUI_Win__       (char *wtit, void *funcnam, char *opts);
-int     GUI_Win_go      (MemObj  *o_par);
-int     GUI_Win_ev_key  (MemObj  *o_par, void *fKey);
-int     GUI_Win_ev_button (MemObj  *o_par, void *fButton);
-int     GUI_Win_up      (MemObj  *parentWin, MemObj  *o_win, int typ);
+int     GUI_Win_siz_get (MemObj *o_par, int *sizX, int *sizY);
+int     GUI_Win_siz_set (MemObj *o_par, int sizX, int sizY);
+int     GUI_Win_go      (MemObj *o_par);
+int     GUI_Win_ev_key  (MemObj *o_par, void *fKey);
+int     GUI_Win_ev_button (MemObj *o_par, void *fButton);
+int     GUI_Win_up      (MemObj *parentWin, MemObj  *o_win, int typ);
 char*   GUI_Win_tit     (void *gtkWin);
 void    GUI_Win_kill    (MemObj *mo);
 int     GUI_main_quit   ();

@@ -17,12 +17,19 @@
  ((INT_16)dla.modInd != -1)
 
 
-// DL_OBJ_IS_HIDDEN ((DL_Att)dla)     test if obj is hidden
+// DL_IS_HIDDEN ((DL_Att)dla)     test if obj is hidden
 //   returns 0=visible; else 1=hidden
-// int DL_OBJ_IS_HIDDEN (DL_Att);
-#define DL_OBJ_IS_HIDDEN(dla)\
+// int DL_IS_HIDDEN (DL_Att);
+#define DL_IS_HIDDEN(dla)\
  ((dla.disp == 1)&&(dla.hili == 1))
  // ((dla->disp == 1)&&(dla->hili == 1))
+
+
+// DL_OBJ_IS_HIDDEN ((long)dli)     test if obj is hidden
+//   returns 0=visible; else 1=hidden
+// int DL_OBJ_IS_HIDDEN (long);
+#define DL_OBJ_IS_HIDDEN(dli)\
+ ((dli >= 0)&&(GR_ObjTab[dli].disp == 1)&&(GR_ObjTab[dli].hili == 1))
 
 
 

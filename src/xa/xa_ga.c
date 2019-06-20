@@ -176,7 +176,7 @@ extern char      UI_stat_view, UI_stat_hide;
 
 
 // aus xa.c:
-// extern int      WC_modact_ind;        // Nr of the active submodel;
+// extern int      AP_modact_ind;        // Nr of the active submodel;
 extern AP_STAT    AP_stat;
 extern ColRGB     AP_actcol;
 extern ColRGB     AP_defcol;
@@ -361,7 +361,7 @@ static ObjAtt GA_DefRec;
 
 
   // printf("GA_fil_wri grp=%d nr=%d\n",iGrp,GA_recNr);
-  // printf("  WC_modact_ind=%d\n",WC_modact_ind);
+  // printf("  AP_modact_ind=%d\n",AP_modact_ind);
   // printf("  AP_modact_nam=|%s|d\n",AP_modact_nam);
 
 

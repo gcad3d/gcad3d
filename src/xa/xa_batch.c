@@ -283,7 +283,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
   // void UI_upd_Refs () {}
   // void UI_ask_mode () {}
   void UI_askEscape () {}
-  void UI_sur_act_CB1 () {}
   void UI_suract_keyIn () {}
   // void UI_InpSM () {}      ist ein Int !!!!
   // void UI_WinSM () {}
@@ -293,7 +292,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void UI_disp_tra () {}
   int AP_User_reset () {return 0;}
   void* WIN_ED () {}
-  int UI_RelAbs_act () {}
+  // int UI_RelAbs_act () {}
 
 // xa_brw.c
   void Brw_Mod_add () {}

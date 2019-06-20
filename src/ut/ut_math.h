@@ -47,4 +47,10 @@ int      UTM_scale_4db        (double *, double *, double *, double *,
 int      UTM_zeros_cubicpol   (dcomplex zero[], int zmult[], polcoeff_d3 *pol);
 int      UTM_zeros_quarticpol (dcomplex zero[], polcoeff_d4 *pol);
 
+
+#ifdef _MSC_VER
+#define IS_NAN _isnan
+#else
+#define IS_NAN isnan
+#endif
 /*======================== EOF ======================================*/

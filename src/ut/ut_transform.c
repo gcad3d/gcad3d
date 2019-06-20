@@ -202,6 +202,8 @@ Typ_M4x3:
 
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 
+#include "../xa/xa.h"                  // AP_IS_3D
+
 
 
 //===========================================================================
@@ -211,6 +213,7 @@ Typ_M4x3:
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
+
 
 
 
@@ -310,12 +313,12 @@ int UTRA_app_vc (Vector*, Vector*);
 // transform from world to userCoordsystem (absolut to constructionPlane)
 // TODO !
 /
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
       UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
-if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
+if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -335,12 +338,12 @@ WC_sur_mat WC_sur_imat
 // transform from userCoordsystem to world  (constructionPlane to absolut)
 // TODO !
 /
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
       UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
-if(WC_sur_ind != 0) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
+if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(WC_sur_ind != 0) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -2068,7 +2071,7 @@ WC_sur_mat WC_sur_imat
 // see UTRA_pt_abs2rel__
 
 
-  if(WC_sur_ind == 0) {
+  if(AP_IS_3D) {
     memcpy (robj, aobj, UTO_siz_stru(typ));
     return 0;
   }
@@ -2279,7 +2282,7 @@ exit(0);
   // DEB_dump_obj__(typ, robj, "  robj:");
 
   
-  if(WC_sur_ind == 0) {
+  if(AP_IS_3D) {
     memcpy (aobj, robj, UTO_siz_stru(typ));
     return 0;
   }

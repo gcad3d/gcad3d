@@ -5,12 +5,12 @@ EXENAM  = G-Code
 
 
 OBJ1 =\
-  ../prc/cut1/G-Code.o\
+  ../prc/cut1/G-Code.c\
 
 
 # Sourcen; bei denen keine Abhaengigkeit erforderlich ist.
 OBJ2 =\
-  ../prc/cut1/pp_ut.o\
+  ../prc/cut1/pp_ut.c\
 
 
 # get OUTDIR CC VGUI

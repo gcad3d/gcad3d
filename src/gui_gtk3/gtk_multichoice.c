@@ -257,7 +257,7 @@ extern GdkRGBA   *UI_stylTab[3];
   // gtk_widget_set_size_request (GTK_WIDGET(menu), 144, 0);
   // gtk_widget_set_hexpand (menu, FALSE);
 
-  return;
+  return 0;
 
 }
 
@@ -896,7 +896,7 @@ static void *ptx;     // the active menu-txt
   void   *go, *wo;
 
   go = GUI_obj_pos (mo);
-  if(!go) return;
+  if(!go) return -1;
   wo = ((Obj_Unknown*)go)->widget;
 
   return gtk_toggle_button_get_active (wo);

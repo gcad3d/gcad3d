@@ -29,10 +29,12 @@
   // void GR_DrawTxtG  (long *ind, int attInd,
                     // Point *pt1, float size, float ang, char *txt);
   void GR_DrawPoint (long*, int, Point*);
-  void GR_Draw_ln2  (long *ind, int iAtt, Line2 *ln1);
-  void GR_DrawLine  (long *ind, int attInd, Line *ln1);
+  void GR_Draw_ln2  (long *ind, long dbi, int iAtt, Line2 *ln1);
+  void GR_DrawLine  (long *ind, long dbi, int attInd, Line *ln1);
   int  GR_DrawCirc  (long *dli, long dbi, int attInd, Circ *ci1);
-  void GR_DrawPoly  (long *ind, int attInd, int, Point*);
+  int  GR_DrawPoly  (long *ind, int attInd, int, Point*);
+  int  GR_Draw_oid_dir_npt (long *dli, Point *pta, int ptNr);
+
   void GR_DrawDitto2 (long *ind, Point *pt, double az, char mir, Ditto *di);
   int  GR_DrawPlane (long *ind, int attInd, Plane *pl1);
   int  GR_DrawSur   (ObjGX *oxi, int att, long apt_ind);
@@ -106,6 +108,11 @@
 #define GR_gxt_strLen(txt)\
  strlen(txt) - UTX_cnr_chr (txt, '[')
 
+/// display objectID in center of obj
+#define GR_OBJID_ON (AP_modact_ind < 0)&&(APT_dispNam)
+
+/// display direction-arrow at end of curve
+#define GR_DIR_ON (AP_modact_ind < 0)&&(APT_dispDir)
 
 
 /*========== EOF ==============*/

@@ -1327,7 +1327,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     if(!irc) continue;
 
     // if(dla.disp == OFF) continue;           // skip hidden obj's
-    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
+    if(DL_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     apt_typ = dla.typ;
     apt_ind = dla.ind;
@@ -1391,7 +1391,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     if(!irc) continue;
 
     // if(dla.disp   == OFF) continue;           // skip hidden obj's
-    if(DL_OBJ_IS_HIDDEN(dla)) continue;        // skip hidden obj's
+    if(DL_IS_HIDDEN(dla)) continue;        // skip hidden obj's
 
     apt_typ = dla.typ;
     apt_ind = dla.ind;

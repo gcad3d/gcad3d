@@ -15,7 +15,7 @@ int AP_obj_add_ci2 (char *ED_buf1, int mode, Circ *ci1);
 int AP_obj_add_ci (char *ED_buf1, int mode, Circ *ci1);
 int AP_obj_add_vc (char *ED_buf1, Vector *vc1);
 int AP_obj_add_func1 (char *ED_buf1, int mode, double ang1);
-int AP_obj_add_obj (char *ED_buf1, int typ, long ind);
+int AP_obj_add_dbo (char *ED_buf1, int typ, long ind);
 
 
 

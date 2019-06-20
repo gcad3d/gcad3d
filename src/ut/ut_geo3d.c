@@ -6228,10 +6228,12 @@ Returncodes:
 }
 
 
-//================================================================
-  int UT3D_pt_mid_pta (Point *pto, Point *pTab, int ptNr) {
-//================================================================
+//=====================================================================
+  int UT3D_pt_mid_pta (Point *pto, Point *pTab, int ptNr, int iExact) {
+//=====================================================================
 /// \code
+/// Input:
+///   iExact    0=arithmetic, 1=midIndex
 /// arithm. Mittelwert der Punktetabelle pTab
 ///   (alle Punktcoord addieren dann durch PunkteAnzahl divid.)
 /// \endcode
@@ -6244,6 +6246,13 @@ Returncodes:
   p1.y = 0.;
   p1.z = 0.;
 
+  if((ptNr > 2)&&(iExact)) {
+    i1 = ptNr / 2;
+    p1 = pTab[i1];
+      // printf(" pt_mid_pta-ptNr=%d i1=%d\n",ptNr,i1);
+    goto L_exit;
+  }
+
   for(i1=0; i1<ptNr; ++i1) {
      p1.x += pTab[i1].x;
      p1.y += pTab[i1].y;
@@ -6254,9 +6263,10 @@ Returncodes:
   p1.y /= ptNr;
   p1.z /= ptNr;
 
-  *pto = p1;
 
-  // GR_Disp_pt (pto, SYM_SQU_B, 2);
+  L_exit:
+    *pto = p1;
+    // GR_Disp_pt (pto, SYM_SQU_B, 2);
 
   return 0;
 

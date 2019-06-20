@@ -34,7 +34,7 @@ void SRC(){}
 =====================================================
 List_functions_start:
 
-SRC_src_pt3__       "P(<x> <y> <z>)" from *Point
+SRC_src_pt3_10      "P(<x> <y> <z>)" from *Point; precision 10 digits
 SRC_src_ato         sourceObj (text) from atomicObjs
 SRC_src_dbo         create sourceCode of requested type from Database-object
 SRC_src_isol_ato1   convert DB-obj (typ, DB-index) into isolated sourceCode (text)
@@ -59,7 +59,7 @@ see also:
 APED_oid_dbo__      make name from typ and DB-index
 AP_obj_2_txt
 AP_stru_2_txt
-AP_obj_add_obj AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
+AP_obj_add_dbo AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 
 \endcode *//*----------------------------------------
 
@@ -87,7 +87,7 @@ AP_obj_add_obj AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
-#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
 
 
 
@@ -930,7 +930,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
     // invert transformation if ConstrPln is set;
     //   will be inverted in APT_decode_pt
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
     }
 
@@ -1057,7 +1057,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       SRC_src_isol_ato1 (p1, atyp[i1], &atab[i1]);
     } else {
       // add objID
-      AP_obj_add_obj (p1, atyp[i1], dbi);
+      AP_obj_add_dbo (p1, atyp[i1], dbi);
     }
   }
  

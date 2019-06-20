@@ -78,13 +78,14 @@ List_functions_end:
 #include "../ut/ut_gtypes.h"
 
 #include "../xa/xa_sele.h"               // Typ_FncPrv
+#include "../xa/xa.h"                    // MDL_IS_SUB
 
 
 
 
 //============ Extern Var: =====================
 // ex ../xa/xa.c
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
 
 
 
@@ -552,11 +553,11 @@ char  *ObjCodTab[] = {
 
   APED_oid_dbo__ (oid, dbTyp, dbi);
 
-  if(WC_modact_ind >= 0) {
+  if(MDL_IS_SUB) {
     strcat (oid, " in ");
     ii = strlen (oid);
     sSiz -= ii;
-    Mod_mNam_mdb (&oid[ii], sSiz, &i1, WC_modact_ind);
+    Mod_mNam_mdb (&oid[ii], sSiz, &i1, AP_modact_ind);
   }
 
     // printf("ex APED_oid_dbo_sm |%s|\n",oid);
@@ -1294,9 +1295,7 @@ char  *ObjCodTab[] = {
 */
 
 
-  if((typ == Typ_CI)     ||
-     (typ == Typ_CI2))
-    return Typ_CI;                        // C
+  if(typ == Typ_CI2) return Typ_CI;       // C
 
 
   if(typ == Typ_LN2) return Typ_LN;

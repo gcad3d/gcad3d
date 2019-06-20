@@ -193,6 +193,7 @@ UTX_fdir_cut           cut last subpath from path
 UTX_fgets              Zeile aus Datei lesen und CRs LFs am Ende deleten
 UTX_fgetLine           Zeile Nr. <lNr> aus Datei <filNam> lesen
 UTX_fsavLine           Zeile Nr. <lNr> into Datei <filNam> schreiben
+UTX_fjoin__            join 2 files
 UTX_fRevL              File revert lines; eine Datei zeilenweise umdrehen;
 UTX_str_file           read file -> string; remove ending '\n'
 UTX_wrf_str            write string -> file
@@ -1367,7 +1368,7 @@ static char   TX_buf2[128];
 //================================================================
 /// \code
 /// UTX_wrf_str            write string -> file
-/// txt must be null-terminated
+/// txt must be null-terminated; no linefeed is written.
 /// see UTF_wrf_line
 /// \endcode
 
@@ -2292,7 +2293,7 @@ static char   TX_buf2[128];
 
 
   if(txtIn == NULL) {*txtOut = '\0'; return txtIn;}
-  if(txtIn == '\0') {*txtOut = '\0'; return txtIn;}
+  if(txtIn[0] == '\0') {*txtOut = '\0'; return txtIn;}
 
 
   // zuerst leading blanks skippen
@@ -2359,7 +2360,7 @@ static char   TX_buf2[128];
   p1 = *cBuf;
 
   if(p1 == NULL) {tc = '\0'; p2 = p1; goto L_exit;}
-  if(p1 == '\0') {tc = '\0'; p2 = p1; goto L_exit;}
+  if(*p1 == '\0') {tc = '\0'; p2 = p1; goto L_exit;}
 
   // zuerst leading blanks skippen
   while (*p1  == ' ') ++p1;
@@ -3997,6 +3998,40 @@ Das folgende ist NICHT aktiv:
 
   // move fnTmp fNam
   OS_file_rename (fnTmp, fNam); // old,new
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTX_fjoin__ (char *fnamO, char *fnamI1, char *fnamI2) {
+//================================================================
+///    UTX_fjoin__        join 2 files
+
+  char   tempFilNam[280];
+  FILE   *fpo;
+
+  printf("UTX_fjoin__ |%s|%s|%s|\n",fnamO,fnamI1,fnamI2);
+
+
+  strcpy(tempFilNam, fnamO);
+  strcat(tempFilNam, ".tmp");
+
+  // try to open outfile
+  if((fpo=fopen(tempFilNam,"w")) == NULL) {
+    TX_Print("UTX_fjoin__ E001 %s",fnamO);
+    return -1;
+  }
+
+  UTX_cat_file (fpo, fnamI1);
+  UTX_cat_file (fpo, fnamI2);
+
+  fclose (fpo);
+
+  // rename
+  OS_file_delete (fnamO);
+  rename (tempFilNam, fnamO);
 
   return 0;
 

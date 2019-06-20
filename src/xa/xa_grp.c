@@ -552,7 +552,7 @@ static int      GrpNr  = 0;
     if((INT_16)dla[l1].modInd != mod) continue;
 
     // skip hidden
-    if(DL_OBJ_IS_HIDDEN(dla[l1])) continue;
+    if(DL_IS_HIDDEN(dla[l1])) continue;
 
 
     if(GrpNr >= GrpMax) {

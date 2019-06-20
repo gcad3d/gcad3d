@@ -36,6 +36,7 @@ ED_CB__             editor-callback
 ED_load__           mem -> editor
 ED_unload__         editor -> memory
 ED_save_file        save editor -> file
+EDI_set_oid_ui      set to oid of definitionLine from GUI
 
 EDI_set_lnr         set ED_lnr_act, goto Line, display lNr
 ED_goto__           goto curPos in editor
@@ -197,11 +198,15 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 // was GUI_Ed_setCnxtL
 
+  // printf("EDI_set_lnr %ld\n",lNr);
+
   // goto <lNr> in editor; display <lNr>
   EDI_goto_lnr (lNr);
 
   // set ED_lnr_act = lNr
   ED_set_lnr_act (lNr);
+
+    // printf("ex-EDI_set_lnr %ld\n",lNr);
 
   return 0;
 
@@ -215,11 +220,14 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
   long   i1;
 
+  // printf("EDI_goto_lnr %ld\n",lNr);
+
   GUI_edi_setLnr (&winED, lNr);
 
   i1 = lNr + 1;
   UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)i1);
   
+    // printf("ex-EDI_goto_lnr %ld\n",lNr);
 
   return 0;
 
@@ -234,6 +242,8 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   int     i1;
   long    l1;
   char    *p1;
+
+static int ctrlOn = 0;
 
 
   // printf("EDI_CB__ ev=%d\n",GUI_DATA_EVENT);
@@ -259,6 +269,21 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   //----------------------------------------------------------------
   } else if (GUI_DATA_EVENT == TYP_EventPress) {   // 402
     // key-press
+      // printf(" EDI_CB__-I1= %d\n",GUI_DATA_I1);
+      // if(GUI_DATA_I1 < 128) printf(" EDI_CB__-I1= |%c|\n",GUI_DATA_I1);
+
+
+    i1 = GUI_DATA_I1;  // the key
+
+    // catch Ctrl-F
+    if((ctrlOn)&&(i1 == 'f')) {
+      EDI_set_oid_ui ();  // set to oid of definitionLine from GUI
+      goto AllDone;
+    }
+
+    // catch Ctrl
+    if(i1 == GUI_KeyControl_L) ctrlOn = 1;
+
 
 /* kommt nicht !
     if(GUI_DATA_I1 == GUI_KeyReturn) {
@@ -274,16 +299,16 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 */
 
     // test if it is a special-char
-    if(isascii(GUI_DATA_I1)) goto AllDone;
+    if(isascii(i1)) goto AllDone;
     i1 = UI_key_view__ (GUI_DATA_EVENT, GUI_DATA_I1);
     if(i1) goto AllDone;
 
 
-    if(GUI_DATA_I1 == GUI_KeyEsc) {
+    if(i1 == GUI_KeyEsc) {
       UI_key_escape ();
 
 
-    } else if(GUI_DATA_I1 == GUI_KeyF1) {   // HELP-key
+    } else if(i1 == GUI_KeyF1) {   // HELP-key
       // test if process is active
       if(PRC_IS_ACTIVE) {
         APP_Help (APP_act_proc, "");
@@ -292,12 +317,12 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
       }
 
 
-    } else if(GUI_DATA_I1 == GUI_KeyF3) {
+    } else if(i1 == GUI_KeyF3) {
       UI_men__ ("Edit");
       ED_update (0L);
 
 
-    } else if(GUI_DATA_I1 == GUI_KeyF4) {
+    } else if(i1 == GUI_KeyF4) {
       AP_APT_clean ();
     }
 
@@ -311,12 +336,15 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   } else {                       // 403 = TYP_EventRelease = key-release
       // printf(" key=%c (%x) mod=%d\n",GUI_DATA_I1,GUI_DATA_I1,GUI_DATA_I2);
     
+    i1 = GUI_DATA_I1;
+    if(i1 == GUI_KeyControl_L) ctrlOn = 0;
+
     // skip all not printable keys
-    if(!isascii(GUI_DATA_I1)) {
+    if(!isascii(i1)) {
 
       // necessary; keyDown is not activated (in last line) ?
-      if((GUI_DATA_I1 == GUI_KeyDel)    ||
-         (GUI_DATA_I1 == GUI_KeyReturn))     {
+      if((i1 == GUI_KeyDel)    ||
+         (i1 == GUI_KeyReturn))     {
           // printf(" release-CR..\n");
         // bei CR am end of file kommt kein TYP_EventEnter new-Line !!!!!
         // UI_EdKeyCR (); geht nicht - liefert zusätzliches CR !
@@ -332,7 +360,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
         ED_work_CurSet (l1);
         l1 = ED_get_lnr_act() - 1;  // get lNr AP_ED_lNr
         // printf(" lastLn %d |%s|\n",l1,mem_cbuf1); // filled by ED_Run
-        if(GUI_DATA_I1 == GUI_KeyReturn) {  // no undo for delete -operations
+        if(i1 == GUI_KeyReturn) {  // no undo for delete -operations
           UNDO_grp_add (l1, 0);             // add new codeline to undo-list
           UNDO_upd__ ();
         }
@@ -340,7 +368,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
       } else {
         // modify view (move/pan/zoom)
-        UI_key_view__ (GUI_DATA_EVENT, GUI_DATA_I1);
+        UI_key_view__ (GUI_DATA_EVENT, i1);
       }
       goto AllDone;
     }
@@ -348,7 +376,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
     // Shift + Alt
     if((GUI_DATA_I2 & GUI_Modif_shift) && (GUI_DATA_I2 & GUI_Modif_alt)) {
-      UI_key_spcShAlt (GUI_DATA_I1);
+      UI_key_spcShAlt (i1);
       goto AllDone;
     }
 
@@ -366,7 +394,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
     if(GUI_DATA_I2 & GUI_Modif_alt) {
         // printf(" ALT IS ON\n");  
 
-      i1 = toupper(GUI_DATA_I1);
+      i1 = toupper(i1);
       p1 = strchr("PLCSABDTVRINM",i1);
 
       if(p1) {
@@ -454,7 +482,69 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 }
 
- 
+
+//================================================================
+  int EDI_set_oid_ui () {
+//================================================================
+// EDI_set_oid_ui       set to oid of definitionLine from GUI
+// get oid from user
+// find definition-lineNr of oid in memory
+// set to definition-line in editor
+
+
+  int    irc, dbTyp;
+  long   dbi, dli, lNr;
+  char   s1[128], oid[64], *buttons[]={"search ==>>",NULL};
+
+
+  printf("EDI_set_oid_ui\n");
+
+
+  // presets window
+  strcpy(s1, "obj-to-find");
+  strcpy(oid, "P20");
+
+
+  L_nxt:
+  // get oid from user
+  // irc = GUI_Dialog_e2b (s1, s2, 64, "aa", NULL);
+  irc = GUI_DialogEntry (s1, oid, 64, buttons, 0);
+    printf(" ex-Dialog_e2b irc=%d |%s|\n",irc,oid);
+  if(irc < 0) return 0;
+
+
+  // get dbo from oid
+  APED_dbo_oid (&dbTyp, &dbi, oid);
+
+
+  // goto end of src
+  irc = ED_work_CurSet (999999);
+    // printf(" n._CurSet %d %d\n",irc,ED_lnr_act);
+  if(irc < 0) return irc;
+
+
+  // find definition-lineNr for objID <oid>
+  irc = APED_find_dbo (&dli, &lNr, dbTyp, dbi);
+  if(irc < 0) {
+    sprintf(s1, "**** cannot find object \"%s\"",oid);
+    TX_Print(s1);
+    goto L_nxt;
+  }
+    // printf(" lNr=%ld dli=%ld\n",lNr,dli);
+
+  ++lNr;  // set to line AFTER definition-lineNr - hilites (last) obj
+
+
+  // goto line lNr
+  EDI_set_lnr (lNr);
+
+    // printf("ex-EDI_set_oid_ui\n");
+
+  return 0;
+
+}
+
+
 //================================================================
   int ED_unload__ () {
 //================================================================

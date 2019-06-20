@@ -8284,7 +8284,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get content of active inputField
   pi = IE_get_inp__ (IE_inpInd);
   li = strlen (pi);
-    printf(" li=%d pi=|%s|\n",li,pi);
+    // printf(" _Inp_undo-li=%d pi=|%s|\n",li,pi);
 
 
 
@@ -8658,7 +8658,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 // see also DL_disp_hili AP_hili_obj
 
   int       aus_typ[10], aus_anz, irc, i1, rTyp, oTyp, dbTyp, oNr, form,
-            iatt = Typ_Att_hili1;
+            iatt = Typ_Att_top2;    // Typ_Att_hili1;
   long      dbi=0L, dli, dynPti;
   double    d1;
   char      aus_tab[10][256], subTyp1;  // 10 strings a 256 chars

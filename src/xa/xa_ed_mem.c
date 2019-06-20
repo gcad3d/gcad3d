@@ -30,7 +30,7 @@ Modifications:
 #endif
 /*!
 \file  ../xa/xa_ed_mem.c
-\brief ApplicationSpecific Textfunctions im Memory 
+\brief ApplicationSpecific Textfunctions in Memory 
 \code
 =====================================================
 List_functions_start:
@@ -532,9 +532,8 @@ extern char  MOpTxtStr[];
 
   llnew = strlen(sNew);
 
-  // printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
-  // printf(" new |%s|\n",sNew);
-  // printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
+  printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
+  printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
 
 
 
@@ -1256,7 +1255,7 @@ extern char  MOpTxtStr[];
 
   // get lNr from dli
   irc = DL_Get_lNr_dli (lNr, *dli);
-  if(irc < 0) {TX_Print("APED_find_dbo E003"); return -1;}
+  if(irc < 0) {TX_Print("APED_find_dbo E3"); return -1;}
 
 
 
@@ -2074,35 +2073,29 @@ extern char  MOpTxtStr[];
 
 
 //================================================================
- int APED_pt_chg (int *lsn, long ipt, char *cps, int lso) {
+ int APED_pt_chg (int *lsn, char *cps, int lso, Point *pt1) {
 //================================================================
-// change point from dbi in string
+// APED_pt_chg            change point in string
 // Input:
-//   ipt        DB-index of new point
 //   lso        length of old pointstring (to be replaced)
 // Output:
 //   lsn        new length of pointstring
 
   long  l1, ss;
   char  s1[80];
-  Point *pt1;
+  // Point *pt1;
 
 
-  // printf("APED_pt_chge ipt=%ld cps=|%s| lso=%d\n",ipt,cps,lso);
+  // printf("APED_pt_chge cps=|%s| lso=%d\n",cps,lso);
+  // DEB_dump_obj__ (Typ_PT, pt1, "APED_pt_chg-pt");
 
-  // if(ipt >= 0) {
-    // sprintf(s1, "P%d", ipt);
 
-  // } else {   // dynamic point
-    pt1 = DB_get_PT (ipt);
-      // DEB_dump_obj__ (Typ_PT, pt1, "DB-pt[%d]",ipt);
-    // see also AP_obj_add_pt
-    strcpy(s1, "P(");
-    AP_obj_add_nval (s1, 3, (double*)pt1);
-    strcat(s1, ")");
-  // }
+  // create new SRC for point pt1
+  s1[0] = '\0';
+  AP_obj_add_pt (s1, pt1);
 
-  // replace; at pos cp2
+
+  // replace <lso> chars in string <cps> starting at cps[0];
   *lsn = strlen(s1);
   ss = strlen(cps);
     // printf(" vor replace |%s|%s|\n",cps,s1);

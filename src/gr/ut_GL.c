@@ -191,6 +191,7 @@ GL_InitSymb
 // GL_Init_Siz           init clipping planes
 GL_DefineView
 GL_DefineDisp
+GL_scr_setSiz         define screenSize in pixels
 
 GL_GetActInd          return dispList-index of last created obj
 GL_Get_DLind          return nr of used dispList obj's (index of next free)
@@ -580,7 +581,7 @@ extern char      UI_stat_view, UI_stat_hide;
 
 // aus ../xa/xa.c
 extern AP_STAT   AP_stat;
-extern  int       WC_modact_ind;    // -1=primary Model is active
+extern  int       AP_modact_ind;    // -1=primary Model is active
 extern Plane      WC_sur_act;     // die Konstruktionsebene
 extern double     WC_sur_Z;       // Konstruktionsebene in Z verschieben !
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -605,9 +606,18 @@ extern int    GR_tx_nkNr;             // Anzahl Nachkommastellen beim Text
 
 
 
+// ex ../gr/ut_gr.c
+extern int GR_actView;
+
+
 // aus ../gr/ut_GLU.c:
 extern Point     *GLT_pta;
 extern long      GLT_pta_SIZ;
+
+
+// ex ../ci/NC_Main.c:
+extern int        APT_dispPL;
+
 
 
 
@@ -916,8 +926,6 @@ static int      GL_Func_Act;
        GLint    GL_Viewp[4];     // x-left, y-low, width, heigth
 static GLdouble GL_MatMod[16], GL_MatProj[16];
 
-
-static int GL_actView = FUNC_ViewIso;
 
 static int GL_initMode = 0;
 
@@ -2302,7 +2310,7 @@ static int errOld = 123;
   //   2) transparent obj's
   // Man kann Hili nicht in der 1. Schleife machen,
   //   weil nachfolgende Objekte das Original-Attr. brauchen !
-    // printf(" _Redr DRAW %d\n",GL_mode_draw_select);
+    // printf(" _Redr-DRAW %d\n",GL_mode_draw_select);
 
   trlNr = 0;
   for(l1=0; l1<GR_TAB_IND; ++l1) {
@@ -2318,9 +2326,12 @@ static int errOld = 123;
     if(GR_ObjTab[l1].unvis != 0) continue;
 
     // skip hidden objs
-    if(DL_OBJ_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
+    if(DL_IS_HIDDEN(GR_ObjTab[l1])) continue;        // skip hidden obj's
     // if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
 
+
+
+    //----------------------------------------------------------------
     if(GL_mode_draw_select == GR_MODE_DRAW) {        //2010-06-17
       // GL_Mouse1Pos needs this after GL_Select
 
@@ -2346,11 +2357,22 @@ static int errOld = 123;
 */
     }
 
+
+    //----------------------------------------------------------------
     // skip Texture (nur subCalls)
 // TODO: make Typ_TEXB unvis ?
     if(GR_ObjTab[l1].typ == Typ_TEXB) continue;
 
+/* does not work
+    // skip plane if planeDisp=OFF
+    if(GR_ObjTab[l1].typ == Typ_PLN) {
+        printf(" _draw-PLN l1=%ld\n",l1);
+        continue;
+      if((UI_InpMode == UI_MODE_VWR)&&(APT_dispPL == OFF)) continue;
+    }
+*/
 
+    //----------------------------------------------------------------
     if(GL_mode_draw_select == GR_MODE_SELECT) {
       // den (nur fuer die Selektion erforderlichen) Namen zuweisen
       glLoadName((GLuint)l1);
@@ -2358,6 +2380,7 @@ static int errOld = 123;
 
 
 
+    //----------------------------------------------------------------
     } else if(GL_mode_draw_select == GR_MODE_FEEDBACK) {
 
       // Linetyp an plottertreiber
@@ -2381,7 +2404,9 @@ static int errOld = 123;
         if(GL_mode_feed == 1) continue;
       }
 
-    }
+    }    // end of GR_MODE_FEEDBACK
+    //----------------------------------------------------------------
+ 
 
 
     // OK; redraw this obj ....
@@ -2429,6 +2454,10 @@ static int errOld = 123;
 
     } else {
 */
+
+
+
+
 
       L_main_9:
       // very slow on MS-Win if RenderMode = GL_SELECT !
@@ -3132,6 +3161,19 @@ Screenkoords > Userkoords.
 
 
 //================================================================
+  int GL_scr_setSiz (int width, int height) {
+//================================================================
+// GL_scr_setSiz                   define screenSize in pixels
+
+  GL_Scr_Siz_X = width;
+  GL_Scr_Siz_Y = height;
+
+  return 0;
+
+}
+
+
+//================================================================
   void GL_Init_View () {
 //================================================================
 // reset all view-parameters; 
@@ -3143,7 +3185,9 @@ Screenkoords > Userkoords.
 
   double  sx;
 
-  // printf("GL_Init_View %d\n",GL_initMode);
+  printf("GL_Init_View %d\n",GL_initMode);
+  printf(" GL_Scr_Siz_X=%f GL_Scr_Siz_Y=%f\n",GL_Scr_Siz_X,GL_Scr_Siz_Y);
+
 
 
   //----------------------------------------------------------------
@@ -3194,9 +3238,6 @@ Screenkoords > Userkoords.
 }
 
 
-
-
-
 //================================================================
   void GL_DefineView (int mode) {
 //================================================================
@@ -3210,17 +3251,18 @@ Screenkoords > Userkoords.
 /// \endcode
 
   // Vector vcn;
+  Plane     pln1;
 
 
-  printf("GL_DefineView mode=%d GL_actView=%d\n",mode,GL_actView);
+  // printf("GL_DefineView mode=%d GR_actView=%d\n",mode,GR_actView);
 
-  if(mode == FUNC_Init) mode = GL_actView;
+  if(mode == FUNC_Init) mode = GR_actView;
 
-  GL_actView = mode;
+  GR_actView = mode;
 
 
   // enable/disable active view-button
-  UI_VW_upd (GL_actView);
+  UI_VW_upd (GR_actView);
   
 
   switch (mode) {
@@ -3229,44 +3271,53 @@ Screenkoords > Userkoords.
     //----------------------------------------------------------------
     /* von oben, XY */
     case FUNC_ViewTop:
-              GL_eyeX->dx = 0.; GL_eyeX->dy = 0.; GL_eyeX->dz = 1.;
-              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 1.; GL_eyeZ->dz = 0.;
-              GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
+      GL_eyeX->dx = 0.; GL_eyeX->dy = 0.; GL_eyeX->dz = 1.;
+      GL_eyeZ->dx = 0.; GL_eyeZ->dy = 1.; GL_eyeZ->dz = 0.;
+      GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
+
+      if(AP_IS_3D)
+        NC_setRefsys ((long)DB_PLZ_IND);    // X-Y-plane (Top)
       break;
 
 
     //----------------------------------------------------------------
     /* von vorn, YZ */
     case FUNC_ViewFront:
-              GL_eyeX->dx = 0.; GL_eyeX->dy = -1.; GL_eyeX->dz = 0.;
-              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
-              GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
-              // GL_Translate ();
+      GL_eyeX->dx = 0.; GL_eyeX->dy = -1.; GL_eyeX->dz = 0.;
+      GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
+      GL_eyeY->dx = 1.; GL_eyeY->dy = 0.; GL_eyeY->dz = 0.;
+
+      if(AP_IS_3D)
+        NC_setRefsys ((long)DB_PLIY_IND);   // X-Z-plane (Front) -5
       break;
 
 
     //----------------------------------------------------------------
     /* von der Seite, XZ */
     case FUNC_ViewSide:
-              GL_eyeX->dx = 1.; GL_eyeX->dy = 0.; GL_eyeX->dz = 0.;
-              GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
-              GL_eyeY->dx = 0.; GL_eyeY->dy = 1.; GL_eyeY->dz = 0.;
-              // GL_Translate ();
+      GL_eyeX->dx = 1.; GL_eyeX->dy = 0.; GL_eyeX->dz = 0.;
+      GL_eyeZ->dx = 0.; GL_eyeZ->dy = 0.; GL_eyeZ->dz = 1.;
+      GL_eyeY->dx = 0.; GL_eyeY->dy = 1.; GL_eyeY->dz = 0.;
+
+      if(AP_IS_3D)
+        NC_setRefsys ((long)DB_PLX_IND);     // Y-Z-plane (Side) -1
       break;
 
 
     //----------------------------------------------------------------
     case FUNC_ViewIso:
-              GL_eyeX->dx = 1.; GL_eyeX->dy = -1.; GL_eyeX->dz = 1.;
-              UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
+      GL_eyeX->dx = 1.; GL_eyeX->dy = -1.; GL_eyeX->dz = 1.;
+      UT3D_vc_setLength (GL_eyeX, GL_eyeX, 1.);
 
-              UT3D_vc_3db (GL_eyeY, 1., 1., 0.);
-              UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
+      UT3D_vc_3db (GL_eyeY, 1., 1., 0.);
+      UT3D_vc_setLength (GL_eyeY, GL_eyeY, 1.);
 
-              UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
-                // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX: ");
-                // DEB_dump_obj__ (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
+      UT3D_vc_perp2vc (GL_eyeZ, GL_eyeX, GL_eyeY);
+        // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX: ");
+        // DEB_dump_obj__ (Typ_VC, GL_eyeZ, "GL_eyeZ: ");
 
+      if(AP_IS_3D)
+        NC_setRefsys ((long)DB_PLZ_IND);    // X-Y-plane (Top)
       break;
 
 
@@ -3306,7 +3357,6 @@ Screenkoords > Userkoords.
     // END TESTBLOCK
 
 }
-
 
 
 //================================================================
@@ -5418,10 +5468,12 @@ static double old_view_Z = 0.;
 
 
 //=====================================================================
-  int GL_SetConstrPln () {
+  int GL_SetConstrPln (int mode) {
 //=====================================================================
 // GL_constr_pln setzen aus WC_sur_act+WC_sur_Z;
 // (hier ist Z-Wert aufgerechnet !)
+// Input:
+//   mode    0=redraw; 1=do-not-redraw
 // see UCS_Reset
 // see AP_Init_planes
 
@@ -5453,7 +5505,9 @@ static double old_view_Z = 0.;
 */
 
 
-  if(ED_query_mode() != ED_mode_go) DL_Redraw ();
+  if(!mode) {
+    if(ED_query_mode() != ED_mode_go) DL_Redraw ();
+  }
 
   return 0;
 
@@ -5784,7 +5838,7 @@ static double old_view_Z = 0.;
 /// \endcode
 
 // PROBLEM:
-// if(GL_actView == FUNC_ViewFront) OR if(GL_actView == FUNC_ViewSide) then
+// if(GR_actView == FUNC_ViewFront) OR if(GR_actView == FUNC_ViewSide) then
 //   intersectionpoint is too far;
 //   cannot be displayed in label cursor-position (UI_curPos)
 // TODO: cannot change constructionPlane to normal-plane; in CAD some points
@@ -5814,12 +5868,12 @@ static double old_view_Z = 0.;
   // DEB_dump_obj__ (Typ_VC, &GL_eyeX, "GL_eyeX");
 
 
-  if(GL_actView == FUNC_ViewFront)  {
+  if(GR_actView == FUNC_ViewFront)  {
     pt1->y = 0;
     UT3D_pt_projptpl (&pt2, &GL_constr_pln, pt1);
 
 
-  } else if(GL_actView == FUNC_ViewSide) {
+  } else if(GR_actView == FUNC_ViewSide) {
     pt1->x = 0;
     UT3D_pt_projptpl (&pt2, &GL_constr_pln, pt1);
 
@@ -6056,12 +6110,12 @@ static double old_view_Z = 0.;
   Point    pt1, pt2;
 
 
-  // printf("GL_Do_Pan__ %d %d actV=%d\n",x,y,GL_actView);
+  // printf("GL_Do_Pan__ %d %d actV=%d\n",x,y,GR_actView);
 
 
 
 /*
-  if(GL_actView == FUNC_ViewFront) {
+  if(GR_actView == FUNC_ViewFront) {
     yAbst = (y - GL_mouse_y_act) / GL_Scale / GL_Svfakt;  - verzerrt !
     xAbst = (x - GL_mouse_x_act) / GL_Scale / GL_Svfakt;
     printf(" dy=%f GL_cen.z=%f GL_Scale=%f\n",yAbst,GL_cen.z,GL_Scale);
@@ -6097,11 +6151,11 @@ static double old_view_Z = 0.;
 
 
   // move cen
-  if(GL_actView == FUNC_ViewFront) {
+  if(GR_actView == FUNC_ViewFront) {
     GL_cen.x -= xAbst;
     GL_cen.z -= yAbst;
   
-  } else if(GL_actView == FUNC_ViewSide) {
+  } else if(GR_actView == FUNC_ViewSide) {
     GL_cen.y -= yAbst;    // horiz;
     GL_cen.z -= xAbst;
   
@@ -6374,25 +6428,25 @@ static double old_view_Z = 0.;
 
   
   //================================================================
-  // check if View is top, front, side or isoview. Set GL_actView.
+  // check if View is top, front, side or isoview. Set GR_actView.
   // top
   if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1) == 1) {
-    GL_actView = FUNC_ViewTop;
-    UI_VW_upd (GL_actView);
+    GR_actView = FUNC_ViewTop;
+    UI_VW_upd (GR_actView);
 
   // front
   } else if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1) == 1) {
-    GL_actView = FUNC_ViewFront;
-    UI_VW_upd (GL_actView);
+    GR_actView = FUNC_ViewFront;
+    UI_VW_upd (GR_actView);
 
   // side
   } else if(UT3D_comp2vc_d(GL_eyeX, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1) == 1) {
-    GL_actView = FUNC_ViewSide;
-    UI_VW_upd (GL_actView);
+    GR_actView = FUNC_ViewSide;
+    UI_VW_upd (GR_actView);
 
   } else {
-    GL_actView = FUNC_ViewIso;
-    UI_VW_upd (GL_actView);
+    GR_actView = FUNC_ViewIso;
+    UI_VW_upd (GR_actView);
   }
 
 
@@ -9640,9 +9694,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  // printf("GL_ColSet WC_modact_ind=%d\n",WC_modact_ind);
+  // printf("GL_ColSet AP_modact_ind=%d\n",AP_modact_ind);
   // DEB_dump_obj__ (Typ_Color, pCol, "GL_ColSet ");
-  // printf("GL_ColSet vtra=%d WC_modact_ind=%d\n",pCol->vtra,WC_modact_ind);
+  // printf("GL_ColSet vtra=%d AP_modact_ind=%d\n",pCol->vtra,AP_modact_ind);
 
   memcpy(glCol, col, 3); 
 
@@ -9700,7 +9754,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // glBlendFunc (GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);   // no ..
     // glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);   // no ..
 
-    if(WC_modact_ind >= 0)         // nur bei 'make subModel'
+    if(MDL_IS_SUB)         // nur bei 'make subModel'
       glDisable (GL_DEPTH_TEST); // nur damit immer (in SM) durchsichtig !
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE);   // geht 
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);   // geht 
@@ -13907,7 +13961,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // die relative Verschiebung von pmr in eine absolute umwandeln
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     UT3D_vc_tra_vc_m3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
     // UT3D_vc_tra_vc_m3 (&vcx, WC_sur_imat, &vcx);
     // UT3D_vc_tra_vc_m3 (&vcz, WC_sur_imat, &vcz);
@@ -13955,7 +14009,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
     // // Verschiebung in den aktuellen Nullpunkt (NACH Drehung)
-    // if(WC_sur_ind != 0) {
+    // if(AP_IS_2D) {
       // glTranslated (WC_sur_act.po.x, WC_sur_act.po.y, WC_sur_act.po.z);
     // }
 
@@ -13964,7 +14018,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
     // // Verschiebung in den absoluten Nullpunkt
-    // if(WC_sur_ind != 0) {
+    // if(AP_IS_2D) {
       // glTranslated (-WC_sur_act.po.x, -WC_sur_act.po.y, -WC_sur_act.po.z);
     // }
 
@@ -14072,7 +14126,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   vcz = mdr->vz;
 
 
-  if(WC_sur_ind != 0) {
+  if(AP_IS_2D) {
     // die relative Verschiebung von pmr in eine absolute umwandeln
     UT3D_vc_tra_vc_m3 ((Vector*)&pmr, WC_sur_mat, (Vector*)&pmr);
     // die relative Orientiereung des Model in eine absolute umwandeln
@@ -14113,7 +14167,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
     // Verschiebung in den aktuellen Nullpunkt (NACH Drehung)
-    if(WC_sur_ind != 0) {
+    if(AP_IS_2D) {
       glTranslated (WC_sur_act.po.x, WC_sur_act.po.y, WC_sur_act.po.z);
     }
 
@@ -14337,10 +14391,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   double d1;
 
-  // printf("GL_InitModelSize %f %d %f\n",NewModSiz,mode,GL_ModSiz);
+  printf("GL_InitModelSize %f %d %f\n",NewModSiz,mode,GL_ModSiz);
 
   // Abarbeiten nicht aktiver subModels: nix tun ?
-  // if(WC_modact_ind >= 0) return;
+  // if(MDL_IS_SUB) return;
 
 
   GL_initMode = mode; // change scale or not
@@ -14368,11 +14422,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     }
 
 
-
-
-
-    // if(WC_modact_ind < 0) {  // Achtung: DL loeschen loescht SubModels !!!!
-      GL_Init__ (1, (int)GL_Scr_Siz_X, (int)GL_Scr_Siz_Y);
+    // if(AP_modact_ind < 0) {  // Achtung: DL loeschen loescht SubModels !!!!
+      // GL_Init__ (1, (int)GL_Scr_Siz_X, (int)GL_Scr_Siz_Y);
       // GL_Redraw ();
       // TX_Print("Modelsize %f",NewModSiz);
     // }
@@ -15609,11 +15660,12 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   GR_InitGFPar (AP_txdimsiz);  // Graf.FontParameter setzen
 
 
-
+  GL_scr_setSiz (width, height);   // used by GL_Init_View
 
   GL_Init_View ();
 
   GL_Reshape (width, height);
+
 
 
   // UI_GR_DrawExit ();
@@ -16329,10 +16381,13 @@ static float  xpos, ypos;
 
   AP_Get_scale (&scl);
 
+
   // printf("GL_grid__ scl=%f WC_sur_ind=%d\n",scl,WC_sur_ind);
 
 
-  iNr = 12;                // nr of lines
+  // iNr = 12;                // nr of lines
+  iNr = GL_Scr_Siz_X / 64;                // nr of lines
+    // printf("  grid__-GL_Scr_Siz_X=%f iNr=%d\n",GL_Scr_Siz_X,iNr);
   dy = 0.5 * scl;          // distance between lines
   
   d1 = (dy / 2.)  * iNr;   // half width
@@ -16569,13 +16624,13 @@ static float  xpos, ypos;
 
 
 // see GL_GetConstrPos ?
-  if(GL_actView == FUNC_ViewFront)  {
+  if(GR_actView == FUNC_ViewFront)  {
     pt1->y = 0.;
     UT3D_pt_projptpl (pt2, &GL_view_pln, pt1);
     pt2->y = pt1->z;
 
 
-  } else if(GL_actView == FUNC_ViewSide) {
+  } else if(GR_actView == FUNC_ViewSide) {
     pt1->x = 0;
     UT3D_pt_projptpl (pt2, &GL_view_pln, pt1);
     pt2->x = pt1->z;   // 2017-04-12

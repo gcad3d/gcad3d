@@ -5,7 +5,7 @@
 #
 # DIR_DEV     home of sourcefiles, scripts, linkjobs, packages
 # for gcad3d: ${DIR_DEV}gcad3d/....
-export DIR_DEV=/mnt/serv1/Devel/
+export DIR_DEV=/mnt/serv2/Devel/
 #
 # DIR_BIN     home of objects, executables, libraries
 export DIR_BIN=${HOME}/devel/bin/

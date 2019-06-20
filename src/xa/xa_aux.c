@@ -102,7 +102,7 @@ cl -c /I ..\include xa_aux.c
 
 
 // aus xa.h:
-extern  int      WC_modact_ind;              // Nr of the active submodel; -1=main.
+extern  int      AP_modact_ind;              // Nr of the active submodel; -1=main.
 
 
 

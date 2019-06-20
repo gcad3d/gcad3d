@@ -886,7 +886,7 @@ GUI_gl_ev_test(MemObj *mo) {
 
 } 
 
-
+/*
 //================================================================
   int GUI_gl_idle1 (void* data) {
 //================================================================
@@ -896,13 +896,14 @@ GUI_gl_ev_test(MemObj *mo) {
 ///    return 1; // keep idle-Call; call AP_Idle_CB again.
 /// \endcode
 
-  // printf("GUI_gl_idle1 \n");
+  printf("GUI_gl_idle1 \n");
 
-  GUI_gl_draw (NULL, NULL, MEMOBJ_PTR(NULL));
+  // GUI_gl_draw (NULL, NULL, MEMOBJ_PTR(NULL));
+  DL_Redraw ();
 
   return 0;  // close thread
 
 }
- 
+*/
 
 // EOF

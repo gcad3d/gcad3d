@@ -657,7 +657,7 @@ __declspec(dllexport) int IGE_r__ (char*);
 
 // #include "../xa/xa_ui.h"               // UID_..
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
-#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
 
 
 
@@ -3720,7 +3720,7 @@ static  int oCnt1, oCnt2;
 
     typ = impTab[i2].typ;
     ind = impTab[i2].ind;
-    AP_obj_add_obj (cBuf, typ, ind);
+    AP_obj_add_dbo (cBuf, typ, ind);
   }
 
 
@@ -4107,11 +4107,11 @@ static  int oCnt1, oCnt2;
 
   cBuf[0] = '\0';
 
-  AP_obj_add_obj (cBuf, typ, ind);
+  AP_obj_add_dbo (cBuf, typ, ind);
 
   // ca. D(P(L20,MOD(1)) P(xyz))
   strcat(cBuf, " D(P(");
-  AP_obj_add_obj (cBuf, typ, ind);
+  AP_obj_add_dbo (cBuf, typ, ind);
   strcat(cBuf, " MOD(1))");
 
   AP_obj_add_pt (cBuf, &pte);
@@ -4255,10 +4255,10 @@ static  int oCnt1, oCnt2;
   strcpy(IG_cBuf, "SRV");
 
   // add CenterObj
-  AP_obj_add_obj (IG_cBuf, impTab[iCen].typ, impTab[iCen].ind);
+  AP_obj_add_dbo (IG_cBuf, impTab[iCen].typ, impTab[iCen].ind);
 
   // add CoverObj
-  AP_obj_add_obj (IG_cBuf, impTab[iCov].typ, impTab[iCov].ind);
+  AP_obj_add_dbo (IG_cBuf, impTab[iCov].typ, impTab[iCov].ind);
 
   // add Angles
   // AP_obj_add_func1 (IG_cBuf, 'A', UT_DEGREES(a_s));
@@ -4747,14 +4747,14 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
     IG_cBuf[0] = '\0';
   } else {
     strcpy(IG_cBuf, "FSUB");
-    AP_obj_add_obj (IG_cBuf, typ_body, ind_body);
+    AP_obj_add_dbo (IG_cBuf, typ_body, ind_body);
   }
   // strcat(IG_cBuf, " ");
     // printf(" Fsub2=|%s|\n",IG_cBuf);
 
 
   // add Boundary
-  AP_obj_add_obj (IG_cBuf, typ_bound, ind_bound);
+  AP_obj_add_dbo (IG_cBuf, typ_bound, ind_bound);
     // printf("  + bound-ID=|%s|\n",IG_cBuf);
 
 
@@ -4769,7 +4769,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
       ind_bound = impTab[i3].ind;
         // printf(" %d %d %d typ=%d ind=%d\n",i1,i2,i3,typ_bound,ind_bound);
       if(strlen(IG_cBuf) > 1000) { TX_Error("IGE_rw_143 E007"); break; }
-      AP_obj_add_obj (IG_cBuf, typ_bound, ind_bound);
+      AP_obj_add_dbo (IG_cBuf, typ_bound, ind_bound);
         // printf(" bound[%d]=|%s| %d %d\n",i1,IG_cBuf,typ_bound,ind_bound);
     }
   }
@@ -4862,7 +4862,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
   // if(cNr > 0) strcpy(IG_cBuf, "FSUB");
 
   // add Boundary
-  AP_obj_add_obj (IG_cBuf, typ_bound, ind_bound);
+  AP_obj_add_dbo (IG_cBuf, typ_bound, ind_bound);
   // printf(" bound-ID=|%s|\n",IG_cBuf);
 
   // add Inseln
@@ -4876,7 +4876,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
       ind_bound = impTab[i3].ind;
       // printf(" %d %d %d typ=%d ind=%d\n",i1,i2,i3,typ_bound,ind_bound);
       if(strlen(IG_cBuf) > 1000) { TX_Error("IGE_rw_144 E007"); break; }
-      AP_obj_add_obj (IG_cBuf, typ_bound, ind_bound);
+      AP_obj_add_dbo (IG_cBuf, typ_bound, ind_bound);
       // printf(" bound[%d]=|%s| %d %d\n",i1,IG_cBuf,typ_bound,ind_bound);
     }
   }
@@ -4914,7 +4914,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
     // add FSUB Body
     strcpy(auxBuf, "FSUB");
-    AP_obj_add_obj (auxBuf, typ_body, ind_body);
+    AP_obj_add_dbo (auxBuf, typ_body, ind_body);
     strcat(auxBuf, " ");
     // printf(" Fsub1=|%s|\n",auxBuf);
     // printf(" Fsub2=|%s|\n",IG_cBuf);
@@ -4944,7 +4944,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
     // add FSUB Body
     strcpy(auxBuf, "FSUB");
-    AP_obj_add_obj (auxBuf, typ_body, ind_body);
+    AP_obj_add_dbo (auxBuf, typ_body, ind_body);
     strcat(auxBuf, " ");
     // printf(" Fsub1=|%s|\n",auxBuf);
     // printf(" Fsub2=|%s|\n",IG_cBuf);
@@ -4969,7 +4969,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
   // add FSUB Body
   strcpy(auxBuf, "FSUB");
-  AP_obj_add_obj (auxBuf, typ_body, ind_body);
+  AP_obj_add_dbo (auxBuf, typ_body, ind_body);
   strcat(auxBuf, " ");
   // printf(" Fsub1=|%s|\n",auxBuf);
   // printf(" Fsub2=|%s|\n",IG_cBuf);

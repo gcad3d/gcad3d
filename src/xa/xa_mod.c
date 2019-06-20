@@ -62,7 +62,6 @@ Mod_LoadFile__      Model als Submodel laden
 Mod_LoadSubmodel    ?
 
 Mod_smNam_get       get new subModelname from user
-Mod_ck_isMain       check if the active model is the mainmodel
 
 Mod_sym_dir__       get symbolic-directory from any-directory
 Mod_sym_get__       get symbolic-directory & absolute-path from filename
@@ -106,6 +105,8 @@ List_functions_end:
 see also ../xa/xa_mod_gui.c   Mod_*
 
 SEE ALSO:
+MDL_IS_MAIN
+MDL_IS_SUB
 DB_get_ModRef      get Ditto from Index
 DB_get_ModBas      returns ModelBas from its index
 DB_get_ModNr       get (basic-) ModelNr from Modelname
@@ -115,6 +116,7 @@ DB_mdlNam_iRef     get Modelname from DB-index of the Modelreference
 
 \endcode *//*----------------------------------------
 
+// Mod_ck_isMain       check if the active model is the mainmodel
 
 
 =====================================================
@@ -144,7 +146,7 @@ Variables:
 AP_modact_nam   "" = main, else modelname of active subModel.
 <dispList>.mod  index basicModel of obj; -1=active (sub)Model
 
-WC_modact_ind   -1=activeModel; 
+AP_modact_ind   -1=activeModel; 
 
 
 =====================================================
@@ -343,7 +345,7 @@ extern  Point     WC_mod_ori;            // der Model-Origin
 // extern char      AP_mod_dir[128], AP_mod_sym[64]; // Verzeichnis fuer OPEN
 // extern char      AP_mod_fnam[128];
 // extern char      AP_modact_nam[128];
-extern  int       WC_modact_ind;         // -1=primary Model is active;
+extern  int       AP_modact_ind;         // -1=primary Model is active;
                                          // else subModel is being created
 
 extern  int       AP_src;                // AP_SRC_MEM od AP_SRC_EDI
@@ -370,6 +372,7 @@ static char       sSecEnd[]="SECTIONEND";
 
 
 
+/* replaced by MDL_IS_MAIN
 //================================================================
    int Mod_ck_isMain () {
 //================================================================
@@ -382,7 +385,7 @@ static char       sSecEnd[]="SECTIONEND";
   return ((AP_modact_nam[0] == 0) ? 1 : 0);
 
 }
-
+*/
 
 //================================================================
   int Mod_mdbi_mdri (long ir) {
@@ -508,7 +511,7 @@ static char       sSecEnd[]="SECTIONEND";
   DB_StoreModBas (0, NULL);     // delete all basic models  2015-11-28
 
   AP_modact_nam[0] = '\0';
-  WC_modact_ind    = -1;
+  AP_modact_ind    = -1;
 
   return 0;
 
@@ -913,7 +916,7 @@ static char *fnam;
   strcpy(cbuf, AP_mod_fnam);
 
   // if(strlen(AP_modact_nam) > 0) {
-  if(!Mod_ck_isMain()) {
+  if(!MDL_IS_MAIN) {
     strcat(cbuf, " / ");
     strcat(cbuf, AP_modact_nam);
   }
@@ -1259,7 +1262,7 @@ static char *fnam;
     p1 = UtxTab__ (ii, &surPtab);      // get word from index
 
     sprintf(fnam1,"%s%s.ptab",OS_get_tmp_dir(),p1);
-      printf(" PTAB[%d] |%s|%s|\n",ii,p1,fnam1);
+      // printf(" PTAB[%d] |%s|%s|\n",ii,p1,fnam1);
 
     MSH_bload_pTabf (&pTab, fnam1);
 
@@ -1282,7 +1285,7 @@ static char *fnam;
     p1 = UtxTab__ (ii, &surMsh);      // get word from index
 
     sprintf(fnam1,"%s%s.msh",OS_get_tmp_dir(),p1);
-      printf(" MSH[%d] |%s|%s|\n",ii,p1,fnam1);
+      // printf(" MSH[%d] |%s|%s|\n",ii,p1,fnam1);
     MSH_bload_fTabf (&fTab, &eTab, &eDat, fnam1);
 
     // save mesh ascii
@@ -1424,9 +1427,10 @@ static char *fnam;
     return -1;
   }
 
-  sprintf(s1, "MODSIZ %d\n",modSiz);
-  fputs(s1, fp1);
-
+  if(modSiz > 0) {
+    sprintf(s1, "MODSIZ %d\n",modSiz);
+    fputs(s1, fp1);
+  }
 
   // write out the PermanentAttributes - HIDE, G#, SSTYLS ..
   // do not check if att exists (error with STEP-Import)
@@ -1492,7 +1496,7 @@ static char *fnam;
   printf("Mod_sav2file__\n");
 
   // if(strlen(AP_modact_nam) < 1) {
-  if(Mod_ck_isMain()) {
+  if(MDL_IS_MAIN) {
     GUI_MsgBox ("ERROR: subModel must be active ..");
     // TX_Error("es ist kein Submodel aktiv ..");
     return -1;
@@ -3436,7 +3440,7 @@ static ModelRef modR2;
 
   if(mbNr < 1) return 0;   // nix to resolv ..
 
-  actMod = WC_modact_ind;
+  actMod = AP_modact_ind;
 
   // UtxTab_clear (&txTab1);             // init (malloc ..)
 
@@ -3462,7 +3466,7 @@ static ModelRef modR2;
 
     mb->DLind = GL_Get_DLind();
 
-    WC_modact_ind = il1;          // die aktuelle ModelNr ! zum skip VIEW
+    AP_modact_ind = il1;          // die aktuelle ModelNr ! zum skip VIEW
     // UtxTab_add (txTab1, mb->mnam);    // add ModelName to textTable
 
 
@@ -3507,7 +3511,7 @@ static ModelRef modR2;
     // set boxpoints for active subModel
     // test if AP_box_pm1 valid
     if(AP_mdlbox_invalid_ck()) {
-      UT3D_box_mdl__ (&mb->pb1, &mb->pb2, WC_modact_ind, 0);
+      UT3D_box_mdl__ (&mb->pb1, &mb->pb2, AP_modact_ind, 0);
       AP_mdlbox_invalid_reset ();
     } else {
       mb->pb1 = AP_box_pm1;
@@ -3532,8 +3536,8 @@ static ModelRef modR2;
   --actSeq;
   if(actSeq >= 0) goto L_nxt_lev;
 
-  // WC_modact_ind = -1;    // wieder im primary Model
-  WC_modact_ind = actMod;
+  // AP_modact_ind = -1;    // wieder im primary Model
+  AP_modact_ind = actMod;
 
 
 
@@ -3900,11 +3904,12 @@ static ModelRef modR2;
 // ersetzen durch 
 // MODSIZ <d1> <d2> <d3>
 
-  char  cbuf1[256], cbuf2[256], newLn[128];
+  char  cbuf1[256], fNam[256], newLn[256];
   FILE  *fp1;
 
 
   // printf("Mod_allmod_MS %f %f %f\n",d1,d2,d3);
+  // AP_debug__ ("Mod_allmod_MS");
 
   sprintf(newLn, "MODSIZ %f %f %f",d1,d2,d3);
 
@@ -3919,16 +3924,33 @@ static ModelRef modR2;
   }
 
   while (!feof (fp1)) {
+    // loop tru subModels
     if (fgets (cbuf1, 256, fp1) == NULL) break;
     UTX_CleanCR (cbuf1);
-    sprintf(cbuf2,"%sModel_%s",OS_get_tmp_dir(),cbuf1);
-    // printf(" mod sM=|%s|\n",cbuf2);
-    // change MODSIZ Line (immer Ln # 1)
-    UTX_fsavLine (newLn, cbuf2, mem_cbuf1_SIZ, 1);
+    sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),cbuf1);
+      // printf(" allmod_MS-nxt sM=|%s|\n",fNam);
+
+    // gets first line of file fNam
+    UTX_fgetLine (cbuf1, 256, fNam, 1);
+
+    if(strstr(cbuf1, "MODSIZ ")) {
+      // change MODSIZ Line (Ln # 1)
+      UTX_fsavLine (newLn, fNam, mem_cbuf1_SIZ, 1);
+
+    } else {
+      // first Line != MODSIZ - insert line
+      sprintf(cbuf1, "%stempFile1",OS_get_tmp_dir());
+      strcat(newLn, term_buf);    // add LF
+      UTX_wrf_str (cbuf1, newLn);
+      // join file fNam=cbuf1+fNam
+      UTX_fjoin__ (fNam, cbuf1, fNam);
+    }
+
   }
 
-
   fclose(fp1);
+
+    // AP_debug__ ("ex-Mod_allmod_MS");
 
   return 0;
 

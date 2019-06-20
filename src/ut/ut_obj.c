@@ -3268,9 +3268,7 @@ static ObjGX  *odb;
 
   ox1 = oxi1;
   ox2 = oxi2;
-
   *pNr = 0;
-
 
 
   // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n");
@@ -3279,6 +3277,8 @@ static ObjGX  *odb;
     // printf(" ox2 %d %d\n",ox2->typ,ox2->form);
   // DEB_dump_ox_0(ox1, " ox1");
   // DEB_dump_ox_0(ox2, " ox2");
+
+
 
 
 
@@ -3326,7 +3326,7 @@ static ObjGX  *odb;
       // ignore irc - check all segs
       if(irc >= 0) *pNr += i2;
     }
-    return 0;
+    goto L_no_sol;
   }
 
   if(ox2->typ == Typ_CVTRM) {
@@ -3349,7 +3349,7 @@ static ObjGX  *odb;
       // ignore irc - check all segs
       if(irc >= 0) *pNr += i2;
     }
-    return 0;
+    goto L_no_sol;
   }
 
 
@@ -3417,7 +3417,7 @@ static ObjGX  *odb;
 
         case Typ_CI:  // PT -> CI
           irc = UT3D_pt_projptci (&pa[0], &pa[1], (Point*)o1, (Circ*)o2);
-          if(irc < 0) { nip = 0; goto L_exit; }
+          if(irc < 0) goto L_err1;
           nip = 1;  // CUT P C cannot use oppos. point.
           UT3D_pt_ci_lim_del (&nip, pa, va2, (Circ*)o2);
           break;
@@ -3466,7 +3466,7 @@ static ObjGX  *odb;
           irc = UT3D_pt_projptrbspl (&nip,pa,va2,wrkSpc, UT_TOL_cv,  // UT_TOL_pt,
                                      (CurvRBSpl*)o2,(Point*)o1);
           if(irc > 0) nip = 1; /// ???
-          if(irc < 0){TX_Error("UTO_stru_int E004"); return irc;}
+          if(irc < 0){TX_Error("UTO_stru_int E004"); goto L_err1;}
           break;
 
         case Typ_CVELL:  // PT -> CVELL
@@ -3543,7 +3543,7 @@ static ObjGX  *odb;
 
         case Typ_PLN:  // LN x R
           irc = UT3D_pt_intlnpl (pa, (Plane*)o2, (Line*)o1);
-          if(irc < 0) return -1;
+          if(irc < 0) goto L_err1;
           nip = 1;
           break;
 
@@ -3659,7 +3659,7 @@ static ObjGX  *odb;
 
         case Typ_PLN:  // CVPOL x R
           irc = UT3D_pt_intplplg (&nip, pa, (Plane*)o2, (CurvPoly*)o1);
-          if(irc != 0) return -1;
+          if(irc != 0) goto L_err1;
           break;
 
         default:
@@ -3701,7 +3701,7 @@ static ObjGX  *odb;
 
         case Typ_PLN:  // CVELL x R
           irc = UT3D_pt_intplell (&nip, pa, (Plane*)o2, (CurvElli*)o1);
-          if(irc != 0) return -1;
+          if(irc != 0) goto L_err1;
           UT3D_pt_ell_lim_del (&nip, pa, va1, (CurvElli*)o1);
           break;
 
@@ -3722,7 +3722,7 @@ static ObjGX  *odb;
           d1 = UT3D_parbsp_par1 (*((double*)o2), (CurvBSpl*)o1);
             // printf(" par %f < %f\n",va1[0],*((double*)o2));
           irc = UT3D_pt_evparCrvBSpl (pa, (CurvBSpl*)o1, d1);
-          if(irc < 0){TX_Error("UTO_stru_int E002"); return irc;}
+          if(irc < 0){TX_Error("UTO_stru_int E002"); goto L_err1;}
           if(va1) va1[0] = *((double*)o2);
           break;
 
@@ -3732,14 +3732,14 @@ static ObjGX  *odb;
           // see UT3D_parbsp_par1
           nip = 1;
           irc = UT3D_pt_evparCrvBSpl (pa, (CurvBSpl*)o1, *(double*)o2);
-          if(irc < 0){TX_Error("UTO_stru_int E002"); return irc;}
+          if(irc < 0){TX_Error("UTO_stru_int E002"); goto L_err1;}
           if(va1) va1[0] = *((double*)o2);
           break;
 
         // case Typ_PT:  // PT -> CVBSP
           // irc = UT3D_pt_projptbspl (&nip,pa,va1,(CurvBSpl*)o1,(Point*)o2);
           // if(irc > 0) nip = 1;
-          // if(irc < 0) { TX_Error("UTO_stru_int E003"); return irc; }
+          // if(irc < 0) { TX_Error("UTO_stru_int E003"); goto L_err1; }
           // break;
 
         case Typ_LN: // CVBSP x LN
@@ -3771,7 +3771,7 @@ static ObjGX  *odb;
           nip = aSiz;
           irc = UT3D_pt_intplbspl (&nip, pa, (Plane*)o2, (CurvBSpl*)o1,
                                    wrkSpc, UT_TOL_cv);
-          if(irc != 0) return -1;
+          if(irc != 0) goto L_err1;
           break;
 
         case Typ_CVRBSP:  // CVBSP x Typ_CVRBSP
@@ -3796,7 +3796,7 @@ static ObjGX  *odb;
           // irc = UT3D_pt_projptrbspl (&nip,pa,va1,wrkSpc, UT_TOL_cv,  // UT_TOL_pt,
                                      // (CurvRBSpl*)o1,(Point*)o2);
           // if(irc > 0) nip = 1;
-          // if(irc < 0){TX_Error("UTO_stru_int E004"); return irc;}
+          // if(irc < 0){TX_Error("UTO_stru_int E004"); goto L_err1;}
           // break;
 
         case Typ_CVBSP:  // CVRBSP x Typ_CVBSP
@@ -3919,28 +3919,31 @@ static ObjGX  *odb;
     }
   }
 
+  irc = 0;
+
+  // nip intersection-points found.
+  // if(nip > 0) *pNr += nip;
+  if(nip > 0) *pNr = nip;
 
 
+  //----------------------------------------------------------------
   L_exit:
-    // nip intersection-points found.
-    // if(nip > 0) *pNr += nip;
-    if(nip > 0) *pNr = nip;
-
 
 
     // TESTBLOCK
-    // printf("ex UTO_npt_int_2ox nip=%d pNr=%d aSiz=%d\n",nip,*pNr,aSiz);
+    // printf("ex-UTO_npt_int_2ox irc=%d pNr=%d aSiz=%d\n",irc,*pNr,aSiz);
     // for(i1=0; i1<nip; ++i1) {
-      // DEB_dump_obj__ (Typ_PT, &pa[i1], " ex UTO_npt_int_2ox [%d]:",i1);
+      // printf(" 2ox-pa[%d] = %f %f %f\n",irc,pa[i1].x,pa[i1].y,pa[i1].z);
       // if(va1) printf(" va1[%d]=%f\n",i1,va1[i1]);
     // }
-    // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiii ex UTO_npt_int_2ox\n\n");
+    // if(isnan(pa[0].x)) AP_debug__  ("ex-UTO_npt_int_2ox");
+    // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiii ex-UTO_npt_int_2ox\n\n");
     // END TESTBLOCK 
 
 
 
 
-  return 0;
+  return irc;
 
 /*
   //----------------------------------------------------------------
@@ -4011,13 +4014,21 @@ static ObjGX  *odb;
 
 
   //----------------------------------------------------------------
-  L_no_sol:
+  L_err1:
+    irc = -1;
     *pNr = 0;
-    return 0;
+    goto L_exit;
+
+  L_no_sol:
+    irc = 0;
+    *pNr = 0;
+    goto L_exit;
 
   NoInt:
   printf("UTO_npt_int_2ox E0 - no intersection .. %d %d\n",o1Form,o2Form);
-  return -1;
+  // DEB_dump_ox_0(ox1, " ox1");
+  // DEB_dump_ox_0(ox2, " ox2");
+  goto L_err1;
 
   ParErr:
   printf("UTO_npt_int_2ox E2 - parameter error .. %d %d\n",o1Form,o2Form);
@@ -4027,11 +4038,11 @@ static ObjGX  *odb;
   //----------------------------------------------------------------
   ErrMem:
   TX_Error("UTO_npt_int_2ox E1 - out of memspace .. %d %d\n",o1Form,o2Form);
-  return -1;
+  goto L_err1;
 
   DBErr:
   TX_Error("UTO_npt_int_2ox E3 DB - error .. %d %d\n",o1Form,o2Form);
-  return -1;
+  goto L_err1;
 
 }
 
@@ -7280,7 +7291,8 @@ static int traAct;
   // printf(" _CUT__-2  %d %d\n",oc2->typ,oc2->form);
   // if(oc1->form == Typ_Float8) printf(" val1=%f\n",*((double*)oc1->data));
   // if(oc2->form == Typ_Float8) printf(" val2=%f\n",*((double*)oc2->data));
-    // DEB_dump_ox_s_ (oi, "oi");
+    // DEB_dump_ox_s_ (oc1, "oc1");
+    // DEB_dump_ox_s_ (oc2, "oc2");
 
 
 
@@ -7398,6 +7410,24 @@ static int traAct;
 
 
 
+  // cutter1 not found: get startpoint
+  if(p1Nr == 0) {
+    irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, &v1, Ptyp_start, o0Typ, obj0);
+    if(irc < 0) return irc;
+      // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
+      // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
+      // GR_Disp_pTab (1, &pt1, SYM_TRI_S, 2);
+      // GR_Disp_pTab (1, &pt2, SYM_TRI_S, 2);
+      // printf(" __limstru v1=%f v2=%f\n",v1,v2);
+    // add startpoint as 1.pt
+    pa[pNr] = pt1;
+    va[pNr] = v1;
+    ++pNr;
+    ++p1Nr;
+      // printf(" startPt added ..\n");
+  }
+
+
   // if not closed and only one cutter:
   // add endpoint as last point into pa/va.
   if((iClo == 1) && (o2Typ == Typ_Error)) {
@@ -7459,6 +7489,25 @@ static int traAct;
           // i1, pa[i1].x, pa[i1].y, pa[i1].z, va[i1]);
       // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
       // END TESTBLOCK
+  }
+
+
+
+  // cutter2 not found: get endpoint
+  if(p2Nr == 0) {
+    irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, &v1, Ptyp_end, o0Typ, obj0);
+    if(irc < 0) return irc;
+      // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
+      // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
+      // GR_Disp_pTab (1, &pt1, SYM_TRI_S, 2);
+      // GR_Disp_pTab (1, &pt2, SYM_TRI_S, 2);
+      // printf(" __limstru v1=%f v2=%f\n",v1,v2);
+    // add startpoint as 1.pt
+    pa[pNr] = pt1;
+    va[pNr] = v1;
+    ++pNr;
+    ++p2Nr;
+      // printf(" endPt added ..\n");
   }
 
 

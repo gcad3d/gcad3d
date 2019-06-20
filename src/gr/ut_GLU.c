@@ -1312,10 +1312,13 @@ static char c1=0;
       if(cTab[i1].dir == '-') {
         for(i2=0; i2<iNr; ++i2) {
           gluTessVertex(ot1, (double*)&pta[i2], (double*)&pta[i2]);
+            // printf(" _spp__-vert-[%d] %f %f %f\n",i2,pta[i2].x,pta[i2].y,pta[i2].z);
+
         }
       } else {
         for(i2=iNr-1; i2>=0; --i2) {
           gluTessVertex(ot1, (double*)&pta[i2], (double*)&pta[i2]);
+            // printf(" _spp__-vert+[%d] %f %f %f\n",i2,pta[i2].x,pta[i2].y,pta[i2].z);
         }
       }
       gluTessEndContour(ot1);

@@ -127,7 +127,7 @@ GR_Disp_box                disp boundingBox
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
-#include "../gr/ut_DL.h"               // DL_OBJ_IS_HIDDEN
+#include "../gr/ut_DL.h"               // DL_IS_HIDDEN
 #include "../gr/ut_gr.h"               // GR_gtx_ckBlockWidth
 #include "../db/ut_DB.h"               //
 
@@ -1554,25 +1554,29 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     irc = GR_img_get_obj (&typ, &pll, &sx, &sy, &dx, &dy, tx1);
     if(irc < 0) return -1;
       // DEB_dump_obj__ (Typ_PT, &pll, "pll");
-      // printf(" sx=%d sy=%d\n",sx,sy);
-  
+      // printf(" sx=%d sy=%d dx=%d dy=%d\n",sx,sy,dx,dy);
+      // sx=100; sy=100; // TEST ONLY
+
+
+    // pll = p1 + dx, dy
+    // dsx += dx;
+    // dsy += dy;
+    // GL_Sk2Uk (&pll.x, &pll.y, &pll.z,  dsx, dsy, dsz);
+      // GR_Disp_pt (&pll, SYM_STAR_S, ATT_COL_RED);
+      // DEB_dump_obj__(Typ_PT, &pll, " pll=");
+
+
+    UT3D_box_extend (p1, p2, &pll);
+
     // change Textpoint --> Screencoords
     GL_Uk2Sk (&dsx, &dsy, &dsz, pll.x, pll.y, pll.z);
       // printf(" LL(ScrCoords) dsx=%f dsy=%f dsz=%f\n",dsx,dsy,dsz);
 
-    // pll = p1 + dx, dy
-    dsx += dx;
-    dsy += dy;
-    GL_Sk2Uk (&pll.x, &pll.y, &pll.z,  dsx, dsy, dsz);
-      // GR_Disp_pt (&pll, SYM_STAR_S, ATT_COL_RED);
-      // DEB_dump_obj__(Typ_PT, &pll, " pll=");
-
-    UT3D_box_extend (p1, p2, &pll);
-
-
     // add size of box
     dsx += sx;
     dsy += sy;
+      // printf(" UR(ScrCoords) dsx=%f dsy=%f\n",dsx,dsy);
+
 
     // change upper-right --> UserCoords
     GL_Sk2Uk (&pur.x, &pur.y, &pur.z,  dsx, dsy, dsz);
@@ -1870,7 +1874,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 //====================================================================
 // get box for model <iMdl>.
 // Input:
-//   iMdl     -1 is the active model. See WC_modact_ind
+//   iMdl     -1 is the active model. See AP_modact_ind
 //   mode      0=all-objs, 1=group-only
 // Output:
 //   Retcod:   0 = OK;
@@ -1907,7 +1911,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     if((INT_16)dla[dli].modInd != iMdl) continue;
 
     // skip hidden objects
-    if(DL_OBJ_IS_HIDDEN(dla[dli])) continue;
+    if(DL_IS_HIDDEN(dla[dli])) continue;
 
     // skip invis. obj's
     if(dla[dli].unvis != 0) continue;
@@ -2995,7 +2999,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     if((INT_16)dla[dli].modInd != iMdl) continue;
 
     // skip hidden objects
-    if(DL_OBJ_IS_HIDDEN(dla[dli])) continue;
+    if(DL_IS_HIDDEN(dla[dli])) continue;
 
     // skip invis. obj's
     if(dla[dli].unvis != 0) continue;

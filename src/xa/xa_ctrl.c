@@ -106,7 +106,7 @@ The mainTimer calls CTRL_CB__ periodically;
 // EXTERNALS:
 // aus ../xa/xa.c:
 extern TxtTab    AP_TxTab1;
-extern int       WC_modact_ind;        // the Nr of the active submodel; -1 = main.
+extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 // ../xa/xa_ui.c

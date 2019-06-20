@@ -73,7 +73,7 @@ __declspec(dllexport) int gCad_fini ();
 
 #include "../xa/xa_mem.h"                    // gen.purp.memblocks
 #include "../xa/xa_ui.h"                     // UID_..
-#include "../xa/xa_obj_txt.h"          // AP_obj_add_obj
+#include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
 
 
 
@@ -338,7 +338,7 @@ extern  char      AP_mod_dir[128];  // Verzeichnis f Open, ..
   // strcpy(cBuf, "FSUB");
   cBuf[0]='\0';
 
-  for(i1=0; i1<iNr; ++i1) AP_obj_add_obj (cBuf, Typ_CI, indTab[i1]);
+  for(i1=0; i1<iNr; ++i1) AP_obj_add_dbo (cBuf, Typ_CI, indTab[i1]);
   // printf("cre_sur |%s|\n",cBuf);
 
   cre_obj (Typ_SUR, Typ_Txt, strlen(cBuf)+1, (void*)cBuf);

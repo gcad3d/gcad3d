@@ -478,20 +478,21 @@ Verbinden:
 
 //===========================================================================
 // EXTERNALS:
+
+// aus ../gr/ut_gtx.c:
+extern double GR_tx_scale;
+
+// aus ../gr/tess_su.c:
+extern int TSU_mode;   // 0=normal darstellen; 1=speichern
+
+// aus ../gr/ut_DL.c
+extern long    DL_ind_act;
+
+
 // from ../xa/xa.c:
-
-// extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
-// extern double  *SRC_ato_tab;
-
 extern int       AP_src;
-// extern  int       aus_anz;
-// extern  int       aus_typ[aus_SIZ];
-// extern  double    aus_tab[aus_SIZ];
-
-extern int       WC_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
-
-
 extern Point     WC_mod_ori;            // der Model-Origin
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane     WC_sur_act;            // die aktive Plane
@@ -504,29 +505,13 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
 extern int        AP_txNkNr;            // Nachkommastellen
 extern ColRGB     AP_defcol;
-// extern int        AP_indCol;
 
 
-
-
-// aus xa_edi__.c:
+// aus ../xa/xa_ed.c:
 extern int       APT_mac_fil;   // 1=InputFromMemory; 0=InputFromFile.
 
-
-
-// aus ../gr/ut_gtx.c:
-extern double GR_tx_scale;
-
-
-// aus ../gr/tess_su.c:
-extern int TSU_mode;   // 0=normal darstellen; 1=speichern
-
-
-
-// aus ../gr/ut_DL.c
-// extern DL_Att  *GR_ObjTab;
-extern long    DL_ind_act;
-
+// ex ../xa/xa_ui.c:
+extern int       UI_InpMode;
 
 // ex ../xa/xa_proc.c
 extern char **process_CmdTab;     // was NCCmdTab
@@ -988,6 +973,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
   WC_Init ();
 
+
   // Standard; Editmode.
   WC_Init_Tol ();
   GL_InitModelSize (APT_ModSiz, 0);
@@ -1063,11 +1049,11 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
 //======================================================================
-  int WC_Init_Modsiz (double newssiz) {
+  int WC_Init_Modsiz (double newSiz) {
 //======================================================================
 /// see WC_ask_ModSiz
 
-  APT_ModSiz = newssiz;
+  APT_ModSiz = newSiz;
 
   WC_Init_Tol ();
 
@@ -1486,17 +1472,15 @@ int    APT_hide_parent;              // 0=not (def), else yes
 //================================================================
   int NC_setModSiz (double modSiz) {
 //================================================================
+// NC_setModSiz           init modelsize and update modelsize in GUI
 
   // printf("NC_setModSiz %f\n",modSiz);
  
   // activate new modSiz
-  APT_ModSiz = modSiz;
-
-  WC_Init_Tol ();                       // compute tolerances
-
+  WC_Init_Modsiz (modSiz);
 
   // display modelsize in label, redraw all
-  if(WC_modact_ind < 0)                   // nur im aktiven Model
+  if(AP_modact_ind < 0)                   // nur im aktiven Model
     GL_InitModelSize (APT_ModSiz, 0);
 
   return 0;
@@ -1505,7 +1489,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
 //====================================================================
-  int NC_setRefsys (int RefInd) {
+  int NC_setRefsys (long RefInd) {
 //====================================================================
 // Change active Plane (Refsys)
 // RefInd 0 = Ruecksetzen !
@@ -1516,44 +1500,57 @@ int    APT_hide_parent;              // 0=not (def), else yes
   Plane    pln1;
 
 
-  // printf("RRRRRRRRRRRRRRRRRRR  NC_setRefsys %d\n",RefInd);
+  // printf("RRRRRRRRRRRRRRRRRRR  NC_setRefsys %ld\n",RefInd);
+  // printf("  AP_modact_ind=%d\n",AP_modact_ind);
 
 
-  if(RefInd == 0) {
-    strcpy(WC_ConstPl_Z, "RZ");
-    UT3D_pl_XYZ (&pln1);
+  if(RefInd == 0L) RefInd = DB_PLZ_IND;
 
-  } else {
-    APED_oid_dbo__ (WC_ConstPl_Z, Typ_PLN, RefInd);
-    DB_GetRef (&pln1, RefInd);      // get a copy of plane
-  }
+  // get a copy of constr-plane
+  DB_GetRef (&pln1, RefInd);
 
 
+/* rem 2019-06-11
   // check for temporaerModus
   if(APT_obj_stat != 0) {
     printf(" preview only ..\n");
     GR_Disp_axis (&pln1, 9, 5);
     return 1;
   }
-
-
+*/
 
 
   // Den Index auf die ActiveConstrPlane speichern
   WC_sur_act = pln1;
   WC_sur_ind = RefInd;
-  if(WC_sur_ind != 0) {
-    UT3D_m3_loadpl (WC_sur_mat, &WC_sur_act);
-    UT3D_m3_invm3 (WC_sur_imat, WC_sur_mat);
+
+  UT3D_m3_loadpl (WC_sur_mat, &WC_sur_act);
+  UT3D_m3_invm3 (WC_sur_imat, WC_sur_mat);
+
+  GL_SetConstrPln (1);  // GL_constr_pln setzen (hier ist Z-Wert aufgerechnet !)
+
+
+
+  //----------------------------------------------------------------
+  // skip display-update in subModels
+  if(MDL_IS_SUB) return 0;
+
+  // display Label name_of_the_Constr.Plane out eg "ConstrPln   R20"
+   if(RefInd < 0L) {
+    if(RefInd == DB_PLZ_IND)  strcpy(WC_ConstPl_Z, "RZ");
+    if(RefInd == DB_PLIY_IND) strcpy(WC_ConstPl_Z, "RIY");
+    if(RefInd == DB_PLX_IND)  strcpy(WC_ConstPl_Z, "RX");
+
   } else {
-    UT3D_m3_copy (WC_sur_mat, UT3D_MAT_4x3);
-    UT3D_m3_copy (WC_sur_imat, UT3D_MAT_4x3);
+    APED_oid_dbo__ (WC_ConstPl_Z, Typ_PLN, RefInd);
   }
+  // write Label 
+  UI_Set_ConstPl_Z ();
 
-  GL_SetConstrPln ();  // GL_constr_pln setzen (hier ist Z-Wert aufgerechnet !)
 
-  UI_Set_ConstPl_Z (); // write Label name_of_the_Constr.Plane out
-                       // als "ConstrPln   R20"  (links oben)
+  // if 2D is On then change label UI_lb_2D
+  UI_lb_2D_upd ();
+
 
 
 /*  Alte Version bis 2006-02-26
@@ -1579,15 +1576,6 @@ int    APT_hide_parent;              // 0=not (def), else yes
       }
 */
 
-
-/*
-        TX_Print(" matVX=%f,%f,%f",APT_2d_to_3d_Mat[0][0],APT_2d_to_3d_Mat[1][0],APT_2d_to_3d_Mat[2][0]);
-        TX_Print(" matVY=%f,%f,%f",APT_2d_to_3d_Mat[0][1],APT_2d_to_3d_Mat[1][1],APT_2d_to_3d_Mat[2][1]);
-        TX_Print(" matVZ=%f,%f,%f",APT_2d_to_3d_Mat[0][2],APT_2d_to_3d_Mat[1][2],APT_2d_to_3d_Mat[2][2]);
-        TX_Print(" matPO=%f,%f,%f",APT_2d_to_3d_Mat[0][3],APT_2d_to_3d_Mat[1][3],APT_2d_to_3d_Mat[2][3]);
-*/
-
-  // printf("ex NC_setRefsys WC_sur_ind=%d\n",WC_sur_ind);
 
   return 0;
 
@@ -2072,7 +2060,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
   //-----------------------------------------------------------
   // Submodelaufruf; is it MockupModel ?
-  // printf(" _Work WC_modact_ind=%d\n",WC_modact_ind);
+  // printf(" _Work AP_modact_ind=%d\n",AP_modact_ind);
   // printf(">>>>>>>>Ditto: AP_mdLev=%d |%s|\n",AP_mdLev,cbuf);
 
   p1 = strchr(cbuf, '=');
@@ -2106,8 +2094,8 @@ int    APT_hide_parent;              // 0=not (def), else yes
 /*
 2011-07-06 raus; Error wenn symbol erst nachträglich in dir.lst eingefügt wird.
   // derzeit keine subModels in external-native Models !!
-    printf("     WC_modact_ind=%d\n",WC_modact_ind);
-  if(WC_modact_ind >= 0) {            // wenn nicht im aktiven Model
+    printf("     AP_modact_ind=%d\n",AP_modact_ind);
+  if(MDL_IS_SUB) {            // wenn nicht im aktiven Model
     if(mbTyp >= 0) {                // und wenn external Model -
       TX_Error("external Model may not have subModels; use Mockup");
       return -1;
@@ -2397,7 +2385,7 @@ static long     actDLi;
 
   mbNrTab[actLev] = modNr;
 
-  WC_modact_ind        = modNr;
+  AP_modact_ind        = modNr;
 
 
 
@@ -2500,7 +2488,7 @@ static long     actDLi;
   DL_load_dynDat ();
 
 
-  WC_modact_ind        = -1;  // main
+  AP_modact_ind        = -1;  // main
 
 
   // bei der alten Zeilennummer ED_lnr_act wieder weitertun ..
@@ -2630,7 +2618,7 @@ APT_stat_act:
   // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%ld\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
-  // printf("         WC_modact_ind=%d AP_modact_nam=|%s|\n",WC_modact_ind,AP_modact_nam);
+  // printf("         AP_modact_ind=%d AP_modact_nam=|%s|\n",AP_modact_ind,AP_modact_nam);
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
 
@@ -3097,7 +3085,7 @@ APT_stat_act:
   // nur bei Verarbeitung aus dem Memory (nicht aus File)
   // und nur beim primary Model
   if((ED_get_mac_fil() != ON) &&
-     (WC_modact_ind < 0))              {
+     (AP_modact_ind < 0))              {
 
     // die von der aktuellen Zeile erzeugte ObjektID merken 2001-06-05
     AP_dli_act = GL_GetActInd();
@@ -3247,12 +3235,12 @@ APT_stat_act:
     } else if(i_typ[0] == Typ_PLN) {
 
       //TX_Print(" change pln > %d",(int)i_tab[0]);
-      i1 = NC_setRefsys ((int)i_tab[0]);
+      i1 = NC_setRefsys ((long)i_tab[0]);
       // ein dummy-DL-Record, der als DL.irs den neuen RefsysIndex hat.
       // Nur damit kann DL_setRefSys beim MAN-Editor-GoUp und GoDown das
       // richtige UCS anzeigen.
       if(i1 == 0) {
-        dli = DL_StoreObj (Typ_apDat, -1L, 0);
+        dli = DL_StoreObj (Typ_apDat, -1L, Typ_constPln);
         DL_unvis_set (dli, 1);         // make unvisible
       }
       return 0;
@@ -3562,8 +3550,8 @@ APT_stat_act:
 
   // in Submodels keine hidden objects generieren ( diese sind sonst in
   // Dittos des mainmodels sichtbar!)
-    // printf(" WC_modact_ind=%d ga1->disp=%d\n",WC_modact_ind,ga1->disp);
-  if(WC_modact_ind >= 0) {     // 0-n = sind in Submodel; -1=main
+    // printf(" AP_modact_ind=%d ga1->disp=%d\n",AP_modact_ind,ga1->disp);
+  if(MDL_IS_SUB) {     // 0-n = sind in Submodel; -1=main
     // Submodel is active (main is -1)
     // if(AP_modact_nam[0] == '\0') {     // active Model is main, wenn name leer
       // i1 = GA_hide__ (8, defInd, defTyp); // ask state; 1=hidden
@@ -4652,7 +4640,7 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_SHOW:
-      if(WC_modact_ind >= 0) break;       // skip command in Submodels
+      if(MDL_IS_SUB) break;       // skip command in Submodels
       return APT_work_SHOW (ato1.nr, ato1.typ, ato1.val);
 
     //----------------------------------------------------------------
@@ -4667,7 +4655,7 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_VIEW:
-      if(WC_modact_ind >= 0) break;       // skip command in Submodels
+      if(MDL_IS_SUB) break;       // skip command in Submodels
       return APT_work_VIEW (ato1.nr, ato1.typ, ato1.val);
 
     //----------------------------------------------------------------
@@ -4688,7 +4676,7 @@ APT_stat_act:
       // das plane.p setzen !
       UT3D_pl_ptpl (&WC_sur_act, &pt1);
       // GL_constr_pln setzen aus WC_sur_act, WC_sur_Z;
-      GL_SetConstrPln ();
+      GL_SetConstrPln (0);
       break;
 
     //----------------------------------------------------------------
@@ -4711,13 +4699,12 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_MODSIZ:
+      // MODSIZ <modelSize> [<UT_TOL_cv> [<UT_DISP_cv>]]
+
+      // set APT_ModSiz and display
       NC_setModSiz (ato1.val[0]);
     
-      // APT_ModSiz  = ato1.val[0];
-      // WC_Init_Tol ();
-      // if(WC_modact_ind < 0)                   // nur im aktiven Model
-        // GL_InitModelSize (APT_ModSiz, 0);
-
+      // if defined: UT_TOL_cv UT_DISP_cv (overwrite)
       if(ato1.typ[1] == Typ_Val) {
         UT_TOL_cv = ato1.val[1];
         if(ato1.typ[2] == Typ_Val) {
@@ -5049,7 +5036,7 @@ APT_stat_act:
   //----------------------------------------------------------------
   // "PlanesDisplay OFF" from APT-code
   } else if(!strcmp (pa[0], "DISP_PL")) {
-    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+    if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
 
     if(!strcmp (pa[1], "ON")) {          // view (std)
       APT_dispPL = ON;
@@ -5068,7 +5055,7 @@ APT_stat_act:
 
   //----------------------------------------------------------------
   } else if(!strcmp (pa[0], "DISP_PT")) {
-    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+    if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
       // printf(" change Disp_PT |%s|\n",auxBuf);
 
     if(!strcmp (pa[1], "ON")) {           // view (std)
@@ -5151,13 +5138,13 @@ Ablauf Makro:
    // check for catalog-call (Typ_cmdNCsub T_CTLG)
    if(ato1.typ[0] == Typ_cmdNCsub) {
     if(ato1.val[0] != T_CTLG) goto Fehler1;
-        // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
+        // printf(" catalog-call; AP_modact_ind=%d\n",AP_modact_ind);
       // wenn im primary Model "CALL CTLG" steht darf man nix tun !
-      if(WC_modact_ind < 0) goto Fertig;
+      if(AP_modact_ind < 0) goto Fertig;
 
-      mb = DB_get_ModBas (WC_modact_ind);
+      mb = DB_get_ModBas (AP_modact_ind);
       if(mb->mnam == NULL) goto Fehler1;
-        // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
+        // printf(" AP_modact_ind=%d mnam=|%s|\n",AP_modact_ind,mb->mnam);
       sprintf(APT_macnam, "%s",mb->mnam);
 
       // get APT_filnam = filename of file tmp/<mnam>.write
@@ -5605,7 +5592,7 @@ Ablauf Makro:
 
     // APT_ModSiz  = aus_tab[0];
     // WC_Init_Tol ();
-    // if(WC_modact_ind < 0)                   // nur im aktiven Model
+    // if(AP_modact_ind < 0)                   // nur im aktiven Model
       // GL_InitModelSize (APT_ModSiz, 0);
 
     if(aus_typ[1] == Typ_Val) {
@@ -5693,14 +5680,14 @@ Ablauf Makro:
 
   //=====================================================================
   } else if (!strcmp (cmd, "SHOW")) {
-    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+    if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
     return APT_work_SHOW (aus_anz, aus_typ, aus_tab);
 
 
 
   //=====================================================================
   } else if (!strcmp (cmd, "VIEW")) {
-    if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+    if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
     return APT_work_VIEW (aus_anz, aus_typ, aus_tab);
 
 
@@ -5850,13 +5837,13 @@ Ablauf Makro:
 //    // check for catalog-call (Typ_cmdNCsub T_CTLG)
 //    if(aus_typ[0] == Typ_cmdNCsub) {
 //     if(aus_tab[0] != T_CTLG) goto Fehler1;
-//         // printf(" catalog-call; WC_modact_ind=%d\n",WC_modact_ind);
+//         // printf(" catalog-call; AP_modact_ind=%d\n",AP_modact_ind);
 //       // wenn im primary Model "CALL CTLG" steht darf man nix tun !
-//       if(WC_modact_ind < 0) goto Fertig;
+//       if(AP_modact_ind < 0) goto Fertig;
 // 
-//       mb = DB_get_ModBas(WC_modact_ind);
+//       mb = DB_get_ModBas(AP_modact_ind);
 //       if(mb->mnam == NULL) goto Fehler1;
-//         // printf(" WC_modact_ind=%d mnam=|%s|\n",WC_modact_ind,mb->mnam);
+//         // printf(" AP_modact_ind=%d mnam=|%s|\n",AP_modact_ind,mb->mnam);
 //       sprintf(APT_macnam, "%s",mb->mnam);
 //       // den zugehoerigen filename fuer das .write-File machen
 //       CTLG_fnWrite_modelnam (APT_filnam, APT_macnam);
@@ -6455,7 +6442,7 @@ Ablauf Makro:
 
       // "PlanesDisplay OFF" from APT-code
       } else if(!strcmp (auxBuf, "DISP_PL")) {
-        if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+        if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
         APT_get_Txt (auxBuf, cp, 0.);
         UTX_cp_word_2_upper (auxBuf, auxBuf);
         if(!strcmp (auxBuf, "ON")) {          // view (std)
@@ -6474,7 +6461,7 @@ Ablauf Makro:
 
 
       }else if(!strcmp (auxBuf, "DISP_PT")) {
-        if(WC_modact_ind >= 0) goto Fertig; // skip command in Submodels
+        if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
         if(aus_typ[1] == Typ_Val) {
           i1 = aus_tab[1];
           GL_InitPtAtt (i1);
@@ -6883,7 +6870,7 @@ Ablauf Makro:
     if((aus_typ[ii] == Typ_SUR)  ||
        (aus_typ[ii] == Typ_SOL))     {
       dbi = aus_tab[ii];
-      dli = DL_find_smObj (aus_typ[ii], dbi, -1L, WC_modact_ind);
+      dli = DL_find_smObj (aus_typ[ii], dbi, -1L, AP_modact_ind);
 
       if(iTex >= 0) {
         // apply active texture
@@ -6968,7 +6955,7 @@ Ablauf Makro:
 
     // find dli from typ,dbi
     dbi = aus_tab[i1];
-    dli = DL_find_smObj (aus_typ[i1], dbi, -1L, WC_modact_ind);
+    dli = DL_find_smObj (aus_typ[i1], dbi, -1L, AP_modact_ind);
 
     GA_lTyp__ (dli, ii, aus_typ[i1], dbi, 1);
 
@@ -7011,7 +6998,7 @@ Ablauf Makro:
     l1 = aus_tab[i1];
 
     // find dli from typ,dbi
-    dli = DL_find_smObj (aus_typ[i1], l1, -1L, WC_modact_ind);
+    dli = DL_find_smObj (aus_typ[i1], l1, -1L, AP_modact_ind);
 
     // update PermanentAttributeList;  is: 3=HIDE, 2=SHOW
     GA_view__ (dli, is, 0, 0L);                  // HIDE
@@ -9338,7 +9325,7 @@ dzt unused
   } else if(tx1->aTyp > 4) {   // symTyp > 4 sind Symbols
     GL_DrawTxtsym (&AP_dli_act, tx1->aTyp - 5, &tx1->p1, (Vector*)&tx1->p2,
                    tx1->col, tx1->scl);
-    if(APT_dispNam) APT_disp_nam (Typ_ATXT, apt_ind, (void*)tx1);
+    if(GR_OBJID_ON) APT_disp_nam (Typ_ATXT, apt_ind, (void*)tx1);
 
   // } else if(tx1->typ == 2) {   // Block-tag
   } else {   // typ = 2 = Block-tag; 0=normale A-text
@@ -9428,14 +9415,18 @@ dzt unused
 // display symbolic plane (rectangle)
 
 
+  // printf("APT_DrawPln %ld\n",dbi);
+
+
   if(APT_Stat_Draw == OFF) return 0;
+  // if((UI_InpMode == UI_MODE_VWR)&&(APT_dispPL == OFF)) return 0;
 
 
   AP_dli_act = DL_StoreObj (Typ_PLN, dbi, typ);
 
   GR_DrawPlane (&AP_dli_act, typ, pl1);
 
-  if(APT_dispNam) APT_disp_nam (Typ_PLN, dbi, pl1);
+  if(GR_OBJID_ON) APT_disp_nam (Typ_PLN, dbi, pl1);
 
   return 0;
 
@@ -10198,14 +10189,17 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
 
   // printf("APT_DrawLine %d %ld\n",iAtt,dbi);
+  // printf("APT_DrawLine AP_modact_ind=%d\n",AP_modact_ind);
+
 
   if(APT_Stat_Draw == OFF) return;
 
   AP_dli_act = DL_StoreObj (Typ_LN, dbi, iAtt);
-  GR_DrawLine (&AP_dli_act, iAtt, ln1);
+  GR_DrawLine (&AP_dli_act, dbi, iAtt, ln1);
 
-  if(APT_dispNam) APT_disp_nam (Typ_LN, dbi, (void*)ln1);
 /*
+  if(APT_dispNam) APT_disp_nam (Typ_LN, dbi, (void*)ln1);
+
       //TX_Print(" dyn Line %d; Z=%f",dbi,ln1->p1.z);
       if(UTP_comp2db(WC_sur1, ln1->p1.z, UT_TOL_pt)) {  // nur fuer ZSUR1
         //Print("von %f,%f nach %f,%f",ln1->p1.x,ln1->p1.y,ln1->p2.x,ln1->p2.y);
@@ -10265,18 +10259,10 @@ see WC_Init_Modsiz WC_Init_Tol ..
   GR_DrawCirc (&AP_dli_act, dbi, Typ, ci1);
 
 
-  // // disp direction
-  // if(APT_dispDir) {
-    // // APT_disp_SymV2 (SYM_ARROH, Typ_Att_Symb, &ci1->p2, &pt1, 1.0);
-    // Vector vc1;
-    // // get tangent to circ on endpt
-    // UT3D_vc_tng_ci_pt (&vc1, &ci1->p2, ci1);
-    // APT_disp_SymV3 (SYM_ARRO3H, Typ_Att_Symb, &ci1->p2, &vc1, 1.); 
-  // }
-
-  //if((APT_dispNam)&&(dbi < APT_CI_SIZ)) {
-  if(APT_dispNam) APT_disp_nam (Typ_CI, dbi, (void*)ci1);
 /*
+  //if((APT_dispNam)&&(dbi < APT_CI_SIZ)) {
+  // if(APT_dispNam) APT_disp_nam (Typ_CI, dbi, (void*)ci1);
+
       //TX_Print(" dyn Circ %d; Z=%f",dbi,ci1->p1.z);
       if(UTP_comp2db(WC_sur1, ci1->p1.z, UT_TOL_pt)) {  // nur fuer ZSUR1
         double  d1;
@@ -10376,7 +10362,6 @@ see WC_Init_Modsiz WC_Init_Tol ..
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVBSP, dbi, att);
     GR_DrawCvBSp (&AP_dli_act, dbi, att, ox1->data);
-    if(APT_dispNam) APT_disp_nam (Typ_CVBSP, dbi, ox1->data);
 
 
   } else if(typ == Typ_CVRBSP) {
@@ -10389,7 +10374,6 @@ see WC_Init_Modsiz WC_Init_Tol ..
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVPOL, dbi, att);  // 2011-08-05
     GR_DrawCvPol (&AP_dli_act, att, ox1->data);
-    if(APT_dispNam) APT_disp_nam (Typ_CVPOL, dbi, ox1->data);
     
 
   } else if(typ == Typ_CVPOL2) {
@@ -10397,7 +10381,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
     GL_DrawPoly2D (&AP_dli_act, att,
                    ((CurvPol2*)ox1->data)->ptNr, ((CurvPol2*)ox1->data)->pTab,
                    zval);
-    if(APT_dispNam) APT_disp_nam (Typ_CVPOL2, dbi, ox1->data);
+    if(GR_OBJID_ON) APT_disp_nam (Typ_CVPOL2, dbi, ox1->data);
 
 
   } else if(typ == Typ_CVELL) {
@@ -10415,12 +10399,12 @@ see WC_Init_Modsiz WC_Init_Tol ..
     // AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, Typ_Att_hili);
     // GR_DrawCVComp (&AP_dli_act, att, ox1, tbuf1);
 
+
   } else if(typ == Typ_CVTRM) {
     if(!att) att = Typ_Att_blue;
     AP_dli_act = DL_StoreObj (Typ_CVTRM, dbi, att);
-    // GR_DrawCvCCV (&AP_dli_act, att, ox1->data, tbuf1);
-    // GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1, tbuf1);
     GR_DrawCvCCV (&AP_dli_act, dbi, att, ox1->data, ox1->siz);
+
 
 // TODO: test for 2D-Curve
   // } else if(typ == Typ_CVTRM2) {

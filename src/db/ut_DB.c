@@ -1037,7 +1037,7 @@ Vector     DB_vc0;
   fread(&WC_sur_act, sizeof(Plane), 1, fp1);
   fread(&WC_sur_mat, sizeof(Mat_4x3), 1, fp1);
   fread(&WC_sur_imat, sizeof(Mat_4x3), 1, fp1);
-  GL_SetConstrPln ();
+  GL_SetConstrPln (0);
   
 
   fread(&i1, sizeof(int), 1, fp1);
@@ -2740,8 +2740,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
       UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
 
   i1 = -DB_PLIY_IND;    // RIY
-      pln_dyn[i1].vx = UT3D_VECTOR_IX;
-      pln_dyn[i1].vy = UT3D_VECTOR_IZ;
+      pln_dyn[i1].vx = UT3D_VECTOR_X;  // 2019-06-11  was IX
+      pln_dyn[i1].vy = UT3D_VECTOR_Z;  // 2019-06-11  was IZ
       pln_dyn[i1].vz = UT3D_VECTOR_IY;
       UT3D_pl_ptpl (&pln_dyn[i1], (Point*)&UT3D_PT_NUL);
 

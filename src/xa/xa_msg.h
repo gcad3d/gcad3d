@@ -11,6 +11,10 @@ Messagetext: ../../doc/msg/msg_const_de.txt
 
 -----------------------------------------------------
 TODO:
+
+- make errocode for "parameter-error"
+
+
 - different languages for errorcodes MSG_ERR_tab in ../xa/xa_msg.c
 
 

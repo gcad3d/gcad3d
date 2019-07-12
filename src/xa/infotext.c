@@ -34,22 +34,16 @@ void INF(){                   /*! \code
 the following can be used in Doxygen (Programming-Helpfiles.dox)
 and with the tagfiles (../tags/infotext.tag)
 
-INF_C-types     [U]INT_[8|16|32]                            ../ut/ut_types.h
+INF_C_types     [U]INT_[8|16|32]                            ../ut/ut_types.h
 INF_const__     constants
 INF_tol__       tolerances
 INF_MEM__       get memSpc ..
 
-INF_obj-types   object-types and corresponding struct (Point ..)
-INF_obj-IDs     obj-ID is eg "P123"      _oid_
-INF_obj-names   objectName is eg "#height 2 floor" 
 INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
+INF_ato__       atomic-objects
+INF_obj__       binary-obj, from typ + binary-struct
 INF_DBO__       DB-type & DB-index;               (int, long)
-
-INF_OGX_CV_CCV  concatenated-curve (CCV)
-INF_OGX_DBO
-INF_OGX_SUR__
-INF_OGX_SUR_TPS
-INF_OGX_SUR_PLN
+INF_dlo__       dispList-object
 
 INF_COL_CV      list of colors for curves  (attribute curves)
 INF_MSG_new     create new message
@@ -63,8 +57,57 @@ INF_debug       errormessages ..      ../../doc/gcad_doxygen/Debugging.dox
 INF_GUI__       ckitgui ..
 
 
+
+
 ================================================================== \endcode */}
-void INF_obj-types (){        /*! \code
+void INF_obj__ (){        /*! \code
+INF_obj_types   object-types and corresponding struct (Point ..)
+
+INF_obj_ID      obj-ID is eg "P123"      _oid_
+INF_obj_dat     get binary data of binary-obj from typ + binary-struct
+INF_obj_names   objectName is eg "#height 2 floor" 
+
+INF_OGX_CV_CCV  concatenated-curve (CCV)
+INF_OGX_DBO
+INF_OGX_SUR__
+INF_OGX_SUR_TPS
+INF_OGX_SUR_PLN
+
+
+Functions:
+DEB_dump_obj__        
+UTO_siz_stru        get size of structure
+AP_typ_2_bastyp     get DB-typ from struct-typ
+UTO_copy_stru       copy struct (no resolve - not recursive)
+UTO_ck_surfTyp      returns surfSubTyp (see also SUR_ck_typ)
+
+--------- get binaryObject from DB-Obj
+ UTO_get_DB     get dataStruct from DB-Obj Keep Refs.   Give pointer.
+ DB_GetObjDat   get dataStruct from DB-Obj Resolv Refs. Give pointer.
+
+--------- get binaryObject from complexObj
+ UTO_obj_getp   get dataStruct from ObjGX  Resolv Refs. Give pointer.
+ UTO_obj_get    get dataStruct from ObjGX  Resolv Refs. Give a copy.
+
+--------- get binaryObject from sourceObj
+APT_obj_expr        Create struct from ModelCode (text).
+APT_decode_objTx    Create struct from ModelCode (text).
+UT3D_pt_txt         get point from text
+UT3D_vc_txt         get vector from text
+AP_vec_txt          give vector-struc from vector-text (only defvecs)
+APT_obj_expr APT_obj_ato
+APT_decode_pt APT_decode_ln APT_decode_ci
+APT_decode_ang APT_decode_goAxis APT_decode_goRadius (../ci/NC_apt.c)
+
+
+see also ../../doc/gcad_doxygen/NamingConventions.txt
+empty prototypes (eg UT3D_PT_NUL) see ../ut/ut_geo_const.h
+
+
+
+
+================================================================== \endcode */}
+void INF_obj_types (){        /*! \code
 
 short
 name     funcGrp      struct    form          descr                    files,funcs
@@ -102,26 +145,28 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
 
 sr                                          sense-of-rotation;       INF_sr
 
-
 see -
 INF_struct_ObjGX
 INF_struct_dir
 INF_struct_par
 INF_struct_closed
 
-
-Functions for binaryObjects (form + struct):
-UTO_siz_stru        get size of structure
-AP_typ_2_bastyp     get DB-typ from struct-typ
-
-
-
-see also ../../doc/gcad_doxygen/NamingConventions.txt
-empty prototypes (eg UT3D_PT_NUL) see ../ut/ut_geo_const.h
+TYP_IS_CV                check DB-typ
+AP_typ_2_bastyp          give basictyp from typ
+DEB_dump_obj__           dump binary obj
 
 
 ================================================================== \endcode */}
-void INF_obj-IDs (){        /*! \code
+void INF_obj_dat (){        /*! \code
+INF_obj_dat     get binary data of binary-obj from typ + binary-struct
+
+Functions:
+DB_GetObjDat    get binary data of binary-obj from typ + binary-struct
+
+
+
+================================================================== \endcode */}
+void INF_obj_ID (){        /*! \code
 obj-ID is eg "P123"      _oid_
 
 APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
@@ -183,18 +228,56 @@ UTO_dbs_ox          DB-struct (data for VDPLC, ox for SAB) from ox
 DBO_sel__           change selection into DB-object
 DBO_dump__          dump DB-object -> debug-window
 
-DB-objects from atomicObj's:
 ATO_ato_eval__      create dynam DB-obj from atomic-obj
+
+
+================================================================== \endcode */}
+void INF_ato__ (){        /*! \code
+../xa/xa_ato.c         atomic-objects
+
+  atomicObjects (ausTyp/ausTab, array) _ato_:
+    (list of objTyp and list of objValues)
+
+
+
+Functions:
+ATO_ato_srcLn__         get atomicObjects from sourceLine; full evaluated.
+ATO_ato_txo__           get atomic-objects from source-objects
+ATO_ato_eval__          evaluate atomic-objects (compute); reduce records.
+ATO_ato_eval_geom       evaluate geometrical functions
+APT_decode__        sourceObj -> atomicObj (ausTyp/ausTab-array)
+ATO_sort1
+ATO_getSpc__
+ATO_getSpc1
+ATO_srcTxt          get atomicObj from Typ_Txt (after AP_typ_srcExpr)
+ATO_swap            swap 2 records
+APT_decode_ausdr    decode sourceObj -> atomicObj
+APT_decode_ausdr1   operators constantObjects constantValues
+
+SRC_ato_SIZ, SRC_ato_typ, SRC_ato_tab = global memspc
+
 
 
 
 ================================================================== \endcode */}
-void INF_obj-names (){        /*! \code
+void INF_obj_names (){        /*! \code
 objectName is eg "#height 2 floor"
 
 APED_lNr_objNam            get sourcelineNr from ObjName
 APED_onam_search           search objName between ps and pe
 APED_onam_cut              cut/copy objName
+
+
+================================================================== \endcode */}
+void INF_dlo__ (){        /*! \code
+INF_dlo__       dispList-object
+
+Functions:
+DL_find_obj                get dispListIndex of (last) DB-obj from typ/dbi
+
+Files:
+../gr/ut_DL.c
+
 
 
 ================================================================== \endcode */}
@@ -297,6 +380,11 @@ INF_OGX_SUR__
 INF_OGX_SUR_TPS
 INF_OGX_SUR_PLN
 
+
+Functions:
+OGX_SET_OBJ             complexObject from binObj (typ,form,siz,dat)
+OGX_SET_INDEX           complexObject from DB-obj
+DEB_dump_ox_0           dump complex-object
 
 
 ================================================================== \endcode */}
@@ -798,7 +886,7 @@ AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
 
 
 ================================================================== \endcode */}
-void INF_C-types (){        /*! \code
+void INF_C_types (){        /*! \code
 
      [U]INT_[8|16|32]
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
@@ -867,6 +955,8 @@ MSG_ERR_txt                    messagetxt for ERRMSG_ERR_typ_INF/WNG/ERR
 
 MSG_ERR_tab                    messages for ERRMSG__
 
+TX_Error                       Errormessage direct
+AP_err_hide_set                enable/disable errormessages
 
 
 -------------- dump objects:

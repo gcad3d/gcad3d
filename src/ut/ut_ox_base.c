@@ -1036,7 +1036,7 @@ typedef_MemTab(ObjRange);
   irc = OGX_deloc__ (pox1, oSiz);
   if(irc < 0) return -1;
 
-  DEB_dump_ox__ (pox1);
+  DEB_dump_ox__ (pox1, "del1");
 // exit(0);
 
 
@@ -1065,7 +1065,7 @@ typedef_MemTab(ObjRange);
 
   //----------------------------------------------------------------
   // dump data
-  DEB_dump_ox__ (pox2);
+  DEB_dump_ox__ (pox2, "del2");
   DEB_dump_obj__ (Typ_ObjGX, pox2, "pox2");
   // OGX_dump__ (pox1, "tst_UTO");
 
@@ -1160,7 +1160,7 @@ typedef_MemTab(ObjRange);
   // dump tree
   // pox1 = UME_get_start (&tmpSpc);
   DEB_dump_obj__ (Typ_ObjGX, pox1, "--------------- pox1 -------------\n");
-  DEB_dump_ox__ (pox1);
+  DEB_dump_ox__ (pox1, "del3");
 
 
 
@@ -1196,7 +1196,7 @@ typedef_MemTab(ObjRange);
 
 
   DEB_dump_obj__ (Typ_ObjGX, pox2, "--------------- pox2 -------------\n");
-  DEB_dump_ox__ (pox2);
+  DEB_dump_ox__ (pox2, "del4");
 
 
   // UME_free (&tmpSpc);

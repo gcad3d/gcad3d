@@ -47,7 +47,6 @@ AP_set_dir_open
 AP_set_dir_save
 AP_set_modsiz
 
-AP_stat__           get/set AP_stat
 AP_stat_file        save AP_box_pm1,2 AP_stat.. 
 AP_errStat_set      set AP_stat.errStat
 AP_errStat_get      get AP_stat.errStat
@@ -628,19 +627,6 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 }
 
-/*
-//================================================================
-  AP_STAT AP_stat__ (AP_STAT *newStat) {
-//================================================================
-/// AP_stat__           get/set AP_stat
-
-
-  if(newStat) AP_stat = *newStat;
-
-  return AP_stat;
-
-}
-*/
 
 //================================================================
   void AP_deb_stat (int mode) {
@@ -709,9 +695,21 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 }
 
 
-//=================================================================
+//================================================================
+  int AP_err_hide_set (int stat) {
+//================================================================
+/// err_hide   0=normal-display errors;   1=hide-errors
+
+  AP_stat.err_hide = stat;
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_errStat_set (int stat) {
-//=================================================================
+//================================================================
 /// \code
 /// raise error
 /// 0 = default = OK;
@@ -3882,7 +3880,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// see APED_oid_vc
 /// \endcode
 
-// see also APT_obj_expr APED_dbo_oid
+// see also APT_obj_expr APED_dbo_oid ATO_srcTxt
 
   int     ii;
   char    s1[4];

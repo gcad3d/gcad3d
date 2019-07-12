@@ -118,7 +118,7 @@ APT_decode_att
 APT_decode_tra
 APT_decode_tool
 
-APT_decode_goAxis
+APT_decode_goAxis        change  atomic-obj (Typ_goAxis)) into DB-plane
 APT_decode_goRadius
 APT_decode_modUnlim      get UNL|UNL2|UNL1
 
@@ -212,6 +212,7 @@ cc -c NC_apt.c
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_os.h"               // OS_..
 #include "../ut/func_types.h"                  // Typ_Att_hili
+#include "../ut/ut_gtypes.h"           // AP_src_typ__
 
 #include "../gr/ut_gr.h"               /* Typ_PT ...  */
 #include "../gr/ut_DL.h"
@@ -3885,12 +3886,12 @@ static  CurvPoly plg1;
         // get obj2 = standardCurve of segment i1
         irc = UTO_cv_cvtrm (&typ, &obj2, NULL, &((CurvCCV*)ox1->data)[i1]);
         if(irc < 0) return -1;
-          DEB_dump_obj__ (typ, obj2, " ex _cv_cvtrm");
+          // DEB_dump_obj__ (typ, obj2, " ex _cv_cvtrm");
 
         // get typ and db-index of basic-curve obj2
         CVTRM_basCv_trmCv (&typ, &dbi, &vp1, &((CurvCCV*)ox1->data)[i1]);
-          printf(" typ=%d dbi =%ld\n",typ,dbi);
-          DEB_dump_obj__ (typ, vp1, " ex _basCv_trmCv");
+          // printf(" typ=%d dbi =%ld\n",typ,dbi);
+          // DEB_dump_obj__ (typ, vp1, " ex _basCv_trmCv");
 
         if(typ == Typ_CVPOL) {
           // get parameters par1,par2 of segment <i2> of trimmed-polygon obj2
@@ -5891,13 +5892,21 @@ see APT_decode_fsub
   int APT_decode_srv (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
 // SRV (RevolvedSurf)
+//
+// RevolvedSurface from axis and contour.
+// contour CANNOT be normal to axis;
+//   eg contour of cylinder is line parallel to axis.
+// Examples: "SRV L() L() ANG(a1) ANG(a2)"               // cyl
+//           "SRV L(%s) C(P(C%d) %s) P(C%d) P(C%d) CW"   // torus
 
 
-  int     irc, i1, iDir;
+
+  int     irc, i1, iDir, oTyp, axTyp;
   double  d1;
+  long    oDbi, axDbi;
   Point   pt1;
   SurRev  *srv;
-  Plane   *pla, pln;
+  Plane   pln;
 
 
 
@@ -5906,8 +5915,14 @@ see APT_decode_fsub
     // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
 
+  if(aus_anz < 3) goto L_parErr;
 
-  // get/remove last word if it is "CW"
+  // prepare static memspc for srv
+  srv = (void*)&APT_spc1[0];
+
+
+  //----------------------------------------------------------------
+  // get iDir; get/remove last word if it is "CW"
   iDir = 0;  // CCW
   if(aus_typ[aus_anz - 1] == Typ_cmdNCsub) {
     if(aus_tab[aus_anz - 1] == T_CW) {
@@ -5919,50 +5934,54 @@ see APT_decode_fsub
   }
 
 
-
-  // prepare memspc for srv & pt1 & ci1
-  srv = (void*)&APT_spc1[0];
-
-
-  if(aus_anz < 3) goto L_parErr;
+  //----------------------------------------------------------------
+  // change atomic-obj (aus_typ[1],aus_tab[1] (Typ_goAxis)) into DB-plane;
+  // get (Plane) pln and DB-plane in (aus_typ[1],aus_tab[1])
+  // pln.vz = rotAxis
+  irc = APT_decode_goAxis (&pln, &aus_typ[1], &aus_tab[1]);
+  if(irc < 0) goto Error;
 
 
   //----------------------------------------------------------------
-  // decode Typ_goAxis
-  irc = APT_decode_goAxis (&pln, &aus_typ[1], &aus_tab[1]);
-  if(irc < 0) goto Error;
-  pla = &pln;
+  axTyp = aus_typ[1];   // typ of axis
+  axDbi = aus_tab[1];   // Ind of axis
+  oTyp  = aus_typ[2];   // typ of contourelement
+  oDbi  = aus_tab[2];   // Ind of contourelement
 
-  srv->typCen = aus_typ[1];   // typ of Centerline
-  srv->indCen = aus_tab[1];   // Ind of Centerline (Typ = Typ_LN)
 
-  srv->typCov = aus_typ[2];   // typ of contourelement
-  srv->indCov = aus_tab[2];   // Ind of contourelement
+  // if contourelement is trimmed-curve: change to standard-curve
+  irc = DBO_cvStd_cvTrm (&oTyp, &oDbi);
+  if(irc < 0) return irc;
+
+
+
+  //----------------------------------------------------------------
+  srv->typCen = axTyp;        // typ of Centerline
+  srv->indCen = axDbi;        // Ind of Centerline (Typ = Typ_LN)
+
+  srv->typCov = oTyp;         // typ of contourelement
+  srv->indCov = oDbi;         // Ind of contourelement
 
   srv->dir = iDir;
 
 
   //----------------------------------------------------------------
-  // das Refsys so drehen, dass das Konturelement auf Winkel 0 liegt.
-  // Dazu braucht man den Winkel eines Punktes der Konturkurve.
-  // get pt1 = midpoint from contourelement
+  // rotate Refsys pln - x-axis goes tru midPoint of contourelement
+
+  // get pt1 = midpoint of contourelement
   UTO_pt_eval_par1_dbo (&pt1, 0.5, srv->typCov, srv->indCov);
     // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
 
-  // rot. Refsys around Z; point gives new X-direction
-  pla = DB_get_PLN (srv->indCen);
-  UT3D_pl_rotpt (pla, pla, &pt1);
-    // GR_Disp_pln (pla, 9);
+  // rot. Refsys around axis; point pt1 gives new X-direction
+  UT3D_pl_rotpt (&pln, &pln, &pt1);
+    // GR_Disp_pln (&pln, 9);
     // GR_Disp_vc (&pla->vx, &pla->po, 9, 0);
-
-  // UT3D_pl_invert (pla); // TEST
-
 
 
   //----------------------------------------------------------------
   // get Angle from value/Point
   if(aus_anz > 3) {
-    APT_dec_Ang_Obj (&d1, 0, &aus_typ[3], &aus_tab[3], pla);
+    APT_dec_Ang_Obj (&d1, 0, &aus_typ[3], &aus_tab[3], &pln);
     // srv->ang1 = UT_DEGREES (d1);
     srv->ang1 = d1;
   } else
@@ -5972,7 +5991,7 @@ see APT_decode_fsub
   //----------------------------------------------------------------
   // get Angle from value/Point
   if(aus_anz > 4) {
-    APT_dec_Ang_Obj (&d1, 0, &aus_typ[4], &aus_tab[4], pla);
+    APT_dec_Ang_Obj (&d1, 0, &aus_typ[4], &aus_tab[4], &pln);
     // srv->ang2 = UT_DEGREES (d1);
     srv->ang2 = d1;
   } else
@@ -6018,7 +6037,7 @@ see APT_decode_fsub
   ox1->siz   = 1;
   ox1->data  = srv;
 
-    // DEB_dump_obj__ (Typ_SURRV, srv, "ex APT_decode_srv");
+    // DEB_dump_obj__ (Typ_SURRV, srv, "ex-APT_decode_srv");
 
   return 0;
 
@@ -6240,15 +6259,28 @@ see APT_decode_fsub
 //=============================================================================
   int APT_decode_s_cyl (ObjGX *ox1,int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
+// APT_decode_s_cyl                decode cylindirc surface; out as SurRev
+// inputs  aus_typ,aus_tab:
+//           refsys, radius, ang1, ang2, dist1, dist2
+// output  SurRev:
+//           refsys, contourline, ang1, ang2, par1, par2
+//           par1,par2 = parameters on contourline
+
+// A = CYL axis radius rotAngle1 rotAngle2 height1 height2
+//    Axis:     The main axis of the cylinder; line, vector or plane (z-axis).
+//    Radius:   KeyIn radius or sel point.
+//    rotAngle1 KeyIn launch angle (Def = 0) or sel point.
+//    rotAngle2 KeyIn End piece (Def = 360) or sel point.
+//    height1   KeyIn elevation (from Achsstartpunkt; Def = 0) or sel point.
+//    height2   KeyIn elevation (from Achsstartpunkt) or sel point.
 
 
-
-  int     irc, i1, ibp;
+  int     irc, i1;
   long    l1;
-  double  rdc, dz, d1;
+  double  rdc, d1;
   SurRev  *srv;
-  Point   *pt1, *pt2;
-  Line    *ln1, *lna;
+  Point   pt1, pt2;
+  Line    lnCo, *lna;  //, *ln1, *lna;
   Circ    *ci1;
   Plane   *pla, pln;
 
@@ -6261,111 +6293,132 @@ see APT_decode_fsub
   // DEB_dump_dbo (aus_typ[1], (long)aus_tab[1], "");
 
 
-  // prepare memspc for srv & pt1 & ci1
+  // prepare memspc for srv  pt1  li1  pt2
   srv = (void*)&APT_spc1[0];  // Startposi der srv
   i1  = sizeof(SurRev);
-  pt1 = (void*)&APT_spc1[i1]; // liegt hinter srv
-  i1 += sizeof(Point);
-  ln1 = (void*)&APT_spc1[i1]; // liegt hinter pt1
-  i1 += sizeof(Line);
-  pt2 = (void*)&APT_spc1[i1]; // liegt hinter ln1
 
 
-  // decode Typ_goAxis --> pln & aus_typ[1],aus_tab[1]
+  // get pln = plane from inputs aus_typ[1],aus_tab[1]
   irc = APT_decode_goAxis (&pln, &aus_typ[1], &aus_tab[1]);
   if(irc < 0) goto Error;
   pla = &pln;
 
 
-  // decode Typ_goRadius --> rdc
+  // get rdc = radius from aus_typ[2],aus_tab[2]
   irc = APT_decode_goRadius (&rdc, 1, &aus_typ[2], &aus_tab[2], &pln);
   if(irc < 0) goto Error;
 
 
-  // get Angle from value/Point
+  // set defaults
+  srv->ang1 = 0.;
+  srv->ang2 = RAD_360;
+  srv->v0   = 0.;
+  srv->v1   = 1.;
+
+
+  //----------------------------------------------------------------
+  // get ang1 from value/Point
   if(aus_anz > 3)
     APT_dec_Ang_Obj (&srv->ang1, 0, &aus_typ[3], &aus_tab[3], pla);
-  else
-    srv->ang1 = 0.;
 
-  // get Angle from value/Point
+  // get ang2 from value/Point
   if(aus_anz > 4)
     APT_dec_Ang_Obj (&srv->ang2, 0, &aus_typ[4], &aus_tab[4], pla);
-  else
-    srv->ang2 = RAD_360;
+
   if(fabs(srv->ang1-srv->ang2) < UT_TOL_pt) srv->ang2 += RAD_360;
     // printf(" a1=%f a2=%f\n",srv->ang1,srv->ang2);
 
-  // Die (fixe) Konturlinienlaenge.
-  dz = WC_ask_ModSiz()/5.;
 
 
-    //==================================================================
-      srv->indCen = aus_tab[1];   // Ind of CenterObj (Plane)
-      srv->typCen = aus_typ[1];
-
-      // create a dynam Line
-      UT3D_pt_traptvclen (&ln1->p1, &pla->po, &pla->vx, rdc);  // am Mantel;
-      // Abst p2 am Mantel ist v1;
-      UT3D_pt_traptvclen (&ln1->p2, &ln1->p1, &pla->vz, dz);
-
-      l1 = DB_StoreLine (-1L, ln1);
-
-      srv->indCov = l1;           // Ind of contourelement
-      srv->typCov = Typ_LN;       // typ of contourelement
+  //----------------------------------------------------------------
+  // set DBO CenterObj (Plane)
+    srv->indCen = aus_tab[1];   // Ind of CenterObj (Plane)
+    srv->typCen = aus_typ[1];
 
 
-    //==================================================================
+  //----------------------------------------------------------------
+  // create lnCo = a dynam Line - parallel to line lnAx;
+  //   offset from lnAx is rdc;
+  //   startpoint is in plane at x-axis
+  //  length is 1;
+
+  // lnCo->p1 = from pla->po along pla->vx dist = rdc
+  UT3D_pt_traptvclen (&lnCo.p1, &pla->po, &pla->vx, rdc);  // am Mantel;
+
+  // lnCo->p2 = from ln1->p1 along pla->vz dist 1.
+  // UT3D_pt_traptvclen (&lnCo->p2, &ln1->p1, &pla->vz, dz);
+  lnCo.p2 = lnCo.p1;
+  UT3D_pt_add_vc__ (&lnCo.p2, &pla->vz);
+
+  l1 = DB_StoreLine (-1L, &lnCo);
+    // DEB_dump_obj__ (Typ_LN, &lnCo, "decode_s_cyl-lnCo\n");
+
+  // set DBO contourelement (line)
+  srv->indCov = l1;           // Ind of contourelement
+  srv->typCov = Typ_LN;       // typ of contourelement
 
 
-  L_9:
-
+  //==================================================================
   // Inputwerte fuer v0/v1:
   // Zahlenwerte: sind die Laenge entlang der Z-Achse;
   //   umrechnen in Parameterwerte.
-  ibp = UT3D_bp_perp_2pt (&ln1->p1, &ln1->p2);  // get backplane ibp
+
+
+  // get v0 = startParameter on contourelement
   if(aus_anz > 5) {
+
     if(aus_typ[5] == Typ_Val) {
-      UT3D_pt_traptptlen (pt1, &ln1->p1, &ln1->p2, aus_tab[5]);
+      // UT3D_pt_traptptlen (pt1, &ln1->p1, &ln1->p2, aus_tab[5]);
+      srv->v0 = aus_tab[5];
 
     } else if (aus_typ[5] == Typ_PT) {
-      pt2 = DB_get_PT ((long)aus_tab[5]);
+      pt2 = DB_GetPoint ((long)aus_tab[5]);
       // pt1 = project point pt2 --> line ln1
-      UT3D_pt_projptln (pt1, NULL, NULL, pt2, ln1);
-    }
-    // get paramter of pt1 on ln1
-    srv->v0 = UT3D_parpt_lnbp (pt1, ln1, ibp);
-  } else
-    srv->v0 = 0.;
+      UT3D_pt_projptln (&pt1, NULL, NULL, &pt2, &lnCo);
+      // get paramter of pt1 on lnCo.
+      UT3D_parpt_ln__ (&srv->v0, &pt1, &lnCo);
 
+    } else goto L_err1;
+  }
+
+
+  // get v1 = endParameter on contourelement
   if(aus_anz > 6) {
+
     if(aus_typ[6] == Typ_Val) {
-      UT3D_pt_traptptlen (pt1, &ln1->p1, &ln1->p2, aus_tab[6]);
+      // UT3D_pt_traptptlen (pt1, &ln1->p1, &ln1->p2, aus_tab[6]);
+      srv->v1 = aus_tab[6];
+
     } else if (aus_typ[6] == Typ_PT) {
-      pt2 = DB_get_PT ((long)aus_tab[6]);
+      pt2 = DB_GetPoint ((long)aus_tab[6]);
       // pt1 = project point pt2 --> line ln1
-      UT3D_pt_projptln (pt1, NULL, NULL, pt2, ln1);
-    }
-    // get paramter of pt1 on ln1
-    srv->v1 = UT3D_parpt_lnbp (pt1, ln1, ibp);
-  } else
-    srv->v1 = 1.;
+      UT3D_pt_projptln (&pt1, NULL, NULL, &pt2, &lnCo);
+      // get paramter of pt1 on ln1
+      UT3D_parpt_ln__ (&srv->v1, &pt1, &lnCo);
 
-  // printf(" cyl - v1=%f v2=%f\n",srv->v0,srv->v1);
+    } else goto L_err1;
+  }
 
 
 
+  //----------------------------------------------------------------
   ox1->typ   = Typ_SURRV;
   ox1->form  = Typ_SURRV;
   ox1->siz   = 1;
   ox1->data  = srv;
 
-
     // DEB_dump_obj__ (Typ_SURRV, srv, "ex APT_decode_s_cyl\n");
+
   return 0;
 
+
+  //----------------------------------------------------------------
   Error:
   TX_Error(" Definition A=CYL not implemented");
+  return -1;
+
+  L_err1:
+  TX_Error("APT_decode_s_cyl parameter-error");
   return -1;
 
 
@@ -6392,7 +6445,7 @@ see APT_decode_fsub
 //================================================================
   int APT_decode_goAxis (Plane *pln, int *aus_typ, double *aus_tab) {
 //================================================================
-// decode Axis, provide Plane in aus_typ & aus_tab.
+// decode Axis, store as DB-plane; provide Plane in aus_typ & aus_tab.
 // if input==Line: create plane, store it as dynamic plane.
 
   int     typ;
@@ -6550,15 +6603,20 @@ see APT_decode_fsub
   int APT_decode_sru (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
 // SRU (RuledSurf)
-// only used by extrusion; obj1=contour; obj2=vector
+// Input:
+//   atomic-obj1   contour
+//   atomic-obj2   vector
+// Output:
+//   ox1           RuledSurf Typ_SURRU
+//   
+// "A20=SRU C20 D(0 0 16)"
 
 
 static ObjGX   oxa[2];
 
+  int       irc, i1, oTyp, vTyp;
+  long      l1, oDbi, vDbi;
   ObjGX     *o1, *o2;
-
-  long           i1;
-
 
 
   // printf("APT_decode_sru %d\n",aus_anz);
@@ -6567,29 +6625,25 @@ static ObjGX   oxa[2];
   // }
 
 
-  oxa[0].typ  = aus_typ[1];
-  oxa[0].form = Typ_Index;
-  oxa[0].siz  = 1;
-  oxa[0].dir  = 0;
-  i1 = aus_tab[1];
-  oxa[0].data = PTR_LONG(i1);
+  oTyp  = aus_typ[1];   // typ of contourelement
+  oDbi  = aus_tab[1];   // Ind of contourelement
+  vTyp  = aus_typ[2];   // typ of vector
+  vDbi  = aus_tab[2];   // Ind of vector
+
+  // if contourelement is trimmed-curve: change to standard-curve
+  irc = DBO_cvStd_cvTrm (&oTyp, &oDbi);
+  if(irc < 0) return irc;
 
 
-  oxa[1].typ  = aus_typ[2];
-  oxa[1].form = Typ_Index;
-  oxa[1].siz  = 1;
-  oxa[1].dir  = 0;
-  i1 = aus_tab[2];
-  oxa[1].data = PTR_LONG(i1);
 
+  //----------------------------------------------------------------
+  // set contour
+  OGX_SET_INDEX (&oxa[0], oTyp, oDbi);
 
-  ox1->typ   = Typ_SURRU;
-  ox1->form  = Typ_ObjGX;
-  ox1->siz   = 2;
-  ox1->dir   = 0;
-  ox1->data  = (void*)oxa;
+  // set vector
+  OGX_SET_INDEX (&oxa[1], vTyp, vDbi);
 
-
+  // get reverse-direction
   if((aus_anz == 4)                &&
     ((aus_typ[3] == Typ_cmdNCsub)||(aus_typ[3] == Typ_modif))  &&
      (aus_tab[3] == T_CW))           {           // Typ_modCW
@@ -6599,16 +6653,18 @@ static ObjGX   oxa[2];
   }
 
 
-  // nur Testausg:
-  // DEB_dump_ox_0 (ox1, "APT_decode_sru");  // full decode ..
-  // DEB_dump_ox_s_ (ox1, "APT_decode_sru");
-  // o1 = ox1->data; o2 = &o1[0];
-  // printf("  SurRu 0 typ=%d ind=%d\n",o2->typ,(long)o2->data);
-  // o2 = &o1[1];
-  // printf("  SurRu 1 typ=%d ind=%d\n",o2->typ,(long)o2->data);
+  // set RuledSurf
+  OGX_SET_OBJ (ox1, Typ_SURRU, Typ_ObjGX, 2, (void*)oxa);
 
 
-
+    // TESTBLOCK
+    // DEB_dump_ox_0 (ox1, "ex-APT_decode_sru");  // full decode ..
+    // DEB_dump_ox_s_ (ox1, "APT_decode_sru");
+    // o1 = ox1->data; o2 = &o1[0];
+    // printf("  SurRu 0 typ=%d ind=%d\n",o2->typ,(long)o2->data);
+    // o2 = &o1[1];
+    // printf("  SurRu 1 typ=%d ind=%d\n",o2->typ,(long)o2->data);
+    // END TESTBLOCK
 
 
   return 0;

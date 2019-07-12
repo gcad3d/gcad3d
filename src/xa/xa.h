@@ -21,6 +21,7 @@
 /// mdl_modified   UNUSED
 /// mdl_box_valid  AP_mdlbox_invalid_ck - 0=valid, 1=void,invalid
 /// start_rcmd 0=no; 1=start-remoteCommandFile
+/// err_hide   0=normal-display errors;   1=hide-errors
 /// iActStat   0=normal, 1=Interactivity_ON
 /// cadIniM    CAD - init - mainFunction
 /// cadIniS    CAD - init - subFunction
@@ -39,7 +40,8 @@ typedef struct {int errLn; short sysStat, errStat;
                           mdl_box_valid:1,
                           comp:1,
                           start_rcmd:1,
-                          uuBits:19;
+                          err_hide:1,
+                          uuBits:18;
                 char      cadIniM, cadIniS, subtyp;}           AP_STAT;
 
 
@@ -129,7 +131,6 @@ extern AP_STAT AP_stat;
   // int AP_GetObj    (ObjG* o1, long dli);
   int AP_APT_clean ();
 
-  // AP_STAT AP_stat__ (AP_STAT *newStat);
   int AP_errStat_set (int stat);
   int AP_errStat_get ();
 

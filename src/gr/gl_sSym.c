@@ -319,6 +319,13 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   int GL_sSym_srv (ObjGX *oxi, int att, long ind) {
 //================================================================
 // draw symbolic display of RevolvedSurface
+// RevolvedSurface from axis and contour.
+// contour CANNOT be normal to axis;
+//   eg contour of cylinder is line parallel to axis.
+// Examples: "SRV L() L() ANG(a1) ANG(a2)"               // cyl
+//           "SRV L(%s) C(P(C%d) %s) P(C%d) P(C%d) CW"   // torus
+
+// display 3 circles starting at StartPoint/midPoint/endPoint ?
 
 
   int     irc, i1, ii, ip, pcNr, ppNr[6], pcMax, cTyp, rNr;
@@ -327,7 +334,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   void    *oc;
   Point   pta, *pcTab, *ppTab[6], p1, p2, pm, pc;
   Vector  vca;
-  Circ    cic, ci1;
+  Circ    *cii, cic, ci1;
   ObjGX   oo, oxo, oci, oc1, oc2, cvTab[6];  // *ocp;   // oco
   CurvCCV oco;
   ObjDB   odbi;
@@ -349,12 +356,11 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   pcMax = sizeof(memspc55) / sizeof(Point);
 
 
-  // KonturKurve & Achse extrahieren ...  see also TSU_tr_init_
-  srv1 = oxi->data;
-  a1 = srv1->ang1;
-  a2 = srv1->ang2;
-  v0 = srv1->v0;
-  v1 = srv1->v1;
+  srv1 = oxi->data;    // get srv1 = revSur
+  a1 = srv1->ang1;     // startAngle
+  a2 = srv1->ang2;     // endAngle
+  v0 = srv1->v0;       // startParameter along axis
+  v1 = srv1->v1;       // endParameter along axis
 
 
   // invert direction if dir=revers
@@ -363,55 +369,62 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   }
 
 
-  // die Winkel korrigieren; muessen im Bereich -2Pi bis +2Pi sein
-  // und aufsteigend.
+  // set angles min -2Pi max +2Pi
   UT2D_2angr_set (&a1, &a2, 0);
 
 
-  // Mittelwerte errechnen
+  // get am = angle in the middle of the contour
   vm = (v0 + v1) / 2.;
   am = (a1 + a2) / 2.;   UT2D_2angr_set (&am, &am, 0);
     // printf(" ang1=%f am=%f ang2=%f v0=%f vm=%f v1=%f\n",a1,am,a2,v0,vm,v1);
 
 
+  // get oci = axis-obj
+  // printf("Cen-typ=%d ind=%d\n",srv1->typCen, srv1->indCen);
+  oci = DB_GetObjGX ((int)srv1->typCen, srv1->indCen);
+  if(oci.typ == Typ_Error) return -1;
 
 
-  // -----------------------------------
-    // Achse holen
-    // printf("Cen-typ=%d ind=%d\n",srv1->typCen, srv1->indCen);
-    oci = DB_GetObjGX ((int)srv1->typCen, srv1->indCen);
-    if(oci.typ == Typ_Error) return -1;
+  // get rotAxis point pta + Vector vca
+  i1 = UT3D_ptvc_ox (&pta, &vca, &oci);
+  if(i1 < 0) return i1;
+    // DEB_dump_obj__(Typ_VC, &vca, " srv-vca:");
 
 
-    // rotAxis setzen; Punkt pta + Vector vca
-    i1 = UT3D_ptvc_ox (&pta, &vca, &oci);
-    if(i1 < 0) return i1;
-
-
-
-  // -----------------------------------
-  // get oci = obj to cut   srv1->typCov, srv1->indCov
+  // get (ObjDB) odbi = DB-obj contourelement
   ODB_set_odb (&odbi, (int)srv1->typCov, srv1->indCov);
-  // oci.typ   = srv1->typCov; // Typ_CI; // Typ_LN;
-  // oci.form  = Typ_Index;
-  // l1 = srv1->indCov;
-  // oci.data  = (void*)l1;
 
 
-
+  // get cTyp = type of contourelement
   // ACHTUNG vermutlich muss man hier auch TSU_srv_tor_01 benutzen uva ...
-  // wenn oci ein Vollkreis ist, den Startpunkt ganz innen setzen ...
-  // cTyp = UTO_objDat_ox ((void**)&ocp, &rNr, &oci);
   cTyp = srv1->typCov;
+
+  // get cvCov = data-struct of contourelement
   UTO_objDat_dbo (&cvCov, &rNr, &cTyp, srv1->indCov);
+
+
+
+  // if contourelement = Circ then 
   if(cTyp == Typ_CI) {
-      // DEB_dump_obj__(Typ_CI, ocp, " srv-cont1:");
-    UT3D_pt_projptptvc (&pta, &d1, NULL, &((Circ*)cvCov)->pc, &pta, &vca);
+
+    cii = (Circ*)cvCov;
+      // DEB_dump_obj__(Typ_CI, cii, " srv-cont1:");
+
+    // Circ-vz may not be parallel vca
+    if(UT3D_comp2vc_d(&vca, &cii->vz, UT_TOL_min1)) {
+      TX_Error("GL_sSym_srv E1-parameter-error");
+      return -1;
+    }
+
+    // get pta = CircCenter projected onto axis pta-vca
+    UT3D_pt_projptptvc (&pta, &d1, NULL, &cii->pc, &pta, &vca);
       // GR_Disp_pt (&pta, SYM_STAR_S, 4);
     // SEE ALSO TSU_srv_tor_03 !
+
     if(UT3D_ck_ci360((Circ*)cvCov) == 0) {
-      cic = *(Circ*)cvCov;
+      // yes, 360DegCirc
       // den Z-Vektor setzen
+      cic = *cii;
       UT3D_vc_perpvc2pt (&cic.vz, &vca, &pta, &cic.pc);
       UT3D_pt_traptptlen (&cic.p1, &cic.pc, &pta, fabs(cic.rad));
       cic.p2 = cic.p1;
@@ -519,18 +532,22 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   L_c2:
 
+  // get pc = 
   // project endPoint -> pta+vca
   UT3D_pt_projptptvc (&pc, &d1, NULL, &p2, &pta, &vca);
   if(d1 < UT_TOL_cv) goto L_c3;
 
+  // get ci1 = circle starting at p2 around pc normal to vca
   // kreis um pta+vca mit StartPoint von a1 bis a2
   UT3D_ci_ptvcpt2angr (&ci1, &pc, &p2, &vca, a1, a2);
+
 
   // prepare next ptTab
   ++ii;
   ppTab[ii] = &pcTab[ip];
   ppNr[ii] = pcMax - ip;
 
+  // add ci1 to polygon ppTab
   // circ -> polygon
   UT3D_cv_ci (ppTab[ii], &ppNr[ii], &ci1, ppNr[ii], UT_DISP_cv*2.);
   ip += ppNr[ii];
@@ -548,7 +565,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   UT3D_pt_projptptvc (&pc, &d1, NULL, &pm, &pta, &vca);
   if(d1 < UT_TOL_cv) goto L_out;
 
-  // kreis um pta+vca mit StartPoint von a1 bis a2
+  // get ci1 = circle starting at pm around pc normal to vca
   UT3D_ci_ptvcpt2angr (&ci1, &pc, &pm, &vca, a1, a2);
 
   // prepare next ptTab
@@ -556,6 +573,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   ppTab[ii] = &pcTab[ip];
   ppNr[ii] = pcMax - ip;
 
+  // add ci1 to polygon ppTab
   // circ -> polygon
   UT3D_cv_ci (ppTab[ii], &ppNr[ii], &ci1, ppNr[ii], UT_DISP_cv*2.);
   ip += ppNr[ii];

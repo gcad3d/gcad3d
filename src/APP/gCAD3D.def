@@ -74,6 +74,7 @@ APED_txo_modObj_get
 APED_txo_srcLn__
 APED_update__
 APED_VcTra_reset
+AP_err_hide_set
 AP_errStat_get
 AP_errStat_reset
 AP_errStat_set
@@ -813,6 +814,7 @@ DB_ModBas_seqMax
 DB_ModNod_ckLoaf_
 DB_ModNod_ckLoop_
 DB_ModNod_ckLoop1
+DBO_cvStd_cvTrm
 DBO_dbo_ato__
 DBO_dbo_src__
 DBO_dump__
@@ -850,6 +852,7 @@ DB_StoreCvRBsp
 DB_StoreDim_
 DB_StoreDim3
 DB_StoreDummy
+DB_StoreDynPoint
 DB_StoreGTxt
 DB_Store_hdr_cv
 DB_Store_hdr_nt
@@ -1016,7 +1019,6 @@ ED_lnr_mac
 ED_lnr_reset
 ED_load__
 EDMPT_CB1
-EDMPT_curSym_set
 EDMPT_del__
 EDMPT_dep_sav
 EDMPT_dump_atab
@@ -1024,7 +1026,6 @@ EDMPT_dump_ptab
 EDMPT_exit_1
 EDMPT_exit_2
 EDMPT_fixed_0
-EDMPT_get_offObj
 EDMPT_get_tabInd
 EDMPT_init
 EDMPT_ins_pt
@@ -1039,6 +1040,9 @@ EDMPT_msg_mode
 EDMPT_newPos__
 EDMPT_obj_get
 EDMPT_off_CB
+EDMPT_off_get
+EDMPT_off_vec_disp
+EDMPT_PlnVec__
 EDMPT_points
 EDMPT_ptab_3D_2D
 EDMPT_ptab_get
@@ -4432,6 +4436,8 @@ UTO_MOD_resolv_two_open
 UTO_npt_int_2ox
 UTO_npt_Tes
 UTO_obj_appmir
+UTO_obj_cnvt_ato
+UTO_obj_cnvt_src
 UTO_objDat_dbo
 UTO_objDat_ox
 UTO_obj_save

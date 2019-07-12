@@ -1961,12 +1961,12 @@ static FILE     *uo = NULL;
 
 
 //================================================================
-  int DEB_dump_ox__ (void *obj1) {
+  int DEB_dump_ox__ (void *obj1, char *inf) {
 //================================================================
 
   int irc;
 
-  printf("DEB_dump_ox__ pos=%ld --------------------\n",(long)obj1);
+  printf("DEB_dump_ox__ pos=%ld ---------------- %s\n",(long)obj1,inf);
 
   irc = DEB_dump_nobj_1 (obj1, Typ_ObjGX, 1, 0);
 

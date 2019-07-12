@@ -1,3 +1,10 @@
+Version 2.44.12 / 2019-07-11
+
+- CAD: "A Revolved Surf" - support of trimmed curves added
+- CAD: "A Extrusion Surf" - support of trimmed curves added
+- CAD: bugfix 'cylindric-surfaces-height-from-parameter'
+
+===========================================================================
 Version 2.44.10 / 2019-06-20
 
 - CAD: projection-plane added to View Top, Front, Side

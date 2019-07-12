@@ -10011,6 +10011,7 @@ liegt. ohne acos.
   void UT3D_vc_txt (Vector *vc, char *txt) {
 //=======================================================================
 /// UT3D_vc_txt               Vector from text
+/// txt eg. "1 0 [0]"
 
 
   int  i1;
@@ -14220,10 +14221,12 @@ FEHLER: pos's koennen gleich sein !
 
 
   int     irc=0, ii;
-  // double  parN; // native parameter
+  char    cv1[OBJ_SIZ_MAX];
 
 
   // printf("UT3D_ptvc_tng_crv_par par=%lf oTyp=%d\n",par,oTyp);
+  // DEB_dump_obj__ (oTyp, obj, " ptvc_tng_crv_par-obj");
+
 
   switch (oTyp) {
 
@@ -14287,22 +14290,30 @@ FEHLER: pos's koennen gleich sein !
       break;
 
     //----------------------------------------------------------------
+    case Typ_CVTRM:
+      // get standard-curve from trimmed-curve; recursion
+      irc = UTO_cv_cvtrm (&oTyp, cv1, NULL, obj);
+      // recursion
+      return UT3D_ptvc_tng_crv_par (pto, vct, oTyp, cv1, pTyp, par);
+
+    //----------------------------------------------------------------
     default:
       TX_Error("not yet implemented - UT3D_ptvc_tng_crv_par E001 %d",oTyp);
       return -1;
   }
 
-/*
-    // TESTS ONLY:
-    if(pto) {
-      DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_ptvc_tng_crv_par:");
-      GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
-    }
-    if(vct) {
-      DEB_dump_obj__ (Typ_VC, vct, "ex UT3D_ptvc_tng_crv_par:");
-      GR_Disp_vc (vct, NULL, 9, 0);
-    }
-*/
+
+    // TESTBLOCK
+    // if(pto) {
+      // DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_ptvc_tng_crv_par:");
+      // GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
+    // }
+    // if(vct) {
+      // DEB_dump_obj__ (Typ_VC, vct, "ex UT3D_ptvc_tng_crv_par:");
+      // GR_Disp_vc (vct, NULL, 9, 0);
+    // }
+    // END TESTBLOCK
+
 
   return irc;
 
@@ -14957,7 +14968,8 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 //================================================================
   int UT3D_pl_obj (Plane *pl1, int typ, void *obj, int oNr) {
 //================================================================
-// get basic-plane for obj
+// UT3D_pl_obj              get basic-plane for obj
+// TODO: problem plane from point+vector; use ATO or OTB or OGX ?
 
   int      irc, ptNr, paSiz;
   Point    *pta;

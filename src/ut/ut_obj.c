@@ -47,6 +47,9 @@ UTO2_TNG_pt_obj         get tangent-point on curve from point outside
 
 
 --------- 3D - functions ----------------------------
+UTO_obj_cnvt_src        get obj of requested typ from source
+UTO_obj_cnvt_ato        get obj of requested typ from ato
+
 --------- functions for curves: ---------------------
 UTO_ck_curvLimTyp       check if CurveLimits are Points or parameters
 UTO_ck_curvForm         check if objTyp is ObjGX or other typ
@@ -197,9 +200,11 @@ cc -Wall ut_obj.c -DOFFLINE&&a.out
 
 #include "../db/ut_DB.h"
 
-#include "../xa/xa_msg.h"                 // MSG_*
-#include "../xa/xa_mem.h"                 // memspc54
+#include "../xa/xa_msg.h"              // MSG_*
+#include "../xa/xa_mem.h"              // memspc54
+#include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 // #include "../xa/xa_uid.h"               // UI_MODE_MAN
+
 
 
 
@@ -296,6 +301,111 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 }
 */
+
+//===================================================================
+  int UTO_obj_cnvt_ato (void *objo, int typo, ObjAto *ato1) {
+//===================================================================
+// UTO_obj_cnvt_ato      get obj of requested typ from ato
+// Input :
+//   ato1         input-objs
+//   typo         requested output-type
+// Output: 
+//   objo         converted object of type typo
+//
+// see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
+// see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
+
+
+  int    irc;
+
+
+  printf("UTO_obj_cnvt_obj typo=%d\n",typo);
+  ATO_dump__ (ato1, " _cnvt_obj-in");
+
+
+  switch (typo) {
+
+    // case Typ_Val:          // see sele_decode L_val_conv: L_VAL_C:
+      // break;
+
+    // case Typ_PT:           // see sele_decode L_pt_conv:
+      // break;
+
+    case Typ_VC:           // see sele_decode L_vc_conv:
+      irc = APT_decode_vc (objo, ato1->nr, ato1->typ, ato1->val);
+      break;
+
+    // case Typ_LN:           // see sele_decode L_tmpPt: L_ln_conv:
+      // break;
+
+    // case Typ_CI:           // see sele_decode L_LnAc_conv: L_ac_conv:
+      // UT3D_ci_obj
+      // break;
+
+    case Typ_PLN:          // sele_decode L_REF__:
+      irc = APT_decode_pln1 (objo, ato1->nr, ato1->typ, ato1->val);
+      break;
+
+    // case Typ_SubModel:   // from ModelReference - sele_decode L_mdl_conv1:
+
+
+    default:
+      goto L_err_nyi;
+  }
+
+
+    DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_ato");
+
+  return irc;
+
+  //----------------------------------------------------------------
+  L_err_nyi:
+    return MSG_ERR__ (ERR_func_not_impl, "typo=%d\n",typo);
+
+}
+
+
+//================================================================
+  int UTO_obj_cnvt_src (void *objo, int typo, char *srcLn) {
+//================================================================
+// UTO_obj_cnvt_obj      get obj of requested typ from source
+//
+// Input :
+//   srcLn        sourceline with input-objs
+//   typo         requested output-type
+// Output: 
+//   objo         converted object of type typo
+//
+// see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
+// see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
+
+
+#define cmd_SIZ 100
+
+  int      irc;  //, typ, oNr, itsMax;
+  ObjAto    ato1;
+
+
+  printf("\nUTO_obj_cnvt_src |%s|\n",srcLn);
+
+  // get memSpc for ato
+  ATO_getSpc_tmp__ (&ato1, cmd_SIZ);             // ATO_tmpSpc_get_s
+
+  // decode srcLn -> ato1
+  irc =  ATO_ato_srcLn__ (&ato1, srcLn);
+  if(irc < 0) return irc;
+    // ATO_dump__ (&ato1, " nach _ato_eval__");
+
+
+  // convert ato -> typ otyp
+  irc = UTO_obj_cnvt_ato (objo, typo, &ato1);
+
+    // DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_src");
+
+  return irc;
+
+}
+
 
 //================================================================
   int UTO_dbs_ox (void *dbs, int *form, ObjGX *ox) {

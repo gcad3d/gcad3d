@@ -102,6 +102,7 @@ DB_store_stru      call DB_StoreXX with structTyp,struct
 DB_StoreVar
 DB_StoreVector
 DB_StorePoint
+DB_StoreDynPoint   store/overwrite dynamic point
 DB_StoreLine
 DB_StoreCirc
 DB_StoreCvEll
@@ -5796,6 +5797,40 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 }
 
 
+//================================================================
+  long DB_StoreDynPoint (long Ind, Point* pt1) {
+//================================================================
+// DB_StoreDynPoint               store/overwrite dynamic point
+// Input:
+//   Ind          0 = create new point;  else overwrite point
+// Output:
+//   retCode      returns the DB-index as negative nr
+
+
+  long dbi;
+
+
+  if(!Ind) {
+    // 0 = create new point
+    dbi = DB_GetDynInd (Typ_PT);  // returns new neg. index
+
+
+  } else {
+    // overwrite point
+    // make index negative
+    if(Ind > 0) dbi = -Ind;
+    else        dbi = Ind;
+  }
+
+
+  pt_dyn[-dbi] = *pt1;
+
+
+  return dbi;
+
+}
+
+ 
 //=============================================================
   long DB_StorePoint (long Ind, Point* pt1) {
 //=============================================================

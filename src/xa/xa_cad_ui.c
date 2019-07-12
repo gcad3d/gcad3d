@@ -4514,6 +4514,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // den Caret kriegt man nicht weg ..
   for(i1=0; i1<iNr; ++i1) IE_cad_ClearInp1 (i1, 1);
 
+  // reset active-color of inputFieldText
+
   // set cursor back into 1. field   2013-09-03
   GUI_obj_focus (&IE_wCad_obj[0]);
 
@@ -5861,13 +5863,15 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     IE_stat_OK         0=OK-is-locked; 1=not
 */
 
-  int   irc, i1;
+  int   irc, i1, ieAct;
   long  lNr, dli;
   char  *p1, *p2;
 
 
   // printf("\nOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
   // printf("IE_cad_OK |%s| mod=%d del=%d\n",IE_outTxt,IE_modify,IE_delete);
+  // printf(" cad_OK-IE_inpInd=%d\n",IE_inpInd);
+
 
   // If OK is locked: activate next input-field
   if(!IE_stat_OK) return IE_inp_chg (-1);
@@ -5894,6 +5898,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // display obj permanent; create code in IE_outTxt
   IE_save = 1;     // save; 0=preview, 1=save perm.
 
+  ieAct = IE_inpInd;       // save for rest color (modif. in IE_cad_test__)
+
   irc = IE_cad_test__ ();  // create src in IE_outTxt
     // printf(" _test1-irc=%d\n",irc);
 
@@ -5908,6 +5914,10 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   IE_save = 0;     // reset; 0=preview, 1=save perm.
   if (irc < 0) return 0;
+
+
+  // reset color of text of active inputField
+  if(ieAct > 0) IE_info_col_set (0, ieAct); 
 
 
   // OK-Button sperren
@@ -5944,8 +5954,6 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     DL_hili_off (-1L);         //  -1 = unhilite all
 
 
-    // alle Inputfelder loeschen
-    // IE_cad_ClearInputs (IE_inpAnz);
     // clear all inputfields, goto 1. entry
     IE_cad_ResetInputs ();
 
@@ -7590,7 +7598,7 @@ static IE_info_rec IE_info_tab[] = {
 
   //----------------------------------------------------------------
   if(GUI_DATA_EVENT == TYP_EventPress) {    // 302
-      printf(" inp_CB__-Press %d\n",iKey);
+      // printf(" inp_CB__-Press %d\n",iKey);
 
 
     switch (iKey) {
@@ -7626,7 +7634,7 @@ static IE_info_rec IE_info_tab[] = {
 
   //----------------------------------------------------------------
   if(GUI_DATA_EVENT == TYP_EventRelease) {    // 303
-      printf(" inp_CB__-Relea %d\n",iKey);
+      // printf(" inp_CB__-Relea %d\n",iKey);
 
       // ev_k = (void*)event;
         // printf("       Inp1_CB keyval=%d %x\n",ev_k->keyval,ev_k->keyval);
@@ -8792,6 +8800,10 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   }
 
 
+  //================================================================
+  // get requested typ oTyp from given typ ato1.typ[0]
+// TODO make ATO-func giving requested typ from given bjects ..
+
   //----------------------------------------------------------------
   // if(oTyp=Typ_PT and ato1=Typ_Val(eg from "0 0 -5")): change ato1 to Typ_PT
   // (create dynamic point from "0 0 -5")
@@ -8824,6 +8836,23 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   //----------------------------------------------------------------
+  if(oTyp == Typ_PLN) {
+    if(ato1.typ[0] != Typ_PLN) {
+      irc = ATO_ato_atoTab__ (&oTyp, &d1, &ato1);
+      if(irc < 0) goto L_err_dyn;
+      ato1.typ[0] = Typ_PLN;
+      ato1.val[0] = d1;
+        // printf(" _atoTab__ irc=%d otyp=%d d1=%f\n",irc,oTyp,d1);
+    }
+  }
+
+    // ATO_dump__ (&ato1, "_Inp_disp__-3");
+
+    
+
+
+
+  //================================================================
   // get op1 = dataStruct from ato (see DBO_dbo_src__)
   if(TYP_IS_DBO(oTyp)) {             // test for DB-obj; not eg Typ_Val
       // printf(" Inp_disp__-is-dbo; yes\n");

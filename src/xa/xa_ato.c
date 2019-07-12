@@ -85,6 +85,13 @@ obsolete:
 \endcode *//*----------------------------------------
 
 
+
+
+Struct ObjAto has n records of (int-typ + double-val + short-ilev) records,
+  and one pointer for a textstring.
+
+ATO-functions decode a sourcetext into atomic-objects.
+
 ATO_ato_srcLn__:
 - get space
 - get tso from srcTxt (APED_txo_srcLn__)
@@ -92,8 +99,8 @@ ATO_ato_srcLn__:
 - eval ato (ATO_ato_eval__)
 
 
-ObjTXTSRC tso   has level and text and offsetposiiton in text
-ObjAto    ato   has level; no text
+ObjTXTSRC tso   has level and text and val=offsetposition in text
+ObjAto    ato   has level, typ and val = atomic-object; no text
 
 
 

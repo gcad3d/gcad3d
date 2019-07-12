@@ -187,6 +187,11 @@ static char   TX_buf1[1024];
 
 
   // printf("TX_Error |%d| stat=%d\n",txt,AP_stat.sysStat);
+  // printf("TX_Error err_hide=%d\n",AP_stat.err_hide);
+
+  // ignore all if (err_hide != 0)
+  if(AP_stat.err_hide) return;
+
 
   va_start(va,txt);
 

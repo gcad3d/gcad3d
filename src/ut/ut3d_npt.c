@@ -1788,7 +1788,7 @@ UT3D_npt_ci                circular polygon
   // if(oxi->form == 0) exit(-1); // AP_debug__ ("UT3D_pta_ox_lim E001");
   // printf("UT3D_pta_ox_lim iLim=%d ptMax=%d\n",iLim,*ptn);
   // // DEB_dump_obj__ (Typ_ObjGX, oxi, "UT3D_pta_ox_lim:\n");
-  // DEB_dump_ox_0 (oxi, "UT3D_pta_ox_lim");
+  // DEB_dump_ox_0 (oxi, "UT3D_pta_ox_lim-oxi");
   // // DEB_dump_ox_s_ (oxi, "UT3D_pta_ox_lim:\n"); DEFEKT bei CCV'S?
 
 
@@ -1887,7 +1887,7 @@ UT3D_npt_ci                circular polygon
       otyp = pcc->typ;
       irc = UTO_cv_cvtrm (&otyp, cv1, NULL, pcc);
       if(irc < 0) return -1;
-        // DEB_dump_obj__ (otyp, cv1, " ex-cv_cvtrm");
+        // DEB_dump_obj__ (otyp, cv1, " pta_ox_lim-ex-cv_cvtrm");
       oo = (void*)cv1;
 
 

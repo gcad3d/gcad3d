@@ -3,13 +3,9 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
-	<META NAME="CHANGED" CONTENT="20091011;11581800">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 <A HREF="CAD_using_en.htm">See operating CAD ..</A>
 
@@ -25,23 +21,19 @@ The definition of the design plane
   For the definition you can use a plane or a pre-defined plane.
     (Pre-defined planes: RX or RY or RZ).
     (see CAD-PLN, <a href="CAD_PLN_en.htm">Definition planes</a>)
-  The origin point of the chosen plane is the new coordinate origin.
-  In relation to the design plane are now:
-   - Coordinate data
-   - Displaying positions
 
-   The display of the mouse position can be relative or absolute.
-     Relative: (Default Setting) the coordinates in the new coordinate system;
-     Absolute: Sets all coordinates to absolute origin relative.
-   Toggle the radio button between &quot;rel&quot; and &quot;abs&quot; next to the display of the mouse position.
+  After activation of the new construction-plane
+   - "2D" in red is displayed left of the active coordinates,
+   - the origin point of the chosen plane is the new coordinate origin
+   - all coordinates displayed refer to the new coordinate-system
+
 
    To reset to the absolute coordinate system - Reset ConstrPlane
 
+
 Example:
-R20 = P(100 0 0) DR DY
-# Zero in 100,0,0; new X-axis in 0,10,0
-R20
-# Enable use of a new coordinate system.
+R20 = P(100 0 0) DX       # new origin (100 0 0); keep active X-axis
+R20                       # activate R20 as new coordinate system.
 
 
 See Example model sample_ucs1.gcad
@@ -52,8 +44,12 @@ See Example model sample_ucs1.gcad
 <h2>Reset ConstrPlane</h2>
 Reset to the absolute coordinate system
 
-Plane 0 defines the absolute coordinate system.
-   Create with output code &quot;R0&quot;
+Plane "RZ" defines the absolute coordinate system.
+   Create with output code &quot;RZ&quot;
+
+
+
+
 </PRE>
 </BODY>
 </HTML>

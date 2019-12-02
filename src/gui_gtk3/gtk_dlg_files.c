@@ -497,10 +497,10 @@ void* GUI_file_get () { return UI_FileWin; }
 
 
   int   irc;
-  char  s1[256];
+  char  s1[256], *p1;
 
 
-  printf("GUI_file_cb_dirsym2 %d\n",GUI_DATA_EVENT);
+  // printf("GUI_file_cb_dirsym2 %d\n",GUI_DATA_EVENT);
 // return FALSE;
 
   if(GUI_DATA_EVENT == TYP_EventExit) {
@@ -513,11 +513,19 @@ void* GUI_file_get () { return UI_FileWin; }
 
   if(data) {
     // normal selection; 
-      printf("GUI_File_cb_dirsym2 |%s|%s|\n",GUI_DATA_S3,GUI_DATA_S4);
+      // printf("GUI_File_cb_dirsym2 |%s|%s|\n",GUI_DATA_S3,GUI_DATA_S4);
 
+    // test if dir has "$"
+    strcpy (s1, GUI_DATA_S4);
+      // printf(" cb_dirsym2-s1 |%s|\n",s1);
+    p1 = strchr (s1, '$');
+    if(p1) {
+      // expand shell variables
+      OS_filnam_eval (s1, s1);
+    }
 
-    // test if directory <GUI_DATA_S4> exists  2015-08-29
-    irc = OS_checkFilExist (GUI_DATA_S4, 1);
+    // test if directory <s1> exists  2015-08-29
+    irc = OS_checkFilExist (s1, 1);
     if(!irc) {
       // delete ListWindow
       GUI_list1_dlg_del ();
@@ -534,8 +542,9 @@ void* GUI_file_get () { return UI_FileWin; }
     // strcpy (GUI_dlg1.title, GUI_DATA_S3);
 
     // copy dir -> dNam
-    strcpy (GUI_dlg1.dNam, GUI_DATA_S4);
-      printf(" GUI_dlg1.dNam=|%s|\n",GUI_dlg1.dNam);
+    strcpy (GUI_dlg1.dNam, s1);
+    // strcpy (GUI_dlg1.dNam, GUI_DATA_S4);
+      // printf(" GUI_dlg1.dNam=|%s|\n",GUI_dlg1.dNam);
 
 
     
@@ -548,7 +557,7 @@ void* GUI_file_get () { return UI_FileWin; }
     printf("GUI_file_cb_dirsym2 list cancelled\n");
   }
 
-    printf("exit GUI_File_cb_dirsym2 \n");
+    // printf("exit GUI_File_cb_dirsym2 \n");
 
   return TRUE;
   // return FALSE;

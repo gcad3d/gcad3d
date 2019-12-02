@@ -2,22 +2,29 @@
 <HEAD>
 <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
 <TITLE>IO_en.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
 <h2>Input - Output</h2>
+<HR><!-- ============================================================ -->
 
 <p><a name="IO"></a></p>
-<b>Start- Open- Save-</b>
-<a href="#F_N" >Start (New)</a>
-<a href="#F_OM">Open Model</a>
-<a href="#F_sM">Save Model</a>
+<a href="#F_N" >Start</a>              File / new
+<a href="#F_OM">Open Model</a>         File / Open Model
+<a href="#F_sM">Save Model</a>         File / save Model (as)
 
 <p><a name="ImpExp"></a></p>
 <b>Import Export</b>
+
 <a href="#ff_dxf">DXF</a>
 <a href="#ff_igs">IGES</a>
 <a href="#ff_stp">STEP</a>
@@ -32,34 +39,37 @@
 <a href="#ff_3ds">3DS</a>
 <a href="#ff_nciso">NC-ISO</a>
 
-
-
-<a href="#Print">Print</a>
+<a href="#Print">Export / Print</a>     PDF PS PCL5 HPGL SVG JPG BMP
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_N"></a></p>
 <b>File / New</b>
 
-Delete all Model and subModel space.
+ 
+ Clear active model; start new model with modelname unknown.gcad.
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_OM"></a></p>
 <b>File / Open Model</b>
 
-Load or import of a model.
+Load or import model.
 
-All models can only directories with a symbolic path
-  are defined to be imported / loaded.
-  Symbolic paths (default locations): see standard / directories.
+
+
+
+Select a filename to be loaded.
+
+  If the directory is not yet registered,
+    you have provide a symbolic name for that directory.
+  Symbolic paths (default locations): see <a href="Settings_en.htm#Directories">Standard / directories</a><br>
 
 <b>DIR-SYM - Button</b>
   Choose a directory that is already known
     (use a symbolic path).
 
-<b>DIR-NEW - Button</b>
   Choose a general directory.
   After selecting the directory path is a symbolic name is queried,
   which is then entered in the default locations.
@@ -69,6 +79,7 @@ Files are automatically converted to the corresponding file type,
 An import command is run for mock-up models and bitmaps.
 
 
+<HR><!-- ============================================================ -->
 <b>Analytical formats:</b>
 Analytical description of curves, surfaces.
 
@@ -105,7 +116,7 @@ This allows images (pixel) images are loaded into the 3D space.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_I"></a></p>
 <b>File / Insert</b>
 
@@ -117,7 +128,7 @@ Native models (.gcad) are loaded as the main model.
   In the case of inserting several native models, then existing main Model
   becomes a new subModel with its position set.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_IMn"></a></p>
 <b>File / Import Mockup native</b>
 
@@ -132,7 +143,7 @@ Switch OFF position (default)
   All mock-models are directly loaded (very fast), but they cannot
   be exported or altered.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_cnm"></a></p>
 <b>File / compress_native_models</b>
 
@@ -147,7 +158,7 @@ decompress the models at any time without a cad system.
 
 The compression rate is around percent 70%.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F_sM"></a></p>
 <b>File / save Model (as)</b>
 
@@ -194,10 +205,10 @@ A mockup model itself can not be exported.
 <b>Mockup-Modelle:</b>
 Mockup models are finished tessellated models, and allow fast import.
   
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ImpExp"></a></p>
 <h2><b>Import Export</b></h2>
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_dxf"></a></p>
 <b>Import / Export DXF</b>
 
@@ -233,7 +244,7 @@ DXF-2000:
 Dimmed objects ("DIM") and hidden objects (with DRAW OFF) are not exported.
 Tesselated surfaces are output as 3DFACE's (3 corners : Standards/Tolerances).
     
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_igs"></a></p>
 <b>Import / Export - IGES</b>
 
@@ -271,7 +282,7 @@ References to external submodels are not exported.
 Dimmed objects ("DIM") and hidden objects with DRAW OFF are not exported.
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_stp"></a></p>
 <b>Import / Export STEP</b>
 
@@ -284,7 +295,7 @@ Export: bodies not yet supported.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_wrl1"></a></p>
 <b>Import / Export VRML-1</b>
 
@@ -294,7 +305,7 @@ EXPORT:
  - Can export assemblies (subModels)
  - Cannot re-export mockup subModels (WRL/OBJ/TESS) 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_wrl2"></a></p>
 <b>Export VRML-2  (VRML-97)</b>
 
@@ -302,7 +313,7 @@ ____________________________________________________________________________
 - Cannot re-export mockup submodels (WRL/OBJ/TESS)
 - Cannot yet export textures
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_obj"></a></p>
 <b>Import / Export WaveFront-OBJ</b>
 
@@ -319,7 +330,7 @@ EXPORT:
  - Cannot currently export subModel position.
  - Cannot re-export mockup subModels (WRL/OBJ/TESS).
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_tess"></a></p>
 <b>Import / Export TESS</b>
 
@@ -331,7 +342,7 @@ EXPORT:
  - Currently can only export single models (no subModels can be exported)
  - Cannot re-export Mockup-Submodels (WRL/OBJ/TESS)
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_bmp"></a></p>
 <b>Import Bitmap</b>
 
@@ -342,14 +353,14 @@ Bitmaps are dynamically scaled or fixed.
 
 Files in JPEG or BMP format can be imported.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_stl"></a></p>
 <b>Import Stereolithography Format</b>
 
 Ascii-Format.
 The model is not checked to determine that it is closed.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_3ds"></a></p>
 <b>Import 3DS</b>
 
@@ -359,7 +370,7 @@ Currently, only the surface is imported.
 
 Binary format.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_lwo"></a></p>
 <b>Import LWO-Format</b>
 
@@ -370,17 +381,23 @@ Currently, only the surface is imported.
 Binary format.
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ff_nciso"></a></p>
 <b>File / Export NC-ISO</b>
 
   Output of the NC machining codes to file /tmp/pp.iso.
   Additional post-processors available on request.
 
-____________________________________________________________________________
+
+<HR><!-- ============================================================ -->
+<b>Export / Print</b>
 <p><a name="Print"></a></p>
-<b>Print</b>
-____________________________________________________________________________
+
+   - export to PDF PS PCL5 HPGL SVG JPG BMP
+   - preview / print to file or printer
+
+
+<HR><!-- ============================================================ -->
 
 
 Output format options:
@@ -407,5 +424,5 @@ An intermediate file is generated {base}/tmp/print.tmp .
   This is then converted into the chosen output format.
   The output can be rotated 90 degrees, scaled, and be offset.
 
-____________________________________________________________________________</PRE>
+<HR><!-- ============================================================ -->
 </HTML>

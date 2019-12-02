@@ -60,14 +60,15 @@ void INF_OTYP (){}
 #define Typ_VAR            1  ///< V   numer. variable
 #define Typ_VC             2  ///< D   Vector
 #define Typ_PT             3  ///< P   Point
-#define Typ_LN             4  ///< L   Line
+#define Typ_LN             4  ///< L   Line (CVLn3)
 #define Typ_CI             5  ///< C   Circ
 #define Typ_VC2           10  ///< D   Vector2
-#define Typ_VC3F          15  ///< D   Vec3f
+#define Typ_VC3F          11  ///< D   Vec3f
 #define Typ_PT2           11  ///< P   Point2
 #define Typ_LN2           12  ///< L   Line2
 #define Typ_CI2           13  ///< C   Circ2
 #define Typ_CI2C          14  ///< C   Circ2C centerPosition
+#define Typ_CVLN3         16  ///< S   CVLn3 (Line Typ_LN)
 
 /// DB-curves 20-39
 #define Typ_CV            20  ///< S   all curves
@@ -89,7 +90,6 @@ void INF_OTYP (){}
 #define Typ_CVELL2C       36  ///< S   CurvEll2C centerPosition
 #define Typ_CVBEZ2        37  ///< S   CurvBez2
 #define Typ_CVTRM         38  ///< S   CurvCCV
-#define Typ_CurvAssy      39  ///< S   CurvAssy        UNUSED
 
 /// DB-surfs 40-79
 #define Typ_PLN           40  ///< R  Plane
@@ -169,7 +169,7 @@ void INF_OTYP (){}
 #define Typ_TmpPT        115     ///< temporary Point
 #define Typ_Vertex       116  ///< Vertex; point on existing object
 #define Typ_EyePT        117     ///y eye-point
-#define Typ_TmpGrp       118     ///< temporary Point
+#define Typ_TmpGrp       118     ///< temporary Point   ??
 // #define Typ_TmpLN        111     ///< temporary Line
 // #define Typ_TmpVC        113     ///< temporary Vector
 // #define Typ_TmpSym       114     ///< temporary Symbol
@@ -186,23 +186,21 @@ void INF_OTYP (){}
 #define Typ_Mock         124  ///< M  ModelReference of mockup-subModel
 #define Typ_Ditto        125  ///< mockup-subModel (unvisible)
 #define Typ_Joint        126  ///< connection, exported;
-#define Typ_Process      127  
+#define Typ_CtlgPart     127  ///  catalog-part
 #define Typ_GEOB_2D      128  ///< geometric obj binary format 2D
 #define Typ_GEOB_3D      129  ///< geometric obj binary format 3D
 
 
 /// END OF DB-OBJECTS
-/// geom. parameters  TYP_IS_GEOMPAR
+/// geom. parameters  TYP_IS_GEOMPAR                       TypTxtTab130
 #define Typ_Val          130  ///< double-Value
-// #define Typ_ValX         131  ///< X-coord
-// #define Typ_ValY         132  ///< Y-coord
-// #define Typ_ValZ         133  ///< Z-coord
-#define Typ_XVal         134  ///< X-value (X())
-#define Typ_YVal         135  ///< Y-value (Y())
-#define Typ_ZVal         136  ///< Z-value (Z())
-#define Typ_Angle        137  ///< Angle (in degree; ANG())
-#define Typ_Rad          138  ///< Radius
-#define Typ_Dist         139  ///< distance
+#define Typ_XVal         131  ///< X-value (X())
+#define Typ_YVal         132  ///< Y-value (Y())
+#define Typ_ZVal         133  ///< Z-value (Z())
+#define Typ_Angle        134  ///< Angle (in degree; ANG())
+#define Typ_Rad          135  ///< Radius
+#define Typ_Dist         136  ///< distance  UNUSED ..
+
 #define Typ_Par1         140  ///< Parameter 0-1; for knotvals use Typ_Val
 #define Typ_UVal         141
 #define Typ_VVal         142
@@ -210,6 +208,10 @@ void INF_OTYP (){}
 #define Typ_AngP         144
 #define Typ_RadISO       145
 #define Typ_Conic        146
+
+#define Typ_PTS          147  // standard-point-Nr; (Ptyp_* eg Ptyp_start,Ptyp_end)
+#define Typ_PTI          148  // index controlpoint for eg polygon, bspl, ..
+#define Typ_SEG          149  // segment-Nr (of compound-objs, eg CCV)
 // #define Typ_Side         121  ///< hi, lo, le or ri
 // #define Typ_Side1        122  ///< in or out
 // #define Typ_DirS         123  ///< X / Y / Z / P
@@ -235,6 +237,7 @@ void INF_OTYP (){}
 #define Typ_Tool         165
 #define Typ_PRCV         166  ///< polygonal representation curve
 #define Typ_constPln     167  ///< construction-plane (2D-plane)
+#define Typ_Process      168  ///  Process (NC ..)
 
 
 /// dataFormats (Int, matrix, Polynom..)
@@ -260,16 +263,16 @@ void INF_OTYP (){}
 
 
 /// text
-#define Typ_Txt          190     ///< $  ohne ", normal mit , begrenzt f. $20=
-#define Typ_String       191     ///< durch " begrenzt
-#define Typ_StrDel       192     ///< StringDelimiter "\" Fortsetzungszeile 
-#define Typ_StrDel1      193     ///< StringDelimiter 1 "|"
-#define Typ_FncNam       194
-#define TYP_FilNam       195  ///< filename
-#define Typ_CtlgPart     196  ///< catalogpart
-#define Typ_NumString    197  /// numeric string; eg -123.4
-#define Typ_ConstVal     198  /// constant value; eg PI RAD_90 SR_2
-#define Typ_ConstOG      199  /// geometric-constant-object; eg DX RZ
+#define Typ_Txt          190   /// $  ohne ", normal mit , begrenzt f. $20=
+#define Typ_String       191   /// durch " begrenzt
+#define Typ_StrDel       192   /// StringDelimiter "\" Fortsetzungszeile 
+#define Typ_StrDel1      193   /// StringDelimiter 1 "|"
+#define Typ_FncNam       194   /// geom-function; see ObjCodTab Typ_Cmd1
+#define TYP_FilNam       195   /// filename
+//#define Typ_........     196   /// ....
+#define Typ_NumString    197   /// numeric string; eg -123.4
+#define Typ_ConstVal     198   /// constant value; eg PI RAD_90 SR_2
+#define Typ_ConstOG      199   /// geometric-constant-object; eg DX RZ
 
 
 /// containers
@@ -286,10 +289,10 @@ void INF_OTYP (){}
 
 
 /// transformations
-#define Typ_Tra          210  ///< all transformations
-#define Typ_TraTra       211  ///< Translation dzt unused; Typ_VC used
-#define Typ_TraRot       212  ///< Rotation TraRot
-// #define Typ_TraMat       213  ///< Matrixtransformation
+#define Typ_Tra          210   ///< all transformations
+#define Typ_TraTra       211   ///< Translation dzt unused; Typ_VC used
+#define Typ_TraRot       212   ///< Rotation TraRot
+// #define Typ_TraMat       213   ///< Matrixtransformation
 
 
 /// operators
@@ -363,6 +366,7 @@ void INF_OTYP (){}
 #define TYP_OpmMinus     281  ///< 
 #define TYP_OpmMult      282  ///<
 #define TYP_OpmDiv       283  ///<
+#define TYP_OpmPow       284  ///<
 
 /// math.functions
 #define Typ_FcmSQRT      290
@@ -385,8 +389,8 @@ void INF_OTYP (){}
 
 //----------------------------------------------------------------
 #define BCKPLN_XY          2  ///< Z-Vec BCKVEC_Z  parall. X-Y
-#define BCKPLN_XZ          1  ///< Y-Vec BCKVEC_Y  parall. X-Z
-#define BCKPLN_YZ          0  ///< X-Vec BCKVEC_X  parall. Y-Z
+#define BCKPLN_XZ          1  ///< Y-Vec BCKVEC_Y  parall. X-Z (rot 90 deg around X)
+#define BCKPLN_YZ          0  ///< X-Vec BCKVEC_X  parall. Y-Z (rot 90 deg around Z)
 #define BCKPLN_FREE       -1  ///< free-3D-plane; use matrix-transformations
 #define BCKPLN_UNDEF      -2  ///< undefined
 
@@ -428,14 +432,16 @@ void INF_OTYP (){}
 #define Ptyp_def      0    ///< default
 #define Ptyp_start    1    ///< startpoint (0-deg-point)
 #define Ptyp_end      2    ///< endpoint
-#define Ptyp_90_deg   4    ///< 25 % point        1     Circ, elli: 90-deg-point
-#define Ptyp_mid      8    ///< midpoint          1     Circ, elli: 180-deg-point
-#define Ptyp_270_deg 16    ///< 75 % point        1     Circ, elli: 270-deg-point
-#define Ptyp_cen     32    ///< centerpoint       1     Circ, elli, plane
-#define Ptyp_focus1  64    ///< focus points      1|2   Elli, hyp ..
-#define Ptyp_focus2  65    ///< focus points      1|2   Elli, hyp ..
+#define Ptyp_mid      3    ///< midpoint          1     Circ, elli: 180-deg-point
+#define Ptyp_cen      4    ///< centerpoint       1     Circ, elli, plane
+#define Ptyp_90_deg   5    ///< 25 % point        1     Circ, elli: 90-deg-point
+#define Ptyp_270_deg  6    ///< 75 % point        1     Circ, elli: 270-deg-point
+#define Ptyp_focus1   7    ///< focus points      1|2   Elli, hyp ..
+#define Ptyp_focus2   8    ///< focus points      1|2   Elli, hyp ..
 
-
+// #define Dtyp_Z        0
+// #define Dtyp_X        1
+// #define Dtyp_Y        2
 
 
 #ifndef TimeStamp

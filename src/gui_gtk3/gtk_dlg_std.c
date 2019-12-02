@@ -962,18 +962,18 @@ static MemObj thisWin;
   char  *p1, *filename;
 
 
-  printf("GUI_Dialog_run \n");
+  // printf("GUI_Dialog_run \n");
 
 
   iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !
-    printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
+    // printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
   
     
   if (iRes == GTK_RESPONSE_ACCEPT) {
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (gtkDlg));
     if(!filename) filename =
       gtk_file_chooser_get_preview_filename (GTK_FILE_CHOOSER (gtkDlg));
-        printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
+        // printf(" GTK_RESPONSE_ACCEPT |%s|\n",filename);
 
     if(!filename) {
       TX_Print ("**** ERROR GUI_Dialog_run ****");

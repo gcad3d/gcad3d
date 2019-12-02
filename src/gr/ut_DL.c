@@ -22,7 +22,7 @@ TODO:
 Modifications:
 2002-02-12 DL_disp_* zu. RF.
 2001-06-06 DL_Lay_mod (war DB_Lay).
-2001-05-04 DL_Delete, DL_GetTyp, DL_get_dbi neu.
+2001-05-04 DL_Delete, DL_dbTyp__dli, DL_get_dbi neu.
 2000-10-17 Vereinheitlichung mit d. Unix-Variante.
 
 -----------------------------------------------------
@@ -60,6 +60,25 @@ DL_StoreObj             Den naechsten freien DispList-Platz belegen
 DL_StoreAtt             store GR_Att in GR_AttTab
 DL_SetTmpObj            store DL-record (only for active vector)
 
+DL_get__                returns DispList
+DL_dlRec__dli           get DL-record (DL_Att from GR_ObjTab[objInd]) from dli
+DL_oSrc_dli             get ObjSRC from DispListRecord (DL_Att)
+DL_get_dbi              get DB-index from DL-Index
+DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
+DL_get_sStyl            get surfaceStyle (shaded|symbolic)
+DL_get_iatt             returns iatt of DL-record
+DL_set_iatt             modify iatt of DL-record
+DL_dbTyp__dli           get obj-typ from DL-ind
+DL_oid__dli             get objName from DispListIndex
+DL_Get_lNr_dli          get sourceLineNumber from DispListIndex
+DL_Get_dli_lNr          get DispListIndex from sourceLineNumber
+DL_GetTrInd             get refSys-Index from dli
+DL_GetPick
+DL_GetNrSur             get nr of surs in DispList
+DL_dli__dbo             Objekt typ=typ APTind=ind in der DL suchen
+DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
+DL_find_APPOBJ          find applicationObject
+DL_lnr_incr             increment all (lineNrs > lNrX)
 DL_hili_on              set obj hilited
 DL_hili_off             reset hilited
 // DL_disp_hili_last       (change) hilite last obj of DL
@@ -94,25 +113,6 @@ DL_dbi_is_visTyp        test if typ == visual typ (VC is not)
 DL_IS_HIDDEN            test if obj is hidden                           INLINE
 DL_OBJ_IS_HIDDEN        test if obj is hidden                           INLINE
 DL_OBJ_IS_ACTMDL        test if obj belongs to active model             INLINE
-DL_get__                returns DispList
-DL_get_dla              get DL-record (DL_Att from GR_ObjTab[objInd])
-DL_oSrc_dli             get ObjSRC from DispListRecord (DL_Att)
-DL_get_dbi              get DB-index from DL-Index
-DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
-DL_get_sStyl            get surfaceStyle (shaded|symbolic)
-DL_get_iatt             returns iatt of DL-record
-DL_set_iatt             modify iatt of DL-record
-DL_GetTyp               get obj-typ from DL-ind
-DL_Get_oid_dli          get objName from DispListIndex
-DL_Get_lNr_dli          get sourceLineNumber from DispListIndex
-DL_Get_dli_lNr          get DispListIndex from sourceLineNumber
-DL_GetTrInd             get refSys-Index from dli
-DL_GetPick
-DL_GetNrSur             get nr of surs in DispList
-DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
-DL_find_obj             Objekt typ=typ APTind=ind in der DL suchen
-DL_find_APPOBJ          find applicationObject
-DL_lnr_incr             increment all (lineNrs > lNrX)
 
 DL_Lay_act_g1           activate GroupBit1 des layer Nr. layNr
 DL_Lay_typ_g1           grp_1 fuer alle Obj, die NICHT Typ i1 haben, auf OFF.
@@ -545,10 +545,10 @@ static long   DL_hidden = -1L;
         // printf(" dl[%d]=%d\n",i1,(*dlTab)[i1].dlInd);
       if((*dlTab)[i1].dlInd == dli) goto L_9;                      // 2010-10-21
       // if(indTab[i1] != GR_ObjTab[dli].ind) continue;
-      // if(AP_typ_2_bastyp(typTab[i1]) != Typ_GTXT) continue;
+      // if(AP_typDB_typ(typTab[i1]) != Typ_GTXT) continue;
       // typ = (*dlTab)[i1].typ;
         // printf(" typ=%d\n",typ);
-      // if(AP_typ_2_bastyp(typ) != Typ_Note) continue;        // 2009-12-31
+      // if(AP_typDB_typ(typ) != Typ_Note) continue;        // 2009-12-31
       // printf(" double sel.typ=%d ind=%d\n",typTab[i1],indTab[i1]);
       // goto L_9;
     }
@@ -1699,7 +1699,7 @@ static long   DL_hidden = -1L;
   for(i1=0; i1<GR_TAB_IND; ++i1) {
     if(GR_ObjTab[i1].grp_1 == OFF) continue;
 
-    typ = AP_typ_2_bastyp (GR_ObjTab[i1].typ);
+    typ = AP_typDB_typ (GR_ObjTab[i1].typ);
     Grp_add__ (typ, GR_ObjTab[i1].ind, i1, 1);
   }
   Grp_upd (1);  // update GrpNr-label
@@ -2208,11 +2208,7 @@ static long   DL_hidden = -1L;
 
 
   if(DBInd == 0) {       // 2011-10-18
-    // not for Typ_Ditto+Typ_Mock (GR_DrawModel)
-    // - cannot hilite tempDLobjs
-    if((Typ != Typ_Ditto)   && 
-       (Typ != Typ_Model)   &&
-       (Typ != Typ_APPOBJ))         {
+    if (Typ != Typ_APPOBJ)          {
       dlInd = DLI_TMP;
       goto L_done;
     }
@@ -2327,7 +2323,7 @@ static long   DL_hidden = -1L;
   L_exit:
 
     // printf("ex DL_StoreObj %ld IND=%ld\n",dlInd,GR_TAB_IND);
-    if(dlInd > GR_TAB_SIZ) AP_debug__ ("DL_StoreObj-E9");
+    // if(dlInd > GR_TAB_SIZ) AP_debug__ ("DL_StoreObj-E9");
 
   return dlInd;
 
@@ -2448,13 +2444,13 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
-  long DL_find_obj (int typ, long DBind, long DLend) {
+  long DL_dli__dbo (int typ, long DBind, long DLend) {
 //================================================================
 /// \code
 /// get dispListIndex of (last) DB-obj from typ/dbi
 /// Objekt typ=typ APTind=ind in der DL suchen.
 /// liefert DisplayListIndex des letzen definierten Objekts
-/// see AP_typ_2_bastyp AP_cmp_typ
+/// see AP_typDB_typ AP_cmp_typ
 /// Hidden objects haben -1 !!
 /// Input:
 ///   typ     objTyp (Typ_PT ..)
@@ -2479,7 +2475,7 @@ static long   DL_hidden = -1L;
 /// get dispListIndex of (last) DB-obj from typ/dbi/subModelNr
 /// Objekt typ=typ APTind=ind in der DL suchen.
 /// liefert DisplayListIndex des letzen definierten Objekts
-/// see AP_typ_2_bastyp AP_cmp_typ
+/// see AP_typDB_typ AP_cmp_typ
 /// Hidden objects haben -1 !!
 /// Input:
 ///   typ     objTyp (Typ_PT ..)
@@ -2498,7 +2494,7 @@ static long   DL_hidden = -1L;
   long  l1, DLind;
 
 
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
   // ACHTUNG: AP_modact_ind in ein I2 kopieren, da in der DL als I2 gespeichert;
   // -1 == Main wird sonst nicht gefunden !!!
@@ -2518,7 +2514,7 @@ static long   DL_hidden = -1L;
 
 
   for(l1=DLend; l1>=0; --l1) {
-      // printf("DL[%ld] typ=%d dbi=%ld\n",l1,DL_GetTyp(l1),DL_get_dbi(l1));
+      // printf("DL[%ld] typ=%d dbi=%ld\n",l1,DL_dbTyp__dli(l1),DL_get_dbi(l1));
 
     if(GR_ObjTab[l1].ind    != DBind) continue;
     // skip SubModels
@@ -2537,7 +2533,7 @@ static long   DL_hidden = -1L;
       goto L_found;
     }
 
-    typAct = AP_typ_2_bastyp (typAct);
+    typAct = AP_typDB_typ (typAct);
     if(typAct == typ) {
       DLind = l1;
       goto L_found;
@@ -2634,7 +2630,7 @@ static long   DL_hidden = -1L;
 */
 
 //============================================================
-  int DL_GetTyp (long objInd) {
+  int DL_dbTyp__dli (long objInd) {
 //============================================================
 ///  liefert den Typ eines DB-Obj (als return-Code)
 
@@ -2648,7 +2644,7 @@ static long   DL_hidden = -1L;
 
   Typ = GR_ObjTab[objInd].typ;
 
-  // printf ("DL_GetTyp typ=%d\n",Typ);
+  // printf ("DL_dbTyp__dli typ=%d\n",Typ);
 
   return Typ;
 
@@ -2677,15 +2673,15 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
-  int DL_Get_oid_dli (char *oid, long dli) {
+  int DL_oid__dli (char *oid, long dli) {
 //================================================================
-/// DL_Get_oid_dli        get objName from DispListIndex
+/// DL_oid__dli        get objName from DispListIndex
 
 
   // make name from typ and DB-Index
   APED_oid_dbo__ (oid, GR_ObjTab[dli].typ, GR_ObjTab[dli].ind);
 
-    // printf("ex DL_Get_oid_dli |%s| %d\n",oid,dli);
+    // printf("ex DL_oid__dli |%s| %d\n",oid,dli);
 
 
   return 0;
@@ -4086,7 +4082,7 @@ static long   DL_hidden = -1L;
   lChild = GL_GetActInd ();
 
   // get lPar = DL-Index of parent
-  lPar = DL_find_obj (typ, iPar, lChild-1);
+  lPar = DL_dli__dbo (typ, iPar, lChild-1);
   if(lPar < 0) {
     // TX_Print("DL_parent_hide E001 %d %d",typ,iPar);
     // printf("DL_parent_hide I000 %d %d\n",typ,iPar);
@@ -4343,7 +4339,7 @@ static long   DL_hidden = -1L;
     for(i3=0; i3<ii; ++i3) {   // loop tru parent-obj's
 
       // get l2 = dli of  parent-obj 
-      // l2 = DL_find_obj (parTab[i3].typ, parTab[i3].dbInd, dli);
+      // l2 = DL_dli__dbo (parTab[i3].typ, parTab[i3].dbInd, dli);
       l2 = (MEMTAB__(&mtPar, i3))->dli;
       if(l2 < 0) continue; // {TX_Print("DL_disp_reset E002"); break;}
 
@@ -4443,17 +4439,17 @@ static long   DL_hidden = -1L;
  
 
 //================================================================
-  int DL_get_dla (DL_Att *dla, long dli) {
+  int DL_dlRec__dli (DL_Att *dla, long dli) {
 //================================================================
 /// \code
-/// DL_get_dla      get DispList-record (DL_Att)
+/// DL_dlRec__dli      get DispList-record (DL_Att) from dli
 /// RetCod:    1 = OK
 ///            0 = ERROR
 /// was DL_GetAtt
 /// \endcode
 
-  if(dli < 0)           { TX_Error("DL_get_dla E001"); return 0; }
-  if(dli >= GR_TAB_IND) { TX_Error("DL_get_dla E002"); return 0; }
+  if(dli < 0)           { TX_Error("DL_dlRec__dli E001"); return 0; }
+  if(dli >= GR_TAB_IND) { TX_Error("DL_dlRec__dli E002"); return 0; }
 
   *dla =  GR_ObjTab[dli];  
 

@@ -24,6 +24,9 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void EDI(){}
+#endif
 /*!
 \file  ../xa/xa_edi__.c
 \brief  Neutral EditorFunctions (not Gtk-specific).
@@ -31,7 +34,11 @@ Modifications:
 =====================================================
 List_functions_start:
 
-ED_CB__             editor-callback
+ED_GR_CB1__         callback from grafic-window (selection)
+ED_GR_CB2__         callback from grafic-window (mouse-key press)
+ED_Esc_CB__         callback Esc-key
+ED_Del_CB__         callback Delete-key
+EDI_CB__            editor-callback of GUI_edi__ (mouse/key into editor)
 
 ED_load__           mem -> editor
 ED_unload__         editor -> memory
@@ -89,6 +96,7 @@ AP_APT_*
 #include "../xa/xa_uid.h"         //  UI_MODE_MAN
 #include "../xa/xa_mem.h"         //  mem_cbuf1
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
+#include "../xa/xa_msg.h"               // MSG_ERR__
 #include "../xa/xa.h"             // APP_act_nam
 
  
@@ -106,6 +114,7 @@ extern MemObj    winGR;
 extern int       UI_InpMode;
 extern int       UI_EditMode;
 extern int       xa_fl_TxMem;
+extern char      UI_stat_view, UI_stat_hide;
 
 // aus ut_txfil.c:
 extern char       *UTF_FilBuf0;
@@ -123,6 +132,7 @@ extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
 
 // from ../ci/NC_Main.c
 extern int       APT_dispPL;
+extern int     APT_obj_stat;
 // replace ED_lnr_act mit AP_ED_lNr
 
 
@@ -235,45 +245,392 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
  
 
 //================================================================
-  int EDI_CB__ (MemObj *mo, void **data) {
+  int ED_Del_CB__ (int ctrlOn) {
 //================================================================
-/// ED_CB__             editor-callback of GUI_edi__
+// ED_Del_CB__          callback Delete-key
+// Input:    ctrlOn    state control-key; 0=OFF, else on
 
   int     i1;
-  long    l1;
-  char    *p1;
+  char    s1[256];
 
-static int ctrlOn = 0;
+  printf("ED_Del_CB__ %d\n",ctrlOn);
+  printf("  ED_lnr_act=%d\n",ED_lnr_act);
 
 
-  // printf("EDI_CB__ ev=%d\n",GUI_DATA_EVENT);
-  // printf("  EDI_CB__: ED_lnr_act=%d\n",ED_lnr_act);
+    // fix filename for selected text
+    sprintf(s1,"%sselection.txt",OS_get_tmp_dir());
+      printf(" ED_Del_-fnam:|%s|\n",s1);
+
+    if(ctrlOn == 0) {
+      // write selected text -> file
+      i1 = GUI_edi_sel_wrf (&winED, s1);
+      if(i1 < 1) goto L_del1;
+      GUI_edi_sel_del (&winED);         // delete selected text in Editor
+      TX_Print("**** selected Text deleted; undelete: Ctrl-delete.");
+
+    }  else {
+      GUI_edi_InsFile (&winED, s1);
+    }
+
+
+/*
+    // printf("UI_EdKeyPress GDK_Delete\n");
+    xa_fl_TxMem = 1;   // src modified merken
+
+    // fix filename for selected text
+    sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+      // printf(" fnam:|%s|\n",cbuf);
+
+    if(KeyStatCtrl == ON) {
+      GUI_edi_InsFile (&winED, cbuf);
+
+    }  else {
+      // write selected text -> file
+      i1 = GUI_edi_sel_wrf (&winED, cbuf);
+      if(i1 < 1) goto L_del1;
+      GUI_edi_sel_del (&winED);         // delete selected text in Editor
+      TX_Print("Text deleted; undelete: Ctrl-delete.");
+    }
+
+    // l1 = GUI_Ed_getCpos (&winED);  // get cursorposi
+    // l2 = UTF_GetLnrPos (l1);          // get APT-LineNr from cursorposi
+    l2 = GUI_edi_getLnr (&winED);
+    // printf(" l1=%d l2=%d\n",l1,l2);
+    ED_work_CurSet (l2);              // work bis l2
+
+    // Edi -> Memory (nach dem Loeschen)
+    ED_unload__ ();
+
+    // goto Changed;
+      // printf(" dddddddddddddelete done\n");
+    goto AllDone;
+*/
+
+
+    L_del1:
+      // goto Changed;  // Standardbehandlung
+      return 0;
+
+}
+
+
+//================================================================
+  int ED_Esc_CB__ (int ctrlOn) {
+//================================================================
+// ED_Esc_CB__          callback Esc-key
+// Input:    ctrlOn    state control-key; 0=OFF, else on
+
+static char sDel[80];
+static long cPos;
+
+  int    ii0, ii1, ii2;
+  long   iLen, posL, posC, pos0;
+  char   *s1, *s2, *p1;
+
+
+  printf("ED_Esc_CB__ %d\n",ctrlOn);
+  printf("  ED_lnr_act=%d\n",ED_lnr_act);
+
+    
+  // get curPos
+  posC = GUI_edi_getCpos (&winED);
+
+  // - test if shift-key down   -                                                  
+  if(ctrlOn) goto L_restore;
 
 
   //----------------------------------------------------------------
+  // select word left of cursor
+  // get active line 
+  iLen = GUI_edi_RdLn (mem_cbuf1, mem_cbuf1_SIZ, ED_lnr_act, &winED);
+  if(iLen < 1) goto L_err1;
+    printf(" Esc_CB__-1|%s|\n",mem_cbuf1);
+
+  // get ii1 = startpos of definition-header
+  p1 = mem_cbuf1;
+  APED_defDbo_skip (&p1);
+  ii0 = p1 - mem_cbuf1;
+
+  // get posL = startPos of ED_lnr_act
+  posL = GUI_edi_getLsta (&winED, ED_lnr_act);
+
+  // empty line ?
+  if(posC == posL) return 0;
+
+  // get ii2 = pos of cursor in line
+  ii2 = posC - posL;
+    printf(" Esc_CB__ posL=%ld posC=%ld\n",posL,posC);
+
+  // get ii1 = pos of begin of word left of cursor
+  ii1 = UTX_pos_del_prev (mem_cbuf1, ii2);
+    printf(" Esc_CB__ ii0=%d ii1=%d ii2=%d\n",ii0,ii1,ii2);
+    printf(" Esc_CB__ s[ii1] |%s|\n",&mem_cbuf1[ii1]);
+    printf(" Esc_CB__ s[ii2] |%s|\n",&mem_cbuf1[ii2]);
+
+  // test of only definition-header ("p1=")
+  if(ii2 > ii0) {
+    if(ii0 > ii1) {
+      ii1 = ii0;
+    }
+  }
+
+  // select from ii1 to ii2
+  pos0 = posL + ii1;
+    printf(" pos0=%ld\n",pos0);
+
+  // select_region from ii1 to ii2
+  GUI_edi_sel__ (&winED, pos0, posC);
+
+  // copy selected region into static sDel
+  iLen = ii2 - ii1;
+  strncpy(sDel, &mem_cbuf1[ii1], iLen);
+  sDel[iLen] = '\0';
+    printf(" sDel |%s|\n",sDel);
+
+  // // delete selected region
+  // GUI_edi_sel_del (&winED);
+  // TX_Print("**** restore delete with Ctrl-Esc");
+
+  // store new curPos
+  cPos = GUI_edi_getCpos (&winED);
+
+  return 0;
+
+
+  //----------------------------------------------------------------
+  L_restore:
+      printf(" Esc_CB__-res %ld %ld\n",posC,cPos);
+
+
+  // test if curPos is identical
+  if(posC != cPos) {
+    TX_Print("**** ERROR restore delete  text: cursor position changed ..");
+    return -1;
+  }
+
+  // insert stored word at current position
+  iLen = strlen(sDel);
+  // GUI_edi_Insert (&winED, cPos, sDel, iLen);
+
+
+/*
+        DL_hili_off (-1L);
+        // war zuletzt ein "create neue zeile" oder ein "delete Text"
+        // i1 = UI_undo_get_ustat();
+        // if(i1 == 1) {
+          // UI_undo_work (0, 0);  // undo last entry .. changed to Ctrl-Z
+
+        // } else if(i1 == 2) {  // last was "delete Text"; undelete it.
+          // sprintf(cbuf,"%stmp%cselection.txt",OS_get_bas_dir(),fnam_del);
+          // GUI_edi_InsFile (&winED, cbuf);
+        // }
+        xa_fl_TxMem = 1;         // src modified merken
+        // AP_obj_del1 ();
+        // AP_obj_del0 (); // geht no ned
+        ED_work_exit (); // exit modify, work from curPos to end of model
+*/
+
+
+  return 0;
+
+  L_err1:
+    return -1;
+}
+
+
+//================================================================
+  int ED_GR_CB2__ (int typ, long dbi, char *buf) {
+//================================================================
+// ED_GR_CB2__          callback from grafic-window (selection)
+//   comes after ED_GR_CB1__
+
+
+  int    irc, i1, i2;
+  char   s1[256];
+
+
+  // printf("ED_GR_CB2__ typ=%d dbi=%ld buf=|%s|\n",typ,dbi,buf);
+  // printf(" APT_obj_stat=%d\n",APT_obj_stat);  // 1=temp, 0=perm
+
+
+  // cStat = ED_ck_lnStart();
+    // printf(" cStat=%d\n",cStat);
+
+  GUI_edi_ck_cPos_ln (&winED, &i1, &i2);  // i1=pos-in-line,  i2=pos-in-file
+
+  // if cursor is at start of line: do nothing; return -1
+  if((i1 == 0)||(i1 == 3)) return -1;
+
+
+  // test if curs is on end of file
+  if(i2 == 2)  {
+    // at eof; test if on end of line
+    if(i1 == 2) goto L_addSel;        // at eol: add selection ..
+  }
+
+  // query insert selection
+  sprintf(s1, " add / insert selected obj ? ");
+  irc = GUI_Dialog_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    // printf(" GR_CB2__-irc=%d\n",irc);
+
+  if(irc) return 0;  // 0 means first button pressed
+
+
+  L_addSel:
+  ED_add_Text (typ, dbi, buf);  // add buf to editor-text
+  GR_Disp_src (buf);            // preview buf
+  DL_Redraw ();
+
+/*
+    // test if cursor is inside line or at startposition in line
+    if(ED_ck_lnStart() == 0) {
+      // yes, cursor is at first position in line
+      goto L_addGrp;          // add obj to group
+
+
+    } else {       // cursor is inside line
+      
+      if(typ == Typ_TmpPT) UI_disp_Pos (Typ_PT, &GR_CurUk);
+    
+      // add nur wenn akt. Line zB "L25=" ist ...
+      // i1 = ED_query_CmdMode ();
+      // if(i1 == 0) {  // 0=Defline
+        ED_add_Text (typ, dbi, buf);
+        // update Window ..
+        // ED_update (0L);   // 2013-04-11 weg
+  
+        // es koennte ein Insert sein; LineNr ?
+      i1 = ED_get_lnr_act ();  // sets also ED_lnr_act
+      // disp LineNr
+      UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(i1));
+    }
+*/
+
+  return 0;
+}
+
+
+//================================================================
+  int ED_GR_CB1__ (int GR_Event_Act) {
+//================================================================
+// ED_GR_CB1__          callback from grafic-window (mouse-key press)
+//   comes before ED_GR_CB2__
+// Input:
+//   GR_Event_Act     GUI_MouseL | GUI_MouseR
+
+
+  int    i1, i2;
+
+  // printf("ED_GR_CB1__ %d\n",GR_Event_Act);
+
+        // i1 = ED_query_CmdMode (); // analyze active line; -1=empty, 0=DefLn..
+          // printf(" MAN; ev=%d i1=%d\n",GR_Event_Act,i1);
+        GUI_edi_ck_cPos_ln (&winED, &i1, &i2);
+
+        if(GR_Event_Act == GUI_MouseL) {
+          // M1 in MAN
+          if((UI_stat_hide)&&(UI_stat_view)) {
+            // hide,view not active;
+            if(i1 == 3) {
+              // empty line, create def-menu (P L C ..)
+              UI_GR_selMen_init (0);                  // MAN,M1,empty
+              goto Fertig;
+            }
+          }
+
+/*
+        } else if(GR_Event_Act == GUI_MouseR) {
+          // M3 in MAN
+          // test if active line = definitionLine; if yes: activate menu
+          // if process is active: do process-subMenu
+          if(PRC_IS_ACTIVE) {
+            sprintf(s1, "MBR_%d", i1);
+              // printf(" subMen for process |%s|\n",s1);
+            PRC__ (-1, s1);  // report M3 to process
+            goto Fertig;
+          }
+          // M3: wait for selection of objects; goes -> OMN_selMen_MAN_M3_empty
+*/
+        }
+
+  Fertig:
+
+  return 0;
+}
+
+
+//================================================================
+  int EDI_CB__ (MemObj *mo, void **data) {
+//================================================================
+/// EDI_CB__            editor-callback of GUI_edi__ (mouse/key into editor)
+///   problem: reports only keyRelease, not keyPress.
+// Input:
+//   GUI_DATA_EVENT     TYP_EventEnter|TYP_EventPress|TYP_EventRelease
+//   GUI_DATA_I1        Press|Release: key (ascii or eg GUI_KeyReturn)
+//   GUI_DATA_I2        Press|Release: modifier-keys; see GUI_Modif_shift| ..
+//   GUI_DATA_L2        Enter: line-nr
+
+
+  int     i1, i2, ctrlOn, shiftOn, altOn;
+  long    l1;
+  char    *p1;
+
+
+
+  // printf("EDI_CB__-------------------------------------------- \n");
+  // printf("EDI_CB__ ev=%d\n",GUI_DATA_EVENT);
+  // printf("  ED_lnr_act=%d\n",ED_lnr_act);
+  // printf("  modifKeys=%d\n",GUI_DATA_I2);
+  // if(GUI_DATA_EVENT == TYP_EventPress)   printf("press-key = %x\n",GUI_DATA_I1);
+  // if(GUI_DATA_EVENT == TYP_EventRelease) printf("relea-key = %x\n",GUI_DATA_I1);
+
+
+
+
+  //----------------------------------------------------------------
+  // enter line in editor - eg select line with mouse
   if(GUI_DATA_EVENT == TYP_EventEnter) {    // 400
-    // caused by mouseclick into editor ..
+      // printf(" EDI_CB__-Enter-shiftOn=%d ctrlOn=%d\n",shiftOn,ctrlOn);
+
+    // get test cursorPosition in active line
+    i1 = GUI_edi_ck_cPos_ln (mo, &i1, &i2);
+
+    // // ignore shift (block-selection active)
+    // if(shiftOn) goto L_ignore;
+
+    // caused by mouseclick into editor; L1=curPos, L2=lineNr
+    // but also by select-block-process !
     l1 = GUI_DATA_L2;
-      // printf(" enter line %ld\n",l1);
+      // printf(" enter line %ld ED_lnr_act=%d\n",l1,ED_lnr_act);
+    if(l1 == ED_lnr_act) goto L_ignore;  // skip identical line
+
     // ED_newPos ED_update
     ED_update (0L);  // editor -> memory if Filesize has changed ..
     // von der zuletzt bearbeiteten Zeile bis zu lNr anzeigen/abarbeiten
     ED_work_CurSet (l1);
-    //
-    GUI_edi_Focus (&winED);
+    // GUI_edi_Focus (&winED);
 
     return 0;
 
     
 
+/*
   //----------------------------------------------------------------
   } else if (GUI_DATA_EVENT == TYP_EventPress) {   // 402
     // key-press
-      // printf(" EDI_CB__-I1= %d\n",GUI_DATA_I1);
-      // if(GUI_DATA_I1 < 128) printf(" EDI_CB__-I1= |%c|\n",GUI_DATA_I1);
+      printf(" EDI_CB__-press-key= %x mod=%d\n",GUI_DATA_I1,GUI_DATA_I2);
 
+    i2 = GUI_DATA_I2;  // modifier-keys
+    shiftOn = i2&1;
+    ctrlOn  = i2&4;
+    altOn   = i2&4;
+      printf(" EDI_CB__-press-shiftOn=%d ctrlOn=%d altOn=%d\n",
+              shiftOn,ctrlOn,altOn);
 
-    i1 = GUI_DATA_I1;  // the key
+    i1 = GUI_DATA_I1;  // key
+    // if(i1 == GUI_KeyShift_L) {shiftOn = 1; goto L_ignore;}
+    // if(i1 == GUI_KeyControl_L) {ctrlOn = 1; goto L_ignore;}
+    
 
     // catch Ctrl-F
     if((ctrlOn)&&(i1 == 'f')) {
@@ -281,22 +638,23 @@ static int ctrlOn = 0;
       goto AllDone;
     }
 
-    // catch Ctrl
-    if(i1 == GUI_KeyControl_L) ctrlOn = 1;
-
-
-/* kommt nicht !
-    if(GUI_DATA_I1 == GUI_KeyReturn) {
-      // UI_key_return ();
-      l1 = ED_get_lnr_act();
-      --l1;
-      ED_lnr_act = l1;
-      // l1 -= 2;
-      // ED_work_CurSet (l1);
-      // UI_EdKeyCR (1);
-      goto AllDone;
+    // catch Alt-x
+    if(altOn) {
+      if(shiftOn) UI_key_spcShAlt (i1);
+      else UI_key_spcAlt (i1);
     }
-*/
+
+
+    // if(GUI_DATA_I1 == GUI_KeyReturn) {
+      // // UI_key_return ();
+      // l1 = ED_get_lnr_act();
+      // --l1;
+      // ED_lnr_act = l1;
+      // // l1 -= 2;
+      // // ED_work_CurSet (l1);
+      // // UI_EdKeyCR (1);
+      // goto AllDone;
+    // }
 
     // test if it is a special-char
     if(isascii(i1)) goto AllDone;
@@ -327,20 +685,39 @@ static int ctrlOn = 0;
     }
 
     goto AllDone;
-
+*/
 
 
 
 
   //----------------------------------------------------------------
-  } else {                       // 403 = TYP_EventRelease = key-release
-      // printf(" key=%c (%x) mod=%d\n",GUI_DATA_I1,GUI_DATA_I1,GUI_DATA_I2);
+  } else if (GUI_DATA_EVENT == TYP_EventRelease) {   // 403
+      // printf(" EDI_CB__-rel-key=%c (%x)\n",GUI_DATA_I1,GUI_DATA_I1);
     
-    i1 = GUI_DATA_I1;
-    if(i1 == GUI_KeyControl_L) ctrlOn = 0;
+    i2 = GUI_DATA_I2;  // modifier-keys
+    shiftOn = i2&1;
+    ctrlOn  = i2&4;
+    altOn   = i2&8;
+      // printf(" EDI_CB__-rel-shiftOn=%d ctrlOn=%d altOn=%d\n",
+              // shiftOn,ctrlOn,altOn);
+      // printf(" EDI_CB__-relea-shiftOn=%d ctrlOn=%d\n",shiftOn,ctrlOn);
+
+
+    i1 = GUI_DATA_I1;  // key
+    if(i1 == GUI_KeyEsc) { ED_Esc_CB__ (ctrlOn); goto Finish; }
+    // if(i1 == GUI_KeyNumDel) { ED_Del_CB__ (ctrlOn); goto Finish; }
+
+    if(i1 == GUI_KeyShift_L) goto L_ignore;
+    if(i1 == GUI_KeyControl_L) goto L_ignore;
+    
+
+    // delete char .. GUI_KeyBackSpace GUI_KeyDel GUI_KeyNumDel
+    if((i1 == GUI_KeyBackSpace) ||
+       (i1 == GUI_KeyDel))        goto L_ignore;
+
 
     // skip all not printable keys
-    if(!isascii(i1)) {
+    if(!isascii(i1)) {    // if(i1 < 127) {
 
       // necessary; keyDown is not activated (in last line) ?
       if((i1 == GUI_KeyDel)    ||
@@ -375,25 +752,28 @@ static int ctrlOn = 0;
 
 
     // Shift + Alt
-    if((GUI_DATA_I2 & GUI_Modif_shift) && (GUI_DATA_I2 & GUI_Modif_alt)) {
+    // if((GUI_DATA_I2 & GUI_Modif_shift) && (GUI_DATA_I2 & GUI_Modif_alt)) {
+    if(shiftOn && altOn) {
       UI_key_spcShAlt (i1);
       goto AllDone;
     }
 
 
     // check modifier Ctrl
-    if(GUI_DATA_I2 & GUI_Modif_ctrl) {
-      // test if group-creation is active 
-      // KeyStatCtrl = OFF;
+    // if(GUI_DATA_I2 & GUI_Modif_ctrl) {
+    if(ctrlOn) {
+      // work keys with Ctrl; eg Ctrl-p (start plugin)
       UI_key_spcCtrl (GUI_DATA_I1);
       goto AllDone;
     }
 
 
     // check modifier ALT
-    if(GUI_DATA_I2 & GUI_Modif_alt) {
+    // if(GUI_DATA_I2 & GUI_Modif_alt) {
+    if(altOn) {
         // printf(" ALT IS ON\n");  
 
+      // Alt-P provides next empty point-ID
       i1 = toupper(i1);
       p1 = strchr("PLCSABDTVRINM",i1);
 
@@ -407,17 +787,27 @@ static int ctrlOn = 0;
       } else {
         if(i1 == 'F') {ED_add_Def ("FROM "); goto AllDone;}
         if(i1 == 'W') {ED_add_Def ("WORK "); goto AllDone;}
+        if(i1 == 'X') AP_work__ ("crashEx", NULL);
       }
       goto Finish;
     }
+
+
+
+  } else {                       // 403 = TYP_EventRelease = key-release
+    // printf("***** EDI_CB__ - I1 -%d\n",GUI_DATA_EVENT);
+
   }
 
 
   //----------------------------------------------------------------
   Finish:
   AllDone:
-  return 0;
+    return 0;
 
+
+  L_ignore:
+    return 1;
 }
 
 

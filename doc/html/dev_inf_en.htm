@@ -1,0 +1,70 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>dev_inf_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+<A HREF='#F1'>USING-DEVELOPMENT-DOCUMENTATION</A>
+
+<A HREF='#F2'>UPDATE-DEVELOPMENT-DOCUMENTATION</A>
+
+
+
+
+=====================================================================
+<a name="F1">USING-DEVELOPMENT-DOCUMENTATION</A>
+=====================================================================
+
+- Development-documentation can be shown by accessing tags
+- all tags start with INF_
+- primary tag is "INF"
+- access primary tag with:  "vi -t INF" (in directory ${DIR_DEV}gcad3d/src/APP/)
+- access info object-types with:  "vi -t INF_obj_types"
+- access tag in vi-editor: key Ctrl-r jumps to tag under cursor; Ctrl-o returns.
+- acess direct: vi ../inf/infotext.c
+
+
+
+- access development-documentation with ctags
+cd ${DIR_DEV}gcad3d/src/APP/
+./ed
+- key INF or INF_obj_types  and enter
+
+
+
+see also:
+../../doc/html/Plugin_en.htm          // Development - Documentation (how to create a plugin)
+
+
+
+=====================================================================
+<a name="F2">UPDATE-DEVELOPMENT-DOCUMENTATION</A>
+=====================================================================
+
+- the development-documentation consists of textfiles (../inf/*.c)
+- create new documentation-file eg with "vi ../tags/<fnam>.c"
+- each reBuild of gcad ("./do c") also recompiles all new / modified info-files 
+
+
+
+---------------------------------------------------------------------
+History Development-documentation:
+
+  1990-2018  doxygen was used,  see ../../doc/gcad/index.htm
+  since 2019 the development-documentation consists of textfiles
+
+
+
+
+
+=====================================================================
+../../doc/dev_inf_en.txt
+EOF
+</PRE>
+</BODY>
+</HTML>

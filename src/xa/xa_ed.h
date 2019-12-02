@@ -1,9 +1,21 @@
 // xa_ed.h
 
 
-#define  ED_mode_step  0                    /// see ED_query_mode()
-#define  ED_mode_go    1
-#define  ED_mode_enter 3
+// AP_mode_step        defaultmode; CAD-input, 
+//   ED_step() ED_work_ENTER()
+#define  AP_mode_step  0                    /// see AP_mode__
+
+// AP_mode_go
+//   update model (SRCU_mod__) ED_go()
+#define  AP_mode_go    1
+
+// AP_mode_enter       CR from keyBd (CAD)
+//   skip TPC_JUMP TPC_MAC TPC_GEO TPC_END
+#define  AP_mode_enter 3
+
+// AP_mode_END         automatic-run; no display of symbols;
+//   used by END-button  ED_skip_start(resolv subModels)
+#define  AP_mode_END   4
 
 
   int   ED_Init          ();
@@ -28,7 +40,6 @@
   int   ED_update        ();
   void  ED_set_delay     (int);
 
-  int   ED_query_mode    ();
   int   ED_query_CmdMode ();
   int   ED_query_fsiz    (long*, long*);
 

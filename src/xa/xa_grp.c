@@ -507,7 +507,7 @@ static int      GrpNr  = 0;
 
   // search unknown dli
   if(dli == -2L) {
-    dli = DL_find_obj (typ, dbi, -1L);
+    dli = DL_dli__dbo (typ, dbi, -1L);
   }
 
 
@@ -841,7 +841,7 @@ static int      GrpNr  = 0;
  
 
 //================================================================
-  int Grp_exp (char *fnam,char *dirNam) {
+  int Grp_exp (char *fnam, char *dirNam) {
 //================================================================
 /// \code
 /// export (native) alle objects of obj-list --> file

@@ -55,6 +55,7 @@ UT2D_pva_lva              change length-table lva into parameter-value-table pva
 
 -------------- triangles ----------------------------------
 UT2D_solvtriri_a          right-angled tri: a from sides b and c
+UT2D_solvtriri_c          right-angled tri: c from sides a and b
 UT2D_solvtriri_c_abfc     scalene tri: c from a and x; b=x*c
 UT2D_solvtri_abc          scalene tri: q and hc from sides a, b and c
 UT2D_solvtriri_p_q_hc     right-angled tri: get p from q and hc
@@ -88,6 +89,8 @@ UT2D_angr_set_2angr       set aa following as. Do not modify as.
 UT2D_angr_set             change to val >= 0 <= RAD_360
 UT2D_angd_set             change to val >= 0 <= 360
 UT2D_2angr_set            change to consecutive vals from -RAD_360 to RAD_360
+UT2D_2angr_4pi_sr         get 2 angles into range 0-4pi with sense-of-rot
+UT2D_2angr_2angr_ci       get angs,ango for circ from 2 angles, rot-sense
 UT2D_angr_2angr           angle between 2 angles
 UT2D_ptNr_ci              Anzahl Ecken circ berechnen
 UT2D_comp2angd_p          compare 2 angles (deg) for parallel
@@ -104,6 +107,8 @@ UT2D_angr_2vc_ccw         angle (rad.) between 2 Vectors
 UT2D_angr_3pt_sr          get opening angle of 3 points with sense of rot
 UT2D_angr_ci              openingAngle of circle (pa,pe,pc,rad/dreh)
 UT2D_angr_ck_inAc         check if Point ptx/angle-apx is on arc ci1/aps-ape
+UT2D_angr_ck_in_ci        ck if angle is on arc from angs,ango
+UT2D_2angr_ck_360         check if angles aps, ape span 360-degree
 
 UT2D_angr_perpangr        angle + 90 degree (perp. to angle)
 UT2D_circQuad23_angr      returns if angle is quadrant 2 or 3 (CCW from 1-4)
@@ -216,7 +221,7 @@ UT2D_2pt_projptci         project point to circle
 UT2D_pt_projptci          project point to Arc (segment of circle)
 
 UT2D_pt_int_2lnl          intersection of 2 limited lines
-UT2D_2pt_int_ln_ci        intersection of  limited-line  limited-circle
+UT2D_2pt_par_int_ln_ci    intersection of  limited-line  limited-circle
 UT2D_2pt_int_ci_ci        intersection of 2 limited circles
 UT2D_pt_int_4pt           intersection of 2 limited 2D-lines
 UT2D_pt_int4pt  REPLACED with UT2D_pt_int_4pt intersection 2 lines
@@ -1653,10 +1658,10 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   Vector2 vcp, vcl, vae, vec;
 
   // printf("------------------------------------- \n");
-  printf("UT2D_lenq_ck_pt_ln distq=%f\n",distq);
-  DEB_dump_obj__ (Typ_PT2, pa, "  pa");
-  DEB_dump_obj__ (Typ_PT2, pb, "  pe");
-  DEB_dump_obj__ (Typ_PT2, px, "  px");
+  // printf("UT2D_lenq_ck_pt_ln distq=%f\n",distq);
+  // DEB_dump_obj__ (Typ_PT2, pa, "  pa");
+  // DEB_dump_obj__ (Typ_PT2, pb, "  pe");
+  // DEB_dump_obj__ (Typ_PT2, px, "  px");
 
 
   UT2D_vc_2pt (&vcp, pa, px);
@@ -4508,9 +4513,9 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 
-  printf("UT2D_pt_intlnln %d %d\n",ln1Mode,ln2Mode);
-    DEB_dump_obj__(Typ_LN2, ln1, "");
-    DEB_dump_obj__(Typ_LN2, ln2, "");
+  // printf("UT2D_pt_intlnln %d %d\n",ln1Mode,ln2Mode);
+    // DEB_dump_obj__(Typ_LN2, ln1, "");
+    // DEB_dump_obj__(Typ_LN2, ln2, "");
 
 
   irc2 = -1;
@@ -4542,8 +4547,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   //----------------------------------------------------------------
   L_exit:
-    printf("UT2D_pt_intlnln %d\n",irc2);
-    if(irc2 > 0) printf("      pt %f %f\n",ip1->x,ip1->y);
+    // printf("UT2D_pt_intlnln %d\n",irc2);
+    // if(irc2 > 0) printf("      pt %f %f\n",ip1->x,ip1->y);
 
   return irc2;
 
@@ -5101,6 +5106,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 }
 
 
+/* UNUSED, buggy
 //=======================================================================
   int UT2D_2pt_intlnci (Point2 *ip1, Point2 *ip2,
                         Line2 *ln, int lnMode,
@@ -5194,10 +5200,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   return irc2;
 
 }
-
-
-
-
+*/
 
 
 //=======================================================================
@@ -6049,14 +6052,14 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 // see also UT2D_vc_tra_vcx_vcy UT3D_nlen_projvcvc UT3D_nlen_projvcvc
 
 
-  DEB_dump_obj__(Typ_VC2, vc1, "UT2D_2par_vc_vcx_vcy vc1:");
-  DEB_dump_obj__(Typ_VC2, vcx, "  vcx:");
-  DEB_dump_obj__(Typ_VC2, vcy, "  vcy:");
+  // DEB_dump_obj__(Typ_VC2, vc1, "UT2D_2par_vc_vcx_vcy vc1:");
+  // DEB_dump_obj__(Typ_VC2, vcx, "  vcx:");
+  // DEB_dump_obj__(Typ_VC2, vcy, "  vcy:");
 
   *dx = (vcx->dx * vc1->dx + vcx->dy * vc1->dy);
   *dy = (vcy->dx * vc1->dx + vcy->dy * vc1->dy);
 
-    printf("ex UT2D_2par_vc_vcx_vcy %lf %lf\n",*dx,*dy);
+    // printf("ex UT2D_2par_vc_vcx_vcy %lf %lf\n",*dx,*dy);
 
   return 0;
 
@@ -6080,7 +6083,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
   UT2D_vc_add2vc (vco, &vx1, &vy1);
 
-    printf("ex UT2D_vc_tra_vcx_vcy %lf %lf\n",vco->dx,vco->dy);
+    // printf("ex UT2D_vc_tra_vcx_vcy %lf %lf\n",vco->dx,vco->dy);
 
   return 0;
 
@@ -11762,6 +11765,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 }
 
 
+/* DO_NOT_USE - replaced by UT2D_2pt_par_int_ln_ci
 //================================================================
   int UT2D_2pt_int_ln_ci (int *ipa, Point2 *pta,
                           Line2 *ln1, Circ2 *ci1, double *tol) {
@@ -12117,6 +12121,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     goto L_exit;
 
 }
+*/
 
 
 //======================================================================
@@ -12288,6 +12293,544 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   UT3D_ci_tra_ci_m3 ((Circ*)oxxx, trmat, ci3);
 
   return UT2D_ci_ci3 (ci2, (Circ*)oxxx);
+
+}
+
+
+//=============================================================================
+  int UT2D_2pt_par_int_ln_ci (int *ipa, Point2 *pta, double *para, double *anga,
+                              Line2 *ln1, Circ2 *ci1, double *tol) {
+//=============================================================================
+// UT2D_2pt_par_int_ln_ci    intersection of  limited-line  limited-circle
+// Input:
+//   pta       outSpace for points, size 2
+//   para      outSpace for parameters on ln1; size 2 or NULL for no output
+//   anga      outSpace for angles on ci1; size 2 or NULL for no output
+// Output:
+//   pta       intersectionpoints 0 and 1
+//   para      parameters of points along ln1
+//   anga      angles of points - relativ from startpoint - on ci1
+//   ipa       status of intersectionpoints
+//           -1   no intersection
+//            0   normal intersection in segments
+//            1   startPt ln1 == on ci1
+//            2   endtPt ln1 == on ci1
+//            4   startPt ci1 == on ln1
+//            5   startPt ln1 == startPt ci1
+//            6   endtPt ln1 == startPt ci1
+//            8   endtPt ci1 == on ln1
+//            9   startPt ln1 == endtPt ci1
+//           10   endtPt ln1 == endtPt ci1
+//   retCod    -1  no intersection
+//              0  normal intersections in 1 or 2 points
+//              1  ln1 touches ci1 (pta[0]=pt, ipa[0]=0)
+//
+//
+//                                      . - .
+//                                   .    |    . ci1
+//                                 .      |      .
+//                                .       |       .
+//                                |       c       | 
+//                                .     / | \r    .
+//                                 .  /   |   \  .
+//         a-------------------------0----h----1---------b
+//                                      ' - '
+//   a = ln1->p1 (startPt line)
+//   b = ln1->p2 (endPt line)
+//   c = circCenter
+//   0 = pta[0] (intersectionpoint 0, pt0)
+//   1 = pta[1] (intersectionpoint 1, pt1)
+//   h = Point2 ph (circCenter projected onto line a-b);
+//   r = raduis rd1
+//   parh = parameter of point ph along a-b
+//   dch  = distance circCenter c - ph
+//   dh1  = distance ph - 1 
+//
+//
+//
+// see ../../doc/geom/SRV_pt_int_ln_sCyl.png
+// see also UT2D_2pt_intlnci UT2D_2pt_intciptvc UT2D_pt_ck_inAc UT2D_pt_ck_inLine
+//   UT2D_pt_ck_inLine
+
+  int       irc0, ircl1, ircl2, ircc1, ircc2, irc1, irc2, i1, src;
+  double    dch, dh1, rd1, d1, dx, dy,
+            acs, ace, acp0, acp1,
+            s_ab_ab, s_ab_ac, s_ab_a0, s_ab_a1, parh, parls, parle, parp0, parp1;
+  Vector2   vab, vac, vch, va0;
+  Point2    pt0, pt1, ph;
+
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci\n");
+  // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
+  // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
+  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_Disp_ci2 (ci1, Typ_Att_blue);
+
+
+
+  //----------------------------------------------------------------
+  // get point ph (circCenter projected onto line a-b)
+  // see also UT2D_parpt_2pt UT2D_pt_projptptvc
+  UT2D_vc_2pt (&vab, &ln1->p1, &ln1->p2);     // vab = Vector a-b
+  UT2D_vc_2pt (&vac, &ln1->p1, &ci1->pc);     // vac = Vector a-c
+
+  s_ab_ab = UT2D_skp_2vc (&vab, &vab);  // skp mit sich selbst = Laenge^2
+  s_ab_ac = UT2D_skp_2vc (&vab, &vac);  // param. val. of h on a-b
+    // printf("s_ab_ab=%f s_ab_ac=%f \n",s_ab_ab,s_ab_ac);
+
+
+  // param. val. of h on a-b
+  parh = s_ab_ac / s_ab_ab;
+    // printf(" parh = %f\n",parh);
+
+  // get point ph
+  UT2D_pt_pt_mult_vc (&ph, &ln1->p1, &vab, parh);
+    // DEB_dump_obj__(Typ_PT2, &ph, "ph");
+    // GR_Disp_pt2 (&ph, SYM_TRI_S, ATT_COL_RED);
+
+
+
+  //----------------------------------------------------------------
+  // test touch circ (dist == rad)
+
+  // vch = line (circCenter - ph)
+  UT2D_vc_2pt (&vch, &ci1->pc, &ph);
+
+  // get dch = distance (circCenter - ph)
+  dch = sqrt(vch.dx*vch.dx + vch.dy*vch.dy);
+    // printf(" dch = %f\n",dch);
+
+  if(dch < *tol) {
+    // line goes tru circCenter;
+    TX_Error("UT2D_2pt_int_ln_ci TODO I1"); return -1;
+    // see UT2D_parpt_2pt UT2D_pt_projptptvc
+  }
+
+  // get rd1 = radius
+  rd1 = fabs(ci1->rad);
+
+  // test touch circ: rad+tol = outside
+  // d1 = rd1 - dch;
+    // printf(" d1=%f rd1=%f\n",d1,rd1);
+  // if(d1 > *tol) { irc0 = -1; goto L_exit; }   // outside
+  // else if(d1 < -(*tol)) irc0 = 0;                      // between
+
+  if(dch > (rd1 + *tol)) goto L_err__;                 // outside
+  else if(dch < (rd1 - *tol)) irc0 = 0;                // between
+  else irc0 = 1;                                       // touching
+    printf(" irc0 = %d\n",irc0);
+
+
+
+
+  //----------------------------------------------------------------
+  // get intersectionPoints pt0, pt1 on line
+
+  // case ln1==horiz | ln1 == vertical ??
+
+  // dh1 = dist ph - pt1
+  // dh1 = (rd1*rd1) - (dch*dch);
+  // if(fabs(dh1) > UT_TOL_min1) dh1 = sqrt(dh1);
+  SQRT_12 (dh1, rd1, dch);
+    // printf(" dh1 = %f\n",dh1);
+
+  // get d1 = faktor (circCenter - ph) -> (ph - pt1)
+  d1 = dh1 / dch;
+
+  // get vector (ph - pt1)
+  dx = vch.dx * d1;
+  dy = vch.dy * d1;
+
+  // ip = translate vector (ph - pt1) normal to dir vch
+  pt0.x = ph.x - dy;
+  pt0.y = ph.y + dx;
+
+  if(!irc0) {
+    // does not touch
+    pt1.x = ph.x + dy;
+    pt1.y = ph.y - dx;
+  }
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_PT2, &pt0, " pt0");
+    // GR_Disp_pt2 (&pt0, SYM_TRI_S, ATT_COL_RED);
+    // if(!irc0) DEB_dump_obj__ (Typ_PT2, &pt1, " pt1");
+    // if(!irc0) GR_Disp_pt2 (&pt1, SYM_TRI_S, ATT_COL_RED);
+    // END TESTBLOCK
+
+
+
+  //----------------------------------------------------------------
+  // test if points pt0,pt1 are on limited line
+
+  // // vh0 = Vector ph - pt0
+  // UT2D_vc_2pt (&vh0, &ph, &pt0);
+
+  // test vh0 = 0
+  // if(UT2D_vc_ck_0(&vh0)) {
+  // if(UT2D_comp2pt(&pt0,&ph,CO2DAT.tol1)) {
+    // // ph==pt0; vh0 = 0,0;  startPt or endPt
+    // if(s_ab_ac > (s_ab_ab / 2.)) parp0 = 1.;
+    // else                         parp0 = 0.;
+
+  // } else {
+    UT2D_vc_2pt (&va0, &ln1->p1, &pt0);
+    s_ab_a0 = UT2D_skp_2vc (&vab, &va0);
+    parp0 = s_ab_a0 / s_ab_ab;
+    d1 = parh - parp0;
+    parp1 = parh + d1;
+
+    // UT2D_vc_2pt (&va1, &ph, &pt0);
+    // s_ab_a1 = UT2D_skp_2vc (&vab, &vh0);
+    // parp1 = s_ab_a1 / s_ab_ab;
+    // s_ab_h1 = UT2D_skp_2vc (&vab, &vh0);
+    // d1 = fabs(s_ab_h1 / s_ab_ab);
+    // d1 = s_ab_h1 / s_ab_ab;
+    // parp0 = parh - d1;
+    // parp1 = parh + d1;
+  // }
+    // printf(" parp0=%f parp1=%f d1=%f\n",parp0,parp1,d1);
+
+  parls = 0.;   // relimited or reverse ?
+  parle = 1.;   // relimited or reverse ?
+
+
+  // test if pt0 outside ln1 (test parh = parameter of point ph along a-b)
+  // ircl1 = UT2D_par_ck_inLn (&pt0, &parp0, &ln1->p1, &ln1->p2, tol);
+  ircl1 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ln1->p1, &ln1->p2,
+                                      &parp0, &parls, &parle, tol);
+  if(ircl1 < 0) ipa[0] = -1;    // pt0 outside
+      // printf(" ircl1=%d\n",ircl1);
+
+  if(!irc0) {
+    // does not touch
+    // test if pt1 outside ln1 (test parh = parameter of point ph along a-b)
+    // ircl2 = UT2D_par_ck_inLn (&pt1, &parp1, &ln1->p1, &ln1->p2, tol);
+    ircl2 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ln1->p1, &ln1->p2,
+                                        &parp1, &parls, &parle, tol);
+    if(ircl2 < 0) ipa[1] = -1;    // pt1 outside
+      // printf(" ircl2=%d\n",ircl2);
+  } else ircl2 = -1;
+
+  // if both points outside: exit
+  if((ircl1 < 0)&&(ircl2 < 0)) goto L_err__;
+
+
+
+  //----------------------------------------------------------------
+  // test if points pt0,pt1 are on limited arc
+
+  // ignore pt0 if not on ln
+  if(ircl1 < 0) {ircc1 = -1; goto L_check_on_arc_1;}
+
+  // test if pt0 is on arc
+
+  // get acs = angle at startPt of circ
+  acs = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+    // printf(" box_ci2-acs-1 %f\n",acs);
+
+  // get acs,ace = angles at startPt,endPt as consecutive vals from 0 to 4Pi
+  // makes acs >= 0 <= 360; ace >= acs <= 720;   eg acs=270; ace=540
+  UT2D_ANGR_ADD_4PI (acs, ace, ci1->ango);
+    // printf(" box_ci2-acs = %f ace = %f ango = %f\n",acs,ace,ci1->ango);
+
+  // get sense-rotation; 0=CCW; 1=CW
+  src = DLIM01 (ci1->rad);
+
+  // ignore pt0 if not on line
+  if(ircl1 >= 0) {
+    // get acp0 = angle of pt0 on ci1
+    acp0 = UT2D_angr_ptpt (&ci1->pc, &pt0);
+
+    // set acp0 following acs
+    acp0 = UT2D_angr_set_2angr_sr (acs, acp0, src);
+
+    // check if acp0 is on arc; 1=no-outside arc; 0=yes-between-acs-ace
+    // ircc1 = UT2D_angr_ck_inAc (&pt0, &acp0, ci1, &acs, &ace, tol);
+    ircc1 = UT2D_ck_par_pt_in_2par_2pt (&pt0, &ci1->p1, &ci1->p2,
+                                        &acp0, &acs, &ace, tol);
+  } else ircc1 = -1;
+    // printf(" box_ci2-ircc1=%d acp0=%f\n",ircc1,acp0);
+
+
+  L_check_on_arc_1:
+  // test if pt1 is on arc
+
+  // ignore pt1 if touching
+  if(irc0) {ircc2 = -1; goto L_fix_ipa;}
+
+  // ignore pt1 if not on line
+  if(ircl2 < 0) {ircc2 = -1; goto L_fix_ipa;}
+
+  if(ircl1 < 0) {
+    // get acs = angle at startPt of circ
+    acs = UT2D_angr_ptpt (&ci1->pc, &ci1->p1);
+      // printf(" box_ci2-acs-1 %f\n",acs);
+
+    // get acs,ace = angles at startPt,endPt as consecutive vals from 0 to 4Pi
+    // makes acs >= 0 <= 360; ace >= acs <= 720;   eg acs=270; ace=540
+    UT2D_ANGR_ADD_4PI (acs, ace, ci1->ango);
+      // printf(" box_ci2-acs = %f ace = %f ango = %f\n",acs,ace,ci1->ango);
+
+    // get sense-rotation; 0=CCW; 1=CW
+    src = DLIM01 (ci1->rad);
+  }
+
+  // get acp1 = angle of pt1 on ci1
+  acp1 = UT2D_angr_ptpt (&ci1->pc, &pt1);
+    // printf(" acp1-1=%f\n",acp1);
+
+  // set acp1 following acs
+  acp1 = UT2D_angr_set_2angr_sr (acs, acp1, src);
+    // printf(" acp1-2=%f\n",acp1);
+
+  // check if acp1 is on arc; 1=no-outside arc; 0=yes-between-acs-ace
+  // ircc2 = UT2D_angr_ck_inAc (&pt1, &acp1, ci1, &acs, &ace, tol);
+  ircc2 = UT2D_ck_par_pt_in_2par_2pt (&pt1, &ci1->p1, &ci1->p2,
+                                      &acp1, &acs, &ace, tol);
+    // printf(" box_ci2-ircc2=%d acp1=%f\n",ircc2,acp1);
+
+
+
+
+  //----------------------------------------------------------------
+  // fix ipa ...
+  L_fix_ipa:
+    // if both points outside: exit
+    if((ircc1 < 0)&&(ircc2 < 0)) goto L_err__;
+
+    if((ircl1 >= 0)&&(ircc1 >= 0)) {
+      ipa[0] = ircl1 + ircc1 * 4;
+      pta[0] = pt0;
+      if(para) para[0] = parp0;
+      if(anga) anga[0] = acp0 - acs;
+    } else ipa[0] = -1;
+
+    if((ircl2 >= 0)&&(ircc2 >= 0)) {
+      ipa[1] = ircl2 + ircc2 * 4;
+      pta[1] = pt1;
+      if(para) para[1] = parp1;
+      if(anga) anga[1] = acp1 - acs;
+    } else ipa[1] = -1;
+ 
+      // printf("ex-int_ln_ci irc0=%d icl=%d,%d icc=%d,%d ipa=%d,%d\n",
+             // irc0, ircl1, ircl2, ircc1, ircc2, ipa[0], ipa[1]);
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // if(!ipa[0] >= 0) DEB_dump_obj__(Typ_PT2, &pta[0], "   pta[0] %d",ipa[0]);
+    // if(!ipa[1] >= 0) DEB_dump_obj__(Typ_PT2, &pta[1], "   pta[1] %d",ipa[1]);
+    // exit(0);
+    // END TESTBLOCK
+
+
+  return irc0;
+
+
+  L_err__:   // no intersection at all
+    irc0 = -1;
+    ipa[0] = -1;
+    ipa[1] = -1;
+    goto L_exit;
+
+}
+
+
+//================================================================
+  int UT2D_solvtriri_c (double *c, double a, double b) {
+//================================================================
+/// UT2D_solvtriri_c         right-angled tri: c from sides a and b
+///
+///               C              right-angle in point C
+///             / . \
+///           /       \
+///         b           a
+///       /               \
+///     A -------c-------- B      c = hypotenuse
+///
+///  c = sqrt (a*a + b*b)
+///
+///
+/// Input: the length of the sides  a, c. 
+///   a    length of side a, from point B to point C;
+///   b    length of side b, from point C to point A;
+/// 
+/// Output:
+///   c    length of hypotenuse, from point A to point B;
+/// 
+/// Retcodes:
+///   0    OK
+
+
+
+  *c = sqrt (a * a + b * b);
+
+    printf("ex UT2D_solvtriri_c a=%f b=%f c=%f\n", a, b, *c);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT2D_2angr_ck_360 (double *aps, double *ape, double *tol) {
+//================================================================
+// UT2D_2angr_ck_360            check if angles aps, ape span 360-degree
+// retCode:    0:   YES, angles span 360 deg
+//             1:   NO
+
+  double   d1;
+
+  printf("UT2D_2angr_ck_360 %f %f tol = %f\n",*aps, *ape, *tol);
+
+  d1 = fabs(*aps - *ape);
+  return UTP_comp2db (d1, RAD_360, *tol);
+
+}
+
+
+//================================================================
+  int UT2D_2angr_4pi_sr (double *angso, double *angeo,
+                         double *angsi, double *angei, int sr) {
+//================================================================
+// UT2D_2angr_4pi_sr            get 2 angles into range 0-4pi with sense-of-rot
+// Input:
+//   sr        sense-of-rotation; 0=CCW, 1=CW
+
+  printf("UT2D_2angr_4pi_sr %f %f %d\n",*angsi, *angeo, sr);
+
+  *angso = *angsi;
+  *angeo = *angei;
+
+  if(*angso < 0.) *angso += RAD_360;
+  if(*angeo < 0.) *angeo += RAD_360;
+
+  if(!sr) {
+    // CCW
+    if(*angeo < *angso) *angeo += RAD_360;
+
+  } else {
+    // 1 = CW
+    if(*angei > *angeo) *angei += RAD_360;
+  }
+
+    printf(" ex-UT2D_2angr_4pi_sr %f %f\n",*angso, *angeo);
+
+
+  return 0;
+
+}
+
+
+//==============================================================================
+  int UT2D_2angr_2angr_ci (double *angs, double *ango,
+                           double as, double ae, int sr) {
+//==============================================================================
+// UT2D_2angr_2angr_ci     get angs,ango for circ from 2 angles, rot-sense
+//   if (a1 = a2) then 360-deg-circ is returned.
+// Input:
+//   as        startAngle of circ; from -2pi to 2pi
+//   ae        endingAngle of circ; from -4pi to 4pi
+//   sr        sense-of-rotation; 0=CCW, 1=CW
+// Output:
+//   angs      startAngle of circ; from 0 to 4pi
+//   ango      openingAngle of circ; from -2pi to 2pi. Negativ for sr=1=CW
+//
+// Examples: as    ae    sr     angs  ango
+//           3     5     0      3     2
+//          -3     5     0      3     2
+//          -3    -1     0      3     2
+//          -3    -1     1      3     2
+//              
+// see UT2D_angr_set_2angr_sr
+
+
+  // printf("UT2D_2angr_2angr_ci %f %f %d\n",as,ae,sr);
+
+
+  // check 360
+  if(as == ae) {
+    // make as from 0 to 4pi
+    if(as < 0.) *angs = as + RAD_360;
+    else        *angs = as;
+    *ango = RAD_360;
+    goto L_exit;
+  }
+
+  // make as from 0 to 4pi
+  if(as < 0.) as += RAD_360;
+
+  // make as < ae
+  if(as > ae) ae += RAD_360;
+  *ango = ae - as;
+
+  if(sr) *ango -= RAD_360; // 1 = CW
+
+  *angs = as;
+
+  //----------------------------------------------------------------
+  L_exit:
+ 
+    // printf(" ex-UT2D_2angr_2angr_ci %f %f\n",*angs,*ango);
+
+  return 0;
+
+}
+
+
+//==============================================================================
+  int UT2D_angr_ck_in_ci (double *angx, double *angs, double *ango, int sr) {
+//==============================================================================
+// UT2D_angr_ck_in_ci      ck if angle is on arc from angs,ango
+// Input:
+//   angx      angle to test; from 0 to 2pi
+//   angs      startAngle of circ; from 0 to 4pi
+//   ango      openingAngle of circ; from -2pi to 2pi. Negativ for sr=1=CW
+//   sr        sense-of-rotation; 0=CCW, 1=CW
+// Output:
+//   retcode   0:   YES, angx is between angs / angs + ango
+//             1:   NO,  angx is outside v1 / v2
+
+
+  int      irc = 0;
+  double   ae, ax;
+
+
+  // printf("UT2D_angr_ck_in_ci %f %f %f %d\n",*angx,*angs,*ango,sr);
+
+
+  ax = *angx;       
+
+
+  if(!sr) {
+    if(UTP_comp2db(ax, *angs, RAD_01)) goto L_exit;
+    // CCW
+    ae = *angs + *ango;
+    // make ax gt angs
+    if(ax < *angs) ax += RAD_360;
+    // test if ax between angs - ae
+    irc = UTP_db_ck_in2dbTol (ax, *angs, ae, RAD_01);
+
+
+  } else {
+    // CW
+    // make ax lt angs
+    ae = *angs + *ango;
+    if(UTP_comp2db(ax, ae, RAD_01)) goto L_exit;
+    if(ax < ae) ax += RAD_360;
+    // test if ax between ae - angs
+    irc = UTP_db_ck_in2dbTol (ax, ae, *angs, RAD_01);
+  }
+
+
+  L_exit:
+    // printf(" ex-UT2D_angr_ck_in_ci %d\n",irc);
+
+  return irc;
 
 }
 

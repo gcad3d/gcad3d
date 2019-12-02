@@ -5199,7 +5199,7 @@ static Point  p1, p2;
   AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i1].gInd);
   AP_obj_add_dbo (gTxt, Typ_PT, s_tab[i2].gInd);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
-  // iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  // iTyp = AP_typDB_typ (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
   iTyp = Typ_CV;  // 2019-04-20  all trimmed-curves -> S
   irc = STP_r_creObj1 (sInd, iTyp, Typ_Txt, gTxt);
   if(irc < 0) return irc;
@@ -5254,7 +5254,7 @@ static Point  p1, p2;
   AP_obj_add_val (gTxt, u1);
   AP_obj_add_val (gTxt, u2);
   // Achtung: gleicher Typ wie BaseCurve (Spline degrade to Line)
-  // iTyp = AP_typ_2_bastyp (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
+  // iTyp = AP_typDB_typ (s_tab[ibc].gTyp); // Typ_CVBSP -> TYP_CV
   iTyp = Typ_CV;  // 2019-04-20  all trimmed-curves -> S
   irc = STP_r_creObj1 (sInd, iTyp, Typ_Txt, gTxt);
   if(irc < 0) return irc;

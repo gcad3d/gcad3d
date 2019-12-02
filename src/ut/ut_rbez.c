@@ -101,7 +101,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
     wpa[i1].y = pta[i1].y * wa[i1];
     wpa[i1].z = pta[i1].z * wa[i1];
     wpa[i1].w = wa[i1];
-      DEB_dump_obj__ (Typ_WPT, &wpa[i1], "wpa [%d]=",i1);
+      // DEB_dump_obj__ (Typ_WPT, &wpa[i1], "wpa [%d]=",i1);
   }
 
   return 0;
@@ -223,7 +223,6 @@ Rational-Bezier-Curve must have POSITIVE weights !!
 
 
   DEB_dump_obj__ (Typ_CVRBEZ, rbez, "UT3D_pta_rbez ptMax=%d\n",ptMax);
-
   TX_Print("ERROR: UT3D_pta_rbez not yet implemented");
 
   return -1;

@@ -1529,7 +1529,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   if(winBrStat < 1) return 0;
 
 
-  typ = DL_GetTyp (dli);
+  typ = DL_dbTyp__dli (dli);
   // ind = DL_get_dbi (dli);
     // printf(" typ=%d ind=%ld\n",typ,ind);
 
@@ -1561,7 +1561,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   // create string "<objID>="  e.g. "M20" from objInd
-  DL_Get_oid_dli (cbuf, dli);
+  DL_oid__dli (cbuf, dli);
     // printf(" obj=|%s|\n",cbuf);
 
 

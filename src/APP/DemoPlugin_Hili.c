@@ -140,7 +140,7 @@ __declspec(dllexport) int gCad_fini ();
 
   // get DL-record
   // att1 = DL_GetAtt(dl_ind);
-  DL_get_dla (&att1, dl_ind);
+  DL_dlRec__dli (&att1, dl_ind);
   printf("hili=%d\n",att1.hili);  // see hilite-bit
 
 

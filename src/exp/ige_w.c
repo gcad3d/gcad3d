@@ -2714,7 +2714,7 @@ Retour: der Index.
 
   // printf("IGE_w_getPtr %d %d\n",typ,ind);
 
-  btyp = AP_typ_2_bastyp (typ);
+  btyp = AP_typDB_typ (typ);
   
   for(i1=0; i1<expNr; ++i1) {
     // printf(" ...%d %d %d\n",i1,expTab[i1].typ,expTab[i1].ind);

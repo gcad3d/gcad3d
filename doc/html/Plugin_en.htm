@@ -1,17 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
-	<META NAME="AUTHOR" CONTENT="David Young">
-	<META NAME="CREATED" CONTENT="20091101;7512800">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
-	<META NAME="CHANGED" CONTENT="20091101;7522600">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>CVED_en.htm</TITLE>
 <style>body{font: 10pt Verdana,sans-serif;}</style>
 </HEAD>
-<BODY LANG="en-GB" DIR="LTR">
+<BODY LANG="en-US">
 <PRE>
+
 ________________________________________________________________________
 <h2>Plugins:</h2>
 
@@ -26,158 +21,20 @@ ________________________________________________________________________
 Activate a plugin: "Plugin/Select-Start" (oder Ctrl-P).
 
 
-  <a href="#P_insL">Installing the Linux development kit </a>
-  <a href="#P_insM">Installing the development package for MS-Windows </a>
-  <a href="#P_cust">Customizing the development environment </a>
-  <a href="#P_creP">Creation of new plugins - Linux</a>
-  <a href="#P_docD">Development - Documentation </a>
-
-
-See also DevDoc / Introduction
-
-________________________________________________________________________
-<p><a name="P_insL"></a></p>
-<h2>Installing Linux development kit:</h2>
-
-<b>Prerequistes:</b>
-
-Required software packages: 
-
-  for modifications of gCAD3D:
-    gcc, ctags, build-essential.
-    (eg sudo apt-get install build-essential)
-
-  for modifications of the gui-system C-KIT-GUI-GTK:
-    Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
-      OpenGL-development-files (eg mesa-common-dev, libglu1-mesa-dev).
-      Installation of gtk3-development-files; eg for debian-os:
-        sudo apt-get install libgtk-3-dev
-        Optional:
-        sudo apt-get install libgtk-3-doc
-        sudo apt-get install gtk-3-examples
-      Installation of gtk2-development-files; eg for debian-os:
-        sudo apt-get install libgtk2.0-dev
-        Optional:
-        sudo apt-get install libgtk2.0-doc
-        sudo apt-get install gtk2.0-examples
-
-  for modification of the documentation:
-    doxygen
-
-  for building debian-package:
-    fakeroot, lintian
-
-
-
-<b>Linux Install from git-repository:</b>
-# If possible: prefer installation from git-repository.
-# start commandline (eg gnome-terminal)
-cd
-mkdir devel
-cd devel
-# get all files into ~/devel/gcad3d/*
-git clone https://github.com/gcad3d/gcad3d
-
-
-
-<b>Linux Install from zipfile:</b>
-
-# start commandline (eg gnome-terminal)
-cd
-mkdir devel
-cd devel
-
-# get all files into ~/devel/gcad3d/*
-cp xxx/gCAD3D_x.xx-src.zip .
-unzip gCAD3D_x.xx-src.zip
-
-cd gcad3d
-mkdir -p binLinux32/plugins
-mkdir -p binLinux64/plugins
-
-
-
-________________________________________________________________________
-<p><a name="P_insM"></a></p>
-<h2>Installing the development package for MS-Windows:</h2>
- Package name is gCAD3D-devel-1.26.zip. 
-
-Required software packages:
-  a compiler, such as Visual Studio Express. 
-
- The package contains - - 
-  - all necessary Gtk+ include files and libs, 
-  - GTK toolbox with examples (sources and makefiles) 
-  - some gCAD3D-demo -plugins (sources and makefiles) 
-  - all include files gCAD3D 
-
-
- You have to copy it into the gCAD3D basic installation directory,
-
- the base directory is normally &quot;C:\Program Files\gCAD3D&quot;
-   or &quot;C:\Program Files\gCAD3D&quot; 
-   Unpack the zipfile. 
-
-
-
- You will need a command shell with the correct compiler environment 
-  For VC8 you can use the Visual Studio Command Window or cmd.exe plus: 
-   &quot;C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat&quot; 
-
-  For VC9 (Visual Studio 2008) you can use: 
-   &quot;C:\Program Files\Microsoft Visual Studio 9.0\VC\vcvarsall.bat&quot; x86 
-   test it with &quot;cl /?&quot;. 
-
-
-
- Test link of a test program or add-on library: 
-  open command shell (CMD.EXE ) 
-  cd C:\Program Files\gCAD3D\gtk
-  nmake-f tst_gtk0.nmak 
-
-
-
- Runtime link: 
-  start gCAD3D from command shell (CMD.EXE) to see messages 
-  activate checkbox Options / compile_DLL 's in gCAD3D, 
-  activate a DDL (select &quot;DemoXX&quot; in upper right) 
-  the selected DLL will be compiled, linked, started 
-  (see text window for errors)
-
-
-
-________________________________________________________________________
-<p><a name="P_docD"></a></p>
-<h2>Development - Documentation:</h2>
-
-<b>Linux:</b>
-  Display from a command shell: 
-  firefox ~/devel/gcad3d/doc/gcad/index.htm
-
-
-<b>MS-Windows:</b>
-  Start from a command shell: 
-   cd C:\Program Files\gCAD3D\xa 
-   hh ..\devdoc\index.htm
-
 
 
 ________________________________________________________________________
 <p><a name="P_creP"></a></p>
-<h2>Creation of new plug-ins - Linux</h2>
+<h2>Create new plug-in</h2>
 
  A source program ({progname}.c) and a Link job ({progname}.mak) are required
   (MS-Win: {progname}.nmak). 
 
- Examples: Demo*.c, Demo*.mak  (MS: Demo*.nmak).
+ Examples: Demo*.c, Demo*.mak  (MS-Win: Demo*.nmak).
 
 
  With "Options/compile_DLLs" on, a plugin is unloaded at runtime,
  recompiled, relinked and reloaded. 
-
- Documentation:
- <a href="http://www.gcad3d.org/devdoc/pag_pd1.htm">pag_pd1.htm</a>
- or doc/gcad/pag_pd1.htm in the development-package.
 
 
 Example:
@@ -196,86 +53,9 @@ make -f myTest1.mak
 
 
 
-
-
-________________________________________________________________________
-<p><a name="P_cust"></a></p>
-<h2>Customizing the development environment</h2>
-
-The installed program gCAD3D uses system-directories,
-- normal users cannot write to system-directories.
-The development environment is using different directories,
-- the program must be rebuilt (with ./do setup).
-
-
-# goto APP-directory; normaly:
-cd ~/devel/gcad3d/src/APP
-
-# Script "do" has predefined functions; get infos with:
-./do help
-
-# first customize (create some directories, rebuild gCAD3D)
-./do setup
-
-# test it (start gcad)
-./do
-
-
-# optional:
-# test to rebuild a plugin:
-./do Demo_gui1.mak
-
-# change gtk-version (sets VGUI in ../options.mak):
-./do guiinit
-
-# ReCreate development-documentation (doygen must be installed):
-cd ~/devel/gcad3d/doc
-./gcad_doxygen.sh
-
-# view development-documentation:
-xdg-open ~/devel/gcad3d/doc/gcad/index.htm
-
-# after modification of sourcefiles, rebuild gcad:
-./do c
-
-
-#---------------------------------------------------------
-# Create new gcad-Version:
-# Modifys gcad_version, gcad_date; create xa/gcad_version.h:
-cd ~/devel/gcad3d/src
-./NEW_VERSION1.sh
-
-# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
-cd ~/devel/gcad3d/debian
-./pack_deb.sh
-
-# create source-package (gCAD3D-#.##-src.zip):
-cd ~/devel/gcad3d
-./pack_src.sh
-
-
-#---------------------------------------------------------
-# DEVELOPMENT-TOOLS-TAGFILES:
-# If you are using vim: jump into functions with tagfiles:
-# in directory APP_tests tagfiles can be used with vim.
-
-# Add in .vimrc:
-  let tagfiles = system("ls -m *.tag |sed \"s/ //g\"")
-  "echo tagfiles
-  let &tags = substitute(tagfiles, "\n", "", "g")
-
-# Using tagfiles:
-  cd ~/devel/gcad3d/src/APP
-  vi -t UME_init
-# or use "Ctr-R" inside vim with cursor over function, Ctrl-O = back.
-
-
-#---------------------------------------------------------
-# DEVELOPMENT-TOOLS-CSCOPE:
-# Use cscope with:
-  cd ~/devel/gcad3d/src/APP
-  ./ed
-    update EDITOR in file ~/devel/gcad3d/src/APP/ed.
+See also:
+- <a href="../dev_inf_en.txt">using the development-documentation</a>
+- <a href="../dev_doc_en.txt">installation / customization of the development-tools</a>
 
 
 

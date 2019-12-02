@@ -40,10 +40,11 @@ UT2D_cv_ln                Linearstueck -> Polygon / Anzahl
 UT2D_npt_obj              polygon from bin-obj (typ,struct)
 UT2D_npt_otb              polygon from binary-object-table
 UT2D_npt_sym_ci           get symbolic polygon from 2D-circ
+UT2D_npt_2pt_ci           circ.arc from startPt ns segments with angle ax
 UT2D_npt_plg              polygon (table of 2D-points) from polygonCurve (CurvPol2)
 UT2D_npt_tra_npt3_rsys    transf. 3D-points => 2D-points
 
-UT2D_cv_ci                change circle > polygon (schnell)         DO NOT USE
+UT2D_cv_ci                change circle > polygon. ONLY CCW.   DO NOT USE.
 UT2D_cv_ci_               get circular polygon from circle
 UT2D_npt_ci               circular polygon
 UT2D_cv_cin               Circ -> Polygon / Anzahl
@@ -517,6 +518,65 @@ see also:
 }
 
 
+//========================================================================
+  int UT2D_npt_2pt_ang_ci (Point2 *pa, int segNr, double *ai,
+                           Point2 *pc, Point2 *ps) {
+//========================================================================
+// UT2D_npt_2pt_ci        circ.arc from startPt ns segments with angle ax
+// Input:
+//   pa        size must be sNr + 1
+//   sNr       nr of segments for circular arc
+//   ai        incremental angle for each segment
+//   pc        centerpoint arc;   NULL for origin-position (0,0,0)
+//   ps        startPt arc
+//
+// see also UT2D_npt_ci
+
+
+  int        i1;
+  Mat_3x2    m1;
+
+  // printf("UT2D_npt_2pt_ang_ci segNr=%d ai=%f\n",segNr,*ai);
+
+  ++segNr;  // need segNr+1 points
+
+
+  // init rotation around 0,0
+  UT2D_m2_init_rot (m1, UT_RADIANS(*ai), (Point2*)&UT2D_PT_NUL);
+
+  // startpt
+  // rund um eine Achse im Nullpunkt drehen
+  if(pc) {
+    pa[0].x = ps->x - pc->x;
+    pa[0].y = ps->y - pc->y;
+  } else pa[0] = *ps;
+
+
+  //  die Punkte rumdrehen
+  for(i1=1; i1<segNr; ++i1) {
+    UT2D_pt_traptm2 (&pa[i1], m1, &pa[i1-1]);
+  }
+
+
+  // Mittelpunkte aufaddieren
+  if(pc) {
+    for(i1=0; i1<segNr; ++i1) {
+      pa[i1].x += pc->x;
+      pa[i1].y += pc->y;
+      // TX_Print(" %d %f,%f,%f",i1,cv[i1].x,cv[i1].y,cv[i1].z);
+    }
+  }
+
+
+    // printf(" ex-UT2D_npt_2pt_ang_ci:\n");
+    // for(i1=0;i1<segNr; ++i1) DEB_dump_obj__ (Typ_PT2,&pa[i1],"pa[%d]",i1);
+
+
+  return 0;
+
+}
+
+
 //================================================================
   int UT2D_npt_ci (Point2 *pa, int pNr, Circ2 *ci1) {
 //================================================================
@@ -527,8 +587,7 @@ see also:
 
   int        i1, segNr;
   double     ai;
-  Mat_3x2    m1;
-
+  
 
   // printf("UT2D_npt_ci %d\n",pNr);
   // DEB_dump_obj__ (Typ_CI2, ci1, "");
@@ -541,52 +600,29 @@ see also:
     goto Fertig;
   }
 
-
   // den Incrementalwinkel ai errechnen
   ai = fabs(ci1->ango) / segNr;
   if(ci1->rad < 0.) ai = -ai;
     // printf(" ai=%f\n",ai);
 
-
-  // init rotation around 0,0
-  UT2D_m2_init_rot (m1, ai, (Point2*)&UT2D_PT_NUL);
-  // UT2D_vc_angr (&vc1, ai);
-  // UT2D_m2_load (m1, &vc1, &UT2D_PT_NUL);
+  ai = UT_DEGREES(ai);
+  UT2D_npt_2pt_ang_ci (pa, segNr - 1, &ai, &ci1->pc, &ci1->p1);
 
 
-  // startpt
-  // rund um eine Achse im Nullpunkt drehen
-  pa[0].x = ci1->p1.x - ci1->pc.x;
-  pa[0].y = ci1->p1.y - ci1->pc.y;
-
-
-  //  die Punkte rumdrehen
-  for(i1=1; i1<segNr; ++i1) {
-    UT2D_pt_traptm2 (&pa[i1], m1, &pa[i1-1]);
-  }
-
-
-  // Mittelpunkte aufaddieren
-  for(i1=0; i1<segNr; ++i1) {
-    pa[i1].x += ci1->pc.x;
-    pa[i1].y += ci1->pc.y;
-    // TX_Print(" %d %f,%f,%f",i1,cv[i1].x,cv[i1].y,cv[i1].z);
-  }
-
-
-  // Endpunkt
+  // add endPoint
   Fertig:
   pa[segNr] = ci1->p2;
 
 
-    // Testausgaben:
+    // TESTBLOCK
     // printf("ex UT3D_npt_ci %d\n",pNr);
     // for(i1=0; i1<pNr; ++i1) {
       // GR_Disp_pt2 (&pa[i1], SYM_TRI_S, 2);
       // GR_Disp_txi2 (&pa[i1], i1, 0);
-      // GR_Disp_cv2 (pa, pNr, 9);
-      // DEB_dump_obj__ (Typ_PT, &cv[i1], " P[%d]=",i1);
+      // // DEB_dump_obj__ (Typ_PT, &pa[i1], " P[%d]=",i1);
     // }
+    // GR_Disp_cv2 (pa, pNr, 9);
+    // END TESTBLOCK
 
 
   return 0;
@@ -698,7 +734,7 @@ see also:
 //==========================================================================
   int UT2D_cv_ci_ (Point2 *pa, int *ptNr, Circ2 *ci1, int ptMax, double tol) {
 //==========================================================================
-///UT2D_cv_ci_               get circular polygon from circle
+// UT2D_cv_ci_               get circular polygon from circle
 
   int    pNr;
 

@@ -793,7 +793,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
     // activeTyp=Typ_PT|Typ_PLN: das Obj hiliten
     L_typ_def:
       // get il = DispListIndex from objID
-      dli = DL_find_obj (mcl_typ, mcl_dbi, -1L);
+      dli = DL_dli__dbo (mcl_typ, mcl_dbi, -1L);
       // hilite obj
       DL_hili_on (-1L); // loeschen der Hili-Tabelle
       if(dli >= 0) DL_hili_on (dli);

@@ -505,7 +505,7 @@ Returncodes:
   Point   pt1, pt2, pts, pte, ptStack[20];
 
 
-  DEB_dump_obj__ (Typ_CVBEZ, bez, "UT3D_pta_bez ptMax=%d\n",ptMax);
+  // DEB_dump_obj__ (Typ_CVBEZ, bez, "UT3D_pta_bez ptMax=%d\n",ptMax);
 
 
   ianz  = bez->ptNr - 1;

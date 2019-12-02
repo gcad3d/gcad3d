@@ -1,0 +1,41 @@
+====================== .vimdoc for ${DIR_BIN}.vimrc ===========================
+Ctl-h = dieses helpfile anzeigen;      Ctl-o = retour
+bb = add/delete bookmark; bv = show/hide BM's; bd = delete all BM's
+bw  write from ma until active line into file t1
+q = quit                Q = quit!
+
+F2 = comment out (//)          Shift-F2 = comment in (del 3 chars)
+Ctl-F2 comment out ganz links
+Ctl-Shift-F2  change comment "/*" or "*/"  into "// .."
+
+Ctl-r = jump to Tag under Cursor       Ctl-o = Retour from Tag.
+Ctl-f = jump to Filename under Cursor (htm=firfox, jpg=eog)   Ctl-o = Retour
+Ctl-e = edit Filename under Cursor with bluefish              Ctl-o = Retour
+bh    = jump to Include-File (.h)                             Ctl-o = Retour
+
+Alt-p = displ. Prototyp (of varTyp)
+Alt-e = Edit file under cursor;        Alt n = Retour
+Alt-m = Make;  CR in Fehlerzeile;      Alt n = Retour
+Alt-d = Directory (:vi .)
+Ctl-n|p AutoComplete (nur im Insert-mode) Esc = Exit
+
+Alt-n = next File (:e#)
+
+u = undo                               Ctrl U = Redo.
+v = start selection; d = copy and delete selected lines. Paste with p.
+
+% = Klammern anzeigen
+
+============================================================
+Sonderfunktionen f. filetyp .htm:
+Ctl-i = change < -> &lt; > -> &gt;
+
+============================================================
+set noignorecase  | ignorecase    " search not-case-sensitiv | case-sensitiv
+
+Abbrevs: pri, //=, //-, TB,
+
+Gehd ned: 
+Ctl-p = jump to Prototyp (of varTyp)   Ctl-o = Retour from Prototyp.
+use youcompleteme ?
+// EOF

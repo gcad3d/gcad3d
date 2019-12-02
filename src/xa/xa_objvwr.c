@@ -134,7 +134,7 @@ static MemObj winOvr;
 
   // printf("OVR__ typ=%d txt=|%s|\n",typ,txt);
   if(oNr == 1)
-    DEB_dump_obj__ (typ, data, "OVR__");
+    DEB_dump_obj__ (typ, data, txt);
 
 
 
@@ -279,7 +279,7 @@ static MemObj winOvr;
 
 
 
-  // dli = DL_find_obj (typ, dbi, -1L);
+  // dli = DL_dli__dbo (typ, dbi, -1L);
   APED_oid_dbo__ (oNam, typ, dbi);
     // printf(" oNam=|%s|\n",oNam);
 

@@ -470,12 +470,12 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
   if(cv1->form != Typ_CVTRM) {
-    TX_Error("UT3D_obj_ccv_segnr EI_%d_%d",cv1->typ,cv1->form);
+    TX_Error("UT3D_obj_ccv_segnr-EI %d_%d",cv1->typ,cv1->form);
     return -1;
   }
 
   if(is >= cv1->siz) {
-    TX_Error("UT3D_obj_ccv_segnr MOD_%d_%d",is,cv1->siz);
+    TX_Error("UT3D_obj_ccv_segnr-MOD %d_%d",is,cv1->siz);
     return -1;
   }
 
@@ -916,7 +916,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   printf("UT3D_segpar_dboSel typ=%d ind=%ld\n",typ,ind);
 
-  // btyp = AP_typ_2_bastyp (typ);
+  // btyp = AP_typDB_typ (typ);
   sTyp = typ;
 
   *ps   = 0.;
@@ -1047,7 +1047,7 @@ REPLACED by UT3D_obj_ccv_segnr
     // printf(" CCV-l0: typ=%d sTyp=%d is=%d,%d\n",typ,sTyp,is[0],is[1]);
 
   // // get ps=parameter of point spt on curve
-  // irc = UTO_par1_pt_pt_obj (ps, &spt, ox1.form, ox1.data);
+  // irc = UTO_par__pt_obj (ps, &spt, ox1.form, ox1.data);
     // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
   // if(irc < 0) return -1;
   // goto L_done;
@@ -1072,7 +1072,7 @@ REPLACED by UT3D_obj_ccv_segnr
   // Polygon in CCV selected
   if(sTyp == Typ_CVPOL) {
 
-    irc = UTO_par1_pt_pt_obj (ps, &spt, sTyp, ox1.data);
+    irc = UTO_par__pt_obj (ps, &spt, sTyp, ox1.data);
       // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
     if(irc < 0) return -1;
 
@@ -1156,7 +1156,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   // oxi = ox1;
     // DEB_dump_obj__ (Typ_ObjGX, &oxi, "CCV-Seg:\n");
-  // typ = AP_typ_2_bastyp (oxi.typ);
+  // typ = AP_typDB_typ (oxi.typ);
   // typ = oxi.typ;   // wird zum erkennen von CVPOL gebraucht ..
 
   // goto L_noCCV2;
@@ -1218,7 +1218,7 @@ REPLACED by UT3D_obj_ccv_segnr
   //----------------------------------------------------------------
   L_noCCV2:
   // get ps=parameter of point spt on curve
-  irc = UTO_par1_pt_pt_obj (ps, &spt, oxi.form, oxi.data);
+  irc = UTO_par__pt_obj (ps, &spt, oxi.form, oxi.data);
     // printf(" -parpt_objpt irc=%d ps=%f\n",irc,*ps);
 
 
@@ -1408,7 +1408,7 @@ REPLACED by UT3D_obj_ccv_segnr
 
   // get Parameter from object
   if(oTyp == Typ_PT) d1 = 0.;
-  else UTO_par1_pt_pt_obj (&d1, p1, oTyp, od);
+  else UTO_par__pt_obj (&d1, p1, oTyp, od);
 
   if(fabs(d1-1.) < UT_TOL_min0) d1 = 1.;
 

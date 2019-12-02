@@ -133,7 +133,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
   // dla = DL_GetAtt(dl_ind);               // get DL-record
-  DL_get_dla (&dla, dl_ind);
+  DL_dlRec__dli (&dla, dl_ind);
   apt_typ  = dla.typ;
   apt_ind  = dla.ind;
   model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
@@ -225,7 +225,7 @@ __declspec(dllexport) int gCad_fini ();
   for(l1=0; l1<dlNr; ++l1) {
 
     // dla = DL_GetAtt(l1);                  // get alle DL-Infos
-    DL_get_dla (&dla, l1);
+    DL_dlRec__dli (&dla, l1);
     apt_typ  = dla.typ;
     apt_ind  = dla.ind;
     model_nr = dla.modInd;    // -1=active Model, 0-n=Submodel
@@ -284,12 +284,12 @@ __declspec(dllexport) int gCad_fini ();
     if(o1->typ == Typ_Error) continue;     // skip, if surf not defined
 
     // get DispListIndex of object ...
-    dlInd = DL_find_obj (o1->typ, dbInd, -1);
+    dlInd = DL_dli__dbo (o1->typ, dbInd, -1);
     if(dlInd < 0) continue;                // no DispListRecord ..
 
     // get DispListRecord of object ...
     // dla = DL_GetAtt(dlInd);
-    DL_get_dla (&dla, dlInd);
+    DL_dlRec__dli (&dla, dlInd);
 
     printf(" dbI=%ld dlI=%ld typ=%d disp=%d\n",dbInd,dlInd,o1->typ,dla.disp);
 

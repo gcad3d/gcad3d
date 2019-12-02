@@ -431,7 +431,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
     return -1;
   }
 
-  UT3D_vc_ln (&vc1, vp1);
+  UT3D_vc_ln (&vc1, (Line*)vp1);
 
   dr = UT3D_angr_vcpl_z (&WC_sur_act, &vc1);
 

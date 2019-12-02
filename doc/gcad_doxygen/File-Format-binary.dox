@@ -6,7 +6,7 @@ Files in the tmp - directory:
 
   Model*, *.tess, *.write, *.ptab, *.msh, *.dlg, *.bmp
 
-\verbinclude "../../doc/gcad_doxygen/FileFormatDescriptions.txt"
+\verbinclude "../../doc/FileFormatDescriptions.txt"
 
 
 */

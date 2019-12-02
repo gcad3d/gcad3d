@@ -3,6 +3,13 @@
 *//*!
 \file ../xa/xa_sele.h
 \ingroup grp_ap
+
+See INF_workflow_select
+
+TODO:
+- Typ_goAxis unused ...
+
+
 */
 
 
@@ -12,17 +19,18 @@
 #define Typ_goPrim      1001  ///< PT/LN/CI/Spline; nicht Plg,CCV
 #define Typ_goGeo1      1002  ///< LN/CI/CV/PL/Sur/Sol (nicht PT,VC)
 #define Typ_goGeo2      1003  ///< CI/ELL (prj -> PLN)
-#define Typ_goGeo3      1004  ///< UNUSED
+#define Typ_go_PD       1004  ///< PT|VC            
 #define Typ_goGeo4      1005  ///< UNUSED VC/LN/PLN
-#define Typ_goGeo5      1006  ///< CIR/ELL/CCV (closed cont.)
-#define Typ_goGeoSUSU   1007  ///< Sur|Sol   (Supporting Surface)
+#define Typ_goGeo5      1006  ///< CIR/ELL/CCV      (closed cont.)
+#define Typ_goGeoSUSU   1007  ///< Sur|Sol          (Supporting Surface)
 #define Typ_goGeo6      1008  ///< PT|LN|AC
-#define Typ_goGeo7      1009  ///< ANG/PT  angle (0-360) od angle from point
-#define Typ_goGeo8      1010  ///< Val|PT  parameter (0-1) od par. from point
+#define Typ_goGeo7      1009  ///< Val|V|PT|VC      (angle ..)
+#define Typ_goGeo8      1010  ///< Val|V|PT         (parameter ..)
 #define Typ_goAxis      1011  ///< RotAxis LN/PT+PT/PT+LN/PT+VC/PLN
 #define Typ_go_LCS      1012  ///< Line,Circ,Curv
 #define Typ_go_LR       1013  ///< Line,Plane
 #define Typ_go_RA       1014  ///< plane|surface
+#define Typ_go_lf1      1015  ///< all curves, not contour
 
 // selectionModifiers
 #define Typ_FncVAR1     1020  ///< next DB-var
@@ -50,6 +58,14 @@
 // P|D(baseCv v2)      typ=P; v1<1.; v2=parameter;     eg P on plg
 // P|D(baseCv v1 v2)   typ=P; v1=segNr(>=1); v2=parameter; eg P on L in CCV
                           // segmentNumbers: 1 = first segment.
+
+
+#define SUBCVTABSIZ 20
+  typedef struct {int iNr; subCurv *cva;}            subCvTab;
+
+
+#define SELE_SRC_CNVT_NXT(xTyp) sele_src_cnvt_test(sCva,xTyp,selTyp,dbi,selPos)
+
 
 
 

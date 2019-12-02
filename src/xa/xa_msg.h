@@ -130,10 +130,16 @@ enum ERR_codes {
   ERR_db_obj_undefined,     // 1  db-obj_undefined
   ERR_file_open,            // 1  file_open error
   ERR_TEST,                 // 1  testExit
+  ERR_obsolete,             // 0
   ERR_unsupported           // 0
 };
 
 // MSG_ERR_sev                   get severity (1|2|3) from errorcode (< 0)
+// iSev = 0 = INF     continue
+// iSev = 1 = WNG     Error, continue
+// iSev = 2 = ERROR   exit right now 
+// iSev = 3 = BREAK   exit right now 
+// see MSG_ERR_txt
 #define MSG_ERR_sev(iErr)\
  ((iErr<=ERR_severity_1)?((iErr<=ERR_severity_2)?((iErr<=ERR_severity_3)?3:2):1):0)
 

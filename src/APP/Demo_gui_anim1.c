@@ -595,7 +595,7 @@ static MemObj    win0;
 
   for(l0=0; l0<=l1; ++l0) {
      // dlRec = DL_GetAtt(l0);
-     DL_get_dla (&dlRec, l0);
+     DL_dlRec__dli (&dlRec, l0);
      printf(" dl[%ld] = %d %ld\n",l0,dlRec.typ,dlRec.ind);
      if(dlRec.typ == Typ_Mock) {*dli = l0; return dlRec.ind;}
   }

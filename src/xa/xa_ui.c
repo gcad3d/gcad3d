@@ -1,4 +1,4 @@
-//  xa_ui.c
+//  ../xa/xa_ui.c
 /*
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -94,12 +94,15 @@ UI_open_symCB
 UI_openCB
 UI_disp_modsiz         display modelsize in gtk-label
 
+UI_disp__              temporary display not-geometric-object
 UI_disp_dbo            display temporary db-obj
 UI_disp_var1           temporary display lenght-variable
 UI_disp_Pos            temporary display position (with little red circle)
 UI_disp_vec1           create vector as a temporary outputObject. True length.
 UI_disp_pln_oid        hilite plane from objID
-UI_disp_tra
+UI_disp_tra            temporary display transformation
+UI_disp_angd           display angle temporary
+UI_disp_txt            temporary display text
 
 UI_butSM               Search/Measure
 UI_CB_view
@@ -254,15 +257,17 @@ extern int     APT_dispPT, APT_dispPL, APT_dispNam, APT_dispDir;
 
 
 // aus xa.c:
-extern AP_STAT   AP_stat;               // sysStat,errStat..
-extern int       AP_ED_cPos;            // die aktuelle CharPos im Edi.
-extern int       AP_modact_ind;         // -1=primary Model is active;
+extern AP_STAT    AP_stat;               // sysStat,errStat..
+extern int        AP_mode__;
+
+extern int        AP_ED_cPos;            // die aktuelle CharPos im Edi.
+extern int        AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
-extern double    WC_sur_Z;
-extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
-extern Plane     WC_sur_act;
-extern char      WC_ConstPl_Z[16];      // diplayed name of the Constr.Plane
-extern int       AP_src;                // AP_SRC_MEM od AP_SRC_EDI
+extern double     WC_sur_Z;
+extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
+extern Plane      WC_sur_act;
+extern char       WC_ConstPl_Z[16];      // diplayed name of the Constr.Plane
+extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
 extern double     AP_txsiz;             // Notes-Defaultsize
 extern double     AP_txdimsiz;          // Dimensions-Text-size
 extern int        AP_txNkNr;            // Nachkommastellen
@@ -1533,10 +1538,10 @@ static char LstBuf[LstSiz][32];
   // only in edit-mode (MAN or CAD)
 
   // printf("ZZZZZZZZZZZZZZZ UI_Set_ConstPl_Z ZZZZZZZZZZZZZZZZZZ\n");
-  // printf(" ED_mode_go=%d\n",ED_query_mode());
+  // printf(" AP_mode_go=%d\n",AP_mode__);
 
 
-  if(ED_query_mode() == ED_mode_go) return 0;
+  if(AP_mode__ == AP_mode_go) return 0;
 
   // display active name_of_the_Constr.Plane; eg "RZ" or R20"
   GUI_label_mod (&UI_ConstP, WC_ConstPl_Z);
@@ -1575,7 +1580,7 @@ static char LstBuf[LstSiz][32];
         printf(" UI_view_Z_CB %f\n",sur_act);
 
       // activate new ViewZ-value
-      UI_GR_view_set_Z1 (sur_act);
+      UI_GR_view_set_Cen1 (sur_act);
     
 
 
@@ -1626,7 +1631,7 @@ static char LstBuf[LstSiz][32];
         // printf("got %f\n",sur_act);
 
       // den neuen ViewZ-Wert aktivieren
-      UI_GR_view_set_Z1 (sur_act);
+      UI_GR_view_set_Cen1 (sur_act);
 
 
       /* Reset focus to glarea widget */
@@ -1646,7 +1651,7 @@ static char LstBuf[LstSiz][32];
       // den neuen Z-Wert an WC_sur_Z uebergeben
       WC_sur_Z = sur_act;
 
-      // UI_GR_view_set_Z1 (sur_act);
+      // UI_GR_view_set_Cen1 (sur_act);
       GL_SetConstrPln ();
       DL_Redraw ();
 
@@ -2549,29 +2554,29 @@ static char LstBuf[LstSiz][32];
 //=====================================================================
   double UI_vwz__ (int mode, long ind) {
 //=====================================================================
-// mode = 0: Punktekette erzeugen ..
-// mode = 1: Z-Wert der Selektion retournieren
+// mode = 0: create chain of symbols
+// mode = 1: Z-Wert der Selektion retournieren   UNUSED
+// mode = 2: remove symbols
+// mode = 3: den DL-StartIndex retournieren      UNUSED
 
 
-#define VWZ_PTNR_ 1000
-#define VWZ_PTNR2 500         // die halbe Punkteanzahl; VWZ_PTNR_ / 2
+#define VWZ_PTNR2 50         // die halbe Punkteanzahl; VWZ_PTNR_ / 2
 
 
   int    i1;
-  double d1, scl, zVal, incrZ;
+  double d1, scl, zVal=0., incrZ;
+  double startZ;
   Point  pt1, pt2, pt3;
-  // Vector vc1;
+  Point  ptStart;
+  Vector vcInc;
 
 
   static long   startInd;
-  static double startZ;
-  static Point  ptStart;
-  static Vector vcInc;
 
 
 
 
-  // printf("UI_vwz__ mode=%d ind=%ld\n",mode,ind);
+  printf("UI_vwz__ mode=%d ind=%ld\n",mode,ind);
 
 
 
@@ -2593,44 +2598,37 @@ static char LstBuf[LstSiz][32];
   // incrZ = 50. / scl;
   // hier auch APT_ModSiz beruecksichten !
   // incrZ = 10.; // in diesem Fall Punktabst immer 10 mm !!
-  incrZ = 10. / scl;   //
-  // printf(" scl=%f incrZ=%f\n",scl,incrZ);
+  incrZ = 25. / scl;   //
+    printf(" scl=%f incrZ=%f\n",scl,incrZ);
 
 
 
   // den Bildschirmmittelpunkt in Userkoordinaten feststellen
-  pt1 = GL_GetCen ();
+  ptStart = GL_GetCen ();
+    DEB_dump_obj__ (Typ_PT, &ptStart, " ptStart");
 
 
-  pt2 = pt1;
-
-  pt2.z += incrZ;
-  pt3 = GL_GetViewPt (&pt2);
-
-  // den Differenzvektor pt3 -> pt2
-  UT3D_vc_2pt (&vcInc, &pt3, &pt2);
-
-  ptStart = pt1;
-
-  pt2 = pt1;
-
+  UT3D_vc_multvc (&vcInc, &WC_sur_act.vz, incrZ );
+    DEB_dump_obj__ (Typ_VC, &vcInc, " vcInc");
+  d1 = 1.;
 
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
-    d1 = pow(i1, 2.);
-    pt1.x = ptStart.x + (vcInc.dx * d1);
-    pt1.y = ptStart.y + (vcInc.dy * d1);
-    pt1.z = ptStart.z + (vcInc.dz * d1);
-    // printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+    UT3D_pt_traptvc (&pt1, &ptStart, &vcInc);
+      printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    vcInc.dz += incrZ * d1;
+    d1 += 0.2;
   }
 
+  UT3D_vc_multvc (&vcInc, &WC_sur_act.vz, incrZ );
+  d1 = 1.;
+
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
-    d1 = pow(i1, 2.);
-    pt1.x = ptStart.x - (vcInc.dx * d1);
-    pt1.y = ptStart.y - (vcInc.dy * d1);
-    pt1.z = ptStart.z - (vcInc.dz * d1);
-    // printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+    UT3D_pt_traptivc (&pt1, &ptStart, &vcInc);
+      printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    vcInc.dz += incrZ * d1;
+    d1 += 0.2;
   }
 
   DL_Redraw ();
@@ -2646,6 +2644,7 @@ static char LstBuf[LstSiz][32];
   //===========================================================
   // mode = 1: Z-Wert der Selektion retournieren
   L_1:
+/*
   if(mode != 1) goto L_2;
 
 
@@ -2678,12 +2677,12 @@ static char LstBuf[LstSiz][32];
 
   // Punkte noch loeschen
   mode = 2;
-
+*/
 
   //===========================================================
   // mode = 2: alle Bitmap-symbole wegloeschen
   L_2:
-  if(mode != 2) goto L_3;
+  // if(mode != 2) goto L_3;
   if(startInd >= 0) {
     // printf(" ... delete von %ld\n",startInd);
     GL_Delete (startInd);
@@ -2692,13 +2691,13 @@ static char LstBuf[LstSiz][32];
   goto L_fertig;
 
 
-
+/*
   //===========================================================
   // mode = 3: den DL-StartIndex retournieren
   L_3:
   // if(mode != 3) goto L_3;
   return startInd;
-
+*/
 
 
 
@@ -2810,8 +2809,9 @@ static char LstBuf[LstSiz][32];
   sprintf(cbuf,"M%ld=\"%s/%s\" P(0 0 0)",ind,AP_mod_sym,fnam),
     // printf(" Mock_CB |%s|\n",cbuf);
 
-  // add to model and work
-  ED_add_Line (cbuf);
+  // add to model, but do not work yet
+  // ED_add_Line (cbuf);
+  UTF_add_line (cbuf);
 
   return 0;
 
@@ -3093,19 +3093,16 @@ static char LstBuf[LstSiz][32];
 
 
 //================================================================
-  int UI_disp_var1 (double *val1) {
+  int UI_disp_txt (long *dli, char *s1) {
 //================================================================
-/// temporary display  a value
+/// UI_disp_txt     temporary display text
 
   int    att;
-  long   dli;
   Point  pt1;
-  Vector *vc1;
 
 
-  // printf("UI_disp_var1 %lf\n",*val1);
+  printf("UI_disp_txt |%s|\n",s1);
 
-  dli = DLI_TMP;  // als temp. obj anlegen ..
 
   att = 9;        // 12=red dashed  7 = sw;
 
@@ -3115,11 +3112,8 @@ static char LstBuf[LstSiz][32];
     pt1 = GL_GetCen();               // Mittelpunkt Bildschirm
   // }
 
-  vc1 = (Vector*)&UT3D_VECTOR_X;
-
-  // GL_DrawSymV3 (&dli, SYM_LENGTH, att, &pt1, vc1, 20.);
-  GL_DrawSymVTL (&dli, SYM_LENGTH, att, &pt1, val1);
-
+  // disp text
+  GR_DrawTxtA (dli, att, &pt1, s1);
 
   return 0;
 
@@ -3198,17 +3192,18 @@ static char LstBuf[LstSiz][32];
 
 
 //================================================================
-  int UI_disp_activ (int mode, long dbi, Activity *ac1) {
+  int UI_disp_activ (int mode, long dbi) {
 //================================================================
 /// display Activity as Text "I#"
 // Input:
 //   mode     0=permanent, 1=temporary;
      
-  int     irc, iCol;
-  long    dli;
-  char    s1[16];
-  Point   pt1; 
-  ObjGX   ox1;
+  int       irc, iCol;
+  long      dli;
+  char      s1[16];
+  Point     pt1; 
+  ObjGX     ox1;
+  Activity *ac1;
     
     
   // printf("UI_disp_activ mode=%d dbi=%ld\n",mode,dbi);
@@ -3221,6 +3216,7 @@ static char LstBuf[LstSiz][32];
     return 0;
   }
 
+  ac1 = DB_get_Activ (dbi);
 
 
   // get typical point for activity-object -> pt1
@@ -3327,6 +3323,84 @@ static char LstBuf[LstSiz][32];
 }
 
 
+//================================================================
+  int UI_disp__ (long *dli, int typ, long dbi, int subTyp) {
+//================================================================
+// UI_disp__        temporary display not-geometric-object
+// display normally not visible objects
+
+
+  int       i1, i2;
+  double    d1;
+  char      s1[128];
+  void      *pObj;
+
+  printf("UI_disp__ typ=%d dbi=%ld subTyp=%d\n",typ,dbi,subTyp);
+
+
+  switch (typ) {
+
+
+    case Typ_Tra:
+      // ox1 = DB_GetTra (ind);
+      UI_disp_tra (DB_GetTra (dbi));
+      break;
+
+
+    case Typ_VC:
+      // UI_GR_get_selNam  (&i1, &l1, &s1);
+      // if(i1 != 0) sele_get_pos__ (&pt1);   // GR_selTyp
+      // else pt1 = GL_GetCen();
+      // UI_disp_vec1 (Typ_Index, PTR_LONG(dbi), NULL);
+      pObj = DB_get_VC (dbi);
+        DEB_dump_obj__ (typ, pObj, "UI_disp__-vc");
+      // i1 = mode 0=normalized, 1=exact-length
+      d1 = UT3D_len_vc((Vector*)pObj) - 1.0;
+        printf(" disp__-vc-len = %f\n",d1);
+      if(UTP_compdb0(d1, UT_TOL_pt)) {
+        // 0=normalized
+        i1 = 0;
+        i2 = 12;
+      } else {
+        // 1=exact-length
+        i1 = 1;
+        i2 = 9;
+      }
+      GR_Draw_vc (dli, (Vector*)pObj, NULL, i2,  i1);
+      break;
+
+
+    case Typ_VAR:
+      d1 = DB_GetVar (dbi);
+      if(subTyp == Typ_Angle) {
+        UI_disp_angd (dli, &d1);
+      } else {
+        sprintf(s1,"VAR[%ld] = %f",dbi,d1);
+        UI_disp_txt  (dli, s1);
+        // TX_Print ("VAR[%d] = %f",dbi,d1);
+      }
+      break;
+
+
+/*
+    case Typ_Joint:
+      UI_disp_joint (APT_obj_stat, dbi, &APTSpcObj);
+      break;
+
+
+    case Typ_Activ:
+      UI_disp_activ (APT_obj_stat, dbi);
+      break;
+*/
+
+  }
+
+
+  return 0;
+
+}
+
+
 //=====================================================================
   int UI_disp_vec1 (int typ, void *data, Point *pos) {
 //=====================================================================
@@ -3350,7 +3424,7 @@ static char LstBuf[LstSiz][32];
   Vector vc1;
 
 
-  // printf("UI_disp_vec1 %d\n",typ);
+  printf("UI_disp_vec1 %d\n",typ);
   // if(pos) DEB_dump_obj__ (Typ_PT, &pt1, "  pos:");
   // else    printf("  pos=NULL\n");
 
@@ -3504,7 +3578,7 @@ static char LstBuf[LstSiz][32];
 
   if(dli < -1L) GL_temp_del_1 (dli);
 
-  dli = DL_find_obj (Typ_PLN, dbi, -1L);
+  dli = DL_dli__dbo (Typ_PLN, dbi, -1L);
   if(dli >= 0) {
     DL_hili_on (dli);
     goto L_exit;
@@ -3519,6 +3593,26 @@ static char LstBuf[LstSiz][32];
 
   L_exit:
   DL_Redraw ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_disp_angd (long *dli, double *ang1) {
+//================================================================
+// UI_disp_angd                display angle temporary
+
+  int    att;
+  double scale;
+
+  printf("UI_disp_angd %lf\n",*ang1);
+
+  att = 12;
+  scale = 200.;
+  GL_Draw_sym_ang (dli, att, ang1, &scale);
+
 
   return 0;
 
@@ -3630,7 +3724,7 @@ static char LstBuf[LstSiz][32];
   // }
   // // find obj in DL
   // l2 = i2; // apt-ind meist long !
-  // dlInd = DL_find_obj (i1, l2);
+  // dlInd = DL_dli__dbo (i1, l2);
   // if(dlInd < 0) {
     // TX_Print("Obj. aus Zeile nicht %d nicht gefunden",lNr);
   // } else {
@@ -3897,7 +3991,7 @@ static char LstBuf[LstSiz][32];
 // see also UI_CB_hide
 
 
-  printf("UI_CB_view %d\n",GUI_DATA_EVENT);
+  // printf("UI_CB_view %d\n",GUI_DATA_EVENT);
   // printf("  UI_stat_hide=%d UI_stat_view=%d\n",
            // UI_stat_hide,UI_stat_view);  // 0=ON; 1=OFF
 
@@ -3934,7 +4028,7 @@ static char LstBuf[LstSiz][32];
 
   //----------------------------------------------------------
   L_activate:
-    printf("activate view\n");
+    // printf("activate view\n");
 
   // if hide is active: disactivate hide.
   if (UI_stat_hide == 0) {
@@ -4112,7 +4206,7 @@ static char LstBuf[LstSiz][32];
   long   ll;
 
 
-  // printf(" butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
+  printf(" butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
 
   GUI_set_enable (&but_end, FALSE);
 
@@ -4395,6 +4489,8 @@ static char LstBuf[LstSiz][32];
       // start modus with datasource = editor, rework ..
       UI_src_edi ();             // mem -> edi
 
+      WC_set_obj_stat (0);    // set APT_obj_stat to perm
+
 #ifdef _MSC_VER
 // Im Editor in MS-Win sonst kein Cursor; nur aktivieren anderes Window hilft ..
 IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
@@ -4413,7 +4509,6 @@ IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
           // printf(" VWR -> MAN\n");
         DL_hide_unvisTypes (0);      // view joints,activities.
         DL_Redraw ();                // first time only necessary ..
-
       }
 
 
@@ -5351,9 +5446,9 @@ See UI_but__ (txt);
     // // reset GUI  (back to VWR)
     // UI_reset__ ();
 
-
     // // save Model+Submodels into tempDir as "Model" native
     // Mod_sav_i (0);
+
     // compare Model - Mod_in
     i1 = Mod_sav_ck (1);
     if(i1) {
@@ -5859,7 +5954,7 @@ See UI_but__ (txt);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staMAN")) {
-    sprintf(cbuf1, "%shtml%cgCAD3D_startMAN_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cMAN_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
@@ -6291,26 +6386,24 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "Posi2P")) {   // PT <-- Position
     UI_GR_Sel_Filter (1);
 
-
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "Vert2P")) {   // PT <-- Vertex      UNUSED
+  } else if(!strcmp(cp1, "selOid")) {   // select obj from objID
+    AP_sel_oid__ ();
+
+/* UNUSED
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "Vert2P")) {   // PT <-- Vertex
     UI_GR_Sel_Filter (2);
-
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2P")) {   // PT <-- Obj
     UI_GR_Sel_Filter (3);
-
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2PP")) {   // PT <-- Obj
     UI_GR_Sel_Filter (18);
-
-
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2LN")) {   // PT <-- Obj
     UI_GR_Sel_Filter (19);
-
+*/
 
   //-------------------------------------------------
   // } else if(!strcmp(cp1, "ObjParent")) {   // parentObj < obj
@@ -7015,7 +7108,17 @@ box1
       // Entries von "Display"
       GUI_menu_entry   (&wtmp1, "Scale All",UI_butCB,    (void*)"butRes");
       GUI_menu_entry   (&wtmp1, "Top",      UI_butCB,    (void*)"butTop");
+
+
       GUI_menu_entry   (&wtmp1, "---",     NULL,       NULL);
+      GUI_menu_entry   (&wtmp1, "add ViewPort (Ctrl-CurUp)",
+                        UI_viewCB,  (void*)"vwpt0");
+      GUI_menu_entry   (&wtmp1, "next         (Ctrl-CurRight)",
+                        UI_viewCB,  (void*)"vwpt1");
+      GUI_menu_entry   (&wtmp1, "previous     (Ctrl-CurLeft)",
+                        UI_viewCB,  (void*)"vwpt2");
+      GUI_menu_entry   (&wtmp1, "del ViewPort (Ctrl-CurDown)",
+                        UI_viewCB,  (void*)"vwpt3");
 
 
       // GUI_menu_entry   (&wtmp1, "Save",     UI_viewCB,  (void*)"Save");
@@ -7028,6 +7131,7 @@ box1
       // MSG_Tip ("MMdspr"); //
 
 
+      GUI_menu_entry   (&wtmp1, "---",     NULL,       NULL);
       ckb_nam = GUI_menu_checkbox__ (&wtmp1, "ObjNames ON", 0,
                                      UI_menCB, (void*)"ckb_nam");
       MSG_Tip ("MMdspon"); //
@@ -7199,9 +7303,13 @@ box1
 
       //----------------------------------------------------------------
       // Entries von "Select"
-      GUI_menu_entry   (&men_sel, "get point = position of cursor on construction-plane",
-                       UI_menCB,(void*)"Posi2P");
-      MSG_Tip ("MMsePcp"); //
+      GUI_menu_entry   (&men_sel,"select obj from objID",UI_menCB,(void*)"selOid");
+      MSG_Tip ("MMselOid"); //
+        // GUI_Tip  ("give Coordinates of cursor on construction-plane at next selection");
+
+      // GUI_menu_entry   (&men_sel, "get point = position of cursor on construction-plane",
+                       // UI_menCB,(void*)"Posi2P");
+      // MSG_Tip ("MMsePcp"); //
         // GUI_Tip  ("give Coordinates of cursor on construction-plane at next selection");
 
       // GUI_menu_entry   (&men_sel, "get position of cursor on selected object",
@@ -7209,14 +7317,14 @@ box1
       // MSG_Tip ("MMsePso"); //
         // GUI_Tip  ("give Coordinates of cursor on selected object at next selection");
 
-      GUI_menu_entry   (&men_sel, "get point = (parametric) position of cursor on object",
-                       UI_menCB,  (void*)"Obj2PP");
-      MSG_Tip ("MMsePop"); //
+      // GUI_menu_entry   (&men_sel, "get point = (parametric) position of cursor on object",
+                       // UI_menCB,  (void*)"Obj2PP");
+      // MSG_Tip ("MMsePop"); //
         // GUI_Tip  ("give parametric point of cursor on selected object at next selection");
 
-      GUI_menu_entry   (&men_sel, "get line = segment of polygon / contour",
-                       UI_menCB,  (void*)"Obj2LN");
-      MSG_Tip ("MMseLoO"); //
+      // GUI_menu_entry   (&men_sel, "get line = segment of polygon / contour",
+                       // UI_menCB,  (void*)"Obj2LN");
+      // MSG_Tip ("MMseLoO"); //
         // GUI_Tip  ("give parametric point of cursor on selected object at next selection");
 
 
@@ -7391,9 +7499,9 @@ box1
       GUI_menu_entry(&men_hlp,"Info", UI_menCB,   (void*)"doc1");
       // GUI_menu_entry(men_hlp,"Info English", UI_menCB,   (void*)"doc1_e");
 
-      GUI_menu_entry(&men_hlp,"getting-started VWR",  UI_menCB,(void*)"staVWR");
-      GUI_menu_entry(&men_hlp,"getting-started CAD",  UI_menCB,(void*)"staCAD");
-      GUI_menu_entry(&men_hlp,"getting-started MAN",  UI_menCB,(void*)"staMAN");
+      // GUI_menu_entry(&men_hlp,"getting-started VWR",  UI_menCB,(void*)"staVWR");
+      // GUI_menu_entry(&men_hlp,"getting-started CAD",  UI_menCB,(void*)"staCAD");
+      // GUI_menu_entry(&men_hlp,"getting-started MAN",  UI_menCB,(void*)"staMAN");
 
       GUI_menu_entry(&men_hlp, "---",     NULL,       NULL);
       GUI_menu_entry(&men_hlp,"Documentation",UI_menCB,(void*)"doc2");
@@ -8445,7 +8553,7 @@ box1
   sele_set__ (Typ_goGeom);    // enable selection of all types
 
   GUI_set_enable (&men_ins, mode);
-  GUI_set_enable (&men_sel, mode);
+  // GUI_set_enable (&men_sel, mode);
   GUI_set_enable (&men_cat, mode);
 
 

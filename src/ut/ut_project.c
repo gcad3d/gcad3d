@@ -625,7 +625,7 @@ static Vector prj_vc;      // projectionDirection
   Point  pt1, pt2, *pa1, *pa2;
 
 
-  DEB_dump_obj__ (Typ_CVPOL, cvi, "UPRJ_app_plg");
+  // DEB_dump_obj__ (Typ_CVPOL, cvi, "UPRJ_app_plg");
 
   *cvo = *cvi;      // copy ptNr, v0, v1, *lvTab
 
@@ -765,8 +765,8 @@ static Vector prj_vc;      // projectionDirection
   void    *objo;
 
 
-  printf("UPRJ_app__ %d %d\n",ityp,iNr);
-  DEB_dump_obj__ (ityp, obji, "obji:");
+  // printf("UPRJ_app__ %d %d\n",ityp,iNr);
+  // DEB_dump_obj__ (ityp, obji, "obji:");
 
   irc = 0;
 

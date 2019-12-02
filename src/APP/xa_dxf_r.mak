@@ -1,4 +1,4 @@
-# make -f xa_dxf_r.mak 
+# . ../options.sh && make -f xa_dxf_r.mak 
 
 DLLNAM = xa_dxf_r
 

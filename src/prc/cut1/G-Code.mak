@@ -46,7 +46,7 @@ SRCLST:
 .c.o:
 	$(CC) -c $(CXFLG) $<
 	if test $(@D) != "."; then mv $(@F) $@; fi
-	ctags -f $*.tag $<
+	ctags -f ../tags/$*.tag $<
 
 
 # EOF

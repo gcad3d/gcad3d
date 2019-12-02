@@ -2,17 +2,22 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>CAD_examples_en.htm</TITLE>
-	<meta name="author" content="sm">
-	<META NAME="CREATED" CONTENT="20091101;6335200">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
-	<META NAME="CHANGED" CONTENT="20111004">
+	<META NAME="CHANGED" CONTENT="20111004; David Young">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
 
-<h2>First Steps - documentation gCAD3D - CAD</h2> 
+<h2>First Steps CAD - documentation gCAD3D</h2> 
 
 <h2>Mainfunction CAD</h2>
   Interactive creation and modification of objectcodes.
@@ -38,7 +43,7 @@
  <a href="#ModMir1">Mirror a line</a>
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="Wk"></a></p>
 <b> Construct wireframe elements  </b>
 
@@ -59,37 +64,50 @@ ____________________________________________________________________________
   Cursor-down key: new preview of the object. 
 
  Save the object: 
-  Create the object with OK button, return-key or right mouse button. 
+  Create the object with OK button, return-key or right mouse button "OK". 
   You can inspect the object code (text) with function MAN.
 
 
- Create a second, adjacent circle
-
- Produce tangents to the 2 circuits: 
-
- Select CAD-function "LN tangent"; 
-  Select the two circles, 
-  If necessary, select the next version with the PageDown-button.
-    go back with picture-up-button.
-  Save object.
+ Create a second, adjacent circle.
 
 
- Trim the circle: 
+ Produce tangents to the 2 circles:
+   activate CAD-function "LN tangent";
+    Select the two circles,
+    If necessary, select the next version with the PageDown-button,
+      go back with picture-up-button;  "2" provides second solution.
+    Save object.
 
- CAD-function: select "CUT (trim) obj" 
-  select the circle to be trimmed
-  select the 1. line that limits the circle
-  select the 2. line that limits the circle
-  If necessary, select the next version with the PageDown-button.
-    go back with picture-up-button.
-  Save object.
+
+  Get intersectionpoint line circle:
+    ( used later as startpoint / endpoint of contour)
+    activate CAD-function Trim intersect / "INT (intersect)"
+    select circle
+    select line
+    Save object (the intersection-point).
+
+
+  Create a closed contour:
+    activate CAD-function Curves / "S Contour"
+    select the intersection-point, 
+    select all contour-objects in counterclowise order (or use the "REV" button)
+    select the intersection-point (endpoint),
+    Save object.
+
+
+  Create surface from closed contour:
+    activate CAD-function Surfaces / "A Planar Surf"
+    select the contour
+    Save object.
+
 
 
  File the model: 
-  File/save Model as/gcad 
-  Test1 (in the lower input window) button, button SAVE 
+    activate File/save Model as/gcad 
+    key "Test1"
+    button SAVE 
 
- The model is saved as file Test1.dat in the active output directory. 
+ The model is saved as file Test1.gcad in the active output directory. 
  You can view/modify this file with any text editor.
 
  Export as DXF  
@@ -97,7 +115,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="Fk"></a></p>
 <b>Constructing surfaces</b>
 
@@ -123,7 +141,7 @@ VRML Export:
  File/save model as / VRML2 or VRML1
 
 
-____________________________________________________________________________ 
+<HR><!-- ============================================================ -->
 <p><a name="CrCCV1"></a></p>
 <b>Constructing a CompositeCurve </b>
 
@@ -146,7 +164,7 @@ See also <a href="CAD_CV_en.htm#F10">CAD-CCV</a>
 
 
 
-____________________________________________________________________________ 
+<HR><!-- ============================================================ -->
 <p><a name="Zk"></a></p>
 <b>Constructing a cylinder/prism </b>
 
@@ -162,7 +180,7 @@ ____________________________________________________________________________
  Save object (right mousebutton).
 
 
-____________________________________________________________________________ 
+<HR><!-- ============================================================ -->
 <p><a name="Ae"></a></p>
 <b> Create an Assembly </b>
 
@@ -213,7 +231,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________ 
+<HR><!-- ============================================================ -->
 <p><a name="Bl"></a></p>
 <b>Load bitmap </b>
 
@@ -244,7 +262,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________ 
+<HR><!-- ============================================================ -->
 <p><a name="A"></a></p>
 <b>Activity </b>
 
@@ -303,7 +321,7 @@ See also model sample_activ_1.dat
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 
 
 Create a tag with the text "Exit"
@@ -322,7 +340,7 @@ Create a tag with the text "Exit"
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ModMovP1"></a></p>
 <b>Modify existing points</b>
 
@@ -347,7 +365,7 @@ For detailed info see  <a href="PED_en.htm">PED_en.htm</a>
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ModCut1"></a></p>
 <b>Trim a line</b>
 
@@ -365,7 +383,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="ModMir1"></a></p>
 <b>Mirror a line</b>
 
@@ -380,7 +398,9 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
+Send bug-reports, suggestions for improvement to
+  franz.reiter@cadcam.co.at
 </PRE>
 </BODY>
 </HTML>

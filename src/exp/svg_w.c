@@ -484,7 +484,7 @@ extern int     APT_dispPT;
   for(l1=0; l1<gr_ind; ++l1) {
 
     // dla = DL_GetAtt(l1);                      // get DL-Rec
-    irc = DL_get_dla (&dla, l1);  
+    irc = DL_dlRec__dli (&dla, l1);  
     if(!irc) continue;
 
     // if(dla.disp   == OFF) continue;           // skip hidden obj's

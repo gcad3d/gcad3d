@@ -82,6 +82,7 @@ GL_Draw_tra           display symbolic TraRot (rotation)
 GL_DrawAngA           draw angle with arrowhead
 GL_DrawSymVX          display plane / axisSystem [with x,y,z-characters
 GL_DrawSymVTL         display vector-symbol with true length at 2D-ScreenCenter
+GL_Draw_sym_ang       display symbolic angle (GL-2D)
 
 GL_Draw_obj           Draw 1-n Polygons as GL_LINE_STRIPs from ObjGX
 GL_Draw_rbez          draw rational bezier curve
@@ -163,12 +164,13 @@ GL_ptUc_ptSc          ScreenCoords -> UserCoords
 GL_Uk2Sk              userCoord -> screenCoord
 GL_Sk2Uk              screenCoord -> userCoord
 
-GL_sel_rect           returns the ID's of all objs inside rectangle
-GL_sel_sel            return objs from selection
 GL_sel_sort
 GL_sel_add_DB         add DB-obj into selectionBuffer GR_selTab
 GL_sel_add_DL         add DL-obj into selectionBuffer GR_selTab
 GL_sel_get            get GR_selTab-record
+GL_sel_rect           returns the ID's of all objs inside rectangle       INTERNAL
+GL_sel_sel            return objs from selection                          INTERNAL
+GL_sel_hits           get selected GL-IDs                                 INTERNAL
 
 GL_set_bgCol          set background-color; 0=OK, else Error.
 GL_ColSet             activate Color,transparency for surface from ColRGB
@@ -550,8 +552,8 @@ cl -c ut_GL.c
 
 #include "../xa/xa_msg.h"               // MSG_ERR__
 #include "../xa/xa_uid.h"               // UID_ouf_coz
-// #include "../xa/xa_edi__.h"             // ED_mode_enter
-#include "../xa/xa_ed.h"                // ED_mode_*
+// #include "../xa/xa_edi__.h"             // AP_mode_enter
+#include "../xa/xa_ed.h"                // AP_mode_*
 #include "../xa/xa.h"                   // AP_Get_ConstPl_Z
 #include "../xa/xa_ga.h"                // GA_getTexRefInd
 #include "../xa/xa_mem.h"               // memspc..
@@ -1780,7 +1782,7 @@ GLuint GL_fix_DL_ind  (long*);
   double  ay, az, scl;
 
 
-  UT3D_2angr_vc (&az, &ay, GL_eyeY);
+  UT3D_2angr_vc__ (&az, &ay, GL_eyeY);
   az = UT_DEGREES(az); //  ???
   // ay = UT_DEGREES(ay);
 
@@ -2029,7 +2031,7 @@ static int errOld = 123;
 
   // if(GL_test_error ()) return;
 
-  // if(ED_query_mode () == 1) return; // ? removed 2013-10-22 for modify-value.
+  // if(ED_get_mode () == 1) return; // ? removed 2013-10-22 for modify-value.
 
 
   //----------------------------------------------------------------
@@ -2174,7 +2176,6 @@ static int errOld = 123;
     glDisable (GL_LIGHTING);
     glColor3fv   (GL_col_tab[13]);   
     glLineWidth   (1.0);                       // 1 ist am duennsten !
-    glDepthFunc (GL_NOTEQUAL); // geht so leider ned ..
     glCallList ((GLuint)SYM_AXIS1);
     glDepthFunc (GL_LEQUAL);      // reset = Standard
     glEnable (GL_LIGHTING);
@@ -2188,8 +2189,7 @@ static int errOld = 123;
   if(GL_mode_draw_select == GR_MODE_DRAW) {
       // printf(" draw Achsenkreuz ..\n");
 
-    glDisable (GL_DEPTH_TEST);
-    glDepthFunc (GL_ALWAYS);
+    glDepthFunc (GL_LEQUAL);      // reset = Standard
     glDisable (GL_LIGHTING);
     glLineWidth   (1.0);                       // 1 ist am duennsten !
 
@@ -2199,55 +2199,30 @@ static int errOld = 123;
       GL_grid__ (&GL_constr_pln, WC_sur_mat, WC_sur_imat);
 
 
-    // das absolute Achsenkreuz setzen. Immer genau in Bildschirmmitte.
+    // display white axisSystem at active screenCenter (centerpoint rotation)
     glPushMatrix ();
       glTranslated (GL_cen.x, GL_cen.y, GL_cen.z);          // das RotCen
       // scale = ModSiz / 500.;
       glScaled (GL_SclNorm, GL_SclNorm, GL_SclNorm);
-      glColor3fv   (GL_col_tab[8]);             // was 12 grauweiss
-      // glCallList ((GLuint)SYM_AXIS1); // ohne x-y-z
+      glColor3fv (GL_col_tab[8]);        // was 12 grauweiss
       glCallList ((GLuint)SYM_AXIS);     // mit x-y-z-Characters
     glPopMatrix ();
 
 
-    GL_Func_Act = FUNC_Idle;
-
-
-    // im aktuellen Origin ein Achsenkreuz (mit X-Y-Z-characters)
-    // glCallList (DL_base_LnAtt + Typ_Att_Symb);
-    // glCallList ((GLuint)SYM_AXIS);
-
-/*
-    // die aktive ViewPlane darstellen
-    UT3D_2angr_vc (&az, &ay, &GL_view_pln.vz);
+    // display red axisSystem at active origin / construction-plane
+    // UT3D_2angr_vc__ (&az, &ay, &GL_constr_pln.vz);
     // az = UT_DEGREES(az);
     // ay = UT_DEGREES(ay) - 90.;
     glPushMatrix ();
-    glTranslated (GL_view_pln.po.x, GL_view_pln.po.y, GL_view_pln.po.z);
-    // glRotated (az, 0.0, 0.0, 1.0);   // um Z drehen
-    // glRotated (ay, 0.0, -1.0, 0.0);  // um Y drehen
-    glColor3f (1.f, 1.f, 0.f);       // gelb
-    glCallList ((GLuint)SYM_PLANE);
-    glPopMatrix ();
-*/
-
-
-    // die aktive ConstrPlane darstellen
-    // UT3D_2angr_vc (&az, &ay, &GL_constr_pln.vz);
-    // az = UT_DEGREES(az);
-    // ay = UT_DEGREES(ay) - 90.;
-    glPushMatrix ();
-
       UT3D_m4_loadpl (m1, &GL_constr_pln);
         // DEB_dump_obj__ (Typ_M4x4, m1, "new m1:");
       glMultMatrixd ((double*)m1);
-
-      // glColor3f (0.f, 1.f, 0.f);       // gruen
-      glColor3f (1.f, 0.f, 0.f);       // rot
       glScaled (GL_SclNorm, GL_SclNorm, GL_SclNorm);
+      glColor3f (1.f, 0.f, 0.f);       // red
       glCallList ((GLuint)SYM_AXIS);
-     
     glPopMatrix ();
+
+    GL_Func_Act = FUNC_Idle;
 
   }
 
@@ -2919,9 +2894,13 @@ GEHT NED ..
 //================================================================
 /// GL_ptSc_ptUc             Userkoords > Screenkoords.
 
+  // printf("GL_ptSc_ptUc %f %f %f\n",pt3->x, pt3->y, pt3->z);
+
   gluProject (pt3->x, pt3->y, pt3->z,
               GL_MatMod, GL_MatProj, GL_Viewp,
               &pt2->x, &pt2->y, &pt2->z);
+
+    // printf(" ex-GL_ptSc_ptUc %f %f %f\n",pt2->x, pt2->y, pt2->z);
 
   return 0;
 
@@ -4501,9 +4480,16 @@ static Point ptOri;
 //================================================================
   int GL_sel_hits (long *ia, GLuint *selBuf, int hits) {
 //================================================================
-// retCod = nr of ID's in ia
+// GL_sel_hits     get selected GL-IDs
+// Input:
+//   selBuf       <hits> records of 4-byte-signed ints;
+// Output:
+//   ia           selected objNames
+//   retCod       nr of ID's in ia
+//
 // selBuf-structure: n records of structure:
 //   0=wordNr (nr of words); 1=minZ, 2=maxZ, 3-(3+wordNr-1)=names
+
  
   int     i1, iNr = 0, namNr, ihit, ind;
   long    oNam;
@@ -4771,7 +4757,7 @@ static Point ptOri;
 
   GR_selTab[GR_nr_selTab].dlInd = dli;
   GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
-  GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
+  GR_selTab[GR_nr_selTab].typ   = DL_dbTyp__dli (dli);
 
   ++GR_nr_selTab;
 
@@ -4812,7 +4798,7 @@ extern int GLBT_vcSelStat;
   // normal obj selected ..
   GR_selTab[GR_nr_selTab].dlInd = dli;
   GR_selTab[GR_nr_selTab].dbInd = DL_get_dbi (dli);
-  GR_selTab[GR_nr_selTab].typ   = DL_GetTyp (dli);
+  GR_selTab[GR_nr_selTab].typ   = DL_dbTyp__dli (dli);
 
   ++GR_nr_selTab;
 
@@ -5099,7 +5085,7 @@ extern int GLBT_vcSelStat;
 
   // den Typ anfragen
   // typ = DL_GetObj (oNam, &apt_ind, &att);
-  typ     = DL_GetTyp (oNam);
+  typ     = DL_dbTyp__dli (oNam);
   apt_ind = DL_get_dbi (oNam);
     // pick    = DL_GetPick(oNam);
     // printf(" oNam=%d typ=%d ind=%d pick=%d\n",oNam,typ,apt_ind,pick);
@@ -5290,7 +5276,7 @@ extern int GLBT_vcSelStat;
 
     // den Typ anfragen
     // typ = DL_GetObj (oNam, &apt_ind, &att);
-    typ     = DL_GetTyp (oNam);
+    typ     = DL_dbTyp__dli (oNam);
     apt_ind = DL_get_dbi (oNam);
     pick    = DL_GetPick(oNam);
 
@@ -5484,7 +5470,7 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_SetConstrPln %f\n",WC_sur_Z);
-  // printf("   ED_mode=%d\n",ED_query_mode());
+  // printf("   AP_mode__ =%d\n",AP_mode__);
   // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, " new GL_constr_pln:");
 
 
@@ -5505,9 +5491,10 @@ static double old_view_Z = 0.;
 */
 
 
-  if(!mode) {
-    if(ED_query_mode() != ED_mode_go) DL_Redraw ();
-  }
+  // if(!mode) {
+    // if(AP_mode__ != AP_mode_go) DL_Redraw ();
+  // }
+
 
   return 0;
 
@@ -5720,7 +5707,7 @@ static double old_view_Z = 0.;
 /// GL_GetActSelPos     Coords of last selectionPoint on viewPlane
 ///   posUsr     userCoords
 ///   posScr     screenCoords
-/// see also sele_get_pos GL_MousePos
+/// see also sele_get_pos__ GL_MousePos
 /// \endcode
 
   // printf("GL_GetActSelPos:\n");
@@ -6121,7 +6108,7 @@ static double old_view_Z = 0.;
     printf(" dy=%f GL_cen.z=%f GL_Scale=%f\n",yAbst,GL_cen.z,GL_Scale);
     // um das Display zu verschieben muss man die Viewplane veraendern !
     // GL_cen.z += yAbst;
-    // UI_GR_view_set_Z1 (GL_cen.z);
+    // UI_GR_view_set_Cen1 (GL_cen.z);
     GL_mouse_x_act = x;
     GL_mouse_y_act = y;
     GL_cen.x -= xAbst;
@@ -6666,7 +6653,7 @@ static double old_view_Z = 0.;
 
 
   // printf("GL_View_set \n");
-  // printf("   ED_mode=%d\n",ED_query_mode());
+  // printf("   AP_mode__ =%d\n",AP_mode__);
   // for(i1=0; i1<10; ++i1) printf(" %d=%f\n",i1,view[i1]);
 
 
@@ -6773,7 +6760,7 @@ static double old_view_Z = 0.;
   //  update GL(DL_Ind_Scl2D) GL(DL_Ind_Cen2D)
   GL_Translate ();
 
-  // if(ED_query_mode() != ED_mode_go)
+  // if(AP_mode__ != AP_mode_go)
   GL_Redraw ();
 
 
@@ -6884,9 +6871,9 @@ static double old_view_Z = 0.;
   Point    pt1, pt2;
 
 
-  printf("GL_Rescal0 0000000000000000000000000\n");
-  DEB_dump_obj__ (Typ_PT, pb1, "pb1");
-  DEB_dump_obj__ (Typ_PT, pb2, "pb2");
+  // printf("GL_Rescal0 0000000000000000000000000\n");
+  // DEB_dump_obj__ (Typ_PT, pb1, "pb1");
+  // DEB_dump_obj__ (Typ_PT, pb2, "pb2");
 
 
   count = 0;
@@ -8198,7 +8185,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   UT3D_vc_2pt (&vc1, &pTab[ipe], &pTab[ipe - 1]);
     // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
 
-  UT3D_2angr_vc (&az, &ay, &vc1);
+  UT3D_2angr_vc__ (&az, &ay, &vc1);
     // printf(" az=%lf ay=%lf\n",az,ay);
 
 
@@ -10415,7 +10402,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // Pfeilspitze darstellen
   UT3D_vc_2pt (&vcn, &GLT_pta[ptNr-2], &GLT_pta[ptNr-3]);
-  UT3D_2angr_vc (&az, &ay, &vcn);
+  UT3D_2angr_vc__ (&az, &ay, &vcn);
   az = UT_DEGREES(az);
   ay = UT_DEGREES(ay);
   glLineStipple (1, (GLushort)0xFFFF);  // solid
@@ -10501,7 +10488,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // printf(" scale=%f\n",scale);
 
 
-  UT3D_2angr_vc (&az, &ay, vc1);
+  UT3D_2angr_vc__ (&az, &ay, vc1);
 
   // rad -> deg
   az = UT_DEGREES(az);
@@ -10549,8 +10536,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Vector    vx, vz;
 
 
-  printf("GL_Draw_tra %ld %d\n",*dli,att);
-  DEB_dump_obj__ (Typ_TraRot, tra, "TraRot:");
+  // printf("GL_Draw_tra %ld %d\n",*dli,att);
+  // DEB_dump_obj__ (Typ_TraRot, tra, "TraRot:");
 
 
   // a1 = angle
@@ -10597,7 +10584,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 /// d1 = RAD_90;
 /// GL_DrawAngA (&dli, 12, &pt, &vcx, &vcy, &d1);
 /// \endcode
-
+// see GL_Draw_sym_ang
 
 
   int    i1, ptNr;
@@ -10691,7 +10678,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   scl = 10. * GL_SclNorm;
 
-  UT3D_2angr_vc (&az, &ay, vc1);
+  UT3D_2angr_vc__ (&az, &ay, vc1);
 
   // rad -> deg
   az = UT_DEGREES(az);
@@ -10763,7 +10750,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // Pfeilspitze darstellen
   UT3D_vc_2pt (vcn, p1, p2);
-  UT3D_2angr_vc (&az, &ay, vcn);
+  UT3D_2angr_vc__ (&az, &ay, vcn);
   az = UT_DEGREES(az);
   ay = UT_DEGREES(ay);
   glLineStipple (1, (GLushort)0xFFFF);  // solid
@@ -10794,7 +10781,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // sclNorm = scale * GL_SclNorm;
   sclNorm = scale; // / 10.;                // f SYM_VEC notwendig !
 
-  UT3D_2angr_vc (&az, &ay, vc1);
+  UT3D_2angr_vc__ (&az, &ay, vc1);
 
   // rad -> deg
   az = UT_DEGREES(az);
@@ -11141,7 +11128,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
-  DEB_dump_obj__ (Typ_CVRBEZ, rb1, "GL_Disp_rbez");
+  // DEB_dump_obj__ (Typ_CVRBEZ, rb1, "GL_Disp_rbez");
 
   ptMax = 50;  // nr of subdivisions of polygon
 
@@ -11267,6 +11254,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
                     double scale){
 //================================================================
 /// \code
+// GL_DrawSymVX          display plane / axisSystem [with x,y,z-characters
 /// display plane / axisSystem [with x,y,z-characters]
 ///   att   see GR_Disp_ln2  (see ~/gCAD3D/cfg/ltyp.rc)
 ///   typ   1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis+Chars;
@@ -11395,7 +11383,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 ///     SYM_ARRO3H    draw 3D-arrowhead-only along vc1
 ///     SYM_LENGTH    draw line with lenght from scale; not normalized.
 ///   att             color; eg ATT_COL_RED     see INF_COL_SYMB
-///
+///                   for SYM_ARROW (line)      see INF_ATT_CV
 /// dli = -2L; GL_DrawSymV3 (&dli, SYM_ARROW, 12, &pt1, &vcz, 20.);
 /// dli = -3L; GL_DrawSymV3 (&dli, SYM_SQUARE, 12, &pt1, &vcz, 1.);
 /// \endcode
@@ -11414,7 +11402,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf("  GL2D_Scale=%lf\n",GL2D_Scale);
 
 
-  UT3D_2angr_vc (&az, &ay, vc1);
+  UT3D_2angr_vc__ (&az, &ay, vc1);
     // printf(" az=%lf ay=%lf\n",az,ay);
 
 
@@ -11465,6 +11453,81 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   //if(*ind < 0)  glCallList (dlInd);
+
+}
+
+
+//=======================================================================
+  int GL_Draw_sym_ang (long *ind, int att, double *angd, double *scale) {
+ //======================================================================
+// GL_Draw_sym_ang                  display symbolic angle (GL-2D)
+// Input:   
+//   angd           angle per segment in degrees
+//   scale          size (constant); eg 200
+//
+// see GL_Draw_tra GL_DrawAngA IE_cad_Inp_disp_ang UI_disp_angd
+
+  int       i1, sNr;
+  double    ai;
+  Point2    ps, *pa;
+  // Vector    vx, vy;
+  GLuint    dlInd;
+
+  printf("GL_Draw_sym_ang att=%d ang=%lf scale=%lf \n",att,*angd,*scale);
+  // DEB_dump_obj__ (Typ_VC, GL_eyeX, "GL_eyeX");
+  // DEB_dump_obj__ (Typ_VC, GL_eyeY, "GL_eyeY");
+    
+
+  
+  // den Incrementalwinkel ai errechnen
+  sNr = fabs(*angd) / 10.;   // 10 degrees per segment
+  if(sNr < 1) sNr = 1;
+  ai = *angd / sNr; 
+    printf(" sNr=%d ai=%f\n", sNr, ai);
+
+  // get space for sNr+1 2D-points
+  pa = (Point2*) MEM_alloc_tmp((sNr + 2) * sizeof(Point2));
+  
+  // rotate point <ps> around 0,0,0 <sNr> times <angd> degrees -
+  UT2D_pt_2db (&ps, 1., 0.);
+  UT2D_npt_2pt_ang_ci (pa, sNr, &ai, NULL, &ps);
+    // for(i1=0; i1<=sNr; ++i1)
+      // printf(" Draw_sym_ang[%d] %f %f\n", i1, pa[i1].x, pa[i1].y);
+
+
+  // get DL-Index (+ Offset)
+  dlInd = GL_fix_DL_ind (ind);
+
+  glNewList (dlInd, GL_COMPILE);
+
+    glDisable (GL_LIGHTING);
+    glCallList (DL_base_LnAtt + att);     // get lineType
+
+    glCallList ((GLuint)DL_Ind_Cen2D);    // set to 2D-ScreenCenter
+    
+    glPushMatrix ();                      // switch GL-2D-symbolic
+    glLoadIdentity ();
+    glScaled (*scale, *scale, *scale);
+
+    //...............................
+    // draw ..
+    glBegin (GL_LINE_STRIP);
+      // 1,0,0 goes to the eye; 0,1,0 goes right; 0,0,1 goes up|down .. ??
+      glVertex3d (0., 0., 0.);
+      glVertex3d (1.0, 0., 0.);   // X-line
+      for(i1 = 1; i1 <= sNr; ++i1) glVertex3d (pa[i1].x, pa[i1].y, 0.);   // arc
+      glVertex3d (0., 0., 0.);   // vertical
+    glEnd ();
+  
+    //...............................
+    glPopMatrix ();
+
+    glEnable (GL_LIGHTING);
+
+  glEndList ();
+
+
+  return 0;
 
 }
 
@@ -13494,8 +13557,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   txt     = tx1->txt;
 
 
-  printf("GL_DrawTxtLBG dli=%ld dbi=%ld\n",*dli,dbi);
-  DEB_dump_obj__ (Typ_ATXT, tx1, " tx1:");
+  // printf("GL_DrawTxtLBG dli=%ld dbi=%ld\n",*dli,dbi);
+  // DEB_dump_obj__ (Typ_ATXT, tx1, " tx1:");
 
 
   //----------------------------------------------------------------
@@ -14099,7 +14162,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // DEB_dump_obj__(Typ_VC, &mdr->vz, "  vz=");
   // printf("  mdb %d po=%f,%f,%f\n",mdr->modNr,mdb->po.x,mdb->po.y,mdb->po.z);
   // printf("  mdb ind %ld siz %ld\n",mdb->DLind,mdb->DLsiz);
-  // printf("  GL_IndTab[%ld]=%ld\n",mdb->DLind,GL_IndTab[mdb->DLind]);
+  // printf("  GL_IndTab[%ld]=%d\n",mdb->DLind,GL_IndTab[mdb->DLind]);
   // printf("WC_sur_ind=%d\n",WC_sur_ind);
 
 
@@ -14391,7 +14454,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   double d1;
 
-  printf("GL_InitModelSize %f %d %f\n",NewModSiz,mode,GL_ModSiz);
+  // printf("GL_InitModelSize %f %d %f\n",NewModSiz,mode,GL_ModSiz);
 
   // Abarbeiten nicht aktiver subModels: nix tun ?
   // if(MDL_IS_SUB) return;
@@ -15736,8 +15799,8 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 /// \code
 /// compute new Mousepos and return it in userCoords
 /// RetCod -1:  no obj under cursor ..
-/// get pos of last selection with sele_get_pos
-/// see also sele_get_pos GL_GetActSelPos
+/// get pos of last selection with sele_get_pos__
+/// see also sele_get_pos__ GL_GetActSelPos
 /// \endcode
 
   GLdouble sx, sy;
@@ -16014,7 +16077,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   // give Memory back ..
   free(feedBuffer);
 
-  DEB_dump_obj__(Typ_PT, pts, "ex GL_SelVert__ %d:",irc);
+    // DEB_dump_obj__(Typ_PT, pts, "ex GL_SelVert__ %d:",irc);
 
   return irc;
 

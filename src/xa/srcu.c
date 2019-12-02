@@ -237,10 +237,10 @@ static double SRCU_val_cen;             // centervalue
   SRCU__obj_stat = WC_get_obj_stat ();
   WC_set_obj_stat (0);  // 0=perm
 
-  SRCU__ED_stat = ED_query_mode ();
+  SRCU__ED_stat = ED_get_mode();
   // ED_enter ();
   // ED_go ();
-    // printf(" ED_mode=%d\n",SRCU__ED_stat);
+    // printf(" AP_mode__ =%d\n",SRCU__ED_stat);
 
 
   // IE_modify = 1;

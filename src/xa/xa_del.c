@@ -605,7 +605,7 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
   // loop tru group-of-selected-objs
   for(i1=0; i1<ii; ++i1) {
-    typ = AP_typ_2_bastyp (gTab[i1].typ);
+    typ = AP_typDB_typ (gTab[i1].typ);
     dbi = gTab[i1].dbInd;
 
     // get list of depending objects

@@ -887,7 +887,7 @@ Returncodes:
   Point2  *p1, *p2, *p3, *e1, *e2;
   Vector2 v1, v2, v3, vl;
 
-  DEB_dump_obj__ (Typ_PT, pl2, "UTRI_ln_int_LnFac - lp2: ");
+  // DEB_dump_obj__ (Typ_PT, pl2, "UTRI_ln_int_LnFac - lp2: ");
   // DEB_dump_obj__ (Typ_PT, pl1, "  pl1: ");
   // DEB_dump_obj__ (Typ_PT, pf1, "  pf1: ");
   // DEB_dump_obj__ (Typ_PT, pf2, "  pf2: ");
@@ -1018,12 +1018,12 @@ Returncodes:
     i1 = UT2D_pt_int2pt2vc (&ip2, e1, &vl, p3, &v3);
     UT3D_pt_ipl_2ptpt2 (ip, pf3, pf1, &ip2);
   }
-    DEB_dump_obj__ (Typ_PT2, &ip2, "  ip2: ");
+    // DEB_dump_obj__ (Typ_PT2, &ip2, "  ip2: ");
 
     
   //----------------------------------------------------------------
   L_exit:
-    DEB_dump_obj__ (Typ_PT, ip, "ex UTRI_ln_int_LnFac  %d ",irc);
+    // DEB_dump_obj__ (Typ_PT, ip, "ex UTRI_ln_int_LnFac  %d ",irc);
   return irc;
 
 }

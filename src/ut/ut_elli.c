@@ -439,7 +439,7 @@ cl -c ut_geo.c
 //======================================================================
 // UT3D_el_elpt180           change elli -> 180 deg-elli; keep dir
 
-  DEB_dump_obj__ (Typ_PT, p1, "UT3D_el_elpt180");
+  // DEB_dump_obj__ (Typ_PT, p1, "UT3D_el_elpt180");
 
   el1->p1 = *p1;
   UT3D_pt_opp2pt (&el1->p2, &el1->pc, &el1->p1);
@@ -474,7 +474,7 @@ cl -c ut_geo.c
   double     d1, d2;
   Vector     vc1, vc2, vcy;
 
-  DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_el_el_parl");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_el_el_parl");
 
 
   // copy
@@ -485,8 +485,8 @@ cl -c ut_geo.c
   if(i360) {
     UT3D_vc_tangel (&vc1, &el1->p1, el1);
     UT3D_vc_tangel (&vc2, &el1->p2, el1);
-      DEB_dump_obj__ (Typ_VC, &vc1, " vc1");
-      DEB_dump_obj__ (Typ_VC, &vc2, " vc2");
+      // DEB_dump_obj__ (Typ_VC, &vc1, " vc1");
+      // DEB_dump_obj__ (Typ_VC, &vc2, " vc2");
   }
 
 
@@ -524,7 +524,7 @@ cl -c ut_geo.c
   }
 
 
-    DEB_dump_obj__ (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
+    // DEB_dump_obj__ (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
 
   return 0;
 
@@ -1877,7 +1877,7 @@ cl -c ut_geo.c
     elo->srot = ICHG01(eli->srot);
   }
 
-    DEB_dump_obj__ (Typ_CVELL, elo, "ex-UT3D_el_projelpl\n");
+    // DEB_dump_obj__ (Typ_CVELL, elo, "ex-UT3D_el_projelpl\n");
 
   return 0;
 
@@ -1975,7 +1975,7 @@ cl -c ut_geo.c
   }
 
 
-    DEB_dump_obj__ (Typ_CVELL, el, "ex-UT3D_el_projcipl\n");
+    // DEB_dump_obj__ (Typ_CVELL, el, "ex-UT3D_el_projcipl\n");
 
   return 0;
 }
@@ -3190,7 +3190,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //----------------------------------------------------------------
   L_out:
 // transform point p2co back from centerposition to constructionPlane
-    DEB_dump_obj__ (Typ_PT2, &p2co, "  p2co:");
+    // DEB_dump_obj__ (Typ_PT2, &p2co, "  p2co:");
 // p2o.x along va; p2o.y normal to va
   UT2D_pt_traptvc2len (pto, &cv1->pc, &cv1->va, p2co.x, p2co.y);
     // GR_Disp_pt2 (pto, SYM_STAR_S, 0);

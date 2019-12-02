@@ -3,17 +3,21 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>CAD_Appli_en.htm</TITLE>
-	<META NAME="CHANGED" CONTENT="20090913;7465500">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
-<style>body{ font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
 
 
-<B>Programmierfunktionen</B>
+<h3>Script programs / Application</h3>
 
 
 <A HREF='#prg_std'>General programming-functions</A>
@@ -22,7 +26,7 @@
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <P><A NAME='prg_std'> </A></P>
 <B>General programming-functions</B>
 
@@ -37,6 +41,31 @@ General programming-functions are:
 
 <b># - Comment</b>
 # as the first character of a line defines a commentline.
+
+
+
+<B>ObjectName</B>: 
+ObjectName is comment added to a Definition-codeline;
+- create in MAN: add "# name1 [name2 ..]" at end of code; see Example;
+- create in CAD: add "name1 [name2 ..]" into inputfield ObjectName
+- can be used to filter objects. See ../../doc/html/Search_de.htm - "has infotext"
+-
+Example ObjectName:
+V20=4  # rad pin
+V21=10 # rad head
+V22=16 # len pin
+V23=6 # len head
+C20=P(0 0) VAL(V20)
+C21=P(0 0 -V23) VAL(V21)
+C22=P(0 0 V22) VAL(V20)
+A20=SRU C20 C22
+A21=SRU C21 C20
+P20=P(25,0)
+L20=P(0,0) P20
+-
+select checkbox "Search/Name"
+- key "len" into "has infotext:"; press button "search/update"
+- key "pin" into "has infotext:"; press button "search/update"
 
 
 
@@ -117,7 +146,7 @@ PRI"V20="V20"; V21="V21
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <P><A NAME='prg_app'> </A></P>
 <B>Programming-functions for Applications</B>
 
@@ -175,7 +204,7 @@ Each program will automatically get a window;
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
  <b>How to create / test a new program: </b>
    Create an empty program (Create);
    Insert code (eg from examples); save (KEdit: Ctrl-S);
@@ -183,7 +212,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <B>General programme structure: </B>
 
 
@@ -207,7 +236,7 @@ DLG ..
 ..
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <P><A NAME='app_prg'> </A></P>
 <B>Program Codes: </B>
 
@@ -288,7 +317,7 @@ gives:
    
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <P><A NAME='app_gui'> </A></P>
 <B>Definition Input form: </B>
 
@@ -371,7 +400,7 @@ PRI "P1 = "P1
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <B>Key assignment: </B>
 
 Ctrl P     starts last executed program;
@@ -390,7 +419,7 @@ Ctrl-right/outer mouse button: starts OK;
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <B>Example programs: </B>
 
 #-----------------------------
@@ -519,7 +548,7 @@ if V3 lt V1 ; jump Next
 #
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 Send bug reports and suggestions for improvement
   to franz.reiter@cadcam.co.at
 </PRE>

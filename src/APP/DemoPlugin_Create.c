@@ -386,7 +386,7 @@ char myMemspc[50000];
   UT3D_pt_3db (&ci1.p2,   0.,    0., 100.);
   UT3D_vc_3db (&ci1.vz,   0.,   -1.,   0.);
   ci1.rad  = 100.;
-  ci1.ango = UT3D_angr_ci__ (&ci1);  // MUST provide opening angle !
+  ci1.ango = UT3D_angr_ci_p1_pt (&ci1, &ci1.p2);  // MUST provide opening angle !
   id1=0; GR_CreCirc (&id1, Typ_Att_blue, &ci1);
   printf(" circ %ld\n",id1);
 

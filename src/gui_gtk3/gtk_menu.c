@@ -528,7 +528,8 @@ static GSList *UI_menGrp;
 
   // kein ltxt: einen Separator
   if (!strcmp(ltxt, "---")) {
-    UI_act_wi = gtk_menu_item_new ();
+    // UI_act_wi = gtk_menu_item_new ();
+    UI_act_wi = gtk_separator_menu_item_new ();
 
   } else {
     UI_act_wi = gtk_menu_item_new_with_label (ltxt);

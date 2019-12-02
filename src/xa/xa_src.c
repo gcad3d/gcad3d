@@ -143,6 +143,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 /// write struct Point* to string "P(<x> <y> <z>)" precision 10
 /// NO leading blank, precision = 10 digits
 /// 
+// see also AP_obj_add_pt_sp
 /// \endcode
 
 
@@ -175,7 +176,6 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 }
 
 
- 
 //================================================================
   int SRC_src_ato (char *os, int oSiz, int impTyp, ObjAto *ato) {
 //================================================================
@@ -185,11 +185,15 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 /// Input:
 ///   oSiz        size of os (nr of chars)
 ///   impTyp      typ of srcObj
+/// Output:
+///   os          sourceObj eg "P(S# MOD(#) #.)"
+///   retCod      0=OK; -1=error
 ///
 /// Example:
-/// impTyp=Typ_PT; types: Typ_PT,Typ_modif,Typ_Val;   "P(S# MOD(#) #.)"
-/// impTyp=Typ_LN; types: Typ_LN,Typ_modif,Typ_Val;   "L(S# MOD(#))"
-/// impTyp=0;      types: Typ_Val,Typ_Val,Typ_Val;    "#. #. #."
+/// impTyp    types                       os                          
+///  Typ_PT    Typ_PT,Typ_modif,Typ_Val;   "P(S# MOD(#) #.)"
+///  Typ_LN    Typ_LN,Typ_modif,Typ_Val;   "L(S# MOD(#))"
+///  0;        Typ_Val,Typ_Val,Typ_Val;    "#. #. #."
 ///
 /// see also SRC_src_dbo APT_decode_print
 /// \endcode
@@ -200,7 +204,6 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 // LN         Typ_TmpPT
 // LN         PT
 // VAl        LN           VAL(L)            Y               length
-// Typ_goAxis PT                             N
 
 
   int       i1, aNr, *atyp, opos, btyp;
@@ -210,7 +213,6 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   // printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
-
   // ATO_dump__ (ato, "");
 
 
@@ -228,7 +230,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   if(impTyp) {
     // if impTyp == selTyp skip impTyp; else "P(P20)"  
-    // btyp = AP_typ_2_bastyp (atyp[0]);
+    // btyp = AP_typDB_typ (atyp[0]);
     // if((aNr == 1) &&(btyp == impTyp)) {
       // APED_oid_dbo__ (os, btyp, (long)atab[0]);   // 2017-03-01
       // goto L_exit;
@@ -270,8 +272,23 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
     //----------------------------------------------------------------
-    } else if(atyp[i1] == Typ_modif) {   // MOD
+    } else if(atyp[i1] == Typ_modif) {
       sprintf (&os[opos], "MOD(%d)", (int)atab[i1]);
+
+
+    //----------------------------------------------------------------
+    } else if(atyp[i1] == Typ_PTS) {
+      sprintf (&os[opos], "PTS(%d)", (int)atab[i1]);
+
+
+    //----------------------------------------------------------------
+    } else if(atyp[i1] == Typ_PTI) {
+      sprintf (&os[opos], "PTI(%d)", (int)atab[i1]);
+
+
+    //----------------------------------------------------------------
+    } else if(atyp[i1] == Typ_SEG) {
+      sprintf (&os[opos], "SEG(%d)", (int)atab[i1]);
 
 
     //----------------------------------------------------------------
@@ -285,7 +302,6 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       ++i1;
       UTX_add_fl_10  (&os[opos], atab[i1]);
       strcat (&os[opos], ")");
-
 
 
     //----------------------------------------------------------------
@@ -503,8 +519,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       // printf(" irc=%d\n",irc);
     if((oxi.form == Typ_CVBSP)  ||
        (oxi.form == Typ_CVCLOT))  {
-      // irc = UTO_par1_pt_pt_obj (&d1, pti, oxi.form, vd);
-      irc = UTO_par1_pt_pt_obj (&d1, pti, irc, vd);
+      // irc = UTO_par__pt_obj (&d1, pti, oxi.form, vd);
+      irc = UTO_par__pt_obj (&d1, pti, irc, vd);
       if(irc < 0) return -1;
       goto L_par1;                    // D(S parVal)
     }
@@ -542,7 +558,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   }
 
 
-  irc = UTO_par1_pt_pt_obj (&d1, pti, oxi.form, oxi.data);
+  irc = UTO_par__pt_obj (&d1, pti, oxi.form, oxi.data);
   if(irc < 0) {
     printf ("SRC_vc_ptDbo objtyp not yet supported %d\n",dbTyp);
     return -1;
@@ -552,11 +568,11 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
 
-// see also UTO_par1_pt_pt_obj
+// see also UTO_par__pt_obj
 *
   // // AC
   // if(dbTyp == Typ_CI) {
-    // irc = UTO_par1_pt_pt_obj (&d1, pti, oxi.form, oxi.data);
+    // irc = UTO_par__pt_obj (&d1, pti, oxi.form, oxi.data);
     // if(irc < 0) return -1;
     // goto L_par1;
 // 
@@ -694,7 +710,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   DEB_dump_obj__ (Typ_PT, pti, "  pti:");
 
 
-  dbTyp = AP_typ_2_bastyp (selTyp);  // 2013-04-08
+  dbTyp = AP_typDB_typ (selTyp);  // 2013-04-08
 
 
   //----------------------------------------------------------------
@@ -938,7 +954,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     goto L_exit;
 
 }
-*/
+
 
 //================================================================
   int SRC_fmt_tab (char *s1, int i0, ...) {
@@ -1071,7 +1087,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   return 0;
 
 }
-
+*/
 
 //================================================================
   int SRC_src_isol_ato1 (char *outBuf, int typ, double *val) {
@@ -1560,7 +1576,9 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
                       int oTyp, Point *pti, int iTyp, long iDbi) {
 //========================================================================
 /// \code
-/// SRC_src_pt_dbo      create obj (src) from point and DB-obj (curve, surface)
+/// SRC_src_pt_dbo    create obj (src) from point and DB-obj (curve, surface)
+///   create src-obj of type <oTyp> from selected obj <iTyp,iDbi> and
+///   select-position <pti>
 /// Input:
 ///   oTyp            type of outputobj; Typ_PT|Typ_VC|Typ_LN|Typ_CI
 ///                     Typ_goGeo1 - get L|C|S according to selected obj
@@ -1579,7 +1597,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 /// Examples:
 /// outBuf                    outTyp     inTyp
 /// P(<x> <y> <z>)            Typ_PT     Typ_TmpPT
-/// P(<dbo> MOD(#) <par1>)    // from point on CCV
+/// P(<dbo> MOD(#) <par1>)    Typ_PT     CCV with more than one components
+/// P(<dbo> <par1>)           Typ_PT     single trimmed curve
 ///
 ///
 /// see IE_cad_sel1           if(typSel == Typ_VAR) {           :3527
@@ -1604,7 +1623,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   int       irc, i1, i2, iNr;
   ObjAto    ato;
   CurvCCV   *ccva;
-  void      *o1;
+  void      *iObj;
   char      o2[OBJ_SIZ_MAX];
   Point     pts;
 
@@ -1612,9 +1631,9 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   // printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d iDbi=%ld\n",sSiz,oTyp,iTyp,iDbi);
 
 
-  // get last selected position
+  // f pti == NULL: get last selected position
   if(!pti) {
-    sele_get_pos (&pts);
+    sele_get_pos__ (&pts);
     pti = &pts;
   }
     // DEB_dump_obj__(Typ_PT, pti, " SRC_src_pt_dbo-pti");
@@ -1632,19 +1651,20 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   //---------------------------------------------------------------
-  irc = UTO_objDat_dbo (&o1, &iNr, &iTyp, iDbi);
-    // printf(" _get_DB-irc=%d iTyp=%d iNr=%d\n",irc,iTyp,iNr);
+  // get objData of DB-obj (iTyp,iDbi)
+  irc = UTO_objDat_dbo (&iObj, &iNr, &iTyp, iDbi);
+    // printf(" src_pt_dbo-irc=%d iTyp=%d iNr=%d\n",irc,iTyp,iNr);
   if(irc < 0) {
     TX_Print ("**** cannot analyze DB-obj");
     return -1;
   }
-    // DEB_dump_obj__ (iTyp, o1, " SRC_src_pt_dbo-o1");
+    // DEB_dump_obj__ (iTyp, iObj, " SRC_src_pt_dbo-iObj");
 
 
   // get selected obj
   //----------------------------------------------------------------
   if(iTyp == Typ_SOL) {                // selected: SUR
-    TX_Print("*** get parameteric point on solid is not yet implemented ***");
+    printf("*** get parameteric point on solid is not yet implemented ***\n");
     // see also Typ_TmpPT,
     ATO_ato_expr_add (&ato, Typ_Val, pti->x, 0);
     ATO_ato_expr_add (&ato, Typ_Val, pti->y, 0);
@@ -1663,16 +1683,19 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   if(iTyp == Typ_SUR) {                // selected: SUR
     // irc = AP_src_parPt_selSur (outBuf, pti, dbi);
 
+    if(oTyp == Typ_VC) return -2;
+    if(oTyp == Typ_LN) return -2;
+    if(oTyp == Typ_CI) return -2;
+
     // get 2D-parameters of 3D-point pti in pts
-    irc = SUR_pt2_prjptsur (&pts, pti, o1);
+    irc = SUR_pt2_prjptsur (&pts, pti, iObj);
     if(irc < 0) {
-      // return -1;
+      printf("*** get parameteric point on this surfTyp is not yet implemented ***\n");
       // so = get vertex from selected position
       ATO_clear__ (&ato);
       ATO_ato_expr_add (&ato, Typ_Val, pti->x, 0);
       ATO_ato_expr_add (&ato, Typ_Val, pti->y, 0);
       ATO_ato_expr_add (&ato, Typ_Val, pti->z, 0);
-      irc = -1;
       goto L_encode;
     }
     ATO_ato_expr_add (&ato, Typ_Val, pts.x, 0);
@@ -1683,8 +1706,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   // resolv CCV
   } else if(iTyp == Typ_CVTRM) {
-      // printf(" CVTRM-siz=%d\n",iNr);
-    ccva = o1;
+      // printf(" Typ_CVTRM-siz=%d\n",iNr);
+    ccva = iObj;
 
     if(iNr == 1) {
       // only one trimmedCurve; eg "S(S20)" - make "S21"
@@ -1695,6 +1718,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     }
 
     // loop tru CCV
+    i2 = 0;   // do not output segmenNr (SEG) if only one obj in CCV
     for(i1=0; i1<iNr; ++i1) {
         // DEB_dump_obj__ (Typ_CVTRM, &ccva[i1], " ccv[%d]",i1);
       iTyp = ccva[i1].typ;
@@ -1702,11 +1726,17 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       irc = UTO_cv_cvtrm (&iTyp, o2, NULL, &ccva[i1]);
       if(irc < 0) return -1;
       // get parametric position of point on obj o2
-      irc = ATO_ato_obj_pt (&ato, oTyp, i1+1, iTyp, o2, pti);
+      if(iNr > 1) i2 = i1 + 1;  // set segmenNr (SEG)
+      irc = ATO_ato_obj_pt (&ato, oTyp, i2, iTyp, o2, pti);
         // printf(" ato_obj_pt irc=%d seg-%d\n",irc,i1+1);
       if(irc == 0) break;
+      if(irc == -2) { oTyp = -2; so[0] = 0; goto L_exit;} // no conversion possible
     }
-    if(irc < 0) {printf("***** ex SRC_src_pt_dbo -3\n"); return -3;}
+    if(irc < 0) {
+      // no segment identified ..
+      printf("***** ex SRC_src_pt_dbo E-3\n");
+      return -3;
+    }
 
       // ATO_dump__ (&ato, " rc_pt_dbo-5");
       
@@ -1719,10 +1749,11 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   } else {
     // curve - not CCV
+    // get all atomicObjs for selection;
     // get parametric position of point on obj
-    irc = ATO_ato_obj_pt (&ato, oTyp, 0, iTyp, o1, pti);
+    irc = ATO_ato_obj_pt (&ato, oTyp, 0, iTyp, iObj, pti);
       // ATO_dump__ (&ato, " rc_pt_dbo-6");
-    if(irc < 0) return irc;
+    if(irc < 0) {printf(" SRC_src_pt_dbo E-1\n"); return -1;}
   }
 
 
@@ -1738,7 +1769,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     // } else return -2;
 
     } else {
-      oTyp =  AP_typ_2_bastyp (iTyp);
+      oTyp =  AP_typDB_typ (iTyp);
     }
   }
 
@@ -1755,11 +1786,11 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   L_exit:
-    // TESTOUTPUT:
-    // printf("  ex SRC_src_pt_dbo %d |%s|\n",oTyp,so);
 
+    // printf("  ex-SRC_src_pt_dbo %d |%s|\n",oTyp,so);
 
   return oTyp;
+
 
 }
 
@@ -1769,7 +1800,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 //====================================================================
 /// \code
 /// make name from typ and DB-index  (APED_oid_dbo_all)
-/// see also AP_typ_2_bastyp AP_cre_defHdr
+/// see also AP_typDB_typ AP_cre_defHdr
 /// \endcode
 
 // FuncNam should be APED_oid_dbo_all

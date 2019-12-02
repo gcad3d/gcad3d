@@ -1,0 +1,85 @@
+../../doc/gcad_doxygen/FileFormatDescriptions.txt
+
+All files are in gCAD3D/tmp/.
+All files are temporary (internal use) only.
+
+  Model*, *.tess, *.write, *.ptab, *.msh, *.dlg, *.bmp
+
+
+Aufbau_Modellfile
+Binary_Files                                      .ptab .msh
+
+
+
+
+=================================================================
+Aufbau_Modellfile
+=================================================================
+Die Modellfiles enthalten alle geometrischen Objekte in Textform (Ascii).
+Die Reihenfolge ist:
+- subModels
+- das Hauptmodell.
+
+Alle subModels beginnen mit einer Zeile:
+SECTION <sectionTyp> <parameter>
+und enden mit:
+SECTIONEND
+
+ subModel koennen sein:
+  - Models             SECTION MODEL <modelname>
+  - Meshes             SECTION MESH  <ModelNr> <ObjID>
+  - PunkteTabellen     SECTION PTAB  <ModelNr> <ObjID>
+
+
+SECTION MESH  <ModelNr><ObjID>
+<nr of faces>
+<faces (3 indices for one face per line)>
+SECTIONEND
+
+
+SECTION PTAB <ModelNr><ObjID>
+<nr of points>
+<pointCoords, one point per line>
+SECTIONEND
+
+
+SECTION MODEL <modelname>
+- Dynamic-Databereich (Einstellungen Standards, Ende: ":DYNAMIC_DATA")
+- Objektdaten
+SECTIONEND
+
+
+
+
+
+=================================================================
+Binary_Files                                      .ptab .msh
+=================================================================
+Punkte, die aus Datenfiles importiert werden, werden zur
+  Programmlaufzeit in binaeren Files <tempDir>/M#A#.ptab gespeichert.
+  (M = subModelNr (-1 = mainModel); A = surfaceNr).
+
+  Abgespeichert im Modelfile wird in Ascii in "SECTION PTAB".
+
+  Funktionen:
+    MSH_bsav_pTab     save points to bin. file M#A#.ptab
+    MSH_bload_pTab    load points from bin.file
+
+
+
+
+
+
+Meshes werden zur Programmlaufzeit in binaeren Files <tempDir>/M#A#.msh
+  gespeichert.
+  (M = subModelNr (-1 = mainModel); A = surfaceNr).
+
+  Abgespeichert im Modelfile wird in Ascii in "SECTION MESH".
+
+  Funktionen:
+    MSH_bsav_fTab     save faceTable to bin. file M#A#.msh
+    MSH_bload_fTab    load faceTable from bin.file
+
+
+
+// EOF

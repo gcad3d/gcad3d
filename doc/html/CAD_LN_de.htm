@@ -42,6 +42,7 @@ Linie parallel zu Linie / Vektor, durch einen Punkt.
 
   Direction         Richtung der Linie als <a href="CAD_input_de.htm#_Vec_">Vektor</a>
   [BasePoint]       ein <a href="CAD_input_de.htm#_PT_">Punkt</a> der Linie.
+  [Länge]a          Länge, optional
   [X-offset]        <a href="CAD_input_de.htm#_DistX_">X-Abstand</a> vom Punkt
   [Y-offset]
   [Z-offset]
@@ -119,16 +120,26 @@ Es wird eine tangentiale Line an 2 lineare Objekte erzeugt.
 Eingabeobjekte können sein:
  Punkte, Kreise, Kurven.
 
-Wenn ein Objekt eine Linie oder ein Vektor ist:
-  Tangente mit fixer Richtung erzeugen (parallel zu Linie/Vektor).
+- Tangente bilden an:
+  - Kurve und Punkt auf dieser Kurve
+  - Vektor oder Linie (Richtung) und Kurve
+  - 2 Kurven (zB 2 Kreise)
 
   object 1
   object 2
   [solutionNr]      <a href="CAD_input_de.htm#_Mod1--_">Versionsnummer</a>
+  [REVers]          Pageup / Page Down ("<a href="CAD_input_de.htm#_ModREV_">REV</a>")
   [unlimited]       <a href="CAD_input_de.htm#_ModUNL_">begrenzt / unbegrenzt</a>
 
+Wenn ein Objekt eine Linie oder ein Vektor ist:
+  Tangente mit fixer Richtung erzeugen (parallel zu Linie/Vektor).
+
+Tangente an Kurve durch Punkt auf CURVE; nur eine Lösung;  Punkt zuerst selektieren
+Tangente von Punkt an Kurve;             n Lösungen;       Kurve zuerst selektieren
+
+
+solutionNr / object -:
 <img src="doc_L_tng__.jpg">
-solutionNr / object
 
 Beispiel:
 # Line tangential an Kreis, parallel zu Linie.

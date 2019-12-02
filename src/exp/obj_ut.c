@@ -658,7 +658,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   AP_obj_2_txt_query (&i1, &dbi);   // get db-typ, db-ind
     // printf(" created: %d %ld\n",i1,l1);
 
-  i1 = AP_typ_2_bastyp (i1); // get basic-type
+  i1 = AP_typDB_typ (i1); // get basic-type
   if(i1 == Typ_SUR) {
     // test if a user-defined-color is active
     if(colInd >= 0) {

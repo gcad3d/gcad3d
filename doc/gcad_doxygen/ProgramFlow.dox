@@ -205,10 +205,7 @@ UI_butCB                      Callback fuer Menufuncs, Buttons, ...
           GR_CreSol__
            GL_disp_prism
       APT_work_PrgCmd         Programming-Function (goto, call, WORK, if ...)
-      APT_work_NCCmd          FROM TL ..
       APT_do_auxCmd           T1;G20;R0 ..
-      APT_wcut_line           nur if (APT_workmode == Typ_nc_cut) ?
-      APT_drill_line          nur if (APT_workmode == Typ_nc_cut) ?
 
 
 \endcode

@@ -213,6 +213,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_os.h"               // OS_
+#include "../db/ut_DB.h"               // DB_mdlNam_iBas
 #include "../xa/xa_msg.h"              // MSG_read
 #include "../xa/xa.h"                  // APP_act_nam AP_lang
 #include "../xa/xa_mem.h"              // memspc501
@@ -237,10 +238,10 @@ static char   MSG_buf[MSG_bSiz];
 //================================================================
 
 char *MSG_ERR_txt[]={
-  "-",             // MSG_ERR_typ_INF
-  "*** WNG:",      // MSG_ERR_typ_WNG
-  "*** ERROR:"     // MSG_ERR_typ_ERR
-  "*** BREAK:"     // MSG_ERR_typ_BRK
+  "*** INF:",      // iSev = 0 = ?
+  "*** WNG:",      // iSev = 0 = ?
+  "*** ERROR:"     // iSev = 0 = ?
+  "*** BREAK:"     // iSev = 0 = ?
 };
 
 
@@ -255,6 +256,8 @@ char *MSG_ERR_tab[]={
   "DB-object undefined",                  ///< 5 db_obj_undefined,
   "file open",                            ///< 6 file_open,
   "testExit",                             ///< 7 testExit,
+  "OBSOLETE",
+  "unsupported",
   "uu"
 };
 
@@ -325,34 +328,40 @@ char *MSG_ERR_tab[]={
 /// \endcode
  
   int    iloop, ilen;
-  char   *cp1, *cp2, *cp3;
+  char   *cp1, *cp2, *cp3, sKey[128];
 
 
-  // printf("MSG_fread |%s| %d\n",key,bufSiz);
+  // printf("MSG_fread |%s| %d len1=%ld\n",key,bufSiz,strlen(key));
 
   //----------------------------------------------------------------
   if(!fpIn) {printf("MSG_fread E000\n"); return NULL;}    // 2011-03-16
 
+  ilen = strlen(key);
+  if(ilen > 80) {printf("MSG_fread E001\n"); return NULL;}
 
   iloop = 0;
-  ilen = strlen(key);
-  if(ilen > 60) {printf("MSG_fread E001\n"); return NULL;}
+  strcpy(sKey, key);
+  strcat(sKey, "=");
+  ++ilen;
+    // printf(" _fread-sKey |%s| %d\n",sKey,ilen);
+
 
 
   // loop tru file ..
   L_nxt:
     // read next line > sbuf
     if(fgets (sbuf, bufSiz, fpIn) == NULL) {++iloop; goto L_restart;}
-      // printf(" |%s|\n",sbuf);
+      // printf(" _fread-L_nxt: |%s|\n",sbuf);
 
     // skip different key
-    if(strncmp(sbuf, key, ilen)) goto L_nxt;
+    // if(strncmp(sbuf, key, ilen)) goto L_nxt;
+    if(strncmp(sKey, sbuf, ilen)) goto L_nxt;
 
     // if(sbuf[ilen] != ' ') goto L_nxt;
     // if((sbuf[ilen] != ' ')&&(sbuf[ilen] != '=')) goto L_nxt;  // 2015-11-14
 
     // found key ..
-    cp1 = &sbuf[ilen + 1];        // skip the key
+    cp1 = &sbuf[ilen];        // skip the key
     // UTX_pos_skipLeadBlk (cp1);
       // printf("   MSG_read 1 |%s|\n",sbuf);
 
@@ -637,7 +646,7 @@ char *MSG_ERR_tab[]={
 
   cp1 = MSG_read (MSG_buf, MSG_bSiz, key);
   if(cp1 == NULL) return -1;
-    // printf(" cp1=|%s|\n",cp1);
+    // printf(" MSG_pri_0-cp1 = |%s|\n",cp1);
 
   // TX_Print (cp1);
   TX_Write (cp1);
@@ -1052,7 +1061,7 @@ char *MSG_ERR_tab[]={
 
   va_list va;
   int     irc = 0, iSev, iKey;
-  char    s1[400];
+  char    s1[400], s2[256];
 
 
   printf("MSG_ERR_out %d |%s| %d\n",msgTyp,fnc,iErr);
@@ -1072,17 +1081,22 @@ char *MSG_ERR_tab[]={
                      // MSG_ERR_tab[ikey],
                      // s1);
 
-  TX_Print ("%s %s in %s() - %s", MSG_ERR_txt[MSG_ERR_typ_ERR],
-                     MSG_ERR_tab[iKey],
-                     fnc,
-                     s1);
-
-
-  // if(msgTyp == MSG_ERR_typ_ERR) {AP_errStat_set (1); irc = -99;}
-  // if(msgTyp == MSG_ERR_typ_WNG) irc = -1;
-  // return irc;
-
   iSev = MSG_ERR_sev (iErr);
+    // printf(" ERR_out-iSev=%d\n",iSev);
+
+  // s2 = "[- SM <subModelname> ]- Line <lineNr>"
+  if(AP_get_modact_ind() >= 0) {
+    // subModel is active ..
+    sprintf(s2, "- SM %s - Line %d ",DB_mdlNam_iBas(AP_get_modact_ind()),
+            ED_get_lnr_SM());
+  } else {
+    // mainModel is active ..
+    sprintf(s2, "- Line %d ",APT_get_line_act());
+  }
+
+  TX_Print ("%s %s in %s() %s - %s",
+             MSG_ERR_txt[iSev], MSG_ERR_tab[iKey], fnc, s2, s1);
+
   if(iSev > 1) AP_errStat_set (1);
 
   return iErr;

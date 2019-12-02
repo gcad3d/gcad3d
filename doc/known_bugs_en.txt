@@ -1,0 +1,113 @@
+//================================================================
+
+
+Bug Reports:
+  Bug reports should be addressed to:
+  support@gcad3d.org
+  Please include all information required to reproduce the error cited.
+
+  Fehlerberichte richten Sie an:
+  support@gcad3d.org
+  Bitte alle erforderlichen Informationen zum Reproduzieren des Fehlers anführen.
+
+
+
+
+
+
+//================================================================
+2019-09-23 MW
+BUG CAD "LN tangent to 2 objs"
+
+---------------------------------------
+EXAMPLE:
+#
+P20=0 0 0
+C20=P(5.3780709 -14.12331019 0) P(8.966791627 -14.73005352 0)
+C21=P(10.11738877 -8.898544903 0) P(14.52655815 -14.04871827 0)
+L24=TNG C20 C21
+P21=INT C20 C21
+S22=CCV P21 C20 REV L24 C21 REV P21
+L25=TNG P20 S22 MOD(3)
+#
+
+*** Error: UTO_TNG_cv_cv no-solution-error E001
+*** Error: Definition Tangent: Error
+
+- does not accept MOD > 3
+
+
+---------------------------------------
+PROBLEM:
+- tests basic curves of CCV, not trimmed-curve
+TODO:
+- Function must test if tangentPoint is inside subCurv or not
+
+APT_TNG__
+  UTO_TNG_cv_cv
+
+
+
+//================================================================
+2019-09-23 RF
+BUG CAD "LN tangent to 2 objs"
+
+---------------------------------------
+EXAMPLE:
+#
+S20=BSP P(13.15370555 1.700479482 0) P(21.94738074 4.376815326 0) P(32.80565794 0.6299451445 0)  P(46.18733758 3.765081419 0)
+C21=P(10.11738877 -8.898544903 0) P(14.52655815 -14.04871827 0)
+L25=TNG S20 C21 MOD(3) 
+
+*** Error: UTO_TNG_cv_cv internal error E002
+*** Error: Definition Tangent: Error
+
+---------------------------------------
+PROBLEM:
+TODO:
+- test must start from the startpoint of bspl. 
+
+APT_TNG__
+  UTO_TNG_cv_cv
+
+
+
+//================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//================================================================
+20YY-MM-DD
+BUG descr       <reported by>
+
+---------------------------------------
+EXAMPLE:
+
+---------------------------------------
+PROBLEM:
+TODO: 
+
+
+//================================================================
+../known_bugs_en.txt"
+EOF

@@ -1192,20 +1192,20 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
     // // ein transformiertes Objekt holen
     // irc = AP_GetObj (&o1, l1);
-    // // apt_typ = DL_GetTyp(l1);
+    // // apt_typ = DL_dbTyp__dli(l1);
     // // apt_ind = DL_get_dbi(l1);
     // // tra_ind = DL_GetTrInd(l1);
     // // i1 = DB_Get_GR_Obj (&o1, apt_typ, apt_ind, tra_ind);
     // if(irc < 0) continue;  // skip unknown types
 
 
-    // apt_typ = DL_GetTyp(l1);
+    // apt_typ = DL_dbTyp__dli(l1);
     // apt_ind = DL_get_dbi(l1);
     // tra_ind = DL_GetTrInd(l1);
 
 
     // dla = DL_GetAtt(l1);                      // get alle DL-Infos
-    DL_get_dla (&dla, l1);
+    DL_dlRec__dli (&dla, l1);
 
 
     // if(dla.dim    != OFF) continue;           // skip dimmed objects
@@ -1643,7 +1643,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
     // DL_GetObj (l1, &apt_ind, &attInd);
     // apt_typ = GR_ObjTab[l1].typ;
-    // apt_typ = DL_GetTyp(l1);
+    // apt_typ = DL_dbTyp__dli(l1);
     // apt_ind = GR_ObjTab[l1].ind;
     // apt_ind = DL_get_dbi(l1);
     // tra_ind = GR_ObjTab[l1].refInd;
@@ -1998,7 +1998,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 */
 
     // hide Curve iCrv
-    l1 = DL_find_obj (Typ_CV, iCrv, -1L);
+    l1 = DL_dli__dbo (Typ_CV, iCrv, -1L);
     GA_view__ (l1, 1, 0, 0L);
     // DL_hide__ (l1, OFF);
     // GA_hide__ (3, l1, 0);

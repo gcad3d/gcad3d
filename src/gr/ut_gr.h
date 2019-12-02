@@ -75,7 +75,7 @@
   int GR_Disp_CvBSp (CurvBSpl *bspl, int att);
   int GR_Disp_tria (Triangle *tria, int att);
   int GR_Disp_box (Point *p1, Point *p2, int att);
-  int GR_Disp_pln (Plane *pl1, int att);
+  int GR_Disp_pln (Plane *pl1, int att, int typ);
 
   int GR_Disp_patch (int gTyp, int icol, int pNr, Point *pa);
   int GR_Disp_ipatch (int gTyp, int icol, int iNr, int *ia, Point *pa);

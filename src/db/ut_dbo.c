@@ -185,7 +185,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   }
 
   // att1 = DL_GetAtt(dli);   // get DL-record
-  DL_get_dla (&att1, dli);
+  DL_dlRec__dli (&att1, dli);
   *typ = att1.typ;
   *dbi = att1.ind;
 
@@ -212,6 +212,8 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   oTyp = typ;
 
   irc = UTO_objDat_dbo (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
+    // printf(" f-objDat_dbo irc=%d oNr=%d oTyp=%d\n",irc,oNr,oTyp);
+
   if(irc < 0) {
     printf(" - temporary object\n");
     return -1;
@@ -221,7 +223,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   oSiz = UTO_siz_stru (oTyp);
   for(i1=0; i1<oNr; ++i1) {
     DEB_dump_obj__ (oTyp, vp, "%d",i1);
-    oTyp += oSiz;
+    vp = (char*)vp + oSiz;
   }
 
   return 0;

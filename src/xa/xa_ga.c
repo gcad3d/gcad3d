@@ -1120,7 +1120,7 @@ static ObjAtt GA_DefRec;
   // printf("HHHH GA_hide__ hide %ld %d\n",dli,typ);
 
   // reduce typ -> Basistyp (Typ_SURRU -> Typ_SUR ..)
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
 
   // find or create GA-record
@@ -1302,7 +1302,7 @@ static ObjAtt GA_DefRec;
   if(mode != 8) goto L_err;
 
   // reduce typ -> Basistyp (Typ_SURRU -> Typ_SUR ..)
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
   gaNr = GA_find__ (typ, dli);
   if(gaNr < 0) return 0;
@@ -1355,7 +1355,7 @@ static ObjAtt GA_DefRec;
   ObjAtt   *ga1;
 
 
-  basTyp = AP_typ_2_bastyp (typ);
+  basTyp = AP_typDB_typ (typ);
 
   // find GA-rec if already exist
   gaNr = GA_find__ (basTyp, dbi);
@@ -1469,7 +1469,7 @@ static ObjAtt GA_DefRec;
     iAtt = ga1->iatt;
   }
 
-    printf("ex GA_find_att_SU iAtt=%ld gaNr=%ld\n",iAtt,gaNr);
+    // printf("ex-GA_find_att_SU iAtt=%ld gaNr=%ld\n",iAtt,gaNr);
 
   return iAtt;
 
@@ -1480,7 +1480,7 @@ static ObjAtt GA_DefRec;
   long GA_find__ (int typ, long ind) {
 ///================================================================
 /// GA_find__         find GA-rec if already exist
-/// ACHTUNG: fix typ vorher mit AP_typ_2_bastyp !
+/// ACHTUNG: fix typ vorher mit AP_typDB_typ !
 
   long i1;
 
@@ -1541,7 +1541,7 @@ static ObjAtt GA_DefRec;
 
 
   // reduce typ -> Basistyp (Typ_SURRU -> Typ_SUR ..)
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
     // printf(" Basistyp=%d\n",typ);
 
 
@@ -1585,7 +1585,7 @@ static ObjAtt GA_DefRec;
   // printf("GA_Col__ mode=%d dli=%ld typ=%d ind=%ld\n",mode,dli,typ,ind);
 
   // typ kann Typ_SURBSP sein  !!
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
   // check typ; muss SUR od SOL od Model sein ...
   if((typ == Typ_SUR)||(typ ==Typ_SOL)) goto L_1;
@@ -1700,7 +1700,7 @@ static ObjAtt GA_DefRec;
   printf("GA_Tex__ mode=%d dli=%ld typ=%d ind=%ld\n",mode,dli,typ,ind);
 
   // typ kann Typ_SURBSP sein  !!
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
   // check typ; muss SUR od SOL od Model sein ...
   if(typ == Typ_SUR) goto L_1;
@@ -1897,7 +1897,7 @@ static ObjAtt GA_DefRec;
 
 
   // typ kann Typ_SURBSP sein  !!
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
 
   // check typ; muss SUR od SOL sein ...
   if((typ == Typ_SUR) ||
@@ -1998,7 +1998,7 @@ static ObjAtt GA_DefRec;
 
   printf("GA_lTyp__ lTyp=%d Atyp=%d Aind=%ld dli=%ld\n",lTyp,typ,ind,dli);
 
-  btyp = AP_typ_2_bastyp (typ);
+  btyp = AP_typDB_typ (typ);
 
   // check typ; muss LN/AC/Curve sein ..
   if((btyp == Typ_LN)   ||
@@ -2058,7 +2058,7 @@ static ObjAtt GA_DefRec;
 
 
   // typ kann Typ_SURBSP sein  !!
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
     // printf(" typ=%d\n",typ);
 
 

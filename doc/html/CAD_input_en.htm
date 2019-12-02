@@ -2,12 +2,18 @@
 <HEAD>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
 <TITLE>CAD_input_en.htm</TITLE>
-<style>body{ font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
-Documentation possible inputs into CAD inputfields:
+Documentation of possible inputs into CAD inputfields:
 
 Possible Inputs:
 - Select object in grafic-window (with left mousebutton)
@@ -16,14 +22,24 @@ Possible Inputs:
 ..
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
+<p><a name="_modPERP_"></a></p>
+<h3>Parameter for normal (perpendicular)</h3>
+- key Pageup / Page Down
+- Text "PERP" - or empty 
+
+- empty (default) - 
+- PERP            - normal (perpendicular)
+
+
+<HR><!-- ============================================================ -->
 <p><a name="_ModAux_"></a></p>
 <h3>Parameter for copy / replace obj</h3>
 - Text "REPL" - replace the original object
 - empty (default) - copy the object
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModRep_"></a></p>
 <h3>Parameter für Ein - Aus</h3>
 - Ein: Text "ON"
@@ -31,43 +47,38 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_DistX_"></a></p>
 <h3>X - Coordinate / distance</h3>
 - enter a number with the keyboard: eg "12.5"
 - define a variable - key-in or select from objectbrowser; eg "V20"
-- select a point - provides the X-Coordinate of this point
-- select a vector - provides the X-Coordinate of this vector
-- select a line - provides the difference of the X-Coordinates of this Line
-  
-The output is eg "X(12.5)"
+- select a point - provides the X-Coordinate of this point eg "X(P20)"
+- select a vector - provides the X-Coordinate of this vector eg "X(D20)"
+- select a line - provides the difference of the X-Coordinates of this Line eg "X(L20)"
   
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_DistY_"></a></p>
 <h3>Y - Coordinate / distance</h3>
 - enter a number with the keyboard: eg "12.5"
 - define a variable - key-in or select from objectbrowser; eg "V20"
-- select a point - provides the Y-Coordinate of this point
-- select a vector - provides the Y-Coordinate of this vector
-- select a line - provides the difference of the Y-Coordinates this Line
+- select a point - provides the Y-Coordinate of this point eg "Y(P20)"
+- select a vector - provides the Y-Coordinate of this vector eg "Y(D20)"
+- select a line - provides the difference of the Y-Coordinates this Line eg "Y(L20)"
   
-The output is eg "Y(12.5)"
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_DistZ_"></a></p>
 <h3>Z - Coordinate / distance</h3>
 - enter a number with the keyboard: eg "12.5"
 - define a variable - key-in or select from objectbrowser; eg "V20"
-- select a point - provides the Z-Coordinate of this point
-- select a vector - provides the Z-Coordinate of this vector
-- select a line - provides the difference of the Z-Coordinates of this Line
+- select a point - provides the Z-Coordinate of this point eg "Z(P20)"
+- select a vector - provides the Z-Coordinate of this vector eg "Z(D20)"
+- select a line - provides the difference of the Z-Coordinates of this Line eg "Z(L20)"
   
-The output is eg "Z(12.5)"
 
-
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_Val_"></a></p>
 <h3>Number (Value)</h3>
 - enter a number with the keyboard:
@@ -79,12 +90,16 @@ ____________________________________________________________________________
 - Selection of 2 points provides the distance
 - Selection of a point and a line provides the normal - distance
 
+- Selection of "X(P#)" gives the X-coordinate of this point (analog Y(P#) and Z(P#))
+- Selection of "X(L#)" - the difference of the X-coordinates of this Line (analog Y(P#) and Z(P#))
 
-The output is eg "VAL(12.5)"
+The output is eg "VAL(12.5)" 
+  or "VAL(L20)"                 # the length of line L20
+  or "VAL(Z(P20))"              # the Z-coordinate of P20
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_Angle_"></a></p>
 <h3>Angle</h3>
 - enter a number with the keyboard:
@@ -103,22 +118,24 @@ Unit is Degree.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_Vec_"></a></p>
 <h3>Vector / Direction</h3>
 Define a vector by:
 
 - Selection of a line or polygonsegment (also from inside CCV)
 
+- Selection of circle plane ellipse for normal-vector
+
 - Selection of 2 points
 
 - Selection of a Standardvector
   - select from the vectors shown in bottom-right corner
-  - enter with the keyboard (DX or DY or DZ or opposite DIX DIY DIZ)
+  - or enter with the keyboard (DX or DY or DZ or opposite DIX DIY DIZ)
 
 - Selection of a defined Vector
-  - by PageUp/PageDown-keys;
-  - from ObjectBrowser (left)
+  - by PageUp/PageDown-key;
+  - from ObjectBrowser (see <A HREF="Browser_en.htm">obj-browser</A>)
   - enter with the keyboard (eg "D12")
 
 - enter a Vectors with the keyboard:
@@ -126,8 +143,6 @@ Define a vector by:
   - Polar (Angle): eg "ANG(45)"
   - Polar (rotation-angle, tilt-angle): eg "ANG(45) ANG(30)"
     
-- Normalvector of a circle or plane
-
 - Normalvector from 2 Objects (line or point or vector)
     Examples:  DX DY    result is DZ (normalvector)
                L20 DZ   result is the normalvector in the construction-plane
@@ -148,7 +163,7 @@ The output is eg "D(ANG(45) ANG(30) 2.5)"
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_PT_"></a></p>
 <h3>Point</h3>
 Define a Point by:
@@ -168,7 +183,7 @@ The output is eg "P(100 0 0)"
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_LN_"></a></p>
 <h3>Line</h3>
 Define a Line by:
@@ -188,7 +203,7 @@ The output is eg "L(Y(10))"
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_AC_"></a></p>
 <h3>Circle</h3>
 Define a circle by:
@@ -205,7 +220,7 @@ The output is eg "C(P22 100)"
   
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_PLN_"></a></p>
 <h3>Plane (Referencesystem)</h3>
 Define a plane by:
@@ -279,7 +294,7 @@ The output is eg "R(P22 90)"
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeom_"></a></p>
 
 Selection of all geometric Objects is possible.
@@ -290,7 +305,7 @@ Selection of all geometric Objects is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_lFig_"></a></p>
 
 Selection of lines, circles, curves is possible;
@@ -299,7 +314,7 @@ Points, surfaces and bodies cannot be used.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo1_"></a></p>
 
 Selection of all geometric Objects but not points is possible.
@@ -309,7 +324,7 @@ Selection of all geometric Objects but not points is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo2_"></a></p>
 
 Selection of circle or Ellipse is possible.
@@ -319,7 +334,7 @@ Selection of circle or Ellipse is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo5_"></a></p>
 <h3>Circle or Curve</h3>
 
@@ -330,7 +345,7 @@ For closed contours.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo6_"></a></p>
 <h3>Point or Line or Circle</h3>
 
@@ -340,7 +355,7 @@ Selection of point or Line or circle is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo7_"></a></p>
 <h3>Value or point or Vektor</h3>
 
@@ -353,7 +368,7 @@ Selection of point or Vektor is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goGeo8_"></a></p>
 <h3>Value or point</h3>
 
@@ -366,7 +381,7 @@ Selection of a point is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goPrim_"></a></p>
 <h3>Point, Line, Circle or Curve</h3>
 
@@ -382,7 +397,7 @@ Surfaces and bodies cannot be used.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_goSUSU_"></a></p>
 <h3>Surfaces (A) or Bodies (B)</h3>
 
@@ -396,7 +411,7 @@ Selection of surfaces or bodies is possible.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_FilNam_"></a></p>
 
 Selection of a Model-Filename by
@@ -416,7 +431,7 @@ Selection of a Model-Filename by
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_CtlgPart_"></a></p>
 
 Selection of a catalogpart by
@@ -434,7 +449,7 @@ Selection of a catalogpart by
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_EyePT_"></a></p>
 <h3>Dimensioning-direction</h3>
 
@@ -447,8 +462,7 @@ or use the PageUp-key.
 
 
 
-
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModCTRL_"></a></p>
 <h3>controlpoints</h3>
 
@@ -459,9 +473,12 @@ Enter "CTRL" or use the PageUp-key.
 
 
 
-____________________________________________________________________________
+
+<HR><!-- ============================================================ -->
 <p><a name="_Mod1--_"></a></p>
 <p><a name="_Mod2--_"></a></p>
+<p><a name="_PTS_"></a></p>
+<p><a name="_PTI_"></a></p>
 <h3>Version-number</h3>
 
 Enter a number with the keyboard or use the PageUp-key or the Buttons "NXT¦PRV".
@@ -473,7 +490,7 @@ Output is a digit.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModREV_"></a></p>
 <h3>Turn (invert, "reverse")</h3>
 
@@ -485,10 +502,9 @@ Enter "REV" with the keyboard or use the PageUp-key or the "REV"-Button.
 
 
 
-
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModCX_"></a></p>
-<h3>LängsRichtung (Default) or QuerRichtung ("CX")</h3>
+<h3>Along (Default) or across ("CX")</h3>
 
 Enter "CX" with the keyboard or use the PageUp-key or the "CX"-Button.
 
@@ -497,7 +513,7 @@ Enter "CX" with the keyboard or use the PageUp-key or the "CX"-Button.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModCWC_"></a></p>
 <h3>Uhrzeigersinn (CW) or Gegenuhrzeigersinn (Default, CCW)</h3>
 
@@ -505,7 +521,7 @@ Enter "CW" with the keyboard or use the PageDown-key or the "CW"-Button.
 
 
 
-________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_ModUNL_"></a></p>
 <h3>Starting from a point unlimited or in both directions unlimited.</h3>
 
@@ -517,7 +533,7 @@ use the PageDown-key or enter with the keyboard:
 
 
 
-____________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_FncDirX_"></a></p>
 <h3>Definition of direction with reference to an inputobject.</h3>
 
@@ -530,7 +546,7 @@ use the PageDown-key or enter with the keyboard:
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_Text_"></a></p>
 <h3>Text</h3>
 
@@ -542,7 +558,7 @@ The text will be output unmodified (without enclosing apostrophes "")
 
 
 
-__________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_String_"></a></p>
 <h3>Textstring</h3>
 
@@ -559,30 +575,7 @@ The text will be output with enclosing apostrophes "".
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 </PRE>
 </HTML>
 

@@ -506,9 +506,9 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   FILE      *fp1;
 
 
-  printf("PRCV_DB_fwrite |%s|\n",mnam);
-  printf(" PRCV_GRP.rNr=%d\n",PRCV_GRP.rNr);
-  PRCV_DB_dump ("PRCV_DB_fwrite");
+  // printf("PRCV_DB_fwrite |%s|\n",mnam);
+  // printf(" PRCV_GRP.rNr=%d\n",PRCV_GRP.rNr);
+  // PRCV_DB_dump ("PRCV_DB_fwrite");
 
 
   strcpy(s1, mnam);
@@ -516,7 +516,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   UTX_safeName (s1, 2);
 
   sprintf(fnam, "%sPRCV__%s.dat",OS_get_tmp_dir(),s1);
-    printf("PRCV_DB_fwrite-fnam |%s|\n",fnam);
+    // printf("PRCV_DB_fwrite-fnam |%s|\n",fnam);
 
 
   if((fp1=fopen(fnam,"wb")) == NULL) {
@@ -534,8 +534,8 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
     cv_act = MEMTAB__ (&PRCV_GRP, i1);
     if(!cv_act->npt) continue;
 
-      printf("--------- PRCV_GRP[%d]\n", i1);
-      DEB_dump_obj__ (Typ_PRCV, cv_act, "DB_fwrite-prcv");
+      // printf("--------- PRCV_GRP[%d]\n", i1);
+      // DEB_dump_obj__ (Typ_PRCV, cv_act, "DB_fwrite-prcv");
 
     fwrite(cv_act, sizeof(CurvPrcv), 1, fp1);
 
@@ -549,7 +549,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   //----------------------------------------------------------------
   fclose(fp1);
 
-    printf("ex-PRCV_DB_fwrite\n");
+    // printf("ex-PRCV_DB_fwrite\n");
 
   return 0;
 
@@ -568,7 +568,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   CurvPrcv  actCv;
   FILE      *fp1;
 
-  printf("PRCV_DB_fread |%s|\n",mnam);
+  // printf("PRCV_DB_fread |%s|\n",mnam);
 
 
   strcpy(s1, mnam);
@@ -576,7 +576,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   UTX_safeName (s1, 2);
 
   sprintf(fnam, "%sPRCV__%s.dat",OS_get_tmp_dir(),s1);
-    printf("PRCV_DB_fread-fnam |%s|\n",fnam);
+    // printf("PRCV_DB_fread-fnam |%s|\n",fnam);
 
 
   if((fp1=fopen(fnam,"rb")) == NULL) {
@@ -585,7 +585,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   }
 
   fread(&PRCV_GRP, sizeof(MemTab), 1, fp1);
-    DEB_dump_obj__ (Typ_MemTab, &PRCV_GRP, "DB_fread-PRCV_GRP-1");
+    // DEB_dump_obj__ (Typ_MemTab, &PRCV_GRP, "DB_fread-PRCV_GRP-1");
 
   // get space for PRCV_GRP
   l1 = sizeof(CurvPrcv) * PRCV_GRP.rMax;
@@ -601,7 +601,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
       printf("--------- PRCV_GRP[%d]\n", i1);
 
     fread(&actCv, sizeof(CurvPrcv), 1, fp1);
-      DEB_dump_obj__ (Typ_PRCV, &actCv, "DB_fread-prcv");
+      // DEB_dump_obj__ (Typ_PRCV, &actCv, "DB_fread-prcv");
 
     // get space for points+auxdat; see 
     l1 = (sizeof(Point) + sizeof(double) + sizeof(long)) * actCv.siz;
@@ -625,8 +625,8 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   fclose(fp1);
 
     // TESTBLOCK
-    printf("ex-PRCV_DB_fread\n");
-    PRCV_DB_dump ("ex-PRCV_DB_fread");
+    // printf("ex-PRCV_DB_fread\n");
+    // PRCV_DB_dump ("ex-PRCV_DB_fread");
     // END TESTBLOCK
 
 

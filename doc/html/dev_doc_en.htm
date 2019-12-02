@@ -1,0 +1,142 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>dev_doc_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<p>Development</p>
+<PRE>
+
+
+
+
+<A HREF='#F1'>INSTALLING-DEVELOPMENT-TOOLS</A>
+
+<A HREF='#F2'>CUSTOMIZING-DEVELOPMENT-TOOLS</A>
+
+<A HREF='#F3'>USING-DEVELOPMENT-TOOLS</A>
+
+<A HREF='dev_inf_en.htm'>DEVELOPMENT-DOCUMENTATION</A>
+
+<A HREF='Plugin_en.htm'>create plugin</A>
+
+
+
+=====================================================================
+<p><a name="F1">INSTALLING-DEVELOPMENT-TOOLS</A></p>
+=====================================================================
+
+- install development-tools
+  git gitk ctags cscope vim
+
+  for modifications of the gui-system C-KIT-GUI-GTK:
+    Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
+      OpenGL-development-files (eg mesa-common-dev, libglu1-mesa-dev).
+
+      Installation of gtk3-development-files; eg for debian-os:
+        sudo apt-get install libgtk-3-dev
+        Optional:
+        sudo apt-get install libgtk-3-doc
+        sudo apt-get install gtk-3-examples
+
+      Installation of gtk2-development-files; eg for debian-os:
+        sudo apt-get install libgtk2.0-dev
+        Optional:
+        sudo apt-get install libgtk2.0-doc
+        sudo apt-get install gtk2.0-examples
+
+  for building debian-package:
+    fakeroot, lintian
+
+
+
+=====================================================================
+<a name="F2">CUSTOMIZING-DEVELOPMENT-TOOLS</A>
+=====================================================================
+
+
+Customize vim:
+cd ${DIR_DEV}gcad3d/src/APP/
+cp .vimrc ~/.
+cp .vimdoc ~/.
+mkdir ~/.vim/
+cp vi.sh ~/.vim/.
+
+
+Customize cscope:
+  - the editor is predefined in script ${DIR_DEV}gcad3d/src/APP/ed with:
+  EDITOR=vim
+
+
+
+
+
+=====================================================================
+<a name="F3">USING-DEVELOPMENT-TOOLS</A>
+=====================================================================
+
+The primary tool for accessing the documentation and the sourcecode is
+  cscope + tag-files. Editors with tag-file support: vim and emacs.
+  All tag-files will be created from ctags when building gcad3d.
+
+
+The root-directory for all files and all scripts is ${DIR_DEV}gcad3d/src/APP/
+
+
+---------------------------------------------------------------------
+USING cscope:
+
+  - Use cscope with:
+  cd ${DIR_DEV}gcad3d/src/APP
+  ./ed
+  key function or tag to find and key Enter ..
+  exit cscope with Ctrl-d
+
+  The top-level tag is "INF".
+
+
+
+---------------------------------------------------------------------
+USING vim:
+
+.vimrc supports opening of the following filetypes:
+
+  - open html-file with browser in vim with Ctrl-f -
+    eg place cursor on the following filename and key Ctrl-f
+    ../../doc/html/Plugin_en.htm
+
+  - open images with Ctrl-f  eg ../../doc/html/img_doc_sur_loft1.jpg
+
+
+Vim opens all other filetypes direct -
+  - open sourcefiles, textfiles with Ctrl-f  -
+    eg place cursor on one of the words in the following line and key Ctrl-f
+    ../inf/infotext.c ../db/ut_DB.c ../../doc/msg/msg_de.txt
+    return with Ctrl-o
+
+
+Vim opens functions and tags with Ctrl-r - 
+    eg place cursor on one of the words in the following line and key Ctrl-r
+    INF_obj_types DB DB_GetPoint UT3D_vc_perpvcvc UT3D UT3D_acos_2vc
+    return with Ctrl-o
+
+
+Vim opens the file ~.vimdoc (additional infos) with Ctrl-h
+    return with Ctrl-o
+
+
+
+=====================================================================
+OBSOLETE:
+- old documentation files:
+  ../../doc/gcad_doxygen/Programminginfos.dox
+  ../../doc/gcad_doxygen/ProgramFlow.dox
+
+
+=====================================================================
+../../doc/html/dev_doc_en.htm
+EOF
+</PRE>
+</BODY>
+</HTML>

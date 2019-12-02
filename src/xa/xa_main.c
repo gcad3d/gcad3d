@@ -138,7 +138,7 @@ static int     lngNr;
   MemObj win0;
 
 
-  printf("+++++++++++++ Start xa 2016-03-16  %d\n",paranz);
+  printf("+++++++++++++ Start xa 2019-11-20 %d\n",paranz);
 
 
   // mtrace ();   // malloc-tests

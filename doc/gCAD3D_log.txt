@@ -1,3 +1,23 @@
+Version 2.46.00 / 2019-12-02
+
+- CAD, MAN: bugfix "Point-referenced-X-Y-Z",  eg "P30=P(X(P20) Y(P20) Z(P32))"
+- CAD, MAN: new function "intersect line-cylinder"
+- CAD, MAN: lines tangent to circle from parameter or startPoint or endPoint;
+            eg L26=L(C20 0.5)   L26=L(C20 MOD(1))   L26=L(C20 MOD(2))
+- CAD: new function Variable = angle "V Angle line/vector" and "V Angle 2 lines/vectors"
+- CAD: new function Circle from centerline and point on arc ("CIR Axis Point")
+- CAD: new parameter "tilt-angle" for Plane "PLN PT Plane Offset Angle"
+- CAD: redesign of geometry-engine; new codes SEG(), PTS(); PTI(); see CAD_Base_en.htm#fmt_dynamic-obj
+- CAD: handling viewports added to menu "Display"
+- new function 'select obj from objID' in menu Select
+- Bug "autoscale mockup models wrl obj stl" fixed
+- Installation- and Development-documentation updated (see Help / Documentation)
+
+Programlines (C)  472776
+Functions           4818
+
+
+===========================================================================
 Version 2.44.12 / 2019-07-11
 
 - CAD: "A Revolved Surf" - support of trimmed curves added

@@ -305,8 +305,9 @@ List_functions_end:
   }
 
   // angle between ci->p1 and sample-point
-  sa = UT3D_angr_ci__ (ci) * ((double)sn/(double)np);
-  if (ci->rad < 0.0) sa = -sa;
+  sa = ci->ango * ((double)sn / (double)np);
+  // sa = UT3D_angr_ci__ (ci) * ((double)sn/(double)np);
+  // if (ci->rad < 0.0) sa = -sa;
 
   // init rotation
   UT3D_m4_init_rot (m1, sa, &(ci->vz));
@@ -315,7 +316,7 @@ List_functions_end:
   pt.x = ci->p1.x - ci->pc.x;
   pt.y = ci->p1.y - ci->pc.y;
   pt.z = ci->p1.z - ci->pc.z;
-  UT3D_pt_traptm4 (po, m1, &pt);
+  UT3D_pt_tra_pt_m4 (po, m1, &pt);
 
   // add circle center-point
   po->x += ci->pc.x;

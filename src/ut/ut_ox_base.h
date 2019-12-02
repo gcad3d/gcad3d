@@ -94,7 +94,7 @@ void OGX_GET_INDEX (int *typ, long *dbi, ObjGX *ox);
 /// replaces: ox.form  = f8typ;
 ///           ox.typ   = Typ_Float8;
 ///           ox->data = *float8;          // pointer to static double 
-/// typ can be Typ_Val|Typ_Par1|Typ_Angle|Typ_Dist
+/// typ can be Typ_Val|Typ_Par1|Typ_Angle
 /// \endcode
 void OGX_SET_Float8 (ObjGX *ox, int f8typ, double *float8);
 #define OGX_SET_Float8(ox,f8typ,float8){\

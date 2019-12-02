@@ -35,6 +35,8 @@ void DEB(){}
 =====================================================
 List_functions_start:
 
+DEB_std_file            redirect stdout -> file or back
+
 DEB_dump_ox_0           dump object
 DEB_dump_obj__          dump object
 DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
@@ -113,6 +115,32 @@ DEB_dump_txt
                            // for BSP-Sur's 50000 ! 2011-08-23 
 
 
+
+
+
+
+//================================================================
+  int DEB_std_file (char *fNam) {
+//================================================================
+// DEB_std_file                    redirect stdout -> file or back
+
+
+  if(strlen(fNam) > 2) {
+    // redirect stdout -> file
+    fflush (stdout);
+    freopen (fNam, "w", stdout);
+
+  } else {
+    // restore stdout
+    fflush (stdout);
+    freopen ("/dev/tty", "w", stdout);
+  }
+
+  return 0;
+
+}
+
+
 //====================================================================
   int DEB_dump_nobj__ (int form, int oNr, void *obj, char *txt) {
 //====================================================================
@@ -183,6 +211,7 @@ DEB_dump_txt
 
   // get data for dbo
   typ = DB_GetObjDat ((void**)&data, &iNr, typ, dbi);
+  if(typ < Typ_VAR) return-1;
 
   oSiz = UTO_siz_stru (typ);
 
@@ -426,6 +455,7 @@ static FILE     *uo = NULL;
   Point    *p1, *ptAr;
   Point2   *p2, *pt2Ar;
   // Ray      *lnr;
+  CVLn3    *cvLn;
   Line     *ln1;
   Line2    *ln2;
   Circ     *c1;
@@ -581,17 +611,17 @@ static FILE     *uo = NULL;
     sprintf(cps,"(Vectorf) %9.3f,%9.3f,%9.3f",vcf->dx,vcf->dy,vcf->dz);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_VC);
 
-/*
+
   //----------------------------------------------------------------
-  } else if(typ == Typ_Ray) {
-    lnr = data;
-    sprintf(cps,"Ray %s typ = %d",txt,lnr->typ);
+  } else if(typ == Typ_CVLN3) {
+    cvLn = data;
+    sprintf(cps,"cvLn %s lnl = %9.3f",txt,cvLn->lnl);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_CI);
-    sprintf(cps,"(Ray).p=%9.3f,%9.3f,%9.3f",lnr->p.x,lnr->p.y,lnr->p.z);
+    sprintf(cps,"(cvLn).pt0=%9.3f,%9.3f,%9.3f",cvLn->pt0.x,cvLn->pt0.y,cvLn->pt0.z);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(Ray).v=%9.3f,%9.3f,%9.3f",lnr->v.dx,lnr->v.dy,lnr->v.dz);
+    sprintf(cps,"(cvLn).vcl=%9.3f,%9.3f,%9.3f",cvLn->vcl.dx,cvLn->vcl.dy,cvLn->vcl.dz);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-*/
+
 
   //----------------------------------------------------------------
   } else if(typ == Typ_LN2) {
@@ -1953,7 +1983,10 @@ static FILE     *uo = NULL;
     // printf("UT3D_dump_add  %d |%s|\n",sTab->iNr,cbuf);
 
   irc = UtxTab_add (sTab, cbuf);
-  if(irc < 0) TX_Print("***** UT3D_dump_add UtxTab_add E001-%d",irc);
+  if(irc < 0) {
+    TX_Print("***** UT3D_dump_add UtxTab_add E001-%d",irc);
+    // AP_debug__ ("UT3D_dump_add");
+  }
 
   return 0;
 

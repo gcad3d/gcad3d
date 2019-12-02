@@ -43,7 +43,7 @@ AP_typ_FncNam       get type of function
 
 AP_typ_typChar      make typ from typChar  ("P" -> Typ_PT)
 AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
-AP_typ_2_bastyp     Typ_CVBSP -> Typ_CV   oder Typ_SURRU -> Typ_SUR
+AP_typDB_typ     Typ_CVBSP -> Typ_CV   oder Typ_SURRU -> Typ_SUR
 AP_cmp_typ          check for identical types
 
 AP_src_typ__        make text from (int)typ; Typ_PT --> "PT" ..
@@ -98,7 +98,8 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 //5         6         7         8         9
   "Error",  "Var",    "Vec",    "PT",     "LN",        // 0-
   "CI",     "-",      "-",      "-",      "-",
-  "VC2",    "PT2",    "LN2",    "CI2",    "CI2C"};     // 10-
+  "VC2",    "PT2",    "LN2",    "CI2",    "CI2C",      // 10-
+  "CVLN3",  "------", "------", "------", "------"};
 
   static char *TypTxtTab20[]={
   "CV",     "CvPlg",  "CvPsp3", "CvBsp",  "CvRBsp",    // 20-
@@ -137,10 +138,10 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   "Dit",    "Joint",  "Proc"};
 
   static char *TypTxtTab130[]={   /// geom. parameters
-  "Val",    "X-coord","Y-coord","Z-coord","DistX",     // 130- TYP_IS_GEOMPAR
-  "DistY",  "DistZ",  "Angle",  "Radius", "Dist",
+  "Val",    "X-coord","Y-coord","Z-coord","Angle",     // 130- TYP_IS_GEOMPAR
+  "Rad",    "Dist",   "------", "------", "------",
   "Par1",   "UVal",   "VVal",   "------", "------",    // 140-
-  "------", "------", "------", "------", "------"};
+  "------", "------", "Pt-Std", "Pt-Ind", "Seg-Nr"};
 
   static char *TypTxtTab150[]={   /// attributes
   "Typ",    "Subtyp", "cmdSub", "Address","Size",      // 150-
@@ -199,14 +200,19 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
 
 //----------------------------------------------------------------
-  static char  *Fc1TxtTab[] = {
+  static char  *Fc1TxtTab[] = {  // geom functions
 // 00             1              2              3              4
   "VAL",         "ANG",         "RAD",         "MOD",         "NEW",         
+  "PTS",         "PTI",         "SEG",
   ""};
 
+// the corresponding types for Fc1TxtTab
   static int Fc1TypTab[]={
-  Typ_Val,       Typ_Angle,     Typ_Rad,       Typ_modif,     TYP_FuncInit};
+  Typ_Val,       Typ_Angle,     Typ_Rad,       Typ_modif,     TYP_FuncInit,
+  Typ_PTS,       Typ_PTI,       Typ_SEG};
 
+
+//----------------------------------------------------------------
   static char  *FcmTxtTab[] = {
 // 00             1              2              3              4
   "SQRT",        "SIN",         "COS",         "TAN",         "ASIN",
@@ -247,7 +253,7 @@ char  *CopTxtTab[] = {  // controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq ..
 
 
 
-char  MOpTxtStr[] = "+-*/";  // math.operators
+char  MOpTxtStr[] = "+-*/^";  // math.operators
 
 
 
@@ -277,11 +283,12 @@ char  *ObjCodTab[] = {
   "TNG",         "IMP",         "BSP1",        "PARL",         "BLEND",
 // 70
   "UNL",         "UNL1",        "UNL2",        "DISP_PT",      "DISP_PL",
-  ""};
+// 80
+  "ANG",         ""};
 
 // last word must be "" !
 
-// die zugehoerige enum ist in ../ci/NC_apt.h
+// die zugehoerige enum ist Typ_Cmd1 in ../ci/NC_apt.h
 // unused: RI LE HI LO SKWC
 // nur f WCUT: MA RADI RADC T_MA T_RISO T_RCON SKWC
 
@@ -314,7 +321,7 @@ char  *ObjCodTab[] = {
 /// Input:
 ///   dli       -1 for unknown; used only for applicationObjects
 ///
-/// see also APED_oid_dbo__ AP_typ_2_bastyp AP_cre_defHdr
+/// see also APED_oid_dbo__ AP_typDB_typ AP_cre_defHdr
 /// \endcode
 
   int   irc;
@@ -394,7 +401,7 @@ char  *ObjCodTab[] = {
 ///   typ,ind    DB-obj
 /// Output:
 ///   buf        name for DB-obj
-/// see also APED_dbo_oid APED_oid_dbo_all AP_typ_2_bastyp AP_cre_defHdr
+/// see also APED_dbo_oid APED_oid_dbo_all AP_typDB_typ AP_cre_defHdr
 /// \endcode
 
 // FuncNam should be APED_oid_dbo_all
@@ -1240,10 +1247,10 @@ char  *ObjCodTab[] = {
 }
 
 //====================================================================
-  int AP_typ_2_bastyp (int typ) {
+  int AP_typDB_typ (int typ) {
 //====================================================================
 /// \code
-/// give basictyp from typ;
+/// give basictyp from typ;  eg Typ_CV from Typ_CVPOL
 /// makes Typ_SURRU -> Typ_SUR   or Typ_CVBSP -> Typ_CV.
 /// 
 /// siehe APED_oid_dbo__ AP_cmp_typ
@@ -1358,8 +1365,10 @@ char  *ObjCodTab[] = {
 
   //----------------------------------------------------------------
   L_fnc1:
-  // VAL ANG RAD MOD NEW
+  // VAL ANG RAD MOD NEW ..
   iTyp = UTX_cmp_word_wordtab (Fc1TxtTab, s1);
+    // printf(" ex-word_wordtab-Fc1TxtTab %d\n",iTyp);
+
   if(iTyp >= 0) {
     iTyp = Fc1TypTab[iTyp];
     goto L_exit;
@@ -1431,7 +1440,7 @@ char  *ObjCodTab[] = {
   int     ityp = 0;
   char    *cpos, *fncPos;
  
-  printf("AP_typ_srcExpr |%s|\n",expr);
+  // printf("AP_typ_srcExpr |%s|\n",expr);
 
 
   *pNxt = expr;
@@ -1492,7 +1501,7 @@ char  *ObjCodTab[] = {
   //----------------------------------------------------------------
   L_func__:
     // cpos is a functionName; the pos of '(' is fncPos.
-      printf(" L_func__:\n");
+      // printf(" L_func__:\n");
 
     // Function: implicitObject|mathFunction
 
@@ -1509,7 +1518,7 @@ char  *ObjCodTab[] = {
 
   //----------------------------------------------------------------
   L_exit:
-    printf("ex AP_typ_srcExpr %d |%s|\n",ityp,*pNxt);
+    // printf("ex AP_typ_srcExpr %d |%s|\n",ityp,*pNxt);
 
   return ityp;
 
@@ -1522,7 +1531,7 @@ char  *ObjCodTab[] = {
 /// check if types identical;
 /// RC = 0 = ident;
 /// 
-/// see AP_typ_2_bastyp
+/// see AP_typDB_typ
 /// \endcode
 
 
@@ -1563,8 +1572,8 @@ char  *ObjCodTab[] = {
   int UTO_ck_dbsTyp (int typ) {
 //================================================================
 /// \code
-/// UTO_ck_dbsTyp           check object-typ (struct or object)
-///   typ              must be a basictype; see AP_typ_2_bastyp
+/// UTO_ck_dbsTyp           check object-typ (struct of object)
+///   typ              must be a basictype; see AP_typDB_typ
 /// Retcode:
 ///   0   dedicated struct      -  VPDLCRMI
 ///       V=Value,P=Point,D=Vector,L=Line,C=Circ,R=Plane,M=Model,I=Activity
@@ -1596,7 +1605,7 @@ char  *ObjCodTab[] = {
 /// \code
 /// UTO_ck_typTyp     check if typ=curve (Typ_lFig) or surface (Typ_SUR)
 /// Input
-///   typ    must be basic-type (AP_typ_2_bastyp)
+///   typ    must be basic-type (AP_typDB_typ)
 /// Retcod   Typ_go_LCS  from LN|AC|CV     (L/C/S)
 ///          Typ_SUR     from PLN|SUR|SOL  (R/A/B)
 ///          Typ_PT      from PT           (P)

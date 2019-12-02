@@ -45,6 +45,7 @@ GUI_edi_RdLn           get line (copy)
 GUI_edi_mod_ln         modify line
 GUI_edi_del            delete text between 2 positions
 
+GUI_edi_ck_cPos_ln     test cursorPosition in active line
 GUI_edi_getEof         get FileSize (total-chars-nr, EOF-Position)
 GUI_edi_getLnMax       get total-lines-nr
 GUI_edi_getLnr         get LineNr of act.Curpos
@@ -54,10 +55,10 @@ GUI_edi_setCpos        set to curPos and view text at curPos
 GUI_edi_getLsta        get startPos of Line
 
 GUI_edi_sel__          select from-charOffset to-charOffset
-GUI_edi_sel_get         
+GUI_edi_sel_get        get start/endpos of selected-text
 GUI_edi_sel_wrf        write selected -> file
 GUI_edi_sel_ln         select line
-GUI_edi_sel_del        delete selected text
+GUI_edi_sel_del        delete selected-text
 
 GUI_edi_scroll_s       scroll to act.charOffset (= selected)
 GUI_edi_Focus          set focus to EditWindow
@@ -127,6 +128,10 @@ static GtkTextBuffer *GUI_ed1_buff;
 static Obj_gui1      *GUI_ed1_ActObj;
 static long          GUI_ed1_cPos;
 static int           GUI_ed1_stat=0;
+static int           GUI_ed1_MB1_state = 0;   // 0=mousebutton1-released; 1=pressed
+static int           GUI_ed1_shift_state = 0; // 0=shift-released; 1=pressed
+static int           GUI_ed1_cntrl_state = 0; // 0=control-released; 1=pressed
+static int           GUI_ed1_alt_state = 0;   // 0=alt-released; 1=pressed
 
 
 
@@ -212,10 +217,11 @@ static char  *GUI_ed1_lcSet;
 }
 
 
+
 //===================================================================
   int GUI_ed1_cb3 (GtkTextBuffer *textbuffer, GtkClipboard *arg1, MemObj mo) {
 //===================================================================
-// paste-done
+// paste-done (user did insert text)
 
   Obj_gui1     *go;
   int          iEv;
@@ -223,11 +229,12 @@ static char  *GUI_ed1_lcSet;
   void         *pTab[3];
 
 
-  cpos = GUI_edi_getCpos (&mo);
-    // printf("GUI_ed1_cb3 %ld\n",cpos);
+  printf("GUI_ed1_cb3 (paste-done)\n");
 
+
+  cpos = GUI_edi_getCpos (&mo);
   lnr = GUI_edi_getLnr (&mo);
-    // printf("GUI_ed1_cb3 %ld\n",lnr);
+    printf(" cpos=%ld lnr=%ld\n",cpos,lnr);
 
   iEv = TYP_EventEnter;
 
@@ -251,7 +258,7 @@ static char  *GUI_ed1_lcSet;
   int GUI_ed1_cb2 (void *parent, void *iter, void *mark, MemObj mo) {
 //===================================================================
 /// \code
-/// INTERNAL 'set-mark'-callback
+/// 'set-mark'-callback (user clicked into editor-line)
 /// \endcode
 
   Obj_gui1     *go;
@@ -261,18 +268,28 @@ static char  *GUI_ed1_lcSet;
   void         *pTab[3];
 
 
-  // printf("GUI_ed1_cb2 GUI_ed1_stat=%d\n",GUI_ed1_stat);
+  // printf("GUI_ed1_cb2 (set-mark) GUI_ed1_stat=%d\n", GUI_ed1_stat);
+  // return (FALSE);
+
+  // get state of shift,ctrl,alt-keys
+  imod = GUI_get_keys_mod ();
+     // printf(" ed1_cb2-modKeyStat = %d\n",imod);
 
 
   // skip userCalls during internal operations
+  // app makes "select-line"; skip this
   if(GUI_ed1_stat) return TRUE;
+
+  // skip set-mark with shift-key-ON (block-selection)
+  // if(imod & 1) return TRUE;
+  GUI_ed1_MB1_state = imod & 1;
+  if(GUI_ed1_MB1_state) return (FALSE);
 
 
   cpos = gtk_text_iter_get_offset (iter);
   if(cpos == GUI_ed1_cPos) return (FALSE);
   GUI_ed1_cPos = cpos;
-
-  // printf("GUI_ed1_cb2 %ld\n",cpos);
+    // printf("GUI_ed1_cb2 %ld\n",cpos);
 
 
   // skip mark != "insert"
@@ -280,6 +297,8 @@ static char  *GUI_ed1_lcSet;
   if(!p1) return (FALSE);
     // printf("  mark-name = |%s|\n",p1);
   if(strcmp(p1, "insert")) return (FALSE);   // TRUE: do no defaultOperations
+
+  // AP_debug__ ("GUI_ed1_cb2");
 
 
   go = GUI_obj_pos (&mo);
@@ -292,6 +311,8 @@ static char  *GUI_ed1_lcSet;
   // lnr = gtk_text_buffer_get_line_count (parent);
   lnr = gtk_text_iter_get_line (iter);
   ++lnr;   // first line = 1 !
+    // printf(" cpos=%ld lnr=%ld\n",cpos,lnr);
+
 
   pTab[0] = &iEv;
   pTab[1] = &cpos;
@@ -305,29 +326,52 @@ static char  *GUI_ed1_lcSet;
 }
 
 
+/*
+//================================================================
+  int GUI_ed1_cb_me (void *parent, void *event, MemObj mo) {
+//================================================================
+
+  printf("GUI_ed1_cb_me %d %d\n",mo.mbID,mo.ioff);
+
+ return (FALSE);   // TRUE: do no defaultOperations
+}
+*/
+
 //================================================================
   int GUI_ed1_cb1 (void *parent, void *event, MemObj mo) {
 //================================================================
 /// \code
 /// INTERNAL
-/// returns 0=event   TYP_EventEnter|TYP_EventRelease
-///         1=keyvalue
-///         2=modifier
+/// returns  0=event   TYP_EventEnter|TYP_EventRelease
+///          1=keyvalue
+///          2=modifier
 /// \endcode
-// GDK_BUTTON_PRESS  = 4,
-// GDK_KEY_RELEASE = 9
-// GDK_FOCUS_CHANGE  = 12
+// Events:
+//   GDK_BUTTON_PRESS  = 4,
+//   GDK_BUTTON_RELEASE  = 7,
+//   GDK_KEY_PRESS = 8
+//   GDK_KEY_RELEASE = 9
+//   GDK_FOCUS_CHANGE  = 12
+//   GDK_SHIFT_MASK = 1
+//   GDK_CONTROL_MASK = 4
+// retCode:
+//   TRUE:  do no defaultOperations
+//   FALSE: continue with defaultOperations
+//
+// skip "do defaultOperations" (return TRUE) only with key-press-event
 
-  // int          ikey, imod, iEv;
-  int          i1;
-  long         ikey, imod, iEv;
+
+  int          ii, ev_in;
+  long         ikey, imod;
+  long         iEv;
   void         *pTab[3];
   Obj_gui1     *go;
-  // int          (*func1)();
+  GdkModifierType mods;
+
 
 
   // printf("GUI_ed1_cb1 %d %d\n",mo.mbID,mo.ioff);
-  // printf(" ev=%d\n",((GdkEvent*)event)->type);
+  // printf("  ev=%d\n",((GdkEvent*)event)->type);
 
 
   go = GUI_obj_pos (&mo);
@@ -335,62 +379,150 @@ static char  *GUI_ed1_lcSet;
   if(!go->uFunc) return 0;
 
 
+  ev_in = ((GdkEvent*)event)->type;
+
+
+
   //----------------------------------------------------------------
-  if(((GdkEvent*)event)->type == GDK_BUTTON_PRESS) {  // GDK_FOCUS_CHANGE
+  if(ev_in == GDK_FOCUS_CHANGE) {       // ev = 12
     iEv = TYP_EventEnter;
-// TODO: enter or leave ?
     // GdkEventFocus 
-    // imod = ((GdkEventFocus*)event)->in;                always 1
+    ikey = 0;
+    imod = 0;
     // test "has-focus" property
     // g_object_get (parent, "has-focus", &imod, NULL);   always 1
-
-    // L1=act.cursorPosition (ikey)
-    ikey = GUI_edi_getCpos (NULL);
-    // L2=act.lineNr.        (imod)
-    imod = GUI_edi_getLnr (NULL);
-      printf(" pos=%ld lnr=%ld\n",ikey,imod);
-
+      // printf(" TYP_EventEnter %d %d\n",ikey,imod);
     goto L_call_user;
   }
 
 
   //----------------------------------------------------------------
-  if(((GdkEvent*)event)->type == GDK_KEY_PRESS) {
-    iEv  = TYP_EventPress;
-    ikey = ((GdkEventKey*)event)->keyval;
-    imod = ((GdkEventKey*)event)->state;
-      // printf(" TYP_EventPress %d %d\n",ikey,imod);
+  ikey = ((GdkEventKey*)event)->keyval;
+  mods = gtk_accelerator_get_default_mod_mask ();
+  imod = ((GdkEventKey*)event)->state & mods;
+    // printf(" ed1_cb1-ikey=%ld imod=%d\n",ikey,imod);
+
+
+  // block Delete-key (unDelete not possible)
+  if((ikey == GUI_KeyDel)||(ikey == GUI_KeyNumDel)) {
+    // check if something is selected; 1=yes, 0=no
+    ii = gtk_text_buffer_get_has_selection (GUI_ed1_buff);
+      // printf(" ed1_cb1-ii=%d\n",ii);
+    if(ii) {
+      TX_Print("**** delete - use Ctrl-X / Ctrl-V");
+      return (TRUE);  // TRUE: do no defaultOperations
+    } else {
+      return FALSE;  // do normal default-operations
+    }
+  }
+
+  // do not report keys > ffe0 (Shift, Ctrl, Alt, ..)
+  if(ikey > 0xffe0) return FALSE; // do normal default-operations
+
+
+/*
+  //----------------------------------------------------------------
+  if(ev_in == GDK_BUTTON_PRESS) { 
+      printf(" GDK_BUTTON_PRESS\n");
+    // GUI_ed1_MB1_state = 1;
+    // return (FALSE);
+
+    iEv = TYP_EventEnter;
+    // L1=act.cursorPosition (ikey)
+    ikey = GUI_edi_getCpos (NULL);
+    // L2=act.lineNr.        (imod)
+    imod = GUI_edi_getLnr (NULL);
+      printf(" cpos=%ld lnr=%ld\n",ikey,imod);
+    return (FALSE);    // FALSE: continue with defaultOperations
+    // goto L_call_user;
+
   }
 
 
   //----------------------------------------------------------------
-  if(((GdkEvent*)event)->type == GDK_KEY_RELEASE) {
+  if(ev_in == GDK_BUTTON_RELEASE) {  // GDK_FOCUS_CHANGE
+      printf(" GDK_BUTTON_RELEASE\n");
+    // GUI_ed1_MB1_state = 0;
+    // return (FALSE);
+
+    iEv = TYP_EventEnter;
+    // L1=act.cursorPosition (ikey)
+    ikey = GUI_edi_getCpos (NULL);
+    // L2=act.lineNr.        (imod)
+    imod = GUI_edi_getLnr (NULL);
+      printf(" pos=%ld lnr=%ld\n",ikey,imod);
+    return (FALSE);    // FALSE: continue with defaultOperations
+    // goto L_call_user;
+  }
+*/
+
+  //----------------------------------------------------------------
+  if(ev_in == GDK_KEY_PRESS) {        // ev = 8
+    // iEv  = TYP_EventPress;
+
+    // report Alt-x to user
+    // if(GUI_ed1_alt_state) {
+      // if(ikey == 'x') goto L_call_user;
+
+    return FALSE;  // do normal default-operations
+  }
+
+  //----------------------------------------------------------------
+  if(ev_in == GDK_KEY_RELEASE) {     // ev = 9
     iEv  = TYP_EventRelease;
-    ikey = ((GdkEventKey*)event)->keyval;
-    imod = ((GdkEventKey*)event)->state;
-      // printf(" TYP_EventRelease %d %d\n",ikey,imod);
+
+    GUI_ed1_shift_state = imod&1;
+    GUI_ed1_cntrl_state = imod&4;
+      // printf(" ed1_cb1-ikey=%ld GUI_ed1_shift_state=%d GUI_ed1_cntrl_state=%d\n",
+             // ikey,GUI_ed1_shift_state,GUI_ed1_cntrl_state);
+
+    goto L_default;
   }
 
 
   //----------------------------------------------------------------
+  // unknown / unused event
+    printf("**** GUI_ed1_cb1 unknown / unused event %d\n",ev_in);
+  return FALSE;  // do normal default-operations
+ 
+
+  //================================================================
+  L_default:
   // fix keys ..
   if(ikey == 0xffbe) ikey = GUI_KeyF1;  // ff91 <- ffbe (XK_KP_F1=XK_F1)
 
+  // does not activate unDelete (Ctrl-Z)
+  // if(ikey == GUI_KeyNumDel) return FALSE;
+
+  // do not report events with shift-down
+  if(GUI_ed1_shift_state) return FALSE;
+
+  // Ctrl-down: report only Ctrl-Esc, Ctrl-s; Ctrl-p see UI_key_spcCtrl
+  if(GUI_ed1_cntrl_state) {
+    if(ikey == GUI_KeyEsc) goto L_call_user;
+    if(ikey == 's') goto L_call_user;
+    if(ikey == 'p') goto L_call_user;
+    return FALSE;  // do normal default-operations
+  }
+
+  // Alt x
+
 
   L_call_user:
+
   pTab[0] = &iEv;
   pTab[1] = &ikey;
   pTab[2] = &imod;
 
   go->uFunc (go, pTab);
-  // func1 = (int)(go->uFunc);
-  // imod = (*func1) (go, pTab);
-  // imod = ((int)(go->uFunc) (go, pTab));
-    // printf(" imod=%d\n",imod);
+    // printf("ex-GUI_ed1_cb1 imod=%ld\n",imod);
 
-    // skip "do defaultOperations" (return TRUE) only with key-press-event
+  // if(ikey == GUI_KeyNumDel) return TRUE;
+
+
     // - NOT with key-release-event (too late ..?)
-  return (FALSE);   // TRUE: do no defaultOperations
+  return (FALSE);    // TRUE: do no defaultOperations
+                     // FALSE: continue with defaultOperations
 }
 
 
@@ -415,7 +547,7 @@ static char  *GUI_ed1_lcSet;
 ///   GUI_DATA_L1    =*(long*)data[1]=act.cursorPosition
 ///   GUI_DATA_L2    =*(long*)data[2]=act.lineNr.
 ///
-///   GUI_DATA_EVENT =*(int*)data[0]=TYP_EventPress|TYP_EventRelease
+///   GUI_DATA_EVENT =*(int*)data[0]=TYP_EventPress|TYP_EventRelease|TYP_EventEnter
 ///   GUI_DATA_I1    =*(int*)data[1]=keyvalue; eg 'a'
 ///   GUI_DATA_I2    =*(int*)data[2]=state of modifierkeys;
 ///                                  &1=shift; &4=ctrl; &8=alt.
@@ -463,6 +595,7 @@ static char  *GUI_ed1_lcSet;
 
 
   wev = gtk_text_view_new ();
+
   web = gtk_text_view_get_buffer (GTK_TEXT_VIEW (wev));
 
   gtk_widget_set_can_focus(wev, TRUE);
@@ -488,50 +621,56 @@ static char  *GUI_ed1_lcSet;
 
   //----------------------------------------------------------------
   if (funcnam) {
+    // PROBLEM: wsw does NOT provide key-press-event (only key-release-event)
     gtk_widget_set_events (GTK_WIDGET(wsw),
+                           // GDK_BUTTON1_MOTION_MASK|
                            // GDK_FOCUS_CHANGE_MASK|
                            // GDK_ENTER_NOTIFY_MASK |
-                           // GDK_BUTTON_PRESS_MASK|
+                           GDK_SHIFT_MASK|
+                           GDK_CONTROL_MASK|
+                           GDK_KEY_PRESS_MASK|
+                           GDK_KEY_RELEASE_MASK|
+                           GDK_BUTTON_PRESS_MASK|
                            GDK_BUTTON_RELEASE_MASK);
 
+    // PROBLEM: wev key-press/release: reports the old cursor-position
+    gtk_widget_set_events (GTK_WIDGET(wev),
+                           GDK_KEY_PRESS_MASK|
+                           GDK_KEY_RELEASE_MASK);
+
+
     //----------------------------------------------------------------
+    // web does not provide key-press/release-event
     // attach "enter-window" (for eg click into window).
     // geht nicht: wsw|web|wev"enter-notify-event";
 
-    // web"mark-set" zu oft;
+    // web-"mark-set" zu oft;
     g_signal_connect (G_OBJECT (web),  "mark-set",
                         G_CALLBACK (GUI_ed1_cb2),
                         PTR_MEMOBJ(go->mem_obj));
 
-    // button-press: reports the old cursor-position; useless ..
-    // g_signal_connect (G_OBJECT (wev), "button-press-event",
-                      // G_CALLBACK (GUI_ed1_cb1),
-                      // PTR_MEMOBJ(go->mem_obj));
-
-    // cannot use focus-in-event; does not report click into window !
-    // g_signal_connect (G_OBJECT (wev), "focus-in-event",
-                        // G_CALLBACK (GUI_ed1_cb1),
-                        // PTR_MEMOBJ(go->mem_obj));
-
-
-
-    //----------------------------------------------------------------
+    // web-"paste-done"
     g_signal_connect (G_OBJECT (web),   // wev wsw
                         "paste-done",
                         G_CALLBACK (GUI_ed1_cb3),
                         PTR_MEMOBJ(go->mem_obj));
 
 
-    g_signal_connect (G_OBJECT (wsw),
+    //----------------------------------------------------------------
+    // wev: PROBLEM: key-press: reports the old cursor-position
+    g_signal_connect (G_OBJECT (wev),
                         "key-press-event",
                         G_CALLBACK (GUI_ed1_cb1),
                         PTR_MEMOBJ(go->mem_obj));
 
     // focus-in-event erforderlich f CAD-select-objects
-    g_signal_connect (G_OBJECT (wsw),
+    g_signal_connect (G_OBJECT (wev),
                         "key-release-event",
                         G_CALLBACK (GUI_ed1_cb1),
                         PTR_MEMOBJ(go->mem_obj));
+    //----------------------------------------------------------------
+    // wsw: PROBLEM: does NOT provide key-press-event (only key-release-event)
+
   }
 
 
@@ -941,6 +1080,95 @@ static char  *GUI_ed1_lcSet;
 }
 
 
+//================================================================
+  int GUI_edi_ck_cPos_ln (MemObj *mo, int *lPos, int *fPos) {
+//================================================================
+// GUI_edi_ck_cPos_ln       test cursorPosition in active line
+//   following blanks are ignored !
+// output:    cursor is -
+//   lPos     0    at start of line (in column 1)
+//            1    between start of line and end of line
+//            2    at end of line
+//            3    line is empty
+//   fPos     0    at start of file
+//            1    between start of file and end of file
+//            2    at end of file
+//            3    file is empty
+
+
+  long        c1, c2;
+  gboolean    b1, b2;
+  GtkTextMark *mk1;
+  GtkTextIter it1;
+  // char        c1;
+
+
+  // printf("GUI_edi_ck_cPos_ln\n");
+
+  // set GUI_ed1_view GUI_ed1_buff
+  if(mo) {   // for internal call: mo=NULL
+    if(GUI_ed1_decode(mo)) return -1;
+  }
+
+  
+  // get mark at CurPos
+  mk1 = gtk_text_buffer_get_mark (GUI_ed1_buff, "insert");
+
+  // iter at CurPos
+  gtk_text_buffer_get_iter_at_mark (GUI_ed1_buff, &it1, mk1);
+
+  // get unicode-char at right of curpos
+  c2 = gtk_text_iter_get_char (&it1);
+    // printf(" edi_ck_cPos_ln-c2 = %ld %c\n",c2,(int)c2);
+  if(c2 == 0)  {
+    // cursor is at end of file
+    *fPos = 2; *lPos = 2;
+  } else if(c2 == 10) {
+    // cursor is at end of line
+    *fPos = 1; *lPos = 2;
+  } else {
+    // cursor is between start and end of line
+    *fPos = 1; *lPos = 1;
+  }
+
+  // move iter back
+  b1 = gtk_text_iter_backward_chars (&it1, 1);
+  // false if left of 1. char; returns Null !.
+  if(b1 == FALSE) {
+    // cur at start of file
+    if(*fPos == 2) {
+      *fPos = 3; // file is empty - cur is at start and at end of file
+      *lPos = 3; // line is empty - cur is at start and at end of file
+    } else {
+      *fPos = 0; // cur is at start of file
+      *lPos = 0; // cur is at start of line
+    }
+    goto L_exit;
+  }
+
+  // get char left of cursor
+  c1 = gtk_text_iter_get_char (&it1);
+    // printf(" edi_ck_cPos_ln-c1 = %ld %c\n",c1,(int)c1);
+  if(c1 == 10) {
+    // left char = start of line
+    if(*lPos == 2) {
+      // right char is end of line
+      *lPos = 3; // line is empty
+    } else {
+      // right char is between start and end of line
+      *lPos = 0; // cursor is in column 1
+    }
+  // } else {
+    // // left char = between start and end of line
+  }
+
+  L_exit:
+    // printf(" ex-GUI_edi_ck_cPos_ln fPos = %d lPos = %d\n",*fPos,*lPos);
+  return 0;
+
+}
+
+
 //==========================================================================
   char GUI_edi_RdChr (MemObj *mo, int offset) {
 //==========================================================================
@@ -1158,6 +1386,10 @@ static char  *GUI_ed1_lcSet;
   GtkTextIter it1;
 
   // printf("GUI_edi_setLnr %ld\n",lNr);
+  // if(lNr==5) AP_debug__ ("GUI_edi_setLnr");
+
+
+  GUI_ed1_stat = 1;
 
   --lNr;    // first line = 1 // 2012-07-13
 
@@ -1180,6 +1412,9 @@ static char  *GUI_ed1_lcSet;
   // scroll & focus
   GUI_edi_scroll_s (NULL);
 
+  GUI_ed1_stat = 0;
+
+    // printf("ex-GUI_edi_setLnr %ld\n",lNr);
 
   return 0;
 
@@ -1285,8 +1520,7 @@ static char  *GUI_ed1_lcSet;
   int GUI_edi_sel_get (long *p1, long *p2, MemObj *mo) {
 //================================================================
 /// \code
-/// write selected -> file
-///   txlen   input = size of txbuf; Output = nr of characters read
+/// GUI_edi_sel_get        get start/endpos of selected-text
 /// \endcode
 
   GtkTextIter it1, it2;
@@ -1294,7 +1528,7 @@ static char  *GUI_ed1_lcSet;
   char  *text;
 
 
-  // printf("GUI_edi_sel_wrf |%s|\n",fnam);
+  // printf("GUI_edi_sel_get |%s|\n",fnam);
 
   // set GUI_ed1_view GUI_ed1_buff
   if(mo) {   // for internal call: mo=NULL
@@ -1321,31 +1555,29 @@ static char  *GUI_ed1_lcSet;
 /// returns nr of chars
 /// \endcode
 
-  GtkTextIter it1, it2;
   int  i1;
   char *text;
   FILE *fpo;
+  GtkTextIter it1, it2;
 
 
-  // printf("GUI_Ed_sel_wrf |%s|\n",fnam);
+  printf("GUI_Ed_sel_wrf |%s|\n",fnam);
+
+  if(mo) {   // for internal call: mo=NULL
+    if(GUI_ed1_decode(mo)) return -1;
+  } 
 
   if((fpo=fopen(fnam,"wb")) == NULL) {
     TX_Print("GUI_Ed_sel_wrf E001 |%s|",fnam);
     return -2;
   }
 
-
-  if(mo) {   // for internal call: mo=NULL
-    if(GUI_ed1_decode(mo)) return -1;
-  } 
-
-
   // get get iters for "insert" & "selection_bound"
   gtk_text_buffer_get_selection_bounds (GUI_ed1_buff, &it1, &it2);
 
   // get text
   text = gtk_text_iter_get_text (&it1, &it2);
-    // printf("/%s/\n",text);
+    printf("GUI_Ed_sel_wrf |%s|\n",text);
 
   i1 = strlen(text);
 

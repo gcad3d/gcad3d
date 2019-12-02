@@ -28,7 +28,6 @@ Korr:
 //----------------------------------------------------------------
  int     UTP_comp_0  (double);
  int     UTP_compdb0 (double, double);
- int     UTP_comp2db (double, double, double);
  int     UTP_comp2x2db (double d11,double d12,double d21,double d22,double tol);
  int     UTP_db_ck_in2db (double v, double v1, double v2);
  int     UTP_db_ck_in2dbTol (double v, double v1, double v2, double tol);
@@ -267,7 +266,7 @@ int UTP_comp_0 (double);
 /// Retcode 0 = Differenz der Werte > tol   - different
 /// Retcode 1 = Differenz der Werte < tol   - ident
 /// \endcode
-int UTP_comp2db (double, double, double);
+int UTP_comp2db (double d1, double d2, double tol);
 #define UTP_comp2db(d1,d2,tol) (fabs(d2-d1) < (tol))
 
 
@@ -287,6 +286,12 @@ double UTP_db_comp_0 (double);
 #define UTP_db_comp_0(d1) ((fabs(d1) < UT_TOL_min1) ? 0.0 : d1)
 
 
+// UTP_compdb0               compare double mit 0.0 mit Tol.
+// 
+// Retcode 0:   db <> 0.0 (gr. oder kl. tol)
+//         1:   db = 0.0 (innerhalb tol)
+int UTP_compdb0 (double db, double tol);
+#define UTP_compdb0(db,tol)  (((fabs(db))<(tol))?(1):(0))
 
 
 //----------------------------------------------------------------

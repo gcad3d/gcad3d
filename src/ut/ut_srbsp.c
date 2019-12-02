@@ -961,7 +961,7 @@ L_outOfWorkSpace:
     if(iloop == 1) {
       UT3D_vc_perp2vc(&vcz, &vc13, &vc24);
       // GR_Disp_vc(&vcz, pti, 2, 1);
-      UT3D_2angr_vc (&az, &ay, &vcz);
+      UT3D_2angr_vc__ (&az, &ay, &vcz);
       // printf(" az=%f ay=%f\n",az,ay);
       plMain = UT3D_bp_perp_vc (NULL, &vcz);
       // printf(" plMain=%d\n",plMain);

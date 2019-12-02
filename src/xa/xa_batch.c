@@ -341,7 +341,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void IO_wri_wri () {}
 
 // xa_sele.c
-  void sele_get_pos () {}
+  void sele_get_pos__ () {}
   void UI_GR_get_selNam () {}
 
 // ../xa/xa_ui_gr.c
@@ -399,7 +399,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GR_Disp_txi2 () {}
   void GR_Disp_su3p2 () {}
   void GR_Disp_su3pt () {}
-  void GR_Disp_axis () {}
+  void GR_Disp_pln () {}
   void GR_DrawPoint () {}
   void GR_DrawLine () {}
   void GR_DrawCirc () {}
@@ -415,7 +415,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GR_DrawCvPol () {}
   int GR_DrawCvCCV () {}
   int GR_DrawCvEll () {}
-  int GR_DrawCvCCV2 () {return 0;}
   int GR_DrawCvClot () {return 0;}
   int GR_Draw_spu () {return 0;}
   int GR_DrawFan () {return 0;}
@@ -439,12 +438,12 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void DL_alloc__ () {}
   void DL_InitAttTab () {}
   void DL_Redraw () {}
-  void DL_find_obj () {}
-  void DL_GetTyp () {}
+  void DL_dli__dbo () {}
+  void DL_dbTyp__dli () {}
   void DL_get_dbi () {}
   void DL_GetTrInd () {}
   void DL_Get_lNr_dli () {}
-  void DL_get_dla () {}
+  void DL_dlRec__dli () {}
   void DL_SetInd () {}
   void DL_Lay_mod () {}
   void DL_Lay_act_g1 () {}

@@ -26,10 +26,11 @@ delete:
 
 
 srclst:
-	make -f gcad_gui_lnk.mak srclst
+	@echo "srclst:" $(VGUI)
+	@echo $(SRCGUI) >> srcFiles
 
 add_srclst:
-	make -f gcad_gui_lnk.mak add_srclst
+	@echo "add_srclst:"
 
 
 # link after changing VGUI in ../options.mak

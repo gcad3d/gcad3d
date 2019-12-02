@@ -14,8 +14,8 @@ int UI_GL_mouse__ (MemObj *mo, void **data);
 int UI_GL_keys__  (MemObj *mo, void **data);
 
 void UI_GR_view_set_func ();
-void UI_GR_view_set_Z    (long objInd);
-void UI_GR_view_set_Z1   (double zVal);
+void UI_GR_view_set_Cen__  (int mode);
+void UI_GR_view_set_Cen1   (double zVal);
 int  UI_ChangeCursor (int newCur);
 int  UI_ResetCursor ();
 int  UI_GR_Select1 (int mode, long *dlInd);

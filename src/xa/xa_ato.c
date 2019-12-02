@@ -414,25 +414,19 @@ extern double NcoValTab[];
 
 
   // printf("ATO_ato_atoTab__ typ=%d val=%lf\n",*aTyp,*aVal);
-  // ATO_dump__ (ato, "_atoTab__1");
+  // ATO_dump__ (ato, "_atoTab__-in");
 
 
   //----------------------------------------------------------------
   // check / evaluate math.expressions; eg "RAD_180 * 2"
-  // VAL()
-  if(*aTyp == Typ_Val) {
+  // VAL() MOD()
+  if((*aTyp == Typ_Val)     ||
+     (*aTyp == Typ_PTS)     ||
+     (*aTyp == Typ_PTI)     ||
+     (*aTyp == Typ_SEG)     ||
+     (*aTyp == Typ_modif))       {
     irc = APT_decode_Opm (aVal, ato);
     if(irc < 0) {TX_Error("ATO_ato_atoTab__ Opm1"); return -1;}
-    *aTyp = Typ_Val;
-    goto L_exit;
-
-  // MOD()
-  } else if(*aTyp == Typ_modif) {
-    irc = APT_decode_Opm (aVal, ato);
-    if(irc < 0) {TX_Error("ATO_ato_atoTab__ Opm2"); return -1;}
-    irc = *aVal;
-    *aVal = irc;
-    *aTyp = Typ_modif;
     goto L_exit;
   }
 
@@ -477,7 +471,8 @@ extern double NcoValTab[];
 
 
   L_exit:
-    // printf("ex ATO_ato_atoTab__ %d %lf\n",*aTyp,*aVal);
+    // printf("ex-ATO_ato_atoTab__ %d %lf\n",*aTyp,*aVal);
+    // ATO_dump__ (ato, "_atoTab__-out");
 
   return 0;
 
@@ -503,6 +498,7 @@ extern double NcoValTab[];
   // printf("ATO_ato_expr__ |");
   // UTX_dump_c__(exp,sLen);
   // printf("| sLen=%d\n",sLen);
+  // ATO_dump__ (ato, " ato_expr__-in");
 
 
   // check for math.operators
@@ -518,8 +514,11 @@ extern double NcoValTab[];
         eTyp = TYP_OpmMult; goto L_add;
       case '/':
         eTyp = TYP_OpmDiv; goto L_add;
+      case '^':
+        eTyp = TYP_OpmPow; goto L_add;
       default:
-        TX_Error("ATO_ato_expr__ E002"); return -1;
+        TX_Error("ATO_ato_expr__ E002");
+        return -1;
     }
   }
 
@@ -586,7 +585,8 @@ extern double NcoValTab[];
 
     // split sourceLine into expressions, add all expressions to ato1.
     // RECURSE !
-    ATO_ato_srcLn_exp (ato, &eTyp, &eVal, cpos);
+    irc = ATO_ato_srcLn_exp (ato, &eTyp, &eVal, cpos);
+    if(irc < 0) {TX_Print("ATO_ato_expr__ E004"); return -1;}
     goto L_exit;
 
 
@@ -605,12 +605,13 @@ extern double NcoValTab[];
   //----------------------------------------------------------------
   L_add:
     irc = ATO_ato_expr_add (ato, eTyp, eVal, 0);
-    if(irc < 0) {TX_Print("TX_Error E004"); return -1;}
+    if(irc < 0) {TX_Print("ATO_ato_expr__ E005"); return -1;}
 
 
 
   //----------------------------------------------------------------
   L_exit:
+    // ATO_dump__ (ato, " ato_expr__-out");
   return 0;
 
 }
@@ -711,7 +712,7 @@ extern double NcoValTab[];
       iTyp = Typ_String;
       dVal = cp1 - srcLn;
       irc = ATO_ato_expr_add (&ato1, iTyp, dVal, 0);
-      if(irc < 0) {TX_Error("ATO_ato_srcLn_exp E001"); return -1;}
+      if(irc < 0) {TX_Error("ATO_ato_srcLn_exp E001"); goto L_exit;}
 
     // resolv expr and add it to ato.
     } else {
@@ -739,9 +740,12 @@ extern double NcoValTab[];
     *ato = ato1;
   }
 
-    // ATO_dump__ (&ato1, "ex ATO_ato_srcLn_exp");
+  irc = 0;
 
-  return 0;
+  //----------------------------------------------------------------
+  L_exit:
+    // ATO_dump__ (&ato1, "ex-ATO_ato_srcLn_exp");
+  return irc;
 
 }
 
@@ -841,7 +845,8 @@ extern long      GLT_cta_SIZ;
 //================================================================
   int ATO_sort1 (int oNr, int *oTyp, double *oVal) {
 //================================================================
-/// sort types ascending
+/// sort geometric types ascending
+///  but do not sort types >= Typ_SymB
 // see ATO_sort1 AP_ato_sort1 GL_sel_sort
 
   int    i1;
@@ -855,6 +860,8 @@ extern long      GLT_cta_SIZ;
   L_sort0:
 
     for(i1=1; i1<oNr; ++i1) {
+      if(oTyp[i1] >= Typ_SymB) continue;
+      if(oTyp[i1 - 1] >= Typ_SymB) continue;
       if(oTyp[i1] < oTyp[i1 - 1]) {
         MEM_swap_int (&oTyp[i1], &oTyp[i1 - 1]);
         MEM_swap_2db (&oVal[i1], &oVal[i1 - 1]);
@@ -1030,7 +1037,7 @@ extern long      GLT_cta_SIZ;
   int ATO_swap (int aus_typ[], double aus_tab[], int i1, int i2) {
 //================================================================
 /// ATO_swap                swap 2 records
-/// see also ATO_cpy_rec
+/// see also ATO_sort1 ATO_cpy_rec
 
     MEM_swap_int (&aus_typ[i2], &aus_typ[i1]);
     MEM_swap_2db (&aus_tab[i2], &aus_tab[i1]);
@@ -1222,7 +1229,7 @@ extern long      GLT_cta_SIZ;
   int ATO_ato_eval_geom (ObjAto *ato, int iif) {
 //================================================================
 /// \code
-/// evaluate geometrical functions
+/// evaluate geometrical functions (Typ_FncNam)
 /// geom-func: P(2) L,C,D,R,S,U(121) ANG(137) X(134) Y,Z ..
 /// Input:
 ///   iif      startindex in ato
@@ -1250,14 +1257,17 @@ extern long      GLT_cta_SIZ;
 
   // printf("GGGGGGGGGGG  ATO_ato_eval_geom iif=%d typ=%d\n",iif,typ);
   // ATO_dump__ (ato, " before clean");
+  // printf(" ato->typ[iif+1] = %d\n",ato->typ[iif+1]);
 
 
+/*
   // skip math.bracket;  but not Typ_cmdNCsub
   // if(ato->typ[iif+1] > Typ_Val) return 0;
-  if(ato->typ[iif+1] > Typ_Val) {
+  // if(ato->typ[iif+1] > Typ_Val) {
+  if(ato->typ[iif+1] > Typ_ZVal) {
     if(ato->typ[iif+1] != Typ_cmdNCsub) return 0;
   }
-
+*/
 
   iv = iif;
   iie = ato->nr;
@@ -1274,7 +1284,6 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_work:
-    // vNr = iie - iv;  // nr of values
       // printf("L_work: iv=%d iie=%d vNr=%d\n",iv,iie,vNr);
 
 
@@ -1328,21 +1337,14 @@ extern long      GLT_cta_SIZ;
       break;
 
     case Typ_Angle:
-      i1 = APT_decode_ang (&d1, vNr, &ato->typ[iv], &ato->val[iv]);
+      i1 = APT_decode_angd__ (&d1, vNr, &ato->typ[iv], &ato->val[iv]);
       if(i1 < 0) goto ParErr;
       break;
 
     case Typ_XVal:       // 1 value: ATO_eval_fnc1__; here more than 1 value ..
-      i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
-      if(i1 < 0) goto ParErr;
-      break;
-
     case Typ_YVal:
-      i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
-      if(i1 < 0) goto ParErr;
-      break;
-
     case Typ_ZVal:
+      // X(P#) Y(P#) Z(P#)
       i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &typ);
       if(i1 < 0) goto ParErr;
       break;
@@ -1376,6 +1378,8 @@ extern long      GLT_cta_SIZ;
 
   // done
   L_done:
+  
+    // ATO_dump__ (ato, " ex-ATO_ato_eval_geom");
  
   return 1;
 
@@ -1424,19 +1428,8 @@ extern long      GLT_cta_SIZ;
     APT_decode_var (&d1, 1, &ato->typ[ii],  &ato->val[ii]);
     ato->typ[ii] = Typ_Val;
     ato->val[ii] = d1;
-
-/*
-    // if character before 'V' is '-'
-    i1 = ii - 1;
-    if((i1 >= 0) && (ato->typ[i1] == TYP_OpmMinus)) {
-      ato->val[ii] = -d1;
-      ato->typ[i1] = Typ_NULL;
-      ++imod;
-    }
-*/
   }
 
-  // if(imod) {i1=0; ATO_clean__ (&i1, &ato->nr, ato); }
   if(imod) ATO_clean__ (ato);
 
   if(ato->nr < 2) goto L_exit;
@@ -1488,25 +1481,12 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  // evaluate geometrical functions
+  // evaluate geometrical functions (Typ_FncNam)
   L_geom_0:
-/*
-  imod = 0;
-  ie = ato->nr;
-    printf(" L_geom_0: ie=%d\n",ie);
-  for(ii=0; ii<ie; ++ii) {
-    if(ii >= ie) break;
-    if(ato->typ[ii] != Typ_FncNam) continue;
-    i1 = ATO_ato_eval_geom (ato, ii);
-      printf(" i1 ex eval_geom = %d\n",i1);
-    if(i1 < 0) goto L_comp_0;
-    if(i1 > 0) ++imod;
-  }
-  if(imod) goto L_geom_0;
-*/
   imod = 0;
   ie = ato->nr - 1;
     // printf(" L_geom_0: ie=%d\n",ie);
+    // ATO_dump__ (ato, "before L_geom_0");
   for(ii=ie; ii>=0; --ii) {
     if(ii >= ato->nr) continue;
     if(ato->typ[ii] != Typ_FncNam) continue;
@@ -1546,8 +1526,8 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
-    // printf(" L_exit:\n");
-    // ATO_dump__ (ato, "ex ATO_ato_srcLn__");
+    // printf(" ex-ATO_ato_eval__\n");
+    // ATO_dump__ (ato, "ex-ATO_ato_eval__");
 
   return 0;
 
@@ -1634,6 +1614,9 @@ extern long      GLT_cta_SIZ;
       break;
     case TYP_OpmDiv:
       ato->val[i1] /= ato->val[i3];
+      break;
+    case TYP_OpmPow:
+      ato->val[i1] = pow(ato->val[i1], ato->val[i3]);
   }
     // printf(" comp %lf %lf ope %d\n",ato->val[i1],ato->val[i3],ato->typ[i2]);
 
@@ -1776,6 +1759,19 @@ extern long      GLT_cta_SIZ;
           goto L_sav1;
         case Typ_ZVal:
           ato->typ[i1] = Typ_ZVal;
+          d1  = ato->val[i2];
+          goto L_sav1;
+
+        case Typ_PTS:
+          ato->typ[i1] = Typ_PTS;
+          d1  = ato->val[i2];
+          goto L_sav1;
+        case Typ_PTI:
+          ato->typ[i1] = Typ_PTI;
+          d1  = ato->val[i2];
+          goto L_sav1;
+        case Typ_SEG:
+          ato->typ[i1] = Typ_SEG;
           d1  = ato->val[i2];
           goto L_sav1;
 
@@ -1949,7 +1945,7 @@ extern long      GLT_cta_SIZ;
 
     //----------------------------------------------------------------
     // test for values; copy record.
-    } else if((iTyp >= Typ_XVal)&&(iTyp < Typ_Typ)) {
+    } else if((iTyp >= Typ_Val)&&(iTyp < Typ_Typ)) {
       oTyp = iTyp;
       ATO_ato_expr_add (ato, oTyp, 0., tso[its].ipar);
 
@@ -2038,32 +2034,39 @@ extern long      GLT_cta_SIZ;
 
 
 //================================================================
-  int ATO_ato_obj_pt (ObjAto *ato, int outTyp, int iseg,
-                         int typ, void *o1, Point *ptx) {
+  int ATO_ato_obj_pt (ObjAto *ato, int oTyp, int iseg,
+                         int iTyp, void *iObj, Point *ptx) {
 //================================================================
-// ATO_ato_obj_pt          get atomicObjs for selection
-// type of output can be:
-//   Typ_PT     (parametric position on selected curve); eg "P(L20 0.456)"
-//   Typ_VC     (direction of selected position)         eg "D(S20 MOD(2))"
-//   Typ_goGeo1 LN/CI/CV                                 eg "S(S20 MOD(1))"
-//   Typ_LN     L,plg
+// ATO_ato_obj_pt          get all atomicObjs for selection
 //
 // Input:
 //   ptx       select-position
-//   typ,o1    typ/object of selected-obj
-//   outTyp    Typ_PT - "P(..)"
+//   iTyp,iObj    typ/object of selected-obj
+//   oTyp    Typ_PT - "P(..)"
 //             Typ_VC - "D(..)"
+//             Typ_LN - "L(..)"
 //             0 (Typ_Error) gives eg "P#"
 //             Typ_goGeo1 gives L|C (== typ)
 //   iseg      0    do not output segmentNr (basic-curve selected)
-//             >0   output iseg as MOD(<iseg>) (segment of CCV selected)
+//             >0   output iseg as SEG(<iseg>) (segment of CCV selected)
 // Output:
 //   ato       all atomicObjs for definition of selected obj are added;
-//               the atomicObjs form an objID of type <outTyp>
-//   retCod:   0     OK; parameters are in ato
-//             -1    ptx not on obj (typ,o1)
-//             -2    internal error;
+//               the atomicObjs form an objID of type <oTyp>
+//   retCod:   0     OK, ptx is on iObj; parameters are in ato
+//             -1    ptx not on iObj (iTyp,iObj)
+//             -2    ptx is on iObj, but no conversion possible
+//             -9    internal error;
 //
+// type of output can be:
+//   oTyp:
+//   Typ_PT     (parametric position on selected curve); P(L20 0.456)
+//   Typ_VC     (direction of selected position)         D(S20 MOD(2))
+//   Typ_LN     from C: tangent                          L(C# par) 
+//   Typ_LN     from S-POL: segment                      L(S# MOD(segNr)) 
+//   Typ_LN     from CCV-L: [segment]                    L(S# [MOD(segNr)]) 
+//   Typ_goGeo1 LN/CI/CV                                 S(S20 MOD(1))
+//
+//  L(S#)
 //  D|L|C|S(basecurve segNr)            on polygon|CCV
 //  D|L(basecurve segNr segNr)          on polygon in CCV
 //
@@ -2078,16 +2081,18 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  // printf("ATO_ato_obj_pt iseg=%d outTyp=%d typ=%d\n",iseg,outTyp,typ);
+  // printf("ATO_ato_obj_pt iseg=%d oTyp=%d iTyp=%d\n",iseg,oTyp,iTyp);
   // ATO_dump__ (ato, " _obj_pt-in");
-  // DEB_dump_obj__ (typ, o1, " _obj_pt-in");
+  // DEB_dump_obj__ (iTyp, iObj, " ato_obj_pt-iObj-in");
+  // DEB_dump_obj__ (Typ_PT, ptx, " ato_obj_pt-ptx-in");
+
 
 
   //----------------------------------------------------------------
-  // get pta = polygon for obj (typ,o1)
+  // get pta = polygon for obj (iTyp,iObj)
 
   // get nr of points
-  ptMax = UT3D_ptNr_obj (typ, o1, UT_DISP_cv);
+  ptMax = UT3D_ptNr_obj (iTyp, iObj, UT_DISP_cv);
   if(ptMax < 1) return -1;
     // printf(" ptMax=%d\n",ptMax);
 
@@ -2097,9 +2102,10 @@ extern long      GLT_cta_SIZ;
   pta = (Point*)MEM_alloc_tmp((int)(sizeof(Point) * ptMax));
 
 
-  // get polygon from obj typ,obj
+  // get polygon from obj iTyp,iObj
+// TODO: get polygon of PRCV if exists
   ptNr = 0;
-  irc = UT3D_npt_obj (&ptNr, pta, ptMax, typ, o1, 1, UT_DISP_cv, 2);
+  irc = UT3D_npt_obj (&ptNr, pta, ptMax, iTyp, iObj, 1, UT_DISP_cv, 2);
   if(irc< 0) {TX_Error("ATO_ato_obj_pt E001"); goto L_err2;}
     // printf(" _obj_pt-ptNr=%d\n",ptNr);
 
@@ -2107,11 +2113,21 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   // test all segments of polygon; return selPt, point# and offsetValue
+  // get is = index of selected segment; 0 = first ..
   irc = GR_pt_par_sel_npt (&pts, &is, &pars, pta, ptNr, ptx);
-    // printf(" _obj_pt irc=%d is=%d pars=%lf\n",irc,is,pars);
-  if(irc < 0) goto L_err1;  // -1 = ptx not on obj
-    // ATO_dump__ (ato, " nach _sel_npt");
+    // printf(" f-par_sel_npt irc=%d is=%d pars=%lf\n",irc,is,pars);
+  if(irc < 0) goto L_err1;  // -1 = ptx not on iObj; exit ..
+    // ATO_dump__ (ato, " ato_obj_pt-obj-added");
 
+
+  //----------------------------------------------------------------
+  // skip impossible combinations (obj already in ato, must clear)
+  // circ only from circ
+  if((iTyp != Typ_CI) && (oTyp == Typ_CI)) goto L_noObj;
+     // (iTyp == Typ_CVBSP) ||
+     // (iTyp == Typ_CVPOL))   {
+    // if(oTyp == Typ_CI) goto L_noObj;
+  // }
 
   //----------------------------------------------------------------
   // selected point, segment#, parameter found.
@@ -2119,14 +2135,16 @@ extern long      GLT_cta_SIZ;
   // add primary segment-nr if more > 1 segments exist
   if(iseg > 0) {
       // printf(" add iseg %d\n",iseg);
-    ATO_ato_expr_add (ato, Typ_modif, (double)iseg, 0);
+    ATO_ato_expr_add (ato, Typ_SEG, (double)iseg, 0);    // 2019-10-10 was MOD
+      // ATO_dump__ (ato, " ato_obj_pt-modif-added");
   }
 
 
+  // Typ_goGeo1 -------------------------------------------------------------
   // add secondary segment-nr for polygon in CCV
   // L|C|S(basecurve                   on polygon|CCV
-  if(outTyp == Typ_goGeo1) {   // S|C|L
-    if(typ == Typ_CVPOL) {   // skip subSegNrs for line & circ in CCV
+  if(oTyp == Typ_goGeo1) {   // S|C|L
+    if(iTyp == Typ_CVPOL) {   // skip subSegNrs for line & circ in CCV
       is += 1; // is = index -> segNr
       // if endpoint was selected:
       if(is >= ptNr) is = ptNr - 1;
@@ -2136,86 +2154,132 @@ extern long      GLT_cta_SIZ;
   }
 
 
-  // D 
-  if(outTyp == Typ_VC) {
+  // C -------------------------------------------------------------
+  if(oTyp == Typ_CI) {
+    // C() wanted; 
+    if(iTyp == Typ_CI) goto L_exit; // C(S MOD) - no parameter
+  }
+
+  // D -------------------------------------------------------------
+  if(oTyp == Typ_VC) {
     // D() wanted
-    if(typ == Typ_LN) goto L_exit; // D(L) - no segNr
-    if(typ == Typ_CVPOL) {
+    if(iTyp == Typ_LN) goto L_exit; // D(L) - no segNr
+    if(iTyp == Typ_CVPOL) {
       //  D(basecurve segNr segNr)          on polygon in CCV
       is += 1; // is = index -> segNr
       // if endpoint was selected:
       if(is >= ptNr) is = ptNr - 1;
-      goto L_add_mod;   // ?
+      goto L_add_SEG;   // ?
     }
+    // if(iTyp != TypCI) goto L_exit;           // D from C via tangent
   }
 
 
 
-  // L 
-  if(outTyp == Typ_LN) {
-    if(typ == Typ_CVPOL) {
+  // L -------------------------------------------------------------
+  if(oTyp == Typ_LN) {
+    if(iTyp == Typ_LN) goto L_exit; // L(L) - no segNr, no parameters
+    if(iTyp == Typ_CVPOL) {
       // L(basecurve segNr segNr)          on polygon in CCV
       is += 1; // is = index -> segNr
       // if endpoint was selected:
       if(is >= ptNr) is = ptNr - 1;
-      goto L_add_mod;
+      goto L_add_SEG;
     }
+    // if(iTyp != TypCI) goto L_exit;       // L(C) - no segNr, no par
   }
 
 
+  // S -------------------------------------------------------------
+  if(oTyp == Typ_CV) {
+    goto L_exit;
+  }
+
+
+  // P -------------------------------------------------------------
   // point P wanted:   parameter (value) or pointIndex (MOD(ptNr))
   // get characteristic point (first or last point or point of plg)
   if(irc == 0) {     
     // retCode of GR_pt_par_sel_npt: 0=point selected
-    if(typ == Typ_CVPOL) {
+    if(iTyp == Typ_CVPOL) {
+      if(is == 0) {
+        // startpt of polygon selected; out PTS(1)
+        is = Ptyp_start;
+        goto L_add_PTS;
+      } else if(is == ptNr - 1) {
+        // yes, endPt selected, out PTS(2)
+        is = Ptyp_end;
+        goto L_add_PTS;
+      }
       ++is;    // is = index of point
-      goto L_add_mod;
+      goto L_add_PTI;
     }
 
     // eg line, circ, bspl ..
     if(is == 0) {
       // startpoint selected
       is = 1;
-      goto L_add_mod;
+      goto L_add_PTS;
 
     } else if(is == (ptNr - 1)) {
       // endpoint selected
       is = 2;
-      goto L_add_mod;
+      goto L_add_PTS;
     }
   }
 
 
-  //----------------------------------------------------------------
   // point: no characteristic point selected; parameter necessary ...
   // get parameter from selected point
-  irc = UTO_par1_pt_pt_obj (&pars, &pts, typ, o1);
+  irc = UTO_par__pt_obj (&pars, 1, &pts, iTyp, iObj);
   if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 
-
-  //----------------------------------------------------------------
   // add parameter to atomicObjs
   ATO_ato_expr_add (ato, Typ_Val, pars, 0);
+
   goto L_exit;
 
 
   //----------------------------------------------------------------
   L_add_mod:
     ATO_ato_expr_add (ato, Typ_modif, (double)is, 0);
+    goto L_exit;
+
+  //----------------------------------------------------------------
+  L_add_PTS:    // add StandardPointIndex; see Ptyp_start,Ptyp_end ..
+    ATO_ato_expr_add (ato, Typ_PTS, (double)is, 0);
+    goto L_exit;
+
+  //----------------------------------------------------------------
+  L_add_PTI:     // pointIndex (controlpoint ..)
+    ATO_ato_expr_add (ato, Typ_PTI, (double)is, 0);
+    goto L_exit;
+
+  //----------------------------------------------------------------
+  L_add_SEG:     // segmentNr
+    ATO_ato_expr_add (ato, Typ_SEG, (double)is, 0);
+    // goto L_exit;
+
 
 
   //----------------------------------------------------------------
   L_exit:
-    // ATO_dump__ (ato, "ex ATO_ato_obj_pt");
+    // ATO_dump__ (ato, "ex-ATO_ato_obj_pt");
   return 0;
 
+
+  //----------------------------------------------------------------
+  L_noObj:
+    // clear ato
+    ATO_clear__ (ato);
+    return -2;
 
   //----------------------------------------------------------------
   L_err1:
     return -1;
 
   L_err2:
-    return -2;
+    return -9;
 
 }
 
@@ -2243,7 +2307,7 @@ extern long      GLT_cta_SIZ;
     odb1.dbi = ato->val[i1];
 
     // get the dispListIndex of parent
-    odb1.dli = DL_find_obj ((int)odb1.typ, odb1.dbi, -1L);
+    odb1.dli = DL_dli__dbo ((int)odb1.typ, odb1.dbi, -1L);
 
     // add dbo (parent) to mtPar
     irc = MemTab_add (mtPar, &ld, &odb1, 1, 0);

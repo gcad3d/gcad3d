@@ -1258,7 +1258,7 @@ usw.
   Vector2       vc21, vc22;
 
 
-  DEB_dump_obj__ (Typ_Dimen, dim1, "=========== DXFW_DIM");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "=========== DXFW_DIM");
 
 
 
@@ -1762,8 +1762,8 @@ usw.
 
   // change OCS(ECS) -> WCS
   irc = dxfw_load_mat (m1, vz2);
-    DEB_dump_obj__ (Typ_VC, vz2, " vz2:");
-    DEB_dump_obj__ (Typ_M4x3, m1, "m1:");
+    // DEB_dump_obj__ (Typ_VC, vz2, " vz2:");
+    // DEB_dump_obj__ (Typ_M4x3, m1, "m1:");
   if(irc) {
     // new Z not parallel to old Z
     // inverse matrix

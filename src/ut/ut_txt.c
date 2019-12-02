@@ -146,7 +146,7 @@ UTX_ckc_Del2           check if char is a delimiter (blank|Tab)
 UTX_ck_specChars       test if string contains specialCharacters
 UTX_ck_num_i           test if word is numeric (int)
 UTX_ck_num_f           test if word is numeric (float)
-UTX_ck_num_digNr       returns nr of consecutive digits
+UTX_ck_num_digNr       returns nr of consecutive digits of numeric string
 UTX_ck_uml_c           check for Umlaut (ƒ÷‹‰ˆ¸ﬂ); change to normal char
 UTX_ck_uml_s           change all umlaute of string
 UTX_cmp_word_wordtab   check if word wd1 is in list wdtab
@@ -2002,10 +2002,13 @@ static char   TX_buf2[128];
   int UTX_ck_num_digNr (char **cpo, char *cpi) {
 //================================================================
 /// \code
-/// returns nr of consecutive digits starting at cpi
-/// first character (*cpi) should be a digit (else returns 0)
-/// cpi must be terminated with '\0'
-/// cpo is the first non-digit-character
+/// UTX_ck_num_digNr       returns nr of consecutive digits of numeric string
+/// first character (*cpi) should be a digit or '-' (else returns 0)
+/// Input:
+///   cpi        num. string;  must be terminated with '\0'
+/// Output:
+///   cpo        pos. of the first non-digit-character
+///   retCode    nr of numeric characters
 /// \endcode
 
 
@@ -2015,7 +2018,14 @@ static char   TX_buf2[128];
   // printf("UTX_ck_num_digNr |%s|\n",cpi);
 
   *cpo = cpi;
+  if(*cpi == '-') {
+    ++cpi;
+    // following char must be digit, else error
+    if(!isdigit(*cpi)) return 0;
+    else goto L_nxt;
+  }
   goto L_start;
+
 
   L_nxt:
     ++cpi;
@@ -2982,10 +2992,14 @@ Das folgende ist NICHT aktiv:
   long UTX_pos_del_prev (char *cBuf, long cPos) {
 //=====================================================================
 /// \code
-/// find previous delimiter (blank vor cPos)
-/// Return pos of first char of word before cPos
-/// Klammerausdruecke skippen !
-/// ".. MOD (2)" ??
+/// UTX_pos_del_prev    find previous delimiter (blank or comma left of cPos)
+///   Return pos of first char of word before cPos
+/// Input:
+///   cBuf     textline
+///   cPos     index into textline
+/// Output:
+///   retcode  index of start of expression ending at cPos
+///
 /// \endcode
 
   int   cNr;
@@ -3003,34 +3017,39 @@ Das folgende ist NICHT aktiv:
   c1 = cBuf[aPos];
   if(c1 == ' ')  { --aPos; goto L_start; }
 
-  // --aPos; // skip last char of word
 
-
-
-  // aPos ist nun der erste Char != ' '; vor bis next ' '
   L_next:
   if(aPos <= 0) goto L_fertig;
   c1 = cBuf[aPos];
-  // printf(" 1 %d |%c|\n",aPos,c1);
 
-  // eine Klammer skippen
+  // skip brackets
   if(c1 == ')')  {
      cNr = 1;
-     L_skip:
-     --aPos;
-     if(aPos <= 0) { TX_Error("UTX_pos_del_prev E001"); goto L_fertig; }
-     c1 = cBuf[aPos];
-     // printf(" 2 %d |%c| %d\n",aPos,c1,cNr);
-     if(c1 == ')') ++cNr;
-     if(c1 != '(') goto L_skip;
-     --cNr;
-     if(cNr > 0) goto L_skip;
+     L_skip0:
+       --aPos;
+       if(aPos <= 0) { TX_Error("UTX_pos_del_prev E001"); goto L_fertig; }
+       c1 = cBuf[aPos];
+         // printf(" 2 %d |%c| %d\n",aPos,c1,cNr);
+       if(c1 == ')') ++cNr;
+       if(c1 != '(') goto L_skip0;
+       --cNr;
+       if(cNr > 0) goto L_skip0;
+       // found start of brackets; remove blanks
+       L_skip1:
+         --aPos;
+         if(aPos <= 0) { TX_Error("UTX_pos_del_prev E002"); goto L_fertig; }
+         c1 = cBuf[aPos];
+         if(c1 == ' ')  { --aPos; goto L_skip1; }
   }
 
-  if(c1 != ' ')  { --aPos; goto L_next; }
+  if((c1 != ' ') &&
+     (c1 != ','))   {
+    --aPos;
+    goto L_next;
+  }
 
 
-  // aPos ist nun ein Blank;
+  // aPos now is a blank or comma
   ++aPos;
 
   // aPos ist derBeginn des Wortes vor cPos

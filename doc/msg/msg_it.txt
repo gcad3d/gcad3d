@@ -65,6 +65,7 @@ MMinTxt=Funzinalità MAN: incolla dopo un'operazione di elimina o taglia
 MMsePcp=assegna le Coordinate del cursore sul piano di costruzione alla selezione successiva
 MMsePop=assegna punto parametrico del cursore su un oggetto selezionato alla prossima selezione
 MMseLoO=Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
+MMselOid=add objects to group, hilite, (key objID)
 
 MMgrAdd=Aggiunge l'oggetto al gruppo; lo rimuove dal gruppo, se è già selezionato
 MMgrSav=Salva tutti gli oggetti del gruppo in un File (nativo)
@@ -140,10 +141,11 @@ CADsave=salva l'oggetto attivo, Vai all'oggetto successivo. MouseButton destro, 
 
 PT_cartes__offset=Punto da coordinate: seleziona o digita i valori di offset [per X / Y / Z]
 PT_polar=Punto da coordinate polari: punto base, angolo di rotazione intorno all'asse Z, [angolo di inclinazione rispetto al piano xy)], Distanza
+PT_rotate_Z=rotate and tilt point around (point / Z-axis of constr.plane)
+PT_rotate_axis=rotate point around axis
 PT_translate=Punto da spostamento di un punto base: Punto base, Direzione, [distanza,] [NormalDistance]
-PT_rotate=Punto da rotazione di un punto base; centro di rotazione, Posizione iniziale, Angolo [Asse]
 PT_endpoints_center_focus___=characteristic points (center-, start-, end-; focus for ellipses, cornerpoints for polygons, splines)
-PT_Mid_Cornerpoint_PT_PT__VC_=punto medio o punto di angolo di 2 punti
+PT_control_points=get control-point with index (from polygon, bspline)
 PT_parametric_on_LN_CIR_CRV_SUR=Punto da: parametro(i) su Linea / Cerchio / Curva / Superficie
 
 LN_PT__PT=Linea tra 2 punti
@@ -151,9 +153,10 @@ LN_parallel=linea parallela all Linea/Vettore
 LN_PT_Direct__Length_Rot_Angle_TiltAngle_=Linea da: punto e direzione, [lunghezza] [Rot.Angle (Z-Axis),] [Angolo di inclinazione rispetto al piano xy]
 LN_LN_Dist____________parall_=linea parallela a un'altra linea, distanza, posizione (1-4).
 LN_LN_LN__Rot_Angle_TiltAngle___mid_=Linea intermedia: [angolo di rotazione intorno all'asse Z], [angolo di inclinazione rispetto al piano xy]
-LN_tangent_to_line_circ_curve=line tangential to 2 objects (point/direction/circle/ellipse/bspline)
+LN_tangent_to_2_objs___=line tangential to 2 objects (point/direction/circle/ellipse/bspline)
 
 CIR_Cen_Radius__Z_Axis_=Cerchio da: centro, raggio [Asse]
+CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Cerchio da: centro, tangente a Punto / Linea / Cerchio
 CIR_Tang_Tang_Radius=Cerchio tangente a due elementi, con raggio stabilito
 CIR_Tang_Tang_Tang=Cerchio tangente a 3 elementi
@@ -178,6 +181,8 @@ V_PT_PT_Dist__Direction_=Variabile: distanza tra 2 punti [direzione - vettore]
 V_LN___Length=Variabile: lunghezza di una linea
 V_PT___LN_Perp_Dist_=Variabile: distanza normale di un punto da un oggetto lineare
 V_CIR__Radius=Variabile: raggio di un cerchio
+V_Angle_line_vector=angle from line (angle around Z-axis or tilt-angle (PERP))
+V_Angle_2_lines_vectors=angle from 2 lines / vectors
 
 S_Ellipse_Center_AxisEndPoint_Point=Ellisse da: centro, punto finale dell'asse principale, punto di Ellisse
 S_Ellipse_Center_Axes__EndPoints_=Ellisse (limitata) da: centro, vettore asse principale, vettore asse secondario, punto di partenza, punto di arrivo
@@ -257,7 +262,7 @@ Reset_ConstrPlane=ripristina il piano di costruzione originale (attiva il sistem
 Typ_Val=Digita il valore / PgUp / PgDwn / Seleziona LN (Lunghezza) / Seleziona Cir (Raggio)
 Typ_PT=Sel PT (il obj) / Seleziona un punto o digita le coordinate
 Typ_LN=Seleziona LN
-Typ_AC=Seleziona CIR
+Typ_CI=Seleziona CIR
 Typ_VC=Vettore: PagSu / dwn / D [I] X / Y / Z / dy dx [DZ] ANG (ax) [ANG (az)]; Sel LN/CIR/Elli/Surf/PLN/PT+PT / "REV" (reversa )
 Typ_CV=Seleziona una CRV
 Typ_CVCCV=Seleziona una CCV
@@ -273,7 +278,7 @@ Typ_lFig=Seleziona LN / CIR / CRV
 Typ_goGeom=Seleziona un Oggetto
 Typ_goGeo1=Seleziona LN / CIR / CRV / PLN
 Typ_goGeo2=Seleziona Cerchio o Ellisse
-Typ_goGeo3=Seleziona PT / LN / CIR / CRV, CW / CCW
+Typ_go_PD=Sel point or vector
 Typ_goGeo4=Seleziona VC / LN / PLN
 Typ_goGeo5=Seleziona CIR / ELL / CCV
 Typ_goGeo6=Digita il valore dell'angolo (gradi); Seleziona Vec / LN per direzione; ReversButton
@@ -283,7 +288,10 @@ Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + VC (PgUp) / PT + PLN
 Typ_goRadius=Digita il valore del Raggio; Seleziona PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
+Typ_go_lf1=sel. single curve
 Typ_Tra=PagSu / DWN (seleziona una trasformazione)
+Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
+Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..
 Typ_modAux=PagSu / DWN
 Typ_mod1=PagSu / DWN (seleziona versioni alternative)
 Typ_modCWCCW=ReversButton; PgUp / DWN; Key \ "CW \" (in senso orario)
@@ -291,6 +299,7 @@ Typ_modCTRL=PagSu / PgDwn ("CTRL \" = punti di controllo)
 Typ_modREV=PagSu / PgDwn ("REV" = inversa)
 Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modPERP=Key PgUp / PgDwn ("PERP" = normal - perpendicular)
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Digita il Testo / Modifica il testo

@@ -64,6 +64,8 @@ void PRCV(){}
 \brief polygonal_representation_of_curve  (struct CurvPrcv)
 \code
 
+See INF_PRCV
+
 =====================================================
 List_functions_start:
 
@@ -71,7 +73,7 @@ PRCV_init__         init PRCV0
 PRCV0_OCC           occupy PRCV0
 PRCV0_REL           release PRCV0
 
-PRCV_set_dbo__      create PRCV from bin.obj
+PRCV_set_dbo__      create PRCV for DB-obj (typ/dbi)
 PRCV_set_obj_dbi    create PRCV for bin.obj (must have DB-index)
 PRCV_set_basCv      create PRCV for basicCurve
 PRCV_set_seg        add curve from vs to ve to PRCV
@@ -334,7 +336,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   
 
-  prc.typ  = AP_typ_2_bastyp (typ);
+  prc.typ  = AP_typDB_typ (typ);
   prc.dbi  = dbi;
   prc.mdli = mdli;
 
@@ -568,7 +570,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
 
   // get prc2 = PRCV for basecurve of ccv1
-  prc2.typ    = AP_typ_2_bastyp (ccv1.typ);
+  prc2.typ    = AP_typDB_typ (ccv1.typ);
   prc2.dbi    = ccv1.dbi;
   prc2.mdli   = AP_modact_ind;
 
@@ -1039,7 +1041,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // - get v0 and v1 of trimmedCurve on basicCurve (ccv1.v0 and ccv1.v1)
     CVTRM__basCv__ (&ccv2, &cvBas, ccv1);
     typ_bas = ccv2.typ;
-    typDB_bas = AP_typ_2_bastyp (typ_bas);
+    typDB_bas = AP_typDB_typ (typ_bas);
     dbiBas = ccv2.dbi;
       // printf(" set_obj_dbi-typ_bas=%d dbiBas=%ld\n",typ_bas,dbiBas);
 
@@ -1064,7 +1066,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point ptx from ipx;
         ptx = DB_get_PT (ipdb0x);
         // get parameter v0x from point
-        UTO_par1_pt_pt_obj (&v0x, ptx, typ_bas, cvBas);
+        UTO_par__pt_obj (&v0x, 0, ptx, typ_bas, cvBas);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1079,7 +1081,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point from ipx
         ptx = DB_get_PT (ipdb1x);
         // get parameter from point
-        UTO_par1_pt_pt_obj (&v1x, ptx, typ_bas, cvBas);
+        UTO_par__pt_obj (&v1x, 0, ptx, typ_bas, cvBas);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1499,7 +1501,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   ptx = DB_get_PT (ipx);
 
   // get parameters from point
-  UTO_par1_pt_pt_obj (&vx, ptx, form, cvBas);
+  UTO_par__pt_obj (&vx, ptx, form, cvBas);
 
 
 
@@ -1643,7 +1645,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   //----------------------------------------------------------------
   // init space
-  PRCV0.typ  = AP_typ_2_bastyp (form);
+  PRCV0.typ  = AP_typDB_typ (form);
   PRCV0.dbi  = dbi;
   PRCV0.mdli = mdli;
 

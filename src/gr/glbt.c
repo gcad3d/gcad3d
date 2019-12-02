@@ -16,6 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
+  change placing the GL2D-objects; use glLoadIdentity instead backScaling.
     ..
 
 -----------------------------------------------------
@@ -125,17 +126,6 @@ I2D_stat
 
 
 
-#define GLBT_POS_ORI 46
-#define GLBT_VC_LEN  40      // length of vectors
-
-#define I2D_TABSITZ  32
-static int   I2D_iNr = 0;                        // nr of active 2D-buutons
-static int   I2D_typTab[I2D_TABSITZ];            // type of obj (VC, PLN ..)
-static char  I2D_txtTab[I2D_TABSITZ][32];        // button-text
-static char  I2D_stat[I2D_TABSITZ];
-
-
-
 
 //============ Extern Var: =====================
 // ex ../gr/ut_GL.c
@@ -162,12 +152,20 @@ extern long       GR_TAB_IND;
 
 
 //============ Local Var: =====================
-static Point GLBT_ori;
+#define GLBT_POS_ORI 46      // hor.size of GL2D-button
+                             //   and size of PlaneSelector
+#define GLBT_VC_LEN  40      // length of vectors
+
+#define I2D_TABSITZ  32
+
+
+static Point GLBT_ori;          // GL2D-position of PlaneSelector
 
        int GLBT_vcSelStat = -1; //  0=defaultVectors active;
                                 // >0=index of vec to display (+ 0=def.Vectors)
                                 // -1=vectorSelect is NOT active; 
                                 // index of vec to display; -1=none
+
        int GLBT_plnSelStat = -1;//  0=planeSelect is active; 
                                 // -1=planeSelect is NOT active; 
 
@@ -176,6 +174,13 @@ static GLfloat glColx[] = {0.0, 0.0, 1.0, 0.0};
 static GLfloat glColy[] = {0.0, 1.0, 0.0, 0.0};
 static GLfloat glColz[] = {1.0, 1.0, 1.0, 0.0};
 static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
+
+
+static int   I2D_iNr = 0;                        // nr of active 2D-buttons
+static int   I2D_typTab[I2D_TABSITZ];            // type of obj (VC, PLN ..)
+static char  I2D_txtTab[I2D_TABSITZ][32];        // button-text
+static char  I2D_stat[I2D_TABSITZ];
+
 
 
 
@@ -214,8 +219,6 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
   //----------------------------------------------------------------
   // position is inside selectorZone; start GL-selection only for selectors.
   GLBT_sel_sel (sTyp, sDbi, stat, sx, sy);
-
-
   goto L_exit;
 
 
@@ -497,6 +500,8 @@ static GLfloat glColv[] = {1.0, 0.0, 0.0, 0.0};
 
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX GLBT_Redraw\n");
+  // printf(" GLBT_vcSelStat=%d GLBT_plnSelStat=%d I2D_iNr=%d\n",
+          // GLBT_vcSelStat, GLBT_plnSelStat, I2D_iNr);
   // printf("  GL_mode_draw_select=%d\n",GL_mode_draw_select);
 
     // TESTBLOCK

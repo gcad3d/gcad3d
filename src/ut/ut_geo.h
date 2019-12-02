@@ -401,9 +401,14 @@ typedef struct {Point2 p1, p2; char typ;}                           Line2;
 /// 3D-line, Typ_LN
 typedef struct {Point p1, p2; char typ;}                            Line;
 ///           0  both sides limited                               -
-///           2  1 side limited  (p2 is startpoint, p1 unlimited) UNL2
-///           2  1 side limited  (p2 is startpoint, p1 unlimited) UNL2
-///           3  both sides unlimited                             UNL
+///           1  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
+///           2  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
+///           3  both-sides-unlimited                             UNL
+
+/// 3D-line, Typ_CVLN3
+typedef struct {Point pt0; Vector vcl; double lnl;}                 CVLn3;
+
+
 
 /// triangle, Typ_Tria
 typedef struct {Point *pa[3];}                                      Triangle;
@@ -438,9 +443,9 @@ typedef struct {double rad, angs, ango;}                            Circ2C;
 /// p1     .. startpoint
 /// p2     .. endpoint
 /// pc     .. Centerpoint
-/// vz     .. axis
+/// vz     .. axis, normal-vector; must be normalized
 /// rad    .. radius; positiv for CCW, negativ for CW
-/// ango   .. opening angle in rad, negativ for CW
+/// ango   .. opening-angle in rad, negativ for CW
 /// \endcode
 typedef struct {Point p1, p2, pc; Vector vz; double rad, ango;}     Circ;
 // size = 112
@@ -506,7 +511,7 @@ typedef struct {int ptNr; Point2 *pTab;}                            CurvPol2;
 /// \brief Curve: polygon, Typ_CVPOL
 /// \code
 /// ptNr    ... number of control points
-/// v0      ... start parameter (len-offset)
+/// v0      ... start parameter (len-offset; see INF_struct_par
 /// v1      ... end parameter (len-offset)
 /// lvTab[ptNr] length absolut NULL = undefined
 /// cpTab[ptNr] cornerpoints
@@ -524,8 +529,8 @@ typedef struct {int ptNr; double v0, v1, *lvTab; Point *cpTab;
 /// \code
 /// ptNr    ... number of control points
 /// deg     ... degree of B-spline curve
-/// v0      ... B-spline curve start parameter (knot-value)
-/// v1      ... B-spline curve end parameter (knot-value)
+/// v0      ... B-spline curve start parameter; see INF_struct_par
+/// v1      ... B-spline curve end parameter; see INF_struct_par
 /// kvTab[ptNr+deg+1] knot values (non-decreasing, <= v0 < v1 <= )
 /// cpTab[ptNr]       control points
 /// dir        direction; 0=fwd, 1=bwd  See INF_struct_dir.
@@ -541,7 +546,7 @@ typedef struct {int ptNr; double v0, v1, *kvTab;
 /// \code
 /// ptNr    ... number of control points
 /// deg     ... degree of B-spline curve
-/// v0      ... B-spline curve start parameter
+/// v0      ... B-spline curve start parameter; see INF_struct_par
 /// v1      ... B-spline curve end parameter
 /// kvTab[ptNr+deg+1] knot values (non-decreasing, <= v0 < v1 <= )
 /// cpTab[ptNr]       control points
@@ -558,7 +563,7 @@ typedef struct {int ptNr; double v0, v1, *kvTab;
 /// \code
 /// ptNr              ... number of control points
 /// deg               ... degree
-/// v0                ... start parameter
+/// v0                ... start parameter; see INF_struct_par
 /// v1                ... end parameter
 /// kvTab[ptNr+deg+1] ... knot values (non-decreasing)
 /// wTab[ptNr]        ... weights
@@ -674,6 +679,7 @@ typedef struct {long dbi;
 /// \brief 3D-plane, Typ_PLN
 /// \code
 /// (pln.vz.dx * p.x) + (pln.vz.dy * p.y) + (pln.vz.dz * p.z) + pln.p = 0
+/// p      normal-distance of plane from 0,0,0
 /// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
 /// bpv    longest vector of plane
 /// \endcode
@@ -717,6 +723,7 @@ typedef struct {long cvID; float off, dir; short cvTyp;}            SurHat;
 typedef struct {double ang1, ang2, v0, v1;
                 long indCen, indCov;  short typCen, typCov;
                 unsigned dir:1;}                                    SurRev;
+// the startPoint of the contourelement defines angle = 0 rad.
 
 
 /// \brief SweepSurf Typ_SURSWP
@@ -1415,6 +1422,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_swap2pt (Point2 *p1, Point2 *p2);
  Point2 UT2D_pt_pt3 (Point *);
  void   UT2D_pt_2db (Point2 *, double, double);
+ void   UT3D_pt_tra_pt_bp (Point*,Point*,int);
  int    UT3D_pt_tra_pt2_bp (Point *p3, Point2 *p2, int bp, double *bph);
  void   UT2D_pt_addpt (Point2 *, Point2 *);
  void   UT2D_pt_add_vc__ (Point2 *, Vector *);
@@ -1687,7 +1695,7 @@ int UT3D_pt_evparci (Point *pto, double lpar, Circ *ci1);
 int    UT3D_pt_m3 (Point *pto, Mat_4x3 ma);
 void   UT2D_pt_tra_pt_m3  (Point2 *p2, Mat_4x3 mata, Point2 *p1);
 void   UT3D_pt_tra_pt_m3  (Point*, Mat_4x3, Point*);
-void   UT3D_pt_traptm4 (Point *p2, Mat_4x4 ma, Point *p1);
+void   UT3D_pt_tra_pt_m4 (Point *p2, Mat_4x4 ma, Point *p1);
 
 int    UT2D_ptvc_ck_int2pt (int mode, Point2 *p1s, Vector2 *v1,
                                       Point2 *p2s, Point2 *p2e);
@@ -1703,8 +1711,7 @@ double UT3D_angr_2vc__ (Vector*,Vector*);
 double UT3D_angr_3vc__ (Vector *vz, Vector *v1, Vector *v2);
 double UT3D_angr_3vcn_CCW (Vector *vz, Vector *v1, Vector *v2);
 double UT3D_angr_ci_par1 (Circ *ci1, double par1);
-double UT3D_angr_ci__  (Circ *ci1);
-int    UT3D_2angr_vc (double *az, double *ay, Vector *vc1);
+int    UT3D_2angr_vc__ (double *az, double *ay, Vector *vc1);
 int    UT3D_atan_vcpl (double *kvc, Vector *vci, Plane *pli);
 
 int    UT3D_compvc0 (Vector *v1, double tol);
@@ -1725,7 +1732,7 @@ void   UT3D_vc_2ptlen (Vector *, Point *, Point *, double);
 void   UT3D_vc_angr (Vector *vc, double angr);
 void   UT3D_vc_2angr (Vector *, double, double);
 void   UT3D_vc_2vc (Vector *, Vector *, Vector *);
-void   UT3D_vc_ln (Vector *, Line *);
+// void   UT3D_vc_ln (Vector *, Line *);
 int    UT3D_vcz_bp (Vector *vn, int bp);
 void   UT3D_vc_invert (Vector*, Vector*);
 // int    UT3D_vc_add2vc (Vector *v3, Vector *v1, Vector *v2);
@@ -1791,7 +1798,7 @@ int    UT3D_ci_inv2 (Circ *ci1);
 int    UT3D_ci_inv3 (Circ *ci1);
 void   UT3D_ci_ci2  (Circ*, Circ2*);
 Circ   UT3D_ci_obj2 (ObjG2 *);
-Circ   UT3D_ci_obj (ObjG *ci_in);
+// Circ   UT3D_ci_obj (ObjG *ci_in);
 int    UT3D_ci_ptvcrd (Circ *ci, Point *ps, Vector *vs, double rd,
                        Vector *vz, double a1);
 int    UT3D_ci_2ptvcrd (Circ *cia,Point *pp1,Point *pp2,Vector *vz,double rdc);
@@ -1920,6 +1927,7 @@ void UT3D_m4_addtra     (Mat_4x4 ma, double px, double py, double pz );
 
 double UT3D_sbs_ck_planar (SurBSpl *su1);
 double UT3D_sru_ck_planar (ObjGX *ru1);
+
 
 
 //----------------------------------------------------------------
@@ -2080,6 +2088,18 @@ void UT2D_vc_tra_vc3_bp (Vector2*,Vector*,int);
   if     (bpi == BCKPLN_XY) {(v2o)->dx = (v3i)->dx; (v2o)->dy = (v3i)->dy;} \
   else if(bpi == BCKPLN_XZ) {(v2o)->dx = (v3i)->dx; (v2o)->dy = (v3i)->dz;} \
   else if(bpi == BCKPLN_YZ) {(v2o)->dx = (v3i)->dy; (v2o)->dy = (v3i)->dz;}}
+
+/// UT3D_pt_tra_pt_bp       transf. 3D-Point => 2D-Point with Z-value from backplane
+void UT3D_pt_tra_pt_bp (Point*,Point*,int);
+#define UT3D_pt_tra_pt_bp(p2o,p3i,bpi) {\
+  if     (bpi == BCKPLN_XY) {\
+    (p2o)->x = (p3i)->x; (p2o)->y = (p3i)->y; (p2o)->z = (p3i)->z;\
+  } else if(bpi == BCKPLN_XZ) {\
+    (p2o)->x = (p3i)->x; (p2o)->y = (p3i)->z; (p2o)->z = -(p3i)->y;\
+  } else if(bpi == BCKPLN_YZ) {\
+    (p2o)->x = (p3i)->y; (p2o)->y = (p3i)->z; (p2o)->z = -(p3i)->x;\
+  }}
+
 
 /// UT2D_pt_tra_pt3_bp        2D-Point = 3D-Point on Backplane
 void UT2D_pt_tra_pt3_bp (Point2*,Point*,int);
@@ -2566,6 +2586,13 @@ void   UT3D_vc_pt3db (Vector*, Point*, double, double, double);
  (vc)->dy = (p2)->y - (p1)->y;\
  (vc)->dz = (p2)->z - (p1)->z;}
 
+/// UT3D_vc_ln                Vector = Line
+void   UT3D_vc_ln (Vector*, Line*);
+#define UT3D_vc_ln(vc,ln1){\
+  (vc)->dx = (ln1)->p2.x - (ln1)->p1.x;\
+  (vc)->dy = (ln1)->p2.y - (ln1)->p1.y;\
+  (vc)->dz = (ln1)->p2.z - (ln1)->p1.z;}
+
 /// UT3D_vc_perpTria          vector = perpendic. to Triangle (crossprod)
 #define UT3D_vc_perpTria(vn,tri)\
   UT3D_vc_perp3pt ((vn),(tri)->pa[0],(tri)->pa[1],(tri)->pa[2])
@@ -2614,6 +2641,7 @@ void   UT3D_vc_div_d (Vector*, Vector*, double);
  (vo)->dz = (vi)->dz / (d);}
 
 /// UT3D_vc_multvc                vo = vi * d                 MULT
+void   UT3D_vc_multvc (Vector*, Vector*, double);
 #define UT3D_vc_multvc(vo,vi,d){\
  (vo)->dx = (vi)->dx * (d);\
  (vo)->dy = (vi)->dy * (d);\
@@ -2724,6 +2752,43 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 
 
 //----------------------------------------------------------------
+// UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
+// input is absolute; if constrPlane is active, transfer input into UCS
+void UTRA_UCS_WCS_VC (Vector*, Vector*);
+#define UTRA_UCS_WCS_VC(vco, vci) {\
+  if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_imat, vci);\
+  else if(vco != vci) *vco = *vci;}
+
+
+// UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
+// input is absolute; if constrPlane is active, transfer input into UCS
+void UTRA_UCS_WCS_PT (Point*, Point*);
+#define UTRA_UCS_WCS_PT(pto, pti) {\
+  if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_imat, pti);\
+  else if(pto != pti) *pto = *pti;}
+
+
+//----------------------------------------------------------------
+// UTRA_WCS_UCS_VC                      transfer vector from UCS into WCS
+// input is absolute; if constrPlane is active, transfer input into WCS
+void UTRA_WCS_UCS_VC (Vector*, Vector*);
+#define UTRA_WCS_UCS_VC(vco, vci) {\
+  if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_mat, vci);\
+  else if(vco != vci) *vco = *vci;}
+
+
+// UTRA_WCS_UCS_PT                      transfer point from UCS into WCS
+// input is absolute; if constrPlane is active, transfer input into WCS
+void UTRA_WCS_UCS_PT (Point*, Point*);
+#define UTRA_WCS_UCS_PT(pto, pti) {\
+  if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_mat, pti);\
+  else if(pto != pti) *pto = *pti;}
+
+
+
+
+
+//----------------------------------------------------------------
 /// check if typ is a DB-object (); returns 0=no; 1=yes.
 #define TYP_IS_DBO(typ) ((typ>Typ_Error)&&(typ<Typ_Val))
 
@@ -2734,7 +2799,17 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 #define TYP_IS_OPM(typ) ((typ>=TYP_OpmPlus)&&(typ<Typ_FcmSQRT))
 
 /// check if typ is a geom.parameter; returns 0=no; 1=yes.
+///   TYP_IS_GEOMPAR include all types of values and parameters;
 #define TYP_IS_GEOMPAR(typ) ((typ>=Typ_Val)&&(typ<Typ_Typ))
+
+/// check if typ is a value; returns 0=no; 1=yes.
+///   values: from Typ_Val to Typ_Par1 (with Angle ..)
+#define TYP_IS_VAL(typ) ((typ>=Typ_Val)&&(typ<Typ_Par1))
+
+/// check if typ is a distance; returns 0=no; 1=yes.
+///   distance: from Typ_Val to Typ_Par1 (all *val; not Angle, Rad, )
+#define TYP_IS_DIST(typ) ((typ>=Typ_Val)&&(typ<Typ_Angle))
+
 
 /// check if typ is a math.function; returns 0=no; 1=yes.
 #define TYP_IS_FCM(typ) ((typ>=Typ_FcmSQRT)&&(typ<310))
@@ -2745,6 +2820,8 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
  (typ>=Typ_FncVAR1)&&(typ<Typ_EOT))
 
 
+
+
 //----------------------------------------------------------------
 /// check if typ is a selectionGroup; returns 0=no; 1=yes.
 #define TYP_IS_SELGRP(typ) ((typ>=Typ_goGeom)&&(typ<Typ_FncVAR1))
@@ -2752,5 +2829,9 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
  // (typ==Typ_lFig))
 
 // see also DL_typ_is_visTyp
+
+//----------------------------------------------------------------
+#define UT_LEN_TNG (UT_DISP_ln / 25.)
+
 
 // EOF

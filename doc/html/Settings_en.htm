@@ -151,8 +151,9 @@ ____________________________________________________________________________
 <h2>menu Standards -> Directories</h2>
 
 All directories that will be accessed with File / Open Model,
-should be defined here.
- In File/OpenModel - Dialog you can change the directory with button "DIR-SYM".
+  should be defined here.
+
+  In File/OpenModel - Dialog you can select the directory with button "DIR-SYM".
  
 There must be a directory set for each symbolic name.
 Add / change directory-sets with Standards/Directories
@@ -163,10 +164,16 @@ Unix example:
 Data /usr/home/gCAD3D/dat/
 IGS /mnt/win_d/gCAD3D/Models/igs/
 
+Shell variables can be used; eg:
+DXF ${HOME}/dxf_models/
+
+
 MS Windows example:
 Data C:\WINDOWS\gCAD3D\dat\
 IGS F:\MODELS\gCAD3D\igs\
 CD0 D:\
+
+
 
 The symbolic directory '.' is replaced by the currently active directory
 (Eg. for textures to load from the same directory as the native model).
@@ -221,10 +228,9 @@ ____________________________________________________________________________
 <p><a name="Directories"></a></p>
 <h2>Program Directories:</h2>
 
-Standard File Locations:
-All directories are created under ${HOME}/gCAD3D/
+All directories are created under ${HOME}/gCAD3D/.
 
-The program directories in the startup script gCAD3D.sh can be altered if required.
+The default directories can be altered in the startup script gCAD3D.sh if required.
 
 ____________________________________________________________________________
 

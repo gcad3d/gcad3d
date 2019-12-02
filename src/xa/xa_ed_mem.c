@@ -297,6 +297,8 @@ extern char  MOpTxtStr[];
 ///           -1   Error
 ///
 /// see also APED_search_objID
+//
+// skips dynamic objects (eg P(S1 1)) 
 /// \endcode
 
 // see also APED_nxt_obj
@@ -1250,7 +1252,7 @@ extern char  MOpTxtStr[];
   L_DL:
 
   // get dli from dbo
-  *dli = DL_find_obj (typ, dbi, -1L);
+  *dli = DL_dli__dbo (typ, dbi, -1L);
   if(*dli < 0) {TX_Print("APED_find_dbo E2 %d %ld",typ,dbi); return -1;}
 
   // get lNr from dli
@@ -1769,7 +1771,7 @@ extern char  MOpTxtStr[];
 
 
   // get dli from typ/dbi
-  // chdDli = DL_find_obj (chdTyp, chdDbi, -1L);
+  // chdDli = DL_dli__dbo (chdTyp, chdDbi, -1L);
   irc = APED_find_dbo (&chdDli, &l1, chdTyp, chdDbi);
     // printf("  _find_dbo %d dli=%ld lNr=%ld\n",irc,chdDli,l1);
 
@@ -2344,12 +2346,12 @@ extern char  MOpTxtStr[];
 // TODO: cannot analyze dx (must be "DX")
 
 
-  int     its, ii, i1, iLev, levTab[10], exprNr[10], fncAct, fncValNr;
-  char    *cp1, *cp2, s1[64], *cpe;
+  int     irc, its, ii, i1, iLev, levTab[10], exprNr[10], fncAct, fncValNr;
+  char    *cp1, *cp2, *cp3, s1[64], sErr[128], *cpe;
 
 
 
-  // printf("APED_txo_srcLn__ ,itsMax=%d\n",itsMax);
+  // printf("=== APED_txo_srcLn__ ,itsMax=%d\n",itsMax);
   // printf("  _txo_src |%s|\n",sln);
 
 
@@ -2381,7 +2383,8 @@ extern char  MOpTxtStr[];
     }
     if(cp1 >= cpe) {
       tso[its].typ  = TYP_FuncEnd;
-      return its;
+      irc = its;
+      goto L_exit;
     }
     exprNr[iLev] += 1;
       // printf("L_nextExpr:its=%d cp1=|",its);UTX_dump_cnl(cp1,50);printf("|\n");
@@ -2442,7 +2445,8 @@ extern char  MOpTxtStr[];
 
 
   //----------------------------------------------------------------
-  L_1:  // test for  math.oper     '+ - / *'
+  L_1:  // test for  math.oper     '+ - / * ^'
+      // printf(" txo_srcLn__-L_1: |%s|\n",sln);
     if(cp1 <= sln) goto L_1_1;
     cp2 = strchr (MOpTxtStr, *cp1);
     if(cp2) {
@@ -2492,23 +2496,26 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   // 1. char is not digit. Test if its a objID (2. char numeric)
   L_2:
+      // printf(" txo_srcLn__-L_2: |%s|\n",cp1);
     cp2 = cp1;
     ++cp2;
-    if(!isdigit(*cp2)) goto L_3;
-      // yes, DB-obj
-      ii = UTX_ck_num_digNr (&cp2, cp2);
-      tso[its].typ  = Typ_ObjDB;
-      tso[its].form = Typ_ObjDB;
-      goto L_saveExpr;
+    // test if cp2 is numeric string
+    ii = UTX_ck_num_digNr (&cp3, cp2);
+    if(ii < 1) goto L_3;
+    cp2 = cp3;
+    tso[its].typ  = Typ_ObjDB;
+    tso[its].form = Typ_ObjDB;
+    goto L_saveExpr;
 
 
   //----------------------------------------------------------------
   // 1. & 2. chars not digits. Isolate first word.
   L_3:
+      // printf(" txo_srcLn__-L_3: |%s|\n",cp2);
     // find cp2 = pos. of next delimiter (" (,\0)
     ii = strcspn (cp2, " (,)#+-/*\n");
     cp2 = &cp2[ii];
-      // printf(" L_3:ii=%d deli=|%c|\n",ii,*cp2);
+      // printf(" txo_srcLn__L_3:ii=%d deli=|%c|\n",ii,*cp2);
 
     // cp1=start of word; cp2=delimiter
     ii = cp2 - cp1;
@@ -2527,14 +2534,15 @@ extern char  MOpTxtStr[];
 
   //----------------------------------------------------------------
     // s1 is word. Test for known functions.
+      // printf(" txo_srcLn__-L_4: |%s|\n",cp1);
     // AP_typ_FncNam Fc1TxtTab Fc1TypTab FcmTxtTab
-    i1 = AP_typ_FncNam (cp1, ii);
-    if(i1 < 0) {TX_Error("APED_txo_srcLn__ E003 |%s|",s1); return -1;}
-      // printf(" i1=%d deli=|%c|\n",i1,*cp2);
+    irc = AP_typ_FncNam (cp1, ii);
+    if(irc < 0) {TX_Error("APED_txo_srcLn__ E003 |%s|",s1); goto L_exit;}
+      // printf(" f-typ_FncNam-irc=%d deli=|%c|\n",irc,*cp2);
 
     tso[its].typ  = Typ_FncNam;
-    tso[its].form = i1;
-    fncAct = i1;
+    tso[its].form = irc;
+    fncAct = irc;
     goto L_saveExpr;
 
 
@@ -2622,26 +2630,35 @@ extern char  MOpTxtStr[];
 
 
   //================================================================
+  L_exit:
+      // printf("  ex-APED_txo_srcLn__ irc=%d\n",irc);
+      // if(irc >= 0) APED_txo_dump (tso, sln, "ex-APED_txo_srcLn__");
+    return irc;
+
+
+
+  //================================================================
   L_err1: // string has no closing "
-    strcpy(s1, "APED_txo_srcLn__: string not closed ..");
+    strcpy(sErr, "APED_txo_srcLn__: string not closed ..");
     goto L_errEx;
 
   L_err99:  // cannot analyze expr..
-    strcpy(s1, "APED_txo_srcLn__: cannot analyze expr ..");
+    strcpy(sErr, "APED_txo_srcLn__: cannot analyze expr ..");
     goto L_errEx;
 
   L_errIts: // tso too small;
-    strcpy(s1, "APED_txo_srcLn__: tso out of space ..");
+    strcpy(sErr, "APED_txo_srcLn__: tso out of space ..");
     goto L_errEx;
 
   L_errLev: // tso too small;
-    strcpy(s1, "APED_txo_srcLn__: lev out of space ..");
+    strcpy(sErr, "APED_txo_srcLn__: lev out of space ..");
     // goto L_errEx;
 
   L_errEx:
-    TX_Error(s1);
+    TX_Error(sErr);
     tso[its].typ  = TYP_FuncEnd;
-    return -1;
+    irc = -1;
+    goto L_exit;
 }
 
 

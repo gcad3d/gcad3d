@@ -2,26 +2,24 @@
 
 # script for cscope
 
+# get DIR_DEV DIR_BIN gcad_dir_bin
+. ../options.sh
 
 # set EDITOR = name of script-file with editor-call
-EDITOR="${DIR_DEV}gcad3d/src/vi.sh"
+#EDITOR="${DIR_DEV}gcad3d/src/vi.sh"
+EDITOR=vim
 export EDITOR
-
 
 # get OS (eg "Linux32")
 #bitNr=`getconf LONG_BIT`
 #OS=Linux${bitNr}
 #echo ${OS}
 
-
-# get DIR_DEV DIR_BIN gcad_dir_bin
-. ../options.sh
-
 # create list of gcad-sourcefiles in file srcFiles
 make -f gcad3d.mak srclst > /dev/null
 
 # add gui-sources
-make -f gcad_gui__.mak add_srclst
+make -f gcad_gui__.mak srclst
 #cat srcFiles
 
 cscope -i srcFiles

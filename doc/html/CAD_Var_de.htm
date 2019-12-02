@@ -82,5 +82,55 @@ V20 = P20 L20
 V20 = C20
 
 
+
+a<a name="F6"></a>
+  <h2>V Angle line/vector</h2>
+  Variable = Winkel einer Linie oder eines Vektor
+
+
+  Line/Vector              Eingabe <a href="CAD_input_de.htm#_LN_">Linie</a> oder <a href="CAD_input_de.htm#_Vec_">Vektor</a>
+    - ergibt Winkel az in Draufsicht zwischen Linie und der X-Achse des aktiven Koord.Systems.
+
+  [tilt-angle]             Pageup / Page Down ("<a href="CAD_input_en.htm#_modPERP_">PERP</a>")
+    - Kippwinkel ay: der Winkel zwischen angle der Linie und der XY-Ebene des aktiven Koord.Systems.
+
+  [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
+    - 180-degree complementär-Winkel (180 - Winkel)
+
+  [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
+    - 360-degree complementär-Winkel (360 - Winkel)
+
+
+V20 = ANG D(L20)
+
+ Wiederherstellung des Vektors durch die Winkel:
+   - Vektor vcx = drehen der X-Achse um den Winkel az um die Z-Achse;
+   - Vektor = drehen von vcx um den Winkel ay um die (neue) Y-Achse
+       (die neue Y-Achse ist in der XY-Ebene des aktiven Koord.Systems)
+
+
+
+
+<a name="F7"></a>
+  <h2>V Angle 2 lines/vectors</h2>
+  Variable = Winkel between 2 lines or vectors
+
+
+  Line/Vector 1            Eingabe <a href="CAD_input_de.htm#_LN_">Linie</a> oder <a href="CAD_input_de.htm#_Vec_">Vektor</a>
+
+  [Line/Vector 2]
+
+  [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
+    - 180-degree complementär-Winkel (180 - Winkel)
+
+  [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
+    - 360-degree complementär-Winkel (360 - Winkel)
+
+
+V20 = ANG L21 L20
+
+
+
+
 </PRE>
 </HTML>

@@ -2897,7 +2897,7 @@ printf(" ?????????????\n");
     //----------------------------------------------------------------
     } else if(typ2 == Typ_CI2) {
       // inters LN X CI
-      irc = UT2D_2pt_int_ln_ci (ipa, pta, obj1, obj2, &CO2DAT.tol1);
+      irc = UT2D_2pt_par_int_ln_ci (ipa, pta, NULL, obj1, obj2, &CO2DAT.tol1);
       // skip connection-points of connected objs
       if(iConn) irc = CVOFF2_int_ckConn (ipa, irc);
       if(irc < 0) goto L_exit;
@@ -2926,7 +2926,7 @@ printf(" ?????????????\n");
     if(typ2 == Typ_LN2) {
       // inters CI X LN
       *isRev = 1;   // obj1/obj2 swapped
-      irc = UT2D_2pt_int_ln_ci (ipa, pta, obj2, obj1, &CO2DAT.tol1);
+      irc = UT2D_2pt_par_int_ln_ci (ipa, pta, NULL, obj2, obj1, &CO2DAT.tol1);
       // skip connection-points of connected objs
       if(iConn) irc = CVOFF2_int_ckConn (ipa, irc);
       if(irc < 0) goto L_exit;

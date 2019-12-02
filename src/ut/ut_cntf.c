@@ -737,7 +737,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // get pt1 = intersectionpoint old-new;
   // get par1 = parameter on old; par2 = parameter on new
   irc = CNTF_int__ (&pt1, &par1, &par2, imod);
-    // printf(" CNTF_int__-rc=%d %f,%f,%f\n",irc,pt1.x,pt1.y,pt1.z);
+    // printf(" CNTF_int__-rc=%d pt1=%f,%f,%f par1=%f par2=%f\n",irc,
+                // pt1.x,pt1.y,pt1.z, par1, par2);
 
 
     // TESTBLOCK
@@ -954,7 +955,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(irc < 0) return -1;
 
   // get par1 = parameter of pt2 on obj
-  irc = UTO_par1_pt_pt_obj (par1, pt2, typ, obj);
+  irc = UTO_par__pt_obj (par1, 0, pt2, typ, obj);
     // DEB_dump_obj__ (Typ_PT, pt2, " _normalPt-pt2");
     // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par1);
 
@@ -1018,18 +1019,19 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   APT_set_modMax (pNr);
 
 
-  // select intersectionpoint and its parameter;
+  // select index of intersectionpoint
   if(imod) {
     i1 = ILIM0X (imod, pNr-1);
   } else {
     i1 = CNTF_selPt (pNr, pa, va);
   }
 
+  // get intersectionpoint and its parameter;
   *ptx = pa[i1];
   *par1 = va[i1];    // parameter on old
 
-  // get parameter on new
-  UTO_par1_pt_pt_obj (par2, ptx, new.typ, new.obj);
+  // get parameter for intersectionpoint (ptx) on new obj
+  UTO_par__pt_obj (par2, 0, ptx, new.typ, new.obj);
 
 
   irc = 0;
@@ -1040,7 +1042,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
     // printf("ex CNTF_int__ %d par1=%lf par2=%lf\n",irc,*par1,*par2);
     // DEB_dump_obj__ (Typ_PT, ptx, " ptx ");
-    if(IS_NAN(*par2)) AP_debug__  ("CNTF_int__-1");
+    // if(IS_NAN(*par2)) AP_debug__  ("CNTF_int__-1");
 
   return irc;
 
@@ -1080,7 +1082,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // test if point ii == old.pts; yes: delete point, try again
   if(UT3D_comp2pt(&pta[ii], &old.pts, tol_cv)) {
-      printf(" selPt-int.pt==actPos;\n");
+      // printf(" selPt-int.pt==actPos;\n");
     i1 = iNr;
     MEM_del_nrec (&i1, pta, ii, 1, sizeof(Point));
     MEM_del_nrec (&iNr, va, ii, 1, sizeof(double));
@@ -1089,7 +1091,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   L_exit:
-    // printf("ex CNTF_selPt ii=%d\n",ii);
+    // printf("ex-CNTF_selPt ii=%d\n",ii);
 
   return ii;
 
@@ -1202,7 +1204,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   CNTF_out_cvtrm (&cc1);
 
-  // old = new;
+    // printf("ex-CNTF_out_old \n");
 
   return 0;
 
@@ -1240,6 +1242,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     TX_Error ("CNTF_out_cvtrm E001");
     return -1;
   }
+
+    // printf(" ex-CNTF_out_cvtrm\n");
 
   return 0;
 

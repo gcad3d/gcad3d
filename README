@@ -1,4 +1,4 @@
-gCAD3D                                                                 2019-04-10
+gCAD3D                                                                 2019-12-02
 
 provides functions for -
       import and export of cad-models and pictures (bitmaps)
@@ -45,321 +45,46 @@ support@gcad3d.org
 
 
 
-__________________________________________________________________
-Linux Prerequisites:
 
-
-  for compile, link gCAD3D:
-    gcc, ctags, build-essential, zenity, tar
-    libjpeg-turbo-utils (djpeg and cjpeg)
-       for .cpp-files gcc-c++ (optional)
-
-    Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
-      gtk3-development-files
-        libgtk-3-dev
-        libgtk-3-doc gtk-3-examples             optional
-      and or gtk2-development-files
-        libgtk2.0-dev
-        libgtk2.0-doc gtk2.0-examples           optional
-
-    OpenGL-development-files 
-      mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
-
-
-  for modifications of gCAD3D:
-    git gitk cscope ..
-
-  for modification of the documentation:
-    doxygen
-
-  for building debian-package:
-    fakeroot, lintian
-
-  for building rpm-package:
-    rpmbuild
-
-
-
-  Installation of packages eg for debian-os:
-    sudo apt-get install <package>
-
-  Installation of packages for eg Fedora:
-    sudo dnf install <package>
-
-
-
-__________________________________________________________________
-Linux install binary-version of gcad3d:
-
-Debian:
-- Download package gCAD3D-#.##-bin-amd64.de
-  - interactiv: select package with eg "software-center"
-  - or from terminal:
-  sudo gdebi gCAD3D-#.##-bin-amd64.deb
-
-
-RPM:
-- Download package gcad3d-#.##-#.x86_64.rpm
-  - from terminal:
-  sudo rpm -i gcad3d-#.##-#.x86_64.rpm
-
-
-
-__________________________________________________________________
-Linux uninstall gcad3d:
-
-Debian:
-sudo apt-get --purge remove gcad3d
-
-RPM:
-rpm -qa | grep -i gcad3d                 # find <pknNam>
-sudo rpm -e <pknNam>
-
-All local settings, models in directory $HOME/gCAD3D must be removed manually.
-
-
-__________________________________________________________________
-Linux Install sources from git-repository:
-
-# If possible: prefer installation from git-repository.
-# start commandline (eg gnome-terminal)
-cd
-mkdir devel
-cd devel
-
-# get all files into ~/devel/gcad3d/*
-git clone https://github.com/gcad3d/gcad3d
-
-
-
-
-__________________________________________________________________
-Linux Install sources from zipfile:
-
-# start commandline (eg gnome-terminal)
-cd
-mkdir devel
-cd devel
-
-# get all files into ~/devel/gcad3d/*
-cp xxx/gCAD3D_x.xx-src.zip .
-unzip gCAD3D_x.xx-src.zip
-
-cd gcad3d
-mkdir -p binLinux32/plugins
-mkdir -p binLinux64/plugins
-
-
-
-
-__________________________________________________________________
-Linux Build:
-
-Prerequisites:
-gcad3d-sources (eg from git-repository) in <dirXX>/gcad3d
-Default: <dirXX> = ${HOME}/devel
-
-
-# Setup environment:
-# The development environment is using the directories $DIR_DEV and $DIR_BIN.
-# The default-value for sources, binaries, is:
-export DIR_DEV=${HOME}/devel/
-export DIR_BIN=${HOME}/devel/bin/
-# For other directories export appropriate.
-
-
-# goto APP-directory
-cd ${DIR_DEV}gcad3d/src/APP/
-
-# set debug-switch OFF (production, see ./deb.mak):
-./do debug_OFF
-
-# or set debug-switch ON (development, see ./deb.mak):
-./do debug_ON
-
-# rebuild application gcad3d:
-./do complete
-
-# now the application should be complete -
-
-# before first start unpack examples into test-environment
-./do init_examples
-
-# test it (start gcad3d) in local test-environment.
-# For the userfiles directory ${DIR_DEV}gcad3d/gCAD3D/ will be used.
-./do
-
-
-
-#---------------------------------------------------
-# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
-cd ${DIR_DEV}gcad3d/debian
-./pack_deb.sh
-
-# install deb-package into system
-sudo -E ./do install_deb
-
-# remove deb-package from system
-sudo ./do uninstall_deb
-
-
-
-#---------------------------------------------------
-# create rpm-package (binary, gcad3d-#.##-1.<$HOSTTYPE>.rpm):
-cd ${DIR_DEV}gcad3d/rpm
-./pack_rpm.sh
-
-# install rpm-package into system 
-sudo -E ./do install_rpm
-
-# remove rpm-package from system
-sudo ./do uninstall_rpm
-
-
-
-#---------------------------------------------------
-# create source-package ((${DIR_DEV}gcad3d/packages/gCAD3D_src_<version>.zip)
-./do pack_src
-# starts ${DIR_DEV}gcad3d/src/pack_src.sh
-
-
-# create doc-package (${DIR_DEV}gcad3d/packages/gCAD3D-doc-#.##.zip)
-# (user-doc and dev-doc)
-./do pack_doc
-# starts ${DIR_DEV}gcad3d/doc/packDoc.sh
-
-
-# view development-documentation (use with eg ctags)
-cd ${DIR_DEV}gcad3d/src/APP/
-vi ../xa/infotext.c
-# use with eg vim-tags:
-vi -t INF_obj-types
-
-
-# not up-to-date:
-# ReCreate development-documentation (doxygen must be installed):
-cd ${DIR_DEV}gcad3d/doc
-./gcad_doxygen.sh
-
-# view development-documentation:
-xdg-open ${DIR_DEV}gcad3d/doc/gcad/index.htm
-
-
-
-#---------------------------------------------------------
-# Script "do" has other functions; get infos with:
-./do help
-
-# ./do complete does:
-# build gui-lib for gtk2 
-./do gui-gtk2
-
-# build gui-lib for gtk3
-./do gui-gtk3
-
-# build gcad3d-core
-./do c
-
-# build gcad3d-coreLibs
-./do all
-
-# build gcad3d-plugins
-./do allDemos
-
-# optional:
-# test to rebuild a plugin:
-./do Demo_gui1.mak
-
-
-
-
-#---------------------------------------------------------
-# DEVELOPMENT-TOOLS-TAGFILES:
-# tagfiles are in directory ${DIR_DEV}gcad3d/src/tags/
-# If you are using vim:
-#   see ${DIR_DEV}gcad3d/src/.vimrc
-# in directory APP_tests tagfiles can be used with vim.
-
-#---------------------------------------------------------
-# DEVELOPMENT-TOOLS-CSCOPE:
-# Use cscope with:
-  cd ${DIR_DEV}gcad3d/src/APP
-  ./ed
-# the editor is defined in script ${DIR_DEV}gcad3d/src/APP/ed 
-
+==================================================================
+Installation
+==================================================================
+
+see doc/install_en.txt for:
+  Linux-Installation-binary
+  Linux-Installation-source
+  Linux-uninstall
+  MS-Win-Installation-binary
+  MS-Win-uninstall
 
 
 
 ==================================================================
-MS-Windows 
+Build
 ==================================================================
-Prerequisites:
+
+see doc/build_en.txt
 
 
-for using gCAD3D:
-  nothing; all necessary libs are included.
+==================================================================
+Development:
+==================================================================
+
+see doc/html/dev_doc_en.htm      for:
+  INSTALLING-DEVELOPMENT-TOOLS
+  CUSTOMIZING-DEVELOPMENT-TOOLS
+  USING-DEVELOPMENT-TOOLS
 
 
-for modifications of gCAD3D:
-  MS-C-Compiler (gcc or MS-Visual-C (C++, Express); eg VS-2010)
-  OpenGL32.lib, Glu32.lib (Microsoft SDKs)
-  optional: get the gtk-dokumentation from www.gtk.org.
-
-  // You will need a commandshell with the correct compiler-environment.
-  // You can use the Visual-Studio-Commandwindow or cmd.exe;  e.g. for VC8:
-  "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
-  // or for VC9:
-  "%VS90COMNTOOLS%vsvars32.bat"
-  // or for VC10 - start a commandwindow with:
-  %comspec% /k ""C:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"" x86
-  // Test MS-compiler with:
-  cl /?
+see doc/html/dev_inf_en.txt      for:
+  USING-DEVELOPMENT-DOCUMENTATION
+  UPDATE-DEVELOPMENT-DOCUMENTATION
 
 
-for creating new MS-Win-install-package:
-  NSIS-installer / uninstaller from Nullsoft (http://nsis.sf.net)
-  %ProgramFiles%\NSIS\NSIS.chm  // see help-file in cmd-window
-
-
-MS-Windows install the binary package (Win-XP Win7 Win8):
-  selfextracting (NSIS-installer).
-  The registry is never affected / modified.
-
-
-MS-Windows install the source package from zip-file (Win-XP Win7 Win8):
-  // start commandshell (cmd);
-  // Create new directory %HOMEDRIVE%%HOMEPATH%/devel
-  %HOMEDRIVE%       // activate the homedrive
-  cd %HOMEPATH%     // goto homepath
-  mkdir devel       // create new directory
-  cd devel          // goto %HOMEPATH%/devel
-  // Extract the package gCAD3D_#.##-src.zip into this directory
-  unzip gCAD3D_#.##-src.zip
-
-
-Update definiton-file gCAD3D.def
-  // create new file gCAD3D.def in Linux (from linux-executable):
-  ./gendef.sh
-  // or update gCAD3D.def manually.
-
-
-Rebuild:
-  %HOMEDRIVE%                     // activate the homedrive
-  cd %HOMEPATH%\devel\gcad3d\src\APP
-  do c            // reCreate exe
-  do gui          // reCreate gui-lib
-  do help         // disp help for do.bat
-
-
-Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
-  cd %HOMEPATH%\devel\gcad3d\pack_MS
-  pack
-
-
-// view documentation:
-  cd %HOMEPATH%\devel\gcad3d
-  hh doc\gcad\index.htm
+see doc/html/Plugin_en.htm  for:
+  Create new plug-in
 
 
 
+==================================================================
 // EOF

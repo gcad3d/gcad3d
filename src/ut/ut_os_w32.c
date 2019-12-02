@@ -2506,4 +2506,23 @@ sonst wahrscheinl nur \\ statt / ...
 }
 
 
+//================================================================
+  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+//================================================================
+// OS_filnam_eval        expand shell variables in filenames
+// ExpandEnvironmentStrings.
+
+  int    ii;
+
+
+  ii = ExpandEnvironmentStrings (fni, fno, fnoSiz);
+
+    // printf(" ex-OS_filnam_eval %d |%s|%s|\n",ii,fno,fni);
+
+  return 0;
+
+}
+
+
+
 //========================= EOF ====================================

@@ -1,5 +1,5 @@
 /*
-2001-05-04 DL_GetTyp,DL_get_dbi,DL_GetTrInd zu.
+2001-05-04 DL_dbTyp__dli,DL_get_dbi,DL_GetTrInd zu.
 */
 
 
@@ -50,7 +50,7 @@ int  DL_Redraw       ();
 int  DL_ReScale__    ();
 // int  DL_save_DYNAMIC_AREA ();
 
-int  DL_GetTyp       (long dli);
+int  DL_dbTyp__dli       (long dli);
 long DL_get_dbi      (long dli);
 long DL_GetTrInd     (long dli);
 // int  DL_Get_GrAtt    (GR_Att* att1, long Ind);
@@ -58,7 +58,7 @@ long DL_GetTrInd     (long dli);
 unsigned int DL_get_iatt (long dli);
 
 long DL_find_smObj (int typ, long DBind, long DLend, int imod);
-long DL_find_obj (int typ, long ind, long DLend);
+long DL_dli__dbo (int typ, long ind, long DLend);
 // int  DL_find_sel (int *typ, long *ind);
 
 int  DL_hili_on           (long);

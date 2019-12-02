@@ -82,7 +82,10 @@ APT_DrawSur
 APT_DrawModel
 
 APT_hiliObj
-APT_disp_obj      PT,LN,AC,POL2
+
+APT_dispNoGeo_ck               test if not-geometric-object must be displayed
+// APT_disp__        temporary display not-geometric-object
+// APT_disp_obj      PT,LN,AC,POL2
 // APT_disp_TxtG
 APT_disp_TxtA
 APT_disp_SymB     disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
@@ -107,6 +110,7 @@ WC_ask_actPos     return actPosU
 WC_ask_actZsur    return WC_sur_Z
 WC_ask_Zsur1      return WC_sur1
 WC_ask_Zsur2      return WC_sur2
+APT_get_line_act  return APT_line_act
 
 APT_do_auxCmd     handle change Graf. Attribut u. Refsys
 APT_eval_if       evaluate expression
@@ -459,7 +463,7 @@ Verbinden:
 #include "../gr/ut_DL.h"
 
 //#include "ED.h"
-#include "../xa/xa_ed.h"                    // ED_mode_go
+#include "../xa/xa_ed.h"                    // AP_mode_go
 #include "../xa/xa_edi__.h"
 #include "../xa/xa_ga.h"                    // GA_hasTexture
 #include "../xa/xa_mem.h"                 // memspc55
@@ -479,27 +483,35 @@ Verbinden:
 //===========================================================================
 // EXTERNALS:
 
-// aus ../gr/ut_gtx.c:
+// ex ../ci/NC_apt.c
+extern int    APT_prim_typ;         // info for obj where point is on
+
+
+// ex ../gr/ut_gtx.c:
 extern double GR_tx_scale;
 
-// aus ../gr/tess_su.c:
+
+// ex ../gr/tess_su.c:
 extern int TSU_mode;   // 0=normal darstellen; 1=speichern
+
 
 // aus ../gr/ut_DL.c
 extern long    DL_ind_act;
 
 
-// from ../xa/xa.c:
-extern int       AP_src;
-extern int       AP_modact_ind;         // -1=primary Model is active;
-                                        // else subModel is being created
-extern Point     WC_mod_ori;            // der Model-Origin
-extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
-extern Plane     WC_sur_act;            // die aktive Plane
-extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
-extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
-extern double    WC_sur_Z;              // der aktive Z-Wert der WC_sur_sur;
-extern char      WC_ConstPl_Z[16];      // displayed name_of_Constr.Plane;
+// ex ../xa/xa.c:
+extern int        AP_mode__;
+
+extern int        AP_src;
+extern int        AP_modact_ind;         // -1=primary Model is active;
+                                         // else subModel is being created
+extern Point      WC_mod_ori;            // der Model-Origin
+extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
+extern Plane      WC_sur_act;            // die aktive Plane
+extern Mat_4x3    WC_sur_mat;            // TrMat of ActiveConstrPlane
+extern Mat_4x3    WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
+extern double     WC_sur_Z;              // der aktive Z-Wert der WC_sur_sur;
+extern char       WC_ConstPl_Z[16];      // displayed name_of_Constr.Plane;
 
 extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
@@ -507,14 +519,17 @@ extern int        AP_txNkNr;            // Nachkommastellen
 extern ColRGB     AP_defcol;
 
 
-// aus ../xa/xa_ed.c:
+// ex ../xa/xa_ed.c:
 extern int       APT_mac_fil;   // 1=InputFromMemory; 0=InputFromFile.
+
 
 // ex ../xa/xa_ui.c:
 extern int       UI_InpMode;
 
+
 // ex ../xa/xa_proc.c
 extern char **process_CmdTab;     // was NCCmdTab
+
 
 
 
@@ -551,36 +566,38 @@ int       APT_3d_mode = OFF;               // Inputmode 3D oder 2D
 
 static int APT_view_stat;         // 0=VIEW nicht gesetzt; 1=VIEW gesetzt.
 
+static long APT_dli_hili_old = 0L;   // dli of last hilited object
 
-Point   APT_tcpos;                // ToolChangePosition Werkzeugwechselposition
-double  APT_Z_clear;
-double  APT_Z_deep;
+// Point   APT_tcpos;                // ToolChangePosition Werkzeugwechselposition
+// double  APT_Z_clear;
+// double  APT_Z_deep;
 // int     APT_workmode;             // Typ_nc_cut oder Typ_nc_drill;
+
 int     APT_obj_stat;             // 0=permanent, 1=temporary (workmode)
 
 // int     APT_obj_typ;              // der Typ des zuletzt generierten Objekts.
 int     APT_subTyp;               // subTyp of created obj; 
 
-double  APT_pock_distk = 1.0;     // Abstand von der Kontur
-double  APT_pock_distc = 1.0;     // Abstand Schnitte untereinander
-double  APT_pock_dirc  = 0.;      // Richtung Schnitte
+// double  APT_pock_distk = 1.0;     // Abstand von der Kontur
+// double  APT_pock_distc = 1.0;     // Abstand Schnitte untereinander
+// double  APT_pock_dirc  = 0.;      // Richtung Schnitte
 
 
 Memspc  APTSpcObj;      // memspc201 f. Ausgabeobjekt und seine Bestandteile
 Memspc  APTSpcTmp;      // memspc501 f. temporaere Berechnungen
 
 
-double  WC_sur1    =  0.0;        // Basisebene
-double  WC_sur2_Def= 50.1;        // Default-sur2
-double  WC_sur2    = 50.1;        // obere Schneidebene
+// double  WC_sur1    =  0.0;        // Basisebene
+// double  WC_sur2_Def= 50.1;        // Default-sur2
+// double  WC_sur2    = 50.1;        // obere Schneidebene
                                   // kann nur der Wert von WC_sur1 od. WC_sur2 sein.
-double  WC_thick   = 50.0;        // Abstand untere > obere Ebene
+// double  WC_thick   = 50.0;        // Abstand untere > obere Ebene
 
-double  WC_sur3    =  0.0;        // Bohren: deep.
+// double  WC_sur3    =  0.0;        // Bohren: deep.
 
 
 
-int     APT_konik = 0;    // Koniktyp; KONIK_0 od KONIK_1 ..
+// int     APT_konik = 0;    // Koniktyp; KONIK_0 od KONIK_1 ..
                           // KONIK_2 ($-Achsig) od. KONIK_3 (via U/V-Werte)
 //int     APT_stat_konik=0; // ob die obere Kontur fuer das vorhergehende Elem.
                           // noch auszugeben ist; 0=nix tun, 1=Ausgabe offen
@@ -672,15 +689,14 @@ Point2  actPosU;            // die untransformierte, aktuelle Pos als 2D-Punkt
 Point2  actPosUtr; 
 
 // hier werden die Objekte zuerst (vor dem Zerbrechen) zwischengespeichert.
-int     APT_ObjU_anz, APT_ObjO_anz;
-ObjG2   APT_ObjU[20];
-ObjG2   APT_ObjO[20];
+// int     APT_ObjU_anz, APT_ObjO_anz;
+// ObjG2   APT_ObjU[20];
+// ObjG2   APT_ObjO[20];
 
-ObjG2   old_APT_ObjU;
-ObjG2   old_APT_ObjUtr; // transformiert; hilighten als weiterfuehrendes Objekt.
-ObjG2   old_APT_ObjOtr; // transformiert
-
-ObjG2   old_APT_ObjO;
+// ObjG2   old_APT_ObjU;
+// ObjG2   old_APT_ObjUtr; // transformiert; hilighten als weiterfuehrendes Objekt.
+// ObjG2   old_APT_ObjOtr; // transformiert
+// ObjG2   old_APT_ObjO;
 
 
 
@@ -762,7 +778,7 @@ static int     Prg_line_nr; // nach "END" wird auf diese LineNr zurueckgesetzt
 
 int     APT_line_cnt = 0;   // Zeilenzähler zur synchronisation von Insert-Lines
 
-int     APT_line_act;
+int     APT_line_act;              // active lineNr of SRC code
 int     APT_line_old = 0;
 int     APT_line_stat;
 
@@ -890,7 +906,7 @@ char      *APT_defTxt;
 
 
 
-int    APT_prim_typ;
+
 int    APT_hide_parent;              // 0=not (def), else yes
 
 
@@ -1109,8 +1125,8 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
   //WC_sur2    = 50.0;
-  WC_sur2_Def  = APT_ModSiz / 10.0 + 0.1;
-  WC_sur2      = WC_sur2_Def;
+  // WC_sur2_Def  = APT_ModSiz / 10.0 + 0.1;
+  // WC_sur2      = WC_sur2_Def;
 
 
   // length of construction-lines
@@ -1229,10 +1245,9 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
   //old_APT_Obj.typ  = Typ_PT2;
-  old_APT_ObjU.typ  = Typ_Error;     
-  old_APT_ObjO.typ  = Typ_Error;     
-
-  old_APT_ObjO.typ           = Typ_Error;  // fuer den Start oben.
+  // old_APT_ObjU.typ  = Typ_Error;     
+  // old_APT_ObjO.typ  = Typ_Error;     
+  // old_APT_ObjO.typ           = Typ_Error;  // fuer den Start oben.
 
   actPosU.x = 0.0;
   actPosU.y = 0.0;
@@ -1260,8 +1275,8 @@ int    APT_hide_parent;              // 0=not (def), else yes
   NC_TL_act     = -1;
   APT_TL_Side   = 0;
     
-  old_APT_ObjUtr.typ = 0;            // kein weiterfuehrendes Obj.
-  old_APT_ObjUtr.p1  = actPosUtr;    // fuer Sofortausgabe NCCmds
+  // old_APT_ObjUtr.typ = 0;            // kein weiterfuehrendes Obj.
+  // old_APT_ObjUtr.p1  = actPosUtr;    // fuer Sofortausgabe NCCmds
 
 
   APT_stat_FROM = OFF;       // pro Main darf es nur ein FROM geben!
@@ -1514,7 +1529,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
   // check for temporaerModus
   if(APT_obj_stat != 0) {
     printf(" preview only ..\n");
-    GR_Disp_axis (&pln1, 9, 5);
+    GR_Disp_pln (&pln1, 9, 5);
     return 1;
   }
 */
@@ -2563,6 +2578,20 @@ static int errStat=0; // 0=OK
 }
 
 
+//================================================================
+  int APT_hili_last () {
+//================================================================
+// APT_hili_last             hilite last geom-obj created from WC_Work1
+// used only by MAN to display 
+
+  if(APT_dli_hili_old > 0) {
+    DL_hili_on (APT_dli_hili_old); 
+  }
+  return 0;
+
+}
+  
+
 //=======================================================================
   int WC_Work1 (int lNr, char* cbuf) {
 //=======================================================================
@@ -2618,22 +2647,25 @@ APT_stat_act:
   // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%ld\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
-  // printf("         AP_modact_ind=%d AP_modact_nam=|%s|\n",AP_modact_ind,AP_modact_nam);
+  // printf("  AP_modact_ind=%d SMnam=|%s|\n",AP_modact_ind,DB_mdlNam_iBas(AP_modact_ind));
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
 
-    // TEST
-    // if(!strncmp(cbuf,"FROM ",5)) return 0;
-
-  // 2001-06-05 zugefuegt:
-  // AP_dli_act = 0;
 
 
-
-  APT_line_act  = lNr;
+  APT_line_act  = lNr;       // only lineNr of main-model
   APT_line_stat = 0;
   Retcod        = 0;
   // APT_set_modMax (0);     // 2016-08-26 - dont kill value if mod too high
+
+
+
+  // unhilite last hilited object
+  if(APT_dli_hili_old) {
+    if(APT_dli_hili_old > 0) DL_hili_off (APT_dli_hili_old);
+    else                     GL_temp_del_1 (APT_dli_hili_old);
+    APT_dli_hili_old = 0L;
+  }
 
 
   if(APT_stat_act == PrgMod_normal) {
@@ -2669,8 +2701,8 @@ APT_stat_act:
 
 
   if(strlen(cbuf) < 1) goto L_exit99;
-  if(cbuf[0] == '#') goto L_exit99;
-  if(cbuf[0] == '_') goto L_exit99;
+  // if(cbuf[0] == '#') goto L_exit99;
+  // if(cbuf[0] == '_') goto L_exit99;
 
   // printf(" AP_sysStat=%d\n",AP_sysStat);
 
@@ -2686,7 +2718,7 @@ APT_stat_act:
 
   //==========================================================================
   NextCmd:
-    // printf("  NextCmd |%s|\n",c_act);
+    // printf("  Work1-NextCmd |%s|\n",c_act);
 
   // den naechsten Command > Line kopieren
   // c_next = UTX_cp_word_term (Line, c, ';');
@@ -2713,13 +2745,13 @@ APT_stat_act:
 
 
   // skip geloeschte Zeilen
-  if (*w_act == '_') goto Fertig;
+  if (*w_act == '_') goto L_no_obj;
 
   /* skip Kommentar-Zeile (gesamten Zeilenrest) */
-  if (*w_act == '#') goto Fertig;
+  if (*w_act == '#') goto L_no_obj;
 
   // Fortsetzungszeilen werden generell geskippt.
-  if (*w_act == '&') goto Fertig;
+  if (*w_act == '&') goto L_no_obj;
 
   // // skip das Label "DYNAMIC_AREA"
   // if(!strcmp(w, ":DYNAMIC_AREA")) goto Fertig;
@@ -2749,7 +2781,7 @@ APT_stat_act:
   // im Normalmode Labels skippen (beginnen mit :)
   if(APT_stat_act == 0) {
     if (*w_act == ':') {
-      goto Done;
+      goto L_Done;
     }
 
   // skip all Lines im PrgMod_skip_until_label (suchen JUMP - Label)
@@ -2763,7 +2795,7 @@ APT_stat_act:
         ED_skip_end ();
         APT_stat_act = 0;
         APT_line_old = APT_line_act;
-        goto Done;
+        goto L_Done;
       }
       goto Fertig;
     }
@@ -2774,7 +2806,7 @@ APT_stat_act:
     if(!strcmp(cmd, "END")) {
       ED_skip_end ();
       APT_stat_act = 0;
-      goto Done;
+      goto L_Done;
 
     } else {
       goto Fertig;
@@ -2803,7 +2835,7 @@ APT_stat_act:
         }
         preAnz = 0;     // es darf jetzt keine gepufferten Konturelemente geben
 */
-        goto Done;
+        goto L_Done;
       }
       goto Fertig;
 
@@ -2824,7 +2856,7 @@ APT_stat_act:
 
   // printf("////////Start WC_Work %d |%s| %d\n",APT_line_act,w_act,APT_stat_act);
   // printf("line_act=%d line_old=%d\n",APT_line_act,APT_line_old);
-  // printf("line_stat=%d mode=%d\n",APT_line_stat,ED_query_mode());
+  // printf("line_stat=%d mode=%d\n",APT_line_stat,AP_mode__);
 
   // Notstop!!
   //if(APT_line_cnt > 50) return -1;
@@ -2841,9 +2873,9 @@ APT_stat_act:
    // nur im Edit-Mode -
    // wenn der User mit dem Cursor zurueckgesetzt (zur Sourcekorrektur) hat:
    // Bei JUMP rueckwaerts deswegen APT_line_old = APT_line_act erforderlich.
-   i1 = ED_query_mode();
+   i1 = AP_mode__;
    if   ((APT_line_act != 1) &&
-         (i1 == ED_mode_enter) &&
+         (i1 == AP_mode_enter) &&
          (APT_line_act <= APT_line_old)) {
 
       // // den letzen DL-Ind suchen. Wegen Leerzeilen gibts Luecken in der Tab.
@@ -2881,6 +2913,7 @@ APT_stat_act:
   if(deli == '=') {
     /* ist eine DefinitionLine. */
     APT_defTxt = w_next;
+    // decode, store in DB, display codeLine
     irc = APT_work_def (txtOut, &w_next);
       // printf(" after APT_work_def %d\n",irc);
     if(irc < 0) return irc;
@@ -2895,13 +2928,13 @@ APT_stat_act:
       strcpy (txtOut, "INL");
       // APT_work_NCCmd (txtOut, &w_act);
       PRC__ (15, w_act);   //15="INL"
-      goto Done;
+      goto L_Done;
     }
 
     // this is not a definition-command (no '=')
     // do command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
     i1 = APT_work_AppCodTab (cmd, &w_next);
-    if(i1 >= 0) goto Done;
+    if(i1 >= 0) goto L_Done;
     if(i1 == -1) return i1;
     // -2 == not_in_AppCodTab
 
@@ -2914,7 +2947,7 @@ APT_stat_act:
         // printf(" ex _PrgCodTab-rc=%d\n",rc);
 
 /*
-      goto Done;
+      goto L_Done;
     }
 
 
@@ -2998,7 +3031,7 @@ APT_stat_act:
 
 
         // 0: normale Funktion. Fertig.
-        goto Done;
+        goto L_Done;
       }
     // }
 
@@ -3012,7 +3045,7 @@ APT_stat_act:
           // printf("vergl NC %d !%s!%s!\n",i1,*(&NCCmdTab[i1]),cmd);
         if (!strcmp(*(&process_CmdTab[i1]),cmd)) {
           PRC__ (i1, w_next);
-          goto Done;
+          goto L_Done;
         }
       }
     }
@@ -3026,13 +3059,13 @@ APT_stat_act:
 
     // decode w_act
     ATO_ato_srcLn__ (&ato1, w_act);
-    if(ato1.nr < 1) goto Done;
+    if(ato1.nr < 1) goto L_Done;
 
 
     // SRC_ato_anz = APT_decode_ausdr (SRC_ato_typ, SRC_ato_tab, SRC_ato_SIZ, &w);
     if(ato1.nr == 1) {
       // handle change Graf. Attribut u. Refsys (R#;   or G#;(
-      if(APT_do_auxCmd (ato1.typ, ato1.val) == 0) goto Done;
+      if(APT_do_auxCmd (ato1.typ, ato1.val) == 0) goto L_Done;
     }
 
 
@@ -3041,7 +3074,7 @@ APT_stat_act:
     if(ato1.typ[0] == Typ_G_Att) {
       // load attributed objects into PermanentAttributTable GA
       GA_LtypTab (ato1.nr, ato1.typ, ato1.val);
-      goto Done;
+      goto L_Done;
     }
 
 
@@ -3053,7 +3086,7 @@ APT_stat_act:
   
 
 
-  Done:
+  L_Done:
   // printf(" nach APT_cut_line 2 /%s/\n",c);
   // if(*c_next == '\0') goto Fertig;
   // c = c_next;
@@ -3063,8 +3096,9 @@ APT_stat_act:
 
 
 
+
   //=============== Zeile fertig =============================================
-  Fertig:;
+  Fertig:
   // printf(" APT_line_stat=%d APT_line_act=%d\n",APT_line_stat,APT_line_act);
   if(APT_line_act < 0) goto L_exit99; // skip DYN-BLOCK-Zeilen
 
@@ -3101,11 +3135,19 @@ APT_stat_act:
   }
 */
 
-  // printf("ex WC_work1 %d\n",Retcod);
 
   L_exit99:
+    // printf("ex-WC_work1 %d\n",Retcod);
   return Retcod;
 
+
+  //----------------------------------------------------------------
+  L_no_obj:
+    // clear last active (hilited) obj
+    // if(APT_dispNoGeo_ck()) ED_active__ (-1L, Typ_Error, 0L, 0);
+    // DL_hili_off (-2L);
+    // GL_temp_del_1 (DLI_TMP);        // clear DLI_TMP
+    goto L_Done;
 
 }
 
@@ -3387,19 +3429,21 @@ APT_stat_act:
     // TEST END
 
 
-  // Obj loeschen (ganz loeschen; ZB "L20=")
+  //----------------------------------------------------------------
+  // mark obj unused; clear in DB, remove from DL. Example: "L20="
   if(ato1.nr < 1) {
     // printf("loesche obj Typ = %d, Ind %d\n",defTyp,defInd);
     // Obj aus DB loeschen
     DB_Delete (defTyp, defInd);
 
     // Obj aus DL loeschen
-    dli = DL_find_obj (defTyp, defInd, -1L);
+    dli = DL_dli__dbo (defTyp, defInd, -1L);
     if(dli >= 0) GL_Del0 (dli);
     DL_Redraw ();
 
-    // goto Fertig;
-    goto Error;             // 2011-08-11
+    goto Fertig;  // 2019-07-22; 
+    // TX_Error("**** invalid definition code");
+    // goto Error;             // 2011-08-11
   }
 
 
@@ -3421,9 +3465,20 @@ APT_stat_act:
   //----------------------------------------------------------------
   // decode all parameters, create binary obj; store obj in DB.
   i1 = APT_store_obj (&defTyp, &defInd, ato1.nr, ato1.typ, ato1.val);
-    // printf("ex _store_obj %d defTyp=%d defInd=%ld\n",i1,defTyp,defInd);
+    // printf(" f-_store_obj %d defTyp=%d defInd=%ld APT_subTyp=%d\n",
+           // i1, defTyp, defInd, APT_subTyp);
   if(i1 < 0) {
-    if(i1 == -2) goto Fertig; // joints,activities,vectors; do not draw; else OK
+    if(i1 == -2) {
+      // have not-geometric-object; eg:
+      // Typ_VAR Typ_VC Typ_Activ Typ_Joint some-surfaces some-models
+      // check if symbolic-obj is to be displayed;  1=yes, 0=no
+      if(APT_dispNoGeo_ck()) {
+        // display not-geometric-object
+        APT_dli_hili_old = DLI_TMP;
+        UI_disp__ (&APT_dli_hili_old, defTyp, defInd, APT_subTyp);
+      }
+      goto Fertig;
+    }
     defTyp = i1; // -1=Error; -3=object_not_yet_complete
     goto Fertig;
   }
@@ -3474,7 +3529,7 @@ APT_stat_act:
   // .. goto L_draw;
 
   // reduce typ -> Basistyp (Typ_SURRU -> Typ_SUR ..)
-  basTyp = AP_typ_2_bastyp (defTyp);
+  basTyp = AP_typDB_typ (defTyp);
 
   // check for point|curve|surface
   typTyp = UTO_ck_typTyp (basTyp);
@@ -3488,7 +3543,7 @@ APT_stat_act:
 
 
   // apply active attibute.
-  // fix attribute for curve
+  // fix attribute for point
   if(typTyp == Typ_PT) {   // point
     iAtt = GR_Att_act;
 
@@ -3611,6 +3666,10 @@ APT_stat_act:
   // get DB-obj from DB;  create|overwrite DL-record; display obj.
   APT_Draw__ (iAtt, defTyp, defInd);
 
+  // MAN-only: store (dli,typ,dbi) of geometric-object
+  // ED_active__ (AP_dli_act, defTyp, defInd, APT_subTyp);
+  APT_dli_hili_old = AP_dli_act;
+  // hilite last obj in MAN: see APT_hili_last
 
   // set isChild-bit in DispList. DL-record AP_dli_act is a Child - has parents.
   if((mtPar.rNr)&&(AP_dli_act>= 0L)) 
@@ -3681,8 +3740,7 @@ APT_stat_act:
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
-  // printf("APT_ato_par_srcLn |");
-  // UTX_dump_cnl(srcLn,50);printf("|\n");
+  // printf("APT_ato_par_srcLn |");UTX_dump_cnl(srcLn,50);printf("|\n");
   // printf(" ilev=%p\n",ato->ilev);
 
   // max nr of atos
@@ -3840,7 +3898,7 @@ APT_stat_act:
     // // CUT: unhilite parent-obj.                             // 2013-03-15
     // if((iPar[0] == Typ_cmdNCsub) && (iPar[1] == T_CUT)){
       // // find dli of parent
-      // dli = DL_find_obj (parTyp, parDbi, -1L);
+      // dli = DL_dli__dbo (parTyp, parDbi, -1L);
       // if(dli >= 0) DL_hili_off (dli);
     // }
     // goto L_done;   // temp-Mode: done ..
@@ -3873,7 +3931,7 @@ APT_stat_act:
     OPAR_get_src (&ii, parTab, oaSIZ, cldTyp, cldDbi);
     for(i1=0; i1<ii; ++i1) {   // loop tru parent-obj's
       // get the dispListIndex of parent
-      dli_par = DL_find_obj (parTab[i1].typ, parTab[i1].dbInd, dli_chd - 1);
+      dli_par = DL_dli__dbo (parTab[i1].typ, parTab[i1].dbInd, dli_chd - 1);
       // set dispList-flag sChd and sPar
       DL_parent_set (dli_par, 1);
       DL_child_set (dli_chd, 1);
@@ -3887,7 +3945,7 @@ APT_stat_act:
 
 
   // get the dispListIndex of parent
-  dli_par = DL_find_obj (parTyp, parDbi, dli_chd - 1);
+  dli_par = DL_dli__dbo (parTyp, parDbi, dli_chd - 1);
   if(dli_par < 0) return 0;   // no parent ..
 
 
@@ -3917,7 +3975,7 @@ APT_stat_act:
 // 
   // if(i1 >= 0) {   // ja, existiert schon ...
     // // Obj in DL suchen
-    // dli = DL_find_obj (basTyp, (long)cldDbi);
+    // dli = DL_dli__dbo (basTyp, (long)cldDbi);
     // // overwrite DL-Record dli !
     // if(dli >= 0) {
       // // printf(" overwrite dli=%d\n",dli);
@@ -3941,11 +3999,10 @@ APT_stat_act:
   int APT_Draw__ (int iAtt, int typ, long ind) {
 //================================================================
 /// \code
-/// obj ex DB laden (DB_GetXX), ausgeben via APT_DrawXX
-/// create/modify obj: see DL_SetInd
+// APT_Draw__        draw (load from DB, APT_DrawXX)
 /// is using memspc201
 /// Input:
-///   ind    dbi
+///   typ,ind      DB-obj  (typ, DB-index)
 /// \endcode
 
   int       irc, i1;
@@ -3963,10 +4020,13 @@ APT_stat_act:
   // printf("APT_Draw__ typ=%d ind=%ld iAtt=%d\n",typ,ind,iAtt);
   // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
   // printf("  APT_obj_stat=%d UP_level=%d\n",APT_obj_stat,UP_level);
-  // printf("  WC_mode=%d ED_query_mode=%d\n",WC_mode,ED_query_mode());
+  // printf("  ED_get_mode=%d\n",AP_mode__);
   // if(typ==Typ_SUR) printf("  S:vtex=%d\n",((ColRGB*)&iAtt)->vtex);
+// UP_mode     0=ON sind im UP,  1=OFF sind im Main
+// UP_act_typ  G=GEO,  M=MAC.
+// UP_resolv   1=ON aufloesen, 1=OFF schon mal erledigt.
 
-  // UI_GR_DrawInit ();  2010-06-16 raus !
+
 
   switch (typ) {
 
@@ -3981,7 +4041,8 @@ APT_stat_act:
           l1 = IE_get_inp_dli();
           // if CAD is active: overwrite symbol for the active inputfield
           if(l1) DL_SetInd (l1);
-          APT_DrawSymB (iAtt, ind, SYM_CIR_S, ATT_COL_RED, (Point*)po);
+          iAtt = ATT_COL_RED;
+          APT_DrawSymB (iAtt, ind, SYM_CIR_S, (Point*)po);
 
         } else {
           // 0=permanent
@@ -4098,8 +4159,9 @@ APT_stat_act:
 
       //if(UP_level < 0) {   // in UP-s nix darstellen
           po = DB_get_PLN (ind);
-          if(APT_obj_stat != 0) {       // 0=perm 1=temp
-            // GR_Disp_axis ((Plane*)po, 9, 5);
+          if(APT_obj_stat != 0) {
+            // 0=perm 1=temp
+            // GR_Disp_pln ((Plane*)po, 9, 5);
             dli = DL_StoreObj (Typ_PLN, 0L, 0);
             GL_DrawSymVX (&dli, 9, (Plane*)po, 5, 1.);  // hili
           } else {
@@ -4130,66 +4192,24 @@ APT_stat_act:
 
 
 
-    case Typ_VC:
-        printf("DRAW VC %d %d\n",ED_query_mode(),APT_obj_stat);
-      // if(ED_query_mode() != ED_mode_enter) break;
-      if(ED_query_mode() == ED_mode_go) break;
-      // if(APT_obj_stat != 1) break;  // 2013-09-30
-      // if(WC_mode != 0) break;
-      // if(UP_level < 0) {   // in UP-s nix darstellen
-
-      UI_disp_vec1 (Typ_Index, PTR_LONG(ind), NULL);
-
-      // UI_GR_get_selNam  (&i1, &l1, &s1);
-      // if(i1 != 0) sele_get_pos (&pt1);   // GR_selTyp
-      // else pt1 = GL_GetCen();
-      // l1 = ind;
-      // UI_disp_vec1 (Typ_Index, (void*)l1, &pt1);
-      break;
-
-
 
 
     case Typ_Model:
     case Typ_Mock:
       po = DB_get_ModRef (ind);
-      // APT_DrawModel (Typ_Att_Fac, ind, mod1);  // Typ_Att_dash_long ?
       APT_DrawModel (((ModelRef*)po)->modNr, ind, (ModelRef*)po);
       break;
 
 
 
-    case Typ_Tra:
-      // ox1 = DB_GetTra (ind);
-      // printf(" ED_mode=%d\n",ED_query_mode());
-      // nur im Edit-Mode (nicht im Run-Mode)
-      // if(ED_query_mode() == ED_mode_go) break;
-      if(ED_query_mode() != ED_mode_enter) break;
-      if(APT_obj_stat != 1) break;
-
-      // UI_disp_vec2(ind); // wurde in APT_decode_tra beladen
-      UI_disp_tra (DB_GetTra (ind));
-      break;
-
-
-
-    case Typ_VAR:                          // nicht sichtbare
-          // if((ED_query_mode() == ED_mode_enter) ||
-          if((AP_src != AP_SRC_MEM) ||
-             (APT_obj_stat    == 1))                      {
-            d1 = DB_GetVar (ind);      // ind ist oft 0 !!
-            TX_Print ("VAR[%d] = %f",ind,d1);
-          }
-      break;
-
-
-
-
+    case Typ_VC:        // not visible
+    case Typ_Activ:     // not visible
+    case Typ_Joint:     // not visible
+    case Typ_VAR:       // not visible
+    case Typ_Tra:       // not visible
     case Typ_Txt:
     case Typ_G_Att:
     case Typ_Tool:
-    case Typ_Activ:     // unsichtbar ..
-    case Typ_Joint:     // unsichtbar ..
       break;
 
 
@@ -4349,7 +4369,7 @@ APT_stat_act:
     //----------------------------------------------------------------
     case TPC_JUMP:
     // im Editmode nix tun; sonst ja.
-    if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    if(AP_mode__ == AP_mode_enter) goto Fertig;
 
     // Jump-Label merken
     strcpy (APT_label, *data);
@@ -4369,8 +4389,8 @@ APT_stat_act:
     //----------------------------------------------------------------
     case TPC_MAC:
     // im Editmode und im STEP-Mode schon was tun
-    i1 = ED_query_mode();
-    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+    i1 = AP_mode__;
+    if((i1 == AP_mode_enter)||(i1 == AP_mode_step)) goto Fertig;
 
     irc = PrgMod_skip_until_macend;
     UP_act_typ = 'M';
@@ -4382,8 +4402,8 @@ APT_stat_act:
     //----------------------------------------------------------------
     case TPC_GEO:
     // im Editmode und im STEP-Mode schon was tun
-    i1 = ED_query_mode();
-    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+    i1 = AP_mode__;
+    if((i1 == AP_mode_enter)||(i1 == AP_mode_step)) goto Fertig;
 
     irc = PrgMod_skip_until_macend;
     UP_act_typ = 'G';
@@ -4395,14 +4415,11 @@ APT_stat_act:
     //----------------------------------------------------------------
     case TPC_END:
     // im Editmode einfach uebergehen
-    // printf(" End - mode=%d",ED_query_mode());
+    // printf(" End - mode=%d",AP_mode__);
 
-    if(ED_query_mode() == ED_mode_enter) goto Fertig;
-
-
+    if(AP_mode__ == AP_mode_enter) goto Fertig;
 
     // hierher kommt nur der CALL/WORK - Mode !
-
 
     // MAC oder GEO unterscheiden  (G od M)
     if(UP_act_typ == 'G') goto Do_END_GEO;
@@ -5130,7 +5147,7 @@ Ablauf Makro:
 
 
     // im Editmode nix tun, sonst ja
-    // if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    // if(AP_mode__ == AP_mode_enter) goto Fertig;
 
 
 
@@ -5289,7 +5306,7 @@ Ablauf Makro:
   } else if (!strcmp (cmd, "JUMP")) {
 
     // im Editmode nix tun; sonst ja.
-    if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    if(AP_mode__ == AP_mode_enter) goto Fertig;
 
     // Jump-Label merken
     strcpy (APT_label, *data);
@@ -5313,8 +5330,8 @@ Ablauf Makro:
   } else if (!strcmp (cmd, "MAC")) {
 
     // im Editmode und im STEP-Mode schon was tun
-    i1 = ED_query_mode();
-    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+    i1 = AP_mode__;
+    if((i1 == AP_mode_enter)||(i1 == AP_mode_step)) goto Fertig;
 
     rc = PrgMod_skip_until_macend;
     UP_act_typ = 'M';
@@ -5329,8 +5346,8 @@ Ablauf Makro:
   } else if (!strcmp (cmd, "GEO")) {
 
     // im Editmode und im STEP-Mode schon was tun
-    i1 = ED_query_mode();
-    if((i1 == ED_mode_enter)||(i1 == ED_mode_step)) goto Fertig;
+    i1 = AP_mode__;
+    if((i1 == AP_mode_enter)||(i1 == AP_mode_step)) goto Fertig;
 
     rc = PrgMod_skip_until_macend;
     UP_act_typ = 'G';
@@ -5345,9 +5362,9 @@ Ablauf Makro:
   } else if (!strcmp (cmd, "END")) {
 
     // im Editmode einfach uebergehen
-    // printf(" End - mode=%d",ED_query_mode());
+    // printf(" End - mode=%d",AP_mode__);
 
-    if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    if(AP_mode__ == AP_mode_enter) goto Fertig;
 
 
 
@@ -5831,7 +5848,7 @@ Ablauf Makro:
 //     ProgAblauf beginnt wieder in Zeile 1.
 
     // im Editmode nix tun, sonst ja
-    // if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    // if(AP_mode__ == AP_mode_enter) goto Fertig;
 
 
 //    // check for catalog-call (Typ_cmdNCsub T_CTLG)
@@ -5937,7 +5954,7 @@ Ablauf Makro:
 
 
     // // im Editmode nix tun, sonst ja
-    // if(ED_query_mode() == ED_mode_enter) goto Fertig;
+    // if(AP_mode__ == AP_mode_enter) goto Fertig;
 
 
     // "WORK P#"
@@ -7132,10 +7149,25 @@ Ablauf Makro:
 }
 
 
+//================================================================
+  int APT_get_line_act () {
+//================================================================
+// APT_get_line_act  return APT_line_act
+// returns lineNr of calling main
+
+  return APT_line_act;
+
+}
+
+
 //======================================================================
   int APT_UP_get () {
 //======================================================================
 /// returns APT_line_act of calling line ..
+/// DO NOT USE - 
+
+  printf("APT_UP_get UP_level=%d\n",UP_level);
+
 
   // if(UP_level >= 0) return UP_level_adr[UP_level] - 1;
   if(UP_level >= 0) return UP_level_adr[0] - 1;
@@ -9501,6 +9533,42 @@ dzt unused
 */
 
 
+//================================================================
+  int APT_dispNoGeo_ck () {
+//================================================================
+// APT_dispNoGeo_ck               test if not-geometric-object must be displayed
+// retCod   1=display-yes;    0=do-not-display
+// VWR:   0=do-not-display
+// CAD:   test APT_obj_stat, AP_mode__
+// MAN:   - automatic-run ("END")
+//
+//
+// was UI_disp_ck__
+
+
+  if(UI_InpMode == UI_MODE_VWR) return 0;
+
+  //----------------------------------------------------------------
+  if(UI_InpMode == UI_MODE_MAN) {
+    if(AP_mode__ == AP_mode_END) return 0;
+    goto L_OK;
+  }
+
+  //----------------------------------------------------------------
+  // UI_MODE_CAD
+    if(AP_mode__ == AP_mode_END) return 0;
+    if(!APT_obj_stat) return 0;              // 0=permanent, 1=temporary (workmode)
+
+      // (AP_src != AP_SRC_MEM) ||
+      // if(!SRCU_ck_act__()) {
+
+
+  L_OK:
+  return 1;
+
+}
+
+
 //===========================================================================
   void APT_disp_TxtA (int typ, Point* pt1, char* txt) {
 //===========================================================================
@@ -9553,13 +9621,14 @@ dzt unused
 
 
 //===========================================================================
-  int APT_DrawSymB (int iatt, long dbi, int symTyp, int att, Point* pt1) {
+  int APT_DrawSymB (int iatt, long dbi, int symTyp, Point* pt1) {
 //===========================================================================
 /// \code
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
 /// Input:
+///   iatt     color, see INF_COL_SYMB
 ///   symTyp   SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
-///   att      see INF_COL_SYMB
+//
 /// see also GL_DrawSymB
 /// \endcode
 
@@ -9581,7 +9650,7 @@ dzt unused
 
 
 //===========================================================================
-  int APT_disp_SymB (int symTyp, int att, Point* pt1) {
+  int APT_disp_SymB (int symTyp, int att, Point *pt1) {
 //===========================================================================
 /// \code
 /// APT_disp_SymB          disp temp bitmap symbols SYM_TRI_S SYM_STAR_S ..
@@ -9592,6 +9661,7 @@ dzt unused
 /// \endcode
 
   long    l1;
+  // Point   pt2;
 
   // DEB_dump_obj__ (Typ_PT, pt1, "APT_disp_SymB: ");
 
@@ -9721,8 +9791,8 @@ dzt unused
 
   if(APT_Stat_Draw == OFF) return;
 
-  printf("APT_disp_SymV3 typ=%d %f,%f,%f\n",typ,pt1->x,pt1->y,pt1->z);
-  DEB_dump_obj__ (Typ_VC, vc1, "  vc1:");
+  // printf("APT_disp_SymV3 typ=%d %f,%f,%f\n",typ,pt1->x,pt1->y,pt1->z);
+  // DEB_dump_obj__ (Typ_VC, vc1, "  vc1:");
 
   // Achtung! Als Attribut wird der Symboltyp gespeichert !!!
   // AP_dli_act = DL_StoreObj (Typ_SymV, (long)0, typ);
@@ -10247,7 +10317,7 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
 
   // // check if obj already exists
-  // AP_dli_act = DL_find_obj (Typ_CI, dbi);
+  // AP_dli_act = DL_dli__dbo (Typ_CI, dbi);
   // printf(" ex find_obj %d\n",AP_dli_act);
   // if(AP_dli_act < 0)
 
@@ -10825,31 +10895,35 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   // printf("APT_obj_ato typ=%d aus_anz=%d \n",typ,aus_anz);
   // ATO_dump__ (aus_obj);
 
+  irc = 0;
 
+
+  //----------------------------------------------------------------
   if(TYP_IS_GEOMPAR(typ)) {   // Typ_Val - Typ_Typ = all types of values
-    // Typ_Angle
-    if(typ == Typ_Angle) {
-      irc = APT_decode_ang (data, aus_anz, aus_typ, aus_tab);
-      goto L_exit;
-    }
+    // // Typ_Angle
+    // if(typ == Typ_Angle) {
+      // irc = APT_decode_angd__ (data, aus_anz, aus_typ, aus_tab);
+      // goto L_exit;
+    // }
 
     if(aus_typ[0] == Typ_Val)   {
       *((double*)data) = aus_tab[0];
-      irc = 0;
-    } else {
-      // TX_Print("APT_obj_expr E002 %d",typ); return -1;}
-      irc = APT_decode_var (data, aus_anz, aus_typ, aus_tab);
+      goto L_exit;
     }
 
-
-  } else if(typ == Typ_VAR) {  // 2013-03-15
+    if(typ == Typ_VAR) {  // 2013-03-15
       irc = APT_decode_var (data, aus_anz, aus_typ, aus_tab);
 
+    } else if(typ == Typ_XVal) {
+      irc = APT_decode_xyzval (data, aus_anz, aus_typ, aus_tab, &typ);
 
-  } else if(typ == Typ_Angle) {
-      irc = APT_decode_ang (data, aus_anz, aus_typ, aus_tab);
+    } else if(typ == Typ_Angle) {
+      irc = APT_decode_angd__ (data, aus_anz, aus_typ, aus_tab);
+
+    } else goto L_err1;
 
 
+  //----------------------------------------------------------------
   } else if(typ == Typ_PT) {
     irc = APT_decode_pt (data, aus_anz, aus_typ, aus_tab);
 
@@ -10922,24 +10996,29 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
       sprintf(data, "%d", i1);
         // printf(" Typ_Txt=|%s|\n",(char*)data);
       irc = 0;
-    } else {
-        printf("*************** APT_obj_ato I001\n");
-    }
+
+    } else goto L_err1;
 
 
 
-  } else {
+  } else goto L_err1;
+  // } else {
     // TX_Error("APT_obj_expr E001 %d",typ);
-    TX_Print("APT_obj_ato E001 %d",typ);
-    return -1;
-  }
 
+
+  //----------------------------------------------------------------
   L_exit:
 
-    // if(irc >= 0)
-    // DEB_dump_obj__ (typ, data, "ex APT_obj_ato - irc=%d",irc);
+    // if(irc >= 0) DEB_dump_obj__ (typ, data, "ex-APT_obj_ato - irc=%d",irc);
+    // else  printf(" ex-APT_obj_ato - irc=%d",irc);
 
   return irc;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+    TX_Print("APT_obj_ato E001 %d",typ);
+    return -1;
 
 }
 

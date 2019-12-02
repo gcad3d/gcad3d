@@ -66,7 +66,7 @@ echo "./do g2                 # display ut_geo3d.c"
 echo "./do g3                 # display ut_geo3d.c"
 echo "./do gmon               # analyze time"
 echo "./do edm                # edit model"
-echo "./do inf                # update infotext.c"
+echo "./do inf                # update DevDoc infotext.c"
 echo "./do msg-files          # tools for language-files: ls lang*.csh"
 echo "./do tmpClean1          # rm <tmpDir> CTRL* Mod*"
 echo "---------------------------------------------------------------------"
@@ -294,6 +294,7 @@ fi
 if test "$1" = "c"; then
   rm -f *.o
   make -f gcad3d.mak
+  make -f gcInfo.mak
   exit $?
 fi
 
@@ -376,7 +377,14 @@ if test "$1" = "edm"; then
 fi
 
 if test "$1" = "inf"; then
-  ctags -f ../tags/infotext.tag ../xa/infotext.c
+  make "SCR1=`ls ../inf/*.c`" -f inf_gcad3d.mak
+  exit 0
+fi
+
+
+if test "$1" = "msg-files"; then
+  echo "\nsee INF_MSG_new; functions:"
+  ls -1 lang*.csh
   exit 0
 fi
 

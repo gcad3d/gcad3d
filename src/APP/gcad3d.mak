@@ -200,7 +200,7 @@ srclst:
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
-	@echo ../xa/test*.c ../xa/tst*.c ../xa/infotext*.c >> srcFiles
+	@echo ../xa/test*.c ../xa/tst*.c ../inf/*.c >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../APP/Demo*.c >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles

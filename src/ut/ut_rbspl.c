@@ -126,7 +126,7 @@ List_functions_end:
   Memspc wrkSpc;
 
 
-  DEB_dump_obj__ (Typ_PT, pt, "UT3D_par_rbsp_pt:");
+  // DEB_dump_obj__ (Typ_PT, pt, "UT3D_par_rbsp_pt:");
 
 
   memSpc = MEM_alloc_tmp (TABSIZ2);
@@ -138,8 +138,7 @@ List_functions_end:
 
   *kv = va[0];
 
-    printf("ex par_rbsp_pt n=%d kv=%f\n",nip,va[0]);
-
+    // printf("ex par_rbsp_pt n=%d kv=%f\n",nip,va[0]);
 
   return 0;
 
@@ -156,7 +155,7 @@ List_functions_end:
   double pv, u1, u2, uTot, uMin, uMax;
 
 
-  printf("UT3D_par1_par_rbsp %f\n", *kv);
+  // printf("UT3D_par1_par_rbsp %f\n", *kv);
 
   u1 = cv1->v0;
   u2 = cv1->v1;
@@ -166,7 +165,7 @@ List_functions_end:
 
   uMin = cv1->kvTab[0];
   uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
-    printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
+    // printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
 
   if(u2 < u1) {
     // umax - u1 + u2 - umin
@@ -181,7 +180,7 @@ List_functions_end:
 
   if(cv1->dir) pv = 1. - pv;   // removed 2017-02-15
 
-    printf("ex _par1_par_rbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
+    // printf("ex _par1_par_rbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
 
   return (pv);
 
@@ -1769,7 +1768,7 @@ Returncodes:
 	Point  pg, pfd, pgd, pr;
 
 
-  printf("UT3D_vc_evparCrvRBSpl %f\n",t);
+  // printf("UT3D_vc_evparCrvRBSpl %f\n",t);
 
 
 	// evaluate g at t
@@ -1799,7 +1798,8 @@ Returncodes:
     return -1;
 	}	
 	
-  DEB_dump_obj__ (Typ_VC, tg, "ex UT3D_vc_evparCrvRBSpl:");
+    // DEB_dump_obj__ (Typ_VC, tg, "ex UT3D_vc_evparCrvRBSpl:");
+
 	return 0;
 }
 

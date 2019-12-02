@@ -225,6 +225,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 // for trimmed/punched surfs.
 // ACHTUNG: bei BSP-surfs (und RBP-surs ?) kommen keine Aussenkonturen;
 //   in diesem Fall ist (cTab[0].pa == NULL) !!
+// TODO: make line trough contour, but do do not cross boundaries/holes.
 
 
   int    irc, i1, ii, cvMax, sTyp, pNr, pMax, rNr;
@@ -236,12 +237,14 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
   // printf("ssssssssssssssssssssssssssssssssssssssssssssssssssss \n");
-  // printf("GL_sSym_spl %d %d %d %d\n",cNr,ind,ox1->typ,ox1->form);
+  // printf("GL_sSym_spl %d %ld %d %d\n",cNr,ind,ox1->typ,ox1->form);
   // for(i1=0; i1<cNr; ++i1) {
     // if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
     // printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
     // GR_Disp_pTab (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
   // }
+  // return 0;
+
 
 
   if(TSU_mode != 0) return 0;  // tessel -> mem: nothing to do.
@@ -294,11 +297,12 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   oo.form = Typ_ObjGX;
   oo.siz  = ii;
   oo.data = cvTab;
+    // DEB_dump_ox_0 (&oo, "sSym_spl-1 dbi=%ld:",ind);
 
 
   dli = DL_StoreObj (Typ_SUR, ind, att);
 
-  GL_Draw_obj (&dli, Typ_Att_dash_long, &oo);
+  GL_Draw_obj (&dli, Typ_Att_hili, &oo);
 
   AP_dli_act = dli;
 

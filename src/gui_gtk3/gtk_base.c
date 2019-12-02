@@ -62,8 +62,9 @@ GUI_spc_v              vertical (free) space
 GUI_spc__              horiz.|vertical (free) space
 
 GUI_Tip                Tooltip (infotext for widget)
-GUI_cursor_set         set/change cursor
 GUI_key_set1           change uncommon keys
+
+GUI_cursor__
 
 GUI_hide__             hide object
 GUI_show__             show object
@@ -1977,9 +1978,12 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
                                   // NULL, NULL,
                                   // &i1);
 
-  gtk_get_current_event_state ((GdkModifierType*)&i1);
+  // gtk_get_current_event_state ((GdkModifierType*)&i1);
     // printf(" GUI_get_keys_mod %d\n",i1);
 
+  // get state of shift,ctrl,alt-keys
+  i1 = gdk_keymap_get_modifier_state
+         (gdk_keymap_get_for_display(gdk_display_get_default()));
 
 
   // shift=1, ctrl=4
@@ -2087,6 +2091,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   int         iNew;
   Obj_Unknown *go;
   void        *win;
+  GdkCursor   *cNxt;
 
 
   // printf("GUI_cursor__ %d\n",iCur);
@@ -2109,11 +2114,16 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
   if(gtk_widget_is_drawable (win) == FALSE) return 0;
 
-  gdk_window_set_cursor (gtk_widget_get_window(win),
-                         gdk_cursor_new (iNew));
+  cNxt = gdk_cursor_new_for_display (gdk_display_get_default(), iNew);
+  // gdk_display_get_default()
+
+  // gdk_window_set_cursor (gtk_widget_get_window(win), gdk_cursor_new (iNew));
+  gdk_window_set_cursor (gtk_widget_get_window(win), cNxt);
+
 
   // gdk_flush();
   // gdk_display_sync (gdk_display_get_default ());
+  // GUI_update__ ();
 
 
   return 0;

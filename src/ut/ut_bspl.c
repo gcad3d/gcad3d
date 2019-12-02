@@ -105,12 +105,15 @@ bspl_eval_Tg               Evaluate a tangent on a B-spline.
 UT3D_pt_projptbsp_ext      lineare extrapolation
 bspl_eval_expPt            lineare extrapolation
 
+
+UT3D_test_bsp1             test 1 bspl
+UT3D_testbsplbez           B-spline curve segments <--> Bezier curves
+
 List_functions_end:
 =====================================================
 UNUSED
 // UT3D_cbsp_parl_pln         Bspl-Curv parallel to Bspl-Curv on plane, dist
 - test functions:
-UT3D_testbsplbez           B-spline curve segments <--> Bezier curves
 - see also:
 ../ut/ubscrv.c
 
@@ -1904,7 +1907,7 @@ once again, with U/V changed.
 
   Point   *pa;
 
-  DEB_dump_obj__ (Typ_VC, vz, "UT3D_bsp_ck_planar");
+  // DEB_dump_obj__ (Typ_VC, vz, "UT3D_bsp_ck_planar");
   
   pa = cv1->cpTab;
 
@@ -2434,8 +2437,8 @@ Returncode:
   Point2  *pa2;
   Point   *pa3;
 
-  DEB_dump_obj__ (Typ_CVBSP, cvi, "UT2D_bsp_tra_bsp3_rsys");
-  DEB_dump_obj__ (Typ_Memspc, mSpc, " mSpc");
+  // DEB_dump_obj__ (Typ_CVBSP, cvi, "UT2D_bsp_tra_bsp3_rsys");
+  // DEB_dump_obj__ (Typ_Memspc, mSpc, " mSpc");
 
   pNr = cvi->ptNr;
   pa3 = cvi->cpTab;
@@ -2455,7 +2458,7 @@ Returncode:
   // replace points
   cvo->cpTab = pa2;
 
-    DEB_dump_obj__ (Typ_CVBSP2, cvo, "ex-UT2D_bsp_tra_bsp3_rsys");
+    // DEB_dump_obj__ (Typ_CVBSP2, cvo, "ex-UT2D_bsp_tra_bsp3_rsys");
     
   return 0;
     
@@ -2475,8 +2478,8 @@ Returncode:
   Point2  *pa2;
   Point   *pa3;
     
-  DEB_dump_obj__ (Typ_CVBSP2, cvi, "UT3D_bsp_tra_bsp2_rsys");
-  DEB_dump_obj__ (Typ_Memspc, mSpc, " mSpc");
+  // DEB_dump_obj__ (Typ_CVBSP2, cvi, "UT3D_bsp_tra_bsp2_rsys");
+  // DEB_dump_obj__ (Typ_Memspc, mSpc, " mSpc");
     
   pNr = cvi->ptNr;
   pa2 = cvi->cpTab;
@@ -2497,7 +2500,7 @@ Returncode:
   // replace points
   cvo->cpTab = pa3;
 
-    DEB_dump_obj__ (Typ_CVBSP, cvo, "ex-UT3D_bsp_tra_bsp2_rsys");
+    // DEB_dump_obj__ (Typ_CVBSP, cvo, "ex-UT3D_bsp_tra_bsp2_rsys");
 
   return 0;
 
@@ -2904,6 +2907,10 @@ Returncodes:
   
   double kv, u1, u2, uTot, uMin, uMax;
 
+
+  // printf("UT3D_parbsp_par1 %f\n",pv);
+
+
   u1 = cv1->v0;
   u2 = cv1->v1;
 
@@ -2922,13 +2929,15 @@ Returncodes:
   } else {
     uTot = u2 - u1;
   }
+    // printf(" parbsp_par1-uTot=%f\n",uTot);
+
 
   kv = u1 + (uTot * pv);
   // only if curve is closed:
   if(!UT3D_bsp_ck_closed__(cv1))
     if(kv > uMax) kv = kv - uMax + uMin;
 
-  // printf("UT3D_parbsp_par1 kv=%f pv=%f uTot=%f\n",kv,pv,uTot);
+    // printf("ex-UT3D_parbsp_par1 kv=%f pv=%f uTot=%f\n",kv,pv,uTot);
 
   return (kv);
 
@@ -5028,6 +5037,7 @@ GOBACK:
 //================================================================
   int UT2D_pt_evpar_cbsp (Point2 *pto, CurvBSpl2 *cv, double u) {
 //================================================================
+// UT2D_pt_evpar_cbsp         point from knotValue
 
   int     rc, d, n, m, r, s;
   int     i1, i2, ih, jh, n1;
@@ -5450,6 +5460,48 @@ GOBACK:
 // Liste_TESTFUNKTIONEN:
 //================================================================
 //================================================================
+
+/*
+//================================================================
+  int UT3D_test_bsp1 () {
+//================================================================
+
+  int       irc, typ1;
+  double    d1, d2, d3, dx;
+  Point     pt1, pt2;
+  void      *vp1;
+  char      oSpc[OBJ_SIZ_MAX];
+
+
+  printf("UT3D_test_bsp1 ----------------------------\n");
+
+  irc = UTO_objDat_dbS (&vp1, &typ1, 32L, 4, 0, oSpc);  // CCV SEG 4 
+      DEB_dump_obj__ (typ1, vp1, " vp1");
+
+  // startpoint
+  UT3D_pt_3db (&pt1, 22.8, 4.2, 0);
+      DEB_dump_obj__ (Typ_PT, &pt1, " pt-start");
+
+  // get knotvalue d3 from point
+  UT3D_parCv_bsplpt (&d3, &dx, vp1, &pt1);
+    printf(" kv <- pt = %f\n",d3);
+
+  // get par1 d1 from knotvalue d3
+  d1 = UT3D_par1_parbsp (&d3, vp1);
+    printf(" kv=%f -> par1=%f\n",d3,d1);
+
+  // get knotvalue d2 from par1 d1
+  d2 = UT3D_parbsp_par1 (d1, vp1);
+    printf(" par1=%f -> kv=%f\n",d1,d2);
+
+  // get point pt2 from knotvalue d2
+  UT3D_pt_evalparCv (&pt2, vp1, d2);
+      DEB_dump_obj__ (Typ_PT, &pt2, " pt <- kv");
+
+  return 0;
+
+}
+*/
 
 /*
 

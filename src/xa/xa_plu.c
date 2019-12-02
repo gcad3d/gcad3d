@@ -291,7 +291,7 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
 
   // get DL-record from dispListIndex dli
-  DL_get_dla (&dla, dli);
+  DL_dlRec__dli (&dla, dli);
 
 
   if(UI_User_appNamTab) { // display user-defined name of application-object

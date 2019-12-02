@@ -54,6 +54,7 @@ Korr:
 
   char*  OS_get_dir_pwd   ();
 
+  int    OS_filnam_eval (char *fno, char *fni, int fnoSiz);
   int    OS_file_copy (char *fnOld, char *fnNew);
   int    OS_file_rename (char *fnOld, char *fnNew);
   int    OS_file_delete (char *fNam);

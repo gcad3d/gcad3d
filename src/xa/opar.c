@@ -128,7 +128,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
     // sourceline not defined ..
     if(!oPar->lnr) {
       // lineNr not defined; get it ..
-      oPar->lnr = DL_find_obj (oPar->typ, oPar->dbi, -1L);
+      oPar->lnr = DL_dli__dbo (oPar->typ, oPar->dbi, -1L);
     }
 
     // get sourceline
@@ -183,9 +183,9 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
   // Connection-lines in contours do not have DB-records (dbi=0).
   if(!dbi) return 1;
   
-  cTyp = AP_typ_2_bastyp(typ);
+  cTyp = AP_typDB_typ(typ);
 
-  // if(AP_typ_2_bastyp(typ) != Typ_CV) return 0;
+  // if(AP_typDB_typ(typ) != Typ_CV) return 0;
 
   // get curve
   form = DB_GetObjDat (&data, &oNr, cTyp, dbi);
@@ -295,7 +295,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
   // OPAR_dump ();
 
 
-  cldTyp = AP_typ_2_bastyp (cldTyp);
+  cldTyp = AP_typDB_typ (cldTyp);
 
   pTab = ParTab.data;
   for(i1=0; i1 < ParTab.rNr; ++i1) {

@@ -409,7 +409,7 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 /// \endcode
 
   int   irc;
-  char  s1[256];
+  char  s1[256], *p1;
 
 
   // printf("GUI_file_cb_dirsym2 %d\n",GUI_DATA_EVENT);
@@ -423,8 +423,16 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 
 
 
-    // test if directory <GUI_DATA_S4> exists  2015-08-29
-    irc = OS_checkFilExist (GUI_DATA_S4, 1);
+    // test if absDir has "$"
+    strcpy (s1, GUI_DATA_S4);
+    p1 = strchr (s1, '$');
+    if(p1) {
+      // expand shell variables
+      OS_filnam_eval (s1, s1, sizeof(s1));
+    }
+
+    // test if directory <s1> exists  2015-08-29
+    irc = OS_checkFilExist (s1, 1);
     if(!irc) {
       // delete ListWindow
       GUI_list1_dlg_del ();
@@ -440,10 +448,9 @@ GtkWidget* GUI_file_get () { return UI_FileWin; }
 
 
     // set new directory
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (UI_FileWin), s1);
     sprintf (s1, " sym.dir %s", GUI_DATA_S3);
     gtk_window_set_title (GTK_WINDOW (UI_FileWin), s1);
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (UI_FileWin),
-                                         GUI_DATA_S4);
     
     // delete ListWindow
     GUI_list1_dlg_del ();

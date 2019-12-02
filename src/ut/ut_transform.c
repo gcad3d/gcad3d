@@ -49,7 +49,7 @@ UTRA_nobj_tra           apply transf. to ObjGX-Table
 UTRA_app_dbo            transform DB-object (typ,DB-ind) and store in DB
 UTRA_app_out            apply transformation, copy into outputspace
 UTRA_app__              apply transformation, 
-UTRA_app_obj              apply Transformation to struct; NOT object.
+UTRA_app_obj            apply Transformation to struct; NOT object.
 UTRA_app_ox             apply Transformation to complex-obj
 UTRA_app_pt             apply all defined Transformations to a point
 UTRA_app_pt2            apply all defined Transformations to a 2D-point
@@ -65,7 +65,12 @@ UTRA_tra_cbsp
 UTRA_tra_plg
 UTRA_tra_pln            transform refSys
 
+UTRA_UCS_WCS_VC         transfer vector from WCS into UCS
+UTRA_UCS_WCS_PT         transfer point from WCS into UCS
 UTRA_pt_wcs2ucs         transform point absolut to constructionPlane
+
+UTRA_WCS_UCS_VC         transfer vector from UCS into WCS
+UTRA_WCS_UCS_PT         transfer point from UCS into WCS
 UTRA_pt_ucs2wcs         transform point constructionPlane to absolut
 
 UT3D_m3_multm3          der Nutzen ist unbekannt ....
@@ -280,9 +285,8 @@ int UTRA_app_vc (Vector*, Vector*);
   fTyp = UTO_ck_dbsTyp (ox1->form);  // 0=struct(D,P,L,C); 1=oGX(S,N,A,B);
      // printf(" fTyp=%d\n",fTyp);
 
-
   if(!fTyp) {
-    // std-struct; D P L C ..
+    // std-struct; VPDLCRMI not SABNT
 
     // get obj-spc in wrkSpc
     l1 = OBJ_SIZ_MAX;
@@ -296,6 +300,7 @@ int UTRA_app_vc (Vector*, Vector*);
     OGX_SET_OBJ (ox2, ox1->typ, ox1->form, ox1->siz, poo);
 
   } else {
+    // struct; SABNT not VPDLCRMI
     // 1=already ObjGX
     irc = UTRA_app__ (ox2, ox1->typ, ox1->form, ox1->siz, ox1->data, wrkSpc);
   }
@@ -679,15 +684,14 @@ WC_sur_mat WC_sur_imat
 ///   typ   exact type of curve or surf
 /// \endcode
 
-  int     irc, sizSpc, oNr, oTyp, fTyp, sTyp, form;
+  int     irc, i1, oNr, oTyp, fTyp, sTyp, form;
   long    oSiz;
   void    *opo, *opi, *mSpc, *vp1;
-  char    tmpSpc[OBJ_SIZ_MAX];
+  // char    tmpSpc[OBJ_SIZ_MAX];
   ObjGX   ox2;
 
 
-  // printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n");
-  // printf("UTRA_app_dbo typ=%d dbi=%ld\n",*typ,*dbi);
+  // printf("DDDDDDDDDDDDDDDDDDDDDDDDDDDD UTRA_app_dbo typ=%d dbi=%ld\n",*typ,*dbi);
   // DBO_dump__ (*typ,*dbi);
 
 
@@ -697,58 +701,45 @@ WC_sur_mat WC_sur_imat
   // get a ObjGX of the obj to transform
   ox2 = DB_GetObjGX (*typ, *dbi);
   if(ox2.typ == Typ_Error) return -1;
-    // DEB_dump_obj__ (Typ_ObjGX, &ox2, "ox2");
-    // DEB_dump_ox_s_  (&ox2, "UTRA_app_dbo-in");
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_ObjGX, &ox2, "pp_dbo-f-app__-ox2-IN");
+    // END TESTBLOCK
 
 
-  // transform curve|surf|sol (ObjGX)
-  // CV: returns the parent-record (ObjGX*) in tmpSpc !
-  fTyp = UTRA_app__ (tmpSpc, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
-  if(fTyp < 0) return fTyp;
-    // if(fTyp) DEB_dump_ox_0 (tmpSpc, "ex UTRA_app__");
-    // else     DEB_dump_obj__ (ox2.form, tmpSpc, "ex UTRA_app__");
+  // get the space for the transformed objects 
+  oSiz = UTO_siz_stru(ox2.form);
+  opo = (void *) MEM_alloc_tmp (oSiz * ox2.siz);
 
 
+  // get type of struct 0=VPDLCRMI, 1=SABNT (UTO_ck_dbsTyp)
+  // fTyp = UTO_ck_dbsTyp (ox2.form);
+    // printf(" app_dbo-oSiz=%ld fTyp=%d\n",oSiz,fTyp);
 
 
-/*
-      // TEST ONLY
-  fTyp = UTO_ck_dbsTyp (ox2.form);  // 0=struct(D,P,L,C); 1=oGX(S,A,B);
-      printf(" fTyp=%d\n",fTyp);
-      if(!fTyp) {
-        vp1 = tmpSpc;
-        oNr = 1;
-          DEB_dump_obj__ (ox2.form, tmpSpc, "APT_tra_obj-out:");
-      } else {
-        vp1 = ((ObjGX*)tmpSpc)->data;
-        oNr = ((ObjGX*)tmpSpc)->siz;
-          DEB_dump_ox_s_  (tmpSpc, "APT_tra_obj-out:");
-          DEB_dump_ox_0 (tmpSpc, "APT_tra_obj-out:");
-      }
-      // END TEST ONLY
-*/
+  //----------------------------------------------------------------
+  irc = UTRA_app__ (opo, ox2.typ, ox2.form, ox2.siz, ox2.data, wrkSpc);
+  if(irc < 0) return irc;
+
+    // TESTBLOCK
+    // vp1 = opo;
+    // for(i1=0;i1<ox2.siz;++i1) {
+    // DEB_dump_obj__ (ox2.form, opo, "pp_dbo-f-UTRA_app__-tmpSpc-cpx[%d]",i1);
+    // vp1 = (char*)vp1 + oSiz; }
+    // END TESTBLOCK
 
 
-    // save the complete obj in DB
-    *dbi = -1L;
+  //----------------------------------------------------------------
+  *dbi = -1L;
+  irc = DB_store_stru (&vp1, ox2.typ, ox2.form, opo, ox2.siz, dbi);
+  if(irc < 0) return irc;
 
-    // if(fTyp == 0) {                // 2016-06-08 sample_dil2.gcad
-    // if(ox2.form == Typ_ObjGX) {
-      // simple structs;
-      vp1 = tmpSpc;
-    // } else {
-      // // complex (Curves, surfs, bodies
-      // vp1 = ((ObjGX*)tmpSpc)->data;
-    // }
-    irc = DB_store_stru (&vp1, ox2.typ, ox2.form, vp1, ox2.siz, dbi);
-    if(irc < 0) return irc;
+  // restore wrkSpc
+  UME_set_next (mSpc, wrkSpc);
 
-    // restore wrkSpc
-    UME_set_next (mSpc, wrkSpc);
+    // printf("ddddddddddddd ex-UTRA_app_dbo irc=%d typ=%d dbi=%ld\n",irc,*typ,*dbi);
 
-      // printf("<<<<<<<<<<<<<<<< exit UTRA_app_dbo irc=%d dbi=%ld\n",irc,*dbi);
-
-    return 0;
+  return 0;
 
 }
 
@@ -756,8 +747,8 @@ WC_sur_mat WC_sur_imat
 //================================================================
   int UTRA_app_CCV (CurvCCV *objo, CurvCCV *obji, Memspc *wrkSpc) {
 //================================================================
-/// UTRA_app_CCV          transform CCV
-/// objo  outputobj (a single CurvCCV)
+/// UTRA_app_CCV          transform a single CCV
+/// objo     outputobj (a single CurvCCV)
 /// wrkSpc   for additional data, eg pTab for Polygon
 
 
@@ -766,7 +757,7 @@ WC_sur_mat WC_sur_imat
   Point  pt1;
 
 
-  // printf("UTRA_app_CCV \n");
+  // DEB_dump_obj__ (Typ_CVTRM, obji, "UTRA_app_CCV-obji:");
 
 
   memcpy(objo, obji, sizeof(CurvCCV));
@@ -778,6 +769,7 @@ WC_sur_mat WC_sur_imat
 
 
   if(obji->dbi) {
+    // lines do not have dbi (basic-curve)
     typ = obji->typ;
     // transform DB-obj & store in DB
     irc = UTRA_app_dbo (&objo->dbi, &typ, wrkSpc);
@@ -806,6 +798,7 @@ WC_sur_mat WC_sur_imat
   // reset stat (no PRCV yet)
   objo->stat = 0;
 
+    // printf("cccccccccccccc ex-UTRA_app_CCV\n"); fflush (stdout);
 
   return 0;
 
@@ -818,42 +811,51 @@ WC_sur_mat WC_sur_imat
 //===========================================================================
 /// UTRA_app_out            apply transformation, copy into outputspace
 /// Input:
+///   objo       space for transformed objs - size must be (size-of-oform * iNr)
 ///   otyp       is the type of struct of obji
 ///   oform      type of obji
 ///   obji       struct-type of obji
 ///   iNr        nr of structs in obji
 /// Output:
 ///   objo       struct of type otyp/oform, data in wrkSpc
-///              size: same as obji or OBJ_SIZ_MAX bytes
-///              SABNT: returns parent-record (ObjGX)
-///   RetCod     type of struct (0|1) from UTO_ck_dbsTyp
-
-  int     irc, i1, fTyp, ls;
-  char    oo[OBJ_SIZ_MAX];
-  void    *poo = oo;
+///   RetCod     0=OK, -1=error
 
 
-  // printf("UTRA_app__ otyp=%d oform=%d iNr=%d\n",otyp,oform,iNr);
+  int     irc, i1, ls;
+  void    *pooo, *poi;
 
 
+  // printf("AAAAAAAAAAAAAAAAAAA UTRA_app__ otyp=%d oform=%d iNr=%d\n",otyp,oform,iNr);
+
+  ls = UTO_siz_stru(oform);
+
+  pooo = objo;
 
   for(i1=0; i1<iNr; ++i1) {
-    // transform (UTRA_app_obj)
-    // transform
-    irc = UTRA_app_obj (&poo, oform, 1, obji, wrkSpc);
+      // DEB_dump_obj__ (oform, obji, "UTRA_app__-obji[%d] ::::::::::::\n",i1);
+    // transform (UTRA_app_obj); returns a pointer into wrkSpc
+    irc = UTRA_app_obj (&poi, oform, 1, obji, wrkSpc);
     if(irc < 0) return irc;
 
+      // TESTBLOCK
+      // DEB_dump_obj__ (oform, poi, "after-UTRA_app_obj i1=%d",i1);
       // END TESTBLOCK
-      // DEB_dump_obj__ (oform, poo, "after-UTRA_app_obj");
-      // END TESTBLOCK
 
+    // copy  from wrkSpc -> objo
+    memcpy (pooo, poi, ls);
 
-    ls = UTO_siz_stru(oform);
-    memcpy (objo, poo, ls);
-
-    objo = (char*)objo + ls;
+    pooo = (char*)pooo + ls;
     obji = (char*)obji + ls;
   }
+
+
+    // TESTBLOCK
+    // pooo = objo;
+    // for(i1=0; i1<iNr; ++i1) {
+      // DEB_dump_obj__ (oform, pooo, "after-UTRA_app_obj [%d]",i1);
+      // pooo = (char*)pooo + ls;}
+    // printf("aaaaaaaaaaa ex-UTRA_app__ otyp=%d oform=%d iNr=%d\n",otyp,oform,iNr);
+    // END TESTBLOCK
 
 
   return 0;
@@ -866,8 +868,9 @@ WC_sur_mat WC_sur_imat
 //============================================================================
 /// \code
 /// apply Transformation to struct; NOT object. 
-/// init Transformation with UTRA_def__
-/// the memspace for the output-object poo is in wrkSpc
+/// init Transformation before with UTRA_def__
+/// returns pointer to the transformed object,
+///   the memspace for the output-object poo is reserved in wrkSpc
 ///  
 /// Input:
 ///   otyp     form of obji;
@@ -875,7 +878,7 @@ WC_sur_mat WC_sur_imat
 ///   iNr      nr of structs to transform (obji has <iNr> structs of typ <otyp>)
 ///   wrkSpc   memspc for data
 /// Output:
-///   poo      obj with new coordinates; obj-typ=otyp; spc in wrkSpc 
+///   poo      pointer to obj with new coordinates; obj-typ=otyp; spc in wrkSpc 
 ///   RetCod   0=OK; -1=EOM
 ///
 /// see UTO_obj_tra_obj_m3 oder UTO_ox_tra
@@ -885,7 +888,7 @@ WC_sur_mat WC_sur_imat
 // see also UTRA_obj_abs2rel__
 
 
-  int       irc, i1, i2, i3, i4, typ, iForm, iSiz, rSiz;
+  int       irc, i1, i2, i3, i4, typ, dbTyp, iForm, iSiz, rSiz;
   long      l1, dbi, oldSiz;
   char      *pi, *po, *po1, *pw;
   Point     *pa1, *pa2, p1;
@@ -893,8 +896,7 @@ WC_sur_mat WC_sur_imat
   ObjGX     *ox1, *ox2, *oxi, *oxo;
 
 
-  // printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \n");
-  // printf("UTRA_app_obj otyp=%d iNr=%d\n",otyp,iNr);
+  // printf("UUUUUUUUUUUUUUUUUUUUUUUUUUU UTRA_app_obj otyp=%d iNr=%d\n",otyp,iNr);
   // UME_dump (wrkSpc, "wrkSpc:");
   // DEB_dump_obj__ (otyp, obji, "obji:");
     // geht ned ... DEB_dump_ox_0 (obji, "UTRA_app__");
@@ -1098,8 +1100,9 @@ WC_sur_mat WC_sur_imat
       // if(*oSiz < 0) goto L_EOM;
       // UTRA_tra_? (objo, obji);
       // break;
+
 /*
-  } else if(typ == Typ_CVPSP3) {
+    else if(typ == Typ_CVPSP3) {
     pola = cvi->data;
 
     UT3D_pt_tra_pt_m3 (&pt0, trmat, &UT3D_PT_NUL);
@@ -1148,12 +1151,10 @@ WC_sur_mat WC_sur_imat
     //================================================================
     case Typ_CVTRM:
       // must provide space for poo in wrkSpc
-      if(!UME_reserve(wrkSpc,sizeof(CurvCCV) * iNr) < 0) goto L_EOM; // 2015-06-11
+      if(!UME_reserve(wrkSpc,sizeof(CurvCCV) * iNr) < 0) goto L_EOM;
         // printf(" copy CVCCV\n");
 
       L_CCV_nxt:
-      // *oSiz -= sizeof(CurvCCV);
-      // if(*oSiz < 0) goto L_EOM;
       UTRA_app_CCV (objo, obji, wrkSpc);
       if(iNr > 1) {
         --iNr;
@@ -1161,7 +1162,7 @@ WC_sur_mat WC_sur_imat
         obji = (char*)obji + sizeof(CurvCCV);
         goto L_CCV_nxt;
       }
-        // printf("ex-app-CCV\n");
+        // printf("  app_dbo-f-app-CCV\n");
       break;
 
 
@@ -1318,33 +1319,21 @@ WC_sur_mat WC_sur_imat
       break;
 
 
-/*
-    //================================================================
-    case Typ_Index:  // this is a ObjGX
-      // must return a objGX with dbi=dynamic-obj of DB-object
-        DEB_dump_obj__ (Typ_ObjGX, obji, "tr-Ind:");
-      memcpy (objo, obji, sizeof(ObjGX));
-      OGX_GET_INDEX (&typ, &dbi, (ObjGX*)obji);
-      irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
-      OGX_SET_INDEX ((ObjGX*)objo, typ, dbi);
-// TODO:
-// exit(0);
-      break;
-*/
-
     //================================================================
     case Typ_ObjGX:
-     // typ = AP_typ_2_bastyp (otyp);
     case Typ_CV:
     case Typ_SURRU:
+        // printf(" app_obj-ObjGX(CV/SURRU\n");
+        // fflush (stdout);
+
+      ox1 = (ObjGX*)obji;
+      oxo = (ObjGX*)objo;
+
 
       // get space
       if(UME_add (wrkSpc, sizeof(ObjGX) * iNr) < 0) goto L_EOM;
       // copy all records
       memcpy (objo, obji, sizeof(ObjGX) * iNr);
-
-      ox1 = (ObjGX*)obji;
-      oxo = (ObjGX*)objo;
 
          // TESTBLOCK
          // printf(" otyp=%d iNr=%d\n",otyp,iNr);
@@ -1358,24 +1347,26 @@ WC_sur_mat WC_sur_imat
         // UTRA_app__ cannot get typ&form&data; resolv links now !
         oxi = &((ObjGX*)obji)[i1];
           // DEB_dump_obj__ (Typ_ObjGX, &ox1[i1], "ox-tra[%d]",i1);
-        if(oxi->typ == Typ_Typ) continue;
+        if(oxi->typ == Typ_Typ) continue;    // already copied
+
         if(oxi->form == Typ_Index) {
-          OGX_GET_INDEX (&typ, &dbi, oxi);
+          OGX_GET_INDEX (&dbTyp, &dbi, oxi);
           // skip V,D
-          if((typ == Typ_VC)    ||
-             (typ == Typ_VAR))        continue;
+          if((dbTyp == Typ_VC)    ||
+             (dbTyp == Typ_VAR))        continue;
           // transform DB-object (typ,DB-ind) and store in DB
-          irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
+          irc = UTRA_app_dbo (&dbi, &dbTyp, wrkSpc);
           if(irc < 0) goto L_EOM;
           // store new dbi in objo
-          OGX_SET_INDEX (&oxo[i1], typ, dbi);
+          OGX_SET_INDEX (&oxo[i1], dbTyp, dbi);
           continue;
         }
           // printf(" _APP_X ObjGX typ=%d ??????????????????\n",oxi->form);
-        // point (eg for RCIR):
+        // point (eg for RCIR):  recurse ..
         UTRA_app_obj ((void**)&ox2, oxi->form, oxi->siz, oxi->data, wrkSpc);
-        oxo = &((ObjGX*)objo)[i1];
-        oxo->data = ox2;
+        // oxo = &((ObjGX*)objo)[i1];
+        // oxo->data = ox2;
+        oxo[i1].data = ox2;
           // DEB_dump_obj__ (Typ_ObjGX, oxo, "obj-tra[%d]",i1);
       }
         // printf("ex-app-ox\n");
@@ -1389,6 +1380,7 @@ WC_sur_mat WC_sur_imat
   }
 
 
+    // printf("uuuuuuuuuuuuuuuu ex-UTRA_app_obj %d \n",irc); fflush (stdout);
     // if(!irc)DEB_dump_obj__ (otyp, objo, "ex UTRA_app__");
     // // if(!irc)GR_Disp_obj (otyp, objo, 8, 4);
     // printf("ex UTRA_app_obj irc=%d aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",irc);
@@ -1400,8 +1392,9 @@ WC_sur_mat WC_sur_imat
   //----------------------------------------------------------------
   L_copy:
     // copy iNr records of size rSiz
-    if(iNr < 2) memcpy (objo, obji, rSiz);
-    else {
+    if(iNr < 2) {
+      memcpy (objo, obji, rSiz);
+    } else {
       for(i1=0; i1 < iNr; ++i1) {
         memcpy (objo, obji, rSiz);
         objo = ((char*)objo + rSiz);
@@ -1842,8 +1835,8 @@ WC_sur_mat WC_sur_imat
 
     int           i, zeile, spalte, i1;
 
-  DEB_dump_obj__ (Typ_M4x3, ma, "mult: ma\n");
-  DEB_dump_obj__ (Typ_M4x3, mb, "mult: mb\n");
+  // DEB_dump_obj__ (Typ_M4x3, ma, "mult: ma\n");
+  // DEB_dump_obj__ (Typ_M4x3, mb, "mult: mb\n");
 
 /*
   for( i=0; i<3; i++ ) {
@@ -1958,7 +1951,7 @@ WC_sur_mat WC_sur_imat
 
 
 
-  DEB_dump_obj__ (Typ_M4x3, m3, "mult: m3\n");
+  // DEB_dump_obj__ (Typ_M4x3, m3, "mult: m3\n");
 
 }
 
@@ -1976,8 +1969,9 @@ WC_sur_mat WC_sur_imat
 ///               else set o2 to spc of size>=OBJ_SIZ_MAX and ma=NULL
 /// \endcode
 
-  int      i1, i2;
+  int      i1, i2, irc;
   Point2   *p2a, *p2;
+  void     *bo;
 
 
   // printf("UTRA_obj2_obj3__ %d\n",typ3);
@@ -2036,8 +2030,23 @@ WC_sur_mat WC_sur_imat
       ((CurvBSpl2*)*o2)->cpTab = p2a;
       break;
 
+    case Typ_CVTRM:
+      // get std-obj from trimmed-curve
+      bo = UME_reserve (ma, OBJ_SIZ_MAX);
+      irc = UTO_cv_cvtrm (&typ3, bo, NULL, o3);
+      if(irc < 0) return -1;
+        // DEB_dump_obj__(typ3, bo, "  bo:");
+      // recurse
+      irc = UTRA_obj2_obj3__ (o2, typ2, bo, typ3, ma);
+      if(irc < 0) return -1;
+      break;
+
+
+
+
     default:
       TX_Error("UTRA_obj2_obj3__: Typ %d unsupported",typ3);
+        DEB_dump_obj__(typ3, o3, "  o3:");
       return -1;
   }
 
@@ -2234,8 +2243,8 @@ exit(0);
   double ao;
   Vector rx;
 
-  DEB_dump_obj__ (Typ_VC, vc1, "UTRA_inirot_2vc vc1");
-  DEB_dump_obj__ (Typ_VC, vc2, " vc2");
+  // DEB_dump_obj__ (Typ_VC, vc1, "UTRA_inirot_2vc vc1");
+  // DEB_dump_obj__ (Typ_VC, vc2, " vc2");
 
   // rotation-axis = crossprod vc1-vc2
   UT3D_vc_perp2vc (&rx, vc1, vc2);
@@ -2248,7 +2257,7 @@ exit(0);
 
   // ao = opening-angle vc1 to vc2
   ao = UT3D_angr_2vc__ (vc1, vc2) * -1.;
-    printf(" ao=%lf\n",ao);
+    // printf(" ao=%lf\n",ao);
 
   UT3D_vc_setLength (&rx, &rx, 1.);
   UTRA_inirot_pt_vc_angr (tra1, pto, &rx, ao);

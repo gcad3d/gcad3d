@@ -266,7 +266,7 @@ In Version vor 2001-05-04 erforderliche Korrekturen:
   int      tra_ind, apt_typ;
   long     apt_ind;
 
-  apt_typ = DL_GetTyp(gr_ind);
+  apt_typ = DL_dbTyp__dli(gr_ind);
   apt_ind = DL_get_dbi(gr_ind);
   tra_ind = DL_GetTrInd(gr_ind);
 
@@ -1662,8 +1662,7 @@ Vector     DB_vc0;
 ///               Typ_Error  (0)   obj unused
 ///               -1               UTO_objDat_ox - error
 /// 
-/// see UTO_objDat_dbo
-/// see also DB_GetObjGX UTO_objDat_ox ....
+/// see also UTO_objDat_dbo UTO_objDat_dbS UTO_objDat_ox DB_GetObjGX
 /// \endcode
 
 // OFFEN: replace UTO_objDat_dbo with DB_GetObjDat
@@ -1699,6 +1698,7 @@ Vector     DB_vc0;
 
   // get ObjGX of a object stored in DB
   ox1 = DB_GetObjGX (dbTyp, dbInd);
+  if(!ox1.typ) return -1;
 
   // get data-struct from ObjGX
   return UTO_objDat_ox (pDat,  oNr, &ox1);
@@ -3845,6 +3845,10 @@ int DB_del_Mod__ () {
   if(bmNr >= DYN_MB_IND) {
     TX_Print("DB_mdlNam_iBas E001");
     return NULL;
+
+  } else if(bmNr < 0) {
+    // mainModel active
+    return "-";
   }
 
   return mdb_dyn[bmNr].mnam;
@@ -7559,7 +7563,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 ///  -1 = obj undefined.
 /// \endcode
 
-// Achtung: typ muss Basistyp sein; see AP_typ_2_bastyp
+// Achtung: typ muss Basistyp sein; see AP_typDB_typ
 
   // printf("DB_QueryDef %d %d\n",typ,ind);
 
@@ -7808,10 +7812,8 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
     }
 
 
-  }
+  } else TX_Print("DB_QueryPrvUsed: objTyp %d not yet supported",typ);
 
-
-  TX_Print("DB_QueryPrvUsed: objTyp %d not yet supported",typ);
 
   return 0;
 
@@ -7859,11 +7861,8 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
     }
 
 
-  }
+  } else TX_Print("DB_QueryNxtUsed: objTyp %d not yet supported",typ);
 
-
-
-  TX_Print("DB_QueryNxtUsed: objTyp %d not yet supported",typ);
   return 0;
 
 }
@@ -8402,7 +8401,7 @@ long DB_QueryCurv (Point *pt1) {
   ++iflt;
   if(iflt >= fltNr) goto L_done;
   fltAct = &flt[iflt];
-  ityp = AP_typ_2_bastyp (fltAct->typ);
+  ityp = AP_typDB_typ (fltAct->typ);
   ii = fltAct->typ;
     // printf(" flt[%d] typ=%d ii=%d\n",iflt,fltAct->typ,ii);
 
@@ -8457,7 +8456,7 @@ long DB_QueryCurv (Point *pt1) {
   // printf("DB_QueryActiv %d %d\n",typ,ind);
   // DB_dump_Activ ();
 
-  typ = AP_typ_2_bastyp (typ);
+  typ = AP_typDB_typ (typ);
   // printf("DB_QueryActiv %d %d\n",typ,ind);
 
   for(i1=0; i1<APT_AC_SIZ; ++i1) {
@@ -8741,7 +8740,7 @@ long DB_QueryCurv (Point *pt1) {
   oxo->data   = cPos1;     // new address of oGX-Block
 
 
-  // i1 = AP_typ_2_bastyp (ox1->typ);
+  // i1 = AP_typDB_typ (ox1->typ);
   // if(i1 == Typ_CV)       *ind = DB_Store_hdr_cv (&oxo, *ind);
   // else if(i1 == Typ_SUR) *ind = DB_Store_hdr_su (&oxo, *ind);
   // *oxo = *ox1;    // copy obj
@@ -8797,7 +8796,7 @@ long DB_QueryCurv (Point *pt1) {
 
   // printf("--------------------- \n");
   // printf("DB_store_stru typ=%d form=%d ind=%ld iNr=%d\n",typ,form,*ind,iNr);
-  // DEB_dump_obj__ (form, os1, "DB_store_stru-"); not for ox !
+  // DEB_dump_obj__ (form, os1, "DB_store_stru-"); //not for ox !
 
 
 

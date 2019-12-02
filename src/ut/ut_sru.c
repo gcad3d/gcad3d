@@ -115,9 +115,9 @@ double SRU_parsru_utLn2 ();
     // get the parametric points on both baseCurves
     // create line from this points
     // 1. obj.
-      DEB_dump_obj__ (Typ_ObjGX, &oTab[0], "obj:\n");
+      // DEB_dump_obj__ (Typ_ObjGX, &oTab[0], "obj:\n");
     typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
-      DEB_dump_obj__ (typ1, dat1, "typ1=%d obj:\n",typ1);
+      // DEB_dump_obj__ (typ1, dat1, "typ1=%d obj:\n",typ1);
     UT3D_pt_evparcrv (&((Line*)objo)->p1, dp, typ1, dat1);
     // 2. obj.
     typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[1]);
@@ -140,7 +140,7 @@ double SRU_parsru_utLn2 ();
     if(objo == NULL) goto L_exit;
     // copy obj1
     i1 = UTO_siz_stru (*oTyp);
-      printf(" typ=%d siz=%d\n",oTab[0].form,i1);
+      // printf(" typ=%d siz=%d\n",oTab[0].form,i1);
     memcpy (objo, dat1, i1);
 
 
@@ -152,7 +152,7 @@ double SRU_parsru_utLn2 ();
     // SRU from obj & Vector:
     if(*oTyp == Typ_VC) {
       vc1 = *(Vector*)dat2;   // copy vector
-        DEB_dump_obj__ (Typ_VC, &vc1, "vc1:");
+        // DEB_dump_obj__ (Typ_VC, &vc1, "vc1:");
       // get obj1
       *oTyp = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
       if(objo == NULL) goto L_exit;
@@ -164,7 +164,7 @@ double SRU_parsru_utLn2 ();
     // copy obj2
     if(objo == NULL) goto L_exit;
     i1 = UTO_siz_stru (*oTyp);
-      printf(" typ=%d siz=%d\n",oTab[0].form,i1);
+      // printf(" typ=%d siz=%d\n",oTab[0].form,i1);
     memcpy (objo, dat2, i1);
 
 
@@ -177,7 +177,7 @@ double SRU_parsru_utLn2 ();
     typ2 = UTO_objDat_ox (&dat2, &i1, &oTab[1]);  // get data-struct
       // DEB_dump_obj__ (typ1, dat1, "dat1:\n");
       // DEB_dump_obj__ (typ2, dat2, "dat2:\n");
-      printf(" typ1=%d typ2=%d\n",typ1,typ2);
+      // printf(" typ1=%d typ2=%d\n",typ1,typ2);
 
 
     // obj & vector -> obj ..
@@ -265,7 +265,7 @@ double SRU_parsru_utLn2 ();
   L_exit:
 
     // GR_Disp_ost (objo, *oTyp, memSeg, 9);
-    printf(" ex SRU_CvIso_parsru %d\n",*oTyp);
+    // printf(" ex SRU_CvIso_parsru %d\n",*oTyp);
 
   return 0;
 
@@ -311,9 +311,9 @@ double SRU_parsru_utLn2 ();
   typ2 = UTO_objDat_ox (&od2, &rNr, &oa[io2]);
   // if(typ1 == Typ_CV) typ1 = UTO_objDat_ox (&od1, &oa[io1]);
   // if(typ2 == Typ_CV) typ2 = UTO_objDat_ox (&od2, &oa[io2]);
-    printf(" typ1=%d io1=%d typ2=%d io2=%d\n",typ1,io1,typ2,io2);
-    DEB_dump_obj__ (typ1, od1, "  od1:");
-    DEB_dump_obj__ (typ2, od2, "  od2:");
+    // printf(" typ1=%d io1=%d typ2=%d io2=%d\n",typ1,io1,typ2,io2);
+    // DEB_dump_obj__ (typ1, od1, "  od1:");
+    // DEB_dump_obj__ (typ2, od2, "  od2:");
 
 
   // get 2 polygons of datastructs od1, od2

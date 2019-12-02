@@ -19,7 +19,7 @@
 typedef struct   { Point pos;          // P: thisPoint; L,C,Curv: selectionPoint
                    Vector vx, vz;      // Vector: thisVector, Angle: vx,vz
                    double d1;          // Angle: angle.
-                   char subTyp[16];    // word 3 of .info
+                   char auxInf[16];    // word 3 of .info; eg "DD0"
                  } inpAuxDat;
 
 

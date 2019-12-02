@@ -16,7 +16,8 @@ Korr:
 #ifdef globTag
 void INF_ATT_CV (){}
 #endif
-// attributes for lines,curves
+// attributes for lines,curves;
+// for data see INF_COL_CV() or file ~/gCAD3D/cfg/ltyp.rc
 #define Typ_Att_def        0   // black
 #define Typ_Att_blue       1   // blue
 #define Typ_Att_dash__     2   // black dashed
@@ -25,7 +26,7 @@ void INF_ATT_CV (){}
 #define Typ_Att_dash_long  5   // blue thick2
 #define Typ_Att_Fac2       6   // gray
 #define Typ_Att_Symb       7   // yellow thick3
-#define Typ_Att_hili       8   // green thick3
+#define Typ_Att_hili       8   // green thick3 (symbolic surfs)
 #define Typ_Att_hili1      9   // red thick=3 
 #define Typ_Att_dim       10   // dimmed 1 (unlimited lines)
 #define Typ_Att_top1      11   // black thick4

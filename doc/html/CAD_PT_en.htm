@@ -2,151 +2,183 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>CAD_PT_de.htm</TITLE>
-	<meta name="generator" content="Bluefish 1.0.7">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Young">
-	<META NAME="CHANGED" CONTENT="20090920;9293800">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
+
+
+
 <A HREF="CAD_using_en.htm">See operating CAD manual</A>
 
 
-Points
+<h2>Points</h2>
 
-Points use the shortcut letter P (&quot;Point&quot;).
+Points use the identification letter P.
 
-See also:
-Codes points  
-Points from copy function
-
+See also: <a href="CAD_Base_en.htm#P">point codes</a>
+See also: <a href="CAD_Base_en.htm#fmt_dynamic-obj">dynamic points</a>
 
 
+<HR><!-- ============================================================ -->
 <p><a name="F0"></a></p>
  <h2>PT cartes</h2>
-Creating points
-  Absolute:
+Create point from cartesian coordinates.
+
+   [BasePoint]          optional - <a href="CAD_input_en.htm#_PT_">BasePoint</a>
+   [offset X-coord]     optional - set X-offset <a href="CAD_input_en.htm#_Val_">(value)</a>
+   [offset Y-coord]     optional - set Y-offset
+   [offset Z-coord]     optional - set Z-offset
+
+
+  BasePoint:
    - key coordinates into field BasePoint (eg &quot;10,10,0&quot;)
-   - indicate position (left mouse button)
-   - select object; the point and the parametric value for the selected
+   - or indicate position (left mouse button)
+   - or select object; the point and the parametric value for the selected
        position is generated
+
   Relative:
    - select the base point and put the values for the offset distance
-       into the fields DX/DY/DZ. 
-  Parametric:
-   - selecting a curve or surface creates a parametric point
+       into the fields "offset -"
+
 
  Example :
  Specifying an absolute 2D point.
-   P1 = P(10,20) 
+   P1 = P(10 20) 
  Specifying an absolute 3D point.
-   P2 = P(10,20,30) 
+   P2 = P(10 20 30) 
  Specifying a relative point (at a distance 10,10 from P2) 
-   P3 = P2, X(10), Y(10) 
+   P3 = P2 X(10) Y(10) 
 
 
 
+<HR><!-- ============================================================ -->
 <p><a name="F1"></a></p>
   <h2>PT polar</h2>
- Create polar or relative points.
+ Create points from polar coordinates
 
- P# = BasePoint, RotationAngle, [Tilt Angle,] Distance 
-   Base point
-   Angle:
-     The rotation axis is around the Z-axis of the active construction plane.
-     The second rotation (tilt) is normal to the Z-axis.
+   BasePoint       <a href="CAD_input_en.htm#_PT_">BasePoint</a>
+   Angle-Rot.      rotate around the Z-axis of the active construction plane <a href="CAD_input_en.htm#_Angle_">(angle);</a>
+   [Angle-Tilt]    rotate (tilt) normal to the Z-axis
+   Dist.           distance from BasePoint
+
 
  Example:
- P5 = P4, ANG(90), 25 
+ # P = BasePoint, RotationAngle, [Tilt Angle,] Distance 
+ P5 = P4 ANG(90) 25 
 
 
 
+<HR><!-- ============================================================ -->
 <p><a name="F2"></a></p>
+  <h2>PT rotate-Z</h2>
+ Rotate a Point around the Z-axis of the active construction plane
+
+   CenterPoint     rotate around this point an d the Z-axis
+   Point/Vector    set point to be rotated (select point or vector)
+   Angle-Rot.      rotate around the Z-axis of the active construction plane <a href="CAD_input_en.htm#_Angle_">(angle);</a>
+   [Angle-Tilt]    rotate (tilt) normal to the Z-axis
+   [Dist.]         distance from BasePoint
+
+
+ Example:
+ P3 = P1 P2 ANG(180) 
+ # P2 is turned 180 degrees around P1.
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="F3"></a></p>
+  <h2>PT rotate-axis</h2>
+ Rotate a Point around a axis
+
+   Point to rotate set point <a href="CAD_input_en.htm#_PT_">point</a> to be rotated 
+   Rot-Axis        select <a href="CAD_input_en.htm#_LN_">line</a> as rotation-axis
+   Angle           <a href="CAD_input_en.htm#_Angle_">angle</a> in degree
+
+
+Example:
+# P = point, rot-axis, angle
+P21=P20 L20 ANG(30)    # rotate P20 30 degrees around line L20
+
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="F4"></a></p>
   <h2>PT translate</h2>
- Translate a point
+ Translate (move) point with a vector
 
-P# = Base Point, Direction, [Distance,] [Normal Distance] 
+   Point            point to move
+   Direction-VEC    set direction/distance <a href="CAD_input_en.htm#_Vec_">(vector)</a>
+   [Dist.]          length
+   [Dist.Normal]    Distance - normal to "Direction" (in the construction plane)
 
-  <a href="CAD_Base_en.htm#P">Point</a>:  Basepoint
-  <a href="CAD_Base_en.htm#D">Direction</a>:  Vector.
-  [Dist.]:   Distance - into direction "Direction"
-  [Dis.Normal]:  Distance - normal to "Direction" (in the construction plane).
+P = BasePoint, Direction, [Distance,] [Normal Distance] 
 
 Examples:
-Translate point P1 relative to the vector D1.
- P2 = P1, D1 
+ # Translate point P1 with vector D1.
+ D1 = 100 0 0 
+ P2 = P1 D1 
 
-Translate point P1 in the direction of the vector D1 at a distance of 12.
- P2 = P1, D1, 12 
-
-Translate a point along a line given by 2 points (P1, P2) with a certain distance:
-  Point: select P1.
-  Direction: select P1 and P2.
-  Dist: enter distance.
-  P3=P1,D(P1,P2),distance.
-
-Create opposite point of 2 points:
-  Point: select midpoint.
-  Direction: select midpoint and endpoint, add  "REV".
-  P25=P20 D(P20 P21 REV)
-
-P2 = P1, D(L1), distance, normal distance 
-Translate a point along a line. The distance is in the direction of the line. 
- The normal direction is normal to the line used.
- P1 = P1, D(L1), VAL(100), VAL(50) 
- P1 is on the extended line of L1, 100 mm in distance.
- It will move 50 mm in the direction of the normal extended from L1. 
+ # Translate point P1 in the direction of the vector D1 at a distance of 12.
+ P2 = P1 D1 12 
 
 
 
-<p><a name="F3"></a></p>
-  <h2>PT rotate</h2>
- Rotate a Point (center, the starting position, angle) 
- Example:
- P3 = P1, P2, ANG(180) 
- # P2 is turned 180 degrees around P1.
-s
 
 
-<p><a name="F4"></a></p>
+<HR><!-- ============================================================ -->
+<p><a name="F5"></a></p>
   <h2>PT endpoints center focus ..</h2>
-Create the characteristic points of an object.
+Get the characteristic point of an object.
 
-             default     MOD(1)    MOD(2)       MOD(3)      MOD(4)
+   LN/CI/Curv    select curve
+   Version       set which <a href="CAD_input_en.htm#_PTS_">type</a> of point
+
+
+   PTS()     default        1         2          3           4 
   Line:    startpoint, startpoint, endpoint  midpoint.
   Circle:  centerpoint,startpoint, endpoint, centerpoint.
   Ellipse: centerpoint,startpoint, endpoint, centerpoint, focuspt-1, focuspt-2.
   Clothoid startpoint, startpoint, endpoint
   Plane:   origin.
-
-  Polygon: startpoint, cornerpoints ....
-  Spline:  startpoint, controlpoints ....
+  Model:   origin.
 
 
 Beispiele:
-# center of circle:
-P6=C1
-# endpoint of line:
-P5=P(L1 MOD(2))
+P20=C20             # center of circle: or
+P20=C20 PTS(1)
+P24=L21 PTS(2)      # endpoint of line, or:
+P24=P(L21 PTS(2))
+P7=S20 PTS(2)       # endpoint of curve S20
+P3=P1 P2            # midpoint
+P3=L1 PTS(3)        # midpoint
 
 
 
-<p><a name="F5"></a></p>
-  <h2>PT Mid/Cornerpoint  PT - PT</h2>
-Create a midpoint or a cornerpoint.
-  2 points given:
-    the midpoint is created.
 
-  2 points and a vector (eg "DX") given:
-    point1 is projected onto the line point2 - vector.
+<HR><!-- ============================================================ -->
+<p><a name="F6"></a></p>
+  <h2>PT control-points</h2>
+Get control-points of a polygon or spline
 
-# Midpoint (without vector)
-P3=P1,P2
-# Cornerpoint
-P3=P(0 0 0) P(100 100 0) DX
+   LN/CI/Curv    select polygon or spline
+   point-Nr      set <a href="CAD_input_en.htm#_PTI_">point-number</a>
+
+# get second point of polygon S20
+P20=S20 PTI(2)
 
 
 
+
+<HR><!-- ============================================================ -->
 <p><a name="FX7"></a></p>
   <h2>PT intersect  LN/CIR/CRV/PLN</h2>
 
@@ -167,6 +199,7 @@ P6=INT L10 R20
 
 
 
+<HR><!-- ============================================================ -->
 <p><a name="FX8"></a></p>
   <h2>PT Proj. PT -> LN/CIR/CRV/PLN</h2>
 Project a point perpendicular onto an object.
@@ -193,6 +226,7 @@ Project a point perpendicular onto an object.
    MOD (1) =-first solution.
 
 
+<HR><!-- ============================================================ -->
 <p><a name="FX9"></a></p>
   <h2>PT Proj. PT along VC -> PLN</h2>
  Projects a point along a vector onto a plane. 
@@ -204,24 +238,35 @@ P28=P(10 0 0) D20 R20
   
 
 
-<p><a name="F6"></a></p>
+<HR><!-- ============================================================ -->
+<p><a name="F7"></a></p>
   <h2>PT parametric on LN/CIR/CRV/SUR</h2>
 Create a point on Line / Circle / Curve / Surface using parameter/s.
 
-Parameters field is 0 to 1; 0.5 defines the middle.
+   LN/CI/Curv/Surf        select line, cirle or curve (*1)
+   Parameter along        key parameter (*2)
+   [Parameter across]
 
-Surfaces (RuledSurface, RevolvedSurface or B-SplineSurface):
- Two parameters are required (U and V), along and across the direction.
+
+(*2)  Parameters field is 0 to 1; 0.5 defines the middle.
+
+(*1) Surfaces (RuledSurface, RevolvedSurface or B-SplineSurface):
+     Two parameters are required (U and V), along and across the direction.
+     Not all types of surfaces supported yet.
 
 
 Example:
- # Center of a line:
- P23 = C20 VAL(.5)
+# midpoint of line:
+P23 = L20 VAL(.5)
 
 # Point on surface, U-value, V-value; range is 0 - 1 !
 P1=A1 0.5 0.5
+# or
+P1=A1 VAL(0.5) VAL(0.5)
 
 
+
+<HR><!-- ============================================================ -->
 </PRE>
 </BODY>
 </HTML>

@@ -1184,7 +1184,7 @@ static char *fnam;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
-  printf("Mod_sav_i savActMdl=%d\n",savActMdl);
+  // printf("Mod_sav_i savActMdl=%d\n",savActMdl);
 
   irc = -1;
 
@@ -1335,7 +1335,7 @@ static char *fnam;
   sprintf(cbuf, "%slst.dat", OS_get_tmp_dir());
   ii = UTX_dir_listf (cbuf, OS_get_tmp_dir(), NULL, ".appdat");
   if(ii < 1) goto L_main;
-    printf("add -appDat-\n");
+    // printf("add -appDat-\n");
 
   if((fp1=fopen(cbuf,"r")) == NULL) {
     TX_Print("Mod_sav_i E008 %s",cbuf);
@@ -2016,7 +2016,7 @@ static char *fnam;
   //----------------------------------------------------------------
   // test if dir is absolute-dir; yes: make it absolute-dir
   // if(dir[0] == fnam_del) goto L_abs;
-  if(!OS_ck_DirAbs(dir)) goto L_abs;
+  if(!OS_ck_DirAbs(dir)) goto L_abs;  // test if dir starts with '/'
 
   // not absolute-dir; symbol or no directory at all -
   if(dir[0] != '.') {
@@ -2310,7 +2310,8 @@ static char *fnam;
 // 2018-05-24 RF
 //
 // Input:
-//   mode      0=make-absolute-filename; 1=make-symbolic-filename
+//   mode      0=make-absolute-filename;
+//             1=make-symbolic-filename
 // Output:
 //   mode      0   absolute-filename
 //             1   full-filename <directory|symbol>/<filename>.<filetyp>
@@ -2318,11 +2319,24 @@ static char *fnam;
 //             AP_mod_dir AP_mod_sym AP_mod_fnam AP_mod_ftyp
 
 
-  // printf("Mod_fNam_set %d\n",mode);
-  // printf("   |%s|%s|%s|\n",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+  int    irc;
 
-  if((mode) && (AP_mod_sym[0])) {
+
+  // printf("Mod_fNam_set %d\n",mode);
+  // printf("   sym=|%s| dir=|%s| fnam=|%s| ftyp=|%s|\n",
+          // AP_mod_sym,AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
+
+  // if((mode) && (AP_mod_sym[0])) {
+  if(mode) {
     // make symbolic-filename
+    if(!AP_mod_sym[0]) {
+      // get symNam from AP_mod_dir
+      irc = Mod_sym_get2 (&AP_mod_sym, fNam, 0);
+      if(irc) goto L_exit; // no symNam:
+      // if(!AP_mod_sym[0]) goto L_exit;
+    }
+
+
     if(AP_mod_ftyp[0])
       sprintf(fNam,"%s/%s.%s",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
     else 
@@ -2336,6 +2350,7 @@ static char *fnam;
       sprintf(fNam,"%s%s",AP_mod_dir,AP_mod_fnam);
   }
 
+  L_exit:
     // printf("ex-Mod_fNam_set |%s|\n",fNam);
 
   return 0;
@@ -2358,7 +2373,8 @@ static char *fnam;
 ///     -1      Symbol from in_path not found in file
 /// \endcode
 
-  char    fn[256];
+  int     irc;
+  char    fn[256], *p1;
 
 
   // printf("Mod_sym_getAbs |%s|\n",symDir);
@@ -2367,8 +2383,19 @@ static char *fnam;
     // printf(" fn-dir.lst=|%s|\n",fn);
 
 
-  // return UTX_setup_get (absDir, symDir, fn, 0);
-  return UTX_setup_get__ (absDir, symDir, fn);
+  irc = UTX_setup_get__ (absDir, symDir, fn);
+  if(irc) return irc;
+
+  // test if absDir has "$"
+  p1 = strchr (absDir, '$');
+  if(p1) {
+    // expand shell variables
+    OS_filnam_eval (absDir, absDir, 128);
+  }
+
+    // printf("ex-Mod_sym_getAbs |%s|%s|\n",absDir,symDir);
+
+  return irc;
 
 }
 
@@ -2488,7 +2515,7 @@ static char *fnam;
 ///         -1    in_path not found in file
 /// \endcode
 
-  char    cbuf[256], *p1;
+  char    s1[256], s2[256], *p1, *p2;
   FILE    *fpi;
 
 
@@ -2496,42 +2523,55 @@ static char *fnam;
 
 
   // try to open inListe
-  AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
-  // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+  AP_get_fnam_symDir (s1);   // get filename of dir.lst
+  // sprintf(s1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
-  if((fpi=fopen(cbuf,"r")) == NULL) {
-    TX_Error("Mod_sym_get2 E001-file %s not found",cbuf);
+  if((fpi=fopen(s1,"r")) == NULL) {
+    TX_Error("Mod_sym_get2 E001-file %s not found",s1);
     return -1;
   }
 
   while (!feof (fpi)) {
-    if (fgets (cbuf, 256, fpi) == NULL) {
+    // read next line
+    if (fgets (s1, 256, fpi) == NULL) {
       if(imod == 0) {
         // TX_Error("Mod_sym_get2 E002-path %s not found",in_path);
         TX_Print("Mod_sym_get2 E002-path %s not found",in_path);
-        AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
-        TX_Print("               in symFile %s",cbuf);
+        AP_get_fnam_symDir (s1);   // get filename of dir.lst
+        TX_Print("               in symFile %s",s1);
       }
       out_sym[0] = '\0';
       fclose(fpi);
       return -1;
     }
-    UTX_CleanCR (cbuf);
-    p1 = strchr (cbuf, ' ');
-    if(p1 == NULL) continue;
-    *p1 = '\0';
-    ++p1;
-    p1 = UTX_pos_1n (p1);
-    // printf(" s_act=|%s|\n",p1);
+    if(s1[0] == '#') continue;
+    UTX_CleanCR (s1);
 
-    if(!strcmp(p1, in_path)) break;
+    p1 = strchr (s1, ' ');
+    if(p1 == NULL) continue;
+    *p1 = '\0';     // cut symNam - pathNam
+    ++p1;
+    p1 = UTX_pos_1n (p1);  // skip blanks
+      // printf(" s_act=|%s|\n",p1);
+
+    // test if dir has "$"
+    strcpy (s2, p1);
+      // printf(" cb_dirsym2-s1 |%s|\n",s1);
+    p2 = strchr (s2, '$');
+    if(p2) {
+      // expand shell variables
+      OS_filnam_eval (s2, s2, sizeof(s2));
+    }
+
+    // compare
+    if(!strcmp(s2, in_path)) break;
   }
 
   fclose(fpi);
 
-  strcpy(out_sym, cbuf);
+  strcpy(out_sym, s1);
 
-  // printf("ex Mod_sym_get2 |%s|%s|\n",out_sym,in_path);
+    // printf("ex Mod_sym_get2 |%s|%s|\n",out_sym,in_path);
 
   return 0;
 
@@ -2563,7 +2603,7 @@ static char *fnam;
   char    fn[256];
 
 
-  printf("Mod_sym_del |%s|\n",sym);
+  // printf("Mod_sym_del |%s|\n",sym);
 
   AP_get_fnam_symDir (fn);   // get filename of dir.lst
 
@@ -2589,7 +2629,7 @@ static char *fnam;
   char   cbuf[256], fnam[256];
 
 
-  printf("Mod_sym_add |%s|%s|\n",sym,dir);
+  // printf("Mod_sym_add |%s|%s|\n",sym,dir);
 
 
   // copy symbol

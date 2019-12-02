@@ -65,6 +65,7 @@ MMinTxt=MAN: textBuffer pasta después de borrar o Ctrl X
 MMsePcp=dar las coordenadas del cursor en la construcción-en el plano siguiente selección
 MMsePop=dar punto paramétrico de cursor en el objeto seleccionado en la siguiente selección
 MMseLoO=get line from a segment of a polygon or countour at next selection
+MMselOid=add objects to group, hilite, (key objID)
 
 MMgrAdd=obj añadir al grupo, retire del Grupo, si ya está seleccionado
 MMgrSav=guardar todos los objetos de grupo en el archivo (nativo)
@@ -140,10 +141,11 @@ CADsave=guardar obj activa., Obj siguiente GOTO. Derecho mousebutton, Enterkey.
 
 PT_cartes__offset=Punto; offsetvalues [Seleccionar o la tecla, para X / Y / Z]
 PT_polar=polares, relativ; Basepoint, Rotationangle (eje z), [Tiltangle (plano xy),] Distancia
+PT_rotate_Z=rotate and tilt point around (point / Z-axis of constr.plane)
+PT_rotate_axis=rotate point around axis
 PT_translate=Punto de mover; Basepoint, Dirección, [a distancia], [NormalDistance]
-PT_rotate=rotar punto; Centerpoint, StartPosition, Angulo [eje]
 PT_endpoints_center_focus___=characteristic points (center-, start-, end-; focus for ellipses, cornerpoints for polygons, splines)
-PT_Mid_Cornerpoint_PT_PT__VC_=midpoint or cornerpoint of 2 points
+PT_control_points=get control-point with index (from polygon, bspline)
 PT_parametric_on_LN_CIR_CRV_SUR=punto de parámetro (s) en Línea / Circle / Curva / Superficie
 
 LN_PT__PT=línea entre 2 puntos
@@ -151,9 +153,10 @@ LN_parallel=Line parallel tu line/vector
 LN_PT_Direct__Length_Rot_Angle_TiltAngle_=línea por el punto y la dirección, longitud [,] [Rot.Angle (eje z),] [TiltAngle (plano xy)]
 LN_LN_Dist____________parall_=línea paralela a la línea, a distancia, la posición (1-4).
 LN_LN_LN__Rot_Angle_TiltAngle___mid_=Line = línea media; [girar en intersectionpoint: Rotationangle (eje z), [Tiltangle (plano xy)]
-LN_tangent_to_line_circ_curve=line tangential to 2 objects (point/direction/circle/ellipse/bspline)
+LN_tangent_to_2_objs___=line tangential to 2 objects (point/direction/circle/ellipse/bspline)
 
 CIR_Cen_Radius__Z_Axis_=círculo de centro, radio [eje]
+CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=círculo del centro, tangente al punto / línea / círculo
 CIR_Tang_Tang_Radius=Círculo tangente a dos elementos, con un radio fijo
 CIR_Tang_Tang_Tang=círculo tangencial a 3 elementos
@@ -178,6 +181,8 @@ V_PT_PT_Dist__Direction_=longitud variable entre 2 puntos [direction -vector]
 V_LN___Length=Variable = longitud de una línea de
 V_PT___LN_Perp_Dist_=Variable = distancia normal de un punto a un objeto lineal
 V_CIR__Radius=Variable = radio de un círculo
+V_Angle_line_vector=angle from line (angle around Z-axis or tilt-angle (PERP))
+V_Angle_2_lines_vectors=angle from 2 lines / vectors
 
 S_Ellipse_Center_AxisEndPoint_Point=del centro de la elipse, el punto final del eje principal, punto de elipse
 S_Ellipse_Center_Axes__EndPoints_=elipse eje principal (limitado) del centro, vector, vector eje secundario, el punto de partida, punto final
@@ -257,7 +262,7 @@ Reset_ConstrPlane=Constructionplane reset (activar estándar de sistema de coord
 Typ_Val=número Val / RePág / PgDwn / Sel LN (Len.) / Sel Cir (Radio)
 Typ_PT=Sel PT (en obj) / Indicar PT / coords clave
 Typ_LN=Sel LN
-Typ_AC=Sel CIR
+Typ_CI=Sel CIR
 Typ_VC=Vector: número RePág / Dwn / D [I] X / Y / Z / dy dx [dz] ANG (AX) [ANG (AZ)]; Sel LN/CIR/Elli/Surf/PLN/PT + PT / "REV" (a su vez )
 Typ_CV=Sel CRV
 Typ_CVCCV=Sel CCV
@@ -273,7 +278,7 @@ Typ_lFig=Sel LN / CIR / CRV
 Typ_goGeom=Sel Objeto
 Typ_goGeo1=Sel LN / CIR / CRV / PLN
 Typ_goGeo2=Sel Circ o elipse
-Typ_goGeo3=Sel PT / LN / CIR / CRV, CW / CCW
+Typ_go_PD=Sel point or vector
 Typ_goGeo4=Sel VC / LN / PLN
 Typ_goGeo5=Sel CIR / ELL / CCV
 Typ_goGeo6=número de ángulo (grados); Sel Vec / LN para la dirección; ReversButton
@@ -283,7 +288,10 @@ Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + CV (RePág) / PT + PLN
 Typ_goRadius=número Radius; Sel PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
+Typ_go_lf1=sel. single curve
 Typ_Tra=número RePág / DWN (Transformación seleccione)
+Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
+Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..
 Typ_modAux=número RePág / DWN
 Typ_mod1=número RePág / DWN (selecciona versiones alternativas)
 Typ_modCWCCW=ReversButton; RePág / Dwn; número "CW" (sentido horario)
@@ -291,6 +299,7 @@ Typ_modCTRL=número RePág / PgDwn ("Ctrl" = Controlpoints)
 Typ_modREV=número RePág / PgDwn ("REV" = inverso)
 Typ_modCX=número RePág / PgDwn ("CX" = en)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
+Typ_modPERP=Key PgUp / PgDwn ("PERP" = normal - perpendicular)
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=número de Texto / Modificar-Edit

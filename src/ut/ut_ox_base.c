@@ -397,8 +397,8 @@ typedef_MemTab(ObjRange);
   void    *p1, *sDat;
 
 
-  printf("OGX_ox_copy_obj oSiz=%ld typ=%d iNr=%d isol=%d\n",
-         *oSiz,typ,iNr,isolate);
+  // printf("OGX_ox_copy_obj oSiz=%ld typ=%d iNr=%d isol=%d\n",
+         // *oSiz,typ,iNr,isolate);
   // if(typ==Typ_Model) DEB_dump_obj__ (typ, obji, "obji");
   // if(*oSiz > 1000000) gdb_halt ();
 
@@ -423,8 +423,8 @@ typedef_MemTab(ObjRange);
   memcpy(po, pi, rSiz);              // copy parentRecord(s)
   *oSiz -= rSiz;                     // reduce outSpace-size
   *objo = (void*)(po + rSiz);        // fix next free outputPos
-    printf(" oSiz=%ld rSiz=%d\n",*oSiz,rSiz);
-    if(typ==Typ_Model) DEB_dump_obj__ (typ, po, "po");
+    // printf(" oSiz=%ld rSiz=%d\n",*oSiz,rSiz);
+    // if(typ==Typ_Model) DEB_dump_obj__ (typ, po, "po");
 
 
 

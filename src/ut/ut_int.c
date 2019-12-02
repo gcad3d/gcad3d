@@ -47,8 +47,8 @@ INT_pta2crv__                 change Polygon to Line Circ  Elli or BSpl-Curve
 List_functions_end:
 =====================================================
 - see also:
-UTO_obj_int
-UTO_obj_trim
+UTO_npt_int_2ox
+UTO_stru_int
 
 \endcode *//*----------------------------------------
 

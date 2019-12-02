@@ -1223,7 +1223,7 @@ typedef_MemTab(ObjRange);
 
 
   // init PRG
-  PRG_ED_stat = ED_query_mode ();
+  PRG_ED_stat = ED_get_mode();
   ED_enter ();  // display also temp.objects
 
 

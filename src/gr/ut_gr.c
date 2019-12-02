@@ -60,6 +60,7 @@ List_functions_start:
 
 GR_Disp_message       switch for textoutput to console (DispMode)
 
+GR_Disp_src           tempDisp obj from sourcecode
 GR_Disp_obj           tempDisp obj from typ+struct
 GR_Disp_dbo           tempDisp obj from typ+dbInd
 GR_Disp_ox            temp. display of ObjGX-structs
@@ -77,6 +78,7 @@ GR_Disp_pTab          disp 3D-points
 GR_Disp_npti          display ptNr points and point-numbers
 GR_Disp_p2Tab         disp 2D-points
 
+GR_Disp_vc            display 3D-Vector; length true or normalized
 GR_Disp_vc2           display 2D-Vector; length true or normalized
 GR_Disp_vc            disp 3D-vector at 3D-point; length true or normalized.
 
@@ -88,7 +90,8 @@ GR_Disp_rect1         disp. rectangle
 GR_Disp_cv            disp. polygon between points
 GR_Disp_cv2
 GR_Disp_ci2           display 2D-circle
-GR_Disp_ac            display circle
+GR_Disp_ci            display circle
+// GR_Disp_ac            display circle
 GR_Disp_ell           disp. ellipse
 GR_Disp_bez           display  Bezier-Curve
 GR_Disp_rbez          display rational-bezier-curve
@@ -104,8 +107,7 @@ GR_Disp_sur           display surface from OGX
 GR_Disp_sru           Display ungetrimmte/ungelochte Ruled Flaeche
 GR_Disp_sbsp          display  BSP-Surf; nur Kontrollpunkte
 
-GR_DrawPlane          display plane (as SYM_SQUARE)
-GR_Disp_axis          display axisSystem with x,y,z-characters
+GR_Disp_pln           display axisSystem with x,y,z-characters
 GR_Disp_box           disp 3D-boundingBox (lines)
 GR_Disp_box2          disp 2D-boundingBox from 2 points
 
@@ -126,7 +128,8 @@ GR_Draw_ox            display of ObjGX-structs
 GR_Draw_dbo           display DB-obj (typ+dbInd)
 GR_Draw_otb           disp binary-object-table
 GR_Draw_vc            display 3D-Vector; length true or normalized
-GR_Draw_vc2           display 3D-Vector; length true or normalized
+GR_Draw_vc2           display 2D-Vector; length true or normalized
+GR_DrawPlane          display plane (as SYM_SQUARE)
 GR_Draw_spu
 GR_DrawSup
 
@@ -592,7 +595,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   Point   pt2;
 
 
-  DEB_dump_obj__(Typ_PT2, pt1, "GR_Draw_pt2 ind=%ld attInd=%d",*ind,attInd);
+  // DEB_dump_obj__(Typ_PT2, pt1, "GR_Draw_pt2 ind=%ld attInd=%d",*ind,attInd);
   // printf(" APT_2d_to_3d_mode=%d\n",APT_2d_to_3d_mode);
 
   pt2 = UT3D_pt_pt2 (pt1);
@@ -1659,14 +1662,14 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   //----------------------------------------------------------------
   if(!APT_dispNam) goto L_disp_dir;
   // display ObjID; see APT_disp_nam
-    printf(" Draw_oid_dir-disp-objID\n");
+    // printf(" Draw_oid_dir-disp-objID\n");
   // set oNam = text to display
   // oNam[0] = '.';
   oid[0] = '_';
   APED_oid_dbo__ (&oid[1], GR_typ, GR_dbi);
   // get pt1 = centerpoint odf polygon
   UT3D_pt_mid_pta (&pt1, pta, ptNr, 1);
-       DEB_dump_obj__(Typ_PT, &pt1, " pt1: ");
+    // DEB_dump_obj__(Typ_PT, &pt1, " pt1: ");
   // disp ID
   APT_disp_TxtA (0, &pt1, oid);
 
@@ -1825,7 +1828,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
     GR_DrawCvPpsp3 (dli, att, cv1, zval);
 
   } else if(form == Typ_CVBSP) {
-    if(*dli > 0) { DL_get_dla (&att1, *dli); dbi = att1->ind; }
+    if(*dli > 0) { DL_dlRec__dli (&att1, *dli); dbi = att1->ind; }
     else dbi = 0L;
     GR_DrawCvBSp (dli, dbi, att, cv1->data);
 
@@ -1843,7 +1846,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   } else if(form == Typ_CVTRM) {
     // get dbi; get dl-record for dbi from dli
-    if(*dli > 0) { DL_get_dla (&att1, *dli); dbi = att1->ind; }
+    if(*dli > 0) { DL_dlRec__dli (&att1, *dli); dbi = att1->ind; }
     else dbi = 0L;
     // GR_DrawCvCCV (dli, att, cv1->data);  korr 2007-08-10
     UME_init (&tSpc1, memspc201, sizeof(memspc201));
@@ -2683,7 +2686,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // printf("GR_DrawModel ind=%ld att=%d\n",db_ind,att);
   // printf(" TSU_mode=%d\n",TSU_mode);
-  // DEB_dump_obj__ (Typ_Model, mdr, " mdr=");
+  // DEB_dump_obj__ (Typ_Model, mdr, " DrawModel-mdr");
   // return;
 
   GR_typ = Typ_SubModel;
@@ -2699,6 +2702,9 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   mdb = DB_get_ModBas (mdr->modNr);
   if(mdb == NULL) return -1;
+    // DEB_dump_obj__ (Typ_SubModel, mdb, " DrawModel-mdb-1");
+    // printf(" DrawModel-typ=%d mnam=|%s|\n",mdb->typ,mdb->mnam);
+
 /*
 // removed - xy.tess will be loaded later 
   if(mdb->DLsiz < 1) {
@@ -2729,7 +2735,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // nein, get a new ind
   mdb->DLind = GL_Get_DLind (); // GL_GetActInd();
-    // printf(" DLind=%ld\n",mdb->DLind);
+    // printf(" DrawModel-mdb->DLind=%ld\n",mdb->DLind);
 
 
   // extract filetype.
@@ -2743,7 +2749,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // mnam ist internal ("abc") od external ("dir/fn")
   UTX_ftyp_cut (mnam);            // remove fTyp
   UTX_safeName (mnam, 1);         // change all '. ' to '_', not '/'
-    printf(" DrawModel-mnam=|%s|\n",mnam);
+    // printf(" DrawModel-mnam=|%s|\n",mnam);
 
 
   // check if tesselated data of the Model exists in xa/temp
@@ -2758,8 +2764,17 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
     TSU_imp_tess (&impSpc, ffnam);
     // copy tess-file -> tmp/.
     sprintf (memspc011, "%s%s.tess",OS_get_tmp_dir(),mnam);
-      printf(" DrawModel-ffnam=|%s|\n",memspc011);
+      // printf(" DrawModel-ffnam=|%s|\n",memspc011);
     OS_file_copy (ffnam, memspc011);
+
+    // find box of tess-model in memory
+    tess_box_get (&pb1, &pb2, &impSpc);
+       DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+       DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+
+    // set box in basicModel mdb
+    mdb->pb1 = pb1;
+    mdb->pb2 = pb2;
 
   } else {
     // get model as tesselated-data into impSpc, then write into file xa/temp
@@ -2780,8 +2795,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
-       // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
-       // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+       DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+       DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
 
 
     // set box in basicModel mdb
@@ -2806,7 +2821,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // draw
   L_mock_draw:
-    // DEB_dump_obj__ (Typ_SubModel, mdb, "  mdb-1:");
+    // DEB_dump_obj__ (Typ_SubModel, mdb, " DrawModel-mdb-2");
 
   dli = DL_StoreObj (Typ_Ditto, 0L, 0);
   DL_unvis_set (dli, 1);         // make Basemodel unvisible
@@ -2874,6 +2889,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   //----------------------------------------------------------------
   L_dir_npt:
   GR_Draw_oid_dir_npt (&dli, &mdr->po, 1);
+
+    // printf("ex-GR_DrawModel\n");
 
   return 0;
 
@@ -3129,6 +3146,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 }
 */
 
+/* UNUSED
 //=====================================================================
   int GR_DrawCvCCV2 (long *ind, int att, ObjGX *cv1) {
 //=====================================================================
@@ -3166,7 +3184,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   return 0;
 
 }
-
+*/
 /*
 //================================================================
   int GR_Draw_subCurv (long *ind, int att, int typ, void *obj,
@@ -3226,8 +3244,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // MemTab(Point2) mtPt = _MEMTAB_NUL;
 
 
-  printf("GR_DrawCvPol ptNr=%d\n",plg1->ptNr);
-  DEB_dump_obj__ (Typ_CVPOL2, plg1, "plg1");
+  // printf("GR_DrawCvPol ptNr=%d\n",plg1->ptNr);
+  // DEB_dump_obj__ (Typ_CVPOL2, plg1, "plg1");
 
 
   ptNr = plg1->ptNr;   // + 4;
@@ -3833,7 +3851,7 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_vc (Vector *vc1, Point *pt1, int att, int mode) {
 //===================================================================
 /// \code
-/// GR_Disp_vc      display 3D-Vector; length true or normalized
+/// GR_Disp_vc     display 3D-Vector; length true or normalized
 /// Input:
 ///   pt1       position fo vector; NULL = display at center of screen
 ///   att       color,linetyp,thickness; see INF_COL_CV
@@ -3882,6 +3900,7 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_Disp_ln (Line *ln1, int att) {
 //================================================================
 /// att: linetype; see INF_COL_CV
+/// unlimited line: use UT3D_ln_unlim
 
   return GR_Disp_cv ((void*)ln1, 2, att);
 
@@ -3904,8 +3923,27 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
+  int GR_Disp_ci (Circ *ci1, int att) {
+//================================================================
+/// GR_Disp_ci                display 3D-circle
+///   att: see INF_COL_CV
+
+  long dli;
+
+  dli = DL_StoreObj (Typ_CI, -1L, 2);
+
+  GR_DrawCirc (&dli, -1L, att, ci1);
+
+  return 0;
+
+}
+
+
+/* replaced by GR_Disp_ci
+//================================================================
   int GR_Disp_ac (Circ *ci1, int att) {
 //================================================================
+/// GR_Disp_ac                display 3D-circle
 /// att: linetype; see INF_COL_CV
 
 
@@ -3940,7 +3978,7 @@ int GR_Delete (long ind)                               {return 0;}
   return 0;
 
 }
-
+*/
 
 //================================================================
   int GR_Disp_ccv (CurvCCV *ccv, int att, Memspc *tbuf1) {
@@ -4161,9 +4199,9 @@ int GR_Delete (long ind)                               {return 0;}
   Point  pta[5];
 
 
-  DEB_dump_obj__(Typ_PT, p1, "GR_Draw_rect1 p1");
-  DEB_dump_obj__(Typ_VC, vx, "GR_Draw_rect1 vx");
-  DEB_dump_obj__(Typ_VC, vy, "GR_Draw_rect1 vy");
+  // DEB_dump_obj__(Typ_PT, p1, "GR_Draw_rect1 p1");
+  // DEB_dump_obj__(Typ_VC, vx, "GR_Draw_rect1 vx");
+  // DEB_dump_obj__(Typ_VC, vy, "GR_Draw_rect1 vy");
 
 
   pta[0] = *p1;
@@ -4296,16 +4334,15 @@ int GR_Delete (long ind)                               {return 0;}
 }
 
 
-
 //=========================================================
-  int GR_Disp_pln (Plane *pl1, int att) {
+  int GR_Disp_pln (Plane *pl1, int att, int typ) {
 //=========================================================
 /// \code
-/// GR_Disp_pln                     display plane temp (as SYM_SQUARE)
-/// att          see INF_ATT_CV      eg Typ_Att_def
+/// display axisSystem with x,y,z-characters
+///   att       linetype; see INF_COL_CV
+///   typ       1=Plane; 2=Axis; 4=Plane+Axis+Chars
 ///
-/// see also:
-/// GR_DrawPlane                    display plane (as SYM_SQUARE)
+/// see APT_disp_SymV1 (SYM_AXIS,   1, &pln1.po, 1.);
 /// \endcode
 
   long dli;
@@ -4314,35 +4351,11 @@ int GR_Delete (long ind)                               {return 0;}
   // GR_Disp_pt (&pl1->po, SYM_TRI_S, 2);
   // GR_Disp_vc (&pl1->vz, &pl1->po, 2, 0);
 
+  // dli = DL_StoreObj (Typ_PLN, -1L, 2);
+  // dli = -2;  // index for first CAD-inputfield
   dli = DL_StoreObj (Typ_PLN, -1L, 2);
 
-  GL_DrawSymV3 (&dli, SYM_SQUARE, att, &pl1->po, &pl1->vz, 1.);
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int GR_Disp_axis (Plane *pl1, int att, int typ) {
-//=========================================================
-/// \code
-/// display axisSystem with x,y,z-characters
-/// typ: 1=Plane; 2=Axis; 4=Plane+Axis+Chars
-/// GR_Disp_axis (&pln1, 2);
-/// att          see ~/gCAD3D/cfg/ltyp.rc
-/// see APT_disp_SymV1 (SYM_AXIS,   1, &pln1.po, 1.);
-/// \endcode
-
-  long dli;
-
-  // if(DispMode) DEB_dump_obj__ (Typ_PLN, pl1, "GR_Disp_axis");
-  // GR_Disp_pt (&pl1->po, SYM_TRI_S, 2);
-  // GR_Disp_vc (&pl1->vz, &pl1->po, 2, 0);
-
-  // dli = DL_StoreObj (Typ_PLN, -1L, 2);
-  dli = -2;  // index for first CAD-inputfield
-
+  // GL_DrawSymV3 (&dli, SYM_SQUARE, att, &pl1->po, &pl1->vz, 1.);
   GL_DrawSymVX (&dli, att, pl1, typ, 1.);
 
   return 0;
@@ -5052,6 +5065,44 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //================================================================
+  int GR_Disp_src (char *src, int att, int mode) {
+//================================================================
+// GR_Disp_src           tempDisp obj from sourcecode
+// Input:
+//   src             sourcecode of obj to display
+//   att,mode                               see GR_Draw_obj
+//
+// see IE_cad_Inp_disp__
+
+  int       irc, typo, iatt;
+  long      dli, dbi;
+  ObjAto    ato1;
+  char      objo[OBJ_SIZ_MAX];
+
+  // printf("GR_Disp_src |%s|\n",src);
+
+  // make bin.obj from src
+
+  // get memSpc for ato1 (memspc53, 54, 55)
+  ATO_getSpc__ (&ato1);
+
+  // get bin.obj from sourceObj
+  typo = UTO_obj_cnvt_src (objo, Typ_unknown, src);
+  if(typo < 0) return -1;
+    // printf(" foll-_cnvt_src-irc=%d\n",typo);
+
+  dli = -1L;
+  dbi = 0L;
+  iatt = 0;
+  GR_Draw_obj (&dli, dbi, typo, objo, 1, iatt, 0);
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int GR_Disp_obj (int oTyp, void *obj, int att, int mode) {
 //================================================================
 /// \code
@@ -5287,7 +5338,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // (Re-)Display mesh
   if(dli >= 0L) {     // modify existing object
     // use existing dli - modify
-    // dli = DL_find_obj (Typ_SUR, dbi, -1L);
+    // dli = DL_dli__dbo (Typ_SUR, dbi, -1L);
       // printf(" dbi=%ld dli=%ld\n",dbi,dli);
     DL_SetInd (dli);  // modify (do not create new DL-Record)
 
@@ -5691,7 +5742,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   CurvEll2C  elc;
 
 
-  DEB_dump_obj__ (Typ_CVELL2, el2, "GR_DrawCvEll2");
+  // DEB_dump_obj__ (Typ_CVELL2, el2, "GR_DrawCvEll2");
   // GR_Disp_pt (&el1->pc, SYM_STAR_S, 0);
   // GR_Disp_pt (&el1->p1, SYM_TRI_S, ATT_COL_GREEN);
   // GR_Disp_pt (&el1->p2, SYM_TRI_S, ATT_COL_RED);
@@ -5837,9 +5888,9 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   ObjGX     *ox2, o2;
 
 
-  printf("GR_Draw_ox ind=%ld att=%d typ=%d form=%d siz=%d\n",*ind,att,
-          ox1->typ,ox1->form,ox1->siz);
-  DEB_dump_ox_0 (ox1, "GR_Draw_ox");
+  // printf("GR_Draw_ox ind=%ld att=%d typ=%d form=%d siz=%d\n",*ind,att,
+          // ox1->typ,ox1->form,ox1->siz);
+  // DEB_dump_ox_0 (ox1, "GR_Draw_ox");
 
 
   oTyp = ox1->form;
@@ -5891,7 +5942,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   int GR_Draw_vc2 (long *ind, Vector2 *vc1, Point2 *pt1, int att, int mode) {
 //===========================================================================
 /// \code
-/// GR_Draw_vc        display 3D-Vector; length true or normalized
+/// GR_Draw_vc2       display 2D-Vector; length true or normalized
 /// Input:
 ///   pt1       position fo vector; NULL = display at center of screen
 ///   att       color,linetyp,thickness; see INF_COL_CV
@@ -6114,7 +6165,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     //================================================================
     case Typ_CVBSP:
       dbi = DL_get_dbi (*dli);
-      // if(*dli > 0) { DL_get_dla (&att1, *dli); dbi = att1->ind;
+      // if(*dli > 0) { DL_dlRec__dli (&att1, *dli); dbi = att1->ind;
       // else dbi = 0L;
       GR_DrawCvBSp (dli, dbi, att, obj); // CurvBSpl
       break;
@@ -6184,7 +6235,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     case Typ_ObjGX:
       return GR_Draw_ox (dli, dbi, obj, att, mode);
 /*
-      // typ = AP_typ_2_bastyp (typ);
+      // typ = AP_typDB_typ (typ);
     case Typ_CV:
       ox2 = (ObjGX*)obj;
 
@@ -6261,8 +6312,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   Point  *pta;
 
 
-  printf("GR_Draw_otb att=%d oNr=%d\n",att,otb1->oNr);
-  DEB_dump_obj__ (Typ_ObjTab, otb1, "GR_Draw_otb-1");
+  // printf("GR_Draw_otb att=%d oNr=%d\n",att,otb1->oNr);
+  // DEB_dump_obj__ (Typ_ObjTab, otb1, "GR_Draw_otb-1");
 
 
   // get stack-space for points
@@ -6270,7 +6321,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   paSiz = SPC_MAX_STK / sizeof(Point);
   pnr = 0;
   tol = UT_DISP_cv;
-    printf("  paSiz = %d points tol=%f\n",paSiz,tol);
+    // printf("  paSiz = %d points tol=%f\n",paSiz,tol);
 
 
   // make a polygon from otb1 and disp objects
@@ -6429,7 +6480,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //   ptNr         nr of points in pta
 // Output:
 //   pts          selectionpoint in usercoords (on line pt1-pt2)
-//   ipt          see retCod
+//   ipt          index of selected segment; 0 = first; see retCod
 //   pa1          parameter of pts on line-segment, see retCod
 //   retCod       0=OK, point pta[ipt] selected
 //                1=OK, point between pta[ipt] and pta[ipt+1]; offset is pa1
@@ -6439,23 +6490,31 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 // see UT3D_segpar_sel_LN GL_ck_sel_PT GL_selPt
 
   int        irc, i0, ii, i1;
-  double     tol = GL_pickSiz, dx, dy, dp, dMax, p1;
+  double     tol, dx, dy, dp, dMax, p1;
   Point      p2Act, *p2a;
   Point2     pb1, pb2, p2s;
 
 
-  // printf("----------------- GR_pt_par_sel_npt %d\n",ptNr);
-  // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT, &pta[i1],"p[%d]",i1);
+  printf("----------------- GR_pt_par_sel_npt %d\n",ptNr);
+  // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT, &pta[i1],"pta[%d]",i1);
+  // DEB_dump_obj__ (Typ_PT, ptAct, " ptAct");
 
-  tol = GL_pickSiz,
+  tol = GL_pickSiz;
+    // printf(" tol=%f\n",tol);
+
+
+  // get memspc for p2a = ptNr 2D-points
+  p2a = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * ptNr));
+  if(!p2a) {printf(" GR_pt_par_sel_npt-EOM\n"); return -99;}
+
 
   // get ScreenCoords of ptAct
   GL_ptSc_ptUc (&p2Act, ptAct);
     // DEB_dump_obj__ (Typ_PT, &p2Act, " p2Act");
 
-  // get memspc for p2a = ptNr 2D-points
-  p2a = (Point*)MEM_alloc_tmp ((int)(sizeof(Point) * ptNr));
 
+  //----------------------------------------------------------------
+  // test if p2Act == cornerpoint of polygon 
   // loop tru points, get 2D-coords pf point, test if 2D-point == ptAct-2D
   dMax = tol;
   ii = -1;
@@ -6467,12 +6526,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // get approx distance 
     dp = UT2D_lenB_2pt ((Point2*)&p2a[i1],(Point2*)&p2Act);
-    // if(UT2D_comp2pt((Point2*)&p2a[i1],(Point2*)&p2Act,tol)) {
     if(dp < dMax) {
       // yes, found; keep index of nearest point
       ii = i1;
       dMax = dp;
     }
+      // printf(" CK-ON-i1=%d dp=%f ii=%d\n",i1,dp,ii);
   }
 
   // select nearest point
@@ -6485,17 +6544,15 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   }
 
 
+  //----------------------------------------------------------------
+  // test if p2Act is on segment of polygon
   // loop tru segments
   dMax = tol;
   for(i1=1; i1<ptNr; ++i1) {
     i0 = i1 - 1;
-      // printf(" i0=%d i1=%d\n",i0,i1);
+      // printf(" CK-IN-i0=%d i1=%d\n",i0,i1);
     // test if actPos is inside 2D-box; no: continue
-    // init box with p2a[i1-1]
-    memcpy(&pb1, &p2a[i0], sizeof(Point2));
-    memcpy(&pb2, &p2a[i0], sizeof(Point2));
-    // extend box with p2a[i1]
-    UT2D_box_extend (&pb1, &pb2, (Point2*)&p2a[i1]);
+    UT2D_box_2pt__ (&pb1, &pb2, &p2a[i0], &p2a[i1]);
     if(UT2D_pt_ck_inBoxTol(&pb1, &pb2, (Point2*)&p2Act, tol)) continue;
 
     // compute lTot and lAct from longer side (dx or dy)
@@ -6517,6 +6574,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // test dist pts - p2Act
     dp = UT2D_lenB_2pt (&p2s, (Point2*)&p2Act);
+      // printf(" i1=%d dp=%f\n",i1,dp);
+
     if(dp < dMax) {
       // yes, found; keep index of nearest point
       ii = i0;
@@ -6544,7 +6603,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   //----------------------------------------------------------------
   L_exit:
-    // printf("ex _sel_npt irc=%d ipt=%d pa1=%lf\n",irc,*ipt,*pa1);
+
+    printf("ex _sel_npt irc=%d ipt=%d pa1=%lf\n",irc,*ipt,*pa1);
     // DEB_dump_obj__ (Typ_PT, pts, " pts:");
     // if(irc >= 0) GR_Disp_pt (pts, SYM_STAR_S, ATT_COL_RED);
 

@@ -139,8 +139,8 @@ tStat:
   Triangle  *tri0, *tri1;
 
 
-  printf("OOOOOOOOOOOOOOOOOO UT3D_tria_orient OOOOOOOOOOOOOOOO \n");
-  DEB_dump_obj__ (Typ_PT, ptFar, "UT3D_tria_orient");
+  // printf("OOOOOOOOOOOOOOOOOO UT3D_tria_orient OOOOOOOOOOOOOOOO \n");
+  // DEB_dump_obj__ (Typ_PT, ptFar, "UT3D_tria_orient");
 
 
 

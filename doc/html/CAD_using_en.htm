@@ -3,21 +3,31 @@
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>CAD_using_en.htm</TITLE>
 	<META NAME="CREATED" CONTENT="20090803; David Young">
-	<META NAME="CHANGED" CONTENT="20091018; David Young">
   <style>body{font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
-
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
-<a href="#mainFuncs">CAD functions</a>
-<a href="#using">using CAD</a>
-<a href="VWR_en.htm">operating display</a>
 
-
-<hr>
+<HR><!-- ============================================================ -->
 <h2><a name="mainFuncs">CAD functions</a></h2>
+<a href="VWR_en.htm">operating display</a>   move, zoom, rotate the view
+<a href="CAD_examples_en.htm">first steps</a>         getting started examples                
+
+
+<a href="#using"><B>CAD</B></a>                 activate CAD   
+  <a href="#crea">Create Objects</a>   
+  <a href="#edit">Edit Objects</a>     
+  <a href="#dele">Delete Objects</a>   
+
 
 <a href="CAD_PT_en.htm"><B>Points</B></a>
 <a href="CAD_LN_en.htm"><B>Lines</B></a>
@@ -25,25 +35,22 @@
 <a href="CAD_PLN_en.htm"><B>Planes</B></a>
 <a href="CAD_Vec_en.htm"><B>Vectors</B></a>
 <a href="CAD_Var_en.htm"><B>Variables</B></a>
-<a href="CAD_CV_en.htm"><B>Curves (Ellipse,Polygon,Spline,Clothoid,Contour)</B></a>
+<a href="CAD_CV_en.htm"><B>Curves</B></a>              Ellipse,Polygon,Spline,Clothoid,Contour
 <a href="CAD_SUR_en.htm"><B>Surfaces</B></a>
 <a href="CAD_SOL_en.htm"><B>Bodies</B></a>
 <a href="CAD_TxtG_en.htm"><B>Text,Dimensions</B></a>
-<a href="CAD_Model_en.htm"><B>Submodels</B></a>
-  Internal models, external models, catalog parts.
-<a href="CAD_Tra_en.htm"><B>Transformations</B></a>
-  Define translation, rotation definieren (do not apply yet)
-<a href="CAD_Modify_en.htm"><B>Trim,intersect,move,rotate,project,mirror</B></a>
-<B><a href="CAD_Activ_en.htm">Interactions</a> <a href="CAD_Joint_en.htm">Joints</a></B>
-  Interactions: connect geometric object with function. Selecting the object activates the function.
-  Joints: connecting points between models.
-<a href="CAD_Ace_en.htm"><B>Konstruktionsebene</B></a>
-  Select plane as new construction plane.
+<a href="CAD_Model_en.htm"><B>Submodels</B></a>           Internal models, external models, catalog parts.
+<a href="CAD_Tra_en.htm"><B>Transformations</B></a>     Define translation, rotation definieren (do not apply yet)
+<a href="CAD_Modify_en.htm"><B>Modify</B></a>              Trim,intersect,move,rotate,project,mirror
+<a href="CAD_Activ_en.htm"><B>Interactions</B></a>        connect geometric object with function. Selecting the object activates the function.
+<a href="CAD_Joint_en.htm"><B>Joints</B></a>              connecting points between models.
+<a href="CAD_Ace_en.htm"><B>ConstructionPlane</B></a>   Select plane as new construction plane.
 
 
 
 
-<hr>
+<HR><!-- ============================================================ -->
+<p> <a name="using"> </a> </p>
 <h2>Using function CAD:</h2>
   Mainfuncion CAD.
   Interactive creation and modification of objectcodes.
@@ -69,8 +76,9 @@
 
 
 
-____________________________________________________________________________
-<B>Creating objects:</B> 
+<HR><!-- ============================================================ -->
+<p> <a name="crea"> </a> </p>
+<B>Create objects:</B> 
 
  You have to select a CAD function. Example: 
     &quot;PT cartes&quot; creates a point,
@@ -100,13 +108,14 @@ ____________________________________________________________________________
 
 
 
-<B>Modifying objects:</B> 
-  Finish the active CAD-function with the Esc-key.
-    (several times if inputfields are not empty).
+<HR><!-- ============================================================ -->
+<p> <a name="edit"> </a> </p>
+<B>Edit objects:</B> 
+  Finish and close the active CAD-function with the Esc-key.
+    (several times until all inputfields are disabled)
 
-  Select the the geometric object with the right mousebutton,
-  function "edit". The appropriate function is called and all parameters
-    are entered in the input boxes.
+  Select the the geometric object with the right mousebutton, function "edit".
+  All parameters are entered in the input boxes.
   As an active CAD mode &quot;MODIFY&quot; is displayed.
 
   Modify the parameters (see "Creating objects" above).
@@ -114,36 +123,45 @@ ____________________________________________________________________________
   The modified object must be stored:
   - with the "OK-button
   - or with the right mousebutton.
-
-  Go back to the end of the model, into CAD mode &quot;ADD&quot; (append):
-  - with key Escape
-  - or with the button "Cancel".
+  - or abort with button "Cancel" or Esc-key.
 
 
 
-<B>Deleting objects:</B> 
-  Finish the active CAD-function with the Esc-key.
-    (several times if inputfields are not empty).
+
+<HR><!-- ============================================================ -->
+<p> <a name="dele"> </a> </p>
+<B>Delete objects:</B> 
+
+  Finish and close the active CAD-function with the Esc-key.
+    (several times until all inputfields are disabled)
 
 
  <I>To delete the most recently created object:</I>
   Use Ctr-Z or the UNDO-button (red arrow to the left)
-  Restoring objects: use Ctrl-Y or the REDO-button (green arrow to the right)
+  Restore with Ctrl-Y or the REDO-button (green arrow to the right)
 
 
  <I>To delete a particular object:</I> 
-  Select the geometric object with the right mousebutten,
-  use function "Delete".
-
-  The selected object and all dependent objects are deleted !
+  Select the geometric object with the right mousebutten and "Delete"
+  Restore with Ctrl-Y or the REDO-button (green arrow to the right)
 
 
  <i>Delete a group of objects:</i>
-  see <a href="GROUP_en.htm">"Gruppe"</a>
+  Select the geometric object with the left mousebutten,
+    (the obj is hilited and added to the group of active objects)
+  delete obj with -
+    - delete-key
+    - or function "delete group" from menu with right mousebutton
+
+  The selected object and all dependent objects are deleted.
+  Restore with Ctrl-Y or the REDO-button (green arrow to the right)
+
+
+  see <a href="GROUP_en.htm">"group"</a>
 
 
  <I>Remove all deleted objects permanent:</I> 
-  Use key &quot;F4&quot; (Modify/APT-Clean).
+  Use key F4 (Modify/APT-Clean).
 
 
 

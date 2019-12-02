@@ -79,6 +79,54 @@ V20 = C20
 
 
 
+<a name="F6"></a>
+  <h2>V Angle line/vector</h2>
+  Variable = angle of a line or vector 
+
+
+  Line/Vector              provide <a href="CAD_input_en.htm#_LN_">line</a> or <a href="CAD_input_en.htm#_Vec_">vector</a>
+    - get angle az in TOP-view between line and the X-axis of the active coord.system
+
+  [tilt-angle]             Pageup / Page Down ("<a href="CAD_input_en.htm#_modPERP_">PERP</a>")
+    - tilt-angle ay: the angle between the line and the XY-plane of the active coord.system
+
+  [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
+    - 180-degree complementry angle (180 - angle)
+
+  [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
+    - 360-degree complementry angle (360 - angle)
+
+
+V20 = ANG D(L20)
+
+ restore vector from angles:
+   - vector vcx = rotate X-axis around Z-axis angle = az;
+   - vector = rotate vcx around the (new) Y-axis angle = ay
+       (the new Y-axis is in the XY-plane of the active coordinate-system)
+
+
+
+
+<a name="F7"></a>
+  <h2>V Angle 2 lines/vectors</h2>
+  Variable = angle between 2 lines or vectors
+
+
+  Line/Vector 1            provide <a href="CAD_input_en.htm#_LN_">line</a> or <a href="CAD_input_en.htm#_Vec_">vector</a>
+
+  [Line/Vector 2]
+
+  [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
+    - 180-degree complementry angle (180 - angle)
+
+  [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
+    - 360-degree complementry angle (360 - angle)
+
+
+V20 = ANG L21 L20
+
+
+
 </PRE>
 </HTML>
 

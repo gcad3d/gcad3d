@@ -73,7 +73,7 @@ UT3D_vc_evalplg            Tangente an PolygonCurve aus Parameterwert
 UT3D_pta_plg     (ut_npt.c)  Punktetabelle (relimited) aus PolygonCurve
 UT3D_pta_ccw_plg           Punktetabelle (relimited) aus PolygonCurve
 UT3D_plg_npar1_npar        get knotTable (length) with values from 0-1 for polygon
-UT3D_2pt_plg_iseg            get segment from polygon
+UT3D_2pt_plg_iseg          get segment from polygon
 
 UPLG_2par_iseg             get parameters of single segment of polygon
 UPLG_iseg_par              get segmentNr from parameter
@@ -455,6 +455,7 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
   int UT3D_2pt_segnln (Point *p1, Point *p2, int is, Line *lna) {
 //================================================================
 /// UT3D_2pt_segnln            get segment from lineTable
+///   is           segment-nr; 0=first
         
       
   // int   i1;

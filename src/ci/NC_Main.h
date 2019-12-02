@@ -47,7 +47,7 @@ void   APT_Reset         ();
 int    WC_Work__         (int, char*);
 int    WC_Work1          (int, char*);
 int    APT_work_def      (char*, char**);
-int    APT_work_NCCmd    (char*, char**);
+// int    APT_work_NCCmd    (char*, char**);
 int    APT_work_AppCodTab  (char*, char**);
 
 int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab);

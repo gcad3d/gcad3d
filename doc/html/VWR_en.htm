@@ -2,34 +2,56 @@
 <HEAD>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
 <TITLE>Using_de.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
 <h2>Mainfunction VWR (Viewer)</h2>
-  The objects are displayed but cannot be modified.
+  The objects are displayed but cannot be modified or deleted.
+
 <a href="#mouse">Mousefunctions</a>
 <a href="#grafic">Graphics</a>
-<a href="#views">Views / Viewports</a>
-<a href="#hide">Hide / View</a>
+<a href="#views">Views</a>
+<a href="#vwpt">Viewports</a>
+<a href="Using_en.htm#Hide">Hide / View</a>
 
 
 
-____________________________________________________________________________
+<hr>
 <p><a name="mouse"></a></p>
 <h2>Mousefunctions</h2>
 
   <b>Left mousebutton:</b>
-    select object or indicate position.
+    select object or indicate position or start selection of group
     With Ctrl-key pressed: suppress object-selection 
-      (do 3D-Rotation (see below) or start selection of group)
 
   <b>Right mousebutton:</b>
     select object AND call one of the functions for that object.
     With Ctrl-key pressed: suppress object-selection 
       (activate a function for the group already selected)
+
+
+   
+
+
+<hr>
+<p><a name="grafic"></a></p>
+<h2>Graphics</h2>
+
+
+  <b>Select object:</b>
+   press left mousebutton (and keep pressed);
+     if only one object under cursor, no menu appears - release mousebutton;
+     else select one of the objects (subObjects) of the menu and release mousebutton;
+
 
   <b>Select group:</b>
     press Ctrl-key (and keep pressed); 
@@ -39,15 +61,10 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
-<p><a name="grafic"></a></p>
-<h2>Graphics</h2>
 How to move, zoom, rotate the view:
 
 
-
-
-<b>Moving</b>                                 with Shift drag
+<b>Moving scene</b>                                 with Shift drag
    Press (and hold) the shift-key and move the mouse.
    No mouse button.
 
@@ -72,19 +89,21 @@ How to move, zoom, rotate the view:
      - Select a vertex or
      - Select a free point (Ctrl drag, pick then a red point)
 
-   The currently active layer for interactive rotation is
-     indicated by a yellow rectangle.
+   The currently active display- and rotation-center is
+     indicated by a white axis-system (in the center of the grafic-scene.
+<!-- -dzt inaktiv
    The Z-plane of the view can also be set by entering the new
      Z-value in the box (next to the button STEP);
      conclude with a return.
+-->
 
 
 <b>Scal.All - Button:</b>
    Display all objects (sets focus and zoom).
 
 
-<b>Scal.Fix - Button:</b>
-   Setting a fixed, pre-enlargement,
+<b>Mdl - Button:</b>
+   Setting a fixed enlargement,
    according to the value of MODSIZ (approximate maximum size
      of the model).
    Change MODSIZ by function MODSIZ Standards/Tolerances/Modelsize,
@@ -103,39 +122,38 @@ How to move, zoom, rotate the view:
      - The Model size in the export of mockup models (eg VRML)
 
 
-____________________________________________________________________________
+<hr>
 <p><a name="views"></a></p>
 <b>Predefined views:</b>
 
 
-TopView   - top view  (view X-Y)
-FrontView - side view (view X-Z)
-SideView  - side view (view Y-Z)
+TopView   - top view   (view X-Y)
+Front     - front view (view X-Z)
+Side      - side view  (view Y-Z)
 AxoView   - Axonometric View
 
 
 
-<B>Viewport:</B>      save / restore the current viewport
+<hr>
+<p><a name="vwpt"></a></p>
+<B>Viewports:</B>      save / restore the current viewport
 
-  Save with keys Ctrl-"V".
+  Save active viewport with keys Ctrl plus cursor-up.
   The number of Viewports is unlimited.
-  Loading a new model clears all stored viewports.
-
-  Restore the last stored viewport with keys Ctrl plus cursor-right.
 
   Restore the previous stored viewport with keys Ctrl plus cursor-left.
 
+  Restore the next stored viewport with keys Ctrl plus cursor-right.
+
+  Remove the last activated viewport with keys Ctrl plus cursor-down.
+
+  Loading a new model clears all stored viewports.
 
 
-____________________________________________________________________________
-<p><a name="hide"></a></p>
 
-Hiding individual objects: see box Hide, View
-Hiding objects Group: see box Hide, View
-
-____________________________________________________________________________
-
-
+<hr>
+Send bug-reports, suggestions for improvement to
+  franz.reiter@cadcam.co.at
 </PRE>
 </BODY>
 </HTML>

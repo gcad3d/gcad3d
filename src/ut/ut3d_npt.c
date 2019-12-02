@@ -335,6 +335,8 @@ UT3D_npt_ci                circular polygon
 
   switch(typ) {
 
+
+
     case Typ_CI:      // Circ  UT2D_angr_ciSec GR_DrawCirc
       pNr = UT2D_ptNr_ci (fabs(((Circ*)data)->rad),
                           fabs(((Circ*)data)->ango), tol);
@@ -375,6 +377,12 @@ UT3D_npt_ci                circular polygon
     case Typ_PLN:
       pNr = 1;
       break;
+
+    case Typ_VC:      // no points ..
+      pNr = 0;
+      break;
+
+
 
     default:
       TX_Error("UT3D_ptNr_obj not supp. %d",typ);
@@ -1109,7 +1117,7 @@ UT3D_npt_ci                circular polygon
   Point2 *p2a;
 
 
-  DEB_dump_obj__ (Typ_CVPOL2, plg, " UT3D_pta_plg2");
+  // DEB_dump_obj__ (Typ_CVPOL2, plg, " UT3D_pta_plg2");
 
   pNr = plg->ptNr;
   p2a = plg->pTab;
@@ -1827,7 +1835,7 @@ UT3D_npt_ci                circular polygon
       if((mode == 0)&&(dbi > 0L)) {
         if(dbTyp < Typ_CI) goto L_index_1; // PT,LN = no PRCV
         // get PRCV
-        irc = PRCV_npt_dbo__ (&pa2, &i2, dbTyp, dbi, AP_get_AP_modact_ind());
+        irc = PRCV_npt_dbo__ (&pa2, &i2, dbTyp, dbi, AP_get_modact_ind());
           // printf(" from-PRCV_npt_dbo__-irc=%d i2=%d\n",irc,i2);
         if(irc) {
           printf("**** UT3D_pta_ox_lim I1-dbo=%d,%ld\n",dbTyp,dbi);

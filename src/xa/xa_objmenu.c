@@ -1085,7 +1085,7 @@ extern int       IE_modify;
 
 
   // get DB-typ & DB-index from DispListIndex
-  typ = DL_GetTyp (dli);
+  typ = DL_dbTyp__dli (dli);
   dbi = DL_get_dbi (dli);
 
   //----------------------------------------------------------------

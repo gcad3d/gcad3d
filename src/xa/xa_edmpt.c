@@ -369,7 +369,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   //----------------------------------------------------------------
   L_ini_obj:
   // get dli if not given
-  if(dli < 0) dli = DL_find_obj (typ, dbi, -1L);
+  if(dli < 0) dli = DL_dli__dbo (typ, dbi, -1L);
     // printf(" dli=%ld\n",dli);
 
   // get srcLineNr
@@ -377,7 +377,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // printf(" actlNr=%ld\n",actlNr);
 
   // set basic type
-  basTyp = AP_typ_2_bastyp (typ);
+  basTyp = AP_typDB_typ (typ);
     // printf(" basTyp=%d\n",basTyp);
     // DEB_dump_obj__ (actTyp, actObj, "actObj: ");
 
@@ -963,7 +963,7 @@ static FILE      *EDMPT_fp_dep = NULL;
             // basTyp,actTyp,actDbi);
 
   // get actObj from DB (for insert points into POL, BSP)
-  basTyp = AP_typ_2_bastyp (actTyp);
+  basTyp = AP_typDB_typ (actTyp);
   form = basTyp;
   irc = UTO_objDat_dbo (&actObj, &i1, &form, actDbi);
   if(irc < 0) return irc;
@@ -1615,7 +1615,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 //================================================================
 // EDMPT_win_act      activate/deactivate Insert/Delete depending on baseObj
 
-  if(AP_typ_2_bastyp (actTyp) == Typ_CV) {
+  if(AP_typDB_typ (actTyp) == Typ_CV) {
     GUI_set_enable (&EDMPT_wa2[0], TRUE);
     GUI_set_enable (&EDMPT_wa2[1], TRUE);
 

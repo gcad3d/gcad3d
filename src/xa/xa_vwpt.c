@@ -125,68 +125,113 @@ extern MemObj  winMain;    // toolbarBox
 // file ~/gCAD3D/tmp/view.dat
 // mode   -1   clear all viewports (file-new)
 //         0   save viewport
-//         1   restore previous viewport
-//         2   restore next viewport
+//         1   restore next viewport
+//         2   restore previous viewport
+//         3   delete last activated viewport
 //
-// TODO: save ~/gCAD3D/tmp/view.dat into model;
-//   restore ~/gCAD3D/tmp/view.dat at laod-model.
-//   Make ~/gCAD3D/tmp/view.dat ascii (not binary) ?
+// todo: save ~/gcad3d/tmp/view.dat into model;
+//   restore ~/gcad3d/tmp/view.dat at load-model.
+//   make ~/gcad3d/tmp/view.dat ascii (not binary) ?
+//
+// file = 
+// format: ??
 
  
-  int    i1;
-  double view[10];
-  char   txbuf[200];
-  FILE   *fp1;
+#define vwSiz    10
+  int    i1, vNr;
+  long   fSiz, rSiz;
+  double view[vwSiz];
+  char   txbuf[200], fntmp[200];
+  FILE   *fp1, *fp2;
 
-  static int stat= 9999;
+  static int stat = 0;
 
 
   // printf("vwpt__ %d\n",mode);
 
-  sprintf(txbuf, "%sview.dat", OS_get_tmp_dir());
 
+  rSiz = (long)sizeof(view);
+
+  sprintf(txbuf, "%sview.dat", OS_get_tmp_dir());
+    // printf(" vwpt__ txbuf=|%s|\n",txbuf);
+  fSiz = OS_FilSiz (txbuf);
+  if(fSiz < rSiz) {
+    vNr = 0;
+  } else {
+    vNr = fSiz / rSiz;
+  }
+    // printf(" vwpt__ fSiz=%ld stat=%d vNr=%d\n",fSiz,stat,vNr);
 
 
   //----------------------------------------------------------------
   if(mode == -1) {                 // clear all viewports
     OS_file_delete (txbuf);
-    stat = -2;
+    stat = 0;
     return 0;
   }
 
 
   //----------------------------------------------------------------
-  if(mode == 0) {                 // save
+  if(mode == 0) {                 // add / save (Ctrl-CursorUp)
     // get Viewparameters (Scale, Center, ..)
     GL_View_get (view);
     // save Viewparameters (add to file)
     fp1 = fopen (txbuf, "ab");   // append bin
-    fwrite ((void*)view, sizeof(view), 1, fp1);
+    fwrite ((void*)view, rSiz, 1, fp1);
     fclose (fp1);
-    stat = 9999;
-    TX_Print("....new Viewport stored ....");
+    stat = vNr;
+    ++vNr;
+    TX_Print("....new Viewport %d stored ....", vNr);
     return 0;
   }
 
 
   //----------------------------------------------------------------
-  if(mode == 1) {          // restore previous (Ctrl-CursorRight)
+  if(vNr < 1) goto L_no_vw;
+
+  if(mode == 1) {          // restore next (Ctrl-CursorRight)
     ++stat;
     goto L_get_vp;
   }
 
   //----------------------------------------------------------------
-  if(mode == 2) {          // restore next     (Ctrl-CursorLeft)
+  if(mode == 2) {          // restore previous     (Ctrl-CursorLeft)
     --stat;
-    if(stat < 0) stat = 0;
     goto L_get_vp;
+  }
 
+  //----------------------------------------------------------------
+  if(mode == 3) {          // delete last activated viewport  (Ctrl-CursorDown)
+    // remove ?
+    TX_Print("....remove Viewport %d ....",stat);
+    sprintf(fntmp, "%stemp.dat", OS_get_tmp_dir());
+
+    fp1 = fopen (txbuf, "rb");
+    fp2 = fopen (fntmp, "wb");
+    if(!fp1) goto L_no_vw;
+    i1 = 0;
+
+    L_rem_nxt:
+      ++i1;
+      fread ((void*)view, rSiz, 1, fp1);
+      if(feof (fp1)) { stat = i1 - 1; goto L_rem_exit; }
+      if(i1 != stat) fwrite ((void*)view, rSiz, 1, fp2);
+      goto L_rem_nxt;
+
+    L_rem_exit:
+      fclose (fp1);
+      fclose (fp2);
+      OS_file_rename (fntmp, txbuf);
+      --vNr;
+      stat = vNr;
   }
 
 
   //----------------------------------------------------------------
   // get viewport from line <stat>
   L_get_vp:
+    if(stat > vNr) stat = 1;
+    if(stat < 1) stat = vNr;
       // printf(" vwpt get %d\n",stat);
     TX_Print("....restore Viewport %d ....",stat);
 
@@ -194,17 +239,19 @@ extern MemObj  winMain;    // toolbarBox
     // restore Viewparameters (Scale, Center, ..)
     fp1=fopen (txbuf, "rb");
     if(!fp1) goto L_no_vw;
-    i1 = -1;
+    i1 = 0;
 
     L_r_nxt:
       ++i1;
-      fread ((void*)view, sizeof(view), 1, fp1);
-      if(feof (fp1)) { stat = i1 - 1; goto L_r_exit; }
+      fread ((void*)view, rSiz, 1, fp1);
+      if(feof (fp1)) goto L_r_exit;
       if(i1 < stat) goto L_r_nxt;
 
     L_r_exit:
-      fclose (fp1);
-        // printf(" vwpt i1=%d stat=%d\n",i1,stat);
+    fclose (fp1);
+      // printf(" vwpt i1=%d stat=%d\n",i1,stat);
+
+    // stat = i1 - 1;
 
 
     // restore view
@@ -216,7 +263,7 @@ extern MemObj  winMain;    // toolbarBox
 
 
   L_no_vw:
-    TX_Print("**** no viewpoint stored (store viewpoint with Ctrl-V)");
+    TX_Print("**** no viewpoint stored (store viewpoint with Ctrl-cursorUp)");
     return 0;
 
 }

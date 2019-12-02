@@ -58,7 +58,7 @@ double UT_TOL_cv   = 0.005;    // Angle: ca 0.3 degree
 /// max. display-deviation for circles, curves
 double UT_DISP_cv  = 0.05;         // 2003-09-05: 0.05; war 0.01   
 
-/// length of construction-lines
+/// length of construction-lines ;  see also UT_LEN_TNG; see also UT_LEN_TNG
 double UT_DISP_ln = 1000.;
 
 

@@ -1,0 +1,41 @@
+
+Open issues:
+
+____________________________________________________________________________
+- interactive editor - modify object:
+    - display objects not affected dimmed,
+    - update child-objects dynamic.
+
+- Add offset-surfaces
+
+- Boolean operation with surfaces 
+
+- Project and Mirror currently only for individual objects, not for CCV (currently Translate only).
+
+- update interactive editor to modify B-splines. 
+
+- Transformation of 3D Text: currently is always set in the XY plane.
+
+- NC machining is graphically not yet active in the transformed reference system.
+
+- NC-function are not yet completely implemented for alternative construction-planes
+
+- Function for interactive positioning of sub-models to a contact position.
+
+- Drawing 2D from 3D has not yet been implemented.
+
+- With hatching, no islands are possible yet
+
+- The programming interfaces are only partially documented.
+
+- Step-Export only partially implemented
+
+- Perspective view (only parallel view)
+
+
+
+
+
+____________________________________________________________________________
+../../doc/Todo_en.txt
+EOF

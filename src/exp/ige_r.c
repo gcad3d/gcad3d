@@ -4112,7 +4112,7 @@ static  int oCnt1, oCnt2;
   // ca. D(P(L20,MOD(1)) P(xyz))
   strcat(cBuf, " D(P(");
   AP_obj_add_dbo (cBuf, typ, ind);
-  strcat(cBuf, " MOD(1))");
+  strcat(cBuf, " PTS(1))");
 
   AP_obj_add_pt (cBuf, &pte);
 

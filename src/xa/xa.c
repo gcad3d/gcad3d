@@ -42,7 +42,7 @@ List_functions_start:
 AP_get_modnam       returns AP_mod_fnam
 AP_get_fnam_symDir  get filename of symbolic directories (dir.lst)
 AP_get_dir_open
-AP_get_AP_modact_ind 
+AP_get_modact_ind 
 AP_set_dir_open
 AP_set_dir_save
 AP_set_modsiz
@@ -85,7 +85,7 @@ AP_lNr_inc          increment AP_ED_lNr
 AP_lNr_get          returns AP_ED_lNr
 AP_lNr_set
 
-AP_typ_2_bastyp     give basictyp from typ (SURRU -> Typ_SUR; Typ_CVBSP -> Typ_CV)
+AP_typDB_typ     give basictyp from typ (SURRU -> Typ_SUR; Typ_CVBSP -> Typ_CV)
 AP_cmp_typ          check if types identical;
 AP_typ_typChar      make typ from typChar  ("P" -> Typ_PT)
 AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
@@ -117,6 +117,7 @@ AP_SetCol__         set default color
 AP_SetCol3i         set color
 AP_colSel           select color
 
+AP_sel_oid__        get objID(s) from text, hilite, add to grp
 AP_DllLst_write     write list of plugins
 
 AP_save_ex          save model at exit model
@@ -350,6 +351,14 @@ extern AP_STAT   AP_stat;
   int       SRC_ato_SIZ;
 
 
+char      AP_filnam[256];
+
+
+int       AP_mode__;             // see AP_mode_step
+int       AP_mode_old;
+
+int       AP_src = AP_SRC_EDI;   ///< AP_SRC_MEM or AP_SRC_EDI
+
 
 // Vars fuer die Applikation:
 // char      AP_mod_fnam[128];     ///< active Modelname - without path
@@ -367,8 +376,6 @@ Mat_4x3   WC_sur_mat;            ///< TrMat of ActiveConstrPlane
                                  ///<   only if (WC_sur_ind > 0)
 Mat_4x3   WC_sur_imat;           ///< inverse TrMat of ActiveConstrPlane
 char      WC_ConstPl_Z[16];      ///< ConstPl-Z-axis (DZ, ...R20 ...
-
-int       AP_src = AP_SRC_EDI;   ///< AP_SRC_MEM or AP_SRC_EDI
 
 double    AP_txsiz    = 3.5;     ///< Notes-Defaultsize
 double    AP_txdimsiz = 2.5;     ///< Dimensions-Text-Defaultsize
@@ -481,7 +488,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 //================================================================
-  int AP_get_AP_modact_ind () {
+  int AP_get_modact_ind () {
 //================================================================
 
   return AP_modact_ind;
@@ -911,7 +918,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   //----------------------------------------------------------------
   UTX_add_fnam_del (dNam);    // add following "/"
-    // printf("ex-AP_Mod_open  |%s|%s|\n",dNam,fNam);
+    printf("ex-AP_Mod_open  |%s|%s|\n",dNam,fNam);
     
 /*
   if(mode == 2) return 0;
@@ -1147,14 +1154,20 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     AP_mod_sym_get (AP_mod_sym, AP_mod_dir);
   }
 
-  // set AP_mod_fnam
-  strcpy (AP_mod_fnam, fNam);
-  UTX_ftyp_cut (AP_mod_fnam); // cut off Filetyp from AP_mod_fnam
 
   // save-overwrite
-  if(mode == 0) UI_save__ (1);
-  if(mode == 1) Grp_exp (fNam, AP_mod_dir);
-  if(mode == 2) Mod_sav2file_CB (fNam, AP_mod_dir);
+  if(mode == 0) {
+    // set AP_mod_fnam
+    strcpy (AP_mod_fnam, fNam);
+    UTX_ftyp_cut (AP_mod_fnam); // cut off Filetyp from AP_mod_fnam
+    UI_save__ (1);
+
+  } else if(mode == 1) {
+    Grp_exp (fNam, AP_mod_dir);
+
+  } else if(mode == 2) {
+    Mod_sav2file_CB (fNam, AP_mod_dir);
+  }
 
 
   // add filename to list "last-used"
@@ -3283,11 +3296,15 @@ remote control nur in VWR, nicht MAN, CAD;
   int   i1;
   char  mfn[256];
 
+  printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
+
   // get AP_mod_dir,sym,fnam,ftyp from symbolic- or abs.filename
   Mod_fNam_get (fn);
 
   // get absolute-directory
   Mod_fNam_set (mfn, 0);
+    printf(" Mod_load_fn |%s|\n",mfn);
+
 
   // Test if file exists (modelfile)
   i1 = OS_checkFilExist (mfn, 2);  // 1=yes, 0=no
@@ -3327,7 +3344,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 
-  // printf("AP_Mod_load__|%s|%s|%s| %d\n",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp,mode);
+  printf("AP_Mod_load__|%s|%s|%s| %d\n",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp,mode);
   // printf(" AP_mod_sym=|%s| AP_mod_iftyp=%d\n",AP_mod_sym,AP_mod_iftyp);
 
 
@@ -3545,8 +3562,9 @@ remote control nur in VWR, nicht MAN, CAD;
       AP_Mod_lstAdd ();
     }
 
-    return irc;
+      printf("ex-AP_Mod_load__ %d\n",irc);
 
+    return irc;
 
 }
 
@@ -3711,7 +3729,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // find obj in DL
-  dlInd = DL_find_obj (i1, dbi, -1L);
+  dlInd = DL_dli__dbo (i1, dbi, -1L);
   if(dlInd < 0) {
     TX_Print("AP_hili_obj: Obj. %12.12s nicht gefunden",cbuf);
     return dlInd;
@@ -4025,7 +4043,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// check if types identical;
 /// RC = 0 = ident;
 /// 
-/// see AP_typ_2_bastyp
+/// see AP_typDB_typ
 /// \endcode
 
 
@@ -4063,7 +4081,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //====================================================================
-  int AP_typ_2_bastyp (int typ) {
+  int AP_typDB_typ (int typ) {
 //====================================================================
 /// \code
 /// give basictyp from typ;
@@ -4852,7 +4870,7 @@ static char cbuf[32];
   long    apt_ind;
 
 
-    apt_typ = DL_GetTyp (dli);
+    apt_typ = DL_dbTyp__dli (dli);
     apt_ind = DL_get_dbi (dli);
     tra_ind = DL_GetTrInd (dli);
 
@@ -4893,8 +4911,8 @@ static char cbuf[32];
 
   if(dli < 0) return -1;
 
-  typ = DL_GetTyp (dli);
-  typ = AP_typ_2_bastyp (typ);
+  typ = DL_dbTyp__dli (dli);
+  typ = AP_typDB_typ (typ);
   ind = DL_get_dbi (dli);
   if(ind <= 0) return -1;
 
@@ -4962,6 +4980,63 @@ static char cbuf[32];
 
 
 }
+
+
+//================================================================
+  int AP_sel_oid__ () {
+//================================================================
+// AP_sel_oid__                       get objID(s) from text, hilite, add to grp 
+
+
+  int      irc, typ, ii;
+  long     dbi, dli, ll;
+  char     s1[256], *p1;
+
+
+  // get s1 = objID(s)
+  s1[0] ='\0'; 
+  irc = GUI_Dialog_e2b ("objID(s) ", s1, 256, "Cancel", "OK");
+  if(irc < 1) return -1;
+
+    // TESTBLOCK:
+    // strcpy(s1, "S20 S21, S22 S(XX) P21");
+    printf(" |%s|\n",s1);
+    // END TESTBLOCK:
+
+  ll = strlen(s1);
+  p1 = s1;
+  ii = 0;
+
+  //----------------------------------------------------------------
+  // get next objID
+  L_nxt:
+  UTX_pos_skipLeadBlk (p1);
+
+  // test if its oid 
+  irc = APED_oid_src1 (&typ, &dbi, &p1, &ll);
+  if(irc < 0) goto L_exit;
+    printf(" irc=%d typ=%d dbi=%ld ll=%ld\n",irc,typ,dbi,ll);
+
+
+  // hilite obj
+  dli = DL_dli__dbo (typ, dbi, -1L);
+  DL_hili_on (dli);        // hilite obj
+
+  // add obj to group
+  DL_grp1__ (dli, NULL, 1, 1);
+
+  ++ii;
+  goto L_nxt;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  Grp_upd (1);  // update GrpNr-label
+
+  return 0;
+
+}
+
 
 
 

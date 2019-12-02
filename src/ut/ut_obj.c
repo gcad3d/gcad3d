@@ -51,6 +51,7 @@ UTO_obj_cnvt_src        get obj of requested typ from source
 UTO_obj_cnvt_ato        get obj of requested typ from ato
 
 --------- functions for curves: ---------------------
+UTO_objDat_dbS          get standardCurve from DB-curve S
 UTO_ck_curvLimTyp       check if CurveLimits are Points or parameters
 UTO_ck_curvForm         check if objTyp is ObjGX or other typ
 UTO_cv_ck_clo           check if curve is closed
@@ -85,8 +86,8 @@ UTO_get_PT     DO NOT USE   make ObjX aus ObjGX (Pointer (zB Line*) holen).
 UTO_get_LN     DO NOT USE
 UTO_objx_get   DO NOT USE   use UTO_objDat_ox
 
-UTO_parpt_pt_dbo        get parameter from point (obj from typ/ind)
-UTO_par1_pt_pt_obj      get parameter from point on curve
+UTO_par__pt_dbo        get parameter from point (obj from typ/ind)
+UTO_par__pt_obj        get parameter from point on curve
 UTO_par_tot             get endParameter - unlimited
 
 UTO_set_ptlim           Anfangs- und/oder Endpunkt einer struct setzen
@@ -303,14 +304,16 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 */
 
 //===================================================================
-  int UTO_obj_cnvt_ato (void *objo, int typo, ObjAto *ato1) {
+  int UTO_obj_cnvt_ato (void *objo, int typo, ObjAto *ato1, int mode) {
 //===================================================================
 // UTO_obj_cnvt_ato      get obj of requested typ from ato
 // Input :
 //   ato1         input-objs
 //   typo         requested output-type
+//   mode         0=raise-error; 1=do-not-raise-error
 // Output: 
 //   objo         converted object of type typo
+//   retCod       0=OK, -1=Err.
 //
 // see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
 // see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
@@ -319,8 +322,8 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   int    irc;
 
 
-  printf("UTO_obj_cnvt_obj typo=%d\n",typo);
-  ATO_dump__ (ato1, " _cnvt_obj-in");
+  // printf("UTO_obj_cnvt_obj typo=%d\n",typo);
+  // ATO_dump__ (ato1, " _cnvt_obj-in");
 
 
   switch (typo) {
@@ -328,8 +331,9 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     // case Typ_Val:          // see sele_decode L_val_conv: L_VAL_C:
       // break;
 
-    // case Typ_PT:           // see sele_decode L_pt_conv:
-      // break;
+    case Typ_PT:           // see sele_decode L_pt_conv:
+      irc = APT_decode_pt (objo, ato1->nr, ato1->typ, ato1->val);
+      break;
 
     case Typ_VC:           // see sele_decode L_vc_conv:
       irc = APT_decode_vc (objo, ato1->nr, ato1->typ, ato1->val);
@@ -354,19 +358,23 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   }
 
 
-    DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_ato");
+    // DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_ato");
 
   return irc;
 
   //----------------------------------------------------------------
   L_err_nyi:
+    if(mode) {
+      printf("***** UTO_obj_cnvt_ato typ %d NOT YET IMPLEM.\n",typo);
+      return -1;
+    }
     return MSG_ERR__ (ERR_func_not_impl, "typo=%d\n",typo);
 
 }
 
 
 //================================================================
-  int UTO_obj_cnvt_src (void *objo, int typo, char *srcLn) {
+  int UTO_obj_cnvt_src (void *objo, int otyp, char *srcLn) {
 //================================================================
 // UTO_obj_cnvt_obj      get obj of requested typ from source
 //
@@ -375,6 +383,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //   typo         requested output-type
 // Output: 
 //   objo         converted object of type typo
+//   retCod       -1=Err else type of objo
 //
 // see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
 // see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
@@ -382,11 +391,11 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 #define cmd_SIZ 100
 
-  int      irc;  //, typ, oNr, itsMax;
+  int       irc;  //, typ, oNr, itsMax;
   ObjAto    ato1;
 
 
-  printf("\nUTO_obj_cnvt_src |%s|\n",srcLn);
+  // printf("\nUTO_obj_cnvt_src otyp = %d |%s|\n",otyp,srcLn);
 
   // get memSpc for ato
   ATO_getSpc_tmp__ (&ato1, cmd_SIZ);             // ATO_tmpSpc_get_s
@@ -396,13 +405,14 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   if(irc < 0) return irc;
     // ATO_dump__ (&ato1, " nach _ato_eval__");
 
+  if(otyp == Typ_unknown) otyp = ato1.typ[0];
 
   // convert ato -> typ otyp
-  irc = UTO_obj_cnvt_ato (objo, typo, &ato1);
+  irc = UTO_obj_cnvt_ato (objo, otyp, &ato1, 1);
+  if(irc < 0) return irc;
+    // DEB_dump_obj__ (otyp, objo, "ex-UTO_obj_cnvt_src");
 
-    // DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_src");
-
-  return irc;
+  return otyp;
 
 }
 
@@ -1012,6 +1022,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     else if(i1 == Typ_CVCLOT) iNr = 2;
     else if(i1 == Typ_CVPOL)  iNr = ((CurvPoly*)odb)->ptNr;
     else if(i1 == Typ_CVBSP)  iNr = ((CurvBSpl*)odb)->ptNr;
+    else if(i1 == Typ_CVTRM)  iNr = 2;  // TODO: ? get basic-type of trimmed curve
     else goto L_E002;
     goto L_exit;
 
@@ -1333,21 +1344,24 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 
 
-//=================================================================
-  int UTO_parpt_pt_dbo (double *lpar, Point *pti, int typ, long ind) {
-//=================================================================
-/// \code
-/// UTO_parpt_pt_dbo           get parameter from point (obj from typ/ind)
-/// ACHTUNG: lpar muss im Bereich 0-1 sein; wird fuer Curves umgerechnet !!
-/// see UT3D_pt_evparcrv
-/// \endcode
+//=============================================================================
+  int UTO_par__pt_dbo (double *lpar, int mode, Point *pti, int typ, long ind) {
+//=============================================================================
+// \code
+// UTO_par__pt_dbo           get parameter from point (obj from typ/ind)
+// Input:
+//   mode     0  get knotvalues for splines
+//            1  get parametervalues from 0 -1 also for splines
+// ACHTUNG: lpar muss im Bereich 0-1 sein; wird fuer Curves umgerechnet !!
+// see UT3D_pt_evparcrv
+// \endcode
 
   double UT3D_parbsp_par1();
 
   ObjGX ox1;
 
 
-  // DEB_dump_obj__ (Typ_PT, pti, "UTO_parpt_pt_dbo %d %d:",typ,ind);
+  // DEB_dump_obj__ (Typ_PT, pti, "UTO_par__pt_dbo %d %d:",typ,ind);
 
 
   ox1 = DB_GetObjGX (typ, ind);
@@ -1356,10 +1370,10 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
   // get paramter from curve-obj (immer Werte 0-1) !
-  UTO_par1_pt_pt_obj (lpar, pti, ox1.form, ox1.data);
+  UTO_par__pt_obj (lpar, mode, pti, ox1.form, ox1.data);
 
 
-  // printf("ex UTO_parpt_pt_dbo %f\n",*lpar);
+  // printf("ex UTO_par__pt_dbo %f\n",*lpar);
   return 0;
 
 }
@@ -1675,7 +1689,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //================================================================
 /// \code
 /// UTO_ck_dbsTyp           check object-typ (struct or object)
-///   typ              must be a basictype; see AP_typ_2_bastyp
+///   typ              must be a basictype; see AP_typDB_typ
 /// 0 = data-struct    (Point, Line, Circ, Vector)
 /// 1 = complex object (ObjGX, Curve or Surf or GTXT)
 /// \endcode
@@ -1964,6 +1978,105 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 
 
+//================================================================
+  int UTO_objDat_dbS (void **oDat, int *oTyp,
+                      long dbInd, int iSeg1, int iSeg2, void *oSpc) {
+//================================================================
+// UTO_objDat_dbo                          get standardCurve from DB-curve S
+//   get bin.curve-data also from trimmedCurve, segment of CCV ..
+//   creates standardCurve for trimmedCurve; this curves are stored in oSpc.
+//
+// Input:
+//   dbInd          curve (Typ_CV) in DB
+//   iSeg1          index segment  (CCV or polygon: 1=first ..)
+//   iSeg2          index segment  (polygon: 1=first ..)
+//   oSpc           space for standardCurve of trimmedCurve, siz OBJ_SIZ_MAX
+// Output
+//   oTyp,oDat      basic-curve (L C ell plg bsp ..)
+//
+// see also UTO_objDat_dbo UTO_objDat_ox DB_GetObjDat
+
+  int      irc;
+  Line     ln1;
+  ObjGX    *ox1p;
+  CurvCCV  *cca;
+  void     *vp1;
+
+
+  // printf("::::::::::::::::::::::::::::::::::::::::::::::::::: \n");
+  // printf("UTO_objDat_dbS dbi=%ld iSeg1=%d iSeg2=%d\n",dbInd,iSeg1,iSeg2);
+
+
+  L_start:
+  ox1p = DB_GetCurv (dbInd);
+    // DEB_dump_obj__(Typ_ObjGX, ox1p, "  objDat_dbS-in:");
+
+
+  //----------------------------------------------------------------
+  if(ox1p->form == Typ_Index) {dbInd = LONG_PTR(ox1p->data); goto L_start;}
+
+
+  //----------------------------------------------------------------
+  // resolv trimmed-curve/CCV
+  if(ox1p->form == Typ_CVTRM) {
+
+    if(ox1p->siz < 2) {
+      // its a single-trimmed-curve
+      vp1 = ox1p->data;
+      goto L_Trm1;
+    }
+
+    // get trimmed-curve vp1; set to curve[iSeg1]  (UT3D_obj_ccv_segnr)
+    if((iSeg1 < 1)          ||
+       (iSeg1 > ox1p->siz)) {TX_Error("UTO_objDat_dbS E-segInd1"); return -1;}
+    cca = (CurvCCV*)ox1p->data;
+    vp1 = &cca[iSeg1 - 1];
+    iSeg1 = iSeg2;
+
+
+    // get basic curve for trimmedCurve
+    L_Trm1:
+      // DEB_dump_obj__(Typ_CVTRM, vp1, "  objDat_dbS-iSeg:");
+    irc = UTO_cv_cvtrm (oTyp, oSpc, NULL, vp1);
+    if(irc < 0) return -1;
+    *oDat = oSpc;
+
+    goto L_plgSeg;
+  }
+
+
+  //----------------------------------------------------------------
+  L_noTrm:                  // ell plg bsp ..
+    *oTyp = ox1p->form;
+    *oDat = ox1p->data;
+
+
+  //----------------------------------------------------------------
+  L_plgSeg:
+    // second iSeg: must be a polygon - extract segment of polygon
+    if(iSeg1 < 1) goto L_exit;
+    if(*oTyp == Typ_CVPOL) {
+      // get segment from polygon
+      irc = UT3D_2pt_plg_iseg (&ln1.p1, &ln1.p2, iSeg1, *oDat);
+      if(irc < 0) {TX_Error("UTO_objDat_dbS E-segInd2"); return -1;}
+      ln1.typ = 0;
+      memcpy(oSpc, &ln1, sizeof(Line));
+      *oTyp = Typ_LN;
+      *oDat = oSpc;
+        // DEB_dump_obj__ (Typ_LN, &ln1, " ln1");
+    }
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // DEB_dump_obj__(*oTyp, *oDat, "ex-UTO_objDat_dbS");
+
+  return 0;
+
+}
+
+
 //=======================================================================
    int UTO_objDat_dbo (void **oDat, int *oNr, int *oTyp, long dbInd) { 
 //=======================================================================
@@ -2009,6 +2122,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 ///
 ///
 /// see also:
+/// UTO_objDat_dbS get standardCurve from DB-curve S
 /// DB_GetObjGX    get complexObj from DB-Obj Keep Refs.   Give ObjGX.
 /// UTO_objDat_dbo     get dataStruct from DB-Obj Keep Refs.   Give pointer.
 /// DB_GetObjDat   get dataStruct from DB-Obj Resolv Refs. Give pointer.
@@ -2020,7 +2134,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 // TODO:
 // Typ_Note returns the ObjGX; Typ_GTXT also returns its ObjGX.
 //   Better: Typ_GTXT returns its struct; Typ_Note returns the ObjGX.
-//   for that AP_typ_2_bastyp should not be called first.
+//   for that AP_typDB_typ should not be called first.
 
 
 
@@ -2031,7 +2145,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
   // printf("UTO_objDat_dbo %d %ld\n",*oTyp,dbInd);
 
-  typ = AP_typ_2_bastyp (*oTyp);
+  typ = AP_typDB_typ (*oTyp);
     // printf(" bastyp=%d %d\n",typ,*oTyp);
 
   *oNr = 1;
@@ -2134,7 +2248,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   }
 
 
-  if(irc == 1) *oTyp = AP_typ_2_bastyp (*oTyp);
+  if(irc == 1) *oTyp = AP_typDB_typ (*oTyp);
 
   return irc;
 
@@ -2366,12 +2480,16 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 
 
-//=====================================================================
-  int UTO_par1_pt_pt_obj (double *po, Point *pti, int oTyp, void *oDat) {
-//=====================================================================
+//==============================================================================
+  int UTO_par__pt_obj (double *po, int mode, Point *pti, int oTyp, void *oDat) {
+//==============================================================================
 /// \code
-/// UTO_par1_pt_pt_obj        get parameter from point on curve
-/// ACHTUNG: liefert (auch fuer B-Splines) immer Werte zwischen 0-1 !
+/// UTO_par__pt_obj        get parameter 0-1 from point on curve
+/// Input:
+///   mode      0  get knotvalues for splines
+///             1  get parametervalues from 0 -1 for splines, polygon, trimmed-curve
+/// Output:
+///   po           parameter 0-1 of point pti on curve oTyp,oDat
 /// \endcode
 
 // was UT3D_parpt_objpt
@@ -2386,7 +2504,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   char   *sDat;
 
 
-  // printf("UTO_par1_pt_pt_obj oTyp=%d\n",oTyp);
+  // printf("UTO_par__pt_obj oTyp=%d\n",oTyp);
   // DEB_dump_obj__ (Typ_PT, pti, "  pti = ");
   // DEB_dump_obj__ (oTyp, oDat, "  oDat:\n");
 
@@ -2418,39 +2536,40 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
   } else if(oTyp == Typ_CVBSP) {
     // UME_init (&wrkSpc, tmpSpc, 50000);
-    irc = UT3D_parCv_bsplpt (po, &d1, (CurvBSpl*)oDat, pti);
+    irc = UT3D_parCv_bsplpt (&d2, &d1, (CurvBSpl*)oDat, pti);
     if(irc != 0) return -1;
-    // Knotenwert in einen Paramterwert von 0 - 1 aendern
-    // *po = UT3D_par1_parbsp (po, oDat);  removed 2017-03-08
-
+    // get po = parameter 0-1 from knotval d2
+    if(mode) *po = UT3D_par1_parbsp (&d2, oDat);
+    else     *po = d2;
 
   } else if(oTyp == Typ_CVRBSP) {
     irc = UT3D_par_rbsp_pt (&d1, &d2, (CurvRBSpl*)oDat, pti);
     if(irc != 0) return -1;
     // knotval -> parameter 0-1
-    *po = UT3D_par1_par_rbsp (&d1, (CurvRBSpl*)oDat);
+    if(mode) *po = UT3D_par1_par_rbsp (&d1, (CurvRBSpl*)oDat);
+    else     *po = d1;
 
 
   } else if(oTyp == Typ_CVPOL) {
     irc = UT3D_parplg_plgpt (po, pti, (CurvPoly*)oDat);
     if(irc < 0) return -1;
     // Knotenwert in einen Parameterwert von 0-1 aendern
-    *po = UT3D_par1_parplg (po, oDat);
+    if(mode) *po = UT3D_par1_parplg (po, oDat);
 
 
   } else if(oTyp == Typ_CVTRM) {
     sDat = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
     UTO_cv_cvtrm (&sTyp, sDat, NULL, (CurvCCV*)oDat);
-    UTO_par1_pt_pt_obj (po, pti, sTyp, sDat);
+    UTO_par__pt_obj (po, mode, pti, sTyp, sDat);
 
 
   } else {
-    TX_Error("UTO_par1_pt_pt_obj E001 %d",oTyp);
+    TX_Error("UTO_par__pt_obj E001 %d",oTyp);
     return -1;
   }
 
 
-    // printf("ex UT3D_parpt_objpt %d %f\n",oTyp,*po);
+    // printf("ex-UTO_par__pt_obj %d %f\n",oTyp,*po);
 
   return 0;
 
@@ -2476,7 +2595,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 /// CCV:     rc=Typ_ObjGX
 /// Polygon: rc=Typ_CVPOL;  objOut=CurvPoly
 /// see UTO_objDat_dbo    get dataStruct from DB-Obj Keep Refs.   Give pointer.
-/// see DB_GetObjGX DB UTO_obj_get UTO_objx_get
+/// see DB_GetObjGX DB_GetObjDat UTO_objDat_dbS DB_GetObjDat
 /// \endcode
 
 // es sollten UTO_objx_get und UTO_obj_get durch UTO_objDat_ox ersetzt werden !!!
@@ -2493,8 +2612,10 @@ static ObjGX  *odb;
 
 
   // printf("UTO_objDat_ox typ=%d form=%d\n",ox1->typ,ox1->form);
+  // if(ox1->typ == 0) AP_debug__ ("E1");
   // if(ox1->typ == 0) AP_debug__ ("UTO_objDat_ox E-0");
   // DEB_dump_obj__(Typ_ObjGX, ox1, "-----:");
+
 
 
   typ  = ox1->typ;
@@ -2980,7 +3101,7 @@ static ObjGX  *odb;
   // DEB_dump_obj__ (Typ_ObjGX, ox1, "UTO_obj_get:\n");
 
 
-  bTyp = AP_typ_2_bastyp (ox1->typ);
+  bTyp = AP_typDB_typ (ox1->typ);
     // printf(" bTyp=%d\n",bTyp);
 
 
@@ -3044,7 +3165,7 @@ static ObjGX  *odb;
       *(ObjGX**)objOut = DB_GetCurv ((long)ox1->data);
         // DEB_dump_ox_0 (objOut, "CV %d ",(long)ox1->data);  GEHT SO NED !
 
-    } else if(AP_typ_2_bastyp(ox1->form) == Typ_CV) {
+    } else if(AP_typDB_typ(ox1->form) == Typ_CV) {
       *(ObjGX**)objOut = ox1;
 
     } else {
@@ -3391,8 +3512,6 @@ static ObjGX  *odb;
 
 
 
-
-
   //----------------------------------------------------------------
   // resolv dbo = ObjGX with index
   if(ox1->form == Typ_Index) {
@@ -3661,13 +3780,13 @@ static ObjGX  *odb;
         case Typ_Par1:    // 140
         case Typ_Float8:  // 175
 // TODO: o2Form=Typ_Float8; o2Typ=Typ_Dist
-          if(o2Typ == Typ_Dist) {
-            UT3D_pt_traptptlen (pa, &((Line*)o1)->p1, &((Line*)o1)->p2,
-                                *((double*)o2));
-          } else{
+          // if(o2Typ == Typ_Dist) {
+            // UT3D_pt_traptptlen (pa, &((Line*)o1)->p1, &((Line*)o1)->p2,
+                                // *((double*)o2));
+          // } else{
             UT3D_pt_evparln (pa, *((double*)o2), (Line*)o1);
             if(va1) va1[0] = *((double*)o2);
-          }
+          // }
           nip = 1;
           break;
 
@@ -3704,6 +3823,10 @@ static ObjGX  *odb;
         case Typ_CVPOL:  // CI x CVPOL
           nip = aSiz;
           UT3D_pt_intciplg (&nip, pa, va2, (Circ*)o1, (CurvPoly*)o2);
+            // printf(" f-intciplg-1 va2[0]=%f\n",va2[0]);
+          for(i1=0; i1<nip; ++i1)
+            va2[i1] = UT3D_par1_parplg (&va2[i1], (CurvPoly*)o2);
+            // printf(" f-intciplg-2 va2[0]=%f\n",va2[0]);
           break;
 
         case Typ_CVBSP:  // CI x CVBSP
@@ -6256,7 +6379,7 @@ static int traAct;
 
     //================================================================
     case Typ_ObjGX:
-      i1 = AP_typ_2_bastyp (ox1->typ);
+      i1 = AP_typDB_typ (ox1->typ);
 
       //----------------------------------------------------------------
       if(i1 == Typ_SUR) {
@@ -6407,7 +6530,7 @@ static int traAct;
 
     //================================================================
     case Typ_ObjGX:
-      i1 = AP_typ_2_bastyp (ox1->typ);
+      i1 = AP_typDB_typ (ox1->typ);
       if(i1 == Typ_SUR) {
         SUR_Disp_Sur (ox1, wrkSpc, att, p1);
 
@@ -7103,6 +7226,15 @@ static int traAct;
         goto L_fertig;
 
 
+
+      } else if(typSu == Typ_SURRV) {
+        // intersect line X Cyl|Cone
+        // irc = SRV_pt_int_ln_srv (pNr, pa, *pNr, (Line*)o1, ox2->data, wrkSpc);
+        irc = SRV_pt_int_ln_srv (pNr, pa, (Line*)o1, ox2->data);
+        if(irc < 0) goto L_fertig;
+        goto L_fertig;
+
+
       } else goto L_noFunc;
 
 
@@ -7439,7 +7571,7 @@ static int traAct;
   //----------------------------------------------------------------
   // create oo = copy of o0
   // copy obj to cut out; get dataSpace from wrkSpc
-  oo->typ   = AP_typ_2_bastyp (o0Typ);
+  oo->typ   = AP_typDB_typ (o0Typ);
   oo->form  = o0Typ;
   oo->siz   = 1;
   oo->data  = wrkSpc->next;
@@ -8247,11 +8379,12 @@ static int traAct;
   // get types & dataStrucst of objects
   o1typ = UTO_objDat_ox (&o1, &i1, ox1);
   o2typ = UTO_objDat_ox (&o2, &i1, ox2);
-    DEB_dump_obj__(o1typ, o1, "  o1:");
-    DEB_dump_obj__(o2typ, o2, "  o2:");
-    printf(" o1typ=%d o2typ=%d\n",o1typ,o2typ);
+    // DEB_dump_obj__(o1typ, o1, "  o1:");
+    // DEB_dump_obj__(o2typ, o2, "  o2:");
+    // printf(" o1typ=%d o2typ=%d\n",o1typ,o2typ);
 
 
+  // skip D|P|L  +  D|P|L
   if((o1typ == Typ_PT) ||
      (o1typ == Typ_VC) ||
      (o1typ == Typ_LN))    {
@@ -8268,15 +8401,15 @@ static int traAct;
   or2 = UME_reserve (memDat1, l2);
   UTRA_obj_abs2rel__ (or1, o1typ, o1, memDat1);
   UTRA_obj_abs2rel__ (or2, o2typ, o2, memDat1);
-    DEB_dump_obj__(o1typ, or1, "  or1:");
-    DEB_dump_obj__(o2typ, or2, "  or2:");
+    // DEB_dump_obj__(o1typ, or1, "  or1:");
+    // DEB_dump_obj__(o2typ, or2, "  or2:");
 
 
   // get 2D-curves from 3D-objects on constructionPlane
   UTRA_obj2_obj3__ (&o21, &o21typ, or1, o1typ, memDat1);
   UTRA_obj2_obj3__ (&o22, &o22typ, or2, o2typ, memDat1);
-    DEB_dump_obj__(o21typ, o21, "  o21:");
-    DEB_dump_obj__(o22typ, o22, "  o22:");
+    // DEB_dump_obj__(o21typ, o21, "  o21:");
+    // DEB_dump_obj__(o22typ, o22, "  o22:");
 
 
   // get tangent vtg;
@@ -8430,8 +8563,10 @@ static int traAct;
 
   //----------------------------------------------------------------
   // get max nr of tangent-solutions for objs
+  // only estimation; 2 circs can have 4 or 2 or 0 tangents ..
   isolMax1 = UTO_TNG_maxSol (o21typ) - 1;
   isolMax2 = UTO_TNG_maxSol (o22typ) - 1;
+    // printf(" isolMax1=%d isolMax2=%d\n",isolMax1,isolMax2);
 
   iRun2 = 0;
 
@@ -8445,7 +8580,7 @@ static int traAct;
   isol2 = 0;
 
   L_init_1:
-    // printf("L_init_1: ii=%d isol1=%d isol2=%d\n",ii,isol1,isol2);
+    // printf(" TNG_cv_cv-L_init_1: ii=%d isol1=%d isol2=%d\n",ii,isol1,isol2);
   // increment isol2 until error
   // error isol2: increment isol1; reset isol2; goto L_init_0;
   if(ii <= 0) goto L_start1;
@@ -8470,8 +8605,7 @@ static int traAct;
 // isol1=0;isol2=0;   // 0
 // isol1=1;isol2=0;   // 1
 // isol1=1;isol2=1;   // 2
-    // printf("isol=%d isol1=%d isol2=%d\n",isol,isol1,isol2);
-
+    // printf(" TNG_cv_cv-L_start1: isol=%d isol1=%d isol2=%d\n",isol,isol1,isol2);
 
   // get vt1 = vector along centerpoints of both objs
   // Point2 o1Cen, o2Cen;     // centerPoints of objects

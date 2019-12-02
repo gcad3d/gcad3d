@@ -1,0 +1,117 @@
+<HTML>
+<HEAD>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+  <TITLE>MAN_en.htm</TITLE>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
+<PRE>
+See also <a href="keycodes.htm">keycodes</a>
+
+
+<HR><!-- ============================================================ -->
+<h2>Using function MAN:</h2>
+  Mainfunction MAN (manual).
+  All objectcodes will be displayed in an editwindow left of grafic window.
+  The codes can be created / modified / deleted with the editor.
+  The grafic represetation is displayed immediately in the grafic window.
+
+
+<B>Enable function MAN:</B>
+ Select the MAN checkbox.
+
+
+
+<HR><!-- ============================================================ -->
+<B>Creating objects:</B>
+ Create the codelines in the editwindow,
+   Activate line with the RETURN key or right mouse button "OK".
+   The line will be processed, resulting objects are displayed.
+
+ A codeline for a graphic object consists of:
+   object-ID = parameters.   Example point:
+   P10 = P(100 100 0)
+   Codedefinitions see <a href="CAD_Base_en.htm#Codes">gCAD3D-Codes</a> 
+
+
+ New object-ID can be produced with -
+   - the Alt-key and the object character;
+     Alt-P produces the text "P20 =" (line must be empty).
+     Further: Alt-L line, Alt-C circle, Alt-S curve etc..
+   - or left-mouse-button into grafic-area, select required obj.type.
+
+ Geometrical objects (points, curves ..) can be selected as parameters.
+  The object-ID of the selected object is added in the editwindow.
+  No object ("indicate"):
+    the cursorposition at the constructionplane is added as a pointobject.
+
+
+
+
+<HR><!-- ============================================================ -->
+<b>Modifying / deleting objects:</b>
+
+  Activate the codeline:
+  - click into the codeline  or
+  - go up / down with the cursorkeys
+
+  Going up or down with the cursorkeys displays the objects
+  of all preceding codelines,
+  the last codeline always is displayed in hilite-color.
+
+  Modify or delete the codeline in the editwindow.
+
+
+  EditFunctions:
+
+    Text select:
+      - with mouse (multiple lines with SHIFT + mouse)
+      - or SHIFT + cursorKeys
+    Delete and Copy selected text: Ctrl-X or
+    Copy selected text: Ctrl-C
+    Paste text: Ctrl-V
+
+    Select object-ID/expression left of cursor with key Esc.
+
+
+  Go back to the end of the model:
+  - or with the button "END".
+  - or go down with the cursorkeys
+
+
+
+<HR><!-- ============================================================ -->
+<b>Searching for objects:</b>
+
+  Select the object with the right mousebutton; use function "edit"
+    (the active line in the editor must be empty).
+
+  The cursor in the editwindow will be placed in the codeline
+    belonging to the object.
+
+
+
+<HR><!-- ============================================================ -->
+<b>STEP - Button</b>
+  Execute the codelines in single-step-mode.
+  
+
+
+<b>END - Button</b>
+  Execute the complete code.
+  Interrupt the process with the Esc-key.
+
+
+
+<HR><!-- ============================================================ -->
+Send bug-reports, suggestions for improvement to
+  franz.reiter@cadcam.co.at
+</PRE>
+</BODY>
+</HTML>

@@ -136,7 +136,7 @@ __declspec(dllexport) int gCad_fini ();
   // select Point
   } else {
     // get DL-record
-    DL_get_dla (&att1, dl_ind);
+    DL_dlRec__dli (&att1, dl_ind);
 
     if(att1.typ == Typ_PT) {
       pt1 = DB_GetPoint (att1.ind);

@@ -95,6 +95,7 @@ OS_dir_ck1               check ob rootDir beschreibbar ist
 
 OS_stdout__              direct console-output into file
 
+OS_filnam_eval           expand shell variables in filenames
 OS_file_copy             copy file
 OS_file_rename           rename File; keine Wildcards !
 OS_file_delete           delete File; keine Wildcards !
@@ -176,6 +177,7 @@ _______________________________________________________________________________
 #include <unistd.h>          ///f. access, R_OK .. 
 #include <sys/types.h>       // f. S_ISDIR
 #include <sys/stat.h>        // f. mkdir , stat
+#include <wordexp.h>         // OS_filnam_eval
 
 /* #include <fcntl.h> */
 
@@ -1689,6 +1691,7 @@ static char txbuf[256];
 //=============================================================
 /// \code
 /// OS_checkFilExist         check if File or Directory exists
+///   filnam may not have shell-variables; see OS_filnam_eval
 /// mode = 0: display message sofort;
 /// mode = 1: just fix returncode, no message
 /// mode = 2: make Errormessage (TX_Error) if File does not exist
@@ -1709,8 +1712,6 @@ static char txbuf[256];
 
   /* Version PC: (braucht IO.h) */
   /* if ((access (buf, 0)) != 0) { */
-
-
   /* if ((access (buf, R_OK|W_OK)) != 0) { */
 
   if ((access (buf, R_OK)) != 0) {
@@ -2273,8 +2274,8 @@ static char txbuf[256];
   char cbuf[512];
 
   sprintf(cbuf,"cp -f \"%s\" \"%s\"",oldNam,newNam);
-  // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
-  printf("OS_file_copy |%s|\n",cbuf);
+    // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
+    // printf("OS_file_copy |%s|\n",cbuf);
 
   return system (cbuf);
 
@@ -2974,6 +2975,34 @@ static int   (*up1)();
 /// \endcode
 
   perror (fNam);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+//================================================================
+// OS_filnam_eval        expand shell variables in filenames
+// On Windows, you can use ExpandEnvironmentStrings.
+
+  wordexp_t p;
+  char **w;
+  // int i;
+
+  // wordexp provides n results, use only first.
+  wordexp(fni, &p, 0);
+  w = p.we_wordv;
+  // for (i = 0; i < p.we_wordc; i++)
+  // printf("%s\n", w[i]);
+  if(strlen(w[0]) >= fnoSiz) return -1;
+  strcpy (fno, w[0]);
+  wordfree(&p);
+  // exit(EXIT_SUCCESS);
+
+    // printf(" ex-OS_filnam_eval |%s|%s|\n",fno,fni);
+
 
   return 0;
 

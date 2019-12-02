@@ -46,18 +46,20 @@ sele_ck_ConstrPln   Test if must add "ConstrPlane" to option-menu
 sele_ck_NoParents   test if must add parents to selection-list
 
 sele_set_icon       add 2D-icon to list
-sele_ck_subCurv     get (max.) 3 subcurves for a selected curve
+sele_src_cnvt__     get sourceCodes of all useful components of selected obj
+// sele_ck_subCurv     test if component of obj is useful
+// sele_decode         decode selected object; change sel_object into req_object
 
-sele_decode         decode selected object; change sel_object into req_object
 sele_reset          reset selectionFilter
 sele_reset_type     reset a single bit
 sele_set__          set selectionFilter
 sele_set_add        add obj to selectionfilter; typeGroups can be used;
 sele_set_types      set selectionFilters
-sele_set_pos        save GR_selPos
+sele_set_pos        save GR_selPos__ and GR_selPos_CP
 sele_setNoConstrPln disable selection of point on ConstrPln
 sele_setNoParents   add or do not add parents to selection-list
-sele_get_pos        return GR_selPos
+sele_get_pos__      return GR_selPos__
+sele_get_pos_CP     return GR_selPos_CP
 sele_get_selPos     returns selected position as point on selected object
 sele_get_reqTyp     return GR_reqTyp
 
@@ -165,7 +167,8 @@ sele_ck_typ         Test if obj of typ iTyp is a requested typ.
 see also UI_GR_Sel_Filter  // set GR_Sel_Filter to eg modSstyl ..
 
 
-GR_selPos (out via sele_get_pos) ist mouseposition in userCoords
+GR_selPos__ (out via sele_get_pos__) ist mouseposition in userCoords
+GR_selPos_CP (from sele_get_pos_CP) ist mouseposition on constrPlane in userCoords
 
 
 */
@@ -189,14 +192,16 @@ GR_selPos (out via sele_get_pos) ist mouseposition in userCoords
 
 #include "../gui/gui_types.h"
 
-#include "../ut/func_types.h"               // Typ_Att_hili1
+#include "../ut/func_types.h"          // Typ_Att_hili1
 #include "../gr/ut_DL.h"               // DL_GetAtt
+#include "../gr/ut_GL.h"               // GL_GetConstrPos
 
 #include "../db/ut_DB.h"               // DB_GetPoint
 
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_uid.h"              // UI_MODE_CAD
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
+#include "../xa/xa_msg.h"              // MSG_*
 
 
 
@@ -231,7 +236,8 @@ static int    GR_selTmpStat;     // 0=not saved, 1=point stored..
        long   GR_selDli;         // dli
        char   GR_selNam[128];    // objname of selected object
 
-static Point  GR_selPos;         // mouseposition in userCoords
+static Point  GR_selPos__;         // mouseposition in userCoords of last selection
+static Point  GR_selPos_CP;        // mouseposition on constPlane in userCoords
 
 static int    GR_reqTyp;         // requested typ
 static int    GR_NoConstrPln;    // disable selection of point on ConstrPln
@@ -243,18 +249,556 @@ static int    bck_GR_NoConstrPln;
 
 
 
+//================================================================
+  int sele_get_pos_CP (Point *ptSelCP) {
+//================================================================
+// sele_get_pos_CP     return GR_selPos_CP
+// get the cursor-position of last selection at the constrPlane
+// see UI_GR_get_actPosA
+// see sele_set_pos GR_set_constPlnPos GL_set_viewPlnPos
+ 
+  
+  // input is absolute; if constrPlane is active, transfer input into UCS
+  UTRA_UCS_WCS_PT (ptSelCP, &GR_selPos_CP);
 
+
+  return 0;
+
+}
+
+
+//=============================================================================
+  int sele_src_cnvt_add (subCvTab *sCva, int typ, char *so) {
+//=============================================================================
+// sele_src_cnvt_add               add a record into sCva
+// retCod          0=OK; -9=EOM
+
+  int   iNr;
+
+  printf("sele_src_cnvt_add typ=%d |%s|\n",typ,so);
+
+  iNr = sCva->iNr;
+
+  if(iNr < SUBCVTABSIZ) {
+    sCva->cva[iNr].typ = typ;
+    strcpy(sCva->cva[iNr].oid, so);
+    ++sCva->iNr;
+
+  } else {
+    TX_Print("***** sele_src_cnvt_add EOM");
+    return -9;
+  }
+
+  return 0;
+
+}
+
+
+//===========================================================================
+  int sele_src_cnvt__ (subCvTab *sCva,
+                      int selTyp, long dbi, int reqTyp, Point *selPos) {
+//===========================================================================
+/// \code
+// sele_src_cnvt__      get sourceCodes of all useful components of selected obj
+// replacing sele_ck_subCurv
+//
+// Input:
+//   tabSiz       size of output table sca
+//   selTyp,dbi   DB-obj to check (selected obj)
+//   selPos       selection-point 
+// Output:
+//   sca       sourceCode for useful subObjs for selected obj (typ,dbi)
+//   retCod    >=0  OK, nr of subObjs added
+//             -1   Err - conversion Error
+//             -2   Err - cannot create oTyp from iTyp,iDbi
+//             -9   ERR - no more space in sCva
+//
+// get eg selected part of CCV or polygon if Line wanted
+//
+/// \endcode
+//
+//   reqTyp    selTyp          out
+//   Typ_LN    Typ_CVPOL       L(S MOD)
+//
+//   Typ_LN    Typ_CI          L(C MOD) | L(C par) & L(C)   tangent & axis
+//   Typ_LN    Typ_PLN         L(R)
+//
+//   Typ_VC    Typ_CVPOL       D(S MOD)
+//   Typ_VC    Typ_CI          D(C par) & D(C)              tangent & axis
+//   Typ_VC    Typ_LN          D(L)
+//   Typ_VC    Typ_PLN         D(R)
+//   Typ_VC    Typ_Model       D(M)
+//
+//   Typ_PT    Typ_CCV         P(S MOD par)    
+//   Typ_PT    Typ_CVPOL       P(S MOD) | P(S par)          cornerPt | paramPt
+//   Typ_PT    Typ_CI          P(L MOD) | P(C par) & P(C)   endPt|paramPt & cenPt
+//   Typ_PT    Typ_LN          P(L MOD) | P(L par)           
+//   Typ_PT    Typ_PLN         P(R)
+//   Typ_PT    Typ_Model       P(M)
+//
+//   Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
+//             Typ_PT|Typ_VC|Typ_LN
+//                             X(P|D|L) & Y(P|D|L) & Z(P|D|L)
+//
+// TODO: bei selektion von surf, sol muesste selMenu sein: selPos and ConstrPlane
+//       dzt SRC_src_pt_dbo
+
+
+  int     irc, i1, iNr, basTyp;
+  char    so[200];
+  Point   pt1;
+  // int     irc, iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
+  // char    so[128], cto;
+
+
+  // printf("--- sele_src_cnvt__ selTyp=%d dbi=%ld reqTyp=%d\n",selTyp,dbi,reqTyp);
+  // DEB_dump_obj__ (Typ_PT, selPos, " selPos");
+  // GR_Disp_pt (selPos, SYM_STAR_S, ATT_COL_RED);
+
+
+  iNr = 0;
+  irc = 0;
+
+  basTyp = selTyp;
+
+  if(selTyp == Typ_CV) {
+    selTyp = DB_get_typ_cv (dbi);
+  }
+
+  if(reqTyp == selTyp) goto L_exit;  // no components
+
+
+  // test if selTyp is active from groupTyp;
+  // if(reqTyp >= Typ_goGeom) {
+    // if(reqTyp == Typ_goGeom) goto L_exit;  // all; no components 
+    // if(BitTab_get (reqObjTab, selTyp)) goto L_exit;
+  // }
+
+
+
+  //================================================================
+  // make simple conversions direct (was sele_decode)
+  //================================================================
+  // simple-conversion: eg requested=vector; selected=line; get L(D)
+
+  if(selTyp == Typ_TmpPT) {
+    // indicate
+    //.......................................
+    if((reqTyp == Typ_PT)   ||
+       (reqTyp == Typ_VC))      {
+      // make "<xval yval zVal>"
+      sele_get_pos_CP (&pt1);
+      SRC_src_pt3_10 (sCva->cva[0].oid, &pt1);
+      // sprintf(sca[0].oid, "P(%s)", so);
+      goto L_add_1;
+
+    //.......................................
+    } else return 0;
+
+
+  //================================================================
+  } else if(selTyp == Typ_PT) {
+    //.......................................
+    if(reqTyp == Typ_VC) {
+      // D(P)
+      sprintf(sCva->cva[0].oid, "P%ld", dbi);   // NOT YET COMPLETE ..
+      // IE_inp_chg (-3); // do NOT proceed to next inputfield
+      goto L_add_1;
+
+    //.......................................
+    } else if(reqTyp == Typ_LN)   {
+      // L(P)
+      sprintf(sCva->cva[0].oid, "P%ld", dbi);   // NOT YET COMPLETE ..
+      // IE_inp_chg (-3); // do NOT proceed to next inputfield
+      goto L_add_1;
+
+    //.......................................
+    } else if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
+      // add X(P) + Y(P) + (Z(P)
+      sprintf(sCva->cva[0].oid, "X(P%ld)", dbi);
+      sprintf(sCva->cva[1].oid, "Y(P%ld)", dbi);
+      sprintf(sCva->cva[2].oid, "Z(P%ld)", dbi);
+      iNr = 3;
+      goto L_add__;
+
+    //.......................................
+    } else return 0;
+
+
+  //================================================================
+  } else if(selTyp == Typ_LN) {
+    //.......................................
+    if(reqTyp == Typ_VC) {
+      // D(L)
+      sprintf(sCva->cva[0].oid, "D(L%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else if(reqTyp == Typ_CI) {
+      // cannot get circ from line
+      goto L_exit;
+
+    //.......................................
+    // LN selected: for Typ_XVal|Typ_YVal|Typ_ZVal add distance ..
+    } else if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
+    // add X(L) + Y(L) + (Z(L)
+      sprintf(sCva->cva[0].oid, "L%ld", dbi);
+      sprintf(sCva->cva[1].oid, "X(L%ld)",dbi);
+      sprintf(sCva->cva[2].oid, "Y(L%ld)",dbi);
+      sprintf(sCva->cva[3].oid, "Z(L%ld)",dbi);
+      iNr = 3;
+      goto L_add__;
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_CI) {
+    //.......................................
+      // // D(L)
+      // sprintf(sca[0].oid, "D(C%ld)", dbi);
+      // goto L_add_1;
+
+    //.......................................
+    // CI is selected: for TYP_IS_VAL add radius ..
+    if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
+    // add VAL(C)
+      sprintf(sCva->cva[0].oid, "VAL(C%ld)",dbi);
+      goto L_add_1;
+    }
+
+
+  //----------------------------------------------------------------
+  // plane selected -
+  } else if(selTyp == Typ_PLN) {
+    //.......................................
+    if(reqTyp == Typ_LN) {
+      // L(R)
+      sprintf(sCva->cva[0].oid, "L(R%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else if(reqTyp == Typ_VC) {
+      // D(R)
+      sprintf(sCva->cva[0].oid, "D(R%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else if(reqTyp == Typ_PT) {
+      // P(R)
+      sprintf(sCva->cva[0].oid, "P(R%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else return 0;
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_CVBSP) {
+
+    //.......................................
+    if(reqTyp == Typ_CI) {
+      // cannot get circ from bspl
+      goto L_exit;
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_CVPOL) {
+
+    //.......................................
+    if(reqTyp == Typ_CI) {
+      // cannot get circ from polygon
+      goto L_exit;
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_Model) {          // P D
+    //.......................................
+    if(reqTyp == Typ_VC) {
+      // D(M)
+      sprintf(sCva->cva[0].oid, "D(M%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else if(reqTyp == Typ_PT) {
+      // P(M)
+      sprintf(sCva->cva[0].oid, "P(M%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else return 0;
+
+
+
+/*
+  } else if((selTyp == Typ_Model)||(selTyp == Typ_Mock)) {
+    if((reqTyp == Typ_CtlgPart)||(reqTyp == TYP_FilNam))
+    ii = sizeof(GR_selNam);
+    Mod_mNam_mdr (GR_selNam, &ii, &iTyp, GR_selDbi);
+    // strcpy(GR_selNam, "symEl1/res1.gcad");
+    // strcpy(GR_selNam, "Data/Niet1.gcad");
+    if(iTyp == MBTYP_CATALOG)  {
+      // catalogpart selected;
+      if(GR_reqTyp == Typ_CtlgPart) {
+        GR_selTyp = Typ_CtlgPart;
+        goto L_exit;
+      }
+      UTX_ins_add (GR_selNam, sizeof(GR_selNam), "CTLG \"", "\"");
+    }
+    GR_selTyp = Typ_SubModel;
+*/
+
+
+  // //----------------------------------------------------------------
+  // } else if(selTyp == Typ_SUR) ...
+
+
+
+  }
+
+
+  //================================================================
+  // add subObjs
+  //================================================================
+  // requested=point; selected=line; get P(line, parameter)
+  //                  selected=lineInCCV; get P(CCV subCurvInd parameter)
+  // requested=line; selected=polygen; get L(polygone, subCurvInd)
+
+
+  // test if only single-type requested; eg reqTyp=line, selected=lineInCCV
+  if(reqTyp < Typ_goGeom) goto L_resolve; // single-type requested
+
+
+
+  // compound-type; check all types in reqObjTab and add
+  if(SELE_SRC_CNVT_NXT (Typ_VC) < -2) goto L_exit;   // calls sele_src_cnvt_test
+  if(SELE_SRC_CNVT_NXT (Typ_PT) < -2) goto L_exit;   // calls sele_src_cnvt_test
+  if(SELE_SRC_CNVT_NXT (Typ_LN) < -2) goto L_exit;
+  if(SELE_SRC_CNVT_NXT (Typ_CI) < -2) goto L_exit;
+
+  goto L_add_extra;
+
+/*
+  // only this obj's can have subCurves:
+  if(selTyp == Typ_LN) {
+     // L can only provide P
+     // if(sele_ck_typ (Typ_PT)) goto L_resolve;
+     // if(sele_ck_typ (Typ_TmpPT)) goto L_resolve;
+     // if(BitTab_get (reqObjTab, Typ_TmpPT)) {reqTyp = Typ_TmpPT; goto L_resolve;}
+     if(BitTab_get (reqObjTab, Typ_PT))    {reqTyp = Typ_PT; goto L_resolve;}
+// Typ_Vertex ? Typ_EyePT ? 
+     goto L_exit;
+
+
+  } else if(selTyp == Typ_CI) {
+     // C can only provide P or tangentVec|Line
+     // // if(sele_ck_typ (Typ_PT)) goto L_resolve;
+     // // if(sele_ck_typ (Typ_TmpPT)) goto L_resolve;
+     // // if(BitTab_get (reqObjTab, Typ_TmpPT)) {reqTyp = Typ_TmpPT; goto L_resolve;}
+     if(BitTab_get (reqObjTab, Typ_PT)) {
+       iNr = sele_src_cnvt_do (Typ_PT, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+     if(BitTab_get (reqObjTab, Typ_VC)) {
+       iNr = sele_src_cnvt_do (Typ_VC, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+     if(BitTab_get (reqObjTab, Typ_LN)) {
+       iNr = sele_src_cnvt_do (Typ_LN, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+// Typ_Vertex ? Typ_EyePT ? 
+     goto L_add_extra;
+
+
+  } else if(selTyp == Typ_CV) {
+     selTyp = DB_get_typ_cv (dbi);
+     // if(BitTab_get (reqObjTab, Typ_TmpPT)) { reqTyp = Typ_TmpPT; goto L_resolve;}
+     if(BitTab_get (reqObjTab, Typ_PT)) {
+       iNr = sele_src_cnvt_do (Typ_PT, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+
+     // if((selTyp == Typ_CVPOL)   ||
+        // (selTyp == Typ_CVBSP))      {
+     if(selTyp != Typ_CVTRM)   {
+       // - can only provide vec or line;
+     if(BitTab_get (reqObjTab, Typ_VC)) {
+       iNr = sele_src_cnvt_do (Typ_VC, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+     if(BitTab_get (reqObjTab, Typ_LN)) {
+       iNr = sele_src_cnvt_do (Typ_LN, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+
+     
+     } else {
+       // CCV, trimmed-curve: LN or CI or curve
+       iNr = sele_src_cnvt_do (reqTyp, sca, tabSiz, iNr, selTyp, dbi, selPos);
+       // iNr = sele_src_cnvt_do (Typ_goGeo1,sca,tabSiz,iNr,selTyp,dbi,selPos);
+       if(iNr >= tabSiz) goto L_exit;
+     }
+
+     goto L_exit;
+  }
+  goto L_exit;
+*/
+
+
+
+  //================================================================
+  L_resolve:
+  // create src-obj of type <reqTyp> from selected obj <selTyp,dbi> and
+  //   select-position <selPos>
+  // reqTyp = SRC_src_pt_dbo (so, 200, reqTyp, selPos, selTyp, dbi);
+    // printf(" f-src_pt_dbo reqTyp=%d so=|%s|\n",reqTyp,so);
+  // // add src-obj to sca
+  // iNr = sele_src_cnvt_add (sca, tabSiz, iNr, reqTyp, so);
+  irc = sele_src_cnvt_do (sCva, reqTyp, selTyp, dbi, selPos);
+  if(irc < 0) return irc;   // -9 - no more space in sCva
+  // if(iNr >= tabSiz) goto L_exit;
+
+
+
+  //================================================================
+  // add additional objs to selection:
+  // eg add centerpoint of Circle; but before the parametric selection-point 
+  //    must have been added.
+  L_add_extra:
+
+  // if CI is selected: add axis for L and D; add centerPt for P
+  if(selTyp == Typ_CI) {
+
+    if(reqTyp == Typ_LN) {
+      sprintf(so,"L(C%ld)",dbi);
+
+    } else if(reqTyp == Typ_VC) {
+      sprintf(so,"D(C%ld)",dbi);
+
+    } else if(reqTyp == Typ_PT) {
+      sprintf(so,"P(C%ld)",dbi);
+
+    } else goto L_exit;
+
+    // add src-obj to sca
+    irc = sele_src_cnvt_add (sCva, reqTyp, so);
+    if(irc < 0) goto L_exit;
+
+  }
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    // printf(" ex-sele_src_cnvt__ irc=%d iNr=%d\n",irc,sCva->iNr);
+    // if(sCva->iNr > 0) { for(i1=0; i1<sCva->iNr; ++i1) {
+      // printf(" sele_src_cnvt__-sca[%d] = %d |%s|\n",
+             // i1,sCva->cva[i1].typ,sCva->cva[i1].oid); }}
+    // END TESTBLOCK
+
+
+  if(irc >= 0) irc = sCva->iNr;
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_add_1:
+    iNr = 1;
+  L_add__:
+    for(i1=0; i1<iNr; ++i1) {
+      // sca[0].oid already filled ..
+      sCva->cva[i1].typ = reqTyp;
+    }
+    sCva->iNr = iNr;
+    goto L_exit;
+
+}
+
+
+//========================================================================
+  int sele_src_cnvt_do (subCvTab *sCva,
+                        int reqTyp, int selTyp, long dbi, Point *selPos) {
+//========================================================================
+// sele_src_cnvt_do              create src-obj of type <reqTyp>  and add to sca
+/// retCod:  0       output of nearest selected point; not parametric ..
+///         -1       conversion Error
+///         -2       cannot create oTyp from iTyp,iDbi
+///         -9       EOM - no space in sCva
+
+
+  char    so[200];
+
+
+  // printf("sele_src_cnvt_do reqTyp=%d selTyp=%d dbi=%ld\n",reqTyp,selTyp,dbi);
+
+
+  // create src-obj of type <reqTyp> from selected obj <selTyp,dbi> and
+  //   select-position <selPos>
+  reqTyp = SRC_src_pt_dbo (so, 200, reqTyp, selPos, selTyp, dbi);
+    // printf(" f-src_cnvt_do reqTyp=%d so=|%s|\n",reqTyp,so);
+
+  if(reqTyp <= 0) return reqTyp;
+
+
+  // add src-obj to sca
+  return sele_src_cnvt_add (sCva, reqTyp, so);
+
+}
+
+
+//========================================================================
+  int sele_src_cnvt_test (subCvTab *sCva,
+                          int xTyp, int selTyp, long dbi, Point *selPos) {
+//========================================================================
+// sele_src_cnvt_test                resolv typ
+// retCod    0=OK, -1=Error
+// Input:
+//   xTyp             outTyp
+//   selTyp           selected type
+// Output:
+//   retCod   0       OK
+//           -2       no solution for xTyp-selTyp
+//           -9       unrecov. error
+ 
+
+  // printf("sele_src_cnvt_test xTyp=%d selTyp=%d dbi=%ld\n",xTyp,selTyp,dbi);
+
+  // skip xTyp==selTyp
+  if(xTyp==selTyp) return 0;
+
+  // test if xTyp is activated in reqObjTab
+  if(!sele_ck_typ (xTyp)) return 0;
+    // printf("sele_src_cnvt_test-ok %d\n",xTyp);
+   
+  // yes, xTyp is wanted. Add it into sca.
+  return sele_src_cnvt_do (sCva, xTyp, selTyp, dbi, selPos);
+
+}
+
+
+//================================================================
+  // int sele_src_cnvt_init (subCvTab *sCva) {
+//================================================================
+  // return 0;
+// }
+
+
+/* replaced by sele_ck_subCurv
 
 //===========================================================================
   int sele_ck_subCurv (subCurv sca[3], int typ, long dbi, Point *selPos) {
 //===========================================================================
 /// \code
+// sele_ck_subCurv     test if component of obj is useful
 /// get (max.) 3 subcurves for a selected curve.
 ///   sca[0]   subCurve
 ///   sca[1]   point
 ///   sca[2]   vector 
+//
 /// Input:
-///   typ,dbi   DB-obj to check (selected curve)
+///   typ,dbi   DB-obj to check (selected obj)
 ///   selPos    selection-point 
 /// Output:
 ///   sca       max 3 sub-parts of obj typ,dbi
@@ -275,7 +819,7 @@ static int    bck_GR_NoConstrPln;
   char    so[128], cto;
 
 
-  // printf("sele_ck_subCurv %d %ld\n",typ,dbi);
+  printf("--- sele_ck_subCurv typ=%d dbi=%ld\n",typ,dbi);
   // DEB_dump_obj__ (Typ_PT, selPos, " selPos");
 
 
@@ -292,7 +836,7 @@ static int    bck_GR_NoConstrPln;
 
   //----------------------------------------------------------------
   // is input curve or surf
-  iTyp = AP_typ_2_bastyp (typ);
+  iTyp = AP_typDB_typ (typ);
     // printf(" iTyp=%d iPt=%d iVc=%d\n",iTyp,iPt,iVc);
   if((iTyp == Typ_LN) ||
      (iTyp == Typ_CI) ||
@@ -368,22 +912,22 @@ static int    bck_GR_NoConstrPln;
   }
   // goto L_ck_3;
 
-/*
-  //----------------------------------------------------------------
-  // plg: L, dann P,D
-  // LN from curve or subcurve
-  L_ck_2:
-  if(iLn) {
-    oTyp = Typ_CV; // oTyp = Typ_LN;
-    oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
-      // printf(" ck_subCurv-Ln_POL oTyp=%d so=|%s|\n",oTyp,so);
-    if(oTyp >= 0) {   // 2015-10-24
-      sca[ii].typ = oTyp;
-      strcpy(sca[ii].oid, so);
-      ++ii;
-    }
-  }
-*/
+//
+//   //----------------------------------------------------------------
+//   // plg: L, dann P,D
+//   // LN from curve or subcurve
+//   L_ck_2:
+//   if(iLn) {
+//     oTyp = Typ_CV; // oTyp = Typ_LN;
+//     oTyp = SRC_src_pt_dbo (so, 200, oTyp, selPos, typ, dbi);
+//       // printf(" ck_subCurv-Ln_POL oTyp=%d so=|%s|\n",oTyp,so);
+//     if(oTyp >= 0) {   // 2015-10-24
+//       sca[ii].typ = oTyp;
+//       strcpy(sca[ii].oid, so);
+//       ++ii;
+//     }
+//   }
+//
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
 
 
@@ -422,24 +966,25 @@ static int    bck_GR_NoConstrPln;
 
   //----------------------------------------------------------------
   L_ck_ex:
-/*
+
     // TESTBLOCK:
     { int i1,typ; long dbi; ObjAto    ato;
-      ATO_getSpc__ (&ato); //ato.ilev = memspc012;
+      // ATO_getSpc__ (&ato); //ato.ilev = memspc012;
       for(i1=0; i1<3; ++i1) {
         if(sca[i1].typ == Typ_Error) continue;
-        printf(" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+        // printf(" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
         printf(" sca[%d] typ=%d oid=|%s|\n",i1,sca[i1].typ,sca[i1].oid);
-        ATO_clear__ (&ato);
-        ATO_ato_srcLn__ (&ato, sca[i1].oid);
-        ATO_dump__ (&ato, sca[i1].oid);
+        // ATO_clear__ (&ato);
+        // ATO_ato_srcLn__ (&ato, sca[i1].oid);
+        // ATO_dump__ (&ato, sca[i1].oid);
         // display subCurv
         // typ = ato.typ[0]; dbi = ato.val[0]; GR_Disp_dbo (typ, dbi, 9, 0);
     }}
     // END TESTBLOCK:
-*/
 
-    // printf("ex SRC_src_pt_dbo irc=%d so=|%s|\n",ii,so);
+
+
+    printf("ex-SRC_src_pt_dbo irc=%d so=|%s|\n",ii,so);
 
 
   return ii;
@@ -449,6 +994,7 @@ static int    bck_GR_NoConstrPln;
     return -1;
 
 }
+*/
 
 
 //================================================================
@@ -559,7 +1105,7 @@ static int    bck_GR_NoConstrPln;
   } else {
     GR_selDli = objInd;
     // objAtt = DL_GetAtt (GR_selDli);
-    DL_get_dla (&objAtt, GR_selDli);
+    DL_dlRec__dli (&objAtt, GR_selDli);
     GR_selTyp = objAtt.typ;
     GR_selDbi = objAtt.ind;
     APED_oid_dbo__ (GR_selNam, GR_selTyp, GR_selDbi);
@@ -607,6 +1153,7 @@ static int    bck_GR_NoConstrPln;
 //================================================================
   int sele_get_selPos (Point *pts) {
 //================================================================
+// UNUSED IN CORE !
 /// \code
 /// returns selected position as point. 
 /// selectionFilter must have been set to point (sele_set__ (Typ_PT) !)
@@ -638,7 +1185,7 @@ static int    bck_GR_NoConstrPln;
     sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
 
   } else if(!strcmp(GR_selNam, "selPos") )  {
-    sele_get_pos (&pSel);
+    sele_get_pos__ (&pSel);
     sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
   }
 
@@ -672,7 +1219,7 @@ static int    bck_GR_NoConstrPln;
 /// \code
 /// UI_GR_get_selNam     return typ, dbi & name of the selected obj
 /// eg "P(S20 0.478)"
-/// get position with sele_get_pos
+/// get position with sele_get_pos__
 /// Indicate: selNam is empty; get it with UI_GR_get_actPos_().
 /// \endcode
 
@@ -702,8 +1249,14 @@ static int    bck_GR_NoConstrPln;
 //================================================================
   int sele_set_pos (Point *spt) {
 //================================================================
+// sele_set_pos                  set GR_selPos__ and GR_selPos_CP
 
-  GR_selPos = *spt;
+  GR_selPos__ = *spt;
+
+  GR_selPos_CP = GL_GetConstrPos (spt);
+
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos__, " GR_selPos__");
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, " GR_selPos_CP");
 
   return 0;
 
@@ -721,16 +1274,16 @@ static int    bck_GR_NoConstrPln;
 
 
 //================================================================
-  int sele_get_pos (Point *pto) {
+  int sele_get_pos__ (Point *pto) {
 //================================================================
 /// \code
 /// return mouseposition in userCoords
 /// position when mousebutton was pressed 
 /// \endcode
 
-// GL_MousePos GL_GetActSelPos UI_GR_get_actPosA sele_get_pos GR_selPos
+// GL_MousePos GL_GetActSelPos UI_GR_get_actPosA sele_get_pos__ GR_selPos__
 
-  *pto = GR_selPos;
+  *pto = GR_selPos__;
 
   return 0;
 
@@ -754,8 +1307,10 @@ static int    bck_GR_NoConstrPln;
 
 
   // if GR_Sel_Filter==18 (parametric point) keep selection
-  i1 = UI_GR_Sel_Filter (-1);
+  i1 = UI_GR_Sel_Filter (-1);   // query
   if(i1 == 18) return 1;   // 2013-04-17
+
+  // if (GR_Sel_Filter==1) give temporary-point from cursorposition on constrPlane
   // get point on constrPlane
   if(i1 == 1)  return 1;   // 2013-04-17
 
@@ -830,7 +1385,7 @@ static int    bck_GR_NoConstrPln;
 //================================================================
   int sele_dump2 () {
 //================================================================
-// see GL_sel_dump
+// sele_dump2          print GR_selNam, GR_selTyp, GR_selDbi
 
   int    i1, i2, ii;
 
@@ -848,6 +1403,7 @@ static int    bck_GR_NoConstrPln;
 //================================================================
   int sele_dump1 () {
 //================================================================
+// sele_dump1          print reqObjTab
 
   int    i1, i2, ii;
 
@@ -884,6 +1440,7 @@ static int    bck_GR_NoConstrPln;
 }
 
 
+/* UNUSED ..
 //================================================================
   int sele_decode () {
 //================================================================
@@ -914,8 +1471,8 @@ static int    bck_GR_NoConstrPln;
   ObjAto  ato;                  // only temp
 
 
-  // printf("XXXXXXXXXXX sele_decode typ=%d dbi=%ld dli=%ld |%s| XXXXXXXXXXXX\n",
-         // GR_selTyp, GR_selDbi, GR_selDli, GR_selNam);
+  printf("XXXXXXXXXXX sele_decode typ=%d dbi=%ld dli=%ld |%s| XXXXXXXXXXXX\n",
+         GR_selTyp, GR_selDbi, GR_selDli, GR_selNam);
   // printf(" req=%d\n",GR_reqTyp);
   // printf(" GR_selTmpStat=%d\n",GR_selTmpStat);
   // sele_dump1 ();
@@ -928,7 +1485,7 @@ static int    bck_GR_NoConstrPln;
     SRC_src_pt3_10 (GR_selNam, &pt1);
 
   } else if(!strcmp(GR_selNam, "selPos") )  {
-    sele_get_pos (&pt1);
+    sele_get_pos__ (&pt1);
     // write "P(<x> <y> <z>)"
     SRC_src_pt3_10 (GR_selNam, &pt1);
   }
@@ -953,6 +1510,7 @@ static int    bck_GR_NoConstrPln;
 
 
 
+  //----------------------------------------------------------------
   if(GR_selTyp >= Typ_FncVAR1) {
     IE_set_inpSrc (3);
     if(GR_selTyp == Typ_FncVAR1) IE_cad_Inp1_nxtVal (1);
@@ -964,13 +1522,18 @@ static int    bck_GR_NoConstrPln;
       else i1 = 2;
       IE_cad_Inp1_nxtMod (i1, -1);  // 2013-03-16
     }
+
+
     if(GR_selTyp == Typ_FncNxt)  {
       if(GR_reqTyp == Typ_mod1) i1 = 1;
       else i1 = 2;
       IE_cad_Inp1_nxtMod (i1, 1);
     }
+
     // if(GR_selTyp == Typ_FncDirX) IE_cad_Inp1_DirX ();
+
     if(GR_selTyp == Typ_FncPtOnObj)  UI_GR_Sel_Filter (18); // 2013-04-17
+
     if(GR_selTyp == Typ_FncPtOnCP)   UI_GR_Sel_Filter (1);
     goto L_null_obj;
   }
@@ -993,9 +1556,12 @@ static int    bck_GR_NoConstrPln;
     if(GR_selTmpStat == 0) goto L_exit;
   }
 
-  // Vertex requested:
-  if(GR_reqTyp == Typ_Vertex) goto L_exit;
 
+
+  //================================================================
+  // Vertex|Angle|Tra requested: ignore ..
+  //================================================================
+  if(GR_reqTyp == Typ_Vertex) goto L_exit;
   if(GR_reqTyp == Typ_Angle)  goto L_exit;
   if(GR_reqTyp == Typ_Tra)    goto L_exit;
 
@@ -1003,11 +1569,27 @@ static int    bck_GR_NoConstrPln;
   //================================================================
   // Typ_goGeom REQUESTED .. (alle)
   //================================================================
-  if((GR_reqTyp == Typ_goGeom)  ||
-     (GR_reqTyp == Typ_Group))     {
+  if((GR_reqTyp == Typ_goGeom)  || (GR_reqTyp == Typ_Group))     {
     if(GR_selTyp == Typ_TmpPT)   goto L_pt_conv;
     // all other objs can be used directly:
     goto L_exit;
+
+
+  //================================================================
+  // Typ_goPrim REQUESTED ..
+  //================================================================
+  } else if(GR_reqTyp == Typ_goPrim) {
+    // these objs can be used directly:
+    if((GR_selTyp == Typ_PT)    ||
+       (GR_selTyp == Typ_LN)    ||
+       (GR_selTyp == Typ_CI)    ||
+       (GR_selTyp == Typ_CVPOL) ||         // 2011-08-05 was Typ_CV
+       (GR_selTyp == Typ_CVBSP) ||
+       (GR_selTyp == Typ_CVELL) ||
+       (GR_selTyp == Typ_CVCLOT))          // geht no ned ..
+      goto L_exit;
+    // these objs can be converted:
+    if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
 
 
   //================================================================
@@ -1038,54 +1620,15 @@ static int    bck_GR_NoConstrPln;
     // these objs can be converted:
 
 
-
-
   //================================================================
-  // Typ_goPrim REQUESTED ..
+  // Typ_go_PD REQUESTED ..
   //================================================================
-  } else if(GR_reqTyp == Typ_goPrim) {
+  } else if(GR_reqTyp == Typ_go_PD) {
     // these objs can be used directly:
-    if((GR_selTyp == Typ_PT)    ||
-       (GR_selTyp == Typ_LN)    ||
-       (GR_selTyp == Typ_CI)    ||
-       (GR_selTyp == Typ_CVPOL) ||         // 2011-08-05 was Typ_CV
-       (GR_selTyp == Typ_CVBSP) ||
-       (GR_selTyp == Typ_CVELL) ||
-       (GR_selTyp == Typ_CVCLOT))          // geht no ned ..
-      goto L_exit;
+    if((GR_selTyp == Typ_PT)     ||
+       (GR_selTyp == Typ_VC)) goto L_exit;
     // these objs can be converted:
-    if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
 
-
-/*
-  //================================================================
-  // Typ_goGeo4 REQUESTED ..
-  //================================================================
-  } else if(GR_reqTyp == Typ_goGeo4) {
-
-    if(GR_selTmpStat == 1) {
-      if((GR_selTyp == Typ_TmpPT)  ||
-         (GR_selTyp == Typ_PT)     ||
-         (GR_selTyp == Typ_LN)     ||
-         (GR_selTyp == Typ_VC))       goto L_ln_conv;
-      goto L_exit;
-    }
-
-    // these objs can be used directly:
-    if((GR_selTyp == Typ_PT)  ||
-       (GR_selTyp == Typ_TmpPT)) goto L_tmpPt;
-
-    if((GR_selTyp == Typ_VC)  ||
-       (GR_selTyp == Typ_PLN))   goto L_exit;
-
-    // these objs can be converted:
-    if((GR_selTyp == Typ_CVPOL) ||
-       (GR_selTyp == Typ_CVTRM) ||
-       (GR_selTyp == Typ_CVLNA)) goto L_ln_conv;
-
-    // change 3 values -> vector
-    // change 1 value -> angle
-*/
 
 
   //================================================================
@@ -1115,7 +1658,6 @@ static int    bck_GR_NoConstrPln;
     if(GR_selTyp == Typ_CVPOL)    goto L_ln_conv;
     if(GR_selTyp == Typ_CVTRM)    goto L_LnAc_conv;
     
-                      
                       
 
   //================================================================
@@ -1232,19 +1774,19 @@ static int    bck_GR_NoConstrPln;
 
 
 
-/*
-  //================================================================
-  // Typ_goRadius REQUESTED ..
-  //================================================================
-  // TODO: returns obj directly; should return "Val(obj)" or DX(2 points) ...
-  } else if(GR_reqTyp == Typ_goRadius) {
-    // these objs can be used directly:
-    if((GR_selTyp == Typ_VAR)  ||
-       (GR_selTyp == Typ_PT)   ||
-       (GR_selTyp == Typ_CI))     goto L_exit;
-    // these objs can be converted:
-    if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
-*/
+
+  // //================================================================
+  // // Typ_goRadius REQUESTED ..
+  // //================================================================
+  // // TODO: returns obj directly; should return "Val(obj)" or DX(2 points) ...
+  // } else if(GR_reqTyp == Typ_goRadius) {
+    // // these objs can be used directly:
+    // if((GR_selTyp == Typ_VAR)  ||
+       // (GR_selTyp == Typ_PT)   ||
+       // (GR_selTyp == Typ_CI))     goto L_exit;
+    // // these objs can be converted:
+    // if((GR_selTyp == Typ_TmpPT))   goto L_pt_conv;
+
 
 
   //================================================================
@@ -1536,17 +2078,17 @@ static int    bck_GR_NoConstrPln;
       GR_selTmpStat = 1;
       goto L_exit;
 
-/*
-    } else {                    // ??
-      GR_selNam[0] = '\0';
-      // AP_obj_add_ln (GR_selNam, 0, &GR_selTmpPt, &GR_selPos);
-      strcpy (GR_selNam, "L(");
-      strcat (GR_selNam, GR_selTmpID);
-      strcat (GR_selNam, ")");
-      GR_selTyp = Typ_LN;
-      GR_selDbi = 0L;
-      return 0;
-*/
+/
+    // } else {                    // ??
+      // GR_selNam[0] = '\0';
+      // // AP_obj_add_ln (GR_selNam, 0, &GR_selTmpPt, &GR_selPos__);
+      // strcpy (GR_selNam, "L(");
+      // strcat (GR_selNam, GR_selTmpID);
+      // strcat (GR_selNam, ")");
+      // GR_selTyp = Typ_LN;
+      // GR_selDbi = 0L;
+      // return 0;
+/
     }
 
 
@@ -1566,23 +2108,23 @@ static int    bck_GR_NoConstrPln;
     // if upper inputField is a point: get this point, else get the
     // mouseposition.
     // get typ & content of previous (upper) inputField
-/*
-    IE_get_inp_t (&ii, &sp1, -1);
-    if(ii == Typ_PT) {
-      // get pointPos
-      // DOES NOT WORK FOR PointGroup, ERROR !
-      APT_obj_expr (&pt1, Typ_PT, sp1);
-    } else {
-*/
-      // pt1 = GR_selPos;   // get selected Mousepos in userCoords
+/
+    // IE_get_inp_t (&ii, &sp1, -1);
+    // if(ii == Typ_PT) {
+      // // get pointPos
+      // // DOES NOT WORK FOR PointGroup, ERROR !
+      // APT_obj_expr (&pt1, Typ_PT, sp1);
+    // } else {
+/
+      // pt1 = GR_selPos__;   // get selected Mousepos in userCoords
     // }
       // printf(" pt1  %f %f %f\n",pt1.x,pt1.y,pt1.z);
 
     // create vector ..
-    // typBas = AP_typ_2_bastyp (GR_selTyp);
+    // typBas = AP_typDB_typ (GR_selTyp);
     // irc = SRC_vc_ptDbo (GR_selNam, &pt1, typBas, GR_selDbi);
     irc = SRC_src_pt_dbo (GR_selNam, sizeof(GR_selNam), Typ_VC,
-                          &GR_selPos, GR_selTyp, GR_selDbi);
+                          &GR_selPos__, GR_selTyp, GR_selDbi);
     if(irc < 0) {
       printf(" cannot (yet) create vector from obj ..\n");
       goto L_null_obj;
@@ -1623,15 +2165,15 @@ static int    bck_GR_NoConstrPln;
       // display position
       if((GR_reqTyp == Typ_PLN)||(GR_reqTyp == Typ_VC))
         IE_cad_Inp_disp_pt (&pt1, IE_get_inpInd());
-/*
-raus 2011-07-29
-        // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-      // invert transformation if ConstrPln is set;
-      //   will be inverted in APT_decode_pt
-      if(AP_IS_2D) {
-        UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
-      }
-*/
+/
+// raus 2011-07-29
+        // // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
+      // // invert transformation if ConstrPln is set;
+      // //   will be inverted in APT_decode_pt
+      // if(AP_IS_2D) {
+        // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+      // }
+/
       UTX_Clear (GR_selNam);
       AP_obj_add_pt_sp (GR_selNam, &pt1);
       return 0;
@@ -1641,7 +2183,7 @@ raus 2011-07-29
     // get parametric-point from selected-point and selected obj
     // irc = SRC_parPt_ptDbo (GR_selNam, &pt1, GR_selTyp, GR_selDbi);
     irc = SRC_src_pt_dbo (GR_selNam, sizeof(GR_selNam), Typ_PT,
-                          &GR_selPos, GR_selTyp, GR_selDbi);
+                          &GR_selPos__, GR_selTyp, GR_selDbi);
     GR_selDbi = 0L;             // create new obj
     GR_selTyp = Typ_PT;         // output - exact.
     if(irc < 0) {
@@ -1676,8 +2218,8 @@ raus 2011-07-29
       char    s1[128];
       // line from indicate + direction
       // create vector ..
-      pt1 = GR_selPos;
-      typBas = AP_typ_2_bastyp (GR_selTyp);
+      pt1 = GR_selPos__;
+      typBas = AP_typDB_typ (GR_selTyp);
 
       if(typBas == Typ_TmpPT)  {
         UI_GR_get_actPosA  (&pt1); // get current curPos
@@ -1692,7 +2234,7 @@ raus 2011-07-29
         // get vc from db-obj (curve)
         // irc = SRC_vc_ptDbo (s1, &pt1, typBas, GR_selDbi);
         irc = SRC_src_pt_dbo (GR_selNam, sizeof(GR_selNam), Typ_VC,
-                       &GR_selPos, typBas, GR_selDbi);
+                       &GR_selPos__, typBas, GR_selDbi);
         if(irc < 0) { 
           printf(" cannot (yet) create vector from obj ..\n");
           goto L_null_obj;
@@ -1732,11 +2274,11 @@ raus 2011-07-29
     ii = Typ_goGeo1;   // 2=line or circ
 
   L_LnAc_1:    // 1=L, 2=L|C, 3=C,
-    // pt1 = GR_selPos;
-    // typBas = AP_typ_2_bastyp (GR_selTyp);
+    // pt1 = GR_selPos__;
+    // typBas = AP_typDB_typ (GR_selTyp);
     // irc = SRC_LnAc_ptDbo (ii, GR_selNam, &pt1, typBas, GR_selDbi);
     irc = SRC_src_pt_dbo (GR_selNam, sizeof(GR_selNam), ii,
-                          &GR_selPos, GR_selTyp, GR_selDbi);
+                          &GR_selPos__, GR_selTyp, GR_selDbi);
     if(irc < 0) {
       printf(" cannot (yet) create line or circ from obj ..\n");
       goto L_null_obj;
@@ -1824,8 +2366,8 @@ raus 2011-07-29
 
   //================================================================
   L_exit:
-      // printf("ex sele_decode %d %ld |%s|\n",
-             // GR_selTyp, GR_selDbi, GR_selNam);
+      printf("ex sele_decode %d %ld |%s|\n",
+             GR_selTyp, GR_selDbi, GR_selNam);
     return 0;
 
 
@@ -1837,6 +2379,7 @@ raus 2011-07-29
     GR_selTyp = Typ_NULL;
     return 0;
 }
+*/
 
 
 //================================================================
@@ -1880,6 +2423,7 @@ raus 2011-07-29
 ///   sele_set__ (Typ_APPOBJ);       // init 
 ///   sele_set_types (Typ_PLN, 0);   // add CAD-planes
 ///   sele_setNoConstrPln ();        // allow selection of point on ConstrPln
+//
 /// \endcode
 
 
@@ -1961,9 +2505,13 @@ raus 2011-07-29
   int sele_set_add (int rTyp) {
 //================================================================
 /// \code
-/// sele_set_add        add obj to selectionfilter; typeGroups can be used;
+/// sele_set_add        add obj to selectionfilter; eg Typ_go_PD = P+D
 /// eg Typ_go_LCS = LN/CI/CV
 /// GR_reqTyp is not set !
+// - transformation into requested obj is done in func sele_decode
+//
+// selectionfilter = reqObjTab                  see INF_workflow_select
+// test selectionfilter: if(sele_ck_typ (typ)) - yes, is on
 /// \endcode
  
   int     i1, i2, i2Dbutts = 0;
@@ -1977,10 +2525,10 @@ raus 2011-07-29
     case Typ_Val:
       sele_set_types (Typ_VAR, 
                       Typ_Val,
-                      Typ_PT,               // dist (P P)
-                      Typ_LN,               // Length, dist (P L)
-                      Typ_CI,               // Radius 
                       0);
+                      // Typ_PT,               // dist (P P)
+                      // Typ_LN,               // Length, dist (P L)
+                      // Typ_CI,               // Radius 
       sele_set_icon (&i2Dbutts, Typ_VAR);   // V+ V-
       break;
 
@@ -1990,9 +2538,9 @@ raus 2011-07-29
     case Typ_ZVal:
       sele_set_types (Typ_VAR, 
                       Typ_Val,
-                      Typ_PT,
-                      Typ_LN,
                       0);
+                      // Typ_PT,
+                      // Typ_LN,
       sele_set_icon (&i2Dbutts, Typ_VAR);   // V+ V-
       break;
 
@@ -2015,45 +2563,45 @@ raus 2011-07-29
 
     case Typ_VC:
       sele_set_types (Typ_VC, 
-                      Typ_PT,    // 2016-05-16; for PT-PT, 2 indicates
-                      Typ_LN,                   // 2017-03-02
-                      Typ_PLN,                  // 2015-07-06
-                      Typ_SUR,
-                      Typ_Model,
-                      Typ_modREV,
                       0);
+                      // Typ_PT,    // 2016-05-16; for PT-PT, 2 indicates
+                      // Typ_LN,                   // 2017-03-02
+                      // Typ_PLN,                  // 2015-07-06
+                      // Typ_SUR,
+                      // Typ_Model,
+                      // Typ_modREV,
       sele_set_icon (&i2Dbutts, Typ_modREV);
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       break;
 
     case Typ_PT:
       sele_set_types (Typ_PT, 
-  // Typ_LN-Typ_CVTRM needed for eg 'PT cartes' - BasePoint 2017-04-06
-                      Typ_LN,
-                      Typ_CI,
-                      Typ_CVBSP,
-                      Typ_CVRBSP,              // 2014-10-17
-                      Typ_CVLNA,               // 2011-09-07
-                      Typ_CVELL,
-                      Typ_CVCLOT,
-                      Typ_CVPOL,               // 2014-12-19
-                      Typ_CVTRM,               // 2014-12-19
-                      Typ_PLN,                 // 2016-10-04
-                      Typ_SUR,
-                      Typ_SOL,
-                      Typ_Model,
                       0);
+  // Typ_LN-Typ_CVTRM needed for eg 'PT cartes' - BasePoint 2017-04-06
+                      // Typ_LN,
+                      // Typ_CI,
+                      // Typ_CVBSP,
+                      // Typ_CVRBSP,              // 2014-10-17
+                      // Typ_CVLNA,               // 2011-09-07
+                      // Typ_CVELL,
+                      // Typ_CVCLOT,
+                      // Typ_CVPOL,               // 2014-12-19
+                      // Typ_CVTRM,               // 2014-12-19
+                      // Typ_PLN,                 // 2016-10-04
+                      // Typ_Model,
+                      // Typ_SUR,
+                      // Typ_SOL,
       break;
 
     case Typ_LN:
-      sele_set_types (Typ_VC,
-                      Typ_PT,                  // 2011-09-29
-                      Typ_LN,
-                      Typ_CVLNA,               // 2011-09-08
-                      Typ_CVPOL, 
-                      Typ_CVTRM,
-                      Typ_PLN,                 // 2011-09-08
+      sele_set_types (Typ_LN,
                       0);
+                      // Typ_PT,                  // 2011-09-29
+                      // Typ_VC,
+                      // Typ_CVLNA,               // 2011-09-08
+                      // // Typ_CVPOL, 
+                      // Typ_CVTRM,
+                      // Typ_PLN,                 // 2011-09-08
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       sele_set_icon (&i2Dbutts, Typ_FncPtOnObj);
       break;
@@ -2061,23 +2609,25 @@ raus 2011-07-29
 
     case Typ_CI:
       sele_set_types (Typ_CI,
-                      Typ_PT,                  // 2011-12-05
-                      Typ_Val,                 // 2011-12-05
-                      Typ_VAR,                 // 2011-12-05
-                      Typ_CVTRM,
                       0);
+                      // Typ_PT,                  // 2011-12-05
+                      // Typ_Val,                 // 2011-12-05
+                      // Typ_VAR,                 // 2011-12-05
+                      // Typ_CVTRM,
       break;
 
 
     case Typ_PLN:
       sele_set_types (Typ_PLN, 
-                      Typ_VC,
                       Typ_PT,
+                      Typ_VC,
                       Typ_LN, 
                       Typ_CI,
-                      Typ_Val,
                       Typ_Model,
                       0);
+/*
+                      Typ_Val,
+*/
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       sele_set_icon (&i2Dbutts, Typ_modPERP);
       break;
@@ -2103,19 +2653,34 @@ raus 2011-07-29
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       break;
 
-    case Typ_go_LCS:      // LN/CI/CV
-      sele_set_types (Typ_LN, 
+    case Typ_goPrim:      // PT|LN|AC|CV
+      sele_set_types (Typ_PT, 
+                      Typ_LN,
                       Typ_CI, 
+                      Typ_CV,
                       Typ_CVBSP,
                       Typ_CVRBSP,
                       Typ_CVPOL,               // 2011-08-05 was Typ_CV
+                      Typ_CVELL,
+                      Typ_CVCLOT,
+                      0);
+      break;
+
+    case Typ_go_LCS:      // LN/CI/CV
+    case Typ_go_lf1:      // L|C|curve, but only single curve, not contour
+      sele_set_types (Typ_LN, 
+                      Typ_CI, 
+                      Typ_CV,
+                      Typ_CVBSP,
+                      Typ_CVRBSP,
+                      Typ_CVPOL,
                       Typ_CVELL,
                       Typ_CVCLOT,
                       Typ_CVTRM,
                       0);
       break;
 
-    case Typ_goGeo1:    // /LN/CI/CV/PLN/SUR/SOL/
+    case Typ_goGeo1:    // /LN/CI/CV/PLN/SUR/SOL/            NOT PT
       sele_set_types (Typ_LN, 
                       Typ_CI,
                       Typ_CVBSP,
@@ -2136,18 +2701,13 @@ raus 2011-07-29
                       0);
       break;
 
-    case Typ_goPrim:      // PT|LN|AC|CV        ACHTUNG ident Typ_goGeo3
+    case Typ_go_PD:    // PT|VC
       sele_set_types (Typ_PT, 
-                      Typ_LN,
-                      Typ_CI, 
-                      Typ_CV,
-                      Typ_CVBSP,
-                      Typ_CVRBSP,
-                      Typ_CVPOL,               // 2011-08-05 was Typ_CV
-                      Typ_CVELL,
-                      Typ_CVCLOT,
+                      Typ_VC,
                       0);
+      sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       break;
+
 /*
     case Typ_goGeo4:    // VC|LN|Pln
       sele_set_types (Typ_VC, 

@@ -396,7 +396,7 @@ List_functions_end:
     cv1 = pDat;
     irc = UT3D_plg_pta (cv1, cTab[i1].pa, cTab[i1].iNr, memSeg1);
     if(irc < 0) goto L_EOM;
-      DEB_dump_obj__ (Typ_CVPOL, cv1, "Cv[%d]:",i1);
+      // DEB_dump_obj__ (Typ_CVPOL, cv1, "Cv[%d]:",i1);
 
     *oSiz = *oSiz - sizeof(CurvPoly);
     if(*oSiz < 1024) goto L_EOM;
@@ -969,8 +969,8 @@ List_functions_end:
 
 
   L_fertig:
-  DEB_dump_obj__(Typ_PT, pto, "ex UT3D_ptvc_sus PT=");
-  DEB_dump_obj__(Typ_VC, vco, "                 VC=");
+  // DEB_dump_obj__(Typ_PT, pto, "ex UT3D_ptvc_sus PT=");
+  // DEB_dump_obj__(Typ_VC, vco, "                 VC=");
 
   return 0;
 

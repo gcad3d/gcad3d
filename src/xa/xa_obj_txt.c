@@ -332,6 +332,7 @@ static long su_ind;
   int AP_obj_add_pt_sp (char *ED_buf1, Point *pt1) {
 //=================================================================
 /// add point mit reduced precision
+// see also SRC_src_pt3_10 AP_obj_add_pt
 
   // printf("AP_obj_add_pt_sp \n");
 
@@ -364,6 +365,7 @@ static long su_ind;
 /// add struct Point* to string  " P(<x> <y> [<z>])"
 /// leading blank, precision = 10 digits
 /// see  AP_obj_add_pt_rp (reduced precision)
+// see also SRC_src_pt3_10 AP_obj_add_pt_sp
 /// \endcode
 
   // printf("AP_obj_add_pt %f %f %f\n",pt1->x,pt1->y,pt1->z);
@@ -1000,7 +1002,7 @@ static long su_ind;
   }
 
 
-  i1 = AP_typ_2_bastyp (iTyp);
+  i1 = AP_typDB_typ (iTyp);
   if(iTyp == Typ_CVTRM) {  // CCV: den Header "S#=CCV" holen
     irc = AP_stru_2_txt(cPos1, bufLen, o1, ind);  // "S%d=CCV"
     if(irc < 0) return -1;

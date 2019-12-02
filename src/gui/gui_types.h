@@ -140,7 +140,7 @@
 
 #define GUI_KeyShift_L      0xffe1           // 65505
 #define GUI_KeyShift_R      0xffe2
-#define GUI_KeyControl_L    0xffe3           // 65507
+#define GUI_KeyControl_L    0xffe3           // 65507  Control-key left
 #define GUI_KeyControl_R    0xffe4           // 65508
 #define GUI_KeyAlt_L        0xffe9           // 65513
 #define GUI_KeyAlt_R        0xffea           // 65514

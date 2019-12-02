@@ -17,6 +17,16 @@ Eingabemöglichkeiten:
 
 
 
+_______________
+<p><a name="_modPERP_"></a></p>
+<h3>Parameter for normal (perpendicular)</h3>
+- Taste "Bild" oder
+- Eingabe "PERP"
+
+- leer  (default) -
+- PERP            - normal (rechtwinkelig)
+
+
 ____________________________________________________________________________
 <p><a name="_ModAux_"></a></p>
 <h3>Parameter für Ein - Aus</h3>
@@ -37,11 +47,10 @@ ____________________________________________________________________________
 <h3>X - Koordinate / Abstand</h3>
 - Eingabe eines Zahlenwertes mit der Tastatur: zB "12.5"
 - Eingabe einer Variablen (Tastatur oder Objektbrowser); zB "V20"
-- Eingabe von Punkt - ergibt X-Koordinate dieses Punktes
-- Eingabe eines Vektors - ergibt X-Koordinate dieses Vektors
-- Eingabe einer Line ergibt die X-Koordinatendifferenz dieser Linie
+- Eingabe von Punkt - ergibt X-Koordinate dieses Punktes zB "X(P20)"
+- Eingabe eines Vektors - ergibt X-Koordinate dieses Vektors zB "X(D20)"
+- Eingabe einer Line ergibt die X-Koordinatendifferenz dieser Linie zB "X(L20)"
   
-Die Ausgabe erfolgt als zB "X(12.5)"
   
 
 ____________________________________________________________________________
@@ -49,11 +58,10 @@ ____________________________________________________________________________
 <h3>Y - Koordinate / Abstand</h3>
 - Eingabe eines Zahlenwertes mit der Tastatur: zB "12.5"
 - Eingabe einer Variablen (Tastatur oder Objektbrowser); zB "V20"
-- Eingabe von Punkt - ergibt Y-Koordinate dieses Punktes
-- Eingabe eines Vektors - ergibt Y-Koordinate dieses Vektors
-- Eingabe einer Line ergibt die Y-Koordinatendifferenz dieser Linie
+- Eingabe von Punkt - ergibt Y-Koordinate dieses Punktes zB "Y(P20)"
+- Eingabe eines Vektors - ergibt Y-Koordinate dieses Vektors zB "Y(D20)"
+- Eingabe einer Line ergibt die Y-Koordinatendifferenz dieser Linie zB "Y(L20)"
   
-Die Ausgabe erfolgt als zB "Y(12.5)"
 
 
 ____________________________________________________________________________
@@ -61,11 +69,10 @@ ____________________________________________________________________________
 <h3>Z - Koordinatei / Abstand</h3>
 - Eingabe eines Zahlenwertes mit der Tastatur: zB "12.5"
 - Eingabe einer Variablen (Tastatur oder Objektbrowser); zB "V20"
-- Eingabe von Punkt - ergibt Z-Koordinate dieses Punktes
-- Eingabe eines Vektors - ergibt Z-Koordinate dieses Vektors
-- Eingabe einer Line ergibt die Z-Koordinatendifferenz dieser Linie
+- Eingabe von Punkt - ergibt Z-Koordinate dieses Punktes zB "Z(P20)"
+- Eingabe eines Vektors - ergibt Z-Koordinate dieses Vektors zB "Z(D20)"
+- Eingabe einer Line ergibt die Z-Koordinatendifferenz dieser Linie zB "Z(L20)"
   
-Die Ausgabe erfolgt als zB "Z(12.5)"
 
 
 ____________________________________________________________________________
@@ -80,8 +87,12 @@ ____________________________________________________________________________
 - Selektion von zwei Punkten ergibt den Punktabstand
 - Selektion von Punkt - Linie ergibt ergibt den Normalabstand
 
+- Selektion von "X(P#)" ergibt die X-Koordinate dieses Punktes (analog Y(P#) und Z(P#))
+- Selektion von "X(L#)" - die X-Koordinatendifferenz dieser Linie (analog Y(P#) und Z(P#))
 
 Die Ausgabe erfolgt als zB "VAL(12.5)"
+  oder "VAL(L20)"                 # die Länge der Linie L20
+  oder "VAL(Z(P20))"              # die INF_Z-Koordinate von Punkt P20
 
 
 

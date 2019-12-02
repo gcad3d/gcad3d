@@ -83,7 +83,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
                     int iind, int iskip) {
 //================================================================
 // add text actBuf to outputText.
-// create outputText from inputFieldText,
+// create outputText from inputFieldText
 //   (eg add "D(*)" if necessary)
 // Input:
 //   actBuf  inputFieldText                           siz=256
@@ -111,19 +111,84 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   // get inptyp = requested input-type
   inptyp = IE_inpTypR[iind];
 
+
   // printf("IE_inpTxtOut inptyp=%d |%s|\n",inptyp,actBuf);
 
 
   p1 = actBuf;
+  UTX_pos_skipLeadBlk (p1);
 
 
+  
+  if(inptyp == Typ_XVal) {
+    // first 2 chars must be "X("
+    if(!strncmp(p1, "X(", 2)) goto L_add_txt;  // no modif.
+    sprintf(tmpBuf, "X(%s)",p1);
+    goto L_add_mod;
+
+  } else if(inptyp == Typ_YVal) {
+    // first 2 chars must be "Y("
+    if(!strncmp(p1, "Y(", 2)) goto L_add_txt;  // no modif.
+    sprintf(tmpBuf, "Y(%s)",p1);
+    goto L_add_mod;
+
+
+  } else if(inptyp == Typ_ZVal) {
+    // first 2 chars must be "Z("
+    if(!strncmp(p1, "Z(", 2)) goto L_add_txt;  // no modif.
+    sprintf(tmpBuf, "Z(%s)",p1);
+    goto L_add_mod;
+
+
+  //----------------------------------------------------------------
+  } else if(inptyp == Typ_Angle) {
+    // already starting with "ang(" ?
+    if(UTX_ck_casenChr (actBuf, "ANG", 3) == 0) {
+        // printf(" ang exists |%s|\n",actBuf);
+      strcpy(tmpBuf, actBuf);
+      UTX_cp_word_2_upper (tmpBuf, tmpBuf);
+      goto L_add_mod;
+    }
+    // add "ANG()"
+    sprintf(tmpBuf, "ANG(%s)",actBuf);
+    goto L_add_mod;
+
+
+  //----------------------------------------------------------------
+  } else if(inptyp == Typ_Val)   {
+    sprintf(tmpBuf, "VAL(%s)",actBuf);
+    goto L_add_mod;
+
+  //----------------------------------------------------------------
+  } else if(inptyp == Typ_PTS)   {
+    sprintf(tmpBuf, "PTS(%s)",actBuf);
+    goto L_add_mod;
+
+  //----------------------------------------------------------------
+  } else if(inptyp == Typ_PTI)   {
+    sprintf(tmpBuf, "PTI(%s)",actBuf);
+    goto L_add_mod;
+
+
+
+  //----------------------------------------------------------------
+  } else if(inptyp == Typ_EyePT) {
+    // IE_getEyePt (tmpBuf);
+    // goto L_add_mod;
+    sprintf(tmpBuf, "\"%s\"",actBuf);
+    goto L_add_mod;
+  }
+
+
+  //----------------------------------------------------------------
   // get memSpc for ato
-  ATO_getSpc__ (&ato);
+  ATO_getSpc__ (&ato);  // get memspc54 memspc55 memspc53
 
   i1 = 0; // get expressions, not result.
   d1 = 0.;
-  ATO_ato_srcLn_exp (&ato, &i1, &d1, p1);
-    // ATO_dump__ (&ato);
+  irc = ATO_ato_srcLn_exp (&ato, &i1, &d1, p1);
+  if(irc < 0) return -2;
+    // ATO_dump__ (&ato, " f-srcLn_exp-inpTxtOut");
 
 
   // get outTyp; eg Typ_VC from requestedTyp - eg Typ_goGeo7
@@ -141,65 +206,10 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   // APT_obj_ato (., typ);
 
  
-  //----------------------------------------------------------------
-    if(inptyp == Typ_Angle) {
-      // already starting with "ang(" ?
-      if(UTX_ck_casenChr (actBuf, "ANG", 3) == 0) {
-          // printf(" ang exists |%s|\n",actBuf);
-        strcpy(tmpBuf, actBuf);
-        UTX_cp_word_2_upper (tmpBuf, tmpBuf);
-        goto L_add_mod;
-      }
-      // add "ANG()"
-      sprintf(tmpBuf, "ANG(%s)",actBuf);
-      goto L_add_mod;
-
 
 
   //----------------------------------------------------------------
-    } else if(inptyp == Typ_Val)   {
-              // ((inptyp >= Typ_Val_symTyp)&&(inptyp < Typ_Str_Dir1)))  {
-      sprintf(tmpBuf, "VAL(%s)",actBuf);
-      goto L_add_mod;
-      // strcat(IE_outTxt, actBuf);
-
-/*
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_ValX) {
-      goto L_add_txt;
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_ValY) {
-      goto L_add_txt;
-*/
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_YVal) {
-      sprintf(tmpBuf, "Y(%s)",actBuf);
-      goto L_add_mod;
-
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_XVal) {
-      sprintf(tmpBuf, "X(%s)",actBuf);
-      goto L_add_mod;
-
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_ZVal) {
-      sprintf(tmpBuf, "Z(%s)",actBuf);
-      goto L_add_mod;
-
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_EyePT) {
-      // IE_getEyePt (tmpBuf);
-      // goto L_add_mod;
-      sprintf(tmpBuf, "\"%s\"",actBuf);
-      goto L_add_mod;
-
-
-  //----------------------------------------------------------------
-    } else if(inptyp == Typ_PT) {
+    if(inptyp == Typ_PT) {
       // Pt aus "P20" direkt raus.
       if(ato.nr == 1) {
         if(((actBuf[0] == 'P')||(actBuf[0] =='p')) &&
@@ -372,12 +382,16 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
     }
 
 
+  //----------------------------------------------------------------
   L_add_txt:   // no modification; actBuf = output;
     *txt = actBuf;
+      // printf(" ex-inpTxtOut-0 |%s|\n",*txt);
     return 0;
+
 
   L_add_mod:   // modified; tmpBuf = output;
     *txt = tmpBuf;
+      // printf(" ex-inpTxtOut-1 |%s|\n",*txt);
     return 1;
 
 
@@ -411,6 +425,8 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 //           0=keep active field, test;
 //           1=keep active field, do not test (not complete);
 //   iDisp   0=display; 1=do not reDisplay;
+//
+// see also IE_inp_chg (-3); // do NOT proceed to next inputfield
 
   int    actLen;
 
@@ -420,7 +436,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   // printf("  IE_inpSrc=%d\n",IE_inpSrc);
 
 
-  actLen = strlen(actTxt);
+  actLen = strlen(actTxt);  // length of old text
 
 
   *iNxt = -1;   // default: gotoNextField
@@ -430,6 +446,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
 
+  // IE_inpTypAct = requested type of input ..
   //----------------------------------------------------------------
   if(IE_inpTypAct == Typ_Val) {
 
@@ -492,6 +509,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
     *iAct = 1;    // 1=add
     *iNxt = -1;   //0;    // 0=keep,test   -1=gotoNextField
     *iDisp = 0;   // 0=display
+
     return 0;
 
 
@@ -640,8 +658,8 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   L_err_not_complete:
     TX_Print("**** obj not yet complete ..");
-    *iNxt = 1;   // keep field, do not test.
-    *iDisp = 1;   // do not redisplay obj;
+    *iNxt = 1;    // i2 keep field, do not test.
+    *iDisp = 1;   // i3 1=do not (re)display obj;
     goto L_add;
 
 }
@@ -650,12 +668,13 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 //================================================================
   int IE_inpCkTyp (int iind, char *actBuf, ObjAto *ato) {
 //================================================================
-// returns outTyp for inputFieldText.
+// IE_inpCkTyp                    returns outTyp for inputFieldText.
 // Example: requestedTyp Typ_goGeo7, inputFieldText="D12", retCod=Typ_VC.
 //
 // Input:
 //   iind       index inputField
-//   ato        test of ato[0].typ
+//   actBuf     source of input
+//   ato        ato of input
 // Output:
 //   retCod     outTyp, basicobjTyp
 
@@ -665,7 +684,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   int     irc, i1, actTyp, typ;
   long    dbi;
   double  d1;
-  char    *p1, *selNam, subTyp1;
+  char    *p1, *selNam, auxInf1;
 
 
   // requested objTyp   eg Typ_goGeo7
@@ -675,7 +694,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
   // printf("IE_inpCkTyp ii=%d |%s| req=%d\n",iind,actBuf,typ);
-  // printf(" ato->typ[0]=%d\n",ato->typ[0]);
+  // ATO_dump__ (ato, " inpCkTyp-in");
 
 
 
@@ -712,6 +731,8 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   
 
+  //----------------------------------------------------------------
+  // only single outputObj:
   if(ato->nr == 1) {
 
     if((ato->typ[0] == Typ_VAR) ||
@@ -725,11 +746,10 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
       if (typ == Typ_goPrim) goto L_ato0;         // 2013-03-15
       goto L_found;
     }
-    if(ato->typ[0] == Typ_PT) {
-      if (typ == Typ_goGeo7) goto L_ato0;
-      if (typ == Typ_goGeo8) goto L_ato0;
-    }
+    goto L_ato0;
   }
+
+
 /*
     else if(actTyp == Typ_ObjDB) {          // test textTyp ..
     // actTyp = AP_typ_typChar (*actBuf);
@@ -758,34 +778,35 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
   //================================================================
- 
+  // more than one input-objects in ato
+  // typ = requested-typ
   //----------------------------------------------------------------
   if(typ == Typ_Angle) {
     // ANG(C)
-    goto L_typ;
+    goto L_found;  // out reqTyp
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_TmpPT) {
     actTyp = Typ_PT;
-    goto L_found;
-
-/*
-  //----------------------------------------------------------------
-  } else if(typ == Typ_PT) {
-    if((actTyp == Typ_ValX)||(actTyp == Typ_ValX)||(actTyp == Typ_ValX)||
-       (actTyp == Typ_Angle)) {
-      actTyp = Typ_PT;
-      goto L_found;
-    }
+    goto L_found;  // out reqTyp
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_LN) {
-    // "X(.....)" provides a Line !
-    if((actTyp == Typ_ValX)||(actTyp == Typ_ValX)||(actTyp == Typ_ValX))
-      goto L_found;
-*/
+  // } else if(typ == Typ_PT) {
+    // if((actTyp == Typ_ValX)||(actTyp == Typ_ValX)||(actTyp == Typ_ValX)||
+       // (actTyp == Typ_Angle)) {
+      // actTyp = Typ_PT;
+      // goto L_found;
+    // }
+
+
+  //----------------------------------------------------------------
+  // } else if(typ == Typ_LN) {
+    // // "X(.....)" provides a Line !
+    // if((actTyp == Typ_ValX)||(actTyp == Typ_ValX)||(actTyp == Typ_ValX))
+      // goto L_found;
+
 
 
   //----------------------------------------------------------------
@@ -821,8 +842,20 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_go_PD) {   
+    // Typ_go_PD: P|D                                     
+    goto L_ato0;
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_go_LCS) {   
     // Typ_go_LCS: L|C|S(Ell,Bsp,Plg,CCV)   NOT P|Sur|Sol;
+    goto L_ato0;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_go_lf1) {
+    // Typ_go_lf1: like Typ_go_LCS but no CCV
     goto L_ato0;
 
 
@@ -847,14 +880,14 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   } else if(typ == Typ_goGeo7) {           // Typ_goGeo7: Val|P|D
 
     // get 1 char of 3.word of info = subTyp; 
-    subTyp1 = IE_inpAuxDat[iind].subTyp[0];
-    if(subTyp1 == 'D') {  // need 2.point for vector !
+    auxInf1 = IE_inpAuxDat[iind].auxInf[0];
+    if(auxInf1 == 'D') {  // need 2.point for vector !
       actTyp = Typ_VC;
     }
 
     // Typ_goGeo7 (VC from eg "S MOD")    TODO: not checked correct yet ..
-    typ = Typ_VC;
-    goto L_typ;
+    actTyp = Typ_VC;
+    goto L_found;
 
 
   //----------------------------------------------------------------
@@ -862,21 +895,22 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
     goto L_ato0;
 
 
-
   //----------------------------------------------------------------
   }
 
+
+  //----------------------------------------------------------------
   L_found:
 
     // printf("ex IE_inpCkTyp ii=%d typ=%d\n",iind,actTyp);
 
   return actTyp;
 
-  L_typ:
+  L_typ:               // out: req.typ
    actTyp = typ;
    goto L_found;
 
-  L_ato0:
+  L_ato0:             // out: input-typ
    actTyp = ato->typ[0];
    goto L_found;
 
@@ -963,7 +997,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //-------------------------------------------------------
   // typ ist nun ein objTyp der selektierten APT-Line;
   // typRec ist ein typ im IE_cad_act-Record
-    // printf(" _txt2par1  typ=%d typRec=%d\n",typ,typRec);
+    printf(" _txt2par1  typ=%d typRec=%d\n",typ,typRec);
 
 
   //-------------------------------------------------------
@@ -973,7 +1007,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_YVal)    goto L_OK_2;
     if(typRec == Typ_ZVal)    goto L_OK_2;
     if(typRec == Typ_Rad)     goto L_OK_2;
-    if(typRec == Typ_Angle)   goto L_OK_2;
     if(typRec == Typ_goGeo7)  goto L_OK_2;
     if(typRec == Typ_goGeo8)  goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
@@ -1010,39 +1043,37 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     // if((typRec >= Typ_Val_symTyp)&&(typRec < Typ_Str_Dir1)) goto L_OK_2;
 
   //-------------------------------------------------------
-  } else if(typ == Typ_Angle) {
-    if(typRec == Typ_LN)      goto L_OK_2;
-
+  // } else if(typ == Typ_Angle) {
+    // if(typRec == Typ_LN)      goto L_OK_2;
 
   //-------------------------------------------------------
   } else if(typ == Typ_PT) {
     if(typRec == Typ_EyePT)   goto L_OK_2;
     if(typRec == Typ_goPrim)  goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
+    if(typRec == Typ_go_PD)   goto L_OK_2;
     if(typRec == Typ_goGeo7)  goto L_OK_2;
     if(typRec == Typ_goGeo8)  goto L_OK_2;
 
   //-------------------------------------------------------
   } else if(typ == Typ_LN) {
     if(typRec == Typ_goPrim)  goto L_OK_2;
-    if(typRec == Typ_go_LCS)    goto L_OK_2;
+    if(typRec == Typ_go_LCS)  goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
     if(typRec == Typ_goGeo1)  goto L_OK_2;
     if(typRec == Typ_goGeo6)  goto L_OK_2;
     if(typRec == Typ_go_LR)   goto L_OK_2;
-    if(typRec == Typ_goAxis)  goto L_OK_2;
 
 
   //-------------------------------------------------------
   } else if(typ == Typ_CI) {
     if(typRec == Typ_goPrim)  goto L_OK_2;
-    if(typRec == Typ_go_LCS)    goto L_OK_2;
+    if(typRec == Typ_go_LCS)  goto L_OK_2;
     if(typRec == Typ_goGeom)  goto L_OK_2;
     if(typRec == Typ_goGeo1)  goto L_OK_2;
     if(typRec == Typ_goGeo2)  goto L_OK_2;
     if(typRec == Typ_goGeo5)  goto L_OK_2;
     if(typRec == Typ_goGeo8)  goto L_OK_2;
-    if(typRec == Typ_goAxis)  goto L_OK_2;
 
 
   //-------------------------------------------------------
@@ -1050,7 +1081,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   } else if(typ == Typ_CV) {
     if(typRec == Typ_CVTRM)  goto L_OK_2;
     if(typRec == Typ_CVPOL)  goto L_OK_2;
-    if(typRec == Typ_go_LCS)   goto L_OK_2;
+    if(typRec == Typ_go_LCS) goto L_OK_2;
     if(typRec == Typ_goPrim) goto L_OK_2;
     if(typRec == Typ_goGeom) goto L_OK_2;
     if(typRec == Typ_goGeo1) goto L_OK_2;
@@ -1060,16 +1091,16 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
   //-------------------------------------------------------
   } else if(typ == Typ_VC) {
-    if(typRec == Typ_Angle)  goto L_OK_2;
     if(typRec == Typ_goGeom) goto L_OK_2;
+    if(typRec == Typ_go_PD)  goto L_OK_2;
     if(typRec == Typ_goGeo7) goto L_OK_2;
 
   //-------------------------------------------------------
   } else if(typ == Typ_PLN) {
     if((typRec == Typ_goGeom)          ||
        (typRec == Typ_goGeo1)          ||
-       (typRec == Typ_go_LR)           ||
-       (typRec == Typ_goAxis))  goto L_OK_2;
+       (typRec == Typ_go_LR)
+      )  goto L_OK_2;
 
   //-------------------------------------------------------
   } else if(typ == Typ_SUR) {

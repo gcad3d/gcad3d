@@ -100,7 +100,7 @@ static  int         GLB_x_id = 0;
   GLB_x_id = 0;   // reset
 
   area = gtk_drawing_area_new ();
-  gtk_widget_set_double_buffered (area, FALSE);
+  // gtk_widget_set_double_buffered (area, FALSE);   deprecated
 
   GLB_display = gdk_x11_get_default_xdisplay ();
   xscreen = DefaultScreen (GLB_display);

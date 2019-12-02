@@ -188,7 +188,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   *bbxO = bbxa[0];
 
   for(i1=1; i1<bbxNr; ++i1) {
-      DEB_dump_obj__ (Typ_BBox2, &bbxa[i1], "bbx2[%d]",i1);
+      // DEB_dump_obj__ (Typ_BBox2, &bbxa[i1], "bbx2[%d]",i1);
     BBX2__ext_ptLL (bbxO, &bbxa[i1].pb1);
     BBX2__ext_ptUR (bbxO, &bbxa[i1].pb2);
   }
@@ -1684,7 +1684,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   Point   *pt1;
 
 
-  DEB_dump_obj__ (Typ_Dim3, dim1, "UT3D_box_Dim3");
+  // DEB_dump_obj__ (Typ_Dim3, dim1, "UT3D_box_Dim3");
 
   pt1 = DB_get_PT (dim1->ip1);
   UT3D_box_extend (p1, p2, pt1);
@@ -1816,20 +1816,20 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   ModelBas   *mdb;
   
 
-  DEB_dump_obj__ (Typ_Model, mdr, "UT3D_box_mdr");
+  // DEB_dump_obj__ (Typ_Model, mdr, "UT3D_box_mdr");
 
   // create transformation-matrix
   UT3D_m3_load_povxvz (m31, &mdr->po, &mdr->vx, &mdr->vz);
-    DEB_dump_obj__ (Typ_M4x3, m31, " m31 ");
+    // DEB_dump_obj__ (Typ_M4x3, m31, " m31 ");
 
   // get box of basicModel of ModelReference
   imdb = mdr->modNr;
   mdb = DB_get_ModBas (imdb);
-    DEB_dump_obj__ (Typ_SubModel, mdb, " basicModel:");
+    // DEB_dump_obj__ (Typ_SubModel, mdb, " basicModel:");
 
   // test if box is empty; 1=empty; 0=not
   irc = UT3D_box_ck_empty (&mdb->pb1, &mdb->pb2);
-    printf(" ck_empty = %d\n",irc);
+    // printf(" ck_empty = %d\n",irc);
   if(!irc) goto L_apply;
 
   // box is empty
@@ -1840,8 +1840,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   DB_load__ (mdb->mnam);
   // get box for subModel 
   UT3D_box_mdl__ (p1, p2, mdr->modNr, 0);
-    DEB_dump_obj__ (Typ_PT, p1, " p1:");
-    DEB_dump_obj__ (Typ_PT, p2, " p2:");
+    // DEB_dump_obj__ (Typ_PT, p1, " p1:");
+    // DEB_dump_obj__ (Typ_PT, p2, " p2:");
   // reload main-DB
   DB_load__ ("");
 
@@ -1935,7 +1935,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
     // get basic typ from typ
-    bTyp = AP_typ_2_bastyp (typ);
+    bTyp = AP_typDB_typ (typ);
       // printf(" typ_2_bastyp %d from %d\n",bTyp,typ);
 
 
@@ -2525,7 +2525,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   SurSwp    *su1;
 
 
-  DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surSwp");
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surSwp");
 
   // get path, box
   su1 = (SurSwp*)ox1->data;
@@ -3009,7 +3009,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
       printf(" box_actMod dli=%ld typ=%d dbi=%ld\n",dli,typ,dbi);
 
     // get basic typ from typ
-    typ = AP_typ_2_bastyp (typ);
+    typ = AP_typDB_typ (typ);
 
 
 

@@ -762,7 +762,7 @@ UTA_  functions for pointers (addresses)
 }
 */
 
-
+/*
 //======================================================================
   int UTP_compdb0 (double db, double tol) {
 //======================================================================
@@ -772,18 +772,16 @@ UTA_  functions for pointers (addresses)
 /// Retcode 0:   db <> 0.0 (gr. oder kl. tol)
 ///         1:   db = 0.0 (innerhalb tol)
 /// \endcode
-/*
-if(UTP_compdb0(d1,tol)) printf("d1 ist 0.0!\n");
 
-if(UTP_compdb0(d1,tol) == 0) printf("d1 ist nicht 0.0!\n");
-if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
+// if(UTP_compdb0(d1,tol)) printf("d1 ist 0.0!\n");
+// if(UTP_compdb0(d1,tol) == 0) printf("d1 ist nicht 0.0!\n");
+// if(UTP_compdb0(d1,tol) == 1) printf("d1 ist 0.0!\n");
 
-*/
 
   return (fabs(db) < tol);
 
 }
-
+*/
 
 
 //======================================================================

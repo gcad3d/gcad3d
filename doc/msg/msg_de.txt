@@ -65,6 +65,7 @@ MMinTxt=MAN: Ausgabe Textpuffer nach Entf oder Strg-X
 MMsePcp=Ausgabe Mausposition auf der Konstruktionsebene - nächste Selektion
 MMsePop=Ausgabe Mausposition als parametrischer Punkt am selektierten Objekt - nächste Selektion
 MMseLoO=Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
+MMselOid=add objects to group, hilite, (key objID)
 
 MMgrAdd=Objekt zu Gruppe addieren oder (wenn bereits selektiert) aus Gruppe entfernen
 MMgrSav=alle Objekte der Gruppe in Datei speichern (Format .gcad)
@@ -140,10 +141,11 @@ CADsave=aktives Obj. speichern, weiter zum nächsten Obj. Rechte Maustaste, Ente
 
 PT_cartes__offset=Punkt; selektieren od eingeben; [relativ in X/Y/Z]
 PT_polar=Punkt, polar, relativ; Basispunkt, Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene),] Abstand
+PT_rotate_Z=rotate and tilt point around (point / Z-axis of constr.plane)
+PT_rotate_axis=rotate point around axis
 PT_translate=Punkt verschieben; Basispunkt, Richtung, [Abstand,] [Normalabstand]
-PT_rotate=Punkt verdrehen; Mittelpunkt, Ausgangsposition, Winkel [Drehachse]
 PT_endpoints_center_focus___=Charakteristische Punkte (Mittel-, Anfangs- End-, Fokus für Ellipsen; Eckpunkte für Polygone, Splines)
-PT_Mid_Cornerpoint_PT_PT__VC_=Mittelpunkt oder Eckpunkt von 2 Punkten
+PT_control_points=get control-point with index (from polygon, bspline)
 PT_parametric_on_LN_CIR_CRV_SUR=Punkt auf Linie/Kreis/Kurve/Fläche durch Parameter erzeugen
 
 LN_PT__PT=Linie zwischen 2 Punkten;
@@ -151,9 +153,10 @@ LN_parallel=Linie parallel zu Linie/Vektor
 LN_PT_Direct__Length_Rot_Angle_TiltAngle_=Linie durch Punkt, Richtung, [Länge,] [Drehwinkel (Z-Achse),] [Kippwinkel (X-Y-Ebene)]
 LN_LN_Dist____________parall_=Linie parallel zu Linie mit Abstand, Position (1-4).
 LN_LN_LN__Rot_Angle_TiltAngle___mid_=Linie = Mittellinie; [im Schnittpunkt verdrehen: Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene)]
-LN_tangent_to_line_circ_curve=Linie tangential an 2 Objekte (Punkt/Richtung/Kreis/Ellipse/Bspline)
+LN_tangent_to_2_objs___=Linie tangential an 2 Objekte (Punkt/Richtung/Kreis/Ellipse/Bspline)
 
 CIR_Cen_Radius__Z_Axis_=Kreis aus Mittelpunkt, Radius [Achs-Vektor]
+CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Kreis aus Mittelpunkt, tangential an Punkt/Linie/Kreis
 CIR_Tang_Tang_Radius=Kreis tangential an zwei Elemente, mit fixem Radius.
 CIR_Tang_Tang_Tang=Kreis tangential an 3 Elemente.
@@ -178,6 +181,8 @@ V_PT_PT_Dist__Direction_=Variable = Länge zwischen 2 Punkten [in Richtung Vekto
 V_LN___Length=Variable = Länge einer Strecke
 V_PT___LN_Perp_Dist_=Variable = Normalabstand eines Punktes von einer Strecke
 V_CIR__Radius=Variable = Radius eines Kreises
+V_Angle_line_vector=angle from line (angle around Z-axis or tilt-angle (PERP))
+V_Angle_2_lines_vectors=angle from 2 lines / vectors
 
 S_Ellipse_Center_AxisEndPoint_Point=Ellipse aus Mittelpunkt, Endpunkt-Hauptachse, Punkt auf Ellipse
 S_Ellipse_Center_Axes__EndPoints_=Begrenzte Ellipse aus Mittelpunkt, Vektor-Hauptachse, Vektor_Nebenachse, Startpunkt und Endpunkt
@@ -257,7 +262,7 @@ Reset_ConstrPlane=Konstruktionsebene auf absolutes Koordinatensystem rücksetzen
 Typ_Val=Wert eing. / Bild-Tasten / Sel LN (Länge.) / Sel Cir (Radius)
 Typ_PT=Punkt (auf Obj.) selektieren / Position anzeigen / Koord. eing.
 Typ_LN=Sel LN
-Typ_AC=Sel CIR
+Typ_CI=Sel CIR
 Typ_VC=Vektor: Wert eing. / Bild-Tasten / D[I]X/Y/Z / dx dy [dz] ANG(ax) [ANG(az)]; Sel LN/Cir/Elli/Surf/PLN/PT+PT; Zusatz: <Länge> / REV (umdrehen)
 Typ_CV=Sel CRV
 Typ_CVCCV=Sel CCV
@@ -273,7 +278,7 @@ Typ_lFig=Sel LN/Cir/CRV
 Typ_goGeom=Sel Object
 Typ_goGeo1=Sel LN/Cir/CRV/PLN
 Typ_goGeo2=Sel Circ or Ellipse
-Typ_goGeo3=Sel PT/LN/Cir/CRV, CW/CCW
+Typ_go_PD=Sel point or vector
 Typ_goGeo4=Sel VC / LN / PLN
 Typ_goGeo5=Sel CIR/ELL/CCV
 Typ_goGeo6=Winkel (Grad) eing. / Sel Vec/LN (Richtung) / ReversButton
@@ -283,7 +288,10 @@ Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (Bild-Tasten) / PT+PLN
 Typ_goRadius=Radius eing. / Sel PT / Cir
 Typ_goGeoSUSU=Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Select Ebene (R) oder Fläche (A)
+Typ_go_lf1=sel. single curve
 Typ_Tra=Bild-Tasten/ (select Transformation)
+Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
+Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..
 Typ_modAux=Bild-Tasten
 Typ_mod1=Bild-Tasten/ (Version ändern)
 Typ_modCWCCW=ReversButton; Bild-Tasten / "CW" (Uhrzeigersinn) eing.

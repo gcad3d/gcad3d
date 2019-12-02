@@ -136,7 +136,7 @@ extern GtkWidget *UI_act_wi;
   GdkScreen  *screen;
   GdkVisual  *visual;
   char       s1[256];
-
+  GdkCursor   *cNxt;
 
   // printf("GUI_TUT_m__ %d\n",ii);
 
@@ -189,8 +189,8 @@ extern GtkWidget *UI_act_wi;
   gtk_widget_show_all(TUT_win);
 
   // cursor off (for this window)
-  gdk_window_set_cursor (gtk_widget_get_window (TUT_win),
-                         gdk_cursor_new (GDK_BLANK_CURSOR));
+  cNxt = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_BLANK_CURSOR);
+  gdk_window_set_cursor (gtk_widget_get_window(TUT_win), cNxt);
 
 
   // start timer for window-removal
@@ -208,6 +208,8 @@ extern GtkWidget *UI_act_wi;
 /// display text without decoration for 0.8 secs
 
   GtkWidget  *w1;
+  GdkCursor   *cNxt;
+
 
 
   // printf("GUI_TUT_t__ |%s|\n",ltxt);
@@ -228,8 +230,8 @@ extern GtkWidget *UI_act_wi;
   gtk_widget_show_all(TUT_win);
 
   // cursor off (for this window)
-  gdk_window_set_cursor (gtk_widget_get_window (TUT_win),
-                         gdk_cursor_new (GDK_BLANK_CURSOR));
+  cNxt = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_BLANK_CURSOR);
+  gdk_window_set_cursor (gtk_widget_get_window(TUT_win), cNxt);
 
   // start timer for window-removal
   g_timeout_add (VIEWTIME_T, GUI_TUT_CB_tmr, TUT_win);

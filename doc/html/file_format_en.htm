@@ -1,0 +1,277 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
+<PRE>
+
+
+
+<a href="gCAD3D_basics_en.htm#Codes">gCAD3D</a>
+
+<a href="CAD_Base_en.htm#Codes">Codes</a>
+<a href="#fmt_f">File-formate</a>
+<a href="http://www.gcad3d.org/devdoc/pag_pdm.htm">Binary-formate</a>
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="fmt_f"></a></p>
+<h3>File-formate gcad</h3>
+
+<A HREF='#fmtStruct'>File structure</A>
+<A HREF='#fmtsub'>Format mainmodel / submodels</A>
+<A HREF='#fmtgat'>Format Attributes</A>
+<A HREF='#fmt_exa'>Examples</A>
+
+
+
+
+
+All objects in memory are kept in analytical form with all definition parameters
+  (Ascii text, analytical form)
+
+The file format .gcad is the same as the internal format.
+
+The objects can also be exported as mock-up elements,
+  tesselated for faster loading in assemblies, but without parametrics.
+
+Other analytical export formats: .gcad, .iges
+
+Mock-up export formats: Vrml-1, Vrml-2, obj, tess
+
+If you save a model file as {base}/tmp/Model,
+  it will be loaded wenn the program starts.
+  {base} normally is ~/gCAD3D/.
+
+
+
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="fmtStruct"></a></p>
+<h4>File structure gcad</h4>
+
+Structure of Model files:
+
+The model files contain all subModels, NC-processes and applicationData
+  (data of plugins).
+
+The format of the model files is ascii - text.
+
+SubModels, Processes and applicationData are embedded into sections,
+  followed by the mainModel.
+
+All sections before the mainModel start with:
+SECTION {sectionTyp} {parameter}
+and end with:
+SECTIONEND
+
+  - subModels          SECTION MODEL {modelname}
+  - point Tables       SECTION PTAB  {modelname} {ObjID}
+  - Meshes             SECTION MESH  {modelname} {ObjID}
+  - Processes (eg NC)  SECTION PROCESS {processName}
+  - applicationData    SECTION APPDAT {pluginName}
+  - mainModel          ..
+
+
+
+SECTION MODEL {modelname}
+- Dynamic-Dataspace (settings, standards, End: ":DYNAMIC_DATA")
+- Objectdata
+SECTIONEND
+
+
+SECTION PTAB {modelname}_{ObjID}
+ptnr={nr of points}
+{pointCoords, one point per line}
+SECTIONEND
+
+
+SECTION MESH  {modelname}_{ObjID}
+faces={nr of faces} edgelines={nr of edgelines}
+{faces (3 indices for one face per line)}
+edgeline={nr of edgeline} points={nr of points} edgetyp={edgetyp}
+{edgeline (indices for points)}
+SECTIONEND
+
+
+SECTION PROCESS {processName}
+- Objectdata
+- process-specific-commands
+SECTIONEND
+
+
+SECTION APPDAT {pluginName}
+- beliebige Daten;
+  werden nur von der Applikation {pluginName} geschrieben, gelesen.
+SECTIONEND
+
+
+Das mainModel contains the objectcodes, see <A HREF='#fmt_exa'>Examples</A>.
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="fmtsub"></a></p>
+<h4>Format mainmodel / submodels:</h4>
+
+
+- Section DYNAMIC_DATA (optional)
+- Objectdata
+
+
+<B>Section DYNAMIC_DATA:</B>
+
+can have these records:
+
+- MODSIZ                 Modelsize
+- DEFTX                  Textsize
+- VIEW                   active view
+- CONST_PL               active construction plane
+- <A HREF='#fmtgat'>GATAB</A>                  table graf. attributes
+- :DYNAMIC_DATA          end of section DYNAMIC_DATA
+
+
+Objectdata:
+  see <a href="CAD_Base_en.htm">Codes</a>,
+  see <A HREF='#fmt_exa'>Beispiele</A>.
+
+
+
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="fmtgat"></a></p>
+<h4>Format Attributes:</h4>
+
+The grafic attributes define linientypes, colours, transparency, textures.
+
+
+GATAB      starts the grafic-attributes-table, .
+ENDGATAB   end of table.
+
+
+
+
+Grafic-Attributes-Records for Lines, Curves:
+
+<ObjectID> [T#]
+ H  hide
+ T  index Linetyp; 2=dash, 3=dashDot; see file cfg/ltyp.rc
+
+
+
+
+Grafic-Attributes-Records for surfaces:
+
+<ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
+ H  hidden
+ C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
+ T  transparent; 0=not, 1=50% transparent, 2=full transparent
+ S  symbolic; 0=not, 1=symbolic display
+ X  textured surface; Format:
+    X"<Image>",X-scale,Y-Scale,X-Offset,Y-Offset,RotAng[,X-vec,Z-Vec]
+      <Image>  consists of "<symbolPath>/<imagefilename>"
+      Offsets are Values from 0-1
+      RotAng in degree
+
+
+
+
+<b>Example line with linetype 2 (dashed):</b>
+GATAB
+L20 T2
+ENDGATAB
+:DYNAMIC_DATA
+L20=P(0 0 0) P(100 10 0)
+#eof
+
+
+
+<b>Example area with colour:</b>
+# example GATAB: surface A20 has color e2dc27; surf. A21 is symbolic (not shaded)
+GATAB
+A20 Ce2dc27
+A21 S1
+ENDGATAB
+:DYNAMIC_DATA
+C20=P(50 100) 25
+C21=P(100 100) 25
+A20=C20
+A21=C21
+#eof
+
+
+
+<HR><!-- ============================================================ -->
+<p><a name="fmt_exa"></a></p>
+<h4>Examples:</h4>
+
+
+
+<b>Example mainmodel only:</b>
+# 2010/11/29-18:37:05
+P1=P(0 0)
+P2=P(200 20)
+# Line from 2 points
+L1=P1 P2
+# circle from Center, Radius
+C1=P(50 100) 25
+# area from circle
+A1=C1
+# Ende
+
+
+
+
+<b>Example model file with subModel:</b>
+# 2010/11/29-18:37:05
+SECTION MODEL SM1
+# Cone from 1 Points 2 radius
+B1=CON P(0 0) P(0 0 12) VAL(16) VAL(12)
+SECTIONEND
+# 2 references of submodel
+M1="SM1" P(0 0)
+M1="SM1" P(50 0)
+# End
+
+
+
+
+<b>Example model with mesh:</b>
+SECTION PTAB _A1
+ptnr=4
+78.206807 -215.069439 0
+75.797808 -206.220382 0
+82.125568 -204.36855 0
+83.557688 -210.647853 0
+SECTIONEND
+SECTION MESH _A2
+faces=2 edgelines=1
+3 2 1
+3 1 0
+edgeline=0 points=4 edgetyp=5
+3 2 1 0
+SECTIONEND
+A1=PTAB
+A2=MSH A1
+
+
+
+<hr>
+Send bug-reports, suggestions for improvement to
+  franz.reiter@cadcam.co.at
+</PRE>
+</BODY>
+</HTML>

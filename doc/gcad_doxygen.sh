@@ -49,8 +49,8 @@ srcDirs="\
  ../db\
  ../exp\
  ../prc\
+ ../inf\
  ../gui\
- ../gui_gtk2\
  ../gui_gtk3\
 "
 export srcDirs

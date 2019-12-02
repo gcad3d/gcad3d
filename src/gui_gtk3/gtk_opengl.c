@@ -519,7 +519,9 @@ GUI_gl_ev_test(MemObj *mo) {
   int         i1;
   Obj_GLwin   *go;
 
+
   // printf("GUI_gl_block %d\n",mode);
+
 
   go = GUI_obj_pos (mo);
   if(!go) return 0;
@@ -627,7 +629,7 @@ GUI_gl_ev_test(MemObj *mo) {
   // BUG: enter-event does not come after change-virtual-screen; 2014-01-17
   // only if keys are connected..
   if(go->uFuKey) {
-    i1 = gdk_keymap_get_modifier_state (gdk_keymap_get_default());
+    i1 = GUI_get_keys_mod ();
       // printf(" ik=%d i1=%d\n",ik,i1);
     if(i1 != statMK) {
       iEv = TYP_EventEnter;
@@ -674,15 +676,7 @@ GUI_gl_ev_test(MemObj *mo) {
     // GDK_ENTER_NOTIFY  = 10,
     } else if(((GdkEventAny*)event)->type == GDK_ENTER_NOTIFY) {
       // get state of shift,ctrl,alt-keys
-      // gdk_window_get_pointer (NULL, NULL, NULL, &state);
-      // gdk_window_get_device_position (gtk_widget_get_window(go->widget),
-                                      // gtk_get_current_event_device (),
-                                      // NULL,
-                                      // NULL,
-                                      // (GdkModifierType*)&i1);
-      // gdk_window_get_device_position makes error if window over gl-window is 
-      // deleted. 2013-09-02
-      i1 = gdk_keymap_get_modifier_state (gdk_keymap_get_default());
+      i1 = GUI_get_keys_mod ();
         // printf(" enter .. %d\n",i1);
       iEv = TYP_EventEnter;
       pTab[0] = &iEv;
@@ -857,8 +851,10 @@ GUI_gl_ev_test(MemObj *mo) {
 
   if(typ == GDK_KEY_PRESS) {
     iTyp = TYP_EventPress;       
+
   } else if(typ == GDK_KEY_RELEASE) {
     iTyp = TYP_EventRelease;
+
   } else return FALSE;  // TRUE=1   FALSE=0
 
 

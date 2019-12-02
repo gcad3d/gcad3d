@@ -491,7 +491,7 @@ L_InErr:
 
   rm = clt->pc;  // 100.; // medium radius
   aSeg = UT2D_angr_ciSec (tol, rm);
-  *pNr =  tt / aSeg;
+  *pNr =  tt / aSeg + 2;
     // printf(" pNr=%d aSeg=%lf\n",*pNr,aSeg);
 
   return 0;

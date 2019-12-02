@@ -20,7 +20,6 @@ TODO:
   rework ED_work_STEP; use normal ED_work_CurSet;
   make toolbar for MAN; buttons STEP, Help (Help for active inputTyp(P/L/S/...)
   xa_ed: ED_add_objSel u ED_add_objTxt durch ED_add_Text ersetzen.
-    ED_query_CmdMode noch aus wa/MainFrm.cpp holen.
 
 -----------------------------------------------------
 Modifications:
@@ -30,6 +29,9 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void ED(){}
+#endif
 /*!
 \file  ../xa/xa_ed.c
 \brief Neutral EditorFunctions (not Gtk-specific). 
@@ -54,8 +56,8 @@ ED_Init             reset in srcLn 0
 -------------- functions for editor only EDE_* --------------
 ED_update           Filesize changed - update Mem (Edi -> Memory)
 ED_query_CmdMode    aktuelle Zeile into ED_buf1 einlesen, ihren Typ feststellen
-ED_ck_lnStart       test if cursor is at first position in line
-ED_ck_lnEnd         test if cursor is at last position in line
+// ED_ck_lnStart       test if cursor is at first position in line
+// ED_ck_lnEnd         test if cursor is at last position in line
 
 EDE_reload          load ?
 ED_new_File         Ein Datei ins Hauptprog laden
@@ -79,12 +81,13 @@ ED_get_lnr_act      get ED_lnr_act; see also ED_Get_LineNr
 ED_set_cpos_lnr_act set ED_cpos to start of line ED_lnr_act
 
 ED_lnr_bis__        ED_lnr_bis setzen
-ED_query_mode       get ED_mode (ED_mode_step|ED_mode_go|ED_mode_enter)
+ED_set_mode         set AP_mode__ 
+ED_get_mode         get AP_mode__ 
 ED_skip_end         reset ED_mode
-ED_skip_start       keep ED_mode; set ED_mode = ED_mode_go;
-ED_enter            set ED_mode=ED_mode_enter;
-ED_step             set ED_mode=ED_mode_step;
-ED_go               set ED_mode=ED_mode_go;
+ED_skip_start       keep AP_mode__; set AP_mode__ = AP_mode_go;
+ED_enter            set AP_mode__ =AP_mode_enter;
+ED_step             set AP_mode__ =AP_mode_step;
+ED_go               set AP_mode__ =AP_mode_go;
 ED_lnr_reset        set ED_lnr_von=0; ED_lnr_bis=max;
 ED_work_dyn         work block :DYNAMIC_DATA
 ED_get_mac_fil      get APT_mac_fil
@@ -107,6 +110,7 @@ ED_PP_run
 ED_work_Update      work from startingLineNr to end
 ED_get_curPos       get cursorPosition, LineStartPosition, LineEndPosition.
 ED_get_actPos       get position of active Line (ED_lnr_act) in mem
+ED_get_lnr_SM       get lineNr of active subModel (read from file)
 ED_del_on
 ED_del_off
 ED_parent_disp      display a selected ParentObject
@@ -208,7 +212,10 @@ cl -c /I ..\include xa_ed.c
 //===========================================================================
 // Externals:
 //
-// aus ../xa/xa.c:
+// ../xa/xa.c
+extern int        AP_mode__;
+extern int        AP_mode_old;
+extern char       AP_filnam[256];
 extern AP_STAT    AP_stat;               // sysStat,errStat..
 extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
@@ -252,11 +259,6 @@ extern int       APT_dispPL;
 
 //===========================================================================
 
-static char      AP_filnam[256];
-
-
-static int       ED_mode;          // see ED_query_mode
-static int       ED_mode_old;
 
 static int       ED_delay = 0;
 
@@ -273,6 +275,7 @@ static FILE      *maclun = NULL;
 static int       ED_lnr_von;
 static int       ED_lnr_bis;
 static int       ED_lnr_max;
+static int       ED_lnr_SM = -1;    // lineNr of active subModel (read from file)
        char      *ED_cpos;          // mem-position of last ED_Read_Line
 
 
@@ -287,6 +290,15 @@ long   UI_Ed_fsiz;      // Textsize
 
 
 
+//================================================================
+  int ED_get_lnr_SM () {
+//================================================================
+// ED_get_lnr_SM      get lineNr of active subModel (read from file)
+
+  return ED_lnr_SM;
+
+}
+ 
 
 //================================================================
   int ED_update (long ipos) {
@@ -1242,38 +1254,11 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 }
 
 
-//==========================================================================
-  int ED_query_mode () {
-//==========================================================================
-/// \code
-///   value                setFunc
-/// 0=ED_mode_step         ED_step()
-/// 1=ED_mode_go    = Run  ED_go()
-/// 3=ED_mode_enter = Edit ED_enter()
-/// \endcode
+//================================================================
+  int ED_get_mode () {
+//================================================================
 
-
-// 0=ED_mode_step
-//   ED_step();     used by ED_work_ENTER
-//
-// 1=ED_mode_go:     kein Redraw ! (GL_Redraw skips it)  
-//   ED_go()     ;  used by "RUN" (ED_work_CurSet) !
-//
-// 3=ED_mode_enter
-//   ED_enter();    used by CAD.
-
-
-
-
-
-
-
-
-  // printf("||||||||||||<===========================================\n");
-  // printf("ED_query_mode %d\n",ED_mode);
-
-
-  return ED_mode;
+  return AP_mode__;
 
 }
 
@@ -1282,7 +1267,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   int ED_set_mode (int newMode) {
 //================================================================
 
-  ED_mode = newMode;
+  AP_mode__ = newMode;
 
   return 0;
 
@@ -1295,10 +1280,10 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
 
   // printf("||||||||||||<===========================================\n");
-  // printf("ED_skip_end ED_mode=%d -> ED_mode_old=%d\n",ED_mode,ED_mode_old);
+  // printf("ED_skip_end AP_mode__ =%d -> AP_mode_old=%d\n",ED_mode,AP_mode_old);
 
 
-  ED_mode = ED_mode_old;
+  AP_mode__ = AP_mode_old;
 
   return 0;
 }
@@ -1312,12 +1297,12 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
 
   // printf("||||||||||||<===========================================\n");
-  // printf("ED_skip_start ED_mode=%d\n",ED_mode);
+  // printf("ED_skip_start AP_mode__ =%d\n",AP_mode__);
 
 
-  // if(ED_mode != ED_mode_go)  
-  ED_mode_old = ED_mode;
-  ED_mode = ED_mode_go;
+  // if(AP_mode__ != AP_mode_go)  
+  AP_mode_old = AP_mode__;
+  AP_mode__ = AP_mode_END; // automatic-run - no display of symbols
 
   return 0;
 }
@@ -1330,13 +1315,13 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 //==========================================================================
 /// CR by Keyboard; es daf kein CRLF zugefuegt werden ! (sonst doppelt)
 /// used by: IE_activate, IE_cad_init1, ED_work_ENTER
-/// see ED_query_mode
+/// see ED_get_mode
 
 
 
   // printf ("ED_enter\n");
 
-  ED_mode = ED_mode_enter;
+  AP_mode__ = AP_mode_enter;
 
   return 0;
 }
@@ -1351,7 +1336,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
   // printf ("ED_step\n");
 
-  ED_mode = ED_mode_step;
+  AP_mode__ = AP_mode_step;
 
   return 0;
 }
@@ -1366,7 +1351,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   // printf("||||||||||||<===========================================\n");
   // printf("ED_go\n");
 
-  ED_mode = ED_mode_go;
+  AP_mode__ = AP_mode_go;
 
   return 0;
 }
@@ -1482,10 +1467,16 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
     if (fgets (buf, mem_cbuf1_SIZ, maclun) == NULL) goto L_file_exit;
 
+      ++ED_lnr_SM;
+        // printf(" ED_Run-file-lNr=%d\n",ED_lnr_SM);
+
       if(buf[0] == '#') goto L_f_next;    // skip #-Lines from File
       UTX_CleanCR (buf);
       if(buf[0] == '\0') goto L_f_next;    // skip empty Lines from File
       // printf("ED_Read_Line aus File |%s|\n",buf);
+
+      if(!strcmp(buf, ":DYNAMIC_AREA")) {
+        ED_lnr_SM = -1;
 
 /*
       if(!strcmp(buf, ":DYNAMIC_AREA")) {
@@ -1497,14 +1488,13 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
         strcpy (buf, "EXIT");
         // buf[0] = '#';
 
-      } else if(!strncmp(buf, "MODEL ", 6)) {
+      } else if(!strcmp(buf, "END")) {
+        goto L_file_exit;
 */
-      // if(!strcmp(buf, "END")) {
-        // goto L_file_exit;
 
 
                      // 12345678901234
-      if(!strncmp(buf, "SECTION MODEL ", 14)) {
+      } else if(!strncmp(buf, "SECTION MODEL ", 14)) {
         // starting new (internal) submodel
         // printf(" new (internal) submodel |%s|\n",buf);
         // save submodel > tmp/Model_<name>
@@ -1815,6 +1805,7 @@ static int lnr1, lnr2;
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // DB_dump_ModNod ();
 
+  AP_mode__ = AP_mode_END;   // automatic-run; no display of symbols;
 
   UI_CursorWait (0);     // wait-cursor
 
@@ -1904,7 +1895,7 @@ static int lnr1, lnr2;
 
   // get nr of basic models
   bNr = DB_get_ModBasNr();
-    printf(" _ModBasNr=%d\n",bNr);
+    // printf(" _ModBasNr=%d\n",bNr);
   if(bNr < 1) goto L_run1;
   
 
@@ -2029,6 +2020,8 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   UI_CursorWait (1);    // reset cursor
   // TX_Write (".. rework finished ..");  // schlecht, kommt 2 x pro run ..
 
+  AP_mode__ = AP_mode_step;
+
   WC_set_obj_stat (wrkStat);  // reset
 
 
@@ -2065,11 +2058,10 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 //==========================================================================
   void ED_work_ENTER () {
 //==========================================================================
-/// es wurde CR am Keyb eingegeben
+/// CR from keyBd
 
   
   // printf("=================================\nED_work_ENTER\n");
-  
 
   ED_enter ();
   
@@ -2100,7 +2092,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   printf("ED_work_STEP\n");
 
 /* 2008-06-15
-  ED_step ();    // ED_mode = ED_mode_step;
+  ED_step ();    // AP_mode__ = AP_mode_step;
 
   ED_Run ();
 */
@@ -2186,8 +2178,8 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
 
 
-  if(WC_get_obj_stat() != 0) {           // temp od permanent -
-      // printf(" temp..\n");
+  if(tmpStat != 0) {           // temp od permanent -
+      // printf(" 1=temp..\n");
 
     // save temporary:
     // printf(" dl1=%d dl2=%d\n",dl1,dl2);
@@ -2200,7 +2192,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
 
   } else {
-      // printf(" perm..\n");
+      // printf(" 0=perm..\n");
 
     // save permanent:
     // nur wenn ueberhaupt ein Obj erzeugt wurde ..
@@ -2242,24 +2234,25 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 /// Obj der Zeile new_lnr_act hiliten
 /// 
 /// von der zuletzt bearbeiteten Zeile bis zu lNr new_lnr_act abarbeiten
-///   new_lnr_act   -1           query active lineNr (ED_lnr_act)
-///                 UT_INT_MAX   work from ED_lnr_act to end
+// Input:
+//   new_lnr_act    new curPos to be set;
+//                  -1           query active lineNr (ED_lnr_act)
+//                  UT_INT_MAX   work from ED_lnr_act to end
 /// \endcode
 
 // Example:
-// ED_work_CurSet (lNr);          // go back to line lNr
+// ED_work_CurSet (lNr);          // go fwd or back to line lNr
 // ED_work_CurSet (UT_INT_MAX);   // work until end of model
 //
 // ED_lnr_act     ist die CurPos im Editor
-// new_lnr_act    ist die gewuenschte neue CurPos.
-// mode: 0=down, 1=up.
 
   int    irc, i1, mode, typ;
   long   l1, dbi, dli;
   char   s1[32];
 
 
-  // printf("ED_work_CurSet %d\n",new_lnr_act);
+  // printf("-------------------------------------- \n");
+  // printf("ED_work_CurSet new_lnr_act=%d ED_lnr_act=%d\n",new_lnr_act,ED_lnr_act);
 
 
   // new_lnr_act = -1: nur aktuelle Line abfragen
@@ -2347,9 +2340,9 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   }
 
 
-  ED_go ();            // modus ED_mode = ED_mode_go;
+  // ED_go ();            // modus AP_mode__ = AP_mode_go;
   irc = ED_Run ();     // work all lines
-  ED_step ();          // reset modus ED_mode = ED_mode_step;
+  // ED_step ();          // reset modus AP_mode__ = AP_mode_step;
 
     // printf(" ->->-> nach ED_Run - new_lnr_act=%d\n",new_lnr_act);
 
@@ -2367,28 +2360,19 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
   if(new_lnr_act < 999999) ED_lnr_act = new_lnr_act;
 
+    // TESTBLOCK
+    // printf(" work_CurSet-L_fertig: ED_lnr_act=%d\n",ED_lnr_act);
+    // printf("  GR_TAB_IND=%ld\n",DL_get__(NULL));
+    // END TESTBLOCK
 
 
   // hilite Obj of line ED_lnr_act (previous line)
   // but only if we not in an active edit.process in MAN (if line is not empty)
   // Not if Search/Delete is active !
-  // if(AP_src == AP_SRC_EDI) { 
   // printf(" _CurSet - APT_obj_stat=%d\n",WC_get_obj_stat());
-  if(UI_InpMode == UI_MODE_MAN) {           // 2011-04-10
 
-    if(WC_get_obj_stat() == 0) GL_temp_del_1 (DLI_TMP);   // remove tempObj
-    DL_hili_on (-2L); // DL_disp_hili_last (ON); // hilite last obj of DL
-
-  } else if(UI_InpMode == UI_MODE_CAD) {    // 2011-08-25
-    if(IE_get_Func() < 0) {
-      // no CAD-func active ..
-      GL_temp_del_1 (DLI_TMP);             // remove tempObj
-    }
-
-  // } else if(UI_InpMode == UI_MODE_VWR) {    // 2011-08-25
-    // GL_temp_del_1 (DLI_TMP);               // remove tempObj
-
-
+  if(UI_InpMode == UI_MODE_MAN) {
+    APT_hili_last (); // hilite last geom-obj created from WC_Work1
   }
   // TX_Print("End [0 - %d]",ED_lnr_act);
 
@@ -2430,6 +2414,72 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   return 0;
 
 }
+
+
+//================================================================
+  int ED_active__ (long dli, int typ, long dbi, int subTyp) {
+//================================================================
+// ED_active__                   display last DB-obj hilited
+//   reset object with ED_active__ (-1L, Typ_Error, 0L);
+// Input:
+//   typ,dbi      DB-obj
+//   dli          >=0     store (typ,dbi,dli) of geometric-object
+//                -1      store (typ,dbi) of not-geometric-object
+//                -2      display last stored obj
+
+  static long oDli, oDbi, oldDli;
+  static int  oTyp, oSub;
+
+  long        l1;
+
+
+  // printf("ED_active__ dli=%ld typ=%d dbi=%ld\n",dli,typ,dbi);
+
+  //----------------------------------------------------------------
+  if(dli > -2L) { 
+    // >=0  store (typ,dbi,dli) of geometric-object
+    // -1   store (typ,dbi) of not-displayable- or not-geometric-object
+    oDli = dli;
+    oDbi = dbi;
+    oTyp = typ;
+    oSub = subTyp;
+
+
+  //----------------------------------------------------------------
+  } else {
+    // dli=-2; display last stored obj
+      // printf(" active__-disp dli=%ld typ=%d dbi=%ld sub=%d\n",oDli,oTyp,oDbi,oSub);
+
+    //----------------------------------------------------------------
+    if(oDli >= 0L) {
+      if(oldDli < 0L) GL_temp_del_1 (DLI_TMP);        // clear DLI_TMP
+      // display geometric-object          (was DL_hili_on (-2L);)
+      DL_hili_on (oDli);
+    
+
+    //----------------------------------------------------------------
+    } else {
+      // oDli=-1; not-displayable- or not-geometric-object
+      // skip not-displayable-
+      if(oTyp == 0) {
+        GL_temp_del_1 (DLI_TMP);        // clear DLI_TMP
+
+      } else {
+        // display not-geometric-object
+        l1 = DLI_TMP;
+        UI_disp__ (&l1, oTyp, oDbi, oSub);
+      }
+    }
+    oldDli = oDli;
+
+  //----------------------------------------------------------------
+  } // else printf("******* ED_active__ E1-%ld\n",dli);
+
+
+  return 0;
+
+}
+
 
 /*
 //===========================================================================
@@ -2693,18 +2743,6 @@ static int  actLev=0;
   if(irc < 0) return irc;
 
 
-  // // Das Eingabefile oeffnen
-  // if(maclun == NULL) {
-    // //TX_Print(" open file");
-    // if ((maclun = fopen (filnam, "r")) == NULL) {
-      // TX_Error (" beim Oeffnen Datei %s\n",filnam);
-      // return -1;
-    // }
-  // } else {
-    // rewind (maclun);
-  // }
-
-
   ED_skip_start ();  // bei work_file gibts keinen STEP-mode
 
 
@@ -2819,7 +2857,42 @@ static int  actLev=0;
 }
 */
 
+/* replaced by GUI_edi_ck_cPos_ln
+//================================================================
+  int ED_ck_cPos_ln () {
+//================================================================
+// ED_ck_cPos_ln       test cursorPosition in active line
+//   following blanks are ignored !
+// RetCode    0    line s empty
+//            1    cursor is in column 1 (at start of line)
+//            2    cursor is inside line
+//            3    cursor is at end of line
 
+// see also ED_ck_lnStart ED_get_curPos
+
+  int    iOff, cPos = -1;
+  char   c1;
+
+  iOff = 0;
+
+  L_noAmoi:
+    // iOff=-1=left of cursor
+    c1 = GUI_edi_RdChr (&winED, iOff);
+      printf(" ck_cPos_ln |%s|\n",*c1);
+
+    if((c1 == 10)||(c1 == 0)) return 0;
+
+    // goto EOL | EOF
+    if(c1 == ' ') { ++iOff; goto L_noAmoi; }
+
+    // check LF or EOF
+    if((c1 == 10)||(c1 == 0)) return 0;
+
+    return cPos;
+
+}
+*/
+/*
 //================================================================
   int ED_ck_lnEnd () {
 //================================================================
@@ -2865,7 +2938,7 @@ static int  actLev=0;
   return 1;
 
 }
-
+*/
 
 //=========================================================================
   int ED_get_mac_fil () {
@@ -2899,9 +2972,9 @@ static int  actLev=0;
 
   ED_lnr_bis__ (999999);        // set ED_lnr_bis
 
-  ED_go ();                     // ED_mode = ED_mode_go;
+  ED_go ();                     // AP_mode__ = AP_mode_go;
   ED_Run ();
-  ED_step ();                   // ED_mode = ED_mode_step;
+  ED_step ();                   // AP_mode__ = AP_mode_step;
 
   DL_Redraw();                  // update the display
 
@@ -2919,20 +2992,23 @@ static int  actLev=0;
 // ED_lnr_bis can be 999997 (until eof)
 
 
-  int      rc, i1, lNr, llen, istat, gaStat, imode;
+  int      rc, i1, lNr, llen, istat, gaStat, imode, totNr, act_mode;
   long     l1, ipos;
   short    is1;
   char     *cbuf, *cpos, *p1;
   FILE     *fpo=NULL;
 
 
-  // printf("RRRRRRRRRRRRRRRR ED_Run ED_mode=%d\n",ED_mode);
+  // printf("RRRRRRRRRRRRRRRR ED_Run AP_mode__ =%d\n",AP_mode__);
+  // printf("  ED_lnr_von=%d ED_lnr_bis=%d\n",ED_lnr_von,ED_lnr_bis);
+
 
 
   cbuf = mem_cbuf1;
 
   // set to perm
-  WC_set_obj_stat (0);       // 2013-04-13 else problem with insert in MAN
+  // WC_set_obj_stat (0);       // 2013-04-13 else problem with insert in MAN
+
 
   // den boundary-Schalter abfragen
   UI_AP (UI_FuncGet, UID_ckb_bound, (void*)&WC_stat_bound);
@@ -2952,6 +3028,10 @@ static int  actLev=0;
      // printf("  ED_lnr_act=%d ED_lnr_von=%d\n",ED_lnr_act,ED_lnr_von);
 
 
+  totNr = ED_lnr_bis - ED_lnr_von;
+  act_mode = AP_mode__;
+  if(totNr > 1) act_mode = AP_mode_END;
+
   gaStat = 0;
   lNr = 0;
 
@@ -2961,9 +3041,10 @@ static int  actLev=0;
   if(lNr < 0) goto L_EOF;
 
   // naechste Zeile holen (get a copy !)  returns ++ED_lnr_act
+  // lNr is the lineNr in the primary model (calling model)
   lNr = ED_Read_Line (cbuf);
     // printf(" ED_Run-nxt lNr=%d |%s|\n",lNr,cbuf);
-    // printf(" AP_src=%d UI_InpMode=%d ED_mode=%d\n",AP_src,UI_InpMode,ED_mode);
+    // printf(" AP_src=%d UI_InpMode=%d AP_mode__ =%d\n",AP_src,UI_InpMode,AP_mode__);
 
 
 
@@ -2972,7 +3053,7 @@ static int  actLev=0;
 
   // handle dialog-windows
   // Nur MAN,edit
-  // if(ED_mode != ED_mode_go) {    // der ED_mode stimmt leider nicht ...
+  // if(AP_mode__ != AP_mode_go) {    // der AP_mode__ stimmt leider nicht ...
   if(AP_src == AP_SRC_EDI) {        // MEM=0, EDI=1
     // skip the Form-records "DLG "...
     if(!strncmp(cbuf, "DLG ", 4)) {              // normal weiter ...
@@ -2981,7 +3062,7 @@ static int  actLev=0;
     }
 
 /*
-    // FORMEND in mode MAN,ED_mode_step: step back and write block into File.
+    // FORMEND in mode MAN,AP_mode_step: step back and write block into File.
     if(!strcmp(cbuf, "FORMEND")) {
       // FORM_write ...
       rc = DLG_sav1 (lNr, cbuf);
@@ -3136,11 +3217,13 @@ static int  actLev=0;
 
     // work ..
     rc = WC_Work__ (lNr, cbuf);
-      // printf(" nach WC_Work__ rc=%d\n",rc);
+      // printf(" nach WC_Work__ lNr=%d rc=%d\n",lNr,rc);
     if(rc == -2) goto L_exit;  // ? nix tun ..
 
 
     istat = AP_errStat_get();
+      // printf(" ED_Run_1_rc=%d istat=%d\n",rc,istat);
+
 
     if(istat == 2) {
       AP_errStat_reset (1);  // reset Error   2011-08-16
@@ -3171,10 +3254,11 @@ static int  actLev=0;
     }
 
 
-    // printf("ED_mode=%d,lNr=%d,ED_lnr_bis=%d\n",ED_mode,lNr,ED_lnr_bis);
+      // printf("ED_Run-act_mode=%d,lNr=%d,ED_lnr_bis=%d\n",act_mode,lNr,ED_lnr_bis);
 
 
-    if(ED_mode == ED_mode_go) {                              // "RUN"
+    if(act_mode == AP_mode_END) {                              // "RUN"
+      // automatic-run; no display of symbols;
 
       // check if last line is active
         // printf(" lNr=%d ED_lnr_bis=%d\n",lNr,ED_lnr_bis);
@@ -3239,11 +3323,12 @@ static int  actLev=0;
   // in nicht aktiven subModels: done.
   if(MDL_IS_SUB) return 0;
 
+/*
   // Das Positionskreuz plazieren (nicht in VWR)
   // if(UI_ask_mode() != UI_MODE_VWR) WC_setPosKreuz();
   // if(UI_ask_mode() != UI_MODE_VWR) WC_actPos_disp();
   if(UI_InpMode != UI_MODE_VWR) WC_actPos_disp();
-
+*/
   //GL_Redraw ();
   // UI_GR_DrawExit ();
 
@@ -3251,7 +3336,7 @@ static int  actLev=0;
   // UI_upd_Refs();
 
 
-  if(ED_mode == ED_mode_step) {
+  if(act_mode == AP_mode_step) {
 
     // hilite last - active - LineObject
     // DL_disp_hili (ED_lnr_act);
@@ -3266,7 +3351,7 @@ static int  actLev=0;
   }
 
   // ??
-  ED_enter ();
+  // ED_enter ();   // set AP_mode_enter
 
 
 

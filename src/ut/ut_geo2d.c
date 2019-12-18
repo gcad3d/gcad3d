@@ -3000,6 +3000,11 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   void UT2D_pt_tra2ptlen (Point2 *po, Point2 *p1, Point2 *p2, double lenv) {
 //========================================================================
 /// UT2D_pt_tra2ptlen         transl. point p1 into dir p1 -> p2 dist. lenv
+//
+//      x----lenv----x------x         length p1-po = lenv
+//      p1           po     p2
+//
+// see also UT2D_pt_tra3ptlen
 
 
   double    l1, lvc;
@@ -3055,7 +3060,14 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   void UT2D_pt_tra3ptlen(Point2 *po,
                          Point2 *p1, Point2 *p2, Point2 *p3, double lenv) {
 //==========================================================================
-/// UT2D_pt_tra3ptlen         transl. point p1 into dir p2 -> p3 dist. lenv
+// UT2D_pt_tra3ptlen         transl. point p1 into dir p2 -> p3 dist. lenv
+//
+//   p2     p3
+//   x......x      
+//      x----lenv----x             direction from p2-p3,   length=lenv
+//      p1           po
+//
+// see also UT2D_pt_tra2ptlen
 
   double    l1, lvc;
   Vector2   vc;
@@ -11001,7 +11013,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 ///   retcod     0=ok, -1=Error
 ///
 
-// see UT3D_ptvcpar1_std_obj
+// see UT3D_ptvcpar_std_obj
 
 
 

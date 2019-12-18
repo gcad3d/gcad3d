@@ -307,6 +307,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
     // TESTBLOCK
     // DEB_dump_obj__ (Typ_MemTab, &PRCV_GRP, "ex-PRCV_DB_save-GRP");
     // PRCV_DB_dump ("ex-PRCV_DB_save-DB");
+    // if(PRCV_GRP.rNr == 2) exit(1);
     // END TESTBLOCK
 
 

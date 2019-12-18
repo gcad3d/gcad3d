@@ -344,7 +344,7 @@ static long   DL_hidden = -1L;
   long     l1, l2;
 
 
-  printf("DL_lnr_incr %ld\n",lNrX);
+  // printf("DL_lnr_incr %ld\n",lNrX);
 
   for(l1=0; l1<GR_TAB_IND; ++l1) {
     if(GR_ObjTab[l1].lNr < lNrX) continue;

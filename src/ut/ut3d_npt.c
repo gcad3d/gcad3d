@@ -818,7 +818,7 @@ UT3D_npt_ci                circular polygon
                        CurvCCV* cva, int cvNr, double tol, int mode) {
 //===================================================================
 /// \code
-/// UT3D_mtpt_trmCv                polygon from trimmed-curve
+/// UT3D_mtpt_trmCv                polygon from trimmed-curve(s)
 /// Input:
 ///   ptNr         nr of output-points already in pTab (index of 1. unused point)
 ///   ptSiz        size of pTab
@@ -826,7 +826,7 @@ UT3D_npt_ci                circular polygon
 ///   cvNr         nr of curves in cvt
 ///   mode         0=perm, fix PRCV; 1=temp, do not use PRCV; 2=unknown
 /// Output:
-///   pTab
+///   mtpa
 ///   ptNr         nr of output-points in pTab
 ///   RetCod:      0=OK; -1=pTab_overflow; Err -2, -3 ..
 ///
@@ -861,6 +861,7 @@ UT3D_npt_ci                circular polygon
       // PRCV must exist; get points ..
       ptn = MEMTAB_RFREE(mtpa);
       pa2 = MEMTAB__ (mtpa, mtpa->rNr);
+      // get pa2 = polygon from trimmedCurve cvt
       irc = PRCV_npt_trmCv (pa2, &ptn, cvt);
       if(irc < 0) return -2;
       mtpa->rNr += ptn;

@@ -43,11 +43,13 @@ EDI_CB__            editor-callback of GUI_edi__ (mouse/key into editor)
 ED_load__           mem -> editor
 ED_unload__         editor -> memory
 ED_save_file        save editor -> file
+EDI_set_lNr__       set to lineNr
 EDI_set_oid_ui      set to oid of definitionLine from GUI
+EDI_set_lNr_UI      get lineNr from user and set to lineNr
+EDI_set_src_UI      get sourceText to find from user and set to this line
 
-EDI_set_lnr         set ED_lnr_act, goto Line, display lNr
+EDI_sel_lnr         select Line, set Curpos to Line
 ED_goto__           goto curPos in editor
-EDI_goto_lnr        goto Line
 
 ED_sysed__          use system-editor for active line
 
@@ -55,6 +57,8 @@ List_functions_end:
 =====================================================
 See also APED_ (APED_dec_defLn ..)
 
+// EDI_set_lnr         set ED_lnr_act, goto Line, display lNr
+// EDI_goto_lnr        goto Line
 \endcode *//*----------------------------------------
 
 
@@ -88,6 +92,7 @@ AP_APT_*
 #include "../ut/ut_geo.h"
 // #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 #include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_txfil.h"               // UTF_*
 #include "../ut/ut_os.h"          // OS_get_tmp_dir
 
 #include "../gui/gui__.h"         // GUI_ UI_Func..
@@ -116,13 +121,14 @@ extern int       UI_EditMode;
 extern int       xa_fl_TxMem;
 extern char      UI_stat_view, UI_stat_hide;
 
-// aus ut_txfil.c:
+// aus ../ut/ut_txfil.c:
 extern char       *UTF_FilBuf0;
 extern long       UTF_FilBuf0Siz;
 extern long       UTF_FilBuf0Len;  // die aktuelle Filesize
 
 // from ../xa/xa_ed.c:
-extern int ED_lnr_act;
+extern int       ED_lnr_act;
+extern int       ED_lnr_max;        // total nr of lines
 
 // from ../xa/xa.c
 // extern long       AP_ED_lNr;
@@ -202,6 +208,28 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
  
 //================================================================
+  int EDI_sel_lnr (long lNr) {
+//================================================================
+// EDI_sel_lnr         select Line, set Curpos to Line
+
+  int   irc;
+
+  irc = GUI_edi_sel_ln (&winED, lNr);
+    printf(" sel_lnr-irc=%d\n",irc);
+  if(irc < 0) return -1;
+
+  // already in line <lNr>
+  ED_lnr_act = lNr;
+
+  // disp LineNr
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT((long)ED_lnr_act));
+
+  return 0;
+}
+
+
+/* replaced with EDI_set_lNr__
+//================================================================
   int EDI_set_lnr (long lNr) {
 //================================================================
 /// EDI_set_lnr         set ED_lnr_act, goto Line, display lNr
@@ -221,12 +249,14 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   return 0;
 
 }
-
-
+*/
+/* replaced with EDI_set_lNr__
 //================================================================
   int EDI_goto_lnr (long lNr) {
 //================================================================
 /// EDI_goto_lnr        goto Line, display lNr
+// DO NOT USE - use EDI_set_lNr__
+
 
   long   i1;
 
@@ -242,7 +272,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   return 0;
 
 }
- 
+*/
 
 //================================================================
   int ED_Del_CB__ (int ctrlOn) {
@@ -566,8 +596,8 @@ static long cPos;
 ///   problem: reports only keyRelease, not keyPress.
 // Input:
 //   GUI_DATA_EVENT     TYP_EventEnter|TYP_EventPress|TYP_EventRelease
-//   GUI_DATA_I1        Press|Release: key (ascii or eg GUI_KeyReturn)
-//   GUI_DATA_I2        Press|Release: modifier-keys; see GUI_Modif_shift| ..
+//   GUI_DATA_L1        Press|Release: key (ascii or eg GUI_KeyReturn)
+//   GUI_DATA_L2        Press|Release: modifier-keys; see GUI_Modif_shift| ..
 //   GUI_DATA_L2        Enter: line-nr
 
 
@@ -580,9 +610,9 @@ static long cPos;
   // printf("EDI_CB__-------------------------------------------- \n");
   // printf("EDI_CB__ ev=%d\n",GUI_DATA_EVENT);
   // printf("  ED_lnr_act=%d\n",ED_lnr_act);
-  // printf("  modifKeys=%d\n",GUI_DATA_I2);
-  // if(GUI_DATA_EVENT == TYP_EventPress)   printf("press-key = %x\n",GUI_DATA_I1);
-  // if(GUI_DATA_EVENT == TYP_EventRelease) printf("relea-key = %x\n",GUI_DATA_I1);
+  // printf("  modifKeys=%ld\n",GUI_DATA_L2);
+  // if(GUI_DATA_EVENT == TYP_EventPress)   printf("press-key = %lx\n",GUI_DATA_L1);
+  // if(GUI_DATA_EVENT == TYP_EventRelease) printf("relea-key = %lx\n",GUI_DATA_L1);
 
 
 
@@ -600,7 +630,7 @@ static long cPos;
 
     // caused by mouseclick into editor; L1=curPos, L2=lineNr
     // but also by select-block-process !
-    l1 = GUI_DATA_L2;
+    l1 = GUI_DATA_L2;  // line-nr
       // printf(" enter line %ld ED_lnr_act=%d\n",l1,ED_lnr_act);
     if(l1 == ED_lnr_act) goto L_ignore;  // skip identical line
 
@@ -694,7 +724,7 @@ static long cPos;
   } else if (GUI_DATA_EVENT == TYP_EventRelease) {   // 403
       // printf(" EDI_CB__-rel-key=%c (%x)\n",GUI_DATA_I1,GUI_DATA_I1);
     
-    i2 = GUI_DATA_I2;  // modifier-keys
+    i2 = GUI_DATA_L2;  // modifier-keys
     shiftOn = i2&1;
     ctrlOn  = i2&4;
     altOn   = i2&8;
@@ -703,7 +733,7 @@ static long cPos;
       // printf(" EDI_CB__-relea-shiftOn=%d ctrlOn=%d\n",shiftOn,ctrlOn);
 
 
-    i1 = GUI_DATA_I1;  // key
+    i1 = GUI_DATA_L1;  // key
     if(i1 == GUI_KeyEsc) { ED_Esc_CB__ (ctrlOn); goto Finish; }
     // if(i1 == GUI_KeyNumDel) { ED_Del_CB__ (ctrlOn); goto Finish; }
 
@@ -763,7 +793,7 @@ static long cPos;
     // if(GUI_DATA_I2 & GUI_Modif_ctrl) {
     if(ctrlOn) {
       // work keys with Ctrl; eg Ctrl-p (start plugin)
-      UI_key_spcCtrl (GUI_DATA_I1);
+      UI_key_spcCtrl ((int)GUI_DATA_L1);
       goto AllDone;
     }
 
@@ -874,6 +904,101 @@ static long cPos;
 
 
 //================================================================
+  int EDI_set_src_UI () {
+//================================================================
+// EDI_set_src_UI      get sourceText to find from user and set to this line
+
+
+  int      irc, lns;
+  long     lNr, pos0, pos1;
+  char     *p1;
+
+  static char s1[40];
+
+
+  irc = GUI_Dialog_e2b ("text to find:", s1, 40, "next", "Cancel");
+  if(irc != 0) return -1;
+  lns = strlen(s1);
+  if(lns < 1) return -1;
+
+  // find line-nr of text <s1>
+  lNr = ED_lnr_act + 1;
+  p1 = UTF_find_tx1 (&lNr, s1);
+
+  // set to lineNr
+  EDI_set_lNr__ (lNr);
+
+  // select the text <s1>
+  pos0 = UTF_offset_ (p1); // get pos0 = offset of text
+  pos1 = pos0 + lns;
+  GUI_edi_sel__ (&winED, pos0, pos1);
+ 
+    // printf("ex-EDI_set_src_UI\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int EDI_set_lNr_UI () {
+//================================================================
+// EDI_set_lNr_UI         get lineNr from user and set to lineNr
+
+
+  int      irc;
+  long     lNr;
+  char     s1[40], *p1;
+
+
+  s1[0] = '\0';
+
+  irc = GUI_Dialog_e2b ("lineNr to find:", s1, 40, "OK", "Cancel");
+  if(irc != 0) return -1;
+
+  lNr = strtol (s1, &p1, 10);
+  if(lNr < 1) {
+    if(strlen(s1) > 0) {TX_Print("**** error: key line-number .."); return -1;}
+    return -1;
+  }
+
+
+  // set to lineNr
+  EDI_set_lNr__ (lNr);
+
+    // printf("ex-EDI_set_lNr_UI\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int EDI_set_lNr__ (long lNr) {
+//================================================================
+// EDI_set_lNr__         set to lineNr
+
+
+  // printf("EDI_set_lNr__ %ld\n",lNr);
+
+  // goto line lNr; set ED_lnr_max
+  ED_lnr_max = GUI_edi_setLnr (&winED, lNr);
+
+  if(lNr > ED_lnr_max) lNr = ED_lnr_max;
+
+  ED_lnr_act = lNr;
+
+  // UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)i1);
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(lNr));
+
+
+  return 0;
+
+}
+
+
+/*  UNUSED; replaced by edit-button in Search/Name - UI_mcl_CB1/UI_FuncUCB14
+//================================================================
   int EDI_set_oid_ui () {
 //================================================================
 // EDI_set_oid_ui       set to oid of definitionLine from GUI
@@ -926,14 +1051,15 @@ static long cPos;
 
 
   // goto line lNr
-  EDI_set_lnr (lNr);
+  // EDI_set_lnr (lNr);
+  EDI_set_lNr__ (lNr);
 
     // printf("ex-EDI_set_oid_ui\n");
 
   return 0;
 
 }
-
+*/
 
 //================================================================
   int ED_unload__ () {

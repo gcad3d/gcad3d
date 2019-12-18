@@ -113,7 +113,7 @@ UI_reset_hide          disactivate 0=Hide 1=View 2=beide
 UI_reset__             back to VWR
 UI_ToolBars            Toolbars ein/ausschalten.
 UI_grp__               Goupmode ON|OFF
-UI_grpAdd
+// UI_grpAdd
 UI_dump_oid            dump DB-object  into file & display with browser
 UI_dump_obj            dump DB-object  into file & display with browser
 UI_dump__
@@ -2392,13 +2392,13 @@ static char LstBuf[LstSiz][32];
 
     } else if(AP_mod_iftyp == Mtyp_DXF) {
       // printf(" Export DXF |%s|\n",AP_mod_fnam);
-      OS_dll_do ("xa_dxf_w", "DXFW__", cbuf);
+      OS_dll_do ("xa_dxf_w", "DXFW__", cbuf, 0);
       goto L_fertig;
 
 
     } else if(AP_mod_iftyp == Mtyp_SVG) {
       // printf(" Export SVG |%s|\n",AP_mod_fnam);
-      OS_dll_do ("xa_svg_w", "SVG_w__", cbuf);
+      OS_dll_do ("xa_svg_w", "SVG_w__", cbuf, 0);
       goto L_fertig;
 
 
@@ -2409,7 +2409,7 @@ static char LstBuf[LstSiz][32];
 
 
     } else if(AP_mod_iftyp == Mtyp_Step) {
-      OS_dll_do ("xa_stp_w", "STP_w__", cbuf);
+      OS_dll_do ("xa_stp_w", "STP_w__", cbuf, 0);
       goto L_fertig;
 
 
@@ -3222,7 +3222,7 @@ static char LstBuf[LstSiz][32];
   // get typical point for activity-object -> pt1
   OGX_SET_INDEX (&ox1, ac1->typ, ac1->ind);
   // irc = UTO_pt_ox (&pt1, &ox1);
-  irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_ObjGX, &ox1);
+  irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_ObjGX, &ox1);
   if(irc < 0) {
     TX_Print ("UI_disp_activ E001 %d %d",ac1->typ,ac1->ind);
     return -1;
@@ -3335,7 +3335,7 @@ static char LstBuf[LstSiz][32];
   char      s1[128];
   void      *pObj;
 
-  printf("UI_disp__ typ=%d dbi=%ld subTyp=%d\n",typ,dbi,subTyp);
+  // printf("UI_disp__ typ=%d dbi=%ld subTyp=%d\n",typ,dbi,subTyp);
 
 
   switch (typ) {
@@ -3353,10 +3353,10 @@ static char LstBuf[LstSiz][32];
       // else pt1 = GL_GetCen();
       // UI_disp_vec1 (Typ_Index, PTR_LONG(dbi), NULL);
       pObj = DB_get_VC (dbi);
-        DEB_dump_obj__ (typ, pObj, "UI_disp__-vc");
+        // DEB_dump_obj__ (typ, pObj, "UI_disp__-vc");
       // i1 = mode 0=normalized, 1=exact-length
       d1 = UT3D_len_vc((Vector*)pObj) - 1.0;
-        printf(" disp__-vc-len = %f\n",d1);
+        // printf(" disp__-vc-len = %f\n",d1);
       if(UTP_compdb0(d1, UT_TOL_pt)) {
         // 0=normalized
         i1 = 0;
@@ -3424,7 +3424,7 @@ static char LstBuf[LstSiz][32];
   Vector vc1;
 
 
-  printf("UI_disp_vec1 %d\n",typ);
+  // printf("UI_disp_vec1 %d\n",typ);
   // if(pos) DEB_dump_obj__ (Typ_PT, &pt1, "  pos:");
   // else    printf("  pos=NULL\n");
 
@@ -4156,7 +4156,7 @@ static char LstBuf[LstSiz][32];
   UI_but_END ();
 
   // display help-info
-  TX_Print ("- key F1 - display help ..");
+  // TX_Print ("- key F1 - display help ..");
 
     // printf("ex UI_src_edi\n");
 
@@ -4491,12 +4491,11 @@ static char LstBuf[LstSiz][32];
 
       WC_set_obj_stat (0);    // set APT_obj_stat to perm
 
-#ifdef _MSC_VER
-// Im Editor in MS-Win sonst kein Cursor; nur aktivieren anderes Window hilft ..
-IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
-IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
-#endif
-
+// #ifdef _MSC_VER
+// // Im Editor in MS-Win sonst kein Cursor; nur aktivieren anderes Window hilft ..
+// IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncInit));
+// IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncKill));
+// #endif
 
 
       //----------------------------------------------------------------
@@ -5906,7 +5905,7 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "print")) {
     UI_PRI__ (FUNC_EXEC);
-    // OS_dll_do ("xa_print__", "PRI__", "abc");
+    // OS_dll_do ("xa_print__", "PRI__", "abc", 0);
     // UI_WinPrint1 (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
 
 
@@ -7500,8 +7499,8 @@ box1
       // GUI_menu_entry(men_hlp,"Info English", UI_menCB,   (void*)"doc1_e");
 
       // GUI_menu_entry(&men_hlp,"getting-started VWR",  UI_menCB,(void*)"staVWR");
-      // GUI_menu_entry(&men_hlp,"getting-started CAD",  UI_menCB,(void*)"staCAD");
-      // GUI_menu_entry(&men_hlp,"getting-started MAN",  UI_menCB,(void*)"staMAN");
+      GUI_menu_entry(&men_hlp,"getting-started CAD",  UI_menCB,(void*)"staCAD");
+      GUI_menu_entry(&men_hlp,"getting-started MAN",  UI_menCB,(void*)"staMAN");
 
       GUI_menu_entry(&men_hlp, "---",     NULL,       NULL);
       GUI_menu_entry(&men_hlp,"Documentation",UI_menCB,(void*)"doc2");
@@ -9846,6 +9845,7 @@ box1
           // printf(" set LineNr=%d\n",(long)data);
         sprintf(cbuf, "%6ld", LONG_PTR(data));
         GUI_label_mod (&UI_lNr, cbuf);
+          // printf(" UI_AP-f-GUI_label_mod |%s|\n",cbuf);
         return;
 
 
@@ -9862,7 +9862,7 @@ box1
         d1=*((double*)data);
         sprintf(cbuf, "%.2f",d1);
         // cbuf[0] = '\0'; UTX_add_fl_u(cbuf,d1);
-          printf("  set-UI_ent_view_Z %f |%s|\n",d1,cbuf);
+          // printf("  set-UI_ent_view_Z %f |%s|\n",d1,cbuf);
         GUI_entry_set (&UI_ent_view_Z, cbuf);
         return;
 

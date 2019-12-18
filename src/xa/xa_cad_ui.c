@@ -2313,7 +2313,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 
   L_start:
-  printf(" aaaaaaaaaaaaaaaaaaaaaaaa IE_activate %d\n",IE_modify);
+  // printf(" aaaaaaaaaaaaaaaaaaaaaaaa IE_activate %d\n",IE_modify);
 
 
 
@@ -2389,7 +2389,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   //---------------------------------------------------------
   // IE_modify: 0=Add 1=Modify 2=Insert
-    printf("IE_modify  ADD %d\n",IE_modify); 
+    // printf("IE_modify  ADD %d\n",IE_modify); 
 
   if(IE_modify != 0) {
     // MODIFY -> CREATE
@@ -2659,14 +2659,14 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 
     // TESTBLOCK
-    printf("decode - cpos=|%s|\n",cpos);
-    printf("decode - ftyp=|%s| aus_anz=%d\n",IE_ftyp_act,aus_anz);
-    p1 = aus_tab;
-    for(i1=0; i1<aus_anz; ++i1) {
-      printf(" decode_Ln %d typ=%d |%s|\n",i1,aus_typ[i1],p1);
-      p1 += 256;
-    }
-    IE_dump_rec_stru (IE_cad_act, " _modif-cad_act");
+    // printf("decode - cpos=|%s|\n",cpos);
+    // printf("decode - ftyp=|%s| aus_anz=%d\n",IE_ftyp_act,aus_anz);
+    // p1 = aus_tab;
+    // for(i1=0; i1<aus_anz; ++i1) {
+      // printf(" decode_Ln %d typ=%d |%s|\n",i1,aus_typ[i1],p1);
+      // p1 += 256;
+    // }
+    // IE_dump_rec_stru (IE_cad_act, " _modif-cad_act");
     // END TESTBLOCK
 
 
@@ -2681,7 +2681,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // test next record; i1 is index.
   L_NewRec:
     menSubGrpInd = IE_cad_act[i1].ind;
-      printf("============ L_NewRec: i1=%d menSubGrpInd=%d\n",i1,menSubGrpInd);
+      // printf("============ L_NewRec: i1=%d menSubGrpInd=%d\n",i1,menSubGrpInd);
     IE_first = i1;
     aus_ind=0;
     entInd=0;
@@ -2699,7 +2699,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // test all inputFiledTypes; index is entInd.
   L_NxtSubRec:
     typChar = IE_cad_act[i1].info[0];  // first char of info = groupTyp
-      printf("------L_NxtSubRec i1=%d typChar=%c\n",i1,typChar);
+      // printf("------L_NxtSubRec i1=%d typChar=%c\n",i1,typChar);
 
     if(IE_cad_act[i1].ind < 0) goto L_err_TextEd; // -1=EndOfData; nix gfundn
 
@@ -2707,8 +2707,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     if(IE_cad_act[i1].ind != menSubGrpInd) goto L_NewRec;
 
 
-      printf(" getSubGrp-i1=%d ind=%d typ=%d entInd=%d typChar=%c\n",i1,
-             IE_cad_act[i1].ind,IE_cad_act[i1].typ,entInd,typChar);
+      // printf(" getSubGrp-i1=%d ind=%d typ=%d entInd=%d typChar=%c\n",i1,
+             // IE_cad_act[i1].ind,IE_cad_act[i1].typ,entInd,typChar);
 
 
     // test group
@@ -2717,7 +2717,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
                         // aus_anz, &aus_ind, aus_typ, aus_tab);
       irc = IE_txt2parG (IE_buf, IE_cad_act[i1].typ,
                          aus_anz, &aus_ind, aus_typ, (void*)aus_tab);
-        printf(" after IE_txt2parG irc=%d\n",irc);
+        // printf(" after IE_txt2parG irc=%d\n",irc);
       if(irc > 0) aus_ind += irc;                 // 2019-04-16
 
       IE_bufSiz = strlen(IE_buf);
@@ -2754,7 +2754,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
       entBuf[entInd][0] = '\0';
     }
     ++i1;
-      printf(" next entInd=%d SubRec=%d\n",entInd,i1);
+      // printf(" next entInd=%d SubRec=%d\n",entInd,i1);
 
 
     // gibts noch parameter im text, die nicht zugeordnet sind ?
@@ -2810,7 +2810,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
     // Start TextEditor; display active line ..
     // IE_ed2__ (NULL, (void*)UI_FuncInit);
-    IE_ed2__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
+    IE_ed2__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncInit));
     // IE_modify = 1;    // reset CAD-editmode   2013-09-03
 
     goto Fertig;
@@ -3875,7 +3875,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 // see also IE_cad_Inp_undo
 
 
-  printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
+  // printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
 
   // exit if CAD not yet initialized
   if(UI_InpMode != UI_MODE_CAD) return 0;
@@ -4065,7 +4065,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   IE_rec_txt  *lst1;
 
 
-  printf("IE_ck_menGrpInd |%s|\n",lbuf);
+  // printf("IE_ck_menGrpInd |%s|\n",lbuf);
 
 
 
@@ -4132,14 +4132,14 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     case Typ_Activ: menGrpInd = 13; break;
     case Typ_Joint: menGrpInd = 13; break;
     default:
-      TX_Error("Obj.typ noch nicht unterstuetzt -> Manuell bearbeiten");
+      TX_Error("Obj.typ not yet supported; edit manually");
       return -1;
   }
 
 
   L_exit:
-    printf("ex IE_ck_menGrpInd IE_cad_typ=%d menGrpInd=%d\n",
-           IE_cad_typ,menGrpInd);
+    // printf("ex IE_ck_menGrpInd IE_cad_typ=%d menGrpInd=%d\n",
+           // IE_cad_typ,menGrpInd);
 
   return 0;
 
@@ -5456,7 +5456,7 @@ static int _do_not = 0;
   char   newHdr[32];
 
 
-  printf("IE_cad_upd_hdr typ=%d ind=%ld\n",hdrTyp,hdrInd);
+  // printf("IE_cad_upd_hdr typ=%d ind=%ld\n",hdrTyp,hdrInd);
 
   // change header of definition-code;
   IE_cad_typ = hdrTyp;
@@ -5477,7 +5477,7 @@ static int _do_not = 0;
   UTX_chg_left_del (IE_outTxt, sizeof(IE_outTxt), newHdr, '=');
 
 
-    printf("ex-IE_cad_upd_hdr %d %ld\n",IE_cad_typ,IE_objInd);
+    // printf("ex-IE_cad_upd_hdr %d %ld\n",IE_cad_typ,IE_objInd);
 
   return 0;
 
@@ -5808,7 +5808,7 @@ static int _do_not = 0;
       if(GUI_OBJ_IS_VALID(&IE_edWin1)) {
         // gtk_signal_emit_by_name (GTK_OBJECT(IE_ed1_win.win),"destroy");
         // IE_ed2__ (NULL, PTR_INT(UI_FuncKill));   // 2011-04-14
-        IE_ed2__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+        IE_ed2__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncKill));
       }
       GUI_update__ ();   // warten bis Window weg ist ..
       IE_EdFnc = 0;
@@ -7328,11 +7328,11 @@ static IE_info_rec IE_info_tab[] = {
   double d1;
 
 
-  // printf("IE_cad_Inp1_nxtMod %d %d\n",iMod,mode);
+  printf("IE_cad_Inp1_nxtMod %d %d\n",iMod,mode);
 
   if(iMod == 1) maxVal = APT_get_modMax1();   // -1=all, -2=none
   else          maxVal = APT_get_modMax2();
-    // printf(" _nxtMod-imod = %d modMax =%d\n",iMod,maxVal);
+    printf(" _nxtMod-imod = %d modMax =%d\n",iMod,maxVal);
 
 
   if(maxVal < 1) {
@@ -10570,7 +10570,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // kill win
   // IE_ed2__ (NULL, PTR_INT(UI_FuncKill));  // 2011-04-14
-  IE_ed2__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+  IE_ed2__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncKill));
   GUI_update__ ();   // warten bis Window weg ist ..
 
   // activate next line ...
@@ -10596,7 +10596,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   MemObj box0, box1;
 
 
-  i1 = GUI_DATA_I1;
+  i1 = GUI_DATA_L1;
   // printf("IE_ed2__ %d\n",i1);
 
 
@@ -10768,7 +10768,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // fix textPoint
   tmpBuf[0] = '\0';
-  AP_obj_add_nval (tmpBuf, 3, (double*)&pt3);
+  AP_obj_add_nval (tmpBuf, 3, (double*)&pt3, NULL);
   IE_set_inp (2, tmpBuf);
 
 

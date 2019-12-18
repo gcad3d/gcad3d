@@ -164,7 +164,7 @@ static void read_pnts(FILE *f, long nbytes) {
   int   i;
   float ptAct[3];
 
-  printf("read_pnts %ld\n",nbytes);
+  // printf("read_pnts %ld\n",nbytes);
 
   vertex_cnt = nbytes / 12;
 
@@ -189,7 +189,7 @@ static void read_pols(FILE *f, long nbytes) {
   int vTab[LW_MAX_POINTS];
 
 
-  printf("read_pols %ld\n",nbytes);
+  // printf("read_pols %ld\n",nbytes);
 
 
   while (nbytes > 0) {
@@ -236,7 +236,7 @@ static void read_pols(FILE *f, long nbytes) {
 static void read_srfs(FILE *f, long nbytes) {
 //============================================================
 
-  printf("read_srfs %ld\n",nbytes);
+  // printf("read_srfs %ld\n",nbytes);
 
 
   while (nbytes > 0) {
@@ -335,7 +335,7 @@ int lwo_read (const char *lw_file) {
 
 
   form_bytes = read_long(f);
-  printf("form_bytes=%ld\n",form_bytes);
+    // printf("form_bytes=%ld\n",form_bytes);
 
 
   if (read_long(f) != LWO_LWOB) {

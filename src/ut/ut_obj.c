@@ -66,6 +66,7 @@ UTO_cv_cvtrm            standardCurve from trimmedCurve (CCV)
 UTO_ck_surfTyp          returns surfSubTyp
 UTO_npt_Tes             get table of pointers from tessSurf
 
+
 --------- functions for all types of objects: -------
 UTO_ck_dbsTyp           check object-typ (struct or object)
 UTO_ck_typTyp           check if 1=curv(LN|AC|CV ) | 2=surf(PLN|A|B)
@@ -86,8 +87,8 @@ UTO_get_PT     DO NOT USE   make ObjX aus ObjGX (Pointer (zB Line*) holen).
 UTO_get_LN     DO NOT USE
 UTO_objx_get   DO NOT USE   use UTO_objDat_ox
 
-UTO_par__pt_dbo        get parameter from point (obj from typ/ind)
-UTO_par__pt_obj        get parameter from point on curve
+UTO_par__pt_dbo         get parameter from point (obj from typ/ind)
+UTO_par__pt_obj         get parameter from point on curve
 UTO_par_tot             get endParameter - unlimited
 
 UTO_set_ptlim           Anfangs- und/oder Endpunkt einer struct setzen
@@ -316,7 +317,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //   retCod       0=OK, -1=Err.
 //
 // see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
-// see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
+// see UT3D_ptvcpar_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
 
 
   int    irc;
@@ -386,7 +387,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //   retCod       -1=Err else type of objo
 //
 // see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
-// see UT3D_ptvcpar1_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
+// see UT3D_ptvcpar_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
 
 
 #define cmd_SIZ 100
@@ -724,7 +725,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 }
 
-/* replaced by UT3D_ptvcpar1_std_obj
+/* replaced by UT3D_ptvcpar_std_obj
 //================================================================
   int UTO_2pt_limstru (Point *p1, Point *p2, double *v1, double *v2,
                        int typ, void *o1) {
@@ -848,7 +849,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 
 
-// replaced by UT3D_ptvcpar1_std_obj
+// replaced by UT3D_ptvcpar_std_obj
 //================================================================
   int UTO_pt_ox (Point **pto, ObjGX *oxi) {
 //================================================================
@@ -994,7 +995,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //=======================================================================
 /// \code
 /// UTO_ptnr_std_obj        get nr of characteristic points for obj
-/// get points with UT3D_ptvcpar1_std_obj
+/// get points with UT3D_ptvcpar_std_obj
 /// see UT3D_pt_std_ci IE_cad_Inp1_nxtpNr
 /// \endcode
 
@@ -1077,7 +1078,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 
 
-// replaced by UT3D_ptvcpar1_std_obj
+// replaced by UT3D_ptvcpar_std_obj
 //===============================================================================
   int UTO_2pt_lim_ox (Point *ps, Point *pe, double *v1, double *v2, ObjGX *oxi) {
 //===============================================================================
@@ -1345,14 +1346,16 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
 //=============================================================================
-  int UTO_par__pt_dbo (double *lpar, int mode, Point *pti, int typ, long ind) {
+  int UTO_par__pt_dbo (double *lpar, int vTyp, Point *pti, int typ, long ind) {
 //=============================================================================
 // \code
-// UTO_par__pt_dbo           get parameter from point (obj from typ/ind)
+// UTO_par__pt_dbo           get parameter from point on curve (obj from typ/ind)
 // Input:
-//   mode     0  get knotvalues for splines
-//            1  get parametervalues from 0 -1 also for splines
-// ACHTUNG: lpar muss im Bereich 0-1 sein; wird fuer Curves umgerechnet !!
+//   vTyp     0  get knotvalues for splines,polygon; else values 0-1
+//            1  get parametervalues from 0 -1 also for splines; see INF_struct_par
+// Output:
+//   lpar     parameter of pti on DB-curve (typ/ind)
+//  
 // see UT3D_pt_evparcrv
 // \endcode
 
@@ -1365,12 +1368,12 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
   ox1 = DB_GetObjGX (typ, ind);
-  // printf(" typ=%d form=%d\n",ox1.typ,ox1.form);
-  // DEB_dump_obj__ (ox1.form, ox1.data, "");
+    // printf(" typ=%d form=%d\n",ox1.typ,ox1.form);
+    // DEB_dump_obj__ (ox1.form, ox1.data, "");
 
 
-  // get paramter from curve-obj (immer Werte 0-1) !
-  UTO_par__pt_obj (lpar, mode, pti, ox1.form, ox1.data);
+  // get paramter from curve-obj 
+  UTO_par__pt_obj (lpar, vTyp, pti, ox1.form, ox1.data);
 
 
   // printf("ex UTO_par__pt_dbo %f\n",*lpar);
@@ -1386,12 +1389,16 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //===========================================================================
 /// \code
 /// UTO_set_ptlim         set start- and/or endpoint of a struct of type <typ>
+///   parameters v0, v1: for L and C values from 0-1; for bspl,plg knotvalues.
 /// Input:
 ///   typ, oo       type and struct of obj
 ///   p1            startpoint; NULL=undefined
-///   v1            parameter startpoint; NULL=undefined  (par_0-1)
+///   v1            parameter startpoint; NULL=undefined; vTyp=0 (INF_struct_par)
 ///   p2            endpoint; NULL=undefined
-///   v2            parameter endpoint; NULL=undefined    (par_0-1)
+///   v2            parameter endpoint; NULL=undefined; vTyp=0 (INF_struct_par)
+/// Output:
+///   oo            modified: for L and C points; for bspl,pol: limit-parameters.
+///                 see INF_struct_par
 /// 
 /// LN:       p1 and/or p2;   v1, v2 ignored
 /// AC:       (p1 and/or p2) or (v1 and/or v2)
@@ -1399,8 +1406,9 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 /// CVPOL:    v1, v2 used;   else p1, p2 used;
 /// CVBSP:    v1, v2 used;   else p1, p2 used;
 /// CVRBSP:   v1, v2 used;   p1, p2;
+/// CVPOL:    v1, v2 used;   else p1, p2 used;
 /// 
-/// see UT3D_ptvcpar1_std_obj           // get_ptlim     get start|endpoint
+/// see UT3D_ptvcpar_std_obj           // get_ptlim     get start|endpoint
 /// \endcode
 
 // LimitTyp: see UTO_ck_curvLimTyp
@@ -1478,24 +1486,47 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
     case Typ_CVRBSP:
-      if(v1)
+      if(v1) {
         ((CurvBSpl*)oo)->v0 = *v1;
-      if(v2) 
+      } else if(p1) {
+        istat=1; goto L_NYI;
+      }
+      if(v2) {
         ((CurvBSpl*)oo)->v1 = *v2;
+      } else if(p1) {
+        istat=2; goto L_NYI;
+      }
       break;
 
 
     case Typ_CVPOL:
-      // parameter input is v_0-1;  change to len_parameter !
-      // if(v1) ((CurvPoly*)oo)->v0 = *v1;
-      // v0 may not be written before v1 si computed !
-      d1 = FLT_32_MAX;
-      if(v1) d1 = UT3D_par_par1plg (*v1, (CurvPoly*)oo);
-      else if(p1) UT3D_parplg_plgpt (&d1, p1, (CurvPoly*)oo);
-      // if(v2) ((CurvPoly*)oo)->v1 = *v2;
-      if(v2) ((CurvPoly*)oo)->v1 = UT3D_par_par1plg (*v2, (CurvPoly*)oo);
-      else if(p2) UT3D_parplg_plgpt (&((CurvPoly*)oo)->v1, p2, (CurvPoly*)oo);
-      if(d1 != FLT_32_MAX) ((CurvPoly*)oo)->v0 = d1;
+      // parameter input is length from startpoint..    2019-12-09
+      if(v1) {
+        ((CurvPoly*)oo)->v0 = *v1;
+      } else if(p1) {
+        // get par from pt
+        UT3D_parplg_plgpt (&((CurvBSpl*)oo)->v0, p1, (CurvPoly*)oo);
+      }
+      if(v2) {
+        ((CurvPoly*)oo)->v1 = *v2;
+      } else if(p2) {
+        // get par from pt
+        UT3D_parplg_plgpt (&((CurvBSpl*)oo)->v1, p2, (CurvPoly*)oo);
+      }
+
+//       // v0 may not be written before v1 si computed !
+//       d1 = FLT_32_MAX;
+//       if(v1) {
+//         d1 = UT3D_par_par1plg (*v1, (CurvPoly*)oo);
+//       } else if(p1) {
+//         UT3D_parplg_plgpt (&d1, p1, (CurvPoly*)oo);
+//       }
+//       if(v2) {
+//         ((CurvPoly*)oo)->v1 = UT3D_par_par1plg (*v2, (CurvPoly*)oo);
+//       } else if(p2) {
+//         UT3D_parplg_plgpt (&((CurvPoly*)oo)->v1, p2, (CurvPoly*)oo);
+//         if(d1 != FLT_32_MAX) ((CurvPoly*)oo)->v0 = d1;
+//       }
         // DEB_dump_obj__ (Typ_CVPOL, oo, "  _set_ptlim:\n");
       break;
 
@@ -1510,6 +1541,9 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     // TESTBLOCK
 
   return 0;
+
+  L_NYI:
+    return MSG_ERR__ (ERR_func_not_impl, "UTO_set_ptlim-%d",istat);
 
 }
 
@@ -2455,16 +2489,19 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //================================================================
   double UTO_par_tot (int oTyp, void *oDat) {
 //================================================================
-/// UTO_par_tot             get endParameter - unlimited
+// UTO_par_tot             get endParameter - unlimited
+//   parametertype=0 (knotvalues for splines,polygon; else values 0-1)
+//   see INF_struct_par.
+//
+// TODO: replace UTO_par_tot with UTO_parLim_get_cv
+// see also UTO_parLim_get_cv
 
   int    i1;
   double d1 = 1.;
 
-
+// TODO: add Typ_CVRBSP and Typ_CVTRM
 
   if(oTyp == Typ_CVPOL) {
-    // i1 = ((CurvPoly*)oDat)->ptNr - 1;
-    // d1 = ((CurvPoly*)oDat)->lvTab[i1];
     d1 = UPLG_pare_unl ((CurvPoly*)oDat);
 
 
@@ -2472,24 +2509,38 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     i1 = ((CurvBSpl*)oDat)->ptNr + ((CurvBSpl*)oDat)->deg;
     d1 = ((CurvBSpl*)oDat)->kvTab[i1];
 
+
+  } else if(oTyp == Typ_CVBSP) {
+    goto L_E1;
+
+
+  } else if(oTyp == Typ_CVBSP) {
+    goto L_E1;
+
   }
+
+
+
     printf("ex UTO_par_tot %lf i1=%d\n",d1,i1);
 
   return d1;
+
+  L_E1:
+    return MSG_ERR__ (ERR_func_not_impl, "UTO_par_tot %d",oTyp);
 
 }
 
 
 //==============================================================================
-  int UTO_par__pt_obj (double *po, int mode, Point *pti, int oTyp, void *oDat) {
+  int UTO_par__pt_obj (double *po, int vTyp, Point *pti, int oTyp, void *oDat) {
 //==============================================================================
 /// \code
-/// UTO_par__pt_obj        get parameter 0-1 from point on curve
+/// UTO_par__pt_obj        get parameter for point on curve
 /// Input:
-///   mode      0  get knotvalues for splines
-///             1  get parametervalues from 0 -1 for splines, polygon, trimmed-curve
+///   vTyp      0  get knotvalues for splines, see INF_struct_par.
+///             1  get values from 0-1 for all types of curves. See INF_struct_par.
 /// Output:
-///   po           parameter 0-1 of point pti on curve oTyp,oDat
+///   po           parameter of point pti on curve oTyp,oDat,
 /// \endcode
 
 // was UT3D_parpt_objpt
@@ -2539,14 +2590,14 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     irc = UT3D_parCv_bsplpt (&d2, &d1, (CurvBSpl*)oDat, pti);
     if(irc != 0) return -1;
     // get po = parameter 0-1 from knotval d2
-    if(mode) *po = UT3D_par1_parbsp (&d2, oDat);
+    if(vTyp) *po = UT3D_par1_parbsp (&d2, oDat);
     else     *po = d2;
 
   } else if(oTyp == Typ_CVRBSP) {
     irc = UT3D_par_rbsp_pt (&d1, &d2, (CurvRBSpl*)oDat, pti);
     if(irc != 0) return -1;
     // knotval -> parameter 0-1
-    if(mode) *po = UT3D_par1_par_rbsp (&d1, (CurvRBSpl*)oDat);
+    if(vTyp) *po = UT3D_par1_par_rbsp (&d1, (CurvRBSpl*)oDat);
     else     *po = d1;
 
 
@@ -2554,13 +2605,13 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
     irc = UT3D_parplg_plgpt (po, pti, (CurvPoly*)oDat);
     if(irc < 0) return -1;
     // Knotenwert in einen Parameterwert von 0-1 aendern
-    if(mode) *po = UT3D_par1_parplg (po, oDat);
+    if(vTyp) *po = UT3D_par1_parplg (po, oDat);
 
 
   } else if(oTyp == Typ_CVTRM) {
     sDat = (char*) MEM_alloc_tmp (OBJ_SIZ_MAX);
     UTO_cv_cvtrm (&sTyp, sDat, NULL, (CurvCCV*)oDat);
-    UTO_par__pt_obj (po, mode, pti, sTyp, sDat);
+    UTO_par__pt_obj (po, vTyp, pti, sTyp, sDat);
 
 
   } else {
@@ -3224,8 +3275,14 @@ static ObjGX  *odb;
 //=====================================================================
   int UTO_parLim_get_cv (double *v0, double *v1, int form, void *crv) {
 //=====================================================================
-// get limiting parameters for curve
+// UTO_parLim_get_cv               get limiting parameters for curve
+// Output:
+//   v0,v1    limiting parameters of curve (form,crv); vTyp=0 (see INF_struct_par)
+//            knotvalues for splines,polygon; else values 0-1
+//
+// see also UTO_par_tot
 // UT_VAL_MAX = undefined
+
 
 
   // printf("UTO_parLim_get_cv %d\n",form);
@@ -3255,11 +3312,11 @@ static ObjGX  *odb;
 
     case Typ_CVPOL:
       // change len-offset -> parameter_0-1
-      // *v0 = ((CurvPoly*)crv)->v0;
-      *v0 = UT3D_par1_parplg (&((CurvPoly*)crv)->v0, (CurvPoly*)crv);
+      *v0 = ((CurvPoly*)crv)->v0;
+      // *v0 = UT3D_par1_parplg (&((CurvPoly*)crv)->v0, (CurvPoly*)crv);
       // change len-offset -> parameter_0-1
-      // *v1 = ((CurvPoly*)crv)->v1;
-      *v1 = UT3D_par1_parplg (&((CurvPoly*)crv)->v1, (CurvPoly*)crv);
+      *v1 = ((CurvPoly*)crv)->v1;
+      // *v1 = UT3D_par1_parplg (&((CurvPoly*)crv)->v1, (CurvPoly*)crv);
       break;
 
     case Typ_CVTRM:      // CurvCCV
@@ -3466,7 +3523,7 @@ static ObjGX  *odb;
 ///   pNr   number of points in pa
 ///   pa    intersectionPoints (if pa != NULL)
 ///         Typ_CVPOL X Typ_Val:  returns only va1, not pa.
-///   va1   corresponding parameters on o1 (if va1 != NULL)
+///   va1   corresponding parameters on oxi1 (if va1 != NULL)
 /// RetCod:
 ///    0    OK, 0-<pNr> intersectionpoints in pa.
 ///   -1    Error
@@ -3618,7 +3675,7 @@ static ObjGX  *odb;
 
   //----------------------------------------------------------------
   L_Start:
-    // printf(" _int_2ox o1Typ=%d o2Typ=%d\n",o1Typ,o2Typ);
+    // printf(" _int_2ox o1Typ=%d o2Typ=%d swapped=%d\n",o1Typ,o2Typ,swapped);
     // DEB_dump_obj__ (o1Form, o1, " o1");
     // DEB_dump_obj__ (o2Form, o2, " o2");
 
@@ -3735,8 +3792,7 @@ static ObjGX  *odb;
           // UT3D_pt_intlnci__ (&nip, pa, (Line*)o1, (Circ*)o2);
           nip = UT3D_pt_intlnci_l (pa, (Line*)o1, 0, (Circ*)o2, 0);
             // printf(" nip=%d\n",nip);
-// TODO: get parameters on o1=LN
-          break;
+          break;  // compute va1 ..
 
         case Typ_CVELL:  // LN x CVELL
           UT3D_pt_intlnel__ (&nip, pa, (Line*)o1, (CurvElli*)o2);
@@ -3749,8 +3805,9 @@ static ObjGX  *odb;
 
         case Typ_CVPOL:  // LN x CVPOL
           nip = aSiz;
-          UT3D_pt_intlnplg (&nip, pa, va1, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
-          break;
+          // UT3D_pt_intlnplg (&nip, pa, va1, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
+          UT3D_pt_intlnplg (&nip, pa, NULL, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
+          break;  // compute va1 ..
 
         case Typ_CVBSP:  // LN x CVBSP
           nip = aSiz;
@@ -3792,6 +3849,7 @@ static ObjGX  *odb;
 
         default:
           goto ParErr;
+
       }
       break;
 
@@ -7608,7 +7666,7 @@ static int traAct;
     // get start and endpoint
     // irc = UTO_2pt_limstru (&pt1, &pt2, &v1, &v2, o0Typ, obj0);
     // get startpoint
-    irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, &v1, Ptyp_start, o0Typ, obj0);
+    irc = UT3D_ptvcpar_std_obj (&pt1, NULL, &v1, Ptyp_start, o0Typ, obj0);
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
@@ -7654,7 +7712,7 @@ static int traAct;
 
   // cutter1 not found: get startpoint
   if(p1Nr == 0) {
-    irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, &v1, Ptyp_start, o0Typ, obj0);
+    irc = UT3D_ptvcpar_std_obj (&pt1, NULL, &v1, Ptyp_start, o0Typ, obj0);
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
@@ -7675,7 +7733,7 @@ static int traAct;
   if((iClo == 1) && (o2Typ == Typ_Error)) {
 
     // get endpoint
-    irc = UT3D_ptvcpar1_std_obj (&pt2, NULL, &v2, Ptyp_end, o0Typ, obj0);
+    irc = UT3D_ptvcpar_std_obj (&pt2, NULL, &v2, Ptyp_end, o0Typ, obj0);
     if(irc < 0) return irc;
     // add endpoint as last point into pa/va.
     if((TABSIZ - pNr) < 1) goto TabSizErr; 
@@ -7737,7 +7795,7 @@ static int traAct;
 
   // cutter2 not found: get endpoint
   if(p2Nr == 0) {
-    irc = UT3D_ptvcpar1_std_obj (&pt1, NULL, &v1, Ptyp_end, o0Typ, obj0);
+    irc = UT3D_ptvcpar_std_obj (&pt1, NULL, &v1, Ptyp_end, o0Typ, obj0);
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
@@ -8282,7 +8340,7 @@ static int traAct;
 
     // TESTBLOCK
     // if(irc >= 0) {
-      // if(par) printf("ex UT3D_ptvcpar1_std_obj par=%lf\n",*par);
+      // if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
       // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex ptvcpar_std_obj");
       // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
       // if(vco) GR_Disp_vc (vco, pto, 9, 1);
@@ -8296,7 +8354,7 @@ static int traAct;
 
   //----------------------------------------------------------------
   L_err_FNI:  // function not implemented
-    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar1_std_obj");
+    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_std_obj");
     return MSG_ERR__ (ERR_func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
 
 }
@@ -8509,7 +8567,6 @@ static int traAct;
 
 
   if((o1typ == Typ_CI)&&(o2typ == Typ_CI)) {
-    // problem if circs intersect ..  // 2013-12-28
     ii = UT3D_ln_tng_ci_ci (lno, o1, o2, isol);
     if(ii < 0) return -2;
     // ii = nr of solutions
@@ -8561,6 +8618,13 @@ static int traAct;
     // DEB_dump_obj__(o22typ, o22, "  o22:");
 
 
+  // if((o21typ == Typ_CI2)&&(o22typ == Typ_CVELL2)) {
+    // printf(" CI - ELLI\n");
+    // UTO2_TNG_ci_ell
+    // exit(0);
+  // }
+
+
   //----------------------------------------------------------------
   // get max nr of tangent-solutions for objs
   // only estimation; 2 circs can have 4 or 2 or 0 tangents ..
@@ -8570,9 +8634,15 @@ static int traAct;
 
   iRun2 = 0;
 
+  // if obj1 intersects obj2 (eg circ-elli) only 2 tangents, else 4 tangents.
+  // if(isol > 0) isol += 2;     /// 2> 4; 3>4;
+
+ 
+  //----------------------------------------------------------------
   L_init_0:
     // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX iRun2=%d\n",iRun2);
     // printf("L_init_0: isolMax1=%d isolMax2=%d\n",isolMax1,isolMax2);
+
   ++iRun2;
   if(iRun2 > 10) goto Err_no_sol;
   ii = isol;
@@ -8604,21 +8674,35 @@ static int traAct;
   L_start1:
 // isol1=0;isol2=0;   // 0
 // isol1=1;isol2=0;   // 1
-// isol1=1;isol2=1;   // 2
+// // isol1=1;isol2=1;   // 2
     // printf(" TNG_cv_cv-L_start1: isol=%d isol1=%d isol2=%d\n",isol,isol1,isol2);
 
   // get vt1 = vector along centerpoints of both objs
   // Point2 o1Cen, o2Cen;     // centerPoints of objects
   UTO2_pt_mid_obj (&o1Cen, o21typ, o21);
   UTO2_pt_mid_obj (&o2Cen, o22typ, o22);
+    // DEB_dump_obj__(Typ_PT2, &o1Cen, "  TNG_cv_cv-o1Cen");
+    // DEB_dump_obj__(Typ_PT2, &o2Cen, "  TNG_cv_cv-o2Cen");
+     
 
-  // make initial vector of centerpoints;
+  // make initial vector of centerpoints (o1Cen -> o2Cen);
   UT2D_vc_2pt (&vt1, &o1Cen, &o2Cen);
 
-  // get ptg1 = startpoint on obj1
-  // get initial point on obj1 (tangent from vector)
-  ii = UTO2_TNG_vc_obj (&ptg1, &vt1, o21typ, o21, isol1);
+
+  // get ptg1 = startpoint on obj1. Must be outside obj2.
+  if(o21typ == Typ_CI2) {
+    d1 = fabs(((Circ2*)o21)->rad);
+    // get ptg1 = point on obj1 (obj2-center projected onto obj1, far-point);
+    UT2D_pt_tra2ptlen (&ptg1, &o1Cen, &o2Cen, -d1);
+    ii = 1;
+  } else {
+    // get ptg1 = point on obj1 (tangent from vector; o1Cen-ptg1 = normal to vt1)
+    ii = UTO2_TNG_vc_obj (&ptg1, &vt1, o21typ, o21, isol1);
+    // PROBLEM: ptg1 can be inside obj2
+  }
+  
   if(ii < 0) goto Err_int;
+    // DEB_dump_obj__(Typ_PT2, &ptg1, "  TNG_cv_cv-ptg1");
 
   iRun1 = 0;
 
@@ -8626,8 +8710,12 @@ static int traAct;
   // find point on obj2 (tangent from point)
   L_tng_o2:
   ++iRun1;
+  // get ptg2 = tangentPoint on obj2 from point ptg1 (must be outside)
   ii = UTO2_TNG_pt_obj (&ptg2, &isolMax2, &ptg1, o22typ, o22, isol2);
   if(ii < 0) goto L_init_0;
+    // DEB_dump_obj__(Typ_PT2, &ptg2, "  TNG_cv_cv-ptg2");
+
+
   UT2D_vc_2pt (&vt1, &ptg1, &ptg2);
   UT2D_vc_setLength (&vt1, &vt1, 1.);
     // DEB_dump_obj__(Typ_VC2, &vt1, "  vt1:");
@@ -8640,6 +8728,7 @@ static int traAct;
     ii = UT2D_ckvc_parl (&vt1, &vt2, UT_TOL_Ang1);
     if(ii == 0) goto L_done;
   }
+
   // refine point on obj1 (tangent from point)
   ii = UTO2_TNG_pt_obj (&ptg1, &isolMax1, &ptg2, o21typ, o21, isol1);
   if(ii < 0) goto L_init_0;
@@ -8667,11 +8756,18 @@ static int traAct;
   // get line back from 3D-constructionPlane to 3D-absolut
   // l1 = sizeof(Line);
   UTRA_obj_rel2abs__  (lno, Typ_LN, &ln2, memDat1);
-    // GR_Disp_ln (lno, 9);
 
 
-    // printf("L_init_0: isolMax1=%d isolMax2=%d\n",isolMax1,isolMax2);
   ii = (isolMax1 + 1) * (isolMax2 + 1);
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_LN, lno, "ex-UTO_TNG_cv_cv");
+    // printf("ex-TNG_cv_cv: irc=%d isolMax1=%d isolMax2=%d\n\n",ii,isolMax1,isolMax2);
+    // GR_Disp_ln (lno, 9);
+    // fflush(stdout); exit(-1);
+    // END TESTBLOCK
+
+
   return ii;
 
 //----------------------------------------------------------------
@@ -8711,7 +8807,7 @@ static int traAct;
 
   // printf("____________________________________ \n");
   // printf("UTO_cv_cvtrm typ=%d dbi=%ld cvi=%p\n",cvtrm->typ,cvtrm->dbi,cvi);
-  // printf("  otyp=%d v0=%lf v1=%lf\n",*otyp,cvtrm->v0,cvtrm->v1);
+  // printf("  v0=%lf v1=%lf\n",cvtrm->v0,cvtrm->v1);
   // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " UTO_cv_cvtrm");
 // return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 

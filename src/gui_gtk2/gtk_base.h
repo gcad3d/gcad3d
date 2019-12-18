@@ -76,6 +76,7 @@ int GUI_timer__ (void *funcnam, int interval, void *data);
 
   void** GUI_SETDAT_E  (int ie);
   void** GUI_SETDAT_EI (int ie, int ii);
+  void** GUI_SETDAT_EL (int ie, long li);
   void** GUI_SETDAT_ES (int ie, char *is);
 
   int GUI_OBJ_TYP (MemObj *mo);

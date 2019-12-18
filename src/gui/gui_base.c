@@ -72,6 +72,7 @@ GUI_OBJ_INVALID          set MemObj invalid
 GUI_OBJ_NEW              initialize new MemObj
 GUI_SETDAT_E()           create GUI_DATA-block  ../gui_gtk/gtk_base.c  
 GUI_SETDAT_EI()          create GUI_DATA-block  ../gui_gtk/gtk_base.c  
+GUI_SETDAT_EL()          create GUI_DATA-block  ../gui_gtk/gtk_base.c  
 GUI_SETDAT_ES()          create GUI_DATA-block  ../gui_gtk/gtk_base.c  
 
 ------ constants ---------
@@ -200,6 +201,8 @@ int GUI_FuncUCB10 = UI_FuncUCB10;
 int GUI_FuncUCB11 = UI_FuncUCB11;
 int GUI_FuncUCB12 = UI_FuncUCB12;
 int GUI_FuncUCB13 = UI_FuncUCB13;
+int GUI_FuncUCB14 = UI_FuncUCB14;
+int GUI_FuncUCB15 = UI_FuncUCB15;
 int GUI_FuncWork = UI_FuncWork;
 int GUI_FuncExit = UI_FuncExit;
 int GUI_FuncKill = UI_FuncKill;

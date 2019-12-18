@@ -502,6 +502,8 @@ static char  *GUI_ed1_lcSet;
     if(ikey == GUI_KeyEsc) goto L_call_user;
     if(ikey == 's') goto L_call_user;
     if(ikey == 'p') goto L_call_user;
+    if(ikey == 'f') goto L_call_user;
+    if(ikey == 'l') goto L_call_user;
     return FALSE;  // do normal default-operations
   }
 
@@ -548,8 +550,8 @@ static char  *GUI_ed1_lcSet;
 ///   GUI_DATA_L2    =*(long*)data[2]=act.lineNr.
 ///
 ///   GUI_DATA_EVENT =*(int*)data[0]=TYP_EventPress|TYP_EventRelease|TYP_EventEnter
-///   GUI_DATA_I1    =*(int*)data[1]=keyvalue; eg 'a'
-///   GUI_DATA_I2    =*(int*)data[2]=state of modifierkeys;
+///   GUI_DATA_L1    =*(long*)data[1]=keyvalue; eg 'a'
+///   GUI_DATA_L2    =*(long*)data[2]=state of modifierkeys;
 ///                                  &1=shift; &4=ctrl; &8=alt.
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_Editor
 /// 
@@ -1382,7 +1384,9 @@ static char  *GUI_ed1_lcSet;
 //================================================================
   int GUI_edi_setLnr (MemObj *mo, long lNr) {
 //================================================================
+// returns total nr of lines
 
+  int         totNr;
   GtkTextIter it1;
 
   // printf("GUI_edi_setLnr %ld\n",lNr);
@@ -1400,9 +1404,17 @@ static char  *GUI_ed1_lcSet;
 
 
   // set iter from lNr
-  if(lNr == gtk_text_buffer_get_line_count (GUI_ed1_buff)) {
+  // get total lineNr
+  totNr = gtk_text_buffer_get_line_count (GUI_ed1_buff);
+     // printf(" setLnr-total %d\n",totNr);
+
+
+  if(lNr >= totNr) {
+    // get iter at eof
     gtk_text_buffer_get_end_iter (GUI_ed1_buff, &it1);
+
   } else {
+    // get iter at line <lNr>
     gtk_text_buffer_get_iter_at_line (GUI_ed1_buff, &it1, lNr);
   }
 
@@ -1416,7 +1428,7 @@ static char  *GUI_ed1_lcSet;
 
     // printf("ex-GUI_edi_setLnr %ld\n",lNr);
 
-  return 0;
+  return totNr;
 
 }
 
@@ -1486,6 +1498,7 @@ static char  *GUI_ed1_lcSet;
 /// \code
 /// select_region from-curPos to-curPos
 /// if(from-curPos < 0)  - unsect all !
+///   get offsets (von,bis) eg with UTF_offset_
 /// \endcode
 
   GtkTextIter it1;

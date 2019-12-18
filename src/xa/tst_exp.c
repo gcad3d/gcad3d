@@ -355,7 +355,7 @@ extern long       GR_TAB_IND;
   // "/mnt/serv1/Devel/cadfiles/dat/warner1.igs");
 
 
-  OS_dll_do ("xa_ige_r", "IGE_r__", cbuf);
+  OS_dll_do ("xa_ige_r", "IGE_r__", cbuf, 1, 1);
   // AP_Import__ ("xa_ige_r", "IGE_r__", cbuf);
   // AP_ExportIges__ (fNam);
 
@@ -398,7 +398,7 @@ extern long       GR_TAB_IND;
   // "/home/fwork/gCAD3D/dat/unknown.stp");
 
   // printf("vi %s\n",cbuf);
-  OS_dll_do ("xa_stp_r", "STP_r__", cbuf);
+  OS_dll_do ("xa_stp_r", "STP_r__", cbuf, 1);
   // AP_Import__ ("xa_stp_r", "STP_r__", cbuf);
   printf(" nach OS_dll_do\n");
   // AP_ExportIges__ (fNam);
@@ -510,7 +510,7 @@ extern long       GR_TAB_IND;
   // "/mnt/serv1/Devel/dev/gCAD3D/formate/vrml/ModelsV2/mnt.wrl");
 
 
-  OS_dll_do ("xa_vr2_r", "VR2_r__", cbuf);
+  OS_dll_do ("xa_vr2_r", "VR2_r__", cbuf, 1);
   // AP_ExportIges__ (fNam);
 
   return 0;
@@ -583,7 +583,7 @@ extern long       GR_TAB_IND;
 
 
   // print
-  OS_dll_do ("xa_print_pdf", "PRI_PDF__", "abc");
+  OS_dll_do ("xa_print_pdf", "PRI_PDF__", "abc", 1);
 
   return 0;
 
@@ -691,7 +691,7 @@ extern long       GR_TAB_IND;
   if(irc != 0) return -1;
   
   UI_PRI__ (FUNC_EXEC);
-  // irc = OS_dll_do ("xa_print__", "PRI__", "abc");
+  // irc = OS_dll_do ("xa_print__", "PRI__", "abc", 1);
   
   return 0; 
 

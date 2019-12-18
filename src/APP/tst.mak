@@ -11,6 +11,7 @@ SRC1 =\
  ../xa/tst.c\
  ../xa/tst1.c\
 
+# ../xa/tst_edmpt.c == ../xa/xa_edmpt.c
 #../xa/tst_ut_objtab.c\
 #../ut/ut_prcv_db.c\
 #../xa/tst_exp.c\

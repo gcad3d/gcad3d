@@ -2945,7 +2945,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get startpoint
     // UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
     ip1 = STP_w_PT (&pt1, "");
   }
 
@@ -2956,7 +2956,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get endpoint
     // UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
     ip2 = STP_w_PT (&pt1, "");
   }
 
@@ -3325,8 +3325,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get startpoint, endpoint
   // UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
-  UT3D_ptvcpar1_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
-  UT3D_ptvcpar1_std_obj (&pt2, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt2, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
   *actPos = pt2;
 
   if(cv1->v1 > cv1->v0) {

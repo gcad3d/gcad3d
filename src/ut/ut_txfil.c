@@ -1545,7 +1545,8 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //===========================================================================
   long UTF_offset_    (char* cpos) {
 //===========================================================================
-/// eine Charpos (ev ex UTF_GetLinNr) in Offset umrechnen
+// UTF_offset_          get offset of text in UTF_FilBuf0
+//   use offset eg for select text in editor with GUI_edi_sel__
 
   long off;
 
@@ -2043,13 +2044,14 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //===========================================================================
   char* UTF_find_tx1 (long *lNr, char *tx1) {
 //===========================================================================
-/// \code
-/// UTF_find_tx1  Zeilenummer der Zeile, die tx1 als erste enthaelt, suchen
-/// Sucht nur im Mem !
-/// RetCod:
-///   position of tx1
-///   NULL - tx1 not found
-/// \endcode
+// UTF_find_tx1          find lineNumber of first occurance of text
+//   search in UTF_FilBuf0 (memSpace source) 
+// Input:
+//   lNr        lineNumber where to start
+// Output:
+//   lNr        lineNumber of first occurance of text <tx1>; -1 = not-found
+//   RetCod     position of tx1
+//              NULL - tx1 not found
 
 /*
 Soll tx1 am Zeilenbeginn stehen:
@@ -2059,19 +2061,39 @@ Soll tx1 am Zeilenbeginn stehen:
 */
 
 
-  char *cpos;
-  long ipos;
+  
+  long    ipos, llen, lst;
+  char    *cpos, *pst;
 
 
-  // printf("UTF_find_tx1|%s|\n",tx1);
+  // printf("UTF_find_tx1|%s| %ld\n",tx1,*lNr);
 
   if(UTF_FilBuf0 == NULL) return NULL;
 
-
-  cpos = strstr(UTF_FilBuf0, tx1);
-  if(cpos == NULL) { *lNr = -1; return NULL;}
+  lst = *lNr;
 
 
+
+  // set pst = startpos
+  L_nxt:
+    // printf(" find_tx1-lst=%ld\n",lst);
+  pst = UTF_GetPosLnr (&llen, lst);
+  if(pst) {
+    // cpos = strstr(UTF_FilBuf0, tx1);
+    cpos = strstr(pst, tx1);
+    if(cpos) goto L_found;
+  }
+
+  if(lst == 0L) {
+    *lNr = -1;
+    return NULL;
+  }
+  lst = 0L;
+  goto L_nxt;
+
+
+  //----------------------------------------------------------------
+  L_found:
   // bei Suche nach Neuzeile ist \n first char
   if(*cpos == '\n') ++cpos;
 
@@ -2080,8 +2102,7 @@ Soll tx1 am Zeilenbeginn stehen:
   ipos = cpos - UTF_FilBuf0;
   *lNr = UTF_GetLnrPos (ipos);
 
-  // printf("ex UTF_find_tx1 lNr=%d |%s|\n",*lNr,cpos);
-  // printf("ex UTF_find_tx1 lNr=%d\n",*lNr);
+    // printf("ex UTF_find_tx1 lNr=%ld ipos=%ld |%s|\n",*lNr,ipos,cpos);
 
   return cpos;
 

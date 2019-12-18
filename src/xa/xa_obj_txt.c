@@ -300,12 +300,13 @@ static long su_ind;
 }
 
 
-//=================================================================
-  int AP_obj_add_nval (char *ED_buf1, int iNr, double *va) {
-//=================================================================
+//======================================================================
+  int AP_obj_add_nval (char *ED_buf1, int iNr, double *va, char *sAdd) {
+//======================================================================
 /// \code
 /// AP_obj_add_nval     add iNr doubles separated with blanks to ED_buf1
 ///   10 digits after comma
+///   sAdd    string to add after numbers, can be NULL
 /// \endcode
 
   int    i1, ie;
@@ -322,6 +323,8 @@ static long su_ind;
     // UTX_del_foll0 (ED_buf1);
     if(i1 < ie) strcat (ED_buf1, " ");
   }
+
+  if(sAdd) strcat (ED_buf1, sAdd);
 
   return 0;
 
@@ -599,7 +602,7 @@ static long su_ind;
 //================================================================
   void AP_obj_blank (char *ED_buf1) {
 //================================================================
-/// do NOT add blank after = ( blank.
+/// AP_obj_blank         add blank, but not after = ( blank
 
   char c1;
 
@@ -633,7 +636,7 @@ static long su_ind;
   // printf("AP_obj_add_vc %f %f %f\n",vc1->dx,vc1->dy,vc1->dz);
 
 
-  // if(ED_buf1[strlen(ED_buf1)-1] != '=') strcat (ED_buf1, " ");
+  // add blank, but not after = ( blank
   AP_obj_blank (ED_buf1);
 
 
@@ -679,7 +682,10 @@ static long su_ind;
     // UTX_add_fl_f  (ED_buf1, vc1->dz, 10);
     // UTX_del_foll0 (ED_buf1);
   }
+  
   strcat (ED_buf1, ")");
+
+    // printf("ex-AP_obj_add_vc0 |%s|\n",ED_buf1);
 
 
   return 0;
@@ -2391,7 +2397,7 @@ static long su_ind;
       // weights ausgeben
       i2 = srbsp->ptUNr * srbsp->ptVNr;
       da = ((SurRBSpl*)srbsp)->wTab;
-      AP_obj_add_nval (ED_buf1, i2, da);
+      AP_obj_add_nval (ED_buf1, i2, da, NULL);
       // for(i1=0; i1<i2; ++i1) {
         // strcat(ED_buf1,",");
         // UTX_add_fl_u (ED_buf1, srbsp->kvTabU[i1]);

@@ -63,6 +63,7 @@ Korr:
 
   int    OS_dll__ (void **dll, int mode, void *fDat);
   int    OS_dll_global (char *dllNam);
+  int    OS_dll_unload_idle (void *data);
   int    OS_debug_dll_ (char *dllNam);
   int    OS_ck_libcVersion (int vMaj, int vMin);
 

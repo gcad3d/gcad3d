@@ -263,13 +263,12 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 //================================================================
   int CNTF_add__ (ObjGX *oxi, int isr, int imod) {
 //================================================================
-// new version APT_decode_cvco_add was AP_cont_nxt
-
+// CNTF_add__    compute connection old-obj - new-obj; old-obj out.
+//
 /// \code
 /// process next obj (add obj's to output)
 /// Input:
-///   ccvNr      size of ccva (only with oxi->typ = TYP_FuncInit);
-///   oxi        next DB-obj to process; TYP_FuncInit=init, TYP_FuncExit=exit
+///   oxi        next DB-obj to process;
 ///   isr        revers oxi; 0=not; else yes
 ///   imod       solution-nr (index of intersection-point if != 1)
 /// Output:
@@ -303,10 +302,10 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // TESTBLOCK
-  // printf("---------------------------- \n");
-  // DEB_dump_obj__ (Typ_ObjGX,oxi,"CNTF_add__");
+  // printf("============================= CNTF_add__ isr=%d imdo=%d\n",isr,imod);
+  // DEB_dump_obj__ (Typ_ObjGX, oxi, "CNTF_add__");
   // printf(" isr=%d old.typ=%d newTyp=%d\n",isr,old.typ,new.typ);
-  // CNTF_dump (&old, "add-old");
+  // CNTF_dump (&old, "CNTF_add__-old");
   // END TESTBLOCK
 
 
@@ -340,11 +339,14 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   } else {
     // get startPt and endtPt of newObj
-    irc = UT3D_ptvcpar1_std_obj (&new.pts,NULL,&new.v0, Ptyp_start, new.typ, new.obj);
-    irc = UT3D_ptvcpar1_std_obj (&new.pte,NULL,&new.v1, Ptyp_end, new.typ, new.obj);
+    irc = UT3D_ptvcpar_std_obj (&new.pts,NULL,&new.v0, Ptyp_start,new.typ,new.obj);
+    irc = UT3D_ptvcpar_std_obj (&new.pte,NULL,&new.v1, Ptyp_end, new.typ, new.obj);
     new.ip0 = 0;
     new.ip1 = 0;
   }
+    // printf(" _add__-new.v0=%lf new.v1=%lf\n",new.v0,new.v1);
+
+  
 
 
   // get direction and closed;
@@ -397,7 +399,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     if(new.typ == Typ_PT) CNTF_cvco_pt_pt ();
     else                  CNTF_cvco_pt_lfig ();
 
-  } else {
+  } else {   // old = lfig
     if(new.typ == Typ_PT) CNTF_cvco_lfig_pt ();
     else                  CNTF_cvco_lfig_lfig (imod);
   }
@@ -409,7 +411,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   L_exit:
 
     // TESTBLOCK
-    // if(old.pend) CNTF_dump (&old, "ex-add-old");
+    // if(old.pend) CNTF_dump (&old, "ex-CNTF_add__-old");
     // printf("ex-CNTF_add__ \n");
     // END TESTBLOCK
 
@@ -673,6 +675,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // 0: old.pte == new.pts;  1: old.pte == new.pte;
+  // test if points connected; -1=not
   irc = CNTF_ck_limPt (&old.pte);
     // printf(" ck_limPt1-irc=%d\n",irc);
 
@@ -684,6 +687,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // test (old.pts - new.pts / old.pts - new.pte);
   ir1 = CNTF_ck_limPt (&old.pts);
     // printf(" _lfig_lfig-ck_limPt %d\n",ir1);
+
   if(ir1 < 0) goto L_1; // no connection
   if(ir1 == 0) {        // old.pts=new.pts: reverse old ..
     CNTF_rev__ (&old);  // reverse old;
@@ -693,6 +697,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
+
   if(ir1 == 1) {        // old.pts=new.pte: reverse old & new ..
     CNTF_rev__ (&old);  // reverse old;
     CNTF_out_old ();    // out old;
@@ -737,8 +742,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // get pt1 = intersectionpoint old-new;
   // get par1 = parameter on old; par2 = parameter on new
   irc = CNTF_int__ (&pt1, &par1, &par2, imod);
-    // printf(" CNTF_int__-rc=%d pt1=%f,%f,%f par1=%f par2=%f\n",irc,
-                // pt1.x,pt1.y,pt1.z, par1, par2);
+    // printf(" f-CNTF_int__-rc=%d pt1=%f,%f,%f par1=%f par2=%f\n",irc,
+                                // pt1.x,pt1.y,pt1.z, par1, par2);
 
 
     // TESTBLOCK
@@ -867,13 +872,21 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 //================================================================
 
   printf("------ CNTF_dump %s\n",txt);
+
+  // DEB_dump_obj__ handles TYP_FuncInit = open file !
+  if(TYP_IS_FNC(cf1->typ)) {
+    goto L_pri;
+  }
+
+
   DEB_dump_obj__ (cf1->typ, cf1->obj," obj");
-  // DEB_dump_obj__ (Typ_PT, &cf1->pts," pts");
 
 
+  L_pri:
   printf(" typ=%d dbi=%ld v0=%lf v1=%lf ip0=%ld ip1=%ld pend=%d dir=%d clo=%d\n",
          cf1->typ, cf1->dbi, cf1->v0, cf1->v1,
          cf1->ip0,cf1->ip1,cf1->pend,cf1->dir,cf1->clo);
+  DEB_dump_obj__ (Typ_PT, &cf1->pts,"  CNTF_dump-pts");
   DEB_dump_obj__ (Typ_PT, &cf1->pte,"  CNTF_dump-pte");
 
   return 0;
@@ -928,10 +941,16 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
 //==============================================================================
-  int CNTF_normalPt (Point *pt2, Point *pt1, double *par1, int typ, void *obj) {
+  int CNTF_normalPt (Point *pt2, Point *pt1, double *par, int typ, void *obj) {
 //==============================================================================
-// pt2 = project pt1 onto obj;
+// CNTF_normalPt      get normal-point and its parameter onto curve
+//                    pt2 = project pt1 onto obj;
+// Input:
+//   pt1        project pt1 onto (typ,obj)
+//   typ,obj    curve
 // Output:
+//   pt2
+//   par        parameter of pt1 on curve; vTyp=0 (see INF_struct_par)
 //   retCod:    0  pt1 == pt2; point is on new.obj
 //              1  pt2 is on new.obj;
 //             -1  projectionpoint outside new.obj
@@ -954,10 +973,10 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   irc = UPRJ_app_pt (pt2, pt1);
   if(irc < 0) return -1;
 
-  // get par1 = parameter of pt2 on obj
-  irc = UTO_par__pt_obj (par1, 0, pt2, typ, obj);
+  // get par = parameter of pt2 on obj
+  irc = UTO_par__pt_obj (par, 0, pt2, typ, obj);
     // DEB_dump_obj__ (Typ_PT, pt2, " _normalPt-pt2");
-    // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par1);
+    // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par);
 
   // get d1 = estimated length pt1 - pt2
   d1 = UT3D_lenB_2pt (pt2, pt1);
@@ -1104,7 +1123,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 // was ../xa/xa_cvcomp.c:658
 
 
-  // printf("CNTF_exit__ \n");
+  // printf("--------------- CNTF_exit__ ccNr=%d\n",ccNr);
 
 
   // check for pending object

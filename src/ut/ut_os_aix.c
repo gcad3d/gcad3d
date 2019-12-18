@@ -111,10 +111,11 @@ OS_FilSiz                query filesize
 OS_filterff              sort & filter file
 
 OS_dll_do                load dll, start function, unload dll
-OS_dll_run               load dll, start function, unload dll
 OS_dll__                 load dll| start function| unload dll
 OS_dll_build             (re)build dll
 OS_dll_close             close dll
+// OS_dll_close_fn          close dll from libraryName  
+OS_dll_unload_idle       unload a dll (idle-callback)
 
 List_functions_end:
 =====================================================
@@ -2469,11 +2470,11 @@ static int   (*up1)();
   int OS_dll_build (char *dllNam) {
 ///===================================================================
 /// \code
-/// OS_dll_build             (re)build dll
-/// wenn .mak vorh: compile/link
+/// OS_dll_build             (re)build dll (compile/link with .mak)
+/// Input:
+///   dllNam   eg "xa_ige_r.so"   (without path, with Filetyp).
+///            - using xa_ige_r.mak for build
 /// \endcode
-
-// dllNam   zB "xa_ige_r.so"   (ohne Pfad, mit Filetyp).
 
   int  irc;
   char cbuf[256];         // char cbuf[512];
@@ -2521,6 +2522,60 @@ static int   (*up1)();
 }
 
 
+/* UNUSED
+//================================================================
+  int OS_dll_close_fn (char *dllNam) {
+//================================================================
+// OS_dll_close_fn          close dll from libraryName
+// DOES NOT WORK .. ??
+
+  void  *dl1;
+  char  s1[256];
+
+  sprintf(s1, "%s%s.so",OS_get_bin_dir(),dllNam);
+  // sprintf(s1, "%s.so",dllNam);
+
+    printf("OS_dll_close_fn |%s|\n",s1);
+
+
+  // load DLL
+  dl1 = NULL;
+  dl1 = dlopen (dllNam, RTLD_NOLOAD);
+  if(dl1 == NULL) {
+    //TX_Error("OS_dll_close_fn: cannot open dyn. Lib. |%s|",s1);
+    printf("**** Lib. %s not open ..\n",s1);
+
+    return -1;
+  }
+
+
+  // close DLL
+  OS_dll_close (&dl1);     // unload DLL
+
+    printf("ex-OS_dll_close_fn\n");
+
+
+  return 0;
+
+}
+*/
+
+//================================================================
+  int OS_dll_unload_idle (void *data) {
+//================================================================
+// DLL_unload       unload a dll (idle-callback)
+
+
+  // printf("OS_dll_unload_idle |%s|\n",(char*)data);
+
+  // OS_dll_close_fn ((char*)data);
+  OS_dll_do ((char*)data, NULL, NULL, 2);
+
+  return 0;   // must be 0 - removes idle-Call
+
+}
+
+
 //================================================================
   int OS_dll_close (void **dl1) {
 //================================================================
@@ -2529,7 +2584,7 @@ static int   (*up1)();
 
   int  irc = 0;
 
-  printf("OS_dll_close \n");
+  // printf("OS_dll_close \n");
 
   // unload if already loaded
   if(*dl1 != NULL) {
@@ -2555,7 +2610,7 @@ static int   (*up1)();
 ///     FUNC_CONNECT   = connect (connect Func fDat)
 ///     FUNC_EXEC      = work (call active Func with parameter fDat)
 ///     FUNC_UNLOAD    = unload active lib; fDat unused
-///     FUNC_RECOMPILE = recompile DLL; fDat ?
+///     FUNC_RECOMPILE = recompile DLL; fDat = dllName without path, without Filetyp
 /// Output:
 ///   dll      (address of) loaded DLL
 ///   retCod   0=OK; else error
@@ -2568,7 +2623,7 @@ static int   (*up1)();
   char  s1[256], *p1;
 
 
-  printf("OS_dll__ %d\n",mode);
+  // printf("OS_dll__ %d\n",mode);
 
 
   //----------------------------------------------------------------
@@ -2587,7 +2642,7 @@ static int   (*up1)();
     if(mode == FUNC_LOAD_only) {
       // load funcs with FUNC_CONNECT
       *dl1 = dlopen (s1, RTLD_LAZY);
-         printf(" LOAD_only |%s|\n",s1); fflush(stdout);
+         // printf(" LOAD_only |%s|\n",s1); fflush(stdout);
 
     } else {
       // load all funcs in dll
@@ -2656,7 +2711,7 @@ static int   (*up1)();
     if(*dl1 != NULL) goto L_e_cl;
 
     sprintf(s1, "%s.so",(char*)fDat);
-      printf(" dll=|%s|\n",s1); fflush(stdout);
+      // printf(" dll=|%s|\n",s1); fflush(stdout);
   
     if(OS_dll_build (s1) != 0) {
        TX_Error("OS_dll__: compile/link %s",s1);
@@ -2690,30 +2745,36 @@ static int   (*up1)();
 /// Zweck: Debugger kann DLL nur ansprechen wenn geladen.
 /// \endcode
 
-  printf("OS_debug_dll_ |%s|\n",dllNam);
+  // printf("OS_debug_dll_ |%s|\n",dllNam);
 
   return 0;
 
 }
 
 
+/* 
 //====================================================================
-  int OS_dll_do (char *dllNam, char *fncnam, void *fncdat) {
+  int OS_dll_do (char *dllNam, char *fncnam, void *fncdat, int mode) {
 //====================================================================
 /// load dll; start function fncNam (fncDat); unload dll.
+// Input:
+//   fncnam  main-entry using datablock
+//   fncdat  datablock
+//   mode    0=load+start+unload
+//           1=load+start               - do not unload (OS_dll_close_fn)
 
-/*
-  // remove dll (damit man Compile-Error bemerkt)
-  OS_file_delete ("xa/xa_stp_r.so");
-  system("cd xa;make -f xa_stp_r.mak");
-  AP_dll_do ("xa_stp_r", "STP_r__", "dat/.0.stp");
-*/
+
+  // // remove dll (damit man Compile-Error bemerkt)
+  // OS_file_delete ("xa/xa_stp_r.so");
+  // system("cd xa;make -f xa_stp_r.mak");
+  // AP_dll_do ("xa_stp_r", "STP_r__", "dat/.0.stp");
+
 
 
   char  cBuf[256];
 
 
-  // printf("AP_dll_do |%s|%s|\n",dllNam,fncnam);
+  printf("OS_dll_do |%s|%s| %d\n",dllNam,fncnam,mode);
 
 
 
@@ -2728,45 +2789,66 @@ static int   (*up1)();
 
 
   // load dll, start function, unload dll
-  return OS_dll_run (cBuf, fncnam, fncdat);
+  return OS_dll_run (cBuf, fncnam, fncdat, mode);
 
 }
+*/
 
 
 //=====================================================================
-  int OS_dll_run (char *dllNam, char *fncNam, void *fncDat) {
+  int OS_dll_do (char *dllNam, char *fncNam, void *fncDat, int mode) {
 //=====================================================================
 /// load dll; start function fncNam (fncDat); unload dll.
 /// see also UI_DllLst_work
+// Input:
+//   fncnam  main-entry using datablock
+//   fncdat  datablock
+//   mode    0=load+start+unload
+//           1=load+start               - do not unload (OS_dll_close_fn
+//           2=unload
 
-  char  *p1;
-  void  *dl1, (*up1)();
+
+static void  *dl1=NULL;
+static char  dlNamAct[256];
+  char  *p1, s1[256];
+  void  (*up1)();
 
  
-  printf("OS_dll_run |%s|%s|%s|\n",dllNam,fncNam,(char*)fncDat);
+  // printf("OS_dll_do |%s|%s| %d\n",dllNam,fncNam,mode);
+  // fflush (stdout);
 
 
-  // load DLL
-  dl1 = NULL;
-  dl1 = dlopen(dllNam, RTLD_LAZY);
-  if(dl1 == NULL) {
-    TX_Error("OS_dll_run: cannot open dyn. Lib. |%s|",dllNam);
+  if(mode == 2) { mode = 0; goto L_close; }
+
+
+  if(dl1 != NULL) {
+    TX_Error("**** ERROR OS_dll_run: core-plugin |%s|  open ..",dllNam);
     return -1;
   }
 
 
-  // damit Debugger stoppt, nachdem DLL geladen wurde
-  p1 = strrchr(dllNam, fnam_del);
-  if(p1 == NULL) p1 = dllNam;
-  else ++p1; // skip fnam_del
-  OS_debug_dll_(p1);
+  // fix DLL-FileName
+  strcpy(dlNamAct, dllNam);
+  sprintf(s1, "%s%s.so",OS_get_bin_dir(),dllNam);
 
 
-  // Adresse von Func.fncNam holen
+  // load DLL
+  dl1 = dlopen(s1, RTLD_LAZY);
+  if(dl1 == NULL) {
+    TX_Error("OS_dll_do: cannot open dyn. Lib. |%s|",dllNam);
+    return -1;
+  }
+
+
+  // stop debugger after dll is loaded
+  OS_debug_dll_(dllNam);
+
+
+  // get adress of func. <fncNam>
   up1 = dlsym(dl1, fncNam);
   if(up1 == NULL) {
     OS_dll_close (&dl1);     // unload DLL
-    TX_Error("OS_dll_run: cannot open Func. |%s|",fncNam);
+    TX_Error("OS_dll_do: cannot open Func. |%s|",fncNam);
     return -1;
   }
 
@@ -2775,9 +2857,11 @@ static int   (*up1)();
   (*up1)(fncDat);
 
 
-
   // close DLL
-  OS_dll_close (&dl1);     // unload DLL
+  L_close:
+  if(mode < 1) OS_dll_close (&dl1);     // unload DLL
+
+    // printf("ex-OS_dll_do\n");
 
 
   return 0;

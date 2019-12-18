@@ -342,7 +342,8 @@ static char  *GUI_ed1_lcSet;
 // skip "do defaultOperations" (return TRUE) only with key-press-event
 
 
-  int          ii, ikey, imod, iEv, ev_in;
+  int          ii, iEv, ev_in;
+  long         ikey, imod;
   void         *pTab[3];
   Obj_gui1     *go;
   GdkModifierType mods;
@@ -428,6 +429,8 @@ static char  *GUI_ed1_lcSet;
     if(ikey == GUI_KeyEsc) goto L_call_user;
     if(ikey == 's') goto L_call_user;
     if(ikey == 'p') goto L_call_user;
+    if(ikey == 'f') goto L_call_user;
+    if(ikey == 'l') goto L_call_user;
     return FALSE;  // do normal default-operations
   }
 
@@ -468,8 +471,8 @@ static char  *GUI_ed1_lcSet;
 ///   GUI_DATA_L2    =*(long*)data[2]=act.lineNr.
 ///
 ///   GUI_DATA_EVENT =*(int*)data[0]=TYP_EventPress|TYP_EventRelease
-///   GUI_DATA_I1    =*(int*)data[1]=keyvalue; eg 'a'
-///   GUI_DATA_I2    =*(int*)data[2]=state of modifierkeys;
+///   GUI_DATA_L1    =*(int*)data[1]=keyvalue; eg 'a'
+///   GUI_DATA_L2    =*(int*)data[2]=state of modifierkeys;
 ///                                  &1=shift; &4=ctrl; &8=alt.
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_Editor
 /// 
@@ -546,7 +549,10 @@ static char  *GUI_ed1_lcSet;
     gtk_widget_set_events (GTK_WIDGET(wsw),
                            // GDK_FOCUS_CHANGE_MASK|
                            // GDK_ENTER_NOTIFY_MASK |
-                           // GDK_KEY_PRESS_MASK |
+                           GDK_SHIFT_MASK|
+                           GDK_CONTROL_MASK|
+                           GDK_KEY_PRESS_MASK|
+                           GDK_KEY_RELEASE_MASK|
                            GDK_BUTTON_PRESS_MASK|
                            GDK_BUTTON_RELEASE_MASK);
 
@@ -558,8 +564,7 @@ static char  *GUI_ed1_lcSet;
 
     //----------------------------------------------------------------
     // g_signal_connect_after (G_OBJECT (web),
-    g_signal_connect (G_OBJECT (web),
-                        "mark-set",
+    g_signal_connect (G_OBJECT (web), "mark-set",
                         G_CALLBACK (GUI_ed1_cb2),
                         PTR_MEMOBJ(go->mem_obj));
 
@@ -1287,6 +1292,7 @@ static char  *GUI_ed1_lcSet;
   int GUI_edi_setLnr (MemObj *mo, long lNr) {
 //================================================================
 
+  int         totNr;
   GtkTextIter it1;
 
   // printf("GUI_edi_setLnr %ld\n",lNr);
@@ -1300,9 +1306,17 @@ static char  *GUI_ed1_lcSet;
 
 
   // set iter from lNr
-  if(lNr == gtk_text_buffer_get_line_count (GUI_ed1_buff)) {
+  // get total lineNr
+  totNr = gtk_text_buffer_get_line_count (GUI_ed1_buff);
+     // printf(" setLnr-total %d\n",totNr);
+
+
+  if(lNr >= totNr) {
+    // get iter at eof
     gtk_text_buffer_get_end_iter (GUI_ed1_buff, &it1);
+
   } else {
+    // get iter at line <lNr>
     gtk_text_buffer_get_iter_at_line (GUI_ed1_buff, &it1, lNr);
   }
 
@@ -1312,8 +1326,11 @@ static char  *GUI_ed1_lcSet;
   // scroll & focus
   GUI_edi_scroll_s (NULL);
 
+  GUI_ed1_stat = 0;
 
-  return 0;
+    // printf("ex-GUI_edi_setLnr %ld\n",lNr);
+
+  return totNr;
 
 }
 

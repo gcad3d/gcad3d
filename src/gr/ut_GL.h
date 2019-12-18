@@ -127,7 +127,7 @@ void   GL_Disp_npt          (Point *pa, int ptNr);
 void   GL_DrawPoint         (long*, int, Point*);
 void   GL_Draw_ln2          (long *ind, int iAtt, Line2 *ln1);
 void   GL_DrawLine          (long*, int, Line*);
-void   GL_DrawLtab          (long *ind, int attInd, Line *lna, int lNr);
+void   GL_DrawLtab          (long *ind, long dbi, int attInd, Line *lna, int lNr);
 void   GL_DrawVec           (long*, int, Point*, Vector*);
 void   GL_DrawPoly2D        (long*, int, int, Point2[], double);
 void   GL_DrawPoly          (long*, int, int, Point*);

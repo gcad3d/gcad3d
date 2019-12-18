@@ -231,7 +231,9 @@ DEB_dump_txt
   int DEB_dump_obj__ (int typ, void *data, char *txt, ...) {
 //===============================================================
 /// \code
-/// DEB_dump_obj__            Testausgabe Geom.Element.
+/// DEB_dump_obj__            testoutput of obj, to stdout or file.
+///   TYP_Func* are control-codees; no output !
+///
 /// typ = TYP_FuncInit:  ab nun Ausgabe -> Datei "txt"  (Open File)
 /// typ = TYP_FuncEnd:   ab nun wiederAusgabe -> term.  (Close File)
 /// typ = TYP_FuncInit1: ab nun Ausgabe -> FILE "txt"  (File must be open)
@@ -242,7 +244,7 @@ DEB_dump_txt
 /// \endcode
 
 
-static int      DestFlag = 0;
+static int      DestFlag = 0;   // 0=stdout, 1=file
 static FILE     *uo = NULL;
 
   int        irc, i1, i2, ii;
@@ -259,6 +261,7 @@ static FILE     *uo = NULL;
   if(typ == TYP_FuncInit) {
     DestFlag = 1;
     // if(uo) fclose (uo);  GEHT nicht mit stdout; kein reOpen moeglich
+    printf("*** DEB_dump_obj__ - open file\n");
     uo = NULL;
     if((uo=fopen(txt,"w")) == NULL) {
         TX_Print("DEB_dump_obj__ open Error |%s|",txt);
@@ -310,8 +313,10 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  // if(DestFlag == 0) uo = stdout;
-  if(!uo) uo = stdout;
+  if(DestFlag == 0) uo = stdout;
+  // if(!uo) uo = stdout;
+      // printf(" dump_obj__ DestFlag=%d\n",DestFlag);
+
 
   va_start(va,txt);
   vsprintf(cbuf,txt,va);
@@ -319,14 +324,9 @@ static FILE     *uo = NULL;
 
     // printf(" _stru_dump cbuf |%s|\n",cbuf);
 
-  // sprintf(cbuf,txt,v1,v2,v3,v4,v5,v6);
-  // UTX_CleanCR (TX_buf1);
-  // printf("%s",cbuf);
-  // fprintf(uo, "%s",cbuf);                    //2010-01-01
 
-
+  // get space for outData
   // p1 = (char*) MEM_alloc_tmp (tmpSiz);   // 50k
-
   irc = -1;
   i1 = 100000;  // space for outputdata
   tmpSpc = (char*) malloc (i1); 
@@ -337,23 +337,15 @@ static FILE     *uo = NULL;
   i1 = DEB_dump__ (&txTab1, typ, data, cbuf, -1, 0);
   if(i1 < 0) goto L_exit;
     // printf(" DEB_dump_obj__ - nach DEB_dump__\n");
+    // UtxTab_dump (&txTab1, "f-DEB_dump__");
 
 
-  // add infos about struct to node parNd
+  // write txTab1
   for(i1=0; i1<txTab1.iNr; ++i1) {
     p1 = UtxTab__(i1, &txTab1);
-    // sscanf(p1, "%4d", &ii);          // get ParentRecordNr from first 4 chars
-      // printf(" ii=%d p1=|%s|\n",ii,p1);
-    // ii *= 2;
-    // i2 = ILIM2 (ii, 0, 100);
-      // printf(" i2=%d\n",i2);
-    // memset(cbuf,' ', i2);
-    // cbuf[i2] = '\0';
-    // sscanf(p1, "%2d", &ii);            // get iconNr from first 2 chars
-      // printf(" [%d]=|%s|\n",i1,ii,&p1[2]);
-    // fprintf(uo, "%s%s\n", cbuf,&p1[6]);
     fprintf(uo, "%s\n",&p1[6]);
   }
+  fflush(uo);
 
   irc = 0;
 
@@ -1504,7 +1496,7 @@ static FILE     *uo = NULL;
 
     sprintf(cps,"Obj %s %s (ObjGX typ=%d form=%d siz=%d dir=%d)",txt,s1,
                    ox->typ, ox->form, ox->siz, ox->dir);
-      // printf(" %s\n",cps);
+      printf(" DEB_dump__-ogx-cps |%s|\n",cps);
 
 
     UT3D_dump_add (sTab, cbuf, ipar, i1);
@@ -1577,10 +1569,20 @@ static FILE     *uo = NULL;
     else sprintf (s2, "%9.3f", cvccv->v1);
     sprintf(cps, "   v0 = %s on seg %3d    v1 = %s on seg %3d",
             s1, cvccv->is0, s2, cvccv->is1);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps, "   dir%3d clo%3d trm%3d stat%3d",
             cvccv->dir, cvccv->clo, cvccv->trm, cvccv->stat);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    if(cvccv->ip0) {
+      p1 = DB_get_PT (cvccv->ip0);
+      sprintf(cps, "     ip0 = Point %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    }
+    if(cvccv->ip1) {
+      p1 = DB_get_PT (cvccv->ip1);
+      sprintf(cps, "     ip1 = Point %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    }
 
 
 /*

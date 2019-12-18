@@ -137,6 +137,7 @@ see also ../xa/xa_ed.c   ED_
 #include "../ci/NC_apt.h"              // T_RBSP
 
 #include "../xa/xa_mem.h"              // mem_cbuf1
+#include "../xa/xa_msg.h"              // MSG_..
 #include "../xa/xa_sele.h"             // Typ_FncPrv
 #define INCLUDE_FULL
 #include "../xa/xa_ed_mem.h"           // ObjSRC OSRC_NUL
@@ -534,8 +535,8 @@ extern char  MOpTxtStr[];
 
   llnew = strlen(sNew);
 
-  printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
-  printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
+  // printf("APED_src_chg lNr=%ld llnew=%ld\n",lNr,llnew);
+  // printf(" new |");UTX_dump_cnl(sNew,60);printf("|\n");
 
 
 
@@ -2312,6 +2313,8 @@ extern char  MOpTxtStr[];
 /// \code
 /// analyze sourceline sln; get source-objects.
 /// analyze definition-sourceline; get typ,form,level.
+///   separates all expressins in sln into tso-records;
+///   tso provides typ, form, startPos. in sln, length in char, parent/level.
 ///
 /// Input:
 ///   sln        definition-sourcline, without def.Hdr, with name, 0-terminated.
@@ -2677,18 +2680,25 @@ extern char  MOpTxtStr[];
 //   pma     list of ObjSRC-records with modifyable objs
 //           0=not-modifyable; 1=point-3-values; [not yet: 2=value-single]
 //   retCod  nr of objects in pma
+//
+// typ=Typ_PT: find all typ=Typ_FncNam, form=Typ_PT;
+//             followed by 2 or 3 records typ=Typ_NumString
 
+// TODO: worrks only for typ = Typ_PT 
 
-  int      iri, ipar, oNr;
+  int      i1, iri, ipar, oNr, ii;
 
 
   // printf("APED_txo_modObj_get typ=%d rMax=%d\n|%s|\n",typ,rMax,stx);
   // APED_txo_dump (soi, stx, "_modObj_get-soi");
 
+  if(typ != Typ_PT) {TX_Error("APED_txo_modObj_get E1 %d",typ); return -1;}
+
   // APED_txo_init (soo);  // txo[0].typ = TYP_FuncEnd;
 
   iri = -1;
   oNr = 0;
+
 
   // find next startPos ips of obj to find ..
   L_nxt_obj:
@@ -2701,7 +2711,7 @@ extern char  MOpTxtStr[];
 
     // find next primary obj
     if(soi[iri].ipar != -1) goto L_nxt_obj;
-
+/*
     // test if is a DB-obj of form <typ>
     if(soi[iri].form == Typ_ObjDB) {
       if(typ == DB_Typ_Char (&stx[soi[iri].ioff])) {
@@ -2709,53 +2719,52 @@ extern char  MOpTxtStr[];
         goto L_Mod;
       }
     }
-  
+*/
 
     // skip all but <typ>
     if(soi[iri].form != typ) goto L_nxt_obj;  // L_notMod;
 
 
-
     ipar = iri;
+    ii = 0;
     for(;;) {
       ++iri;
+      if(soi[iri].typ == TYP_FuncEnd) break;
+      // all following records must be Typ_NumString and have parent <ipar>
       if(soi[iri].ipar != ipar) break;              //  next obj
-      if(soi[iri].form != Typ_NumString) goto L_notMod;
+      if(soi[iri].form != Typ_NumString) continue;
+      ++ii;
     }
 
     // all components of obj are modifyable
     L_Mod:
-      pma[oNr] = 1;  //  0=not; 1=point-3-values; 2=value-single
+        // printf(" _modObj_get-L_Mod: iri=%d ii=%d\n",iri,ii);
+      if(ii >= 2) {
+        pma[oNr] = 1;  //  0=not; 1=point-3-values; 2=value-single
+      } else {
+        pma[oNr] = 0;  // not mod.
+      }
       ++oNr;
-      if(oNr > rMax) goto L_err1;
+      if(oNr > rMax) {TX_Error("APED_txo_modObj_get E2"); return -1;}
       goto L_nxt_ck;
-
-
-    L_notMod:
-      pma[oNr] = 0;  // not mod.
-      ++oNr;
-      if(oNr > rMax) goto L_err1;
-      // continue - 
-      goto L_nxt_obj;
-
 
 
   //----------------------------------------------------------------
   L_exit:
 
     // TESTBLOCK
-    // APED_txo_dump (soo, stx, "_modObj_get-soo");
     // printf("ex-_modObj_get oNr=%d\n",oNr);
     // for(iri=0; iri<oNr;++iri) printf(" pma[%d] = %d\n",iri,pma[iri]);
+    // return MSG_ERR__ (ERR_TEST, "label");
     // END TESTBLOCK
 
   return oNr;
 
 
   //----------------------------------------------------------------
-  L_err1:
-    TX_Error("APED_txo_modObj_get E1");
-    return -1;
+  // L_err1:
+    // TX_Error("APED_txo_modObj_get E1");
+    // return -1;
 
 }
 
@@ -2771,8 +2780,8 @@ extern char  MOpTxtStr[];
   char objID[64];
 
 
-  printf("APED_txo_find_parent %d\n",ip);
-  APED_txo_dump (tso, txso, "_find_parent-tso");
+  // printf("APED_txo_find_parent %d\n",ip);
+  // APED_txo_dump (tso, txso, "_find_parent-tso");
 
 
   for(;;) {
@@ -2793,7 +2802,7 @@ extern char  MOpTxtStr[];
         // get objID out of txso
         strncpy (objID, &txso[tso[its].ioff], tso[its].ilen);
         objID[tso[its].ilen] = '\0';
-          printf(" find_parent-objID=|%s|\n",objID);
+          // printf(" find_parent-objID=|%s|\n",objID);
         APED_dbo_oid (typ, dbi, objID);
         return 0;
       }
@@ -2822,7 +2831,13 @@ extern char  MOpTxtStr[];
 
 
   for(;;) {
-    if(tso[its].typ == TYP_FuncEnd) break;
+
+    if(tso[its].typ == TYP_FuncEnd) {
+      printf("tso[%d].typ=%d (TYP_FuncEnd)\n",its,tso[its].typ);
+      break;
+    }
+
+
     printf("tso[%d].typ=%d form=%d len=%d par=%d off=%d",its,
             tso[its].typ,
             tso[its].form,

@@ -79,6 +79,7 @@ GUI_timer__            register a timer-function
 
 GUI_SETDAT_E           create a GUI_DATA-block (event)
 GUI_SETDAT_EI          create a GUI_DATA-block (event + integer-data)
+GUI_SETDAT_EL          create a GUI_DATA-block (event + long-data)
 GUI_SETDAT_ES          create a GUI_DATA-block (event + string-data)
 
 GUI_OBJ_TYP            get gui-typ from MemObj
@@ -2225,6 +2226,41 @@ static int       UI_act_Id;
   return (pa);
 
 }
+
+
+//================================================================
+  void** GUI_SETDAT_EL (int ie, long il) {
+//================================================================
+/// \code
+/// GUI_SETDAT_EI             create a GUI_DATA-block
+/// Input:
+///   ie           int event; eg TYP_EventPress
+///   ii           int data
+///
+/// Usage:
+///   cbFunc (NULL, GUI_SETDAT_EI (TYP_EventPress,UI_FuncInit));
+///     // call cbFunc (mo, **data)
+///     // with data[0] = GUI_DATA_EVENT = (int)TYP_EventPress
+///     // with data[1] = GUI_DATA_I1    = (int)UI_FuncInit
+/// \endcode
+
+  static void *pa[2];
+  static int sie;
+  static long sil;
+
+
+  // printf("GUI_SETDAT_EI %d %d\n",ie,ii);
+
+  sie = ie;        // make it static ..
+  sil = il;
+
+  pa[0] = &sie;
+  pa[1] = &sil;
+
+  return (pa);
+
+}
+
 
 
 /*

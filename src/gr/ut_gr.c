@@ -686,6 +686,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   int GR_DrawPoly (long *dli, int attInd, int ptNr, Point* pta) {
 //====================================================================
 // GR_DrawPoly           disp curve from n points
+//   for disp. of objID using GR_typ,GR_dbi)
 
 
   int    i1;
@@ -702,7 +703,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // disp polygon
   GL_DrawPoly (dli, attInd, ptNr, pta);
 
-  // disp ObjID / direction
+  // disp ObjID / direction (using GR_typ,GR_dbi)
   GR_Draw_oid_dir_npt (dli, pta, ptNr);
 
 
@@ -1663,8 +1664,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   if(!APT_dispNam) goto L_disp_dir;
   // display ObjID; see APT_disp_nam
     // printf(" Draw_oid_dir-disp-objID\n");
-  // set oNam = text to display
-  // oNam[0] = '.';
+  // make oid = objID to display
   oid[0] = '_';
   APED_oid_dbo__ (&oid[1], GR_typ, GR_dbi);
   // get pt1 = centerpoint odf polygon
@@ -2769,8 +2769,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
-       DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
-       DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+       // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+       // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
 
     // set box in basicModel mdb
     mdb->pb1 = pb1;
@@ -2795,8 +2795,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
-       DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
-       DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+       // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+       // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
 
 
     // set box in basicModel mdb
@@ -2992,7 +2992,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 }
 
 //=====================================================================
-  int GR_DrawCvClot (long *ind, int att, CurvClot *cl1) {
+  int GR_DrawCvClot (long *ind, long dbi, int att, CurvClot *cl1) {
 //=====================================================================
 
   int    irc, ptNr;
@@ -3004,7 +3004,8 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf("GR_DrawCvClot\n");
   // DEB_dump_obj__ (Typ_CVCLOT, cl1, "Clot.:");
 
-
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
   pta = (Point*)memspc55;
   ptNr = sizeof(memspc55) / sizeof(Point);
@@ -3060,6 +3061,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   tol  = UT_DISP_cv;
+  // get polygon from trimmed-curve(s)
   irc = UT3D_mtpt_trmCv (&mtpa, cva, cvNr, tol, grMode);
   if(irc < 0) {TX_Error("GR_DrawCvCCV E2"); goto L_exit; }
 
@@ -3282,7 +3284,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //=====================================================================
-  int  GR_DrawCvPol (long *dli, int attInd, CurvPoly *plg1) {
+  int  GR_DrawCvPol (long *dli, long dbi, int attInd, CurvPoly *plg1) {
 //=====================================================================
 // GR_DrawCvPol          display curve struct CurvPoly
 
@@ -3292,6 +3294,9 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // printf("GR_DrawCvPol ptNr=%d\n",plg1->ptNr);
+
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
 
   ptNr = plg1->ptNr + 4;
@@ -3319,7 +3324,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //=====================================================================
-  int GR_DrawCvRBSp (long *ind, int attInd, CurvRBSpl *cv1) {
+  int GR_DrawCvRBSp (long *ind, long dbi, int attInd, CurvRBSpl *cv1) {
 //=====================================================================
 /// \code
 /// GR_DrawCvRBSp               display rational-Bspline-curve
@@ -3334,6 +3339,9 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // printf("GR_DrawCvRBSp\n");
   // DEB_dump_obj__ (Typ_CVRBSP, cv1, "GR_DrawCvRBSp:\n");
+
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
 
   pTab = (void*) memspc55;
@@ -3355,7 +3363,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 //=====================================================================
-  void GR_DrawCvPpsp3 (long *ind, int attInd, ObjGX *cv1, double zval) {
+  void GR_DrawCvPpsp3 (long *ind, long dbi, int attInd, ObjGX *cv1, double zval) {
 //=====================================================================
 
   int    irc, ptNr, ptMax;
@@ -3365,6 +3373,9 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf("GR_DrawCvPpsp3  %d %d\n",*ind,cv1->siz);
   // DEB_dump_ox_0 (cv1, "GR_DrawCvPpsp3");
   
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
+
 
   pTab = (void*) memspc55;
   ptMax = sizeof(memspc55) / sizeof(Point);
@@ -5452,7 +5463,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   dli = DL_StoreObj (Typ_CVRBSP, -1L, 2);
 
-  return GR_DrawCvRBSp (&dli, att, cv1);
+  return GR_DrawCvRBSp (&dli, att, -1L, cv1);
 
 
 }
@@ -5572,6 +5583,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // DEB_dump_obj__ (Typ_CVBSP, bspl, "CV:\n");
   // GR_Disp_pTab (bspl->ptNr, bspl->cpTab, SYM_STAR_S, 2);
 
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
 
   if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
@@ -5644,7 +5657,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   dli = DL_StoreObj (Typ_CVPOL, -1L, 2);
 
-  return GR_DrawCvPol (&dli, att, plg1);
+  return GR_DrawCvPol (&dli, -1L, att, plg1);
 
 }
 
@@ -5664,7 +5677,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   dli = DL_StoreObj (Typ_CVELL, -1L, 2);
 
-  return GR_DrawCvEll (&dli, att, el1);
+  return GR_DrawCvEll (&dli, -1L, att, el1);
 
 }
 
@@ -5729,7 +5742,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 */
 
 //=======================================================================
-  int GR_DrawCvEll2 (long *ind, int att, CurvEll2 *el2) {
+  int GR_DrawCvEll2 (long *ind, long dbi, int att, CurvEll2 *el2) {
 //=======================================================================
 // GR_DrawCvEll2                   display 2D-ellipse
 //
@@ -5749,6 +5762,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // GR_Disp_vc (&el1->va, &el1->pc, 8, 1);  // green
   // GR_Disp_vc (&el1->vb, &el1->pc, 9, 1);  // red
 
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
 
   // get elc from el2
   UT2D_elc_el2 (&elc, el2);
@@ -5793,7 +5808,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //=======================================================================
-  int GR_DrawCvEll (long *ind, int att, CurvElli *el1) {
+  int GR_DrawCvEll (long *ind, long dbi, int att, CurvElli *el1) {
 //=======================================================================
 // see GR_Disp_ell GR_DrawCvEll
 // TODO: does not have parameter dbi (for PCV; see eg GR_DrawCirc GR_DrawCvBSp)
@@ -5809,7 +5824,9 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // GR_Disp_vc (&el1->va, &el1->pc, 8, 1);  // green
   // GR_Disp_vc (&el1->vb, &el1->pc, 9, 1);  // red
 
-    
+  GR_typ = Typ_CV;
+  GR_dbi = dbi;
+
  /*   
   if(GLT_pta_SIZ < ianz) {
     i1 = GLT_alloc_pta (ianz);
@@ -6144,17 +6161,17 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_CVELL:
-      GR_DrawCvEll (dli, att, obj);  // see GR_Disp_ell GR_DrawCvEll
+      GR_DrawCvEll (dli, dbi, att, obj);  // see GR_Disp_ell GR_DrawCvEll
       break;
 
     //================================================================
     case Typ_CVELL2:
-      GR_DrawCvEll2 (dli, att, obj);  // see GR_Disp_ell GR_DrawCvEll
+      GR_DrawCvEll2 (dli, dbi, att, obj);  // see GR_Disp_ell GR_DrawCvEll
       break;
 
     //================================================================
     case Typ_CVPOL:     // CurvPoly
-      GR_DrawCvPol (dli, att, obj); // GR_Disp_pol GR_DrawCvPol
+      GR_DrawCvPol (dli, dbi, att, obj); // GR_Disp_pol GR_DrawCvPol
       break;
 
     //================================================================
@@ -6173,7 +6190,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     //================================================================
     case Typ_CVRBSP:
       // dbi = DL_get_dbi (*dli);
-      GR_DrawCvRBSp (dli, att, obj); // CurvRBSpl
+      GR_DrawCvRBSp (dli, dbi, att, obj); // CurvRBSpl
       break;
 
     //================================================================
@@ -6495,7 +6512,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   Point2     pb1, pb2, p2s;
 
 
-  printf("----------------- GR_pt_par_sel_npt %d\n",ptNr);
+  // printf("----------------- GR_pt_par_sel_npt %d\n",ptNr);
   // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT, &pta[i1],"pta[%d]",i1);
   // DEB_dump_obj__ (Typ_PT, ptAct, " ptAct");
 
@@ -6604,7 +6621,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   //----------------------------------------------------------------
   L_exit:
 
-    printf("ex _sel_npt irc=%d ipt=%d pa1=%lf\n",irc,*ipt,*pa1);
+    // printf("ex _sel_npt irc=%d ipt=%d pa1=%lf\n",irc,*ipt,*pa1);
     // DEB_dump_obj__ (Typ_PT, pts, " pts:");
     // if(irc >= 0) GR_Disp_pt (pts, SYM_STAR_S, ATT_COL_RED);
 

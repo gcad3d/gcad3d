@@ -51,7 +51,7 @@
   void GR_DrawTor   (long *ind, int attInd, Circ *ci1, double rd1);
   void GR_DrawTorSeg(long *ind, int attInd, Circ *ci1, Circ *ci2);
 
-  void GR_DrawCvPpsp3 (long *ind, int attInd, ObjGX *cv1, double zval);
+  void GR_DrawCvPpsp3 (long *ind, long dbi, int attInd, ObjGX *cv1, double zval);
   int  GR_DrawCvBSp   (long *ind, long dbi, int attInd, CurvBSpl *cv1);
 
   int GR_DrawFan (Point *pt1, int ptAnz, Point *pa1, int typ, int newS);

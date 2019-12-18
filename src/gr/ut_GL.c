@@ -7921,7 +7921,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
 //================================================================
-  void GL_DrawLtab (long *ind, int iAtt, Line *lna, int lNr) {
+  void GL_DrawLtab (long *ind, long dbi, int iAtt, Line *lna, int lNr) {
 //================================================================
 /// GL_DrawLtab     display group of lines
 
@@ -8008,7 +8008,8 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
 //==============================================================================
-  void GL_DrawPoly2D (long *ind, int iAtt, int ptNr, Point2 pta[], double zval) {
+  void GL_DrawPoly2D (long *ind, int iAtt,
+                      int ptNr, Point2 pta[], double zval) {
 //==============================================================================
 // 2D-Polygon on plane Z=zval
 
@@ -8016,7 +8017,6 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   int    attInd, i1;
   GLuint gli;
   // Ind_Att_ln  *lnAtt=(Ind_Att_ln*)&iAtt;
-
 
   // printf("GL_DrawPoly2D: ind=%ld ptNr=%d Z=%lf\n",*ind,ptNr,zval);
   // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");

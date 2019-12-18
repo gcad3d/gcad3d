@@ -1729,8 +1729,16 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // if(UI_InpMode == UI_MODE_VWR) goto L_cad_man;
     // UI_AP (UI_FuncSet, UID_ckb_search, (void*)TRUE);  // SMD - On setzen
     // UI_mcl__ (NULL, PTR_INT(UI_FuncInit));   // activate Search/Name
-    GUI_ckbutt_set (&ckb_such, TRUE);
-    goto Reset_Ctrl;  // 2013-09-01    else rotate is on !
+    if(UI_InpMode == UI_MODE_MAN) EDI_set_src_UI ();
+    else  GUI_ckbutt_set (&ckb_such, TRUE);
+    goto AllDone;
+    // goto Reset_Ctrl;  // 2013-09-01    else rotate is on !
+
+
+  case 'l':
+  case 'L':
+    if(UI_InpMode == UI_MODE_MAN) EDI_set_lNr_UI ();
+    goto AllDone;
 
 
   case 'p':

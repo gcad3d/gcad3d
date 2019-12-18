@@ -132,6 +132,7 @@ static FILE  *finLun;                    // swapfile for large input
 //================================================================
   int OS_CTL_read_init (char *fn) {
 //================================================================
+// retCode: -1   error open pipe <tmpDir>CTRLpin
 
   int         irc;
   char        fnin[256];

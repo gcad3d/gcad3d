@@ -12,8 +12,8 @@
 int   UTO_objDat_ox     (void **objOut, int *oNr, ObjGX *ox1);
 // int   UTO_2pt_lim_ox   (Point *ps,Point *pe, double *v1,double *v2,ObjGX *oxi);
 int   UTO_pt_eval_par1_dbo (Point *pto, double lpar, int typ, long ind);
-int   UTO_par__pt_obj (double *po, int mode, Point *pti, int oTyp, void *oDat);
-int   UTO_par__pt_dbo (double *lpar, int mode, Point *pti, int typ, long ind);
+int   UTO_par__pt_obj (double *po, int vTyp, Point *pti, int oTyp, void *oDat);
+int   UTO_par__pt_dbo (double *lpar, int vTyp, Point *pti, int typ, long ind);
 int   UTO_npt_Tes      (int *pNr, Point **ppa, ObjGX *os);
 
   // int   UTO_set_ptlim    (ObjGX *oxo, Point *pti, int mode);

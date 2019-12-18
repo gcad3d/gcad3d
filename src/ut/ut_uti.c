@@ -89,6 +89,8 @@ see DMAX DMIN DSIGN DSIGTOL
 FDABS                     absolute value of float
 
 --------- doubles;  see also UT1D_
+UTP_dba_str               get table of doubles from textstring with n numbers
+
 DMAX                      INLINE
 DMIN                      INLINE
 DMOD                      double - division with remainder (module)      INLINE
@@ -1083,6 +1085,46 @@ UTA_  functions for pointers (addresses)
 
 }
 */
+
+//================================================================
+  int UTP_dba_str (double *da, int siz, char *str1) {
+//================================================================
+// UTP_dba_str               get table of doubles from textstring with n numbers
+// Input:
+//   siz      size of da 
+// Output:
+//   da       numbers of str1; size must be 
+//   retCod   number of doubles in da
+
+
+  int    ii=0;
+  char   *p1, *p2;
+
+  // printf("UTP_dba_str |%s|\n",str1);
+
+  
+  p1 = str1;
+
+  L_nxt1:
+    da[ii] = strtod (p1, &p2);
+    ++ii;
+    if(ii >= siz) goto L_exit;
+    if(!*p1) goto L_exit;
+
+    da[ii] = strtod (p2, &p1);
+    ++ii;
+    if(ii >= siz) goto L_exit;
+    if(!*p1) goto L_exit;
+    goto L_nxt1;
+
+  L_exit:
+
+    // {int i1; for(i1=0; i1<ii; ++i1) printf("UTP_dba_str[%d] = %f\n",i1,da[i1]);}
+
+  return ii;
+
+}
+
 
 //======================================================================
   double UTP_db_rnd1sig (double d1) {

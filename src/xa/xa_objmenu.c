@@ -858,7 +858,29 @@ extern int       IE_modify;
     case MSG_movPoints:     // move points (PED)
     case MSG_cvEd:          // edit points, curve (EDMPT)
       // PED_init (actObj.typ, actObj.dbInd, actObj.dlInd);
-      EDMPT_init (actObj.typ, actObj.dbInd, actObj.dlInd);
+      // EDMPT_init (actObj.typ, actObj.dbInd, actObj.dlInd);
+      {
+        int     irc, typ;
+        void    *pa[3];
+        // reBuild plugin
+        if(AP_stat.comp) {
+#ifdef _MSC_VER
+          irc = OS_dll_build ("xa_edmpt.dll");
+#else
+          irc = OS_dll_build ("xa_edmpt.so");
+#endif
+            printf(" build=%d\n",irc);
+          if(irc != 0) return -1;
+        }
+        // fill parameterBlock pa
+        typ = actObj.typ;
+        pa[0] = &typ;
+        pa[1] = &actObj.dbInd;
+        pa[2] = &actObj.dlInd;
+        // load, start, do not unload dll until button exit.
+        OS_dll_do ("xa_edmpt", "EDMPT__", &pa, 1);
+      }
+// TX_Print("********** see ../xa/tst_edmpt.c *** ");
       break;
 
     //----------------------------------------------------------------

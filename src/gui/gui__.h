@@ -56,7 +56,7 @@ void GUI(){}
 #include "../gui_gtk2_MS/gui__.h"
 #endif
 
-
+// from ../gui/gui_base.c
   extern int GUI_FuncInit;
   extern int GUI_FuncUCB1;
   extern int GUI_FuncUCB2;
@@ -71,6 +71,8 @@ void GUI(){}
   extern int GUI_FuncUCB11;
   extern int GUI_FuncUCB12;
   extern int GUI_FuncUCB13;
+  extern int GUI_FuncUCB14;
+  extern int GUI_FuncUCB15;
   extern int GUI_FuncWork;
   extern int GUI_FuncExit;
   extern int GUI_FuncKill;

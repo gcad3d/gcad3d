@@ -954,11 +954,11 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
   // printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \n");
-  printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
-  printf(" nxt typ=%d\n",aus_typ[*ind]);
-  for(i1=*ind; i1<aus_anz; ++i1) {
-    printf("  %d aus_typ=%d txtTab=%s\n",i1,aus_typ[i1], txtTab[i1]);
-  }
+  // printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
+  // printf(" nxt typ=%d\n",aus_typ[*ind]);
+  // for(i1=*ind; i1<aus_anz; ++i1) {
+    // printf("  %d aus_typ=%d txtTab=%s\n",i1,aus_typ[i1], txtTab[i1]);
+  // }
 
 
 
@@ -997,7 +997,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //-------------------------------------------------------
   // typ ist nun ein objTyp der selektierten APT-Line;
   // typRec ist ein typ im IE_cad_act-Record
-    printf(" _txt2par1  typ=%d typRec=%d\n",typ,typRec);
+    // printf(" _txt2par1  typ=%d typRec=%d\n",typ,typRec);
 
 
   //-------------------------------------------------------
@@ -1233,7 +1233,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
   Fertig:
-    printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
+    // printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
   return 1;
 
 

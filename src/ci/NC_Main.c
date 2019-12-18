@@ -668,7 +668,7 @@ Memspc  APTSpcTmp;      // memspc501 f. temporaere Berechnungen
 
 
 
-int     APT_dispNam;                 // display ObjNames
+int     APT_dispNam;                 // display ObjNames; see GR_OBJID_ON
 int     APT_dispDir;                 // display ObjDirection; 1=yes, 0=not
 // int     APT_dispNCCmd;               // display NC-Commands
 int     APT_dispPT  = ON;            // display Points
@@ -3741,7 +3741,8 @@ APT_stat_act:
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
   // printf("APT_ato_par_srcLn |");UTX_dump_cnl(srcLn,50);printf("|\n");
-  // printf(" ilev=%p\n",ato->ilev);
+  // if(ato) printf(" ilev=%p\n",ato->ilev);
+
 
   // max nr of atos
   itsMax = SRCU_tsMax (srcLn);
@@ -4002,6 +4003,7 @@ APT_stat_act:
 // APT_Draw__        draw (load from DB, APT_DrawXX)
 /// is using memspc201
 /// Input:
+///   iAtt         see GR_Draw_obj (att) or INF_COL_PT / INF_COL_CV
 ///   typ,ind      DB-obj  (typ, DB-index)
 /// \endcode
 
@@ -4019,7 +4021,9 @@ APT_stat_act:
 
   // printf("APT_Draw__ typ=%d ind=%ld iAtt=%d\n",typ,ind,iAtt);
   // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
-  // printf("  APT_obj_stat=%d UP_level=%d\n",APT_obj_stat,UP_level);
+  // printf("  _Draw__-APT_obj_stat=%d\n",APT_obj_stat);
+  // printf("  _Draw__-DL_ind_act=%ld\n",DL_ind_act);
+  // printf("  _Draw__-UP_level=%d\n",UP_level);
   // printf("  ED_get_mode=%d\n",AP_mode__);
   // if(typ==Typ_SUR) printf("  S:vtex=%d\n",((ColRGB*)&iAtt)->vtex);
 // UP_mode     0=ON sind im UP,  1=OFF sind im Main
@@ -4037,10 +4041,10 @@ APT_stat_act:
           // DEB_dump_obj__ (Typ_PT, (Point*)po, " PT-po: ");
 
         if(APT_obj_stat == 1) {  // 1=temp                 // 2013-03-16
-          // get the temp-dispListindex for the active CAD-inputfield
-          l1 = IE_get_inp_dli();
-          // if CAD is active: overwrite symbol for the active inputfield
-          if(l1) DL_SetInd (l1);
+//           l1 = IE_get_inp_dli();
+//              printf(" _Draw__-l1=%ld\n",l1);
+//           // if CAD is active: overwrite symbol for the active inputfield
+//           if(l1) DL_SetInd (l1);
           iAtt = ATT_COL_RED;
           APT_DrawSymB (iAtt, ind, SYM_CIR_S, (Point*)po);
 
@@ -4544,7 +4548,8 @@ APT_stat_act:
 
   int       i1, otyp, icod;
   long      ind;
-  char      auxBuf[256], *p1;
+  double    d1;
+  char      auxBuf[256], *p1, *p2;
   Point     pt1;
   ObjAto    ato1;
 
@@ -4595,6 +4600,63 @@ APT_stat_act:
       // load & init processor
       return PRC_init (p1);
       // break;
+
+    //----------------------------------------------------------------
+    case TAC_MODSIZ:
+      // MODSIZ <modelSize> [<UT_TOL_cv> [<UT_DISP_cv>]]
+      // decode values;  more than 2 values must have function (eg P(...))
+
+      // set APT_ModSiz and display
+      // NC_setModSiz (ato1.val[0]);
+      d1 = strtod (*data, &p1);
+        // printf("_AppCodTab-p1-1 %lf |%s|\n",d1,p1);
+      NC_setModSiz (d1);
+
+      if(*p1) {
+        d1 = strtod (p1, &p2);
+          // printf("_AppCodTab-p1-2 %lf |%s|\n",d1,p2);
+        UT_TOL_cv = d1;
+        if(*p2) {
+          d1 = strtod (p2, &p1);
+            // printf("_AppCodTab-p1-3 %lf |%s|\n",d1,p1);
+          UT_DISP_cv = d1;
+        }
+      }
+    
+      // printf(" >>>>>>>>>>> MODSIZ %f %f %f\n",APT_ModSiz,UT_TOL_cv,UT_DISP_cv);
+      return 0;
+
+    //----------------------------------------------------------------
+    case TAC_DEFTX:
+      // printf(" DEFTX %f %f ato1.nr=%d\n",ato1.val[0],ato1.val[1],ato1.nr);
+      AP_txsiz    = strtod (*data, &p1);   //ato1.val[0];
+      AP_txdimsiz = strtod (p1, &p2);      //ato1.val[1];
+      GR_tx_scale = 1.;
+      // AP_txNkNr   = 2; 
+      AP_txNkNr = IMAX(0, 3 - UTP_dbqsiz(APT_ModSiz));
+      if(*p1) {                            //(ato1.nr > 2) {
+        GR_tx_scale = strtod (p2, &p1);    //ato1.val[2];
+        if(*p2) {                          //(ato1.nr > 3) {
+          AP_txNkNr = strtod (p1, &p2);    //ato1.val[3];
+        }
+      }
+      GR_InitGFPar (AP_txdimsiz);
+      return 0;
+
+    //----------------------------------------------------------------
+    case TAC_DEFCOL:
+      // printf(" DEFCOL %f %f %f\n",ato1.val[0],ato1.val[1],ato1.val[2]);
+      // defCol wird hier zwar als neuer DL-Record angelegt; in subModels wird
+      // die DL aber geloescht, defCol muss dann mit GL_DefColSet nochmal
+      // angelegt werden !
+      AP_defcol.cr = (unsigned char)strtod (p1, &p2);      //ato1.val[0];
+      AP_defcol.cg = (unsigned char)strtod (p2, &p1);      //ato1.val[1];
+      AP_defcol.cb = (unsigned char)strtod (p1, &p2);      //ato1.val[2];
+      // AP_indCol = GL_DefColSet (&AP_defcol);
+      APcol_actColTra (&AP_defcol); // set AP_actcol 2017-04-21
+      GL_DefColSet (&AP_defcol);    // set GL_defCol
+      return 0;
+
   }
 
 
@@ -4603,6 +4665,16 @@ APT_stat_act:
   // codes with values. First decode values.
   // get memSpc for ato
   ATO_getSpc__ (&ato1);
+
+
+  if(icod == TAC_VIEW) {
+      if(MDL_IS_SUB) return 0;        //break;       // skip command in Submodels
+      // 10 doubles 
+      ato1.nr = UTP_dba_str (ato1.val, ato1.siz, *data);
+      return APT_work_VIEW (ato1.nr, ato1.typ, ato1.val);
+  }
+
+
 
   // decode data
   ATO_ato_srcLn__ (&ato1, *data);
@@ -4671,11 +4743,6 @@ APT_stat_act:
       break;
 
     //----------------------------------------------------------------
-    case TAC_VIEW:
-      if(MDL_IS_SUB) break;       // skip command in Submodels
-      return APT_work_VIEW (ato1.nr, ato1.typ, ato1.val);
-
-    //----------------------------------------------------------------
     case TAC_CONST_PL:
       pt1           = DB_GetPoint  ((long)ato1.val[0]);
       WC_sur_act.vx = DB_GetVector ((long)ato1.val[1]);
@@ -4712,54 +4779,6 @@ APT_stat_act:
       // get typ and dbi from *data
       APED_dbo_oid (&otyp, &ind, *data);              // get typ,dbi from ID
       SRCU_win_var (otyp, ind, i1);
-      break;
-
-    //----------------------------------------------------------------
-    case TAC_MODSIZ:
-      // MODSIZ <modelSize> [<UT_TOL_cv> [<UT_DISP_cv>]]
-
-      // set APT_ModSiz and display
-      NC_setModSiz (ato1.val[0]);
-    
-      // if defined: UT_TOL_cv UT_DISP_cv (overwrite)
-      if(ato1.typ[1] == Typ_Val) {
-        UT_TOL_cv = ato1.val[1];
-        if(ato1.typ[2] == Typ_Val) {
-          UT_DISP_cv = ato1.val[2];
-        }
-      }
-      // printf(" >>>>>>>>>>> MODSIZ %f %f %f\n",APT_ModSiz,UT_TOL_cv,UT_DISP_cv);
-      break;
-
-    //----------------------------------------------------------------
-    case TAC_DEFTX:
-      // printf(" DEFTX %f %f ato1.nr=%d\n",ato1.val[0],ato1.val[1],ato1.nr);
-      AP_txsiz    = ato1.val[0];
-      AP_txdimsiz = ato1.val[1];
-      GR_tx_scale = 1.; 
-      // AP_txNkNr   = 2; 
-      AP_txNkNr = IMAX(0, 3 - UTP_dbqsiz(APT_ModSiz));
-      if(ato1.nr > 2) {
-        GR_tx_scale = ato1.val[2];
-        if(ato1.nr > 3) {
-          AP_txNkNr = ato1.val[3];
-        }
-      }
-      GR_InitGFPar (AP_txdimsiz);
-      break;
-
-    //----------------------------------------------------------------
-    case TAC_DEFCOL:
-      // printf(" DEFCOL %f %f %f\n",ato1.val[0],ato1.val[1],ato1.val[2]);
-      // defCol wird hier zwar als neuer DL-Record angelegt; in subModels wird
-      // die DL aber geloescht, defCol muss dann mit GL_DefColSet nochmal
-      // angelegt werden !
-      AP_defcol.cr = (unsigned char)ato1.val[0];
-      AP_defcol.cg = (unsigned char)ato1.val[1];
-      AP_defcol.cb = (unsigned char)ato1.val[2];
-      // AP_indCol = GL_DefColSet (&AP_defcol);
-      APcol_actColTra (&AP_defcol); // set AP_actcol 2017-04-21
-      GL_DefColSet (&AP_defcol);    // set GL_defCol
       break;
 
     //----------------------------------------------------------------
@@ -10419,13 +10438,13 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   if(typ == Typ_CVLNA) {
     AP_dli_act = DL_StoreObj (Typ_CVLNA, dbi, att);
-    GL_DrawLtab (&AP_dli_act, att, (Line*)ox1->data, ox1->siz);
+    GL_DrawLtab (&AP_dli_act, dbi, att, (Line*)ox1->data, ox1->siz);
 
 
   } else if(typ == Typ_CVPSP3) {
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVPSP3, dbi, att);
-    GR_DrawCvPpsp3 (&AP_dli_act, att, ox1, zval);
+    GR_DrawCvPpsp3 (&AP_dli_act, dbi, att, ox1, zval);
 
 
   } else if(typ == Typ_CVBSP) {
@@ -10437,13 +10456,13 @@ see WC_Init_Modsiz WC_Init_Tol ..
   } else if(typ == Typ_CVRBSP) {
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVRBSP, dbi, att);
-    GR_DrawCvRBSp (&AP_dli_act, att, ox1->data);
+    GR_DrawCvRBSp (&AP_dli_act, dbi, att, ox1->data);
 
 
   } else if(typ == Typ_CVPOL) {
     // AP_dli_act = DL_StoreObj (Typ_CV, dbi, att);
     AP_dli_act = DL_StoreObj (Typ_CVPOL, dbi, att);  // 2011-08-05
-    GR_DrawCvPol (&AP_dli_act, att, ox1->data);
+    GR_DrawCvPol (&AP_dli_act, dbi, att, ox1->data);
     
 
   } else if(typ == Typ_CVPOL2) {
@@ -10456,12 +10475,12 @@ see WC_Init_Modsiz WC_Init_Tol ..
 
   } else if(typ == Typ_CVELL) {
     AP_dli_act = DL_StoreObj (Typ_CVELL, dbi, att);
-    GR_DrawCvEll (&AP_dli_act, att, ox1->data);
+    GR_DrawCvEll (&AP_dli_act, dbi, att, ox1->data);
 
 
   } else if(typ == Typ_CVCLOT) {
     AP_dli_act = DL_StoreObj (Typ_CVCLOT, dbi, att);
-    GR_DrawCvClot (&AP_dli_act, att, ox1->data);
+    GR_DrawCvClot (&AP_dli_act, dbi, att, ox1->data);
 
 
   // } else if(typ == Typ_CVComp) {

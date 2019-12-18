@@ -89,6 +89,7 @@ STP_r_cre2             resolv and create step-object sInd
 STP_r_creObj1          cr. APT-Text from objekt (Ausgabe)
 
 STP_r_crePt0           create Point from existing CARTESIAN_POINT
+STP_r_creVc1           create gcad-vector
 STP_r_creLn0           create Line from SC_LINE
 STP_r_creLn1           create Line from SC_LINE
 STP_r_creLn2           create Line from SC_LINE + 2 parameters (length)
@@ -4617,6 +4618,7 @@ static Point  p1, p2;
   int STP_r_creVc1 (int sInd) {
 //================================================================
 /// \code
+/// STP_r_creVc1           create gcad-vector
 /// SC_DIRECTION  (koords wie bei punkt)
 /// Input:
 ///   sInd   index of vector in s_tab
@@ -4642,10 +4644,11 @@ static Point  p1, p2;
     return 0;
   }
 
-  gTxt[0] = '\0';
+  // gTxt[0] = '\0';
+  strcpy(gTxt, "D(");
 
   // AP_obj_add_vc0 (gTxt, vc1);
-  AP_obj_add_nval (gTxt, 3, (void*)vc1);
+  AP_obj_add_nval (gTxt, 3, (void*)vc1, ")");
 
   irc = STP_r_creObj1 (sInd, Typ_VC, Typ_Txt, gTxt);
   if(irc < 0) return irc;

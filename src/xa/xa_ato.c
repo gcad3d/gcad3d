@@ -1483,6 +1483,7 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   // evaluate geometrical functions (Typ_FncNam)
   L_geom_0:
+    // ATO_dump__ (ato, " L_geom_0:");
   imod = 0;
   ie = ato->nr - 1;
     // printf(" L_geom_0: ie=%d\n",ie);
@@ -1501,7 +1502,7 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   // compress ato (remove all Typ_NULL-records)
   L_comp_0:
-    // ATO_dump__ (ato, "after L_geom_0");
+    // ATO_dump__ (ato, " L_comp_0");
     // printf(" L_comp_0:\n");
 
   ii = -1;
@@ -1528,6 +1529,14 @@ extern long      GLT_cta_SIZ;
   L_exit:
     // printf(" ex-ATO_ato_eval__\n");
     // ATO_dump__ (ato, "ex-ATO_ato_eval__");
+
+  // test for unknown types
+  if(ato->nr >= 2) {
+    if((ato->typ[0] == Typ_Val) && (ato->typ[0] == Typ_Val))
+      TX_Print ("**** Line %d - change val val . to P(val val .) or D(...)",
+                ED_get_lnr_act());
+  }
+   
 
   return 0;
 
@@ -2230,7 +2239,7 @@ extern long      GLT_cta_SIZ;
 
 
   // point: no characteristic point selected; parameter necessary ...
-  // get parameter from selected point
+  // get parameter from selected point; always 0-1 = vTyp=1 (see INF_struct_par)
   irc = UTO_par__pt_obj (&pars, 1, &pts, iTyp, iObj);
   if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 

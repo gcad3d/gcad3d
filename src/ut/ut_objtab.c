@@ -594,7 +594,7 @@ gcad_src.mak
         GR_Disp_tx2 (&pt2, s1, Typ_Att_def);
 
       } else if(oTab->fmtb == Typ_GEOB_3D) {
-        irc = UT3D_ptvcpar1_std_obj (&pt3, NULL, NULL, Ptyp_mid,
+        irc = UT3D_ptvcpar_std_obj (&pt3, NULL, NULL, Ptyp_mid,
                                      oTab->oTyp[i1], oTab->oDat[i1]);
         GR_Disp_tx (&pt3, s1, Typ_Att_def);
       } else TX_Error("OTB_dump-fmtb not set %d",oTab->fmtb); 

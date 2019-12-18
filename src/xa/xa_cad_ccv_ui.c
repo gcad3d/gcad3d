@@ -398,7 +398,7 @@ extern int     APT_dispDir;
 */
 
   // TYP_EventRelease ..
-  iKey = GUI_DATA_I1;
+  iKey = GUI_DATA_L1;
     // printf("IE_ccv_CB iKey=%d\n",iKey);
 
 
@@ -414,7 +414,7 @@ extern int     APT_dispDir;
         //  MODIFY: exit all ..
         IE_cad_Inp_undo ();      // delete last CAD-input or exit func
         // kill GruppenEditorWindow, if activ
-        IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+        IE_ccv__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncKill));
       }
       goto L_skip_key;
 
@@ -503,7 +503,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
   char     s1[32];
 
 
-  i1 = GUI_DATA_I1;
+  i1 = GUI_DATA_L1;
 
 
   // printf("IE_ccv__ %d\n",i1);

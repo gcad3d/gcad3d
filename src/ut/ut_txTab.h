@@ -32,4 +32,6 @@ typedef struct {long tabSiz, indSiz; char *tab;
   char* UtxTab__        (int iNr, TxtTab *tab);
   char* UtxTab_pos_free (TxtTab *xTab);
 
+  int UtxTab_add (TxtTab *tab, char *newtxt);
+
 // EOF

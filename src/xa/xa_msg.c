@@ -46,7 +46,7 @@ Modifications:
 List_functions_start:
 
 -------------- ERROR-MESSAGES ----------------------------------
-MSG_ERR__       errormessage (key, additional_text) 
+MSG_ERR__       errormessage (key, additional_text)         see INF_DEB_MSG_ERR
 MSG_ERR_out     error/warning/info
 MSG_ERR_sev     get severity (1|2|3) from errorcode (< 0)
 
@@ -705,7 +705,7 @@ char *MSG_ERR_tab[]={
   char    sbuf2[200], *cp1, *cp2;
 
 
-  printf("MSG_get__ key=|%s| msgSiz=%d\n",key,msgSiz);
+  // printf("MSG_get__ key=|%s| msgSiz=%d\n",key,msgSiz);
 
 
   vsprintf(sbuf2, fmt, *va);
@@ -768,7 +768,7 @@ char *MSG_ERR_tab[]={
   va_list va;
 
 
-  printf("MSG_err_1 |%s|\n",key);
+  // printf("MSG_err_1 |%s|\n",key);
 
   va_start(va, fmt);
   irc = MSG_get__ (MSG_buf, MSG_bSiz, key, MSG_fp, fmt, &va);

@@ -1,3 +1,16 @@
+Version 2.46.02 / 2019-12-18
+
+- MAN: new function "goto LineNr" with Ctrl-L
+- MAN: new function "find text" with Ctrl-F
+- new function "Search obj by objID" in Search/Name (button "edit")
+- Bugfix "parametric-Point on polygon in compound-curve"
+- Bugfix "find movable points" in CAD, sel. obj with right mouseB., "move-points"
+
+Programlines (C)  473711
+Functions           4822
+
+
+===========================================================================
 Version 2.46.00 / 2019-12-02
 
 - CAD, MAN: bugfix "Point-referenced-X-Y-Z",  eg "P30=P(X(P20) Y(P20) Z(P32))"

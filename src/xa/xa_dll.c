@@ -35,6 +35,7 @@ List_functions_start:
 
 DLL_run1         connect oder run oder unload DLL.
 DLL_run2         build & connect & run & unload DLL.
+DLL_unload       unload a dll (idle-callback)
 
 List_functions_end:
 =====================================================
@@ -119,7 +120,7 @@ OS_debug_dll_
 
   static void  *dll1 = NULL; // pointer to loaded dll
 
-  printf("DLL_run1 %d\n",mode);
+  // printf("DLL_run1 %d\n",mode);
 
 
 
@@ -144,7 +145,7 @@ OS_debug_dll_
   // sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
   // sprintf(cBuf, "xa_%s_r",ftyp);
 // #endif
-    printf(" soNam=|%s|\n",cBuf);
+    // printf(" soNam=|%s|\n",cBuf);
 
 
   // connect DLL..
@@ -214,7 +215,7 @@ OS_debug_dll_
 
 
 
-  printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
+  // printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
 
 
 
@@ -322,7 +323,7 @@ OS_debug_dll_
 
   // zuerst close DLL already in use ..
   if(dl1 != NULL) {
-    printf("unload ...\n");
+      // printf("unload ...\n");
     if(up1=dlsym(dl1,"gCad_fini")) {   // Adresse von Func. "gCad_fini" holen
       (*up1)();               // gCad_fini must kill all open windows !!
       AP_User_reset();        // reset-funcs, die bei MS-Win u Linux gleich sind
@@ -390,9 +391,9 @@ OS_debug_dll_
 
 
   // start userprog
-    printf(" before userprog\n");
+    // printf(" before userprog\n");
   (*up1)();
-    printf(" after userprog\n");
+    // printf(" after userprog\n");
 
 #endif
 //======= END VERSION UNIX ========================================
@@ -406,6 +407,7 @@ OS_debug_dll_
   return 0;
 
 }
+
 
 /*
 ///===================================================================

@@ -129,7 +129,7 @@ static MemObj UI_DialogEntryWin;
 
 
 
-  printf("GUI_DialogYN_CB %d\n",INT_PTR(data));
+  // printf("GUI_DialogYN_CB %d\n",INT_PTR(data));
 
 
   // if ((GTK_TOGGLE_BUTTON (parent)->active) == 0) {
@@ -204,7 +204,7 @@ static MemObj UI_DialogEntryWin;
   char   *buttons[3];
 
 
-  printf("GUI_Dialog_2b |%s|%s|%s|\n",txt,tb1,tb2);
+  // printf("GUI_Dialog_2b |%s|%s|%s|\n",txt,tb1,tb2);
 
 
   buttons[0] = tb1;
@@ -221,6 +221,7 @@ static MemObj UI_DialogEntryWin;
 //=============================================================================
 /// \code
 /// GUI_Dialog_e2b         dialogWindow w. entry, 2 Buttons, waiting.
+///   after pressing button window is closed. 
 ///
 /// Input
 ///   txt         label (newline with \n)
@@ -238,7 +239,7 @@ static MemObj UI_DialogEntryWin;
   char   *buttons[3];   
                         
 
-  printf("GUI_Dialog_e2b |%s|%s|%s|%s|\n",txt,entry,tb1,tb2);
+  // printf("GUI_Dialog_e2b |%s|%s|%s|%s|\n",txt,entry,tb1,tb2);
 
 
   buttons[0] = tb1;

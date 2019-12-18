@@ -342,6 +342,7 @@ void INF_OTYP (){}
 
 
 /// functions  see also UI_Func* ../gui/gui_types.h
+/// check: TYP_IS_FNC()
 #define TYP_FuncInit     260  ///< function init
 #define TYP_FuncInit1    261  ///< function 
 #define TYP_FuncMod      262  ///< function modify

@@ -2014,8 +2014,10 @@ WC_sur_mat WC_sur_imat
       ((CurvEll2*)*o2)->pc = UT2D_pt_pt3 (&((CurvElli*)o3)->pc);
       UT2D_vc_vc3 (&((CurvEll2*)*o2)->va, &((CurvElli*)o3)->va);
       UT2D_vc_vc3 (&((CurvEll2*)*o2)->vb, &((CurvElli*)o3)->vb);
-      ((CurvEll2*)*o2)->clo = ((CurvElli*)o3)->clo;
+      ((CurvEll2*)*o2)->ango = ((CurvElli*)o3)->ango;
       ((CurvEll2*)*o2)->srot = ((CurvElli*)o3)->srot;
+      ((CurvEll2*)*o2)->clo = ((CurvElli*)o3)->clo;
+      ((CurvEll2*)*o2)->trm = ((CurvElli*)o3)->trm;
       break;
 
     case Typ_CVBSP:

@@ -417,6 +417,7 @@ void TX_Error (char* txt, ...);
 
   // printf("UtxTab_add  |%s|\n",newtxt);
   // printf(" stat=%d\n",tab->stat);
+  // UtxTab_dump (tab, "UtxTab_add-in");
 
 
   if(!tab) {
@@ -471,6 +472,12 @@ void TX_Error (char* txt, ...);
 
   tab->ind[iNr] = iEnd;
   tab->iNr = iNr;
+
+
+    // TESTBLOCK
+    // UtxTab_dump (tab, "ex-UtxTab_add");
+    // END TESTBLOCK
+
 
   return i1;
 
@@ -704,13 +711,13 @@ void TX_Error (char* txt, ...);
 
 
 //================================================================
-  int UtxTab_dump (TxtTab *tab) {
+  int UtxTab_dump (TxtTab *tab, char *inf) {
 //================================================================
 /// dump all strings (test)
 
   int  i1, i2;
 
-  printf("UtxTab_dump %d\n",tab->iNr);
+  printf("UtxTab_dump iNr=%d %s\n",tab->iNr,inf);
 
   for(i1=0; i1<tab->iNr; ++i1) {
     i2 = tab->ind[i1];

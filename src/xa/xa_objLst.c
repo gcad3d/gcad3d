@@ -1107,8 +1107,9 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
 //================================================================
 // update = UI_FuncWork = 98
 
-  int    iCod, i1;
-  char   *p1;
+  int    irc, i1, iCod, typ;
+  long   dbi, dli, lNr;
+  char   *p1, s1[80];
 
   static UINT_8 txtNot=0, ignCas=1, mode=0, op1=Typ_ope_or, op2=0, grp=1;
 
@@ -1238,8 +1239,54 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
 
 
   //----------------------------------------------------------------
+  } else if(iCod == UI_FuncUCB14) {      // "edit" button pressed
+    // get oid
+    p1 = GUI_entry_get (&mcl_dep__);
+    if(!strlen(p1)) {
+      TX_Print("**** key objID to edit into entry objID ...");
+      goto L_exit;
+    }
+      // printf(" mcl_CB1-UCB14-oid |%s|\n",p1);
+
+    // get dbo from objID
+    APED_dbo_oid (&typ, &dbi, p1);
+
+    // find dli & lineNr of definition of obj
+    irc = APED_find_dbo (&dli, &lNr, typ, dbi);
+    if(irc < 0) {
+      sprintf(s1, "**** cannot find object \"%s\"",p1);
+      TX_Print(s1);
+      goto L_exit;
+    }
+
+
+    //----------------------------------------------------------------
+    if(UI_InpMode == UI_MODE_MAN) {    // MAN: jump into line defining obj <p1>
+      // hilite obj <p1> 
+      DL_hili_off (-1L);                // unhilite all hilited objects
+      DL_hili_on (dli);                 // hilite obj
+      DL_Redraw ();
+      EDI_sel_lnr (lNr);                // select Line, set Curpos to Line.
+
+    //----------------------------------------------------------------
+    } else if(UI_InpMode == UI_MODE_CAD) {
+      // edit definition of obj <p1>
+      ED_set_lnr_act (lNr);
+      IE_activate ();                   // start CAD-edit
+
+    //----------------------------------------------------------------
+    } else {     // VWR - hilite obj <p1> and add to group
+      // hilite obj <p1> 
+      DL_hili_on (dli);                 // hilite obj
+      // add to group, update display
+      DL_grp1__ (dli, NULL, 1, 0);
+    }
+
+
+  //----------------------------------------------------------------
   }
 
+  L_exit:
     // printf(" ex UI_mcl_CB1 mode=%d txt=%d grp=%d\n", mode,txt,grp);
     // { char **pa; pa = mcl_wTab;
     // while (*pa) { printf(" |%s|\n",*pa); ++pa; } }
@@ -1515,7 +1562,7 @@ static MemObj win0;
 
     //================================================================
     case UI_FuncExit:          // 102
-        printf(" UI_FuncExit..\n");
+        // printf(" UI_FuncExit..\n");
       // GUI_list1_clear (&mcl_win);
       // GUI_hide__ (&win0);
 
@@ -1560,7 +1607,7 @@ static MemObj win0;
 
       win0  = GUI_Win__ ("ObjectList", UI_mcl__, "");
       boxv0 = GUI_box_v (&win0, "e,e");
-      // 1. hor. box fuer die Buttons
+      // boxh1 = hor. box for ckButts points - models
       strcpy (s1, "e,a");
 
       boxh1 = GUI_box_h (&boxv0, s1);
@@ -1591,7 +1638,8 @@ static MemObj win0;
                             &mclTab[7], s1);
 
 
-      // hor. box fuer die Buttons
+      //----------------------------------------------------------------
+      // boxh2 = hor. box for ckButts Vars-Trans & butt "all"
       boxh2 = GUI_box_h (&boxv0, s1);
       
       mcl_cba[8] =
@@ -1617,14 +1665,18 @@ static MemObj win0;
       GUI_sep_h (&boxv0, 2);
 
 
+      //----------------------------------------------------------------
+      // bhc = hor. box for infotext 
       bhc = GUI_box_h (&boxv0, "a,a");
       bv1 = GUI_box_v (&bhc, "a,a");
 
         w2 = GUI_box_h (&bv1, "a,a");
           mcl_txt__ = GUI_entry__ (&w2, " has infotext:", "", NULL, NULL, "a,a");
+
           GUI_ckbutt__ (&w2, "not ", FALSE, UI_mcl_CB1,
                       &GUI_FuncUCB4, "a,a");
           MSG_Tip        ("SN_TxtNot");
+
           GUI_ckbutt__ (&w2, "ignore case ", TRUE, UI_mcl_CB1,
                       &GUI_FuncUCB5, "a,a");
 
@@ -1649,7 +1701,8 @@ static MemObj win0;
 
 
           // MSG_Tip ("SN_New");
-          mcl_dep__ = GUI_entry__ (&w2, NULL, "", NULL, NULL, "a,a");
+          GUI_sep_v (&w2, 2);
+          mcl_dep__ = GUI_entry__ (&w2, "  objID", "", NULL, NULL, "a,a");
 
           GUI_sep_v (&bhc, 2);
 
@@ -1691,10 +1744,13 @@ static MemObj win0;
 
 
 
+      //----------------------------------------------------------------
       w2 = GUI_box_h (&bv3, "a,a");
         GUI_button__(&w2, "Help",      UI_mcl_CB1, &GUI_FuncUCB11, "e,a");
+        GUI_button__(&w2, "edit",      UI_mcl_CB1, &GUI_FuncUCB14, "e,a");
         GUI_button__(&w2, "search/update", UI_mcl_CB1, &GUI_FuncUCB9, "e,a");
         GUI_Tip (MSG_const__(MSG_upd));
+
 
       // list
       bvl = GUI_box_v (&boxv0, "e,e");

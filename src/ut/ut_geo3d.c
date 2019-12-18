@@ -267,8 +267,8 @@ UT3D_pt_m3                copy origin out of 4x3-matrix
 UT3D_pt_seg_par_nln       point <-- segNr & parameter on lines[] (Typ_CVLNA)
 
 UT3D_ptvcpar_std_dbo      get typical points & tangent-vector for DB-obj
-UT3D_ptvcpar1_std_obj     get typical points & tangent-vector for obj
-UT3D_ptvcpar1_ipt_obj     get control-points (tangent-vector) for polygon,spln
+UT3D_ptvcpar_std_obj     get typical points & tangent-vector for obj
+UT3D_ptvcpar_ipt_obj     get control-points (tangent-vector) for polygon,spln
 
 -------------- Axis/Ray | tangent -----------------------------
 UT3D_ptvc_int2pl          point/vector = intersection of 2 planes
@@ -6579,8 +6579,8 @@ Returncodes:
                             int pType, int dbtyp, long dbi) {
 //=======================================================================
 /// \code
-/// UT3D_ptvcpar1_std_obj   get typical points & tangent-vector for DB-obj
-/// see UT3D_ptvcpar1_std_obj
+/// UT3D_ptvcpar_std_obj   get typical-points,tangent-vector,parameter for DB-obj
+/// see UT3D_ptvcpar_std_obj
 /// \endcode
 
   ObjGX   oxi;
@@ -6588,18 +6588,18 @@ Returncodes:
 
   OGX_SET_INDEX (&oxi, dbtyp, dbi);
 
-  return UT3D_ptvcpar1_std_obj (pto, vco, par,
+  return UT3D_ptvcpar_std_obj (pto, vco, par,
                                pType, Typ_ObjGX, &oxi);
 
 }
 
 
 //=======================================================================
-  int UT3D_ptvcpar1_ipt_obj (Point *pto, Vector *vco, double *par,
+  int UT3D_ptvcpar_ipt_obj (Point *pto, Vector *vco, double *par,
                             int ipt, int cvTyp, void *cvDat) {
 //=======================================================================
 /// \code
-/// UT3D_ptvcpar1_ipt_obj     get control-points & tangent-vector for polygon,spln
+/// UT3D_ptvcpar_ipt_obj     get control-points/tangent-vector/param. for curve
 ///
 /// Input:
 ///   pto        NULL for no output
@@ -6611,7 +6611,7 @@ Returncodes:
 /// Output: 
 ///   pto        point out
 ///   vco        vector out      normalized ??
-///   par        parameter out (0-1)
+///   par        parameter out (vTyp=0; see INF_struct_par)
 ///   retcod     0=ok, -1=Error
 /// 
 /// nr of std-points: UTO_ptnr_std_obj
@@ -6629,7 +6629,7 @@ Returncodes:
   void    *vp1;
 
 
-  // printf("UT3D_ptvcpar1_ipt_obj ipt=%d cvTyp=%d\n", ipt, cvTyp);
+  // printf("UT3D_ptvcpar_ipt_obj ipt=%d cvTyp=%d\n", ipt, cvTyp);
   // DEB_dump_obj__ (cvTyp, cvDat, "  _ipt_obj-obj");
 
   irc = 0;
@@ -6813,10 +6813,10 @@ Returncodes:
     case Typ_ObjGX:
       i1 = UTO_objDat_ox (&vp1, &i2, cvDat);
       if(i1 < 0) return -1;
-      if(i2 > 1) TX_Print("**** UT3D_ptvcpar1_ipt_obj I001");
+      if(i2 > 1) TX_Print("**** UT3D_ptvcpar_ipt_obj I001");
 
       // recursion
-      irc = UT3D_ptvcpar1_ipt_obj (pto, vco, par, ipt, i1, vp1);
+      irc = UT3D_ptvcpar_ipt_obj (pto, vco, par, ipt, i1, vp1);
       break;
 
 
@@ -6828,7 +6828,7 @@ Returncodes:
       UTO_cv_cvtrm (&i1, cp1, NULL, (CurvCCV*)cvDat);
 // TODO: spline, clot has v0-point, v1-point in CurvCCV-struct (io0, ip1) !?
       // recursion
-      irc = UT3D_ptvcpar1_ipt_obj (pto, vco, par, ipt, i1, cp1);
+      irc = UT3D_ptvcpar_ipt_obj (pto, vco, par, ipt, i1, cp1);
       break;
 
 
@@ -6839,10 +6839,10 @@ Returncodes:
 
 
     // TESTBLOCK
-    // printf(" ex-UT3D_ptvcpar1_ipt_obj-irc =%d\n",irc);
+    // printf(" ex-UT3D_ptvcpar_ipt_obj-irc =%d\n",irc);
     // if(irc >= 0) {
-      // if(par) printf("ex UT3D_ptvcpar1_ipt_obj par=%lf\n",*par);
-      // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_ptvcpar1_ipt_obj");
+      // if(par) printf("ex UT3D_ptvcpar_ipt_obj par=%lf\n",*par);
+      // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex UT3D_ptvcpar_ipt_obj");
       // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
       // if(vco) GR_Disp_vc (vco, pto, 9, 1);
     // }
@@ -6854,12 +6854,12 @@ Returncodes:
 
   //----------------------------------------------------------------
   L_err_FNI:  // function not implemented
-    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar1_ipt_obj");
+    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_ipt_obj");
     return MSG_ERR__ (ERR_func_not_impl, "/ pTyp %d cvTyp %d", ipt, cvTyp);
 
   L_err_par:
-    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar1_ipt_obj");
-    TX_Print("**** UT3D_ptvcpar1_ipt_obj error parameter");
+    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_ipt_obj");
+    TX_Print("**** UT3D_ptvcpar_ipt_obj error parameter");
 
   return -1;
 
@@ -6870,7 +6870,7 @@ Returncodes:
   int UT3D_vc_mod_obj (Vector *vco, int iMod, int cvTyp, void *cvDat) {
 //=====================================================================
 // UT3D_vc_mod_obj              get typical (normal-)vectors for obj (MOD)
-//   for tangents see UT3D_ptvcpar1_std_obj
+//   for tangents see UT3D_ptvcpar_std_obj
 //
 // Main/sub-axis of Circ, ellipse, Plane:
 //
@@ -6932,33 +6932,35 @@ Returncodes:
 }
 
  
-//=======================================================================
-  int UT3D_ptvcpar1_std_obj (Point *pto, Vector *vco, double *par,
+//========================================================================
+  int UT3D_ptvcpar_std_obj (Point *pto, Vector *vco, double *par,
                             int pType, int cvTyp, void *cvDat) {
-//=======================================================================
+//========================================================================
 /// \code
-/// UT3D_ptvcpar1_std_obj     get typical points & tangent-vector for obj
-///                       (start, end, mid, ..)
-///  for normal-vectors: see UT3D_vc_mod_obj
-///   (parametric-points, typical-points, standardpoints, characteristic-points)
-///
-/// Input:
-///   pto        NULL for no output
-///   vco        NULL for no output
-///   par        NULL for no output
-///   pType      which point to compute (eg Ptyp_start|Ptyp_end ../ut/AP_types.h)
-///   cvTyp      type of cvDat; eg Typ_LN
-///   cvDat      line/curve, eg struct Line
-/// Output:
-///   pto        point out
-///   vco        vector out      normalized ??
-///   par        parameter out (0-1)
-///   retcod     -1=Error, >=0 = nr-of-typical-points
-///
-/// nr of std-points: UTO_ptnr_std_obj
-/// boxpoints: see UT3D_box_obja
-/// parameter: see UT3D_ptvc_tng_crv_par UT3D_pt_evparcrv
-/// control-points: UT3D_ptvcpar1_ipt_obj
+// UT3D_ptvcpar_std_obj     get typical-points/parameter/tangent-vector for obj
+//                       (start, end, mid, ..)
+//  for normal-vectors: see UT3D_vc_mod_obj
+//   (parametric-points, typical-points, standardpoints, characteristic-points)
+//
+// Input:
+//   pto        NULL for no output
+//   vco        NULL for no output
+//   par        NULL for no output
+//   pType      which point to compute (eg Ptyp_start|Ptyp_end ../ut/AP_types.h)
+//   cvTyp      type of cvDat; eg Typ_LN
+//   cvDat      line/curve, eg struct Line
+//
+// Output:
+//   pto        point out
+//   vco        vector out      normalized ??
+//   par        parametervalue 0-1 or knotvalue for splines,polygon;
+//              (vTyp=0 - see INF_struct_par)
+//   retcod     -1=Error, >=0 = nr-of-typical-points
+//
+// nr of std-points: UTO_ptnr_std_obj
+// boxpoints: see UT3D_box_obja
+// parameter: see UT3D_ptvc_tng_crv_par UT3D_pt_evparcrv
+// control-points: UT3D_ptvcpar_ipt_obj
 /// \endcode
 
 // TODO: extract surfaces into new function (sur needs upar,vpar, dType (normal|along-u|along-v)
@@ -6975,7 +6977,7 @@ Returncodes:
   void    *vp1;
 
 
-  // printf("UT3D_ptvcpar1_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
+  // printf("UT3D_ptvcpar_std_obj pType=%d cvTyp=%d\n", pType, cvTyp);
 
   irc = 0;
 
@@ -7127,7 +7129,7 @@ Returncodes:
 
       L_POL1:
       if(vco) UT3D_vc_evalplg (vco, (CurvPoly*)cvDat, db1);
-      if(par) *par = UT3D_par1_parplg (&db1, (CurvPoly*)cvDat);
+      if(par) *par = db1; // UT3D_par1_parplg (&db1, (CurvPoly*)cvDat);
       irc = 3;
       break;
   
@@ -7289,10 +7291,10 @@ Returncodes:
     case Typ_ObjGX:
       i1 = UTO_objDat_ox (&vp1, &i2, cvDat);
       if(i1 < 0) return -1;
-      if(i2 > 1) TX_Print("**** UT3D_ptvcpar1_std_obj I001");
+      if(i2 > 1) TX_Print("**** UT3D_ptvcpar_std_obj I001");
 
       // recursion
-      irc = UT3D_ptvcpar1_std_obj (pto, vco, par, pType, i1, vp1);
+      irc = UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, vp1);
       break;
 
 
@@ -7305,7 +7307,7 @@ Returncodes:
       UTO_cv_cvtrm (&i1, cp1, NULL, (CurvCCV*)cvDat);
 // TODO: spline, clot has v0-point, v1-point in CurvCCV-struct (io0, ip1) !?
       // recursion
-      irc = UT3D_ptvcpar1_std_obj (pto, vco, par, pType, i1, cp1);
+      irc = UT3D_ptvcpar_std_obj (pto, vco, par, pType, i1, cp1);
       break;
 
 
@@ -7316,9 +7318,9 @@ Returncodes:
 
 
     // TESTBLOCK
-    // printf(" ex-UT3D_ptvcpar1_std_obj-irc =%d\n",irc);
+    // printf(" ex-UT3D_ptvcpar_std_obj-irc =%d\n",irc);
     // if(irc >= 0) {
-      // if(par) printf("ex UT3D_ptvcpar1_std_obj par=%lf\n",*par);
+      // if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
       // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex ptvcpar_std_obj");
       // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
       // if(vco) GR_Disp_vc (vco, pto, 9, 1);
@@ -7331,7 +7333,7 @@ Returncodes:
 
   //----------------------------------------------------------------
   L_err_FNI:  // function not implemented
-    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar1_std_obj");
+    DEB_dump_obj__ (cvTyp, cvDat, " *** ERR UT3D_ptvcpar_std_obj");
     return MSG_ERR__ (ERR_func_not_impl, "/ pTyp %d cvTyp %d", pType, cvTyp);
 
 }
@@ -11147,8 +11149,10 @@ liegt. ohne acos.
 /// \code
 /// UT3D_vc_tng_crv_pt           vector tangent to curve
 /// Input:
-///   typ   type of curve 
-///   data  curve-data
+///   typ      type of curve 
+///   data     curve-data
+///   retCode  0   OK
+///           -1   Error  
 ///
 /// see UT3D_ptvc_tng_crv_par
 /// \endcode
@@ -13258,6 +13262,8 @@ Version 2 - auch Mist
 ///   }
 /// \endcode
 
+
+  // printf("UT3D_ci_cip3 \n");
 
   ci1->p1 = *p1;
   ci1->p2 = *p2;

@@ -65,6 +65,8 @@
 #define UI_FuncUCB11    1011
 #define UI_FuncUCB12    1012
 #define UI_FuncUCB13    1013
+#define UI_FuncUCB14    1014
+#define UI_FuncUCB15    1015
     
 // was ../ut/ut_geo.h
 /// events

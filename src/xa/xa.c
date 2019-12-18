@@ -1214,7 +1214,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     sprintf (cbuf , "# %s",OS_date1());
     UTF_add_line (cbuf);
     ED_lnr_act = 2;       // ED_set_lnr_act (2L);
-    UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(2));  // display lNr
+    UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(2L));  // display lNr
 
     // reset model-modified (was activated with UTF_add_line)
     // AP_mdl_modified_reset ();
@@ -1267,7 +1267,8 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
     // PED_CB1 (GUI_ES("Exit")); // kill PED if active
-    EDMPT_CB1 (GUI_ES("Exit"));  // kill EDMPT if active
+    // EDMPT_CB1 (GUI_ES("Exit"));  // kill EDMPT if active
+    // OS_dll_do ("xa_edmpt", NULL, NULL, 2);  // unload dll xa_edmpt
 
     DL_Redraw ();
 
@@ -1397,7 +1398,9 @@ static long old_lNr = -2;
     // WC_Work__ (lNr, mem_cbuf1);
 
     // cursor auf Line lNr setzen 
-    EDI_goto_lnr (lNr-1);
+    EDI_set_lNr__ (lNr-1);
+
+
     // work Line ...
     ED_work_CurSet (lNr);
 
@@ -1978,7 +1981,7 @@ ED_Run
   int    irc, i1, i2, i3, imods=0;
 
 
-  printf("AP_init__ iniNew=%d AP_argNr=%d\n",iniNew,AP_argNr);
+  // printf("AP_init__ iniNew=%d AP_argNr=%d\n",iniNew,AP_argNr);
     // exit(0);
 
   if(iniNew > 0) return 0;
@@ -1993,14 +1996,14 @@ ED_Run
   //----------------------------------------------------------------
   L_next_par:
   if(AP_argNr > i1) {
-      printf(" nxtpar %d |%s|\n",i1,AP_argv[i1]);
+      // printf(" AP_init__-nxtpar %d |%s|\n",i1,AP_argv[i1]);
 
     //------------------------------------------------------------
     if(!strncmp(AP_argv[i1], "mode_cad", 8)) {
       // iStartMode = 1;
       if(strlen(AP_argv[i1]) > 8) {
         sscanf (&AP_argv[i1][8],"_%d_%d",&i2, &i3);
-          printf(" cadIni = %d %d\n",i2, i3);
+          // printf(" cadIni = %d %d\n",i2, i3);
         AP_stat.cadIniM = i2;
         AP_stat.cadIniS = i3;
       }
@@ -2056,7 +2059,7 @@ ED_Run
   char  s1[128];
 
 
-  printf("AP_testdll__ %d\n",mode);
+  // printf("AP_testdll__ %d\n",mode);
 
 
   //----------------------------------------------------------------
@@ -3388,21 +3391,21 @@ remote control nur in VWR, nicht MAN, CAD;
   if(ift == Mtyp_DXF) {        // DXF
     // UI_WinDxfImp (NULL, (void*)UI_FuncInit3);
     // AP_ImportDxf (0, "0,0,0", cbuf);
-    irc = OS_dll_do ("xa_dxf_r", "DXF_r__", cbuf);
+    irc = OS_dll_do ("xa_dxf_r", "DXF_r__", cbuf, 0);
     if(irc < 0) return irc;
     mode = 2;
     goto L_native;
 
 
   } else if(ift == Mtyp_Iges) {
-    irc = OS_dll_do ("xa_ige_r", "IGE_r__", cbuf);
+    irc = OS_dll_do ("xa_ige_r", "IGE_r__", cbuf, 0);
     AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
     DB_size_set (lTab);                       // increase DB-size
     dbResiz = 1;                              // DB-resize done
 
 
   } else if(ift == Mtyp_Step) {
-    irc = OS_dll_do ("xa_stp_r", "STP_r__", cbuf);
+    irc = OS_dll_do ("xa_stp_r", "STP_r__", cbuf, 0);
     // printf(" nach OS_dll_do %d\n",irc);
     AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
     DB_size_set (lTab);                       // increase DB-size
@@ -3416,7 +3419,7 @@ remote control nur in VWR, nicht MAN, CAD;
       UI_loadMock_CB (mnam, AP_mod_dir);
     }
     if(ift == Mtyp_WRL2) {
-      irc = OS_dll_do ("xa_vr2_r", "VR2_r__", cbuf);
+      irc = OS_dll_do ("xa_vr2_r", "VR2_r__", cbuf, 0);
       if(irc < 0) goto L_exit;
       // dbResiz = 1;                             // DB-resize done
     }
@@ -3445,8 +3448,8 @@ remote control nur in VWR, nicht MAN, CAD;
     } else {
       // printf(" load native |%s|\n",cbuf);
       if(ift == Mtyp_OBJ) {   // obj
-        // irc = OS_dll_do ("xa_OBJ_R", "obj_read__", cbuf);
-        irc = OS_dll_do ("xa_obj_r", "obj_read__", cbuf); // 2013-08-15
+        // irc = OS_dll_do ("xa_OBJ_R", "obj_read__", cbuf, 0);
+        irc = OS_dll_do ("xa_obj_r", "obj_read__", cbuf, 0); // 2013-08-15
       } else {
         TX_Print("**** ERROR - import native %s not implemented yet",AP_mod_ftyp);
         irc = -1;
@@ -3562,7 +3565,7 @@ remote control nur in VWR, nicht MAN, CAD;
       AP_Mod_lstAdd ();
     }
 
-      printf("ex-AP_Mod_load__ %d\n",irc);
+      // printf("ex-AP_Mod_load__ %d\n",irc);
 
     return irc;
 
@@ -4297,8 +4300,9 @@ remote control nur in VWR, nicht MAN, CAD;
 
   printf("AP_test__\n");
 
-  PRCV_DB_dump ("AP_test__");
-
+  // PRCV_DB_dump ("AP_test__");
+  OS_dll_do ("xa_edmpt", NULL, NULL, 2);
+  // OS_dll_unload_idle ("xa_edmpt");
 
   // ED_test__();
 

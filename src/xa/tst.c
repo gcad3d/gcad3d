@@ -129,14 +129,19 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
   // attach KeyIn - connect KeyIn -> func dia_KeyIn
   AP_UserKeyIn_get (tst_key_CB);
+    // attach grafic selections
+  // AP_UserSelection_get (tst_sel_CB);
+
 
 
   //================================================================
-  i1 = tst__ (0);       goto L_end;   // // exit plugin
+  i1 = tst__ (0);    goto L_end;   // // exit plugin
+  TX_Print("*** exit plugin with key 'q' or 'Esc'"); return 0;
   // i1 = tst_surfaces (0);       goto L_end;   // // exit plugin
   // if(i1 == 0) return 0;     // keep plugin alive
   //================================================================
   // TEST EXPORT_DLL'S:
+  // tst_edmpt ();
   // tst_print__ ();  // OS_dll_do ("xa_print__", "PRI__"
   // tst_print_pdf ();
   // tst_exp_stp ();
@@ -170,6 +175,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   return 0;
 
 }
+
 
 //=========================================================
   int tst_sel_CB (int src, long dl_ind) {
@@ -219,7 +225,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 // dll being unloaded - reset Input, kill all open windows !!!
 
   TX_Print("...... gCad_fini tst");
-  AP_User_reset ();      // close application
+  AP_User_reset ();      // close application - reset KeyIn,Selection ..
   return 0;
 
 }

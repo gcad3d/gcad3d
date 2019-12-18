@@ -263,8 +263,8 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   cvtrm->dbi = dbi;
 
   // get parameters as 0-1
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, data);
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, data);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, data);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, data);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, data);
@@ -303,8 +303,13 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
   // parameters -> par-0-1
-  cvo->v0 = UT3D_par1_parplg (kv0, plg);
-  cvo->v1 = UT3D_par1_parplg (kv1, plg);
+  // cvo->v0 = UT3D_par1_parplg (kv0, plg);
+  // cvo->v1 = UT3D_par1_parplg (kv1, plg);
+  // parameters in trimmed-curve have vTyp=0
+  cvo->v0 = *kv0;
+  cvo->v1 = *kv1;
+
+  if(cvo->v0 > cvo->v1) cvo->dir = 1;    // 1=backward
 
     // DEB_dump_obj__ (Typ_CVTRM, cvo, " ex CVTRM__plg_iseg");
 
@@ -1800,6 +1805,7 @@ REPLACED by UT3D_obj_ccv_segnr
     // printf("ex-CVTRM__basCv__ iNr=%d\n",iNr);
     // DEB_dump_obj__ (Typ_CVTRM, cv2, " _trmCv__-cv2");
     // DEB_dump_obj__ (form, *data, " _trmCv__-data");
+    // printf(" \n\n");
     // TESTBLOCK
 
   return 0;
@@ -1889,8 +1895,8 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // get parameters as 0-1
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, obj);
-  UT3D_ptvcpar1_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, obj);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, obj);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, obj);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, obj);
@@ -1970,7 +1976,7 @@ REPLACED by UT3D_obj_ccv_segnr
 }
 */
 
-/* replaced by UT3D_ptvcpar1_std_obj
+/* replaced by UT3D_ptvcpar_std_obj
 //=========================================================================
   int UT3D_pt_endptccv (Point *pTab, ObjGX *ccv1) {
 //=========================================================================

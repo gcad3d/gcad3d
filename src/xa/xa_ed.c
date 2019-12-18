@@ -76,7 +76,7 @@ ED_work_GO
 ED_work_END         das "RUN"
 ED_work_exit        exit modify, work from curPos to end of model ..
 
-ED_set_lnr_act      set ED_lnr_act
+ED_set_lnr_act      set ED_lnr_act = lNr 
 ED_get_lnr_act      get ED_lnr_act; see also ED_Get_LineNr
 ED_set_cpos_lnr_act set ED_cpos to start of line ED_lnr_act
 
@@ -271,12 +271,13 @@ static FILE      *maclun = NULL;
 
 
 
-       int       ED_lnr_act;       // DIE AKTUELLE LINE-NR !!
+       int       ED_lnr_act;        // active lienNr
+       int       ED_lnr_max;        // total nr of lines
+       char      *ED_cpos;          // mem-position of last ED_Read_Line
+
 static int       ED_lnr_von;
 static int       ED_lnr_bis;
-static int       ED_lnr_max;
 static int       ED_lnr_SM = -1;    // lineNr of active subModel (read from file)
-       char      *ED_cpos;          // mem-position of last ED_Read_Line
 
 
 long   UI_Ed_fsiz;      // Textsize
@@ -1237,6 +1238,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
   // printf("ED_del_block |%s|%s|\n",fromLn,toLn);
 
   // get cPos of line starting <fromLn>
+  i1 = 0L;
   cFrom = UTF_find_tx1 (&i1, fromLn);
   if(cFrom == NULL) return -1;
 
@@ -1674,6 +1676,7 @@ static int lnr1, lnr2;
 
   
   // Position & Zeilenummer der "DYNAMIC_AREA" suchen
+  lNr = 0L;
   cPos = UTF_find_tx1 (&lNr, ":DYNAMIC_DATA");
   // cPos = UTF_find_tx1 (&lNr, ":DYNAMIC_AREA");
   if(cPos == NULL) return 0;    // keine daten ..
@@ -2127,7 +2130,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   // Den Cursor an den Anfang der nxt Line
   // UI_AP (UI_FuncSet, UID_Edit_LnNxt, NULL);
   // GUI_Ed_setCnxtL (&winED);
-  EDI_set_lnr (lNr);
+  EDI_set_lNr__ (lNr);
 
 
   return ED_lnr_act;
@@ -2400,7 +2403,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   ED_set_lnr_act ((long)ED_lnr_act);
 
   // disp LineNr
-  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT(ED_lnr_act));
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_INT((long)ED_lnr_act));
 
   // display active Constr.Plane and en/dis-able the rel|abs checkboxes
   UI_Set_ConstPl_Z ();
@@ -2769,6 +2772,7 @@ static int  actLev=0;
 //=========================================================================
   int ED_set_lnr_act (long lNr) { 
 //=========================================================================
+/// ED_set_lnr_act          set ED_lnr_act = lNr 
 /// see also ED_set_lnr_act EDI_goto_lnr
 
 
@@ -3345,7 +3349,8 @@ static int  actLev=0;
     // UI_AP (UI_FuncSet, UID_Edit_LnNxt, NULL);
     // GUI_Ed_setCnxtL (&winED);
     ++ED_lnr_act;
-    EDI_set_lnr (ED_lnr_act);
+    // EDI_set_lnr (ED_lnr_act);
+    EDI_set_lNr__ (ED_lnr_act);
     // ++ED_lnr_act;
 
   }

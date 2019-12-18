@@ -2810,6 +2810,8 @@ void UTRA_WCS_UCS_PT (Point*, Point*);
 ///   distance: from Typ_Val to Typ_Par1 (all *val; not Angle, Rad, )
 #define TYP_IS_DIST(typ) ((typ>=Typ_Val)&&(typ<Typ_Angle))
 
+/// check if typ is a function; returns 0=no; 1=yes.
+#define TYP_IS_FNC(typ) ((typ>=TYP_FuncInit)&&(typ<Typ_ALL))
 
 /// check if typ is a math.function; returns 0=no; 1=yes.
 #define TYP_IS_FCM(typ) ((typ>=Typ_FcmSQRT)&&(typ<310))

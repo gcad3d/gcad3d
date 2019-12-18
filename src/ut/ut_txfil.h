@@ -1,4 +1,4 @@
-// ut_txfil.h           RF
+// ../ut/ut_txfil.h           RF
 
   int   UTF_clear_     ();
   long  UTF_offset_    (char* cpos);

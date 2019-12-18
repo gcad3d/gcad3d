@@ -76,6 +76,7 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 #include "../gui/gui__.h"         // Gtk
 
 
+
 #define   TRUE 1
 #define   FALSE 0
 
@@ -234,7 +235,7 @@ extern int     APT_dispDir;
   txt = GUI_DATA_S1;
     // printf("IE_ed1_mod  /%s/\n",txt);
 
-  // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));   // raise win
+  // IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB1));   // raise win
 
 
   if(!strcmp(txt, "Exit")) {
@@ -340,9 +341,9 @@ extern int     APT_dispDir;
   i1 = IE_bufSiz - 3;
     // printf(" IE_buf-last |%s|\n",&IE_buf[i1]);
   if(!strcmp (&IE_buf[i1], " CW")) {                  // 2014-04-10
-    IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB2));
+    IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB2));
   } else {
-    IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
+    IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB1));
   }
 
 
@@ -408,7 +409,7 @@ extern int     APT_dispDir;
   }
 
   // TYP_EventRelease ..
-  iKey = GUI_DATA_I1;
+  iKey = GUI_DATA_L1;
     // printf("IE_ed1_CB iKey=%d\n",iKey);
 
 
@@ -425,7 +426,7 @@ extern int     APT_dispDir;
         //  MODIFY: exit all ..
         IE_cad_Inp_undo ();      // delete last CAD-input or exit func
         // kill GruppenEditorWindow, if activ
-        IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+        IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncKill));
       }
       goto L_skip_key;
 
@@ -492,7 +493,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
   int      i1, mode;
 
 
-  i1 = GUI_DATA_I1;
+  i1 = GUI_DATA_L1;
   // printf("IE_ed1__ %d\n",i1);
 
 

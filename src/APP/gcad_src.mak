@@ -27,7 +27,6 @@ SRCG =\
   ../xa/xa_sele.c\
   ../xa/xa_mod_gui.c\
   ../xa/xa_brw.c\
-  ../xa/xa_edmpt.c\
   ../xa/xa_gmvo.c\
   ../xa/xa_ted.c\
   ../xa/xa_meas.c\
@@ -52,6 +51,7 @@ SRCG =\
   ../xa/opar.c\
   ../xa/srcu.c\
 
+# ../xa/xa_edmpt.c\
 # ../xa/xa_ui_nc.c\
 # ../xa/xa_smd.c
 

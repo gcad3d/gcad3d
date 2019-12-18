@@ -219,8 +219,9 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   ObjGX   *oTab;
 
 
-  printf("gCad_main ex  xa_obj_r.dll\n");
+  // printf("gCad_main-xa_obj_r.dll\n");
   // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
+
 
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT_PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
@@ -388,13 +389,13 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
 
-  printf("obj_readTess__\n");
+  // printf("obj_readTess__\n");
 
 
   // get filesize
   fSiz = OS_FilSiz (fnam);
   if(fSiz < 1) {TX_Print("wrl_readTess__ FileExist E001 %s",fnam); return -1;}
-  printf(" fSiz=%ld\n",fSiz);
+    // printf(" fSiz=%ld\n",fSiz);
 
 
   if((fpi=fopen(fnam,"rb")) == NULL) {
@@ -435,7 +436,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
     ++vNr;
   }
   rewind(fpi);
-  printf(" 1.vNr=%d fNr=%d\n",vNr,fNr);
+    // printf(" 1.vNr=%d fNr=%d\n",vNr,fNr);
 
   if((vNr < 1)||(fNr < 1)) {
     TX_Print("ERROR: file %s is empty .. ",fnam);
@@ -539,7 +540,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   ox2->siz = fNr;
 
-  printf(" 2.fNr=%d\n",fNr);
+    // printf(" 2.fNr=%d\n",fNr);
 
 
 
@@ -548,7 +549,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   // size setzen ..
   ox1->data = (void*)((long)((char*)impSpc->next - (char*)ox1 -
               sizeof(ObjGX)));  // - size-record
-  printf(" recSiz = %d\n",INT_PTR(ox1->data));
+    // printf(" recSiz = %d\n",INT_PTR(ox1->data));
 
 
   // alle ?

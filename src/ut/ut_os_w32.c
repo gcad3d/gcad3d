@@ -187,7 +187,7 @@ static int   (*up1)();
   char  *p1, s1[256];
 
 
-  // printf("OS_prc_dll %d\n",mode);
+  printf("OS_prc_dll %d\n",mode);
 
 
   //----------------------------------------------------------------
@@ -211,7 +211,7 @@ static int   (*up1)();
   //----------------------------------------------------------------
   // mode -3 = connect (connect Func fDat)
   } else if(mode == -3) {
-      // printf(" func fDat = |%s|\n",(char*)fDat);
+      printf(" func fDat = |%s|\n",(char*)fDat);
 
 
     // Adresse von Func.fncNam holen
@@ -1756,6 +1756,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
   sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
+    printf(" dll_build-1 |%s|\n",cbuf);
 
   // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
   // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");
@@ -1763,9 +1764,8 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
   strcat(cbuf, OS_os_s());
-
-  // "make -f %s.mmak"
-  printf("|%s|\n",cbuf);
+    // "make -f %s.mmak"
+    printf("dll_build-2 |%s|\n",cbuf);
 
 
   irc = system(cbuf);
@@ -1809,6 +1809,21 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 }
 
+
+//================================================================
+  int OS_dll_unload_idle (void *data) {
+//================================================================
+// DLL_unload       unload a dll (idle-callback)
+
+
+  printf("OS_dll_unload_idle |%s|\n",(char*)data);
+
+  // OS_dll_close_fn ((char*)data);
+  OS_dll_do ((char*)data, NULL, NULL, 2);
+
+  return 0;   // must be 0 - removes idle-Call
+
+}
 
 
 //================================================================
@@ -1952,42 +1967,79 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 }
 
 
-//================================================================
-  int OS_dll_do (char *dllNam, char *fncnam, void *fncdat) {
-//================================================================
+//=====================================================================
+  int OS_dll_do (char *dllNam, char *fncNam, void *fncDat, int mode) {
+//=====================================================================
 /// load dll; start function fncNam (fncDat); unload dll.
-
-/*
-  // remove dll (damit man Compile-Error bemerkt)
-  OS_file_delete ("xa/xa_stp_r.so");
-  system("cd xa;make -f xa_stp_r.mak");
-  AP_dll_do ("xa_stp_r", "STP_r__", "dat/.0.stp");
-*/
-
-
-  char  cBuf[256];
+/// see also UI_DllLst_work
+// Input:
+//   fncnam  main-entry using datablock
+//   fncdat  datablock
+//   mode    0=load+start+unload
+//           1=load+start               - do not unload (OS_dll_close_fn
+//           2=unload
 
 
-  printf("AP_dll_do |%s|%s|\n",dllNam,fncnam);
+  static HINSTANCE hdl1=NULL;
 
+  char  dlNamAct[256];
+  int           (*dll_up1)(char*);
+
+
+  printf("OS_dll_do |%s|%s| %d\n",dllNam,fncNam,mode);
+  fflush (stdout);
+
+  if(mode == 2) { mode = 0; goto L_close; }
+
+
+  if(hdl1 != NULL) {
+    TX_Error("**** ERROR OS_dll_run: core-plugin |%s|  open ..",dllNam);
+    return -1;
+  }
 
 
   // fix DLL-FileName
-// #ifdef _MSC_VER
-  sprintf(cBuf, "%s%s.dll",OS_get_bin_dir(),dllNam);
-// #else
-  // sprintf(cBuf, "%s%s.so",OS_get_bin_dir(),dllNam);
-// #endif
-
-  printf(" so|dll=|%s|\n",cBuf);
+  sprintf(dlNamAct, "%s%s.dll",OS_get_bin_dir(),dllNam);
+    printf(" dll_do-fn |%s|\n",dlNamAct);
 
 
-  // load dll, start function, unload dll
-  return OS_dll_run (cBuf, fncnam, fncdat);
+  // load DLL
+  hdl1 = LoadLibrary (dlNamAct);
+  if(hdl1 == NULL) {
+    TX_Error("OS_dll_run: cannot open dyn. Lib. %s",dllNam);
+    return -1;
+  }
+
+
+  // stop debugger after dll is loaded
+  OS_debug_dll_(dllNam);
+
+
+  // get adress of func. <fncNam>
+  dll_up1 = (void*) GetProcAddress (hdl1, fncNam);
+  if(dll_up1 == NULL) {
+    TX_Error("OS_dll_run: cannot connect to func %s",fncNam);
+    return -1;
+  }
+
+
+  // start userprog
+  (*dll_up1)(fncDat);  // call Func in Dll
+
+
+  // close DLL
+  L_close:
+  if(mode < 1) OS_dll_close (&hdl1);     // unload DLL
+
+    printf("ex-OS_dll_run\n");
+
+
+
 
 }
 
 
+/* UNUSED
 //================================================================
   int OS_dll_run (char *dllNam, char *fncNam, char *fncDat) {
 //================================================================
@@ -1997,7 +2049,6 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   // typedef int (__stdcall *dllFuncTyp02)(char*);
   // dllFuncTyp02  dll_up1;
 
-  // static HINSTANCE hdl1=NULL;
   HINSTANCE     hdl1=NULL;
   int           (*dll_up1)(char*);
 
@@ -2033,6 +2084,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   return 0;
 
 }
+*/
 
 
 //================================================================

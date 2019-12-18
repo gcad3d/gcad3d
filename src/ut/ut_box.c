@@ -2441,8 +2441,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   L_RU_vc:
   // get start/endpoint for curve ox1[0]; then translate with vec ox1[1]
   // UTO_pt_ox  (&pta, oa, Ptyp_start|Ptyp_end);
-  irc = UT3D_ptvcpar1_std_obj (&pta[0], NULL, NULL, Ptyp_start, Typ_ObjGX, oa);
-  irc = UT3D_ptvcpar1_std_obj (&pta[1], NULL, NULL, Ptyp_end, Typ_ObjGX, oa);
+  irc = UT3D_ptvcpar_std_obj (&pta[0], NULL, NULL, Ptyp_start, Typ_ObjGX, oa);
+  irc = UT3D_ptvcpar_std_obj (&pta[1], NULL, NULL, Ptyp_end, Typ_ObjGX, oa);
 
   UT3D_box_extend (pb1, pb2, &pta[0]);
   UT3D_box_extend (pb1, pb2, &pta[1]);

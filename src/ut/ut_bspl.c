@@ -3009,7 +3009,7 @@ OUT:
   double *dist         distance curve-pt
 Returncode:
   0 = OK
-  1 = no solution (point has no projection on the curve)
+ -1 = no solution (point has no projection on the curve)
  <0 = internal error
 */
 
@@ -3026,13 +3026,15 @@ Returncode:
   // project point onto b-spline curve
   np = 32;  // size of pTab / tTab !
   irc = UT3D_pt_projptbspl (&np, pTab, tTab, bspl, pt);
-  if (irc < 0) return irc;
+  if (irc < 0) goto L_fertig;
+
+    // for(i1=0; i1<np; ++i1)DEB_dump_obj__(Typ_PT,&pTab[i1],"_bsplpt-p[%d]",i1);
 
 
   // find projection point with minimal distance from input point
   *dist = UT_VAL_MAX;
   ind = 0;
-  irc = 1;
+  irc = -1;
   for (i1=0; i1<np; ++i1) {
     dist1 = UT3D_len_2pt (&pTab[i1], pt);
       // printf("   test dist=%f pt=%f %f %f\n",dist,
@@ -3049,8 +3051,8 @@ Returncode:
   if (irc == 0) *up = tTab[ind];
 
   L_fertig:
-  // printf("ex UT3D_parCv_bsplpt: irc=%d u=%f pt=%f %f %f\n",irc,*up,
-                                // pt->x,pt->y,pt->z);
+   // printf("ex UT3D_parCv_bsplpt: irc=%d u=%f pt=%f %f %f\n",irc,*up,
+                                            // pt->x,pt->y,pt->z);
 
   return irc;
 }

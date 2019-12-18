@@ -275,7 +275,7 @@ static int    bck_GR_NoConstrPln;
 
   int   iNr;
 
-  printf("sele_src_cnvt_add typ=%d |%s|\n",typ,so);
+  // printf("sele_src_cnvt_add typ=%d |%s|\n",typ,so);
 
   iNr = sCva->iNr;
 

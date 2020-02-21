@@ -1,0 +1,84 @@
+<HTML>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<TITLE>dev_inf_en.htm</TITLE>
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+
+
+================================================================
+MS-DEV_Install:
+================================================================
+# install Mircosoft-Visual-Studio-Community + Workload-Desktop-Dev. with C++
+# find Mircosoft-Visual-Studio command-prompt; create shortcut-link on Desktop
+
+
+# open a VisualStudio-Command-prompt-terminal, eg the VS-2010
+# test the c-compiler with "cl"
+
+# create base-directory for deveopment-files
+cd/d %APPDATA%
+mkdir devel
+
+# copy deveopment-files to APPDATA%\devel\gcad3d
+# eg clone with git ..
+# on NAS use NAS2LOCAL
+
+# change directory to primary-development-directory
+cd/d %APPDATA%\devel\gcad3d\src\APP
+
+# set source-base to Local in file devbase
+do devbase-LOC
+
+# to change directory to primary-development-directory with cdgcl.bat -
+copy cdgcl.bat "%VCINSTALLDIR%\."
+
+# change directory to primary-development-directory
+cdgcl
+
+# if using gvim - set correct directory to vim.exe / gvim.exe
+notepad vi.bat
+
+
+
+
+
+================================================================
+MS-DEV_Build:
+================================================================
+
+# open a VisualStudio-Command-prompt-terminal, eg the VS-2010
+# change directory to primary-development-directory
+cdgcl
+
+# init (delete objects)
+nmake -f gcad3d.nmak guiinit
+# ..\APP\gcad__.nmak
+
+# make  ..\..\binMS32\libgui_gtk2_MS.lib
+do gui
+# nmake -f gcad_gui__.nmak
+
+# make GUI_*.exe eg ..\..\binMS32\GUI_file_open_gtk2_MS.exe
+nmake -f GUI_file_open.nmak
+nmake -f GUI_file_save.nmak
+
+# make main-exe ..\..\binMS32\gCAD3D.exe
+do c
+# nmake -f gcad3d.nmak
+# ..\APP\gcad__.nmak
+
+# testStart
+do
+
+
+
+=====================================================================
+../../doc/html/MS_dev_en.htm
+EOF
+</PRE>
+</BODY>
+</HTML>

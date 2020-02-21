@@ -8546,7 +8546,7 @@ liegt. ohne acos.
 
 
   if(d1 < UT_TOL_pt) {
-    // printf("Line Nr %d: Punkt ist im Kreismittelpunkt",APT_line_act);
+    // printf("Line Nr %d: Punkt ist im Kreismittelpunkt",APT_lNr);
     // TX_Print("Punkt ist im Kreismittelpunkt");
     *ptn = ci1->p1;
     return -1;
@@ -10506,7 +10506,7 @@ liegt. ohne acos.
   dz = fabs(vc1->dz);
 
   if((dx > dy)&&(dx > dz)) {     // X ist am groessten
-
+    if(!UTP_comp2db(dx, 1.0, UT_TOL_pt)) return 0;
     i1 = UT3D_comp2vc_d (vc1, (Vector*)&UT3D_VECTOR_X, UT_TOL_min1);
     if(i1 == 0) return 0;
     if(vc1->dx > 0.)  return 1;
@@ -10515,7 +10515,7 @@ liegt. ohne acos.
 
 
   } else if(dy > dz) {           // Y ist am groessten
-
+    if(!UTP_comp2db(dy, 1.0, UT_TOL_pt)) return 0;
     i1 = UT3D_comp2vc_d (vc1, (Vector*)&UT3D_VECTOR_Y, UT_TOL_min1);
     if(i1 == 0) return 0;
     if(vc1->dy > 0.)  return 2;
@@ -10523,7 +10523,7 @@ liegt. ohne acos.
 
 
   } else {                       // Z ist am groessten
-
+    if(!UTP_comp2db(dz, 1.0, UT_TOL_pt)) return 0;
     i1 = UT3D_comp2vc_d (vc1, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1);
     if(i1 == 0) return 0;
     if(vc1->dz > 0.)  return 3;

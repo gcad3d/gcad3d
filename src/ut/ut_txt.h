@@ -120,6 +120,7 @@ extern const char TX_NUL;
   char* UTX_pos_skipStr      (char *cbuf);
   char* UTX_pos_skipDeli1    (char *p1);
   int   UTX_pos_skip_int     (char **ps);
+  char* UTX_pos_skip_line    (char *ps);
 
   int   UTX_ckc_Del1   (char c1);
   int   UTX_ckc_Del2   (char c1);

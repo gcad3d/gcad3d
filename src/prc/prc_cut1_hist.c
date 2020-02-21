@@ -69,7 +69,7 @@ When user goes back in source, restore corresponding position and status.
 //----------------------------------------------------------------
 // EXTERN
 // ex ../ci/NC_Main.c
-extern int       APT_line_act;            // die momentane APT-LineNr
+extern int       APT_lNr;            // die momentane APT-LineNr
 
 
 // ex ../prc/prc_cut1__.c
@@ -118,7 +118,7 @@ static int hist_nr = 0;
 
 
   //----------------------------------------------------------------
-  nc_hist[hist_nr].lNr  = APT_line_act;
+  nc_hist[hist_nr].lNr  = APT_lNr;
   nc_hist[hist_nr].pos  = *oldPos;
   nc_hist[hist_nr].tlNr = *tlActNr;
   nc_hist[hist_nr].rpd  = *rapid;

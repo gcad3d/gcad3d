@@ -59,12 +59,14 @@ chmod 0755 ${instDir}/usr/bin/gcad3d
 
 /bin/cp -f ${gcad_dir_bin}gCAD3D         ${instDir}/usr/lib/gcad3d/${hTyp}/.
 /bin/cp -f ${gcad_dir_bin}*.so           ${instDir}/usr/lib/gcad3d/${hTyp}/.
+/bin/cp -f ${gcad_dir_bin}GUI_*          ${instDir}/usr/lib/gcad3d/${hTyp}/.
 /bin/cp -f ${gcad_dir_bin}plugins/*.so   ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/.
 /bin/cp -f ${gcad_dir_bin}plugins/cut1/* ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/.
 
 
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/gCAD3D
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/*.so
+chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/GUI_*
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/*.so
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 

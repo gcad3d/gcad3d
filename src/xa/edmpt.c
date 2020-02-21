@@ -199,7 +199,7 @@ __declspec(dllexport) int EDMPT__ (void *pa[]);
 #include "../xa/xa_msg.h"              // MSG_..
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
-// #include "../xa/opar.h"                // MemTab(ObjSRC) MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                // MemTab(ObjSRC) MemTab_ini_temp
 
 
 #define   TRUE 1
@@ -504,7 +504,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       // get ObjSRC from DL_att:
       DL_oSrc_dli (&oPar, dli);
       // get tempSpc for 128 mtPar-records
-      MEMTAB_tmpSpc_get (&mtPar, 128);
+      MemTab_ini_temp (&mtPar, 128);
       if(MEMTAB_RMAX(&mtPar) != 128) {TX_Error("*** EDMPT_init-EOM"); return -1;}
       // get parent
       OPAR_get_src (&mtPar, &oPar);
@@ -518,12 +518,12 @@ static FILE      *EDMPT_fp_dep = NULL;
       sprintf(memspc011,"*** using parent %s of selected object %s ..",
               &cbuf[16], &cbuf[0]);
       TX_Print(memspc011);
-      MEMTAB_tmpSpc_free (&mtPar);
+      MemTab_free (&mtPar);
       goto L_ini_obj;
 
       L_par_err:
         TX_Print("*** EDMPT_init-ERR-dli %ld ",dli);
-        MEMTAB_tmpSpc_free (&mtPar);
+        MemTab_free (&mtPar);
         return -1;
     }
   }

@@ -27,7 +27,7 @@ include deb.mak
 
 # OpenGL-binding: SRCGLB GLBLIB
 #include glb_$(OS).mak
-SRCGLB = ../xa/GL_C-KIT.c
+#SRCGLB = ../xa/GL_C-KIT.c
 
 
 
@@ -38,7 +38,7 @@ OGLLIB = -lGLU -lGL
 
 # get SRCOS
 #include srcOS.mak
-SRCOS = ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
+SRCOS = ../ut/os_uix.c ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
 
 
 # get OBJ* from SRC* and VPATH
@@ -107,7 +107,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 # Alle Basis-DLL's xa_XX.so linken
 all:
 	@echo "link core-dll's .."
-# create makeFiles.lst = list of makefiles
+# create makeFiles.lst = list of makefiles of "xa_*.mak"
 	rm -f makeFiles.lst
 	find . -maxdepth 1 -name "xa_*.mak" -exec echo {} >> makeFiles.lst \;
 # read list, build ..

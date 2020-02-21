@@ -135,6 +135,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 #include "../ut/ut_geo_const.h"           // UT3D_CCV_NUL
 #include "../ut/func_types.h"             // UI_Func... SYM_..
 #include "../ut/ut_plg.h"                 // UT3D_par1_parplg
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../db/ut_DB.h"               // DB_GetCurv
 

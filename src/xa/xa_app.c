@@ -78,6 +78,7 @@ List_functions_end:
 
 #include "../ut/func_types.h"               // UI_FuncUCB8
 
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_uid.h"              // UID_ckb_comp
 #include "../xa/xa.h"                  // AP_STAT
@@ -273,6 +274,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 /// see OS_edit_ ED_sysed__
 /// \endcode
 
+  int   irc;
   long  l1;
   char  cbuf[256];
 
@@ -298,7 +300,9 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
     OS_exec (cbuf);
   } else {
     // wait until completion.
-    OS_system (cbuf);
+    irc = OS_system (cbuf);
+      // printf(" _edit-irc = %d\n",irc);
+    if(irc) { TX_Print("**** editor not available ??"); }
   }
 
   return 0;
@@ -393,13 +397,17 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 ///================================================================
   int APP_Save (char *wTit, char *defNam, void *funcNam) {
 ///================================================================
+// funcNam           callBack save .. ??
 
   int   irc, (*uFunc)();
-  char  fNam[256], dNam[256], dirLst[256];
+  char  fNam[256], dNam[256], dirLst[256], s1[400];
 
 
-    AP_get_fnam_symDir (dirLst);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+  printf("APP_Save |%s|%s|\n",wTit,defNam);
+
+  AP_get_fnam_symDir (dirLst);   // get filename of dir.lst
+  // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+
 /*
     GUI_save__ (wTit,              // titletext
             AP_mod_dir,           // path
@@ -409,14 +417,26 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 */
 
   strcpy(fNam, defNam);
+
+
   strcpy(dNam, AP_mod_dir);
-  irc = GUI_file_save__ (fNam, 256, dNam, 256, dirLst, wTit, "*");
-  if(irc) return 0;
+
+//   irc = GUI_file_save__ (fNam, 256, dNam, 256, dirLst, wTit, "*");
+//   if(irc) return 0;
+
+
+                     // (filnamOut sSiz symDir filter title)
+  irc = GUI_file_save__ (s1, sizeof(s1), dirLst, "*", wTit);
+    // printf("ex-GUI_file_save__ irc=%d fNam=|%s| dNam=|%s|\n",irc,fNam,dNam);
+  if(irc < 2) return -1;
+  if(strlen(fNam) < 1) return 0;
+
+
+  // separate fNam,dNam
+  UTX_fnam1__ (fNam, dNam, s1);
+
     // does already ask for overwrite !
     printf(" APP_Save %d |%s|%s|\n",irc,fNam,dNam);
-
-
-
 
   uFunc = funcNam;
   return uFunc (fNam, dNam);

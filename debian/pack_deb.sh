@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # create debian-package                         ./pack_deb.sh
-# start in <basDir>/gcad3d/debian
+# start in <basDir>/gcad3d/src/APP
 #
 # remove gcad:       sudo apt-get remove gcad3d
 # install gcad-32    sudo dpkg -i /mnt/serv1/gCAD3D-1.80-Linux-x86.deb
@@ -85,6 +85,7 @@ ${debDir}/install_deb.sh ${instDir}
 # strip exe and so-files
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/gCAD3D
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/*.so
+/usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/GUI_*
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/*.so
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 

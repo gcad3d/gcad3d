@@ -288,11 +288,12 @@ static int       statMK=0;                        // state modifier-keys
 /// int fMove   (MemObj *mo, void **data);
 ///   // data=table of 3 pointers;
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventMove
-///   GUI_DATA_I1   =*(int*)data[2]=x-val mousepos in screencoords
-///   GUI_DATA_I2   =*(int*)data[3]=y-val mousepos in screencoords
+///   GUI_DATA_I1   =*(int*)data[1]=x-val mousepos in screencoords
+///   GUI_DATA_I2   =*(int*)data[2]=y-val mousepos in screencoords
+///   GUI_DATA_I3   =*(int*)data[3]=mouseButtons; M1=256, M3=1024
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_BoxGL
 ///
-///   printf(" x=%d y=%d\n",GUI_DATA_I1,GUI_DATA_I2);
+///   printf(" x=%d y=%d buttons=%d\n",GUI_DATA_I1,GUI_DATA_I2,GUI_DATA_I3);
 ///
 /// \endcode
 
@@ -752,8 +753,8 @@ GUI_gl_ev_test(MemObj *mo) {
 //================================================================
 /// INTERNAL 
  
-  int          i1, x, y, iEv=TYP_EventMove;
-  void         *pTab[3];
+  int          i1, x, y, iMb, iEv=TYP_EventMove;
+  void         *pTab[4];
   Obj_GLwin    *go;
 
 
@@ -761,6 +762,11 @@ GUI_gl_ev_test(MemObj *mo) {
 
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
+
+  // after selection the mouseButtons are not correct;
+  // update the mouseButtons; M1=256, M3=1024
+  iMb = ((GdkEventMotion*)event)->state;
+
 
   // if (event->is_hint) {
   gtk_widget_get_pointer (go->widget, &x, &y);
@@ -771,6 +777,7 @@ GUI_gl_ev_test(MemObj *mo) {
   pTab[0] = &iEv;
   pTab[1] = &x;
   pTab[2] = &y;
+  pTab[3] = &iMb;
 
   go->uFuMove (&mo, pTab);
 
@@ -875,6 +882,8 @@ GUI_gl_ev_test(MemObj *mo) {
 
   ii = go->uFuKey (&mo, pTab);
     // printf(" imod=%d\n",imod);
+
+  gtk_widget_grab_focus (go->widget);  // glArea   2020-01-04
 
   return (ii);   // TRUE=1: do no defaultOperations
 

@@ -34,7 +34,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
-MEMTAB_tmpSpc_get    get tempSpc for <siz> parent-records
+MemTab_ini_temp    get tempSpc for <siz> parent-records
 OPAR_get_src       get parents of srcObj oPar
 
 // OPAR_init       init or reset
@@ -87,7 +87,7 @@ parents have:
 #include "../ut/ut_memTab.h"              // MemTab_..
 #include "../ut/ut_txfil.h"               // UTF_GetPosLnr
 #include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
-// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                   // MemTab_ini_temp
 
 
 

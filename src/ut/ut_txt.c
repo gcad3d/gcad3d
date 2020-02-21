@@ -136,6 +136,7 @@ UTX_pos_skipStr        find corresponding \" (skip string)
 UTX_pos_skipDeli1      skip delimiter ' ' ',' '\n' '\r' '\t'
 UTX_pos_skip_num       skip number
 UTX_pos_skip_int       skip int-number
+UTX_pos_skip_line      skip line
 UTX_skip_1bl           skip this char and following blanks    INLINE
 
 UTX_ck_caseChr         compare 2 characters - ignore case
@@ -180,6 +181,7 @@ UTX_sget_nrRange       get nr or range out of textstring
 UTX_db_tx              read float from ascii-string
 
 UTX_fnam__             separate/copy directory,fileName,fileTyp of full filename
+UTX_fnam1__            separate/copy directory,fileName of full filename
 UTX_ftyp_s             get filetyp from filename (change => upper)
 UTX_fnam_s             get fnam from string
 UTX_fdir_s             get fileDirectory from string
@@ -249,6 +251,7 @@ UTI_iNr_chrNr          give nr of ints for n characters
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_os.h"
 #include "../xa/xa_msg.h"              // MSG_*
+#include "../ut/deb_prt.h"          // printd
 
 
 
@@ -1024,6 +1027,64 @@ static char   TX_buf2[128];
 
 
 //================================================================
+  int UTX_fnam1__ (char* sDir, char* sNam, char* sIn) {
+//================================================================
+// UTX_fnam1__        separate/copy directory,fileName of full filename
+// see  UTX_fnam__
+// Output:
+//   sDir       directory     size must be 256; including closing '/'
+//   sNam       filename[.typ]     size must be 128
+
+  int    sdl, snl;
+  char   *pfn;
+
+  sDir[0] ='\0';
+
+
+  // printf("----------------------------------- \n");
+  // printf("UTX_fnam1__ |%s|\n",sIn);
+
+  // pfn = find last filename-delimiter
+  // must check for '/' AND '\' (in MS '/' can come from out of source)
+#ifdef _MSC_VER
+  pfn = UTX_find_strrchrn(sIn, "/\\");
+#else
+  pfn = strrchr(sIn, fnam_del);
+#endif
+    printd(" fnam1__-pfn|%s|\n",pfn);
+
+
+  // test if length of sDir > 256
+  if((pfn - sIn) >= 256) return -1;
+
+
+  if(!pfn) {
+    // no directory;
+    pfn = sIn;
+
+  } else {
+    // pfn = pos. of last '/'
+    sdl =  pfn - sIn + 1;
+    strncpy(sDir, sIn, sdl);
+    sDir[sdl] = '\0';
+    ++pfn;  // skip deli
+  }
+
+  // copy the filname
+  snl = strlen(pfn);
+
+  // test if length of sNam > 128
+  if(snl >= 128) return -2;
+  strcpy(sNam, pfn);
+
+    // printf("ex-UTX_fnam1__ |%s|%s|\n",sDir,sNam);
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTX_fnam__ (char *fdir, char *fnam, char *ftyp, char *fnIn) {
 //================================================================
 /// \code
@@ -1042,7 +1103,7 @@ static char   TX_buf2[128];
 ///          or  "Data" (symbolic-directory)
 ///          or  ".x" or "../x" or "."  (relative direcotory)
 ///
-/// see also UTX_fdir_s UTX_fnam_s UTX_ftyp_s
+/// see also UTX_fnam1__ UTX_fdir_s UTX_fnam_s UTX_ftyp_s
 /// \endcode
 
 
@@ -5234,6 +5295,36 @@ L_exit:
   // if(iNr > 0) return 0;
 
   return -1;
+
+}
+
+
+//================================================================
+  char* UTX_pos_skip_line (char *ps) {
+//================================================================
+// UTX_pos_skip_line      skip line; get startpos of next line.
+//   retCode:     startpos. of next line or NULL = EOF.
+//
+// EOF = "\0"
+// not using term_buf term_anz
+
+
+  char    *p1;
+
+  // printf("UTX_pos_skip_line: |");UTX_dump_c__ (ps, 40);printf("|\n");
+  // printf("  term_anz=%d\n",term_anz);
+
+
+  // find end of line
+  p1 = strchr (ps, '\n');
+  if(!p1) return NULL;     // no lf but EOF
+
+  ++p1;  // skip '\n'
+  if(!p1) return NULL;     // EOF
+
+    // printf("ex-UTX_pos_skip_line: |");UTX_dump_c__ (p1, 40);printf("|\n");
+
+  return p1;
 
 }
 

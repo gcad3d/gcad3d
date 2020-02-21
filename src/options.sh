@@ -21,6 +21,10 @@
 
 
 
+# TODO:
+# set gcad_dir_dev and gcad_dir_bin
+# test if active directory is `ID_NAS_UX.dat`; yes=NAS, else Local
+
 
 if [ ! -n "$DIR_DEV" ]; then
 # not set to server: set to local
@@ -35,8 +39,9 @@ fi
 
 
 
-
+# get host-typ; eg "Linux_x86_64"
 hTyp=`uname -s`_`uname -m`
+
 
 # gcad_dir_dev      home of sourcefiles, scripts, linkjobs, packages
 export gcad_dir_dev=${DIR_DEV}gcad3d/

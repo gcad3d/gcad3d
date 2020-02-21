@@ -1,4 +1,4 @@
-<HTML>
+CoCoCoCoCoCoCo<HTML>
 <HEAD>
 <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
 <style>body{font: 10pt Verdana,sans-serif;}</style>
@@ -208,7 +208,7 @@ N = LDRC TextPosition [StartPoint Line] [LineType] [Text]
   TextPosition -  position of text and circle.
   [StartPoint Line]: Line from TextPosition to this point.
   LineType - unsupported
-  <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+  <a href="q#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 N22 = LDRC P (150 50 50) P (100 10 0) "P21"
@@ -221,12 +221,12 @@ N22 = LDRC P (150 50 50) P (100 10 0) "P21"
   (See also <a href="#F6">3D-Text.</a>)
 Fixed text size, always in top view.
 
-N = TAG TextPosition [ScheduledStartingPoint] [Color] Text
+N = TAG TextPosition [StartPointLine] [Color] Text
 
-   TextPosition: position of the text block
-   [StartPoint Line]: ScheduledStartingPoint (Guide)
-   <a href="CAD_Base_de.htm#iCol">color</a>: Color of the text block (no indication: text only, no Block)
-   Text: as a special sign of 2D-Text are currently only "[n" (Line separator).
+   TextPosition:          position of the text block
+   [StartPoint Line]:     startpoint of the auxiliary line to the textposition
+   <a href="CAD_Base_en.htm#iCol">[color]</a>:               Color of the text block (no indication: text only, no Block)
+   Text:                  as a special sign of 2D-Text are currently only "[n" (Line separator).
 
 
 Example:
@@ -242,15 +242,8 @@ A symbol or a vector.
 N = LDRS SymbolPosition [SymbolType] [Color] [EndpointVector]
 
    <a href="CAD_Base_en.htm#P">SymbolPosition</a>
-   [SymbolType] -
-     0 = star small,
-     1 = small triangle
-     2 = small circle
-     3 = large rectangle
-     4 = normalized vector (always same length, arrowhead points to EndpointVector)
-     5 = vector (with correct length, arrowhead is at EndpointVector)
-     6 = Arrowhead 2D (SymbolPosition is the arrowhead)
-   [<a href="CAD_Base_de.htm#iCol">color</a>]: Color of symbol
+   <a href="CAD_Base_en.htm#SymbolType">[SymbolType]</a>       0=star .. 6=arrowhead
+   <a href="CAD_Base_en.htm#iCol">[color]</a>            Color of symbol
    [EndpointVector] - only for SymbolTypes 4, 5, 6
 
 Example:

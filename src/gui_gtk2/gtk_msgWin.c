@@ -52,7 +52,7 @@ cc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_msgWin.c
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>                      // memcmp memcpy
+#include <string.h>
 
 
 #include <gtk/gtk.h>
@@ -215,7 +215,6 @@ extern int       UI_fontsizX, UI_fontsizY;
 /// \code
 /// write textline to textwindow
 /// skip msg, if first 60 chars ident.
-/// txbuf == NULL to clear buffer
 /// \endcode
 
 // Schreibt an das zuletzt mit GUI_msgwin__ generierte Window
@@ -240,12 +239,6 @@ static  char actBuf[256];
   go = GUI_obj_pos (mo);
   if(!go) return -1;
   msgView = go->widget;
-
-
-  if(!txbuf) {               // clear buffer
-    actBuf[0] = '\0';
-    return 0;
-  }
 
 
   // get textBuffer from textView
@@ -358,10 +351,6 @@ static  char actBuf[256];
   gtk_text_buffer_delete (TxBuf, &iVon, &iBis);
 
   // printf("GUI_msgwin_rmLast\n");
-
-  // clear buffer in GUI_msgwin_prt
-  GUI_msgwin_prt (mo, NULL);
-
 
   return 0;
 }

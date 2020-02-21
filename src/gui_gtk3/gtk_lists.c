@@ -19,7 +19,6 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
-2016-09-26 GUI_list1_h2_cb1 fixed. RF.
 2012-02-01 extracted from ut_gtk.c.  RF.
 
 -----------------------------------------------------
@@ -116,7 +115,6 @@ static int           GUI_list1_evt;  // TYP_EventPress(MB,Enter-Key)
                                      // TYP_EventEnter (Up,Down,Page-keys)
 static int           GUI_list1_stat; // 1=childList active;
                                      // 2=parentList active;
-                                     // 3=skip handling
 static char          GUI_list1_s1[256], GUI_list1_s2[256],
                      GUI_list1_s3[256], GUI_list1_s4[256];
 
@@ -156,7 +154,7 @@ typedef struct {
 
 
 
-  // printf("GUI_list2_modCol %d |%s|\n",iCol,txt);
+  printf("GUI_list2_modCol %d |%s|\n",iCol,txt);
 
   go = GUI_obj_pos (mo);
   if(!go) return 0;
@@ -243,7 +241,7 @@ extern Memspc UI_tmpSpc;
 extern int    UI_umbId;
   
 
-  // printf("GUI_list1_dlg_exit\n");
+  printf("GUI_list1_dlg_exit\n");
 
 
   mo = GUI_obj_tmp ((void**)&go, sizeof(Obj_Unknown));
@@ -272,7 +270,7 @@ extern int    UI_umbId;
 
   GtkWidget *w1;
 
-  // printf("GUI_list1_dlg_del \n");
+  printf("GUI_list1_dlg_del \n");
 
   if(UI_list1_win) {
 
@@ -285,7 +283,7 @@ extern int    UI_umbId;
 
   }
 
-    // printf("exit GUI_list1_dlg_del \n");
+    printf("exit GUI_list1_dlg_del \n");
 
   return;
 
@@ -335,8 +333,8 @@ extern int    UI_umbId;
 
 
 
-  // printf("GUI_list1_dlg__ |%s|%s|%s|\n",fNam,mode,opts);
-  // printf("  UI_list1_win=%p\n",UI_list1_win);
+  printf("GUI_list1_dlg__ |%s|%s|%s|\n",fNam,mode,opts);
+  printf("  UI_list1_win=%p\n",UI_list1_win);
 
 
 
@@ -478,7 +476,7 @@ extern int    UI_umbId;
 
 
 
-  // printf("GUI_list1__ |%s|%s|%s|\n",fNam,mode,opts);
+  printf("GUI_list1__ |%s|%s|%s|\n",fNam,mode,opts);
 
 
   // get gtk-widget for parentBox from MemObj
@@ -906,7 +904,7 @@ extern int    UI_umbId;
    Obj_gui2  *go;
 
 
-  // printf("GUI_list1_add_f\n");
+  printf("GUI_list1_add_f\n");
 
   go = GUI_obj_pos (mo);
   if(!go) return 0;
@@ -932,7 +930,7 @@ extern int    UI_umbId;
    Obj_gui2  *go;
 
 
-  // printf("GUI_list2_add_f\n");
+  printf("GUI_list2_add_f\n");
 
   go = GUI_obj_pos (mo);
   if(!go) return 0;
@@ -1017,7 +1015,7 @@ extern int    UI_umbId;
   FILE        *fpi;
 
 
-  // printf("GUI_list1_f |%s|\n",fnam);
+  printf("GUI_list1_f |%s|\n",fnam);
 
 
   if ((fpi = fopen (fnam, "r")) == NULL) {
@@ -1068,7 +1066,7 @@ extern int    UI_umbId;
 
   fclose(fpi);
 
-    // printf("ex  GUI_list1_f\n");
+    printf("ex  GUI_list1_f\n");
 
   return 0;
 
@@ -1087,7 +1085,7 @@ extern int    UI_umbId;
   CSV_struct  fTyp;
 
     
-  // printf("GUI_list2_f |%s|\n",fnam);
+  printf("GUI_list2_f |%s|\n",fnam);
 
   i1 = 0;
     
@@ -1105,8 +1103,8 @@ extern int    UI_umbId;
   L_nxt:
     irc = CSV_read__ (&fTyp, s1, 512, fp1);
     if(!irc) {
-        // printf(" s1=|%s|\n",s1);
-        // printf(" nxt ln |%s|%s|%s|\n",fTyp.pTab[0],fTyp.pTab[1],fTyp.pTab[2]);
+        printf(" s1=|%s|\n",s1);
+        printf(" nxt ln |%s|%s|%s|\n",fTyp.pTab[0],fTyp.pTab[1],fTyp.pTab[2]);
 
 
     ++i1;
@@ -1169,7 +1167,7 @@ extern int    UI_umbId;
 
   ikey = ((GdkEventKey*)event)->keyval;
   imod = ((GdkEventKey*)event)->state;
-    // printf("GUI_list1_cbKey key=%d state=%d\n",ikey,imod);
+    printf("GUI_list1_cbKey key=%d state=%d\n",ikey,imod);
 
 
   if(ikey == GDK_KEY_Return) {           // /usr/include/gtk-3.0/gdk/gdkkeysyms.h
@@ -1200,7 +1198,7 @@ extern int    UI_umbId;
   Obj_gui2    *go;
 
 
-  // printf("GUI_list1_cbMouse \n");
+  printf("GUI_list1_cbMouse \n");
 
   if(GUI_OBJ_IS_VALID(&mo)) {   // 2013-04-10
     go = GUI_obj_pos (&mo);
@@ -1209,11 +1207,10 @@ extern int    UI_umbId;
 
 
   typ  = ((GdkEventAny*)ev)->type;
-    // printf("   _list1_cbMouse typ=%d\n",typ);
 
 
   if(typ == GDK_2BUTTON_PRESS) {
-      // printf(" doubleClick\n");
+      printf(" doubleClick\n");
     if(GUI_OBJ_IS_VALID(&mo)) {
       GUI_list1_evt  = TYP_EventPress;
       GUI_list1_msbt = GUI_Mouse2L;
@@ -1230,11 +1227,11 @@ extern int    UI_umbId;
 
   GUI_list1_evt  = TYP_EventPress;
   GUI_list1_msbt = ((GdkEventButton*)ev)->button;
-    // printf("   _list1_cbMouse typ=%d but=%d\n",typ,GUI_list1_msbt);
+
+  // printf("GUI_list1_cbMouse typ=%d but=%d\n",typ,GUI_list1_msbt);
 
 
   L_exit:
-
   return (FALSE);  // FALSE = do further handling of event ..
 
 }
@@ -1265,14 +1262,14 @@ extern int    UI_umbId;
   Obj_gui2     *go;
 
 
-  // printf(" GUI_list1_cbSel -\n");
+  printf(" GUI_list1_cbSel -\n");
 
   // if(!GUI_list1_msbt) return (FALSE);  // raus 2014-10-18
   if(!GUI_list1_msbt) return (TRUE);  // raus 2014-10-18
   // if(!data) return 1;
 
 
-  // printf("GUI_list1_cbSel ev=%d msbt=%d\n",GUI_list1_evt,GUI_list1_msbt);
+  printf("GUI_list1_cbSel ev=%d msbt=%d\n",GUI_list1_evt,GUI_list1_msbt);
   // UME_obj_dump (&mo);
 
 
@@ -1285,7 +1282,7 @@ extern int    UI_umbId;
 
     // get nr of columns
     nCol = gtk_tree_model_get_n_columns (model);
-      // printf(" nCol=%d\n", nCol);
+      printf(" nCol=%d\n", nCol);
 
 
     // // get treePath as string (LineNr)
@@ -1303,18 +1300,18 @@ extern int    UI_umbId;
     // iCol = 0;      // get data for first column
     gtk_tree_model_get (model, &iter, 0, &txt1, -1);  // access Spalte 0
     pTab[3] = txt1;
-      // printf ("GUI_list1_cbSel col0 |%s|\n", (char*)pTab[3]);
+      printf ("GUI_list1_cbSel col0 |%s|\n", (char*)pTab[3]);
 
     if(nCol > 1) {
       gtk_tree_model_get (model, &iter, 1, &txt2, -1);  // access Spalte 1
       pTab[4] = txt2;
-        // printf ("GUI_list1_cbSel col1 |%s|\n", (char*)pTab[4]);
+        printf ("GUI_list1_cbSel col1 |%s|\n", (char*)pTab[4]);
     }
 
     if(nCol > 2) {
       gtk_tree_model_get (model, &iter, 2, &txt3, -1);  // access Spalte 2
       pTab[5] = txt3;
-        // printf ("GUI_list1_cbSel col2 |%s|\n", (char*)pTab[5]);
+        printf ("GUI_list1_cbSel col2 |%s|\n", (char*)pTab[5]);
     }
 
 
@@ -1353,17 +1350,17 @@ extern int    UI_umbId;
   char s1[512];
 
 
-  // printf("GUI_list1_dlg_cbw %d\n",GUI_DATA_EVENT);
+  printf("GUI_list1_dlg_cbw %d\n",GUI_DATA_EVENT);
  
 
   if(GUI_DATA_EVENT == TYP_EventPress) {
     // normal selection
     // create signalFile (creator of windows waits for this file ..)
     if(GUI_DATA_I2 == 1) {
-        // printf(" sel 1 |%s|\n",GUI_DATA_S3);
+        printf(" sel 1 |%s|\n",GUI_DATA_S3);
       OS_file_sig_cre (1, GUI_DATA_S3);
     } else {
-        // printf(" sel 1,2 |%s|%s|\n",GUI_DATA_S3,GUI_DATA_S4);
+        printf(" sel 1,2 |%s|%s|\n",GUI_DATA_S3,GUI_DATA_S4);
       sprintf(s1, "%s\n%s", GUI_DATA_S3, GUI_DATA_S4);
       OS_file_sig_cre (1, s1);
     }
@@ -1406,7 +1403,7 @@ extern int    UI_umbId;
   void         (*uFunc)();
 
 
-  // printf("GUI_list1_h2_cb1 bt=%d stat=%d\n",GUI_list1_msbt,GUI_list1_stat);
+  printf("GUI_list1_h2_cb1 bt=%d stat=%d\n",GUI_list1_msbt,GUI_list1_stat);
 
 
   if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
@@ -1420,15 +1417,13 @@ extern int    UI_umbId;
     // decode selected row
     // iCol = 0;      // get data for first column
     gtk_tree_model_get (model, &iter, 0, &txt1, -1);  // access Spalte 0
-      // printf ("   _list1_h2_cb1 c0 |%s|\n",txt1);
-
+      // printf ("GUI_list1_h2_cb1 c0 |%s|\n",txt1);
 
     if(GUI_list1_stat == 2) {
       // parent selected
       // copy parentTxt
       strcpy(GUI_list1_s3, txt1);
       g_free (txt1);
-      GUI_list1_stat = 3;   // skip following calls ..
       // create new child-list
       uFunc = UI_List_p4;
       uFunc (GUI_list1_s2, GUI_list1_s3);
@@ -1441,13 +1436,6 @@ extern int    UI_umbId;
       // unlock button
       gtk_widget_set_sensitive (UI_List_p3, TRUE);
       GUI_list1_stat = 1;
-      return TRUE;  // stop handling of event  2016-09-26
-
-
-    } else if(GUI_list1_stat == 3) {
-      // gtk3 comes with all following lines ..
-        // printf(" skip follower ..\n");
-      return TRUE;  // stop handling of event  2016-09-26
 
 
     } else {
@@ -1511,14 +1499,13 @@ extern int    UI_umbId;
 ///   selecting parents-button changes childList -> parentList
 ///   selecting parentObject gets new childList by calling funcP
 ///   selecting childObject exits (provides parentText and childText by funcC)
-///   the name of file with childs is the 1. parameter of funcP
 /// 
 /// Input:
 ///   titP     titletext for selection of parent
 ///   titC     titletext for selection of child
 ///   lButP    caption parents-button
 ///   txtP     active parent
-///   fnamP    Name of file with parents
+///   fnamP    Name of file for parents
 ///   funcP    user has selected a parent; create childlist from selected parent.
 ///   funcC    user has selected a child; exit and report selection -> user.
 ///   opts       options; (HorSiz,VertSiz)
@@ -1551,9 +1538,9 @@ extern int    UI_umbId;
 
 
 
-  // printf("GUI_list1_h2 |%s|\n",opts);
-  // printf("  |%s|%s|\n",titP,titC);
-  // printf("  |%s|\n",fnamP);
+  printf("GUI_list1_h2 |%s|\n",opts);
+  printf("  |%s|%s|\n",titP,titC);
+  printf("  |%s|\n",fnamP);
 
   // parentsFile must exist
   if(OS_checkFilExist(fnamP, 1) != 1) return -2;

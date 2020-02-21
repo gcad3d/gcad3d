@@ -364,7 +364,7 @@ const Memspc UME_NUL = UME_NEW;
   // memSpc->end   = objDat + osiz;
   memSpc->end   = (char*)objDat + osiz;
 
-  memSpc->spcTyp = MEMTYP_STACK;
+  memSpc->spcTyp = MEMTYP_STACK__;
 
     // UME_dump (memSpc, "ex-UME_init");
 
@@ -479,7 +479,7 @@ const Memspc UME_NUL = UME_NEW;
   if(memSpc->start) free (memSpc->start);
 
   
-  *memSpc = UME_NUL;
+  *memSpc = UME_NUL;             // {NULL, NULL, NULL, 0}
   // memSpc->start = NULL;
   // memSpc->spcTyp = MEMSPCTYP_NONE;  // 0
 

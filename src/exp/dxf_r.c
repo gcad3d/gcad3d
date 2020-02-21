@@ -515,8 +515,8 @@ __declspec(dllexport) int DXF_r__ (char*);
 #include "../ut/ut_os.h"                  // OS_
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
-
 #include "../ut/func_types.h"              // SYM_SQUARE ..
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../db/ut_DB.h"               // DB_mdlNam_iBas
 
@@ -670,7 +670,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
   // // TEST-DEBUG-ON
-  // AP_deb_stat (1);
+  // DEB_prt_init (1);
 
 
   // Init Objektindexe
@@ -975,7 +975,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
   // // TEST-DEBUG-OFF
-  // AP_deb_stat (0);
+  // DEB_prt_init (0);
 
 
   // report Errors

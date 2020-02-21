@@ -100,16 +100,17 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_txTab.h"            // TxtTab
+#include "../ut/func_types.h"               // UI_FuncOK
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
-#include "../ut/func_types.h"               // UI_FuncOK
+
 #include "../xa/xa_brw.h"              // ICO_..
 #include "../xa/xa.h"                  // AP_modact_nam
 #include "../xa/xa_ico.h"              // ICO_PT,
 #include "../xa/xa_mem.h"              // memspc55
-#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_ed_mem.h"           // APED_..
 
 // ex ../xa/xa_ui.c

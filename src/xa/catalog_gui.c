@@ -127,6 +127,7 @@ APT_work_PrgCmd   :4217
 #include "../ut/ut_geo.h"             // ModelRef
 #include "../ut/ut_txt.h"             // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_memTab.h"
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -367,9 +368,11 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 
   // GUI_List1 (" select Catalog", fnam, (void*)CTLG_Mod_CB);
 
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select Catalog", fnam,
-                       "1", NULL, "60,40");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " select Catalog", fnam,
+//                        "1", NULL, "60,40");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select Catalog", "40,30");
   if(i1 < 0) return -1;
 
   CTLG_Mod_CB (s1);
@@ -450,9 +453,11 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 
   // GUI_List1 (" delete Catalog", fnam, (void*)CTLG_Del_CB);
 
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " delete Catalog", fnam,
-                       "1", NULL, "60,40");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " delete Catalog", fnam,
+//                        "1", NULL, "60,40");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete Catalog", "40,30");
   if(i1 < 0) return -1;
 
   CTLG_Del_CB (s1);

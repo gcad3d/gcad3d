@@ -67,9 +67,11 @@ UTO_stru_int
 
 
 #include "../ut/ut_geo.h"              // Point ...
-
 #include "../ut/func_types.h"          // SYM_..
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../gr/tess_su.h"             // TypTsuSur
+
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
 

@@ -257,10 +257,14 @@ static int    bck_GR_NoConstrPln;
 // see UI_GR_get_actPosA
 // see sele_set_pos GR_set_constPlnPos GL_set_viewPlnPos
  
+  // printf("sele_get_pos_CP \n");
+
   
   // input is absolute; if constrPlane is active, transfer input into UCS
   UTRA_UCS_WCS_PT (ptSelCP, &GR_selPos_CP);
 
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "sele_get_pos_CP-GR_selPos_CP");
+    // DEB_dump_obj__ (Typ_PT, ptSelCP, "ex-sele_get_pos_CP-ptSelCP");
 
   return 0;
 
@@ -318,23 +322,27 @@ static int    bck_GR_NoConstrPln;
 /// \endcode
 //
 //   reqTyp    selTyp          out
-//   Typ_LN    Typ_CVPOL       L(S MOD)
+//   Typ_LN    Typ_CVPOL       L(S SEG)
 //
-//   Typ_LN    Typ_CI          L(C MOD) | L(C par) & L(C)   tangent & axis
+//   Typ_LN    Typ_CI          L(C PTS) | L(C par) & L(C)   tangent & axis
 //   Typ_LN    Typ_PLN         L(R)
 //
-//   Typ_VC    Typ_CVPOL       D(S MOD)
+//   Typ_VC    Typ_CVPOL       D(S SEG)
 //   Typ_VC    Typ_CI          D(C par) & D(C)              tangent & axis
 //   Typ_VC    Typ_LN          D(L)
 //   Typ_VC    Typ_PLN         D(R)
 //   Typ_VC    Typ_Model       D(M)
+//   Typ_VC    Typ_Dimen       D(N)
 //
-//   Typ_PT    Typ_CCV         P(S MOD par)    
-//   Typ_PT    Typ_CVPOL       P(S MOD) | P(S par)          cornerPt | paramPt
-//   Typ_PT    Typ_CI          P(L MOD) | P(C par) & P(C)   endPt|paramPt & cenPt
-//   Typ_PT    Typ_LN          P(L MOD) | P(L par)           
+//   Typ_PT    Typ_CCV         P(S SEG par)    
+//   Typ_PT    Typ_CVPOL       P(S PTS) | P(S par)          cornerPt | paramPt
+//   Typ_PT    Typ_CI          P(L PTS) | P(C par) & P(C)   endPt|paramPt & cenPt
+//   Typ_PT    Typ_LN          P(L PTS) | P(L par)           
 //   Typ_PT    Typ_PLN         P(R)
 //   Typ_PT    Typ_Model       P(M)
+//   Typ_PT    Typ_Dimen       P(N PTS)                     3 points 2D
+//   Typ_PT    Typ_ATXT        P(N PTS)                     2 points
+//   Typ_PT    Typ_GTXT        P(N)                         1 point
 //
 //   Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
 //             Typ_PT|Typ_VC|Typ_LN
@@ -363,7 +371,13 @@ static int    bck_GR_NoConstrPln;
 
   if(selTyp == Typ_CV) {
     selTyp = DB_get_typ_cv (dbi);
+
+  } else if(selTyp == Typ_Note) {
+    selTyp = DB_get_typ_note (dbi);
   }
+    // printf(" src_cnvt__-selTyp=%d\n",selTyp);
+
+
 
   if(reqTyp == selTyp) goto L_exit;  // no components
 
@@ -471,25 +485,83 @@ static int    bck_GR_NoConstrPln;
   // plane selected -
   } else if(selTyp == Typ_PLN) {
     //.......................................
+    //.......................................
+    if(BitTab_get(reqObjTab, Typ_PT)) {
+      // P(R)
+      sprintf(sCva->cva[0].oid, "P(R%ld)", dbi);
+      goto L_add_1;
+
+/*
+    //.......................................
+    } else if(BitTab_get(reqObjTab, Typ_VC)) {
+      // D(R)
+      sprintf(sCva->cva[0].oid, "D(R%ld)", dbi);
+
+
     if(reqTyp == Typ_LN) {
       // L(R)
       sprintf(sCva->cva[0].oid, "L(R%ld)", dbi);
       goto L_add_1;
 
     //.......................................
-    } else if(reqTyp == Typ_VC) {
+    } else if(BitTab_get(reqObjTab, Typ_VC)) {
       // D(R)
       sprintf(sCva->cva[0].oid, "D(R%ld)", dbi);
       goto L_add_1;
 
     //.......................................
-    } else if(reqTyp == Typ_PT) {
+    } else if(BitTab_get(reqObjTab, Typ_PT)) {
       // P(R)
       sprintf(sCva->cva[0].oid, "P(R%ld)", dbi);
+      goto L_add_1;
+*/
+
+    //.......................................
+    } else return 0;
+
+
+  //----------------------------------------------------------------
+// TODO: get points / vector of Typ_Dimen
+   } else if((selTyp == Typ_Dimen) ||
+             (selTyp == Typ_ATXT))     {
+     return 0;
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_GTXT) {
+    //.......................................
+    if(BitTab_get(reqObjTab, Typ_PT)) {
+      // P(N)
+      sprintf(sCva->cva[0].oid, "P(N%ld)", dbi);
       goto L_add_1;
 
     //.......................................
     } else return 0;
+
+/*
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_Dimen) {
+    //.......................................
+    if(reqTyp == Typ_VC) {
+      // D(N)
+      sprintf(sCva->cva[0].oid, "D(N%ld)", dbi);
+      goto L_add_1;
+    }
+
+    } else return 0;
+
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_ATXT) {
+    //.......................................
+    if(reqTyp == Typ_PT) {
+      // P(N PTS)
+      sprintf(sCva->cva[0].oid, "P(N%ld)", dbi);
+      goto L_add_1;
+
+    //.......................................
+    } else return 0;
+*/
 
 
   //----------------------------------------------------------------
@@ -706,6 +778,7 @@ static int    bck_GR_NoConstrPln;
   //----------------------------------------------------------------
   L_add_1:
     iNr = 1;
+
   L_add__:
     for(i1=0; i1<iNr; ++i1) {
       // sca[0].oid already filled ..
@@ -1255,8 +1328,8 @@ static int    bck_GR_NoConstrPln;
 
   GR_selPos_CP = GL_GetConstrPos (spt);
 
-    // DEB_dump_obj__ (Typ_PT, &GR_selPos__, " GR_selPos__");
-    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, " GR_selPos_CP");
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos__, "ex-sele_set_pos ");
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "ex-sele_set_pos-CP");
 
   return 0;
 
@@ -1294,7 +1367,7 @@ static int    bck_GR_NoConstrPln;
   int sele_ck_typ (int iTyp) {
 //================================================================
 // Test if obj of typ iTyp is a requested typ.
-//  RetCod=0; no; elso yes
+//  RetCod=0; no; else yes
 // reqObjTab is set by func sele_set__
 
   int  i1;
@@ -1357,28 +1430,33 @@ static int    bck_GR_NoConstrPln;
 // List_of_selectable_objects == empty: return "point on constrPlane";
 //
 // RetCod:
-//   1       yes, add "ConstrPlane" to objMenu
 //   0       no "ConstrPlane" necessary
+//   else    yes, add "ConstrPlane" to objMenu
 
 // see sele_setNoConstrPln
 
-  int  i1;
+  int  i1 = 0;
+
 
   // printf("sele_ck_ConstrPln %d\n",GR_NoConstrPln);
-
-
   // sele_dump1 ();
 
-  if(GR_NoConstrPln) return 0;
 
+  if(GR_NoConstrPln) goto L_exit;
 
 
   //----------------------------------------------------------------
   // test if Typ_PT | Typ_TmpPT is requested
     // printf("sele_ck_ConstrPln %d\n",BitTab_get(reqObjTab,Typ_PT));
-  if(BitTab_get (reqObjTab, Typ_PT)) return 1;   // !=0 is set
+  i1 = BitTab_get (reqObjTab, Typ_PT);           // !=0 is set
+  if(i1) goto L_exit;
 
-  return BitTab_get (reqObjTab, Typ_TmpPT);  // !=0 is set
+  i1 = BitTab_get (reqObjTab, Typ_TmpPT);  // !=0 is set
+
+
+  L_exit:
+    // printf("ex-ck_ConstrPln %d\n",i1);
+  return i1;
 
 }
 

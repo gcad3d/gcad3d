@@ -106,6 +106,7 @@ List_functions_end:
 
 #include "../ut/func_types.h"                  // SYM_..
 
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"
 
 

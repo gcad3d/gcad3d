@@ -70,6 +70,8 @@ gcc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_gl_x11.c
 static  GLXContext  GLB_x_context;
 static  Display     *GLB_display;
 static  int         GLB_x_id = 0;
+static  GtkWidget   *area;
+static  int         UI_GR_STAT = 0;
 
 
 
@@ -78,7 +80,7 @@ static  int         GLB_x_id = 0;
 //================================================================
 /// GLB_Create            create opengl-window (used by GUI_gl__)
  
-  GtkWidget   *area;
+  // GtkWidget   *area;
   int         xscreen, i1;
   GdkScreen   *screen;
   GdkVisual   *visual;
@@ -97,10 +99,16 @@ static  int         GLB_x_id = 0;
                 GLX_DOUBLEBUFFER, True,
                 None };
 
-  GLB_x_id = 0;   // reset
+
+  printf("GGGGGGGGGGGGG GLB_Create\n");
+
+
+  // GLB_x_id = 0;   // reset
 
   area = gtk_drawing_area_new ();
   // gtk_widget_set_double_buffered (area, FALSE);   deprecated
+
+  // GLB_DrawInit (area);  // 2020-01-16
 
   GLB_display = gdk_x11_get_default_xdisplay ();
   xscreen = DefaultScreen (GLB_display);
@@ -127,6 +135,7 @@ static  int         GLB_x_id = 0;
   GLB_x_context = glXCreateContext (GLB_display, xvisual, NULL, TRUE);
   // free (xvisual);
 
+
   glXWaitX();
   glXWaitGL();
 
@@ -134,31 +143,39 @@ static  int         GLB_x_id = 0;
 
 }
 
-/* UNUSED
-//================================================================
-  int GLB_pending () {
-//================================================================
 
-  return XPending(GLB_display);
-
-}
-*/
- 
 //================================================================
-  int GLB_DrawInit (void *widget) {
+  int GLB_Init () {
 //================================================================
-/// GLB_DrawInit          start OpenGL-commandblock
 
   GdkWindow     *window;
 
-  if(!GLB_x_id) {
+  // printf("GLB_Init .......\n");
 
-    window = gtk_widget_get_window (widget);
-    GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
-      printf("  GLB_x_id=%d\n",GLB_x_id);
+  // window = gtk_widget_get_window (widget);
+  window = gtk_widget_get_window (area);
+  GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
+    printf("IIIIIIIIIII GLB_Init  GLB_x_id=%d\n",GLB_x_id);
+
+  return 0;
+
+}
+ 
+//================================================================
+  int GLB_DrawInit () {
+//================================================================
+/// GLB_DrawInit          start OpenGL-commandblock
+
+
+  // printf("GLB_DrawInit \n");
+
+  if(UI_GR_STAT != 0) {
+    AP_debug__ ("********************** GLB_DrawInit ERROR");
   }
 
-  // GLB_x_context = glXCreateContext (GLB_display, xvisual, NULL, TRUE);
+  UI_GR_STAT = 1;
+
+  // gtk_widget_grab_focus (area);
 
   glXMakeCurrent (GLB_display, GLB_x_id, GLB_x_context);
 
@@ -172,11 +189,31 @@ static  int         GLB_x_id = 0;
 //================================================================
 /// GLB_DrawExit          execute OpenGL-commandblock
 
+  // printf("GLB_DrawExit \n");
+
+  if(UI_GR_STAT != 1) {
+    AP_debug__ ("********************** GLB_DrawExit ERROR");
+  }
+
+  UI_GR_STAT = 0;
+
   glXSwapBuffers (GLB_display, GLB_x_id);
 
-  // glXDestroyContext(GLB_display, GLB_x_context);
-
   return;
+
+}
+
+
+//================================================================
+  int GLB_test1 () {
+//================================================================
+// test if GLB_Draw is active
+
+  if(UI_GR_STAT == 0) {
+    AP_debug__ ("********************** GLB_test1 ERROR");
+  }
+
+  return 0;
 
 }
 

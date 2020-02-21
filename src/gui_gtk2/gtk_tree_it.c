@@ -76,7 +76,7 @@ List_functions_end:
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>                      // memcmp memcpy
+#include <string.h>
 
 
 // ../gtk/ut_gtk.c:

@@ -97,4 +97,12 @@ EDMPT__
 
 
 ================================================================== \endcode */}
+void INF_Search(){                   /*! \code
+
+ckb_such    // checkbox "Search/Name"
+UI_mcl__
+UI_mcl_ctrl        ../xa/xa_objLst.c
+
+
+================================================================== \endcode */}
 // eof

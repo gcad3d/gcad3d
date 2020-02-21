@@ -39,11 +39,11 @@ Grp_ck_def       check if obj is in group
 Grp_init         init obj-list
 Grp_Start        start filling group
 Grp_Clear        clear (reset) group
-Grp_Inv          invert group
+Grp_HiliClear    unhilite all group-objects
 Grp_add__        add obj to obj-list
 Grp_add_all1     add all objs to group (without hidden)
+Grp_Inv          invert group
 Grp_del          remove obj from group
-Grp_typ_del      remove all objs of type from group
 Grp_ck_def       check if obj is in group
 Grp_exp          export (native) alle objects of obj-list --> file
 Grp_res          resolv list and add all parents to list
@@ -51,8 +51,15 @@ Grp_cbuf         return list ob objs of group as text
 Grp_hide         hide all objs of grp
 Grp_upd          Redraw &| update GrpNr-label
 
+Grp_typo_del     remove all other types from group
+Grp_typ_del      remove all objs of type from group
+
+Grp_SM           move group -> subModel
+Grp_Mdl          save Group -> modelFile
+
 Grp_get__        returns GrpTab & GrpNr
 Grp_get_nr       return nr of objs in group
+Grp_cbuf         return list ob objs of group as text
 Grp_dump
 
 Grp_alloc
@@ -63,10 +70,12 @@ List_functions_end:
 // Grp_dlAdd        add all objs of group to DL-grp1
 
 see also
+DL_grp1__
+DL_grp1_set
 DL_grp1_copy      copy all DL-obj with groupBit ON --> GroupList
 UI_grp__
 UI_grpAdd
-
+APED_dec_txt      decode textLine, add all objsID's and codes to group
 
 \endcode *//*
 ----------------------------------------
@@ -121,6 +130,7 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 // #include "../db/ut_DB.h"               // DB_GetGTxt
 
 #include "xa.h"                        // aus_SIZ
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_uid.h"              // UID_ouf_grpNr
 
@@ -155,6 +165,8 @@ static int      GrpNr  = 0;
   int Grp_Start () {
 //================================================================
 // Grp_Start        start filling group
+// - clear all groupBits in DL
+// - unhilite alle Objs
 
 
   // printf("Grp_Start \n");
@@ -319,32 +331,42 @@ static int      GrpNr  = 0;
 /// \code
 /// Grp_Clear        clear (reset) group
 /// Input:
-///   mode    2 unhili&redraw
-///           1 Redraw
-///           0 do not Redraw
+///   mode    1,2 clear group and redraw
+///           0 clear group but do not Redraw
+///  Output:
+///    retCode   0  all exising groupObjs cleared
+///              1  no groupObjs did exist
 /// \endcode
 
   int    i1;
 
 
-  // printf("Grp_Clear %d\n",GrpNr);
+  // printf("Grp_Clear mode=%d GrpNr=%d\n",mode,GrpNr);
+  // if(mode == 1) {printf("************ Grp_Clear - 1\n"); return 0;}
+  // Grp_dump ();
+  
 
-  if(GrpNr < 1) return 0;
+  if(GrpNr < 1) return 1;
 
-  if(mode == 2) Grp_HiliClear ();  // unhilite all group-objects
+
+  // if(mode == 2) 
+  Grp_HiliClear ();  // clear hilite-flag of all groupObjs in dispList
 
   // clear GroupBits
-  // DL_grp1_set (-1L, OFF);           // clear all groupBits
   for(i1=0; i1<GrpNr; ++i1) {
     DL_grp1_set (GrpTab[i1].dlInd, OFF);
   }
 
-  Grp_init ();          // reset group
-  // UI_GR_Sel_Filter (0);             // reset add to group
-  // DL_hili_off (-1L);   // unhilite alle Objekte  raus 2011-10-03
+
+  // clear group
 
 
-  if(mode) DL_Redraw ();     // redraw
+  if(mode) {
+    DL_Redraw ();     // redraw
+    Grp_init ();     // clear group, display nr-of-groupObjs
+  } else {
+    GrpNr = 0;
+  }
 
   return 0;
 
@@ -471,6 +493,8 @@ static int      GrpNr  = 0;
 //================================================================
 /// \code
 /// add obj to GrpTab
+/// - do not check if in active model, hidden, 
+/// - do not set group1Bit in dispList 
 /// Input:
 ///   dli      -1 no dli (obj not visible)
 ///            -2 dli unknown (search)
@@ -478,26 +502,33 @@ static int      GrpNr  = 0;
 ///            1 = do not update display (yet)
 ///            2 = do not update display and do not test if already defined
 ///
-///  see also DL_grp1__ (add obj to DL-group1 (hiliete) and to GrpTab)
+///  see also DL_grp1__ (add obj to DL-group1 (hilite) and to GrpTab)
 /// \endcode
 
   int    i1;
 
 
-  // printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d %d\n",
-                       // typ,dbi,dli,iUpd,GrpNr);
+  // printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d GrpNr=%d GrpMax=%d\n",
+                       // typ,dbi,dli,iUpd,GrpNr,GrpMax);
+  // if(dli >= 0) printf(" _add__-grpBit = %d\n",DL_GetGrp(dli));
+  // Grp_dump ();
   // printf("  GR_Sel_Filter=%d\n",UI_GR_Sel_Filter(-1));
 
 
-  // testen, ob obj nicht bereits definiert ..
+  // search unknown dli
+  if(dli == -2L) {
+    dli = DL_dli__dbo (typ, dbi, -1L);
+  }
+
+  // test, if obj already defined ..
   if(iUpd != 2) {
     for(i1=0; i1<GrpNr; ++i1) {
       if(GrpTab[i1].typ != typ) continue;
-      if(GrpTab[i1].dbInd == dbi) return 0;
+      if(GrpTab[i1].dbInd == dbi) return 0;  // skip - already in GrpTab
     }
   }
 
-
+  // GrpTab full ?
   if(GrpNr >= GrpMax) {
     if(Grp_realloc() < 0) {
       TX_Error("Grp_add__ E001");
@@ -505,23 +536,20 @@ static int      GrpNr  = 0;
     }
   }
 
-  // search unknown dli
-  if(dli == -2L) {
-    dli = DL_dli__dbo (typ, dbi, -1L);
-  }
-
-
+  // add
   GrpTab[GrpNr].typ  = typ;
   GrpTab[GrpNr].dbInd  = dbi;
   GrpTab[GrpNr].dlInd  = dli;
   GrpTab[GrpNr].stat = 0;
-
   ++GrpNr;
 
   // display nr of objs in group
   if(iUpd == 0)
-  UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
+    UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
   // UI_AP (UI_FuncSet, UID_ouf_grpNr, (void*)GrpNr);
+
+    // printf("ex-Grp_add__ %d\n",GrpNr);
+
 
   return 0;
 
@@ -531,9 +559,14 @@ static int      GrpNr  = 0;
 //================================================================
   int Grp_add_all1 (int mod) {
 //================================================================
-/// Grp_add_all1                add all objs to group (without hidden)
-/// Input:
-///   mod     modelNr to resolv;    -1 = mainModel
+// Grp_add_all1                add all objs to group (without hidden)
+// - do not add hidden objs
+// - do not add objs in models != mod
+// - do NOT set group-bit in DL
+// - do not hilite
+//   used for export as dxf
+// Input:
+//   mod     modelNr to resolv;    -1 = mainModel
 
 
 
@@ -684,7 +717,7 @@ static int      GrpNr  = 0;
   int Grp_res () {
 //================================================================
 /// \code
-/// obj-list Recursiv nach seinen Eltern absuchen und diese zufuegen
+/// Grp_res            find and add all parents recursiv to GrpTab
 /// RetCod:  nr of objs in group (GrpTab)
 /// 
 /// GrpTab[].stat = 0: newly added
@@ -719,20 +752,22 @@ static int      GrpNr  = 0;
 
   iEnd = -1;
 
-  //=========== Search all DefinitionLines of obj oNam
+
+  //================================================================
+  // Search all DefinitionLines of obj oNam
   L_nxt:
   irc = APED_search_defLn (&cPos, &lNr, &lLen, oNam, iEnd, 0);
 
   if(irc >= 0) {     // kein (weitere) DefLn gefunden
 
-    // die gefundene Line decodieren, alle darin enthalten Objekte in die
-    // Liste zufuegen.
+    // add all DB-objs in string cPos to GrpTab
     APED_decAdd (cPos);
 
     iEnd = lNr;
     goto L_nxt;
   }
-  //===========
+  //================================================================
+ 
 
 
   GrpTab[gInd].stat = 1;
@@ -834,7 +869,7 @@ static int      GrpNr  = 0;
     break;
   }
 
-  // printf("ex Grp_ck_def %d %d %d %d\n",irc,typ,dbi,GrpNr);
+  // printf("ex-Grp_ck_def %d %d %ld %d\n",irc,typ,dbi,GrpNr);
 
   return irc;
 }

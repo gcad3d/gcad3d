@@ -430,8 +430,9 @@ int DXFW_test (char *txt1) {
 //===========================================================================
   int DXFW__ (char* fnam)  {
 //===========================================================================
-/// export as DXF
-/// Input:
+// DXFW__                     export as DXF
+//   if group is active: export group only; else export all objs.
+// Input:
 
   int       i1, i2, *ip, mTyp, oNr, mode;
   long      l1;

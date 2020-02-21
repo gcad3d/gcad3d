@@ -52,11 +52,13 @@ INF_ApplicationData
 ================================================================== \endcode */}
 void INF_Source-record (){        /*! code
 =====================================================================
+
 Create:
 // add a single codeline in memory, process code.
 // Creates a source-record, a Database-record and a DisplayList-record
 ED_srcLn_add ("L1=P(0 0 0) P100 0 0)", 0);
 UTO_sav_ost // create DB-object & save it in Model (from bin. obj)
+
 -----------------------------------------------------------
 // create permanent objects from sourceObj (ascii-text):
 // add source-records into a buffer,
@@ -78,6 +80,7 @@ UTF_insert1 (-1L);
 APED_update__ (-1L);
 // update browser-window (display newly created objects)
 Brw_Mdl_upd ();
+
 -----------------------------------------------------------
 // create permanent objects from binary objects (complexObj):
 Point p2={1.0, 1.0, 0.0};
@@ -102,34 +105,46 @@ UTF_add1_line (mem_cbuf1);
 UTF_insert1 (-1L);
 // update display (work new created objects)
 APED_update__ (-1L);
+
 -----------------------------------------------------------
 // create source-record:
 UTF_add_line (src); // add code to model
+
+
 =====================================================================
 Modify:
+=====================================================================
 APED_src_chg // modify & add to undo-list
 // update DB & display
 APED_update__ (lNr);
 // see also UTF_chg_line // modify line in memory
 WC_Work__ (lNr, src); // process code
+
 -----------------------------------------------------------
 AP_stru_2_txt // create sourceObj from complexObj
 UTF_add1_last_add // add name to last obj in UTF_FilBuf1
 UTO_sav_ost // create DB-object & save it in Model.
+
+
 =====================================================================
 Delete:
+=====================================================================
+
 UTF_del_line1 (lNr); // delete source-line; get lNr with APED_search_defLn
 // or from DisplayList-record
+
 -----------------------------------------------------------
-// example undo for the plugin-output:
-// UNDO for a block of code
-UNDO_app__ (0); // init undo (get act.lNr)
-AP_obj_2_txt ..
-UTF_add1_line ..
-UTF_insert1 .. // add code to mainBuffer
-Brw_Mdl_upd (); // update browser-window
-UNDO_app__ (1); // create undo-record; activate undo-button
-return 0; // exit plugin
+OBSOLETE
+// // example create with undo for the plugin-output:
+// // UNDO for a block of code
+// UNDO_app__ (0); // init undo (get act.lNr)
+// AP_obj_2_txt ..
+// UTF_add1_line ..
+// UTF_insert1 .. // add code to mainBuffer
+// Brw_Mdl_upd (); // update browser-window
+// UNDO_app__ (1); // create undo-record; activate undo-button
+// return 0; // exit plugin
+
 -----------------------------------------------------------
 UNDO_.. if stored in do/undo-list
 // UNDO for single lines of code
@@ -180,7 +195,10 @@ DB_dyn__ (2, Typ_PT, dynPti); // reset state of dyn-points
 ================================================================== \endcode */}
 void INF_DisplayList-record (){        /*! code
 ===============================================================================
+see INF_DisplayList
+
 Alt+Shift+d dump DL DL_DumpObjTab
+
 Create:
 // create new or overwrite DispList-record; returns its index
 // if obj does not have DB-obj: use dbi = -1L

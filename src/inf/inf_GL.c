@@ -3,6 +3,42 @@
 
 
 ================================================================== */
+void INF_GL__ (){        /*! \code
+
+INF_GL_events
+
+
+//   GL_mode_draw_select =
+//     GR_MODE_DRAW      0   normal display
+//     GR_MODE_SELECT    1   selection is active
+//     GR_MODE_FEEDBACK  2   get data -> FeedbackBuffer (eg for print)
+
+
+Functions:
+GL_Redraw             // redraw the OpenGL-list
+AP_print__
+  GL_FeedGet          // get FeedbackBuffer from OpenGL
+    GL_Feedback
+  AP_print_work2      // write FeedbackBuffer-data -> file  <tempDir>/print.tmp
+
+Files:
+../gr/ut_GL.c
+
+
+
+================================================================== \endcode */}
+void INF_GL_events (){        /*! \code
+
+UI_GL_draw__
+UI_GL_mouse__
+UI_GL_keys__
+UI_GL_move__
+
+GL_Redraw
+
+
+
+================================================================== \endcode */}
 void INF_GL2D__ (){        /*! \code
 
 INF_GL2D_buttons__    2D-OpenGL-buttons, Vector/PlaneSelector 

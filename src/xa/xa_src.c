@@ -85,6 +85,7 @@ AP_obj_add_dbo AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 #include "../db/ut_DB.h"               // DB_GetCurv
 
 #include "../xa/xa_sele.h"             // Typ_go*
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
@@ -1093,7 +1094,13 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   int SRC_src_isol_ato1 (char *outBuf, int typ, double *val) {
 //================================================================
 /// \code
-/// convert DB-obj (typ, DB-index) into isolated sourceCode (text)
+/// convert obj (typ,val) into isolated sourceCode (text)
+/// Input:
+///   typ,val     obj to convert
+/// Output:
+///   outBuf      src-representation of obj (typ,val)
+///
+/// Examples:
 /// "P-9" -> "P(0 0 0)"
 /// "D19" -> "D(0 1 0)"
 /// "V1"  -> "12.3"
@@ -1103,7 +1110,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   void   *vp;
   long   dbi;
 
-  // printf("SRC_src_isol_ato1 typ=%d\n",typ);
+  // printf("SRC_src_isol_ato1 typ=%d  val=%f\n",typ,*val);
 
   outBuf[0] = '\0';
 
@@ -1649,6 +1656,10 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     goto L_encode;
   }
 
+  if(iTyp == Typ_LN) { 
+    if(oTyp == Typ_CI) return -2;
+  }
+
 
   //---------------------------------------------------------------
   // get objData of DB-obj (iTyp,iDbi)
@@ -1753,7 +1764,10 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     // get parametric position of point on obj
     irc = ATO_ato_obj_pt (&ato, oTyp, 0, iTyp, iObj, pti);
       // ATO_dump__ (&ato, " rc_pt_dbo-6");
-    if(irc < 0) {printf(" SRC_src_pt_dbo E-1\n"); return -1;}
+    if(irc < 0) {
+      printf(" SRC_src_pt_dbo E-1\n");
+      return -1;
+    }
   }
 
 

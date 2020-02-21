@@ -189,6 +189,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
 
   gtk_widget_grab_focus (go->widget);
+  // gtk_window_activate_focus (go->widget);
 
   return 0;
 
@@ -299,22 +300,27 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
   context = gtk_widget_get_pango_context (win1);
   fontGeo = pango_context_get_metrics (context, fontDesc, NULL);
-  UI_fontsizX = pango_font_metrics_get_approximate_char_width (fontGeo);
-  UI_fontsizY = pango_font_metrics_get_ascent (fontGeo);
 
-  UI_fontsizX += UI_fontsizX / 3;   // + space between 2 chars
-  // UI_fontsizY += UI_fontsizY / 2;   // + space between 2 lines
+  // UI_fontsizX = pango_font_metrics_get_approximate_char_width (fontGeo);
+  UI_fontsizX = pango_font_metrics_get_approximate_digit_width (fontGeo);
+
+  UI_fontsizY = pango_font_metrics_get_ascent (fontGeo);
+  UI_fontsizY += pango_font_metrics_get_descent (fontGeo);
 
   // change device-units -> absolute units (pixels)
   UI_fontsizX /= PANGO_SCALE;
   UI_fontsizY /= PANGO_SCALE;
 
+  // UI_fontsizX += UI_fontsizX / 3;   // + space between 2 chars
+  UI_fontsizX += 1;   // + space between 2 chars
+  UI_fontsizY += UI_fontsizY / 3;   // + space between 2 lines
 
     // printf("UI_fontsizX/Y=%d,%d\n",UI_fontsizX,UI_fontsizY);
     // printf("fontAsc=%d\n",wFont->ascent);
     // printf("fontDes=%d\n",wFont->descent);
 
 
+  //----------------------------------------------------------------
   UI_stylTab[1] = &colR;
   UI_stylTab[2] = &colB;
 
@@ -363,6 +369,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   // gtk_init (&argc, &argv);
   i1 = 0;
   gtk_init (&i1, NULL);
+  // terminates; gtk_init_check does not ..
 
 
 /*
@@ -425,9 +432,14 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   int GUI_Win_siz_get (MemObj *o_par, int *sizX, int *sizY) {
 //================================================================
 
-  int     pTyp;
   Obj_Win *g_win;
+  int     pTyp;
   void    *win;
+
+
+  // printf("GUI_Win_siz_get \n");
+
+
 
   if(!o_par) {
     win = UI_MainWin;
@@ -437,7 +449,9 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
     win = g_win->win;
   }
 
-  gtk_window_get_size (win, sizX, sizY);
+
+  // gtk_window_get_size (win, sizX, sizY);
+  // gtk_window_get_size (NULL, sizX, sizY);
 
   return 0;
 
@@ -1899,6 +1913,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 //================================================================
 /// \code
 /// GUI_set_enable   makes widgets / groups of widgets unselectable (disactivate)
+///   mo          obj to disactivate;   NULL = mainWindow
 ///   mode        1=TRUE=active; 0=FALSE=unpickable, inactive; 2=query state
 ///   RetCode     for mode=2: state; 0=inactive, 1=active
 /// \endcode
@@ -1907,6 +1922,10 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   Obj_Unknown *go;
 
   // printf("GUI_set_enable %d\n",mode);
+  
+  // mo = NULL: 
+  // if(!mo) {gtk_widget_set_sensitive (NULL, mode);}
+
 
   go = GUI_obj_pos (mo);
   if(!go) return 0;

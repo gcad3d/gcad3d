@@ -174,10 +174,9 @@ GL_sel_hits           get selected GL-IDs                                 INTERN
 
 GL_set_bgCol          set background-color; 0=OK, else Error.
 GL_ColSet             activate Color,transparency for surface from ColRGB
-GL_DefColSet
 GL_DefColGet
 
------------------- InitFunctions:
+------------------ 
 GL_Redraw
 
 GL_Init0
@@ -217,16 +216,21 @@ GL_Tex_Del            delete OpenGL-texture
 GL_Tex_End
 GL_Tex_ckSiz          test if texture could be loaded by OpenGL
 
-DL_hili_on            hilite obj from dispListIndex
-DL_hili_off          remove hilite from obj from dispListIndex
+GL_RubberBox_stop     exit RubberBox
+GL_RubberBox_sel      select objs in 2D-box
+GL_RubberBox_drw__    mode=0=start, 1=stop
+GL_RubberBox_draw     display/remove outline of rubberBox
 
 GL_config_test
 
 ------------------ test functions:
 GL_tst_pta             testen der GL_Disp_pta
+GL_test_get            get DL_base__
 
 List_functions_end:
 =====================================================
+
+// GL_DefColSet
 
 \endcode */
 #ifdef globTag
@@ -481,11 +485,11 @@ Farbe/Dicke:
 
 
 --------- Symbol anzeigen ------------
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_temp_del_all ();  // alle temp-Obj. loeschen
   GL_DrawSymB (&dli, 0, SYM_SQU_B, &pt1);
   GL_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
 
 
@@ -499,6 +503,7 @@ cl -c ut_GL.c
 
 #ifdef _MSC_VER
 #include "../xa/MS_Def1.h"
+#define GL_COMBINE 0x8570
 #endif
 
 #ifdef _MSC_VER
@@ -559,7 +564,27 @@ cl -c ut_GL.c
 #include "../xa/xa_mem.h"               // memspc..
 
 
+// reset colored surfaces  normal
+#define DISP_REND_STD {\
+ glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);\
+ glEnable (GL_COLOR_MATERIAL);\
+ glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_light_amb1);\
+ glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_spc1);\
+ glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc1);\
+ glEnable (GL_LIGHT0);\
+ glEnable (GL_LIGHTING);}
 
+
+// set colored surfaces extraLight
+ // glMaterialfv (GL_FRONT, GL_SPECULAR, GL_mat_spc2);\
+ // glMaterialfv (GL_BACK, GL_SPECULAR, GL_mat_spc2);\
+
+#define DISP_REND_EXTRA\
+ glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_light_amb2);\
+ glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_dif2);\
+ glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc2);\
+ glEnable (GL_LIGHT0);\
+ glEnable (GL_LIGHTING);
 
  
 /*=============== Externe Variablen: =======================================*/
@@ -579,6 +604,10 @@ extern int     GA_recNr;          // die aktuelle Anzahl von Records
 // ex ../xa/xa_ui.c:
 extern int       UI_InpMode;
 extern char      UI_stat_view, UI_stat_hide;
+
+
+// ex ../xa/xa_ui_gr.c
+extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
 
 
 // aus ../xa/xa.c
@@ -672,6 +701,12 @@ static long    GR_Siz_selTab = 0;
 static int     GR_nr_selTab = 0;
 
 
+// static int GL_iattLst[GR_ATT_TAB_SIZ], GL_iattNr;
+
+typedef_MemTab(long);
+static MemTab(long) GL_hiliLst = _MEMTAB_NUL;  // hilite-objs-list
+static MemTab(long) GL_dimmLst = _MEMTAB_NUL;  // dimmed-objs-list
+static MemTab(long) GL_trptLst = _MEMTAB_NUL;  // transparent-objs-list
 
 
 
@@ -700,9 +735,11 @@ static GLfloat GL_mat_spc2[]   = {0.8f, 0.8f, 0.8f, 1.0f}; // Extralight ..
 static GLfloat GL_light_amb2[] = {0.4f, 0.4f, 0.4f, 1.0f};  //0.5 0.5 0.5
 static GLfloat GL_light_dif2[] = {0.8f, 0.8f, 0.8f, 1.0f};  //0.8 0.8 0.8
 static GLfloat GL_light_spc2[] = {0.6f, 0.6f, 0.6f, 1.0f};
+static GLfloat GL_mod_dim1[]   = {0.01f, 0.01f, 0.01f, 1.0f}; // normales Licht
 
 
 static GLfloat GL_mat_hili[]   = {0.8f, 0.8f, 0.8f, 1.0f}; // HiliLight ..
+static GLfloat GL_mat_dimm[]   = {0.5f, 0.5f, 0.8f, 1.0f};
 // static GLfloat GL_mat_spec[4]  = {0.5f, 0.5f, 0.5f, 1.0f}; // Extralight ..
 
 static GLfloat GL_local_view[] = { 0.0f};
@@ -772,7 +809,8 @@ static GLushort    LtypTab2[] = {0xFFFF,  16377,  0x0FFF,  0x0FFF};
 // static float LThickTab[] = {1.5, 3.0, 4.0, 6.0};
 // static float PThickTab[] = {3.0, 4.0, 6.0, 8.0};
 
-
+static unsigned char GL_col_hili[4] = {240, 10,  10, 255};
+static unsigned char GL_col_dimm[4] = {  2,  2, 180, 100};
 
 #define COL_ANZ 15
 
@@ -786,7 +824,7 @@ static GLfloat GL_col_tab [COL_ANZ][4] = {
   1.0,  0.0,  1.0, 1.0,   //  6 ATT_COL_MAGENTA
   0.0,  1.0,  1.0, 1.0,   //  7 ATT_COL_CYAN
   1.0,  1.0,  1.0, 1.0,   //  8 ATT_COL_WHITE
-  0.8,  0.2,  0.2, 1.0,   //  9 ATT_COL_HILI     Red 0.8,  0.2,  0.2, 1.0,
+  0.99, 0.02,  0.02, 1.0,   //  9 ATT_COL_HILI     Red 0.8,  0.2,  0.2, 1.0,
   // 0.4,  0.9,  0.9, 1.0,     //  9 hili (rot) 0.8,  0.2,  0.2, 1.0,      XOR
   // 0.6,  0.7,  0.7, 1.0,     // 10 COL_DIMMED (0.6 0.7 0.7) auch 0.7,0.2,0.7
   0.4,  0.4,  0.7, 1.0,   // 10 ATT_COL_DIMMED (0.6 0.7 0.7) auch 0.7,0.2,0.7
@@ -814,6 +852,8 @@ static GLfloat GL_col_tab [COL_ANZ][4] = {
 // Error-Hintergrundfarbe  Backgroundcolour
 static GLfloat GL_col_bg[4] = {0.6, 0.6, 0.6, 1.0};       // normal, gray
 static GLfloat GL_col_be[4] = {0.6,  0.4,  0.4,  1.0};    // error,  red
+static GLfloat GL_col_hil1[4] = {0.95,  0.1,  0.1,  1.0};    //
+static GLfloat GL_col_hil2[4] = {0.8,  0.2,  0.2,  1.0};    //
 
 
 // static ColRGB  actCol, newCol;
@@ -1856,7 +1896,7 @@ GLuint GL_fix_DL_ind  (long*);
 
   // glFeedbackBuffer (*size, GL_3D_COLOR, feedBuffer); // 7 float je vertex
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
 
   // die Ruecktransformation in DL_Ind_ScBack speichern
   // (in subModels kann man Planes usw nicht mehr abfangen)
@@ -1903,7 +1943,7 @@ GLuint GL_fix_DL_ind  (long*);
   // reset Ruecktransformation
   GL_ScalBack (GL_Scale_back);
 
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
     printf("ex GL_Feedback %d\n",*size);
 
@@ -1937,9 +1977,9 @@ GLuint GL_fix_DL_ind  (long*);
 
   GL_mode_draw_select = GR_MODE_PRINT1;
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
 }
 
@@ -1947,17 +1987,18 @@ GLuint GL_fix_DL_ind  (long*);
 //================================================================
   void GL_Redra__ (int mode) {
 //================================================================
-// 0    redraw complete DL; but without highlites surfaces !
+// GL_Redra__    redraw complete DL; but without highlites surfaces !
+// mode   unused
 
-  // printf("GL_Redra__ %d\n",mode);
+  // printf("............... GL_Redra__ %d\n",mode);
 
 
   // redraw complete DL; but without highlites surfaces !
   GL_mode_draw_select = GR_MODE_NORMAL;
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
   GL_mode_draw_select = GR_MODE_DRAW;
 
@@ -1969,11 +2010,11 @@ GLuint GL_fix_DL_ind  (long*);
   int GL_Redr_1 (long dli) {
 //================================================================
 
-  // UI_GR_DrawInit ();
+  // GLB_DrawInit ();
 
   glCallList (dli);
 
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
 
   return 0;
 
@@ -1984,15 +2025,20 @@ GLuint GL_fix_DL_ind  (long*);
   void GL_Redraw () {
 //================================================================
 // muss man ev fuer calls von GL_Feedback und GL_Select noch was ausblenden ???
-// must be embedded in UI_GR_DrawInit/UI_GR_DrawExit; use DL_Redraw
+// must be embedded in GLB_DrawInit/GLB_DrawExit; use DL_Redraw
 
-// nur allein temp.Objects neuzeichnen geht nicht ..
+//   GL_mode_draw_select =
+//     GR_MODE_DRAW       0   normal display
+//     GR_MODE_SELECT     1   selection is active
+//     GR_MODE_FEEDBACK   2   get data -> FeedbackBuffer (eg for print)
+//     GR_MODE_NORMAL     3   ??
+
 
 static int errOld = 123;
 
-  int     irc, i1, sx, sy, dx, dy, imode, trlNr, iXor=0, errAct;
+  int     irc, i1, sx, sy, dx, dy, imode, iXor=0, errAct, iStat;
   int     attInd, attAct;
-  long    l1, gaNr;
+  long    l1, dli, gaNr, lOff, *lTab;
   int     att_def[GR_ATT_TAB_SIZ];
   double  ay, az;
   float   fa[4];
@@ -2004,23 +2050,24 @@ static int errOld = 123;
 
 
   // printf("--------------------------------------------\n");
-  // printf("GL_Redraw %d %ld\n",DL_Ind_tmp,GR_TAB_IND);
   // printf("GL_Redraw mode=%d feed=%d\n",GL_mode_draw_select,GL_mode_feed);
+  // printf("GL_Redraw %d %ld\n",DL_Ind_tmp,GR_TAB_IND);
   // printf("  AP_stat.sysStat=%d\n",AP_stat.sysStat);
   // printf("GL_Redraw GL_cen = %f %f %f\n",GL_cen.x,GL_cen.y,GL_cen.z);
+  // DL_DumpObjTab ("GL_Redraw");
+  // DEB_dump_obj__ (Typ_PLN, &GL_constr_pln, "GL_Redraw-GL_constr_pln");
+  // GLB_test1 ();  // test if GLB_Draw is active
+  // GL_mode_draw_select = GR_MODE_NORMAL;  // TEST ONLY
+  // GL_mode_draw_select = GR_MODE_DRAW;    // TEST ONLY
 
 
-  if(AP_stat.sysStat < 2) return;
 
-/*
-  // update DL (HideList) - nicht bei SELECT, FEEDBACK)
-  if(GL_mode_draw_select == GR_MODE_DRAW) {
-    GA_hide__ (1, 0, GL_modified);
-    GL_modified = 0; 
-  }
-*/
+  // UBU-18-Radeon,: can run even with AP_stat.sysStat=1 !!!!
+  // UBU-18-Nvidia-Gtk3 black if outside; Gtk2 OK.
+  // else CRASH when start with model ..
+  // if(AP_stat.sysStat < 3) return; 
+
   // if(GL_mode_draw_select != GR_MODE_SELECT) {
-
 
   // glShadeModel(GL_FLAT);
   // glEnable(GL_LIGHT0);
@@ -2030,8 +2077,6 @@ static int errOld = 123;
   // glEnable(GL_AUTO_NORMAL);       // bei Linux u Windows nutzlos
 
   // if(GL_test_error ()) return;
-
-  // if(ED_get_mode () == 1) return; // ? removed 2013-10-22 for modify-value.
 
 
   //----------------------------------------------------------------
@@ -2050,19 +2095,12 @@ static int errOld = 123;
       GL_mode_draw_select = GR_MODE_DRAW;   // reset
 
       L_backgrnd_w:
-        printf(" _Redr white\n");
+          // printf(" _Redr white\n");
         glClearColor (255.f, 255.f, 255.f, 1.f);
         errOld = 4; // white bg from PRINT active
         goto L_clear;
     }
   }
-
-/*
-  if(GL_mode_draw_select == GR_MODE_PRINT2) {
-    GL_mode_draw_select = GR_MODE_DRAW;
-    errOld = 99;   // reset bgCol
-  }
-*/
 
   errAct = AP_errStat_get();  // get AP_stat.errStat; 0=OK; 1=Err; 2=rerun
   // if((errAct == 0)&&(IE_modify == 1)) errAct = -1;  // ??
@@ -2073,6 +2111,7 @@ static int errOld = 123;
       // printf(" _Redr col errAct=%d\n",errAct);
     if(errAct == 0) {
         // 0=OK..   gray
+          // printf(" _Redr gray\n");
         glClearColor (GL_col_bg[0], GL_col_bg[1], GL_col_bg[2], GL_col_bg[3]);
 
     // } else if (errAct < 0) {
@@ -2080,6 +2119,7 @@ static int errOld = 123;
 
     } else {
       // -1=Error   red
+        // printf(" _Redr red\n");
       glClearColor (GL_col_be[0], GL_col_be[1], GL_col_be[2], GL_col_be[3]);
     }
     errOld = errAct;
@@ -2088,19 +2128,18 @@ static int errOld = 123;
 
 
   L_clear:
+  // clear background complete with defined glClearColor
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
   glDisable (GL_LINE_STIPPLE);              // Disable Strich-Punkt
-  // clear Fensterhintergrund
-  // if(GL_mode_wire_shade < GR_STATE_HID2)
-      // printf(" _Redr clear\n");  // dauert tw sehr lang ..
-    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 
   //================================================================
   // fix GL_PROJECTION_MATRIX & GL_MODELVIEW_MATRIX
 
-  // nicht f SELECT (PROJ-Mat. schon fertig geladen)
-  // ist fuer FEEDBACK aber auch erforderlich !
+  // but not for SELECT (PROJ-Mat. already active)
   if(GL_mode_draw_select != GR_MODE_SELECT) {
   // if(GL_mode_draw_select == GR_MODE_DRAW) {
 
@@ -2109,7 +2148,6 @@ static int errOld = 123;
     glLoadIdentity ();  // init PROJ-Mat.
 
     // Parallelprojektion
-      // printf(" _Redr refram1\n");
     GL_Reframe1 ();     // PROJ-Mat. laden.   glOrtho
 
     // oder perspektivisch - TEST
@@ -2117,22 +2155,20 @@ static int errOld = 123;
 
   }
 
-
   // reset Viewmatrix
     // printf(" _Redr view\n");
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  // apply scale (bei Parallelprojektion erforderl!)
+  // apply scale for Parallelprojektion
   glScaled (GL_Scale, GL_Scale, GL_Scale);
 
 
-  // eye-Punkt errechnen; GL_eyeX zeigt von GL_cen -> eye
-  // GL_eyeX == umgekehrte Sichtlinie !!
+  // compute eye-point; vec. GL_eyeX == from GL_cen -> eye
   UT3D_pt_traptvc (&eye, &GL_cen, GL_eyeX);
 
 
-  // Eye-Position und Eye-Vektor setzen
+  // set Eye-Position und Eye-Vektor
   gluLookAt (eye.x,      eye.y,      eye.z,
              GL_cen.x,   GL_cen.y,   GL_cen.z,
              GL_eyeZ->dx, GL_eyeZ->dy, GL_eyeZ->dz);
@@ -2167,32 +2203,14 @@ static int errOld = 123;
 
 
   //=========================================================================
-  // ab hier Objekte generieren .....
+  // display axis-systems and grid
+  // not for GR_MODE_FEEDBACK
 
-/*
-    // right-upper-corner: absolute Refsys.
-    glPushMatrix ();
-    glTranslated (100., 100., 0.);          // das RotCen
-    glDisable (GL_LIGHTING);
-    glColor3fv   (GL_col_tab[13]);   
-    glLineWidth   (1.0);                       // 1 ist am duennsten !
-    glCallList ((GLuint)SYM_AXIS1);
-    glDepthFunc (GL_LEQUAL);      // reset = Standard
-    glEnable (GL_LIGHTING);
-    glPopMatrix ();
-*/
-
-
-  // zuerst ein Achsenkreuz in den Drehmittelpunkt (nur wenn Rotate aktiv ist)
-  // wird fuers ViewZ nun immer gebraucht !!
-  // Nicht: GR_MODE_FEEDBACK
   if(GL_mode_draw_select == GR_MODE_DRAW) {
-      // printf(" draw Achsenkreuz ..\n");
 
     glDepthFunc (GL_LEQUAL);      // reset = Standard
     glDisable (GL_LIGHTING);
     glLineWidth   (1.0);                       // 1 ist am duennsten !
-
 
     // display grid; not in Viewer
     if(imode != UI_MODE_VWR)
@@ -2210,9 +2228,6 @@ static int errOld = 123;
 
 
     // display red axisSystem at active origin / construction-plane
-    // UT3D_2angr_vc__ (&az, &ay, &GL_constr_pln.vz);
-    // az = UT_DEGREES(az);
-    // ay = UT_DEGREES(ay) - 90.;
     glPushMatrix ();
       UT3D_m4_loadpl (m1, &GL_constr_pln);
         // DEB_dump_obj__ (Typ_M4x4, m1, "new m1:");
@@ -2228,21 +2243,14 @@ static int errOld = 123;
 
 
   //=========================================================================
-  L_L1:
   // selectMode-only: prepare namestack.
+
   if(GL_mode_draw_select == GR_MODE_SELECT) {
 
     glInitNames();               // Init NameStack.
     glPushName((GLuint)0);       // Muss sein. Damit ein Name am Stack ist,
                                  // der im folgenden mit glLoadName
                                  // verändert wird.
-
-
-  } else {                       // DRAW & FEED & PRINT.
-
-    glColor3fv   (GL_col_tab[0]);     
-    // glColor3f (0.f, 1.f, 0.f);       // gelb
-    // glLineWidth  (0.0f);
   }
 
 
@@ -2259,23 +2267,16 @@ static int errOld = 123;
   }
 
 
-  // HIDDEN: die Farbe durch Hintergrundfarbe ersetzen.
-  // if(GL_mode_wire_shade == GR_STATE_HID1)
-     // GL_InitNewAtt (3, 5);
-
+  attAct = -1;
+  glColor3fv   (GL_col_tab[0]);     
+  // glColor3ubv ((unsigned char*)&GL_defCol);
 
   if((long)GR_TAB_IND <= 0) goto L_temp;
-
-  attAct = -1;
 
   // printf(" DL_base_font1=%d DL_base__=%d\n",DL_base_font1,DL_base__);
   // printf(" GL_mode_draw_select=%d GL_mode_feed=%d\n",GL_mode_draw_select,
              // GL_mode_feed);
   // printf(" _Redr main\n",GR_TAB_IND);
-
-
-  // glColor3ubv ((unsigned char*)&GL_defCol);
-
 
 
 
@@ -2287,12 +2288,15 @@ static int errOld = 123;
   //   weil nachfolgende Objekte das Original-Attr. brauchen !
     // printf(" _Redr-DRAW %d\n",GL_mode_draw_select);
 
-  trlNr = 0;
-  for(l1=0; l1<GR_TAB_IND; ++l1) {
+  // clear dimmed-objs-list
+  MEMTAB_CLEAR (&GL_hiliLst);
+  MEMTAB_CLEAR (&GL_dimmLst);
+  MEMTAB_CLEAR (&GL_trptLst);
 
-    // printf(" _Redraw%ld typ=%d disp%d hili%d\n",l1,GR_ObjTab[l1].typ,
+
+  for(l1=0; l1<GR_TAB_IND; ++l1) {
+    // printf(" _Redraw %ld typ=%d disp%d hili%d\n",l1,GR_ObjTab[l1].typ,
              // GR_ObjTab[l1].disp, GR_ObjTab[l1].hili);
-    // if(l1 == 16) continue; // TEST ONLY
 
     // skip all objs outside active model                       2016-06-12
     if((INT_16)GR_ObjTab[l1].modInd != -1) continue;
@@ -2305,32 +2309,6 @@ static int errOld = 123;
     // if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
 
 
-
-    //----------------------------------------------------------------
-    if(GL_mode_draw_select == GR_MODE_DRAW) {        //2010-06-17
-      // GL_Mouse1Pos needs this after GL_Select
-
-
-      // skip nodisp- (und hili,dim)-obj; disp spaeter.
-      // ausser beim Rescale !!
-      // if((GR_ObjTab[l1].disp != 0)&&(GL_mode_feed != 1)) continue;
-
-
-      // 2006-01-15 - skip objects in group (disp spaeter)
-      if(GR_ObjTab[l1].grp_1 == 0) continue;
-
-
-      // skip transparent objects
-      if(GR_ObjTab[l1].typ == Typ_SUR) {    // report geaenderten Lintyp ..
-        if(((ColRGB*)&GR_ObjTab[l1].iatt)->vtra != 0) {trlNr = 1; continue;}
-      }
-/*
-    } else if(GL_mode_draw_select == GR_MODE_NORMAL) {
-      // for get SelObjPos surfaces may not be hilited
-      // skip hidden objs
-      if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
-*/
-    }
 
 
     //----------------------------------------------------------------
@@ -2346,6 +2324,38 @@ static int errOld = 123;
       if((UI_InpMode == UI_MODE_VWR)&&(APT_dispPL == OFF)) continue;
     }
 */
+
+    //----------------------------------------------------------------
+    // skip dimmed objs but add to dimmed-objs-list
+    if(!GR_ObjTab[l1].dim) {
+        // printf(" Redraw-add-dimmed %ld %d\n",l1,GR_ObjTab[l1].dim);
+      MemTab_add (&GL_dimmLst, &lOff, &l1, 1, 0);
+      continue;
+    }
+
+    // skip hilited objs but add to hilite-objs-list
+    // skip objs in group but add to hilite-objs-list
+    if(DL_OBJ_IS_HILITE(l1)  ||
+        (GR_ObjTab[l1].grp_1 == 0)) {
+        // printf(" Redraw-add-dimmed %ld %d\n",l1,GR_ObjTab[l1].dim);
+      // Feedbackmode: draw hilited normal (else GL_SelVert__ does not work)
+      // Selectmode: draw hilited normal
+      if(GL_mode_draw_select == GR_MODE_DRAW) {
+        MemTab_add (&GL_hiliLst, &lOff, &l1, 1, 0);
+        continue;
+      }
+    }
+
+    // skip transparent objects
+    if(GR_ObjTab[l1].typ == Typ_SUR) {    // report geaenderten Lintyp ..
+      if(DL_OBJ_IS_TRANSP(l1)) {
+          // printf(" Redraw-add-transp %ld %d\n",l1,GR_ObjTab[l1].iatt);
+        MemTab_add (&GL_trptLst, &lOff, &l1, 1, 0);
+        continue;
+      }
+    }
+
+
 
     //----------------------------------------------------------------
     if(GL_mode_draw_select == GR_MODE_SELECT) {
@@ -2380,15 +2390,16 @@ static int errOld = 123;
       }
 
     }    // end of GR_MODE_FEEDBACK
-    //----------------------------------------------------------------
  
 
+//     } else if(GL_mode_draw_select == GR_MODE_NORMAL) {
+//       // for get SelObjPos surfaces may not be hilited
+//       // skip hidden objs
+//       if((GR_ObjTab[l1].disp == 1) && (GR_ObjTab[l1].hili == 1)) continue;
 
-    // OK; redraw this obj ....
-    // printf(" redr%d typ=%d ind%d\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
 
 
-
+    //----------------------------------------------------------------
 /*
     // Dittos: DefCol setzen.
     if(GR_ObjTab[l1].typ == Typ_Model) {
@@ -2431,29 +2442,148 @@ static int errOld = 123;
 */
 
 
+    //----------------------------------------------------------------
+    // OK; redraw this obj ....
+    // printf(" redr%d typ=%d ind%d\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
 
 
-
-      L_main_9:
+    L_main_9:
       // very slow on MS-Win if RenderMode = GL_SELECT !
       glCallList ((GLuint)l1 + DL_base__);                      // execute
         // printf(" reDraw %ld %d\n",l1,DL_base__); 
+  }
+
+
+  //----------------------------------------------------------------
+  // init list-modified-attributs
+  // TODO: make list global, 
+  for(i1=0; i1<GR_ATT_TAB_SIZ; ++i1) att_def[i1] = OFF;
+
+    // printf(" Redraw-hiliLst=%d dimmLst=%d trptLst=%d\n",
+           // GL_hiliLst.rNr,GL_dimmLst.rNr,GL_trptLst.rNr);
+
+
+
+
+
+  //================= DIMMED =======================================
+  if(!GL_dimmLst.rNr) goto L_transp0;
+
+  // set dimmed
+  GL_DefineDisp (FUNC_DispDimm__, 0);
+
+  glLineWidth (4.0); // for dimesions, Notes typ=4
+
+  // dim symbolic-surfaces (should have Typ_Att_dash_long (GL_sSym_*))
+  GL_InitNewAtt (2, Typ_Att_hili);
+  att_def[Typ_Att_hili] = ON;
+
+  // all leaderlines use lineAttr. 0
+  GL_InitNewAtt (2, 0);
+  att_def[0] = ON;
+
+  lTab = (long*)GL_dimmLst.data;
+
+  for(l1=0; l1<GL_dimmLst.rNr; ++l1) {
+    dli = lTab[l1];
+      // printf(" Redraw-dimmed %ld typ=%d dbi=%ld\n",dli,
+             // GR_ObjTab[dli].typ,GR_ObjTab[dli].ind);
+
+    // set dli for select-process
+    // if(GL_mode_draw_select == GR_MODE_SELECT) glLoadName((GLuint)dli);
+
+    // test for point
+    if(GR_ObjTab[dli].typ < Typ_LN)     goto L_dim__;
+    if(GR_ObjTab[dli].typ == Typ_Model) goto L_dim__;
+
+
+    // test for curves
+    if(GR_ObjTab[dli].typ < Typ_SUR) goto L_dim_cv;
+
+
+    //----------------------------------------------------------------
+    // Dim tag/image: display border around image
+    if(GR_ObjTab[dli].typ == Typ_Tag) {
+
+      // disp image; not yet done.
+      glCallList ((GLuint)dli + DL_base__);
+
+      // glDepthFunc (GL_ALWAYS);          // alles ueberschreiben
+      // get typ,pos,size of Tag/Image
+      // irc = GR_img_get_dbi (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
+      irc = GL_img_get__ (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
+      if(irc) {
+        if(irc == 1) goto L_dim_cv;
+        continue;  // -1=err
+      }
+
+      // display box (outline)
+      glColor3fv (GL_col_tab[ATT_COL_DIMMED]);
+      GL_Disp_2D_box1 (&eye, sx, sy, dx, dy);
+      continue;
+    }
+
+
+    //----------------------------------------------------------------
+    // is surface. If defCol-surf:
+    // if(!GR_ObjTab[dli].dim) {
+      glDisable (GL_COLOR_MATERIAL);
+      glCallList ((GLuint)dli + DL_base__);
+      // glEnable (GL_COLOR_MATERIAL);
+      continue;
     // }
+    
+      // printf(" Redraw-dimmed-surf %ld typ=%d dbi=%ld\n",dli,
+             // GR_ObjTab[dli].typ,GR_ObjTab[dli].ind);
+      // glCallList ((GLuint)dli + DL_base__);
+      // continue;
 
 
+    //----------------------------------------------------------------
+    L_dim_cv:
+        // printf(" Redraw-dimmed-curv %ld typ=%d dbi=%ld\n",dli,
+               // GR_ObjTab[dli].typ,GR_ObjTab[dli].ind);
+      attInd = GR_ObjTab[dli].iatt;
+      if(attInd < 0) goto L_dim__; 
+      if(attInd >= GR_ATT_TAB_SIZ) goto L_dim__; 
+
+      if(att_def[attInd] != ON) {
+          // printf(" ... change iatt %d > dimmed\n",attInd);
+        att_def[attInd] = ON;
+        GL_InitNewAtt (2, attInd);     // set attribute dimmed
+      }
+      // goto L_dim__;
+
+
+    //----------------------------------------------------------------
+    L_dim__:
+      // execute (draw)
+      glCallList ((GLuint)dli + DL_base__);
+
+  }
+
+  // reset dimmed
+  GL_DefineDisp (FUNC_DispDimm_ex, 0);
+
+
+  // reset the modfied curve-attributes
+  for(l1=0; l1<GR_ATT_TAB_SIZ; ++l1) {
+    if(att_def[l1] == ON) {
+        // printf(" Redraw-dimmed-reset iatt %ld\n",l1);
+      att_def[l1] = OFF;
+      GL_InitNewAtt (0, l1);
+    }
   }
 
 
 
 
-
   //================= TRANSPARENT =======================================
-    // printf(" _Redr transp\n");
+  L_transp0:
   if(GL_mode_draw_select == GR_MODE_NORMAL) goto L_fertig;  //2010-06-17
-  // Zuerst die undurchsichtigen Objekte ausgeben,
-  //   dann erst die transparenten, sonst gibts Mist !!!!!
-    // printf(" _Redr Transp\n");
-  if(trlNr < 1) goto L_hili_0;
+  if(!GL_trptLst.rNr) goto L_hili_0;
+    // printf(" _Redr transp\n");
+  // if(trlNr < 1) goto L_hili_0;
 
   // see GL_Surf_Ini
   glEnable (GL_COLOR_MATERIAL);
@@ -2463,205 +2593,149 @@ static int errOld = 123;
   // glBlendFunc (GL_SRC_ALPHA, GL_ONE);   // geht
 
 
+  lTab = (long*)GL_trptLst.data;
 
-  for(l1=0; l1<GR_TAB_IND; ++l1) {
+  for(l1=0; l1<GL_trptLst.rNr; ++l1) {
+    dli = lTab[l1];
+      // printf(" Redraw-transp dli=%ld typ=%d dbi=%ld\n",dli,
+             // GR_ObjTab[dli].typ,GR_ObjTab[dli].ind);
 
-    if(GR_ObjTab[l1].typ != Typ_SUR) continue;
-    if(((ColRGB*)&GR_ObjTab[l1].iatt)->vtra == 0) continue;
-      // printf(" transp: %d\n",l1);
+    // set dli for select-process
+    if(GL_mode_draw_select == GR_MODE_SELECT) glLoadName((GLuint)dli);
 
-    if(GL_mode_draw_select == GR_MODE_SELECT)
-      glLoadName((GLuint)l1);
 
-    // OK; make this obj transp. ....
-    // printf(" transp%d typ=%d ind%d\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
 
-    glCallList ((GLuint)l1 + DL_base__);                      // execute
+    // execute (draw)
+    glCallList ((GLuint)dli + DL_base__);
   }
 
+  // reset
   glDisable (GL_BLEND);
 
 
 
 
   //================= HILITE =======================================
-  // if(GL_mode_wire_shade >= GR_STATE_HID1) return;
-  // if(GL_mode_draw_select == GR_MODE_FEEDBACK) return;
-  // Draw hilited auch im Feedbackmode (sonst geht GL_SelVert__ nicht mehr !)
   L_hili_0:
-    // printf(" _Redr L_hili_0\n");
+  if((!GL_hiliLst.rNr) && (GR_dli_hili < 0))     goto L_temp;
+    // printf(" _Redr L_hili_0 %d %ld\n",GL_hiliLst.rNr,GR_dli_hili);
 
-  // alle folgenden overwrite ..
-  // glEnable (GL_LINE_SMOOTH);  // macht Lines dick; TEST war aktiv 2006-01-03
-  // glDepthFunc (GL_NOTEQUAL); // ueberschreibt immer (auch Flächen !)
-  // glDepthFunc (GL_GREATER);  // sehr komisch ..
+  // set hilited
+  GL_DefineDisp (FUNC_DispHili__, 0);
 
+  glLineWidth (4.0); // for dimesions, Notes typ=4
+  glDisable (GL_LIGHTING);  // for GL_Disp_2D_box1
 
+  // hilite symbolic-surfaces (should have Typ_Att_dash_long (GL_sSym_*))
+  GL_InitNewAtt (1, Typ_Att_hili);
+  att_def[Typ_Att_hili] = ON;
 
-  // init eine tabelle, wo gespeichert wird, ob ein Attribut veraendert wurde
-  // (und somit zurueckgesetzt werden muss.
-  for(i1=0; i1<GR_ATT_TAB_SIZ; ++i1) {
-    att_def[i1] = OFF;
-  }
-
-
-  // alle zu hilitenden Objekte ausgeben (jedes Obj hat in der DL attInd
-  //   gespeichert; das Original ueberschrieben mit hili-Col Width(4); dann
-  //   draw obj, dann restore attrib.
-  // alle folgenden obj ganz nach oben ..
-  // glDepthFunc (GL_NOTEQUAL);        // TEST OFF; war aktiv 2006-01-03
-  // Flächen nur outlines!
-  // glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-
-  // extrahilite
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mat_hili);
-
-  // PointAttributes --> hilite
-  GL_InitPtAtt (-2);
-
-  // damit ueberdeckt sie auch Flächen !
-  // glDisable (GL_DEPTH_TEST);
-  glDepthFunc (GL_ALWAYS);          // alles ueberschreiben
-  // glDepthFunc (GL_GREATER);          // geht ned ..
-  // glDepthFunc (GL_NOTEQUAL);          // wie GL_ALWAYS
-  // glDepthRange (0., 0.);              // unnutz
-
-
-  // Texturen kann man nur so hiliten ...
-  // (bei Texturen wirkt kein disable LIGHT od make ExtraLights)
-  // glBlendFunc (GL_ONE, GL_ONE_MINUS_CONSTANT_ALPHA);
-  // glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-  // glEnable (GL_BLEND);
-
-
-  // Lines & Curves koennte man mit XOR hiliten; bei surfaces geht das nicht.
-  // - hilite fuer surfaces & bodies & subModels in extra loop !
-  // oder Liste aller DL-rec#s schreiben und dann abarbeiten ..
-  // glLogicOp(GL_XOR);
-  // glEnable(GL_COLOR_LOGIC_OP);
-
-
-  // fuer subModels mit lines jetzt schon
+  // all leaderlines use lineAttr. 0
   GL_InitNewAtt (1, 0);
   att_def[0] = ON;
 
 
-  for(l1=0; l1<GR_TAB_IND; ++l1) {
 
-    // skip all objs outside active model                       2016-06-12
-    if((INT_16)GR_ObjTab[l1].modInd != -1) continue;
+  lTab = (long*)GL_hiliLst.data;
 
-    // mode select: skip all hilited objects ..  // 2010-10-24
-    if(GL_mode_draw_select == GR_MODE_SELECT) {
-      if(GR_ObjTab[l1].grp_1 == 0) continue;
-      // skip hilited obj
-      if((GR_ObjTab[l1].disp == 1)&&(GR_ObjTab[l1].hili == 0)) continue;
-    }
+//....................................................
+// hier Loopstartmachen ..
+//   for(l1=0; l1<GL_hiliLst.rNr; ++l1) {
+  iStat = 0;
+  l1 = -1L;
+  goto L_hili_cont;
 
+  L_hili_nxt:
+      // printf(" Redraw-hili l1=%ld dli = %ld\n",l1,dli);
+      // printf(" Redraw-hili %ld typ=%d ind=%ld iatt=%d\n",dli,
+             // GR_ObjTab[dli].typ,GR_ObjTab[dli].ind,GR_ObjTab[dli].iatt);
 
-    // hilite all group-objs
-    if(GR_ObjTab[l1].grp_1 == 0) goto L_hili_1;       // ON=0, OFF=1
+    // // set dli for select-process
+    // if(GL_mode_draw_select == GR_MODE_SELECT) glLoadName((GLuint)dli);
 
-    // skip objs not hilited 
-    if(GR_ObjTab[l1].disp  != 1) continue;
-    if(GR_ObjTab[l1].hili  != 0)  continue;
-
-    L_hili_1:
-    if(GR_ObjTab[l1].unvis != 0)   continue; // skip unvisible
-
-
-    // OK; hilite this obj ....
-      // printf("hili %ld typ=%d ind=%ld\n",l1,GR_ObjTab[l1].typ,GR_ObjTab[l1].ind);
+    if(GR_ObjTab[dli].typ == Typ_PT) goto L_hili__;
+       // (GR_ObjTab[dli].typ == Typ_SymB)  ||
+       // (GR_ObjTab[dli].typ == Typ_SymV))     goto L_hili__;
 
 
-    if(GL_mode_draw_select == GR_MODE_SELECT) {
-      // den (nur fuer die Selektion erforderlichen) Namen zuweisen
-      // mit glLoadName kommt keine brauchbare ID!
-      //glPopName();
-      //glPushName ((GLuint)l1);
-      glLoadName((GLuint)l1);
-      //TX_Print(" load nam %d",l1);
-    }
+    //----------------------------------------------------------------
+    // Hili tag/image: display border around image
+    if(GR_ObjTab[dli].typ == Typ_Tag) {
 
+      // disp image; not yet done.
+      glCallList ((GLuint)dli + DL_base__);
+ 
+      // get position and size size around tag / image 
+      // irc = DL_txtgetInfo (&i1, &eye, &sx, &sy, &dx, &dy, dli);
+      irc = GL_img_get__ (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
+      // irc = GR_img_get_dbi (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
+      if(irc) {
+        if(irc == 1) goto L_curv;
+       goto L_hili_cont;  // continue;  // -1=err
+      }
 
-
-    if(GR_ObjTab[l1].typ == Typ_PT) goto L_hili__;
-       // (GR_ObjTab[l1].typ == Typ_SymB)  ||
-       // (GR_ObjTab[l1].typ == Typ_SymV))     goto L_hili__;
-
-
-    // Images, Tags: eine Border hinmalen ...
-    if(GR_ObjTab[l1].typ == Typ_Tag) {
-
-      // draw; wurde in erster Loop nicht gezeichnet.
-      glCallList ((GLuint)l1 + DL_base__);
-        // printf(" _hili_tag %ld\n",l1);
-
-      
-      // prepare for GL_Disp_2D_box1
-      // glNewList (298, GL_COMPILE);   // Open DispList
-      glDisable (GL_LIGHTING);
-      glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+      // display box (outline)
+      // glPixelStorei (GL_UNPACK_ALIGNMENT, 1);  ??
       glColor3f (1.f, 0.f, 0.f);        // rot
-      // glDepthFunc (GL_ALWAYS);          // alles ueberschreiben
-    
-      // irc = DL_txtgetInfo (&i1, &eye, &sx, &sy, &dx, &dy, l1);
-      irc = GR_img_get_dbi (&i1, &eye, &sx, &sy, &dx, &dy, GR_ObjTab[l1].ind);
-      if(irc < 0) continue; // SymbolTag
+      // glColor3fv (GL_col_tab[ATT_COL_HILI]);
       GL_Disp_2D_box1 (&eye, sx, sy, dx, dy);
+      // GL_Disp_2D_box2 (&eye, sx, sy, dx, dy);
 
-      glEnable (GL_LIGHTING);
-      // glEndList ();                        // Close DispList
-      continue;
+     goto L_hili_cont;  // continue;  // -1=err
     }
 
 
+    //----------------------------------------------------------------
     // Flaechen: extraLight + ganz oben zeichnen;
-    if((GR_ObjTab[l1].typ == Typ_SUR)    ||
-       (GR_ObjTab[l1].typ == Typ_SOL))        {
+    if((GR_ObjTab[dli].typ == Typ_SUR)    ||
+       (GR_ObjTab[dli].typ == Typ_SOL))        {
 
+/*
       // check if symbolic
       if((APT_dispSOL == OFF) ||
-         ((ColRGB*)&(GR_ObjTab[l1].iatt))->vsym == 1) {
+         ((ColRGB*)&(GR_ObjTab[dli].iatt))->vsym == 1) {
         // yes, symbolic - uses att Typ_Att_dash_long
           // printf(" disp symbolic ..\n");
         attInd = Typ_Att_dash_long;
         goto L_hili_curv;
       }
-
-      // // check if textured
-      // if(((ColRGB*)&(GR_ObjTab[l1].iatt))->vtex == 1) {
-        // printf(" hili tex\n");
-      // }
-
-      glClear (GL_DEPTH_BUFFER_BIT);  // damit wirds ganz oben gezeichnet ..
+*/
+      // glClear (GL_DEPTH_BUFFER_BIT);  // damit wirds ganz oben gezeichnet ..
       // glEnable (GL_LINE_SMOOTH);  // macht Lines dick
-      glLineWidth   (4.0);
-      glEnable (GL_BLEND);                                      // 2011-04-12
-      glCallList ((GLuint)l1 + DL_base__);                      // execute
-      glDisable (GL_BLEND);
-      continue;
+      // glLineWidth   (4.0);
+
+      // // for defCol GL_BLEND must be enabled
+      // glEnable (GL_BLEND);                                      // 2011-04-12
+      // glCallList ((GLuint)dli + DL_base__);                      // execute
+      // glDisable (GL_BLEND);
+      // continue;
+
+// TODO: transparent-surfaces not yet dimmed enough ..
+      goto L_hili__;
     }
 
 
+    //----------------------------------------------------------------
     // subModels mit Lines only: thick 4.
-    // if((GR_ObjTab[l1].typ == Typ_Model) ||
-       // (GR_ObjTab[l1].typ == Typ_Mock))     {
-    if(GR_ObjTab[l1].typ == Typ_Model) {
+    // if((GR_ObjTab[dli].typ == Typ_Model) ||
+       // (GR_ObjTab[dli].typ == Typ_Mock))     {
+    if(GR_ObjTab[dli].typ == Typ_Model) {
       // glColor3fv   (GL_col_tab[GR_AttTab[Typ_Att_hili1].col]); geht ned ..
       // glLineWidth   (4.0);     // fuer Lines im Ditto .. geht ned ..
-      glClear (GL_DEPTH_BUFFER_BIT);  // damit wirds ganz oben gezeichnet ..
-      // glDepthFunc (GL_NOTEQUAL);
-      glEnable (GL_LINE_SMOOTH);  // macht Lines dicker; uebergeht glLineWidth
-      attInd = Typ_Att_dash_long;   // fuer Surfs im Ditto ..
-      goto L_hili_curv;
+      // glClear (GL_DEPTH_BUFFER_BIT);  // damit wirds ganz oben gezeichnet ..
+      // // glDepthFunc (GL_NOTEQUAL);
+      // glEnable (GL_LINE_SMOOTH);  // macht Lines dicker; uebergeht glLineWidth
+      // attInd = Typ_Att_dash_long;   // fuer Surfs im Ditto ..
+      // goto L_hili_curv;
+      goto L_hili__;
     }
 
 
-    if(GR_ObjTab[l1].typ == Typ_APPOBJ) goto L_hili__;
+    //----------------------------------------------------------------
+    if(GR_ObjTab[dli].typ == Typ_APPOBJ) goto L_hili__;
 /*
     // appObjs have a modified iatt!
-    // if(GR_ObjTab[l1].typ == Typ_APPOBJ) {
+    // if(GR_ObjTab[dli].typ == Typ_APPOBJ) {
       glLogicOp(GL_XOR);
       glEnable(GL_COLOR_LOGIC_OP);
       iXor = 1;
@@ -2671,40 +2745,60 @@ static int errOld = 123;
     // }
 */
 
-    // nur fuer Lines - nicht fuer Surf's
+    //----------------------------------------------------------------
+    L_curv:
+    // curves
     // wurde Attribut schon umdefiniert -
-    // // gaNr = GR_ObjTab[l1].attInd;
+    // // gaNr = GR_ObjTab[dli].attInd;
     // // attInd = GA_ObjTab[gaNr].gu.iatt;
-    attInd = GR_ObjTab[l1].iatt;
-    // attInd = ((Ind_Att_ln*)&GR_ObjTab[l1].iatt)->indAtt; // IndAttLn_get_ltyp
-      // printf(" attInd=%d\n",attInd);
+    attInd = GR_ObjTab[dli].iatt;
     if(attInd < 0) goto L_hili__;
     if(attInd >= GR_ATT_TAB_SIZ) goto L_hili__;
 
 
 
     L_hili_curv:
-      // printf(" L_hili_curv: attInd=%d l1=%ld att_def=%d\n",
-              // attInd,l1,att_def[attInd]);
-
+      // printf(" Redraw-L_hili_curv: attInd=%d dli=%ld att_def=%d\n",
+              // attInd,dli,att_def[attInd]);
     if(att_def[attInd] != ON) {
         // printf(" ... hili change %d > hili\n",attInd);
       att_def[attInd] = ON;
-      GL_InitNewAtt (1, attInd);
-      // glEnable(GL_CULL_FACE);
-      // glDepthFunc (GL_NOTEQUAL);
+      GL_InitNewAtt (1, attInd);   // set -> hilited
     }
 
 
     L_hili__:
-      // printf(" _Redraw L_hili__: %ld\n",l1);
-      // printf(" gl-2 %ld",l1);
-    glCallList ((GLuint)l1 + DL_base__);           // execute (draw)
-    // if(iXor) { glDisable(GL_COLOR_LOGIC_OP); iXor = 0; }
-  }
+    // curves, Typ_Dimen
+      // printf(" _Redraw L_hili__: %ld\n",dli);
+    glCallList ((GLuint)dli + DL_base__);           // execute (draw)
 
 
-  // zuruecksetzen veraenderter attribute.
+    //----------------------------------------------------------------
+    L_hili_cont:
+    // continue with GL_hiliLst
+    ++l1;
+    if(l1 < GL_hiliLst.rNr) {
+      dli = lTab[l1];
+      goto L_hili_nxt;
+    }
+
+    // redraw active (mouse-over) object of selection-list; set obj on-top
+    if(!iStat) {
+      iStat = 1;      // to stop loop
+      if(GR_dli_hili >= 0) {
+        glDepthFunc (GL_ALWAYS);
+        dli = GR_dli_hili;
+        goto L_hili_nxt;
+      }
+    }
+  //----------------------------------------------------------------
+ 
+  // reset
+  glDepthFunc (GL_LEQUAL);
+  glEnable (GL_LIGHTING);
+  GL_DefineDisp (FUNC_DispHili_ex, 0);  // reset defCol Lightfv TexEnvi
+
+  // reset the modfied curve-attributes
   for(l1=0; l1<GR_ATT_TAB_SIZ; ++l1) {
     if(att_def[l1] == ON) {
       // printf(" reset att %d\n",l1);
@@ -2713,83 +2807,23 @@ static int errOld = 123;
     }
   }
 
-  // glDisable(GL_COLOR_LOGIC_OP);
 
-  glDisable (GL_LINE_SMOOTH);
-  // glEnable (GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);  // reset
-
-
-  // glDisable (GL_BLEND);
-
-  // reset ExtroHiliteLight
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mod_amb2);
-
-  // PointAttributes Reset
-  GL_InitPtAtt (-1);
-
-  // reset lineWidth
-  glLineWidth   (1.0);
-
-
-/*
-  //--------------------------------------
-  // alle zu dimmenden Objekte ausgeben
-  for(l1=0; l1<GR_TAB_IND; ++l1) {
-    if(GR_ObjTab[l1].disp  != OFF) continue;
-    if(GR_ObjTab[l1].dim   != ON)  continue;
-    if(GR_ObjTab[l1].unvis != 0)   continue; // skip unvisible
-    //TX_Print("hili %d %d",i1,GL_Hili_Tab[i1]);
-    //glCallList (GL_Hili_Tab[i1] + DL_base__ + 1);
-
-
-    // wurde Attribut schon umdefiniert -
-    attInd = GR_ObjTab[l1].iatt;
-    if(att_def[attInd] != ON) {
-      //TX_Print(" change %d > hili",attInd);
-      att_def[attInd] = ON;
-      GL_InitNewAtt (2, attInd);
-    }
-
-
-    if(GL_mode_draw_select == GR_MODE_SELECT) {
-      // den (nur fuer die Selektion erforderlichen) Namen zuweisen
-      // mit glLoadName kommt keine brauchbare ID!
-      //glPopName();
-      //glPushName ((GLuint)l1);
-      glLoadName((GLuint)l1);
-      //TX_Print(" load nam %d",l1);
-    }
-
-    glCallList ((GLuint)l1 + DL_base__);                      // execute
-  }
-
-
-  // zuruecksetzen veraenderter attribute.
-  for(l1=0; l1<GR_ATT_TAB_SIZ; ++l1) {
-    if(att_def[l1] == ON) {
-      //TX_Print(" reset %d ",l1);
-      GL_InitNewAtt (0, l1);
-    }
-  }
-*/
 
 
   //======= TEMP OBJ'S ===================================
   L_temp:
     // printf(" _Redraw L_temp\n");
+  // display temporary-objs
+  // temporary-objs cannot be selected
   if(GL_mode_draw_select == GR_MODE_SELECT) goto L_fertig;
-  // die temp.Obj's malen (nicht im SelectMode -> unselektierbar !)
-  // zuletzt machen, damit sie vorherige ueberdecken.
-  // printf(" DL_Ind_tmp=%d\n",DL_Ind_tmp);
-  // Schleife ueber die temp. Objects.
+    // printf(" DL_Ind_tmp=%d\n",DL_Ind_tmp);
   for(l1=1; l1<DL_Ind_tmp; ++l1) {
       // printf(" _Redraw call temp.o %ld\n",l1);
     glCallList ((GLuint)l1);                      // execute
   }
 
   // endgl und swapbuffer
-  // UI_GR_DrawExit ();  // swap_buffers
+  // GLB_DrawExit ();  // swap_buffers
 
 
 
@@ -2797,7 +2831,6 @@ static int errOld = 123;
   L_fertig:
     // printf(" L_fertig:\n");
 
-  
 
   //----------------------------------------------------------------
   // disp CAD-2D-icons ..  // only for CAD
@@ -2809,7 +2842,7 @@ static int errOld = 123;
 
   //----------------------------------------------------------------
   L_exit:
-    // printf("ex GL_Redraw\n");
+    // printf("ex-GL_Redraw\n");
   return;
 
 }
@@ -3076,17 +3109,44 @@ Screenkoords > Userkoords.
   GL_Init_col ();
 
 
-  GL_Init1 ();
+  MemTab_ini__ (&GL_hiliLst, sizeof(long), Typ_Int8, 1000);
+  MemTab_ini__ (&GL_dimmLst, sizeof(long), Typ_Int8, 1000);
+  MemTab_ini__ (&GL_trptLst, sizeof(long), Typ_Int8, 1000);
 
-
-
-  // die DefCol setzen ..
-  // GL_InitCol (10);
+  GLT_init__ ();  // get space for GLT_ppa
 
 }
 
 
+
+//================================================================
+  int GL_init_defCol (void *defCol) {
+//================================================================
+// GL_init_defCol           init color for defCol-surfaces (DL_base_defCol)
+// Input:
+//   defCol        first 3 unsigned-chars are red,green,blue as 0-255 (black- white)
+// cannot use glNewList - overwrites color of surfaces of subModels
+// see GL_ColSet 
+
+  // make RGBT (4 chars) from ColRGB
+
+
+  // printf(" GL_init_defCol %d %d %d\n",
+         // ((unsigned char*)defCol)[0],
+         // ((unsigned char*)defCol)[1],
+         // ((unsigned char*)defCol)[2]);
+
+
+  GL_defCol = *(ColRGB*)defCol;
+
+//   glNewList (DL_base_defCol, GL_COMPILE);
+//     glColor3ubv ((void*)defCol);            // starts with cr/cg/cb
+//   glEndList ();
  
+   return 0;
+
+}
+
 
 //=====================================================================
   void GL_Init1 () {
@@ -3120,6 +3180,8 @@ Screenkoords > Userkoords.
   GLT_exit ();
   GLT_init__ ();
   // GLT_init_ts ();    // new grid-tesselator 2017-06-27
+
+  GL_init_defCol (&AP_defcol);
 
 }
 
@@ -3156,7 +3218,7 @@ Screenkoords > Userkoords.
   void GL_Init_View () {
 //================================================================
 // reset all view-parameters; 
-// UI_GR_DrawInit/UI_GR_DrawExit muss aussen sein !
+// GLB_DrawInit/GLB_DrawExit muss aussen sein !
 // Input:
 //   GL_initMode  0=init 1=change-scale
 //   GL_Scr_Siz_X,GL_Scr_Siz_Y         sceensize in screenCoords
@@ -3222,7 +3284,7 @@ Screenkoords > Userkoords.
 //================================================================
 /// \code
 /// Change Views Function. Set GL_eyeX, GL_eyeZ.
-/// GL must be open (UI_GR_DrawInit)
+/// GL must be open (GLB_DrawInit)
 /// keep GL_cen, GL_Scale;
 /// Input:
 ///   mode  FUNC_ViewTop|FUNC_ViewFront|FUNC_ViewSide|FUNC_ViewIso
@@ -3233,7 +3295,7 @@ Screenkoords > Userkoords.
   Plane     pln1;
 
 
-  // printf("GL_DefineView mode=%d GR_actView=%d\n",mode,GR_actView);
+  printf("GL_DefineView mode=%d GR_actView=%d\n",mode,GR_actView);
 
   if(mode == FUNC_Init) mode = GR_actView;
 
@@ -3341,12 +3403,21 @@ Screenkoords > Userkoords.
 //================================================================
   void GL_DefineDisp (int mode, int mode1) {
 //================================================================
-// braucht hinterher kompletten Neuaufbau der Daten und redraw !
 // mode1: ExtraLight
-// MS braucht UI_GR_DrawInit vorher; viele calls unnutz !
+// Input:
+//   mode     FUNC_DispWire     wireframe
+//            FUNC_DispRend     shaded
+//            FUNC_DispDimm__   dimmed
+//            FUNC_DispDimm_ex  restore shaded or wireframe after dimmed
+//            FUNC_DispHid1     ?
+//            FUNC_DispHid2     ?
+//            FUNC_DispHid3     ?
+//   mode1    FUNC_DispRend:    0     normal     
+//                              1     extraLight (checkBox)
 
 
-  // printf("GL_DefineDisp %d %d\n", mode,mode1);
+
+  // printf("GL_DefineDisp mode=%d mode1=%d\n",mode,mode1);
 
 
   switch (mode) {
@@ -3359,17 +3430,14 @@ Screenkoords > Userkoords.
 
       glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); // Flächen nur outlines!
 
-
       // wenn bessere darstelleung von Flaechen fertig, alle Flaechen so
       // ausblenden !!!
       // so wird gar keine Flaeche generiert !!
       // glEnable(GL_CULL_FACE);
       // glCullFace (GL_FRONT_AND_BACK);
 
-
       glDisable (GL_COLOR_MATERIAL);
       glDisable (GL_LIGHTING);
-
 
       //glShadeModel(GL_FLAT);
       // gluQuadricDrawStyle (quadObj, GLU_LINE);
@@ -3387,7 +3455,6 @@ Screenkoords > Userkoords.
       // geht nur mit korrektem Normalvektor!
       // normalize normalVectors; sehr wichtig; sonst alles ziemlich dunkel !!!!
       glEnable(GL_NORMALIZE);
-
 
       //  Hidden surface removal (sonst sieht man Punkte durch Flaechen durch !!
       glEnable(GL_DEPTH_TEST);
@@ -3407,7 +3474,7 @@ Screenkoords > Userkoords.
 
 
       // // Set Material properties to follow glColor values
-      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);  // beidseitig
+//       glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);  // beidseitig
       // glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);  // nur FRONT
 
       // glColorMaterial (GL_BACK,  GL_DIFFUSE);
@@ -3417,15 +3484,12 @@ Screenkoords > Userkoords.
       // glColorMaterial (GL_BACK,  GL_AMBIENT);
       // // glColorMaterial (GL_BACK,  GL_AMBIENT_AND_DIFFUSE);
 
-
       // Reflexion - 0 bis 128 macht grobe Fehler !
-      // glMateriali  (GL_FRONT, GL_SHININESS, 2);
-      // glMateriali  (GL_BACK, GL_SHININESS, 2);
-
+      glMateriali  (GL_FRONT, GL_SHININESS, 4);
+      glMateriali  (GL_BACK, GL_SHININESS, 4);
 
       // Enable color tracking (erst nach glColorMaterial)
-      glEnable (GL_COLOR_MATERIAL);
-
+//       glEnable (GL_COLOR_MATERIAL);
 
       // // So werden beide Seiten gleich (nur diffus, kein Diffus!
       // // man kann damit angeblich (mit Wert 0) auch auf nur aussen schalten
@@ -3436,61 +3500,22 @@ Screenkoords > Userkoords.
       // // gut einstellbar mit GL_mod_amb
       // glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mod_amb);
 
+//       glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mod_amb1);
+//       glMaterialfv (GL_FRONT, GL_SPECULAR, GL_mat_spc1);
+//       glMaterialfv (GL_BACK, GL_SPECULAR, GL_mat_spc1);
 
       // define light0
       // glLightfv(GL_LIGHT0, GL_POSITION, GL_light0_pos);
-
-      // glLightfv(GL_LIGHT1, GL_AMBIENT,  GL_light_amb);  // hellt stark auf !
-      // glLightfv(GL_LIGHT1, GL_DIFFUSE,  GL_light_dif);
-
-      // // tut auch nix
-      // // glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_local_view);
-
-
-      // glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc); // zieml unnutz
-
-      // Reflexion - 0 bis 128 macht grobe Fehler !
-      glMateriali  (GL_FRONT, GL_SHININESS, 4);
-      glMateriali  (GL_BACK, GL_SHININESS, 4);
+      // glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_local_view);
 
       // // Spot effects; tut fast nix  machts ganz dunkel...
       // glLightfv (GL_LIGHT0, GL_SPOT_DIRECTION, GL_light0_spo);
       // glLightf  (GL_LIGHT0, GL_SPOT_CUTOFF, 45.0f);
       // glLightf  (GL_LIGHT0, GL_SPOT_EXPONENT, 100.0f);
-
-
+      // glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc); // zieml unnutz
       // // Daempfung 
-      // // glLightf  (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.8f);
+      // glLightf  (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.8f);
       // glLightfv(GL_LIGHT0, GL_POSITION, GL_light0_pos);
-
-
-      if(mode1 > 0) {
-        // glEnable  (GL_LIGHT1);
-          printf(" extraLight\n");
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mod_amb2);
-        glMaterialfv (GL_FRONT, GL_SPECULAR, GL_mat_spc2);
-        glMaterialfv (GL_BACK, GL_SPECULAR, GL_mat_spc2);
-
-        glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_light_amb2); // hellt stark auf
-        glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_dif2);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc2); // zieml unnutz
-
-      } else {
-        // glDisable  (GL_LIGHT1);
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, GL_mod_amb1);
-        glMaterialfv (GL_FRONT, GL_SPECULAR, GL_mat_spc1);
-        glMaterialfv (GL_BACK, GL_SPECULAR, GL_mat_spc1);
-
-        glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_light_amb1); // hellt stark auf
-        glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_dif1);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, GL_light_spc1); // zieml unnutz
-
-      }
-
-      glEnable  (GL_LIGHT0);
-      glEnable  (GL_LIGHTING);       // Licht EIN
-
-
 
       // aussen od aussen u innen
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL); // beide shaden; nur tw
@@ -3502,21 +3527,26 @@ Screenkoords > Userkoords.
       // glMaterialfv(GL_FRONT, GL_DIFFUSE, GL_diff1);
       // glMaterialfv(GL_FRONT, GL_AMBIENT, GL_amb1);
 
-
       // Default GL_FLAT wuerde Polygone nicht so schoen verlaufend
       // schattieren wie GL_SMOOTH
       // glShadeModel (GL_FLAT);
       // glShadeModel(GL_SMOOTH);   // Def !
-
-
       // glEnable  (GL_AUTO_NORMAL);       // bei Linux u Windows nutzlos
-
-
       // glEnable(GL_DITHER);
       // glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
       // glHint(GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
-
       // glFrontFace(GL_CW);
+
+      DISP_REND_STD
+
+      //----------------------------------------------------------------
+      if(mode1 > 0) {
+          // printf(" extraLight\n");
+        DISP_REND_EXTRA     // set colored surfaces extraLight
+
+      } else {
+        DISP_REND_STD      // set colored surfaces  normal
+      }
 
       GL_mode_wire_shade = GR_STATE_SHADE;
       break;
@@ -3524,6 +3554,88 @@ Screenkoords > Userkoords.
 
 
 
+    //====================================================================
+    case FUNC_DispHili__:
+
+      // dim points
+      GL_InitPtAtt (-2);
+
+      // hilite defCol-surfaces
+      GL_init_defCol (GL_col_hili);
+
+      // hilite colored-surfaces
+      //TODO: make it with glBlendFunc glBlendEquation glBlendColor
+      glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_col_hil1);
+      glLightfv(GL_LIGHT0, GL_DIFFUSE, GL_col_hil1);
+
+      // hilite textured-surfaces
+      glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+      glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_col_hil2);
+
+      break;
+  
+    
+    //====================================================================
+    case FUNC_DispHili_ex:   // restore shaded or wireframe after dimmed
+
+      // reset point-attributes
+      GL_InitPtAtt (-1);
+
+      // reset defCol-surfaces
+      GL_init_defCol (&AP_defcol);
+
+      // reset colored-surfaces
+      glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_light_amb1);\
+      glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_dif1);\
+
+      // reset textured-surfaces
+      glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL); // default
+
+      break;
+
+
+    //====================================================================
+    case FUNC_DispDimm__:
+
+      // dim points
+      GL_InitPtAtt (-4);
+
+      // dim defCol-surfaces
+      GL_init_defCol (GL_col_dimm);
+
+
+      // dim curves and colored surfaces
+      glLightfv(GL_LIGHT0, GL_AMBIENT,  GL_mat_dimm);
+      glLightfv(GL_LIGHT0, GL_DIFFUSE,  GL_light_2si);
+      glLightfv(GL_LIGHT0, GL_SPECULAR,  GL_light_2si);
+
+      // dim textures
+      glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+      glTexEnvf (GL_TEXTURE_ENV, GL_ALPHA_SCALE, 0.8);
+
+
+      break;
+
+
+    //====================================================================
+    case FUNC_DispDimm_ex:   // restore shaded or wireframe after dimmed
+
+      // glDisable (GL_BLEND);
+
+      // reset point-attributes
+      GL_InitPtAtt (-1);
+
+      // reset colored surfaces
+      DISP_REND_STD
+
+      // reset textured-surfaces
+      glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL); // default
+      glTexEnvf (GL_TEXTURE_ENV, GL_ALPHA_SCALE, 0.0);
+
+      // reset defCol-surfaces
+      GL_init_defCol (&AP_defcol);
+
+      break;
 
 
     //====================================================================
@@ -3591,8 +3703,8 @@ Screenkoords > Userkoords.
   }
 
 
-  //GR_Recreate ();
-  if(AP_stat.sysStat > 1) GL_Redraw ();        // 2010-08-02
+  // //GR_Recreate ();
+  // if(AP_stat.sysStat > 1) GL_Redraw ();        // 2010-08-0 2019-12-25
 
 }
 
@@ -3868,11 +3980,9 @@ Screenkoords > Userkoords.
   // glDeleteLists schliessen !
 
 
-  // printf("GL_temp_del_all \n");
+  // printf("GL_temp_del_all DL_Ind_tmp=%d\n",DL_Ind_tmp);
 
-
-  // glDeleteLists (1, 1);
-  glDeleteLists (1, DL_Ind_tmp);   //2008-04-10
+  glDeleteLists (1, DL_Ind_tmp);
 
   DL_Ind_tmp    =   1;
 
@@ -3905,21 +4015,7 @@ Screenkoords > Userkoords.
 /// return next free temp-obj-index.
 
 
-  return -DL_Ind_tmp;
-
-}
-
-
-//================================================================
-  int GL_RubberBox_do () {
-//================================================================
-
-  // printf("GL_RubberBox_do\n");
-
-
-  GL_RubberBox_drw__ (0);
-
-  return 0;
+  return DL_Ind_tmp;
 
 }
 
@@ -3927,6 +4023,7 @@ Screenkoords > Userkoords.
 //================================================================
   int GL_RubberBox_stop () {
 //================================================================
+// GL_RubberBox_stop     exit RubberBox
 
   // printf("GL_RubberBox_stop\n");
 
@@ -3955,7 +4052,7 @@ Screenkoords > Userkoords.
 //================================================================
   int GL_RubberBox_sel (Point *ptOri, int dx, int dy) {
 //================================================================
-// select objs in 2D-box
+// GL_RubberBox_sel            select objs in 2D-box
 // Input:
 //   dx, dy   width,height of box in screencoords
 
@@ -4013,7 +4110,7 @@ Screenkoords > Userkoords.
 //================================================================
   int GL_RubberBox_drw__ (int mode) {
 //================================================================
-// mode=0=start, 1=stop.
+// GL_RubberBox_drw__           // mode=0=start, 1=stop.
 
 static int rb_x, rb_y;
 static int rb_dx, rb_dy;
@@ -4243,7 +4340,7 @@ static Point ptOri;
 
   if ((GL_StatRubberBand == ON) || (GL_StatRubberBox == ON)) {
 
-    //UI_GR_DrawInit ();
+    //GLB_DrawInit ();
 
     GL_StatRubberBand = OFF;
     GL_StatRubberBox  = OFF;
@@ -4260,7 +4357,7 @@ static Point ptOri;
 
     *siz = UT3D_len_2pt (ptC, &GL_Rubber_Ori) / 2.0;
 
-    //UI_GR_DrawExit ();
+    //GLB_DrawExit ();
   }
 
 }
@@ -4316,7 +4413,7 @@ static Point ptOri;
 
   glEnable (GL_LIGHTING);
   // glDepthFunc (GL_LEQUAL);     // wieder normal; eine Spur besser als LESS
-  //UI_GR_DrawExit ();
+  //GLB_DrawExit ();
 
 }
 */
@@ -4782,7 +4879,7 @@ extern int GLBT_vcSelStat;
   char   *ta, *stat;
 
 
-  printf("GL_sel_add_DL %ld\n",dli);
+  // printf("GL_sel_add_DL %ld\n",dli);
 
 
   // realloc space in dla if necessary
@@ -4881,7 +4978,7 @@ extern int GLBT_vcSelStat;
 
 
 
-  // UI_GR_DrawInit ();
+  // GLB_DrawInit ();
 
   // switch to ProjectionMode
   glMatrixMode (GL_PROJECTION);
@@ -4916,7 +5013,7 @@ extern int GLBT_vcSelStat;
   hits = glRenderMode (GL_RENDER);
     // printf(" hits=%d\n",hits);
 
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
 
   // restore 
   GL_mode_draw_select = GR_MODE_DRAW;
@@ -5523,6 +5620,7 @@ static double old_view_Z = 0.;
 }
 
 
+/* UNUSED
 //================================================================
   int GL_DefColSet (ColRGB *nxtCol) {
 //================================================================
@@ -5550,47 +5648,47 @@ static double old_view_Z = 0.;
 
   return 12;
 
-/* dzt nicht mehr notwendig (zumindest f VRML2)
-  ind = DL_StoreObj (Typ_Color, 0L, 0);
-
-  DL_unvis_set (ind, 1);                 // is unvisible
-  DL_pick_set  (ind, ON);                // set to nopick
-
-  dlInd = GL_fix_DL_ind (&ind);
-
-
-  glNewList (dlInd, GL_COMPILE);
-  glEnable (GL_LIGHTING);
-  glColor3ubv ((unsigned char*)&GL_defCol);
-  glEndList ();
-*/
-
-/*
-  // overwrite Surface-defaultColor # 12
-  i1 = 12;
-  f1 = nxtCol->cr / 255.;
-  GL_col_tab[i1][0] = f1;
-  f1 = nxtCol->cg / 255.;
-  GL_col_tab[i1][1] = f1;
-  f1 = nxtCol->cb / 255.;
-  GL_col_tab[i1][2] = f1;
+// dzt nicht mehr notwendig (zumindest f VRML2)
+//   ind = DL_StoreObj (Typ_Color, 0L, 0);
+// 
+//   DL_unvis_set (ind, 1);                 // is unvisible
+//   DL_pick_set  (ind, ON);                // set to nopick
+// 
+//   dlInd = GL_fix_DL_ind (&ind);
+// 
+// 
+//   glNewList (dlInd, GL_COMPILE);
+//   glEnable (GL_LIGHTING);
+//   glColor3ubv ((unsigned char*)&GL_defCol);
+//   glEndList ();
 
 
-  // overwrite Surface-defaultattributes
-  // GL_InitNewAtt (0, 5);
-
-  // change List # 5
-  glNewList ((GLuint)DL_base_LnAtt+5, GL_COMPILE);
-  glColor3fv    (GL_col_tab[12]);
-  glEndList ();
-*/
+//
+//   // overwrite Surface-defaultColor # 12
+//   i1 = 12;
+//   f1 = nxtCol->cr / 255.;
+//   GL_col_tab[i1][0] = f1;
+//   f1 = nxtCol->cg / 255.;
+//   GL_col_tab[i1][1] = f1;
+//   f1 = nxtCol->cb / 255.;
+//   GL_col_tab[i1][2] = f1;
+// 
+// 
+//   // overwrite Surface-defaultattributes
+//   // GL_InitNewAtt (0, 5);
+// 
+//   // change List # 5
+//   glNewList ((GLuint)DL_base_LnAtt+5, GL_COMPILE);
+//   glColor3fv    (GL_col_tab[12]);
+//   glEndList ();
+//
 
   // printf("ex GL_DefColSet %d\n",dlInd-DL_base_LnAtt);
   return dlInd-DL_base_LnAtt;
 
 }
 
-/*
+
 //================================================================
   int GL_SetCol () {
 //================================================================
@@ -5849,9 +5947,6 @@ static double old_view_Z = 0.;
   // printf("GL_GetConstrPos %f %f %f\n",pt1->x,pt1->y,pt1->z);
   // DEB_dump_obj__ (Typ_PLN, &GL_constr_pln, "&GL_constr_pln:");
   // DEB_dump_obj__ (Typ_PLN, &GL_view_pln, "&GL_view_pln:");
-
-
-  // printf ("GL_GetConstrPos %d %d\n",GL_mouse_x_act,GL_mouse_y_act);
   // DEB_dump_obj__ (Typ_VC, &GL_eyeX, "GL_eyeX");
 
 
@@ -6013,7 +6108,7 @@ static double old_view_Z = 0.;
   int GL_eye_upd (int modPln, int modOri) {
 //================================================================
 // update GL_eye_pln and GL_angZ,GL_angX
-// GL must be open (UI_GR_DrawInit)
+// GL must be open (GLB_DrawInit)
 // Input
 //   modPln 0 init GL_eye_pln
 //          1 update GL_eye_pln - GL_cen changed
@@ -6273,7 +6368,7 @@ static double old_view_Z = 0.;
 
   GL_Redraw ();
 
-  //UI_GR_DrawExit ();
+  //GLB_DrawExit ();
 
 }
 
@@ -6330,7 +6425,7 @@ static double old_view_Z = 0.;
   void GL_Do_Rot__ (int x, int y) {
 //======================================================================
 // rotate view.
-// GL must be open (UI_GR_DrawInit)
+// GL must be open (GLB_DrawInit)
 // Input:
 //   x,y     the mouseposition
 
@@ -6469,7 +6564,7 @@ static double old_view_Z = 0.;
   void GL_Do_Scale__ (int x, int y) {
 //======================================================================
 /// modify scale according to mousemovement
-// GL must be open (UI_GR_DrawInit)
+// GL must be open (GLB_DrawInit)
 
   int    dx, dy;
   double zoomfakt;
@@ -6698,7 +6793,7 @@ static double old_view_Z = 0.;
   void GL_Set_Scale (double Scale) {
 //=================================================================
 // Set GL_Scale GL_Scale_back GL2D_Scale AP_scale GL_Redraw
-// GL must be open (UI_GR_DrawInit) !
+// GL must be open (GLB_DrawInit) !
 
 // GL_Scale depends on GL_ModSiz;
 // GL2D_Scale not !
@@ -7137,7 +7232,7 @@ static double old_view_Z = 0.;
 
 
   //----------------------------------------------------------------
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
 
   // update GL_eye_pln and GLBT_ori
   GL_eye_upd (1, 1);
@@ -7148,7 +7243,7 @@ static double old_view_Z = 0.;
 
   // GL_Reframe1 (); // TEST
 
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
     // printf("ex GL_Rescale scal=%f cen=%f,%f,%f\n",Usiz,Ucen->x,Ucen->y,Ucen->z);
 
@@ -9400,7 +9495,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     GL_Tex_End ();
 
   } else {
-    if(*ind) GL_Surf_Ini (ind, (void*)&att);
+    if(*ind) GL_Surf_Ini (ind, (void*)&att); // GL_fix_DL_ind, glNewList
     irc = GL_Disp_sur (bMsh);
     if(*ind) GL_EndList ();
   }
@@ -9675,6 +9770,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_ColSet (ColRGB *col) {
 //================================================================
 // GL_ColSet                 activate Color,transparency for surface from ColRGB
+//   for symbolic-surfaces, colored-surfaces, not for textured-surfaces
+//   glNewList must be open
 
   int               iTra, iSym; 
   unsigned char     glCol[4];
@@ -9710,14 +9807,17 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   //---------------SURF-SHADED_NOT_TRANSPARENT----------------------
   if(!iTra) {
-   // 0 = no transparency
+   // shaded, not-transparent surface  (0=no-transparency)
 
-    glDisable (GL_BLEND); // to overwrite transparency 2013-08-20
+    // glDisable (GL_BLEND); // to overwrite transparency 2013-08-20
 
     if(col->color == 0) {
-        // DEB_dump_obj__ (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
+      // defCol-surfaces
       glColor3ubv ((unsigned char*)&GL_defCol);
+        // DEB_dump_obj__ (Typ_Color, &GL_defCol, "GL_Surf_Ini-GL_defCol:");
+
     } else {
+      // colored-surfaces
       glColor3ubv (glCol);
     }
 
@@ -10210,7 +10310,6 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // den DL-Index (+ Offset) holen)  
   dlInd = GL_fix_DL_ind (ind);
     // printf(" _DrawSymB dli=%d ind=%ld\n",dlInd,*ind);
-
 
   glNewList (dlInd, GL_COMPILE);
 
@@ -10899,9 +10998,195 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_Disp_2D_box1 (Point *p1, int sx, int sy, int dx, int dy) {
+  int GL_Disp_2D_box2 (Point *p1, int sx, int sy, int dx, int dy) {
 //================================================================
 // glList must be open !!
+// hilite not-zooming 2D-maps.
+//   p1     Position of Field in Usercoords
+//   sx, sy size of 2D-Field in screencoords
+//   dx, dy offset from p1 to lower left 2D-corner in screencoords
+
+
+  double  sclx, scly;
+  Point   pa[3];
+  Vector  vcx, vcy;
+
+
+  printf(":::::::::::::::::::::::::::::::::::::::::: \n");
+  printf("GL_Disp_2D_box2 %d %d %d %d\n",sx,sy,dx,dy);
+  DEB_dump_obj__ (Typ_PT, p1, "  2D_box1-p1:");
+  DEB_dump_obj__ (Typ_PLN, &GL_eye_pln, "  2D_box1-GL_eye_pln");
+  printf(" GL2D_Scale=%f GL_SclNorm=%f GL_Scale_back=%f\n",GL2D_Scale,GL_SclNorm,GL_Scale_back);
+  printf(" GL_fakt=%f GL_Scale=%f GL_Scr_Siz_X=%f\n",GL_fakt,GL_Scale,GL_Scr_Siz_X);
+
+
+// GL_fakt for Modelsize;
+  sclx = (GL_Scr_Siz_X / sx) * GL_fakt * 11.; 
+  scly = (GL_Scr_Siz_Y / sy) * GL_fakt * 11.;
+    printf(" 2D_box2-sclx = %f scly = %f\n",sclx,scly);
+
+
+
+  UT3D_vc_multvc (&vcx, &GL_eye_pln.vx, sclx);
+  UT3D_vc_multvc (&vcy, &GL_eye_pln.vy, scly);
+
+  pa[0] = *p1;
+  UT3D_pt_add_vc__ (&pa[0], &vcx);
+
+  pa[1] = pa[0];
+  UT3D_pt_add_vc__ (&pa[1], &vcy);
+
+  pa[2] = *p1;
+  UT3D_pt_add_vc__ (&pa[2], &vcy);
+
+
+  glNewList (0, GL_COMPILE);
+
+  // damit man mit Lines die Bitmap ueberschreiben kann ...
+  glDepthFunc (GL_ALWAYS);
+
+    // glCallList ((GLuint)DL_Ind_Scl2D);
+    // glCallList ((GLuint)DL_Ind_ScBack);   
+    // glScaled (GL2D_Scale, GL2D_Scale, );
+
+    glBegin (GL_LINE_STRIP);
+      // glVertex3dv ((double*)p1);
+      glVertex3dv ((double*)p1);         //&UT3D_PT_NUL);
+      glVertex3dv ((double*)&pa[0]);
+      glVertex3dv ((double*)&pa[1]);
+      glVertex3dv ((double*)&pa[2]);
+      glVertex3dv ((double*)p1);
+    glEnd();
+
+    glDepthFunc (GL_LEQUAL); // reset ...
+
+  glEndList ();
+
+  return 0;
+
+}
+
+
+//====================================================================
+  int GL_img_get__ (int *typ, Point *p1,
+                     int *sx, int *sy, int *dx, int *dy, long dbi) {
+//====================================================================
+// GR_img_get_dbi                      get typ,pos,size of Tag/Image 
+// Input:
+//   dbi    DB-Index of "N"ote
+// Output:
+//   typ      Tagtyp; 1=Image ..
+//   p1       lower-left-position in Usercoords
+//   sx, sy   size of 2D-Field in screencoords
+//   dx, dy   offset from p1 to lower left 2D-corner in screencoords
+//   retCod   0=ok, -1=Error,
+//            1=hili-as-curv (use GR_ObjTab[dli].iatt)
+// 
+// was GR_img_get_dbi + GR_img_get_obj
+// was DL_txtgetInfo
+
+  int       i1;
+  double    scl;
+  void      *obj;
+  AText     *atx1;
+  ObjGX     *ox1;
+
+
+  // printf("GL_img_get__ dbi=%ld :::::::::::::: \n",dbi);
+  // printf(" GL2D_Scale=%f GL_SclNorm=%f GL_Scale_back=%f\n",GL2D_Scale,GL_SclNorm,GL_Scale_back);
+  // printf(" GL_fakt=%f GL_Scale=%f GL_Scr_Siz_X=%f\n",GL_fakt,GL_Scale,GL_Scr_Siz_X);
+
+  // get data
+  ox1 = DB_GetGTxt (dbi);
+    // DEB_dump_obj__ (Typ_ObjGX, ox1, "GR_img_get_dbi N%ld", dbi);
+
+  if((ox1->form != Typ_ATXT) && (ox1->form != Typ_Tag)) return -1;
+
+  atx1 = (AText*)ox1->data;
+    // DEB_dump_obj__ (Typ_ATXT, atx1, "GR_img_get__");
+
+
+  *typ = atx1->aTyp; // 1=Image
+
+  //----------------------------------------------------------------
+  // return 1 for all objects without hilite-box
+  // - can select direct
+  // - hilite as curve with GR_ObjTab[dli].iatt
+  if((*typ == 3)   ||   // 3=Balloon LeaderLine + Balloon + 3D-Text
+     (*typ == 4)   ||   // 4=PointCoord (LDRP GL_DrawTxtLG())
+     (*typ > 8))        // 9=Vector-normalized  10=Vector-true-length
+    return 1;
+
+
+  //----------------------------------------------------------------
+  // for all objs with hilite-box:
+
+  // copy textposPoint
+  *p1 = atx1->p1;
+
+  // get scale
+  scl = atx1->scl;
+
+  *sx = atx1->xSiz;
+  *sy = atx1->ySiz;
+
+  *dx = 0;
+  *dy = 0;
+
+  //----------------------------------------------------------------
+  if((*typ != 0) &&
+     (*typ != 2))    goto L_img;
+// TODO: leaderlines not yet hilited
+    // 0=text   2=Tag    (GL_Draw_Tag)
+    *sx += 6;
+    // Tags: um halbe Hoehe nach unten.
+    *dx  = -3;
+    *dy  = -(*sy / 2) - 2;
+    return 0;
+
+  //----------------------------------------------------------------
+  L_img:
+  if(*typ != 1) goto L_block;
+    // 1=image
+    if(fabs(scl) > UT_TOL_min1) {
+      // (scale != 0) - always same size
+      *sx *= scl;
+      *sy *= scl;
+      return 0;
+    }
+
+    // image scales
+    *sx /= GL2D_Scale;
+    *sy /= GL2D_Scale;
+    *sx += 2;     // ??
+    return 0;
+
+  //----------------------------------------------------------------
+  L_block:
+
+  //----------------------------------------------------------------
+  L_5:
+  if(*typ > 8) goto L_err;
+    // 5=Symbol SYM_STAR_S (Stern klein) 6=Symbol SYM_TRI_S (Dreieck klein)
+    // 7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_SQU_B (Viereck)
+    *sx = 12;
+    *sy =  8;
+    *dx = -6;
+    *dy = -6;
+    return 0;
+
+  //----------------------------------------------------------------
+  L_err:
+    TX_Error("GL_img_get__ E001 %d",*typ);
+    return -1;
+
+}
+
+
+//================================================================
+  int GL_Disp_2D_box1 (Point *p1, int sx, int sy, int dx, int dy) {
+//================================================================
+// GL_LIGHTING must be OFF
 // hilite not-zooming 2D-maps.
 //   p1     Position of Field in Usercoords
 //   sx, sy size of 2D-Field in screencoords
@@ -10915,7 +11200,6 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("GL_Disp_2D_box1 %d %d %d %d\n",sx,sy,dx,dy);
-
 
   st = 4;      // Linienbreite
 
@@ -12075,7 +12359,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // Leader
   L_LDR:
   if(attl < 0) goto L_99;
-  if(attl < 1) attl = 1;
+  if(attl < 1) attl = 0;
   glCallList (DL_base_LnAtt + attl);
   glBegin (GL_LINES);
     glVertex3dv ((double*)pTxt);
@@ -13642,7 +13926,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   txt     = tx1->txt; 
   
 
-  // printf("GL_DrawTxtLG dli=%d\n",*dli);
+  // printf("GL_DrawTxtLG dli=%ld\n",*dli);
+  // DEB_dump_obj__ (Typ_ATXT, tx1, " AText:");
   // DEB_dump_obj__ (Typ_PT, pTxt, " pTxt:");
   // DEB_dump_obj__ (Typ_PT, pLdr, " pLdr:");
   // printf(" txt=|%s|\n",txt);
@@ -14478,7 +14763,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // ModSiz holen. Wenn sie sich geändert hat, ReInit erforderlich !
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     if(mode == 1) {
       d1 = GL_ModSiz / NewModSiz;
       GL_Set_Scale (GL_Scale / d1);
@@ -14491,7 +14776,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       // TX_Print("Modelsize %f",NewModSiz);
     // }
 
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
     // display modelsize in gtk-label
     UI_disp_modsiz ();
@@ -14544,7 +14829,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // die DefCol GL_defCol setzen ..
-  AP_SetCol3i ((int)(GL_col_tab[12][0]*255.f),
+  APcol_defCol_3i ((int)(GL_col_tab[12][0]*255.f),
                (int)(GL_col_tab[12][1]*255.f),
                (int)(GL_col_tab[12][2]*255.f), 1);  // 0.88,0.88,0.95
 
@@ -14582,8 +14867,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 // den DispListRecord DL_base_PtAtt korrigieren;
 // enthaelt PunktSize; wird von jedem GL_DrawPoint gerufen.
 // Sonderfunktionen:
-//   ithick = -3 = initial create of all points
 //   ithick = -2 = hilite
+//   ithick = -3 = initial create of all points
+//   ithick = -4 = dimmed
 //   ithick = -1 = reset nach hilite
 //   ithick =  0 = reset nach hilite
 
@@ -14648,9 +14934,14 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   //----------------------------------------------------------------
   } else if(ithick == -2) {
     iCol = 9;
-    actThick = hiliThick;
+    actThick = ATT_COL_HILI;
     // return;
 
+  //----------------------------------------------------------------
+  } else if(ithick == -4) {
+    iCol = ATT_COL_DIMMED;
+    actThick = hiliThick;
+    // return;
 
   //----------------------------------------------------------------
   } else if(ithick == -1) {
@@ -14691,11 +14982,11 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   int GL_InitNewAtt (int mode, int Ind) {
 //================================================================
 /// \code
-/// create / change line-attribute in DL.
+/// create / change curve-attribute in DL.
 /// Input:
 ///   mode    0 = create / restore attribute-record
 ///           1 = change this attribute to hilited
-///           2 = als dim anlegen.                 UNUSED
+///           2 = change this attribute to dimmed
 ///           3 = als Hintergrundfarbe anlegen.    UNUSED
 ///   Ind  is die AttributNummer;
 ///      ein index into GR_AttTab
@@ -15589,7 +15880,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   GL_pickSiz = 8;
 
 
-  // UI_GR_DrawInit ();  is done outside ..  is done outside ..
+  // GLB_DrawInit ();  is done outside ..  is done outside ..
 
 
   //----------------------------------------------------------------
@@ -15731,7 +16022,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
 
 
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
 
 
   // GL_GetActPlane ();  // die aktive Plane errechnen
@@ -15883,7 +16174,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     // printf("ex GL_Mouse2Pos %d %f %f %f\n",irc, pt1->x, pt1->y, pt1->z);
 
   L_exit:
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
   return irc;
 
 }
@@ -15923,7 +16214,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
   d1 = 1;
   d2 = 1;
 
-  // UI_GR_DrawInit ();
+  // GLB_DrawInit ();
 
   // get Z-Val for screenPos sx,sy.
   // bei select background gibts Z=1
@@ -16000,7 +16291,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     printf("ex GL_Mouse1Pos %f %f %f\n",pt1->x, pt1->y, pt1->z);
 
   L_exit:
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
   return i2;
 
 }
@@ -16815,6 +17106,17 @@ static float  xpos, ypos;
 
   glGetBooleanv(GL_CURRENT_RASTER_POSITION_VALID, &b1);
     printf(" valid %d\n",b1);
+
+  return 0;
+
+}
+
+//================================================================
+  int GL_test_get (GLuint *dlb) {
+//================================================================
+// GL_test_get                 get DL_base__
+ 
+  *dlb = DL_base__;
 
   return 0;
 

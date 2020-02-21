@@ -87,12 +87,13 @@ cl -c /I ..\include xa_aux.c
 #include "../ut/ut_txTab.h"               // UtxTab
 #include "../ut/ut_os.h"                  // OS_get_bas_dir
 #include "../ut/ut_txfil.h"               // UTF_FilBufSiz
+#include "../ut/func_types.h"                  // SYM_..
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui_types.h"      // UI_Func..
 
 #include "../db/ut_DB.h"                  // APT_PT_SIZ
 
-#include "../ut/func_types.h"                  // SYM_..
 #include "../gr/ut_DL.h"                  // DB_GetDLatt
 
 #include "../xa/xa.h"                     // mem_cbuf1_SIZ AP_mod_fnam
@@ -1913,7 +1914,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   if(mode == 1) {                 // test - nur Hilite 
 
 
-    // UI_GR_DrawInit ();
+    // GLB_DrawInit ();
     TX_Print(" %d objects ..",o2TabNr);
 
 
@@ -1975,9 +1976,9 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
     //...................................................
   if(mode == 1) {            // test
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Redraw ();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
     //...................................................

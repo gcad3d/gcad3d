@@ -683,6 +683,7 @@ UTA_  functions for pointers (addresses)
 //================================================================
 /// \code
 /// UTI_round_b2i         make integer from byte (back from UTI_round_i2b)
+///   returns (2 to the power of i1);
 /// 0 -> 0; 1 -> 2; 2 -> 4; 3 -> 8; 4 -> 16; 5 -> 32; .. 8=256; .. 10=1024 ..
 /// \endcode
 

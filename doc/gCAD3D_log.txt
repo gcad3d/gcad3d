@@ -1,3 +1,17 @@
+===========================================================================
+Version 2.46.04 / 2020-02-21
+
+- Bugfix "group-select-box not working" (Ctrl-leftMousbutton-drag selects group)
+- Bugfix "defaultColor changed after subModel"
+- Bugfix "CirPat.gcap Pointdefinition not yet implemented"
+- Bugfix MS-Win OpenGL-Crash-Modsiz
+- Internal Gtk-dialogs replaced by executable Gtk-dialogs
+- zenity-dialogs replaced by executable Gtk-dialogs
+
+Programlines (C)  476628
+Functions           4825
+
+===========================================================================
 Version 2.46.02 / 2019-12-18
 
 - MAN: new function "goto LineNr" with Ctrl-L

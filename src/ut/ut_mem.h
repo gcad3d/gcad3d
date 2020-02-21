@@ -112,28 +112,42 @@ int MEM_alloc_file (void**, long*,  char*);
 // #endif
 
 
-// returns 0 - memspc MUST be freed
-//         1 - memspc CANNOT be freed
+//----------------------------------------------------------------
+// see MEMTYP_* ../ut/ut_types.h
+
+// returns 0 - memspc MUST be freed   / MEMTYP_ALLOC__
+//      else - memspc CANNOT be freed / all but MEMTYP_ALLOC__
 #define MEM_CANNOT_FREE(mTyp)\
- (mTyp != MEMTYP_ALLOC__)
+ ((!mTyp)||mTyp & 4)
 
 
-// returns 0 - memspc CANNOT be freed
-//         1 - memspc MUST be freed
+// get 0 - CANNOT be freed  / all but MEMTYP_ALLOC__
+//  else - MUST be freed    / MEMTYP_ALLOC__
 #define MEM_MUST_FREE(mTyp)\
- (mTyp == MEMTYP_ALLOC__)
+ ((mTyp)&&(mTyp & 4) - 4)
 
 
-// returns 0 - memspc can be (re)allocated
-//         1 - memspc CANNOT be (re)allocated
-#define MEM_CANNOT_ALLOC(mTyp)\
- (mTyp > MEMTYP_ALLOC_PROT)
-
-
-// returns 0 - memspc CANNOT be (re)allocated
-//         1 - memspc can be (re)allocated
+// get 0 - CANNOT (re)alloc / MEMTYP_ALLOC_EXPND,MEMTYP_STACK__,MEMTYP_STACK_EXPND
+//  else - ok, can(re)alloc / MEMTYP_NONE,MEMTYP_ALLOC__,MEMTYP_ALLOC_PROT
 #define MEM_CAN_ALLOC(mTyp)\
- (mTyp < MEMTYP_ALLOC_PROT)
+ ((!mTyp)||(mTyp & 1))
+
+
+//    0 can (re)alloc    / MEMTYP_NONE,MEMTYP_ALLOC__,MEMTYP_ALLOC_PROT
+// else CANNOT (re)alloc / MEMTYP_ALLOC_EXPND,MEMTYP_STACK__,MEMTYP_STACK_EXPND
+#define MEM_CANNOT_ALLOC(mTyp)\
+  ((mTyp)&&(mTyp & 1) - 1)
+
+
+//    0 CANNOT expand / MEMTYP_NONE,MEMTYP_ALLOC__,MEMTYP_ALLOC_PROT,MEMTYP_STACK__
+// else can expand    / MEMTYP_ALLOC_EXPND,MEMTYP_STACK_EXPND
+//   expand = malloc & copy
+#define MEM_CAN_EXPND(mTyp)\
+ (mTyp & 2)
+
+
+
+
 
 
 

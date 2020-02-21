@@ -233,8 +233,8 @@ __declspec(dllexport) int gCad_main (void*);
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // UTX_pos_skipDeli1
 #include "../ut/ut_cast.h"             // INT_PTR
-
 #include "../ut/func_types.h"               // UI_Func... SYM_..
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 

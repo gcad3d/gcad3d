@@ -5,8 +5,8 @@
 
 
 // OpenGL interface app2GL
-void UI_GR_DrawInit ();
-void UI_GR_DrawExit ();
+// void GLB_DrawInit ();
+// void GLB_DrawExit ();
 
 int UI_GL_draw__  (MemObj *mo, void **data);
 int UI_GL_move__  (MemObj *mo, void **data);

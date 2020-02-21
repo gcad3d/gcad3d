@@ -92,6 +92,7 @@ __declspec(dllexport) int PRI_PDF__ (char*);
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 

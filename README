@@ -1,4 +1,4 @@
-gCAD3D                                                                 2019-12-02
+gCAD3D                                                                 2020-02-21
 
 provides functions for -
       import and export of cad-models and pictures (bitmaps)
@@ -85,6 +85,11 @@ see doc/html/Plugin_en.htm  for:
   Create new plug-in
 
 
+==================================================================
+Todo:
+==================================================================
+
+see doc/Todo_en.txt
 
 ==================================================================
 // EOF

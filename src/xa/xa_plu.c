@@ -70,8 +70,8 @@ List_functions_end:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
-
 #include "../ut/func_types.h"               // UI_FuncUCB8
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_uid.h"              // UID_ckb_comp
@@ -221,9 +221,11 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
   // display list of plugins (see AP_DllLst_write ) let user select
   sprintf(fnam, "%splugins.lst", OS_get_tmp_dir());
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select program", fnam,
-                       "1", NULL, "60,40");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " select program", fnam,
+//                        "1", NULL, "60,40");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select program", "40,40");
   if(i1 < 0) return -1;
 
   UTX_ftyp_cut  (s1);     // remove the filetyp (.so|.dll)

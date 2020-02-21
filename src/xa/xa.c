@@ -16,8 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
-Die memspc-Felder erst beim ProgStart mallocen
-statt UI_ckb_Names UI_AP; gleich im ci oder erst hier ??
+- AP_mod_defSiz should be modifyable; extra menu in Standards/Tolerances ?
+- Die memspc-Felder erst beim ProgStart mallocen
+- statt UI_ckb_Names UI_AP; gleich im ci oder erst hier ??
 
 -----------------------------------------------------
 Modifications:
@@ -38,6 +39,10 @@ Modifications:
 \code
 =====================================================
 List_functions_start:
+
+AP_MemTab_init      connect static memspace eg memspc251 - MemTab_spc251
+AP_MemTab_get       occupy static - MemTab
+AP_MemTab_rel       release static - MemTab
 
 AP_get_modnam       returns AP_mod_fnam
 AP_get_fnam_symDir  get filename of symbolic directories (dir.lst)
@@ -108,14 +113,14 @@ ACT_ck_act          check and activate activity.
 
 APcol_actColTra     set new active colour and transparency
 APcol_actCol__      set new active colour
-Col_set_3db         colour from 3 doubles
-Col_set__           create colour from red,green,blue
-Col_dump            dump ColRGB
-Col_DL_Att          get pointer -> Color out of DL_Att     INLINE
-Col_set_vsym        set style, symbolic|shaded
+UTcol__3db         colour from 3 doubles
+UTcol__3i           create colour from red,green,blue
+UTcol_dump            dump ColRGB
+COL_DL_ATT          get pointer -> Color out of DL_Att     INLINE
+COL_ISTYL        set style, symbolic|shaded
 AP_SetCol__         set default color
-AP_SetCol3i         set color
-AP_colSel           select color
+APcol_defCol_3i         set color
+APcol_defCol__           select color
 
 AP_sel_oid__        get objID(s) from text, hilite, add to grp
 AP_DllLst_write     write list of plugins
@@ -248,46 +253,19 @@ DL_GetTrInd
 #include "../ut/ut_txfil.h"       // UTF_add1_file
 #include "../ut/ut_err.h"         // ERR_SET1
 #include "../ut/ut_os.h"          // OS_get_bas_dir
-
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+#include "../ut/func_types.h"         // SYM_CROSS
+#include "../ut/ut_txTab.h"              // TxtTab
 
 #include "../gui/gui__.h"         // GUI_SETDAT_EI ..
 
-
-
-
-
-/*
-#include "../ut/ut_TX.h"
-// #include "../ut/ut_crv.h"
-#include "../ut/ut_cvApp.h"
-
-#include "../gr/ut_gr.h"
-#include "../gr/ut_DL.h"
-#include "../gr/ut_GL.h"
-
-#include "../ci/NC_Main.h"
-
-
-#include "xa_ui.h"
-#include "xa_ui_gr.h"
-#include "xa_ed.h"
-#include "xa_undo.h"
-#include "xa_obj_txt.h"              // AP_obj_2_txt
-*/
-
-#include "../ut/func_types.h"         // SYM_CROSS
-
 #include "../db/ut_DB.h"             // DB_PLX_IND
-
-#include "../ut/ut_txTab.h"              // TxtTab
 
 #include "../xa/xa_uid.h"                 // UI_MODE_CAD
 #include "../xa/xa_ui.h"                  // UI_men__
-// #include "../xa/xa_ui_gr.h"            // UI_GR_get_actPos_
 #include "../xa/xa_sele.h"                // Typ_go*
 #include "../xa/xa_msg.h"                 // MSG_cancel,
-
 
 #define extern              // damit wird "extern" im Includefile geloescht !
 #include "../xa/xa.h"       // AP_STAT AP_mod_fnam ..
@@ -311,7 +289,7 @@ extern int ED_lnr_act;
 // extern int       APT_2d_to_3d_Ind; // Achsensystem; 0=Hauptachsensystem
 // extern Point2    GR_ptArr1[500];
 // extern Point2    GR_ptArr2[500];
-extern int        APT_line_act;
+extern int        APT_lNr;
 extern int        UP_level;
 extern int        APT_obj_stat;
 
@@ -423,14 +401,13 @@ int       AP_ED_cPos=0;     ///< die aktuelle CharPos im Edi.
 char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
-
-
-
+// MemTab MemTab_spc251 = _MEMTAB_NUL;
 
 
 //========= Prototypen: =============================================
   int AP_typ_typChar (char typChar);
   int AP_tmr_CB__ (void *data);
+
 
 
 
@@ -510,7 +487,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   printf("%s AP_modact_ind=%d AP_modact_nam=|%s|\n",txt,
           AP_modact_ind, AP_modact_nam);
 
-  printf(" APT_line_act=%d UP_level=%d\n",APT_line_act,UP_level);
+  printf(" APT_lNr=%d UP_level=%d\n",APT_lNr,UP_level);
 
 
   return 0;
@@ -532,7 +509,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //=================================================================
   long AP_lNr_get () {
 //=================================================================
-/// see also ED_get_lnr_act APT_line_act
+/// see also ED_get_lnr_act APT_lNr
 
   // printf("ex AP_lNr_get %d\n",AP_ED_lNr);
 
@@ -634,9 +611,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 }
 
-
+/*
 //================================================================
-  void AP_deb_stat (int mode) {
+  void DEB_prt_init (int mode) {
 //================================================================
 /// \code
 /// mode  1   start debug; open debugfile;
@@ -700,6 +677,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   return;
 
 }
+*/
 
 
 //================================================================
@@ -729,8 +707,8 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 // store lineNr of active line. if mode=temporary, store lineNr -1.
 
 
-  // printf("AP_errStat_set %d APT_obj_stat=%d APT_line_act=%d\n",
-         // stat,APT_obj_stat,APT_line_act);
+  // printf("AP_errStat_set %d APT_obj_stat=%d APT_lNr=%d\n",
+         // stat,APT_obj_stat,APT_lNr);
   // printf("  AP_stat.errStat=%d AP_stat.errLn=%d\n",
          // AP_stat.errStat,AP_stat.errLn);
 
@@ -744,7 +722,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // do not reset an error in a previous line
   if(!stat) { 
     // try to reset;
-    if(APT_line_act >= AP_stat.errLn) return 2;
+    if(APT_lNr >= AP_stat.errLn) return 2;
   }
 
 
@@ -758,7 +736,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   } else {
     // AP_stat.errLn = ED_get_lnr_act ();
-    AP_stat.errLn = APT_line_act;             // 2011-08-11
+    AP_stat.errLn = APT_lNr;             // 2011-08-11
   }
 
     // printf("  set AP_stat.errStat=%d AP_stat.errLn=%d\n",
@@ -902,23 +880,36 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
   int    irc;
-  char   s1[128], s2[128];
+  char   s1[128], s2[256], fTyp[32];
 
 
-  AP_get_fnam_symDir (s2);   // get filename of cfg/dir.lst
+  AP_get_fnam_symDir (s1);   // get filename of cfg/dir.lst
 
   if(mode != 2) strcpy (dNam, AP_mod_dir);
     
-  // printf("AP_Mod_open title=|%s| dNam=|%s|\n",title,dNam);
+  printf("AP_Mod_open title=|%s| dNam=|%s|\n",title,dNam);
 
                       // fnam      dirnam     filter-out  file        filter
-  irc = GUI_file_open__ (fNam, 128, dNam, 128, UI_fnamFilt, s2, title, sf);
-  if(irc) return irc;
+//   irc = GUI_file_open__ (fNam, 128, dNam, 128, UI_fnamFilt, s2, title, sf);
+
+  sprintf(s2, "%s%s", dNam,fNam);
+
+  //  (dirIn/filnamOut sSiz symDir filter title)
+  irc = GUI_file_open__ (s2, 256, s1, sf, title);
+  if(irc < 2) return -1;
+  if(strlen(s2) < 1) return 0;
+
+
+  // separate directory/filename
+  UTX_fnam__ (dNam, fNam, fTyp, s2);
+  strcat(fNam, fTyp);
+    printf(" AP-Mod_open |%s|%s|%s|\n",dNam, fNam, fTyp);
+
 
 
   //----------------------------------------------------------------
-  UTX_add_fnam_del (dNam);    // add following "/"
-    printf("ex-AP_Mod_open  |%s|%s|\n",dNam,fNam);
+  // UTX_add_fnam_del (dNam);    // add following "/"
+    // printf("ex-AP_Mod_open  |%s|%s|\n",dNam,fNam);
     
 /*
   if(mode == 2) return 0;
@@ -1092,7 +1083,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //   fTyp eg "gcad"
 
   int    irc; 
-  char   fNam[256], dNam[256], s2[256], sTit[80], sFilt[80];
+  char   fNam[400], s1[80], s2[256], sTit[80];
   char   *buttons[3], sbt[2][80];
 
 
@@ -1106,67 +1097,53 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   if(AP_mod_iftyp < 0) {TX_Print("**** Error filetyp %s",AP_mod_ftyp); return -1;}
 
   // set fNam = AP_mod_fnam.AP_mod_ftyp
-  sprintf(fNam, "%s.%s", AP_mod_fnam, AP_mod_ftyp);
+//   sprintf(fNam, "%s.%s", AP_mod_fnam, AP_mod_ftyp);
+  sprintf(fNam, "%s%s.%s", AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
 
-  // preset dNam = directory
-  strcpy(dNam, AP_mod_dir);
+//   // preset dNam = directory
+//   strcpy(dNam, AP_mod_dir);
 
   // set s2 =  filename of cfg/dir.lst
   AP_get_fnam_symDir (s2);
-
-  // set filter = "*.<fTyp>"
-  strcpy(sFilt, "*");
-  strcat(sFilt, fTyp);
 
   // window-titel "Model save" 
   strcpy(sTit, MSG_const__(MSG_save));
 
   // get fNam = (which?) filename from user
-                      // fNam       dNam     dLst
-  irc = GUI_file_save__ (fNam, 256, dNam, 256, s2, sTit, sFilt);
-    // printf("ex-GUI_file_save__ irc=%d fNam=|%s| dNam=|%s|\n",irc,fNam,dNam);
-  if(irc) return 0;
-    // does already ask for overwrite !
+//     // does already ask for overwrite !
+                     // (filnamOut sSiz symDir filter title)
+  irc = GUI_file_save__ (fNam, sizeof(fNam), s2, fTyp, sTit);
+    printf("ex-GUI_file_save__ irc=%d fNam=|%s|\n",irc,fNam);
+  if(irc < 2) return -1;
+  if(strlen(fNam) < 1) return 0;
 
-  // fNam=<filename>[.<filetyp>]
-  // dNam=absolute-directory
-
-
-  // test if fNam has filtype; if not: add fTyp
-  irc = UTX_ftyp_s (sFilt, fNam, 0);
-  if(irc < 0) strcat (fNam, fTyp);
-    // printf(" save model %d |%s|\n",irc,fNam);
-
-  // set AP_mod_dir = directory
-  UTX_add_fnam_del (dNam);    // add following "/"
-  if(strlen(dNam) >= 128) {
-    TX_Error(" directoryname too long ..");
-    return -1;
-  }
-  strcpy(AP_mod_dir, dNam);
-
-
-  // set AP_mod_sym = find Symbolname for dir AP_mod_dir
-  irc = Mod_sym_get2 (AP_mod_sym, AP_mod_dir, 1);
-    // printf(" sym %d |%s|\n",irc,AP_mod_sym);
-  if(irc) {
-    // get symbol-name for new directory from user
-    AP_mod_sym_get (AP_mod_sym, AP_mod_dir);
+  // test if fNam has filetype; if not: add fTyp
+  irc = UTX_ftyp_s (s1, fNam, 0);
+  if(irc < 0) { 
+    strcat (fNam, ".");
+    strcat (fNam, fTyp);
+      printf(" save model %d |%s|\n",irc,fNam);
   }
 
+  // split fNam -> AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp
+  Mod_fNam_get (fNam);
 
   // save-overwrite
   if(mode == 0) {
+    //   mode  0=save all
     // set AP_mod_fnam
-    strcpy (AP_mod_fnam, fNam);
+//     strcpy (AP_mod_fnam, fNam);
     UTX_ftyp_cut (AP_mod_fnam); // cut off Filetyp from AP_mod_fnam
     UI_save__ (1);
 
   } else if(mode == 1) {
-    Grp_exp (fNam, AP_mod_dir);
+    //   mode  1=save group only
+    // Grp_exp (fNam, AP_mod_dir);
+    Grp_exp (AP_mod_fnam, AP_mod_dir);
 
   } else if(mode == 2) {
-    Mod_sav2file_CB (fNam, AP_mod_dir);
+    //   mode  2=save subModel to file;
+    Mod_sav2file_CB (AP_mod_fnam, AP_mod_dir);
   }
 
 
@@ -1191,7 +1168,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   printf("AP_src_new \n");
 
-    AP_errStat_reset (1);  // clear Error
+    if(mode) {
+      AP_errStat_reset (1);    // clear Error
+    }
 
 
     // reset CAD
@@ -1231,6 +1210,11 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     // alle texturen loeschen ..
     Tex_Init__ ();
 
+    // clear/init colors
+    APcol_defCol_3i (147,147,173);   // init AP_defcol
+    APcol_actCol__ (&AP_defcol);
+
+
     // clear all viewports
     if(mode) vwpt__ (-1);
 
@@ -1269,6 +1253,12 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     // PED_CB1 (GUI_ES("Exit")); // kill PED if active
     // EDMPT_CB1 (GUI_ES("Exit"));  // kill EDMPT if active
     // OS_dll_do ("xa_edmpt", NULL, NULL, 2);  // unload dll xa_edmpt
+
+    if(!mode) {
+      // only first start
+      sele_set__ (Typ_goGeom);       // enable selection of all types
+    }
+
 
     DL_Redraw ();
 
@@ -2207,7 +2197,7 @@ remote control nur in VWR, nicht MAN, CAD;
   //WC_Init_all (0); Geht hier noch nicht !!
   // DB_Init();
 
-  // in MS sind alle calls von GL_DefineDisp ohne UI_GR_DrawInit zwecklos !
+  // in MS sind alle calls von GL_DefineDisp ohne GLB_DrawInit zwecklos !
   UI_wireCB (NULL, NULL);  // 2010-09-02
 
 
@@ -2243,7 +2233,7 @@ remote control nur in VWR, nicht MAN, CAD;
   // reset DB
   DB_Init (dbMode);
 
-  APT_Init (); // nur f. APT_line_act=0 f. Typ_Color-Record
+  APT_Init (); // nur f. APT_lNr=0 f. Typ_Color-Record
 
   // reset DL
   GR_Init1 ();
@@ -2269,6 +2259,8 @@ remote control nur in VWR, nicht MAN, CAD;
 
   double d1;
 
+  printf("AP_Init_planes \n");
+
 
     // reset View-Plane
     d1 = 0.;
@@ -2286,6 +2278,8 @@ remote control nur in VWR, nicht MAN, CAD;
     UT3D_pl_pto_vcx_vcy (&WC_sur_act, (Point*)&UT3D_PT_NUL,
                    (Vector*)&UT3D_VECTOR_X, (Vector*)&UT3D_VECTOR_Y);
     AP_Set_ConstPl_Z ("RZ");
+
+    GL_SetConstrPln (1);
 
   return 0;
 
@@ -2328,7 +2322,8 @@ remote control nur in VWR, nicht MAN, CAD;
   char    txbuf[512], *p1;
 
 
-  // printf("AP_defaults_write |%s|%s|\n",AP_mod_dir,AP_mod_fnam);
+  printf("AP_defaults_write |%s|%s|\n",AP_mod_dir,AP_mod_fnam);
+  printf("  AP_mod_defSiz=%f\n",AP_mod_defSiz);
 
 
   // strcpy(txbuf, OS_get_bas_dir ());
@@ -2478,7 +2473,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// \code
 /// set defaultColour to new colour
 ///
-/// see also Col_set__ AP_SetCol3i
+/// see also UTcol__3i APcol_defCol_3i
 /// \endcode
 
 
@@ -2486,7 +2481,9 @@ remote control nur in VWR, nicht MAN, CAD;
 
   AP_defcol = *cSel;
 
-  // AP_indCol = GL_DefColSet (&AP_defcol);
+  // AP_actcol.vtra  = 0; // solid
+  // AP_actcol.vsym  = 0; // shaded
+  // AP_actcol.color = 0; // active: no
 
   return 0;
 
@@ -2513,7 +2510,7 @@ remote control nur in VWR, nicht MAN, CAD;
 //================================================================
 /// \code
 /// APcol_actCol__                   set new active colour
-/// get ColRGB from r,g,b: Col_set__
+/// get ColRGB from r,g,b: UTcol__3i
 /// see also UI_colSel
 /// \endcode
 
@@ -2531,7 +2528,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
  
 //================================================================
-  int AP_SetCol3i (int cr, int cg, int cb, int mode) {
+  int APcol_defCol_3i (int cr, int cg, int cb, int mode) {
 //================================================================
 /// \code
 /// Input:
@@ -2540,11 +2537,11 @@ remote control nur in VWR, nicht MAN, CAD;
 ///   cb         blue part of colour; 0-255
 ///   mode    1  set defaultColour to new colour
 ///
-/// see also Col_set__ AP_SetCol__ APcol_actCol__
+/// see also UTcol__3i AP_SetCol__ APcol_actCol__
 /// \endcode
 
 
-  // printf("AP_SetCol3i %d %d %d\n",cr,cg,cb);
+  // printf("APcol_defCol_3i %d %d %d\n",cr,cg,cb);
 
   AP_defcol.cr = cr;
   AP_defcol.cg = cg;
@@ -2558,7 +2555,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
-  int AP_colSel (ColRGB *cSel) {
+  int APcol_defCol__ (ColRGB *cSel) {
 //================================================================
 /// \code
 /// define default-color
@@ -2566,14 +2563,12 @@ remote control nur in VWR, nicht MAN, CAD;
 /// see TSU_exp_wrlCol
 /// \endcode
 
-  // printf("AP_colSel %d %d %d\n",cSel->cr,cSel->cg,cSel->cb);
+  // printf("APcol_defCol__ %d %d %d\n",cSel->cr,cSel->cg,cSel->cb);
 
-  AP_SetCol__ (cSel);
+  AP_SetCol__ (cSel);            // set AP_defcol = cSel
+  GL_init_defCol (cSel);         // set GL-defCol = cSel
+  DL_Redraw();                   // redraw with new color
 
-
-  ED_Reset ();                // reset - alles neu
-  ED_work_END (0);
-  
   return 0;
 
 }
@@ -2701,7 +2696,10 @@ remote control nur in VWR, nicht MAN, CAD;
     sscanf(txbuf, "%lf",&AP_mod_defSiz); // only 1. word, rest is comment
   } else AP_mod_defSiz = 500.;
     printf(" DefaultModelsize=%f\n",AP_mod_defSiz);
-
+  if(AP_mod_defSiz < 0.1) {
+    printf(" ****** ERROR AP_defaults_read - DefaultModelsize %f\n",AP_mod_defSiz);
+    AP_mod_defSiz = 500.;
+  }
 
 
   fclose(fp1);
@@ -3320,6 +3318,8 @@ remote control nur in VWR, nicht MAN, CAD;
   // make a copy of Model for ck-modified (copy Model -> Mod_in)
   Mod_sav_ck (0);
 
+    // printf(" TESTEXIT AP_Mod_load_fn\n"); exit(1);
+
   return 0;
 
 }
@@ -3331,7 +3331,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// \code
 /// load Model from file <AP_mod_dir><AP_mod_fnam><AP_mod_ftyp>
 /// Input:
-///   mode   0 = load neu
+///   mode   0 = initial load
 ///          1 = insert; do not write Title & do not rescale
 ///   AP_mod_dir AP_mod_fnam AP_mod_ftyp AP_mod_iftyp
 ///
@@ -3343,7 +3343,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   int  irc, i1, i2, ift, impTyp, dbResiz;
   long l1, l2, lTab[8];
-  char cbuf[256], mnam[160], ftyp[32];
+  char s1[256], cbuf[256], mnam[160], ftyp[32];
 
 
 
@@ -3367,7 +3367,6 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // UI_CursorWait (0); // wait-cursor
   UI_block__ (1, 1, 1);  // block UI
-
 
   // cbuf = filename-absolute
   sprintf(cbuf, "%s%s.%s",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
@@ -3405,11 +3404,20 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   } else if(ift == Mtyp_Step) {
+    // export into file <tmpDir>Model
     irc = OS_dll_do ("xa_stp_r", "STP_r__", cbuf, 0);
-    // printf(" nach OS_dll_do %d\n",irc);
+      printf(" foll-OS_dll_do %d\n",irc);
     AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
     DB_size_set (lTab);                       // increase DB-size
     dbResiz = 1;                              // DB-resize done
+    // rename Model -> Mdl_import.gcad
+    sprintf(s1, "%sModel", OS_get_tmp_dir());
+    sprintf(cbuf, "%sMdl_import.gcad", OS_get_tmp_dir());
+      printf(" cbuf = |%s|\n",cbuf);
+
+    OS_file_rename (s1, cbuf);
+    // load Mdl_import.gcad
+    goto L_native;
 
 
   } else if(ift == Mtyp_WRL) {

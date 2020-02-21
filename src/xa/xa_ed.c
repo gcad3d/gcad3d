@@ -90,6 +90,7 @@ ED_step             set AP_mode__ =AP_mode_step;
 ED_go               set AP_mode__ =AP_mode_go;
 ED_lnr_reset        set ED_lnr_von=0; ED_lnr_bis=max;
 ED_work_dyn         work block :DYNAMIC_DATA
+ED_skip_dyn         skip DYNAMIC_DATA-block
 ED_get_mac_fil      get APT_mac_fil
 
 ED_addRange         decode ObjRanges and add them to MemTab(ObjRange)
@@ -244,15 +245,15 @@ extern long       UTF_FilBuf0Len;  // die aktuelle Filesize
 
 // aus ../ci/NC_Main.c
 extern int       APT_stat_act;    // 0 = normal; 2 = search for jump-Label;
-extern int       APT_line_act;    // die momentane APT-LineNr
+extern int       APT_lNr;    // die momentane APT-LineNr
 extern int       UP_level;
 extern int       APT_dispPL;
 
 
 //-------------------------------------------------------
 //  local Functions extern used von xa_ui_gr:
-// extern void UI_GR_DrawInit ();
-// extern void UI_GR_DrawExit ();
+// extern void GLB_DrawInit ();
+// extern void GLB_DrawExit ();
 
 
 
@@ -527,7 +528,7 @@ long   UI_Ed_fsiz;      // Textsize
 
 
   // Aktivieren des DC.
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
 
   // die Zeilennunmmer der aktuellen Curpos holen
   lNr =  ED_Get_LineNr ();
@@ -538,7 +539,7 @@ long   UI_Ed_fsiz;      // Textsize
   // Das Positionskreuz plazieren
   WC_setPosKreuz();                  // macht ein GL_Redraw
 
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
   return;
 
@@ -1456,8 +1457,9 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
 
   // printf("EEEEEEEEEEEEEEEEE ED_Read_Line APT_mac_fil=%d\n",APT_mac_fil);
-  // printf(" APT_stat_act=%d UP_level=%d\n",APT_stat_act,UP_level);
-  //("ED_Read_Line ED_lnr_act=%d ED_FilPosAct=%d",ED_lnr_act,ED_FilPosAct);
+  // printf("   ED_lnr_SM=%d AP_modact_ind=%d\n",ED_lnr_SM,AP_modact_ind);
+  // printf("   ED_lnr_act=%d APT_mac_fil=%d\n",ED_lnr_act,APT_mac_fil);
+  // printf("  APT_stat_act=%d UP_level=%d\n",APT_stat_act,UP_level);
 
 
 
@@ -1469,13 +1471,20 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
     if (fgets (buf, mem_cbuf1_SIZ, maclun) == NULL) goto L_file_exit;
 
-      ++ED_lnr_SM;
+
+      ++ED_lnr_SM;    // lineNr of active subModel
         // printf(" ED_Run-file-lNr=%d\n",ED_lnr_SM);
 
+
+      // works DYNAMIC_DATA-BLOCK only in subModels.  INF_permanent_attributes
+      // ED_work_dyn did remove the DYNAMIC_DATA-BLOCK from mainModel.
+
+
       if(buf[0] == '#') goto L_f_next;    // skip #-Lines from File
-      UTX_CleanCR (buf);
       if(buf[0] == '\0') goto L_f_next;    // skip empty Lines from File
       // printf("ED_Read_Line aus File |%s|\n",buf);
+
+      UTX_CleanCR (buf);
 
       if(!strcmp(buf, ":DYNAMIC_AREA")) {
         ED_lnr_SM = -1;
@@ -1494,9 +1503,9 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
         goto L_file_exit;
 */
 
-
-                     // 12345678901234
+      //----------------------------------------------------------------
       } else if(!strncmp(buf, "SECTION MODEL ", 14)) {
+                            // 12345678901234
         // starting new (internal) submodel
         // printf(" new (internal) submodel |%s|\n",buf);
         // save submodel > tmp/Model_<name>
@@ -1649,6 +1658,30 @@ static int lnr1, lnr2;
 }
 */
 
+/* UNUSED
+//================================================================
+  int ED_skip_dyn (char **buf) {
+//================================================================
+// ED_skip_dyn                   skip DYNAMIC_DATA-block
+//   work DYNAMIC_DATA-block in subModels, skip this block in primary-model
+
+  char     *p1, *p2;
+
+  printf("ED_skip_dyn \n");
+
+  p1 = *buf;
+  p2 = strstr (p1, "abc");
+  if(!p2) return 0;                // no DYNAMIC_DATA-block exists
+
+
+  // skip line :DYNAMIC_DATA
+  *buf = p2;
+  // return UTX_pos_skip_line (buf);
+
+  return 0;
+}
+*/
+
 
 //================================================================
   int ED_work_dyn () {
@@ -1760,7 +1793,7 @@ static int lnr1, lnr2;
 
 
   //----------------------------------------------------------------
-  // printf("ex ED_work_dyn\n");
+    // printf("ex-ED_work_dyn    DDDDDDDDDDDDDD\n");
   return 0;
 
 }
@@ -1848,7 +1881,7 @@ static int lnr1, lnr2;
   // Tex_Init_Ref ();
 
 
-  APT_Init(); // nur f. APT_line_act=0 f. Typ_Color-Record
+  APT_Init(); // nur f. APT_lNr=0 f. Typ_Color-Record
 */
 
   // get active state
@@ -2256,7 +2289,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
   // printf("-------------------------------------- \n");
   // printf("ED_work_CurSet new_lnr_act=%d ED_lnr_act=%d\n",new_lnr_act,ED_lnr_act);
-
+  // printf("  APT_obj_stat=%d\n",WC_get_obj_stat());
 
   // new_lnr_act = -1: nur aktuelle Line abfragen
   if(new_lnr_act == -1) return ED_lnr_act;
@@ -2285,8 +2318,8 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   //=========================================================
   // Cursor zurueckgesetzt (nur wegloeschen)
   //=========================================================
-  // printf("ED_work_CurSet - nur wegloeschen\n");
   mode = 1;  // up
+    // printf("ED_work_CurSet-set-back\n");
 
 
   // clear Error, if errorline is later ...       2013-03-09
@@ -2375,7 +2408,8 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   // printf(" _CurSet - APT_obj_stat=%d\n",WC_get_obj_stat());
 
   if(UI_InpMode == UI_MODE_MAN) {
-    APT_hili_last (); // hilite last geom-obj created from WC_Work1
+    // APT_hili_last (); // hilite last geom-obj created from WC_Work1
+    DL_hili_MAN (TYP_FuncMod);
   }
   // TX_Print("End [0 - %d]",ED_lnr_act);
 
@@ -2806,7 +2840,8 @@ static int  actLev=0;
 //=========================================================================
   int ED_get_lnr_act () {
 //=========================================================================
-/// see also AP_lNr_get APT_line_act
+/// see also AP_lNr_get APT_lNr
+// TODO: lineNr wrong if in subModel !
 
   // printf("ED_get_lnr_act %d\n",ED_lnr_act);
 
@@ -3334,7 +3369,7 @@ static int  actLev=0;
   if(UI_InpMode != UI_MODE_VWR) WC_actPos_disp();
 */
   //GL_Redraw ();
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
 
   // // Update Refsys-display
   // UI_upd_Refs();

@@ -26,12 +26,8 @@
 /// start   startpos of memspc
 /// next    first free pos of memspc
 /// end     position of start + memspcSiz
-/// spcTyp  type of space for oSpc
-///           0=no-space-given;                             MEMSPCTYP_NONE
-///           1=malloc-type=can-reallocate,must-free;       MEMSPCTYP_MALLOC__
-///           2=malloc-type=can-reallocate,must-NOT-free;   MEMSPCTYP_MALLOC_FIX
-///           3=fixed-CANNOT-reallocate;must-free;          MEMSPCTYP_FIX
-///           4=static|stack,CANNOT-realloce,must-NOT-free; MEMSPCTYP_TMP
+/// spcTyp  type of space for oSpc; see MEMTYP_* in ../ut/ut_types.h
+///         see also INF_MEM_ORG_TYP
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz) bytes
 /// \endcode
 typedef struct {void *start, *next, *end;

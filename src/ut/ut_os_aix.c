@@ -60,7 +60,7 @@ OS_Wait                  in millisecs
 
 OS_beep
 OS_system                Perform OS-Command; wait for completion (system)
-OS_sys1                  get systemCommand (popen)
+OS_sys1                  get systemCommand (popen); skip if starting with "##"
 OS_exec                  Perform OS-Command; do not wait for completion.
 OS_spawn_wait            execute command and wait explicit
 OS_edit_                 edit File (OS_get_edi, OS_system)
@@ -81,7 +81,6 @@ OS_get_edi               liefert bei Linux "gedit"
 OS_get_printer           get 1. word of /etc/printcap
 OS_get_browse_htm           liefert konqueror/mozilla/netscape
 OS_get_term              liefert bei Linux "xterm "
-OS_get_dialog            check if zenity is installed
 OS_get_imgConv1          returns jpg2bmp-converter; eg /usr/bin/djpeg
 OS_get_imgConv2          returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
 OS_jpg_bmp               convert BMP -> JPG
@@ -120,10 +119,12 @@ OS_dll_unload_idle       unload a dll (idle-callback)
 List_functions_end:
 =====================================================
 see also:
+../ut/os_uix.c       basic OS-functions
 ../ut/ut_os__.c      OS-independant functions
 
 \endcode *//*----------------------------------------
 
+// OS_get_dialog          replaced by OS_get_GUI
 
 
 
@@ -214,6 +215,11 @@ static char txbuf[256];
 
 //_____________________________________
 // EXTERNALS:
+
+// errno.h:
+extern int errno;
+
+
 // aus xa.c:
 
 
@@ -502,7 +508,7 @@ static char txbuf[256];
 // or "../xy.exe"
 // or "tmp/xy.exe"
 
-
+  int     irc;
   char    *p1, s1[512], s2[64];
 
 
@@ -520,8 +526,17 @@ static char txbuf[256];
 
   //----------------------------------------------------------------
   // get dialog-software (check if zenity is installed)
-  OS_get_dialog ();
-
+  // OS_get_dialog ();
+  // p1 = OS_get_zenity ();
+  // if(!p1) {
+  irc = OS_get_GUI ();
+  if(irc) {
+    // abort; GUI_dlg1 - exe not found / installed !
+    sprintf(s1, "******* ERROR: GUI_dlg1 not installed *****");
+    fprintf(stdout, "%s\n",s1);
+    fprintf(stderr, "%s\n",s1);
+    exit(2);
+  }
 
 
 /*
@@ -919,6 +934,7 @@ static char txbuf[256];
 }
 
 
+/* replace by OS_get_zenity
 //================================================================
   int OS_get_dialog () {
 //================================================================
@@ -940,7 +956,7 @@ static char txbuf[256];
   L_exit:
   return installed;
 }
-
+*/
 
 //================================================================
   char* OS_get_edi  () {
@@ -1595,51 +1611,6 @@ static char txbuf[256];
 
 
 //================================================================
-  int OS_sys1 (char *sOut, int sSiz, char *cmd) {
-//================================================================
-/// \code
-/// OS_sys1                get systemCommand (popen)
-/// RetCod:
-///     >0      OK, nr of chars returned in sOut
-///    -1       cannot open pipe
-///    -2       sOut too small
-/// \endcode
-
-  int   irc=0, ii=0, i1;
-  FILE  *fPip1;
-  char  s1[256], *p1;
-
-
-  // printf("OS_sys1 |%s|\n",cmd);
-
-  fPip1 = popen (cmd, "r");
-
-  if (fPip1 == NULL) return -1;
-
-  sOut[0] = '\0';
-
-  while (1 == 1) {
-    if (fgets (s1, 255, fPip1) == NULL) break;
-    i1 = strlen(s1);
-      // printf(" s1=|%s| %d\n",s1,i1);
-    ii += i1 + 1;
-    if(ii >= sSiz) {irc = 1; break; }
-    strcat(sOut, s1);
-  }
-
-  p1 = UTX_CleanCR (sOut);  // remove LF from last word
-  if(!irc) irc = p1 - sOut;
-
-  pclose (fPip1);
-
-    // printf("ex OS_sys1 %d |%s|\n",irc,sOut);
-
-  return irc;
-
-}
-
-
-//================================================================
   int OS_exec (char* txt) {
 //================================================================
 /// \code
@@ -1685,57 +1656,6 @@ static char txbuf[256];
   return OS_checkFilExist (fnam, 0);
 
 }
-
-
-//=============================================================
-  int OS_checkFilExist (char* filnam, int mode) {
-//=============================================================
-/// \code
-/// OS_checkFilExist         check if File or Directory exists
-///   filnam may not have shell-variables; see OS_filnam_eval
-/// mode = 0: display message sofort;
-/// mode = 1: just fix returncode, no message
-/// mode = 2: make Errormessage (TX_Error) if File does not exist
-/// 
-/// rc = 0 = Fehler; datei existiert NICHT.
-/// rc = 1 = OK, Datei existiert.
-/// \endcode
-
-
-  char    buf[256];
-
-
-  // printf("OS_checkFilExist |%s| %d\n", filnam, mode);
-
-  // remove following "/"
-  strcpy (buf, filnam);
-  UTX_endDelChar (buf, '/');
-
-  /* Version PC: (braucht IO.h) */
-  /* if ((access (buf, 0)) != 0) { */
-  /* if ((access (buf, R_OK|W_OK)) != 0) { */
-
-  if ((access (buf, R_OK)) != 0) {
-    if (mode == 0) {
-      // printf ("*** Error OS_checkFilExist: %s does not exist\n",filnam);
-      MSG_get_1 (buf, 256, "NOEX_fil", "%s", filnam);
-      printf ("*** Error OS_checkFilExist: %s\n", buf);
-      /* UI_Dialog (NULL, buf); */
-
-    } else if (mode == 2) {
-      // TX_Error(" - File %s does not exist ..",filnam);
-      MSG_err_1 ("NOEX_fil", "%s", filnam);
-    }
-
-    return 0;
-  }
-
-  // printf("ex OS_checkFilExist YES |%s| %d\n",filnam,mode);
-  return 1;
-
-}
-
-
 
 
 //=============================================================
@@ -2291,6 +2211,8 @@ static char txbuf[256];
 /// rename File; NO Wildcards !
 // MS u Unix gleich.
 
+  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
+
 
   remove (fnNew);    // delete File (sonst get das rename ned ..)
                      // ACHTUNG: keine Wildcards mit remove !
@@ -2477,15 +2399,22 @@ static int   (*up1)();
 /// \endcode
 
   int  irc;
-  char cbuf[256];         // char cbuf[512];
+  char *sdir, cbuf[256];         // char cbuf[512];
 
 
 
   printf("OS_dll_build |%s|\n",dllNam);
 
 
+  // get the directory ${gcad_dir_dev}src/APP
+  sdir = getenv ("gcad_dir_dev");
+  if(!sdir) {TX_Print("***** cannot find direcory gcad_dir_dev ..."); return -1;}
+
+
   // sprintf(cbuf, "%sxa/%s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "%ssrc/APP/%s", sdir, dllNam);
+
 
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak");
@@ -2497,16 +2426,15 @@ static int   (*up1)();
 
 
   // sprintf(cbuf, "cd %sxa;make -f %s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "cd %ssrc/APP;make -f %s", sdir, dllNam);
     printf(" OS_dll_build 2 |%s|\n",cbuf);
 
 
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak OS=");
   strcat(cbuf, OS_os_s());
-    // printf(" .. cbuf1 2 |%s|\n",cbuf);
-  // "make -f %s.mmak"
-  printf("|%s|\n",cbuf);
+    printf("dll_build-3 |%s|\n",cbuf);
 
 
   irc = system(cbuf);
@@ -2584,7 +2512,7 @@ static int   (*up1)();
 
   int  irc = 0;
 
-  // printf("OS_dll_close \n");
+  printf("OS_dll_close \n");
 
   // unload if already loaded
   if(*dl1 != NULL) {
@@ -2814,7 +2742,7 @@ static char  dlNamAct[256];
   void  (*up1)();
 
  
-  // printf("OS_dll_do |%s|%s| %d\n",dllNam,fncNam,mode);
+  printf("OS_dll_do |%s|%s| %d\n",dllNam,fncNam,mode);
   // fflush (stdout);
 
 
@@ -2855,13 +2783,15 @@ static char  dlNamAct[256];
 
   // start userprog
   (*up1)(fncDat);
+     printf(" foll-dll_do |%s|\n",fncNam);
+
 
 
   // close DLL
   L_close:
   if(mode < 1) OS_dll_close (&dl1);     // unload DLL
 
-    // printf("ex-OS_dll_do\n");
+    printf("ex-OS_dll_do\n");
 
 
   return 0;
@@ -3066,31 +2996,32 @@ static char  dlNamAct[256];
 
 
 //================================================================
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+  int OS_get_GUI () {
 //================================================================
-// OS_filnam_eval        expand shell variables in filenames
-// On Windows, you can use ExpandEnvironmentStrings.
+// OS_get_GUI                       check if GUI (file GUI_dlg1..) exists
+// retCod        0=OK, -1= Error, no GUI
 
-  wordexp_t p;
-  char **w;
-  // int i;
 
-  // wordexp provides n results, use only first.
-  wordexp(fni, &p, 0);
-  w = p.we_wordv;
-  // for (i = 0; i < p.we_wordc; i++)
-  // printf("%s\n", w[i]);
-  if(strlen(w[0]) >= fnoSiz) return -1;
-  strcpy (fno, w[0]);
-  wordfree(&p);
-  // exit(EXIT_SUCCESS);
+  int      irc, vGtk;
+  char     sEnam[256], sGui[32];
 
-    // printf(" ex-OS_filnam_eval |%s|%s|\n",fno,fni);
+  // get gtk-major-version
+  GUI_get_version (sGui, &vGtk, &irc);
 
+  // sEnam = exeFilename
+  sprintf(sEnam,"%sGUI_dlg1_%s%d", OS_get_bin_dir(), sGui, vGtk);
+    printf(" OS_get_GUI |%s|\n",sEnam);
+
+  // test if exe exists
+  if(!OS_checkFilExist(sEnam,1)) {
+    TX_Print("**** file %s does not exist ..", sEnam);
+    return -1;
+  }
 
   return 0;
 
 }
+
 
 
 //========================= EOF ====================================

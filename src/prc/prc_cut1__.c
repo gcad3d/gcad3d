@@ -128,15 +128,15 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../ut/ut_txTab.h"            // UtxTab
 #include "../ut/ut_os.h"               // OS_
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
+#include "../ut/func_types.h"               // SYM_TRIANG
+#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"              // memspc101
 #include "../xa/xa_ui.h"               // APF_*
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa.h"                  // APP_act_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
-
-#include "../ut/func_types.h"               // SYM_TRIANG
-#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
 #include "../prc/prc_cut1__.h"         // NCCmdAnz, NCCmdTab
 
@@ -448,7 +448,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
   L_hist:
-    // store APT_line_act,oldPos,tlActNr,rapid
+    // store APT_lNr,oldPos,tlActNr,rapid
     PRCE_hist_save (&oldPos, &tlActNr, &rapid);
 
   L_exit:

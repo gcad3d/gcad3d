@@ -226,12 +226,14 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 }
 
 
+/* UNUSED
 //================================================================
   int PRCV0_mtpa_get (MemTab(Point) *mtpa)  {
 //================================================================
 // PRCV0_mtpa_get                 get memspc PRCVO as MemTab(Point)
  
 
+  printf(" PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PRCV0_mtpa_get\n");
   // DEB_dump_obj__ (Typ_PRCV, &PRCV0, "PRCV0_mtpa_get");
   
 
@@ -254,6 +256,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
 // PRCV0_mtpa_free               set PRCVO 'not-in-use'
 
+
+  printf(" PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PRCV0_mtpa_free\n");
   
   PRCV0.npt  = mtpa->data;
   PRCV0.siz  = mtpa->rMax * sizeof(Point) / PRCV_REC_SIZ;
@@ -267,13 +271,16 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   return 0;
 
 }
- 
+*/
+
 
 //================================================================
   int PRCV_init__ () {
 //================================================================
 // PRCV_init__         init PRCV0
 // used by AP_src_new only
+
+  // printf(" PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PRCV_init__\n");
 
 
   if(PRCV0.spcTyp == MEMTYP_NONE) {
@@ -301,6 +308,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 /// \endcode
 
 
+  // printf(" PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PRCV0_free__\n");
   // DEB_dump_obj__ (Typ_PRCV, &PRCV0, " PRCV0_free__ ");
 
 
@@ -1749,11 +1757,11 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
      // (dbTyp == Typ_CVTRM)) goto L_e1;   hier nicht form !
 
 
-  prc.typ  = dbTyp;
-  prc.dbi  = dbi;
-  prc.mdli = AP_modact_ind;
-  prc.siz  = 0;
-  prc.spcTyp = MEMTYP_STACK;
+  prc.typ    = dbTyp;
+  prc.dbi    = dbi;
+  prc.mdli   = AP_modact_ind;
+  prc.siz    = 0;
+  prc.spcTyp = MEMTYP_STACK__;  // no expand, no free
 
   // irc = PRCV_rdf__ (&prc);
   irc = PRCV_DB_load (&prc);
@@ -1860,32 +1868,100 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
 
 //============================================================================
+  int PRCV_mtpt_trmCv (MemTab(Point) *mtpa, CurvCCV *ccv1) {
+//============================================================================
+// PRCV_npt_trmCv        add polygon of trimmedCurve into MemTab(Point)
+// see UT3D_npt_obj GR_DrawCvCCV UTO_cv_cvtrm
+// Input:
+//   ccv1
+// Output:
+//   mtpa
+
+// static int iNr=0;
+  int      irc, i1, ptn;
+  long     l1;
+  Point    *pta;
+
+
+  // printf("----------------- \n");
+  // printf("PRCV_npt_trmCv ptNr=%d\n",*ptNr);
+  // printf("    iNr=%d\n", ++iNr);
+  // DEB_dump_obj__ (Typ_MemTab, mtpa, " PRCV_mtpt_trmCv-in");
+  // if(mtpa->rNr < 0) exit (-3); // AP_debug__ ("PRCV_mtpt_trmCv");
+  // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
+
+
+  PRCV0_OCC ();         // occupy PRCV0
+
+
+  // get PRCV0 =  trimmed-curve ccv1
+  irc = PRCV_get_dbo_add_tc (&PRCV0, ccv1);
+  if(irc < 0) goto L_exit;
+    // printf(" PRCV_mtpt_trmCv-1 irc= %d ptNr = %d\n",irc,PRCV0.ptNr);
+    // PRCV_dump__ (2, &PRCV0, "npt_trmCv-1");
+
+
+  // get nr of free points in mtpa
+  ptn = MEMTAB_RFREE(mtpa);
+     // printf(" PRCV_mtpt_trmCv-ptn %d\n",ptn);
+
+
+  // add PRCV0.ptNr from PRCV0.npt into mtpa; realloc if necessary
+  i1 = MemTab_add (mtpa, &l1, PRCV0.npt, PRCV0.ptNr, 0);
+  if(i1 < 0) {
+    TX_Error("PRCV_mtpt_trmCv EOM");
+    return -1;
+  }
+ 
+
+  L_exit:
+  PRCV0_REL ();         // release PRCV0
+
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_MemTab, mtpa, " ex-PRCV_mtpt_trmCv");
+    // DEB_dump_nobj__ (Typ_PT, *ptNr, pta, "ex-PRCV_npt_trmCv");
+    // GR_Disp_pTab (*ptNr, *pta, SYM_STAR_S, 2);
+    // END TESTBLOCK
+
+  return irc;
+
+}
+
+
+//============================================================================
   int PRCV_npt_trmCv (Point *pta, int *ptNr, CurvCCV *ccv1) {
 //============================================================================
 // PRCV_npt_trmCv        get polygon of trimmedCurve.
 // see UT3D_npt_obj GR_DrawCvCCV UTO_cv_cvtrm
+// Input:
+//   ccv1
+// Output:
+//   pta,ptNr
 
-
+// static int iNr=0;
   int      irc;
-  long     dbi;
 
 
   // printf("PRCV_npt_trmCv ptNr=%d\n",*ptNr);
+  // printf("    iNr=%d\n", ++iNr);
   // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
+
 
   PRCV0_OCC ();         // occupy PRCV0
 
   // add trimmed-curve ccv1 to PRCV0
   irc = PRCV_get_dbo_add_tc (&PRCV0, ccv1);
-    // printf(" _add_tc-irc=%d\n",irc);
+    // printf(" _npt_trmCv-irc = %d ptNr = %d\n",irc,PRCV0.ptNr);
     // PRCV_dump__ (2, &PRCV0, "npt_trmCv-1");
 
 
   // copy points -> pta
   if(PRCV0.ptNr > *ptNr) { TX_Error("PRCV_npt_trmCv EOM"); return -1; }
-  memcpy (pta, PRCV0.npt, PRCV0.ptNr * sizeof(Point));
-  *ptNr = PRCV0.ptNr;
-
+  if(!irc) { 
+    memcpy (pta, PRCV0.npt, PRCV0.ptNr * sizeof(Point));
+    *ptNr = PRCV0.ptNr;
+  }
 
   PRCV0_REL ();         // release PRCV0
 

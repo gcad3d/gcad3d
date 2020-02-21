@@ -70,9 +70,11 @@ List_functions_end:
 #include "../ut/ut_geo.h"
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_obj.h"                 // UTO_obj_load
+#include "../ut/func_types.h"                  // UI_Func... SYM_..
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 #include "../gr/ut_GL.h"                  //
-#include "../ut/func_types.h"                  // UI_Func... SYM_..
 
 #include "../xa/xa_mem.h"                 // memspc51..
 

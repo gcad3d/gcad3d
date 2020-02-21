@@ -1,4 +1,4 @@
-# make -f xa_stp_r.mak
+# nmake -f xa_stp_r.mak
 
 DLLNAM = xa_vr2_r
 

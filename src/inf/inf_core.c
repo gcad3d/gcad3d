@@ -109,7 +109,7 @@ INF_CTRL__    remote-control (core-plugin)                  ../xa/xa_ctrl.c
 
 
 Doc:
-../..doc/html/RemoteControl_en.htm
+../../doc/html/RemoteControl_en.htm
 
 
 
@@ -118,11 +118,19 @@ void INF_PRG__ (){        /*! \code
 
 INF_PRG__     script-control (core-plugin)
 
+source-directory for *.gcap
+../../gCAD3D/prg/
+
 Src:
 ../xa/xa_prg.c
 
 Doc:
 ../../doc/html/Appli_en.htm
+
+
+
+
+- writes codes into file <tmp>/PRG_ACT.gcad
 
 
 
@@ -149,10 +157,14 @@ INF_MSGWIN__  messagewindow (at bottom)
 UI_winTX_rmLast             remove last message (for overwrite)
 
 
-TX_Print
+TX_Print                  ../ut/ut_ui_TX.c   - 
   TX_Write
     UI_winTX_prt
       GUI_msgwin_prt
+
+TX_Print - replacements for eg ../ut/os_uix.c:         ../ut/ut_TX.c
+or:
+void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 
 
 

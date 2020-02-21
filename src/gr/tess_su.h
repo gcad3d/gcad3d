@@ -9,7 +9,7 @@ typedef struct {int ip1, ip2; Point p1, p2; int typ;}    TypTsuSur;
 
 
 
-int TSU_ntria_bMsh_p (Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi,
+int TSU_tsu2tria_rec (Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi,
                       int *typ);
 
 int TSU_box_Draw1 (int ptNr, Point *p2Tab, char dir, Vector *vc1);

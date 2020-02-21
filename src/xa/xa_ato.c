@@ -306,7 +306,7 @@ extern double NcoValTab[];
 
   // test if memspc already got on stack
   if(bNr < SPC_MAX_STK) {
-    ato1->spcTyp = MEMTYP_STACK;  // stack; do not free
+    ato1->spcTyp = MEMTYP_STACK__;   // stack; cannot free
   } else {
     ato1->typ = (int*) realloc (ato1->typ, bNr);
     ato1->spcTyp = MEMTYP_ALLOC__;   // heap - malloc-type; must be freed
@@ -1532,9 +1532,10 @@ extern long      GLT_cta_SIZ;
 
   // test for unknown types
   if(ato->nr >= 2) {
-    if((ato->typ[0] == Typ_Val) && (ato->typ[0] == Typ_Val))
+    if((ato->typ[0] == Typ_Val) && (ato->typ[1] == Typ_Val))  // 2020-01-04
       TX_Print ("**** Line %d - change val val . to P(val val .) or D(...)",
                 ED_get_lnr_act());
+// TODO: lineNr wrong if in subModel !
   }
    
 

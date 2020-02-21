@@ -71,7 +71,8 @@ static  GLXContext  GLB_x_context;
 static  Display     *GLB_display;
 
 static  int         GLB_x_id = 0;
-// static  long        GLB_x_id = 0;
+static  GtkWidget   *area;
+static  int         UI_GR_STAT = 0;
 
 
 
@@ -80,7 +81,6 @@ static  int         GLB_x_id = 0;
 //================================================================
 /// GLB_Create            create opengl-window (used by GUI_gl__)
  
-  GtkWidget   *area;
   int         xscreen, i1;
   GdkScreen   *screen;
   GdkVisual   *visual;
@@ -96,7 +96,7 @@ static  int         GLB_x_id = 0;
                 GLX_DEPTH_SIZE, 24,
                 None };
 
-  GLB_x_id = 0;   // reset
+  // GLB_x_id = 0;   // reset
 
   area = gtk_drawing_area_new ();
   gtk_widget_set_double_buffered (area, FALSE);
@@ -142,22 +142,45 @@ static  int         GLB_x_id = 0;
 
 }
 
- 
+
 //================================================================
-  int GLB_DrawInit (void *widget) {
+  int GLB_Init () {
 //================================================================
-/// GLB_DrawInit          start OpenGL-commandblock
 
   GdkWindow     *window;
 
-  if(!GLB_x_id) {
+  printf("GLB_Init .......\n");
 
-    window = gtk_widget_get_window (widget);
-    GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
-      printf("  GLB_x_id=%d\n",GLB_x_id);
-  }
+  // window = gtk_widget_get_window (widget);
+  window = gtk_widget_get_window (area);
+  GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
+    printf("IIIIIIIIIII GLB_Init  GLB_x_id=%d\n",GLB_x_id);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GLB_DrawInit () {
+//================================================================
+/// GLB_DrawInit          start OpenGL-commandblock
+
+//   GdkWindow     *window;
+
+//   if(!GLB_x_id) {
+//     window = gtk_widget_get_window (widget);
+//     GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
+//       printf("  GLB_x_id=%d\n",GLB_x_id);
+//   }
 
   // GLB_x_context = glXCreateContext (GLB_display, xvisual, NULL, TRUE);
+
+  if(UI_GR_STAT != 0) {
+    AP_debug__ ("********************** GLB_DrawInit ERROR");
+  }
+
+  UI_GR_STAT = 1;
 
   glXMakeCurrent (GLB_display, GLB_x_id, GLB_x_context);
 
@@ -170,6 +193,12 @@ static  int         GLB_x_id = 0;
   void GLB_DrawExit () {
 //================================================================
 /// GLB_DrawExit          execute OpenGL-commandblock
+
+  if(UI_GR_STAT != 1) {
+    AP_debug__ ("********************** GLB_DrawExit ERROR");
+  }
+
+  UI_GR_STAT = 0;
 
   glXSwapBuffers (GLB_display, GLB_x_id);
 
@@ -200,6 +229,21 @@ static  int         GLB_x_id = 0;
   return 0;
 
 }
+
+
+//================================================================
+  int GLB_test1 () {
+//================================================================
+// test if GLB_Draw is active
+
+  if(UI_GR_STAT == 0) {
+    AP_debug__ ("********************** GLB_test1 ERROR");
+  }
+
+  return 0;
+
+}
+
 
 /*
 //================================================================

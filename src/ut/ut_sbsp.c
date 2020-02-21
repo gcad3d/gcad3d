@@ -107,8 +107,8 @@ Beispiel ptUNr=2 ptVNr=4:
 #include "../ut/ut_geo.h"
 #include "../ut/ut_bspl.h"
 #include "../ut/ut_sbsp.h"
-
 #include "../ut/func_types.h"            // SYM.
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"                 // memspc51-55
 

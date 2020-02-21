@@ -119,6 +119,7 @@ Method:
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
 

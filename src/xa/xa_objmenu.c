@@ -65,6 +65,7 @@ add new commands:
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"              // Gtk3
 

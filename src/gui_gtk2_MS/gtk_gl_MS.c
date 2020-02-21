@@ -79,11 +79,12 @@ gcc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_gl_x11.c
 // static  long        GLB_x_id = 0;
 
 static GtkWidget   *glarea;
-
+static  int         UI_GR_STAT = 0;
 
 
 // unused dummy:
 int GLB_pending () { return 0; }
+int GLB_Init ()    { return 0; }
 
 
 //================================================================
@@ -129,6 +130,12 @@ int GLB_pending () { return 0; }
 /// GLB_DrawInit          start OpenGL-commandblock
 
 
+  if(UI_GR_STAT != 0) {
+    AP_debug__ ("********************** GLB_DrawInit ERROR");
+  }
+
+  UI_GR_STAT = 1;
+
   return gdk_gl_make_current(glarea->window,
                              GTK_GL_AREA(glarea)->glcontext);
 
@@ -140,14 +147,35 @@ int GLB_pending () { return 0; }
 //================================================================
 /// GLB_DrawExit          execute OpenGL-commandblock
 
+  if(UI_GR_STAT != 1) {
+    AP_debug__ ("********************** GLB_DrawExit ERROR");
+  }
+
+  UI_GR_STAT = 0;
+
   // glXSwapBuffers (GLB_display, GLB_x_id);
   // glXDestroyContext(GLB_display, GLB_x_context);
 
+  
   // gtk_gl_area_swapbuffers(GTK_GL_AREA(widget));
   gdk_gl_swap_buffers (glarea->window);
 
 
   return;
+
+}
+
+
+//================================================================
+  int GLB_test1 () {
+//================================================================
+// test if GLB_Draw is active
+
+  if(UI_GR_STAT == 0) {
+    AP_debug__ ("********************** GLB_test1 ERROR");
+  }
+
+  return 0;
 
 }
 

@@ -85,6 +85,7 @@ DB_get_PLN         get *Plane
 DB_GetRef          get Plane (RefSys)
 DB_DefRef          das Defaultrefsys (RX/RY/RZ) liefern
 DB_get_typ_cv      get form of Curve
+DB_get_typ_note    get form of note/text/tag/image
 DB_get_CV          get form and struct of Curve ((ObjGX*)"S")
 DB_GetCurv         get *Curve ((ObjGX*)"S",cv_tab/cv_dyn)
 DB_GetGTxt         get *Text ((ObjGX*)"N")
@@ -1008,7 +1009,7 @@ Vector     DB_vc0;
 
 
   sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),mNam);
-    // printf("DB_load__ |%s|\n",fnam);
+    // printf("----------------- DB_load__ |%s|\n",fnam);
 
 
   if((fp1=fopen(fnam,"rb")) == NULL) {
@@ -1182,10 +1183,14 @@ Vector     DB_vc0;
 
   // printf("ex DB_load__ %f\n",AP_txdimsiz);
 
+  //================================================================
+  // restore dynamic-data
+
+  // reLoad defCol into GL-List
+  GL_init_defCol (&AP_defcol);
 
   // GR_tx_ardx setzen ..
   GR_InitGFPar (AP_txdimsiz);
-
 
 
   // printf("ex DB_load__ %d %d %d %d %d %d\n",APT_VR_IND,APT_PT_IND,
@@ -1383,6 +1388,27 @@ Vector     DB_vc0;
 
   // DEB_dump_obj__(Typ_PLN, &pln_tab[Ind], "ex DB_get_PLN:");
   return &pln_tab[Ind];
+
+}
+
+
+//================================================================
+  int DB_get_typ_note (long Ind) {
+//================================================================
+// DB_get_typ_note      get form of Text/Note/Tag/Image
+
+  int   typ;
+
+
+  if(Ind < 0) {
+    typ = tx_dyn[Ind].form;
+
+  } else {
+    typ = tx_tab[Ind].form;
+
+  }
+
+  return typ;
 
 }
 
@@ -2319,7 +2345,7 @@ long DB_StoreDim_ (long Ind, Dimen *dim1) {
 
   // printf("DB_StoreDim_ %d |%s|\n",Ind,dim1->txt);
 
-
+  // store -> tx_dyn | tx_tab
   dbi = DB_Store_hdr_nt (&txo, Ind);
     // printf(" dbi=%d\n",dbi);
 
@@ -5501,6 +5527,8 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSS DB_set_state %d\n",mode);
+  // printf("  set_state pt=%ld vc=%ld\n",pt,vc);
+
 
   if(mode == 0) {              // save
     vr = APT_VR_IND;
@@ -5600,6 +5628,8 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 
 
   }
+
+    // printf("ex-set_state pt=%ld vc=%ld\n",pt,vc);
 
   return 0;
 

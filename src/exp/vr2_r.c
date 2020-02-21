@@ -702,7 +702,7 @@ static double  newRot[4], newpRot[4];  // rotation
     // printf(" nxt model: %d |%s|\n",mdlAct,mdlNam);
 
   // default-color
-  Col_set_3db (&newCol, 0.5, 0.5, 0.5);
+  UTcol__3db (&newCol, 0.5, 0.5, 0.5);
 
 
   // load default-matrix
@@ -2488,7 +2488,7 @@ static double  newRot[4], newpRot[4];  // rotation
 // store diffuseColor
 // diffuseColor 0.18 0.88 0.18
 
-// see wrl1_r_dec_Col_ Col_set__ !!!!!
+// see wrl1_r_dec_Col_ UTcol__3i !!!!!
 
   char   *p2;
   double d1, d2, d3;
@@ -2499,7 +2499,7 @@ static double  newRot[4], newpRot[4];  // rotation
   d2 = UTX_db_tx (&p2, p2);
   d3 = UTX_db_tx (&p2, p2);
 
-  Col_set_3db (&newCol, d1, d2, d3);
+  UTcol__3db (&newCol, d1, d2, d3);
 
   return p2;
 

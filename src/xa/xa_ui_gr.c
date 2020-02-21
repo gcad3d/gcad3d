@@ -176,7 +176,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
 #include "../xa/xa_msg.h"              // MSG_*
-// #include "../xa/opar.h"                // MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                // MemTab_ini_temp
 
 
 #define   TRUE 1
@@ -270,11 +270,17 @@ int    KeyM2 = OFF;
 int    KeyM3 = OFF;
 
 
+
+
+int    GR_Func_Act=0;         // GR_Func_Pan GR_Func_Rot GR_Func_Scl
+int    GR_Event_Act;          // der GTK-Event; GDK_2BUTTON_PRESS=Doppelklick
+
+long   GR_dli_hili = -1L;     // the active (mouse-over) object of selection-list
+
+
+//----------------------------------------------------------------
+ 
 static Point  GR_CurUk;        ///< curPos in worldCoords on constructionPlane
-
-
-int    GR_Func_Act=0;             // GR_Func_Pan GR_Func_Rot GR_Func_Scl
-int    GR_Event_Act;              // der GTK-Event; GDK_2BUTTON_PRESS=Doppelklick
 
 static int    GR_do_dispTra = 0;  // do display-transformations; 0=yes, 1=no
 
@@ -288,7 +294,6 @@ static int    GR_Sel_Filter = 0;
 
 static char   GR_actPos[60];      // cursorPos as "P(x y z)"
 static int    GR_optMenNr;
-static long   GR_dli_hili;
 
 
 // Prototypes-------------------------------------------------
@@ -326,8 +331,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 // CAN BE RECURSIVE !  (AP_init__)
 
 
-  int     i1, i2;
-
+  int       i1, i2;
+  // char      s1[256];
+  // Obj_GLwin *UI_win_gl;
 
   // printf("UI_GL_draw__ event=%d %d %d\n",
          // GUI_DATA_EVENT, GUI_DATA_I1, GUI_DATA_I2);
@@ -335,10 +341,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
 
-
-
   //----------------------------------------------------------------
-  if(GUI_DATA_EVENT != TYP_EventEnter) goto L_Config;       // 300
+  if(GUI_DATA_EVENT != TYP_EventEnter) goto L_Config;       // 400
       // printf(" _EventEnter: keyState=%d\n",GUI_DATA_I1);
 
     // set KeyStatShift,KeyStatCtrl,KeyStatAlt
@@ -352,73 +356,98 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //----------------------------------------------------------------
   L_Config:
-  if(GUI_DATA_EVENT != TYP_EventConfig) goto L_draw;       // 406
+  if(GUI_DATA_EVENT != TYP_EventConfig) goto L_init;       // 406
+    // GDK_CONFIGURE = TYP_EventConfig = reSize OpenGL-window
+      // printf(" _EventConfig: size=%d %d\n",GUI_DATA_I1,GUI_DATA_I2);
 
-  if(AP_stat.sysStat < 2) {
-    // GUI (OpenGL) not yet up; 
-    i1 = ERR_SET1 ();
-    if(i1) {
-      printf("Fehler beim Aktivieren von OpenGL\n");
-      // GUI_MsgBox ("Fehler beim Aktivieren von OpenGL\n");
-      GUI_MsgBox (" Error activating OpenGL ");
-      exit(1);
+
+    if(AP_stat.sysStat < 2) {
+      // GUI (OpenGL) not yet up; init.
+      // set returnAddress for case of init-GL-crash
+      i1 = ERR_SET1 ();
+      if(i1) {
+        printf("Fehler beim Aktivieren von OpenGL\n");
+        // GUI_MsgBox ("Fehler beim Aktivieren von OpenGL\n");
+        GUI_MsgBox (" Error activating OpenGL ");
+        exit(1);
+      }
+
+      GLB_Init ();   // get XID for OpenGL-window
+      GLB_DrawInit ();     // GUI_gl_set_active (1, &winGR);
+      // init OpenGL (glEnable .. glViewport(resize))
+      GL_Init__ (0, GUI_DATA_I1, GUI_DATA_I2); // width, height);
+      GLB_DrawExit ();    // GUI_gl_set_active (0, mo);
+
+      // GUI_update__ ();
+      ERR_RESET ();
+      AP_stat.sysStat = 2;   
+
+      return 0;
+
+
+    } else {
+      // already up, resize (glViewport glOrtho)
+      GL_Reshape (GUI_DATA_I1, GUI_DATA_I2); // width, height);
+  
+      // get size of mainWindow and store in AP_winSiz
+      GUI_Win_siz_get (NULL, &i1, &i2);
+        // printf(" _GL_draw__-new-siz %d %d\n",i1,i2);
+      sprintf(AP_winSiz,"-%d,-%d", i1, i2);
+        // printf(" AP_winSiz = |%s|\n",AP_winSiz);
+      // must do redraw ..
     }
 
-    GUI_gl_set_active (1, mo);
-      GL_Init__ (0, GUI_DATA_I1, GUI_DATA_I2); // width, height);
-    GUI_gl_set_active (0, mo);
-
-    // GUI_update__ ();
-    ERR_RESET ();
-
-    AP_stat.sysStat = 2;   
-
-    // // setup view-buttons; primary startup
-    // GL_DefineView (FUNC_Init);           rem. 2019-06-11
-
-    return 0;
-
-  } else {
-    // already up, resize
-    GL_Reshape (GUI_DATA_I1, GUI_DATA_I2); // width, height);
-
-    // get size of mainWindow and store in AP_winSiz
-    GUI_Win_siz_get (NULL, &i1, &i2);
-      // printf(" _GL_draw__-new-siz %d %d\n",i1,i2);
-    sprintf(AP_winSiz,"-%d,-%d", i1, i2);
-  }
-
-
-/*
-// TODO:  cannot change windowsize from program; only manually ..
-// TODO:  cannot reduce windowsize manually ..
-  // resize window
-  GUI_gl_set_active (1, mo);
-    GL_Resize (GUI_DATA_I1, GUI_DATA_I2); // width, height);
-  GUI_gl_set_active (0, mo);
-
-  return 0;
-*/
 
 
   //----------------------------------------------------------------
-  L_draw:     // TYP_EventDraw
+  L_init:
+  if(GUI_DATA_EVENT == TYP_EventDraw) goto L_draw;
+    // GDK_MAP    = TYP_EventMap  = Init
+      // printf("************ Event %d\n",GUI_DATA_EVENT);
+
+  if(AP_stat.sysStat < 2) {
+
+    printf(" ***********  wait for config-event ********\n");
+    return 0;
+
+  }
+
+
+//   //----------------------------------------------------------------
+//   if(GUI_DATA_EVENT != TYP_EventMap) goto L_Config;
+//     // GDK_MAP = TYP_EventMap = Init OpenGL-window
+//     goto L_draw;
+
+
+
+  //----------------------------------------------------------------
+  L_draw:
+  // GDK_EXPOSE = TYP_EventDraw = redraw-after-covered
   if(AP_stat.sysStat < 2) return 0;
 
 
 
-  //----------------------------------------------------------------
+  //================================================================
   // STARTUP:
   if(AP_stat.sysStat < 3) {
-    AP_src_new (0);  // 2013-06-19
+    // sysStat is 2; OpenGL is up; do init model.
+   
+    // kill all files in <tmpDir>
+    AP_src_new (0);
 
-    AP_init__ ();     // work startup-parameters
+    // UI_brw__ (0);     // init browser ??
+
+    // work startup-parameters
+    AP_init__ ();
 
     // if no model loaded yet:
       // printf(" UTF_GetLen0=%ld\n",UTF_GetLen0());
-    if(UTF_EMPTY) {
-      Mod_sav_i (0);   // copy empty model -> tmp/Model
-      Mod_sav_ck (0);  // make copy of Model for ck-modified (copy Model -> Mod_in)
+    if(UTF_EMPTY) {     // get length of modelcode (UTF_FilBuf0)
+      // modelspace has < 24 chars
+      // copy empty model -> tmp/Model
+      Mod_sav_i (-1);
+      // make copy of Model for ck-modified (copy Model -> Mod_in)
+      Mod_sav_ck (0);
     }
 
     AP_tmr_init ();
@@ -428,20 +457,34 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     if(AP_stat.cadIniM >= 0)
       IE_cad_init__ (AP_stat.cadIniM, AP_stat.cadIniS);
 
-    return 0;
+//     return 0;
   }
 
 
   
-  //----------------------------------------------------------------
+  //================================================================
   // DL_Redraw (); (sysStat >= 3)
-  GUI_gl_set_active (1, mo);
-    GL_Redraw ();
-  GUI_gl_set_active (0, mo);
 
+  // if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
 
+  GUI_gl_block (&winMain, 1); // block mousemoves, keystrokes, selections
+  GLB_DrawInit ();    // GUI_gl_set_active (1, mo);
+  GL_Redraw ();
+  GLB_DrawExit ();    // GUI_gl_set_active (0, mo);
+  GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
+
+  
+  // necessary for focus on editor after redraw
   if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
 
+
+// 
+//   // GUI_gl_set_active (1, mo);
+//   // GUI_gl_set_active (1, &winGR);
+//   // GUI_gl_set_active (0, mo);
+//   // else
+//     GUI_obj_focus (&winGR);   // 2020-01-12
+//     DL_Redraw ();
 
   return 0;     // TRUE=1   FALSE=0
 
@@ -455,24 +498,20 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 /// \code
 /// UI_GL_move__         callBack mouse-movement
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventMove
-///   GUI_DATA_I1   =*(int*)data[2]=x-val mousepos in screencoords
-///   GUI_DATA_I2   =*(int*)data[3]=y-val mousepos in screencoords
+///   GUI_DATA_I1   =*(int*)data[1]=x-val mousepos in screencoords
+///   GUI_DATA_I2   =*(int*)data[2]=y-val mousepos in screencoords
+///   GUI_DATA_I3   =*(int*)data[3]=mouseButtons; M1=256, M3=1024
+///
+/// state of mouseButtons (KeyM1/2/3 is set by UI_GL_mouse__())
 /// \endcode
-
-// was UI_GR_MotionNotify
 
   int    actPosX, actPosY, dx, dy, ikey;
 
 
 
   // printf(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-  // printf("UI_GL_move__ %d %d\n", GUI_DATA_I1, GUI_DATA_I2);
-  // printf(" _move__ KeyM1=%d GR_do_dispTra=%d GR_Func_Act=%d\n",
-         // KeyM1,GR_do_dispTra,GR_Func_Act);
-  // if(KeyM1 == ON) printf(">>>>>> UI_GL_move__ M1 is pressed ! \n");
-  // printf(" keys=%d\n",GUI_get_keys_mod());
-
-
+  // printf("UI_GL_move__ %d %d %d\n", GUI_DATA_I1, GUI_DATA_I2, GUI_DATA_I3);
+  // printf(" _move__ GR_Func_Act=%d\n",GR_Func_Act); // 1=Pan, 2=Rot, 3=Scale
 
 
 
@@ -484,35 +523,39 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // get state of control and shift-key; the key-press-event often blocked.
   ikey = GUI_get_keys_mod ();
 
-  if(ikey & 256)  KeyM1 = ON;     else KeyM1 = OFF;  // GUI_MouseL
-  if(ikey & 512)  KeyM2 = ON;     else KeyM2 = OFF;  // GUI_MouseM
-  if(ikey & 1024) KeyM3 = ON;     else KeyM3 = OFF;  // GUI_MouseR
+  if(ikey & 1)     KeyStatShift = ON;     else KeyStatShift = OFF;
+  if(ikey & 4)     KeyStatCtrl  = ON;     else KeyStatCtrl  = OFF;
+  if(ikey & 8)     KeyStatAlt   = ON;     else KeyStatAlt   = OFF;
 
+  ikey = GUI_DATA_I3;
+  if(ikey & 256)   KeyM1        = ON;     else KeyM1        = OFF;
+  if(ikey & 1024)  KeyM3        = ON;     else KeyM3        = OFF;
+
+    // TESTBLOCK
+    // 1=OFF; 0=ON
+    // printf(" _move__ %d - M1=%d M2=%d M3=%d\n",ikey,KeyM1,KeyM2,KeyM3);
+    // printf(" _move__ Ctrl=%d Alt=%d Shift=%d\n",
+           // KeyStatCtrl,KeyStatAlt,KeyStatShift);
+    // END TESTBLOCK
+
+
+  //----------------------------------------------------------------
+  // test if mousebutton-1 is down
+  if((KeyStatCtrl == ON) && (KeyStatShift == OFF) && (KeyM1 == ON))  { 
+      // printf(" move-M1: test trap ..\n");
+    // set GL_mouse_x_act, GL_mouse_y_act
+    GL_Do_Idle (&dx, &dy, actPosX, actPosY);
+    // do Rubberbox
+    GL_RubberBox_drw__ (0); //GL_RubberBox_do ();
+    // goto L_fertig;
+    goto L_exit;
+  }
 
 
   if(ikey || GR_Func_Act) {
       // printf(" _keys_mod=%d\n",ikey);
     // update state of KeyStatShift, KeyStatCtrl, KeyStatAlt.
     UI_key_mod_decode (ikey);
-  }
-
-
-    // TESTBLOCK
-    // printf(" Ctrl=%d Alt=%d Shift=%d\n",KeyStatCtrl,KeyStatAlt,KeyStatShift);
-    // END TESTBLOCK
-
-
-  //----------------------------------------------------------------
-  // test if mousebutton-1 is down
-  if(KeyM1 == ON) {
-      // printf(" move-M1: test trap ..\n");
-    // set GL_mouse_x_act, GL_mouse_y_act
-    GL_Do_Idle (&dx, &dy, actPosX, actPosY);
-    // do Rubberbox
-    GL_RubberBox_do ();
-    // goto L_fertig;
-    goto L_exit;
-
   }
 
 
@@ -552,9 +595,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // scale
   if(GR_Func_Act == GR_Func_Scl) {
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Do_Scale__ (actPosX, actPosY);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
     // Ausgabefeld Scale setzen
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL);
@@ -564,10 +607,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // MOVE
   } else if(GR_Func_Act == GR_Func_Pan) {
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Do_Pan__ (actPosX, actPosY);
     GL_Redraw ();                                    //2009-12-31
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
   //------------------------------------------------------------
@@ -576,10 +619,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
     // Checkbox 3D == ON: skip rotate.
     if(UI_stat_3D == 1) {
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GL_Do_Rot__ (actPosX, actPosY);
       GL_Redraw ();                                    //2009-12-31
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
     }
   }
 
@@ -602,6 +645,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // update label cursor-position
   UI_CurPos_upd ();
+
+    // printf(" ex-UI_GL_move__\n");
 
 
   L_exit:
@@ -640,7 +685,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   //================================================================
-  // TYP_EventRelease .. 303
+  // TYP_EventRelease .. 403
   if(GUI_DATA_EVENT != TYP_EventRelease) goto L_ev_press;
 
 
@@ -666,7 +711,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   //================================================================
-  // TYP_EventPress .. 302
+  // TYP_EventPress .. 402
   L_ev_press:
 
 
@@ -693,10 +738,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // selection: set mouseposition
   if((KeyStatCtrl == OFF)&&(KeyStatShift == OFF)) {    // nur ohne Shift/Ctrl-key
 
-    // DL_hili_off (-1L);// reset hili: ohne dieser zeile doppelte Obj in popup ?
     // Punkt auf Flaeche geht dzt nur damit (no hilited surfaces) ...
     GL_Redra__ (0);       // find selected point
     GL_MousePos (&pt1);
+      // DEB_dump_obj__ (Typ_PT, &pt1, "GL_mouse__-f-GL_MousePos");
     sele_set_pos (&pt1);
 
     // get userCoords on viewPlane & constructionPlane 2009-05-25
@@ -710,13 +755,13 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // handle scroll-events
   if((iButt == GUI_MouseScUp)||(iButt == GUI_MouseScDown)) {
 
-    GUI_gl_block (&winMain, 1); // block mousemoves, keystrokes, selections
-    UI_GR_DrawInit ();
+    // GUI_gl_block (&winMain, 1); // block mousemoves, keystrokes, selections
+    GLB_DrawInit ();
     if(iButt == GUI_MouseScUp) i1 = -1;
     else                       i1 = 1;
     GL_Do_Scale__ (UT_INT_MAX, i1);
-    UI_GR_DrawExit ();
-    GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
+    GLB_DrawExit ();
+    // GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL); // reset scale
 
     // GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
@@ -768,10 +813,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // check for double-click M1, M3
     if(iButt == GUI_Mouse2L) {
       GR_Event_Act = GUI_Mouse2L;
-        printf("Doppelklick\n");
+        // printf("Doppelklick\n");
         // geht bei select nicht, weil man manchmals aus Liste waehlen muss...
-        DL_Redraw ();  // CAD: after selection ConstPlane is unvis
-        goto Fertig;
+      DL_Redraw ();  // CAD: after selection ConstPlane is unvis
+      goto Fertig;
     }
 
     // Check ob ViewZ aktiv ist
@@ -1003,12 +1048,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //================================================================
   Fertig:
-  // printf("ex UI_GR_ButtonPress %d %d %d\n",x, y, state);
   UI_CursorWait (1);            // reset cursor from wait
   GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
+    // printf("ex UI_GL_mouse__ %d %d %d\n",x, y, state);
   return FALSE;
-
-
 
 }
 
@@ -1841,16 +1884,16 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // if(i1 == 'G') {GL_tst1 ();       goto AllDone;} // Alt shift z
 
       // printf(" auxFun %d\n",iKey);
-    if(i1 == 'A') {GA_dump__ (NULL); goto AllDone;} // Alt shift g
-    if(i1 == 'D') {DL_DumpObjTab (); goto AllDone;} // Alt shift d
-    if(i1 == 'G') {Grp_dump ();      goto AllDone;} // Alt shift g
-    if(i1 == 'M') {DB_dump_ModBas ();goto AllDone;} // Alt shift m
+    if(i1 == 'A') {GA_dump__ (NULL);        goto AllDone;} // Alt shift g
+    if(i1 == 'D') {DL_DumpObjTab ("");      goto AllDone;} // Alt shift d
+    if(i1 == 'G') {Grp_dump ();             goto AllDone;} // Alt shift g
+    if(i1 == 'M') {DB_dump_ModBas ();       goto AllDone;} // Alt shift m
     // if(i1 == 'N') {WC_actPos_dump ();goto AllDone;} // Alt shift n
-    if(i1 == 'O') {DB_dump_stat ();  goto AllDone;} // Alt shift O
-    if(i1 == 'R') {DB_dump_ModRef ();goto AllDone;} // Alt shift r
-    if(i1 == 'S') {UTF_dump__ ();    goto AllDone;} // Alt shift S
-    if(i1 == 'T') {Tex_dump__(NULL); goto AllDone;} // Alt shift T
-    if(i1 == 'U') {UNDO_dump ("");   goto AllDone;} // Alt shift U     Undo-Tab
+    if(i1 == 'O') {DB_dump_stat ();         goto AllDone;} // Alt shift O
+    if(i1 == 'R') {DB_dump_ModRef ();       goto AllDone;} // Alt shift r
+    if(i1 == 'S') {UTF_dump__ ();           goto AllDone;} // Alt shift S
+    if(i1 == 'T') {Tex_dump__(NULL);        goto AllDone;} // Alt shift T
+    if(i1 == 'U') {UNDO_dump ("");          goto AllDone;} // Alt shift U   Undo-Tab
     if(i1 == 'X') {AP_debug__ ("key X");    goto AllDone;} // Alt shift x
     // eine temporaer benutzte Testfunktion: Alt shift T
     // if(i1 == 'T') {PP_up_list(NULL,NULL,-2);goto AllDone;}
@@ -2023,14 +2066,16 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //================================================================
 // clear group, unhilite all objs
 
-  // clear group
-  if(Grp_get_nr() > 0) Grp_Clear (1);
+  // printf("UI_unHili \n");
 
   // remove tempObj
   GL_temp_del_1 (DLI_TMP);  // 2015-01-04
 
-  // unhilite all hilited objects
-  DL_hili_off (-1L);
+  // clear group and reset hilite-flags
+  if(Grp_get_nr() > 0) Grp_Clear (0);
+
+  // // unhilite all hilited objects
+  // DL_hili_off (-1L);
 
   Brw_unselect_all ();
 
@@ -2103,7 +2148,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   //----------------------------------------------------------------
   if(UI_InpMode == UI_MODE_VWR) {
     // VWR: unhilite selected obj's
-    UI_unHili ();  // clear group, unhilite all objs
+    Grp_Clear (2);   
+    // UI_unHili ();  // clear group, unhilite all objs
 
 
   //----------------------------------------------------------------
@@ -2443,41 +2489,41 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   if(!strcmp(cp1, "shad")) {
     printf("shade\n");
-    // UI_GR_DrawInit ();
+    // GLB_DrawInit ();
     // GL_DefineDisp (FUNC_DispRend,i2);
-    // UI_GR_DrawExit ();
+    // GLB_DrawExit ();
     UI_wireCB(NULL, NULL);
 
 
   } else if(!strcmp(cp1, "wire")) {
-    // UI_GR_DrawInit ();
+    // GLB_DrawInit ();
     // GL_DefineDisp (FUNC_DispWire,i2);
-    // UI_GR_DrawExit ();
+    // GLB_DrawExit ();
     UI_wireCB(NULL, NULL);
 
 
   } else if(!strcmp(cp1, "TopView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DefineView (FUNC_ViewTop);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
   } else if(!strcmp(cp1, "FrontView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DefineView (FUNC_ViewFront);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
   } else if(!strcmp(cp1, "SideView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DefineView (FUNC_ViewSide);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
   } else if(!strcmp(cp1, "IsoView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DefineView (FUNC_ViewIso);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
   // Scale All
@@ -2488,17 +2534,17 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // Scale Fix
   } else if(!strcmp(cp1, "AllView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DefineView (FUNC_ViewReset);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     //GR_Redraw();
 
 
   } else if(!strcmp(cp1, "ClrView")) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Clear ();
     GL_Redraw();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
 
@@ -2633,27 +2679,27 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   printf("IIIIIIIIII UI_GR_Redraw  IIIIIIIII\n");
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Redraw ();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     GUI_update__ ();
 
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Resize (0,0);
     // GL_Reshape (0,0);
     // GL_Do_Pan__ (-1, -1);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     GUI_update__ ();
 
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Redraw ();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
-    // UI_GR_DrawInit ();
+    // GLB_DrawInit ();
     // // GL_Redraw ();
-    // UI_GR_DrawExit ();
+    // GLB_DrawExit ();
 
      // GUI_gl_block (&winMain, (0);
 
@@ -2834,7 +2880,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // if (gtk_gl_area_begingl (GTK_GL_AREA(widget))) {
   // if (gtk_gl_area_make_current (GTK_GL_AREA(widget))) {
-  // UI_GR_DrawInit ();  // 2011-04-07 raus; makes Crash if model is empty !
+  // GLB_DrawInit ();  // 2011-04-07 raus; makes Crash if model is empty !
 
   GL_Init__ (0, ((GtkWidget*)widget)->allocation.width,
                 ((GtkWidget*)widget)->allocation.height);
@@ -2864,9 +2910,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // UI_GR_MotionNotify
 
-  // UI_GR_DrawInit ();
+  // GLB_DrawInit ();
   // GL_Set_Scale (GL_get_Scale());
-  // UI_GR_DrawExit ();
+  // GLB_DrawExit ();
 
 
 /* 2012-01-24
@@ -3140,9 +3186,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
     // UI_GR_GLInit (widget);
     //if(UI_GR_STAT != 1) {
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     UI_GR_GLInit (GL_widget);
-    UI_GR_DrawExit ();             // 2010-08-24
+    GLB_DrawExit ();             // 2010-08-24
 
     // GUI_update__ ();
     ERR_RESET ();
@@ -3164,10 +3210,10 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // printf(" glwinSiz = %d %d\n",widget->allocation.width,
                                  // widget->allocation.height);
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_Resize (((GtkWidget*)widget)->allocation.width,
              ((GtkWidget*)widget)->allocation.height);
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
 
   // // exit if startup not complete; sonst crash m ubuntu/suse.
@@ -3335,9 +3381,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
      // ((KeyStatCtrl == ON)&&(stat3D == 0)))          {
   if(GR_Func_Act == GR_Func_Scl) {
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Do_Scale__ (actPosX, actPosY);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
     // Ausgabefeld Scale setzen
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL);
@@ -3351,9 +3397,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // } else if(KeyStatShift == ON) {
   } else if(GR_Func_Act == GR_Func_Pan) {
 
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Do_Pan__ (actPosX, actPosY);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
     // printf(" n. pan GR_Func_Act=%d\n",GR_Func_Act);
 
@@ -3367,9 +3413,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // Checkbox 3D == ON: skip rotate.
     if(stat3D == 0) goto L_weiter;
     
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_Do_Rot__ (actPosX, actPosY);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
 
 
 
@@ -3456,7 +3502,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   iEv = GUI_DATA_EVENT;
   isel = GUI_DATA_I1;
 
-  // printf("UI_GR_CB_Sel2 ev=%d isel=%d\n",iEv,isel);
+  printf("UI_GR_CB_Sel2 ev=%d isel=%d\n",iEv,isel);
 
 
   // printf("UI_GR_CB_Sel2 type=%d %d\n",event->type,INT_PTR(data));
@@ -3552,11 +3598,11 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     DL_hili_on (-1L); // loeschen der Hili-Tabelle
     l1 = -2L;
     sele_get_pos__ (&selPos);
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &selPos);  // rot
       // printf("GL_DrawSymB l1=%ld\n",l1);
     GL_Redraw();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     goto L_exit;
   }
 
@@ -3769,7 +3815,7 @@ static  Point  selPos;
 
 
     // TESTBLOCK
-    // UI_GR_dump_dlTab (dlTab, iNr); // DUMP SELECTION_BUFFER dlTab
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
     // END TESTBLOCK
 
 
@@ -3831,7 +3877,7 @@ static  Point  selPos;
     // printf("nach DL_txtSelect %d\n",iNr);
 
     // DUMP SELECTION_BUFFER dlTab==GR_selTab
-    // UI_GR_dump_dlTab (dlTab, iNr);
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-3");
 
 
   //----------------------------------------------------------------
@@ -3870,7 +3916,7 @@ static  Point  selPos;
   // }
 */
     // DUMP SELECTION_BUFFER dlTab
-    // UI_GR_dump_dlTab (dlTab, iNr);
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-4");
 
 
   //----------------------------------------------------------------
@@ -3880,21 +3926,15 @@ static  Point  selPos;
     iNr = GL_sel_add_DB (&dlTab, -1L, Typ_TmpPT); // add Typ_TmpPT to GR_selTab
   }
     
-/*
-    if(UI_InpMode == UI_MODE_MAN) {
-      l1 = -2L;
-      UI_GR_DrawInit ();
-      GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &selPos);  // rot
-        // printf("GL_DrawSymB l1=%ld\n",l1);
-      UI_GR_DrawExit ();
-      DL_Redraw();
-    }
-*/
+    // DUMP SELECTION_BUFFER dlTab
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-5");
+
 
   //----------------------------------------------------------------
   GL_sel_sort ();          // sort GR_selTab = dlTab
 
     // disp sorted GR_selTab
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-6");
     // GL_sel_dump ();
 
 
@@ -3935,7 +3975,7 @@ static  Point  selPos;
   }
 
     // DUMP SELECTION_BUFFER dlTab (a list of all objects under cursor)
-    // UI_GR_dump_dlTab (dlTab, iNr);
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-7");
     // sele_dump1 (); // print reqObjTab
 
 
@@ -3962,19 +4002,30 @@ static  Point  selPos;
     dli = dlTab[ioNxt].dlInd;
 
 
+
+//     //----------------------------------------------------------------
+//     // test ConstrPlane. Temp.points not useful, if ConstrPln not active.
+//     if(typ == Typ_TmpPT) {
+//       if(sele_ck_ConstrPln() == 0) continue; 
+//         printf(" Typ_TmpPT OK !\n");
+//       continue;
+//       // goto L_selTabAdd;
+//     }
+
+
     //----------------------------------------------------------------
     // test if objTyp is active in reqObjTab; 0; no; else yes
     if(sele_ck_typ (typ)) {
       // obj is requested; add it to selTab.
         // printf(" _ck_typ-OK\n");
 
-      // test ConstrPlane. Temp.points not useful, if ConstrPln not active.
-      if(typ == Typ_TmpPT) {                // 2012-01-17
-        if(sele_ck_ConstrPln() == 0) continue; 
-      }
+//       // test ConstrPlane. Temp.points not useful, if ConstrPln not active.
+//       if(typ == Typ_TmpPT) {                // 2012-01-17
+//         if(sele_ck_ConstrPln() == 0) continue; 
+//       }
 
       // test if only single curve can be handled - Typ_go_lf1
-      if(reqTyp == Typ_go_lf1)    {
+      if(reqTyp == Typ_go_lf1)    {              // lf1 = LN/CI/Curv
         // do not add composite-curve; get type of sel.obj
         if(typ == Typ_CVTRM) {
           // get nr of components
@@ -3993,6 +4044,7 @@ static  Point  selPos;
       }
 
 
+      L_selTabAdd:
       // make name from typ and DB-index
       APED_oid_dbo_all (namTab[selNr], typ, dbi, dli);
 
@@ -4001,7 +4053,6 @@ static  Point  selPos;
       selTab[selNr].dbInd = dbi;
       selTab[selNr].dlInd = dli;
       selTab[selNr].stat  = 0;
-  
         // printf(" selTab-add-[%d] %d %ld %ld |%s|\n",selNr, dlTab[selNr].typ,
                // dlTab[selNr].dbInd, dlTab[selNr].dlInd, namTab[selNr]);
         // printf("selTab-add1 [%d] %d %ld |%s|\n",selNr,typ,dbi,namTab[selNr]);
@@ -4010,7 +4061,7 @@ static  Point  selPos;
       if(selNr >= SELTABSIZ - 2) break;
     }
 
-      // UI_GR_dump_selTab (selTab, namTab, selNr);
+      // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-9");
 
 
     //----------------------------------------------------------------
@@ -4066,7 +4117,7 @@ static  Point  selPos;
     if(irc < 1) goto L_selTab_from_dlTab_nxt; // continue with next dlTab-record
 
     // get tempSpc for 128 mtPar-records
-    MEMTAB_tmpSpc_get (&mtPar, 128);
+    MemTab_ini_temp (&mtPar, 128);
     if(MEMTAB_RMAX(&mtPar) != 128){TX_Print("*** UI_GR_Select1 E1");return -1;}
 
 
@@ -4147,7 +4198,7 @@ static  Point  selPos;
       L_sca_nxt:
       continue;
     }
-    MEMTAB_tmpSpc_free (&mtPar);
+    MemTab_free (&mtPar);
 
 
     //----------------------------------------------------------------
@@ -4163,7 +4214,7 @@ static  Point  selPos;
 
 
   // change nr of sel objs
-  GL_sel_nr_set (selNr);
+  GL_sel_nr_set (selNr);   // GR_nr_selTab = selNr;
     // printf(" selNr=%d\n",selNr);
     // dump selTab
     // UI_GR_dump_selTab (selTab, namTab, selNr);
@@ -4383,12 +4434,12 @@ static  Point  selPos;
   if(selTab[*dlInd].typ == Typ_TmpPT) {
     DL_hili_on (-1L); // loeschen der Hili-Tabelle
     l1 = -2L;
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     // GL_DrawPoint (&l1, Typ_Att_hili1, &selPos);
     GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &selPos);  // rot
       // printf("GL_DrawSymB l1=%ld\n",l1);
     GL_Redraw();
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     return 0;
   }
 
@@ -4542,14 +4593,14 @@ static  Point  selPos;
 
 
 //================================================================
-   int UI_GR_dump_dlTab (ObjDB *dlTab, int iNr) {
+   int UI_GR_dump_dlTab (ObjDB *dlTab, int iNr, char *sInf) {
 //================================================================
 // UI_GR_dump_dlTab               dump dlTab
     
   int    i1;
     
 
-  printf("UI_GR_dump_dlTab %d\n",iNr);
+  printf("UI_GR_dump_dlTab %d   %s\n",iNr,sInf);
   
   for(i1=0; i1<iNr; ++i1) {
     printf("dlTab[%d] typ=%d dbi=%ld dli=%ld\n",i1,
@@ -4581,7 +4632,7 @@ static  Point  selPos;
 
   // VIEW: transfer now .
   if(UI_stat_view == 0) {
-      printf(" _Select2-view\n");
+      // printf(" _Select2-view\n");
     // VIEW is active;
     // GA_view__ (dli, 0, 0, 0L);
     APED_oid_dbo__ (s1, typ, dbi);
@@ -4663,18 +4714,17 @@ static  Point  selPos;
   // if(UI_InpMode == UI_MODE_CAD) return 0;   // 2011-10-19
 
 
+  //----------------------------------------------------------------
   // unhilite last displayed object
   if(GR_dli_hili != DLI_TMP) 
     DL_hili_off (GR_dli_hili);
   else
     GL_temp_del_1 (GR_dli_hili);    // remove parent-obj
 
-
   if(objInd < 0) {
     GR_dli_hili = -1L;
     return -1;
   }
-
 
 
   // unhilite active CAD-obj
@@ -4693,35 +4743,20 @@ static  Point  selPos;
     UI_disp_dbo (typ, dbi, Typ_Att_top2);
     GR_dli_hili = DLI_TMP;
 
-
   } else {
 */
-    // hilite normal obj
 
-  // das Obj mal hiliten; aber nicht in Mode MAN und CAD
-  // if(ckb_search_stat == 0) {
-
-  // nicht wenn HIDE aktiv ist ..
-  // if(ckb_hide_stat == 0) return 0;
-
-  // hilite; not if (GR_Sel_Filter == 5) (add to group)
-  // if(GR_Sel_Filter != 5) {
-    DL_hili_on (objInd);
-    GR_dli_hili = objInd;
-
-  // }
-
+  DL_hili_on (objInd);    // set hilited in DL, no redraw
+  GR_dli_hili = objInd;
 
   // GL_Redraw ();
   DL_Redraw ();
-
 
   // hilite row in browserWindow
   if(UI_UserSelFunc == NULL)   // not for userSelections
     Brw_hili_dli (objInd);
 
-
-  // printf("ex UI_GR_Select3\n");
+    // printf("ex UI_GR_Select3\n");
 
   return 0;
 
@@ -4876,9 +4911,9 @@ static  Point  selPos;
 
   if(ev->direction == GDK_SCROLL_UP) d1 = 0.8;
   else                               d1 = 1.2;
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_Set_Scale (GL_get_Scale() * d1);
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
 
   return FALSE;  // do defaultOperations
@@ -5398,19 +5433,19 @@ static  Point  selPos;
 
 
   case GDK_Up:
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     d1 = GL_get_Scale ();
     d1 *= 1.3;
     GL_Set_Scale (d1);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     goto Finish;
 
   case GDK_Down:
-    UI_GR_DrawInit ();
+    GLB_DrawInit ();
     d1 = GL_get_Scale ();
     d1 /= 1.3;
     GL_Set_Scale (d1);
-    UI_GR_DrawExit ();
+    GLB_DrawExit ();
     goto Finish;
 
 
@@ -5891,18 +5926,18 @@ short       i1;
 
 
     case GDK_Up:                     
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_Zoom0 (3);
       GC_GR_Do_Display ();
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
     case GDK_Down:                 
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_Zoom0 (4);
       GC_GR_Do_Display ();
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
@@ -5910,16 +5945,16 @@ short       i1;
     case GDK_F1:
 
       if (KeyStatShift == ON) {
-        UI_GR_DrawInit ();
+        GLB_DrawInit ();
         GC_GR_FuncView (FUNC_DispRend);
-        UI_GR_DrawExit ();
+        GLB_DrawExit ();
         break;
       }
 
 
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_FuncView (FUNC_ViewIso);
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
@@ -5927,39 +5962,39 @@ short       i1;
 
     case GDK_F2:
       if (KeyStatShift == ON) {
-        UI_GR_DrawInit ();
+        GLB_DrawInit ();
         GC_GR_FuncView (FUNC_DispWire);
-        UI_GR_DrawExit ();
+        GLB_DrawExit ();
         break;
       }
 
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_FuncView (FUNC_ViewTop);
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
 
     case GDK_F3:
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_FuncView (FUNC_ViewFront);
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
 
     case GDK_F4:
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_FuncView (FUNC_ViewSide);
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
 
     case GDK_F5:
-      UI_GR_DrawInit ();
+      GLB_DrawInit ();
       GC_GR_FuncView (FUNC_ViewReframe);
-      UI_GR_DrawExit ();
+      GLB_DrawExit ();
       break;
 
 
@@ -5997,10 +6032,10 @@ short       i1;
 
 /*
 //================================================================
-  void UI_GR_DrawInit () {
+  void GLB_DrawInit () {
 //================================================================
 
-  // printf("UI_GR_DrawInit %d\n");
+  // printf("GLB_DrawInit %d\n");
 
   gtk_gl_area_make_current (GTK_GL_AREA(GL_widget));
 
@@ -6013,10 +6048,10 @@ short       i1;
 
 
 //================================================================
-  void UI_GR_DrawExit () {
+  void GLB_DrawExit () {
 //================================================================
 
-  // printf("UI_GR_DrawExit %d\n");
+  // printf("GLB_DrawExit %d\n");
 
   // GC_GR_Do_Display ();
 
@@ -6120,7 +6155,7 @@ static Point   pt1;
 // get GR_CurUk, display.
 
   Point    pt1;
-  char     buf1[128];
+  char     buf1[1024];
 
 
 
@@ -6129,18 +6164,12 @@ static Point   pt1;
   GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
 
 
-  // if(GR_actView == FUNC_ViewIso) {    rem. 2019-06-11
-    // get current curPos in userCoords on constructionPlane
-    UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+  // get current curPos in userCoords on constructionPlane
+  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
   
-
-  // } else {
-    // printf(" .....UI_CurPos_upd %d\n",GR_actView);
-
-  // }
-
-  
+// CRASH MS-cl bei buf1[138] !!!
   sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
+  // snprintf(buf1, sizeof(buf1), "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
     // printf("  UI_CurPos_upd |%s|\n",buf1);
 
   GUI_label_mod (&UI_curPos, buf1);
@@ -6392,9 +6421,9 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // l1 = -2;
       // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pt2);
       l1 = -1;
-      // UI_GR_DrawInit ();
+      // GLB_DrawInit ();
       GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &pt2);  // Circ red
-      // UI_GR_DrawExit ();
+      // GLB_DrawExit ();
       DL_Redraw ();
     }
 

@@ -38,7 +38,6 @@ void GUI_DIALOG(){}
 =====================================================
 List_functions_start:
 
-GUI_MsgBox             display text, OK-Button, also if GTK is not yet up
 GUI_MsgBox1            display text, OK-Button, modal over window
 
 GUI_DialogYN           dialogWindow w. OK-Button, Cancel-Button, callback-func
@@ -65,6 +64,7 @@ List_functions_end:
 =====================================================
 
 needs gtk_entry
+// GUI_MsgBox             now in GUI_dlg1.c
 
 
 \endcode *//*----------------------------------------
@@ -573,6 +573,7 @@ static MemObj UI_DialogEntryWin;
 }
 
 
+/*
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
@@ -641,7 +642,7 @@ static MemObj UI_DialogEntryWin;
   return 0;
 
 }
-
+*/
 
 //================================================================
   int GUI_Color_select (int *ir, int *ig, int *ib) {

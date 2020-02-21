@@ -3,22 +3,28 @@
 
 */
 
-/// *ColRGB from *int:
+// *ColRGB from *int:
 #define COL_INT32(i32) ((ColRGB*)(i32))
 
 
-/// *int from *ColRGB
+// *int from *ColRGB
 #define INT32_COL(col) ((INT_32*)(col))
 
 
-/// Col_DL_Att          get pointer -> Color out of DL_Att     INLINE
-ColRGB* Col_DL_Att (DL_Att *dla);
-#define Col_DL_Att(dla) ((ColRGB*)&((dla)->iatt))
+// COL_DL_ATT          get pointer -> Color out of DL_Att     INLINE
+// *ColRGB from *DL_Att
+ColRGB* COL_DL_ATT (DL_Att *dla);
+#define COL_DL_ATT(dla) ((ColRGB*)&((dla)->iatt))
 
 
-/// Col_set_vsym        set style, symbolic|shaded
-void Col_set_vsym (ColRGB* col, int styl);
-#define Col_set_vsym(col,styl) ((*(col)).vsym = (styl))
+// COL_ISTYL        set style, symbolic|shaded
+// *ColRGB from (int)style // 
+void COL_ISTYL (ColRGB* col, int styl);
+#define COL_ISTYL(col,styl) ((*(col)).vsym = (styl))
 
+
+int UTcol__3i (ColRGB *col1, int cr, int cg, int cb);
+int UTcol__3db (ColRGB *col1, double d1, double d2, double d3);
+int UTcol_dump (ColRGB *col, char *sInf);
 
 // EOF

@@ -61,6 +61,8 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"                // Point-def
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../xa/xa_mem.h"                // memspc5*
 
 

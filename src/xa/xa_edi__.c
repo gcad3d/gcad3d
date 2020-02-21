@@ -99,6 +99,7 @@ AP_APT_*
 
 #include "../xa/xa_ui.h"          //  UI_men__
 #include "../xa/xa_uid.h"         //  UI_MODE_MAN
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"         //  mem_cbuf1
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
 #include "../xa/xa_msg.h"               // MSG_ERR__
@@ -358,8 +359,8 @@ static long cPos;
   char   *s1, *s2, *p1;
 
 
-  printf("ED_Esc_CB__ %d\n",ctrlOn);
-  printf("  ED_lnr_act=%d\n",ED_lnr_act);
+  // printf("ED_Esc_CB__ %d\n",ctrlOn);
+  // printf("  ED_lnr_act=%d\n",ED_lnr_act);
 
     
   // get curPos
@@ -374,7 +375,7 @@ static long cPos;
   // get active line 
   iLen = GUI_edi_RdLn (mem_cbuf1, mem_cbuf1_SIZ, ED_lnr_act, &winED);
   if(iLen < 1) goto L_err1;
-    printf(" Esc_CB__-1|%s|\n",mem_cbuf1);
+    // printf(" Esc_CB__-1|%s|\n",mem_cbuf1);
 
   // get ii1 = startpos of definition-header
   p1 = mem_cbuf1;
@@ -389,13 +390,13 @@ static long cPos;
 
   // get ii2 = pos of cursor in line
   ii2 = posC - posL;
-    printf(" Esc_CB__ posL=%ld posC=%ld\n",posL,posC);
+    // printf(" Esc_CB__ posL=%ld posC=%ld\n",posL,posC);
 
   // get ii1 = pos of begin of word left of cursor
   ii1 = UTX_pos_del_prev (mem_cbuf1, ii2);
-    printf(" Esc_CB__ ii0=%d ii1=%d ii2=%d\n",ii0,ii1,ii2);
-    printf(" Esc_CB__ s[ii1] |%s|\n",&mem_cbuf1[ii1]);
-    printf(" Esc_CB__ s[ii2] |%s|\n",&mem_cbuf1[ii2]);
+    // printf(" Esc_CB__ ii0=%d ii1=%d ii2=%d\n",ii0,ii1,ii2);
+    // printf(" Esc_CB__ s[ii1] |%s|\n",&mem_cbuf1[ii1]);
+    // printf(" Esc_CB__ s[ii2] |%s|\n",&mem_cbuf1[ii2]);
 
   // test of only definition-header ("p1=")
   if(ii2 > ii0) {
@@ -406,7 +407,7 @@ static long cPos;
 
   // select from ii1 to ii2
   pos0 = posL + ii1;
-    printf(" pos0=%ld\n",pos0);
+    // printf(" pos0=%ld\n",pos0);
 
   // select_region from ii1 to ii2
   GUI_edi_sel__ (&winED, pos0, posC);
@@ -415,7 +416,7 @@ static long cPos;
   iLen = ii2 - ii1;
   strncpy(sDel, &mem_cbuf1[ii1], iLen);
   sDel[iLen] = '\0';
-    printf(" sDel |%s|\n",sDel);
+    // printf(" sDel |%s|\n",sDel);
 
   // // delete selected region
   // GUI_edi_sel_del (&winED);
@@ -429,7 +430,7 @@ static long cPos;
 
   //----------------------------------------------------------------
   L_restore:
-      printf(" Esc_CB__-res %ld %ld\n",posC,cPos);
+      // printf(" Esc_CB__-res %ld %ld\n",posC,cPos);
 
 
   // test if curPos is identical

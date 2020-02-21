@@ -1044,7 +1044,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
 
-  // UI_GR_DrawInit ();
+  // GLB_DrawInit ();
 
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
     if(sStyl == 0) {            // 0=sol
@@ -2354,7 +2354,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   // Texure
   if (GL_actCol.vtex != 0) {
-    // find textureNr of surface <apt_ind>
+    // find textureNr of surface <apt_ind> from (typ,dbi)
     l1 = GA_find__ (Typ_SUR, apt_ind);
       // printf(" GA-nr=%d\n",l1);
     if(l1 < 0) {
@@ -3056,8 +3056,11 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   else                               grMode = 1;
 
 
-  // init mtpa and malloc 1000 points
-  MemTab_ini_alloc (&mtpa, sizeof(Point), Typ_PT, 1000);
+  // init mtpa and get space for ~ 1200 points
+  irc = MemTab_ini_fixed (&mtpa, MEM_alloc_tmp(SPC_MAX_STK), SPC_MAX_STK,
+                          sizeof(Point), Typ_PT);
+  if(irc < 0) return MSG_ERR__ (ERR_MEMSPC_IN_USE, "-");
+    // MemTab_dump (&mtpa, "DrawCvCCV-1");
 
 
   tol  = UT_DISP_cv;
@@ -3253,7 +3256,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   ptNr = plg1->ptNr;   // + 4;
 
   // get memspc until end-of-func (alloca|malloc)
-  // MEMTAB_tmpSpc_get (&mtPt, ptNr);
+  // MemTab_ini_temp (&mtPt, ptNr);
   // pTab = mtPt.data;
   // MEM_alloc_tmp (pTab ..
 
@@ -3276,7 +3279,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   }
 
   // free memspace
-  // MEMTAB_tmpSpc_free (&mtPt);
+  // MemTab_free (&mtPt);
 
   return 0;
 
@@ -3302,7 +3305,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   ptNr = plg1->ptNr + 4;
 
   // get memspc until end-of-func (alloca|malloc)
-  MEMTAB_tmpSpc_get (&mtPt, ptNr);
+  MemTab_ini_temp (&mtPt, ptNr);
   pTab = mtPt.data;
 
 
@@ -3316,7 +3319,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
 
   // free memspace
-  MEMTAB_tmpSpc_free (&mtPt);
+  MemTab_free (&mtPt);
 
   return 0;
 
@@ -5029,7 +5032,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //===================================================================
 /// \code
 /// Testdisplay  Surface
-/// att: surface-color; see Col_set__ or AP_SetCol3i
+/// att: surface-color; see UTcol__3i or APcol_defCol_3i
 /// ATTENTION: is using mem501 & mem201
 /// \endcode
 

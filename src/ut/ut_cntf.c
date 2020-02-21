@@ -102,6 +102,8 @@ CNTF creates contour (trimmed-curves) from user-selections.
 #include "../ut/func_types.h"               // SYM_..
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../ut/ut_math.h"             // IS_NAN
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 

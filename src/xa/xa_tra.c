@@ -122,11 +122,12 @@ UI_GR_Select_work1
 
 #include "../ut/ut_geo.h"           // Typ_Model
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/func_types.h"            // UI_FuncSet
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"              // Gtk3
-
 #include "../db/ut_DB.h"            // DB_get_ModBas
-#include "../ut/func_types.h"            // UI_FuncSet
+
 #include "../xa/xa_uid.h"           // AP_SRC_EDI
 #include "../xa/xa_mem.h"           // memspc51, mem_cbuf1
 

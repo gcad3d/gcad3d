@@ -122,14 +122,14 @@ extern ColRGB     AP_defcol;
   int    irc, i1, styp, typ;
   long   dbi;
   char   snam[64];
-  // Point  pt1;
 
 
-  printf("SurMod_sel_CB src=%d ind=%ld\n",src,dli);
+  printf("SurMod_sel_CB src=%d ind=%ld ACTMOD=%d\n",src,dli,ACTMOD);
 
 
   // save &exit m. rechter maustaste (see also PED_key_CB)
   if(src == GUI_MouseR) {
+    // right-mousebutton
     if(ACTMOD == 1) {                  // exit color
       // UI_WinSurfCol (NULL, (void*)UI_FuncUCB3);
       UI_WinSurfCol (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB3));
@@ -148,13 +148,18 @@ extern ColRGB     AP_defcol;
 
 
   UI_GR_get_selNam (&styp, &dbi, &snam);
+    printf(" f-GR_get_selNam typ=%d dbi=%ld\n",styp,dbi);
+
 
 
   //----------------------------------------------------------------
-  if(ACTMOD == 1) {                  // apply active colour.
+  // left-mousebutton
+  if(ACTMOD == 1) {
+    // apply active colour.
     // query stat-Col; 0=selectNewCol; 1=applyColor; 2=removeColor.
     i1 = UI_WinSurfCol(NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB6));
       printf(" col-actStat=%d\n",i1);
+    // i1=2: set color of (styp, dbi) as new AP_actcol
     GA_Col__ (dli, i1, styp, dbi);
     if(i1 == 2) {
       // 2:  select_as_new_color
@@ -162,11 +167,15 @@ extern ColRGB     AP_defcol;
         AP_actcol.cr,AP_actcol.cg,AP_actcol.cb);
       // report new col in panel
       UI_WinSurfCol (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB5));
+
+    // } else {
+        // printf("**** TODO: SurMod_sel_CB-%d\n",i1);
     }
 
 
   //----------------------------------------------------------------
-  } else if(ACTMOD == 2) {           // apply transparency
+  } else if(ACTMOD == 2) {
+    // apply transparency
     // 0=reset,1=50%,2=100%
     // query tra
     i1 = UI_WinSurfTra(NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB5));
@@ -174,14 +183,16 @@ extern ColRGB     AP_defcol;
 
 
   //----------------------------------------------------------------
-  } else if(ACTMOD == 3) {          // apply SurfStyle
+  } else if(ACTMOD == 3) {
+    // apply SurfStyle
     i1 = UI_WinSurfStyl(NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
     // query sStyl
     GA_sStyl__ (dli, i1, styp, dbi);
 
 
   //----------------------------------------------------------------
-  } else if(ACTMOD == 4) {          // apply linetype
+  } else if(ACTMOD == 4) {
+    // apply linetype
     // query ltyp
     i1 = UI_WinLtypMod(NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUCB1));
     GA_lTyp__ (dli, i1, styp, dbi, 0);
@@ -214,8 +225,7 @@ extern ColRGB     AP_defcol;
 // used by SurMod_EdKeyPress & Main-keystroke-dispatcher
 
 
-  printf("SurMod_key_CB ++++++++++++++++++++++ %d\n",key);
-  printf("  ACTMOD=%d\n",ACTMOD);
+  printf("SurMod_key_CB +++++++++++++++++++++ key=%d ACTMOD=%d\n",key,ACTMOD);
 
 
   switch (key) {
@@ -319,7 +329,7 @@ extern ColRGB     AP_defcol;
 /// user has selected new active color in color-selector
 /// see UI_WinDefTx
 /// see TSU_exp_wrlCol
-/// see Col_set__
+/// see UTcol__3i
 /// \endcode
 
   printf("UI_colSel %d %d %d\n",cSel->cr,cSel->cg,cSel->cb);
@@ -366,7 +376,7 @@ extern ColRGB     AP_defcol;
   i1 = GUI_DATA_I1;
 
 
-  printf("UI_WinSurfCol %d\n",i1);
+  printf("UI_WinSurfCol %d actStat=%d ACTMOD=%d\n",i1,actStat,ACTMOD);
   // DEB_dump_obj__ (Typ_Color, &AP_actcol, "AP_actcol: ");
 
 
@@ -449,13 +459,14 @@ extern ColRGB     AP_defcol;
 
 
     //---------------------------------------------------------
-    case UI_FuncUCB4:     // get new colour - call UI_FuncUCB5
+    case UI_FuncUCB4:   // called from ??   
+      // get new colour - call UI_FuncUCB5
       UI_men__ ("colAct");
       return 0;
 
 
     //---------------------------------------------------------
-    case UI_FuncUCB5:      // get new colour - called from UI_colSel/UI_FuncUCB4
+    case UI_FuncUCB5:      // get new color - called from UI_colSel/UI_FuncUCB4
       // GUI_WinUp (win0);       // always on top
       sprintf(s1,"active color is #%02x%02x%02x",
               AP_actcol.cr,AP_actcol.cg,AP_actcol.cb);
@@ -469,7 +480,7 @@ extern ColRGB     AP_defcol;
 
 
     //---------------------------------------------------------
-    case UI_FuncUCB7:    // "select color from existing obj"
+    case UI_FuncUCB7:    // set "select color from existing obj"
       actStat = 2;
       return 0;
 

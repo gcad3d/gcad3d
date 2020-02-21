@@ -135,7 +135,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
 
   //================================================================
-  i1 = tst__ (0);    goto L_end;   // // exit plugin
+  i1 = tst__ (0);    goto L_fini;   // // exit plugin
   TX_Print("*** exit plugin with key 'q' or 'Esc'"); return 0;
   // i1 = tst_surfaces (0);       goto L_end;   // // exit plugin
   // if(i1 == 0) return 0;     // keep plugin alive

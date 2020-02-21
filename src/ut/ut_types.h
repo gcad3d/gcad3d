@@ -4,7 +4,9 @@
 // # if __WORDSIZE == 64
 
 
-#include <stdint.h>              // ISO-C99 uint32_t ..
+#ifndef _MSC_VER
+#include <stdint.h>              // ISO-C99 uint32_t - not yet VS-2008
+#endif
 
 
 #ifdef _MSC_VER
@@ -15,8 +17,10 @@
 #define INT_64    INT64          // long long
 #define UINT_8    unsigned char  // unsigned char  BYTE UINT8
 #define UINT_16   unsigned short //UINT16         // unsigned short WORD
-#define UINT_32   uint32_t       // unsigned int DWORD UINT ULONG32
-#define UINT_64   uint64_t       // unsigned long long
+// #define UINT_32   uint32_t       // unsigned int DWORD UINT ULONG32
+// #define UINT_64   uint64_t       // unsigned long long
+#define UINT_32   unsigned int      // DWORD UINT ULONG32
+#define UINT_64   unsigned long long
 #else
 // GCC - Linux 32,64
 #define INT_8     char           // char  __s8
@@ -32,8 +36,8 @@
 
 #define INT_8_MAX            127    // max val signed char
 #define INT_16_MAX         32767    // max val signed short
-#define INT_24_MAX       8388608    // ?
-#define INT_32_MAX    4294967295    // ?
+#define INT_24_MAX       8388608    // 8 MB ?
+#define INT_32_MAX    4294967295    // 4 GB ?
 
 #define UINT_8_MAX           255
 #define UINT_16_MAX        65535
@@ -48,17 +52,31 @@
 
 
 //----------------------------------------------------------------
-// #define MEMSPCTYP_NONE         0    // no memspace
-// #define MEMSPCTYP_MALLOC__     1    // malloc-type=can-reallocate,must-free
-// #define MEMSPCTYP_MALLOC_FIX   2    // malloc-type=can-reallocate,CANNOT-free;
-// #define MEMSPCTYP_FIX          3    // fixed-CANNOT-reallocate;must-free
-// #define MEMSPCTYP_TMP          4    // static|stack,CANNOT-reallocate,CANNOT-free
-
 #define MEMTYP_NONE         0  // no memspace; undefined/empty
-#define MEMTYP_ALLOC__      1  // malloc;           can-reallocate,must-free;
-#define MEMTYP_ALLOC_PROT   2  // malloc,protected: can-reallocate,must-NOT-free;
-#define MEMTYP_FIXED_PROT   3  // malloc,protected; CANNOT-reallocate,must-NOT-free;
-#define MEMTYP_STACK        4  // stack;            CANNOT-reallocate,must-NOT-free;
+  // realloc - YES,   malloc - NO,   free - NO
+
+#define MEMTYP_ALLOC__      1  // malloc;
+  // realloc - YES,   malloc - NO,   free - YES;
+
+#define MEMTYP_ALLOC_PROT   5  // malloc, but do not free
+  // realloc - YES,   malloc - NO,   free - NO
+
+#define MEMTYP_ALLOC_EXPND  6  // static, malloced memspc, expandable
+  // realloc - NO,    malloc - YES,  free - NO (yes after malloc)
+  // if too small: malloc, copy, do not free source, set MEMTYP_ALLOC__
+
+#define MEMTYP_STACK__     12  // stack; temp.memspace; no expand.
+  // realloc - NO,    malloc - NO,   free - NO.
+
+#define MEMTYP_STACK_EXPND 14  // stack, temp.memspace, expandable
+  // realloc - NO,    malloc - YES,  free - NO (yes after malloc)
+  // if too small: malloc, copy, do not free source, set MEMTYP_ALLOC__
+
+
+// bits for MEMTYP
+//   1   do realloc if too small
+//   2   do malloc if too small, copy, do not free source.
+//   4   do NOT free this memspace
 
 
 // EOF

@@ -10,6 +10,7 @@ DLLNAM = plugins/tst
 SRC1 =\
  ../xa/tst.c\
  ../xa/tst1.c\
+ ../xa/tst_ut_GL.c\
 
 # ../xa/tst_edmpt.c == ../xa/xa_edmpt.c
 #../xa/tst_ut_objtab.c\
@@ -19,7 +20,6 @@ SRC1 =\
 #../xa/tst_new.c\
 #../xa/tst_msh2d.c\
 #../xa/tst_ut_tin.c\
-#../xa/tst_ut_GL.c\
 #../xa/tst_geo.c\
 #../xa/tst_mem.c\
 

@@ -286,15 +286,21 @@ static int       UI_act_Id;
   // Style hat farben, Font GdkFont *font, BackgrndPixmap usw
   UI_style_act = gtk_widget_get_style (win1);
   wFont = gtk_style_get_font (UI_style_act);
+
   // Breite/Hoehe eines einzelnen Char einlesen. = 7,21
   UI_fontsizX = gdk_char_width (wFont, '0');
+  // UI_fontsizX += UI_fontsizX / 2;
 
-  // UI_fontsizY = gdk_char_height (wFont, '0');
+  // UI_fontsizY = gdk_char_height (wFont, '0') + wFont->ascent + wFont->descent;
+  UI_fontsizY = gdk_char_height (wFont, '0') + wFont->descent;
   // funktioniert in MS-Win leider nicht; liefert 21 statt 10
-  // UI_fontsizY = wFont->ascent - wFont->descent;
-  UI_fontsizY = wFont->ascent + wFont->descent;
+  // UI_fontsizY = wFont->ascent + wFont->descent;
   // UI_fontsizY = gdk_char_height (wFont, '0');
+  UI_fontsizY += UI_fontsizY / 2;
 
+
+
+  //----------------------------------------------------------------
   UI_stylTab[0] = gtk_widget_get_default_style ();
 
   // 1=red
@@ -734,8 +740,8 @@ static int       UI_act_Id;
                          GDK_KEY_PRESS_MASK |
                          GDK_KEY_RELEASE_MASK);
 
-  // g_signal_connect (g_win->win, "enter-notify-event",
-                    // G_CALLBACK(gtk_widget_grab_focus), (void*)TRUE);
+  g_signal_connect (g_win->win, "enter-notify-event",
+                    G_CALLBACK(gtk_widget_grab_focus), (void*)TRUE);
 
   g_signal_connect (g_win->win, "key-press-event",
                     G_CALLBACK(GUI_Win_key), fKey);

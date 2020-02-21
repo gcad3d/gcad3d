@@ -94,6 +94,7 @@ List_functions_end:
 #include "../ut/ut_txt.h"              // UTX_CleanCR
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_TX.h"               // TX_Print
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gr/ut_GL.h"               // GL_Feedback
 #include "../gr/ut_DL.h"               // DL_GetAtt
@@ -160,8 +161,8 @@ int AP_print_TEST_LN (float x1, float y1, float x2, float y2, int iatt);
 //=========================================================
 // write file <tempDir>/print.tmp from GL_2D-Feedbackbuffer
 // In:  Feedbackbuffer;
-// Out: Objekte ->  Hilfsdatei <tempDir>/print.tmp
-// Normaler Record (Point, Line, Polygon) sieht so aus:
+// Out: Objekte ->  file <tempDir>/print.tmp
+// format: for (Point, Line, Polygon):
 // X-Coord Y-Coord Z-Coord R G B A
 
 static char* txBuf=NULL;

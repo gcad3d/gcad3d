@@ -11,6 +11,6 @@ PRJNAM = gCAD3D
 
 
 # create executable ..
-!include "..\APP\gcad__.nmak"
+!include ../APP/gcad__.nmak
 
 # EOF

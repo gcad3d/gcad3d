@@ -754,7 +754,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
       UtxTab_add (&colNam, p1);
       colInd = colNr;
       ++colNr;
-      Col_set__ (&col1, 0, 0, 0); // init col1
+      UTcol__3i (&col1, 0, 0, 0); // init col1
       MemTab_sav (&colTab, &ld, &col1, 1);
       continue;
     }
@@ -782,7 +782,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
       d1 = UTX_db_tx (&p2, p1);
       d2 = UTX_db_tx (&p2, p2);
       d3 = UTX_db_tx (&p2, p2);
-      Col_set_3db (&colTab.data[colInd], d1, d2, d3);
+      UTcol__3db (&colTab.data[colInd], d1, d2, d3);
       continue;
     }
 

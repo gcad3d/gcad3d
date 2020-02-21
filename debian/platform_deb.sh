@@ -13,6 +13,7 @@ if [ "${mach}" = "armv7l" ] ; then
 # raspi
  platform="armhf"
 elif [ "${bitNr}" = "32" ] ; then
+ # x86
  platform="i386"
 else
  # x86_64

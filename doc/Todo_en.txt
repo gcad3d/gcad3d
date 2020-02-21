@@ -1,16 +1,38 @@
 
-Open issues:
+Open issues:                                    2020-01-08
 
 ____________________________________________________________________________
-- interactive editor - modify object:
-    - display objects not affected dimmed,
-    - update child-objects dynamic.
+
+- Boolean operations with surfaces 
+
+
+____________________________________________________________________________
 
 - Add offset-surfaces
 
-- Boolean operation with surfaces 
+____________________________________________________________________________
+
+- interactive editor - modify object:
+    - display objects not affected dimmed,
+    - update child-objects dynamic.
+    - "edit object" n MAN and CAD shall display all objects following dimmed.
+Example:
+
+P20=P(20 0 0)
+C20=P20 50
+A20=C20
+L20=P20 P(100 0 0)
+
+Edit obj C20 (eg change radius 50)
+- P20 - displayed normal;
+- C20 - hilited; active obj to be modified,
+- A20 - dimmed; following the obj C20 and child of C20 (depending bj)
+- L20 - dimmed; following, not child of C20.
+
+____________________________________________________________________________
 
 - Project and Mirror currently only for individual objects, not for CCV (currently Translate only).
+
 
 - update interactive editor to modify B-splines. 
 
@@ -35,7 +57,9 @@ ____________________________________________________________________________
 
 
 
+____________________________________________________________________________
 
+Please report problems / corrections to franz.reiter@gcad3d.org.
 ____________________________________________________________________________
 ../../doc/Todo_en.txt
 EOF

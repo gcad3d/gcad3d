@@ -536,9 +536,11 @@ static GSList *UI_menGrp;
 
   } else {
     UI_act_wi = gtk_menu_item_new_with_label (ltxt);
-    g_signal_connect ( UI_act_wi, "activate",
-                      G_CALLBACK (GUI_button_press),
-                      PTR_MEMOBJ(go->mem_obj));
+    if(funcnam) {
+      g_signal_connect (UI_act_wi, "activate",
+                        G_CALLBACK (GUI_button_press),
+                        PTR_MEMOBJ(go->mem_obj));
+    }
   }
 
 

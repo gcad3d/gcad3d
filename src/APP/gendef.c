@@ -46,6 +46,7 @@ ACHTUNG: geht nicht mit einem gestrippten File !!!!
 
 
 1) objdump -t ../gCAD3D > t1
+   objdump -t /home/fwork/devel/bin/gcad3d/Linux_x86_64/gCAD3D > t1
 2) aus t1 alle Funktionen und glob Variablen > t2
 3) t2 sortieren, "EXPORTS" vorne ran = gCAD3D.def
    remove all funcs containing _tst_
@@ -241,8 +242,9 @@ int  pa64[] = {17,23,25,60};
 
 
 
-  // skip stdout@@GLIBC_2.0
-  if(!strncmp(&line[ipos1], "stdout@@",  8)) goto L_nxt_ln;
+  // skip GLIBC-functions eg stdout@@GLIBC_2.0
+  // if(!strncmp(&line[ipos1], "stdout@@",  8)) goto L_nxt_ln;
+  if(strstr(&line[ipos1], "@@GLIBC_")) goto L_nxt_ln;
 
 
 

@@ -1881,10 +1881,15 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   // ex OX-Record; typ=Typ_Size; form=Typ_Int4; data=(long)
   } else if(typ == Typ_Int4) {
-    // data (pointer) = int-value itself. 2013-12-20
+    // data (pointer) = int-value itself.
     sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),INT_PTR(data));
-    // ia = data;  // 2017-04-28; for MemTab_dump (iTab, "Typ_Int4") - not ObjGX
-    // sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),ia[0]);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
+  //----------------------------------------------------------------
+  // ex OX-Record; typ=Typ_Size; form=Typ_Int8; data=(long)
+  } else if(typ == Typ_Int8) {
+    // data (pointer) = long-value itself.
+    sprintf(cps,"Int8 %s = %s (%ld)",txt,AP_src_typ__(Typ_Int8),LONG_PTR(data));
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -1918,15 +1923,19 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_MemTab) {
     sprintf(cps,
-      " MemTab %s rNr=%d rMax=%d typ=%d rSiz=%d incSiz=%d spcTyp=%d use=%d",txt,
+      " MemTab %s rNr=%d rMax=%d", txt,
       ((MemTab*)data)->rNr,
-      ((MemTab*)data)->rMax,
+      ((MemTab*)data)->rMax);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps,
+      "   typ=%d rSiz=%d tSiz=%d incSiz=%d spcTyp=%d use=%d",
       ((MemTab*)data)->typ,
       ((MemTab*)data)->rSiz,
+      ((MemTab*)data)->tSiz,
       UTI_round_b2i(((MemTab*)data)->incSiz),
       ((MemTab*)data)->spcTyp,
       ((MemTab*)data)->use);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
   //----------------------------------------------------------------

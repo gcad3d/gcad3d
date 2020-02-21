@@ -238,7 +238,7 @@ geoTab    STP_I2      List of models;
 
 //----------------------------------------------------------------
 TESTMETHODE   DEBUG:
-  activate AP_deb_stat (1) in STP_r__
+  activate DEB_prt_init (1) in STP_r__
     if compiled with -DDEB:
     all testoutput of "printd" goes into file <tempDir>/debug.dat
 
@@ -376,6 +376,7 @@ __declspec(dllexport) int STP_r__ (char*);
 
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+#include "../ut/deb_prt.h"          // printd
 
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
@@ -712,8 +713,8 @@ void STP_r_skipTer0 (char *sBuf);
   char    *mdlNam, s1[256], s2[256], *p1;
 
 
-  // printf("==================================\n");
-  // printf("STP_r__ 2014-08-21 |%s|\n",fnam);
+  printf("==================================\n");
+  printf("STP_r__ 2014-08-21 |%s|\n",fnam);
 
 
   // // prepare: remove all existing submodels ..
@@ -722,7 +723,7 @@ void STP_r_skipTer0 (char *sBuf);
 
   // TEST ONLY: set debug -> ON   ( vi ~/gCAD3D/tmp/debug.dat )
   // start debugging (following prints -> debug-file)
-  // AP_deb_stat (1);          // 1=debug-ON (open file);  OFF: comment-out
+  // DEB_prt_init (1);          // 1=debug-ON (open file);  OFF: comment-out
 
 
   s_tab = NULL;
@@ -1282,9 +1283,10 @@ void STP_r_skipTer0 (char *sBuf);
   UME_free (&s_dat);
 
   // stop debugging (following prints -> console)
-  AP_deb_stat (0);
+  DEB_prt_init (0);
 
 
+/*
   //----------------------------------------------------------------
   if(!irc) {
     // load model <tmp>/Model into memory (removes all tmp/Model_*)
@@ -1300,9 +1302,12 @@ void STP_r_skipTer0 (char *sBuf);
     // activate new modSiz
     // NC_setModSiz ((double)modSiz);
   }
+*/
+
+    printf("ex-STP_r__ %d |%s|\n",irc,fnam);
+    printf("=================================== \n");
 
 
-  // printf("ex STP_r__ |%s|\n",fnam);
   return irc;
 
 
@@ -4133,7 +4138,7 @@ static Point  p1, p2;
     printf(" i3=%d d1=%f\n",i3,d1);
 */
 
-  AP_SetCol3i (i1, i2, i3);
+  APcol_defCol_3i (i1, i2, i3);
 
 /*
   sprintf(gTxt,"DEFCOL %d %d %d\n",i1,i2,i3);

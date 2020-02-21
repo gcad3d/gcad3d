@@ -27,10 +27,11 @@ echo "./do debug_OFF          # debug OFF for following builds (production)"
 echo "./do complete           # compile, link all."
 echo "./do                    # start gcad3d in local-test-environment"
 echo "---------------------------------------------------------------------"
-echo "./do gui-gtk3           # set GUI gtk3; this is the default"
-echo "./do gui-gtk2           # set GUI gtk2"
+echo "./do gui-gtk2           # set GUI gtk2; this is the default"
+echo "./do gui-gtk3           # set GUI gtk3"
 echo "./do guiinit            # recompile all sources of active GUI-version"
 echo "./do gui                # rebuild xa_gui_gtk-*.so"
+echo "./do guiexe             # rebuild executables GUI_*"
 echo "---------------------------------------------------------------------"
 echo "./do c                  # compile & link core"
 echo "./do all                # compile & link corelibs"
@@ -266,9 +267,42 @@ if test "$1" = "guiinit"; then
     exit 1;
   fi
 
+./do gui
+if [ $? -ne 0 ]; then
+  echo "****** ERROR build gui *******"
+  exit 1
+fi
+
+./do guiexe
+if [ $? -ne 0 ]; then
+  echo "****** ERROR build guiexe *******"
+  exit 1
+fi
+exit 0
+fi
+
+
+if test "$1" = "guiexe"; then
+  make -f gcad_gui__.mak GUI_exe
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI build GUI_exe *******"
+    exit 1;
+  fi
+  exit 0
+fi
+
+
+# compile active gui-lib and GUI_* executables
+if test "$1" = "gui"; then
   make -f gcad_gui_lnk.mak
   if [ $? -ne 0 ]; then
     echo "****** ERROR GUI build so *******"
+    exit 1;
+  fi
+
+  make -f gcad_gui__.mak GUI_exe
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI build GUI_exe *******"
     exit 1;
   fi
 
@@ -278,14 +312,6 @@ if test "$1" = "guiinit"; then
     exit 1;
   fi
 
-  exit 0
-fi
-
-
-# compile active gui-lib
-if test "$1" = "gui"; then
-  make -f gcad_gui_lnk.mak
-  make -f gcad_gui__.mak link
   exit $?
 fi
 

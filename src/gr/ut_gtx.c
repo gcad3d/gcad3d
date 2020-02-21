@@ -52,7 +52,7 @@ GR_gxt_prep_Pt        prepare dimText
 GR_gxt_nkNr           extract nkNr
 GR_gxt_strLen         get stringlength of textnote                  INLINE
 
-GR_img_get_dbi
+GR_img_get_dbi        get typ,pos,size of Tag/Image
 GR_img_get_obj
 
 List_functions_end:
@@ -480,7 +480,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
                      int *sx, int *sy, int *dx, int *dy, long dbi) {
 //====================================================================
 /// \code
-/// get Tag/Image 
+/// GR_img_get_dbi                      get typ,pos,size of Tag/Image 
 /// Input:
 ///   dbi    DB-Index of "N"ote
 /// Output:

@@ -318,7 +318,7 @@ static MemObj    win0;
                   mb->DLsiz, mb->DLind);
 
   GL_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
   // DL_Redraw ();
 
 

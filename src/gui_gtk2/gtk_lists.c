@@ -87,7 +87,7 @@ cl -c /I ..\include ut_gtk.c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>                      // memcmp memcpy
+#include <string.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>         // f. GDK_Return
@@ -334,7 +334,7 @@ extern int    UI_umbId;
   GtkWidget  *box0;
   void       *w_par, *parWin;
   Obj_gui2   *go;
-  GtkWidget  *GUI_file_get();  
+  // GtkWidget  *GUI_file_get();  
 
 
   // printf("GUI_list1_dlg__ |%s|%s|%s|\n",fNam,mode,opts);
@@ -352,7 +352,8 @@ extern int    UI_umbId;
     parWin = gtk_widget_get_toplevel (go->widget);      // 2013-05-13
 
   } else {
-    parWin = GUI_file_get ();      // 2013-05-13
+    // parWin = GUI_file_get ();      // 2013-05-13
+    parWin = NULL;
   }
 
 

@@ -119,8 +119,11 @@ I2D_stat
 
 
 #include "../ut/ut_geo.h"                // Point-def
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../db/ut_DB.h"                 // DB_GetVector
 #include "../gr/ut_GL.h"                 // GR_MODE_SELECT
+
 #include "../xa/xa_sele.h"             // Typ_FncVAR1
 #include "../xa/xa_mem.h"               // memspc..
 

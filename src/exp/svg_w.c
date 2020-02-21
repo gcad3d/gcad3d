@@ -242,11 +242,12 @@ __declspec(dllexport) int SVG_w__ (char*);
 #include "../ut/ut_txTab.h"               // UtxTab
 #include "../ut/ut_os.h"                  // OS_
 #include "../ut/ut_elli.h"                // UT3D_ango_el
+#include "../ut/func_types.h"               // SYM_SQUARE ..
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gr/ut_DL.h"                  // DL_GetAtt
 #include "../gr/ut_GL.h"                  // GL_GetCen
 #include "../gr/ut_gr.h"                  // GTX_chh_
-#include "../ut/func_types.h"               // SYM_SQUARE ..
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 

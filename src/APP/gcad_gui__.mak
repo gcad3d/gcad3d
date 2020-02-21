@@ -28,9 +28,27 @@ delete:
 srclst:
 	@echo "srclst:" $(VGUI)
 	@echo $(SRCGUI) >> srcFiles
+	@echo ../gui_$(VGUI)/GUI_*.c >> srcFiles
 
-add_srclst:
-	@echo "add_srclst:"
+
+#add_srclst:
+#	@echo "add_srclst:"
+
+
+# link all GUI_* executables
+GUI_exe:
+# create makeFiles.lst = list of makefiles of "xa_*.mak"
+	@echo "link GUI_* executables .."
+	rm -f makeFiles.lst
+	find . -maxdepth 1 -name "GUI_*.mak" -exec echo {} >> makeFiles.lst \;
+# read list, build ..
+	while read line; do \
+	echo "........... start $$line ........... "; \
+	make -f $$line; \
+	if [ $$? -ne 0 ]; then exit 1; fi \
+	done < makeFiles.lst
+
+
 
 
 # link after changing VGUI in ../options.mak

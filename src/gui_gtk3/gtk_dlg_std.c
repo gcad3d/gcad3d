@@ -35,7 +35,6 @@ void GUI_DIALOG(){}
 =====================================================
 List_functions_start:
 
-GUI_MsgBox             display text, OK-Button, also if GTK is not yet up
 GUI_MsgBox1            display text, OK-Button, modal over window
 
 GUI_DialogYN           dialogWindow w. OK-Button, Cancel-Button, callback-func
@@ -63,6 +62,7 @@ List_functions_end:
 =====================================================
 
 needs gtk_entry
+// GUI_MsgBox             now in GUI_dlg1.c
 
 
 \endcode *//*----------------------------------------
@@ -526,7 +526,7 @@ static MemObj thisWin;
 
 }
 
-
+/*
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
@@ -537,11 +537,12 @@ static MemObj thisWin;
 
   int         iRes;     // response
   GtkWidget   *wdlg;
-  char        s2[512];
+  char        s2[512], *p1;
 
 
   if(UI_MainWin) goto L_gtk;
-  if(OS_get_dialog() < 0) {
+  p1 = OS_get_zenity ();
+  if(!p1) {
     printf("GUI_MsgBox |%s|\n",text);
     return -1;
   }
@@ -550,8 +551,6 @@ static MemObj thisWin;
   system (s2);
 
   return 0;
-
-
 
 
 
@@ -588,7 +587,7 @@ static MemObj thisWin;
   return 0;
 
 }
-
+*/
 
 //================================================================
   int GUI_Color_select (int *ir, int *ig, int *ib) {
@@ -957,20 +956,28 @@ static MemObj thisWin;
                       GtkWidget *gtkDlg) {
 //================================================================
 // GUI_Dialog_run         INTERNAL for gtk_dialog_run
-  // start waiting; does not return until user clicks button.
+//   start waiting; does not return until user clicks button.
+// Output:
+//   retCode  0 = OK;
+//           <0 = cancel or error
+//
+// GTK_RESPONSE_CANCEL = -6
+// GTK_RESPONSE_ACCEPT = -3
+// ??                  = -4   (user selection of X in panel)
+//                     = -1 ?
 
   int   i1, iRes;
   char  *p1, *filename;
 
 
-  // printf("GUI_Dialog_run \n");
+  printf("GUI_Dialog_run \n");
 
 
   iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !
-    // printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
+    printf("GUI_Dialog_run iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT -4=X
   
     
-  if (iRes == GTK_RESPONSE_ACCEPT) {
+  if(iRes == GTK_RESPONSE_ACCEPT) {
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (gtkDlg));
     if(!filename) filename =
       gtk_file_chooser_get_preview_filename (GTK_FILE_CHOOSER (gtkDlg));
@@ -1010,18 +1017,19 @@ static MemObj thisWin;
     strcpy(fnam, p1);
 
     g_free (filename);
-    iRes = 0;
+    iRes = 0;   // execute (open|save)
 
   } else {
-    iRes = -1;
+    iRes = -1;  // ignore / cancel
   }
 
+  if(iRes == -4) return -1;
 
   L_exit:
-  if(gtkDlg) {    // not yet killed from DIR-SYM
-    gtk_widget_destroy (gtkDlg);
-    gtkDlg = NULL;                 // 2013-05-13
-  }
+//   if(gtkDlg) {    // not yet killed from DIR-SYM
+//     // gtk_widget_destroy (gtkDlg);
+//     gtkDlg = NULL;                 // 2013-05-13
+//   }
 
   return iRes;
 

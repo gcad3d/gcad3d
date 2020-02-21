@@ -15,9 +15,13 @@
 #define FUNC_ViewReset    10
 #define FUNC_DispWire     11
 #define FUNC_DispRend     12
-#define FUNC_DispHid1     13
-#define FUNC_DispHid2     14
-#define FUNC_DispHid3     15
+#define FUNC_DispHili__   13
+#define FUNC_DispHili_ex  14
+#define FUNC_DispDimm__   15
+#define FUNC_DispDimm_ex  16
+#define FUNC_DispHid1     17
+#define FUNC_DispHid2     18
+#define FUNC_DispHid3     19
 
 #define FUNC_LOAD_only    20
 #define FUNC_LOAD_all     21

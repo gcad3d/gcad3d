@@ -757,8 +757,8 @@ static ObjGX o2, o3;
         printf(" APT_obj_stat=%d\n",APT_obj_stat);
 
       //.......................................................
-      if(o2Typ == Typ_CVTRM) {
-        // printf(" -- Typ_CVTRM > 0\n");
+      if(o2Typ == Typ_CVCCV) {
+        // printf(" -- Typ_CVCCV > 0\n");
         goto L_ex_CCV;
 
 
@@ -2189,7 +2189,7 @@ static ObjGX o2, o3;
 
 
     //---------------------------------
-    } else if(pox->typ == Typ_CVTRM) {
+    } else if(pox->typ == Typ_CVCCV) {
         // printf("  copy new cv = ccv ..\n");
         // UTO_dump__ (pox, "ccv-in");
       o1Siz = sizeof(ObjGX);
@@ -3477,14 +3477,14 @@ static ObjGX o2, o3;
 
   //==========================================================
   L_ex_CCV:       // o2Dat speichern und ausgeben
-        // ox1.typ   = Typ_CVTRM;
+        // ox1.typ   = Typ_CVCCV;
         // ox1.form  = Typ_ObjGX;
         // ox1.data  = o2Dat;
         // ox1.siz   = 1;
         // oo1->dir  = 0;
         // DBind = DB_StoreCurv (-1L, &ox1, 0);
 // 
-        // oo1->typ  = Typ_CVTRM;
+        // oo1->typ  = Typ_CVCCV;
         // oo1->form = Typ_Index;
         // oo1->siz  = 1;
         // oo1->dir  = 0;

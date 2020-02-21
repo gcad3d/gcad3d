@@ -285,15 +285,22 @@ static int       UI_act_Id;
   // Style hat farben, Font GdkFont *font, BackgrndPixmap usw
   UI_style_act = gtk_widget_get_style (win1);
   wFont = gtk_style_get_font (UI_style_act);
+
   // Breite/Hoehe eines einzelnen Char einlesen. = 7,21
   UI_fontsizX = gdk_char_width (wFont, '0');
+  // UI_fontsizX += UI_fontsizX / 2;
 
-  // UI_fontsizY = gdk_char_height (wFont, '0');
+  UI_fontsizY = gdk_char_height (wFont, '0');
+  // UI_fontsizY = gdk_char_height (wFont, '0') + wFont->ascent + wFont->descent;
   // funktioniert in MS-Win leider nicht; liefert 21 statt 10
   // UI_fontsizY = wFont->ascent - wFont->descent;
-  UI_fontsizY = wFont->ascent + wFont->descent;
+  // UI_fontsizY = wFont->ascent + wFont->descent;
   // UI_fontsizY = gdk_char_height (wFont, '0');
+  // UI_fontsizY += UI_fontsizY / 2;
 
+
+
+  //----------------------------------------------------------------
   UI_stylTab[0] = gtk_widget_get_default_style ();
 
   // 1=red

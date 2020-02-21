@@ -37,7 +37,6 @@ void GUI_DIALOG(){}
 =====================================================
 List_functions_start:
 
-GUI_MsgBox             display text, OK-Button, also if GTK is not yet up
 GUI_MsgBox1            display text, OK-Button, modal over window 
 
 GUI_DialogYN           dialogWindow w. OK-Button, Cancel-Button, callback-func
@@ -66,6 +65,7 @@ List_functions_end:
 =====================================================
 
 needs gtk_entry
+// GUI_MsgBox             now in GUI_dlg1.c
 
 
 \endcode *//*----------------------------------------
@@ -526,7 +526,7 @@ static MemObj UI_DialogEntryWin;
 
 }
 
-
+/*  replaced by GUI_dlg1 info
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
@@ -537,16 +537,22 @@ static MemObj UI_DialogEntryWin;
 
   int         iRes;     // response
   GtkWidget   *wdlg;
-  char        s2[512];
+  char        s2[512], *sCmd;
 
 
   if(UI_MainWin) goto L_gtk;
-  if(OS_get_dialog() < 0) {
+//   if(OS_get_dialog() < 0) {
+//     printf("GUI_MsgBox |%s|\n",text);
+//     return -1;
+//   }
+  sCmd = OS_get_zenity ();
+  if(!sCmd) {
+    // no zenity ..
     printf("GUI_MsgBox |%s|\n",text);
     return -1;
-  }
+  } 
 
-  sprintf(s2,"zenity --error --text \'%s\'",text);
+  sprintf(s2, "%s --error --text \'%s\'", sCmd, text);
   system (s2);
 
   return 0;
@@ -595,6 +601,7 @@ static MemObj UI_DialogEntryWin;
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -622,7 +629,7 @@ static MemObj UI_DialogEntryWin;
 
   // start waiting; does not return until user clicks button.
   iRes = gtk_dialog_run (GTK_DIALOG (wdlg));    // wait (modal) !
-    printf(" iRes=%d\n",iRes);
+    // printf(" iRes=%d\n",iRes);
   // -6=_CANCEL, -5=_OK -4=
 
   if((iRes == GTK_RESPONSE_CANCEL)  || 
@@ -980,7 +987,7 @@ static MemObj UI_DialogEntryWin;
 
 
   iRes = gtk_dialog_run (GTK_DIALOG(gtkDlg));         // wait (modal) !
-    printf(" iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
+    // printf("GUI_Dialog_run iRes=%d\n",iRes);  // -6=cancel, -3=ACCEPT
 
 
   if (iRes == GTK_RESPONSE_ACCEPT) {

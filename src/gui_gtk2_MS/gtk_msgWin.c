@@ -217,7 +217,6 @@ extern int       UI_fontsizX, UI_fontsizY;
 /// \code
 /// write textline to textwindow
 /// skip msg, if first 60 chars ident.
-/// txbuf == NULL to clear buffer
 /// \endcode
 
 // Schreibt an das zuletzt mit GUI_msgwin__ generierte Window
@@ -246,12 +245,6 @@ static  char actBuf[256];
 
   // get textBuffer from textView
   msgBuf = gtk_text_view_get_buffer (GTK_TEXT_VIEW(msgView));
-
-
-  if(!txbuf) {               // clear buffer
-    actBuf[0] = '\0';
-    return 0;
-  }
 
 
   // test if Gtk is already up
@@ -360,10 +353,6 @@ static  char actBuf[256];
   gtk_text_buffer_delete (TxBuf, &iVon, &iBis);
 
   // printf("GUI_msgwin_rmLast\n");
-
-  // clear buffer in GUI_msgwin_prt
-  GUI_msgwin_prt (mo, NULL);
-
 
   return 0;
 }

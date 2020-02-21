@@ -124,14 +124,16 @@ enum ERR_codes {
   ERR_internal = -99,       // 3  internal error, exit right now    -99
   ERR_EOM,                  // 2  out of memory, exit right now     -98
   ERR_TODO_E,               // 2  error, exit right now             -97
-  ERR_TODO_I,               // 1  info only - TODO                  -96
-  ERR_func_not_impl,        // 1  function not implemented
-  ERR_subModel_undefined,   // 1  subModel_undefined
-  ERR_db_obj_undefined,     // 1  db-obj_undefined
-  ERR_file_open,            // 1  file_open error
-  ERR_TEST,                 // 1  testExit
-  ERR_obsolete,             // 0
-  ERR_unsupported           // 0
+  ERR_MEMSPC_IN_USE,        // 2  error,                            -96
+  ERR_TODO_I,               // 1  info only - TODO                  -95
+  ERR_func_not_impl,        // 1  function not implemented          -94
+  ERR_subModel_undefined,   // 1  subModel_undefined                -93
+  ERR_db_obj_undefined,     // 1  db-obj_undefined                  -92
+  ERR_file_open,            // 1  file_open error                   -91
+  ERR_TEST,                 // 1  testExit                          -90
+  ERR_obsolete,             // 0                                    -89
+  ERR_unsupported,          // 0                                    -88
+  ERR_USER_ABORT            // 0                                    -87
 };
 
 // MSG_ERR_sev                   get severity (1|2|3) from errorcode (< 0)

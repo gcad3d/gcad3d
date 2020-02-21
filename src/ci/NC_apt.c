@@ -226,6 +226,7 @@ cc -c NC_apt.c
 
 #include "../xa/xa.h"                  // mem_cbuf1_SIZ
 #include "../xa/xa_ed.h"               // AP_mode_enter
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_edi__.h"            // ED_GetNxtLin
 #include "../xa/xa_uid.h"              //  DLI_TMP
@@ -241,7 +242,7 @@ cc -c NC_apt.c
 
 // Externals aus ../ci/NC_Main.c:
 extern double    APT_ModSiz;
-extern int       APT_line_act;           // die momentane APT-LineNr
+extern int       APT_lNr;           // die momentane APT-LineNr
 extern int       APT_hide_parent;        // 0=not, else yes
 
 
@@ -1197,9 +1198,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
 
   L_exit:
-    printf(" ex APT_decode_xyzval irc=%d d1=%lf\n",irc,*d1);
-
-
+    // printf(" ex APT_decode_xyzval irc=%d d1=%lf\n",irc,*d1);
   return irc;
 
 
@@ -1226,8 +1225,8 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
   Line   *lnp;
 
 
-  printf("APT_decode_angd__ |%d|\n",aus_anz);
-  for(i1=0;i1<aus_anz;++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // printf("APT_decode_angd__ |%d|\n",aus_anz);
+  // for(i1=0;i1<aus_anz;++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
   *ang = UT_DB_LEER;
@@ -1401,7 +1400,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
     APT_subTyp = Typ_Angle;
 
-      printf("ex-APT_decode_angd__ %f\n",*ang);
+      // printf("ex-APT_decode_angd__ %f\n",*ang);
 
     return 0;
 
@@ -9177,13 +9176,13 @@ static ModelRef *mod1, modR1;
     // D = S ..        
     } else if(aus_typ[0] == Typ_CV) {
         // printf(" D = S x\n");
+        iSeg1 = 0;
+        iSeg2 = 0;
 
       //----------------------------------------------------------------
       // D = S PTS                   // start- endPt od curve /standrdPoints
       if(aus_typ[1] == Typ_PTS)   {
         i1 = aus_tab[1];  // eg Ptyp_end ...
-        iSeg1 = 0;
-        iSeg2 = 0;
 
         // get bin.obj of curv
         irc = UTO_objDat_dbS (&vp1, &typ1, (long)aus_tab[0], iSeg1, iSeg2, obj1);
@@ -9200,12 +9199,12 @@ static ModelRef *mod1, modR1;
       // D = S SEG [par]             // segment of polygon
       } else if(aus_typ[1] == Typ_SEG) {
         iSeg1 = aus_tab[1];
-        iSeg2 = 0;
         goto L_D__S_SEG_SEG1;
 
 
       //----------------------------------------------------------------
       // D = S MOD [par]             // ellipse/trimmed-circle
+// TODO: MOD - the nr of the intersection; eg ellipse 2 intersections !
       } else if(aus_typ[1] == Typ_modif)    {
         i1 = aus_tab[1];  // eg Ptyp_end ...
 
@@ -9213,6 +9212,7 @@ static ModelRef *mod1, modR1;
         irc = UTO_objDat_dbS (&vp1, &typ1, (long)aus_tab[0], iSeg1, iSeg2, obj1);
         if(irc < 0) goto L_parErr;
   
+        // get typical vectors for curve
         APT_modMax1 = UT3D_vc_mod_obj (&vc1, i1, typ1, vp1);
         if(APT_modMax1 < 0) goto L_parErr;
         goto Fertig;
@@ -9966,8 +9966,8 @@ static ModelRef *mod1, modR1;
   ip = 0;
 
   atx->aTyp  = 0;  // 0=2D-Text
-  atx->col  = -1; // kein Block
-  atx->ltyp = -1; // keine LeaderLine
+  atx->col  = -1;  // kein Block
+  atx->ltyp = -1;  // keine LeaderLine
   atx->scl  = 0;
   atx->txt = NULL;
   atx->p1.x = UT_VAL_MAX;
@@ -9991,21 +9991,19 @@ static ModelRef *mod1, modR1;
   if((aus_typ[ii] == Typ_Val)   ||
      (aus_typ[ii] == Typ_modif))    {
     atx->aTyp = 2;                     // Block
-    atx->col = aus_tab[ii];           // col; 1=gelb, 2=rot,a 3=gruen, 4=blau
+    atx->col = aus_tab[ii];            // col; 1=gelb, 2=rot,a 3=gruen, 4=blau
     ++ii;
-    goto L_nxt;
+    // goto L_nxt;
   }
 
   // copy Zusatztext -> APT_spc1
   if(aus_typ[ii] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[ii]);
     atx->txt = APT_spc1;
-    // printf(" zusTxt=|%s|\n",atx->txt);
-    ++ii;
-    goto L_nxt;
+      // printf(" zusTxt=|%s|\n",atx->txt);
   }
 
-  if(ii < aus_anz) goto L_parErr;
+  // if(ii < aus_anz) goto L_parErr;
 
   APT_modMax1 = 9;    // nr of colors; 0-8
 
@@ -10104,9 +10102,8 @@ static ModelRef *mod1, modR1;
   }
 
 
-  APT_modMax1 = 7;    // nr of symbols; 0-6
-
-  APT_modMax2 = 9;    // nr of colors; 0-8
+  // APT_modMax1 = 6;    // nr of symbols; 0-6
+  // APT_modMax2 = 9;    // nr of colors; 0-8
 
 
     // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_ldrs");
@@ -11225,6 +11222,16 @@ Rückgabewert ist der gefundene Index.
       goto Exit;
 
 
+    //-----------------------------------------------------------------
+    // P = N                 // point from text ..
+    } else if(aus_typ[0] == Typ_Note)            {
+      ox1p = DB_GetGTxt ((long)aus_tab[0]);
+      if(ox1p->form == Typ_GTXT) {
+        *pt_out = ((GText*)ox1p->data)->pt;
+        APT_modMax1 = 0;
+        goto Exit;
+      } else goto Error;
+
 
     //-----------------------------------------------------------------
     } else goto Error;
@@ -11364,7 +11371,7 @@ Rückgabewert ist der gefundene Index.
         ci1 = DB_GetCirc ((long)aus_tab[1]);
   
         i1 = UT3D_pt_projptci (&pt1, &pt2, &pt0, &ci1);
-        if(i1 < 0) TX_Print(" - in Line %d:",APT_line_act);
+        if(i1 < 0) TX_Print(" - in Line %d:",APT_lNr);
 
         if(imod == 1) pt1 = pt2;
         APT_modMax1 = 2;
@@ -12149,6 +12156,8 @@ Rückgabewert ist der gefundene Index.
         pt2 = DB_GetPoint ((long)aus_tab[1]);
 
         //----------------------------------------------------------------
+        // P = P P ..
+        //----------------------------------------------------------------
         // P = P P VAL ANG   // P-P = direction; VAL=length, rotate around p1
         if     ((aus_typ[2] == Typ_Val)        &&
                 (aus_typ[3] == Typ_Angle))          {
@@ -12178,10 +12187,9 @@ Rückgabewert ist der gefundene Index.
           goto L_P__PPAA;     
 
 
-/*
         //----------------------------------------------------------------
-        // P = P P ANGrot D       // rotate p2 around p1-D
-TODO: replace with "rotate around line .."
+        // P = P P ANG D       // rotate p2 around p1-D
+        // replace with "rotate around line .."
         } else if((aus_typ[2] == Typ_Angle)      &&
                   (aus_typ[3] == Typ_VC))            {
 
@@ -12190,7 +12198,7 @@ TODO: replace with "rotate around line .."
           UT3D_vc_normalize (&vc1, &vc1);
           d2 = 0.;
           goto L_P__PPAA;
-*/
+
 
         //----------------------------------------------------------------
         } else goto L_noFunc;

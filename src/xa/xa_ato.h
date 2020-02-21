@@ -56,7 +56,7 @@ void ATO_getSpc_tmp_s (ObjAto *ato, char ptx);
 #endif
 
 
-// ATO_tmpSpc_free        free memSpace from MEMTAB_tmpSpc_get
+// ATO_tmpSpc_free        free memSpace from MemTab_ini_temp
 // see MEM_MUST_FREE
 #define ATO_tmpSpc_free(ato1)\
   if((ato1)->spcTyp == MEMTYP_ALLOC__) free ((ato1)->typ);

@@ -5,7 +5,7 @@
 
 
 /// \code
-/// sysStat    1=starting (GUI up); 2=initialize done (openGL up);
+/// sysStat    1=init GUI OK; 2=init OpenGL OK; 3=init model OK.
 /// errStat    0=Ok, no Error
 /// errLn      SourceLineNr where Error occured
 /// batch      0=interaktiv, 1=Batchmode.
@@ -97,6 +97,8 @@ extern AP_STAT AP_stat;
 
 
 
+
+
 //================================================================
   int AP_defaults_write ();
  long AP_cre_defHdr (int typ, int istart);
@@ -125,7 +127,7 @@ extern AP_STAT AP_stat;
   // long AP_lNr_get ();
   // int  AP_lNr_set (long lNr);
 
-  // int AP_colSel (ColRGB *cSel);  // ColRGB!
+  // int APcol_defCol__ (ColRGB *cSel);  // ColRGB!
 
   char* AP_Get_ConstPl_Z (int typ);
   // int AP_GetObj    (ObjG* o1, long dli);
@@ -139,13 +141,16 @@ extern AP_STAT AP_stat;
 
 
 
-//================================================================
-/// debug-print (see AP_deb_stat())
-#ifdef DEB
-#define printd if(AP_stat.debStat) AP_deb_print
-#else
-#define printd if(0) printf
-#endif
+
+
+
+// //================================================================
+// /// debug-print (see DEB_prt_init())
+// #ifdef DEB
+// #define printd if(DEB_prt_stat) AP_deb_print
+// #else
+// #define printd if(0) printf
+// #endif
 
 
 

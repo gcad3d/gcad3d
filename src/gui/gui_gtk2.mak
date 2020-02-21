@@ -11,7 +11,6 @@ SRCGUI =\
  ../gui_gtk2/gtk_menu.c\
  ../gui_gtk2/gtk_entry.c\
  ../gui_gtk2/gtk_image.c\
- ../gui_gtk2/gtk_dlg_files.c\
  ../gui_gtk2/gtk_dlg_std.c\
  ../gui_gtk2/gtk_msgWin.c\
  ../gui_gtk2/gtk_lists.c\
@@ -22,6 +21,7 @@ SRCGUI =\
  ../gui_gtk2/gtk_opengl.c\
  ../gui_gtk2/gtk_gl_x11.c
 
+#../gui_gtk2/gtk_dlg_files.c\
 #../gui_gtk2/gtk_printer.c\
 
 

@@ -351,7 +351,8 @@ extern int    UI_umbId;
     parWin = gtk_widget_get_toplevel (go->widget);      // 2013-05-13
 
   } else {
-    parWin = (void*)GUI_file_get ();      // 2013-05-13 2013-09-07
+    // parWin = (void*)GUI_file_get ();      // 2013-05-13 2013-09-07
+    parWin = NULL;
   }
 
 

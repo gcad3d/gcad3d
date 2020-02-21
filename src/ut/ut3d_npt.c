@@ -382,7 +382,17 @@ UT3D_npt_ci                circular polygon
       pNr = 0;
       break;
 
+    case Typ_ATXT:   // AText
+      pNr = 2;
+      break;
 
+    case Typ_GTXT:   // GText
+      pNr = 1;
+      break;
+
+    case Typ_Dimen:  // Dimen
+      pNr = 3;
+      break;
 
     default:
       TX_Error("UT3D_ptNr_obj not supp. %d",typ);
@@ -842,7 +852,7 @@ UT3D_npt_ci                circular polygon
 
 
   // printf("UT3D_mtpt_trmCv cvNr=%d mode=%d\n", cvNr, mode);
-  // DEB_dump_obj__ (Typ_MemTab, mtpa, " mtpt_trmCv-mtpa");
+  // DEB_dump_obj__ (Typ_MemTab, mtpa, " UT3D_mtpt_trmCv-mtpa-in");
 
   irc = 0;
 
@@ -858,13 +868,18 @@ UT3D_npt_ci                circular polygon
 
     // test if PRCV exists
     if((!mode) && (cvt->dbi != 0)) {
-      // PRCV must exist; get points ..
-      ptn = MEMTAB_RFREE(mtpa);
-      pa2 = MEMTAB__ (mtpa, mtpa->rNr);
-      // get pa2 = polygon from trimmedCurve cvt
-      irc = PRCV_npt_trmCv (pa2, &ptn, cvt);
-      if(irc < 0) return -2;
-      mtpa->rNr += ptn;
+      // PRCV exists; get points ..
+//       ptn = MEMTAB_RFREE(mtpa);
+//       pa2 = MEMTAB__ (mtpa, mtpa->rNr);
+//       // get pa2 = polygon from trimmedCurve cvt
+//       irc = PRCV_npt_trmCv (pa2, &ptn, cvt);
+//       if(irc < 0) return -2;
+//       mtpa->rNr += ptn;
+
+      // add all points of (polygon from trimmedCurve cvt) into mtpa
+      irc = PRCV_mtpt_trmCv (mtpa, cvt);
+      if(irc < 0) return irc;
+
       goto L_nxt;
     }
 
@@ -938,7 +953,7 @@ UT3D_npt_ci                circular polygon
 
 
   irc = 0;
-  if(ptSiz - *ptNr < 2) goto L_EOM;
+  if(ptSiz - *ptNr < 2) goto L_EOM;   // min. 2 points free
 
 
 
@@ -1053,6 +1068,39 @@ UT3D_npt_ci                circular polygon
   //----------------------------------------------------------------
   } else if(typ == Typ_Model) {
     pTab[*ptNr] = ((ModelRef*)data)->po;
+    *ptNr += 1;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_PLN) {     // Plane
+    pTab[*ptNr] = ((Plane*)data)->po;
+    *ptNr += 1;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_ATXT) {    // AText
+    pTab[*ptNr] = ((AText*)data)->p1;
+    *ptNr += 1;
+    pTab[*ptNr] = ((AText*)data)->p2;
+    *ptNr += 1;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_GTXT) {    // GText
+    if((*ptNr + 2) > ptSiz) goto L_EOM; // outTab zu klein
+    pTab[*ptNr] = ((GText*)data)->pt;
+    *ptNr += 1;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Dimen) {    // Dimen
+    if((*ptNr + 3) > ptSiz) goto L_EOM; // outTab zu klein
+// TODO - set points onto active constrPlane ?
+    pTab[*ptNr] = UT3D_pt_pt2 (&((Dimen*)data)->p1);
+    *ptNr += 1;
+    pTab[*ptNr] = UT3D_pt_pt2 (&((Dimen*)data)->p2);
+    *ptNr += 1;
+    pTab[*ptNr] = UT3D_pt_pt2 (&((Dimen*)data)->p3);
     *ptNr += 1;
 
 

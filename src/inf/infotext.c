@@ -1,4 +1,4 @@
-/* infotext.c                 RF                     2016-12-29
+/* ../inf/infotext.c                 RF                     2016-12-29
  *
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -36,6 +36,8 @@ TODO:
 - make script to get html from inf (and tags)
 - translate ../inf/Objects-Format.c into english ..
 
+Old doku:
+../../doc/gcad_doxygen/ *
 
 
 -------------------------------------------
@@ -47,7 +49,8 @@ TODO:
 void INF(){                   /*! \code
                     development-dokumentation gcad3d
 -----------------------------------------------------------------------------------
-INF_CORE__          core; startup plugin script process remote-control
+INF_CORE__          messagewindow import-export plugin app-script remote-control
+                    process-control
 INF_GUI__           user-interaction, menus,     ckitgui ..
 INF_CMD__           command-interpreter (resolving gcad-format)
 INF_DB__            data-base for (binary) grafic objects
@@ -56,12 +59,18 @@ INF_GRAFIC__        display-module, Displist, OpenGL, GL2D
 INF_MAN__           MAN
 INF_CAD__           CAD
 
-INF_DEV_GC__        workflow events select
-INF_APP__           create modify resolve, attributes, Userinteractions, coords
+INF_DEV_GC__        workflow events select timer
+INF_APP__           create modify undo resolve attributes Userinteractions coords
 INF_OBJ_FORM__      SRC ato obj DBO dlo
 INF_OBJ_CONV__      ObjectFormatConversions
 INF_DEV_C__         MEM const tol C_types INF_debug
 INF_files__         ../inf/files.c
+
+Geom.modules:
+INF_PRCV            polygonal_representation_of_curve              ../ut/ut_prcv__.c
+INF_CNTF            find and create contour (CCV = trimmed-curves) ../ut/ut_cntf.c
+INF_EDMPT           move points                                    ../xa/edmpt.c
+INF_Search          Search/Name
 
 INF_GCAD_format__   Gcad-Format-native Gcad-Format-binary
 INF_FMTB__          Gcad-Format-binary
@@ -71,11 +80,6 @@ INF_DOC_U           user-documentation
 INF_NamingConventions
 recipes-for-geometric-problems  ../../doc/geom/
 
-
-Geom.modules:
-INF_PRCV            polygonal_representation_of_curve              ../ut/ut_prcv__.c
-INF_CNTF            find and create contour (CCV = trimmed-curves) ../ut/ut_cntf.c
-INF_EDMPT           move points                                    ../xa/edmpt.c
 
 
 ================================================================== \endcode */}
@@ -161,8 +165,7 @@ see also
 INF_workflow_events         main-events
 
 GR               create graphic objects;                           ../gr/ut_gr.c
-GL               OpenGL-binding-functions                          ../gr/ut_GL.c
-INF_GL2D__                  OpenGL-2D
+INF_GL__         OpenGL                                            ../gr/ut_GL.c
 
 
 
@@ -198,10 +201,11 @@ Files:
 void INF_DEV_GC__ (){        /*! \code
 INF_DEV_GC__    workflow events select subModels
 
-INF_workflow__              sequence functions  startup CAD
+INF_workflow__              sequence functions  main-startup  CAD
 INF_workflow_events         main-events
 INF_workflow_select         select-process
 INF_subModels
+INF_timer__
 
 
 ================================================================== \endcode */}
@@ -436,6 +440,7 @@ INF_APP__           create modify resolve, attributes, Userinteractions, coords
 
 
 INF_GEOM_OBJ_CR   create modify geom.objects
+INF_UNDO__        undo creation of geom-obj
 INF_GEOM_OBJ_RES  resolve geom.objects
 INF_GEOM_ATTRIB   attributes for geom.objects (linetyp, color ..) INF_COL_CV
 INF_INTER_USER    Userinteractions
@@ -515,6 +520,10 @@ ln                  Line      Typ_LN
        CVTRM_       CurvCCV   Typ_CVTRM     TrimmedCurve             INF_Typ_CVTRM
        UT3D_pl_*    Plane     Typ_PLN
                     Refsys    Typ_Refsys    (back)plane,tra.matrix   INF_Typ_Refsys
+                    GText     Typ_GTXT
+                    AText     Typ_ATXT, Typ_Tag
+....................................................................................
+       UTcol_       ColRGB    Typ_Color     color
 ....................................................................................
 obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
 otb    OTB_         ObjTab    - undef !     obj+xDat[]               INF_ObjTab
@@ -729,19 +738,6 @@ sense-of-rotation;   0=CCW, 1=CW.
 
 was: 1=CCW, -1=CW
   change to 0=CCW; 1=CW; with:   sr1 = (sr0 > 0) ? 0 : 1;
-
-
-
-================================================================== \endcode */}
-void INF_spcTyp (){        /*! \code
-type of memory-space
-- used in CurvPrcv, MemTab (../ut/ut_memTab.h)
-
-MEMTYP_NONE         0  // undefined/empty;  can-reallocate,   must-NOT-free;
-MEMTYP_ALLOC__      1  // malloc;           can-reallocate,   must-free;
-MEMTYP_ALLOC_PROT   2  // malloc,protected: can-reallocate,   must-NOT-free;
-MEMTYP_FIXED_PROT   3  // malloc,protected; CANNOT-reallocate,must-NOT-free;
-MEMTYP_STACK        4  // stack;            CANNOT-reallocate,must-NOT-free;
 
 
 
@@ -1139,19 +1135,149 @@ tolerances
 
 ================================================================== \endcode */}
 void INF_MEM__ (){        /*! \code
-  get memSpc ..
+
+INF_MEM_ORG_TYP   get organized memspc as -
+                  Fixed-Length-Records|Variable-Length-Records|Textstrings|BitArray
+
+INF_MEM_TYP       type of memspc; stack|malloc, protected,expandable
+
+INF_MEM_SPC       get memspc - temporary | static | permanent
+
+
+Functions:
+MEM_..            Swap-Invert-Delete copy compare write read ..    ../ut/ut_mem.c
+
+
+
+
+../myUnused/gcad_doxygen/Tools-MemoryFunctions.dox
+
+
+================================================================== \endcode */}
+void INF_MEM_TYP (){        /*! \code
+
+see ../ut/ut_types.h MEMTYP_NONE MEMTYP_ALLOC__ ..
+
+- used in CurvPrcv, MemTab (../ut/ut_memTab.h)
+- used in Memspc (UME_.. ../ut/ut_umem.h)
+
+
+================================================================== \endcode */}
+void INF_MEM_SPC (){        /*! \code
+  get memSpc  -  temporary | permanent | static
+
+
+----------------------------------------------------------
+MEM_alloc_tmp     get temporary-memspc
+  calls alloca; memspace exists until active function returns.
+  max size should be SPC_MAX_STK = 32767 bytes
+
+
+
+----------------------------------------------------------
+-                 get permanent-memSpace         
+malloc () .. free
+
+
+----------------------------------------------------------
+-                 get static-memSpace                ../xa/xa_mem.h
+DO NOT USE this memSpaces - cannot be locked 
+
+
+
+
+
+================================================================== \endcode */}
+void INF_MEM_ORG_TYP (){        /*! \code
+
+the memory-space types are defined in ../ut/ut_types.h as MEMTYP_*
+
+
+INF_MEM_ORG_LFIX     Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
+INF_MEM_ORG_LVAR     Variable-Length-Records      UME_          ../ut/ut_umem.c
+INF_MEM_ORG_TXT      Textstrings                  UtxTab_       ../ut/ut_txTab.c
+INF_MEM_ORG_BIT      Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
+
+
+================================================================== \endcode */}
+void INF_MEM_ORG_LFIX (){        /*! \code
 
 MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
                                                              ../ut/ut_memTab.h
+
+-----------------------------------------------------------------------
+# get temporary-memspc:
+  // for known nr of records:
+  MemTab(int) mtbi1 = _MEMTAB_NUL;
+  MemTab_ini_temp (&mtbi1, rNr);   // does malloc if > SPC_MAX_STK
+
+  // max nr of records 
+  MemTab(Point) mtpa = _MEMTAB_NUL;
+  MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                  sizeof(Point), Typ_PT);
+  ..
+  MemTab_free ((MemTab*)&mtbi1);  // if realloc permanent-memspc (gt SPC_MAX_STK)
+
+
+  Point pta[200];
+  MemTab_ini_fixed (&mtpa, pta, sizeof(pta), sizeof(Point), Typ_PT);
+  ..
+
+
+
+
+-----------------------------------------------------------------------
+# get permanent-memspc:
+  MemTab(int) mtbi1 = _MEMTAB_NUL;
+  MemTab_ini__ (&mtbi1, sizeof(int), Typ_Int4, 10000);
+  .
+  MemTab_free (&mtbi1);
+
+
+-----------------------------------------------------------------------
+# get static-memspc:                (../xa/xa_mem.h)
+DO NOT USE the static-memspces ../xa/xa_mem.h
+  - static-memspces cannot be locked - have no flag inUse or unused
+  - use temporary-memspc or permanent-memspc:
+
+
+
+================================================================== \endcode */}
+void INF_MEM_ORG_LVAR (){        /*! \code
+
 Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
+
+-----------------------------------------------------------------------
+# get temporary memspc:
+  char      tmpspc[100000];
+  Memspc    tmpSeg;
+  UME_init (&tmpSeg, tmpspc, sizeof(tmpspc));
+
+
+-----------------------------------------------------------------------
+# get static memspc:
+  UME_init (&s_mSpc, memspc501, sizeof(memspc501));
+
+
+-----------------------------------------------------------------------
+# get permanent memspc:
+  irc = UME_malloc (&impSpc, spcSiz, incSiz);
+
+
+
+================================================================== \endcode */}
+void INF_MEM_ORG_TXT (){        /*! \code
+
 TxtTab            Textstrings                  UtxTab_       ../ut/ut_txTab.c
-MEM_alloc_tmp     temporary memspc
 
 
-../xa/xa_mem.h    includefile static memSpaces
+
+================================================================== \endcode */}
+void INF_MEM_ORG_BIT (){        /*! \code
+
+BitTab            Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
 
-../../doc/gcad_doxygen/Tools-MemoryFunctions.dox
 
 
 
@@ -1161,15 +1287,19 @@ void INF_workflow__ (){        /*! \code
 
 INF_workflow_events         main-events
 INF_workflow_select         select-process
+INF_workflow_models         load model in temp.dir at startup
 
 
------- startup:
+------ main-startup:
 main                      ../xa/xa_main.c
   UI_win_main             create main-window
     UI_GL_draw__            callback OpenGL-startup
       AP_init__                 startup (UI_GL_draw__
         AP_work__                 work startparameters
 
+ED_work_END
+  ED_work_CurSet
+    WC_Work__
 
 
 ------ CAD:
@@ -1265,6 +1395,39 @@ UNUSED:
 
 
 
+================================================================== \endcode */}
+INF_workflow_models (){        /*! \code
+
+load model in temp.dir at startup
+
+Functions:
+  Mod_sav_(-1)          copy empty model -> tmp/Model
+  Mod_sav_i (0);        save Model+Submodels into tempDir as "Model" nativ
+  Mod_sav_ck (0);       make a copy of Model for ck-modified
+
+
+Files in <tempDir>:
+  Mod.lst               List of all internal subModels + primary model "-main-"
+  Model                 the complete model after prg.exit
+  Model_                primary model, native
+  Model_<subModelname>  subModel, native, eg Model_L1
+  Mod_in                a copy of Model for check if modified
+
+  MdlLst.txt            list of models last used
+
+  Exp_<subModelname>    subModel im zuletzt exportierten Format
+  M#A#.msh              binary; Mesh-Faces & Edgelines.
+  M#A#.ptab             binary; Mesh-points.
+  <subModelname>.tess   externes Mockup-subModel (zB wrl, stl)
+
+  Catalog.lst     eine Liste aller existierenden CatalogFiles
+  catParts.act    der Filename des momentan aktiven CatalogFile
+  catParts.lst    die PartList des momentan aktiven CatalogFile
+
+
+
+
+
 
 ================================================================== \endcode */}
 INF_subModels (){        /*! \code
@@ -1328,18 +1491,7 @@ Functions:
 
 
 Files in <tempDir>:
-  Model           the complete model after prg.exit
-  Mod.lst         List of all internal subModels
-  Model_<subModelname>
-  Exp_<subModelname>    subModel im zuletzt exportierten Format
-  M#A#.msh              binary; Mesh-Faces & Edgelines.
-  M#A#.ptab             binary; Mesh-points.
-  <subModelname>.tess   externes Mockup-subModel (zB wrl, stl)
-
-  Catalog.lst     eine Liste aller existierenden CatalogFiles
-  catParts.act    der Filename des momentan aktiven CatalogFile
-  catParts.lst    die PartList des momentan aktiven CatalogFile
-
+- see INF_workflow_models
 
 
 
@@ -1467,6 +1619,9 @@ _LP64            // vom gcc auf 64-bit-OS.
 ================================================================== \endcode */}
 void INF_GUI__ (){        /*! \code
 
+Main-Window using Gtk3 or Gtk2; 
+- before Gtk is up using zenity (OS_get_GUI ..)
+
 CAD-GUI:
 
 ../gui/gui_base.c          interface-functions
@@ -1485,6 +1640,18 @@ CKITGUI:
 cd ../ckitgui
 . ../options.sh && make run -f hello-world.mak
 
+
+
+
+================================================================== \endcode */}
+void INF_timer__ (){        /*! \code
+
+AP_tmr_init         init the remoteControl timer
+AP_tmr_CB__
+
+SRCU_tmr_CB__
+
+GUI_timer__
 
 
 
@@ -1530,17 +1697,21 @@ DEB_dump_obj_1                dump stru and its pointers, do not resolve.
 
 
 -------------- auxFuncs:
-AP_debug__  ("func xy");       stop in debugger and display message
+AP_debug__ ("func xy");        stop in debugger and display message
+
 UI_wait_time                   wait <msTim> millisecs or stop with Esc
+
 UI_wait_Esc                    wait for pressing the Esc-Key
+
 ERR_raise                      exit plugin immediate
 
-DEB_std_file                   redirect stdout -> file
 
+
+-------------- debugging-output:
 // Write into file <tempDir>/debug.dat (not active if -DDEB is not ON):
-AP_deb_stat (1);           // open debugfile
-  printd ..                // print into debugfile
-AP_deb_stat (0);           // close debugfile
+DEB_prt_init (1);           // open debugfile
+  printd (...);             // print into debugfile
+DEB_prt_init (0);           // close debugfile
 
 
   // block of debug-messages
@@ -1551,6 +1722,9 @@ AP_deb_stat (0);           // close debugfile
 
 // check debugfile:
 vi <tmpdir>/tmp/debug.dat
+
+
+DEB_std_file                   redirect stdout -> file or back
 
 
 --------------------------------------------

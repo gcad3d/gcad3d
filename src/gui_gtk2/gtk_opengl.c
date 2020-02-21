@@ -191,37 +191,6 @@ static int       statMK=0;                        // state modifier-keys
   if(!go) return (UME_obj_invalid_set (-1));
 
 
-/*
-  //----------------------------------------------------------------
-  // set evenets for parent-box
-  gtk_widget_set_events (GTK_WIDGET (w_par),
-                         GDK_ALL_EVENTS_MASK);
-                         // GDK_EXPOSURE_MASK);
-
-  g_signal_connect_after (w_par, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-
-  g_signal_connect_after (w_par, "expose",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-*/
-
-/*
-  //----------------------------------------------------------------
-  // create eventbox for glarea
-  eb1 = gtk_event_box_new ();
-
-  gtk_container_add (GTK_CONTAINER (w_par), eb1);
-
-  gtk_widget_set_events (GTK_WIDGET (w_par),
-                         GDK_ALL_EVENTS_MASK);
-                         // GDK_EXPOSURE_MASK);
-
-  g_signal_connect_after (w_par, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-*/
-
-
-
   //----------------------------------------------------------------
   glarea = GLB_Create ();
   gtk_widget_set_app_paintable (glarea, TRUE);
@@ -230,20 +199,14 @@ static int       statMK=0;                        // state modifier-keys
 
 
   gtk_widget_set_events (GTK_WIDGET (glarea),
-                         GDK_ENTER_NOTIFY_MASK|
                          GDK_EXPOSURE_MASK);
-                         // GDK_ALL_EVENTS_MASK);
-
-  g_signal_connect (glarea, "enter-notify-event",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
-                    PTR_MEMOBJ(go->mem_obj));
 
   g_signal_connect_after (glarea, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
+                    G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
 
   g_signal_connect_after (glarea, "expose-event",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
+                    G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
 
 /*
@@ -259,6 +222,7 @@ static int       statMK=0;                        // state modifier-keys
   go->uFuMove  = NULL;
   go->uFuButt  = NULL;
   go->uFuKey   = NULL;
+
 
   // gdk_threads_add_idle (GUI_gl_idle1, NULL);
 
@@ -281,11 +245,12 @@ static int       statMK=0;                        // state modifier-keys
 /// int fMove   (MemObj *mo, void **data);
 ///   // data=table of 3 pointers;
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventMove
-///   GUI_DATA_I1   =*(int*)data[2]=x-val mousepos in screencoords
-///   GUI_DATA_I2   =*(int*)data[3]=y-val mousepos in screencoords
+///   GUI_DATA_I1   =*(int*)data[1]=x-val mousepos in screencoords
+///   GUI_DATA_I2   =*(int*)data[2]=y-val mousepos in screencoords
+///   GUI_DATA_I3   =*(int*)data[3]=mouseButtons; M1=256, M3=1024
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_BoxGL
 ///
-///   printf(" x=%d y=%d\n",GUI_DATA_I1,GUI_DATA_I2);
+///   printf(" x=%d y=%d buttons=%d\n",GUI_DATA_I1,GUI_DATA_I2,GUI_DATA_I3);
 ///
 /// \endcode
 
@@ -422,22 +387,6 @@ static int iDev=TYP_DeviceMouse;
 }
 
 
-/*
-GUI_gl_ev_test(MemObj *mo) {
-  void        *glArea;
-  Obj_GLwin   *go;
-
-  go = GUI_obj_pos (mo);
-  if(!go) return 0;
-  glArea = go->widget;
-
-  
-  g_signal_connect (glArea, "enter-notify-event",
-                    G_CALLBACK(gtk_widget_grab_focus), (void*)FALSE);
-
-}
-*/
-
 //================================================================
   int GUI_gl_ev_key (MemObj *mo, void *fKey) {
 //================================================================
@@ -483,11 +432,10 @@ GUI_gl_ev_test(MemObj *mo) {
                          GDK_KEY_PRESS_MASK |
                          GDK_KEY_RELEASE_MASK);
 
-// #ifndef _MSC_VER
   // grab focus when entering the gl-window; else no keyboard-callback.
+  // (eg after Interact ON/OFF)
   g_signal_connect (glArea, "enter-notify-event",
                     G_CALLBACK(gtk_widget_grab_focus), (void*)TRUE);
-// #endif
 
   g_signal_connect (glArea, "key-press-event",
                     G_CALLBACK(GUI_gl_key),
@@ -611,6 +559,7 @@ GUI_gl_ev_test(MemObj *mo) {
   GdkModifierType state;
 
 
+  // printf("--------------------------------------- Gtk2 \n");
   // printf("GUI_gl_draw \n");
 
   go = GUI_obj_pos (&mo);
@@ -624,21 +573,21 @@ GUI_gl_ev_test(MemObj *mo) {
 
 
 
-  // BUG: enter-event does not come after change-virtual-screen; 2014-01-17
-  // only if keys are connected..
-  if(go->uFuKey) {
-    gdk_window_get_pointer (NULL, NULL, NULL, &state);
-    i1 = state;
-      // printf(" ik=%d i1=%d\n",ik,i1);
-    if(i1 != statMK) {
-      iEv = TYP_EventEnter;
-      pTab[0] = &iEv;
-      pTab[1] = &i1;
-      pTab[2] = &i1;
-      go->uFuDraw (&mo, pTab);  // report the modified state-keys !
-      statMK = i1;
-    }
-  }
+//   // BUG: enter-event does not come after change-virtual-screen; 2014-01-17
+//   // only if keys are connected..
+//   if(go->uFuKey) {
+//     gdk_window_get_pointer (NULL, NULL, NULL, &state);
+//     i1 = state;
+//       // printf(" ik=%d i1=%d\n",ik,i1);
+//     if(i1 != statMK) {
+//       iEv = TYP_EventEnter;
+//       pTab[0] = &iEv;
+//       pTab[1] = &i1;
+//       pTab[2] = &i1;
+//       go->uFuDraw (&mo, pTab);  // report the modified state-keys !
+//       statMK = i1;
+//     }
+//   }
 
 
   if(event) {
@@ -651,7 +600,7 @@ GUI_gl_ev_test(MemObj *mo) {
       // get position
       //gdk_window_get_origin(gtk_widget_get_window(UI_win_glBox),&xPos,&yPos);
 
-      // gtk_widget_get_allocation (UI_win_glBox, &allocation);
+      // does not work .. ??
       gtk_widget_get_allocation (glArea, &allocation);
         // printf("  new size %d %d\n", allocation.width, allocation.height);
 
@@ -666,6 +615,7 @@ GUI_gl_ev_test(MemObj *mo) {
         // necessary for clean redraw when resizing ..
         gtk_widget_queue_resize (glArea);
       } else {
+        // iEv = TYP_EventDraw;
         return 0;
       }
 
@@ -741,8 +691,8 @@ GUI_gl_ev_test(MemObj *mo) {
 //================================================================
 /// INTERNAL 
  
-  int          i1, x, y, iEv=TYP_EventMove;
-  void         *pTab[3];
+  int          i1, x, y, iMb, iEv=TYP_EventMove;
+  void         *pTab[4];
   Obj_GLwin    *go;
 
 
@@ -750,6 +700,11 @@ GUI_gl_ev_test(MemObj *mo) {
 
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
+
+  // after selection the mouseButtons are not correct;
+  // update the mouseButtons; M1=256, M3=1024
+  iMb = ((GdkEventMotion*)event)->state;
+
 
   // if (event->is_hint) {
   gtk_widget_get_pointer (go->widget, &x, &y);
@@ -760,6 +715,7 @@ GUI_gl_ev_test(MemObj *mo) {
   pTab[0] = &iEv;
   pTab[1] = &x;
   pTab[2] = &y;
+  pTab[3] = &iMb;
 
   go->uFuMove (&mo, pTab);
 
@@ -865,6 +821,8 @@ GUI_gl_ev_test(MemObj *mo) {
   ii = go->uFuKey (&mo, pTab);
     // printf(" imod=%d\n",imod);
 
+  gtk_widget_grab_focus (go->widget);  // glArea   2020-01-04
+
   return (ii);   // TRUE=1: do no defaultOperations
 
 } 
@@ -879,9 +837,9 @@ GUI_gl_ev_test(MemObj *mo) {
 ///    return 1; // keep idle-Call; call AP_Idle_CB again.
 /// \endcode
 
-  // printf("GUI_gl_idle1 \n");
+  printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIII GUI_gl_idle1 \n");
 
-  GUI_gl_draw (NULL, NULL, MEMOBJ_PTR(NULL));
+  // GUI_gl_draw (NULL, NULL, MEMOBJ_PTR(NULL));
 
   return 0;  // close thread
 

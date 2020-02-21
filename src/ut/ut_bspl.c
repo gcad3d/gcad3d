@@ -2844,7 +2844,7 @@ Returncodes:
   double pv, u1, u2, uTot, uMin, uMax;
 
 
-  printf("UT3D_par1_parbsp kv=%lf\n",*kv);
+  // printf("UT3D_par1_parbsp kv=%lf\n",*kv);
 
 
   u1 = cv1->v0;
@@ -2855,7 +2855,7 @@ Returncodes:
 
   uMin = cv1->kvTab[0];
   uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
-    printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
+    // printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
 
   if(u2 < u1) {
     // umax - u1 + u2 - umin
@@ -2870,7 +2870,7 @@ Returncodes:
 
   if(cv1->dir) pv = 1. - pv;   // removed 2017-02-15
 
-    printf("ex UT3D_par1_parbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
+    // printf("ex UT3D_par1_parbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
 
   return (pv);
 

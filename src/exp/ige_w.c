@@ -216,6 +216,7 @@ Doku: ../exp/ige/version6.pdf
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
+#include "../ut/ut_memTab.h"           // MemTab
 
 // #include "../ut/ut_crv.h"
 #include "../ut/ut_bspl.h"

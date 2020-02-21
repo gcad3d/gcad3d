@@ -29,11 +29,11 @@ Group: Applications/Graphics
 BuildRoot: ../rpm/
 #Requires: libGL.so.1 libGLU.so.1
 BuildRequires:	ctags
-BuildRequires:	pkgconfig(gtk+-3.0)
+#BuildRequires:	pkgconfig(gtk+-3.0)
+BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:	pkgconfig(gl)
 BuildRequires:	pkgconfig(glu)
 Requires: tar
-Requires: zenity
 
 
 
@@ -84,6 +84,7 @@ mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins
 mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
 
 install -m 755 %{gcad_dir_bin}/gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}/GUI_* %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 %{gcad_dir_bin}/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 %{gcad_dir_bin}/plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
 install -m 755 %{gcad_dir_bin}/plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
@@ -143,15 +144,16 @@ install -m 644 %{gcad_dir_dev}doc/gCAD3D_log.txt %{outDir}/usr/share/doc/gcad3d/
 
 %post
 # create link for active gui-dll
-libInf=`ldconfig -p | grep "libgtk-x11-2"`
-echo "gtk2-libs: $libInf"
-if [ ! -z "$libInf" ]; then
-  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
-fi
+# back to gtk2 (problems with NV cards)
 libInf=`ldconfig -p | grep "libgtk-3"`
 echo "gtk3-libs: $libInf"
 if [ ! -z "$libInf" ]; then
   ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
+fi
+libInf=`ldconfig -p | grep "libgtk-x11-2"`
+echo "gtk2-libs: $libInf"
+if [ ! -z "$libInf" ]; then
+  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
 fi
 
 

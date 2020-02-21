@@ -16,10 +16,16 @@
  *
 -----------------------------------------------------
 TODO:
+- add links to points to CurvTrm (dbi-index) ?
+- CurvTrm as subPart of CurvTrm muss möglich sein !
+- wie sieht getrimmte CurvTrm aus ? see CurvCCV
+  hat zusätzl. segmenNr's und parameter on this segments
+
+  ODER: parameter von 0-1; segmentnumber als ganzzahl ???
+    zB 2.4 = parameter 0.4 on segment 2 (drittes segment).
 
 -----------------------------------------------------
 Modifications:
-2017-02-12 replaced by ../ut/ut_cntf.c. RF.
 2014-05-28 new; was xa_cont.c. RF.
 
 -----------------------------------------------------
@@ -63,7 +69,6 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"                 // Point ...
-#include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_plg.h"              // UT3D_par_par1plg
@@ -76,7 +81,7 @@ List_functions_end:
 // ex ../xa/xa.c
 extern Plane WC_sur_act;
 extern double    WC_sur_Z;              // der aktive Z-Wert der WC_sur_sur;
-extern char  WC_modact_nam[128];   // name of the active submodel; def="" (main)
+
 
 // aus ../ci/NC_Main.c:
 extern int     APT_dispDir;
@@ -129,9 +134,7 @@ extern int     APT_dispDir;
   } else {
     // ERROR
     i1 = aus_tab[iOut];
-    TX_Print ("**** APT_decode_cvco_nxt I_NCsub %d",i1);
-    printf("**** APT_decode_cvco_nxt I_NCsub %d\n",i1);
-
+    TX_Print ("APT_decode_cvco_nxt I_NCsub_%d",i1);
   }
   goto L_nxt_inp;
 
@@ -147,9 +150,7 @@ extern int     APT_dispDir;
   L_nxt_inp:
   iOut += 1;
   if(iOut < aus_anz) goto L_noAmoi;
-
     // printf("ex APT_decode_cvco_nxt sr=%d mod=%d\n",*isr,*imod);
-
   return iOut;
 
 }
@@ -159,19 +160,10 @@ extern int     APT_dispDir;
   int APT_decode_cvco_out (int *ccNr, CurvCCV *cca, int ccaSiz, CurvCCV *cc1) {
 //=============================================================================
 // add cc1 to cca
-
-// TODO: fix Bspl-curves, not closed: if v1 < v0 then dir=1
  
 
   // printf("--------- APT_decode_cvco_out %d\n",cc1->typ);
-  UT3D_stru_dump (Typ_CVCCV, cc1, "APT_decode_cvco_out %d",*ccNr);
-  // if(*ccNr == 3) AP_debug__ ("APT_decode_cvco_out 3");
-
-
-
-  cc1->v0 = UT_VAL_MAX; // undefined; 2016-10-27
-  cc1->v1 = UT_VAL_MAX; // undefined; 2016-10-27
-
+  // UT3D_stru_dump (Typ_CVCCV, cc1, "");
 
 
   if(*ccNr < ccaSiz) {
@@ -215,13 +207,13 @@ extern int     APT_dispDir;
 
   ptAct = *pto;
 
-  // printf("APT_decode_cvco_int typ1=%d typ2=%d clo1=%d imod=%d\n",
+  // printf("APT_decode_cvco_int typ1=%d typ2=%d clo1=%d mod=%d\n",
           // typ1,typ2,clo1,imod);
   // UT3D_stru_dump (Typ_PT, &ptAct, " ptAct");
-  // UT3D_stru_dump (typ1, oc1, " oc1");
-  // UT3D_stru_dump (typ2, oc2, " oc2");
   // UT3D_stru_dump (Typ_CVCCV, cc1, " cc1");
+  // UT3D_stru_dump (typ1, oc1, " oc1");
   // UT3D_stru_dump (Typ_CVCCV, cc2, " cc2");
+  // UT3D_stru_dump (typ2, oc2, " oc2");
 
 
     // TEST
@@ -229,7 +221,7 @@ extern int     APT_dispDir;
 
 
   //----------------------------------------------------------------
-  // UME_alloc_tmp (&wrkSeg, 2000000);  // 2015-01-04; crash in MS !
+  // UME_alloca (&wrkSeg, 2000000);  // 2015-01-04; crash in MS !
   i1 = 2000000; // 2MB
   irc = UME_malloc (&wrkSeg, i1, i1/2);
   if(irc < 0) return -1;
@@ -247,7 +239,6 @@ extern int     APT_dispDir;
   if(irc < 0) goto L_exit;
   if(pNr <= 0) {
       // printf("APT_decode_cvco_int no solution - %d_%d \n",typ1,typ2);
-    irc = -1;
     goto L_exit;
   }
     // printf(" _stru_int irc=%d i1=%d\n",irc,i1);
@@ -300,7 +291,6 @@ extern int     APT_dispDir;
 
 
   *pto = pa[i1];
-  *par1 = va[i1];  // 2016-10-27
   irc = 0;
 
 
@@ -420,25 +410,20 @@ extern int     APT_dispDir;
 //================================================================
 // APT_decode_cvco_invCC       revert trimmedCurve
 
-  // if(cc1->rev) TX_Error("APT_decode_cvco_invCC E1\n");
-  UT3D_stru_dump (Typ_CVCCV, cc1, " APT_decode_cvco_invCC ");
-
   // swap v0/v1, ip0/ip1
+  // UTO_cv_cvtrm/Circ: must change sign for rad !
   MEM_swap_2db (&cc1->v0, &cc1->v1);
   MEM_swap_2lg (&cc1->ip0, &cc1->ip1);
-
-  // cc1->rev = 1;
-  cc1->dir = ICHG01(cc1->dir);
+  cc1->rev = 1;
 
   return 0;
 
 }
  
 
-/* UNUSED
 //=============================================================================
   int APT_decode_cvco_ck_pts (Point *pti, long ipt,
-                              int cvTyp, void *ocv, CurvCCV *ccv) {
+                              int cvTyp, void *ocv, CurvCCV *ccv, int cvClo) {
 //=============================================================================
 // check if point pti is identical with startPoint of Obj ocv
 /// Input:
@@ -458,7 +443,7 @@ extern int     APT_dispDir;
 
   // check distance pti-pto > UT_TOL_cv
   dist = UT3D_lenB_2pt (pti, &pts);
-    printf("APT_decode_cvco_ck_pts dist=%lf cvClo=%d\n",dist,ccv->cvClo);
+    printf("APT_decode_cvco_ck_pts dist=%lf cvClo=%d\n",dist,cvClo);
 
 
   if (dist < UT_TOL_cv) {
@@ -469,12 +454,11 @@ extern int     APT_dispDir;
   return 0;
 
 }
-*/
 
 
 //=============================================================================
   int APT_decode_cvco_ck_pte (Point *pti, long ipt,
-                              int cvTyp, void *ocv, CurvCCV *ccv) {
+                              int cvTyp, void *ocv, CurvCCV *ccv, int cvClo) {
 //=============================================================================
 // check if point pti is identical with endPoint of Obj ocv
 ///   retCod:  0=pti is not endpoint of curve.
@@ -482,27 +466,23 @@ extern int     APT_dispDir;
 
 
 
-  int       irc;
   double    dist;
   Point     pte;
 
-
   // check if pto == endpoint
   // get endpoint
-  // UTO_2pt_limstru (NULL, &pte, NULL, NULL, cvTyp, ocv);
-  irc = UT3D_ptvcpar_std_obj (&pte, NULL, NULL, Ptyp_1, cvTyp, ocv);
-  if(irc< 0) return -1;
+  UTO_2pt_limstru (NULL, &pte, NULL, NULL, cvTyp, ocv);
 
 
   // check distance pti-pto > UT_TOL_cv
   dist = UT3D_lenB_2pt (pti, &pte);
-    // printf("APT_decode_cvco_ck_pte dist=%lf clo=%d\n",dist,ccv->clo);
+    // printf("APT_decode_cvco_ck_pte dist=%lf cvClo=%d\n",dist,cvClo);
 
 
   if (dist < UT_TOL_cv) {
     // endpoint of newCC/newObj==ptAct; reverse newCC/newObj
     // do nothing for closedCurve
-    if(ccv->clo) {
+    if(cvClo) {
       // 1=not closed; reverse newCC/newObj
       APT_decode_cvco_invCC (ccv);
       UTO_stru_inv (cvTyp, ocv);
@@ -512,7 +492,7 @@ extern int     APT_dispDir;
   } else {
     // projPt is not equal endPt
     // check if closed
-    if(ccv->clo) {
+    if(cvClo) {
       // 1=not closed; set startPoint = ptAct/ipAct
       ccv->ip0 = ipt;  // update CC
       UTO_set_ptlim (cvTyp, ocv, pti, NULL, NULL, NULL);
@@ -531,19 +511,6 @@ extern int     APT_dispDir;
   
 
 //================================================================
-  int APT_decode_cvco_exit (CurvCCV *ccv1) {
-//================================================================
-
-
-  UT3D_stru_dump (Typ_CVCCV, ccv1, " APT_decode_cvco_exit");
-
-
-  return 0;
-
-}
-
-
-//================================================================
   int APT_decode_cvco_add (int *ccNr, CurvCCV *cca,
                            ObjGX *oxi, int isr, int imod) {
 //================================================================
@@ -553,7 +520,7 @@ extern int     APT_dispDir;
 /// Input:
 ///   oxi        next DB-obj to process; TYP_FuncInit=init, TYP_FuncExit=exit
 ///   isr        revers oxi; 0=not; else yes
-///   imod       solution-nr (index of intersection-point if != 1)
+///   imod       solution-nr (index of intersection-point if mare than 1)
 /// Output:
 ///   ccNr       nr of finished records in cca
 ///   cca[]
@@ -563,44 +530,11 @@ extern int     APT_dispDir;
 ///
 /// \endcode
 
-// incoming obj:
-//   newTyp, newObj, newPts, newPte, newClo, (CurvCCV)newCC
-// store obj (pending):
-//   oldTyp = type of pending-obj; Typ_Error = none pending.
-//   oldObj, oldPts, oldPte, oldClo, (CurvCCV)oldCC
-// ipAct is the DB-index of the endpoint of the last contourObj.
-// ipOld is the DB-index of the startpoint of the last contourObj.
 // ptAct is the endPt of the last output-obj (in cca)
 //   if oldObj=Error (after new point) ptAct is the active position
 // store unprocessed lFig newCC on exit in oldCC
 // unstored lfig in oldCC; its endpoint is oldPte.
 // newObj is the struct exactly representing newCC.
-
-// TODO: set v0,v1 in cca (UT_VAL_MAX in APT_decode_cvco_out)
-
-// - es wird dzt eine basicCurve newObj UND eine trimmedCurve newCC
-//   untersucht, modifiziert, ...  = MIST !
-// - VEREINFACHUNG: do not invert newCC; update newRev,ipOld,ipAct; 
-//   (APT_decode_cvco_invCC) bzw create newCC erst bei APT_decode_cvco_out
-// necessary to create CurvCCV:
-//  - baseCurve typ/dbi, dbi of startpoint, endpoint (ipOld,ipAct)
-//  - oldClo/newClo
-//  -   make new oldRev/newRev (direction of trimmedCurve compared to baseCurv)
-//
-//----------------------------------------------------------------
-// PT > lFig:
-// - test endpoints: fit = connect
-// - test normal; yes: limit lFig, insert connectionLine
-// - no normal: connect to nearest point (start|endPoint)
-// lFig > lFig:
-// - test endpoints: fit = connect
-// - test intersection: yes: limit both
-// - no intersection: test normal; yes: limit both, insert connectionLine
-// - no normal: connect to nearest point (start|endPoint)
-// lFig > PT:
-// - test endpoints: fit = connect
-// - test normal; yes: limit lFig, insert connectionLine
-// - no normal: connect to nearest point (start|endPoint)
 
 
   static Point    ptAct, oldPts, oldPte;
@@ -608,18 +542,17 @@ extern int     APT_dispDir;
   static char     oldObj[OBJ_SIZ_MAX];
   static int      oldClo, oldTyp, ccaSiz;
   static long     ipAct, ipOld;
-
-  CurvCCV  newCC;
-  char     newObj[OBJ_SIZ_MAX];
-  char     oid[256];
+  CurvCCV newCC;
+  char     newObj[OBJ_SIZ_MAX], oid[40];
   int      newTyp, newClo;
 
-  int      irc, i1, oNr, iConn, newDBtyp;
+  int      irc, i1, oNr, iConn;
   long     dbi;
   double   d_oe_ns, d_oe_ne, d_os_ns, d_os_ne, par1, d1, d2;
   Point    ptOld, *pp1, newPte, newPts;
   CurvCCV *cco, auxCC;
   void     *vp1;
+  Line     *ln1 = (Line*)newObj;
 
 
   // check for init-process
@@ -631,16 +564,14 @@ extern int     APT_dispDir;
 
 
 
-  // TESTBLOCK
-  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
-  UT3D_stru_dump (Typ_PT, &ptAct, " ptAct; ipAct=%d",ipAct);
-  UT3D_stru_dump (Typ_PT, &oldPte, " oldPte");
-  if(oxi->typ != TYP_FuncExit) {
-  UT3D_stru_dump (Typ_ObjGX,oxi,"APT_decode_cvco_add");
-  printf(" ccNr=%d isr=%d imod=%d oldTyp=%d\n",*ccNr,isr,imod,oldTyp);
-  printf(" UT_TOL_cv=%lf\n",UT_TOL_cv);
-  } else printf(" APT_decode_cvco_add TYP_FuncExit\n");
-  // END TESTBLOCK
+  // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
+  // UT3D_stru_dump (Typ_PT, &ptAct, " ptAct");
+  // UT3D_stru_dump (Typ_PT, &oldPte, " oldPte");
+  // if(oxi->typ != TYP_FuncExit) {
+  // UT3D_stru_dump(Typ_ObjGX,oxi,"APT_decode_cvco_add");
+  // printf(" ccNr=%d isr=%d imod=%d oldTyp=%d\n",*ccNr,isr,imod,oldTyp);
+  // printf(" UT_TOL_cv=%lf\n",UT_TOL_cv);
+  // } else printf(" APT_decode_cvco_add TYP_FuncExit\n");
 
 
 
@@ -656,9 +587,6 @@ extern int     APT_dispDir;
   // check for pending object
   if((oldTyp != Typ_Error)&&(oldTyp != TYP_FuncInit)) {
     // output oldCC
-    if(oldCC.ip1 == 0) {
-      oldCC.ip1 = DB_StorePoint (-1L, &oldPte);
-    }
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &oldCC);
     ptAct = oldPte;
     // if last obj was point; no pending obj.
@@ -674,21 +602,17 @@ extern int     APT_dispDir;
     ipOld = ipAct;
     if(!ipOld) ipOld = DB_StorePoint (-1L, &ptAct);
     ipAct = DB_StorePoint (-1L, &oldPte);
-    newCC = UT3D_CCV_NUL;
     newCC.typ = Typ_LN;
+    newCC.dbi = 0L;
     newCC.ip0 = ipOld;
     newCC.ip1 = ipAct;
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &newCC);
   }
 
 
-  // if last curve has ip1=0: set to end or startpoint.
-
-
   if(*ccNr < 1) {
     printf(" EMPTY CCV !!!!!!!!!!!!!\n");
   }
-
 
   return 0;
   // goto L_ex_done;
@@ -701,52 +625,22 @@ extern int     APT_dispDir;
   APT_set_primSeg (imod);  // APT_prim_seg = imod
 
   // get db-typ & index out of oxi
-  OGX_GET_INDEX (&newDBtyp, &dbi, oxi);
+  OGX_GET_INDEX (&newTyp, &dbi, oxi);
   
-  // get DB-obj
-  newTyp = DB_GetObjDat (&vp1, &oNr, newDBtyp, dbi);
-    printf(" newTyp=%d newDBtyp=%d\n",newTyp,newDBtyp);
-
-  // make a copy of newObj
-  memcpy (newObj, vp1, OBJ_SIZ_MAX);
-
-  if(newTyp != Typ_PT) {
-    // get startPt and endtPt of newObj
-    irc = UT3D_ptvcpar_std_obj (&newPts, NULL, NULL, Ptyp_0, newTyp, newObj);
-    irc = UT3D_ptvcpar_std_obj (&newPte, NULL, NULL, Ptyp_1, newTyp, newObj);
-      UT3D_stru_dump (Typ_PT, &newPts, " newPts");
-      UT3D_stru_dump (Typ_PT, &newPte, " newPte");
-
-    // get newCC = new trimmed-curve from DB-obj
-    UTO_cvtrm_cv (&newCC, newTyp, dbi);
-      UT3D_stru_dump (Typ_CVCCV, &newCC, " newCC-A");
+  // get input oxi as new trimmed-curve
+  UTO_cvtrm_cv (&newCC, newTyp, dbi);
 
   // fix reverse
-    if(isr) {
-      // change direction of trimmed-curve
-      APT_decode_cvco_invCC (&newCC);
-      // change direction of newObj
-      UTO_stru_inv (newTyp, newObj);
-      // swap start/endpoint
-      MEM_swap__ (&newPts, &newPte, sizeof(Point));
-        UT3D_stru_dump (Typ_CVCCV, &newCC, " newCC-B");
-    }
+  if(isr) APT_decode_cvco_invCC (&newCC);
+    // UT3D_stru_dump (Typ_CVCCV, &newCC, " newCC");
 
-  } else {
-    newPts = *(Point*)newObj;
-    newPte = *(Point*)newObj;
-  }
-
-  // make newTyp/newObj = basic-curve (standad-struct) of trimmedCurve newCC
-  // UTO_cv_cvtrm (&newTyp, &newObj, NULL, &newCC);
+  // get struct of newCC (normalCurve newObj from trimmedCurve newCC)
+  UTO_cv_cvtrm (&newTyp, &newObj, NULL, &newCC);
     // UT3D_stru_dump (newTyp, &newObj, " newObj");
       // if(dbi == 4) exit(0); // TEST ONLY !
 
   // get startPt and endtPt of newObj
-  // UTO_2pt_limstru (&newPts, &newPte, NULL, NULL, newTyp, newObj);
-  // irc = UT3D_ptvcpar_std_obj (&newPts, NULL, NULL, Ptyp_0, newTyp, newObj);
-  // irc = UT3D_ptvcpar_std_obj (&newPte, NULL, NULL, Ptyp_1, newTyp, newObj);
-
+  UTO_2pt_limstru (&newPts, &newPte, NULL, NULL, newTyp, newObj);
     // UT3D_stru_dump (Typ_PT, &newPts, " newPts");
     // UT3D_stru_dump (Typ_PT, &newPte, " newPte");
 
@@ -763,19 +657,17 @@ extern int     APT_dispDir;
     if(newTyp == Typ_LN) {
       // check for degenerated (length < UT_TOL_cv)
       newClo = UT3D_ln_ck_degen (newObj);
-
     } else {
       // check if closed or degenerated
       newClo = UTO_cv_ck_clo (newTyp, newObj);  // 0=YES,1=NO
+        // printf(" newClo=%d\n",newClo);
     }
-
 
     // test if lfig is degenerated;
     if(newClo < 0) {
       // degenerated lfig;
         // printf(" degen:%d\n",newClo);
-      APED_oid_dbo_sm (oid, sizeof(oid), newTyp, dbi);
-      // TX_Print("skip degenerated object %s %s",oid,WC_modact_nam);
+      APED_oid_dbo__ (oid, newTyp, dbi);
       TX_Print("skip degenerated object %s",oid);
 /*  makes problem ..
       // last stored pos = ptAct; new end
@@ -811,9 +703,10 @@ extern int     APT_dispDir;
       return newClo; // exit - new obj is degen. lfig
     }
 
-    newCC.clo = newClo;
-      printf(" newClo=%d\n",newClo);
 
+  // } else {
+    // // new obj is PT
+    // // check for degen ..
   }
 
 
@@ -826,10 +719,9 @@ extern int     APT_dispDir;
   //================================================================
   // 0 > PT
   //================================================================
-    printf(" 0 > PT\n");
+    // printf(" 0 > PT\n");
   ptAct = *((Point*)newObj);
   ipAct = dbi;
-  newCC.ip0 = ipAct;
   goto L_ex_done;
 
 
@@ -838,10 +730,8 @@ extern int     APT_dispDir;
   //================================================================
   // 0 > lFig
   //================================================================
-    printf(" 0 > lFig\n");
+    // printf(" 0 > lFig\n");
   // get newPts=startPt of newObj and ptAct=endPt of newObj
-  ipAct = DB_StorePoint (-1L, &ptAct);
-  newCC.ip0 = ipAct;
   ptAct = newPts;
   // first obj; keep unmodified pending
   goto L_ex_pend;
@@ -873,16 +763,19 @@ extern int     APT_dispDir;
   L_PT_PT:
     // printf(" PT > PT\n");
   // change newCC (point) into line, DBi=0; startPt=ipAct, endPt=dbi.
-  newCC = UT3D_CCV_NUL;
   newCC.typ = Typ_LN;
+  newCC.dbi = 0L;
   newCC.ip0 = ipOld;
   newCC.ip1 = dbi;
-  // output of newCC -> cca
+  // output of newObj
   APT_decode_cvco_out (ccNr, cca, ccaSiz, &newCC); 
   // set ptAct = Point newCC
   ptAct = *((Point*)newObj);
   ipAct = dbi;
-  goto L_ex_done;  // no obj pending
+  // // fix newObj=Line
+  // ln1->p1 = ptOld;
+  // ln1->p2 = ptAct;
+  goto L_ex_done;
 
 
 
@@ -892,7 +785,7 @@ extern int     APT_dispDir;
   // unstored lfig in oldCC; its endpoint is oldPte.
   // new point = newCC.
   L_lFig_PT:
-    printf(" lFig > PT\n");
+    // printf(" lFig > PT\n");
 
   // set newPte = new point
   newPte = *(Point*)newObj;
@@ -961,8 +854,8 @@ extern int     APT_dispDir;
   // check if point ptAct is on oldCC (length of connectionLine == 0.)
   if(d_oe_ne > UT_TOL_cv) {
     // output connectionLine (newObj = point) ip0=ipAct ip1=dbi
-    newCC = UT3D_CCV_NUL;
     newCC.typ = Typ_LN;
+    newCC.dbi = 0L;
     newCC.ip0 = ipAct;
     newCC.ip1 = dbi;       
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &newCC);
@@ -980,13 +873,12 @@ extern int     APT_dispDir;
   // PT > lFig       oldObj = Error; newObj = lFig
   //================================================================
   L_PT_lFig:
-    printf(" PT > lFig\n");
+    // printf(" PT > lFig\n");
 
   // test if ptAct (old obj) == startPt of new Obj
   if(UT3D_comp2pt(&ptOld, &newPts, UT_TOL_cv)) {
       // printf(" ptAct == newStart\n");
     ptAct = newPts; 
-    newCC.ip0 = ipAct;  // 2017-02-06
     goto L_ex_pend;  // skip pt; keep newCC (unmodified)
   }
 
@@ -1025,8 +917,8 @@ extern int     APT_dispDir;
     // create connectionLine (-> ptAct)
     UTO_cvtrm_cv (&auxCC, Typ_PT, ipAct);
     // output connectionLine ipOld-ipAct
-    auxCC = UT3D_CCV_NUL;
     auxCC.typ = Typ_LN;
+    auxCC.dbi = 0L;
     auxCC.ip0 = ipOld;
     auxCC.ip1 = ipAct;            
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &auxCC); 
@@ -1037,9 +929,7 @@ extern int     APT_dispDir;
   // ptAct is endPt of connectionLine;
   // check if point ptAct == endPoint of newobj; yes: reverse newobj
   // fix newCC/Obj
-  newCC.clo = newClo;
-  APT_decode_cvco_ck_pte (&ptAct, ipAct, newTyp, newObj, &newCC);
-// does UTO_stru_inv newObj !!
+  APT_decode_cvco_ck_pte (&ptAct, ipAct, newTyp, newObj, &newCC, newClo);
 
   // store newCC
   goto L_ex_pend;
@@ -1050,7 +940,7 @@ extern int     APT_dispDir;
   //----------------------------------------------------------------
   // lFig > lFig           oldCC > newCC
   //----------------------------------------------------------------
-    printf(" lFig > lFig   ccNr=%d\n",*ccNr);
+    // printf(" lFig > lFig   ccNr=%d\n",*ccNr);
     // UT3D_stru_dump (Typ_PT, &oldPte, " oldPte");
     // UT3D_stru_dump (Typ_PT, &newPts, " newPts");
     // UT3D_stru_dump (Typ_PT, &newPte, " newPte");
@@ -1063,17 +953,17 @@ extern int     APT_dispDir;
       // printf(" d_oe_ns=%lf\n",d_oe_ns);
       // printf(" d_oe_ne=%lf\n",d_oe_ne);
 
-  // check connection
+  // revert oldObj (only if not closed)
   if(*ccNr < 1) {
-    d_os_ns = UT3D_lenB_2pt (&oldPts, &newPts);    // dist to new startPt
-    d_os_ne = UT3D_lenB_2pt (&oldPts, &newPte);    // dist to new endPt
+    d_os_ns = UT3D_lenB_2pt (&oldPts, &newPts);
+    d_os_ne = UT3D_lenB_2pt (&oldPts, &newPte);
       // printf(" d_os_ns=%lf\n",d_os_ns);  
       // printf(" d_os_ne=%lf\n",d_os_ne);
 
 
     // get shortest of 4 distances; 0|1|2|3
     iConn = UTP_min_4 (&d_oe_ns, &d_os_ns, &d_oe_ne, &d_os_ne);
-      printf(" iConn=%d\n",iConn);
+      // printf(" iConn=%d\n",iConn);
 
 
     // iConn=0: OK; oe == ns.
@@ -1142,15 +1032,6 @@ extern int     APT_dispDir;
       // printf(" oldEnd == newStart\n");
     // yes, ptAct == startPt of newObj
     // output oldCC (unmodified)
-    // if ip1==0 set oldPte
-    if(oldCC.ip0 == 0) {        // 2017-02-06
-      ipOld = DB_StorePoint (-1L, &oldPts);
-      oldCC.ip0 = ipOld;
-    }
-    if(oldCC.ip1 == 0) {        // 2017-02-06
-      ipAct = DB_StorePoint (-1L, &oldPte);  // oldPte == newPts
-      oldCC.ip1 = ipAct;
-    }
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &oldCC);
     ptAct = newPts;
     goto L_ex_pend;  // keep newCC (unmodified)
@@ -1163,8 +1044,8 @@ extern int     APT_dispDir;
   irc = APT_decode_cvco_int (&ptAct, &par1,
                              &oldCC, oldTyp, oldObj, oldClo,
                              &newCC, newTyp, newObj, imod);
-    printf("ex _cvco_int irc=%d par1=%lf\n",irc,par1);
-    UT3D_stru_dump (Typ_PT, &ptAct,  "  ptAct ex _int");
+    // printf("ex _cvco_int irc=%d par1=%lf\n",irc,par1);
+    // UT3D_stru_dump (Typ_PT, &ptAct,  "  ptAct ex _int");
 
   // if no intersection exists: connect with connection-line
   if(irc < 0) goto L_lf_fl_conn;
@@ -1174,19 +1055,16 @@ extern int     APT_dispDir;
   // trim oldObj (set oldObj-endpoint = selectedPoint)
   ipAct = DB_StorePoint (-1L, &ptAct);
   oldCC.ip1 = ipAct;
-  // oldCC.v1  = par1;
 
   // output oldObj;
   APT_decode_cvco_out (ccNr, cca, ccaSiz, &oldCC);
 
   // set startPoint newObj = selectedPoint
   newCC.ip0 = ipAct;
-  // newCC.v0  = par1;
   newPts = ptAct;
   // if closed: change also endPoint
   if(!newClo) {
     newCC.ip1 = ipAct;
-    // newCC.v1  = par1;
     newPte = ptAct;
   }
 
@@ -1197,9 +1075,7 @@ extern int     APT_dispDir;
   L_lf_fl_conn:
   // no connection between oldObj - newObj; find nearest endpoints,
   // add connectLine between nearest endpoints.
-      // printf(" L_lf_fl_conn: ccNr=%d iConn=%d oldClo=%d newClo=%d\n",
-             // *ccNr,iConn,oldClo,newClo);
-// TODO: create point as normal from ptAct to newObj; test distance.
+      // printf(" L_lf_fl_conn: ccNr=%d iConn=%d\n",*ccNr,iConn);
 
   if(*ccNr < 1) {
     if(iConn == 1) { // d_os_ns; revert oldObj
@@ -1249,8 +1125,8 @@ extern int     APT_dispDir;
     }
 
     // output connect-line oldPte-newPts
-    auxCC = UT3D_CCV_NUL;
     auxCC.typ = Typ_LN;
+    auxCC.dbi = 0L;
     auxCC.ip0 = DB_StorePoint (-1L, &oldPte);
     auxCC.ip1 = DB_StorePoint (-1L, &newPts);
     APT_decode_cvco_out (ccNr, cca, ccaSiz, &auxCC);
@@ -1267,16 +1143,13 @@ extern int     APT_dispDir;
     oldTyp = newTyp;
     memcpy (oldObj, newObj, OBJ_SIZ_MAX);
     oldClo = newClo;
-    oldCC.clo = newClo;
-      UT3D_stru_dump (Typ_CVCCV, &oldCC, " oldCC");
-      // UT3D_stru_dump (oldTyp, oldObj, " oldObj");
     goto L_exit;
 
 
   //================================================================
   L_ex_done:
     // newCC already processed; no pending obj
-    // ptAct and ipAct must be set.
+    // oldCC.typ = Typ_Error;
     oldTyp = Typ_Error;
 
     
@@ -1287,12 +1160,12 @@ extern int     APT_dispDir;
     oldPts = newPts;
     oldPte = newPte;
 
-      printf("ex APT_decode_cvco_add oldTyp=%d ipOld=%ld ipAct=%ld\n",
-             oldTyp,ipOld,ipAct);
+      // printf("ex APT_decode_cvco_add oldTyp=%d ipOld=%ld ipAct=%ld\n",
+             // oldTyp,ipOld,ipAct);
       // UT3D_stru_dump (Typ_CVCCV, &oldCC, " oldCC");
-      UT3D_stru_dump (Typ_PT, &ptAct,  "  ptAct");
-      UT3D_stru_dump (Typ_PT, &oldPts, "  oldPts");
-      UT3D_stru_dump (Typ_PT, &oldPte, "  oldPte");
+      // UT3D_stru_dump (Typ_PT, &ptAct,  "  ptAct");
+      // UT3D_stru_dump (Typ_PT, &oldPts, "  oldPts");
+      // UT3D_stru_dump (Typ_PT, &oldPte, "  oldPte");
       // printf("AAAAAAAAAAAAAAAAAAAAAAA ex APT_decode_cvco_add \n");
 
 
@@ -1416,11 +1289,12 @@ extern int     APT_dispDir;
 
     // TESTONLY:
     // UTO_dump__ (ocv, "ex decode_cvcomp:");
-    // UT3D_dump_dbo (Typ_PT, -5L);
+    // UTO_dump_dbo (Typ_PT, -5L);
     // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCCC exiting decode_cvcomp: \n");
 
   return 0;
 
 }
 
+ 
 // EOF

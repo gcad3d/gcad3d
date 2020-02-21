@@ -1,6 +1,9 @@
 # GUICP GUILIBS SRCGUI OBJGUI
 
-SRCGUI =\
+!MESSAGE - enter ../gui/gui_gtk2_MS.nmak
+
+
+SRCGUI=\
  ..\gui\gui_base.c\
  ..\gui_gtk2_MS\gtk_base.c\
  ..\gui_gtk2_MS\gtk_button.c\
@@ -14,10 +17,10 @@ SRCGUI =\
  ..\gui_gtk2_MS\gtk_container.c\
  ..\gui_gtk2_MS\gtk_multichoice.c\
  ..\gui_gtk2_MS\gtk_msgWin.c\
- ..\gui_gtk2_MS\gtk_dlg_files.c\
  ..\gui_gtk2_MS\gtk_tree_it.c\
  ..\gui_gtk2_MS\gtk_opengl.c
 
+#..\gui_gtk2_MS\gtk_dlg_files.c\
 #..\gui_gtk2_MS\gtk_printer.c\
 
 #-------------------------------------------
@@ -27,28 +30,33 @@ OBJGUI = $(OBJGUI:/=\)
 
 
 #-------------------------------------------
-gtk_bas_dir  = $(OUTDIR)
-gtk_inc_dir =\
-      /I $(gtk_bas_dir)\include\gtk-2.0\
-      /I $(gtk_bas_dir)\include\glib-2.0\
-      /I $(gtk_bas_dir)\include\cairo\
-      /I $(gtk_bas_dir)\include\pango-1.0\
-      /I $(gtk_bas_dir)\include\atk-1.0\
-      /I $(gtk_bas_dir)\include\gdk-pixbuf-2.0\
-      /I $(gtk_bas_dir)\include
+GTK_BAS_DIR=$(OUTDIR)
+gtk_inc_dir=\
+      /I $(GTK_BAS_DIR)\include\gtk-2.0\
+      /I $(GTK_BAS_DIR)\include\glib-2.0\
+      /I $(GTK_BAS_DIR)\include\cairo\
+      /I $(GTK_BAS_DIR)\include\pango-1.0\
+      /I $(GTK_BAS_DIR)\include\atk-1.0\
+      /I $(GTK_BAS_DIR)\include\gdk-pixbuf-2.0\
+      /I $(GTK_BAS_DIR)\include
 
 GUICP  = -Dgtk2 $(gtk_inc_dir)
 
 
 #-------------------------------------------
-gtk_lib_dir  = $(gtk_bas_dir)\lib
+GTK_LIB_DIR=$(GTK_BAS_DIR)lib
 
-LIBGUI = $(gtk_lib_dir)\gtk-win32-2.0.lib\
-         $(gtk_lib_dir)\gdk-win32-2.0.lib\
-         $(gtk_lib_dir)\gdk_pixbuf-2.0.lib\
-         $(gtk_lib_dir)\glib-2.0.lib\
-         $(gtk_lib_dir)\gobject-2.0.lib\
-         $(OUTDIR)\libgui_$(VGUI).lib
+LIBGUI=$(GTK_LIB_DIR)\gtk-win32-2.0.lib\
+       $(GTK_LIB_DIR)\gdk-win32-2.0.lib\
+       $(GTK_LIB_DIR)\gdk_pixbuf-2.0.lib\
+       $(GTK_LIB_DIR)\glib-2.0.lib\
+       $(GTK_LIB_DIR)\gobject-2.0.lib\
+       $(OUTDIR)libgui_$(VGUI).lib
 
+
+!MESSAGE - ex ../gui/gui_gtk2_MS.nmak
+!MESSAGE GTK_BAS_DIR is $(GTK_BAS_DIR)
+!MESSAGE GTK_LIB_DIR is $(GTK_LIB_DIR)
+!MESSAGE LIBGUI is |$(LIBGUI)|
 
 # eof

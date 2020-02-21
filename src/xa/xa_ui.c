@@ -94,6 +94,8 @@ UI_open_symCB
 UI_openCB
 UI_disp_modsiz         display modelsize in gtk-label
 
+UI_get_InpMode         get UI_InpMode
+
 UI_disp__              temporary display not-geometric-object
 UI_disp_dbo            display temporary db-obj
 UI_disp_var1           temporary display lenght-variable
@@ -128,6 +130,7 @@ UI_WinDxfImp           DXF-Import Panel ..
 UI_colSel              see UI_WinDefTx TSU_exp_wrlCol
 UI_WinLtypMod          Linetypes
 UI_WinToler            Toleranzen ...
+
 UI_Ed_del              LEER
 UI_Ed_hili             Hintergrund Editfenster hilite ON / OFF
 UI_Ed_ins              insert into editor ?
@@ -135,12 +138,12 @@ UI_Ed_sel_ln
 UI_Ed_sel              auch zum CurPos setzen
 UI_Ed_scroll           auch zum CurPos setzen
 UI_Ed_sel1             text selektiert darstellen
-// UI_reset               reset "add to Group"
 UI_AP                  Hauptinterface zur App (APP ruft UI);
 
 List_functions_end:
 =====================================================
 obsolet:
+// UI_reset               reset "add to Group"
 // UI_impAux1        UNUSED
 // UI_impLwoCB       UNUSED
 // UI_imp3dsCB       UNUSED
@@ -199,13 +202,14 @@ cl -c /I ..\include xa_ui.c
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_col.h"              // COL_INT32
+#include "../ut/func_types.h"          // FUNC_DispWire
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
 
-#include "../ut/func_types.h"          // FUNC_DispWire
 #include "../gr/ut_gr.h"          // FUNC_ViewTop
 #include "../gr/ut_GL.h"          // GL_Redraw
 #include "../gr/ut_DL.h"          // GL_Redraw
@@ -443,6 +447,15 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 
 }
 
+
+//================================================================
+  int UI_get_InpMode () {
+//================================================================
+// UI_get_InpMode         get UI_InpMode
+
+  return UI_InpMode;
+
+}
 
 
 //================================================================
@@ -942,9 +955,9 @@ char    UI_fnamFilt[80] = "*";               // filenamefilter
 
     case APF_UNDO:     // Undo/Redo; see also UNDO_lock()
       if(mode == TRUE) {
-        UNDO_lock (1);     // unlock Undo/Redo
+        UNDO_set_bt (1);     // unlock Undo/Redo
       } else {
-        UNDO_lock (0);     // lock UNDO/REDO
+        UNDO_set_bt (0);     // lock UNDO/REDO
       }
       break;
 
@@ -1136,12 +1149,8 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   i1 = 1;
 
   while (i1 == 1) {
+    OS_Wait (100);
     i1 = UI_askEscape();
-    // Display zwischendurch updaten
-    // for(i1=0; i2<10; ++i2) {
-      // usleep(10);
-      DL_Redraw ();
-    // }
   }
 
   return 0;
@@ -1164,7 +1173,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 
   // GUI_edi_Focus (&winED);
 
-  GUI_update__ ();
+  // GUI_update__ ();    2020-01-09
 
   if(KeyStatEscape != 1) {
     KeyStatEscape = 1;         // reset
@@ -1279,7 +1288,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   i2 = GUI_menu_checkbox_get (&ckb_light);
 
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
 
   if(UI_stat_shade == 0) {
     GL_DefineDisp (FUNC_DispWire, 0);    // Default = Wireframe
@@ -1287,7 +1296,9 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
     GL_DefineDisp (FUNC_DispRend, i2);
   }
 
-  UI_GR_DrawExit ();
+  GL_Redraw ();
+
+  GLB_DrawExit ();
 
   return 0;
 
@@ -2599,22 +2610,22 @@ static char LstBuf[LstSiz][32];
   // hier auch APT_ModSiz beruecksichten !
   // incrZ = 10.; // in diesem Fall Punktabst immer 10 mm !!
   incrZ = 25. / scl;   //
-    printf(" scl=%f incrZ=%f\n",scl,incrZ);
+    // printf(" scl=%f incrZ=%f\n",scl,incrZ);
 
 
 
   // den Bildschirmmittelpunkt in Userkoordinaten feststellen
   ptStart = GL_GetCen ();
-    DEB_dump_obj__ (Typ_PT, &ptStart, " ptStart");
+    // DEB_dump_obj__ (Typ_PT, &ptStart, " ptStart");
 
 
   UT3D_vc_multvc (&vcInc, &WC_sur_act.vz, incrZ );
-    DEB_dump_obj__ (Typ_VC, &vcInc, " vcInc");
+    // DEB_dump_obj__ (Typ_VC, &vcInc, " vcInc");
   d1 = 1.;
 
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
     UT3D_pt_traptvc (&pt1, &ptStart, &vcInc);
-      printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+      // printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     APT_disp_SymB (SYM_STAR_S, 2, &pt1);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
@@ -2625,7 +2636,7 @@ static char LstBuf[LstSiz][32];
 
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
     UT3D_pt_traptivc (&pt1, &ptStart, &vcInc);
-      printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+      // printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     APT_disp_SymB (SYM_STAR_S, 2, &pt1);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
@@ -4491,6 +4502,8 @@ static char LstBuf[LstSiz][32];
 
       WC_set_obj_stat (0);    // set APT_obj_stat to perm
 
+      DL_hili_MAN (TYP_FuncInit);         // set all hidden -> dimmed
+
 // #ifdef _MSC_VER
 // // Im Editor in MS-Win sonst kein Cursor; nur aktivieren anderes Window hilft ..
 // IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncInit));
@@ -4501,7 +4514,7 @@ static char LstBuf[LstSiz][32];
       //----------------------------------------------------------------
       // CAD -> MAN:    nothing to do ..
 
-
+/*
       //----------------------------------------------------------------
       // VWR -> MAN
       if(opMod == UI_MODE_VWR) {
@@ -4509,7 +4522,7 @@ static char LstBuf[LstSiz][32];
         DL_hide_unvisTypes (0);      // view joints,activities.
         DL_Redraw ();                // first time only necessary ..
       }
-
+*/
 
   L_exit:
     // printf("ex UI_MAN_ON\n");
@@ -4539,7 +4552,11 @@ static char LstBuf[LstSiz][32];
   AP_src = AP_SRC_MEM;
 
   // reset hidden-state after hilite
-  DL_hili_off (-2);
+  // DL_hili_off (-2);
+
+
+  DL_hili_MAN (TYP_FuncExit);         // set all dimmed -> hidden
+
 
   return 0;
 
@@ -5378,7 +5395,7 @@ See UI_but__ (txt);
 
   int    irc, i1, i2, i3, imode, iCompr;
   long   il1, il2;
-  char   *cp1, *p1, cbuf1[256], cbuf2[256], s1[256], sTit[80];
+  char   *cp1, *p1, cbuf1[256], cbuf2[400], s1[256], sTit[80];
   FILE   *fpo;
   ColRGB col1;
 
@@ -5438,9 +5455,12 @@ See UI_but__ (txt);
     // make a copy (copy Model -> Mod_in)
     Mod_sav_ck (0);
 
+    ED_work_END (0);  // clear display
+
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "open")) {
+      printf(" UI_men__-open\n");
 
     // // reset GUI  (back to VWR)
     // UI_reset__ ();
@@ -5457,27 +5477,35 @@ See UI_but__ (txt);
     }
 
 
-    // get cbuf1 = filename, cbuf2=directory from user
-    strcpy(sTit, MSG_const__(MSG_open));  // "Model open"
-
+    // title "Model open"
+    strcpy(sTit, MSG_const__(MSG_open));
+    // strcpy(sTit, "open file ..");
 
                         // fnam      dirnam     filter-out 
-    AP_get_fnam_symDir (s1);   // get filename of cfg/dir.lst
+    // get filename of cfg/dir.lst
+    AP_get_fnam_symDir (s1);
+
     // let user select (symbolic-directory,) modelfile
     // get cbuf1=fnam cbuf2=dnam
     strcpy(cbuf2, AP_mod_dir);
-    irc = GUI_file_open__ (cbuf1,128, cbuf2,128, UI_fnamFilt,
-                           s1, sTit, NULL);
-      printf("ex-GUI_file_open__ %d|%s|%s|\n",irc,cbuf2,cbuf1);
-    if(irc) return irc;
+
+//     irc = GUI_file_open__ (cbuf1,128, cbuf2,128, UI_fnamFilt,
+//                            s1, sTit, NULL);
+//       printf("ex-GUI_file_open__ %d|%s|%s|\n",irc,cbuf2,cbuf1);
+
+    // (dirIn/filnamOut sSiz symDir filter title)
+    irc = GUI_file_open__ (cbuf2, sizeof(cbuf2), s1, UI_fnamFilt, sTit);
+      printf("ex-GUI_file_open__ %d|%s|\n",irc,cbuf2);
+    if(irc < 2) return -1;
+    if(strlen(cbuf2) < 1) return 0;
 
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane. 
     AP_src_new (1);
     // UI_menCB (NULL, "new");   // NEW
 
     // get cbuf2 = full-filename
-    UTX_add_fnam_del (cbuf2);  // add following '/' to dnam
-    strcat(cbuf2, cbuf1);
+    // UTX_add_fnam_del (cbuf2);  // add following '/' to dnam
+    // strcat(cbuf2, cbuf1);
 
     // get AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
     irc = AP_Mod_load_fn (cbuf2, 0);
@@ -6088,15 +6116,15 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "colStd")) {
     irc = GUI_Color_select (&i1, &i2, &i3);
     if(irc < 0) return -1;
-    Col_set__ (&col1, i1>>8, i2>>8, i3>>8);
-    AP_colSel (&col1);
+    UTcol__3i (&col1, i1>>8, i2>>8, i3>>8);
+    APcol_defCol__ (&col1);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "colAct")) {
     irc = GUI_Color_select (&i1, &i2, &i3);
     if(irc < 0) return -1;
-    Col_set__ (&col1, i1>>8, i2>>8, i3>>8);
+    UTcol__3i (&col1, i1>>8, i2>>8, i3>>8);
     UI_colSel (&col1);
 
 
@@ -6610,8 +6638,11 @@ See UI_but__ (txt);
 
   //======================================================
   } else if(!strcmp(cp1, "DispList")) {
-    DL_DumpObjTab ();
+    DL_DumpObjTab ("");
 
+  //======================================================
+  } else if(!strcmp(cp1, "UndoList")) {  // dump to console
+    UNDO_dump ("");
 
   //-------------------------------------------------
   } else {
@@ -7183,7 +7214,7 @@ box1
       MSG_Tip ("MMstTxl"); //
         // GUI_Tip  ("define Textsize for Notes and Dimensions");
 
-      // GUI_menu_entry   (wtmp4, "Color", GUI_ColSel,  AP_colSel);
+      // GUI_menu_entry   (wtmp4, "Color", GUI_ColSel,  APcol_defCol__);
       GUI_menu_entry   (&wtmp4, "Color", UI_menCB,  (void*)"colStd");
       MSG_Tip ("MMstCol"); //
         // GUI_Tip  ("define Default-Modelcolor");
@@ -7351,6 +7382,8 @@ box1
         // GUI_Tip  ("save native data of the selected object --> file");
 
       GUI_menu_entry (&men_sel, "HELP Select",UI_menCB,(void*)"selHlp");
+      GUI_menu_entry (&men_sel, "---", NULL, NULL);
+      GUI_menu_entry (&men_sel, "sel. box with Ctrl + move mouse", NULL, NULL);
 
 
       //----------------------------------------------------------------
@@ -7373,6 +7406,7 @@ box1
       GUI_menu_entry   (&wtmp8, "---",     NULL,       NULL);
       GUI_menu_entry   (&wtmp8, "view logfile", UI_menCB,  (void*)"logfile");
       GUI_menu_entry   (&wtmp8, "DispList", UI_menCB,  (void*)"DispList");
+      GUI_menu_entry   (&wtmp8, "UndoList", UI_menCB,  (void*)"UndoList");
       // GUI_menu_entry   (&wtmp8, "Parents", UI_menCB,  (void*)"Parents");
 
 
@@ -7937,8 +7971,8 @@ box1
       // gtk_container_add (GTK_CONTAINER (wtmp1), winGR);
       // gtk_widget_show (winGR);
       // defaultsize 600x400 pixels; cannot be made smaller (no GL-callback !)
-      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-400e");
-      // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,e");
+      // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-400e");
+      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-1024e,-480e");
       // sscanf(AP_winSiz,"%d,%d",&i1,&i2);
       // sprintf(cbuf1, "%de,%de",i1,i2);
         // printf(" GUI_gl__-winSiz |%s| %d %d |%s|\n",AP_winSiz,i1,i2,cbuf1);
@@ -8080,8 +8114,9 @@ box1
 
 
       // primary display browser, not editor
-      win_edStat = 1;  // disactivate ..
-      UI_brw__ (0);
+      win_edStat = 0;  // disactivate ..
+      winBrStat  = 1;
+      // UI_brw__ (0);
 
 
 /*
@@ -8105,8 +8140,8 @@ box1
       sscanf(AP_winSiz,"-%d,-%d", &i1, &i2);
         printf(" win_resize-|%s| %d %d\n",AP_winSiz,i1,i2);
       if((i1<0)||(i1>10000)||(i2<0)||(i2>10000)) {
-        i1 = 600;
-        i2 = 400;
+        i1 = 1024;
+        i2 = 480;
       }
       GUI_Win_siz_set (&winMain, i1, i2);
 
@@ -8285,11 +8320,14 @@ box1
   //----------------------------------------------------------------
   sprintf(fnam, "%sMdlLst.txt", OS_get_tmp_dir());
 
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select model", fnam,
-                       "1", NULL, "80,16");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " select model", fnam,
+//                        "1", NULL, "80,16");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select model", "40,30");
   if(i1 < 0) return -1;
-    printf("UI_open_last sel |%s|\n",s1);
+    printf("UI_open_last-sel |%s|\n",s1);
+  
 
 
   //----------------------------------------------------------------
@@ -8428,7 +8466,7 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2018 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2020 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
   GUI_AboutInfo (INIT_TXT, s1, "http://www.gcad3d.org", "xa_logo.xpm");
 
@@ -8546,10 +8584,8 @@ box1
   int UI_set_Ins_Sel_Cat (int mode) {
 //=====================================================================
 // activate menu Insert Select CATALOG,
-// enable selection of all types
 // MAN; CAD: TRUE;  VWR: FALSE
 
-  sele_set__ (Typ_goGeom);    // enable selection of all types
 
   GUI_set_enable (&men_ins, mode);
   // GUI_set_enable (&men_sel, mode);

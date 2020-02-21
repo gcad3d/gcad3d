@@ -1,5 +1,14 @@
 # options.nmak
 
+# if GCAD_DIR_BIN does not exist execute ??
+!IF "$(GCAD_DIR_BIN)" == ""
+!MESSAGE "***** ERROR options.nmak - GCAD_DIR_BIN undefined *****"
+!MESSAGE "- execute devbase.bat"
+!ERROR
+!endif
+
+!MESSAGE - enter options.nmak gcad_dir_bin: |$(GCAD_DIR_BIN)|
+
 # Version GTK; gtk2 or gtk3
 VGUI = gtk2_MS
 #VGUI = gtk3   MS not yet ..
@@ -12,12 +21,13 @@ DEB = 1
 #BITS = $(shell getconf LONG_BIT)  MS ?
 BITS = 32
 
-!if "$(BITS)"=="32"
+#!if "$(BITS)"=="32"
 OS = MS32
-!else
-OS = MS64
-!endif
+#!else
+#OS = MS64
+#!endif
 
-OUTDIR = ..\..\bin$(OS)
+#OUTDIR = ..\..\bin$(OS)
+OUTDIR = $(GCAD_DIR_BIN)
 
 # eof

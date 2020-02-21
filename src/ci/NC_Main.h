@@ -15,8 +15,8 @@ needs ut_geo.h
 #define     NC_UPLISTSIZ  100                // siz of NC_up_tab
 
 
-typedef struct {Point2 actPos; long lNr;
-                unsigned tlNr:16, rpd:1, unused:15;}                NC_recTyp;
+// typedef struct {Point2 actPos; long lNr;
+//                 unsigned tlNr:16, rpd:1, unused:15;}                NC_recTyp;
 
 typedef struct {Ditto ditt; Point2 ditEnd; long lNr;
                 char cNam[32], mode;}                               NC_up_rec;

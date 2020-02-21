@@ -148,6 +148,7 @@ cc  ut_txfil.c -Wall ../gCAT/TX.o ../gCAT/ut_txt.o ../gCAT/ut_geo.o\
 #include "../ut/ut_txt.h"      // term_buf
 #include "../ut/ut_TX.h"       // TX_Print
 #include "../ut/ut_txfil.h"
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"               // mem_cbuf1
 
@@ -715,8 +716,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
     MEM_chg_rec (UTF_FilBuf1, &UTF_FilBuf1Len,
                  newLn, llnew, lPos, llold);
-
     // ++UTF_FilBuf1Stat;
+
+      // printf("ex-UTF_chg1_Ln_cpCs |");UTX_dump_cnl (lPos, 80);printf("|\n");
 
   } else {
     printf("*** UTF_chg1_Ln_cpCs I001\n");

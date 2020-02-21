@@ -16,7 +16,10 @@
  *
 -----------------------------------------------------
 TODO:
-  UNDO_app__   3
+- commentlines of apps cannot be deleted; make "BLOCK APP .."
+  - see INF_UNDO__
+
+- for 2-line-records (u2=2) initial state of u1 seems to be wrong ...
 
 -----------------------------------------------------
 Modifications:
@@ -36,7 +39,6 @@ List_functions_start:
 
 UNDO_init1         clear undoTab
 UNDO_init2         setup icons (delete=red-arroy; restore=green-arrow)
-UNDO_lock          enable / disable icons
 UNDO_clear         clear all groups
 
 UNDO_grp_add       add new group to undoTab
@@ -55,17 +57,19 @@ UNDO_recNr__       get recordNr of last group in table
 UNDO_grp_ck        test if group already exists in undoTab
 UNDO_del_active    check if one of the previous groups can be deleted
 UNDO_res_active    check if one of the next groups can be restored
-UNDO_upd_bt        activate/disactivate  delete/restore-buttons
+UNDO_set_bt        activate/disactivate  delete/restore-buttons
 UNDO_upd_lb        update Label
 
 UNDO_dump
 
 List_functions_end:
 =====================================================
+// UNDO_upd_bt        activate/disactivate  delete/restore-buttons
+// UNDO_lock          enable / disable icons
 // UNDO_grp_clr       delete record and all following records
 // UNDO_grpNr_recNr   get groupNr from recordnr
 // UNDO_recNr_grpNr   get recordNr from groupNr
-// UNDO_grp_upd       delete all following groups after actGrp
+// UNDO_grp_upd       delete all following groups
 
 \endcode *//*----------------------------------------
 
@@ -75,18 +79,8 @@ List_functions_end:
 undoObj undoTab[]:
   grpNr    first obj of grp has grpNr=0; second obj of grp has grpNr=1 ..
   lNr      sourceLineNr
-  u1       'a'=active; 'd'=deleted; 'P'=app-output
+  u1       'a'=active; 'd'=deleted;
   u2       '1'=1-line-record; '2'=change-record(consists of 2 lines)
-
-
-int actGrp  index of active group in undoTab;
-            this group is the next undo-group;
-            grp_add changes it to last group.
-            -1: no more grp for undo;
-            redo: ++actGrp.
-
-  nach delete-group:  ++actGrp;
-  nach restore-group: --actGrp;
 
 
 ---------------------------
@@ -103,12 +97,13 @@ Types of undoTab-records:
 
 ---------------------------
 Change-Records (u2='2'):
-  A change-record has 2 sourceLines.
+  necessary if eg a value has be changed (eg P(L20 0.5) -> P(L20 0.75))
+  Create change records by eg "edit point".
+  A change-record has 2 sourceLines
   .lNr is the new sourceLine; .u2='2';
-    the correponding old sourceLine is the line before.
-  .u1 ('a' or 'd') refers to the new line.
+  the correponding old sourceLine is the line before (the first line).
+  .u1 ('a' or 'd') refers to the new line (the second line = lNr).
   The sourceLine before .lNr must be treated in reverse.
-  Create change records by "MODIFY point".
 
 
 ---------------------------
@@ -175,7 +170,7 @@ UNDO-Tests:
 #include "../xa/xa_undo.h"
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
-// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                   // MemTab_ini_temp
 
 
 
@@ -183,7 +178,14 @@ UNDO-Tests:
 #define   FALSE 0
 
 
+// undoObj undoTab[]:
+//   grpNr    first obj of grp has grpNr=0; second obj of grp has grpNr=1 ..
+//   lNr      sourceLineNr
+//   u1       'a'=active; 'd'=deleted;
+//   u2       '1'=1-line-record;
+//            '2'=change-record(consists of 2 lines)
 typedef struct {long lNr; short grpNr; char u1, u2; }            undoObj;
+
 
 typedef_MemTab(undoObj);
 
@@ -205,7 +207,6 @@ static MemObj  wUndo, btUndo,  // delete-icon   red-arrow
 
 static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
-// static int actGrp;    // the nr of (.grpNr==0) - records in undoTab
 
 
 
@@ -227,11 +228,14 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 }
 
 
+/* UNUSED
 //================================================================
   int UNDO_lock (int mode) {
 //================================================================
 // 0=lock; 1=unlock
 // see also UI_func_stat_set__ (APF_UNDO)
+
+  printf("UNDO_lock %d\n",mode);
 
 
   if(mode == 0) {     // lock
@@ -240,14 +244,14 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
 
   } else {            // unlock
-    UNDO_upd_bt ();
+    UNDO_set_bt ();
 
   }
 
   return 0;
 
 }
-
+*/
 
 //================================================================
   int UNDO_init1 (MemObj *parent) {
@@ -292,10 +296,31 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
 
   // deaktivieren
-  UNDO_lock (0);
+  UNDO_set_bt (0);
 
-  // actGrp = -1;
 
+  return 0;
+
+}
+
+
+//================================================================
+  int UNDO_grp_range_add (long lNr1, long lNr2) {
+//================================================================
+// UNDO_grp_range_add       add undo-records for src-lines <lNr1> - <lNr2> 
+// - not including <lNr2>
+// TODO: see INF_UNDO__
+ 
+  long   l1;
+  int    grpNr=0;
+
+  printf("UNDO_grp_range_add %ld - %ld\n",lNr1,lNr2);
+
+  for(l1=lNr1; l1<lNr2; ++l1) {
+// TODO: test if line <l1> is not comment-line or empty
+    UNDO_grp_add (l1, grpNr);
+    ++grpNr;
+  }
 
   return 0;
 
@@ -497,7 +522,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
   // do CAD-undo;
   if(IE_undo() >= 0) {
-    // UNDO_lock (0);  // disactivate btUndo btRedo
+    // UNDO_set_bt (0);  // disactivate btUndo btRedo
     return 0;
   }
 
@@ -516,11 +541,9 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
   if(undoTab.data[iRec].u1 == 'a') {
     UNDO_grp_del (iRec);
-    // if(actGrp >= 0) --actGrp;
 
-  } else if(undoTab.data[iRec].u1 == 'P') {
-    UNDO_app__ (2);                           // delete application-output
-    // if(actGrp >= 0) --actGrp;
+//   } else if(undoTab.data[iRec].u1 == 'P') {
+//     UNDO_app__ (2);                           // delete application-output
 
   } else {
     UNDO_grp_res (UNDO_res_active ());
@@ -531,7 +554,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
   UI_block__ (0, 0, 0);                   // reset UI
 
-  UNDO_upd_bt ();                         // update buttons
+  UNDO_set_bt (2);                        // update buttons
 
   UNDO_upd_lb ();                         // update label (nr-undo-records)
 
@@ -553,7 +576,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
   // do CAD-undo;
   if(IE_undo() >= 0) {
-    // UNDO_lock (0);  // disactivate btUndo btRedo
+    // UNDO_set_bt (0);  // disactivate btUndo btRedo
     return 0;
   }
 
@@ -580,7 +603,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
   UI_block__ (0, 0, 0);                   // reset UI
 
-  UNDO_upd_bt ();                         // update buttons
+  UNDO_set_bt (2);                        // update buttons
 
   return 0;
 
@@ -852,7 +875,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
     // ATO_getSpc_tmp__ (&ato1, i1);
     // if(!ATO_getSpc_tmp_ck(&ato1)) {TX_Error("UNDO_ln_del E2"); return -1;}
     // get temp-spc for parents-table
-    MEMTAB_tmpSpc_get (&mtPar, i1);
+    MemTab_ini_temp (&mtPar, i1);
     if(MEMTAB_RMAX(&mtPar) != i1) {TX_Error("UNDO_ln_del EOM"); return -1;}
     // get parents-table and atomic-objs
     // APT_ato_par_srcLn (&mtPar, &ato1, osrc);
@@ -868,7 +891,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
       // reset is-parent-bit of parent
       DL_parent_set (dli, 0);
     }
-    MEMTAB_tmpSpc_free (&mtPar);
+    MemTab_free (&mtPar);
   }
 
 
@@ -940,10 +963,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   o1.u2    = '2';
   MemTab_sav (&undoTab, &ld, &o1, 1);
 
-  // actGrp = undoTab.rNr - 1;
-
   // fix buttons
-  UNDO_upd_bt ();
+  UNDO_set_bt (2);
 
   // fix label
   UNDO_upd_lb ();
@@ -977,25 +998,26 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
 }  
   
-
+/* UNUSED
 //================================================================
   int UNDO_app__ (int mode) {
 //================================================================
 /// \code
 /// UNDO_app__         handle undo for plugins (no redo)
 /// Input
-///   mode
-///        0 store all infos before start of appli
-///        1 end of appli: create undo-record; activate undo-button
-///        2 delete output of appli, remove undo-record
-///        3 remove undo-record
+///   mode    0 store all infos before start of appli                   
+///           1 end of appli: create undo-record; activate undo-button 
+///           2 delete output of appli, remove undo-record            
+///           3 remove undo-record
+///  Output:  mode=1  returns lineNr at start of appli
+///    retCod  
 /// \endcode
 
 
 
-static int    lNr;
+static int    lNr0;
 static long   dli, dbl;
-  int         irc, ii;
+  int         irc = 0, lNr1;
   long        ld;
   undoObj     o1;
 
@@ -1009,9 +1031,8 @@ static long   dli, dbl;
   if(mode != 0) goto L_app_1;
 
   // stor line-nr
-  lNr = ED_get_lnr_act ();
-    // printf(" _app__-lNr=%d\n",lNr);
-
+  lNr0 = ED_get_lnr_act ();
+    printf(" _app__-lNr0=%d\n",lNr0);
   goto L_app_ex;
 
 
@@ -1021,20 +1042,23 @@ static long   dli, dbl;
   if(mode != 1) goto L_app_2;
 
   // check if output was created
-  ld = ED_get_lnr_act ();
-  if(ld <= lNr) return -1;
+  lNr1 = ED_get_lnr_act ();
+    printf(" _app__-lNr1 = %d\n",lNr1);
+  if(lNr1 <= lNr0) return -1;
 
   // create undo-record
-  o1.lNr   = lNr;
+  o1.lNr   = lNr0;
   o1.grpNr = 0;
   o1.u1    = 'P';
   o1.u2    = '1';
   MemTab_sav (&undoTab, &ld, &o1, 1);
-  // actGrp = UNDO_grpNr_recNr (undoTab.rNr - 1);
 
   // activate undo-button
-  UNDO_upd__ ();
+  // UNDO_upd__ ();
+  UNDO_set_bt (2);
+  UNDO_upd_lb ();
 
+  irc = lNr0;
   goto L_app_ex;
 
 
@@ -1044,10 +1068,10 @@ static long   dli, dbl;
   if(mode != 2) goto L_app_3;
 
   // delete modelcode
-  irc = ED_del__ (lNr);    // del all following
+  irc = ED_del__ (lNr0);    // del all following
   if(irc < 0) goto L_E001;
-  ED_work_CurSet (lNr);    // reset to lNr (kill all following)
-  APED_update__ (-1L);     // work new codes; updated lNr
+  ED_work_CurSet (lNr0);    // reset to lNr (kill all following)
+  APED_update__ (-1L);      // work new codes; updated lNr
 
   goto L_app_3;  // delete record
 
@@ -1055,28 +1079,28 @@ static long   dli, dbl;
   //================================================================
   //        3 remove undo-record
   L_app_3:
-/*
-  // delete undo-record
-  // if(undoTab.rNr > 0) undoTab.rNr -= 1;
-// TODO: find last 'P' group, delete group
-  UNDO_grp_clr (actGrp);  // delete actGrp and all follow. rec's
-
-  goto L_app_ex;
-*/
+/ *
+//   // delete undo-record
+//   // if(undoTab.rNr > 0) undoTab.rNr -= 1;
+// // TODO: find last 'P' group, delete group
+// 
+//   goto L_app_ex;
+* /
 
   //================================================================
   L_app_ex:
 
-    // UNDO_dump ("ex-UNDO_app__");
+    printf("ex-UNDO_app__ %d\n",irc);
+    UNDO_dump ("ex-UNDO_app__");
 
-  return 0;
+  return irc;
 
   L_E001:
     printf("UNDO_app__ E001\n");
     UNDO_dump ("");
     return -1;
 }
-
+*/
 
 //================================================================
   int UNDO_clear () {
@@ -1086,9 +1110,7 @@ static long   dli, dbl;
 
   MEMTAB_CLEAR (&undoTab);
 
-  // actGrp = -1;
-
-  UNDO_upd_bt ();          // fix buttons
+  UNDO_set_bt (2);         // fix buttons
   UNDO_upd_lb ();          // fix label
 
   return 0;
@@ -1126,7 +1148,7 @@ static long   dli, dbl;
   // printf("UNDO_upd__ \n");
 
     // fix buttons
-    UNDO_upd_bt ();
+    UNDO_set_bt (2);
 
     // fix label
     UNDO_upd_lb ();
@@ -1188,7 +1210,78 @@ static long   dli, dbl;
 }
 
 
+//====================================================================
+  int UNDO_set_bt (int mode) {
+//====================================================================
+// UNDO_set_bt             activate/disactivate  delete/restore-buttons
+// Input:
+//   mode    0=lock; 1=unlock; 2=update
 
+
+static int uAct=0, rAct=0;           // 1=TRUE(active), 0=FALSE(locked)
+  int      uNew, rNew;
+  int      uNr, rNr;
+
+
+  // printf("UNDO_set_bt rNr=%d uAct=%d rAct=%d\n",undoTab.rNr,uAct,rAct);
+  // UNDO_dump ("s-_set_bt");
+
+  
+  //----------------------------------------------------------------
+  if(mode != 2) goto L_unlock;
+  // update
+  // test if group-to-undo exists; returns (nr-of-records - 1)
+  uNr = UNDO_del_active ();
+  // test if group-to-restore exists; returns (nr-of-records - 1)
+  rNr = UNDO_res_active ();
+    // printf(" _set_bt uNr=%d rNr=%d\n",uNr,rNr);
+
+//TEST ONLY:
+// uNr=1; rNr=1;
+
+  if(uNr < 0) uNew = FALSE;
+  else        uNew = TRUE;
+
+  if(rNr < 0) rNew = FALSE;
+  else        rNew = TRUE;
+    // printf(" _set_bt uNew=%d rNew=%d\n",uNew,rNew);
+  goto L_update;
+
+
+  //----------------------------------------------------------------
+  L_unlock:
+  if(mode != 1) goto L_lock;
+  uNew = TRUE;
+  rNew = TRUE;
+  goto L_update;
+
+
+  //----------------------------------------------------------------
+  L_lock:
+  // if(mode != 0) goto ..
+  uNew = FALSE;
+  rNew = FALSE;
+
+
+  //----------------------------------------------------------------
+  L_update:
+  if(uNew != uAct) {
+    uAct = uNew;
+    GUI_set_enable (&btUndo, uAct); //1=active, 0=inactive    RED
+  }
+
+  if(rNew != rAct) {
+    rAct = rNew;
+    GUI_set_enable (&btRedo, rAct); //1=active, 0=inactive    GREEN
+  }
+
+    // printf("ex-UNDO_set_bt \n");
+
+  return 0;
+
+}
+
+/* UNUSED
 //====================================================================
   int UNDO_upd_bt () {
 //====================================================================
@@ -1198,8 +1291,8 @@ static long   dli, dbl;
   int    iUndo, iRedo;    // 1=TRUE, 0=FALSE
 
 
-  // printf("UNDO_upd_bt\n");
-  // UNDO_dump ();
+  // printf("UNDO_upd_bt %d\n",undoTab.rNr);
+  // UNDO_dump ("s-_upd_bt");
 
 
   iUndo = FALSE;
@@ -1230,7 +1323,7 @@ static long   dli, dbl;
   return 0;
 
 }
-
+*/
 
 //====================================================================
   int UNDO_upd_lb () {

@@ -51,8 +51,6 @@ IndAttLn_get_ltyp       get linetyp
 DL_Redraw               redraw complete DL
 DL_Draw_obj             redraw single obj, use existing DL-record
 DL_Stat                 ausgabe Statistik
-DL_DumpObjTab           dump complete DL
-DL_DumpObj__            dump single DL-record
 
 DL_SetInd               modify (do not create new DL-Record); set DL_ind_act=dli;
 DL_SetObj               get or set disp-list-record.
@@ -65,24 +63,32 @@ DL_dlRec__dli           get DL-record (DL_Att from GR_ObjTab[objInd]) from dli
 DL_oSrc_dli             get ObjSRC from DispListRecord (DL_Att)
 DL_get_dbi              get DB-index from DL-Index
 DL_Get_GrAtt            get graf.Att (GR_Att from GR_AttTab[Ind])
+DL_get_col              get ColRGB* of DL-record (surf)
 DL_get_sStyl            get surfaceStyle (shaded|symbolic)
 DL_get_iatt             returns iatt of DL-record
 DL_set_iatt             modify iatt of DL-record
 DL_dbTyp__dli           get obj-typ from DL-ind
+DL_dli__oid             get DispListIndex and source-line-nr from obj-ID
 DL_oid__dli             get objName from DispListIndex
 DL_Get_lNr_dli          get sourceLineNumber from DispListIndex
 DL_Get_dli_lNr          get DispListIndex from sourceLineNumber
 DL_GetTrInd             get refSys-Index from dli
-DL_GetPick
+DL_GetPick              get if pickable; 0=unpickable, 1=pickable
+DL_GetGrp               get group1-bit 0=ON 1=not
 DL_GetNrSur             get nr of surs in DispList
 DL_dli__dbo             Objekt typ=typ APTind=ind in der DL suchen
 DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
 DL_find_APPOBJ          find applicationObject
 DL_lnr_incr             increment all (lineNrs > lNrX)
+
 DL_hili_on              set obj hilited
 DL_hili_off             reset hilited
 // DL_disp_hili_last       (change) hilite last obj of DL
 // DL_disp_hili            hilite Obj of line lNr
+
+DL_dim_on               set obj dimmed
+DL_dim_off              reset obj dimmed -> normal
+DL_dim_all              set all objs dimmed
 
 DL_unvis__              set/reset unvisible-bit;
 DL_hide__               change hidden/visible for single obj
@@ -138,6 +144,9 @@ DL_ReScale_Notes
 DL_ReScale_pt_get       uxmin-uzmax erweitern um Box
 DL_ReScalePoint
 DL_ReScaleObj
+
+DL_DumpObjTab           dump complete DL
+DL_DumpObj__            dump single DL-record
 
 List_functions_end:
 =====================================================
@@ -269,11 +278,11 @@ cc -c -g3 -Wall ut_DL.c
 #include "../xa/xa.h"                  // AP_Get_ConstPl_Z
 #include "../xa/xa_app.h"              // PRC_IS_ACTIVE
 #include "../xa/xa_ed_mem.h"           // typedef_MemTab(ObjSRC)
-// #include "../xa/opar.h"                // MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                // MemTab_ini_temp
 
 
 /*=============== Externe Variablen: =======================================*/
-// aus ../xa/xa.h:
+// ex ../xa/xa.h:
 extern AP_STAT    AP_stat;                    // sysStat,errStat..
 extern  int       AP_modact_ind;
 extern  int       WC_sur_ind;            // Index auf die ActiveConstrPlane
@@ -286,24 +295,29 @@ extern int        AP_txNkNr;            // Nachkommastellen
 extern ColRGB     AP_defcol;
 
 
-// alle aus ../ci/NC_Main.c:
+// ex ../ci/NC_Main.c:
 extern double APT_ModSiz;
 extern int        GR_pick;                     // NOPICK
-extern int        GR_lay_act;
-extern int        APT_line_act;                // die momentane APT-LineNr
-extern int        UP_level;
-extern int        AP_mdLev;
-extern int        APT_dispPT, APT_dispPL;
+// extern int        GR_lay_act;
+extern int     APT_lNr;            // LineNr of last-processed-obj
+extern int     APT_hidd;           // if last-processed-obj is hidden;
+                                   // -1=unknown,0=normal-not-hidden, 1=hidden
+extern int     UP_level;
+extern int     AP_mdLev;
+extern int     APT_dispPT, APT_dispPL;
 
 
-// aus ../gr/ut_GL.c:
-extern int        GL_modified;
-extern double GL2D_Scale;
+// ex ../gr/ut_GL.c:
+extern int     GL_modified;
+extern double  GL2D_Scale;
 
 
-// aus ../gr/ut_gtx.c:
+// ex ../gr/ut_gtx.c:
 extern double GR_tx_scale;
 
+
+// ex ../xa/xa_ui_gr.c
+extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
 
 
 
@@ -312,7 +326,7 @@ extern double GR_tx_scale;
 DL_Att     *GR_ObjTab = NULL;            // das ist die DL
 long       GR_TAB_SIZ = 0;               // momentane size of GR_ObjTab
 long       GR_TAB_INC = 10000;           // beim realloc vergroessern um -
-long       GR_TAB_IND = 0;               // naechster freier Index
+long       GR_TAB_IND = 0;               // next free rec in GR_ObjTab
 
 
 Att_ln     GR_AttLnTab[GR_ATT_TAB_SIZ];  // line-attributes (dash, color ..)
@@ -506,23 +520,23 @@ static long   DL_hidden = -1L;
     // irc = DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, dli);
     irc = GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
     if(irc < 0) continue;  // zB SymbolTags; werden normal auch gefunden.
-      printf(" tag-p1=%f,%f,%f\n",p1.x,p1.y,p1.z);
-      printf(" tag-sx=%d sy=%d dx=%d dy=%d\n",sx,sy,dx,dy);
+      // printf(" tag-p1=%f,%f,%f\n",p1.x,p1.y,p1.z);
+      // printf(" tag-sx=%d sy=%d dx=%d dy=%d\n",sx,sy,dx,dy);
 
 
     // change Textpoint --> Screencoords
     GL_Uk2Sk (&px, &py, &pz, p1.x, p1.y, p1.z);
-      printf(" px=%f py=%f pz=%f\n",px,py,pz);
+      // printf(" px=%f py=%f pz=%f\n",px,py,pz);
 
     // ty1,ty1 --> lower left corner
     tx1 = px + dx;
     ty1 = py + dy;
-      printf(" tx1=%d ty1=%d\n",tx1,ty1);
+      // printf(" tx1=%d ty1=%d\n",tx1,ty1);
 
     // tx2,ty2 - upper right corner
     tx2 = tx1 + sx;
     ty2 = ty1 + sy;
-      printf(" tx2=%d ty2=%d\n",tx2,ty2);
+      // printf(" tx2=%d ty2=%d\n",tx2,ty2);
 
 
     // check if selectPosition is in Texlabel.
@@ -1238,26 +1252,123 @@ static long   DL_hidden = -1L;
 
 }
 
+//================================================================
+  int DL_hili_MAN (int mode) {
+//================================================================
+// DL_hili_on           set last obj hilited / dimmed; do not Redraw yet.
+// TODO: prepared for display objects following active object dimmed;
+//       
+// Input:
+//   mode   TYP_FuncInit   set all hidden -> dimmed
+//          TYP_FuncExit   set all dimmed -> hidden
+//          TYP_FuncMod    set last obj hilited and reset previous hilited
+
+  static long old = -1;
+  static int  hid = -1;         // if old == hidden; 0=yes, 1=no.
+
+  long     dli;
+
+  // printf("--------------------------------- \n");
+  // printf("DL_hili_MAN GR_TAB_IND=%ld old=%ld hid=%d mode=%d\n",GR_TAB_IND,
+         // old,hid,mode);
+  // DL_DumpObjTab ("st-hili_MAN");
+
+
+  //----------------------------------------------------------------
+  if(mode != TYP_FuncMod) goto L_init;
+
+  // get last dli
+  dli = GR_TAB_IND - 1L;
+    // printf(" hili_MAN-dli = %ld APT_hidd = %d\n",dli,APT_hidd);
+  GR_dli_hili = dli;
+
+/*
+  // set last hilited to normal or dimmed if hidden
+  if(old >= 0) {
+    // reset to normal
+    GR_ObjTab[old].hili  = OFF;   // OFF=1
+    GR_ObjTab[old].disp  = ON;    // ON=0
+    // if hidden: set dimmed
+    if(hid == 1) GR_ObjTab[old].dim = ON;
+  }
+
+  // if(old == dli) {
+  if(APT_hidd < 0) {
+    // active obj is comment or unvisble ...
+    old = -1L;
+    goto L_return1;
+  }
+
+  // ignore ApplicationObj's
+  if(GR_ObjTab[dli].unvis) {
+    old = -1L;
+    goto L_return1;
+  }
+
+  // set to hilite, not dimmed
+  GR_ObjTab[dli].hili  = ON;   // ON=0
+  GR_ObjTab[dli].disp  = OFF;  // OFF=1
+  GR_ObjTab[dli].dim   = OFF;  // OFF=1
+
+  // keep dli and hidden-state of active-obj
+  old = dli;
+  hid = APT_hidd;
+*/
+    // DL_DumpObj__ (ind);
+    // printf("ex-DL_hili_MAN\n");
+
+  goto L_return1;
+
+
+  //----------------------------------------------------------------
+  L_init:
+  if(mode != TYP_FuncInit) goto L_exit;
+  // set all hidden -> dimmed
+  for(dli=0; dli<GR_TAB_IND; ++dli) {
+    if(DL_IS_HIDDEN(GR_ObjTab[dli])) {
+      GR_ObjTab[dli].hili  = OFF;   // OFF=1
+      GR_ObjTab[dli].disp  = ON;    // ON=0
+      GR_ObjTab[dli].dim = ON;
+    }
+  }
+  goto L_return0;
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  if(mode != TYP_FuncExit) goto L_exit;
+  // set old to hidden - done by "RUN"
+
+
+  //----------------------------------------------------------------
+  L_return0:
+  DL_Redraw ();
+
+  L_return1:
+    // printf("ex-hili_MAN old = %ld hidd = %d\n",old,hid);
+    // DL_DumpObjTab ("ex-hili_MAN");
+  return 0;
+
+}
+
+ 
 //=====================================================================
   int DL_hili_on (long ind) {
 //=====================================================================
 /// \code
 /// DL_hili_on              set obj hilited
-/// ind >= 0: Hili Obj.
-/// ind = -1: gesamte Hili-Tabelle loeschen
-/// ind = -2: das zuletzt bearb. Elem. hiliten
+/// - does not hilite hidden objects (VWR, MAN)
+/// - does not redraw !
+/// Input:
+///   ind >= 0: Hili Obj.
+///         -1: clear all hilite-flags
+///         -2: hilite last disp-List-obj
 /// RetCod:
 ///   -1      hidden object; not hilited ..
 ///
-/// No Redraw !
-/// Ein schon vorhandenes Objekt hiliten.
-/// ObjID merken fuer Redraw.
-/// Hier wird zusätzlich das DISP-Bit auf OFF gesetzt,
-/// um das Obj nicht doppelt zu zeichnen. 
 /// \endcode
 
-
-// static long oldDli = -1L;
 
   long dli;
 
@@ -1273,7 +1384,8 @@ static long   DL_hidden = -1L;
     if(ind >= GR_TAB_IND) ind = GR_TAB_IND-1;
 
     // ignore ApplicationObj's
-    if(GR_ObjTab[ind].typ == Typ_APPOBJ) return 0;      //2011-02-16
+    // if(GR_ObjTab[ind].typ == Typ_APPOBJ) return 0;      //2011-02-16
+    if(GR_ObjTab[ind].unvis) return 0;
 
     // do not hilite if hidden !   2010-10-10
     // if((GR_ObjTab[ind].hili == 1)&&(GR_ObjTab[ind].disp == 1)) return -1;
@@ -1333,16 +1445,19 @@ static long   DL_hidden = -1L;
 //=====================================================================
   int DL_hili_off (long ind) {
 //=====================================================================
-/// \code
-/// DL_hili_off             reset hilited
-/// ind >= 0: unhilite single obj
-/// ind = -1: unhilite all hilited objects
-///           returns nr of hilited objs
-/// ind = -2: das zuletzt bearb. Elem. unhiliten
-///
-/// No Redraw !
-/// see also GL_temp_del_1 GL_temp_del_all
-/// \endcode
+// \code
+// DL_hili_off             reset hilited
+// Input:
+//   ind >= 0: unhilite single obj
+//         -1: unhilite all hilited objects; return nr of hilited objs
+//         -2: unhilite last obj;
+//         -3: reset hidden-state of active-obj (last obj in DL) after hilite
+// Output:
+//   retCod -
+//
+// No Redraw !
+// see also GL_temp_del_1 GL_temp_del_all
+// \endcode
 
 
   int   ii;
@@ -1389,7 +1504,7 @@ static long   DL_hidden = -1L;
     }
 
     // reset hidden-state (hidden=1,1) after hilite (hili=1,0)
-    DL_hili_off (-3);
+    if(DL_hidden >= 0) DL_hili_off (-3);   // recurs
 
     return ii;
   }
@@ -1417,7 +1532,6 @@ static long   DL_hidden = -1L;
 
   //----------------------------------------------------------------
   if(ind == -3) {  // reset hidden-state of active-obj (last obj in DL) after hilite
-
     // reset hidden-state (hidden=1,1) after hilite (hili=1,0)
     if(DL_hidden >= 0) {
       // set dl[DL_hidden] = hidden (1,1),
@@ -1435,6 +1549,53 @@ static long   DL_hidden = -1L;
   printf("**** DL_hili_off Err %ld\n",ind);
 
   return -1;
+
+}
+
+
+//=====================================================================
+  int DL_dim_all () {
+//=====================================================================
+// DL_dim_all                  set all objs dimmed
+//   dli      -1 - dim all objs
+
+  int    i1;
+
+  // printf("DL_dim_all\n");
+
+  for(i1=0; i1<GR_TAB_IND; ++i1)
+    GR_ObjTab[i1].dim = ON;
+
+  return 0;
+
+}
+
+
+//=====================================================================
+  int DL_dim_on (long dli) {
+//=====================================================================
+// DL_dim_on                   set obj dimmed
+//   dli      -1 - dim all objs
+
+  // printf("DL_dim_on %ld\n",dli);
+
+  GR_ObjTab[dli].dim = ON;
+
+  return 0;
+
+}
+
+
+//=====================================================================
+  int DL_dim_off (long dli) {
+//=====================================================================
+// DL_dim_off                  reset obj dimmed -> normal
+
+  // printf("DL_dim_off %ld\n",dli);
+
+  GR_ObjTab[dli].dim = OFF;
+
+  return 0;
 
 }
 
@@ -1519,6 +1680,9 @@ static long   DL_hidden = -1L;
 ///   cbuf1     Infotext; NULL for silent
 ///   mode      0=switch; 1=add to group; -1=remove from group; 2=add all
 ///   iUpd      0=update display; 1=do not update display (yet)
+//
+//  mode=1: do not check if hidden or in subModel
+//  mode=2: add all if not hidden or in subModel
 /// \endcode
 
 
@@ -1526,7 +1690,7 @@ static long   DL_hidden = -1L;
   unsigned short modnr;
 
 
-  // printf("DL_grp1__ dli=%ld mode=%d %d\n",ind,mode,iUpd);
+  printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
 
   if(ind < 0) return -1;
 
@@ -1549,14 +1713,15 @@ static long   DL_hidden = -1L;
   //----------------------------------------------------------------
   } else if(mode == 1) {                           // add to group
     // DL_grp1_set (ind, ON);
-    GR_ObjTab[ind].grp_1 = ON;
     if(cbuf1) TX_Print ("add obj %s to group",cbuf1);
     Grp_add__ (GR_ObjTab[ind].typ, GR_ObjTab[ind].ind, ind, iUpd);
+    GR_ObjTab[ind].grp_1 = ON;
 
 
   //----------------------------------------------------------------
-  } else if(mode == 2) {                           // add all to group
+  } else if(mode == 2) {          // add all to group; eg from Ctrl-A
     // loop tru DL
+    Grp_Clear (0);
     // if(cbuf1)
     TX_Print ("add all visible objs to group");
     modnr = AP_modact_ind;
@@ -1569,9 +1734,9 @@ static long   DL_hidden = -1L;
       if(DL_OBJ_IS_ACTMDL(GR_ObjTab[l1])) continue;
       // skip deleted obj
       if(GR_ObjTab[l1].typ    == 0) continue;
-      // add ..
+      // set groupBit in DL
       GR_ObjTab[l1].grp_1 = ON;
-      Grp_add__ (GR_ObjTab[l1].typ, GR_ObjTab[l1].ind, l1, 0);
+      Grp_add__ (GR_ObjTab[l1].typ, GR_ObjTab[l1].ind, l1, 2);
     }
     Grp_upd (1);  // update GrpNr-label
     // Grp_dump ();
@@ -1588,7 +1753,8 @@ static long   DL_hidden = -1L;
   int DL_grp1_set (long ind, int mode) {
 //===============================================================
 /// \code
-/// Zugehoerigkeit zu Group 1; ON od OFF.
+/// set if obj is part of group-1; ON od OFF.
+/// do not update display, nr-of-groupObjs
 /// Input:
 ///   ind     -1    all objects
 ///           >=0   modify single obj; ind = dli
@@ -1596,7 +1762,7 @@ static long   DL_hidden = -1L;
 ///           OFF   = 1; set group = OFF
 ///           -1    change group (ON -> OFF | OFF -> ON)
 ///
-/// grp_1  0=belongs to active Group, 1=not
+/// grp_1  ON=0=belongs to active Group, 1=not
 /// \endcode
 
   long    i1;
@@ -1686,12 +1852,12 @@ static long   DL_hidden = -1L;
 //================================================================
   int DL_grp1_copy () {
 //================================================================
-/// copy all DL-obj with groupBit ON --> GroupList.
+/// copy all DL-obj with groupBit ON --> GroupList GrpTab
 
   int     typ;
   long    i1;
 
-  // printf("GGGGGGG DL_grp1_copy GGGGGGGGG \n");
+  printf("GGGGGGG DL_grp1_copy GGGGGGGGG \n");
 
 
   Grp_init (); // init obj-list
@@ -1725,7 +1891,8 @@ static long   DL_hidden = -1L;
   // Reset DL
   if((Ind == 0)&&(GR_ObjTab != NULL)) {
     // printf("DL_alloc__ reset\n");
-    GL_Init1 ();    // GR_TAB_IND = 0;
+    // GL_Init1 ();    // GR_TAB_IND = 0;
+    GR_TAB_IND  = 0;
     return 0;
   }
 
@@ -1774,7 +1941,7 @@ static long   DL_hidden = -1L;
   DL_InitAttTab ();
 
   //  clear DispList
-  GR_Init1 ();
+  // GR_Init1 ();
 
 
 }
@@ -2032,9 +2199,9 @@ static long   DL_hidden = -1L;
 
   // printf("DL_Redraw\n");
 
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();
   GL_tmp_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();
 
   return 0;
 
@@ -2070,9 +2237,9 @@ static long   DL_hidden = -1L;
 // 
   // nimmt den focus von den CAD-Eingabefeldern weg ...
   // UI_block_glEvents (1);
-  UI_GR_DrawInit ();
+  GLB_DrawInit ();     // GLB_DrawInit ();
   GL_Redraw ();
-  UI_GR_DrawExit ();
+  GLB_DrawExit ();     // GLB_DrawExit ();
   // UI_block_glEvents (0);
 
 
@@ -2248,6 +2415,7 @@ static long   DL_hidden = -1L;
   //----------------------------------------------------------------
   // (DL_ind_act is -1; create (add) new DL-record
   // realloc, wenn zu klein
+  // if(GR_TAB_IND >= GR_TAB_SIZ) {
   if(GR_TAB_IND >= GR_TAB_SIZ) {
     if(DL_alloc__ (1L) < 0) return -1L;
   }
@@ -2260,7 +2428,6 @@ static long   DL_hidden = -1L;
 
   //----------------------------------------------------------------
   // fix lNr
-    // printf(" _StoreObj AP_mdLev=%d UP_level=%d\n",AP_mdLev,UP_level);
   if(AP_mdLev >= 0) {
     AP_mdGet (&lNr);
 
@@ -2269,8 +2436,10 @@ static long   DL_hidden = -1L;
     // printf(" calling lNr = %d\n",lNr);
 
   } else {
-    lNr = APT_line_act;
+    lNr = APT_lNr;
   }
+    // printf(" _StoreObj lNr=%d AP_mdLev=%d UP_level=%d APT_lNr=%d\n",
+           // lNr, AP_mdLev, UP_level, APT_lNr);
 
 
   //----------------------------------------------------------------
@@ -2368,7 +2537,8 @@ static long   DL_hidden = -1L;
   i20 = GR_ObjTab[idl].modInd;
 
   sprintf(cbuf,
- "%ld Typ=%d Ind=%ld att=%s mod=%d rs=%ld uv=%d di=%d hi=%d pi=%d chd=%d par=%d grp=%d lNr=%ld",
+          "%ld typ=%d dbi=%ld att=%s mod=%d\
+ rs=%ld uv=%d dis=%d hil=%d dim=%d pi=%d chd=%d par=%d grp=%d lNr=%ld",
         idl,
         GR_ObjTab[idl].typ,
         GR_ObjTab[idl].ind,
@@ -2378,13 +2548,13 @@ static long   DL_hidden = -1L;
         GR_ObjTab[idl].unvis,
         GR_ObjTab[idl].disp,
         GR_ObjTab[idl].hili,
+        GR_ObjTab[idl].dim,
         GR_ObjTab[idl].pick,
         GR_ObjTab[idl].sChd,
         GR_ObjTab[idl].sPar,
         GR_ObjTab[idl].grp_1,
         GR_ObjTab[idl].lNr);
 
-  // puts (cbuf);
   printf("%s\n",cbuf);
 
   return 0;
@@ -2393,14 +2563,14 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
-  void   DL_DumpObjTab    () {
+  void   DL_DumpObjTab    (char *fInf) {
 //================================================================
 // DL_DumpObjTab           dump complete DL
 
   long   l1;
   char   s1[32];
 
-  TX_Print("#### DL_DumpObjTab %ld",GR_TAB_IND);
+  TX_Print("#### DL_DumpObjTab %ld    %s",GR_TAB_IND,fInf);
 
 
   
@@ -2408,6 +2578,8 @@ static long   DL_hidden = -1L;
          GR_TAB_IND, AP_modact_ind, AP_modact_nam);
 
   for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1);
+
+  printf(" next free temp-index DL_Ind_tmp = %ld\n",GL_GetInd_temp());
 
   // temp-Liste:
   // for(l1=1; l1<DL_Ind_tmp; ++l1) {
@@ -2673,6 +2845,31 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
+  int DL_dli__oid (long *dli, long *lNr, char *oid) {
+//================================================================
+// DL_dli__oid           get DispListIndex and source-line-nr from obj-ID
+
+
+  int    typ;
+  long   dbi;
+
+
+  // get dbo (typ,dbi)
+  APED_dbo_oid (&typ, &dbi, oid);
+
+  // get dli & lNr from dbo
+  APED_find_dbo (dli, lNr, typ, dbi);
+
+
+    // printf("ex DL_oid__dli |%s| %d\n",oid,dli);
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int DL_oid__dli (char *oid, long dli) {
 //================================================================
 /// DL_oid__dli        get objName from DispListIndex
@@ -2765,6 +2962,15 @@ static long   DL_hidden = -1L;
 } 
 
 
+//================================================================
+  int DL_GetGrp (long dli) {
+//=============================================================
+// DL_GetGrp             get group1-bit 0=ON 1=not
+
+  return GR_ObjTab[dli].grp_1;
+
+}
+
 //=============================================================
   int DL_GetPick (long objInd) {
 //=============================================================
@@ -2842,6 +3048,16 @@ static long   DL_hidden = -1L;
   GR_ObjTab[dli].iatt = iatt;
 
   return 0;
+
+}
+
+
+//================================================================
+  ColRGB* DL_get_col (long dli) {
+//================================================================
+/// DL_get_col           get ColRGB* of DL-record (surf)
+
+  return COL_INT32(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
 
 }
 
@@ -4263,8 +4479,9 @@ static long   DL_hidden = -1L;
   MemTab(ObjSRC) mtPar = _MEMTAB_NUL;
 
 
-  // printf("''''''''''''DL_disp_reset lNr=%d GR_TAB_IND=%ld\n",lNr,GR_TAB_IND);
-  // DL_DumpObjTab ();
+  // printf("''''''''''' DL_disp_reset lNr=%d GR_TAB_IND=%ld\n",lNr,GR_TAB_IND);
+  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
+  // DL_DumpObjTab ("DL_disp_reset");
   // SRC_dump__ (1);
 
 
@@ -4292,6 +4509,7 @@ static long   DL_hidden = -1L;
   }
 
   // nothing to delete ..
+    // printf(" ex-disp_reset-nothing\n");
   return 0;
 
 
@@ -4311,7 +4529,7 @@ static long   DL_hidden = -1L;
   //     sPar of parentRec==0.
 
   // get spc for parents 
-  MEMTAB_tmpSpc_get (&mtPar, 128); 
+  MemTab_ini_temp (&mtPar, 128); 
   if(MEMTAB_RMAX(&mtPar) != 128) {TX_Print("*** UI_GR_Select1 E1");  return -1;}
 
   // loop tru all rec's to delete, start at end
@@ -4351,7 +4569,7 @@ static long   DL_hidden = -1L;
 
   }
 
-  MEMTAB_tmpSpc_free (&mtPar);
+  MemTab_free (&mtPar);
 
 /*  old version ..
   for(l1=dli-1; l1>=0; --l1) {
@@ -4405,6 +4623,7 @@ static long   DL_hidden = -1L;
   L_done:
   GL_Delete (dli);
 
+    // printf(" ex-disp_reset %ld\n",dli);
 
   return 0;
 

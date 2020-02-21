@@ -223,8 +223,7 @@ struct BMPHeader
     TX_Print("****** NOT BMP-Format:  %s **********",fnam);
     goto L_err1;
   }
-
-    // printf(" is=%d io=%d\n",rec1.is,rec1.io);  // FileSize,offset
+    // printf(" is=%ld io=%ld\n",rec1.is,rec1.io);  // FileSize,offset
 
 
 
@@ -242,11 +241,11 @@ struct BMPHeader
   rec2.ici  = CBO_r_ui4 (); // Number of important colors; 0 = all
   // size of Rec2 = 40 !
 
-    // printf(" wi=%d he=%d siz=%d\n",rec2.iw,rec2.ih,rec2.isi);
-    // printf(" compr=%d bits=%d\n",rec2.ic,rec2.inr);
-    // printf(" ipl=%d ix=%d iy=%d\n",rec2.ipl,rec2.ix,rec2.iy);
-    // printf(" col=%d %d\n",rec2.icu,rec2.ici);
-    // printf(" ish=%d siz=%d\n",rec2.ish,rec2.isi);
+    // printf(" wi=%ld he=%ld siz=%ld\n",rec2.iw,rec2.ih,rec2.isi);
+    // printf(" compr=%ld bits=%ld\n",rec2.ic,rec2.inr);
+    // printf(" ipl=%ld ix=%ld iy=%ld\n",rec2.ipl,rec2.ix,rec2.iy);
+    // printf(" col=%ld %ld\n",rec2.icu,rec2.ici);
+    // printf(" ish=%ld siz=%ld\n",rec2.ish,rec2.isi);
 
 
   if(rec2.ic != 0) {

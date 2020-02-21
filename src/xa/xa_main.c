@@ -63,6 +63,7 @@ Batch-main ist in xa_batch.c.
 #include "../ut/ut_os.h"          // OS_get_bas_dir
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_txTab.h"              // TxtTab
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"
 // #include "../ut/func_types.h"          // UI_FuncInit
@@ -191,7 +192,7 @@ static int     lngNr;
 
   // get all directories
   strcpy(txbuf1, argv[0]);
-  OS_Init_ (txbuf1);             // zenity ?
+  OS_Init_ (txbuf1);             // get directories
 
 
   // get system-language
@@ -437,6 +438,10 @@ kopieren geht nicht mehr -
 
   // Init und display Windows
   L_1:
+
+  // delete pipe CTRLpin (after crash commands can remain ..)
+  sprintf(txbuf1, "%sCTRLpin",OS_get_tmp_dir());
+  OS_file_delete (txbuf1);
 
   // read Defaults from <base>/cfg/xa.rc
   AP_defaults_read ();
@@ -705,6 +710,8 @@ kopieren geht nicht mehr -
     strcpy(s1, "/usr/share/gcad3d/");
 #endif
   }
+    printf(" pwd = |%s|\n",OS_get_dir_pwd());
+    printf(" gcad_dir_dev = |%s|\n",getenv("gcad_dir_dev"));
     printf(" gcad_dir_bas = |%s|\n",s1);
 
   if(!OS_checkFilExist(s1, 1)) {

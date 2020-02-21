@@ -141,7 +141,7 @@ List_functions_end:
 
     } else if(mode ==  2) {
       fprintf(fpo, "%d", INT_PTR(data));
-        // printf(" wr int %d\n",INT_PTR(data));
+        printf(" wr int %d\n",INT_PTR(data));
 
 
     } else if(mode == -1) {

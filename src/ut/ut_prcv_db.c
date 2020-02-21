@@ -102,6 +102,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   if(PRCV_GRP.spcTyp == MEMTYP_NONE) {
     // get memSpc for PRCV_GRP
     MemTab_ini__ (&PRCV_GRP, sizeof(CurvPrcv), Typ_PRCV, CV_NR);
+    // change to protected; users may not free ?
 
   } else {
     // free PRCV_GRP, delete all point-groups
@@ -144,11 +145,11 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 
   if(ptNr < 1 ) return 0;
 
-  // if((prc->spcTyp > 0)&&(prc->spcTyp < 5)) {
-  if(MEM_CANNOT_ALLOC(prc->spcTyp)) {
-    TX_Error ("PRCV_DB_spc_add EOM-1");
-    return -1;
-  }
+//   // if((prc->spcTyp > 0)&&(prc->spcTyp < 5)) {
+//   if(MEM_CANNOT_ALLOC(prc->spcTyp)) {
+//     TX_Error ("PRCV_DB_spc_add EOM-1");
+//     return -1;
+//   }
 
   // copy
   newPrc = *prc;
@@ -383,7 +384,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 
   *prc        = *cvp;
   // set spcTyp to protected
-  prc->spcTyp = MEMTYP_FIXED_PROT;
+  prc->spcTyp = MEMTYP_STACK__;
 
     // PRCV_dump__ (2, prc, "ex-PRCV_DB_load");
 

@@ -155,6 +155,7 @@ APT_work_PrgCodTab
 #include "../ut/ut_os.h"              // OS_get_bas_dir
 #include "../db/ut_DB.h"              // DB_get_ModRef
 
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"             // memspc011
 #include "../xa/xa_msg.h"             // MSG_ERR__
 

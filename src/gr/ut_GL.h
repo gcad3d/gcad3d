@@ -6,10 +6,10 @@ Korr:
 
 
 =======================================================================*/
-#define GR_MODE_DRAW       0
+#define GR_MODE_DRAW       0   // display according DL
 #define GR_MODE_SELECT     1
 #define GR_MODE_FEEDBACK   2
-#define GR_MODE_NORMAL     3
+#define GR_MODE_NORMAL     3   // do NOT display hilites
 #define GR_MODE_PRINT1     4
 #define GR_MODE_PRINT2     5
 #define GR_MODE_2DSELECT   6
@@ -37,6 +37,8 @@ Korr:
 #define DL_Img_ScBack   299   // index for scale images (DL_Img_ScBack)
 #define DL_OnTop__      300   // overwrite-all (glDepthFunc (GL_ALWAYS))
 #define DL_OnTopOff     301   // reset "overwrite-all"
+#define DL_base_defCol  302   // default-color             UNUSED
+// free 303-309
 #define DL_base_mod     310   // first index of BasModelnames (DL_base_mod)
                               // next is DL_base__ - first index of normal objects
 

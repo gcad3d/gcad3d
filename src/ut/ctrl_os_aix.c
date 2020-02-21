@@ -57,6 +57,7 @@ List_functions_end:
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
 #include "../ut/ut_txTab.h"              // TxtTab
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"                // IE_buf mem_cbuf1_SIZ memspc201
 

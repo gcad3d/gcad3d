@@ -94,7 +94,9 @@ static int UI_GR_STAT = -1;
 
 static int iStat = -1;   // 0=
 
-  // printf("{{{{{ UI_GR_DrawInit\n");
+  printf("{{{{{ UI_GR_DrawInit\n");
+
+// gtk_widget_grab_focus (GTK_WIDGET(GL_widget));
 
   if(UI_GR_STAT != 1) {
     UI_GR_STAT = 1;
@@ -114,7 +116,7 @@ static int iStat = -1;   // 0=
 //================================================================
 // swap buffers (activate last drawing)
 
-  // printf("}}}}} UI_GR_DrawExit\n");
+  printf("}}}}} UI_GR_DrawExit\n");
 
   if(UI_GR_STAT != 0) {
     UI_GR_STAT = 0;

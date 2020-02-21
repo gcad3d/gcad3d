@@ -277,8 +277,8 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void UI_Ed_sel_ln () {}
   void UI_Ed_sel () {}
   void UI_Set_ConstPl_Z () {}
-  void UI_GR_DrawInit () {}
-  void UI_GR_DrawExit () {}
+  void GLB_DrawInit () {}
+  void GLB_DrawExit () {}
   void UI_GR_ScalAuto () {}
   // void UI_upd_Refs () {}
   // void UI_ask_mode () {}

@@ -642,6 +642,7 @@ static long su_ind;
 
   // check if Vector is a Defaultvektor (DX or DIX or ...)
   if(APED_oid_vc(cbuf, vc1) != 0) {
+      // printf("  obj_add_vc-f-oid_vc |%s|\n",cbuf);
     strcat(ED_buf1, cbuf);
     return 0;
   }
@@ -666,27 +667,19 @@ static long su_ind;
 
 
   strcat (ED_buf1, "D(");
-  // UTX_add_fl_u2 (ED_buf1, vc1->dx, vc1->dy);
   UTX_add_fl_10  (ED_buf1, vc1->dx);
-  // UTX_add_fl_f  (ED_buf1, vc1->dx, 10);
-  // UTX_del_foll0 (ED_buf1);
+
   strcat (ED_buf1, " ");
   UTX_add_fl_10  (ED_buf1, vc1->dy);
-  // UTX_add_fl_f  (ED_buf1, vc1->dy, 10);
-  // UTX_del_foll0 (ED_buf1);
 
-
-  if(!UTP_compdb0(vc1->dz,UT_TOL_min1)) {
+  // if(!UTP_compdb0(vc1->dz,UT_TOL_min1)) {
     strcat (ED_buf1, " ");
     UTX_add_fl_10  (ED_buf1, vc1->dz);
-    // UTX_add_fl_f  (ED_buf1, vc1->dz, 10);
-    // UTX_del_foll0 (ED_buf1);
-  }
+  // }
   
   strcat (ED_buf1, ")");
 
     // printf("ex-AP_obj_add_vc0 |%s|\n",ED_buf1);
-
 
   return 0;
 

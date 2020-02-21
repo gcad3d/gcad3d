@@ -1,9 +1,9 @@
 # get OS OUTDIR VGUI (Version GTK)
-!include ..\options.nmak
+!include ../options.nmak
 
 
 # get DEB CPDEB LKDEB
-!include "..\APP\deb.nmak"
+!include ../APP/deb.nmak
 
 
 # get GUICP GUILIBS SRCGUI LIBGUI
@@ -13,22 +13,21 @@
 
 # get OpenGL-libs
 # get LIBOGL
-!include "..\APP\ogl.nmak"
+!include ../APP/ogl.nmak
 
 
 # get LIB_BAS LKFLG
 # get LIB_BAS (Basiclibs for MS-VC (libcmt, Kernel32 ..)) 
-!include "..\APP\bas_$(OS).nmak"
+!include ../APP/bas_$(OS).nmak
 
 
 # get SRCOS (OS-routines)
-!include "..\APP\srcOS.nmak"
+!include ../APP/srcOS.nmak
 
 
 # get OBJ* from SRC*
 # OBJ1 OBJG OBJA OBJOGL OBJGLB OBJGUI OBJOS
-!include "..\APP\src2obj1.nmak"
-
+!include ../APP/src2obj1.nmak
 
 
 
@@ -38,8 +37,12 @@ CPFLG =\
  -D$(VGUI)\
  /Od
 
+#!MESSAGE - CPFLG is $(CPFLG)
 
-default: $(OBJ1) $(OBJG) $(OBJA) $(OBJOS) $(LIBGUI)
+
+
+#===================================================================
+default:	$(OBJ1) $(OBJG) $(OBJA) $(OBJOS) $(LIBGUI)
 	@echo ================== Link =====================
 !ifdef PRJNAM
 # link exe
@@ -66,26 +69,27 @@ default: $(OBJ1) $(OBJG) $(OBJA) $(OBJOS) $(LIBGUI)
 
 
 delObj:
+	del/q ..\APP\*.obj
 	del/q ..\xa\*.obj
 	del/q ..\ut\*.obj
 	del/q ..\ci\*.obj
 	del/q ..\gr\*.obj
 	del/q ..\db\*.obj
 	del/q ..\exp\*.obj
+	del/q ..\prc\*.obj
+	del/q ..\gl2ps\*.obj
 	del/q ..\GIS1\*.obj
-	del/q ..\..\binMS32\plugins\*
-# init GUI:
-	del/q ..\..\binMS32\libgui_*.lib
-	del/q ..\gui\*.obj
-	del/q ..\gui_gtk2_MS\*.obj
-	del/q ..\gtkglarea\*.obj
+	del/q $(OUTDIR)plugins\*
 	exit
 
 
 guiinit:
-	del/q ..\..\binMS32\libgui_*.lib
-	del/q ..\gui_gtk2_MS\*.obj
+# init GUI:
 	del/q ..\gui\*.obj
+	del/q ..\gtkglarea\*.obj
+	del/q ..\gui_gtk2_MS\*.obj
+	del/q $(OUTDIR)libgui_*.lib
+	del/q $(OUTDIR)GUI_*.exe
 	exit
 
 
@@ -135,6 +139,6 @@ test:
 
 
 # compile c -> obj using CPFLG
-!include "..\APP\compile.nmak"
+!include ../APP/compile.nmak
 
 # EOF

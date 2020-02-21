@@ -33,17 +33,18 @@ void PRG(){}
 #endif
 /*!
 \file  ../xa/xa_prg.c
-\brief Programming-functions 
+\brief Programming-functions                INF_PRG__
 \code
 =====================================================
 List_functions_start:
 
 PRG_Ed                 Edit active program
 PRG_Loa                make List of all available programs
-PRG_CB                 CB from List-selection
 PRG_start              (re)run program
+
 PRG_win__              main-DLG-Window
 PRG_ButtonPress
+PRG_CB                 CB from List-selection
 PRG_key_CB             special-key pressed in mainWin
 PRG_KeyPress           special-key pressed in programWin
 PRG_ent_CB                 enter inputField-callback
@@ -141,6 +142,7 @@ APP_act_nam
 #include "../xa/xa_ui_gr.h"            // UI_GR_get_actPos_
 #include "../xa/xa.h"                  // AP_dir_prg AP_sym_prg APP_act_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
+#include "../xa/xa_uid.h"              // UI_MODE_..
 
 
 #define CKBTYP 1
@@ -151,7 +153,7 @@ APP_act_nam
 typedef struct {MemObj wp;
                 long sInd, slNr;
                 unsigned char rTyp, vTyp, iStat;}    FormVar;
-// rTyp   typ of record: 1=CKBTYP;   2=INPTYP.
+// rTyp   typ of record: 1=CKBTYP;   2=RDBTYP; 3=INPTYP;
 // wp     widget-pointer
 // sInd   CKB: index of DB-Var for output of state of checkbox
 //        INP: index of DB-Var for output of obj.
@@ -336,10 +338,11 @@ typedef_MemTab(ObjRange);
 
   // // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
   // GUI_List1 (" delete Application", fnam, (void*)PRG_Del_CB);
-
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " delete Application", fnam,
-                       "1", NULL, "60,40");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " delete Application", fnam,
+//                        "1", NULL, "60,40");
+  
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete Application", "40,30");
   if(i1 < 0) return -1;
 
   PRG_Del_CB (s1);
@@ -355,9 +358,10 @@ typedef_MemTab(ObjRange);
 //================================================================
  
   static long dlAct;
+  static long lnAct;
 
-  int              iFunc, i1, i2;
-  char             cbuf[256], *cPos;
+  int         iFunc, i1, i2;
+  char        cbuf[256], *cPos;
   MemObj      box0;
 
 
@@ -379,6 +383,7 @@ typedef_MemTab(ObjRange);
     PRG_stat = 1;
     
     dlAct = DL_get__ (NULL);
+    lnAct = ED_get_lnr_act ();
 
     // init win
     PRG_win0 = GUI_Win__ (APP_act_nam, PRG_win__, "");
@@ -443,8 +448,6 @@ typedef_MemTab(ObjRange);
     // goto L_Cancel;
 
 
-
-
   //----------------------------------------------------------------
   L_UCB3:      // OK: add to Mainprg, exit.
     if(iFunc != UI_FuncUCB3) goto L_Kill;
@@ -460,12 +463,7 @@ typedef_MemTab(ObjRange);
     UTF_add_file (cbuf);
     // if MAN is active: update (editor -> mem)
     AP_SRC_edi_mem ();
-    // execute additional program ..
-    // ED_work_CurSet ((int)SRCU_obj_pri.lnr);  // reset to line 
-    ED_work_CurSet (UT_INT_MAX);                // work until end
     goto L_Exit0;
-    // goto L_Cancel;
-
 
 
   //----------------------------------------------------------------
@@ -483,6 +481,8 @@ typedef_MemTab(ObjRange);
 
     // del all temp obj's
     GL_temp_del_all ();
+    // unhilite all
+    DL_hili_off (-1l);   // only for VWR
 
     if(PRG_mode < 2) {
       // Cancel, not OK: reset DL and DB
@@ -513,8 +513,12 @@ typedef_MemTab(ObjRange);
     AP_stat.APP_stat = 0;
     // only if OK is active: update browser
     if(iFunc == UI_FuncUCB3) {
+      // OK ..
       Brw_Mdl_upd ();
-      UNDO_app__ (1);                             // create undo-record
+      WC_set_obj_stat (0);             // set obj-status permanent
+      ED_work_CurSet (UT_INT_MAX);     // work new created lines - until end
+      // UNDO_app__ (1);             // create undo-record
+      UNDO_grp_range_add (lnAct, ED_get_lnr_act());      // create undo-record
     }
     ED_set_mode (PRG_ED_stat);         // reset ED_mode
     return (0);
@@ -686,13 +690,12 @@ typedef_MemTab(ObjRange);
   int PRG_sel_CB (long dli, int typ, long ind, char *sbuf) {
 //================================================================
 // selection-callback; CAD-Core reports selection
-// DL-Index, DB-Typ und DB-Index of selected Obj
+//
+// Input:   DL-Index, DB-Typ, DB-Index and obj-ID of selected Obj
+//
 
   int       irc, typReq;
-  // long      l1;
   char      cbuf[256], namBuf[32];
-  // void      *vp1;
-  // Point     pt1;
 
 
   // printf("PRG_sel_CB typ=%d ind=%ld dli=%ld |%s|\n",typ,ind,dli,sbuf);
@@ -705,10 +708,10 @@ typedef_MemTab(ObjRange);
   typReq = FormTab.data[PRG_iAct].vTyp;
     // printf(" typReq=%d\n",typReq);
 
-  if((typReq == Typ_PT)&&(typ == Typ_TmpPT)) {
-    strcpy (cbuf, sbuf);
-    goto L_done;
-  }
+  if((typReq == Typ_PT)&&(typ == Typ_TmpPT)) goto L_add_OK;
+
+  if(typReq == typ) goto L_add_OK;
+
 
   // if(typReq == Typ_VAR) {
     // TX_Print("extract Var not yet supported");
@@ -731,6 +734,12 @@ typedef_MemTab(ObjRange);
     TX_Print(cbuf);
     return -1;
   }
+  goto L_done;
+
+
+  //----------------------------------------------------------------
+  L_add_OK:
+    strcpy (cbuf, sbuf);
 
 
   // display & goto next
@@ -1112,7 +1121,7 @@ typedef_MemTab(ObjRange);
 
   strncpy(sExpr, &cp1[1], lExpr-2);  // skip brackets
   sExpr[lExpr-2] = '\0';
-    // printf(" lExpr=%ld |%s|\n",lExpr,sExpr);
+    // printf(" _eval_subst lExpr=%ld sExpr=|%s|\n",lExpr,sExpr);
 
 
 
@@ -1124,6 +1133,8 @@ typedef_MemTab(ObjRange);
 
   // get sourceObject from dbo
   SRC_src_isol_ato1 (sNew, ato.typ[0], &ato.val[0]);
+    // printf(" _eval_subst-f-isol_ato1 sNew=|%s|\n",sNew);
+
 
 
 /*
@@ -1153,7 +1164,7 @@ typedef_MemTab(ObjRange);
   lTot = strlen(cbuf);  // total length
   lNew = strlen(sNew);
   MEM_chg_rec (cbuf, &lTot, sNew, lNew, cp1, lExpr);
-    // printf(" mod1:|%s|\n",cbuf);
+    // printf(" _eval_subst-f-chg_rec |%s|\n",cbuf);
 
   // check again ..
   ++iNr;
@@ -1221,6 +1232,11 @@ typedef_MemTab(ObjRange);
   // primary start or rerun ?
   if(PRG_stat != 0) goto L_reRun;
 
+  // primary-start;
+  // if CAD-menu is open: close it ..
+  if(UI_get_InpMode() == UI_MODE_CAD) {
+   IE_cad_exitFunc ();
+  }
 
   // init PRG
   PRG_ED_stat = ED_get_mode();
@@ -1287,8 +1303,7 @@ typedef_MemTab(ObjRange);
     // printf(" delay=%d lNr=%d PRG_dli=%ld\n",delay,lNr,PRG_dli);
   
 
-  UNDO_app__ (0);            // init undo (get act.lNr)
-
+  // UNDO_app__ (0);            // init undo (get act.lNr)
 
   // Create Form & FormTab;
   // loop tru program; find & create widgets
@@ -1296,15 +1311,14 @@ typedef_MemTab(ObjRange);
 
 
 
-  //------------------
+  //================================================================
   L_reRun:
   //------------------
+    // TESTONLY:
+    // PRG_dumpRec ("L_reRun: ----------------------------");
+
 
   PRG_stat = 2;  // running; Update is active
-
-
-    // TESTONLY:
-    // PRG_dumpRec ();
 
 
   // // Find/Create Definitionline for variables
@@ -1330,7 +1344,6 @@ typedef_MemTab(ObjRange);
   fprintf(PRG_fp, "# PRGBEG %s\n", APP_act_nam);
 
 
-  //----------------------------------------------------------------
   // loop tru program; read & execute all lines; skip DLG-lines.
   // rewind (PRG_fp);
   plNr = 0;                         // programLineNr; first=1
@@ -1342,6 +1355,7 @@ typedef_MemTab(ObjRange);
 
 
 
+  //----------------------------------------------------------------
   L_nxt_ln:
       // printf("PRG_start L_nxt_ln: xxxxxxxxxxxxxxxxxxxxx\n");
     lp1 = lp2;
@@ -1368,7 +1382,8 @@ typedef_MemTab(ObjRange);
       if(cbuf[1] == '#') {++cbuf; goto L_copyCopy;}
       goto L_nxt_ln;
     }
-      // printf(" nxt Ln %d |%s|\n",plNr,cbuf);
+      // printf(" _start-nxt-Ln %d |%s|\n",plNr,cbuf);
+
 
     if(!strncmp(cbuf, "EXIT" , 4)) {
       if(PRG_dbg) TX_Print ("END OF PROGRAM ..");
@@ -1412,6 +1427,8 @@ typedef_MemTab(ObjRange);
         TX_Print(cbuf);
       }
     }
+      // printf(" _start-nxt-f.eval_subst |%s|\n",cbuf);
+
 
     if(UTX_ck_casenChr(cbuf, "JUMP" , 4) == 0) {
       cp1 = cbuf + 4;
@@ -1472,7 +1489,7 @@ typedef_MemTab(ObjRange);
 
 
     L_copyCopy:
-        // printf(" out |%s|\n",cbuf);
+        // printf(" _start-nxt-out |%s|\n",cbuf);
       fprintf(PRG_fp, "%s\n",cbuf);
   
   
@@ -1540,7 +1557,7 @@ typedef_MemTab(ObjRange);
   char cbuf[128];
 
 
-  // printf("PRG_CB |%s|%s|\n",fnam,dirNam);
+  printf("PRG_CB |%s|%s|\n",fnam,dirNam);
 
 
   if(fnam == NULL) return 0;  // cancel
@@ -2067,8 +2084,8 @@ typedef_MemTab(ObjRange);
 
 
   // printf("PRGUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
-  // PRG_dumpRec ();
   // printf("PRG_update rNr=%d\n",FormTab.rNr);
+  // PRG_dumpRec ("_update");
   // UTF_dump1__ ();
 
 // was DLG_form2db
@@ -2156,7 +2173,7 @@ typedef_MemTab(ObjRange);
     cp1 = GUI_entry_get (&(vf1->wp));
     strcpy(auxBuf, cp1);
     UTX_CleanCR (auxBuf);
-      // printf(" inp: %d |%s|\n",ii,auxBuf);
+      // printf(" _update: %d |%s|\n",ii,auxBuf);
 
     // create outputline
     if(vf1->vTyp == Typ_VAR) {
@@ -2171,7 +2188,7 @@ typedef_MemTab(ObjRange);
     } else {
       printf("****** PRG_update E2 ********\n");
     }
-      // printf(" modify slNr=%ld typ=%d |%s|\n",vf1->slNr,vf1->vTyp,cbuf);
+      // printf(" _update slNr=%ld typ=%d |%s|\n",vf1->slNr,vf1->vTyp,cbuf);
 
     // modify source
     // APED_onam_cut (cbuf);     // remove name
@@ -2328,14 +2345,14 @@ typedef_MemTab(ObjRange);
 
 
 //================================================================
-  int PRG_dumpRec () {
+  int PRG_dumpRec (char *sInf) {
 //================================================================
 // dump FormTab
 
   int   i1;
 
 
-  printf("PRG_dumpRec %d\n",FormTab.rNr);
+  printf("PRG_dumpRec %d     %s\n",FormTab.rNr,sInf);
 
 
   for(i1=0; i1<FormTab.rNr; ++i1) {

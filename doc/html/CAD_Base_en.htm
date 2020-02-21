@@ -246,7 +246,9 @@ P3=L1 PTS(3)        # midpoint
 #   optional: rotate (tilt) normal to the Z-axis 
 #   optional: distance from BasePoint to new point 
 P3 = P1 P2 ANG(180)       # rotate P2 180 degrees around P1/Z-axis
-P3 = P1 P2 ANG(90) ANG(45)       # rotate P2 180 degrees around P1/Z-axis
+P4 = P1 P2 ANG(90) ANG(45)       # rotate P2 180 degrees around P1/Z-axis
+P5 = P1 P2 ANG(45) DX            # rotate P2 45 degrees around P1/DX
+P6 = P1 L2 ANG(30)               # rotate P1 30 degrees around line L2
 
 
 # Rotate a Point around a axis:
@@ -981,6 +983,17 @@ Default is 11 (two lines)
  6 = purple 
  7 = blue 
  8 = white 
+ 
+ 
+<p><a name="SymbolType"></a></p>
+   <b>SymbolType</b>
+     0 = star small,
+     1 = small triangle
+     2 = small circle
+     3 = large rectangle
+     4 = normalized vector (always same length, arrowhead points to EndpointVector)
+     5 = vector (with correct length, arrowhead is at EndpointVector)
+     6 = Arrowhead 2D (SymbolPosition is the arrowhead)
 
 
 <p><a name="symFnam"></a></p>

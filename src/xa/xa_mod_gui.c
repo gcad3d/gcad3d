@@ -274,9 +274,12 @@ List_functions - see ../xa/xa_mod.c
 
   // GUI_List1 ("select Model", fnam, Mod_chg_CB);
 
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select Model", fnam,
-                       "1", NULL, "60,40");
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " select Model", fnam,
+//                        "1", NULL, "60,40");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select model", "40,40");
+
   if(i1 < 0) return -1;
 
   Mod_chg_CB (s1);

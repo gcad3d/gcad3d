@@ -41,6 +41,8 @@ UI_Tex_EntIni      init texure-userparameters
 List_functions_end:
 =====================================================
 
+GA_Tex__              remove texture
+
 Texture-Utility-Functions:    see ../xa/xa_tex.c
 Tex_dump__ ..
 

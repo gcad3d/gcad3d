@@ -39,7 +39,7 @@ int   IE_activate  ();
 //int IE_ed1_CB    (MemObj *mo, void **data);
 //int IE_ed1_mod   (MemObj *mo, void **data);
 
-  int IE_cad_test__ ();
+  int IE_cad_test1 ();
   int IE_inp_set_menu_col (int mode, int ind, char *txt);
 
   int IE_inp_CB__  (MemObj *mo, void **data);

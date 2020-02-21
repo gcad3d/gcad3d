@@ -227,7 +227,7 @@ extern Point     *GLT_pta;
   //----------------------------------------------------------------
     // TEST ONLY
     // { ColRGB col2;
-      // Col_set__ (&col2, 100, 100, 5);
+      // UTcol__3i (&col2, 100, 100, 5);
       // col2.vsym = 1;      // 0=ON=shade; 1=OFF=symbolic    <<<<<<<<<<<<
       // memcpy(&att, &col2, sizeof(int));
         // printf(" att=%d\n",att);

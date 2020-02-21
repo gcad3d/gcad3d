@@ -109,6 +109,7 @@ APP_act_proc      // name of processor (dll)
 #include "../ut/ut_geo.h"                  // Typ_Memspc
 #include "../ut/ut_txt.h"                   // fnam_del
 #include "../ut/ut_os.h"                    // OS_get_bin_dir
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"
 
@@ -270,7 +271,7 @@ char **process_CmdTab;     // was NCCmdTab
 /// display list of processes; let user select; start selected process.
  
   int   i1;
-  char  s1[256], s2[256];
+  char  s1[256], fnam[256];
 
   printf("PRC_Loa \n");
 
@@ -279,10 +280,12 @@ char **process_CmdTab;     // was NCCmdTab
   PRC_lst_processes ();
 
   // display list of processes; let user select
-  sprintf(s2, "%sprocesses.lst", OS_get_tmp_dir());
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " select process", s2,
-                       "1", NULL, "60,20");
+  sprintf(fnam, "%sprocesses.lst", OS_get_tmp_dir());
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " select process", fnam,
+//                        "1", NULL, "60,20");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select process", "40,30");
   if(i1 < 0) return -1;
     printf(" selected process: |%s|\n",s1);
  
@@ -688,7 +691,7 @@ static char sproc[128];
 //================================================================
 
   int     i1;
-  char    s1[256], s2[256];
+  char    s1[256], fnam[256];
 
   printf("PRC_Del__ \n");
 
@@ -697,10 +700,12 @@ static char sproc[128];
 
 
   // display list of processes; let user select
-  sprintf(s2, "%sprocesses.lst", OS_get_tmp_dir());
-  i1 = GUI_list1_dlg_w (s1, 256,
-                       NULL, " delete process", s2,
-                       "1", NULL, "60,20");
+  sprintf(fnam, "%sprocesses.lst", OS_get_tmp_dir());
+//   i1 = GUI_list1_dlg_w (s1, 256,
+//                        NULL, " delete process", fnam,
+//                        "1", NULL, "60,20");
+
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete process", "40,30");
   if(i1 < 0) return -1;
   
   
@@ -828,6 +833,8 @@ static char sproc[128];
 /// reStart remote
 /// TODO: check if already active ..
 
+  int   irc;
+  char  fn[256];
 
   if(APP_act_typ != 4) {
     TX_Error("RPC_restart - active prog must be remote-control-prog ..");
@@ -835,11 +842,18 @@ static char sproc[128];
   }
 
 
+// TODO: check execute-permission 
+  sprintf(fn, "%s%s.cmd",AP_mod_dir, APP_act_nam);
+    printf(" TODO: check execute-permission |%s|\n",fn);
+
+
   // execute nonblocking
   // cd <<bindir>/remote&&excute
-  sprintf(memspc011, "cd %sremote&&./%s&",OS_get_bin_dir(), APP_act_nam);
-    printf(" %s\n",memspc011);
-  OS_system (memspc011);
+  // sprintf(memspc011, "cd %sremote&&./%s&",OS_get_bin_dir(), APP_act_nam);
+  sprintf(memspc011, "cd %s &&./%s.cmd &",AP_mod_dir, APP_act_nam);
+    printf("RPC_restart |%s|\n",memspc011);
+  irc = OS_system (memspc011);
+    printf(" _restart %d\n",irc);
 
 
   return 0;
@@ -857,7 +871,7 @@ static char sproc[128];
 /// \endcode
 
   int    irc;
-  char   s1[204], pNam[128];
+  char   s1[256], s2[256], fn[256];
 
   printf("RPC_Loa \n");
 
@@ -868,18 +882,28 @@ static char sproc[128];
     return -1;
   }
 
+
+  // get filename of cfg/dir.lst
+  AP_get_fnam_symDir (s1);
+
   // list directory <bindir>/remote
-  sprintf(s1, "%sremote",OS_get_bin_dir());
-  irc = GUI_file_open__ (pNam, 128, s1, 200, NULL, NULL, "open", "*");
-  if(irc) return 0;
-    printf(" open |%s|%s|\n",s1,pNam);
+  sprintf(s2, "%sprg/", OS_get_loc_dir());
+//   irc = GUI_file_open__ (pNam, 128, s1, 200, NULL, NULL, "open", "*");
+//   if(irc) return 0;
+
+  // (dirIn/filnamOut sSiz symDir filter title)
+  irc = GUI_file_open__ (s2, 256, s1, "*.cmd", "open remote control-prog");
+    printf(" open %d |%s|\n",irc, s2);
 
   // UTX_add_fnam_del (s1);    // add following "/"
 
+  // cut dirctory/filename
+  UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, s2);
 
   APP_act_typ = 4;                        // "RPC "
   UI_Set_typPrg ();
-  strcpy(APP_act_nam, pNam);
+  strcpy(APP_act_nam, AP_mod_fnam);
+  // display prgNam
   UI_Set_actPrg (APP_act_nam, 0);
 
 

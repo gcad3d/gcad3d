@@ -102,7 +102,6 @@ APT_curv2ptArr    Polygonpoints into 2D-pointArray
 
 APT_Lay_add
 
-PP_up_list
 APT_get_dreh
 WC_ask_ModSiz     return APT_ModSiz   see WC_Init_Modsiz WC_Init_Tol
 WC_ask_WC_mode    return WC_mode
@@ -110,11 +109,11 @@ WC_ask_actPos     return actPosU
 WC_ask_actZsur    return WC_sur_Z
 WC_ask_Zsur1      return WC_sur1
 WC_ask_Zsur2      return WC_sur2
-APT_get_line_act  return APT_line_act
+APT_get_line_act  return APT_lNr
 
 APT_do_auxCmd     handle change Graf. Attribut u. Refsys
 APT_eval_if       evaluate expression
-APT_UP_get        give APT_line_act of calling line ..
+APT_UP_get        give APT_lNr of calling line ..
 APT_UP_up         .
 APT_UP_down
 APT_line_set
@@ -150,6 +149,7 @@ WC_ask_actObj
 
 List_functions_end:
 =====================================================
+// PP_up_list
 
 \endcode *//*----------------------------------------
 
@@ -468,7 +468,7 @@ Verbinden:
 #include "../xa/xa_ga.h"                    // GA_hasTexture
 #include "../xa/xa_mem.h"                 // memspc55
 #include "../xa/xa_ed_mem.h"              // typedef_MemTab(ObjSRC)
-// #include "../xa/opar.h"                   // MEMTAB_tmpSpc_get
+// #include "../xa/opar.h"                   // MemTab_ini_temp
 #include "../xa/xa.h"                       // APP_act_proc AP_stat
 #include "../xa/xa_sele.h"                  // Typ_go_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
@@ -478,6 +478,17 @@ Verbinden:
 #include "../ci/NC_apt.h"
 
 
+
+
+#define PrgMod_normal            0
+#define PrgMod_continue_if       1
+#define PrgMod_skip_until_label  2
+#define PrgMod_skip_until_macend 3
+#define PrgMod_skip_until_mac    4
+#define PrgMod_skip_until_line   5
+#define PrgMod_skip_until_file   6
+#define PrgMod_continue_file     7
+#define PrgMod_continue_mac      8
 
 
 //===========================================================================
@@ -541,163 +552,41 @@ typedef_MemTab(ObjTXTSRC);
 //===========================================================================
 // LOCALS:
 
+       int     APT_obj_stat;       // 0=permanent, 1=temporary (workmode)
+       double  APT_ModSiz = 500.;
 
-//const int APT_LINE_siz = 1024*4;
-// #define   APT_LINE_siz     4096 
-// char      APT_LINE[APT_LINE_siz];          // die APT-Eingabezeilen
+       int     APT_lNr;            // active lineNr of SRC code
+static long    APT_gaNr;           // index GA_ObjTab of last-processed-obj
+                                   // -1 unknown; >=0 index-GA_ObjTab
+       int     APT_hidd;           // if last-processed-obj is hidden;
+                                   // -1=unknown,0=normal-not-hidden, 1=hidden
 
+       long    AP_dli_act;         // index dispList
+static long    APT_dli_hili_old = 0L; // dli of last hilited object
 
-static long      NC_stat_SIZ=0;   // size von NC_stat__
-static long      NC_stat_IND=0;   // zeigt auf den naechsten freien index
+       int     AP_mdLev = -1;      // active subModelLevel
+static int     AP_mdLnr[12];       // APT-LineNrs of subModelCall
+static int     AP_mdLne[12];       // APT-EndLineNrs of subModelCall
 
-static NC_recTyp    *NC_stat__;
-       long      AP_dli_act;      // index dispList
+       int     APT_3d_mode = OFF;  // Inputmode 3D oder 2D
 
-// static long APT_dbi;              // dbi of active obj
-       int  AP_mdLev;             // active subModelLevel
-static int  AP_mdLnr[12];         // APT-LineNrs of subModelCall
-static int  AP_mdLne[12];         // APT-EndLineNrs of subModelCall
+static int     APT_view_stat;      // 0=VIEW nicht gesetzt; 1=VIEW gesetzt.
 
-// int       WC_mode;                         // 0 = Edit, > 0 = PP#
-int       APT_3d_mode = OFF;               // Inputmode 3D oder 2D
+       int     APT_subTyp;         // subTyp of created obj; 
+       
+       int     APT_dispNam;        // display ObjNames; see GR_OBJID_ON
+       int     APT_dispDir;        // display ObjDirection; 1=yes, 0=not
+       int     APT_dispPT  = ON;   // display Points
+       int     APT_dispPL  = ON;   // display Planes
+       int     APT_dispSOL = ON;
+       int     APT_disp3D  = ON;
 
-// int       APT_2d_to_3d_Ind  = 0;
-// int       APT_2d_to_3d_mode = OFF;         // 2D -> 3D (PLANE ...)
+static Point2  actPosO;
+static Point2  actPosOtr;
+static Vector2 actVecO;
 
-static int APT_view_stat;         // 0=VIEW nicht gesetzt; 1=VIEW gesetzt.
-
-static long APT_dli_hili_old = 0L;   // dli of last hilited object
-
-// Point   APT_tcpos;                // ToolChangePosition Werkzeugwechselposition
-// double  APT_Z_clear;
-// double  APT_Z_deep;
-// int     APT_workmode;             // Typ_nc_cut oder Typ_nc_drill;
-
-int     APT_obj_stat;             // 0=permanent, 1=temporary (workmode)
-
-// int     APT_obj_typ;              // der Typ des zuletzt generierten Objekts.
-int     APT_subTyp;               // subTyp of created obj; 
-
-// double  APT_pock_distk = 1.0;     // Abstand von der Kontur
-// double  APT_pock_distc = 1.0;     // Abstand Schnitte untereinander
-// double  APT_pock_dirc  = 0.;      // Richtung Schnitte
-
-
-Memspc  APTSpcObj;      // memspc201 f. Ausgabeobjekt und seine Bestandteile
-Memspc  APTSpcTmp;      // memspc501 f. temporaere Berechnungen
-
-
-// double  WC_sur1    =  0.0;        // Basisebene
-// double  WC_sur2_Def= 50.1;        // Default-sur2
-// double  WC_sur2    = 50.1;        // obere Schneidebene
-                                  // kann nur der Wert von WC_sur1 od. WC_sur2 sein.
-// double  WC_thick   = 50.0;        // Abstand untere > obere Ebene
-
-// double  WC_sur3    =  0.0;        // Bohren: deep.
-
-
-
-// int     APT_konik = 0;    // Koniktyp; KONIK_0 od KONIK_1 ..
-                          // KONIK_2 ($-Achsig) od. KONIK_3 (via U/V-Werte)
-//int     APT_stat_konik=0; // ob die obere Kontur fuer das vorhergehende Elem.
-                          // noch auszugeben ist; 0=nix tun, 1=Ausgabe offen
-
-
-
-// ab 2001.11.22 in NC_wcut.c
-// double  APT_UVal, APT_VVal;  // Fuer Koniktyp 3.
-// int     APT_changeTo1 = OFF;  // Change von 3 > 1
-// int     APT_changeTo2 = OFF;  // Change von 2 > 1
-// int     APT_changeTo3 = OFF;  // Change von 1 > 3
-// hier die zu bearb. Objekte einer APT_Gruppe; das ist fertig zum auszugeben.
-// int     NC_Obj_anz;
-// int     NC_Obj_anzU;   // wieviele Objekte in NC_ObjX; 1 oder 2.
-// int     NC_Obj_anzO;
-// ObjG2   NC_ObjU[4];
-// ObjG2   NC_ObjO[4];
-// ObjG2   NC_ObjUtr[4];
-// ObjG2   NC_ObjOtr[4];
-// int     APT_RadTyp;       // 0=konisch, 1=ISO, 2=userspezifisch.
-// double  APT_angN = 0.0;   // Winkel normal zum Bearb.weg
-// double  APT_angNold = 0.0;
-// double  APT_angNact = 0.0;
-// double  APT_angP = 0.0;   // Winkel parallel zum Bearb.weg
-// double  APT_angPold = 0.0;
-
-// double  APT_radO;         // Radius der oberen Kontur.
-// double  APT_abstO = 0.0;  // Abstand oben (entspr. tan(APT_angN) * WC_thick)
-//int     APT_cvInd_11, APT_cvInd_12, APT_cvInd_21, APT_cvInd_22;
-// int     APT_cvIndU[4], APT_cvIndO[4];    // die Indexe fuer den 1. u. 2.
-                                         // Zwischenpunkt der akt. Kurve
-// ObjG2   act_ObjU, act_ObjO;
-// Point2  newPosU,    newPosO;
-// Point2  newPosUtr;
-// ObjG2   ol1_APT_ObjU;
-// ObjG2   ol1_APT_ObjO;
-
-// hier werden die Obj. nach dem Zerbrechen zwischengespeichert.
-// const int APT_Kontur_max = 100;
-// int       APT_Kontur_anz, APT_Kontur_ind;
-// ObjG2     APT_KonturU[APT_Kontur_max];
-// ObjG2     APT_KonturO[APT_Kontur_max];
-
-// ObjG2     NC_dispU[NC_ausg_max];
-// int       NC_disp_anzU;
-
-// hier werden die berabeiteten Objekte wenn erforderl polygonalisiert
-//const int NC_poly_max = 500;
-// int       NC_poly_anz;
-// ObjG2     NC_polyU[NC_poly_max];
-// ObjG2     NC_polyO[NC_poly_max];
-
-// hier werden die Obj. aus der Eingabezeile abgelegt.
-// const int APT_Input_max = 100;  nun als define!
-// int       APT_InputU_anz;
-// int       APT_InputO_anz;
-// ObjG2     APT_InputU[APT_Input_max];
-// ObjG2     APT_InputO[APT_Input_max];
-
-// int     APT_stat_divide = OFF;    // Teilen in 2-Ebenenprogramm
-
-//const int NC_ausg_max = 4;
-// int       NC_ausg_anz, NC_ausg_anzU, NC_ausg_anzO;
-// ObjG2     NC_ausgU[NC_ausg_max];
-// ObjG2     NC_ausgO[NC_ausg_max];
-
-
-
-
-
-int     APT_dispNam;                 // display ObjNames; see GR_OBJID_ON
-int     APT_dispDir;                 // display ObjDirection; 1=yes, 0=not
-// int     APT_dispNCCmd;               // display NC-Commands
-int     APT_dispPT  = ON;            // display Points
-int     APT_dispPL  = ON;            // display Planes
-int     APT_dispSOL = ON;
-
-int     APT_disp3D  = ON;
-
-int     APT_TL_Side   = 0;                 // 0=OFF, 1=LFT, -1=RGT
-int     NC_TL_act     = -1;
-
-
-Point2  actPosO;
-Point2  actPosOtr;
-Vector2 actVecO;
-
-Point2  actPosU;            // die untransformierte, aktuelle Pos als 2D-Punkt
-Point2  actPosUtr; 
-
-// hier werden die Objekte zuerst (vor dem Zerbrechen) zwischengespeichert.
-// int     APT_ObjU_anz, APT_ObjO_anz;
-// ObjG2   APT_ObjU[20];
-// ObjG2   APT_ObjO[20];
-
-// ObjG2   old_APT_ObjU;
-// ObjG2   old_APT_ObjUtr; // transformiert; hilighten als weiterfuehrendes Objekt.
-// ObjG2   old_APT_ObjOtr; // transformiert
-// ObjG2   old_APT_ObjO;
-
+static Point2  actPosU;            // untransformed  2D-Pos
+static Point2  actPosUtr; 
 
 
 int     APT_tra;
@@ -708,60 +597,18 @@ Mat_4x3 APT_mat_tra;
 Mat_4x3 APT_mat_mirr;
 Mat_4x3 APT_mat_proj;
 
-Plane   APT_pln_tra;
 
-
-
-
-int     NC_rapid;        // ON / OFF
-
-int     NC_work_modeU;   // Kreise: ob die APT-Kreise sofort ausgegeben werden sollen
-                         // Ja (ON) oder nicht (OFF);
-                         // Linear: Rapid ON (G0) oder OFF (G1)
-
-NC_up_rec *NC_up_act;
-
-
-// Polygonalisieren generell; OFF oder ON (ALLE Arcs zerlegen) 
-// int       APTsw_poly = OFF;
-
-// Polygonalisieren von Arc/Line
-// int       APTsw_poly_acln = OFF;
-
-
-
-// int       NC_ausg = 0;
-// ObjG2     NC_ausgAU;
-// ObjG2     NC_ausgAO;
-
-
-
-
-//Line2   old_APT_Obj_ln;     // untransformiert
+static Point2  RefOri;
+static double  RefOriAng, RefOriAng_sin, RefOriAng_cos;
 
 static int     UpMirX,   UpMirY;
 static Point2  UpOri,    UpFrom;
 static double  UpOriAng, UpOriAng_sin, UpOriAng_cos;
 
-static Point2  RefOri;
-static double  RefOriAng, RefOriAng_sin, RefOriAng_cos;
-
-
-
-#define PrgMod_normal            0
-#define PrgMod_continue_if       1
-#define PrgMod_skip_until_label  2
-#define PrgMod_skip_until_macend 3
-#define PrgMod_skip_until_mac    4
-#define PrgMod_skip_until_line   5
-#define PrgMod_skip_until_file   6
-#define PrgMod_continue_file     7
-#define PrgMod_continue_mac      8
-
 static int     UP_mode = OFF;      // Schalter UP-mode; ON  = 0 sind im UP.
                                    //                   OFF = 1 sind im Main.
-       int     UP_resolv = ON;     // ON=auflösen, OFF=schon mal erledigt.
-       char    UP_act_typ;         // welcher UP-Typ aktiv ist;G=GEO,M=MAC. 
+static int     UP_resolv = ON;     // ON=auflösen, OFF=schon mal erledigt.
+static char    UP_act_typ;         // welcher UP-Typ aktiv ist;G=GEO,M=MAC. 
 static char    UP_typ_DE;          // 0=UP ist DE (Konik-Prog); -1: not.
 
 #define        UP_level_max 16
@@ -769,59 +616,35 @@ static char    UP_level_typ[16];   // hier merken, welcher Typ UP (Mac od
                                    // Geo) vorher aktiv war (UP_act_typ).
 static char    UP_level_src[16];   // P=Prog, F=File,
 static int     UP_level_adr[16];   // RuecksprungzeilenNr
-       int     UP_level;
-static int     UP_workmode;        // 1=CUT, 2=REV, 3=POCK
-       // int     Mod_level;
+       int     UP_level = -1;
 
-
-static int     Prg_line_nr; // nach "END" wird auf diese LineNr zurueckgesetzt
-
-int     APT_line_cnt = 0;   // Zeilenzähler zur synchronisation von Insert-Lines
-
-int     APT_line_act;              // active lineNr of SRC code
-int     APT_line_old = 0;
-int     APT_line_stat;
-
+static int     Prg_line_nr;        // reset to this lineNr after "END"
 
 
 static char    APT_label[64];
 static char    APT_macnam[64];
 static char    APT_filnam[128];
 
-int     APT_stat_act;             // 0 = normal; 2 = search for jump-Label;
+       int     APT_stat_act;       // 0 = normal; 2 = search for jump-Label;
+       int     APT_Stat_Draw = ON; // genereller Draw-Schalter
 
-int     APT_OPSTOP_stat = ON;     // ON: Stop; OFF: Skip OSP.
+static int     GR_Att_act;
+static int     GR_lay_act = 0;
+       int     GR_pick = OFF;      // NOPICK
 
-int     APT_tl_stat = 0;          // Soll, ToolNr.
-int     APT_tl_act  = 0;          // Ist
+static char    insBuf[10][64];
 
-int     APT_start = OFF;          // fuer das Startsymbol
-int     APT_Stat_Draw = ON;       // genereller Draw-Schalter
+static int     insAnz, insCnt[10];
+static int     insSym[10];         // Buffer fuer zum Command gehöriges Symbol
 
-int     APT_stat_FROM = OFF; // pro Main darf es nur ein FROM geben!
+       char    *APT_defTxt;
 
-
-
-
-//----------------------------------------------------------
-static int  l_irc        = 25;   // der Fehlercode; 25=OK!
-// static int  l_cnt        = 16;
-
-static int  fpOutAnz;            // Anz Ausgabezeilen; nur fuer Demolizenz
+       int     APT_hide_parent;    // 0=not (def), else yes
 
 
 
-//----------------------------------------------------------
-// Allgemeine Hilfsfelder:
-// Point2    GR_ptArr1[500];
-// Point2    GR_ptArr2[500];
-
-int       GR_Att_act;
-int       GR_lay_act = 0;
-
-int       GR_pick = OFF;                   // NOPICK
-
-
+Memspc  APTSpcObj;      // memspc201 f. Ausgabeobjekt und seine Bestandteile
+Memspc  APTSpcTmp;      // memspc501 f. temporaere Berechnungen
 
 
 
@@ -869,45 +692,6 @@ static char  *PrgCodTab[] = {
 enum Typ_TPCT {
   TPC_JUMP,      TPC_MAC,       TPC_GEO,       TPC_END,       TPC_IF,       // 0-
   TPC_CALL};
-
-
-static char      insBuf[10][64];
-
-static int       insAnz, insCnt[10];
-static int       insSym[10];        // Buffer fuer zum Command gehöriges Symbol
-//int       preAnz,preBuf[10];
-
-
-// static char      APT_txBuf[256];
-
-
-
-double    APT_ModSiz    = 500.;       // 2003-09-13: Test 50. statt 500.
-
-// double    APT_TOL_pt    = 0.0005; // identical Points
-double    APT_TOL_ac    = 0.1;    // DISP_AC - Toleranz (Sehnenfehler bei der
-                                  // Darstellung von Arcs.
-// APT_TOL_ac unused !
-
-
-
-
-// double    APT_infin  = 1000.0;   // UNUSED!
-
-// double    APT_ln_len =  100.0;   // unbegrenzte Linien; wenn Wert höher,
-//                                 // wird recht ungenau gerechnet !
-
-
-// double    APT_rad_max  = 9999.0;   // groessere Radien zerlegen;
-
-
-
-char      *APT_defTxt;
-
-
-
-
-int    APT_hide_parent;              // 0=not (def), else yes
 
 
 
@@ -1170,10 +954,10 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
   DB_Init  (0);
 
-  // Displist Init
-  DL_Init ();
+  // // Displist Init
+  // DL_Init ();
 
-  APT_Init ();
+  // APT_Init ();
 
   ED_Init  ();
 
@@ -1195,7 +979,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
 
-  APT_line_act = 0;
+  APT_lNr = 0;
 
   // WC_actPos_save (-1);
 
@@ -1207,8 +991,6 @@ int    APT_hide_parent;              // 0=not (def), else yes
   APT_Reset ();
 
   Grp_init ();         // clear group
-
-  APT_line_cnt = 0;  // not used !!
 
   insAnz = 0;
 /*
@@ -1263,26 +1045,10 @@ int    APT_hide_parent;              // 0=not (def), else yes
   actPosOtr.x = 0.0;
   actPosOtr.y = 0.0;
 
-  APT_tl_stat   = 0;
-  APT_tl_act    = 0;
-
-  APT_start     = OFF;
   APT_Stat_Draw = ON; 
 
-  // UT3D_pl_XYZ (&WC_sur_act);
-  // WC_sur_Z    = WC_sur1;
-
-  NC_TL_act     = -1;
-  APT_TL_Side   = 0;
-    
-  // old_APT_ObjUtr.typ = 0;            // kein weiterfuehrendes Obj.
-  // old_APT_ObjUtr.p1  = actPosUtr;    // fuer Sofortausgabe NCCmds
-
-
-  APT_stat_FROM = OFF;       // pro Main darf es nur ein FROM geben!
-
   // die UP_Liste loeschen
-  PP_up_list (NULL, NULL, -1);
+  // PP_up_list (NULL, NULL, -1);
 
 }
 
@@ -1606,7 +1372,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
   // skip it in GL-Feedback-mode !
   // this function impacts Rescale ! (GL_Rescal0)
-  if(NC_TL_act < 0) return 0;
+  // if(NC_TL_act < 0) return 0;
 
   // alle alten Tempobjekte löschen
   GL_temp_del_all ();
@@ -1776,7 +1542,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 //================================================================
   int WC_actPos_save (int mode) {
 //================================================================
-// save actPosU --> NC_stat__[APT_line_act]
+// save actPosU --> NC_stat__[APT_lNr]
 // und save actPosU als P0
 // APT_alloc1
 
@@ -1784,7 +1550,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
   Point  pt1;
 
 
-  // printf("WC_actPos_save %d %d %d %f,%f\n",mode,APT_line_act,NC_stat_IND,
+  // printf("WC_actPos_save %d %d %d %f,%f\n",mode,APT_lNr,NC_stat_IND,
           // actPosU.x,actPosU.y);
 
 
@@ -1801,22 +1567,22 @@ int    APT_hide_parent;              // 0=not (def), else yes
   }
 
 
-  if(APT_line_act < 1) {
-    printf("***** WC_actPos_save: APT_line_act=%d !?\n",APT_line_act);
+  if(APT_lNr < 1) {
+    printf("***** WC_actPos_save: APT_lNr=%d !?\n",APT_lNr);
     return 0;
   }
 
 
   // in einem MAC keine records speichern ...
   if(UP_level >= 0) {
-    // printf(" _save skip lNr %d\n",APT_line_act);
+    // printf(" _save skip lNr %d\n",APT_lNr);
     return 0;
   }
 
 
   // wegloeschen ..
   for(i1=NC_stat_IND-1; i1>=0; --i1) {
-    if(NC_stat__[i1].lNr < APT_line_act) {
+    if(NC_stat__[i1].lNr < APT_lNr) {
       NC_stat_IND = i1 + 1;
       break;
     }
@@ -1827,7 +1593,7 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
   // check space
   if(NC_stat_IND >= NC_stat_SIZ) {
-    // if(APT_line_act > 1000000) {
+    // if(APT_lNr > 1000000) {
       // printf("*********** WC_actPos_save E001\n");
       // return -1;
     // }
@@ -1837,15 +1603,12 @@ int    APT_hide_parent;              // 0=not (def), else yes
 
 
   // die actPosU merken
-  // actPosU_tab[APT_line_act] = actPosU;
-  NC_stat__[NC_stat_IND].lNr    = APT_line_act;
+  // actPosU_tab[APT_lNr] = actPosU;
+  NC_stat__[NC_stat_IND].lNr    = APT_lNr;
   NC_stat__[NC_stat_IND].actPos = actPosU;
   NC_stat__[NC_stat_IND].rpd    = NC_rapid;
   NC_stat__[NC_stat_IND].tlNr   = APT_tl_stat;  // NC_TL_act
   ++NC_stat_IND;
-
-  APT_line_old = APT_line_act;
-
 
   // die ActPos an den P0 uebergeben
   pt1 = UT3D_pt_pt2(&actPosU);
@@ -2226,15 +1989,9 @@ int    APT_hide_parent;              // 0=not (def), else yes
   // reload gesamte DB from File, also AP_box_pm1,2
   DB_load__ ("");
 
-  // reload the DYNAMIC_DATA of the actual mainModel
-  // DL_load_dynDat ();
-
-  // reload Hidelist from File
-  // GA_hide_fil_tmp (2);
-
-  // reset defCol
-  // AP_indCol = GL_DefColSet (&AP_defcol);
-  
+//   // reset defCol
+//   // reLoad defCol into GL-List
+//   GL_init_defCol (&AP_defcol);
 
 
   //----------------------------------------------------------------
@@ -2578,20 +2335,6 @@ static int errStat=0; // 0=OK
 }
 
 
-//================================================================
-  int APT_hili_last () {
-//================================================================
-// APT_hili_last             hilite last geom-obj created from WC_Work1
-// used only by MAN to display 
-
-  if(APT_dli_hili_old > 0) {
-    DL_hili_on (APT_dli_hili_old); 
-  }
-  return 0;
-
-}
-  
-
 //=======================================================================
   int WC_Work1 (int lNr, char* cbuf) {
 //=======================================================================
@@ -2653,26 +2396,31 @@ APT_stat_act:
 
 
 
-  APT_line_act  = lNr;       // only lineNr of main-model
-  APT_line_stat = 0;
   Retcod        = 0;
+  APT_lNr  = lNr;       // only lineNr of main-model
+  APT_gaNr = -1;        // unknown
+  APT_hidd = -1;        // unknown
+
   // APT_set_modMax (0);     // 2016-08-26 - dont kill value if mod too high
 
 
 
+/*
   // unhilite last hilited object
   if(APT_dli_hili_old) {
     if(APT_dli_hili_old > 0) DL_hili_off (APT_dli_hili_old);
     else                     GL_temp_del_1 (APT_dli_hili_old);
     APT_dli_hili_old = 0L;
   }
+*/
+
 
 
   if(APT_stat_act == PrgMod_normal) {
 
 /*  2005-12-09 raus; loescht Submodels !
     // vor erster Zeile: Init alles.
-    if(APT_line_act == 1) {
+    if(APT_lNr == 1) {
       //TX_Write("Line1 - Init");
       WC_Init();
       DB_Init  (0);
@@ -2686,7 +2434,7 @@ APT_stat_act:
   // (return nach CALL)
   } else if(APT_stat_act == PrgMod_skip_until_line) {
 
-    if(APT_line_act == Prg_line_nr) {
+    if(APT_lNr == Prg_line_nr) {
       ED_skip_end ();   // reset vorherigen mode (STEP oder GO
       APT_stat_act = 0;
 
@@ -2794,7 +2542,6 @@ APT_stat_act:
       if(!strcmp(w_next, APT_label)) {
         ED_skip_end ();
         APT_stat_act = 0;
-        APT_line_old = APT_line_act;
         goto L_Done;
       }
       goto Fertig;
@@ -2854,42 +2601,10 @@ APT_stat_act:
   // Ab hier gibts wirklich was zu arbeiten.
   // Do_It:
 
-  // printf("////////Start WC_Work %d |%s| %d\n",APT_line_act,w_act,APT_stat_act);
-  // printf("line_act=%d line_old=%d\n",APT_line_act,APT_line_old);
-  // printf("line_stat=%d mode=%d\n",APT_line_stat,AP_mode__);
-
-  // Notstop!!
-  //if(APT_line_cnt > 50) return -1;
-
+  // printf("////////Start WC_Work %d |%s| %d\n",APT_lNr,w_act,APT_stat_act);
 
   // nur bei Verarbeitung aus dem Memory (nicht aus File)
   if (ED_get_mac_fil() == ON) goto L_work_12;
-
-  // Wenn in dieser Zeile noch nix getan wurde:
-  if (APT_line_stat == 0) {
-    APT_line_stat = 1;
-
-/* wird von WC_actPos_reset erledigt !!!
-   // nur im Edit-Mode -
-   // wenn der User mit dem Cursor zurueckgesetzt (zur Sourcekorrektur) hat:
-   // Bei JUMP rueckwaerts deswegen APT_line_old = APT_line_act erforderlich.
-   i1 = AP_mode__;
-   if   ((APT_line_act != 1) &&
-         (i1 == AP_mode_enter) &&
-         (APT_line_act <= APT_line_old)) {
-
-      // // den letzen DL-Ind suchen. Wegen Leerzeilen gibts Luecken in der Tab.
-      // dli = APT_dlInd_get (APT_line_act-1);
-      // // und die DispList zuruecksetzen
-      // GL_Delete (dli);
-
-      //GL_Redraw();  wird sowieso nachfolgend vom Enter erledigt
-      // den aktuellen Punkt wiederherstellen
-      actPosU = actPosU_tab[APT_line_act-1];
-      actPosUtr = APT_transl2 (&actPosU);
-    }
-*/
-  }
 
   
   //----------------------------------------------------------------
@@ -2901,7 +2616,7 @@ APT_stat_act:
 
 /*
   // Demo-Mode: nur xx Zeilen abarbeiten
-  if(APT_line_act > 19) {
+  if(APT_lNr > 19) {
     if(l_irc != 25) {
       goto Fertig;
     }
@@ -3088,6 +2803,7 @@ APT_stat_act:
 
   L_Done:
   // printf(" nach APT_cut_line 2 /%s/\n",c);
+  if(ato1.typ) ATO_tmpSpc_free (&ato1);  // 2020-02-17
   // if(*c_next == '\0') goto Fertig;
   // c = c_next;
   // goto NextCmd;
@@ -3099,21 +2815,7 @@ APT_stat_act:
 
   //=============== Zeile fertig =============================================
   Fertig:
-  // printf(" APT_line_stat=%d APT_line_act=%d\n",APT_line_stat,APT_line_act);
-  if(APT_line_act < 0) goto L_exit99; // skip DYN-BLOCK-Zeilen
-
-
-
-  // Wenn in dieser Zeile was getan wurde:
-    // die actPosU merken und an P0 uebergeben
-  // if(APT_line_stat == 1)
-    // if(recTyp == 2)
-      // WC_actPos_save (1);
-
-
-  // UI_GR_set_sel_ (-1L);  // clear selection
-
-
+  if(APT_lNr < 0) goto L_exit99; // skip DYN-BLOCK-Zeilen
 
 /*
   // nur bei Verarbeitung aus dem Memory (nicht aus File)
@@ -3125,12 +2827,12 @@ APT_stat_act:
     AP_dli_act = GL_GetActInd();
 
     // wurde kein neues Objekt erzeugt: nicht speichern !
-    i1 = APT_dlInd_last (APT_line_act);
+    i1 = APT_dlInd_last (APT_lNr);
     if(i1 >= AP_dli_act) goto L_exit99;
 
-    obj_ind_tab[APT_line_act] = AP_dli_act;
-    if(APT_line_act > obj_ind_Nr) obj_ind_Nr = APT_line_act;
-    // printf("AAAAPT_line_act=%d AP_dli_act=%d\n",APT_line_act,AP_dli_act);
+    obj_ind_tab[APT_lNr] = AP_dli_act;
+    if(APT_lNr > obj_ind_Nr) obj_ind_Nr = APT_lNr;
+    // printf("AAAAPT_lNr=%d AP_dli_act=%d\n",APT_lNr,AP_dli_act);
 
   }
 */
@@ -3199,7 +2901,7 @@ APT_stat_act:
   L_next:
 
   ED_GetNxtLin (&lNr, APT_txBuf);  // ZeilenNr und Zeile einlesen
-  ++APT_line_act; // ??
+  ++APT_lNr; // ??
   // printf(" Line %d |%s|\n",lNr,APT_txBuf);
 
 
@@ -3339,7 +3041,7 @@ APT_stat_act:
   static int level=0;
 
   int            irc, i1, defTyp, basTyp, typTyp, iAtt, iPar[4];
-  long           l1, dli, dbi, gaNr, defInd;
+  long           l1, dli, dbi, defInd;
   char           *ptx;
   ObjGX          odb;
   ObjAtt         *ga1;
@@ -3403,7 +3105,7 @@ APT_stat_act:
   if(!APT_obj_stat) {
     // permanent;
     // get tempSpc for <ato1.siz> parent-records
-    MEMTAB_tmpSpc_get (&mtPar, ato1.siz);
+    MemTab_ini_temp (&mtPar, ato1.siz);
     if(MEMTAB_RMAX(&mtPar) != ato1.siz) {
       TX_Error("APT_work_def EM2");
       ATO_tmpSpc_free (&ato1);
@@ -3592,16 +3294,20 @@ APT_stat_act:
 
 
   // find GA-rec if already exist
-  gaNr = GA_find__ (basTyp, defInd);
-  if(gaNr < 0) goto L_draw;           // skip, no GA-Record exists
-    // GA_dump_1 (gaNr, stdout, "  _work_def-1");    // 2013-08-15
-
+  APT_gaNr = GA_find__ (basTyp, defInd);
+    // GA_dump__ (NULL);
+    // GA_dump_1 (APT_gaNr, stdout, "  _work_def-1");    // 2013-08-15
+    // printf(" f-GA_find__ APT_gaNr = %ld\n",APT_gaNr);
+  if(APT_gaNr < 0) goto L_draw;           // skip, no GA-Record exists
 
 
   //----------------------------------------------------------------
   // GA-record exists for active object. Get it.
-  GA_getRec (&ga1, gaNr);  // get the ga-record
+  GA_getRec (&ga1, APT_gaNr);  // get the ga-record
 
+  // if last-processed-obj is hidden; -1=unknown,0=normal-not-hidden, 1=hidden
+  APT_hidd = ga1->disp;
+    // printf(" work_def-APT_gaNr = %ld APT_hidd = %d\n",APT_gaNr,APT_hidd);
 
   // in Submodels keine hidden objects generieren ( diese sind sonst in
   // Dittos des mainmodels sichtbar!)
@@ -3612,25 +3318,19 @@ APT_stat_act:
       // i1 = GA_hide__ (8, defInd, defTyp); // ask state; 1=hidden
       // // printf(" obj %d %d = %d\n",defTyp,defInd,i1);
       // if(i1 > 0) return 0;
-      if(ga1->disp > 0) goto Fertig;
+      if(APT_hidd > 0) goto Fertig;
     // }
   }
 
 
   // if obj == hidden: preset hidden fuer naechsten DL-Record (DL_StoreObj)
-  if(ga1->disp > 0) DL_disp_def (1); // DL_disp_act = 1; // hidden
+  if(APT_hidd > 0) DL_disp_def (1); // DL_disp_act = 1; // hidden
 
 
-  // // Surf/Solid/Model: es ist eine ColRGB; LN/AC/Curve: ist ist LtypNr.
-  // iAtt = ga1->iatt;
-
-
+  //----------------------------------------------------------------
   // Typ_SUR: if (hasTexture): reset theTexturePosition in the TextureReference
-// Textur sollte nur neuberechnet werden, wenn Fläche verändert wurde ..
-// 2010-04-17 raus. RF.
   if(typTyp == Typ_PT) {
     iAtt = ga1->iatt; // iatt is a int; see GL_InitPtAtt
-
 
   //----------------------------------------------------------------
   // curve-attributes (linetyp)
@@ -3642,6 +3342,8 @@ APT_stat_act:
 
   //----------------------------------------------------------------
   // surfaces-attributes (color, symbolic, texture)
+  // Textur sollte nur neuberechnet werden, wenn Fläche verändert wurde ..
+  // 2010-04-17 raus. RF.
   } else if((basTyp == Typ_SUR) ||
             (basTyp == Typ_SOL)) {
     iAtt = ga1->iatt;       // iatt is a ColRGB
@@ -3669,7 +3371,7 @@ APT_stat_act:
   // MAN-only: store (dli,typ,dbi) of geometric-object
   // ED_active__ (AP_dli_act, defTyp, defInd, APT_subTyp);
   APT_dli_hili_old = AP_dli_act;
-  // hilite last obj in MAN: see APT_hili_last
+  // hilite last obj in MAN: see APT_hili_MAN
 
   // set isChild-bit in DispList. DL-record AP_dli_act is a Child - has parents.
   if((mtPar.rNr)&&(AP_dli_act>= 0L)) 
@@ -3695,8 +3397,8 @@ APT_stat_act:
   //----------------------------------------------------------------
   Fertig:
     // free 
-    ATO_tmpSpc_free (&ato1);
-    if(!APT_obj_stat) MEMTAB_tmpSpc_free (&mtPar);
+    if(ato1.typ) ATO_tmpSpc_free (&ato1);
+    if(!APT_obj_stat) MemTab_free ((MemTab*)&mtPar);
 
     return defTyp;
 
@@ -3719,7 +3421,7 @@ APT_stat_act:
 /// must provide memspc before with ATO_getSpc__
 /// Input:
 ///   srcLn      eg "D(0 0 1)"      // may not have objNames !
-///   mtPar      free space for parents (get with MEMTAB_tmpSpc_get)
+///   mtPar      free space for parents (get with MemTab_ini_temp)
 ///   ato        free space for atomic-objs (ATO_getSpc_siz + ATO_tmpSpc_get__)
 ///              or NULL for no output of atomic-objs
 /// Output:
@@ -3763,7 +3465,7 @@ APT_stat_act:
 
 
   // get memspc until end-of-func (alloca|malloc)
-  MEMTAB_tmpSpc_get (&mtso, itsMax);
+  MemTab_ini_temp (&mtso, itsMax);
   tso = mtso.data;
   if(tso == NULL) {TX_Print("APT_ato_par_srcLn E2"); return -1;}
 
@@ -3792,7 +3494,7 @@ APT_stat_act:
   L_exit:
   // free memspaces
   if(!iato) ATO_tmpSpc_free (ato);
-  MEMTAB_tmpSpc_free (&mtso);
+  MemTab_free ((MemTab*)&mtso);
 
   return irc;
 
@@ -3982,7 +3684,7 @@ APT_stat_act:
       // // printf(" overwrite dli=%d\n",dli);
       // DL_SetInd (dli);
       // // Overwrite the APT-LinNr (sonst kein find -> hilite moeglich)
-      // DL_SetLnr (dli, APT_line_act);
+      // DL_SetLnr (dli, APT_lNr);
     // }
   // }
 
@@ -4228,7 +3930,7 @@ APT_stat_act:
   Fertig:
   // TX_Print("ex APT_Draw__");
 
-  // UI_GR_DrawExit ();  2010-06-16 raus !
+  // GLB_DrawExit ();  2010-06-16 raus !
 
   return typ;
 
@@ -4445,10 +4147,10 @@ APT_stat_act:
 
       // printf(" lNr nach MAC: %d\n",Prg_line_nr);
     // explizit einen actPos-Record fuer das CALL speichern
-    i1 = APT_line_act;
-    APT_line_act = Prg_line_nr - 1;
-    // WC_actPos_save (1);                // actPosU merken
-    APT_line_act = i1;
+    // i1 = APT_lNr;
+    // APT_lNr = Prg_line_nr - 1;
+    // // WC_actPos_save (1);                // actPosU merken
+    // APT_lNr = i1;
 
     UP_mode = OFF;     // Rueckkehr ins Main.
     ED_lnr_mac (1);    // reset ED_lnr_bis after execute MAC
@@ -4645,16 +4347,15 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_DEFCOL:
-      // printf(" DEFCOL %f %f %f\n",ato1.val[0],ato1.val[1],ato1.val[2]);
-      // defCol wird hier zwar als neuer DL-Record angelegt; in subModels wird
-      // die DL aber geloescht, defCol muss dann mit GL_DefColSet nochmal
-      // angelegt werden !
-      AP_defcol.cr = (unsigned char)strtod (p1, &p2);      //ato1.val[0];
+        // printf("  _AppCodTab |%s|%s\n",cmd,*data);
+      AP_defcol.cr = (unsigned char)strtod (*data, &p2);   //ato1.val[0];
       AP_defcol.cg = (unsigned char)strtod (p2, &p1);      //ato1.val[1];
       AP_defcol.cb = (unsigned char)strtod (p1, &p2);      //ato1.val[2];
       // AP_indCol = GL_DefColSet (&AP_defcol);
-      APcol_actColTra (&AP_defcol); // set AP_actcol 2017-04-21
-      GL_DefColSet (&AP_defcol);    // set GL_defCol
+        // UTcol_dump (&AP_defcol, "TAC_DEFCOL:");
+      GL_init_defCol (&AP_defcol);
+      APcol_actColTra (&AP_defcol); // set AP_actcol
+      // GL_DefColSet (&AP_defcol);    // set GL_defCol
       return 0;
 
   }
@@ -4812,7 +4513,7 @@ APT_stat_act:
           GA_dump__ (NULL);
 
         } else if(!strcmp (auxBuf, "DL")) {
-          DL_DumpObjTab ();
+          DL_DumpObjTab ("");
 
         } else if(!strcmp (auxBuf, "AT")) {
           GL_AttTab_dump__ ();
@@ -5245,7 +4946,7 @@ Ablauf Makro:
     // APT_macnam - upName
     // APT_filnam - fileName (nur bei CALL File)
     // UP_level
-    // UP_level_adr  =  APT_line_act + 1;
+    // UP_level_adr  =  APT_lNr + 1;
     // UP_level_typ  =  UP_act_typ
     // UP_level_src  =  'P' (Prog) od 'F' (File)
 
@@ -5411,10 +5112,10 @@ Ablauf Makro:
       // printf(" lNr nach MAC: %d\n",Prg_line_nr);
 
     // explizit einen actPos-Record fuer das CALL speichern
-    i1 = APT_line_act;
-    APT_line_act = Prg_line_nr - 1;
+    i1 = APT_lNr;
+    APT_lNr = Prg_line_nr - 1;
     // WC_actPos_save (1);                // actPosU merken
-    APT_line_act = i1;
+    APT_lNr = i1;
 
     UP_mode = OFF;     // Rueckkehr ins Main.
     ED_lnr_mac (1);    // reset ED_lnr_bis after execute MAC
@@ -5946,7 +5647,7 @@ Ablauf Makro:
     // APT_macnam - upName
     // APT_filnam - fileName (nur bei CALL File)
     // UP_level
-    // UP_level_adr  =  APT_line_act + 1;
+    // UP_level_adr  =  APT_lNr + 1;
     // UP_level_typ  =  UP_act_typ
     // UP_level_src  =  'P' (Prog) od 'F' (File)
 
@@ -6874,7 +6575,7 @@ Ablauf Makro:
           iCol = 0;
           sscanf(&s1[1],"%02x%02x%02x",&i1,&i2,&i3);   // get col out of string
             printf(" col1 = %d %d %d\n",i1,i2,i3);
-          Col_set__ (&col1, i1,i2,i3);
+          UTcol__3i (&col1, i1,i2,i3);
 
         } else {
           iAtt = 1;
@@ -7162,7 +6863,7 @@ Ablauf Makro:
   int APT_line_set (int i1) {
 //================================================================
  
-  APT_line_act = i1;
+  APT_lNr = i1;
 
   return 0;
 }
@@ -7171,10 +6872,10 @@ Ablauf Makro:
 //================================================================
   int APT_get_line_act () {
 //================================================================
-// APT_get_line_act  return APT_line_act
+// APT_get_line_act  return APT_lNr
 // returns lineNr of calling main
 
-  return APT_line_act;
+  return APT_lNr;
 
 }
 
@@ -7182,7 +6883,7 @@ Ablauf Makro:
 //======================================================================
   int APT_UP_get () {
 //======================================================================
-/// returns APT_line_act of calling line ..
+/// returns APT_lNr of calling line ..
 /// DO NOT USE - 
 
   printf("APT_UP_get UP_level=%d\n",UP_level);
@@ -7191,7 +6892,7 @@ Ablauf Makro:
   // if(UP_level >= 0) return UP_level_adr[UP_level] - 1;
   if(UP_level >= 0) return UP_level_adr[0] - 1;
 
-  return APT_line_act;
+  return APT_lNr;
 
 }
 
@@ -7213,7 +6914,7 @@ Ablauf Makro:
   }
 
 
-  UP_level_adr[UP_level] = APT_line_act + 1;
+  UP_level_adr[UP_level] = APT_lNr + 1;
   UP_level_typ[UP_level] = UP_act_typ;
   UP_level_src[UP_level] = src;
 
@@ -8363,8 +8064,8 @@ Ablauf Makro:
 
     // Fortsetzungszeile holen
     //ED_GetNxtLin (&i1, APT_txBuf);
-    ++APT_line_act;
-    UTF_GetLinNr (APT_txBuf, &i2, APT_line_act);
+    ++APT_lNr;
+    UTF_GetLinNr (APT_txBuf, &i2, APT_lNr);
     //UTX_CleanCR (APT_txBuf);   // foll. blanks usw weg
     //TX_Print(" got NxtLin |%s|",APT_txBuf);
 
@@ -10068,29 +9769,28 @@ Bei Typ_LN ist zum nachfolgenden Schnittpunktberechnen usw
 }
 
 
-
+/*
 //=============================================================================
   int PP_up_list (NC_up_rec **upAct, char* macnam, int workmode) {
 //=============================================================================
-/*
-init this list mit PP_up_list (NULL, NULL, -1);
-Reset this list to APT-LineNr lnr mit PP_up_list (NULL, NULL, lNr);
-
-Speichert nur Names; wenn Name vorhanden: RC=OFF,
- else RC=ON.
-
-Input:
-  macnam       NULL: Reset-Funktion
-  workmode     1=CUT, 2=REV, 3=POCK 4=SEP_CUT, 5=SEP_REV
-               -1=InitList; -2=Dump;
-
-Output:
-  upAct       Pointer to the active (open) NC_up_rec
-  Retcod:     Index of NC_up_tab, -1=EOM-Error;
-    0 = ganz neu (gespeichert)
-    1 = schon mal angefragt, Ditto existiert.
-   -1 = EOM-Error
-*/
+// 
+// init this list mit PP_up_list (NULL, NULL, -1);
+// Reset this list to APT-LineNr lnr mit PP_up_list (NULL, NULL, lNr);
+// 
+// Speichert nur Names; wenn Name vorhanden: RC=OFF,
+//  else RC=ON.
+// 
+// Input:
+//   macnam       NULL: Reset-Funktion
+//   workmode     1=CUT, 2=REV, 3=POCK 4=SEP_CUT, 5=SEP_REV
+//                -1=InitList; -2=Dump;
+// 
+// Output:
+//   upAct       Pointer to the active (open) NC_up_rec
+//   Retcod:     Index of NC_up_tab, -1=EOM-Error;
+//     0 = ganz neu (gespeichert)
+//     1 = schon mal angefragt, Ditto existiert.
+//    -1 = EOM-Error
 
 
   // static char  uplist[NC_UPLISTSIZ][32];
@@ -10163,7 +9863,7 @@ Output:
   // printf("PP_up_list save %d %s\n",i1,macnam);
   strcpy (NC_up_tab[upNr].cNam, macnam);
   NC_up_tab[upNr].mode = workmode;
-  NC_up_tab[upNr].lNr  = APT_line_act;
+  NC_up_tab[upNr].lNr  = APT_lNr;
 
   *upAct = &NC_up_tab[upNr];
   irc = 0;
@@ -10175,9 +9875,8 @@ Output:
     // printf("ex PP_up_list rc=%d |%s|\n",irc,macnam);
   return irc;
 
-
-
 }
+*/
 
 /*===========================================================================*/
   void APT_get_dreh (int *Dreh, double *rad_o, double rad_i) {

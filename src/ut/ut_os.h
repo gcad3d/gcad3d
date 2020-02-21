@@ -50,6 +50,7 @@ Korr:
   char*  OS_get_printer   ();
   char*  OS_get_imgConv1  ();
   char*  OS_get_vwr_ps    ();
+  int    OS_get_GUI       ();
   char*  OS_os_s          ();
 
   char*  OS_get_dir_pwd   ();

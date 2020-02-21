@@ -420,10 +420,11 @@ cl -c /I ..\include xa_ui_cad.c
 #include "../ut/ut_gtypes.h"      // AP_src_typ__
 #include "../ut/ut_ox_base.h"     // OGX_SET_OBJ OGX_NUL
 #include "../ut/ut_obj.h"         // UTO_
+#include "../ut/func_types.h"          // FUNC_DispWire
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"         // Gtk3
 
-#include "../ut/func_types.h"          // FUNC_DispWire
 #include "../gr/ut_GL.h"          // GL_Redraw
 #include "../gr/ut_DL.h"          // DL_Redraw
 
@@ -436,7 +437,7 @@ cl -c /I ..\include xa_ui_cad.c
 #include "../xa/xa.h"             // APED_oid_dbo__
 #include "../xa/xa_edi__.h"       // ED_Get_LineNr ED_enter
 #include "../xa/xa_ui.h"
-#include "../xa/xa_ui_gr.h"       // UI_GR_DrawInit UI_GR_DrawExit
+#include "../xa/xa_ui_gr.h"       // GLB_DrawInit GLB_DrawExit
 #include "../xa/xa_ui_cad.h"
 #include "../xa/xa_cad_ed1.h"
 #include "../xa/xa_undo.h"
@@ -736,16 +737,19 @@ Axis can be defined by -
  - Typ_PLN - eg "A cylindr.Surf(Axis,Rad.)"
 
 ......................................................................
-Add-on parameters in IE_rec_stru.info; eg "|1" or "||DD0"  (see ?)
+Add-on parameters in IE_rec_stru.info:
   separator "|"   - definition of preLoad-text; see IE_wCad_preLoad
-  separator "||"  -
-    see IE_inpAuxDat[filedNr].subTyp  (set in IE_cad_init1)
+  separator "||"  - definition of auxil. infos  in IE_inpAuxDat[].auxInf
+ auxInf-codes:
+   M16  set APT_modMax1 = 6
    Ax#  display angle; see IE_cad_Inp_disp_ang
    DD#  display vector; see IE_cad_Inp_disp_vc
         character 3 of auxInf gives the fieldIndex of the positionPoint
+ Examples:
+   "xxx|0|M16"   preload 0 and set APT_modMax1 = 6
 
-
-
+  Load IE_wCad_preLoad and IE_inpAuxDat in IE_cad_init1
+  Process IE_wCad_preLoad and IE_inpAuxDat in IE_cad_InpIn__
 
 
 
@@ -1465,8 +1469,8 @@ static IE_rec_stru IE_cad_n[]={
    9, Typ_String,  "Text",
   // "N Symbol",                 "LDRS",    //                 ex TAG 5,6,7
   10, Typ_PT,      "SymbolPosition",
-  10, Typ_Txt,     "[symbolTyp]|0",
-  10, Typ_Txt,     "[color (0-7)]",
+  10, Typ_Txt,     "[symbolTyp (0-6)]|0|M16",
+  10, Typ_Txt,     "[color (0-8)]||M18",
   10, Typ_go_PD,   "[Endpoint/Vector]",
   // "N Image Pos,Filename",     "IMG",
   11, Typ_PT,      "ImagePosition",
@@ -4725,6 +4729,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   //------------------------------------------------------
   // print info into Menulines and -
   // get preloadText out of .info into IE_wCad_preLoad
+  // get auXInf (after second '|') into IE_inpAuxDat.auxInf
   nObjR=0;   // index inputField
   for(i1=IE_first; i1<=IE_last; ++i1) {
       // printf(" inp:iCad=%d ind=%d inf=|%s|\n",i1,nObjR,IE_cad_act[i1].info);
@@ -4735,9 +4740,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     // if(IE_cad_act[i1].typ == Typ_Subtyp) continue;
     strcpy(cbuf, IE_cad_act[i1].info);
     // split info DefaultText abtrennen
+    p2 = NULL;
     p1 = strchr(cbuf, '|');
     if(p1) {
-      // i2 = p1 - cbuf;  // length of displayText
       *p1 = '\0';
       ++p1;  // pointer to preloadText
       p2 = strchr(p1, '|');
@@ -4745,7 +4750,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
         // keep input-subTypes
         *p2 = '\0';
         ++p2;
-        // save subtypes
+          printf(" cad_init1-auxInf |%s|\n",p2);
+        // save subtypes (copy string following "||" -> IE_inpAuxDat.auxInf
         strcpy(IE_inpAuxDat[nObjR].auxInf, p2);
 
       } else {
@@ -4753,13 +4759,23 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
         IE_inpAuxDat[nObjR].auxInf[0] = '\0';
       }
       // save preloadText
-      strcpy(IE_wCad_preLoad[nObjR], p1);
-
+      if(p2) {
+        i2 = p2 - p1;
+        if(i2 > 1) {
+          strncpy(IE_wCad_preLoad[nObjR], p1, i2);
+          IE_wCad_preLoad[nObjR][i2] = '\0';
+        }
+      } else {
+        strcpy(IE_wCad_preLoad[nObjR], p1);
+      }
+        printf(" cad_init1-IE_wCad_preLoad |%s|\n",IE_wCad_preLoad[nObjR]);
 
     } else {
       IE_wCad_preLoad[nObjR][0] = '\0';
       IE_inpAuxDat[nObjR].auxInf[0] = '\0';
     }
+
+
     // write whole .info = displayText
     GUI_label_mod (&IE_wCad_info[nObjR], cbuf);
     IE_info_col_set (0, nObjR);  // clear color   // 2014-04-06
@@ -6537,7 +6553,7 @@ static IE_info_rec IE_info_tab[] = {
  Typ_goGeoSUSU,"Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf",
  Typ_Tra,      "Key PgUp/Dwn (select Transformation)",
  Typ_mod2,     "Key PgUp/Dwn",
- Typ_mod1, "Key PgUp/Dwn (selects alternate versions)",
+ Typ_mod1,     "Key PgUp/Dwn (selects alternate versions)",
  Typ_modCWCCW, "ReversButton; PgUp/Dwn; Key \"CW\" (clockwise)",
  Typ_modCTRL,  "Key PgUp / PgDwn  (\"CTRL\" = Controlpoints)",
  // Typ_modInOut, "Sel IN / OUT",
@@ -6549,7 +6565,7 @@ static IE_info_rec IE_info_tab[] = {
  Typ_SubModel, "Key Modelname / middle Mousebutt.(F5) / sel.Model",
  Typ_Str_Dir1, "Key X / Y / Z / P / PgUp/Dwn",
  Typ_Val_symTyp, "Key 0 (Star) 1 (Tria.) 2 (Circ) 3 (Rec.)"
-                 " 4 (VecNorm) 5 (Vec) / PgUp/Dwn",
+               " 4 (VecNorm) 5 (Vec) / PgUp/Dwn",
  Typ_apDat,    "Key application-specific data",
  Typ_Group,    "Sel obj's to add to group; exit with Tab-key",
  -1,           ""};
@@ -7277,7 +7293,7 @@ static IE_info_rec IE_info_tab[] = {
   double d1;
     
       
-  // printf("IE_cad_Inp1_nxtTxt %d\n",mode);
+  printf("IE_cad_Inp1_nxtTxt %d\n",mode);
   
   p1 = IE_get_inp__(IE_inpInd);
     // printf(" inp=|%s| %ld\n",p1,strlen(p1));
@@ -7289,6 +7305,8 @@ static IE_info_rec IE_info_tab[] = {
   } else {
     if(iMod == 1) maxVal = APT_get_modMax1();
     else          maxVal = APT_get_modMax2();
+      printf(" Inp1_nxtTxt-maxVal = %d\n",maxVal);
+
     // decode active value -> i1
     i1 = atoi(IE_get_inp__(IE_inpInd));
     i1 += mode;
@@ -7944,15 +7962,15 @@ static IE_info_rec IE_info_tab[] = {
   char  *p1;
   
   
-  printf("IE_inp_ck_empty IE_inpAnz=%d\n",IE_inpAnz);
+  // printf("IE_inp_ck_empty IE_inpAnz=%d\n",IE_inpAnz);
 
   for(i1=0; i1<IE_inpAnz; ++i1)  {
     p1 = GUI_entry_get (&IE_wCad_obj[i1]);
-      printf(" ie[%d]=|%s|\n",i1,p1);
+      // printf(" ie[%d]=|%s|\n",i1,p1);
     if(strlen(p1) > 0) return 0;
   }
 
-    printf("ex-_ck_empty-irc=1\n");
+    // printf("ex-_ck_empty-irc=1\n");
 
   return 1;
 
@@ -8242,6 +8260,19 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // test preload
     irc = IE_cad_test__ ();
   }
+
+  // process auxInf
+  if(IE_inpAuxDat[IE_inpInd].auxInf[0]) {
+    pi = IE_inpAuxDat[IE_inpInd].auxInf;
+      // printf(" _InpIn__-auxInf |%s|\n",IE_inpAuxDat[IE_inpInd].auxInf);
+    // check for "M1" - APT_modMax1
+    if(!strncmp(pi, "M1", 2)) {
+      APT_set_modMax (atoi(&pi[2]));
+        printf(" _InpIn__-APT_modMax1 = %d\n",APT_get_modMax1());
+    } else printf("****** IE_cad_InpIn__-auxInf unused |%s|\n",pi);
+
+  }
+
 
 
   goto L_exit;

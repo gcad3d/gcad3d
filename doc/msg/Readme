@@ -1,11 +1,3 @@
-Tools for manipulating the language-files: see INF_MSG_new
-
-../../src/APP/lang_ins.csh CAD_On 'VWR_On=VWR: zoom/pan with mouse and shift/ctrl-key; select obj to analyze'
-../../src/APP/lang_ins.csh FILT03 FILT04=select or keyIn obj to dump ..
-
-
-vi msg_de.txt msg_en.txt msg_es.txt msg_fr.txt msg_it.txt
-
 UNUSED:
       MSG_Tip ("MMdsps"); //
       MSG_Tip ("MMdspsr"); //

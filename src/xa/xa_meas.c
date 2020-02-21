@@ -76,12 +76,13 @@ inputfields:  Meas_e1, Meas_e2
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/func_types.h"               // UI_FuncInit
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../ci/NC_apt.h"              // T_PRJ
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../ut/func_types.h"               // UI_FuncInit
 #include "../gr/ut_GL.h"               // GL_get_Scale
 
 #include "../xa/xa_msg.h"              // MSG_..

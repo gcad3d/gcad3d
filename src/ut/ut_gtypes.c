@@ -357,7 +357,7 @@ char  *ObjCodTab[] = {
   }
 
 
-    // printf("ex APED_oid_dbo_all |%s| %d %ld %ld\n",oid, typ, dbi, dli);
+    // printf("ex-APED_oid_dbo_all |%s| %d %ld %ld\n",oid, typ, dbi, dli);
 
 
   return irc;
@@ -594,6 +594,8 @@ char  *ObjCodTab[] = {
   double    dx, dy, dz;
   char      *vcTab[]={NULL,"DX","DY","DZ","DIX","DIY","DIZ"};
 
+  
+  // printf("APED_oid_vc %f %f %f\n",vc1->dx,vc1->dy,vc1->dz);
 
   i1 = UT3D_vc_ck_std (vc1);  // check for defaultVector (DX DY DZ DIX DIY DIZ)
   if(!i1) { cbuf[0] = '\0'; return 0; }

@@ -947,7 +947,7 @@ static char *fnam;
   char fnTmp[256], fn1[256];
 
 
-  // printf("Mod_sav_ck %d\n",mode);
+  printf("Mod_sav_ck %d\n",mode);
 
 
   sprintf(fnTmp, "%sMod_in", OS_get_tmp_dir());
@@ -971,8 +971,8 @@ static char *fnam;
   // compare Mod_in - Model
   // irc = OS_file_compare_A (fnTmp, fn1);
   irc = Mod_sav_cmp__ (fnTmp, fn1);
-    // printf(" Mod_sav_ck compare=%d\n",irc);
 
+    printf(" ex-Mod_sav_ck = %d\n",irc);
 
   return irc;
 
@@ -1159,7 +1159,9 @@ static char *fnam;
 /// Mod_sav_i         save Model+Submodels into tempDir as "Model" native
 /// Input:
 ///   filNam     outfilename absolute
-///   savActMdl  0=save active model, 1=do not save active model
+///   savActMdl  0=save active model,
+///              1=do not save active model
+///             -1=create empty model
 ///
 /// - savActMdl=0:    save the active Submodel AP_modact_nam -> File
 /// - join all files tmp/Model_* into file tmp/Model
@@ -1184,7 +1186,7 @@ static char *fnam;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
-  // printf("Mod_sav_i savActMdl=%d\n",savActMdl);
+  printf("Mod_sav_i savActMdl=%d\n",savActMdl);
 
   irc = -1;
 
@@ -1192,15 +1194,22 @@ static char *fnam;
 
 
   // fix box if necessary
-  if(AP_mdlbox_invalid_ck()) {
-    // get box of active model
-    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
-    AP_mdlbox_invalid_reset ();
+  if(savActMdl >= 0) {
+    // model not empty
+    if(AP_mdlbox_invalid_ck()) {
+      // get box of active model
+      UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
+      AP_mdlbox_invalid_reset ();  // set box valid
+    }
+  } else {
+    // model is empty;
+    AP_mdlbox_invalid_set (); // set box invaild
   }
 
 
   // save the active sub- or mainmodel AP_modact_nam -> TempFile
-  if(!savActMdl) Mod_sav_tmp ();
+  // if(!savActMdl) Mod_sav_tmp ();
+  if(savActMdl <= 0) Mod_sav_tmp ();
 
 
   // get lists of all subModels, PTAB-Surfs and MSH-Surfs of subModelfiles
@@ -1415,7 +1424,7 @@ static char *fnam;
   FILE     *fp1;
 
 
-  // printf("Mod_savSubBuf1 |%s|\n",modNam);
+  // printf("Mod_savSubBuf1 |%s| %d\n",modNam,modSiz);
 
 
   sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),modNam);
@@ -2094,6 +2103,8 @@ static char *fnam;
 
   // printf("Mod_sym_get__ |%s|\n",inPath);
 
+  symDir[0] = '\0';
+  absDir[0] = '\0';
 
   if(!inPath) goto L_err1;
   if(strlen(inPath) < 1) goto L_err1;
@@ -2288,14 +2299,15 @@ static char *fnam;
 
   // separate/copy directory,fileName,fileTyp of full filename
   UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, fn);
-    // printf("ex-UTX_fnam__ |%s|%s|%s|\n",AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
+    printf("ex-UTX_fnam__ |%s|%s|%s|\n",AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
 
   // get integer-filetyp of AP_mod_ftyp
   AP_mod_iftyp = AP_iftyp_ftyp (AP_mod_ftyp);
  
   // get  symDir from directory 
   irc = Mod_sym_dir__ (AP_mod_sym, AP_mod_dir, OS_get_bas_dir());
-    // printf("ex-Mod_fNam_get irc=%d |%s|%s|\n",irc,AP_mod_sym,AP_mod_dir);
+    printf("ex-Mod_fNam_get irc=%d iftyp=%d sym dir |%s|%s|\n",
+           irc, AP_mod_iftyp, AP_mod_sym, AP_mod_dir);
 
   return irc;
 
@@ -2373,7 +2385,7 @@ static char *fnam;
 ///     -1      Symbol from in_path not found in file
 /// \endcode
 
-  int     irc;
+  int     irc=0;
   char    fn[256], *p1;
 
 
@@ -2390,7 +2402,7 @@ static char *fnam;
   p1 = strchr (absDir, '$');
   if(p1) {
     // expand shell variables
-    OS_filnam_eval (absDir, absDir, 128);
+    irc = OS_filnam_eval (absDir, absDir, 128);
   }
 
     // printf("ex-Mod_sym_getAbs |%s|%s|\n",absDir,symDir);
@@ -2515,6 +2527,7 @@ static char *fnam;
 ///         -1    in_path not found in file
 /// \endcode
 
+  int     irc = 0;
   char    s1[256], s2[256], *p1, *p2;
   FILE    *fpi;
 
@@ -2560,7 +2573,7 @@ static char *fnam;
     p2 = strchr (s2, '$');
     if(p2) {
       // expand shell variables
-      OS_filnam_eval (s2, s2, sizeof(s2));
+      irc = OS_filnam_eval (s2, s2, sizeof(s2));
     }
 
     // compare
@@ -2573,7 +2586,7 @@ static char *fnam;
 
     // printf("ex Mod_sym_get2 |%s|%s|\n",out_sym,in_path);
 
-  return 0;
+  return irc;
 
 }
 
@@ -2841,7 +2854,7 @@ static ModelRef modR2;
 //====================================================================
 /// - alle tmp/Model_* loeschen
 /// - alle tmp/*.tess loeschen
-///
+/// must NOT kill MdlLst.txt (list of models last used)
 /// see also OS_file_delete OS_file_delGrp
 
   char  cbuf[256];
@@ -2923,7 +2936,9 @@ static ModelRef modR2;
 
   //----------------------------------------------------------
   // - alle tmp/Model_* loeschen
-  if(mode == 0) Mod_kill__ ();
+  if(mode == 0) {
+    Mod_kill__ ();
+  }
 
   if(mode == 2) goto L_load;
 
@@ -3061,7 +3076,6 @@ static ModelRef modR2;
   if(fpo) fclose(fpo);
 
 
-
   //----------------------------------------------------------
   // Submodel tmp/Model_ (-main-) laden
   L_load:
@@ -3080,11 +3094,9 @@ static ModelRef modR2;
   // work, then delete  DYNAMIC_DATA - Block
   ED_work_dyn ();
 
-
   if(dbResiz == 0) {
     APED_search_dbLimits (lTab);          // search highest indices in Model
     DB_size_set (lTab);                   // increase DB-size
-
   }
 
 

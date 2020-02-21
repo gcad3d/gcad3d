@@ -16,11 +16,13 @@
  *
 -----------------------------------------------------
 TODO:
+- Anzeige wenn RemoteControl aktiv ist.
+- Anzeige wenn RemoteControl "waiting-for-input" 
+
   // TODO: CTRL_read__: skip \n inside "textStrings"
   Checkbox RemoteControl (statt Plugin);
   einen StartupParameter für RemoteControl=ON|OFF;
   remote control nur in VWR, nicht MAN, CAD;
-  Anzeige wenn RemoteControl aktiv ist.
 
 -----------------------------------------------------
 Modifications:
@@ -95,6 +97,7 @@ The mainTimer calls CTRL_CB__ periodically;
 #include "../ut/ut_txt.h"                // UTX_pos_skipLeadBlk
 #include "../ut/ut_os.h"                 // OS_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui_types.h"            // GUI_KeyEsc
 
@@ -128,6 +131,7 @@ static int   iUserCB = 0;
 
 static char sBufOut[280];
 
+static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 
 
 //_____________________________________
@@ -142,7 +146,6 @@ static char sBufOut[280];
 //================================================================
 // callback from mainTimer; test for input in inputpipe "CTRLpin".
  
-static int ctrlStat = 0;
 
   int     irc, ii;
   char    *cmdLn;
@@ -157,9 +160,10 @@ static int ctrlStat = 0;
 
   // GUI_update__ (); // makes freeze complete in 2.24
 
-  if(!ctrlStat) {
 
-    //===== init pipes ===============================================
+  //================================================================
+  if(ctrlStat == 0) {
+    // init pipes
       printf(" init pipes ..\n");
 
 
@@ -189,10 +193,22 @@ static int ctrlStat = 0;
     }
   }
 
+  
+  //================================================================
+  if(ctrlStat == 2) {
+    // waiting-for-input
+    irc = UI_askEscape ();
+    if(irc < 0) {
+      ctrlStat = 1;  // reset, continue ..
+    } else {
+      return 1;      // wait for next timerCB
+    }
+  }
+
 
   //===== read, work, write ========================================
   L_nxt:
-    // printf("CTRL_CB__ \n");
+    // printf("CTRL_CB__ L_nxt:\n");
 
 
   // get input from pipe, test if input is complete 
@@ -205,10 +221,7 @@ static int ctrlStat = 0;
   // remote-command exists, execute ..
   irc = CTRL_CB_do__ (cmdLn);
     // printf(" after CTRL_CB_do__ %d\n",irc);
-
-
-
-  if(irc == 1) return 1;    // wait for user-selection
+  if(irc == 1) return 1;    // wait for user-selection or key-in
 
 
   goto L_nxt;
@@ -230,10 +243,10 @@ static int ctrlStat = 0;
 // executes commands.
 
  
-  int    i1;
+  int    irc, i1;
   long   l1, dli;
   double d1;
-  char   cmd[64], s1[64], s2[128], s3[128], 
+  char   cmd[64], s1[64], s2[128], s3[256], 
          *wPos1, *wPos2, *wPos3, *p1, cd;
   // char   *cmdTab[] = {
          // "PRINT", "VIEW", "SHOW",    "ATTL", "ATTS",
@@ -289,9 +302,10 @@ static int ctrlStat = 0;
 
 
 
-    // TESTDISPLAY
+    // TESTBLOCK
     // printf(" cmd=|%s|\n",cmd);
     // if(wPos1) printf(" wPos1=|%s|\n",wPos1);
+    // END TESTBLOCK
 
 
 
@@ -333,7 +347,8 @@ static int ctrlStat = 0;
   //----------------------------------------------------------------
   // new           see also UI_menCB "new"
   if(!strcmp(cmd, "NEW")) {
-    AP_src_new(1);
+    // AP_src_new(1);
+    UI_men__ ("new");
 
 
   //----------------------------------------------------------------
@@ -371,8 +386,9 @@ static int ctrlStat = 0;
   // does NOT check model-is-modified
   } else if(!strcmp(cmd, "LOAD")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    Mod_fNam_get (wPos1);
-    AP_Mod_load__ (0);                   // load
+    // Mod_fNam_get (wPos1);
+    // AP_Mod_load__ (0);                   // load
+    AP_Mod_load_fn (wPos1, 0);
   
 
   
@@ -392,6 +408,27 @@ static int ctrlStat = 0;
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
     i1 = Tex_addBas1 (wPos1, 1);                    // load texture
 
+
+
+
+
+  //----------------------------------------------------------------
+  // APP   application
+  } else if(!strcmp(cmd, "APP")) {
+    wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
+      printf(" start app. |%s|\n",wPos1);
+    // find last '/' or '\\'
+    p1 = strrchr (wPos1, fnam_del);
+    if(!p1) goto L_err_par;
+    ++p1;
+    // copy path -> s3
+    i1 = p1 - wPos1;
+    strncpy(s3, wPos1, i1);
+    s3[i1] = '\0';
+    irc = PRG_CB  (p1, s3);
+    if(irc < 0) return -1;
+    // TEST ONLY PRG_CB  ("CirPat.gcap", "/home/fwork/gCAD3D/prg/");
+    PRG_start ();
 
 
   //----------------------------------------------------------------
@@ -508,9 +545,16 @@ static int ctrlStat = 0;
   } else if(!strcmp(cmd, "WAIT_ESC")) {
     // iUserCB = 1;                           // block RemCmd-input
     TX_Print("***** waiting for ESC - key ... ");
-    UI_wait_Esc ();
-    // UI_block__ (-1, 0, 0);                 // reset input & cursor
-    goto L_done;
+    ctrlStat = 2;             // waiting-for-input
+    // DL_Redraw ();
+    UI_block__ (0, 0, 0);                 // reset input & cursor
+    // UI_wait_Esc ();
+    // UI_block__ (1, 1, 1);                 // reset input & cursor
+      return 1;      // wait for next timerCB
+
+//     UI_wait_Esc ();
+//     // UI_block__ (-1, 0, 0);                 // reset input & cursor
+//     goto L_done;
 
 
 

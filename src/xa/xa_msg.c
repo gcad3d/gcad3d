@@ -216,6 +216,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 #include "../db/ut_DB.h"               // DB_mdlNam_iBas
 #include "../xa/xa_msg.h"              // MSG_read
 #include "../xa/xa.h"                  // APP_act_nam AP_lang
+#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc501
 
 
@@ -238,27 +239,29 @@ static char   MSG_buf[MSG_bSiz];
 //================================================================
 
 char *MSG_ERR_txt[]={
-  "*** INF:",      // iSev = 0 = ?
-  "*** WNG:",      // iSev = 0 = ?
-  "*** ERROR:"     // iSev = 0 = ?
-  "*** BREAK:"     // iSev = 0 = ?
+  "*** INF:",      // iSev = 0
+  "*** WNG:",      // iSev = 1
+  "*** ERROR:"     // iSev = 2
+  "*** BREAK:"     // iSev = 3
 };
 
 
 /// messages for MSG_ERR_out MSG_ERR__
 char *MSG_ERR_tab[]={
-  "internal error - exit",                ///< 0 internal Error,
-  "memtab out of memory error",           ///< 1 error, exit right now
-  "not implemented yet error - exit",     ///< 1 error, exit right now
-  "not implemented yet error - info",     ///< 2 info only - TODO
-  "function not implemented",             ///< 3 func_not_impl,
-  "subModel undefined",                   ///< 4 subModel_undefined,
-  "DB-object undefined",                  ///< 5 db_obj_undefined,
-  "file open",                            ///< 6 file_open,
-  "testExit",                             ///< 7 testExit,
-  "OBSOLETE",
-  "unsupported",
-  "uu"
+  "internal error - exit",                ///< 3 99 internal Error,
+  "memtab out of memory error",           ///< 2 98 error, exit right now
+  "not implemented yet error - exit",     ///< 2 97 error, exit right now
+  "memspace already in use",              ///< 2 96 ERR_MEMSPC_IN_USE
+  "not implemented yet error - info",     ///< 2 95 info only - TODO
+  "function not implemented",             ///< 1 94 func_not_impl,
+  "subModel undefined",                   ///< 1 93 subModel_undefined,
+  "DB-object undefined",                  ///< 1 92 db_obj_undefined,
+  "file open",                            ///< 1 91 file_open,
+  "testExit",                             ///< 1 90 testExit,
+  "OBSOLETE",                             ///< 0 89 
+  "unsupported",                          ///< 0 88 
+  "canceled by user",                     ///< 0 87 ERR_USER_ABORT
+  "uu"                                    ///< -
 };
 
 

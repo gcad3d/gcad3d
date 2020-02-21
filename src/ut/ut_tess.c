@@ -97,8 +97,9 @@ wrl_reloc__         see also tess_reloc_f_
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_ ..
-
 #include "../ut/func_types.h"               // SYM_STAR_S
+#include "../ut/ut_memTab.h"           // MemTab
+
 #include "../xa/xa_mem.h"              // memspc501
 
 
@@ -226,7 +227,7 @@ int tess_analyz_CB (ObjGX*);
 
   // get filename fnam.tess & check if pretesselated file exists
   i1 = tess_fnam (cBuf, mnam);
-    printf("ex-tess_fnam %d |%s|\n",i1,cBuf);
+    // printf("ex-tess_fnam %d |%s|\n",i1,cBuf);
   if(i1 < 0) return i1;
 
   // tesselate

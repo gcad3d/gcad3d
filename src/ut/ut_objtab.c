@@ -34,7 +34,6 @@ void OTB(){}
 =====================================================
 List_functions_start:
 
-OTB_malloc              init ObjTab - malloc
 OTB_init                give spc1 to oTyp oTab bbox, give spc2 to oSpc
 OTB_reset__             reset oTyp,oDat,oSpc [xdat]
 OTB_free
@@ -56,6 +55,7 @@ List_functions_end:
 
 ObjTab =  list of [oTyp, pointer to obj, Memspc for obj, aux.obj]
 
+unused: OTB_malloc              init ObjTab - malloc
 
 \endcode *//*----------------------------------------
 
@@ -265,7 +265,7 @@ gcad_src.mak
 }
  
 
-// UU
+/* unused
 //========================================================================
  int OTB_malloc (ObjTab *oTab, int rNr, int xTyp, int siz2) {
 //========================================================================
@@ -317,7 +317,7 @@ gcad_src.mak
   return 0;
 
 }
-
+*/
 
 //================================================================
   int OTB_init (ObjTab *oTab, int xTyp, int fmtb,
@@ -377,7 +377,7 @@ gcad_src.mak
 
   oTab->oNr    = 0;
   oTab->oSiz   = rNr;
-  oTab->spcTyp = MEMTYP_FIXED_PROT;
+  oTab->spcTyp = MEMTYP_STACK__;
   oTab->xTyp   = xTyp;
   oTab->fmtb   = fmtb;
 

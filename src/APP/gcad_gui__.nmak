@@ -1,5 +1,5 @@
 # use mit nmake -f cad_gui__.nmak
-# creates ..\binMS32\ckitgui_gtk2_MS.lib
+# creates <OUTDIR>ckitgui_gtk2_MS.lib
 
 
 

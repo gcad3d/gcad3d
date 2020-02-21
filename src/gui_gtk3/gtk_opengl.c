@@ -104,6 +104,7 @@ static int       statMK=0;                        // state modifier-keys
 
 
 
+/* UU
 //================================================================
   int GUI_gl_set_active (int mode, MemObj *mo) {
 //================================================================
@@ -115,24 +116,31 @@ static int       statMK=0;                        // state modifier-keys
 /// \endcode
 
 
+  printf(" GUI_gl_set_active %d\n",mode);
 
-  if(!mode)  {         // disactivate
+
+  if(!mode)  {
+    // disactivate = drawing is finished = swap buffers
     GLB_DrawExit ();
     return 0;
   }
 
+//   // start drawing = glXMakeCurrent
+//   if(mo) {            // NULL if used internal
+//     UI_win_gl = GUI_obj_pos (mo);
+//     if(!UI_win_gl ) {
+//       printf("****** GUI_gl_set_active E1 \n");
+//       return 0;
+//     }
+//   }
 
-  if(mo) {            // NULL if used internal
-    UI_win_gl = GUI_obj_pos (mo);
-    if(!UI_win_gl) return 0;
-  }
-
-  GLB_DrawInit (UI_win_gl->widget);
+  // gtk_widget_grab_focus(GTK_WIDGET(UI_win_gl->widget));
+  GLB_DrawInit ();
 
   return 0;
 
 }
-
+*/
 
 //==========================================================================
   MemObj GUI_gl__ (MemObj *o_par, void *fDraw, char *opts) {
@@ -190,44 +198,12 @@ static int       statMK=0;                        // state modifier-keys
   if(!go) return (UME_obj_invalid_set (-1));
 
 
-/*
   //----------------------------------------------------------------
-  // set evenets for parent-box
-  gtk_widget_set_events (GTK_WIDGET (w_par),
-                         GDK_ALL_EVENTS_MASK);
-                         // GDK_EXPOSURE_MASK);
-
-  g_signal_connect_after (w_par, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-
-  g_signal_connect_after (w_par, "draw",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-*/
-
-/*
-  //----------------------------------------------------------------
-  // create eventbox for glarea
-  eb1 = gtk_event_box_new ();
-
-  gtk_widget_set_hexpand (eb1, TRUE);
-  gtk_widget_set_vexpand (eb1, TRUE);
-
-  gtk_container_add (GTK_CONTAINER (w_par), eb1);
-
-  gtk_widget_set_events (GTK_WIDGET (w_par),
-                         GDK_ALL_EVENTS_MASK);
-                         // GDK_EXPOSURE_MASK);
-
-  g_signal_connect_after (w_par, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), NULL);
-*/
-
-
-
-  //----------------------------------------------------------------
+  // get gtk_drawing_area_new from glX
   glarea = GLB_Create ();
+
   gtk_widget_set_app_paintable (glarea, TRUE);
-  gtk_widget_set_redraw_on_allocate (glarea, FALSE);
+  gtk_widget_set_redraw_on_allocate (glarea, TRUE); // FALSE);
   gtk_widget_set_can_focus (glarea, TRUE);           // for keys necessary ..
 
   gtk_widget_set_hexpand (glarea, TRUE);             // else no resize !!
@@ -235,27 +211,40 @@ static int       statMK=0;                        // state modifier-keys
 
 
   gtk_widget_set_events (GTK_WIDGET (glarea),
-                         // GDK_ENTER_NOTIFY_MASK|
-                         // GDK_EXPOSURE_MASK);
                          GDK_ALL_EVENTS_MASK);
+                         // GDK_EXPOSURE_MASK|
+                         // GDK_ENTER_NOTIFY_MASK|
+                         // GDK_LEAVE_NOTIFY_MASK|
+                         // GDK_STRUCTURE_MASK);
+
+  // signal init 
+//   g_signal_connect (glarea, "map-event",
+//                     G_CALLBACK (GUI_gl_draw),
+//                     PTR_MEMOBJ(go->mem_obj));
 
   g_signal_connect (glarea, "enter-notify-event",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
+                    G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
 
+  // signal change size
+  // g_signal_connect_after (glarea, "configure-event",
   g_signal_connect_after (glarea, "configure-event",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
+                    G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
 
+  // signal redraw after eg (partial) covered
+  // 'expose-event' is invalid for instance GtkDrawingArea - comes never ..
+  // g_signal_connect (glarea, "expose-event",  
   g_signal_connect_after (glarea, "draw",
-                    G_CALLBACK (GUI_gl_draw), //glarea);
+                    G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
 
-/*
-  if((hsiz)||(vsiz)) GUI_siz_set (glarea, hsiz, vsiz);
-  gtk_container_add (GTK_CONTAINER (w_par), glarea);
-  gtk_widget_show_all (glarea);
-*/
+
+//   if((hsiz)||(vsiz)) GUI_siz_set (glarea, hsiz, vsiz);
+//   gtk_container_add (GTK_CONTAINER (w_par), glarea);
+//   gtk_widget_show_all (glarea);
+
+
   GUI_w_pack1 (pTyp, w_par, glarea, opts);
 
   go->gio_typ  = TYP_GUI_BoxGL;
@@ -286,11 +275,12 @@ static int       statMK=0;                        // state modifier-keys
 /// int fMove   (MemObj *mo, void **data);
 ///   // data=table of 3 pointers;
 ///   GUI_DATA_EVENT=*(int*)data[0]=TYP_EventMove
-///   GUI_DATA_I1   =*(int*)data[2]=x-val mousepos in screencoords
-///   GUI_DATA_I2   =*(int*)data[3]=y-val mousepos in screencoords
+///   GUI_DATA_I1   =*(int*)data[1]=x-val mousepos in screencoords
+///   GUI_DATA_I2   =*(int*)data[2]=y-val mousepos in screencoords
+///   GUI_DATA_I3   =*(int*)data[3]=mouseButtons; M1=256, M3=1024
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_BoxGL
 ///
-///   printf(" x=%d y=%d\n",GUI_DATA_I1,GUI_DATA_I2);
+///   printf(" x=%d y=%d buttons=%d\n",GUI_DATA_I1,GUI_DATA_I2,GUI_DATA_I3);
 ///
 /// \endcode
 
@@ -319,12 +309,13 @@ static int       statMK=0;                        // state modifier-keys
 
 }
 
-
+/* UU
 //================================================================
   int GUI_gl_ev_butt_upd () {
 //================================================================
 // update (release) mousebuttons; eg GUI_MsgBox can eat the release mousebutton !
 
+//================================================================
   static int iTyp = TYP_EventRelease;
 
 
@@ -345,6 +336,7 @@ static int       statMK=0;                        // state modifier-keys
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -375,6 +367,7 @@ static int iDev=TYP_DeviceMouse;
 /// Input:
 ///   mo         OpenGL-window-obj
 ///   fButton    callback-function mouse-button event
+//================================================================
 ///
 /// prototype:
 /// int fButton  (MemObj *mo, void **data);
@@ -438,6 +431,7 @@ GUI_gl_ev_test(MemObj *mo) {
   
   g_signal_connect (glArea, "enter-notify-event",
                     G_CALLBACK(gtk_widget_grab_focus), (void*)FALSE);
+//================================================================
 
 }
 */
@@ -459,6 +453,7 @@ GUI_gl_ev_test(MemObj *mo) {
 ///   GUI_DATA_I2   =*(int*)data[2]=keyvalue; eg 'a'
 ///   GUI_DATA_I3   =*(int*)data[3]=state of modifierkeys;
 ///                                  see ../gui/gui_types.h  GUI_Modif_*
+//================================================================
 ///                                   &1=shift; &4=ctrl; &8=alt.
 ///   GUI_OBJ_TYP(mo)  = TYP_GUI_BoxGL
 ///   Returncodes:    0=continue with defaultOperations for this key.
@@ -487,7 +482,7 @@ GUI_gl_ev_test(MemObj *mo) {
                          GDK_KEY_PRESS_MASK |
                          GDK_KEY_RELEASE_MASK);
 
-  // grab focus when entering the gl-window; else no keyboard-callback.
+//   // grab focus when entering the gl-window; else no keyboard-callback.
   g_signal_connect (glArea, "enter-notify-event",
                     G_CALLBACK(gtk_widget_grab_focus), (void*)TRUE);
 
@@ -604,6 +599,7 @@ GUI_gl_ev_test(MemObj *mo) {
   int GUI_gl_draw (void *parent, void *event, MemObj mo) {
 //================================================================
 /// INTERNAL   draw / expose & config-callback
+//================================================================
 
 
   static int      ix=0, iy=0, ik=0;
@@ -614,6 +610,7 @@ GUI_gl_ev_test(MemObj *mo) {
   // GdkModifierType state;
 
 
+  // printf("--------------------------------------- Gtk3 \n");
   // printf("GUI_gl_draw \n");
   
   go = GUI_obj_pos (&mo);
@@ -626,22 +623,23 @@ GUI_gl_ev_test(MemObj *mo) {
   // printf(" focus=%d\n",i1);
 
 
-  // BUG: enter-event does not come after change-virtual-screen; 2014-01-17
-  // only if keys are connected..
-  if(go->uFuKey) {
-    i1 = GUI_get_keys_mod ();
-      // printf(" ik=%d i1=%d\n",ik,i1);
-    if(i1 != statMK) {
-      iEv = TYP_EventEnter;
-      pTab[0] = &iEv;
-      pTab[1] = &i1;
-      pTab[2] = &i1;
-      go->uFuDraw (&mo, pTab);  // report the modified state-keys !
-      statMK = i1;
-    }
-  }
+//   // BUG: enter-event does not come after change-virtual-screen; 2014-01-17
+//   // only if keys are connected..
+//   if(go->uFuKey) {
+//     i1 = GUI_get_keys_mod ();
+//       // printf(" ik=%d i1=%d\n",ik,i1);
+//     if(i1 != statMK) {
+//       iEv = TYP_EventEnter;
+//       pTab[0] = &iEv;
+//       pTab[1] = &i1;
+//       pTab[2] = &i1;
+//       go->uFuDraw (&mo, pTab);  // report the modified state-keys !
+//       statMK = i1;
+//     }
+//   }
 
 
+  //================================================================
   if(event) {
     // printf(" eventType=%d\n",((GdkEventAny*)event)->type);
 
@@ -667,7 +665,10 @@ GUI_gl_ev_test(MemObj *mo) {
     
         // necessary for clean redraw when resizing ..
         gtk_widget_queue_resize (glArea);
+
       } else {
+        // if(AP_stat.sysStat < 3)
+        // iEv = TYP_EventDraw;
         return 0;
       }
 
@@ -685,10 +686,14 @@ GUI_gl_ev_test(MemObj *mo) {
       goto L_CU;
 
 
+    // } else if(((GdkEventAny*)event)->type == GDK_LEAVE_NOTIFY) {
+// return TRUE;
+
+
     //----------------------------------------------------------------
     } else {
-      // draw
-      iEv = TYP_EventDraw;
+      // 14=GDK_MAP = TYP_EventMap   / from "draw" signal
+      iEv = TYP_EventMap;
     }
   }
 
@@ -741,15 +746,23 @@ GUI_gl_ev_test(MemObj *mo) {
 //================================================================
 /// INTERNAL 
  
-  int          i1, x, y, iEv=TYP_EventMove;
-  void         *pTab[3];
+  int          i1, x, y, iMb, iEv=TYP_EventMove;
+  void         *pTab[4];
   Obj_GLwin    *go;
 
 
   // printf("GUI_gl_move \n");
+  // printf(" gl_move-ev %d\n",((GdkEventMotion*)event)->state);
+
 
   go = GUI_obj_pos (&mo);
   if(!go) return 0;
+
+
+  // after selection the mouseButtons are not correct;
+  // update the mouseButtons; M1=256, M3=1024
+  iMb = ((GdkEventMotion*)event)->state;
+
 
   // if (event->is_hint) {
   gdk_window_get_device_position (gtk_widget_get_window(go->widget),
@@ -764,6 +777,7 @@ GUI_gl_ev_test(MemObj *mo) {
   pTab[0] = &iEv;
   pTab[1] = &x;
   pTab[2] = &y;
+  pTab[3] = &iMb;
 
   go->uFuMove (&mo, pTab);
 
@@ -775,7 +789,8 @@ GUI_gl_ev_test(MemObj *mo) {
 //================================================================
   int GUI_gl_button (void *parent, void *ev, MemObj mo) {
 //================================================================
-/// INTERNAL 
+// INTERNAL 
+// PROBLEM: after selection no mouse-button-release
 
 
   int          typ, ikey, iTyp;
@@ -789,6 +804,7 @@ GUI_gl_ev_test(MemObj *mo) {
 
 
   typ  = ((GdkEventAny*)ev)->type;
+    // printf("  _gl_button %d\n",typ);
 
   if(typ == GDK_BUTTON_PRESS) {
     iTyp = TYP_EventPress;
@@ -877,6 +893,8 @@ GUI_gl_ev_test(MemObj *mo) {
 
   ii = go->uFuKey (&mo, pTab);
     // printf(" ii=%d\n",ii);
+
+  // gtk_widget_grab_focus (go->widget);  // glArea   2020-01-04
 
   return (ii);   // TRUE=1: do no defaultOperations
 

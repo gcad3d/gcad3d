@@ -72,6 +72,7 @@ Braucht advapi32.lib (f. GetUserName).
 #include <string.h>
 #include <math.h>
 
+#include <errno.h>
 
 #include <io.h>        // f. _access
 #include <direct.h>    // f. _mkdir
@@ -112,6 +113,8 @@ static char txbuf[256];
 // EXTERNALS:
 // aus xa.c:
 
+// errno.h:
+extern int errno;
 
 
 //----------------------------------------------------------------
@@ -123,11 +126,22 @@ static char txbuf[256];
 
 
 // DUMMY-funcs:
-char* OS_get_dir_pwd () {return ".";}
 OS_file_date_m (time_t *tim_m, char *filnam) {}
 OS_date_cmp (time_t *tim1, time_t *tim2) {}
-int OS_sys1 (char *sOut, int sSiz, char *cmd) {return 0;}
 
+
+
+//================================================================
+  char* OS_get_dir_pwd () {
+//================================================================
+/// OS_get_dir_pwd           get current process-working-directory "PWD"
+// returns NULL on error.
+
+  static char pwd[200];
+  _getcwd (pwd, sizeof(pwd));
+  return pwd;
+
+}
 
 
 //================================================================
@@ -1165,63 +1179,6 @@ OS_system                  Perform OS-Command; wait for completion (system)
 }
 
 
-
-/*============================================================= */
-  int OS_checkFilExist (char* filnam, int mode) {
-/*=======================
-OS_checkFilExist         check if File or Directory exists
-mode = 0: display message sofort;
-mode = 1: just fix returncode, no message
-
-rc = 0: NEIN - File existiert nicht.
-rc = 1: Ja, OK.
-
-VARIANTE: use GetFileAttributes
-
-*/
-
-  int     i1;
-  char    buf[256];
-
-
-  // printf("OS_checkFilExist |%s| %d\n", filnam, mode);
-
-
-  /* Version UNIX: */
-  /* if ((access (buf, R_OK|W_OK)) != 0) { */
-
-  i1 = GetFileAttributes (filnam);
-  // returns -1=file not found; 16=file, 32=directory ?
-    // printf("GetFileAttributes %d |%s|\n",i1+1,filnam);
-  i1 += 1;
-  if(i1 > 1) i1 = 1;
-
-    // printf("ex OS_checkFilExist %d |%s|\n",i1,filnam);
-
-  return i1;
-
-/*
-  if ((_access (filnam, 0)) != 0) {
-    i1 = 0;
-    // printf ("*** Error OS_checkFilExist: %s does not exist\n",filnam);
-    if (mode == 0) {
-      strcpy (buf, "*** Error  - File ");
-      strcat (buf, filnam);
-      strcat (buf, " does not exist");
-      //GUI_Dialog (NULL, buf);
-      printf ("%s\n",buf);
-    }
-  } else {
-    i1 = 1;
-  }
-
-    printf ("OS_checkFilExist: %d |%s| exists YES=1\n",i1,filnam);
-  return i1;
-*/
-
-}
-
-
 /*============================================================= */
   int OS_checkDirExist (char* dirnam) {
 /*=======================
@@ -1614,6 +1571,8 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   char cbuf[512];
 
+  // printf("OS_file_delGrp |%s|\n",fNam);
+
 
   sprintf(cbuf,"del \"%s\" 1>nul 2>nul",fNam);
     // printf("OS_file_delGrp |%s|\n",cbuf);
@@ -1667,6 +1626,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 // rename File; keine Wildcards !
 // MS u Unix gleich.
 
+  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
 
   remove (fnNew);    // delete File (sonst get das rename ned ..)
                      // ACHTUNG: keine Wildcards mit remove !
@@ -1737,14 +1697,23 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 // dllNam   zB "xa_ige_r.so"   (ohne Pfad, mit Filetyp).
 
   int  irc;
-  char cbuf[256];         // char cbuf[512];
+  char *sdir, cbuf[256];         // char cbuf[512];
 
 
 
   printf("OS_dll_build |%s|\n",dllNam);
 
+
+  // get the directory ${gcad_dir_dev}src/APP
+  sdir = getenv ("gcad_dir_dev");
+  if(!sdir) {TX_Print("***** cannot find direcory gcad_dir_dev ..."); return -1;}
+
+
   // sprintf(cbuf, "%sxa\\%s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "%ssrc\\APP\\%s", sdir, dllNam);
+
+
   // ".dll" -> ".nmak"
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak");
     // printf(" exist: |%s|\n",cbuf);
@@ -1755,17 +1724,15 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
   // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
-    printf(" dll_build-1 |%s|\n",cbuf);
+  // sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
+  sprintf(cbuf, "cd %ssrc\\APP&&nmake -f %s", sdir, dllNam);
+    printf(" OS_dll_build 2 |%s|\n",cbuf);
 
-  // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
-  // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");
-  // strcat(cbuf, OS_os());
 
+  // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
   strcat(cbuf, OS_os_s());
-    // "make -f %s.mmak"
-    printf("dll_build-2 |%s|\n",cbuf);
+    printf("dll_build-3 |%s|\n",cbuf);
 
 
   irc = system(cbuf);
@@ -1775,7 +1742,6 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   L_err_nof:
     TX_Print("***** %s does not exist ..",cbuf);
-    printf("***** %s does not exist ..\n",cbuf);
 
     return 0;
 
@@ -2025,6 +1991,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   // start userprog
   (*dll_up1)(fncDat);  // call Func in Dll
+    printf(" foll-dll_do |%s|\n",fncNam);
 
 
   // close DLL
@@ -2033,8 +2000,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
     printf("ex-OS_dll_run\n");
 
-
-
+  return 0;
 
 }
 
@@ -2559,22 +2525,31 @@ sonst wahrscheinl nur \\ statt / ...
 
 
 //================================================================
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+  int OS_get_GUI () {
 //================================================================
-// OS_filnam_eval        expand shell variables in filenames
-// ExpandEnvironmentStrings.
-
-  int    ii;
+// OS_get_GUI                       check if GUI (file GUI_dlg1..) exists
+// retCod        0=OK, -1= Error, no GUI
 
 
-  ii = ExpandEnvironmentStrings (fni, fno, fnoSiz);
+  int      irc, vGtk;
+  char     sEnam[256], sGui[32];
 
-    // printf(" ex-OS_filnam_eval %d |%s|%s|\n",ii,fno,fni);
+  // get gtk-major-version
+  GUI_get_version (sGui, &vGtk, &irc);
+
+  // sEnam = exeFilename
+  sprintf(sEnam,"%sGUI_dlg1_%s%d_MS.exe", OS_get_bin_dir(), sGui, vGtk);
+    printf(" OS_get_GUI |%s|\n",sEnam);
+
+  // test if exe exists
+  if(!OS_checkFilExist(sEnam,1)) {
+    TX_Print("**** file %s does not exist ..", sEnam);
+    return -1;
+  }
 
   return 0;
 
 }
-
 
 
 //========================= EOF ====================================

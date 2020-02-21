@@ -1,47 +1,74 @@
-@echo on
+echo off
 :: Ohne @echo in erster zeile wird nix kompiliert !!??
 :: make gCAD3D for MS-Win/Visual-C-Compiler.
 :: to update def-file execute ./gendef before.
 :: VS-2010; "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
 
-echo "do complete          // do all following"
-echo "do delObj            // delete all objects"
-echo "do guiinit           // rebuild complete libgui
-echo "do gui               // rebuild libgui_gtk2_MS.lib
-echo "do c                 // compile & link core (gCAD3D.exe)"
-echo "do all               // compile & link corelibs"
-echo "do allDemos          // compile & link demos"
-echo "do                   // start"
-echo "do debug             // start with debugger"
-echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
+@echo "--------------------- do MS-Win-Build ------------------"
+@echo "do help              // display only commandlist"
+@echo "do help-dev          // display development-info-file"
+@echo "do complete          // do all following"
+@echo "do delObj            // delete all objects"
+@echo "do guiinit           // rebuild complete libgui
+@echo "do guiexe            // rebuild GUI_*.exe
+@echo "do gui               // rebuild libgui_gtk2_MS.lib
+@echo "do c                 // compile & link core (gCAD3D.exe)"
+@echo "do all               // compile & link corelibs"
+@echo "do allDemos          // compile & link demos"
+@echo "do                   // start"
+@echo "do debug             // start with debugger"
+@echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst"
+:: @echo "do devbase-LOC       // development-files local"
+:: @echo "do devbase-NAS       // development-files on NAS"
 
 
-
-:: set to Server or to Local;
-set gcad_dir_bin=..\..\binMS32\
-set gcad_dir_dev=..\..\
-
-set gcad_dir_dev=X:\Devel\gcad3d\
-set gcad_dir_bin=X:\Devel\gcad3d\binMS32\
-
-
-:: set to Local;  %APPDATA%..
-
-
-::set gcad_dir_local=%APPDATA%\
-
-
-
-::::::::::::::::::::::::::::::::::::::::::::::::
-REM debugger for VS2008:
+:: ==============================================================
+:: Win7-Microstar
 set prgDeb="%ProgramFiles%\Debugging Tools for Windows (x86)\windbg.exe"
+:: Win7-Laptop-Samsung ?
+::set prgDeb="%ProgramFiles(x86)%\Debugging Tools for Windows (x86)\windbg.exe"
 
 REM if exist %SystemRoot%\SysWOW64 goto L_64bit
 
 
 
-::==============================================================
+:: ==============================================================
 if .%1==. goto L_start
+
+
+if help==%1 (
+:: echo - active devbase is: 
+:: type devbase
+goto L_exit
+)
+
+if help-dev==%1 (
+start notepad ..\..\doc\html\MS_dev_en.htm
+goto L_exit
+)
+
+:: if devbase-LOC==%1 (
+::   echo LOC > devbase
+::   echo - set sw-dev local ..
+::   goto L_exit
+:: )   
+
+:: if devbase-NAS==%1 (
+::   echo NAS > devbase
+::   echo - set sw-dev NAS ..
+::   goto L_exit
+:: )
+
+
+
+:: set gcad_dir_dev and gcad_dir_bin
+call devbase.bat
+
+
+if guiexe==%1 (
+for /f %%A in ('dir/b GUI_*.nmak') do nmake -f %%A
+goto L_exit
+)
 
 
 if gui==%1 (
@@ -57,48 +84,45 @@ if guiinit==%1 (
 
 
 if c==%1 (
-  nmake -f gcad3d.nmak
-  goto L_exit
+nmake -f gcad3d.nmak
+goto L_exit
 )
 
 
 if delObj==%1 (
-REM delete all gui-objects and gui-lib
+:: delete all gui-objects and gui-lib
   nmake -f gcad3d.nmak delObj
   goto L_exit
 )
 
 
-REM do help
 if help==%1 (
   goto L_exit
 )   
 
 
-REM do all
 if all==%1 (
   nmake -f gcad3d.nmak %1
   goto L_exit
 )   
 
 
-REM do allDemos
 if allDemos==%1 (
   nmake -f gcad3d.nmak %1
   goto L_exit
 )   
 
 
-REM do complete
 if complete==%1 (
-  nmake -f gcad3d.nmak delobj
-  nmake -f gcad3d.nmak guiinit
-::nmake -f ..\gui_gtk2_MS\libgui.nmak
-  nmake -f gcad_gui__.nmak
-  nmake -f gcad3d.nmak
-  nmake -f gcad3d.nmak all
-  nmake -f gcad3d.nmak allDemos
-  goto L_exit
+nmake -f gcad3d.nmak delobj
+nmake -f gcad3d.nmak guiinit
+:: nmake -f ..\gui_gtk2_MS\libgui.nmak
+nmake -f gcad_gui__.nmak
+for /f %%A in ('dir/b GUI_*.nmak') do nmake -f %%A
+nmake -f gcad3d.nmak
+nmake -f gcad3d.nmak all
+nmake -f gcad3d.nmak allDemos
+goto L_exit
 )   
 
 
@@ -118,9 +142,13 @@ if cfg-ux2ms==%1 (
 )   
 
 
+
 ::==============================================================
 REM normal start
 :L_start
+
+:: set gcad_dir_dev and gcad_dir_bin
+call devbase.bat
 
 set gcad_dir_local=%gcad_dir_dev%
 set gcad_dir_doc=%gcad_dir_dev%doc\
@@ -141,10 +169,10 @@ if exist UX.lock (
 )
 
 set gcad_exe=%gcad_dir_bin%gCAD3D.exe
-
+set gcad_dir_local=%APPDATA%
 
 if .debug==.%1 (
-windbg "%gcad_dir_bin%gCAD3D.exe" %2
+%prgDeb% "%gcad_dir_bin%gCAD3D.exe" %2
 ) else (
 "%gcad_dir_bin%gCAD3D.exe" %*
 )

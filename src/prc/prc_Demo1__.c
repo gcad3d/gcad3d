@@ -62,6 +62,8 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../ut/ut_txTab.h"            // UtxTab
 #include "../ut/ut_os.h"               // OS_
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
+#include "../ut/func_types.h"               // SYM_TRIANG
+#include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"              // memspc101
 #include "../xa/xa_ui.h"               // APF_*
@@ -69,7 +71,6 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../xa/xa.h"                  // APP_act_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
-#include "../ut/func_types.h"               // SYM_TRIANG
 
 #include "../prc/prc_Demo1__.h"        // NCCmdTab
 

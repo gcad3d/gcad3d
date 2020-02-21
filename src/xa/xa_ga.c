@@ -143,6 +143,7 @@ Funktions:     ../xa/xa_ga.c  (this file)
 
 
 #include "../ut/ut_geo.h"                  // OFF, ON ..
+#include "../ut/func_types.h"                   // UI_FuncUCB8
 #include "../ut/ut_txt.h"                  // fnam_del
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_col.h"              // COL_INT32
@@ -150,10 +151,9 @@ Funktions:     ../xa/xa_ga.c  (this file)
 
 #include "../db/ut_DB.h"                   // DB_VCX_IND
 
-#include "../ut/func_types.h"                   // UI_FuncUCB8
+#include "../gr/ut_DL.h"                   // DL_get_col
 
 #include "../xa/xa_mem.h"                  // memspc51, mem_cbuf1
-
 #include "../xa/xa_ga.h"                   // GA_hasTexture
 #include "../xa/xa.h"                      // AP_STAT
 
@@ -694,7 +694,7 @@ static ObjAtt GA_DefRec;
     ++p1;
     sscanf(p1,"%02x%02x%02x",&i1,&i2,&i3);   // get col out of string
       // printf(" rgb = %d %d %d\n",i1,i2,i3);
-    Col_set__ (&AP_actcol, i1, i2, i3);
+    UTcol__3i (&AP_actcol, i1, i2, i3);
     GA_Col__ (-1L, 0, typ, dbi);
 
 
@@ -1568,21 +1568,25 @@ static ObjAtt GA_DefRec;
 
 
 //================================================================
-  int GA_Col__ (long dli, int mode, int typ, long ind) {
+  int GA_Col__ (long dli, int mode, int typ, long dbi) {
 //================================================================
 /// \code
 /// GA_Col__            modify color
-/// mode = 0:  modify Color (apply AP_actcol)
-///        1:  reset Color (set color not active)
-///        2:  select_as_new_color
+/// Input:
+///   mode      0:  modify Color (apply AP_actcol)
+///             1:  reset Color (set color not active)
+///             2:  select_as_new_color
+///   typ,dbi   DB-obj
+//
 /// set AP_actcol with APcol_actCol__()
 /// \endcode
 
 
   long       gaNr;
+  ColRGB     *col1;
 
 
-  // printf("GA_Col__ mode=%d dli=%ld typ=%d ind=%ld\n",mode,dli,typ,ind);
+  // printf("GA_Col__ mode=%d dli=%ld typ=%d dbi=%ld\n",mode,dli,typ,dbi);
 
   // typ kann Typ_SURBSP sein  !!
   typ = AP_typDB_typ (typ);
@@ -1594,31 +1598,63 @@ static ObjAtt GA_DefRec;
   return 0;
 
 
-
-  // find or create GA-record
   L_1:
-  gaNr = GA_creRec (typ, ind);
-  if(gaNr < 0) return -1;
-    // printf(" gaNr=%d\n",gaNr);
-
-  
-  //================================================================
   if(mode == 2) {
+    // 2 = select_as_new_color
+    col1 = DL_get_col (dli);
+      UTcol_dump (col1, "GA_Col__");
+
+    // if obj (typ,dbi) has defCol, then actCol=defCol
+    if(col1->color == 0) {
+      TX_Print("**** surf has Default-color - use remove-color****");
+      goto L_exit;
+    }
+
+    if(col1->vtex) {
+      TX_Print("**** surf has texture - use Modify/Surface-Texture/ remove ****");
+      goto L_exit;
+    }
+
+    if(col1->vtra) {
+      TX_Print("**** surf is transparent - use Modify/Surface-Transpar ****");
+      AP_actcol = *col1;   
+      goto L_exit;
+    }
+
+
     // get color from obj as new active color AP_actcol
-    APcol_actColTra ((ColRGB*)&GA_ObjTab[gaNr].iatt);
-    return 0;
+    APcol_actColTra (col1);
+    // APcol_actColTra ((ColRGB*)&GA_ObjTab[gaNr].iatt);
+    goto L_exit;
   }
 
 
-  //================================================================
+  // if actCol == defCol then modify-Color = reset-Color 
+    // UTcol_dump (&AP_defcol, "GA_Col__-AP_defcol");
+    // UTcol_dump (&AP_actcol, "GA_Col__-AP_actcol");
+  if((AP_defcol.cr == AP_actcol.cr) &&
+     (AP_defcol.cg == AP_actcol.cg) &&
+     (AP_defcol.cb == AP_actcol.cb))    {
+    if(mode == 0) mode = 1;
+  }
+
+
+  // find or create GA-record
+  gaNr = GA_creRec (typ, dbi);
+  if(gaNr < 0) return -1;
+    // printf(" GA_Col__-gaNr=%ld\n",gaNr);
+
+
   // write new col > PermanentAttributeTable GA_ObjTab
   if(mode == 0) {
+    // mode = 0: set color
     GA_ObjTab[gaNr].iatt = *((long*)&AP_actcol);
     ((ColRGB*)&GA_ObjTab[gaNr].iatt)->vtex  = 0;
     ((ColRGB*)&GA_ObjTab[gaNr].iatt)->color = 1;   // color active ..
 
 
   } else {
+    // mode = 1: remove color
     ((ColRGB*)&GA_ObjTab[gaNr].iatt)->color = 0;   // color not active ..
   }
 
@@ -1627,6 +1663,7 @@ static ObjAtt GA_DefRec;
 
   // save the index in the DL-Record
   if(mode == 0) {
+    // mode = 0: set color
     GR_ObjTab[dli].iatt = *((long*)&AP_actcol);
     ((ColRGB*)&GR_ObjTab[dli].iatt)->vtex  = 0;
     ((ColRGB*)&GA_ObjTab[dli].iatt)->color = 1;   // color active ..
@@ -1637,10 +1674,10 @@ static ObjAtt GA_DefRec;
 
 
   // redraw single obj, use existing DL-record
-  DL_Draw_obj (dli, typ, ind);
+  DL_Draw_obj (dli, typ, dbi);
 
+  L_exit:
   DL_hili_off (-1L);             //  -1 = unhilite all
-
   DL_Redraw ();
 
 
@@ -1851,6 +1888,7 @@ static ObjAtt GA_DefRec;
     GR_ObjTab[dli].iatt = 0;
     ((ColRGB*)&GR_ObjTab[dli].iatt)->vtex = 0;   // no texture
     TX_Print("texture removed ..");
+    DL_hili_off (-1L);             //  -1 = unhilite all
   }
 
 

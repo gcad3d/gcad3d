@@ -1,5 +1,4 @@
 /* ../inf/Attributes.c
-../../doc/gcad_doxygen/Attributes.dox
 
 
 ================================================================== */
@@ -112,24 +111,6 @@ GL_Tex_Ini
 See:
 INF_TextureReferenceList
 INF_BasicTexureList
-
-
-================================================================== \endcode */}
-void INF_permanent_attributes (){        /*! code
-
-
-In the Modelfile:
-# example: surface A20 has color e2dc27; surf. A21 is symbolic (not shaded)
-GATAB
-A20 Ce2dc27
-A21 S1
-ENDGATAB
-See also: DynamicDataArea
-GA_ObjTab ist the permanent-attributes-table (../xa/xa_ga.c).
-Functions:
-Color:
-APcol_actColTra // set active col.
-GA_Col__ // modify/reset/set-new color
 
 
 

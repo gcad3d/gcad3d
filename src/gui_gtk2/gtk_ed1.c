@@ -546,7 +546,8 @@ static char  *GUI_ed1_lcSet;
 
   //----------------------------------------------------------------
   if (funcnam) {
-    gtk_widget_set_events (GTK_WIDGET(wsw),
+    // gtk_widget_set_events (GTK_WIDGET(wsw),
+    gtk_widget_set_events (GTK_WIDGET (wev),
                            // GDK_FOCUS_CHANGE_MASK|
                            // GDK_ENTER_NOTIFY_MASK |
                            GDK_SHIFT_MASK|
@@ -576,16 +577,20 @@ static char  *GUI_ed1_lcSet;
 
 
     //----------------------------------------------------------------
+//     g_signal_connect (G_OBJECT (wev), "enter-notify-event",
+//                       G_CALLBACK(gtk_widget_grab_focus), (void*)TRUE);
+// must set focus on edit-window AFTER redraw ..
+
     g_signal_connect (G_OBJECT (wev),
-                        "key-press-event",
-                        G_CALLBACK (GUI_ed1_cb1),
-                        PTR_MEMOBJ(go->mem_obj));
+                      "key-press-event",
+                      G_CALLBACK (GUI_ed1_cb1),
+                      PTR_MEMOBJ(go->mem_obj));
 
     // focus-in-event erforderlich f CAD-select-objects
     g_signal_connect (G_OBJECT (wev),
-                        "key-release-event",
-                        G_CALLBACK (GUI_ed1_cb1),
-                        PTR_MEMOBJ(go->mem_obj));
+                      "key-release-event",
+                      G_CALLBACK (GUI_ed1_cb1),
+                      PTR_MEMOBJ(go->mem_obj));
   }
 
 

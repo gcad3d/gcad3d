@@ -49,7 +49,7 @@ UT3D_ncvbsp_orient         orient group of B-SplCurves (same directiorn)
 UT3D_2ncvbsp_orient        orient 2 groups of BSplCurves for surface
 UT3D_4cvbsp_3cvbsp         make 4 curves from 3 curves for a CoonsPatchSurf.
 
-UT3D_parCv_bsplpt          curve parameter <-- point on b-spline curve
+UT3D_par_pt__pt_cvbsp          curve parameter <-- point on b-spline curve
 UT3D_ptNr_bsplTol          estimate nr of polygonPoints for B-spline
 UT3D_du_bsplTol            get du for polygonalization of bSpline from tol
 UT3D_bsp_degrad            degrade bsp to line
@@ -2990,69 +2990,78 @@ Returncodes:
 
 
 
-/*=======================================================================*/
-  int UT3D_parCv_bsplpt (double *up, double *dist, CurvBSpl *bspl, Point *pt) {
-/*===================
-UT3D_parCv_bsplpt       curve parameter <-- point on b-spline curve
+//================================================================
+  int UT3D_par_pt__pt_cvbsp (double *up, Point *pto, double *dist,
+                         CurvBSpl *bspl, Point *pti) {
+//================================================================
+// UT3D_par_pt__pt_cvbsp       curve parameter <-- point on b-spline curve
+// 
+// UT3D_par_pt__pt_cvbsp       Author: Thomas Backmeister       12.6.2003
+// 
+// Computation of parameter value of point on b-spline curve.
+// If point is not on curve, the parameter value of the closest
+// projection point is computed.
+// 
+// IN:
+//   CurvBSpl *bspl    b-spline curve
+//   Point *pti        point on b-spline curve
+// OUT:
+//   double *up        parameter value; can be NULL on input;
+//   Point  *pto       pti projected onto curve; can be NULL on input;  
+//   double *dist      distance pti - pto; can be NULL on input;
+// Returncode:
+//   0 = OK
+//  -1 = no solution (point has no projection on the curve)
+//  <0 = internal error
 
-UT3D_parCv_bsplpt       Author: Thomas Backmeister       12.6.2003
-
-Computation of parameter value of point on b-spline curve.
-If point is not on curve, the parameter value of the closest
-projection point is computed.
-
-IN:
-  CurvBSpl *bspl   ... b-spline curve
-  Point *pt        ... point on b-spline curve
-OUT:
-  double *up       ... parameter value
-  double *dist         distance curve-pt
-Returncode:
-  0 = OK
- -1 = no solution (point has no projection on the curve)
- <0 = internal error
-*/
 
   int      i1, np, ind, irc;
-  double   tTab[32], dist1;
+  double   tTab[32], dist1, distHi;
   Point    pTab[32];
 
 
-  // printf("UT3D_parCv_bsplpt\n");
+  // printf("UT3D_par_pt__pt_cvbsp\n");
   // DEB_dump_obj__ (Typ_CVBSP, bspl, "  bspl:");
-  // DEB_dump_obj__ (Typ_PT, pt, "  pt:");
+  // DEB_dump_obj__ (Typ_PT, pti, "  pti:");
 
 
   // project point onto b-spline curve
   np = 32;  // size of pTab / tTab !
-  irc = UT3D_pt_projptbspl (&np, pTab, tTab, bspl, pt);
+  irc = UT3D_pt_projptbspl (&np, pTab, tTab, bspl, pti);
   if (irc < 0) goto L_fertig;
 
     // for(i1=0; i1<np; ++i1)DEB_dump_obj__(Typ_PT,&pTab[i1],"_bsplpt-p[%d]",i1);
 
 
   // find projection point with minimal distance from input point
-  *dist = UT_VAL_MAX;
+  distHi = UT_VAL_MAX;
   ind = 0;
   irc = -1;
   for (i1=0; i1<np; ++i1) {
-    dist1 = UT3D_len_2pt (&pTab[i1], pt);
+    dist1 = UT3D_len_2pt (&pTab[i1], pti);
       // printf("   test dist=%f pt=%f %f %f\n",dist,
             // pTab[i1].x,pTab[i1].y,pTab[i1].z);
-    if (dist1 < *dist) {
-      *dist = dist1;
+    if (dist1 < distHi) {
+      distHi = dist1;
       ind = i1;
       irc = 0;
     }
   }
 
-  // curve parameter value of closest projection point
-  *up = 0.0;
-  if (irc == 0) *up = tTab[ind];
+
+  if(irc == 0) {
+    if(up)   *up   = tTab[ind];
+    if(dist) *dist = distHi;
+    if(pto)  *pto  = pTab[ind];
+
+  } else {
+    if(up) *up = 0.0;
+  }
+
 
   L_fertig:
-   // printf("ex UT3D_parCv_bsplpt: irc=%d u=%f pt=%f %f %f\n",irc,*up,
-                                            // pt->x,pt->y,pt->z);
+   // printf("ex UT3D_par_pt__pt_cvbsp: irc=%d u=%f pti=%f %f %f\n",irc,*up,
+                                            // pti->x,pti->y,pti->z);
 
   return irc;
 }
@@ -4668,7 +4677,7 @@ GOBACK:
   // loop tru controlpoints & 
   *segNr = cv1->ptNr - 2;
   for(i1=1; i1 < cv1->ptNr - 1; ++i1) {
-    UT3D_parCv_bsplpt (&u1, &d1, cv1, &pTab[i1]);
+    UT3D_par_pt__pt_cvbsp (&u1, NULL, NULL, cv1, &pTab[i1]);
       // printf(" u1=%f\n",u1);
     // reset tmpSpc
     // tmpSpc1->next = tPos;
@@ -5485,7 +5494,7 @@ GOBACK:
       DEB_dump_obj__ (Typ_PT, &pt1, " pt-start");
 
   // get knotvalue d3 from point
-  UT3D_parCv_bsplpt (&d3, &dx, vp1, &pt1);
+  UT3D_par_pt__pt_cvbsp (&d3, &dx, vp1, &pt1);
     printf(" kv <- pt = %f\n",d3);
 
   // get par1 d1 from knotvalue d3

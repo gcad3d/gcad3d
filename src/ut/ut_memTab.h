@@ -15,7 +15,7 @@ for Functions see ../ut/ut_memTab.c
 /// rNr     nr of used records in data
 /// rSiz    recordsize in bytes
 /// tSiz    total size of data in bytes
-/// typ     type of data-records; for info only.
+/// typ     type of data-records; ; see INF_obj_type ../ut/AP_types.h
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
 ///         UINT_8_MAX = cannot realloc (fixed space)
 /// use     application-specific
@@ -49,7 +49,6 @@ int MemTab_ini__ (void *memTab, int rSiz, int typ, int incSiz);
 int MemTab_add (void *memTab, long *spcOff, void* objDat, int recNr, int mode);
 int MemTab_check (MemTab *memTab, long *spcOff, int recNr);
 // inline:
-void MemTab_ini_temp (MemTab *memTab, int rTot);
 int MemTab_free (void*);  // (MemTab*);
 int MEMTAB_IND (MemTab*);
 int MEMTAB_RMAX (MemTab*);           // get max. nr of records
@@ -67,22 +66,27 @@ void MEMTAB_CLEAR(MemTab*);
 // inline functions:
 
 
-/// \code
-/// MemTab_ini_temp   get memspace for rTot records
-/// memspace exists only until active function returns.
-/// memspace MUST BE FREED at end of active function (MemTab_free)
-/// Example:
-///  MemTab(int) mti1;                        // memspc for int's
-///  MemTab_ini_temp (&mti1, 1000);         // get space for 1000 int's
-///  ia = MEMTAB_DAT(&mti1);                  // get data-block-address
-///  for(i1=0;i1<1000;++i1) ia[i1] = i1;      // store data
-///  MEMTAB_IND(&mtd1) = 1000;                // set data 0-999 used
-///  ...
-///  MemTab_free (&mti1);              // free data
-/// \endcode
+void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
+// MemTab_ini_temp   get memspace for rTot records of type rTyp
+// - memspace exists only until active function returns
+// - memspace expands if too small 
+// - memspace MUST BE FREED at end of active function (MemTab_free)
+// Input:
+//   rTyp  type of records in memTab.data; see INF_obj_type ../ut/AP_types.h
+//   rTot  nr of records to get space for
+// Example:
+//  MemTab(int) mti1;                        // memspc for int's
+//  MemTab_ini_temp (&mti1,Typ_Int4,1000);   // get space for 1000 int's
+//  ia = MEMTAB_DAT(&mti1);                  // get data-block-address
+//  for(i1=0;i1<1000;++i1) ia[i1] = i1;      // store data
+//  MEMTAB_IND(&mtd1) = 1000;                // set data 0-999 used
+//  ...
+//  MemTab_free (&mti1);              // free data
+//
 #ifdef _MSC_VER
-#define MemTab_ini_temp(mtb1,rTot)\
+#define MemTab_ini_temp(mtb1,rTyp,rTot)\
  (mtb1)->data=NULL;\
+ (mtb1)->typ=rTyp;\
  (mtb1)->rSiz=sizeof(*(mtb1)->data);\
  (mtb1)->tSiz=(rTot)*(mtb1)->rSiz;\
  if((mtb1)->tSiz < SPC_MAX_STK) (mtb1)->data = _alloca ((mtb1)->tSiz + 64);\
@@ -95,8 +99,9 @@ void MEMTAB_CLEAR(MemTab*);
   (mtb1)->rMax = rTot;\
   (mtb1)->rNr = 0;
 #else
-#define MemTab_ini_temp(mtb1,rTot)\
+#define MemTab_ini_temp(mtb1,rTyp,rTot)\
  (mtb1)->data=NULL;\
+ (mtb1)->typ=rTyp;\
  (mtb1)->rSiz=sizeof(*(mtb1)->data);\
  (mtb1)->tSiz=(rTot)*(mtb1)->rSiz;\
  if((mtb1)->tSiz < SPC_MAX_STK) (mtb1)->data = alloca ((mtb1)->tSiz);\

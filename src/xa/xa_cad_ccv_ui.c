@@ -506,7 +506,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
   i1 = GUI_DATA_L1;
 
 
-  // printf("IE_ccv__ %d\n",i1);
+  printf("IE_ccv__ %d\n",i1);
 
 
   switch (i1) {
@@ -523,7 +523,8 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
       // IE_ccv_win.win = GUI_Window ("GroupEdit",IE_ccv__,(void*)UI_FuncKill,0);
       if(winTyp == 0) strcpy(s1, "CCV-Edit");
       else            strcpy(s1, "Group-Edit");
-      win0 = GUI_Win__ (s1,  IE_ccv__, "-500,-100");  // UI_FuncExit
+      // win0 = GUI_Win__ (s1,  IE_ccv__, "-500,-100");  // UI_FuncExit
+      win0 = GUI_Win__ (s1,  IE_ccv__, "80,6");  // UI_FuncExit
 
       // box0 = GUI_box_v (IE_ccv_win.win, 0);
 
@@ -603,7 +604,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
       // reset "point on curve"
       if(GUI_ckbutt_get(&cb_poc)) {
         GUI_ckbutt_set (&cb_poc, 0);
-        UI_GR_Sel_Filter (0);  // reset
+        UI_GR_Sel_Filt_reset ();  // reset
       }
       break;
 
@@ -648,7 +649,12 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
 
     //---------------------------------------------------------
     case UI_FuncUCB4:  // "point on curve" selected ..
-      UI_GR_Sel_Filter (18);
+      i1 = UI_GR_Sel_Filt_set (-1);
+      if(i1 == 18) {
+        UI_GR_Sel_Filt_reset ();
+      } else {
+        UI_GR_Sel_Filt_set (18);
+      }
       break;
 
 

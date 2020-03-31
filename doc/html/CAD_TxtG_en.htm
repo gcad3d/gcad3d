@@ -1,4 +1,4 @@
-CoCoCoCoCoCoCo<HTML>
+<HTML>
 <HEAD>
 <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
 <style>body{font: 10pt Verdana,sans-serif;}</style>
@@ -10,7 +10,7 @@ CoCoCoCoCoCoCo<HTML>
 
 <h2>CAD Functions for Notes / Dimensions</h2>
 
-see also <a href="CAD_Base_de.htm#N">Notes / Dimensions</a>
+see also <a href="CAD_Base_en.htm#N">Notes / Dimensions</a>
 
 Notes / Dimensions use keycode N.
 
@@ -27,9 +27,9 @@ N = # DIM Point1 Point2 Text [Angle Marrows Mlines "AdditionalText"]
    <a href="CAD_Base_en.htm#P">DimPoint 2</a> - measuring point 2
    <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
    <a href="CAD_Base_en.htm#D">[Direct.]</a> - 0 = Horizontal, 90 = Vertical; no indication: parallel.
-   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
-   <a href="CAD_Base_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="Notes_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 P1 = P (100 100)
@@ -60,7 +60,7 @@ N # = DIM3 Point1 Point2 TextPoint [DimPlane] ["AdditionalText"]
      Z - the distance from Point1 to Point2 on the Z-axis measured;
          The Texblock lies in the YZ or XZ-plane.
      The dimension-text will be placed on a plane facing toward the viewer.
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 N20=DIM3 P20 P21 P(3642.685238 2645.94839 1690.14704) "Z1"
@@ -80,9 +80,9 @@ The measure line (arc) is counter-clockwise (CCW).
      (Must be away from the text block to the intersection of the stock guides showing !)
      If necessary invert the direction by adding " REV" manually
      i.e. "D(L20) REV"
-   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
-   <a href="CAD_Base_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="Notes_en.htm#NMH">[Guides 0-1 0-1]</a>: - measure guides; 2 digits
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 L20 = P (330 100 0) P (380 130 0)
@@ -99,8 +99,8 @@ Diameter Measurements 2D
 N = # DIM Circle TextPoint [Marrows "AdditionalText"]
 
    <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
-   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 # Outside:
@@ -117,8 +117,8 @@ Radius level 2D
 N = # DIM Circle TextPoint [Marrows "AdditionalText"]
 
    <a href="CAD_Base_en.htm#P">TextPosition</a> - measuring text (center, bottom)
-   <a href="CAD_Base_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#NMP">[Arrows 0-4 0-4]</a>: - measure arrows; 2 digits
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 # Outside:
@@ -143,7 +143,7 @@ N = LDRP TextPosition [Point] [LineType] ["AdditionalText"]
 
    TextPosition - position of the text block
    Point - Issue of X / Y / Z-coordinate this point;
-   <a href="CAD_Base_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#TSZ">[Add.Text]</a>: AdditionalText - special characters can be included (i.e. "[+ 0.2")
 
 Example: position of a point with 3 decimal places to spend:
 N20 = LDRP P (50 50 50) P (10 10 0.12345) "[3"
@@ -160,7 +160,7 @@ N# = TextPosition Size [Direction] Text
    TextPosition: position of the text block
    [TextSize]: text size; scalable, according to the standards / text.
    [TextAngle(Deg.)]: Direction of textblock (angle); default is 0 degrees.
-   <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+   <a href="Notes_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 # "Angle 60 (degrees character) &lt;"+0,123" {superscript} "0.5"{superscript}"
@@ -187,8 +187,8 @@ N = LDR StartingPoint EndPoint1 [EndPoint2] [TextAngle] [ArrowType] [AdditionalT
   <a href="CAD_Base_de.htm#P">Startpoint Line</a>: The starting point of the auxiliary line 1
   EndPoint-1: endpoint of the auxiliary line 1 = starting point of the auxiliary line 2
   [EndPoint-2]: endpoint of the auxiliary line 2
-  <a href="CAD_Base_en.htm#NMP">[ArrowTyp 0-4]</a>: Arrowtype; a digit; default = automatic
-  <a href="CAD_Base_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
+  <a href="Notes_en.htm#NMP">[ArrowTyp 0-4]</a>: Arrowtype; a digit; default = automatic
+  <a href="Notes_en.htm#TSZ">Text</a>: Text - special characters can be included (i.e. "[+ 0.2")
 
 Example:
 N21 = P LDR (50 10 0) P (100 50 0) ANG (0) 0 "abc"

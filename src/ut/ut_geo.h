@@ -223,7 +223,7 @@ typedef struct {double dx, dy, dz;}                                 Vector;
 /// \code
 ///  ibeg   begin-index; points to first object of index-list
 ///  iNr    nr of objects in index-list
-///  typi   typ of indextable (form int4)
+///  typi   typ of indextable (form int4)     MSH_EDGLN_OB
 ///  typd   typ of datatable
 ///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 ///  stat   -
@@ -399,7 +399,7 @@ typedef struct {Point2 p1, p2; char typ;}                           Line2;
 ///           3  both sides unlimited                             UNL
 
 /// 3D-line, Typ_LN
-typedef struct {Point p1, p2; char typ;}                            Line;
+typedef struct {Point p1, p2; char typ, aux, stat, uu1;}            Line;
 ///           0  both sides limited                               -
 ///           1  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           2  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
@@ -508,7 +508,7 @@ typedef struct {int ptNr; Point2 *pTab;}                            CurvPol2;
 //   size =
 
 
-/// \brief Curve: polygon, Typ_CVPOL
+/// \brief Curve: polygon, Typ_CVPOL INF_Typ_CVTRM
 /// \code
 /// ptNr    ... number of control points
 /// v0      ... start parameter (len-offset; see INF_struct_par
@@ -521,8 +521,10 @@ typedef struct {int ptNr; Point2 *pTab;}                            CurvPol2;
 /// \endcode
 typedef struct {int ptNr; double v0, v1, *lvTab; Point *cpTab;
                 char dir, clo, trm, uu4;}                           CurvPoly;
-//   dir:  only necessary for closed, cyclic curve
-//   size = 28
+// dir:  only necessary for closed, cyclic curve
+// v0,v1 (parameters of startpoint, endPoint) of Circ, CurvElli are normalized (0-1)
+//       CurvPoly has length, CurvBSpl has knotvalues;
+// size = 28
 
 
 /// \brief Curve: B-spline   Typ_CVBSP2
@@ -680,11 +682,11 @@ typedef struct {long dbi;
 /// \code
 /// (pln.vz.dx * p.x) + (pln.vz.dy * p.y) + (pln.vz.dz * p.z) + pln.p = 0
 /// p      normal-distance of plane from 0,0,0
-/// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
-/// bpv    longest vector of plane
 /// \endcode
 typedef struct {Point po; Vector vx, vy, vz; double p;}             Plane;
 // size = 112
+/// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
+/// bpv    longest vector of plane
 
 
 /// \brief Typ_Refsys
@@ -1577,7 +1579,9 @@ int    UT3D_par_pt_2pt (double *pl, Point *ptx, Point *pl1, Point *pl2);
 int    UT3D_parpt_ptvc (double *pl, Point *ptx, Point *pt1, Vector *vc1);
 double UT3D_parpt_lnbp (Point *pti, Line *ln1, int bp);
 double UT3D_par1_ci_angr (Circ *ci1, double angr);
-double UT3D_par1_ci_pt   (Circ *ci1, Point *pt1);
+double UT3D_par1_ci_pt   (Circ *ci1, double *dpc, Point *pt1);
+int    UT3D_par_pt__pt_prj_ci (double *par, Point *pto, double *dpc,
+                               Circ *ci1, Point *pt1, double tol);
 
 void   UT3D_pt_setFree (Point*);
 int    UT3D_pt_isFree (Point*);
@@ -1971,7 +1975,7 @@ double UT2D_angr_set_2angr_sr(double ang1, double ang2, int sr);
 // get sr from rad or ango with DLIM01
 //   if(!sr) if(ang1 > ange) ange += RAD_360;    // CCW
 //   else    if(ang1 < ange) ange -= RAD_360;    // CW
-//           a1 a2 sra -> a2
+//           a1 a2 sr  -> a2
 // Examples: 5, 4, 0   -> 10        printf(" %f\n",UT2D_angr_set_2angr_sr(5.,4.,0));
 //           2  1  0   ->  7
 //           1  5  0   ->  5
@@ -1981,6 +1985,8 @@ double UT2D_angr_set_2angr_sr(double ang1, double ang2, int sr);
 //           5  1  1   ->  1
 //           2  4  1   -> -2
 //           7  0  1   ->  6
+
+
 
 /// UT2D_ANGR_ADD_4PI         get angle of endpoint of circ  (0 to 4Pi)
 ///   from angle at startpoint and opening angle
@@ -2792,7 +2798,8 @@ void UTRA_WCS_UCS_PT (Point*, Point*);
 /// check if typ is a DB-object (); returns 0=no; 1=yes.
 #define TYP_IS_DBO(typ) ((typ>Typ_Error)&&(typ<Typ_Val))
 
-/// check if typ is a curve (+-/*); returns 0=no; 1=yes.
+/// check if typ is a curve; returns 0=no; 1=yes.
+/// curve is > Typ_CV but < Typ_PLN; not LN,CI
 #define TYP_IS_CV(typ) ((typ>=Typ_CV)&&(typ<Typ_PLN))
 
 /// check if typ is a math.operator (+-/*); returns 0=no; 1=yes.
@@ -2823,6 +2830,9 @@ void UTRA_WCS_UCS_PT (Point*, Point*);
 
 
 
+
+// CVTRM_set           set pointer to trimmed-curve from index
+#define CVTRM_set(cvp0,iSeg) cvp0 + sizeof(CurvCCV) * iSeg
 
 //----------------------------------------------------------------
 /// check if typ is a selectionGroup; returns 0=no; 1=yes.

@@ -2007,7 +2007,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   // MAN is active:
 
   // // nach Form-input nicht ans Ende..
-  // if(UI_GR_Sel_Filter(-1) != 0) goto L_exit;
+  // if(UI_GR_Sel_Filt_set(-1) != 0) goto L_exit;
 
 
 /* 2012-09-11
@@ -2067,7 +2067,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
   } else {   // MAN
     // proceed/scroll to EOF; nicht im Inputmode.
-    // if(UI_GR_Sel_Filter(-1) == 0) {
+    // if(UI_GR_Sel_Filt_set(-1) == 0) {
       ED_goto__ (-1L);  // goto eof
     // }
   }
@@ -3311,7 +3311,7 @@ static int  actLev=0;
       // printf(" askEscape1 %d\n",is1);
 /*
       // test if inputMode entered ...
-      if(UI_GR_Sel_Filter(-1) > 0) {
+      if(UI_GR_Sel_Filt_set(-1) > 0) {
         // stop for input ("INPUT form")
           printf(" XXXXXXX stop for input XXXXXXX lNr=%d\n",lNr);
         // set lNr as active line

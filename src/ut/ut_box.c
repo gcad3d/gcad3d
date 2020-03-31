@@ -2159,7 +2159,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
       case Typ_SUR:
         return UT3D_box_surPln (pb1, pb2, (ObjGX*)obj); 
 
-      case Typ_SURTPS:
+      case Typ_SUTP:
         return UT3D_box_surPln (pb1, pb2, (ObjGX*)obj); 
 
       case Typ_SURSWP:
@@ -2531,14 +2531,14 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   su1 = (SurSwp*)ox1->data;
   typ = su1->typPath;
   dbi = su1->indPath;
-  UTO_objDat_dbo (&obj, &ii, &typ, dbi);
+  UTO_obj_dbo (&obj, &ii, &typ, dbi);
   UT3D_box_obja (pb1, pb2, typ, ii, obj);
 
 
   // get cov, box
   typ = su1->typCov;
   dbi = su1->indCov;
-  UTO_objDat_dbo (&obj, &ii, &typ, dbi);
+  UTO_obj_dbo (&obj, &ii, &typ, dbi);
   UT3D_box_obja (pb1, pb2, typ, ii, obj);
 
   return 0;

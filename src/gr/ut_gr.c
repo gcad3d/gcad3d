@@ -93,6 +93,7 @@ GR_Disp_ci2           display 2D-circle
 GR_Disp_ci            display circle
 // GR_Disp_ac            display circle
 GR_Disp_ell           disp. ellipse
+GR_Disp_el2c          disp. 2D-ellipse-centerPos
 GR_Disp_bez           display  Bezier-Curve
 GR_Disp_rbez          display rational-bezier-curve
 GR_Disp_CvBSp           Testdisplay  BSP-Curve
@@ -2506,6 +2507,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 
   //=======================================================================
   L_SurCplx:
+    // Tesselate / Display  trimmed/punched surf
     i1 = TSU_DrawSurT_ (oxi, att, apt_ind);
     if(i1 < 0) {
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
@@ -3031,7 +3033,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 //==============================================================================
   int GR_DrawCvCCV (long *dli, long dbi, int att, CurvCCV *cva, int cvNr) {
 //==============================================================================
-// display DB-obj - trimmed-curve 
+// display DB-obj - composite-curve
 // att unused !?
 
   int       irc, grMode, ptNr;
@@ -3305,7 +3307,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   ptNr = plg1->ptNr + 4;
 
   // get memspc until end-of-func (alloca|malloc)
-  MemTab_ini_temp (&mtPt, ptNr);
+  MemTab_ini_temp (&mtPt, Typ_PT, ptNr);
   pTab = mtPt.data;
 
 
@@ -5650,7 +5652,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //================================================================
 /// \code
 /// GR_Disp_pol           testdisplay polygon struct CurvPoly
-/// att                 see ~/gCAD3D/cfg/ltyp.rc
+/// att                 see ~/gCAD3D/cfg/ltyp.rc INF_COL_CV
 /// \endcode
 
   long  dli;
@@ -5666,11 +5668,45 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //================================================================
+  int GR_Disp_el2c (CurvEll2C *el2c, int att) {
+//================================================================
+// GR_Disp_el2c          disp. 2D-ellipse-centerPos
+
+  long        dli;
+  CurvElli    el1;
+
+
+  DEB_dump_obj__ (Typ_CVELL2C, el2c, "GR_Disp_el2c el");
+
+
+  // get 3D-ellipse from 2D-ellipse el2c
+  el1.p1 = UT3D_pt_pt2 (&el2c->p1);
+  el1.p2 = UT3D_pt_pt2 (&el2c->p2);
+  el1.pc = UT3D_PT_NUL;
+
+  el1.vz = UT3D_VECTOR_Z;
+  UT3D_vc_multvc (&el1.va, &UT3D_VECTOR_X, el2c->a);
+  UT3D_vc_multvc (&el1.vb, &UT3D_VECTOR_Y, el2c->b);
+
+  el1.ango = el2c->ango;
+  el1.srot = el2c->srot;
+  el1.clo  = -1;
+  el1.trm  = -1;
+    DEB_dump_obj__ (Typ_CVELL, &el1, " Disp_el2c el2c");
+
+  dli = DL_StoreObj (Typ_CVELL, -1L, 2);
+
+  return GR_DrawCvEll (&dli, -1L, att, &el1);
+
+}
+
+
+//================================================================
   int GR_Disp_ell (CurvElli *el1, int att) {
 //================================================================
 /// \code
 /// Testdisplay Ellipse
-/// att                 see ~/gCAD3D/cfg/ltyp.rc
+/// att                 see ~/gCAD3D/cfg/ltyp.rc INF_COL_CV
 /// \endcode
                
   long  dli;

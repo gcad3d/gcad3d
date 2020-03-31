@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-UI_GR_Sel_Filter (21);  // unused; to be removed ..
+UI_GR_Sel_Filt_set (21);  // unused; to be removed ..
 SRCU_fakt/SRCU_val_cen sollte abhängig sein vom active scale.
 
 -----------------------------------------------------

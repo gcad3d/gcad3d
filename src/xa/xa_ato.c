@@ -155,7 +155,7 @@ ATO_ato_atoTab__     get single dbo from ato
   Output: db-typ,dbi.
     used only by ATO_ato_srcLn_exp
     using APT_obj_ato           // get binaryObject from ato
-    using DB_store_stru(dbi=-1) // save struct in DB
+    using DB_store_obj(dbi=-1) // save struct in DB
 
 
 ATO_ato_expr__            get struct from modelCode (text).
@@ -401,7 +401,7 @@ extern double NcoValTab[];
 //================================================================
 // ATO_ato_atoTab__             get a single ato from 1-n ato's
 // decode all atomicObjects in ato, return single atomicObject (aTyp,aVal).
-// using APT_obj_ato, DB_store_stru(dbi=-1)
+// using APT_obj_ato, DB_store_obj(dbi=-1)
 // Output:
 //   aTyp    db-typ
 //   aVal    db-index as double (NEGATIV = dynamic obj !)
@@ -465,7 +465,7 @@ extern double NcoValTab[];
   // store binaryObject temporary
   // see DB_StorePoint < APT_store_obj  APT_decode_func APT_store_obj
   dbi = -1L;
-  irc = DB_store_stru (&vp1, *aTyp, *aTyp, vp1, 1, &dbi);
+  irc = DB_store_obj (&vp1, *aTyp, *aTyp, vp1, 1, &dbi);
   if(irc < 0) {TX_Error("ATO_ato_atoTab__ E002"); return -1;}
   *aVal = dbi;
 
@@ -2241,7 +2241,7 @@ extern long      GLT_cta_SIZ;
 
   // point: no characteristic point selected; parameter necessary ...
   // get parameter from selected point; always 0-1 = vTyp=1 (see INF_struct_par)
-  irc = UTO_par__pt_obj (&pars, 1, &pts, iTyp, iObj);
+  irc = UT3D_par_pt__pt_prj_cv (&pars, NULL, 1, &pts, iTyp, iObj, UT_DISP_cv);
   if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 
   // add parameter to atomicObjs

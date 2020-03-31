@@ -66,15 +66,18 @@ UTI_i2_sort               sort 2 integers                                INLINE
 UTI_ni_sort               sort integerList
 UTI_ni_ind_sort           return sorted indexarray for integerarray
 UTI_ind_iTab_i            get index of int in iTab
-UTI_iNr_chrNr             give nr of ints for n characters (not including \0) INL
+UTI_iNr_chrNr             give nr of ints for n characters (not including \0) INLINE
 UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)
 UTI_div4diff              get nr of missing bytes for modulo-4.
-UTI_round_4up             round integer up to 4                          INLINE
-UTI_round_32up            round integer up to 32                         INLINE
+UTI_round_4up             round integer up to 4                               INLINE
+UTI_round_32up            round integer up to 32                              INLINE
 UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
 UTI_round_b2i             make integer from byte (back from UTI_round_i2b)
 UTI_sum_row               sum up row from 1 to iend
 UTI_ndig_int              split integer into digits
+UTI_2dig_int              split integer into 2 digits                         INLINE
+UTI_2int8_int16           get 2 characters from short-int                     INLINE
+UTI_int16_2int8           get short-int from 2 characters                     INLINE
 
 UTI_ni_ObjRange           get list of integers of ObjRanges
 UTI_checksum__            get checksum for data
@@ -115,8 +118,10 @@ UTP_db_cknear_ndb         find nearest double out of dbTab
 UTP_db_ckNxt_ndb          find next double out of dbTab
 UTP_db_ck_in2db           test if value of v is between v1 / v2
 UTP_db_ck_in2dbTol        test if value of v is between v1 / v2
+UTP_db_ck_in2db_ang1      test if angle vx is between / near values va, vb
 UTP_2db_ck_in4db          die beiden inneren Werte aus 4 Zahlen finden
 UTP_2db_ck_in2db          test if range2 overlaps range1
+UTP_2db_ck_db_near        test if dx is near d0 or near d1                   INLINE
 
 UTP_db_comp_0             if fabs(d1) < UT_TOL_min1) d1 = 0.;
 UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
@@ -874,6 +879,94 @@ UTA_  functions for pointers (addresses)
   // printf("ex UTP_2db_ck_in4db %d %d\n",*ii1,*ii2);
 
   return 0;
+
+}
+
+
+//======================================================================
+  int UTP_db_ck_in2db_ang1 (double vx, double va, double vb, int dir) {
+//======================================================================
+// UTP_db_ck_in2db_ang1       test if angle vx is between / near values va, vb
+//   all values must be between 0. and 2PI.
+//
+// dir    direction; 0=fwd 1=bwd
+// retCod:   1   vx is between va-vb near va
+//           2   vx is between va-vb near vb
+//          -1   vx is outside va
+//          -2   vx is outside vb
+// 
+// Tests:
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (6.1, 0.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (0.1, 0.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (1.9, 0.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (2.1, 0.0, 2.0, 0));
+// 
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (1.9, 2.0, 6.1, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (2.1, 2.0, 6.1, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (6.0, 2.0, 6.1, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (0.1, 2.0, 6.1, 0));
+// 
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (4.9, 5.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (5.1, 5.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (1.9, 5.0, 2.0, 0));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (2.1, 5.0, 2.0, 0));
+// 
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (2.1, 2.0, 0.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (1.9, 2.0, 0.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (0.1, 2.0, 0.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (6.1, 2.0, 0.0, 1));
+// 
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (2.1, 2.0, 5.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (1.9, 2.0, 5.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (5.1, 2.0, 5.0, 1));
+//   printf(" %d\n", UTP_db_ck_in2db_ang1 (4.9, 2.0, 5.0, 1));
+
+
+
+  int       ii, iout, iswap;
+  double    d1, d2, v1=RAD_360;
+
+
+  // printf("UTP_db_ck_in2db_ang1  vx=%f   va=%f   vb=%f\n",vx,va,vb);
+
+  if(dir) {
+    // circle bwd = CW
+    MEM_swap_2db (&va, &vb);
+    iswap = 1;
+  } else iswap = 0;
+
+
+  // if(!dir) {
+    // circle fwd = CCW
+    if(va > vb) vb += v1;
+    if(vx < va) vx += v1;
+      // printf("  vx=%f   va=%f   vb=%f\n",vx,va,vb);
+
+    // test in(iout=) or out(iout=1);
+    if((vx < va) || (vx > vb)) iout = -1;   // out
+    else                       iout = 1;    // in
+
+    // test near va (inear=1) or near vb (inear=2)
+    if(vx > vb) d1 = fabs((vx-v1) - va);
+    else        d1 = fabs(vx - va);
+
+    if(vx < va) d2 = fabs((vx+v1) - vb);
+    else        d2 = fabs(vx - vb);
+      // printf("  iout=%d d1=%f d2=%f\n",iout,d1,d2);
+
+    if(!iswap) {
+      // fwd CCW
+      if(d1 < d2) ii = 1 * iout;
+      else        ii = 2 * iout;
+    } else {
+      // bwd CW
+      if(d1 < d2) ii = 2 * iout;
+      else        ii = 1 * iout;
+    }
+
+    // printf(" ex-UTP_db_ck_in2db_ang1 %d\n",ii);
+
+  return ii;
 
 }
 

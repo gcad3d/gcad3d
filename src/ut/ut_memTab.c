@@ -40,8 +40,8 @@ List_functions_start:
 
 MemTab_ini_fixed    init memory-table with fixed memoryspace; no realloc, no free.
 MemTab_ini__        init memory-table (malloc)
-MemTab_ini_temp   get memspace for rTot records                  INLINE
-MemTab_free  free memspace from MemTab_ini_temp           INLINE
+MemTab_ini_temp     get memspace for rTot records                  INLINE
+MemTab_free         free memspace from MemTab_ini_temp           INLINE
 MemTab_add          save/check/reserve in memSpc; malloc/realloc if necessary.
 MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
 MemTab_uniq_sav     if data is uniq only: save data with MemTab_add (.. 1, 0);
@@ -229,7 +229,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 /// MemTab_ini_fixed          init memory-table with fixed memoryspace;
 ///   - memspace expands automaticall; must be freed.
 ///   - for expandable fixed memspace use MemTab_ini_temp
-///   - see INF_MEM_ORG_LFIX
+///   - see INF_MemTab
 /// \code
 /// INPUT:
 ///   data    memspc to connect
@@ -314,6 +314,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   if(memTab->data == NULL) {
     memTab->rMax   = 0;
+    memTab->spcTyp = MEMTYP_ALLOC__;  // else already tempspace ?
   }
  
   memTab->rNr    = 0;
@@ -321,7 +322,6 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   memTab->incSiz = UTI_round_i2b(incSiz);
   memTab->typ    = typ;
   //                       keep tSiz = 0
-  memTab->spcTyp = MEMTYP_ALLOC__;
 
 
     // printf("ex-MemTab_ini__ rSiz=%d incSiz=%d\n",memTab->rSiz,memTab->incSiz);
@@ -744,16 +744,21 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   MemTab *memTab;
 
-  memTab = mtbi;
+  memTab = mtbi;     // casting ..
+
+
+  // MemTab_dump (mtbi, "MemTab_free");
+  // printf(" MEM_MUST_FREE = %d\n",MEM_MUST_FREE(memTab->spcTyp));
+
 
   if(MEM_MUST_FREE(memTab->spcTyp)) {
     if(memTab->data) free (memTab->data);
-
+  }
     memTab->data = NULL;
     memTab->rMax = 0;             // actual size
     memTab->rNr  = 0;
     memTab->tSiz = 0;
-  }
+ 
 
   return 0;
 
@@ -828,7 +833,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   int MemTab_dump (MemTab *memTab, char *info) {
 //================================================================
 
-  int   i1, ityp, isiz, *ia;
+  int   irc, i1, ityp, isiz, *ia;
   long  *la;
   char  *data;
   void  *vp;
@@ -846,6 +851,9 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   if(memTab->rNr < 1)  { printf(".. empty ..\n"); return -1;}
 
   ityp = memTab->typ;
+
+  if(!ityp) {printf(".. objTyp undef ..\n");     return -1;}
+
   isiz = UTO_siz_stru (memTab->typ);
     printf(" ityp=%d isiz=%d rNr=%d\n",ityp,isiz,memTab->rNr);
 
@@ -858,7 +866,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   data = MEMTAB_DAT (memTab);
   for(i1=0; i1<memTab->rNr; ++i1) {
     vp = PTR_INT((int)data[i1]);
-    DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    irc = DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    if(irc < 0) break;
   }
   return 0;
 
@@ -874,7 +883,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   for(i1=0; i1<memTab->rNr; ++i1) {
     vp = PTR_INT(ia[i1]);
       // printf(" i4[%d]=%ld\n",i1,(long)vp);
-    DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    irc = DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    if(irc < 0) break;
   }
   return 0;
 
@@ -889,7 +899,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   for(i1=0; i1<memTab->rNr; ++i1) {
     vp = PTR_LONG(la[i1]);
       // printf(" i4[%d]=%ld\n",i1,(long)vp);
-    DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    irc = DEB_dump_obj__ (ityp, vp, "[%d]",i1);
+    if(irc < 0) break;
   }
   return 0;
 
@@ -901,7 +912,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   for(i1=0; i1<memTab->rNr; ++i1) {
       // printf(" data=%d\n",*((int*)data));
-    DEB_dump_obj__ (ityp, data, "[%d]",i1);
+    irc = DEB_dump_obj__ (ityp, data, "[%d]",i1);
+    if(irc < 0) break;
     data += isiz;
   }
 

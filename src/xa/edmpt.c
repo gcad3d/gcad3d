@@ -422,7 +422,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // get actObj from DB (for insert points into POL, BSP)
   form = basTyp;
-  irc = UTO_objDat_dbo (&actObj, &i1, &form, dbi);
+  irc = UTO_obj_dbo (&actObj, &i1, &form, dbi);
   if(irc < 0) return irc;
     // DEB_dump_obj__ (actTyp, actObj, "actObj: ");
 
@@ -504,7 +504,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       // get ObjSRC from DL_att:
       DL_oSrc_dli (&oPar, dli);
       // get tempSpc for 128 mtPar-records
-      MemTab_ini_temp (&mtPar, 128);
+      MemTab_ini_temp (&mtPar, Typ_ObjSRC, 128);
       if(MEMTAB_RMAX(&mtPar) != 128) {TX_Error("*** EDMPT_init-EOM"); return -1;}
       // get parent
       OPAR_get_src (&mtPar, &oPar);
@@ -926,7 +926,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       GUI_set_enable (&EDMPT_f_mod, FALSE);
       // disable select point-symbol
       // sele_reset ();                        // no point selectable
-      // UI_GR_Sel_Filter (1);                 // no selections; give position
+      // UI_GR_Sel_Filt_set (1);                 // no selections; give position
       // activate modify-curve
       EDMPT_stat = STAT_update;               // 0=move is not active; 1=active
 
@@ -1005,7 +1005,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   // get actObj from DB (for insert points into POL, BSP)
   basTyp = AP_typDB_typ (actTyp);
   form = basTyp;
-  irc = UTO_objDat_dbo (&actObj, &i1, &form, actDbi);
+  irc = UTO_obj_dbo (&actObj, &i1, &form, actDbi);
   if(irc < 0) return irc;
 
   return 0;
@@ -1768,7 +1768,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     EDMPT_mode = 1;                  // 0=modify, 1=insert, 2=delete
 
-    // UI_GR_Sel_Filter(18);
+    // UI_GR_Sel_Filt_set(18);
     EDMPT_msg_mode ();
 
     // make the baseObj selectable ..
@@ -3174,8 +3174,8 @@ static FILE      *EDMPT_fp_dep = NULL;
     // get parameter from point
     // if(d1 > UT_DISP_cv * 2.) goto L_err1;
     // UME_init (&tmpSpc1, memspc201, sizeof(memspc201));
-    irc = UT3D_parCv_bsplpt (&up, &d1, actObj, &pt1);
-    if(irc < 0) {TX_Print("UT3D_parCv_bsplpt Error %d",irc);return -1;}
+    irc = UT3D_par_pt__pt_cvbsp (&up, NULL, NULL, actObj, &pt1);
+    if(irc < 0) {TX_Print("UT3D_par_pt__pt_cvbsp Error %d",irc);return -1;}
       // printf(" val. parameter=%f dist=%f\n",up,d1);
 
     // point on curve from parameter
@@ -3203,7 +3203,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
     // get parameter of point on polygon
     pt1 = pta[0];
-    UT3D_parplg_plgpt (&up, &pt1, actObj);
+    UT3D_par_pt__plg_pt (&up, NULL, &pt1, actObj, UT_TOL_pt);
     UPLG_iseg_par (&actInd, up, actObj);
       // printf(" actInd=%d up=%f\n",actInd,up);
 
@@ -3245,7 +3245,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   EDMPT_stat = STAT_Save_Cancel;
 
   // UI_CursorNo (1);
-  // UI_GR_Sel_Filter (20);  // no select
+  // UI_GR_Sel_Filt_set (20);  // no select
 
   return 0;
 

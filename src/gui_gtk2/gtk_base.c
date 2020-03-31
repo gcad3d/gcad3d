@@ -461,7 +461,7 @@ static int       UI_act_Id;
 ///                               negative values: size in pixels.
 ///              Examples:
 ///                ""           size automatic
-///                "100,20"     horiz. size 10 chars, vertical 20 lines
+///                "100,20"     horiz. size 100 chars, vertical 20 lines
 ///                "-1000,-500" horiz. size 1000 pixels, vertical 500 pixels
 ///
 /// funcnam prototype:

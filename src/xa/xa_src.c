@@ -239,6 +239,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
       impTyp = 0;
 
     } else {
+//       if((impTyp == Typ_XVal)||(impTyp == Typ_XVal)||(impTyp == Typ_ZVal))
+//         impTyp = Typ_PT;
       // add eg "P("
       c1 = AP_typChar_typ (impTyp);
       if(c1 == '-') {TX_Error("SRC_src_ato E1-%d",*atyp); return -1;}
@@ -581,7 +583,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   // } else if(dbTyp == Typ_CV) {
 // 
     // if(oxi.form == Typ_CVPOL) {
-      // UT3D_parplg_plgpt (&d1, pti, oxi.data);
+      // UT3D_par_pt__plg_pt (&d1, pti, oxi.data);
       // goto L_par1;
 // 
 // 
@@ -601,7 +603,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 // 
     // } else if(oxi.form == Typ_CVBSP) {
       // UME_init (&wrkSpc, memspc52, sizeof(memspc52));
-      // UT3D_parCv_bsplpt (&d1, &wrkSpc, oxi.data, pti);
+      // UT3D_par_pt__pt_cvbsp (&d1, &wrkSpc, oxi.data, pti);
       // goto L_par1;
 // 
     // } else {
@@ -1663,7 +1665,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   //---------------------------------------------------------------
   // get objData of DB-obj (iTyp,iDbi)
-  irc = UTO_objDat_dbo (&iObj, &iNr, &iTyp, iDbi);
+  irc = UTO_obj_dbo (&iObj, &iNr, &iTyp, iDbi);
     // printf(" src_pt_dbo-irc=%d iTyp=%d iNr=%d\n",irc,iTyp,iNr);
   if(irc < 0) {
     TX_Print ("**** cannot analyze DB-obj");

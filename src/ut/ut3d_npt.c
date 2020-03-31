@@ -868,18 +868,9 @@ UT3D_npt_ci                circular polygon
 
     // test if PRCV exists
     if((!mode) && (cvt->dbi != 0)) {
-      // PRCV exists; get points ..
-//       ptn = MEMTAB_RFREE(mtpa);
-//       pa2 = MEMTAB__ (mtpa, mtpa->rNr);
-//       // get pa2 = polygon from trimmedCurve cvt
-//       irc = PRCV_npt_trmCv (pa2, &ptn, cvt);
-//       if(irc < 0) return -2;
-//       mtpa->rNr += ptn;
-
       // add all points of (polygon from trimmedCurve cvt) into mtpa
       irc = PRCV_mtpt_trmCv (mtpa, cvt);
       if(irc < 0) return irc;
-
       goto L_nxt;
     }
 
@@ -1137,6 +1128,7 @@ UT3D_npt_ci                circular polygon
 
     // TESTBLOCK
     // DEB_dump_nobj__ (Typ_PT, *ptNr, pTab, "ex-UT3D_npt_obj");
+    // exit (1);
     // END TESTBLOCK
 
   return irc;

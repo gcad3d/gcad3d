@@ -34,7 +34,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
-2009-09-05  DB_StoreCvCCV new; DB_store_stru: support for ObjGX added. RF.
+2009-09-05  DB_StoreCvCCV new; DB_store_obj: support for ObjGX added. RF.
 2005-09-21  dynam. Planes neu. RF.
 2005-09-19  DB_DefRef neu. RF.
 2003-12-29  rewrite m. realloc. RF.
@@ -98,8 +98,8 @@ DB_get_Activ
 DB_GetObjGX        get obj  (ObjGX)
 DB_GetObjDat       get data-struct from typ, DB-index
 
-DB_store_obj       call DB_StoreXX with ObjGX
-DB_store_stru      call DB_StoreXX with structTyp,struct
+DB_store_ox       call DB_StoreXX with ObjGX
+DB_store_obj      call DB_StoreXX with structTyp,struct
 DB_StoreVar
 DB_StoreVector
 DB_StorePoint
@@ -238,6 +238,7 @@ List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+see also UTO_obj_dbo
 
 
 
@@ -1688,10 +1689,10 @@ Vector     DB_vc0;
 ///               Typ_Error  (0)   obj unused
 ///               -1               UTO_objDat_ox - error
 /// 
-/// see also UTO_objDat_dbo UTO_objDat_dbS UTO_objDat_ox DB_GetObjGX
+/// see also UTO_obj_dbo UTO_objDat_dbS UTO_objDat_ox DB_GetObjGX
 /// \endcode
 
-// OFFEN: replace UTO_objDat_dbo with DB_GetObjDat
+// OFFEN: replace UTO_obj_dbo with DB_GetObjDat
 
 
   ObjGX  ox1;
@@ -2923,7 +2924,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 
   //----------------------------------------------------------------
   // save parentRecord & data
-  irc = DB_store_stru (&cPos, bd1->typ, bd1->form, bd1->data, bd1->siz, dbi);
+  irc = DB_store_obj (&cPos, bd1->typ, bd1->form, bd1->data, bd1->siz, dbi);
     // printf(" irc ex _store_stru %d\n",irc);
   if(irc < 0) return -1;
 
@@ -3179,7 +3180,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   //----------------------------------------------------------------
   // old
   if((ox1->typ == Typ_SUR)      ||
-     (ox1->typ == Typ_SURTPS)   ||
+     (ox1->typ == Typ_SUTP)     ||
      (ox1->typ == Typ_SURSUP)   ||
      (ox1->typ == Typ_SURRU)    ||
      (ox1->typ == Typ_SURBSP)   ||
@@ -3193,14 +3194,14 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
     // get oxo = addr of su_tab[Ind]
     *IndIn = DB_Store_hdr_su (&oxo, Ind);
 
-    return DB_store_obj (oxo, ox1, IndIn); // store surf -> DB
+    return DB_store_ox (oxo, ox1, IndIn); // store surf -> DB
 
 /*  //----------------------------------------------------------------
     cPos1 = DB_cPos ();
     *oxo = *ox1;    // copy ParentObj
     oxo->data = cPos1;
     l1 = Ind;
-    irc = DB_store_stru (&cPos1, Typ_ObjGX, ox1->data, ox1->siz, &l1);
+    irc = DB_store_obj (&cPos1, Typ_ObjGX, ox1->data, ox1->siz, &l1);
 */
       // DEB_dump_ox_s_ (oxo, "DB_StoreSur-out\n");
       // DEB_dump_ox_0 (oxo, "DB_StoreSur-out\n");
@@ -6764,7 +6765,7 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
 
   // save subparts of ccv
   l1 = Ind;
-  DB_store_stru (&cPos1, Typ_ObjGX, cvi->data, cvi->siz, &l1);
+  DB_store_obj (&cPos1, Typ_ObjGX, cvi->data, cvi->siz, &l1);
 
 
     // for(l1=0; l1<cvNew->segNr; ++l1)
@@ -8653,10 +8654,10 @@ long DB_QueryCurv (Point *pt1) {
 
 
 //=============================================================
-  int DB_store_obj (ObjGX *oxo, ObjGX *ox1, long *ind) {
+  int DB_store_ox (ObjGX *oxo, ObjGX *ox1, long *ind) {
 //=============================================================
 /// \code
-/// DO NOT USE; use DB_store_stru
+/// DO NOT USE; use DB_store_obj
 /// save obj --> DB
 /// Input:
 ///   ox1    eine (ObjGX*)-Struktur
@@ -8678,9 +8679,9 @@ long DB_QueryCurv (Point *pt1) {
   // ObjGX  *oxo;
 
 
-  // printf("DB_store_obj ind=%ld typ=%d form=%d\n",*ind,ox1->typ,ox1->form);
-  // DEB_dump_ox_s_ (ox1, "DB_store_obj-in\n");
-  // DEB_dump_ox_0 (ox1, "DB_store_obj-in\n");
+  // printf("DB_store_ox ind=%ld typ=%d form=%d\n",*ind,ox1->typ,ox1->form);
+  // DEB_dump_ox_s_ (ox1, "DB_store_ox-in\n");
+  // DEB_dump_ox_0 (ox1, "DB_store_ox-in\n");
   
   irc = 0;
   iForm = ox1->form;
@@ -8695,7 +8696,7 @@ long DB_QueryCurv (Point *pt1) {
   if(iForm != Typ_ObjGX) {
     iSiz = ox1->siz;
     // save struct ox1->data --> DB; DB-Pos = cPos3;
-    irc = DB_store_stru (&cPos3, iForm, iForm, ox1->data, iSiz, ind);
+    irc = DB_store_obj (&cPos3, iForm, iForm, ox1->data, iSiz, ind);
     // if(irc < 0) return irc;
     // change to Typ_Index; wenn jedoch ox1->siz > 1 (dzt nur Typ_PT), dann
     // wird data-pos korrigiert.
@@ -8739,16 +8740,16 @@ long DB_QueryCurv (Point *pt1) {
     if(sForm == Typ_modUndef) goto L_GX_nxt;   // hat keine data
 
     if(sForm == Typ_ObjGX) { // recurse
-      // printf("******** DB_store_obj I001\n");
+      // printf("******** DB_store_ox I001\n");
       l1 = -1;
-      DB_store_obj ((ObjGX*)pi, (ObjGX*)pi, &l1);
+      DB_store_ox ((ObjGX*)pi, (ObjGX*)pi, &l1);
 
 
     } else {
       if((sForm == Typ_Index)&&(sSiz < 2)) goto L_GX_nxt;   // Index ist data
       l1 = -1;
       // siz=1: store dynam.Obj; else store as block
-      irc = DB_store_stru (&cPos3, sForm, sForm, ((ObjGX*)pi)->data, sSiz, &l1);
+      irc = DB_store_obj (&cPos3, sForm, sForm, ((ObjGX*)pi)->data, sSiz, &l1);
       if(irc < 0) goto L_fertig;
       // siz=1: change to Typ_Index 
       if(sSiz < 2) {
@@ -8777,12 +8778,12 @@ long DB_QueryCurv (Point *pt1) {
   // oxo->data   = cPos1; // new address of oGX-Block
 
 
-  // printf(" ex DB_store_obj irc=%d typ=%d form=%d ind=%d\n",irc,
+  // printf(" ex DB_store_ox irc=%d typ=%d form=%d ind=%d\n",irc,
               // oxo->typ,oxo->form,*ind);
   // printf(" oxo-posi=%p\n",cPos1);
 
-  // DEB_dump_ox_s_ (oxo, "DB_store_obj-out\n");
-  // DEB_dump_ox_0 (oxo, "DB_store_obj-out\n");
+  // DEB_dump_ox_s_ (oxo, "DB_store_ox-out\n");
+  // DEB_dump_ox_0 (oxo, "DB_store_ox-out\n");
 
 
   return irc;
@@ -8791,13 +8792,14 @@ long DB_QueryCurv (Point *pt1) {
 
 
 //======================================================================
-  int DB_store_stru (void **oo, int typ, int form, void *os1, int iNr,
+  int DB_store_obj (void **oo, int typ, int form, void *os1, int iNr,
                     long *ind) {
 //======================================================================
 /// \code
 /// save struct os1 in DB with form=form;
 /// can also save the parent-ox for S,A,B (see ind)
 /// Input
+///   typ   type of os1; only for form=Typ_ObjGX (SAB)
 ///   form  type of struct os1
 ///   os1   struct to save; datastruct, no parent-ox for curves.
 ///   iNr   nr of structs
@@ -8813,8 +8815,8 @@ long DB_QueryCurv (Point *pt1) {
 
 // plg: form=Typ_CVPOL
 // must not store the parentobjetc (ObjGX for curve eg !)
-//   is done from DB_StoreCurv < DB_store_obj < DB_store_stru
-// see also DB_store_obj (to be replaced !)
+//   is done from DB_StoreCurv < DB_store_ox < DB_store_obj
+// see also DB_store_ox (to be replaced !)
 // see also UTO_copy_tab
 
 
@@ -8825,8 +8827,8 @@ long DB_QueryCurv (Point *pt1) {
 
 
   // printf("--------------------- \n");
-  // printf("DB_store_stru typ=%d form=%d ind=%ld iNr=%d\n",typ,form,*ind,iNr);
-  // DEB_dump_obj__ (form, os1, "DB_store_stru-"); //not for ox !
+  // printf("DB_store_obj typ=%d form=%d ind=%ld iNr=%d\n",typ,form,*ind,iNr);
+  // DEB_dump_obj__ (form, os1, "DB_store_obj-"); //not for ox !
 
 
 
@@ -9046,7 +9048,7 @@ long DB_QueryCurv (Point *pt1) {
             l1 = ox1->siz * 4;
           } else {
             l1 = UTO_siz_stru (ox1->form);
-            if(l1 < 1) {TX_Error("DB_store_stru E002"); return -1;}
+            if(l1 < 1) {TX_Error("DB_store_obj E002"); return -1;}
           }
           // copy binary-data-record
           DB_cSav (l1, ox1->data);
@@ -9061,7 +9063,7 @@ long DB_QueryCurv (Point *pt1) {
         if(ox1->form == Typ_Int4) continue; // typ=Typ_Typ
         // save Point or Line in ox1->data -> DB; RECURSION !
         l1 = -1;
-        DB_store_stru (&cPos1, ox1->typ, ox1->form, ox1->data, ox1->siz, &l1);
+        DB_store_obj (&cPos1, ox1->typ, ox1->form, ox1->data, ox1->siz, &l1);
           // printf(" new dyn.Ind=%d (form=%d)\n",l1,ox1->form);
         // save dynam. Index in its parent-record
         OGX_SET_INDEX (ox1, ox1->typ, l1);
@@ -9079,16 +9081,16 @@ long DB_QueryCurv (Point *pt1) {
 
     //================================================================
     default:
-      TX_Error("DB_store_stru form %d unsupp.",form);
+      TX_Error("DB_store_obj form %d unsupp.",form);
       return -1;
   }
 
 
     //---- Anf Testausg:
     // ox1 = DB_GetCurv (*ind);
-    // DEB_dump_ox_s_ (ox1, "DB_store_stru-out\n");
-    // DEB_dump_ox_0 (ox1, "DB_store_stru-out\n");
-    // printf("----------- ex DB_store_stru typ=%d ind=%ld\n",typ,*ind);
+    // DEB_dump_ox_s_ (ox1, "DB_store_obj-out\n");
+    // DEB_dump_ox_0 (ox1, "DB_store_obj-out\n");
+    // printf("----------- ex DB_store_obj typ=%d ind=%ld\n",typ,*ind);
     // exit(0);
     //---- End Testausg:
 
@@ -9101,7 +9103,7 @@ long DB_QueryCurv (Point *pt1) {
 
 
   L_E_INR:
-    TX_Error("DB_store_stru E_INR %d %d",form,iNr);
+    TX_Error("DB_store_obj E_INR %d %d",form,iNr);
     return -1;
 
 }

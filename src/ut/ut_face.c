@@ -122,6 +122,7 @@ UFA_view__         display indexed faces
 UFA_view_nifac     display indexed-Opengl-patch (type,indexTable,points)
 UFA_disp_fac2      display 2D-face from 2D-Fac3
 UFA_disp_fb1       display boundary of indexed-triangle
+UFA_Disp_nEdg2     display 2D-edges 
 
 UFA_fac_ck_zero_2D check faces for zero-size (linear face)
 UFA_fac_dump_      dump faces
@@ -3666,22 +3667,23 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int UFA_view_nifac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va,
                       long dbi, int oTyp) {
 //=====================================================================
+// DO NOT USE; replaced by GR_Draw_i2fac
+
 // UFA_view_nifac     display indexed-Opengl-patch (type,indexTable,points)
 //   oTyp     Typ_SUR
 //            Typ_SURPLN - planar - only first vector in ts1->va used;
 
 
-  printf("UFA_view_nifac %d\n",fNr);
+  printf("UFA_view_nifac fNr=%d dbi=%ld oTyp=%d\n",fNr,dbi,oTyp);
 
 
   GL_view_ini__ (dbi, oTyp, Typ_Att_dash_long);
 
   GL_att_su (ATT_COL_YELLOW); // INF_COL_SYMB
 
-  GL_Disp_nifac (fNr, fa, ia, pa, va, oTyp);
+  GL_Disp_i2fac (fNr, fa, ia, pa, va, oTyp);
 
-
-  GL_EndList ();           // glEndList
+  if(dbi) GL_EndList ();           // glEndList
 
   return 0;
 
@@ -3692,12 +3694,12 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int UFA_view__ (Fac3 *fa, int ifs, int fNr, Point *pa, int pNr,
                   char *opts, long dbi) {
 //================================================================
-// UFA_view__   display indexed faces
-//   fa       table of faces
+// UFA_view__   display indexed faces; 
+//   fa       table of faces; indices into pa
 //   ifs      index of first face to display
 //   fNr      nr of faces to display
 //   pa       table of points
-//   pNr      only for opts "pn"
+//   pNr      only for opts "pn" - nr of points to display
 //   opts v   disp normalvector in gravity-centerPoint
 //        b   disp bounds of faces
 //        s   disp triangle shaded
@@ -3867,6 +3869,74 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
 //================================================================
+  int UFA_Disp_nEdg2 (int eNr, int *fa, int *ea,
+                     Fac3 *fTab, Point2 *p2a,
+                     char *opts, int grAtt, double zVal) {
+//================================================================
+// UFA_Disp_nEdg2                          display 2D-edges 
+// Input:
+//   eNr      nr of edges
+//   fa,ea    edges to display
+//   fTab     table of (all) faces
+//   p2a      table of (all) points
+//   opts     s-disp.faces-shaded; b-disp.curve-faceBound
+// TODO: Disp sollte eigentlich das Init & Exit nicht selbst machen, damit
+//       mehrere Disp-functions into 1 dispList gepckt weden können ..
+
+  int     i1;
+  long    dbi = -1l, dli;  // dynam.
+  Point2  pta[2];
+
+
+  printf("UFA_Disp_nEdg2 eNr=%d opts=|%s| grAtt=%d zVal=%f\n",
+         eNr,opts,grAtt,zVal);
+
+   // boundary
+  dli = DL_StoreObj (Typ_CVPOL, dbi, grAtt);
+  GL_Draw_Ini (&dli, Typ_Att_dash_long);  // init cv/surf, glNewList < GL_fix_DL_ind
+
+
+  //----------------------------------------------------------------
+  // Must display surface before boundary.
+  if(!strchr(opts, 's') ) goto L_bvi;
+    // display shaded triangles
+    GL_att_su (ATT_COL_GREEN);
+
+    for(i1=0; i1 < eNr; ++i1) {
+      // if(fa[ii].st < 0) continue;   // skip deleted faces
+      UFA_Disp_fac2 (&fTab[fa[i1]], p2a, zVal);
+    }
+
+
+  //----------------------------------------------------------------
+  L_bvi:
+  if(!strchr(opts, 'b') ) goto L_end;
+
+  // GL_DrawLn_Ini (&dli, grAtt);
+  // GR_Disp_ln2
+  // GL_Draw_Ini (&dli, grTyp);  // init cv/surf, glNewList < GL_fix_DL_ind
+  GL_att_cv (grAtt);   // INF_COL_CV
+
+  for(i1=0; i1 < eNr; ++i1) {
+    // get the points of edge cf1a[i1],ce1a[i1]
+    UFA_2pt2_fac_esn (&pta[0], &pta[1], ea[i1], &fTab[fa[i1]], p2a);
+      // DEB_dump_obj__ (Typ_PT2, &pta[0], " ps");
+      // DEB_dump_obj__ (Typ_PT2, &pta[1], " pe");
+    GL_Disp_cv2z (2, pta, zVal);
+  }
+
+
+  //----------------------------------------------------------------
+  L_end:
+  GL_EndList1 (0);     // glEndList
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int UFA_Disp_fac2 (Fac3 *fa1, Point2 *pa, double zVal) {
 //================================================================
 // UFA_disp_fac2            display 2D-face
@@ -3892,7 +3962,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 // UFA_disp_fb1          display boundary of indexed-triangle 
 // replacing MSH_test_disp_fb1
 // TODO: UFA_disp_fb1 -> UFA_disp_opts ?         see UPAT_ipatch_disp_opts
-// see GL_Disp_ipatch GL_Disp_nifac GL_Disp_cv 
+// see GL_Disp_ipatch GL_Disp_i2fac GL_Disp_cv 
 
   int     iCol=9;  //8=green
   Point   *p1, *p2, *p3;

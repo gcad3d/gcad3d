@@ -281,6 +281,7 @@ extern ColRGB     AP_defcol;
 
 // ex ../xa/xa_ui_gr.c
 extern int        GR_Func_Act;
+extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
 
 
 // aus ../gr/ut_gtx.c:
@@ -1482,7 +1483,11 @@ static char LstBuf[LstSiz][32];
 //================================================================
   int UI_Set_infoSel (int mode) {
 //================================================================
+// UI_Set_infoSel            display info for selectionFilters 1/18/19
+// clear message with "UI_Set_infoSel (0);
+//
 // eg "<span fgcolor=\"#ff0000\" weight=\"bold\">xy</span>"
+
 
   static char *sAct;
   static char *s0 = "-";
@@ -1496,7 +1501,7 @@ static char LstBuf[LstSiz][32];
   char   *p1;
 
 
-  // printf("UI_Set_infoSel %d\n",mode);
+  printf("UI_Set_infoSel %d\n",mode);
 
   p1 =  s0;
   if(mode ==  1) p1 =  s1;
@@ -2083,7 +2088,7 @@ static char LstBuf[LstSiz][32];
 
 
 
-  iFilt = UI_GR_Sel_Filter(-1);
+  iFilt = UI_GR_Sel_Filt_set(-1);
   if(iFilt != 0) {
     // printf(" GR_Sel_Filter=%d\n",iFilt);
     if(iFilt == 17) {      // Form active
@@ -2175,7 +2180,7 @@ static char LstBuf[LstSiz][32];
   // }
 
 
-  iFilt = UI_GR_Sel_Filter(-1);
+  iFilt = UI_GR_Sel_Filt_set(-1);
   if(iFilt != 0) {
     // printf(" GR_Sel_Filter=%d\n",iFilt);
     if(iFilt == 17) {      // Form active
@@ -2183,7 +2188,7 @@ static char LstBuf[LstSiz][32];
       return 0;
     }
     // clear filter:  // 2013-04-08
-    UI_GR_Sel_Filter (0);
+    UI_GR_Sel_Filt_reset ();
   } 
 
 
@@ -2315,7 +2320,7 @@ static char LstBuf[LstSiz][32];
   AP_UserKeyIn_reset ();      // reset  KeyIn
   AP_UserSelection_reset ();  // reset  select
   AP_UserMousemove_reset ();  // reset user-mouseMovementCallback
-  UI_GR_Sel_Filter (0);       // reset selectFilter.
+  UI_GR_Sel_Filt_reset ();       // reset selectFilter.
 
   // reset red color of application-program in label UIw_prg
   UI_Set_actPrg (NULL, 0);
@@ -4303,7 +4308,8 @@ static char LstBuf[LstSiz][32];
       //----------------------------------------------------------------
       // MAN -> VWR:
       if(opMod == UI_MODE_MAN) {
-        UI_brw__ (0);         // das Edit-Fenster deaktivieren
+        UI_brw__ (0);            // das Edit-Fenster deaktivieren
+        GR_dli_hili = -1L;       // reset hilite of last-created-obj
 
         // act. GO,STEP;   MAN:On; CAD,VWR:Off.
         GUI_set_enable (&but_go, FALSE);
@@ -4416,6 +4422,7 @@ static char LstBuf[LstSiz][32];
         // MAN -> CAD:
         if(opMod == UI_MODE_MAN) {
           printf(" MAN -> CAD\n");
+          GR_dli_hili = -1L;                     // reset hilite of last-created-obj
           // act. GO,STEP;   MAN:On; CAD,VWR:Off.
           GUI_set_enable (&but_go, FALSE);
           GUI_set_enable (&but_step, FALSE);
@@ -4752,13 +4759,13 @@ See UI_but__ (txt);
       // ON
       AP_stat.iActStat = 1;
       // set filter = object_with_activity_only
-        // printf(" actFilt=%d\n",UI_GR_Sel_Filter(-1));
-      UI_GR_Sel_Filter (21);
+        // printf(" actFilt=%d\n",UI_GR_Sel_Filt_set(-1));
+      UI_GR_Sel_Filt_set (21);
     } else {
       // OFF
       AP_stat.iActStat = 0;
       // set filter = standard
-      UI_GR_Sel_Filter (0);
+      UI_GR_Sel_Filt_reset ();
     }
 
 
@@ -5153,11 +5160,11 @@ See UI_but__ (txt);
       // printf("UI_grp__ set grpAdd ON\n");
     Grp_Start ();
     // DL_grp1_set (-1L, OFF);           // clear all groupBits
-    // if(UI_GR_Sel_Filter(-1) != 5)     // nochmal ware Reset !
+    // if(UI_GR_Sel_Filt_set(-1) != 5)     // nochmal ware Reset !
 
 // 2 raus 2011-07-30
-    // if(UI_GR_Sel_Filter(-1) != 5)        // nochmal waere Reset !
-    // UI_GR_Sel_Filter (5);                // activate add to group
+    // if(UI_GR_Sel_Filt_set(-1) != 5)        // nochmal waere Reset !
+    // UI_GR_Sel_Filt_set (5);                // activate add to group
 
     // DL_hili_off (-1L); DL_Redraw (); // unhilite alle Objekte
 
@@ -5165,7 +5172,7 @@ See UI_but__ (txt);
       // printf("UI_grp__ set grpAdd OFF\n");
     Grp_Clear (1);
     // DL_grp1_set (-1L, OFF);           // clear all groupBits
-    // UI_GR_Sel_Filter (0);             // reset add to group
+    // UI_GR_Sel_Filt_reset ();             // reset add to group
     // DL_hili_off (-1L); DL_Redraw (); // unhilite alle Objekte
 
   }
@@ -5252,7 +5259,7 @@ See UI_but__ (txt);
     sprintf(cbuf3, " - temporary object - vectorSymbol");
 
   } else {
-    i1 = UTO_objDat_dbo (&vp, &oNr, &oTyp, ind);   // typ wird auf ObjGX gesetzt !
+    i1 = UTO_obj_dbo (&vp, &oNr, &oTyp, ind);   // typ wird auf ObjGX gesetzt !
     if(oNr >= 0) goto L_disp;
     sprintf(cbuf3, " - temporary object");
   }
@@ -5912,7 +5919,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "ModPos")) {
     // modify submodel-Position
     UI_Tra__ (-1L, 0, 0L);                   // prim. Init
-    UI_GR_Sel_Filter(16);
+    UI_GR_Sel_Filt_set(16);
 
 
   //-------------------------------------------------
@@ -6411,7 +6418,7 @@ See UI_but__ (txt);
 
   //======================================================
   } else if(!strcmp(cp1, "Posi2P")) {   // PT <-- Position
-    UI_GR_Sel_Filter (1);
+    UI_GR_Sel_Filt_set (1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "selOid")) {   // select obj from objID
@@ -6420,21 +6427,21 @@ See UI_but__ (txt);
 /* UNUSED
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Vert2P")) {   // PT <-- Vertex
-    UI_GR_Sel_Filter (2);
+    UI_GR_Sel_Filt_set (2);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2P")) {   // PT <-- Obj
-    UI_GR_Sel_Filter (3);
+    UI_GR_Sel_Filt_set (3);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2PP")) {   // PT <-- Obj
-    UI_GR_Sel_Filter (18);
+    UI_GR_Sel_Filt_set (18);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Obj2LN")) {   // PT <-- Obj
-    UI_GR_Sel_Filter (19);
+    UI_GR_Sel_Filt_set (19);
 */
 
   //-------------------------------------------------
   // } else if(!strcmp(cp1, "ObjParent")) {   // parentObj < obj
-    // UI_GR_Sel_Filter (19);
+    // UI_GR_Sel_Filt_set (19);
 
 
 
@@ -6442,7 +6449,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "dump")) {   // dump objData
     // exit active CAD-function (else no selection possible)
     IE_cad_exitFunc ();
-    UI_GR_Sel_Filter (4); // "select or keyIn obj to dump .."
+    UI_GR_Sel_Filt_set (4); // "select or keyIn obj to dump .."
 
 
   //======================================================

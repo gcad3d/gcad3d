@@ -46,7 +46,7 @@ List_functions_end:
 
 ----------ProgramFlow--------:
 UI_menCB |ModPos|
-  UI_GR_Sel_Filter(16);
+  UI_GR_Sel_Filt_set(16);
 UI_GR_Select_work1
   UI_Tra__
 
@@ -102,7 +102,7 @@ Translation:
 
 ===========================================================================
 UI_menCB |ModPos|
-  UI_GR_Sel_Filter(16);
+  UI_GR_Sel_Filt_set(16);
 UI_GR_Select_work1
   UI_Tra__
 
@@ -304,7 +304,7 @@ static int otra_typ2[]={
   L_Exit:   // 4=Exit
 
     WC_set_obj_stat (0);        // perm
-    UI_GR_Sel_Filter (0);       // reset function
+    UI_GR_Sel_Filt_reset ();       // reset function
 
     GL_temp_del_all ();          // alle temp. obj loeschen ..
     DL_disp_reset (ED_get_lnr_act());
@@ -963,7 +963,7 @@ static MemObj win0=GUI_OBJ_NEW;
     case UI_FuncUndo:  // 113 = clear previous Entryfield
       // wenn kein Window aktiv, Funktion beenden
       if(!GUI_OBJ_IS_VALID(&win0)) {
-        UI_GR_Sel_Filter (0);
+        UI_GR_Sel_Filt_reset ();
         return 0;
       }
      

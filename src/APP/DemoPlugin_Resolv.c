@@ -319,7 +319,7 @@ __declspec(dllexport) int gCad_fini ();
   printf("res_obj %d %ld\n",apt_typ,apt_ind);
 
   
-  // irc = UTO_objDat_dbo (&oxo, &iNr, &apt_typ, apt_ind);        // get DB-record
+  // irc = UTO_obj_dbo (&oxo, &iNr, &apt_typ, apt_ind);        // get DB-record
   // if(irc < 0) return irc;
 
  

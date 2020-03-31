@@ -106,7 +106,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
 
   // store standard-curve dynamic in DB
   *oDbi = -1L; // dynamic
-  irc = DB_store_stru (&vp1, *oTyp, *oTyp, cv1, 1, oDbi);
+  irc = DB_store_obj (&vp1, *oTyp, *oTyp, cv1, 1, oDbi);
   if(irc < 0) return irc;
 
     // printf("ex-DBO_cvStd_cvTrm irc=%d typ=%d dbi=%ld \n",irc,*oTyp,*oDbi);
@@ -211,7 +211,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   oNr = 1;
   oTyp = typ;
 
-  irc = UTO_objDat_dbo (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
+  irc = UTO_obj_dbo (&vp, &oNr, &oTyp, dbi);     // typ wird auf ObjGX gesetzt !
     // printf(" f-objDat_dbo irc=%d oNr=%d oTyp=%d\n",irc,oNr,oTyp);
 
   if(irc < 0) {

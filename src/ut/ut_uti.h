@@ -40,6 +40,7 @@ Korr:
  UINT_32 UTI_checksum__ (void *buf, int bufLen);
 
 
+
 //================================================================
 // inline functions
 
@@ -216,6 +217,20 @@ int DLIM10 (double dd);
 /// \endcode
 
 
+// split integer into 2 digits
+#define UTI_2dig_int(ibs,ibe,typ) {ibs=typ/10; ibe=typ - (ibs * 10);}
+
+
+// UTI_2int8_int16           get 2 characters from short-int
+void UTI_2int8_int16 (char,char,short);
+#define UTI_2int8_int16(i8_1,i8_2,i16)\
+ {i8_1 = i16 >> 8; i8_2 = i16 & 255;}
+
+// UTI_2int8_int16           get short-int from 2 characters
+void UTI_int16_2int8 (short,char,char);
+#define UTI_int16_2int8(i16,i8_1,i8_2)\
+  i16 = (i8_1 << 8) + i8_2;
+
 
 /// DLIM2                     returns x = between lo and hi
 double DLIM2 (double, double, double);
@@ -279,6 +294,14 @@ int UTP_comp2db (double d1, double d2, double tol);
 double UTP_px_paramp0p1px (double, double, double);
 #define UTP_px_paramp0p1px(p0,p1,par)\
   ((p1) - (p0)) * (par) + (p0);
+
+
+// test if dx is near d0 or near d1; 0=near-d0, 1=near-d1
+// if(UTP_2db_ck_db_near(x,a,b)) printf("x-near-b") else printf("x-near-a")
+// does not work if values describe closed ring (eg cyclic curve)
+void UTP_2db_ck_db_near (double dx, double d0, double d1);
+#define UTP_2db_ck_db_near(dx,d0,d1)\
+ ((dx < (d0 + d1) / 2.)?((d0<d1)?0:1):((d0<d1)?1:0))
 
 
 double UTP_db_comp_0 (double);

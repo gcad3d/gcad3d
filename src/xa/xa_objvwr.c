@@ -286,7 +286,7 @@ static MemObj winOvr;
 
   // get objStruct from dbo
   // irc = UTO_get_dbo (&typ, &vp1, &oNr, typ, dbi);
-  irc = UTO_objDat_dbo (&vp1, &oNr, &typ, dbi);
+  irc = UTO_obj_dbo (&vp1, &oNr, &typ, dbi);
   if(irc < 0) return -1;
 
 

@@ -30,7 +30,7 @@ void INF_files__ () { }  /*
 ../ut/ut3d_npt.c             polygon (list of points) from curves, surfaces ...
 ../ut/ut2d_npt.c             polygon (list of points) from curves, surfaces ...
 ../ut/ut_gtypes.c            get|set|check object typ, index, ID
-../ut/ut_ox_base.c           complex-object manipulationes (transform, convert ..)  (OGX_)
+../ut/ut_ox_base.c           complex-object functions (transform, convert ..)  OGX_
 ../ut/ut_transform.c         transformations UTRA_
 ../ut/ut_ui_TX.c             TX_Print .. for messageWindow
 ../ut/ut_pspl.c              polynom. splines
@@ -54,7 +54,7 @@ void INF_files__ () { }  /*
 ../ut/ut_tria.c              triangles (using struct Point - UTRI_)
 ../ut/ut_quat.c              Quaternion-utilities
 ../ut/ut_plg.c               PolygonCurve  with lengthTable (struct CurvPoly)
-../ut/ut_cvtrm.c             CVTRM = trimmed-curve functions
+../ut/ut_cvtrm.c             CVTRM = trimmed-curve (CurvCCV) functions
 ../ut/ut_elli.c              ellipse
 ../ut/ut_cvApp.c             change polygon -> circles, lines
 ../ut/ut_sdc.c               SubdivisonCurve-Functions
@@ -188,7 +188,7 @@ void INF_files__ () { }  /*
 ../ut/ctrl_os.h              -
 ../ut/func_types.h           -
 ../ut/gr_types.h             -
-../ut/msh2d.h                -
+../APP/tst_msh2d.h                -
 ../ut/u3d.h                  -
 ../ut/ubs.h                  -
 ../ut/ubscrv.h               -

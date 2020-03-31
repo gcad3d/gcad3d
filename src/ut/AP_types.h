@@ -63,11 +63,11 @@ void INF_OTYP (){}
 #define Typ_LN             4  ///< L   Line (CVLn3)
 #define Typ_CI             5  ///< C   Circ
 #define Typ_VC2           10  ///< D   Vector2
-#define Typ_VC3F          11  ///< D   Vec3f
 #define Typ_PT2           11  ///< P   Point2
 #define Typ_LN2           12  ///< L   Line2
 #define Typ_CI2           13  ///< C   Circ2
 #define Typ_CI2C          14  ///< C   Circ2C centerPosition
+#define Typ_VC3F          15  ///< D   Vec3f
 #define Typ_CVLN3         16  ///< S   CVLn3 (Line Typ_LN)
 
 /// DB-curves 20-39
@@ -108,7 +108,7 @@ void INF_OTYP (){}
 // trimmed, perforated surfaces:
 #define Typ_SURPLN        58  ///< A Planar surf.
 #define Typ_SURSUP        69  ///< A support-surface 
-#define Typ_SURTPS        59  ///< A surface-trimmed-perforated-supported
+#define Typ_SUTP          59  ///< A surface-trimmed-perforated-supported
 
 // pretesselated surfaces
 #define Typ_SURCIR        61  ///< tesselated fan
@@ -269,7 +269,6 @@ void INF_OTYP (){}
 #define Typ_StrDel1      193   /// StringDelimiter 1 "|"
 #define Typ_FncNam       194   /// geom-function; see ObjCodTab Typ_Cmd1
 #define TYP_FilNam       195   /// filename
-//#define Typ_........     196   /// ....
 #define Typ_NumString    197   /// numeric string; eg -123.4
 #define Typ_ConstVal     198   /// constant value; eg PI RAD_90 SR_2
 #define Typ_ConstOG      199   /// geometric-constant-object; eg DX RZ
@@ -281,6 +280,7 @@ void INF_OTYP (){}
 #define Typ_IndTab       202   ///< IndTab, container
 #define Typ_ObjRange     203   ///< ObjRange
 #define Typ_ObjSRC       204   ///< ObjSRC
+#define Typ_ObjTXTSRC    196   ///  expression of sourceObject
 #define Typ_ObjGX        205   ///< ObjGX,  container
 #define Typ_ObjTab       206   ///< ObjTab, container         was Typ_ObjG2
 #define Typ_ObjBin       207   ///< ObjBin  binary-object             

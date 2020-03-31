@@ -3,7 +3,7 @@
   @echo ============ Compile C $< ==================
   $(CC) -c $(CPFLG) $<
   move $(*F).obj $@
-# ctags $(TAGFLGS) -f $*.wtag $<
+  ctags $(TAGFLGS) -f $*.wtag $<
 
 
 #.cpp.obj:

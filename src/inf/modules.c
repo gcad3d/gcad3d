@@ -25,12 +25,16 @@ Use it with "vi -t <code>"
 ================================================================== */
 void INF_PRCV(){                   /*! \code
 polygonal_representation_of_curve    ../ut/ut_prcv__.c
+                                     ../ut/ut_prcv_db.c
 
-PRCV keeps points of the polygonal representation of all curves.
+PRCV keeps all points of the polygonal representation of all curves.
+
 If the curve is used as trimmed curve, then the start- and endpoint of the
   trimmed curve is also stored in the PRCV.
+  This knotPoints have also stored the parameter and the DB-index.
+
 That means that all applications of a curve (or parts of a curve) use
-  the same set of points; eg 2 surfaces sharing the same baoundarycurve
+  the same set of points; eg 2 surfaces sharing the same boundarycurve
   use the same points.
 
 
@@ -45,16 +49,31 @@ APT_work_def        Work DefinitionLine
     PRCV_set_obj_dbi   create/update PRCV for dbo
       PRCV_set_basCv       create PRCV for baseCurve
 
-GR_DrawCvCCV        display trimmed-curve
+GR_DrawCvCCV        display composite-curve
   UT3D_mtpt_trmCv
-    PRCV_npt_trmCv
-      PRCV_get_dbo_add_tc
+    PRCV_mtpt_trmCv
+      PRCV_get_dbo_add_tc    get curve from PRCV 
         PRCV_get_tc_find     find parameter or DB-poit-index in PRCV
+        PRCV_get_tc_add_prc
+
+
+internal:           --------------------
+PRCV_GRP is a MemTab(CurvPrcv) = all curves, fixed size = sizeof(CurvPrcv);  
+
+PRCV_DB_save does:
+  - add the CurvPrcv to PRCV_GRP;
+  - Store data:
+   - malloc space for all data (points,parameters,DBis)
+   - copy data, store the location in the CurvPrcv-record in PRCV_GRP.
+   - the malloc-location (for free) is (CurvPrcv).npt.
+   - for every curve one malloc is done.
 
 
 mainFunctions:      --------------------
 PRCV_set_dbo__      create PRCV for DB-obj (typ/dbi)
 PRCV_npt_dbo__      get polygon for DB-obj
+PRCV_DB_save
+PRCV_DB_load
 
 
 
@@ -62,6 +81,20 @@ PRCV_npt_dbo__      get polygon for DB-obj
 void INF_CNTF(){                   /*! \code
 CNTF                  find and create contour (CCV = trimmed-curves)
 
+used for creating composite-curve from points,lines,circles,curves,trimmed-curves.
+eg "S20=CCV P31 P41 C21 P43 P42 C20 P40 P30"
+
+--------------------------------------------------------------------
+TODO:
+- CNTF tries to find normal exit (perpendicular, right-angled) from curves;
+  but sometimes -
+  - tangential exit is wanted or
+  - direct connection to endpoint of curve is wanted
+  Add checkBoxes "parallel" and "normal" to the CCV-Menu; 
+    compute the appropriate point, add this point into output ..
+
+
+--------------------------------------------------------------------
 CNTF_init__
 
 CNTF_add__

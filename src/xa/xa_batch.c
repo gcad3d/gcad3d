@@ -347,7 +347,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
 // ../xa/xa_ui_gr.c
   int UI_GR_get_actPos_ () {}
   int UI_GR_get_actPosA () {}
-  int UI_GR_Sel_Filter () {}
+  int UI_GR_Sel_Filt_set () {}
 
 // xa_tex.c
   void Tex_Init__ () {}

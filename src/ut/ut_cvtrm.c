@@ -44,7 +44,7 @@ CVTRM__plg_2par          create trimmed-curve from polygon and parameters
 CVTRM__plg_iseg          get trimmed-curve from segment of polygon
 CVTRM_ocv_otb__          create trimmed-curve from object-table
 
-UT3D_obj_ccv_segnr       get obj (typ,data) from segment of CCV.
+UTO_obj__ccv_segnr       get obj (typ,data) from segment of CCV.
 
 CVTRM_basCv_trmCv        get basic-curve of trimmed-curve (typ,dbi,obj)
 CVTRM__basCv__           get updated trimmedCurve (direct ref to basic-curve)
@@ -52,6 +52,8 @@ CVTRM_basCv_trmCv_con    get trimmedCurve of parent-trimmedCurve
 CVTRM_par1_con           translate parameters from child-curve to parent-curve
 
 CVTRM_parent_ccv  DO NOT USE    get parent of a trimmedCurve    
+
+CVTRM_set                set pointer to trimmed-curve from index              INLINE
 
 // UT3D_seg_objSel            Segmentnummer am Polygon liefern
 // UT3D_seg_dboSel            Segmentnummer am Polygon liefern
@@ -450,78 +452,8 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   return 0;
 
 }
-*/
 
-
-//================================================================
-  int UT3D_obj_ccv_segnr (int *typ, void *obj, int is, ObjGX *cv1) {
-//================================================================
-/// \code
-/// UT3D_obj_ccv_segnr             get obj (typ,data) from segment of CCV.
-/// Returns only curves; points are returned as lines.
-/// Input:
-///   cv1    ObjGX with typ=Typ_CVTRM
-///   is     subCurve-nr; 0=first.
-/// Output:
-///   typ
-///   obj    struct is typ; size must be OBJ_SIZ_MAX
-/// \endcode
-
-  int      irc;
-  CurvCCV  *cca, *cc1;
-
-
-  // printf("UT3D_obj_ccv_segnr is=%d\n",is);
-  // DEB_dump_obj__ (Typ_ObjGX, cv1, " _pt_segparccv: ");
-
-
-  if(cv1->form != Typ_CVTRM) {
-    TX_Error("UT3D_obj_ccv_segnr-EI %d_%d",cv1->typ,cv1->form);
-    return -1;
-  }
-
-  if(is >= cv1->siz) {
-    TX_Error("UT3D_obj_ccv_segnr-MOD %d_%d",is,cv1->siz);
-    return -1;
-  }
-
-
-  // get segment nr <is> as curve-data (change point -> line)
-  cca = (CurvCCV*)cv1->data;
-  cc1 = &cca[is];
-    // DEB_dump_obj__ (Typ_CVTRM, cc1, " cc1: ");
-
-/*
-  //----------------------------------------------------------------
-  if(cc1->typ == Typ_PT) {
-    // make line from cc1 and previous curve
-    if(is < 0) {TX_Error("UT3D_obj_ccv_segnr E001"); return -1;}
-    irc = UT3D_ln_ccv_pt ((Line*)obj, &cca[is - 1], &cca[is]);
-    if(irc < 0) return -1;
-    *typ = Typ_LN;
-    goto L_done;
-  }
-*/
-
-  //----------------------------------------------------------------
-  // get binary obj from trimmedCurve
-  *typ = cc1->typ;
-  irc = UTO_cv_cvtrm (typ, obj, NULL, cc1);
-  if(irc < 0) {
-    TX_Error("UT3D_obj_ccv_segnr E002_%d",cc1->typ);
-    return -1;
-  }
-
-
-
-  //----------------------------------------------------------------
-  L_done:
-    // DEB_dump_obj__ (*typ, obj, "ex UT3D_obj_ccv_segnr: ");
-  return 0;
-
-}
  
-/*
 //=========================================================================
   int UT3D_crv_segccv (int *typ, ObjGX *oxo, int is, ObjGX *cv1, Line *ln) {
 //=========================================================================
@@ -586,7 +518,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 //================================================================
   int UT3D_obj_segccv (ObjGX *oxo, int is, ObjGX *cv1) {
-REPLACED by UT3D_obj_ccv_segnr
+REPLACED by UTO_obj__ccv_segnr
 //================================================================
 // UT3D_obj_segccv             ObjGX  <-- segNr in CCV
 // copy segment nr <is> of CCV <cv1> -> oxo
@@ -1532,9 +1464,9 @@ REPLACED by UT3D_obj_ccv_segnr
 
 
   // get typ,data from seg.<is> 
-  irc = UT3D_obj_ccv_segnr (&typ, cvo, is, cv1);
+  irc = UTO_obj__ccv_segnr (&typ, cvo, is, cv1);
   if(irc < 0) {
-    TX_Error("UT3D_obj_ccv_segnr EI_%d_%d_%d",irc,cv1->typ,cv1->form);
+    TX_Error("UTO_obj__ccv_segnr EI_%d_%d_%d",irc,cv1->typ,cv1->form);
     return -1;
   }
 
@@ -1925,7 +1857,7 @@ REPLACED by UT3D_obj_ccv_segnr
 ///   iseg   index of segment to extract; 0=first.
 /// Output:
 ///   cvo    single trimmed-curve 
-/// see UT3D_2pt_plg_iseg UT3D_obj_ccv_segnr
+/// see UT3D_2pt_plg_iseg UTO_obj__ccv_segnr
 /// \endcode
 
 

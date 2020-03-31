@@ -125,8 +125,8 @@ Functions see Get_ComplexObject
 
 
 Funktionen:
+  DB_store_ox
   DB_store_obj
-  DB_store_stru
   UTO_isol__         duplicate/isolate object (resolve Links)
   UTRA_app_oTab
   
@@ -850,7 +850,7 @@ Planar Trimmed-Perforated-Surface:
 
 Trimmed-Perforated-Surface with Supportsurface:
     (has a Supportsurface, outer-boundary and 0-n inner-boundaries):
-  Typ_SURTPS
+  Typ_SUTP
 
 
 Other:
@@ -878,7 +878,7 @@ ObjGX    os1;
 
 
 Offen:
-  SurHat dzt ohne Inseln; ev wie Typ_SURTPS (Aussengrenze & Inseln)
+  SurHat dzt ohne Inseln; ev wie Typ_SUTP (Aussengrenze & Inseln)
 
 
 
@@ -1126,10 +1126,12 @@ void INF_FMTB_Surface_TPS  (){        /*! \code
 
 Surface with supporting_surface, trimmed, perforated
 
+SEE ALSO NEW VERSION INF_SUTP
+
 SourceObj:
   A = FSUB supportSurf contour [inner_contours]
 
- (ObjGX) typ  = Typ_SURTPS
+ (ObjGX) typ  = Typ_SUTP
          form = Typ_ObjGX;
          siz  = nr of ObjGX in data
          data = (ObjGX[0])=supporting_surface (CON/TOR/SRU/SRV/SBS)

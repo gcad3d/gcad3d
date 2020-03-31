@@ -1193,7 +1193,7 @@ static IE_rec_stru IE_cad_s[]={
   // "S Ellipse Center, Hauptachsen, EndPoint", "ELL",
    1, Typ_PT,      "Center",
    1, Typ_VC,      "MajorAxis (VEC)||DD0",
-   1, Typ_VC,      "Axis (VEC)||DD0",
+   1, Typ_VC,      "MinorAxis (VEC)||DD0",
    1, Typ_PT,      "[StartPoint]",
    1, Typ_PT,      "[EndPoint]",
   // "S connection-lines < Points...",          "MSH",   // 9

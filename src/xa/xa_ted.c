@@ -53,10 +53,10 @@ see also UI_WinTra__       alter modelPositionEditor
 \endcode *//*----------------------------------------
 
 
-UI_GR_Sel_Filter - UI_GR_Select_work1
-UI_GR_Sel_Filter 13  remove texture
-UI_GR_Sel_Filter 14  apply texture
-UI_GR_Sel_Filter 15  load texture
+UI_GR_Sel_Filt_set - UI_GR_Select_work1
+UI_GR_Sel_Filt_set 13  remove texture
+UI_GR_Sel_Filt_set 14  apply texture
+UI_GR_Sel_Filt_set 15  load texture
 
 
 
@@ -161,7 +161,7 @@ static TexRef actTr;             // active TexRef (for Restore)
 
   // get actObj from DB -------------------------------------
   form = typ;
-  irc = UTO_objDat_dbo (&actObj, &i1, &form, dbi);
+  irc = UTO_obj_dbo (&actObj, &i1, &form, dbi);
   if(irc < 0) return irc;
     // printf(" form=%d\n",form);
     // DEB_dump_obj__ (form, actObj, "actObj: ");

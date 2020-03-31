@@ -68,6 +68,14 @@ typedef struct {void *start, *next, *end;
 #define UME_NEW {NULL, NULL, NULL, 0}
 
 
+
+
+// MEMSPC_SET_NULL       set MemTab = _MEMTAB_NUL;
+#define UME_SET_NULL(spc){\
+  extern Memspc    UME_NUL;\
+  memcpy((spc), &UME_NUL, sizeof(Memspc));}
+
+
 /// \code
 /// UME_get_next          get actual memSpacePosition (.next; next free position)
 /// Example: see UME_set_next

@@ -17,15 +17,18 @@ MS-DEV_Install:
 
 
 # open a VisualStudio-Command-prompt-terminal, eg the VS-2010
-# test the c-compiler with "cl"
+# test the c-compiler with "cl /?"
 
 # create base-directory for deveopment-files
 cd/d %APPDATA%
 mkdir devel
+cd devel
 
-# copy deveopment-files to APPDATA%\devel\gcad3d
+# copy development-files to APPDATA%\devel\gcad3d
 # eg clone with git ..
 # on NAS use NAS2LOCAL
+# OR -
+# unzip x:\xx\gCAD3D-devel-xx.xx.zip
 
 # change directory to primary-development-directory
 cd/d %APPDATA%\devel\gcad3d\src\APP

@@ -58,13 +58,15 @@ INF_DL__            DisplayList-functions                             ../gr/ut_D
 INF_GRAFIC__        display-module, Displist, OpenGL, GL2D
 INF_MAN__           MAN
 INF_CAD__           CAD
+INF_geom            INF_func_3D INF_func_2D      INF_MSH2D__
+                    INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
 
 INF_DEV_GC__        workflow events select timer
 INF_APP__           create modify undo resolve attributes Userinteractions coords
-INF_OBJ_FORM__      SRC ato obj DBO dlo
+INF_OBJ_FORM__      binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
 INF_OBJ_CONV__      ObjectFormatConversions
-INF_DEV_C__         MEM const tol C_types INF_debug
-INF_files__         ../inf/files.c
+INF_DEV_C__         C-software-developmant - MEM const tol C_types INF_debug
+INF_files__         list of all source-files ../inf/files.c
 
 Geom.modules:
 INF_PRCV            polygonal_representation_of_curve              ../ut/ut_prcv__.c
@@ -79,6 +81,10 @@ INF_DEV_tools__     development-tools
 INF_DOC_U           user-documentation
 INF_NamingConventions
 recipes-for-geometric-problems  ../../doc/geom/
+
+
+TODO:
+tst_gmvo.c          Move all obj's of group
 
 
 
@@ -254,12 +260,12 @@ inputObjects  pt 2pt  ..
  cvbsp  CurvBSpl, Typ_CVBSP, B-Spline-Curve; was bspl
  cvcon  Conic-Curve; hyperbola|parabola.
  cvpnm  pspl  Typ_CVPSP3, Polynom.Spline.
- cvcnt  contour; bnd  boundary; curve, closed.
+ cvbnd  contour; bnd  boundary; curve, closed.
  cvtrm  trimmed (limited) curve Typ_CVTRM
  ncv    Array of curves;  was cva
 
  sur   Surface (all types)
- stps  trimmedPerforateSurface, Typ_SURTPS
+ stps  trimmedPerforateSurface, Typ_SUTP
  sru   RuledSurface, Typ_SURRU
  srv   RevolvedSurface, Typ_SURRV
  sbsp  B-SplineSurface, SurBSpl, Typ_SURBSP
@@ -313,6 +319,7 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  rd    Radius
  bp    BackPlane; XY, XZ, ZY
  hbp   Hoehenwert einer BackPlane
+ dst   distance
  gcp   gravity-center-point (Schwerpunkt)
  lva   length-value-table
  pva   parameter-value-table
@@ -323,13 +330,13 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  rev     reverse, not forward
  perp    Orthogonal (Normal)
  parl    parallel
+ perp    perpendicular = senkrecht/lotrecht/normal   nor
  on      auf
  in      zwischen between
  mid
  near
  equ     identisch
  norm    normieren
- div     teilen (divide)
  orient  ausrichten
  appr    approximate, not precise (Abschaetzung) 
 
@@ -338,13 +345,13 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
   __      "encode from"
   get   
   set
-  add
+ add
+ div     teilen (divide)
+ sub     subtract
+ mult    multiply
   ck      check
   cpy     copy
-  sub     subtract
-  mult    multiply
   ev      evaluate (parameter)
-  perp    perpendicular = senkrecht/lotrecht/normal   nor
   int     intersect
   ipl     interpolate
   lim     limits (endpoints), limited
@@ -460,14 +467,26 @@ Old devDoc: ../../doc/gcad_doxygen/Programminginfos.dox
 
 
 ================================================================== \endcode */}
-void INF_OBJ_FORM__ (){        /*! \code
-INF_OBJ_FORM__       SRC ato obj DBO dlo
+void INF_obj_type (){        /*! \code
+every struct has a corresponding typ (interger)
 
-INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
-INF_ato__       atomic-objects
+eg the type of struct Point is Typ_PT
+   the type of struct int   is Typ_Int4
+
+see ../ut/AP_types.h
+
+
+================================================================== \endcode */}
+void INF_OBJ_FORM__ (){        /*! \code
+binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
+
+INF_obj_type    every struct has a corresponding typ (interger)  ../ut/AP_types.h
+
 INF_obj__       binary-obj, from typ + binary-struct
-INF_DBO__       DB-type & DB-index;               (int, long)
-INF_dlo__       dispList-object
+INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
+INF_ato__       atomic-objects ato
+INF_DBO__       DB-obj DB-type & DB-index (int, long) dbo
+INF_dlo__       dispList-object    dlo
 
 
 
@@ -541,6 +560,14 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
                     int[]                   table of ints            ut_iTab.c
 
 sr                                          sense-of-rotation;       INF_sr
+
+
+....................................................................................
+stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf  INF_SUTP
+
+
+
+
 
 see -
 INF_struct_ObjGX
@@ -751,8 +778,16 @@ obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
 ================================================================== \endcode */}
 void INF_ObjTab (){        /*! \code
 functions for
-  ObjTab =  list of [oTyp, pointer to oDat, Memspc for oDat, aux.obj]
+  ObjTab =  list of [oTyp, pointer to oDat, Memspc for oDat, aux.obj]     OTB_*
 ../xa/tst_ut_objtab.c
+
+type of memSpc = MEMTYP_STACK__  (realloc - NO,    malloc - NO,   free - NO.)
+
+struct ObjTab has memspaces:
+- Memspc oSpc    keeps oNr different binary records
+- void   **oDat  list of pointers to the records in oSpc
+- int    *oTyp,  list of types of records in oSpc
+- void   *xDat;  keeps oNr records with recordsize = xSiz = UTO_siz_stru(xTyp);
 
 
 
@@ -792,6 +827,9 @@ Functions:
 void INF_Typ_CVTRM (){        /*! \code
 
 struct CurvCCV
+  Parameters v0,v1 (startpoint, endPoint) of Circ, CurvElli are normalized (0-1)
+                   CurvPoly has length, CurvBSpl has knotvalues;
+
 
 Functions:
   UTO_cv_cvtrm       // make normal object of trimmedCurve
@@ -845,7 +883,7 @@ void INF_OGX_SUR_TPS (){        /*! \code
 complexObject - A surface-trimmed-perforated-supported
 
 struct ObjGX
-         typ  = Typ_SURTPS;
+         typ  = Typ_SUTP;
          form = Typ_ObjGX;
          siz  = nr of ObjGX-structs in data
          data = oxTab[] - supporting-surface, outer and inner-boundary
@@ -858,7 +896,7 @@ struct ObjGX
              typ=Typ_modUndef = unlimited supporting_surface
    [oxTab[2-n] inner-boundaries(DB-objs (INF_OGX_DBO))]
 
-FSUB     T_FSUB  Typ_SURTPS    APT_decode_s_pln
+FSUB     T_FSUB  Typ_SUTP    APT_decode_s_pln
 
 
 
@@ -877,7 +915,7 @@ complexObject-surface-planar
     [oxTab[2-n] inner-boundaries
   
 Functions:
-  APT_decode_su_pln   // ox from ato
+  APT_decode_sutp_pln   // ox from ato
   DB_StoreSur         // save ox (surface) in DB)
 
 see also INF_OGX_SUR__
@@ -898,6 +936,7 @@ Example:
 sourcefile-runtime: <cfgdir>/ltyp.rc     /mnt/serv1/Devel/gcad3d/gCAD3D/cfg/ltyp.rc
 sourcefile-devel:   ../../gCAD3D/cfg/ltyp.rc -> examples.gz
 
+ind col typ thk
   0 000  0  1    black  full                 Typ_Att_def        default
   1 116  0  1    blue   full blue            Typ_Att_blue
   2 000  2  1    black  dash                 Typ_Att_dash__
@@ -1137,11 +1176,20 @@ tolerances
 void INF_MEM__ (){        /*! \code
 
 INF_MEM_ORG_TYP   get organized memspc as -
-                  Fixed-Length-Records|Variable-Length-Records|Textstrings|BitArray
-
-INF_MEM_TYP       type of memspc; stack|malloc, protected,expandable
 
 INF_MEM_SPC       get memspc - temporary | static | permanent
+
+
+INF_MemTab      Fixed-Length-Records            MemTab   
+                Variable-Length-Records         Memspc
+                Textstrings
+                BitArray
+
+INF_ObjTab      Variable-Length-Records
+                  + list of pointer and types
+                  + Fixed-Length-Records
+
+INF_MEM_TYP       type of memspc; stack|malloc, protected,expandable
 
 
 Functions:
@@ -1171,6 +1219,10 @@ void INF_MEM_SPC (){        /*! \code
 MEM_alloc_tmp     get temporary-memspc
   calls alloca; memspace exists until active function returns.
   max size should be SPC_MAX_STK = 32767 bytes
+  Example:
+  int   *iTab2;
+  iTab2 = (int*) MEM_alloc_tmp (sizeof(int) * lnNr);
+  if(!iTab2) goto L_EOM;
 
 
 
@@ -1193,20 +1245,25 @@ void INF_MEM_ORG_TYP (){        /*! \code
 the memory-space types are defined in ../ut/ut_types.h as MEMTYP_*
 
 
-INF_MEM_ORG_LFIX     Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
-INF_MEM_ORG_LVAR     Variable-Length-Records      UME_          ../ut/ut_umem.c
+INF_MemTab           Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
+INF_Memspc     Variable-Length-Records      UME_          ../ut/ut_umem.c
 INF_MEM_ORG_TXT      Textstrings                  UtxTab_       ../ut/ut_txTab.c
 INF_MEM_ORG_BIT      Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
 
 ================================================================== \endcode */}
-void INF_MEM_ORG_LFIX (){        /*! \code
+void INF_MemTab (){        /*! \code
 
 MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
                                                              ../ut/ut_memTab.h
 
+  MemTab_add ..      // add or reserve records
+  MEMTAB_IND         // get or set index (next free = nr of used)
+  MEMTAB_DAT         // get data-record complete
+
 -----------------------------------------------------------------------
 # get temporary-memspc:
+
   // for known nr of records:
   MemTab(int) mtbi1 = _MEMTAB_NUL;
   MemTab_ini_temp (&mtbi1, rNr);   // does malloc if > SPC_MAX_STK
@@ -1216,14 +1273,12 @@ MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
   MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
                   sizeof(Point), Typ_PT);
   ..
-  MemTab_free ((MemTab*)&mtbi1);  // if realloc permanent-memspc (gt SPC_MAX_STK)
+  MemTab_free ((MemTab*)&mtba);  // if realloc permanent-memspc (gt SPC_MAX_STK)
 
 
   Point pta[200];
   MemTab_ini_fixed (&mtpa, pta, sizeof(pta), sizeof(Point), Typ_PT);
   ..
-
-
 
 
 -----------------------------------------------------------------------
@@ -1243,7 +1298,7 @@ DO NOT USE the static-memspces ../xa/xa_mem.h
 
 
 ================================================================== \endcode */}
-void INF_MEM_ORG_LVAR (){        /*! \code
+void INF_Memspc (){        /*! \code
 
 Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
@@ -1370,6 +1425,9 @@ UI_GL_mouse__                 OpenGL-callback for user-selection
   UI_GR_Indicate
 
 UI_GR_CB_Sel2
+
+
+TODO: types Typ_XVal,Typ_YVal,Typ_ZVal: select P D L as X(P...) ...
 
 
 -------------------------------------------------------------------------
@@ -1773,7 +1831,12 @@ only _en (../../doc/html/index_en.htm)  up-to-date;
 
 
 
-
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE></TITLE>
+  <meta name="description" .. ">
+  <meta name="keywords" content=".. ">
 <STYLE TYPE="text/css">
   H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
   H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
@@ -1783,6 +1846,7 @@ only _en (../../doc/html/index_en.htm)  up-to-date;
 </HEAD>
 <BODY LANG="en-US"
       style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
+<PRE>
 
 ..
 <HR><!-- ============================================================ -->
@@ -1794,6 +1858,16 @@ Send bug-reports, suggestions for improvement to
 </PRE>
 </BODY>
 </HTML>
+
+
+
+
+
+//----------------------------------------------------------------
+Tools:
+change text in all files:
+cd ../../doc/html/
+cscope *.htm
 
 
 

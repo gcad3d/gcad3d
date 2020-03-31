@@ -118,13 +118,15 @@ int MEM_alloc_file (void**, long*,  char*);
 // returns 0 - memspc MUST be freed   / MEMTYP_ALLOC__
 //      else - memspc CANNOT be freed / all but MEMTYP_ALLOC__
 #define MEM_CANNOT_FREE(mTyp)\
- ((!mTyp)||mTyp & 4)
+ (mTyp != MEMTYP_ALLOC__)
+//((!mTyp)||mTyp & 4)
 
 
 // get 0 - CANNOT be freed  / all but MEMTYP_ALLOC__
 //  else - MUST be freed    / MEMTYP_ALLOC__
 #define MEM_MUST_FREE(mTyp)\
- ((mTyp)&&(mTyp & 4) - 4)
+ (mTyp == MEMTYP_ALLOC__)
+//((mTyp)&&(mTyp & 4) - 4)
 
 
 // get 0 - CANNOT (re)alloc / MEMTYP_ALLOC_EXPND,MEMTYP_STACK__,MEMTYP_STACK_EXPND

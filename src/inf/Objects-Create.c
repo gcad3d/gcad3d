@@ -167,7 +167,7 @@ void INF_Fixed-Database-record (){        /*! code
 Create:
 dbi = DB_StoreLine (123L, &ln1); // store as "L123"
 DB_QueryNxtFree DB_GetDynInd DB_isFree_PT // find free dbi
-DB_StorePoint, DB_store_stru
+DB_StorePoint, DB_store_obj
 Modify:
 DB_GetObjDat
 

@@ -1138,10 +1138,10 @@ static FILE     *uo = NULL;
 /*
     // display also Centerline and ContourCurve
     i1 = srv->typCen;
-    UTO_objDat_dbo (&v1, &i1, &i2, srv->indCen);
+    UTO_obj_dbo (&v1, &i1, &i2, srv->indCen);
     DEB_dump_obj__ (i1, v1, "Centerline:\n");
     i1 = srv->typCov;
-    UTO_objDat_dbo (&v1, &i1, &i2, srv->indCov);
+    UTO_obj_dbo (&v1, &i1, &i2, srv->indCov);
     DEB_dump_obj__ (i1, v1, "ContourCurve:\n");
 */
 
@@ -1459,7 +1459,7 @@ static FILE     *uo = NULL;
     // get objStruct from dbo
     // irc = UTO_get_dbo (&sTyp, &v1, &i3, ox->typ, dbi);
     sTyp = ox->typ;
-    irc = UTO_objDat_dbo (&v1, &i3, &sTyp, dbi);
+    irc = UTO_obj_dbo (&v1, &i3, &sTyp, dbi);
     if(irc < 0) goto L_err1;
 
     // objViewer

@@ -107,6 +107,7 @@ UT2D_angr_2vc_ccw         angle (rad.) between 2 Vectors
 UT2D_angr_3pt_sr          get opening angle of 3 points with sense of rot
 UT2D_angr_ci              openingAngle of circle (pa,pe,pc,rad/dreh)
 UT2D_angr_ck_inAc         check if Point ptx/angle-apx is on arc ci1/aps-ape
+UT2D_angr_ck_near_ci      ck if angle is on or near arc from angs,ango
 UT2D_angr_ck_in_ci        ck if angle is on arc from angs,ango
 UT2D_2angr_ck_360         check if angles aps, ape span 360-degree
 
@@ -10407,11 +10408,12 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 
 //=============================================================================
-  int UT2D_ck_pt_in_tria_tol (Point2 *p1, Point2 *p2, Point2 *p3,
-                              Point2 *px, double *tol) {
+  int UT2D_ck_pt_in_tria_tol2 (Point2 *p1, Point2 *p2, Point2 *p3,
+                               Point2 *px, double *tol) {
 //=============================================================================
-// UT2D_ck_pt_in_tria_tol   check if point is inside Triangle with tolerance
-// see UT2D_ck_pt_in_tria__ UT2D_pt_ck_inCv3
+// UT2D_ck_pt_in_tria_tol2  check if point is inside Triangle with tolerance
+//   test with tol inside & outside
+// see UT2D_ck_pt_in_tria_toli UT2D_ck_pt_in_tria__ UT2D_pt_ck_inCv3 
 // Returncodes:
 //   1 = NO  = point outside triangle
 //   0 = YES = point inside triangle
@@ -12790,6 +12792,70 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
     // printf(" ex-UT2D_2angr_2angr_ci %f %f\n",*angs,*ango);
 
   return 0;
+
+}
+
+
+//==============================================================================
+  int UT2D_angr_ck_near_ci (int *near, double *angx, double *ange,
+                           double angs, double ango, int sr) {
+//==============================================================================
+// UT2D_angr_ck_near_ci     ck if angle is on or near arc from angs,ango
+// Input:
+//   angx      angle to test; from 0 to 2pi
+//   angs      startAngle of circ; from 0 to 4pi
+//   ango      openingAngle of circ; from -2pi to 2pi. Negativ for sr=1=CW
+//             curve-end-angle is angs+ango
+//   sr        sense-of-rotation; 0=CCW, 1=CW
+// Output:
+//   angx, ange
+//   retcode   0:   YES, angx is between angs / angs + ango
+//             1:   NO,  angx is outside v1 / v2
+//   near      if angx is near angs or near angs+ango; can be NULL on input;
+//             0:   angx is near angs
+//             1:   angx is near ange
+
+
+
+  int      irc = 0;
+  // double   ae;
+
+
+  // printf("UT2D_angr_ck_in_ci %f %f %f %d\n",*angx,*angs,*ango,sr);
+
+
+  *ange = angs + ango;
+
+
+  if(!sr) {
+    // CCW
+    // make *angx gt angs
+    if(*ange < angs) *ange += RAD_360;
+    if(*angx < angs) *angx += RAD_360;
+    // test if angx between angs - ange
+    if((*angx < angs)||(*angx > *ange)) irc = 1;
+    if(near) *near = UTP_2db_ck_db_near (*angx, angs, *ange);
+
+  } else {
+    // CW
+    // make angx lt angs
+    if(*ange > angs) *ange -= RAD_360;
+    if(*angx > angs) *angx -= RAD_360;
+    // test if angx between *ange - angs
+    if((*angx > angs)||(*angx < *ange)) irc = 1;
+    if(near) *near = UTP_2db_ck_db_near (*angx, angs, *ange);
+  }
+
+
+  L_exit:
+    // // TESTBLOCK
+    // { double du;
+    // UTP_param_p0p1px (&du, angs, *ange, *angx);
+    // printf(" du=%f\n",du); }
+    // printf(" ex-UT2D_angr_ck_in_ci %d\n",irc);
+    // END TESTBLOCK
+
+  return irc;
 
 }
 

@@ -3105,7 +3105,7 @@ APT_stat_act:
   if(!APT_obj_stat) {
     // permanent;
     // get tempSpc for <ato1.siz> parent-records
-    MemTab_ini_temp (&mtPar, ato1.siz);
+    MemTab_ini_temp (&mtPar, Typ_ObjSRC, ato1.siz);
     if(MEMTAB_RMAX(&mtPar) != ato1.siz) {
       TX_Error("APT_work_def EM2");
       ATO_tmpSpc_free (&ato1);
@@ -3465,7 +3465,7 @@ APT_stat_act:
 
 
   // get memspc until end-of-func (alloca|malloc)
-  MemTab_ini_temp (&mtso, itsMax);
+  MemTab_ini_temp (&mtso, Typ_ObjTXTSRC, itsMax);
   tso = mtso.data;
   if(tso == NULL) {TX_Print("APT_ato_par_srcLn E2"); return -1;}
 

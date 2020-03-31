@@ -115,7 +115,7 @@ List_functions_end:
   int UT3D_par_rbsp_pt (double *kv, double *dist, CurvRBSpl *cvi, Point *pt) {
 //===============================================================================
 // UT3D_par_rbsp_pt         get knotvalue from point on rational-b-spline curve
-// see also UT3D_parCv_bsplpt
+// see also UT3D_par_pt__pt_cvbsp
 
 
 #define  TABSIZ1 16

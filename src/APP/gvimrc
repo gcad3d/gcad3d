@@ -302,7 +302,8 @@ endif
 let cp1 = match(cw,":")
 if (cp1 < 0)
 "let cmd = ":vi " . expand("<cfile>")
- let cmd = ":!vim -u F:\\bin\\_vimrc " . expand("<cfile>")
+"let cmd = ":!vim -u F:\\bin\\_vimrc " . expand("<cfile>")
+ let cmd = ":e " . expand("<cfile>")
  execute cmd
 else
  let fn = strpart(cw,0,cp1)
@@ -312,7 +313,8 @@ else
  let lNr = strpart(cw,cp1,lw)
 "let cmd =":vi +" . lNr . " " . fn
 "let cmd =":n +" . lNr . " " . fn
- let cmd =":!vim -u F:\\bin\\_vimrc +" . lNr . " " . fn
+"let cmd =":!vim -u F:\\bin\\_vimrc +" . lNr . " " . fn
+ let cmd =":e +" . lNr . " " . fn
  "echo cp1 cp2 lw fn lNr
  "echo cmd
  execute cmd

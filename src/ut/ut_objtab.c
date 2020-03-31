@@ -54,6 +54,7 @@ List_functions_end:
 =====================================================
 
 ObjTab =  list of [oTyp, pointer to obj, Memspc for obj, aux.obj]
+See INF_ObjTab
 
 unused: OTB_malloc              init ObjTab - malloc
 
@@ -451,6 +452,9 @@ gcad_src.mak
   int OTB_add__ (ObjTab *oTab, int iTyp, void *oDat) {
 //================================================================
 // OTB_add__             add single bin.obj to ObjTab
+//   add oDat to oTab.oSpc; 
+//   add iTyp to oTab.oTyp:
+//   oTab.oNr += 1;
 
   int     ii;
   long    spcOff, osiz;

@@ -66,6 +66,11 @@ touch ../ut/ut_geo2d.c && ./do c
 // IndTab
 #define _INDTAB_NUL  { 0,0,  0,0,0,0}
 
+
+// ObjDB
+#define _OBJDB_NUL { 0L,0L,  (short)0,(short)0}
+
+
 // Mat_4x3         // VX   VY   VZ   PO
 #define _MAT_4x3   { {1.0, 0.0, 0.0, 0.0},\
                      {0.0, 1.0, 0.0, 0.0},\
@@ -98,6 +103,7 @@ extern const CurvPrcv UT3D_PRCV_NUL;
 
 extern const Plane    PLANE_NUL;
 extern const GridBox  GRIDBOX_NUL;
+extern const ObjDB    OBJDB_NUL;
 
 extern const Mat_3x3 UT3D_MAT_3x3;
 extern const Mat_4x3 UT3D_MAT_4x3;
@@ -153,6 +159,7 @@ const Plane    PLANE_NUL      = _PLANE_NUL;
 const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
 const IndTab   INDTAB_NUL     = _INDTAB_NUL;
 const ObjTab   OBJTAB_NUL     = _OBJTAB_NUL;
+const ObjDB    OBJDB_NUL      = _OBJDB_NUL;
 
 const Mat_4x3  UT3D_MAT_4x3   = _MAT_4x3;
 const Refsys   UT3D_RSYS_2D   = _RSYS_2D;

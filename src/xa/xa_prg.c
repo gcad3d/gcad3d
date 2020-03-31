@@ -19,7 +19,7 @@ TODO:
 - add Name to formentries: problem; Ausgabe = EntryInhalt; da fehlt aber
   der Name !
 - sollte ebenso wie PED die userselection umleiten !
-  (statt mit UI_GR_Sel_Filter (17) usw..)
+  (statt mit UI_GR_Sel_Filt_set (17) usw..)
 
 -----------------------------------------------------
 Modifications:
@@ -417,7 +417,7 @@ typedef_MemTab(ObjRange);
     GUI_Win_go (&PRG_win0);
 
     // now activate Inputmode "Form"
-    UI_GR_Sel_Filter (17);             // activate selectionFilter
+    UI_GR_Sel_Filt_set (17);             // activate selectionFilter
     DB_set_state (0);                  // save all DB-pointers
 
     PRG_mode = 0; // 0 = normal update; 1=cancel; 2=save.
@@ -495,7 +495,7 @@ typedef_MemTab(ObjRange);
     if(PRG_stat != 0) {
       PRG_stat = 0; // gtk_widget_destroy signals again !
       GUI_Win_kill (&PRG_win0);
-      UI_GR_Sel_Filter (0);      // reset selectionFilter
+      UI_GR_Sel_Filt_reset ();      // reset selectionFilter
       // AP_UserKeyIn_reset ();      // reset  KeyIn (give back to mainApp)
       // AP_UserSelection_reset ();  // reset  select (give back to mainApp)
     }

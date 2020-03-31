@@ -4529,7 +4529,7 @@ static long   DL_hidden = -1L;
   //     sPar of parentRec==0.
 
   // get spc for parents 
-  MemTab_ini_temp (&mtPar, 128); 
+  MemTab_ini_temp (&mtPar, Typ_ObjSRC, 128); 
   if(MEMTAB_RMAX(&mtPar) != 128) {TX_Print("*** UI_GR_Select1 E1");  return -1;}
 
   // loop tru all rec's to delete, start at end

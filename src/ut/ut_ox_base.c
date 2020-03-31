@@ -343,7 +343,7 @@ typedef_MemTab(ObjRange);
 ///   -1     out of memory-Error
 ///   else   size of data stored in objo
 ///
-/// see also UTO_copy_tab DB_store_obj UTRA_app_obj UTO_write_obj
+/// see also UTO_copy_tab DB_store_ox UTRA_app_obj UTO_write_obj
 /// \endcode
 
 // copy 1-n ObjGX-Records and its data-objects;
@@ -386,7 +386,7 @@ typedef_MemTab(ObjRange);
 /// RetCode:
 ///   -1       out of memory-Error
 ///
-/// see also UTO_copy_tab DB_store_obj UTRA_app_obj UTO_write_obj
+/// see also UTO_copy_tab DB_store_ox UTRA_app_obj UTO_write_obj
 /// \endcode
 
 // copy 1-n ObjGX-Records and its data-objects;

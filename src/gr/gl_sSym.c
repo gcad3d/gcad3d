@@ -406,7 +406,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   cTyp = srv1->typCov;
 
   // get cvCov = data-struct of contourelement
-  UTO_objDat_dbo (&cvCov, &rNr, &cTyp, srv1->indCov);
+  UTO_obj_dbo (&cvCov, &rNr, &cTyp, srv1->indCov);
 
 
 

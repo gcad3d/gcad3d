@@ -89,15 +89,15 @@ PRCV_get_tc_add_pa  add point to prc1
 PRCV_get_tc_add_prc add <ptNr> points from prc2 starting at point <ips> to prc1
 PRCV_get_tc_find    find index in from parameter or dbi in PRCV
 
-PRCV0_free__         free PRCV0 (new-model)
+PRCV0_free__        free PRCV0 (new-model)
 
-PRCV_dump__
-PRCV_dump_1
-PRCV_dump_dbo
-PRCV_test__
-PRCV_test_set
+PRCV_dump__         dump a CurvPrcv
+PRCV_dump_1         dump single record (ind,par,coords of point)
+PRCV_dump_dbo       dump PRCV of DB-obj (curve)
+PRCV_test__         call PRCV_test_set, PRCV_test_get, PRCV_test_disp
+PRCV_test_set       create PRCV for DB-obj (typ/dbi)
 PRCV_test_get       test get PRCV for dbo
-PRCV_test_disp
+PRCV_test_disp      display CurvPrcv
 
   // PRCV_insert_par
   // PRCV_insert__       Create PRC, add 1 or 2 intermediate points
@@ -1083,7 +1083,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point ptx from ipx;
         ptx = DB_get_PT (ipdb0x);
         // get parameter v0x from point
-        UTO_par__pt_obj (&v0x, 0, ptx, typ_bas, cvBas);
+        UT3D_par_pt__pt_prj_cv (&v0x, NULL, 0, ptx, typ_bas, cvBas, UT_DISP_cv);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1098,7 +1098,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point from ipx
         ptx = DB_get_PT (ipdb1x);
         // get parameter from point
-        UTO_par__pt_obj (&v1x, 0, ptx, typ_bas, cvBas);
+        UT3D_par_pt__pt_prj_cv (&v1x, NULL, 0, ptx, typ_bas, cvBas, UT_DISP_cv);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1740,6 +1740,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_dump_dbo (int mode, int dbTyp, long dbi) {
 //================================================================
+// PRCV_dump_dbo         dump PRCV of DB-obj (curve)
 // no PRC-files for Line, CurvCCV
 // Input:
 //   mode     0 print short
@@ -1784,6 +1785,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_dump_1 (int ii, CurvPrcv *prc) {
 //================================================================
+// PRCV_dump_1        dump single record (ind,par,coords of point)
 
   char   s1[80], s2[32];
 
@@ -1818,6 +1820,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_dump__ (int mode, CurvPrcv *prc, char *txt) {
 //================================================================
+// PRCV_dump__            dump a CurvPrcv
 // Input:
 //   mode     0 print short
 //            1 display triangles at all points
@@ -2024,7 +2027,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_test_set (int typ, long dbi) {
 //================================================================
-// create PRCV for typ/dbi; not necessary for Lines
+// PRCV_test_set       create PRCV for DB-obj (typ/dbi)
+//   not necessary for Lines
  
   int   iAtt;
   long  dli;
@@ -2085,6 +2089,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   att = 11;  // see ~/gCAD3D/cfg/ltyp.rc
 
   GR_Disp_cv (prc->npt, prc->ptNr, att);
+
+  // GR_Disp_npti (prc->ptNr, prc->npt, SYM_TRI_S, ATT_COL_RED, ATT_COL_RED);
 
   return 0;
 

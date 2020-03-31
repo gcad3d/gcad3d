@@ -1,6 +1,6 @@
 // ../ut/ut_sur.h
 // prereq:
-// ../ut/msh2d.h
+// ../APP/tst_msh2d.h
 
 
 #define TessDatSiz 256

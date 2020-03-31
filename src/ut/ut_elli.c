@@ -44,7 +44,7 @@ UT3D_el_tra_el_m3         transf. 3D-ellipse (matrix Mat_4x3)
 UT3D_el_tra_el2_bp        transf. 2D-ellipse => 3D-backplane
 UT3D_el_el2               2D-ellipse -> 3D-ellipse (z=0)
 
-UT3D_par1_el_pt           get parameter (0-1) for point on ellipse
+UT3D_par_pt__pt_el        get parameter (0-1) for point on ellipse
 UT3D_par1_angr_ell    UU  parametric-Angle --> par 0-1
 
 UT3D_ck_el360             check if elli is 360-degree-elli
@@ -61,6 +61,7 @@ UT3D_pt_eval_ell_par1     pt <- parametric-Angle (0-1)
 UT3D_pt_elangd            pt <- parametric-Angle.
 UT3D_pt_ck_onel           check if point lies on an (full) ellipse
 UT3D_pt_elfoc             focal points of ellipse
+UT2D_pt_prj_pt_el2c       project point onto ellipse 2D
 UT3D_pt_projptel          proj PT -> CRV-Ellipse
 UT3D_pt_el_ptx            get y-coord of point on elli
 UT3D_pt_el_pty            get x-coord of point on elli
@@ -191,7 +192,7 @@ cl -c ut_geo.c
 
 
 //================================================================
-  int UT3D_pt_ell_lim_del (int *nrp, Point *pa, double *va1,
+  int UT3D_pt_ell_lim_del (int *nrp, Point *pa, double *va,
                            CurvElli *cv1) {
 //================================================================
 /// \code
@@ -199,38 +200,44 @@ cl -c ut_geo.c
 /// Input:
 ///   nrp    nr of points on unlimited ellipse cv1
 ///   pa     points
-///   va1    size nrp, can be empty or NULL
+///   va     size nrp, can be empty or NULL
 /// Output:
 ///   nrp    nr of points inside trimmed ellipse cv1
-///   va1    parameter on points;
+///   va     parameter on points;
 /// 
 /// see UT3D_pt_ln_lim_del UT3D_ck_npt_inCirc
 /// \endcode
 
 
-  int     i1;
+  int     irc, i1;
 
   if(*nrp < 1) return 0;
 
-  if(!va1) {
+  if(!va) {
     // get local space
-    va1 = MEM_alloc_tmp ((int)(sizeof(double) * *nrp));
+    va = MEM_alloc_tmp ((int)(sizeof(double) * *nrp));
   }
 
+  // L_start:
   for(i1=0; i1 < *nrp; ++i1) {
     // get parameter of point on elli
-    UT3D_par1_el_pt (&va1[i1], cv1, &pa[i1]);
+    irc = UT3D_par_pt__pt_el (&va[i1], NULL, cv1, &pa[i1], 2, UT_DISP_cv);
+    if(irc < 0) {
+      // not on limited curve; delete this point
+      MEM_del_nrec (nrp, pa, i1, 1, sizeof(Point));
+      *nrp += 1;
+      MEM_del_nrec (nrp, va, i1, 1,sizeof(double));
+        // printf(" _par_ck_inObj_del delete %d ****\n",i1);
+      // goto L_start;
+    }
   }
 
-  // delete all points & parameters not on obj
-  UT3D_par_ck_inObj_del (nrp, pa, va1, &cv1->p1, &cv1->p2, 0., 1.);
+  // // delete all points & parameters not on obj
+  // UT3D_par_ck_inObj_del (nrp, pa, va1, &cv1->p1, &cv1->p2, 0., 1.);
 
   return 0;
 
 }
-
-
-
 
 
 //================================================================
@@ -252,8 +259,6 @@ cl -c ut_geo.c
 
 }
  
-
-
 
 //================================================================
   int UT3D_el_ci (CurvElli *eo, Circ *ci) {
@@ -1981,6 +1986,134 @@ cl -c ut_geo.c
 }
 
 
+//===============================================================================
+  int UT2D_pt_prj_pt_el2c (int *numpe, Point2 *pa, CurvEll2C *el1, Point2 *pti) {
+//===============================================================================
+// Author: Thomas Backmeister
+// UT2D_pt_prj_pt_el2c                    project point onto ellipse
+// Output:
+//   ptNr      number of points     (0-4 points out)
+//   pa        points on ellipse - tangent is normal to pti
+//   retCode   0   OK
+//             -1  input error
+//
+// TODO: gives only one solution !
+// see also UT3D_pt_projptel
+
+  int     i1, ind;
+  double  a, b, u, v, h1, h2, e2;
+  double  u2, v2, a2, a4, b2, b4;
+  double  scf, tmax;
+  polcoeff_d4 pol;
+  dcomplex zero[4];
+
+
+  // printf("UT2D_pt_prj_pt_el2c --------------------- \n");
+  // DEB_dump_obj__ (Typ_CVELL2C, el1, " el1");
+  // DEB_dump_obj__ (Typ_PT2, pti, " pti");
+
+
+  *numpe = 0;
+
+  u = pti->x;
+  v = pti->y;
+
+  a = el1->a;
+  b = el1->b;
+
+  if (UTP_compdb0 (a, UT_TOL_min1)) return -1;
+  if (UTP_compdb0 (b, UT_TOL_min1)) return -1;
+
+  if (UTP_compdb0 (v, UT_TOL_min1)) {
+    a2 = a * a;
+    e2 = a2 - b * b;
+    if (UTP_compdb0 (u, UT_TOL_min1)) {
+      // point = ellipse center point
+      pa[0].x = 0.0;
+      pa[0].y = b;
+      pa[1].x = 0.0;
+      pa[1].y = -b;
+      *numpe = 2;
+      if (UTP_compdb0 ((a-b), UT_TOL_min1)) {
+        // ellipse is a circle
+        pa[2].x = a;
+        pa[2].y = 0.0;
+        pa[3].x = -a;
+        pa[3].y = 0.0;
+        *numpe = 4;
+      }
+      goto L_AbsCoord;
+    }
+    else if (fabs(u) < (e2/a) + UT_TOL_min1) {
+      // point on inner main axis inside (-e2/a, e2/a)
+      if (!UTP_compdb0 ((a-b), UT_TOL_min1)) {
+        // no circle
+        if (!UTP_compdb0 (fabs(e2), UT_TOL_min2)) {
+          pa[0].x = (a2 * u) / e2;
+          h1 = a2 - pa[0].x * pa[0].x;
+          if (h1 < 0.0) h1 = 0.0;
+          pa[0].y = (b/a) * sqrt(h1);
+          pa[1].x = pa[0].x;
+          pa[1].y = -pa[0].y;
+          *numpe = 2;
+          goto L_AbsCoord;
+        }
+      }
+    }
+  }
+
+  // scale down u, v, a, b
+  UTM_scale_4db (&scf, &a, &b, &u, &v, 1.0);
+
+  // coefficients of quartic polynomial
+  u2 = u * u;
+  v2 = v * v;
+  a2 = a * a;
+  a4 = a2 * a2;
+  b2 = b * b;
+  b4 = b2 * b2;
+  pol.a = 1;
+  pol.b = 2 * a2 + 2 * b2;
+  pol.c = a4 + 4 * a2 * b2 + b4 - a2 * u2 - b2 * v2;
+  pol.d = 2 * a4 * b2 + 2 * a2 * b4 - 2 * a2 * b2 * u2 - 2 * a2 * b2 * v2;
+  pol.e = a4 * b4 - a2 * b4 * u2 - a4 * b2 * v2;
+
+  // zeros of quartic polynomial
+  UTM_zeros_quarticpol (zero, &pol);
+
+  // find closest point on ellipse
+  tmax = UT_VAL_MIN;
+  ind = -1;
+  for (i1=0; i1<4; ++i1) {
+    if (!UTP_compdb0 (zero[i1].b, UT_TOL_min1)) continue;
+    h1 = a2 + zero[i1].a;
+    h2 = b2 + zero[i1].a;
+    if (UTP_compdb0 (h1, UT_TOL_min2)) continue;
+    if (UTP_compdb0 (h2, UT_TOL_min2)) continue;
+    if (zero[i1].a > tmax) {
+      tmax = zero[i1].a;
+      ind = i1;
+    }
+  }
+
+  if (ind >= 0) {
+    h1 = a2 + tmax;
+    h2 = b2 + tmax;
+    pa[0].x = (1.0/scf) * (a2 * u) / h1;
+    pa[0].y = (1.0/scf) * (b2 * v) / h2;
+    *numpe = 1;
+  }
+
+  L_AbsCoord:
+
+    // printf(" ex-prj_pt_el2c %d\n",*numpe);
+    // DEB_dump_obj__ (Typ_PT2, &pa[0], " pa-0");
+
+  return 0;
+
+}
+
+
 //================================================================
   int UT3D_pt_projptel (int *numpe, Point *pe, CurvElli *ell, Point *pt) {
 //================================================================
@@ -2003,8 +2136,9 @@ cl -c ut_geo.c
 ///   0 = OK
 ///   1 = input error
 ///
-/// TODO: gives only one solution !
 /// \endcode
+// TODO: gives only one solution !
+// see also UT2D_pt_prj_pt_el2c
 
   int     i1, ind;
   double  a, b, u, v, h1, h2, e2;
@@ -3770,6 +3904,12 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   int UT2D_pt_ptel3 (Point2 *pt2, Point *pt3, CurvElli *el3) {
 //================================================================
 /// UT2D_pt_ptel3     get pt on 2D-elli in centerPos from pt on 3D-elli
+// TODO: use:
+//   UT3D_vc_div_d (&van, &el1->va, el2c.a);
+//   UT3D_vc_div_d (&vbn, &el1->vb, el2c.b);
+//   UT3D_vc_2pt (&vc1, &el1->pc, ptx);
+//   UT3D_2par_vc_vcx_vcy (&pt2x.x, &pt2x.y, &vc1, &van, &vbn);
+
 
 
   pt2->x = UT3D_slen_2ptvc (&el3->pc, pt3, &el3->va);
@@ -3780,72 +3920,280 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 }
 
 
-//================================================================
-  int UT3D_par1_el_pt (double *du, CurvElli *el1, Point *pt1) {
-//================================================================
-// UT3D_par1_el_pt        get parameter (0-1) for point on ellipse
+//==========================================================================
+  int UT3D_par_pt__pt_el (double *du, Point *pte,
+                          CurvElli *el1, Point *ptx, int mode, double tol) {
+//==========================================================================
+// UT3D_par_pt__pt_el        get parameter (0-1) for point on ellipse
+//   does not compute exact projection of ptx onto ellipse
+// Input:
+//   mode     0   check if dist. ptx-curve > tol; if yes - return -1
+//            1   do not test distance - project onto curve (test only endpoints)
+//            2   point is on elli; get only parameter du
+//   tol      mode=0: max. allowed distance from curve;
+//            mode=1: max. allowed distance from endpoints
+// Output:
+//   du       parameter of point ptx on ellipse el1
+//   pte      point with parameter du on ellipse; can be NULL on input;
+//   retCod   0   OK, ptx is on curve
+//            1   ptx = startpoint of elli
+//            2   ptx = endpoint of elli
+//            -1  dist. ptx - elli > tol
+//            -2  ptx on arc, but NOT on trimmed curve
+//            -3  error
+//
+// See also UT3D_pt_projptel
 
-  int        sp1;
-  double     db, aa, as, ae, ao;
-  Point2     pt21;
-  Vector2    vc1;
+  int        irc, i1, i2, sp1, i360;
+  double     dst, aa, as, ae, ao, dx, dy;
+  Point      *pt1, pa[4];
+  Point2     pt20, pt21, pt2x, p2a[4];
+  Vector     van, vbn, vc1;
   CurvEll2C  el2c;
 
 
-  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
-  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_par1_el_pt el1:");
-  // DEB_dump_obj__ (Typ_PT, pt1, "  pt1:");
+
+  // printf("XXXXXXXXXXXXXXXXXXX _UT3D_par_pt__pt_el \n");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_par_pt__pt_el el:");
+  // DEB_dump_obj__ (Typ_PT, ptx, "  ptx:");
+  // printf("  mode=%d tol=%f UT_TOL_pt=%f\n",mode,tol,UT_TOL_pt);
+  // GR_Disp_pt (&el1->p1, SYM_TRI_S, ATT_COL_WHITE);
 
 
+  //----------------------------------------------------------------
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el1);
     // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
+    // GR_Disp_el2c (&el2c, Typ_Att_top2);
 
+  // get van,vbn = normalized 3D-va,vb
+  UT3D_vc_div_d (&van, &el1->va, el2c.a);
+  UT3D_vc_div_d (&vbn, &el1->vb, el2c.b);
+
+  // get 2D-pt2x = 3d-point ptx projected onto curve.
+  UT3D_vc_2pt (&vc1, &el1->pc, ptx);
+  UT3D_2par_vc_vcx_vcy (&pt2x.x, &pt2x.y, &vc1, &van, &vbn);
+    // DEB_dump_obj__ (Typ_PT2, &pt2x, "  pt2x");
+    // GR_Disp_pt2 (&pt2x, SYM_TRI_S, ATT_COL_BLUE);
+
+  // get pt21 = pt2x projected onto curve.
+  if(mode != 2) {
+    irc = UT2D_pt_prj_pt_el2c (&i1, p2a, &el2c, &pt2x);
+    if(irc) { TX_Error("UT3D_par_pt__pt_el E1"); return -3;}
+    pt21 = p2a[0];
+      // DEB_dump_obj__ (Typ_PT2, &pt21, "  pt21");
+      // GR_Disp_pt2 (&pt21, SYM_TRI_S, ATT_COL_RED);
+  } else pt21 = pt2x;
+
+  if(mode == 0) {
+    // test distance pt21-pt2x 
+    dst = UT2D_len_2pt (&pt21, &pt2x);
+      printf(" dst=%f\n",dst);
+    if(dst > tol) return -1;
+  }
 
   // get startAngle & opening-angle of elli
   UT2D_2angr_el2c_c (&as, &ao, &el2c);
     // printf(" as=%lf ao=%lf\n",as,ao);
 
-
-/*
-  // get sp1 = side of p1; 
-  sp1 = UT3D_sid_ptptvc (pt1, &el1->pc, &el1->va);
-
-  // get y 
-  vc1.dy = UT3D_slen_2ptvc (&el1->pc, pt1, &el1->vb);
-
-  // get dx on innerCirc of dy of p2
-  UT2D_ptx_ci_pty (&vc1.dx, &vc1.dy, &el2c.b);
-  if(sp1 < 0) vc1.dx *= -1.;
-    printf(" vc1 = %lf %lf\n",vc1.dx,vc1.dy);
-  aa = UT2D_angr_vc ((Vector*)&vc1);
-*/
-
-  // get pt on 2D-elli in centerPos from pt on 3D-elli
-  UT2D_pt_ptel3 (&pt21, pt1, el1);
-    // DEB_dump_obj__ (Typ_PT2, &pt21, "  pt21:");
-
-  // get angr on innerCirc
+  // get aa = angr of pt21
   aa = UT2D_angr_vc ((Vector2*)&pt21);
     // printf(" aa-1=%f\n",aa);
 
+  // 360-deg-elli ?
+  i360 = UTP_comp2db (fabs(ao), RAD_360, UT_TOL_Ang1); // 0=no, 1=yes
+    // printf(" _pt_el-i360=%d\n",i360);
 
-  // aa should be between as,ae. Do not modify as.
-  aa = UT2D_angr_set_2angr_sr (as, aa, el2c.srot);
-    // printf(" aa-2=%f\n",aa);
+  // fix aa,ae; get i1=on|out, get i2=near-p1|p2
+  i1 = UT2D_angr_ck_near_ci (&i2, &aa, &ae, as, ao, el2c.srot);
+    // printf(" f-ck_in_ci1 in=%d near=%d\n",i1,i2);
 
   // change angr da into par1 du (du = ao / piTwo)
-  ae = as + ao;
-    // printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
-
+  // par 0-1 from angle
   UTP_param_p0p1px (du, as, ae, aa);
 
-    // printf("ex UT3D_par1_el_pt du=%lf ao=%lf\n",*du,ao);
+  // if aa outside as,ae return -2
+  if(!i360) {
+    if(!i2) {
+      // near p1
+      if(UT2D_comp2pt(&pt21, &el2c.p1, tol)) {
+        if(pte) *pte = el1->p1;
+        return 1;
+      }
+    } else {
+      // near p2
+      if(UT2D_comp2pt(&pt21, &el2c.p2, tol)) {
+        if(pte) *pte = el1->p2;
+        return 2;
+      }
+    }
+
+  } else {
+    // 360-deg-elli
+    if(UT2D_comp2pt(&pt21, &el2c.p2, tol)) {
+      if(pte) *pte = el1->p2;
+      return 2;
+    }
+  }
+
+  if(i1) return -1;  // outside ..
+
+  if(pte) {
+    dx = pt21.x / el2c.a;
+    dy = pt21.y / el2c.b;
+    UT3D_pt_tra_pt_2vc_par (pte, &el1->pc, &el1->va, dx, &el1->vb, dy);
+  }
+
+
+    // printf("ex UT3D_par_pt__pt_el du=%lf\n",*du);
+    // if(pte) GR_Disp_pt (pte, SYM_STAR_S, 2);
+    // if(pte) DEB_dump_obj__(Typ_PT, pte, "  pte:");
 
   return 0;
 
 }
 
+/*
+//==========================================================================
+  int UT3D_par_pt__pt_el (double *du, Point *pte,
+                           CurvElli *el1, Point *ptx, double tol) {
+//==========================================================================
+// UT3D_par_pt__pt_el        get parameter (0-1) for point on ellipse
+//   does not compute exact projection of ptx onto ellipse
+// Input:
+//   tol      >0. retCod = -1 if (estimated) dist. ptx-curve > tol; else project.
+//            -1. return approximated point/parameter
+//            -2. return projected point/parameter
+// Output:
+//   du       parameter of point ptx on ellipse el1
+//   pte      point with parameter du on ellipse; can be NULL on input;
+//   retCod   0   OK, ptx is on curve
+//            1   ptx = startpoint of elli
+//            2   ptx = endpoint of elli
+//            -1  dist. ptx - elli > tol
+//            -2  ptx on arc, but NOT on trimmed curve
+//            -3  error
+//
+// See also UT3D_pt_projptel
+
+  int        irc, i1, sp1;
+  double     db, aa, as, ae, ao;
+  Point      *pt1, pa[4];
+  Point2     pt20, pt21, pt2x;
+  Vector     van, vbn, vc1;
+  // Vector2    vcx, vcy;
+  CurvEll2C  el2c;
+
+
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
+  // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_par_pt__pt_el el1:");
+  // DEB_dump_obj__ (Typ_PT, ptx, "  ptx:");
+
+
+  // make el2c from ell
+  UT2D_elc_el3 (&el2c, el1);
+    DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
+
+  // get startAngle & opening-angle of elli
+  UT2D_2angr_el2c_c (&as, &ao, &el2c);
+    printf(" as=%lf ao=%lf\n",as,ao);
+
+
+  //----------------------------------------------------------------
+  L_test:
+  if(tol < -1.5) {
+    // -2. return projected point/parameter
+    // project ptx onto 3D-elli
+    irc = UT3D_pt_projptel (&i1, pa, el1, ptx);
+    if(irc) { TX_Error("UT3D_par_pt__pt_el E1"); return -3;}
+    pt1 = &pa[0];
+    // get van,vbn = normalized 3D-va,vb
+    UT3D_vc_div_d (&van, &el1->va, el2c.a);
+    UT3D_vc_div_d (&vbn, &el1->vb, el2c.b);
+    UT3D_vc_2pt (&vc1, &el1->pc, pt1);
+    // get 2D-pt2x
+    UT3D_2par_vc_vcx_vcy (&pt21.x, &pt21.y, &vc1, &van, &vbn);
+      DEB_dump_obj__ (Typ_PT2, &pt21, "  pt21");
+    goto L_aa;
+  }
+
+  // get pt21 = approximated pt on 2D-elli near pt1 on 3D-elli
+  UT2D_pt_ptel3 (&pt21, ptx, el1);
+
+  if(tol > 0.) {
+    // >0. retCod = -1 if (estimated) dist. from curve > tol; else project
+    // get van,vbn = normalized 3D-va,vb
+    UT3D_vc_div_d (&van, &el1->va, el2c.a);
+    UT3D_vc_div_d (&vbn, &el1->vb, el2c.b);
+    // get 2D-pt2x = 3D-ptx
+    UT3D_vc_2pt (&vc1, &el1->pc, ptx);
+    UT3D_2par_vc_vcx_vcy (&pt2x.x, &pt2x.y, &vc1, &van, &vbn);
+      DEB_dump_obj__ (Typ_PT2, &pt2x, "  pt2x");
+
+    // test distance pt21-pt2x 
+    if(UT2D_len_2pt(&pt21, &pt2x) > tol) return -1;
+
+    tol = -2.;
+    goto L_test;
+  }
+
+
+  //----------------------------------------------------------------
+  L_aa:
+  // get aa = angr of pt21
+  aa = UT2D_angr_vc ((Vector2*)&pt21);
+    printf(" aa-1=%f\n",aa);
+
+
+  // aa should be between as,ae. Do not modify as.
+  aa = UT2D_angr_set_2angr_sr (as, aa, el2c.srot);
+    printf(" aa-2=%f\n",aa);
+
+  // change angr da into par1 du (du = ao / piTwo)
+  ae = as + ao;
+    printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
+
+  // par 0-1 from angle
+  UTP_param_p0p1px (du, as, ae, aa);
+
+
+  // if aa outside as,ae return -2
+  i1 = abs(UTP_db_ck_in2db (aa, as, ae));
+    printf(" f-ck_in2db=%d\n",i1);
+  if(i1) {
+    if(i1 == 1) {
+      if(UT2D_comp2pt(&pt21, &el2c.p1, tol)) {
+        if(pte) *pte = el1->p1;
+        return 1;
+      }
+      return -1;
+    } else if(i1 == 2) {
+      if(UT2D_comp2pt(&pt21, &el2c.p2, tol)) {
+        if(pte) *pte = el1->p2;
+        return 2;
+      }
+      return -1;
+    }
+  }
+
+  if(pte) {
+    // get 2D-point from angle
+    UT2D_pt_elangd (&pt20, el2c.a, el2c.b, aa);
+      printf(" pt20 = %lf %lf\n",pt20.x,pt20.y);
+
+    // translate -> 3D
+    UT3D_pt_trapt2vc2len (pte, &el1->pc, &el1->va, pt20.x, &el1->vb, pt20.y);
+      GR_Disp_pt (pte, SYM_STAR_S, 2);
+      DEB_dump_obj__(Typ_PT, pte, "  pte:");
+  }
+
+
+    printf("ex UT3D_par_pt__pt_el du=%lf ao=%lf\n",*du,ao);
+
+  return 0;
+
+}
+*/
 
 //=========================================================================
   int UT2D_ell_tra_ell3_rsys (CurvEll2 *elo, CurvElli *eli, Refsys *rSys) {

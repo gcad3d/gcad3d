@@ -1960,7 +1960,7 @@ usw.
     case Typ_SURBSP:
     case Typ_SURRBSP:
     case Typ_SURPLN:
-    case Typ_SURTPS:
+    case Typ_SUTP:
 // Typ_SURHAT
     case Typ_SURCIR:
     case Typ_SURSTRIP:

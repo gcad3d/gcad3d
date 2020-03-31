@@ -69,7 +69,7 @@ UI_GR_CB_Sel2        CB of MouseOverPopup-Eintrag
 UI_GR_Select1        get objs from GL
 UI_GR_Select2        Popup-Eintrag selektiert
 UI_GR_Select3        hilite obj ../ LEAVE Popup-ListObj; clear last previewed
-UI_GR_Sel_Filter
+UI_GR_Sel_Filt_set
 UI_GR_Destroy
 UI_GR_view_set_func  unused
 UI_GR_view_set_Cen__ set new screen-center
@@ -912,7 +912,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     if(GR_Sel_Filter != 0) {
       if(GR_Sel_Filter < 3) {  // vertex
         i1 = GR_Sel_Filter;
-        UI_GR_Sel_Filter (0);  // reset   2013-04-08
+        UI_GR_Sel_Filt_reset ();  // reset   2013-04-08
         if(i1 == SEL_Posi2P) UI_GR_Indicate();
         else if(i1 == SEL_Vert2P) UI_GR_SelVert(NULL);
         goto Fertig;
@@ -1427,7 +1427,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   iKey = GUI_DATA_I2;
 
-  selFi = UI_GR_Sel_Filter(-1);
+  selFi = UI_GR_Sel_Filt_set(-1);
     // printf(" selFi=%d\n",selFi);
 
 
@@ -1477,7 +1477,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
           UI_dump_oid (sOid);
         }
           // printf(" exit-dump\n");
-        UI_GR_Sel_Filter (0); // reset selectionFilter
+        UI_GR_Sel_Filt_reset (); // reset selectionFilter
         sOid[0] = '\0';       // clear
       }
       goto L_exit;
@@ -2138,9 +2138,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //----------------------------------------------------------------
   // if GR_Sel_Filter==18 is active: reset
-  i1 = UI_GR_Sel_Filter (-1);
+  i1 = UI_GR_Sel_Filt_set (-1);
   if((i1 == 1)||(i1 == 18)||(i1 == 19)) {
-    UI_GR_Sel_Filter (0);
+    UI_GR_Sel_Filt_reset ();
     goto AllDone;
   }
 
@@ -2218,7 +2218,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
       }
       
       xbuf[0] = '\0';
-      UI_GR_Sel_Filter (0);      // reset selectionFilter
+      UI_GR_Sel_Filt_reset ();      // reset selectionFilter
       goto AllDone;
     
     } else if(iKey == GDK_Tab) {
@@ -2258,7 +2258,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
         APED_dbo_oid (&i1, &l1, xbuf);
         if(selFi == 4) {     // dump obj
           UI_dump_obj (i1, l1);
-          UI_GR_Sel_Filter (0);      // reset dump
+          UI_GR_Sel_Filt_reset ();      // reset dump
         } else {         // 5 = add to group
           l2 = DL_dli__dbo (i1, l1, -1L);
           if(l2 < 0) {
@@ -3502,7 +3502,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   iEv = GUI_DATA_EVENT;
   isel = GUI_DATA_I1;
 
-  printf("UI_GR_CB_Sel2 ev=%d isel=%d\n",iEv,isel);
+  // printf("UI_GR_CB_Sel2 ev=%d isel=%d\n",iEv,isel);
 
 
   // printf("UI_GR_CB_Sel2 type=%d %d\n",event->type,INT_PTR(data));
@@ -3842,8 +3842,8 @@ static  Point  selPos;
       if(i1 == Typ_FncVC1)  {IE_cad_Inp1_nxtVec(&l1, 1); return 0;}
       if(i1 == Typ_FncVC2)  {IE_cad_Inp1_nxtVec(&l1,-1); return 0;}
 
-      if(i1 == Typ_FncPtOnObj) {UI_GR_Sel_Filter (18);   goto L_done;}
-      if(i1 == Typ_FncPtOnCP)  {UI_GR_Sel_Filter (1);    goto L_done;}
+      if(i1 == Typ_FncPtOnObj) {UI_GR_Sel_Filt_set (18);   goto L_done;}
+      if(i1 == Typ_FncPtOnCP)  {UI_GR_Sel_Filt_set (1);    goto L_done;}
 
       if(i1 == Typ_FncPrv)  {
         if(reqTyp == Typ_mod1) i1 = 1;
@@ -3944,7 +3944,7 @@ static  Point  selPos;
   // give temporary-point from cursorposition on constrPlane
 
   // if GR_Sel_Filter==18 (parametric point) keep selection see sele_ck_typ
-  // i1 = UI_GR_Sel_Filter (-1);   // query
+  // i1 = UI_GR_Sel_Filt_set (-1);   // query
   // if(i1 == 18) return 1;   // 2013-04-17
 
   // test for Vertex-request; yes: add to nam, done.
@@ -4117,7 +4117,7 @@ static  Point  selPos;
     if(irc < 1) goto L_selTab_from_dlTab_nxt; // continue with next dlTab-record
 
     // get tempSpc for 128 mtPar-records
-    MemTab_ini_temp (&mtPar, 128);
+    MemTab_ini_temp (&mtPar, Typ_ObjSRC, 128);
     if(MEMTAB_RMAX(&mtPar) != 128){TX_Print("*** UI_GR_Select1 E1");return -1;}
 
 
@@ -4764,7 +4764,34 @@ static  Point  selPos;
 
 
 //================================================================
-  int UI_GR_Sel_Filter (int mode) {
+  int UI_GR_Sel_Filt_reset () {
+//================================================================
+ 
+  int    iAct;
+
+
+  // printf("UI_GR_Sel_Filt_reset \n");
+
+  iAct = UI_GR_Sel_Filt_set (-1);  // query
+
+  if(!iAct) return 0;
+
+  UI_GR_Sel_Filt_set (0);
+
+  if((iAct == 1)  ||
+     (iAct == 18) ||
+     (iAct == 19)) {
+
+    UI_Set_infoSel (0);         // clear selectionFilterMessage
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_GR_Sel_Filt_set (int mode) {
 //================================================================
 //-1 = query state
 // 0 = OFF
@@ -4795,10 +4822,10 @@ static  Point  selPos;
 // OFFEN: mode=6 sollte zB alle anderen aktiven (zB addToGroup oder
 //   modSstyl ausschalten !!!)
 
-  int    actFilt;
+  int    actFilt = 0;
 
 
-  // printf("UI_GR_Sel_Filter %d %d\n",mode,GR_Sel_Filter);
+  // printf("UI_GR_Sel_Filt_set %d %d\n",mode,GR_Sel_Filter);
 
 
   if(mode == -1) return GR_Sel_Filter;    // query only
@@ -4847,7 +4874,7 @@ static  Point  selPos;
 
   GR_Sel_Filter = mode;
 
-  // printf("UI_GR_Sel_Filter %d\n",mode);
+  // printf("UI_GR_Sel_Filt_set %d\n",mode);
 
   // if(GR_Sel_Filter == 0) GR_Sel_Filter = mode;
   // else GR_Sel_Filter = 0;
@@ -6294,7 +6321,7 @@ static Point   pt1;
 /// \endcode
 /* wird nur mehr benutzt von Select / pos from cur on constrPln
 UI_menCB |Posi2P|
-  UI_GR_Sel_Filter (1);
+  UI_GR_Sel_Filt_set (1);
     GR_Sel_Filter = 1;
 
 schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
@@ -6489,7 +6516,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
         return -1;
       }
       GR_selTyp = Typ_PT;         // output - exact.
-      UI_GR_Sel_Filter (0);       // reset;
+      UI_GR_Sel_Filt_reset ();
       goto L_done;
   }
 
@@ -6519,7 +6546,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
         return -1;
       }
       GR_selTyp = Typ_LN;         // output - exact.
-      UI_GR_Sel_Filter (0);       // reset;
+      UI_GR_Sel_Filt_reset ();
       // goto L_done;
      goto L_ck_func;  // 2015-05-06
   }
@@ -6619,7 +6646,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // i1 = GR_Sel_Filter;
       // GR_Sel_Filter = 0;           // reset
       UI_dump_obj (GR_selTyp, GR_selDbi);
-      UI_GR_Sel_Filter (0); // reset selectionFilter
+      UI_GR_Sel_Filt_reset (); // reset selectionFilter
       return 0;
 
 
@@ -6749,7 +6776,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
   // make name from typ and DB-index
   if((GR_Sel_Filter == 3)   ||        // Obj2P
      (GR_Sel_Filter == 18))    {      // Obj2PP
-    GR_Sel_Filter = 0;                // reset Pointfilter
+    UI_GR_Sel_Filt_reset ();
     goto L_done;
   }
 
@@ -7343,13 +7370,13 @@ Jeden einzelnen Char !
       UI_EdKeyCR (2);           // OK
       break;
     case 1:
-      UI_GR_Sel_Filter (18);    // give parametric-point from curpos on sel obj
+      UI_GR_Sel_Filt_set (18);    // give parametric-point from curpos on sel obj
       break;
     case 2:
-      UI_GR_Sel_Filter (1);     // give point from curpos on constrPlane
+      UI_GR_Sel_Filt_set (1);     // give point from curpos on constrPlane
       break;
     case 3:
-      UI_GR_Sel_Filter (19);     // give line from obj (polygon/contour)
+      UI_GR_Sel_Filt_set (19);     // give line from obj (polygon/contour)
       break;
   }
 

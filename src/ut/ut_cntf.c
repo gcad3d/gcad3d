@@ -325,6 +325,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // get DB-obj
   new.typ = DB_GetObjDat (&vp1, &oNr, new.typ, new.dbi);
     // printf(" newTyp=%d\n",new.typ);
+  if(new.typ <= Typ_Error) {TX_Print("- error; object must be circle .."); return -1;}
 
   // make a copy of newObj
   memcpy (new.obj, vp1, OBJ_SIZ_MAX);
@@ -976,7 +977,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(irc < 0) return -1;
 
   // get par = parameter of pt2 on obj
-  irc = UTO_par__pt_obj (par, 0, pt2, typ, obj);
+  irc = UT3D_par_pt__pt_prj_cv (par, NULL, 0, pt2, typ, obj, UT_DISP_cv);
     // DEB_dump_obj__ (Typ_PT, pt2, " _normalPt-pt2");
     // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par);
 
@@ -1052,7 +1053,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   *par1 = va[i1];    // parameter on old
 
   // get parameter for intersectionpoint (ptx) on new obj
-  UTO_par__pt_obj (par2, 0, ptx, new.typ, new.obj);
+  UT3D_par_pt__pt_prj_cv (par2, NULL, 0, ptx, new.typ, new.obj, UT_DISP_cv);
 
 
   irc = 0;

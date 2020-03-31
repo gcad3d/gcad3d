@@ -51,7 +51,7 @@ Tex_dump__ ..
 
 
 -------------------------------------------------------
-Select-Surface-Callbacks: see GA_Tex__ < UI_GR_Select_work1 < UI_GR_Sel_Filter
+Select-Surface-Callbacks: see GA_Tex__ < UI_GR_Select_work1 < UI_GR_Sel_Filt_set
 
 --------------------------------------------
 "load Texture from File":      UI_FuncUCB3
@@ -61,17 +61,17 @@ Select-Surface-Callbacks: see GA_Tex__ < UI_GR_Select_work1 < UI_GR_Sel_Filter
 
 --------------------------------------------
 select surface - apply active Texture
-  GA_Tex__(mode=1) < UI_GR_Select_work1 < UI_GR_Sel_Filter(14)
+  GA_Tex__(mode=1) < UI_GR_Select_work1 < UI_GR_Sel_Filt_set(14)
 
 
 --------------------------------------------
 select surface - load Texture
-  GA_Tex__(mode=2) < UI_GR_Select_work1 < UI_GR_Sel_Filter(15)
+  GA_Tex__(mode=2) < UI_GR_Select_work1 < UI_GR_Sel_Filt_set(15)
 
 
 --------------------------------------------
 select surface - remove Texture
-  GA_Tex__(mode=0) < UI_GR_Select_work1 < UI_GR_Sel_Filter(13)
+  GA_Tex__(mode=0) < UI_GR_Select_work1 < UI_GR_Sel_Filt_set(13)
     UI_Tex__ UI_FuncUCB9       display new textureInfo
     UI_Tex__ UI_FuncUCB10      display new SurfInfo
 
@@ -267,7 +267,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 
 /*
   // wenn "Apply Tex." aktiv ist: Reset Userparameters & Apply.
-  if(UI_GR_Sel_Filter(-1) != 14) goto L_done;  // 14 = apply texture
+  if(UI_GR_Sel_Filt_set(-1) != 14) goto L_done;  // 14 = apply texture
 
 
   // apply & update texture
@@ -466,10 +466,10 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       GUI_Win_up (NULL, &win0, 0);  // always on top; muss vor dem show !
       GUI_Win_go (&win0);
 
-      actFilt = UI_GR_Sel_Filter (-1);  // query only !
+      actFilt = UI_GR_Sel_Filt_set (-1);  // query only !
 
       GUI_ckbutt_set (&ckb2, 1);
-      // ruft UI_FuncUCB2 == activiert UI_GR_Sel_Filter (14);
+      // ruft UI_FuncUCB2 == activiert UI_GR_Sel_Filt_set (14);
       // goto L_lb;
 
       Tex_actBas_set (-1);  // no tex active ..
@@ -486,7 +486,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
     case UI_FuncUCB1:          // remove Texture
       // skip disactivation
       if (GUI_ckbutt_get(mo) == 0) return 0;
-      UI_GR_Sel_Filter (13);
+      UI_GR_Sel_Filt_set (13);
       return 0;
 
 
@@ -494,7 +494,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
     case UI_FuncUCB2:            // "apply active Texture" activated
       // skip disactivation
       if (GUI_ckbutt_get(mo) == 0) return 0;
-      UI_GR_Sel_Filter (14);
+      UI_GR_Sel_Filt_set (14);
       return 0;
 
 
@@ -530,7 +530,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       // skip disactivation ..
       if (GUI_ckbutt_get(mo) == 0) return 0;
       TX_Print("select surface to load/modify Texture ....");
-      UI_GR_Sel_Filter (15); 
+      UI_GR_Sel_Filt_set (15); 
       // weiter mit UI_GR_Select_work1 UI_FuncUCB9 ..
       return 0;
 
@@ -703,7 +703,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
     //---------------------------------------------------------
     // destroy-Signal
     case UI_FuncKill:
-      UI_GR_Sel_Filter (actFilt);  // reset
+      UI_GR_Sel_Filt_set (actFilt);  // reset
 
       GL_temp_del_1 (2L);  // delete red frame
 

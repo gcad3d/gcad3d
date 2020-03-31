@@ -1,4 +1,4 @@
-// ITMSH irregular-triangle-mesh generarator functions
+// ITMSH irregular-triangle-mesh generator functions
 //
 // prerequisites:
 // #include "../ut/ut_geo.h"              // Point ...
@@ -13,6 +13,7 @@
 #define MSH_EDGLN_IC    5  // InnerBound - computed points
 #define MSH_EDGLN_OC    6  // OuterBound - computed points
 #define MSH_EDGLN_LN    7  // lines (test)
+#define MSH_EDGLN_INT  13  // intersection-curve
 #define MSH_EDGLN_SB   -1  // surface-boundary (tile)
 #define MSH_EDGLN_ERR -16  // unset, invalid ..
 #define MSH_GRIDBOX     8  // points in a rectangular grid
@@ -207,6 +208,7 @@ typedef_MemTab(Line);
 typedef_MemTab(Fac3);
 typedef_MemTab(EdgeLine);
 typedef_MemTab(IndTab);
+typedef_MemTab(ObjDB);
 
 // DOES NOT WORK:
 // #define MemTab_int MemTab

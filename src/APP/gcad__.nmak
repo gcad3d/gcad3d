@@ -118,11 +118,11 @@ srclst:
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
 	dir/b/s\
- ..\xa\*.h ..\db\*h ..\ci\*h ..\ut\*h ..\gr\*h\
- ..\exp\*.c ..\exp\*.h\
+ ..\xa\*.h ..\db\*h ..\ci\*.h ..\ut\*.h ..\gr\*.h ..\exp\*.h\
+ ..\exp\*.c\
  ..\prc\*.c ..\prc\*.h\
- ..\myAPPS\*.c ..\myAPPS\*.h\
- ..\APP\Demo*.c ..\xa\tst*.c >> srcFiles
+ ..\APP\*.c ..\APP\*.h\
+ ..\inf\*.c >> srcFiles
 
 # ../exp/dxf_r.c ../exp/ige_r.c ../exp/obj_ut.c ../exp/stl_r.c \
 # ../exp/stp_r.c ../exp/svg_w.c ../exp/vr2_r.c ../exp/wrl_ut.c 

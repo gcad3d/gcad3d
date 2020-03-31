@@ -875,7 +875,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
     // ATO_getSpc_tmp__ (&ato1, i1);
     // if(!ATO_getSpc_tmp_ck(&ato1)) {TX_Error("UNDO_ln_del E2"); return -1;}
     // get temp-spc for parents-table
-    MemTab_ini_temp (&mtPar, i1);
+    MemTab_ini_temp (&mtPar, Typ_ObjSRC, i1);
     if(MEMTAB_RMAX(&mtPar) != i1) {TX_Error("UNDO_ln_del EOM"); return -1;}
     // get parents-table and atomic-objs
     // APT_ato_par_srcLn (&mtPar, &ato1, osrc);

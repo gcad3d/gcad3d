@@ -1,4 +1,13 @@
 ===========================================================================
+Version 2.46.06 / 2020-03-31
+
+- first updates for split surfaces
+
+Programlines (C)  492519
+Functions           4833
+
+
+===========================================================================
 Version 2.46.04 / 2020-02-21
 
 - Bugfix "group-select-box not working" (Ctrl-leftMousbutton-drag selects group)

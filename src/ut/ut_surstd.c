@@ -36,7 +36,7 @@ List_functions_start:
 ----------- all surfaces --------------------
 SUR_Disp_Sur              temp. Display Surfaces
 
-UTO_get_suppSurf          get supportSurface of SURTPS <surTps>
+UTO_get_suppSurf          get supportSurface of SUTP <surTps>
 UTO_ck_surfTyp            returns surfSubTyp      ((../ut/ut_obj.c)
 SUR_ck_typ                get typ & index of supportSurf, nr of contours.
 SPU_ckMinSiz              Kontur testen ob groesser als tol
@@ -105,7 +105,7 @@ List_functions_end:
 //================================================================
   int UTO_get_suppSurf (void **ssDat, ObjGX *surTps) {
 //================================================================
-// get supportSurface of SURTPS <surTps>
+// get supportSurface of SUTP <surTps>
 // Output:
 //   retCod   Typ_PLN|Typ_SURBSP|Typ_SURRV|Typ_SURRU..
 //   ssDat    Typ_SURBSP:   SurBSpl*

@@ -200,9 +200,8 @@ srclst:
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
-	@echo ../xa/test*.c ../xa/tst*.c ../inf/*.c >> srcFiles
+	@echo ../APP/*.c ../APP/*.h ../inf/*.c >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
-	@echo ../APP/Demo*.c >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
 	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "add_srclst" \;
 

@@ -112,7 +112,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
   static char *TypTxtTab50[]={
   "SUR",    "SurCon", "SurTor", "SurRU",  "SurRV",     // 50-
-  "SurSwp", "SurBsp", "SurRBsp","SurPln", "SurTps",
+  "SurSwp", "SurBsp", "SurRBsp","SurPln", "SurTP",
   "SurHat", "SurCir", "SurStrip","SurBnd","SurMsh",    // 60-
   "SurPtab","SurFac3","SurFacQ","SurTri", "SurSup",
   "SurGL_", "SurGLpp","SurGLpo","SurGLis","SurEdg"};   // 70-
@@ -409,6 +409,7 @@ char  *ObjCodTab[] = {
   char   *p1;
 
   // printf("APED_oid_dbo__ %d %ld\n",typ,ind);
+
   if(!typ) AP_debug__ ("APED_oid_dbo__ E0");
 
 
@@ -429,25 +430,28 @@ char  *ObjCodTab[] = {
 
 
   } else if(typ == Typ_PLN) {
-    if(ind >= 0) sprintf(buf, "R%ld", ind);
-    else {
+    if((ind >= 0) || (ind < DB_PLIZ_IND)) {
+      sprintf(buf, "R%ld", ind);
+    } else {
       if     (ind == DB_PLX_IND) sprintf(buf, "RX");
       else if(ind == DB_PLY_IND) sprintf(buf, "RY");
       else if(ind == DB_PLZ_IND) sprintf(buf, "RZ");
+      else if(ind == DB_PLIX_IND) sprintf(buf, "RIX");
+      else if(ind == DB_PLIY_IND) sprintf(buf, "RIY");
+      else if(ind == DB_PLIZ_IND) sprintf(buf, "RIZ");
     }
 
 
-
   } else if(typ == Typ_VC) {
-    if(ind >= 0) sprintf(buf, "D%ld", ind);
-    else {
+    if((ind >= 0) || (ind < DB_VCIZ_IND)) {
+      sprintf(buf, "D%ld", ind);
+    } else {
       if     (ind == DB_VCX_IND) sprintf(buf, "DX");
       else if(ind == DB_VCY_IND) sprintf(buf, "DY");
       else if(ind == DB_VCZ_IND) sprintf(buf, "DZ");
       else if(ind == DB_VCIX_IND) sprintf(buf, "DIX");
       else if(ind == DB_VCIY_IND) sprintf(buf, "DIY");
       else if(ind == DB_VCIZ_IND) sprintf(buf, "DIZ");
-      else sprintf(buf, "D%ld", ind);
     }
 
 
@@ -465,7 +469,7 @@ char  *ObjCodTab[] = {
 
   } else if((typ == Typ_SUR)      ||
             (typ == Typ_SURSUP)   ||
-            (typ == Typ_SURTPS)   ||
+            (typ == Typ_SUTP)   ||
             (typ == Typ_SURSWP)   ||
             (typ == Typ_SURRU)    ||
             (typ == Typ_SURRV)    ||
@@ -545,7 +549,7 @@ char  *ObjCodTab[] = {
 
   }
 
-    // printf("ex APED_oid_dbo__ |%s| %d\n",buf,strlen(buf));
+    // printf("ex APED_oid_dbo__ |%s| %ld\n",buf,strlen(buf));
 
   return 1;
 

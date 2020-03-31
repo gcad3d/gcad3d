@@ -1039,8 +1039,12 @@ Returncodes:
 // ret    1  Kante liegt genau in der Ebene
 // ret    2  ein Punkt liegt genau in der Ebene (lni.p1 & p2)
 
+  // int   iEdg;
 
-  return UT3D_ln_int_tria_pln (lni, pln, tria->pa[0], tria->pa[1], tria->pa[2]);
+  return UT3D_ln_int_tria_pln (lni, pln,
+                               tria->pa[0], tria->pa[1], tria->pa[2]);
+
+  return 0;
 
 }
 
@@ -1050,18 +1054,30 @@ Returncodes:
                             Point *p0, Point *p1, Point *p2) {
 //================================================================
 // Line = intersect Triangle - Plane
-// ret   -2  Dreieck liegt ganz ausserhalb Plane
-// ret   -1  Dreieck und plane sind coplanar
-// ret    0  OK; Intersectionline out in lni.
-// ret    1  Kante liegt genau in der Ebene
-// ret    2  ein Punkt liegt genau in der Ebene (lni.p1 & p2)
+// Output:
+//   retCod   -3  face outside plane
+//            -2  face and plane coplanar
+//            -1  point on plane, no intersection
+//             0  Intersection tru 2 edges, line out in lni.
+//             1  point on plane, intersection on 1 edge, line out
+//             2  edge on plane, line out
+//   lni      the intersection-line -
+//   lni.typ  2 digits- first digit: edge of startPt of line, 
+//            - second digit: edge of endPoint of line.
+//            retCod=0: digit-1: edge of startpoint; 1=p0-p1, 2=p1-p2, 3=p2-p0
+//            - digit-2: edge of endPoint of line; 1=p0-p1, 2=p1-p2, 3=p2-p0
+//            - eg  20 = startpt on edge p1-p2; no intersect for endpoint
+//            retCod=1: digit-1: startpoint; 1=p0, 2=p1, 3=p2;
+//            - digit-2: edge of endPoint of line; 1=p0-p1, 2=p1-p2, 3=p2-p0
+//            - eg  31 = startpt is p2; endPoint on edge p0-p1
 
 
-  int       irc, i0, i1, i2;
+
+  int       i1, i2, i3;
   int       is0, is1, is2;
   double    dn0, dn1, dn2;
   double    d1;
-  Point     *pl1, *ppi0, *pp1, *pp2;
+  Point     *pp1, *pp2, pt1, pt2, pt3;
   // Vector    E1, E2, N1, D;
 
 
@@ -1069,8 +1085,6 @@ Returncodes:
     // GR_Disp_triv (tria, 9, -1, 1);
     // GR_Disp_vc (&pln->vz, &pln->po, 8, 0);
 
-  irc = 0;
-  i0  = -1;
 
   // die Normalabstaende der Punkte des Dreiecks tria von der Ebene
   // pln errechnen.
@@ -1086,161 +1100,124 @@ Returncodes:
     // printf(" is1/2/3=%d %d %d\n",is0,is1,is2);
 
 
+  //----------------------------------------------------------------
+  // test all points outside plane
   // wenn alle Punkte auf der gleichen Seite der Ebene liegen (alle
   // Vorzeichen gleich) dann liegt Dreieck ganz ausserhalb Plane.
   if       ((is0 > 0) && (is1 > 0) && (is2 > 0)) {
-     return -2;
+     return -3;
 
   } else if((is0 < 0) && (is1 < 0) && (is2 < 0)) {
-     return -2;
+     return -3;
+  }
 
 
+  //----------------------------------------------------------------
+  // test one point in plane
   // Sonderfall: alle Punktabstaende sind 0 (idente Traegerebenen (coplanar)
   // Sonderfall: 2 Punktabstaende sind 0 (eine Kante liegt in der Ebene)
   // } else if((is0 == 0) && (is1 == 0) && (is2 == 0)) {
-  } else if(is0 == 0) {
-    i0 = 0;
+  if(is0 == 0) {
     if(is1 == 0) {
       if(is2 == 0) {    // alle Punktabstaende sind 0
-        return -1;
+        return -2;      // coplanar
       }
       // Kante 0-1 liegt in der Ebene
-      // i1 = 0;   i2 = 1;  goto L_edge;
-      pp1 = p0;  pp2 = p1;  goto L_edge;
+      pp1 = p0;  pp2 = p1;  lni->typ = 11;  goto L_edge;
     } else if(is2 == 0) {
       // Kante 0-2 liegt in der Ebene
-      // i1 = 0;   i2 = 2;  goto L_edge;
-      pp1 = p0;  pp2 = p2;  goto L_edge;
+      pp1 = p2;  pp2 = p0;  lni->typ = 33;  goto L_edge;
     }
-    ppi0 = p0;
+    if(is1 == is2) return -1; // p0 in plane, p1-p2 outside
+    // startPt=p0; inters. p1-p2
+    lni->p1 = *p0;
+    UT3D_pt_intlnpl1 (&lni->p2, &d1, p1, p2, dn1, dn2);
+    lni->typ = 12;
+    return 1;
+
   } else if(is1 == 0) {
-    i0 = 1;
     if(is2 == 0) {
       // Kante 1-2 liegt in der Ebene
-      // i1 = 1;   i2 = 2;  goto L_edge;
-      pp1 = p1;  pp2 = p2;  goto L_edge;
+      pp1 = p1;  pp2 = p2;  lni->typ = 22;  goto L_edge;
     }
-    ppi0 = p1;
+    if(is2 == is0) return -1; // p1 in plane, p2-p0 outside
+    // startPt=p1; inters. p2-p0
+    lni->p1 = *p1;
+    UT3D_pt_intlnpl1 (&lni->p2, &d1, p2, p0, dn2, dn0);
+    lni->typ = 23;
+    return 1;
+
   } else if(is2 == 0) {
-    i0 = 2;
-    ppi0 = p2;
+    if(is0 == is1) return -1; // p2 in plane, p0-p1 outside
+    // startPt=p2; inters. p0-p1
+    lni->p1 = *p2;
+    UT3D_pt_intlnpl1 (&lni->p2, &d1, p0, p1, dn0, dn1);
+    lni->typ = 31;
+    return 1;
+
   }
 
 
-  // i0 zeigt nun auf den Punkt der in der Ebene liegt (else -1).
-  // both other points are not in the plane
+  //----------------------------------------------------------------
+  // intersect 2 edges -
 
-
-  // Intersectionpoints 3EcksKanten mit Plane errechnen.
-  // 2 Punkte von 2 Kanten.
-  // i1, i2 sind die Kanten.
   i1 = 0;
-  pl1 = &lni->p1;
+  i2 = 0;
+  i3 = 0;
 
-
-
-  // wenn einer der Punkte in der Ebene liegt: diesen Punkt nehmen
-  if(i0 >= 0) {
-    // lni->p1 = *(tria->pa[i0]);
-    lni->p1 = *ppi0;
-      // printf(" add %d\n",i0);
-      // DEB_dump_obj__(Typ_PT, &lni->p1, " p1 -> ");
-    pl1 = &lni->p2;
-    i1 = 1;
-  }
-
-
-
-
-  // intersect Dreieckslinien - Plane, aber nur fuer jene Linien,
-  // die 2 Normalabstaende mit verschiedenen Vorzeichen haben
   if(is0 != is1) {               // Kante p0 - p1
-    i2 = IABS(is0) + IABS(is1);      // muss 2 sein !!
-    if(i2 == 2) {
-        // printf(" add01 %d %d\n",is0,is1);
-      UT3D_pt_intlnpl1 (pl1, &d1, p0, p1, dn0, dn1);
-        // GR_Disp_pt (pl1, SYM_STAR_S, 2);
-      ++i1;
-      if(i1 < 2) pl1 = &lni->p2;
-    }
+    // inters. edge p0-p1
+    UT3D_pt_intlnpl1 (&pt1, &d1, p0, p1, dn0, dn1);
+    ++i1;  // pt1 occupied
   }
-
 
 
   if(is0 != is2) {        // Kante p0 - p2
-    i2 = IABS(is0) + IABS(is2);      // muss 2 sein !!
-    if(i2 == 2) {
-        // printf(" add02 %d %d\n",is0,is2);
-      UT3D_pt_intlnpl1 (pl1, &d1, p0, p2, dn0, dn2);
-      ++i1;
-      if(i1 < 2) pl1 = &lni->p2;
-    }
+    // inters. edge p0-p2
+    UT3D_pt_intlnpl1 (&pt3, &d1, p0, p2, dn0, dn2);
+    ++i3;   // pt3 occupied 
   }
-
-
 
 
   if(is1 != is2) {        // Kante p1 - p2
-    i2 = IABS(is1) + IABS(is2);      // muss 2 sein !!
-    if(i2 == 2) {
-      if(i1 > 1) goto L_L1; // skip wenn p1 od p2 in Plane liegt
-        // printf(" add12 %d %d\n",is1,is2);
-      UT3D_pt_intlnpl1 (pl1, &d1, p1, p2, dn1, dn2);
-      ++i1;
-      }
+    // inters. edge p1-p2
+    UT3D_pt_intlnpl1 (&pt2, &d1, p1, p2, dn1, dn2);
+    ++i2; // pt2 occupied
   }
 
-
-  L_L1:
-  // 0 1 1  liefert nur einen Punkt !
-    // printf(" L_L1: %d\n",i1);
-  if(i1 < 2) {                        // Punkt beruehrt Plane
-    // lni->p2 = *(tria->pa[i0]);
-    lni->p2 = *ppi0;
-    irc = 2;
+  if(i1) {
+    if(i2) {
+      // ps=pt1, pe=pt2; iEdg=12
+      lni->p1 = pt1;
+      lni->p2 = pt2;
+      lni->typ = 12;
+      goto L_done;
+    }
+    // ps=pt3, pe=pt1;   iEdg=31
+    lni->p1 = pt3;
+    lni->p2 = pt1;
+    lni->typ = 31;
+    goto L_done;
   }
 
-
-
-/*
-  //----------------------------------------------------------------
-  // compute plane for Triangle
-  UT3D_vc_2pt (&E1, tria->pa[0], tria->pa[1]);
-  UT3D_vc_2pt (&E2, tria->pa[0], tria->pa[2]);
-
-  UT3D_vc_perp2vc (&N1, &E1, &E2);            // crossprod
-    // GR_Disp_vc (&N1, tria->pa[0], 9, 0);
-  d1 = -UT3D_acos_2vc (&N1, (Vector*)tria->pa[0]);     // dotprod
-    printf(" d1=%f\n",d1);
-
-  // N1 ist nun der Normalvektor, d1 der Normalabstand der Ebene vom tria.
-  // A*x + B*y + C*z + D = 0           D= d1 !
-
-
-  //----------------------------------------------------------------
-  // D = Richtungsvektor der Schnittgeraden Plane - Triangle
-  UT3D_vc_perp2vc (&D, &N1, &pln->vz);            // crossprod
-    GR_Disp_vc (&D, tria->pa[0], 9, 0);
-
-
-  // Backplane == jene Hauptebene waehlen, wo die 2 betragsmaessig
-  // groessten Komponenten von D liegen
-
-*/
+  // ps=pt2, pe=pt3; iEdg=23
+  lni->p1 = pt2;
+  lni->p2 = pt3;
+  lni->typ = 23;
 
 
   L_done:
     // printf("ex UT3D_ln_intTriaPln 0\n");
     // GR_Disp_ln (lni, 11);
 
-  return irc;
+  return 0;
 
   //----------------------------------------------------------------
-  L_edge:        // Kante i1-i2 liegt in der Ebene
-    irc = 1;
-    lni->p1 = *pp1; // tria->pa[i1];
-    lni->p2 = *pp2; // tria->pa[i2];
-    goto L_done;
+  L_edge:
+    // both points of edge pp1-pp2 are in the plane
+    lni->p1 = *pp1;
+    lni->p2 = *pp2;
+    return 2;
 
 }
 

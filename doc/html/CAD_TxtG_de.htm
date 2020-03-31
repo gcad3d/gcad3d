@@ -28,9 +28,9 @@ N# = DIM Punkt1 Punkt2 Textpunkt [Winkel Maﬂpfeile Maﬂlinien "Zusatztext"]
   <a href="CAD_Base_de.htm#P">DimPoint 2</a> - Maﬂpunkt2
   <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maﬂtext (Mitte, unten).
   <a href="CAD_Base_de.htm#D">[Direct.]</a>  - Richtung, Winkel: 0=Horizontal, 90=Vertikal; keine Angabe: Parallelmaﬂ.
-  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maﬂpfeile; 2 Ziffern
-  <a href="CAD_Base_de.htm#NMH">[Guides 0-1 0-1]</a>: Maﬂhilfslinien; 2 Ziffern
-  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maﬂpfeile; 2 Ziffern
+  <a href="Notes_de.htm#NMH">[Guides 0-1 0-1]</a>: Maﬂhilfslinien; 2 Ziffern
+  <a href="Notes_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
   
 Beispiel:
 P1=P(100 100)
@@ -63,7 +63,7 @@ N# = DIM3 Punkt1 Punkt2 Textpunkt [DimPlane] ["Zusatztext"]
         der Texblock liegt in der Y-Z oder X-Z-Ebene.
     F¸r alle Maﬂtexte wird jene Textebene ausgewaehlt, die rechtwinkeliger
       zum Betrachter liegt.
-  <a href="CAD_Base_de.htm#TSZ">Zusatztext</a> mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#TSZ">Zusatztext</a> mit Sonderzeichen (zB. "[+ 0.2").
 
 Beispiel:
 N20=DIM3 P20 P21 P(3642.685238 2645.94839 1690.14704) "Z1"
@@ -83,9 +83,9 @@ Die Maﬂlinie (ein Kreisbogen) wird im Gegenuhrzeigersinn (CCW) angelegt.
     Umdrehen der Richtung durch "REV"; zB: D(L20) REV
     (wenn erforderlich " REV" manuell zuf¸gen !)
   <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maﬂtext (Mitte, unten).
-  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maﬂpfeile; 2 Ziffern
-  <a href="CAD_Base_de.htm#NMH">[Guides 0-1 0-1]</a>: Maﬂhilfslinien; 2 Ziffern
-  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#NMP">[Arrows 0-4 0-4]</a>: Maﬂpfeile; 2 Ziffern
+  <a href="Notes_de.htm#NMH">[Guides 0-1 0-1]</a>: Maﬂhilfslinien; 2 Ziffern
+  <a href="Notes_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
 
 Beispiel:
 L20=P(330 100 0) P(380 130 0)
@@ -104,8 +104,8 @@ N# = DIM Kreis Textpunkt [Mpfeile "Zusatztext"]
 
   Circle  - der Kreis
   <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maﬂtext (Mitte, unten).
-  <a href="CAD_Base_de.htm#NMP">[Arrows 0-4 0-4]</a> - Maﬂpfeile; 2 Ziffern
-  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#NMP">[Arrows 0-4 0-4]</a> - Maﬂpfeile; 2 Ziffern
+  <a href="Notes_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
 
 
 Beispiel:
@@ -124,8 +124,8 @@ N# = DIM Kreis Textpunkt [Maﬂpfeil "Zusatztext"]
 
   Circle  - der Kreis
   <a href="CAD_Base_de.htm#P">TextPosition</a> - Position Maﬂtext (Mitte, unten).
-  <a href="CAD_Base_de.htm#NMP">[ArrowTyp 0-4]</a> - Maﬂpfeil; eine Ziffer; Default = automatisch
-  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#NMP">[ArrowTyp 0-4]</a> - Maﬂpfeil; eine Ziffer; Default = automatisch
+  <a href="Notes_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
 
 
 Beispiel:
@@ -152,7 +152,7 @@ N=LDRP TextPosition [Punkt] [Linetyp] ["ZusatzText"]
 
   TextPosition: Position Textblock
   <a href="CAD_Base_de.htm#P">Punkt</a>: Ausgabe der X/Y/Z-Kordinaten dieses Punktes;
-  <a href="CAD_Base_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#TSZ">[Add.Text]</a> - Zusatztext mit Sonderzeichen (zB. "[+ 0.2").
  
 Beispiel: Position eines Punktes mit 3 Nachkommastellen ausgeben:
 N20 = LDRP P(50 50 50) P(10 10 0.12345) "[3"
@@ -169,7 +169,7 @@ N# = TextPosition Size [Richtung] Text
   TextPosition: Position Textblock
   [TextSize]: Textgrˆﬂe; skalierbar, entsprechend den Standards/Text.
   [TextAngle(Deg.)]: Winkel des Textblocks in Grad; Defaultrichtung ist 0 Grad.
-  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
 
 Beispiel:
 # "Winkel 60 {Gradzeichen} &lt;"+0.123" {hochgestellt} "0.5"{tiefgestellt}"
@@ -196,8 +196,8 @@ N=LDR StartpunktLinie EndPunkt1 [EndPunkt2] [Textwinkel] [PfeilTyp] [Text]
   EndPoint-1: Endpunkt der Hilfslinie 1 = Startpunkt der Hilfslinie 2
   [EndPoint-2]: Endpunkt der Hilfslinie 2
   [TextAngle(Deg.)]: Winkel des Textblocks in Grad; Defaultrichtung ist 0 Grad.
-  <a href="CAD_Base_de.htm#NMP">[ArrowTyp 0-4]</a>: Pfeiltyp; eine Ziffer; Default = automatisch
-  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#NMP">[ArrowTyp 0-4]</a>: Pfeiltyp; eine Ziffer; Default = automatisch
+  <a href="Notes_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
   
 
 Beispiel:
@@ -218,7 +218,7 @@ N=LDRC TextPosition [Endpunkt Linie] [Linetyp] [Text]
   TextPosition:  Position von Text und Kreis.
   [StartPoint Line]:  Line von TextPosition bis zu diesem Punkt.
   [Linetyp]: nicht benutzt.
-  <a href="CAD_Base_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
+  <a href="Notes_de.htm#TSZ">Text</a> mit Sonderzeichen (zB. "[+ 0.2").
 
 Beispiel:
 N22=LDRC P(150 50 50) P(100 10 0)  "P21"

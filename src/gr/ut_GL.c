@@ -130,7 +130,7 @@ GL_Disp_tag2D         display coloured rectangle
 // GL_DispTag2           display coloured rectangle
 GL_Displ_ntri         display triangles from points
 GL_Disp_nfac          display triangles from Fac3
-GL_Disp_nifac         display indexed-Opengl-patch (type,indexTable,points)
+GL_Disp_i2fac         display indexed-Opengl-patch (type,indexTable,points)
 GL_Disp_patch         display Opengl-patch (type & n-points)
 GL_Disp_ipatch        display indexed-Opengl-patch (type,indexTable,points)
 GL_Disp_sur           Draw 1-n Planar Patches from ObjGX (binary mesh)
@@ -680,7 +680,7 @@ extern int       IE_modify;
 
 
 
-// indexarray for GL_Disp_nifac
+// indexarray for GL_Disp_i2fac
 static MemTab(int) GL_MIFA = {NULL, 0, 0, sizeof(int), Typ_Int4, 10, 0, 0};
 
 
@@ -4096,7 +4096,7 @@ Screenkoords > Userkoords.
     Grp_add__ (typ, dbi, dli, 1);
     GR_ObjTab[dli].grp_1 = ON;
     // // activate mode "groupSelect"
-    // if(UI_GR_Sel_Filter(-1) != 5) UI_GR_Sel_Filter (5);
+    // if(UI_GR_Sel_Filt_set(-1) != 5) UI_GR_Sel_Filt_set (5);
   }
 
   Grp_upd (0);  // Redraw & update GrpNr-label
@@ -7735,6 +7735,8 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
   GLuint  dlInd;
 
 
+  printf(" GL_view_ini__ dbi=%ld oTyp=%d attInd=%d\n",dbi,oTyp,attInd);
+
   if(dbi) {
     if(dbi > 0) {
       DL_SetInd (dbi);  // dbi >= 0: overwrite existing DL-record
@@ -7742,9 +7744,12 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
     // get new|existing index into DL-record-table; write|update record.
     dli = DL_StoreObj (oTyp, dbi, attInd);
 
+      printf(" GL_view_ini__ dbi=%ld dli=%ld\n",dbi,dli);
+
     // see GL_Surf_Ini ..
     // get dlInd = GL-record-index;
     dlInd = GL_fix_DL_ind (&dli);
+      printf(" GL_view_ini__ dbi=%ld dli=%ld dlInd=%d\n",dbi,dli,dlInd);
     glNewList (dlInd, GL_COMPILE);
   }
 
@@ -8348,7 +8353,7 @@ wird im GL_Disp_sur gemacht - vom Color-Record bei den tesselated Records ..
 
 
   // attInd = ((Ind_Att_ln*)&iAtt)->indAtt;   // index into GR_AttLnTab
-attInd = iAtt;
+  attInd = iAtt;
 
 
   // den DL-Index (+ Offset) holen)  
@@ -9298,7 +9303,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   fNr      nr of faces in fTab
 //   col      .vsym: 0=ON=shade; 1=OFF=symbolic
 // 
-// see GL_Disp_nifac  (indexed Fac3 - faces)
+// see GL_Disp_i2fac  (indexed Fac3 - faces)
 // TODO: texture; see TSU_DrawSurMsh (make function for both)
 
  
@@ -9372,10 +9377,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================================
-  int GL_Disp_nifac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va, int oTyp) {
+  int GL_Disp_i2fac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va, int oTyp) {
 //================================================================================
-// GL_Disp_nifac           display indexed-Opengl-patch (type,indexTable,points)
-//   add faces into open GL-list using glDrawElements
+// GL_Disp_i2fac           display indexed-Opengl-patch (type,indexTable,points)
+//   add double-indexed faces into open GL-list using glDrawElements
 // Input:
 //   fNr      nr of faces in fa
 //   fa       faces 
@@ -9393,7 +9398,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   long   l1;
 
 
-  printf("GL_Disp_nifac %d\n",fNr);
+  printf("GL_Disp_i2fac %d\n",fNr);
 
 
 
@@ -9410,7 +9415,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glVertexPointer (3, GL_DOUBLE, 0, pa);
 
 
-  // check spc for indexarray
+  // check spc for indexarray ifa
   iNr = fNr * 3;
   if(iNr > MEMTAB_RMAX(&GL_MIFA)) {
     MEMTAB_RESET_IND(&GL_MIFA);
@@ -9434,7 +9439,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glDisableClientState (GL_INDEX_ARRAY);
   glDisableClientState (GL_VERTEX_ARRAY);
 
-  if(oTyp == Typ_PLN)
+  // if(oTyp == Typ_PLN)
+  if(oTyp != Typ_SURPLN)
     glDisableClientState (GL_NORMAL_ARRAY);
 
 
@@ -9912,7 +9918,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //      \ /
 //       4
 //
-// see GL_Disp_nifac (display indexed faces (Fac3))
+// see GL_Disp_i2fac (display indexed faces (Fac3))
 // see GL_Disp_nfac  (faces (Fac3), not indexed)
 // see GL_Disp_patch
 // see also TSU_exp_stlFac TSU_exp_objFac TSU_exp_wrl1Fac TSU_exp_wrl2Fac

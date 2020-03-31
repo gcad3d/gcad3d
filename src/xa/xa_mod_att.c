@@ -293,8 +293,8 @@ extern ColRGB     AP_defcol;
   // DL_pick_typ (Typ_SUR, 1);    // make all surfaces pickable
 
 
-    // actFilt = UI_GR_Sel_Filter (-1);  // query only !
-    // UI_GR_Sel_Filter (8);
+    // actFilt = UI_GR_Sel_Filt_set (-1);  // query only !
+    // UI_GR_Sel_Filt_set (8);
 
 
 
@@ -312,7 +312,7 @@ extern ColRGB     AP_defcol;
   AP_User_reset ();               // reset keyBd & selections ...
 
   // DL_pick__ (1);                  // reset selectionfilter
-  // UI_GR_Sel_Filter (actFilt);  // reset
+  // UI_GR_Sel_Filt_set (actFilt);  // reset
 
   }
 
@@ -571,8 +571,8 @@ extern ColRGB     AP_defcol;
       GUI_Win_up (NULL, &win0, 0);  // always on top
       GUI_Win_go (&win0);
 
-      // actFilt = UI_GR_Sel_Filter (-1);  // query only !
-      // UI_GR_Sel_Filter (10);
+      // actFilt = UI_GR_Sel_Filt_set (-1);  // query only !
+      // UI_GR_Sel_Filt_set (10);
 
       actTra = 0;
       ACTMOD = 2;
@@ -586,7 +586,7 @@ extern ColRGB     AP_defcol;
     case UI_FuncUCB1:
       // skip disactivation
       if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
-      // UI_GR_Sel_Filter (10);
+      // UI_GR_Sel_Filt_set (10);
       actTra = 0;
       return 0;
 
@@ -595,7 +595,7 @@ extern ColRGB     AP_defcol;
     case UI_FuncUCB2:
       // skip disactivation
       if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
-      // UI_GR_Sel_Filter (11);
+      // UI_GR_Sel_Filt_set (11);
       actTra = 1;
       return 0;
 
@@ -605,7 +605,7 @@ extern ColRGB     AP_defcol;
     case UI_FuncUCB3:
       // skip disactivation
       if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
-      // UI_GR_Sel_Filter (12);
+      // UI_GR_Sel_Filt_set (12);
       actTra = 2;
       return 0;
 
@@ -695,7 +695,7 @@ extern ColRGB     AP_defcol;
       GUI_Win_go (&win0);
       GUI_Win_up (NULL, &win0, 0);
 
-      // actFilt = UI_GR_Sel_Filter (7);
+      // actFilt = UI_GR_Sel_Filt_set (7);
 
       ACTMOD = 3;
       SurMod_Ini (0); 
@@ -732,7 +732,7 @@ extern ColRGB     AP_defcol;
     //---------------------------------------------------------
     // destroy-Signal
     case UI_FuncKill:  // 99
-      // UI_GR_Sel_Filter (actFilt);  // reset
+      // UI_GR_Sel_Filt_set (actFilt);  // reset
       GUI_Win_kill (&win0);
 
     case UI_FuncExit:   // called from GUI_Win__
@@ -806,7 +806,7 @@ extern ColRGB     AP_defcol;
       GUI_Win_go (&win0);
       GUI_Win_up (NULL, &win0, 0);   // always on top
 
-      // actFilt = UI_GR_Sel_Filter (6);
+      // actFilt = UI_GR_Sel_Filt_set (6);
       ACTMOD = 4;
       SurMod_Ini (0);                    // init all
       sele_set__ (Typ_go_LCS);             // |LN|AC|CV

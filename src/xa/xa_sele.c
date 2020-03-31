@@ -164,7 +164,7 @@ select only Vertex:
 sele_ck_typ         Test if obj of typ iTyp is a requested typ.
 
 
-see also UI_GR_Sel_Filter  // set GR_Sel_Filter to eg modSstyl ..
+see also UI_GR_Sel_Filt_set  // set GR_Sel_Filter to eg modSstyl ..
 
 
 GR_selPos__ (out via sele_get_pos__) ist mouseposition in userCoords
@@ -1267,7 +1267,7 @@ static int    bck_GR_NoConstrPln;
   if(GR_selBasTyp == Typ_PT) {
     // point selected:
     typ = Typ_PT;
-    // UTO_objDat_dbo (pts, &i1, &typ, GR_selDbi);
+    // UTO_obj_dbo (pts, &i1, &typ, GR_selDbi);
     *pts = DB_GetPoint (GR_selDbi);
     irc = 1;
 
@@ -1380,7 +1380,7 @@ static int    bck_GR_NoConstrPln;
 
 
   // if GR_Sel_Filter==18 (parametric point) keep selection
-  i1 = UI_GR_Sel_Filter (-1);   // query
+  i1 = UI_GR_Sel_Filt_set (-1);   // query
   if(i1 == 18) return 1;   // 2013-04-17
 
   // if (GR_Sel_Filter==1) give temporary-point from cursorposition on constrPlane
@@ -1610,9 +1610,9 @@ static int    bck_GR_NoConstrPln;
 
     // if(GR_selTyp == Typ_FncDirX) IE_cad_Inp1_DirX ();
 
-    if(GR_selTyp == Typ_FncPtOnObj)  UI_GR_Sel_Filter (18); // 2013-04-17
+    if(GR_selTyp == Typ_FncPtOnObj)  UI_GR_Sel_Filt_set (18); // 2013-04-17
 
-    if(GR_selTyp == Typ_FncPtOnCP)   UI_GR_Sel_Filter (1);
+    if(GR_selTyp == Typ_FncPtOnCP)   UI_GR_Sel_Filt_set (1);
     goto L_null_obj;
   }
 

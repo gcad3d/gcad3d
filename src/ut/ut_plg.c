@@ -65,7 +65,7 @@ UT3D_plg_npt               PolygonCurve from points; untrimmed, no lvTab
 UT3D_plg_lvTab             create new lengthTable lvTab
 UT3D_plg_projplgpln        Polygon = project Polygon -> Plane
 
-UT3D_parplg_plgpt          get knotvalue from point on polygon
+UT3D_par_pt__plg_pt          get knotvalue from point on polygon
 UT3D_par_par1plg           get knotvalue from parameter 0-1
 UT3D_par1_plg_pt           get parameter 0-1 for point on polygon
 UT3D_par1_parplg           get parameter 0-1 from knotvalue
@@ -893,29 +893,28 @@ Returncodes:
   int UT3D_pt_intelplg (int *nxp, Point *xptab, double *va_el, double *va_plg,
                         CurvElli *el, CurvPoly *plg) {
 //============================================================================
-/*
-UT3D_pt_intelplg       intersect lim. ellipse and lim. polygon
+// UT3D_pt_intelplg       intersect lim. ellipse and lim. polygon
+// 
+// UT3D_pt_intelplg       Author: Thomas Backmeister       2.7.2003
+// 
+// Intersection of ellipse and polygon.
+// 
+// IN:
+//   int *nxp         ... maximal number of output points (and parameters)
+//   CurvElli *el     ... ellipse
+//   CurvPoly *plg    ... polygon
+// OUT:
+//   int *nxp         ... number of intersection points
+//   Point *xptab     ... intersection points
+//   double *va_el    ... parameter of the intersection-points on ellipse;
+//                        none if va_el==NULL
+//   double *va_plg   ... parameter of the intersection-points on polygon;
+//                        none if va_plg==NULL
+// Returncodes:
+//   0 = OK
+//  -1 = out of mem (xptab too small)
+//  -2 = internal error
 
-UT3D_pt_intelplg       Author: Thomas Backmeister       2.7.2003
-
-Intersection of ellipse and polygon.
-
-IN:
-  int *nxp         ... maximal number of output points (and parameters)
-  CurvElli *el     ... ellipse
-  CurvPoly *plg    ... polygon
-OUT:
-  int *nxp         ... number of intersection points
-  Point *xptab     ... intersection points
-  double *va_el    ... parameter of the intersection-points on ellipse;
-                       none if va_el==NULL
-  double *va_plg   ... parameter of the intersection-points on polygon;
-                       none if va_plg==NULL
-Returncodes:
-  0 = OK
- -1 = out of mem (xptab too small)
- -2 = internal error
-*/
 
   int    ptxMax, rc, i1, i2, nx;
   double dist, uu;
@@ -965,10 +964,11 @@ Returncodes:
       }
 
       // parameter on elli berechnen
-      UT3D_par1_el_pt (&uu, el, &xp[i2]);
+      rc = UT3D_par_pt__pt_el (&uu, NULL, el, &xp[i2], 2, UT_DISP_cv);
+      if(rc < 0) continue;
         // printf(" uu=%lf\n",uu);
-      // test if point is on triommed ellipse
-      if(!UT3D_par_ck_inObj__(uu, &xp[i2], &el->p1, &el->p2, 0., 1.)) continue;
+      // test if point is on trimmed ellipse
+      // if(!UT3D_par_ck_inObj__(uu, &xp[i2], &el->p1, &el->p2, 0., 1.)) continue;
       va_el[*nxp] = uu;
 
       // parameter on plg berechnen
@@ -1251,7 +1251,7 @@ Returncodes:
   int   irc;
 
   // get length for point on plg
-  irc = UT3D_parplg_plgpt (par1, pt, plg);
+  irc = UT3D_par_pt__plg_pt (par1, NULL, pt, plg, UT_TOL_pt);
   if(irc < 0) return -1;
   // Knotenwert in einen Parameterwert von 0-1 aendern
   *par1 = UT3D_par1_parplg (par1, plg);
@@ -1262,44 +1262,80 @@ Returncodes:
 
 
 //================================================================
-  int UT3D_parplg_plgpt (double *parplg, Point *pt, CurvPoly *plg) {
+  int UT3D_par_pt__plg_pt (double *parplg, Point *pto, int *ipt,
+                           Point *pti, CurvPoly *plg, double tol) {
 //================================================================
-/// UT3D_parplg_plgpt           get knotvalue from point on polygon
+// UT3D_par_pt__plg_pt           get knotvalue from point on polygon
+//   used tolerance: UT_TOL_pt
+// Input:
+//   pti      point near curve plg
+//   plg      curve (polygon)
+//   tol      max allowed distance pti - plg   (eg UT_TOL_pt)
+// Output:
+//   parplg   parameter of pto on curve plg (knotvalue)
+//   pto      point on curve plg; can be NULL on input;
+//   ipt      if retCode=0: index of segment, 1=first; can be NULL on input;
+//            if retCode=1: index of near-point;
+//   retCode  -1  pti not on curve
+//             0  pti is on a segment, between the points
+//             1  pti is near to one of the points of the curve
+//
+//TODO: after getting first rc >= 0 test also following segments if
+//  distance is getting smaller; if distance goes up: stop.
 
-  int   rc, i1;
+  int      irc, i1, i2, ii;
+  double   ps, d1;
+  Vector   vcs;
 
 
-  // DEB_dump_obj__(Typ_PT, pt, "UT3D_parplg_plgpt");
+  // DEB_dump_obj__(Typ_PT, pti, "UT3D_par_pt__plg_pt tol=%f",tol);
   // DEB_dump_obj__(Typ_CVPOL, plg, "  plg:");
-
 
   for (i1=0; i1<plg->ptNr-1; ++i1) {
 
     // DEB_dump_obj__(Typ_PT, &plg->cpTab[i1], " p[%d]",i1);
     // DEB_dump_obj__(Typ_PT, &plg->cpTab[i1+1], " p[%d]",i1+1);
-    rc = UT3D_pt_ck_onLine (&plg->cpTab[i1], &plg->cpTab[i1+1], pt, UT_TOL_pt);
-    // -1:Point outside 0:pt==cpTab[i1], 1:pt between, 2:pt==cpTab[i1+1]
+    irc = UT3D_pt_ck_onLine (&plg->cpTab[i1], &plg->cpTab[i1+1], pti, tol);
+    // -1:Point outside 0:pti==cpTab[i1], 1:pti between, 2:pti==cpTab[i1+1]
+      // printf(" f-pt_ck_onLine irc=%d i1=%d\n",irc,i1);
+    if(irc < 0) continue;
 
-    if(rc < 0) continue;
+    i2 = i1 + 1;
 
-
-    if(rc == 0) {
+    if(irc == 0) {
+      // pti=p1
       *parplg = plg->lvTab[i1];
+      if(pto) *pto = plg->cpTab[i1];
+      if(ipt) *ipt = i1;
+      irc = 1;       // near point
 
-    } else if(rc == 1) {
-      *parplg = plg->lvTab[i1] + UT3D_len_2pt (&plg->cpTab[i1], pt);
+    } else if(irc == 1) {
+      // pti between p1-p2
+      ps = UT3D_len_2pt (&plg->cpTab[i1], pti);
+      *parplg = plg->lvTab[i1] + ps;
+      if(pto) {
+        UT3D_vc_2pt (&vcs, &plg->cpTab[i1], &plg->cpTab[i2]);
+        d1 = ps / (plg->lvTab[i2] -  plg->lvTab[i1]);
+        UT3D_vc_multvc (&vcs, &vcs, d1);
+        UT3D_pt_traptvc (pto, &plg->cpTab[i1], &vcs);
+      }
+      if(ipt) *ipt = i2;
+      irc = 0; // between
 
-    } else if(rc == 2) {       // pt ==  p2
-      *parplg = plg->lvTab[i1+1];;
+    } else if(irc == 2) {
+      // pti=p2
+      *parplg = plg->lvTab[i2];;
+      if(pto) *pto = plg->cpTab[i2];
+      if(ipt) *ipt = i2;
+      irc = 1;       // near point
     }
 
-      // printf("ex UT3D_parplg_plgpt %d %f\n",rc,*parplg);
+      // printf("ex UT3D_par_pt__plg_pt irc=%d %f\n",irc,*parplg);
 
-    return 0;
+    return irc;
   }
 
-
-  // printf("ex UT3D_parplg_plgpt -1\n");
+    // printf("ex UT3D_par_pt__plg_pt -1\n");
 
   return -1;
 

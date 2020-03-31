@@ -831,7 +831,7 @@ extern int       IE_modify;
       // modify RefModel-Position <typ><ind>
       UI_Tra__  (-1L, 0, 0L);        // init window
       UI_Tra__  (actObj.dlInd, actObj.typ, actObj.dbInd); // put ID of sel. obj -> window
-      UI_GR_Sel_Filter(16);        // directs selections into window UI_WinTra__
+      UI_GR_Sel_Filt_set(16);        // directs selections into window UI_WinTra__
       break;
 
 

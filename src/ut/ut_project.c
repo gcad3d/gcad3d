@@ -345,7 +345,7 @@ static Vector prj_vc;      // projectionDirection
   L_SUR:
   if(ox1->typ != Typ_SUR) goto E_NI;
   // i1 = UTO_ck_surfTyp (prj_tg);
-    // printf(" surfTyp=%d\n",i1); // 162=Typ_SURTPS
+    // printf(" surfTyp=%d\n",i1); // 162=Typ_SUTP
   i1 = SUR_ck_typ (&sTyp, &ox2, &i2, ox1);
     // printf(" surfTyp=%d %d %d\n",sTyp,i1,i2); // 155=Typ_SURPLN
     // DEB_dump_obj__ (Typ_ObjGX, ox2, "  suppSur ox2:");
@@ -675,11 +675,11 @@ static Vector prj_vc;      // projectionDirection
     // dazu sind die Punkte zu transformieren und dann v0/v1 neu berechnen;
     UT3D_pt_evalplg (&pt1, cvi, cvi->v0);
     UPRJ_app_pt (&pt2, &pt1);
-    UT3D_parplg_plgpt (&cvo->v0, &pt2, cvo);
+    UT3D_par_pt__plg_pt (&cvo->v0, NULL, NULL, &pt2, cvo, UT_TOL_pt);
 
     UT3D_pt_evalplg (&pt1, cvi, cvi->v1);
     UPRJ_app_pt (&pt2, &pt1);
-    UT3D_parplg_plgpt (&cvo->v1, &pt2, cvo);
+    UT3D_par_pt__plg_pt (&cvo->v1, NULL, NULL, &pt2, cvo, UT_TOL_pt);
   }
 
 
@@ -951,7 +951,7 @@ static Vector prj_vc;      // projectionDirection
 ///   obji parentRecord (ObjGX-Record) dessen form ebenfalls oGX ist
 /// \endcode
 
-// see  UTRA_app_oTab DB_store_obj
+// see  UTRA_app_oTab DB_store_ox
 
 
   int    irc, i1, i2, iTyp, iForm, iSiz, oldSiz, siz;

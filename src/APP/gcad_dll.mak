@@ -90,11 +90,10 @@ endif
 #=====================================================================
 #default:
 default: $(OBJ1)
-	@echo ====================== Link ======================
-	@echo "hTyp: $(hTyp)"
-	@echo "ui: $(VGUI)"
-	@echo "gcad_dll build: $(DLLNAM)"
-	@echo "VPATH: $(VPATH)"
+	@echo ====================== Link $(DLLNAM) ======================
+#	@echo "hTyp: $(hTyp)"
+#	@echo "ui: $(VGUI)"
+#	@echo "VPATH: $(VPATH)"
 	cd $(gcad_dir_bin) &&\
 	$(CC) -o $(DLLNAM).$(FTYP) $(LKDEB) $(OBJ1)\
   $(GUILIB) $(OGLLIB) $(LKFLG)

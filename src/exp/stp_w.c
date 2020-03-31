@@ -1437,7 +1437,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   data = ox1->data;
 
   // get surfaceType
-  sTyp = UTO_ck_surfTyp (ox1); // Typ_SURTPS| ?
+  sTyp = UTO_ck_surfTyp (ox1); // Typ_SUTP| ?
     printf(" sTyp=%d\n",sTyp);
 
 
@@ -1454,7 +1454,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
     //----------------------------------------------------------------
-    case Typ_SUR:         // sTyp Typ_SURTPS
+    case Typ_SUR:         // sTyp Typ_SUTP
       // ADVANCED_FACE < surpln
       ii = STP_w_SURTP__ ((ObjGX*)ox1, oid);
       break;

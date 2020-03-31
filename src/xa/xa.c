@@ -1226,7 +1226,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
     // reset "add to Group"
     // UI_reset ();
-    UI_GR_Sel_Filter (0);      // reset add to group
+    UI_GR_Sel_Filt_reset ();      // reset add to group
 
     // clear PRCV-spc
     PRCV_init__ ();

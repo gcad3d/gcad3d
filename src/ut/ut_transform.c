@@ -597,7 +597,7 @@ WC_sur_mat WC_sur_imat
 ///   oSiz   freier Restplatz in objo
 ///   wrkSpc fuer Daten (structs) von oGX-Objekten
 ///
-/// see  DB_store_obj
+/// see  DB_store_ox
 /// \endcode
 
 
@@ -731,7 +731,7 @@ WC_sur_mat WC_sur_imat
 
   //----------------------------------------------------------------
   *dbi = -1L;
-  irc = DB_store_stru (&vp1, ox2.typ, ox2.form, opo, ox2.siz, dbi);
+  irc = DB_store_obj (&vp1, ox2.typ, ox2.form, opo, ox2.siz, dbi);
   if(irc < 0) return irc;
 
   // restore wrkSpc

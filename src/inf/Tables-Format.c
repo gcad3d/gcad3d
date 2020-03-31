@@ -28,7 +28,16 @@ ENDGATAB
 
 
 
+-------------------------------------------------------------------
+DEFTX 3.5 2.5 4 2
+- AP_txsiz;     Notes-Defaultsize;        3.5
+- AP_txdimsiz;  Dimensions-Text-size;     2.5
+- GR_tx_scale;  Scalefaktor Text;         4
+- AP_txNkNr;    digits following comma;   2
 
+
+
+-------------------------------------------------------------------
 GATAB starts the grafic-attributes-table;
 
 Grafic-Attributes-Records for surfaces:
@@ -55,12 +64,13 @@ ENDGATAB
 
 
 
+======================================================================
 Example DynamicDataArea:
 
 MODSIZ 500 0.005 0.05
 MODBOX P(-583.3792117 -285.1265177 -6) P(9.262386051 240.5683093 50)
 DEFTX 3.5 2.5 4 2
-# DefaultColor
+# DefaultColor red green blue
 DEFCOL 224 224 242
 GATAB
 # Linetype; 2=dash, 3=dashDot.

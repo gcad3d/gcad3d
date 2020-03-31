@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>Select_de.htm</TITLE>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
+<PRE>
+
+
+
+<p><a name="TSZ"><h2>Zusatztext mit Sonderzeichen</h2></a></p>
+Ein Sonderzeichen wird durch eine Folge von 2 Zeichen generiert.
+ [d   Durchmesserzeichen
+ [g   Gradzeichen (Winkel)
+ [+   +- Zeichen
+ ['   doppeltes Hochkomma (")
+ [/   hochgestellt
+ [\   tiefgestellt
+ [n   neue Zeile (Return, CR)
+ [%   wird durch Standardtext ersetzt. Wenn im Text kein [% enthalten ist,
+      wird der Standardtext ganz an den Textbeginn gestellt.
+ [-   keinen Standardtext einfügen.
+ [[   ein "["
+ [0 bis [9  nur N=DIM3 und N=LDRP: Anzahl Nachkommastellen der MassZahlen
+     (muss am Beginn des Textblocks stehen)
+ [V20]  expandieren einer numer. Variablen (V20 im Beispiel)
+
+
+Beispiel:
+"[+ 0.2"
+
+
+<p><a name="NMP"><h2>MaßPfeile</h2></a></p>
+werden definiert durch die Angabe einer Zahl mit 2 Ziffern;
+je eine Ziffer für eine der beiden Maszpfeile;
+Keine Angabe oder -1: Beide Pfeile automatisch erzeugen.
+
+  0         kein Maszpfeil
+  1   <     Pfeil nach links
+  2   >     Pfeil nach rechts
+  3   /     Schrägstrich
+  4   ><    Pfeile nach links und rechts
+
+Beispiel:
+"12"  entspricht einem Pfeil nach links und nach rechts, 
+
+
+<p><a name="NMH"><h2>Maßhilfslinien</h2></a></p>
+werden definiert durch die Angabe einer Zahl mit 2 Ziffern;
+je eine Ziffer für eine der beiden Maßhilfslinien;
+  0 = keine Hilfslinie,
+  1 = Volllinie
+Default ist 11  ( zwei Volllinien)
+
+
+</PRE>
+</BODY>
+</HTML>

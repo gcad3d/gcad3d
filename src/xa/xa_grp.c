@@ -174,8 +174,8 @@ static int      GrpNr  = 0;
 
   DL_grp1_set (-1L, OFF);           // clear all groupBits
 
-  // if(UI_GR_Sel_Filter(-1) != 5)     // nochmal ware Reset !
-    // UI_GR_Sel_Filter (5);           // activate add to group
+  // if(UI_GR_Sel_Filt_set(-1) != 5)     // nochmal ware Reset !
+    // UI_GR_Sel_Filt_set (5);           // activate add to group
 
   DL_hili_off (-1L);               // unhilite alle Objekte
   // DL_Redraw ();
@@ -512,7 +512,7 @@ static int      GrpNr  = 0;
                        // typ,dbi,dli,iUpd,GrpNr,GrpMax);
   // if(dli >= 0) printf(" _add__-grpBit = %d\n",DL_GetGrp(dli));
   // Grp_dump ();
-  // printf("  GR_Sel_Filter=%d\n",UI_GR_Sel_Filter(-1));
+  // printf("  GR_Sel_Filter=%d\n",UI_GR_Sel_Filt_set(-1));
 
 
   // search unknown dli

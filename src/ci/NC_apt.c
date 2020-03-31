@@ -5532,7 +5532,7 @@ static  TraRot  trr;
 //=============================================================================
 // SPL (planare surf)
 /* TODO:
-change to SurStd -> Typ_SURTPS
+change to SurStd -> Typ_SUTP
 
 see ../../doc/gcad_doxygen/Objects-Format.dox
 
@@ -11440,7 +11440,7 @@ Rückgabewert ist der gefundene Index.
           // DEB_dump_obj__ (Typ_ObjGX, ox1p, "Sur=");
   
         // SUR_ck_typ
-        // UTO_objDat_dbo UTO_objDat_ox UTO_obj_get UTO_objx_get DB_GetObjGX
+        // UTO_obj_dbo UTO_objDat_ox UTO_obj_get UTO_objx_get DB_GetObjGX
 
         if(ox1p->form == Typ_SURBSP) {
           // i1 = 10;  // size of pTab !
@@ -11564,7 +11564,7 @@ Rückgabewert ist der gefundene Index.
           // printf(" surTyp=%d\n",i1);
 
         // SUR_ck_typ
-        // UTO_objDat_dbo UTO_objDat_ox UTO_obj_get UTO_objx_get DB_GetObjGX
+        // UTO_obj_dbo UTO_objDat_ox UTO_obj_get UTO_objx_get DB_GetObjGX
 
         if(i1 == Typ_SURBSP) {
            // 10 = size of pTab
@@ -11743,7 +11743,7 @@ Rückgabewert ist der gefundene Index.
         // irc = UT3D_obj_segccv (&ox1, APT_prim_seg, ox1p);
         // get typ,obj1 = subcurve of CCV
         i1 = APT_prim_seg - 1;  // segNr -> indexNr; first=0;
-        irc = UT3D_obj_ccv_segnr (&mtyp, obj1, i1, ox1p);
+        irc = UTO_obj__ccv_segnr (&mtyp, obj1, i1, ox1p);
         if(irc < 0) goto L_noFunc;
 
         // get 1=startPt 2=endPt
@@ -13277,7 +13277,7 @@ Rückgabewert ist der gefundene Index.
         // get segment of ccv;
         // rc = UT3D_obj_segccv (&ox1, APT_prim_seg, ox1p);
         // rc = UT3D_crv_segccv (&i2, &ox1, APT_prim_seg, ox1p, &ln1);
-        rc = UT3D_obj_ccv_segnr (&typ1, obj1, APT_prim_seg, ox1p);
+        rc = UTO_obj__ccv_segnr (&typ1, obj1, APT_prim_seg, ox1p);
         if(rc < 0) return -1;
 
         if(typ1 == Typ_LN) {
@@ -13981,7 +13981,7 @@ Rückgabewert ist der gefundene Index.
         // extract Line from CCV
         } else if(ox1p->form == Typ_CVTRM) {
           // get ccv-seg
-          irc = UT3D_obj_ccv_segnr (&i2, obj1, iSeg1, ox1p); // i2=subSegTyp
+          irc = UTO_obj__ccv_segnr (&i2, obj1, iSeg1, ox1p); // i2=subSegTyp
           if(irc < 0) return -1;
           if(i2 == Typ_LN) {
             pta = ((Line*)obj1)->p1;
@@ -14009,7 +14009,7 @@ Rückgabewert ist der gefundene Index.
       if(ox1p->typ != Typ_CVTRM) goto Par_err;
       i1 = aus_tab[1] - 1;   // segNr -> indexNr; 0=first seg.
         // get bin-obj of CCV-segment
-        irc = UT3D_obj_ccv_segnr (&i2, obj1, i1, ox1p);
+        irc = UTO_obj__ccv_segnr (&i2, obj1, i1, ox1p);
         if(irc < 0) return -1;
         // if(UTO_ck_curvForm(i1) != Typ_ObjGX) goto Par_err;
         if(i2 != Typ_CVPOL) goto Par_err;
@@ -15691,7 +15691,7 @@ Rückgabewert ist der gefundene Index.
 
       if(ox1p->typ == Typ_CVTRM) {
         // rc = UT3D_stru_segccv (ciO, Typ_CI, i1, ox1p);
-        rc = UT3D_obj_ccv_segnr (&i2, obj1, iMod, ox1p);
+        rc = UTO_obj__ccv_segnr (&i2, obj1, iMod, ox1p);
         if(rc < 0) goto Par_err;
         if(i2 != Typ_CI) goto Geom_err;
         *ciO = *(Circ*)obj1;
@@ -19670,7 +19670,7 @@ Rückgabewert ist der gefundene Index.
 //
 //
 //  // get obj to cut
-//  irc = UTO_objDat_dbo (&obj0, &o0Typ, (long)aus_tab[1]);
+//  irc = UTO_obj_dbo (&obj0, &o0Typ, (long)aus_tab[1]);
 //  if(irc < 0) {i1 = o0Typ; o1i = (long)aus_tab[1]; goto ObjErr;}
 //    // DEB_dump_obj__ (o0Typ, obj0, "APT_trim_obj");
 //
@@ -19682,7 +19682,7 @@ Rückgabewert ist der gefundene Index.
 //    obj1 = (void*)&aus_tab[2];
 //  } else {
 //    o1i = aus_tab[2]; 
-//    irc = UTO_objDat_dbo (&obj1, &o1Typ, o1i);
+//    irc = UTO_obj_dbo (&obj1, &o1Typ, o1i);
 //    if(irc < 0) {i1 = o1Typ; goto ObjErr;}
 //  }
 //
@@ -19694,7 +19694,7 @@ Rückgabewert ist der gefundene Index.
 //      obj2 = (void*)&aus_tab[io2];
 //    } else {
 //      o2i = aus_tab[io2];
-//      irc = UTO_objDat_dbo (&obj2, &o2Typ, o2i);
+//      irc = UTO_obj_dbo (&obj2, &o2Typ, o2i);
 //      if(irc < 0) {i1 = o2Typ; o1i = o2i; goto ObjErr;}
 //    }
 //  }
@@ -19932,7 +19932,7 @@ Rückgabewert ist der gefundene Index.
 //    obj2 = (void*)&aus_tab[io2];
 //  } else {
 //    oInd = aus_tab[io2]; 
-//    i1 = UTO_objDat_dbo (&obj2, &o2Typ, oInd);
+//    i1 = UTO_obj_dbo (&obj2, &o2Typ, oInd);
 //    if(i1 < 0) goto ParErr;
 //  }
 //
@@ -20363,7 +20363,7 @@ Rückgabewert ist der gefundene Index.
 
   //================================================================
   // load obj to project
-  i1 = UTO_objDat_dbo (&obji, &i2, &typi, (long)aus_tab[1]);
+  i1 = UTO_obj_dbo (&obji, &i2, &typi, (long)aus_tab[1]);
   if(i1 < 0) return -1;
 
 
@@ -20634,7 +20634,7 @@ Rückgabewert ist der gefundene Index.
 
 
   // load DB-obj
-  i1 = UTO_objDat_dbo (&obji, &i2, &o0Typ, (long)aus_tab[1]);
+  i1 = UTO_obj_dbo (&obji, &i2, &o0Typ, (long)aus_tab[1]);
   if(i1 < 0) return -1;
 
 
@@ -22139,7 +22139,7 @@ static Line lno;
     typCv = aus_typ[ii];
     dbi = aus_tab[ii];
     // get data-struct from dbo
-    irc = UTO_objDat_dbo (&oCv, &oNr, &typCv, dbi);
+    irc = UTO_obj_dbo (&oCv, &oNr, &typCv, dbi);
     if(irc) goto L_err1;
     OGX_SET_OBJ (&oxCv, typCv, typCv, oNr, oCv);
       // DEB_dump_ox_0 (&oxCv, " APT_PARL__-oxCv");
@@ -22180,7 +22180,7 @@ static Line lno;
     // get data-struct from dbo
     typSu = aus_typ[ii];
     dbi = aus_tab[ii];
-    irc = UTO_objDat_dbo (&oPln, &oNr, &typSu, dbi);
+    irc = UTO_obj_dbo (&oPln, &oNr, &typSu, dbi);
     if(irc) goto L_err1;
     OGX_SET_OBJ (&oxSur, typSu, typSu, 1, oPln);
     --ii;
@@ -22300,8 +22300,8 @@ static Line lno;
   iDbi = aus_tab[1];
 
 
-    printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR \n");
-    printf("APT_REV__ %d %ld\n",iTyp,iDbi);
+    // printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR \n");
+    // printf("APT_REV__ %d %ld\n",iTyp,iDbi);
 
 
 

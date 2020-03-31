@@ -1899,7 +1899,7 @@ static int   patNr;     // nr of Patches
   // printf("TSU_DrawSurTRV %d %d\n",oxi->typ,oxi->form);
   // printf(" v0=%lf\n",((SurRev*)oxi->data)->v0);
   // printf(" v1=%lf\n",((SurRev*)oxi->data)->v1);
-  // DEB_dump_obj__ (Typ_SURRV, oxi->data, "SRV:");   
+  // DEB_dump_obj__ (Typ_SURRV, oxi->data, " _DrawSurTRV:");   
 
 
 
@@ -1953,6 +1953,7 @@ static int   patNr;     // nr of Patches
     // TestDisp Contour
     // GR_Disp_pTab (ptNr, p1Tab, SYM_TRI_S, 2);  return -1;
     // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__ (Typ_PT,&p1Tab[i1]," p1Tab[%d]:",i1);
+    // END TESTBLOCK
 
 
   //----------------------------------------------------------------
@@ -6234,7 +6235,9 @@ Besseres Verfahren waere:
     // ptx ist nun der Inputpunkt auf der InputKonturkurve.
     // Schnittpunkt auf Konturkurve: Parameter suchen, -> Y
     // pt2->y = UT3D_parpt_cipt (&ptx, (Circ*)TSU_ox2.data);
-    pt2->y = UT3D_par1_ci_pt ((Circ*)TSU_ox2.data, &ptx);
+    irc = UT3D_par_pt__pt_prj_ci (&pt2->y, NULL, NULL,
+                                  (Circ*)TSU_ox2.data, &ptx, UT_TOL_cv);
+    if(irc < 0) {TX_Error("TSU_tr_2D_3D_srv Ci-E01"); return -1; }
       // printf(" pary=%f\n",pt2->y);
 
 
@@ -6268,7 +6271,8 @@ Besseres Verfahren waere:
 
 
     // get parameter from point (distance, not 0-1 !)
-    UT3D_parplg_plgpt (&pt2->y, &ptx, (CurvPoly*)TSU_ox2.data);
+    UT3D_par_pt__plg_pt (&pt2->y, NULL, NULL,
+                         &ptx, (CurvPoly*)TSU_ox2.data, UT_TOL_pt);
 
 
 
@@ -6293,7 +6297,7 @@ Besseres Verfahren waere:
     }
     ptx = pa[iNr];
     // Parameterwert des Punktes -
-    UT3D_parCv_bsplpt (&pt2->y, &d1, (CurvBSpl*)TSU_ox2.data, &ptx);
+    UT3D_par_pt__pt_cvbsp (&pt2->y, NULL, &d1, (CurvBSpl*)TSU_ox2.data, &ptx);
 
 
 

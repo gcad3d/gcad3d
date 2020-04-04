@@ -390,7 +390,6 @@ APT_MR_SIZ
 APT_obj_ato
 APT_obj_expr
 APT_obj_stat
-APT_parent_hide
 APT_parent_set
 APT_PARL__
 APT_PL_IND
@@ -612,9 +611,6 @@ CNTF_out_cvtrm
 CNTF_out_old
 CNTF_rev__
 CNTF_selPt
-colB1
-colB2
-colR
 CopTxtTab
 CSV_read__
 CSV_write__
@@ -1105,7 +1101,6 @@ GLB_Create
 GLB_DrawExit
 GLB_DrawInit
 GLB_Init
-GLB_pending
 GLB_Query
 GLBT_but_add
 GLBT_but_disp
@@ -1718,13 +1713,10 @@ GUI_gl_button
 GUI_gl_draw
 GUI_gl_ev_butt__
 GUI_gl_ev_button
-GUI_gl_ev_butt_upd
 GUI_gl_ev_key
 GUI_gl_ev_move
-GUI_gl_idle1
 GUI_gl_key
 GUI_gl_move
-GUI_gl_set_active
 GUI_Ico_init
 GUI_idle__
 GUI_img__
@@ -1876,7 +1868,9 @@ GUI_tree1_row_add
 GUI_tree1_row_set
 GUI_tree1_set_selMode
 GUI_tree1_unselect_all
+GUI_TUT_CB_tmr
 GUI_TUT_m__
+GUI_TUT_m_CB
 GUI_TUT_t__
 GUI_update__
 GUI_Win__
@@ -4031,12 +4025,9 @@ UT3D_pt_ell_lim_del
 UT3D_pt_el_ptx
 UT3D_pt_el_pty
 UT3D_pt_elsn
-UT3D_pt_eval_ell_par1
 UT3D_pt_evalparCv
 UT3D_pt_evalplg
 UT3D_pt_evpar2pt
-UT3D_pt_evparci
-UT3D_pt_evparcrv
 UT3D_pt_evparCrvBSpl
 UT3D_pt_evparCrvRBSpl
 UT3D_pt_evparln
@@ -4173,7 +4164,6 @@ UT3D_pt_tra_pt_vc_par
 UT3D_pt_tra_ucs2wcs_pl
 UT3D_pt_tra_wcs2ucs_pl
 UT3D_pt_txt
-UT3D_ptvc_eval_ci_angr
 UT3D_ptvc_eval_ell_par
 UT3D_ptvc_evparclot
 UT3D_ptvc_evparsbsp
@@ -4181,12 +4171,13 @@ UT3D_ptvc_int2pl
 UT3D_ptvc_int2pln
 UT3D_ptvc_intbox
 UT3D_ptvc_ox
+UT3D_pt_vc__par_ci
+UT3D_pt_vc__par_cv
 UT3D_ptvcpar_ipt_obj
 UT3D_ptvcpar_std_dbo
 UT3D_ptvcpar_std_obj
 UT3D_ptvc_sur
 UT3D_ptvc_sus
-UT3D_ptvc_tng_crv_par
 UT3D_rbez_180
 UT3D_rbez_360
 UT3D_rbez_ci__
@@ -4281,6 +4272,7 @@ UT3D_vc_projvc2vc
 UT3D_vc_projvcnvc
 UT3D_vc_projvcpl
 UT3D_vc_projvcvc
+UT3D_vc__pt_el
 UT3D_VcPts2Crvs
 UT3D_vc_rot3angr
 UT3D_vc_rot_90_sr
@@ -4289,7 +4281,6 @@ UT3D_vc_rotvcangr
 UT3D_vc_rotvcvcangr
 UT3D_vc_setLength
 UT3D_vc_setLenLen
-UT3D_vc_tangel
 UT3D_vc_tng_ci_pt
 UT3D_vc_tng_crv_pt
 UT3D_vc_tng_elpt__

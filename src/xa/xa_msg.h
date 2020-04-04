@@ -146,6 +146,7 @@ enum ERR_codes {
  ((iErr<=ERR_severity_1)?((iErr<=ERR_severity_2)?((iErr<=ERR_severity_3)?3:2):1):0)
 
 
+// #define DEB_mcheck__() DEB_mcheck_out (__func__)
 
 
 

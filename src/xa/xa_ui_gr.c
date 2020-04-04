@@ -3976,7 +3976,7 @@ static  Point  selPos;
 
     // DUMP SELECTION_BUFFER dlTab (a list of all objects under cursor)
     // UI_GR_dump_dlTab (dlTab, iNr, "Select1-7");
-    // sele_dump1 (); // print reqObjTab
+    // sele_dump1 ("Select1-7"); // print reqObjTab
 
 
 
@@ -3994,8 +3994,8 @@ static  Point  selPos;
   // check if requested (convert); add to selTab, namTab.
   selNr = 0;
   for(ioNxt=0; ioNxt<iNr; ++ioNxt) {
-      // printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
-              // dlTab[ioNxt].typ,dlTab[ioNxt].dbInd,dlTab[ioNxt].dlInd);
+      printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
+              dlTab[ioNxt].typ,dlTab[ioNxt].dbInd,dlTab[ioNxt].dlInd);
 
     typ = dlTab[ioNxt].typ;
     dbi = dlTab[ioNxt].dbInd;
@@ -4072,6 +4072,9 @@ static  Point  selPos;
     
 
     // skip unresolvable objects
+    // skip symbols
+    if((typ == Typ_SymB)&&(dbi < 0)) goto L_selTab_from_dlTab_nxt;
+    // skip angle & transformations
     if((reqTyp == Typ_Angle)   ||
        (reqTyp == Typ_Tra))         goto L_selTab_from_dlTab_nxt;
 
@@ -6182,9 +6185,10 @@ static Point   pt1;
 // get GR_CurUk, display.
 
   Point    pt1;
-  char     buf1[1024];
+  char     buf1[256];
 
 
+  if(AP_stat.sysStat < 3) return 0;
 
   // get cursor-position on constructionPlane
   //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
@@ -6195,7 +6199,7 @@ static Point   pt1;
   UI_GR_get_actPosA (&pt1);   // get GR_CurUk
   
 // CRASH MS-cl bei buf1[138] !!!
-  sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
+  snprintf(buf1, 256, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
   // snprintf(buf1, sizeof(buf1), "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
     // printf("  UI_CurPos_upd |%s|\n",buf1);
 

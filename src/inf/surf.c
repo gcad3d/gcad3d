@@ -8,7 +8,8 @@ New Version of Typ_SUTP.  Not yet implemented.
 ================================================================== */
 void INF_SUTP(){                   /*! \code
 
-sutp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf  INF_SUTP
+
+sutp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP) INF_SUTP
 
 WHAT IS A TPS-surface:
   - ObjGX typ=Typ_SUTP with all boundaries (1 outer, n inner)

@@ -9420,7 +9420,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //================================================================
 /// UT2D_pt_cic_par       get 2D-point from par on 2D-circ in centerPos
 
-// see also UT3D_pt_evparci
+// see also UT3D_pt_vc__par_ci
   
   double     aor, a1r, rdc, dsig;
 

@@ -473,6 +473,7 @@ Verbinden:
 #include "../xa/xa_sele.h"                  // Typ_go_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_uid.h"             // UID_ckb_nam, UID_ckb_txt, UID_ouf_vwz
+#include "../xa/xa_msg.h"             // DEB_mcheck__
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
@@ -2393,6 +2394,7 @@ APT_stat_act:
   // printf("  AP_modact_ind=%d SMnam=|%s|\n",AP_modact_ind,DB_mdlNam_iBas(AP_modact_ind));
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
+  // DEB_mcheck__();
 
 
 
@@ -3113,7 +3115,7 @@ APT_stat_act:
     }
 
     // get atomic-objects (ato1) and parents of source ptx
-    APT_ato_par_srcLn (&mtPar, &ato1, ptx);
+    irc = APT_ato_par_srcLn (&mtPar, &ato1, ptx);
 
   } else {
     // temporary; get atomic-objects (ato1) of source ptx
@@ -3187,13 +3189,9 @@ APT_stat_act:
 
 
   //----------------------------------------------------------------
-  if(!APT_obj_stat) {
     // set isParent-bit in all DL-records of the parent-objects
-    APT_parent_set (&mtPar, &ato1);
-
-    // hide parent-objs
-    APT_parent_hide (&mtPar);
-  }
+    // and hide parent-objs
+  if(!APT_obj_stat) APT_parent_set (&mtPar, &ato1);
 
 
   //----------------------------------------------------------------
@@ -3504,7 +3502,8 @@ APT_stat_act:
 //================================================================
   int APT_parent_set (MemTab(ObjSRC) *mtPar, ObjAto *ato) {
 //================================================================
-// set isParent-bit bei allen parents
+// set isParent-bit bei allen parents and hide parent-objs
+// 
 
   int     i1, ie;
   long    dli;
@@ -3512,34 +3511,17 @@ APT_stat_act:
   ie = mtPar->rNr;
 
   // printf("APT_parent_set %d\n",ie);
+  // MemTab_dump (&mtPar, "APT_parent_set");
 
   for(i1=0; i1<ie; ++i1) {   // loop tru parent-obj's
     dli = mtPar->data[i1].dli;
+
+    // if parents not in active model: skip ..
+    if(dli < 0) continue;
 
     // set dispList-flag sPar (obj is a parent - has childs)
     DL_parent_set (dli, 1);
-  }
 
-  return 0;
-
-}
-
-
-//================================================================
-  int APT_parent_hide (MemTab(ObjSRC) *mtPar) {
-//================================================================
-// replace APT_work_parent_hide
-// APT_hide_parent: 1=hide, elso not
-
-  int     i1, ie;
-  long    dli;
-  
-  ie = mtPar->rNr;
-  
-
-  for(i1=0; i1<ie; ++i1) {   // loop tru parent-obj's
-    dli = mtPar->data[i1].dli;
-  
     // hide or redisplay
     DL_unvis__ (dli, APT_hide_parent);
 
@@ -3549,7 +3531,7 @@ APT_stat_act:
 
 }
 
- 
+
 /* replaced, unused
 //================================================================
   int APT_work_parent_hide (int cldTyp, long cldDbi, int *iPar) {

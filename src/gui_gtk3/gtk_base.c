@@ -292,6 +292,9 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   PangoFontDescription *fontDesc;
 
 
+  printf("GUI_Init_style \n");
+
+
   //----------------------------------------------------------------
   style = gtk_widget_get_style_context (win1);
   //fontDesc = gtk_style_context_get_font (style, GTK_STATE_FLAG_NORMAL);
@@ -366,10 +369,17 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)
 
+  // if(mcheck(0)) AP_debug__("-b GUI_Init__");
+  // else printf(" mcheck-GUI_Init__1-OK\n");
+
+
   // gtk_init (&argc, &argv);
   i1 = 0;
   gtk_init (&i1, NULL);
   // terminates; gtk_init_check does not ..
+
+  // if(mcheck(0)) AP_debug__("-f GUI_Init__");
+  // else printf(" mcheck-GUI_Init__2-OK\n");
 
 
 /*
@@ -1002,6 +1012,8 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   GList       *tmplist;
 
   if(win == NULL) return ii;
+
+  printf("GUI_is_win_alive \n");
 
   // win = gtk_widget_get_toplevel (UI_ListWin);
   // if (gtk_widget_is_toplevel (toplevel))

@@ -503,6 +503,7 @@ if [ "$1" = "gmon" ] ; then
 #-----------------------------------------------------
 # d = debug
 elif [ "$1" = "debug" ] ; then
+  echo " debug-init-file: ./gCAD3D.gdb"
   gdb ${exeNam} $* -x gCAD3D.gdb
   #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0

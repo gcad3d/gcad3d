@@ -643,7 +643,7 @@ extern Point     *GLT_pta;
 
   // get point and tangent-vector on curve at parameter par1
   // UTO_pt_par1_obj (&pt1, par1, typPath, datPath);
-  irc = UT3D_ptvc_tng_crv_par (&pt1, &vc1, typPath, datPath, 0, par1);
+  irc = UT3D_pt_vc__par_cv (&pt1, &vc1, typPath, datPath, 1, par1);
   if(irc < 0) goto L_NYI;
     // GR_Disp_obj (Typ_PT, &pt1, ATT_PT_GREEN, 0);
     // GR_Disp_vc (&vc1, &pt1, 8, 0);
@@ -929,7 +929,7 @@ extern Point     *GLT_pta;
   //----------------------------------------------------------------
   // vz of pl1 must go into direction of path; if not: invert !
   // get vc1 = startvector of path
-  UT3D_ptvc_tng_crv_par (NULL, &vc1, typPath, datPath, 0, 0.);
+  UT3D_pt_vc__par_cv (NULL, &vc1, typPath, datPath, 1, 0.);
     // DEB_dump_obj__ (Typ_VC, &vc1, "  vc1");
   // vc1=startvec of path; z-vec of plane plb
   i1 = UT3D_sid_2vc (&vc1, &tdSWP->plb.vz);
@@ -1142,7 +1142,7 @@ extern Point     *GLT_pta;
 // UTO_ptvc_obj_par1 (&pt1, &vc1, swp->typPath, swp->datPath, parU);
 
   // find pt1=position and its vc1=tangent-vector along path from parU
-  UT3D_ptvc_tng_crv_par (&pt1, &vc1, swp->typPath, swp->datPath, 0, parU);
+  UT3D_pt_vc__par_cv (&pt1, &vc1, swp->typPath, swp->datPath, 1, parU);
     // GR_Disp_obj (Typ_PT, &pt1, ATT_PT_GREEN, 0);
     // sprintf(s1,"%lf",parU);GR_Disp_tx (&pt1, s1, 0);
     // GR_Disp_obj (Typ_SymB, &pt1, ATT_COL_RED, SYM_STAR_S);
@@ -1180,7 +1180,7 @@ extern Point     *GLT_pta;
   //----------------------------------------------------------------
   // contour = ellipse
   } else if(swp->typCov == Typ_CVELL) {
-    UT3D_pt_eval_ell_par1 (&pt1, swp->datCov, parV);
+    UT3D_ptvc_eval_ell_par (&pt1, NULL, swp->datCov, parV);
     // get dx,dy on basic-plan swp->plb
     UT3D_vc_2pt (&vc1, &swp->plb.po, &pt1);
     UT3D_2par_vc_vcx_vcy (&pt21.x, &pt21.y, &vc1, &swp->plb.vx, &swp->plb.vy);

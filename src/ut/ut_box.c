@@ -1513,7 +1513,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   UT3D_box_extend (p1, p2, &clt->stp);  // startpoint
 
-  UT3D_ptvc_evparclot (&ptx, NULL, 0, clt, 1.);    // get ptx = endpoint
+  UT3D_ptvc_evparclot (&ptx, NULL, 1, clt, 1.);    // get ptx = endpoint
     // GR_Disp_pt (&ptx, SYM_STAR_S, ATT_COL_RED);
   UT3D_box_extend (p1, p2, &ptx);
 

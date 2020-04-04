@@ -120,7 +120,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 // local, unexported:
   static int      ccaSiz, ccNr;
   static CurvCCV  *cca;
-  static cfo      old, new;
+  static cfo      old, oNew;
   static double   tol_cv, tol_pt;
 
 
@@ -265,7 +265,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 //================================================================
   int CNTF_add__ (ObjGX *oxi, int isr, int imod) {
 //================================================================
-// CNTF_add__    compute connection old-obj - new-obj; old-obj out.
+// CNTF_add__    compute connection old-obj - oNew-obj; old-obj out.
 //
 /// \code
 /// process next obj (add obj's to output)
@@ -306,88 +306,93 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // TESTBLOCK
   // printf("============================= CNTF_add__ isr=%d imdo=%d\n",isr,imod);
   // DEB_dump_obj__ (Typ_ObjGX, oxi, "CNTF_add__");
-  // printf(" isr=%d old.typ=%d newTyp=%d\n",isr,old.typ,new.typ);
+  // printf(" isr=%d old.typ=%d newTyp=%d\n",isr,old.typ,oNew.typ);
   // CNTF_dump (&old, "CNTF_add__-old");
   // END TESTBLOCK
 
 
-  // init new
-  new.cer = 0;
+  // init oNew
+  oNew.cer = 0;
 
-  // get new from input-obj
+  // get oNew from input-obj
 
   // APT_prim_seg = imod
   APT_set_primSeg (imod);
 
   // get db-typ & index out of oxi
-  OGX_GET_INDEX (&new.typ, &new.dbi, oxi);
+  OGX_GET_INDEX (&oNew.typ, &oNew.dbi, oxi);
+    // printf(" _add__-typ=%d dbi=%ld\n",oNew.typ,oNew.dbi);
 
   // get DB-obj
-  new.typ = DB_GetObjDat (&vp1, &oNr, new.typ, new.dbi);
-    // printf(" newTyp=%d\n",new.typ);
-  if(new.typ <= Typ_Error) {TX_Print("- error; object must be circle .."); return -1;}
+  oNew.typ = DB_GetObjDat (&vp1, &oNr, oNew.typ, oNew.dbi);
+  if(oNew.typ <= Typ_Error) {TX_Print("***** CNTF_add__ I1"); return -1;}
+    // DEB_dump_obj__ (oNew.typ, vp1, " _add__-vp1");
 
   // make a copy of newObj
-  memcpy (new.obj, vp1, OBJ_SIZ_MAX);
+  // read not allowd longer than vp1-objSize
+  // memcpy (oNew.obj, vp1, OBJ_SIZ_MAX);
+  memcpy (oNew.obj, vp1, UTO_siz_stru(oNew.typ));
 
 
   // get start- endpoint
-  if(new.typ == Typ_PT) {
-    new.pts = *(Point*)new.obj;
-    new.pte = *(Point*)new.obj;
-    new.ip0 = new.dbi;
-    new.ip1 = new.dbi;
-    new.clo = 1; // no
+  if(oNew.typ == Typ_PT) {
+    oNew.pts = *(Point*)oNew.obj;
+    oNew.pte = *(Point*)oNew.obj;
+    oNew.ip0 = oNew.dbi;
+    oNew.ip1 = oNew.dbi;
+    oNew.clo = 1; // no
     goto L_sta_2;
 
   } else {
     // get startPt and endtPt of newObj
-    irc = UT3D_ptvcpar_std_obj (&new.pts,NULL,&new.v0, Ptyp_start,new.typ,new.obj);
-    irc = UT3D_ptvcpar_std_obj (&new.pte,NULL,&new.v1, Ptyp_end, new.typ, new.obj);
-    new.ip0 = 0;
-    new.ip1 = 0;
+    irc = UT3D_ptvcpar_std_obj (&oNew.pts, NULL, &oNew.v0,
+                                Ptyp_start, oNew.typ, oNew.obj);
+    irc = UT3D_ptvcpar_std_obj (&oNew.pte, NULL, &oNew.v1,
+                                Ptyp_end, oNew.typ, oNew.obj);
+    oNew.ip0 = 0;
+    oNew.ip1 = 0;
   }
-    // printf(" _add__-new.v0=%lf new.v1=%lf\n",new.v0,new.v1);
+    // printf(" _add__-new.v0=%lf new.v1=%lf\n",oNew.v0,oNew.v1);
 
   
 
 
   // get direction and closed;
-  if(new.typ == Typ_LN) {
+  if(oNew.typ == Typ_LN) {
     // check for degenerated (length < UT_TOL_cv)
-    new.clo = UT3D_ln_ck_degen (new.obj);
-    new.dir = 0; // fwd
+    oNew.clo = UT3D_ln_ck_degen (oNew.obj);
+    oNew.dir = 0; // fwd
 
   } else {
     // check if closed or degenerated; clo: 0=yes, 1=not, -2=degen
-    // new.clo = UTO_cv_ck_clo (new.typ, new.obj);  // 0=YES,1=NO
-    UTO_cv_ck_dir_clo (&new.dir, &new.clo, new.typ, new.obj);
+    // oNew.clo = UTO_cv_ck_clo (oNew.typ, oNew.obj);  // 0=YES,1=NO
+    UTO_cv_ck_dir_clo (&oNew.dir, &oNew.clo, oNew.typ, oNew.obj);
   }
 
 
   // test degenerated
-  if(new.clo < -1) {
+  if(oNew.clo < -1) {
     // degenerated lfig;
-      // printf(" degen:%d\n",newClo);
-    APED_oid_dbo_sm (oid, sizeof(oid), new.typ, new.dbi);
+      // printf(" degen:%d\n",oNew);
+    APED_oid_dbo_sm (oid, sizeof(oid), oNew.typ, oNew.dbi);
     // TX_Print("skip degenerated object %s %s",oid,AP_modact_nam);
     TX_Print("**** skip degenerated object %s",oid);
-    // return new.clo;
+    // return oNew.clo;
     return 0;
   }
 
 
   // fix reverse
-  if(isr) CNTF_rev__ (&new); 
+  if(isr) CNTF_rev__ (&oNew); 
 
 
   L_sta_2:
 
     // TESTBLOCK
-    // DEB_dump_obj__ (Typ_PT, &new.pts, " new.pts");
-    // DEB_dump_obj__ (Typ_PT, &new.pte, " new.pte");
+    // DEB_dump_obj__ (Typ_PT, &oNew.pts, " oNew.pts");
+    // DEB_dump_obj__ (Typ_PT, &oNew.pte, " oNew.pte");
     // printf(" ccNr=%d v0=%lf v1=%lf dir=%d clo=%d\n",
-            // ccNr,new.v0,new.v1,new.dir,new.clo);
+            // ccNr,oNew.v0,oNew.v1,oNew.dir,oNew.clo);
     // END TESTBLOCK
 
 
@@ -395,15 +400,15 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   //================================================================
   // process new-obj
   if(old.typ == TYP_FuncInit) {
-    if(new.typ == Typ_PT) CNTF_cvco_0_pt ();
+    if(oNew.typ == Typ_PT) CNTF_cvco_0_pt ();
     else                  CNTF_cvco_0_lfig ();
 
   } else if(old.typ == Typ_PT) {
-    if(new.typ == Typ_PT) CNTF_cvco_pt_pt ();
+    if(oNew.typ == Typ_PT) CNTF_cvco_pt_pt ();
     else                  CNTF_cvco_pt_lfig ();
 
   } else {   // old = lfig
-    if(new.typ == Typ_PT) CNTF_cvco_lfig_pt ();
+    if(oNew.typ == Typ_PT) CNTF_cvco_lfig_pt ();
     else                  CNTF_cvco_lfig_lfig (imod);
   }
 
@@ -431,7 +436,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // printf("CNTF_cvco_0_pt \n");
 
   // copy
-  old = new;
+  old = oNew;
 
   // nothing pending
   old.pend = 0;
@@ -447,7 +452,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // printf("CNTF_cvco_0_lfig \n");
 
   // copy
-  old = new;
+  old = oNew;
 
   // lfig pending
   old.pend = 1;
@@ -468,13 +473,13 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   cc1 = UT3D_CCV_NUL;   // empty
 
-  old.pte = new.pts;
+  old.pte = oNew.pts;
 
   // create line old.pts - old.pte
-  CNTF_add_ln (&old.dbi, &new.dbi);
+  CNTF_add_ln (&old.dbi, &oNew.dbi);
 
   // set old = new (keep pte)
-  old = new;
+  old = oNew;
 
   // nothing pending
   old.pend = 0;
@@ -501,21 +506,21 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // printf("CNTF_cvco_pt_lfig \n");
 
 
-  // test endpoints (old.pte - new.pts; old.pte - new.pte);
+  // test endpoints (old.pte - oNew.pts; old.pte - oNew.pte);
   irc = CNTF_ck_limPt (&old.pte);
-  //  0: old.pte == new.pts; old=new; Done.
+  //  0: old.pte == oNew.pts; old=new; Done.
   //  1: old.pte == new.pte; reverse new; old=new; Done.
   // -1: no connection 
   if(irc == 0) {
-    if(new.ip0 == 0) new.ip0 = old.dbi;  // old.pte == new.pts
-    old = new;          // skip the point;
+    if(oNew.ip0 == 0) oNew.ip0 = old.dbi;  // old.pte == new.pts
+    old = oNew;          // skip the point;
     old.pend = 1;       // set lfig = pending
     return 0;
   }
   if(irc == 1) {        // old.pte == new.pte; reverse new; old=new; Done.
-    CNTF_rev__ (&new);  // reverse new;
-    if(new.ip0 == 0) new.ip0 = old.dbi;  // old.pte == new.pts
-    old = new;          // skip the point;
+    CNTF_rev__ (&oNew);  // reverse new;
+    if(oNew.ip0 == 0) oNew.ip0 = old.dbi;  // old.pte == new.pts
+    old = oNew;          // skip the point;
     old.pend = 1;       // set lfig = pending
     return 0;
   }
@@ -523,27 +528,27 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // get normal-point (project old.pte onto new.obj)
-  irc = CNTF_normalPt (&pt1, &old.pte, &par1, new.typ, new.obj);
+  irc = CNTF_normalPt (&pt1, &old.pte, &par1, oNew.typ, oNew.obj);
     // DEB_dump_obj__ (Typ_PT, &pt1, " _normalPt-pt1-irc=%d",irc);
   // circ & elli: parameter nmust refer to the parent-circle !
-  // if(new.cer) par1 = 1. - par1;
+  // if(oNew.cer) par1 = 1. - par1;
   // 0  pt1 == old.pte; point is on new.obj. old=new; Done.
   // 1  pt1 is on new.obj. out LN old.pte-pt1; new.pts=pt1; old=new; Done.
   // -1: no connection 
   if(irc == 0) {        // old.pte == new.pts = on obj.
-    new.pts = pt1;
-    new.ip0 = old.dbi;
-    new.v0 = par1;      // startpoint
-    old = new;          // skip the point;
+    oNew.pts = pt1;
+    oNew.ip0 = old.dbi;
+    oNew.v0 = par1;      // startpoint
+    old = oNew;          // skip the point;
     old.pend = 1;       // set lfig = pending
     return 0;
   }
   if(irc == 1) {        // pt1 is on new.obj. old.pte is not on obj.
     old.pte = pt1;      // endPt line
-    CNTF_add_ln (&old.dbi, &new.ip0);  // out LN old.pte-pt1
-    new.pts = pt1;      // startpoint on lfig new
-    new.v0  = par1;     // startpoint
-    old = new;          // skip the point;
+    CNTF_add_ln (&old.dbi, &oNew.ip0);  // out LN old.pte-pt1
+    oNew.pts = pt1;      // startpoint on lfig new
+    oNew.v0  = par1;     // startpoint
+    old = oNew;          // skip the point;
     old.pend = 1;       // set lfig = pending
     return 0;
   }
@@ -558,12 +563,12 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // 1 = dist old.pte-new.pts > old.pte-new.pte:
   //     out line old.pte-new.pte; reverse new; old=new; Done.
   if(irc == 1) {        // old.pte-new.pts > old.pte-new.pte
-    CNTF_rev__ (&new);  // reverse new;
+    CNTF_rev__ (&oNew);  // reverse new;
   }
 
-  if(new.ip0 == 0) new.ip0 = DB_StorePoint (-1L, &new.pts);
-  CNTF_add_ln (&old.dbi, &new.ip0);  // out LN old.pte-new.pts
-  old = new;          // skip the point;
+  if(oNew.ip0 == 0) oNew.ip0 = DB_StorePoint (-1L, &oNew.pts);
+  CNTF_add_ln (&old.dbi, &oNew.ip0);  // out LN old.pte-new.pts
+  old = oNew;          // skip the point;
   old.pend = 1;       // set lfig = pending
 
 
@@ -590,16 +595,16 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // printf("CNTF_cvco_lfig_pt \n");
   // DEB_dump_obj__ (Typ_PT, &old.pte, "  _lfig_pt-old-pte");
-  // DEB_dump_obj__ (Typ_PT, &new.pts, "  _lfig_pt-new-pts");
+  // DEB_dump_obj__ (Typ_PT, &oNew.pts, "  _lfig_pt-new-pts");
 
 
 
   // test endpoint (old.pte - new.pts); yes: out old; old=new. Done.
-  d_oe_ns = UT3D_lenB_2pt (&old.pte, &new.pts);
+  d_oe_ns = UT3D_lenB_2pt (&old.pte, &oNew.pts);
   if(d_oe_ns < tol_pt) {
-    old.ip1 = new.dbi;
+    old.ip1 = oNew.dbi;
     CNTF_out_old ();  // out old;
-    old = new;
+    old = oNew;
     old.pend = 0;     // nothing pending
     return 0;
   }
@@ -608,7 +613,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // get normal-point; (pt1 = project new.pts onto old.obj)
-  irc = CNTF_normalPt (&pt1, &new.pts, &par1, old.typ, old.obj);
+  irc = CNTF_normalPt (&pt1, &oNew.pts, &par1, old.typ, old.obj);
   // if(old.cer) par1 = 1. - par1;
     // DEB_dump_obj__ (Typ_PT, &pt1, " pt1-irc=%d",irc);
   // 0  pt1 == new.pts; old.pte = pt1. Out old. old=new; Done.
@@ -616,10 +621,10 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // -1: no connection
   if(irc == 0) {      // old.pte == new.pts = on obj.
     old.pte = pt1;
-    old.ip1 = new.dbi;
+    old.ip1 = oNew.dbi;
     old.v1  = par1;   // endpoint
     CNTF_out_old ();  // out old;
-    old = new;        // skip the point;
+    old = oNew;        // skip the point;
     old.pend = 0;     // nothing pending
     return 0;
   }
@@ -628,9 +633,9 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     old.v1  = par1;
     CNTF_out_old ();  // out old;
     old.pts = old.pte;
-    old.pte = new.pts;
-    CNTF_add_ln (&old.ip1, &new.dbi);  // out LN = old.pts-old.pte
-    old = new;        // skip the point;
+    old.pte = oNew.pts;
+    CNTF_add_ln (&old.ip1, &oNew.dbi);  // out LN = old.pts-old.pte
+    old = oNew;        // skip the point;
     old.pend = 0;     // nothing pending
     return 0;
   }
@@ -640,8 +645,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // connect to old.pte with connectionLine
   //    out old; out LN old.pte-new.pts; old=new; Done.
   CNTF_out_old ();  // out old;
-  CNTF_add_ln (&old.ip1, &new.dbi);  // out LN old.pte-pt1
-  old = new;        // skip the point;
+  CNTF_add_ln (&old.ip1, &oNew.dbi);  // out LN old.pte-pt1
+  old = oNew;        // skip the point;
   old.pend = 0;     // nothing pending
 
  
@@ -673,8 +678,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // printf("CNTF_cvco_lfig_lfig imod=%d ccNr=%d\n",imod,ccNr);
   // DEB_dump_obj__ (Typ_PT, &old.pts, " old.pts ");
   // DEB_dump_obj__ (Typ_PT, &old.pte, " old.pte ");
-  // DEB_dump_obj__ (Typ_PT, &new.pts, " new.pts ");
-  // DEB_dump_obj__ (Typ_PT, &new.pte, " new.pte ");
+  // DEB_dump_obj__ (Typ_PT, &oNew.pts, " oNew.pts ");
+  // DEB_dump_obj__ (Typ_PT, &oNew.pte, " oNew.pte ");
 
 
   // 0: old.pte == new.pts;  1: old.pte == new.pte;
@@ -695,8 +700,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(ir1 == 0) {        // old.pts=new.pts: reverse old ..
     CNTF_rev__ (&old);  // reverse old;
     CNTF_out_old ();    // out old;
-    new.ip0 = old.ip1;  // old.ipe = new.ips
-    old = new;
+    oNew.ip0 = old.ip1;  // old.ipe = new.ips
+    old = oNew;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
@@ -704,9 +709,9 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(ir1 == 1) {        // old.pts=new.pte: reverse old & new ..
     CNTF_rev__ (&old);  // reverse old;
     CNTF_out_old ();    // out old;
-    CNTF_rev__ (&new);  // reverse old;
-    new.ip0 = old.ip1;  // old.ipe = new.ips
-    old = new;
+    CNTF_rev__ (&oNew);  // reverse old;
+    oNew.ip0 = old.ip1;  // old.ipe = new.ips
+    old = oNew;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
@@ -722,16 +727,16 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // -1: no connection 
   if(irc == 0) {        // old.pte == new.pts
     CNTF_out_old ();    // out old;
-    new.ip0 = old.ip1;
-    old = new; 
+    oNew.ip0 = old.ip1;
+    old = oNew; 
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
   if(irc == 1) {        // old.pte == new.pte; reverse new; old=new; Done.
     CNTF_out_old ();    // out old;
-    CNTF_rev__ (&new);  // reverse new;
-    new.ip0 = old.ip1;
-    old = new;          // skip the point;
+    CNTF_rev__ (&oNew);  // reverse new;
+    oNew.ip0 = old.ip1;
+    old = oNew;          // skip the point;
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
@@ -762,10 +767,10 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     old.pte = pt1;
     old.v1  = par1;
     CNTF_out_old ();
-    new.pts = pt1;
-    new.ip0 = old.ip1;
-    new.v0  = par2;
-    old = new; 
+    oNew.pts = pt1;
+    oNew.ip0 = old.ip1;
+    oNew.v0  = par2;
+    old = oNew; 
     old.pend = 1;       // set lfig = pending
     goto L_exit;
   }
@@ -813,13 +818,13 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // 1 = dist old.pte-new.pts > old.pte-new.pte:
   //     out line old.pte-new.pte; reverse new; old=new; Done.
   if(irc == 1) {        // old.pte-new.pts > old.pte-new.pte
-    CNTF_rev__ (&new);  // reverse new;
+    CNTF_rev__ (&oNew);  // reverse new;
   }
 
   CNTF_out_old ();      // out old
-  if(new.ip0 == 0) new.ip0 = DB_StorePoint (-1L, &new.pts);
-  CNTF_add_ln (&old.ip1, &new.ip0);  // out LN old.pte-new.pts;
-  old = new;
+  if(oNew.ip0 == 0) oNew.ip0 = DB_StorePoint (-1L, &oNew.pts);
+  CNTF_add_ln (&old.ip1, &oNew.ip0);  // out LN old.pte-new.pts;
+  old = oNew;
   old.pend = 1;         // set lfig = pending
 
   L_exit:
@@ -908,8 +913,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   double  d_oe_ns, d_oe_ne;
 
-  d_oe_ns = UT3D_lenq_PtPt (&old.pte, &new.pts);
-  d_oe_ne = UT3D_lenq_PtPt (&old.pte, &new.pte);
+  d_oe_ns = UT3D_lenq_PtPt (&old.pte, &oNew.pts);
+  d_oe_ne = UT3D_lenq_PtPt (&old.pte, &oNew.pte);
 
   if(d_oe_ns < d_oe_ne) return 0;
 
@@ -931,9 +936,9 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // get longest dist
   // d_oe_ns = dist -> new.pts
-  d_oe_ns = UT3D_lenB_2pt (ptx, &new.pts);
+  d_oe_ns = UT3D_lenB_2pt (ptx, &oNew.pts);
   // d_oe_ne = dist -> new.pte
-  d_oe_ne = UT3D_lenB_2pt (ptx, &new.pte);
+  d_oe_ne = UT3D_lenB_2pt (ptx, &oNew.pte);
 
   // test smaller dist for equal point
   if(d_oe_ns < tol_pt) return 0;
@@ -1026,7 +1031,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // obj -> ObjGX
   OGX_SET_OBJ (&oxo, old.typ, old.typ, 1, old.obj);
-  OGX_SET_OBJ (&oxn, new.typ, new.typ, 1, new.obj);
+  OGX_SET_OBJ (&oxn, oNew.typ, oNew.typ, 1, oNew.obj);
 
   irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, &oxo, &oxn, &wrkSeg);
     // printf(" ex npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
@@ -1053,7 +1058,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   *par1 = va[i1];    // parameter on old
 
   // get parameter for intersectionpoint (ptx) on new obj
-  UT3D_par_pt__pt_prj_cv (par2, NULL, 0, ptx, new.typ, new.obj, UT_DISP_cv);
+  UT3D_par_pt__pt_prj_cv (par2, NULL, 0, ptx, oNew.typ, oNew.obj, UT_DISP_cv);
 
 
   irc = 0;

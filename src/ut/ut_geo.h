@@ -404,6 +404,7 @@ typedef struct {Point p1, p2; char typ, aux, stat, uu1;}            Line;
 ///           1  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           2  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           3  both-sides-unlimited                             UNL
+// size 56; 4 char unused
 
 /// 3D-line, Typ_CVLN3
 typedef struct {Point pt0; Vector vcl; double lnl;}                 CVLn3;
@@ -1694,7 +1695,8 @@ int    UT3D_pt_tangptci (Point *po1, Point *po2, Point *pt1, Circ *ci1);
 int    UT3D_pt_elfoc (Point *fp1, Point *fp2, CurvElli *el);
 
 int UT3D_pt_evparln (Point *pto, double lpar, Line *ln1);
-int UT3D_pt_evparci (Point *pto, double lpar, Circ *ci1);
+int UT3D_pt_vc__par_ci (Point *pto, Vector *vco,
+                        Circ *ci1, int pTyp, double par);
 
 int    UT3D_pt_m3 (Point *pto, Mat_4x3 ma);
 void   UT2D_pt_tra_pt_m3  (Point2 *p2, Mat_4x3 mata, Point2 *p1);
@@ -2532,8 +2534,8 @@ int UT3D_sr_ci (Circ *cii);
  (po)->z = (pi)->z + (vc)->dz * fac;}
 
 
-/// UT3D_pt_evparptcv          evaluate param.point on line from point+vector
-#define UT3D_pt_evparptcv(pto,par,ptl,vcl){\
+/// UT3D_pt__par_pt_vc          evaluate param.point on line from point+vector
+#define UT3D_pt__par_pt_vc(pto,par,ptl,vcl){\
  (pto)->x = (ptl)->x + (vcl)->dx * (par);\
  (pto)->y = (ptl)->y + (vcl)->dy * (par);\
  (pto)->z = (ptl)->z + (vcl)->dz * (par);}
@@ -2712,6 +2714,13 @@ int    UT3D_ck2D_equ_2pt (Point*, Point*, double);
   (ln3)->p2.x = (ln2)->p2.x;\
   (ln3)->p2.y = (ln2)->p2.y;\
   (ln3)->p2.z = UT_DB_NULL;}
+
+
+//----------------------------------------------------------------
+double UT3D_park__par1_clot (double cs, double ce, double par1);
+#define UT3D_park__par1_clot UTP_px_paramp0p1px
+
+
 
 
 //----------------------------------------------------------------

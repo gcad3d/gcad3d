@@ -194,8 +194,8 @@ List_functions_end:
 
     case Typ_CVELL:  // ThB: schlecht: beim Selektieren hat man Typ_CV !!!
       el = (CurvElli*)cv;
-      UT3D_vc_tangel (tg, ps, el);
-// ThB: nach Korrektur von UT3D_vc_tangel wieder entfernen:
+      UT3D_vc__pt_el (tg, ps, el);
+// ThB: nach Korrektur von UT3D_vc__pt_el wieder entfernen:
       // check direction of tangent-vector
       UT3D_vc_2pt (&v1, &(el->pc), ps);
       UT3D_vc_perp2vc (&v1, &v1, tg);
@@ -205,7 +205,7 @@ List_functions_end:
       else {
         if (UT3D_acos_2vc (&v1, &(el->vz)) > 0.0) UT3D_vc_invert (tg, tg);
       }
-// ThB: nach Korrektur von UT3D_vc_tangel wieder entfernen
+// ThB: nach Korrektur von UT3D_vc__pt_el wieder entfernen
       break;
 
     case Typ_CVBSP:

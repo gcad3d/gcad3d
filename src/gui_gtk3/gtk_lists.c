@@ -702,7 +702,7 @@ extern int    UI_umbId;
 
 
 
-  // printf("GUI_list2__ |%s|%s|%s|\n",fNam,mode,opts);
+  printf("GUI_list2__ |%s|%s|%s|\n",fNam,mode,opts);
 
 
   // get gtk-widget for parentBox from MemObj

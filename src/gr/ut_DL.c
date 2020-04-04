@@ -90,7 +90,6 @@ DL_dim_on               set obj dimmed
 DL_dim_off              reset obj dimmed -> normal
 DL_dim_all              set all objs dimmed
 
-DL_unvis__              set/reset unvisible-bit;
 DL_hide__               change hidden/visible for single obj
 DL_hide_chg             change hidden/visible for all objs
 DL_hide_all             change all active, visible objs to hidden|visible
@@ -98,7 +97,7 @@ DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
 
 DL_disp_reset           delete all DL-objects starting from line-nr
-DL_unvis_set            set visible / unvisible
+DL_unvis__              set visible / unvisible
 
 DL_pick__               change all objects to pickable or unpickable
 DL_pick_set
@@ -277,6 +276,7 @@ cc -c -g3 -Wall ut_DL.c
 #include "../xa/xa_obj_txt.h"          // AP_obj_add_val
 #include "../xa/xa.h"                  // AP_Get_ConstPl_Z
 #include "../xa/xa_app.h"              // PRC_IS_ACTIVE
+#include "../xa/xa_msg.h"              // DEB_mcheck__
 #include "../xa/xa_ed_mem.h"           // typedef_MemTab(ObjSRC)
 // #include "../xa/opar.h"                // MemTab_ini_temp
 
@@ -1007,6 +1007,7 @@ static long   DL_hidden = -1L;
 // mode     1=unvisible, 0=visible=default
 
   // printf("DL_unvis__ %ld %d\n",dli,mode);
+  // if(dli < 0) AP_debug__ ("DL_unvis__");
 
   GR_ObjTab[dli].unvis = mode; // unvis
 
@@ -1888,6 +1889,10 @@ static long   DL_hidden = -1L;
   long   i1, newSiz;
 
 
+  // printf("... DL_alloc__ %ld ind=%ld siz=%ld %p\n",Ind,
+         // GR_TAB_IND,GR_TAB_SIZ,GR_ObjTab);
+
+
   // Reset DL
   if((Ind == 0)&&(GR_ObjTab != NULL)) {
     // printf("DL_alloc__ reset\n");
@@ -1904,9 +1909,10 @@ static long   DL_hidden = -1L;
     while (Ind >= newSiz) newSiz += GR_TAB_INC;
   }
 
-  printf("::::DL_alloc__ %ld\n",newSiz);
+  i1 = newSiz * sizeof(DL_Att);
+  printf("::::DL_alloc__ %ld %ld\n",newSiz,i1);
 
-  GR_ObjTab = (DL_Att*)realloc((void*)GR_ObjTab, newSiz*sizeof(DL_Att));
+  GR_ObjTab = (DL_Att*)realloc((void*)GR_ObjTab, i1);
 
   if(GR_ObjTab == NULL) {
     TX_Error ("******** out of memory - DL_alloc__ *********");
@@ -1914,6 +1920,8 @@ static long   DL_hidden = -1L;
   }
   GR_TAB_SIZ = newSiz;
 
+
+    // printf(" ex-DL_alloc__\n");
 
   return 0;
 
@@ -2416,7 +2424,7 @@ static long   DL_hidden = -1L;
   // (DL_ind_act is -1; create (add) new DL-record
   // realloc, wenn zu klein
   // if(GR_TAB_IND >= GR_TAB_SIZ) {
-  if(GR_TAB_IND >= GR_TAB_SIZ) {
+  if(GR_TAB_IND >= GR_TAB_SIZ - 8) {
     if(DL_alloc__ (1L) < 0) return -1L;
   }
 
@@ -4395,6 +4403,7 @@ static long   DL_hidden = -1L;
 //          0 obj is not parent; has no child(s)
 
   // printf("DL_parent_set %ld %d\n",dli,mode);
+  // if(dli < 0) AP_debug__ ("DL_parent_set");
 
   GR_ObjTab[dli].sPar = mode;
 

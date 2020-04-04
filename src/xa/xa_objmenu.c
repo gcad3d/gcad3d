@@ -136,6 +136,11 @@ extern int       IE_modify;
 // load all constant-messages -> MenTab
  
   printf("OMN_init \n");
+  // DEB_mcheck__();
+  // mcheck_pedantic ();
+  // mcheck_check_all ();
+
+
 
   UtxTab_init__ (&MenTab);            // init (malloc ..)
 

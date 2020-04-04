@@ -39,10 +39,32 @@ see also
 // #undef LOCAL_DEF_VAR        // reset extern ..
 
 
+// #define snprintf my_snprintf
+
+
 //================================================================
 // EXTERNALS:
 // errno.h:
 extern int errno;
+
+
+
+//===================================================================
+  int snprintf (char *str, size_t size, const char *format, ...) {
+//===================================================================
+
+  int        irc;
+  va_list    va;
+
+  va_start (va, format);
+  irc = vsprintf (str, format, va);
+  va_end (va);
+
+  // str[irc] = '\0';
+
+  return 0;
+
+}
 
 
 //================================================================

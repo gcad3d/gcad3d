@@ -151,6 +151,7 @@ cc  ut_txfil.c -Wall ../gCAT/TX.o ../gCAT/ut_txt.o ../gCAT/ut_geo.o\
 #include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"               // mem_cbuf1
+#include "../xa/xa_msg.h"               // DEB_mcheck__
 
 
 #define UTF_BUF0_INC          2000000
@@ -758,6 +759,11 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   UTF_FilBuf0Siz -= 4;
 
   if(UTF_FilBuf0Len == 0) UTF_FilBuf0[0] = '\0';
+
+
+    printf("ex-UTF_alloc__ \n");
+    // DEB_mcheck__ ();
+
 
   return 0;
 

@@ -39,11 +39,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-UT3D_par_clotpt         get parameter of clot from point
-UT3D_npt_clot          Polygon <-- clothoid curve
+UT3D_npt_clot           Polygon <-- clothoid curve
 UT3D_pt_intclotptvc     intersect line(pt+vc) with Clothoid
 UT3D_pt_prjclotpt       project point onto Clothoid
 UT3D_ptvc_evparclot     get point&tangent on Clothoid from parameter
+UT3D_par_clotpt         get parameter of clot from point
+UT3D_park__par1_clot    get curvature from parameter 0-1
 
 UCV_CurvCirCltCrv       Curvature circle <-- clothoid curve & parameter
 UCV_EvPtTgCltCrv        Evaluate point / tangent <-- clothoid curve
@@ -116,23 +117,31 @@ ctags -f ucv.tag ucv.c
  
 //========================================================================
   int UT3D_ptvc_evparclot (Point *pto, Vector *vco,
-                            int mode, CurvClot *cv, double par) {
+                            int vTyp, CurvClot *cv, double par) {
 //========================================================================
 // UT3D_ptvc_evparclot     get point&tangent on Clothoid from parameter
-// mode = 0   get point only
-// mode = 1   get point & tangent vector
-// parameter is 0-1
+// Input:
+//   par        parameter, type = vTyp
+//   vTyp       0 par = curvature
+//              1 par = value from 0-1. See INF_struct_par
+// Output:
+//   pto    point on Clothoid at parameter = <par>
+//   vco    tangent-vector in pto if vco != NULL
+
 
   int      irc;
   Mat_4x3  mat;
   Point2   pts;
   Point    pt1;
-  double   hv, ts, tp, te, cp, pp;
+  double   hv, ts, tc, te, cp, pp;
 
 
-  // printf("UT3D_pt_evparclot %d %f\n",mode,par);
+  // printf("UT3D_ptvc_evparclot vTyp=%d par%f\n",vTyp,par);
 
-  if (par < 0. || par > 1.) goto L_InErr;
+
+  if(vTyp == 0) par = UT3D_park__par1_clot (((CurvClot*)cv)->cs,
+                                            ((CurvClot*)cv)->ce, par);
+
 
 
   // get the Transformation matrix > mc, the startpoint > pts and
@@ -145,17 +154,22 @@ ctags -f ucv.tag ucv.c
   hv = cv->pc / SR_PI;         // SQRT(PI)
   te = hv * cv->ce;
 
-  // change 0-1-parameter par to parameter tp
-  tp = UTP_px_paramp0p1px (ts, te, par);
-    // printf(" ts=%f tp=%f te=%f\n",ts,tp,te);
-
-  // parameter tp to curvature cp
+  if(vTyp) {
+    // change 0-1-parameter par to parameter tc - curvature
+    if (par < 0. || par > 1.) goto L_InErr;
+    // tc = UTP_px_paramp0p1px (ts, te, par);
+    tc = UT3D_park__par1_clot (ts, te, par);
+  } else tc = par;
+    // printf(" ts=%f tc=%f te=%f\n",ts,tc,te);
 
   // get point on curv
-  irc = UCV_EvPtTgCltCrv (&pt1, vco, cv, tp, mode, mat, &pts, ts);
+  irc = UCV_EvPtTgCltCrv (&pt1, vco, cv, tc, mat, &pts, ts);
+
   if(pto) *pto = pt1;
+
     // GR_Disp_pt (pto, SYM_STAR_S, 1);
     // if(mode == 1) GR_Disp_vc (vco, pto, 9, 0);
+
   return irc;
 
 
@@ -326,10 +340,17 @@ L_InErr:
                          Point *lpt, CurvClot *cv, double tol) {
 //================================================================
 // UT3D_pt_prjclotpt       project point onto Clothoid
+// Input:
+//   nxp     site of xpTab,tTab
+//   lpt     point to project onto clothoid
+//   cv      curve
+// Output:
+//   nxp     nr of points and parameters in xpTab,tTab
+//   xpTab   points on curve
+//   tTab    parameters of points on curve
+//
 // see UT3D_pt_intlnbspl UT3D_npt_clot
 
-// Output:
-//   tTab   parallel zu xptab die zugehoerigen parameter 
 
   
   int      iTry, yFlip;
@@ -438,13 +459,22 @@ L_InErr:
   *nxp = 1;
 
 
-  // printf("ex UT3D_pt_prjclotpt par=%f\n",tTab[0]);
-  // DEB_dump_obj__ (Typ_PT, &xpTab[0], " xp:");
-
+    // printf("ex UT3D_pt_prjclotpt par=%f\n",tTab[0]);
+    // DEB_dump_obj__ (Typ_PT, &xpTab[0], " xp:");
 
   return 0;
 
 }
+
+
+// //====================================================================
+//   int UT3D_park__par1_clot (double *park, CurvClot *cv, double par1) {
+// //====================================================================
+// // UT3D_park__par1_clot    get curvature from parameter 0-1
+// // see UTP_px_paramp0p1px
+//   *park = (cv->ce - cv->cs) * par1 + cv->cs;
+//   return 0;
+// }
 
 
 //==========================================================================
@@ -691,7 +721,7 @@ Returncodes:
   pp = c * cl->pc / SR_PI;
 
   // evaluate curvepoint & tangent at c
-  rc = UCV_EvPtTgCltCrv (&pt, &tg, cl, pp, 1, mc, &pts, ts);
+  rc = UCV_EvPtTgCltCrv (&pt, &tg, cl, pp, mc, &pts, ts);
   if (rc < 0) return -1;
 
   // normalvector of tangentvector of length rad
@@ -860,7 +890,7 @@ L_InErr:
 
 /*=======================================================================*/
   int UCV_EvPtTgCltCrv (Point *pt, Vector *tg, CurvClot *cl, double tc, 
-		        int sw, Mat_4x3 mc, Point2 *pts, double ts) {
+		                    Mat_4x3 mc, Point2 *pts, double ts) {
 /*====================
 UCV_EvPtTgCltCrv    Evaluate point / tangent <-- clothoid curve
 
@@ -872,7 +902,6 @@ given curvature parameter.
 IN:
   CurvClot *cl     ... clothoid curve
   double tc        ... parameter for point/tangent  (CHANGED !! was curvature)
-  int sw           ... 0/1 <=> only point / point &  vector 
   Mat_4x3 mc       ... transformation matrix of cl
   Point2 *pts      ... startpoint of cl in quarterplane x>=0,y>=0,z=0
   double ts        ... start parameter of cl (>=0)
@@ -911,7 +940,7 @@ Returncodes:
   UCV_Ev2DNxtPtCltCrv (&qt2, cl, ts, pts, tc);
   qt = UT3D_pt_pt2 (&qt2);
 
-  if (sw != 0) {
+  if (tg) {
     // tangent endpoint at c in quarterplane x>=0,y>=0,z=0
     UCV_Ev2DTgCltCrv (&vc2, cl, tc);
     UT3D_vc_vc2 (&vc, &vc2);
@@ -921,13 +950,13 @@ Returncodes:
   // check left/right bend of curve
   if ((cl->lr == 0 && ts > te) || (cl->lr == 1 && ts < te)) {
     qt.y = -qt.y;
-    if (sw != 0) ptg.y = -ptg.y;
+    if (tg) ptg.y = -ptg.y;
   }    
 
   // transformed curvepoint at c
   UT3D_pt_tra_pt_m3 (pt, mc, &qt);
 
-  if (sw != 0) {
+  if (tg) {
     // transformed tangent vector at c
     UT3D_pt_tra_pt_m3 (&ptg, mc, &ptg);
     UT3D_vc_2pt (tg, pt, &ptg);

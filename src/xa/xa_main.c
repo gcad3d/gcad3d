@@ -460,16 +460,15 @@ kopieren geht nicht mehr -
 
 
   // init gtk
-      // GUI_Init ("");     // Read Colours und Fonts
-      GUI_Init__ ("");     // Read Colours und Fonts
-      // GUI_Init ("xa/xa.rc");
+  GUI_Init__ ("");     // Read Colours und Fonts
+  // GUI_Init ("xa/xa.rc");
+    // printf(" f-GUI_Init__ fffffffffffffffffffffffffffffffffffff\n");
 
-      Ico_init ();       // create all icons
-
+  // create all icons
+  Ico_init ();       
 
   // // alle Pfade aus Datei path.setup auslesen und speichern
   // Mod_init_path ();
-
 
   // Init und display Windows
   // UI_AP (UI_FuncInit, UID_WinMain, NULL);

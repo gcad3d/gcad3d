@@ -4231,13 +4231,13 @@ uOff abhaengig von Aussenkonturtyp:
         // printf(" v0=%f v1=%f\n",srv1->v0,srv1->v1);
         // DEB_dump_obj__ (Typ_CI, &TSU_ac1, " KonturCirc RV1:");
       if(fabs(srv1->v0) > UT_TOL_min1) {
-        UT3D_pt_evparci (&pt1, srv1->v0, &TSU_ac1);
+        UT3D_pt_vc__par_ci (&pt1, NULL, &TSU_ac1, 1, srv1->v0);
           // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
         i1 = 1;
       } else pt1 = TSU_ac1.p1;
 
       if(fabs(srv1->v1 - 1.) > UT_TOL_min1) {
-        UT3D_pt_evparci (&pt2, srv1->v1, &TSU_ac1);
+        UT3D_pt_vc__par_ci (&pt2, NULL, &TSU_ac1, 1, srv1->v1);
           // GR_Disp_pt (&pt2, SYM_STAR_S, 3);
         i1 = 1;
       } else pt2 = TSU_ac1.p2;
@@ -6456,7 +6456,7 @@ Besseres Verfahren waere:
 
     // Circ:      ((Circ*)TSU_ox2.data)
     case Typ_CI:
-      UT3D_pt_evparci (&pt1, pt2->y, (Circ*)TSU_ox2.data);
+      UT3D_pt_vc__par_ci (&pt1, NULL, (Circ*)TSU_ox2.data, 1, pt2->y);
       break;
 
 

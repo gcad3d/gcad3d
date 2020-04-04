@@ -1479,13 +1479,13 @@ static int    bck_GR_NoConstrPln;
 
 
 //================================================================
-  int sele_dump1 () {
+  int sele_dump1 (char *txt) {
 //================================================================
 // sele_dump1          print reqObjTab
 
   int    i1, i2, ii;
 
-  printf("sele_dump1:\n");
+  printf("sele_dump1 - %s\n",txt);
 
 
   // test if all objs are on

@@ -1474,7 +1474,8 @@ REPLACED by UTO_obj__ccv_segnr
   //----------------------------------------------------------------
   // get point from parameter <ps>
   L_par:
-  irc = UT3D_pt_evparcrv (po, ps, typ, cvo);
+  // irc = UT3D_pt_evparcrv (po, ps, typ, cvo);
+  irc = UT3D_pt_vc__par_cv (po, NULL, typ, cvo, 1, ps);
 
     // DEB_dump_obj__ (Typ_PT, po, "ex UT3D_pt_ccv_segnr_par1");
 

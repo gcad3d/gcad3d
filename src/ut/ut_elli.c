@@ -57,7 +57,6 @@ UT3D_lne_ell              get dist center-focus for ellipse
 UT3D_pt_ell_lim_del       remove points outside limited ellipse
 
 UT3D_ptvc_eval_ell_par    get point/tangentVector on ellipse from parameter
-UT3D_pt_eval_ell_par1     pt <- parametric-Angle (0-1)
 UT3D_pt_elangd            pt <- parametric-Angle.
 UT3D_pt_ck_onel           check if point lies on an (full) ellipse
 UT3D_pt_elfoc             focal points of ellipse
@@ -70,7 +69,7 @@ UT3D_pt_intlnel__         intersect line and ellipse
 UT3D_pt_intlnel_p         intersection LN-ELL (gives 0/1/2 points)
 UT3D_pt_intplell          intersect plane ellipse
 
-UT3D_vc_tangel            tangent thru point ON ellipse
+UT3D_vc__pt_el            tangent thru point ON ellipse
 UT3D_pt_tng_ell_vc__      tangents vector-ellipse.                   DO NOT USE
 UT3D_vc_tng_elpt__        tangents point-ellipse                     DO NOT USE
 UT3D_vc_tng_elptMaj       tangents point-ellipse; point on majorAxis DO NOT USE
@@ -488,8 +487,8 @@ cl -c ut_geo.c
   // get tangents at endpoints
   i360 = UT3D_ck_el360 (el1);
   if(i360) {
-    UT3D_vc_tangel (&vc1, &el1->p1, el1);
-    UT3D_vc_tangel (&vc2, &el1->p2, el1);
+    UT3D_vc__pt_el (&vc1, &el1->p1, el1);
+    UT3D_vc__pt_el (&vc2, &el1->p2, el1);
       // DEB_dump_obj__ (Typ_VC, &vc1, " vc1");
       // DEB_dump_obj__ (Typ_VC, &vc2, " vc2");
   }
@@ -602,19 +601,16 @@ cl -c ut_geo.c
 */
 
 
-//===================================================================
-  int UT3D_ptvc_eval_ell_par (Point *pto, Vector *vct,
-                        CurvElli *el1, int pTyp, double par) {
-//===================================================================
+//=================================================================================
+  int UT3D_ptvc_eval_ell_par (Point *pto, Vector *vct, CurvElli *el1, double par) {
+//=================================================================================
 /// \code
 /// UT3D_ptvc_eval_ell_par       get point/tangentVector on ellipse from parameter
 ///
 /// Input:
 ///   pto        point; NULL for no output
 ///   vct        tangent-vector; NULL for no output
-///   pTyp       type of parameter;
-///                 0=normalized parameter (0-1)
-///                 1=native parameter (angle); any value ..
+///   par        parameter (0-1)
 /// \endcode
 
 
@@ -629,21 +625,20 @@ cl -c ut_geo.c
   Point2   pt20;
   
 
-  // printf("UT3D_ptvc_eval_ell_par par=%lf pTyp=%d\n",par,pTyp);
+  // printf("UT3D_ptvc_eval_ell_par par=%lf\n",par);
   // DEB_dump_obj__ (Typ_CVELL, el1, "  el1:");
+  // if(pTyp == 1) AP_debug__ ("UT3D_ptvc_eval_ell_par");
 
   
   //----------------------------------------------------------------
   // point;    yet need point for vector.
     
-  // angle from 0-1-parameter
-  if(pTyp == 0) 
-    par = UT3D_angr_par1_ell (par, el1);
-      // printf(" angr=%f\n",par);
-  
-
   lx = UT3D_len_vc (&el1->va);  // Laenge hauptachse
   ly = UT3D_len_vc (&el1->vb);  // length 
+
+  // angle from 0-1-parameter
+  par = UT3D_angr_par1_ell (par, el1);
+      // printf(" angr=%f\n",par);
 
   // get 2D-point from angle
   UT2D_pt_elangd (&pt20, lx, ly, par);
@@ -657,35 +652,22 @@ cl -c ut_geo.c
   // copy point out
   if(pto) *pto = ptt;
 
+  // vector
+  if(vct) UT3D_vc__pt_el (vct, &ptt, el1);
+    // GR_Disp_vc (vct, &ptt, 9, 0);
+
 
   //----------------------------------------------------------------
-  // vector
-  if(vct) UT3D_vc_tangel (vct, &ptt, el1);
-    // GR_Disp_vc (vct, &ptt, 9, 0);
+
+    // TESTBLOCK
+    // printf("ex-UT3D_ptvc_eval_ell_par\n");
+    // if(pto) DEB_dump_obj__ (Typ_PT, pto, "pto");
+    // if(vct) DEB_dump_obj__ (Typ_VC, vct, "vct");
+    // END TESTBLOCK
+
 
   return 0;
 
-}
-
-
-//====================================================================
-  int UT3D_pt_eval_ell_par1 (Point *pto, CurvElli *el1, double par1) {
-//====================================================================
-/// \code
-/// UT3D_pt_eval_ell_par1          get point on ellipse from parameter 0-1
-/// par1     parameter; 0-1
-/// see UT3D_pt_elangd
-/// \endcode
-
-  double   lx, ly, angr;
-  Point2   pt20;
-
-
-  // printf("UT3D_pt_eval_ell_par1 %f\n",par1);
-  // DEB_dump_obj__ (Typ_CVELL, el1, " el1");
-
-  return UT3D_ptvc_eval_ell_par (pto, NULL, el1, 0, par1);
- 
 }
 
 
@@ -1062,7 +1044,7 @@ cl -c ut_geo.c
 // gehen durch den gleichen Punkt auf der Hauptachse.
 // Die Tangentenpunkte am Kreis und an der Ellipse haben gleichen X-Wert.
 // - vertikal !
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 
 
   double    a, b;
@@ -1071,7 +1053,7 @@ cl -c ut_geo.c
 
 
   // printf("UT2D_vc_tang_el2 pt %lf %lf\n",pt1->x,pt1->y);
-  // DEB_dump_obj__ (Typ_CVELL2, pt1, "UT3D_vc_tangel pt");
+  // DEB_dump_obj__ (Typ_CVELL2, pt1, "UT3D_vc__pt_el pt");
 
 
   // get length va, vb
@@ -1109,7 +1091,7 @@ cl -c ut_geo.c
 // gehen durch den gleichen Punkt auf der Hauptachse.
 // Die Tangentenpunkte am Kreis und an der Ellipse haben gleichen X-Wert.
 // - vertikal !
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 
   int      irc;
   double   x0;
@@ -1137,9 +1119,9 @@ cl -c ut_geo.c
 
 
 //===============================================================
-  int UT3D_vc_tangel (Vector *vc1, Point *pt1, CurvElli *el1) {
+  int UT3D_vc__pt_el (Vector *vc1, Point *pt1, CurvElli *el1) {
 //===============================================================
-/// UT3D_vc_tangel     tangent thru point ON ellipse
+/// UT3D_vc__pt_el     tangent thru point ON ellipse
 
 // Die Tangente an den Kreis mit Radius va und die tangente an die Elli
 // gehen durch den gleichen Punkt auf der Hauptachse.
@@ -1153,7 +1135,7 @@ cl -c ut_geo.c
   Point  ph, ps;
 
 
-  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_vc_tangel pt");
+  // DEB_dump_obj__ (Typ_PT, pt1, "UT3D_vc__pt_el pt");
 
 
   // ph = pt1 auf die hauptachse projizieren
@@ -2912,7 +2894,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 ///    -1      Error: pt1 inside ellipse
 /// \endcode
  
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 
   int        irc, sidMaj, sidMin;
   double     a, aa, b, bb, c, y;
@@ -2970,7 +2952,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_pt_el_ptx (&y, pt.x, el2c.a, el2c.b);
   if(UTP_comp2db (y, fabs(pt.y), UT_TOL_pt)) {
     // pt1 IS on elli
-    UT3D_vc_tangel (vco, pt1, el1);
+    UT3D_vc__pt_el (vco, pt1, el1);
     if(isol > 0) UT3D_vc_invert (vco,vco);
     return 1;
   }
@@ -3049,7 +3031,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 ///    -1      Error: pt1 inside ellipse
 
 
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 
   double     ea, eb, dx, dyc, dye, b, c;
   Vector     vna, vnb;    // axes of elli - normalized
@@ -3117,7 +3099,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //================================================================
 /// UT3D_vc_tng_elpt           tangents point-ellipse; point on minorAxis
 /// 2013-04-18 Reiter
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 //
 //     + B=pt1
 //     | \
@@ -3396,7 +3378,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 ///     0      OK, point is outside ellipse
 ///    -1      Error: pt1 inside ellipse
 
-// see also UT3D_vc_tng_elptMaj UT3D_vc_tangel
+// see also UT3D_vc_tng_elptMaj UT3D_vc__pt_el
 
   double     ea, eb, dx, dyc, dye, c;
   Vector2    vcp;
@@ -3454,7 +3436,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 /// UT3D_vc_tng_elpt           tangents point-ellipse; point on minorAxis
 /// 2013-04-18 Reiter
 ///   isol      0|1
-// see also UT3D_vc_tangel
+// see also UT3D_vc__pt_el
 //
 //     + B=pt1
 //     | \
@@ -3988,7 +3970,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   if(mode == 0) {
     // test distance pt21-pt2x 
     dst = UT2D_len_2pt (&pt21, &pt2x);
-      printf(" dst=%f\n",dst);
+      // printf(" dst=%f\n",dst);
     if(dst > tol) return -1;
   }
 

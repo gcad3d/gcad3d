@@ -604,7 +604,7 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
     // (Wenn Coverline = Radius: am Spine).
     typ2 = DB_GetObjDat (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
     // irc = UTO_pt_par1_obj (&p1, d1, typ2, pDat2);
-    irc = UT3D_ptvc_tng_crv_par (&p1, NULL, typ2, pDat2, 0, d1);
+    irc = UT3D_pt_vc__par_cv (&p1, NULL, typ2, pDat2, 1, d1);
     if(irc < 0) return irc;
       // GR_Disp_pt (&p1, SYM_STAR_S, 2);
 

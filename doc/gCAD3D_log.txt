@@ -1,4 +1,15 @@
 ===========================================================================
+Version 2.46.08 / 2020-04-04
+
+- bugfix clothoid-parameter
+- bugfix select-dynamic-symbol
+- bugfix DL_alloc__-invalid-old-size
+
+Programlines (C)  493507
+Functions           4826
+
+
+===========================================================================
 Version 2.46.06 / 2020-03-31
 
 - first updates for split surfaces

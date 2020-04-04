@@ -116,8 +116,22 @@ DEB_dump_txt
 
 
 
+/*
+//================================================================
+  int DEB_mcheck_out (char *fn) {
+//================================================================
 
+  char   s1[128];
+  printf("DEB_mcheck_out %s\n",fn);
 
+  sprintf(s1, "*** MCHECK-ERROR func %s",fn);
+  if(mcheck(0)) AP_debug__ (s1);
+  else          printf(" %s - mcheck Ok\n",fn);
+
+  return 0;
+
+}
+*/
 
 //================================================================
   int DEB_std_file (char *fNam) {

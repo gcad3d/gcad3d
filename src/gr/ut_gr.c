@@ -3047,7 +3047,7 @@ static int   DispMode=1;  ///< 0=Aus, 1=Ein.
   // printf("GR_DrawCvCCV dbi=%ld cvNr=%d\n",dbi,cvNr);
   // for(irc=0;irc<cvNr;++irc) DEB_dump_obj__ (Typ_CVTRM, &cva[irc], "%d",irc); 
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
-    // dbi = 0;  // TEST
+    // dbi = 0;  // TEST - display grMode-1 = without PRCV
 
 
   GR_typ = Typ_CV;

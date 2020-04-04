@@ -504,7 +504,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 }
 
-/* REPLACED with UT3D_ptvc_tng_crv_par
+/* REPLACED with UT3D_pt_vc__par_cv
 //=========================================================================
   int UTO_vc_tng_obj_par (Vector *vco,
                            int typ, void *data, int pTyp, double par) {
@@ -562,7 +562,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
       // pt from par1
       UT3D_pt_eval_ell_par1 (&pt1, data, par);
     }
-    return UT3D_vc_tangel (vco, &pt1, data);
+    return UT3D_vc__pt_el (vco, &pt1, data);
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVBSP) {
@@ -1169,7 +1169,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 }
 */
 
-/* REPLACED with UT3D_ptvc_tng_crv_par
+/* REPLACED with UT3D_pt_vc__par_cv
 //===================================================================
   int UTO_pt_par1_obj (Point *pto, double du, int typ, void *obj) {
 //===================================================================
@@ -1185,12 +1185,12 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   switch (typ) {
 
     case Typ_LN:
-      // UT2D_pt_parvc_pt_vc UT2D_pt_tra_pt_pt_par UT3D_pt_evpar2pt UT3D_pt_evparptcv
+      // UT2D_pt_parvc_pt_vc UT2D_pt_tra_pt_pt_par UT3D_pt_evpar2pt UT3D_pt__par_pt_vc
       // UT3D_pt_evparln 
       return UT3D_pt_evpar2pt (pto, du, &((Line*)obj)->p1, &((Line*)obj)->p2);
 
     case Typ_CI:
-      return UT3D_pt_evparci  (pto, du, obj);
+      return UT3D_pt_vc__par_ci  (pto, du, obj);
 
       // UT2D_pt_elangd
 
@@ -1233,8 +1233,9 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 /// Input:
 ///   typ    DB-typ
 ///   ind    DB-index
+///   lpar   parameter 0-1; see INF_struct_par
 /// 
-/// see also UT3D_pt_evparcrv UTO_obj_int UTO_stru_int UT3D_ptvc_tng_crv_par
+/// see also UT3D_pt_evparcrv UTO_obj_int UTO_stru_int UT3D_pt_vc__par_cv
 /// \endcode
 
 
@@ -1251,8 +1252,8 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   // DEB_dump_obj__ (ox1.form, ox1.data, "");
 
 
-  // return UT3D_ptvc_tng_crv_par (pto, lpar, ox1.form, ox1.data);
-  return UT3D_ptvc_tng_crv_par (pto, NULL, ox1.form, ox1.data, 0, lpar);
+  // return UT3D_pt_vc__par_cv (pto, lpar, ox1.form, ox1.data);
+  return UT3D_pt_vc__par_cv (pto, NULL, ox1.form, ox1.data, 1, lpar);
 
 /*
   // fuer curves den parameter in einem Bereich 0-1 bringen ..
@@ -1440,8 +1441,8 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
       if(p1) ph1 = *p1;
       if(p2) ph2 = *p2;
       // compute new points from active Circ
-      if(v1) UT3D_pt_evparci (&ph1, *v1, (Circ*)oo);
-      if(v2) UT3D_pt_evparci (&ph2, *v2, (Circ*)oo);
+      if(v1) UT3D_pt_vc__par_ci (&ph1, NULL, (Circ*)oo, 1, *v1);
+      if(v2) UT3D_pt_vc__par_ci (&ph2, NULL, (Circ*)oo, 1, *v2);
       L_CI_1:
       ((Circ*)oo)->p1 = ph1;
       ((Circ*)oo)->p2 = ph2;
@@ -1461,8 +1462,8 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
       if(p1) ph1 = *p1;
       if(p2) ph2 = *p2;
       // compute new points from active Circ
-      if(v1)UT3D_ptvc_eval_ell_par(&ph1,NULL,(CurvElli*)oo,0,*v1);
-      if(v2)UT3D_ptvc_eval_ell_par(&ph2,NULL,(CurvElli*)oo,0,*v2);
+      if(v1)UT3D_ptvc_eval_ell_par(&ph1,NULL,(CurvElli*)oo,*v1);
+      if(v2)UT3D_ptvc_eval_ell_par(&ph2,NULL,(CurvElli*)oo,*v2);
       ((CurvElli*)oo)->p1 = ph1;
       ((CurvElli*)oo)->p2 = ph2;
       ((CurvElli*)oo)->clo = 0;  // closed
@@ -3980,7 +3981,7 @@ static ObjGX  *odb;
         case Typ_Par1:
         case Typ_Float8:
           nip = 1;
-          UT3D_pt_evparci (pa, *((double*)o2), (Circ*)o1);
+          UT3D_pt_vc__par_ci (pa, NULL, (Circ*)o1, 1, *((double*)o2));
           if(va1) va1[0] = *((double*)o2);
           break;
 
@@ -4041,7 +4042,7 @@ static ObjGX  *odb;
         case Typ_Val:  // value -> CVELL        // 2013-03-15
         case Typ_Float8:
           nip = 1;
-          UT3D_pt_eval_ell_par1 (pa, (CurvElli*)o1, *((double*)o2));
+          UT3D_ptvc_eval_ell_par (pa, NULL, (CurvElli*)o1, *((double*)o2));
           if(va1) va1[0] = *((double*)o2);
           break;
 
@@ -4185,7 +4186,7 @@ static ObjGX  *odb;
         case Typ_Val:  // Clot X Parameter -> Plg
         case Typ_Par1:
         case Typ_Float8:
-          UT3D_ptvc_evparclot (pa, obj1, 0, (CurvClot*)o1, *((double*)o2));
+          UT3D_ptvc_evparclot (pa, NULL, 1, (CurvClot*)o1, *((double*)o2));
           nip = 1;
           if(va1) va1[0] = *((double*)o2);
           break;
@@ -4544,7 +4545,7 @@ static ObjGX  *odb;
         case Typ_Val:  // Parameter -> LN
         case Typ_Par1:
           *pNr = 1;
-          UT3D_pt_evparci (pa, *((double*)o2), (Circ*)o1);
+          UT3D_pt_vc__par_ci (pa, NULL, (Circ*)o1, 1, *((double*)o2));
           if(va1) va1[0] = *((double*)o2);
           break;
 
@@ -4650,7 +4651,7 @@ static ObjGX  *odb;
 
         case Typ_Val:  // value -> CVELL        // 2013-03-15
           *pNr = 1;
-          UT3D_pt_eval_ell_par1 (pa, (CurvElli*)o1, *((double*)o2));
+          UT3D_ptvc_eval_ell_par (pa, NULL, (CurvElli*)o1, *((double*)o2));
           if(va1) va1[0] = *((double*)o2);
           break;
 
@@ -4785,7 +4786,7 @@ static ObjGX  *odb;
 
         case Typ_Val:  // Clot X Parameter -> Plg
         case Typ_Par1:
-          UT3D_ptvc_evparclot (&pa[0], tmpSpc, 0, (CurvClot*)o1, *((double*)o2));
+          UT3D_ptvc_evparclot (&pa[0], NULL, 1, (CurvClot*)o1, *((double*)o2));
           *pNr = 1;
           if(va1) va1[0] = *((double*)o2);
           break;
@@ -5990,8 +5991,8 @@ static ObjBin  objMir;
     case Typ_CI:
       // copy the circ
       memcpy (objo, obji, sizeof(Circ));
-      UT3D_pt_evparci (&((Circ*)objo)->p1, v0, obji);
-      UT3D_pt_evparci (&((Circ*)objo)->p2, v1, obji);
+      UT3D_pt_vc__par_ci (&((Circ*)objo)->p1, NULL, obji, 1, v0);
+      UT3D_pt_vc__par_ci (&((Circ*)objo)->p2, NULL, obji, 1, v1);
       UT3D_ci_setangr (objo);
 
       break;
@@ -8956,7 +8957,7 @@ static int traAct;
         p1 = DB_GetPoint (cvtrm->ip0);
       } else {
         if(cvtrm->v0 != UT_VAL_MAX) 
-          UT3D_pt_evparci (&p1, cvtrm->v0, cvi);
+          UT3D_pt_vc__par_ci (&p1, NULL, cvi, 1, cvtrm->v0);
         else
           p1 = ((Circ*)cvo)->p1;
       }
@@ -8966,7 +8967,7 @@ static int traAct;
         p2 = DB_GetPoint (cvtrm->ip1);
       } else {
         if(cvtrm->v1 != UT_VAL_MAX)
-          UT3D_pt_evparci (&p2, cvtrm->v1, cvi);
+          UT3D_pt_vc__par_ci (&p2, NULL, cvi, 1, cvtrm->v1);
         else
           p2 = ((Circ*)cvo)->p2;
       }
@@ -9042,7 +9043,8 @@ static int traAct;
       } else {
         // compute point from 0-1 parameter
         if(cvtrm->v0 != UT_VAL_MAX)
-        UT3D_pt_eval_ell_par1 (&((CurvElli*)cvo)->p1, (CurvElli*)cvi, cvtrm->v0);
+        UT3D_ptvc_eval_ell_par (&((CurvElli*)cvo)->p1, NULL,
+                                (CurvElli*)cvi, cvtrm->v0);
       }
       if(cvtrm->ip1) {
         // irc = UTO_obj_dbo ((void**)&pp1, &oNr, &pTyp, cvtrm->ip1);
@@ -9051,7 +9053,8 @@ static int traAct;
       } else {
         // compute point from 0-1 parameter
         if(cvtrm->v1 != UT_VAL_MAX)
-        UT3D_pt_eval_ell_par1 (&((CurvElli*)cvo)->p2, (CurvElli*)cvi, cvtrm->v1);
+        UT3D_ptvc_eval_ell_par (&((CurvElli*)cvo)->p2, NULL,
+                                (CurvElli*)cvi, cvtrm->v1);
       }
 
       break;

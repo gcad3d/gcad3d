@@ -88,6 +88,7 @@ break TX_Error
 #break STP_r_creMod_Run
 
 # zum run hier fuer debug die Startparameter zufuegen; else nur run
+run STP_U/4bar.gcad
 #run tst
 #run
 #c
@@ -98,5 +99,7 @@ break TX_Error
 #catch load
 #catch load libxa_test.so.1
 #set stop-on-solib-events 1
+
+#run STP_U/4bar.gcad
 
 #

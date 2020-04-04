@@ -87,6 +87,7 @@ void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
 #define MemTab_ini_temp(mtb1,rTyp,rTot)\
  (mtb1)->data=NULL;\
  (mtb1)->typ=rTyp;\
+ (mtb1)->rNr = 0;\
  (mtb1)->rSiz=sizeof(*(mtb1)->data);\
  (mtb1)->tSiz=(rTot)*(mtb1)->rSiz;\
  if((mtb1)->tSiz < SPC_MAX_STK) (mtb1)->data = _alloca ((mtb1)->tSiz + 64);\
@@ -96,12 +97,12 @@ void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
     (mtb1)->incSiz = (mtb1)->rNr / 2;\
   } else {\
     (mtb1)->spcTyp = MEMTYP_STACK_EXPND; }\
-  (mtb1)->rMax = rTot;\
-  (mtb1)->rNr = 0;
+  (mtb1)->rMax = rTot;
 #else
 #define MemTab_ini_temp(mtb1,rTyp,rTot)\
  (mtb1)->data=NULL;\
  (mtb1)->typ=rTyp;\
+ (mtb1)->rNr = 0;\
  (mtb1)->rSiz=sizeof(*(mtb1)->data);\
  (mtb1)->tSiz=(rTot)*(mtb1)->rSiz;\
  if((mtb1)->tSiz < SPC_MAX_STK) (mtb1)->data = alloca ((mtb1)->tSiz);\
@@ -111,8 +112,7 @@ void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
     (mtb1)->incSiz = (mtb1)->rNr / 2;\
   } else {\
     (mtb1)->spcTyp = MEMTYP_STACK_EXPND; }\
-  (mtb1)->rMax = rTot;\
-  (mtb1)->rNr = 0;
+  (mtb1)->rMax = rTot;
 #endif
 
 

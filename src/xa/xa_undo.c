@@ -882,14 +882,15 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
       // ATO_dump__ (&ato1, "_ln_del");
     APT_ato_par_srcLn (&mtPar, NULL, osrc);
       // MemTab_dump (&mtPar, "_ln_del");
-
     // loop tru parents
     for(i1=0; i1<mtPar.rNr; ++i1) {
       dli = (MEMTAB__(&mtPar,i1))->dli;
-      // redisplay parent if unvis.
-      DL_unvis__ (dli, 0);
-      // reset is-parent-bit of parent
-      DL_parent_set (dli, 0);
+      if(dli >= 0L) {
+        // redisplay parent if unvis.
+        DL_unvis__ (dli, 0);
+        // reset is-parent-bit of parent
+        DL_parent_set (dli, 0);
+      }
     }
     MemTab_free (&mtPar);
   }

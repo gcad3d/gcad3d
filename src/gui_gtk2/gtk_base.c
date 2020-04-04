@@ -343,7 +343,7 @@ static int       UI_act_Id;
   int    i1;
 
 
-  // printf("GUI_Init__ |%s|\n",fRC);
+  printf("GUI_Init__ |%s|\n",fRC);
 
 
   // gtk_set_locale ();
@@ -352,6 +352,7 @@ static int       UI_act_Id;
   // gtk_init (&argc, &argv);
   i1 = 0;
   gtk_init (&i1, NULL);
+    printf(" f-gtk_init\n");
 
 
 /*

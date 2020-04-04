@@ -945,6 +945,9 @@ char *MSG_ERR_tab[]={
   }
 */
 
+    // printf("ex-MSG_const_init \n");
+    // DEB_mcheck__ ();
+
   return 0;
 
 }

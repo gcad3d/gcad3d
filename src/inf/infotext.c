@@ -563,7 +563,7 @@ sr                                          sense-of-rotation;       INF_sr
 
 
 ....................................................................................
-stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf  INF_SUTP
+stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_SUTP
 
 
 
@@ -1362,7 +1362,7 @@ WC_Work1                      execute codeline
   APT_work_def                handle definition-line
     APT_store_obj             store in DB
       APT_decode_pt
-      APT_decode_bsp
+      APT_decode_bsp_
       APT_decode_ccv__
     APT_Draw__                display
       APT_DrawCurv
@@ -1734,8 +1734,6 @@ cscope              /usr/bin/cscope, source-file admin program
 ================================================================== \endcode */}
 void INF_debug (){        /*! \code
  \code
-
-../doc/gcad_doxygen/Debugging.dox
 
 
 -------------- Errormessages: ../xa/xa_msg.h ../xa/xa_msg.c

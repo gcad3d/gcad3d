@@ -648,6 +648,7 @@ Vector     DB_vc0;
   if(lTab[7] > APT_MR_SIZ) DB_allocModRef (lTab[7]);
 
 
+  // iall = nr of total objects
   sizTot = 0;
   iAll = 0;
   for(i1=0; i1<8; ++i1) iAll += lTab[i1];

@@ -2327,6 +2327,7 @@ extern long      GLT_cta_SIZ;
 
     // TESTBLOCK
     // MemTab_dump (mtPar, " ex-ATO_parents__ ");
+    // DL_DumpObjTab (" ex-ATO_parents__ ");
     // END TESTBLOCK
     
 

@@ -840,6 +840,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
   printf("============ MemTab_dump %s =============\n", info);
+    printf(" rMax=%d rNr=%d\n",memTab->rMax,memTab->rNr);
+
 
   if(!memTab)          { printf(".. undefined ..\n");     return -1;}
   if(memTab->rMax < 1) { printf(".. uninitialized ..\n"); return -1;}

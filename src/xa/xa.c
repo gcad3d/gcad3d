@@ -2701,8 +2701,11 @@ remote control nur in VWR, nicht MAN, CAD;
     AP_mod_defSiz = 500.;
   }
 
-
   fclose(fp1);
+
+    // printf("ex-AP_defaults_read \n");
+    // DEB_mcheck__ ();
+
   return 0;
 
 }

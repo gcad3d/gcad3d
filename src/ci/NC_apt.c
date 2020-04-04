@@ -8897,8 +8897,8 @@ static ModelRef *mod1, modR1;
     }
 
     d1 = lenVc;
-    UT3D_pt_evparci (&pt1, d1, &ci1);
-    UT3D_vc_tng_ci_pt (&vc1, &pt1, &ci1);
+    UT3D_pt_vc__par_ci (&pt1, &vc1, &ci1, 1, d1);
+    // UT3D_vc_tng_ci_pt (&vc1, &pt1, &ci1);
     UT3D_vc_setLength (&vc1, &vc1, 1.);
       // DEB_dump_obj__ (Typ_VC, &vc1, "vc1 in APT_decode_vc");
 
@@ -9419,7 +9419,7 @@ static ModelRef *mod1, modR1;
 
         } else {
           // get tangent to curve (typ1,vp1)
-          irc = UT3D_ptvc_tng_crv_par (NULL, &vc1, typ1, vp1, 0, lenVc);
+          irc = UT3D_pt_vc__par_cv (NULL, &vc1, typ1, vp1, 1, lenVc);
           if(irc < 0) goto L_parErr;
         }
 
@@ -11628,7 +11628,7 @@ Rückgabewert ist der gefundene Index.
       // P = C VAL            // Parameter on Cir
       } else if(aus_typ[1] == Typ_Val)            {
 
-        UT3D_pt_evparci (&pt1, aus_tab[1], &ci1);
+        UT3D_pt_vc__par_ci (&pt1, NULL, &ci1, 1, aus_tab[1]);
         goto Fertig3D;
 
 
@@ -11694,7 +11694,8 @@ Rückgabewert ist der gefundene Index.
       if(aus_typ[1] == Typ_Val)             {
 
         APT_prim_par = aus_tab[1];
-        i1 = UT3D_pt_evparcrv (&pt1, APT_prim_par, ox1p->form, ox1p->data);
+        // i1 = UT3D_pt_evparcrv (&pt1, APT_prim_par, ox1p->form, ox1p->data);
+        i1 = UT3D_pt_vc__par_cv (&pt1,NULL, ox1p->form,ox1p->data, 1,APT_prim_par);
         if(i1 < 0) return -1;
         goto Fertig3D;
 
@@ -13175,10 +13176,14 @@ Rückgabewert ist der gefundene Index.
 
   aus_anz = i1 + 1;
 
+    // TESTBLOCK
     // printf(" decode_ln-aus_anz=%d f_angz=%d f_angy=%d lTyp=%d f_perp=%d f_mod=%d\n",
                        // aus_anz,    f_angz,   f_angy,   lTyp,   f_perp,   f_mod);
     // printf(" decode_ln-f_offx=%d f_offy=%d f_offz=%d f_val=%d\n",
                         // f_offx,   f_offy,   f_offz,   f_val);
+    // for(i1=0; i1<aus_anz; ++i1)
+    // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+    // END TESTBLOCK
 
 
 
@@ -13270,7 +13275,7 @@ Rückgabewert ist der gefundene Index.
         goto L_pt_vc1;    // pt1 vc1
 
       } else if(ox1p->typ == Typ_CVELL) {
-        UT3D_vc_tangel (&vc1, &pt1, ox1p->data);
+        UT3D_vc__pt_el (&vc1, &pt1, ox1p->data);
         goto L_pt_vc1;    // pt1 vc1
 
       } else if(ox1p->typ == Typ_CVTRM) {
@@ -13294,7 +13299,7 @@ Rückgabewert ist der gefundene Index.
           goto L_pt_vc1;    // pt1 vc1
 
         } else if(typ1 == Typ_CVELL) {
-          UT3D_vc_tangel (&vc1, &pt1, (CurvElli*)obj1);
+          UT3D_vc__pt_el (&vc1, &pt1, (CurvElli*)obj1);
           goto L_pt_vc1;    // pt1 vc1
 
         } else if(typ1 == Typ_CVPOL) {
@@ -13322,6 +13327,16 @@ Rückgabewert ist der gefundene Index.
   // L = S  [MOD]       OBSOLETE          // S(plg) MOD  # subSegment line
   } else if(aus_typ[0] == Typ_CV)     {
     ox1p = DB_GetCurv  ((long)aus_tab[0]);
+    if(f_val) {
+      // parameter + ellipse, bspl, plg ..
+      // get point and vector, create line
+      irc = UT3D_pt_vc__par_cv (&pt1, &vc1, ox1p->form, ox1p->data, 1, dVal);
+      if(irc < 0) goto NotImp_err;
+      // if(typ1 == Typ_LN) f_val = 0;
+      // else              
+        dVal = UT_LEN_TNG;        // tangent-length
+      goto LL_exit_e_v;
+    }
     if(f_mod) {
       iSeg1 = f_mod;
       f_mod = 0;
@@ -13360,8 +13375,8 @@ Rückgabewert ist der gefundene Index.
 
     // L = C param                // tangent to parametric point on circ
     if(f_val) {
-      UT3D_pt_evparci (&pt1, dVal, cip);
-      UT3D_vc_tng_ci_pt (&vc1, &pt1, cip);
+      UT3D_pt_vc__par_ci (&pt1, &vc1, cip, 1, dVal);
+      // UT3D_vc_tng_ci_pt (&vc1, &pt1, cip);
       UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
       goto LL_exit_p_v;   // from pt1, vc1
     }
@@ -13482,7 +13497,7 @@ Rückgabewert ist der gefundene Index.
 
         if(ox1p->typ == Typ_CVELL) {
           // tangent thru point ON ellipse
-          UT3D_vc_tangel (&vc1, &pt1, ox1p->data);
+          UT3D_vc__pt_el (&vc1, &pt1, ox1p->data);
           UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
           // um pt1 eine Linie mit Richtung vc1.
           goto LL_exit_p_v;  // pt1, vc1
@@ -13683,7 +13698,7 @@ Rückgabewert ist der gefundene Index.
           }
           if(f_val) {
             // get point and vector of tangent from point on curve from parameter
-            irc = UT3D_ptvc_tng_crv_par (&pt1, &vc1, typ1, vp1, 0, dVal);
+            irc = UT3D_pt_vc__par_cv (&pt1, &vc1, typ1, vp1, 1, dVal);
             if(irc < 0) goto NotImp_err;
             if(typ1 == Typ_LN) f_val = 0;
             else               dVal = UT_LEN_TNG;        // tangent-length
@@ -13991,7 +14006,7 @@ Rückgabewert ist der gefundene Index.
           } else {
             if(f_val) {
               // have L = S MOD(<segNr> parameter   (parameter is in f_val/dVal)
-              rc = UT3D_ptvc_tng_crv_par (&pt1, &vc1, i2, obj1, 0, dVal);
+              rc = UT3D_pt_vc__par_cv (&pt1, &vc1, i2, obj1, 0, dVal);
               if(rc < 0) goto NotImp_err;
               f_val = 0;
               goto LL_exit_e_v;
@@ -14040,7 +14055,7 @@ Rückgabewert ist der gefundene Index.
       if(rc < 0) return -1;
 
       if(ox1.form == Typ_CI) {
-        UT3D_pt_evparci (&pt1, aus_tab[2], ox1.data);
+        UT3D_pt_vc__par_ci (&pt1, aus_tab[2], ox1.data);
         UT3D_vc_tng_ci_pt (&vc1, &pt1, ox1.data);
         goto LL_exit_p_v;
 
@@ -14053,7 +14068,7 @@ Rückgabewert ist der gefundene Index.
       } else if(ox1.form == Typ_CVELL) {
         d1 = UT3D_angr_par1_ell (aus_tab[2], ox1.data);
         UT3D_pt_eval_ell_par1 (&pt1, ox1.data, d1);
-        UT3D_vc_tangel (&vc1, &pt1, ox1.data);
+        UT3D_vc__pt_el (&vc1, &pt1, ox1.data);
         goto LL_exit_p_v;
 
       } else goto Par_err;
@@ -15410,13 +15425,16 @@ Rückgabewert ist der gefundene Index.
 
 
   // removed: CW|CCW   MOD
-    // printf(" Dreh=%d iMod=%d\n",Dreh,iMod);
 
 
   // Bearbeitungsreihenfolge:
   // zuerst alle C=ARC,
   // dann alle C=ARC1
-  // dann allae uebrigen.
+  // dann alle uebrigen.
+    // for(i1=0; i1<aus_anz; ++i1)
+      // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+    // printf(" Dreh=%d iMod=%d\n",Dreh,iMod);
+
 
 
 
@@ -15518,8 +15536,8 @@ Rückgabewert ist der gefundene Index.
                (aus_typ[3] == Typ_Angle))     {
 
 
-      pp1 = DB_get_PT ((long)aus_tab[1]);  // pc
-      ci3d.p1 = DB_GetPoint ((long)aus_tab[2]);
+      pp1 = DB_get_PT ((long)aus_tab[1]);        // pc
+      ci3d.p1 = DB_GetPoint ((long)aus_tab[2]);  // p1
       ci3d.ango = UT_RADIANS(aus_tab[3]);
 
       if(aus_anz == 5) {
@@ -15531,8 +15549,10 @@ Rückgabewert ist der gefundene Index.
 
       // pc = proj p1 --> achse pc - vz
       UT3D_pt_projptptvc (&ci3d.pc, &ci3d.rad, NULL, &ci3d.p1, pp1, &ci3d.vz);
-      // ci3d.rad = UT3D_len_2pt (&ci3d.pc, &ci3d.p1);
-      UT3D_pt_rotptptvcangr (&ci3d.p2,&ci3d.p1,&ci3d.pc,&ci3d.vz,ci3d.ango);
+      // p2 = rotate p1
+      UT3D_pt_rotptptvcangr (&ci3d.p2, &ci3d.p1, &ci3d.pc, &ci3d.vz, ci3d.ango);
+      if(ci3d.ango < 0.) ci3d.rad *= -1.;
+        // DEB_dump_obj__ (Typ_CI, &ci3d, " ci-ARC P P ANG");
       goto Fertig3D;
 
     }

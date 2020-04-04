@@ -565,7 +565,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
   // midPoint contour
   // UTO_pt_par1_dbo (&pm, vm, srv1->typCov, srv1->indCov);
-  UT3D_pt_evparcrv (&pm, vm, cTyp, cvCov);
+  // UT3D_pt_evparcrv (&pm, vm, cTyp, cvCov);
+  irc = UT3D_pt_vc__par_cv (&pm, NULL, cTyp, cvCov, 1, vm);
 
   // project midPoint -> pta+vca
   UT3D_pt_projptptvc (&pc, &d1, NULL, &pm, &pta, &vca);

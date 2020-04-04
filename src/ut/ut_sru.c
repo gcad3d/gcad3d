@@ -118,14 +118,16 @@ double SRU_parsru_utLn2 ();
       // DEB_dump_obj__ (Typ_ObjGX, &oTab[0], "obj:\n");
     typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[0]);  // get data-struct
       // DEB_dump_obj__ (typ1, dat1, "typ1=%d obj:\n",typ1);
-    UT3D_pt_evparcrv (&((Line*)objo)->p1, dp, typ1, dat1);
+    // UT3D_pt_evparcrv (&((Line*)objo)->p1, dp, typ1, dat1);
+    irc = UT3D_pt_vc__par_cv (&((Line*)objo)->p1, NULL, typ1, dat1, 1, dp);
     // 2. obj.
     typ1 = UTO_objDat_ox (&dat1, &i1, &oTab[1]);
     if(typ1 == Typ_VC) {
       // translate p1 um vector ..
       UT3D_pt_traptvc (&((Line*)objo)->p2, &((Line*)objo)->p1, (Vector*)dat1);
     } else {
-      UT3D_pt_evparcrv (&((Line*)objo)->p2, dp, typ1, dat1);
+      // UT3D_pt_evparcrv (&((Line*)objo)->p2, dp, typ1, dat1);
+      irc = UT3D_pt_vc__par_cv (&((Line*)objo)->p2, NULL, typ1, dat1, 1, dp);
     }
     goto L_exit;
   }
@@ -1219,7 +1221,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   // irc = UT3D_pt_evparcrv (pto, lpar, typ, oxp);
   // ACHTUNG: *oxp entspricht *void; (oxp == **void)
-  irc = UT3D_pt_evparcrv (pto, lpar, typ, oxp);
+  // irc = UT3D_pt_evparcrv (pto, lpar, typ, oxp);
+  irc = UT3D_pt_vc__par_cv (pto, NULL, typ, oxp, 1, lpar);
   // DEB_dump_obj__ (Typ_PT, pto, " evpar %d",irc);
   if(irc < 0) return irc;
 
@@ -1798,7 +1801,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     // printf(" par1=%f\n",par1);
 
   // den punkt ptx via px1,px2, und par1 errechnen
-  UT3D_pt_evparptcv (ptx, par1, px1, &vc1);
+  UT3D_pt__par_pt_vc (ptx, par1, px1, &vc1);
 
   return par1;
 

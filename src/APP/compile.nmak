@@ -4,7 +4,7 @@
   $(CC) -c $(CPFLG) $<
   move $(*F).obj $@
   ctags $(TAGFLGS) -f $*.wtag $<
-
+	move/y $*.wtag ..\tags\.
 
 #.cpp.obj:
 #	@echo ==================== Compile Cpp $< ==========================

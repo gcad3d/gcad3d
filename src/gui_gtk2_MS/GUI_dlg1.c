@@ -440,7 +440,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 
 //===================================================================
-  int GUI_dlg1_list1_f (void *list_store, char *fnam, char *mode) {
+  int GUI_dlg1_list1_f (void *list_store, char *fnam, int cnr) {
 //===================================================================
 /// GUI_dlg1_list1_f          INTERNAL  populate list
 /// 1 or 2 columns from file (sep = blank)
@@ -477,7 +477,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     //----------------------------------------------------------------
     // 1 col-
-    if(mode[0] == '1') {
+    if(cnr == '1') {
       if(p1) { *p1 = '\0'; ++p1;}
       else { UTX_CleanCR (cbuf); p1 = cbuf;}
         // printd(" _list1_f-add-1 |%s|\n",cbuf);
@@ -489,8 +489,10 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
                           -1);            // EndOfParameters !
 
     //----------------------------------------------------------------
-    // 2 cols
+    // all
     } else {
+      // display complete line
+      UTX_CleanCR (cbuf);   // remove  CR-LF
       // find delimiter
 //       p1 = strchr (cbuf, ' ');
 //       if(p1) {
@@ -501,7 +503,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 //       }
       gtk_list_store_set (list_store, &iter,
                           0, cbuf,        // Col.0, data,
-                          1, p1,          // Col.1, data,
+                          // 1, p1,          // Col.1, data,
                           -1);            // EndOfParameters !
     }
   }
@@ -521,7 +523,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   int GUI_dlg1_list1__ () {
 //================================================================
 
-  int          wsx, wsy, isx, isy;
+  int          wsx, wsy, isx, isy, cnr;
   GtkWidget    *UI_list1_win=NULL, *box0;
   GtkListStore *list_store;
   GtkWidget    *treeView;
@@ -529,7 +531,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   GtkWidget    *scrolled_win;
   GtkTreeViewColumn *col1;        //, *col2;
   GtkTreeSelection *select;
-  char         *p1, *fNam, *wTit, *wSiz;
+  char         *p1, *p2, *fNam, *wTit, *opts;
 
 
   printd("GUI_dlg1_list1__\n");
@@ -539,11 +541,28 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   if(nArg < 5)  return GUI_dlg1_err1 ();
   fNam = paArg[2];
   wTit = paArg[3];
-  wSiz = paArg[4];
+  opts = paArg[4];
 
-  //  get wsx = nr-of-chars-per-line, wsy = nr-of-lines
-  sscanf(wSiz, "%d,%d", &wsx,&wsy);
-    printd(" wsx = %d wsy = %d\n",wsx,wsy);
+
+  //----------------------------------------------------------------
+  // decode options
+  wsx = 0;
+  wsy = 0;
+  cnr = 1; // nr columns; 1 (default, first word of line) or 0 (a=0=complete line)
+  p1 = opts;
+
+  L_nxt__:
+  if(!*p1) goto L_nxt_e;
+  if(*p1 == 'x') wsx = strtol (&p1[1], &p2, 10);
+  else if(*p1 == 'y') wsy = strtol (&p1[1], &p2, 10);
+  else if(*p1 == 'a') cnr = 0; {p2 = p1 + 1;}
+  if(!*p2) goto L_nxt_e;
+  ++p2;  // skip ','
+  p1 = p2;
+  goto L_nxt__;
+
+  L_nxt_e:
+    // printd(" %d %d %d\n",wsx,wsy,cnr);
 
 
   //----------------------------------------------------------------
@@ -561,7 +580,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   // populate list
-  GUI_dlg1_list1_f (list_store, fNam, "1");
+  GUI_dlg1_list1_f (list_store, fNam, cnr);
 
   // create a new view of data
   treeView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (list_store));

@@ -51,8 +51,18 @@ make -f DemoPlugin_Mousemove.mak
 #include <string.h>
 
 
+#ifdef _MSC_VER
+// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
+__declspec(dllexport) int gCad_main ();
+__declspec(dllexport) int gCad_fini ();
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
+
+
 
 #include "../ut/ut_geo.h"              // DL_Att
+#include "../ut/ut_geo_const.h"              // DL_Att
 #include "../gr/ut_DL.h"               // DB_GetDLatt
 
 
@@ -65,16 +75,6 @@ static long last_obj;
   int dmm_key1 (int key);
   int dmm_sele1 (int src, long dl_ind);
   int dmm_mm (int dx, int dy);
-
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
 
 
 

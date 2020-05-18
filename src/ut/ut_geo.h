@@ -849,11 +849,11 @@ typedef struct {Point pt; float size, dir; char *txt;
 /// scl          Image: Scale
 /// xSiz, ySiz   Image, Tag: size of image / tag in pixels
 ///              Balloon: xSiz=stringLength
-/// col  color of Label; -1=no Label
+/// col  color of Label; -1=no Label   see INF_COL_SYMB
 /// ltyp Linetyp Leaderline; -1=no Leaderline.
 /// \endcode
 typedef struct {Point p1, p2; char *txt; short xSiz, ySiz;
-                float scl; char aTyp, col, ltyp;}                   AText;
+                float scl; char aTyp, col, ltyp, UU;}               AText;
 
 
 /// \brief basic texture description; Typ_TEXB
@@ -904,13 +904,16 @@ typedef struct {char *mnam; long ind, siz;
 /// mnam  .. Modelname
 /// po    .. origin
 /// pb1,pb2  boxPoints
+/// DBind    DatabaseIndex
 /// DLind .. ind of first obj in DL
 /// DLsiz .. nr of objects in DL
 /// typ   .. MBTYP_[EXTERN|INTERN|CATALOG] for native-subModels
 ///          Mtyp_[WRL|WRL2|OBJ|STL|TESS]  for mockup-subModels
+/// seqNr    loading-sequence-nr
 /// \endcode
-typedef struct {char *mnam; Point po, pb1, pb2; long DLind, DLsiz;
-                short typ, seqNr;}                                  ModelBas;
+typedef struct {char *mnam; Point po, pb1, pb2; long DBind, DLind;
+                int DLsiz; short typ, seqNr;}                       ModelBas;
+// 56
 
 
 /// \brief model reference; Typ_Model
@@ -1051,13 +1054,12 @@ typedef struct {long ind;
 // size = 12
 
 
-/// \brief DisplayListRecord
+/// \brief DisplayListRecord  _DL_ATT_NUL 
 /// \code
 /// lNr    APTlineNr.
 /// typ    DB-Typ
 /// ind    DB-Index, typ = DB-Typ
-/// ipcv   DB-index polygonal_representation_curve, (typ = curve)
-/// irs    index RefSys
+/// irs    index RefSys  (can be int; 
 /// modInd ModelNr
 /// iatt   for typ=LN/AC/Curve: LineTypNr.
 ///        for typ=TAG/IMG: sx/sy
@@ -1068,17 +1070,19 @@ typedef struct {long ind;
 ///        hilite = ((disp == 1)&&(hili == 0))
 ///        hidden = ((disp == 1)&&(hili == 1))
 /// pick   0=unpickable, 1=pickable
+/// dim    0=dimmed,     1=normal
+/// grp_1  0=belongs to active Group, 1=not
 /// unvis  0=visible; 1=obj does not have graph. representation
 /// sChd   0=independent; 1=Child-state is active; obj is child - has parent(s)
 /// sPar   0=independent; 1=Parent-state is active; obj is parent; has child(s)
-/// grp_1  0=belongs to active Group, 1=not
 /// \endcode
-typedef struct {long ind, ipcv, lNr, irs;
-                UINT_32 iatt;
-                unsigned modInd:16, typ:8,
-                         disp:1,  pick:1,  hili:1,  dim:1,
-                         grp_1:1, unvis:1, sChd:1,  sPar:1;}        DL_Att;
-// size = 16
+typedef struct {long ind, lNr;
+                UINT_32 irs, iatt;
+                UINT_16 modInd, typ;
+                unsigned disp:1,  hili:1,  pick:1,  dim:1,
+                         grp_1:1, unvis:1, sChd:1,  sPar:1,
+                         UU:24;}                                    DL_Att;
+// size = 32
 
 
 /// \brief Typ_TraRot:
@@ -1240,6 +1244,33 @@ typedef struct {int suID, contNr; char typb, typt, dir, stat;}      BndSur;
 
 //.........................................................................
 
+//----------------------------------------------------------------
+#include "../ut/ut_const.h"
+/*
+extern const double UT_VAL_MIN;
+extern const double UT_VAL_MAX;
+extern const double UT_DB_LEER;
+extern const double UT_DB_NULL;
+extern const int    UT_INT_MAX;
+extern const char   UT_CHR_NULL;
+*/
+
+
+
+//----------------------------------------------------------------
+#include "../ut/ut_tol_const.h"
+/*
+// constants:
+extern double UT_TOL_min0;
+extern double UT_TOL_min1;
+extern double UT_TOL_min2;
+/// tolerance for parallelism
+extern double UT_TOL_PAR;
+/// tolerance for Angle 0.01 degree
+extern double UT_TOL_Ang1;
+/// tolerance for Angle 0.1 degree
+extern double UT_TOL_Ang2;
+
 // tolerances depending from Modelsize:
 /// identical Points-tolerence
 extern double UT_TOL_pt;
@@ -1251,30 +1282,17 @@ extern double UT_TOL_ln;
 extern double UT_DISP_cv;
 /// length of construction-lines
 extern double UT_DISP_ln;
+*/
 
 
 
 
-// ------------- constants defined in ../ut/ut_geo_const.h ------------- 
-extern double UT_TOL_min0;
-extern double UT_TOL_min1;
-extern double UT_TOL_min2;
-/// tolerance for parallelism
-extern double UT_TOL_PAR;
-/// tolerance for Angle 0.01 degree
-extern double UT_TOL_Ang1;
-/// tolerance for Angle 0.1 degree
-extern double UT_TOL_Ang2;
 
 
-extern const double UT_VAL_MIN;
-extern const double UT_VAL_MAX;
-extern const double UT_DB_LEER;
-extern const double UT_DB_NULL;
-extern const int    UT_INT_MAX;
-extern const char   UT_CHR_NULL;
 
-
+//----------------------------------------------------------------
+#include "../ut/ut_geo_const.h"
+/*
 extern const Point2  UT2D_PT_NUL;
 extern const Point   UT3D_PT_NUL;
 
@@ -1301,7 +1319,7 @@ extern const Vector  UT3D_VECTOR_IZ;
 extern const Mat_3x3 UT3D_MAT_3x3;
 extern const Mat_4x3 UT3D_MAT_4x3;
 extern const Mat_4x4 UT3D_MAT_4x4;
-
+*/
 
 
 

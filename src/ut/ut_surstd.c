@@ -34,7 +34,6 @@ Modifications:
 List_functions_start:
 
 ----------- all surfaces --------------------
-SUR_Disp_Sur              temp. Display Surfaces
 
 UTO_get_suppSurf          get supportSurface of SUTP <surTps>
 UTO_ck_surfTyp            returns surfSubTyp      ((../ut/ut_obj.c)
@@ -73,6 +72,7 @@ UT3D_angsph_pt            compute hor/vert angle of point on sphere
 
 List_functions_end:
 =====================================================
+// SUR_Disp_Sur              temp. Display Surfaces
 - see also:
 ../ut/ut_srv.c (Revolved-Surface-Functions)
 ../ut/ut_sru.c (Ruled-Surface-Functions)
@@ -696,7 +696,7 @@ List_functions_end:
 
     // Testdisp.
     // printf(" 3D-Cont %d:\n",*cNr);
-    // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 2);  return -1;
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 2);  return -1;
 
 
   // wenn weniger als 4 Punkte, Kontur nur mehr Strich.
@@ -1283,7 +1283,7 @@ List_functions_end:
 
     UT3D_vc_2pt (&vc1, &pls->po, pt1);
     *as = UT3D_angr_2vc__ (&vc1, &pls->vz);
-      // GR_Disp_vc (&pls->vz, &ptp, 8, 1);
+      // GR_tDyn_vc (&pls->vz, &ptp, 8, 1);
   }
 
 
@@ -1612,6 +1612,7 @@ List_functions_end:
 }
 
 
+/*
 //================================================================
   int SUR_Disp_Sur (ObjGX *o1, Memspc *wrkSpc, int att, ...) {
 //================================================================
@@ -1663,5 +1664,5 @@ List_functions_end:
     return -1;
 
 }
-
+*/
 //========== EOF =================================================

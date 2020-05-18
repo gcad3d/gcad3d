@@ -39,7 +39,7 @@ void INF_objectTypes (){        /*! code
 
 AP_typ_typChar           make typ from typChar ("P" -> Typ_PT)
 AP_typChar_typ           make typChar from typ (Typ_PT -> 'P')
-AP_typDB_typ          give basictyp from typ (eg Typ_SUR from Typ_SURRU)
+AP_typDB_typ             give basictyp from typ (eg Typ_SUR from Typ_SURRU)
 APED_dbo_oid             give typ and index from objectID eg "P12"
 
 AP_typ_srcExpr           decode expression
@@ -55,6 +55,16 @@ UTO_ck_surfTyp           returns surfSubTyp
 
 AP_ck_ftyp               returns fileTyp as int; 0=native, 1-9=Import, 10-19=Mockup
 AP_i2ftyp                returns fileTyp as text
+
+
+================================================================== \endcode */}
+void INF_sourceObjects (){        /*! code
+INF_sourceObjects   text;expressions            eg "P12" "DZ" "L(P10 D(0 0 1))"
+
+L(P10 D(0 0 1))    is a dynamic object  osrc
+
+
+
 
 
 ================================================================== \endcode */}
@@ -130,8 +140,10 @@ SRC_ato_SIZ, SRC_ato_typ, SRC_ato_tab = global memspc
 ================================================================== \endcode */}
 void INF_binaryObjects (){        /*! code
 
-
 binObj (dedicated structure) pt|ln..:
+
+obj = binary-obj ((int)typ, (void*)data)
+
 (typ - (int) eg Typ_PT for (Point), Typ_VC for (Vector)
 (structure; the type of the structure must be known)
 

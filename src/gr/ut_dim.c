@@ -506,7 +506,7 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
   if(i1 < 0) d0 = GR_tx_ldExt;
   else       d0 = -GR_tx_ldExt;
   UT2D_pt_traptvclen (&ll1->p2, &hd1->pt, &vc1, d0);
-    // GR_Disp_ln2 (&ll1->p1, &ll1->p2, 8);
+    // GR_tDyn_ln2_2pt (&ll1->p1, &ll1->p2, 8);
 
 
   ll2->p1 = *pt2;
@@ -514,7 +514,7 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
   if(i1 < 0) d0 = GR_tx_ldExt;
   else       d0 = -GR_tx_ldExt;
   UT2D_pt_traptvclen (&ll2->p2, &hd2->pt, &vc2, d0);
-    // GR_Disp_ln2 (&ll2->p1, &ll2->p2, 9);
+    // GR_tDyn_ln2_2pt (&ll2->p1, &ll2->p2, 9);
 
 
 

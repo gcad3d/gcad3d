@@ -79,9 +79,9 @@ mkdir %outDirD%\dat
 mkdir %outDirD%\prg
 mkdir %outDirD%\cfg
 mkdir %outDirD%\ctlg
-mkdir %outDirD%\Schrau
-mkdir %outDirD%\Profile
-mkdir %outDirD%\symEl1
+mkdir %outDirD%\ctlg\Schrau
+mkdir %outDirD%\ctlg\Profile
+mkdir %outDirD%\ctlg\symEl1
 
 
 
@@ -139,10 +139,11 @@ copy %datDirIn%\cfg\gCAD3D.rc            %outDirD%\cfg\.
 copy %datDirIn%\cfg\psv.setup            %outDirD%\cfg\.
 copy %datDirIn%\cfg\Default.ctlg         %outDirD%\cfg\.
 
-copy %datDirIn%\ctlg\*                   %outDirD%\ctlg\.
-copy %datDirIn%\Schrau\*                 %outDirD%\Schrau\.
-copy %datDirIn%\Profile\*                %outDirD%\Profile\.
-copy %datDirIn%\symEl1\*                 %outDirD%\symEl1\.
+::copy %datDirIn%\ctlg\*                   %outDirD%\ctlg\.
+xcopy /s /Y %datDirIn%\ctlg                %outDirD%\ctlg
+::copy %datDirIn%\Schrau\*                 %outDirD%\Schrau\.
+::copy %datDirIn%\Profile\*                %outDirD%\Profile\.
+::copy %datDirIn%\symEl1\*                 %outDirD%\symEl1\.
 
 
 
@@ -154,6 +155,10 @@ REM del %outDirD%\cfg\dir.lst
 REM if %1 == free goto L_packStart
 REM copy ..\pp\FanucA.exe %outDirP%\pp\.
 REM copy ..\pp\AgiEvo.exe %outDirP%\pp\.
+
+::TEST ONLY:
+::goto :Fertig
+
 
 
 

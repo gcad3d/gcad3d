@@ -188,7 +188,7 @@ cl -c /I ..\include xa_ed.c
 
 #include "../ut/func_types.h"
 #include "../gr/ut_DL.h"
-#include "../gr/ut_gr.h"
+#include "../gr/ut_gr.h"       // GR_TMP_I0
 
 #include "../ci/NC_Main.h"     // WC_Work__
 // #include "../ci/NC_up.h"       // NC_up_Init_
@@ -198,7 +198,7 @@ cl -c /I ..\include xa_ed.c
 
 #include "xa_mem.h"               // mem_cbuf1
 // #include "xa_ui.h"                // UID_ckb_nam u. ex func_types.h: UI_FuncGet
-#include "../xa/xa_uid.h"         //  DLI_TMP UID_WinMain ...
+#include "../xa/xa_uid.h"         //  GR_TMP_I0 UID_WinMain ...
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
@@ -1884,10 +1884,6 @@ static int lnr1, lnr2;
   APT_Init(); // nur f. APT_lNr=0 f. Typ_Color-Record
 */
 
-  // get active state
-  wrkStat = WC_get_obj_stat(); // 0=perm, 1=workmode
-  WC_set_obj_stat (0);  // set to perm
-  
 /*
   // reset DL
   GR_Init1 ();
@@ -1922,57 +1918,23 @@ static int lnr1, lnr2;
   // der folgende Block ist nur im Run_for_Tesselation-Mode aktiv !
   // not for normal viewing mode
 
-  if(TSU_get_mode() != 1) goto L_run1;
-
 
   // scan gesamten APT-Buffer nach Modelnames. Not recursiv.
   Mod_get_names ();
 
-
   // get nr of basic models
   bNr = DB_get_ModBasNr();
     // printf(" _ModBasNr=%d\n",bNr);
-  if(bNr < 1) goto L_run1;
-  
-
-  // save dynam. data
-  // DL_sav_dynDat ();
-  DB_save__ ("");
-if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
+  if(bNr < 1) goto L_run1;   // OK, no subModels exists
 
 
-  // scan rekursiv die SourceFiles aller basicModels;
-  // load Submodels as basicModels (mdb_dyn-Record's - DB_StoreModBas)
-  irc = Mod_get_namAll();
-    // printf(" n._namAll %d %d\n",irc,ED_lnr_act);
-
-  // if(irc < 0) return irc;
-  if(irc < 0) {
-    // dzt nicht bekannt, in welcher APT-Zeile der Fehler ist.
-    // entweder speichern, (sollte aber eigentlich im DL-Record sein);
-    // daher hier einfacher im Text suchen ...
-    TX_Error("subModel not found ..");
-    ED_lnr_act = -1;
-    DL_Redraw ();
-    goto L_done;
+  if(!TSU_get_mode()) {
+    // 0=draw
+    // find and load all subModels in active model
+    irc = Mod_load_all__ ();
+    if(irc < 0) goto L_done;  // -1=subModel not found
   }
-
-
-  // Load Models of mdb_dyn-Records; Load Models; Reihenfolge=seqNr.
-  Mod_load_allsm ();
-
-  // reload Hidelist from File
-  // GA_hide_fil_tmp (2);
-
-  // reload dynam. data
-  // DL_load_dynDat ();
-  DB_load__ ("");
-
-
-
-
-  // ========= subModel loaded ==========================
-
+  // no models or model loaded ..
 
 
   //----------------------------------------------------------------
@@ -2057,8 +2019,6 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
   // TX_Write (".. rework finished ..");  // schlecht, kommt 2 x pro run ..
 
   AP_mode__ = AP_mode_step;
-
-  WC_set_obj_stat (wrkStat);  // reset
 
 
   // If VWR & CAD: unhilite all (last obj)
@@ -2489,7 +2449,7 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
 
     //----------------------------------------------------------------
     if(oDli >= 0L) {
-      if(oldDli < 0L) GL_temp_del_1 (DLI_TMP);        // clear DLI_TMP
+      if(oldDli < 0L) GL_temp_del_1 (GR_TMP_I0);        // clear GR_TMP_I0
       // display geometric-object          (was DL_hili_on (-2L);)
       DL_hili_on (oDli);
     
@@ -2499,12 +2459,12 @@ if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
       // oDli=-1; not-displayable- or not-geometric-object
       // skip not-displayable-
       if(oTyp == 0) {
-        GL_temp_del_1 (DLI_TMP);        // clear DLI_TMP
+        GL_temp_del_1 (GR_TMP_I0);        // clear GR_TMP_I0
 
       } else {
         // display not-geometric-object
-        l1 = DLI_TMP;
-        UI_disp__ (&l1, oTyp, oDbi, oSub);
+        // l1 = GR_TMP_I0;
+        UI_disp__ (GR_TMP_I0, oTyp, oDbi, oSub);
       }
     }
     oldDli = oDli;

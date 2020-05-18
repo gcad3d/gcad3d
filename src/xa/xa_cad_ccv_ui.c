@@ -70,7 +70,8 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 #include "../ut/ut_txt.h"
 
 #include "../xa/xa_sele.h"        // Typ_go*
-#include "../xa/xa_uid.h"               // DLI_DIR_TMP
+#include "../gr/ut_gr.h"          // GR_TMP_I*
+// #include "../xa/xa_uid.h"               // GR_TMP_IDIR
 
 #include "../gui/gui__.h"         // Gtk
 
@@ -362,8 +363,8 @@ extern int     APT_dispDir;
     IE_ccv__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncOK));
 
   } else {
-    GL_temp_del_1 (DLI_TMP);      // delete temporary curve
-    GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
+    GL_temp_del_1 (GR_TMP_I0);      // delete temporary curve
+    GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
   }
 
 

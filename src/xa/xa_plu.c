@@ -225,7 +225,7 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 //                        NULL, " select program", fnam,
 //                        "1", NULL, "60,40");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select program", "40,40");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select program\"", "\"x40,y40\"");
   if(i1 < 0) return -1;
 
   UTX_ftyp_cut  (s1);     // remove the filetyp (.so|.dll)

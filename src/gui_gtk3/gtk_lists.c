@@ -46,7 +46,6 @@ GUI_list2_modCol     modify column # <iCol> of active (selected) Line
 GUI_list1_dlg__      List from file in new window, callback.
 GUI_list1_dlg_del    delete list-window GUI_list1_dlg
 GUI_list1_dlg_w      list from file in a new window, waiting.
-GUI_list1_h2__       make hierarchical SelectList.
 
 GUI_list1_f          INTERNAL  populate list
 GUI_list2_f          INTERNAL  populate list
@@ -56,6 +55,7 @@ GUI_list1_dlg_exit   INTERNAL list-window exiting
 
 List_functions_end:
 =====================================================
+// GUI_list1_h2__       make hierarchical SelectList.
 
 \endcode *//*----------------------------------------
 
@@ -1378,6 +1378,7 @@ extern int    UI_umbId;
 }
 
 
+/* UU
 //================================================================
   int GUI_list1_h2_cb1 (void *selection, void *data) {
 //================================================================
@@ -1682,31 +1683,31 @@ extern int    UI_umbId;
   GUI_w_pack1 (pTyp, box0, UI_List_p3, "");
 
 
-/*
-  //   hsiz,vsiz   size of window; >0=size in characters, <0=size in pixels
-  // size
-  if(hsiz != 0) {
-    if(hsiz < 0) {
-      ih = -hsiz;
-    } else {
-      ih = UI_fontsizX * hsiz;
-    }
-  }
-
-  if(vsiz != 0) {
-    if(vsiz < 0) {
-      iv = -vsiz;
-    } else {
-      iv = UI_fontsizY * vsiz;
-    }
-  }
-
-
- if((ih) || (iv)) {
-      printf(" lstsiz %d %d\n",ih,iv);
-    GUI_siz_set (scrolled_win, ih, iv);
-  }
-*/
+/
+//   //   hsiz,vsiz   size of window; >0=size in characters, <0=size in pixels
+//   // size
+//   if(hsiz != 0) {
+//     if(hsiz < 0) {
+//       ih = -hsiz;
+//     } else {
+//       ih = UI_fontsizX * hsiz;
+//     }
+//   }
+// 
+//   if(vsiz != 0) {
+//     if(vsiz < 0) {
+//       iv = -vsiz;
+//     } else {
+//       iv = UI_fontsizY * vsiz;
+//     }
+//   }
+// 
+// 
+//  if((ih) || (iv)) {
+//       printf(" lstsiz %d %d\n",ih,iv);
+//     GUI_siz_set (scrolled_win, ih, iv);
+//   }
+/
 
   // add scrolled_win into box0
   GUI_w_pack1 (pTyp, box0, scrolled_win, opts);
@@ -1728,6 +1729,6 @@ extern int    UI_umbId;
   return 0;
 
 }
-
+*/
 
 // EOF

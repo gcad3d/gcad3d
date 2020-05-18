@@ -852,14 +852,6 @@ myTest1     manuell erstellt.
 //==========================================================
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int STP_w__ (char*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
 
 #include <math.h>
 #include <stdio.h>
@@ -868,6 +860,15 @@ __declspec(dllexport) int STP_w__ (char*);
 #include <stdarg.h>              // for ...
 
 #include <time.h>                // localtime
+
+
+#ifdef _MSC_VER
+#include "../xa/MS_Def0.h"
+// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
+__declspec(dllexport) int STP_w__ (char*);
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
 
 
 #include "../ut/ut_cast.h"             // LONG_PTR
@@ -3720,7 +3721,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get 3D-box from npt
   UT3D_box_ix_npt (&plb->pb1, &plb->pb2, ia, ptNr-1, pa);
-    GR_Disp_box  (&plb->pb1, &plb->pb2, 2);
+    // GR_tDyn_box__ (&plb->pb1, &plb->pb2, 2);
 
   // get backPlane from 3D-box
   plb->bp = UT3D_bp_perp_2pt (&plb->pb1, &plb->pb2);

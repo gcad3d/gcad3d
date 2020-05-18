@@ -390,12 +390,13 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
 #include "../ut/ut_TX.h"                  // TX_Error
 
-#include "../ut/ut_const.h"               // the constants ..
-#include "../ut/ut_tol_const.h"           // the constants ..
 
 #include "../xa/xa_msg.h"                 // MSG_* ERR_*
 
 #define INCLUDE_FULL
+// #include "../ut/ut_types.h"                // constants
+#include "../ut/ut_const.h"               // the constants ..
+#include "../ut/ut_tol_const.h"           // the constants ..
 #include "../ut/ut_geo_const.h"           // the constants ..
 #undef INCLUDE_FULL
 
@@ -490,7 +491,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   // DEB_dump_obj__ (Typ_PT2, p2e, " p2e:");
   // GR_Disp_pt2 (p1s, SYM_STAR_S, 0);
   // GR_Disp_vc2 (v1, p1s, 0, 0);
-  // GR_Disp_ln2 (p2s, p2e, 9);
+  // GR_tDyn_ln2_2pt (p2s, p2e, 9);
 
 
   // set s2sv1 = side of p2s along v1
@@ -3959,8 +3960,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   // printf("{{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f},{%.3f,%.3f}}\n",
          // pa->x,pa->y,pb->x,pb->y,
          // pc->x,pc->y,pd->x,pd->y);
-  // GR_Disp_ln2 (pa, pb, 0);
-  // GR_Disp_ln2 (pc, pd, 0);
+  // GR_tDyn_ln2_2pt (pa, pb, 0);
+  // GR_tDyn_ln2_2pt (pc, pd, 0);
   // END TESTBLOCK
 
 
@@ -7227,7 +7228,7 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
   // for(ind=0; ind<ptAnz; ++ind) {
     // printf("        %d %f,%f\n",ind,cv[ind].x,cv[ind].y);
     // GR_Disp_pt2 (&cv[ind], SYM_TRI_S, 2);
-    // GR_Disp_txi (&cv[ind], ind, 0);
+    // GR_tDyn_txiA (&cv[ind], ind, 0);
   // }
   // // Testausg:
 
@@ -9830,7 +9831,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   if((isol % 2) > 0) d1 *= -1.;
   UT2D_pt_traptvclen (ptg, &ci->pc, &vcn, d1);
     // GR_Disp_pt (ptg, SYM_TRI_S, 2);
-    // GR_Disp_vc (vc1, pto, 2, 0);
+    // GR_tDyn_vc (vc1, pto, 2, 0);
 
   return 0;
 
@@ -10441,12 +10442,12 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // DEB_dump_obj__ (Typ_PT2, p2, "   p2:");
   // DEB_dump_obj__ (Typ_PT2, p3, "   p3:");
     // GR_Disp_pt2 (px, SYM_STAR_S, 4);
-    // GR_Disp_ln2 (p1, p2, 0);
-    // GR_Disp_ln2 (p1, p3, 0);
-    // GR_Disp_ln2 (p3, p2, 0);
-    // GR_Disp_tx2 (p1, "1", 1);
-    // GR_Disp_tx2 (p2, "2", 1);
-    // GR_Disp_tx2 (p3, "3", 1);
+    // GR_tDyn_ln2_2pt (p1, p2, 0);
+    // GR_tDyn_ln2_2pt (p1, p3, 0);
+    // GR_tDyn_ln2_2pt (p3, p2, 0);
+    // GR_tDyn_tx2A (p1, "1", 1);
+    // GR_tDyn_tx2A (p2, "2", 1);
+    // GR_tDyn_tx2A (p3, "3", 1);
 
 
 
@@ -10784,8 +10785,8 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // printf("XXXXXXXXXXXXXXXXXXXXXXX UT2D_pt_int_2lnl tol = %f\n",*tol);
   // DEB_dump_obj__ (Typ_LN2, ln1, "  ln1");
   // DEB_dump_obj__ (Typ_LN2, ln2, "  ln2");
-  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
-  // GR_Disp_ln2 (&ln2->p1, &ln2->p2, Typ_Att_blue);
+  // GR_tDyn_ln2_2pt (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_tDyn_ln2_2pt (&ln2->p1, &ln2->p2, Typ_Att_blue);
 
 
   parls = 0.;   // relimited or reverse ?
@@ -11839,7 +11840,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci tol=%f\n",*tol);
   // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
   // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
-  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_tDyn_ln2_2pt (&ln1->p1, &ln1->p2, Typ_Att_blue);
   // GR_Disp_ci2 (ci1, Typ_Att_blue);
 
 
@@ -12377,7 +12378,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX UT2D_2pt_int_ln_ci\n");
   // DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
   // DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
-  // GR_Disp_ln2 (&ln1->p1, &ln1->p2, Typ_Att_blue);
+  // GR_tDyn_ln2_2pt (&ln1->p1, &ln1->p2, Typ_Att_blue);
   // GR_Disp_ci2 (ci1, Typ_Att_blue);
 
 

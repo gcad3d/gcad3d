@@ -563,7 +563,7 @@ double SRU_parsru_utLn2 ();
     *ptNr = ptMax;
     irc = UT3D_pta_ox_lim (ptNr, pTab, (ObjGX*)oxx, 0, NULL, UT_DISP_cv, 2);
     if(irc < 0) return -1;
-      // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
+      // GR_tDyn_npt__ (*ptNr, pTab, SYM_STAR_S, 2);
       // for(i1=0;i1<*ptNr;++i1) DEB_dump_obj__(Typ_PT,&pTab[i1]," pt[%d]=",i1);
 
 
@@ -575,7 +575,7 @@ double SRU_parsru_utLn2 ();
 
 
   // Testdisp.
-  // GR_Disp_pTab (*ptNr, pTab, SYM_TRI_S, 4);
+  // GR_tDyn_npt__ (*ptNr, pTab, SYM_TRI_S, 4);
   // printf("ex UT3D_cv_sruCv %d\n",*ptNr);
 
 
@@ -633,8 +633,8 @@ static Vector vca, vce;
     UT3D_vc_2pt (&vce, &pe, &px2);
       DEB_dump_obj__ (Typ_VC, &vca, " vca=");
       DEB_dump_obj__ (Typ_VC, &vce, " vce=");
-      // GR_Disp_vc (&vca, &pa, 2, 1);
-      // GR_Disp_vc (&vce, &pe, 2, 1);
+      // GR_tDyn_vc (&vca, &pa, 2, 1);
+      // GR_tDyn_vc (&vce, &pe, 2, 1);
     return irc;
   }
 
@@ -758,8 +758,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     UT3D_vc_2pt (&vce, &pe, &px2);
       // DEB_dump_obj__ (Typ_VC, &vca, " vca=");
       // DEB_dump_obj__ (Typ_VC, &vce, " vce=");
-      // GR_Disp_vc (&vca, &pa, 2, 1);
-      // GR_Disp_vc (&vce, &pe, 2, 1);
+      // GR_tDyn_vc (&vca, &pa, 2, 1);
+      // GR_tDyn_vc (&vce, &pe, 2, 1);
 */
 
     if(SRU_clos == 0) {         // normal - not closed
@@ -1033,8 +1033,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   UT3D_vc_2pt (&vc2, &ln2.p1, &ln2.p2);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc1=");
     // DEB_dump_obj__ (Typ_VC, &vc2, " vc2=");
-    // GR_Disp_vc (&vc1, &ln1.p1, 1, 1);
-    // GR_Disp_vc (&vc2, &ln2.p1, 1, 2);
+    // GR_tDyn_vc (&vc1, &ln1.p1, 1, 1);
+    // GR_tDyn_vc (&vc2, &ln2.p1, 1, 2);
 
 
   // haben nun 2 Verbindungslinien; ln1 u ln2

@@ -32,7 +32,7 @@ Modifications:
 #endif
 /*!
 \file  ../gr/ut_DL.c
-\brief displayList functions 
+\brief displayList functions                              see INF_DL__
 \code
 =====================================================
 List_functions_start:
@@ -41,6 +41,20 @@ DL_Init
 DL_InitAttTab           load file ltyp.rc into GR_AttTab and create DL-record
 DL_InitAttRec           define a new lineattributeRecord
 DL_alloc__              realloc space fuer BasModelnames
+
+DL_perm_init            create DL-record for permanent storage
+DL_tDyn_init            create DL-record for temporary-dynamic storage
+DL_temp_init            get GL-index for temporary storage; glNewList();
+DL_att_temp             set temporary-obj to hilite or dim
+DL_att_mdr              set perm/-refModels to hilite or dim
+
+DL_dli_get              get DispListIndex for permanent obj
+DL_set__                store DL-record
+DL_SetInd               modify (do not create new DL-Record); set DL_perm_ind=dli;
+DL_SetObj               get or set disp-list-record.
+DL_StoreObj             Den naechsten freien DispList-Platz belegen
+DL_StoreAtt             store GR_Att in GR_AttTab
+DL_SetTmpObj            store DL-record (only for active vector)
 
 DL_AttLn_store          store line-attribute in table GR_AttTab
 AttLn_Set1              get line-attribute from 3 integers
@@ -51,12 +65,6 @@ IndAttLn_get_ltyp       get linetyp
 DL_Redraw               redraw complete DL
 DL_Draw_obj             redraw single obj, use existing DL-record
 DL_Stat                 ausgabe Statistik
-
-DL_SetInd               modify (do not create new DL-Record); set DL_ind_act=dli;
-DL_SetObj               get or set disp-list-record.
-DL_StoreObj             Den naechsten freien DispList-Platz belegen
-DL_StoreAtt             store GR_Att in GR_AttTab
-DL_SetTmpObj            store DL-record (only for active vector)
 
 DL_get__                returns DispList
 DL_dlRec__dli           get DL-record (DL_Att from GR_ObjTab[objInd]) from dli
@@ -74,7 +82,6 @@ DL_Get_lNr_dli          get sourceLineNumber from DispListIndex
 DL_Get_dli_lNr          get DispListIndex from sourceLineNumber
 DL_GetTrInd             get refSys-Index from dli
 DL_GetPick              get if pickable; 0=unpickable, 1=pickable
-DL_GetGrp               get group1-bit 0=ON 1=not
 DL_GetNrSur             get nr of surs in DispList
 DL_dli__dbo             Objekt typ=typ APTind=ind in der DL suchen
 DL_find_smObj           get dispListIndex of DB-obj from typ/dbi/subModelNr
@@ -114,6 +121,7 @@ DL_grp1__               add / remove (change) Groupbit 1 of DL-Record ind
 DL_grp1_copy            copy all DL-obj with groupBit ON --> GroupList
 DL_grp1_nr_get          count nr of objs in group
 
+DL_ck_typ_dbi           test DisplistRecord - typ and dbi
 DL_dbi_is_visTyp        test if typ == visual typ (VC is not)
 DL_IS_HIDDEN            test if obj is hidden                           INLINE
 DL_OBJ_IS_HIDDEN        test if obj is hidden                           INLINE
@@ -138,7 +146,7 @@ DL_wri_dynDat0
 DL_wri_dynDat1
 
 DL_scale_grp            scale group
-DL_ReScale__
+DL_ReScale__            rescale and redraw
 DL_ReScale_Notes
 DL_ReScale_pt_get       uxmin-uzmax erweitern um Box
 DL_ReScalePoint
@@ -217,7 +225,7 @@ Ablauf:
 Draw temporary objects: 
   for all objects:  use negative dli, eg -2L or -3L
   l1 = -2L;
-  GR_Draw_rect1 (&l1, ..);
+  GR_temp_rect1 (&l1, ..);
   ..
   GL_temp_del_1 (2L);  // delete this temp obj
 
@@ -302,6 +310,7 @@ extern int        GR_pick;                     // NOPICK
 extern int     APT_lNr;            // LineNr of last-processed-obj
 extern int     APT_hidd;           // if last-processed-obj is hidden;
                                    // -1=unknown,0=normal-not-hidden, 1=hidden
+extern long    AP_dli_act;      // index dispList
 extern int     UP_level;
 extern int     AP_mdLev;
 extern int     APT_dispPT, APT_dispPL;
@@ -310,6 +319,7 @@ extern int     APT_dispPT, APT_dispPL;
 // ex ../gr/ut_GL.c:
 extern int     GL_modified;
 extern double  GL2D_Scale;
+extern long    DL_base__;        // first index of normal objects
 
 
 // ex ../gr/ut_gtx.c:
@@ -328,6 +338,12 @@ long       GR_TAB_SIZ = 0;               // momentane size of GR_ObjTab
 long       GR_TAB_INC = 10000;           // beim realloc vergroessern um -
 long       GR_TAB_IND = 0;               // next free rec in GR_ObjTab
 
+int    DL_tempLst[DL_base_font1];    // dispList for temporary-objs
+long   DL_temp_nxt = 1;       // next free temp-index (1-DL_base_font1)
+long   DL_temp_ind = 0;      // if(>0) fixed temp-index to use; 0: get next free.
+
+long   DL_perm_ind = -1L;    // if(>=0) fixed perm-index to use; -1=get next free
+
 
 Att_ln     GR_AttLnTab[GR_ATT_TAB_SIZ];  // line-attributes (dash, color ..)
 // GR_Att     GR_AttTab[GR_ATT_TAB_SIZ];    // die AttributTabelle
@@ -341,11 +357,8 @@ static double uxmin=0.,uymin=0.,uzmin=0.;      // links unten Userkoords
 static double uxmax,   uymax,   uzmax;         // rechts oben in Userkoords
 
 
-static int    DL_disp_act;          // der Status des Hide-Attribut .disp
+       int    DL_disp_act;          // der Status des Hide-Attribut .disp
 
-       long   DL_ind_act=-1L;       //  -1: create a new DL-Rec;
-                                    // >=0: modify existing DL-Rec.
-                                    // Default = creat new (-1)
 static long   DL_hidden = -1L;
 
 
@@ -499,7 +512,8 @@ static long   DL_hidden = -1L;
 
   // check if tag are in DL
   for(dli=0; dli<GR_TAB_IND; ++dli) {
-    if(GR_ObjTab[dli].typ != Typ_Tag) continue;
+//     if(GR_ObjTab[dli].typ != Typ_Tag) continue;
+    if(GR_ObjTab[dli].typ != Typ_ATXT) continue;
 /*
     // test if belongs to subModel
     if((signed short)GR_ObjTab[dli].modInd != AP_modact_ind) {
@@ -520,7 +534,7 @@ static long   DL_hidden = -1L;
     // irc = DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, dli);
     irc = GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
     if(irc < 0) continue;  // zB SymbolTags; werden normal auch gefunden.
-      // printf(" tag-p1=%f,%f,%f\n",p1.x,p1.y,p1.z);
+      // printf(" tag-dli=%ld p1=%f,%f,%f\n",dli,p1.x,p1.y,p1.z);
       // printf(" tag-sx=%d sy=%d dx=%d dy=%d\n",sx,sy,dx,dy);
 
 
@@ -531,12 +545,12 @@ static long   DL_hidden = -1L;
     // ty1,ty1 --> lower left corner
     tx1 = px + dx;
     ty1 = py + dy;
-      // printf(" tx1=%d ty1=%d\n",tx1,ty1);
+      // printf(" LL: tx1=%d ty1=%d\n",tx1,ty1);
 
     // tx2,ty2 - upper right corner
     tx2 = tx1 + sx;
     ty2 = ty1 + sy;
-      // printf(" tx2=%d ty2=%d\n",tx2,ty2);
+      // printf(" UR: tx2=%d ty2=%d\n",tx2,ty2);
 
 
     // check if selectPosition is in Texlabel.
@@ -581,7 +595,7 @@ static long   DL_hidden = -1L;
   }
 
     // TESTBLOCK
-    // printf("ex DL_txtSelect %d\n",iNr);
+    // printf("ex-DL_txtSelect %d\n",iNr);
     // GL_sel_dump (iNr);
     // END TESTBLOCK
 
@@ -1377,7 +1391,7 @@ static long   DL_hidden = -1L;
   // printf("DL_hili_on %ld of %ld DL_hidden=%ld\n",ind,GR_TAB_IND,DL_hidden);
   // printf(" hili=%d disp=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
   // printf(" typ=%d\n",GR_ObjTab[ind].typ);
-  // if(ind >= 0) DL_DumpObj__ (ind);
+  // if(ind >= 0) DL_DumpObj__ (ind, "DL_hili_on");
 
 
   //----------------------------------------------------------------
@@ -1395,7 +1409,7 @@ static long   DL_hidden = -1L;
     GR_ObjTab[ind].hili  = ON;   // ON=0
     GR_ObjTab[ind].disp  = OFF;  // OFF=1
 
-      // DL_DumpObj__ (ind);
+      // DL_DumpObj__ (ind, "ex-DL_hili_on");
       // printf("ex-DL_hili_on\n");
 
 
@@ -1419,7 +1433,8 @@ static long   DL_hidden = -1L;
 
       // test for VC
       if(GR_ObjTab[dli].typ == Typ_VC) {
-        UI_disp_vec1 (Typ_Index, PTR_LONG(GR_ObjTab[dli].ind), NULL);
+        UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(GR_ObjTab[dli].ind),
+                      NULL, ATT_COL_RED);  //Typ_Att_hili1);
 
       } else {
         // if dl[dli] == hidden (1,1): set DL_hidden = dli; 
@@ -1691,7 +1706,7 @@ static long   DL_hidden = -1L;
   unsigned short modnr;
 
 
-  printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
+  // printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
 
   if(ind < 0) return -1;
 
@@ -1881,7 +1896,7 @@ static long   DL_hidden = -1L;
 //=======================================================================
 /// \code
 /// realloc space fuer DL; wird nicht gesichert !
-/// Ind = 0      Reset DL
+/// Ind = 0      Init or Reset DL
 /// Ind = 1      increase DL (add GR_TAB_INC elements)
 /// Ind > 1      set size
 /// \endcode
@@ -1889,6 +1904,7 @@ static long   DL_hidden = -1L;
   long   i1, newSiz;
 
 
+  // printf("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD \n");
   // printf("... DL_alloc__ %ld ind=%ld siz=%ld %p\n",Ind,
          // GR_TAB_IND,GR_TAB_SIZ,GR_ObjTab);
 
@@ -1932,6 +1948,8 @@ static long   DL_hidden = -1L;
    void DL_Init () {
 //============================================================
 
+  int    i1;
+
 
   // printf("LLLLLLLLLLLLLL DL_Init LLLLLLLLLLLLLLLL\n");
 
@@ -1947,6 +1965,8 @@ static long   DL_hidden = -1L;
   DL_alloc__ (0L);
 
   DL_InitAttTab ();
+
+  for(i1=0; i1<DL_base_font1; ++i1) DL_tempLst[i1] = 0;
 
   //  clear DispList
   // GR_Init1 ();
@@ -2223,7 +2243,7 @@ static long   DL_hidden = -1L;
 // redraw single obj, use existing DL-record
 
 
-  // modify (do not create new DL-Record); set DL_ind_act=dli;
+  // modify (do not create new DL-Record); set DL_perm_ind=dli;
   DL_SetInd (dli);
 
   // call GL-Draw (with modified attribute iatt) ..
@@ -2277,6 +2297,282 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
+  long DL_perm_init (int typ, long dbi, int att) {
+//================================================================
+// DL_perm_init            create DL-record for permanent storage
+// + glNewList();
+//
+// see DL_tDyn_init DL_temp_init
+
+
+  long   dli, gli;
+
+  // printf("DL_perm_init typ=%d dbi=%ld, att=%d\n",typ,dbi,att);
+
+
+  //----------------------------------------------------------------
+  // get next free index  (DL_perm_ind must be -1)
+  dli = -1L;
+  gli = DL_dli_get (&dli);
+
+  // create DL-record
+  AP_dli_act = DL_set__ (typ, dbi, dli, att);
+
+  // start GL-list
+  GL_list_open (gli);
+
+    // printf("ex-DL_perm_init %ld\n",gli);
+
+  return gli;
+
+}
+
+
+//================================================================
+  long DL_tDyn_init (int att) {
+//================================================================
+// DL_tDyn_init                create DL-record for temporary-dynamic storage
+// + glNewList();
+//
+// see DL_temp_init
+
+
+  long   dli, gli;
+
+  //----------------------------------------------------------------
+  // get next free index  (DL_perm_ind must be -1)
+  dli = -1L;
+  gli = DL_dli_get (&dli);
+
+  // create DL-record
+  AP_dli_act = DL_set__ (Typ_dynSym, dli, dli, att);
+
+  // start GL-list
+  GL_list_open (gli);
+
+    // printf("ex-DL_tDyn_init %ld\n",gli);
+
+  return gli;
+
+}
+
+
+//================================================================
+  void DL_att_mdr (long dli, int att) {
+//================================================================
+// DL_att_mdr            set perm/-refModels to hilite or dim
+//   att     GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM;
+
+
+  // printf("DL_att_mdr dli=%ld att=%d \n",dli,att);
+
+
+  if(att == GR_TMP_HILI) {
+    DL_hili_on (dli);
+
+
+  } else if(att == GR_TMP_DIM) {
+    DL_dim_on (dli);
+
+
+  } else {
+    DL_hili_off (dli);
+    DL_dim_off (dli);
+  }
+
+}
+
+
+//================================================================
+  void DL_att_temp (long gli, int mode) {
+//================================================================
+// DL_att_temp            set temporary-refModels to hilite or dim
+//   mode    GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM;
+//           use for displaying models (GL_set_mdr - temp)
+
+  // printf("DL_att_temp gli=%ld mode=%d \n",gli,mode);
+
+  DL_tempLst[gli] = mode;
+
+}
+
+
+//================================================================
+  long DL_temp_init () {
+//================================================================
+// DL_temp_init                get GL-index for temporary storage; glNewList();
+// Input:
+//   ind      fixed index: 1 - (DL_base_font1 - 1)
+//            0    get next free index
+//
+// replacing DL_fix_DL_ind for temporary-objects
+
+
+  long   gli;
+
+  // printf("DL_temp_init set=%ld nxtFree=%ld\n",DL_temp_ind,DL_temp_nxt);
+
+  //----------------------------------------------------------------
+  if(DL_temp_ind) {
+    // fixed index
+    gli = DL_temp_ind;
+    DL_temp_ind = 0;
+    if(DL_temp_nxt <= gli) DL_temp_nxt = gli + 1;
+
+  } else  {
+    // get next free index
+    gli = DL_temp_nxt;
+    // printf(" tmp.ind=%d\n",DL_ind);
+    ++DL_temp_nxt;
+  }
+
+  if(gli >= DL_base_font1) {
+    TX_Print("********* DL_temp_init E2 - TempList overflow ************");
+    gli = DL_base_font1 - 1;
+    DL_temp_nxt = gli;
+  }
+
+  // set att = 1 = normal
+  DL_tempLst[gli] = 1;
+
+  // start GL-list
+  GL_list_open (gli);
+
+  L_exit:
+    // printf("ex-DL_temp_init %ld\n",gli);
+  return gli;
+
+}
+
+
+//================================================================
+  long DL_dli_get (long *dli) {
+//================================================================
+// DL_dli_get             get DispListIndex for permanent obj
+//   returns the GL-index 
+// Input:
+//   DL_perm_ind >= 0   fixed DispListIndex
+//              -1     next free DispListIndex 
+// Output:
+//   dli        DL-index
+//   retCode    the GL-index (DL_base__ added)
+//              -1 Error
+//
+// DL_SetInd() sets DL_perm_ind = dli for overwrite-existing-objects
+//
+// was GL_fix_DL_ind
+
+  long   gli;
+
+
+  //----------------------------------------------------------------
+  // overwrite existing dispListIndex (was set with DL_SetInd())
+  if(DL_perm_ind >= 0L) {
+      // printf(" XXXXXXX overwrite; DL_perm_ind=%d \n",DL_perm_ind);
+    if(DL_perm_ind >= GR_TAB_SIZ) {TX_Error("DL_dli_get E1"); return -1L;}
+    *dli = DL_perm_ind;
+    DL_perm_ind  = -1L;    // preset default = create new DL-Record.
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // get next free dispListIndex
+  // set DL-index is next free record
+  *dli = GR_TAB_IND;
+  ++GR_TAB_IND;
+      // printf(" dlInd=%ld lNr=%d IND=%ld\n",dlInd,lNr,GR_TAB_IND);
+
+  if(GR_TAB_IND >= GR_TAB_SIZ) {
+    if(DL_alloc__ (1L) < 0) return -1L;
+  }
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // printf("ex-DL_dli_get %ld\n",*dli);
+
+  return (*dli + DL_base__);
+  // return (*dli);
+
+}
+
+
+//================================================================
+  long DL_set__ (int typ, long dbi, long dli, int atti) {
+//================================================================
+// DL_set__                                   store DL-record
+// Input:
+//   GLOBAL: WC_sur_ind AP_modact_ind DL_disp_act GR_pick
+//
+// replacing DL_StoreObj()
+
+  int     lNr;
+  DL_Att  dlRec;
+
+
+  // printf("DL_set__ typ=%d dbi=%ld dli=%ld\n",typ,dbi,dli);
+
+
+  //----------------------------------------------------------------
+  // fix lNr
+  if(AP_mdLev >= 0) {
+    AP_mdGet (&lNr);
+
+  } else if(UP_level >= 0) {
+    lNr = APT_UP_get ();
+    // printf(" calling lNr = %d\n",lNr);
+
+  } else {
+    lNr = APT_lNr;
+  }
+    // printf(" _StoreObj lNr=%d AP_mdLev=%d UP_level=%d APT_lNr=%d\n",
+           // lNr, AP_mdLev, UP_level, APT_lNr);
+
+
+    dlRec = DL_Att_NUL;   // OFF=1, ON=0
+      // printf(" dim=%d\n",dlRec.dim);
+
+
+
+  //----------------------------------------------------------------
+    dlRec.lNr    = lNr;           // die momentane APT-LineNr
+    dlRec.typ    = typ;           // zB Typ_LN
+    dlRec.ind    = dbi;
+    dlRec.iatt   = atti;
+
+    dlRec.irs    = WC_sur_ind;
+
+    dlRec.modInd = AP_modact_ind;     // (signed short)
+    // dlrec.unvis  = 0;            // Default = visible
+    // dlrec.sChd   = 0;            // Default = indep.
+    // dlrec.sPar   = 0;            // Default = indep.
+
+    dlRec.disp   = DL_disp_act;  // ON od OFF
+    // dlRec.hili   = OFF;
+    // dlRec.dim    = OFF;
+    // dlRec.grp_1  = OFF;
+    dlRec.pick   = GR_pick;
+
+    // dlrec.lay    = GR_lay_act;
+    // dlrec.temp   = itemp;
+
+
+  if(typ == Typ_apDat) dlRec.unvis = OFF;
+
+
+  //----------------------------------------------------------------
+  GR_ObjTab[dli] = dlRec;
+
+      // DL_DumpObj__ (dli);
+
+  return dli;
+
+}
+
+
+//================================================================
   int DL_SetInd (long dli) {
 //================================================================
 /// \code
@@ -2292,7 +2588,7 @@ static long   DL_hidden = -1L;
 
   // printf("########################## DL_SetInd %ld\n",dli);
 
-  DL_ind_act = dli;
+  DL_perm_ind = dli;
 
   return 0;
 
@@ -2322,7 +2618,7 @@ static long   DL_hidden = -1L;
     return 1;
 
   } else {
-    // DL_ind_act = *dli;
+    // DL_perm_ind = *dli;
     return 0;
   }
 
@@ -2340,25 +2636,25 @@ static long   DL_hidden = -1L;
 /// 
 ///  Input:
 ///    Typ        type of obj; eg Typ_PT; see INF_OTYP
-///    DBInd      0    temp. Obj 8 (returns -8L = DLI_TMP; no DL-record).
+///    DBInd      0    temp. Obj 8 (returns -8L = GR_TMP_I0; no DL-record).
 ///               <0   temp. Obj m ind. -GR_TAB_IND
 ///               >0   GR_ObjTab-index
 ///    AttInd     attribute (GR_ObjTab[].iatt)
 ///               for Typ=Typ_apDat:  subType; eg Typ_constPln
 ///  Global-input:
-//     DL_ind_act -1 = create new DL-record else overwrite existing DL-record
+//     DL_perm_ind -1 = create new DL-record else overwrite existing DL-record
 /// 
 ///  Output:
 ///    RetCod     DL-index   (GR_ObjTab)                see INF_DL__
 ///
 /// see also:
-///   GL_view_ini__
+///   GL_view_ini__  DL_set__
 ///   DL_SetInd   preset DL-index (to modify DL-record)
 /// \endcode
 
 // TODO: DBInd<0 - DL-record is written, but resolving buggy.
-//       DL-record for DLI_DIR_TMP ?
-//       results of selection of DLI_TMP-obj ? Of CAD-inputObjects -2 to -7 ?
+//       DL-record for GR_TMP_IDIR ?
+//       results of selection of GR_TMP_I0-obj ? Of CAD-inputObjects -2 to -7 ?
 //         -10 to DL_base_font1 (normal temp-obj's) ?
 
 // DL_StoreObj returns dlInd = index into GR_ObjTab for active object
@@ -2373,7 +2669,7 @@ static long   DL_hidden = -1L;
 
   // printf("DL_StoreObj typ=%d DBind=%ld AttInd=%d - IND=%ld SIZ=%ld\n",
           // Typ, DBInd,AttInd,GR_TAB_IND,GR_TAB_SIZ);
-  // printf("    DL_ind_act=%ld\n",DL_ind_act);
+  // printf("    DL_perm_ind=%ld\n",DL_perm_ind);
   // printf("    DLind=%d SIZ=%d\n",GR_TAB_IND,GR_TAB_SIZ);
   // printf("    WC_sur_ind=%d\n",WC_sur_ind);
   // printf("DL_StoreObj pick = %d\n",GR_pick);
@@ -2384,7 +2680,7 @@ static long   DL_hidden = -1L;
 
   if(DBInd == 0) {       // 2011-10-18
     if (Typ != Typ_APPOBJ)          {
-      dlInd = DLI_TMP;
+      dlInd = GR_TMP_I0;
       goto L_done;
     }
   }
@@ -2400,10 +2696,10 @@ static long   DL_hidden = -1L;
   //----------------------------------------------------------------
   // ist DL-Rec bereits vorhanden ? Dann den DL-Index des existing Record
   // liefern; wurde von DL_SetInd() gesetzt !
-  // printf(" DL_ind_act=%d\n",DL_ind_act);
-  if(DL_ind_act >= 0L) {
-    // printf(" XXXXXXX overwrite; DL_ind_act=%d \n",DL_ind_act);
-    dlInd = DL_ind_act;
+  // printf(" DL_perm_ind=%d\n",DL_perm_ind);
+  if(DL_perm_ind >= 0L) {
+    // printf(" XXXXXXX overwrite; DL_perm_ind=%d \n",DL_perm_ind);
+    dlInd = DL_perm_ind;
     // GL_Del0 (dlInd);
     goto L_done;
   }
@@ -2411,17 +2707,17 @@ static long   DL_hidden = -1L;
 
 
   //----------------------------------------------------------------
-  if(DL_ind_act <= -2L) {
+  if(DL_perm_ind <= -2L) {
     // temporary obj (without a DL-record) wanted 
-    dlInd = DL_ind_act;
-    DL_ind_act = -1L;    // preset default = create new DL-Record.
+    dlInd = DL_perm_ind;
+    DL_perm_ind = -1L;    // preset default = create new DL-Record.
       // printf("ex DL_StoreObj %ld IND=%ld\n",dlInd,GR_TAB_IND);
     goto L_exit;
   }
 
 
   //----------------------------------------------------------------
-  // (DL_ind_act is -1; create (add) new DL-record
+  // (DL_perm_ind is -1; create (add) new DL-record
   // realloc, wenn zu klein
   // if(GR_TAB_IND >= GR_TAB_SIZ) {
   if(GR_TAB_IND >= GR_TAB_SIZ - 8) {
@@ -2480,8 +2776,8 @@ static long   DL_hidden = -1L;
 
   //----------------------------------------------------------------
   L_done:
-  DL_ind_act  = -1L;    // preset default = create new DL-Record.
-  GL_modified = 1;
+  DL_perm_ind  = -1L;    // preset default = create new DL-Record.
+  GL_modified = 1;      // UNUSED !
   DL_disp_act = 0;     // default = ON          2010-12-20
 
 
@@ -2499,7 +2795,7 @@ static long   DL_hidden = -1L;
 
   L_exit:
 
-    // printf("ex DL_StoreObj %ld IND=%ld\n",dlInd,GR_TAB_IND);
+    // printf("ex-DL_StoreObj %ld IND=%ld\n",dlInd,GR_TAB_IND);
     // if(dlInd > GR_TAB_SIZ) AP_debug__ ("DL_StoreObj-E9");
 
   return dlInd;
@@ -2508,16 +2804,19 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
-  int  DL_DumpObj__ (long idl) {
+  int  DL_DumpObj__ (long idl, char *inf) {
 //================================================================
-/// see GA_dump__
+// DL_DumpObj__            dump single dispListrecord
+//   inf        infotext, can be NULL
+// see GA_dump__
 
   short     i20;
   char      cbuf[256], cAtt[32];
   ColRGB    *col;
   stru_2i2  *i2att;
 
-  // printf("DL_DumpObj__ %ld\n",idl);
+
+  if(inf) printf("DL_DumpObj__ %ld    %s\n",idl,inf);
 
 
   if((GR_ObjTab[idl].typ == Typ_SUR)  ||
@@ -2546,7 +2845,7 @@ static long   DL_hidden = -1L;
 
   sprintf(cbuf,
           "%ld typ=%d dbi=%ld att=%s mod=%d\
- rs=%ld uv=%d dis=%d hil=%d dim=%d pi=%d chd=%d par=%d grp=%d lNr=%ld",
+ rs=%d uv=%d dis=%d hil=%d dim=%d pi=%d chd=%d par=%d grp=%d lNr=%ld",
         idl,
         GR_ObjTab[idl].typ,
         GR_ObjTab[idl].ind,
@@ -2585,12 +2884,12 @@ static long   DL_hidden = -1L;
   printf("#### DL_DumpObjTab %ld AP_modact_ind=%d AP_modact_nam=|%s|\n",
          GR_TAB_IND, AP_modact_ind, AP_modact_nam);
 
-  for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1);
+  for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1, NULL);
 
-  printf(" next free temp-index DL_Ind_tmp = %ld\n",GL_GetInd_temp());
+  printf(" next free temp-index DL_temp_nxt = %ld\n",GL_temp_iNxt());
 
   // temp-Liste:
-  // for(l1=1; l1<DL_Ind_tmp; ++l1) {
+  // for(l1=1; l1<DL_temp_nxt; ++l1) {
     // printf(" call temp.o %ld\n",l1);
     // glCallList ((GLuint)l1);                      // execute
   // }
@@ -2969,15 +3268,6 @@ static long   DL_hidden = -1L;
 
 } 
 
-
-//================================================================
-  int DL_GetGrp (long dli) {
-//=============================================================
-// DL_GetGrp             get group1-bit 0=ON 1=not
-
-  return GR_ObjTab[dli].grp_1;
-
-}
 
 //=============================================================
   int DL_GetPick (long objInd) {
@@ -3534,22 +3824,29 @@ static long   DL_hidden = -1L;
 //====================================================================
   int DL_ReScale__ () {
 //====================================================================
+// DL_ReScale__                 rescale and redraw
 
+
+  Point  pb1, pb2;
 
   // printf("DL_ReScale__ \n");
-
-  // Point  pb1, pb2;
 
 
   // test if AP_box_pm1 valid (AP_stat.mdl_box_valid)
   if(AP_mdlbox_invalid_ck()) {
-    // get box of active model
-    UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
-    AP_mdlbox_invalid_reset ();
+      printf(" mdl_box not valid ..\n");
+//     // get box of active model
+//     UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
+//     AP_mdlbox_invalid_reset ();  // set modelbox valid ..
+    // get boxpoints for active modelsize (APT_ModSiz)
+    BBX_def__ (&pb1, &pb2);
+    // rescale and redraw
+    DL_ReScale_box (&pb1, &pb2);
+
+  } else {
+    // rescale and redraw
+    DL_ReScale_box (&AP_box_pm1, &AP_box_pm2);
   }
-  
-  // view box
-  DL_ReScale_box (&AP_box_pm1, &AP_box_pm2);
 
 
   return 0;
@@ -4733,6 +5030,21 @@ static long   DL_hidden = -1L;
 
 }
 
+//================================================================
+   int DL_ck_typ_dbi (long dli, int typ, long ind) {
+//================================================================
+// DL_ck_typ_dbi           test DisplistRecord - typ and ind
+// retCode     0 Ok, typ and ind of GR_ObjTab[dli] match
+//             1 No, typ or ind is different or dli does not exist
+
+
+  if((dli >= GR_TAB_IND)           ||
+     (GR_ObjTab[dli].typ != typ)   ||
+     (GR_ObjTab[dli].ind != ind))  return 1;
+
+  return 0;
+
+}
 
 /* UNUSED
 //================================================================

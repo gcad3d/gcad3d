@@ -63,12 +63,18 @@ void DL_Init ();
 void DL_InitAttTab   ();
 int  DL_InitAttRec   (int ind, int col, int ltyp, int lthick);
 
+long DL_perm_init (int typ, long dbi, int att);
+long DL_tDyn_init (int att);
+long DL_temp_init ();
+
 int  DL_SetObj       (long *dli, int typ, long dbi, int iAtt);
 long DL_StoreObj     (int Typ, long DBInd, int AttInd);
 int  DL_SetInd       (long dli);
 long DL_SetTmpObj    (int typ, long dbi);
 
+long DL_dli_get (long *dli);
 long DL_get__        (DL_Att **dl);
+long DL_set__ (int typ, long dbi, long dli, int atti);
 
 void DL_DumpObjTab   (char *fInf);
 // int  DL_StoreAtt     (long Ind, GR_Att* att1);
@@ -104,6 +110,8 @@ void DL_Lay_ltyp_g1 (int ltyp, int mode);
 void DL_Lay_thk_g1 (int thk, int mode);
 int  DL_Lay_mod (int layNr, int func, int mode);
 int  DL_Lay_add (int layNr);
+
+int DL_ck_typ_dbi (long dli, int typ, long ind);
 
 
 

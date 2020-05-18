@@ -236,12 +236,13 @@ static MemObj    win0;
 
 // cycStat is from 0-1, 0=Start of animation; 1=End.
 
-  long     ind;
+  long     dbi;
   Vector   vcd;
   double   az1, ay, az2;
 
   static long dli;
   static ModelRef *mr;
+  static ModelRef md;
   static ModelBas *mb;
 
   static Point  ptb;   // original basepoint
@@ -260,17 +261,20 @@ static MemObj    win0;
     
 
 
-    // find dispListIndex dli and DB-Index ind of first MeshModel.
-    ind = auxFun1(&dli);
-    if(ind < 0) return -1;
+    // find dispListIndex dli and DB-Index dbi of first MeshModel.
+    dbi = auxFun1(&dli);
+    if(dbi < 0) return -1;
+      printf(" first model in dispList dbi=%ldi dli=%ld\n",dbi,dli);
 
     // get ModRef
-    mr = DB_get_ModRef (ind);
-      // DEB_dump_obj__ (Typ_Mock, mr, "M%d:",ind);
+    mr = DB_get_ModRef (dbi);
+      DEB_dump_obj__ (Typ_Mock, mr, "M%d:",dbi);
+
+    md = *mr;
 
     // get baseModel
     mb = DB_get_ModBas (mr->modNr);
-      // DEB_dump_obj__ (Typ_Model, mb, "Ditto:");
+      DEB_dump_obj__ (Typ_SubModel, mb, "Ditto:");
 
     // save BasePoints, Angles ..
     ptb = mr->po;
@@ -279,6 +283,8 @@ static MemObj    win0;
     UT3D_vc_3db (&vctr, 100., 0., 0.);
     az = 180.;
 
+
+    DL_unvis_set (dli, 1); 
 
     return 0;
   }
@@ -305,7 +311,10 @@ static MemObj    win0;
     az1 = az * cycStat;
     ay  = 0.;
     az2 = 0.;
-      // printf(" az1 = %f\n",az1);
+      printf(" az1 = %f\n",az1);
+
+    md.po.x += 0.2;
+      // printf(" ptb.x=%f\n",ptb.x);
 
 
 
@@ -314,12 +323,18 @@ static MemObj    win0;
   //======== DISPLAY =======================
   L_disp:
 
-  GL_DrawDitto1 (&dli, &mr->po, &mb->po, az1, ay, az2, mr->scl,
-                  mb->DLsiz, mb->DLind);
+  // GLB_DrawInit ();
+  // DL_SetInd (dli);
+  // dli = -8L;
+  // GL_DrawDitto1 (&dli, &ptb, &mb->po, az1, ay, az2, mr->scl,
+                  // mb->DLsiz, mb->DLind);
+  // dbi = 0;
+  // GR_DrawModel (&dbi, 0, &md);
 
-  GL_Redraw ();
-  GLB_DrawExit ();
-  // DL_Redraw ();
+  // endgl und swapbuffer
+  // GLB_DrawExit ();
+
+  DL_Redraw ();
 
 
   return 0;

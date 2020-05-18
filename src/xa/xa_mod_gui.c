@@ -76,29 +76,6 @@ List_functions - see ../xa/xa_mod.c
   int Mod_del_CB (MemObj *mo, void **data);
 
 
-/*
-//====================================================================
-  int Mod_cre__ () {
-//====================================================================
-/// create new SubModel:
-/// - save active Model (AP_modact_nam) -> tmp/Model_<submodelname>
-/// - ask for Modelname; callback -> Mod_cre_CB
-
-  printf("Mod_cre__\n");
-
-
-  // save the active Submodel AP_modact_nam -> TempFile
-  Mod_sav_tmp ();
-
-
-  // ask for new Modelname
-  GUI_GetText(" Name of Submodel: ","Submodel1", -200, Mod_cre_CB);
-
-  return 0;
-
-}
-*/
-
 
 //================================================================
   int Mod_smNam_get (char *smNam) {
@@ -221,20 +198,28 @@ List_functions - see ../xa/xa_mod.c
 
   // clear mainModelspace
   UTF_clear_ ();                    // Clear Mem
+
   // init Modelspace with datum
   sprintf (cbuf1 , "# %s",OS_date1());
   UTF_add_line (cbuf1);
 
   ED_load__ ();  // Memory > Editfenster
-  UNDO_clear ();                 // clear Undo-List
-  GA_hide__ (-1, 0L, 0);           // clear Attribute-Table
-  AP_Init1 ();                      // init Displist, WC_main ..
 
+  UNDO_clear ();                 // clear Undo-List
+
+  GA_hide__ (-1, 0L, 0);           // clear Attribute-Table
+
+  AP_Init1 ();                      // init Displist, WC_main ..
 
   // update Mod.lst
   Mod_mkList (0);
+
   // add new subModel in browserwindow
   Brw_Mod_add (mNam);
+
+
+  // reprocess whole model
+  UI_but_END ();  
 
   return 0;
 
@@ -278,7 +263,7 @@ List_functions - see ../xa/xa_mod.c
 //                        NULL, " select Model", fnam,
 //                        "1", NULL, "60,40");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select model", "40,40");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select model\"", "\"x40,y40\"");
 
   if(i1 < 0) return -1;
 

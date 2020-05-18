@@ -1,8 +1,11 @@
 /* ../inf/Objects-Create.c
 
+TODO: Update - see ../inf/GR_RECORDS.c
 
 ================================================================== */
 void INF_GEOM_OBJ_CR(){                   /*! \code
+
+See also INF_GR_RECORDS    (grafic recordtypes)
 
 
 INF_Source-record
@@ -33,8 +36,8 @@ INF_DisplayList-record
     * DisplayList-records are not filed with the model.
 
 
-INF_Temporary-DisplayList-record
-    * have a DisplayList-record with fixed (negative) Database-record-index
+INF_Temporary-DisplayList-record   (eg 
+    * have type Typ_dynSym; 
     * cannot be hilited.
 
 
@@ -211,15 +214,15 @@ Point p1={10,0,0};
 long dli;
 GR_Disp_pt (&pt1, SYM_STAR_S, 2); // creates temp.obj red circle
 DL_Redraw (); // update display
-dli = GL_GetInd_temp (); // get DL-index of circle
+dli = GL_temp_iNxt (); // get DL-index of circle
 ..
 GL_Delete (dli); // delete obj and all following
-GR_Disp_obj tempDisp obj from typ+struct
-GR_Disp_dbo tempDisp obj from typ+dbInd
+GR_tDyn_obj tempDisp obj from typ+struct
+GR_tDyn_dbo tempDisp obj from typ+dbInd
 GR_Disp_ox temp. display of ObjGX-structs
 GR_Disp_pt,-vc,-vc2,-ln,-ac,-bsp,-pln
-GR_Disp_txi disp integer-chars
-GR_Disp_box disp 3D-boundingBox from 2 points
+GR_tDyn_txiA disp integer-chars
+GR_tDyn_box__disp 3D-boundingBox from 2 points
 UI_disp_Pos temporary display position (red circle)
 UI_disp_vec1
 UI_disp_tra
@@ -241,10 +244,10 @@ void INF_Temporary-DisplayList-record (){        /*! code
 // Use next free dispListindex:
 dli = -1;
 // or get the next free index for direct use:
-dli = GL_GetInd_temp ();
+dli = GL_temp_iNxt ();
 // or use fixed temporary index 2 (-2 to -(DL_base_font1 - 1)):
 long dli = -2; // DispListIndex temp.
-GL_DrawPoly (&dli, 1, pNr, pa);
+GR_tDyn_pcv (&dli, 1, pNr, pa);
 ..
 GL_temp_Delete (-2L); // delete
 GR_Draw.. (&dli, .. // display obj. Do not create DB-record, DL-record.
@@ -290,7 +293,7 @@ Example:
   int subTyp = 1;      // dla.iatt
   int objId = 1;       // dla.ind
   DL_SetObj (&dli, Typ_APPOBJ, objId, subTyp);
-  GL_DrawPoly (&dli, Typ_Att_hili1, pNr, pa);    
+  GR_tDyn_pcv (&dli, Typ_Att_hili1, pNr, pa);    
   or
   GL_DrawSymB (&dli, ATT_COL_GREEN, SYM_STAR_S, &pt);
 

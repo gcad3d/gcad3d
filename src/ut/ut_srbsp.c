@@ -80,7 +80,7 @@ SUSbsp_ck_tol             optimale Anzahl von Punkten in U/V-Richtung ermitteln
 #include "../ut/func_types.h"            // SYM.
 #include "../ut/ut_memTab.h"           // MemTab
 
-
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa.h"                  // aus_SIZ
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 
@@ -465,7 +465,7 @@ L_outOfWorkSpace:
                         Memspc *wrkSeg) {
 //================================================================
 // UT3D_cv_srbspout          outline (polygon) of rat.B-SplSurf
-// see GL_sSym_sbsp
+// see GR_sSym_sbsp
 
   int       i1, p1Nr, pMax;
   CurvRBSpl cv1;
@@ -783,9 +783,9 @@ L_outOfWorkSpace:
     printf(" kV von %f bis %f\n",vMin,vMax);
 
   // das PrimaerGrid darstellen
-  GR_Disp_pTab (uNr, pTab, SYM_TRI_S, 1);
-  GR_Disp_pTab (uNr, &pTab[uNr], SYM_TRI_S, 2);
-  GR_Disp_pTab (uNr, &pTab[uNr*2], SYM_TRI_S, 3);
+  GR_tDyn_npt__ (uNr, pTab, SYM_TRI_S, 1);
+  GR_tDyn_npt__ (uNr, &pTab[uNr], SYM_TRI_S, 2);
+  GR_tDyn_npt__ (uNr, &pTab[uNr*2], SYM_TRI_S, 3);
   //==== TESTAUSG: ================================
 */
 
@@ -883,11 +883,11 @@ L_outOfWorkSpace:
 
 
   //------ Disp new rectangle
-  // GR_Disp_cv (pa, 4, 2);
-  // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);  GR_Disp_tx(&pa[0], " 0", 2);
-  // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);  GR_Disp_tx(&pa[1], " 1", 2);
-  // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);  GR_Disp_tx(&pa[2], " 2", 2);
-  // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);  GR_Disp_tx(&pa[3], " 3", 2);
+  // GR_tDyn_pcv (pa, 4, 2);
+  // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[0], " 0", 2);
+  // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[1], " 1", 2);
+  // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[2], " 2", 2);
+  // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[3], " 3", 2);
   // return -1;
   //------
 
@@ -1054,26 +1054,26 @@ L_outOfWorkSpace:
   v0 = vc - dv;
   UT3D_pt_evparsrbsp (&pa[0], sbs, u0, v0, wrkSpc);
     // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[0], "0", 2);
+    // GR_tDyn_txtA(&pa[0], "0", 2);
 
   u1 = uc + du;
   v1 = vc - dv;
   UT3D_pt_evparsrbsp (&pa[1], sbs, u1, v1, wrkSpc);
     // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[1], "1", 2);
+    // GR_tDyn_txtA(&pa[1], "1", 2);
 
   u2 = uc + du;
   v2 = vc + dv;
   UT3D_pt_evparsrbsp (&pa[2], sbs, u2, v2, wrkSpc);
     // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[2], "2", 2);
+    // GR_tDyn_txtA(&pa[2], "2", 2);
 
   u3 = uc - du;
   v3 = vc + dv;
   UT3D_pt_evparsrbsp (&pa[3], sbs, u3, v3, wrkSpc);
     // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[3], "3", 2);
-    // GR_Disp_cv (pa, 4, 3);
+    // GR_tDyn_txtA(&pa[3], "3", 2);
+    // GR_tDyn_pcv (pa, 4, 3);
 
 
   if(iloop < 16) goto L_next_try;  // Anzahl Versuche Defaul=100
@@ -1372,7 +1372,7 @@ L_outOfWorkSpace:
     for(v1=0; v1<sur->ptUNr; ++v1) {
       pta[v1] = sur->cpTab[u0 + v1];
     }
-    GR_Disp_cv (pta, sur->ptUNr, 2);   // 9=rot
+    GR_tDyn_pcv (pta, sur->ptUNr, 2);   // 9=rot
   }
 
 
@@ -1382,7 +1382,7 @@ L_outOfWorkSpace:
       u0 = u1 * sur->ptUNr;
       pta[u1] = sur->cpTab[u0 + v1];
     }
-    GR_Disp_cv (pta, sur->ptVNr, 1);    // 8=gruen
+    GR_tDyn_pcv (pta, sur->ptVNr, 1);    // 8=gruen
   }
 
 
@@ -1391,14 +1391,14 @@ L_outOfWorkSpace:
   // Ein Grundraster mit gleichmaessigen Parameterabstaenden generieren
   UT3D_ptgrid_srbsp (pta, &du, &dv, sur, 8,  8, &wrkSeg);
 
-  GR_Disp_pTab (64, pta, SYM_STAR_S, 4);
+  GR_tDyn_nsymB (64, pta, SYM_STAR_S, 4);
 
 
   // //================================================================
   // // einzelne Punkte testen ...
   // UT3D_pt_evparsrbsp (pta, sur, 0., 0., &wrkSeg);
 
-  // GR_Disp_pTab (1, pta, SYM_STAR_S, 4);
+  // GR_tDyn_npt__ (1, pta, SYM_STAR_S, 4);
 
 
 

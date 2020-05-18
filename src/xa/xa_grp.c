@@ -138,6 +138,9 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 
 
 //============ Extern Var: =====================
+// ex ../xa/xa_ui_gr.c
+extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
+
 
 
 //============ Local Var: =====================
@@ -196,6 +199,7 @@ static int      GrpNr  = 0;
   for(i1=0; i1<GrpNr; ++i1) {
     DL_hili_off (GrpTab[i1].dlInd);
   }
+  GR_dli_hili = -1L;   // reset hilite selection-list-obj
 
   return 0;
 
@@ -899,7 +903,7 @@ static int      GrpNr  = 0;
 
 
 
-  // printf("Grp_exp |%s|%s|\n",dirNam,fnam);
+  printf("Grp_exp |%s|%s|\n",dirNam,fnam);
 
   // remove Filetyp from fnam
   UTX_ftyp_cut (fnam);
@@ -974,6 +978,8 @@ static int      GrpNr  = 0;
   UTF_file_Buf1_w (fpo);
 
   fclose (fpo);
+
+    printf("ex-Grp_exp\n");
 
   return 0;
 

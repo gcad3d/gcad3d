@@ -197,15 +197,16 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   for(i1=0; i1<ptNr; ++i1) 
     DEB_dump_obj__ (Typ_PT, &pta[i1], "pta[%d]",i1);
 
-  dli = -1L;
-  GL_DrawPoly (&dli, Typ_Att_hili, ptNr, pta);
+  // dli = -1L;
+  // GR_tDyn_pcv (&dli, Typ_Att_hili, ptNr, pta);
+  GR_tDyn_pcv (pta, ptNr, Typ_Att_hili);
 
 
 
   //================================================================
   // display ccv's (without using PRCV)
   // for(i1=0; i1<cvNr; ++i1) 
-    // GR_Disp_obj (Typ_CVTRM, &cva[i1], 8, 0);
+    // GR_tDyn_obj (Typ_CVTRM, &cva[i1], 8, 0);
 
 
   

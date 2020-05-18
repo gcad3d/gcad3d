@@ -109,7 +109,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 /// DBF_init         open DataBaseFile
 
 
-  // printf("DBF_init |%s|\n",fNam);
+  printf("DBF_init |%s|\n",fNam);
 
 
   if ((fDBF = fopen (fNam, "w+b")) == NULL) {
@@ -140,6 +140,12 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   int    keyPad, valPad;
   char   sPadb[] = "    ";
   char   sPad0[] = "\0\0\0\0";
+
+
+
+
+  printf("DBF_add__ |%s| keySiz=%d valSiz=%d\n",key,keySiz,valSiz);
+
 
 
   if(keySiz > SizkDBF) {
@@ -204,11 +210,11 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 /// \endcode
 
 
-  int   ir, il, iActRec, iLoop;
+  int   irc, il, iActRec, iLoop;
   char  *p1;
 
 
-  // printf("DBF_find__ |%s| %d\n",key,iDBF);
+  printf("DBF_find__ |%s| %d\n",key,iDBF);
 
   iActRec = iDBF;
   iLoop = 0;
@@ -225,16 +231,16 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
 
   L_nxt_key:
-    ir = DBF_getNxtKey (&p1, &il);
-      // printf(" after DBF_getNxtKey %d %d\n",ir,il);
-    if(ir < 0) return -1;
+    irc = DBF_getNxtKey (&p1, &il);
+      // printf(" after DBF_getNxtKey %d %d\n",irc,il);
+    if(irc < 0) return -1;
 
 
     // test if record already tested ..
-    if(ir == iActRec) {
+    if(irc == iActRec) {
       ++iLoop;
       if(iLoop > 1) {   // starting second loop ..
-        ir = -1;
+        irc = -1;
         goto L_exit;
       }
     }
@@ -246,9 +252,9 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
   L_exit:
 
-    // printf("ex DBF_find__ %d %d sizVal=%d\n",ir,iDBF,*sizVal);
+    printf("ex DBF_find__ irc=%d sizVal=%d iDBF=%d\n",irc,*sizVal,iDBF);
 
-  return ir;
+  return irc;
 
 }
 
@@ -476,7 +482,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 	hDBF.sizTot = 0;                      // value already read   
 
     // printf("ex DBF_getVal siz=%d\n",*sizVal);
-    // printf(" val=|%s|\n",val);
+    // printf(" val=|%s|\n",(char*)val);
     // DEB_dump_ox__ (val);
 
   return 0;

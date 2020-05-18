@@ -24,38 +24,20 @@ TODO:
 Modifications:
 2020-01-10 Created. RF.
 
------------------------------------------------------
+=============================================================================
+Using:  see INF_GUI_dlg1   (../inf/../inf/GUI.c)
 
-ReBuild:
+
+=============================================================================
+// ReBuild:
 . ../options.sh && make -f GUI_dlg1.mak
 
 
-- Format: exename function parameters
-  - exename: /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk3
-  - function: info|list1|dlgbe
-
-- examples "function parameters":
-list1 /mnt/serv2/devel/gcad3d/gCAD3D/tmp/MdlLst.txt "select model" "40,30"
-
-list1 /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst title "20,16"
-
-info "Directory does not exist"
-
-dlgbe "text" Cancel NO YES --ent "entPreset" 16
-
+// ReBuild and test:
+./GUI_test_dlg1.sh
 
 
 cat /tmp/debug.dat
-
-
-
-gdb\
- /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk2 ..
-
-
-
-gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_dlg1_gtk3.c `pkg-config --libs gtk+-3.0` && ./a.out
-
 
 */
 
@@ -443,7 +425,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 
 //===================================================================
-  int GUI_dlg1_list1_f (void *list_store, char *fnam, char *mode) {
+  int GUI_dlg1_list1_f (void *list_store, char *fnam, int cnr) {
 //===================================================================
 /// GUI_dlg1_list1_f          INTERNAL  populate list
 /// 1 or 2 columns from file (sep = blank)
@@ -454,7 +436,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   FILE        *fpi;
 
 
-  printd("GUI_dlg1_list1_f |%s|\n",fnam);
+  // printd("GUI_dlg1_list1_f |%s| %d\n",fnam,cnr);
 
 
   if ((fpi = fopen (fnam, "r")) == NULL) {
@@ -480,7 +462,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     //----------------------------------------------------------------
     // 1 col-
-    if(mode[0] == '1') {
+    if(cnr == 1) {
       if(p1) { *p1 = '\0'; ++p1;}
       else { UTX_CleanCR (cbuf); p1 = cbuf;}
         // printd(" _list1_f-add-1 |%s|\n",cbuf);
@@ -492,8 +474,10 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
                           -1);            // EndOfParameters !
 
     //----------------------------------------------------------------
-    // 2 cols
+    // all
     } else {
+      // display complete line
+      UTX_CleanCR (cbuf);   // remove  CR-LF
       // find delimiter
 //       p1 = strchr (cbuf, ' ');
 //       if(p1) {
@@ -504,14 +488,14 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 //       }
       gtk_list_store_set (list_store, &iter,
                           0, cbuf,        // Col.0, data,
-                          1, p1,          // Col.1, data,
+                          // 1, p1,          // Col.1, data,
                           -1);            // EndOfParameters !
     }
   }
 
   fclose(fpi);
 
-    printd(" ex-list1_f\n");
+    // printd(" ex-list1_f\n");
 
   return 0;
 
@@ -522,7 +506,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   int GUI_dlg1_list1__ () {
 //================================================================
 
-  int          wsx, wsy, isx, isy;
+  int          wsx, wsy, isx, isy, cnr;
   GtkWidget    *UI_list1_win=NULL, *box0;
   GtkListStore *list_store;
   GtkWidget    *treeView;
@@ -530,7 +514,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   GtkWidget    *scrolled_win;
   GtkTreeViewColumn *col1;        //, *col2;
   GtkTreeSelection *select;
-  char         *p1, *fNam, *wTit, *wSiz;
+  char         *p1, *p2, *fNam, *wTit, *opts;
 
 
   printd("GUI_dlg1_list1__\n");
@@ -540,11 +524,28 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   if(nArg < 5)  return GUI_dlg1_err1 ();
   fNam = paArg[2];
   wTit = paArg[3];
-  wSiz = paArg[4];
+  opts = paArg[4];
 
-  //  get wsx = nr-of-chars-per-line, wsy = nr-of-lines
-  sscanf(wSiz, "%d,%d", &wsx,&wsy);
-    printd(" wsx = %d wsy = %d\n",wsx,wsy);
+
+  //----------------------------------------------------------------
+  // decode options
+  wsx = 0;
+  wsy = 0;
+  cnr = 1; // nr columns; 1 (default, first word of line) or 0 (a=0=complete line)
+  p1 = opts;
+
+  L_nxt__:
+  if(!*p1) goto L_nxt_e;
+  if(*p1 == 'x') wsx = strtol (&p1[1], &p2, 10);
+  else if(*p1 == 'y') wsy = strtol (&p1[1], &p2, 10);
+  else if(*p1 == 'a') cnr = 0; {p2 = p1 + 1;}
+  if(!*p2) goto L_nxt_e;
+  ++p2;  // skip ','
+  p1 = p2;
+  goto L_nxt__;
+
+  L_nxt_e:
+    // printd(" %d %d %d\n",wsx,wsy,cnr);
 
 
   //----------------------------------------------------------------
@@ -562,7 +563,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   // populate list
-  GUI_dlg1_list1_f (list_store, fNam, "1");
+  GUI_dlg1_list1_f (list_store, fNam, cnr);
 
   // create a new view of data
   treeView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (list_store));

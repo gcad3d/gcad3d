@@ -229,7 +229,7 @@ cc -c NC_apt.c
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_edi__.h"            // ED_GetNxtLin
-#include "../xa/xa_uid.h"              //  DLI_TMP
+#include "../xa/xa_uid.h"              // UI_MODE_CAD
 #include "../xa/xa_msg.h"                 // MSG_*
 
 
@@ -286,6 +286,9 @@ extern AP_STAT   AP_stat;
 // ex ../xa/xa_ui.c:
 extern int       UI_InpMode;
 
+
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
 
 
 //===========================================================================
@@ -2718,7 +2721,9 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
   if(ptNr < 2) {
     l1 = -1;
     // GL_DrawPoint (&l1, Typ_Att_hili1, pTab);
-    GR_CrePoint (&l1, 0, pTab);
+    // GR_CrePoint (&l1, 0, pTab);
+    DL_temp_ind = GR_TMP_I0;
+    GR_temp_symB (pTab, SYM_CIR_S, ATT_COL_RED);
     return 1;  // nur 1. Punkt anzeigen
   }
 
@@ -2921,7 +2926,7 @@ int APT_BLEND__  (ObjGX *oxo,
     // Temp.Mode: hilite it, nothing else ..
     } else {
       UI_disp_dbo ((int)aus_typ[1], (long)aus_tab[1], 1);
-        // printf(" after GR_Disp_dbo\n");
+        // printf(" after GR_tDyn_dbo\n");
       return 1;
     }
   }
@@ -4550,6 +4555,7 @@ static  TraRot  trr;
 //=============================================================================
 // pack joint into ObjGX in spcObj (get primary obj with UME_get_start)
 // All data must be inside spcObj (serialized).
+// TODO: change into a single binary obj .. (size+typ+data)
  
   int       ii, i1;
   void      *vp0, *vp1, *vp2, *vp3, *vpd;
@@ -4561,11 +4567,11 @@ static  TraRot  trr;
 // vp2   <aus_typ>     <aus_typ>       1
 
 
-  // printf("\nAPT_decode_Joint %d\n",aus_anz);
-  // printf(" APT_obj_stat=%d\n",APT_obj_stat);
-  // for(i1=0; i1<aus_anz; ++i1) {
-    // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
-  // }
+  printf("\nAPT_decode_Joint %d\n",aus_anz);
+  printf("   APT_obj_stat=%d\n",APT_obj_stat);
+  for(i1=0; i1<aus_anz; ++i1) {
+    printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  }
 
 
 
@@ -4579,8 +4585,8 @@ static  TraRot  trr;
   if(!oxo) goto Par_err;
 
 
-    // DEB_dump_ox_0 (jnt, "APT_decode_Joint");
-    // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
+    DEB_dump_ox_0 (oxo, "APT_decode_Joint");
+    DEB_dump_ox_s_ (oxo, "APT_decode_Joint");
 
 
   return 0;
@@ -6109,7 +6115,7 @@ see APT_decode_fsub
   // rot. Refsys around axis; point pt1 gives new X-direction
   UT3D_pl_rotpt (&pln, &pln, &pt1);
     // GR_Disp_pln (&pln, 9);
-    // GR_Disp_vc (&pla->vx, &pla->po, 9, 0);
+    // GR_tDyn_vc (&pla->vx, &pla->po, 9, 0);
 
 
   //----------------------------------------------------------------
@@ -9564,6 +9570,7 @@ static ModelRef *mod1, modR1;
   int      irc, i1, i2;
   double   d1;
   Point    pt1;
+  Point2   pt21, pt22;
   Vector2  vc20;
 
 
@@ -9621,7 +9628,6 @@ static ModelRef *mod1, modR1;
     i1 += 2;
   }
 
-
   // P-Txt
   if(aus_typ[i1] == Typ_PT) {
     pt1 = DB_GetPoint ((long)aus_tab[i1]);
@@ -9634,8 +9640,8 @@ static ModelRef *mod1, modR1;
     i1 += 2;
   }
 
-
   // A1
+  if(i1 >= aus_anz) goto L_ang2;
   if((aus_typ[i1] == Typ_Angle) ||
      (aus_typ[i1] == Typ_VC)) {
     irc =  APT_decode_angd__d1 (&dim1->a1, &i1, aus_typ, aus_tab);
@@ -9653,7 +9659,6 @@ static ModelRef *mod1, modR1;
   }
 */
 
-
   // headtypes; 0=nix, 1=<, 2=>, 3=/, 4=o;  -1=Default;
   // Default ist also 12.
   if(aus_typ[i1] == Typ_Val) {
@@ -9661,16 +9666,12 @@ static ModelRef *mod1, modR1;
     ++i1;
   }
 
-
-
-
   // Leaderlinestypes; 0=nix, 1=normale Line.  -1=Default;
   // Default ist also 11.
   if(aus_typ[i1] == Typ_Val) {
     if(aus_tab[i1] >= 0)  dim1->ld = aus_tab[i1];
     ++i1;
   }
-
 
   // Zusatztext
   if(aus_typ[i1] == Typ_String) {
@@ -9681,12 +9682,11 @@ static ModelRef *mod1, modR1;
   }
 
 
-
-
   // Aufbereitung; hier machen, sonst bei jedem Redraw erforderlich !
   // printf(" a1=%f LEER=%f\n",dim1->a1,UT_DB_LEER);
   // if(dim1->a1 == (float)UT_DB_LEER) {    // kein A1: Parallelmass !!
   // ACHTUNG: obige Zeile (Vergleich float-double) geht im MS-Win nicht!
+  L_ang2:
   if(dim1->a1 == dim1->a2) {    // kein A1: Parallelmass !!
     vc20.dx = dim1->p2.x - dim1->p1.x;
     vc20.dy = dim1->p2.y - dim1->p1.y;
@@ -9710,8 +9710,13 @@ static ModelRef *mod1, modR1;
   }
 
 
+
+
+  L_exit:
+
+
   // TESTAUSG
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "ex decode_dimen");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-decode_dimen");
 
 
 
@@ -9777,7 +9782,9 @@ static ModelRef *mod1, modR1;
   // Default ist also 12.
   if((aus_typ[i1] == Typ_Val)    ||
      (aus_typ[i1] == Typ_modif))     {
-    dim1->hd = aus_tab[i1];
+    i2 = aus_tab[i1];
+    if((i2 < 0)||(i2 > 4)) goto L_errhd;
+    dim1->hd = i2;
     ++i1;
   }
 
@@ -9820,19 +9827,22 @@ static ModelRef *mod1, modR1;
   }
 */
 
-  APT_modMax1 = 5;    // nr of arrowtypes; 0-4
+  APT_modMax1 = 4;    // nr of arrowtypes; 0-4
 
-  // TESTAUSG
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "_decode_dimdia");
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-APT_decode_dimdia");
+    // END TESTBLOCK
+ 
 
   return 0;
 
-
+  L_errhd:
+  TX_Error(" ParameterError  min 0; max 4");
+  return -1;
 
 
   L_parErr:
   TX_Error(" ParameterError DIM-dia Par. Nr. %d",i1);
-
   return -1;
 
 }
@@ -9847,10 +9857,11 @@ static ModelRef *mod1, modR1;
 
   int     ii;
 
+  *atx = AText_NUL;
+
   ii = 1;
 
   atx->aTyp = 4;  // 4=PointCoord
-  atx->scl = 0;
 
   if(aus_typ[ii] != Typ_PT) goto L_parErr;
   atx->p1 = DB_GetPoint ((long)aus_tab[ii]);
@@ -9860,9 +9871,7 @@ static ModelRef *mod1, modR1;
   if(aus_typ[ii] == Typ_PT) {
     atx->p2 = DB_GetPoint ((long)aus_tab[ii]);
     ++ii;
-
-  } else {
-    atx->txt = NULL;
+    if(ii >= aus_anz) goto L_done;
   }
 
 
@@ -9872,13 +9881,10 @@ static ModelRef *mod1, modR1;
     atx->txt = APT_spc1;
     // printf(" zusTxt=|%s|\n",atx->txt);
     ++ii;
-
-  } else {
-    atx->txt = NULL;
   }
 
 
-
+  L_done:
   // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_ldrp");
 
 
@@ -9901,42 +9907,41 @@ static ModelRef *mod1, modR1;
 
   int     ii;
 
+
+  // printf("APT_decode_ldrc |%d| APT_prim_typ=%d\n",aus_anz,APT_prim_typ);
+  // for(ii=0; ii<aus_anz; ++ii)
+  // printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
+
+
   ii = 1;
 
   atx->aTyp = 3;  // 3=Label-Kreis
-  atx->scl = 0.;
-  atx->ltyp = 0;
-
 
   if(aus_typ[ii] != Typ_PT) goto L_parErr;
   atx->p1 = DB_GetPoint ((long)aus_tab[ii]);
   atx->p1.z = 0.;    // Kreis dzt nur 2D ..
   ++ii;
 
-
   if(aus_typ[ii] == Typ_PT) {
     atx->p2 = DB_GetPoint ((long)aus_tab[ii]);
     atx->p2.z = 0.;    // Kreis dzt nur 2D ..
     ++ii;
-
-  } else {
-    atx->ltyp = -1;
+    if(ii >= aus_anz) goto L_done;
   }
 
   // copy Zusatztext -> APT_spc1
   if(aus_typ[ii] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[ii]);
     atx->txt = APT_spc1;
-    // printf(" zusTxt=|%s|\n",atx->txt);
+      printf(" zusTxt=|%s|\n",atx->txt);
     ++ii;
-
-  } else {
-    atx->txt = NULL;
   }
 
-
-
-  // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_ldrc");
+  L_done:
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_ldrc");
+    // END TESTBLOCK
+ 
   return 0;
 
 
@@ -9961,17 +9966,12 @@ static ModelRef *mod1, modR1;
     // printf(" %d %d %f\n",ii,aus_typ[ii],aus_tab[ii]);
   // }
 
+  *atx = AText_NUL;
 
   ii = 1;
   ip = 0;
 
   atx->aTyp  = 0;  // 0=2D-Text
-  atx->col  = -1;  // kein Block
-  atx->ltyp = -1;  // keine LeaderLine
-  atx->scl  = 0;
-  atx->txt = NULL;
-  atx->p1.x = UT_VAL_MAX;
-
 
 
   L_nxt:
@@ -9993,7 +9993,7 @@ static ModelRef *mod1, modR1;
     atx->aTyp = 2;                     // Block
     atx->col = aus_tab[ii];            // col; 1=gelb, 2=rot,a 3=gruen, 4=blau
     ++ii;
-    // goto L_nxt;
+    if(ii >= aus_anz) goto L_done;
   }
 
   // copy Zusatztext -> APT_spc1
@@ -10005,8 +10005,6 @@ static ModelRef *mod1, modR1;
 
   // if(ii < aus_anz) goto L_parErr;
 
-  APT_modMax1 = 9;    // nr of colors; 0-8
-
   // create pointposition if no text is given ..
   if(!atx->txt) {
     APT_spc1[0] = '\0';
@@ -10014,6 +10012,11 @@ static ModelRef *mod1, modR1;
     atx->txt = APT_spc1;
     atx->col  = -1; // kein Block
   }
+
+
+  L_done:
+  APT_modMax1 = 10;    // nr of colors; 2-10
+
 
     // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_tag");
 
@@ -10034,7 +10037,8 @@ static ModelRef *mod1, modR1;
 // GL_Draw_Tag
 
   int     ii, i1;
-  Point   *pp1;
+  // Point   *pp1;
+  Vector  *vc1;
 
 
   // printf("APT_decode_ldrs %d\n",aus_anz);
@@ -10043,19 +10047,18 @@ static ModelRef *mod1, modR1;
   // }
 
 
+  *atx = AText_NUL;
+
   ii = 1;
 
   atx->aTyp = 5;  // 4=PointCoord
-  atx->scl = 0;
-  atx->col = -1;
-  atx->txt = NULL;
-  // atx->p2  = NULL; p2.x = NAN ?
 
 
   // SymbolPosition
   if(aus_typ[ii] != Typ_PT) goto L_parErr;
   atx->p1 = DB_GetPoint ((long)aus_tab[ii]);
   ++ii;
+  if(ii >= aus_anz) goto L_done;
 
 
   // symbolTyp
@@ -10063,8 +10066,9 @@ static ModelRef *mod1, modR1;
      (aus_typ[ii] == Typ_modif))    {
     i1 = aus_tab[ii];
     if((i1 >= 0)&&(i1<250)) atx->aTyp = i1 + 5;  // offset 5 !  ???
-    else goto L_parErr;
+    else                    goto L_parErr;
     ++ii;
+    if(ii >= aus_anz) goto L_done;
   }
 
 
@@ -10074,25 +10078,31 @@ static ModelRef *mod1, modR1;
     i1 = aus_tab[ii];
     if((i1 > 0)&&(i1<256)) atx->col = i1;
     ++ii;
+    if(ii >= aus_anz) goto L_done;
   }
 
   // for vectors ..
-  if(aus_typ[ii] == Typ_PT) {
-    pp1 = DB_get_PT ((long)aus_tab[ii]);
-    UT3D_vc_2pt ((Vector*)&atx->p2, &atx->p1, pp1);
-    // ++ii;
-
-  } else if (aus_typ[ii] == Typ_VC) {
-    *((Vector*)&atx->p2) = DB_GetVector ((long)aus_tab[ii]);
-    atx->scl = UT3D_len_vc ((Vector*)&atx->p2);
-
-  } else {
-    atx->p2.x = 0.;
-    atx->p2.y = 0.;
-    atx->p2.z = 1.;
+  if(atx->aTyp >= 4) {
+    if(aus_typ[ii] == Typ_PT) {
+      // pp1 = DB_get_PT ((long)aus_tab[ii]);
+      // UT3D_vc_2pt ((Vector*)&atx->p2, &atx->p1, pp1);
+      atx->p2 = DB_GetPoint ((long)aus_tab[ii]);
+  
+    } else if (aus_typ[ii] == Typ_VC) {
+      // *((Vector*)&atx->p2) = DB_GetVector ((long)aus_tab[ii]);
+      // atx->scl = UT3D_len_vc ((Vector*)&atx->p2);
+      vc1 = DB_get_VC ((long)aus_tab[ii]);
+      atx->p2 = atx->p1;
+      UT3D_pt_add_vc__ (&atx->p2, vc1);
+  
+    } else {
+      atx->p2.x = 0.;
+      atx->p2.y = 0.;
+      atx->p2.z = 1.;
+    }
   }
 
-
+/*
   // scale
   if((atx->aTyp == 4)||(atx->aTyp == 5)) {
     // f Vektoren auch die Laenge -> scale
@@ -10100,13 +10110,17 @@ static ModelRef *mod1, modR1;
   } else {
     atx->scl = 1.;   // for Arrowhead
   }
+*/
 
+  L_done:
 
-  // APT_modMax1 = 6;    // nr of symbols; 0-6
+  APT_modMax1 = 10; // colors
   // APT_modMax2 = 9;    // nr of colors; 0-8
 
-
+    // TESTBLOCK
     // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_ldrs");
+    // END TESTBLOCK
+ 
 
   return 0;
 
@@ -10276,24 +10290,27 @@ static ModelRef *mod1, modR1;
 
   // P-Txt
   if(aus_typ[i1] != Typ_PT) goto L_parErr;
-    pt1 = DB_GetPoint ((long)aus_tab[i1]);
-    dim1->p3 = UT2D_pt_pt3 (&pt1);
-    ++i1;
-
+  pt1 = DB_GetPoint ((long)aus_tab[i1]);
+  dim1->p3 = UT2D_pt_pt3 (&pt1);
+  ++i1;
+  if(i1 >= aus_anz) goto L_exit;
 
 
   // headtypes (optional)
   // if(aus_typ[i1] != Typ_Val) goto L_parErr;
   if(aus_typ[i1] == Typ_Val) {
+// TODO: make function to test 2 digits in range 0-4   ILIMCK2 UTI_dig_ck_range
     dim1->hd = aus_tab[i1];
     ++i1;
+    if(i1 >= aus_anz) goto L_exit;
 
     // type leaderlines (optional)
     // if(aus_typ[i1] != Typ_Val) goto L_parErr;
     if(aus_typ[i1] == Typ_Val) {
+// TODO: make function to test 2 digits in range 0-1   ILIMCK2 UTI_dig_ck_range
       dim1->ld = aus_tab[i1];
       ++i1;
-
+      if(i1 >= aus_anz) goto L_exit;
     }
   }
 
@@ -10308,16 +10325,17 @@ static ModelRef *mod1, modR1;
 
 
   // Aufbereitung; hier machen, sonst bei jedem Redraw erforderlich !
+  L_exit:
 
 
-
-  // TESTAUSG
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "_decode_dima");
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-APT_decode_dima");
+    // END TESTBLOCK
 
 
   return 0;
 
-
+ 
 
   L_parErr:
   TX_Error(" ParameterError DIMA Par. Nr. %d",i1);
@@ -10381,10 +10399,10 @@ static ModelRef *mod1, modR1;
     // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
 
+  *atx = AText_NUL;
 
   // Def:
   atx->aTyp = 1;
-  atx->scl = 0.;
 
   ii = 1;
 /*
@@ -10453,9 +10471,6 @@ static ModelRef *mod1, modR1;
     atx->txt = APT_spc1;
     // printf(" zusTxt=|%s|\n",atx->txt);
     ++ii;
-
-  } else {
-    atx->txt = NULL;
   }
 
 
@@ -10467,6 +10482,7 @@ static ModelRef *mod1, modR1;
 
   // APT_modMax1 = 4;    // nr of linetypes; 0-3
   APT_modMax1 = DL_GetAttNr ();   // nr of defined linetypes
+
 
   // DEB_dump_obj__ (Typ_ATXT, atx, "ex APT_decode_img");
 
@@ -13866,7 +13882,7 @@ Rückgabewert ist der gefundene Index.
         // vc1 = Normalwinkel auf pt1-pt0 in der X-Y-Ebene.
         UT3D_vc_perp2vc (&vc2, &vc1, (Vector*)&WC_sur_act.vz);
         UT3D_vc_setLength (&vc2, &vc2, 1.);
-          // GR_Disp_vc (&vc2, &pt1, 2, 0);
+          // GR_tDyn_vc (&vc2, &pt1, 2, 0);
 
         // [Angle-Tilt]
         // if(aus_typ[i1] != Typ_Angle) goto Par_err;
@@ -18374,7 +18390,7 @@ Rückgabewert ist der gefundene Index.
 
     // for(i1=0;i1<aus_anz;++i1)
     // printf(" aus_typ[%d] %d aus_tab %f\n",i1,aus_typ[i1],aus_tab[i1]);
-    // printf(" oTyp=%d oInd=%d\n",oTyp,oInd);
+    // printf(" APT_store_obj oTyp=%d oInd=%d\n",oTyp,oInd);
 
 
 
@@ -18391,8 +18407,8 @@ Rückgabewert ist der gefundene Index.
 
 
     //---------------------------------------------------------------
-    // case Typ_GTXT:                    // N20=..
     case Typ_Note:                    // N20=..
+        // printf(" Typ_Note- %d\n",(int)aus_tab[0]);
       if((int)aus_tab[0] == T_IMG)  {
         i1 = APT_decode_img ((AText*)obj1, aus_anz, aus_typ, aus_tab);
         if(i1 < 0) goto Problem1;
@@ -19742,7 +19758,7 @@ Rückgabewert ist der gefundene Index.
 //  pNr = 20; // maxNr
 //  irc = UTO_stru_int (&pNr, pa, va, o0Typ, obj0, o1Typ, obj1, wrkSpc);
 //  if(irc < 0) goto GeomErr;
-//    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+//    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
 //
 //
 //  // imod korrigieren; index > pa/va bestimmen
@@ -19775,7 +19791,7 @@ Rückgabewert ist der gefundene Index.
 //  pNr = 20; // maxNr
 //  irc = UTO_stru_int (&pNr, pa, va, o0Typ, obj0, o2Typ, obj2, wrkSpc);
 //  if(irc < 0) goto GeomErr;
-//    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+//    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
 //
 //
 //  // imod korrigieren; index > pa/va bestimmen
@@ -19961,7 +19977,7 @@ Rückgabewert ist der gefundene Index.
 //  pNr = 20; // maxNr
 //  i1 = UTO_stru_int (&pNr, pa, va, o0Typ, obj0, o2Typ, obj2, wrkSpc);
 //  if(i1 < 0) goto GeomErr;
-//    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+//    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
 //
 //
 //  // die Endpunkte von o0 nach pe1, pe2 holen
@@ -22699,7 +22715,7 @@ static Line lno;
     // get normal-vector vcn from vci and WC_sur_act
     UT3D_vc_perp2vc (&vcn, vz, &vci);
       // DEB_dump_obj__ (Typ_VC, &vcn, " vcn ");
-      // GR_Disp_vc (&vcn, &((Line*)vp1)->p1, 8, 1);
+      // GR_tDyn_vc (&vcn, &((Line*)vp1)->p1, 8, 1);
 
     // test if vcn == 0 (vci == vcz). Yes: set vcn = WC_sur_act.vy
     if(UT3D_compvc0(&vcn, UT_TOL_min0)) vcn = WC_sur_act.vy;

@@ -65,21 +65,21 @@ UI_GR_get_actPos_    return the active cursorPosition as string "<x> <y> <z>"
 UI_GR_get_actPosA    get current curPos in userCoords on constructionPlane
 UI_GR_SelVert        get vertex nearest to cursor
 
-UI_GR_CB_Sel2        CB of MouseOverPopup-Eintrag
+UI_popSel_CB__       CB of MouseOverPopup-Eintrag
+UI_popSel_CB_prev    hilite obj ../ LEAVE Popup-ListObj; clear last previewed
+
 UI_GR_Select1        get objs from GL
 UI_GR_Select2        Popup-Eintrag selektiert
-UI_GR_Select3        hilite obj ../ LEAVE Popup-ListObj; clear last previewed
 UI_GR_Sel_Filt_set
 UI_GR_Destroy
 UI_GR_view_set_func  unused
-UI_GR_view_set_Cen__ set new screen-center
+UI_vwz_set set new screen-center
 UI_GR_view_set_Cen1
 UI_GR_Indicate
 UI_GR_Select_work_vc selection (only for vector)
 UI_GR_Select_work1   selection
 UI_GR_Select_work2   selection
 UI_GR_Select_selLst  entry in popup-list selected
-UI_GR_Select_prevOn  ENTER Popup-ListObj; preview object
 UI_GR_selMen_init    create popup-menu for mousebutton-middle
 UI_GR_selMen_cbSel   callback of popup-menu
 
@@ -105,6 +105,9 @@ UI_GR_dump_selTab    dump selTab
 
 List_functions_end:
 =====================================================
+UNUSED
+// UI_popSel_CB_prevOff    hilite obj ../ LEAVE Popup-ListObj; clear last previewed
+// UI_popSel_CB_prevOn  ENTER Popup-ListObj; preview object
 // UI_key_sel_fi
 // UI_GR_setKeyFocus    set focus to glarea widget
 // UI_GR_view
@@ -212,7 +215,7 @@ extern int       KeyStatEscape;
 extern int       UI_Focus;
 extern int       UI_InpMode;
 // extern int       UI_InpSM;               // S/M/DEL; ON od OFF
-extern int       UI_InpVWZ;              // ViewZ aktiv; ON od OFF
+extern int       UI_vwz_is_on;              // ViewZ aktiv; ON od OFF
 extern int       UI_EditMode;            // Add/Modify/Delete
 extern char      UI_stat_view;
 extern char      UI_stat_hide;
@@ -221,18 +224,15 @@ extern int       UI_RelAbs;                 // 0=Rel, 1=Abs
 extern int       (*UI_UserKeyFunc) (); 
 extern int       xa_fl_TxMem;
 
-
 // aus ../ci/NC_Main.c:
 extern int     APT_dispPT, APT_dispPL, APT_dispSOL;
-
 
 // ex ../gr/ut_gr.c
 extern int GR_actView;
 
-
 // aus ../gr/ut_DL.c:
 extern DL_Att  *GR_ObjTab;  // das ist die DL
-
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
 
 // ex ../xa/xa_sele.c
 extern int    GR_selTyp;
@@ -451,6 +451,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     }
 
     AP_tmr_init ();
+    NC_setRefsys (0L);
     AP_stat.sysStat = 3;
 
     // if mode == CAD then check for startFunction
@@ -820,12 +821,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     }
 
     // Check ob ViewZ aktiv ist
-    // UI_AP (UI_FuncGet, UID_ckb_vwz, (void*)&ckb_vwz_stat);
-    // if(ckb_vwz_stat == 0) mode = 1;          // ViewZ YES
-
-    if(UI_InpVWZ == ON) {
+    if(UI_vwz_is_on == ON) {
       // set new screenCenter
-      UI_GR_view_set_Cen__ (0);
+      UI_vwz_set (0);
       goto Fertig;
 
 
@@ -2069,7 +2067,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // printf("UI_unHili \n");
 
   // remove tempObj
-  GL_temp_del_1 (DLI_TMP);  // 2015-01-04
+  GL_temp_del_1 (GR_TMP_I0);  // 2015-01-04
 
   // clear group and reset hilite-flags
   if(Grp_get_nr() > 0) Grp_Clear (0);
@@ -2096,7 +2094,6 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // printf("UI_key_escape ctrlOn=%d\n",ctrlOn);
   // printf(" UI_InpMode=%d\n",UI_InpMode);
-
 
 
   //----------------------------------------------------------------
@@ -2150,6 +2147,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // VWR: unhilite selected obj's
     Grp_Clear (2);   
     // UI_unHili ();  // clear group, unhilite all objs
+    irc = UI_popSel_CB_prev (-1); // remove temporary-obj
+    // if(!irc) return 0;
+
 
 
   //----------------------------------------------------------------
@@ -2191,6 +2191,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 }
 
 
+/*
 //================================================================
   int UI_key_sel_fi (int iKey) {
 //================================================================
@@ -2203,103 +2204,104 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 // 2012-07-30
   TX_Error ("UI_key_sel_fi");
 
-/*
-    // printf(" filter=%d\n",selFi);
-  if(selFi != 0) { 
-    if(KeyStatCtrl == ON) goto L_no_group;   // skip control-funcs
-    if(iKey == GDK_Escape) {
-      if(selFi == 16) {    // ModifyModelPos: clear previous Entryfield
-        UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUndo));
-        goto AllDone;
-      }
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("Esc");
-        goto AllDone;
-      }
-      
-      xbuf[0] = '\0';
-      UI_GR_Sel_Filt_reset ();      // reset selectionFilter
-      goto AllDone;
-    
-    } else if(iKey == GDK_Tab) {
-      if(selFi == 16) {    // ModifyModelPos: jump into next Entryfield
-        UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncNext));
-        goto AllDone;
-      }
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("Tab");
-        goto AllDone;
-      }
-    
-    } else if(iKey == GDK_Page_Up) {
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("PgUp");
-        goto AllDone;
-      }
-
-    } else if(iKey == GDK_Page_Down) {
-      if(selFi == 17) {    // Form active
-        PRG_key_CB ("PgDwn");
-        goto AllDone;
-      }
-
-    }
-    if((selFi == 4)||(selFi == 5)) {       // 4=dump_obj | 5=add_to_group
-      // if(iKey == GDK_Tab)  // im CAD fuer GotoNextInputfield erforderlich !
-        // goto L_no_group;
-
-      if(iKey == GDK_Tab) {
-        if(UI_InpMode == UI_MODE_CAD) { // CAD-add_to_group (INTersect)
-          goto Finish;  // use default-handler = acticate next Inp.field
-        }
-
-      } else if(iKey == GDK_Return) {
-        GUI_Tx_rmLast ();
-        APED_dbo_oid (&i1, &l1, xbuf);
-        if(selFi == 4) {     // dump obj
-          UI_dump_obj (i1, l1);
-          UI_GR_Sel_Filt_reset ();      // reset dump
-        } else {         // 5 = add to group
-          l2 = DL_dli__dbo (i1, l1, -1L);
-          if(l2 < 0) {
-            TX_Print("******  Obj. %s nicht gefunden",xbuf);
-          } else {
-            // add/remove to group
-            DL_grp1__(l2, xbuf, 0, 0);  // DL_grp1_set
-          }
-        }
-        xbuf[0] = '\0';
-      } else if((iKey == GDK_BackSpace) ||        // RemoveLeftChar-Taste  <x|
-                (iKey == GDK_Delete))       {     // Entf
-        i1 = strlen(xbuf);
-        // printf(" backSp %d |%s|\n",i1,xbuf);
-        if(i1 > 0) {
-          xbuf[i1-1] = '\0';
-          GUI_Tx_rmLast ();
-          TX_Print("...... sel. obj %s",xbuf);
-        }
-      } else {
-        // check for alfanum-char ...
-        if((isalnum(iKey)) && (iKey < 125)) {
-        // printf(" iKey=%d\n",iKey);
-        // add character to buffer xbuf
-        i1 = strlen(xbuf);
-        // printf(" add key %d %d |%s|\n",iKey,i1,xbuf);
-        xbuf[i1] = iKey;
-        xbuf[i1+1] = '\0';
-        GUI_Tx_rmLast ();
-        TX_Print("...... sel. obj %s",xbuf);
-        }
-      }
-      goto AllDone;
-    } else {
-      xbuf[0] = '\0';
-    }
-  }
-*/
+/
+//     // printf(" filter=%d\n",selFi);
+//   if(selFi != 0) { 
+//     if(KeyStatCtrl == ON) goto L_no_group;   // skip control-funcs
+//     if(iKey == GDK_Escape) {
+//       if(selFi == 16) {    // ModifyModelPos: clear previous Entryfield
+//         UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncUndo));
+//         goto AllDone;
+//       }
+//       if(selFi == 17) {    // Form active
+//         PRG_key_CB ("Esc");
+//         goto AllDone;
+//       }
+//       
+//       xbuf[0] = '\0';
+//       UI_GR_Sel_Filt_reset ();      // reset selectionFilter
+//       goto AllDone;
+//     
+//     } else if(iKey == GDK_Tab) {
+//       if(selFi == 16) {    // ModifyModelPos: jump into next Entryfield
+//         UI_WinTra__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncNext));
+//         goto AllDone;
+//       }
+//       if(selFi == 17) {    // Form active
+//         PRG_key_CB ("Tab");
+//         goto AllDone;
+//       }
+//     
+//     } else if(iKey == GDK_Page_Up) {
+//       if(selFi == 17) {    // Form active
+//         PRG_key_CB ("PgUp");
+//         goto AllDone;
+//       }
+// 
+//     } else if(iKey == GDK_Page_Down) {
+//       if(selFi == 17) {    // Form active
+//         PRG_key_CB ("PgDwn");
+//         goto AllDone;
+//       }
+// 
+//     }
+//     if((selFi == 4)||(selFi == 5)) {       // 4=dump_obj | 5=add_to_group
+//       // if(iKey == GDK_Tab)  // im CAD fuer GotoNextInputfield erforderlich !
+//         // goto L_no_group;
+// 
+//       if(iKey == GDK_Tab) {
+//         if(UI_InpMode == UI_MODE_CAD) { // CAD-add_to_group (INTersect)
+//           goto Finish;  // use default-handler = acticate next Inp.field
+//         }
+// 
+//       } else if(iKey == GDK_Return) {
+//         GUI_Tx_rmLast ();
+//         APED_dbo_oid (&i1, &l1, xbuf);
+//         if(selFi == 4) {     // dump obj
+//           UI_dump_obj (i1, l1);
+//           UI_GR_Sel_Filt_reset ();      // reset dump
+//         } else {         // 5 = add to group
+//           l2 = DL_dli__dbo (i1, l1, -1L);
+//           if(l2 < 0) {
+//             TX_Print("******  Obj. %s nicht gefunden",xbuf);
+//           } else {
+//             // add/remove to group
+//             DL_grp1__(l2, xbuf, 0, 0);  // DL_grp1_set
+//           }
+//         }
+//         xbuf[0] = '\0';
+//       } else if((iKey == GDK_BackSpace) ||        // RemoveLeftChar-Taste  <x|
+//                 (iKey == GDK_Delete))       {     // Entf
+//         i1 = strlen(xbuf);
+//         // printf(" backSp %d |%s|\n",i1,xbuf);
+//         if(i1 > 0) {
+//           xbuf[i1-1] = '\0';
+//           GUI_Tx_rmLast ();
+//           TX_Print("...... sel. obj %s",xbuf);
+//         }
+//       } else {
+//         // check for alfanum-char ...
+//         if((isalnum(iKey)) && (iKey < 125)) {
+//         // printf(" iKey=%d\n",iKey);
+//         // add character to buffer xbuf
+//         i1 = strlen(xbuf);
+//         // printf(" add key %d %d |%s|\n",iKey,i1,xbuf);
+//         xbuf[i1] = iKey;
+//         xbuf[i1+1] = '\0';
+//         GUI_Tx_rmLast ();
+//         TX_Print("...... sel. obj %s",xbuf);
+//         }
+//       }
+//       goto AllDone;
+//     } else {
+//       xbuf[0] = '\0';
+//     }
+//   }
+*
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -2430,6 +2432,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // printf("UI_GR_ScalAuto L1 \n");
 
+  // set view and redraw
   if(mode == 0) {
     UI_view__ ("ResView"); // ScaleAll   UI_viewCB()
 
@@ -3484,7 +3487,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 */
 
 //===============================================================
-  int UI_GR_CB_Sel2 (MemObj *mo, void **data) {
+  int UI_popSel_CB__ (MemObj *mo, void **data) {
 //===============================================================
 // CB of MouseOverPopup-Eintrag (noch NICHT selektiert)
 // return FALSE;   bei TRUE kein hilite des entry under cursor!
@@ -3502,11 +3505,11 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   iEv = GUI_DATA_EVENT;
   isel = GUI_DATA_I1;
 
-  // printf("UI_GR_CB_Sel2 ev=%d isel=%d\n",iEv,isel);
+  // printf("UI_popSel_CB__ ev=%d isel=%d\n",iEv,isel);
 
 
-  // printf("UI_GR_CB_Sel2 type=%d %d\n",event->type,INT_PTR(data));
-  // printf("UI_GR_CB_Sel2 mode=%d stat=%d data=%d\n",
+  // printf("UI_popSel_CB__ type=%d %d\n",event->type,INT_PTR(data));
+  // printf("UI_popSel_CB__ mode=%d stat=%d data=%d\n",
             // event->mode,event->state,(int)data);
 
 
@@ -3525,7 +3528,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   } else if(iEv == TYP_EventEnter) {
     // preview
     // UI_GR_Select1 (101, &isel);
-    UI_GR_Select_prevOn (isel);
+    UI_popSel_CB_prev (isel);
 
 
   // } else if (event->type == GDK_LEAVE_NOTIFY) {
@@ -3534,7 +3537,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // UI_GR_Select1 (102, &isel);
     // LEAVE Popup-ListObj; clear last previewed
     // unhilite last displayed object
-    UI_GR_Select3 (-1L);
+    UI_popSel_CB_prev (-1);
 
 /*
   // } else if (event->type == GDK_UNMAP) {
@@ -3551,32 +3554,58 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
 //================================================================
-  int UI_GR_Select_prevOn (int isel) {
+  int UI_popSel_CB_prev (int isel) {
 //================================================================
-// UI_GR_Select_prevOn                 ENTER Popup-ListObj; preview object
+// UI_popSel_CB_prevOn                 ENTER Popup-ListObj; preview object
 //   cursor is over Popup-ListObj[isel]; preview this obj
-
 // Input:
+//   isel    0-n    enter line <isel> in popup-list
+//           -1     leave last entered line in popup-list
 //   selTab
 //   namTab
 //   selPos 
 
+  static int  selLn_typ = 0;
+  static long selLn_ind;
 
   int     typ;
   long    dbi, dli, l1;
   Point   selPos;
 
 
-  // printf("UI_GR_Select_prevOn %d\n",isel);
+  // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
+  // printf("UI_popSel_CB_prev %d\n",isel);
+  // printf("  selLn_typ=%d selLn_ind=%ld\n",selLn_typ,selLn_ind);
 
-  if(isel < 0) goto L_exit;
 
+  if(isel < 0) {
+    //===== clear active temporary-obj ==================================
+    // eg. leave last enterd line in popup-list
+    if(selLn_typ == GR_OTYP_TEMP) {
+      GL_temp_del_1 ((int)selLn_ind);
+
+    } else if(selLn_typ == GR_OTYP_PERM) {
+      DL_hili_off (selLn_ind);
+
+    } else if(selLn_typ == GR_OTYP_NONE) {
+      return -1;
+
+    } else TX_Print ("****** UI_popSel_CB_prev E00");
+
+    selLn_typ = GR_OTYP_NONE;
+    goto L_exit;
+  }
+
+
+
+  //===== enter line <isel> in popup-list ==========================
+  selLn_typ = 0;
 
   // skip objects previewed later:
   typ = selTab[isel].typ;
   dbi = selTab[isel].dbInd;
   dli = selTab[isel].dlInd;
-    // printf(" L_mode101-preview: typ=%d dbi=%ld dli=%ld |%s|\n",
+    // printf(" UI_popSel_CB_prev: typ=%d dbi=%ld dli=%ld |%s|\n",
            // typ, dbi, dli, namTab[isel]);
 
 
@@ -3594,33 +3623,36 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   // indicate|ConstrPln: Kreiserl an der VertexPosition
-  if(selTab[isel].typ == Typ_TmpPT) {
+  if((typ == Typ_TmpPT)                 ||
+     (!strcmp("Vertex", namTab[isel])))    {
     DL_hili_on (-1L); // loeschen der Hili-Tabelle
-    l1 = -2L;
+//     l1 = -2L;
+    selLn_typ = GR_OTYP_TEMP;
+    DL_temp_ind = GR_TMP_I0;
+    selLn_ind = GR_TMP_I0;
     sele_get_pos__ (&selPos);
-    GLB_DrawInit ();
-    GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &selPos);  // rot
-      // printf("GL_DrawSymB l1=%ld\n",l1);
-    GL_Redraw();
-    GLB_DrawExit ();
+    GR_temp_symB (&selPos, SYM_CIR_S, Typ_Att_hili1);
     goto L_exit;
   }
 
   // preview vector
-  if(selTab[isel].typ == Typ_VC) {
+  if(typ == Typ_VC) {
       // printf(" preview vec %ld\n",selTab[isel].dbInd);
+    selLn_typ = GR_OTYP_TEMP;
+    selLn_ind = GR_TMP_I0;
     sele_get_pos__ (&selPos);
-    UI_disp_vec1 (Typ_Index, PTR_LONG(selTab[isel].dbInd), &selPos);
-    GR_dli_hili = DLI_TMP;
+    UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(selTab[isel].dbInd),
+                  &selPos, Typ_Att_hili1);
     goto L_exit;
   }
 
 
-  // preview subcurv
+  // preview subcurv     eg P(L21 PTS(1))
   if(namTab[isel][1] == '(') {
-    UI_GR_Select3 (-1L);
-    UI_GR_disp_oid (namTab[isel], Typ_Att_hili1);
-    GR_dli_hili = DLI_TMP;
+    // UI_popSel_CB_prevOff (-1L);
+    selLn_typ = GR_OTYP_TEMP;
+    selLn_ind = GR_TMP_I0;
+    UI_disp_oid (GR_TMP_I0, namTab[isel], Typ_Att_hili1);
     goto L_exit;
   }
 
@@ -3628,22 +3660,27 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // preview hidden parent
   // if(DL_parent_ck_p(dli)) {
   if(selTab[isel].stat == 2) {
-    UI_GR_Select3 (-1L);
+    // UI_popSel_CB_prevOff (-1L);
     // Typ_Att_top2 = for parentObj's
-    UI_GR_disp_oid (namTab[isel], Typ_Att_top2);
-    GR_dli_hili = DLI_TMP;
+    selLn_typ = GR_OTYP_TEMP;
+    selLn_ind = GR_TMP_I0;
+    UI_disp_oid (GR_TMP_I0, namTab[isel], Typ_Att_top2);
     goto L_exit;
   }
 
 
-
-  // preview normal obj hilited
-  UI_GR_Select3 (selTab[isel].dlInd);    // hilite
-
-
+  //----------------------------------------------------------------
+  // preview perm.obj hilited
+  selLn_typ = GR_OTYP_PERM;
+  selLn_ind = dli;
+  DL_hili_on (dli);
+  
 
   L_exit:
-    // printf(" ex-UI_GR_Select_prevOn\n");
+
+  DL_Redraw ();
+
+    // printf(" ex-UI_popSel_CB_prevOn\n");
 
   return 0;
 
@@ -3681,6 +3718,15 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   GR_selDli = selTab[isel].dlInd;
     // printf(" set GR_selDli %ld\n",GR_selDli);
 
+
+
+  //----------------------------------------------------------------
+  // test if Vertex selected (namTab ist nicht static)
+  if(!strcmp(namTab[isel], "Vertex") )  {
+    selPos = DB_GetPoint (0L);
+    SRC_src_pt3_10 (GR_selNam, &selPos);
+    goto L_100_w;
+  }
 
 
   //----------------------------------------------------------------
@@ -3729,7 +3775,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   //----------------------------------------------------------------
   L_100_w:
   // unhilite last displayed object
-  UI_GR_Select3 (-1L);
+  // UI_popSel_CB_prevOff (-1L);
 
   // work .. UI_GR_Select_work1 (do GR_Sel_Filter) then UI_GR_Select_work2
   UI_GR_Select2 (selTab[isel].typ,
@@ -3794,8 +3840,7 @@ static  Point  selPos;
 
 
 
-  // printf("SSSSSSSSSSSSSSS UI_GR_Select1 mode=%d dli=%ld\n",mode,*dlInd);
-
+  printf("SSSSSSSSSSSSSSS UI_GR_Select1 mode=%d dli=%ld\n",mode,*dlInd);
 
 
   //----------------------------------------------------------------
@@ -3803,11 +3848,10 @@ static  Point  selPos;
 
   // get mouseposition in userCoords
   sele_get_pos__ (&selPos);
-    // DEB_dump_obj__ (Typ_PT, &selPos, " selPos");
+    DEB_dump_obj__ (Typ_PT, &selPos, " selPos");
 
   reqTyp = sele_get_reqTyp ();
     // printf(" reqTyp=%d\n",reqTyp);
-
 
   // get nr and type of selected objects (not including images, tags)
   // dlTab = pointer -> GR_selTab
@@ -3815,7 +3859,7 @@ static  Point  selPos;
 
 
     // TESTBLOCK
-    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
+    UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
     // END TESTBLOCK
 
 
@@ -3893,6 +3937,8 @@ static  Point  selPos;
       iNr = GL_sel_del_rec (&dlTab, i1);
       goto L_ck_act;
     }
+      // printf(" interact-iNr=%d\n",iNr);
+    if(iNr < 1) {TX_Print("****no obj with interaction ...");return -1;}
   }
 
 /*
@@ -3994,8 +4040,8 @@ static  Point  selPos;
   // check if requested (convert); add to selTab, namTab.
   selNr = 0;
   for(ioNxt=0; ioNxt<iNr; ++ioNxt) {
-      printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
-              dlTab[ioNxt].typ,dlTab[ioNxt].dbInd,dlTab[ioNxt].dlInd);
+      // printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
+              // dlTab[ioNxt].typ,dlTab[ioNxt].dbInd,dlTab[ioNxt].dlInd);
 
     typ = dlTab[ioNxt].typ;
     dbi = dlTab[ioNxt].dbInd;
@@ -4069,14 +4115,16 @@ static  Point  selPos;
     // if "View" or Hide" is active: do NOT resolve subCurves
       // printf(" hide/view=%d\n",UI_CK_HIDE_VIEW);
     if(UI_CK_HIDE_VIEW) continue;
+    // if Interaction is active: do NOT resolve subCurves
+    if(INTACT_IS_ON) continue;
     
 
     // skip unresolvable objects
-    // skip symbols
-    if((typ == Typ_SymB)&&(dbi < 0)) goto L_selTab_from_dlTab_nxt;
-    // skip angle & transformations
-    if((reqTyp == Typ_Angle)   ||
-       (reqTyp == Typ_Tra))         goto L_selTab_from_dlTab_nxt;
+    if(((typ == Typ_SymB)&&(dbi < 0)) ||  // skip symbols
+       (typ == Typ_dynSym)            ||  // skip temp-dynamic-objs
+       (reqTyp == Typ_Angle)          ||  // skip angle & transformations
+       (reqTyp == Typ_Tra))
+      goto L_selTab_from_dlTab_nxt;
 
 
     // get basic-type, eg polygon or bSpline for curve
@@ -4212,8 +4260,22 @@ static  Point  selPos;
 
   //----------------------------------------------------------------
   L_10:
+
+
+  // add vertex if active
+  if(sele_ck_typ (Typ_Vertex)) {
+    DB_StorePoint (0L, &selPos);
+    selTab[selNr].typ   = Typ_Vertex;
+    selTab[selNr].dbInd = 0L;
+    selTab[selNr].dlInd = -1L;
+    selTab[selNr].stat  = 0;
+    strcpy(namTab[selNr], "Vertex");
+    ++selNr;
+  }
+
+
     // dump selTab
-    // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_10");
+    UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_10");
 
 
   // change nr of sel objs
@@ -4254,7 +4316,7 @@ static  Point  selPos;
 
 
   L_12:
-    // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_12");
+    UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_12");
 
 
   // kein object gefunden
@@ -4296,7 +4358,7 @@ static  Point  selPos;
     // only for M3-selections: hilite (single) obj
     // but skip 2D-butts
     if(TYP_IS_MOD(selTab[0].typ))  DL_Redraw (); // finish select-process
-    else UI_GR_Select3 (selTab[0].dlInd);
+    // else UI_popSel_CB_prev (-1);
 
     return 1;          // will call later UI_GR_Select2 (dli);
     // mode = 100;
@@ -4310,9 +4372,9 @@ static  Point  selPos;
 
   // display popup-list
   namPtr[selNr] = NULL;
-  // GUI_Popup (namPtr, UI_GR_CB_Sel1, UI_GR_CB_Sel2);
-  // GUI_Popup (namPtr, NULL, UI_GR_CB_Sel2);
-  GUI_popup__ (namPtr, NULL, 0, UI_GR_CB_Sel2, NULL);
+  // GUI_Popup (namPtr, UI_GR_CB_Sel1, UI_popSel_CB__);
+  // GUI_Popup (namPtr, NULL, UI_popSel_CB__);
+  GUI_popup__ (namPtr, NULL, 0, UI_popSel_CB__, NULL);
 
 
   // UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
@@ -4394,7 +4456,7 @@ static  Point  selPos;
 
   L_100_w:
   // unhilite last displayed object
-  UI_GR_Select3 (-1L);
+  UI_popSel_CB_prevOff (-1L);
 
   // work
   UI_GR_Select2 (selTab[*dlInd].typ,
@@ -4451,16 +4513,16 @@ static  Point  selPos;
   if(selTab[*dlInd].typ == Typ_VC) {
       // printf(" preview vec %ld\n",selTab[*dlInd].dbInd);
     UI_disp_vec1 (Typ_Index, PTR_LONG(selTab[*dlInd].dbInd), &selPos);
-    GR_dli_hili = DLI_TMP;
+    GR_dli_hili = GR_TMP_I0;
     return 0;
   }
 
 
   // preview subcurv
   if(namTab[*dlInd][1] == '(') {
-    UI_GR_Select3 (-1L);
-    UI_GR_disp_oid (namTab[*dlInd], Typ_Att_hili1);
-    GR_dli_hili = DLI_TMP;
+    UI_popSel_CB_prevOff (-1L);
+    UI_disp_oid (namTab[*dlInd], Typ_Att_hili1);
+    GR_dli_hili = GR_TMP_I0;
     return 0;
   }
 
@@ -4468,17 +4530,17 @@ static  Point  selPos;
   // preview hidden parent
   // if(DL_parent_ck_p(dli)) {
   if(selTab[*dlInd].stat == 2) {
-    UI_GR_Select3 (-1L);
+    UI_popSel_CB_prevOff (-1L);
     // Typ_Att_top2 = for parentObj's
-    UI_GR_disp_oid (namTab[*dlInd], Typ_Att_top2);
-    GR_dli_hili = DLI_TMP;
+    UI_disp_oid (namTab[*dlInd], Typ_Att_top2);
+    GR_dli_hili = GR_TMP_I0;
     return 0;
   }
 
 
  
   // preview normal obj hilited
-  UI_GR_Select3 (selTab[*dlInd].dlInd);    // hilite
+  UI_popSel_CB_prevOff (selTab[*dlInd].dlInd);    // hilite
   return 0;
 
 
@@ -4489,7 +4551,7 @@ static  Point  selPos;
   L_mode102:
     // printf(" unHile %d %ld\n",selTab[*dlInd].typ,selTab[*dlInd].dbInd);
   // unhilite last displayed object
-  UI_GR_Select3 (-1L);
+  UI_popSel_CB_prevOff (-1L);
   // DL_hili_off (selTab[*dlInd].dbInd);
     // DL_hili_on (-1L); // loeschen der Hili-Tabelle
 
@@ -4540,7 +4602,7 @@ static  Point  selPos;
 
 
 //================================================================
-  int UI_GR_disp_oid (char *oid, int att) {
+  int UI_disp_oid (int ind, char *oid, int att) {
 //================================================================
 // preview subcurv
 
@@ -4549,7 +4611,7 @@ static  Point  selPos;
   ObjAto    ato;
 
 
-  // printf("UI_GR_disp_oid |%s|\n",oid);
+  printf("UI_disp_oid |%s|\n",oid);
 
 
   ATO_getSpc__ (&ato);
@@ -4564,9 +4626,10 @@ static  Point  selPos;
   dbi = ato.val[0];
 
   // preview obj
-  dli = DLI_TMP;
-  GR_Draw_dbo (&dli, typ, dbi, att, 0);
-  DL_Redraw ();
+  // dli = GR_TMP_I0;
+  // GR_Draw_dbo (&dli, typ, dbi, att, 0);
+  GR_temp_dbo (ind, typ, dbi, att, 0);
+  // DL_Redraw ();
 
   return 0;
 
@@ -4652,7 +4715,7 @@ static  Point  selPos;
     // das Obj mal hiliten; aber nicht in Mode MAN und CAD
     // do not hilite if parentObj wanted ..
     if(GR_Sel_Filter != 19)
-      UI_GR_Select3 (dli);
+      UI_popSel_CB_prevOff (dli);
 
   }
 */
@@ -4698,8 +4761,9 @@ static  Point  selPos;
 }
 
 
+/*
 //====================================================================
-  int UI_GR_Select3 (long objInd) {
+  int UI_popSel_CB_prevOff (long objInd) {
 //====================================================================
 // hilite obj and/or unhilite last displayed object
 // objInd < 0      unhilite last displayed object
@@ -4710,25 +4774,27 @@ static  Point  selPos;
   long  dbi;
 
 
-  // printf("UI_GR_Select3 objInd=%ld GR_dli_hili=%ld DLI_TMP=%ld\n",
-          // objInd,GR_dli_hili,DLI_TMP);
+  printf("UI_popSel_CB_prevOff objInd=%ld GR_dli_hili=%ld GR_TMP_I0=%d\n",
+          objInd,GR_dli_hili,GR_TMP_I0);
 
 
   // if(UI_InpMode == UI_MODE_CAD) return 0;   // 2011-10-19
 
 
-  //----------------------------------------------------------------
-  // unhilite last displayed object
-  if(GR_dli_hili != DLI_TMP) 
-    DL_hili_off (GR_dli_hili);
-  else
-    GL_temp_del_1 (GR_dli_hili);    // remove parent-obj
 
+//   //----------------------------------------------------------------
+//   // unhilite last displayed object
+//   if(GR_dli_hili != GR_TMP_I0) 
+//     DL_hili_off (GR_dli_hili);
+//   else
+//     GL_temp_del_1 (GR_dli_hili);    // remove parent-obj
+
+
+  // objInd=-1: cursor is leaving entry in popup-menu
   if(objInd < 0) {
     GR_dli_hili = -1L;
     return -1;
   }
-
 
   // unhilite active CAD-obj
   // IE_cad_ClearAct ();  raus 2011-10-03 - löscht tempPt + vec weg ..
@@ -4736,18 +4802,18 @@ static  Point  selPos;
 
   //----------------------------------------------------------------
   // hilite objInd
-/*
-  // check if this is a parent-obj
-  if(DL_parent_ck_p (objInd)) {
-      // printf(" .. is parent ..\n");
-    typ = DL_dbTyp__dli (objInd);
-    dbi = DL_get_dbi (objInd);
-    // display  parent-obj
-    UI_disp_dbo (typ, dbi, Typ_Att_top2);
-    GR_dli_hili = DLI_TMP;
 
-  } else {
-*/
+//   // check if this is a parent-obj
+//   if(DL_parent_ck_p (objInd)) {
+//       // printf(" .. is parent ..\n");
+//     typ = DL_dbTyp__dli (objInd);
+//     dbi = DL_get_dbi (objInd);
+//     // display  parent-obj
+//     UI_disp_dbo (typ, dbi, Typ_Att_top2);
+//     GR_dli_hili = GR_TMP_I0;
+// 
+//   } else {
+
 
   DL_hili_on (objInd);    // set hilited in DL, no redraw
   GR_dli_hili = objInd;
@@ -4755,15 +4821,16 @@ static  Point  selPos;
   // GL_Redraw ();
   DL_Redraw ();
 
-  // hilite row in browserWindow
-  if(UI_UserSelFunc == NULL)   // not for userSelections
-    Brw_hili_dli (objInd);
+//   // hilite row in browserWindow
+//   if(UI_UserSelFunc == NULL)   // not for userSelections
+//     Brw_hili_dli (objInd);
 
-    // printf("ex UI_GR_Select3\n");
+    printf("ex UI_popSel_CB_prevOff\n");
 
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -5120,7 +5187,7 @@ static  Point  selPos;
     // UI_AP (UI_FuncGet, UID_ckb_vwz, (void*)&ckb_vwz_stat);
     // if(ckb_vwz_stat == 0) mode = 1;          // ViewZ YES
 
-    if(UI_InpVWZ == ON) {
+    if(UI_vwz_is_on == ON) {
       mode = -1;
 
 
@@ -5187,9 +5254,9 @@ static  Point  selPos;
 
 
     // if(ckb_vwz_stat == 0) {        // ViewZ YES               do RotCen
-    if(UI_InpVWZ == ON) {
-      UI_GR_view_set_Cen__ (objInd);
-      UI_InpVWZ = OFF;
+    if(UI_vwz_is_on == ON) {
+      UI_vwz_set (objInd);
+      UI_vwz_is_on = OFF;
       goto Fertig;
     }
 
@@ -5260,7 +5327,7 @@ static  Point  selPos;
 /
       // M3: call subMenu
       if(GR_Event_Act == GUI_MouseR) {
-        UI_GR_Select3 (dli); // hilite this obj
+        UI_popSel_CB_prevOff (dli); // hilite this obj
         OMN_popup_Brw (typ, dbi, dli, 0);        // display objectMenu
         goto Fertig;
       }
@@ -5747,9 +5814,9 @@ static  Point  selPos;
 
 
 //==================================================================== 
-  void UI_GR_view_set_Cen__    (int mode) {
+  void UI_vwz_set    (int mode) {
 //==================================================================== 
-// UI_GR_view_set_Cen__                      set new screen-center
+// UI_vwz_set                      set new screen-center
 // mode unused
 
   int     i1;
@@ -5760,7 +5827,7 @@ static  Point  selPos;
 
 
 
-  printf("UI_GR_view_set_Cen__ %d\n",mode);
+  printf("UI_vwz_set %d\n",mode);
 
 
 
@@ -5807,7 +5874,7 @@ static  Point  selPos;
   UI_GR_view_set_Cen1 (zVal);
 
 
-  UI_InpVWZ = OFF;
+  UI_vwz_is_on = OFF;
 
 
 
@@ -6129,8 +6196,10 @@ static Point   pt1;
 
 
   // Kreiserl an der VertexPosition
-  dli = -1;
-  GL_DrawSymB (&dli, Typ_Att_hili1, SYM_CIR_S, &pt1);  // rot
+  // dli = -1;
+  // GL_DrawSymB (&dli, Typ_Att_hili1, SYM_CIR_S, &pt1);  // rot
+  DL_temp_ind = 1;
+  GR_temp_symB (&pt1, SYM_CIR_S, Typ_Att_hili1);
   DL_Redraw ();
 
 
@@ -6451,10 +6520,11 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
       // l1 = -2;
       // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pt2);
-      l1 = -1;
+      // l1 = -1;
       // GLB_DrawInit ();
-      GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &pt2);  // Circ red
-      // GLB_DrawExit ();
+      // GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &pt2);  // Circ red
+      DL_temp_ind = 1;
+      GR_temp_symB (&pt2, SYM_CIR_S, Typ_Att_hili1);
       DL_Redraw ();
     }
 
@@ -6499,8 +6569,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
       // temp.display of position - nur im MAN-Mode
       if(UI_InpMode == UI_MODE_MAN) {
-        l1 = -2;
-        GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        // l1 = -2;
+        // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        DL_temp_ind = 2;
+        GR_temp_symB (&pSel, SYM_CIR_S, 2);
       }
 
 /*
@@ -6536,8 +6608,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
       // temp.display of position - nur im MAN-Mode
       if(UI_InpMode == UI_MODE_MAN) {
-        l1 = -2;
-        GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        // l1 = -2;
+        // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        DL_temp_ind = 2;
+        GR_temp_symB (&pSel, SYM_CIR_S, 2);
       }
       // irc = SRC_parPt_ptDbo (GR_selNam, &pSel, GR_selTyp, GR_selDbi);
       // irc = SRC_LnAc_ptDbo (1, GR_selNam, &pSel, GR_selTyp, GR_selDbi);
@@ -6599,8 +6673,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // UI_GR_set_selNam (Typ_TmpPT, -1L, s1);
       // temp.display of position - nur im MAN-Mode
       if(UI_InpMode == UI_MODE_MAN) {
-        l1 = -2;
-        GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        // l1 = -2;
+        // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pSel);
+        DL_temp_ind = 2;
+        GR_temp_symB (&pSel, SYM_CIR_S, 2);
       }
 
 
@@ -7088,9 +7164,14 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
   }
 
 
-
+  //----------------------------------------------------------------
+  // add obj to group
   L_addGrp:
     if(dli < 0) goto Fertig;
+
+    // skip Temporary-Dynamic-objects
+    if(typ == Typ_dynSym) goto Fertig;
+
     // skip indicates ..
     if(typ == Typ_TmpPT) {
       TX_Print(" .. ?");

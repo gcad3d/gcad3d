@@ -77,7 +77,7 @@ UI_CAD_activate
 UI_save__
 UI_PRI__              export / print
 UI_vwz__
-UI_vwzCB
+UI_vwz_CB
 UI_loadImg_CB
 UI_loadMock_CB
 UI_loadBmp_CB
@@ -104,7 +104,6 @@ UI_disp_vec1           create vector as a temporary outputObject. True length.
 UI_disp_pln_oid        hilite plane from objID
 UI_disp_tra            temporary display transformation
 UI_disp_angd           display angle temporary
-UI_disp_txt            temporary display text
 
 UI_butSM               Search/Measure
 UI_CB_view
@@ -217,7 +216,7 @@ cl -c /I ..\include xa_ui.c
 #include "../db/ut_DB.h"          // DB_GetVector
 
 #include "../xa/xa_ui_gr.h"
-#include "../xa/xa_uid.h"         //  DLI_POS_TMP
+#include "../xa/xa_uid.h"         //  GR_TMP_IPOS
 #include "../xa/xa_ui.h"               // UID_ckb_nam u. ex func_types.h: UI_FuncGet
 #include "../xa/xa_ed.h"            // EDI_CB__
 #include "../xa/xa_edi__.h"            // EDI_CB__
@@ -253,7 +252,7 @@ extern long    UTF_FilBuf0Siz;  // die allocierte Filesize
 extern int     APT_2d_to_3d_Ind;       // f. Refsys-Anzeige
 extern double  APT_ModSiz;
 extern int     APT_dispPT, APT_dispPL, APT_dispNam, APT_dispDir;
-
+extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
 
 // aus ut_cvApp.c:
 // extern double cvApp_tol;           // Approximationstoleranz (Import IGES)
@@ -283,10 +282,11 @@ extern ColRGB     AP_defcol;
 extern int        GR_Func_Act;
 extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
 
+// ex ../gr/ut_DL.c
+extern long   DL_temp_ind;     // if(>0) fixed temp-index to use; 0: get next free
 
 // aus ../gr/ut_gtx.c:
 extern double GR_tx_scale;
-
 
 // static int UI_Ed_CurPos1;   // CursorPos vor einem Insert
 extern long   UI_Ed_fsiz;      // AptTextsize
@@ -383,7 +383,7 @@ int    KeyStatAlt    = OFF;
 
 int    UI_InpMode    = UI_MODE_START;  // MAN od CAD od NC; see also AP_SRC
 // int    UI_InpSM      = OFF;            // S/M
-int    UI_InpVWZ     = OFF;            // S/M
+int    UI_vwz_is_on     = OFF;            // S/M
 
 char   UI_stat_view  = 1,              // view active: 0=yes, 1=not
        UI_stat_hide  = 1,              // hide active: 0=yes, 1=not
@@ -405,7 +405,8 @@ int    UI_RelAbs = 0;                 // 0=Rel, 1=Abs
 int xa_fl_TxMem;
 
 
-char    UI_fnamFilt[80] = "*";               // filenamefilter
+// char    UI_fnamFilt[80] = "*";               // filenamefilter
+char    UI_fnamFilt[80] = "\"*\"";   // filenamefilter (needs \" else expands
 
 
 // static char txbuf[10000];
@@ -1311,7 +1312,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 //===============================================================
   int UI_sur_act_CB2 (GtkWidget *widget, GdkEventAny *event, gpointer data) {
 //===============================================================
-// see also UI_GR_CB_Sel2
+// see also UI_popSel_CB__
 
 
   static long isel=-1;
@@ -2631,7 +2632,8 @@ static char LstBuf[LstSiz][32];
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
     UT3D_pt_traptvc (&pt1, &ptStart, &vcInc);
       // printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
-    APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    // APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    GR_tDyn_symB (&pt1, SYM_STAR_S, 2);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
   }
@@ -2642,7 +2644,8 @@ static char LstBuf[LstSiz][32];
   for (i1=1; i1<VWZ_PTNR2; ++i1) {
     UT3D_pt_traptivc (&pt1, &ptStart, &vcInc);
       // printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
-    APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    // APT_disp_SymB (SYM_STAR_S, 2, &pt1);
+    GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_RED);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
   }
@@ -2720,7 +2723,7 @@ static char LstBuf[LstSiz][32];
   //===========================================================
   L_fertig:
 
-  // UI_InpVWZ = OFF;
+  // UI_vwz_is_on = OFF;
 
   return zVal;
 
@@ -2728,14 +2731,15 @@ static char LstBuf[LstSiz][32];
 
 
 /* ===================================================================== */
-  int UI_vwzCB (MemObj *mo, void **data) {
+  int UI_vwz_CB (MemObj *mo, void **data) {
 //=====================================================================
+// UI_vwz_CB                      callback user selected new rotation-centerpoint
 
 
   // ausschalten
   if(!GUI_ckbutt_get(&ckb_vwz)) {
 
-    UI_InpVWZ = OFF;
+    UI_vwz_is_on = OFF;
 
     // remove symbols
     UI_vwz__ (2, 0L);
@@ -2744,7 +2748,7 @@ static char LstBuf[LstSiz][32];
   }
 
 
-  UI_InpVWZ = ON;
+  UI_vwz_is_on = ON;
 
 
   // Genau in Bildmitte eine Kette temporaerer Punkte hinmalen
@@ -3030,7 +3034,7 @@ static char LstBuf[LstSiz][32];
   // GUI_update__();
   // sleep (2);
 
-  AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+  MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   sprintf(cbuf3,"copy %s File to",ftyp);
   GUI_save__ (cbuf3,            // titletext
@@ -3109,50 +3113,16 @@ static char LstBuf[LstSiz][32];
 
 
 //================================================================
-  int UI_disp_txt (long *dli, char *s1) {
-//================================================================
-/// UI_disp_txt     temporary display text
-
-  int    att;
-  Point  pt1;
-
-
-  printf("UI_disp_txt |%s|\n",s1);
-
-
-  att = 9;        // 12=red dashed  7 = sw;
-
-  // if(pos) {
-    // pt1 = *pos;
-  // } else {
-    pt1 = GL_GetCen();               // Mittelpunkt Bildschirm
-  // }
-
-  // disp text
-  GR_DrawTxtA (dli, att, &pt1, s1);
-
-  return 0;
-
-}
-
-
-//================================================================
   int UI_disp_dbo (int typ, long dbi, int att) {
 //================================================================
 /// \code
 /// UI_disp_dbo           display temporary db-obj
-///   att       see GR_Draw_obj
+///   att       see GR_temp_obj
 /// \endcode
-
-  long    dli;
-
 
   // printf("UI_disp_dbo %d %ld\n",typ,dbi);
 
-
-  dli = DLI_TMP;    // dli for temp.Objects
-
-  return GR_Draw_dbo (&dli, typ, dbi, att, 0);
+  return GR_temp_dbo (GR_TMP_I0, typ, dbi, att, 0);
 
 }
 
@@ -3161,7 +3131,7 @@ static char LstBuf[LstSiz][32];
   int UI_disp_Pos (int typ, void *data) {
 //================================================================
 /// \code
-/// temporary display position (with little red circle)
+/// temporary display position (with little red circle) at GR_TMP_IPOS
 /// typ:  Typ_Index||Typ_PT|Typ_Txt
 ///   data   if(typ==Typ_PT) *Point
 ///          if(typ==Typ_Index) *long   (DB-Index)
@@ -3171,7 +3141,7 @@ static char LstBuf[LstSiz][32];
 /// \endcode
 
 
-  long   dli;
+  int    gli;
   Point  pt1;
 
   // printf("UI_disp_Pos %d\n",typ);
@@ -3195,9 +3165,9 @@ static char LstBuf[LstSiz][32];
   }
 
   // Kreiserl an der VertexPosition
-  dli = DLI_POS_TMP;  // overwrite
-  GL_DrawSymB (&dli, Typ_Att_hili1, SYM_CIR_S, &pt1);  // rot
-
+  DL_temp_ind = GR_TMP_IPOS;  // overwrite
+  // GL_DrawSymB (&dli, Typ_Att_hili1, SYM_CIR_S, &pt1);  // rot
+  GR_temp_symB (&pt1, SYM_CIR_S, Typ_Att_hili1);
 
   L_fertig:
   // DL_Redraw ();
@@ -3228,9 +3198,8 @@ static char LstBuf[LstSiz][32];
 
     
   // skip display in subModels
-  if(MDL_IS_SUB) {           // 0-n = sind Submodel; -1=main
-    return 0;
-  }
+  if(MDL_IS_SUB) return 0;   // 0-n = sind Submodel; -1=main
+  if(!mode) return 0;        // skip if mode = permanent
 
   ac1 = DB_get_Activ (dbi);
 
@@ -3248,7 +3217,7 @@ static char LstBuf[LstSiz][32];
 
   if(mode) {
     strcpy(s1, "I");
-    dli = DLI_TMP; //-2L;
+    dli = GR_TMP_I0; //-2L;
     iCol = Typ_Att_hili1;
 
   } else {
@@ -3263,16 +3232,17 @@ static char LstBuf[LstSiz][32];
     DL_hide__ (dli, 1);  //unvis
   }
 
-  GR_DrawTxtA (&dli, iCol, &pt1, s1);
-
+  // GR_DrawTxtA (&dli, iCol, &pt1, s1);
+  
+  GR_temp_txtA (&pt1, s1, iCol);
 
   return 0;
 
 }
 
-
+/*
 //================================================================
-  int UI_disp_joint (int mode, long indJnt, Memspc *spcObj) {
+  int UI_disp_joint (int mode, long indJnt) {
 //================================================================
 // Input:
 //   mode     0=permanent, 1=temporary;
@@ -3282,9 +3252,13 @@ static char LstBuf[LstSiz][32];
   char    s1[16];
   ObjGX   *jnt;
   Point   *pt1;
+  // Memspc  mSpc;
+  // char    obj[OBJ_SIZ_MAX];
 
 
-  jnt = UME_get_start (spcObj);
+  // jnt = UME_get_start (spcObj);
+// TODO: import joint ? JNT_imp__
+  jnt = 
 
   // printf("UI_disp_joint mode=%d indJnt=%d\n",mode,indJnt);
   // DEB_dump_ox_0 (jnt, "JNT_exp__");
@@ -3328,19 +3302,20 @@ static char LstBuf[LstSiz][32];
   }
 
 
-  if(UI_InpMode == UI_MODE_VWR) {
-    DL_hide__ (dli, 1);      // unvis
-  } 
+//   if(UI_InpMode == UI_MODE_VWR) {
+//     DL_hide__ (dli, 1);      // unvis
+//   } 
 
-  GR_DrawTxtA (&dli, iCol, pt1, s1);
+  // GR_DrawTxtA (&dli, iCol, pt1, s1);
+  GR_tDyn_txtA (pt1, s1, iCol);
 
   return 0;
 
 }
-
+*/
 
 //================================================================
-  int UI_disp__ (long *dli, int typ, long dbi, int subTyp) {
+  int UI_disp__ (int gli, int typ, long dbi, int subTyp) {
 //================================================================
 // UI_disp__        temporary display not-geometric-object
 // display normally not visible objects
@@ -3376,38 +3351,44 @@ static char LstBuf[LstSiz][32];
       if(UTP_compdb0(d1, UT_TOL_pt)) {
         // 0=normalized
         i1 = 0;
-        i2 = 12;
+        i2 = Typ_Att_top2;
       } else {
         // 1=exact-length
         i1 = 1;
-        i2 = 9;
+        i2 = Typ_Att_hili1;
       }
-      GR_Draw_vc (dli, (Vector*)pObj, NULL, i2,  i1);
+      // GR_temp_vc (dli, (Vector*)pObj, NULL, i2,  i1);
+      DL_temp_ind = gli;
+      GR_temp_vc ((Vector*)pObj, NULL, i2, i1);
       break;
 
 
     case Typ_VAR:
       d1 = DB_GetVar (dbi);
       if(subTyp == Typ_Angle) {
-        UI_disp_angd (dli, &d1);
+        // UI_disp_angd (dli, &d1);
+        DL_temp_ind = gli;
+        GR_temp_ang (Typ_Att_hili1, NULL, NULL, NULL, d1);
+
       } else {
         sprintf(s1,"VAR[%ld] = %f",dbi,d1);
-        UI_disp_txt  (dli, s1);
+        // UI_disp_txt  (dli, s1);
+        DL_temp_ind = gli;
+        GR_temp_txtA  (NULL, s1, ATT_COL_RED);
         // TX_Print ("VAR[%d] = %f",dbi,d1);
       }
       break;
 
 
-/*
-    case Typ_Joint:
-      UI_disp_joint (APT_obj_stat, dbi, &APTSpcObj);
-      break;
+//     case Typ_Joint:
+//       UI_disp_joint (APT_obj_stat, dbi);
+//       break;
 
 
     case Typ_Activ:
       UI_disp_activ (APT_obj_stat, dbi);
       break;
-*/
+
 
   }
 
@@ -3418,7 +3399,7 @@ static char LstBuf[LstSiz][32];
 
 
 //=====================================================================
-  int UI_disp_vec1 (int typ, void *data, Point *pos) {
+  int UI_disp_vec1 (int ind, int typ, void *data, Point *pos, int att) {
 //=====================================================================
 /// \code
 /// UI_disp_vec1        create vector as a temporary outputObject. True length.
@@ -3429,18 +3410,18 @@ static char LstBuf[LstSiz][32];
 ///          if(typ==Typ_Txt)   char*   (eg "0 0 1")
 ///   pos    position of vector or NULL
 /// True length:   see also IE_cad_Inp_disp_vc GL_DrawVec GR_Disp_vc
-/// unified lengt: see GL_DrawSymV3 GR_Disp_vc GL_Disp_vc GR_Disp_vc
+/// unified lengt: see GL_DrawSymV3 GR_tDyn_vc GL_Disp_vc GR_Disp_vc
 /// \endcode
 
 
-  int    att, mode;
+  int    mode;
   long   dli;
   double vl;
   Point  pt1;
   Vector vc1;
 
 
-  // printf("UI_disp_vec1 %d\n",typ);
+  printf("UI_disp_vec1 ind=%d typ=%d\n",ind,typ);
   // if(pos) DEB_dump_obj__ (Typ_PT, &pt1, "  pos:");
   // else    printf("  pos=NULL\n");
 
@@ -3487,38 +3468,37 @@ static char LstBuf[LstSiz][32];
   // display vc1 at position pt1
     // DEB_dump_obj__ (Typ_VC, &vc1, "vc1 in UI_disp_vec1");
 
-  dli = DLI_TMP;  // als temp. obj anlegen ..
+//   dli = GR_TMP_I0;  // als temp. obj anlegen ..
 
-  // GL_temp_del_all (); // alle temp. obj loeschen ..
-  GL_temp_del_1 (dli);
+//   // GL_temp_del_all (); // alle temp. obj loeschen ..
+//   GL_temp_del_1 (dli);
 
 
   vl = UT3D_len_vc (&vc1);
     // printf("  vl=%f\n",vl);
 
-
-  att = 9;   // 12=red dashed  7 = sw;
-
   mode = UTP_comp2db(vl, 1., 0.8);
-  mode = ICHG01(mode);   // 0=normalized
+  mode = ICHG01(mode);   // 0=normalized; 1=true-length
     // printf(" mode=%d\n",mode);
 
 
   // mode: 0=exact; 1=normalized
-  GR_Draw_vc (&dli, &vc1, &pt1, att, mode);
+  // GR_temp_vc (&dli, &vc1, &pt1, att, mode);
+  DL_temp_ind = ind;
+  GR_temp_vc (&vc1, &pt1, att, mode);
 
 /*
   if(UTP_comp2db(vl, 1., 0.1)) {    // check if vl has length 1
     // att 7 = sw; Laenge 1
     // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
     // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
-    // GR_Disp_vc (&vc1, &pt1, 7, 0);
+    // GR_tDyn_vc (&vc1, &pt1, 7, 0);
     // GL_DrawSymV3 (&dli, SYM_ARROW, 7, &pt1, &vc1, 10.);
     GL_DrawSymV3 (&dli, SYM_ARROW, att, &pt1, &vc1, 20.);
 
   } else {
     // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
-    // GR_Disp_vc (&vc1, &pt1, 2, 1);
+    // GR_tDyn_vc (&vc1, &pt1, 2, 1);
     GL_DrawVec (&dli, att, &pt1, &vc1);
   }
 */
@@ -3533,26 +3513,7 @@ static char LstBuf[LstSiz][32];
 
 }
 
-/* UNUSED
-//=====================================================================
-  int UI_disp_vec2 (long ind) {
-//=====================================================================
-// temp disp of vector # 0 (used for display TRA)
-
-  ObjGX   *ox1;
-
-
-  printf("UI_disp_vec2 %ld\n",ind);
-
-  ox1 = DB_GetTra (ind);
-    // DEB_dump_ox_0 (ox1, "T[%d]:",ind);
-
-
-  return UI_disp_tra (ox1);
-
-}
-*/
-
+/* UU
 //================================================================
   int UI_disp_pln_oid (char *plID) {
 //================================================================
@@ -3586,7 +3547,7 @@ static char LstBuf[LstSiz][32];
 
 
   if(dbi < 0) {   // RX RY RZ
-    dli = GL_GetInd_last_temp ();
+    dli = GL_temp_iLast ();
     pt1 = GL_GetCen();   // ScreenCenter in UserCoords
     goto L_disp;
   }
@@ -3633,7 +3594,7 @@ static char LstBuf[LstSiz][32];
   return 0;
 
 }
-
+*/
 
 //================================================================
   int UI_disp_tra (ObjGX *tra) {
@@ -3653,7 +3614,7 @@ static char LstBuf[LstSiz][32];
   if(tra->form == Typ_VC) {
 
     pt1 = GL_GetCen();
-    UI_disp_vec1 (Typ_VC, tra->data, &pt1);
+    UI_disp_vec1 (GR_TMP_I0, Typ_VC, tra->data, &pt1, Typ_Att_hili1);
     return 0;
 
 
@@ -3665,7 +3626,7 @@ static char LstBuf[LstSiz][32];
 
   //----------------------------------------------------------------
   // disp TraRot
-  dli = DLI_TMP;  // temp obj
+  dli = GR_TMP_I0;  // temp obj
   GL_Draw_tra (&dli, 12, (TraRot*)tra->data);
 
 /*
@@ -4286,7 +4247,7 @@ static char LstBuf[LstSiz][32];
 
       MSG_pri_0 ("VWR_On");
 
-        GL_temp_del_1 (DLI_TMP);               // remove tempObj
+        GL_temp_del_1 (GR_TMP_I0);               // remove tempObj
         GUI_gl_block (&winMain, 1);
         // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
 
@@ -4840,7 +4801,7 @@ See UI_but__ (txt);
       } else {                         //  activate VWR
           printf(" activate VWR\n");
         // UI_block__ (-1, 1, -1);
-        GL_temp_del_1 (DLI_TMP);               // remove tempObj
+        GL_temp_del_1 (GR_TMP_I0);               // remove tempObj
         GUI_gl_block (&winMain, 1);
         // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
 
@@ -5490,7 +5451,7 @@ See UI_but__ (txt);
 
                         // fnam      dirnam     filter-out 
     // get filename of cfg/dir.lst
-    AP_get_fnam_symDir (s1);
+    MDLFN_symFilNam (s1);
 
     // let user select (symbolic-directory,) modelfile
     // get cbuf1=fnam cbuf2=dnam
@@ -5503,7 +5464,7 @@ See UI_but__ (txt);
     // (dirIn/filnamOut sSiz symDir filter title)
     irc = GUI_file_open__ (cbuf2, sizeof(cbuf2), s1, UI_fnamFilt, sTit);
       printf("ex-GUI_file_open__ %d|%s|\n",irc,cbuf2);
-    if(irc < 2) return -1;
+    if(irc < 0) return -1;
     if(strlen(cbuf2) < 1) return 0;
 
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane. 
@@ -5553,7 +5514,7 @@ See UI_but__ (txt);
 /* UNUSED
   } else if(!strcmp(cp1, "insert")) {
     // GUI_File_selext ("Include File","./", UI_openCB,(void*)"insert");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+    MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("Model add",    // titletext
             AP_mod_dir,       // Pfadname des activeDirectory
@@ -5717,7 +5678,7 @@ See UI_but__ (txt);
 /*
     strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".igs");
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+    MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_save__ ("save model as IGES",   // titletext
             AP_mod_dir,           // path
@@ -6062,7 +6023,7 @@ See UI_but__ (txt);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "DirEd")) {
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+    MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1, "%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     APP_edit (cbuf1, 0);
 
@@ -6271,30 +6232,41 @@ See UI_but__ (txt);
     }
 
 
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "delActMdl")) {   // delete active modelfile
+    irc = GUI_Dialog_2b (" delete active modelfile ? ",
+                         MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    if(!irc) AP_delActMdl ();
+    return 0;
+
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "delMdl")) {   // delete Model
-/*
-    // Liste mit Dir-Auswahl
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-    GUI_List2 ("delete File",    // titletext
-            AP_mod_dir,       // Pfadname des activeDirectory
-            cbuf1,              // Liste der directories
-            (void*)UI_delMdl); // CallBack der Liste
-*/
+    // get directory,filename from user
+    cbuf1[0] = '\0';
+    strcpy(cbuf2, AP_mod_dir);
     strcpy(sTit, APP_MSG_get_0("MMfDel"));
-    // Liste mit Dir-Auswahl
-    i1 = AP_Mod_open (1, cbuf1, cbuf2, sTit, "*");
+    i1 = AP_Mod_open (2, cbuf1, cbuf2, sTit, "\"*\""); // returns 2=dNam, 1=fNam
     if(i1 < 0) return -1;
-    AP_open__ (cbuf1, cbuf2, sTit, 1);
+    sprintf(s1, "%s/%s",cbuf2,cbuf1);
+    // get abs. filename
+//     i1 = MDLFN_fnAbs__fNam (cbuf1, s1);
+//     if(i1 < 0) return -1;
+//     // see also AP_delActMdl
+// 
+//     sprintf(cbuf2, "%stmp.model",OS_get_tmp_dir());
+//       printf(" cbuf2 |%s|\n",cbuf2);
+//     OS_file_rename (fnOld, cbuf2);
+//     TX_Print ("**** %s moved %s",fnOld,cbuf2);
+    return 0;
+
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "renMdl")) {   // rename Model
 /*
     // Liste mit Dir-Auswahl
-    AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+    MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
     GUI_List2 ("rename File",    // titletext
             AP_mod_dir,         // Pfadname des activeDirectory
@@ -6303,7 +6275,7 @@ See UI_but__ (txt);
 */
     strcpy(sTit, APP_MSG_get_0("MMfRen"));
     // Liste mit Dir-Auswahl
-    i1 = AP_Mod_open (1, cbuf1, cbuf2, sTit, "*");
+    i1 = AP_Mod_open (1, cbuf1, cbuf2, sTit, "\"*\"");
     if(i1 < 0) return -1;
     AP_open__ (cbuf1, cbuf2, sTit, 2);
 
@@ -6322,7 +6294,7 @@ See UI_but__ (txt);
 */
     strcpy(sTit, APP_MSG_get_0("MMfCpy"));
     // Liste mit Dir-Auswahl
-    i1 = AP_Mod_open (1, cbuf1, cbuf2, sTit, "*");
+    i1 = AP_Mod_open (1, cbuf1, cbuf2, sTit, "\"*\"");
     if(i1 < 0) return -1;
     AP_open__ (cbuf1, cbuf2, sTit, 3);
 
@@ -6567,7 +6539,7 @@ See UI_but__ (txt);
     DEB_dump_obj__ (Typ_Color, &AP_defcol, "DefaultColor:  ");
     DEB_dump_obj__ (Typ_Color, &AP_actcol, "Active-Color:  ");
 
-    AP_get_fnam_symDir (cbuf2);
+    MDLFN_symFilNam (cbuf2);
     DEB_dump_txt ("\nSymbolicDirectories (%s):\n",cbuf2);
     DEB_dump_obj__ (TYP_FuncAdd, cbuf2, "");    // put out the file 
 
@@ -7019,12 +6991,14 @@ box1
 
 
       GUI_menu_entry   (&men_fil, "---",     NULL,       NULL);
-      GUI_menu_entry   (&men_fil, "delete File",UI_menCB, (void*)"delMdl");
-      MSG_Tip ("MMfDel");
-      GUI_menu_entry   (&men_fil, "rename File",UI_menCB, (void*)"renMdl");
-      MSG_Tip ("MMfRen");
-      GUI_menu_entry   (&men_fil, "copy File",UI_menCB, (void*)"cpyMdl");
-      MSG_Tip ("MMfCpy");
+      GUI_menu_entry   (&men_fil, "delete active modelfile",
+                        UI_menCB, (void*)"delActMdl");
+//       GUI_menu_entry   (&men_fil, "delete File",UI_menCB, (void*)"delMdl");
+//       MSG_Tip ("MMfDel");
+//       GUI_menu_entry   (&men_fil, "rename File",UI_menCB, (void*)"renMdl");
+//       MSG_Tip ("MMfRen");
+//       GUI_menu_entry   (&men_fil, "copy File",UI_menCB, (void*)"cpyMdl");
+//       MSG_Tip ("MMfCpy");
 
       GUI_menu_entry   (&men_fil, "Export / Print",   UI_menCB,   (void*)"print");
       MSG_Tip ("MMfPrt");
@@ -7697,7 +7671,7 @@ box1
 
 
       // was ViewPln
-      ckb_vwz=GUI_ckbutt__ (&box1C7v, "RotCen", FALSE, UI_vwzCB, NULL, "");
+      ckb_vwz=GUI_ckbutt__ (&box1C7v, "RotCen", FALSE, UI_vwz_CB, NULL, "");
       MSG_Tip ("MMcbRot"); //
       // GUI_Tip  ("define rotation-center / "
                 // "den Mittelpunkt fuer das interaktive Drehen definieren. ");
@@ -7777,7 +7751,7 @@ box1
       //--------------------------
       // CheckBox "ViewZ"
       // actbox = GUI_box_h (box1C6v, 0);
-      // ckb_vwz=GUI_ckbutt__ (actbox, "ViewZ", FALSE, UI_vwzCB, NULL, 0);
+      // ckb_vwz=GUI_ckbutt__ (actbox, "ViewZ", FALSE, UI_vwz_CB, NULL, 0);
 
       // ein Entryfeld Format 999999.9
       // UI_sur_Z = GUI_Entry (actbox, NULL, "     0.0",UI_sur_Z_CB, 0);
@@ -8331,7 +8305,7 @@ box1
 //                        NULL, " select model", fnam,
 //                        "1", NULL, "80,16");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select model", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select model\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
     printf("UI_open_last-sel |%s|\n",s1);
   

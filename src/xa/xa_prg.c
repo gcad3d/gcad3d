@@ -170,6 +170,8 @@ typedef_MemTab(ObjRange);
 //===============================================================
 // Externe Variablen:
 
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
 
 
 //===============================================================
@@ -342,7 +344,7 @@ typedef_MemTab(ObjRange);
 //                        NULL, " delete Application", fnam,
 //                        "1", NULL, "60,40");
   
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete Application", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Application\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
 
   PRG_Del_CB (s1);
@@ -848,8 +850,7 @@ typedef_MemTab(ObjRange);
 // mode : 1=proceed to next InputField, else not.
 
 
-  int       typReq;
-  long      l1;
+  int       ind, typReq;
   char      auxObj[OBJ_SIZ_MAX];
   void      *vp1;
   Point     pt1;
@@ -868,22 +869,26 @@ typedef_MemTab(ObjRange);
 
   //----------------------------------------------------------------
   // delete temp.symbol for this inputField
-  l1 = -2 - PRG_iAct;
-  GL_temp_del_1 (l1);
+//   l1 = -2 - PRG_iAct;
+  DL_temp_ind = PRG_iAct + 1;
+  GL_temp_del_1 (DL_temp_ind);
 
 
   // display circle-symbol at pos. pt1
   if(typReq == Typ_PT) {
-    GL_DrawSymB (&l1, 2, SYM_CIR_S, (Point*)auxObj);
+//     GL_DrawSymB (&l1, 2, SYM_CIR_S, (Point*)auxObj);
+    GR_temp_symB ((Point*)auxObj, SYM_CIR_S, ATT_COL_RED);
 
 
   } else if(typReq == Typ_VC) {
     pt1 = GL_GetCen();   // ScreenCenter in UserCoords
-    GL_DrawSymV3 (&l1, SYM_ARROW, 9, &pt1, (Vector*)auxObj, 20.);
+//     GL_DrawSymV3 (&l1, SYM_ARROW, 9, &pt1, (Vector*)auxObj, 20.);
+    GR_temp_symV3 (SYM_ARROW, Typ_Att_hili1, &pt1, (Vector*)auxObj, 20.);
 
 
   } else if(typReq == Typ_LN) {
-    GL_DrawPoly (&l1, 9, 2, (Point*)auxObj);
+//     GR_tDyn_pcv (&l1, 9, 2, (Point*)auxObj);
+    GR_temp_ln ((Line*)auxObj, ATT_COL_RED); 
   }
 
 
@@ -1627,8 +1632,9 @@ typedef_MemTab(ObjRange);
 */
 
   // Liste mit Dir-Auswahl
+  cbuf1[0] = '\0';
   strcpy(cbuf2, AP_dir_prg);
-  i1 = AP_Mod_open (2, cbuf1, cbuf2, "select program", "*.gcap");
+  i1 = AP_Mod_open (2, cbuf1, cbuf2, "select program", "\"*.gcap\"");
   if(i1 < 0) return -1;
 
   return PRG_CB (cbuf1, cbuf2);

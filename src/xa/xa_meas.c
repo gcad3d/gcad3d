@@ -84,6 +84,7 @@ inputfields:  Meas_e1, Meas_e2
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../gr/ut_GL.h"               // GL_get_Scale
+#include "../gr/ut_gr.h"               // GR_TMP_I0
 
 #include "../xa/xa_msg.h"              // MSG_..
 #include "../xa/xa_ui.h"               // APF_TB_CAD,
@@ -95,6 +96,10 @@ inputfields:  Meas_e1, Meas_e2
 #define   FALSE 0
 
 
+#define GLI_POS1 1L
+#define GLI_POS2 2L
+#define GLI_OBJ1 3L
+
 
 //================================================================
 // ex ../xa/xa_ui.c
@@ -102,6 +107,11 @@ extern MemObj  UIw_Box_TB;    // toolbarBox
 
 // from ../xa/xa.c:
 extern Plane     WC_sur_act;            // die aktive Plane
+
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
+
+
 
 
 //================================================================
@@ -130,6 +140,8 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   int Meas_init () {
 //================================================================
 
+  printf("Meas_init \n");
+
   // lock some application-functions...
   UI_func_stat_set__ (-APF_TB_CAD,
                       -APF_MEN_FIL,
@@ -148,7 +160,8 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   AP_UserSelection_get (Meas_sel_CB);         // attach grafic selections
 
   sele_save ();  // 
-  sele_set__ (Typ_PT);                          // get points from selections
+  sele_reset ();
+  sele_set_types (Typ_PT, Typ_TmpPT, Typ_Vertex, 0);
   // sele_reset_type (Typ_Model);
 
 
@@ -381,7 +394,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       p1 = GUI_entry_get (&Meas_e2);
       if(strlen(p1) > 0) {
         GUI_entry_set (&Meas_e2, "");
-        GL_temp_del_1 (-3L);     // clear circ 2
+        GL_temp_del_1 (GLI_POS2);     // clear circ 2
         DL_Redraw ();
         Meas_ie = 1;
         Meas_upd_styp ();             // update select-typ
@@ -392,7 +405,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       p1 = GUI_entry_get (&Meas_e1);
       if(strlen(p1) > 0) {
         GUI_entry_set (&Meas_e1, "");
-        GL_temp_del_1 (-2L);     // clear circ 1
+        GL_temp_del_1 (GLI_POS1);     // clear circ 1
         DL_Redraw ();
         Meas_ie = 0;
         Meas_upd_styp ();             // update select-typ
@@ -649,8 +662,10 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
       DEB_dump_obj__ (Typ_PT, &pt1, "spt1: ");
 
     // diplay pt1
-    dl1 = -2L;
-    GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt1); // red circ
+//     dl1 = -2L;
+//     GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt1); // red circ
+    DL_temp_ind = GLI_POS1;
+    GR_temp_symB (&pt1, SYM_CIR_S, ATT_COL_RED);
 
     sprintf(s1, "%s = %f %f %f",p1,pt1.x,pt1.y,pt1.z);
     TX_Print(s1);
@@ -674,8 +689,10 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
         DEB_dump_obj__ (Typ_PT, &pt2, "spt2: ");
 
       // diplay pt2
-      dl1 = -3L;
-      GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt2); // red circ
+//       dl1 = -3L;
+//       GL_DrawSymB (&dl1, 2, SYM_CIR_S, &pt2); // red circ
+      DL_temp_ind = GLI_POS2;
+      GR_temp_symB (&pt1, SYM_CIR_S, ATT_COL_RED);
 
       sprintf(s1, "%s = %f %f %f",p2,pt2.x,pt2.y,pt2.z);
       TX_Print(s1);
@@ -714,26 +731,26 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 // pt1 NULL: clear line ..
 
  
-  long     dli;
   double   d1, dx, dy, dz;
-  Line     ln1;
+  Point    pta[2];
 
 
   // printf("Meas_work_pp\n");
 
-  dli = -4L;
-
   if(pt1 == NULL) {
-    GL_temp_del_1 (dli);
+    GL_temp_del_1 (GR_TMP_I0);
+    GL_temp_del_1 (GLI_OBJ1);
     return 0;
   }
 
 
   // thick red dashed line 
-  ln1.p1 = *pt1;
-  ln1.p2 = *pt2;
+  pta[0] = *pt1;
+  pta[1] = *pt2;
   // GR_tmpDisp_ln (&ln1, 9);
-  GL_DrawPoly (&dli, 9, 2, (Point*)&ln1);
+//   GR_tDyn_pcv (&dli, 9, 2, (Point*)&ln1);
+  DL_temp_ind = GLI_OBJ1;
+  GR_temp_pcv (pta, 2, Typ_Att_hili1);
 
 
   d1 = UT3D_len_2pt (pt1, pt2);
@@ -830,6 +847,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
   L_exit:
   sele_set__ (styp);                          // get points from selections
+  sele_set_add (Typ_Vertex);
   // sele_setNoConstrPln ();
 
 

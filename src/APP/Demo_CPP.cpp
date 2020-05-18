@@ -14,6 +14,7 @@ extern "C" {
 #include "../ut/ut_TX.h"          // TX_Print
 #include "../gr/ut_GL.h"          // GL_DrawPoly
 #include "../gr/ut_DL.h"          // DL_Redraw
+#include "../gr/ut_gr.h"          // GR_tDyn_pcv
 //void TX_Print (char* txt, ...);
 int AP_User_reset ();
 }
@@ -57,7 +58,8 @@ int gCad_main () {
                    {100.0, 0.0, 0.0},
                    {100.0, 100.0, 0.0},
                    {200.0, 100.0, 10.0}};
-  GL_DrawPoly (&dli, 1, 4, pa);                   // create temporary polygon
+  // GL_DrawPoly (&dli, 1, 4, pa);                   // create temporary polygon
+  GR_tDyn_pcv (pa, 4, Typ_Att_dash_long);
 
   DL_Redraw ();                                   // redraw
 

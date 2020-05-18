@@ -98,7 +98,7 @@ Update: update TexRef-UserData; apply Texture.
 
 #include "../gui/gui__.h"              // Gtk3
 
-// #include "../ut/func_types.h"          // UI_FuncUCB7
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa.h"             // AP_STAT
 
 
@@ -372,7 +372,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 // Texture
 
   static MemObj win0, ckb1, ckb2, ckb3, cb1, lb1, lb2;
-  static int    actFilt;
+  static int    actFilt, gli_frame;
 
   MemObj     box0, box1;
 
@@ -382,7 +382,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
   double     d1, d2;
   TexRef     texr, *tr;
   TexBas     *pTexBas;
-  Point      po;
+  Point      po, pa[5];
 
 
   // ifunc = GUI_DATA_EVENT;
@@ -404,6 +404,8 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       // if(win0 != NULL) {           // Win schon vorhanden ?
         // gtk_widget_destroy (win0);
       // }
+
+      gli_frame = 0;
 
       win0 = GUI_Win__ ("Texture", UI_Tex__, "");
 
@@ -509,14 +511,14 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 
       // select Texture-File
 /*
-      AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
+      MDLFN_symFilNam (cbuf);   // get filename of dir.lst
       // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
       GUI_List2 ("select Texturefile", // titletext
               AP_mod_dir,             // Pfadname des activeDirectory
               cbuf,                    // Liste der directories
               (void*)UI_Tex_Load);      // CallBack der Liste
 */
-      i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "*.jpg");
+      i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "\"*.jpg\"");
       if(i1 < 0) return -1;
       UI_Tex_Load (cbuf1, cbuf2);
 
@@ -612,15 +614,18 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       po.y = tr->py;
       po.z = tr->pz;
   
-      l1 = -2L;  // temporary red frame
+//       l1 = -2L;  // temporary red frame
       d1 = tr->ssx;
       d2 = tr->ssy;
-      GR_Draw_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
+//       GR_temp_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
+//       gli_frame = GL_temp_iNxt ();
+      UT3D_pta_parlg_pt_2vc (pa, &po, &tr->vx, d1, &tr->vy, d2);
+      GR_temp_pcv (pa, 5, Typ_Att_hili1);
 
       // l1 = Tex_actDli_get();
         // // printf(" actSur=%d actDli=%ld\n",i1,l1);
       // // unhili geht nicht: wird scheinbar vom select-prozess spaeter gehilitet
-      DL_hili_off (l1);  // unhilite
+      // DL_hili_off (l1);  // unhilite
       DL_Redraw ();
 
       return 0;
@@ -705,7 +710,9 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
     case UI_FuncKill:
       UI_GR_Sel_Filt_set (actFilt);  // reset
 
-      GL_temp_del_1 (2L);  // delete red frame
+//       GL_temp_del_1 (2L);  // delete red frame
+      if(gli_frame) GL_temp_del_1 (gli_frame);  // delete red frame
+      gli_frame = 0;
 
       // EXIT
       GUI_Win_kill (&win0);

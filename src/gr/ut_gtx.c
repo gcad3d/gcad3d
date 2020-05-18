@@ -554,9 +554,18 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   // Image-Bitmap: scalen;
   // Tag: NICHT scalen; dy um halbe Taghoehe nach unten verschieben.
   if(*typ == 1) {  // Bitmap: scalen;
+    scl = atx1->scl;
+    if(fabs(scl) > UT_TOL_min1) {
+        // printf(" scl=%lf\n",scl);
+      *sx *= scl;
+      *sy *= scl;
+    } else {
+      *sx /= GL2D_Scale;
+      *sy /= GL2D_Scale;
+/*
     if(fabs(scl) > UT_TOL_min1) {
       scl = GL_get_Scale ();
-      // printf(" scl=%lf\n",scl);
+        printf(" scl=%lf\n",scl);
       *sx *= scl;
       *sy *= scl;
       *sx += 2;     // ??
@@ -564,6 +573,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
       *sx /= GL2D_Scale;
       *sy /= GL2D_Scale;
       *sx += 2;     // ??
+*/
     }
 
 

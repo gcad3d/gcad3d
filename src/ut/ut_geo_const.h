@@ -17,8 +17,13 @@
 full include in ../ut/ut_geo2d.c
 
 Adding constant:
-extern const <typ> <nam>
-const <typ> <nam> { <values> };
+
+#define _<struct>_NUL { ... }
+
+extern const <struct> <struct>_NUL;
+
+
+const <struct> <struct>_NUL  = _<struct>_NUL
 
 touch ../ut/ut_geo2d.c && ./do c
 
@@ -26,6 +31,10 @@ touch ../ut/ut_geo2d.c && ./do c
 
 */
 
+
+
+
+//================================================================
 #define _UT3D_VECTOR_NUL { 0., 0., 0. }
 
 
@@ -57,6 +66,13 @@ touch ../ut/ut_geo2d.c && ./do c
 #define _ColRGB_NUL { 100,100,100, 0,  0,  0,  0,  1}
 //                     r   g   b  uu  tra sym tex col
 
+
+// AText
+#define _AText_NUL { {FLT_32_MAX, 0., 0.}, {FLT_32_MAX, 0., 0.}, NULL,\
+                     (short)0, (short)0,  (float)0.,\
+                     (char)-1, (char)-1, (char)-1, (char)0}
+//                    aTyp,     col,      ltyp, 
+
 // ObjTab
 #define _OBJTAB_NUL { NULL, NULL, UME_NEW,\
                       NULL, 0, 0, (UINT_16)0,\
@@ -68,7 +84,16 @@ touch ../ut/ut_geo2d.c && ./do c
 
 
 // ObjDB
-#define _OBJDB_NUL { 0L,0L,  (short)0,(short)0}
+#define _OBJDB_NUL { 0L,0L,  (short)0, (short)0}
+
+
+// DL_Att
+#define _DL_ATT_NUL {0L, 0L,\
+                     0, 0,\
+                     0, 0,\
+                     0, 1, 1, 1,\
+                     1, 0, 0, 0,\
+                     0};
 
 
 // Mat_4x3         // VX   VY   VZ   PO
@@ -82,12 +107,13 @@ touch ../ut/ut_geo2d.c && ./do c
                //  bpd    bpi,     bpv,     uu3,     uu4;
 
 
-
 //================================================================
 // constant geometric objects:
 #ifndef INCLUDE_FULL
+extern const Point2  UT2D_PT_NUL;
 extern const Point   UT3D_PT_NUL;
 extern const Vector  UT3D_VECTOR_NUL;
+extern const Vector2 UT2D_VECTOR_NUL;
 
 extern const Vector  UT3D_VECTOR_X;
 extern const Vector  UT3D_VECTOR_Y;
@@ -97,19 +123,29 @@ extern const Vector  UT3D_VECTOR_IX;
 extern const Vector  UT3D_VECTOR_IY;
 extern const Vector  UT3D_VECTOR_IZ;
 
+extern const Vector2 UT2D_VECTOR_X;
+extern const Vector2 UT2D_VECTOR_Y;
+
+extern const Vector2 UT2D_VECTOR_IX;
+extern const Vector2 UT2D_VECTOR_IY;
+
 extern const CurvPoly UT3D_PLG_NUL;
 extern const CurvCCV  UT3D_CCV_NUL;
 extern const CurvPrcv UT3D_PRCV_NUL;
 
 extern const Plane    PLANE_NUL;
 extern const GridBox  GRIDBOX_NUL;
+extern const AText    AText_NUL;
 extern const ObjDB    OBJDB_NUL;
+extern const DL_Att   DL_Att_NUL;
+extern const ColRGB   ColRGB_NUL;
 
-extern const Mat_3x3 UT3D_MAT_3x3;
-extern const Mat_4x3 UT3D_MAT_4x3;
-extern const Mat_4x4 UT3D_MAT_4x4;
+extern const Mat_3x3  UT3D_MAT_3x3;
+extern const Mat_4x3  UT3D_MAT_4x3;
+extern const Mat_4x4  UT3D_MAT_4x4;
 
-extern const Refsys  UT3D_RSYS_2D;
+extern const Refsys   UT3D_RSYS_2D;
+
 
  
 //----------------------------------------------------------------
@@ -158,11 +194,15 @@ const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
 const Plane    PLANE_NUL      = _PLANE_NUL;
 const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
 const IndTab   INDTAB_NUL     = _INDTAB_NUL;
+const AText    AText_NUL      = _AText_NUL;
 const ObjTab   OBJTAB_NUL     = _OBJTAB_NUL;
 const ObjDB    OBJDB_NUL      = _OBJDB_NUL;
+const DL_Att   DL_Att_NUL     = _DL_ATT_NUL;
+const ColRGB   ColRGB_NUL     = _ColRGB_NUL;
 
 const Mat_4x3  UT3D_MAT_4x3   = _MAT_4x3;
 const Refsys   UT3D_RSYS_2D   = _RSYS_2D;
+
 
 #endif
 

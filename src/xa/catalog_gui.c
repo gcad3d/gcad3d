@@ -32,8 +32,6 @@ Modifications:
 =====================================================
 List_functions_start:
 
-CTLG_Sel__               display catalog-list and part-list
-CTLG_Sel_CB              callback child-selection (catalog-part selected)
 CTLG_Cre__               create new catalogFile
 CTLG_Cre_CB              users gives name for new catalog
 CTLG_Mod__               display List of <symDir-CATALOG>*.ctlg for userSelection
@@ -49,7 +47,7 @@ List_functions_end:
 
 
 ====================================================================
-tmp/catParts.act   = name of active catalog
+tmp/CatParts.lst   = name of active catalog
 tmp/catParts.lst   = childList for active catalog
 
 Die catalogModels werden wie externe Models behandelt;
@@ -146,106 +144,9 @@ APT_work_PrgCmd   :4217
 #endif
 
 
-// ex catalog.c
-int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
-
-
  
-//=====================================================================
-  int CTLG_Sel_CB (char *parentNam, char *childNam) {
-//=====================================================================
-/// \code
-/// Callback child-selection (catalog-part selected)
-/// Retcode: 0=keep Hlist; 1=destroy HList.
-/// \endcode
-
-  int  irc;
-  char cbuf[256], actNam[256];
-
-
-  printf("CTLG_Sel_CB |%s|%s|\n",parentNam,childNam);
-
-  // callback vom Cancel-Button.
-  if((childNam == NULL)&&(parentNam == NULL))  {
-    printf(" CTLG_Sel_CB-Cancel\n");
-    return 0;
-  }
-
-
-  // callback von catalog-selection: must create new ChildList !
-  if(childNam == NULL) {
-    printf(" CTLG_Sel_CB-create new List for |%s|\n",parentNam);
-    sprintf(cbuf,"%scatParts.lst",OS_get_tmp_dir());
-    CTLG_Sel_wPartLst (cbuf, parentNam);
-    return 0;
-  }
-
-
-  // callback von catalog-Part-selection
-  // printf("CTLG_Sel_CB |%s|%s|\n",parentNam,childNam);
-
-  // parentNam ist nun Filename of catalog; remove Filetyp.
-  UTX_ftyp_cut (parentNam);
-
-  IE_cad_selM2_CB (childNam, parentNam);
-
-
-  return 1;
-
-}
-
 
 //================================================================
-  int CTLG_Sel__ () {
-//================================================================
-/// display catalog-list and part-list
-
-
-  static char   parent[128] = "";
-  char   fnam[256];
-
-
-  printf("CTLG_Sel__ <<<<<<<<<<<< \n");
-
-   // check if file tmp/Catalog.lst exists; no: create it.
-  if(OS_checkFilExist(fnam, 1) != 1) {
-    CTLG_Lst_write (); // create <tmpiDir>/Catalog.lst
-  }
-
-  // if file tmp/catParts.lst exists: get it -> parent
-  sprintf(fnam,"%scatParts.act",OS_get_tmp_dir());
-  if(OS_checkFilExist(fnam, 1)) {
-    // parent lesen
-    UTX_fgetLine (parent, 128, fnam, 1);
-  }
-
-  // Datei mit den Names aller catalog-Files
-  sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
-    printf(" _list1_h2__ parent=|%s|\n",parent);
-    printf(" _list1_h2__ fnam=|%s|\n",fnam);
-
-  // display List of parts ..
-  GUI_list1_h2__ (
-                 "select catalog",        // titletext parent
-                 "select catalogPart",    // titletext child
-                 "change catalog",        // caption button
-                 parent,                  // active catalog
-                 fnam,                    // filename catalogs
-                 CTLG_Sel_wPartLst,  // callback parent-sel/create childs-file
-                 CTLG_Sel_CB,        // callback child-selection
-                 "60,40");                // hsiz, vsiz
-
-
-    printf(" nach GUI_list1_h2__\n");
-
-
-  return 0;
-
-}
-
-
-//================================================================
-  // int CTLG_Cre_CB (void *parent, void *data) {
   int CTLG_Cre__ () {
 //================================================================
 /// \code
@@ -306,28 +207,6 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 }
 
 
-/*
-//================================================================
-  int CTLG_Cre__ () {
-//================================================================
-/// create new catalogFile
-// check if symDir CATALOG exists; wenn nein: anfordern !!
-// catalogname  vom user abfragen
-// Create file <symDir-CATALOG>/<catalogname>.ctlg (copy the template)
-
- 
-  // printf("CTLG_Cre__ \n");
-
-
-  // catalogname  vom user abfragen
-  GUI_GetText ("name for new catalog: ",
-              "", -300, CTLG_Cre_CB);    // defaultname = old name
-
-  return 0;
-
-}
-*/
-
 //====================================================================
   int CTLG_Mod_CB (char *cNam) {
 //====================================================================
@@ -372,7 +251,7 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 //                        NULL, " select Catalog", fnam,
 //                        "1", NULL, "60,40");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select Catalog", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select Catalog\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
 
   CTLG_Mod_CB (s1);
@@ -457,7 +336,7 @@ int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam);
 //                        NULL, " delete Catalog", fnam,
 //                        "1", NULL, "60,40");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete Catalog", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Catalog\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
 
   CTLG_Del_CB (s1);

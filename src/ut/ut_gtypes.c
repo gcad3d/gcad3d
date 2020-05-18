@@ -429,18 +429,6 @@ char  *ObjCodTab[] = {
     sprintf(buf, "C%ld", ind);
 
 
-  } else if(typ == Typ_PLN) {
-    if((ind >= 0) || (ind < DB_PLIZ_IND)) {
-      sprintf(buf, "R%ld", ind);
-    } else {
-      if     (ind == DB_PLX_IND) sprintf(buf, "RX");
-      else if(ind == DB_PLY_IND) sprintf(buf, "RY");
-      else if(ind == DB_PLZ_IND) sprintf(buf, "RZ");
-      else if(ind == DB_PLIX_IND) sprintf(buf, "RIX");
-      else if(ind == DB_PLIY_IND) sprintf(buf, "RIY");
-      else if(ind == DB_PLIZ_IND) sprintf(buf, "RIZ");
-    }
-
 
   } else if(typ == Typ_VC) {
     if((ind >= 0) || (ind < DB_VCIZ_IND)) {
@@ -455,7 +443,9 @@ char  *ObjCodTab[] = {
     }
 
 
-  } else if((typ == Typ_CV)      ||
+  } else if((typ >= Typ_CV) && (typ < Typ_SURPLN)) {
+/*
+  } else if((typ >= Typ_CV)      ||
             (typ == Typ_CVLNA)   ||
             (typ == Typ_CVPOL)   ||
             (typ == Typ_CVPOL2)  ||
@@ -464,42 +454,63 @@ char  *ObjCodTab[] = {
             (typ == Typ_CVELL)   ||
             (typ == Typ_CVCLOT)  ||
             (typ == Typ_CVTRM))      {
+*/
     sprintf(buf, "S%ld", ind);
 
 
-  } else if((typ == Typ_SUR)      ||
-            (typ == Typ_SURSUP)   ||
-            (typ == Typ_SUTP)   ||
-            (typ == Typ_SURSWP)   ||
-            (typ == Typ_SURRU)    ||
-            (typ == Typ_SURRV)    ||
-            (typ == Typ_SURCIR)   ||
-            (typ == Typ_SURSTRIP) ||
-            (typ == Typ_SURBSP)   ||
-            (typ == Typ_SURRBSP)  ||
-            (typ == Typ_SURPTAB)  ||
-            (typ == Typ_SURMSH))    {
+  } else if(typ < Typ_SUR) {
+//   } else if(typ == Typ_PLN) {
+    if((ind >= 0) || (ind < DB_PLIZ_IND)) {
+      sprintf(buf, "R%ld", ind);
+    } else {
+      if     (ind == DB_PLX_IND) sprintf(buf, "RX");
+      else if(ind == DB_PLY_IND) sprintf(buf, "RY");
+      else if(ind == DB_PLZ_IND) sprintf(buf, "RZ");
+      else if(ind == DB_PLIX_IND) sprintf(buf, "RIX");
+      else if(ind == DB_PLIY_IND) sprintf(buf, "RIY");
+      else if(ind == DB_PLIZ_IND) sprintf(buf, "RIZ");
+    }
+
+
+  } else if(typ < Typ_SOL) {
+//   } else if((typ == Typ_SUR)      ||
+//             (typ == Typ_SURSUP)   ||
+//             (typ == Typ_SUTP)   ||
+//             (typ == Typ_SURSWP)   ||
+//             (typ == Typ_SURRU)    ||
+//             (typ == Typ_SURRV)    ||
+//             (typ == Typ_SURCIR)   ||
+//             (typ == Typ_SURSTRIP) ||
+//             (typ == Typ_SURBSP)   ||
+//             (typ == Typ_SURRBSP)  ||
+//             (typ == Typ_SURPTAB)  ||
+//             (typ == Typ_SURMSH))    {
     sprintf(buf, "A%ld", ind);
 
 
-  } else if((typ == Typ_SOL)   ||
-            (typ == Typ_CON)   ||
-            (typ == Typ_TOR))        {
+  } else if(typ < Typ_Note)   {
+//   } else if((typ == Typ_SOL)   ||
+//   } else if((typ == Typ_SOL)   ||
+//             (typ == Typ_CON)   ||
+//             (typ == Typ_TOR))        {
     sprintf(buf, "B%ld", ind);
 
 
-  } else if((typ == Typ_Note)  ||
-            (typ == Typ_ATXT)  ||
-            (typ == Typ_GTXT)  ||
-            (typ == Typ_Dimen) ||
-            (typ == Typ_SymV)  ||                           // 2011-08-07
-            (typ == Typ_Tag))         {
+  } else if(typ < Typ_SymB)   {
+//   } else if((typ >= Typ_Note) && (typ < Typ_SymB)) {
+//             (typ == Typ_ATXT)  ||
+//             (typ == Typ_GTXT)  ||
+//             (typ == Typ_Dimen) ||
+//             (typ == Typ_Dim3)  ||
+//             (typ == Typ_SymV)  ||                           // 2011-08-07
+//             (typ == Typ_Tag))         {
     sprintf(buf, "N%ld", ind);
 
 
-  } else if((typ == Typ_Model)    ||
-            (typ == Typ_SubModel) ||
-            (typ == Typ_Mock))        {
+  } else if((typ >= Typ_SubModel) && (typ <= Typ_CtlgPart)) {
+//   } else if((typ == Typ_Model)    ||
+//             (typ == Typ_SubModel) ||
+//             (typ == Typ_Mock))        {
     sprintf(buf, "M%ld", ind);
 
 
@@ -533,6 +544,10 @@ char  *ObjCodTab[] = {
 
   } else if(typ == Typ_SymB) {  // temporary-SymBmp
     sprintf(buf, "Sym%ld", ind);
+
+
+  } else if(typ == Typ_dynSym) {  // Temporary-Dynamic-object
+    sprintf(buf, "TDS%ld", ind);
 
 
   } else if(typ == Typ_APPOBJ) {  // ApplicationObj

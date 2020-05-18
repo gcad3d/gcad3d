@@ -449,8 +449,6 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
   // printf("GUI_Win_siz_get \n");
 
-
-
   if(!o_par) {
     win = UI_MainWin;
   } else {
@@ -459,10 +457,11 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
     win = g_win->win;
   }
 
+  gtk_window_get_size (win, sizX, sizY);
+  // gtk_window_get_size (NULL, sizX, sizY);            // geht nicht 
+    // printf("ex-GUI_Win_siz_get %d %d\n",*sizX,*sizY);
 
-  // gtk_window_get_size (win, sizX, sizY);
-  // gtk_window_get_size (NULL, sizX, sizY);
-
+  
   return 0;
 
 }

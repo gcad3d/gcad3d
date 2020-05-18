@@ -2556,7 +2556,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         UT2D_pt_2db (&p20, recx[i1],recy[i1]);
         GR_Disp_pt2 (&p20, SYM_STAR_S, 2);
         UT3D_pt_3db (&p30, recx[i1],recy[i1],recz[i1]);
-        GR_Disp_txi (&p30, i1, 0);
+        GR_tDyn_txiA (&p30, i1, 0);
       }
 */
       dim1 = UME_reserve (wrkSpc, sizeof(Typ_Dimen));

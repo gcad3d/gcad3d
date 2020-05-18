@@ -26,6 +26,9 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+ void Mod(){}
+#endif
 /*!
 \file  ../xa/xa_mod.c
 \brief subModel-managment-functions without GUI
@@ -33,7 +36,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
-Mod_load_all        unused
+Mod_load_all__      find and load all subModels in active model
 Mod_load__          load native model
 Mod_load_allsm      load Models of mdb_dyn-Records;
 Mod_load_sm         load a subModel (ED_work_file / ED_Run)
@@ -61,22 +64,6 @@ Mod_savSubBuf1      save Submodel in Buffer1 + active Hidelist
 Mod_LoadFile__      Model als Submodel laden
 Mod_LoadSubmodel    ?
 
-Mod_smNam_get       get new subModelname from user
-
-Mod_sym_dir__       get symbolic-directory from any-directory
-Mod_sym_get__       get symbolic-directory & absolute-path from filename
-Mod_sym_get1        get path from symbol; resolv "symbol/fnam" or "fnam"
-Mod_sym_get2        get symbol from path
-Mod_sym_add         register symbolic path
-Mod_sym_del         delete symbolic path
-Mod_symOpen_set     register symbolic path
-Mod_get_path        resolv "symbol/fnam" or "fnam"
-Mod_sym_getAbs      get abs.dir from symbolic-dir
-Mod_fNam_sym        get absolute-filename from symbolic-filename
-Mod_fNam_get        get AP_mod_dir,sym,fnam,ftyp from symbolic- or abs.filename
-Mod_fNam_set        get symbolic-filename or absolute-filename
-Mod_sym_dump        dump all symbolic directories
-
 Mod_get_ftyp1       give Modeltyp from Filename
 Mod_get_typ1        give modeltyp from definition Line and extract Modelname
 Mod_get_typ2        give modeltyp from (complete) Modelname
@@ -86,12 +73,15 @@ Mod_kill__          delete all tmp/Model_*
 Mod_chg_tit         display submodelname im Titlebar
 Mod_mkList          make list of all Submodels
 
+Mod_mdr__bmi_pln    get modelRef from basicModelNr and refSys
 DB_get_ModRef       get referenceModel from refModelNr
+
 Mod_mdbi_mdri       get basicModelNr of refModelNr
 Mod_m3_mdr          get matrix of referenceModel
 Mod_mNam_mdr        get ModbasName from ModRefNr
 Mod_mNam_mdb        get ModbasName from basicModelNr
 
+Mod_smNam_get       get new subModelname from user
 Mod_fget_names__    get lists of all subModels, PTAB-Surfs and MSH-Surfs
 Mod_fget_names_0    get all subModels, PTAB-Surfs and MSH-Surfs from file
 Mod_get_namAll      scan rekursiv die SourceFiles aller basicModels;
@@ -99,6 +89,19 @@ Mod_get_namSub      scan file of Model mb->mnam for Submodels; add Submodels
 Mod_get_namFil      scan File fNam and save all Submodelcalls as level iLev
 
 Mod_allmod_MS       in all subMods modify ModSiz
+
+Mod_fNam_get        get AP_mod_dir,sym,fnam,ftyp from symbolic- or abs.filename
+Mod_fNam_set        get symbolic-filename or absolute-filename from global-vars
+
+-------------- to be replaced by functions MDLFN_* --------------------
+Mod_sym_get__       get symbolic-directory & absolute-path from filename
+Mod_sym_get1        get path from symbol; resolv "symbol/fnam" or "fnam"
+Mod_sym_get2        get symbol from path
+Mod_sym_add         add symbolic path in File cfg/dir.lst
+Mod_sym_del         delete symbolic path in file cfg/dir.lst
+Mod_get_path        get absol.filename from "symbol/fnam" or "fnam"
+Mod_fNam_sym        get absolute-filename from symbolic-filename
+Mod_sym_dump        dump all symbolic directories
 
 List_functions_end:
 =====================================================
@@ -291,7 +294,8 @@ Abarbeitung wrl-Mockup:
 subModeltypes:
 MBTYP_EXTERN usw.
 
-
+Display AP_mod_sym and AP_mod_dir and AP_mod_fnam in window-title
+- is done by UI_AP (UI_FuncSet, UID_Main_title, cbuf);
 
 
 =====================================================
@@ -1513,7 +1517,7 @@ static char *fnam;
 
 /*
   // get Filename
-  AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
+  MDLFN_symFilNam (cbuf);   // get filename of dir.lst
   // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   GUI_save__ ("save model as",   // titletext
             AP_mod_dir,           // path
@@ -1603,7 +1607,7 @@ static char *fnam;
   printf("Mod_LoadFile__\n");
 
 /*
-  AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
+  MDLFN_symFilNam (cbuf);   // get filename of dir.lst
   // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   GUI_List2 ("load Submodel from File",    // titletext
             AP_mod_dir,       // Pfadname des activeDirectory
@@ -1611,7 +1615,7 @@ static char *fnam;
             (void*)Mod_LoadSubmodel);
 */
 
-  APP_Open ("load Submodel from File", "*.gcad", Mod_LoadSubmodel);
+  APP_Open ("load Submodel from File", "\"*.gcad\"", Mod_LoadSubmodel);
 
   return 0;
 
@@ -1677,6 +1681,7 @@ static char *fnam;
 //====================================================================
   int Mod_get_path (char *out_path, char *in_path) {
 //====================================================================
+// Mod_get_path        get absol.filename from "symbol/fnam" or "fnam"
 /// \code
 /// Input:
 ///   in_path   pathSymbol/filename" or "filename"
@@ -1959,8 +1964,10 @@ static char *fnam;
     Mod_get_namStore (cbuf, -1, 0);
   }
 
-    DB_dump_ModBas ();
-      // printf("ex Mod_get_names\n");
+    // TESTBLOCK
+    // DB_dump_ModBas ();
+    // printf("ex Mod_get_names\n");
+    // END TESTBLOCK
 
   return 0;
 
@@ -1976,7 +1983,7 @@ static char *fnam;
   FILE    *fpi;
 
 
-  AP_get_fnam_symDir (s1);   // get filename of dir.lst
+  MDLFN_symFilNam (s1);   // get filename of dir.lst
 
 
   if((fpi=fopen(s1,"r")) == NULL) {
@@ -1993,84 +2000,6 @@ static char *fnam;
 
 
   return 0;
-
-}
-
-//================================================================
-  int Mod_sym_dir__ (char *sym, char *dir, char *basDir) {
-//================================================================
-// Mod_sym_dir__ get symbolic-directory from any-directory
-// RF 2018-05-23
-// Input:
-//   dir     relative, absolute or symbolic directory; with closing '/'
-//           size must be >= 128
-//   sym     size must be >= 64
-//   GLOBAL: basDir
-// Output:
-//   sym     name of symbolic-directory, empty = none;
-//   dir     absolute directory
-//   retCod  0=OK, -1=no-symDir, dir=path
-//
-
-  int  irc;
-  char s1[128];
-
-
-  // printf("----------------------------------- \n");
-  // printf("Mod_sym_dir__ dir=|%s| basDir=|%s|\n",dir,basDir);
-
-  sym[0] = '\0';
-
-
-  //----------------------------------------------------------------
-  // test if dir is absolute-dir; yes: make it absolute-dir
-  // if(dir[0] == fnam_del) goto L_abs;
-  if(!OS_ck_DirAbs(dir)) goto L_abs;  // test if dir starts with '/'
-
-  // not absolute-dir; symbol or no directory at all -
-  if(dir[0] != '.') {
-    if(dir[0] == '\0') {
-      // empty dir; use basDir
-      strcpy(dir, basDir);
-      UTX_add_fnam_del (dir);   // add closing "/"
-      // get symbol
-      goto L_abs;
-    }
-    // first char is not '.' - symbol ?
-    // test if dir is listed in file <cfg>/dir.lst; yes: get dir -> s1
-    strcpy (sym, dir);
-#ifdef _MSC_VER
-    UTX_del_foll_chrn (sym, "/\\");
-#else
-    UTX_endDelChar (sym, fnam_del);  // remove closing '/'
-#endif
-    irc = Mod_sym_getAbs (dir, sym);
-      // printf("ex Mod_sym_getAbs %d |%s|%s|\n",irc,dir,sym);
-    goto L_exit;
-  }
-
-
-  // first char is '.' - is relative-dir.
-  // get s1 = absolute from relative.
-  strcpy (s1, dir);
-  UTX_fnam_fnrel (dir, 128, s1, basDir);
-
-
-
-  //----------------------------------------------------------------
-  L_abs:
-  // dir is absolute-dir. Get symbol.
-  // test if dir is listed in file <cfg>/dir.lst; yes: get symbol -> sym
-  irc = Mod_sym_get2 (sym, dir, 0);
-    // printf("ex-Mod_sym_get2 %d |%s|\n",irc,sym);
-
-
-  //----------------------------------------------------------------
-  L_exit:
-
-    // printf("ex-Mod_sym_dir__ irc=%d sym=|%s| dir=|%s|\n",irc,sym,dir);
-
-  return irc;
 
 }
 
@@ -2203,7 +2132,7 @@ static char *fnam;
   strcpy(symDir, p1);
 
   // -) get abs.dir from symbolic-dir.
-  irc = Mod_sym_getAbs (absDir,  symDir);
+  irc = MDLFN_dirAbs_symDir (absDir,  symDir);
 
 
 
@@ -2266,7 +2195,7 @@ static char *fnam;
   ss[il] = '\0';
 
   // get s2 = absolute-directory
-  Mod_sym_getAbs (s2, ss);
+  MDLFN_dirAbs_symDir (s2, ss);
 
   // add filename
   il = strlen(s2);
@@ -2287,7 +2216,7 @@ static char *fnam;
   int Mod_fNam_get (char *fn) {
 //================================================================
 /// \code
-/// Mod_fNam_get        get sym,dir,fnam,ftyp from symbolic- or abs.filename
+/// Mod_fNam_get        get sym,dir,fnam,ftyp from symbolic|rel|abs.filename
 /// Output:
 ///   global AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp
 ///   RetCod:    0=OK, -1=no-symDir, dir=path
@@ -2297,17 +2226,12 @@ static char *fnam;
 
   // printf("Mod_fNam_get |%s|\n",fn);
 
-  // separate/copy directory,fileName,fileTyp of full filename
-  UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, fn);
-    printf("ex-UTX_fnam__ |%s|%s|%s|\n",AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
+  // get  symDir from directory 
+  irc = MDLFN_fNam_resolv (AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp,
+                           fn, OS_get_bas_dir());
 
   // get integer-filetyp of AP_mod_ftyp
   AP_mod_iftyp = AP_iftyp_ftyp (AP_mod_ftyp);
- 
-  // get  symDir from directory 
-  irc = Mod_sym_dir__ (AP_mod_sym, AP_mod_dir, OS_get_bas_dir());
-    printf("ex-Mod_fNam_get irc=%d iftyp=%d sym dir |%s|%s|\n",
-           irc, AP_mod_iftyp, AP_mod_sym, AP_mod_dir);
 
   return irc;
 
@@ -2317,18 +2241,17 @@ static char *fnam;
 //================================================================
   int Mod_fNam_set (char *fNam, int mode) {
 //================================================================
-// Mod_fNam_set        get symbolic-filename or absolute-filename
-//  full-filename: <directory|symbol>/<filename>.<filetyp>
-// 2018-05-24 RF
+// Mod_fNam_set        get symbolic-filename or absolute-filename from global-vars
+//   full-filename: <directory|symbol>/<filename>.<filetyp>
 //
 // Input:
 //   mode      0=make-absolute-filename;
 //             1=make-symbolic-filename
+//   GLOBAL    AP_mod_dir AP_mod_sym AP_mod_fnam AP_mod_ftyp
 // Output:
 //   mode      0   absolute-filename
 //             1   full-filename <directory|symbol>/<filename>.<filetyp>
 //   fNam      <directory|symbol>/<filename>.<filetyp>    size >= 256
-//             AP_mod_dir AP_mod_sym AP_mod_fnam AP_mod_ftyp
 
 
   int    irc;
@@ -2371,53 +2294,11 @@ static char *fnam;
 
 
 //====================================================================
-  int Mod_sym_getAbs (char *absDir, char *symDir) {
-//====================================================================
-/// \code
-/// Mod_sym_getAbs    get absoute-direcory from symbolic-directory
-/// symdir must be terminated with '/'
-/// Input:
-///   symDir:   eg: "Data"
-/// Output:
-///   absDir:   full path (from file xa/dir.lst)     Size 128.
-///   RetCod
-///     >= 0    OK; path in out_path; Linenumber of symbol in path.
-///     -1      Symbol from in_path not found in file
-/// \endcode
-
-  int     irc=0;
-  char    fn[256], *p1;
-
-
-  // printf("Mod_sym_getAbs |%s|\n",symDir);
-
-  AP_get_fnam_symDir (fn);   // get filename of dir.lst
-    // printf(" fn-dir.lst=|%s|\n",fn);
-
-
-  irc = UTX_setup_get__ (absDir, symDir, fn);
-  if(irc) return irc;
-
-  // test if absDir has "$"
-  p1 = strchr (absDir, '$');
-  if(p1) {
-    // expand shell variables
-    irc = OS_filnam_eval (absDir, absDir, 128);
-  }
-
-    // printf("ex-Mod_sym_getAbs |%s|%s|\n",absDir,symDir);
-
-  return irc;
-
-}
-
-
-//====================================================================
   int Mod_sym_get1 (char *out_path, char *in_path, int imod) {
 //====================================================================
 /// \code
 /// get path from symbol
-/// see also Mod_sym_getAbs
+/// see also MDLFN_dirAbs_symDir
 /// symdir must be terminated with '/'
 /// Input:
 ///   in_path:  "<symbol>/<filename>"  eg: "Data/Niet1.dat"
@@ -2467,7 +2348,7 @@ static char *fnam;
 
 
   // try to open inListe
-  AP_get_fnam_symDir (cbuf);   // get filename of dir.lst
+  MDLFN_symFilNam (cbuf);   // get filename of dir.lst
   // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   if((fpi=fopen(cbuf,"r")) == NULL) {
     TX_Print("Mod_sym_get1 E001-file %s not found",cbuf);
@@ -2536,7 +2417,7 @@ static char *fnam;
 
 
   // try to open inListe
-  AP_get_fnam_symDir (s1);   // get filename of dir.lst
+  MDLFN_symFilNam (s1);   // get filename of dir.lst
   // sprintf(s1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
   if((fpi=fopen(s1,"r")) == NULL) {
@@ -2550,7 +2431,7 @@ static char *fnam;
       if(imod == 0) {
         // TX_Error("Mod_sym_get2 E002-path %s not found",in_path);
         TX_Print("Mod_sym_get2 E002-path %s not found",in_path);
-        AP_get_fnam_symDir (s1);   // get filename of dir.lst
+        MDLFN_symFilNam (s1);   // get filename of dir.lst
         TX_Print("               in symFile %s",s1);
       }
       out_sym[0] = '\0';
@@ -2592,33 +2473,16 @@ static char *fnam;
 
 
 //================================================================
-   int Mod_symOpen_set (char *sym, char *path) {
-//================================================================
-/// Mod_symOpen_set         set symbolic path
-// see AP_set_dir_open
-
-  strcpy(AP_mod_sym, sym);
-  strcpy(AP_mod_dir, path);
-
-  // update Title & Pfade oben auf den Mainwinrahmen
-  UI_AP (UI_FuncSet, UID_Main_title, NULL);
-
-  return 0;
-
-}
-
-
-//================================================================
   int Mod_sym_del (char *sym) {
 //================================================================
-/// Mod_sym_del         delete symbolic path
+// Mod_sym_del         delete symbolic path in file cfg/dir.lst
 
   char    fn[256];
 
 
   // printf("Mod_sym_del |%s|\n",sym);
 
-  AP_get_fnam_symDir (fn);   // get filename of dir.lst
+  MDLFN_symFilNam (fn);   // get filename of dir.lst
 
   // delete sym
   UTX_setup_set (fn, sym, NULL);
@@ -2632,7 +2496,7 @@ static char *fnam;
    int Mod_sym_add (char *sym, char *dir) {
 //================================================================
 /// \code
-/// Mod_sym_add         register symbolic path in File cfg/dir.lst
+/// Mod_sym_add         add symbolic path in File cfg/dir.lst
 /// path comes from AP_mod_dir
 /// \endcode
 
@@ -2668,7 +2532,7 @@ static char *fnam;
   strcat(cbuf, " ");
   strcat(cbuf, dir);
 
-  AP_get_fnam_symDir (fnam);   // get filename of dir.lst
+  MDLFN_symFilNam (fnam);   // get filename of dir.lst
     // printf(" symfilnam=|%s|\n",fnam);
   // sprintf(fnam,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
   UTX_fsavLine (cbuf, fnam, 1024, lNr);
@@ -3301,12 +3165,12 @@ static ModelRef modR2;
   int   idat;
   char  cbuf[256], *cp1;
 
-  printf("Mod_del1__ |%s|\n",smNam);
+  // printf("Mod_del1__ |%s|\n",smNam);
 
 
   // del <tmp/Model_<AP_modact_nam>>
   sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),smNam);
-  printf("remove %s\n",cbuf);
+    printf("remove %s\n",cbuf);
   OS_file_delete (cbuf);
     
 /*  ACHTUNG: das folgende loescht auch aus dem aktiven Modelspace !!!!!
@@ -3322,6 +3186,78 @@ static ModelRef modR2;
 
 }
 
+
+//================================================================
+  int Mod_load_all__ () {
+//================================================================
+// Mod_load_all__            find and load all subModels in active model
+// retCode: 0   OK, subModel found and loaded
+//         -1   subModel not found or loaded
+
+ 
+  int irc, bNr, wrkStat;
+  
+
+  // save DB
+  // DL_sav_dynDat ();
+  DB_save__ ("");
+
+
+  if(MDL_IS_SUB) TX_Error("**** TODO: DB_save__ only saves primary Model");
+
+
+  // scan rekursiv die SourceFiles aller basicModels;
+  // load Submodels as basicModels (mdb_dyn-Record's - DB_StoreModBas)
+  irc = Mod_get_namAll();
+    // printf(" n._namAll %d %d\n",irc,ED_lnr_act);
+
+  // if(irc < 0) return irc;
+  if(irc < 0) {
+    // dzt nicht bekannt, in welcher APT-Zeile der Fehler ist.
+    // entweder speichern, (sollte aber eigentlich im DL-Record sein);
+    // daher hier einfacher im Text suchen ...
+    TX_Error("subModel not found ..");
+    // ED_lnr_act = -1;
+    ED_set_lnr_act (0);
+    DL_Redraw ();
+    return -1;     // goto L_done;
+  }
+
+  // get active state
+  wrkStat = WC_get_obj_stat(); // 0=perm, 1=workmode
+
+  // set to perm
+  WC_set_obj_stat (0);
+
+  // Load Models of mdb_dyn-Records; Load Models; Reihenfolge=seqNr.
+  irc = Mod_load_allsm ();
+
+  // reset
+  WC_set_obj_stat (wrkStat);
+
+  if(irc < 0) {
+    // TX_Error("***** ERROR: subModel %s not loaded ..",mb->mnam);
+    TX_Print("***** ERROR: subModel not loaded ..");
+    // printf("subModel %s not loaded ..\n",mb->mnam);
+    // return -1;
+  }
+
+
+  // reload Hidelist from File
+  // GA_hide_fil_tmp (2);
+
+  // reload DB
+  // DL_load_dynDat ();
+  DB_load__ ("");
+
+  irc = 0; // subModel found and loaded
+
+  L_exit:
+    // printf("ex-Mod_load_all__ %d\n",irc);
+
+  return irc;
+
+}
 
 /*
 ///=====================================================================
@@ -3541,6 +3477,9 @@ static ModelRef modR2;
 
 
     mb->DLsiz = GL_Get_DLind() - mb->DLind;
+      // printf(" load_allsm-mbNr=%d DLsiz=%d %d %ld\n",il1,
+             // mb->DLsiz,GL_Get_DLind(),mb->DLind);
+
 
     // mb->defCol = AP_defcol;     // save default-Color
 
@@ -3659,15 +3598,15 @@ static ModelRef modR2;
   if(mTyp == MBTYP_CATALOG) {
       // printf(" catalog-Model |%s|\n",mnam);
     // CTLG_path_catPart (fNam, mnam);
-    CTLG_mnam_modelnam (cbuf1, mnam);
-    irc = Mod_get_path (fNam, cbuf1);
+    // CTLG_mnam_modelnam (cbuf1, mnam);
+    irc = CTLG_mnam_modelnam (fNam, mnam);
+    // irc = Mod_get_path (fNam, cbuf1);
 
   } else {
     irc = Mod_get_path (fNam, mnam);
   }
   if(irc < 0) return irc;
     // printf(" fNam=|%s|\n",fNam);
-
 
   // clear Hidelist
   GA_hide__ (-1, 0L, 0);
@@ -3768,11 +3707,13 @@ static ModelRef modR2;
 
 
 
-  // printf("---------------- after Mod_get_namAll %d\n",DB_get_ModBasNr());
-  // DB_dump_ModBas ();
-  // // DL_DumpObjTab ();
-  // printf("================ ex Mod_get_namAll =================== \n");
-  // // exit(0);
+    // TESTBLOCK
+    // printf("---------------- ex Mod_get_namAll %d\n",DB_get_ModBasNr());
+    // DB_dump_ModBas ();
+    // // DL_DumpObjTab ();
+    // printf("================ ex Mod_get_namAll =================== \n");
+    // // exit(0);
+    // END TESTBLOCK
 
 
   return 0;

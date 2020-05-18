@@ -673,6 +673,7 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
   // TESTDISPLAY ONLY:-------------------
 */
 
+  if(!oTab.rNr) goto L_exit;
 
   // add all obj's of group to undoTab
   iDel = 0;
@@ -694,7 +695,7 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
   // reset selected-obj-group
   Grp_init ();
 
-
+  L_exit:
   MemTab_free (&dTab);
   MemTab_free (&oTab);
 

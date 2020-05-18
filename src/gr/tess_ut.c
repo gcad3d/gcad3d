@@ -414,9 +414,9 @@ static char layNam[] = "0";
   Vector     vc;
 
   // printf("TSU_exp_stl1Fac x\n");
-    // GR_Disp_ln1 (p1, p2, 9);
-    // GR_Disp_ln1 (p2, p3, 9);
-    // GR_Disp_ln1 (p3, p1, 9);
+    // GR_tDyn_pcv (p1, p2, 9);
+    // GR_tDyn_pcv (p2, p3, 9);
+    // GR_tDyn_pcv (p3, p1, 9);
 
 
   UT3D_vc_perp3pt (&vc, p1, p2, p3);
@@ -1119,7 +1119,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   for(i1=0; i1<ie; ++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
     // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
-    // GR_Disp_txi (&pTab[i1], i1, 0);
+    // GR_tDyn_txiA (&pTab[i1], i1, 0);
 
     strcpy(cbuf, " ");
     // change CAD-coordinates into VR-Coordinates!
@@ -1634,7 +1634,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   for(i1=0; i1<ie; ++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
     // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
-    // GR_Disp_txi (&pTab[i1], i1, 0);
+    // GR_tDyn_txiA (&pTab[i1], i1, 0);
 
     strcpy(cbuf, " ");
     // change CAD-coordinates into VR-Coordinates!
@@ -1815,7 +1815,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 //================================================================
   int TSU_exp_fac (ObjGX *oxi) {
 //================================================================
-// see also TSU_ntria_bMsh_p GL_Disp_sur
+// see also TSU_ntria_bMsh_p GL_set_bMsh
 
   int     i1, i2, i1Nr, i2Nr, iTyp;
   int     iTex;
@@ -2508,8 +2508,8 @@ static FILE *fpo = NULL;
 // static char oldNam[128];
 
 
-  // printf("TSU_exp_Open |%s| OOOOOOOOOOOOOOOOOOOOOOOO\n",modNam);
-  // printf("   TSU_ftyp=%d\n",TSU_ftyp);
+  printf("TSU_exp_Open |%s|\n",modNam);
+  printf("   TSU_ftyp=%d\n",TSU_ftyp);
 
 
   if(modNam == NULL) {    // Init

@@ -18,6 +18,7 @@ void INF_ATT_CV (){}
 #endif
 // attributes for lines,curves;
 // for data see INF_COL_CV() or file ~/gCAD3D/cfg/ltyp.rc
+// GL_att_cv
 #define Typ_Att_def        0   // black
 #define Typ_Att_blue       1   // blue
 #define Typ_Att_dash__     2   // black dashed
@@ -33,19 +34,20 @@ void INF_ATT_CV (){}
 #define Typ_Att_top2      12   // red dashed thick2 (parent-obj's)
 
 
+
 #ifdef globTag
 void INF_BITMAP_SYMBOLS (){}
 #endif
 // bitmapsymbols for GL_Disp_symB color: GL_att_sym
+// GL_set_symB GR_tDyn_symB GR_temp_symB
 #define SYM_TRI_S        130   // Bitmap tringle small
 #define SYM_STAR_S       131   // star, small
 #define SYM_CIR_S        132   // Bitmap circle small
-#define SYM_SQU_S        134   // Bitmap square small
-#define SYM_TRI_B        135   // Bitmap tringle big
-#define SYM_SQU_B        136   // Bitmap square big
+#define SYM_SQU_S        133   // Bitmap square small
+#define SYM_TRI_B        134   // Bitmap tringle big
+#define SYM_SQU_B        135   // Bitmap square big
 
-
-
+// vector-symbols
 #define SYM_VEC          139   // das Vektorsymb (nicht skaliert)
 
 #define SYM_AXIS         140   // first vector-symbol; Axis mit X,Y,Z-Char's
@@ -62,11 +64,14 @@ void INF_BITMAP_SYMBOLS (){}
 
 #define SYM_CLIPBOX      150   // internal use, Vektor; unused ..
 
+
+
 #ifdef globTag
 void INF_COL_PT (){}
 #endif
 // color of point(-symbols); value = thickness
-// GL_att_pt GL_InitPtAtt
+// GL_att_pt
+// GL_InitPtAtt
 #define ATT_PT_BLACK       0
 #define ATT_PT_HILI        1
 #define ATT_PT_DIMMED      2
@@ -79,6 +84,7 @@ void INF_COL_SYMB (){}
 #endif
 // color of symbols (text, ..) and (tesselated) surfaces
 // Definition: GL_col_tab in ../gr/ut_GL.c
+// GL_att_sym
 #define ATT_COL_BLACK      0
 #define ATT_COL_RED        2
 #define ATT_COL_GREEN      3
@@ -89,6 +95,8 @@ void INF_COL_SYMB (){}
 #define ATT_COL_WHITE      8
 #define ATT_COL_HILI       9
 #define ATT_COL_DIMMED    10
+
+
 
 // linetypes
 #define LTYP_full          0

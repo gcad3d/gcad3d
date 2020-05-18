@@ -22,9 +22,8 @@ index_en.htm                see myhtmTree.Readme
 
 
 
-
 ==========================================================================
-English:
+English_Deutsch:
 cd ../../doc/html/
 
 # Modify htm-file
@@ -33,11 +32,14 @@ vi index_tree_en.htm.htm
 # build prg htmTree
 cc -o htmTree -ggdb -pg myhtmTree.c
 
-# start  (creates index_tree_en.htm)
+# create index_tree_en.htm
 ./htmTree index_tree_en
 
+# create index_tree_de.htm
+./htmTree index_tree_de
+
 # display
-v index_en.htm
+firefox index_en.htm
 
 
 
@@ -172,4 +174,65 @@ CADCAM-Services
 
 
 // EOF
+
+
+
+
+
+*/
+================================================================
+ENGL:
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE> ..filenam-ohne-htm.. </TITLE>
+  <meta name="description" content=" ....... ">
+  <meta name="keywords" content=" ....... ">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
+<PRE>
+
+
+
+================================================================
+DEUTSCH:
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE> ..filenam-ohne-htm.. </TITLE>
+  <meta name="description" content=" ....... ">
+  <meta name="keywords" content=" ....... ">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
+<PRE>
+
+ 
+
+CHANGE_RULERS:
+<HR><!-- ============================================================ -->
+
+
+
+CHANGE_CHARSET:
+- display charset: file -i <fnam>
+- charset=windows-1250 -> charset=utf-8             
+  cp <fnam> t1
+  iconv -f iso-8859-1 -t utf-8 t1 > <fnam>
+
 # eof

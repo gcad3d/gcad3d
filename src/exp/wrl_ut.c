@@ -188,7 +188,6 @@ Group { .. }
 ===========================================================================
 Programmablauf:
 APT_decode_mock
-APT_DrawModel
  DLL_run1
   gCad_main
    wrl_readTess__     alle obj. aus Datei nach outSpc kopieren
@@ -208,12 +207,6 @@ APT_DrawModel
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-
-// NUR TEST:  GEHT NICHT MIT MS_WIN !!??
-// #include <GL/gl.h>
-// #include <GL/glu.h>
 
 
 
@@ -1297,7 +1290,7 @@ static int levOld = -1;
 
   // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1");
   // DEB_dump_obj__ (Typ_PT, &ptc2, " ptc2");
-  // GR_Disp_ln1 (&ptc1, &ptc2, 2);
+  // GR_tDyn_pcv (&ptc1, &ptc2, 2);
 
 
   // struct fuer Konus befuellen (pl, r1, r2, h)

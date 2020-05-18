@@ -1382,7 +1382,7 @@ WC_sur_mat WC_sur_imat
 
     // printf("uuuuuuuuuuuuuuuu ex-UTRA_app_obj %d \n",irc); fflush (stdout);
     // if(!irc)DEB_dump_obj__ (otyp, objo, "ex UTRA_app__");
-    // // if(!irc)GR_Disp_obj (otyp, objo, 8, 4);
+    // // if(!irc)GR_tDyn_obj (otyp, objo, 8, 4);
     // printf("ex UTRA_app_obj irc=%d aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",irc);
 
 
@@ -1611,7 +1611,7 @@ WC_sur_mat WC_sur_imat
     UTRA_tra_vc (v2, v2, TRA_TYP[i1], &TRA_TAB[i1]);
   }
 
-    // GR_Disp_vc (v2, NULL, 0, 0);
+    // GR_tDyn_vc (v2, NULL, 0, 0);
     // DEB_dump_obj__ (Typ_VC, v2, "ex-UTRA_app_vc");
 
   return 0;
@@ -2221,7 +2221,7 @@ exit(0);
     // update p:
     UT3D_pl_p (pl2);
 
-    // GR_Disp_obj (Typ_PLN, pl2, 8, 4);
+    // GR_tDyn_obj (Typ_PLN, pl2, 8, 4);
     // DEB_dump_obj__ (Typ_PLN, pl2, "pl2");
 
   return 0;

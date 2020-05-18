@@ -34,20 +34,32 @@ ________________________________________________________________________
 
 
  With "Options/compile_DLLs" on, a plugin is unloaded at runtime,
- recompiled, relinked and reloaded. 
+ recompiled, relinked and reloaded.
+ 
 
 
 Example:
+
 cd ~/devel/gcad3d/src/APP
+  (MS: cd %APPDATA%\devel\gcad3d\src\APP)
+
 cp Demo_toolbar1.c myTest1.c
+
 cp Demo_toolbar1.mak myTest1.mak
+  (MS: copy Demo_toolbar1.nmak myTest1.nmak)
+
 # change "Demo_toolbar1" in myTest1.c and in myTest1.mak into "myTest1"
-# link for the first time:
-make -f myTest1.mak
+
+# for the first time the plugin must be built manually:
+. ../options.sh && make -f myTest1.mak
+  (MS: nmake -f myTest1.mak)
 
 # start gcad with "Options/compile_DLLs" on
 ./do comp
+  (MS: do comp)
+
 # select "Plugin / select plugin .. / myTest1"
+
 # keep gcad running; exit plugin; change code, save code;
 # restart plugin with "Ctrl+P" makes automatic recompile and start ..
 

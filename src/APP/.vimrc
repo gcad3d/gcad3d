@@ -76,8 +76,8 @@ syntax on
 " see ${DIR_BIN}.vimrc_orig  fix vimdoc (Ctrl-h)
 
 " temp-usage-only !
-map t :call TestFunc1()
-map T :call TestFunc2()
+"map t :call TestFunc1()
+"map T :call TestFunc2()
 
 
 " F2 = comment out; insert |// | at first-char-position

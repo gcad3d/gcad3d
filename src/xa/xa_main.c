@@ -437,7 +437,7 @@ kopieren geht nicht mehr -
 
 
   // Init und display Windows
-  L_1:
+  // L_1:
 
   // delete pipe CTRLpin (after crash commands can remain ..)
   sprintf(txbuf1, "%sCTRLpin",OS_get_tmp_dir());
@@ -459,6 +459,12 @@ kopieren geht nicht mehr -
   PRC_lst_processors ();    // create <tmp>cadprocessors.lst
 
 
+  // init DisplList
+  DL_Init ();
+
+
+  //----------------------------------------------------------------
+  // setup window
   // init gtk
   GUI_Init__ ("");     // Read Colours und Fonts
   // GUI_Init ("xa/xa.rc");

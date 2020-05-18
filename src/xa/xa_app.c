@@ -375,7 +375,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   int  (*uFunc)();
 
 /*
-  AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+  MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
   GUI_List2 (wTit,              // titletext
@@ -405,7 +405,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
   printf("APP_Save |%s|%s|\n",wTit,defNam);
 
-  AP_get_fnam_symDir (dirLst);   // get filename of dir.lst
+  MDLFN_symFilNam (dirLst);   // get filename of dir.lst
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
 /*

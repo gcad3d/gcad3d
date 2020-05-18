@@ -180,7 +180,6 @@ UT2D_ck_pt_in_tria__
 #include <GL/gl.h>                     // GL_TRIANGLES
 
 
-
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
@@ -188,17 +187,33 @@ UT2D_ck_pt_in_tria__
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/ut_os.h"               // OS_ ..
+#include "../gr/ut_gr.h"               // GR_tDyn_*
+
 
 #define INCLUDE_FULL
 #include "../ut/ut_face.h"             // UFA
 #undef INCLUDE_FULL
 
 
+//================================================================
+// GLOBAL-VARS:
+
+// ex ../gr/ut_GL.c:
+extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 
-//----------------------------------------------------------------
-// prototypes
+
+//================================================================
+// PROTOTYPES:
+
   int UFA_fac_dump_f (Fac3 *fa, int fNr, char *fnExt, char *txt, ...);
+
+
+
+//================================================================
+//================================================================
+//================================================================
+ 
 
 
 
@@ -3679,11 +3694,11 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   GL_view_ini__ (dbi, oTyp, Typ_Att_dash_long);
 
-  GL_att_su (ATT_COL_YELLOW); // INF_COL_SYMB
+  GL_att_su1 (ATT_COL_YELLOW); // INF_COL_SYMB
 
-  GL_Disp_i2fac (fNr, fa, ia, pa, va, oTyp);
+  GL_set_nifac (fNr, fa, ia, pa, va, oTyp);
 
-  if(dbi) GL_EndList ();           // glEndList
+  if(dbi) GL_list_close ();           // glEndList
 
   return 0;
 
@@ -3710,7 +3725,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //         -1L   use dynamic DispList
 //         >=1   use/overwrite existing DispList
 //
-// see MSH_test_disp_f1 UPAT_ipatch_disp_opts
+// see MSH_test_disp_f1 UPAT_ipatch_disp_opts GR_Disp_triv
 
 
   int      irc, i1, ii, iBnd, iVc, iTx, iVT, iNr, *ia, ife;
@@ -3745,7 +3760,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   // Must display surface before boundary.
   if(!strchr(opts, 's') ) goto L_bvi;
     // display shaded triangles
-    GL_att_su (ATT_COL_GREEN);
+    GL_att_su1 (ATT_COL_GREEN);
 
     iNr = fNr * 3;
     ia = (int*) MEM_alloc_tmp ((int)(iNr * sizeof(int)));
@@ -3756,7 +3771,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       ia[++i1] = fa[ii].i2;
       ia[++i1] = fa[ii].i3;
     }
-    GL_Disp_ipatch (GL_TRIANGLES, iNr, ia, pa);
+    GL_set_ipatch (GL_TRIANGLES, iNr, ia, pa);
 
 
   //----------------------------------------------------------------
@@ -3783,7 +3798,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       ptt[1] = pa[fa[ii].i2];
       ptt[2] = pa[fa[ii].i3];
       ptt[3] = pa[fa[ii].i1];
-      GL_Disp_cv (4, ptt);
+      GL_set_cv (4, ptt);
     }
   }
 
@@ -3814,7 +3829,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       if(fa[ii].st < 0) continue;   // skip deleted faces
       // sprintf(s1,"%d",iOff + ii);
       sprintf(s1,"%d",ii);
-      GL_Disp_txtA (&pgca[i1], s1);
+      GL_set_txtA (&pgca[i1], s1);
       ++i1;
     }
   }
@@ -3841,7 +3856,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     //  p   disp points as (SYM_STAR_S,ATT_COL_BLUE)
     GL_att_sym (ATT_COL_BLUE);
     for(i1=0; i1<pNr; ++i1) {
-        GL_Disp_symB (SYM_TRI_S, &pa[i1]);
+        // GL_Disp_symB (SYM_TRI_S, &pa[i1]);
+        GL_set_symB (SYM_TRI_S, &pa[i1]);
     }
   }
 
@@ -3852,7 +3868,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     GL_att_cv (Typ_Att_Symb);
     for(i1=0; i1<pNr; ++i1) {
       sprintf(s1,"%d",i1);
-      GL_Disp_txtA (&pa[i1], s1);  // Typ_Att_Symb = 7 = yellow thick3
+      GL_set_txtA (&pa[i1], s1);  // Typ_Att_Symb = 7 = yellow thick3
     }
   }
 
@@ -3860,7 +3876,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   //----------------------------------------------------------------
   L_done:
   if(dbi) {
-    GL_EndList ();     // glEndList
+    GL_list_close ();     // glEndList
   }
 
   return 0;
@@ -3871,7 +3887,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //================================================================
   int UFA_Disp_nEdg2 (int eNr, int *fa, int *ea,
                      Fac3 *fTab, Point2 *p2a,
-                     char *opts, int grAtt, double zVal) {
+                     char *opts, int att, double zVal) {
 //================================================================
 // UFA_Disp_nEdg2                          display 2D-edges 
 // Input:
@@ -3888,19 +3904,22 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   Point2  pta[2];
 
 
-  printf("UFA_Disp_nEdg2 eNr=%d opts=|%s| grAtt=%d zVal=%f\n",
-         eNr,opts,grAtt,zVal);
+  printf("UFA_Disp_nEdg2 eNr=%d opts=|%s| att=%d zVal=%f\n",
+         eNr,opts,att,zVal);
 
    // boundary
-  dli = DL_StoreObj (Typ_CVPOL, dbi, grAtt);
-  GL_Draw_Ini (&dli, Typ_Att_dash_long);  // init cv/surf, glNewList < GL_fix_DL_ind
+  // dli = DL_StoreObj (Typ_CVPOL, dbi, att);
+  // GL_Draw_Ini (&dli, Typ_Att_dash_long); 
+
+  GL2D_Z = zVal;
+  DL_tDyn_init (att);
 
 
   //----------------------------------------------------------------
   // Must display surface before boundary.
   if(!strchr(opts, 's') ) goto L_bvi;
     // display shaded triangles
-    GL_att_su (ATT_COL_GREEN);
+    GL_att_su1 (ATT_COL_GREEN);
 
     for(i1=0; i1 < eNr; ++i1) {
       // if(fa[ii].st < 0) continue;   // skip deleted faces
@@ -3912,24 +3931,26 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   L_bvi:
   if(!strchr(opts, 'b') ) goto L_end;
 
-  // GL_DrawLn_Ini (&dli, grAtt);
-  // GR_Disp_ln2
+  // GL_DrawLn_Ini (&dli, att);
+  // GR_tDyn_ln2_2pt
   // GL_Draw_Ini (&dli, grTyp);  // init cv/surf, glNewList < GL_fix_DL_ind
-  GL_att_cv (grAtt);   // INF_COL_CV
+  GL_att_cv (att);   // INF_COL_CV
 
   for(i1=0; i1 < eNr; ++i1) {
     // get the points of edge cf1a[i1],ce1a[i1]
     UFA_2pt2_fac_esn (&pta[0], &pta[1], ea[i1], &fTab[fa[i1]], p2a);
       // DEB_dump_obj__ (Typ_PT2, &pta[0], " ps");
       // DEB_dump_obj__ (Typ_PT2, &pta[1], " pe");
-    GL_Disp_cv2z (2, pta, zVal);
+    // GL_Disp_cv2z (2, pta, zVal);
+    GL_set_cv2 (2, pta);
   }
 
 
   //----------------------------------------------------------------
   L_end:
-  GL_EndList1 (0);     // glEndList
-
+  // GL_EndList1 (0);     // glEndList
+  GL_list_close ();    // close GL-record
+  GL2D_Z = 0.;      // reset 2D-Z
 
   return 0;
 
@@ -3952,7 +3973,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   UT3D_pt_pt2_z (&pta[2], &pa[fa1->i3], zVal);
 
 
-  return GL_Displ_ntri (1, pta);
+  return GL_set_ntri (1, pta);
 
 }
 
@@ -3962,19 +3983,19 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 // UFA_disp_fb1          display boundary of indexed-triangle 
 // replacing MSH_test_disp_fb1
 // TODO: UFA_disp_fb1 -> UFA_disp_opts ?         see UPAT_ipatch_disp_opts
-// see GL_Disp_ipatch GL_Disp_i2fac GL_Disp_cv 
+// see GL_set_ipatch GL_set_nifac GL_set_cv 
 
   int     iCol=9;  //8=green
-  Point   *p1, *p2, *p3;
+  Point   pta[3];
 
+  pta[0] = pa[fa[ii].i1];
+  pta[1] = pa[fa[ii].i2];
+  pta[2] = pa[fa[ii].i3];
 
-  p1 = &pa[fa[ii].i1];
-  p2 = &pa[fa[ii].i2];
-  p3 = &pa[fa[ii].i3];
-
-  GR_Disp_ln1 (p1, p2, iCol);
-  GR_Disp_ln1 (p2, p3, iCol);
-  GR_Disp_ln1 (p3, p1, iCol);
+  // GR_tDyn_pcv (p1, p2, iCol);
+  // GR_tDyn_pcv (p2, p3, iCol);
+  // GR_tDyn_pcv (p3, p1, iCol);
+  GR_tDyn_pcv (pta, 3, iCol);
 
   return 0;
 

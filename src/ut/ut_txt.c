@@ -152,6 +152,7 @@ UTX_ck_uml_c           check for Umlaut (ƒ÷‹‰ˆ¸ﬂ); change to normal char
 UTX_ck_uml_s           change all umlaute of string
 UTX_cmp_word_wordtab   check if word wd1 is in list wdtab
 UTX_find_chr           find character in string (strchr)                 INLINE
+UTX_find_bwd_chr       find character in string going back
 UTX_find_Del1          // find next delimiter ' ' '=' ',' '\n' '\t' '{' ..
 UTX_find_word1         Wort in Zeile suchen
 UTX_find_wordNr        find word "was" in string "wo"; return nr of occurences
@@ -262,6 +263,23 @@ const char TX_NUL = '\0';
 static char   TX_buf1[128];
 static char   TX_buf2[128];
 
+
+//================================================================
+  char* UTX_find_bwd_chr (char *sStart, char *sEnd, char iChar) {
+//================================================================
+// UTX_find_bwd_chr       find character in string going back
+// returns pos of first <ichar> left of sEnd; NULL = none.
+// - sEnd is first to be checked
+
+
+  L_nxt:
+    if(*sEnd == iChar) return sEnd;
+    --sEnd;
+    if(sEnd >= sStart) goto L_nxt;
+
+  return NULL;
+
+}
 
 
 //================================================================
@@ -854,7 +872,12 @@ static char   TX_buf2[128];
   int UTX_fnam_fnrel (char *fnAbs, int isiz, char *fnRel, char *basDir) {
 //=========================================================================
 /// UTX_fnam_rel2abs     make absolute filename from relative Filename and basDir
-/// RF 2018-05-23
+// Input:
+//   fnRel    relative filename; starting with ./ or ../ or fnam
+//   basDir   the active directory (pwd)
+// Output:
+//   fnAbs    the full absolute filename
+
 
   int      ls, irc, fTmp = 0;
   char     *si, *so = NULL;
@@ -905,7 +928,6 @@ static char   TX_buf2[128];
   }
   strcat(so, si);
   if(fTmp) strcpy(fnAbs, so);
-  UTX_add_fnam_del (fnAbs);   // add closing "/"
 
     // printf("ex-UTX_fnam_fnrel fnAbs=|%s|\n",fnAbs);
 
@@ -1207,15 +1229,17 @@ static char   TX_buf2[128];
 //================================================================
 /// \code
 /// UTX_ftyp_s             get filetyp from filename (change => upper)
+///  
 /// Input:
-///   mode = 0  do not change ftyp-case
-///   mode = 1  change ftyp > upperLetters
+///   ftyp      set only retCode if NULL
+///   mode      0  do not change ftyp-case
+///             1  change ftyp > upperLetters
 /// Output:
-///   ftyp      uppercase
+///   ftyp      uppercase; if NULL on input: set only retCode
+///   retCode   0  Filetyp out in ftyp
+///             1  string does not hvae filetype
 /// 
-/// IRC  0: Filetyp out in ftyp (in Groszbuchstaben)
-/// IRC -1: kein Filetyp gefunden ..
-/// ".0" kein Filetyp !
+/// If string starts with '.' - eg ".0" then this is filename without filetyp.
 /// \endcode
 
   char   *p1;
@@ -1233,9 +1257,11 @@ static char   TX_buf2[128];
   if(*(p1-1) == fnam_del) goto L_err;   // z.B. "./.0"
 
 
-  ++p1;   // skip "."
-  if(mode == 1) UTX_cp_word_2_upper (ftyp, p1);
-  else strcpy (ftyp, p1);
+  if(ftyp) {
+    ++p1;   // skip "."
+    if(mode == 1) UTX_cp_word_2_upper (ftyp, p1);
+    else strcpy (ftyp, p1);
+  }
 
     // printf("ex UTX_ftyp_s 0 |%s|%s|\n",ftyp,cbuf);
 

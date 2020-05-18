@@ -2327,7 +2327,7 @@ static double  newRot[4], newpRot[4];  // rotation
 //================================================================
 // store fan iTab as 1-n faces
 
-// see GL_DrawFan
+// see GL_set_fan
 
   int    i1, irc;
   long   ld;

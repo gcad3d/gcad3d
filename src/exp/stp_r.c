@@ -5038,7 +5038,7 @@ static Point  p1, p2;
 
   // pt1 = from center(pl1.po) in Richtg X (pl1.vx) len = rdc
   UT3D_pt_traptvclen (&pt1, &pl1.po, &pl1.vx, rdc);
-    GR_Disp_pt (&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB (&pt1, SYM_TRI_S, 2);
 
   // pt2 = pt1 um pl1.po/pl1.vz drehen um Winkel = u1
   UT3D_pt_rotptptvcangr (&pt2, &pt1, &pl1.po, &pl1.vz, UT_RADIANS(u1));
@@ -5052,7 +5052,7 @@ static Point  p1, p2;
 
   // make obj, save-> gCad, stor gC-Typ & Index -> s_tab
   irc = STP_r_creObj1 (sInd, Typ_CI, Typ_Txt, gTxt);
-    printd("  creCi2 irc=%d\n",irc);
+    // printd("  creCi2 irc=%d\n",irc);
   if(irc < 0) return irc;
 
 

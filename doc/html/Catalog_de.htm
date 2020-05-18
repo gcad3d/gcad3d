@@ -1,14 +1,28 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
-<TITLE>CAD_PT_de.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>Catalog_de</TITLE>
+  <meta name="description" content="gCAD3D-Normteile">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="de-AT">
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
 
 
-<h2>Codes für Normteile</h2>
+<h2>Normteile</h2>
+
+<A HREF='#Adm'>Modify Catalog</A>
+<A HREF='#Cre'>Create Catalog</A>
+<A HREF='#Del'>Delete Catalog</A>
+<A HREF='#Dir'>Catalog-directory</A>
+
 
   
  
@@ -16,31 +30,31 @@ Die Funktion CATALOG dient zum Erzeugen / Modifizieren von Normteilen.
   Siehe <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
 
 Benutzung von Normteilen:
-  In der CAD-Funktion "Submodelle/M CatalogPart" können die
+  In der CAD-Funktion "Submodelle/M CatalogPart" kĂ¶nnen die
     Normteile benutzt werden.
   Nach Auswahl eines Normteil (CatalogPart) aus einer Normteilbibliothek
     kann der Normteil wie ein subModel positioniert werden.
-  Siehe <a href="CAD_Model_de.htm#F2">CAD-Funktionen für Normteile</a>.
+  Siehe <a href="CAD_Model_de.htm#F2">CAD-Funktionen fĂĽr Normteile</a>.
 
 
   Basis der Normteile sind ein Modell (Dateityp .gcad) und
     eine Tabelle von Werten (Dateityp .ctlg).
-  Beide Files sind Texte (nicht binär).
+  Beide Files sind Texte (nicht binĂ¤r).
 
   Normteile liegen im symbolischen Verzeichnis "CATALOG".
-    Verzeichnis ändern mit "Standards/Directories".
+    Verzeichnis Ă¤ndern mit "Standards/Directories".
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <a name="Adm"></a>
 <b>Modify Catalog</b>
-Damit können zusätzliche Parts in einem Catalog erzeugt werden.
+Damit kĂ¶nnen zusĂ¤tzliche Parts in einem Catalog erzeugt werden.
 Auswahl der Normteilbibliothek, dann Modifikation mit einem
 Texteditor.
 
 Alle Normteilbibliotheken befinden sich im Verzeichnis {CATALOG}.
 Eine Normteilbibliothek ist eine Textdatei,
-der Dateiname ist frei wählbar, der Dateityp muss .ctlg sein.
+der Dateiname ist frei wĂ¤hlbar, der Dateityp muss .ctlg sein.
   
 Jede Zeile einer Normteilbibliothek definiert einen Normteil;
 Zeilen die mit '#' beginnen sind Kommentarzeilen.
@@ -80,7 +94,7 @@ V20=6.4
 V21=12
 V22=1.8
 CALL CTLG
-# überschreibt die Variablen V20,V21 und V22.
+# ĂĽberschreibt die Variablen V20,V21 und V22.
 V23=V20/2
 V24=V21/2
 C20=P(0 0 0) VAL(V23)
@@ -94,14 +108,35 @@ A22=CYL L(P(0 0 0) DZ) VAL(V24) 0 360 0 V22
 
 
 
+<HR><!-- ============================================================ -->
+<a name="Cre"></a>
 <b>Create Catalog</b>
 Erzeugen einer neuen Normteilbibliothek.
-Der Dateiname ist frei wählbar.
+Der Dateiname ist frei wĂ¤hlbar.
 
 
+<HR><!-- ============================================================ -->
+<a name="Del"></a>
 <b>Delete Catalog</b>
-Löschen einer Normteilbibliothek.
+LĂ¶schen einer Normteilbibliothek.
 
 
+<HR><!-- ============================================================ -->
+<a name="Dir"></a>
+<b>Catalog-directory</b>
+
+Das Verzeichnis fĂĽr die Normteile muss in der Datei fĂĽr die Verzeichnisse 
+ als symbol "CATALOG" eingetragen sein.
+
+Mit Funktion Standards/Directories kann die Eintragung gemacht / geĂ¤ndert werden.
+Beispiel Unix (default):
+CATALOG   /home/userName/gCAD3D/ctlg/
+
+Die Datei fĂĽr die Verzeichnisse ist bei Unix-Defaultinstallation:
+/home/userName/gCAD3D/cfg/dir.lst
+
+
+
+<HR><!-- ============================================================ -->
 </PRE>
 </HTML>

@@ -129,7 +129,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
 
   // make bounding box of Bezier curve
   UT3D_box_pts (&pmin, &pmax, rbez->ptNr, rbez->cptab);
-    // GR_Disp_box (&pmin, &pmax, 9);
+    // GR_tDyn_box__(&pmin, &pmax, 9);
 
 
   // if line does not intersect bounding box -> return
@@ -1748,7 +1748,7 @@ Returncodes:
 
     // DEB_dump_obj__ (Typ_CVRBEZ, rb1, "UT3D_rbez_360");
     // { long dli = -1L; //GL_Draw_rbez (&dli, 1, rb1); }
-      // GR_Disp_rbez (rb1, 1); }
+      // GR_tDyn_rbez (rb1, 1); }
 
   return 0;
 
@@ -1951,7 +1951,7 @@ Returncodes:
     long dli = -1L;
     // DEB_dump_obj__ (Typ_CVRBEZ, &rba[i1], "ex rbez_ci");
     // GL_Draw_rbez (&dli, 9, &rba[i1]);
-    GR_Disp_rbez (&rba[i1], 9);
+    GR_tDyn_rbez (&rba[i1], 9);
   }
   //----------------------------------------------------------------
 */

@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
+<style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY>
+<PRE>
+
+
+<h2>Bedienung Funktion MAN:</h2>
+
+  Hauptfunktion MAN (Manuell).
+  Die Objektcodes werden in einem Editfenster dargestellt;
+  können mit einem Editor erzeugt / modifiziert / gelöscht werden.
+  Die Darstellung erfolgt simultan im Grafikfenster.
+
+
+<b>Aktivieren der Funktion MAN:</b>
+   Die Checkbox MAN selektieren.
+
+
+____________________________________________________________________________
+<b>Erzeugen von Objekten:</b>
+  Eine Codezeile im Editfenster eingeben,
+    Abschluss mit Returntaste oder rechter Maustaste.
+    Die Zeile wird bearbeitet, das Objekt wird dargestellt.
+
+  Eine Codezeile für ein geometrisches Objekt besteht aus:
+    Objektname = Objektparameter. Beispiel für einen Punkt:
+    P10 = P(100 100 0)
+    CodeDefinitionen: siehe <a href="CAD_Base_de.htm#Codes">gCAD3D-Codes</a>
+
+  Neue Objektnamen können mit der Alt-Taste und dem Objekt-Character
+    erzeugt werden; Alt-P erzeugt also den Text "P20=".
+    Die aktuelle Zeile muss leer sein.
+    Weiters: Alt-L Line, Alt-C Kreis, Alt-S Kurve usw.
+
+  Zugehörige geometrische Objekte (Punkte, Konturen) können selektiert werden.
+    Der Objektname des selektierten Objekts wird im Editfenster zugefügt.
+    Kein Objekt ("indicate"): es wird die Cursorposition
+      auf der Konstruktionsebene als Punktobjekt zugefügt.
+    
+    Parametrische Definition für Punkte werden nur im Modus CAD erzeugt.
+   
+   
+____________________________________________________________________________
+<b>Modifizieren / Löschen von Objekten:</b>
+
+  Die Codezeile aktivieren:
+  - mit der Maus in die Zeile klicken  oder
+  - mit den Cursortasten hinauf/hinunter
+
+  Objektzeile im  Editfenster modifizieren oder löschen.
+
+  Zu jeder Zeit kann man mit der Cursortaste hinauf/hinunter jeden
+    Programmzustand wiederherstellen.
+
+  Copy und Paste (Text kopieren / einfügen):
+   Text selektieren (mit Maus oder ShiftTaste und CursorTasten);
+   Selektierten Text kopieren: Ctrl-C     oder
+   Selektierten Text kopieren und löschen: Ctrl-X
+   Text einfügen (paste): Ctrl-V
+
+  Zurück an das Programmende:
+    - mit Taste Esc
+    - oder mit dem "END" - Button
+    - oder mit der Cursortaste im Editfenster ganz nach unten.
+
+
+____________________________________________________________________________
+<b>Suchen von Objekten:</b>
+  
+  Selektieren Sie das Objekt mit der rechten Maustaste, Funktion "Edit"
+    (aktuelle Zeile im Editor muss leer sein);
+  der Cursor wird im Editfenster auf die zum Objekt gehörige Textzeile
+  positioniert.
+
+
+____________________________________________________________________________
+<b>STEP - Button</b>
+  Code-Zeilen einzeln ausführen.
+
+
+<b>END - Button</b>
+  das Programm bis zum Dateiende abarbeiten.
+  Mit der ESCAPE-Taste kann der Ablauf unterbrochen werden.
+
+
+
+</PRE>
+</BODY>
+</HTML>

@@ -79,6 +79,7 @@ see also:
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_geo_const.h"
 
 
 
@@ -181,7 +182,7 @@ see also:
     // TESTBLOCK
     // printf("ex-npt_sym_ci ptNr=%d\n",*ptNr);
     // DEB_dump_nobj__ (Typ_PT2, *ptNr, pta, " npt_sym_ci");
-    // GR_Disp_cv2 (pta, *ptNr, Typ_Att_hili1);
+    // GR_tDyn_pcv2 (pta, *ptNr, Typ_Att_hili1);
     // END TESTBLOCK
 
 
@@ -279,7 +280,7 @@ see also:
     // if(*ptNr > 16) {
      // DEB_dump_nobj__ (Typ_PT2, *ptNr, pTab, "UT2D_npt_obj-in");
      // ERR_raise (""); }
-    // GR_Disp_cv2 (pTab, *ptNr, Typ_Att_hili);
+    // GR_tDyn_pcv2 (pTab, *ptNr, Typ_Att_hili);
     // for(i1=0;i1<*ptNr;++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1]," pta[%d]\n",i1);
     // ERR_raise ("");
     // END TESTBLOCK
@@ -330,7 +331,7 @@ see also:
   }
 
     // TESTBLOCK
-    // GR_Disp_cv2 (pTab, *ptNr, Typ_Att_hili);
+    // GR_tDyn_pcv2 (pTab, *ptNr, Typ_Att_hili);
     // for(i1=0;i1<*ptNr;++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1]," pta[%d]\n",i1);
     // ERR_raise ("");
     // END TESTBLOCK
@@ -618,10 +619,10 @@ see also:
     // printf("ex UT3D_npt_ci %d\n",pNr);
     // for(i1=0; i1<pNr; ++i1) {
       // GR_Disp_pt2 (&pa[i1], SYM_TRI_S, 2);
-      // GR_Disp_txi2 (&pa[i1], i1, 0);
+      // GR_temp_txi2 (&pa[i1], i1, 0);
       // // DEB_dump_obj__ (Typ_PT, &pa[i1], " P[%d]=",i1);
     // }
-    // GR_Disp_cv2 (pa, pNr, 9);
+    // GR_tDyn_pcv2 (pa, pNr, 9);
     // END TESTBLOCK
 
 
@@ -663,7 +664,7 @@ see also:
   pta->x = rd + ptCen->x;
   pta->y = ptCen->y;
 
-  // GR_Disp_cv2 (cv, ptNr, 5);
+  // GR_tDyn_pcv2 (cv, ptNr, 5);
 }
 
 

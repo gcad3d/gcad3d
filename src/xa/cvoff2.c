@@ -699,7 +699,7 @@ static struct {int ifwd, ibwd,
 
     // TESTBLOCK
     // DEB_dump_nobj__ (Typ_PT2, ptNr, pa, "init_sr-otb");
-    // GR_Disp_cv2 (pa, ptNr, Typ_Att_hili);
+    // GR_tDyn_pcv2 (pa, ptNr, Typ_Att_hili);
     // END TESTBLOCK
 
 
@@ -810,8 +810,8 @@ static struct {int ifwd, ibwd,
   // printf("CVOFF2_int_trim irc=%d isRev=%d\n",irc,isRev);
   // DEB_dump_obj__ (Typ_PT2, ptx, " ptx");
   // GR_Disp_pt2 (ptx, SYM_TRI_S, ATT_COL_RED);
-  // GR_Disp_obj (typ1, obj1, Typ_Att_Symb, 0);
-  // GR_Disp_obj (typ2, obj2, Typ_Att_Symb, 0);
+  // GR_tDyn_obj (typ1, obj1, Typ_Att_Symb, 0);
+  // GR_tDyn_obj (typ2, obj2, Typ_Att_Symb, 0);
 
 
   // copy all types
@@ -1060,10 +1060,10 @@ static struct {int ifwd, ibwd,
 
 
     // TESTBLOCK
-    // GR_Disp_obj (CO2TIS.typ1f, &CO2TIS.o1f, Typ_Att_Symb, 0);
-    // GR_Disp_obj (CO2TIS.typ1b, &CO2TIS.o1b, Typ_Att_hili, 0);
-    // GR_Disp_obj (CO2TIS.typ2f, &CO2TIS.o2f, Typ_Att_Symb, 0);
-    // GR_Disp_obj (CO2TIS.typ2b, &CO2TIS.o2b, Typ_Att_hili, 0);
+    // GR_tDyn_obj (CO2TIS.typ1f, &CO2TIS.o1f, Typ_Att_Symb, 0);
+    // GR_tDyn_obj (CO2TIS.typ1b, &CO2TIS.o1b, Typ_Att_hili, 0);
+    // GR_tDyn_obj (CO2TIS.typ2f, &CO2TIS.o2f, Typ_Att_Symb, 0);
+    // GR_tDyn_obj (CO2TIS.typ2b, &CO2TIS.o2b, Typ_Att_hili, 0);
     // ERR_raise (__func__);
     // END TESTBLOCK
 
@@ -1399,7 +1399,7 @@ static struct {int ifwd, ibwd,
     // make polygon pa3 from bspl
     irc = UT3D_pta_bsp (&ptNr, pa3, oDat, ptMax, UT_DISP_cv);
     if(irc < 0) return -1;
-      // GR_Disp_cv (pa3, ptNr, Typ_Att_dash_long);
+      // GR_tDyn_pcv (pa3, ptNr, Typ_Att_dash_long);
       // DEB_dump_nobj__ (Typ_PT, ptNr, pa3, "pta_bsp-otb_obj");
 
     // make cv3 = CurvPoly with points = pa3[ptNr]
@@ -1421,7 +1421,7 @@ static struct {int ifwd, ibwd,
     if(ptNr > ptMax) {TX_Error("CVOFF2_otb_obj E3"); return -1;}
     irc = UT3D_npt_ell (&ptNr, pa3, oDat);
     if(irc < 0) return -1;
-      // GR_Disp_cv (pa3, ptNr, Typ_Att_dash_long);
+      // GR_tDyn_pcv (pa3, ptNr, Typ_Att_dash_long);
 
     // make cv3 = CurvPoly with points = pa3[ptNr]
     UT3D_plg_npt ((CurvPoly*)cv3, pa3, ptNr);
@@ -2137,8 +2137,8 @@ printf(" ?????????????\n");
     OTB_add_xDat (otb1, -1, 1, &box2);
 
       // TESTBLOCK
-      // GR_Disp_obj (rTyp, obj1, Typ_Att_Symb, 0);
-      // GR_Disp_box2 (&((BBox2*)otb1->xDat)[ii1].pb1,
+      // GR_tDyn_obj (rTyp, obj1, Typ_Att_Symb, 0);
+      // GR_tDyn_box2__ (&((BBox2*)otb1->xDat)[ii1].pb1,
                     // &((BBox2*)otb1->xDat)[ii1].pb2, Typ_Att_dash__);
       // END TESTBLOCK
   }
@@ -2219,8 +2219,8 @@ printf(" ?????????????\n");
     fwrite(&otb1->oTyp[ii1], sizeof(int), 1, CO2DAT.fp_set_w);
     fwrite(obj1, OBJ_SIZ_MAX, 1, CO2DAT.fp_set_w);
     fwrite(&box2, sizeof(BBox2), 1, CO2DAT.fp_set_w);
-      // GR_Disp_obj (otb1->oTyp[ii1], obj1, Typ_Att_dash_long, 0);
-      // GR_Disp_box2 (&box2.pb1, &box2.pb2, Typ_Att_dash__);
+      // GR_tDyn_obj (otb1->oTyp[ii1], obj1, Typ_Att_dash_long, 0);
+      // GR_tDyn_box2__ (&box2.pb1, &box2.pb2, Typ_Att_dash__);
       // DEB_dump_obj__ (Typ_BBox2, &box2, "  _BBox2-ii1 %d", ii1);
   }
 
@@ -2230,14 +2230,14 @@ printf(" ?????????????\n");
   // add loopsegs
   for(i1=0; i1<lfNr; ++i1) {
     iix = ia[i1];
-      // GR_Disp_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
+      // GR_tDyn_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
     // add seg to file
     fwrite(&otb1->oTyp[iix], sizeof(int), 1, CO2DAT.fp_set_w);
     fwrite(otb1->oDat[iix], OBJ_SIZ_MAX, 1, CO2DAT.fp_set_w);
     fwrite(&((BBox2*)otb1->xDat)[iix], sizeof(BBox2), 1, CO2DAT.fp_set_w);
-      // GR_Disp_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
+      // GR_tDyn_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
       // DEB_dump_obj__ (Typ_BBox2, &((BBox2*)otb1->xDat)[iix],"_BBox2-ii1 %d",iix);
-      // GR_Disp_box2 (&box2.pb1, &box2.pb2, Typ_Att_dash__);
+      // GR_tDyn_box2__ (&box2.pb1, &box2.pb2, Typ_Att_dash__);
       // DEB_dump_obj__ (Typ_BBox2, &box2, "  _BBox2-ii1 %d", ii1);
   }
 
@@ -2254,8 +2254,8 @@ printf(" ?????????????\n");
     fwrite(&otb1->oTyp[ii2], sizeof(int), 1, CO2DAT.fp_set_w);
     fwrite(obj1, OBJ_SIZ_MAX, 1, CO2DAT.fp_set_w);
     fwrite(&box2, sizeof(BBox2), 1, CO2DAT.fp_set_w);
-      // GR_Disp_obj (otb1->oTyp[ii2], obj1, Typ_Att_dash_long, 0);
-      // GR_Disp_box2 (&box2.pb1, &box2.pb2, Typ_Att_dash__);
+      // GR_tDyn_obj (otb1->oTyp[ii2], obj1, Typ_Att_dash_long, 0);
+      // GR_tDyn_box2__ (&box2.pb1, &box2.pb2, Typ_Att_dash__);
       // DEB_dump_obj__ (Typ_BBox2, &box2, "  _BBox2-ii1 %d", ii1);
   }
 
@@ -2428,7 +2428,7 @@ printf(" ?????????????\n");
       fread(obj1, OBJ_SIZ_MAX, 1, CO2DAT.fp_get);
 
         // TESTBLOCK
-        // GR_Disp_obj (typ1, obj1, Typ_Att_Symb, 0);
+        // GR_tDyn_obj (typ1, obj1, Typ_Att_Symb, 0);
         // END TESTBLOCK
 
       // add segment into otb1
@@ -2484,7 +2484,7 @@ printf(" ?????????????\n");
   // set startPt
   if(ptx) CVOFF2_pt_set (typ1, obj1, ptx, 1);
     // DEB_dump_obj__ (otb1->oTyp[ii1], obj1, "_save_l %d",ii1);
-    // GR_Disp_obj (typ1, obj1, Typ_Att_dash_long, 0);
+    // GR_tDyn_obj (typ1, obj1, Typ_Att_dash_long, 0);
 
   // copy endSeg
   typ2 = otb1->oTyp[ii2];
@@ -2492,7 +2492,7 @@ printf(" ?????????????\n");
   // set endPt
   if(ptx) CVOFF2_pt_set (typ2, obj2, ptx, 2);
     // DEB_dump_obj__ (otb1->oTyp[ii2], obj2, "_save_l %d",ii2);
-    // GR_Disp_obj (typ2, obj2, Typ_Att_dash_long, 0);
+    // GR_tDyn_obj (typ2, obj2, Typ_Att_dash_long, 0);
 
 
 
@@ -2581,7 +2581,7 @@ printf(" ?????????????\n");
   for(i1=0; i1<lfNr; ++i1) {
     iix = ia[i1];
       // printf(" ::::::::::::: nxt i1=%d iix=%d ptNr=%d\n",i1,iix,ptNr);
-      // GR_Disp_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash__, 0);
+      // GR_tDyn_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash__, 0);
 
     // connected-objects: remove last endPt (== next startPt)
     if(i1) ptNr -= 1;
@@ -2595,7 +2595,7 @@ printf(" ?????????????\n");
 
   //----------------------------------------------------------------
   // add endSegment (fix intersectionpoint)
-    // GR_Disp_obj (otb1->oTyp[ii2], obj1, Typ_Att_dash__, 0);
+    // GR_tDyn_obj (otb1->oTyp[ii2], obj1, Typ_Att_dash__, 0);
 
   // connected-objects: remove last endPt (== next startPt)
   if(i1) ptNr -= 1;
@@ -2606,7 +2606,7 @@ printf(" ?????????????\n");
 
 
     // TESTBLOCK
-    // GR_Disp_cv2 (pta, ptNr, Typ_Att_hili);
+    // GR_tDyn_pcv2 (pta, ptNr, Typ_Att_hili);
     // END TESTBLOCK
 
   //----------------------------------------------------------------
@@ -2657,7 +2657,7 @@ printf(" ?????????????\n");
   //----------------------------------------------------------------
   // add startSegment (fix intersectionpoint)
     // DEB_dump_obj__ (typ1, obj1, "_save_l end");
-    // GR_Disp_obj (typ1, obj1, Typ_Att_dash_long, 0);
+    // GR_tDyn_obj (typ1, obj1, Typ_Att_dash_long, 0);
 
   if(typ1) {
     fwrite(&typ1, sizeof(int), 1, CO2DAT.fp_get);
@@ -2670,7 +2670,7 @@ printf(" ?????????????\n");
   for(i1=0; i1<lfNr; ++i1) {
     iix = ia[i1];
       // DEB_dump_obj__ (otb1->oTyp[iix], otb1->oDat[iix], "_save_l %d",iix);
-      // GR_Disp_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
+      // GR_tDyn_obj (otb1->oTyp[iix], otb1->oDat[iix], Typ_Att_dash_long, 0);
 
     // add seg to file
     fwrite(&otb1->oTyp[iix], sizeof(int), 1, CO2DAT.fp_get);
@@ -2681,7 +2681,7 @@ printf(" ?????????????\n");
   //----------------------------------------------------------------
   // add endSegment (fix intersectionpoint)
     // DEB_dump_obj__ (typ2, obj2, "_save_l end");
-    // GR_Disp_obj (typ2, obj2, Typ_Att_dash_long, 0);
+    // GR_tDyn_obj (typ2, obj2, Typ_Att_dash_long, 0);
 
   if(typ1) {
     fwrite(&typ2, sizeof(int), 1, CO2DAT.fp_get);
@@ -3089,7 +3089,7 @@ printf(" ?????????????\n");
 
     // TESTBLOCK
     // DEB_dump_obj__ (typO, objO, " _crParObj-objO");
-    // GR_Disp_obj (typO, objO, Typ_Att_Symb,0);
+    // GR_tDyn_obj (typO, objO, Typ_Att_Symb,0);
     // END TESTBLOCK
 
   goto L_nxt;
@@ -3294,7 +3294,7 @@ printf(" ?????????????\n");
 
     // TESTBLOCK
     // if(typ2) DEB_dump_obj__ (typ2, oo2,  " o_parl_close cic");
-    // if(typ2) GR_Disp_obj (typ2, oo2, Typ_Att_Symb, 0);
+    // if(typ2) GR_tDyn_obj (typ2, oo2, Typ_Att_Symb, 0);
     // ERR_raise (__func__);
     // END TESTBLOCK
 
@@ -3405,7 +3405,7 @@ printf(" ?????????????\n");
     // add Typ_LN2-oo2 to oTabO
     if(typo2) {
       // add segment
-        // GR_Disp_obj (typo2, oo2, Typ_Att_Symb, 0);
+        // GR_tDyn_obj (typo2, oo2, Typ_Att_Symb, 0);
       irc = CVOFF2_add (oTabO, typo2, oo2);
       if(irc < 0) {TX_Error("CVOFF2_cr_off E-3"); return -1;}
     }
@@ -3413,7 +3413,7 @@ printf(" ?????????????\n");
 
     // add Typ_LN2-oo3 to oTabO
     if(typo3) {
-        // GR_Disp_obj (typo3, oo3, Typ_Att_Symb, 0);
+        // GR_tDyn_obj (typo3, oo3, Typ_Att_Symb, 0);
       irc = CVOFF2_add (oTabO, typo3, oo3);
       if(irc < 0) {TX_Error("CVOFF2_cr_off E-4"); return -1;}
     }
@@ -3494,10 +3494,10 @@ printf(" ?????????????\n");
   // DEB_dump_obj__ (typAct, ooAct, "  ooAct");
   // DEB_dump_obj__ (typPrv, oiPrv, "  oiPrv");
   // DEB_dump_obj__ (typAct, oiAct, "  oiAct");
-  // GR_Disp_obj (typPrv, ooPrv, Typ_Att_hili,0);
-  // GR_Disp_obj (typAct, ooAct, Typ_Att_hili,0);
-  // GR_Disp_obj (typPrv, oiPrv, Typ_Att_hili,0);
-  // GR_Disp_obj (typAct, oiAct, Typ_Att_hili,0);
+  // GR_tDyn_obj (typPrv, ooPrv, Typ_Att_hili,0);
+  // GR_tDyn_obj (typAct, ooAct, Typ_Att_hili,0);
+  // GR_tDyn_obj (typPrv, oiPrv, Typ_Att_hili,0);
+  // GR_tDyn_obj (typAct, oiAct, Typ_Att_hili,0);
 
 
 
@@ -3627,7 +3627,7 @@ printf(" ?????????????\n");
     // TESTBLOCK
     // printf("ex-CVOFF2_cr_conn %d\n",*typoc);
     // if(*typoc) DEB_dump_obj__ (*typoc, ooc, "ex-CVOFF2_cr_conn");
-    // if(*typoc) GR_Disp_obj (*typoc, ooc, Typ_Att_Symb, 0);
+    // if(*typoc) GR_tDyn_obj (*typoc, ooc, Typ_Att_Symb, 0);
     // ERR_raise (__func__);
     // END TESTBLOCK
 

@@ -181,12 +181,13 @@ void INF_OTYP (){}
 /// models, submodels
 #define Typ_Part         120
 #define Typ_Group        121  ///< U ObjDB DB-Objects (union-group)
-#define Typ_SubModel     122  ///< M  - basicModel
+#define Typ_SubModel     122  ///< M  - basicModel                      ModelBas
 #define Typ_Model        123  ///< M  ModelReference of native-subModel ModelRef
 #define Typ_Mock         124  ///< M  ModelReference of mockup-subModel
 #define Typ_Ditto        125  ///< mockup-subModel (unvisible)
 #define Typ_Joint        126  ///< connection, exported;
 #define Typ_CtlgPart     127  ///  catalog-part
+
 #define Typ_GEOB_2D      128  ///< geometric obj binary format 2D
 #define Typ_GEOB_3D      129  ///< geometric obj binary format 3D
 
@@ -234,7 +235,7 @@ void INF_OTYP (){}
 
 #define Typ_APPOBJ       163  /// Typ_apDat 
 #define Typ_apDat        164  ///< application-data Typ_APPOBJ; invisible;
-#define Typ_Tool         165
+#define Typ_dynSym       165  /// dynamic obj without DB-obj
 #define Typ_PRCV         166  ///< polygonal representation curve
 #define Typ_constPln     167  ///< construction-plane (2D-plane)
 #define Typ_Process      168  ///  Process (NC ..)
@@ -406,6 +407,7 @@ void INF_OTYP (){}
 
 // AP_iftyp_ftyp
 #define Mtyp_Gcad       0
+
 #define Mtyp_DXF        1
 #define Mtyp_Iges       2
 #define Mtyp_Step       3
@@ -413,13 +415,15 @@ void INF_OTYP (){}
 #define Mtyp_LWO        5
 #define Mtyp_XML        6
 #define Mtyp_SVG        7
-#define Mtyp_WRL       10    ///< VRML1      10-19  tess-Formate
-#define Mtyp_OBJ       11
-#define Mtyp_STL       12
-#define Mtyp_TESS      13
+
+#define Mtyp_TESS      10    // gcad-tesselated-data
+#define Mtyp_WRL       11    ///< VRML1      10-19  tess-Formate
+#define Mtyp_WRL2      12    ///< VRML2
+#define Mtyp_OBJ       13
+#define Mtyp_STL       14
+
 #define Mtyp_BMP       20    ///< .bmp       20-29 PixelImages
 #define Mtyp_JPG       21    ///< .jpg
-#define Mtyp_WRL2     110    ///< VRML2
 
 
 // basicModeltypes

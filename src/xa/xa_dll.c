@@ -120,7 +120,7 @@ OS_debug_dll_
 
   static void  *dll1 = NULL; // pointer to loaded dll
 
-  // printf("DLL_run1 %d\n",mode);
+  printf("DLL_run1 %d\n",mode);
 
 
 

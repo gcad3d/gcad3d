@@ -52,17 +52,15 @@ When user goes back in source, restore corresponding position and status.
 #include <stdlib.h>
 #include <string.h>
       
-// #include "../ut/ut_umem.h"         // UME_reserve
-#include "../ut/ut_geo.h"
-
-// extern Point   oldPos;
-// extern int     tlActNr;
-// extern int     rapid;
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_DEPRECATE
 #define extern __declspec(dllimport)
 #endif
+
+
+#include "../ut/ut_geo.h"
+// #include "../ut/ut_umem.h"         // UME_reserve
 
 
 

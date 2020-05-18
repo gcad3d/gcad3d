@@ -53,6 +53,8 @@ Modifications:
 =====================================================
 List_functions_start:
 
+UT3D_pt_vc_par__pt_rbsp  get point/vector/parameter from point and rBsp
+UT3D_pt_vc__par_rbsp     get point/vector from parameter on rBsp
 UT3D_pt_evparCrvRBSpl    point <-- rational b-spline at parameter
 UT3D_pt_projptrbspl      project point onto rational-b-spline curve
 UT3D_vc_evparCrvRBSpl    tangent vector <-- rational b-spline at parameter
@@ -63,6 +65,7 @@ UT3D_rbspl_deriv1        1. deriv. rat. b-spline curve <-- rat. b-spline curve
 UT3D_rbsp_rbez           rational-Bspline-curve from rational-bezier-curve
 
 UT3D_rbspl_ck_closed     check if B-SplCv is closed
+UT3D_par__pt_rbsp        get parameter for ptx nearest to rat.Bspl
 UT3D_par_rbsp_pt         get knotvalue from point on rational-b-spline curve
 UT3D_par_par1_rbsp       get knotValue from parameter 0-1
 UT3D_par1_par_rbsp       get parameter 0-1 from knotvalue of rational-b-spline
@@ -102,11 +105,11 @@ List_functions_end:
 #include "../ut/ut_math.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_bspl.h"
+#include "../ut/ut_rbspl.h"               // UT3D_par1_par_rbsp
 #include "../ut/ut_obj.h"                 // UTO_stru_2_obj
-
 #include "../ut/func_types.h"                  // SYM_..
-
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa_mem.h"
 
 
@@ -1162,6 +1165,7 @@ List_functions_end:
 // UT3D_cv_rbsp               make Polygon from Rat.B-Spline-Kurve
 // tol (typ. 0.003) kleinste Strecke zur Berechnung der Abweichung
 // Die Anzahl von Polygonsegment entspricht der Toleranz (NUR OUT !!)
+// TODO: get polygon from PRCV (but dbi needed ..)
 
 // Output:
 //   vTab       curveparameter of corresponding point (if vTab <> NULL)
@@ -1743,6 +1747,8 @@ Returncodes:
   int UT3D_vc_evparCrvRBSpl (Vector *tg, CurvRBSpl *rbspl, CurvBSpl *g,
 								             CurvBSpl *fd, CurvBSpl *gd, double t) {
 /*=========================
+TODO : use UT3D_rbspl_tst_tg == UCBS_TestSegsRBspCrv (makes pt & tangent for rbspl)
+
 UT3D_vc_evparCrvRBSpl       tangent vector <-- rational b-spline at parameter
 
 UT3D_vc_evparCrvRBSpl       Author: Thomas Backmeister       26.9.2004
@@ -1802,6 +1808,305 @@ Returncodes:
     // DEB_dump_obj__ (Typ_VC, tg, "ex UT3D_vc_evparCrvRBSpl:");
 
 	return 0;
+}
+
+
+//=================================================================
+  int UT3D_pt_vc_par__pt_rbsp (Point *pto, Vector *vco, double *dp,
+                               CurvRBSpl *rbsp, Point *ptx,
+                               int mode, int vTyp, double tol) {
+//=================================================================
+// UT3D_pt_vc_par__pt_rbsp         get point/vector/parameter from point and rBsp
+//   mode=0 and 1 project ptx onto curve, mode=2 not.
+// Input:
+//   mode     0   check if dist. ptx-curve > tol; if yes - return -1
+//            1   do not test distance - project onto curve (test only endpoints)
+//            2   point is on curve; get only parameter and or vector
+//   vTyp     0  get knotvalues for splines,polygon; else values 0-1
+//            1  get parametervalues from 0 -1 also for splines. See INF_stru
+//   tol      mode=0: max. allowed distance from curve;
+//            mode=1: max. allowed distance from endpoints
+// Output:
+//   pto      point with parameter dp on curve; can be NULL on input;
+//   vco      tangent-vector at pto; can be NULL on input;
+//   dp       parameter of point pto on curve; can be NULL on input;
+//   retCod   0   OK, ptx is on curve
+//            -1  dist. ptx - curve > tol
+//            -2  ptx on curve, but NOT on trimmed curve
+//            -3  error
+//
+// see also 
+
+
+  int      irc;
+  double   d1, kv1, wt1;
+  Point    pt1;
+  CurvBSpl g, fd, gd;
+
+// #define  TABSIZ1 16
+//   Point  pa[TABSIZ1];
+//   double da[TABSIZ1];
+
+#define  TABSIZ2 1000000   // 1MB memspc temp-workspace
+  char   *memSpc;
+  Memspc wrkSpc;
+
+
+
+  // printf("UT3D_pt_vc_par__pt_rbsp mode=%d vTyp=%d tol=%f --------------\n",
+         // mode,vTyp,tol);
+  // DEB_dump_obj__ (Typ_PT, ptx, "ptx");
+
+
+  // get temp.workspace
+  memSpc = MEM_alloc_tmp (TABSIZ2);
+  UME_init (&wrkSpc, memSpc, TABSIZ2);
+
+
+  //----------------------------------------------------------------
+  // get kv1 = parameter of point nearest to ptx on curve
+  irc = UT3D_par__pt_rbsp (&kv1, ptx, rbsp, &wrkSpc, tol);
+  if(irc < 0) { irc = -2; goto L_exit; }
+     // printf(" projptrbspl-irc=%d kv1=%f\n",irc,kv1);
+
+  UME_reset (&wrkSpc);    // clear wrkSpc
+
+
+  //----------------------------------------------------------------
+  // get point on curve
+  if((!pto) && (!vco)) goto L_exit;
+  if(mode > 1) { pt1 = *ptx; goto L_get_tng; }  // mode=2: point already on curve
+
+  // get pt1 = point with parameter kv1 on curve;    from kv1
+  irc = UT3D_pt_evparCrvRBSpl (&pt1, &wt1, rbsp, kv1);
+  if(irc < 0) { irc = -3; goto L_exit; }
+    // printf(" projptrbspl-irc=%d kv1=%f\n",irc,kv1);
+    // DEB_dump_obj__ (Typ_PT, &pt1, " pt1");
+    // GR_temp_pt (&pt1, ATT_PT_YELLOW);
+
+
+
+  //----------------------------------------------------------------
+  L_ck_dist:
+  if(mode > 0) goto L_get_tng;
+
+  d1 = UT3D_len_2pt (&pt1, ptx);
+  if(d1 > tol) { irc = -1; goto L_exit; }
+
+
+  //----------------------------------------------------------------
+  L_get_tng:
+  if(!vco) goto L_exit;
+
+  // get "1. derivation" of rational b-spline curve
+  irc = UT3D_rbspl_deriv1 (&g, &fd, &gd, &wrkSpc, rbsp);
+  if (irc < 0) { irc = -4; goto L_exit; }
+
+  // curve tangent
+  irc = UT3D_vc_evparCrvRBSpl (vco, rbsp, &g, &fd, &gd, kv1);
+  if (irc < 0) { irc = -5; goto L_exit; }
+
+  // normalize vec
+  UT3D_vc_setLength (vco, vco, 1.);
+    // printf("kv1 = %f vco = %f %f %f\n",kv1,vco->dx,vco->dy,vco->dz);
+    // GR_tDyn_vc (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
+
+
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  if(pto) *pto = pt1;
+  if(dp)  {
+    if(vTyp) *dp = UT3D_par1_par_rbsp (&kv1, rbsp); // get 0-1-parameter
+    else     *dp = kv1;                             // knotvalue out
+  }
+
+
+    // TESTBLOCK
+    // printf("ex-UT3D_pt_vc_par__pt_rbsp %d\n",irc);
+    // if(dp) printf(" dp = %f\n",*dp);
+    // if(pto) DEB_dump_obj__ (Typ_PT, pto, " pto");
+    // if(vco) DEB_dump_obj__ (Typ_VC, vco, " vco");
+    // END TESTBLOCK
+
+
+
+  return irc;
+
+}
+
+
+//================================================================
+  int UT3D_par__pt_rbsp (double *kv, Point *ptx, CurvRBSpl *rbsp,
+                         Memspc *wrkSpc, double tol) {
+//================================================================
+// UT3D_par__pt_rbsp         get parameter for ptx nearest to rat.Bspl
+// Input:
+//   ptx, rbsp
+//   wrkSpc      temp.workspace
+//   tol         accuracy
+// Output:
+//   kv          knotvalue
+//
+// see UT3D_pt_projptrbspl
+
+
+  int      irc, i1, i2, ii, pnr, paSiz, nxp;
+  double   d1, d2, dd, *va;
+  Point    *pa;
+  void     *memPos0;
+
+// #define  TABSIZ1 16
+//   Point  pa[TABSIZ1];
+//   double va[TABSIZ1];
+
+
+  // printf("UT3D_par__pt_rbsp \n");
+  // DEB_dump_obj__ (Typ_PT, ptx, "ptx");
+
+  memPos0 = wrkSpc->next;     // save memSeg1
+
+  nxp = 0;
+
+  // space in memSeg1 / 4   (point(3 doubles) + 1 double(parameter))
+  paSiz = UME_ck_free (wrkSpc) / (sizeof(Point) + sizeof(double));
+  pa = UME_reserve (wrkSpc, paSiz * sizeof(int));
+  va = UME_get_next (wrkSpc);
+
+
+  // get the polygon. Die richtige Loesung (wenn mehrere Loesungen moeglich)
+  // kann man nur auswaehlen, wenn man ein Polygon mit brauchbarer Tolerenz
+  // hat. Davon die n-te Loesung auswaehlen; ab dann wieder via 3 Punkte ..
+  // Problem: man braucht zu jedem Polygonpunkt den Parameterwert !
+  irc = UT3D_cv_rbsp (&pnr, pa, va, rbsp, paSiz, tol);
+  if(irc < 0) return -1;
+
+  // find ii = nearest point on the polygon
+  d2 = UT_VAL_MAX;
+  for(i1=0; i1<pnr; ++i1) {
+    d1 = UT3D_lenq_PtPt (&pa[i1], ptx);
+    if(d1 < d2) {
+      d2 = d1;
+      ii = i1;
+    }
+  }
+
+  // which segment ? before or after point ii ?
+  // test which parameter has ii on the segments
+  // first segment:
+  i1 = ii - 1;
+  if(i1 >= 0) UT3D_par_pt_2pt (&d1, ptx, &pa[i1], &pa[ii]);
+  else        d1 = -1;
+  // second segment:
+  i2 = ii + 1;
+  if(i2 < pnr) UT3D_par_pt_2pt (&d2, ptx, &pa[ii], &pa[i2]);
+  else        d2 = -1;
+    // printf(" d1=%f d2=%f\n",d1,d2);
+
+  if((d2 < 0.)||(d2 > 1.)) {
+    // use 1. segment (ii-1, ii)
+    *kv = UTP_px_paramp0p1px (va[i1], va[ii], d1);
+  } else {
+    // use 2. segment (ii, ii+1)
+    *kv = UTP_px_paramp0p1px (va[ii], va[i2], d2);
+  }
+
+
+  //----------------------------------------------------------------
+  L_done:
+  wrkSpc->next = memPos0;  // restore memSeg1
+
+    // printf("ex-UT3D_par__pt_rbsp kv=%f\n",*kv);
+
+  return 0;
+
+}
+
+
+//===============================================================================
+  int UT3D_pt_vc__par_rbsp (Point *pto, Vector *vco,
+                            double dp, int vTyp, CurvRBSpl *rbsp, double tol) {
+//===============================================================================
+// UT3D_pt_vc__par_rbsp             get point/vector from parameter on rBsp
+// Input:
+//   dp       parameter of point pto on curve
+//   vTyp     0  dp is knotvalue
+//            1  dp is parametervalues from 0 - 1. See INF_stru
+// Output:
+//   pto      point with parameter dp on curve; can be NULL on input;
+//   vco      tangent-vector at pto; can be NULL on input;
+//   retCod   0   OK, dp is on curve
+//            1   dp is on curve but outside v0
+//            2   dp is on curve but outside v1
+//            -1  dp is outside  curve
+//            -2  internal error
+//
+// see also UT3D_pt_vc_par__pt_rbsp
+
+  int      irc;
+  double   kv1, wt1;
+  Point    pt1;
+  CurvBSpl g, fd, gd;
+
+#define  TABSIZ2 1000000   // 1MB memspc temp-workspace
+  char   *memSpc;
+  Memspc wrkSpc;
+
+
+
+  // printf("UT3D_pt_vc__par_rbsp dp=%f vTyp=%d\n",dp,vTyp);
+
+
+  //----------------------------------------------------------------
+  if(vTyp) kv1 = UT3D_par_par1_rbsp (dp, rbsp); // get knotvalue
+  else     kv1 = dp;                             // is knotvalue
+
+
+  //----------------------------------------------------------------
+  // get pt1 = point with parameter kv1 on curve;    from kv1
+  irc = UT3D_pt_evparCrvRBSpl (&pt1, &wt1, rbsp, kv1);
+  if(irc < 0) { irc = -3; goto L_exit; }
+    // printf(" projptrbspl-irc=%d kv1=%f\n",irc,kv1);
+    // DEB_dump_obj__ (Typ_PT, &pt1, " pt1");
+    // GR_temp_pt (&pt1, ATT_PT_YELLOW);
+
+
+  //----------------------------------------------------------------
+  L_get_tng:
+  if(!vco) goto L_exit;
+
+  // get temp.workspace
+  memSpc = MEM_alloc_tmp (TABSIZ2);
+  UME_init (&wrkSpc, memSpc, TABSIZ2);
+
+  // get "1. derivation" of rational b-spline curve
+  irc = UT3D_rbspl_deriv1 (&g, &fd, &gd, &wrkSpc, rbsp);
+  if (irc < 0) { irc = -4; goto L_exit; }
+
+  // curve tangent
+  irc = UT3D_vc_evparCrvRBSpl (vco, rbsp, &g, &fd, &gd, kv1);
+  if (irc < 0) { irc = -5; goto L_exit; }
+
+  // normalize vec
+  UT3D_vc_setLength (vco, vco, 1.);
+
+    // printf("kv1 = %f vco = %f %f %f\n",kv1,vco->dx,vco->dy,vco->dz);
+    // GR_tDyn_vc (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  if(pto) *pto = pt1;
+
+    // TESTBLOCK
+    // printf("ex-UT3D_pt_vc__par_rbsp %d\n",irc);
+    // if(pto) DEB_dump_obj__ (Typ_PT, pto, " pto");
+    // if(vco) DEB_dump_obj__ (Typ_VC, vco, " vco");
+    // END TESTBLOCK
+
+  return 0;
+
 }
 
 
@@ -1896,7 +2201,7 @@ Returncodes:
   // pTab = (Point*) memspc101;
   // ptMax = sizeof(memspc101) / sizeof(Point);
   // UT3D_cv_rbsp (&ptNr, pTab, &rbspl, ptMax, UT_DISP_cv);   // 0.05 tol
-  // GR_Disp_cv (pTab, ptNr, 0);
+  // GR_tDyn_pcv (pTab, ptNr, 0);
   // return 0;
 
 
@@ -1937,7 +2242,7 @@ Returncodes:
   pTab = (Point*)memspc55;
   ptNr = sizeof(memspc55) / sizeof(Point);
   UT3D_cv_rbsp (&ptNr, pTab, NULL, rbspl, ptNr, 0.1);
-  GR_Disp_cv (pTab, ptNr, 9);
+  GR_tDyn_pcv (pTab, ptNr, 9);
 
 
   return 0;
@@ -1955,11 +2260,12 @@ Returncodes:
 
   // disp points
   pa = rbspl->cpTab;
-  for(i1=0; i1<rbspl->ptNr; ++i1) GR_Disp_pt (&pa[i1], SYM_STAR_S, 1);
+  // for(i1=0; i1<rbspl->ptNr; ++i1) GR_tDyn_symB (&pa[i1], SYM_STAR_S, 1);
+  GR_tDyn_nsymB (rbspl->ptNr, pa, SYM_STAR_S, ATT_COL_RED);
 
 
   // disp controlcurve
-  GR_Disp_cv (pa, rbspl->ptNr, 9);
+  GR_tDyn_pcv (pa, rbspl->ptNr, 9);
 
   return 0;
 
@@ -2022,7 +2328,7 @@ Returncodes:
       if (rc < 0) return -1;
       printf("u= %f   pt= %f %f %f\n",u,pt.x,pt.y,pt.z);
       // cre_obj (Typ_PT, Typ_PT, 1, (void*)&pt);
-      GR_Disp_pt (&pt, SYM_STAR_S, 1);
+      GR_tDyn_symB (&pt, SYM_STAR_S, 1);
 
 			// curve tangent
       rc = UT3D_vc_evparCrvRBSpl (&tg, rbspl, &g, &fd, &gd, u);
@@ -2033,7 +2339,7 @@ Returncodes:
 		  // ln.p2.y = pt.y + tg.dy;
 		  // ln.p2.z = pt.z + tg.dz;
 			// cre_obj (Typ_LN, Typ_LN, 1, (void*)&ln);
-      GR_Disp_vc (&tg, &pt, 9, 0);  // 0=normiert
+      GR_tDyn_vc (&tg, &pt, 9, 0);  // 0=normiert
     }
   }
 

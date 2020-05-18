@@ -50,6 +50,17 @@ make -f DemoPlugin_Hili.mak
 #include <stdlib.h>
 #include <string.h>
 
+
+#ifdef _MSC_VER
+// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
+__declspec(dllexport) int gCad_main ();
+__declspec(dllexport) int gCad_fini ();
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
+
+
+
 #include "../gui/gui_types.h"          // GUI_MouseL
 
 #include "../ut/ut_geo.h"              // DL_Att
@@ -64,16 +75,6 @@ static long last_obj;
 // protos:
   int hili_sele1 (int src, long dl_ind);
   int hili_key1 (int key);
-
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
 
 
 

@@ -205,8 +205,7 @@ int tess_analyz_CB (ObjGX*);
   i1 = OS_checkFilExist (fnam, 1);  //0=no, 1=yes.
   if(i1 == 0) i1 = -1;
 
-    // printf("ex tess_fnam %d |%s|%s|\n",i1,fnam,mnam);
-
+    printf("ex tess_fnam %d |%s|%s|\n",i1,fnam,mnam);
   
   return i1;
 
@@ -220,15 +219,15 @@ int tess_analyz_CB (ObjGX*);
 // RetCod -1 = pretesselated file does not exist
 //         0 = ok; loaded into impSpc->next
 
-  int  i1;
+  int  irc;
   char cBuf[256];
 
   printf("tess_read_ |%s|\n",mnam);
 
   // get filename fnam.tess & check if pretesselated file exists
-  i1 = tess_fnam (cBuf, mnam);
-    // printf("ex-tess_fnam %d |%s|\n",i1,cBuf);
-  if(i1 < 0) return i1;
+  irc = tess_fnam (cBuf, mnam);  // -1=no, 1=yes.
+    printf("ex-tess_fnam %d |%s|\n",irc,cBuf);
+  if(irc < 0) return irc;
 
   // tesselate
   return TSU_imp_tess (impSpc, cBuf);
@@ -245,7 +244,7 @@ int tess_analyz_CB (ObjGX*);
   FILE *fp=NULL;
 
 
-  // printf("tess_write__ |%s|\n",fnam);
+  printf("tess_write__ |%s|\n",fnam);
 
   sprintf(cBuf, "%s%s.tess",OS_get_tmp_dir(),fnam);
     // printf("    _write_ |%s|\n",cBuf);
@@ -883,7 +882,7 @@ int tess_analyz_CB (ObjGX*);
 // ..pat
 // facCol
 // fac
-// see TSU_exp_fac GL_Disp_sur
+// see TSU_exp_fac GL_set_bMsh
 
   int     iSur, iPat, i1Nr, i2Nr, iTyp, iTex;
   ColRGB  *sCol, defCol;
@@ -1110,7 +1109,7 @@ use in GL_disp_cone
 //          6=GL_TRIANGLE_FAN
 //          16=GL_FAC_PLANAR
 //
-// see TSU_ntria_bMsh_p GL_Disp_sur GL_Disp_patch
+// see TSU_ntria_bMsh_p GL_set_bMsh GL_set_patch
 //     TSU_exp_dxfFac TSU_exp_stlFac TSU_exp_objFac
 //     TSU_exp_wrl1Fac TSU_exp_wrl2Fac
 
@@ -1876,7 +1875,7 @@ use in GL_disp_cone
 // ..pat
 // facCol
 // fac
-// see TSU_exp_fac GL_Disp_sur
+// see TSU_exp_fac GL_set_bMsh
 
   int     iSur, iPat, i1Nr, i2Nr, iTyp, iTex;
   ColRGB  *sCol;

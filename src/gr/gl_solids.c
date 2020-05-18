@@ -236,14 +236,14 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     pa1[ih].y = dy + sa[ih] * r1r;
     pa1[ih].z = dz + z1r;
   }
-  GL_DrawFan (&pc1, hNr, pa1, 1, 0);
+  GL_set_fan (&pc1, hNr, pa1, 1, 0);
 
   // Bottom-Fan
   pc1.z = dz - radius;
   for (ih=0; ih<hNr; ++ih) {
     pa1[ih].z = dz - z1r;
   }
-  GL_DrawFan (&pc1, hNr, pa1, 1, 0); // verkehrt !
+  GL_set_fan (&pc1, hNr, pa1, 1, 0); // verkehrt !
 
 
 
@@ -292,8 +292,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa4[ih].z  = dz - z1r;
      
     }
-    GL_DrawStrip2 (pa1, pa3, hNr, 0);
-    GL_DrawStrip2 (pa2, pa4, hNr, 0);
+    GL_set_strip2 (pa1, pa3, hNr, 0);
+    GL_set_strip2 (pa2, pa4, hNr, 0);
 
     // Adressen vertauschen ..
     MEM_swap__ (&pa1, &pa3, sizeof(void*));
@@ -463,14 +463,14 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   //----------------------------------------------------------------
   if((mode & 1) == 0) goto L_bot;  // if bit1 nicht gesetzt: skip.
       // printf(" disp fan pc1, pa1\n");
-    GL_DrawFan (&pc1, hNr, pa1, 0, 1); // GL_TRIANGLE_FAN
+    GL_set_fan (&pc1, hNr, pa1, 0, 1); // GL_TRIANGLE_FAN
 
 
   //----------------------------------------------------------------
   L_bot:
   if((mode & 4) == 0) goto L_side;    // if bit3 nicht gesetzt: skip
       // printf(" disp fan pc2, pa2\n");
-    GL_DrawFan (&pc2, hNr, pa2, 0, 1); // GL_TRIANGLE_FAN
+    GL_set_fan (&pc2, hNr, pa2, 0, 1); // GL_TRIANGLE_FAN
 
 
   //----------------------------------------------------------------
@@ -480,19 +480,19 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     // Mantel
     if(UTP_comp2db(con->r1, 0., UT_TOL_cv)) {
         // printf(" r1 is 0\n");
-      GL_DrawFan (&pc1, hNr, pa2, 1, 1); // GL_TRIANGLE_FAN
+      GL_set_fan (&pc1, hNr, pa2, 1, 1); // GL_TRIANGLE_FAN
       goto L_done;
     }
 
     if(UTP_comp2db(con->r2, 0., UT_TOL_cv)) {
         // printf(" r2 is 0\n");
-      GL_DrawFan (&pc2, hNr, pa1, 1, 1); // GL_TRIANGLE_FAN
+      GL_set_fan (&pc2, hNr, pa1, 1, 1); // GL_TRIANGLE_FAN
       goto L_done;
     }
 
 
     GLT_stor_rec (6, NULL, NULL, Typ_SURCON);
-    GL_DrawStrip2 (pa1, pa2, hNr, 1);
+    GL_set_strip2 (pa1, pa2, hNr, 1);
 
 
 
@@ -668,7 +668,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     pa1 = pa2;
     pa2 = &pTab[i1];
     i1 += hNr;
-    GL_DrawStrip2 (pa1, pa2, hNr, 0);
+    GL_set_strip2 (pa1, pa2, hNr, 0);
   }
 
 

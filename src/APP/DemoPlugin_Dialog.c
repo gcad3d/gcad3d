@@ -157,7 +157,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
   // display small triangle
-  APT_disp_SymB (SYM_TRI_S,  0, &pt1);  // cr dynamic symbol
+  GR_tDyn_symB (&pt1, SYM_TRI_S,  0);  // cr dynamic symbol
 
 
   // done for first 4 points

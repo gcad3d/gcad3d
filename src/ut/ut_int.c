@@ -102,7 +102,7 @@ UTO_stru_int
 
   // printf("INT2_pta_lna %d %f %f %f\n",*oNr,UT_TOL_pt,UT_TOL_cv,UT_DISP_cv);
   // for(i1=0; i1<*oNr; ++i1) {
-    // // GR_Disp_ln2 (&lTab[i1].p1, &lTab[i1].p2, 9);
+    // // GR_tDyn_ln2_2pt (&lTab[i1].p1, &lTab[i1].p2, 9);
     // DEB_dump_obj__ (Typ_LN2, &lTab[i1], "L[%d]=",i1);
   // }
 
@@ -350,7 +350,7 @@ UTO_stru_int
     // pTab = (Point2*)oTab;
     // for(i1=0; i1<pNr; ++i1)
       // DEB_dump_obj__ (Typ_PT2, &pTab[i1], "P[%d]=",i1);
-    // GR_Disp_cv2 (pTab, pNr, 9);
+    // GR_tDyn_pcv2 (pTab, pNr, 9);
 
   return 0;
 
@@ -487,8 +487,8 @@ UTO_stru_int
     oTab = oxp->data;
     for(i1=0; i1<oxp->siz; ++i1) {
       pTab = oTab[i1].data;
-      // GR_Disp_pTab (oTab[i1].siz, pTab, SYM_STAR_S, 2);
-      GR_Disp_cv (pTab, oTab[i1].siz, 9);
+      // GR_tDyn_npt__ (oTab[i1].siz, pTab, SYM_STAR_S, 2);
+      GR_tDyn_pcv (pTab, oTab[i1].siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
         // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
@@ -687,7 +687,7 @@ static  CurvElli          el1;
 
     // Elli from 
     UT3D_el_pt2vc2a ((CurvElli*)oSpc, &pt1, &vc1, &vc2, 0., RAD_360, 0);
-      // GR_Disp_ell ((CurvElli*)oSpc, 9);
+      // GR_tDyn_ell ((CurvElli*)oSpc, 9);
 
     *oTyp = Typ_CVELL;
 
@@ -744,7 +744,7 @@ static  CurvElli          el1;
 
     // CirCen: vom TorCen Len=tor.r1-tor.r2 Richtg=
     UT3D_vc_perp2vc (&vc1, &tor->pl.vz, &pln->vz);
-      // GR_Disp_vc (&vc1, &tor->pl.po, 9, 0);
+      // GR_tDyn_vc (&vc1, &tor->pl.po, 9, 0);
     // die 2. Loesung ist mit vc1-Invers
     d1 = tor->r1 - tor->r2;  // r1 = outermost !
     UT3D_pt_traptvclen (&pt1, &tor->pl.po, &vc1, d1);
@@ -1056,12 +1056,12 @@ static  CurvElli          el1;
 
   L_add_done:
   // add obj to oSpc
-    // GR_Disp_pTab (ptNr, pTab, SYM_TRI_S, 3);
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_TRI_S, 3);
     ipNr = ptNr - ipa;
 
       //-----TESTDISP--------
-      // GR_Disp_cv (&pTab[ipa], ipNr, 9);
-      // for(i1=0; i1<ptNr; ++i1) GR_Disp_txi (&pTab[i1], i1, 1);
+      // GR_tDyn_pcv (&pTab[ipa], ipNr, 9);
+      // for(i1=0; i1<ptNr; ++i1) GR_tDyn_txiA (&pTab[i1], i1, 1);
       //-----TESTDISP--------
 
 
@@ -1339,7 +1339,7 @@ static  CurvElli          el1;
 
   for(i1=0; i1<tri2Nr; ++i1) {
     UT3D_box_tria (&b2Tab[i1].p1, &b2Tab[i1].p2, &tri2Tab[i1], 0.);
-      // GR_Disp_box (&b2Tab[i1].p1, &b2Tab[i1].p2, 9);
+      // GR_tDyn_box__(&b2Tab[i1].p1, &b2Tab[i1].p2, 9);
   }
 
 
@@ -1359,7 +1359,7 @@ static  CurvElli          el1;
     
     // create box from tri1Tab[i1]
     UT3D_box_tria (&pb1, &pb2, &tri1Tab[i1], 0.);
-      // GR_Disp_box (&pb1, &pb2, 8);
+      // GR_tDyn_box__(&pb1, &pb2, 8);
 
     // Loop ueber alle 3Ecke der tri2Tab
     for(i2=0; i2<tri2Nr; ++i2) {
@@ -1593,8 +1593,8 @@ static  CurvElli          el1;
       printf(" cv[%d]: typ=%d form=%d siz=%d\n",i1,
               oxp2->typ,oxp2->form,oxp2->siz);
       pTab = oxp2->data;
-      // GR_Disp_pTab (oTab[i1].siz, pTab, SYM_STAR_S, 2);
-      GR_Disp_cv (pTab, oxp2->siz, 9);
+      // GR_tDyn_npt__ (oTab[i1].siz, pTab, SYM_STAR_S, 2);
+      GR_tDyn_pcv (pTab, oxp2->siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
         // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }
@@ -1629,7 +1629,7 @@ static  CurvElli          el1;
     for(i1=0; i1<oxp1->siz; ++i1) {
       if(i1 != imod) continue;        // skip unused
       pTab = oTab[i1].data;
-      GR_Disp_cv (pTab, oTab[i1].siz, 9);
+      GR_tDyn_pcv (pTab, oTab[i1].siz, 9);
       // for(i2=0; i2<oTab[i1].siz; ++i2) {
         // DEB_dump_obj__(Typ_PT, &pTab[i2],"seg%d P%d ",i1,i2);
       // }

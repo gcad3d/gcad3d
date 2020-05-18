@@ -25,7 +25,7 @@ startIndex        used for -
  DL_base__         normal objects
 
  GR_TAB_IND        next free index in GR_ObjTab
- DL_Ind_tmp        next free temp-index
+ DL_temp_nxt        next free temp-index
 
 
 INF_DisplayList-record

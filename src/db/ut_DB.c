@@ -470,17 +470,14 @@ static Line       *ln_dyn = NULL;
 static Circ       *ci_tab = NULL;
 static Circ       *ci_dyn = NULL;
 
+static ObjGX      *tx_tab  = NULL;
+static ObjGX      *tx_dyn  = NULL;
+
 static Plane      *pln_tab = NULL;
 static Plane      *pln_dyn = NULL;
-// static Mat_4x3    *mat_tab = NULL;
 
 static ModelRef   *mdr_tab = NULL;
 static ModelBas   *mdb_dyn = NULL;
-static char       *mdb_nam = NULL;
-
-static Activity   *ac_tab  = NULL;
-       // BTool      *tl_tab  = NULL;         // auch in drill.cpp
-static ObjGX      *tra_tab = NULL;
 
 static ObjGX      *cv_tab  = NULL;
 static ObjGX      *cv_dyn  = NULL;
@@ -488,10 +485,10 @@ static ObjGX      *cv_dyn  = NULL;
 static ObjGX      *su_tab  = NULL;
 static ObjGX      *su_dyn  = NULL;
 
+static char       *mdb_nam = NULL;
+static Activity   *ac_tab  = NULL;
+static ObjGX      *tra_tab = NULL;
 static ObjGX      *so_tab  = NULL;
-
-static ObjGX      *tx_tab  = NULL;
-static ObjGX      *tx_dyn  = NULL;
 
 static Memspc     DB_CSEG;
 static char       *DB_CDAT = NULL;
@@ -653,7 +650,7 @@ Vector     DB_vc0;
   iAll = 0;
   for(i1=0; i1<8; ++i1) iAll += lTab[i1];
   DL_alloc__ (iAll);
-  GL_alloc__ (iAll);
+//   GL_alloc__ (iAll);
 
 
 
@@ -664,14 +661,14 @@ Vector     DB_vc0;
 
   // Berechnung Memspc fuer CDAT:
   // ein K pro Curve,  0.1 K pro surf, sol, txt.
-  sizTot = (lTab[0] * 7000) +            // APT_CV_SIZ     def 7000
+  sizTot = (lTab[0] *  800) +            // APT_CV_SIZ     def 7000
            (lTab[1] *  124) +            // APT_SU_SIZ
            (lTab[2] *   64) +            // APT_SO_SIZ
            (lTab[3] *   64);             // APT_TX_SIZ
 
 
   //TEST ONLY:
-  sizTot += (iAll * 100);
+  // sizTot += (iAll * 100);
     // printf(" sizTot=%ld iAll=%ld\n",sizTot,iAll);
 
   DB_allocCDAT (sizTot);
@@ -819,6 +816,7 @@ Vector     DB_vc0;
 /// gesamte DB -> Datei raus
 // die Felder muessen schon die erfolderliche Groesse haben; sonst waere
 // nach dem einlesen von _SIZ noch ein alloc erforderlich !
+// Do not save mdb_dyn,mdb_nam
 
 
   int    i1;
@@ -972,9 +970,6 @@ Vector     DB_vc0;
   fwrite(&DYN_TX_IND, sizeof(long), 1, fp1);
   if(DYN_TX_IND > 0)
   fwrite(tx_dyn, sizeof(ObjGX), DYN_TX_IND+1, fp1);
-
-  // fwrite(&DYN_MB_IND, sizeof(long), 1, fp1);
-  // fwrite(mdb_dyn, sizeof(ModelBas), DYN_MB_SIZ, fp1);
 
   fwrite(&GA_recNr, sizeof(int),  1, fp1);
   if(GA_ObjTab > 0)
@@ -1657,7 +1652,7 @@ Vector     DB_vc0;
 
 
   L_Error_1:
-        // TX_Error("DB_GetObjGX Typ=%d Ind=%d",typ,apt_ind);
+        TX_Print("**** DB_GetObjGX E1 Typ=%d Ind=%d",typ,apt_ind);
         goto L_Error_9;
 
   L_Error_3:
@@ -1665,7 +1660,7 @@ Vector     DB_vc0;
 
   L_Error_9:
         ox1.typ = Typ_Error;
-        // printf("ERROR ex DB_GetObjGX\n");
+        TX_Print("**** ERR DB_GetObjGX E9\n");
         return ox1;
 
 
@@ -3438,6 +3433,27 @@ int DB_del_Mod__ () {
 }
 
 
+//=========================================================================
+  int Mod_mdr__bmi_pln (ModelRef *mdr, int bmi, Plane *pl1, double scale) {
+//=========================================================================
+// Mod_mdr__bmi_pln    get modelRef from basicModelNr and refSys
+// Input:
+//   bmi     basicModelNr
+//   scale
+//   pl1     origin po, vx, vz used
+
+
+  mdr->modNr = bmi;            // basicModelNr
+  mdr->scl   = scale;
+  mdr->po    = pl1->po;
+  mdr->vx    = pl1->vx;
+  mdr->vz    = pl1->vz;
+
+  return 0;
+
+}
+
+
 //======================================================================
   ModelRef* DB_get_ModRef (long Ind) {
 //======================================================================
@@ -4340,7 +4356,8 @@ loop tru all nodes; testbm=node[i1].mod;
 
   // BasModel-record noch leer;
   mdb_dyn[modNr].typ    = mdlTyp;
-  mdb_dyn[modNr].DLind  = -1;
+  mdb_dyn[modNr].DBind  = -1L;
+  mdb_dyn[modNr].DLind  = -1L;
   mdb_dyn[modNr].DLsiz  = -1;
   mdb_dyn[modNr].seqNr  = 0;
   mdb_dyn[modNr].po     = UT3D_PT_NUL;
@@ -4361,15 +4378,11 @@ loop tru all nodes; testbm=node[i1].mod;
 //======================================================================
   ModelBas* DB_get_ModBas (int Ind) {
 //======================================================================
-/// \code
-/// get the basicModel with index <Ind>
-/// get Ing eg from ModelRef.modNr
-/// \endcode
-
-// beim abfragen aller names wird Ind einfach incrementiert ..
+// DB_get_ModBas              get the basicModel with index <Ind>
+// returns NULL for error (basic model does not exist)
 
 
-  // printf("DB_get_ModBas %ld von %ld\n",Ind,DYN_MB_IND);
+  // printf("DB_get_ModBas %d von %ld\n",Ind,DYN_MB_IND);
 
   if((Ind < 0)||(Ind >= DYN_MB_IND)) {
     // TX_Error("DB_get_ModBas E001 %d",Ind);
@@ -4386,7 +4399,7 @@ loop tru all nodes; testbm=node[i1].mod;
 //================================================================
   int DB_get_ModBasNr () {
 //================================================================
-/// get nr of basic models
+// get nr of basic models (next free index)
 
   return DYN_MB_IND;
 
@@ -5870,6 +5883,10 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 //=============================================================
   long DB_StorePoint (long Ind, Point* pt1) {
 //=============================================================
+// DB_StorePoint            store permanent point
+// Input:
+//   Ind          >0=permanent; -1=dynamic-permanent;
+//   retCode      0=Err; DB-index; negativ for dynamic-permanent
 
   long dbi;
 
@@ -5884,26 +5901,20 @@ long DB_StoreVector (long Ind, Vector* vc1) {
       // printf(" dynInd=%ld\n",dbi);
     pt_dyn[-dbi] = *pt1;
 
-
-
   
   //---------------- normal ---------------------------
   } else {
     
     if(Ind > APT_PT_IND) {
       APT_PT_IND = Ind;
-
-      if(Ind >= APT_PT_SIZ) {    // realloc
-        if(DB_allocPoint (Ind) < 0) return 0;
-      }
+      if(Ind >= APT_PT_SIZ) DB_allocPoint (Ind);
     }
       
     dbi = Ind;
     pt_tab[dbi] = *pt1;
   }
 
-
-  // printf("ex DB_StorePoint %ld %ld %f,%f,%f\n",Ind,dbi,pt1->x,pt1->y,pt1->z);
+    // printf("ex DB_StorePoint %ld %ld %f,%f,%f\n",Ind,dbi,pt1->x,pt1->y,pt1->z);
 
   return dbi;
 
@@ -7357,6 +7368,7 @@ void DB_StoreTool (long Ind, BTool *tl1) {
 //================================================================
 // DB_StoreJointNr    report last used jointNr
 // necessary for getting next free jointNr
+// DB does not keep the joint-data. Only DB_JNT_IND ist stored/restored.
 
 
   DB_JNT_IND = jntNr;

@@ -1937,8 +1937,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     //...................................................
     if(mode == 1) {           // test - anzeigen
 
-      printf(" [%d] typ=%d\n",i1,o2Tab[i1].typ);
-
+        printf(" [%d] typ=%d\n",i1,o2Tab[i1].typ);
       APT_disp_ac (&o2Tab[i1], Typ_Att_hili1, 0.0);
 
 

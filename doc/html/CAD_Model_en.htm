@@ -1,9 +1,18 @@
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>CAD_Model_en.htm</TITLE>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>CAD_Model_de</TITLE>
+  <meta name="description" content="gCAD3D-subModels-Spezifikation">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
 
 
@@ -24,7 +33,7 @@ see also <a href="CAD_Base_en.htm#M">Codes for Models</a>
 Models use keycode  M
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F0"></a></p>
 <h2>M int.Model Submodel Pos [Vec/Refsys]</h2>
 Positioning an internal sub-model
@@ -48,7 +57,7 @@ M20="SM1" R(P(100 0) 45) VAL(2)
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F1"></a></p>
 <h2>M ext.Model Filename Pos [Vec/Refsys]</h2>
 Positioning an external sub-model
@@ -80,7 +89,7 @@ At the moment external sub-models cannot have internal or external sub-models.
  
  
  
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F2"></a></p>
 <h2>M CatalogModel Pos [Vec/Refsys]</h2>
 Positioning an Catalog-Part
@@ -103,8 +112,9 @@ Position,Orientation
 Example external Model:
 M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
 
+See also <a href="Catalog_en.htm#Adm">Functions for using catalog-parts</a>.
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 </PRE>
 </BODY>
 </HTML>

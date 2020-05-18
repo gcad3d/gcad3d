@@ -73,32 +73,19 @@ Point2 APT_rotate3       (Point*);
 double APT_transl_rad    (double);
 
 // int    APT_disp_obj      (ObjG2*, int, double);
-int    APT_disp_SymB     (int typ, int att, Point* pt1);
-void   APT_disp_SymV     (int, int att, Point2*, double);
-void   APT_disp_SymV1    (int, int att, Point*, double);
-void   APT_disp_SymV2    (int, int att, Point*, Point*, double);
-void   APT_disp_SymV3    (int, int att, Point*, Vector*, double);
-void   APT_disp_TxtA     (int, Point*, char*);
 // void   APT_disp_TxtG     (int typ,Point* pt1,float size,float angle,char* txt);
 // void   APT_disp_Vec      (int att, long, Point*, Vector*);
-void   APT_disp_ln       (Point2*, Point2*, int, double, double);
 void   APT_disp_ac       (ObjG2*, int, double);
 // void   APT_disp_cv       (ObjG2*, int, double);
 void   APT_disp_nam      (int, long, void*);
 
-void   APT_DrawDimen     (int typ, long apt_ind, ObjGX *dim1);
-void   APT_DrawTxtG      (int typ, long apt_ind, GText *tx1);
+// void   APT_DrawTxtG      (int typ, long apt_ind, GText *tx1);
 // void   APT_DrawTxtA      (int typ, long apt_ind, GText *tx1);
-void   APT_DrawPoint     (int, long, Point *);
-void   APT_DrawLine      (int, long, Line *);
-void   APT_DrawCirc      (int, long, Circ *);
-void   APT_DrawCurv      (int, long, ObjGX *, double);
-int    APT_DrawModel     (int, long, ModelRef *);
+// void   APT_DrawPoint     (int, long, Point *);
+// void   APT_DrawLine      (int, long, Line *);
 // void   APT_DrawRFac      (int, ObjG2 *,double,ObjG2 *,double);
 int    APT_DrawSur (int typ, long apt_ind);
 int    APT_DrawSol (int typ, long apt_ind);
-int    APT_DrawPln (int typ, long objInd, Plane *pl1);
-
 
 
 void   APT_curv2ptArr    (Point2*, int*, ObjG2*);

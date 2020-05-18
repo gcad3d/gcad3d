@@ -133,7 +133,8 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
 
     // get sourceline
     lPos = UTF_GetPosLnr (&ll, oPar->lnr);
-    if(!lPos) {TX_Error("OPAR_get_src E1"); return -1;}
+    if(!lPos) return 0;   // eof ??
+      // {TX_Error("OPAR_get_src E1"); return -1;}
   // }
     // printf(" lnr=%ld\n",oPar->lnr);
     // printf("ln=|");UTX_dump_cnl(lPos,40);printf("|\n");

@@ -805,7 +805,7 @@ List_functions_end:
   // Point  cv[iNr+1];
   // for(i1=0; i1<bNr; ++i1) { cv[i1] = pa[ipa[iba[i1]]]; }
   // cv[iNr] = cv[0];
-  // GR_Disp_cv (cv, iNr+1, 5);
+  // GR_tDyn_pcv (cv, iNr+1, 5);
 
 
   return 0;

@@ -82,10 +82,10 @@ List_functions_end:
   
 
   printf("UT2D_ckint_EdgFac_\n");
-  // GR_Disp_ln2 (f1, f2, 5);  GR_Disp_txi2 (f1, 1, 0);
-  // GR_Disp_ln2 (f2, f3, 5);  GR_Disp_txi2 (f2, 2, 0);
-  // GR_Disp_ln2 (f3, f1, 5);  GR_Disp_txi2 (f3, 3, 0);
-  // GR_Disp_ln2 (e1, e2, 8);
+  // GR_tDyn_ln2_2pt (f1, f2, 5);  GR_temp_txi2 (f1, 1, 0);
+  // GR_tDyn_ln2_2pt (f2, f3, 5);  GR_temp_txi2 (f2, 2, 0);
+  // GR_tDyn_ln2_2pt (f3, f1, 5);  GR_temp_txi2 (f3, 3, 0);
+  // GR_tDyn_ln2_2pt (e1, e2, 8);
 
   
   UT2D_vc_2pt (&v1, f1, f2);
@@ -285,12 +285,12 @@ List_functions_end:
   Vector2  v1, v2, v3;
 
   printf("UT2D_ckint_EdgFac \n");
-  GR_Disp_ln2 (a1, a2, 1);  GR_Disp_txi2 (a1, 1, 0);
-  GR_Disp_ln2 (a2, a3, 1);  GR_Disp_txi2 (a2, 2, 0);
-  GR_Disp_ln2 (a3, a1, 1);  GR_Disp_txi2 (a3, 3, 0);
-  GR_Disp_ln2 (b1, b2, 2);  GR_Disp_txi2 (b1, 1, 0);
-  GR_Disp_ln2 (b2, b3, 2);  GR_Disp_txi2 (b2, 2, 0);
-  GR_Disp_ln2 (b3, b1, 2);  GR_Disp_txi2 (b3, 3, 0);
+  GR_tDyn_ln2_2pt (a1, a2, 1);  GR_temp_txi2 (a1, 1, 0);
+  GR_tDyn_ln2_2pt (a2, a3, 1);  GR_temp_txi2 (a2, 2, 0);
+  GR_tDyn_ln2_2pt (a3, a1, 1);  GR_temp_txi2 (a3, 3, 0);
+  GR_tDyn_ln2_2pt (b1, b2, 2);  GR_temp_txi2 (b1, 1, 0);
+  GR_tDyn_ln2_2pt (b2, b3, 2);  GR_temp_txi2 (b2, 2, 0);
+  GR_tDyn_ln2_2pt (b3, b1, 2);  GR_temp_txi2 (b3, 3, 0);
 
 
 

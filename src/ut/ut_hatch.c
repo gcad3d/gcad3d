@@ -190,7 +190,6 @@ List_functions_end:
 
     // Testdisplay intPoint
     // idl=-1;pt1=UT3D_pt_pt2(&spa[isp]);GR_CrePoint(&idl,Typ_Att_def,&pt1);
-
     if(isp < HATCH_SIZ_SPA) ++isp;
     else TX_Error("UT_hatch_2D E001");
 
@@ -418,7 +417,7 @@ List_functions_end:
   }
 
   // NUR TESTAUSG:
-  // dli=DL_StoreObj (Typ_CV, -1L, 2);GL_DrawPoly2D (&dli, 2, ptNr, pt2a, 0.);
+  // dli=DL_StoreObj (Typ_CV, -1L, 2);GR_tDyn_pcv2D (&dli, 2, ptNr, pt2a, 0.);
 
 
 

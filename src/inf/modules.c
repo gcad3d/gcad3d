@@ -49,7 +49,7 @@ APT_work_def        Work DefinitionLine
     PRCV_set_obj_dbi   create/update PRCV for dbo
       PRCV_set_basCv       create PRCV for baseCurve
 
-GR_DrawCvCCV        display composite-curve
+GR_set_ccv        display composite-curve
   UT3D_mtpt_trmCv
     PRCV_mtpt_trmCv
       PRCV_get_dbo_add_tc    get curve from PRCV 
@@ -125,8 +125,7 @@ EDMPT__
                              // -> file <tmpDir>/src_dep.txt
 
 
-../xa/xa_edmpt.c
-
+../xa/edmpt.c
 
 
 ================================================================== \endcode */}

@@ -1,26 +1,34 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
-<TITLE>CAD_Model_de.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>CAD_Model_de</TITLE>
+  <meta name="description" content="gCAD3D-subModels-Spezifikation">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="de-AT">
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
+
 <a href="CAD_using_de.htm">siehe Bedienung CAD ..</a>
 
 
-
-<h2>CAD-Funktionen für Modelle:</h2>
+<h2>CAD-Funktionen fĂĽr Modelle:</h2>
 
 
 siehe auch <a href="gCAD3D_basics_de.htm#MMS_int">Interne Modelle</a> / <a href="gCAD3D_basics_de.htm#MMS_ext">Externe Modelle</a>
-siehe auch <a href="CAD_Base_de.htm#M">Codes für Modelle</a>
+siehe auch <a href="CAD_Base_de.htm#M">Codes fĂĽr Modelle</a>
 
 Modelle benutzen den Kennbuchstaben M
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F0"></a></p>
 <h2>M internal Model</h2>
 Ein internes Submodel positionieren.
@@ -35,7 +43,7 @@ Submodel
 Position,Orientation
   <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
 
-[Scale]: Vergrösserungsmaßstab; Default ist 1
+[Scale]: VergrĂ¶sserungsmaĂźstab; Default ist 1
 
 
 Beispiele:
@@ -44,7 +52,7 @@ M20="SM1" R(P(100 0) 45) VAL(2)
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F1"></a></p>
 <h2>M external Model</h2>
 Ein externes Submodel positionieren.
@@ -60,7 +68,7 @@ Submodel
 Position,Orientation
   <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
 
-[Scale]: Vergrösserungsmaßstab; Default ist 1
+[Scale]: VergrĂ¶sserungsmaĂźstab; Default ist 1
 
 
 Beispiel externes Model:
@@ -70,19 +78,17 @@ Beispiel Mockup-Model:
 M21="Data/clocktwr.wrl" R(P(0 0 0) R20)
 
 
-Externe Modelle können dzt nur GCAD-Code oder Mockup-Modelle
+Externe Modelle kĂ¶nnen dzt nur GCAD-Code oder Mockup-Modelle
   (zB WRL STL, OBJ) beinhalten.
-Externe Modelle können dzt keine internen oder externen Submodelle beinhalten.
+Externe Modelle kĂ¶nnen dzt keine internen oder externen Submodelle beinhalten.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="F2"></a></p>
 <h2>M CatalogPart</h2>
   
 Einen Katalogteil positionieren.
-  Siehe auch <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
-  Siehe auch <a href="Catalog_de.htm">Codes für Normteile</a>.
   
   
 CatalogPart
@@ -95,14 +101,16 @@ CatalogPart
 Position,Orientation
   <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
 
-[Scale]: Vergrösserungsmaßstab; Default ist 1
+[Scale]: VergrĂ¶sserungsmaĂźstab; Default ist 1
 
 
   
 Beispiel Katalogteil:
 M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
 
+Siehe auch <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
 
-____________________________________________________________________________
+
+<HR><!-- ============================================================ -->
 </PRE>
 </HTML>

@@ -1324,10 +1324,38 @@ Beispiel drehen und Kippen:
     Ausgabeformat: MOD(1)   oder MOD(2)
   
 
+<p><a name="iCol"></a></p>
+<B>Color </B>
+ 0 = black
+ 1 = DefCol
+ 2 = rot
+ 3 = grün
+ 4 = blau
+ 5 = gelb
+ 6 = magenta
+ 7 = cyan
+ 8 = weiss
+ 9 = hilite
+ 10 = abgedunkelt
+
+
+
+<p><a name="SymbolType"></a></p>
+   <b>SymbolType</b>
+     0 = star small,
+     1 = small triangle
+     2 = small circle
+     3 = large rectangle
+     4 = normalized vector (always same length, arrowhead points to EndpointVector)
+     5 = vector (with correct length, arrowhead is at EndpointVector)
+     6 = Arrowhead 2D (SymbolPosition is the arrowhead)
+
+
 
 <p><a name="symFnam"><h2>Symbolische Dateibezeichnungen:</h2></a></p>
 Eine symbolische Dateibezeichnung besteht aus
 "{symbolischer_Pfad}/{Dateiname}"
+
 Alle symbolischen Pfade sind in Datei {base}xa/dir.lst definiert.
 Das Symbol ist frei wählbar.
 Pfad interaktiv definieren mit der Funktion "Standards/Directories".
@@ -1336,6 +1364,8 @@ Standardverzeichnis ist {base}/dat; das Zugriffsysmbol für dieses
   
 Beispiel symbolische Dateibezeichnungen:
 "Data/Niet1.dat"
+
+Symbolisches Directory einrichten: siehe <a href="Settings_de.htm#ModelDirectories">Standards / Directories</a>.
 
 
 

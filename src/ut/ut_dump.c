@@ -1685,8 +1685,8 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_natM);
     sprintf(cps," (ModelBas).mnam=%s", mdb->mnam);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelBas).typ=%d seq=%d DLind=%4ld DLsiz=%4ld",
-            mdb->typ, mdb->seqNr, mdb->DLind, mdb->DLsiz);
+    sprintf(cps," (ModelBas).typ=%d seq=%d DBi=%4ld DLi=%4ld DLsiz=%d",
+            mdb->typ, mdb->seqNr, mdb->DBind, mdb->DLind, mdb->DLsiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps," (ModelBas).po= %12.3lf,%12.3lf,%12.3lf",
             mdb->po.x, mdb->po.y, mdb->po.z);

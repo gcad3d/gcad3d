@@ -32,24 +32,26 @@ Modifications:
 =====================================================
 List_functions_start:
 
+CTLG_get__               get catalog-part-selection from user
 CTLG_fnWrite_modelnam    get filename for parameters to modify
 CTLG_mnam_modelnam       find symDir/Modelname from partName
-CTLG_mnam_PartID           returns internal Modelname
 CTLG_PartID_mnam         returns PartID from internal Modelname
 CTLG_Part_Ref1           create file tmp/<catalog>_<part>.write (modif. params)
 CTLG_dat_del             delete all parameter-files
 CTLG_getCatDir           return symbol "CATALOG" (directory for .ctlg-files)
-CTLG_Sel_wPartLst        create new childList in  file tmp/catParts.lst
 CTLG_Lst_write           create tmp/Catalog.lst
+CTLG_catParts__          create list of parts in file CatParts.lst
 
 List_functions_end:
 =====================================================
+// CTLG_mnam_PartID         returns internal Modelname
+// CTLG_pNam__ctlg_part     get part-name (second word of part-record in ctlgfile)
 
 \endcode *//*----------------------------------------
 
 
 ====================================================================
-tmp/catParts.act   = name of active catalog
+tmp/CatParts.lst   = name of active catalog
 tmp/catParts.lst   = childList for active catalog
 
 Die catalogModels werden wie externe Models behandelt;
@@ -90,6 +92,13 @@ user-select Part:
   Die dafuer erforderlichen Listen beim allerersten Programmanfang erstellen
     und dann nur mehr nach jedem Catalog-Modify
 
+
+
+----------------------------------------------------------------------
+Files:
+<tmp>/Catalog.lst     list of all catalogFiles 
+<tmp>/Catalog.act     active catalogFileName
+<tmp>/CatParts.lst    list of parts of the active catalogFileName
 
 
 ----------------------------------------------------------------------
@@ -172,6 +181,83 @@ APT_work_PrgCodTab
 static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
+//================================================================
+  int CTLG_get__ () {
+//================================================================
+// CTLG_Sel__               get catalog-part-selection from user
+// CTLG_Sel_CB gets selected part
+
+  int   i1;
+  long l1;
+  char  cfn[256], s1[256], ctlg[128];
+
+  printf(" CTLG_get__ -------------------\n");
+
+
+   // check if file tmp/Catalog.lst exists; no: create it.
+  sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
+  if(!OS_checkFilExist(cfn, 1)) {
+    CTLG_Lst_write ();         // create <tmp>/Catalog.lst
+    CTLG_catParts__ (NULL);    // create empty CatParts.lst
+  }
+
+
+  //================================================================
+  // display list of active parts + "=== change catalog ==="
+  L_start:
+  // disp file CatParts.lst, let user select 
+  sprintf(cfn,"%sCatParts.lst",OS_get_tmp_dir());
+  i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
+                     "\"- select part or change catalog -\"", "\"x40,y40,a\"");
+  if(i1 < 0) return -1;  // cancel or error
+
+    printf(" ctlg-part-select |%s|\n",s1);
+
+  if(strcmp(s1, "=== change catalog ===")) goto L_sel_part;
+
+
+  //================================================================
+  // catalog selected - change
+  sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
+  i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
+                     "\"- select catalogpart -\"", "\"x40,y40,a\"");
+  if(i1 < 0) return -1;  // cancel or error
+    printf(" ctlg-select |%s|\n",s1);
+
+  // create list of parts of catalog <s1> in file CatParts.lst
+  CTLG_catParts__ (s1);
+
+  // display
+  goto L_start;
+
+
+  goto L_exit;
+
+
+  //================================================================
+  // part selected - report.
+  L_sel_part:
+    printf(" ctlg-part-select-part |%s|\n",s1);
+
+  // get active catalogName
+  sprintf(cfn,"%sCatalog.act",OS_get_tmp_dir());
+  l1 = OS_FilSiz(cfn);
+  UTX_str_file (ctlg, &l1, cfn);
+
+  // remove filetype from catalogName ".ctlg"
+  UTX_del_right (ctlg, 5);
+    printf(" ctlg-part-select-part part,ctlg |%s|%s|\n",s1,ctlg);
+
+  // report to CAD: partName, catalogName,
+  IE_cad_selM2_CB (s1, ctlg);
+
+
+  //================================================================
+  L_exit:
+  return 0;
+
+}
+
 
 /*
 //================================================================
@@ -188,6 +274,89 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 }
 */
+
+
+//================================================================
+  int CTLG_catParts__ (char *ctlgNam) {
+//================================================================
+// CTLG_catParts__             create list of parts in file CatParts.lst
+//   and write ctlgNam into file Catalog.act
+// Input:
+//   ctlgNam      catalogname  (CATALOG/<ctlgNam>.ctlg)
+//                NULL: init file
+
+
+
+  char  cfn[256], pfn[256], sPart[1024], *p1;
+  FILE  *fpi, *fpo;
+
+
+  //----------------------------------------------------------------
+  // write file Catalog.act
+  if(ctlgNam) {
+    sprintf(cfn,"%sCatalog.act",OS_get_tmp_dir());
+      printf(" cfn=|%s|\n",cfn);
+    UTX_wrf_str (cfn, ctlgNam);
+  }
+
+
+  //----------------------------------------------------------------
+  // write parts-file CatParts.lst
+  // get oufilename
+  sprintf(pfn,"%sCatParts.lst",OS_get_tmp_dir());
+    printf(" pfn=|%s|\n",pfn);
+
+
+  if(!ctlgNam) {
+    // test if file exists; yes: return
+    if(OS_checkFilExist(pfn,1)) return 0;
+  }
+
+
+  // open partFile pfn for write
+  if((fpo=fopen(pfn,"w")) == NULL) {
+    TX_Print("CTLG_catParts__ E001 %s",pfn);
+    return -1;
+  }
+
+  fprintf(fpo, "=== change catalog ===\n");
+
+  if(!ctlgNam) goto L_done;
+
+  // get infilename cfn
+  MDLFN_dirAbs_symDir (cfn, "CATALOG");    // get symbolic-directory CATALOG
+  strcat(cfn, ctlgNam);
+    printf(" cfn=|%s|\n",cfn);
+
+
+  // open catalogfile cfn for read
+  if((fpi=fopen(cfn,"r")) == NULL) {
+    TX_Print("CTLG_catParts__ E002 %s",cfn);
+    fclose(fpo);
+    return -1;
+  }
+
+  // create new childList pfn
+  while (!feof (fpi)) {
+    if (fgets (sPart, 1020, fpi) == NULL) {
+      fclose(fpi);
+      break;
+    }
+    if(sPart[0] == '#') continue;  // skip comment
+    // get first word
+    p1 = strchr (sPart, ';');
+    if(p1 == NULL) continue;
+    *p1 = '\0';
+    fprintf(fpo, "%s\n",sPart);
+      printf(" out |%s|\n",sPart);
+  }
+
+  L_done:
+  fclose(fpo);
+
+  return 0;
+
+}
 
 
 ///================================================================
@@ -258,7 +427,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   strcpy(mnam, &memspc011[2]);
 
-    // printf("ex CTLG_mnam_modelnam |%s|%s|\n",mnam,modelnam);
+    // printf("ex-CTLG_mnam_modelnam |%s|%s|\n",mnam,modelnam);
 
   return 0;
 
@@ -288,7 +457,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   *p1 = '/';
 
-  printf("ex CTLG_PartID_mnam |%s|%s|\n",PartID, mNam);
+  // printf("ex-CTLG_PartID_mnam |%s|%s|\n",PartID, mNam);
 
 
   return -1;
@@ -296,6 +465,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 }
 
 
+/*  UU
 //================================================================
   int CTLG_mnam_PartID (char *mNam, char *catPart) {
 //================================================================
@@ -346,26 +516,25 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
     return -2;
 
 }
+*/
 
- 
-///================================================================
+//================================================================
   int CTLG_Part_Ref1 (char *mNam, char *catPart) {
-///================================================================
-/// \code
-/// Prepare creation of catalogPart.
-/// Create file tmp/<catalog>_<part>.write (with parameters different to basModel)
-/// return internal Modelname.
-/// 
-/// Input:
-///   catPart   the declaration without CTLG | "Schrauben/SKS_10x45" P(0 0 0)|
-/// Output:
-///   mNam = name of internal Model; size=128
-/// Retcod:
-///    0 = success ( = type: catalogModel)
-///   -1 = Error: cannot find part in catalog
-///   -2 = Error: error open catalogFile
-///   -3 = Error
-/// \endcode
+//================================================================
+// Prepare creation of catalogPart.
+// Create file tmp/<catalog>_<part>.ctlg_dat (with parameters)
+// return internal Modelname.
+// 
+// Input:
+//   catPart   the declaration without CTLG | "Schrauben/SKS_10x45" ...|
+//             first part is filename of catalogfile; second part ist the partName
+// Output:
+//   mNam = name of internal Model; size=128
+// Retcod:
+//    0 = success ( = type: catalogModel)
+//   -1 = Error: cannot find part in catalog
+//   -2 = Error: error open catalogFile
+//   -3 = Error
 
 // catPart decodieren in catalogName,PartName.
 // den BasmodelName suchen
@@ -379,41 +548,48 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   int       irc, i1;
   long      dbi;
-  char      cbuf1[256], cbuf2[256], ctlgNam[64], partNam[64],
+  char      cbuf1[256], cbuf2[256], ctlgNam[64], partNam[64], cfn[256], cpmn[256],
             *modDir, *modNam, *sPar, *p1, *p2;
   FILE      *fp1;
   ModelRef  *mr;
   ModelBas  *mb;
 
 
-  printf("CTLG_Part_Ref1 |%s|\n",catPart);
+  // printf("CTLG_Part_Ref1 |%s|\n",catPart);
 
-
-  // catalogName von catPart abtrennen; maxLen = 62 chars
-  catPart = strchr(catPart, '"');  // find starting "
+  // skip starting '"'
+  catPart = strchr(catPart, '"');
   if(catPart == NULL) {irc = 0; goto L_Err__;}
   ++catPart;
-  p1 = strchr(catPart, '/');
-  if(p1 == NULL) {
-    // es kann |M21=CTLG "M20" ...| sein; in diesem Fall nix tun (es muss schon
-    // eine Kopie vorhanden sein ..)
-    irc = APED_dbo_oid (&i1, &dbi, catPart);
-    if(irc != 0) {irc = 12; goto L_Err__;}
-    mr = DB_get_ModRef (dbi);
-    mb = DB_get_ModBas (mr->modNr);
-    if(mb == NULL) {irc = 1; goto L_Err__;}
-      // printf(" mNr=%d mnam=|%s|\n",mr->modNr,mb->mnam);
-    strcpy(mNam, mb->mnam);
-    goto L_OK;   // OK
+  UTX_pos_skipLeadBlk (catPart);  // skip blanks 
+
+
+  // test |M21=CTLG "M20" ...| if yes: basicModel already exists ..
+  if(catPart[0] == 'M') {
+    if(UTX_ck_num_i(&catPart[1]) > 0) {
+      // irc = APED_dbo_oid (&i1, &dbi, catPart);
+      // if(!irc) {irc = 12; goto L_Err__;}
+      dbi = atol(&catPart[1]);
+      mr = DB_get_ModRef (dbi);
+      mb = DB_get_ModBas (mr->modNr);
+      if(mb == NULL) {irc = 1; goto L_Err__;}
+        // printf(" mNr=%d mnam=|%s|\n",mr->modNr,mb->mnam);
+      strcpy(mNam, mb->mnam);
+      goto L_OK;   // OK
+    }
   }
 
+
+  // get catalogName ctlgNam (first part of catPart);
+  p1 = strchr(catPart, '/');
   i1 = p1 - catPart;
   if(i1 > 62) {irc = 2; goto L_Err__;}
   strncpy(ctlgNam, catPart, i1);
   ctlgNam[i1] = '\0';
-    printf(" ctlgNam=|%s|\n",ctlgNam);
+    // printf(" ctlgNam=|%s|\n",ctlgNam);
 
-  // fix partName
+
+  // get partName - following the '/'
   ++p1;
   p2 = strchr(p1, '"');
   if(p2 == NULL) {irc = -1; goto L_Err__;}
@@ -421,28 +597,23 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   if(i1 > 62) {irc = -2; goto L_Err__;}
   strncpy(partNam, p1, i1);
   partNam[i1] = '\0';
-    printf(" partName=|%s|\n",partNam);
+    // printf(" partName=|%s|\n",partNam);
 
 
-
-  //----------------------------------------------------------------
-  // get path for catalogFile
-  // irc = Mod_sym_get1 (memspc011, "CATALOG/", 0);
-  irc = CTLG_getCatDir (memspc011);
-  if(irc < 0) {irc = 3; goto L_Err__;}
-
-  // fix catalogFileName
-  strcat(memspc011, ctlgNam);
-  strcat(memspc011, ".ctlg");
-    // printf(" catalogFileName=|%s|\n",memspc011);
+  // get cfn = catalogfilename
+  sprintf(cbuf1, "CATALOG/%s.ctlg",ctlgNam);
+    // printf(" cbuf1=|%s|\n",cbuf1);
+  // resolv symDir CATALOG
+  irc = MDLFN_dirAbs_symDir (cfn, cbuf1);
+  if(irc < 0) {irc = -4; goto L_Err__;}
+    // printf(" cfn=|%s|\n",cfn);
 
 
   // open catalogFileName
-  if((fp1=fopen(memspc011, "r")) == NULL) {
-    MSG_ERR__ (ERR_file_open, "'%s'", memspc011);
+  if((fp1=fopen(cfn, "r")) == NULL) {
+    MSG_ERR__ (ERR_file_open, "'%s'", cfn);
     return -2;
   }
-
 
   // search partName-Line in catalogFile
   while (!feof (fp1)) {
@@ -464,57 +635,41 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
     partNam, ctlgNam);
   return -1;
 
-
   L_found:
   fclose(fp1);
   ++modDir;
-    printf(" partLine=|%s|\n",modDir);
+    // printf(" partLine=|%s|\n",modDir);
 
 
   // die Parameter des part suchen
   sPar = strchr(modDir, ';');
   if(sPar == NULL) {irc = 6; goto L_Err__;}
-  *sPar = '\0';
   ++sPar;
     // printf(" baseMod=|%s|\n",modDir);
     // printf(" sPar=|%s|\n",sPar);
 
 
+  i1 = sPar - modDir - 1;
+  if(i1 > 128) {irc = 7; goto L_Err__;}
+  strncpy(cbuf1, modDir, i1);
+  cbuf1[i1] = '\0';
+    // printf(" cbuf1=|%s|\n",cbuf1);
+
+  // get catalogPartModelName cpmn 
+  irc = MDLFN_dirAbs_symDir (cpmn, cbuf1);
+  if(irc < 0) {irc = -8; goto L_Err__;}
+  strcat(cpmn, ".gcad");
+    // printf(" cpmn=|%s|\n",cpmn);
+
 
   //----------------------------------------------------------------
   // das basemodel modDir als internes Model umkopieren
 
-  // get Symdir for baseModel
-  irc = Mod_sym_get1 (cbuf1, modDir, 0);
-  if(irc < 0) {irc = 7; goto L_Err__;}
-    // printf(" symDir=|%s|\n",cbuf1);
-
-  // decode symDir-modFilnam of baseMod
-  modNam = strchr(modDir, '/');
-  if(modNam == NULL) {irc = 8; goto L_Err__;}
-  i1 = modNam - modDir;
-  if(i1 > 62) {irc = 9; goto L_Err__;}
-  *modNam = '\0';
-  ++modNam;
-    // printf(" modDir=|%s|\n",modDir);
-    // printf(" modNam=|%s|\n",modNam);
-  // make modNam > safeName
-  UTX_safeName (modNam, 1); // change '. /\\'
-
-  // create filename for baseModel
-  i1 = strlen(cbuf1);
-  sprintf(&cbuf1[i1], "%s.gcad",modNam);
-    printf(" fnbm=|%s|\n",cbuf1);
-
   // check if Basemodel exists
-  irc = OS_checkFilExist (cbuf1, 2);
+  irc = OS_checkFilExist (cpmn, 2);
   if(irc == 0) {irc = 10; goto L_Err__;}
 
 /*
-  // create filename for internalModel
-  // sprintf(cbuf2,"%stmp%cModel_%s",OS_get_bas_dir(),fnam_del,mNam);
-    // printf(" fnim=|%s|\n",cbuf2);
-
   // create filename for internalModel
   sprintf(cbuf2,"%stmp%cModel_%s_%s",OS_get_bas_dir(),fnam_del,ctlgNam,modNam);
     printf(" fnim=|%s|\n",cbuf2);
@@ -527,20 +682,21 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   //----------------------------------------------------------------
   // parameter sPar in Datei tmp/CTLG.write schreiben (am ';' trennen)
 
-  // create filename for parameterfile - tmp/<catalog>_<part>.write
+  // create filename for parameterfile - tmp/<catalog>_<part>.ctlg_dat
   // sprintf(cbuf2,"%stmp%c%s.write",OS_get_bas_dir(),fnam_del,mNam);
   sprintf(cbuf2,"%s%s_%s.%s",OS_get_tmp_dir(),ctlgNam,partNam,CATLG_DATFIL_TYP);
-    printf(" fnpar=|%s|\n",cbuf2);
+    // printf(" fnpar=|%s|\n",cbuf2);
 
   // open parameterfile
   if((fp1=fopen(cbuf2, "w")) == NULL) {irc = 11; goto L_Err__;}
 
   // write Modelname into first Line (used later in CTLG_mnam_modelnam)
   // fprintf(fp1, "# %s_%s.gcad\n",ctlgNam,modNam);
-  fprintf(fp1, "# %s/%s.gcad\n",modDir,modNam);
+  // fprintf(fp1, "# %s/%s.gcad\n",modDir,modNam);
+  fprintf(fp1, "# %s\n",cpmn);
 
 
-  // write parameters
+  // write parameters into file
   p2 = UTX_pos_EOS(sPar);    // find end of string
 
   L_wr_nxt:
@@ -563,7 +719,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
   L_OK:
-    printf("ex CTLG_Part_Ref1 irc=0 mNam=|%s|\n",mNam);
+    // printf("ex CTLG_Part_Ref1 irc=0 mNam=|%s|\n",mNam);
   return 0;
 
 
@@ -595,69 +751,6 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
     return -1;
   }
     // printf(" CATALOG=|%s|\n",catDir);
-
-  return 0;
-
-}
-
-
-///================================================================
-  int CTLG_Sel_wPartLst (char *partFilNam, char *actCatNam) {
-///================================================================
-/// \code
-/// callback parent-sel (catalog selected)(); create childs-file (parts)
-/// create new childList <tmp>/catParts.lst
-/// save active catalog-name in file tmp/catParts.act
-/// for catalog actCatNam
-/// \endcode
-
-  char   cfn[256], *p1;
-  FILE   *fpi, *fpo;
-
-
-  printf("CTLG_Sel_wPartLst |%s|%s|\n",partFilNam,actCatNam);
-
-
-  if(CTLG_getCatDir (cfn) < 0) return -1;
-  strcat(cfn, actCatNam);
-    // printf(" CATALOG=|%s|\n",cfn);
-
-
-
-  // open partFile
-  if((fpo=fopen(partFilNam,"w")) == NULL) {
-    TX_Print("CTLG_Sel_wPartLst E001 %s",partFilNam);
-    return -1;
-  }
-
-
-  // open catalog
-  if((fpi=fopen(cfn,"r")) == NULL) {
-    TX_Print("CTLG_Sel_wPartLst E002 %s",cfn);
-    fclose(fpo);
-    return -1;
-  }
-
-  while (!feof (fpi)) {
-    if (fgets (memspc011, 1020, fpi) == NULL) {
-      fclose(fpi);
-      break;
-    }
-    if(memspc011[0] == '#') continue;  // skip comment
-    p1 = strchr (memspc011, ';');
-    if(p1 == NULL) continue;
-    *p1 = '\0';
-    fprintf(fpo, "%s\n",memspc011);
-  }
-
-  fclose(fpo);
-
-  // UTX_fsavLine (parent, cbuf, 1);
-  sprintf(cfn,"%scatParts.act",OS_get_tmp_dir());
-  fpo = fopen (cfn, "w");
-  fprintf(fpo, "%s\n", actCatNam);
-  fclose(fpo);
-
 
   return 0;
 
@@ -711,5 +804,66 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 }
  
 
+/* UU
+//================================================================
+  int CTLG_pNam__ctlg_part (char *pfn, char *ctlg, char *part) {
+//================================================================
+// CTLG_pNam__ctlg_part   get part-name (second word of part-record in catalogfile)
+
+  int    irc;
+  char   sln[1024], cfn[256], *p1, *p2;
+  FILE   *fpi;
+
+
+  printf("CTLG_pNam__ctlg_part |%s|%s|\n",ctlg,part);
+
+  // get infilename cfn
+  MDLFN_dirAbs_symDir (cfn, "CATALOG");    // get symbolic-directory CATALOG
+  strcat(cfn, ctlg);
+    // printf(" cfn=|%s|\n",cfn);
+
+  // open catalogfile cfn for read
+  if((fpi=fopen(cfn,"r")) == NULL) {
+    TX_Print("CTLG_pNam__ctlg_part E001 %s",cfn);
+    return -1;
+  }
+
+  // loop tru file <ctlg>, find part <part>, get second word -> pfn
+  while (!feof (fpi)) {
+    if (fgets (sln, 1020, fpi) == NULL) {
+      fclose(fpi);
+      goto L_err;
+    }
+    if(sln[0] == '#') continue;  // skip comment
+    // get first word
+    p1 = strchr (sln, ';');
+    if(p1 == NULL) goto L_err;
+    *p1 = '\0';
+    if(!strcmp(sln, part)) {
+      ++p1;
+        // printf(" found1 |%s|\n",p1);
+      p2 = strchr (p1, ';');
+      if(p2 == NULL) goto L_err;
+      *p2 = '\0';
+        // printf(" found2 |%s|\n",p1);
+      strcpy(pfn, p1);
+      break;
+    }
+  }
+
+  L_done:
+  fclose(fpi);
+
+    printf("ex-CTLG_pNam__ctlg_part |%s|\n",pfn);
+
+  return 0;
+
+
+  L_err:
+    TX_Print("CTLG_pNam__ctlg_part E002 %s %s",ctlg,part);
+    return -1;
+
+}
+*/
 
 //==================== EOF =======================================

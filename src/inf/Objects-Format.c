@@ -43,21 +43,10 @@ INF_FMTB_CURVES
   INF_FMTB_Curve_RBSpl                Rational-B-spline-curve
   INF_FMTB_Curve_Bez                  Bezier-curve
   INF_FMTB_Curve_RBez                 Rational-Bezier-curve
+                                      Typ_CVPSP3, polynom_d3  polynom.Spline
   INF_FMTB_Curve_CCV                  trimmed-curve, Contour
 
-INF_FMTB_SURFACES
-  INF_FMTB_Surface_TPS                trimmed, perforated, supported surface
-  INF_FMTB_Surface_PLN                OBSOLETE; DO NOT USE
-  INF_FMTB_Surface_RU                 ruled
-  INF_FMTB_Surface_RV                 revolved (spherical)
-  INF_FMTB_Surface_SWP                Sweep-Surface (contour moving along a path)
-  INF_FMTB_Surface_BSP                B-Spline-Surface, loft surface
-  INF_FMTB_Surface_RBSP               Rational-B-Spline-Surface
-  INF_FMTB_Surface_PTAB               points
-  INF_FMTB_Surface_MSH                mesh
-  INF_FMTB_Surface_GL_Sur             tesselated patches
-  INF_FMTB_Surface_RCIR               tesselated fan
-  INF_FMTB_Surface_RSTRIP             tesselated stripe
+INF_FMTB_SURFACES ->
 
 INF_FMTB_Bodies
   INF_FMTB_Body_Sphere
@@ -72,6 +61,38 @@ INF_FMTB_BinaryMesh
 INF_FMTB_Transformation
 
 
+
+
+
+================================================================== \endcode */}
+void INF_FMTB_SURFACES (){        /*! \code
+
+Unlimited-surfaces (support-surfaces):
+  INF_FMTB_Surface_RV                 revolved / spherical
+  INF_FMTB_Surface_RU                 ruled
+  INF_FMTB_Surface_SWP                Sweep-Surface (contour moving along a path)
+  INF_FMTB_Surface_BSP                B-Spline-Surface, loft surface
+  INF_FMTB_Surface_RBSP               Rational-B-Spline-Surface
+                                      Loft surface = RU or BSP
+                                      Extrusion surface = RU
+                                      
+
+
+Trimmed-perforated-surfaces:
+  INF_FMTB_Surface_PLN                trimmed, perforated - planar
+  INF_FMTB_Surface_TPS                trimmed, perforated, supported surface
+
+
+Tesselalated-surfaces:
+  INF_FMTB_Surface_MSH                mesh
+  INF_FMTB_Surface_GL_Sur             tesselated patches
+  INF_FMTB_Surface_RCIR               tesselated fan
+  INF_FMTB_Surface_RSTRIP             tesselated stripe
+
+
+Other surfaces:
+  INF_FMTB_Surface_PTAB               surface from points
+  INF_FMTB_Surface_HAT                hatched surface  Typ_SURHAT  ut_hatch.c
 
 
 
@@ -443,7 +464,6 @@ GText     tx1
 
 
 Functions:
-  APT_DrawTxtG
   UT3D_box_GText
 
 
@@ -534,7 +554,7 @@ Dimen dim1
 
 
 Functions:
-  APT_DrawDimen
+  GR_perm_dimen
   UT3D_box_Dimen
 
 
@@ -553,7 +573,7 @@ ObjGX (typ=Typ_Note; form=Typ_Dim3; data=(Dim3*))
 
 
 Functions:
-  APT_DrawDim3
+  GL_set_Dim3
   UT3D_box_Dim3
 
 
@@ -588,7 +608,6 @@ DB-Obj:
 ObjGX (typ=Typ_Note; form=Typ_ATXT|Typ_Tag; data=(AText*))
 
 Functions:
-APT_DrawTxtA
   GL_Draw_BMP         1 Image
   GL_Draw_Tag         2 Tag
   GL_DrawTxtLBG       3 LeaderLine + Balloon + 3D-Text
@@ -660,7 +679,7 @@ ObjGX     cv1
 Examples:
 
   // polygon from array of points
-  GL_DrawPoly (&dli, iAtt, pNr, pa1);
+  GR_tDyn_pcv (&dli, iAtt, pNr, pa1);
 
 
 
@@ -833,7 +852,7 @@ Functions:
 
 
 Tesselated surfaces (not perforated):
-  Typ_SURCIR 
+  Typ_SURCIR                             is ObjGX - group of points
   Typ_SURSTRIP
 
 
@@ -856,7 +875,7 @@ Trimmed-Perforated-Surface with Supportsurface:
 Other:
   Typ_SURPTAB
   Typ_SURMSH
-  Typ_SURHAT
+  Typ_SURHAT            INF_FMTB_Surface_HAT
 
 
 ------------------------------------------------
@@ -864,11 +883,12 @@ Other:
 
 
 
+================================================================== \endcode */}
+void INF_FMTB_Surface_HAT (){        /*! \code
 
+hatched-surface;
 
----------------------
-Schraffierte Flaeche:
----------------------
+TODO: cannot be perforated yet ..
 
 ObjGX    os1;
   os1->typ   = Typ_SURHAT;
@@ -880,7 +900,16 @@ ObjGX    os1;
 Offen:
   SurHat dzt ohne Inseln; ev wie Typ_SUTP (Aussengrenze & Inseln)
 
+Functions:
+APT_decode_hat
+TSU_DrawHAT
 
+
+Files:
+../ut/ut_hatch.c
+
+Model:
+Data/sample_hatch1.gcad
 
 
 
@@ -890,7 +919,7 @@ void INF_FMTB_Surface_RCIR (){        /*! \code
 Pretesselated surface (tesselated fan).
 
 SourceObj:
-  A# = RCIR points ..
+  A# = RCIR points ..   # 3 or 4 points .. ?
 
 ObjGX    os1;
   os1.typ  = Typ_SURCIR
@@ -904,11 +933,18 @@ ObjGX    os1;
       opt.data = (LONG_PTR)=DB-index of point
 
 
+Models:
+Data/test_sur_rcir1.gcad
+Kuppelhaus1.gcad
+test_models_2.gcad
+
+
 Functions:
   TSU_DrawRCIR
   UT3D_cv_scir__       get boundary-points from SURCIR (tesselated fan)
   OGX_GET_INDEX
   UT3D_box_obja
+
 
 ================================================================== \endcode */}
 void INF_FMTB_Surface_RSTRIP (){        /*! \code
@@ -936,13 +972,24 @@ ObjGX    os1;
 
 
 
+Models:
+Data/test_sur_rstrip1.gcad
+  
 Functions:
+  APT_decode_suStrip
+  TSU_DrawRSTRIP
   GR_DrawStrip
   UT3D_box_surStripe
 
+Vars:
+Typ_SURSTRIP
+"RSTRIP" = T_RSTRIP 21
+
+
+
+
 ================================================================== \endcode */}
 void INF_FMTB_Surface_PLN (){        /*! \code
-OBSOLETE; DO NOT USE    (replaced by Surface_TPS)
 
 Planar Trimmed-Perforated-Surface:
     (has a outer-boundary and 0-n inner-boundaries):
@@ -950,18 +997,18 @@ Planar Trimmed-Perforated-Surface:
 SourceObj:
   A = outer-boundary [inner-boundaries ...]
 
- (ObjGX) typ  = Typ_SUR;
-         form = Typ_ObjGX;
-         siz  = Anzahl von ObjGX in data
-         data = (ObjGX[0])=Aussenkontur (Kreis, Polygon, CCV)
-                [(ObjGX[1-n])=Lochkonturen]
-or
+ (ObjGX) typ  = Typ_SUR; form = Typ_ObjGX; siz  = Anzahl von ObjGX in data
          data = (ObjGX[0]) typ=Typ_Typ; form=Typ_Int4; data=Typ_SURPLN;
                 (ObjGX[1])=Aussenkontur (Kreis, Polygon, CCV)
                 [(ObjGX[2-n])=Lochkonturen]
 
 Functions:
-  TSU_DrawSurTS
+  TSU_DrawSurTP            getrimmte/gelochte Planare Flaeche
+  TSU_DrawSurTS            ungetrimmte/ungelochte Planare Flaeche     UNUSED
+
+Examples:
+Data/test_sur_pln1.gcad
+
 
 ================================================================== \endcode */}
 void INF_FMTB_Surface_RU (){        /*! \code
@@ -1001,9 +1048,13 @@ see typedef SurRev
 see ../../doc/html/CAD_SUR_en.htm#F2
 
 SourceObj:
+  # cylindrical surface
+  A20=CYL RZ 5
+
   # Spherical surface:
   A = SPH axis radius [rotang1 rotang2 [height_angle1 height_angle2]]
   A20=SPH RZ 12 0 90 0 62
+
   # revolved
   A21=SRV L(P(75 75) P(125 75)) L(P(150 40) P(100 50)) 0 90
 
@@ -1026,6 +1077,10 @@ Files:
 
 ================================================================== \endcode */}
 void INF_FMTB_Surface_SWP (){        /*! \code
+
+NOT WORKING.
+
+
 
 Sweep Surface,   defined by a contour moving along a path;
   support-surface - not trimmed, not perforated:
@@ -1059,6 +1114,12 @@ Functions:
   Tess_sur__
   Tess_sSym__
   UT3D_box_surSwp
+
+Models:
+Data/test_sur_swp1.gcad
+
+Vars:
+
 
 
 
@@ -1103,6 +1164,8 @@ Functions:
   TSU_DrawSurBsp
   UT3D_box_surBsp
 
+
+
 ================================================================== \endcode */}
 void INF_FMTB_Surface_RBSP (){        /*! \code
 
@@ -1129,7 +1192,7 @@ Surface with supporting_surface, trimmed, perforated
 SEE ALSO NEW VERSION INF_SUTP
 
 SourceObj:
-  A = FSUB supportSurf contour [inner_contours]
+  A = FSUB A S [S ..] # supportSurf outerBoundary optional innerBoundaries
 
  (ObjGX) typ  = Typ_SUTP
          form = Typ_ObjGX;
@@ -1145,8 +1208,21 @@ Functions:
   TSU_DrawSurT_
   UT3D_box_surPln
 
+
+Examples:
+
+
+
+
+
+
+
 ================================================================== \endcode */}
 void INF_FMTB_Surface_PTAB (){        /*! \code
+
+
+
+
 
 Flaeche von PunkteTabelle (A=PTAB)           Func: APT_decode_msh_p
  (ObjGX) typ  = Typ_SURPTAB
@@ -1155,9 +1231,57 @@ Flaeche von PunkteTabelle (A=PTAB)           Func: APT_decode_msh_p
          data = NULL
 
 
+PointTable is included in Model-soure with ist surface-ID;
+Example:
+SECTION PTAB _A1
+ptnr=7
+-18564.7046 -4341.17642 0
+-10000.5872 3564.705843 0
+-8894.11704 5188.235236 0
+-10447.0581 -3000.35289 1000
+-3000.822971 -3000.29406 -500
+16658.8224 -2364.70585 0
+5000.52833 -5000.29403 0
+SECTIONEND
+SECTION MESH _A2
+faces=5 edgelines=1
+0 6 3
+6 1 4
+1 0 3
+1 3 4
+3 6 4
+edgeline=0 points=5 edgetyp=5
+5 2 1 0 6
+SECTIONEND
+A1=PTAB
+A2=MSH A1
+
+
+
+Models:
+Data/GIS1/bk0.gcad
+
+Functions:
+APT_decode_msh_p
+GR_disp_cv_pMesh
+TSU_DrawSurMsh
+
+Vars:
+"PTAB" = 62 = T_PTAB
+
+
+Import makes:
+Writes <tmp>_A<bdi>.ptab (binary) and <tmp>_A<bdi>.msh (binary) and <tmp>Mod_in
+
+
 
 ================================================================== \endcode */}
 void INF_FMTB_Surface_MSH (){        /*! \code
+
+TODO:
+- no example defined, "MSH" used for connection-lines (already removed).
+.. should fill mesh-struct direct ..
+
 
 Flaeche von Mesh                             Func: APT_decode_msh__
  (ObjGX) typ  = Typ_SURMSH
@@ -1166,6 +1290,23 @@ Flaeche von Mesh                             Func: APT_decode_msh__
          data = (long) Index of suface of its PTAB
 
 
+Example:
+- none ..
+
+Models:
+- none ..
+
+
+Functions:
+APT_decode_msh__
+GR_disp_cv_pMesh      outline
+TSU_DrawSurMsh        mesh
+GR_cv_pMesh_box
+
+Vars:
+Typ_SURPTAB       boundary
+Typ_SURMSH        mesh
+"MSH" = T_MSH 63
 
 
 
@@ -1201,7 +1342,7 @@ GL_Surface     (bestehend aus fertig tesselierten planaren Patches)
 
 
 Funktionen:
- GL_Disp_sur        Darstellung eines einzelnen Data-record.
+ GL_set_bMsh        Darstellung eines einzelnen Data-record.
  UTO_dump_f_        dump tesselated data
 
 // Beispiel: 210=Typ_GL_Sur; 211=Typ_GL_PP;
@@ -1458,7 +1599,7 @@ Functions:
   UTO_dump_f_        dump tesselated data
 
   GL_DrawSur
-  GL_Disp_sur        Darstellung eines einzelnen Data-record.
+  GL_set_bMsh        Darstellung eines einzelnen Data-record.
   TSU_Init, TSU_store
   OGX_siz__            // get total size of bMsh
   OGX_oxm_copy_ox      // serialize bMsh (copy objects & data into single memspc)

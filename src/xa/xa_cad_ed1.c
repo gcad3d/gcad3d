@@ -71,7 +71,8 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 #include "../ut/ut_txt.h"
 
 #include "../xa/xa_sele.h"        // Typ_go*
-#include "../xa/xa_uid.h"               // DLI_DIR_TMP
+// #include "../xa/xa_uid.h"               // GR_TMP_IDIR
+#include "../gr/ut_gr.h"          // GR_TMP_I*
 
 #include "../gui/gui__.h"         // Gtk
 
@@ -355,7 +356,7 @@ extern int     APT_dispDir;
     IE_cad_test__ ();
 
   } else {
-    GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
+    GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
   }
 
 
@@ -745,6 +746,8 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
     // das Wort links von cPos loeschen;
     IE_ed1_rem (&dPos, txLen);
     // und NIX mehr zufuegen
+// TODO: remove last curPos (
+    GL_temp_del_1 (GR_TMP_IPOS);
 
     IE_bufSiz = strlen(IE_buf);
     *cPos = dPos;

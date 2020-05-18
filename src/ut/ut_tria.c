@@ -404,7 +404,7 @@ Returncodes:
 
   // Normalvekttor auf das 3Eck
   UT3D_vc_perp2vc (&vc_abXac, &vab, &vac);
-    // GR_Disp_vc (&vc_abXac, trii->pa[0], 9, 0);
+    // GR_tDyn_vc (&vc_abXac, trii->pa[0], 9, 0);
 
 
   t1 = UT3D_skp_2vc (&vc_abXac, &vc_abXac);
@@ -837,7 +837,7 @@ Returncodes:
 
   // normalVektor auf 3Eck UT3D_vc_perpTria
   UT3D_vc_perp3pt (&vn, tri->pa[0], tri->pa[1], tri->pa[2]);
-    // GR_Disp_vc (&vn, tri->pa[0], 3, 0);
+    // GR_tDyn_vc (&vn, tri->pa[0], 3, 0);
 
 
   // Intersect Line-Plane
@@ -1083,7 +1083,7 @@ Returncodes:
 
   // printf("UT3D_ln_intTriaPln \n");
     // GR_Disp_triv (tria, 9, -1, 1);
-    // GR_Disp_vc (&pln->vz, &pln->po, 8, 0);
+    // GR_tDyn_vc (&pln->vz, &pln->po, 8, 0);
 
 
   // die Normalabstaende der Punkte des Dreiecks tria von der Ebene
@@ -1253,14 +1253,14 @@ Returncodes:
   // vc1=p0-p1, vc2=p0-p2, vcn1=crossProd vc1-vc2
   UT3D_pl1_tria (&plt1, tri1);
     // DEB_dump_obj__(Typ_PLN, &plt1, " plt1");
-    // GR_Disp_vc (&plt1.vz, &plt1.po, 8, 0);
+    // GR_tDyn_vc (&plt1.vz, &plt1.po, 8, 0);
 
 
   // make plane plt2 of tria2
   // vc1=p0-p1, vc2=p0-p2, vcn2=crossProd vc1-vc2
   UT3D_pl1_tria (&plt2, tri2);
     // DEB_dump_obj__(Typ_PLN, &plt2, " plt2");
-    // GR_Disp_vc (&plt2.vz, &plt2.po, 9, 0);
+    // GR_tDyn_vc (&plt2.vz, &plt2.po, 9, 0);
 
 
   // inters. tri1 mit Plane of tri2
@@ -1362,7 +1362,7 @@ Returncodes:
   UT3D_vc_2pt (&vc2, tri1->pa[0], tri1->pa[2]);
   UT3D_vc_perp2vc (&plt1->vz, &vc1, &vc2);
   UT3D_vc_setLength (&plt1->vz, &plt1->vz, 1.);
-    // GR_Disp_vc (&plt1->vz, tri1->pa[0], 5, 0);
+    // GR_tDyn_vc (&plt1->vz, tri1->pa[0], 5, 0);
 
   UT3D_pl_ptpl (plt1, tri1->pa[0]);  // setzt plane.p !!
 
@@ -1450,7 +1450,7 @@ see UT2D_pt_intptvcy UT2D_pt_int2vc2pt UT3D_2ln_tngTriPlSph
 
 
   // printf("UT2D_2pt_tngLnCiY %f %f\n",yy,rc);
-    // GR_Disp_ln2 (ls, le, 9);
+    // GR_tDyn_ln2_2pt (ls, le, 9);
     // GR_Disp_message (1);   // 0=Aus, 1=Ein.
 
 
@@ -1585,15 +1585,15 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
   // printf("UT3D_2ln_tngTriPlSph rs=%f\n",rs);
-    // GR_Disp_tx (tria->pa[0], "0", 1);
-    // GR_Disp_tx (tria->pa[1], "1", 1);
-    // GR_Disp_tx (tria->pa[2], "2", 1);
+    // GR_tDyn_txtA (tria->pa[0], "0", 1);
+    // GR_tDyn_txtA (tria->pa[1], "1", 1);
+    // GR_tDyn_txtA (tria->pa[2], "2", 1);
 
 
   // - einen Normalvector (plt.vz) aufs 3Eck ermitteln.
   // einfacher waere UT3D_vc_perp3pt ..
   UT3D_pl1_tria (&plt, tria);
-    // GR_Disp_vc (&plt.vz, &plt.po, 9, 0);
+    // GR_tDyn_vc (&plt.vz, &plt.po, 9, 0);
 
 
   // Die vektoren muessen zueinender zeigen ...
@@ -1736,7 +1736,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
     // Fehlerwinkel aDiff = Winkel zwischen dem 3Ecks-NormalVektor plt.vz
     // und der Linie lnt.p1 - lnp.p1.
     UT3D_vc_2pt (&vx, &lnt->p1, &lnp->p1);
-      // GR_Disp_vc (&vx, &plt.po, 9, 0);
+      // GR_tDyn_vc (&vx, &plt.po, 9, 0);
     if(irc == 8) {
       *aDiff = UT3D_angr_2vc__ (&vx, &plt.vz);
     } else {   // irc=1; Kante beruehrt genau.
@@ -1865,12 +1865,12 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   // DEB_dump_obj__ (Typ_PT2, p2, "   p2:");
   // DEB_dump_obj__ (Typ_PT2, p3, "   p3:");
     // GR_Disp_pt2 (px, SYM_STAR_S, 4);
-    // GR_Disp_ln2 (p1, p2, 0);
-    // GR_Disp_ln2 (p1, p3, 0);
-    // GR_Disp_ln2 (p3, p2, 0);
-    // GR_Disp_tx2 (p1, "1", 1);
-    // GR_Disp_tx2 (p2, "2", 1);
-    // GR_Disp_tx2 (p3, "3", 1);
+    // GR_tDyn_ln2_2pt (p1, p2, 0);
+    // GR_tDyn_ln2_2pt (p1, p3, 0);
+    // GR_tDyn_ln2_2pt (p3, p2, 0);
+    // GR_tDyn_tx2A (p1, "1", 1);
+    // GR_tDyn_tx2A (p2, "2", 1);
+    // GR_tDyn_tx2A (p3, "3", 1);
 
 
   // normalvektor auf p1-p2
@@ -1986,12 +1986,12 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
     // GR_Disp_pt (px, SYM_STAR_S, 4);
-    // GR_Disp_ln1 (p1, p2, 0);
-    // GR_Disp_ln1 (p1, p3, 0);
-    // GR_Disp_ln1 (p3, p2, 0);
-    // GR_Disp_tx (p1, "1", 1);
-    // GR_Disp_tx (p2, "2", 1);
-    // GR_Disp_tx (p3, "3", 1);
+    // GR_tDyn_pcv (p1, p2, 0);
+    // GR_tDyn_pcv (p1, p3, 0);
+    // GR_tDyn_pcv (p3, p2, 0);
+    // GR_tDyn_txtA (p1, "1", 1);
+    // GR_tDyn_txtA (p2, "2", 1);
+    // GR_tDyn_txtA (p3, "3", 1);
 
 
   // get a backplane
@@ -2002,7 +2002,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
   UT3D_vc_2pt (&vc1, &pb1, &pb2);        // vec from box
-    // GR_Disp_vc (&vc1, &pb1, 12, 1); 
+    // GR_tDyn_vc (&vc1, &pb1, 12, 1); 
   bpi = UT3D_bp_perp_vc (NULL, &vc1);               // backplane from vector
     // printf(" bpi=%d\n",bpi);
 
@@ -2039,13 +2039,13 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
 
 
-    GR_Disp_pt (px, SYM_STAR_S, 4);
-    GR_Disp_ln1 (p1, p2, 0);
-    GR_Disp_ln1 (p1, p3, 0);
-    GR_Disp_ln1 (p3, p2, 0);
-    GR_Disp_tx (p1, "1", 1);
-    GR_Disp_tx (p2, "2", 1);
-    GR_Disp_tx (p3, "3", 1);
+    // GR_Disp_pt (px, SYM_STAR_S, 4);
+    // GR_tDyn_pcv (p1, p2, 0);
+    // GR_tDyn_pcv (p1, p3, 0);
+    // GR_tDyn_pcv (p3, p2, 0);
+    // GR_tDyn_txtA (p1, "1", 1);
+    // GR_tDyn_txtA (p2, "2", 1);
+    // GR_tDyn_txtA (p3, "3", 1);
 
 
   // Normalvektor auf das 3Eck rechnen
@@ -2055,7 +2055,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   vnt.dx = v12.dy * v23.dz - v12.dz * v23.dy;
   vnt.dy = v12.dz * v23.dx - v12.dx * v23.dz;
   vnt.dz = v12.dx * v23.dy - v12.dy * v23.dx;
-    GR_Disp_vc (&vnt, p1, 12, 0); 
+    // GR_tDyn_vc (&vnt, p1, 12, 0); 
 
 
 
@@ -2063,7 +2063,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   vns.dx = v12.dy * vnt.dz - v12.dz * vnt.dy;
   vns.dy = v12.dz * vnt.dx - v12.dx * vnt.dz;
   vns.dz = v12.dx * vnt.dy - v12.dy * vnt.dx;
-    GR_Disp_vc (&vns, p1, 12, 0); 
+    // GR_tDyn_vc (&vns, p1, 12, 0); 
 
 
   // vektor p1-px
@@ -2083,7 +2083,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   vns.dx = v23.dy * vnt.dz - v23.dz * vnt.dy;
   vns.dy = v23.dz * vnt.dx - v23.dx * vnt.dz;
   vns.dz = v23.dx * vnt.dy - v23.dy * vnt.dx;
-    GR_Disp_vc (&vns, p2, 12, 0);
+    // GR_tDyn_vc (&vns, p2, 12, 0);
 
 
   // vektor p2-px
@@ -2095,9 +2095,8 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   i23 = DSIGTOL (s23, UT_TOL_min0);
   // (s12 > 0) = punkt ist links von p1-p2
   // (s12 < 0) = punkt ist rechts von p1-p2
-
-    printf(" s12=%f s23=%f\n",s12,s23);
-    printf(" i12=%d i23=%d\n",i12,i23);
+    // printf(" s12=%f s23=%f\n",s12,s23);
+    // printf(" i12=%d i23=%d\n",i12,i23);
 
 
   if((i12 != 0) && (i23 != 0)) { // keines der Vorzeichen ist 0 ..
@@ -2118,7 +2117,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   vns.dx = v31.dy * vnt.dz - v31.dz * vnt.dy;
   vns.dy = v31.dz * vnt.dx - v31.dx * vnt.dz;
   vns.dz = v31.dx * vnt.dy - v31.dy * vnt.dx;
-    GR_Disp_vc (&vns, p3, 12, 0);
+    // GR_tDyn_vc (&vns, p3, 12, 0);
 
 
   // vektor p3-px
@@ -2130,8 +2129,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   i31 = DSIGTOL (s31, UT_TOL_min0);
   // (s31 > 0) = punkt ist links von p3-p1
   // (s31 < 0) = punkt ist rechts von p3-p1
-
-    printf(" s31=%f\n",s31);
+    // printf(" s31=%f\n",s31);
 
 
   if(i12 == 0) {
@@ -2154,8 +2152,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
 
   //----------------------------------------------------------------
   L_exit:
-  printf("ex UT3D_ck_pt_prj_tria %d\n",irc);
-
+    // printf("ex UT3D_ck_pt_prj_tria %d\n",irc);
   return irc;
 
 }
@@ -2177,9 +2174,9 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   Point2    p21={-10.000000,   8.184550};
   Point2    p22={ 10.000000,   12.000000};
 
-  GR_Disp_ln2 (&p20, &p21, 0);
-  GR_Disp_ln2 (&p21, &p22, 0);
-  GR_Disp_ln2 (&p22, &p20, 0);
+  GR_tDyn_ln2_2pt (&p20, &p21, 0);
+  GR_tDyn_ln2_2pt (&p21, &p22, 0);
+  GR_tDyn_ln2_2pt (&p22, &p20, 0);
 
   GR_Disp_pt2 (&pti, SYM_STAR_S, 2);
 
@@ -2230,8 +2227,8 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
     15,20,0
   };
 
-  // GR_Disp_cv (pTab1, 3, 9);
-  // GR_Disp_cv (pTab2, 3, 9);
+  // GR_tDyn_pcv (pTab1, 3, 9);
+  // GR_tDyn_pcv (pTab2, 3, 9);
 
   UT3D_tria_pta (tri1, pTab1);
   UT3D_tria_pta (tri2, pTab2);

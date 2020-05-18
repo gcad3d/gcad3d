@@ -1051,7 +1051,7 @@ static int    bck_GR_NoConstrPln;
         // ATO_ato_srcLn__ (&ato, sca[i1].oid);
         // ATO_dump__ (&ato, sca[i1].oid);
         // display subCurv
-        // typ = ato.typ[0]; dbi = ato.val[0]; GR_Disp_dbo (typ, dbi, 9, 0);
+        // typ = ato.typ[0]; dbi = ato.val[0]; GR_tDyn_dbo (typ, dbi, 9, 0);
     }}
     // END TESTBLOCK:
 
@@ -2563,7 +2563,7 @@ static int    bck_GR_NoConstrPln;
 
   GR_reqTyp = rTyp;         // primary requested typ
 
-  GR_selTmpStat = 0;        // reset temp-indicate.
+  GR_selTmpStat = 0;        // reset temp-indicate.         UNUSED ..
 
   GLBT_but_ini ();          // I2D_iNr = 0;
 
@@ -3016,6 +3016,7 @@ static int    bck_GR_NoConstrPln;
   int sele_save () {
 //================================================================
 // save active reqObjTab & GR_NoConstrPln
+// TODO: make stack of 4 ..
 
   // BitTab_test1 (reqObjTab);
   

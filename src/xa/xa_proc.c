@@ -285,7 +285,7 @@ char **process_CmdTab;     // was NCCmdTab
 //                        NULL, " select process", fnam,
 //                        "1", NULL, "60,20");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "select process", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select process\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
     printf(" selected process: |%s|\n",s1);
  
@@ -705,7 +705,7 @@ static char sproc[128];
 //                        NULL, " delete process", fnam,
 //                        "1", NULL, "60,20");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "delete process", "40,30");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete process\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
   
   
@@ -884,7 +884,7 @@ static char sproc[128];
 
 
   // get filename of cfg/dir.lst
-  AP_get_fnam_symDir (s1);
+  MDLFN_symFilNam (s1);
 
   // list directory <bindir>/remote
   sprintf(s2, "%sprg/", OS_get_loc_dir());
@@ -892,7 +892,7 @@ static char sproc[128];
 //   if(irc) return 0;
 
   // (dirIn/filnamOut sSiz symDir filter title)
-  irc = GUI_file_open__ (s2, 256, s1, "*.cmd", "open remote control-prog");
+  irc = GUI_file_open__ (s2, 256, s1, "\"*.cmd\"", "open remote control-prog");
     printf(" open %d |%s|\n",irc, s2);
 
   // UTX_add_fnam_del (s1);    // add following "/"

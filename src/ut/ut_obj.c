@@ -631,7 +631,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
 
   L_fertig:
-    // GR_Disp_vc (vco, pto, 2, 0);
+    // GR_tDyn_vc (vco, pto, 2, 0);
     return irc;
 
 
@@ -1603,7 +1603,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 /// Output:
 ///   pNr   nr of points in ppa
 /// 
-/// see also: UT3D_npt_ox__ GL_Disp_sur
+/// see also: UT3D_npt_ox__ GL_set_bMsh
 /// \endcode
 
 
@@ -1615,7 +1615,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 
   // X-Siz/Y-Siz = MaxDist entlang X-Vec und entlang Y-Vec ermitteln
   ii = 0;
-  for(i1=0; i1<os->siz; ++i1) {              // resolv: see GL_Disp_sur
+  for(i1=0; i1<os->siz; ++i1) {              // resolv: see GL_set_bMsh
     actPP = &((ObjGX*)os->data)[i1];
     if(actPP->form == Typ_PT) {
       if(ii + actPP->siz >= *pNr) goto L_eof;
@@ -5387,7 +5387,7 @@ static Vector vcm;
             // Punktetabelle cpTab neu erstellen
             // reserve Space for pNr points in wrkSpc
             pa1 = ((CurvPoly*)obji)->cpTab;
-              // GR_Disp_pTab (pNr, pa1, SYM_STAR_S, 2);
+              // GR_tDyn_npt__ (pNr, pa1, SYM_STAR_S, 2);
             pa2 = wrkSpc->next;
             if(UME_add (wrkSpc, pNr * sizeof(Point)) < 0) return -1;
             for(i1=0; i1<pNr; ++i1) {
@@ -5454,7 +5454,7 @@ static Vector vcm;
             i2 = ((CurvBSpl*)obji)->ptNr;
             // Controlpoints-from
             pa1 = ((CurvBSpl*)obji)->cpTab;
-              // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+              // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
             // Controlpoints-to
             pa2 = wrkSpc->next;
             // reserve Space for i2 points in wrkSpc
@@ -5631,7 +5631,7 @@ static ObjBin  objMir;
       i2 = ((CurvPoly*)obji)->ptNr;
       // reserve Space for i2 points in wrkSpc
       pa1 = ((CurvPoly*)obji)->cpTab;
-        // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+        // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
       pa2 = wrkSpc->next;
       if(UME_add (wrkSpc, i2 * sizeof(Point)) < 0) return -1;
       for(i1=0; i1<i2; ++i1) {
@@ -5649,7 +5649,7 @@ static ObjBin  objMir;
       i2 = ((CurvBSpl*)obji)->ptNr;
       // Controlpoints-from
       pa1 = ((CurvBSpl*)obji)->cpTab;
-        // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+        // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
       // Controlpoints-to
       pa2 = wrkSpc->next;
       // reserve Space for i2 points in wrkSpc
@@ -5784,7 +5784,7 @@ static ObjBin  objMir;
   pNr = 20; // maxNr (size of pa & va)
   irc = UTO_stru_int (&pNr, pa, va, o0Typ, obj0, o1Typ, obj1, wrkSpc);
   if(irc < 0) goto GeomErr;
-    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
 
 
   // imod korrigieren; index > pa/va bestimmen
@@ -5821,7 +5821,7 @@ static ObjBin  objMir;
   pNr = 20; // maxNr
   irc = UTO_stru_int (&pNr, pa, va, o0Typ, obj0, o2Typ, obj2, wrkSpc);
   if(irc < 0) goto GeomErr;
-    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
 
 
   // imod korrigieren; index > pa/va bestimmen
@@ -6144,7 +6144,7 @@ static int traAct;
       i2 = ((CurvPoly*)obji)->ptNr;
       // reserve Space for i2 points in wrkSpc
       pa1 = ((CurvPoly*)obji)->cpTab;
-        // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+        // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
       pa2 = wrkSpc->next;
       if(UME_add (wrkSpc, i2 * sizeof(Point)) < 0) return -1;
       for(i1=0; i1<i2; ++i1) {
@@ -6163,7 +6163,7 @@ static int traAct;
       i2 = ((CurvBSpl*)obji)->ptNr;
       // Controlpoints-from
       pa1 = ((CurvBSpl*)obji)->cpTab;
-        // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+        // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
       // Controlpoints-to
       pa2 = wrkSpc->next;
       // reserve Space for i2 points in wrkSpc
@@ -6394,7 +6394,7 @@ static int traAct;
 ///   wrkSpc   necessary for TypCV, else NULL
 ///   att
 /// 
-/// see UTO_Draw_ox GR_Disp_ost GR_Disp_dbo GR_Draw_dbo
+/// see UTO_Draw_ox GR_Disp_ost GR_tDyn_dbo GR_Draw_dbo
 /// \endcode
 
 
@@ -6420,7 +6420,7 @@ static int traAct;
 ///   att      Points: 0=normal, black;  1=red (hilited);
 ///   ox1 
 /// 
-/// see UTO_Disp_ox GR_Disp_ost GR_Disp_dbo GR_Draw_dbo
+/// see UTO_Disp_ox GR_Disp_ost GR_tDyn_dbo GR_Draw_dbo
 ///     APT_DrawCurv GR_DrawCurv
 /// \endcode
 
@@ -6465,7 +6465,7 @@ static int traAct;
 
     //================================================================
     case Typ_CVELL:
-      GR_DrawCvEll (ind, att, ox1->data);  // see GR_Disp_ell GR_DrawCvEll
+      GR_DrawCvEll (ind, att, ox1->data);  // see GR_tDyn_ell GR_DrawCvEll
       break;
 
 
@@ -6484,8 +6484,8 @@ static int traAct;
     //================================================================
     case Typ_CVTRM:
       UME_init (&tSpc1, memspc201, sizeof(memspc201));
-      // GR_DrawCvCCV (ind, att, ox1->data, &tSpc1);
-      GR_DrawCvCCV (ind, att, ox1, &tSpc1);
+      // GR_set_ccv (ind, att, ox1->data, &tSpc1);
+      GR_set_ccv (ind, att, ox1, &tSpc1);
       break;
 
 
@@ -6568,7 +6568,7 @@ static int traAct;
 /// Zusatzparameter:
 /// f Typ_PT: (int)PointTyp eg SYM_STAR_S
 /// 
-/// see GR_Disp_dbo GR_Disp_ost
+/// see GR_tDyn_dbo GR_Disp_ost
 /// \endcode
 
 
@@ -6598,7 +6598,7 @@ static int traAct;
   switch (oTyp) {
 
     // unsupported:
-    // GR_Disp_tx
+    // GR_tDyn_txtA
     // GR_Disp_vc
 
     // GR_Disp_pln
@@ -6615,7 +6615,7 @@ static int traAct;
 
     //================================================================
     case Typ_LN:
-      GR_Disp_cv (ox1->data, 2, att);
+      GR_tDyn_pcv (ox1->data, 2, att);
       break;
 
 
@@ -6627,7 +6627,7 @@ static int traAct;
 
     //================================================================
     case Typ_CVELL:
-      GR_Disp_ell (ox1->data, att);
+      GR_tDyn_ell (ox1->data, att);
       break;
 
 
@@ -7750,8 +7750,8 @@ static int traAct;
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
-      // GR_Disp_pTab (1, &pt1, SYM_TRI_S, 2);
-      // GR_Disp_pTab (1, &pt2, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt1, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt2, SYM_TRI_S, 2);
       // printf(" __limstru v1=%f v2=%f\n",v1,v2);
     // add startpoint as 1.pt
     pa[pNr] = pt1;
@@ -7785,7 +7785,7 @@ static int traAct;
     // printf(" n.int_2ox-1 pNr=%d p1Nr=%d p2Nr=%d\n",pNr,p1Nr,p2Nr);
     // for(i1=0; i1<pNr; ++i1) printf("pa[%d] %lf %lf %lf va %lf\n",
         // i1, pa[i1].x, pa[i1].y, pa[i1].z, va[i1]);
-    // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
     // END TESTBLOCK
 
 
@@ -7796,8 +7796,8 @@ static int traAct;
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
-      // GR_Disp_pTab (1, &pt1, SYM_TRI_S, 2);
-      // GR_Disp_pTab (1, &pt2, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt1, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt2, SYM_TRI_S, 2);
       // printf(" __limstru v1=%f v2=%f\n",v1,v2);
     // add startpoint as 1.pt
     pa[pNr] = pt1;
@@ -7860,14 +7860,14 @@ static int traAct;
       // if((o2Typ == Typ_PT) && (p2Nr > 1)) p2Nr = 1;  ???
       // printf(" _stru_int p2Nr=%d\n",p2Nr);
       // printf(" ipa=%d va=%f %f\n",ipa,va[pNr],va[pNr+1]);
-      // GR_Disp_pTab (p2Nr,  &pa[p1Nr], SYM_STAR_S, 3);
+      // GR_tDyn_npt__ (p2Nr,  &pa[p1Nr], SYM_STAR_S, 3);
       // printf(" _stru_int pNr=%d p1Nr=%d p2Nr=%d\n",pNr,p1Nr,p2Nr);
 
       // TESTBLOCK
       // printf(" n.int_2ox-2 pNr=%d p1Nr=%d p2Nr=%d\n",pNr,p1Nr,p2Nr);
       // for(i1=0; i1<pNr; ++i1) printf("pa[%d] %lf %lf %lf va %lf\n",
           // i1, pa[i1].x, pa[i1].y, pa[i1].z, va[i1]);
-      // GR_Disp_pTab (pNr, pa, SYM_STAR_S, 2);
+      // GR_tDyn_npt__ (pNr, pa, SYM_STAR_S, 2);
       // END TESTBLOCK
   }
 
@@ -7879,8 +7879,8 @@ static int traAct;
     if(irc < 0) return irc;
       // DEB_dump_obj__ (Typ_PT, &pt1, " _limstru-pt1 v1=%lf",v1);
       // DEB_dump_obj__ (Typ_PT, &pt2, " pt2 v2=%lf",v2);
-      // GR_Disp_pTab (1, &pt1, SYM_TRI_S, 2);
-      // GR_Disp_pTab (1, &pt2, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt1, SYM_TRI_S, 2);
+      // GR_tDyn_npt__ (1, &pt2, SYM_TRI_S, 2);
       // printf(" __limstru v1=%f v2=%f\n",v1,v2);
     // add startpoint as 1.pt
     pa[pNr] = pt1;
@@ -8062,7 +8062,7 @@ static int traAct;
     printf(" _stru_int p1Nr=%d\n",p1Nr);
     // printf(" ipa=%d va=%f %f\n",ipa,va[ipa],va[ipa+1]);
     // GR_Disp_pt (pa, SYM_STAR_S, 2);
-    // GR_Disp_pTab (p1Nr, pa, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (p1Nr, pa, SYM_STAR_S, 2);
 
   if(iClo == NO) {
     iMaxSol = UTO_MOD_resolv_open (&ii1, &ii2, imod, p1Nr + 2);
@@ -8121,7 +8121,7 @@ static int traAct;
   if((o2Typ == Typ_PT) && (p2Nr > 1)) p2Nr = 1;
     printf(" _stru_int p2Nr=%d\n",p2Nr);
     // printf(" ipa=%d va=%f %f\n",ipa,va[ip2],va[ip2+1]);
-    // GR_Disp_pTab (p2Nr,  &pa[ip2], SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (p2Nr,  &pa[ip2], SYM_STAR_S, 2);
 
 
   // remove equal points
@@ -8423,7 +8423,7 @@ static int traAct;
       // if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
       // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex ptvcpar_std_obj");
       // if(pto) GR_Disp_pt (pto, SYM_STAR_S, ATT_COL_RED);
-      // if(vco) GR_Disp_vc (vco, pto, 9, 1);
+      // if(vco) GR_tDyn_vc (vco, pto, 9, 1);
     // }
     // ERR_raise (__func__);
     // END TESTBLOCK
@@ -8567,7 +8567,7 @@ static int traAct;
   // set ptg2; dir=vtg; len=APT_ln_len
   // UT2D_pt_traptvclen (&ptg2, &ptg1, &vtg, APT_ln_len);
   UT2D_pt_traptvclen (&ptg2, &ptg1, &vtg, 1.0);  // create ray; 2014-01-07
-    // GR_Disp_ln2 (&ptg1, &ptg2, 9);
+    // GR_tDyn_ln2_2pt (&ptg1, &ptg2, 9);
 
   // get line from 2D to 3D-constructionPlane
   ln2.p1 = UT3D_pt_pt2 (&ptg1);
@@ -8827,7 +8827,7 @@ static int traAct;
   //----------------------------------------------------------------
   L_done:
     // printf(" iRun1=%d iRun2=%d\n",iRun1,iRun2);
-    // GR_Disp_ln2 (&ptg1, &ptg2, 5);
+    // GR_tDyn_ln2_2pt (&ptg1, &ptg2, 5);
 
   // get line from 2D to 3D-constructionPlane
   ln2.p1 = UT3D_pt_pt2 (&ptg1);
@@ -9728,7 +9728,7 @@ static int traAct;
   }
 
     // DEB_dump_obj__ (*oTyp, oDat, "ex-UTO2_obj_tra_obj3_rsys");
-    // GR_Disp_obj (*oTyp, oDat, Typ_Att_dash__, 1);
+    // GR_tDyn_obj (*oTyp, oDat, Typ_Att_dash__, 1);
 
   return 0;
 
@@ -9791,7 +9791,7 @@ static int traAct;
   }
 
     // DEB_dump_obj__ (*oTyp, oDat, "ex-UTO_obj_tra_obj2_rsys");
-    // GR_Disp_obj (*oTyp, oDat, Typ_Att_dash__, 1);
+    // GR_tDyn_obj (*oTyp, oDat, Typ_Att_dash__, 1);
 
   return 0;
 

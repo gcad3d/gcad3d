@@ -127,6 +127,8 @@ UI_GR_Select_work1
 
 #include "../gui/gui__.h"              // Gtk3
 #include "../db/ut_DB.h"            // DB_get_ModBas
+#include "../gr/ut_gr.h"                  // GR_perm_mdr
+
 
 #include "../xa/xa_uid.h"           // AP_SRC_EDI
 #include "../xa/xa_mem.h"           // memspc51, mem_cbuf1
@@ -137,7 +139,9 @@ UI_GR_Select_work1
 
 
 //============ Extern Var: =====================
-// extern int       AP_src;                // AP_SRC_MEM od AP_SRC_EDI
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
+
 
 
 
@@ -523,7 +527,8 @@ static int otra_typ2[]={
   ED_load__ ();     // if MAN: copy Memory -> Editor
   DB_StoreModel (otra.ind, &obj1);           // replace obj in DB
   DL_SetInd (otra.dli);             // modify DL-Rec (do not create new DL-Rec)
-  APT_DrawModel (otra.mr1.modNr, otra.ind, &otra.mr1);
+  // APT_DrawModel (otra.mr1.modNr, otra.ind, &otra.mr1);
+  GR_perm_mdr (&otra.mr1, otra.ind);
 
 
   return 0;
@@ -692,8 +697,10 @@ static int otra_typ2[]={
     irc = APT_obj_expr (&pt1, rTyp, mem_cbuf1);
       DEB_dump_obj__(Typ_PT, &pt1, "  vtx pt1:");
     if(irc == 0) {
-      dl1 = -1;
-      GL_DrawSymB (&dl1, Typ_Att_hili1, SYM_CIR_S, &pt1);  // Circ red
+      // dl1 = -1;
+      // GL_DrawSymB (&dl1, Typ_Att_hili1, SYM_CIR_S, &pt1);  // Circ red
+      DL_temp_ind = 1;
+      GR_temp_symB (&pt1, SYM_CIR_S, Typ_Att_hili1);
       DL_Redraw ();
     }
   }

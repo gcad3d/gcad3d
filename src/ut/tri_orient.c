@@ -101,10 +101,10 @@ tStat:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
-#include "../xa/xa_mem.h"              // memspc51
 #include "../ut/func_types.h"               // SYM_STAR_S
+#include "../xa/xa_mem.h"              // memspc51
 
-
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 
 
 
@@ -867,7 +867,7 @@ tStat:
 
   // Eine Box um 3Eck it.
   UT3D_box_tria (&pb1, &pb2, &ta[iSta], UT_DISP_cv);
-    // GR_Disp_box (&pb1, &pb2, 8);
+    // GR_tDyn_box__(&pb1, &pb2, 8);
 
 
 
@@ -1019,9 +1019,9 @@ tStat:
       // i1 = 40; // TEST-ONLY
       i2 = tStat[i1]; tri0 = &ta[i1];
       // kante 0-1
-      if((i2 & 1) == 0) GR_Disp_ln1 (tri0->pa[0], tri0->pa[1], 11);
-      if((i2 & 2) == 0) GR_Disp_ln1 (tri0->pa[1], tri0->pa[2], 11);
-      if((i2 & 4) == 0) GR_Disp_ln1 (tri0->pa[2], tri0->pa[0], 11);
+      if((i2 & 1) == 0) GR_tDyn_ln_2pt (tri0->pa[0], tri0->pa[1], 11);
+      if((i2 & 2) == 0) GR_tDyn_ln_2pt (tri0->pa[1], tri0->pa[2], 11);
+      if((i2 & 4) == 0) GR_tDyn_ln_2pt (tri0->pa[2], tri0->pa[0], 11);
     }
 
   return 0;

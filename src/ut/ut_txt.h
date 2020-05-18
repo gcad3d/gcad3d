@@ -180,6 +180,7 @@ extern const char TX_NUL;
   char* UTX_find_strrstr (char *cbuf, char *str);
   char* UTX_find_strrchrn (char *cbuf, char *str);
   int   UTX_strcmp_right (char *string, char *text);
+  char* UTX_find_bwd_chr (char *sStart, char *sEnd, char iChar);
 
   int   UTX_ck_casenChr(char *s1, char *s2, int cNr);
 

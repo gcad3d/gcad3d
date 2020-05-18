@@ -16,11 +16,9 @@
  *
 -----------------------------------------------------
 TODO:
- use TSU_obj1 for TSU_ln1 TSU_ac1 TSU_bs1 ..
-..................d...........
- dzt crasht Mesa nach einem realloc TSU_store !!!!!!!!
- UTO_objx_get ersetzen durch UTO_objDat_ox; dazu muss TSU_obj1, TSU_obj2
-   in typ void* geaendert werden !
+- REPLACE TSU_DrawSurT_
+  INT_intsursur TSU_tess_sTab TSU_tessObj APT_DrawSur GR_DrawSur TSU_DrawSurT_
+
 
 -----------------------------------------------------
 Modifications:
@@ -42,29 +40,105 @@ List_functions_start:
 
 TSU_nfac_ipatch__    get indexed-triangles from indexed-Opengl-patch using IndTab
 
-TSU_DrawSurT_        Hauptentry
-TSU_DrawSurTRV       unbegrenzte RevSur
-TSU_DrawSurBsp       unbegrenzte BSP-Sur
-TSU_DrawSurRBsp      unbegrenzte RBSP-Sur
-TSU_DrawSurTC        getrimmte/gelochte Flaeche
+
+------------- Unlimited-surfaces (support-surfaces)
+TSU_DrawSurTRV       revolved support-surface
+TSU_DrawSurTRU       ruled support-surface
+TSU_DrawSurBsp       B-spline support-surface
+TSU_DrawSurRBsp      rational-B-spline support-surface
 TSU_tr_init_         init transformationen ..
 TSU_DrawSurTBox      work aktuelle 2D-Rasterbox
 TSU_DrawSurTess      draw tesselated surf
 
-TSU_Init
-TSU_tessObj
+------------- trimmed-perforated-surfaces
+TSU_DrawSurTP        trimmed-perforated-surface planar
+TSU_DrawSurTC        trimmed-perforated-surface complex
+TSU_DrawSurMsh       disp mesh from points
+TSU_DrawHAT          hatched-surface
 
-TSU_ntria_bMsh__    triangles from binary-mesh
-TSU_ntria_bMsh_p
-TSU_ntria_bMsh_sur
+TSU_DrawSurT_  old-version; to be replaced ..
+TSU_DrawSurTS  old-version; to be replaced ..
+
+------------- Tesselalated-surfaces:
+TSU_DrawRSTRIP       disp stripe of faces 
+TSU_DrawRCIR         3 or 4 points only
+TSU_DrawSurTess      disp Mockup-struct (tesselated surf)
+
+TSU_store            add surface -> memSpace
+TSU_tess_sTab        tesselate n objects
+TSU_tessObj          tesselate bin.obj
+TSU_tess_addf        add patches/faces to memSpace
+TSU_stor_defCol      add GL_defCol -> memSpace
+
+TSU_nfac_ipatch__    indexed-triangles from indexed-Opengl-patch using IndTab
+TSU_ntria_bMsh__     triangles from binary-mesh
+TSU_ntria_bMsh_sur   triangles from surface
+TSU_ntria_bMsh_p     triangles from patch
+
+TSU_dli_get
+TSU_get_mode         get TSU_mode (0=disp, 1=store)
+TSU_get_vec          get Nornmalvec of tess.surf
+TSU_box_vec          get Nornmalvec of for Rasterbox
+TSU_uOff             get uOff
+
+TSU_box_Draw1
+TSU_box_Draw2 
+TSU_DrawSurTBox      2D-Rasterbox
+TSU_tr_init_         init 2D_3D ..
+TSU_tr_cont_         contours -> 2D
+TSU_tr_2D_3D_con     cone 
+TSU_tr_3D_2D_con
+TSU_tr_2D_3D_tor
+TSU_tr_3D_2D_tor
+TSU_tr_2D_3D_sph
+TSU_tr_3D_2D_sph
+TSU_tr_2D_3D_srv     revolved
+TSU_tr_3D_2D_srv
+TSU_tr_2D_3D_sru     ruled
+TSU_tr_3D_2D_sru
+TSU_tr_2D_3D_sbsp
+TSU_tr_3D_2D_sbsp
+TSU_tr_2D_3D_srbsp
+TSU_tr_3D_2D_srbsp
+
+TSU_Init
+TSU_free
+TSU_realloc__
+
+TSU_srv_con_2cylCon test if contours are 2 circles or a closed surface
+TSU_srv_con_0       cone
+TSU_srv_con_1
+TSU_srv_con_inside
+TSU_srv_con_top
+TSU_srv_con_cycX__
+TSU_srv_con_cycX1_
+TSU_srv_con_cycX2_
+TSU_srv_con_xMid
+TSU_srv_con_mov_x
+TSU_srv_con_cyclic
+TSU_fix_ax_crx      revolved 
+TSU_srv_tor_2
+TSU_srv_tor_3       torus
+TSU_srv_tor_i1
+TSU_srv_tor_01
+TSU_srv_tor_03
+TSU_sph_cyclic
+TSU_sph_pln
+TSU_sph_1
+TSU_bsp_con_cyclic
+TSU_vMinMax
+
+TSU_test_sbsp
+TSU_test_con
+TSU_test_tor
+TSU_test_srv        revolved
+TSU_test_sru        ruled
 
 List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
 
-
-TSU_DrawSurT_ ist der Hauptentry.
 
 Die ungelochten Surs werden durch eigene Funktionen dargestellt
   TSU_DrawSurTS  - Planar
@@ -107,7 +181,7 @@ TSU_DrawSurTC  - Hauptfunktion. Ablauf:
 Funktionsweise tesselate:
   Die (meisten) Tesselierungsfunktion gehen nicht nach OpenGL, sondern es
   werden die Ergebnisse (Fans, Strips ..) in gSur gespeichert.
-  Die Ausgabe --> OpenGL erfolgt dann mit GL_DrawSur/GL_Disp_sur.
+  Die Ausgabe --> OpenGL erfolgt dann mit GL_DrawSur/GL_set_bMsh.
 
   Sollen die tesselated triangles zB exportiert werden, so muessen die
   Daten aus gSur kopiert werden; Func. TSU_store.
@@ -129,7 +203,7 @@ Wie wird gSur gespeichert ?
   GLT_spp__       Tesselate; Callback GLT_spp_vert
    GLT_spp_vert  copy Vertex --> GLT_pta[GLT_pta_ind]
    GLT_spp_end   fix Nr of Patches = GLT_cta[].siz
-  GL_Disp_sur
+  GL_set_bMsh
   TSU_store      save Record (GLT_sur/GLT_ppa/GLT_pta...) --> TSU_mSpc->mSpc
 
 
@@ -155,7 +229,7 @@ Weitere Funktionen mit tesselated Surfaces:
   tess_reloc_f_       relocate tesselated surf
 
 
-See Aufbei einer tesselated Surface in GL_Disp_sur
+See Aufbei einer tesselated Surface in GL_set_bMsh
 
 
 
@@ -202,10 +276,12 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include "../ut/ut_col.h"                 // COL_INT32
 #include "../db/ut_DB.h"                  // DB_GetGTxt
 #include "../ut/gr_types.h"                  // UI_Func... SYM_..
+#include "../ut/func_types.h"             // FUNC_DispRend
 #include "../gr/tess_su.h"                // TypTsuSur
 #include "../xa/xa_mem.h"                 // memspc51..
 #include "../xa/xa.h"                     // AP_STAT
 #include "../xa/xa_ga.h"                  // GA_tex_ga2tr
+#include "../xa/xa_msg.h"              // MSG_*
 
 
 // typedef_MemTab(int);
@@ -234,7 +310,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 
 // aus ../gr/ut_DL.c
 extern DL_Att  *GR_ObjTab;
-extern long    DL_ind_act;
+extern long    DL_perm_ind;
 
 
 
@@ -260,7 +336,8 @@ extern long    DL_ind_act;
   int TSU_tr_3D_2D_srbsp (Point *pt3, Point *pt2);
 
 
-static int     TSU_typ_, TSU_form_, TSU_formTyp, TSU_dir, TSU_sStyl;
+static int     TSU_typ_, TSU_form_, TSU_formTyp, TSU_dir,
+               TSU_sStyl;     // 0 = display shaded; 1 = display symbolic (lines)
 static ObjGX   TSU_ox1, TSU_ox2;
 // static ObjX    TSU_obj1, TSU_obj2;
 static void    *TSU_obj1, *TSU_obj2;
@@ -494,6 +571,7 @@ static int oldMode = 0;
 //==================================================================
   int TSU_tess_sTab (ObjGX **spc1, int *sTyp, long *sTab, int sNr) {
 //==================================================================
+// TSU_tess_sTab        tesselate n objects
 // tesselate Surf # i1 --> spc1
 // see also INT_intplsur TSU_ntria_bMsh__
 // Input:
@@ -592,7 +670,9 @@ static int oldMode = 0;
 //================================================================
   int TSU_tess_addf (ObjGX *oxi) {
 //================================================================
+// TSU_tess_addf        add patches/faces to memSpace
 // add Mockup-Filestruct oxi to existing Mockup-struct TSU_mSpc->mSpc
+// end is Typ_Done-record
 // see TSU_store
 
 
@@ -602,6 +682,7 @@ static int oldMode = 0;
 
   // i1 = 0;
 
+  // skip address
   if(oxi->typ == Typ_Address) ++oxi;
 
   L_next:
@@ -614,6 +695,7 @@ static int oldMode = 0;
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
 
+  // add to memSpace
   TSU_store (oxi);
 
   oxi = (ObjGX*)((char*)oxi + rSiz);
@@ -649,7 +731,7 @@ static int oldMode = 0;
 //   triTab[triNr]
 //   retCod         -1 triSiz too small
 //                  -2 surSiz too small
-// see TSU_exp_sur TSU_exp_fac GL_Disp_sur
+// see TSU_exp_sur TSU_exp_fac GL_set_bMsh
 //
 // TypTsuSur:
 //   p1,p2 unused
@@ -870,9 +952,9 @@ static int oldMode = 0;
     // TESTBLOCK
     // for(i1=0; i1<ie; ++i1) {
       // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
-      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB (&pTab[i1], SYM_STAR_S, 2);
     // }
-    // GR_Disp_pTab (oxi->siz, pTab, SYM_STAR_S, 2);
+    // GR_tDyn_symB (oxi->siz, pTab, SYM_STAR_S, 2);
     // END TESTBLOCK
 
 
@@ -1012,7 +1094,7 @@ static int oldMode = 0;
   int TSU_get_vec  (Vector *vcn, ObjGX *os) {
 //================================================================
 // get Nornamlvec of tess.surf
-// see GL_Disp_sur
+// see GL_set_bMsh
 
 
   int     pAct, cAct, irc = -1;
@@ -1091,7 +1173,7 @@ Noe GLT_stor_rec
 //================================================================
   int TSU_stor_rec (Point *pa1, Point *pa2, int ptNr, int mode) {
 //================================================================
-// 1 Streifen, durch 2 Polygone beschrieben (ruled Surf) wie GL_DrawStrip2
+// 1 Streifen, durch 2 Polygone beschrieben (ruled Surf) wie GL_set_strip2
 // Subfunctions:
 // mode = 0  init, ptNr ist Anzahl Patches
 // mode = 1  close record
@@ -1207,8 +1289,8 @@ static int   patNr;     // nr of Patches
   if(mode != 2) goto L_fan;
   // add data
   printf("TSU_stor_rec strip %d\n",ptNr);
-  // GR_Disp_pTab (ptNr, pa1, SYM_TRI_S, 3);
-  // GR_Disp_pTab (ptNr, pa2, SYM_TRI_S, 3);
+  // GR_tDyn_symB (ptNr, pa1, SYM_TRI_S, 3);
+  // GR_tDyn_symB (ptNr, pa2, SYM_TRI_S, 3);
 
 
 
@@ -1254,8 +1336,8 @@ static int   patNr;     // nr of Patches
   // if(mode != 1) goto L_fan;
   // add data
   printf("TSU_stor_rec fan %d\n",ptNr);
-  GR_Disp_pTab (1, pa1, SYM_TRI_S, 3);
-  GR_Disp_pTab (ptNr, pa2, SYM_TRI_S, 3);
+  GR_tDyn_npt__ (1, pa1, SYM_TRI_S, 3);
+  GR_tDyn_npt__ (ptNr, pa2, SYM_TRI_S, 3);
 
 
   // compute size of complete record
@@ -1472,9 +1554,11 @@ static int   patNr;     // nr of Patches
 }
 
 
+
 //================================================================
-  int TSU_DrawSurT_ (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurT_ (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// OLD VERSION- REPLACE !
 // Tesselate / Display getrimmte/gelochte Flaechen
 // typ  = Typ_SUR
 // form = Typ_ObjGX
@@ -1489,9 +1573,9 @@ static int   patNr;     // nr of Patches
 
 
   // printf("============================================ \n");
-  // printf("TSU_DrawSurT_ ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
+  // printf("TSU_DrawSurT_ ind=%ld typ=%d form=%d siz=%d\n",dbi,
           // oxi->typ,oxi->form,oxi->siz);
-  // DEB_dump_ox_0 (oxi, "Sur %d:",apt_ind);
+  // DEB_dump_ox_0 (oxi, "Sur %d:",dbi);
   // for(i1=0; i1<oxi->siz; ++i1)
     // printf("SurT_ %d typ=%d form=%d\n",i1,
            // ((ObjGX*)oxi->data)[i1].typ,
@@ -1501,20 +1585,20 @@ static int   patNr;     // nr of Patches
 
   // Typ=Typ_SURRU: RuledFlaeche; ungetrimmt, ungelocht;
   if(oxi->typ == Typ_SURRU)  
-    return TSU_DrawSurTRU (oxi, att, apt_ind);
+    return TSU_DrawSurTRU (oxi, att, dbi);
 
 
 
   // Typ=Typ_SURRV: RevolvedFlaeche; ungetrimmt, ungelocht;
   if(oxi->typ == Typ_SURRV)
-    return TSU_DrawSurTRV (oxi, att, apt_ind);
+    return TSU_DrawSurTRV (oxi, att, dbi);
 
 
 
   // wenn Typ und form=Typ_SUR: Planare Flaeche; ungetrimmt, ungelocht;
   // wird scheinbar nicht mehr genutzt ??????
   if(oxi->form == Typ_SUR)  
-    return TSU_DrawSurTS (oxi, att, apt_ind);
+    return TSU_DrawSurTS (oxi, att, dbi);
 
 
   // Typ_SURPLN: Planare Flaeche; getrimmt, gelocht.
@@ -1528,7 +1612,7 @@ static int   patNr;     // nr of Patches
   // if((((ObjGX*)oxi->data)[0].typ  == Typ_Typ)     &&
      // (((ObjGX*)oxi->data)[0].form == Typ_SURPLN))
   if(i1 == Typ_SURPLN)
-    return TSU_DrawSurTP (oxi, att, apt_ind);
+    return TSU_DrawSurTP (oxi, att, dbi);
 
 
   // wenn das Objekt Nr.1 eine Flaeche ist, ... noch nix tun..
@@ -1537,11 +1621,106 @@ static int   patNr;     // nr of Patches
      (((ObjGX*)oxi->data)[0].typ == Typ_SURRV)  ||
      (((ObjGX*)oxi->data)[0].typ == Typ_SURBSP) ||
      (((ObjGX*)oxi->data)[0].typ == Typ_SOL))            // Conus, Torus
-    return TSU_DrawSurTC (oxi, att, apt_ind);
+    return TSU_DrawSurTC (oxi, att, dbi);
 
   else 
   // Objekt Nr.1 ist Curve od CCV: Planar.
-    return TSU_DrawSurTP (oxi, att, apt_ind);
+    return TSU_DrawSurTP (oxi, att, dbi);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int TSU_DrawHAT (ObjGX *oxi, int att, long dbi) {
+//================================================================
+// TSU_DrawHAT                    hatched-surface
+
+  int       i1, i2;
+  Line      *lTab;
+  SurHat    *suh;
+
+
+  suh = oxi->data;
+    // printf("Hatch typ=%d dbi=%d %f %f\n",suh->cvTyp,suh->cvID,
+            // suh->off,suh->dir);
+
+  // ox1  = DB_GetObjGX (Typ_CVTRM, suh->cvID);
+
+  lTab = (Line*)memspc55;
+  i2   = sizeof(memspc55) / sizeof(Line);
+
+  i1 = UT_hatch__ (&i2, lTab, (int)suh->cvTyp, (long)suh->cvID,
+                   (double)suh->off, (double)suh->dir);
+  if(i1 < 0) return i1;
+
+
+  // i1 = UT_hatch_ccv (&i2, lTab, &ox1, suh->off, suh->dir);
+  // if(i1 < 0) return i1;
+
+
+  // TESTAUSG:
+  // for(i1=0; i1<i2; ++i1) {
+    // DEB_dump_obj__ (Typ_LN,&lTab[i1],"L[%d]\n",i1);
+    // dli = -1; GR_CreLine (&dli, 1, &lTab[i1]);
+  // }
+
+
+//   dli = DL_StoreObj (Typ_SUR, dbi, 1);
+//   GL_DrawLn_Ini (&dli, 1);
+
+  // disp
+  for(i1=0; i1<i2; ++i1)
+    GL_set_ln_2pt (&lTab[i1].p1, &lTab[i1].p2);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int TSU_DrawRSTRIP (ObjGX *oxi, int att, long dbi) {
+//================================================================
+// TSU_DrawRSTRIP               disp stripe of faces 
+
+  int       i1, i2, ptNr, ptMax, irow1, irow2;
+  SurStripe *sus1;
+  Point     *pTab, *pa1, *pa2;
+  ObjGX     *oxa;
+
+
+
+  // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
+  pTab = (void*) memspc501;
+  ptMax = sizeof(memspc501) / sizeof(Point);
+
+  sus1 = oxi->data;
+  irow1 = sus1->ptUNr;
+  irow2 = sus1->ptVNr;
+    // printf(" SurStripe %d %d\n",sus1->ptUNr,sus1->ptVNr);
+
+  // get all points -> pTab
+  i2 = irow1 * irow2;
+  if(i2 > ptMax) { TX_Error("GR_DrawSur EOP SurStripe"); return -1;}
+  oxa = sus1->pTab;
+
+  // get points from dbo-tab
+  // i1 = UT3D_npt_obj (&ptNr, pTab, Typ_ObjGX, oxa, i2, UT_DISP_cv);
+  ptNr = 0;
+  i1 = UT3D_npt_obj (&ptNr, pTab, ptMax, Typ_ObjGX, oxa, i2, UT_DISP_cv, 2);
+  // i1 = UT3D_npt_ox__
+  if(i1 < 0) return -1;
+
+  // display
+  // GR_DrawTriaStrip (&dli, att, sus1->ptUNr, sus1->ptVNr, pTab, Typ_SURSTRIP);
+  pa1 = &pTab[0];
+  for(i1=1; i1<irow2; ++i1) {
+    pa2 = &pa1[irow1];
+    GR_DrawStrip (pa1, pa2, irow1, Typ_SUR);
+    pa1 = &pa2[1];
+  }
 
 
   return 0;
@@ -1563,6 +1742,8 @@ static int   patNr;     // nr of Patches
 
 
   // printf("TSU_DrawRCIR %d %d %d\n",oxi->typ,oxi->form,oxi->siz);
+
+  TSU_dli = AP_dli_act;
 
 
   TSU_sStyl = 0;
@@ -1586,8 +1767,9 @@ static int   patNr;     // nr of Patches
 
 
 
+  //----------------------------------------------------------------
   // draw symbolic   2013-08-22
-  if(TSU_sStyl > 0) {
+  if(TSU_sStyl) {
     // add endpoint = startpoint
     pa[ptNr] = pa[0];
     ++ptNr;
@@ -1599,18 +1781,19 @@ static int   patNr;     // nr of Patches
     oo.siz  = 1;
     oo.data = &cvTab;
 
-    TSU_dli = DL_StoreObj (Typ_SUR, ind, att);
     // draw GL-curve
-    GL_Draw_obj (&TSU_dli, Typ_Att_dash_long, &oo);
-    AP_dli_act = TSU_dli;
+    // GL_Draw_obj (&TSU_dli, Typ_Att_dash_long, &oo);
+    GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+    GL_set_ox_cv (&oo);
     return 0;
-
   }
+  //----------------------------------------------------------------
+ 
 
 
   // draw shaded
-  GR_CreFan (&ind, att, pTab, ptNr-1, &pTab[1], 0);
-
+  // GR_CreFan (&ind, att, pTab, ptNr-1, &pTab[1], 0);
+  GR_DrawFan (pTab, ptNr-1, &pTab[1], 1, 0);
 
   return 0;
 
@@ -1630,8 +1813,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTS (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurTS (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// OLD VERSION- REPLACE !
 // Tesselate / Display ungetrimmte/ungelochte Planare Flaeche
 // typ  = Typ_SUR
 // form = Typ_SUR
@@ -1722,13 +1906,16 @@ static int   patNr;     // nr of Patches
 
   // Ausgeben
   if(TSU_mode == 0) {
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-    GL_DrawSur (&TSU_dli, att, gSur);
+    TSU_dli = DL_StoreObj (Typ_SUR, dbi, att);
+//     GL_DrawSur (&TSU_dli, att, gSur);
+    GL_set_sur_tess (gSur, att);
     AP_dli_act = TSU_dli;
 
   } else {
     TSU_store (gSur);
   }
+
+  if(GL_actTex >= 0) GL_Tex_End ();
 
   return 0;
 
@@ -1736,8 +1923,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTRU (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurTRU (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// TSU_DrawSurTRU       ruled support-surface
 // Tesselate / Display ungetrimmte/ungelochte Ruled Flaeche
 // typ  = Typ_SURRU
 //        form = Typ_ObjGX;
@@ -1754,9 +1942,13 @@ static int   patNr;     // nr of Patches
   TexRef    *rtex;
 
 
-  // printf("TSU_DrawSurTRU ind=%ld \n",apt_ind);
+  // printf("TSU_DrawSurTRU ind=%ld \n",dbi);
   // printf("  TSU_mode=%d\n",TSU_mode);  // 0=draw; 1=store
   // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTRU");
+
+  TSU_dli = AP_dli_act;
+
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
 
 
   // init, Anzahl von Polygonpunkten fuer beide Seiten bestimmen.
@@ -1792,50 +1984,25 @@ static int   patNr;     // nr of Patches
   //================================================================
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0=draw; 1=store
 
     if((APT_dispSOL == OFF) ||
        (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
 
-    // draw symbolic; done.
-    if(TSU_sStyl > 0)
-      return GL_sSym_srus (p1Tab, p2Tab, ptNr, sTyp, att, apt_ind);
+    if(TSU_sStyl > 0) {
+      GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+      // draw symbolic; done.
+      return GR_sSym_srus (p1Tab, p2Tab, ptNr, sTyp, att, dbi);
+    }
   }
 
 
 
   //================================================================
   if(TSU_mode == 0)  {      // 0=draw; 1=store
-    if(apt_ind) TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-
-    // init GL-obj Surf; mit od ohne texture ..
-    // if(((ColRGB*)&att)->vtex != 0) {
-    iTex = IF_TEXURE(att);
-      // printf(" iTex=%d\n",iTex);
-    if(iTex != 0) {
-      // extract TexRef-RecordNr from iAtt
-      // iTexRef = ((stru_c3c1*)&att)->b123;
-      iTexRef = GA_getTexRefInd (att);
-      // get TexRef-Record
-      Tex_getRef (&rtex, iTexRef);
-      // get TexBas-Record
-      iTexBas = rtex->ibas;
-      Tex_getBas__ (&btex, iTexBas);
-      // nur wenn vx=NULL: vx,vy errechnen ..
-      if(UT3D_compvcNull(&rtex->vx) == 1) {
-        // Vektoren vx/vy, Scales scx/scy und  Offsets dx/dy setzen.
-        GRU_tex_pos2 (rtex, p1Tab, p2Tab, ptNr, sTyp);
-      }
-      // init texture
-      GL_Tex_Ini (&TSU_dli, btex, rtex);
-
-    } else {
-      // GL_Draw_Ini (&TSU_dli, att);
-      if(apt_ind) GL_Surf_Ini (&TSU_dli, (void*)&att);
-    }
-
-
+    // apply texture
+    if(((ColRGB*)&att)->vtex != 0)
+      GL_Tex_set2 (p1Tab, p2Tab, ptNr, sTyp, att);
   }
 
 
@@ -1845,13 +2012,13 @@ static int   patNr;     // nr of Patches
   // draw
   if(sTyp < 1) {         // 0=stripe, als GL-STRIP ausgeben
     
-    // GL_DrawStrip2 (p1Tab, p2Tab, ptNr);
+    // GL_set_strip2 (p1Tab, p2Tab, ptNr);
     GR_DrawStrip (p1Tab, p2Tab, ptNr, 0);
 
 
   } else {              // als GL-FAN ausgeben
-    // if(sTyp == 1) GL_DrawFan (p1Tab, ptNr, p2Tab, 1); // p1Tab hat nur 1 Pt
-    // else          GL_DrawFan (p2Tab, ptNr, p1Tab, 1);
+    // if(sTyp == 1) GL_set_fan (p1Tab, ptNr, p2Tab, 1); // p1Tab hat nur 1 Pt
+    // else          GL_set_fan (p2Tab, ptNr, p1Tab, 1);
     if(sTyp == 1) GR_DrawFan (p1Tab, ptNr, p2Tab, 1, 0); // p1Tab hat nur 1 Pt
     else          GR_DrawFan (p2Tab, ptNr, p1Tab, 1, 0);
   }
@@ -1860,15 +2027,6 @@ static int   patNr;     // nr of Patches
 
   //================================================================
   L_fertig:
-  if(TSU_mode == 0) {                                // 0=draw, 1=store
-    // if(((ColRGB*)&att)->vtex != 0) GL_Tex_End ();
-    if(iTex != 0) {
-      GL_Tex_End ();
-    } else {
-      if(apt_ind) GL_EndList ();
-    }
-    AP_dli_act = TSU_dli;
-  }
 
   return 0;
 
@@ -1876,8 +2034,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTRV (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurTRV (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// TSU_DrawSurTRV       revolved support-surface
 // Tesselate / Display ungetrimmte/ungelochte Revolved Flaeche
 // typ  = Typ_SURRV
 //        form = Typ_ObjGX;
@@ -1902,23 +2061,28 @@ static int   patNr;     // nr of Patches
   // DEB_dump_obj__ (Typ_SURRV, oxi->data, " _DrawSurTRV:");   
 
 
+  TSU_dli = AP_dli_act;
+
 
 
   // fix style; shaded/symbolic
-  TSU_sStyl = 0;
   col = COL_INT32(&att);    // col = (ColRGB*)&att;
-  if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
+
+
+  TSU_sStyl = 0;
+  if(TSU_mode == 0)  {      // 0 = draw OpenGL
     if((APT_dispSOL == OFF) ||
        (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
-
-    // draw symbolic; done.
-    if(TSU_sStyl > 0) return GL_sSym_srv (oxi, att, apt_ind);
-
+    if(TSU_sStyl > 0) {
+      // draw symbolic; done.
+      GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+      return GR_sSym_srv (oxi, att, dbi);
+    }
   }
 
 
-
+  //----------------------------------------------------------------
   // init
   irc = TSU_tr_init_ (oxi);
   if(irc < 0) return irc;
@@ -1951,7 +2115,7 @@ static int   patNr;     // nr of Patches
 
 
     // TestDisp Contour
-    // GR_Disp_pTab (ptNr, p1Tab, SYM_TRI_S, 2);  return -1;
+    // GR_tDyn_npt__ (ptNr, p1Tab, SYM_TRI_S, 2);  return -1;
     // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__ (Typ_PT,&p1Tab[i1]," p1Tab[%d]:",i1);
     // END TESTBLOCK
 
@@ -2007,37 +2171,14 @@ static int   patNr;     // nr of Patches
 
   //================================================================
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-
-    iTex = IF_TEXURE(att);
-    if(iTex != 0) {
-      // extract TexRef-RecordNr from iAtt
-      // iTexRef = ((stru_c3c1*)&att)->b123;
-      iTexRef = GA_getTexRefInd (att);
-      // get TexRef-Record
-      Tex_getRef (&rtex, iTexRef);
-      // get TexBas-Record
-      iTexBas = rtex->ibas;
-      Tex_getBas__ (&btex, iTexBas);
-      // nur wenn vx=NULL: vx,vy errechnen ..
-      if(UT3D_compvcNull(&rtex->vx) == 1) {
-        // Vektoren vx/vy, Scales scx/scy und  Offsets dx/dy setzen.
-        // GRU_tex_pos2 (rtex, p2Tab, p3Tab, ptNr, 0);
-        GRU_tex_pos2 (rtex, p1Tab, p2Tab, ptNr, 0);   // 2011-06-27
-      }
-      // init texture
-      GL_Tex_Ini (&TSU_dli, btex, rtex);
-
-
-    } else {
-      // GL_Draw_Ini (&TSU_dli, att);
-      GL_Surf_Ini (&TSU_dli, att);
-      // GL_Surf_Ini (&TSU_dli, NULL);
-    }
+    // apply texture
+    if(((ColRGB*)&att)->vtex != 0)
+      GL_Tex_set2 (p1Tab, p2Tab, ptNr, 0, att);
 
   } else {
+    // store only eg. for intersect
     GLT_stor_rec (0, NULL, NULL, 0);
-    GLT_stor_rec (6, NULL, NULL, Typ_SURRV);  // store surfTyp for intersect
+    GLT_stor_rec (6, NULL, NULL, Typ_SURRV);
   }
 
 
@@ -2059,9 +2200,8 @@ static int   patNr;     // nr of Patches
     UT3D_pt_rotptptvcangr(&p3Tab[i1], &p1Tab[i1], &TSU_prx, &TSU_vrx, aa);
   }
 
-  // GR_Disp_pTab (ptNr, p2Tab, SYM_TRI_S, 2);
-  // als GL-STRIP ausgeben
-  // GL_DrawStrip2 (p2Tab, p3Tab, ptNr, 0);
+  // store or display stripes - als GL-STRIP ausgeben
+  // GL_set_strip2 (p2Tab, p3Tab, ptNr, 0);
   GR_DrawStrip (p2Tab, p3Tab, ptNr, 0);
 
   // Adressen vertauschen
@@ -2072,23 +2212,17 @@ static int   patNr;     // nr of Patches
   if(iAct < iNr) goto L_nxt;
 
 
+  //================================================================
   L_fertig:
-  if(TSU_mode == 0) {
-    GL_EndList (); 
-    AP_dli_act = TSU_dli;
-  }
-
-  // GR_DrawStrip macht schon GLT_stor_rec (1, !!      2008-11-09
-  // else              GLT_stor_rec (1, NULL, NULL, 0);
-
 
 /*
   // Aussenkontur f SRV generieren
   UT3D_cv_boxxy(&p2Tab[0],TSU_dat[0],TSU_dat[1],TSU_dat[2],TSU_dat[3]);
   ptNr = 5;
-  GR_Disp_pTab (ptNr, p2Tab, SYM_TRI_S, 2);
+  GR_tDyn_npt__ (ptNr, p2Tab, SYM_TRI_S, 2);
 */
 
+  L_exit:
 
   return 0;
 
@@ -2096,9 +2230,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurMsh (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurMsh (ObjGX *oxi, int att, long dbi) {
 //================================================================
- // TSU_DrawSurMsh       untrimmed unperforated mesh  Typ_SURMSH
+ // TSU_DrawSurMsh       disp mesh from points
 
 
   int       i1, i2, i3, ii, is, *iTab, pgNr, pNr, fNr, styl, iTex;
@@ -2107,21 +2241,31 @@ static int   patNr;     // nr of Patches
   char      fNam[256];
   // Mesh      ms1;
   ColRGB    *col1;
+  MemTab(Point) pTab = _MEMTAB_NUL;
+  MemTab(Fac3) fTab = _MEMTAB_NUL;
 
   TexBas    *btex;
   TexRef    *rtex;
   int       iTexBas, iTexRef;
 
 
-  MemTab(Point) pTab = _MEMTAB_NUL;
-  MemTab(Fac3) fTab = _MEMTAB_NUL;
+
+  // printf("TSU_DrawSurMsh A%ld DL_perm_ind=%ld\n",dbi,DL_perm_ind);
+    // DEB_dump_obj__ (Typ_ObjGX, oxi, "");
+
+
+
+  TSU_dli = AP_dli_act;
+
+  // fix style; shaded/symbolic
+  col1 = COL_INT32(&att);    // col = (ColRGB*)&att;
+
+
+
 
   MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
   MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
 
-
-  // printf("TSU_DrawSurMsh A%d DL_ind_act=%d\n",apt_ind,DL_ind_act);
-    // DEB_dump_obj__ (Typ_ObjGX, oxi, "");
 
   // PointGroupNumber = (int)data (Typ_Index)
   pgNr = OGX_GET_INT (oxi);
@@ -2133,18 +2277,15 @@ static int   patNr;     // nr of Patches
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -1;}
 
 
-
-
   // check if bin.meshfile exists
-  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ind, apt_ind);
-  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, apt_ind);
+  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ind, dbi);
+  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, dbi);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
   TX_Error("TSU_DrawSurMsh I001"); return -1;
 
 /*
-
   // get space for boundary
   iba = (int*)memspc101;
   ibNr = sizeof(memspc101) / sizeof(int);    // 4 byte
@@ -2154,7 +2295,7 @@ static int   patNr;     // nr of Patches
   MSH_msh0__ (&ms1, iba, &ibNr, pTab, pNr);
   fTab = ms1.f->fTab;
   fNr = ms1.f->fNr;
-  MSH_bsav_fTab (fTab, fNr, AP_modact_ind, apt_ind);
+  MSH_bsav_fTab (fTab, fNr, AP_modact_ind, dbi);
   flag1 = 0;
   goto L_draw;
 */
@@ -2163,11 +2304,10 @@ static int   patNr;     // nr of Patches
 
   // load MeshFile    fTab=malloc !
   L_f_load:
-  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ind, apt_ind);
-  i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, apt_ind);
+  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ind, dbi);
+  i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, dbi);
   if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
   flag1 = 1;
-
 
 
   // msh1.p = p;
@@ -2177,7 +2317,7 @@ static int   patNr;     // nr of Patches
 
 /*
   // display verts
-  // GR_Disp_pTab (msh1->p->pNr, msh1->p->pTab, SYM_STAR_S, 0);
+  // GR_tDyn_npt__ (msh1->p->pNr, msh1->p->pTab, SYM_STAR_S, 0);
 
   // loop tru facetable and display faces
   pTab = msh1->p->pTab;
@@ -2204,7 +2344,7 @@ static int   patNr;     // nr of Patches
   else                        TSU_sStyl = 0;
 
   // draw symbolic; done.
-  if(TSU_sStyl > 0) return GL_sSym_Msh (sub1, att, apt_ind);
+  if(TSU_sStyl > 0) return GR_sSym_Msh (sub1, att, dbi);
 */
 
 
@@ -2214,67 +2354,27 @@ static int   patNr;     // nr of Patches
 
 /*  new style comes with att ..
   // get style (symbolic or shaded)
-  if(DL_ind_act > -1) {
-    printf("DL_ind_act = %d \n",DL_ind_act);
-    dli = GL_fix_DL_ind (&DL_ind_act);
+  if(DL_perm_ind > -1) {
+    printf("DL_perm_ind = %d \n",DL_perm_ind);
+    dli = GL_fix_DL_ind (&DL_perm_ind);
     printf(" i=%d\n",dli);
     styl = ((ColRGB*)&(GR_ObjTab[dli].iatt))->vsym;
     printf(" vsym=%d\n",styl);
   }
 */
 
-  col1 = COL_INT32(&att);   // col1 = (ColRGB*)&att;
-  styl = col1->vsym;
-    // printf(" styl=%d\n",styl);
+//   styl = col1->vsym;
+//     // printf(" styl=%d\n",styl);
 
 
   if(TSU_mode == 0) {      // 0=normal darstellen; 1=speichern
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-
-    // init GL-obj Surf; mit od ohne texture ..
-    // if(((ColRGB*)&att)->vtex != 0) {
-    iTex = IF_TEXURE(att);
-      // printf(" iTex=%d\n",iTex);
-    if(iTex != 0) {
-      // extract TexRef-RecordNr from iAtt
-      // iTexRef = ((stru_c3c1*)&att)->b123;
-      iTexRef = GA_getTexRefInd (att);
-      // get TexRef-Record
-      Tex_getRef (&rtex, iTexRef);
-      // get TexBas-Record
-      iTexBas = rtex->ibas;
-      Tex_getBas__ (&btex, iTexBas);
-      // nur wenn vx=NULL: vx,vy errechnen ..
-      if(UT3D_compvcNull(&rtex->vx) == 1) {
-        // Vektoren vx/vy, Scales scx/scy und  Offsets dx/dy setzen.
-        GRU_tex_pos3 (rtex, pTab.data, pTab.rNr);
-      }
-      // init texture
-      GL_Tex_Ini (&TSU_dli, btex, rtex);
-
-    } else {
-
-      // GL_Draw_Ini (&TSU_dli, att);
-      GL_Surf_Ini (&TSU_dli, (void*)&att);
-    }
-
-
+    if(((ColRGB*)&att)->vtex != 0) 
+      GL_Tex_set3 (pTab.data, pTab.rNr, att);
   }
-
 
 
   // ausgeben ..
   GR_Disp_nfac (pTab.data, fTab.data, fTab.rNr, col1);
-
-
-  if(TSU_mode == 0) {                                // 0=draw, 1=store
-    // if(((ColRGB*)&att)->vtex != 0)
-    if(iTex != 0) GL_Tex_End ();
-    else          GL_EndList ();
-    AP_dli_act = TSU_dli;
-  }
-
-
 
 
   //----------------------------------------------------------------
@@ -2309,8 +2409,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurBsp (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurBsp (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// TSU_DrawSurBsp       B-spline support-surface
 // TSU_DrawSurBsp       unbegrenzte BSP-Sur
 
   int       irow1, irow2, i1, i2;
@@ -2325,31 +2426,33 @@ static int   patNr;     // nr of Patches
   sub1 = oxi->data;
 
 
-  // printf("TSU_DrawSurBsp %ld\n",apt_ind);
+  // printf("TSU_DrawSurBsp %ld\n",dbi);
   // DEB_dump_obj__ (Typ_SURBSP, sub1, "SBS");
-    ////  GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
+    ////  GR_tDyn_npt__ (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
     // Version1: das Kontrollpolygon darstellen
     // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
 
+  TSU_dli = AP_dli_act;
 
   // fix style; shaded/symbolic
-  TSU_sStyl = 0;
   col = COL_INT32(&att);    // col = (ColRGB*)&att;
-  if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
+
+  TSU_sStyl = 0;
+  if(TSU_mode == 0)  {      // 0 = draw OpenGL
     if((APT_dispSOL == OFF) ||
        (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
-
-    // draw symbolic; done.
-    if(TSU_sStyl > 0) return GL_sSym_sbsp (sub1, att, apt_ind);
+    if(TSU_sStyl > 0) {
+      // draw symbolic; done.
+      GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+      return GR_sSym_sbsp (sub1, att, dbi);
+    }
   }
 
 
-
-
   //----------------------------------------------------------------
-  if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+//   if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
+//     TSU_dli = DL_StoreObj (Typ_SUR, dbi, att);
 
 
   // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
@@ -2402,7 +2505,6 @@ static int   patNr;     // nr of Patches
     L_fan_disp:
       // printf(" DrawTriaFan %ld\n",sub1->ptVNr);
     GR_DrawTriaFan (&TSU_dli, att, pt1, sub1->ptVNr, pTab);
-    AP_dli_act = TSU_dli;
     return 0;
   }
 
@@ -2438,7 +2540,6 @@ static int   patNr;     // nr of Patches
 
   // ausgeben ..
   GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURBSP);
-  AP_dli_act = TSU_dli;
 
   if(i1 == 1) free (pTab);
 
@@ -2455,8 +2556,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurRBsp (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurRBsp (ObjGX *oxi, int att, long dbi) {
 //================================================================
+// TSU_DrawSurRBsp      rational-B-spline support-surface
 // TSU_DrawSurRBsp      unbegrenzte RBSP-Sur
 
   long      ptNr;
@@ -2471,27 +2573,32 @@ static int   patNr;     // nr of Patches
   rsub1 = oxi->data;
 
     // DEB_dump_obj__ (Typ_SURRBSP, rsub1, "SRBS");
-    // GR_Disp_pTab (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (sub1->ptUNr*sub1->ptVNr, sub1->cpTab, SYM_STAR_S, 2);
     // GR_DrawTriaStrip (&TSU_dli, att, sub1->ptUNr, sub1->ptVNr, sub1->cpTab);
 
+  TSU_dli = AP_dli_act;
+
+
+  col = COL_INT32(&att);    // col = (ColRGB*)&att;
 
 
   // fix style; shaded/symbolic
   TSU_sStyl = 0;
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
-
     if((APT_dispSOL == OFF) ||
        (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
 
-    // draw symbolic; done.
-    if(TSU_sStyl > 0) return GL_sSym_srbsp (rsub1, att, apt_ind);
+    if(TSU_sStyl > 0) {
+      // draw symbolic; done.
+      GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+      return GR_sSym_srbsp (rsub1, att, dbi);
+    }
   }
 
 
   //----------------------------------------------------------------
-  if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
+//   if(TSU_mode == 0)      // 0=normal darstellen; 1=speichern
+//     TSU_dli = DL_StoreObj (Typ_SUR, dbi, att);
 
 
   // Init Speicherbereich fuer Pointtabelle memspc501 = 500K
@@ -2520,9 +2627,6 @@ static int   patNr;     // nr of Patches
   // ausgeben ..
   GR_DrawTriaStrip (&TSU_dli, att, irow1, irow2, pTab, Typ_SURRBSP);
 
-  AP_dli_act = TSU_dli;
-
-
   if(i1 == 1) free (pTab);
 
   return 0;
@@ -2537,7 +2641,7 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTP (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurTP (ObjGX *oxi, int att, long dbi) {
 //================================================================
 // Tesselate / Display getrimmte/gelochte Planare Flaeche
 // typ  = Typ_SUR
@@ -2562,20 +2666,21 @@ static int   patNr;     // nr of Patches
 
 
   // printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT \n");
-  // printf("TSU_DrawSurTP ind=%ld typ=%d form=%d\n",apt_ind,
+  // printf("TSU_DrawSurTP ind=%ld typ=%d form=%d\n",dbi,
           // oxi->typ,oxi->form);
   // printf(" TSU_mode=%d\n",TSU_mode);
   // printf(" oxi-data-posi=%p\n",oxi->data);
 
 
+  TSU_dli = AP_dli_act;
 
   // fix style; shaded/symbolic
-  TSU_sStyl = 0;
   col = COL_INT32(&att);   // col = (ColRGB*)&att;
     // printf(" SurTP col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
     // printf("       GL_actTex=%d\n",GL_actTex);
 
 
+  TSU_sStyl = 0;
   if(TSU_mode == 0)  {      // 0=draw; 1=store
     if((APT_dispSOL == OFF) ||
        (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
@@ -2606,8 +2711,8 @@ static int   patNr;     // nr of Patches
     // for(i1=0; i1<cNr; ++i1) {
       // if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
       // printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
-      // GR_Disp_pTab (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
-      // for(i2=0;i2<cTab[i1].iNr;++i2) GR_Disp_txi (&cTab[i1].pa[i2],i2,0);
+      // GR_tDyn_npt__ (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
+      // for(i2=0;i2<cTab[i1].iNr;++i2) GR_tDyn_txiA (&cTab[i1].pa[i2],i2,0);
     // }
     // return 0;
     // END TESTBLOCK
@@ -2630,12 +2735,16 @@ static int   patNr;     // nr of Patches
   L_draw:
     // printf(" SurTP-TSU_sStyl=%d\n",TSU_sStyl);  // 1=symbolic; 0=shaded.
 
-  // draw symbolic; done.
+  // display symbolic
   if(TSU_sStyl > 0) {
     oTab = oxi->data; // oxi->data enthaelt die Stuetzflaeche und Konturen
-    return GL_sSym_spl (cTab, cNr, &oTab[0], att, apt_ind);
+    GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+    return GR_sSym_spl (cTab, cNr, &oTab[0], att, dbi);
   }
 
+
+  //----------------------------------------------------------------
+  // display shaded.
 
   // Start tesselation , Pointer -> active surf. holen
   GLT_start__ (&gSur);
@@ -2666,13 +2775,12 @@ static int   patNr;     // nr of Patches
   if(i1 < 0) goto L_err;
 
 
-  // Ausgeben
   if(TSU_mode == 0) {
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-    GL_DrawSur (&TSU_dli, att, gSur);
-    AP_dli_act = TSU_dli;
+    // display ...
+    GL_set_sur_tess (gSur, att);
 
   } else {
+    // store
     TSU_store (gSur);
   }
 
@@ -2680,6 +2788,7 @@ static int   patNr;     // nr of Patches
   return 0;
 
 
+  //----------------------------------------------------------------
   L_err:
     if(i1 == -10) {
       GLT_exit ();
@@ -2694,7 +2803,7 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTBSP (SurBSpl *sus, int att, long apt_ind) {
+  int TSU_DrawSurTBSP (SurBSpl *sus, int att, long dbi) {
 //================================================================
 // disp SURBSP; nur Kontrollpunkte ..
 // see also GR_Disp_sbsp
@@ -2715,7 +2824,7 @@ static int   patNr;     // nr of Patches
   ptNr = sizeof(memspc501) / sizeof(Point);
 
 
-  TSU_dli = DL_StoreObj (Typ_SURBSP, apt_ind, att);
+  TSU_dli = DL_StoreObj (Typ_SURBSP, dbi, att);
 
 
 
@@ -2745,7 +2854,7 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurTC (ObjGX *oxi, int att, long apt_ind) {
+  int TSU_DrawSurTC (ObjGX *oxi, int att, long dbi) {
 //================================================================
 // Tesselate / Display getrimmte/gelochte Complex-Flaeche
 // typ  = Typ_SUR
@@ -2780,26 +2889,26 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
 
   // printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT \n");
-  // printf("TSU_DrawSurTC att=%d ind=%ld typ=%d form=%d\n",att,apt_ind,
+  // printf("TSU_DrawSurTC att=%d ind=%ld typ=%d form=%d\n",att,dbi,
           // oxi->typ,oxi->form);
   // // Testausgabe Konturen
   // for(i1=0; i1<oxi->siz; ++i1)
     // printf("typ[%d]=%d\n",i1,((ObjGX*)oxi->data)[i1].typ);
     // return 0;
 
+  TSU_dli = AP_dli_act;
 
   // oxi->data enthaelt die Stuetzflaeche und dahinter alle Konturen.
   oTab = oxi->data;
 
 
-  // erstes Obj ist die Stuetzflaeche
-  // UTO_obj_get (&oxp1, &oTab[0]);
-  UTO_objDat_ox (&oxp1, &rNr, &oTab[0]);       // 2014-02-08 (replaces UTO_obj_get)
-    // printf(" Stuetz.typ=%d form=%d siz=%d\n",oxp1->typ,oxp1->form,oxp1->siz);
+  // get 1. obj = support-surf
+  UTO_objDat_ox (&oxp1, &rNr, &oTab[0]);
+    // printf(" supp.typ=%d form=%d siz=%d\n",oxp1->typ,oxp1->form,oxp1->siz);
 
   // Planar ?
   if(oxp1->typ == Typ_SUR) {
-    return TSU_DrawSurTP (oxi,att,apt_ind);
+    return TSU_DrawSurTP (oxi,att,dbi);
   }
 
 
@@ -2842,10 +2951,10 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   //-----------------------------------------------------------
   // shaded or symbolic
-  TSU_sStyl = 0;
   col = COL_INT32(&att); // col = (ColRGB*)&att;
-  if(TSU_mode == 0)  {      // 0=draw; 1=store
 
+  TSU_sStyl = 0;
+  if(TSU_mode == 0)  {      // 0=draw; 1=store
     if((APT_dispSOL == OFF) ||
       (col->vsym   == 1))      TSU_sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
   }
@@ -2877,40 +2986,34 @@ memspc102  TSU_grid  Vergleichspunkteraster
     // ACHTUNG: Dummykonturen werden nicht getestet (werden erst als 2D erzeugt)
     // siehe TSU_DrawSurTS
     // GR_Disp_spu (cTab[0].iNr, cTab[0].pa, 5);
-    GR_Draw_spu (&apt_ind, att, cTab[0].iNr, cTab[0].pa);
+    GR_Draw_spu (&dbi, att, cTab[0].iNr, cTab[0].pa);
     // GR_Disp_spu1 (cTab[0].iNr, cTab[0].pa, att);
     return 0;
   }
-
-
 
 
 /*
   //-----------------------------------------------------------
   // Testdisp. 3D-Input-Konturen
   // erste Pt of 1.k.
-  // GR_Disp_pTab (1,cTab[0].pa,SYM_SQU_B,2); // 1.Pt
-  // GR_Disp_pTab (cTab[0].iNr,cTab[0].pa,SYM_STAR_S, 2); // letzter
+  // GR_tDyn_npt__ (1,cTab[0].pa,SYM_SQU_B,2); // 1.Pt
+  // GR_tDyn_npt__ (cTab[0].iNr,cTab[0].pa,SYM_STAR_S, 2); // letzter
   printf("---- %d contours with %d points \n",cNr,cTab[0].iNr);
   for(i1=0; i1<cNr; ++i1) {
     if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
     printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
-    GR_Disp_pTab (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
-    for(i2=0;i2<cTab[i1].iNr;++i2) GR_Disp_txi (&cTab[i1].pa[i2],i2,0);
+    GR_tDyn_npt__ (cTab[i1].iNr, cTab[i1].pa, SYM_TRI_S, 4);
+    for(i2=0;i2<cTab[i1].iNr;++i2) GR_tDyn_txiA (&cTab[i1].pa[i2],i2,0);
   }
   return 0;
   //-----------------------------------------------------------
 */
 
-
-
   // draw symbolic; done.
-  if(TSU_sStyl > 0)
-    return GL_sSym_spl (cTab, cNr, &oTab[0], att, apt_ind);
-
-
-
-
+  if(TSU_sStyl > 0) {
+    GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+    return GR_sSym_spl (cTab, cNr, &oTab[0], att, dbi);
+  }
 
 
   //-----------------------------------------------------------
@@ -2919,9 +3022,6 @@ memspc102  TSU_grid  Vergleichspunkteraster
   if(TSU_typ_ == Typ_SURRV) {
     if(TSU_ox2.form == Typ_LN) TSU_srv_con_0 (cTab[0].iNr,cTab[0].pa);
   }
-
-
-
 
 
   // Alle Konturen -> 2D transformieren
@@ -2939,11 +3039,11 @@ memspc102  TSU_grid  Vergleichspunkteraster
   GR_Disp_message (0);
   for(i1=0; i1<cNr; ++i1) {
     printf("  c-%d %d pts\n",i1,cTab[i1].iNr);
-    GR_Disp_cv (cTab[i1].p2a, cTab[i1].iNr, 2);
+    GR_tDyn_pcv (cTab[i1].p2a, cTab[i1].iNr, 2);
     for(i2=0;i2<cTab[i1].iNr;++i2) {
       printf("P[%d,%d] %lf %lf\n",i1,i2,cTab[i1].p2a[i2].x,cTab[i1].p2a[i2].y);
-      GR_Disp_txi (&cTab[i1].p2a[i2],i2,0);
-      // GR_Disp_pTab (cTab[i1].iNr, cTab[i1].p2a, SYM_STAR_S, 0);
+      GR_tDyn_txiA (&cTab[i1].p2a[i2],i2,0);
+      // GR_tDyn_npt__ (cTab[i1].iNr, cTab[i1].p2a, SYM_STAR_S, 0);
     }
   }
   // return 0;
@@ -2955,7 +3055,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(box1, &pp1[i2]);
       GR_Disp_pt (box1, SYM_STAR_S, 2);
-      GR_Disp_txi (box1, i2, 0);
+      GR_tDyn_txiA (box1, i2, 0);
     }
   }
   return 0;
@@ -2990,9 +3090,9 @@ memspc102  TSU_grid  Vergleichspunkteraster
   }
   for(i1=0; i1<cNr; ++i1) {
     printf("  Cont[%d] ptNr=%d\n",i1,cTab[i1].iNr);
-    // GR_Disp_pTab (cTab[i1].iNr, cTab[i1].p2a, SYM_STAR_S, 2);
-    for(i2=0;i2<cTab[i1].iNr;++i2) GR_Disp_txi (&cTab[i1].p2a[i2],i2,0);
-    GR_Disp_cv (cTab[i1].p2a, cTab[i1].iNr, 2);
+    // GR_tDyn_npt__ (cTab[i1].iNr, cTab[i1].p2a, SYM_STAR_S, 2);
+    for(i2=0;i2<cTab[i1].iNr;++i2) GR_tDyn_txiA (&cTab[i1].p2a[i2],i2,0);
+    GR_tDyn_pcv (cTab[i1].p2a, cTab[i1].iNr, 2);
   }
   // return 0;
 
@@ -3004,7 +3104,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(box1, &pp1[i2]);
       GR_Disp_pt (box1, SYM_STAR_S, 2);
-      GR_Disp_txi (box1, i2, 0);
+      GR_tDyn_txiA (box1, i2, 0);
     }
   }
   return 0;
@@ -3040,7 +3140,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     // printf(" boundingbox Kontur %d:\n",i1);
     // DEB_dump_obj__ (Typ_PT2, &cTab[i1].p1, "P1[%d]=",i1);
     // DEB_dump_obj__ (Typ_PT2, &cTab[i1].p2, "P2[%d]=",i1);
-    // GR_Disp_box (&cTab[i1].p1, &cTab[i1].p2, 9);
+    // GR_tDyn_box__(&cTab[i1].p1, &cTab[i1].p2, 9);
     // GR_Disp_pt2 (&cTab[i1].p1, SYM_STAR_S, 4);
     // GR_Disp_pt2 (&cTab[i1].p2, SYM_STAR_S, 4);
   }
@@ -3124,7 +3224,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
 
 
-  // Start tesseleation , Pointer -> active surf. holen
+  // Start tesselation , Pointer -> active surf. holen
   L_draw:
   GLT_start__ (&gSur);
 
@@ -3224,7 +3324,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     // printf("  vMin=%f vMax=%f vOff=%f\n",vMin,vMax,vOff);
     // printf("  TSU_dir=%d\n",TSU_dir);
     // Testdisplay MaxBounds
-    // GR_Disp_4db (uMin,uMax, vMin,vMax, 9);
+    // GR_tDyn_box2_4db (uMin,uMax, vMin,vMax, 9);
 
 
 
@@ -3292,11 +3392,11 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   // Ausgeben
   if(TSU_mode == 0) {
-    TSU_dli = DL_StoreObj (Typ_SUR, apt_ind, att);
-    GL_DrawSur (&TSU_dli, att, gSur);
-    AP_dli_act = TSU_dli;
+    // disp
+    GL_set_sur_tess (gSur, att);
 
   } else {
+    // store
     TSU_store (gSur);
   }
 
@@ -3945,14 +4045,14 @@ uOff abhaengig von Aussenkonturtyp:
     if(TSU_ox1.form == Typ_PT) {
      TSU_prx = *((Point*)TSU_ox1.data);
      TSU_vrx = UT3D_VECTOR_Z;
-     // GR_Disp_vc (&TSU_vrx, &TSU_prx, 1, 0);
+     // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
 
     } else if(TSU_ox1.form == Typ_LN) {
      TSU_prx = ((Line*)TSU_ox1.data)->p1;
      UT3D_vc_ln (&TSU_vrx, (Line*)TSU_ox1.data);
      UT3D_vc_setLength (&TSU_vrx, &TSU_vrx, 1.);  // f UT3D_pt_rotptptvcangr
      // UT3D_vc_invert (&TSU_vrx, &TSU_vrx);
-     // GR_Disp_vc (&TSU_vrx, &TSU_prx, 1, 0);
+     // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
 
     } else if(TSU_ox1.form == Typ_PLN) {
      // DEB_dump_obj__ (Typ_PLN, TSU_obj1.vp, "Axis");
@@ -3969,7 +4069,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TSU_prx");
     // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TSU_vrx");
-    // GR_Disp_vc (&TSU_vrx, &TSU_prx, 1, 0);
+    // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
 
 
     // den maximalen radius der CoverCurve suchen und daraus den vOff rechnen
@@ -4166,8 +4266,8 @@ uOff abhaengig von Aussenkonturtyp:
         // irc = UT3D_pt_intlnci__ (&TSU_pintNr, TSU_pint,
                                  // (Line*)TSU_ox1.data, (Circ*)TSU_ox2.data);
           // printf("  %d intersection-points:\n",i1);
-          // GR_Disp_pTab (TSU_pintNr, TSU_pint, SYM_STAR_S, 4);
-          // GR_Disp_tx (&TSU_pint[0], "1", 2);
+          // GR_tDyn_npt__ (TSU_pintNr, TSU_pint, SYM_STAR_S, 4);
+          // GR_tDyn_txtA (&TSU_pint[0], "1", 2);
 
         // einen Kreisbogen begrenzt durch die Intersectionpoints machen.
         i1 = TSU_srv_tor_01 (&TSU_ac1, (Circ*)TSU_ox2.data);
@@ -5005,7 +5105,7 @@ uOff abhaengig von Aussenkonturtyp:
         if(i1 != 2) continue; // disp only cont2
         // (*TSU_tr_3D_2D_pt)(box1, &pTab[i2]);
         // GR_Disp_pt (box1, SYM_STAR_S, 2);
-        // GR_Disp_txi (box1, i2, 0);
+        // GR_tDyn_txiA (box1, i2, 0);
       }
     }
     // exit(0);
@@ -5091,11 +5191,11 @@ uOff abhaengig von Aussenkonturtyp:
   printf(" 2D-Kontur vor Polkorrektur:\n");
   for(i1=0; i1<*cNr; ++i1) {
     pTab = cTab[i1].p2a;
-    GR_Disp_pTab (cTab[i1].iNr, pTab, SYM_STAR_S, 2);
-    GR_Disp_cv (pTab, cTab[i1].iNr, 2);
+    GR_tDyn_npt__ (cTab[i1].iNr, pTab, SYM_STAR_S, 2);
+    GR_tDyn_pcv (pTab, cTab[i1].iNr, 2);
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       // DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
-     GR_Disp_txi (&pTab[i2], i2, 1);
+     GR_tDyn_txiA (&pTab[i2], i2, 1);
     }
   }
   // return -1;
@@ -5686,8 +5786,8 @@ geht nicht. Raus, 2005-11-01
     pTab = cTab[i1].p2a;
     for(i2=0; i2<cTab[i1].iNr; ++i2)
       printf("p[%d,%d] = %f %f\n",i1,i2,cTab[i1].p2a[i2].x,cTab[i1].p2a[i2].y);
-    // GR_Disp_pTab (cTab[i1].iNr, pTab, SYM_TRI_S, 0);
-    // GR_Disp_cv (pTab, cTab[i1].iNr, 2);
+    // GR_tDyn_npt__ (cTab[i1].iNr, pTab, SYM_TRI_S, 0);
+    // GR_tDyn_pcv (pTab, cTab[i1].iNr, 2);
     // for(i2=0; i2<cTab[i1].iNr; ++i2) {
       // DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
       // GR_Disp_pt (&pTab[i2], SYM_TRI_S, 0);
@@ -6438,10 +6538,7 @@ Besseres Verfahren waere:
   }
 
 
-
   // DEB_dump_obj__ (Typ_PT, pt2, "TSU_tr_3D_2D_srv %d",TSU_form_);
-
-
 
 
   //----------------------------------------------------------------
@@ -6720,13 +6817,13 @@ static double du,dv;
   //----------------------------------------------------------------
   // Testdisp 2D-Box
   // printf(" tBox 2D-contour:\n");
-  // GR_Disp_pTab (5, tBox, SYM_STAR_S, 9);
-  // GR_Disp_cv (tBox, 5, 8);
-  // for(i1=0; i1<4; ++i1) GR_Disp_txi (&tBox[i1], i1, 1);
+  // GR_tDyn_npt__ (5, tBox, SYM_STAR_S, 9);
+  // GR_tDyn_pcv (tBox, 5, 8);
+  // for(i1=0; i1<4; ++i1) GR_tDyn_txiA (&tBox[i1], i1, 1);
 
   // Transform Box -> 3D und display:
   // for(i1=0; i1<5; ++i1) (*TSU_tr_3D_2D_pt)(&p1Tab[i1], &tBox[i1]);
-  // GR_Disp_cv (p1Tab, 5, 2);
+  // GR_tDyn_pcv (p1Tab, 5, 2);
   // return 0;
 
   // // TestDisplay BoxPoints Lochkonturen (Eckpunkte der 2D-Rechtecke):
@@ -6768,7 +6865,7 @@ static double du,dv;
   // einen Normalvektor vc1 auf die Rasterbox errechnen
   TSU_box_vec (&vc1, tBox);
     // (*TSU_tr_3D_2D_pt)(&boxp1, tBox);   // nur f. TESTDISP
-    // GR_Disp_vc (&vc1, &boxp1, 9, 0);
+    // GR_tDyn_vc (&vc1, &boxp1, 9, 0);
     // printf(" nVc = %lf %lf %lf\n",vc1.dx,vc1.dy,vc1.dz);
     // return 0;  // TEST ONLY !!
 
@@ -6788,9 +6885,9 @@ static double du,dv;
   //----------------------------------------------------------------
   // Testdisp commonContours (2D-RasterKontur)
   // printf(" common 2D-contour:\n");
-  GR_Disp_pTab (p1Nr, p1Tab, SYM_TRI_S, 4);
-  // for(i1=0;i1<p1Nr; ++i1) GR_Disp_txi (&p1Tab[i1], i1, 0);
-  for(i1=0;i1<bcNr;++i1) GR_Disp_cv (bcTab[i1].p2a,bcTab[i1].iNr,9);
+  GR_tDyn_npt__ (p1Nr, p1Tab, SYM_TRI_S, 4);
+  // for(i1=0;i1<p1Nr; ++i1) GR_tDyn_txiA (&p1Tab[i1], i1, 0);
+  for(i1=0;i1<bcNr;++i1) GR_tDyn_pcv (bcTab[i1].p2a,bcTab[i1].iNr,9);
   // for(i1=0;i1<bcNr;++i1) GR_Disp_spu (bcTab[i1].iNr,bcTab[i1].p2a,5);
   // GLT_spu_ geht nur ganz ohne eine GR_Disp_xx !!
   return 0;
@@ -6803,11 +6900,11 @@ static double du,dv;
     for(i2=0;i2<bcTab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(&phTab[i2],&p1Tab[i2]);
     }
-    GR_Disp_pTab (bcTab[i1].iNr, phTab, SYM_STAR_S, 2);
-    if(i1 == 1) GR_Disp_cv (phTab, bcTab[i1].iNr, 9);
+    GR_tDyn_npt__ (bcTab[i1].iNr, phTab, SYM_STAR_S, 2);
+    if(i1 == 1) GR_tDyn_pcv (phTab, bcTab[i1].iNr, 9);
   }
   // for(i1=0;i1<p1Nr; ++i1) {(*TSU_tr_3D_2D_pt)(&phTab[i1],&p1Tab[i1]);}
-    // GR_Disp_pTab (p1Nr, phTab, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (p1Nr, phTab, SYM_STAR_S, 2);
   return 0;
   //----------------------------------------------------------------
 */
@@ -6842,7 +6939,7 @@ static double du,dv;
 
   // Boxpunkte der Rasterbox ermitteln (boxp1, boxp2)
   UT3D_box_pts (&boxp1, &boxp2, bcTab[bcAct].iNr, bcTab[bcAct].p2a);
-    // GR_Disp_box (&boxp1, &boxp2, 9);
+    // GR_tDyn_box__(&boxp1, &boxp2, 9);
     // GR_Disp_pt(&boxp1, SYM_SQU_B, 3);
     // GR_Disp_pt(&boxp2, SYM_SQU_B, 3);
     // return 0;  // NUR TEST !!
@@ -6950,8 +7047,8 @@ static double du,dv;
   // TestDisp fertig gelochte Konturen (2D-Konturen)
   for(i1=0; i1<c1Nr; ++i1) {
     printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
-    GR_Disp_pTab (c1Tab[i1].iNr, c1Tab[i1].p2a, SYM_TRI_S, 4);
-    GR_Disp_cv (c1Tab[i1].p2a, c1Tab[i1].iNr, 2);
+    GR_tDyn_npt__ (c1Tab[i1].iNr, c1Tab[i1].p2a, SYM_TRI_S, 4);
+    GR_tDyn_pcv (c1Tab[i1].p2a, c1Tab[i1].iNr, 2);
     GR_Disp_spu (c1Tab[i1].iNr, c1Tab[i1].p2a, 5);
   }
 */
@@ -6963,8 +7060,8 @@ static double du,dv;
     for(i2=0;i2<c1Tab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(&pxTab[i2],&p1Tab[i2]);
     }
-    GR_Disp_pTab (c1Tab[i1].iNr, pxTab, SYM_STAR_S, 2);
-    GR_Disp_cv (pxTab, c1Tab[i1].iNr, 9);
+    GR_tDyn_npt__ (c1Tab[i1].iNr, pxTab, SYM_STAR_S, 2);
+    GR_tDyn_pcv (pxTab, c1Tab[i1].iNr, 9);
   }
   return 0;
   //----------------------------------------------------------------
@@ -7017,8 +7114,8 @@ static double du,dv;
       else           cTab.dir = '+';
   } else cTab.dir = dir;
 
-    // GR_Disp_pTab (c1Tab[i1].iNr, pxTab, SYM_STAR_S, 2);
-    // GR_Disp_cv (pxTab, c1Tab[i1].iNr, 9);
+    // GR_tDyn_npt__ (c1Tab[i1].iNr, pxTab, SYM_STAR_S, 2);
+    // GR_tDyn_pcv (pxTab, c1Tab[i1].iNr, 9);
 
 
     cTab.iNr = ptNr;
@@ -7078,8 +7175,8 @@ static double du,dv;
 
 /*
   //--------TestDisplay Beg
-  for(i1=0;i1<cNr;++i1) GR_Disp_pTab (cTab[i1].iNr,cTab[i1].pa,SYM_SQU_B,0);
-  for(i1=0;i1<cNr;++i1) GR_Disp_cv (cTab[i1].pa, cTab[i1].iNr, 2);
+  for(i1=0;i1<cNr;++i1) GR_tDyn_npt__ (cTab[i1].iNr,cTab[i1].pa,SYM_SQU_B,0);
+  for(i1=0;i1<cNr;++i1) GR_tDyn_pcv (cTab[i1].pa, cTab[i1].iNr, 2);
   for(i1=0;i1<cNr;++i1) GR_Disp_spu (cTab[i1].iNr,cTab[i1].pa,5);
   // Test nVec:
   // UT3D_vc_perppta (vc1, cTab[0].iNr, cTab[0].pa);
@@ -7122,12 +7219,12 @@ static double du,dv;
   (*TSU_tr_3D_2D_pt)(&pa[1], &tBox[1]);
   (*TSU_tr_3D_2D_pt)(&pa[2], &tBox[2]);
   (*TSU_tr_3D_2D_pt)(&pa[3], &tBox[3]); pa[4] = pa[0];
-  // GL_Disp_cv (5, pa);
-  // GR_Disp_pt (&pa[0], SYM_TRI_S, 1); GR_Disp_tx (&pa[0], "0", 1);
-  // GR_Disp_pt (&pa[1], SYM_TRI_S, 1); GR_Disp_tx (&pa[1], "1", 1);
-  // GR_Disp_pt (&pa[2], SYM_TRI_S, 1); GR_Disp_tx (&pa[2], "2", 1);
-  // GR_Disp_pt (&pa[3], SYM_TRI_S, 1); GR_Disp_tx (&pa[3], "3", 1);
-  // GR_Disp_cv (pa, 5, 2);
+  // GL_set_cv (5, pa);
+  // GR_Disp_pt (&pa[0], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[0], "0", 1);
+  // GR_Disp_pt (&pa[1], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[1], "1", 1);
+  // GR_Disp_pt (&pa[2], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[2], "2", 1);
+  // GR_Disp_pt (&pa[3], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[3], "3", 1);
+  // GR_tDyn_pcv (pa, 5, 2);
   // TESTBLOCK
 
 
@@ -7215,7 +7312,7 @@ static double du,dv;
           // GR_Disp_pt (&p3, SYM_TRI_S, 1);
         // Vektor nach innen !
         UT3D_vc_2pt (pVec, &pm, &p3);
-          // GR_Disp_vc (pVec, &p2, 2, 0);
+          // GR_tDyn_vc (pVec, &p2, 2, 0);
 
         goto L_vec_OK;
       }
@@ -7247,9 +7344,9 @@ static double du,dv;
   (*TSU_tr_3D_2D_pt)(&p0, &tBox[0]);
   (*TSU_tr_3D_2D_pt)(&p1, &tBox[1]);
   (*TSU_tr_3D_2D_pt)(&p2, &tBox[2]);
-    // GR_Disp_pt (&p0, SYM_TRI_S, 1); // GR_Disp_tx (&p2, "0", 1);
-    // GR_Disp_pt (&p1, SYM_TRI_S, 2); // GR_Disp_tx (&p1, "1", 1);
-    // GR_Disp_pt (&p2, SYM_TRI_S, 3); // GR_Disp_tx (&p2, "2", 1);
+    // GR_Disp_pt (&p0, SYM_TRI_S, 1); // GR_tDyn_txtA (&p2, "0", 1);
+    // GR_Disp_pt (&p1, SYM_TRI_S, 2); // GR_tDyn_txtA (&p1, "1", 1);
+    // GR_Disp_pt (&p2, SYM_TRI_S, 3); // GR_tDyn_txtA (&p2, "2", 1);
 
 
 
@@ -7307,7 +7404,7 @@ static double du,dv;
   // TESTBLOCK
   // UT3D_vc_invert (pVec, pVec); // NUR TEST wenn Probleme ..
   // GL_Disp_vc (&pm, pVec);
-  // GR_Disp_vc (pVec, &pm, 9, 0);
+  // GR_tDyn_vc (pVec, &pm, 9, 0);
     // UT3D_vc_invert (pVec, pVec);
     // DEB_dump_obj__ (Typ_VC, pVec, "ex TSU_box_vec");
     // if(UT3D_compvc0(pVec, 0.1) == 1) exit(0);
@@ -7350,7 +7447,7 @@ static double du,dv;
   if(TSU_typ_ != Typ_SURRV) return 0;
 
   // printf("TSU_fix_ax_crx %d %d\n",*ptNr,TSU_pintNr);
-  // GR_Disp_pTab (*ptNr, pTab, SYM_TRI_S, 2);
+  // GR_tDyn_npt__ (*ptNr, pTab, SYM_TRI_S, 2);
   // if(TSU_pintNr > 0) GR_Disp_pt (&TSU_pint[0], SYM_SQU_B, 1);
   // if(TSU_pintNr > 1) GR_Disp_pt (&TSU_pint[1], SYM_SQU_B, 1);
 
@@ -7496,7 +7593,7 @@ static double du,dv;
   L_done:
   // printf("ex TSU_fix_ax_crx %d\n",*ptNr);
   // for(i1=0; i1<*ptNr; ++i1) DEB_dump_obj__ (Typ_PT, &pTab[i1], " p[%d]",i1);
-  // GR_Disp_pTab (*ptNr, pTab, SYM_TRI_S, 2);
+  // GR_tDyn_npt__ (*ptNr, pTab, SYM_TRI_S, 2);
   // exit(0);
 
 
@@ -7657,7 +7754,7 @@ static double du,dv;
   //----- 3D-Punkte -> 2D-Punkte------------------------------
   // UT3D_pt_3db (&p31, -21.281300,26.952000,3.309900);
   UT3D_pt_3db (&p31, -19.767331,28.314988,3.477292);
-  GR_Disp_pt (&p31, SYM_SQU_B, 1);
+  GR_tDyn_symB (&p31, SYM_SQU_B, 1);
 
 
   irc = TSU_tr_2D_3D_sbsp (&p21, &p31);
@@ -7665,13 +7762,13 @@ static double du,dv;
   return 0;
   p21.z=0.;
   p21.x=1.01575;
-  GR_Disp_pt (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
 
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   irc = TSU_tr_3D_2D_sbsp (&p31, &p21);
-  GR_Disp_pt (&p31, SYM_SQU_B, 2);
+  GR_tDyn_symB (&p31, SYM_SQU_B, 2);
 
   DL_Redraw ();
   return 0;
@@ -7733,22 +7830,22 @@ static double du,dv;
   UT3D_pt_3db (&p31, 200., 100., 0.);
   UT3D_pt_3db (&p31, 100., 200., 0.);
   UT3D_parscon_pt (&p21.x, &p21.y, &p31, imat);  p21.z=0.;
-  GR_Disp_pt (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
 
   UT3D_pt_3db (&p31, 150., 100., 100.);
   UT3D_pt_3db (&p31, 100., 150., 100.);
   UT3D_parscon_pt (&p21.x, &p21.y, &p31, imat);  p21.z=0.;
-  GR_Disp_pt (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
 
   return 0;
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   UT3D_pt_evparscon (&p31, con, 0., RAD_90, mat);
-  GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
   UT3D_pt_evparscon (&p31, con, con->h, RAD_90, mat);
-  GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
 
 
@@ -7794,19 +7891,19 @@ static double du,dv;
   // UT3D_pt_3db (&p31, 200., 100., 100.);
   UT3D_pt_3db (&p31, 180., 100., 110.);
   UT3D_parstor_pt (&p21.x, &p21.y, &p31, tor, imat);  p21.z=0.;
-  GR_Disp_pt (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
 
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   UT3D_pt_evparstor (&p31, tor, p21.x, p21.y, mat);
-  GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
   // UT3D_pt_evparscon (&p31, con, 0., RAD_90, mat);
-  // GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  // GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
   // UT3D_pt_evparscon (&p31, con, con->h, RAD_90, mat);
-  // GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  // GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
 
   return 0;
@@ -7821,7 +7918,7 @@ static double du,dv;
 // rufen via Func. AP_test__
 // siehe TSU_DrawSurTRV ..
 /*  Testsequenz fuer tst1.c:
-  {
+  
     SurRev *srv1;
     ObjGX  TSU_ox2, TSU_ox1;
     Point   TSU_prx;       // rotAxis
@@ -7837,11 +7934,11 @@ static double du,dv;
     TSU_prx = ((Line*)TSU_ox1.data)->p1;
     UT3D_vc_ln (&TSU_vrx, (Line*)TSU_ox1.data);
     UT3D_vc_setLength (&TSU_vrx, &TSU_vrx, 1.);
-    GR_Disp_vc (&TSU_vrx, &TSU_prx, 2, 0);
+    GR_tDyn_vc (&TSU_vrx, &TSU_prx, 2, 0);
     TSU_ox2 = DB_GetObjGX ((int)srv1->typCov, srv1->indCov);
 
     ....
-  {
+  
 */
 
 
@@ -7868,9 +7965,9 @@ static double du,dv;
 
   //----- 3D-Punkte -> 2D-Punkte------------------------------
   UT3D_pt_3db (&p31, 83.983,   75.000,   43.093);
-  GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
   TSU_tr_2D_3D_srv (&p21, &p31);
-  // GR_Disp_pt (&p21, SYM_TRI_S, 2);
+  // GR_tDyn_symB (&p21, SYM_TRI_S, 2);
   // printf("=========================== \n");
   // return 0;
 
@@ -7878,7 +7975,7 @@ static double du,dv;
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   // UT3D_pt_3db (&p21, 0., 0., 0.);
   TSU_tr_3D_2D_srv (&p31, &p21);
-  GR_Disp_pt (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
 
 
   return 0;
@@ -7927,11 +8024,11 @@ static double du,dv;
   // UT3D_pt_3db (&p31,  23.261,   20.718,  -16.095);
   UT3D_pt_3db (&p31,  -18.739,  -20.723,  -21.184);
 
-  GR_Disp_pt (&p31, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p31, SYM_STAR_S, 2);
 
   // UT3D_pt_3db (&p31, 50.190,   19.922,   50.000); //.r1:1,1
   UT3D_parsru_pt (&p21.x, &p21.y, &p31);  p21.z=0.;
-  GR_Disp_pt (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
 
   // return 0;
   // 0.634,    0.069,    0.000
@@ -7941,11 +8038,11 @@ static double du,dv;
   // UT3D_pt_3db (&p21, 0., 0., 0.);
   // p21.x = 0.8; p21.y = 0.;
   UT3D_pt_evparsru (&p31, p21.x, p21.y);
-  GR_Disp_pt (&p31, SYM_TRI_S, 0);
+  GR_tDyn_symB (&p31, SYM_TRI_S, 0);
 
   // p21.x = 0.8; p21.y = 1.;
   // UT3D_pt_evparsru (&p31, p21.x, p21.y);
-  // GR_Disp_pt (&p31, SYM_TRI_S, 1);
+  // GR_tDyn_symB (&p31, SYM_TRI_S, 1);
 
 
   return 0;
@@ -7969,23 +8066,8 @@ static double du,dv;
   Point  pt1;
   Vector vc1, vc2;
 
-/*
-  UT3D_pt_projptptvc(&pt1,&d1,&((Circ*)TSU_ox2.data)->pc,&TSU_prx,&TSU_vrx);
 
-  UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
-  DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
-  UT3D_vc_perp2vc (&vc2, &vc1, &((Circ*)TSU_ox2.data)->vz);
-  DEB_dump_obj__ (Typ_VC, &vc2, "vc2");
-  // test ob gleiche Richtung ..
-  d1 = UT3D_acos_2vc (&TSU_vrx, &vc2);
-  DEB_dump_obj__ (Typ_VC, &TSU_vrx, " acos vrx = %f",d1);
-  if(d1 >= 0.) { // Umdrehen nur merken, am Ende alle Konturen umdrehen.
-    TSU_dir = 1; // nicht umdrehen
-  } else {
-    TSU_dir = -1;
-  }
-  printf(" TSU_dir=%d CircTyp=%f\n",TSU_dir,TSU_dat[5]);
-*/
+  // DEB_dump_obj__ (Typ_CI, (Circ*)TSU_ox2.data, "TSU_srv_tor_3");
 
   // UT3D_ci_inv1 (&TSU_ac1);  // bewirkt ebenfalls Richtungsumkehr
 
@@ -7995,12 +8077,12 @@ static double du,dv;
 
   // CircCenter auf Achse projiz.
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &TSU_ac1.pc,&TSU_prx,&TSU_vrx);
-    // GR_Disp_pt(&pt1, SYM_SQU_B, 2);
+    // GR_tDyn_symB(&pt1, SYM_SQU_B, 2);
   UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
     // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
   UT3D_vc_perp2vc (&vc2, &vc1, &TSU_vrx);
-    // GR_Disp_vc (&vc2, &TSU_ac1.p1, 2, 0);
-    // GR_Disp_vc (&TSU_ac1.vz, &TSU_ac1.pc, 2, 0);
+    // GR_tDyn_vc (&vc2, &TSU_ac1.p1, 2, 0);
+    // GR_tDyn_vc (&TSU_ac1.vz, &TSU_ac1.pc, 2, 0);
 
   // sind vc2-CircVz eher parall od eher antiparall
   i1 = UT3D_sid_2vc (&vc2, &TSU_ac1.vz);
@@ -8013,6 +8095,7 @@ static double du,dv;
   }
 
     // printf("ex TSU_srv_tor_3 TSU_dir=%d\n",TSU_dir);
+    // DEB_dump_obj__ (Typ_CI, (Circ*)TSU_ox2.data, "ex-TSU_srv_tor_3");
 
 
   return 0;
@@ -8042,8 +8125,8 @@ static double du,dv;
 
   // 3D-Box machen
   UT3D_box_pts (&pb1, &pb2, pNr, pTab);
-  // GR_Disp_pt(&pb1, SYM_SQU_B, 2);
-  // GR_Disp_pt(&pb2, SYM_SQU_B, 2);
+  // GR_tDyn_symB(&pb1, SYM_SQU_B, 2);
+  // GR_tDyn_symB(&pb2, SYM_SQU_B, 2);
 
 
   // Box aufs doppelte vergroessern
@@ -8060,14 +8143,14 @@ static double du,dv;
   UT3D_box_extend (&pb1, &pb2, &pt1);
   UT3D_pt_oppptptvc (&pt1, &pb2, &TSU_prx, &TSU_vrx);
   UT3D_box_extend (&pb1, &pb2, &pt1);
-  // GR_Disp_pt(&pb1, SYM_SQU_B, 2);
-  // GR_Disp_pt(&pb2, SYM_SQU_B, 2);
-  // GR_Disp_box (&pb1, &pb2, 2);
+  // GR_tDyn_symB(&pb1, SYM_SQU_B, 2);
+  // GR_tDyn_symB(&pb2, SYM_SQU_B, 2);
+  // GR_tDyn_box__(&pb1, &pb2, 2);
 
   // KonturLine in dieser Box begrenzen
   UT3D_ln_intbox (&TSU_ln1, &pb1, &pb2);
-  // GR_Disp_pt(&TSU_ln1.p1, SYM_SQU_B, 2);
-  // GR_Disp_pt(&TSU_ln1.p2, SYM_SQU_B, 2);
+  // GR_tDyn_symB(&TSU_ln1.p1, SYM_SQU_B, 2);
+  // GR_tDyn_symB(&TSU_ln1.p2, SYM_SQU_B, 2);
   // GR_Disp_ln (&TSU_ln1, 2);
   // DEB_dump_obj__ (Typ_LN, &TSU_ln1, "TSU_ln1");
 
@@ -8093,14 +8176,14 @@ static double du,dv;
   L_nVec:
 
     UT3D_pt_mid2pt (&pt1, &TSU_ln1.p1,&TSU_ln1.p2); // Mittelpkt Konturlinie
-      // GR_Disp_pt(&pt1, SYM_SQU_B, 2);
+      // GR_tDyn_symB(&pt1, SYM_SQU_B, 2);
     UT3D_vc_2pt (&vc1, &TSU_ln1.p1,&TSU_ln1.p2);    // vec <- Konturlinie
 
     // Schnitt einer Normalebene auf Konturlinie mit Achse
     UT3D_pt_intperp2ln (&pt2, &pt1, &vc1, &TSU_prx, &TSU_vrx);
-      // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
+      // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
     UT3D_vc_2pt (&TSU_vn, &pt1, &pt2);
-      // GR_Disp_vc (&TSU_vn, &pt1, 2, 0);
+      // GR_tDyn_vc (&TSU_vn, &pt1, 2, 0);
 
 
 
@@ -8380,7 +8463,7 @@ static double du,dv;
   }
   // skip 1. point (should be the same as the last point)
   // but get last point again ..
-  // for(i1=1; i1<=i2; ++i1) {
+  // for(i1=1; i1<=i2; ++i1) 
   if(iDir > 0) d1 = RAD_360;
   else         d1 = -RAD_360;
   for(i1=1; i1<=i2; ++i1) {
@@ -9031,11 +9114,11 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMin;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
+    // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &pt2,&TSU_prx,&TSU_vrx);
-    // GR_Disp_pt(&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB(&pt1, SYM_TRI_S, 2);
 
 
   // einen Punkt mit u=0, v=vMax -> 3D
@@ -9043,11 +9126,11 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMax;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_Disp_pt(&pt2, SYM_SQU_B, 2);
+    // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d2,NULL, &pt2,&TSU_prx,&TSU_vrx);
-    // GR_Disp_pt(&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB(&pt1, SYM_TRI_S, 2);
 
   if(d2 > d1) d1 = d2;
 
@@ -9105,7 +9188,7 @@ static Point pta;
     actDir = TSU_dir;
     UT3D_pt_projptptvc(&pta, &d1, NULL,
                        &((Circ*)TSU_ox2.data)->pc, &TSU_prx,&TSU_vrx);
-      // GR_Disp_pt(&pta, SYM_SQU_B, 2);
+      // GR_tDyn_symB(&pta, SYM_SQU_B, 2);
   }
 
 
@@ -9193,6 +9276,7 @@ static Point pta;
 
 }
 
+
 //================================================================
   int TSU_srv_tor_01 (Circ *cio, Circ *cii) {
 //================================================================
@@ -9242,10 +9326,10 @@ static Point pta;
   // den vz umdrehen, wenn kreis auf anderer Seite liegt !
   // den Mittelpunkt des Inputkreises; 2 x crossprod = Normalvektor.
   UT3D_pt_mid_ci (&ptm, cii);
-    // GR_Disp_pt (&ptm, SYM_TRI_S, 4);
+    // GR_tDyn_symB (&ptm, SYM_TRI_S, 4);
   UT3D_vc_perpvc2pt (&cio->vz, &TSU_vrx, &cii->pc, &ptm);
   UT3D_vc_setLength (&cio->vz, &cio->vz, 1.);
-    // GR_Disp_vc (&cio->vz, &cii->pc, 9, 0);
+    // GR_tDyn_vc (&cio->vz, &cii->pc, 9, 0);
 */
 
   // macht hier immer Halbkreis;
@@ -9366,6 +9450,8 @@ static Point pta;
   // normalvector auf die RotAxis (braucht TSU_prx)
   // TSU_srv_ac_nvc (&cio->vz, &cio->pc);
   UT3D_vc_perpvc2pt (&cio->vz, &TSU_vrx, &TSU_prx, &cio->pc);
+  UT3D_vc_setLength (&cio->vz, &cio->vz, 1.);
+    // DEB_dump_obj__ (Typ_VC, &cio->vz, " _srv_tor_03-vz");
 
 
   // move KonturkreisCenterPunkt --> ptc
@@ -9507,9 +9593,11 @@ static Point pta;
 
 
 //================================================================
-  int TSU_DrawSurTess (long *dli, int att, ObjGX *oxi) {
+  int TSU_DrawSurTess (ObjGX *oxi) {
 //================================================================
 // draw Mockup-struct (tesselated surf)
+//   att      unused
+//   oxi      tesselated-surfaces-records
 // see also GL_DrawSur
 
   int    irc;
@@ -9520,49 +9608,48 @@ static Point pta;
   // printf("TSU_DrawSurTess %d %d %d\n",oxi->typ,oxi->form,att);
   // return 0;
 
-
-  att = Typ_Att_dash_long; // statt att kommt modNr; wer braucht diese ?
-
   if(oxi == NULL) {printf("TSU_DrawSurTess E000\n"); return -1;}
 
-
   // GL_Draw_Ini (dli, att);
-  GL_Surf_Ini (dli, (void*)&att);
-
+  // GL_Surf_Ini (dli, (void*)&att);
   GL_ColSet (&GL_actCol); // notwendig fuer den Fall, das spaeter keine
                           // eigene farbe kommt; sonst schwarz !
 
+
+  //----------------------------------------------------------------
+  // process all records of oxi until record "Typ_Done"
+
   // wenn das erste obj Adress: skip it
   if(oxi->typ == Typ_Address) ++oxi; // (char*)oxi += sizeof(ObjGX);
-  // printf(" next: %d %d\n",oxi->typ,oxi->form);
+    // printf(" next: %d %d\n",oxi->typ,oxi->form);
 
-
-  // tess_dump_f_ (oxi, "vor GL_DrawSur");
+    // tess_dump_f_ (oxi, "vor GL_DrawSur");
 
   L_next:
-  // nun Recordsize
-  if(oxi->typ  == Typ_Done)  goto L_fertig;
+    if(oxi->typ  == Typ_Done)  goto L_fertig;
 
-  if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
-  // printf(" sizRec %d %d %d\n",oxi->typ,oxi->form,rSiz);
-  // (char*)oxi += sizeof(ObjGX); // skip SizeRecord
-  ++oxi; // skip SizeRecord
+    // Recordsize
+    if(oxi->typ  != Typ_Size) goto L_Err2;
+    rSiz = (long)oxi->data;
+      // printf(" sizRec %d %d %d\n",oxi->typ,oxi->form,rSiz);
+    ++oxi; // skip SizeRecord
+      // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTess");
+      // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");
 
-    // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTess");
-    // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");
+    irc = GL_set_bMsh (oxi);
 
-  irc = GL_Disp_sur (oxi);
+    // goto next record
+    oxi = (ObjGX*)((char*)oxi + rSiz); // skip faces
 
-  // (char*)oxi += rSiz; // skip faces
-  oxi = (ObjGX*)((char*)oxi + rSiz); // skip faces
+    if(irc == 0) goto L_next;
 
-  if(irc == 0) goto L_next;
 
+  //----------------------------------------------------------------
   L_fertig:
-  GL_EndList ();
+
   return 0;
 
+  //----------------------------------------------------------------
   L_Err1:
     TX_Error("TSU_DrawSurTess E001 form %d",oxi->form);
     // DEB_dump_ox_0 (oxi, "TSU_DrawSurTess");

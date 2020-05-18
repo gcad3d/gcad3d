@@ -58,7 +58,7 @@ INF_DL__            DisplayList-functions                             ../gr/ut_D
 INF_GRAFIC__        display-module, Displist, OpenGL, GL2D
 INF_MAN__           MAN
 INF_CAD__           CAD
-INF_geom            INF_func_3D INF_func_2D      INF_MSH2D__
+INF_geom            INF_func_3D    INF_func_2D      INF_surfaces
                     INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
 
 INF_DEV_GC__        workflow events select timer
@@ -91,6 +91,13 @@ tst_gmvo.c          Move all obj's of group
 ================================================================== \endcode */}
 void INF_GCAD_format__ (){        /*! \code
 
+
+Gcad-Format-binary:
+  INF_obj_types     list of binay objtypes
+  INF_FMTB__        ../inf/Objects-Format.c           Gcad-Format-binary
+
+
+
 File-Format:
   ../../doc/html/file_format_en.htm              structure gcad modelfile ..
 
@@ -102,8 +109,6 @@ Gcad-Format-native:                              Source-format (text)
     ../../doc/html/Appli_en.htm#Program_codes    Program_codes
 
 
-Gcad-Format-binary:
-  INF_FMTB__    ../inf/Objects-Format.c           Gcad-Format-binary
 
 
 
@@ -167,11 +172,20 @@ Files:
 void INF_GRAFIC__ (){        /*! \code
 INF_GRAFIC__        display-module, Displist and OpenGL-binding
 
+INF_GR_RECORDS      Source-record Database-record DisplayList-record
+                    permanent-obj
+                    temporary-dynamic-obj
+                    temporary-obj
+                    
+INF_GR_attrib       attributes (color, linetype ..)
+
+INF_GR_group        list of selected objects
+
 see also
 INF_workflow_events         main-events
 
 GR               create graphic objects;                           ../gr/ut_gr.c
-INF_GL__         OpenGL                                            ../gr/ut_GL.c
+INF_GL__         OpenGL INF_GL_surfaces                            ../gr/ut_GL.c
 
 
 
@@ -210,6 +224,7 @@ INF_DEV_GC__    workflow events select subModels
 INF_workflow__              sequence functions  main-startup  CAD
 INF_workflow_events         main-events
 INF_workflow_select         select-process
+INF_workflow_display        display obj; GR - GL
 INF_subModels
 INF_timer__
 
@@ -296,6 +311,7 @@ inputObjects  pt 2pt  ..
  ato  atomic-object; any obj             austyp/austab (int/double)
  src  Source-object (text)
  oid  ObjectID                           string       (of DB-object eg "P20")
+ osrc source-obj; eg "P20" or "P(L20 PTS(1))"
  onam object-name                        string (eg: onam="height" for oid=V20)
 
 Line = linesegment (2 points, both sides limited (lnLL)
@@ -349,6 +365,8 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
  div     teilen (divide)
  sub     subtract
  mult    multiply
+ decr    decrement
+ incr    increment
   ck      check
   cpy     copy
   ev      evaluate (parameter)
@@ -371,6 +389,10 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
   tng     Tangente, tangential
   std     Standard (characteristic-points,)
   swap
+  reset
+  resolv
+  reserve
+  decode
 
   Funktionen:
         Keine Funktionsangabe bei Umwandlungen
@@ -412,7 +434,7 @@ Returncodes:
 ---------------------------------------------------------------------------
 VariablenNamesgebung:
 1.char: typ i=int d=double t=text
-            p=PT v=VC c=CI l=LN s=Curv o=ObjGX m=Memspc 
+            p=PT v=VC c=CI l=LN s=Curv ox=ObjGX m=Memspc 
 2.char: Datentypinfo; kann beim DefaultTyp fehlen.
         DefaultTyp fuer int=i4, double=d8, char=s1
         p=pointer d=data <ziffer>=size f=function
@@ -449,7 +471,7 @@ INF_APP__           create modify resolve, attributes, Userinteractions, coords
 INF_GEOM_OBJ_CR   create modify geom.objects
 INF_UNDO__        undo creation of geom-obj
 INF_GEOM_OBJ_RES  resolve geom.objects
-INF_GEOM_ATTRIB   attributes for geom.objects (linetyp, color ..) INF_COL_CV
+INF_GR_attrib     attributes for geom.objects (linetyp, color ..) INF_COL_CV
 INF_INTER_USER    Userinteractions
 INF_COORD_CONV__  coordinates 3D -> 2D -> 3D;  see also INF_ConstructionPlane
 INF_ConstructionPlane   activated plane = 2D
@@ -466,21 +488,12 @@ Old devDoc: ../../doc/gcad_doxygen/Programminginfos.dox
             ../../doc/gcad_doxygen/Tables-Format.dox
 
 
-================================================================== \endcode */}
-void INF_obj_type (){        /*! \code
-every struct has a corresponding typ (interger)
-
-eg the type of struct Point is Typ_PT
-   the type of struct int   is Typ_Int4
-
-see ../ut/AP_types.h
-
 
 ================================================================== \endcode */}
 void INF_OBJ_FORM__ (){        /*! \code
 binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
 
-INF_obj_type    every struct has a corresponding typ (interger)  ../ut/AP_types.h
+INF_obj_types   every struct has a corresponding typ (interger)  ../ut/AP_types.h
 
 INF_obj__       binary-obj, from typ + binary-struct
 INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
@@ -492,6 +505,7 @@ INF_dlo__       dispList-object    dlo
 
 ================================================================== \endcode */}
 void INF_obj__ (){        /*! \code
+
 INF_obj_types   object-types and corresponding struct (Point ..)
 
 INF_obj_ID      obj-ID is eg "P123"      _oid_
@@ -520,6 +534,13 @@ INF_binaryObjects   get binObj from other objects
 
 ================================================================== \endcode */}
 void INF_obj_types (){        /*! \code
+every struct has a corresponding typ (interger)
+
+eg the type of struct Point is Typ_PT
+   the type of struct int   is Typ_Int4
+
+see ../ut/AP_types.h
+
 
 short
 name     funcGrp      struct    form          descr                    files,funcs
@@ -554,6 +575,7 @@ ato    ATO_         ObjAto    Typ_ObjAto    atomic-object
 txo    APED_txo_    ObjTXTSRC Typ_ObjTXTSRC source-object
                     ObjSRC    Typ_ObjSRC
 
+jnt    JNT_         -         Typ_Joint                              INF_joints
 bbx    BBX2_        BBox2     Typ_BBox2     boundingBox-2D           INF_BBOX
 odl    DL_          DL_Att    - undef !     DisplayListRecord
 
@@ -1412,6 +1434,7 @@ void INF_workflow_select (){        /*! \code
 UI_GL_mouse__                 OpenGL-callback for user-selection
   UI_GR_Select1               get selectionMenu (sel.Obj + useful subObjs)
     GL_sel_sel
+    DL_txtSelect              test if note/tag selected
     sele_src_cnvt__           add all useful components of selected obj
     UI_GR_Select2             callback von GUI_Popup (Liste der sel.Obj)
       UI_GR_Select_work1       work GR_Sel_Filter 3-7
@@ -1420,11 +1443,11 @@ UI_GL_mouse__                 OpenGL-callback for user-selection
         IE_sel_CB__            write selection -> CAD-inputfield
        IE_cad_sel1            CAD-report sel.
        ED_add_Text            MAN
-    UI_GR_Select3             hilite obj and/or unhilite last displayed object
-  UI_GR_view_set_Cen__
+    UI_popSel_CB_prev         hilite obj and/or unhilite last displayed object
+  UI_vwz_set
   UI_GR_Indicate
 
-UI_GR_CB_Sel2
+UI_popSel_CB__
 
 
 TODO: types Typ_XVal,Typ_YVal,Typ_ZVal: select P D L as X(P...) ...
@@ -1454,6 +1477,51 @@ UNUSED:
 
 
 ================================================================== \endcode */}
+INF_workflow_display (){        /*! \code
+
+For all visible object a record in "DL" (DisplayList) exists.
+../gr/ut_DL.c   DisplayList DL (INF_DisplayList-record)
+
+../gr/ut_GR.c   display objects. Primary display-functions, using OpenGL-functions.
+../gr/ut_GL.c   OpenGL-functions
+
+
+See INF_GR_RECORDS
+
+
+Persistence of displayed objects:
+- permanet                  INF_Fixed-Database-record
+- permanent/dynamic         INF_Dynamic-Database-record
+- temporary                 INF_Temporary-DisplayList-record
+
+
+GR_perm_<obj>           create permanent obj
+
+
+Workflow GR:
+  GR_perm_<obj>|GR_tDyn_<obj>|GR_temp_<obj>        create perm|tDyn|temp disp-obj
+    GR_set_<obj>
+      DL_perm_init|DL_tDyn_init|DL_temp_init       create DL-record
+        GL_list_open                               open GL-list
+      GL_att_..                                    init GL-attributes pt|sym|cv|sur
+      GL_set_<obj>                                 add obj into open GL-list
+      GL_list_close                                close GL-list
+
+
+Workflow GL:
+  GL_list_open  open GL-record
+  GL_att_*      set attributes for following obj into open GL-list
+  GL_set_*      add obj into open GL-record
+  GL_list_close close GL-record
+  
+
+OBSOLETE - TODO:
+INT_intsursur INT_intplsur DXFW_3DFACE__  is using - only for intersection -
+  TSU_tess_sTab TSU_tessObj APT_DrawSur GR_DrawSur TSU_DrawSurT_
+
+
+
+================================================================== \endcode */}
 INF_workflow_models (){        /*! \code
 
 load model in temp.dir at startup
@@ -1479,8 +1547,8 @@ Files in <tempDir>:
   <subModelname>.tess   externes Mockup-subModel (zB wrl, stl)
 
   Catalog.lst     eine Liste aller existierenden CatalogFiles
-  catParts.act    der Filename des momentan aktiven CatalogFile
-  catParts.lst    die PartList des momentan aktiven CatalogFile
+  Catalog.act     der Filename des momentan aktiven CatalogFile
+  CatParts.lst    die PartList des momentan aktiven CatalogFile
 
 
 

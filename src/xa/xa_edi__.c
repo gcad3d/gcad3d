@@ -509,7 +509,8 @@ static long cPos;
 
   L_addSel:
   ED_add_Text (typ, dbi, buf);  // add buf to editor-text
-  GR_Disp_src (buf);            // preview buf
+  // preview temporary obj in buffer <buf>
+  GR_temp_src (buf);
   DL_Redraw ();
 
 /*

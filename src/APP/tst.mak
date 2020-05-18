@@ -8,28 +8,31 @@ DLLNAM = plugins/tst
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
- ../xa/tst.c\
- ../xa/tst1.c\
- ../xa/tst_ut_geo.c\
- ../xa/tst_ut_GL.c\
+ ../APP/tst.c\
+ ../APP/tst1.c\
+ ../APP/tst_ut_GR.c\
+ ../APP/tst_ut_GL.c\
+ ../APP/tst_rbspl.c\
 
-# ../xa/tst_edmpt.c == ../xa/xa_edmpt.c
-#../xa/tst_ut_objtab.c\
+#../APP/tst_ut_geo.c\
+#../APP/tst_ut_DL.c\
+
+# ../APP/tst_edmpt.c == ../APP/xa_edmpt.c
+#../APP/tst_ut_objtab.c\
 #../ut/ut_prcv_db.c\
-#../xa/tst_exp.c\
-#../xa/tst_surfaces.c\
-#../xa/tst_new.c\
-#../xa/tst_msh2d.c\
-#../xa/tst_ut_tin.c\
-#../xa/tst_ut_geo.c\
-#../xa/tst_mem.c\
+#../APP/tst_exp.c\
+#../APP/tst_surfaces.c\
+#../APP/tst_new.c\
+#../APP/tst_msh2d.c\
+#../APP/tst_ut_tin.c\
+#../APP/tst_ut_geo.c\
+#../APP/tst_mem.c\
 
 #../ut/ut_prcv.c\
 #../ut/ut_cntf.c\
-#../xa/tst_su1.c\
-#../xa/tst_cv1.c\
-#../xa/tst_gtk.c\
-#../xa/tst_ogl.c\
+#../APP/tst_su1.c\
+#../APP/tst_cv1.c\
+#../APP/tst_gtk.c\
 
 
 DIRSRC1 := ../xa/:../ut/:

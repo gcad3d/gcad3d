@@ -1,14 +1,31 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>Catalog_de</TITLE>
+  <meta name="description" content="gCAD3D-catalogParts">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="en-US">
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
 
 
 
 <h2>Catalog</h2>
+
+<A HREF='#Adm'>Modify Catalog</A>
+<A HREF='#Cre'>Create Catalog</A>
+<A HREF='#Del'>Delete Catalog</A>
+<A HREF='#Dir'>Catalog-directory</A>
+
+
+
 
  CATALOG - This function is used to generate standard parts.
  After selecting a standard part (Part Catalog) from a norm part of the standard library can be part of a submodel.
@@ -28,7 +45,8 @@ Catalog-part-files (filetyp .ctlg) are in the symbolic directory "CATALOG".
   Change it with "Standards/Directories".
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
+<a name="Adm"></a>
 <b> Modify Catalog</b>
  This allows to add additional Parts in an existing parts-catalog.
  Select a standard part library, then with a modification editor.
@@ -89,15 +107,34 @@ ____________________________________________________________________________
 # Schrau(be) ist the german word for Screw
 
 
+<HR><!-- ============================================================ -->
+<a name="Cre"></a>
 <b>Create Catalog</b>
  Creates a new standard part library.
  The file name is freely selectable.
 
 
+<HR><!-- ============================================================ -->
+<a name="Del"></a>
 <b>Delete Catalog</b>
  Deleting a standard part library.
 
 
+<HR><!-- ============================================================ -->
+<a name="Dir"></a>
+<b>Catalog-directory</b>
 
+The directory for the catalogparts must be registered in the file for
+ all directories as symbol "CATALOG".
+
+With function Standards/Directories the registration can be  done / modified.
+Example Unix (default):
+CATALOG   /home/userName/gCAD3D/ctlg/
+
+The file for all directories is - for installation unix-default:
+/home/userName/gCAD3D/cfg/dir.lst
+
+
+<HR><!-- ============================================================ -->
 </PRE>
 </HTML>

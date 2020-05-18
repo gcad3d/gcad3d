@@ -83,6 +83,7 @@ List_functions_end:
 #include "../ut/ut_txTab.h"            // TxtTab UtxTab
 
 #include "../gui/gui__.h"              // Gtk3
+#include "../gr/ut_gr.h"       // GR_TMP_I0
 
 #include "../db/ut_DB.h"               // DB_Get..
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1, mem_cbuf1
@@ -783,7 +784,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
     // activeTyp=Typ_VC:      den Vector temporaer anzeigen
     L_typ_vc:
     if(mcl_typ != Typ_VC) goto L_typ_def;
-      UI_disp_vec1 (Typ_Index, PTR_LONG(mcl_dbi), NULL);
+      UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(mcl_dbi), NULL, Typ_Att_hili1);
       goto L_pop9;
       // return 0;
 

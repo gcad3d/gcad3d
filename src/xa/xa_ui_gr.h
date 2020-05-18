@@ -14,13 +14,13 @@ int UI_GL_mouse__ (MemObj *mo, void **data);
 int UI_GL_keys__  (MemObj *mo, void **data);
 
 void UI_GR_view_set_func ();
-void UI_GR_view_set_Cen__  (int mode);
+void UI_vwz_set  (int mode);
 void UI_GR_view_set_Cen1   (double zVal);
 int  UI_ChangeCursor (int newCur);
 int  UI_ResetCursor ();
 int  UI_GR_Select1 (int mode, long *dlInd);
 int  UI_GR_Select2 (int typ, long dbi, long dli);
-int  UI_GR_Select3 (long objInd);
+int  UI_popSel_CB_prev (int isel);
 int  UI_GR_Select_work1 (long objInd);
 // int  UI_GR_Select_work2 (int typ, long ind, char* buf);
 int  UI_GR_Select_work2 (int typ, long ind, char* buf, long dli);

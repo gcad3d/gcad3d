@@ -50,6 +50,7 @@ UT3D_pta_plg2              get points from 2D-polygon;
 UT3D_pta_otb               polygon from binary-object-table
 UT3D_npt_fac               closed polygon (4 points) from indexed-triangle (Fac3)
 UT3D_npt_tria              closed polygon (4 points) from Triangle
+UT3D_pta_parlg_pt_2vc      parallelogram from 2 vectors + length-faktor
 UT3D_npt_parl_pln          polygon parallel polygon on plane, dist
 UT3D_npt_tra_npt2_rsys     transf. 2D-points => 3D-points
 
@@ -106,6 +107,29 @@ UT3D_npt_ci                circular polygon
 #include "../xa/xa_mem.h"              // memspc55
 #include "../xa/xa_msg.h"              // MSG_*
 
+
+
+//=========================================================================
+  int UT3D_pta_parlg_pt_2vc (Point *pta, Point *p1,
+                            Vector *vx, double fx, Vector *vy, double fy) {
+//=========================================================================
+// UT3D_pta_parlg_pt_2vc        parallelogram from 2 vectors + length-faktor
+// Input:
+//   pta       size must be 5 Points
+//   p1        startpoint
+//   vx,fx     x-vector und length-faktor
+//   vy,fy     y-vector und length-faktor
+
+
+  pta[0] = *p1;
+  UT3D_pt_traptvclen (&pta[1], p1, vx, fx);
+  UT3D_pt_traptvclen (&pta[2], &pta[1], vy, fy);
+  UT3D_pt_traptvclen (&pta[3], p1, vy, fy);
+  pta[4] = *p1;
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -300,7 +324,7 @@ UT3D_npt_ci                circular polygon
 
     // TESTBLOCK
     printf("ex-UT3D_npt_trmCv irc=%d ptNr=%d\n",irc,*ptNr);
-    // GR_Disp_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
+    // GR_tDyn_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
     // {int i1; for(i1=0;i1<*ptNr;++i1)
      // printf(" _npt_ %d = %f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z); }
     // END TESTBLOCK
@@ -391,7 +415,8 @@ UT3D_npt_ci                circular polygon
       break;
 
     case Typ_Dimen:  // Dimen
-      pNr = 3;
+    case Typ_Dim3:  // Dimen
+      pNr = 0;
       break;
 
     default:
@@ -515,7 +540,7 @@ UT3D_npt_ci                circular polygon
     // TESTBLOCK
     // printf(" ex-UT3D_npt_ox__ irc=%d ptNr=%d\n",irc,*ptNr);
     // DEB_dump_nobj__ (Typ_PT, *ptNr, pTab, "CVPOL");
-    // GR_Disp_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, ATT_COL_YELLOW);
     // END TESTBLOCK
 
 
@@ -893,7 +918,7 @@ UT3D_npt_ci                circular polygon
 
     // TESTBLOCK
     // DEB_dump_obj__ (Typ_MemTab, mtpa, "ex-mtpt_trmCv-mtpa");
-    // GR_Disp_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
+    // GR_tDyn_npti (*ptNr, pTab, SYM_TRI_S, ATT_COL_RED, 0);
     // {int i1; for(i1=0;i1<*ptNr;++i1)
      // printf(" _npt_ %d = %f %f %f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z); }
     // END TESTBLOCK
@@ -1663,7 +1688,7 @@ UT3D_npt_ci                circular polygon
 
   *ptn = ptNr;
 
-    // GR_Disp_pTab (ptNr, pta, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (ptNr, pta, SYM_STAR_S, 2);
     // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pta[i1],"pta[%d]",i1);
     // printf("ex UT3D_pta_ox_lim irc=%d ptNr=%d\n",irc,ptNr);
 
@@ -1982,7 +2007,7 @@ UT3D_npt_ci                circular polygon
   L_exit:
   *ptn = ptNr;
 
-    // GR_Disp_pTab (ptNr, pta, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (ptNr, pta, SYM_STAR_S, 2);
     // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pta[i1],"pta[%d]",i1);
     // printf("ex UT3D_pta_ox_lim irc=%d ptNr=%d\n",irc,ptNr);
 
@@ -2204,7 +2229,7 @@ UT3D_npt_ci                circular polygon
   *ptn = ptNr;
 
     // printf("ex UT3D_pta_ox_lim:\n");
-    // GR_Disp_pTab (ptNr, pta, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (ptNr, pta, SYM_STAR_S, 2);
     // for(i1=0;i1<ptNr;++i1) DEB_dump_obj__(Typ_PT,&pta[i1],"pta[%d]",i1);
 
   return 0;

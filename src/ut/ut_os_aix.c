@@ -1717,6 +1717,7 @@ extern int errno;
 //================================================================
 /// \code
 /// check if string is absolute or relative Filname ..
+///   USE this func for MS-win compatibility
 /// Returncodes:
 ///   0  = yes, absolut
 ///   1  = no, relativ ..

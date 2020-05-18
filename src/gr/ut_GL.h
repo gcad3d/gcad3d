@@ -38,11 +38,40 @@ Korr:
 #define DL_OnTop__      300   // overwrite-all (glDepthFunc (GL_ALWAYS))
 #define DL_OnTopOff     301   // reset "overwrite-all"
 #define DL_base_defCol  302   // default-color             UNUSED
+#define DL_base_grid    303   // grid  (GL_grid__())       UNUSED
 // free 303-309
 #define DL_base_mod     310   // first index of BasModelnames (DL_base_mod)
                               // next is DL_base__ - first index of normal objects
 
 
+
+//----------------------------------------------------------------
+void GL_set_npt (Point *pta, int ptNr);
+void GL_set_pt2 (Point2 *pt21);
+void GL_set_ln_2pt (Point *p1, Point *p2);
+void GL_set_cv (int pnr, Point *pta);
+void GL_set_symV3 (int symTyp, Point *pt1, Vector *vc1, double scale);
+void GL_set_symVX (Plane *pln1, int typ, double scale);
+void GL_set_ang (int att, Point *ptc, Vector *vx, Vector *vz, double ang1);
+void GL_set_arrh (Point *p1, Point *p2);
+void GL_set_cv2 (int pnr, Point2 *pta);
+void GL_set_ln2_2pt (Point2 *p1, Point2 *p2);
+void GL_set_ci2 (Point2 *pc, Point2 *p1, double ao);
+
+void GL_set_symB (int symTyp, Point *pt1);
+void GL_set_sym2B (int symTyp, Point2 *pt1, double scale);
+void GL_set_symV_r (int symTyp, Point *pt1, double angd, double scale);
+void GL_set_sym2V_r (int symTyp, Point2 *pt1, Point2 *pt2, double scale);
+void GL_set_symV_o (int symTyp, Point *pt1, double az,double ay,double scale);
+
+void GL_set_txtG (GText *tx1);
+void GL_set_txtA (Point*, char*);
+void GL_set_txt__ (int dMod, int bMod, Point *ptx,
+                   double txAng, double ay, double az, double scale, char *txt);
+void GL_set_Dim3 (Dim3 *dim3);
+void GL_set_Ldr (int att, Dimen *dim1);
+
+void GL_set_mdr (ModelRef *mdr, ModelBas *mdb);
 
 //----------------------------------------------------------------
 void   GL2D_pos_move        (int dx, int dy);
@@ -69,7 +98,6 @@ void   GL_Reframe1          ();
 
 void   GL_Translate         ();
 void   GL_Transl_Vert       ();
-void   GL_Transl_VertP      (Point*);
 
 void   GL_Del0              (long);
 void   GL_Delete            (long);
@@ -120,51 +148,26 @@ void   GL_Rescale           (double, Point*);
 
 
 void   GL_Draw_Ini          (long*, int);
-void   GL_Disp_ln           (Point*, Point*);
-void   GL_Disp_ln2          (Point2 *p1, Point2 *p2);
-int    GL_Disp_patch        (int gTyp, int ptNr, Point *pa);
-int    GL_Disp_ipatch       (int gTyp, int iNr, int *ia, Point *pa);
-void   GL_Disp_npt          (Point *pa, int ptNr);
-
-void   GL_DrawPoint         (long*, int, Point*);
-void   GL_Draw_ln2          (long *ind, int iAtt, Line2 *ln1);
-void   GL_DrawLine          (long*, int, Line*);
-void   GL_DrawLtab          (long *ind, long dbi, int attInd, Line *lna, int lNr);
-void   GL_DrawVec           (long*, int, Point*, Vector*);
-void   GL_DrawPoly2D        (long*, int, int, Point2[], double);
-void   GL_DrawPoly          (long*, int, int, Point*);
+int    GL_set_patch        (int gTyp, int ptNr, Point *pa);
+int    GL_set_ipatch       (int gTyp, int iNr, int *ia, Point *pa);
 
 // void   GL_DrawQFac          (long*, int, ObjG2*, double, ObjG2*, double);
 // void   GL_DrawRFac          (long*, int, ObjG2*, double, ObjG2*, double);
 // void   GL_DrawRCone         (long*, int, ObjG2*, double, ObjG2*, double);
 
 void   GL_DrawRSur     (long *ind,int attInd,int ptAnz,Point *pa1,Point *pa2);
-int    GL_DrawStrip1        (Point *ps, Point *pa1, Point *pa2, int ptAnz);
-int    GL_DrawStrip2        (Point *pa1, Point *pa2, int ptAnz, int newS);
-void   GL_DrawFan           (Point *pt1,int ptAnz,Point *pa1,int side, int newS);
+int    GL_set_strip1        (Point *ps, Point *pa1, Point *pa2, int ptAnz);
+int    GL_set_strip2        (Point *pa1, Point *pa2, int ptAnz, int newS);
+void   GL_set_fan           (Point *pt1,int ptAnz,Point *pa1,int side, int newS);
 
-void   GL_DrawSymB          (long*, int, int att, Point*);
-void   GL_DrawSymV          (long*, int, int att, Point*, double);
-void   GL_DrawSymV2         (long*, int, int att, Point*, Point*, double);
 void   GL_DrawSymV3         (long*, int, int att, Point*, Vector*, double);
-void   GL_DrawTxtA          (long*, int, Point *, char *);
-void   GL_Disp_txtA         (Point*, char*);
-void   GL_DrawTxtG          (long *ind, int att, GText *tx1);
-// void   GL_DrawTxtG          (long *ind, int att,
-                             // Point *P1, float size, float ang, char *txt);
-void   GL_DrawDimen         (long *ind, int att, Dimen *dim1);
 void   GL_DrawDitto2 (long *ind, Point *p1, double az, char mir, Ditto *di);
-int    GL_DrawModel  (long *ind, int att, ModelRef *mdr, ModelBas *mdb);
 
-int    GL_txt__             (int dMod, int bMod,
-                            Point *ptx, double txAng, double ay, double az,
-                            double scale, char *txt);
 
-  void GL_temp_del_1      (long ind);
+  void GL_temp_del_1      (int ind);
   void GL_temp_del_all      ();
-  long GL_temp_GetInd      ();
-  long GL_GetInd_temp      ();
-  long GL_GetInd_last_temp ();
+  long GL_temp_iNxt      ();
+  long GL_temp_iLast ();
 
 
 int    GRU_teileArc         (Point2*, int*, ObjG2*);
@@ -173,6 +176,8 @@ int    GRU_teileLin         (Point2*, int,  Point2*, Point2*);
 
 void   GRU_calc_normal      (Vector*, Point*, Point*, Point*);
 void   GRU_calc_normal2     (Vector*, Point2*,Point2*,Point2*, double,double);
+
+void   GL_list_close ();
 
 // void   GL_Test              (long);
 
@@ -199,9 +204,22 @@ void   GRU_calc_normal2     (Vector*, Point2*,Point2*,Point2*, double,double);
 #define GL2D_pos_get    glPopAttrib
 
 
+// GL_list_open         start GL-list (glNewList)
+#define GL_list_open(gli) glNewList (gli, GL_COMPILE);
+
+
+// // GL_list_close        close GL-record (glEndList ())
+// #define GL_list_close  glEndList
+
+// GL_set_txt2D           text alphanum.(fixed size, horiz)
+//   sTxt   null-terminated string to display
+//   rasterPosition must have been set
+//   color must be set before glRasterPos3dv
+void GL_set_txt2D (char *sTxt);
+#define GL_set_txt2D(sTxt)\
+ glCallLists (strlen(sTxt), GL_UNSIGNED_BYTE, (GLubyte*)sTxt)
 
 extern int GL_pickSiz ;        // SelectionDistance in Pixel (ScreenCoords)
-
 
 
 /* ==================== EOF =============================== */

@@ -53,7 +53,7 @@ S1=ELL P(0 0) D(DX 100) D(DY 80) P(100 0) P(-100 0)
 
 
 
-<p><a name="F3"></a></p>
+<p><a name="F2"></a></p>
 <h2>S Polygon &lt; Points...                      POL</h2>
 Polygon from points
 
@@ -75,7 +75,7 @@ S24 = POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)
 
 
 
-<p><a name="F4"></a></p>
+<p><a name="F3"></a></p>
 <h2>S Polygon &lt; Rectangle                      REC</h2>
 Parallelogram from a corner and 2 vectors:
   CornerPoint     lower left point
@@ -87,7 +87,7 @@ S20 = REC P(100 0 0) D(50 0 0) D(DY 12)
 
 
 
-<p><a name="F5"></a></p>
+<p><a name="F4"></a></p>
 <h2>S BSpline &lt; Points...                      BSP</h2>
 B-Spline from points
   S-bsp = BSP {points} [,degree] [,CTRL]
@@ -139,7 +139,7 @@ S21 = BSP, S20
 
 
 
-<p><a name="F6"></a></p>
+<p><a name="F5"></a></p>
 <h2>S BSpline &lt; convert & join objects                    BSP1</h2>
 Convert and connect one or more objects into a B-Spline curve,
  with or without rounding.
@@ -162,7 +162,7 @@ Example Model see sample_curv_bsp_join1.gcad
   
 
 
-<p><a name="F7"></a></p>
+<p><a name="F6"></a></p>
 <h2>S Clothoid (spiral-form curve)             CLOT</h2>
     Clothoid spiral-form curve: generate (a planar spiral through Fresnel-Integral).
     StartPoint                  starting point
@@ -188,7 +188,7 @@ Export of a clothoidal spiral-form curve:
    IGES: Issue as Entity 106 (Copious Data, Form 12 = 3D polygon).
 
 
-
+<!--
 <p><a name="F2"></a></p>
   <h2>S connection-lines &lt; Points...             MSH</h2>
 Creates connection-lines between points (e.g. for schematics).
@@ -230,11 +230,11 @@ S23=MSH U(P22 P24) L(S20 MOD(3)) VAL(.2)
 P26=P(0 -5)
 P27=P(1 -6)
 S23=MSH U(P26 P27) L(P(6 0) DY) VAL(0)
+-->
 
 
 
-
-<p><a name="F8"></a></p>
+<p><a name="F7"></a></p>
 <h2>S Contour(CCV) &lt;- PT/LN/CIR/CRV            CCV</h2>
 Contour (&quot;Composite (compound, concatenated) curve&quot; - CCV)
 A contour consists of the elements of points, lines, circles, curves.

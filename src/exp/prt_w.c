@@ -542,7 +542,7 @@ static char* txBuf=NULL;
   p22.x = x2;
   p22.y = y2;
 
-  GR_Disp_ln2 (&p21, &p22, iatt);
+  GR_tDyn_ln2_2pt (&p21, &p22, iatt);
 
   return 0;
 

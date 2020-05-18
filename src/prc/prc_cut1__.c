@@ -138,14 +138,18 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../xa/xa.h"                  // APP_act_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 
+#include "../gr/ut_gr.h"                  // GR_tDyn_*
+
 #include "../prc/prc_cut1__.h"         // NCCmdAnz, NCCmdTab
 
 #include "../gui/gui__.h"              // GUI_*
 
 
+#define DL_TEMP_FROM 3
 
 //================================================================
 // EXTERN
+
 // from ../ci/NC_Main.h
 extern long    AP_dli_act;      // index dispList
 
@@ -159,9 +163,11 @@ extern double    *SRC_ato_tab;
 extern int       AP_modact_ind;         // -1=primary Model is active;
                                         // else subModel is being created
 
+// aus ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
+
 
 // ex ../xa/xa_ui.c:
-// extern MemObj ckb_man, ckb_vwr;
 extern MemObj UIw_Box_TB;    // toolbarBox
 
 
@@ -285,8 +291,10 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
       } else {  // disp
         // APT_disp_SymV1 (SYM_TRIANG, 9, &actPos, 0.25);     // Dreieck klein
-        dli = -3L;
-        GL_DrawSymB (&dli, ATT_COL_RED, SYM_SQU_B, &actPos);
+        // dli = -3L;
+        // GL_DrawSymB (&dli, ATT_COL_RED, SYM_SQU_B, &actPos);
+        DL_temp_ind = DL_TEMP_FROM;
+        GR_temp_symB (&actPos, SYM_SQU_B, ATT_COL_RED);
       }
       oldPos = actPos;
       rapid = OFF;        // next go up to safe-plane
@@ -806,7 +814,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
         dli = -1;
         ln1.p1 = oldPos;
         ln1.p2 = actPos;
-        GR_CreLine (&dli, iatt, &ln1);
+        AP_add_ln (&dli, iatt, &ln1);
 
   return 0;
 
@@ -819,9 +827,9 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 // 
 
   long   dbi;
-
         dbi = -1;
-        GR_CreCirc (&dbi, iAtt_cut, &actCir);
+        // GR_CreCirc (&dbi, iAtt_cut, &actCir);
+  GR_tDyn_ocv (Typ_CI, &actCir, dbi, iAtt_cut);
 
   return 0;
 
@@ -889,7 +897,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   dli = DL_StoreObj (Typ_SymV, -1L, 0);
 
   // Typ_Att_def = gelb; Typ_Att_hili1 = rot
-  GL_DrawTxtA (&dli, Typ_Att_hili1, &oldPos, txt);
+  // GL_DrawTxtA (&dli, Typ_Att_hili1, &oldPos, txt);
+  GR_tDyn_txtA (&oldPos, txt, ATT_COL_HILI);
 
   return 0;
 

@@ -23,7 +23,7 @@ Standards / Directories Changing the HTML browser (for Help)
 Standards / editor, change the text editor (for directories)
 
 <a href="#Start">Application startup</a>
-<a href="#Directories">Directories</a>
+<a href="#PrgDirectories">Program-Directories</a>
 <a href="SW_layout_en.htm">Software-Layout</a>
 
 
@@ -160,6 +160,8 @@ Add / change directory-sets with Standards/Directories
   (starts editing file {base}/gCAD3D/cfg/dir.lst).
   Note: Access rights for writing is required.
 
+See also <a href="CAD_Base_en.htm#symFnam">Symbolic modelfilenames</a>.
+
 Unix example:
 Data /usr/home/gCAD3D/dat/
 IGS /mnt/win_d/gCAD3D/Models/igs/
@@ -172,6 +174,7 @@ MS Windows example:
 Data C:\WINDOWS\gCAD3D\dat\
 IGS F:\MODELS\gCAD3D\igs\
 CD0 D:\
+
 
 
 
@@ -197,7 +200,7 @@ The program can be started with the following parameters:
   defLoad           // load the model last used
   {modelName}       // load model; filetype can be:
                     // .gcad, .dxf, .igs, .stp, .bmp. .jpg
-                    // Directories: see <a href="#Directories">Directories</a>
+                    // Directories: see <a href="#ModelDirectories">Directories</a>
   {pluginName}      // no filetype: start plugin (DLL, shared library) with this name
   rcmd {filNam}     // start file with remote-commands starten. See <a href="RemoteControl_en.htm">RemoteControl</a>
 
@@ -225,7 +228,7 @@ gcad3d comp defLoad tst3
 
  
 ____________________________________________________________________________
-<p><a name="Directories"></a></p>
+<p><a name="PrgDirectories"></a></p>
 <h2>Program Directories:</h2>
 
 All directories are created under ${HOME}/gCAD3D/.

@@ -171,12 +171,12 @@ Returncodes:
       DEB_dump_obj__(Typ_PT, &pmax1, " &pmax1=");
       DEB_dump_obj__(Typ_PT, &pmin2, " &pmin2=");
       DEB_dump_obj__(Typ_PT, &pmax2, " &pmax2=");
-      GR_Disp_box (&pmin1, &pmax1, 2);
-      GR_Disp_box (&pmin2, &pmax2, 5);
-      GR_Disp_txi (&pmin1, it1, 2);
-      GR_Disp_txi (&pmax1, it1, 2);
-      GR_Disp_txi (&pmin2, it1, 5);
-      GR_Disp_txi (&pmax2, it1, 5);
+      GR_tDyn_box__(&pmin1, &pmax1, 2);
+      GR_tDyn_box__(&pmin2, &pmax2, 5);
+      GR_tDyn_txiA (&pmin1, it1, 2);
+      GR_tDyn_txiA (&pmax1, it1, 2);
+      GR_tDyn_txiA (&pmin2, it1, 5);
+      GR_tDyn_txiA (&pmax2, it1, 5);
     }
 */
 
@@ -321,7 +321,7 @@ Returncodes:
 
   // make bounding box of Bezier curve
   UT3D_box_pts (&pmin, &pmax, bcv->ptNr, bcv->cptab);
-    // GR_Disp_box (&pmin, &pmax, 9);
+    // GR_tDyn_box__(&pmin, &pmax, 9);
 
 
   // if line does not intersect bounding box -> return
@@ -439,7 +439,7 @@ Returncodes:
   // make boundingBox of Bezier curve
   UT3D_box_pts (&pmin, &pmax, bcv->ptNr, bcv->cptab);
   // pmax.z = 100.; // NUR TEST
-  // GR_Disp_box (&pmin, &pmax, SYM_TRI_S, 0); // disp boundingBox
+  // GR_tDyn_box__(&pmin, &pmax, SYM_TRI_S, 0); // disp boundingBox
 
 
   // if plane does not intersect bounding box -> return
@@ -452,8 +452,8 @@ Returncodes:
 
     // subdivide Bezier curve
     irc = UT3D_bez_subdiv (&bcv1, &bcv2, memSeg1, bcv, 0.5);
-    // GR_Disp_bez (&bcv1, 2, memSeg1);
-    // GR_Disp_bez (&bcv2, 3, memSeg1);
+    // GR_tDyn_bez (&bcv1, 2, memSeg1);
+    // GR_tDyn_bez (&bcv2, 3, memSeg1);
     if(irc < 0) return irc;
 
     // test both new Curves
@@ -472,7 +472,7 @@ Returncodes:
   // Curve ist nun linear
   } else {
 
-    // GR_Disp_bez (bcv, 2, memSeg1);
+    // GR_tDyn_bez (bcv, 2, memSeg1);
     if(*pNr >= pSiz) {TX_Error("UT3D_pt_intplbez E002"); return -2; }
 
     // intersect line / plane
@@ -602,7 +602,7 @@ Returncodes:
 
 
   //------- Testausg------
-  // GR_Disp_pTab (*ptNr, pTab, SYM_STAR_S, 2);
+  // GR_tDyn_npt__ (*ptNr, pTab, SYM_STAR_S, 2);
   // printf("ex UT3D_pta_bez ptNr=%d\n",ptOut);
   // for(ianz=0;ianz<ptOut;++ianz)
     // DEB_dump_obj__ (Typ_PT, &pTab[ianz], "P[%d]=",ianz);

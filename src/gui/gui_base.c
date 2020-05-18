@@ -102,7 +102,6 @@ GUI_obj_dump_o
 
 GUI_opts_get1            get 1-char-parameter from opts-string
 
-GUI_exe_get              get full filename for GUI_executable
 GUI_file_open__
 GUI_file_save__
 GUI_MsgBox
@@ -154,6 +153,7 @@ ctags -f gui_base.tag gui_base.c
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>                         // for ...
 #include <string.h>                     // memcpy memcmp
 
 #include "../ut/ut_umem.h"              // Memspc
@@ -224,37 +224,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 
 
-//================================================================
-  int GUI_exe_get (char* sEnam, char *sNam) {
-//================================================================
-// GUI_exe_get             get full filename for GUI_executable
-// Input:
-//   Nami           eg GUI_dlg1 or GUI_open
-// Output:
-//   sEnam          get full filename; size must be 256
-//                  eg /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2
 
-  int      irc, vGtk;
-  char     sGui[32];
-
-  // get gtk-major-version
-  GUI_get_version (sGui, &vGtk, &irc);
-
-
-  // sEnam = exeFilename
-#ifdef _MSC_VER
-  sprintf(sEnam,"%s%s_%s%d_MS.exe", OS_get_bin_dir(), sNam, sGui, vGtk);
-#else
-  sprintf(sEnam,"%s%s_%s%d", OS_get_bin_dir(), sNam, sGui, vGtk);
-#endif
-
-    printf(" ex-GUI_exe_get |%s|\n",sEnam);
-
-  return 0;
-
-}
-
- 
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
@@ -263,7 +233,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   char     sEnam[256], s2[512];
 
   // get full filename for GUI_executable
-  irc = GUI_exe_get (sEnam, "GUI_dlg1");
+  irc = APUI_get (sEnam, "GUI_dlg1");
 
 
   sprintf(s2,"%s info \"%s\"", sEnam, text);
@@ -294,9 +264,26 @@ char*   GUI_Win_tit     (void *gtkWin);
   int      irc;
   char     sEnam[256], s1[512];
 
-  // get full filename for GUI_executable
-  irc = GUI_exe_get (sEnam, "GUI_dlg1");
 
+  printf("GUI_listf1__ |%s|%s|%s|\n",fNam,sTit,opts);
+
+  // get user-selection of list
+  irc = APUI__ (sOut, sSiz, "GUI_dlg1", "list1",
+                   fNam,
+                   sTit,
+                   opts,
+                   NULL);
+  if(irc < 0) return -1;
+    printf(" f-APUI__ |%s|\n",sOut);
+
+  // cancel ?
+  irc = strlen(sOut);
+  if(irc < 2) return -1;
+
+
+/*
+  // get full filename for GUI_executable
+  irc = APUI_get (sEnam, "GUI_dlg1");
 
   //      (exeNam, symfilNam title wSiz)
 #ifdef _MSC_VER
@@ -308,7 +295,6 @@ char*   GUI_Win_tit     (void *gtkWin);
 #endif
     printf(" GUI_listf1__-s1 |%s|\n",s1);
 
-
              // (selOut,sSiz, cmd)
   irc = OS_sys1 (sOut, sSiz, s1);
   if(irc < 0) {printf("***** GUI_file_save__ - Error OS_sys1 %d\n",irc); return -1;}
@@ -317,8 +303,9 @@ char*   GUI_Win_tit     (void *gtkWin);
     TX_Print ("**** user abort .. ");
     irc = ERR_USER_ABORT;
   }
+*/
 
-    printf(" file_save_-OS_sys1-x %d |%s|\n",irc,sOut);
+    printf(" ex-GUI_listf1__ %d |%s|\n",irc,sOut);
 
   return irc;
 
@@ -340,7 +327,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 ///   filNam
 ///   dirNam
 ///   filterO    modified filtertext or NULL
-///   retCode    0=OK, -1=Cancel, -2=fSiz/dSiz too small
+///   retCode    >0=OK, strlen of filNam; -1=Cancel; -2=fSiz/dSiz too small
 ///
 /// Example:
 ///  char   s1[204], int  irc;
@@ -352,85 +339,48 @@ char*   GUI_Win_tit     (void *gtkWin);
 /// TODO: case-insensitivity of filter ..
 
 
-  int      irc;
-  char     s1[400], s2[200], sEnam[256], sFilt[80];
+  int      irc, i1;
+  char     s2[200], sEnam[256], sFilt[80];
 
 
   printf("GUI_file_save__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,fTyp,sTit);
 
-  // exe  = /p2/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_open
-  // symDirNam = /p2/fwork/devel/gcad3d/gCAD3D/cfg/dir.lst
+  sprintf(sFilt, "\"*.%s\"", fTyp);
 
-  // get full filename for GUI_executable
-  irc = GUI_exe_get (sEnam, "GUI_file");
+  // call GUI_file/save
+  irc = APUI__ (filNam, fSiz, "GUI_file", "save",
+                   filNam,
+                   dirLst,
+                   sFilt,
+                   sTit,
+                   NULL);
+  if(irc < 0) return -1;
+    printf(" f-APUI__ |%s|\n",filNam);
 
-  // test if exe exists
-  if(!OS_checkFilExist(sEnam,1)) {
-    TX_Print("**** file %s does not exist ..", sEnam);
-    return -1;
-  }
-
-  strcpy(sFilt, "*.");
-  strcat(sFilt, fTyp);
-
-
-       //  (dirIn/filnamOut sSiz symDir filter title)
-#ifdef _MSC_VER
-  sprintf(s1,"START /B /WAIT \"\" \"%s\" save %s %s \"%s\" \"%s\"",
-          sEnam, filNam, dirLst, sFilt, sTit);
-#else
-  sprintf(s1,"%s save %s %s \"%s\" \"%s\"",
-          sEnam, filNam, dirLst, sFilt, sTit);
-#endif
-    printf(" _fileSave-s1 |%s|\n",s1);
-
-
-  // disp fileList; get filNam = filename to save
-  irc = OS_sys1 (filNam, fSiz, s1);
-  if(irc < 0) {printf("***** GUI_file_save__ - E1 OS_sys1 %d\n",irc); return -1;}
-  UTX_CleanCR (filNam);
-    printf(" file_save_-OS_sys1-x1 |%s|\n",filNam);
-
-
+             
   // cancel ?
-  if(strlen(filNam) < 2) return -1;
-
+  irc = strlen(filNam);
+  if(irc < 2) return -1;
 
   // test if file already exists;
   if(!OS_checkFilExist(filNam,1)) return irc;
 
 
+  //----------------------------------------------------------------
   // file already exists; ask overwrite ..
-  // get full filename for GUI_executable
-  irc = GUI_exe_get (sEnam, "GUI_dlg1");
 
-  // test if exe exists
-  if(!OS_checkFilExist(sEnam,1)) {
-    TX_Print("**** file %s does not exist ..", sEnam);
-    return -1;
-  }
-
-
-  // "dlgbe \" model exists; overwrite ? \" NO YES"
-#ifdef _MSC_VER
-  sprintf(s1,
-    "START /B /WAIT \"\" \"%s\" dlgbe \" model exists; overwrite ? \" NO YES",
-    sEnam);
-
-#else
-  sprintf(s1,"%s dlgbe \" model exists; overwrite ? \" NO YES", sEnam);
-#endif
-    printf(" _fileSave-s2 |%s|\n",s1);
-
-
-  // disp dialog; get filNam = filename to save; empty or 0 = cancel
-  irc = OS_sys1 (s2, sizeof(s2), s1);
-  if(irc < 0) {printf("***** GUI_file_save__ - E2 OS_sys1 %d\n",irc); return -1;}
-  UTX_CleanCR (s2);
-    printf(" file_save_-OS_sys1-x2 |%s|\n",s2);
-
+  // call GUI_dlg1/dlgbe
+  i1 = APUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe",
+                  "\" model exists; overwrite ? \"",
+                  "NO",
+                  "YES",
+                  NULL);
+  if(i1 < 0) return -1;
+    printf(" f-APUI__ |%s|\n",s2);
+             
   // yes confirm overwrite
-  if(strlen(s2) < 1) return -1;
+  i1 = strlen(s2);
+  if(i1 < 1) return -1;
   if(s2[0] != '1') return -1;
 
   return irc;
@@ -447,7 +397,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 ///   filNam     full filename or "." of default-directory/file(active directory)
 ///   fSiz       max size of filNam in bytes
 ///   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
-///   filterI    NULL or filtertext; eg "*.c";
+///   filterI    NULL or filtertext; eg "*.c" (enclosed in \" else expands !)
 ///   sTit       title
 /// Output:
 ///   filNam     full filename of selected file
@@ -464,63 +414,22 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 
   int      irc;
-  char     s1[512], s2[400], sEnam[256];
+  char     sEnam[256];
 
 
-  printf("GUI_file_open__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,filterI,sTit);
-
-  // exe  = /p2/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_open
-  // symDirNam = /p2/fwork/devel/gcad3d/gCAD3D/cfg/dir.lst
-
-  // get full filename for GUI_executable
-  irc = GUI_exe_get (sEnam, "GUI_file");
-
-//   // set s2 = symDirNam
-//   sprintf(s2,"%sdir.lst",OS_get_cfg_dir());
-
-//   // add filterText as parameter
-//   if(strlen(filterI) > 2) {
-//     sprintf(s3,"'%s'",filterI);
-//   } else{
-//     strcpy (s3, "NONE");
-//   }
+  printf("GUI_file_open__ |%s|%s|%s|\n",dirLst,filterI,sTit);
+  printf("  fSiz=%d filNam |%s|\n",fSiz,filNam);
 
 
-  // set s1 = exeNam <binDir>/GUI_file_open_gtk<VersMaj>
-  // filNam = directory
-  // s2 = symDirNam
-  // S3 = filter
-
-
-  // test if exe exists
-  if(!OS_checkFilExist(sEnam,1)) {
-    TX_Print("**** file %s does not exist ..", sEnam);
-    return -1;
-  }
-
-
-
-// TODO: test overrun s1
-#ifdef _MSC_VER
-  sprintf(s1,"START /B /WAIT \"\" \"%s\" open %s %s \"%s\" \"%s\"",
-          sEnam, filNam, dirLst, filterI, sTit);
-#else
-  sprintf(s1,"%s open %s %s \"%s\" \"%s\"",
-          sEnam, filNam, dirLst, filterI, sTit);
-#endif
-    printf(" _file_open-s1 |%s|\n",s1);
-
-  // disp fileList; get user-selection
-  irc = OS_sys1 (filNam, fSiz, s1);
-  if(irc < 0) {printf("***** symdir__ - Error OS_sys1 %d\n",irc); return -1;}
-  UTX_CleanCR (filNam);
-    printf(" ex-_OS_sys1-1 |%s|\n",filNam);
-
-
-  // view mainwindow
-  // GUI_set_show (&winMain, 1);
-  // GUI_set_enable (NULL, 1);
-
+    // call GUI_file/save
+  irc = APUI__ (filNam, fSiz, "GUI_file", "open",
+                   filNam,
+                   dirLst,
+                   filterI,
+                   sTit,
+                   NULL);
+  if(irc < 0) return -1;
+    printf("ex-GUI_file_open__  |%s|\n",filNam);
 
   return irc;
 
@@ -1068,8 +977,6 @@ char*   GUI_Win_tit     (void *gtkWin);
   return UMB_free (mo->mbID);
 
 }
-
-
 
 
 //========================================================

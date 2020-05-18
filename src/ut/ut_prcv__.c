@@ -48,7 +48,7 @@ APT_DrawCurv
   GR_DrawCvPol UT3D_pta_plg
   GR_DrawCvEll UT3D_npt_ell
   GR_DrawCvClot UT3D_npt_clot
-  GR_DrawCvCCV UT3D_pta_ox_lim
+  GR_set_ccv UT3D_pta_ox_lim
            
 
 
@@ -172,7 +172,7 @@ PRCV0 is used for:
 #include "../ut/ut_prcv__.h"              // 
 #include "../ut/ut_os.h"                  // OS_ ..
 #include "../db/ut_DB.h"                  // DB_GetObjDat
-
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa_mem.h"                 // memspc*
 
 
@@ -1859,8 +1859,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
     // display
     if(mode == 1) {
-      APT_disp_SymB (SYM_TRI_S, iatt, &prc->npt[i1]);
-      if(prc->nipt[i1]) GR_Disp_txi (&prc->npt[i1], i1, 0);
+      // APT_disp_SymB (SYM_TRI_S, iatt, &prc->npt[i1]);
+      GR_tDyn_symB (&prc->npt[i1], SYM_TRI_S, iatt);
+      if(prc->nipt[i1]) GR_tDyn_txiA (&prc->npt[i1], i1, 0);
     }
 
   }
@@ -1874,7 +1875,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int PRCV_mtpt_trmCv (MemTab(Point) *mtpa, CurvCCV *ccv1) {
 //============================================================================
 // PRCV_npt_trmCv        add polygon of trimmedCurve into MemTab(Point)
-// see UT3D_npt_obj GR_DrawCvCCV UTO_cv_cvtrm
+// see UT3D_npt_obj GR_set_ccv UTO_cv_cvtrm
 // Input:
 //   ccv1
 // Output:
@@ -1924,7 +1925,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // TESTBLOCK
     // DEB_dump_obj__ (Typ_MemTab, mtpa, " ex-PRCV_mtpt_trmCv");
     // DEB_dump_nobj__ (Typ_PT, *ptNr, pta, "ex-PRCV_npt_trmCv");
-    // GR_Disp_pTab (*ptNr, *pta, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (*ptNr, *pta, SYM_STAR_S, 2);
     // END TESTBLOCK
 
   return irc;
@@ -1936,7 +1937,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int PRCV_npt_trmCv (Point *pta, int *ptNr, CurvCCV *ccv1) {
 //============================================================================
 // PRCV_npt_trmCv        get polygon of trimmedCurve.
-// see UT3D_npt_obj GR_DrawCvCCV UTO_cv_cvtrm
+// see UT3D_npt_obj GR_set_ccv UTO_cv_cvtrm
 // Input:
 //   ccv1
 // Output:
@@ -1971,7 +1972,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
       // TESTBLOCK
       // DEB_dump_nobj__ (Typ_PT, *ptNr, pta, "ex-PRCV_npt_trmCv");
-      // GR_Disp_pTab (*ptNr, *pta, SYM_STAR_S, 2);
+      // GR_tDyn_npt__ (*ptNr, *pta, SYM_STAR_S, 2);
       // END TESTBLOCK
 
   return irc;
@@ -2068,8 +2069,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
 
     // TESTBLOCK
-    // GR_Disp_cv (pta, ptNr, 11);
-    GR_Disp_npti (ptNr, pta, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_pcv (pta, ptNr, 11);
+    GR_tDyn_npti (ptNr, pta, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
     // END TESTBLOCK
 
   return 0;
@@ -2088,9 +2089,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   att = 11;  // see ~/gCAD3D/cfg/ltyp.rc
 
-  GR_Disp_cv (prc->npt, prc->ptNr, att);
+  GR_tDyn_pcv (prc->npt, prc->ptNr, att);
 
-  // GR_Disp_npti (prc->ptNr, prc->npt, SYM_TRI_S, ATT_COL_RED, ATT_COL_RED);
+  // GR_tDyn_npti (prc->ptNr, prc->npt, SYM_TRI_S, ATT_COL_RED, ATT_COL_RED);
 
   return 0;
 

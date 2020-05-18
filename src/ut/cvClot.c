@@ -77,7 +77,7 @@ List_functions_end:
   clot.lr  = 0;
   DEB_dump_obj__ (Typ_CVCLOT, &clot, "clot=");
   UT3D_npt_clot (pTab, &ptNr, Typ_CVCLOT, &clot, 0.01);
-    GR_Disp_cv (pTab, ptNr, 9);
+    GR_tDyn_pcv (pTab, ptNr, 9);
 
 
 
@@ -168,7 +168,7 @@ ctags -f ucv.tag ucv.c
   if(pto) *pto = pt1;
 
     // GR_Disp_pt (pto, SYM_STAR_S, 1);
-    // if(mode == 1) GR_Disp_vc (vco, pto, 9, 0);
+    // if(mode == 1) GR_tDyn_vc (vco, pto, 9, 0);
 
   return irc;
 
@@ -662,7 +662,7 @@ L_InErr:
     UT3D_pt_tra_pt_m3 (&pTab[i1], mc, &pTab[i1]);
       // GR_Disp_pt2 (&pTab[i1], SYM_STAR_S, 0);
   }
-    // GR_Disp_cv (pTab, i2, 9);
+    // GR_tDyn_pcv (pTab, i2, 9);
 
 
   *ptNr = i2;

@@ -36,6 +36,9 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+First time build plugin with:
+. ../options.sh && make -f DemoPlugin_Create.mak
+
 Compile/Link/Reload is done while gCad3D is up and running !!
 
 
@@ -110,38 +113,104 @@ char myMemspc[50000];
   printf("gCad_main aus DemoPlugin_Create\n");
 
 
-  // Message ans MainWin
+  // Message into mesaagewindow (bottom)
   TX_Print("gCad_main aus DemoPlugin_Create\n");
 
 
   // Gesamtes File loeschen
-  UI_men__ ("new");
+  // UI_men__ ("new");
 
-  AP_obj_2_txt (NULL, 0L, NULL, 0L);     // Init Objektindexe
+  // AP_obj_2_txt (NULL, 0L, NULL, 0L);     // Init Objektindexe
 
 
+  //================================================================
   // Create permanent objects:
-  cre_3 ();      // Line Circ Curv Note
+  // cre_3 ();      // Line Circ Curv Note
 
-  // create dynamic (visible, but not in DB):
-  cre_4 ();      // symbols
-  cre_5_1 ();    // (temporary) objs
-  cre_5_2 ();    // Ditto
-  cre_5_3 ();    // text
 
-  cre_6 ();      // ruled surfaces
-  cre_7 ();      // revolved surfaces (perm)
-  cre_8 ();      // tesselated surfaces
-  cre_9 ();      // planare surf; trimmed / perforated
 
-  cre_10();      // TestDisplayfunktions (_Disp_)
 
-  // // Redraw DispList
-  // DL_Redraw ();
 
-  UI_GR_ScalAuto (0);  // rescale all
+  //================================================================
+  // create dynamic objects (not stored in DB, but visible, can move, zoom ..)
+  // - cannot be found by "Scale All"
+  // - Rework ("END") will delete these objects
+
+  cre_dyn_1 ();  // point, line, circ, polygon, b-spline surf-planar
+
+  // cre_4 ();      // symbols
+  // cre_5_1 ();    // (temporary) objs
+  // cre_5_2 ();    // Ditto
+  // cre_5_3 ();    // text
+
+  // cre_6 ();      // ruled surfaces
+  // cre_7 ();      // revolved surfaces (perm)
+  // cre_8 ();      // tesselated surfaces
+  // cre_9 ();      // planare surf; trimmed / perforated
+
+  // cre_10();      // TestDisplayfunktions (_Disp_)
+
+  // Redraw DispList
+  DL_Redraw ();
+
+  // UI_GR_ScalAuto (0);  // rescale all
 
   gCad_fini ();        // exit & reset
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_dyn_1 () {
+//================================================================
+
+  int    i1;
+  Point  pt1;
+  Line   ln1;
+  Vector v1;
+  Point  pp1[]={60.,30., 0.,   65.,30., 0.,
+                65.,40., 0.,   60.,40., 0.,   60.,30., 0.};
+
+
+  // display point pp1[0];
+  // for parameters see GR_Disp_pt (use tagfiles - vi ctrl-r)
+  UT3D_pt_3db (&pt1, 60., 20., 10.);
+  GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_CYAN);
+
+
+  // disp line
+  UT3D_pt_3db (&ln1.p1, 100.,   0.,   0.);
+  UT3D_pt_3db (&ln1.p2, 100., 100.,   0.);
+  GR_tDyn_ln (&ln1, Typ_Att_hili);
+
+
+
+
+
+
+  // display points pp1 with symbols
+  // GR_tDyn_npt__ (5, pp1, SYM_TRI_S, ATT_COL_RED);
+
+
+  // display numbers at points of pp1
+  // for(i1=0; i1<4; ++i1) GR_tDyn_txiA (&pp1[i1], i1, 0);
+
+
+  // display curve
+  GR_tDyn_pcv (pp1, 5, Typ_Att_blue);
+
+
+//   // display vector
+//   UT3D_pt_mid2pt (&pt1, &pp1[0], &pp1[2]);
+//   AP_Get_ConstPl_vz (&v1);
+//   GR_tDyn_vc (&v1, &pt1, Typ_Att_Symb, 0); // 0="normiert", 1=wahre Groesse
+
+
+  // display surf - planar - unperforated
+  // GR_Disp_spu (5, pp1, Typ_Att_dash_long);
+
 
   return 0;
 
@@ -293,67 +362,6 @@ char myMemspc[50000];
 
 
 //=========================================================
-  int cre_4 () {
-//=========================================================
-// create dynamic objects
-// Rework ("END") will delete these objects !!
-// Overlaymodels (=permanent dynamic objects) not yet implemented.
-
-
-  long   l1;
-  Point2 pt21, pt22;
-  Point  pt1,  pt2, pt3;
-  Vector vc1;
-
-
-
-  // bitmap symbols: SYM_TRI_S SYM_STAR_S SYM_SQU_B
-  // att: att=0=Def, 1=sw, 2=rot, 4=bl.
-  UT3D_pt_3db (&pt1, 200., 200., 50.); APT_disp_SymB (SYM_TRI_S,  0, &pt1);
-  UT3D_pt_3db (&pt1, 200., 250., 50.); APT_disp_SymB (SYM_SQU_B,  1, &pt1);
-  UT3D_pt_3db (&pt1, 200., 300., 50.); APT_disp_SymB (SYM_STAR_S, 2, &pt1);
-
-
-
-
-  // scaled symbols: SYM_TRIANG SYM_SQUARE SYM_CROSS SYM_CROSS1
-  UT3D_pt_3db (&pt1,200.,200.,0.); APT_disp_SymV1 (SYM_TRIANG, 1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,250.,0.); APT_disp_SymV1 (SYM_SQUARE, 1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,300.,0.); APT_disp_SymV1 (SYM_PLANE,  1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,350.,0.); APT_disp_SymV1 (SYM_CROSS,  1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,400.,0.); APT_disp_SymV1 (SYM_CROSS1, 1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,450.,0.); APT_disp_SymV1 (SYM_AXIS,   1, &pt1, 1.);
-  UT3D_pt_3db (&pt1,200.,500.,0.); APT_disp_SymV1 (SYM_AXIS1,  1, &pt1, 1.);
-
-
-  // scaled oriented symbols: SYM_ARROH (arrowheads)
-  UT3D_pt_3db (&pt1, 300., 200., 0.);
-  UT3D_pt_3db (&pt2, 350., 250., 0.);
-  UT3D_pt_mid2pt (&pt3, &pt1, &pt2);
-
-  APT_disp_SymV2 (SYM_ARROH, 1, &pt1, &pt2, 1.);  // head only at pt1 !
-  APT_disp_SymV2 (SYM_ARROH, 1, &pt2, &pt1, 1.);  // head only at pt2 !
-
-  APT_disp_SymV3 (SYM_ARROW, 2, &pt1, &UT3D_VECTOR_Z, 10.);  // arrow
-  APT_disp_SymV3 (SYM_ARROW, 2, &pt2, &UT3D_VECTOR_Z, 10.);  // arrow
-  // 3D-Arrowhead
-  APT_disp_SymV3 (SYM_ARRO3H, Typ_Att_Symb, &pt3, &UT3D_VECTOR_Z, 1.);
-
-
-  // 3D-Plane
-  UT3D_pt_3db (&pt1, 350., 600., 100.);
-  UT3D_vc_3db (&vc1,   0.,  0.75,  0.75);
-  APT_disp_SymB (SYM_STAR_S,  1, &pt1);
-  APT_disp_SymV3 (SYM_SQUARE, 1, &pt1, &vc1, 1.);  // arrow
-
-
-
-  return 0;
-
-}
-
-
-//=========================================================
   int cre_5_1 () {
 //=========================================================
 // create dynamic objects (not stored in DB, but visible, can move, zoom ..)
@@ -372,12 +380,13 @@ char myMemspc[50000];
 
 
   UT3D_pt_3db (&pt1, 100.,   0.,   0.);
-  GR_CrePoint (&id1, 0, &pt1);
+  // GR_CrePoint (&id1, 0, &pt1);
+  GR_tDyn_pt (&pt1, ATT_PT_HILI);
 
 
   UT3D_pt_3db (&ln1.p1, 100.,   0.,   0.);
   UT3D_pt_3db (&ln1.p2, 100., 100.,   0.);
-  ++id1; GR_CreLine (&id1, 1, &ln1);
+  ++id1; AP_add_ln (&id1, 1, &ln1);
 
 
 
@@ -387,8 +396,9 @@ char myMemspc[50000];
   UT3D_vc_3db (&ci1.vz,   0.,   -1.,   0.);
   ci1.rad  = 100.;
   ci1.ango = UT3D_angr_ci_p1_pt (&ci1, &ci1.p2);  // MUST provide opening angle !
-  id1=0; GR_CreCirc (&id1, Typ_Att_blue, &ci1);
-  printf(" circ %ld\n",id1);
+  // id1=0; GR_CreCirc (&id1, Typ_Att_blue, &ci1);
+  GR_tDyn_ocv (Typ_CI, &ci1, 0L, Typ_Att_blue);
+    // printf(" circ %ld\n",id1);
 
 
   return 0;
@@ -412,20 +422,20 @@ char myMemspc[50000];
   dit1.ind = GL_Get_DLind();
 
 
-  // create attrib 
+  // create new attribute 
   // (AttNr, col(2=r,3=g,4=b),typ(0=voll,1=-.,2=- -, 3=--),thick(1-6))
   DL_InitAttRec (20,    4, 2, 3);  // att 20 = blue, strichl, thick3
 
 
 
-  id1 = -1L;    // temp. elem.
 
   // polygon
   UT3D_pt_3db (&pa[0], 100.,  200.,   0.);
   UT3D_pt_3db (&pa[1], 100.,  250.,   0.);
   UT3D_pt_3db (&pa[2], 100.,  250., 100.);
   UT3D_pt_3db (&pa[3], 100.,  200., 100.);
-  GR_CrePoly (&id1, 20, 4, &pa);
+  // GR_CrePoly (&id1, 20, 4, &pa);
+  GR_tDyn_pcv (pa, 4, Typ_Att_Symb);
 
   DL_hide__ (GL_GetActInd(), OFF);         // hide last created Obj
 
@@ -437,40 +447,11 @@ char myMemspc[50000];
 
   // ditto (pos, rotAng, mirror, ditto)
   // mirror: no=' ', 'X'=X-Z-plane, 'Y'=Y-Z-plane
-  ++id1; GR_CreDitto2 (&id1, &pt1,  0., ' ', &dit1);
-  ++id1; GR_CreDitto2 (&id1, &pt1, 30., 'X', &dit1);
-  ++id1; GR_CreDitto2 (&id1, &pt1, 60., 'X', &dit1);
-  ++id1; GR_CreDitto2 (&id1, &pt1, 90., ' ', &dit1);
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int cre_5_3 () {
-//=========================================================
-// create dynamic text
-
-  long    id1;
-  Point   pt1;
-
-
-  printf("cre_5_3\n");
-
-
   id1 = -1L;    // temp. elem.
-
-
-  // bitmap text: (ID, att, pt, text)
-  UT3D_pt_3db (&pt1, 200.,   0.,   0.);
-  GR_CreTxtA (&id1, Typ_Att_Symb, &pt1, "abc");
-
-
-  // scaled rotated text: (ID, att, pt, scale, dir, text)
-  UT3D_pt_3db (&pt1, 200.,  50.,   0.);
-  GR_CreTxtG (&id1, 1, &pt1, 15., 90., "--->>>");
-
+//   ++id1; GR_CreDitto2 (&id1, &pt1,  0., ' ', &dit1);
+//   ++id1; GR_CreDitto2 (&id1, &pt1, 30., 'X', &dit1);
+//   ++id1; GR_CreDitto2 (&id1, &pt1, 60., 'X', &dit1);
+//   ++id1; GR_CreDitto2 (&id1, &pt1, 90., ' ', &dit1);
 
   return 0;
 
@@ -507,7 +488,7 @@ char myMemspc[50000];
   OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
 
   // draw ruled surf
-  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
+  // TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -527,7 +508,7 @@ char myMemspc[50000];
     // DEB_dump_ox_s_ (&os, "SURRU ln+ln:");
 
   // display
-  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
+  // TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -550,7 +531,7 @@ char myMemspc[50000];
 
   // ruled obj from line & circ
   OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
-  TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
+  // TSU_DrawSurT_ (&os, Typ_Att_dash_long, 0L);
 
 
 
@@ -768,7 +749,7 @@ char myMemspc[50000];
   il = DL_StoreObj (Typ_SUR, 20L, Typ_Att_dash_long);  // identifier 20
   // DEB_dump_ox_s_ (&gSur, "sur-tess:");
   // DEB_dump_ox_0 (&gSur, "sur-tess:");
-  GL_DrawSur (&il, Typ_Att_dash_long, &gSur);
+  GL_set_sur_tess (&gSur, Typ_Att_dash_long);
 
 
   return 0;
@@ -837,7 +818,7 @@ char myMemspc[50000];
   ids = DB_QueryNxtFree(Typ_SUR, 1);
   irc = DB_StoreSur (&ids, &os);
 
-  TSU_DrawSurT_ (&os, Typ_Att_dash_long, ids);
+  // TSU_DrawSurT_ (&os, Typ_Att_dash_long, ids);
   
   return 0;
 
@@ -858,21 +839,21 @@ char myMemspc[50000];
 
 
   // display points with symbols
-  GR_Disp_pTab (5, pp1, SYM_TRI_S, 2);
+  GR_tDyn_npt__ (5, pp1, SYM_TRI_S, 2);
 
 
   // display numbers at points
-  for(i1=0; i1<4; ++i1) GR_Disp_txi (&pp1[i1], i1, 0);
+  for(i1=0; i1<4; ++i1) GR_tDyn_txiA (&pp1[i1], i1, 0);
 
 
   // display curve
-  GR_Disp_cv (pp1, 5, 2);
+  GR_tDyn_pcv (pp1, 5, 2);
 
   
-  // display vector
-  UT3D_pt_mid2pt (&pt1, &pp1[0], &pp1[2]);
-  AP_Get_ConstPl_vz (&v1);
-  GR_Disp_vc (&v1, &pt1, 2, 0); // 0="normiert", 1=wahre Groesse
+//   // display vector
+//   UT3D_pt_mid2pt (&pt1, &pp1[0], &pp1[2]);
+//   AP_Get_ConstPl_vz (&v1);
+//   GR_tDyn_vc (&v1, &pt1, 2, 0); // 0="normiert", 1=wahre Groesse
 
 
   // display surf - planar - unperforated

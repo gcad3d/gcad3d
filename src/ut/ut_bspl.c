@@ -814,7 +814,7 @@ once again, with U/V changed.
   ii = cv1Nr / 2;
   pTab = cv1tab[ii]->cpTab;
   UT3D_vc_2pt (&vc1, &pTab[0], &pTab[1]);
-    // GR_Disp_vc (&vc1, &pTab[0], 9, 0);
+    // GR_tDyn_vc (&vc1, &pTab[0], 9, 0);
     // DEB_dump_obj__ (Typ_VC, &vc1, "  curv=%d VC-p0-p1",ii);
 
 
@@ -826,7 +826,7 @@ once again, with U/V changed.
     pTab = cv1tab[i1]->cpTab;
     ii = cv1tab[i1]->ptNr - 1;
     UT3D_vc_2pt (&vc2, &pTab[0], &pTab[ii]);
-      // GR_Disp_vc (&vc2, &pTab[0], 9, 0);
+      // GR_tDyn_vc (&vc2, &pTab[0], 9, 0);
       // DEB_dump_obj__ (Typ_VC, &vc2, "  curv=%d VC-p0-p1",i1);
     // skip points
     if(UT3D_compvcNull(&vc2)) continue;
@@ -1322,7 +1322,7 @@ once again, with U/V changed.
       // get multiline for all oxi-records
       irc = UT3D_pta_ox_lim (&ptNr, pta, ox1, 0, NULL, UT_DISP_cv, 0);
       if(irc < 0) {TX_Error ("UT3D_cbsp_ox E1-%d",oTyp); return -1;}
-        // GR_Disp_pTab (ptNr, pta, SYM_TRI_S, ATT_COL_RED);
+        // GR_tDyn_npt__ (ptNr, pta, SYM_TRI_S, ATT_COL_RED);
       // release unused space in tmpSeg
       UME_reserve (tmpSeg, sizeof(Point) * ptNr);
       // recurse
@@ -1446,7 +1446,7 @@ once again, with U/V changed.
 
   // umwandeln in normales Polygon
   UT3D_cv_ci (pTab, &ptNr, ci1, ptmax, UT_DISP_cv);
-    // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 9);
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 9);
 
   // update tmpSeg
   UME_add (tmpSeg, sizeof(Point) * ptNr);
@@ -1585,7 +1585,7 @@ once again, with U/V changed.
   if(ptNr > ptmax) goto L_e1;
   UT3D_npt_ell (&ptNr, pTab, el1);
   // UT3D_cv_ell (pTab, &ptNr, el1, ptmax, UT_DISP_cv);
-    // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 9);
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 9);
 
   // update tmpSeg
   UME_add (tmpSeg, sizeof(Point) * ptNr);
@@ -1640,8 +1640,8 @@ once again, with U/V changed.
 
   UT3D_vc_setLength (&v2, &v2, 1.);
   UT3D_vc_setLength (&v3, &v3, 1.);
-      // GR_Disp_vc (&v2, &bsp1->cpTab[0], 11, 0);
-      // GR_Disp_vc (&v3, &bsp1->cpTab[1], 11, 0);
+      // GR_tDyn_vc (&v2, &bsp1->cpTab[0], 11, 0);
+      // GR_tDyn_vc (&v3, &bsp1->cpTab[1], 11, 0);
 
 
   for(i1=3; i1<bsp1->ptNr; ++i1) {
@@ -1652,7 +1652,7 @@ once again, with U/V changed.
     v2 = v3;
     UT3D_vc_2pt (&v3, &bsp1->cpTab[i1-1], &bsp1->cpTab[i1]);
     UT3D_vc_setLength (&v3, &v3, 1.);
-      // GR_Disp_vc (&v3, &bsp1->cpTab[i1-1], 12, 0);
+      // GR_tDyn_vc (&v3, &bsp1->cpTab[i1-1], 12, 0);
 
     // skip test wenn v1-v2 parallel
     if(UT3D_vc_ck_parl_vc(&v1, &v2, RAD_1) == 1) continue;
@@ -1660,8 +1660,8 @@ once again, with U/V changed.
     // die 2 Kreuzprodukte bilden
     UT3D_vc_perp2vc (&v4, &v1, &v2);
     UT3D_vc_perp2vc (&v5, &v2, &v3);
-      // GR_Disp_vc (&v4, &bsp1->cpTab[i1-2], 11, 0);
-      // GR_Disp_vc (&v5, &bsp1->cpTab[i1-1], 11, 0);
+      // GR_tDyn_vc (&v4, &bsp1->cpTab[i1-2], 11, 0);
+      // GR_tDyn_vc (&v5, &bsp1->cpTab[i1-1], 11, 0);
 
     // Winkelunterschied der beiden Vektoren;
     // bei mehr als 90 Grad Differenz: Wendepunkt.
@@ -2141,7 +2141,7 @@ Returncode:
   for (i1=0; i1<bezTab.siz; ++i1) {
     // printf(" >>>>>>>>>>>>>>>>>> test bcvtab[%d]\n",i1);
 
-      // GR_Disp_bez (&bcvtab[i1], 7, memSeg1);
+      // GR_tDyn_bez (&bcvtab[i1], 7, memSeg1);
     
     ptxNr = 0;
     irc = UT3D_pt_intlnbcv (&ptxNr, pTab1, UT_BEZDEG_MAX,
@@ -2221,7 +2221,7 @@ Returncode:
   memPos1 = memSeg1->next;   // merken; ab hier nur tempData
 
     // nur Test:
-    // GR_Disp_bez (&bcvtab[0], 2, memSeg1);
+    // GR_tDyn_bez (&bcvtab[0], 2, memSeg1);
     // *pNr = pSiz;
     // UT3D_pt_intplbez (pNr, pa, pln, &bcvtab[2], memSeg1, tol);
     // goto Fertig;
@@ -2232,7 +2232,7 @@ Returncode:
   // Loop durch die BezCurves
   for (i1=0; i1<bezTab.siz; ++i1) {
 
-    // GR_Disp_bez (&bcvtab[i1], 2, memSeg1);
+    // GR_tDyn_bez (&bcvtab[i1], 2, memSeg1);
 
     // Schnittpunkte Plane / Beziersegment errechnen
     // see UT3D_pt_intlnbcv UT3D_pt_projptbez UT3D_pt_int2bcv ..
@@ -2252,7 +2252,7 @@ Returncode:
   memSeg1->next = memPos0;
 
 
-  // GR_Disp_pTab (*pNr, pa, SYM_STAR_S, 2);
+  // GR_tDyn_npt__ (*pNr, pa, SYM_STAR_S, 2);
 
   return 0;
 
@@ -3574,7 +3574,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   // DEB_dump_obj__ (Typ_CVBSP, cv1, "");
   // ptMax=50; // TEST ONLY
   // for(i1=0;i1<cv1->ptNr;++i1) {
-    // pTab[i1]=cv1->cpTab[i1]; GR_Disp_txi (&pTab[i1], i1, 2); }
+    // pTab[i1]=cv1->cpTab[i1]; GR_tDyn_txiA (&pTab[i1], i1, 2); }
    // *ptNr = cv1->ptNr; return 0;
   //----------------------------------------------------------------
  
@@ -4604,7 +4604,7 @@ GOBACK:
 
   // Tangente holen
   UT3D_vc_evalparCv (&vct, bspl, u0);
-    // GR_Disp_vc (&vct, p1, 9, 0);
+    // GR_tDyn_vc (&vct, p1, 9, 0);
 
   // project Point --> tangente
   UT3D_pt_projptptvc (po, &d1, NULL, p0, p1, &vct);
@@ -5034,7 +5034,7 @@ GOBACK:
   pt2 = UTRA_pt_rel2abs__ (&pt1);
   // set vco = ptb -> ptt
   UT3D_vc_2pt (vco, ptb, &pt2);
-    // GR_Disp_vc (vco, ptb, 9, 1);
+    // GR_tDyn_vc (vco, ptb, 9, 1);
 
   return 0;
 

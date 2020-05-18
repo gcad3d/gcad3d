@@ -366,7 +366,7 @@ List_functions_end:
 
   // line 3D->2D
   UT2D_ln_tra_ln3_rsys (&ln2Bot, lnx, &rsBot);
-    // GR_Disp_ln2 (&ln2Bot.p1, &ln2Bot.p2, 9);
+    // GR_tDyn_ln2_2pt (&ln2Bot.p1, &ln2Bot.p2, 9);
 
   // intersect 2D
   irc = UT2D_2pt_par_int_ln_ci (ipa, pt2a, para, NULL, &ln2Bot, &ci2Bot, &tolcv);
@@ -546,7 +546,7 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
 //   RetCod:
 
 // see APT_iso_cktypSRV
-// see GL_sSym_srv           draw symbolic display of RevolvedSurface
+// see GR_sSym_srv           draw symbolic display of RevolvedSurface
 
 
   int      irc, i1, typ1, typ2, sDir, rNr;

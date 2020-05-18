@@ -1189,9 +1189,9 @@ L_outOfWorkSpace:
     printf(" kV von %f bis %f\n",vMin,vMax);
 
   // das PrimaerGrid darstellen
-  GR_Disp_pTab (uNr, pTab, SYM_TRI_S, 1);
-  GR_Disp_pTab (uNr, &pTab[uNr], SYM_TRI_S, 2);
-  GR_Disp_pTab (uNr, &pTab[uNr*2], SYM_TRI_S, 3);
+  GR_tDyn_npt__ (uNr, pTab, SYM_TRI_S, 1);
+  GR_tDyn_npt__ (uNr, &pTab[uNr], SYM_TRI_S, 2);
+  GR_tDyn_npt__ (uNr, &pTab[uNr*2], SYM_TRI_S, 3);
   //==== TESTAUSG: ================================
 */
 
@@ -1289,11 +1289,11 @@ L_outOfWorkSpace:
 
 
   //------ Disp new rectangle
-  // GR_Disp_cv (pa, 4, 2);
-  // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);  GR_Disp_tx(&pa[0], " 0", 2);
-  // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);  GR_Disp_tx(&pa[1], " 1", 2);
-  // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);  GR_Disp_tx(&pa[2], " 2", 2);
-  // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);  GR_Disp_tx(&pa[3], " 3", 2);
+  // GR_tDyn_pcv (pa, 4, 2);
+  // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[0], " 0", 2);
+  // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[1], " 1", 2);
+  // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[2], " 2", 2);
+  // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[3], " 3", 2);
   // return -1;
   //------
 
@@ -1462,26 +1462,26 @@ L_outOfWorkSpace:
   v0 = vc - dv;
   UT3D_pt_evparsbsp (&pa[0], sbs, u0, v0, wrkSpc);
     // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[0], "0", 2);
+    // GR_tDyn_txtA(&pa[0], "0", 2);
 
   u1 = uc + du;
   v1 = vc - dv;
   UT3D_pt_evparsbsp (&pa[1], sbs, u1, v1, wrkSpc);
     // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[1], "1", 2);
+    // GR_tDyn_txtA(&pa[1], "1", 2);
 
   u2 = uc + du;
   v2 = vc + dv;
   UT3D_pt_evparsbsp (&pa[2], sbs, u2, v2, wrkSpc);
     // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[2], "2", 2);
+    // GR_tDyn_txtA(&pa[2], "2", 2);
 
   u3 = uc - du;
   v3 = vc + dv;
   UT3D_pt_evparsbsp (&pa[3], sbs, u3, v3, wrkSpc);
     // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);
-    // GR_Disp_tx(&pa[3], "3", 2);
-    // GR_Disp_cv (pa, 4, 3);
+    // GR_tDyn_txtA(&pa[3], "3", 2);
+    // GR_tDyn_pcv (pa, 4, 3);
 
 
   if(iloop < 16) goto L_next_try;  // Anzahl Versuche Defaul=100
@@ -1551,7 +1551,7 @@ L_outOfWorkSpace:
   // Tangente in p=pu
   if(iDir < 2) {
     UT3D_vc_evalparCv (&vtv, &bspl, pv);
-      // GR_Disp_vc (&vtv, pto, 1, 0);
+      // GR_tDyn_vc (&vtv, pto, 1, 0);
       // DEB_dump_obj__ (Typ_VC, &vtv, "  vcv:");
 
     if(iDir == 1) {
@@ -1573,7 +1573,7 @@ L_outOfWorkSpace:
 
   // Tangente in p=pu
   UT3D_vc_evalparCv (&vtu, &bspl, pu);
-    // GR_Disp_vc (&vtu, &pt1, 1, 0);
+    // GR_tDyn_vc (&vtu, &pt1, 1, 0);
     // DEB_dump_obj__ (Typ_VC, &vtu, "  vcu:");
 
   if(iDir == 2) {
@@ -1586,7 +1586,7 @@ L_outOfWorkSpace:
   // Normalvektor auf die Tangenten
   UT3D_vc_perp2vc (vn, &vtu, &vtv);
   UT3D_vc_setLength (vn, vn, 1.);
-    // GR_Disp_vc (vn, pto, 0, 0);
+    // GR_tDyn_vc (vn, pto, 0, 0);
     // DEB_dump_obj__ (Typ_VC, vn, "  vn:");
 
 
@@ -1745,7 +1745,7 @@ L_outOfWorkSpace:
                        Memspc *wrkSeg) {
 //================================================================
 // UT3D_cv_sbspout           outline (polygon) of B-SplSurf
-// see GL_sSym_sbsp
+// see GR_sSym_sbsp
 
   int       i1, p1Nr, pMax;
   CurvBSpl  cv1;
@@ -1764,7 +1764,7 @@ L_outOfWorkSpace:
 
   // CurvRBSpl -> polygon
   i1 = bspl_pol_bsp (&p1Nr, pTab, &cv1, pMax, UT_DISP_cv/3.);
-    // GR_Disp_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
   if(i1 < 0) return -1;
   pTab = &pTab[p1Nr];
   pMax -= p1Nr;
@@ -1779,7 +1779,7 @@ L_outOfWorkSpace:
 
   // CurvRBSpl -> polygon
   i1 = bspl_pol_bsp (&p1Nr, pTab, &cv1, pMax, UT_DISP_cv/3.);
-    // GR_Disp_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
   if(i1 < 0) return -1;
   pTab = &pTab[p1Nr];
   pMax -= p1Nr;
@@ -1799,7 +1799,7 @@ L_outOfWorkSpace:
   i1 = bspl_pol_bsp (&p1Nr, pTab, &cv1, pMax, UT_DISP_cv/3.);
   if(i1 < 0) return -1;
   UT3D_cv_inv (p1Nr, pTab); //change dir
-    // GR_Disp_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
   pTab = &pTab[p1Nr];
   pMax -= p1Nr;
   *pNr += p1Nr;
@@ -1817,7 +1817,7 @@ L_outOfWorkSpace:
   i1 = bspl_pol_bsp (&p1Nr, pTab, &cv1, pMax, UT_DISP_cv/3.);
   if(i1 < 0) return -1;
   UT3D_cv_inv (p1Nr, pTab); //change dir
-    // GR_Disp_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (p1Nr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
   pTab = &pTab[p1Nr];
   pMax -= p1Nr;
   *pNr += p1Nr;
@@ -1872,7 +1872,7 @@ L_outOfWorkSpace:
 
 
     // printf("ex UT3D_cv_sbspU dv=%f ii=%d\n",dv,ii);
-    // GR_Disp_npti (pNr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (pNr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
 
   return 0;
 
@@ -1918,7 +1918,7 @@ L_outOfWorkSpace:
 
 
     // printf("ex UT3D_cv_sbspV du=%lf\n",du);
-    // GR_Disp_npti (pNr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
+    // GR_tDyn_npti (pNr, pTab, SYM_STAR_S, ATT_COL_RED, ATT_COL_YELLOW);
 
 
   return 0;

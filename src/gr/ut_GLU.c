@@ -2167,9 +2167,9 @@ static int ptOff;
 // Subfunctions:
 // mode = 0  init, ptNr ist Anzahl Patches
 // mode = 1  close record
-// mode = 2  add strip (used by GL_DrawStrip2)
-// mode = 3  add planaren fan (used by GL_DrawFan)
-// mode = 4  add nichtPlanaren fan (used by GL_DrawFan)
+// mode = 2  add strip (used by GL_set_strip2)
+// mode = 3  add planaren fan (used by GL_set_fan)
+// mode = 4  add nichtPlanaren fan (used by GL_set_fan)
 // mode = 5  add Color actCol
 // mode = 8  add Texture
 // mode = 6  add SurfaceTyp; typ=ptNr
@@ -2236,8 +2236,8 @@ static int ptOff;
   if(mode != 2) goto L_fan;
   // save a stripe (<ptNr> points in pa1 and in pa2) as a new patch
   // printf("GLT_stor_rec strip %d\n",ptNr);
-  // GR_Disp_pTab (ptNr, pa1, SYM_TRI_S, 3);
-  // GR_Disp_pTab (ptNr, pa2, SYM_TRI_S, 3);
+  // GR_tDyn_npt__ (ptNr, pa1, SYM_TRI_S, 3);
+  // GR_tDyn_npt__ (ptNr, pa2, SYM_TRI_S, 3);
 
 
   // start new Patch
@@ -2278,8 +2278,8 @@ static int ptOff;
   if(mode > 4) goto L_col;
   // add data
   // printf("GLT_stor_rec fan %d\n",ptNr);
-  // GR_Disp_pTab (1, pa1, SYM_TRI_S, 3);
-  // GR_Disp_pTab (ptNr, pa2, SYM_TRI_S, 3);
+  // GR_tDyn_npt__ (1, pa1, SYM_TRI_S, 3);
+  // GR_tDyn_npt__ (ptNr, pa2, SYM_TRI_S, 3);
 
 
   // start new Patch

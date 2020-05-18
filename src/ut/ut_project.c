@@ -404,7 +404,7 @@ static Vector prj_vc;      // projectionDirection
   // DEB_dump_obj__ (Typ_VC, v1, "UPRJ_app_vc:");
   // DEB_dump_obj__ (Typ_VC, &prj_vc, "  prj_vc:");
   // DEB_dump_obj__ (Typ_PLN, prj_tg, "  Plane:");
-  // GR_Disp_vc (v1, NULL, 8, 1);
+  // GR_tDyn_vc (v1, NULL, 8, 1);
 
 
   // intersect line-plane
@@ -417,7 +417,7 @@ static Vector prj_vc;      // projectionDirection
 
 
     // DEB_dump_obj__ (Typ_PT, &ptx, "  ptx:");
-    // GR_Disp_vc (v2, NULL, 9, 1);
+    // GR_tDyn_vc (v2, NULL, 9, 1);
     // DEB_dump_obj__ (Typ_VC, v2, "ex UPRJ_app_vc:");
 
   return 0;
@@ -498,7 +498,7 @@ static Vector prj_vc;      // projectionDirection
   e2->vz = ((Plane*)prj_tg)->vz;
   
     // DEB_dump_obj__ (Typ_CVELL, e2, "Ell=");
-    // GR_Disp_ell (e2, 9);
+    // GR_tDyn_ell (e2, 9);
 
   return Typ_CVELL;
 
@@ -517,8 +517,8 @@ static Vector prj_vc;      // projectionDirection
   Point    ph, p1, p2, p3, p4, pa, pb;
   Vector   *plvz, vr;
 
-      // GR_Disp_vc (&ei->va, &ei->pc, 7, 1);
-      // GR_Disp_vc (&ei->vb, &ei->pc, 7, 1);
+      // GR_tDyn_vc (&ei->va, &ei->pc, 7, 1);
+      // GR_tDyn_vc (&ei->vb, &ei->pc, 7, 1);
       // GR_Disp_pt (&ei->pc, SYM_STAR_S, ATT_COL_RED);
 
   // copy Elli; copy vz
@@ -600,18 +600,18 @@ static Vector prj_vc;      // projectionDirection
 
   // major-axis va = pc -> pb length da
   UT3D_vc_2ptlen (&eo->va, &eo->pc, &pb, da);
-    // GR_Disp_vc (&eo->va, &eo->pc, 5, 1);
+    // GR_tDyn_vc (&eo->va, &eo->pc, 5, 1);
 
   // minor-axis vb = pc -> pa length db
   UT3D_vc_2ptlen (&eo->vb, &eo->pc, &pa, db);
-    // GR_Disp_vc (&eo->vb, &eo->pc, 5, 1);
+    // GR_tDyn_vc (&eo->vb, &eo->pc, 5, 1);
 
 
   L_exit:
     // printf(" angr in  va-vb = %lf\n",UT3D_angr_2vc__(&ei->va,&ei->vb));
     // printf(" angr out va-vb = %lf\n",UT3D_angr_2vc__(&eo->va,&eo->vb));
     // DEB_dump_obj__ (Typ_CVELL, eo, "ex UPRJ_app_el:");
-    // GR_Disp_ell (eo, 9);
+    // GR_tDyn_ell (eo, 9);
 
   return 0;
 
@@ -634,7 +634,7 @@ static Vector prj_vc;      // projectionDirection
 
   pNr = cvi->ptNr;
   pa1 = cvi->cpTab;
-    // GR_Disp_pTab (pNr, pa1, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (pNr, pa1, SYM_STAR_S, 2);
 
 
   // reserve Space for pNr points in objSpc
@@ -710,7 +710,7 @@ static Vector prj_vc;      // projectionDirection
 
   pNr = cvi->ptNr;
   pa1 = cvi->cpTab;
-    // GR_Disp_pTab (i2, pa1, SYM_STAR_S, 2);
+    // GR_tDyn_npt__ (i2, pa1, SYM_STAR_S, 2);
 
 
   // reserve Space for pNr points in objSpc

@@ -202,7 +202,7 @@ Returncodes:
 
   // bounding box of bspline surface
   rc = UT3D_box_pts (&pmin, &pmax, cpNr, sur->cpTab);
-     // GR_Disp_box (&pmin, &pmax, 0);
+     // GR_tDyn_box__(&pmin, &pmax, 0);
   if (rc < 0) return -1;
 
   // check if line intersects bounding box

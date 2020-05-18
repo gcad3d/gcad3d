@@ -1067,7 +1067,7 @@ Typ_Model   // ModelReference
 //   SVG_tBuf   textouputbuffer
 //   SVG_tlNr   nr of lines in SVG_tBuf
 
-// specialCharacters: see GL_txt__
+// specialCharacters: see GL_set_txt__
 //   [+=plusMinus [g=Degree  [d=Diameter [n=newline
 //   [/=higher [\\=lower
 //   [0 bis [9 sind die Anzahl Nachkommastellen
@@ -1142,9 +1142,6 @@ Typ_Model   // ModelReference
   int SVG_w_gtxt__ (GText* tx1) {
 //================================================================
 // GrafText (Note).
-
-// see GL_DrawTxtG
-
 
 
   double d1, d2, x1, y1, a1;

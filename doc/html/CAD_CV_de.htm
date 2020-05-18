@@ -56,7 +56,7 @@ S1=ELL P(0 0) D(DX 100) D(DY 80) P(100 0) P(-100 0)
 
 
 
-<p><a name="F3"></a></p>
+<p><a name="F2"></a></p>
   <h2>S Polygon &lt; Points...                      POL</h2>
 Polygon aus <a href="CAD_Base_de.htm#P">Punkten</a> 
   
@@ -78,7 +78,7 @@ S24=POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)
 
 
 
-<p><a name="F4"></a></p>
+<p><a name="F3"></a></p>
   <h2>S Polygon &lt; Rectangle                      REC</h2>
 Parallelogram aus einem <a href="CAD_Base_de.htm#P">Eckpunkt</a> und 2 <a href="CAD_Base_de.htm#D">Vektoren</a>:
   CornerPoint     linker unterer Eckpunkt
@@ -90,7 +90,7 @@ S20=REC P(100 0 0) D(50 0 0) D(0 12 0)
 
 
 
-<p><a name="F5"></a></p>
+<p><a name="F4"></a></p>
   <h2>S BSpline &lt; Points...                      BSP</h2>
 B-Spline aus <a href="CAD_Base_de.htm#P">Punkten</a>
  S-bsp = BSP {points} [,degree] [,CTRL]
@@ -141,7 +141,7 @@ S21=BSP,S20
 
 
 
-<p><a name="F6"></a></p>
+<p><a name="F5"></a></p>
   <h2>S BSpline &lt; convert & join obj's                    BSP1</h2>
 Ein oder mehrere Objekte in eine B-SplineKurve umwandeln und verbinden,
   mit oder ohne Verrundung.
@@ -165,7 +165,7 @@ Beispielmodel siehe sample_curv_bsp_join1.gcad
 
 
 
-<p><a name="F7"></a></p>
+<p><a name="F6"></a></p>
   <h2>S Clotoid                                  CLOT</h2>
  Klothoid-Kurve erzeugen (eine planare Spirale durch Fresnel-Integrale).
    StartPoint   Startpunkt
@@ -192,6 +192,7 @@ Beispielmodel siehe sample_cloth1.gcad
 
 
 
+<!--
 <p><a name="F2"></a></p>
   <h2>S connection-lines &lt; Points...             MSH</h2>
 Verbindungslinien zwischen Punkten (z.B für Schaubilder).
@@ -235,11 +236,12 @@ S23=MSH U(P22 P24) L(S20 MOD(3)) VAL(.2)
 P26=P(0 -5)
 P27=P(1 -6)
 S23=MSH U(P26 P27) L(P(6 0) DY) VAL(0)
+-->
 
 
 
 
-<p><a name="F8"></a></p>
+<p><a name="F7"></a></p>
   <h2>S Contour(CCV) &lt;- PT/LN/CIR/CRV            CCV</h2>
 Kontur ("Concatenated Curve" - CCV)
 Eine Kontur besteht aus den Elementen Punkte, Linien, Kreise, Kurven.

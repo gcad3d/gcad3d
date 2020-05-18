@@ -1,9 +1,21 @@
 ===========================================================================
+Version 2.46.10 / 2020-05-18
+
+- symbolic directories support subdirectories
+- redesign OpenGL-functions
+- many bugfixes
+
+Programlines (C)  497252
+Functions           4773
+
+
+===========================================================================
 Version 2.46.08 / 2020-04-04
 
 - bugfix clothoid-parameter
 - bugfix select-dynamic-symbol
 - bugfix DL_alloc__-invalid-old-size
+- bugfix startparameter-model+plugin
 
 Programlines (C)  493507
 Functions           4826

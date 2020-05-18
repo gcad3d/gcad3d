@@ -276,7 +276,7 @@ static char* os_tmp_dir = "/tmp/";
 
   // call GUI_dlg1_gtk2 list1
   // <binDir>/GUI_dlg1_gtk2 list1 <symListfile> title
-  sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"20,16\"",
+  sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\"",
           binDir, sGui, fnSymDir);
     printd(" GUI_file_symdir__ |%s|\n",s2);
 
@@ -346,7 +346,33 @@ static char* os_tmp_dir = "/tmp/";
 
 }
 
- 
+
+//================================================================
+ int GUI_file_cb_open (void *parent, void *data) {
+//================================================================
+//  callback double-click on file ..
+    
+  char    *filename;
+  
+  printd("## GUI_file_cb_open \n");
+  
+  // GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
+  filename = gtk_file_chooser_get_filename (parent);
+  printd("##  fn |%s|\n",filename);
+  
+  if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+  g_free (filename);
+
+
+  //----------------------------------------------------------------
+  gtk_widget_destroy (wfl1);
+  
+  // exit; return parameters
+  return GUI_file_exit (fnOut);
+    
+}
+
+
 //================================================================
  int GUI_file_cb_filt (void *parent, void *data) {
 //================================================================
@@ -540,6 +566,10 @@ static char* os_tmp_dir = "/tmp/";
                                         ("_Cancel"),  0,
                                         ("_Open"),    1,
                                         NULL);
+
+  // connect Enter / double-click
+  g_signal_connect (G_OBJECT (wfl1),
+                    "file-activated", G_CALLBACK (GUI_file_cb_open), NULL);
 
   // add filter- entry
   wb1 = gtk_hbox_new (FALSE, 0);    // gtk2 !

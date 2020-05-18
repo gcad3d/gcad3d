@@ -376,56 +376,27 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GRU_tex_pos3 () {}
 
 // ../gr/ut_gr.c
-  void GR_Disp_pt () {}
-  void GR_Disp_pt2 () {}
-  void GR_Disp_pTab () {}
-  void GR_Disp_vc () {}
+  void GR_tDyn_npt__ () {}
   void GR_Disp_vc2 () {}
-  void GR_Disp_ln () {}
-  void GR_Disp_ln2 () {}
-  void GR_Disp_cv () {}
-  void GR_Disp_cv2 () {}
-  void GR_Disp_ac () {}
-  void GR_Disp_ell () {}
-  void GR_Disp_pol () {}
-  void GR_Disp_CvBSp () {}
+  void GR_tDyn_ln2_2pt () {}
+  void GR_tDyn_pcv () {}
+  void GR_tDyn_pcv2 () {}
   void GR_Disp_sur () {}
   void GR_Disp_sru () {}
-  void GR_Disp_pln () {}
-  int  GR_Disp_txi () {return 0;}
-  int GR_Disp_ln1 () {return 0;}
-  int GR_Disp_tx () {return 0;}
-  int GR_Disp_dbo () {return 0;}
-  void GR_Disp_txi2 () {}
+  int  GR_tDyn_txiA () {return 0;}
+  int GR_tDyn_dbo () {return 0;}
+  void GR_temp_txi2 () {}
   void GR_Disp_su3p2 () {}
   void GR_Disp_su3pt () {}
-  void GR_Disp_pln () {}
-  void GR_DrawPoint () {}
-  void GR_DrawLine () {}
-  void GR_DrawCirc () {}
-  void GR_DrawDimen () {}
-  void GR_DrawTxtG () {}
-  void GR_DrawTxtA () {}
-  void GR_DrawPlane () {}
   void GR_DrawSur () {}
-  int  GR_DrawModel () {}
-  void GR_DrawCvPpsp3 () {}
-  void GR_DrawCvBSp () {}
-  void GR_DrawCvRBSp () {}
-  void GR_DrawCvPol () {}
-  int GR_DrawCvCCV () {}
-  int GR_DrawCvEll () {}
-  int GR_DrawCvClot () {return 0;}
+  void GR_tDyn_psp3 () {}
+  int GR_set_ccv () {}
   int GR_Draw_spu () {return 0;}
   int GR_DrawFan () {return 0;}
   int GR_DrawStrip () {return 0;}
   int GR_DrawTriaStrip () {return 0;}
   void GR_Disp_nfac () {}
-  void GR_CreLine () {}
-  void GR_CreDitto2 () {}
   void GR_CreSol__ () {}
-  void GR_CrePoint () {}
-  void GR_CreCirc () {}
 // ../gr/ut_gtx.c
   void GR_Init1     () {}
   void GR_InitGFPar () {}
@@ -486,7 +457,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
 // ../gr/ut_GL.c
   void* GL_actCol;
 
-  void GL_alloc__ () {}
   void GL_EndList () {}
   void GL_View_get () {}
   void GL_GetActInd () {}
@@ -508,35 +478,22 @@ int WINAPI WinMain (HINSTANCE hInstance,
   int  GL_DefColSet () {return 0;}
   void GL_DefColGet () {}
   void DL_hili_on () {}
-  void GL_Draw_BMP () {}
-  void GR_Draw_dbo () {}
-  void GL_Draw_Tag () {}
-  void GL_DrawSymB () {}
-  void GL_DrawSymV () {}
-  void GL_DrawSymV2 () {}
   void GL_DrawSymV3 () {}
-  void GL_DrawVec () {}
-  void GL_DrawPoly () {}
-  void GL_DrawPoly2D () {}
-  void GL_DrawPoint () {}
-  void GL_DrawSymVX () {}
-  void GL_DrawDim3 () {}
-  void GL_DrawTxtLBG () {}
-  void GL_DrawTxtLG () {}
-  void GL_DrawTxtsym () {}
-  void GL_DrawSur () {}
-  void GL_Disp_sur () {}
+  // void GR_tDyn_pcv () {}
+  // void GL_DrawSymVX () {}
+  // void GL_DrawDim3 () {}
+  void GL_set_bMsh () {}
   void GL_Exit__ () {}
   void GL_GetEyeLn () {}
   void GL_selPt () {}
   void GL_Tex_Ini () {}
   void GL_Tex_End () {}
   void GL_actTex () {}
-  void GL_sSym_spl () {}
-  void GL_sSym_srv () {}
-  void GL_sSym_srus () {}
-  void GL_sSym_sbsp () {}
-  void GL_sSym_srbsp () {}
+  void GR_sSym_spl () {}
+  void GR_sSym_srv () {}
+  void GR_sSym_srus () {}
+  void GR_sSym_sbsp () {}
+  void GR_sSym_srbsp () {}
 
 
 

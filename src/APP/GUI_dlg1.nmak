@@ -1,5 +1,5 @@
 # Link & run:
-# nmake -f GUI_file_open.nmak
+# nmake -f GUI_dlg1.nmak
 
 
 # get OS VGUI DEB OUTDIR

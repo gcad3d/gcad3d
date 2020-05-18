@@ -49,6 +49,16 @@ make -f DemoPlugin_Resolv.mak
 #include <stdlib.h>
 #include <string.h>
 
+
+#ifdef _MSC_VER
+// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
+__declspec(dllexport) int gCad_main ();
+__declspec(dllexport) int gCad_fini ();
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
+
+
 #include "../ut/ut_geo.h"              // Point ...
 
 #include "../gui/gui__.h"
@@ -64,16 +74,6 @@ make -f DemoPlugin_Resolv.mak
 // prototypes:
   int gcad_key_CB (int key);
   int gcad_sel_CB (int src, long dl_ind);
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
 
 
 

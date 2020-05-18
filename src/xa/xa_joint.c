@@ -90,7 +90,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   // ObjGX   *jnt;
 
 
-  // printf("JNT_parent_hide typ=%d dbi=%ld imod=%d\n",typ,dbi,imod);
+  printf("JNT_parent_hide typ=%d dbi=%ld imod=%d\n",typ,dbi,imod);
 
 
   // get type & dbi of jointObj
@@ -122,7 +122,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   ObjGX   *jnt;
 
 
-  // printf("JNT_imp__ rmNr=%ld ij=%d\n",irmNr,iJnt);
+  printf("JNT_imp__ rmNr=%ld ij=%d\n",irmNr,iJnt);
   // DBF_dump ();
 
 

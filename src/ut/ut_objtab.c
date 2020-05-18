@@ -108,6 +108,7 @@ gcad_src.mak
 
 
 #include "../ut/ut_geo.h"              // Point ...
+#include "../gr/ut_gr.h"               // GR_tDyn_*
 #include "../xa/xa_msg.h"              // MSG_*
 
 
@@ -560,6 +561,7 @@ gcad_src.mak
 //     display data-objects----------/|
 //     dump data-objects--------------/
 
+// TODO: cannot use GR_temp_* - too much objects; needs GR_tdyn_*
 
   int    irc, i1, iDump, iDisp, iBbox, iIndx, iDumx;
   char   s1[32];
@@ -580,11 +582,11 @@ gcad_src.mak
   for(i1=0; i1<oTab->oNr; ++i1) {
     // printf(" typ[%d] = %d\n",i1,oTab->oTyp[i1]);
     if(iDump) DEB_dump_obj__ (oTab->oTyp[i1], oTab->oDat[i1], "%d",i1);
-    // if(iDisp) GR_Disp_obj (oTab->oTyp[i1], oTab->oDat[i1], att, 0);
-    if(iDisp) GR_Disp_obj (oTab->oTyp[i1], oTab->oDat[i1], Typ_Att_dash_long, 0);
+    // if(iDisp) GR_tDyn_obj (oTab->oTyp[i1], oTab->oDat[i1], att, 0);
+    if(iDisp) GR_tDyn_obj (oTab->oTyp[i1], oTab->oDat[i1], Typ_Att_dash_long, 0);
     if(iBbox) {
       if(oTab->xTyp == Typ_BBox2) 
-        GR_Disp_box2 (&((BBox2*)oTab->xDat)[i1].pb1,
+        GR_tDyn_box2__ (&((BBox2*)oTab->xDat)[i1].pb1,
                       &((BBox2*)oTab->xDat)[i1].pb2, Typ_Att_dash__);
                       // &((BBox2*)oTab->xDat)[i1].pb2, Typ_Att_dash_long);
       else printf(" ***** OTB_dump 4 %d not supported ...\n",oTab->xTyp);
@@ -595,12 +597,14 @@ gcad_src.mak
       if(oTab->fmtb == Typ_GEOB_2D) {
         irc = UT2D_ptvcpar1_std_obj (&pt2, NULL, NULL, Ptyp_mid,
                                      oTab->oTyp[i1], oTab->oDat[i1]);
-        GR_Disp_tx2 (&pt2, s1, Typ_Att_def);
+        // GR_tDyn_tx2A (&pt2, s1, Typ_Att_def);
+        GR_tDyn_tx2A (&pt2, s1, Typ_Att_def);
 
       } else if(oTab->fmtb == Typ_GEOB_3D) {
         irc = UT3D_ptvcpar_std_obj (&pt3, NULL, NULL, Ptyp_mid,
                                      oTab->oTyp[i1], oTab->oDat[i1]);
-        GR_Disp_tx (&pt3, s1, Typ_Att_def);
+        // GR_tDyn_txtA (&pt3, s1, Typ_Att_def);
+        GR_tDyn_txtA (&pt3, s1, ATT_COL_BLACK);
       } else TX_Error("OTB_dump-fmtb not set %d",oTab->fmtb); 
     }
     if(iDumx) {

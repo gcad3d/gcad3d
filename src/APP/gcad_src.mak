@@ -71,7 +71,7 @@ SRC1 =\
   ../xa/xa_obj_txt.c ../xa/xa_mod.c     ../xa/xa_edi__.c   ../xa/xa_ed.c\
   ../xa/xa_ed_mem.c  ../xa/xa_src.c     ../xa/xa_ato.c     ../xa/xa_grp.c\
   ../xa/xa_ga.c      ../xa/xa_dll.c     ../xa/xa_app.c     ../xa/xa_appDat.c\
-  ../xa/catalog.c    ../xa/ckint_fac.c  ../xa/cvoff2.c\
+  ../xa/catalog.c    ../xa/ckint_fac.c  ../xa/cvoff2.c     ../xa/mdlfn.c\
   ../db/ut_DB.c      ../db/ut_dbo.c\
   ../ci/NC_Main.c    ../ci/NC_apt.c     ../ut/ut3d_npt.c   ../ut/ut2d_npt.c\
   ../ut/ut_gtypes.c  ../ut/ut_ox_base.c ../ut/ut_transform.c ../ut/ut_ui_TX.c\
@@ -112,7 +112,7 @@ SRCA =\
   ../exp/lxml.c\
   ../gr/ut_gr.c      ../gr/ut_GL.c      ../gr/ut_DL.c      ../gr/ut_gtx.c\
   ../gr/gru.c        ../gr/ut_dim.c\
-  ../gr/gl_sSym.c    ../gr/gl_solids.c
+  ../gr/gr_sSym.c    ../gr/gl_solids.c
 
 # ../wc/wcut.c      ../wc/wc_pock.c    ../wc/ut_nc.c\
 # ../ci/NC_drill.c\

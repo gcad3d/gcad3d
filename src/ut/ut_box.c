@@ -98,11 +98,13 @@ UT3D_ln_intbox            relimit line inside box
 
 UT3D_cv_boxxy             load rect.points from xmin/xmax ymin/ymax in z=0
 
+BBX_def__                 get default-modelbox (size=modelSize)
+
 Liste_Funktionen_Ende:
 =====================================================
 - see also:
 UT3D_box_ox                Box mit obj vergroessern
-GR_Disp_box                disp boundingBox
+GR_tDyn_box__               disp boundingBox
 
 \endcode *//*----------------------------------------
 
@@ -132,9 +134,15 @@ GR_Disp_box                disp boundingBox
 #include "../db/ut_DB.h"               //
 
 
+#include "../ut/ut_memTab.h"           // MemTab_..
+
+
 
 
 //=============== extern glob. vars ======================
+// ex ../ci/NC_Main.c
+extern double  APT_ModSiz;
+
 // ex ../xa/xa.c:
 extern Plane     WC_sur_act;            // Constr.Plane
 extern double     AP_txsiz;       // Notes-Defaultsize
@@ -142,6 +150,28 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
 
 
+
+
+//================================================================
+  int BBX_def__ (Point *pb1, Point *pb2) {
+//================================================================
+// BBX_def__                 get default-modelbox (size=modelSize)
+
+  double d1;
+
+  d1 = APT_ModSiz / 2.;
+
+  pb1->x =  -d1;
+  pb1->y =  -d1;
+  pb1->z =  -d1;
+
+  pb2->x =  d1;
+  pb2->y =  d1;
+  pb2->z =  d1;
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -194,7 +224,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   }
 
 
-    // GR_Disp_box2 (&bbxO->pb1, &bbxO->pb2, Typ_Att_hili);
+    // GR_tDyn_box2__ (&bbxO->pb1, &bbxO->pb2, Typ_Att_hili);
 
   return 0;
 
@@ -419,7 +449,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
   L_exit:
     // TESTBLOCK
-    // GR_Disp_box2 (pb1, pb2, Typ_Att_dash__);
+    // GR_tDyn_box2__ (pb1, pb2, Typ_Att_dash__);
     // END TESTBLOCK
 
   return 0;
@@ -453,7 +483,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     pb2->y = pt1->y;
   }
 
-  // GR_Disp_box (pb1, pb2, 2);
+  // GR_tDyn_box__(pb1, pb2, 2);
 
   return 0;
 
@@ -479,7 +509,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   }
 
     // TESTBLOCK
-    // GR_Disp_box2 (pb1, pb2, Typ_Att_dash__);
+    // GR_tDyn_box2__ (pb1, pb2, Typ_Att_dash__);
     // END TESTBLOCK
 
 
@@ -515,7 +545,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     pb2->y = pt1->y + tol;
   }
 
-  // GR_Disp_box (pb1, pb2, 2);
+  // GR_tDyn_box__(pb1, pb2, 2);
 
   return 0;
 
@@ -896,7 +926,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     pb2->z = pt1->z;
   }
 
-  // GR_Disp_box (pb1, pb2, 2);
+  // GR_tDyn_box__(pb1, pb2, 2);
 
   return 0;
 
@@ -914,7 +944,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   if(tol > 0.)
   UT3D_box_addTol (pb1, pb2, tol);
 
-    // GR_Disp_box (pb1, pb2, 8);
+    // GR_tDyn_box__(pb1, pb2, 8);
 
   return 0;
 
@@ -956,7 +986,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     pb2->z = pt1->z + tol;
   }
 
-  // GR_Disp_box (pb1, pb2, 2);
+  // GR_tDyn_box__(pb1, pb2, 2);
 
   return 0;
 
@@ -1165,7 +1195,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
       // printf("-------------- rc=%d\n",rc);
       // DEB_dump_obj__ (Typ_PT, pmin, " pmin");
       // DEB_dump_obj__ (Typ_PT, pmax, " pmax");
-      // GR_Disp_box (pmin, pmax, 0);
+      // GR_tDyn_box__(pmin, pmax, 0);
     // }
   // }
   //================================================================
@@ -1596,7 +1626,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 
       // GR_Disp_pt (&tx1->p1, SYM_STAR_S, ATT_COL_RED);
 
-    // compute radius of balloon; see also GL_txt__
+    // compute radius of balloon; see also GL_set_txt__
     scale = 1.;
     sLen  = tx1->xSiz;
     cw = GTX_chw_ (scale);
@@ -1733,7 +1763,6 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 // GTX_chw_
 // GR_gtx_ckBlockWidth
 // GTX_chh_
-// APT_DrawTxtG
 
 
   int       cnr, lnr;
@@ -1795,7 +1824,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
     // GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
     // GR_Disp_pt (&pt2, SYM_STAR_S, ATT_COL_RED);
     // DEB_dump_obj__ (Typ_PT, &pt1, " _GText-pt1");
-    // GR_Disp_box  (&pt1, &pt2, 9);
+    // GR_tDyn_box__ (&pt1, &pt2, 9);
 
 
   UT3D_box_extend (p1, p2, &pt1);
@@ -1906,6 +1935,8 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   for(dli=0; dli<dlSiz; ++dli) {
       // printf(" dli-nxt: %ld\n",dli);
 
+    // skip dynam. objects
+    if(dla[dli].ind <= 0L) continue;
 
     // skip objects not in model <iMdl>:
     if((INT_16)dla[dli].modInd != iMdl) continue;
@@ -2174,11 +2205,20 @@ extern double     AP_txsiz;       // Notes-Defaultsize
       case Typ_SURRU:
         return UT3D_box_surRU (pb1, pb2, (ObjGX*)obj); 
 
+      case Typ_SURCIR:
+        return UT3D_box_surFan (pb1, pb2, (ObjGX*)obj);
+
       case Typ_SURSTRIP:
         return UT3D_box_surStripe (pb1, pb2, (ObjGX*)obj);
 
       case Typ_SURMSH:
+      case Typ_SURPTAB:
         return UT3D_box_surMsh (pb1, pb2, (ObjGX*)obj);
+
+      default:
+        // TX_Print("***** UT3D_box_obja TODO ObjGX typ %d",typ0);
+        printf("***** UT3D_box_obja TODO ObjGX typ %d\n",typ0);
+        return -1;
     }
 
 
@@ -2324,6 +2364,7 @@ extern double     AP_txsiz;       // Notes-Defaultsize
   //----------------------------------------------------------------
   } else {
      printf("**** UT3D_box_obja: Objekttyp not supported %d\n",form);
+     return -1;
   }
 
 
@@ -2361,7 +2402,56 @@ extern double     AP_txsiz;       // Notes-Defaultsize
 //================================================================
 // Typ_SURMSH see TSU_DrawSurMsh
 
-  printf("**** TODO: UT3D_box_surMsh \n");
+  int    typ;
+  long   dbi;
+
+
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surMsh");
+  // OGX_GET_INDEX (&typ, &dbi, ox1);
+    // printf(" surMsh-typ %d dbi %ld\n",typ,dbi);
+
+  return GR_cv_pMesh_box (pb1, pb2, dbi);
+
+}
+
+
+
+//================================================================
+  int UT3D_box_surFan (Point *pb1, Point *pb2, ObjGX *ox1) {
+//================================================================
+// UT3D_box_surFan          box from Typ_SURCIR = group of points
+//     sus1 = ox1->data;
+//     pNr = sus1->ptUNr * sus1->ptVNr;
+//     // get spc for points
+//     pta = (Point*) MEM_alloc_tmp (pNr * sizeof(Point));
+//     // datablock pTab is group of ObjGX-points
+//     iNr = 0;
+//     i1 = UT3D_npt_obj (&iNr, pta, pNr,
+//                        Typ_ObjGX, sus1->pTab, pNr, UT_DISP_cv);
+
+
+
+
+
+  int          i1, typ, ptNr;
+  long         dbi;
+  ObjGX        *oxa;
+  Point        *px;
+
+
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "UT3D_box_surFan");
+
+  oxa= ox1->data;
+  // get nr of points
+  ptNr = ox1->siz;
+
+  for(i1=0; i1<ptNr; ++i1) {
+    OGX_GET_INDEX (&typ, &dbi, &oxa[i1]);
+    if(typ == Typ_PT) {
+      px = DB_get_PT (dbi);
+      UT3D_box_extend (pb1, pb2, px);
+    } else printf("**** UT3D_box_surFan E001 %d\n",typ);
+  }
 
   return 0;
 

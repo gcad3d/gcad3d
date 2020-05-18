@@ -2,25 +2,6 @@
 
 
 ================================================================== */
-void INF_GEOM_ATTRIB(){                   /*! \code
-
-INF_COL_CV      list of colors for curves  (attribute curves)
-
-INF_Hilite_attribute
-INF_Hide_attribute
-INF_Pick_attribute
-INF_Linetyp_attributes
-INF_Color_attributes
-INF_Texture_attributes
-INF_permanent_attributes
-
-Analysieren: see DL_dlRec__dli
-  // Jede Aenderung der Graf. Attribute wird erst nach dem Neuzeichnen
-  // der gesamten Displayliste sichtbar:
-  DL_Redraw ();
-
-
-================================================================== \endcode */}
 void INF_Hilite_attribute (){        /*! code
 
 
@@ -198,7 +179,39 @@ Functions:
   DB_get_ModBas       get the basicModel
 
 
+================================================================== \endcode */}
+void INF_joints (){        /*! code
 
+../xa/xa_joint.c
+../ut/ut_dbf.c            store/retrieve joint-objects with key;
+../../doc/html/CAD_Joint_de.htm
+
+DB only DB_JNT_IND = nr of used joints / index of next free.
+
+Functions:
+APT_decode_Joint
+JNT_exp__
+JNT_imp__
+UI_disp_joint
+
+DBF_add__        store binary obj joint
+DBF_find__       find dataPosition from key
+DBF_getVal       get binary obj joint
+- like basicModels (mdb_dyn,mdb_nam) joints cannot be unloaded
+  with the DB of the active model.
+
+
+Models:
+Data/test_joint_1.gcad
+INF_Data/sample_DiagEl1.gcad
+
+
+
+TODO:
+- joint-object should be a struct: {(int)size-(ObjGX)obj-objData}
+  all pointers must be inside the struct.
+- export-import Plane
+- export-import Text does not work at the moment
 
 
 ================================================================== \endcode */}

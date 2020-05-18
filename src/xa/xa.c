@@ -40,42 +40,51 @@ Modifications:
 =====================================================
 List_functions_start:
 
-AP_MemTab_init      connect static memspace eg memspc251 - MemTab_spc251
-AP_MemTab_get       occupy static - MemTab
-AP_MemTab_rel       release static - MemTab
+APUI__                start gui-exe
+APUI_get              get full filename for GUI_executable
+APUI_test1            test APUI__
 
-AP_get_modnam       returns AP_mod_fnam
-AP_get_fnam_symDir  get filename of symbolic directories (dir.lst)
+AP_MemTab_init        connect static memspace eg memspc251 - MemTab_spc251
+AP_MemTab_get         occupy static - MemTab
+AP_MemTab_rel         release static - MemTab
+
+//--- replacing functions GR_cre* --------------------------------
+AP_add_pt             add point permanent into DB, add obj into DL, display
+AP_add_ln             add line permanent into DB, add obj into DL, display
+
+
+AP_get_modnam         returns AP_mod_fnam
 AP_get_dir_open
 AP_get_modact_ind 
 AP_set_dir_open
 AP_set_dir_save
 AP_set_modsiz
 
-AP_stat_file        save AP_box_pm1,2 AP_stat.. 
-AP_errStat_set      set AP_stat.errStat
-AP_errStat_get      get AP_stat.errStat
-AP_tutStat_get      get AP_stat.TUT_stat
-AP_debug__          stop in debug
-AP_test__           "Ctl shift T"
-AP_dump_statPg      dump active subModel, active lineNr
+AP_stat_file          save AP_box_pm1,2 AP_stat.. 
+AP_errStat_set        set AP_stat.errStat
+AP_errStat_get        get AP_stat.errStat
+AP_tutStat_get        get AP_stat.TUT_stat
+AP_debug__            stop in debug
+AP_test__             "Ctl shift T"
+AP_dump_statPg        dump active subModel, active lineNr
 
 // AP_mdl_modified_ck      check if model is modified
 // AP_mdl_modified_set     set model is modified
 // AP_mdl_modified_reset   set model is unmodified
-AP_mdlbox_invalid_ck    check if modelbox is valid
-AP_mdlbox_invalid_set   set modelbox not valid
+AP_mdlbox_invalid_ck  check if modelbox is valid
+AP_mdlbox_invalid_set set modelbox not valid
 AP_mdlbox_invalid_reset set modelbox = valid
 
-AP_mod_sym          get get symbol-name for new directory from user
-AP_iftyp_ftyp       integer-filetyp from string-filetyp
-AP_ftyp_iftyp       string-filetyp from integer-filetyp
+AP_mod_sym            get get symbol-name for new directory from user
+AP_iftyp_ftyp         integer-filetyp from string-filetyp
+AP_ftyp_iftyp         string-filetyp from integer-filetyp
 AP_exec_dll
 AP_Mod_load__         load Model <AP_mod_dir><AP_mod_fnam>
+AP_delActMdl          delete active modelfile
 
-AP_APT_sysed        modify line ED_lnr_act with system-editor
-AP_SRC_mem_edi      copy Editor --> memory (if necessary)
-AP_SRC_edi_mem      copy memory --> Editor
+AP_APT_sysed          modify line ED_lnr_act with system-editor
+AP_SRC_mem_edi        copy Editor --> memory (if necessary)
+AP_SRC_edi_mem        copy memory --> Editor
 
 AP_src_new          clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane
 AP_src_mod_ed       modify line in memory with system-editor
@@ -98,7 +107,6 @@ AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
 AP_vec_txt          give vector from Textvec
 AP_get_nxtVec       returns DB-index of next|previous Vector
 AP_hili_obj         hilite obj
-GR_tmpSym
 
 AP_Set_ConstPl_Z
 AP_Get_ConstPl_vz   returns WC_sur_act.vz
@@ -259,7 +267,7 @@ DL_GetTrInd
 #include "../ut/ut_txTab.h"              // TxtTab
 
 #include "../gui/gui__.h"         // GUI_SETDAT_EI ..
-
+#include "../gr/ut_gr.h"       // GR_TMP_I0
 #include "../db/ut_DB.h"             // DB_PLX_IND
 
 #include "../xa/xa_uid.h"                 // UI_MODE_CAD
@@ -410,6 +418,178 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 
+//================================================================
+//================================================================
+
+//================================================================
+  int APUI__ (char *guiOut, int outSiz, char *exenam, ...) {
+//================================================================
+// APUI__                        start gui-exe
+// Input:
+//   exenam    filename of exe, without gtk-version; eg "GUI_file" or "GUI_dlg1"
+//   ...       parameters, must end with a NULL.i
+//             Parameters with blanks must be limited with \"
+// retCode     0    ?
+//             -1   exe with name <exenam> not found
+//             -2   error in GUI_<exe>; see /tmp/debug.dat
+
+
+  int      irc;
+  char     sPar[512], sEnam[256], sCmd[800], *sx;
+  va_list  va;
+
+
+  printf("APUI__ |%s|\n",exenam);
+
+  // get full filename for GUI_executable
+  irc = APUI_get (sEnam, exenam);
+
+  // test if exe exists
+  if(!OS_checkFilExist(sEnam,1)) {
+    TX_Print("**** GUI-exefile %s does not exist ..", sEnam);
+    return -1;
+  }
+
+  sPar[0] = '\0';
+
+  va_start (va, exenam);
+
+  // add all parameters -> sPar
+  L_s_nxt:
+    sx = va_arg(va, char *);
+    if(sx) {
+        printf(" |%s|\n",sx);
+      strcat(sPar, sx);
+      strcat(sPar, " ");
+      goto L_s_nxt;
+    }
+
+  // vsprintf (s1, txt, va);
+  va_end (va);
+
+    printf(" GUI-exe-sPar |%s|\n",sPar);
+
+
+  // set s1 = command (exefilnam parameters)
+  // parameters: save outDir symDirFilnam filter title
+#ifdef _MSC_VER
+  sprintf(sCmd,"START /B /WAIT \"\" \"%s\" %s", sEnam, sPar);
+#else
+  sprintf(sCmd,"%s %s", sEnam, sPar);
+#endif
+    printf(" GUI-exe-sCmd |%s|\n",sCmd);
+
+
+  // execute
+  irc = OS_sys1 (guiOut, outSiz, sCmd);
+  if(irc < 0) {printf("***** APUI__ - E1 OS_sys1 %d\n",irc); return -2;}
+  UTX_CleanCR (guiOut);
+
+    printf("ex-GUI-exe |%s|\n",guiOut);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int APUI_get (char* sEnam, char *sNam) {
+//================================================================
+// APUI_get             get full filename for GUI_executable
+// Input:
+//   Nami           eg GUI_dlg1 or GUI_open
+// Output:
+//   sEnam          get full filename; size must be 256
+//                  eg /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2
+
+  int      irc, vGtk;
+  char     sGui[32];
+
+  // get gtk-major-version
+  GUI_get_version (sGui, &vGtk, &irc);
+
+
+  // sEnam = exeFilename
+#ifdef _MSC_VER
+  sprintf(sEnam,"%s%s_%s%d_MS.exe", OS_get_bin_dir(), sNam, sGui, vGtk);
+#else
+  sprintf(sEnam,"%s%s_%s%d", OS_get_bin_dir(), sNam, sGui, vGtk);
+#endif
+
+    printf(" ex-APUI_get |%s|\n",sEnam);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int APUI_test1 () {
+//================================================================
+
+  char   s1[400];
+
+
+  printf(" tst_gui\n");
+
+  // call GUI_file-save
+  APUI__ (s1, sizeof(s1), "GUI_file", "save",
+             "/mnt/serv2/devel/cadfiles/gcad/unknown.gcad",
+             "/mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst",
+             "*",
+             "Speichern",
+             NULL);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_add_pt (long *dbi, int att, Point *pt1) {
+//================================================================
+// was GR_CrePoint
+// Input:
+//   dbi      DB-index; > 0 for permanent, -1 for permanent-dynamic
+// Output:
+//   dbi      DB-index for permanent-dynamic
+//   retCod   0=OK, -1=ERR
+
+
+  *dbi = DB_StorePoint (*dbi, pt1);  // store dynamic obj in DB.
+  if(! *dbi) return -1;
+
+  GR_perm_pt (*dbi, pt1, att);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_add_ln (long *dbi, int att, Line *ln1) {
+//================================================================
+// was GR_CreLine
+// Input:
+//   dbi      DB-index; > 0 for permanent, -1 for permanent-dynamic
+// Output:
+//   dbi      DB-index for permanent-dynamic
+//   retCod   0=OK, -1=ERR
+
+
+  *dbi = DB_StoreLine (*dbi, ln1);  // store dynamic obj in DB.
+  if(! *dbi) return -1;
+
+  GR_perm_ln (*dbi, ln1, att);
+
+  return 0;
+
+}
+
+
+
+
+ 
 
 //================================================================
   int AP_mdlbox_invalid_ck () {
@@ -870,87 +1050,59 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 ///   mode       0 set AP_mod_dir, AP_mod_sym, AP_mod_fnam
 ///              1 set AP_mod_dir, AP_mod_sym; do not set AP_mod_fnam
 ///              2 do not modify AP_mod_dir, AP_mod_sym, AP_mod_fnam
+///   fNam       startfile, can be empty
+///   dNam       startdirectory (can be with filename)
 ///   title      of window
 ///   sf         filtertext
 /// Output:
-///   dNam       directory
+///   dNam       directory, can be symbolic
 ///   fNam       filename (with filetyp)
 ///   retCode    0=OK, -1=Cancel, -2=fSiz/dSiz too small
 /// \endcode
 
 
   int    irc;
-  char   s1[128], s2[256], fTyp[32];
+  char   s1[128], s2[128], s3[128], s4[40],
+         fndl[256],  so[256];
 
 
-  AP_get_fnam_symDir (s1);   // get filename of cfg/dir.lst
+  MDLFN_symFilNam (fndl);   // get filename of cfg/dir.lst
+    printf(" Mod_open-fndl |%s|\n",fndl);
 
-  if(mode != 2) strcpy (dNam, AP_mod_dir);
+
     
-  printf("AP_Mod_open title=|%s| dNam=|%s|\n",title,dNam);
+  printf("AP_Mod_open mode=%d title=|%s| dNam=|%s| sf=|%s|\n",mode,title,dNam,sf);
+  printf(" fNam=|%s|\n",fNam);
 
-                      // fnam      dirnam     filter-out  file        filter
-//   irc = GUI_file_open__ (fNam, 128, dNam, 128, UI_fnamFilt, s2, title, sf);
 
-  sprintf(s2, "%s%s", dNam,fNam);
+  // set startdirectory+file
+  sprintf(so, "%s%s", dNam,fNam);
 
   //  (dirIn/filnamOut sSiz symDir filter title)
-  irc = GUI_file_open__ (s2, 256, s1, sf, title);
+  irc = GUI_file_open__ (so, 256, fndl, sf, title);
   if(irc < 2) return -1;
-  if(strlen(s2) < 1) return 0;
+  if(strlen(so) < 1) return 0;
+    printf(" f-file_open__ |%s|\n",so);
 
-
-  // separate directory/filename
-  UTX_fnam__ (dNam, fNam, fTyp, s2);
-  strcat(fNam, fTyp);
-    printf(" AP-Mod_open |%s|%s|%s|\n",dNam, fNam, fTyp);
-
-
-
-  //----------------------------------------------------------------
-  // UTX_add_fnam_del (dNam);    // add following "/"
-    // printf("ex-AP_Mod_open  |%s|%s|\n",dNam,fNam);
-    
-/*
-  if(mode == 2) return 0;
-
-
-  // find symbolDir of dirNam
-  if(strlen(dNam) >= 128) {
-    TX_Error(" directoryname too long ..");
-    return -1;
+  // resolv abs.path
+  irc = MDLFN_fNam_resolv (s1, s2, s3, s4, so, OS_get_bas_dir());
+  if(mode < 2) {
+    if(irc > 0) strcpy(AP_mod_sym, s1);
+    else AP_mod_sym[0] = '\0';
+    strcpy(AP_mod_dir, s2);   // abs.path
+    if(mode < 1) {
+      strcpy(AP_mod_fnam, s3);   // Modelname without filetyp
+      // strcpy(AP_mod_ftyp, s4);   // filetyp
+    }
   }
-  strcpy(AP_mod_dir, dNam);
 
+  // set output
+  if(irc > 0) strcpy(dNam, s1);
+  else        strcpy(dNam, s2);
+  strcpy(fNam, s3);
+  if(strlen(s4)) {strcat(fNam,"."); strcat(fNam,s4);}
 
-  // find Symbolname for dir AP_mod_dir
-  irc = Mod_sym_get2 (AP_mod_sym, AP_mod_dir, 1);
-    // printf(" sym %d |%s|\n",irc,AP_mod_sym);
-  if(!irc) goto L_open_load;
-
-
-  //----------------------------------------------------------------
-  // new direcory; get symbolic name and add it to cfg/dir.lst
-  // "Give symbolic pathname for dir. %s ",AP_mod_dir);
-  MSG_get_1 (s1, 256, "SEL_sDir", "%s", AP_mod_dir); //
-
-
-  strcpy(s2, "DIR_1");  // preset
-  irc = GUI_Dialog_e2b (s1, s2, 128,
-                        MSG_const__(MSG_open),
-                        MSG_const__(MSG_cancel));
-  if(irc != 0) return 0;
-    printf("ex-GUI_Dialog_e2b s1=|%s| s2=|%s| irc=%d\n",s1,s2,irc);
-
-  strcpy(AP_mod_sym, s2);
-
-  // add "symbol AP_mod_dir" to file dir.lst
-  Mod_sym_add (AP_mod_sym, AP_mod_dir);
-
-
-  L_open_load:
-  if(mode == 0) strcpy(AP_mod_fnam, fNam);
-*/
+    printf("ex-AP-Mod_open |%s|%s|\n",dNam,fNam);
 
   return 0;
 
@@ -1104,7 +1256,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //   strcpy(dNam, AP_mod_dir);
 
   // set s2 =  filename of cfg/dir.lst
-  AP_get_fnam_symDir (s2);
+  MDLFN_symFilNam (s2);
 
   // window-titel "Model save" 
   strcpy(sTit, MSG_const__(MSG_save));
@@ -2429,7 +2581,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // printf("AP_defaults_write\n");
-  AP_get_fnam_symDir (txbuf);   // get filename of dir.lst (<cfg>/dir.lst)
+  MDLFN_symFilNam (txbuf);   // get filename of dir.lst (<cfg>/dir.lst)
   // sprintf(txbuf, "%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
   // if File exists, do not overwrite.
@@ -2449,15 +2601,6 @@ remote control nur in VWR, nicht MAN, CAD;
   fprintf(fp1, "%s\n", txbuf);
 
   sprintf(txbuf, "CATALOG  %sctlg%c",OS_get_loc_dir(),fnam_del);
-  fprintf(fp1, "%s\n", txbuf);
-
-  sprintf(txbuf, "Schrau   %sSchrau%c",OS_get_loc_dir(),fnam_del);
-  fprintf(fp1, "%s\n", txbuf);
-
-  sprintf(txbuf, "Profile  %sProfile%c",OS_get_loc_dir(),fnam_del);
-  fprintf(fp1, "%s\n", txbuf);
-
-  sprintf(txbuf, "symEl1   %ssymEl1%c",OS_get_loc_dir(),fnam_del);
   fprintf(fp1, "%s\n", txbuf);
 
 
@@ -2806,28 +2949,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
-  int AP_get_fnam_symDir (char *cbuf) {
-//================================================================
-/// AP_get_fnam_symDir  get filename of list of symbolic directories
-//   (<cfgDir>/dir.lst)
-
-  sprintf(cbuf,"%sdir.lst",OS_get_cfg_dir());
-
-    // printf("AP_get_fnam_symDir |%s|\n",cbuf);
-
-
-  return 0;
-
-}
-
-
-//================================================================
   int AP_get_modnam (char *cbuf) {
 //================================================================
   strcpy(cbuf, AP_mod_fnam);
   return 0;
 }
-
 
 
 //================================================================
@@ -3017,6 +3143,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   //================================================================
+  // test if has filetype; if not: start plugin.
+  if(UTX_ftyp_s (NULL, cmd, 0) < 0) return AP_exec_dll (cmd);
+
+
+  //================================================================
   // Test if file exists (modelfile)
   i1 = AP_Mod_load_fn (cmd, 0);
   if(i1 < 0) goto L_test_dll;
@@ -3028,7 +3159,8 @@ remote control nur in VWR, nicht MAN, CAD;
   //================================================================
   // try to start DLL (weil kein anderes command gefunden)
   L_test_dll:
-  return AP_exec_dll (cmd);
+    TX_Error ("Startparamter unused - |%s|",cmd);
+  return 0;
 
 }
 
@@ -3186,7 +3318,9 @@ remote control nur in VWR, nicht MAN, CAD;
       ift = Mtyp_SVG;
 
     } else if(!strcmp(s1, "WRL")) {
-      ift = Mtyp_WRL;   // VRML1; fcheck for VRML2 with AP_ImportWRL_ckTyp()
+      ift = Mtyp_WRL;
+      // Import: VRML1; fcheck for VRML2 with AP_ImportWRL_ckTyp()
+      // Export ??
 
     } else if(!strcmp(s1, "OBJ")) {
       ift = Mtyp_OBJ;
@@ -3212,7 +3346,7 @@ remote control nur in VWR, nicht MAN, CAD;
       ift = -1;    // unsupported filetyp
     }
 
-  // printf("ex AP_iftyp_ftyp %d |%s|\n",ift,ftyp);
+  // printf("ex-AP_iftyp_ftyp %d |%s|\n",ift,ftyp);
 
   return ift;
 
@@ -3584,6 +3718,33 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
+  int AP_delActMdl () {
+//================================================================
+// AP_delActMdl        delete active modelfile
+// - move active modelfile -> tempDir/tmp.model
+
+  char   fnOld[256], fnNew[256];
+
+  printf("AP_delActMdl \n");
+  printf(" |%s|%s|%s|\n",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
+
+
+  sprintf(fnOld,"%s%s.%s",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
+    printf(" fnOld |%s|\n",fnOld);
+
+  sprintf(fnNew, "%stmp.model",OS_get_tmp_dir());
+    printf(" fnNew |%s|\n",fnNew);
+
+  OS_file_rename (fnOld, fnNew);
+
+  TX_Print ("**** %s moved %s",fnOld,fnNew);
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_Mod_lstAdd () {
 //================================================================
 // add active model to list <tmpDir>MdlLst.txt
@@ -3720,7 +3881,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   if(i1 == Typ_VC) {
     // UI_disp_vec1 (Typ_VC, &dbi);
-    UI_disp_vec1 (Typ_Index, PTR_LONG(dbi), NULL);
+    UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(dbi), NULL, Typ_Att_hili1);
     goto L_done;
 
 
@@ -4608,7 +4769,7 @@ static char cbuf[32];
     // GR_Disp_pt (p1, SYM_STAR_S, 2);
     // GR_Disp_pt (p2, SYM_STAR_S, 5);
     // GR_Disp_pt (p3, SYM_STAR_S, 5);
-    // GR_Disp_vc (vcs, p3, 1, 0);
+    // GR_tDyn_vc (vcs, p3, 1, 0);
 
 
   // Mittelpunkt zwischen MP1/MP2
@@ -4839,7 +5000,7 @@ static char cbuf[32];
   UT3D_vc_perp2vc (&vcy, &vcx, vcs);
   // daraus den Z-Vec der DimPlane
   UT3D_vc_perp2vc (&vcz, &vcy, &vcx);
-    // GR_Disp_vc (&vcz, p1, 9, 0);
+    // GR_tDyn_vc (&vcz, p1, 9, 0);
 
   pth = *p1;
   // dl = UT3D_len_vc (&vcx);
@@ -4976,23 +5137,6 @@ static char cbuf[32];
   // UI_GR_block (1);
 
   return 0;
-
-}
-
-//*********************************************************************
-  void GR_tmpSym (int typ, Point *pt1) {
-//*********************************************************************
-
-  long ind = -1;
-
-  // TX_Print(" GR_tmpSym typ=%d %f,%f\n",typ,pt1->x,pt1->y);
-
-
-
-  // GRView_DrawStart ();
-
-  GL_DrawSymV (&ind, SYM_CROSS, 0, pt1, 1.0);
-
 
 }
 

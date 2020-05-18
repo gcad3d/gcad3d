@@ -112,8 +112,10 @@ IE_GET_INP_DLI       get dli for inputField                              INLINE
 IE_get_tempPos       returns position for a temporary object
 IE_cad_Inp_disp__    display temp. symbols for inpField iind (zB Vec)
 IE_cad_Inp_disp_pt   display point for actual inputfield
+IE_cad_Inp_disp_vc
 IE_cad_Inp_disp_val  display value in messageWin
 IE_cad_Inp_disp_ang  display angle
+IE_cad_Inp_disp_pln
 
 -------------------- infoField-functions ---------------------------
 IE_cad_ClearMenInf   clear MenuInfos (right of inputboxes)
@@ -287,7 +289,7 @@ Der zum aktiven inputField gehoerige Eingabetyp ist IE_inpTypR[IE_inpInd]
 Anzeige temporärer Objekte:
 - für jedes Eingabefeld kann ein temporärObjekt angezeigt werden;
   dli dazu ist fix IE_GET_INP_DLI (-ind - 2).
-- IE_cad_test__>ED_work_CAD>WC_Work1 erzeugt ein temporärObjekt mit dli DLI_TMP.
+- IE_cad_test__>ED_work_CAD>WC_Work1 erzeugt ein temporärObjekt mit dli GR_TMP_I0.
 Funcs:
 IE_cad_Inp_disp__
 
@@ -427,6 +429,7 @@ cl -c /I ..\include xa_ui_cad.c
 
 #include "../gr/ut_GL.h"          // GL_Redraw
 #include "../gr/ut_DL.h"          // DL_Redraw
+#include "../gr/ut_gr.h"          // GR_TMP_I0
 
 #include "../db/ut_DB.h"          // DB_QueryNxtFree
 
@@ -469,14 +472,14 @@ extern int       UI_InpMode;
 extern int       KeyStatCtrl;
 extern MemObj    winGR;
 
-// ex ../gr/ut_GL.c
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
 
 // ../gui/gui_base.c:
 extern int UI_fontsizX, UI_fontsizY;
 
 // ex ../xa/xa_sele.c
 extern long   GR_selDli;         // 
-
 
 // ex ../xa/xa_ed.c
 extern int       ED_lnr_act;
@@ -1171,7 +1174,7 @@ static IE_rec_stru IE_cad_v[]={
 static IE_rec_txt cad_lst_s[]={
   "S Ellipse Center,AxisEndPoint,Point",     "ELL",
   "S Ellipse Center Axes [EndPoints]",       "ELL",
-  "S connection-lines < Points...",          "MSH",   // 2
+  // "S connection-lines < Points...",          "MSH",   // 2
   // "S Ellipse < Proj. CIR/ELL -> PLN",        "ELL", 
   "S Polygon < Points...",                   "POL",   // 3
   "S Polygon < Rectangle",                   "REC",   // 4
@@ -1196,36 +1199,36 @@ static IE_rec_stru IE_cad_s[]={
    1, Typ_VC,      "MinorAxis (VEC)||DD0",
    1, Typ_PT,      "[StartPoint]",
    1, Typ_PT,      "[EndPoint]",
-  // "S connection-lines < Points...",          "MSH",   // 9
-   2, Typ_PT,      "(Points)",
-   2, Typ_VC,      "[Vector/Line]",
-   2, Typ_Val,     "[Distance]",
-  // "S Polygon  <- Point...",          "POL",   // 4
-   3, Typ_PT,      "<Points...>",
+//   // "S connection-lines < Points...",          "MSH",   // 9
+//    2, Typ_PT,      "(Points)",
+//    2, Typ_VC,      "[Vector/Line]",
+//    2, Typ_Val,     "[Distance]",
+//   // "S Polygon  <- Point...",          "POL",   // 4
+   2, Typ_PT,      "<Points...>",
   // "S Polygon  <- Rectangle",          "CCV",
-   4, Typ_PT,      "CornerPoint",
-   4, Typ_VC,      "DX||DD0",
-   4, Typ_VC,      "DY||DD0",
+   3, Typ_PT,      "CornerPoint",
+   3, Typ_VC,      "DX||DD0",
+   3, Typ_VC,      "DY||DD0",
   // // "S Polygon  <- Proj. Polygon -> PLN",        "POL",   // 6
    // 5, Typ_CVPOL,   "Polygon",
    // 5, Typ_PLN,     "Plane",
   // "S BSpline < Points...",                   "BSP",   // 6
-   5, Typ_PT,      "<Points...>",
-   5, Typ_Val,     "[Degree]",
-   5, Typ_modCTRL, "[Controlpoints] CTRL",
+   4, Typ_PT,      "<Points...>",
+   4, Typ_Val,     "[Degree]",
+   4, Typ_modCTRL, "[Controlpoints] CTRL",
   // "S BSpline < convert & join obj's",        "BSP1",
-   6, Typ_goGeom,  "<contour>",
-   6, Typ_Val,     "[smoothFactor]",
+   5, Typ_goGeom,  "<contour>",
+   5, Typ_Val,     "[smoothFactor]",
   // "S Clotoid",                               "CLOT",  // 9
-   7, Typ_PT,      "StartPoint",
-   7, Typ_Angle,   "StartVector||DD0",
-   7, Typ_Angle,   "Angle (Diff. Start-End)||AA--5",
-   7, Typ_Val,     "StartRadius",
-   7, Typ_Val,     "EndRadius",
-   7, Typ_VC,      "[Z-Axis-Vector]||DD0",
+   6, Typ_PT,      "StartPoint",
+   6, Typ_Angle,   "StartVector||DD0",
+   6, Typ_Angle,   "Angle (Diff. Start-End)||AA--5",
+   6, Typ_Val,     "StartRadius",
+   6, Typ_Val,     "EndRadius",
+   6, Typ_VC,      "[Z-Axis-Vector]||DD0",
   // "S Contour  <- Rectangle rounded",  "CCV",
   // "S Contour(CCV) <- PT/LN/CIR/CRV",         "CCV",   // 8
-   8, Typ_goPrim,  "<Contour (PT/LN/CIR/CRV)>",
+   7, Typ_goPrim,  "<Contour (PT/LN/CIR/CRV)>",
    // 6, Typ_PT,      "Cornerpoint",
    // 6, Typ_Val,     "DX-dist.",
    // 6, Typ_Val,     "DY-dist.",
@@ -1412,7 +1415,7 @@ static IE_rec_stru IE_cad_n[]={
    0, Typ_PT,      "DimPoint 2",
    0, Typ_PT,      "TextPosition",
    0, Typ_Angle,   "[Angle dimLine]||DD2",
-   0, Typ_Txt,     "[Arrows 0-4 0-4]|-1",
+   0, Typ_Txt,     "[Arrows 0-4 0-4]|12",
    0, Typ_Txt,     "[Guides 0-1 0-1]",
    0, Typ_String,  "[Add.Text]",
   // "N DIM3 X/Y/Z/parl",        "DIM3",
@@ -1427,13 +1430,13 @@ static IE_rec_stru IE_cad_n[]={
    2, Typ_PT,      "DimPoint 2",
    2, Typ_VC,      "Direct. 2||DD2",
    2, Typ_PT,      "TextPosition",
-   2, Typ_Val,     "[Arrows 0-4 0-4]|-1",
+   2, Typ_Txt,     "[Arrows 0-4 0-4]",
    2, Typ_Txt,     "[Guides 0-1 0-1]",
    2, Typ_String,  "[Add.Text]",
   // "N DIM  Dmr",               "DIMD",
    3, Typ_CI,      "Circle",
    3, Typ_PT,      "TextPosition",
-   3, Typ_Val,     "[Arrows 0-4 0-4]",
+   3, Typ_Txt,     "[Arrows 0-4 0-4]",
    3, Typ_String,  "[Add.Text]",
   // "N DIM  Radius",            "DIMR",
    4, Typ_CI,      "Circle",
@@ -1465,12 +1468,12 @@ static IE_rec_stru IE_cad_n[]={
   // "N TextTag,LN",             "TAG",     //                 ex TAG 0,2
    9, Typ_PT,      "TextPosition",
    9, Typ_PT,      "[StartPoint Line]",
-   9, Typ_Txt,     "[color (0-7)]",
+   9, Typ_Txt,     "[color 0-10]",
    9, Typ_String,  "Text",
   // "N Symbol",                 "LDRS",    //                 ex TAG 5,6,7
   10, Typ_PT,      "SymbolPosition",
   10, Typ_Txt,     "[symbolTyp (0-6)]|0|M16",
-  10, Typ_Txt,     "[color (0-8)]||M18",
+  10, Typ_Txt,     "[color 0-10]||M18",
   10, Typ_go_PD,   "[Endpoint/Vector]",
   // "N Image Pos,Filename",     "IMG",
   11, Typ_PT,      "ImagePosition",
@@ -1743,7 +1746,7 @@ static int IE_first, IE_last;
   int IE_nxtInd ();
   int IE_cad_test__ ();
   int IE_analyz_dist (char fnc);
-  int IE_popup_planes_CB (MemObj *mo, void **data);
+  // int IE_popup_planes_CB (MemObj *mo, void **data);
 
 
 
@@ -3309,28 +3312,36 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   if(fnam == NULL) return 0;
 
-  printf("IE_cad_selM2_CB |%s%s|\n",dirNam,fnam);
+  printf("IE_cad_selM2_CB |%s|%s|\n",dirNam,fnam);
+  printf("   cbuf=|%s|\n",cbuf);
+
 
   actTyp = IE_inpTypR[IE_inpInd];
+    printf(" selM2_CB-actTyp=%d\n",actTyp);
+
 
 
   //---------------------------------------------------
   if(actTyp == TYP_FilNam) {  // 238
-    strcpy(AP_mod_dir, dirNam);
 
-    // get symbol from path
-    if(Mod_sym_get2 (cbuf, dirNam) < 0) return 0;
+    
+//     strcpy(AP_mod_dir, dirNam);
+//     // get symbol from path
+//     if(Mod_sym_get2 (cbuf, dirNam) < 0) return 0;
+//     // add text to Inputfield
+//     // strcat(cbuf, fnam_del_s);
+//     strcat(cbuf, "/");  // auch bei Windows "/"
+//     strcat(cbuf, fnam);
 
-
-    // add text to Inputfield
-    // strcat(cbuf, fnam_del_s);
-    strcat(cbuf, "/");  // auch bei Windows "/"
-    strcat(cbuf, fnam);
+    strcpy(cbuf,dirNam);
+    UTX_add_slash (cbuf);
+    strcat(cbuf,fnam);
 
 
 
   //---------------------------------------------------------------
   } else if(actTyp == Typ_CtlgPart) {  // 239
+    // dirNam = catalogName, fnam == partName
     sprintf(cbuf, "%s/%s",dirNam,fnam);
 
 
@@ -3392,7 +3403,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     strcpy(cbuf1, MSG_const__(MSG_open));  // "Model open"
     // i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.gcad");
     // 2015-07-06 filetyp removed (N=IMG needs jpg,bmp..)
-    i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.*");
+    i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "\"*.*\"");
     UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
     if(i1 < 0) return -1;
     IE_cad_selM2_CB (fNam, dNam);
@@ -3402,7 +3413,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   //---------------------------------------------------------------
   } else if(IE_inpTypAct == Typ_CtlgPart) {          // 239
     // display catalog-list and part-list
-    CTLG_Sel__ ();
+    // CTLG_Sel__ ();
+    CTLG_get__ ();
 
 
 
@@ -5152,8 +5164,8 @@ static int _do_not = 0;
 
     // das zuletzt temporaer erzeugte objekt loeschen
     // GL_last_del ();
-    GL_temp_del_1 (DLI_TMP);      // delete temporary outputObject of WC_Work1
-    GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
+    GL_temp_del_1 (GR_TMP_I0);      // delete temporary outputObject of WC_Work1
+    GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
     DL_Redraw ();
     return -1;
 
@@ -5165,7 +5177,7 @@ static int _do_not = 0;
   // Alle erforderl. Eingaben sind vorhanden ....
   L_start:
     // printf("IE_cad_test__ L_start:\n");
-  GL_temp_del_1 (DLI_DIR_TMP);  // delete temporary direction-arrow
+  GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
   // necessary if WC_Work1 provides no obj
 
 
@@ -6740,9 +6752,6 @@ static IE_info_rec IE_info_tab[] = {
 
   sprintf(cbuf, "T%ld", dbi);
   IE_set_inp (IE_inpInd, cbuf);
-
-  // // disp; koennte auch in IE_parDef/save erfolgen wie bei IE_cad_Inp1_nxtVec
-  // UI_disp_vec2 (ii);
 
   IE_cad_test__ ();
 
@@ -8473,16 +8482,13 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //================================================================
 // IE_cad_Inp_disp_pt      display point for actual inputfield
 
-  long   l1;
-
-
   // DEB_dump_obj__ (Typ_PT, pt1, "IE_cad_Inp_disp_pt: \n");
 
   // save point
   IE_inpAuxDat[iind].pos = *pt1;
 
-  l1  = IE_GET_INP_DLI (iind);
-  GL_DrawSymB (&l1, 2, SYM_CIR_S, pt1);
+  GR_temp_symB (pt1, SYM_CIR_S, ATT_COL_RED);
+//   GL_DrawSymB (&l1, 2, SYM_CIR_S, pt1);
 
   return 0;
 
@@ -8490,7 +8496,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
  
 
 //================================================================
-  int IE_cad_Inp_disp_vc (long *dli, Vector *vc1, int iind) {
+  int IE_cad_Inp_disp_vc (Vector *vc1, int iind) {
 //================================================================
 // IE_cad_Inp_disp_vc      display vector for actual inputfield
 // Input:
@@ -8531,7 +8537,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   // display always same length (cannot see short vectors)
-  GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
+//   GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
+  GR_temp_symV3 (SYM_ARROW, ATT_COL_RED, &pt1, vc1, 20.);
 
 
 /*
@@ -8539,13 +8546,13 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // att 7 = sw; Laenge 1
     // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
     // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
-    // GR_Disp_vc (&vc1, &pt1, 7, 0);
+    // GR_tDyn_vc (&vc1, &pt1, 7, 0);
     // GL_DrawSymV3 (&dli, SYM_ARROW, 7, &pt1, &vc1, 10.);
     GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
 
   } else {
     // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
-    // GR_Disp_vc (&vc1, &pt1, 2, 1);
+    // GR_tDyn_vc (&vc1, &pt1, 2, 1);
     GL_DrawVec (dli, 13, &pt1, vc1);
   }
 */
@@ -8570,17 +8577,12 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //================================================================
 // temp preview of Plane
 
-  long   dli;
-
 
   // printf("IE_cad_Inp_disp_pln %d\n",iind);
   // DEB_dump_obj__ (Typ_PLN, pln1, "  pln1:");
 
-  dli = IE_GET_INP_DLI (iind);
-    // printf(" dli=%ld\n",dli);
-
-
-  GL_DrawSymVX (&dli, 9, pln1, 5, 1.);   // 1=pln, 5=pln + axis
+//   GL_DrawSymVX (&dli, 9, pln1, 5, 1.);   // 1=pln, 5=pln + axis
+  GR_temp_pln (pln1, Typ_Att_hili1, 5);
 
 
   return 0;
@@ -8589,7 +8591,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
 //================================================================
-  int IE_cad_Inp_disp_ang (long *dli, double *ang1, int  iind) {
+  int IE_cad_Inp_disp_ang (double *ang1, int  iind) {
 //================================================================
 // IE_cad_Inp_disp_ang              disp angle
 // auxInf Angles:
@@ -8675,7 +8677,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     vz = WC_sur_act.vz;
   }
 
-  GL_DrawAngA (dli, 12, &pt1, &vx, &vz, &a1);
+//   GL_DrawAngA (dli, 12, &pt1, &vx, &vz, &a1);
+  GR_temp_ang (Typ_Att_top2, &pt1, &vx, &vz, a1);
 
 
   return 0;
@@ -8848,7 +8851,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 // DispListIndexes:
 //   for CAD-inputFields:  get (fixed) index from IE_GET_INP_DLI ("-iind - 2;"
-//   for outputObject (WC_Work1):  DLI_TMP (-8L)
+//   for outputObject (WC_Work1):  GR_TMP_I0 (8)
 
 // OFFEN: IE_decode_Ln und danach APT_obj_expr ist Mist; es sollte
 //        eine APT_obj_expr-Version die schon aus_typ, aus_tab mitbringt.
@@ -8870,7 +8873,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
-  // printf("IE_cad_Inp_disp__ iind=%d mode=%d\n",iind,mode);
+  printf("IE_cad_Inp_disp__ iind=%d mode=%d\n",iind,mode);
 
 
   if(iind < 0) return 0;
@@ -8883,8 +8886,9 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   //----------------------------------------------------------------
   // ignore objects not displayable
-  if(rTyp == Typ_Txt)      return 0;  // skip text  2016-10-05
-  if(rTyp == Typ_SubModel) return 0;  // skip Submodel  2018-06-24
+  if(rTyp == Typ_Txt)      return 0;  // skip text
+  if(rTyp == Typ_String)   return 0;  // skip string ("xx")
+  if(rTyp == Typ_SubModel) return 0;  // skip Submodel
   if(rTyp == TYP_FilNam)   return 0;
   if(rTyp == Typ_CtlgPart) return 0;
   if(rTyp == Typ_PTS) return 0;
@@ -8894,15 +8898,15 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   //----------------------------------------------------------------
   // get (fixed) dli for active inputF  -iind - 2; first =-2L, next -3L, ..
-  dli = IE_GET_INP_DLI (iind);
-    // printf(" dli=%ld\n",dli);
+  DL_temp_ind = IE_GET_INP_DLI (iind);
+    // printf(" DL_temp_ind=%ld\n",DL_temp_ind);
 
 
   // get inputFieldText
   p1 = IE_get_inp__(iind);
   if(strlen(p1) < 1) {
     // cad-inputField is empty
-    GL_temp_del_1 (dli);            // delete cad-inputFieldObject
+    GL_temp_del_1 (DL_temp_ind);            // delete cad-inputFieldObject
     return 0;
   }
 
@@ -9060,7 +9064,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     dbTyp = ato1.typ[0];
     form = DB_GetObjDat (&op1, &oNr, ato1.typ[0], dbi);
     if(form < 0) goto L_err_inp;
-      // printf("  _cad_Inp_disp %d oTyp=%d |%s| dli=%ld\n",iind,oTyp,p1,dli);
+      // printf("  _cad_Inp_disp %d oTyp=%d |%s| gli=%ld\n",iind,oTyp,p1,gli);
       // printf(" form=%d oNr=%d\n",form,oNr);
       // DEB_dump_obj__ (form, op1, "op1");
 
@@ -9077,7 +9081,9 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   if(oTyp == Typ_PT) {
-    IE_cad_Inp_disp_pt ((Point*)op1, iind);
+    // IE_cad_Inp_disp_pt (gli, (Point*)op1, iind);
+    IE_inpAuxDat[iind].pos = *(Point*)op1;
+    GR_temp_symB ((Point*)op1, SYM_CIR_S, ATT_COL_RED);
     goto L_done;
 
 
@@ -9099,7 +9105,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // ox1 = UTO_ox_dbo (form, dbi);
     OGX_SET_OBJ (&ox1, dbTyp, form, 1, op1);
     UT3D_ptvc_ox (&pt1, &vc1, &ox1);
-    IE_cad_Inp_disp_vc (&dli, &vc1, iind);
+    IE_cad_Inp_disp_vc (&vc1, iind);
     goto L_done;
 
 
@@ -9109,7 +9115,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // IE_inpAuxDat[iind].d1 = UT_RADIANS(*(double*)op1);
     irc = APT_obj_ato ((double*)op1, oTyp, &ato1);
     if(irc < 0) return -1;
-    IE_cad_Inp_disp_ang (&dli, (double*)op1, iind);
+    IE_cad_Inp_disp_ang ((double*)op1, iind);
     goto L_done;
 
 
@@ -9118,11 +9124,12 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
     if(((ObjGX*)op1)->form == Typ_VC) {
       // display vector
-      IE_cad_Inp_disp_vc (&dli, (Vector*)(((ObjGX*)op1)->data), iind);
+      IE_cad_Inp_disp_vc ((Vector*)(((ObjGX*)op1)->data), iind);
 
-    } else {
+    } else if(((ObjGX*)op1)->form == Typ_TraRot) {
       // display TraRot
       GL_Draw_tra (&dli, 12, (TraRot*)(((ObjGX*)op1)->data));
+// TODO
     }
 
     goto L_done;
@@ -9238,27 +9245,25 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   //----------------------------------------------------------------
   L_draw_ln:
       // DEB_dump_obj__ (Typ_LN, op1, " L_draw_ln:temp.line:");
-    GL_DrawLine (&dli, iatt, (Line*)op1);
+    // GL_DrawLine (&dli, iatt, (Line*)op1);
+    GR_temp_ln ((Line*)op1, Typ_Att_hili1);
     goto L_done;
 
   L_draw_ac:
     // DEB_dump_obj__ (Typ_CI, o1, "");
-    GR_DrawCirc (&dli, 0L, iatt, op1);
+    // GR_DrawCirc (&dli, 0L, iatt, op1);
+    GR_temp_ocv (Typ_CI, (Circ*)op1, dbi, Typ_Att_hili1);
     goto L_done;
 
   L_draw_cv:
     // if its dbo eg Typ_CVTRM we have data
     if(TYP_IS_DBO(oTyp)) oTyp = form;
-    GR_Draw_obj (&dli, dbi, oTyp, op1, oNr, iatt, 0);
+    // GR_temp_obj (&dli, dbi, oTyp, op1, oNr, iatt, 0);
+    GR_temp_ocv (oTyp, op1, dbi, Typ_Att_hili1);
     goto L_done;
 
   L_draw_vc:
-    IE_cad_Inp_disp_vc (&dli, (Vector*)op1, iind);
-    // GL_DrawVc1 (&dli, 12, ppt, o1);
-    // GL_DrawVc1 (&dli, 12, NULL, o1);
-    // UI_disp_vec1 (Typ_Txt, p1);
-
-
+    IE_cad_Inp_disp_vc ((Vector*)op1, iind);
 
 
   //----------------------------------------------------------------
@@ -10083,13 +10088,13 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   return 0;
 
 }
-*/
 
+// UU
 //===============================================================
   int IE_popup_planes_CB (MemObj *mo, void **data) {
 //===============================================================
 // mouse goes over entry in popup
-// see also UI_GR_CB_Sel2
+// see also UI_popSel_CB__
 
 
   int  iEv;
@@ -10129,6 +10134,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   return FALSE;  // GTK2 ! was TRUE
 
 }
+*/
 
 
 //=====================================================================
@@ -10934,8 +10940,10 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // unselect all hilited und temp;
   // display vertex
-  l1 = -2;
-  GL_DrawSymB (&l1, 2, SYM_CIR_S, (void*)o1);
+  // l1 = -2;
+  // GL_DrawSymB (&l1, 2, SYM_CIR_S, (void*)o1);
+  DL_temp_ind = 2;
+  GR_temp_symB ((Point*)o1, SYM_CIR_S, 2);
   vp1 = o1;
   goto L_print;
 
@@ -11079,8 +11087,9 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
 
-  GR_tmpDisp_ln (pa, 3);
-
+  // GR_tmpDisp_ln (pa, 3);
+  DL_temp_ind = GR_TMP_I0;
+  GR_temp_pcv(pa, 2, Typ_Att_hili1);
 
 
   return 0;

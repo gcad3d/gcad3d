@@ -55,8 +55,8 @@ typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 
 //================================================================
 // defined in ../xa/xa.c (with extern invalidated)
-extern char AP_mod_dir[128];      // directory of active model, with '/' at end
-extern char AP_mod_fnam[128];     // active Modelname - without path
+extern char AP_mod_dir[128];      // abs.directory of active model, with '/' at end
+extern char AP_mod_fnam[128];     // active Modelname without filetyp
 extern char AP_mod_ftyp[32];      // filetyp of active model
 extern char AP_mod_sym[64];       // symbolic directory for OPEN (no '/' at end)
   // AP_mod_iftyp: integer-filetyp of active model; eg Mtyp_DXF
@@ -135,12 +135,6 @@ extern AP_STAT AP_stat;
 
   int AP_errStat_set (int stat);
   int AP_errStat_get ();
-
-// nur temp:
-  // void GR_tmpSym (int typ, Point *pt1); // Point !
-
-
-
 
 
 

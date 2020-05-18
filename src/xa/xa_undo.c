@@ -999,7 +999,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
 
 }  
   
-/* UNUSED
+
 //================================================================
   int UNDO_app__ (int mode) {
 //================================================================
@@ -1080,13 +1080,11 @@ static long   dli, dbl;
   //================================================================
   //        3 remove undo-record
   L_app_3:
-/ *
 //   // delete undo-record
 //   // if(undoTab.rNr > 0) undoTab.rNr -= 1;
 // // TODO: find last 'P' group, delete group
 // 
 //   goto L_app_ex;
-* /
 
   //================================================================
   L_app_ex:
@@ -1101,7 +1099,7 @@ static long   dli, dbl;
     UNDO_dump ("");
     return -1;
 }
-*/
+
 
 //================================================================
   int UNDO_clear () {

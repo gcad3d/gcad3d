@@ -81,7 +81,7 @@ UI_GR_Sel_Filt_set 15  load texture
 
 #include "../ut/func_types.h"               // UI_FuncInit
 #include "../gr/ut_GL.h"               // GL_get_Scale
-
+#include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa.h"                  // AP_STAT
 #include "../xa/xa_msg.h"              // MSG_..
 #include "../xa/xa_ui.h"               // APF_TB_CAD,
@@ -395,7 +395,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   //-------------------------------------------------
   } else if(!strcmp(cp1, "LdFile")) {    // load from file & apply
 /*
-     AP_get_fnam_symDir (cbuf1);   // get filename of dir.lst
+     MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
      // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
      GUI_List2 ("select Texturefile", // titletext
               AP_mod_dir,             // Pfadname des activeDirectory
@@ -403,7 +403,7 @@ static TexRef actTr;             // active TexRef (for Restore)
               (void*)TED_Tex_Load);    // CallBack der Liste
 */
 
-    i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "*.jpg");
+    i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "\"*.jpg\"");
     if(i1 < 0) return -1;
     TED_Tex_Load (cbuf1, cbuf2);
 
@@ -579,14 +579,18 @@ extern int       KeyStatCtrl;
 //================================================================
 // display|remove frame
 
+  static int gli_frame = 0;
+
   int        itr;
   long       l1;
   double     d1, d2;
-  Point      po;
+  Point      po, pa[5];
   TexRef     *tr;
 
   if(mode == OFF) goto L_del;
 
+  //----------------------------------------------------------------
+  // display red frame
   itr = Tex_getRefInd ();
   Tex_getRef (&tr, itr);
     DEB_dump_obj__ (Typ_TEXR, tr, "TR[%d]: ",itr);
@@ -594,28 +598,33 @@ extern int       KeyStatCtrl;
   // save active TexRef (for Restore)
   actTr = *tr;
 
-
       po.x = tr->px;
       po.y = tr->py;
       po.z = tr->pz;
   
-      l1 = -2L;  // temporary red frame
+//       l1 = -2L;  // temporary red frame
+//       gli_frame = GL_temp_iNxt ();
       d1 = tr->ssx;
       d2 = tr->ssy;
-      GR_Draw_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
+      // GR_temp_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
+      UT3D_pta_parlg_pt_2vc (pa, &po, &tr->vx, d1, &tr->vy, d2);
+      GR_temp_pcv (pa, 5, Typ_Att_hili1);
+
   
      // l1 = Tex_actDli_get();
         // // printf(" actSur=%d actDli=%ld\n",i1,l1);
       // // unhili geht nicht: wird scheinbar vom select-prozess spaeter gehilitet
-      DL_hili_off (l1);  // unhilite
+      // DL_hili_off (l1);  // unhilite
       DL_Redraw ();
 
   return 0;
 
 
   //----------------------------------------------------------------
+  // remove red frame
   L_del:
-  GL_temp_del_1 (2L);  // delete red frame
+  if(gli_frame) GL_temp_del_1 (gli_frame);  // delete red frame
+  gli_frame = 0;
 
 
   return 0;

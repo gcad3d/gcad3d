@@ -2,7 +2,7 @@
 #       2=Distribute;  Debug-OFF
 # -pg does produce a gmon.out (add for CPDEB and LKDEB)
 # -ggdb or -g ?
-DEB = 1
+DEB = 2
 
 
 ifeq "$(DEB)" "1"

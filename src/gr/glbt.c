@@ -141,7 +141,7 @@ extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
 extern double GL_fakt;
 extern double GL_Scale;
 extern double GL2D_Scale;
-extern Vector *GL_eyeX;
+// extern Vector *GL_eyeX;
 extern Vector *GL_eyeY;
 extern Vector *GL_eyeZ;
 extern GLdouble GL_ModSiz;
@@ -636,14 +636,14 @@ static char  I2D_stat[I2D_TABSITZ];
     // disp button
     tw = tWidth; // * scl;
     glPixelZoom (1.f, 1.f);
-    GL_Disp_tag2D ((int)tw, (int)th, GL_GREEN);
+    GL_set_tag2D ((int)tw, (int)th, GL_GREEN);
 
     // move GL-rasterPosition 0.5 char right and 4 pix up
     GL2D_pos_move (sx, 4);
 
     // display text bTx
     glPixelZoom (fscl, fscl);
-    GL_Disp_txt2D (bTx);
+    GL_set_txt2D (bTx);
 
     // restore color & rasterPosition
     GL2D_pos_get ();
@@ -690,7 +690,8 @@ static char  I2D_stat[I2D_TABSITZ];
 //================================================================
   int GLBT_test__ () {
 //================================================================
-      // gl must be open !  GL_DrawSymB gets clipped if outside
+// disp text "Test" at screencoords, gl must be open
+// GL_DrawSymB gets clipped if outside
 
   int          i1, iLen;
   long         gli, dli;
@@ -752,11 +753,11 @@ static char  I2D_stat[I2D_TABSITZ];
   // glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
   // GL_DispTag1 (100, 12, ATT_COL_YELLOW);
 
-  GL_Disp_tag2D (80, 12, GL_GREEN);
+  GL_set_tag2D (80, 12, GL_GREEN);
 
   // disp text
   // glColor4f (0.f, 1.f, 0.f, 1.f);    // USELESS! Text always black ..
-  GL_Disp_txt2D ("Test");
+  GL_set_txt2D ("Test");
 
 
   //----------------------------------------------------------------
@@ -906,7 +907,7 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
     //----- display characters x y for StandardVectors ----------
-    // display x y   see APT_disp_TxtA
+    // display x y   see GR_tDyn_txtA
     glColor3fv   (glColx);
     glRasterPos3dv ((double*)&pt1);
     glCallList ((GLuint)120);           // "x"

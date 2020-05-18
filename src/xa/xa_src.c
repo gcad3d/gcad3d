@@ -1700,20 +1700,20 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     if(oTyp == Typ_LN) return -2;
     if(oTyp == Typ_CI) return -2;
 
-    // get 2D-parameters of 3D-point pti in pts
-    irc = SUR_pt2_prjptsur (&pts, pti, iObj);
-    if(irc < 0) {
-      printf("*** get parameteric point on this surfTyp is not yet implemented ***\n");
+//     // get 2D-parameters of 3D-point pti in pts
+//     irc = SUR_pt2_prjptsur (&pts, pti, iObj);
+//     if(irc < 0) {
+//       printf("*** get parameteric point on this surfTyp is not yet implemented ***\n");
       // so = get vertex from selected position
       ATO_clear__ (&ato);
       ATO_ato_expr_add (&ato, Typ_Val, pti->x, 0);
       ATO_ato_expr_add (&ato, Typ_Val, pti->y, 0);
       ATO_ato_expr_add (&ato, Typ_Val, pti->z, 0);
       goto L_encode;
-    }
-    ATO_ato_expr_add (&ato, Typ_Val, pts.x, 0);
-    ATO_ato_expr_add (&ato, Typ_Val, pts.y, 0);
-    goto L_encode;
+//     }
+//     ATO_ato_expr_add (&ato, Typ_Val, pts.x, 0);
+//     ATO_ato_expr_add (&ato, Typ_Val, pts.y, 0);
+//     goto L_encode;
 
 
   //----------------------------------------------------------------

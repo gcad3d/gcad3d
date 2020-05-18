@@ -654,7 +654,7 @@ cl -c ut_geo.c
 
   // vector
   if(vct) UT3D_vc__pt_el (vct, &ptt, el1);
-    // GR_Disp_vc (vct, &ptt, 9, 0);
+    // GR_tDyn_vc (vct, &ptt, 9, 0);
 
 
   //----------------------------------------------------------------
@@ -1327,7 +1327,7 @@ cl -c ut_geo.c
   }
 
     // DEB_dump_nobj__ (Typ_PT2, pNr, pa, "ex-UT2D_npt_tra_el2");
-    // GR_Disp_cv2 (pa, pNr, Typ_Att_top2);
+    // GR_tDyn_pcv2 (pa, pNr, Typ_Att_top2);
 
   return 0;
 
@@ -1388,7 +1388,7 @@ cl -c ut_geo.c
   *pNr = ptNr;
 
     // DEB_dump_nobj__ (Typ_PT2, ptNr, pa, "ex-UT2D_npt_elc");
-    // GR_Disp_cv2 (pa, ptNr, Typ_Att_top2);
+    // GR_tDyn_pcv2 (pa, ptNr, Typ_Att_top2);
 
   return 0;
 
@@ -1419,7 +1419,7 @@ cl -c ut_geo.c
   }
 
     // DEB_dump_nobj__ (Typ_PT2, pNr, pa, "ex-UT3D_npt_tra_el2");
-    // GR_Disp_cv2 (pa, pNr, Typ_Att_top2);
+    // GR_tDyn_pcv2 (pa, pNr, Typ_Att_top2);
 
   return 0;
     
@@ -1490,7 +1490,7 @@ cl -c ut_geo.c
 
     // printf("ex-UT3D_npt_ell ptNr=%d\n",*ptNr);
     // DEB_dump_nobj__ (Typ_PT, *ptNr, pa, "pa:");
-    // GR_Disp_cv (pa, ptNr, 8);
+    // GR_tDyn_pcv (pa, ptNr, 8);
 
   return 0;
 
@@ -1731,7 +1731,7 @@ cl -c ut_geo.c
     // cv[i1].y += el->pc.y;
     // cv[i1].z += el->pc.z;
       // // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
-      // // GR_Disp_txi (&cv[i1], i1, 0);
+      // // GR_tDyn_txiA (&cv[i1], i1, 0);
   // }
 //
 
@@ -1792,7 +1792,7 @@ cl -c ut_geo.c
     cv[i1].y += el->pc.y;
     cv[i1].z += el->pc.z;
       // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
-      // GR_Disp_txi (&cv[i1], i1, 0);
+      // GR_tDyn_txiA (&cv[i1], i1, 0);
   }
 
   // replace 1. u last point
@@ -1805,7 +1805,7 @@ cl -c ut_geo.c
   // printf("ex UT3D_cv_ell %d\n",*numpt);
   // for(i1=0;i1<*numpt; ++i1) {
     // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
-    // GR_Disp_txi (&cv[i1], i1, 0); }
+    // GR_tDyn_txiA (&cv[i1], i1, 0); }
 
 
 
@@ -2533,7 +2533,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // intersect 2 planes
   UT3D_ptvc_int2pln (&ptl,&vcl, &pln->po,&pln->vz, &el->pc,&el->vz);
-    // GR_Disp_vc (&vcl, &ptl, 9, 0);
+    // GR_tDyn_vc (&vcl, &ptl, 9, 0);
 
   UT3D_ln_ptvc (&ln, &ptl, &vcl);
 
@@ -3064,7 +3064,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_solvtriri_bc (&dx, &dyc, b, c);
     // printf(" dx=%f dyc=%f\n",dx,dyc);
     // UT3D_vc_pt3db (&vhx, pt1, dx, dyc, 0.);
-    // GR_Disp_vc (&vhx, pt1, 8, 1);
+    // GR_tDyn_vc (&vhx, pt1, 8, 1);
 
   // change point on elli-circ-maj to point on elli
   UT3D_pt_el_ptx (&dye, dx, ea, eb);
@@ -3153,7 +3153,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_solvtriri_bc (&dy, &dxc,  b, c);
     // printf(" dxc=%f dy=%f\n",dxc,dy);
     // UT3D_vc_pt3db (&vhx, pt1, dxc, dy, 0.);
-    // GR_Disp_vc (&vhx, pt1, 8, 1);
+    // GR_tDyn_vc (&vhx, pt1, 8, 1);
 
   // change point on elli-circ-min to point on elli
   UT3D_pt_el_pty (&dxe, dy, ea, eb);
@@ -3616,7 +3616,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   ln21.p2.x = 0.;
   ln21.p2.y = c / (aa * pt.y);
     // DEB_dump_obj__ (Typ_LN2, &ln21, "  ln21:");
-    // GR_Disp_ln2 (&ln21.p1, &ln21.p2, 9);
+    // GR_tDyn_ln2_2pt (&ln21.p1, &ln21.p2, 9);
 
 
 // the intersectionLine ln21 is: p1=x,0  p2=0,y
@@ -3754,7 +3754,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_vc_2pt (&vc1, &eli->pc, &eli->p1);
   UT2D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
-    // GR_Disp_vc (&vc1, &el3->pc, 7, 1);
+    // GR_tDyn_vc (&vc1, &el3->pc, 7, 1);
 
   UT2D_vc_2pt (&vc1, &eli->pc, &eli->p2);
   UT2D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
@@ -3777,8 +3777,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE \n");
   // DEB_dump_obj__ (Typ_CVELL, el3, "UT2D_elc_el3");
-  // GR_Disp_vc (&el3->va, &el3->pc, 5, 1);
-  // GR_Disp_vc (&el3->vb, &el3->pc, 5, 1);
+  // GR_tDyn_vc (&el3->va, &el3->pc, 5, 1);
+  // GR_tDyn_vc (&el3->vb, &el3->pc, 5, 1);
 
 
   // if(el3->dir > 0) el2c->dir = -1;    // 2016-10-30
@@ -3808,7 +3808,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p1);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
   UT3D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
-    // GR_Disp_vc (&vc1, &el3->pc, 7, 1);
+    // GR_tDyn_vc (&vc1, &el3->pc, 7, 1);
 
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p2);
   UT3D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
@@ -3907,7 +3907,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
                           CurvElli *el1, Point *ptx, int mode, double tol) {
 //==========================================================================
 // UT3D_par_pt__pt_el        get parameter (0-1) for point on ellipse
-//   does not compute exact projection of ptx onto ellipse
+//   mode=0 and 1 project ptx onto curve, mode=2 not.
 // Input:
 //   mode     0   check if dist. ptx-curve > tol; if yes - return -1
 //            1   do not test distance - project onto curve (test only endpoints)
@@ -3946,7 +3946,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el1);
     // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
-    // GR_Disp_el2c (&el2c, Typ_Att_top2);
+    // GR_tDyn_el2c (&el2c, Typ_Att_top2);
 
   // get van,vbn = normalized 3D-va,vb
   UT3D_vc_div_d (&van, &el1->va, el2c.a);

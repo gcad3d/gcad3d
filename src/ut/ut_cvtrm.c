@@ -205,7 +205,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
       // TESTBLOCK
       // DEB_dump_obj__ (Typ_CVTRM, &cv1, " cv1_%d",i1);
-      // GR_Disp_obj (Typ_CVTRM, &cv1, Typ_Att_Symb, 0);
+      // GR_tDyn_obj (Typ_CVTRM, &cv1, Typ_Att_Symb, 0);
       // END TESTBLOCK
 
     // add cv1 -> cvTab
@@ -889,7 +889,7 @@ REPLACED by UTO_obj__ccv_segnr
     // das Polygon der selektierten CCV holen UND segmnetIndexTable iTab !
     iNr = iTabSiz;
     UT3D_pta_ox_lim (&ptNr, pTab, &oxi, iNr, iTab, UT_DISP_cv*2.);
-      // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
+      // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 3);
       // i1=0;while(iTab[i1] >= 0) {printf(" XsY[%d] %d\n",i1,iTab[i1]);++i1;}
 
   
@@ -1231,7 +1231,7 @@ REPLACED by UTO_obj__ccv_segnr
   // das Polygon der selektierten CCV holen UND segmnetIndexTable iTab !
   iNr = iTabSiz;
   UT3D_pta_ox_lim (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
-    // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 3);
     // i1=0;while(iTab[i1] >= 0) {printf(" [%d] %d\n",i1,iTab[i1]);++i1;}
 
 
@@ -1299,7 +1299,7 @@ REPLACED by UTO_obj__ccv_segnr
 
   iNr = iTabSiz;
   UT3D_pta_ox_lim (&ptNr, pTab, cv1, iNr, iTab, UT_DISP_cv);
-    // GR_Disp_pTab (ptNr, pTab, SYM_STAR_S, 3);
+    // GR_tDyn_npt__ (ptNr, pTab, SYM_STAR_S, 3);
     // i1=0;while(iTab[i1] >= 0) {printf(" [%d] %d\n",i1,iTab[i1]);++i1;}
 
 
@@ -1563,7 +1563,7 @@ REPLACED by UTO_obj__ccv_segnr
   // printf(" isr=%d\n",isr);
   if(isr < 0)  UT3D_vc_invert (vco, vco);
 
-    // GR_Disp_vc (vco, pto, 2, 0);
+    // GR_tDyn_vc (vco, pto, 2, 0);
   return irc;
 
 }

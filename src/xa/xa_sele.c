@@ -1243,12 +1243,12 @@ static int    bck_GR_NoConstrPln;
 
 
 
-  printf("sele_get_selPos \n");
-  printf("  GR_reqTyp=%d \n",GR_reqTyp);
-  printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
-  printf("  GR_selTyp=%d \n",GR_selTyp);
-  printf("  GR_selDbi=%ld \n",GR_selDbi);
-  printf("  GR_selNam=|%s|\n",GR_selNam);
+  // printf("sele_get_selPos \n");
+  // printf("  GR_reqTyp=%d \n",GR_reqTyp);
+  // printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
+  // printf("  GR_selTyp=%d \n",GR_selTyp);
+  // printf("  GR_selDbi=%ld \n",GR_selDbi);
+  // printf("  GR_selNam=|%s|\n",GR_selNam);
 
 
 
@@ -1279,7 +1279,7 @@ static int    bck_GR_NoConstrPln;
     // return -1;
   }
 
-    DEB_dump_obj__ (Typ_PT, pts, "ex sele_get_selPos %d",irc);
+    // DEB_dump_obj__ (Typ_PT, pts, "ex sele_get_selPos %d",irc);
 
   return irc;
 

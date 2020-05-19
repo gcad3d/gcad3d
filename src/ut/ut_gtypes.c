@@ -443,7 +443,7 @@ char  *ObjCodTab[] = {
     }
 
 
-  } else if((typ >= Typ_CV) && (typ < Typ_SURPLN)) {
+  } else if((typ >= Typ_CV) && (typ < Typ_PLN)) {
 /*
   } else if((typ >= Typ_CV)      ||
             (typ == Typ_CVLNA)   ||
@@ -564,7 +564,7 @@ char  *ObjCodTab[] = {
 
   }
 
-    // printf("ex APED_oid_dbo__ |%s| %ld\n",buf,strlen(buf));
+    // printf("ex-APED_oid_dbo__ |%s| %d %ld\n",buf,typ,ind);
 
   return 1;
 

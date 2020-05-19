@@ -3840,7 +3840,7 @@ static  Point  selPos;
 
 
 
-  printf("SSSSSSSSSSSSSSS UI_GR_Select1 mode=%d dli=%ld\n",mode,*dlInd);
+  // printf("SSSSSSSSSSSSSSS UI_GR_Select1 mode=%d dli=%ld\n",mode,*dlInd);
 
 
   //----------------------------------------------------------------
@@ -3848,7 +3848,7 @@ static  Point  selPos;
 
   // get mouseposition in userCoords
   sele_get_pos__ (&selPos);
-    DEB_dump_obj__ (Typ_PT, &selPos, " selPos");
+    // DEB_dump_obj__ (Typ_PT, &selPos, "GR_Select1-selPos");
 
   reqTyp = sele_get_reqTyp ();
     // printf(" reqTyp=%d\n",reqTyp);
@@ -3859,7 +3859,7 @@ static  Point  selPos;
 
 
     // TESTBLOCK
-    UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
+    // UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
     // END TESTBLOCK
 
 
@@ -4275,7 +4275,7 @@ static  Point  selPos;
 
 
     // dump selTab
-    UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_10");
+    // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_10");
 
 
   // change nr of sel objs
@@ -4316,7 +4316,7 @@ static  Point  selPos;
 
 
   L_12:
-    UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_12");
+    // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-L_12");
 
 
   // kein object gefunden

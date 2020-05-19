@@ -4762,7 +4762,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
         // keep input-subTypes
         *p2 = '\0';
         ++p2;
-          printf(" cad_init1-auxInf |%s|\n",p2);
+          // printf(" cad_init1-auxInf |%s|\n",p2);
         // save subtypes (copy string following "||" -> IE_inpAuxDat.auxInf
         strcpy(IE_inpAuxDat[nObjR].auxInf, p2);
 
@@ -4780,7 +4780,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
       } else {
         strcpy(IE_wCad_preLoad[nObjR], p1);
       }
-        printf(" cad_init1-IE_wCad_preLoad |%s|\n",IE_wCad_preLoad[nObjR]);
+        // printf(" cad_init1-IE_wCad_preLoad |%s|\n",IE_wCad_preLoad[nObjR]);
 
     } else {
       IE_wCad_preLoad[nObjR][0] = '\0';
@@ -8277,8 +8277,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // check for "M1" - APT_modMax1
     if(!strncmp(pi, "M1", 2)) {
       APT_set_modMax (atoi(&pi[2]));
-        printf(" _InpIn__-APT_modMax1 = %d\n",APT_get_modMax1());
-    } else printf("****** IE_cad_InpIn__-auxInf unused |%s|\n",pi);
+        // printf(" _InpIn__-APT_modMax1 = %d\n",APT_get_modMax1());
+    } else printf("**** IE_cad_InpIn__-auxInf unused |%s|\n",pi);
 
   }
 
@@ -8873,7 +8873,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
-  printf("IE_cad_Inp_disp__ iind=%d mode=%d\n",iind,mode);
+  // printf("IE_cad_Inp_disp__ iind=%d mode=%d\n",iind,mode);
 
 
   if(iind < 0) return 0;

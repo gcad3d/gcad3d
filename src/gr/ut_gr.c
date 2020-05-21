@@ -406,8 +406,8 @@ static int tmpDspMode = 0;
 
   Point  ptc;
 
-  printf("GR_set_txtA opers=%d |%s| att=%d\n",opers,txtA,att);
-  DEB_dump_obj__ (Typ_PT, pt1, " set_pcv");
+  // printf("GR_set_txtA opers=%d |%s| att=%d\n",opers,txtA,att);
+  // DEB_dump_obj__ (Typ_PT, pt1, " set_pcv");
 
 
   if(pt1) ptc = *pt1;
@@ -4206,7 +4206,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 // GR_tDyn_npt__           disp. points
 /// Testdisplay Polygon
-/// att: see INF_COL_CV
+/// att: see INF_COL_PT
 
   int  i1;
   long dli;

@@ -34,6 +34,7 @@ extern <typ> <name>;
 extern const int    UT_INT_MAX;
 extern const double UT_VAL_MIN;
 extern const double UT_VAL_MAX;
+extern const double UT_DB_MAX;
 extern const double UT_DB_LEER;
 extern const double UT_DB_NULL;
 extern const char   UT_CHR_NULL;
@@ -47,7 +48,8 @@ extern const char   UT_CHR_NULL;
 const int    UT_INT_MAX  = 999999999;
 const double UT_VAL_MIN  = -FLT_32_MAX;
 const double UT_VAL_MAX  =  FLT_32_MAX;
-const double UT_DB_LEER  = -99999999.99999999;
+const double UT_DB_MAX   =  999999999.;
+const double UT_DB_LEER  = -999999999.99999999;
 const double UT_DB_NULL  = 0.0;
 const char   UT_CHR_NULL = '\0';
 

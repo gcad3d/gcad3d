@@ -580,7 +580,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
   L_exit:
-    printf("ex-W32-OS_get_lang |%s|\n",sLang);
+    // printf("ex-W32-OS_get_lang |%s|\n",sLang);
   return i1;
 
 }

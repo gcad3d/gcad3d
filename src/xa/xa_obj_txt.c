@@ -1094,6 +1094,7 @@ static long su_ind;
 ///   ED_buf1  source-obj; init function if NULL.
 ///   RC = -1: Fehler am Objekt, weiter.
 ///   RC = -2: Ueberlauf; sofort abbrechen.
+///   RC = -3: not yet implemenetd
 ///
 /// see also AP_obj_2_txt APED_search_dbLimits
 /// \endcode
@@ -1120,6 +1121,7 @@ static long su_ind;
   CurvElli  *ell1;
   Plane     *pl1;
   GText     *tx1;
+  AText     *txa1;
   Dimen     *dim1;
   polynom_d3 *polTab;
   CurvBSpl  *cpbsp;
@@ -1545,6 +1547,37 @@ static long su_ind;
 
 
 
+
+
+  //=====================================================================
+  } else if (typ == Typ_ATXT) {           // Note ..
+
+    // hole naechsten freien Index
+    if(ind < 0) {
+      ++tx_ind;
+      ind = tx_ind;
+    }
+
+    txa1 = (AText*)o1->data;
+
+    sprintf(ED_buf1,"N%ld=",ind);
+
+
+    if(txa1->aTyp != 0) goto L_NYI;
+
+      strcat(ED_buf1, "TAG ");
+
+      // textpos
+      AP_obj_add_pt (ED_buf1, &txa1->p1);
+
+      // leaderline
+      if(fabs(txa1->p2.z) < UT_DB_MAX)
+        AP_obj_add_pt (ED_buf1, &txa1->p2);
+
+      // Text
+      strcat(ED_buf1," \"");
+      if(txa1->txt) strcat(ED_buf1,txa1->txt);
+      strcat(ED_buf1,"\"");
 
 
 
@@ -2630,6 +2663,10 @@ static long su_ind;
   L_err_2:
   return -2;
 
+
+  L_NYI:
+    TX_Print("**** AP_stru_2_txt typ %d not yet implemented\n",typ);
+    return -3;
 
 
   //----------------------------------------------------------------

@@ -78,6 +78,8 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
+#include "../gr/ut_gr.h"               // GR_tDyn_*
+
 #include "../gui/gui__.h"
 
 #include "../xa/xa_ui.h"                     // UID_..
@@ -86,10 +88,18 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
+//===========================================================================
+// EXTERNALS:
+
+// ex ../gr/ut_DL.c
+extern long DL_temp_ind;  // next temp-index to used
+
+
+//================================================================
+// LOCAL-VARS:
+
 static  char   cBuf[512];
-
 char myMemspc[50000];
-
 
 
 
@@ -117,39 +127,48 @@ char myMemspc[50000];
   TX_Print("gCad_main aus DemoPlugin_Create\n");
 
 
-  // Gesamtes File loeschen
-  // UI_men__ ("new");
-
-  // AP_obj_2_txt (NULL, 0L, NULL, 0L);     // Init Objektindexe
-
-
-  //================================================================
-  // Create permanent objects:
-  // cre_3 ();      // Line Circ Curv Note
+  // clear model ("File/New")
+  UI_men__ ("new");
 
 
 
 
 
   //================================================================
+  UI_GR_ScalAuto (1);   // scale to Model (temp. and dynamic object cannot scale)
+
+
+  // permanent objects
+  // cre_perm_src ();        // permanent objects from sourceCode
+  // cre_perm_obj ();        // permanent objects from binary-obj
+
+
+  // temporary objects; (max 30 aux.objects)
+  // cre_temp_1 ();          
+
+
   // create dynamic objects (not stored in DB, but visible, can move, zoom ..)
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
+  cre_tDyn_obj ();
+  // cre_tDyn_sym ();        // Temporary-Dynamic symbols
+  // cre_tDyn_txt ();        // Temporary-Dynamic text
+  // cre_tDyn_mdr ();        // Temporary-Dynamic modelRefs;
 
-  cre_dyn_1 ();  // point, line, circ, polygon, b-spline surf-planar
 
-  // cre_4 ();      // symbols
-  // cre_5_1 ();    // (temporary) objs
-  // cre_5_2 ();    // Ditto
-  // cre_5_3 ();    // text
 
+
+/*
+  //================================================================
+// DO NOT USE; beeing replaced ..
   // cre_6 ();      // ruled surfaces
   // cre_7 ();      // revolved surfaces (perm)
   // cre_8 ();      // tesselated surfaces
   // cre_9 ();      // planare surf; trimmed / perforated
-
   // cre_10();      // TestDisplayfunktions (_Disp_)
+*/
 
+  //================================================================
   // Redraw DispList
   DL_Redraw ();
 
@@ -163,295 +182,64 @@ char myMemspc[50000];
 
 
 //================================================================
-  int cre_dyn_1 () {
+  int cre_tDyn_obj () {
 //================================================================
-
-  int    i1;
-  Point  pt1;
-  Line   ln1;
-  Vector v1;
-  Point  pp1[]={60.,30., 0.,   65.,30., 0.,
-                65.,40., 0.,   60.,40., 0.,   60.,30., 0.};
+// disp. dynamic obj from binary-obj
 
 
-  // display point pp1[0];
-  // for parameters see GR_Disp_pt (use tagfiles - vi ctrl-r)
+  int      i1;
+  long     l1;
+  Point    pt1, ptc;
+  Line     ln1;
+  Vector   vz;
+  Point    pp1[]={60.,30., 0.,   65.,30., 0.,
+                  65.,40., 0.,   60.,40., 0.,   60.,30., 0.};
+  Point    cvp[]={-200.,100.,0.,
+                  -220.,125.,0.,
+                  -250.,150.,0.,
+                  -220.,175.,0.,
+                  -200.,200.,0.};
+  Circ     ci1;
+  CurvBSpl bsp1;
+  Memspc   memSeg1;
+
+
+  // display point
+  // for parameters see GR_set_obj (use tagfiles - vi ctrl-r)
   UT3D_pt_3db (&pt1, 60., 20., 10.);
-  GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_CYAN);
+  GR_tDyn_pt (&pt1, ATT_PT_HILI);
 
 
   // disp line
   UT3D_pt_3db (&ln1.p1, 100.,   0.,   0.);
   UT3D_pt_3db (&ln1.p2, 100., 100.,   0.);
-  GR_tDyn_ln (&ln1, Typ_Att_hili);
+  GR_tDyn_ln (&ln1, Typ_Att_dash_long);
 
 
-
-
-
-
-  // display points pp1 with symbols
-  // GR_tDyn_npt__ (5, pp1, SYM_TRI_S, ATT_COL_RED);
-
-
-  // display numbers at points of pp1
-  // for(i1=0; i1<4; ++i1) GR_tDyn_txiA (&pp1[i1], i1, 0);
-
-
-  // display curve
+  // display curve (polygon)
   GR_tDyn_pcv (pp1, 5, Typ_Att_blue);
 
 
-//   // display vector
-//   UT3D_pt_mid2pt (&pt1, &pp1[0], &pp1[2]);
-//   AP_Get_ConstPl_vz (&v1);
-//   GR_tDyn_vc (&v1, &pt1, Typ_Att_Symb, 0); // 0="normiert", 1=wahre Groesse
-
-
-  // display surf - planar - unperforated
-  // GR_Disp_spu (5, pp1, Typ_Att_dash_long);
-
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int cre_3 () {
-//=========================================================
-// create object, change obj -> text, save text, execute text.
-
-
-  int    iCv1, iCv2, dbTyp;
-  long   dbInd;
-  Point2 pt21, pt22, pt2c, pt2a[5];
-  Point  pt1, pt2, ptc, pta[5];
-  Line2  ln21;
-  Line   ln1;
-  Circ2  ci21;
-  Circ   ci1;
-  GText  tx1;
-  char   cbuf[80];
-
-
-  // comment
-  ED_add_Line ("# generated by DemoPlugin_Create");
-
-
-  // create 2 2D-Points
-  pt21.x=100.; pt21.y=100.;
-  pt22.x=100.; pt22.y=200.;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT2, 1, (void*)&pt21);
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT2, 1, (void*)&pt22);
-
-
-
-  // create 2 3D-Point
-  pt1.x=100.; pt1.y=100.; pt1.z=100.;
-  pt2.x=100.; pt2.y=200.; pt2.z=100.;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT, 1, (void*)&pt1);
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT, 1, (void*)&pt2);
-
-  // dim following objects ..
-  ED_add_Line ("DIM");
-
-
-  // 2D-Line
-  ln21.p1 = pt21; ln21.p2 = pt22;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_LN, Typ_LN2, 1, (void*)&ln21);
-
-
-  // 3D-Line
-  ln1.p1 = pt1; ln1.p2 = pt2;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_LN, Typ_LN, 1, (void*)&ln1);
-
-
-  // reset dim
-  ED_add_Line ("G1");
-
-
-  // 2D-Circ
-  ci21.pc.x=100.; ci21.pc.y=100.;
-  ci21.p1.x=100.; ci21.p1.y=90.;
-  ci21.p2.x=110.; ci21.p2.y=100.;
-  ci21.p2 = ci21.p1;    // full circ
-  ci21.rad = 10.;       // CW not possible !
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_CI, Typ_CI2, 1, (void*)&ci21);
-
-
-
   // 3D-Circ
-  ci1.pc.x=100.; ci1.pc.y=100.; ci1.pc.z=100.;
-  ci1.p1.x=100.; ci1.p1.y=100.; ci1.p1.z=125.;
-  // ci1.p2 = ci1.p1;    // full circ
-  ci1.p2.x=125.; ci1.p2.y=100.; ci1.p2.z=100.;
-  ci1.vz.dx=0.;  ci1.vz.dy=1.;  ci1.vz.dz=0.;
-  ci1.rad = -25.;            // pos = CCW; neg = CW
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_CI, Typ_CI, 1, (void*)&ci1);
-
-
-  //  following -> Layer 1
-  ED_add_Line ("LAY 1");
+  UT3D_pt_3db (&pt1, 100., 100., 100.);
+  UT3D_pt_3db (&ptc, 100., 100., 125.);
+  UT3D_vc_3db (&vz, 0., 1., 0.);
+  // circ from startPt, center, z-vector, opening angle (pos. = CCW)
+  UT3D_ci_ptptvcangr (&ci1, &pt1, &ptc, &vz, UT_RADIANS(90.));
+  // curve, dbi=unknown=0
+  GR_tDyn_ocv (Typ_CI, &ci1, 0, Typ_Att_blue);
 
 
 
-  // Text
-  printf("DemoPlugin_Create: Text.\n");
-
-
-  // Alfatext (does not scale)
-  strcpy(cbuf, "ci1");
-  tx1.pt   = ci1.pc;
-  tx1.size = -1.;
-  tx1.dir  = 0.;         // direction
-  tx1.txt  = cbuf;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_GTXT, Typ_GTXT, 1, (void*)&tx1);
-
-
-  // Graf.text (scales)
-  strcpy(cbuf, "Graf.text");
-  UT3D_pt_3db (&tx1.pt, 0., 100., 0.);
-  tx1.size = 1.;
-  tx1.dir  = 90.;         // direction
-  tx1.txt  = cbuf;
-  UTO_sav_ost (&dbTyp, &dbInd, Typ_GTXT, Typ_GTXT, 1, (void*)&tx1);
-
-
-  // hide following, back  to layer 0
-  // ED_add_Line ("DRAW OFF");
-  // ED_add_Line ("LAY 0");
-
-
-
-  // 5 points -> pta
-  UT3D_pt_3db (&pta[0], 200., 0.,  0.);
-  UT3D_pt_3db (&pta[1], 250., 0.,  0.);
-  UT3D_pt_3db (&pta[2], 300., 50., 0.);
-  UT3D_pt_3db (&pta[3], 350., 50., 0.);
-  UT3D_pt_3db (&pta[4], 400., 80., 0.);
-
-
-  // Polygon from 5 points
-  iCv1 = UTO_sav_ost (&dbTyp, &dbInd, Typ_CVPOL, Typ_PT, 5, (void*)pta);
-
-
-  // display, hilite following
-  // ED_add_Line ("DRAW ON");
-  // ED_add_Line ("HILI");
-
-
+  // get mespc for B-Spline
+  UME_init (&memSeg1, myMemspc, sizeof(myMemspc));
 
   // B-Spline-Curve, Degree 3  from points
-  iCv2 = UTO_sav_ost (&dbTyp, &dbInd, Typ_CVBSP, Typ_PT, 5, (void*)pta);
+  //           (cvBsp, &memSeg1, pTab, ptNr, deg);
+  bspl_bsp_ptn (&bsp1, &memSeg1, cvp,     5,   3); 
+  // disp
+  GR_tDyn_ocv (Typ_CVBSP, &bsp1, 0, Typ_Att_blue);
 
-
-
-  // convert B-Spline-Curve -> Circs
-
-
-
-
-  // clean undo-tables
-  UNDO_clear ();
-
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int cre_5_1 () {
-//=========================================================
-// create dynamic objects (not stored in DB, but visible, can move, zoom ..)
-// Rework ("END") will delete these objects !!
-
-  long    id1;
-  Point   pt1;
-  Line    ln1;
-  Circ    ci1;
-
-
-  printf("cre_5_1\n");
-
-  id1 = -1L;    // temp. elem.
-  // id1 = 1;     // +1: store in dynamic area in DB
-
-
-  UT3D_pt_3db (&pt1, 100.,   0.,   0.);
-  // GR_CrePoint (&id1, 0, &pt1);
-  GR_tDyn_pt (&pt1, ATT_PT_HILI);
-
-
-  UT3D_pt_3db (&ln1.p1, 100.,   0.,   0.);
-  UT3D_pt_3db (&ln1.p2, 100., 100.,   0.);
-  ++id1; AP_add_ln (&id1, 1, &ln1);
-
-
-
-  UT3D_pt_3db (&ci1.pc,   0.,    0.,   0.);
-  UT3D_pt_3db (&ci1.p1, 100.,    0.,   0.);
-  UT3D_pt_3db (&ci1.p2,   0.,    0., 100.);
-  UT3D_vc_3db (&ci1.vz,   0.,   -1.,   0.);
-  ci1.rad  = 100.;
-  ci1.ango = UT3D_angr_ci_p1_pt (&ci1, &ci1.p2);  // MUST provide opening angle !
-  // id1=0; GR_CreCirc (&id1, Typ_Att_blue, &ci1);
-  GR_tDyn_ocv (Typ_CI, &ci1, 0L, Typ_Att_blue);
-    // printf(" circ %ld\n",id1);
-
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int cre_5_2 () {
-//=========================================================
-// create dynamic ditto
-
-  long    id1;
-  Point   pt1, pt2, pa[4];
-  Ditto   dit1;
-
-
-  printf("cre_5_2\n");
-
-  // use following polygon for ditto; save ditto-startposition (active DL-posi)
-  dit1.ind = GL_Get_DLind();
-
-
-  // create new attribute 
-  // (AttNr, col(2=r,3=g,4=b),typ(0=voll,1=-.,2=- -, 3=--),thick(1-6))
-  DL_InitAttRec (20,    4, 2, 3);  // att 20 = blue, strichl, thick3
-
-
-
-
-  // polygon
-  UT3D_pt_3db (&pa[0], 100.,  200.,   0.);
-  UT3D_pt_3db (&pa[1], 100.,  250.,   0.);
-  UT3D_pt_3db (&pa[2], 100.,  250., 100.);
-  UT3D_pt_3db (&pa[3], 100.,  200., 100.);
-  // GR_CrePoly (&id1, 20, 4, &pa);
-  GR_tDyn_pcv (pa, 4, Typ_Att_Symb);
-
-  DL_hide__ (GL_GetActInd(), OFF);         // hide last created Obj
-
-
-
-  UT3D_pt_3db (&dit1.po, 100., 200., 0.);      // origin (rotate-pos)
-  dit1.siz = GL_Get_DLind() - dit1.ind;        // save size of ditto
-  UT3D_pt_3db (&pt1, 100.,   400.,   0.);      // new dittopos
-
-  // ditto (pos, rotAng, mirror, ditto)
-  // mirror: no=' ', 'X'=X-Z-plane, 'Y'=Y-Z-plane
-  id1 = -1L;    // temp. elem.
-//   ++id1; GR_CreDitto2 (&id1, &pt1,  0., ' ', &dit1);
-//   ++id1; GR_CreDitto2 (&id1, &pt1, 30., 'X', &dit1);
-//   ++id1; GR_CreDitto2 (&id1, &pt1, 60., 'X', &dit1);
-//   ++id1; GR_CreDitto2 (&id1, &pt1, 90., ' ', &dit1);
 
   return 0;
 
@@ -549,7 +337,7 @@ char myMemspc[50000];
   id1 = 1;
   UT3D_pt_3db (&pt1, 450.,  0.,   0.);
   // disc (ID, att, cen, vector, inner_rad, outer_rad)
-  GR_CreDisk (&id1, Typ_Att_dash_long, &pt1, &UT3D_VECTOR_Z, -35., -50.0);
+  GR_CreDisk (&id1, Typ_Att_dash_long, &pt1, (Vector*)&UT3D_VECTOR_Z, -35., -50.0);
 
 
 
@@ -839,7 +627,7 @@ char myMemspc[50000];
 
 
   // display points with symbols
-  GR_tDyn_npt__ (5, pp1, SYM_TRI_S, 2);
+  GR_tDyn_npt__ (pp1, 5, ATT_PT_GREEN);
 
 
   // display numbers at points
@@ -850,14 +638,445 @@ char myMemspc[50000];
   GR_tDyn_pcv (pp1, 5, 2);
 
   
-//   // display vector
-//   UT3D_pt_mid2pt (&pt1, &pp1[0], &pp1[2]);
-//   AP_Get_ConstPl_vz (&v1);
-//   GR_tDyn_vc (&v1, &pt1, 2, 0); // 0="normiert", 1=wahre Groesse
-
-
   // display surf - planar - unperforated
   GR_Disp_spu (5, pp1, Typ_Att_dash_long);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_perm_obj () {
+//================================================================
+
+  int    dbTyp, iCv1, iCv2;
+  long   dbInd;
+  Point  pt1, pt2, ptc, pta[5];
+  Line   ln1;
+  Circ   ci1;
+  AText  txa1;
+  GText  txg1;
+  char   cbuf[80];
+
+
+  // create 2 3D-Points
+  pt1.x=100.; pt1.y=100.; pt1.z=100.;
+  pt2.x=100.; pt2.y=200.; pt2.z=100.;
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT, 1, (void*)&pt1);
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_PT, Typ_PT, 1, (void*)&pt2);
+
+
+  // 3D-Line
+  ln1.p1 = pt1; ln1.p2 = pt2;
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_LN, Typ_LN, 1, (void*)&ln1);
+
+
+  // 3D-Circ
+  ci1.pc.x=100.; ci1.pc.y=100.; ci1.pc.z=100.;
+  ci1.p1.x=100.; ci1.p1.y=100.; ci1.p1.z=125.;
+  // ci1.p2 = ci1.p1;    // full circ
+  ci1.p2.x=125.; ci1.p2.y=100.; ci1.p2.z=100.;
+  ci1.vz.dx=0.;  ci1.vz.dy=1.;  ci1.vz.dz=0.;
+  ci1.rad = -25.;            // pos = CCW; neg = CW
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_CI, Typ_CI, 1, (void*)&ci1);
+
+
+  // Alfatext (does not scale)
+  strcpy(cbuf, "ci1");
+  UT3D_pt_3db (&txa1.p1, 200., 100.,  100.);    // textpos
+  UT3D_pt_3db (&txa1.p2, 200., 100.,  50.);     // startPt leaderline; optional
+  txa1.aTyp = 0;          // 0=Text
+  txa1.col  = ATT_COL_BLUE;
+  txa1.txt  = cbuf;
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_ATXT, Typ_ATXT, 1, (void*)&txa1);
+
+
+  // Graf.text (scales)
+  strcpy(cbuf, "Graf.text");
+  UT3D_pt_3db (&txg1.pt, 0., 100., 0.);
+  txg1.size = 10.;
+  txg1.dir  = 90.;         // direction
+  txg1.txt  = cbuf;
+  UTO_sav_ost (&dbTyp, &dbInd, Typ_GTXT, Typ_GTXT, 1, (void*)&txg1);
+
+
+  // 5 points -> pta
+  UT3D_pt_3db (&pta[0], 200., 0.,  0.);
+  UT3D_pt_3db (&pta[1], 250., 0.,  0.);
+  UT3D_pt_3db (&pta[2], 300., 50., 0.);
+  UT3D_pt_3db (&pta[3], 350., 50., 0.);
+  UT3D_pt_3db (&pta[4], 400., 80., 0.);
+
+
+  // Polygon from 5 points
+  iCv1 = UTO_sav_ost (&dbTyp, &dbInd, Typ_CVPOL, Typ_PT, 5, (void*)pta);
+
+
+
+  // B-Spline-Curve, Degree 3  from points
+  iCv2 = UTO_sav_ost (&dbTyp, &dbInd, Typ_CVBSP, Typ_PT, 5, (void*)pta);
+
+
+  // clean undo-tables
+  UNDO_clear ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_temp_1 () {
+//================================================================
+// Create Temporary-objects:
+
+
+  Point   pt1={ 0., 0., 0.}, pt2;
+  Vector  vc1={ 1., 0., 2.};
+  Plane   pln1;
+  GText   txtg;
+
+  // 2D-text (bitmap)
+  // disp integers at position pt1
+  pt1.y += 2;
+  DL_temp_ind = 1;
+  GR_temp_txiA (&pt1, 123, ATT_COL_RED);
+  pt1.x += 2;
+  GR_temp_txiA (&pt1, 456, ATT_COL_GREEN);
+  pt1.x += 2;
+
+  // disp 2D-text
+  GR_temp_txtA (&pt1, "abc", ATT_COL_YELLOW);
+
+
+  // disp scaled rotated text
+  pt1.x += 2.;
+  txtg.pt   = pt1;
+  txtg.size = 0.5;
+  txtg.dir  = 30.;    // deg
+  txtg.txt  = "Test";
+  GR_temp_txtG (&txtg, ATT_COL_BLUE);
+
+
+  // points 
+  pt1.x = 0;
+  pt1.y += 2;
+  GR_temp_pt (&pt1, ATT_PT_HILI);
+  pt1.x += 2;
+  GR_temp_pt (&pt1, ATT_PT_GREEN);
+  pt1.x += 2;
+  DL_temp_ind = 8;     // use a fixed index
+  GR_temp_pt (&pt1, ATT_PT_YELLOW);
+
+
+  // vector  0=display normalized length; 1=display real length
+  pt1.x = 0;
+  pt1.y += 2;
+  GR_temp_vc (&vc1, &pt1, ATT_COL_BLUE, 0);
+  pt1.x += 2;
+  GR_temp_vc (&vc1, &pt1, ATT_COL_GREEN, 1);
+  // disp at screenCenter
+  GR_temp_vc (&vc1, NULL, ATT_COL_CYAN, 1);
+
+
+  //================================================================
+  // Symbols
+  pt1.x = 0;
+  pt1.y += 2;
+  // plane  1=pln 4=Axis+Chars 5=Plane+Axis+Chars
+  UT3D_pl_ptvc (&pln1, &pt1, &vc1);
+  GR_temp_pln (&pln1, Typ_Att_Symb, 1);
+  pt1.x += 2;
+  UT3D_pl_ptvc (&pln1, &pt1, &vc1);
+  GR_temp_pln (&pln1, Typ_Att_def, 4);
+
+  // composite temporary obj:
+  pt1.x += 2.;
+  pt2 = pt1;
+  pt2.x += 2.;
+  DL_temp_init ();           // start temporary-obj
+  GL_att_cv (Typ_Att_blue);  // see INF_COL_CV
+  GL_set_SymV2 (SYM_ARROH, &pt1, &pt2, 1.);  // head only at pt1 !
+  GL_set_ln2_2pt ((Point2*)&pt1, (Point2*)&pt2);
+  GL_set_SymV2 (SYM_ARROH, &pt2, &pt1, 1.);  // head only at pt2 !
+  GL_list_close ();          // close obj
+
+  pt1.x += 4.;
+  DL_temp_init ();           // start temporary-obj
+  GL_att_cv (Typ_Att_blue);  // see INF_COL_CV
+  // APT_disp_SymV1 (SYM_TRI_S,  1, &pt1, 4.);
+  GL_set_symB (SYM_CROSS, &pt1);
+  // GL_set_symV_r (SYM_CROSS, &pt1, 0., 2.);
+  GL_list_close ();          // close obj
+
+
+//   // angle
+//   pt1.x += 2;
+//   GR_temp_ang (12, Typ_Att_hili1, &pt1, &WC_sur_act.vx, &WC_sur_act.vz, RAD_90);
+
+
+
+
+  //================================================================
+  // Remove Temporary-Dynamic-objects:
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_tDyn_mdr () {      // temporary modelRefs;
+//================================================================
+// add temporary modelRefs; internal subModel must exist;
+//   (load or create subModel: eg call cre_perm_src)
+
+
+
+  int       irc, bmi;
+  long      dbi;
+  double    scale;
+  Point     pt1 = { 10., 100., 0.};
+  Plane     pl1;
+  ModelRef  mdr;
+
+
+  // get refSys (origin & orientation) for modelRef
+  UT3D_pl_ptvc (&pl1, &pt1, (Vector*)&UT3D_VECTOR_Z);
+    DEB_dump_obj__ (Typ_PLN, &pl1, "  temp_mdr-pl1: ");
+
+
+  //----------------------------------------------------------------
+  // disp (already existing) internal subModel, defined by its basicModelNr bmi
+
+  // create modelRef
+  bmi = 0;      // internal subModel <bmi> must exist !
+  scale = 1.;
+  // get modelRef from basicModelNr and refSys
+  Mod_mdr__bmi_pln (&mdr, bmi, &pl1, scale);
+    DEB_dump_obj__ (Typ_Model, &mdr, "  temp_mdb-mdr: ");
+
+  // display temp:
+  // DL_temp_ind = 8;   // set fixed GL-index
+  // irc = GR_temp_mdr (&mdr, GR_TMP_HILI);
+              // modelRef,    att:  GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM
+
+  // disp. temp.Dyn:
+  irc = GR_tDyn_mdr (&mdr, GR_TMP_DEF);
+              // modelRef,    att:  GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM
+
+
+  //----------------------------------------------------------------
+  // disp external subModel, defined by its basicModelNr bmi
+/*
+  // create modelRef
+  bmi = 0;      // internal subModel <bmi> must exist !
+  scale = 1.;
+  // get modelRef from basicModelNr and refSys
+  Mod_mdr__bmi_pln (&mdr, bmi, &pl1, scale);
+    DEB_dump_obj__ (Typ_Model, &mdr, "  temp_mdb-mdr: ");
+
+
+  GR_tDyn_mdr_mock (&mdr, GR_TMP_HILI);
+*/
+
+
+
+
+  return irc;
+
+}
+
+
+//================================================================
+  int cre_tDyn_sym () {
+//================================================================
+// temporary-dynamic objects;  (test objects)
+// Rework ("END") will delete these objects
+
+
+  static long    startInd=0;
+
+  int     i1;
+  Point   pt1 = { 0., -5., 0.};
+  Vector  vc1 = { 2., 1., 3.}, vc2;
+
+
+  printf("cre_tDyn_sym \n");
+
+  // get DL-startindex (for later delete)
+  startInd = GL_Get_DLind ();
+
+  //----------------------------------------------------------------
+  // create point-symbols
+  for(i1=0; i1<10; ++i1) {
+    GR_tDyn_pt (&pt1, ATT_PT_GREEN);
+    pt1.x += 2.;
+  }
+
+
+  // create bitmap-symbols
+  pt1.x = 0.;
+  pt1.y -= 2.;
+  for(i1=0; i1<10; ++i1) {
+    GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_RED);
+    pt1.x += 2.;
+  }
+
+
+  // create vector-symbols        see INF_symbols
+  pt1.x = 0.;
+  pt1.y -= 2.;
+  // normalized vector
+  GR_tDyn_vc (&vc1, &pt1, ATT_COL_BLUE, 0);
+  GR_tDyn_vc (&UT3D_VECTOR_Y, &pt1, ATT_COL_BLUE, 0);
+  // vector true-length
+  for(i1=0; i1<5; ++i1) {
+    pt1.x += 2.;
+    GR_tDyn_vc (&vc1, &pt1, ATT_COL_BLUE, 1);
+    UT3D_vc_multvc (&vc2, &UT3D_VECTOR_Y, pt1.x);
+    GR_tDyn_vc (&vc2, &pt1, ATT_COL_RED, 1);
+  }
+
+
+  // vector-symbols in 2D-plane; scaled, rotated  
+  pt1.x = 0.;
+  pt1.y -= 2.;
+  GR_tDyn_symV_r (SYM_ARROW, ATT_COL_BLACK, &pt1, NULL, 10.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_SQUARE, ATT_COL_RED, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_PLANE, ATT_COL_GREEN, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_AXIS1, ATT_COL_BLUE, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_AXIS, ATT_COL_YELLOW, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_CROSS, ATT_COL_MAGENTA, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_CROSS1, ATT_COL_CYAN, &pt1, NULL, 1.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_TRIANG, ATT_COL_WHITE, &pt1, NULL, 10.);
+    pt1.x += 2.;
+  GR_tDyn_symV_r (SYM_ARRO3H, ATT_COL_HILI, &pt1, &UT3D_VECTOR_Y, 1.);
+  GR_tDyn_symV_r (SYM_LENGTH, ATT_COL_DIMMED, &pt1, &UT3D_VECTOR_Y, 2.);
+
+  // vector-symbols oriented - 3D (rotate + tilt)
+    pt1.x += 2.;
+  GR_tDyn_symV_o (SYM_ARRO3H, ATT_COL_BLUE, &pt1, &vc1, 1.);
+  GR_tDyn_symV_o (SYM_LENGTH, ATT_COL_BLUE, &pt1, &vc1, 2.);
+
+
+  //----------------------------------------------------------------
+  // remove all temporary-dynamic objects:
+  // if(startInd) {GL_Delete (startInd); startInd=0;}
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_tDyn_txt () {
+//================================================================
+// temporary-dynamic text;  (test objects)
+// Rework ("END") will delete these objects
+
+
+  static long    startInd=0;
+
+  int     i1;
+  Point   pt1 = { 0., 8., 0.};
+  GText   txtg;
+
+
+  printf("cre_tDyn_txt \n");
+
+  // get DL-startindex (for later delete)
+  startInd = GL_Get_DLind ();
+
+
+  //----------------------------------------------------------------
+  // bitmap text
+  // see INF_COL_SYMB
+  GR_tDyn_txtA (&pt1, "cre_tDyn_txt", ATT_COL_BLUE);
+
+
+  // scaled rotated text
+  pt1.x += 6.;
+  txtg.pt   = pt1;
+  txtg.size = 1.;
+  txtg.dir  = 30.;    // deg
+  txtg.txt  = "abc";
+  GR_tDyn_txtG (&txtg, Typ_Att_Symb);
+
+
+  //----------------------------------------------------------------
+  // remove all temporary-dynamic objects:
+  // if(startInd) {GL_Delete (startInd); startInd=0;}
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_perm_src () {      // permanent objects
+//================================================================
+
+
+  long    dbi;                        // DataBase-index
+  char    s1[256];
+  Point   pt1={ 20., 0., 0.};
+
+
+  //----------------------------------------------------------------
+  // init buffer
+  UTF_clear1();
+
+
+  //----------------------------------------------------------------
+  // create source-text for perm.obj. and add to buffer
+  // points 
+  // add direct:
+  // UTF_add1_line("P21=P(20., 0., 10.)");
+
+  // or get next free DB-index for point
+  dbi = DB_QueryNxtFree (Typ_PT, 20); printf(" dbiPT1=%ld\n",dbi);
+  // create source
+  sprintf (s1,"P%ld=P(20., 0., 10.)",dbi);
+  // add source into buffer
+  UTF_add1_line (s1);
+
+
+  //----------------------------------------------------------------
+  // create perm.obj. from text and add line into buffer
+  //   UTF_add1_line("L20=L(P20 P21)");
+
+
+  //----------------------------------------------------------------
+  // add a catalog-part as internal subModel
+  // get next free dbi for modelReference
+  dbi = DB_QueryNxtFree (Typ_Model, 20);
+    printf(" dbiNxtM=%ld\n",dbi);
+  // create source
+  sprintf (s1,"M%ld=CTLG \"Schrauben/SKS_6x30\" R(PERP P(10 10 0) DZ)",dbi);
+  // add source into buffer
+  UTF_add1_line (s1);
+
+
+  //----------------------------------------------------------------
+  // add buffer to model
+  UTF_insert1(-1);  // add buffer to model
+  ED_load__ ();     // update model
+
+
+  //----------------------------------------------------------------
+  UI_but_END ();    // process additional src
 
 
   return 0;

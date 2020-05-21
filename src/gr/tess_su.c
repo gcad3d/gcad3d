@@ -229,7 +229,7 @@ Weitere Funktionen mit tesselated Surfaces:
   tess_reloc_f_       relocate tesselated surf
 
 
-See Aufbei einer tesselated Surface in GL_set_bMsh
+See Aufbeu einer tesselated Surface in GL_set_bMsh
 
 
 

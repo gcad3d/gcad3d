@@ -888,8 +888,9 @@ extern int errno;
     i1 = -1;
   }
 
-    printf("ex OS_get_lang |%s|\n",sLang);
 
+    // printf("ex OS_get_lang |%s|\n",sLang);
+// 
   return i1;
 
 }

@@ -840,7 +840,7 @@ typedef struct {Point pt; float size, dir; char *txt;
 /// \code
 /// p1   Textblock-/Imageposition (left middle)
 /// p2   Startpoint leaderline
-/// typ  0=Text, 1=Image, 2=Tag, 3=Balloon  4=PointCoord
+/// aTyp 0=Text, 1=Image, 2=Tag, 3=Balloon  4=PointCoord
 ///      5=Symbol SYM_STAR_S (Stern klein) 6=Symbol SYM_TRI_S (Dreieck klein)
 ///      7=Symbol SYM_CIR_S (Kreis klein)  8=SYM_SQU_B (Viereck)
 ///      9=Vector (normalized)            10=Vector (true length)

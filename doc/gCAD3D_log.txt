@@ -1,8 +1,11 @@
 ===========================================================================
-Version 2.46.12 / 2020-05-19
+Version 2.46.14 / 2020-05-21
 
 - symbolic directories support subdirectories
 - redesign OpenGL-functions
+- bugfix plane-definition 2020-05-19
+- plugin DemoPlugin_Create updated (create objects from plugin)
+- bugfix "unsupported language changed to english"
 - many bugfixes
 
 Programlines (C)  497252

@@ -42,6 +42,7 @@ DEB_dump_obj__          dump object
 DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
 DEB_dump_nobj__         dump n object's
 DEB_dump_nobj_1         dump bin-obj
+DEB_dump_add_pt         dump pointCoords formatted into string
 
 DEB_dump_ox__           dump complex-obj (ObjGX)
 DEB_dump_ox_1
@@ -1747,9 +1748,11 @@ static FILE     *uo = NULL;
     sprintf(cps," ATX |%s| typ=%d col=%d ltyp=%d scl=%f xSiz=%d ySiz=%d",cp1,
       atx->aTyp,atx->col,atx->ltyp,atx->scl,atx->xSiz,atx->ySiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"    p1=%9.3f,%9.3f,%9.3f",atx->p1.x,atx->p1.y,atx->p1.z);
+    strcpy (cps,"    p1=");
+    DEB_dump_add_pt (cps, &atx->p1, 9, 3);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps,"    p2=%9.3f,%9.3f,%9.3f",atx->p2.x,atx->p2.y,atx->p2.z);
+    strcpy (cps,"    p2=");
+    DEB_dump_add_pt (cps, &atx->p2, 9, 3);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -2725,5 +2728,63 @@ static char cOff[64];
   return 0;
 
 }
+
+
+//===============================================================================
+  int DEB_dump_add_pt (char *so, Point *pt1, int iFmt1, int iFmt2) {
+//===============================================================================
+// DEB_dump_add_pt      dump pointCoords formatted into string
+//   replaces format-overflow by " -undef-"
+// Input:
+//   iFmt1     nr of digits left of '.'
+//   iFmt2     nr of digits right of '.'
+//
+
+  int    i1, i4, ii, lMax;
+  char   fmt[16], sUndef[80];
+
+
+  // lMax = iFmt1 + iFmt2 + 1;
+  lMax = iFmt1 + 1;
+     // printf(" lMax=%d\n",lMax);
+
+  sprintf(fmt, "%%%ds",lMax);
+     // printf(" fmt = |%s|\n",fmt);
+
+  sprintf(sUndef, fmt, "-undef-");
+     // printf(" sUndef = |%s|\n",sUndef);
+
+  sprintf(fmt, "%%%d.%df",iFmt1,iFmt2);
+     // printf(" fmt = |%s|\n",fmt);
+
+  //----------------------------------------------------------------
+  i1 = strlen(so);
+  ii = sprintf(&so[i1], fmt, pt1->x);
+    // printf(" ii=%d\n",ii);
+  if(ii > lMax) ii = sprintf(&so[i1], "%s",sUndef);
+
+  strcat(&so[ii], ",");
+  ++ii;
+  i1 += ii;
+
+  ii = sprintf(&so[i1], fmt, pt1->y);
+    // printf(" ii=%d\n",ii);
+  if(ii > lMax) ii = sprintf(&so[i1], "%s",sUndef);
+
+  strcat(&so[ii], ",");
+  ++ii;
+  i1 += ii;
+
+  ii = sprintf(&so[i1], fmt, pt1->z);
+    // printf(" ii=%d\n",ii);
+  if(ii > lMax) ii = sprintf(&so[i1], "%s",sUndef);
+
+
+    // printf("ex-DEB_dump_add_pt |%s|\n",so);
+
+  return 0;
+
+}
+
 
 // EOF

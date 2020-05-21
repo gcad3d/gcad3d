@@ -104,6 +104,7 @@ AP_Init1
 AP_Init2
 AP_Init_planes
 AP_lang
+AP_lang_init
 AP_lngNam_get
 AP_lngTab_get
 AP_lngTab_set
@@ -845,6 +846,7 @@ DB_vc0
 DB_VC_isFree
 debDir
 DEB_dump__
+DEB_dump_add_pt
 DEB_dump_dbo
 DEB_dump_nobj__
 DEB_dump_nobj_1
@@ -4267,6 +4269,7 @@ UTcol__3db
 UTcol__3i
 UTcol_dump
 UT_DB_LEER
+UT_DB_MAX
 UT_DB_NULL
 UT_DISP_cv
 UT_DISP_ln

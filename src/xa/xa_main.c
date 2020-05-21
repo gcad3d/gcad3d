@@ -32,6 +32,7 @@ Modifications:
 List_functions_start:
 
 main              main for interactive gcad
+AP_lang_init      get language - first start only
 AP_lngTab_get     get list of installed languages
 AP_lngTab_set     set list of installed languages
 
@@ -195,14 +196,7 @@ static int     lngNr;
   OS_Init_ (txbuf1);             // get directories
 
 
-  // get system-language
-  i1 = OS_get_lang (txbuf1);
-
-  // set AP_lang = language
-  strncpy(AP_lang, txbuf1, 3);
-    printf(" AP_lang |%s|\n",AP_lang);
-
-  // set list of loaded languages
+  // fill lngTab = list of loaded languages
   AP_lngTab_set ();
 
 
@@ -388,6 +382,9 @@ static int     lngNr;
     sprintf(AP_printer, "lpr -l -P%s",OS_get_printer());
 #endif
 
+    // get AP_lang = language
+    AP_lang_init ();
+
     // // get browser
     // p1 = OS_get_browse_htm();
     // UTX_cp_left (AP_browser, p1, 79);
@@ -396,8 +393,8 @@ static int     lngNr;
     p1 = OS_get_edi();
     UTX_cp_left (AP_editor, p1, 79);
 
-    // strcpy(AP_winSiz, "-1000,-690   // size of application-window");
-    strcpy(AP_winSiz, "-600,-400   // size of application-window");
+    strcpy(AP_winSiz, "-1080,-680   // size of application-window");
+    // strcpy(AP_winSiz, "-600,-400   // total-size; too small for W32
 
     AP_defaults_write(); // defaults    -> ~/gCAD3D/cfg/xa.rc
     AP_defaults_dir();   // defaultdirs -> ~/gCAD3D/cfg/dir.lst
@@ -858,6 +855,35 @@ kopieren geht nicht mehr -
 
 
 //================================================================
+  int AP_lang_init () {
+//================================================================
+// AP_lang_init                    get language - first start only
+
+  int      ii;
+  char     s1[80];
+
+  // get system-language
+  OS_get_lang (s1);
+    printf(" system-language |%s|\n",s1);
+
+  // find language in lngTab; if not exists: use english
+  for(ii=0; ii<lngNr; ++ii) {
+    if(!strcmp(lngTab[ii], s1)) goto L_set;
+  }
+
+  strcpy(s1,"en");
+
+  // set AP_lang = language
+  L_set:
+  strcpy(AP_lang, s1);
+    printf(" AP_lang_init |%s|\n",AP_lang);
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_lngNam_get (char *lngNam, char *lngCode) {
 //================================================================
 // was MSG_lng_init
@@ -898,6 +924,7 @@ kopieren geht nicht mehr -
 //================================================================
   int AP_lngTab_set () {
 //================================================================
+// AP_lngTab_set                  fill lngTab = list of available languages
 // was MSG_lng_init
 // provide list of supported languages and language-names
 //   find all msg_<LANG>.txt files  in <docdir>/msg/

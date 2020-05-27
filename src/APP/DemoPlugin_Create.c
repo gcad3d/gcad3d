@@ -139,7 +139,7 @@ char myMemspc[50000];
 
 
   // permanent objects
-  // cre_perm_src ();        // permanent objects from sourceCode
+  cre_perm_src ();        // permanent objects from sourceCode
   // cre_perm_obj ();        // permanent objects from binary-obj
 
 
@@ -150,7 +150,7 @@ char myMemspc[50000];
   // create dynamic objects (not stored in DB, but visible, can move, zoom ..)
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
-  cre_tDyn_obj ();
+  // cre_tDyn_obj ();        // Temporary-Dynamic binary-obj
   // cre_tDyn_sym ();        // Temporary-Dynamic symbols
   // cre_tDyn_txt ();        // Temporary-Dynamic text
   // cre_tDyn_mdr ();        // Temporary-Dynamic modelRefs;
@@ -1071,7 +1071,7 @@ char myMemspc[50000];
 
   //----------------------------------------------------------------
   // add buffer to model
-  UTF_insert1(-1);  // add buffer to model
+  UTF_insert1 (-1L);  // add buffer to model
   ED_load__ ();     // update model
 
 

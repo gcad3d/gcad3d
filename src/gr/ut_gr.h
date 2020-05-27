@@ -49,6 +49,7 @@ void GR_temp_pt (Point *pt1, int att);
  GR_set_obj(OPERS_TEMP+OPERS_CLOSE,0L,Typ_PT,pt1,att,0);
 
 void GR_tDyn_pt (Point *pt1, int att);
+//   att      ATT_PT_BLACK .. see INF_COL_PT
 #define GR_tDyn_pt(pt1,att)\
  GR_set_obj(OPERS_TDYN+OPERS_CLOSE,0L,Typ_PT,pt1,att,0);
 
@@ -97,17 +98,23 @@ void GR_tDyn_pcv (Point *pta, int ptnr, int att);
 
 
 void GR_temp_ocv (int form, void *obj, long dbi, int att);
+//  display all types of curves
 //  dbi used for get PRCV-polygon, else set to 0
+//  att     see INF_COL_CV
 #define GR_temp_ocv(form,obj,dbi,att)\
  GR_set_ocv(OPERS_TEMP+OPERS_CLOSE,dbi,form,obj,att);
 
 void GR_tDyn_ocv (int form, void *obj, long dbi, int att);
+//  display all types of curves
 //  dbi used for get PRCV-polygon, else set to 0
+//  att     see INF_COL_CV
 #define GR_tDyn_ocv(form,obj,dbi,att)\
  GR_set_ocv(OPERS_TDYN+OPERS_CLOSE,dbi,form,obj,att);
 
 void GR_perm_ocv (int form, void *obj, long dbi, int att);
+//  display all types of curves
 //  dbi used for get PRCV-polygon, else set to 0
+//  att     see INF_COL_CV
 #define GR_perm_ocv(form,obj,dbi,att)\
  GR_set_ocv(OPERS_PERM+OPERS_CLOSE,dbi,form,obj,att);
 

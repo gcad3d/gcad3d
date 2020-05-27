@@ -607,7 +607,7 @@ long   UI_Ed_fsiz;      // Textsize
 }
 
 
-
+/*
 //======================================================================
   int ED_add_File (char *filnam, int cpos) {
 //======================================================================
@@ -615,6 +615,8 @@ long   UI_Ed_fsiz;      // Textsize
 /// cpos < 0: hintanhaengen !
 
 // see also EDI_ins_file
+
+  printf("ED_add_File |%s| %d\n",cpos);
 
 
   // vom Window ins Memory kopieren
@@ -637,7 +639,7 @@ long   UI_Ed_fsiz;      // Textsize
   return 0;
 
 }
-
+*/
 
 
 //======================================================================
@@ -2998,15 +3000,15 @@ static int  actLev=0;
   FILE     *fpo=NULL;
 
 
+// AP_mode__ = 0;  // TEST
   // printf("RRRRRRRRRRRRRRRR ED_Run AP_mode__ =%d\n",AP_mode__);
   // printf("  ED_lnr_von=%d ED_lnr_bis=%d\n",ED_lnr_von,ED_lnr_bis);
-
 
 
   cbuf = mem_cbuf1;
 
   // set to perm
-  // WC_set_obj_stat (0);       // 2013-04-13 else problem with insert in MAN
+  WC_set_obj_stat (0);
 
 
   // den boundary-Schalter abfragen

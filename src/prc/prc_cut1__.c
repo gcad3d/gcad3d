@@ -246,11 +246,11 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   ObjAto    ato1;
 
 
-  printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
+  // printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
   if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
-  else printf("PRCE__ %d |%s|\n",iFnc,data);
-  printf("  PRCE_mode=%d\n",PRCE_mode);
-  printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
+  // else printf("PRCE__ %d |%s|\n",iFnc,data);
+  // printf("  PRCE_mode=%d\n",PRCE_mode);
+  // printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
 
 
   // function ?
@@ -269,8 +269,10 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   cmd_typ = ato1.typ;
   cmd_tab = ato1.val;
 
-    for(i1=0; i1<cmd_anz; ++i1)
-    printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);
+    // TESTBLOCK
+    // for(i1=0; i1<cmd_anz; ++i1)
+    // printf(" %d typ=%d tab=%f\n",i1,cmd_typ[i1],cmd_tab[i1]);
+    // END TESTBLOCK
 
 
 
@@ -283,7 +285,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
       // subract tool-length
       if(tlActNr) actPos.z -= TL_length;
-        DEB_dump_obj__ (Typ_PT, &actPos, " FROM ");
+        // DEB_dump_obj__ (Typ_PT, &actPos, " FROM ");
 
       if(PRCE_mode) { // NC-out
         // "FROM pos"
@@ -574,10 +576,10 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
 
-  printf("PRCE_disp__ |%s|\n",wTyp);
+  // printf("PRCE_disp__ |%s|\n",wTyp);
   // printf("  TL[%d] rad = %f len = %f\n",tlActNr, TL_rad, TL_length);
   // DEB_dump_obj__ (Typ_PT, &oldPos, "  oldPos");
-  DEB_dump_obj__ (Typ_PT, &actPos, "  actPos");
+  // DEB_dump_obj__ (Typ_PT, &actPos, "  PRCE_disp__-actPos");
 
 
   //----------------------------------------------------------------
@@ -641,7 +643,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   // up-along TL_vcz
   UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
-    DEB_dump_obj__ (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
+    // DEB_dump_obj__ (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
 
   pta[0] = *pt2;
   UT3D_pt_traptvc (&pta[1], pt2, &vcz);
@@ -846,7 +848,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   long  dbi, dli;
 
 
-  printf("PRCE_disp_sur_ini %d\n",mode);
+  // printf("PRCE_disp_sur_ini %d\n",mode);
 
   if(mode) goto L_close;
     dbi = -1L;
@@ -892,7 +894,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   long   dli;
 
-  DEB_dump_obj__ (Typ_PT, &oldPos, " PRCE_disp_txt |%s|",txt);
+  // DEB_dump_obj__ (Typ_PT, &oldPos, " PRCE_disp_txt |%s|",txt);
 
   dli = DL_StoreObj (Typ_SymV, -1L, 0);
 
@@ -915,7 +917,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   int   i1;
 
 
-  // printf("PRCE_func__ |%s|\n",data);
+  printf("PRCE_func__ |%s|\n",data);
 
 
   //----------------------------------------------------------------
@@ -971,8 +973,9 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   } else if(!strncmp(data, "MBR_", 4)) {
     i1 = atoi (&data[4]);
       // printf(" mbr-i1=%d\n",i1);
-    if(i1 == -1) PRCE_m3Menu__ (0);
-    else if(i1 >= 0) PRCE_m3Menu__ (1);
+    PRCE_m3Menu__ (0);
+//     if(i1 == -1) PRCE_m3Menu__ (0);
+//     else if(i1 >= 0) PRCE_m3Menu__ (1);
 
 
   //----------------------------------------------------------------
@@ -989,6 +992,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 //================================================================
   int PRCE_m3Menu__ (int mode) {
 //================================================================
+// line is empty: display commands-menu
 
   char  **p1;
   char  *optLst0[]={"GO   (work)",
@@ -999,7 +1003,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
                     "OK   (continue)",
                     "\0"};
 
-  // printf("PRCE_m3Menu__ %d\n",mode);
+  printf("PRCE_m3Menu__ %d\n",mode);
 
 
   if(mode == 1) {  // line not empty
@@ -1011,7 +1015,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   // line empty
   p1 = optLst0;
   GUI_popup__ (p1, NULL, 0, PRCE_selMen_cb, NULL);
-  UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
+  // UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
 
   return 0;
 
@@ -1104,7 +1108,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   ObjGX   ox1;
 
 
-  printf("PRCE_cmd_work__ |%s| cmd_anz=%d\n",data,cmd_anz);
+  // printf("PRCE_cmd_work__ |%s| cmd_anz=%d\n",data,cmd_anz);
 
   PRCE_disp_sur_ini (0);   // open new DispList
 
@@ -1114,8 +1118,8 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
     TL_dbTyp = cmd_typ[ii];
     TL_dbi = cmd_tab[ii];
-      printf("...........PRCE_cmd_work__........................... \n");
-      printf(" next work %d TL_dbTyp=%d TL_dbi=%ld\n",ii,TL_dbTyp,TL_dbi);
+      // printf("...........PRCE_cmd_work__........................... \n");
+      // printf(" next work %d TL_dbTyp=%d TL_dbi=%ld\n",ii,TL_dbTyp,TL_dbi);
 
 
     // oldPos = actPos;

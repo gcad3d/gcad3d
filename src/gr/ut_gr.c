@@ -69,7 +69,7 @@ GR_Disp_message       switch for textoutput to console (DispMode)
 
 GR_set_obj            display obj     - temp/tDyn/perm
 GR_set_sur            disp surface
-GR_set_ocv            disp binary Curve-obj (C, S)
+GR_set_ocv            disp all kinds of curves from binary-obj
 GR_set_ccv            display n composite-curves
 
 GR_set_pcv            display polygon - temp/tDyn/perm
@@ -96,7 +96,7 @@ GR_perm_Dimen          hor/vert/parall. dimension
 
 -------------- display temporary-dynamic objects
 GR_tDyn_dbo           temp.Dyn DB-obj
-GR_tDyn_ocv           temp.Dyn binary Curve-obj (C, S)
+GR_tDyn_ocv           temp.Dyn display of all kinds of curves from binary-obj
 GR_tDyn_obj           tempDisp obj from typ+struct
 
 GR_tDyn_pt            temp.Dyn point
@@ -7211,7 +7211,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //====================================================================
   int GR_set_ocv (int opers, long dbi, int form, void *obj, int att) {
 //====================================================================
-// GR_set_ocv             disp binary Curve-obj (C, S)
+// GR_set_ocv            disp all kinds of curves from binary-obj
 // Input:
 //   opers    object-persistence; eg OPERS_TEMP+OPERS_CLOSE  see INF_OPERS
 //   att      see INF_COL_CV
@@ -7255,6 +7255,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   tol  = UT_DISP_cv;
   mdli = AP_modact_ind;
+  // get polygon from curve
   irc = UT3D_mtpt_obj (&mtpa, form, obj, 1, dbi, mdli, tol, grMode);
   if(irc < 0) {TX_Error("GR_set_ocv E2"); goto L_exit;}
 

@@ -1,4 +1,15 @@
 ===========================================================================
+Version 2.46.16 / 2020-05-26
+
+- new NC-process-demo-model sample_PRC_cut1_4 (cut offset-curve)
+- bugfix offset-curve "UT2D_2pt_int_ln_ci TODO I1"
+- bugfix "MAN-type-menu  (left mouse button) covered"
+
+Programlines (C)  498204
+Functions           4776
+
+
+===========================================================================
 Version 2.46.14 / 2020-05-21
 
 - symbolic directories support subdirectories

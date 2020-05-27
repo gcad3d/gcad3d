@@ -140,7 +140,7 @@ static int hist_nr = 0;
   int    ii;
 
 
-  printf("PRCE_hist_reset %d\n",lNr);
+  // printf("PRCE_hist_reset %d\n",lNr);
   // PRCE_hist_dump();
 
 

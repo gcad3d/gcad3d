@@ -32,7 +32,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
-TSU_nfac_ipatch__    get indexed-triangles from indexed-Opengl-patch
+UFA_nfac_ipatch    get indexed-triangles from indexed-Opengl-patch
 
 UFA_add_fac__      add face to MemTab(Fac3)
 UFA_add_fac_st     add face,stat to MemTab(Fac3)
@@ -235,7 +235,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
   int    i1, ii, is, ie, fNr;
   Fac3   f1;
 
-  // DEB_dump_obj__ (Typ_IndTab, ipat, "TSU_nfac_ipatch__");
+  // DEB_dump_obj__ (Typ_IndTab, ipat, "UFA_nfac_ipatch");
 
   ii = 0;
 
@@ -320,7 +320,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
     //================================================================
     default:
-      TX_Error("TSU_nfac_ipatch__ E001 %d",pTyp);
+      TX_Error("UFA_nfac_ipatch E001 %d",pTyp);
       return -1;
 
   }
@@ -333,7 +333,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 
   L_errEOM:
-    TX_Error("TSU_nfac_ipatch__ EOM");
+    TX_Error("UFA_nfac_ipatch EOM");
     return -1;
 
 }

@@ -121,7 +121,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
   // Add Aux.Buffer -> MainBuffer
-  UTF_insert1(-1);
+  UTF_insert1 (-1L);
   ED_load__ ();
 
 

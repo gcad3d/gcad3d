@@ -1203,7 +1203,7 @@ INF_MEM_SPC       get memspc - temporary | static | permanent
 
 
 INF_MemTab      Fixed-Length-Records            MemTab   
-                Variable-Length-Records         Memspc
+INF_Memspc      Variable-Length-Records         Memspc
                 Textstrings
                 BitArray
 

@@ -1825,9 +1825,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   int UTF_insert1 (long cpos) {
 //===========================================================================
 /// \code
-/// UTF_insert1    insert auxBuffer into mainBuffer at pos cpos.
-/// auxBuffer: UTF_FilBuf1; mainBuffer: UTF_FilBuf0.
-/// cpos < 0: join buffers (mainBuffer += auxBuffer).
+/// UTF_insert1    add auxBuffer to mainBuffer.
+///   auxBuffer: UTF_FilBuf1; mainBuffer: UTF_FilBuf0.
+///   cpos < 0: UNUSED
 /// update display after buffer-update: see APED_update__ ();
 /// Example:
 ///   ObjGX o1; char s1[1000]; int siz_s1=1000; Point p1={1.,0.,0.};
@@ -1859,30 +1859,26 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   if(UTF_FilBuf1Len < 1) return 0;
 
 
-  newSiz = UTF_FilBuf0Len+UTF_FilBuf1Len;
+  newSiz = UTF_FilBuf0Len + UTF_FilBuf1Len + 256;
 
   if(newSiz > UTF_FilBuf0Siz) {
     if(UTF_alloc__ (newSiz) < 0) return -1;
   }
 
 
-
+  memcpy(&UTF_FilBuf0[UTF_FilBuf0Len], UTF_FilBuf1, UTF_FilBuf1Len);
+/*
   if((cpos < 1)||(cpos >= UTF_FilBuf0Len)) {
-
     strcat(UTF_FilBuf0, UTF_FilBuf1);
-
-
   } else {
-
-
     l1 = UTF_FilBuf0Len - cpos;  // muss verschoben werden
     // printf("mv %d von %d nach %d\n",l1,cpos+UTF_FilBuf1Len,cpos);
     // unbedingt memmove, sonst wird der hintere Teile zerstoert !
     memmove(&UTF_FilBuf0[cpos+UTF_FilBuf1Len], &UTF_FilBuf0[cpos], l1);
     // printf("mv %d von Buf1 nach %d\n",UTF_FilBuf1Len,cpos);
     memcpy(&UTF_FilBuf0[cpos], UTF_FilBuf1, UTF_FilBuf1Len);  // insert
-
   }
+*/
 
 
   UTF_FilBuf0Len += UTF_FilBuf1Len;

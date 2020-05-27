@@ -50,12 +50,13 @@ break TX_Error
 #cond 3 Ind == 0
 #run Data_U/sample_dimen1.gcad
 #run comp Data/sample_DiagEl1.gcad
-run mode_cad_3_0
-#run Data/samp_wrl1.wrl
-#run Data/CarPort1.gcad
-#run
+#run mode_cad_3_0
+run Data/sample_Iges1.igs
+#run Data/unknown.gcad
+#run comp
+#watch GR_TAB_IND
 #watch ((Circ*)TSU_ox2.data)->vz.dy
 #break sele_set__
-break APED_oid_dbo__
+break UTF_insert1
 c
 #

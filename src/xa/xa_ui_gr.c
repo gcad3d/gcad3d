@@ -870,36 +870,14 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
         // M1|M3 in MAN
         if(UI_UserSelFunc != NULL) goto L_ck_sel;  // give sel. to userFunc
 
+        // M3: new-line
+        if(GR_Event_Act == GUI_MouseR) { UI_EdKeyCR (2); goto Fertig;}
+
+        // analyze active line
         irc = ED_GR_CB1__ (GR_Event_Act);
+        // irc = 0: cursor at start of Line; allow no selection, wait for type-sel.
+        if(irc) goto Fertig;
 
-/*
-        i1 = ED_query_CmdMode (); // analyze active line; -1=empty, 0=DefLn..
-          // printf(" MAN; ev=%d i1=%d\n",GR_Event_Act,i1);
-
-        if(GR_Event_Act == GUI_MouseL) {
-          // M1 in MAN
-          if((UI_stat_hide)&&(UI_stat_view)) {
-            // hide,view not active;
-            if(i1 < 0) {
-              // empty line, create def-menu (P L C ..)
-              UI_GR_selMen_init (0);                  // MAN,M1,empty
-              goto Fertig;
-            }
-          }
-
-        } else if(GR_Event_Act == GUI_MouseR) {
-          // M3 in MAN
-          // test if active line = definitionLine; if yes: activate menu
-          // if process is active: do process-subMenu
-          if(PRC_IS_ACTIVE) {
-            sprintf(s1, "MBR_%d", i1);
-              // printf(" subMen for process |%s|\n",s1);
-            PRC__ (-1, s1);  // report M3 to process
-            goto Fertig;
-          }
-          // M3: wait for selection of objects; goes -> OMN_selMen_MAN_M3_empty
-        }
-*/
       }
     }
 
@@ -3792,6 +3770,46 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 }
 
 
+//================================================================
+  int UI_GR_sel_copy (int iNr, ObjDB  *dlTab) {
+//================================================================
+
+  int     i1, typ;
+  long    dbi, dli;
+
+
+  if(iNr > SELTABSIZ - 2) {
+    iNr = SELTABSIZ - 2;
+    TX_Print("***** UI_GR_sel_copy overflow ");
+  }
+
+  for(i1=0; i1<iNr; ++i1) {
+      // printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",i1,
+              // dlTab[i1].typ,dlTab[i1].dbInd,dlTab[i1].dlInd);
+
+    typ = dlTab[i1].typ;
+    dbi = dlTab[i1].dbInd;
+    dli = dlTab[i1].dlInd;
+
+
+      APED_oid_dbo_all (namTab[i1], typ, dbi, dli);
+      // copy typ,dbi,dli -> selTab from dlTab
+      selTab[i1].typ   = typ;
+      selTab[i1].dbInd = dbi;
+      selTab[i1].dlInd = dli;
+      selTab[i1].stat  = 0;
+        // printf(" selTab-add-[%d] %d %ld %ld |%s|\n",i1, dlTab[i1].typ,
+               // dlTab[i1].dbInd, dlTab[i1].dlInd, namTab[i1]);
+        // printf("selTab-add1 [%d] %d %ld |%s|\n",i1,typ,dbi,namTab[i1]);
+    }
+
+    printf("ex-sel_copy %d\n",iNr);
+
+  return iNr;
+
+}
+
+
 //====================================================================
   int UI_GR_Select1 (int mode, long *dlInd) {
 //====================================================================
@@ -3939,6 +3957,9 @@ static  Point  selPos;
     }
       // printf(" interact-iNr=%d\n",iNr);
     if(iNr < 1) {TX_Print("****no obj with interaction ...");return -1;}
+      // UI_GR_dump_dlTab (dlTab, iNr, "Select1-INTACT_IS_ON");
+    selNr = UI_GR_sel_copy (iNr, dlTab);          // copy dlTab -> selTab
+    goto L_12;
   }
 
 /*

@@ -1531,13 +1531,14 @@ extern long      GLT_cta_SIZ;
     // ATO_dump__ (ato, "ex-ATO_ato_eval__");
 
   // test for unknown types
+/* removed for processCommand "TEC val val val .."
   if(ato->nr >= 2) {
     if((ato->typ[0] == Typ_Val) && (ato->typ[1] == Typ_Val))  // 2020-01-04
       TX_Print ("**** Line %d - change val val . to P(val val .) or D(...)",
                 ED_get_lnr_act());
 // TODO: lineNr wrong if in subModel !
   }
-   
+*/
 
   return 0;
 

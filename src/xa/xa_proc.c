@@ -244,7 +244,7 @@ char **process_CmdTab;     // was NCCmdTab
   char         s1[256];
 
 
-  printf("PRC__ mode=%d |%s|\n",mode,data);
+  // printf("PRC__ mode=%d |%s|\n",mode,data);
   // printf("  processor |%s|\n",APP_act_proc);
 
 

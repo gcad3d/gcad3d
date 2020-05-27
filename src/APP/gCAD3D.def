@@ -977,7 +977,6 @@ ds3_cb_savePoint
 ds3_read
 ED_active__
 ED_add_Def
-ED_add_File
 ED_add_Line
 ED_addRange
 ED_add_Text
@@ -3021,6 +3020,7 @@ UI_GR_namTab_ck_Uniq
 UI_grp__
 UI_grpNr
 UI_GR_ScalAuto
+UI_GR_sel_copy
 UI_GR_Select1
 UI_GR_Select2
 UI_GR_Select_selLst

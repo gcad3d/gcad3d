@@ -12417,6 +12417,9 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
   if(dch < *tol) {
     // line goes tru circCenter;
+    DEB_dump_obj__(Typ_LN2, ln1, " UT2D_2pt_int_ln_ci-ln1");
+    DEB_dump_obj__(Typ_CI2, ci1, "                   -ci1");
+    // GR_tDyn_ln
     TX_Error("UT2D_2pt_int_ln_ci TODO I1"); return -1;
     // see UT2D_parpt_2pt UT2D_pt_projptptvc
   }
@@ -12433,9 +12436,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   if(dch > (rd1 + *tol)) goto L_err__;                 // outside
   else if(dch < (rd1 - *tol)) irc0 = 0;                // between
   else irc0 = 1;                                       // touching
-    printf(" irc0 = %d\n",irc0);
-
-
+    // printf(" int_ln_ci-ln-irc0 = %d\n",irc0);
 
 
   //----------------------------------------------------------------

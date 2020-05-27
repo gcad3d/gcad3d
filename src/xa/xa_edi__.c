@@ -549,24 +549,40 @@ static long cPos;
 //   comes before ED_GR_CB2__
 // Input:
 //   GR_Event_Act     GUI_MouseL | GUI_MouseR
+// Output:
+//   retCode          1 = def-menu-created; wait for user selection of obj-type
+//                    0 = definition-header exists; select objects ..
 
 
   int    i1, i2;
+  char   s1[40];
 
-  // printf("ED_GR_CB1__ %d\n",GR_Event_Act);
+
+  printf("ED_GR_CB1__ %d\n",GR_Event_Act);
 
         // i1 = ED_query_CmdMode (); // analyze active line; -1=empty, 0=DefLn..
           // printf(" MAN; ev=%d i1=%d\n",GR_Event_Act,i1);
         GUI_edi_ck_cPos_ln (&winED, &i1, &i2);
+          printf(" CB1__-cPos=%d fPos=%d\n",i1,i2);
+
 
         if(GR_Event_Act == GUI_MouseL) {
           // M1 in MAN
           if((UI_stat_hide)&&(UI_stat_view)) {
             // hide,view not active;
             if(i1 == 3) {
-              // empty line, create def-menu (P L C ..)
+              // empty line -
+              // test if process is active; yes: do process-subMenu
+              if(PRC_IS_ACTIVE) {
+                sprintf(s1, "MBR_%d", i1);
+                  // printf(" subMen for process |%s|\n",s1);
+                PRC__ (-1, s1);  // report M3 to process
+                return 1;  // wait for menu-sel.
+              }
+
+              // create def-menu (P L C ..)
               UI_GR_selMen_init (0);                  // MAN,M1,empty
-              goto Fertig;
+              return 1;  // wait for type-sel.
             }
           }
 

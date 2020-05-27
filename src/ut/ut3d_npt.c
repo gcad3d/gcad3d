@@ -642,6 +642,7 @@ UT3D_npt_ci                circular polygon
   void      *vp1;
   Point     *pa1, *pa2;
   ObjGX     *oa;
+  char      oAux[OBJ_SIZ_MAX];
 
 
 
@@ -690,6 +691,7 @@ UT3D_npt_ci                circular polygon
   } else if(typ == Typ_LN2) {
     // Line -> Polygon
     if(ptn < 2) goto L_EOM; // outTab zu klein
+// TODO: transfer points onto active constrPlane
     pa1[0] = UT3D_pt_pt2 (&((Line2*)data)->p1);
     pa1[1] = UT3D_pt_pt2 (&((Line2*)data)->p2);
     mtpa->rNr += 2;
@@ -703,6 +705,16 @@ UT3D_npt_ci                circular polygon
 
     // compute points from analytic-curve
     UT3D_cv_ci (pa1, &ptn, data, nptFree, tol);
+    mtpa->rNr += ptn;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CI2) {
+// TODO: transfer points onto active constrPlane
+    UT3D_ci_ci2 ((Circ*)oAux, (Circ2*)data);
+
+    // compute points from analytic-curve
+    UT3D_cv_ci (pa1, &ptn, (Circ*)oAux, nptFree, tol);
     mtpa->rNr += ptn;
 
 

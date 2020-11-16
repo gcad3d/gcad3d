@@ -290,17 +290,17 @@ static  char actBuf[256];
     gtk_text_buffer_delete (msgBuf, &iVon, &iBis);
   }
 
-
   // get endPos
   gtk_text_buffer_get_end_iter  (msgBuf, &iter);
+
+  // moves the "insert" and "selection_bound" marks simultaneously
+  gtk_text_buffer_place_cursor (msgBuf, &iter);
+
   // insert at iterPos
   strcat(actBuf, "\n");
   gtk_text_buffer_insert (msgBuf, &iter, actBuf, -1);
   actBuf[ilen] = '\0';  // remove NL wieder (f nachfolgendes strcmp)
 
-
-  // moves the "insert" and "selection_bound" marks simultaneously
-  gtk_text_buffer_place_cursor (msgBuf, &iter);
 
   // ganz nach hinten scrollen;
   mark = gtk_text_buffer_get_mark (msgBuf, "insert");

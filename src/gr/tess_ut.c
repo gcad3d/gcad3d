@@ -621,7 +621,7 @@ f 1 6 7
 
   for(i1=0; i1<ie; ++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
-    // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
 
     // change orientation: obj-y = cad-z; obj-z = cad-y * -1   2013-08-19
     strcpy(cbuf, "v ");
@@ -1118,7 +1118,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   // letzter Punkt nicht notwendig.
   for(i1=0; i1<ie; ++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
-    // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
     // GR_tDyn_txiA (&pTab[i1], i1, 0);
 
     strcpy(cbuf, " ");
@@ -1633,7 +1633,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   // letzter Punkt nicht notwendig.
   for(i1=0; i1<ie; ++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
-    // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
     // GR_tDyn_txiA (&pTab[i1], i1, 0);
 
     strcpy(cbuf, " ");
@@ -2373,7 +2373,7 @@ static FILE *fpo = NULL;
   printf("TSU_exp_sur ftyp=%d typ=%d form=%d siz=%d\n",
          TSU_ftyp,oxi->typ,oxi->form,oxi->siz);
   // printf("   _exp_sur actModNam=|%s|\n",actModNam);
-  // tess_dump_f_ (oxi, "TSU_exp_sur ");
+  // BMSH_dump_bfMsh (oxi, "TSU_exp_sur ");
 
 
     // TESTBLOCK
@@ -2916,15 +2916,15 @@ static char  mStat[1024];
 //
 
 
-//  TSU_exp__
+// TSU_exp__
 //   ED_work_END ED_work_CurSet
-//    TSU_exp_Open
-//      TSU_exp_init
-//    TSU_exp_Ditto   < TSU_exp_Mod < GR_DrawModel
-//      TSU_exp_wrl2Mat
-//     TSU_exp_sm__
-//      TSU_exp_sm_sur
-//       TSU_exp_fac
+//     TSU_exp_Open
+//       TSU_exp_init
+//     TSU_exp_Ditto   < TSU_exp_Mod < GR_DrawModel
+//       TSU_exp_wrl2Mat
+//       TSU_exp_sm__
+//         TSU_exp_sm_sur
+//           TSU_exp_fac
 //   TSU_exp_sur
 //     TSU_exp_wrl2Fac
 //   TSU_exp_close
@@ -3016,7 +3016,7 @@ static char  mStat[1024];
 
   // // Test: geht Display wieder ?
   // UT3D_pt_3db (&pt1, 36., 36., 10.);
-  // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
   // work (export ....); macht auch closing "}".

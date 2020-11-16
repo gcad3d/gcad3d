@@ -32,6 +32,7 @@ Modifications:
 #endif
 /*!
 \file  ../gr/ut_DL.c
+       ../gr/ut_DL.h
 \brief displayList functions                              see INF_DL__
 \code
 =====================================================
@@ -45,6 +46,7 @@ DL_alloc__              realloc space fuer BasModelnames
 DL_perm_init            create DL-record for permanent storage
 DL_tDyn_init            create DL-record for temporary-dynamic storage
 DL_temp_init            get GL-index for temporary storage; glNewList();
+DL_temp_ind_set         set DL_temp_ind
 DL_att_temp             set temporary-obj to hilite or dim
 DL_att_mdr              set perm/-refModels to hilite or dim
 
@@ -103,6 +105,7 @@ DL_hide_all             change all active, visible objs to hidden|visible
 DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
 
+DL_del_last             free (delete) last DL-obj
 DL_disp_reset           delete all DL-objects starting from line-nr
 DL_unvis__              set visible / unvisible
 
@@ -324,6 +327,10 @@ extern long    DL_base__;        // first index of normal objects
 
 // ex ../gr/ut_gtx.c:
 extern double GR_tx_scale;
+
+
+// ex ../xa/xa_ui.c:
+extern int       UI_InpMode;
 
 
 // ex ../xa/xa_ui_gr.c
@@ -1174,39 +1181,71 @@ static long   DL_hidden = -1L;
 //================================================================
   int DL_hide_unvisTypes (int mode) {
 //================================================================
-// DL_hide_unvisTypes        view or hide all joints,activities.
+// DL_hide_unvisTypes        view or hide all points,planes,joints,activities.
+// Input:
 //   mode        0=view, 1=hide.
+//   APT_dispPT  0=hide-points-in-VWR (Default)
+//               1=display-points-in-VWR
 
-// VWR:         1   hide joints & activities; hide planes if APT_dispPL=OFF
-// CAD & MAN:   0   view all
+// VWR:         1 = hide joints & activities;
+//                  hide points if APT_dispPT=OFF
+//                  hide planes if APT_dispPL=OFF
+// CAD & MAN:   0 = view all
 
 // see also DL_disp_PL
 
+  int       iPL;   // 0=hide; 1=disp
   long      ind;
 
 
+  // set iPL = mode for planes; 0=hide; 1=disp
+  // CAD, MAN = 1=disp
+  iPL = 1;
+  if(UI_InpMode == UI_MODE_VWR) {
+    if(APT_dispPL == ON) {
+      iPL = 0; // hide
+    }
+  }
+
   // printf("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD \n");
   // printf("DL_hide_unvisTypes %d\n",mode);
+  // printf("  UI_InpMode=%d APT_dispPT=%d APT_dispPL=%d iPL=%d\n",
+         // UI_InpMode,APT_dispPT,APT_dispPL,iPL);
 
 
-  if(mode == 0) {      // view
+  //----------------------------------------------------------------
+  // handle points
+  if(UI_InpMode != UI_MODE_VWR) { 
+    // CAD, MAN: view
     GL_InitPtAtt (0);
 
   } else {             // hide
-    if(APT_dispPT == OFF) GL_InitPtAtt (1);
-
+    if(APT_dispPT == OFF) GL_InitPtAtt (0);   // view
+    else                  GL_InitPtAtt (1);   // hide
   }
 
 
+
+  //----------------------------------------------------------------
+  // handle planes, joints ..
   for(ind=0; ind<GR_TAB_IND; ++ind) {
 
-    if(APT_dispPL == OFF) {
-      if(GR_ObjTab[ind].typ == Typ_PLN) {
-        GR_ObjTab[ind].disp = mode;     
-        GR_ObjTab[ind].hili = 1;     // else cannot be hidden ..
-        continue;
+    // hide/view plane
+    if(GR_ObjTab[ind].typ == Typ_PLN) {
+      if(iPL) {
+        // disp
+        GR_ObjTab[ind].disp = 0;
+        GR_ObjTab[ind].hili = 1;
+      } else {
+        // hide
+        GR_ObjTab[ind].disp = 1;
+        GR_ObjTab[ind].hili = 1;
       }
+      continue;
     }
+
+    // skip if hidden
+    if(DL_IS_HIDDEN(GR_ObjTab[ind])) continue;
 
     // skip subModels
     // if((signed short)GR_ObjTab[ind].modInd != -1) continue;
@@ -2411,6 +2450,9 @@ static long   DL_hidden = -1L;
   long   gli;
 
   // printf("DL_temp_init set=%ld nxtFree=%ld\n",DL_temp_ind,DL_temp_nxt);
+  // printf("  APT_obj_stat=%d\n",WC_get_obj_stat());
+  // if(DL_temp_ind==8) AP_debug__ ("DL_temp_init-1");
+
 
   //----------------------------------------------------------------
   if(DL_temp_ind) {
@@ -2441,6 +2483,17 @@ static long   DL_hidden = -1L;
   L_exit:
     // printf("ex-DL_temp_init %ld\n",gli);
   return gli;
+
+}
+
+
+//================================================================
+  void DL_temp_ind_set (int ti) {
+//================================================================
+// DL_temp_ind_set         set DL_temp_ind
+//   set fixed GL-index for following obj / overwrite obj with this index.
+
+  if(ti < DL_base_font1) DL_temp_ind = ti;
 
 }
 
@@ -4769,6 +4822,21 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
+  int DL_del_last () {
+//================================================================
+// DL_del_last             free (delete) last DL-obj
+
+  if(GR_TAB_IND > 0) {
+    --GR_TAB_IND;
+    GL_Del1 (GR_TAB_IND);
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
   int DL_disp_reset (int lNr) {
 //================================================================
 /// \code
@@ -5021,7 +5089,10 @@ static long   DL_hidden = -1L;
 //================================================================
   long DL_get__ (DL_Att **dl) {
 //================================================================
-/// DL_get__                returns DispList
+// DL_get__                returns DispList
+// Output:
+//   dl      point dispList
+//   retcod  nr of records of dispList
 
 
   if(dl) *dl = GR_ObjTab;

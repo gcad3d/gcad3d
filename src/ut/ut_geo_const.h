@@ -22,7 +22,6 @@ Adding constant:
 
 extern const <struct> <struct>_NUL;
 
-
 const <struct> <struct>_NUL  = _<struct>_NUL
 
 touch ../ut/ut_geo2d.c && ./do c
@@ -40,14 +39,19 @@ touch ../ut/ut_geo2d.c && ./do c
 
 // CurvPoly
 #define _PLG_NUL  { 0, 0., 0., NULL, NULL,\
-                    (char)0, (char)-1, (char)1, (char)0 };
+                    (char)0, (char)-1, (char)1, (char)0 }
 //                   dir,     clo,     trm      uu
 
 // CurvPrcv
 #define _PRCV_NUL { 0L, 0, 0, 0,\
                     NULL, NULL, NULL,\
-                    (short)0, (char)MEMTYP_NONE, (char)0 };
+                    (short)0, (char)MEMTYP_NONE, (char)0 }
 //                  typ,      spcTyp,            uu1
+
+// CurvBSpl
+#define _CVBSP_NUL {0, 0., 1., NULL, NULL,\
+                    (char)1, (char)0, (char)-1, (char)0}
+//                      deg,     dir,      clo,     trm
 
 // CurvCCV
 #define _CCV_NUL  { FLT_32_MAX, FLT_32_MAX, 0L, 0L, 0L,\
@@ -83,8 +87,12 @@ touch ../ut/ut_geo2d.c && ./do c
 #define _INDTAB_NUL  { 0,0,  0,0,0,0}
 
 
+// IgaTab
+#define _IGATAB_NUL  { 0,0,-1, (short)0, (char)0,(char)0}
+
+
 // ObjDB
-#define _OBJDB_NUL { 0L,0L,  (short)0, (short)0}
+#define _OBJDB_NUL { 0L,0L,  (short)0,(short)0}
 
 
 // DL_Att
@@ -132,6 +140,7 @@ extern const Vector2 UT2D_VECTOR_IY;
 extern const CurvPoly UT3D_PLG_NUL;
 extern const CurvCCV  UT3D_CCV_NUL;
 extern const CurvPrcv UT3D_PRCV_NUL;
+extern const CurvBSpl UT3D_CVBSP_NUL;
 
 extern const Plane    PLANE_NUL;
 extern const GridBox  GRIDBOX_NUL;
@@ -191,9 +200,11 @@ const Mat_4x4 UT3D_MAT_4x4    = { {1.0, 0.0, 0.0, 0.0},
 const CurvPoly UT3D_PLG_NUL   = _PLG_NUL;
 const CurvCCV  UT3D_CCV_NUL   = _CCV_NUL;
 const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
+const CurvBSpl UT3D_CVBSP_NUL = _CVBSP_NUL;
 const Plane    PLANE_NUL      = _PLANE_NUL;
 const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
 const IndTab   INDTAB_NUL     = _INDTAB_NUL;
+const IgaTab   IGATAB_NUL     = _IGATAB_NUL;
 const AText    AText_NUL      = _AText_NUL;
 const ObjTab   OBJTAB_NUL     = _OBJTAB_NUL;
 const ObjDB    OBJDB_NUL      = _OBJDB_NUL;

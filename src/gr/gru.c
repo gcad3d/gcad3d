@@ -334,7 +334,7 @@ pa sind die outermost points entlang X und Y.
 
   // printf("GRU_tex_rec %d\n",pNr);
     // DEB_dump_obj__ (Typ_VC, vz, " vz");
-    // for(i1=0;i1<pNr;++i1)GR_Disp_pt (ppa[i1], SYM_TRI_S, ATT_COL_RED);
+    // for(i1=0;i1<pNr;++i1)GR_tDyn_symB__ (ppa[i1], SYM_TRI_S, ATT_COL_RED);
 
 
   //----------------------------------------------------------------

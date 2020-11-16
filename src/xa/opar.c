@@ -189,7 +189,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
   // if(AP_typDB_typ(typ) != Typ_CV) return 0;
 
   // get curve
-  form = DB_GetObjDat (&data, &oNr, cTyp, dbi);
+  form = UTO__dbo (&data, &oNr, cTyp, dbi);
     // printf(" form1=%d oNr=%d\n",form,oNr);
     // DEB_dump_obj__ (form, data, " _basCv-1"); 
 

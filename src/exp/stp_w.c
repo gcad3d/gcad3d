@@ -1339,7 +1339,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;  // skip unknown types
 
-    // dTyp = DB_GetObjDat (&vDat, apt_typ, apt_ind);
+    // dTyp = UTO__dbo (&vDat, apt_typ, apt_ind);
     // if(dTyp == Typ_Error) continue;
 
     APED_oid_dbo__ (oid, apt_typ, apt_ind);
@@ -1402,7 +1402,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
     ox1 = DB_GetObjGX (apt_typ, apt_ind);
     if(ox1.typ == Typ_Error) continue;  // skip unknown types
 
-    // dTyp = DB_GetObjDat (&vDat, apt_typ, apt_ind);
+    // dTyp = UTO__dbo (&vDat, apt_typ, apt_ind);
     // if(dTyp == Typ_Error) continue;
 
     APED_oid_dbo__ (oid, apt_typ, apt_ind);
@@ -1736,12 +1736,12 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
 
   // get centerline
-  typCen = DB_GetObjDat (&vpCen, &rNr, srv->typCen, srv->indCen);
+  typCen = UTO__dbo (&vpCen, &rNr, srv->typCen, srv->indCen);
     DEB_dump_obj__ (typCen, vpCen, "Cen=");
 
 
   // get Cov
-  typCov = DB_GetObjDat (&vpCov, &rNr, srv->typCov, srv->indCov);
+  typCov = UTO__dbo (&vpCov, &rNr, srv->typCov, srv->indCov);
     DEB_dump_obj__ (typCov, vpCov, "Cov=");
 
 
@@ -2946,7 +2946,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get startpoint
     // UTO_2pt_limstru (&pt1, NULL, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_start, Typ_CVBSP, cv1);
     ip1 = STP_w_PT (&pt1, "");
   }
 
@@ -2957,7 +2957,7 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
   } else {
     // get endpoint
     // UTO_2pt_limstru (NULL, &pt1, NULL, NULL, Typ_CVBSP, cv1);
-    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
+    UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_end, Typ_CVBSP, cv1);
     ip2 = STP_w_PT (&pt1, "");
   }
 
@@ -3326,8 +3326,8 @@ typedef struct {Point po, pb1, pb2; Vector vz; int ipo, ivz, ivx;
 
   // get startpoint, endpoint
   // UTO_2pt_limstru (&pt1, &pt2, NULL, NULL, Typ_CVBSP, cv1);
-  UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_CVBSP, cv1);
-  UT3D_ptvcpar_std_obj (&pt2, NULL, NULL, Ptyp_end, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_start, Typ_CVBSP, cv1);
+  UT3D_ptvcpar_std_obj (&pt2, NULL, NULL, 0, Ptyp_end, Typ_CVBSP, cv1);
   *actPos = pt2;
 
   if(cv1->v1 > cv1->v0) {

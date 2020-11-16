@@ -569,7 +569,7 @@ static MemTab(ObjSRC) parTab = _MEMTAB_NUL;
 
 
   // strcpy(s1, mcl_nam);
-  irc = GUI_Dialog_e2b ("modify name/info:", mcl_nam, 80, "OK", "Cancel");
+  irc = GUI_dlg_e2b (mcl_nam, 80, "modify name/info:", "OK", "Cancel");
   if(irc != 0) return -1;
 
     // printf("UI_mcl_modNam |%s| %ld\n",mcl_nam,mcl_rNr);

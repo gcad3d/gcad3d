@@ -253,6 +253,7 @@ static MemObj UI_DialogEntryWin;
 }
  
 
+// REPLACED BY APUI__ "GUI_dlg1", "dlgbe",
 //=============================================================================
   int GUI_DialogEntry (char* label, char *entry, int eSiz,
                         char *buttons[], int border) {

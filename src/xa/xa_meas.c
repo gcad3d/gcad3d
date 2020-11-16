@@ -140,7 +140,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   int Meas_init () {
 //================================================================
 
-  printf("Meas_init \n");
+  // printf("Meas_init \n");
 
   // lock some application-functions...
   UI_func_stat_set__ (-APF_TB_CAD,
@@ -378,7 +378,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   char      *p1;
 
 
-  printf("Meas_key_CB %d\n",key);
+  // printf("Meas_key_CB %d\n",key);
 
 
   switch (key) {
@@ -438,7 +438,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
 
   printf("Meas_sel_ln1 typ=%d dbi=%ld dli=%ld\n",typ,dbi,dli);
 
-  typ = DB_GetObjDat (&vp1, &rNr, typ, dbi);
+  typ = UTO__dbo (&vp1, &rNr, typ, dbi);
 
   if(typ != Typ_LN) {
     TX_Print ("**** implemented types: line;  %d not yet ..",typ);
@@ -750,7 +750,7 @@ static int    Meas__obj_stat;        // old APT_obj_stat (before, after)
   // GR_tmpDisp_ln (&ln1, 9);
 //   GR_tDyn_pcv (&dli, 9, 2, (Point*)&ln1);
   DL_temp_ind = GLI_OBJ1;
-  GR_temp_pcv (pta, 2, Typ_Att_hili1);
+  GR_temp_pcv__ (pta, 2, Typ_Att_hili1);
 
 
   d1 = UT3D_len_2pt (pt1, pt2);

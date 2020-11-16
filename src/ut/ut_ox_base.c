@@ -36,16 +36,19 @@ void OGX(){}
 =====================================================
 List_functions_start:
 
+OGX_NUL                 empty complexObject (_OGX_NUL)
 OGX_SET_OBJ             complexObject from binObj (typ,form,siz,dat)
-OGX_GET_OBJ             get type and data of binary-obj
 OGX_SET_OBJ_aux         complexObject from binObj with aux
 OGX_SET_INDEX           complexObject from DB-Obj (dbTyp,dbInd) (form=Typ_Index)
-OGX_GET_INDEX           get DB-typ and DB-index out of complexObject
 OGX_SET_INT             complexObject from typ=int data=int (form=Typ_Int4)
-OGX_GET_INT             get index out of complexObject (long from data-pointer)
 OGX_SET_Float8          complexObject from (typ, float8)
 OGX_SET_COLOR           complexObject from ColRGB
-OGX_NUL                 empty complexObject (_OGX_NUL)
+
+OGX_GET_OBJ             get type and data of binary-obj
+OGX_GET_INT             get index out of complexObject (long from data-pointer)
+OGX_GET_LONG            get index out of complexObject (long from data-pointer)
+OGX_GET_INDEX           get DB-typ and DB-index out of complexObject
+OGX_DAT                 get data-block of ObjGX
 
 OGX_ox_ato1             complexObj from 1 atomicObj (ausTyp/ausTab)
 OGX_ox_copy_ox          complexObj-group from a group of objs.
@@ -54,7 +57,6 @@ OGX_oxm_copy_ox         copy iNr complexObjects into Memspc (serialize)
 OGX_oxm_copy_obj        copy (serialize) obj into a Memspc
 OGX_ox_copy__           copy (serialize) a ObjGX-Tree into a single memChunk.
 OGX_ox_copy_obj
-OGX_ck_reloc            check if struct is relocatable without modifications
 OGX_is_dbo              check if struct is a DB-obj                          INLINE
 
 OGX_deloc__             serialize (make all pointers relative)
@@ -137,7 +139,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   int OGX_deloc_adr (void **vpt, Relocdat *rd);
 
 
-typedef_MemTab(ObjRange);
+// typedef_MemTab(ObjRange);
 
 
 
@@ -283,7 +285,7 @@ typedef_MemTab(ObjRange);
     if(sForm == Typ_Index) {                 // DB-Link
       if(isolate == 0) goto L_objn_nxt;
       // get data-struct of DB-obj
-      sForm = DB_GetObjDat (&sDat, &rNr, sTyp, LONG_PTR(oTab[i1].data));
+      sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(oTab[i1].data));
         // printf(" resDB: typ=%d\n",sForm);
       if(sForm <= Typ_Error) goto L_err;
       // fix form & data
@@ -429,7 +431,7 @@ typedef_MemTab(ObjRange);
 
 
   // check if parent has pointers; if not: copy done ..
-  if(OGX_ck_reloc(typ) == 0) goto L_fertig;
+  if(UTO_ck_ptr(typ) == 0) goto L_fertig;
 
 
 
@@ -454,7 +456,7 @@ typedef_MemTab(ObjRange);
       if(sForm == Typ_Index) {                 // DB-Link
         if(isolate == 0) goto L_GX_nxt;
         // get data-struct of DB-obj
-        sForm = DB_GetObjDat (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
+        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
         if(sForm == Typ_Error) goto L_err_ex;
           // printf(" resDB: typ=%d\n",sForm);
         // fix form & data
@@ -584,44 +586,6 @@ typedef_MemTab(ObjRange);
 
 
 //================================================================
-  int OGX_ck_reloc (int typ) {
-//================================================================
-// check if struct is relocatable without modifications
-// RetCod: 0=OK; relocatable without modifications (no pointers in struct).
-
-  switch (typ) {
-
-    case Typ_VC:
-    case Typ_PT:
-    case Typ_LN:
-    case Typ_CI:
-    case Typ_CVELL:  // CurvElli
-    case Typ_CVCLOT: // CurvClot:
-    case Typ_CVTRM:  // CurvCCV:
-    case Typ_PLN:
-    case Typ_SURRV:  // SurRev
-    case Typ_SUR:    // SurStd
-    case Typ_Color:  // ColRGB:
-    case Typ_TEXR:   // TexRef:
-    case Typ_Ditto:  // Ditto:
-    case Typ_SPH:    // Sphere:
-    case Typ_CON:    // Conus:
-    case Typ_TOR:    // Torus:
-    case Typ_SymRef: // SymRef:
-    case Typ_Model:  // ModelRef
-      return 0;
-    
-    default:
-      // struct has pointers !
-      break;
-  }
-
-  return -1;
-
-}
-
-
-//================================================================
   int OGX_deloc__ (ObjGX *oxi, long mSiz) {
 //================================================================
 // serialize (make persistent)
@@ -630,7 +594,9 @@ typedef_MemTab(ObjRange);
 
   Relocdat  rd;
 
-  // printf("OGX_deloc__ oxi=%ld siz=%ld\n",oxi,mSiz);
+  // printf("OGX_deloc__ siz=%ld\n",mSiz);
+  // DEB_dump_ox__ (oxi, " _deloc__-oxi");
+
 
   rd.oPos = oxi;
   rd.mSiz = mSiz;
@@ -670,7 +636,7 @@ typedef_MemTab(ObjRange);
 /// \endcode
 
 // not relocatable structs:
-//   Triangle CurvPoly CurvBSpl
+//   Triang CurvPoly CurvBSpl
 //   SurStripe SurBSpl SurRBSpl
 //   AText TexBas GText 
 //   ModelMock ModelBas ModelRef Dimen Dim3 Activity
@@ -681,7 +647,7 @@ typedef_MemTab(ObjRange);
   void   *ps, *pe;
 
 
-  // printf("OGX_reloc_ox typ=%d iNr=%d %ld %ld\n",typ,iNr,rd->oPos,rd->mSiz);
+  // printf("OGX_reloc_ox typ=%d iNr=%d %ld %ld\n",typ,iNr,(long)rd->oPos,rd->mSiz);
 
 
   iSiz = UTO_siz_stru (typ);
@@ -696,7 +662,7 @@ typedef_MemTab(ObjRange);
 
 
   // check if parent has pointers; if not: copy done ..
-  if(OGX_ck_reloc(typ) == 0) goto L_fertig;
+  if(UTO_ck_ptr(typ) == 0) goto L_fertig;
 
 
   //----------------------------------------------------------------
@@ -816,8 +782,8 @@ typedef_MemTab(ObjRange);
       // printf("OGX_reloc_adr - %ld -> %ld\n",*vpt, *vpt - LONG_PTR(rd->oPos));
     *vpt = MEM_ptr_mov (*vpt, - LONG_PTR(rd->oPos));
 
-    // test if inside mSiz
-    if(ILIMCK1(LONG_PTR(*vpt), rd->mSiz)) return 1;
+//     // test if inside mSiz
+//     if(ILIMCK1(LONG_PTR(*vpt), rd->mSiz)) return 1;
 
 
   //----------------------------------------------------------------
@@ -888,7 +854,7 @@ typedef_MemTab(ObjRange);
 
 
   // check if parent has pointers; if not: copy done ..
-  if(OGX_ck_reloc(typ) == 0) goto L_fertig;
+  if(UTO_ck_ptr(typ) == 0) goto L_fertig;
 
 
 
@@ -913,7 +879,7 @@ typedef_MemTab(ObjRange);
       if(sForm == Typ_Index) {                 // DB-Link
         if(isolate == 0) goto L_GX_nxt; 
         // get data-struct of DB-obj
-        sForm = DB_GetObjDat (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
+        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
         if(sForm == Typ_Error) goto L_err_ex;
           // printf(" resDB: typ=%d\n",sForm);
         // add size of DB-obj
@@ -1192,7 +1158,7 @@ typedef_MemTab(ObjRange);
   if(irc < 0) return -1;
 
   // reserve used memory in spcObj2
-  UME_set_free (mSiz2, spcObj1);
+  UME_set_unused (mSiz2, spcObj1);
 
 
   DEB_dump_obj__ (Typ_ObjGX, pox2, "--------------- pox2 -------------\n");

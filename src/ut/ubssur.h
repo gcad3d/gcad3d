@@ -29,8 +29,8 @@ int USBS_DegElevBspSur (SurBSpl*, Memspc*, SurBSpl*, int, int);
 int USBS_DerivBspSur (SurBSpl*, Memspc*, SurBSpl*, int);
 int USBS_DifKntsKntVecBspSur (int*, double**, Memspc*, int, double*,
 	                      SurBSpl*, int);
-int USBS_DirIndSdBspSur (double**, double**, long*, Point**, Memspc*,
-	                 double**, double**, long*, Point**, Memspc*,
+int USBS_DirIndSdBspSur (double**, double**, int*, Point**, Memspc*,
+	                 double**, double**, int*, Point**, Memspc*,
 		         int, double*, double*, int, int, Point*, int, 
 		         double, int);
 int USBS_EvPtBspSur (Point*, SurBSpl*, double, double, Memspc*);

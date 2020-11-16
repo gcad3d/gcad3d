@@ -61,7 +61,7 @@ CVOFF2_int_ckConn          ignore connection-points
 CVOFF2_int_upd_bwd         update segments ii1 and ii2 of bwd-loop
 CVOFF2_int_bl_wr           add fwd-loop to file; <tmpDir>/oibo_parl.dat
 CVOFF2_int_bl_rd           read next loop from file into ObjTab
-CVOFF2_int_ll              fill 2 ObjRanges with indexes of a loop
+CVOFF2_int_ll              fill 2 IgaTab with indexes of a loop
 CVOFF2_int_save_sr         save loop as output if sense-of-rotation OK
 CVOFF2_int_srl1            get sense-of-rotation of contour-loop
 CVOFF2_int_save_l1         add closed-loop to output-file
@@ -715,7 +715,7 @@ static struct {int ifwd, ibwd,
   //----------------------------------------------------------------
   // closed contours:
   // get sense-of-rotation of polygon; 1=CCW, -1=CW
-  isr = UT2D_srar_polc (&d1, ptNr, pa); 
+  isr = UT2D_sr_npt (&d1, ptNr, pa); 
     // printf("  area-main:%f\n",d1);
 
   
@@ -1664,7 +1664,7 @@ static struct {int ifwd, ibwd,
                             &((BBox2*)oTabO->xDat)[ii1].pb2,
                             &((BBox2*)oTabO->xDat)[ii2].pb1,
                             &((BBox2*)oTabO->xDat)[ii2].pb2);
-    if(irc < 0) goto L_nxt9__;
+    if(!irc) goto L_nxt9__;
       // printf(" parl_int__-boxes-inters: %d %d\n",ii1,ii2);
 
 
@@ -1874,7 +1874,7 @@ static struct {int ifwd, ibwd,
                                 &((BBox2*)oTabO->xDat)[ii1].pb2,
                                 &((BBox2*)oTabO->xDat)[ii2].pb1,
                                 &((BBox2*)oTabO->xDat)[ii2].pb2);
-        if(irc < 0) goto L_nxt_cont;
+        if(!irc) goto L_nxt_cont;
       }
           // printf(" parl_int__-boxes-inters: %d %d\n",ii1,ii2);
 
@@ -2170,7 +2170,7 @@ printf(" ?????????????\n");
 // TODO: OTB_save_rec + OTB_save_aux (oder aux == NULL or data)
 
   int        irc, i1, oNr, lfNr, *ia, iix, typ1;
-  ObjRange   lfa[2];
+  IgaTab   lfa[2];
   // Memspc     oSpc=UME_NEW;
   BBox2      box2;
   char       fnam[256];
@@ -2188,12 +2188,12 @@ printf(" ?????????????\n");
   // get list of all objs for loop
   CVOFF2_int_ll (lfa, ii1, ii2, otb1->oNr);
 
-  // get nr of ints of ObjRanges
+  // get nr of ints of IgaTab
   lfNr = UTI_ni_ObjRange (NULL, lfa, 2);
 
   ia = (int*)MEM_alloc_tmp (sizeof(int) * lfNr);
 
-  // get table of indexes of ObjRanges
+  // get table of indexes of IgaTab
   UTI_ni_ObjRange (ia, lfa, 2);
 
 
@@ -2282,14 +2282,14 @@ printf(" ?????????????\n");
 
 
 //============================================================================
-  int CVOFF2_int_ll (ObjRange *ora, int i1, int i2, int oNr) {
+  int CVOFF2_int_ll (IgaTab *ora, int i1, int i2, int oNr) {
 //============================================================================
 // Input:
-//   ora     2 structs ObjRange (to be filled)
+//   ora     2 structs IgaTab (to be filled)
 //   i1-i2   startindex, endindex
 //   oNr     nr of objs
 // Output:
-//   ora     2 structs ObjRange; typ,ind = startObj, oNr nr of following objs
+//   ora     2 structs IgaTab; typ,ind = startObj, oNr nr of following objs
 
   int   is, dNr, ii;
 
@@ -2298,9 +2298,9 @@ printf(" ?????????????\n");
 
 
   ora[0].typ = 0;
-  ora[0].oNr = 0;
+  ora[0].iNr = 0;
   ora[1].typ = 0;
-  ora[1].oNr = 0;
+  ora[1].iNr = 0;
 
 
   // from i1 to i2;
@@ -2308,8 +2308,8 @@ printf(" ?????????????\n");
     is = i1 + 1;    // is = 1. obj to delete
     dNr = i2 - is;  // dNr = nr of objs to delete
     ora[0].typ = Typ_CV;
-    ora[0].ind = is;
-    ora[0].oNr = dNr;
+    ora[0].ibeg = is;
+    ora[0].iNr = dNr;
       // printf(" _ll-1: is=%d dNr=%d\n",is,dNr);
     goto L_exit;
   }
@@ -2321,8 +2321,8 @@ printf(" ?????????????\n");
     is = i1 + 1;    // is = 1. obj to delete
     dNr = oNr - is;  // dNr = nr of objs to delete
     ora[0].typ = Typ_CV;
-    ora[0].ind = is;
-    ora[0].oNr = dNr;
+    ora[0].ibeg = is;
+    ora[0].iNr = dNr;
       // printf(" _ll-2: is=%d dNr=%d\n",is,dNr);
   }
 
@@ -2333,8 +2333,8 @@ printf(" ?????????????\n");
     dNr = i2;        // dNr = nr of objs to delete
     if(ora[0].typ) ii = 1; else ii = 0;
     ora[ii].typ = Typ_CV;
-    ora[ii].ind = is;
-    ora[ii].oNr = dNr;
+    ora[ii].ibeg = is;
+    ora[ii].iNr = dNr;
       // printf(" _ll-3: is=%d dNr=%d\n",is,dNr);
   }
 
@@ -2342,8 +2342,8 @@ printf(" ?????????????\n");
   L_exit:
 
    // TESTBLOCK
-   // if(ora[0].typ) printf(" ex _int_ll-0 %ld %d\n",ora[0].ind,ora[0].oNr);
-   // if(ora[1].typ) printf(" ex _int_ll-1 %ld %d\n",ora[1].ind,ora[1].oNr);
+   // if(ora[0].typ) printf(" ex _int_ll-0 %ld %d\n",ora[0].ibeg,ora[0].iNr);
+   // if(ora[1].typ) printf(" ex _int_ll-1 %ld %d\n",ora[1].ibeg,ora[1].iNr);
    // END TESTBLOCK
 
 
@@ -2455,7 +2455,7 @@ printf(" ?????????????\n");
 // CVOFF2_int_save_sr          save loop if sense-of-rotation OK
 
   int        irc, i1, iix, lfNr, *ia, typ1, typ2, sr;
-  ObjRange   lfa[2];
+  IgaTab   lfa[2];
   char       obj1[OBJ_SIZ_MAX], obj2[OBJ_SIZ_MAX];
 
 
@@ -2466,13 +2466,13 @@ printf(" ?????????????\n");
   // get list of all objs for fwd-loop
   CVOFF2_int_ll (lfa, ii1, ii2, otb1->oNr);
 
-  // get nr of ints of ObjRanges
+  // get nr of ints of IgaTab
   lfNr = UTI_ni_ObjRange (NULL, lfa, 2);
 
   // get tempSpc for list of all objNrs
   ia = (int*)MEM_alloc_tmp (sizeof(int) * lfNr);
 
-  // get ia = table of indexes of ObjRanges -> ia
+  // get ia = table of indexes of IgaTab -> ia
   UTI_ni_ObjRange (ia, lfa, 2);
 
 
@@ -2548,7 +2548,7 @@ printf(" ?????????????\n");
   int        irc, i1, oNr, iix, ptNr, ptMax, isr;
   double     d1, *tol;
   // char       obj1[OBJ_SIZ_MAX];
-  // ObjRange   lfa[2];
+  // IgaTab   lfa[2];
   Point2     *pta;
 
 
@@ -2611,7 +2611,7 @@ printf(" ?????????????\n");
 
   //----------------------------------------------------------------
   // get sense-of-rotation of polygon; 1=CCW, -1=CW
-  isr = UT2D_srar_polc (&d1, ptNr, pta);
+  isr = UT2D_sr_npt (&d1, ptNr, pta);
 
   // sense-of-rotation -> 0=CCW, 1=CW.
   i1 = (isr > 0) ? 0 : 1;

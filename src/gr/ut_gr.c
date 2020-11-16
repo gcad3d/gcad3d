@@ -38,8 +38,14 @@ Modifications:
 #endif
 /*!
 \file  ../gr/ut_gr.c
+       ../gr/ut_gr.h
 \brief create graphic objects 
-\code
+
+Prerequisites:
+#include "../ut/ut_memTab.h"           // MemTab_..
+
+-----------------------------------------------------
+See INF_GR_RECORDS
 
 GR_perm_*     create permanent objects   see INF_GR_RECORDS
 
@@ -68,7 +74,8 @@ List_functions_start:
 GR_Disp_message       switch for textoutput to console (DispMode)
 
 GR_set_obj            display obj     - temp/tDyn/perm
-GR_set_sur            disp surface
+GR_set_osu            disp surface from bin.surf.obj
+GR_set_sur            disp surface from dbi
 GR_set_ocv            disp all kinds of curves from binary-obj
 GR_set_ccv            display n composite-curves
 
@@ -86,7 +93,7 @@ GR_set_mdr            disp subModel from modelreference
 GR_perm_pt            perm.disp Point
 GR_perm_ln            perm.disp line
 GR_perm_pln           plane
-GR_perm_pcv           perm.disp polygon
+// GR_perm_pcv           perm.disp polygon
 GR_perm_ocv           perm.disp Curve-obj (C, S)
 GR_perm_sur           perm.disp surface
 GR_perm_txt__         perm.disp notes with 2D-text
@@ -95,9 +102,11 @@ GR_perm_mdr           perm.disp subModel from modelreference
 GR_perm_Dimen          hor/vert/parall. dimension
 
 -------------- display temporary-dynamic objects
+GR_tDyn_ox            temp.Dyn complex-obj ObjGX
 GR_tDyn_dbo           temp.Dyn DB-obj
 GR_tDyn_ocv           temp.Dyn display of all kinds of curves from binary-obj
 GR_tDyn_obj           tempDisp obj from typ+struct
+GR_tDyn_nobj          tempDisp objects from typ+struct, nr
 
 GR_tDyn_pt            temp.Dyn point
 GR_tDyn_npt__         disp. points
@@ -107,7 +116,7 @@ GR_tDyn_ln_2pt        disp line from 2 points
 GR_tDyn_pcv           temp.Dyn polygon
 GR_tDyn_box__         disp 3D-boundingBox (lines)
 
-GR_tDyn_vc            3D-vector at 3D-point; length true or normalized.
+GR_tDyn_vc__          3D-vector at 3D-point; length true or normalized.
 GR_tDyn_ell           disp. ellipse
 GR_tDyn_bez           display  Bezier-Curve
 GR_tDyn_rbez          Testdisplay  rational-bezier-curve via rational-B-spline
@@ -117,18 +126,21 @@ GR_tDyn_mdr           subModel from modelreference
 GR_tDyn_pln           plane
 GR_tDyn_sur           surface
 
-GR_tDyn_npt__2        disp. 2D-points
+GR_tDyn_tx2A          disp text at 2D-position
+GR_tDyn_npt_2         disp. 2D-points
 GR_tDyn_ln2_2pt       disp line between 2 2D-points
+GR_tDyn_vc2__         temp.Dyn 2D-Vector; length true or normalized
 GR_tDyn_ci2           display 2D-circle
 GR_tDyn_el2c          disp. 2D-ellipse-centerPos
 GR_tDyn_bsp2          disp. 2D-bSplineCurve
 GR_tDyn_pcv2          disp 2D-polygon
-GR_tDyn_pcv3p2        Display boundary of triangle from 3 2D-points
-GR_tDyn_ccv2
 GR_tDyn_box2__        disp 2D-boundingBox from 2 points
 GR_tDyn_box2_4db      disp 2D-Box from 4 doubles
+GR_tDyn_pcv3p2        Display boundary of triangle from 3 2D-points
+GR_tDyn_ccv2
 
-GR_tDyn_symB          temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
+GR_tDyn_symB2__       temp.dyn disp 2D-BITMAP-Symbol
+GR_tDyn_symB__        temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
 GR_tDyn_nsymB         temp.dyn disp BITMAP-Symbols (SYM_TRI_S SYM_STAR_S ..)
 
 GR_tDyn_symV_r        disp vector-symbol, rotated (in XY-plane, 2D)
@@ -136,24 +148,30 @@ GR_tDyn_symV_o        disp vector-symbol, oriented (3D, rotate + tilt)
 
 GR_tDyn_txtG          disp text at 3D-point grafic text (rotated, scaled)
 GR_tDyn_txtA          disp text at 3D-point
-GR_tDyn_tx2A          disp text at 2D-position
 GR_tDyn_txiA          display number at position
+
+GR_tDyn_npcv_itb_npt  disp group of polygons from IndTab to points
+GR_tDyn_npcv_itb_nipt disp group of polygons from IndTab to indexed points
+GR_tDyn_ipcv          display indexed point-array as curve
+GR_tDyn_ip2cv         display indexed 2D-point-array as curve
+GR_tDyn_nifac         display MshFac
+GR_tDyn_mtb           disp MemTab; alias MemTab_disp_tdyn
 
 -------------- display temporary objects
 GR_temp_message       Display messages with GR_temp_xxx or not.
 
 GR_temp_src           tempDisp obj from sourcecode
 GR_temp_dbo           tempDisp DB-obj
-GR_temp_obj           tempDisp binary obj (Curve)
+GR_temp_nobj          tempDisp binary objects from typ+struct, nr
 GR_temp_ocv           tempDisp binary Curve-obj (C, S)
-GR_temp_pcv           tempDisp polygon
+GR_temp_osu           tempDisp binary surface (A)
 GR_temp_sur           tempDisp surface (symbolic-hilited)
 GR_temp_otb           tempDisp binary-object-table
 
 GR_temp_pt            tempDisp PointGR_draw_mesh
 GR_temp_ln            tempDisp line
 GR_temp_vc            tempDisp Vector; length true or normalized
-GR_temp_pcv           tempDisp polygon
+GR_temp_pcv__         tempDisp polygon
 GR_temp_ci            tempDisp circle
 GR_temp_ang           tempDisp angle
 GR_temp_pln           tempDisp plane
@@ -172,9 +190,13 @@ GR_temp_txi2          disp number at 2D-position
 
 GR_temp_dimen          hor/vert/parall. dimension
 
+GR_temp_att__         disp direction/objID for all objs in group
+GR_temp_att_1         disp direction/objID for all objs in group
+
 
 -------------- display into open GL-list
 GR_disp_cv_pMesh      boundary of surface from points
+
 
 -------------- TO BE REPLACED WITH GR_temp_* GR_perm_*
 GR_Disp_ox            temp. display of ObjGX-structs
@@ -235,8 +257,6 @@ GR_CreTriaStrip
 
 //----------------------------------------------------------------
 GR_mdMock_imp            import VRML|OBJ|STL-file - save as tmp/Data_<moldel>.tess
-GR_cv_pMesh_box          boundingBox for surface from points
-GR_Draw_oid_dir_npt      disp. ObjID, direction
 GR_pt_par_sel_npt        get selectionpoint and parameter on polygon
 GR_pt3_pt2               get 3D-point from 2D-point (with GL2D_Z);
 
@@ -248,6 +268,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 UNUSED
+// GR_Draw_oid_dir_npt      disp. ObjID, direction
 // GR_Disp_ipatch        display a set of triangles from indexed points
 // GR_Draw_ipatch        display a set of triangles from indexed points
 // GR_Disp_spu1          display planare Contour
@@ -329,11 +350,10 @@ extern Plane      WC_sur_act;            // die aktive Plane
 // aus ../ci/NC_Main.c:
 extern int     APT_3d_mode;
 extern int     APT_dispSOL;           // 0=ON=shade; 1=OFF=symbolic
-extern int     APT_dispDir;
 extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
 extern long    AP_dli_act;            // index dispList
-extern int     APT_dispNam;           // display ObjID
-extern int     APT_dispDir;           // display ObjDirection; 1=yes, 0=not
+// extern int     APT_dispNam;           // display ObjID
+// extern int     APT_dispDir;           // display ObjDirection; 1=yes, 0=not
 
 //  DISP_AC - Toleranz (Sehnenfehler bei der Darstellung von Arcs.
 // extern double    APT_TOL_ac;
@@ -386,6 +406,8 @@ static long  GR_dbi = 0;
 static int   DispMode=1;  ///< 0=Aus, 1=Ein.
 static int tmpDspMode = 0;
 
+const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
+
 
 
 
@@ -435,10 +457,11 @@ static int tmpDspMode = 0;
 }
 
 
+
 //================================================================
    int GR_set_sur (int opers, long dbi, int att) {
 //================================================================
-// GR_set_sur           disp surface
+// GR_set_sur           disp surface from dbi
 //   att    for perm: struct ColRGB
 //          for temp: GR_TMP_HILI|GR_TMP_DIM|GR_TMP_DEF;
 // was APT_DrawSur GR_DrawSur
@@ -455,9 +478,31 @@ static int tmpDspMode = 0;
 
 
   // get bin.obj from dbi
-  oxi = DB_GetSur (dbi, 1); 
+  oxi = DB_GetSur (dbi, 1);
     // DEB_dump_ox_s_ (oxi, "GR_set_sur\n");
-    
+
+  return GR_set_osu (opers, oxi, dbi, att);
+
+}
+
+
+//=====================================================================
+   int GR_set_osu (int opers, ObjGX *oxi, long dbi, int att) {
+//=====================================================================
+// GR_set_osu 	         disp surface from bin.surf.obj
+//   att    for perm: struct ColRGB
+//          for temp: GR_TMP_HILI|GR_TMP_DIM|GR_TMP_DEF;
+// was APT_DrawSur GR_DrawSur
+
+  int       irc = 0, i1, ssTyp;
+  long      l1;
+  char      cBuf[256];
+
+
+  // printf("GR_set_osu opers=%d A%ld att=%d\n",opers,dbi,att);
+  // printf(" DL_perm_ind=%ld\n",DL_perm_ind);
+  // UTcol_dump ((ColRGB*)&att, "GR_set_sur");
+
 
 
 
@@ -504,14 +549,14 @@ static int tmpDspMode = 0;
   } else if(opers & OPERS_TEMP) {
     DL_temp_init ();
     // change att -> struct ColRGB
-//     att = *(INT32_COL(&ColRGB_NUL));
+//     att = *(INT32P_COL(&ColRGB_NUL));
 //     if(att == GR_TMP_HILI)
 //       ((ColRGB*)&att)->vsym = 1;        // set symbolic
 //     else
 //       printf("**** GR_set_sur TODO att 1\n"); // dimmed or default
     DL_hili_on (AP_dli_act);          // set hilited
     // GL_att_cv (Typ_Att_top2);         // INF_COL_CV
-    GL_att_sur ();
+    GL_att_sur (att);
 
   }
 
@@ -593,8 +638,8 @@ static int tmpDspMode = 0;
     //----------------------------------------------------------------
     // tesselated-surfaces
     //----------------------------------------------------------------
-    // case Typ_SURMSH:
-//       // no example .. see INF_FMTB_Surface_MSH
+    // case Typ_SURPMSH:
+//       // no example .. see INF_FMTB_Surface_PMSH
 //       irc = TSU_DrawSur... (oxi, att, dbi);
 //       break;
 
@@ -620,9 +665,9 @@ static int tmpDspMode = 0;
       break;
 
     //----------------------------------------------------------------
-    case Typ_SURMSH:
+    case Typ_SURPMSH:
       // surface from points
-      irc = TSU_DrawSurMsh (oxi, att, dbi);
+      irc = TSU_DrawSurPMsh (oxi, att, dbi);
       break;
 
     //----------------------------------------------------------------
@@ -689,7 +734,7 @@ static int tmpDspMode = 0;
     GL_att_cv (att);
   }
 
-  GL_set_cv (ptNr, pta);
+  GL_set_pcv (ptNr, pta, 0);
 
   if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
 
@@ -701,7 +746,7 @@ static int tmpDspMode = 0;
 //==============================================================================
   int GR_set_obj (int opers, long dbi, int form, void *obj, int att, int mode) {
 //==============================================================================
-// GR_temp_obj    display temp.obj
+// GR_temp_nobj    display temp.obj
 // Input:
 //   opers    object-persistence; eg OPERS_TEMP+OPERS_CLOSE  see INF_OPERS
 //   ind      object temorary|temp-dynamic|permanent; see INF_GR_RECORDS
@@ -789,7 +834,8 @@ static int tmpDspMode = 0;
       pta[0] = ((Line*)obj)->p1;
       pta[1] = ((Line*)obj)->p2;
       GL_att_cv (att);
-      GL_set_cv (2, pta); // GL_LINE_STRIP
+      GL_set_pcv (2, pta, 1); // GL_LINE_STRIP
+      if(APT_obj_stat) GL_set_dir_2pt (&pta[1], &pta[0]);
       break;
 
     //================================================================
@@ -896,7 +942,7 @@ static int tmpDspMode = 0;
 //    //----------------------------------------------------------------
 //    if(typ == Typ_SUR) {
 //      // SUR_Disp_Sur (ox1, wrkSpc, att, p1);
-//      TX_Print("**** GR_temp_obj I1");
+//      TX_Print("**** GR_temp_nobj I1");
 //
 //    //----------------------------------------------------------------
 //    } else {
@@ -904,7 +950,7 @@ static int tmpDspMode = 0;
 //      for(i1=0; i1 < ox2->siz; ++i1) // Recursion !
 //        // GR_Draw_ox (ind, &ox2[i1], att, mode);
 //        // recurse
-//        GR_temp_obj (ind, ox2[i1].form,  ox2[i1].data, 1, att, mode);
+//        GR_temp_nobj (ind, ox2[i1].form,  ox2[i1].data, 1, att, mode);
 //    }
 //    break;
 */
@@ -1230,7 +1276,7 @@ static int tmpDspMode = 0;
   /* onjInd erhaelt man beim abspeichern in der DB */
   // ++objInd;
   
-  dlInd = DL_StoreObj (Typ_QFac, *ind, attInd);
+  dlInd = DL_StoreObj (Typ_GL_Sur, *ind, attInd);
   /*  IN:  Objectindex objInd  und ObjTyp Typ_xx */
   /*  OUT: DispListIndex dlInd */
 
@@ -1272,7 +1318,7 @@ static int tmpDspMode = 0;
   /* onjInd erhaelt man beim abspeichern in der DB */
   // ++objInd;
   
-  dlInd = DL_StoreObj (Typ_QFac, *ind, attInd);
+  dlInd = DL_StoreObj (Typ_GL_Sur, *ind, attInd);
   /*  IN:  Objectindex objInd  und ObjTyp Typ_xx */
   /*  OUT: DispListIndex dlInd */
 
@@ -1370,7 +1416,7 @@ static int tmpDspMode = 0;
   /* onjInd erhaelt man beim abspeichern in der DB */
   // ++objInd;
 
-  dlInd = DL_StoreObj (Typ_QFac, *ind, attInd);
+  dlInd = DL_StoreObj (Typ_GL_Sur, *ind, attInd);
   /*  IN:  Objectindex objInd  und ObjTyp Typ_xx */
   /*  OUT: DispListIndex dlInd */
 
@@ -1983,20 +2029,20 @@ static int tmpDspMode = 0;
   GR_tDyn_pcv2 (pa2, ptNr, attInd);
 
 
-  // disp direction
-  if(APT_dispDir) {
-    int   ipe;
-    Point pt31, pt32;
-    ipe = ptNr - 1;
-    // make 3D-points
-    UT3D_pt_pt2_z (&pt31, &pa2[ipe], z1);
-    UT3D_pt_pt2_z (&pt32, &pa2[ipe - 1], z1);
-    APT_disp_dir (&pt31, &pt32);
-  }
+//   // disp direction
+//   if(APT_dispDir) {
+//     int   ipe;
+//     Point pt31, pt32;
+//     ipe = ptNr - 1;
+//     // make 3D-points
+//     UT3D_pt_pt2_z (&pt31, &pa2[ipe], z1);
+//     UT3D_pt_pt2_z (&pt32, &pa2[ipe - 1], z1);
+//     APT_disp_dir (&pt31, &pt32);
+//   }
 
 }
 
-/*
+/* UU
 //====================================================================
   void GR_Draw_ln2 (long *ind, long dbi, int iAtt, Line2 *ln1) {
 //====================================================================
@@ -2022,8 +2068,9 @@ static int tmpDspMode = 0;
   }
 
 }
-*/
 
+
+// UU
 //================================================================
   int GR_Draw_oid_dir_npt (long *dli, Point *pta, int ptNr) {
 //================================================================
@@ -2059,19 +2106,18 @@ static int tmpDspMode = 0;
 
   //----------------------------------------------------------------
   L_disp_dir:
-    // display direction
-    if(APT_dispDir) {
-      // disp-dir or statu-nascendi is on
-      APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
-    }
-
+//     // display direction
+//     if(APT_dispDir) {
+//       // disp-dir or statu-nascendi is on
+//       APT_disp_dir (&pta[ptNr - 1], &pta[ptNr - 2]);
+//     }
 
   return 0;
 
 }
 
 
-/* UNUSED
+// UNUSED
 //================================================================
   int GR_DrawCurv (long *dli, int att, ObjGX *cv1, double zval) {
 //================================================================
@@ -2485,7 +2531,7 @@ static int tmpDspMode = 0;
 //   dli = DL_StoreObj (Typ_SUR, dbi, att);
   dli = AP_dli_act;
   GL_att_cv
-  GL_set_icv (&dli, att, iba, iNr, pTab.data, 1);
+  GL_set_ipcv (&dli, att, iba, iNr, pTab.data, 1);
 //   AP_dli_act = dli;
 
 //   // get spce for curve
@@ -2540,7 +2586,7 @@ static int tmpDspMode = 0;
 ///     TSU_DrawSurTC                  -
 ///   GR_CreFan                        -
 ///   GR_DrawStrip                     -
-///   TSU_DrawSurMsh                   -
+///   TSU_DrawSurPMsh                   -
 ///   TSU_DrawSurBsp                   -
 ///   TSU_DrawSurRBsp                  -
 /// GR_CreSol__
@@ -2643,7 +2689,7 @@ static int tmpDspMode = 0;
   if(oxi->typ == Typ_SURSTRIP) goto L_SurStripe;
   if(oxi->typ == Typ_SURBSP)   goto L_SurBSpl;
   if(oxi->typ == Typ_SURRBSP)  goto L_SurRBSpl;
-  if(oxi->typ == Typ_SURMSH)   goto L_SurMesh;
+  if(oxi->typ == Typ_SURPMSH)   goto L_SurMesh;
   if(oxi->typ == Typ_SURHAT)   goto L_SurHat;
 
     TX_Error("GR_DrawSur E001 %d",oxi->typ);
@@ -2818,7 +2864,7 @@ static int tmpDspMode = 0;
   GL_DrawLn_Ini (&dli, 1);
 
   for(i1=0; i1<i2; ++i1)  GL_set_ln_2pt (&lTab[i1].p1, &lTab[i1].p2);
-  // GL_set_cv (i2, lTab);
+  // GL_set_pcv (i2, lTab);
 
   GL_EndList ();
 
@@ -2901,17 +2947,13 @@ static int tmpDspMode = 0;
 
   //=======================================================================
   L_SurMesh:            // untrimmed unperforated Mesh
-    return TSU_DrawSurMsh (oxi, att, apt_ind);
-
-
+    return TSU_DrawSurPMsh (oxi, att, apt_ind);
 
 
   //======================================================
   //  B-SplineSurface
   L_SurBSpl:
     return TSU_DrawSurBsp (oxi, att, apt_ind);
-
-
 
 
   //======================================================
@@ -3265,6 +3307,12 @@ static int tmpDspMode = 0;
   int GR_set_ccv (int opers, CurvCCV *cva, int cvNr, long dbi, int att) {
 //==============================================================================
 // display DB-obj - composite-curve
+// Input:
+//   cvNr    nr of trimmed-curves to display
+//   cva     trimmed-curve(s)
+//   dbi     dbi of  composite-curve
+//   att     see INF_COL_CV
+
 
   int       irc, grMode, ptNr;
   double    tol;
@@ -3273,7 +3321,7 @@ static int tmpDspMode = 0;
 
 
 
-  // printf("DDDDDDDDDDDDDDD  GR_set_ccv dbi=%ld dli=%ld, att=%d\n",dbi,*dli,att);
+  // printf("DDDDDDDDDDDDDDD  GR_set_ccv op=%d dbi=%ld att=%d\n",opers,dbi,att);
   // printf("GR_set_ccv dbi=%ld cvNr=%d\n",dbi,cvNr);
   // for(irc=0;irc<cvNr;++irc) DEB_dump_obj__ (Typ_CVTRM, &cva[irc], "%d",irc); 
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
@@ -3297,6 +3345,7 @@ static int tmpDspMode = 0;
   GR_typ = Typ_CV;
   GR_dbi = dbi;
 
+
   // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
   if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
   else                               grMode = 1;
@@ -3311,7 +3360,7 @@ static int tmpDspMode = 0;
 
   tol  = UT_DISP_cv;
   // get polygon from trimmed-curve(s)
-  irc = UT3D_mtpt_trmCv (&mtpa, cva, cvNr, tol, grMode);
+  irc = UT3D_mtpt_trmCv (&mtpa, NULL, cva, cvNr, tol, grMode);
   if(irc < 0) {TX_Error("GR_set_ccv E2"); goto L_exit; }
 
   ptNr = mtpa.rNr;
@@ -3333,7 +3382,9 @@ static int tmpDspMode = 0;
   // display
   // GR_DrawPoly (dli, att, ptNr, pta);
   if(opers > OPERS_CLOSE) GL_att_cv (att);
-  GL_set_cv (ptNr, pta); // GL_LINE_STRIP
+  GL_set_pcv (ptNr, pta, 1); // GL_LINE_STRIP
+
+  if(APT_obj_stat) GL_set_dir_2pt (&pta[ptNr - 1], &pta[ptNr - 2]);
 
 
   //----------------------------------------------------------------
@@ -3473,7 +3524,7 @@ static int tmpDspMode = 0;
 
     if(segNr2 < 1) {
       // display curve
-      GR_temp_obj (ind, sTyp, sObj, 1, att, 0);
+      GR_temp_nobj (ind, sTyp, sObj, 1, att, 0);
     } else {
       // recurse for line in polygon in ccv
       GR_Draw_subCurv (ind, att, sTyp, sObj, segNr2, 0);
@@ -3748,9 +3799,9 @@ int GR_Delete (long ind)                               {return 0;}
 }
 
 
-/* repl by GR_tDyn_pt GR_tDyn_symB
+/* repl by GR_tDyn_pt GR_tDyn_symB__
 //===================================================================
-  int GR_Disp_pt (Point *pt1, int typ, int att) {
+  int GR_tDyn_symB__ (Point *pt1, int typ, int att) {
 //===================================================================
 /// \code
 /// Testdisplay 3D-Point
@@ -3826,6 +3877,191 @@ int GR_Delete (long ind)                               {return 0;}
 }
  
 
+//========================================================================
+  int GR_tDyn_ip2cv (int iNr, int *ia, Point2 *pa2, int  iClo, int att) {
+//========================================================================
+// GR_tDyn_ip2cv             display indexed 2D-point-array as curve
+// Input:
+//   att      see INF_COL_CV
+//   iNr      nr of indices to display
+//   ia       iNr indices into pa
+//   pa       table of points
+//   iClo     closed; 0=yes, 1=not_closed;
+
+// see also GR_Draw_i2fac MSH2D_disp_cv_inpt
+
+  int     i1;
+  Point  *pta;
+
+
+  printf("GR_tDyn_ip2cv iNr=%d\n",iNr);
+  // for(i1=0; i1<iNr; ++i1) printf(" Draw_i2ptb_ ind[%d] = %d\n",i1,ia[i1]);
+
+
+  pta = (Point*) MEM_alloc_tmp ((iNr + 1) * (int)sizeof(Point));
+
+  for(i1=0; i1<iNr; ++i1) {
+    memcpy(&pta[i1], &pa2[ia[i1]], sizeof(Point2));
+    pta[i1].z = GL2D_Z;
+    // UT3D_pt_pt2_z 
+  }
+
+  // must add startPt if closed
+  if(!iClo) {
+    UT3D_pt_pt2_z (&pta[iNr], &pa2[ia[0]], GL2D_Z);
+    ++iNr;
+  }
+
+  // disp polygon
+  GR_tDyn_pcv (pta, iNr, att);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GR_tDyn_npcv_itb_npt (int itNr, IndTab *ita, Point *pta,
+                            int attCv, int attPt) {
+//================================================================
+// GR_tDyn_npcv_itb_npt      disp group of polygons from IndTab to points
+//  indexed group of points see MSHI_disp_npcv_bnd3D
+
+  int    i1, iNr, iBeg;
+
+  DL_tDyn_init (attCv);
+
+  for(i1=0; i1 < itNr; ++i1) {
+    iNr  = ita[i1].iNr;
+    iBeg = ita[i1].ibeg;
+
+    // disp curv
+    GL_att_cv (attCv);
+    GL_set_pcv (iNr, &pta[iBeg], 1);
+
+    // disp startPt
+    GL_att_pt (attPt);
+    GL_set_symB (SYM_TRI_S, &pta[iBeg]);
+
+    // disp endPt
+    GL_set_symB (SYM_TRI_S, &pta[iBeg + iNr - 1]);
+  }
+
+  GL_list_close ();
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int GR_tDyn_npcv_itb_nipt (int itNr, IndTab *ita, int *ia, Point *pta,
+                             int attCv, int attPt) {
+//======================================================================
+// GR_tDyn_npcv_itb_nipt     disp group of polygons from IndTab to indexed points
+//  indexed group of points see MSHI_disp_npcv_bnd3D
+
+  int    i1, iNr, iBeg, ips, ipe;
+
+  DL_tDyn_init (attCv);
+
+  GL_att_cv (attCv);
+
+  for(i1=0; i1 < itNr; ++i1) {
+    iNr  = ita[i1].iNr;
+    iBeg = ita[i1].ibeg;
+    // disp curv
+    GL_set_ipcv (iNr, &pta[iBeg], ia, 1);
+  }
+
+  if(attPt >= 0) {
+    GL_att_pt (attPt);
+    for(i1=0; i1 < itNr; ++i1) {
+      iNr  = ita[i1].iNr;
+      iBeg = ita[i1].ibeg;
+      // disp startPt, endPt
+      ips = ia[iBeg];
+      GL_set_symB (SYM_TRI_S, &pta[ips]);
+      // disp endPt
+      ipe = ia[iBeg + iNr - 1];
+      GL_set_symB (SYM_TRI_S, &pta[ipe]);
+    }
+  }
+
+  GL_list_close ();
+
+  return 0;
+
+}
+
+
+//========================================================================
+  int GR_tDyn_ipcv (int iNr, int *ia, Point *pa, int  iClo, int att) {
+//========================================================================
+// GR_tDyn_ipcv             display indexed point-array as curve
+// Input:
+//   att      see INF_COL_CV
+//   iNr      nr of indices to display
+//   ia       iNr indices into pa
+//   pa       table of points
+//   iClo     closed; 0=yes, 1=not_closed;
+
+// see also GR_Draw_i2fac MSH2D_disp_cv_inpt
+
+  int     i1;
+  Point  *pta;
+
+
+  printf("GR_tDyn_ipcv iNr=%d\n",iNr);
+  // for(i1=0; i1<iNr; ++i1) printf(" Draw_i2ptb_ ind[%d] = %d\n",i1,ia[i1]);
+
+
+  pta = (Point*) MEM_alloc_tmp ((iNr + 1) * (int)sizeof(Point));
+
+  for(i1=0; i1<iNr; ++i1) memcpy (&pta[i1], &pa[ia[i1]], sizeof(Point));
+
+  // must add startPt if closed
+  if(!iClo) {
+    memcpy (&pta[iNr], &pa[ia[0]], sizeof(Point));
+    ++iNr;
+  }
+
+  // disp polygon
+  GR_tDyn_pcv (pta, iNr, att); 
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GR_tDyn_nifac (MshFac *nifa, int att) {
+//================================================================
+// GR_tDyn_nifac         display MshFac
+// Input:
+//   att          0 is defaulColor, else ColRGB
+
+  ColRGB *col;
+
+
+  printf("GR_tDyn_nifac nf=%d\n",nifa->fNr);
+  if(att) DEB_dump_obj__ (Typ_Color, COL_INT32(&att), " col:");
+
+
+  DL_tDyn_init (att);
+
+  GL_att_sur (att);
+
+  // GL_set_nifac_V1 (nifa->fNr,nifa->fac,nifa->ipa,nifa->pa3,nifa->vc3,nifa->oTyp);
+  GL_set_nifac_V2 (nifa);
+
+  GL_list_close (); // close GL-record
+
+  return 0;
+
+}
+
+
 //=========================================================================
   int GR_tDyn_npti (int ptNr, Point *pTab, int typ, int ptAtt, int txAtt) {
 //=========================================================================
@@ -3865,9 +4101,9 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// Testdisplay ptNr points with bitmap-symbols (star, triangle, ..)
-/// typ: see GR_temp_obj/GR_temp_obj/Typ_SymB
+/// typ: see GR_temp_nobj/GR_temp_nobj/Typ_SymB
 ///      SYM_TRI_S|SYM_STAR_S|SYM_CIR_S|SYM_SQU_B
-/// att: see INF_COL_SYMB       GR_temp_obj/Typ_SymB
+/// att: see INF_COL_SYMB       GR_temp_nobj/Typ_SymB
 ///      ATT_COL_BLACK|ATT_COL_RED|ATT_COL_GREEN|ATT_COL_BLUE|..
 ///
 /// see also:
@@ -3884,7 +4120,7 @@ int GR_Delete (long ind)                               {return 0;}
   for(i1=0; i1<ptNr; ++i1) {
     if(DispMode) DEB_dump_obj__(Typ_PT, &pTab[i1], "  pt[%d]=",i1);
     // APT_disp_SymB (typ, att, &pTab[i1]);
-    GR_tDyn_symB (&pTab[i1], typ, att);
+    GR_tDyn_symB__ (&pTab[i1], typ, att);
 
     // NUR TEST:
     // { char cbuf[32];
@@ -3935,10 +4171,10 @@ int GR_Delete (long ind)                               {return 0;}
 
   // if(DispMode) DEB_dump_obj__ (Typ_CI, ci1, "GR_Disp_ac:\n");
 
-  // GR_Disp_pt (&ci1->p1, SYM_STAR_S, 0);
-  // GR_Disp_pt (&ci1->p2, SYM_STAR_S, 0);
-  // GR_Disp_pt (&ci1->pc, SYM_STAR_S, 0);
-  // GR_tDyn_vc (&ci1->vz, &ci1->pc, 2, 0);
+  // GR_tDyn_symB__ (&ci1->p1, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&ci1->p2, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&ci1->pc, SYM_STAR_S, 0);
+  // GR_tDyn_vc__ (&ci1->vz, &ci1->pc, 2, 0);
 
 
 
@@ -4011,10 +4247,10 @@ int GR_Delete (long ind)                               {return 0;}
 */
 
 //===================================================================
-  int GR_Disp_triv (Triangle *tr, int att, int tNr, int ipNr) {
+  int GR_Disp_triv (Triang *tr, int att, int tNr, int ipNr) {
 //===================================================================
 /// \code
-/// display Triangle-Normalvektor & number of triangle
+/// display Triang-Normalvektor & number of triangle
 /// att   colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
 ///       color,linetyp,thickness; see INF_COL_CV
 /// tNr   Display Integer in gravity-centerPoint if (tNr >= 0; -1 = none)
@@ -4032,7 +4268,7 @@ int GR_Delete (long ind)                               {return 0;}
 
   // get gravity-centerPoint of triangle
   UT3D_pt_gcp_tria (&p1, tr);
-    // GR_Disp_pt (&p1, SYM_STAR_S, 4);
+    // GR_tDyn_symB__ (&p1, SYM_STAR_S, 4);
 
 
   if(tNr >= 0) GR_tDyn_txiA (&p1, tNr, 0);
@@ -4040,7 +4276,7 @@ int GR_Delete (long ind)                               {return 0;}
 
   // Normalvektor auf 3Eck
   UT3D_vc_perp3pt (&v1,tr->pa[0],tr->pa[1],tr->pa[2]);
-  GR_tDyn_vc (&v1, &p1, att, 0);
+  GR_tDyn_vc__ (&v1, &p1, att, 0);
 
   if(ipNr >= 0) {
     GR_tDyn_txiA (tr->pa[0], 0, 0);
@@ -4071,9 +4307,9 @@ int GR_Delete (long ind)                               {return 0;}
   pa[1] = *p2;
   pa[2] = *p3;
   pa[3] = *p1;
-    // GR_Disp_pt (tria->pa[0], SYM_STAR_S, 2);
-    // GR_Disp_pt (&pa[0], SYM_STAR_S, 2);
-    // GR_Disp_pt (&pa[1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (tria->pa[0], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pa[0], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pa[1], SYM_STAR_S, 2);
 
   // Flaeche immer defaultfarbe; somit nicht sichtbar !
   GL_Col__ (10);
@@ -4087,7 +4323,7 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
-  int GR_Disp_tria (Triangle *tria, int att) {
+  int GR_Disp_tria (Triang *tria, int att) {
 //================================================================
 /// \code
 /// GR_Disp_tria           display boundary of triangle as lines
@@ -4104,9 +4340,9 @@ int GR_Delete (long ind)                               {return 0;}
   pa[1] = *(tria->pa[2]);
   pa[2] = *(tria->pa[0]);
   pa[3] = *(tria->pa[1]);
-    // GR_Disp_pt (tria->pa[0], SYM_STAR_S, 2);
-    // GR_Disp_pt (&pa[0], SYM_STAR_S, 2);
-    // GR_Disp_pt (&pa[1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (tria->pa[0], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pa[0], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pa[1], SYM_STAR_S, 2);
 
   // Flaeche immer defaultfarbe; somit nicht sichtbar !
   // GL_Col__ (10);
@@ -4156,7 +4392,7 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
-  int GR_Disp_tris (Triangle *tria, int icol) {
+  int GR_Disp_tris (Triang *tria, int icol) {
 //================================================================
 /// \code
 /// display Surface of triangle
@@ -4194,7 +4430,7 @@ int GR_Delete (long ind)                               {return 0;}
   pta[4] = *p1;
 
   // GR_tDyn_pcv (dli, att, 5, pta);
-  GR_temp_pcv (pta, 5, att);
+  GR_temp_pcv__ (pta, 5, att);
 
   return 0;
 
@@ -4205,8 +4441,7 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_tDyn_npt__ (Point *pta, int ptnr, int att) {
 //===================================================================
 // GR_tDyn_npt__           disp. points
-/// Testdisplay Polygon
-/// att: see INF_COL_PT
+// att: see INF_COL_PT
 
   int  i1;
   long dli;
@@ -4233,11 +4468,10 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //===================================================================
-  int GR_tDyn_npt__2 (Point2 *pta, int ptnr, int att) {
+  int GR_tDyn_npt_2 (Point2 *pta, int ptnr, int att) {
 //===================================================================
-// GR_tDyn_npt__2           disp. 2D-points
-/// Testdisplay 2D-Polygon
-/// att: see INF_COL_CV
+// GR_tDyn_npt_2           disp. 2D-points
+// att: see INF_COL_PT
 
   int  i1;
   long dli;
@@ -4299,7 +4533,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
   int GR_tDyn_pcv2 (Point2 *pta, int ptnr, int att) {
 //===================================================================
-// GR_tDyn_pcv2           disp. 2D-polygon
+// GR_tDyn_pcv2          disp 2D-polygon
 /// Testdisplay 2D-Polygon
 /// att: see INF_COL_CV
 
@@ -4321,7 +4555,7 @@ int GR_Delete (long ind)                               {return 0;}
 
   GL_att_cv (att);  // set color/linetype
 
-  GL_set_cv2 (ptnr, pta);
+  GL_set_p2cv (ptnr, pta);
 
   GL_list_close (); // close GL-record
 
@@ -4501,7 +4735,7 @@ int GR_Delete (long ind)                               {return 0;}
   long dli;
 
 
-  dli=DL_StoreObj (Typ_QFac, -1L, att);
+  dli=DL_StoreObj (Typ_GL_Sur, -1L, att);
 
   GL_Draw_Ini (&dli, att);
   GL_set_strip1 (ps, pa1, pa2, 1);
@@ -4516,7 +4750,7 @@ int GR_Delete (long ind)                               {return 0;}
   int GR_tDyn_rbez (CurvRBez *rbez, int att) {
 //===================================================================
 // GR_tDyn_rbez     Testdisplay  rational-bezier-curve via rational-B-spline
-// att: see GR_temp_obj
+// att: see GR_temp_nobj
 // see also GR_Disp_rbspl GL_Disp_rbez
 
   int       irc, ii;
@@ -4633,8 +4867,8 @@ int GR_Delete (long ind)                               {return 0;}
 
   if(DispMode) {
     printf("GR_tDyn_box2__ %d\n",att);
-    DEB_dump_obj__ (Typ_PT, p1, "");
-    DEB_dump_obj__ (Typ_PT, p2, "");
+    DEB_dump_obj__ (Typ_PT2, p1, "");
+    DEB_dump_obj__ (Typ_PT2, p2, "");
   }
 
   // s1
@@ -4694,8 +4928,8 @@ int GR_Delete (long ind)                               {return 0;}
 
   DL_tDyn_init (att);
 
-  // GR_Disp_pt (p1, SYM_TRI_S, 0);
-  // GR_Disp_pt (p2, SYM_TRI_S, 0);
+  // GR_tDyn_symB__ (p1, SYM_TRI_S, 0);
+  // GR_tDyn_symB__ (p2, SYM_TRI_S, 0);
 
   GL_att_cv (att);
 
@@ -4717,7 +4951,7 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].z = p1->z;
 
   // GL_DrawLStrip (pta, 4);
-  GL_set_cv (4, pta);
+  GL_set_pcv (4, pta, 1);
 
   // s2
   pta[0].x = p2->x;
@@ -4737,7 +4971,7 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].z = p2->z;
 
   // GL_DrawLStrip (pta, 4);
-  GL_set_cv (4, pta);
+  GL_set_pcv (4, pta, 1);
 
   // s3
   pta[0].x = p1->x;
@@ -4757,7 +4991,7 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].z = p2->z;
 
   // GL_DrawLStrip (pta, 4);
-  GL_set_cv (4, pta);
+  GL_set_pcv (4, pta, 1);
 
   // s4
   pta[0].x = p1->x;
@@ -4777,11 +5011,107 @@ int GR_Delete (long ind)                               {return 0;}
   pta[3].z = p1->z;
 
   // GL_DrawLStrip (pta, 4);
-  GL_set_cv (4, pta);
+  GL_set_pcv (4, pta, 1);
 
   GL_list_close (); // close GL-record
 
   return 0;
+
+}
+
+
+//================================================================
+  int GR_set_mtb (int opers, MemTab *mtb, int att) {
+//================================================================
+// GR_set_mtb                     display MemTab;
+// see MemTab_dump
+
+  int      irc=0, i1, ityp;
+  Point    pta[2];
+  Line     *lna;
+  Line2    *ln2a;
+  CurvCCV  *ccva;
+
+
+  printf("============ GR_set_mtb ============= att=%d\n",att);
+    printf(" rMax=%d rNr=%d\n",mtb->rMax,mtb->rNr);
+
+  if(!mtb)          { printf(".. undefined ..\n");     return -1;}
+  if(mtb->rMax < 1) { printf(".. uninitialized ..\n"); return -1;}
+  if(mtb->rNr < 1)  { printf(".. empty ..\n"); return -1;}
+
+  ityp = mtb->typ;
+
+
+  if(opers & OPERS_TDYN) {
+    DL_tDyn_init (att);
+
+  } else if(opers & OPERS_TEMP) {
+     DL_temp_init ();
+  }
+
+
+  //----------------------------------------------------------------
+  if(ityp != Typ_LN) goto L_ln2;
+
+  GL_att_cv (att);
+
+  lna = MEMTAB_DAT (mtb);
+  for(i1=0; i1<mtb->rNr; ++i1) {
+    pta[0] = lna[i1].p1;
+    pta[1] = lna[i1].p2;
+    GL_set_pcv (2, pta, 1);
+  }
+
+  // or disp all individually:
+  // for(i1=0; i1<mtb->rNr; ++i1) GR_tDyn_ln (&lna[i1], att);
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_ln2:
+  if(ityp != Typ_LN2) goto L_cvTrm; 
+
+  GL_att_cv (att);
+
+  ln2a = MEMTAB_DAT (mtb);
+  for(i1=0; i1<mtb->rNr; ++i1) {
+    UT3D_pt_pt2_z (&pta[0], &ln2a[i1].p1, GL2D_Z);
+    UT3D_pt_pt2_z (&pta[1], &ln2a[i1].p2, GL2D_Z);
+    GL_set_pcv (2, pta, 1);
+  }
+
+  // or disp all individually:
+  // for(i1=0; i1<mtb->rNr; ++i1) GR_tDyn_ln (&lna[i1], att);
+
+  goto L_exit;
+
+  //----------------------------------------------------------------
+  L_cvTrm:
+  if(ityp != Typ_CVTRM) goto L_err;
+
+  ccva = MEMTAB_DAT (mtb);
+
+  for(i1=0; i1<mtb->rNr; ++i1) GL_set_ocv (Typ_CVTRM, &ccva[i1], 0L, att);
+
+  // or disp all individually:
+  // for(i1=0; i1<mtb->rNr; ++i1) GR_tDyn_ccv (&lna[i1], att);
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  if(opers & OPERS_CLOSE) GL_list_close ();
+  return 0;
+
+
+  //----------------------------------------------------------------
+  L_err:
+  printf("***** objTyp %d not (yet) supported ..\n",ityp);
+  irc = -1;
+  goto L_exit;
 
 }
 
@@ -5007,7 +5337,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 // GR_temp_src           tempDisp obj from sourcecode
 // Input:
 //   src             sourcecode of obj to display
-//   att,mode                               see GR_temp_obj
+//   att,mode                               see GR_temp_nobj
 //
 // see IE_cad_Inp_disp__
 
@@ -5031,10 +5361,39 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // dli = -1L;
   dbi = 0L;
   iatt = 0;
-  GR_temp_obj (0, dbi, typo, objo, 1, iatt, 0);
+  GR_temp_nobj (0, dbi, typo, objo, 1, iatt, 0);
 
 
   return 0;
+
+}
+
+
+//====================================================================
+  int GR_tDyn_nobj (int oTyp, void *obj, int oNr, int att, int mode) {
+//====================================================================
+// \code
+// GR_tDyn_nobj     tempDisp objects from typ+struct, nr
+// Input:
+//   oTyp     type of sObj; eg. Typ_PT      see GR_temp_nobj
+//   obj      data, struct; eg. (Point*)
+//   oNr      nr of objects of type <typ> in obj
+//   att,mode                               see GR_temp_nobj
+//
+// see also:
+// Point    GR_tDyn_symB__ or APT_disp_SymB
+// Vectors: GR_Disp_vc
+// Text:    GR_tDyn_txtA
+// \endcode
+
+// see GR_tDyn_dbo GR_Disp_ox UTO_obj_Disp__ SUR_Disp_Sur
+
+
+  long    dbi;
+
+  dbi = 0L;   // only display, no DB
+
+  return GR_temp_nobj (0, dbi, oTyp, obj, oNr, att, mode);
 
 }
 
@@ -5045,26 +5404,21 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// \code
 /// GR_tDyn_obj     tempDisp obj from typ+struct
 /// Input:
-///   oTyp     type of sObj; eg. Typ_PT      see GR_temp_obj
+///   oTyp     type of sObj; eg. Typ_PT      see GR_temp_nobj
 ///   obj      data, struct; eg. (Point*)
-///   att,mode                               see GR_temp_obj
+///   att,mode                               see GR_temp_nobj
 ///
 /// see also:
-/// Point    GR_Disp_pt or APT_disp_SymB
+/// Point    GR_tDyn_symB__ or APT_disp_SymB
 /// Vectors: GR_Disp_vc
 /// Text:    GR_tDyn_txtA
 /// \endcode
 
 // see GR_tDyn_dbo GR_Disp_ox UTO_obj_Disp__ SUR_Disp_Sur
 
-// es wird immer ein DL-record angelegt !
-
-// TODO:  all GR_tDyn_obj should be replaced with GR_tdyn_obj -
-//   should NOT use GR_temp_* - too much objects;
 
   long    dbi;
   // ObjGX  ox;
-
 
 
   // OGX_SET_OBJ (&ox, oTyp, oTyp, 1, sObj);
@@ -5072,13 +5426,13 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   // dli = DL_StoreObj (oTyp, -1L, att);
 
-  // dbi = 0;   // only display, no DB
+  dbi = 0L;   // only display, no DB
 
   // printf("GR_tDyn_obj typ=%d dli=%ld att=%d\n",oTyp,dli,att);
   // DEB_dump_obj__ (oTyp, obj, "  GR_tDyn_obj");
 
 
-  return GR_temp_obj (0, dbi, oTyp, obj, 1, att, mode);
+  return GR_temp_nobj (0, dbi, oTyp, obj, 1, att, mode);
 
 }
 
@@ -5292,7 +5646,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   }
 
 
-  att = 0; // 5; // 8; // ? APT_DrawSur GR_DrawSur TSU_DrawSurMsh
+  att = 0; // 5; // 8; // ? APT_DrawSur GR_DrawSur TSU_DrawSurPMsh
 
   dli = DL_StoreObj (Typ_SUR, dbi, *(int*)col);
 
@@ -5304,7 +5658,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   L_disp:
   GL_Surf_Ini (&dli, col);           // att unused ..
   GL_ColSet (col);                   // 2015-09-30
-  GL_set_nfac (pTab, fTab, fNr, col);
+  GL_set_nfac_V1 (pTab, fTab, fNr);
   GL_EndList ();
 
 
@@ -5322,7 +5676,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// newS:  1 = start new surface
 /// \endcode
 
-// see TSU_DrawSurMsh
+// see TSU_DrawSurPMsh
 
 
 
@@ -5348,7 +5702,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     GL_ColSet (&GL_actCol);
   }
 
-  GL_set_nfac (pTab, fTab, fNr, col);
+  GL_set_nfac_V1 (pTab, fTab, fNr);
 
   if(TSU_mode != 0)
     GLT_stor_rec (1, NULL, NULL, 0);  // save
@@ -5560,7 +5914,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   printf("GR_tDyn_ell att=%d\n",att);
 
   // return GR_DrawCvEll (&dli, -1L, att, el1);
-  return GR_tDyn_ocv (Typ_CVELL, &el1, 0L, att);
+  return GR_tDyn_ocv (Typ_CVELL, el1, 0L, att);
 
 }
 
@@ -5578,11 +5932,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   DEB_dump_obj__ (Typ_CVELL2, el2, "GR_DrawCvEll2");
-  // GR_Disp_pt (&el1->pc, SYM_STAR_S, 0);
-  // GR_Disp_pt (&el1->p1, SYM_TRI_S, ATT_COL_GREEN);
-  // GR_Disp_pt (&el1->p2, SYM_TRI_S, ATT_COL_RED);
-  // GR_tDyn_vc (&el1->va, &el1->pc, 8, 1);  // green
-  // GR_tDyn_vc (&el1->vb, &el1->pc, 9, 1);  // red
+  // GR_tDyn_symB__ (&el1->pc, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&el1->p1, SYM_TRI_S, ATT_COL_GREEN);
+  // GR_tDyn_symB__ (&el1->p2, SYM_TRI_S, ATT_COL_RED);
+  // GR_tDyn_vc__ (&el1->va, &el1->pc, 8, 1);  // green
+  // GR_tDyn_vc__ (&el1->vb, &el1->pc, 9, 1);  // red
 
 
   pa = MEM_alloc_tmp (SPC_MAX_STK);
@@ -5639,11 +5993,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   // DEB_dump_obj__ (Typ_CVELL2, el2, "GR_DrawCvEll2");
-  // GR_Disp_pt (&el1->pc, SYM_STAR_S, 0);
-  // GR_Disp_pt (&el1->p1, SYM_TRI_S, ATT_COL_GREEN);
-  // GR_Disp_pt (&el1->p2, SYM_TRI_S, ATT_COL_RED);
-  // GR_tDyn_vc (&el1->va, &el1->pc, 8, 1);  // green
-  // GR_tDyn_vc (&el1->vb, &el1->pc, 9, 1);  // red
+  // GR_tDyn_symB__ (&el1->pc, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&el1->p1, SYM_TRI_S, ATT_COL_GREEN);
+  // GR_tDyn_symB__ (&el1->p2, SYM_TRI_S, ATT_COL_RED);
+  // GR_tDyn_vc__ (&el1->va, &el1->pc, 8, 1);  // green
+  // GR_tDyn_vc__ (&el1->vb, &el1->pc, 9, 1);  // red
 
   GR_typ = Typ_CV;
   GR_dbi = dbi;
@@ -5692,7 +6046,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// \code
 /// Input:
 ///   ox1 
-///   att,mode see GR_temp_obj
+///   att,mode see GR_temp_nobj
 /// 
 /// see GR_Draw_ox GR_tDyn_obj GR_tDyn_dbo GR_Draw_dbo
 /// \endcode
@@ -5765,7 +6119,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // //================================================================
     default:
       // handle content of the ObjGX
-      irc = GR_temp_obj (ind, dbi, oTyp, ox1->data, ox1->siz, att, mode);
+      irc = GR_temp_nobj (ind, dbi, oTyp, ox1->data, ox1->siz, att, mode);
       if(irc < 0) return irc;
   }
 
@@ -5788,10 +6142,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 */
 
 //==============================================================================
-  int GR_temp_obj (int ind, long dbi,
+  int GR_temp_nobj (int ind, long dbi,
                    int form, void *obj, int oNr, int att, int mode) {
 //==============================================================================
-// GR_temp_obj    display temp.obj
+// GR_temp_nobj    display temp.obj
 // Input:
 //   ind      fixed index: 1 - (DL_base_font1 - 1)
 //            0    get next free index
@@ -5826,8 +6180,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // Memspc    tSpc1 = UME_NEW;
 
 
-  // printf("GR_temp_obj ind=%d att=%d form=%d oNr=%d\n",ind,att,form,oNr);
-  // DEB_dump_obj__ (typ, obj, "  obj");
+  // printf("GR_temp_nobj ind=%d att=%d form=%d oNr=%d\n",ind,att,form,oNr);
+  // DEB_dump_nobj__ (form, oNr, obj, "GR_temp_nobj");
 
 
   // oTyp = typ;
@@ -5894,7 +6248,6 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     case Typ_CVELL:
     case Typ_CVBSP:
     case Typ_CVRBSP:
-    case Typ_CVTRM:
       // dbi = DL_get_dbi (*dli);
       // GR_DrawCirc (dli, dbi, att, (Circ*)obj);
       GR_temp_ocv (form, obj, dbi, att);
@@ -5945,21 +6298,14 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
       // dbi = DL_get_dbi (*dli);
       GR_tDyn_bsp2 (ind, dbi, att, obj); // CurvBSpl
       break;
-
-
-//     //================================================================
-//     case Typ_CVTRM:
-//       GR_set_ccv (ind, dbi, att, obj, oNr);
-// //
-// //    OGX_SET_OBJ (&ogx, Typ_CVTRM, Typ_CVTRM, oNr, obj);
-// //    // dbi = DL_get_dbi (*dli);
-// //      // printf(" CVTRM-dbi=%ld dli=%ld\n",dbi,*dli);
-// //    // UME_init (&tSpc1, memspc201, sizeof(memspc201));
-// //    // GR_set_ccv (dli, att, obj, &tSpc1);
-// //    GR_set_ccv (dli, dbi, att, &ogx, &tSpc1);
-// //
-//       break;
 */
+
+
+    //================================================================
+    case Typ_CVTRM:
+      GR_set_ccv (OPERS_TEMP+OPERS_CLOSE, obj, oNr, dbi, att);
+      break;
+
     //================================================================
     case Typ_PLN:
       // GR_DrawPlane
@@ -6007,7 +6353,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //    //----------------------------------------------------------------
 //    if(typ == Typ_SUR) {
 //      // SUR_Disp_Sur (ox1, wrkSpc, att, p1);
-//      TX_Print("**** GR_temp_obj I1");
+//      TX_Print("**** GR_temp_nobj I1");
 //
 //    //----------------------------------------------------------------
 //    } else {
@@ -6015,7 +6361,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //      for(i1=0; i1 < ox2->siz; ++i1) // Recursion !
 //        // GR_Draw_ox (ind, &ox2[i1], att, mode);
 //        // recurse
-//        GR_temp_obj (ind, ox2[i1].form,  ox2[i1].data, 1, att, mode);
+//        GR_temp_nobj (ind, ox2[i1].form,  ox2[i1].data, 1, att, mode);
 //    }
 //    break;
 */
@@ -6035,11 +6381,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   L_E001:
-      TX_Error("GR_temp_obj not yet impl: %d",form);
+      TX_Error("GR_temp_nobj not yet impl: %d",form);
       return -1;
 
   L_E002:
-      TX_Error("GR_temp_obj E002"); // par fehlt ..
+      TX_Error("GR_temp_nobj E002"); // par fehlt ..
       return -1;
 
   // L_E003:
@@ -6076,12 +6422,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   irc = UT3D_pta_otb (&pnr, pta, otb1, paSiz, tol);
   if(irc < 0) return -1; 
 
-  GR_temp_pcv (pta, pnr, Typ_Att_Symb);
+  GR_temp_pcv__ (pta, pnr, Typ_Att_Symb);
 
 //   // open GL mode=0(curves)
 //   GL_Draw_Ini1 (dli, att, 0);
 //   // glBegin(GL_LINE_STRIP);..glEnd();
-//   GL_set_cv (pnr, pta);
+//   GL_set_pcv (pnr, pta, 1);
 //   // close GL
 //   GL_EndList1 (0);
 
@@ -6237,7 +6583,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // get ScreenCoords 
     GL_ptSc_ptUc (&p2a[i1], &pta[i1]);
       // DEB_dump_obj__ (Typ_PT, &p2a[i1], " p2a[%d]",i1);
-      // GR_Disp_pt (&pta[i1], SYM_TRI_S, ATT_COL_YELLOW);
+      // GR_tDyn_symB__ (&pta[i1], SYM_TRI_S, ATT_COL_YELLOW);
 
     // get approx distance 
     dp = UT2D_lenB_2pt ((Point2*)&p2a[i1],(Point2*)&p2Act);
@@ -6321,7 +6667,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // printf("ex _sel_npt irc=%d ipt=%d pa1=%lf\n",irc,*ipt,*pa1);
     // DEB_dump_obj__ (Typ_PT, pts, " pts:");
-    // if(irc >= 0) GR_Disp_pt (pts, SYM_STAR_S, ATT_COL_RED);
+    // if(irc >= 0) GR_tDyn_symB__ (pts, SYM_STAR_S, ATT_COL_RED);
 
   return irc;
 
@@ -6459,7 +6805,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //===================================================================
   int GR_perm_pt (long dbi, Point *pt1, int att) {
 //===================================================================
-// GR_tDyn_symB          temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
+// GR_tDyn_symB__          temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
 // Input:
 //   ind      fixed index: 1 - (DL_base_font1 - 1)
 //            0    get next free index
@@ -6474,7 +6820,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   printf("GR_perm_pt dbi=%ld att=%d\n",dbi,att);
 
 
-  // if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB:");
+  // if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB__:");
 
   // get gli, create DL-record
   // DL_tDyn_init (att);
@@ -6628,12 +6974,36 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 }
 
 
+//===================================================================
+  int GR_tDyn_symB2__ (Point2 *pt1, int typ, int att) {
+//===================================================================
+// GR_tDyn_symB2__          temp.dyn disp 2D-BITMAP-Symbol
+// Input:
+//   ind      fixed index: 1 - (DL_base_font1 - 1) DL_temp_ind
+//            0    get next free index
+//   typ:  SYM_STAR_S  star                      see INF_BITMAP_SYMBOLS
+//         SYM_TRI_S   triangle
+//         SYM_CIR_S   circle small
+//         SYM_SQU_B   square
+//   att:  colorIndex; eg ATT_COL_RED;           see INF_COL_SYMB
+
+/// see also GR_temp_pTab
+
+  Point  pt3;
+
+  if(tmpDspMode) DEB_dump_obj__(Typ_PT2, pt1, "GR_tDyn_symB2__:");
+
+  GR_pt3_pt2 (&pt3, pt1);
+
+  return GR_tDyn_symB__ (&pt3, typ, att);
+
+}
 
 
 //===================================================================
-  int GR_tDyn_symB (Point *pt1, int typ, int att) {
+  int GR_tDyn_symB__ (Point *pt1, int typ, int att) {
 //===================================================================
-// GR_tDyn_symB          temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
+// GR_tDyn_symB__          temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
 // Input:
 //   ind      fixed index: 1 - (DL_base_font1 - 1) DL_temp_ind
 //            0    get next free index
@@ -6646,7 +7016,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// see also GR_temp_pTab
 
 
-  if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB:");
+  if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB__:");
 
   // get gli
   DL_tDyn_init (att);
@@ -6939,9 +7309,41 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //======================================================================
-  int GR_tDyn_vc (Vector *vc1, Point *pt1, int att, int mode) {
+  int GR_tDyn_vc2__ (Vector2 *vc1, Point2 *pt1, int att, int mode) {
 //======================================================================
-// GR_tDyn_vc            temp.Dyn Vector; length true or normalized
+// GR_tDyn_vc2__            temp.Dyn 2D-Vector; length true or normalized
+// Input:
+//   pt1       position fo vector; NULL = display at center of screen
+//   att       color,linetyp,thickness; see INF_COL_SYMB
+//   mode      0  display normalized length of vector
+//             1  display real length of vector
+//
+// see also GR_temp_vc2
+
+// see also IE_cad_Inp_disp_vc UI_disp_vec1
+
+  Point   pt2;
+  Vector  vc2;
+
+
+  UT3D_pt_pt2_z (&pt2, pt1, GL2D_Z);
+  UT3D_vc_vc2 (&vc2, vc1);
+
+  if(mode) {
+    GR_tDyn_symV_o (SYM_VEC, att, &pt2, &vc2, UT3D_len_vc(&vc2));  // true
+  } else {
+    GR_tDyn_symV_o (SYM_ARROW, att, &pt2, &vc2, 1.); // norm.
+  }
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int GR_tDyn_vc__ (Vector *vc1, Point *pt1, int att, int mode) {
+//======================================================================
+// GR_tDyn_vc__            temp.Dyn Vector; length true or normalized
 // Input:
 //   pt1       position fo vector; NULL = display at center of screen
 //   att       color,linetyp,thickness; see INF_COL_SYMB
@@ -6975,7 +7377,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 ///   mode      0  display normalized length of vector
 ///             1  display real length of vector
 ///
-/// see also GR_temp_vc2 GR_set_obj GR_tDyn_vc
+/// see also GR_temp_vc2 GR_set_obj GR_tDyn_vc__
 /// \endcode
 
 // see also IE_cad_Inp_disp_vc UI_disp_vec1
@@ -7053,7 +7455,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   pta[0] = ln1->p1;
   pta[1] = ln1->p2;
 
-  GL_set_cv (2, pta); // GL_LINE_STRIP
+  GL_set_pcv (2, pta, 1); // GL_LINE_STRIP
 
   GL_list_close (); // close GL-record
 
@@ -7213,15 +7615,13 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //====================================================================
 // GR_set_ocv            disp all kinds of curves from binary-obj
 // Input:
-//   opers    object-persistence; eg OPERS_TEMP+OPERS_CLOSE  see INF_OPERS
-//   att      see INF_COL_CV
+//   opers      object-persistence; eg OPERS_TEMP+OPERS_CLOSE  see INF_OPERS
+//   form,obj   bin.obj of curve to display
+//   dbi        DB-index (for use of PRCV) else 0
+//   att        see INF_COL_CV
 
 
-  int     irc, grMode, ptNr, rMax, mdli;
-  double  tol;
-  Point   *pta;
-  MemTab(Point) mtpa = _MEMTAB_NUL;
-
+  int     irc;
 
   // printf("GR_set_ocv opers=%d form=%d dbi=%ld\n",opers,form,dbi);
 
@@ -7240,46 +7640,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     DL_temp_init ();
   }
 
+  // disp
+  irc = GL_set_ocv (form, obj, dbi, att);
 
-  //----------------------------------------------------------------
-  // get polygon pta = points for curve, display;
-
-  // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
-  if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
-  else                               grMode = 1;
-
-  // init mtpa and get max stackSpace
-  MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
-                    sizeof(Point), Typ_PT);
-  rMax = mtpa.rMax;
-
-  tol  = UT_DISP_cv;
-  mdli = AP_modact_ind;
-  // get polygon from curve
-  irc = UT3D_mtpt_obj (&mtpa, form, obj, 1, dbi, mdli, tol, grMode);
-  if(irc < 0) {TX_Error("GR_set_ocv E2"); goto L_exit;}
-
-  ptNr = mtpa.rNr;
-  pta  = mtpa.data;
-
-  // point only: Hilite.
-  if(ptNr < 2) {
-    GL_att_pt (ATT_PT_HILI);   // set color
-    GL_set_npt (pta, 1);
-    goto L_exit;
-  }
-
-  // display polygon
-  if(opers > OPERS_CLOSE) GL_att_cv (att);
-  GL_set_cv (ptNr, pta); // GL_LINE_STRIP
-
-
-  //----------------------------------------------------------------
   L_exit:
   if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
-
-  if(mtpa.rMax > rMax) MemTab_free (&mtpa);
-
 
   return irc;
 
@@ -7315,13 +7680,60 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   DL_temp_ind = ind;   // overwrite or next ..
 
-  form = DB_GetObjDat (&data, &oNr, typ, dbi);
+  form = UTO__dbo (&data, &oNr, typ, dbi);
   if(form < 1) return -1;
-    // DEB_dump_obj__ (form, data, " _Draw_dbo");
+    // DEB_dump_obj__ (form, data, " _temp_dbo-L1");
 
   // return GR_temp_ocv (form, data, dbi, att);
   // return GR_tDyn_obj (form, data, att, mode);
-  return GR_temp_obj (ind, dbi, typ, data, oNr, att, mode);
+  return GR_temp_nobj (ind, dbi, form, data, oNr, att, mode);
+
+}
+
+
+//================================================================
+  int GR_tDyn_ox (ObjGX *ox1, int att, int mode) {
+//================================================================
+// GR_tDyn_ox            temp.Dyn complex-obj ObjGX
+
+  int    irc, i1, iNr, oTyp, oForm;
+  long   dbi;
+  ObjGX  *ox2, o2;
+  void   *oDat;
+
+
+  // printf("GR_tDyn_ox att=%d mode=%d\n",att,mode);
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "GR_Disp_ox-in");
+
+
+  oForm = ox1->form;
+
+
+  switch (oForm) {
+
+    //================================================================
+    case Typ_Index:
+      dbi = OGX_GET_INT (ox1);
+      oTyp = UTO__dbo (&oDat, &iNr, ox1->typ, dbi);
+      GR_set_obj (OPERS_TEMP+OPERS_CLOSE, dbi, oTyp, oDat, att, mode);
+      break;
+
+
+    case Typ_ObjGX:
+      ox2 = ox1->data;
+      for(i1=0; i1 < ox1->siz; ++i1) // Recursion !
+        GR_tDyn_ox (&ox2[i1], att, mode);
+      break;
+
+
+    // //================================================================
+    default:
+      // handle content of the ObjGX
+      irc = GR_tDyn_nobj (oForm, ox1->data, ox1->siz, att, mode);
+      if(irc < 0) return irc;
+  }
+
+  return 0;
 
 }
 
@@ -7353,16 +7765,22 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   // printf("GR_tDyn_dbo typ=%d dbi=%ld\n",typ,dbi);
 
-  form = DB_GetObjDat (&data, &oNr, typ, dbi);
+  form = UTO__dbo (&data, &oNr, typ, dbi);
   if(form < 1) return -1;
     // DEB_dump_obj__ (form, data, " _Draw_dbo");
 
-  // return GR_temp_ocv (form, data, dbi, att);
-  return GR_tDyn_obj (form, data, att, mode);
+  if(oNr > 1) {
+    return GR_tDyn_nobj (form, data, oNr, att, mode);
+
+  } else {
+    // return GR_temp_ocv (form, data, dbi, att);
+    return GR_tDyn_obj (form, data, att, mode);
+  }
 
 }
 
 
+/* -> BBX__pMsh_dbi
 //================================================================
   int GR_cv_pMesh_box (Point *pb1, Point *pb2, long dbi) {
 //================================================================
@@ -7382,6 +7800,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   ptNr = pTab.rNr;
     printf(" ptNr=%d\n",ptNr);
 
+  // get bounding box <-- points
   i1 = UT3D_box_pts (pb1, pb2, ptNr, pTab.data);
 
   MemTab_free (&pTab);
@@ -7393,7 +7812,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   return 0;
 
 }
-
+*/
 
 //================================================================
   int GR_disp_cv_pMesh (long dbi, int att) {
@@ -7458,7 +7877,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // display symbolic
 //   if(TSU_sStyl > 0) {
     GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
-    GL_set_icv (ibNr, pTab.data, iba, 1);
+    GL_set_ipcv (ibNr, pTab.data, iba, 1);
 //     GL_DrawCvIpTab (att, iba, ibNr, pTab.data, 1);
 //   }
 
@@ -7479,6 +7898,219 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   L_done:
   MemTab_free (&pTab);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GR_temp_att__ (int iAtt) {
+//================================================================
+// GR_temp_att__    disp direction/objID for all objs in group
+// Input:
+//   iAtt     bit-0   disp-objID         (GR_TMP_I0)
+//            bit-1   disp-direction     (GR_TMP_IDIR)
+//
+// was APT_disp_dir
+
+  static TimeStamp ts1;
+  static int       at1;
+  void             *p1;
+
+
+  // printf("GR_temp_att__ %d\n",iAtt);
+
+
+  if(iAtt != at1) {
+    at1 = iAtt;
+    goto L_mod;
+  }
+
+  // iAtt unmodified - exit if nothing to display
+  if(!iAtt) return 0;
+
+
+  // check if Group changed 
+  Grp_get_ts((TimeStamp*)&p1);
+  if(ts1 == *((TimeStamp*)p1)) {
+      // printf(" _dispDir-ts-unmod.\n");
+    return 0;
+  }
+  ts1 = *((TimeStamp*)p1);
+
+
+  L_mod:
+
+  // get bit-0 = objID
+  if(iAtt & 1) GR_temp_att_1 (0);
+  else         GL_temp_del_1 (GR_TMP_I0);
+
+  // get bit-1 = direction
+  if(iAtt & 2) GR_temp_att_1 (1);
+  else         GL_temp_del_1 (GR_TMP_IDIR);
+
+
+  L_exit:
+  // DL_Redraw ();
+  return 0;
+
+}
+
+
+//================================================================
+  int GR_temp_att_1 (int iAtt) {
+//================================================================
+// GR_temp_att_1    disp direction/objID for all objs in group
+// Input:
+//   iAtt     0   disp-objID         (GR_TMP_I0)
+//            1   disp-direction     (GR_TMP_IDIR)
+#define dspNam 0
+#define dspDir 1
+
+
+  int           irc, typ, bTyp, ptNr, grpNr;
+  long          dli, dlSiz, dbi;
+  char          oid[32];
+  Point         *pta, pt1;
+  Vector        vc1;
+  DL_Att        *dla;
+  MemTab(Point) mtp = _MEMTAB_NUL;
+  ObjDB         *grp;
+
+
+  // printf("GR_temp_att_1 %d\n",iAtt);
+
+
+  // get memSpc for points
+  MemTab_ini_fixed (&mtp, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                    sizeof(Point), Typ_PT);
+
+  // get nr of groupMembers
+  grpNr = Grp_get__ (&grp);
+    // printf(" _dispDir-grpNr=%d\n",grpNr);
+    // Grp_dump ();
+
+  // get DL
+  dlSiz = DL_get__ (&dla);
+
+  if(iAtt == dspNam) DL_temp_ind = GR_TMP_I0;    // 0=objID
+  else               DL_temp_ind = GR_TMP_IDIR;  // 1=direction
+
+
+  DL_temp_init ();          // open temp. GL-list
+  GL_att_sym (ATT_COL_YELLOW);
+
+
+  for(dli=0; dli<dlSiz; ++dli) {
+
+  // for(ii=0; ii<grpNr; ++ii) {
+    // dli = grp[ii].dlInd;
+
+    if(grpNr) {
+      // group is active; skip obj not in group.
+      if(dla[dli].grp_1) continue;
+    }
+
+
+    // skip subModels
+    if(DL_OBJ_IS_ACTMDL(dla[dli])) continue;
+
+    // skip hidden objects
+    if(DL_IS_HIDDEN(dla[dli])) continue;
+
+    // skip invis. obj's
+    if(dla[dli].unvis != 0) continue;
+
+    typ = dla[dli].typ;
+
+    // skip dynam. objects (see APT_disp_SymB)
+    // if(dbi < 0) continue;
+    if(typ == Typ_dynSym) continue;
+
+    // skip undisplayable objects
+    if(typ < Typ_LN) {
+      if(typ < Typ_PT) continue;
+      // dir: skip also PT
+      if(iAtt == dspDir) continue;
+    }
+
+    // get basic typ from typ
+    bTyp = AP_typDB_typ (dla[dli].typ);
+      // printf(" typ_2_bastyp %d from %d\n",bTyp,typ);
+
+
+    // skip objects with no direction ..
+    if(iAtt == dspDir) {
+      if(bTyp >= Typ_PLN) continue;    // TODO: normal-dircetion for surfaces ..
+      // if(bTyp >= Typ_Note) continue;
+    }
+
+
+    //----------------------------------------------------------------
+    dbi = dla[dli].ind;
+      // printf(" _dispDir dli=%ld typ=%d dbi=%ld\n",dli,typ,dbi);
+
+
+    // handle objects without polygons
+    if(bTyp >= Typ_PLN) {
+      if(bTyp == Typ_PLN) {
+        // get origin
+        UT3D_ptvcpar_std_dbo (&pt1, NULL, NULL, Ptyp_start, Typ_PLN, dbi);
+        pta  = &pt1;
+        ptNr = 1;
+        goto L_disp;
+      } else if(bTyp == Typ_Note) {
+        irc = UT3D_ptvcpar_std_dbo (&pt1, NULL, NULL, Ptyp_start, bTyp, dbi);
+        if(irc >= 0) {
+          pta  = &pt1;
+          ptNr = 1;
+          goto L_disp;
+        }
+      }
+      TX_Print("**** TODO: GR_temp_att_1 typ %d not yet supp.",bTyp);
+      continue;
+    }
+
+
+
+    // get polygon from DB-obj
+    MEMTAB_CLEAR (&mtp);
+    irc = UT3D_mtpt_dbo (&mtp, NULL, bTyp, dbi, AP_modact_ind);
+    if(irc < 0) {
+      TX_Print("******* GR_temp_att_1 E-%d %ld",bTyp,dbi);
+      continue;
+    }
+
+    ptNr = mtp.rNr;
+    pta  = mtp.data;
+      // DEB_dump_nobj__ (Typ_PT, ptNr, pta, "_dispDir-pta");
+
+
+    //----------------------------------------------------------------
+    L_disp:
+      if(iAtt == dspNam) {
+        // display obj-ID
+        oid[0] = '_';
+        APED_oid_dbo__ (&oid[1], bTyp, dbi);
+  
+        // get pt1 = centerpoint odf polygon
+        UT3D_pt_mid_pta (&pt1, pta, ptNr, 1);
+          // DEB_dump_obj__(Typ_PT, &pt1, " _dispDir-pt1: oid=|%s|",oid);
+        // disp obj-ID
+        GL_set_txtA (&pt1, oid);
+        continue;
+  
+  
+      //----------------------------------------------------------------
+      } else {
+        // display direction
+        GL_set_dir_2pt (&pta[ptNr - 1], &pta[ptNr - 2]);
+      }
+
+  }
+
+  GL_list_close (); // close GL-record  glEndList
 
   return 0;
 

@@ -31,8 +31,8 @@ MMdsps=сохранить активный вид
 MMdspsr=восстановить сохранённый вид и сохранить активный вид
 MMdspr=восстановить сохранённый вид
 
-MMdspon=показать имена объектов и направления обработки
-MMdspdir=показать направление кривых
+MMdspon=display the names of all objects of group
+MMdspdir=display the direction of all curves of group
 MMdsppt=показать точки (P) ВКЛ/ВЫКЛ (только в режиме VWR)
 MMdsppl=показать плоскости (R) ВКЛ/ВЫКЛ (только в режиме VWR)
 MMdspso=показать тела (сферу/конус/торус/куб) затенением или каркасом
@@ -289,6 +289,7 @@ Typ_goRadius=ввести радиус; выбрать PT/Cir
 Typ_goGeoSUSU=выбрать конус, торус, правильную поверхность, поверхность вращения, поверхность b-сплайна
 Typ_go_RA=выбрать плоскость (R) или поверхность (A)
 Typ_go_lf1=sel. single curve
+Typ_go_lf2=sel. LN or Circ or Curve (untrimmed)
 Typ_Tra=клавиша PgUp/Dwn (выбрать преобразование)
 Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
 Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..

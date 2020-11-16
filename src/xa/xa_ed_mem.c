@@ -1424,7 +1424,7 @@ extern char  MOpTxtStr[];
   }
 
 
-    // printf("ex APED_search_defLn 0 |%s| %d %d\n",otx,*lNr,*lLen);
+    // printf("ex APED_search_defLn 0 |%s| %ld %d\n",otx,*lNr,*lLen);
 
   return irc;
 
@@ -2581,11 +2581,11 @@ extern char  MOpTxtStr[];
 
 
   // test for geom. constants: eg "DX" "RX"
-  // DX DY DZ DIX DIY DIZ RX RY RZ
+  // DX DY DZ DIX DIY DIZ RX RY RZ RIX RIY RIZ
   // see ATO_srcTxt
     ii = UTX_cmp_word_wordtab (GcoTxtTab, s1);
     if (ii >= 0) {
-      // printf(" found SubCmd %d\n",i1);
+        // printf(" found-SubCmd %d\n",ii);
       tso[its].typ = Typ_ConstOG;
       tso[its].form = ii;
       goto L_saveExpr;

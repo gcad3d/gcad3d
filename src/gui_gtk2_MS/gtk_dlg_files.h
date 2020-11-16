@@ -16,7 +16,7 @@
                        char *dirLst, char *sFilter, char *sTit);
 
   int GUI_file_save__ (char *filNam, int fSiz,
-                       char *dirLst, char *sFilter, char *sTit);
+                       char *dirLst, char *sFilter, char *sTit, int iOver);
 
 
 

@@ -70,13 +70,15 @@ syntax on
 :hi Directory term=bold cterm=NONE ctermfg=6
 :hi Visual ctermfg=11 ctermbg=8
 
+" gvim:
+":colo slate
 
 "-------------------------------- KEYMAPPINGS
 " key Ctl-h  show vim-helpfile 
 " see ${DIR_BIN}.vimrc_orig  fix vimdoc (Ctrl-h)
 
 " temp-usage-only !
-"map t :call TestFunc1()
+map <C-T> :call TestFunc1()
 "map T :call TestFunc2()
 
 
@@ -162,12 +164,30 @@ map <C-U> :redo
 
 
 
+
 "-------------------------------- ABBREVIATIONS
-iab pri printf("\n");k$hhhhi
-iab //= //================================================================
-iab //- //----------------------------------------------------------------
-iab //E //========== EOF =================================================
-iab TB     // TESTBLOCK<CR>    // END TESTBLOCK
+iab pri printf("\n");<CR><ESC>k$hhhhi
+iab //= //================================================================<CR>
+iab //- //----------------------------------------------------------------<CR>
+iab //E //========== EOF =================================================<CR>
+iab TB 
+\    // TESTBLOCK<CR>
+\    // END TESTBLOCK<CR>
+iab FU 
+\<CR>
+\//================================================================<CR>
+\  int  () {<CR>
+\//================================================================<CR>
+\<CR>
+\  printf(" \n");<CR>
+\<CR>
+\    // TESTBLOCK<CR>
+\    printf("ex \n");<CR>
+\    // END TESTBLOCK<CR>
+\<CR>
+\  return 0;<CR>
+\}<CR>
+\<CR>
 
 
 "-------------------------------- FUNCTIONS
@@ -447,19 +467,8 @@ endwhile
 "-------------------------------------------------------------------
 :function TestFunc1 ()
 "change <word>  into INF_<word>
-  " set to start of word
-  call SetPosWordStart()
-  " <word> -> void INF_<word>
-  :set iskeyword=" "
-  " if word starts with "INF_" - do nothing
-  let suc = expand("<cWORD>")
-  if strpart(suc, 0, 4) != "INF_"
-    " change word-delimiters to only blank
-    let cwd = "normal cw" . "INF_" . expand("<cexpr>")
-    execute cwd
-  endif
-  " reset word-delimiters
-  :set iskeyword&
+" echo 'Testfunc1'
+  normal i\"
 :endfunction
 
 

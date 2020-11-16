@@ -1,4 +1,5 @@
 #!/bin/bash
+# Testprog for Dialog-program GUI_file
 # use with:      ./GUI_file.sh
 #
 # ../gui_gtk3/GUI_file.c
@@ -30,10 +31,10 @@
 
 
 
-par="open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Öffnen'"
+#par="open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Öffnen'"
 
 
-#par="save /mnt/serv2/devel/cadfiles/gcad/unknown.gcad /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Speichern'"
+par="save /mnt/serv2/devel/cadfiles/gcad/unknown.gcad /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Speichern'"
 
 
 echo "par = |"${par}"|"

@@ -20,6 +20,7 @@
  int MEM_del_ShRec   (int *recNr, void *recTab, int ipos);
  void*  MEM_ptr_mov  (void *ptr, long dist);
  int MEM_cmp__       (void *obj1, void *obj2, int size);
+ int MEM_swap_nrec   (void *na, int rNr, int rSiz);
 
 
 //----------------------------------------------------------------
@@ -75,7 +76,7 @@ void MEM_swap_2vp    (void **v1, void **v2);
 /// \code
 /// MEM_alloc_tmp             allocate mem for active function
 /// >>>>  USE ONLY IF SIZE < SPC_MAX_STK byte  <<<<
-/// calls alloca; memspace exists until active function returns.
+/// calls alloca; memspace exists until active function returns. DO NOT free.
 /// Example:
 ///   ptab = (Point*) MEM_alloc_tmp (nr_of_points * sizeof(Point));
 /// ATTENTION: MinGW: use also alloca, not _alloca !!!
@@ -113,7 +114,7 @@ int MEM_alloc_file (void**, long*,  char*);
 
 
 //----------------------------------------------------------------
-// see MEMTYP_* ../ut/ut_types.h
+// see MEMTYP_* ../ut/ut_types.h     INF_MEM_TYP
 
 // returns 0 - memspc MUST be freed   / MEMTYP_ALLOC__
 //      else - memspc CANNOT be freed / all but MEMTYP_ALLOC__

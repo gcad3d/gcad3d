@@ -268,7 +268,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void UI_ToolBars () {}
   void UI_DllLst_work () {}
   void UI_menCB () {}
-  void UI_open__ () {}
   // void UI_reset () {}
   void UI_cb_search () {}
   void UI_AP () {}
@@ -307,7 +306,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void PED_CB1 () {}
 
   // void GUI_Dialog (void* v1, char* txt) {printf("*** GUI_Dialog |%s|\n",txt);}
-  void GUI_DialogYN () {}
+  // void GUI_DialogYN () {}
   // void GUI_GetText () {}
   // void GUI_GetText_CB () {}
   // void GUI_List1 () {}

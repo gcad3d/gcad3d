@@ -561,7 +561,12 @@ extern GdkRGBA   *UI_stylTab[3];
   GtkWidget      *wact, *menu;
 
 
-  // printf("GUI_popup__\n");
+  // printf("========== GUI_popup__\n");
+  // i1=0; while(optLst[i1]) {printf(" optLst[%d]=|%s|\n",i1,optLst[i1]);++i1;}
+  // if(i1==1) AP_debug__ ("GUI_popup__-1");
+  // printf(" popup__-i1 = %d\n",i1);
+  
+
 
   menu = gtk_menu_new ();
 

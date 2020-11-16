@@ -669,6 +669,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   int IE_inpCkTyp (int iind, char *actBuf, ObjAto *ato) {
 //================================================================
 // IE_inpCkTyp                    returns outTyp for inputFieldText.
+//   connect selectType (eg Typ_go_JNT) with outType (eg Typ_Joint)
 // Example: requestedTyp Typ_goGeo7, inputFieldText="D12", retCod=Typ_VC.
 //
 // Input:
@@ -855,9 +856,13 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   //----------------------------------------------------------------
   } else if(typ == Typ_go_lf1) {
-    // Typ_go_lf1: like Typ_go_LCS but no CCV
+    // Typ_go_lf1: like Typ_go_LCS but no contour (only single CCV)
     goto L_ato0;
 
+  //----------------------------------------------------------------
+  } else if(typ == Typ_go_lf2) {
+    // Typ_go_lf2: like Typ_go_LCS but no CCV
+    goto L_ato0;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_goGeo1) {   
@@ -894,6 +899,11 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   } else if(typ == Typ_goGeoSUSU) {      // Sur|Sol
     goto L_ato0;
 
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_go_JNT) {      // Joint
+    actTyp = Typ_Joint;
+    goto L_ato0;
 
   //----------------------------------------------------------------
   }
@@ -1088,6 +1098,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_goGeo2) goto L_OK_2;
     // nur ELL und CCV; testen ?
     if(typRec == Typ_goGeo5) goto L_OK_2;
+    if(typRec == Typ_go_lf2) goto L_OK_2;  // all curves, not trimmed-curve
 
   //-------------------------------------------------------
   } else if(typ == Typ_VC) {
@@ -1134,6 +1145,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   // } else if(typ == Typ_GTXT) {               // Notes, Tags ...
   } else if(typ == Typ_Note) {               // Notes, Tags ...
     if(typRec == Typ_goGeom) goto L_OK_2;
+    if(typRec == Typ_go_JNT) goto L_OK_2;
 
   //-------------------------------------------------------
   } else if(typ == Typ_Model) {              // M

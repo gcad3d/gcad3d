@@ -39,4 +39,7 @@ MSG_getChd=найти дочерние объекты
 MSG_modNam=изменить имя объекта
 MSG_cvEd=редактировать кривую
 MSG_GrpInv=инвертировать группу
+MSG_GrpSel=select objects / group of objects
+MSG_no_for_all=NO for all
+MSG_ok_for_all=OK for all
 #eof

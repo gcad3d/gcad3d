@@ -254,7 +254,7 @@ List_functions_end:
 
     // printf("ex pspl_pol_psp ptNr=%d\n",*ptNr);
     // GR_tDyn_npt__ (ptOut, pTab, SYM_STAR_S, 2);
-    // GL_set_cv (ptOut, pTab);
+    // GL_set_pcv (ptOut, pTab);
 
   return 0;
 

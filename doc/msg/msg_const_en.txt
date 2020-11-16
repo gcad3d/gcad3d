@@ -31,7 +31,7 @@ MSG_GrpRemTyp=remove all of this type from Group
 MSG_GrpRemOTs=remove all other types from Group
 MSG_upd=update
 MSG_all=all
-MSG_no=no
+MSG_no= no
 MSG_Error=Error
 MSG_cpyMdl=copy into entry
 MSG_getPar=find parent-objects
@@ -39,4 +39,7 @@ MSG_getChd=find child-objects
 MSG_modNam=modify object-name
 MSG_cvEd=edit curve
 MSG_GrpInv=invert group
+MSG_GrpSel=select objects / group of objects
+MSG_no_for_all=NO for all
+MSG_ok_for_all=OK for all
 #eof

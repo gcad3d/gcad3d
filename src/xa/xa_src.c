@@ -41,7 +41,7 @@ SRC_src_isol_ato1   convert DB-obj (typ, DB-index) into isolated sourceCode (tex
 
 AP_src_sel_fmt      create sourceText from Format
 SRC_src_pt_dbo      create obj (src) from point and DB-obj (curve, surface)
-AP_src_parPt_selSur create sourceCode for paramteric-point from surface
+AP_src_parPt_selSur create sourceCode for parameteric-point from surface
 
 SRC_parPt_ptDbo  create parametric_point (sourceCode) from point and Db-obj
 SRC_vc_ptDbo     create vector (sourceCode) from point and Database-object
@@ -517,7 +517,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   // Plg Clot & CCV:
   if((dbTyp == Typ_CV)  || 
      (dbTyp == Typ_CVTRM))   {
-    irc = DB_GetObjDat (&vd, dbTyp, dbi);
+    irc = UTO__dbo (&vd, dbTyp, dbi);
     if(irc < 0) return -1;
       // printf(" irc=%d\n",irc);
     if((oxi.form == Typ_CVBSP)  ||
@@ -1881,7 +1881,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
             (typ == Typ_SURBSP)   ||
             (typ == Typ_SURRBSP)  ||
             (typ == Typ_SURPTAB)  ||
-            (typ == Typ_SURMSH))    {
+            (typ == Typ_SURPMSH))    {
     sprintf(buf, "A%ld", ind);
     
 

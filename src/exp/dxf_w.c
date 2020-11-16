@@ -1643,7 +1643,7 @@ usw.
   long      sTab[1];
   char      cbuf[160];
   ObjGX     *oTab=NULL;
-  Triangle  *triTab, *tr1;
+  Triang  *triTab, *tr1;
   TypTsuSur *surTab;
   Point     *p1;
 
@@ -1663,8 +1663,8 @@ usw.
 
 /*
   // space for triangles --> triTab  (12bytes/Tria)
-  triTab = (Triangle*)memspc501;
-  triSiz = sizeof(memspc501) / sizeof(Triangle);
+  triTab = (Triang*)memspc501;
+  triSiz = sizeof(memspc501) / sizeof(Triang);
     // printf(" triSiz=%d\n",triSiz);
 
   surTab = (TypTsuSur*)memspc51;
@@ -1679,7 +1679,7 @@ usw.
     // printf(" _tsu2tria__ irc=%d surNr=%d triNr=%d\n",irc,surNr,triNr);
 
 
-    // write Triangles
+    // write Triangs
     // for(ii=0;ii<triNr;++ii) DEB_dump_obj__ (Typ_Tria,&triTab[ii],"tria");
   icol = 173;  // TODO
   for(ii = 0; ii < triNr; ++ii) {
@@ -1964,7 +1964,7 @@ usw.
 // Typ_SURHAT
     case Typ_SURCIR:
     case Typ_SURSTRIP:
-    case Typ_SURMSH:
+    case Typ_SURPMSH:
 // Typ_SURBND Typ_SURPTAB
     // bodies:
     case Typ_SOL:
@@ -2098,7 +2098,7 @@ usw.
   
   int       i1, triNr, triSiz;
   ColRGB    sCol, actCol, defCol;
-  Triangle  *triTab, *tr1;
+  Triang  *triTab, *tr1;
   
 
   if(!oxi) {
@@ -2114,8 +2114,8 @@ usw.
 
     //----------------------------------------------------------------
     case Typ_PT:           // normal faces
-      triTab = (Triangle*)memspc501;
-      triSiz = sizeof(memspc501) / sizeof(Triangle);
+      triTab = (Triang*)memspc501;
+      triSiz = sizeof(memspc501) / sizeof(Triang);
       triNr = 0;
       // get triangles from tesselated face
       tess_ntri_tfac__ (triTab, &triNr, triSiz, oxi);

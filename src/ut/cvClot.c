@@ -157,7 +157,7 @@ ctags -f ucv.tag ucv.c
   if(vTyp) {
     // change 0-1-parameter par to parameter tc - curvature
     if (par < 0. || par > 1.) goto L_InErr;
-    // tc = UTP_px_paramp0p1px (ts, te, par);
+    // tc = UTP_vx_vMin_vMax_par1 (ts, te, par);
     tc = UT3D_park__par1_clot (ts, te, par);
   } else tc = par;
     // printf(" ts=%f tc=%f te=%f\n",ts,tc,te);
@@ -167,8 +167,8 @@ ctags -f ucv.tag ucv.c
 
   if(pto) *pto = pt1;
 
-    // GR_Disp_pt (pto, SYM_STAR_S, 1);
-    // if(mode == 1) GR_tDyn_vc (vco, pto, 9, 0);
+    // GR_tDyn_symB__ (pto, SYM_STAR_S, 1);
+    // if(mode == 1) GR_tDyn_vc__ (vco, pto, 9, 0);
 
   return irc;
 
@@ -208,7 +208,7 @@ L_InErr:
   // printf("UT3D_pt_intclotptvc %d tol=%f\n",*nxp,tol);
   // DEB_dump_obj__ (Typ_PT, lpt, " lpt:");
   // DEB_dump_obj__ (Typ_VC, lvc, " lvc:");
-    // GR_Disp_pt (lpt, SYM_STAR_S, 0);
+    // GR_tDyn_symB__ (lpt, SYM_STAR_S, 0);
 
 
   tolq = tol * tol;
@@ -316,13 +316,14 @@ L_InErr:
   L_finish:
   // get parameter von 0-1 from tm
   if(tTab) {
-    UTP_param_p0p1px (&tTab[0], ts, te, tm);
+    // UTP_par1_vMin_vMax_vx (&tTab[0], ts, te, tm);
+    tTab[0] = UTP_par1_vMin_vMax_vx (ts, te, tm);
   }
 
   UT3D_pt_pt2_0 (&xpt, &ptm);
   if(yFlip) xpt.y = -xpt.y;
   UT3D_pt_tra_pt_m3 (&xpTab[0], mc, &xpt);
-    // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
+    // GR_tDyn_symB__ (&xpTab[0], SYM_STAR_S, 1);
   *nxp = 1;
 
 
@@ -362,7 +363,7 @@ L_InErr:
 
   // printf("UT3D_pt_prjclotpt %d tol=%f\n",*nxp,tol);
   // DEB_dump_obj__ (Typ_PT, lpt, "lpt:");
-  // GR_Disp_pt (lpt, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (lpt, SYM_STAR_S, 0);
 
 
   // get the Transformation matrix > mc, the startpoint > pts and
@@ -444,10 +445,11 @@ L_InErr:
   }
 
 
-  // tMin in eine parameter von 0-1 umwandeln
+  // change tMin into parameter 0-1
   // printf(" ts=%f tMin=%f te=%f\n",ts,tMin,te);
   L_found:
-  UTP_param_p0p1px (&tx1, ts, te, t1);
+  // UTP_par1_vMin_vMax_vx (&tx1, ts, te, t1);
+  tx1 = UTP_par1_vMin_vMax_vx (ts, te, t1);
 
 
   L_finish:
@@ -455,7 +457,7 @@ L_InErr:
   if(yFlip) pt1.y = -pt1.y;
   UT3D_pt_pt2_0 (&xp1, &pt1);
   UT3D_pt_tra_pt_m3 (&xpTab[0], mc, &xp1);
-    // GR_Disp_pt (&xpTab[0], SYM_STAR_S, 1);
+    // GR_tDyn_symB__ (&xpTab[0], SYM_STAR_S, 1);
   *nxp = 1;
 
 
@@ -471,7 +473,7 @@ L_InErr:
 //   int UT3D_park__par1_clot (double *park, CurvClot *cv, double par1) {
 // //====================================================================
 // // UT3D_park__par1_clot    get curvature from parameter 0-1
-// // see UTP_px_paramp0p1px
+// // see UTP_vx_vMin_vMax_par1
 //   *park = (cv->ce - cv->cs) * par1 + cv->cs;
 //   return 0;
 // }
@@ -1019,7 +1021,7 @@ IN:
   CurvClot *cl     ... clothoid curve
   double t         ... parameter value (>=0)
 OUT:
-  Vector2 *tg      ... tangent vector at paramter t
+  Vector2 *tg      ... tangent vector at parameter t
 Returncode:
   0 = OK
 */

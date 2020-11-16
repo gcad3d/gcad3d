@@ -1,7 +1,7 @@
 
 
-# define TAB_C_SIZ 1024
-# define TAB_I_SIZ 32
+# define TAB_C_SIZ 12288
+# define TAB_I_SIZ 384
 // this is 32 chars for each string; 36 chars total for a string ..
 
 

@@ -23,6 +23,8 @@
 <A HREF='#Del'>Delete Catalog</A>
 <A HREF='#Dir'>Catalog-directory</A>
 
+<A HREF='#Exa'>Beispiel</A>
+
 
   
  
@@ -134,6 +136,34 @@ CATALOG   /home/userName/gCAD3D/ctlg/
 
 Die Datei für die Verzeichnisse ist bei Unix-Defaultinstallation:
 /home/userName/gCAD3D/cfg/dir.lst
+
+
+
+<HR><!-- ============================================================ -->
+<a name="Exa"></a>
+<b>Beispiel</b>
+
+//----------------------------------------------------------------
+Simple example for a catalog-part:
+//----------------------------------------------------------------
+# Create following model test_ctlg1.gcad in directory <CATALOG>
+V20=VAL(10)
+CALL CTLG
+C20=P(0 0 0) V20
+A20=C20
+
+# create catalog-file test_ctlg1.gcap in directory <CATALOG> with -
+# CAD - Catalog/Create Catalog / test_ctlg1 OK
+
+# edit catalog-file test_ctlg1.gcap
+# CAD - Catalog/Modify Catalog / test_ctlg1
+
+# insert following lines:
+R_25;CATALOG/test_ctlg1;V20=25;
+R_100;CATALOG/test_ctlg1;V20=100;
+
+# use new catalog:
+# CAD - subModels "M CatalogPart" /  List /
 
 
 

@@ -33,7 +33,7 @@ List_functions_start:
 
 tess_res_CB__         resolv tess-model in memory with callback
 tess_ntri_tfac__      get triangles from tesselated face
-tess_ntri_tfac_add    copy 3 (pointers of) points -> Triangle            INLINE
+tess_ntri_tfac_add    copy 3 (pointers of) points -> Triang            INLINE
 
 tess_analyz__
 tess_analyz_sur
@@ -50,9 +50,8 @@ tess_origin_set__     subract origin of tess-model in memory
 tess_origin_set_sur
 tess_origin_set_fac
 
-tess_dump_f_          dump file-oriented obj;  structured display.
 tess_read_f           read tesselated surf (file-oriented)
-tess_write_f_         tesselated surf in Datei ausgeben.
+tess_write_f_         write tesselated surf into file
 tess_reloc_f_         relocate tesselated surf (read from file)
 
 tess_read_            read .tess-file from temp-dir
@@ -61,14 +60,21 @@ tess_write__          write .tess-file into temp-dir
 tess_triaNr_bMsh             find nr of surfaces & (total) nr of triangles
 tess_triaNr_patch             find nr of triangles in tesselated surface
 
+BMSH_dump_bfMsh       dump bfMsh (file-oriented bMsh);  structured display.
+BMSH_test_disp        display bfMsh/bMsh-records
+BMSH_test_cre1        create bMsh (tesselated surface) manually
+
 List_functions_end:
 =====================================================
 TODO: tess_origin_set_sph tess_origin_set_con tor?
+
+Testfunctions: see BMSH_* in ../APP/tst_tess_1.c
+
 - see also:
 TSU_tess_addf       add Mockup-Filestruct oxi to existing Mockup-struct TSU_vMem
 TSU_imp_tess        import Mockup from file into Mockup-struct
 TSU_exp_sm_sur      export all faces from Mockup-struct
-TSU_ntria_bMsh__      make Triangles from Mockup-struct
+TSU_ntria_bMsh__      make Triangs from Mockup-struct
 TSU_DrawSurTess     draw Mockup-struct (tesselated surf)
 wrl_reloc__         see also tess_reloc_f_
 
@@ -99,11 +105,13 @@ wrl_reloc__         see also tess_reloc_f_
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/func_types.h"               // SYM_STAR_S
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_ogxt.h"             // OgxTab ..
+
 
 #include "../xa/xa_mem.h"              // memspc501
 
 
-// tess_ntri_tfac_add                 copy 3 (pointers of) points -> Triangle
+// tess_ntri_tfac_add                 copy 3 (pointers of) points -> Triang
 // see also UTRI_tria_3pt
 #define tess_ntri_tfac_add(tria,pt1,pt2,pt3)\
  {(tria)->pa[0] = pt1;\
@@ -124,71 +132,6 @@ extern Plane     WC_sur_act;            // Constr.Plane
 
 int tess_analyz_CB (ObjGX*);
 
-
-
-
-
-
-//=======================================================================
-  int tess_dump_f_ (ObjGX *oxi, char *txt) {
-//=======================================================================
-// dump obj - structured display
-// see DEB_dump_ox_1
-
-  int  irc, i1, rSiz, totSiz;
-  char cbuf[32];
-
-
-  printf("=================== tess_dump_f_ %s ============ \n",txt);
-  i1 = 0;
-  totSiz = 0;
-
-  // erste Record ev. Adress
-  if(oxi->typ == Typ_Address) {
-    printf(" Adress = %p\n",oxi->data);
-    ++oxi; //(char*)oxi += sizeof(ObjGX);
-  }
-
-
-  // endRecord ?
-  L_next:
-  if(oxi->typ  == Typ_Done)  goto L_fertig;
-
-  // erster Record muss size of following Record sein
-  if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
-  printf("Record %d size=%d\n",i1,rSiz);
-
-  ++oxi;  //(char*)oxi += sizeof(ObjGX);
-
-  sprintf(cbuf, "Rec %d",i1);
-  DEB_dump_ox_s_ (oxi, cbuf);
-
-  // (char*)oxi += rSiz;
-  oxi = (ObjGX*)((char*)oxi + rSiz);
-  totSiz += rSiz;
-
-  ++i1;
-  goto L_next;
-
-
-  L_fertig:
-  printf("ex tess_dump_f_ total size = %d\n",totSiz);
-  return 0;
-
-
-  //----------------------------------------------------------------
-  L_Err1:
-    TX_Error("tess_dump_f_ E001 form %d",oxi->form);
-    return -1;
-
-
-  //----------------------------------------------------------------
-  L_Err2:
-    TX_Error("tess_dump_f_ E002 typ %d",oxi->typ);
-    return -1;
-
-}
 
 
 //================================================================
@@ -300,7 +243,7 @@ int tess_analyz_CB (ObjGX*);
   tess_reloc_f_ (oxi, l1);
 
 
-  // tess_dump_f_ (oi, "ex tess_read_f");
+  // BMSH_dump_bfMsh (oi, "ex tess_read_f");
   return 0;
 
 }
@@ -309,7 +252,7 @@ int tess_analyz_CB (ObjGX*);
 //================================================================
   int tess_write_f_ (FILE *fpo, ObjGX *oxi) {
 //================================================================
-// tesselated surf in Datei ausgeben.
+// tess_write_f_           write tesselated surf in Datei ausgeben.
 // Format:
 //
 // Address(107) 143 1 BaseAdress
@@ -324,11 +267,11 @@ int tess_analyz_CB (ObjGX*);
   ObjGX ox1;
 
 
-  // tess_dump_f_ (oxi, "tess_write_f_ ");
+  // BMSH_dump_bfMsh (oxi, "tess_write_f_ ");
 
   // die Basisadresse schreiben
   ox1.typ  = Typ_Address;
-  ox1.form = Typ_Data;                  // 2013-11-08
+  ox1.form = Typ_Ptr;                  // 2013-11-08
   ox1.siz  = 1;
   ox1.data = oxi;
   fwrite (&ox1, sizeof(ObjGX), 1, fpo);     // write Size-Record
@@ -733,7 +676,7 @@ int tess_analyz_CB (ObjGX*);
   int       i1, triNr, triSiz;
   char      s1[256];
   ColRGB    sCol, actCol, defCol;
-  Triangle  *triTab, *tr1;
+  Triang  *triTab, *tr1;
 
 
   // printf("tess_analyz_CB %d\n",oxi->form);
@@ -769,8 +712,8 @@ int tess_analyz_CB (ObjGX*);
     //----------------------------------------------------------------
     case Typ_GL_PP:           // normal faces
       if(oxi->form == Typ_PT) {
-        triTab = (Triangle*)memspc501;
-        triSiz = sizeof(memspc501) / sizeof(Triangle);
+        triTab = (Triang*)memspc501;
+        triSiz = sizeof(memspc501) / sizeof(Triang);
         triNr = 0;
         // get triangles from tesselated face
         tess_ntri_tfac__ (triTab, &triNr, triSiz, oxi);
@@ -1115,11 +1058,11 @@ use in GL_disp_cone
 
 
   int       i1, triNr, triSiz;
-  Triangle  *triTab;
+  Triang  *triTab;
 
 
-  triTab = (Triangle*)memspc501;
-  triSiz = sizeof(memspc501) / sizeof(Triangle);
+  triTab = (Triang*)memspc501;
+  triSiz = sizeof(memspc501) / sizeof(Triang);
   triNr = 0;
 
 
@@ -1138,9 +1081,9 @@ use in GL_disp_cone
     // fprintf(fpo,"    fNr=%d\n",triNr);
   for(i1=0; i1<triNr; ++i1) {
     GR_Disp_tria (&triTab[i1], 9);
-    // GR_Disp_pt (p1, SYM_STAR_S, 2);
-    // GR_Disp_pt (p2, SYM_STAR_S, 2);
-    // GR_Disp_pt (p3, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p3, SYM_STAR_S, 2);
   }
 
   return 0;
@@ -1150,7 +1093,7 @@ use in GL_disp_cone
 
 
 //================================================================
-  int tess_ntri_tfac__  (Triangle *triTab, int *triNr, int triSiz,
+  int tess_ntri_tfac__  (Triang *triTab, int *triNr, int triSiz,
                        ObjGX *oxi) {
 //================================================================
 // get triangles from tesselated face
@@ -1587,7 +1530,7 @@ use in GL_disp_cone
   // loop tru points; extend box
   for(i1=0; i1<pNr; ++i1) {
     UT3D_box_extend (pb1, pb2, &pTab[i1]);
-      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
       // DEB_dump_obj__(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
   }
 
@@ -1806,7 +1749,7 @@ use in GL_disp_cone
   // loop tru points; extend box
   for(i1=0; i1<pNr; ++i1) {
     UT3D_pt_sub_pt3 (&pTab[i1], pOri);
-      // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
       // DEB_dump_obj__(Typ_PT, &pTab[i1], " _origin_fac p[%d]",i1);
   }
 

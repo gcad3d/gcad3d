@@ -1,4 +1,4 @@
-//    ../xa/xa_cad_ccv_ui.c                     CAD-CCV-Editor, CAD-GroupEditor
+//    ../xa/xa_cad_ccv_ui.c                             CAD-CCV-Editor
 /*
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -34,9 +34,9 @@ Modifications:
 =====================================================
 List_functions_start:
 
-IE_ccv__             create Window; simple CurveEditor
-IE_ccv_mod           GroupEditor ?
-// IE_ccv_CMB           Mouseklick into GroupEditWindow
+IE_ccv__             create Window; simple CCV-Editor
+IE_ccv_mod           
+// IE_ccv_CMB           Mouseklick into CCV-EditWindow
 IE_ccv_CB
 IE_ccv_rem           remove word out of IE_buf
 IE_ccv_cw            modify IE_buf add|change|delete word
@@ -67,6 +67,7 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"
 
 #include "../xa/xa_sele.h"        // Typ_go*
@@ -169,10 +170,6 @@ extern int       IE_modify;          // 0=Add 1=Modify 2=Insert
 
 // ex xa.c / ../xa/xa_mem.h
 extern char IE_buf[];
-
-// aus ../ci/NC_Main.c:
-extern int     APT_dispDir;
-
 
 
 #endif
@@ -386,11 +383,11 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
+  // printf("IE_ccv_CB EV=%d\n",GUI_DATA_EVENT);
 
 /*
   if(GUI_DATA_EVENT == TYP_EventEnter) {
-    // Mouseklick into GroupEditWindow
+    // Mouseklick into CCV-EditWindow
     // comes too often ..
 // TODO: skip PREVIEW if curPos is unmodified ..
     IE_ccv_mod (NULL, GUI_SETDAT_ES(TYP_EventPress,"PREVIEW"));
@@ -495,8 +492,8 @@ extern int     APT_dispDir;
 //=====================================================================
   int IE_ccv__ (MemObj *mo, void **data) {
 //=====================================================================
-// simple CurveEditor
-// benutzt - ebenso wie IE_ed2__ - IE_edWin1
+// simple editor for creating concatenated curves (CCV's)
+// using IE_edWin1  (like IE_ed1__ IE_ed2__ IE_ccv__)
 
 static  MemObj   win0, bREV, lmnr, cb_poc;
   MemObj   box0, box1;
@@ -507,7 +504,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
   i1 = GUI_DATA_L1;
 
 
-  printf("IE_ccv__ %d\n",i1);
+  // printf("IE_ccv__ %d\n",i1);
 
 
   switch (i1) {
@@ -556,18 +553,22 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
       if(!winTyp) {
         GUI_button__(&box1, "MOD+", IE_ccv_mod, (void*)"MOD+", "a,a");
           MSG_Tip ("ED1MOD+");
+
         GUI_button__(&box1, "MOD-", IE_ccv_mod, (void*)"MOD-", "a,a");
           MSG_Tip ("ED1MOD-");
       }
 
-      GUI_button__(&box1, " <<< ", IE_ccv_mod, (void*)"PREV-", "a,a");
-        MSG_Tip ("ED1<<<");
-      GUI_button__(&box1, " >>> ", IE_ccv_mod, (void*)"PREV+", "a,a");
-        MSG_Tip ("ED1>>>");
+//       GUI_button__(&box1, " <<< ", IE_ccv_mod, (void*)"PREV-", "a,a");
+//         MSG_Tip ("ED1<<<");
+//       GUI_button__(&box1, " >>> ", IE_ccv_mod, (void*)"PREV+", "a,a");
+//         MSG_Tip ("ED1>>>");
+
       GUI_button__(&box1, "Delete", IE_ccv_mod, (void*)"DEL", "a,a");
         MSG_Tip ("MMundo");
+
       GUI_button__(&box1, "Cancel", IE_ccv__, &GUI_FuncKill, "a,a");
         MSG_Tip ("CADexit");
+
       GUI_button__(&box1, "OK", IE_ccv_mod, (void*)"OK", "a,a");
         MSG_Tip ("CADsave");
 
@@ -664,6 +665,7 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
     case UI_FuncKill:      // called from extern
         // printf("IE_ccv__ exit\n");
       GUI_Win_kill (&win0);
+      DL_Redraw ();             // remove curve ..
 
 
     //---------------------------------------------------------

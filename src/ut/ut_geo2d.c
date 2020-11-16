@@ -75,7 +75,7 @@ UT2D_sidPerp_ptvc         compare if pt is right/on/left of a normal to pt+vc
 -------------- area sense_of_rotation -------------------------------------
 UT2D_ar_3pt               get (signed) area of triangle
 UT2D_srar_3pt             get sense-of-rotation and area of 2D-triangle
-UT2D_srar_polc            get sense-of-rotation and area of closed polygon
+UT2D_sr_npt            get sense-of-rotation and area of closed polygon
 UT2D_srar_inpt            get sense-of-rotation and area of indexed closed polygon
 UT2D_srar_inpt3           get sense-of-rot. and area of indexed closed 3D-polygon
 UT2D_sr_ci                get sense_of_rotation of a circ                    INLINE
@@ -197,7 +197,6 @@ UT2D_pt_tra_pt_ivc        subtract vector vc from p1 (inverse-vector)       INLI
 UT2D_pt_traptvclen        transl. point into dir vc dist. lenv
 UT2D_pt_tra2ptlen         transl. point p1 into dir p1 -> p2 dist. lenv
 UT2D_pt_tra_pt_pt_par     transl. pt with parameter along p1-p2
-UT2D_pt_tra_pt_pt_mult    p3 = segment p1-p2 * fakt
 UT2D_pt_tra3ptlen         transl. point p1 into dir p2 -> p3 dist. lenv
 UT2D_pt_tra2pt2len        transl. point into dir p1 -> p2 dist. dx and normal dy
 UT2D_pt_tra2pt3len        dir=from p1 on p1->p2 offset dx and normal dy; length
@@ -224,7 +223,7 @@ UT2D_pt_projptci          project point to Arc (segment of circle)
 UT2D_pt_int_2lnl          intersection of 2 limited lines
 UT2D_2pt_par_int_ln_ci    intersection of  limited-line  limited-circle
 UT2D_2pt_int_ci_ci        intersection of 2 limited circles
-UT2D_pt_int_4pt           intersection of 2 limited 2D-lines
+UT2D_pt_int_4pt           intersection of 2 limited 2D-lines with tol
 UT2D_pt_int4pt  REPLACED with UT2D_pt_int_4pt intersection 2 lines
 UT2D_pt_intptvcy          intersection line (pt-vc) - horizontal line
 UT2D_pt_intlny            intersection linesegment - horizontal (unlim.) line
@@ -232,7 +231,7 @@ UT2D_pt_intlnx            intersection linesegment - vertical (unlim.) line
 UT2D_pt_intlnln           intersect Line x Line; both limited or unlimited
 UT2D_pt_int2ln            point = intersection of 2 lines
 UT2D_2par_int2pt2vc       intersect 2 unlimitedLines; gives 2 parameters
-UT2D_pt_int2pt2vc         point = intersection of 2 vectors + 2 Points
+UT2D_pt_int2pt2vc         intersect 2 unlimited vectors + 2 Points
 UT2D_pt_int2vc2pt         point = intersection of 2 vectors + 2 Points
 UT2D_2pt_intciptvc        intersect Circle - Line (pt+vc); both unlimited
 UT2D_2pt_intlnci          intersect Line x Circ; both limited or unlimited
@@ -348,6 +347,11 @@ UT2D_m2_load              2D-Achsensystem (Verdrehvektor, Ori.) into 3x2 Mat
 UT2D_m2_loadtravcm2       load 2D-vector trafo (3x2 matrix)
 UT2D_m2_invtravcm2        invert 2D-vector transformation
 UT2D_m3_init_rot          Initialize a 3x2 - matrix with rotation
+
+
+
+------------------------ testfunctions:
+tst_UT2D_pt_ck_inplg                test UT2D_pt_ck_inplg
 
 List_functions_end:
 =====================================================
@@ -1295,7 +1299,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //   Der Oeffnungswinkel ist immer positiv und max 180 Grad !
 
 // 2D-Projektionslaenge eines Vektors auf einen anderen Vektor.
-//  v2 wird auf v1 projiziert; out Laengenparamter (mit Vorzeichen!)
+//  v2 wird auf v1 projiziert; out Laengenparameter (mit Vorzeichen!)
 //  Wenn v1 == X-Achse, waere Laenge der DX-Wert des v2 in der X-Y-Plane.
 
 //  Wahre_Laenge = sk / len_v1
@@ -2318,9 +2322,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 
   // fix parameter d1
   if(fabs(dx) > fabs(dy))  {
-    UTP_param_p0p1px (d1, p1->x, p2->x, px->x);
+    UTP_par1_vMin_vMax_vx (d1, p1->x, p2->x, px->x);
   } else {
-    UTP_param_p0p1px (d1, p1->y, p2->y, px->y);
+    UTP_par1_vMin_vMax_vx (d1, p1->y, p2->y, px->y);
   }
     printf("ex UT2D_parLn_pt2pt %f\n",*d1);
 
@@ -3913,7 +3917,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                        Point2 *pc, Point2 *pd) {
 //================================================================
 /// \code
-/// UT2D_pt_int_4pt      intersection of 2 limited 2D-lines
+/// UT2D_pt_int_4pt      intersection of 2 limited 2D-lines with tol
 /// Output:
 ///   pti         intersectionpoint (only for retCode=0)
 ///   retCode:    -1 no intersection of limited lines
@@ -4755,8 +4759,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
                                      Point2 *pt2, Vector2 *vc2) {
 //================================================================
 /// \code
-/// UT2D_pt_int2pt2vc         point = intersection of 2 vectors + 2 Points
-/// intersection of 2 unlimited lines
+// UT2D_pt_int2pt2vc         intersect 2 unlimited vectors + 2 Points
 ///
 /// Returncodes:
 ///  0 = Lines parallel or zero-length
@@ -4820,42 +4823,50 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 
-  // printf("UT2D_pt_int2vc2pt %f,%f %f,%f\n",pt1->x,pt1->y,vc1->dx,vc1->dy);
-  // printf("                  %f,%f %f,%f\n",pt2->x,pt2->y,vc2->dx,vc2->dy);
+  // printf("UT2D_pt_int2vc2pt pt1 %f,%f   vc1 %f,%f\n",
+          // pt1->x,pt1->y,vc1->dx,vc1->dy);
+  // printf("                  pt2 %f,%f   vc2 %f,%f\n",
+          // pt2->x,pt2->y,vc2->dx,vc2->dy);
+
 
 
   q1 = vc1->dy * vc2->dx - vc1->dx * vc2->dy;
 
   // check for lines parallell
-  if (fabs(q1) < UT_TOL_min1) { return 0; }    // 2007-11-10   was 0.0001
+  irc = 0;
+  if (fabs(q1) < UT_TOL_min1) goto L_fertig;
 
 
   // line1Start -> line2Start
   UT2D_vc_2pt (&vs, pt1, pt2);
 
   dist1 = (vc2->dx*vs.dy - vc2->dy*vs.dx) / q1;
-  // printf("    dist1 %f\n",dist1);
+    // printf("    dist1 %f\n",dist1);
 
+  // comp. outPoint
   ip->x = pt1->x + vc1->dx * dist1;
   ip->y = pt1->y + vc1->dy * dist1;
+
 
   irc = 2;
   if((dist1 < 0.)||(dist1 > 1.)) goto L_fertig;
 
 
   dist2 = (vc1->dx*vs.dy - vc1->dy*vs.dx) / q1;
-  // printf("    dist2 %f\n",dist2);
+    // printf("    dist2 %f\n",dist2);
 
 
   irc = 3;
   if((dist2 < 0.)||(dist2 > 1.)) goto L_fertig;
 
+
   irc = 1;
 
 
-
   L_fertig:
-  // printf(" ex UT2D_pt_int2vc2pt %d %f,%f %f\n",irc,ip->x,ip->y,dist1);
+
+    // printf("ex-UT2D_pt_int2vc2pt irc=%d ipto=%f,%f dist=%f\n",
+           // irc,ip->x,ip->y,dist1);
 
   return irc;
 }
@@ -5440,12 +5451,13 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 /// RC   0   v1-v2 are parallel
 /// RC  -1   v2 is below v1  (neg. angle)
 /// 
-///              X
-///           v2/          1
-///            /
+///           ^
+///           |
+///         v2|          1
+///           |
 /// ----------X---v1----------->  0
 ///            
-///                       -1
+///                     -1
 /// 
 /// was UT2D_sid_2vc
 /// see also UT2D_sid_2vc_tol UT2D_sidPerp_2vc UT2D_sar_2vc
@@ -6231,20 +6243,29 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 //===========================================================================
 /// \code
 /// UT2D_angr_ciSec           opening angle of Secant of Circ
-///                           for length of secant see UT2D_len_ciSec
+/// Input:
+///   hc       distance B-C
+///   radc     radius (dist. CirCen-A, CirCen-B, CirCen-D)
+/// Output:
+///   retCod   angle between A-D around CirCen in radians
+///
+///               B               
+///          _  - + -  _         
+///        ^      |hc    ^      
+///      /        |        \
+///    A+---_-----+C--------+D       
+///      \        |       /         
+///        \      |     /
+///     radc \    |   /radc        
+///             \ | /             
+///               +              
+///              CirCen
+///
 /// \endcode
+// see also UT2D_len_ciSec // length of secant
 
-// Eine Sekante trennt ein Stueck vom Kreis.
-// IN: Dessen Hoehe ist hc (Beispiel: Sehnentoleranz bei Kreisdarstellung).
-//     Kreisradius radc
-// OUT: der Winkel des Kreises, dessen Endpunkte mit der Sekante gleich sind.
-
-// Errechnen der Bogenlaenge des Kreisstueckes (zum Errechnen der Anzahl der
-//  erforderlichen Polygonpunkte): Bogenlaenge = Radius * Winkel_rad
-// lsec = UT2D_angr_ciSec (tol, rad) * rad;   // Bogenlaenge mit Toleranz
-// ptNr = UT3D_len_ci (&ci1) / lsec;          // Anzahl Polygonpunkte
-
-  if(hc >= radc) return RAD_90;
+  // if(hc >= radc) return RAD_90;
+  if(hc >= radc) return RAD_180;
 
   return acos((radc-hc)/radc) * 2.0;
 
@@ -6890,16 +6911,16 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 
 //=================================================================
-  int UT2D_srar_polc (double *aro, int ptNr, Point2 *pa)  {
+  int UT2D_sr_npt (double *aro, int ptNr, Point2 *pa)  {
 //=================================================================
 /// \code
-/// UT2D_srar_polc            get sense-of-rotation and area of closed polygon
+/// UT2D_sr_npt            get sense-of-rotation and area of closed polygon
 /// Karl Sauer 2004-04-07
 /// Input:
 ///   ptNr     nr of points without last (= first) point
 ///   pa       array of points of closed polygon
 /// Output:
-///  aro       area; positiv = CCW, negativ = CW.
+///  aro       area;
 ///  RetCod    1  = CCW
 ///            -1 = CW
 /// \endcode
@@ -7598,6 +7619,12 @@ TODO: test intersection (dist=0 !)
   Vector2    vc1, vcs;
 
 
+  // printf("UT2D_pt_ck_onLine tol=%f\n",tol);
+  // DEB_dump_pt2 (p1, "Crv2_seg_ck-in-p1");
+  // DEB_dump_pt2 (p2, "Crv2_seg_ck-in-p2");
+  // DEB_dump_pt2 (p3, "Crv2_seg_ck-in-p3");
+
+
   // test ob voellig ausserhalb ..
   // if(UT2D_pt_ck_inBoxTol(p1,p2,p3,tol) == 1) return -1;
 
@@ -7642,7 +7669,7 @@ TODO: test intersection (dist=0 !)
 
   // den Normalabstand von p1-p2 errechnen
   dn = vcs.dx * vc1.dy - vc1.dx * vcs.dy;
-  // printf(" dn=%f\n",dn);
+    // printf(" pt_ck_onLine-dn=%f\n",dn);
 
   if(fabs(dn) > tol) return -1;
 
@@ -7744,23 +7771,25 @@ TODO: test intersection (dist=0 !)
 }
 
 
-//================================================================
-  int UT2D_pt_ck_inplg (Point2 * pTab, int pNr, Point2 *ptx) {
-//================================================================
+//=======================================================================
+  int UT2D_pt_ck_inplg (Point2 * pTab, int pNr, Point2 *ptx, int iClo) {
+//=======================================================================
 /// \code
 /// UT2D_pt_ck_inplg       Test if Point ptx is inside polygon pTab
 /// Input:
-///   pTab   polygonPoints; closing edge is from pTab[pNr-1] to pTab[0]
+///   pTab      polygonPoints
+///   iClo      closed; 0=yes, 1=not_closed; -1=undefined
+///             0: pTab[0] must be equal pTab[pNr - 1]
 /// Output:
-///   RetCod 0     No,  point ptx is outside pTab;
-///          else  Yes, point is inside.
+///   RetCod    0     No,  point ptx is outside pTab;
+///             else  Yes, point is inside.
 /// \endcode
 
 // test polygon-segment only, if the y-value of the testpoint is between
 // the y-values of the segment. Else ignore the segment.
 
 //       \i1           \ i1
-//       \             \
+//        \             \
 //   ignore\      ptx    \ --wn           segments going down
 //          \             \
 //           \i1+1         \i1+1
@@ -7771,51 +7800,55 @@ TODO: test intersection (dist=0 !)
 //          \             \
 //           \i1           \i1
 
-// Test:
-//  Point2 ptx={15.,15.};
-//  Point2 pa[]={{10.,10.},{20.,10.},{20.,20.},{10.,20.},{10.,10.}};
-//  irc = UT2D_pt_ck_inplg (pa, 5, &ptx);
+// Test: see tst_UT2D_pt_ck_inplg
 
-
-//  Point2 pt1={15.,5.};   // out
-//  Point2 pt2={15.,15.};  // in
-//  Point2 pa[]={{10.,10.},{20.,10.},{20.,20.},{10.,20.},{10.,10.}};
-//  printf(" p1=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt1));
-//  printf(" p2=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt2));
-
-  int     i1;
+  int     i1, ix1;
   int     wn;               // windingNr
 
 
+  // printf("UT2D_pt_ck_inplg pNr=%d iClo=%d\n",pNr,iClo);
+  // DEB_dump_obj__ (Typ_PT2, ptx, "  _ck_inplg pNr=%d ptx",pNr);
   //for(i1=0; i1<pNr; ++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1], "pa[%d]=",i1);
-  //DEB_dump_obj__ (Typ_PT2, ptx, "ptx=");
 
-  --pNr;       // plg must be closed; last_point == first_point
+
+  if(iClo < 0) {
+    if(UT2D_comp2pt(&pTab[0],&pTab[pNr - 1],UT_TOL_pt)) iClo = 0;
+    else iClo = 1;
+  }
+
+  if(!iClo) --pNr;          // closed: remove last point
+
   wn = 0;
+  i1 = 0;
+  ix1 = 1;
 
   // loop through all edges of the polygon
-  for (i1=0; i1<pNr; ++i1) {          // edge from pTab[i1] to pTab[i1+1]
-    //printf("------------ p[%d] wn=%d\n",i1,wn);
+  L_nxt:
+    // printf("------------ p %d - %d  wn=%d\n",i1,ix1,wn);
 
     if (pTab[i1].y <= ptx->y) {
       // plg-pt is below testPt
       // test if plgSegment goes higher than testPt
-      if (pTab[i1+1].y > ptx->y) {
+      if (pTab[ix1].y > ptx->y) {
         // test if point is left of segment; Yes: incr wn.
-        if (UT2D_sid_3pt (ptx, &pTab[i1], &pTab[i1+1]) > 0) ++wn;
+        if (UT2D_sid_3pt (ptx, &pTab[i1], &pTab[ix1]) > 0) ++wn;
       }
 
     } else {
       // plgPt is above testPt
       // test if plgSegment goes lower than testPt
-      if (pTab[i1+1].y <= ptx->y) {
+      if (pTab[ix1].y <= ptx->y) {
         // yes, ptx.y is between Y-zone of segment.
         // if P is right of seg: --wn.
         // test if point is right of segment; Yes: incr wn.
-        if (UT2D_sid_3pt (ptx, &pTab[i1], &pTab[i1+1]) < 0) --wn;
+        if (UT2D_sid_3pt (ptx, &pTab[i1], &pTab[ix1]) < 0) --wn;
       }
     }
-  }
+
+    ++i1;
+    ++ix1;
+    if(i1 < pNr) goto L_nxt;
+    if(i1 == pNr) {ix1 = 0; goto L_nxt;}
 
   return wn;
 
@@ -8040,11 +8073,11 @@ TODO: test intersection (dist=0 !)
 
 /*
 //================================================================
-  int UT2D_pt_ck_inTriangle (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p) {
+  int UT2D_pt_ck_inTriang (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p) {
 //================================================================
-// UT2D_pt_ck_inTriangle        check if point is inside triangle
+// UT2D_pt_ck_inTriang        check if point is inside triangle
 
-// UT2D_pt_ck_inTriangle        Author: Thomas Backmeister       27.8.2003
+// UT2D_pt_ck_inTriang        Author: Thomas Backmeister       27.8.2003
 neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
 
 // Check if a point is inside a triangle.
@@ -8063,7 +8096,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
   int    or1, or2, or3;
   double d1, d2;
 
-  // printf("UT2D_pt_ck_inTriangle: check point inside triangle\n");
+  // printf("UT2D_pt_ck_inTriang: check point inside triangle\n");
 
   or1 = UT2D_orient_3pt (p1, p2, p); // 1=CW; 0=CCW; -1=colli.
   // printf(" or1=%d\n",or1);
@@ -8104,7 +8137,7 @@ neuere Version UT2D_ck_pt_in_tria__ von Sauer/Reiter ..
     // else or3 = 0;
   // }
 
-  // printf("UT2D_pt_ck_inTriangle %d %d %d\n",or1,or2,or3);
+  // printf("UT2D_pt_ck_inTriang %d %d %d\n",or1,or2,or3);
 
   if((or1 == or2)&&(or2 == or3)) return YES;
 
@@ -9326,34 +9359,37 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 /// \endcode
 
   int    iAnz;
-  double a1, d1, d2, aTol, dCos;
+  double a1, d1, d2, aTol;
 
 
-  // printf("UT2D_ptNr_ci rd=%lf ao=%lf tol=%lf\n",rdc,ao,tol);
+  // printf("\nUT2D_ptNr_ci rd=%lf ao=%lf tol=%lf\n",rdc,ao,tol);
 
 
+  // get a1 = radius - tol
   a1 = rdc - tol;
-    // printf("   tol=%f rdc=%f a1=%f\n",tol,rdc,a1);
 
+  if(a1 < 0.) {
+    // Tol. > Radius
+    // aTol = RAD_45;
+    iAnz = 4;
+    goto L_exit;
 
-  if(a1 < 0.) {   //  if Tol. > Radius
-    aTol = RAD_45;
   } else {
-    dCos = (a1/rdc);  //  der Oeffnungswinkel
-    // damits etwa mit den Flaechen uebereinstimmt ...
-    // aTol = ACOS(dCos) * 2.;
-    aTol = ACOS(dCos);
-      // printf(" dCos=%f aTol=%f\n",dCos,aTol);
+    // get dCos = opening angle of Secant of Circ (UT2D_angr_ciSec)
+    aTol = ACOS(a1/rdc) * 2.;
+      // printf(" aTol=%f\n",aTol);
 
-    if(aTol > RAD_45)  aTol = RAD_45;
+    // if(aTol > RAD_45)  aTol = RAD_45;
   }
 
   iAnz = ao / aTol;
-  iAnz += 2;                      // add startpt
-  // if(iAnz < 2) iAnz = 2;
+  // add startpt
+  iAnz += 2;
 
 
-  // printf("ex UT2D_ptNr_ci iAnz=%d ao=%lf aTol=%lf\n",iAnz,ao,aTol);
+  L_exit:
+
+    // printf("ex UT2D_ptNr_ci iAnz=%d ao=%lf aTol=%lf\n",iAnz,ao,aTol);
 
   return iAnz;
 
@@ -9830,8 +9866,8 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   d1 = fabs(ci->rad);
   if((isol % 2) > 0) d1 *= -1.;
   UT2D_pt_traptvclen (ptg, &ci->pc, &vcn, d1);
-    // GR_Disp_pt (ptg, SYM_TRI_S, 2);
-    // GR_tDyn_vc (vc1, pto, 2, 0);
+    // GR_tDyn_symB__ (ptg, SYM_TRI_S, 2);
+    // GR_tDyn_vc__ (vc1, pto, 2, 0);
 
   return 0;
 
@@ -10412,7 +10448,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   int UT2D_ck_pt_in_tria_tol2 (Point2 *p1, Point2 *p2, Point2 *p3,
                                Point2 *px, double *tol) {
 //=============================================================================
-// UT2D_ck_pt_in_tria_tol2  check if point is inside Triangle with tolerance
+// UT2D_ck_pt_in_tria_tol2  check if point is inside Triang with tolerance
 //   test with tol inside & outside
 // see UT2D_ck_pt_in_tria_toli UT2D_ck_pt_in_tria__ UT2D_pt_ck_inCv3 
 // Returncodes:
@@ -12852,7 +12888,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   L_exit:
     // // TESTBLOCK
     // { double du;
-    // UTP_param_p0p1px (&du, angs, *ange, *angx);
+    // UTP_par1_vMin_vMax_vx (&du, angs, *ange, *angx);
     // printf(" du=%f\n",du); }
     // printf(" ex-UT2D_angr_ck_in_ci %d\n",irc);
     // END TESTBLOCK
@@ -12913,6 +12949,52 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   return irc;
 
 }
+
+
+
+//================================================================
+//================================================================
+// TESTFUNCTIONS:
+//================================================================
+//================================================================
+
+
+#ifdef DEB
+
+//================================================================
+  int tst_UT2D_pt_ck_inplg () {
+//================================================================
+// tst_UT2D_pt_ck_inplg                     test UT2D_pt_ck_inplg
+
+// Test:
+ // Point2 ptx={15.,15.};
+ // Point2 pa[]={{10.,10.},{20.,10.},{20.,20.},{10.,20.},{10.,10.}};
+ // irc = UT2D_pt_ck_inplg (pa, 5, &ptx);
+  
+
+ Point2 pt1={15.,5.};   // out
+ Point2 pt2={15.,15.};  // in
+ Point2 pa[]={{10.,10.},{20.,10.},{20.,20.},{10.,20.},{10.,10.}};
+  
+
+ // 0=out, 1=in
+ printf(" p1=%d\n",UT2D_pt_ck_inplg (pa, 4, &pt1, 1));
+ printf(" p2=%d\n",UT2D_pt_ck_inplg (pa, 4, &pt2, 1));
+  
+ printf(" p1=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt1, 0));
+ printf(" p2=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt2, 0));
+
+ printf(" p1=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt1, -1));
+ printf(" p2=%d\n",UT2D_pt_ck_inplg (pa, 5, &pt2, -1));
+
+ printf(" p1=%d\n",UT2D_pt_ck_inplg (pa, 4, &pt1, -1));
+ printf(" p2=%d\n",UT2D_pt_ck_inplg (pa, 4, &pt2, -1));
+
+  return 0;
+
+} 
+
+#endif
 
 
 //================================================================

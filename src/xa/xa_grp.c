@@ -57,6 +57,7 @@ Grp_typ_del      remove all objs of type from group
 Grp_SM           move group -> subModel
 Grp_Mdl          save Group -> modelFile
 
+Grp_get_ts       get timstamp of last group-modification
 Grp_get__        returns GrpTab & GrpNr
 Grp_get_nr       return nr of objs in group
 Grp_cbuf         return list ob objs of group as text
@@ -144,10 +145,22 @@ extern long   GR_dli_hili;     // the active (mouse-over) object of selection-li
 
 
 //============ Local Var: =====================
-static ObjDB    *GrpTab = NULL;
-static int      GrpMax = 0;
-static int      GrpNr  = 0;
+static ObjDB     *GrpTab = NULL;
+static int       GrpMax = 0;
+static int       GrpNr  = 0;
+static TimeStamp GrpTS;
 
+
+
+//================================================================
+  int Grp_get_ts (TimeStamp **ts) {
+//================================================================
+// Grp_get_ts   get timstamp of last group-modification
+
+  *ts = &GrpTS;
+  return 0;
+
+}
 
 
 //================================================================
@@ -283,7 +296,7 @@ static int      GrpNr  = 0;
   if(irc <= 0) {TX_Print("no obj selected ..."); return -1;}
 
   // export (native) alle objects of obj-list --> file
-  AP_save__ (1, "gcad");
+  AP_save__ (1, 0, "gcad");
 
   return 0;
 
@@ -318,11 +331,15 @@ static int      GrpNr  = 0;
   // DL_hili_off (-1L);   // unhilite alle Objekte  raus 2011-10-03
 
 
+  // set group modified
+  OS_TimeStamp(&GrpTS);
+
   if(mode) {
     DL_Redraw ();     // redraw
     // display nr of objs in group
     UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
   }
+
 
   return 0;
 
@@ -340,6 +357,8 @@ static int      GrpNr  = 0;
 ///  Output:
 ///    retCode   0  all exising groupObjs cleared
 ///              1  no groupObjs did exist
+///
+/// see also Grp_init
 /// \endcode
 
   int    i1;
@@ -361,9 +380,8 @@ static int      GrpNr  = 0;
     DL_grp1_set (GrpTab[i1].dlInd, OFF);
   }
 
-
-  // clear group
-
+  // set group modified
+  OS_TimeStamp(&GrpTS);
 
   if(mode) {
     DL_Redraw ();     // redraw
@@ -389,6 +407,10 @@ static int      GrpNr  = 0;
   // GrpMax = sizeof(memspc55) / sizeof(ObjDB) - 2;
 
   GrpNr = 0;
+
+  // set group modified
+  OS_TimeStamp(&GrpTS);
+
 
   // UI_AP (UI_FuncSet, UID_ouf_grpNr, (void*)GrpNr);
   // display nr of objs in group
@@ -547,6 +569,9 @@ static int      GrpNr  = 0;
   GrpTab[GrpNr].stat = 0;
   ++GrpNr;
 
+  // set group modified
+  OS_TimeStamp(&GrpTS);
+
   // display nr of objs in group
   if(iUpd == 0)
     UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
@@ -608,7 +633,8 @@ static int      GrpNr  = 0;
     ++GrpNr;
   }
 
-
+  // set group modified
+  OS_TimeStamp(&GrpTS);
 
   return 0;
 
@@ -654,6 +680,10 @@ static int      GrpNr  = 0;
 
   // display nr of objs in group
   L_disp:
+
+  // set group modified
+  OS_TimeStamp(&GrpTS);
+
   if(iUpd == 0)
   UI_AP (UI_FuncSet, UID_ouf_grpNr, PTR_INT(GrpNr));
   // UI_AP (UI_FuncSet, UID_ouf_grpNr, (void*)GrpNr);
@@ -993,6 +1023,9 @@ static int      GrpNr  = 0;
 // mode      0=Redraw & update GrpNr-label
 //           1=update GrpNr-label
 
+
+  // set group modified
+  OS_TimeStamp(&GrpTS);
 
   if(mode == 0) DL_Redraw ();     // redraw
 

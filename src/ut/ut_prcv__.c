@@ -80,6 +80,9 @@ PRCV_set_obj_dbi    create PRCV for bin.obj (must have DB-index)
 PRCV_set_basCv      create PRCV for basicCurve
 PRCV_set_seg        add curve from vs to ve to PRCV
 PRCV_set_find       get previous-parameter and next-parameter
+PRCV_set_obj_plg1   add point into polygon
+PRCV_set_obj_plg2   add 2 points into polygon
+PRCV_add_pt         add single point to PRCV0
 
 PRCV_npt_dbo__      get polygon for DB-obj
 PRCV_npt_trmCv      get polygon of trimmedCurve
@@ -123,7 +126,7 @@ Every basic-curve (except Line) has a PRCV (polygonal_representation_of_curve)
 
 Struct CurvPrcv is a polygonal_representation_of_curve -
   - a list of points (npt),
-  - a list of the paramter-values of this points (npar), 
+  - a list of the parameter-values of this points (npar), 
   - a list of the DB-indices of this points (nipt).
 
 Every trimmed-curve (CurvCCV) refers to a basic-curve (typ,dbi).
@@ -171,7 +174,7 @@ PRCV0 is used for:
 #include "../ut/ut_memTab.h"              // MemTab
 #include "../ut/ut_prcv__.h"              // 
 #include "../ut/ut_os.h"                  // OS_ ..
-#include "../db/ut_DB.h"                  // DB_GetObjDat
+#include "../db/ut_DB.h"                  // UTO__dbo
 #include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa_mem.h"                 // memspc*
 
@@ -402,7 +405,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // test for CCV (must resolv)
   if(prc1->typ != Typ_CV) goto L_get_basCv;
 
-  form = DB_GetObjDat (&obj, &oNr, prc1->typ, prc1->dbi);
+  form = UTO__dbo (&obj, &oNr, prc1->typ, prc1->dbi);
     // printf(" form=%d oNr=%d\n",form,oNr);
   if(form != Typ_CVTRM) goto L_get_basCv;
 
@@ -556,7 +559,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   CurvPrcv prc2 = _PRCV_NUL;
 
 
-  // printf("----------------PRCV_get_dbo_add_tc ------------- \n");
+  // printf("----------------PRCV_get_dbo_add_tc cccccccccccccc\n");
   // DEB_dump_obj__ (Typ_CVTRM, cvi, " PRCV_get_dbo_add_tc-cvi ");
   // DEB_dump_obj__ (Typ_PRCV, prc1, " PRCV_get_dbo_add_tc-prc1 ");
   // PRCV_dump__ (2, prc1, " prc1");
@@ -567,9 +570,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // - get v0 and v1 of trimmedCurve on basicCurve (ccv1.v0 and ccv1.v1)
   irc = CVTRM__basCv__ (&ccv1, &cvBas, cvi);
   if(irc < 0) return -1;
-    // printf(" _dbo_add_tc-1-typ=%d dbi%ld\n",ccv1.typ,ccv1.dbi);
+    // printf(" _dbo_add_tc-1-typ=%d dbi=%ld\n",ccv1.typ,ccv1.dbi);
     // DEB_dump_obj__ (Typ_CVTRM, &ccv1, "     _get_dbo_add_tc-ccv1 ");
-    
+
 
   // if basic-curve == line: get line and add to prc1.
   if(ccv1.typ == Typ_LN) {
@@ -713,10 +716,13 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     PRCV_DB_free (&prc2);
 
   L_exit:
-    // printf("ex PRCV_get_dbo_add_tc\n");
+
+    // TESTBLOCK
     // if(cvi->dbi == 21L)
     // DEB_dump_obj__ (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
     // PRCV_dump__ (2, prc1, " prc1");
+    // printf("ex PRCV_get_dbo_add_tc    ccccccccccccccccccccccccccc\n");
+    // END TESTBLOCK
 
 
   return irc;
@@ -928,8 +934,16 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // printf("PPPPPPPPPPPP PRCV_set_dbo__ %d %ld\n",typ,dbi);
 
 
+
+  // check if dbi exists
+  if(!dbi) {          // no dbi for baseCurve exists
+    TX_Error("PRCV_set_dbo__ E0 - no dbi");
+    return -1;
+  }
+
+
   // get data for dbo
-  form = DB_GetObjDat (&obj, &oNr, typ, dbi);
+  form = UTO__dbo (&obj, &oNr, typ, dbi);
     // printf(" _set_dbo__-form=%d oNr=%d\n",form,oNr);
 
 
@@ -949,28 +963,18 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       // DEB_dump_obj__ (form, &cvt[ii], " obj[%d]",ii);
       // END TESTBLOCK
 
+    // no PRCV for lines
+    if(cvt[ii].typ == Typ_LN) continue;
 
     // trimmed-curve: if its baseCurve does not yet have PRCV: create it.
-    // check if baseCurve already exists
-    if(cvt[ii].typ == Typ_LN) goto L_nxt;  // no PRCV for lines
-
-    if(cvt[ii].dbi < 0) {
-      // test if PRCV already exists
-      if(cvt[ii].stat == 0) {
-        // recurse - create PRCV for baseCurve of this trimmed-curve
-        irc = PRCV_set_dbo__ ((int)cvt[ii].typ, cvt[ii].dbi);
-        if(irc < 0) {TX_Error("PRCV_set_dbo__ E1"); return irc;}
-        // PRCV for basCurve created ..
-        cvt[ii].stat = 1;
-      }
+    if(cvt[ii].stat == 0) {
+      // recurse - create PRCV for baseCurve of this trimmed-curve
+      irc = PRCV_set_dbo__ ((int)cvt[ii].typ, cvt[ii].dbi);
+      if(irc < 0) {TX_Error("PRCV_set_dbo__ E1"); return irc;}
+      // PRCV for basCurve created ..
+      cvt[ii].stat = 1;
     }
-  
-  
-    L_nxt:
-    continue;
-    // ls = UTO_siz_stru (form);
-    // obj = (char*)obj + ls;
-    // cvt = (char*)cvt + ls;
+
   }
 
 
@@ -1000,7 +1004,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 ///   using memspc201
 /// Input:
 ///   typ,dbi       dbo baseCurve
-///   form,obj,oNr  bin.obj (from DB_GetObjDat())
+///   form,obj,oNr  bin.obj (from UTO__dbo())
 /// \endcode
 
 // does not write CCV. CCV is composed at runtime
@@ -1020,7 +1024,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   // printf("\n============= PRCV_set_obj_dbi typ=%d form=%d dbi=%ld oNr=%d\n",
          // typ,form,dbi,oNr);
-  // DEB_dump_obj__ (form, obj, "PRCV_set_obj_dbi");
+  // DEB_dump_obj__ (form, obj, "PRCV_set_obj_dbi-in");
 
 
   if(typ == Typ_LN) return 1;
@@ -1061,8 +1065,11 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     typDB_bas = AP_typDB_typ (typ_bas);
     dbiBas = ccv2.dbi;
 
-      // printf(" set_obj_dbi-typ_bas=%d dbiBas=%ld\n",typ_bas,dbiBas);
-      // DEB_dump_obj__ (typ_bas, cvBas, " cvBas");
+      // TESTBLOCK
+      // printf(" _set_obj_dbi-typ_bas=%d dbiBas=%ld\n",typ_bas,dbiBas);
+      // DEB_dump_obj__ (typ_bas, cvBas, " _set_obj_dbi-cvBas");
+      // END TESTBLOCK
+
 
     // Lines: direct (no PRCV-file)
     if(ccv2.typ == Typ_LN) continue;
@@ -1083,7 +1090,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point ptx from ipx;
         ptx = DB_get_PT (ipdb0x);
         // get parameter v0x from point
-        UT3D_par_pt__pt_prj_cv (&v0x, NULL, 0, ptx, typ_bas, cvBas, UT_DISP_cv);
+        UT3D_par_pt__pt_prj_cv (&v0x, NULL, 1, 1, ptx, typ_bas, cvBas, UT_DISP_cv);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1098,7 +1105,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         // get point from ipx
         ptx = DB_get_PT (ipdb1x);
         // get parameter from point
-        UT3D_par_pt__pt_prj_cv (&v1x, NULL, 0, ptx, typ_bas, cvBas, UT_DISP_cv);
+        UT3D_par_pt__pt_prj_cv (&v1x, NULL, 1, 1, ptx, typ_bas, cvBas, UT_DISP_cv);
           // irc = UTO_parLim_get_cv (&v0, &v1, Typ_CVTRM, ccv1);
           // if(irc < 0) return -1;
       } else {
@@ -1106,8 +1113,10 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
         return -1;
       }
     }
+      // TESTBLOCK
       // printf(" v0x=%lf v1x=%lf\n",v0x,v1x);
       // printf(" ipdb0x=%ld ipdb1x=%ld\n",ipdb0x,ipdb1x);
+      // END TESTBLOCK
 
 
     // make (v0x < v1x)
@@ -1123,48 +1132,37 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     }
 
 
+    //----------------------------------------------------------------
     // get PRCV of basecurve
     prc1.typ    = typDB_bas;
     prc1.dbi    = dbiBas;
     prc1.mdli   = mdli;
 
-    // load prc2 = basecurve
+    // load pr12 = basecurve
     irc = PRCV_DB_load (&prc1);
     if(irc < 0) {
       // not enough memspc for PRCV_rdf__ .. ??
       TX_Error ("PRCV_set_obj_dbi E1-%d-%ld",prc1.typ,prc1.dbi); 
       goto L_err1;   // free prc1
     }
-      // PRCV_dump__ (2, &prc1, "PRCV_set_obj_dbi-bc");
+      // TESTBLOCK
+      // PRCV_dump__ (2, &prc1, "PRCV_set_obj_dbi-prc1");
+      // END TESTBLOCK
 
 
     // index last point
     ipe = prc1.ptNr - 1;
 
-    // find previous-parameter v0s and next-parameter v0e for v0x
-    x0x = PRCV_set_find (&ipdb0s, &ip0s, &v0s,
-                         &ipdb0e, &ip0e, &v0e, &prc1, &v0x);
-      // printf("x0x=%d ip0s=%ld ip0e=%ld v0s=%lf v0e=%lf\n",x0x,ip0s,ip0e,v0s,v0e);
 
-    // find previous-parameter v1s and next-parameter v1e for v1x
-    x1x = PRCV_set_find (&ipdb1s, &ip1s, &v1s,
-                         &ipdb1e, &ip1e, &v1e, &prc1, &v1x);
-      // printf("x1x=%d ip1s=%ld ip1e=%ld v1s=%lf v1e=%lf\n",x1x,ip1s,ip1e,v1s,v1e);
-
-    // both values already exist: done.
-    if(x0x && x1x) continue;    // 2018-07-24
-
-
-  
     //----------------------------------------------------------------
     // init PRCV0
     PRCV0.typ  = prc1.typ;
     PRCV0.dbi  = prc1.dbi;
     PRCV0.mdli = prc1.mdli;
     PRCV0.ptNr = 0;                // clear;
-      // DEB_dump_obj__ (Typ_PRCV, &PRCV0, "_set_dbo_-PRCV0");
+      // DEB_dump_obj__ (Typ_PRCV, &PRCV0, " _set_obj_dbi-PRCV0");
 
-    
+
     // check / prepare space; at least for additional (prc1.ptNr + 10) points
     siz = PRCV0.ptNr + prc1.ptNr + 10;
     if(PRCV0.siz < siz) {
@@ -1174,6 +1172,43 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     }
 
 
+    //----------------------------------------------------------------
+    // find previous-parameter v0s and next-parameter v0e for v0x
+    x0x = PRCV_set_find (&ipdb0s, &ip0s, &v0s,
+                         &ipdb0e, &ip0e, &v0e, &prc1, &v0x);
+
+    // find previous-parameter v1s and next-parameter v1e for v1x
+    x1x = PRCV_set_find (&ipdb1s, &ip1s, &v1s,
+                         &ipdb1e, &ip1e, &v1e, &prc1, &v1x);
+      // TESTBLOCK
+      // printf("x0x=%d ip0s=%ld ip0e=%ld v0s=%lf v0e=%lf\n",x0x,ip0s,ip0e,v0s,v0e);
+      // printf("x1x=%d ip1s=%ld ip1e=%ld v1s=%lf v1e=%lf\n",x1x,ip1s,ip1e,v1s,v1e);
+      // END TESTBLOCK
+
+    // both values already exist: done.
+    if(x0x && x1x) continue;    // 2018-07-24
+
+
+    //----------------------------------------------------------------
+    // polygon: must insert points.
+    if(typ_bas == Typ_CVPOL) {
+      if(x0x) {
+        // v0x already exists
+        PRCV_set_obj_plg1 (ip1s, ipe, v1x, ipdb1x, &prc1);
+
+      } else if(x1x) {
+        // v1x already exists
+        PRCV_set_obj_plg1 (ip0s, ipe, v0x, ipdb0x, &prc1);
+
+      } else {
+        // v0x and v1x do not yet exists
+        PRCV_set_obj_plg2 (ip0s, ip1s, ipe, v0x, v1x, ipdb0x, ipdb1x, &prc1);
+      }
+
+      goto L_xxe;
+    }
+
+  
     //----------------------------------------------------------------
     // if one value already exists:
     if(x0x || x1x) goto L_single;
@@ -1190,6 +1225,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       
 
       // TESTBLOCK
+      // printf(" _set_obj_dbi-add v0x and v1x\n");
       // END TESTBLOCK
 
 
@@ -1279,8 +1315,12 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       ipdb0x = ipdb1x;        // 2019-12-09
     }
 
-      // printf(" L_single-v0s=%lf v0x=%lf v0e=%lf\n",v0s,v0x,v0e);
-      // printf(" L_single-ipdb0s=%ld ipdb0x=%ld ipdb0e=%ld\n",ipdb0s,ipdb0x,ipdb0e);
+      // TESTBLOCK
+      // printf("L_single-v0s=%lf v0x=%lf v0e=%lf\n",v0s,v0x,v0e);
+      // printf("L_single-ip0s=%ld ip0e=%ld\n",ip0s,ip0e);
+      // printf("L_single-ipdb0s=%ld ipdb0x=%ld ipdb0e=%ld\n",ipdb0s,ipdb0x,ipdb0e);
+      // PRCV_dump__ (2, &PRCV0, " _set_obj_dbi-LS0");
+      // END TESTBLOCK
 
 
     //----------------------------------------------------------------
@@ -1289,6 +1329,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     if(ip0s > 0) {
       PRCV_set_copy (&PRCV0, &prc1, 0, ip0s);
     }
+      // PRCV_dump__ (2, &PRCV0, " _set_obj_dbi-LS1");
 
     //----------------------------------------------------------------
     // add v0s to v0x
@@ -1296,6 +1337,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     if(v0s < v0x) {
       PRCV_set_seg (&PRCV0, typ_bas, cvBas, v0s, v0x, ipdb0s, ipdb0x);
     }
+      // PRCV_dump__ (2, &PRCV0, " _set_obj_dbi-LS2");
 
     //----------------------------------------------------------------
     // add v0x to v0e
@@ -1304,6 +1346,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       if(v0e == v1x) ipdb0e = ipdb1x;
       PRCV_set_seg (&PRCV0, typ_bas, cvBas, v0x, v0e, ipdb0x, ipdb0e);
     }
+      // PRCV_dump__ (2, &PRCV0, " _set_obj_dbi-LS3");
 
     //----------------------------------------------------------------
     // copy from v0e to 1.
@@ -1311,20 +1354,21 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     if(ip0e < ipe) {
       PRCV_set_copy (&PRCV0, &prc1, ip0e, ipe);
     }
+      // PRCV_dump__ (2, &PRCV0, " _set_obj_dbi-LS4");
 
 
 
     //----------------------------------------------------------------
     L_xxe:
-      // TESTBLOCK
-      // PRCV_dump__ (2, &PRCV0, "PRCV_set_obj_dbi-L_xxe:");
-      // END TESTBLOCK
+        // TESTBLOCK
+        // PRCV_dump__ (2, &PRCV0, "PRCV_set_obj_dbi-L_xxe:");
+        // END TESTBLOCK
 
-    // store curve
-    PRCV_DB_save (&PRCV0);
+      // store curve
+      PRCV_DB_save (&PRCV0);
 
-    // PRCV_DB_free (&prc1);
-    // prc1 = memspc201
+      // PRCV_DB_free (&prc1);
+      // prc1 = memspc201
 
   }
   
@@ -1345,6 +1389,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
       // TESTBLOCK
       // activate PRCV_DB_dump at end of PRCV_DB_save
+      // PRCV_dump_dbo (2, Typ_CV, dbi);
       // printf("exit-PRCV_set_obj_dbi =====================\n");
       // if((typ=Typ_CV)&&(dbi == 22L)) {fflush (stdout);exit(-1);}
       // END TESTBLOCK
@@ -1358,6 +1403,157 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     PRCV_DB_free (&prc1);
     // if((prc1.fTmp == 0)&&(prc1.npt)) free (prc2.npt);
     return -1;
+
+}
+
+
+//========================================================================
+  int PRCV_set_obj_plg1 (long ipx, long ipe, double vx, long dbi,
+                         CurvPrcv *prc1) {
+//========================================================================
+// PRCV_set_obj_plg1   	          add point into polygon
+// Input:
+//   prc1
+// Output:
+//   PRCV0
+
+  Point    *ptx;
+
+
+  // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
+  // printf("PRCV_set_obj_plg1 ipx=%ld ipe=%ld vx=%f dbi=%ld\n",ipx,ipe,vx,dbi);
+  // printf("PRCV_set_obj_plg1 ip0s=%ld v0x=%f ip0e=%ld ipe=%ld\n",
+         // ip0s,v0x,ip0e,ipe);
+  // PRCV_dump__ (2, prc1, "PRCV_set_obj_plg1-in-prc1");
+
+
+  // get point
+  if(dbi) ptx = DB_get_PT (dbi);
+  else {TX_Error("***** PRCV_set_obj_plg1 TODO 1"); return -1;}
+
+
+  //----------------------------------------------------------------
+  // copy from 0. to v0s (0 - ipx)
+    // printf("------------------ copy_0-ipx=%ld\n",ipx);
+  PRCV_set_copy (&PRCV0, prc1, 0, ipx);
+    // PRCV_dump__ (2, &PRCV0, " cw_set_obj_plg1-LS1");
+
+
+  //----------------------------------------------------------------
+  // add point
+    // printf("------------------ add vx=%lf\n",vx);
+  PRCV_add_pt (&PRCV0, ptx, vx, dbi);
+    // PRCV_dump__ (2, &PRCV0, " _set_obj_plg1-LS2");
+
+
+  //----------------------------------------------------------------
+  // copy from v0e to 1. (ip0e,ipe);
+  ++ipx;
+    // printf("------------------ copy ipx=%ld - end=%ld\n",ipx,ipe);
+  PRCV_set_copy (&PRCV0, prc1, ipx, ipe);
+
+    // TESTBLOCK
+    // PRCV_dump__ (2, &PRCV0, "ex-PRCV_set_obj_plg1");
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//================================================================
+  int PRCV_set_obj_plg2 (long ip0, long ip1, long ipe,
+                         double v0, double v1,
+                         long dbi0, long dbi1, CurvPrcv *prc1) {
+//================================================================
+// PRCV_set_obj_plg2              add 2 points into polygon
+// Input:
+//   prc1
+// Output:
+//   PRCV0
+
+     
+  Point    *pt0, *pt1;
+
+
+  // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
+  // printf("PRCV_set_obj_plg2 ip0=%ld ip1=%ld ipe=%ld\n",ip0,ip1,ipe);
+  // printf("    v0=%f v1=%f dbi0=%ld dbi1=%ld\n",v0,v1,dbi0,dbi1);
+  // PRCV_dump__ (2, prc1, "PRCV_set_obj_plg1-in-prc2");
+
+
+  // get points
+  if(dbi0) pt0 = DB_get_PT (dbi0);
+  else {TX_Error("***** PRCV_set_obj_plg2 TODO 1"); return -1;}
+  if(dbi1) pt1 = DB_get_PT (dbi1);
+  else {TX_Error("***** PRCV_set_obj_plg2 TODO 2"); return -1;}
+
+
+  //----------------------------------------------------------------
+  // copy from 0. to v0s (0 - ipx)
+    // printf("------------------ copy_0-ipx=%ld\n",ip0);
+  PRCV_set_copy (&PRCV0, prc1, 0, ip0);
+    // PRCV_dump__ (2, &PRCV0, " cw_set_obj_plg2-LS1");
+
+
+  //----------------------------------------------------------------
+  // add point 0
+    // printf("------------------ add v0=%lf\n",v0);
+  PRCV_add_pt (&PRCV0, pt0, v0, dbi0);
+    // PRCV_dump__ (2, &PRCV0, " _set_obj_plg1-LS2");
+
+
+  //----------------------------------------------------------------
+  // copy from v0e to 1. (ip0e,ipe);
+  ++ip0;
+    // printf("------------------ copy ip0=%ld - ip1=%ld\n",ip0,ip1);
+  if(ip0 <= ip1) {
+    PRCV_set_copy (&PRCV0, prc1, ip0, ip1);
+  }
+
+
+  //----------------------------------------------------------------
+  // add point 1
+    // printf("------------------ add v1=%lf\n",v1);
+  PRCV_add_pt (&PRCV0, pt1, v1, dbi1);
+    // PRCV_dump__ (2, &PRCV0, " _set_obj_plg1-LS3");
+
+
+  //----------------------------------------------------------------
+  // copy from v0e to 1. (ip0e,ipe);
+  ++ip1;
+    // printf("------------------ copy ip1=%ld - end=%ld\n",ip1,ipe);
+  PRCV_set_copy (&PRCV0, prc1, ip1, ipe);
+
+
+
+    // TESTBLOCK
+    // PRCV_dump__ (2, &PRCV0, "ex-PRCV_set_obj_plg2");
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//===================================================================
+  int PRCV_add_pt (CurvPrcv *prc1, Point *ptx, double vx, long dbi) {
+//==================================================================
+// PRCV_add_pt                   add single point to PRCV0
+
+  int    iis;
+
+  // printf("PRCV_add_pt vx=%f dbi=%ld \n",vx,dbi);
+  // DEB_dump_obj__ (Typ_PT, ptx, " PRCV_add_pt-in-ptx");
+
+  // Point *npt; double *npar; long *nipt;
+  iis = prc1->ptNr;
+  prc1->npt[iis] = *ptx;
+  prc1->npar[iis] = vx;
+  prc1->nipt[iis] = dbi;
+  prc1->ptNr += 1;
+
+  return 0;
 
 }
 
@@ -1414,10 +1610,10 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 }
 
  
-//================================================================
+//====================================================================
   int PRCV_set_seg (CurvPrcv *prc, int form, void *cvBas,
                        double vs, double ve, long ipdbs, long ipdbe) { 
-//================================================================
+//====================================================================
 // add curve from vs to ve to prc
 
   int     irc, i1, iis, iie, ptNr, tabSiz;
@@ -1437,7 +1633,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // DEB_dump_obj__ (form, cvMod, " PRCV_set_seg - cvMod1 ");
 
   // set limitpoints / modify v0, v1
-  UTO_set_ptlim (form, cvMod, NULL, &vs, NULL, &ve);
+  UTO_set_ptlim (form, cvMod, NULL, &vs, NULL, &ve, 1);
     // DEB_dump_obj__ (form, cvMod, " PRCV_set_seg - cvMod2 ");
 
 
@@ -1490,7 +1686,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // TESTBLOCK
     // printf("ex PRCV_set_seg prc.ptNr=%d iis=%d ptNr=%d\n",prc->ptNr,iis,ptNr);
     // PRCV_dump__ (2, prc, "ex-_set_seg");
-    // if(ipdbe == 20L) {fflush (stdout);exit(-1);}
+    // if(ipdbe == 9L) {fflush (stdout);exit(-1);}
     // END TESTBLOCK
 
 
@@ -1645,7 +1841,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   int       irc, i1, ptNr, tabSiz, siz;
   // long      ips, ipe;
-  double    v0, v1;
+  double    v0, v1, *da;
   // CurvPrcv  prc;
 
 
@@ -1692,6 +1888,10 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // init all pointIndices = 0
   memset (PRCV0.nipt, '\0', sizeof(long) * tabSiz);
 
+
+
+
+  //----------------------------------------------------------------
   // init all parameters = invalid
   for(i1=0; i1<tabSiz; ++i1) PRCV0.npar[i1] = UT_VAL_MAX;
 
@@ -1707,8 +1907,20 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // see also: UT3D_npt_obj UT3D_npt_ci UT3D_cv_ci UT3D_pta_ccv
 
 
-  // get limiting parameters for curve
-  irc = UTO_parLim_get_cv (&v0, &v1, form, cvBas);
+  //----------------------------------------------------------------
+  if(form == Typ_CVPOL) {
+    // polygon has fixed point; compute parameters
+    i1 = ((CurvPoly*)cvBas)->ptNr - 1;
+    da = ((CurvPoly*)cvBas)->lvTab;
+    v1 = da[i1];
+    for(i1=0; i1<ptNr; ++i1) PRCV0.npar[i1] = da[i1] / v1;
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // get limiting parameters for curve (0-1-values)
+  irc = UTO_parLim_get_cv (&v0, &v1, 1, form, cvBas);
   if(irc < 0) return -1;
 
 
@@ -1718,8 +1930,10 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   PRCV0.npar[i1] = v1;
 
 
+  //----------------------------------------------------------------
+  L_exit:
     // TESTBLOCK
-    // PRCV_dump__ (1, &PRCV0);
+    // PRCV_dump__ (2, &PRCV0, "ex-PRCV_set_basCv-PRCV0");
     // END TESTBLOCK
 
 
@@ -1752,7 +1966,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   CurvPrcv  prc;
 
 
-  printf("PRCV_dump_dbo %d %d %ld\n",mode,dbTyp,dbi);
+  // printf("PRCV_dump_dbo %d %d %ld\n",mode,dbTyp,dbi);
 
   // if((dbTyp == Typ_LN)      ||
      // (dbTyp == Typ_CVTRM)) goto L_e1;   hier nicht form !
@@ -1768,7 +1982,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   irc = PRCV_DB_load (&prc);
   if(irc < 0) goto L_exit;
 
-  PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
+    // PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
 
 
   L_exit:
@@ -1834,17 +2048,19 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   printf("-------------------- PRCV_dump__ %s\n",txt);
   printf("  %d ptNr=%d siz=%d spcTyp=%d\n", mode, prc->ptNr, prc->siz, prc->spcTyp);
 
+
   for(i1 = 0; i1 < prc->ptNr; ++i1) {
 
     iatt = ATT_COL_YELLOW;
 
+    //----------------------------------------------------------------
     if(mode == 2) {
-      // print all
+      // print all points
       PRCV_dump_1 (i1, prc);
 
-
-    // print marked-points
+    //----------------------------------------------------------------
     } else {
+      // 0 and 1: print marked-points
       // if(prc->npar[i1] != UT_VAL_MAX) {
       if((prc->npar[i1] > -FLT_32_MAX) && (prc->npar[i1] < FLT_32_MAX)) {
         iatt = ATT_COL_RED;
@@ -1856,11 +2072,11 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       }
     }
 
-
+    //----------------------------------------------------------------
     // display
     if(mode == 1) {
       // APT_disp_SymB (SYM_TRI_S, iatt, &prc->npt[i1]);
-      GR_tDyn_symB (&prc->npt[i1], SYM_TRI_S, iatt);
+      GR_tDyn_symB__ (&prc->npt[i1], SYM_TRI_S, iatt);
       if(prc->nipt[i1]) GR_tDyn_txiA (&prc->npt[i1], i1, 0);
     }
 
@@ -1888,11 +2104,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
 
   // printf("----------------- \n");
-  // printf("PRCV_npt_trmCv ptNr=%d\n",*ptNr);
-  // printf("    iNr=%d\n", ++iNr);
-  // DEB_dump_obj__ (Typ_MemTab, mtpa, " PRCV_mtpt_trmCv-in");
+  // DEB_dump_obj__ (Typ_MemTab, mtpa, " PRCV_mtpt_trmCv-in-mtpa");
   // if(mtpa->rNr < 0) exit (-3); // AP_debug__ ("PRCV_mtpt_trmCv");
-  // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
+  // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv-in-ccv1");
 
 
   PRCV0_OCC ();         // occupy PRCV0
@@ -1924,8 +2138,6 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
     // TESTBLOCK
     // DEB_dump_obj__ (Typ_MemTab, mtpa, " ex-PRCV_mtpt_trmCv");
-    // DEB_dump_nobj__ (Typ_PT, *ptNr, pta, "ex-PRCV_npt_trmCv");
-    // GR_tDyn_npt__ (*ptNr, *pta, SYM_STAR_S, 2);
     // END TESTBLOCK
 
   return irc;
@@ -1947,9 +2159,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int      irc;
 
 
-  // printf("PRCV_npt_trmCv ptNr=%d\n",*ptNr);
+  printf("PRCV_npt_trmCv ptNr=%d\n",*ptNr);
   // printf("    iNr=%d\n", ++iNr);
-  // DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
+  DEB_dump_obj__ (Typ_CVTRM, ccv1, " PRCV_npt_trmCv");
 
 
   PRCV0_OCC ();         // occupy PRCV0

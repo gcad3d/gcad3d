@@ -43,6 +43,7 @@ MEM_swap_2db              2 doubles vertauschen                          INLINE
 MEM_swap_2vp              swap 2 pointers                                INLINE
 MEM_swap_2bit             swap 2 bits
 MEM_swap__                2 structs vertauschen
+MEM_swap_nrec             reverse <rNr> records of size <rSiz>
 
 MEM_chg_str               change a part of a string in mem
 MEM_ins_str               insert s2 into s1 (s1 = s2 + s1)
@@ -801,16 +802,59 @@ MEM_alloc_tmp
 }
 
 
+//================================================================
+  int MEM_swap_nrec (void *na, int rNr, int rSiz) {
+//================================================================
+// MEM_swap_nrec          reverse <rNr> records of size <rSiz>
+
+  int    i1, tSpc;
+  void   *mspc;
+  char   *pi, *po;
+
+
+  printf("MEM_swap_nrec rNr=%d rSiz=%d\n",rNr,rSiz);
+  for(i1=0; i1<rNr; ++i1) printf(" %d %f \n",i1,((double*)na)[i1]);
+
+  // get space for all records
+  tSpc = rNr * rSiz;
+  mspc = MEM_alloc_tmp (tSpc);
+
+  // copy all records
+  memcpy (mspc, na, tSpc);
+
+  // copy back in reverse
+  po = na;
+  pi = (char*)mspc + tSpc;
+  for(i1=0; i1<rNr; ++i1) {
+    pi -= rSiz;
+    memcpy (po, pi, rSiz);
+    po += rSiz;
+  }
+
+    // TESTBLOCK
+    printf("ex-MEM_swap_nrec rNr=%d rSiz=%d\n",rNr,rSiz);
+    for(i1=0; i1<rNr; ++i1) printf(" %d %f \n",i1,((double*)na)[i1]);
+    // END TESTBLOCK
+
+
+  return 0;
+
+}
+
+
 //===================================================================
   int MEM_copy_oTab (void **poso, long *sizo,
                      void **posi, int recNr, int sizRec) {
 //===================================================================
-/// \code
-/// copy <recNr> records of size <sizRec> from <posi> to <poso>;
-/// reduce sizo and update <poso>
-/// poso    pointer to next free position; is updated
-/// sizo    size of free space in poso; is reduced
-/// posi    pointer to data to be copied; is changed to new position poso !
+// MEM_copy_oTab     copy n records of size <sizRec> from <posi> to <poso>;
+// reduce sizo and update <poso>
+// poso    pointer to next free position; is updated
+// sizo    size of free space in poso; is reduced
+// posi    pointer to data to be copied; is changed to new position poso !
+
+
+
+
 /// see also MEM_copy_tab
 /// \endcode
 

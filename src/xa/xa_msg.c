@@ -74,6 +74,7 @@ MSG_err_1       print errormessage with 1 parameter, formatted ..
 MSG_get_wTab    get a table of words from integers
 MSG_get_str     get message from string (get key from string; 0 parameters)
 MSG_Init        open / reopen
+MSG_close
 
 MSG_get__
 MSG_read
@@ -154,7 +155,7 @@ Functions:
 
 
 //================================================================
-  Constant-Messages
+  Constant-Messages                           see INF_MSGconst_new
 //================================================================
 Often used, short messages; identified by integers (../xa/xa_msg.h)
 
@@ -268,6 +269,21 @@ char *MSG_ERR_tab[]={
 
 
 //========= Prototypen: =====================
+
+//================================================================
+  int MSG_close () {
+//================================================================
+
+  // printf("MSG_close \n");
+
+  if(MSG_fp) {
+    fclose (MSG_fp);
+    MSG_fp = NULL;
+  }
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -962,7 +978,7 @@ char *MSG_ERR_tab[]={
 /// message-constants: see file msg_const_de.txt
 /// p1 = MSG_const__ (MSG_ok);         // 0=first message = yes
 ///   iMsg - eg MSG_ok - see xa_msg.h
-/// Add new constants:
+/// Add new constants:    see INF_MSGconst_new
 ///   add ID in xa_msg.h;
 ///   add msg in msg_const_de.txt (and all others, msg_const_en.txt ..)
 /// \endcode

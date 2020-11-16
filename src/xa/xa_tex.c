@@ -49,8 +49,8 @@ Tex_setRefInd    save the active TexRef-index
 Tex_getRefInd    returns TexRefAct
 Tex_savRef       overwrite active TexRef-Record
 Tex_getRef       get TexRef-record from TexRef-index
-Tex_TexRef_UpdU  update the userparamters of the active texture
-Tex_TexRef_InitU init the userparamters of the active texture
+Tex_TexRef_UpdU  update the userparameters of the active texture
+Tex_TexRef_InitU init the userparameters of the active texture
 Tex_TexRef_InitS SurfData auf defaults setzen
 Tex_get_fn       get textureFilename from TexRefNr
 Tex_itb_itr      get TexBas-Nr from TexRef-Nr
@@ -432,7 +432,7 @@ static TexBas *actTexBas;
 //================================================================
   int Tex_TexRef_UpdU (TexRef *rtex) {
 //================================================================
-/// update the userparamters of the active texture
+/// update the userparameters of the active texture
 // activeTexture is TexRefAct; set it with ??
 
   // DEB_dump_obj__ (Typ_TEXR, rtex, "Tex_TexRef_UpdU");

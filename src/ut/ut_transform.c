@@ -1233,7 +1233,7 @@ WC_sur_mat WC_sur_imat
       // transform points
       for(i1=0; i1<i4; ++i1) {
         UTRA_app_pt (&pa2[i1], &pa1[i1]);
-          // GR_Disp_pt (&pa2[i1], SYM_TRI_S, 2);
+          // GR_tDyn_symB__ (&pa2[i1], SYM_TRI_S, 2);
       }
       ((SurBSpl*)objo)->cpTab = pa2;     // change address
       break;
@@ -1435,7 +1435,7 @@ WC_sur_mat WC_sur_imat
     UTRA_tra_pt (p2, p2, TRA_TYP[i1], &TRA_TAB[i1]);
   }
 
-    // GR_Disp_pt (p2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p2, SYM_STAR_S, 2);
 
   return 0;
 
@@ -1454,7 +1454,7 @@ WC_sur_mat WC_sur_imat
     UTRA_tra_pt2 (p2, p2, TRA_TYP[i1], &TRA_TAB[i1]);
   }
 
-    // GR_Disp_pt (p2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p2, SYM_STAR_S, 2);
 
   return 0;
 
@@ -1611,7 +1611,7 @@ WC_sur_mat WC_sur_imat
     UTRA_tra_vc (v2, v2, TRA_TYP[i1], &TRA_TAB[i1]);
   }
 
-    // GR_tDyn_vc (v2, NULL, 0, 0);
+    // GR_tDyn_vc__ (v2, NULL, 0, 0);
     // DEB_dump_obj__ (Typ_VC, v2, "ex-UTRA_app_vc");
 
   return 0;

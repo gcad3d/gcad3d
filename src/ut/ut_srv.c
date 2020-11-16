@@ -124,7 +124,7 @@ List_functions_end:
 
   // get ptTop = top-of-cone-point on contourLine
   UT3D_pt_traptmultvc (&ptTop, &cvCov->pt0, &cvCov->vcl, parTopC);
-    // GR_Disp_pt (&ptTop, SYM_SQU_B, 9);
+    // GR_tDyn_symB__ (&ptTop, SYM_SQU_B, 9);
 
   // get cvLnx = line lnx normalized ..
   irc = UT3D_cvLn_obj (&cvLnx, Typ_LN, lnx);
@@ -162,9 +162,9 @@ List_functions_end:
   if(ipBnr < 0) goto L_exit;
 
     // TESTBLOCK
-    // if(ipBnr > 0) GR_Disp_pt (&ptBa[0], SYM_CIR_S, ATT_PT_GREEN);
+    // if(ipBnr > 0) GR_tDyn_symB__ (&ptBa[0], SYM_CIR_S, ATT_PT_GREEN);
     // if(ipBnr > 0) DEB_dump_obj__(Typ_PT, &ptBa[0], " ptBa[0]");
-    // if(ipBnr > 1) GR_Disp_pt (&ptBa[1], SYM_CIR_S, ATT_PT_GREEN);
+    // if(ipBnr > 1) GR_tDyn_symB__ (&ptBa[1], SYM_CIR_S, ATT_PT_GREEN);
     // if(ipBnr > 1) DEB_dump_obj__(Typ_PT, &ptBa[1], " ptBa[1]");
     // END TESTBLOCK
 
@@ -242,9 +242,9 @@ List_functions_end:
 
     // TESTBLOCK
     // printf("--- after-int2pt2pt_lim-ipBnr=%d nxp=%d\n",ipBnr,*nxp);
-    // if(*nxp > 0) GR_Disp_pt (&xpTab[0], SYM_CIR_S, ATT_PT_BLACK);
+    // if(*nxp > 0) GR_tDyn_symB__ (&xpTab[0], SYM_CIR_S, ATT_PT_BLACK);
     // if(*nxp > 0) DEB_dump_obj__(Typ_PT, &xpTab[0], " xpTab[0]");
-    // if(*nxp > 1) GR_Disp_pt (&xpTab[1], SYM_CIR_S, ATT_PT_BLACK);
+    // if(*nxp > 1) GR_tDyn_symB__ (&xpTab[1], SYM_CIR_S, ATT_PT_BLACK);
     // if(*nxp > 1) DEB_dump_obj__(Typ_PT, &xpTab[1], " xpTab[1]");
     // END TESTBLOCK
 
@@ -294,9 +294,9 @@ List_functions_end:
   L_exit:
 
     // printf("--- ex-SRV_pt_int_ln_sCon irc=%d nxp=%d\n",irc,*nxp);
-    // if(*nxp > 0) GR_Disp_pt (&xpTab[0], SYM_SQU_B, 9);
+    // if(*nxp > 0) GR_tDyn_symB__ (&xpTab[0], SYM_SQU_B, 9);
     // if(*nxp > 0) DEB_dump_obj__(Typ_PT, &xpTab[0], " xpTab[0]");
-    // if(*nxp > 1) GR_Disp_pt (&xpTab[1], SYM_SQU_B, 9);
+    // if(*nxp > 1) GR_tDyn_symB__ (&xpTab[1], SYM_SQU_B, 9);
     // if(*nxp > 1) DEB_dump_obj__(Typ_PT, &xpTab[1], " xpTab[1]");
 
   return 0;
@@ -409,9 +409,9 @@ List_functions_end:
   L_exit:
 
     // printf(" ex-SRV_pt_int_ln_sCyl irc=%d nxp=%d\n",irc,*nxp);
-    // if(*nxp > 0) GR_Disp_pt (&xpTab[0], SYM_STAR_S, 9);
+    // if(*nxp > 0) GR_tDyn_symB__ (&xpTab[0], SYM_STAR_S, 9);
     // if(*nxp > 0) DEB_dump_obj__(Typ_PT, &xpTab[0], " xpTab[0]");
-    // if(*nxp > 1) GR_Disp_pt (&xpTab[1], SYM_STAR_S, 9);
+    // if(*nxp > 1) GR_tDyn_symB__ (&xpTab[1], SYM_STAR_S, 9);
     // if(*nxp > 1) DEB_dump_obj__(Typ_PT, &xpTab[1], " xpTab[1]");
 
   return irc;
@@ -451,12 +451,12 @@ List_functions_end:
 
 
   // get AxisObj
-  typCen = DB_GetObjDat (&oCen, &oNr, srv->typCen, srv->indCen);
+  typCen = UTO__dbo (&oCen, &oNr, srv->typCen, srv->indCen);
   if(typCen < 0) {irc = 1; goto L_err;}
     // DEB_dump_obj__ (typCen, oCen, " oCen:");
 
   // get contourObj
-  typCov = DB_GetObjDat (&oCov, &oNr, srv->typCov, srv->indCov);
+  typCov = UTO__dbo (&oCov, &oNr, srv->typCov, srv->indCov);
   if(typCov < 0) {irc = 2; goto L_err;}
     // DEB_dump_obj__ (typCov, oCov, " oCov:");
 
@@ -519,7 +519,7 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
 
   if(typ1 == Typ_PLN) {
     // get Plane
-    typ1 = DB_GetObjDat (&pDat1, &rNr, oSrv->typCen, oSrv->indCen);
+    typ1 = UTO__dbo (&pDat1, &rNr, oSrv->typCen, oSrv->indCen);
       // DEB_dump_obj__ (typ1, pDat1, "Spine:\n");
     *ptSpi = ((Plane*)pDat1)->po;
     *vcSpi = ((Plane*)pDat1)->vz;
@@ -580,7 +580,7 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
 
   // Coverline: typCov,indCov    Typ_LN
     printf(" Cover: typ=%d ind=%ld\n",oSrv->typCov,oSrv->indCov);
-    typ2 = DB_GetObjDat (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
+    typ2 = UTO__dbo (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
 
 
 
@@ -602,18 +602,18 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
 
     // den Punkt auf der Coverline finden;
     // (Wenn Coverline = Radius: am Spine).
-    typ2 = DB_GetObjDat (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
+    typ2 = UTO__dbo (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
     // irc = UTO_pt_par1_obj (&p1, d1, typ2, pDat2);
     irc = UT3D_pt_vc__par_cv (&p1, NULL, typ2, pDat2, 1, d1);
     if(irc < 0) return irc;
-      // GR_Disp_pt (&p1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&p1, SYM_STAR_S, 2);
 
     irc = SRV_axis1 (&ptSpi, &vcSpi, oSrv);
     if(irc < 0) return irc;
 
     // den PunktAufCoverline auf den Spine projizieren.
     UT3D_pt_projptptvc (&p2, &drd, NULL, &p1, &ptSpi, &vcSpi);
-      // GR_Disp_pt (&p2, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&p2, SYM_STAR_S, 2);
 
 
     // rotate p1 around p2/vcSpi -> objo->p1
@@ -643,7 +643,7 @@ return MSG_ERR__ (ERR_TODO_I, "SRV_pt_int_ln_srv TODO-1");
   // see also SRU_CvIso_parsru - along
   } else {
     // *oTyp = oSrv->typCov;
-    typ2 = DB_GetObjDat (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
+    typ2 = UTO__dbo (&pDat2, &rNr, oSrv->typCov, oSrv->indCov);
     *oTyp = typ2;
     if(objo == NULL) goto L_exit;
 

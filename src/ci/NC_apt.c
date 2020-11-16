@@ -215,6 +215,7 @@ cc -c NC_apt.c
 #include "../ut/ut_os.h"               // OS_..
 #include "../ut/func_types.h"                  // Typ_Att_hili
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
+#include "../ut/ut_memTab.h"           // MemTab_..
 
 #include "../gr/ut_gr.h"               /* Typ_PT ...  */
 #include "../gr/ut_DL.h"
@@ -226,7 +227,6 @@ cc -c NC_apt.c
 
 #include "../xa/xa.h"                  // mem_cbuf1_SIZ
 #include "../xa/xa_ed.h"               // AP_mode_enter
-#include "../ut/ut_memTab.h"           // MemTab
 #include "../xa/xa_mem.h"              // memspc51-55
 #include "../xa/xa_edi__.h"            // ED_GetNxtLin
 #include "../xa/xa_uid.h"              // UI_MODE_CAD
@@ -1836,7 +1836,7 @@ static  CurvPoly plg1;
     i1 = UCBS_BspCrvPts (cv1, tbuf1, plg1->ptNr, plg1->cpTab, deg, iTyp, tbuf2);
 
   } else {          // iTyp: 1=Controlpoints
-    i1 = bspl_bsp_ptn (cv1, tbuf1, plg1->cpTab, plg1->ptNr, deg);
+    i1 = UT3D_cbsp_ptn (cv1, tbuf1, plg1->cpTab, plg1->ptNr, deg);
   }
 
 
@@ -1965,7 +1965,7 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
 
 
   // add ccvDat as last record into oxTab
-  o1.typ     = Typ_Data;
+  o1.typ     = Typ_Ptr;
   o1.form    = Typ_CVTRM;
   o1.siz     = 1;
   o1.data    = ccvDat;
@@ -2168,7 +2168,7 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
 
 
   // add ccvDat as last record into oxTab
-  oo1.typ     = Typ_Data;
+  oo1.typ     = Typ_Ptr;
   oo1.form    = Typ_CVTRM;
   oo1.siz     = 1;
   oo1.data    = ccvDat;
@@ -2238,7 +2238,7 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
   ii = 2;
   for(i1=0; i1 < grpNr; ++i1) {
     dbi = aus_tab[i1 + ii];
-    DB_GetObjDat ((void**)&pt1, &i2, aus_typ[i1 + ii], dbi);
+    UTO__dbo ((void**)&pt1, &i2, aus_typ[i1 + ii], dbi);
     pTab[i1] = *pt1;  // copy point
       // DEB_dump_obj__(Typ_PT, &pTab[i1], "  _pTab %d",i1);
   }
@@ -2468,10 +2468,11 @@ tbuf2 = hier werden die Ausgabeobjekte selbst abgelegt.
 
     // TESTBLOCK
     // printf("ex-APT_decode_ccv__-ccNr=%d ------------------------\n",ccNr);
-    // cca[0].v1 = 0.2579;
     // DEB_dump_nobj__ (Typ_CVTRM, ccNr, cca, " ex-APT_decode_ccv__ :");
     // DEB_dump_ox_s_ (ocv, "ex-APT_decode_ccv__");
     // DEB_dump_ox_0 (ocv, "ex-APT_decode_ccv__");
+    // if(ccNr == 14)
+    // return MSG_ERR__ (ERR_TEST, "ex-APT_decode_ccv__");
     // {   Point *pp1;
     // for(i1=0; i1<ccNr; ++i1) {
       // DEB_dump_obj__ (Typ_CVTRM, &cca[i1], "[%d]",i1);
@@ -2736,7 +2737,7 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
     i1 = UCBS_BspCrvPts (cv1, tbuf1, ptNr, pTab, deg, iTyp, tbuf2);
 
   } else {          // iTyp: 1=Controlpoints
-    i1 = bspl_bsp_ptn (cv1, tbuf1, pTab, ptNr, deg);
+    i1 = UT3D_cbsp_ptn (cv1, tbuf1, pTab, ptNr, deg);
   }
 
   cv1->clo = -1;
@@ -3551,7 +3552,7 @@ static  CurvElli          el1;
 
 
   int              irc, i1;
-  Point            *p1, *p2, *p3, pta, pt1;
+  Point            *p1, *p2, *p3, pta[4], pt1, pt2;
   Vector           *v1, *v2;
   Circ             *ci1;
   Plane            pl1;
@@ -3560,6 +3561,7 @@ static  CurvElli          el1;
 
 
 
+  // printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE \n");
   // printf("APT_decode_ell: %d typ=%f\n",aus_anz,aus_tab[0]);
   // for(i1=0; i1<aus_anz; ++i1) {
     // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
@@ -3642,21 +3644,41 @@ static  CurvElli          el1;
     p1 = DB_get_PT ((long)aus_tab[1]);
     v1 = DB_get_VC ((long)aus_tab[2]);
     v2 = DB_get_VC ((long)aus_tab[3]);
-    UT3D_pt_traptvc (&pta, p1, v1);
-    UT3D_pt_traptvc (&pt1, p1, v2);
-    irc = UT3D_el_ptc_ptx_pt (&el1, p1, &pta, &pt1);
 
-    if((aus_anz == 6) &&
+    // elli from centerPt,endPtMajAxis,ptOnElli (360-deg)
+    UT3D_pt_traptvc (&pt2, p1, v1);
+    UT3D_pt_traptvc (&pt1, p1, v2);
+    irc = UT3D_el_ptc_ptx_pt (&el1, p1, &pt2, &pt1);
+      // DEB_dump_obj__(Typ_CVELL, &el1, "  el1-1");
+
+    if((aus_anz >= 6) &&
              (aus_typ[4] == Typ_PT)         &&
              (aus_typ[5] == Typ_PT))            {
-      el1.p1 = DB_GetPoint ((long)aus_tab[4]);
-      el1.p2 = DB_GetPoint ((long)aus_tab[5]);
+      // project points onto ellipse
+      pt1 = DB_GetPoint ((long)aus_tab[4]);
+      irc = UT3D_pt_projptel (&i1, pta, &el1, &pt1);
+      pt1 = pta[0];
+      pt2 = DB_GetPoint ((long)aus_tab[5]);
+      irc = UT3D_pt_projptel (&i1, pta, &el1, &pt2);
+      pt2 = pta[0];
       // set closed-flag
-      if(UT3D_comp2pt(&el1.p1, &el1.p2, UT_TOL_pt))
+      if(UT3D_comp2pt(&pt1, &pt2, UT_TOL_pt))
         el1.clo = 0;    // yes closed
       else
         el1.clo = 1;    // no, different points
+      // get CW-flag
+      if((aus_typ[6] == Typ_cmdNCsub)&&(aus_tab[6] == T_CW))  {
+        // set curve CW
+        el1.srot = 1;    // CW
+        // if(el1.ango > 0.) el1.ango *= -1.;
+          // DEB_dump_obj__ (Typ_CVELL, &el1, "_decode_ell-CW");
+      }
+
+      // update ango of elli
+      UT3D_el_el2pt (&el1, &pt1, &pt2);
+        // DEB_dump_obj__(Typ_CVELL, &el1, "  el1-2");
     }
+
 
     goto L_fertig;
 
@@ -4567,11 +4589,11 @@ static  TraRot  trr;
 // vp2   <aus_typ>     <aus_typ>       1
 
 
-  printf("\nAPT_decode_Joint %d\n",aus_anz);
-  printf("   APT_obj_stat=%d\n",APT_obj_stat);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
+  // printf("\nAPT_decode_Joint %d\n",aus_anz);
+  // printf("   APT_obj_stat=%d\n",APT_obj_stat);
+  // for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // }
 
 
 
@@ -4584,9 +4606,10 @@ static  TraRot  trr;
   oxo = OGX_oxm_copy_ox (spcObj, oTab, aus_anz, 1);
   if(!oxo) goto Par_err;
 
-
-    DEB_dump_ox_0 (oxo, "APT_decode_Joint");
-    DEB_dump_ox_s_ (oxo, "APT_decode_Joint");
+    // TESTBLOCK
+    // DEB_dump_ox_0 (oxo, "APT_decode_Joint");
+    // DEB_dump_ox_s_ (oxo, "APT_decode_Joint");
+    // END TESTBLOCK
 
 
   return 0;
@@ -4818,13 +4841,14 @@ static  TraRot  trr;
 //=============================================================================
 // decode R=Plane/Refsys   (Plane from X-axis)
 
-  int     i1, iPerp;
-  double  d1, d2;
-  Point   pt1, pt2, pt3;
-  Vector  vc1, vc2, vcx, vcy, vcz;
-  Line    *lna;
-  Circ    *cip;
-  Plane   *plp1;
+  int       i1, iPerp;
+  double    d1, d2;
+  Point     pt1, pt2, pt3;
+  Vector    vc1, vc2, vcx, vcy, vcz;
+  Line      *lna;
+  Circ      *cip;
+  Plane     *plp1;
+  ModelRef  *mdr;
 
 
   // printf("APT_decode_pln1 %d\n",aus_anz);
@@ -4927,7 +4951,16 @@ static  TraRot  trr;
       UT3D_pl_pto_vcz_ptx (pln1, &cip->pc, &cip->vz, &cip->p1);
 
 
+    //----------------------------------------------------------------
+    // R = M                                       plane from model
+    } else if(aus_typ[0] == Typ_Model) {
 
+      // get ModelReference
+      mdr = DB_get_ModRef ((long)aus_tab[0]);
+        // DEB_dump_obj__(Typ_Model, mdr, " decode_pln1-M1 %d  ",i1);
+      // get plane from ModelReference
+      UT3D_pl_pto_vcz_vcx (pln1, &mdr->po, &mdr->vz, &mdr->vx);
+        // DEB_dump_obj__(Typ_PLN, pln1, " decode_pln1-M2 %d  ",i1);
 
 
     //----------------------------------------------------------------
@@ -5591,7 +5624,7 @@ see APT_decode_fsub
 
   oxTab = (ObjGX*)memspc51;
 
-    OGX_SET_INT (Typ_Typ, Typ_SURPLN, &oxTab[0]);
+    OGX_SET_INT (&oxTab[0], Typ_Typ, Typ_SURPLN);
     // oxTab[0].typ  = Typ_Typ;
     // oxTab[0].form = Typ_SURPLN;
     // oxTab[0].siz  = 1;
@@ -5912,7 +5945,7 @@ see APT_decode_fsub
 
 
 //=============================================================================
-  int APT_decode_cut_sur (ObjGX *ox1, Memspc *tbuf1, Memspc *tbuf2, Memspc *tbuf3,
+  int APT_decode_tps_opeur (ObjGX *ox1, Memspc *tbuf1, Memspc *tbuf2, Memspc *tbuf3,
                        int aus_anz, int aus_typ[], double aus_tab[]) {
 //=============================================================================
 // Surf = CUT Surf Curv|Surf
@@ -5926,7 +5959,7 @@ see APT_decode_fsub
   int     irc, i1;
 
 
-  printf("APT_decode_cut_sur %d\n",aus_anz);
+  printf("APT_decode_tps_opeur %d\n",aus_anz);
   for(i1=0; i1<aus_anz; ++i1) {
     printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   }
@@ -6110,12 +6143,12 @@ see APT_decode_fsub
 
   // get pt1 = midpoint of contourelement
   UTO_pt_eval_par1_dbo (&pt1, 0.5, srv->typCov, srv->indCov);
-    // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
   // rot. Refsys around axis; point pt1 gives new X-direction
   UT3D_pl_rotpt (&pln, &pln, &pt1);
     // GR_Disp_pln (&pln, 9);
-    // GR_tDyn_vc (&pla->vx, &pla->po, 9, 0);
+    // GR_tDyn_vc__ (&pla->vx, &pla->po, 9, 0);
 
 
   //----------------------------------------------------------------
@@ -6251,7 +6284,7 @@ see APT_decode_fsub
   vcx = pla->vz;   // Circ-Axis = Y.
   UT3D_ci_pt2vcr (ci1, &pla->po, &vcz, &vcx, rdc);
   UT3D_ci_cipt180 (ci1, &ci1->p1);  // change -> 180 deg
-    // GR_Disp_pt (&ci1->p1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&ci1->p1, SYM_STAR_S, 2);
 
 
 
@@ -6515,7 +6548,7 @@ see APT_decode_fsub
       pt2 = DB_GetPoint ((long)aus_tab[5]);
       // pt1 = project point pt2 --> line ln1
       UT3D_pt_projptln (&pt1, NULL, NULL, &pt2, &lnCo);
-      // get paramter of pt1 on lnCo.
+      // get parameter of pt1 on lnCo.
       UT3D_parpt_ln__ (&srv->v0, &pt1, &lnCo);
 
     } else goto L_err1;
@@ -6533,7 +6566,7 @@ see APT_decode_fsub
       pt2 = DB_GetPoint ((long)aus_tab[6]);
       // pt1 = project point pt2 --> line ln1
       UT3D_pt_projptln (&pt1, NULL, NULL, &pt2, &lnCo);
-      // get paramter of pt1 on ln1
+      // get parameter of pt1 on ln1
       UT3D_parpt_ln__ (&srv->v1, &pt1, &lnCo);
 
     } else goto L_err1;
@@ -7114,18 +7147,26 @@ static ObjGX   oxa[2];
 
 
 //======================================================================
-  int APT_decode_msh_p (ObjGX *ox1,
+  int APT_decode_msh_p (ObjGX *ox1, long dbi,
                         int aus_anz, int aus_typ[], double aus_tab[]) {
 //======================================================================
 // A1=PTAB "filNam"
 // eigentlich nix tun; dummy ..
 
 
+  // printf("APT_decode_msh_p %d\n",aus_anz);
+  // { int i1; for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]); }}
 
-  ox1->typ    = Typ_SURPTAB;   // dummyMode (DB_StoreSur)
-  ox1->form   = Typ_NULL;
-  ox1->siz    = 0;
-  ox1->data   = NULL;
+  
+
+//   ox1->typ    = Typ_SURPTAB;   // dummyMode (DB_StoreSur)
+//   ox1->form   = Typ_NULL;
+//   ox1->siz    = 0;
+//   ox1->data   = NULL;
+
+  // create ObjGX for DB
+  OGX_SET_INDEX (ox1, Typ_SURPTAB, dbi);
 
   return 0;
 
@@ -7154,7 +7195,7 @@ static ObjGX   oxa[2];
 
 
   // create ObjGX for DB
-  OGX_SET_INDEX (ox1, Typ_SURMSH, surNr);
+  OGX_SET_INDEX (ox1, Typ_SURPMSH, surNr);
 
 
   return 0;
@@ -8903,7 +8944,7 @@ static ModelRef *mod1, modR1;
     }
 
     d1 = lenVc;
-    UT3D_pt_vc__par_ci (&pt1, &vc1, &ci1, 1, d1);
+    UT3D_pt_vc__par_ci (&pt1, &vc1, &ci1, d1);
     // UT3D_vc_tng_ci_pt (&vc1, &pt1, &ci1);
     UT3D_vc_setLength (&vc1, &vc1, 1.);
       // DEB_dump_obj__ (Typ_VC, &vc1, "vc1 in APT_decode_vc");
@@ -9140,7 +9181,7 @@ static ModelRef *mod1, modR1;
     // D = C PTS            // standard-points of circ; start-, end-, center
     if(aus_typ[1]==Typ_PTS) {
       i1 = aus_tab[1];
-      APT_modMax1 = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, i1, typ1, cip);
+      APT_modMax1 = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, 0, i1, typ1, cip);
       if(APT_modMax1 < 0) goto L_parErr;
       goto Fertig;
   
@@ -9196,7 +9237,7 @@ static ModelRef *mod1, modR1;
 
         // get point and vector of tangent
         L_D_S_PTS1:  // ptNr=i1, obj=(typ1,vp1)
-        irc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, i1, typ1, vp1);
+        irc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, 0, i1, typ1, vp1);
         if(irc < 0) goto L_parErr;
         goto Fertig;
 
@@ -9459,7 +9500,7 @@ static ModelRef *mod1, modR1;
           // DEB_dump_obj__(typ1, vp1, "  _decode_pt-S_SEG-PTI");
 
         // get pointTyp <i2> from geom-obj (typ1,vp1);
-        irc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, i2, typ1, vp1);
+        irc = UT3D_ptvcpar_std_obj (NULL, &vc1, NULL, 0, i2, typ1, vp1);
         if(irc < 0) goto L_noFunc;
         APT_modMax1 = irc;
         goto Fertig;  // vc1
@@ -9908,14 +9949,15 @@ static ModelRef *mod1, modR1;
   int     ii;
 
 
-  // printf("APT_decode_ldrc |%d| APT_prim_typ=%d\n",aus_anz,APT_prim_typ);
-  // for(ii=0; ii<aus_anz; ++ii)
-  // printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
+  printf("APT_decode_ldrc |%d| APT_prim_typ=%d\n",aus_anz,APT_prim_typ);
+  for(ii=0; ii<aus_anz; ++ii)
+  printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
 
 
   ii = 1;
 
-  atx->aTyp = 3;  // 3=Label-Kreis
+  atx->aTyp = 3;      // 3=Label-Kreis
+  atx->txt  = NULL;   // no text
 
   if(aus_typ[ii] != Typ_PT) goto L_parErr;
   atx->p1 = DB_GetPoint ((long)aus_tab[ii]);
@@ -11115,7 +11157,7 @@ Rückgabewert ist der gefundene Index.
       }
 
 
-      irc = UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, i1, Typ_ObjGX, ox1p);
+      irc = UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, 0, i1, Typ_ObjGX, ox1p);
       goto Exit;
 
 /*
@@ -11143,7 +11185,7 @@ Rückgabewert ist der gefundene Index.
           UT3D_pt_traptvclen (pt_out, &((CurvElli*)ox1p->data)->pc,
                                       &((CurvElli*)ox1p->data)->va, -d1);
         }
-        UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, mType, Typ_CVELL, ox1p->data);
+        UT3D_ptvcpar_std_obj (pt_out, NULL, NULL, 0, mType, Typ_CVELL, ox1p->data);
         APT_modMax1 = 5;                                         // 2013-03-17
         goto Exit;
 
@@ -11178,9 +11220,9 @@ Rückgabewert ist der gefundene Index.
       } else if(ox1p->typ == Typ_CVTRM) {
         // UT3D_pt_endptccv (pa, ox1p);
         if(imod == 0) {  // startpt
-          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_ObjGX, ox1p);
+          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_start, Typ_ObjGX, ox1p);
         } else if(imod == 1) {  // end Pt
-          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_end, Typ_ObjGX, ox1p);
+          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_end, Typ_ObjGX, ox1p);
         }
         APT_modMax1 = 2;
         goto Fertig3D;
@@ -11278,11 +11320,11 @@ Rückgabewert ist der gefundene Index.
           // see Ptyp_def, Ptyp_start, Ptyp_end
           i1 = (int)aus_tab[1];
           // get obj (mtyp,vp1) from ato
-          mtyp = DB_GetObjDat (&vp1, &oNr, aus_typ[0], (long)aus_tab[0]);
+          mtyp = UTO__dbo (&vp1, &oNr, aus_typ[0], (long)aus_tab[0]);
           if(mtyp <= 0) goto L_noFunc;
             // DEB_dump_obj__(mtyp, vp1, "decode_pt-2-PTS");
           // get point from geom-obj (mtyp,vp1);
-          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, i1, mtyp, vp1);
+          irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, i1, mtyp, vp1);
           if(irc < 0) goto L_noFunc;
           APT_modMax1 = irc;
           goto EX_PT;  // pt1
@@ -11292,7 +11334,7 @@ Rückgabewert ist der gefundene Index.
           // get indexed-point from geom-obj
           i1 = (int)aus_tab[1];
           // get obj (mtyp,vp1) from ato
-          mtyp = DB_GetObjDat (&vp1, &oNr, aus_typ[0], (long)aus_tab[0]);
+          mtyp = UTO__dbo (&vp1, &oNr, aus_typ[0], (long)aus_tab[0]);
           if(mtyp <= 0) goto L_noFunc;
             // DEB_dump_obj__(mtyp, vp1, "decode_pt-2-PTI");
           // get point from geom-obj (mtyp,vp1);
@@ -11644,7 +11686,7 @@ Rückgabewert ist der gefundene Index.
       // P = C VAL            // Parameter on Cir
       } else if(aus_typ[1] == Typ_Val)            {
 
-        UT3D_pt_vc__par_ci (&pt1, NULL, &ci1, 1, aus_tab[1]);
+        UT3D_pt_vc__par_ci (&pt1, NULL, &ci1, aus_tab[1]);
         goto Fertig3D;
 
 
@@ -11766,7 +11808,7 @@ Rückgabewert ist der gefundene Index.
         // get 1=startPt 2=endPt
         i1 = APT_prim_sg2;
         if(mtyp == Typ_CVPOL) i1 *= -1;  // only polygon: get cornerpoints
-        irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, i1, mtyp, obj1);
+        irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, i1, mtyp, obj1);
         if(irc < 0) goto L_noFunc;
         goto Fertig3D;
 
@@ -12075,7 +12117,7 @@ Rückgabewert ist der gefundene Index.
           // DEB_dump_obj__(mtyp, vp1, "  _decode_pt-S_SEG-PTI");
 
         // get pointTyp <i2> from geom-obj (mtyp,vp1);
-        irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, i2, mtyp, vp1);
+        irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, i2, mtyp, vp1);
         if(irc < 0) goto L_noFunc;
         goto EX_PT;  // pt1
 
@@ -13391,7 +13433,7 @@ Rückgabewert ist der gefundene Index.
 
     // L = C param                // tangent to parametric point on circ
     if(f_val) {
-      UT3D_pt_vc__par_ci (&pt1, &vc1, cip, 1, dVal);
+      UT3D_pt_vc__par_ci (&pt1, &vc1, cip, dVal);
       // UT3D_vc_tng_ci_pt (&vc1, &pt1, cip);
       UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
       goto LL_exit_p_v;   // from pt1, vc1
@@ -13656,7 +13698,7 @@ Rückgabewert ist der gefundene Index.
 
         // get point and vector of tangent
         L_L_S_PTS1:  // ptNr=i1, obj=(typ1,vp1)
-        irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, i1, typ1, vp1);
+        irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, 0, i1, typ1, vp1);
         UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
         if(irc < 0) goto Geom_err;
         goto LL_exit_e_v;
@@ -13705,7 +13747,7 @@ Rückgabewert ist der gefundene Index.
                   (ox1p->form == Typ_CVTRM))     {
           // get bin.obj of curv (standardCurve of trimmedCurve)
           irc = UTO_objDat_dbS (&vp1, &typ1, (long)aus_tab[0], iSeg1, iSeg2, obj1);
-              printf(" ex-UTO_objDat_dbS irc=%d typ1=%d\n",irc,typ1);
+              // printf(" ex-UTO_objDat_dbS irc=%d typ1=%d\n",irc,typ1);
           if(irc < 0) goto Geom_err;
           if(typ1 == Typ_LN) {
             // line eg ex (CVPLG SEG)
@@ -13721,7 +13763,7 @@ Rückgabewert ist der gefundene Index.
 
           } else {
             // get point and vector of tangent from standardPoint on curve
-            irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, i1, typ1, vp1);
+            irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, 0, i1, typ1, vp1);
             UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
           }
           if(irc < 0) goto Geom_err;
@@ -13815,7 +13857,7 @@ Rückgabewert ist der gefundene Index.
           if(irc < 0) goto Geom_err;
             // DEB_dump_obj__(typ1, vp1, "  _decode_ln-L-Si_SEG-PTS");
           // get pt & vec at standard-point i1
-          irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, i1, typ1, vp1);
+          irc = UT3D_ptvcpar_std_obj (&pt1, &vc1, NULL, 0, i1, typ1, vp1);
           if(irc < 0) goto Par_err;
           UT3D_vc_setLength (&vc1, &vc1, UT_LEN_TNG);  // length tangent
           goto L_pt_vc1;  // pt1,vc1
@@ -13882,7 +13924,7 @@ Rückgabewert ist der gefundene Index.
         // vc1 = Normalwinkel auf pt1-pt0 in der X-Y-Ebene.
         UT3D_vc_perp2vc (&vc2, &vc1, (Vector*)&WC_sur_act.vz);
         UT3D_vc_setLength (&vc2, &vc2, 1.);
-          // GR_tDyn_vc (&vc2, &pt1, 2, 0);
+          // GR_tDyn_vc__ (&vc2, &pt1, 2, 0);
 
         // [Angle-Tilt]
         // if(aus_typ[i1] != Typ_Angle) goto Par_err;
@@ -15493,8 +15535,8 @@ Rückgabewert ist der gefundene Index.
       // printf(" C=ARC A E r\n");
       pp1 = DB_get_PT ((long)aus_tab[1]);  // pa
       pp2 = DB_get_PT ((long)aus_tab[2]);  // pe
-        // GR_Disp_pt (pp1, SYM_TRI_S, 2);
-        // GR_Disp_pt (pp2, SYM_TRI_S, 2);
+        // GR_tDyn_symB__ (pp1, SYM_TRI_S, 2);
+        // GR_tDyn_symB__ (pp2, SYM_TRI_S, 2);
       ci3d.rad = fabs(aus_tab[3]);
       i1 = 4;
 
@@ -15655,12 +15697,11 @@ Rückgabewert ist der gefundene Index.
         pp2  = DB_get_PT ((long)aus_tab[2]);      // midPt
         pp3  = DB_get_PT ((long)aus_tab[3]);      // endPt
 
-        // make 360-grad-circ from points
+        // make 360-deg-circ from points
         i1 = UT3D_ci_3pt (&ci3d, pp1, pp2, pp3);
         if(i1 < 0) goto Geom_err;
 
-        // ci3d.p1 = *pp1;
-        // ci3d.p2 = *pp2;
+        // set pp3 endpoint
         UT3D_ci_cip2 (&ci3d, pp3);
 
         goto Fertig3D;
@@ -15814,7 +15855,7 @@ Rückgabewert ist der gefundene Index.
       } else if (aus_typ[1] == Typ_CV)             {
         ci3d.pc = *pp1;
           // DEB_dump_obj__(Typ_PT, &ci3d.pc, "pt:");
-        i1 = DB_GetObjDat (&o1, &i2, Typ_CV, (long)aus_tab[1]);
+        i1 = UTO__dbo (&o1, &i2, Typ_CV, (long)aus_tab[1]);
           // DEB_dump_obj__(i1, oDat, "curv:");
         // prj point -> curve
         UPRJ_def__ (i1, o1, 1, NULL);
@@ -16624,7 +16665,8 @@ Rückgabewert ist der gefundene Index.
 
   if(Dreh < 0) {
     ci3d.rad  = -fabs(ci3d.rad);
-    ci3d.ango = -fabs(ci3d.ango);
+    // ci3d.ango = -fabs(ci3d.ango);
+    UT3D_ci_setangr (&ci3d);
   }
 
   // vz normieren
@@ -18172,7 +18214,7 @@ Rückgabewert ist der gefundene Index.
   static int  defTyp;
   static long defInd;
 
-  int       i1, oTyp, oInd, iNew, iCmd;
+  int       i1, oTyp, iNew, iCmd;
   long      dbi, dli, oSiz;
   double    d1;
   char      obj1[OBJ_SIZ_MAX];
@@ -18386,7 +18428,7 @@ Rückgabewert ist der gefundene Index.
   // obj not yet created; (parameters prepared)
   L_work1:
   oTyp = *eTyp;
-  oInd = *eInd;
+  // oInd = *eInd;
 
     // for(i1=0;i1<aus_anz;++i1)
     // printf(" aus_typ[%d] %d aus_tab %f\n",i1,aus_typ[i1],aus_tab[i1]);
@@ -18596,8 +18638,7 @@ Rückgabewert ist der gefundene Index.
 
     //---------------------------------------------------------------
     case Typ_CV:  // from "S"
-
-      // printf(" APT_store_obj - Curve - typ=%f\n",aus_tab[0]);
+        // printf(" APT_store_obj - Curve - typ=%f\n",aus_tab[0]);
 
       if(aus_typ[0] == Typ_cmdNCsub)  {
       iCmd = aus_tab[0];
@@ -18751,7 +18792,7 @@ Rückgabewert ist der gefundene Index.
 
 
         } else if(iCmd == T_PTAB) {
-          i1 = APT_decode_msh_p (&ox1, aus_anz, aus_typ, aus_tab);
+          i1 = APT_decode_msh_p (&ox1, defInd, aus_anz, aus_typ, aus_tab);
           if(i1 < 0) return -1;
           goto L_SUR_sav;
 
@@ -19747,8 +19788,8 @@ Rückgabewert ist der gefundene Index.
 //  // get limits of obj to cut -> pt1/pt2 or v1/v2
 //  irc = UTO_2pt_limstru (&pt1, &pt2, &v1, &v2, o0Typ, obj0);
 //  if(irc < 0) return irc;
-//    // GR_Disp_pt (&pe1, SYM_TRI_S, 2);
-//    // GR_Disp_pt (&pe2, SYM_TRI_S, 2);
+//    // GR_tDyn_symB__ (&pe1, SYM_TRI_S, 2);
+//    // GR_tDyn_symB__ (&pe2, SYM_TRI_S, 2);
 //
 //
 //
@@ -19895,8 +19936,8 @@ Rückgabewert ist der gefundene Index.
 //=============================================================
 //  // die Endpunkte von o0 nach pe1, pe2 holen
 //  UTO_2pt_limstru (&pe1, &ve1, &pe2, &ve2, o0Typ, obj0);
-//    // GR_Disp_pt (&pe1, SYM_TRI_S, 2);
-//    // GR_Disp_pt (&pe2, SYM_TRI_S, 2);
+//    // GR_tDyn_symB__ (&pe1, SYM_TRI_S, 2);
+//    // GR_tDyn_symB__ (&pe2, SYM_TRI_S, 2);
 //
 //
 //  // den Schnittpunkt auswaehlen und > pt1
@@ -19912,7 +19953,7 @@ Rückgabewert ist der gefundene Index.
 //    ii = 0;
 //    // printf(" ie=%d\n",ie);
 //  }
-//    // GR_Disp_pt (&pt1, SYM_TRI_S, 2);
+//    // GR_tDyn_symB__ (&pt1, SYM_TRI_S, 2);
 //
 //  pt1 = pa[ii];
 //  v1  = va[ii];
@@ -20384,10 +20425,10 @@ Rückgabewert ist der gefundene Index.
     ox1 = DB_GetSur ((long)aus_tab[3], 1);
     if(ox1->typ == Typ_Error) goto ParErr;
 
-    // Typ_SURMSH:
+    // Typ_SURPMSH:
     // load surMeshNr and surPtabNr into ia for projTarget
-    if(ox1->typ == Typ_SURMSH) {
-      typt = Typ_SURMSH;
+    if(ox1->typ == Typ_SURPMSH) {
+      typt = Typ_SURPMSH;
       ia[0] = aus_tab[3];                // surMeshNr
       ia[1] = OGX_GET_INT (ox1);       // surPtabNr
       tSur = ia;
@@ -20544,23 +20585,23 @@ Rückgabewert ist der gefundene Index.
 
   //================================================================
   // load obj-what
-  oWhat.typ = DB_GetObjDat (&obji, &i1, oWhat.typ, oWhat.dbInd);
+  oWhat.typ = UTO__dbo (&obji, &i1, oWhat.typ, oWhat.dbInd);
   if(oWhat.typ <= 0) return -1;
     // printf(" what.typ %d\n",oWhat.typ);
 
 
   //================================================================
   // load obj-where
-  oWhere.typ = DB_GetObjDat (&datWhere, &oNr, oWhere.typ, oWhere.dbInd);
+  oWhere.typ = UTO__dbo (&datWhere, &oNr, oWhere.typ, oWhere.dbInd);
   if(oWhere.typ <= 0) return -1;
     // printf(" where.typ=%d oNr=%d\n",oWhere.typ,oNr);
 
 
-  // Typ_SURMSH:
+  // Typ_SURPMSH:
   // load surMeshNr and surPtabNr into ia for projTarget
   if(oWhere.typ == Typ_SUR) {
-    if(((ObjGX*)datWhere)->typ == Typ_SURMSH) {
-      oWhere.typ = Typ_SURMSH;
+    if(((ObjGX*)datWhere)->typ == Typ_SURPMSH) {
+      oWhere.typ = Typ_SURPMSH;
       ia[0] = oWhere.dbInd;                       // surMeshNr
       ia[1] = OGX_GET_INT ((ObjGX*)datWhere);         // surPtabNr
       datWhere = ia;
@@ -20757,7 +20798,7 @@ static char     oAux[OBJ_SIZ_MAX];
       // pt1 = DB_get_PT ((long)aus_tab[2]);
 /* see TSU_tr_init_ :3433
 ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
-      // get paramters of point on surf
+      // get parameters of point on surf
       UT3D_uvNr_sbsp (&i1, &i2, TSU_sbsp, &wrkSpc);
       UT3D_ptgrid_sbsp (TSU_grid, &du, &dv, TSU_sbsp, i1, i2, &wrkSpc);
       UT3D_parsbsp_pt (&d1, &d2, pt1,
@@ -20893,9 +20934,9 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
     dbi1 = atoi(&ep[0][1]);
     dbi2 = atoi(&ep[1][1]);
     // get data
-    irc = DB_GetObjDat (&o1, &rNr, typ1, dbi1);
+    irc = UTO__dbo (&o1, &rNr, typ1, dbi1);
     if(irc < 0) return -1;
-    irc = DB_GetObjDat (&o2, &rNr, typ2, dbi2);
+    irc = UTO__dbo (&o2, &rNr, typ2, dbi2);
     if(irc < 0) return -1;
     irc = 0;
     if(UT3D_comp2vc_d(&((Circ*)o1)->vz, &((Plane*)o2)->vz, UT_TOL_min0)) {
@@ -21376,23 +21417,22 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
                   int aus_anz, int aus_typ[], double aus_tab[],
                   Memspc *tSpc1) {
 //================================================================
-// Import joints.
+// Import joints.   eg "R20=IMP M20 J1"
 // Input:
 //   aus_anz/ausTyp/ausTab   atomicObjs
 //   oxo    outputfield, sizeof ObjGX
 // Output:
 //   oSpc   the first ObjGX in oSpc ist the resulting outputObj
 
-  int       i1, ii, ibMdl, iJnt;
+  int       irc, i1, ii, ibMdl, iJnt, jTyp;
   long      irMdl;
   double    aa;
-  Point     *pt1;
   ObjGX     *ox1;
   Mat_4x3   mat1;
-  ModelRef  *mr1;
-  void      *vp1;
+  void      *obj;
 
 
+  // printf("------------------------------------------- \n");
   // printf("APT_IMP__ %d\n",aus_anz);
   // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
@@ -21403,45 +21443,48 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
   if(aus_typ[ii] != Typ_Model) goto L_ParErr;
   irMdl = aus_tab[ii];
 
+  // get matrix of referenceModel 
+  Mod_m3_mdr (mat1, irMdl);
+    // DEB_dump_obj__ (Typ_M4x3, mat1, " _IMP__-mat1\n");
+
+
+  //----------------------------------------------------------------
   // get JointNr
   ++ii; // 2=Joint
   if(aus_typ[ii] != Typ_Joint) goto L_ParErr;
   iJnt = aus_tab[ii];
   ++ii;
 
-
   // import joint from DB-file
-  i1 = JNT_imp__ (oSpc, &ibMdl, irMdl, iJnt);
-  if(i1 < 0) return -1;
+  irc = JNT_imp__ (oSpc, &ibMdl, irMdl, iJnt);
+  if(irc < 0) return -1;
 
-
-  //----------------------------------------------------------------
-  // transform joints into active position ..
+  // get ox1 = primary-obj of joint
   ox1 = UME_get_start (oSpc);
     // printf(" ox1.typ=%d bmdlNr=%d\n",ox1->typ,ibMdl);
+    // DEB_dump_ox_0 (ox1, " _IMP__-ox1(joint)");
+
+  // get type and pointer to obj
+  OGX_GET_OBJ (&jTyp, &obj, &ii, ox1);
+    // DEB_dump_obj__ (jTyp, obj, " _IMP__-obj");
 
 
   //----------------------------------------------------------------
-  if(ox1->typ == Typ_PT) {
-    // get pointAdress
-    pt1 = ox1->data;
-
-    // get matrix of referenceModel 
-    Mod_m3_mdr (mat1, irMdl);
+  if(jTyp == Typ_PT) {
+//     // get pointAdress
+//     pt1 = ox1->data;
 
     // transform point
-    UT3D_pt_tra_pt_m3 (pt1, mat1, pt1);
+    UT3D_pt_tra_pt_m3 (obj, mat1, obj);
 
 
+/*
   //----------------------------------------------------------------
   } else if(ox1->typ == Typ_Note) {
-    if(ox1->form == Typ_GTXT) {
+    if(jTyp == Typ_GTXT) { 
       // get pointAdress
-      pt1 = &((GText*)ox1->data)->pt;
+      pt1 = &((GText*)obj)->pt;
         // DEB_dump_obj__ (Typ_PT, pt1, " pt1\n");
-
-      // get matrix of referenceModel 
-      Mod_m3_mdr (mat1, irMdl);
 
       // transform point
       UT3D_pt_tra_pt_m3 (pt1, mat1, pt1);
@@ -21456,10 +21499,9 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
           // save new text
           vp1 = UME_save (oSpc, memspc011, i1);
           // modify text ..
-          ((GText*)ox1->data)->txt = (char*)vp1;
+          ((GText*)obj)->txt = (char*)vp1;
         }
       }
-
 
       // get the plane of refModel <irMdl>
       mr1 = DB_get_ModRef (irMdl);
@@ -21470,14 +21512,38 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
         // printf(" aa=%f\n",UT_DEGREES(aa));
 
       // add to GText-angle <dir>
-      aa = UT_DEGREES(aa) + ((GText*)ox1->data)->dir;
+      aa = UT_DEGREES(aa) + ((GText*)obj)->dir;
       UT2D_angd_set (&aa);
-      ((GText*)ox1->data)->dir = aa;
+      ((GText*)obj)->dir = aa;
         // DEB_dump_obj__ (Typ_GTXT, ox1->data, "mod.note\n");
 
-    }
-  }
+    } else goto L_err_unsupp;
+*/
 
+  //----------------------------------------------------------------
+  } else if(jTyp == Typ_PLN) {
+    // get refSys of joint (position and orientation in subModel)
+
+//     // get ModelRef of subModel (= active position of subModel in active-model)
+//     mr1 = DB_get_ModRef (irMdl);
+//       DEB_dump_obj__ (Typ_Model, mr1, " _IMP__-mr1");
+//     // mr1.po = origin of subModel in active-model;
+//     // mr1.vx and .vz is the orientation.
+
+    // obj = the plane of refModel <irMdl>
+    // Transfer coordinates from subModel -> active-model;
+    UT3D_pl_tra_m3 (obj, obj, mat1);
+
+
+  //----------------------------------------------------------------
+  } else goto L_err_unsupp;
+
+
+    // TESTBLOCK
+    // printf("ex-APT_IMP__ \n");
+    // DEB_dump_ox_0 (ox1, "ex-APT_IMP__-oSpc ");
+    // END TESTBLOCK
+ 
 
   return 0;
 
@@ -21486,6 +21552,9 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
     TX_Error("Joint-import: - Error Parameters");
     return -1;
 
+  L_err_unsupp:
+    TX_Error("Joint-import: - obj %d not supported",ox1->form);
+    return -1;
 
 }
 
@@ -21988,8 +22057,8 @@ static Line lno;
 
 
   // get datastructs from typ, DB-index; for curves we need the subtyp
-  oTyp1 = DB_GetObjDat (&o1, &i1, dbTyp1, dbInd1);
-    // DEB_dump_obj__ (oTyp1, o1, " o1 nach DB_GetObjDat");
+  oTyp1 = UTO__dbo (&o1, &i1, dbTyp1, dbInd1);
+    // DEB_dump_obj__ (oTyp1, o1, " o1 nach UTO__dbo");
 
 
   if(dbTyp2 == Typ_Val) {
@@ -21997,8 +22066,8 @@ static Line lno;
     o2 = &aus_tab[io2];
 
   } else {
-    oTyp2 = DB_GetObjDat (&o2, &i1, dbTyp2, dbInd2);
-      // DEB_dump_obj__ (oTyp2, o2, " o2 nach DB_GetObjDat");
+    oTyp2 = UTO__dbo (&o2, &i1, dbTyp2, dbInd2);
+      // DEB_dump_obj__ (oTyp2, o2, " o2 nach UTO__dbo");
   }
 
     // printf(" oTyp1=%d oTyp2=%d xxxxxxxxxxxxxxxxxxxxxxxxxx\n",oTyp1,oTyp2);
@@ -22024,7 +22093,7 @@ static Line lno;
   OGX_SET_INDEX (&ox1, dbTyp1, dbInd1);
   OGX_SET_INDEX (&ox2, dbTyp2, dbInd2);
   pNr = 0;
-  irc = UTO_npt_int_2ox (&pNr, pa, va, 20, &ox1, &ox2, tSpc1);
+  irc = UTO_npt_int_2ox (&pNr, pa, NULL, 20, 0, &ox1, &ox2, tSpc1);
     // printf("ex _npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
   if(irc < 0) return irc;
 
@@ -22310,7 +22379,7 @@ static Line lno;
                   int aus_anz, int aus_typ[], double aus_tab[]) {
 //================================================================
 /// \code
-/// Reverse object
+/// APT_REV__                      reverse curve (trimmed-curve, bwd)
 /// obj = REV obj_to_reverse
 /// Resulting objType is alwas CurvCCV
 ///
@@ -22339,22 +22408,8 @@ static Line lno;
     // printf("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR \n");
     // printf("APT_REV__ %d %ld\n",iTyp,iDbi);
 
-
-
-  //----------------------------------------------------------------
-  // Circle
-  if(iTyp != Typ_CI) goto L_curv;
-  DB_GetObjDat (&iCv, &oNr, iTyp,iDbi);
-  oCv = UME_reserve (oSpc, sizeof(Circ));
-  memcpy (oCv, iCv, sizeof(Circ));
-  ((Circ*)oCv)->rad *= -1.;
-  OGX_SET_OBJ (oxo, Typ_CI, Typ_CI, 1, oCv);
-  goto L_exit;
-
-
   //----------------------------------------------------------------
   // make trimmed-curve
-  L_curv:
   // get spc for CurvCCV in oSpc
   oCv = UME_reserve (oSpc, sizeof(CurvCCV));
 
@@ -22372,7 +22427,7 @@ static Line lno;
 
 
   //----------------------------------------------------------------
-  L_exit:
+  // L_exit:
 
     // DEB_dump_ox_0 (oxo, "ex APT_REV__");
 
@@ -22466,7 +22521,7 @@ static Line lno;
   ++inxt;
 
 
-  // get 1. cuttingObj
+  // get oc1 = 1. cuttingObj
   if(inxt >= aus_anz) goto L_rev_i;
   // aus[2] ist das 1. cuttingObj, typ/index  oder Typ_Val/val.
   // cuttingObj1 und cuttingObj2 duerfen nicht gleich ObjToTrim sein
@@ -22476,10 +22531,10 @@ static Line lno;
   ++inxt;
 
 
-  // get 2. cuttingObj
+  // get oc2 = 2. cuttingObj
   // [aus[3] = 2. CuttingObj]
   oc2.typ = Typ_Error;
-  if(inxt >= aus_anz) goto L_trim_1;
+  if(inxt >= aus_anz) goto L_trim__;
   if(aus_typ[inxt] != Typ_modif)  {
     if(APT_cmp_ato2 (1, inxt, aus_typ, aus_tab) == 0) goto L_ParErr;
     // get 2. cuttingObj
@@ -22489,7 +22544,7 @@ static Line lno;
   }
 
   // [aus[4] = modifier for 2. CuttingObj]
-  if(inxt >= aus_anz) goto L_trim_1;
+  if(inxt >= aus_anz) goto L_trim__;
   if(aus_typ[inxt] == Typ_modif)  {
     imod = aus_tab[inxt];
     // ++inxt;
@@ -22499,9 +22554,9 @@ static Line lno;
 
 
   //----------------------------------------------------------------
-  L_trim_1:
+  L_trim__:
   // trim obj
-    // printf(" L_trim_1: odbi=%d oc1=%d oc2=%d imod=%d\n",
+    // printf(" L_trim__: odbi=%d oc1=%d oc2=%d imod=%d\n",
            // odbi.typ,oc1.typ,oc2.typ,imod);
 
 
@@ -22516,7 +22571,7 @@ static Line lno;
   // report nr of solutions
   APT_set_modMax (irc);
 
-    // DEB_dump_ox_0 (oxo, "L_trim_1");
+    // DEB_dump_ox_0 (oxo, "L_trim__");
 
   goto L_rev_o;
 
@@ -22549,9 +22604,12 @@ static Line lno;
   //----------------------------------------------------------------
   L_exit:
 
+    // TESTBLOCK
     // DEB_dump_ox__ (oxo, "ex-APT_CUT__");
     // DEB_dump_ox_0 (oxo, "ex-APT_CUT__");
     // printf("ex-APT_CUT__ CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__\n");
+    // return MSG_ERR__ (ERR_TEST, "ex-APT_CUT__");
+    // END TESTBLOCK
 
   return 0;
 
@@ -22704,7 +22762,7 @@ static Line lno;
 
 
     // get data
-    i1 = DB_GetObjDat (&vp1, &i2, Typ_LN, dbiLn);
+    i1 = UTO__dbo (&vp1, &i2, Typ_LN, dbiLn);
       // DEB_dump_obj__ (i1, vp1, " o ");
 
     UT3D_vc_ln (&vci, (Line*)vp1);
@@ -22715,7 +22773,7 @@ static Line lno;
     // get normal-vector vcn from vci and WC_sur_act
     UT3D_vc_perp2vc (&vcn, vz, &vci);
       // DEB_dump_obj__ (Typ_VC, &vcn, " vcn ");
-      // GR_tDyn_vc (&vcn, &((Line*)vp1)->p1, 8, 1);
+      // GR_tDyn_vc__ (&vcn, &((Line*)vp1)->p1, 8, 1);
 
     // test if vcn == 0 (vci == vcz). Yes: set vcn = WC_sur_act.vy
     if(UT3D_compvc0(&vcn, UT_TOL_min0)) vcn = WC_sur_act.vy;

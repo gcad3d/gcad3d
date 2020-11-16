@@ -186,15 +186,23 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 //================================================================
 // CTLG_Sel__               get catalog-part-selection from user
 // CTLG_Sel_CB gets selected part
+//
+// Files in <tmpDir>:
+// Catalog.act   // filename of active-catalog-file eg test_ctlg1.ctlg
+// Catalog.lst
+// CatParts.lst  // "change catalog" and list of parts of active-catalog-file
+
+
 
   int   i1;
-  long l1;
-  char  cfn[256], s1[256], ctlg[128];
+  long  l1;
+  char  cfn[256], cpn[256], s1[256], ctlg[128];
+
 
   printf(" CTLG_get__ -------------------\n");
 
 
-   // check if file tmp/Catalog.lst exists; no: create it.
+  // check if file tmp/Catalog.lst exists; no: create it.
   sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
   if(!OS_checkFilExist(cfn, 1)) {
     CTLG_Lst_write ();         // create <tmp>/Catalog.lst
@@ -205,12 +213,15 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   //================================================================
   // display list of active parts + "=== change catalog ==="
   L_start:
-  // disp file CatParts.lst, let user select 
-  sprintf(cfn,"%sCatParts.lst",OS_get_tmp_dir());
-  i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
+
+  // check if file CatParts.lst, exists; if not - goto select catalog
+  sprintf(cpn,"%sCatParts.lst",OS_get_tmp_dir());
+  if(!OS_checkFilExist(cpn, 1)) goto L_sel_ctlg;
+
+  // let user select catPart or other catalog
+  i1 = GUI_listf1__ (s1, sizeof(s1), cpn,
                      "\"- select part or change catalog -\"", "\"x40,y40,a\"");
   if(i1 < 0) return -1;  // cancel or error
-
     printf(" ctlg-part-select |%s|\n",s1);
 
   if(strcmp(s1, "=== change catalog ===")) goto L_sel_part;
@@ -218,6 +229,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   //================================================================
   // catalog selected - change
+  L_sel_ctlg:
   sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
   i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
                      "\"- select catalogpart -\"", "\"x40,y40,a\"");
@@ -304,7 +316,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   // write parts-file CatParts.lst
   // get oufilename
   sprintf(pfn,"%sCatParts.lst",OS_get_tmp_dir());
-    printf(" pfn=|%s|\n",pfn);
+    // printf(" _catParts__-pfn=|%s|\n",pfn);
 
 
   if(!ctlgNam) {
@@ -326,7 +338,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   // get infilename cfn
   MDLFN_dirAbs_symDir (cfn, "CATALOG");    // get symbolic-directory CATALOG
   strcat(cfn, ctlgNam);
-    printf(" cfn=|%s|\n",cfn);
+    // printf(" _catParts__-cfn=|%s|\n",cfn);
 
 
   // open catalogfile cfn for read
@@ -348,7 +360,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
     if(p1 == NULL) continue;
     *p1 = '\0';
     fprintf(fpo, "%s\n",sPart);
-      printf(" out |%s|\n",sPart);
+      // printf(" out |%s|\n",sPart);
   }
 
   L_done:
@@ -603,6 +615,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   // get cfn = catalogfilename
   sprintf(cbuf1, "CATALOG/%s.ctlg",ctlgNam);
     // printf(" cbuf1=|%s|\n",cbuf1);
+
   // resolv symDir CATALOG
   irc = MDLFN_dirAbs_symDir (cfn, cbuf1);
   if(irc < 0) {irc = -4; goto L_Err__;}

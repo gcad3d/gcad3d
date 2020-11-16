@@ -47,7 +47,7 @@ void INF_OTYP (){}
 ///
 /// Get infoText for types: AP_src_typ__ ();
 /// See also xa_sele.h
-/// SEE (UPDATE) ALSO TypTxtTab0 in ../ut/ut_gtypes.c
+/// FIX (UPDATE) ALSO TypTxtTab* in ../ut/ut_gtypes.c
 /// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
 /// \endcode
 
@@ -62,6 +62,7 @@ void INF_OTYP (){}
 #define Typ_PT             3  ///< P   Point
 #define Typ_LN             4  ///< L   Line (CVLn3)
 #define Typ_CI             5  ///< C   Circ
+// #define Typ_VCP               ///< D  position-vector
 #define Typ_VC2           10  ///< D   Vector2
 #define Typ_PT2           11  ///< P   Point2
 #define Typ_LN2           12  ///< L   Line2
@@ -69,6 +70,7 @@ void INF_OTYP (){}
 #define Typ_CI2C          14  ///< C   Circ2C centerPosition
 #define Typ_VC3F          15  ///< D   Vec3f
 #define Typ_CVLN3         16  ///< S   CVLn3 (Line Typ_LN)
+// #define Typ_VCP2              ///< D   position-vector, Plane-2D
 
 /// DB-curves 20-39
 #define Typ_CV            20  ///< S   all curves
@@ -88,14 +90,15 @@ void INF_OTYP (){}
 #define Typ_CVRBSP2       34  ///< S   CurvRBSpl-2D
 #define Typ_CVELL2        35  ///< S   CurvEll2
 #define Typ_CVELL2C       36  ///< S   CurvEll2C centerPosition
-#define Typ_CVBEZ2        37  ///< S   CurvBez2
-#define Typ_CVTRM         38  ///< S   CurvCCV
+#define Typ_CVBEZ2        37  ///< S   CurvBez2 bezier-curve-2D
+#define Typ_CVTRM         38  ///< S   CurvCCV trimmed-curve
 
 /// DB-surfs 40-79
 #define Typ_PLN           40  ///< R  Plane
 #define Typ_Refsys        41  ///< -  Refsys
+
 #define Typ_SUR           50  ///< A all surfaces (support-surface, bounded)
-// SupportSurfaces (nicht getrimmt,gelocht):
+// SupportSurfaces (not trimmed, not punched)
 #define Typ_SURCON        51  ///< Conus (unused)
 #define Typ_SURTOR        52  ///< Torus (unused)
 #define Typ_SURRU         53  ///< A Ruled Surf
@@ -113,25 +116,22 @@ void INF_OTYP (){}
 // pretesselated surfaces
 #define Typ_SURCIR        61  ///< tesselated fan
 #define Typ_SURSTRIP      62  ///< tesselated strip
-
 #define Typ_SURBND        63  ///< A bounded surface
-#define Typ_SURMSH        64  ///< A Mesh
-#define Typ_SURPTAB       65  ///< A surf from PTAB
-
-#define Typ_Fac3          66  ///< Triangle; Form = Fac3
-#define Typ_QFac          67  ///< Triangle; 
-#define Typ_Tria          68  ///< Triangle; Form = Triangle  (unused)
-
-// tesselated surfaces
-#define Typ_GL_Sur        70  ///< tesselated surface
-#define Typ_GL_PP         71  ///< tesselated planar patch
-#define Typ_GL_CV         72  ///< Polygon
-#define Typ_GL_iSur       73  ///< tesselated indexed-surface
-#define Typ_EdgSur        74  ///< EdgSur see also EdgeLine
+#define Typ_SURPMSH       64  ///< A Mesh from group of points
+#define Typ_SURPTAB       65  ///< A boundary around group of points
 
 //#define Typ_SURSPI       158  ///< Spine (Kontur + Verfahrweg; zB Spiralfl.)
 //#define Typ_SURSK        153  ///< Skin
 
+// tesselated surfaces
+#define Typ_GL_Sur        70  ///< tesselated surface, bMsh
+#define Typ_GL_PP         71  ///< tesselated planar patch
+#define Typ_GL_CV         72  ///< Polygon
+#define Typ_GL_iSur       73  ///< tesselated indexed-surface
+#define Typ_EdgSur        74  ///< EdgSur see also EdgeLine
+#define Typ_Fac3          75  ///< Triang; Form = Fac3
+#define Typ_Tria          76  ///< Triang; Form = Triang
+#define Typ_Tria2         77  ///< Triang-2D; Form = Triang2
 
 /// DB-bodies 80-89
 #define Typ_SOL           80  ///< B  body (CON, TOR, ..)
@@ -149,6 +149,8 @@ void INF_OTYP (){}
 #define Typ_Dimen         93     ///< N  Dimen (dimension)
 #define Typ_Dim3          94     ///< N  Dim3  (3D-dimension)
 #define Typ_Tag           95     ///< N Bitmap (Blocknote, Image ..)
+
+#define Typ_Joint         96     ///< connection, exported;
 
 /// symbols
 #define Typ_SymB         100     ///< bitmap symbols: SYM_TRI_S SYM_STAR_S ..
@@ -185,7 +187,6 @@ void INF_OTYP (){}
 #define Typ_Model        123  ///< M  ModelReference of native-subModel ModelRef
 #define Typ_Mock         124  ///< M  ModelReference of mockup-subModel
 #define Typ_Ditto        125  ///< mockup-subModel (unvisible)
-#define Typ_Joint        126  ///< connection, exported;
 #define Typ_CtlgPart     127  ///  catalog-part
 
 #define Typ_GEOB_2D      128  ///< geometric obj binary format 2D
@@ -223,7 +224,7 @@ void INF_OTYP (){}
 #define Typ_Subtyp       151
 #define Typ_cmdNCsub     152  ///  see enum Typ_Cmd1
 #define Typ_Address      153  ///< form of ObjGX-Record defines dataPosition
-#define Typ_Size         154  ///< recordSize for following record
+#define Typ_Size         154  ///< recordSize for following record Typ_Int4
 #define Typ_Index        155  ///< long (in pointer)
 #define Typ_Name         156
 #define Typ_Color        157  ///< ColRGB
@@ -242,7 +243,7 @@ void INF_OTYP (){}
 
 
 /// dataFormats (Int, matrix, Polynom..)
-#define Typ_Data         170   ///< binary data
+#define Typ_Ptr          170   ///< binary data (pointer, form of Typ_Address)
 #define Typ_Int1         171   ///<  8 bit (char)
 #define Typ_Int2         172   ///< 16 bit (short)
 #define Typ_Int4         173   ///< 32 bit (int, long)
@@ -270,20 +271,21 @@ void INF_OTYP (){}
 #define Typ_StrDel1      193   /// StringDelimiter 1 "|"
 #define Typ_FncNam       194   /// geom-function; see ObjCodTab Typ_Cmd1
 #define TYP_FilNam       195   /// filename
-#define Typ_NumString    197   /// numeric string; eg -123.4
-#define Typ_ConstVal     198   /// constant value; eg PI RAD_90 SR_2
-#define Typ_ConstOG      199   /// geometric-constant-object; eg DX RZ
+#define Typ_NumString    196   /// numeric string; eg -123.4
+#define Typ_ConstVal     197   /// constant value; eg PI RAD_90 SR_2
+#define Typ_ConstOG      198   /// geometric-constant-object; eg DX RZ
 
 
 /// containers
 #define Typ_Memspc       200   ///< Memspc
 #define Typ_MemTab       201   ///< MemTab   ../ut/ut_memTab.h
 #define Typ_IndTab       202   ///< IndTab, container
-#define Typ_ObjRange     203   ///< ObjRange
+#define Typ_IgaTab       203   ///< IndTab, container
+// #define Typ_ObjRange     204   ///< ObjRange     REPLACED WITH IgaTab
 #define Typ_ObjSRC       204   ///< ObjSRC
-#define Typ_ObjTXTSRC    196   ///  expression of sourceObject
+// #define Typ_ObjTXTSRC    206   ///  expression of sourceObject
 #define Typ_ObjGX        205   ///< ObjGX,  container
-#define Typ_ObjTab       206   ///< ObjTab, container         was Typ_ObjG2
+#define Typ_ObjTab       206   ///< ObjTab, container         UU
 #define Typ_ObjBin       207   ///< ObjBin  binary-object             
 #define Typ_ObjDB        208   ///< ObjDB
 #define Typ_ObjAto       209   ///< ObjAto
@@ -432,17 +434,28 @@ void INF_OTYP (){}
 #define MBTYP_CATALOG  -2
 
 
+// 3D-mode or 2D-mode
+#define Typ_geom_3D    0
+#define Typ_geom_2D    1
 
-// UT3D_ptvc_obj UTO_2pt_limstru UTO_ptnr_std_obj
-#define Ptyp_def      0    ///< default
-#define Ptyp_start    1    ///< startpoint (0-deg-point)
-#define Ptyp_end      2    ///< endpoint
-#define Ptyp_mid      3    ///< midpoint          1     Circ, elli: 180-deg-point
-#define Ptyp_cen      4    ///< centerpoint       1     Circ, elli, plane
-#define Ptyp_90_deg   5    ///< 25 % point        1     Circ, elli: 90-deg-point
-#define Ptyp_270_deg  6    ///< 75 % point        1     Circ, elli: 270-deg-point
-#define Ptyp_focus1   7    ///< focus points      1|2   Elli, hyp ..
-#define Ptyp_focus2   8    ///< focus points      1|2   Elli, hyp ..
+
+// UT3D_ptvc_obj UTO_2pt_limstru UTO_ptnr_std_obj UT3D_ptvcpar_std_obj
+#define Ptyp_def        0    // default
+#define Ptyp_start      1    // startpoint (trimmed)
+#define Ptyp_end        2    // endpoint   (trimmed)
+#define Ptyp_mid        3    // midpoint          1     Circ, elli: 180-deg-point
+#define Ptyp_cen        4    // centerpoint       1     Circ, elli, plane
+#define Ptyp_90_deg     5    // 25 % point        1     Circ, elli: 90-deg-point
+#define Ptyp_270_deg    6    // 75 % point        1     Circ, elli: 270-deg-point
+#define Ptyp_focus1     7    // focus points      1|2   Elli, hyp ..
+#define Ptyp_focus2     8    // focus points      1|2   Elli, hyp ..
+#define Ptyp_start_abs  9    // startpoint (untrimmed)
+#define Ptyp_end_abs   10    // endpoint   (untrimmed)
+
+
+#define EditMode_add     0
+#define EditMode_insert  1
+
 
 // #define Dtyp_Z        0
 // #define Dtyp_X        1
@@ -453,5 +466,19 @@ void INF_OTYP (){}
 #define TimeStamp  float
 // typedef float TimeStamp;
 #endif
+
+
+#define MDLSTAT_empty      0
+#define MDLSTAT_loading    1
+#define MDLSTAT_loaded     2
+#define MDLSTAT_save_as    3
+#define MDLSTAT_save_quick 4
+#define MDLSTAT_save_exit  5
+
+
+#define BRWSTAT_OFF        0
+#define BRWSTAT_init       1   // do not process callBacks (rowSelect ..)
+#define BRWSTAT_active     2
+
 
 // EOF

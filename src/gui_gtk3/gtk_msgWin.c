@@ -95,7 +95,7 @@ extern int       UI_fontsizX, UI_fontsizY;
 // Create ein Editfenster
 
 
-  int           pTyp;
+  int           pTyp, i1;
   void          *w_par;
   Obj_Unknown   *go;
   GtkWidget     *sw;
@@ -126,19 +126,27 @@ extern int       UI_fontsizX, UI_fontsizY;
   //----------------------------------------------------------------
   sw = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
-          GTK_POLICY_AUTOMATIC,
+          GTK_POLICY_AUTOMATIC,  //  GTK_POLICY_NEVER
           GTK_POLICY_ALWAYS);
 
   gtk_container_add (GTK_CONTAINER (sw), TxView);
   gtk_widget_show (TxView);
 
-  gtk_widget_set_hexpand (sw, TRUE);
+  // gtk_widget_set_hexpand (sw, TRUE);
   // gtk_widget_set_vexpand (sw, TRUE);
 
   gtk_text_view_set_editable ((GtkTextView *)TxView, FALSE);
   gtk_text_view_set_cursor_visible ((GtkTextView *)TxView, FALSE);
 
+  // gtk_scrolled_window_set_overlay_scrolling(GTK_SCROLLED_WINDOW(sw),FALSE);
+  // gtk_scrolled_window_set_propagate_natural_width(GTK_SCROLLED_WINDOW(sw),FALSE);
+  // i1 = gtk_scrolled_window_get_max_content_width (GTK_SCROLLED_WINDOW(sw));
+    // printf(" msgwin-max_content_width %d\n",i1); - always gives -1
 
+//> TODO: if text is longer than MessageWindowLineLength:
+// Gtk-CRITICAL **: gtk_box_gadget_distribute: assertion 'size >= 0' failed in GtkScrollbar
+
+ 
 /*
   //   hsiz,vsiz   size of window; >0=size in characters, <0=size in pixels
   // size
@@ -259,7 +267,8 @@ static  char actBuf[256];
 
 
   ilen = strlen(txbuf);
-  //if(ilen > 120) txbuf[ilen]='\0';
+    // printf("ilen=%d\n",ilen);
+
 
   // skip msg, if first 60 chars ident.
   if(ilen >= 60) {
@@ -270,11 +279,6 @@ static  char actBuf[256];
     if(!strcmp(actBuf, txbuf)) return 0;
   }
 
-
-  strcpy(actBuf, txbuf);
-
-  ilen = strlen(actBuf);
-  // printf("ilen=%d\n",ilen);
 
 
   // size tot ?
@@ -292,25 +296,33 @@ static  char actBuf[256];
     gtk_text_buffer_delete (msgBuf, &iVon, &iBis);
   }
 
-
   // get endPos
-  gtk_text_buffer_get_end_iter  (msgBuf, &iter);
-  // insert at iterPos
-  strcat(actBuf, "\n");
-  gtk_text_buffer_insert (msgBuf, &iter, actBuf, -1);
-  actBuf[ilen] = '\0';  // remove NL wieder (f nachfolgendes strcmp)
-
+  gtk_text_buffer_get_end_iter (msgBuf, &iter);
 
   // moves the "insert" and "selection_bound" marks simultaneously
   gtk_text_buffer_place_cursor (msgBuf, &iter);
 
-  // ganz nach hinten scrollen;
+  // copy new text -> actBuf
+  if(ilen > 240) ilen = 240;
+  strncpy(actBuf, txbuf, ilen);
+  actBuf[ilen] = '\n';
+  // strcat(actBuf, "\n");
+
+  // insert at endPos
+  gtk_text_buffer_insert_at_cursor (msgBuf, actBuf, ilen + 1);
+
+  //  change NL -> NULL (for following strcmp)
+  actBuf[ilen] = '\0';
+
+
+  // scroll to bottom
   mark = gtk_text_buffer_get_mark (msgBuf, "insert");
   // gtk_text_buffer_get_iter_at_mark (msgBuf, &iter, &mark)
   gtk_text_view_scroll_to_mark ((GtkTextView*)msgView, mark,
      0.1,              // within_margin
      FALSE,            // use_align
-     0.5, 0.0);        // xalign,yalign
+     0., 0.); //0.5, 0.0);        // xalign,yalign
+
 
 
   // spez. f GTK2 : GUI_update__ ();

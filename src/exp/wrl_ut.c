@@ -1177,7 +1177,7 @@ static int levOld = -1;
     UTRA_app_pt (&sph1.pc, &ptc);
 
     // DEB_dump_obj__ (Typ_PT, &ptc, " ptc");
-    // GR_Disp_pt (&sph1.pc, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&sph1.pc, SYM_STAR_S, 2);
 
 
   iCol = wrl1_r_ck_col();
@@ -1284,8 +1284,8 @@ static int levOld = -1;
 
   // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1:");
   // DEB_dump_obj__ (Typ_PT, &ptc2, " ptc2:");
-  // GR_Disp_pt (&ptc1, SYM_STAR_S, 2);
-  // GR_Disp_pt (&ptc2, SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&ptc1, SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&ptc2, SYM_STAR_S, 2);
 
 
   // DEB_dump_obj__ (Typ_PT, &ptc1, " ptc1");
@@ -1496,7 +1496,7 @@ static int levOld = -1;
 
   // Ende nur fuers dump erforderl !
     // wrl1_r_out_end ();
-    // tess_dump_f_ (ox1, "ex wrl1_r_dec_ifs");
+    // BMSH_dump_bfMsh (ox1, "ex wrl1_r_dec_ifs");
     // DEB_dump_ox_s_ (ox2, "ex wrl1_r_dec_ifs");
 
 

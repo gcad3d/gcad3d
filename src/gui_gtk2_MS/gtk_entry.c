@@ -505,6 +505,9 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
   }
 
+  // translate some keys ..
+  ikey = GUI_key_set1 (ikey);
+
   pTab[0] = &iEv;
   pTab[1] = go->data;
   pTab[2] = &ikey;

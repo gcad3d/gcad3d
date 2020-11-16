@@ -35,23 +35,26 @@ void DEB(){}
 =====================================================
 List_functions_start:
 
+DEB_dump_pt             simple-dump Point
+DEB_dump_pt2            simple-dump Point2
+
 DEB_std_file            redirect stdout -> file or back
 
-DEB_dump_ox_0           dump object
 DEB_dump_obj__          dump object
 DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
 DEB_dump_nobj__         dump n object's
 DEB_dump_nobj_1         dump bin-obj
 DEB_dump_add_pt         dump pointCoords formatted into string
 
-DEB_dump_ox__           dump complex-obj (ObjGX)
-DEB_dump_ox_1
 DEB_dump_ox_s_          dump obj - structured display
+DEB_dump_ox__           dump complex-obj (ObjGX)
+// DEB_dump_ox_0           dump complex-obj (ObjGX)
+// DEB_dump_ox_1
 DEB_dump_ox_s1
 DEB_dump_ox_sWri
 
 DEB_dump_dbo            dump DB-object
-DEB_dump_ObjRange
+DEB_dump_IgaTab
 
 DEB_dump_ntxt           dump n object's
 DEB_dump_txt
@@ -103,8 +106,6 @@ DEB_dump_txt
 
 
 // prototypes:
-  typedef_MemTab(ObjRange);
-
   int DEB_dump_obj__ (int typ, void *data, char *txt, ...);
   int DEB_dump_ox_0 (ObjGX *oxi, char *txt, ...);
   int DEB_dump_ox_1 (ObjGX *oxi, char *txt, ...);
@@ -167,7 +168,7 @@ DEB_dump_txt
   void     *vp1;
 
 
-  printf("DEB_dump_nobj__ typ=%d txt=|%s|\n",form,txt);
+  // printf("DEB_dump_nobj__ typ=%d oNr=%d txt=|%s|\n",form,oNr,txt);
 
   il1 = UTO_siz_stru (form);
 
@@ -225,7 +226,7 @@ DEB_dump_txt
   APED_oid_dbo__  (oid, typ, dbi);
 
   // get data for dbo
-  typ = DB_GetObjDat ((void**)&data, &iNr, typ, dbi);
+  typ = UTO__dbo ((void**)&data, &iNr, typ, dbi);
   if(typ < Typ_VAR) return-1;
 
   oSiz = UTO_siz_stru (typ);
@@ -263,7 +264,7 @@ static int      DestFlag = 0;   // 0=stdout, 1=file
 static FILE     *uo = NULL;
 
   int        irc, i1, i2, ii;
-  char       cbuf[256], *p1, *tmpSpc;
+  char       cbuf[256], *p1;
   UtxTab_NEW (txTab1);
   va_list    va;
 
@@ -343,10 +344,8 @@ static FILE     *uo = NULL;
   // get space for outData
   // p1 = (char*) MEM_alloc_tmp (tmpSiz);   // 50k
   irc = -1;
-  i1 = 100000;  // space for outputdata
-  tmpSpc = (char*) malloc (i1); 
-  if(!tmpSpc) {TX_Print("***** DEB_dump_obj__ EOM *****"); return -1;}
-  UtxTab_init_spc (&txTab1, tmpSpc, i1);
+
+  UtxTab_init__ (&txTab1);
 
   // create strings of infos about struct
   i1 = DEB_dump__ (&txTab1, typ, data, cbuf, -1, 0);
@@ -354,19 +353,18 @@ static FILE     *uo = NULL;
     // printf(" DEB_dump_obj__ - nach DEB_dump__\n");
     // UtxTab_dump (&txTab1, "f-DEB_dump__");
 
-
   // write txTab1
   for(i1=0; i1<txTab1.iNr; ++i1) {
     p1 = UtxTab__(i1, &txTab1);
     fprintf(uo, "%s\n",&p1[6]);
   }
+
   fflush(uo);
 
   irc = 0;
 
   L_exit:
-  free (tmpSpc);
-  // es ist kein UtxTab_free erforderlich - tmpSiz liegt in tempspace !!!!!!
+  UtxTab_free (&txTab1);
 
     // printf("ex DEB_dump_obj__\n");
 
@@ -510,6 +508,7 @@ static FILE     *uo = NULL;
   ColRGB   *col;
   ObjSRC   *os1;
   IndTab   *it1;
+  IgaTab   *ig1;
   ObjDB    *odb1;
   ObjGX    *ox, *o2, *o3, oo1;
   ModelBas* DB_get_ModBas    ();
@@ -526,14 +525,17 @@ static FILE     *uo = NULL;
   // printf(" data=%p\n",data);
 
 
-/*
-  if(!data) {    // needed for Int4 (0)
-    // first 6 charaters become replaced in UT3D_dump_add !
-    sprintf(cbuf, "123456 %s data = NULL ",AP_src_typ__(typ));
-    UT3D_dump_add (sTab, cbuf, ipar, 0);
-    return -1;
+  if(!data) {
+    if((typ != Typ_Int1)  &&
+       (typ != Typ_Int4)  &&
+       (typ != Typ_Int8)  &&
+       (typ != Typ_Index)) {
+      // first 6 charaters become replaced in UT3D_dump_add !
+      sprintf(cbuf, "123456 %s data = NULL ",AP_src_typ__(typ));
+      UT3D_dump_add (sTab, cbuf, ipar, 0);
+      return -1;
+    }
   }
-*/
 
 
 /*  TODO: do -not use in dll (else no fallback..)
@@ -565,8 +567,10 @@ static FILE     *uo = NULL;
     // p1 = data;
     sprintf(cps,"Point2 %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    i3 = sprintf(cps,"(Point2) %9.3f,%9.3f",((Point2*)data)->x,((Point2*)data)->y);
-    if(i3 > 60) strcpy (cps, "(Point) not set ..");
+    //i3=sprintf(cps,"(Point2) %9.3f,%9.3f",((Point2*)data)->x,((Point2*)data)->y);
+    i3 = snprintf(cps,50,"(Point2) %9.3f,%9.3f",
+                  ((Point2*)data)->x, ((Point2*)data)->y);
+    if(i3 >= 50) strcpy (cps, "(Point2) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -576,8 +580,9 @@ static FILE     *uo = NULL;
     p1 = data;
     sprintf(cps,"Point %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    i3 = sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
-    if(i3 > 60) strcpy (cps, "(Point) not set ..");
+    // i3 = sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    i3 = snprintf(cps,60,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    if(i3 >= 60) strcpy (cps, "(Point) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -586,7 +591,9 @@ static FILE     *uo = NULL;
     wpt = data;
     sprintf(cps,"wPoint %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
-    sprintf(cps,"(wPoint) %9.3f,%9.3f,%9.3f w=%9.3f",wpt->x,wpt->y,wpt->z,wpt->w);
+    i3 = snprintf(cps,80,"(wPoint) %9.3f,%9.3f,%9.3f w=%9.3f",
+                  wpt->x,wpt->y,wpt->z,wpt->w);
+    if(i3 >= 80) strcpy (cps, "(wPoint) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
 
 
@@ -1052,7 +1059,7 @@ static FILE     *uo = NULL;
     sbs = data;
     sprintf(cps,"B-SplineSurface %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
-    sprintf(cps,"  BSp-Sur ptUNr=%ld ptVNr=%ld degU=%d degV=%d",
+    sprintf(cps,"  BSp-Sur ptUNr=%d ptVNr=%d degU=%d degV=%d",
                 sbs->ptUNr,sbs->ptVNr, sbs->degU,sbs->degV);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
@@ -1093,7 +1100,7 @@ static FILE     *uo = NULL;
     srbs = data;
     sprintf(cps,"Rat.B-SplineSurface %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
-    sprintf(cps,"  ptUNr=%ld ptVNr=%ld degU=%d degV=%d",
+    sprintf(cps,"  ptUNr=%d ptVNr=%d degU=%d degV=%d",
                 srbs->ptUNr,srbs->ptVNr, srbs->degU,srbs->degV);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
@@ -1191,7 +1198,7 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_SURMSH) {
+  } else if(typ == Typ_SURPMSH) {
     sprintf(cps,"MeshSurface %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
     sprintf(cps," Mesh mTyp=%d",((Mesh*)data)->mTyp);
@@ -1257,15 +1264,15 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_Tria) {
-    sprintf(cps,"Triangle %s",txt);
+    sprintf(cps,"Triang %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
-    p1 = ((Triangle*)data)->pa[0];
+    p1 = ((Triang*)data)->pa[0];
     sprintf(cps,"    p0=%9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    p1 = ((Triangle*)data)->pa[1];
+    p1 = ((Triang*)data)->pa[1];
     sprintf(cps,"    p1=%9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    p1 = ((Triangle*)data)->pa[2];
+    p1 = ((Triang*)data)->pa[2];
     sprintf(cps,"    p2=%9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
@@ -1426,6 +1433,17 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_IgaTab) {
+    ig1 = data;
+    sprintf(cps,"IgaTab %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps," (IgaTab) ibeg=%d inr=%d iRef=%d ind=%d typ=%d stat=%d",
+            ig1->ibeg,ig1->iNr,ig1->iRef,ig1->ind,ig1->typ,ig1->stat);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_ObjSRC) {
     os1 = data;
     sprintf(cps,"ObjSRC %s",txt);
@@ -1511,7 +1529,7 @@ static FILE     *uo = NULL;
 
     sprintf(cps,"Obj %s %s (ObjGX typ=%d form=%d siz=%d dir=%d)",txt,s1,
                    ox->typ, ox->form, ox->siz, ox->dir);
-      printf(" DEB_dump__-ogx-cps |%s|\n",cps);
+      // printf(" DEB_dump__-ogx-cps |%s|\n",cps);
 
 
     UT3D_dump_add (sTab, cbuf, ipar, i1);
@@ -1520,10 +1538,19 @@ static FILE     *uo = NULL;
 
 
 // TODO: use DEB_dump_ntxt ...............
-    // loop tru records
     il1 = UTO_siz_stru (ox->form);
-    v1 = ox->data;
 
+    v1 = ox->data;                       // 2020-10-17
+    if(!v1) {
+      strcat (cps, " data = NULL");
+      goto L_OK;
+    }
+
+//     // if(data == NULL) then datablock is also *ObjGX
+//     if(ox->data) v1 = ox->data;
+//     else         v1 = &ox[1];       
+
+    // loop tru records
     for(i1=0; i1<ox->siz; ++i1) {
         // printf(" nxt subStru[%d] %d %d\n",i1,ox->typ,ox->form);
       sprintf(oNam, "[%d]", i1);
@@ -1553,11 +1580,11 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if(typ == Typ_ObjTab)   {     // ObjTab see OTB_dump
-    sprintf(cps,"ObjTable nr=%d siz=%d",
-            ((ObjTab*)data)->oNr, ((ObjTab*)data)->oSiz);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-      // OTB_dump (data, 1, "");
+//   } else if(typ == Typ_ObjTab)   {     // ObjTab see OTB_dump
+//     sprintf(cps,"ObjTable nr=%d siz=%d",
+//             ((ObjTab*)data)->oNr, ((ObjTab*)data)->oSiz);
+//       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+//       // OTB_dump (data, 1, "");
 
 
   //----------------------------------------------------------------
@@ -1912,8 +1939,8 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  // typ=Typ_Address; form=Typ_Data; data=(pointer)      2013-11-08
-  } else if(typ == Typ_Data) {
+  // typ=Typ_Address; form=Typ_Ptr; data=(pointer)      2013-11-08
+  } else if(typ == Typ_Ptr) {
     sprintf(cps,"Ptr %p",data);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
@@ -1973,6 +2000,8 @@ static FILE     *uo = NULL;
     goto L_done;
   }
 
+
+  L_OK:
   irc = 0;
 
 
@@ -2002,6 +2031,9 @@ static FILE     *uo = NULL;
   char     s1[32];
 
 
+  if(sTab->tab == NULL) return -1;
+
+
   // characters 0-3 = level (ParentRecordNr)
   // characters 4-5 = IconNr
   sprintf(s1, "%04d%02d",ipar,ico);
@@ -2013,7 +2045,7 @@ static FILE     *uo = NULL;
   irc = UtxTab_add (sTab, cbuf);
   if(irc < 0) {
     TX_Print("***** UT3D_dump_add UtxTab_add E001-%d",irc);
-    // AP_debug__ ("UT3D_dump_add");
+    return -1;
   }
 
   return 0;
@@ -2050,12 +2082,14 @@ static FILE     *uo = NULL;
 static void*  relPos;
 
 
-  printf("DEB_dump_nobj_1 pos=%ld typ=%d iNr=%d deloc=%d\n",(long)obj1,
-          typ,iNr,deloc);
+  // TESTBLOCK
+  // printf("DEB_dump_nobj_1 pos=%ld typ=%d iNr=%d deloc=%d\n",(long)obj1,
+          // typ,iNr,deloc);
+  // END TESTBLOCK
 
   if(deloc == 0) {
     relPos = obj1;
-      printf(" set relPos %ld\n",(long)relPos);
+      // printf(" set relPos %ld\n",(long)relPos);
   }
 
 
@@ -2360,7 +2394,7 @@ static int iLev;
 
 
 //================================================================
-  int DEB_dump_ObjRange (MemTab(ObjRange) *oTab) {
+  int DEB_dump_IgaTab (MemTab(IgaTab) *oTab) {
 //================================================================
 /// \code
 /// RetCod:
@@ -2370,13 +2404,13 @@ static int iLev;
 
   int    i1;
 
-  printf("======== DEB_dump_ObjRange %d =========== \n",oTab->rNr);
+  printf("======== DEB_dump_IgaTab %d =========== \n",oTab->rNr);
 
   for(i1=0; i1< oTab->rNr; ++i1) {
-    printf("or[%d].typ=%d ind=%ld oNr=%d\n",i1,
+    printf("or[%d].typ=%d ibeg=%d iNr=%d\n",i1,
       oTab->data[i1].typ,
-      oTab->data[i1].ind,
-      oTab->data[i1].oNr);
+      oTab->data[i1].ibeg,
+      oTab->data[i1].iNr);
 
   }
 
@@ -2676,7 +2710,9 @@ static char cOff[64];
   // loop tru obj's
   for(i1=0; i1<oxi->siz; ++i1) {
     op1 = &((ObjGX*)oxi->data)[i1];
+    if(!op1) continue; // skip
       // printf(" _s1-[%d] %d %d %d\n",i1,op1->typ,op1->form,op1->siz);
+    if(!op1) continue;  // skip
     DEB_dump_ox_sWri (op1, cOff);     // print obj
 
     if(op1->form == Typ_ObjGX) {
@@ -2787,4 +2823,44 @@ static char cOff[64];
 }
 
 
+//================================================================
+  int DEB_dump_pt (Point *pt, char *txt, ...) {
+//================================================================
+// see DEB_dump_obj__
+
+  va_list    va;
+  char       cbuf[256];
+
+  
+  va_start(va,txt);
+  vsprintf(cbuf,txt,va);
+  va_end(va);
+  
+  printf("%s %9.3f,%9.3f,%9.3f\n",cbuf,pt->x,pt->y,pt->z);
+  
+  return 0;
+
+} 
+  
+  
+//================================================================
+  int DEB_dump_pt2 (Point2 *pt2, char *txt, ...) {
+//================================================================
+// see DEB_dump_obj__
+
+  va_list    va;
+  char       cbuf[256];
+
+  
+  va_start(va,txt);
+  vsprintf(cbuf,txt,va);
+  va_end(va);
+  
+  printf("%s %9.3f,%9.3f\n",cbuf,pt2->x,pt2->y);
+  
+  return 0;
+
+} 
+  
+  
 // EOF

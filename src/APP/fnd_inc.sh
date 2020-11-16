@@ -20,7 +20,7 @@ fi
 make -f gcad3d.mak srclst > /dev/null
 
 # add gui-sources
-make -f gcad_gui__.mak add_srclst
+make -f gcad_gui__.mak srclst
 
 # get cscope_tmp1 = list of files using the includefile
 cscope -i srcFiles -L8 $1 > myCscope_tmp1

@@ -76,6 +76,7 @@ see also dxfr_gxt dxfw_gxt
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 

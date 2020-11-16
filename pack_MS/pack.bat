@@ -76,12 +76,12 @@ mkdir %outDirD%
 
 mkdir %outDirD%\tmp
 mkdir %outDirD%\dat
+mkdir %outDirD%\dat\symEl1
 mkdir %outDirD%\prg
 mkdir %outDirD%\cfg
 mkdir %outDirD%\ctlg
 mkdir %outDirD%\ctlg\Schrau
 mkdir %outDirD%\ctlg\Profile
-mkdir %outDirD%\ctlg\symEl1
 
 
 
@@ -116,13 +116,14 @@ REM copy %dirMdl%\sample_activity_modval_1.gcad     %outDirD%\tmp\Model
 
 REM copy Demomodelle -> dat
 copy %dirMdl%\samp*.*              %outDirD%\dat\.
-REM copy %dirMdl%\Renault1.gcad        %outDirD%\dat\.
+copy %dirMdl%\Renault1.gcad        %outDirD%\dat\.
 copy %dirMdl%\Haus1.gcad           %outDirD%\dat\.
 copy %dirMdl%\Haus*.jpg            %outDirD%\dat\.
 copy %dirMdl%\DachWS4.jpg          %outDirD%\dat\.
 copy %dirMdl%\SteinMarmor1.jpg     %outDirD%\dat\.
 copy %dirMdl%\Niet1.gcad           %outDirD%\dat\.
 copy %dirMdl%\Schrau1.gcad         %outDirD%\dat\.
+copy %dirMdl%\symEl1\*             %outDirD%\dat\symEl1\.
 
 REM copy progs, catalog ..
 copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.

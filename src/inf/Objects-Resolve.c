@@ -34,7 +34,7 @@ Functions to get objects from the DB:
 DB_GetObjGX get complexObj from DB-Obj Keep Refs. Give ObjGX.
 UTO_obj_getp get dataStruct from ObjGX Resolv Refs. Give pointer.
 UTO_obj_get get dataStruct from ObjGX Resolv Refs. Give a copy.
-DB_GetObjDat get dataStruct from DB-Obj Resolv Refs. Give pointer.
+UTO__dbo get dataStruct from DB-Obj Resolv Refs. Give pointer.
 int typ;
 long dli, dbi;
 DL_Att dla;

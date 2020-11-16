@@ -14,6 +14,7 @@ INF_CTRL__    remote-control (core-plugin)                  ../xa/xa_ctrl.c
 INF_PRG__     script-control (core-plugin)                  ../xa/xa_prg.c
 INF_PRC__     process-control (core-plugin)                 ../xa/xa_proc.c
 INF_MSGWIN__  messagewindow (at bottom)
+INF_Grp__     Group                                         ../xa/xa_grp.c
 
 
 ================================================================== \endcode */}
@@ -80,6 +81,21 @@ INF_PLU_USR__ user-plugin-control                   PLU_Loa ../xa/xa_plu.c
 - create file <fnamBuild>.mak    see Demo*.mak, eg DemoPlugin_Resolv.mak
 - create file <fnamPrg>.c        see ../APP/DemoPlugin_Resolv.c
   - must have mainentry "int gCad_main ()"
+
+First time build plugin with:
+. ../options.sh && make -f <fnamBuild>.mak
+
+All following builds with Ctrl-p
+
+
+Functions for plugins:
+gCad_main                  main entry
+AP_UserKeyIn_get           attach keypress to plugin
+AP_UserSelection_get       attach selection to plugin
+AP_UserMousemove_get       attach mousemove to plugin
+AP_User_reset              reset keypress, selection, mousemove
+gCad_fini                  exit plugin
+
 
 
 Doc:
@@ -150,7 +166,10 @@ Doc:
 ================================================================== \endcode */}
 void INF_MSGWIN__ (){        /*! \code
 
-INF_MSGWIN__  messagewindow (at bottom)
+INF_MSGWIN__     messagewindow (at bottom)
+INF_MSG_new      functions for system-messages (by keyword, with translations)
+
+
 
 ../ut/ut_ui_TX.c
 
@@ -166,6 +185,24 @@ TX_Print - replacements for eg ../ut/os_uix.c:         ../ut/ut_TX.c
 or:
 void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 
+
+
+================================================================== \endcode */}
+void INF_Grp__ (){        /*! \code
+
+DL_Att* GR_ObjTab[].grp_1 = groupBit in displList; 0=belongs to active Group, 1=not
+
+ObjDB*  GrpTab[]   keeps typ, dbi, dli, stat
+
+
+Files:
+../xa/xa_grp.c
+../gr/ut_DL.c       DL_grp1_*
+
+
+Functions:
+Grp_*               ../xa/xa_grp.c
+Grp_get_ts    Modifying group sets TimeStamp, get it with Grp_get_ts.
 
 
 

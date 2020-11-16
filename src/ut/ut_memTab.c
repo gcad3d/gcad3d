@@ -68,7 +68,10 @@ MEMTAB_IND_POS      get record-index from position                 INLINE
 MEMTAB_IS_EMPTY     test if MemTab.data == NULL                    INLINE
 MEMTAB_SET_NULL     set MemTab = _MEMTAB_NUL;                      INLINE
 MEMTAB_CLEAR        reset  (memTab->rNr = 0;)                      INLINE
+
 MemTab_dump
+MemTab_disp_tdyn    display MemTab dynamic        alias GR_tDyn_mtb
+MemTab_disp_temp    display MemTab temporary      alias GR_temp_mtb
 
 List_functions_end:
 =====================================================
@@ -832,6 +835,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 //================================================================
   int MemTab_dump (MemTab *memTab, char *info) {
 //================================================================
+// see MemTab_disp_tdyn
 
   int   irc, i1, ityp, isiz, *ia;
   long  *la;
@@ -840,7 +844,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
   printf("============ MemTab_dump %s =============\n", info);
-    printf(" rMax=%d rNr=%d\n",memTab->rMax,memTab->rNr);
+    printf(" rMax=%d rNr=%d rSiz=%d\n",memTab->rMax,memTab->rNr,memTab->rSiz);
 
 
   if(!memTab)          { printf(".. undefined ..\n");     return -1;}
@@ -909,7 +913,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   //----------------------------------------------------------------
   L_1:
-  // Typ_PT ..
+  // Typ_PT, Typ_IndTab ..
   data = (char*)memTab->data;
 
   for(i1=0; i1<memTab->rNr; ++i1) {
@@ -920,6 +924,10 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   }
 
   printf("\n");
+
+
+
+
 
 
   return 0;

@@ -36,7 +36,7 @@ int UT3D_cbsp_ell (CurvBSpl *bsp, Memspc *memSeg, CurvElli *el1, Memspc *tmpSeg)
   int UT3D_bsp_cpsbsp (CurvBSpl *cvo, SurBSpl *su1, char cDir, int cvNr,
                         Memspc *memSeg1);
 
-  int bspl_bsp_ptn (CurvBSpl *cvo,Memspc *memSeg1,Point *pTab,int pNr,int deg);
+  int UT3D_cbsp_ptn (CurvBSpl *cvo,Memspc *memSeg1,Point *pTab,int pNr,int deg);
   int bspl_pol2_bsp2 (Point *pTab1, Point *pTab2, int *ptNr, int ptMax,
                     CurvBSpl *cv1, CurvBSpl *cv2, double tol);
   int UT3D_knotvec_m (double **knTab, double *v0, double *v1,

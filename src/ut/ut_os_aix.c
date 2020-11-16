@@ -1579,7 +1579,7 @@ extern int errno;
   gettimeofday (&tr1, 0);
   // 20 bit filtern (sonst zu gross f. float)
   *ts1 = (float)(tr1.tv_sec & 0xfffff) + ((float)tr1.tv_usec / CLOCKS_PER_SEC);
-  printf("ex OS_TimeStamp %f\n",*ts1);
+    // printf("ex OS_TimeStamp %f\n",*ts1);
 
   return 0;
 

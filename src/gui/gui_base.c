@@ -82,6 +82,14 @@ GUI_SETDAT_ES()          create GUI_DATA-block  ../gui_gtk/gtk_base.c
 =====================================================
 List_functions_start:
 
+GUI_MsgBox               display message with close-button, does not wait
+GUI_file_open__          get filenam from user for open, waiting.
+GUI_file_save__          get filenam from user for save, waiting.
+GUI_dlg_2b               dialogWindow, text, 2 Buttons, waiting.
+GUI_dlg_e2b              dialogWindow, entry, text, 2 Buttons, waiting.
+GUI_listf1__             get user-selection of file
+
+
 GUI_obj_init             get a new memBlockId <UI_umbId>
 GUI_obj_save             save UI_tmpSpc -> memoryblock <UI_umbId>
 GUI_obj_clear            clear the local memSpc UI_tmpSpc
@@ -101,10 +109,6 @@ GUI_obj_dump_mo          dump MemObj
 GUI_obj_dump_o
 
 GUI_opts_get1            get 1-char-parameter from opts-string
-
-GUI_file_open__
-GUI_file_save__
-GUI_MsgBox
 
 List_functions_end:
 =====================================================
@@ -156,11 +160,15 @@ ctags -f gui_base.tag gui_base.c
 #include <stdarg.h>                         // for ...
 #include <string.h>                     // memcpy memcmp
 
-#include "../ut/ut_umem.h"              // Memspc
-#include "../ut/ut_umb.h"               // UMB
-#include "../ut/ut_os.h"               // OS_ ..
+#include "../ut/ut_types.h"               // INT_8 - UINT_64
+#include "../ut/ut_txt.h"                 // UTX_IS_EMPTY
+#include "../ut/ut_uti.h"                 // ICHAR
+#include "../ut/ut_mem.h"                 // MEM__alloc_tmp
+#include "../ut/ut_umem.h"                // Memspc
+#include "../ut/ut_umb.h"                 // UMB
+#include "../ut/ut_os.h"                  // OS_ ..
 #include "../xa/xa_msg.h"                 // MSG_*  ERR_USER_ABORT
-#include "../gui/gui_types.h"          // TYP_GUI_Win
+#include "../gui/gui_types.h"             // TYP_GUI_Win
 
 // #define extern          // damit wird "extern" im Includefile geloescht !
 #include "../gui/gui_base.h"
@@ -228,18 +236,23 @@ char*   GUI_Win_tit     (void *gtkWin);
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================
+// GUI_MsgBox           display message with close-button, do not wait
  
   int      irc;
   char     sEnam[256], s2[512];
 
   // get full filename for GUI_executable
-  irc = APUI_get (sEnam, "GUI_dlg1");
+  irc = AP_GUI_get (sEnam, "GUI_dlg1");
 
 
   sprintf(s2,"%s info \"%s\"", sEnam, text);
-    printf("  GUI_MsgBox |%s|\n",s2);
+    printf("GUI_MsgBox |%s|\n",s2);
 
-  OS_sys1 (sEnam, sizeof(sEnam), s2);
+  // execute, wait
+  // OS_sys1 (sEnam, sizeof(sEnam), s2);
+
+  // execute, do not wait
+  OS_exec (s2);
 
   return 0;
 }
@@ -249,7 +262,8 @@ char*   GUI_Win_tit     (void *gtkWin);
   int GUI_listf1__ (char *sOut, int sSiz, char *fNam, char *sTit, char* opts) {
 //=============================================================================
 // GUI_listf1__      get user-selection of file
-// display file fNam; let user select; return selected line
+//   display file fNam; let user select; return selected line
+//   ATT: if string-parameter contains blank: enclose with double-apostroph
 // Input:
 //   sSiz        size of sOut
 //   fNam        filename of list to display
@@ -268,13 +282,13 @@ char*   GUI_Win_tit     (void *gtkWin);
   printf("GUI_listf1__ |%s|%s|%s|\n",fNam,sTit,opts);
 
   // get user-selection of list
-  irc = APUI__ (sOut, sSiz, "GUI_dlg1", "list1",
-                   fNam,
-                   sTit,
-                   opts,
-                   NULL);
+  irc = AP_GUI__ (sOut, sSiz, "GUI_dlg1", "list1",
+                  fNam,
+                  sTit,
+                  opts,
+                  NULL);
   if(irc < 0) return -1;
-    printf(" f-APUI__ |%s|\n",sOut);
+    // printf(" f-AP_GUI__ |%s|\n",sOut);
 
   // cancel ?
   irc = strlen(sOut);
@@ -283,7 +297,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 /*
   // get full filename for GUI_executable
-  irc = APUI_get (sEnam, "GUI_dlg1");
+  irc = AP_GUI_get (sEnam, "GUI_dlg1");
 
   //      (exeNam, symfilNam title wSiz)
 #ifdef _MSC_VER
@@ -305,38 +319,137 @@ char*   GUI_Win_tit     (void *gtkWin);
   }
 */
 
-    printf(" ex-GUI_listf1__ %d |%s|\n",irc,sOut);
+    // printf(" ex-GUI_listf1__ %d |%s|\n",irc,sOut);
 
   return irc;
 
 }
 
 
+//================================================================
+  int GUI_dlg_2b (char *txt, char *tb1, char *tb2) {
+//================================================================
+// GUI_dlg_2b          dialogWindow, text, 2 Buttons, waiting.
+// Input
+//   txt         text label, NOT enclosed with double-apostroph
+//   tb1         caption button 1, NOT enclosed with double-apostroph
+//   tb2         caption button 2, NOT enclosed with double-apostroph
+// Output:
+//   RetCod      nr of button pressed; 0=first 1=second ..
+//               -1 = dialog cancelled
+
+  int    irc;
+  char   *pa[3], so[8];
+
+
+  printf("GUI_dlg_2b |%s|%s|%s|\n",txt,tb1,tb2);
+
+
+  // enclose all strings into double-apostrophs
+  UTX_ENC_ApoD_TMP (&pa[0], txt);
+  UTX_ENC_ApoD_TMP (&pa[1], tb1);
+  UTX_ENC_ApoD_TMP (&pa[2], tb2);
+
+  // call GUI_dlg1/dlgbe
+  irc = AP_GUI__ (so, sizeof(so), "GUI_dlg1", "dlgbe",
+                 pa[0], pa[1], pa[2],
+                 NULL);
+    // printf(" f-AP_GUI__-irc = %d\n",irc);
+
+  if(irc < 0) return -1;           // error
+  if(UTX_IS_EMPTY(so)) return -1;  // cancel
+
+  irc = atoi(so);
+
+    // printf("ex-GUI_dlg_2b %d |%s|\n",irc,so);
+
+  return irc;
+
+}
+
+
+//==========================================================================
+  int GUI_dlg_e2b (char *entry, int eSiz, char *txt, char *tb1, char *tb2) {
+//==========================================================================
+// GUI_dlg_e2b          dialogWindow, entry, text, 2 Buttons, waiting.
+// Input
+//   entry       predefined entrytext, NOT enclosed with double-apostroph
+//   eSiz        size of inputfield entry (max. nr of chars)
+//   txt         text label, NOT enclosed with double-apostroph
+//   tb1         caption button 1, NOT enclosed with double-apostroph
+//   tb2         caption button 2, NOT enclosed with double-apostroph
+// Output:
+//   entry       entrytext
+//   RetCod      nr of button pressed; 0=first 1=second ..
+//               -1 = dialog cancelled
+
+
+  int    irc;
+  char   *pa[3], so[8], sl[24], *pe;
+
+  printf("GUI_dlg_e2b |%s|%s| %d |%s|%s|\n",txt,entry,eSiz,tb1,tb2);
+
+
+  // enclose all strings into double-apostrophs
+  UTX_ENC_ApoD_TMP (&pa[0], txt);
+  UTX_ENC_ApoD_TMP (&pa[1], tb1);
+  UTX_ENC_ApoD_TMP (&pa[2], tb2);
+
+  sprintf(sl, "%d", eSiz);
+
+  pe = (char*) MEM_alloc_tmp (eSiz + 4);
+  if(strlen(entry) > eSiz) entry[eSiz] = '\0';
+  sprintf(pe, "\"%s\"", entry);
+
+  // call GUI_dlg1/dlgbe
+  irc = AP_GUI__ (pe, eSiz, "GUI_dlg1", "dlgbe",
+                 pa[0], pa[1], pa[2],
+                 "--ent",
+                 pe,
+                 sl,
+                 NULL);
+    // printf(" f-AP_GUI__-irc = %d\n",irc);
+
+  if(irc < 0) return -1;           // error
+  if(UTX_IS_EMPTY(pe)) return -1;  // cancel
+
+  strcpy(entry, &pe[1]);
+
+  irc = ICHAR(pe[0]);
+
+    // printf("ex-GUI_dlg_e2b %d |%s|\n",irc,entry);
+
+  return irc;
+}
+
+
 //============================================================================
   int GUI_file_save__ (char *filNam, int fSiz,
-                       char *dirLst, char *fTyp, char *sTit) {
+                       char *dirLst, char *fTyp, char *sTit, int iOver) {
 //============================================================================
-/// GUI_file_save__        open file, waiting.
-/// Input:
-///   filNam     full filename or "." of default-directory/file(active directory)
-///   fSiz       max size of filNam in bytes
-///   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
-///   filterI    NULL or filtertext; eg "*.c";
-///   sTit       title
-/// Output:
-///   filNam
-///   dirNam
-///   filterO    modified filtertext or NULL
-///   retCode    >0=OK, strlen of filNam; -1=Cancel; -2=fSiz/dSiz too small
-///
-/// Example:
-///  char   s1[204], int  irc;
-///  strcpy(s2, ".");
-///  irc = GUI_file_open__ (s1, 200, NULL, "*.c");
-///  if(irc) return irc;
-///    printf(" open |%s|%s|\n",s1,s2);
-///
-/// TODO: case-insensitivity of filter ..
+// GUI_file_save__        get filename for save from user
+//   ATT: if string-parameter contains blank: enclose with double-apostroph
+// Input:
+//   filNam     full filename or "." of default-directory/file(active directory)
+//   fSiz       max size of filNam in bytes
+//   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
+//   filterI    NULL or filtertext; eg "*.c";
+//   sTit       title
+//   iOver      0 = check for overwrite, 1 = do not check
+// Output:
+//   filNam
+//   dirNam
+//   filterO    modified filtertext or NULL
+//   retCode    >0=OK, strlen of filNam; -1=Cancel; -2=fSiz/dSiz too small
+//
+// Example:
+//  char   s1[204], int  irc;
+//  strcpy(s2, ".");
+//  irc = GUI_file_open__ (s1, 200, NULL, "*.c");
+//  if(irc) return irc;
+//    printf(" open |%s|%s|\n",s1,s2);
+//
+// TODO: case-insensitivity of filter ..
 
 
   int      irc, i1;
@@ -347,40 +460,41 @@ char*   GUI_Win_tit     (void *gtkWin);
 
   sprintf(sFilt, "\"*.%s\"", fTyp);
 
-  // call GUI_file/save
-  irc = APUI__ (filNam, fSiz, "GUI_file", "save",
-                   filNam,
-                   dirLst,
-                   sFilt,
-                   sTit,
-                   NULL);
+  // get filename for save from user
+  irc = AP_GUI__ (filNam, fSiz, "GUI_file", "save",
+                  filNam,
+                  dirLst,
+                  sFilt,
+                  sTit,
+                  NULL);
   if(irc < 0) return -1;
-    printf(" f-APUI__ |%s|\n",filNam);
+    // printf(" f-AP_GUI__ |%s|\n",filNam);
 
              
   // cancel ?
   irc = strlen(filNam);
   if(irc < 2) return -1;
 
-  // test if file already exists;
-  if(!OS_checkFilExist(filNam,1)) return irc;
+  if(iOver) return irc;
 
 
   //----------------------------------------------------------------
+  // test if file already exists;
+  if(!OS_checkFilExist(filNam,1)) return irc;
+
   // file already exists; ask overwrite ..
 
   // call GUI_dlg1/dlgbe
-  i1 = APUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe",
-                  "\" model exists; overwrite ? \"",
-                  "NO",
-                  "YES",
-                  NULL);
+  i1 = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe",
+                 "\" model exists; overwrite ? \"",
+                 "NO",
+                 "YES",
+                 NULL);
   if(i1 < 0) return -1;
-    printf(" f-APUI__ |%s|\n",s2);
+  if(UTX_IS_EMPTY(s2)) return -1;
+    // printf(" f-AP_GUI__ |%s|\n",s2);
              
   // yes confirm overwrite
-  i1 = strlen(s2);
-  if(i1 < 1) return -1;
   if(s2[0] != '1') return -1;
 
   return irc;
@@ -392,48 +506,61 @@ char*   GUI_Win_tit     (void *gtkWin);
   int GUI_file_open__ (char *filNam, int fSiz,
                        char *dirLst, char *filterI, char *sTit) {
 //============================================================================
-/// GUI_File_open          open file, waiting.
-/// Input:
-///   filNam     full filename or "." of default-directory/file(active directory)
-///   fSiz       max size of filNam in bytes
-///   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
-///   filterI    NULL or filtertext; eg "*.c" (enclosed in \" else expands !)
-///   sTit       title
-/// Output:
-///   filNam     full filename of selected file
-///   retCode    0=OK, -1=Cancel, -2=fSiz/dSiz too small
-///
-/// Example:
-///  char   s1[204], int  irc;
-///  strcpy(s2, ".");
-///  irc = GUI_file_open__ (s1, 200, NULL, "*.c", "select  source");
-///  if(irc) return irc;
-///    printf(" open |%s|%s|\n",s1,s2);
-///
-/// TODO: case-insensitivity of filter ..
+// GUI_File_open          get filename for "open file" from user, waiting.
+//   ATT: if string-parameter contains blank: enclose with double-apostroph
+// Input:
+//   filNam     full filename or "." of default-directory/file(active directory)
+//   fSiz       max size of filNam in bytes
+//   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
+//   filterI    NULL or filtertext; eg "*.c" (enclosed in \" else expands !)
+//   sTit       title
+// Output:
+//   filNam     full filename of selected file
+//   retCode    0=OK, -1=Cancel, -2=fSiz/dSiz too small
+//
+// Example:
+//  char   s1[204], int  irc;
+//  strcpy(s2, ".");
+//  irc = GUI_file_open__ (s1, 200, NULL, "*.c", "select  source");
+//  if(irc) return irc;
+//    printf(" open |%s|%s|\n",s1,s2);
+//
+// SEE ALSO UI_file_open__
+// TODO: case-insensitivity of filter ..
 
 
   int      irc;
   char     sEnam[256];
 
 
-  printf("GUI_file_open__ |%s|%s|%s|\n",dirLst,filterI,sTit);
-  printf("  fSiz=%d filNam |%s|\n",fSiz,filNam);
+  // printf("GUI_file_open__ |%s|%s|%s|\n",dirLst,filterI,sTit);
+  // printf("  fSiz=%d filNam |%s|\n",fSiz,filNam);
 
 
-    // call GUI_file/save
-  irc = APUI__ (filNam, fSiz, "GUI_file", "open",
-                   filNam,
-                   dirLst,
-                   filterI,
-                   sTit,
-                   NULL);
+  // call GUI_file/save
+  irc = AP_GUI__ (filNam, fSiz, "GUI_file", "open",
+                  filNam,
+                  dirLst,
+                  filterI,
+                  sTit,
+                  NULL);
   if(irc < 0) return -1;
     printf("ex-GUI_file_open__  |%s|\n",filNam);
 
   return irc;
 
 }
+
+
+
+
+//================================================================
+//================================================================
+//================================================================
+//================================================================
+ 
+
+
 
 
 //================================================================
@@ -733,7 +860,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   // printf("GUI_obj_clear \n");
 
 
-  UME_set_free (-1, &UI_tmpSpc);
+  UME_set_unused (-1, &UI_tmpSpc);
 
 }
 
@@ -937,11 +1064,11 @@ char*   GUI_Win_tit     (void *gtkWin);
 /// \code
 /// GUI_opts_get1        get 1-char-parameter from opts-string
 /// Input:
-///   s1       the opts-string; paramters, delimited by ','.
+///   s1       the opts-string; parameters, delimited by ','.
 ///   opts     the characters of the parameter
 /// Output:
 ///   s1       the next parameter (delimiter ',' is skipped)
-///   RetCod   the paramter (one character of opts)
+///   RetCod   the parameter (one character of opts)
 ///            or opts[0] (the first character is the default).
 /// \endcode
 

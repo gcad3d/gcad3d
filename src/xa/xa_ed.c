@@ -93,7 +93,7 @@ ED_work_dyn         work block :DYNAMIC_DATA
 ED_skip_dyn         skip DYNAMIC_DATA-block
 ED_get_mac_fil      get APT_mac_fil
 
-ED_addRange         decode ObjRanges and add them to MemTab(ObjRange)
+ED_addRange         decode ObjRanges and add them to MemTab(IgaTab)
 ED_test__
 
 see also:
@@ -206,7 +206,8 @@ cl -c /I ..\include xa_ed.c
 
 
 
-  typedef_MemTab(ObjRange);
+// prototypes:
+  typedef_MemTab(IgaTab);
 
 
 
@@ -2206,6 +2207,8 @@ static int lnr1, lnr2;
       // reset CAD-inputFileds    2019-04-26
       IE_cad_InpIn__ (-2);
 
+      // for groups - IE_ed1__ - clear IE_buf
+      IE_buf_clr ();
     }
 
   }
@@ -3473,9 +3476,9 @@ static int  actLev=0;
 
 
 //================================================================
-  int ED_addRange (MemTab(ObjRange) *rTab, char *lBuf) {
+  int ED_addRange (MemTab(IgaTab) *rTab, char *lBuf) {
 //================================================================
-// decode ObjRanges and add them to MemTab(ObjRange)
+// decode ObjRanges and add them to MemTab(IgaTab)
 // Input:
 //   lBuf      eg "P10-20 P50 V1-20 V33 L1"
 

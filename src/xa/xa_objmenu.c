@@ -276,7 +276,7 @@ extern int       IE_modify;
   char        s1[32];
 
 
-  printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld %d\n",typ,dbi,dli,version);
+  // printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld %d\n",typ,dbi,dli,version);
   // printf("  APP_stat=%d\n",AP_stat.APP_stat);
   // ++iTest; if(iTest == 2) AP_debug__ ("OMN_popup_Brw");
 

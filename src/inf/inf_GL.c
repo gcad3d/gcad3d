@@ -9,6 +9,7 @@ INF_GL_events
 INF_GL_surfaces
 INF_GL2D__
 INF_GL_attrib
+INF_GL_coords
 
 
 //   GL_mode_draw_select =
@@ -62,10 +63,10 @@ _patch   fan or stripe;                        GL_set_patch
 _ipatch  indexed fan or stripe;                GL_set_ipatch
 
 //----------------------------------------------------------------
-_fac     n faces (Fac3 = indexed triangle);    GL_set_nfac
+_fac     n faces (Fac3 = indexed triangle);    GL_set_nfac_V1
 
 //----------------------------------------------------------------
-- ifac   n indexed faces with vectors;         GL_set_nifac
+- ifac   n indexed faces with vectors;         GL_set_nifac_V1
 
 
 
@@ -76,6 +77,10 @@ INF_GL2D_buttons__    2D-OpenGL-buttons, Vector/PlaneSelector
 
 
 -------------------------------------------
+
+
+GL_Scr_Siz_X        Size of the grafic-window (=Viewport) in ScreenCoords
+GL_Scr_Siz_Y
 
 
 /// GL_eyeX goes from the screenCenter to the eye
@@ -95,7 +100,7 @@ DL_Ind_Scl2D          DL-record rotate (see DL_Set_Scl2D)
 DL_Ind_ScBack         DL-record scale for GL2D (always same size) see GL_ScalBack)
                       // better use glLoadIdentity - see GL_Draw_sym_ang
 
-GL_cen
+GL_cen                centerpoint of the Viewport (in UserCoords)
 GL_eye_upd
 GL_eye_upd     // update GL_eye_pln and GL_angZ,GL_angX
 
@@ -128,6 +133,39 @@ GLBT_ori           GL2D-position of PlaneSelector
 Functions:
 GLBT_but_disp      display all defined 2D-buttons
 GLBT_sel__         analyze selection of 2D-button or obj of Vector/PlaneSelector
+
+
+================================================================== \endcode */}
+void INF_GL_coords (){        /*! \code
+
+  printf(" width of grafic-window in screenCoords %f\n",GL_Scr_Siz_X);
+  printf(" heigth of grafic-window in screenCoords %f\n",GL_Scr_Siz_Y);
+    // ATT: right side of grafic-window is removed by browser window;
+    //   therefore GL_cen is not center of window !
+    //   Low Left corner always has screenCoords 0,0
+
+  // screenCenter in userCoords
+  DEB_dump_obj__ (Typ_PT, &GL_cen, " GL_cen");
+
+    printf(" GL_Scale=%f\n",GL_Scale);
+    printf(" GL2D_Scale=%f\n",GL2D_Scale);
+
+  // vectors along grafic-window-boundaries
+  DEB_dump_obj__ (Typ_VC, GL_eyeY, " GL_eyeY-hor");   // horizontal
+  DEB_dump_obj__ (Typ_VC, GL_eyeZ, " GL_eyeZ-vert");  // vertical
+  DEB_dump_obj__ (Typ_VC, GL_eyeX, " GL_eyeX-up");    // vector up to eye (normal)
+
+
+  // get userCoords of point in screenCoords
+  GL_ptUc_ptSc (&pt2, &UT3D_PT_NUL);  // get pt2 = low-left-corner in userCoords
+
+  // get screenCoords from userCoords
+  GL_ptSc_ptUc
+
+
+  GL_View_set   // restore view from data
+  GL_View_get   // get all parameters for view
+
 
 
 ================================================================== \endcode */}

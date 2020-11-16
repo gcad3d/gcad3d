@@ -17,9 +17,9 @@ Joints using the code letter J.
   
 Applications for Joints:
 
-  <i>Schematics (electrical, hydraulic, pneumatic)</i>
+  <i>Assemblies, Schematics (electrical, hydraulic, pneumatic)</i>
        Importing points as connecting points (<a href='#JP1'>example</a>)
-       Text - redefine it for each inserted Submodel (<a href='#JN1'>example</a>)
+       Import a reference-system (plane) for positioning a submodel.
   
   <i>Kinematics</i>
     NOT YET IMPLEMENTED.
@@ -34,31 +34,38 @@ Applications for Joints:
 <p><a name='JP1'></a></p>
 <h3>Joints on points:</h3>
 
-  The corresponding point is created automatically when inserting
-    this model as Submodel - the point is imported in the parent model.
+  The corresponding object (point or plane)  is created automatically
+    when inserting this model as external submodel -
+    the object is imported in the parent model.
   Example:
     The current model is an electrical resistance;
     the connection points are defined as joints.
-    When inserting the resistance as a submodel to be
-    Connection points automatically generates normal points.
+    When inserting the resistance as a submodel the
+    Connection points automatically generate normal points.
     See sample_DiagEl1.gcad model.
     
+# Export:
+J1 = P20    # export point in subModel
 
-<hr>
-<p><a name='JN1'></a></p>
-<h3>Joints on Notes:</h3>
-
-  This allows to modify the text of the corresponding note -
-    The text can be redefined when inserting this new model as Submodel.
-  Example:
-    The current model is an electrical resistance;
-    a note with the resistance value is defined as a joint.
-    When inserting this model, the resistance value can be redefined.
-    See sample_DiagEl1.gcad model.
-  
+# Import: (is created automatically by import of external submodel as M20)
+P20=IMP M20 J1   # import Joint Nr.1  from subModel M20
 
 
+Example:
+- create model with points to connect (eg my_jnt1.gcad):
+  - create a rectangle, create the connection-points
+  - set the connention-points as JOINTS: 
+    CAD create joint-export, sel point ..
+  - store model as eg my_jnt1.gcad
 
+- create model using external connection-points (eg my_jnt2.gcad):
+  - load model with connection-points (eg my_jnt1.gcad)
+    CAD Submodel "M external Model" my_jnt1.gcad, set position, OK.
+    The connection-points have been created automatically - see MAN
+  - the connection-points can be used as normal points ..
+  - store model as eg my_jnt2.gcad
+
+See also model Data/sample_DiagEl1.gcad
 
 
 <h2>CAD-Functions Joints:</h2>
@@ -66,10 +73,10 @@ Applications for Joints:
 <hr>
 <p><a name='F1'></a></p>
 <h2>Joint-export</h2>
-Export an object of the current model as a joint.
+ Export the selected object of the current model as a joint.
 
-<b>joint-object:</b>
-currently only <a href='#JP1'>Point</a> oder <a href='#JN1'>Note</a>.
+   joint-object       select point or plane
+
 
 <b>Output:</b>
 J1 = P20
@@ -77,6 +84,7 @@ J1 = P20
 
 
 
+<!--
 <hr>
 <p><a name='F2'></a></p>
 <h2>Joint-import</h2>
@@ -106,6 +114,20 @@ P20 = P20 M20 IMP
 N20 = N20 M20 IMP "new text"
 
 
+
+<hr>
+<p><a name='JN1'></a></p>
+<h3>Joints on Notes:</h3>
+       Text - redefine it for each inserted Submodel (<a href='#JN1'>example</a>)
+
+  This allows to modify the text of the corresponding note -
+    The text can be redefined when inserting this new model as Submodel.
+  Example:
+    The current model is an electrical resistance;
+    a note with the resistance value is defined as a joint.
+    When inserting this model, the resistance value can be redefined.
+    See sample_DiagEl1.gcad model.
+--> 
 
 </PRE>
 </BODY>

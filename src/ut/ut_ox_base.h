@@ -1,3 +1,7 @@
+/* complex-obj ObjGX
+../ut/ut_ox_base.h
+Functions: ../ut/ut_ox_base.c
+*/
 
 
 
@@ -111,21 +115,22 @@ void OGX_SET_Float8 (ObjGX *ox, int f8typ, double *float8);
 ///           ox.typ   = dbTyp;
 ///           ox->data = (void*)int4;
 /// \endcode
-void OGX_SET_INT (int *typ, int *ival, ObjGX *ox);
-#define OGX_SET_INT(dbTyp,ii4,ox){\
+void OGX_SET_INT (ObjGX *ox, int typ, int ival);
+#define OGX_SET_INT(ox,dbTyp,ii4){\
   (ox)->typ = (dbTyp);\
   (ox)->form = Typ_Int4;\
   (ox)->siz = 1;\
-  (ox)->data = (void*)(ii4);}
+  (ox)->data = (void*)(long)(ii4);}
 
 
 
 /// \brief OGX_GET_INT              get index out of complexObject
+/// \brief OGX_GET_LONG             get index out of complexObject
 /// \code
 /// replaces: (int)ind = (long)oxi->data;   (if oxi->form == Typ_Index)
 /// \endcode
-#define OGX_GET_INT(ox)\
-  (long)(ox)->data
+#define OGX_GET_INT(ox) (long)(ox)->data
+#define OGX_GET_LONG(ox) (long)(ox)->data
 
 
 
@@ -154,7 +159,7 @@ void OGX_SET_COLOR (ObjGX *ox, ColRGB *col);
 
 
 // INCLUDE_FULL defined only in ../ut/ut_ox_base.c
-#define _OGX_NUL { 0, 0, NULL, 0, 0, 0 }
+#define _OGX_NUL { NULL, (short)0, (short)0, (int)0 }
 #ifndef INCLUDE_FULL
 extern ObjGX OGX_NUL;
 #else
@@ -162,6 +167,9 @@ ObjGX OX_NUL = _OGX_NUL;
 #endif
 
 
+// OGX_DAT                  get data-block of ObjGX
+#define OGX_DAT(ogx)\
+ ((ogx)->data)
 
 
 // EOF

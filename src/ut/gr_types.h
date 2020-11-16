@@ -39,7 +39,7 @@ void INF_ATT_CV (){}
 void INF_BITMAP_SYMBOLS (){}
 #endif
 // bitmapsymbols for GL_Disp_symB color: GL_att_sym
-// GL_set_symB GR_tDyn_symB GR_temp_symB
+// GL_set_symB GR_tDyn_symB__ GR_temp_symB
 #define SYM_TRI_S        130   // Bitmap tringle small
 #define SYM_STAR_S       131   // star, small
 #define SYM_CIR_S        132   // Bitmap circle small
@@ -72,11 +72,11 @@ void INF_COL_PT (){}
 // color of point(-symbols); value = thickness
 // GL_att_pt
 // GL_InitPtAtt
-#define ATT_PT_BLACK       0
-#define ATT_PT_HILI        1
-#define ATT_PT_DIMMED      2
-#define ATT_PT_GREEN       3
-#define ATT_PT_YELLOW      4
+#define ATT_PT_BLACK       0   // thick 5
+#define ATT_PT_HILI        1   // thick 5
+#define ATT_PT_DIMMED      2   // thick 5
+#define ATT_PT_GREEN       3   // thick 5
+#define ATT_PT_YELLOW      4   // thick 9
 
 
 #ifdef globTag
@@ -95,6 +95,19 @@ void INF_COL_SYMB (){}
 #define ATT_COL_WHITE      8
 #define ATT_COL_HILI       9
 #define ATT_COL_DIMMED    10
+
+// thick symbols
+#define ATT_COL_T_BLACK     16
+#define ATT_COL_T_RED       18
+#define ATT_COL_T_GREEN     19
+#define ATT_COL_T_BLUE      20
+#define ATT_COL_T_YELLOW    21
+#define ATT_COL_T_MAGENTA   22
+#define ATT_COL_T_CYAN      23
+#define ATT_COL_T_WHITE     24
+#define ATT_COL_T_HILI      25
+#define ATT_COL_T_DIMMED    26
+
 
 
 

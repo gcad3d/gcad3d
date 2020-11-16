@@ -168,7 +168,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
     rc = UT3D_pt_int2pt2pt_lim (&xp1, NULL, NULL,
                             &ln1->p1, &ln1->p2, pp1, pp2, tol);
     if(rc < 0) return 0;
-      // GR_Disp_pt (&xp1, SYM_STAR_S, ATT_COL_RED);
+      // GR_tDyn_symB__ (&xp1, SYM_STAR_S, ATT_COL_RED);
 
 
     // check distance to last found point (schleifende Schnitte entfernen)
@@ -215,7 +215,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
 // see UT3D_pta_bez bspl_pol_bsp
 
   // irc = UT3D_bez_eval_Pt (&pt1, bez, 0.5);
-  // GR_Disp_pt (&pt1, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 0);
 
   int     ianz, irc, ptOut, ptStackNr;
   double  pVal, kvs, kve, us, ue, dist, uStack[20];
@@ -743,7 +743,7 @@ Returncodes:
     rc = UT3D_pt_int2pt2pt_lim (&xp1, NULL, NULL,
                             &l1.p1, &l1.p2, &l2.p1, &l2.p2, tol);
     if(rc < 0) return 0;
-      // GR_Disp_pt (&xp1, SYM_STAR_S, ATT_COL_RED);
+      // GR_tDyn_symB__ (&xp1, SYM_STAR_S, ATT_COL_RED);
 
 
     // check distance to last found point (schleifende Schnitte entfernen)
@@ -1589,11 +1589,11 @@ Returncodes:
 
   // pt1 = pt0 + vcy * 2
   UT3D_pt_traptmultvc (&pt1, &pt0, vcy, 2.);
-    // GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, ATT_COL_RED);
 
   // pt2 = pt3 + vcy * 2
   UT3D_pt_traptmultvc (&pt2, &pt3, vcy, 2.);
-    // GR_Disp_pt (&pt2, SYM_STAR_S, ATT_COL_RED);
+    // GR_tDyn_symB__ (&pt2, SYM_STAR_S, ATT_COL_RED);
 
 
   rb1->ptNr = 4;
@@ -1873,7 +1873,7 @@ Returncodes:
 
   // pt1 - set correct length (tangential point)
   UT3D_pt_traptmultvc (&pt1, &ci1->pc, &vcm, d1);
-    // GR_Disp_pt (&pt1, SYM_STAR_S, ATT_COL_RED);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, ATT_COL_RED);
 
 
   rb1->ptNr = 3;

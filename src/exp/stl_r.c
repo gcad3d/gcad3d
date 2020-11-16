@@ -537,7 +537,7 @@ int main () {
   // printf(" stl_r_addTri %d\n",impDat.oNr);
 
   // // TEST-ONLY
-  // Triangle   tri1;
+  // Triang   tri1;
   // tri1.pa[0] = &pta[0];  tri1.pa[1] = &pta[1];  tri1.pa[2] = &pta[2];
   // GR_Disp_tria (&tri1, 9);
 
@@ -621,7 +621,7 @@ int main () {
 
 
 
-  // tess_dump_f_ (impDat.impSpc->start, "ex obj_readTess__");
+  // BMSH_dump_bfMsh (impDat.impSpc->start, "ex obj_readTess__");
   // DEB_dump_ox_s_ (impDat.impSpc->start, "ex obj_readTess__");
   // DEB_dump_ox_0 (impDat.impSpc->start, "ex obj_readTess__");
   // l1 = -1;

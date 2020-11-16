@@ -68,12 +68,8 @@ PRG_ckb_mod                test if CheckboxChain has changed ..
 PRG_dumpRec                dump FormTab 
 PRG_intern_exit            kill all internal vars
 
-PRG_Cre__
-PRG_Cre_CB
-
-PRG_Del__
-PRG_Del_CB
-PRG_Del_Del_CB
+PRG_Cre__              create new (empty) prg
+PRG_Del__              delete prg
 
 IO_wri_wri
 IO_wri_ope
@@ -120,7 +116,7 @@ APP_act_nam
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj UTO_obj_save
-#include "../ut/ut_memTab.h"          // MemTab_..
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txfil.h"            // UTF_GetnextLnPos
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
@@ -143,6 +139,7 @@ APP_act_nam
 #include "../xa/xa.h"                  // AP_dir_prg AP_sym_prg APP_act_*
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_uid.h"              // UI_MODE_..
+#include "../xa/xa_msg.h"              // MSG_cancel,
 
 
 #define CKBTYP 1
@@ -163,7 +160,7 @@ typedef struct {MemObj wp;
 
 
 typedef_MemTab(FormVar);
-typedef_MemTab(ObjRange);
+typedef_MemTab(IgaTab);
 
 
 
@@ -182,7 +179,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   static MemObj    PRG_win0, PRG_box;
 
   static MemTab(FormVar) FormTab = _MEMTAB_NUL;
-  static MemTab(ObjRange) PRG_internTab = _MEMTAB_NUL;
+  static MemTab(IgaTab) PRG_internTab = _MEMTAB_NUL;
 
 
   static int       PRG_dbg=0;   // 0=off; 1=On.
@@ -218,7 +215,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   strcpy(s1, "APP_1");
-  irc = GUI_Dialog_e2b ("name for new program:", s1, 80, "OK", "Cancel");
+  irc = GUI_dlg_e2b (s1, 80, "name for new program:", "OK", "Cancel");
   if(irc != 0) return -1;
 
 
@@ -267,7 +264,6 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   return 0;
 
 }
-*/
 
 //=================================================================
   int PRG_Del_Del_CB (MemObj *mo, void **data) {
@@ -286,15 +282,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     printf(" _Del_Del_CB |%s|\n",fnam);
   OS_file_delete (fnam);
 
-
-  // // create tmp/Catalog.lst
-  // CTLG_Lst_write ();
-
-
   return 0;
 
 }
-
 
 //====================================================================
   int PRG_Del_CB (char *cNam) {
@@ -316,7 +306,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   return 0;
 
 }
-
+*/
 
 //================================================================
   int PRG_Del__ () {
@@ -324,7 +314,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 // AP_dir_prg
 
   int    i1;
-  char   fnam[256], s1[256];
+  char   fnam[256], s1[256], s2[256];
 
   // printf("PRG_Del |%s|\n",AP_dir_prg);
 
@@ -338,16 +328,23 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     return 0;
   }
 
-  // // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
-  // GUI_List1 (" delete Application", fnam, (void*)PRG_Del_CB);
-//   i1 = GUI_list1_dlg_w (s1, 256,
-//                        NULL, " delete Application", fnam,
-//                        "1", NULL, "60,40");
-  
+  // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
   i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Application\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
+    // printf(" PRG_Del__-L1 |%s|\n",s1);
 
-  PRG_Del_CB (s1);
+
+  // ask user - delete ? yes / no
+  sprintf(s2, " delete Applic.script %s ?", s1);
+  i1 = GUI_dlg_2b (s2, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    // printf(" PRG_Del__-L2 %d\n",i1);
+  if(i1 != 0) return -1;            // error or cancel
+  
+
+  // delete file
+  sprintf(fnam,"%s%s",AP_dir_prg,s1);
+  TX_Print("delete program-File %s",fnam);
+  OS_file_delete (fnam);
 
 
   return 0;
@@ -1258,7 +1255,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   // get mem for PRG_internTab or clear PRG_internTab
   if(PRG_internTab.data == NULL)
-    MemTab_ini__ (&PRG_internTab, sizeof(ObjRange), Typ_ObjRange, 100);
+    // MemTab_ini__ (&PRG_internTab, sizeof(ObjRange), Typ_ObjRange, 100);
+    MemTab_ini__ (&PRG_internTab, sizeof(IgaTab), Typ_IgaTab, 100);
   // else
     // PRG_internTab.rNr = 0;
     // printf(" PRG_internTab.rMax=%d\n",PRG_internTab.rMax);
@@ -1824,7 +1822,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   L_done:
-      // DEB_dump_ObjRange (&PRG_internTab);
+      // DEB_dump_IgaTab (&PRG_internTab);
       // printf(" ex PRG_dlg__\n");
     return 0;
 
@@ -2330,7 +2328,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   int      i1;
   long     dbi, ie;
-  ObjRange *or;
+  IgaTab   *or;
 
 
   if(PRG_internTab.data == NULL) return 0;
@@ -2338,8 +2336,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   for(i1=0; i1<PRG_internTab.rNr; ++i1) {
     or = &PRG_internTab.data[i1];
       // printf(" or[%d]=%ld %d %d\n",i1,or->ind,or->typ,or->oNr);
-    ie = or->ind + or->oNr;
-    for(dbi=or->ind; dbi<ie; ++dbi) {
+    ie = or->ibeg + or->iNr;
+    for(dbi=or->ibeg; dbi<ie; ++dbi) {
       DB_Delete (or->typ, dbi);
     }
 

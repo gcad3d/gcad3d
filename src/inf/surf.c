@@ -6,22 +6,38 @@ New Version of Typ_SUTP.  Not yet implemented.
 
 
 ================================================================== */
-void INF_SUTP(){                   /*! \code
+void INEW_surf__(){                   /*! \code
+
+All surfaces have structure ObjGX - type Typ_SUTP; with -
+  support-surface (eg plane for Planar-surf) and one -
+  outer-boundary  (eg a link to a DB-curve) and (optional) inner boundaries.
+  
+
+INEW_surf_types
 
 
-sutp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP) INF_SUTP
+================================================================== \endcode */}
+INEW_surf_types(){                   /*! \code
 
-WHAT IS A TPS-surface:
-  - ObjGX typ=Typ_SUTP with all boundaries (1 outer, n inner)
-  - boundaries as DB-curves
-  - Record[0] = link to support-surf; PLN|CON|SPH|  ..   TOR/SRU/SRV/SBS
-  - Record[1] = link to outer boundary (DB-obj - typ,index)
-  - Record[2-] - links to inner boundaries
+Trimmed,perforated-surf (SurTP)                          Typ_SUTP        INF_SUTP
+  struct = ObjGX; 
 
-Functions:
-APT_decode_sutp_pln
-SUTP_decode_sSur
 
+Support-surfaces:
+  Planar-surf         plane                              Typ_PLN
+  Ruled-surf          line+circ/point,bspl (cone cyl ..) Typ_SURRU       INF_SURRU
+  Revolved-surf       Sph Tor                            Typ_SURRV
+  Sweep-surf          contour moving along a path        Typ_SURSWP
+  Bspl-surf           splines along across               Typ_SURBSP
+
+
+================================================================== \endcode */}
+INF_SURRU(){                   /*! \code
+
+  point+line, point+circ, point+bspl,
+  line+line (planar or not planar), line+circ, line+bspl,
+  circ+circ (nicht cyl, conic), circ+bspl,
+  bspl+bspl
 
 
 

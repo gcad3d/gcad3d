@@ -21,6 +21,7 @@
 #define MSH_PATCH      10  // patch = group of faces (eg from GLU)
 #define MSH_SURF       11  // surface =  group of patches
 #define MSH_SKIN       12  // skin = group of surfaces; body if closed.
+#define MSH_ISEG_B     14  // segmentNrs for boundaries; aux=bndNr
 
 
 
@@ -47,9 +48,9 @@ typedef struct {int i1, i2, i3, st;}                                Fac3;
 
 
 /// \code
-/// fTyp = 3: Face/TriangleMesh; fTab = *Face; Face->ipt = int[3];
+/// fTyp = 3: Face/TriangMesh; fTab = *Face; Face->ipt = int[3];
 /// fTyp = 4: Face/QuadMesh;
-/// fTyp = 5: Fac3/tableOfTriangleIndices; fTab = *int; iTab[fNr][3];
+/// fTyp = 5: Fac3/tableOfTriangIndices; fTab = *int; iTab[fNr][3];
 /// fTyp = 6: optimized format
 /// \endcode
 typedef struct {void *fTab; int fNr; int fTyp;}                     Faces;
@@ -98,7 +99,7 @@ typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
 typedef struct {Edge *eTab; int eNr; char *eTyp;}                   Edges;
 
 
-/// \brief Typ_SURMSH  2007-03-24 TB.
+/// \brief Typ_SURPMSH  2007-03-24 TB.
 /// \code
 /// f:    Faces; NULL=not yet created
 /// e:    Edges; NULL=not yet created
@@ -180,7 +181,7 @@ typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
 #define UT3D_ind3Tria_2ind(i1,i2) (IABS((i1)+(i2)-3))
 
 /// UT3D_tria_fac          create triangle from indexed-triangle (Fac3)
-void   UT3D_tria_fac(Triangle*, Fac3*, Point*);
+void   UT3D_tria_fac(Triang*, Fac3*, Point*);
 #define UT3D_tria_fac(tri,fac,pTab){\
  (tri)->pa[0] = &(pTab)[(fac)->i1];\
  (tri)->pa[1] = &(pTab)[(fac)->i2];\
@@ -199,16 +200,39 @@ void   UT3D_tria_fac(Triangle*, Fac3*, Point*);
 
 
 //----------------------------------------------------------------
+// struct for nifac
+typedef struct {int     fNr,       // nr of faces
+                        ptNr,      // nr of points
+                        oTyp;      // type of surface
+                Fac3    *fac;      // indexed faces
+                Point   *pa3;      // 3D-points
+                int     *ipa;      // index to points
+                Vec3f   *vc3;      // normalVectors; one for every point
+                Memspc   mSpc;     // memSpc for fac,pa3,ipa,vc3
+               }                                          MshFac;
+
+// see also struct MshDat MshSur
+
+#define _MSHFAC_NUL {0,0,0, NULL,NULL,NULL,NULL, UME_NEW}
+
+
+
+
+//----------------------------------------------------------------
 typedef_MemTab(int);
 typedef_MemTab(char);
 typedef_MemTab(Point2);
 typedef_MemTab(Point);
 typedef_MemTab(Vec3f);
+typedef_MemTab(Line2);
 typedef_MemTab(Line);
 typedef_MemTab(Fac3);
 typedef_MemTab(EdgeLine);
 typedef_MemTab(IndTab);
+typedef_MemTab(IgaTab);
 typedef_MemTab(ObjDB);
+typedef_MemTab(CurvCCV);
+typedef_MemTab(ObjGX);
 
 // DOES NOT WORK:
 // #define MemTab_int MemTab

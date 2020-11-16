@@ -214,7 +214,7 @@ List_functions_end:
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_sbsp (&pt1, pt2o);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
 
@@ -234,7 +234,7 @@ List_functions_end:
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_sru (&pt1, pt2o);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
 
@@ -253,7 +253,7 @@ List_functions_end:
 
     // // TEST-ONLY
     // TSU_tr_3D_2D_srv (&pt1, pt2o);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
     pt2o->x /= RAD_360;  // x=angle; -> value 0-1
 
@@ -376,7 +376,7 @@ List_functions_end:
   ox1->data = ox2;
 
 
-  OGX_SET_INT (Typ_Typ, Typ_SURPLN, ox2);
+  OGX_SET_INT (ox2, Typ_Typ, Typ_SURPLN);
   // ox2->typ  = Typ_Typ;
   // ox2->form = Typ_SURPLN;
   // ox2->siz  = 1;
@@ -826,7 +826,7 @@ List_functions_end:
     dbi = LONG_PTR (ox2p->data);
 
     // load Boundary from DB
-    oTyp = DB_GetObjDat (&o1, &i2, ox2p->typ, dbi);
+    oTyp = UTO__dbo (&o1, &i2, ox2p->typ, dbi);
       // DEB_dump_obj__ (oTyp, o1, "o1:\n");
 
     if(oTyp == Typ_CI) {
@@ -1274,7 +1274,7 @@ List_functions_end:
 
     // ptp = project point to plane from origin and Z-vec
     UT3D_pt_projptptnvc (&ptp, pt1, &pls->po, &pls->vz);
-      // GR_Disp_pt (&ptp, SYM_STAR_S, 3);
+      // GR_tDyn_symB__ (&ptp, SYM_STAR_S, 3);
     // vc1 = po - ptp
     UT3D_vc_2pt (&vc1, &pls->po, &ptp);
     *as = UT3D_angr_3vc__ (&pls->vz, &pls->vx, &vc1);
@@ -1283,7 +1283,7 @@ List_functions_end:
 
     UT3D_vc_2pt (&vc1, &pls->po, pt1);
     *as = UT3D_angr_2vc__ (&vc1, &pls->vz);
-      // GR_tDyn_vc (&pls->vz, &ptp, 8, 1);
+      // GR_tDyn_vc__ (&pls->vz, &ptp, 8, 1);
   }
 
 

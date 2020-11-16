@@ -21,6 +21,10 @@
 */
 
 
+#define _MEMSPC_NUL { NULL, NULL, NULL,\
+                      (char)0, (char)0, (char)0, (char)0 }
+
+
 /// \brief Typ_Memspc (a class for variable-length-records in memory)
 /// \code
 /// start   startpos of memspc
@@ -40,13 +44,15 @@ typedef struct {void *start, *next, *end;
   int   UME_malloc (Memspc *memSpc, long spcSiz, long memInc);
   void* UME_save (Memspc *memSpc, void* objDat, int osiz);
   void* UME__getSpc (Memspc *memSpc, long *spcOff, long addSiz);
-  int   UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz);
+  void* UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz);
   void* UME_reserve (Memspc *memSpc, int osiz);
+  int   UME_add_obj (Memspc *memSpc, void **po, int form, int oNr, void *data);
   int   UME_add (Memspc *memSpc, int osiz);
+  int   UME_add_nRec (Memspc *memSpc, void **pos, int recNr, int sizRec);
   int   UME_adjust (Memspc *memSpc, void* newStart);
   int   UME_ck_tot (Memspc *memSpc);
   int   UME_ck_free (Memspc *memSpc);
-  int   UME_set_free (int sizFree, Memspc *memSpc);
+  int   UME_set_unused (int sizFree, Memspc *memSpc);
   int   UME_dump    (Memspc *memSpc, char *txt);
   int   UME_del (Memspc *memSpc, void *nach, void *von, ...);
   void  UME_reset (Memspc *memSpc);

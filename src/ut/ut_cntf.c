@@ -68,7 +68,8 @@ List_functions_end:
 see also CVTRM__otb__         create trimmed-curve from object-table
 
 
-CNTF creates contour (trimmed-curves) from user-selections.
+CNTF creates contour (n trimmed-curves) from user-selections.
+All trimmed-curves refer to the basic-curve.
 
 */
 
@@ -325,7 +326,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
     // printf(" _add__-typ=%d dbi=%ld\n",oNew.typ,oNew.dbi);
 
   // get DB-obj
-  oNew.typ = DB_GetObjDat (&vp1, &oNr, oNew.typ, oNew.dbi);
+  oNew.typ = UTO__dbo (&vp1, &oNr, oNew.typ, oNew.dbi);
   if(oNew.typ <= Typ_Error) {TX_Print("***** CNTF_add__ I1"); return -1;}
     // DEB_dump_obj__ (oNew.typ, vp1, " _add__-vp1");
 
@@ -333,6 +334,8 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // read not allowd longer than vp1-objSize
   // memcpy (oNew.obj, vp1, OBJ_SIZ_MAX);
   memcpy (oNew.obj, vp1, UTO_siz_stru(oNew.typ));
+    // CNTF_dump (&oNew, "CNTF_add__-oNew");
+    // DEB_dump_obj__ (oNew.typ, &oNew.obj, "CNTF_add__-oNew.obj");
 
 
   // get start- endpoint
@@ -347,9 +350,9 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   } else {
     // get startPt and endtPt of newObj
     irc = UT3D_ptvcpar_std_obj (&oNew.pts, NULL, &oNew.v0,
-                                Ptyp_start, oNew.typ, oNew.obj);
+                                1, Ptyp_start, oNew.typ, oNew.obj);
     irc = UT3D_ptvcpar_std_obj (&oNew.pte, NULL, &oNew.v1,
-                                Ptyp_end, oNew.typ, oNew.obj);
+                                1, Ptyp_end, oNew.typ, oNew.obj);
     oNew.ip0 = 0;
     oNew.ip1 = 0;
   }
@@ -970,6 +973,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // DEB_dump_obj__ (Typ_PT, pt1, "CNTF_normalPt ");
+  // printf(" pt2=%p\n",pt2);
   // DEB_dump_obj__ (typ, obj, "   obj ");
 
 
@@ -980,18 +984,26 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
   // get pt2 = projection of pt1 onto obj
   irc = UPRJ_app_pt (pt2, pt1);
-  if(irc < 0) return -1;
+  if(irc < 0) {irc = -1; goto L_exit;}
 
-  // get par = parameter of pt2 on obj
-  irc = UT3D_par_pt__pt_prj_cv (par, NULL, 0, pt2, typ, obj, UT_DISP_cv);
+  // get par = parameter of pt2 on obj  (val 0-1)
+  irc = UT3D_par_pt__pt_prj_cv (par, NULL, 1, 1, pt2, typ, obj, UT_DISP_cv);
     // DEB_dump_obj__ (Typ_PT, pt2, " _normalPt-pt2");
     // printf(" _normalPt-irc=%d par1=%lf\n",irc,*par);
 
+  irc = 1;
+
   // get d1 = estimated length pt1 - pt2
   d1 = UT3D_lenB_2pt (pt2, pt1);
-  if(d1 < tol_pt) return 0;
+  if(d1 < tol_pt) irc = 0;
 
-  return 1;
+
+  L_exit:
+
+    // DEB_dump_obj__ (Typ_PT, pt2, "ex-CNTF_normalPt-pt2");
+    // printf(" ex-CNTF_normalPt irc=%d par=%f\n",irc,*par);
+
+  return irc;
 
 }
 
@@ -1027,14 +1039,14 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   // UME_alloc_tmp (&wrkSeg, 2000000);  // 2015-01-04; crash in MS !
   i1 = 2000000; // 2MB
   irc = UME_malloc (&wrkSeg, i1, i1/2);
-  if(irc < 0) return -1;
+  if(irc < 0) { irc = -1; goto L_errEx1;}
     // UME_dump (&wrkSeg, "wrkSeg");
 
   // obj -> ObjGX
   OGX_SET_OBJ (&oxo, old.typ, old.typ, 1, old.obj);
   OGX_SET_OBJ (&oxn, oNew.typ, oNew.typ, 1, oNew.obj);
 
-  irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, &oxo, &oxn, &wrkSeg);
+  irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, 1, &oxo, &oxn, &wrkSeg);
     // printf(" ex npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
   if(irc < 0) goto L_exit;
   if(pNr <= 0) {
@@ -1059,7 +1071,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   *par1 = va[i1];    // parameter on old
 
   // get parameter for intersectionpoint (ptx) on new obj
-  UT3D_par_pt__pt_prj_cv (par2, NULL, 0, ptx, oNew.typ, oNew.obj, UT_DISP_cv);
+  UT3D_par_pt__pt_prj_cv (par2, NULL, 1, 1, ptx, oNew.typ, oNew.obj, UT_DISP_cv);
 
 
   irc = 0;
@@ -1068,9 +1080,15 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   L_exit:
   UME_free (&wrkSeg);
 
-    // printf("ex CNTF_int__ %d par1=%lf par2=%lf\n",irc,*par1,*par2);
+  L_errEx1:
+ 
+    // TESTBLOCK
+    // printf("ex-CNTF_int__ irc=%d par1=%lf par2=%lf\n",irc,*par1,*par2);
     // DEB_dump_obj__ (Typ_PT, ptx, " ptx ");
     // if(IS_NAN(*par2)) AP_debug__  ("CNTF_int__-1");
+    // if((*par1 < 0.)||(*par1 > 1.)) AP_debug__("ex-CNTF_int__ E1");
+    // if((*par2 < 0.)||(*par2 > 1.)) AP_debug__("ex-CNTF_int__ E2");
+    // END TESTBLOCK
 
   return irc;
 
@@ -1204,6 +1222,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 
 
   // printf("CNTF_out_old \n");
+  // CNTF_dump (&old, "CNTF_out_old-old");
 
 
   cc1 = UT3D_CCV_NUL;   // empty
@@ -1245,9 +1264,18 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
 // was APT_decode_cvco_out
 // using old.pts - old.pte for ip0, ip1 !
 
+  CurvCCV   cc2;
+  void      *data;
 
   // DEB_dump_obj__ (Typ_CVTRM, cc1, " CNTF_out_cvtrm %d",ccNr);
   // if(*ccNr == 3) AP_debug__ ("APT_decode_cvco_out 3");
+
+
+  // if cc1 references to trimmed-curve, set reference = basic-curve of reference.
+  if(cc1->typ == Typ_CVTRM) {
+    CVTRM__basCv__ (&cc2, &data, cc1);
+    *cc1 = cc2;
+  }
 
 
   // create points for ip0,ip1 if undefined

@@ -472,7 +472,7 @@ see also:
   // der Punkt i3-1 muss bleiben.
   // Alle Punkte zwischen i1 und i3-1 entfernen.
   // i3-1 wird dann zu i1.
-    // GR_Disp_pt (&pTab[i3-1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pTab[i3-1], SYM_STAR_S, 2);
   ptStat[i3-1] = 0;  // keep point
   i1 = i3-1;
   i3 += 1;
@@ -656,7 +656,7 @@ see also:
   for (i1=0; i1<ptNr; ++i1) {
     pta->x = sin(aa) * rd + ptCen->x;
     pta->y = cos(aa) * rd + ptCen->y;
-    // GR_Disp_pt (pta, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (pta, SYM_STAR_S, 2);
     aa += da;
     ++pta;
   }

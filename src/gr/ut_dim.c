@@ -57,6 +57,7 @@ see also dxfw_gxt
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 #include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..

@@ -5,7 +5,7 @@
 
 int   UTO_objDat_ox     (void **objOut, int *oNr, ObjGX *ox1);
 int   UTO_pt_eval_par1_dbo (Point *pto, double lpar, int typ, long ind);
-int   UT3D_par_pt__pt_prj_cv (double *pao, Point *pto, int vTyp,
+int   UT3D_par_pt__pt_prj_cv (double *pao, Point *pto, int vTyp, int mode,
                               Point *pti, int oTyp, void *oDat, double tol);
 int   UTO_par__pt_dbo (double *lpar, int vTyp, Point *pti, int typ, long ind);
 int   UTO_npt_Tes      (int *pNr, Point **ppa, ObjGX *os);

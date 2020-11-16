@@ -16,6 +16,7 @@ Korr:
 -------------------------------------------
 *//*!
 \file ../ut/ut_uti.h
+      ../ut/ut_uti.c
 \ingroup grp_ut_geom
 */
 
@@ -37,7 +38,9 @@ Korr:
  double  UTP_max_d3 (double *d1, double *d2, double *d3);
  double  UTP_db_rnd1sig (double);
  double  UTP_db_rnd2sig (double);
+ double  UTP_par1_vMin_vMax_vx (double vMin, double vMax, double vx);
  UINT_32 UTI_checksum__ (void *buf, int bufLen);
+ 
 
 
 
@@ -221,6 +224,19 @@ int DLIM10 (double dd);
 #define UTI_2dig_int(ibs,ibe,typ) {ibs=typ/10; ibe=typ - (ibs * 10);}
 
 
+// UTI_div4up          change int to next multiple of 4;
+// returns 4 for 1|2|3|4;     returns 8 for 5|6|7|8          ...
+// returns 0 for -6 to 0;     returns -4 for -10 to -7       ...
+int UTI_div4up (int);
+#define UTI_div4up(ii) ((ii + 3) / 4 * 4)
+
+// UTI_div4diff        get nr of missing bytes for modulo-4 (multiple of four)
+// 5 returns 3;    6 returns 2 ..
+int UTI_div4diff (int);
+// #define UTI_div4diff(ii) ({int ip = (ii)%4; (ip) ? 4 - ip : 0;})
+#define UTI_div4diff(ii) ( (ii)%4  ? 4 - ((ii)%4) : 0)
+
+
 // UTI_2int8_int16           get 2 characters from short-int
 void UTI_2int8_int16 (char,char,short);
 #define UTI_2int8_int16(i8_1,i8_2,i16)\
@@ -285,14 +301,14 @@ int UTP_comp2db (double d1, double d2, double tol);
 #define UTP_comp2db(d1,d2,tol) (fabs(d2-d1) < (tol))
 
 
-/// \brief UTP_px_paramp0p1px        value_x from valStart, valEnd, param_x
+/// \brief UTP_vx_vMin_vMax_par1        value_x from valStart, valEnd, param_x
 /// \code
-/// see also UTP_param_p0p1px
+/// see also UTP_par1_vMin_vMax_vx
 /// param_x   between 0. to 1.
 /// Example: p0=5, p1=10, par=0.5; retVal=7.5.
 /// \endcode
-double UTP_px_paramp0p1px (double, double, double);
-#define UTP_px_paramp0p1px(p0,p1,par)\
+double UTP_vx_vMin_vMax_par1 (double, double, double);
+#define UTP_vx_vMin_vMax_par1(p0,p1,par)\
   ((p1) - (p0)) * (par) + (p0);
 
 
@@ -360,6 +376,16 @@ int BIT_CLR (int, int);
 /// RetCod: 0 (not set) or value (set)
 int BIT_GET (int, int);
 #define BIT_GET(i,b) ((i)&(b))
+
+
+// BIT_UPD        set or clear bit
+void BIT_UPD (int ii, int bitPos, int iVal);
+// Input:
+//   ii         set/reset bitVal here
+//   bitPos     0=first-bit (bitVal 1), 1=second (bitVal=2), 2=next (bitVal=4) ..
+//   iVal       0=reset bitPos, else set bitPos
+#define BIT_UPD(ii,bitPos,iVal)\
+ ((iVal) ? ((ii) |= IPOW(bitPos)) : ((ii) &= ~(IPOW(bitPos))))
 
 
 // EOF

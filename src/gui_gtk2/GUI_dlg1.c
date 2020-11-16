@@ -57,8 +57,9 @@ cat /tmp/debug.dat
 
 // GLOBAL:
 // static char *sGui = "gtk2";
-int  nArg, upState=0;
-char **paArg;
+int        nArg, upState=0, iEnt=0, lEnt=64;
+char       **paArg;
+GtkWidget  *wEnt;
 
 
   void UTX_CleanCR (char* string);
@@ -214,10 +215,11 @@ static char* os_tmp_dir = "/tmp/";
 
   sprintf(sOut, "%d", *((int*)data));
 
-
-  // TODO add entryText
-
-
+  // add entryText
+  if(iEnt) {
+    strncat(sOut, (char*)gtk_entry_get_text(GTK_ENTRY(wEnt)), lEnt);
+    sOut[lEnt] = '\0';
+  }
 
   // return buttonNr   [ + entry]
   return GUI_dlg1_exit (sOut);
@@ -241,11 +243,10 @@ static char* os_tmp_dir = "/tmp/";
 // imported from GUI_DialogEntry
 
   int    ii, btNr, isx, isy;
-  char   *infTxt, *entTxt, *entSiz;
+  char   *infTxt, *entTxt;
+  GtkWidget    *UI_win=NULL, *box0, *box1, *w1, *bt1;
 
 static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-  GtkWidget    *UI_win=NULL, *box0, *box1, *w1, *bt1;
 
 
   printd("GUI_dlg_dlgbe1__  %d\n",nArg);
@@ -256,7 +257,6 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   infTxt = paArg[ii];
 
   btNr = 0;
-  entSiz = NULL;
   entTxt = NULL;
 
   // find "--ent"
@@ -268,10 +268,15 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
       ++ii;
       if(ii >= nArg) return GUI_dlg1_err1 ();
       entTxt = paArg[ii];
+      iEnt = 1;
       // next parameter can be size of entry
       ++ii;
       if(ii >= nArg) break;
-      entSiz = paArg[ii];
+      lEnt = atoi(paArg[ii]);
+      if((lEnt < 2)||(lEnt > 256)) {
+        printf(" *** ERROR GUI_dlg_dlgbe1__ - entSiz not 2-256 chars ..\n");
+        return GUI_dlg1_err1 ();
+      }
       break;
     }
     if(ii >= nArg) return GUI_dlg1_err1 ();
@@ -287,7 +292,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   printd("  btNr = %d\n",btNr);
   for(ii=0; ii < btNr; ++ii) printd(" bt %d |%s|\n",ii,paArg[ii+3]);
-  printd(" infTxt |%s| entTxt |%s| entSiz |%s|\n",infTxt,entTxt,entSiz);
+  printd(" infTxt |%s| entTxt |%s| lEnt = %d\n",infTxt,entTxt,lEnt);
 
 
   //----------------------------------------------------------------
@@ -313,14 +318,19 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   // gtk_container_add (GTK_CONTAINER (box0), w1);
   gtk_box_pack_start (GTK_BOX (box0), w1, TRUE, TRUE, isx);
 
-//   // create entry .....................
-//   if(entry) {
-//     // i1 = strlen(entry) + 10;
-//     w_entry = GUI_entry__ (&box0, NULL, entry, NULL, NULL, "e");
-//       // printf("GUI_DialogEntry |%s| %d\n",entry,eSiz);
-//   }
+  //----------------------------------------------------------------
+  // create entry .....................
+  if(iEnt) {
+    wEnt = gtk_entry_new ();
+    gtk_entry_set_max_length (GTK_ENTRY(wEnt), lEnt);
+    // preset Text
+    gtk_entry_set_text (GTK_ENTRY(wEnt), entTxt);
+    // gtk_entry_set_has_frame (GTK_ENTRY(wEnt), FALSE);
+    gtk_container_add (GTK_CONTAINER (box0), wEnt);
+  }
 
 
+  //----------------------------------------------------------------
   // create buttons .....................
   box1 = gtk_hbox_new (TRUE, 0);   // gtk2; TRUE=all objs same space
   // box1 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -722,7 +732,9 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   DEB_prt_init (0); // close "printd"-file
 #endif
 
-  // gtk_widget_destroy (wfl1);
+  // gtk_widget_hide (UI_list1_win);
+  // gtk_signal_emit_by_name (GTK_OBJECT(UI_list1_win),"destroy");
+  // gtk_widget_destroy (UI_list1_win);
 
   exit(0);
 

@@ -1263,7 +1263,7 @@ static FILE      *EDMPT_fp_dep = NULL;
       // DL_SetInd (dli);               // overwrite this DL-record
       // APT_disp_SymB (EDMPT_SYM_ID, ii, actPtp);  // replace point
       DL_temp_ind = dli;
-      GR_tDyn_symB (actPtp, EDMPT_SYM_ID, ii);
+      GR_tDyn_symB__ (actPtp, EDMPT_SYM_ID, ii);
     }
     DL_Redraw ();
     goto L_exit;
@@ -1328,7 +1328,7 @@ static FILE      *EDMPT_fp_dep = NULL;
         // DL_SetInd (dli);             // overwrite
         // APT_disp_SymB (SYM_STAR_S, EDMPT_SYM_COL, &actPta[actInd]);
         DL_temp_ind = dli;
-        GR_tDyn_symB (&actPta[actInd], SYM_STAR_S, EDMPT_SYM_COL);
+        GR_tDyn_symB__ (&actPta[actInd], SYM_STAR_S, EDMPT_SYM_COL);
       }
     }
 
@@ -1403,7 +1403,7 @@ static FILE      *EDMPT_fp_dep = NULL;
         DEB_dump_obj__ (Typ_PT, &actPta[i1], "   actPta[%d]",i1);
       // APT_disp_SymB (EDMPT_SYM_ID, EDMPT_SYM_COL, &actPta[i1]);
 // DL_temp_ind ??
-      GR_tDyn_symB (&actPta[i1], EDMPT_SYM_ID, EDMPT_SYM_COL);
+      GR_tDyn_symB__ (&actPta[i1], EDMPT_SYM_ID, EDMPT_SYM_COL);
     }
     DL_Redraw ();  // resets "Symbols-on-top"
 
@@ -1548,7 +1548,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
       sprintf(sBuf," - this point is linked to %s -\n"
                    " - store modifications and modify %s ? ",sNam,sNam);
-      i1 = GUI_Dialog_2b (sBuf, "YES", "NO");  // 0=yes
+      i1 = GUI_dlg_2b (sBuf, "YES", "NO");  // 0=yes
       if(i1 == 0) {
         EDMPT_save__ ();             // save
         EDMPT_restart_lnk ();

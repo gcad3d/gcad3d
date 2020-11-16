@@ -356,7 +356,7 @@ extern  int       AP_src;                // AP_SRC_MEM od AP_SRC_EDI
 extern ColRGB     AP_defcol;
 
 
-// aus xa_ui.c:
+// aus ../xa/xa_ui.c:
 extern int        UI_InpMode;
 
 
@@ -755,13 +755,15 @@ static char *fnam;
 //====================================================================
   int Mod_mkList (int mode) {
 //====================================================================
-/// make list of all Submodels -> <baseDir>/tmp/Mod.lst
-/// mode = 0: mit "-main-"
-/// mode = 1: ohne "-main-"
-/// Mainmodel wird mit "-main-" in die Liste eingetragen !
+// make list of all Submodels -> <baseDir>/tmp/Mod.lst
+// Input:
+//   mode     0: include "-main-"
+//            1: skip "-main-" (do not list primary model)
+// Output:
+//   retCod   -1 = error, else nr of subModels in outputfile
 
 
-  int   iNr;
+  int   iNr, iOut;
   char  fnam[256], *p1;
   FILE  *fpo;
 
@@ -785,6 +787,8 @@ static char *fnam;
   OS_dir_scan_ (fnam, &iNr);
   if(iNr > 0)  {
 
+    iOut = 0;
+
     for (;;) {
 
       OS_dir_scan_ (fnam, &iNr);
@@ -801,12 +805,13 @@ static char *fnam;
       if(strncmp(p1, "Model_", 6)) continue;
 
       if(!strcmp(p1, "Model_")) {
-        if(mode == 0) { fprintf(fpo,"-main-\n"); }
+        if(mode == 0) { fprintf(fpo,"-main-\n"); ++iOut; }
         continue;
       }
 
       fprintf(fpo,"%s\n",&p1[6]);
         // printf("   %d |%s|\n",iNr,&p1[6]);
+      ++iOut;
     }
   }
 
@@ -814,7 +819,7 @@ static char *fnam;
 
 
 
-  return 0;
+  return iOut;
 
 }
 
@@ -822,11 +827,9 @@ static char *fnam;
 //====================================================================
   void Mod_chg_CB (char *modNam) {
 //====================================================================
-/// \code
-/// - load new active SubModel
-/// - set AP_modact_nam = new active Modelname
-/// - RUN
-/// \endcode
+// - load new active SubModel
+// - set AP_modact_nam = new active Modelname
+// - RUN
 
   int     i1;
 
@@ -997,6 +1000,7 @@ static char *fnam;
   if(!strncmp(ln1, "DEFCOL ", 7))   return 1;
   if(!strncmp(ln1, "DEFTX ", 6))    return 1;
   if(!strncmp(ln1, "CONST_PL ", 9)) return 1;
+  if(!strncmp(ln1, "MODE ", 5))     return 1;
 
 
   return 0;
@@ -1108,13 +1112,13 @@ static char *fnam;
 
 
 //====================================================================
-  int Mod_sav__ (int iCompress, char *fnOut, int savActMdl) {
+  int Mod_sav__ (int iCompress, char *fnOut, int mode) {
 //====================================================================
 /// Mod_sav__           save Model+Submodel -> File native
 /// Input:
 ///   filNam     outfilename absolute
 ///   iCompress  0=do not compress; else compress.
-///   savActMdl  0=save active model, 1=do not save active model
+///   mode  0=save active model, 1=do not save active model
 
   int  irc;
   char fnTmp[256], fn1[256];
@@ -1123,7 +1127,7 @@ static char *fnam;
   sprintf(fnTmp, "%sModel", OS_get_tmp_dir());
 
   // save Model+Submodels into tempDir as "<tmpDir>/Model" native
-  irc = Mod_sav_i (savActMdl);
+  irc = Mod_sav_i (mode);
   if(irc < 0) return irc;
 
   // make a copy (copy Model -> Mod_in) for check-modified
@@ -1157,24 +1161,24 @@ static char *fnam;
 
 
 //====================================================================
-  int Mod_sav_i (int savActMdl) {
+  int Mod_sav_i (int mode) {
 //====================================================================
 /// \code
 /// Mod_sav_i         save Model+Submodels into tempDir as "Model" native
 /// Input:
-///   filNam     outfilename absolute
-///   savActMdl  0=save active model,
-///              1=do not save active model
-///             -1=create empty model
+///   mode  0  = save active model,
+///         1  = save all subModels, do not save active model
+///         -1 = create empty model
 ///
-/// - savActMdl=0:    save the active Submodel AP_modact_nam -> File
+///   filNam     outfilename absolute
+/// - mode=0:    save the active Submodel AP_modact_nam -> File
 /// - join all files tmp/Model_* into file tmp/Model
 /// - mainModel = tmp/Model_; subModels = tmp/Model_*
 /// \endcode
 
   int    irc, i1, ii;
   long   l1;
-  char   cbuf[256], fnam0[256], fnam1[256], *p1;
+  char   cbuf[256], fnam0[256], fnam1[256], s1[256], *p1;
   FILE   *fp1, *fpo;
   Memspc mSpc1;
   // void  *vp1;
@@ -1190,7 +1194,9 @@ static char *fnam;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
-  printf("Mod_sav_i savActMdl=%d\n",savActMdl);
+  // printf("Mod_sav_i mode=%d\n",mode);
+  // printf("  AP_stat.mdl_stat=%d\n",AP_stat.mdl_stat);
+
 
   irc = -1;
 
@@ -1198,7 +1204,7 @@ static char *fnam;
 
 
   // fix box if necessary
-  if(savActMdl >= 0) {
+  if(mode >= 0) {
     // model not empty
     if(AP_mdlbox_invalid_ck()) {
       // get box of active model
@@ -1212,8 +1218,8 @@ static char *fnam;
 
 
   // save the active sub- or mainmodel AP_modact_nam -> TempFile
-  // if(!savActMdl) Mod_sav_tmp ();
-  if(savActMdl <= 0) Mod_sav_tmp ();
+  // if(!mode) Mod_sav_tmp ();
+  if(mode <= 0) Mod_sav_tmp ();
 
 
   // get lists of all subModels, PTAB-Surfs and MSH-Surfs of subModelfiles
@@ -1236,32 +1242,66 @@ static char *fnam;
   }
 
 
-
   //================================================================
-  // add all Submodels to file fnam0
-  if(mdlTab.iNr < 1) goto L_PTAB;
+  // add all existing Submodels to file fnam0
 
-  for(ii = 0; ii < mdlTab.iNr; ++ii) {
-    p1 = UtxTab__ (ii, &mdlTab);      // get word from index
+  // get list of defined subModelFiles - <baseDir>/tmp/Mod.lst
+  ii = Mod_mkList (1);
+  if(!ii) goto L_PTAB;
 
-    sprintf(fnam1,"%sModel_%s",OS_get_tmp_dir(),p1);
-    if(OS_checkFilExist(fnam1, 1) == 0) {
-      sprintf(cbuf, " submodel %s not found ..",p1);
-      GUI_MsgBox (cbuf);
-      continue;
-    }
+  // loop tru ../tmp/Mod.lst
+  // open
+  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  if((fp1=fopen(s1,"r")) == NULL) goto L_PTAB;  // no sm exists
 
-    fprintf(fpo, "SECTION MODEL %s\n",p1);
+  while (!feof (fp1)) {
+
+    // get s1 = next subModelname of existing sm
+    if (fgets (s1, 256, fp1) == NULL) break;
+    UTX_CleanCR (s1);   // in s1 ist nun Modename
+
+    sprintf(fnam1, "%sModel_%s", OS_get_tmp_dir(), s1);
+
+    fprintf(fpo, "SECTION MODEL %s\n",s1);
 
     // cat file tmp/Model_<mdlnam>
     if(UTX_cat_file (fpo, fnam1) < 0) {
       TX_Print("Mod_sav_i E003 %s",fnam1);
-      return -1;
+      goto L_err2;
     }
 
-    fprintf(fpo,"%s\n",sSecEnd);
-
+    fprintf(fpo,"%s\n",sSecEnd);  // SECTIONEND
   }
+
+  fclose(fp1);
+
+
+
+//   //================================================================
+//   // add all used Submodels to file fnam0
+//   if(mdlTab.iNr < 1) goto L_PTAB;
+// 
+//   for(ii = 0; ii < mdlTab.iNr; ++ii) {
+//     p1 = UtxTab__ (ii, &mdlTab);      // get word from index
+// 
+//     sprintf(fnam1,"%sModel_%s",OS_get_tmp_dir(),p1);
+//     if(OS_checkFilExist(fnam1, 1) == 0) {
+//       sprintf(cbuf, " submodel %s not found ..",p1);
+//       GUI_MsgBox (cbuf);
+//       continue;
+//     }
+// 
+//     fprintf(fpo, "SECTION MODEL %s\n",p1);
+// 
+//     // cat file tmp/Model_<mdlnam>
+//     if(UTX_cat_file (fpo, fnam1) < 0) {
+//       TX_Print("Mod_sav_i E003 %s",fnam1);
+//       return -1;
+//     }
+// 
+//     fprintf(fpo,"%s\n",sSecEnd);
+// 
+//   }
 
 
   //================================================================
@@ -1525,7 +1565,7 @@ static char *fnam;
             AP_modact_nam,             // defaultModelname
             (void*)Mod_sav2file_CB);
 */
-  irc = AP_save__ (2, "gcad");
+  irc = AP_save__ (2, 0, "gcad");
   // if(irc < 0) return -1;
 
 
@@ -2716,8 +2756,8 @@ static ModelRef modR2;
 //====================================================================
   int Mod_kill__ () {
 //====================================================================
-/// - alle tmp/Model_* loeschen
-/// - alle tmp/*.tess loeschen
+/// - delete all tmp/Model_*
+/// - delete all tmp/*.tess
 /// must NOT kill MdlLst.txt (list of models last used)
 /// see also OS_file_delete OS_file_delGrp
 
@@ -3976,13 +4016,14 @@ static ModelRef modR2;
 }
  
 
+/* UNUSED - replaced by AP_save_del_smuu
 //================================================================
   int Mod_fget_names_1 (TxtTab *mdlTab) {
 //================================================================
+// retCode:  0=OK; -1=cancel
  
   int           irc, ii;
-  char          s1[256], s2[256];
-  char          sbt[3][64], *buttons[4];
+  char          s1[256], s2[256], s3[400];
   FILE          *fp1;
 
 
@@ -4014,36 +4055,39 @@ static ModelRef modR2;
       // printf(" ex UtxTab_find %d\n",ii);
     if(ii >= 0) continue;
 
-    if(irc < 0) {
-      // save or delete subModel <s1>
-      // sprintf(s2, "Save unused submodel %s ?",s1);
-      MSG_get_1 (s2, 256, "SAVusm", "%s", s1);
 
-      strcpy(sbt[0],  MSG_const__(MSG_cancel));  // "Cancel");
-      strcpy(sbt[1],  MSG_const__(MSG_no));      // "NO");
-      strcpy(sbt[2],  MSG_const__(MSG_ok));      // "YES");
-
-      buttons[0] = sbt[0];
-      buttons[1] = sbt[1];
-      buttons[2] = sbt[2];
-      buttons[3] = NULL;
-      irc = GUI_DialogEntry (s2, NULL, 0, buttons, 5);
-        // printf("after GUI_DialogYN\n");
-    }
+    //----------------------------------------------------------------
+    // subModel <s1> is unused; ask user to save or not
+    // save or delete subModel <s1>
+    // sprintf(s2, "Save unused submodel %s ?",s1);
+    MSG_get_1 (s2, 256, "SAVusm", "%s", s1);
+    sprintf(s3, "\" %s  \"",s2);  // embed with "
 
 
-    if(irc == 2) {        // YES = SAVE
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s3,
+                  MSG_const__(MSG_no),
+                  MSG_const__(MSG_cancel),
+                  MSG_const__(MSG_ok),
+                  NULL);
+      printf(" f.AP_GUI__ irc=%d s2=|%s|\n",irc,s2);
+
+    if(irc < 0) goto L_cancel;
+
+    if(s2[0] == '2') {        // YES = SAVE
       UtxTab_add (mdlTab, s1);
+      continue;
 
-    } else if(irc == 1) { // NO = DELETE file
+    } else if(s2[0] == '1') { // NO = DELETE file
       sprintf(s2, "%sModel_%s",OS_get_tmp_dir(), s1);
         // printf(" del file |%s|\n",s2);
       OS_file_delete (s2);
+      continue;
 
-    } else {              // CANCEL
+    }
+
+    L_cancel:
       fclose(fp1);
       return -1; 
-    }
   }
 
 
@@ -4055,7 +4099,7 @@ static ModelRef modR2;
   return 0;
 
 }
-
+*/
 
 //========================================================================
   int Mod_fget_names_0 (char *mdlNam,
@@ -4153,14 +4197,14 @@ static ModelRef modR2;
 
 
 //========================================================================
-  int Mod_fget_names__ (TxtTab *mdlTab, TxtTab *surPtab, TxtTab *surMsh) {
+int Mod_fget_names__ (TxtTab *mdlTab, TxtTab *surPtab, TxtTab *surMsh) {
 //========================================================================
 /// \code
 /// get lists of all subModels, PTAB-Surfs and MSH-Surfs out of
 ///   mainmodel and all subModelfiles
 /// \endcode
 
-  int    ii;
+  int    irc=0, ii;
   char   *p1, mdlNam[80];
 
 
@@ -4202,8 +4246,13 @@ static ModelRef modR2;
   //----------------------------------------------------------------
   L_exit:
 
-  // check for unused subModels
-  return Mod_fget_names_1 (mdlTab);
+//   // if save for exit = MDLSTAT_save_as|MDLSTAT_save_quick|MDLSTAT_save_exit -
+//   if(AP_stat.mdl_stat > MDLSTAT_loaded) {
+//     // - check for unused subModels
+//     irc = Mod_fget_names_1 (mdlTab);
+//   }
+
+  return irc;
 
 }
 

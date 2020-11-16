@@ -33,11 +33,8 @@ Modifications:
 List_functions_start:
 
 CTLG_Cre__               create new catalogFile
-CTLG_Cre_CB              users gives name for new catalog
 CTLG_Mod__               display List of <symDir-CATALOG>*.ctlg for userSelection
 CTLG_Mod_CB              Catalog selected
-CTLG_Del_Del_CB          .
-CTLG_Del_CB              Catalog selected
 CTLG_Del__               display List of <symDir-CATALOG>*.ctlg for userSelection
 
 List_functions_end:
@@ -122,17 +119,19 @@ APT_work_PrgCmd   :4217
 #include <string.h>
 #include <math.h>
 
-#include "../ut/ut_geo.h"             // ModelRef
-#include "../ut/ut_txt.h"             // fnam_del
+#include "../ut/ut_geo.h"              // ModelRef
+#include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_memTab.h"
 
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../ut/func_types.h"              // UI_FuncSet
-#include "../xa/xa_mem.h"             // memspc011
-#include "../ut/ut_os.h"              // OS_get_bas_dir
-#include "../db/ut_DB.h"              // DB_get_ModRef
+#include "../xa/xa_mem.h"              // memspc011
+#include "../xa/xa_msg.h"              // MSG_cancel,
+
+#include "../ut/ut_os.h"               // OS_get_bas_dir
+#include "../db/ut_DB.h"               // DB_get_ModRef
 
 
 
@@ -149,24 +148,37 @@ APT_work_PrgCmd   :4217
 //================================================================
   int CTLG_Cre__ () {
 //================================================================
-/// \code
-/// users gives name for new catalog
-/// create new catalogFile
-/// check if symDir CATALOG exists; wenn nein: anfordern !!
-/// Create file <symDir-CATALOG>/<catalogname>.ctlg (copy the template)
-/// \endcode
+// CTLG_Cre__                  get new catalog-name from user
+// create new catalogFile
+// check if symDir CATALOG exists; wenn nein: anfordern !!
+// Create file <symDir-CATALOG>/<catalogname>.ctlg (copy the template)
+//
+// RetCode:  0=OK; -1=user-abort
+
 
 
   int    irc;
-  char   cbuf0[256], cbuf1[256], cNam[64];
-  char   *buttons[]={"OK","Cancel",NULL};
+  char   cbuf0[320], *cbuf1, cNam[64], s1[400];
 
 
-  cbuf1[0] = '\0';
-  irc = GUI_DialogEntry ("name for new catalog: ",cbuf1, 250, buttons, 2);
-  if(irc != 0) return -1;  // cancel
+
+  //----------------------------------------------------------------
+  // get name for new catalog into cbuf1
+  irc = AP_GUI__ (cbuf0, sizeof(cbuf0), "GUI_dlg1", "dlgbe",
+                "\" name for new catalog: \"",
+                "Cancel",
+                "OK",
+                "--ent \"myCatalog1\" 16",
+                NULL);
+  if(irc < 0) return -1;
+  if(UTX_IS_EMPTY(cbuf0)) return -1;    // cancel
+    // printf(" f-AP_GUI__ |%s|\n",cbuf0);
+  if(cbuf0[0] != '1') return -1;
+
+  cbuf1 = &cbuf0[1];
 
 
+  //----------------------------------------------------------------
   // make safeName
   UTX_safeName (cbuf1, 1); // change '. /\\'
 
@@ -179,18 +191,16 @@ APT_work_PrgCmd   :4217
   strcpy(cNam, cbuf1);
 
 
-
   // symDir CATALOG holen ..
-  if(CTLG_getCatDir (cbuf1) < 0) return -1;
+  if(CTLG_getCatDir (cbuf0) < 0) return -1;
     // printf(" CATALOG=|%s|\n",cbuf1);
-  strcat(cbuf1, cNam);
-  strcat(cbuf1, ".ctlg");
+  strcat(cbuf0, cNam);
+  strcat(cbuf0, ".ctlg");
 
 
-
-  // copy xa/Default.ctlg <CATALOG>/xx.ctlg
-  sprintf(cbuf0,"%sDefault.ctlg",OS_get_cfg_dir());
-  OS_file_copy (cbuf0, cbuf1);
+  // copy <cfg>/Default.ctlg <CATALOG>/<cNam>.ctlg
+  sprintf(s1,"%sDefault.ctlg",OS_get_cfg_dir());
+  OS_file_copy (s1, cbuf0);    // copy from to
   TX_Print("create catalog-File %s",cbuf1);
 
 
@@ -261,6 +271,7 @@ APT_work_PrgCmd   :4217
 }
 
 
+/* 
 //=================================================================
   int CTLG_Del_Del_CB (MemObj *parent, void **data) {
 //=================================================================
@@ -282,10 +293,8 @@ APT_work_PrgCmd   :4217
     printf(" _Del_Del_CB |%s|\n",fnam);
   OS_file_delete (fnam);
 
-
   // create tmp/Catalog.lst
   CTLG_Lst_write ();
-
 
   return 0;
 
@@ -312,7 +321,7 @@ APT_work_PrgCmd   :4217
   return 0;
 
 }
-
+*/
 
 //================================================================
   int CTLG_Del__ () {
@@ -321,25 +330,43 @@ APT_work_PrgCmd   :4217
 /// delete selected file mit Rueckfrage
 
   int   i1;
-  char  fnam[256], s1[256];
+  char  fnam[256], s1[256], s2[256], cfn[256];
 
   // printf("CTLG_Del__ \n");
 
   CTLG_Lst_write (); // create tmp/Catalog.lst
 
-  // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
+  // let user select from list of <symDir-CATALOG>/*.ctlg
   sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
-
-  // GUI_List1 (" delete Catalog", fnam, (void*)CTLG_Del_CB);
-
-//   i1 = GUI_list1_dlg_w (s1, 256,
-//                        NULL, " delete Catalog", fnam,
-//                        "1", NULL, "60,40");
-
   i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Catalog\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
 
-  CTLG_Del_CB (s1);
+  // CTLG_Del_CB (s1);
+
+
+  // ask user - delete ? yes / no
+  sprintf(s2, " OK to delete Catalog %s ? ", s1);
+  i1 = GUI_dlg_2b (s2, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    // printf(" PRG_Del__-L2 %d\n",i1);
+  if(i1 != 0) return -1;            // error or cancel
+
+
+  if(CTLG_getCatDir (cfn) < 0) return -1;
+    printf(" CTLG_Del__-CATALOG = |%s|\n",cfn);
+
+
+  // delete file
+  // sprintf(fnam,"%s%c%s",cfn,fnam_del,memspc011);
+  sprintf(fnam,"%s%s",cfn,s1);
+  TX_Print("delete catalog-File %s",fnam);
+    printf(" _Del_Del_CB |%s|\n",fnam);
+  OS_file_delete (fnam);
+
+
+  // update tmp/Catalog.lst
+  CTLG_Lst_write ();
+
+
 
   return 0;
 

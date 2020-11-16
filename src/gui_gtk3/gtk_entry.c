@@ -505,6 +505,9 @@ extern int       UI_fontsizX, UI_fontsizY;
     imod = ((GdkEventKey*)event)->state;
   }
 
+  // translate some keys ..
+  ikey = GUI_key_set1 (ikey);
+
   pTab[0] = &iEv;
   pTab[1] = go->data;
   pTab[2] = &ikey;

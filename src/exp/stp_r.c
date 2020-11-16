@@ -4841,11 +4841,11 @@ static Point  p1, p2;
   // u1, u2 are distance-values
   // pt2 = from pt1 in Richtg vc1 len = u1
   UT3D_pt_traptvclen (&pt2, &pt1, &vc1, u1);
-    // GR_Disp_pt (&pt2, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pt2, SYM_TRI_S, 2);
 
   // pt3 = from pt1 in Richtg vc1 len = u2
   UT3D_pt_traptvclen (&pt3, &pt1, &vc1, u2);
-    // GR_Disp_pt (&pt3, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pt3, SYM_TRI_S, 2);
 */
 
   //----------------------------------------------------------------
@@ -5038,7 +5038,7 @@ static Point  p1, p2;
 
   // pt1 = from center(pl1.po) in Richtg X (pl1.vx) len = rdc
   UT3D_pt_traptvclen (&pt1, &pl1.po, &pl1.vx, rdc);
-    // GR_tDyn_symB (&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pt1, SYM_TRI_S, 2);
 
   // pt2 = pt1 um pl1.po/pl1.vz drehen um Winkel = u1
   UT3D_pt_rotptptvcangr (&pt2, &pt1, &pl1.po, &pl1.vz, UT_RADIANS(u1));
@@ -9454,7 +9454,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
   // pt2 = from pt1 in Richtg vc1 len = d1
   UT3D_pt_traptvc (&ln1->p2, &ln1->p1, &vc1);
   // UT3D_pt_traptvclen (&ln1->p2, &ln1->p1, &vc1, d1);
-    // GR_Disp_pt (&ln1->p2, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&ln1->p2, SYM_TRI_S, 2);
 
   return 0;
 

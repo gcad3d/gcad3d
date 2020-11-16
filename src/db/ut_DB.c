@@ -96,7 +96,7 @@ DB_GetTool         get Tool ((BTool*),"?",tl_tab)
 DB_get_Activ
 
 DB_GetObjGX        get obj  (ObjGX)
-DB_GetObjDat       get data-struct from typ, DB-index
+UTO__dbo       get data-struct from typ, DB-index
 
 DB_store_ox       call DB_StoreXX with ObjGX
 DB_store_obj      call DB_StoreXX with structTyp,struct
@@ -339,6 +339,8 @@ DB_allocModNam     mdb_nam   char            DB_MNM_INC
 #include "../ut/ut_TX.h"
 #include "../ut/ut_ox_base.h"            // OGX_SET_INDEX
 #include "../ut/ut_os.h"                 // OS_ ..
+// #include "../ut/ut_mem.h"              // MEM_*
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_gtypes.h"             // AP_src_typ__
 
 
@@ -1482,7 +1484,7 @@ Vector     DB_vc0;
 /// Liefert einen ObjGX-Record von jedem DB-Obj.
 /// Error:      o.typ == Typ_Error;
 ///
-/// get datastruct of DB-obj: see DB_GetObjDat or UTO_objDat_ox
+/// get datastruct of DB-obj: see UTO__dbo or UTO_objDat_ox
 /// \endcode
 
 
@@ -1670,10 +1672,10 @@ Vector     DB_vc0;
 
 
 //================================================================
-  int DB_GetObjDat (void **pDat, int *oNr, int dbTyp, long dbInd) {
+  int UTO__dbo (void **pDat, int *oNr, int dbTyp, long dbInd) {
 //================================================================
 /// \code
-/// DB_GetObjDat          get data-struct from typ, DB-index
+/// UTO__dbo          get data-struct from typ, DB-index
 ///   Returns a pointer to the data-struct.
 ///   Referenced objects (Typ_Index) are resolved.
 /// Surfaces/Solids: retCod = typ_ObjGX; *pDat = the address of the primary obj.
@@ -1688,13 +1690,13 @@ Vector     DB_vc0;
 /// see also UTO_obj_dbo UTO_objDat_dbS UTO_objDat_ox DB_GetObjGX
 /// \endcode
 
-// OFFEN: replace UTO_obj_dbo with DB_GetObjDat
+// OFFEN: replace UTO_obj_dbo with UTO__dbo
 
 
   ObjGX  ox1;
 
 
-  // printf("DB_GetObjDat typ=%d dbi=%ld\n",dbTyp,dbInd);
+  // printf("UTO__dbo typ=%d dbi=%ld\n",dbTyp,dbInd);
 
 
   // Surfaces: return adress of surface directly (ox1 is not static !)
@@ -3137,10 +3139,10 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 //======================================================================
   int DB_StoreSur (long *IndIn, ObjGX *ox1) {
 //======================================================================
-/// \code
-/// CIR u STRIP-Flaeche kommt als Punktindextabelle (von Dreiecken).
-/// Punkte als dynam. Punkte speichern.
-/// \endcode
+//   IndIn     >0  store with this objID;
+//             -1  store dynamic, return next free dynamic plane-index
+//
+// store as complex-obj
 
   int       irc, sSiz;
   long      Ind, i1, dbi, dSiz, l1;
@@ -3148,8 +3150,6 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   ObjGX     *oxo;
   SurStripe *sus1;
   SurBSpl   *sub1;
-
-
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
@@ -3183,7 +3183,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
      (ox1->typ == Typ_SURRBSP)  ||
      (ox1->typ == Typ_SURCIR)   ||
      (ox1->typ == Typ_SURSTRIP) ||
-     (ox1->typ == Typ_SURMSH)   ||
+     (ox1->typ == Typ_SURPMSH)  ||
+     (ox1->typ == Typ_SURPTAB)  ||
      (ox1->typ == Typ_SURHAT))     {
 
     // get IndIn = index into isu_dyn|su_tab;
@@ -6794,6 +6795,9 @@ long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
 //================================================================
   long DB_StoreCvCCV (long Ind, CurvCCV *cvi, int iNr) {
 //================================================================
+// Input:
+//   Ind     DB-Index; -1 for new dynamic-DB-obj
+//   iNr     nr of trimmed-curves in cvi
 
   long      l1;
   void      *cPos1;
@@ -7832,7 +7836,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   long    i1;
 
 
-  printf("DB_QueryPrvUsed %d %ld\n",typ,istart);
+  // printf("DB_QueryPrvUsed %d %ld\n",typ,istart);
 
 
   if(typ == Typ_VC) {
@@ -7881,7 +7885,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   long    i1;
 
 
-  printf("DB_QueryNxtUsed %d %ld\n",typ,istart);
+  // printf("DB_QueryNxtUsed %d %ld\n",typ,istart);
 
 
   if(typ == Typ_VC) {
@@ -8699,9 +8703,9 @@ long DB_QueryCurv (Point *pt1) {
   irc = 0;
   iForm = ox1->form;
 
-  *oxo = *ox1;    // copy ParentObj
 
-
+  // copy ParentObj
+  *oxo = *ox1;    
   cPos1 = DB_cPos ();
 
 
@@ -8730,8 +8734,8 @@ long DB_QueryCurv (Point *pt1) {
   //----------------------------------------------------------------
   // save ObjGX
   iSiz = ox1->siz;
-  pi   = ox1->data;
-
+  if(ox1->data) pi = (char*)ox1->data;
+  else          pi = (char*)&ox1[1];      // data followig this record 
 
   // den gesamten oGX Block in DB speichern
   l1 = sizeof(ObjGX) * iSiz;
@@ -9051,8 +9055,8 @@ long DB_QueryCurv (Point *pt1) {
         // ox1 = &((ObjGX*)os1)[i1];
         ox1 = &oTab[i1];
           // DEB_dump_obj__(Typ_ObjGX, ox1, "oTab[%d]", i1);
-// Typ_Data Unused ??
-        if(ox1->typ == Typ_Data) {
+// Typ_Ptr Unused ??
+        if(ox1->typ == Typ_Ptr) {
           cPos1 = DB_cPos ();
           // compute size
           if(ox1->form == Typ_Int1) {

@@ -65,20 +65,51 @@ Create surface:
     all inner boundaries.
   (planar trimmed,perforated surface does not need supportsurface);
 
-INF_FMTB_SURFACES for all surfacetypes
-
-
-INF_SURF_operations:
-- tesselate      INF_MSH2D__
-- intersect
-- trim-punch-2D  INF_SURF_trim-punch-2D
-- trim-punch-3D  INF_SURF_trim-punch-3D
-
-
-see also
+INF_FMTB_SURFACES    binary formatdescription
+INF_surf_opers       boolean operations; CUT, BLEND, INTersect;
+INF_MSH2D__          tesselate
+INF_SURF_trim-punch-2D     
+INF_SURF_trim-punch-3D
+INF_surf_funcs___
 INF_tess__
 INF_Intersect_Surf
 INF_Intersect_Body INF_Create_Body
+
+
+
+
+================================================================== \endcode */}
+void INF_surf_opers(){                   /*! \code
+
+- create intersect-Curves mesh1 - mesh2
+- create points at all start- and endPoints of the intersect-Curves
+
+//================================================================
+CUT:    (mesh1 NOT mesh2)
+- start at first endpoint of intersect-Curves at OB of mesh1
+- L1: follow mesh-1 fwd to next intersectionpoint with mesh-2 ( = endPt of 
+  a intersect-Curve) or endPt of curve or end contour
+  - next intersectionpoint found: 
+    - follow mesh-2 bwd to next intersectionpoint ( = startPt of active
+      intersect-Curve); goto L1.
+
+
+//================================================================
+BLEND:   (mesh1 OR mesh2)
+- start at first endpoint of intersect-Curves at OB of mesh1
+- L1: follow OB of mesh-1 fwd to next intersectionpoint with mesh-2
+  ( = endPt of a intersect-Curve) or endPt of curve or end contour
+  - next intersectionpoint found: 
+    - follow OB of mesh-2 fwd to next intersectionpoint; goto L1.
+
+
+//================================================================
+INTersect:  (mesh1 AND mesh2)
+- start at first endpoint of intersect-Curves at OB of mesh1
+- L1: follow OB of mesh-2 fwd to next intersectionpoint with mesh-1
+  ( = endPt of a intersect-Curve) or endPt of curve or end contour
+  - next intersectionpoint found: 
+    - follow mesh-1 fwd to next intersectionpoint; goto L1.
 
 
 ================================================================== \endcode */}
@@ -137,8 +168,8 @@ see GLU - ../gr/ut_GLU.c:130
 
 Functions:
 MSHI_int_pln
-  INT_nln_i2fac_pln1
-  INT_npt_nln
+  INT_nln_nfac_pln2
+  INT_nln_nfac_pln1
   MSHI_split__
 
 see myReadme.surfaces

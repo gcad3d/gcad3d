@@ -560,7 +560,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   UTO_write_endRec (impSpc->next);
 
 
-  // tess_dump_f_ (impSpc->start, "ex obj_readTess__");
+  // BMSH_dump_bfMsh (impSpc->start, "ex obj_readTess__");
   // DEB_dump_ox_s_ (impSpc->start, "ex obj_readTess__");
   // DEB_dump_ox_0 (impSpc->start, "ex obj_readTess__");
   // l1 = -1;

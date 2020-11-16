@@ -61,7 +61,7 @@ List_functions_end:
 =====================================================
 - see also:
 ../ut/ut_face.c      UFA   Funktionen fuer Faces (Fac3)
-../ut/ut_tria.c     Triangle-functions    (using struct Point)
+../ut/ut_tria.c     Triang-functions    (using struct Point)
 
 \endcode *//*----------------------------------------
 
@@ -112,7 +112,7 @@ List_functions_end:
 /// Input:
 ///   all following ascii-lines from open file fpi; "SECTIONEND" = end.
 /// Output:
-///   write into binary file
+///   write into binary file    <tmp>_A<dbi>.ptab
 /// \endcode
 
 
@@ -1168,13 +1168,13 @@ List_functions_end:
 
   // load PointFile  (write: lxml_read) pTab=malloc !
   i1 = MSH_bload_pTab (&pTab, AP_modact_nam, surPtab);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -2;}
+  if(i1 < 0) {TX_Error("TSU_DrawSurPMsh E001"); return -2;}
     // printf(" pNr=%d\n",pTab.rNr);
 
 
   // load MeshFile    fTab=malloc !
   i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_nam, surMsh);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -2;}
+  if(i1 < 0) {TX_Error("TSU_DrawSurPMsh E002"); return -2;}
     // printf(" fNr=%d\n",fTab.rNr);
 
 
@@ -1182,7 +1182,7 @@ List_functions_end:
 // TODO: p2a fehlt !
   i1 = MSH_pt_prjptmsh1 (&io, &ie, pto, pti, fTab.data, fTab.rNr,
                          pTab.data, pTab.rNr, tol);
-    // GR_Disp_pt (&p1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&p1, SYM_STAR_S, 2);
 
   // if(pTab) free(pTab);
   // if(fTab) free(fTab);
@@ -1297,8 +1297,8 @@ List_functions_end:
 ///          -1 point is not inside mesh
 /// 
 /// - transform points > 2D;
-/// - check if point is in Triangle or on its boundary
-/// - get Z-coord of point on 2D-Triangle
+/// - check if point is in Triang or on its boundary
+/// - get Z-coord of point on 2D-Triang
 /// \endcode
 
 
@@ -1320,7 +1320,7 @@ List_functions_end:
 
   vp = (Vector*)&UT3D_VECTOR_Z;  // projectionVector
 
-  // check if point is in Triangle or on its boundary
+  // check if point is in Triang or on its boundary
   // loop tru triangles;
   for(i1=0; i1<fNr; ++i1) {
     *io = i1;
@@ -1363,7 +1363,7 @@ List_functions_end:
 
 
   //----------------------------------------------------------------
-  // get Z-coord of point on 2D-Triangle.
+  // get Z-coord of point on 2D-Triang.
   // irc: 0=inside, -1=on i1-i2, -2=on i2-i3, -3=on i3-i1
     // printf(" f=%d irc=%d %d %d %d\n",i1,irc,ii1,ii2,ii3);
   p1 = &pa[ii1];
@@ -1678,7 +1678,7 @@ List_functions_end:
 
   // intersect Line pe1-pe2 with Face iFac;
   i1 = UTRI_ln_int_LnFac (&pt1, pf1, pf2, pf3, pe1, pe2);
-    // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
   // add point
@@ -1773,7 +1773,7 @@ List_functions_end:
     printf("ex MSH_npt_prjcvmsh_\n");
     for(i1=0;i1<outNr;++i1) {
       DEB_dump_obj__ (Typ_PT, &pOut[i1], "  pOut[%d]:",i1);
-      // GR_Disp_pt (&pOut[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pOut[i1], SYM_STAR_S, 2);
     }
 */
 

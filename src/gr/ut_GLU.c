@@ -38,6 +38,8 @@ GLT_spp__      tesselate planaren Patch mit Aussenkontur/Loechern
 GLT_diff_work  difference of 2 contours -> ContTab
 GLT_comm_work  common of 2 contours -> ContTab
 
+GLT_stor_rec   create bMsh (surface-patches, binary, in memory)
+
 - internal:
 GLU_alloc
 GLT_init__
@@ -434,7 +436,7 @@ static char c1=0;
     c1 = MEMTAB__ (GLU_pst, idr);
     *c1 |= 8;   // set bit-3 
       // printf(" pst-1[%d]=%d\n",idr,*c1);
-      // GR_Disp_pt ((Point*)pt1, SYM_TRI_S, ATT_COL_YELLOW);
+      // GR_tDyn_symB__ ((Point*)pt1, SYM_TRI_S, ATT_COL_YELLOW);
     // if this point is on boundary: its flag is GL_TRUE 
     if(GLU_flag) *c1 |= 1;   // set bit-0 
       // printf(" pst-2[%d]=%d\n",idr,*c1);
@@ -448,7 +450,7 @@ static char c1=0;
       // get status for point idr to set bit-0
       c1 = MEMTAB__ (GLU_pst, idr);
       *c1 |= 1;   // set bit-0 
-        // GR_Disp_pt ((Point*)pt1, SYM_TRI_S, ATT_COL_YELLOW);
+        // GR_tDyn_symB__ ((Point*)pt1, SYM_TRI_S, ATT_COL_YELLOW);
     }
   }
 */
@@ -1696,7 +1698,7 @@ static char c1=0;
 
   memcpy (&GLU_comm_tab[GLU_comm_pNr], vertex, sizeof(Point));
 
-  // GR_Disp_pt (&GLU_comm_tab[GLU_comm_pNr], SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&GLU_comm_tab[GLU_comm_pNr], SYM_STAR_S, 2);
 
   if(GLU_comm_pNr < GLU_comm_Max-1) ++GLU_comm_pNr;
   else TX_Error("GLT_comm_CB EOM");
@@ -1988,7 +1990,7 @@ static int ptOff;
 
 
   //----------------------------------------------------------------
-  // check for degenerate Triangles
+  // check for degenerate Triangs
   if(GLT_cta[GLT_cta_ind].aux == GL_TRIANGLES)   {
 
     // auf den 3. Punkt warten ...
@@ -2046,7 +2048,7 @@ static int ptOff;
 
   memcpy(&GLT_pta[GLT_pta_ind], vertex, sizeof(Point));
   ++GLT_pta_ind;
-    // GR_Disp_pt (vertex, SYM_STAR_S, 0);
+    // GR_tDyn_symB__ (vertex, SYM_STAR_S, 0);
 
   return;
 }
@@ -2161,6 +2163,8 @@ static int ptOff;
 //================================================================
   int GLT_stor_rec (int mode, Point *pa1, Point *pa2, int ptNr) {
 //================================================================
+// GLT_stor_rec         create bMsh (surface-patches, binary, in memory)
+//   used for intersect-operations; bMsh can be resolved into triangles.
 // einen Datenrecord in GLT_ppa(ogx-Patches) und GLT_pta(Points) speichern
 // und mit close nach TSU_vM kopieren.
 // GLT_cta wird nicht benutzt (PunktDatenAdresse direkt into Patch).

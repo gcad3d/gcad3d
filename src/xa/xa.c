@@ -40,9 +40,9 @@ Modifications:
 =====================================================
 List_functions_start:
 
-APUI__                start gui-exe
-APUI_get              get full filename for GUI_executable
-APUI_test1            test APUI__
+AP_GUI__                start gui-exe
+AP_GUI_get              get full filename for GUI_executable
+APUI_test1            test AP_GUI__
 
 AP_MemTab_init        connect static memspace eg memspc251 - MemTab_spc251
 AP_MemTab_get         occupy static - MemTab
@@ -134,7 +134,8 @@ AP_sel_oid__        get objID(s) from text, hilite, add to grp
 AP_DllLst_write     write list of plugins
 
 AP_save_ex          save model at exit model
-AP_save__           save model
+AP_save__           save model group or subModel
+AP_save_del_smuu    ask for / delete unused subModels
 
 AP_work__           work startparameters
 AP_defLoad          load DefaultModel
@@ -422,16 +423,59 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
 
 //================================================================
-  int APUI__ (char *guiOut, int outSiz, char *exenam, ...) {
+  int AP_GUI__ (char *guiOut, int outSiz, char *exenam, ...) {
 //================================================================
-// APUI__                        start gui-exe
+// AP_GUI__                        start gui-exe
+//
+// GUI_file - open      get filenam from user for open (see GUI_file_open__
+// GUI_file - save      get filenam from user for save (see GUI_file_save__I
+// GUI_dlg1 - info      infoText + close-button, not waiting (see also MsgBox)
+// GUI_dlg1 - list1     get selection from list  (see GUI_listf1__)
+// GUI_dlg1 - dlgbe     infoText, 1-10 buttons, optional entryField
+//                      see also GUI_dlg_2b GUI_dlg_e2b
+//
+//   ATT: if string-parameter contains blank: enclose with double-apostroph
+//
 // Input:
+//   outSiz    size of output-string guiOut
 //   exenam    filename of exe, without gtk-version; eg "GUI_file" or "GUI_dlg1"
-//   ...       parameters, must end with a NULL.i
+//   ...       parameters, must end with a NULL; 
 //             Parameters with blanks must be limited with \"
-// retCode     0    ?
-//             -1   exe with name <exenam> not found
+//   parameters for exenam = GUI_file:
+//             open or save
+//             outDir/outfilename
+//             filename of symbolic-directories
+//             filterText  (eg "*")
+//             window-title
+//             window-size x and y; eg \"x40,y30\""
+//   parameters for exenam = GUI_dlg1 - info:
+//             infoText
+//   parameters for exenam = GUI_dlg1 - list1:
+//             list1
+//             filename of file with all childs of list
+//             window-title            
+//   parameters for exenam = GUI_dlg1 - dlgbe:
+//             dlgbe
+//             infotext
+//             1-10 buttons (text on button)
+//               optional: entryfield
+//             --ent \"entPreset\" 16    // text in entry, size of entry in chars
+// Output:
+//   retCode   -1   exe with name <exenam> not found
 //             -2   error in GUI_<exe>; see /tmp/debug.dat
+//   guiOut of GUI_file - open / save
+//             full filename; empty for Cancel;
+//   guiOut of GUI_dlg1 - list1
+//             full text of selected line; empty for Cancel;
+//   guiOut of GUI_dlg1 - dlgbe
+//             empty = Cancel
+//             first char is index of selected button; 0=first ..
+//             string of a given entryFieled starts at second character
+//
+// Examples: see ../APP/GUI_file.sh ../APP/GUI_dlg1.sh
+//
+// see INF_GUI_exe
+// see also GUI_MsgBox
 
 
   int      irc;
@@ -439,10 +483,10 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   va_list  va;
 
 
-  printf("APUI__ |%s|\n",exenam);
+  // printf("AP_GUI__ |%s|\n",exenam);
 
   // get full filename for GUI_executable
-  irc = APUI_get (sEnam, exenam);
+  irc = AP_GUI_get (sEnam, exenam);
 
   // test if exe exists
   if(!OS_checkFilExist(sEnam,1)) {
@@ -458,7 +502,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   L_s_nxt:
     sx = va_arg(va, char *);
     if(sx) {
-        printf(" |%s|\n",sx);
+        // printf(" |%s|\n",sx);
       strcat(sPar, sx);
       strcat(sPar, " ");
       goto L_s_nxt;
@@ -467,7 +511,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // vsprintf (s1, txt, va);
   va_end (va);
 
-    printf(" GUI-exe-sPar |%s|\n",sPar);
+    // printf(" GUI-exe-sPar |%s|\n",sPar);
 
 
   // set s1 = command (exefilnam parameters)
@@ -477,15 +521,15 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 #else
   sprintf(sCmd,"%s %s", sEnam, sPar);
 #endif
-    printf(" GUI-exe-sCmd |%s|\n",sCmd);
+    // printf(" GUI-exe-sCmd |%s|\n",sCmd);
 
 
   // execute
   irc = OS_sys1 (guiOut, outSiz, sCmd);
-  if(irc < 0) {printf("***** APUI__ - E1 OS_sys1 %d\n",irc); return -2;}
+  if(irc < 0) {printf("***** AP_GUI__ - E1 OS_sys1 %d\n",irc); return -2;}
   UTX_CleanCR (guiOut);
 
-    printf("ex-GUI-exe |%s|\n",guiOut);
+    printf("ex-AP_GUI__ |%s|\n",guiOut);
 
   return 0;
 
@@ -493,9 +537,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 //================================================================
-  int APUI_get (char* sEnam, char *sNam) {
+  int AP_GUI_get (char* sEnam, char *sNam) {
 //================================================================
-// APUI_get             get full filename for GUI_executable
+// AP_GUI_get             get full filename for GUI_executable
 // Input:
 //   Nami           eg GUI_dlg1 or GUI_open
 // Output:
@@ -516,7 +560,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   sprintf(sEnam,"%s%s_%s%d", OS_get_bin_dir(), sNam, sGui, vGtk);
 #endif
 
-    printf(" ex-APUI_get |%s|\n",sEnam);
+    // printf(" ex-AP_GUI_get |%s|\n",sEnam);
 
   return 0;
 
@@ -524,7 +568,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 //================================================================
-  int APUI_test1 () {
+  int AP_GUI_test1 () {
 //================================================================
 
   char   s1[400];
@@ -533,7 +577,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   printf(" tst_gui\n");
 
   // call GUI_file-save
-  APUI__ (s1, sizeof(s1), "GUI_file", "save",
+  AP_GUI__ (s1, sizeof(s1), "GUI_file", "save",
              "/mnt/serv2/devel/cadfiles/gcad/unknown.gcad",
              "/mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst",
              "*",
@@ -1067,12 +1111,12 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
   MDLFN_symFilNam (fndl);   // get filename of cfg/dir.lst
-    printf(" Mod_open-fndl |%s|\n",fndl);
+    // printf(" Mod_open-fndl |%s|\n",fndl);
 
 
     
   printf("AP_Mod_open mode=%d title=|%s| dNam=|%s| sf=|%s|\n",mode,title,dNam,sf);
-  printf(" fNam=|%s|\n",fNam);
+  // printf(" fNam=|%s|\n",fNam);
 
 
   // set startdirectory+file
@@ -1080,9 +1124,10 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   //  (dirIn/filnamOut sSiz symDir filter title)
   irc = GUI_file_open__ (so, 256, fndl, sf, title);
-  if(irc < 2) return -1;
+    // printf(" AP_Mod_open-L1 irc=%d so=|%s| len=%ld\n",irc,so,strlen(so));
+  if(irc < 0) return -1;
   if(strlen(so) < 1) return 0;
-    printf(" f-file_open__ |%s|\n",so);
+    // printf(" f-file_open__ |%s|\n",so);
 
   // resolv abs.path
   irc = MDLFN_fNam_resolv (s1, s2, s3, s4, so, OS_get_bas_dir());
@@ -1102,7 +1147,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   strcpy(fNam, s3);
   if(strlen(s4)) {strcat(fNam,"."); strcat(fNam,s4);}
 
-    printf("ex-AP-Mod_open |%s|%s|\n",dNam,fNam);
+    // printf("ex-AP-Mod_open |%s|%s|\n",dNam,fNam);
 
   return 0;
 
@@ -1128,9 +1173,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   L_open_delete:
   if(mode != 1) goto L_open_rename;
     sprintf(s3, "  %s %s  ",title, s2);
-    irc = GUI_Dialog_2b (s3,
-                         MSG_const__(MSG_ok),
-                         MSG_const__(MSG_no));
+    irc = GUI_dlg_2b (s3,
+                      MSG_const__(MSG_ok),
+                      MSG_const__(MSG_no));
       printf(" irc=%d |%s|\n",irc,s2);
     if(irc == 0) OS_file_delete (s2);
     return 0;
@@ -1141,7 +1186,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   if(mode != 2) goto L_open_copy;
     sprintf(s3, " %s %s", title, s2);
     strcpy(s4, s2);
-    irc = GUI_Dialog_e2b (s3, s4, 240,
+    irc = GUI_dlg_e2b (s4, 240, s3,
                           MSG_const__(MSG_ok),
                           MSG_const__(MSG_no));
       printf(" irc=%d |%s|\n",irc,s4);
@@ -1154,7 +1199,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // if(mode != 3) goto L_open_rename;
     sprintf(s3, " %s %s", title, s2);
     strcpy(s4, s2);
-    irc = GUI_Dialog_e2b (s3, s4, 240,
+    irc = GUI_dlg_e2b (s4, 240, s3,
                           MSG_const__(MSG_ok),
                           MSG_const__(MSG_no));
       printf(" irc=%d |%s|\n",irc,s4);
@@ -1163,9 +1208,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     if(OS_checkFilExist(s4, 1) == 1) {
       // sprintf(cbuf," overwrite file %s.%s ?  ",fnam,ftyp);
       MSG_get_1 (s3, 256, "OVER_fil", "%s", s4);
-      irc = GUI_Dialog_2b (s3,
-                           MSG_const__(MSG_ok),
-                           MSG_const__(MSG_no));
+      irc = GUI_dlg_2b (s3,
+                        MSG_const__(MSG_ok),
+                        MSG_const__(MSG_no));
       if(irc != 0) return 0;
     }
 
@@ -1179,13 +1224,14 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
   int AP_save_ex (int mode) {
 //================================================================
-// exiting active model; save/overwrite active model; model is modified.
-// mode:     0=exit-app (no cancel, mainwindow has exited)
+// AP_save_ex       ask user for save/overwrite active model
+//   - model is modified.
+// mode:     0=save for exit (no cancel, mainwindow has exited)
 //           1=load-new-model;  add option cancel.
-// retCod:   0=0k, -1=cancel
+// retCod:   0=0k, -1=cancel(do not save)
  
   int  irc;
-  char s1[128], sbt[3][64], *buttons[4];
+  char s1[128], s2[256];
 
   printf("AP_save_ex %d |%s|\n",mode,AP_mod_fnam);
 
@@ -1197,30 +1243,36 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // }
 
 
-  sprintf(s1, "  Model %s is modified; save (overwrite) ?  ",AP_mod_fnam);
+  sprintf(s1, "\"  Model %s is modified; save (overwrite) ? \"",AP_mod_fnam);
 
-  strcpy(sbt[0],  MSG_const__(MSG_ok));      // "YES");
-  strcpy(sbt[1],  MSG_const__(MSG_cancel));  // "Cancel");
-  strcpy(sbt[2],  MSG_const__(MSG_no));      // "NO");
 
+  //----------------------------------------------------------------
   if(mode == 1) {  // 1=load-new-model
-    buttons[0] = sbt[0];
-    buttons[1] = sbt[1];
-    buttons[2] = sbt[2];
-    buttons[3] = NULL;
-
-  } else {   // 0=exit-app
-    buttons[0] = sbt[0]; // "YES");
-    buttons[1] = sbt[2]; // "NO");
-    buttons[2] = NULL;
+    // call GUI_dlg1/dlgbe
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+                    MSG_const__(MSG_ok),      // "YES");
+                    MSG_const__(MSG_cancel),
+                    MSG_const__(MSG_no),
+                    NULL);
+  
+  //----------------------------------------------------------------
+  } else {   // 0=save for exit 
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+                    MSG_const__(MSG_ok),      // "YES");
+                    MSG_const__(MSG_no),
+                    NULL);
   }
-  // returns 0=yes, 1=cancel, 2=no
-  irc = GUI_DialogEntry (s1, NULL, 0, buttons, 5);
-    // printf(" gui-irc %d\n",irc);
+    // printf(" f-AP_GUI__ |%s|\n",s2);
 
-  if(irc == 1) return -1;   // cancel
 
-  if(irc == 0) AP_save__ (0, "gcad");
+  //----------------------------------------------------------------
+  if(irc > 0) return -1;            // error
+  if(UTX_IS_EMPTY(s2)) return -1;   // cancel
+
+  if(s2[0] != '0') return 0;  // no = done
+
+  // get outFilename, do not ask for overwrite, save
+  AP_save__ (0, 1, "gcad");
 
   return 0;
 
@@ -1228,18 +1280,20 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
 //================================================================
-  int AP_save__ (int mode, char *fTyp) {
+  int AP_save__ (int mode, int iOver, char *fTyp) {
 //================================================================
+// AP_save__         save model group or subModel
 // Input:
-//   mode  0=save all, 1=save group only 2=save subModel to file;
-//   fTyp eg "gcad"
+//   mode   0=save all, 1=save group only 2=save subModel to file;
+//   iOver  0 = check for overwrite, 1 = do not check
+//   fTyp   eg "gcad"
 
   int    irc; 
   char   fNam[400], s1[80], s2[256], sTit[80];
   char   *buttons[3], sbt[2][80];
 
 
-  printf("AP_save__ %d |%s|\n",mode,fTyp);
+  printf("AP_save__ %d %d |%s|\n",mode,iOver,fTyp);
 
   // set AP_mod_ftyp
   strcpy(AP_mod_ftyp, fTyp);
@@ -1248,12 +1302,13 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   AP_mod_iftyp = AP_iftyp_ftyp (AP_mod_ftyp); 
   if(AP_mod_iftyp < 0) {TX_Print("**** Error filetyp %s",AP_mod_ftyp); return -1;}
 
-  // set fNam = AP_mod_fnam.AP_mod_ftyp
-//   sprintf(fNam, "%s.%s", AP_mod_fnam, AP_mod_ftyp);
+  // set fNam = AP_mod_dir/AP_mod_fnam.AP_mod_ftyp
   sprintf(fNam, "%s%s.%s", AP_mod_dir, AP_mod_fnam, AP_mod_ftyp);
+    printf(" _save__-fNam |%s|\n",fNam);
 
-//   // preset dNam = directory
-//   strcpy(dNam, AP_mod_dir);
+
+  //----------------------------------------------------------------
+  // get new filename from user, ask for overwrite
 
   // set s2 =  filename of cfg/dir.lst
   MDLFN_symFilNam (s2);
@@ -1261,11 +1316,11 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // window-titel "Model save" 
   strcpy(sTit, MSG_const__(MSG_save));
 
-  // get fNam = (which?) filename from user
-//     // does already ask for overwrite !
+  // get fNam = filename from user, ask for overwrite
                      // (filnamOut sSiz symDir filter title)
-  irc = GUI_file_save__ (fNam, sizeof(fNam), s2, fTyp, sTit);
+  irc = GUI_file_save__ (fNam, sizeof(fNam), s2, fTyp, sTit, iOver);
     printf("ex-GUI_file_save__ irc=%d fNam=|%s|\n",irc,fNam);
+    // 0=OK; -1 = cancel or no; >0 = iOK (chrlen of fNam);
   if(irc < 2) return -1;
   if(strlen(fNam) < 1) return 0;
 
@@ -1280,7 +1335,21 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // split fNam -> AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp
   Mod_fNam_get (fNam);
 
+
+  //----------------------------------------------------------------
+  // ask for / delete unused subModels;
+  // only for Save_as and Save_exit
+  if((AP_stat.mdl_stat == MDLSTAT_save_as)    ||
+     (AP_stat.mdl_stat == MDLSTAT_save_exit))    {
+    // ask for / delete unused subModels
+    AP_save_del_smuu ();
+  }
+
+
+  //----------------------------------------------------------------
   // save-overwrite
+  L_save:
+
   if(mode == 0) {
     //   mode  0=save all
     // set AP_mod_fnam
@@ -1299,6 +1368,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   }
 
 
+  //----------------------------------------------------------------
   // add filename to list "last-used"
   AP_Mod_lstAdd ();
 
@@ -1306,6 +1376,120 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 }
  
+
+//================================================================
+  int AP_save_del_smuu () {
+//================================================================
+// AP_save_del_smuu            ask for / delete unused subModels
+// RetCode     0=OK; <0=Error;
+//
+// was Mod_fget_names__
+// replacing Mod_fget_names_1
+// TODO: processes  see Mod_sav_i
+// TODO: PTAB-Surfs and MSH-Surfs ??
+
+  int           irc, ii, no_for_all=0;
+  char          s1[256], s2[256], s3[400], *pa[5];
+  FILE          *fp1;
+
+  UtxTab_NEW (mdlTab);                // stringtable
+  UtxTab_NEW (surPtab);               // stringtable
+  UtxTab_NEW (surMsh);                // stringtable
+
+
+  printf("AP_save_del_smuu \n");
+
+  //----------------------------------------------------------------
+  // create list of all subModels, PTAB-Surfs and MSH-Surfs
+
+  // get lists of all used subModels, PTAB-Surfs and MSH-Surfs
+  irc = Mod_fget_names__ (&mdlTab, &surPtab, &surMsh);
+  if(irc < 0) { goto L_exit; }
+
+  // get list of defined subModelFiles - <baseDir>/tmp/Mod.lst
+  Mod_mkList (1); 
+
+
+  //----------------------------------------------------------------
+  // loop tru list of all defined subModelFiles
+
+  // open
+  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  if((fp1=fopen(s1,"r")) == NULL) return 0;  // no sm exists
+
+
+  // loop tru ../tmp/Mod.lst
+  irc = -1;
+  while (!feof (fp1)) {
+    // get s1 = next subModelname of existing sm
+    if (fgets (s1, 256, fp1) == NULL) break;
+    UTX_CleanCR (s1);   // in s1 ist nun Modename
+      // printf(" - Mod_fget_names_1 test |%s|\n",s1);
+
+    // check if subModel is used - is in list mdlNam.
+    ii = UtxTab_find (s1, &mdlTab);
+      // printf(" ex UtxTab_find %d\n",ii);
+    if(ii >= 0) continue;   // continue if used (exists in mdlTab)
+
+
+    //----------------------------------------------------------------
+    // subModel <s1> is unused;
+    if(no_for_all) goto L_del_sm;
+
+    // ask user to save subModel s1; if no: delete subModel.
+    // sprintf(s2, "Save unused submodel %s ?",s1);
+    MSG_get_1 (s2, 256, "SAVusm", "%s", s1);
+      // printf("del_smuu-s2=|%s|\n",s2);
+    // sprintf(s3, "\" %s  \"",s2);  // embed with "
+    UTX_ENC_ApoD_TMP (&pa[4], s2);
+      // printf("del_smuu-pa4=|%s|\n",pa[4]);
+
+    // enclose button-text between ""
+    UTX_ENC_ApoD_TMP (&pa[0], MSG_const__(MSG_no));
+    UTX_ENC_ApoD_TMP (&pa[1], MSG_const__(MSG_no_for_all));
+    UTX_ENC_ApoD_TMP (&pa[2], MSG_const__(MSG_ok_for_all));
+    UTX_ENC_ApoD_TMP (&pa[3], MSG_const__(MSG_ok));
+
+    // get sel from user
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[4],  //s3,
+                  pa[0], pa[1], pa[2], pa[3],
+                  NULL);
+      // printf(" f.AP_GUI__ irc=%d s2=|%s|\n",irc,s2);
+
+    if(irc < 0) goto L_cancel;
+    if(UTX_IS_EMPTY(s2)) goto L_cancel;
+
+    if(s2[0] == '2') goto L_done;     // ok_for_all - exit
+    if(s2[0] == '3') continue;        // ok = do not delete
+    if(s2[0] == '1') no_for_all = 1;  // no_for_all
+
+    // '2' = ok = delete subModel
+    L_del_sm:
+      sprintf(s2, "%sModel_%s",OS_get_tmp_dir(), s1);
+        // printf(" del file |%s|\n",s2);
+      OS_file_delete (s2);
+      continue;
+
+
+    L_cancel:
+      fclose(fp1);
+      irc = -1;
+      break;
+  }
+
+
+  L_done:
+  fclose(fp1);
+
+
+  L_exit:
+
+    // printf(" ex-AP_save_del_smuu %d\n",irc);
+
+  return irc;
+
+}
+
 
 //=================================================================
   int AP_src_new (int mode) {
@@ -1337,6 +1521,12 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     // unload unused DLLs
     UI_PRI__ (FUNC_UNLOAD);
 
+    // close files
+    if(AP_stat.jntStat) {
+      DBF_exit ();     // close joints-file
+      AP_stat.jntStat = 0;
+    }
+
 
     // Clear Memory u. Editfenster
     UTF_clear_ ();                    // Clear Mem
@@ -1366,6 +1556,8 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     APcol_defCol_3i (147,147,173);   // init AP_defcol
     APcol_actCol__ (&AP_defcol);
 
+    // clear 2D-mode
+    if(AP_IS_2D) NC_setRefsys (0);
 
     // clear all viewports
     if(mode) vwpt__ (-1);
@@ -1400,6 +1592,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
     // init View-Plane and ConstrPlane
     AP_Init_planes ();
+    UCS_Reset ();          //  set WC_sur_mat, WC_sur_imat
 
 
     // PED_CB1 (GUI_ES("Exit")); // kill PED if active
@@ -1411,11 +1604,8 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
       sele_set__ (Typ_goGeom);       // enable selection of all types
     }
 
-
-    DL_Redraw ();
-
-
-    Brw_Mdl_init ();  // fill browserWindow
+    // clear browserWindow
+    Brw_Mdl_init ();
 
 
     // MAN: clear Edi  UI_ask_mode  if(AP_src == AP_SRC_MEM/AP_SRC_EDI)
@@ -1455,7 +1645,7 @@ static long old_lNr = -2;
 
   if(old_lNr == lNr) {
     sprintf(cbuf,"  OK to modify line %ld  ",lNr);
-    i1 = GUI_Dialog_2b (cbuf, "OK", "Cancel");
+    i1 = GUI_dlg_2b (cbuf, "OK", "Cancel");
     if(i1 != 0) return -1;
   }
 
@@ -2123,16 +2313,15 @@ ED_Run
   int    irc, i1, i2, i3, imods=0;
 
 
+  // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
   // printf("AP_init__ iniNew=%d AP_argNr=%d\n",iniNew,AP_argNr);
-    // exit(0);
+  // for(i1=0; i1<AP_argNr; ++i1) printf(" %d =|%s|\n",i1,AP_argv[i1]);
+
 
   if(iniNew > 0) return 0;
-
-
   AP_stat.cadIniM = -1;  // do not start with CAD-function
 
-
-  // die Startparameter abarbeiten
+  // process startparameters
   i1 = 1;
 
   //----------------------------------------------------------------
@@ -2177,8 +2366,12 @@ ED_Run
   UI_AP (UI_FuncSet, UID_Main_title, NULL);
 
 
-  // activate CAD | MAN
-  if(imods) UI_main_set__ (imods);
+  // if not mode_cad or mode_man: set VWR (hide points, ..)
+  if(!imods) {
+    UI_InpMode = UI_MODE_START;
+    UI_VWR_ON ();
+  }
+  UI_main_set__ (imods);
 
   return 0;
 
@@ -2341,7 +2534,10 @@ remote control nur in VWR, nicht MAN, CAD;
 //================================================================
   int AP_Init1 () {
 //================================================================
-/// init DL, ED, WC
+// init DL, ED, WC
+// used for AP_src_new (File/New),
+//          Mod_cre__ (create-new-SubModel),
+//          Mod_m2s__ move Mainmodel > Submodel
 
   // printf("AP_Init1\n");
 
@@ -2361,7 +2557,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // Redraw (= bei New löschen !)
-  DL_Redraw ();
+  // DL_Redraw ();   2020-10-12
 
   // printf("ex AP_Init1 |%s|\n",AP_mod_fnam);
 
@@ -2439,26 +2635,61 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //====================================================================
-  int AP_exit__ () {
+  int AP_exit__ (int mode) {
 //====================================================================
+// Input:
+//   mode   0=normal-exit;
+//          1=crash-exit; (no save (AP_save_ex), AP_defaults_write)
+//
+// restore main not possible.
 
-  char fnam[256];
+
+  int   irc, i1;
 
 
-  printf("AP_exit__ \n");
+  printf("AP_exit__ %d\n",mode);
+
+  AP_stat.mdl_stat = MDLSTAT_save_exit;
 
 
-  AP_defaults_write(); // defaults -> tmp/xa.rc
+  if(mode == 0) {
+    // test if model is modified;
+    // Mod_sav_i already done
+    i1 = Mod_sav_ck (1);    // i1=0=files-equal
+    if(i1) {
+      // is modified; save for exit
+      irc = AP_save_ex (0);
+    }
+
+    // save Viewparameters (Scale, Center, ..)
+    // UI_view__ ("Save");
+
+    // save defaults -> tmp/xa.rc
+    AP_defaults_write();
+  }
+
+
+  //----------------------------------------------------------------
+  AP_stat.mdl_stat = MDLSTAT_empty;     // save done
 
   GLT_exit ();         // glu-memspc retour
 
   GL_Exit__();         // OpenGL-memspc retour
 
-  // noch Datei tmp/DB.dat loeschen      (hat ca 3MB !)
+  // close joints-file
+  if(AP_stat.jntStat) {
+    DBF_exit ();
+    AP_stat.jntStat = 0;
+  }
 
-  sprintf(fnam, "%sDB.dat",OS_get_tmp_dir());
-  OS_file_delete (fnam);
+  // close app-messageFile
+  APP_MSG_close ();
 
+  // close message-file /doc/msg/msg_<lng>.txt
+  MSG_close ();
+
+  // close pipes CTRLfin CTRLpin CTRLpout
+  OS_CTL_exit ();
 
   return 0;
 
@@ -2474,8 +2705,8 @@ remote control nur in VWR, nicht MAN, CAD;
   char    txbuf[512], *p1;
 
 
-  printf("AP_defaults_write |%s|%s|\n",AP_mod_dir,AP_mod_fnam);
-  printf("  AP_mod_defSiz=%f\n",AP_mod_defSiz);
+  // printf("AP_defaults_write |%s|%s|\n",AP_mod_dir,AP_mod_fnam);
+  // printf("  AP_mod_defSiz=%f\n",AP_mod_defSiz);
 
 
   // strcpy(txbuf, OS_get_bas_dir ());
@@ -2620,7 +2851,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /// \endcode
 
 
-  printf("AP_SetCol__ %d %d %d\n",cSel->cr,cSel->cg,cSel->cb);
+  // printf("AP_SetCol__ %d %d %d\n",cSel->cr,cSel->cg,cSel->cb);
 
   AP_defcol = *cSel;
 
@@ -3118,8 +3349,7 @@ remote control nur in VWR, nicht MAN, CAD;
   //------------------------------------------------------------
   // Sofortausstieg - ohne sichern..
   } else if(!strcmp(cmd, "crashEx")) {
-    GLT_exit ();        // glu-memspc retour
-    GL_Exit__();        // OpenGL-memspc retour
+    AP_exit__ (1);      // shutdown
     exit (0);
 
 
@@ -3159,7 +3389,7 @@ remote control nur in VWR, nicht MAN, CAD;
   //================================================================
   // try to start DLL (weil kein anderes command gefunden)
   L_test_dll:
-    TX_Error ("Startparamter unused - |%s|",cmd);
+    TX_Error ("Startparameter unused - |%s|",cmd);
   return 0;
 
 }
@@ -3399,11 +3629,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   strcpy(s2, "DIR_1");  // preset
-  irc = GUI_Dialog_e2b (s1, s2, 128,
+  irc = GUI_dlg_e2b (s2, 128, s1,
                         MSG_const__(MSG_ok),
                         MSG_const__(MSG_cancel));
   if(irc != 0) return 0;
-    // printf("ex-GUI_Dialog_e2b s1=|%s| s2=|%s| irc=%d\n",s1,s2,irc);
+    // printf("ex-GUI_dlg_e2b s1=|%s| s2=|%s| irc=%d\n",s1,s2,irc);
 
   strcpy(sym, s2);
 
@@ -3436,12 +3666,16 @@ remote control nur in VWR, nicht MAN, CAD;
 
   printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
 
-  // get AP_mod_dir,sym,fnam,ftyp from symbolic- or abs.filename
+  AP_stat.mdl_stat = MDLSTAT_loading;
+
+  // get AP_mod_dir,sym,_fnam,_ftyp from symbolic- or abs.filename
   Mod_fNam_get (fn);
+    // printf(" AP_mod_iftyp=%d AP_mod_ftyp=|%s|\n",AP_mod_iftyp,AP_mod_ftyp);
+
 
   // get absolute-directory
   Mod_fNam_set (mfn, 0);
-    printf(" Mod_load_fn |%s|\n",mfn);
+    // printf(" Mod_load_fn |%s|\n",mfn);
 
 
   // Test if file exists (modelfile)
@@ -3452,8 +3686,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // save Model+Submodels into tempDir as "Model" native
   Mod_sav_i (0);
+
   // make a copy of Model for ck-modified (copy Model -> Mod_in)
   Mod_sav_ck (0);
+
+  AP_stat.mdl_stat = MDLSTAT_loaded;
 
     // printf(" TESTEXIT AP_Mod_load_fn\n"); exit(1);
 
@@ -3493,7 +3730,7 @@ remote control nur in VWR, nicht MAN, CAD;
   if(ift < 0)  {
     sprintf(cbuf,"**** cannot load - unknown filetype \"%s\"",AP_mod_ftyp);
     TX_Print(cbuf);
-    printf(" ft=|%s|\n",AP_mod_ftyp);
+      // printf(" ft=|%s|\n",AP_mod_ftyp);
     return -1;
   }
 
@@ -3543,14 +3780,14 @@ remote control nur in VWR, nicht MAN, CAD;
   } else if(ift == Mtyp_Step) {
     // export into file <tmpDir>Model
     irc = OS_dll_do ("xa_stp_r", "STP_r__", cbuf, 0);
-      printf(" foll-OS_dll_do %d\n",irc);
+      // printf(" foll-OS_dll_do %d\n",irc);
     AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
     DB_size_set (lTab);                       // increase DB-size
     dbResiz = 1;                              // DB-resize done
     // rename Model -> Mdl_import.gcad
     sprintf(s1, "%sModel", OS_get_tmp_dir());
     sprintf(cbuf, "%sMdl_import.gcad", OS_get_tmp_dir());
-      printf(" cbuf = |%s|\n",cbuf);
+      // printf(" cbuf = |%s|\n",cbuf);
 
     OS_file_rename (s1, cbuf);
     // load Mdl_import.gcad
@@ -3582,9 +3819,8 @@ remote control nur in VWR, nicht MAN, CAD;
     AP_ImportXML (cbuf);
 
 
-  // 10-19  tess-Formate
-  } else if(((ift >= Mtyp_WRL) && (ift < Mtyp_BMP)) 
-            || (ift == Mtyp_WRL2)) {  // WRL OBJ TESS STL
+  // 10-19  tess-Formate   tess wrl wrl2 obj stl
+  } else if((ift >= Mtyp_TESS) && (ift < Mtyp_BMP)) {
 
     if(impTyp != 0) {
       // load Mockup - add "M# = <fnam> <origin" to model-source
@@ -4280,7 +4516,7 @@ remote control nur in VWR, nicht MAN, CAD;
      (typ == Typ_SURRV)   ||
      (typ == Typ_SURBSP)  ||
      (typ == Typ_SURPTAB) ||
-     (typ == Typ_SURMSH)  ||
+     (typ == Typ_SURPMSH)  ||
      (typ == Typ_SURCIR))
     return Typ_SUR;                       // A
 
@@ -4766,10 +5002,10 @@ static char cbuf[32];
 
 
   // printf("AP_PT2EyePln |%s|\n",plnTyp);
-    // GR_Disp_pt (p1, SYM_STAR_S, 2);
-    // GR_Disp_pt (p2, SYM_STAR_S, 5);
-    // GR_Disp_pt (p3, SYM_STAR_S, 5);
-    // GR_tDyn_vc (vcs, p3, 1, 0);
+    // GR_tDyn_symB__ (p1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (p2, SYM_STAR_S, 5);
+    // GR_tDyn_symB__ (p3, SYM_STAR_S, 5);
+    // GR_tDyn_vc__ (vcs, p3, 1, 0);
 
 
   // Mittelpunkt zwischen MP1/MP2
@@ -4846,8 +5082,8 @@ static char cbuf[32];
     UT3D_pt_intptvcpl_ (&p2x, &pl1, p3, &vc1);
   }
 
-    GR_Disp_pt (&p1x, SYM_STAR_S, 7);
-    GR_Disp_pt (&p2x, SYM_STAR_S, 7);
+    GR_tDyn_symB__ (&p1x, SYM_STAR_S, 7);
+    GR_tDyn_symB__ (&p2x, SYM_STAR_S, 7);
 */
 
 
@@ -4855,7 +5091,7 @@ static char cbuf[32];
 
 
   //-------------------------------
-    // GR_Disp_pt (p3, SYM_STAR_S, 7);
+    // GR_tDyn_symB__ (p3, SYM_STAR_S, 7);
     // DL_Redraw ();
 
 
@@ -5000,7 +5236,7 @@ static char cbuf[32];
   UT3D_vc_perp2vc (&vcy, &vcx, vcs);
   // daraus den Z-Vec der DimPlane
   UT3D_vc_perp2vc (&vcz, &vcy, &vcx);
-    // GR_tDyn_vc (&vcz, p1, 9, 0);
+    // GR_tDyn_vc__ (&vcz, p1, 9, 0);
 
   pth = *p1;
   // dl = UT3D_len_vc (&vcx);
@@ -5015,7 +5251,7 @@ static char cbuf[32];
   // vcz ist nun ein Normalvektor auf eine Ebene durch p1 und p2
   // pth = p3 in die Ebene pth-vcz bringen
   UT3D_pt_intptvcpln (&pth,   pt, vcs,     &pth, &vcz);
-    // GR_Disp_pt (&pth, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pth, SYM_TRI_S, 2);
 
 
 
@@ -5154,7 +5390,7 @@ static char cbuf[32];
 
   // get s1 = objID(s)
   s1[0] ='\0'; 
-  irc = GUI_Dialog_e2b ("objID(s) ", s1, 256, "Cancel", "OK");
+  irc = GUI_dlg_e2b (s1, 256, "objID(s) ", "Cancel", "OK");
   if(irc < 1) return -1;
 
     // TESTBLOCK:

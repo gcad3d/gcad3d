@@ -840,7 +840,9 @@ Returncodes:
   bspr->v1 = c - bsp->v0;
 */
 
-  // DEB_dump_obj__(Typ_CVBSP, bspr, "bsp-inverted:");
+    // TESTBLOCK
+    // DEB_dump_obj__(Typ_CVBSP, bspr, "ex-UCBS_RevBspCrv");
+    // END TESTBLOCK
 
   return 0;
 }
@@ -1186,6 +1188,8 @@ Returncodes:
 
   int rc, m, i1;
 
+
+  // DEB_dump_obj__(Typ_CVBSP, bspi, "UCBS_CpyBspCrv-in");
   //printf("UCBS_CpyBspCrv: Copy <-- bspline curve\n");
 
   // copy the primary-struct
@@ -1206,6 +1210,10 @@ Returncodes:
   for (i1=0; i1<bspo->ptNr; ++i1) bspo->cpTab[i1] = bspi->cpTab[i1];
   // memcpy (bspo->cpTab, bspi->cpTab, sizeof(Point) * bspo->ptNr);
   
+    // TESTBLOCK
+    // DEB_dump_obj__(Typ_CVBSP, bspo, "ex-UCBS_CpyBspCrv");
+    // END TESTBLOCK
+
   return 0;
 
 L_outOfSpace:
@@ -1404,10 +1412,11 @@ Returncodes:
   //printf("UCBS_RefKntVecBspCrv: Refine knotvector <-- bspline curve\n");
 
   // init bspo
-  bspo->deg = bspi->deg;
+  *bspo = *bspi;  // copy all attribs
+  // bspo->deg = bspi->deg;
+  // bspo->v0 = bspi->v0;
+  // bspo->v1 = bspi->v1;
   bspo->ptNr = bspi->ptNr + nk; 
-  bspo->v0 = bspi->v0;
-  bspo->v1 = bspi->v1;
 
   // space for knotvector of bspo
   bspo->kvTab = memSeg->next;
@@ -1451,6 +1460,10 @@ Returncodes:
     --k;
   }
 
+    // TESTBLOCK
+    // DEB_dump_obj__(Typ_CVBSP, bspo, "ex-UCBS_RefKntVecBspCrv");
+    // END TESTBLOCK
+ 
   return 0;
 
 L_outOfSpace:
@@ -1566,10 +1579,11 @@ Returncodes:
   }
 
   // init bspo
+  *bspo = *bspi;   // copy all attribs
+  // bspo->v0 = bspi->v0;
+  // bspo->v1 = bspi->v1;
   bspo->deg = bspi->deg + dup;
   bspo->ptNr = bspi->ptNr + (s1 + 1) * dup; 
-  bspo->v0 = bspi->v0;
-  bspo->v1 = bspi->v1;
 
   // space for knotvector of bspo
   bspo->kvTab = memSeg->next;
@@ -2385,7 +2399,10 @@ Returncodes:
   void     *memStart, *workStart, *workStart2;
   CurvBSpl bspT2[TabS1];
 
-  //printf("UCBS_MkeCmpBspCrvs: Compatible bspline curves <-- bspline curves\n");
+
+  // printf("UCBS_MkeCmpBspCrvs: Compatible bspline curves <-- bspline curves\n");
+  // for(i1=0;i1<cvNr;++i1) DEB_dump_obj__(Typ_CVBSP,cvTab[i1],"  in %d",i1);
+
 
   if (TabS1 < cvNr) goto L_InputErr;
 
@@ -2442,6 +2459,13 @@ Returncodes:
   // release workspace
   workSeg->next = workStart;
 
+    // TESTBLOCK
+    // for (i1=0; i1<cvNr; ++i1)
+      // DEB_dump_obj__(Typ_CVBSP, &(bspTab[i1]), "ex-UCBS_MkeCmpBspCrvs");
+    // END TESTBLOCK
+
+
+
   return 0;
 
 L_InputErr:
@@ -2477,8 +2501,9 @@ Returncodes:
   //printf("UCBS_TrfKntVecBspCrv: Transform knotvector <-- bspline curve\n");
 
   // init bspo
-  bspo->deg = bspi->deg;
-  bspo->ptNr = bspi->ptNr; 
+  *bspo = *bspi;  // copy all attribs
+  // bspo->deg = bspi->deg;
+  // bspo->ptNr = bspi->ptNr; 
 
   // space for knotvector of bspo
   m = bspi->ptNr + bspi->deg;
@@ -2509,6 +2534,10 @@ Returncodes:
   // copy control points
   for (i1=0; i1<bspi->ptNr; ++i1)
     bspo->cpTab[i1] = bspi->cpTab[i1];	  
+
+    // TESTBLOCK
+    // DEB_dump_obj__(Typ_CVBSP, bspo, "ex-UCBS_TrfKntVecBspCrv");
+    // END TESTBLOCK
 
   return 0;
 

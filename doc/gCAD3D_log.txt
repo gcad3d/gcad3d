@@ -1,4 +1,22 @@
 ===========================================================================
+Version 2.46.18 / 2020-11-05
+
+- CAD Ellipse - option CW (clockwise) added
+- CATALOG-parts can have subdirectories
+- Joint can import plane for positioning submodel
+- bugfix display of reversed Circle 
+- bugfix select position gives wrong parameter for reversed curves
+- bugfix polygonal representation of trimmed-polygon in contour 
+- bugfix loft-surf with reversed curve
+- bugfix insert points for "S Polygon < Points" (window GroupEdit)
+- modification of trimmed curve for boolean surface operations
+- functions Display/ObjNames ON and Display/ObjDirection ON rewritten
+
+Programlines (C)  512798
+Functions           4819
+
+
+===========================================================================
 Version 2.46.16 / 2020-05-26
 
 - new NC-process-demo-model sample_PRC_cut1_4 (cut offset-curve)

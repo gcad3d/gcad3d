@@ -655,7 +655,7 @@ extern Point     *GLT_pta;
   irc = UT3D_pt_vc__par_cv (&pt1, &vc1, typPath, datPath, 1, par1);
   if(irc < 0) goto L_NYI;
     // GR_tDyn_obj (Typ_PT, &pt1, ATT_PT_GREEN, 0);
-    // GR_tDyn_vc (&vc1, &pt1, 8, 0);
+    // GR_tDyn_vc__ (&vc1, &pt1, 8, 0);
 
 
   // get rot-axis and rot-angle (difference new refSys - basic-refSys)
@@ -737,13 +737,13 @@ extern Point     *GLT_pta;
   // analyze ox1; sweep-surf (contour,path) can be CYL|TOR|..
 
   // get contour (typCov,indCov)
-  typCov = DB_GetObjDat (&datCov, &i1, swp->typCov, swp->indCov);
+  typCov = UTO__dbo (&datCov, &i1, swp->typCov, swp->indCov);
     printf("typCov=%d \n",typCov);
     DEB_dump_obj__ (typCov, datCov, "SWP-Cov=");
 
 
   // get path    (typPath,indPath)
-  typPath = DB_GetObjDat (&datPath, &i1, swp->typPath, swp->indPath);
+  typPath = UTO__dbo (&datPath, &i1, swp->typPath, swp->indPath);
     DEB_dump_obj__ (typPath, datPath, "SWP-Path=");
 
 
@@ -1159,7 +1159,7 @@ extern Point     *GLT_pta;
     // GR_tDyn_obj (Typ_PT, &pt1, ATT_PT_GREEN, 0);
     // sprintf(s1,"%lf",parU);GR_tDyn_txtA (&pt1, s1, 0);
     // GR_tDyn_obj (Typ_SymB, &pt1, ATT_COL_RED, SYM_STAR_S);
-    // GR_tDyn_vc (&vc1, &pt1, 9, 0);
+    // GR_tDyn_vc__ (&vc1, &pt1, 9, 0);
 
 
   // create activePlane 
@@ -1499,12 +1499,12 @@ extern Point     *GLT_pta;
   
 
   // get contour (typCov,indCov)
-  typCov = DB_GetObjDat (&datCov, &rNr, swp->typCov, swp->indCov);
+  typCov = UTO__dbo (&datCov, &rNr, swp->typCov, swp->indCov);
     // DEB_dump_obj__ (typCov, datCov, "SWP-Cov=");
 
   
   // get path    (typPath,indPath)
-  typPath = DB_GetObjDat (&datPath, &rNr, swp->typPath, swp->indPath);
+  typPath = UTO__dbo (&datPath, &rNr, swp->typPath, swp->indPath);
     // DEB_dump_obj__ (typPath, datPath, "SWP-Path=");
 
 

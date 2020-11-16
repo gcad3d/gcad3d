@@ -448,10 +448,11 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
       Mod_sav_i (-1);
       // make copy of Model for ck-modified (copy Model -> Mod_in)
       Mod_sav_ck (0);
+      AP_stat.mdl_stat = MDLSTAT_loaded;
     }
 
     AP_tmr_init ();
-    NC_setRefsys (0L);
+    // NC_setRefsys (0L);  2020-10-28
     AP_stat.sysStat = 3;
 
     // if mode == CAD then check for startFunction
@@ -2164,6 +2165,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   AllDone:
 
+    // printf("ex-UI_key_escape %d\n",KeyStatEscape);
+
   return 0;
 
 }
@@ -2445,7 +2448,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //===============================================
 
 
-  int    iCur;
+  int    iCur, i1;
   char   *cp1, cbuf1[256], txbuf[256];
   double view[10];
   FILE   *fp1;
@@ -2528,22 +2531,28 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     GLB_DrawExit ();
 
 
-
+/*
   } else if(!strcmp(cp1, "PT_OFF")) {          // GUI_menu_checkbox__
+    // APT_dispPT only valid in mode VWR, not in mode CAD and MAN;
+    // Default: ON=0=not-checked=hide points;
+    //          OFF=1=checked=display points
+    i1 = GUI_menu_checkbox_get (&ckb_ptDisp); // 1=checked; 0=not
+      printf(" PT_OFF-%d mode=%d\n",i1,UI_InpMode);
+
     // if(((GtkCheckMenuItem*)parent)->active == 1) {
     // is stored in "MODE DISP_PT OFF"
     if(GUI_DATA_EVENT == TYP_EventPress) {
       APT_dispPT = OFF;  // hide pts
       if(UI_InpMode != UI_MODE_VWR)
         TX_Print("... hide points only in mode VWR ..");
-      GL_InitPtAtt (1);
+      GL_InitPtAtt (1); // set thickness=1
     } else {
       APT_dispPT = ON;  // view pts (std)
-      GL_InitPtAtt (0);
+      GL_InitPtAtt (0); // set thickness=5
     }
     // UI_butCB (NULL, (void*)"butEND");     // Ausfuehren END-Button
-    DL_Redraw ();
 
+    DL_Redraw ();
 
 
   } else if(!strcmp(cp1, "PL_OFF")) {          // GUI_menu_checkbox__
@@ -2564,7 +2573,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     }
     // UI_butCB (NULL, (void*)"butEND");     // Ausfuehren END-Button
     DL_Redraw ();
-
+*/
 
 
   } else if(!strcmp(cp1, "SOL_OFF")) {          // GUI_menu_checkbox__
@@ -3901,8 +3910,14 @@ static  Point  selPos;
       if(i1 == Typ_FncVAR1) {IE_cad_Inp1_nxtVal (1);     return 0;}
       if(i1 == Typ_FncVAR2) {IE_cad_Inp1_nxtVal (-1);    return 0;} 
 
-      if(i1 == Typ_FncVC1)  {IE_cad_Inp1_nxtVec(&l1, 1); return 0;}
-      if(i1 == Typ_FncVC2)  {IE_cad_Inp1_nxtVec(&l1,-1); return 0;}
+      if(i1 == Typ_FncVC1)  {
+        IE_cad_Inp1_nxtVec(&l1, 1);
+        return IE_cad_Inp_disp__ (-1, 0); 
+
+      } else if(i1 == Typ_FncVC2) {
+        IE_cad_Inp1_nxtVec(&l1,-1);
+        return IE_cad_Inp_disp__ (-1, 0);
+      }
 
       if(i1 == Typ_FncPtOnObj) {UI_GR_Sel_Filt_set (18);   goto L_done;}
       if(i1 == Typ_FncPtOnCP)  {UI_GR_Sel_Filt_set (1);    goto L_done;}
@@ -4061,7 +4076,8 @@ static  Point  selPos;
   // check if requested (convert); add to selTab, namTab.
   selNr = 0;
   for(ioNxt=0; ioNxt<iNr; ++ioNxt) {
-      // printf(" sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
+
+      // printf(":::::: NXT sel-dlTab[%d] typ=%d dbi=%ld dli=%ld\n",ioNxt,
               // dlTab[ioNxt].typ,dlTab[ioNxt].dbInd,dlTab[ioNxt].dlInd);
 
     typ = dlTab[ioNxt].typ;
@@ -4084,7 +4100,7 @@ static  Point  selPos;
     // test if objTyp is active in reqObjTab; 0; no; else yes
     if(sele_ck_typ (typ)) {
       // obj is requested; add it to selTab.
-        // printf(" _ck_typ-OK\n");
+        // printf(" _Select1-sele_ck_typ-OK\n");
 
 //       // test ConstrPlane. Temp.points not useful, if ConstrPln not active.
 //       if(typ == Typ_TmpPT) {                // 2012-01-17
@@ -4128,7 +4144,9 @@ static  Point  selPos;
       if(selNr >= SELTABSIZ - 2) break;
     }
 
+      // TESTBLOCK
       // UI_GR_dump_selTab (selTab, namTab, selNr, "Select1-9");
+      // END TESTBLOCK
 
 
     //----------------------------------------------------------------
@@ -4632,7 +4650,7 @@ static  Point  selPos;
   ObjAto    ato;
 
 
-  printf("UI_disp_oid |%s|\n",oid);
+  // printf("UI_disp_oid |%s|\n",oid);
 
 
   ATO_getSpc__ (&ato);
@@ -5880,7 +5898,7 @@ static  Point  selPos;
 */
 
   zVal = pt1.z;
-    // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
   // den neuen Mittelpunkt setzen 
@@ -7357,13 +7375,13 @@ Jeden einzelnen Char !
                     "A (surface)",
                     "D (vector)",
                     "V (value)",
-                    "\0"};
+                    NULL};
 
   char  *optLst1[]={"OK       (Ctrl-r.Mb.)",
                     "point on object",
                     "point on constr.Plane",
                     "line from polygon/contour",
-                    "\0"};
+                    NULL};
 
   char  *optLst2[]={"list of internal subModels",     "\0"};
   char  *optLst3[]={"list of modelfiles",             "\0"};
@@ -7371,7 +7389,7 @@ Jeden einzelnen Char !
   char  *optLst5[]={"OK",
                     "next",
                     "previous",
-                    "\0"};
+                    NULL};
 
 
   inpTyp = IE_get_inp_TypAct();

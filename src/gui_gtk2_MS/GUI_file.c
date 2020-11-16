@@ -88,14 +88,16 @@ void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 
 
 //================================================================
-  int MSG_err_1 (char *key, char *fmt, ...) { printf("%s\n",key); }
+  int MSG_err_1 (char *key, char *fmt, ...) {
+  printf("%s\n",key);
+  return 0;
+}
 
 
 //================================================================
   int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...) {
-
-  printf("%s\n",key); 
-
+  printf("%s\n",key);
+  return 0;
 }
 
 

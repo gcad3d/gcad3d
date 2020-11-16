@@ -31,8 +31,8 @@ MMdsps=aktuelle Ansicht speichern
 MMdspsr=gespeicherte Ansicht wiederherstellen und aktuelle Ansicht speichern
 MMdspr=gespeicherte Ansicht wiederherstellen
 
-MMdspon=Objektbezeichnungen und Bearbeitungsrichtungen anzeigen
-MMdspdir=die Richtung von Kurven anzeigen
+MMdspon=Bezeichnung aller Objekte der Gruppe anzeigen
+MMdspdir=Richtung aller Kurven der Gruppe anzeigen
 MMdsppt=Darstellung Punkte (P) EIN / AUS (nur Modus VWR)
 MMdsppl=Darstellung Ebenen (R) EIN / AUS (nur Modus VWR)
 MMdspso=Darstellung Solids (Sphere/Cone/Torus/Cube) als Solid oder Drahtmodell.
@@ -289,6 +289,7 @@ Typ_goRadius=Radius eing. / Sel PT / Cir
 Typ_goGeoSUSU=Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Select Ebene (R) oder Fläche (A)
 Typ_go_lf1=sel. single curve
+Typ_go_lf2=sel. LN or Circ or Curve (untrimmed)
 Typ_Tra=Bild-Tasten/ (select Transformation)
 Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
 Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..

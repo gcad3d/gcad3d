@@ -51,7 +51,7 @@ UT3D_ck_el360             check if elli is 360-degree-elli
 UT3D_angr_par1_ell        par 0-1  -->  parametric-Angle
 UT3D_angr_elpt            real angle for point on elli
 UT3D_angr_el_corr         get angle-circ from angle of elli.
-UT2D_2angr_el2c_c             get starting- and opening angle of ellipse
+UT2D_2angr_el2c_c         get starting- and opening angle of ellipse
 UT3D_ango_el          UU  opening angle of ellipse
 UT3D_lne_ell              get dist center-focus for ellipse
 UT3D_pt_ell_lim_del       remove points outside limited ellipse
@@ -177,16 +177,15 @@ cl -c ut_geo.c
 #include <string.h>
 
 
-// #include "../ut/ut_umem.h"   // MEM_alloc_tmp
 #include "../ut/ut_geo.h"
-#include "../ut/ut_math.h"   // UTM_scale_4db
-
-#include "../ut/func_types.h"     // SYM_TRI_S ..
-
-// #include "../ut/ut_TX.h"    /* TX_Error */
-
-
+#include "../ut/ut_math.h"             // UTM_scale_4db
+#include "../ut/func_types.h"          // SYM_TRI_S ..
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_elli.h"
+
+#include "../gr/ut_gr.h"               // GR_tDyn_*
+
+
 
 
 
@@ -311,8 +310,13 @@ cl -c ut_geo.c
 
   // change 0 -> 1, 1 -> 0;
   // ICHG01(el1->dir);   does not work !!! ???
-  if(el1->srot) el1->srot = 0;
-  else          el1->srot = 1;
+  if(el1->srot) {
+    el1->srot = 0;
+  } else {
+    el1->srot = 1;
+  }
+
+  el1->ango *= -1.;
 
   // DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_inv1");
 
@@ -459,8 +463,24 @@ cl -c ut_geo.c
 //======================================================================
 /// UT3D_el_el2pt             change start- and endpoint of elli
 
+  CurvEll2C    el2c;
+
+
+    // GR_tDyn_pt (p1, ATT_PT_HILI);
+    // GR_tDyn_pt (p2, ATT_PT_HILI);
+
+
+
   el1->p1 = *p1;
   el1->p2 = *p2;
+
+  // make 2D-ell in centerPos from 3D-ell
+  UT2D_elc_el3 (&el2c, el1);
+
+  // compute angs, ango (corrected angles)
+  UT2D_2angr_el2c__ (&el2c);
+
+  el1->ango = el2c.ango;
 
   // DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_el2pt\n");
 
@@ -646,7 +666,7 @@ cl -c ut_geo.c
 
   // translate -> 3D
   UT3D_pt_trapt2vc2len(&ptt, &el1->pc, &el1->va, pt20.x, &el1->vb, pt20.y);
-    // GR_Disp_pt (&ptt, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&ptt, SYM_STAR_S, 2);
     // DEB_dump_obj__(Typ_PT, &ptt, "  ptt:");
 
   // copy point out
@@ -654,7 +674,7 @@ cl -c ut_geo.c
 
   // vector
   if(vct) UT3D_vc__pt_el (vct, &ptt, el1);
-    // GR_tDyn_vc (vct, &ptt, 9, 0);
+    // GR_tDyn_vc__ (vct, &ptt, 9, 0);
 
 
   //----------------------------------------------------------------
@@ -744,7 +764,14 @@ cl -c ut_geo.c
 //============================================================================
   int UT3D_el_ptc_ptx_pt (CurvElli *el1, Point *ptc, Point *ptx, Point *pt1) {
 //============================================================================
-/// UT3D_el_ptc_ptx_pt        elli from centerPt,endPtMajAxis,ptOnElli.
+// UT3D_el_ptc_ptx_pt        elli from centerPt,endPtMajAxis,ptOnElli.
+//   returns 360-deg ellipse.
+// Input:
+//   ptc        centerPt
+//   ptx        endPtMajAxis
+//   pt1        ptOnElli
+//
+
 
   Vector    v1;
   double    dx, dy, da, db;
@@ -755,12 +782,24 @@ cl -c ut_geo.c
   // DEB_dump_obj__(Typ_PT, ptx, "  PTX:");
   // DEB_dump_obj__(Typ_PT, pt1, "  PT1:");
 
+  el1->srot = 0;           // CCW
+  el1->ango = RAD_360;     // =undefined
+  el1->trm  = 1;           // not trimmed (a basic curve)
+  el1->clo  = 0;           // yes closed
 
   el1->pc  = *ptc;
   el1->p1  = *ptx;
   el1->p2  = *ptx;
+
+  // majAxis = ptc,ptx
   UT3D_vc_2pt (&el1->va, ptc, ptx);
+
+  // vector v1 = ptc-pt1
   UT3D_vc_2pt (&v1, ptc, pt1);
+
+  // get vz from va, v1(ptc,pt1):
+  UT3D_vc_perp2vc (&el1->vz, &el1->va, &v1);
+  UT3D_vc_setLength (&el1->vz, &el1->vz, 1.);
 
   // project pt1 onto ptc-va to get dx, dy
   dx = fabs(UT3D_slen_projvcvc (&el1->va, &v1));
@@ -772,20 +811,16 @@ cl -c ut_geo.c
   db = sqrt((dy * dy) / (1. - ((dx * dx) / (da * da))));
     // printf(" da=%f db=%f\n", da, db);
 
-  // get vz from va, v(ptc,pt1):
-  UT3D_vc_perp2vc (&el1->vz, &el1->va, &v1);
-  UT3D_vc_setLength (&el1->vz, &el1->vz, 1.);
-
   // get vb (side of pt1)
   UT3D_vc_perp2vc (&el1->vb, &el1->vz, &el1->va);
   UT3D_vc_setLength (&el1->vb, &el1->vb, db);
 
-  el1->srot = 0;           // CCW
-  el1->ango = RAD_360;     // =undefined
-  el1->trm  = 1;           // not trimmed (a basic curve)
-  el1->clo  = 0;           // yes closed
-
-  // DEB_dump_obj__(Typ_CVELL, el1, "ex UT3D_el_ptc_ptx_pt:");
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_ptc_ptx_pt:");
+    // GR_tDyn_vc__ (&el1->va, &el1->pc, Typ_Att_hili1);
+    // GR_tDyn_vc__ (&el1->vb, &el1->pc, Typ_Att_hili1);
+    // GR_tDyn_ell (el1, Typ_Att_hili1);
+    // END TESTBLOCK
 
   return 0;
 
@@ -1463,16 +1498,17 @@ cl -c ut_geo.c
 
   // make el2c from ell
   UT2D_elc_el3 (&el2c, el3);
-    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c");
+    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c-1");
 
   // get angs and ango -- corrected;
   UT2D_2angr_el2c__ (&el2c);
+    // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c-2");
 
   // get correct ptNr for ellipse
   rdc = DMAX(fabs(el2c.a),fabs(el2c.b));
   pNr = UT2D_ptNr_ci (rdc, fabs(el2c.ango), UT_DISP_cv);
   if(pNr > *ptNr) {TX_Error("UT3D_npt_ell EOM"); return -1;}
-     // printf(" npt_ell pNr=%d\n",pNr);
+     // printf(" _npt_ell pNr=%d rdc=%f ango=%f\n",pNr,rdc,fabs(el2c.ango));
 
   // get space for 2D-points
   l1 = sizeof(Point2) * pNr;
@@ -1730,7 +1766,7 @@ cl -c ut_geo.c
     // cv[i1].x += el->pc.x;
     // cv[i1].y += el->pc.y;
     // cv[i1].z += el->pc.z;
-      // // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
+      // // GR_tDyn_symB__ (&cv[i1], SYM_STAR_S, 2);
       // // GR_tDyn_txiA (&cv[i1], i1, 0);
   // }
 //
@@ -1791,7 +1827,7 @@ cl -c ut_geo.c
     cv[i1].x += el->pc.x;
     cv[i1].y += el->pc.y;
     cv[i1].z += el->pc.z;
-      // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&cv[i1], SYM_STAR_S, 2);
       // GR_tDyn_txiA (&cv[i1], i1, 0);
   }
 
@@ -1804,7 +1840,7 @@ cl -c ut_geo.c
   //-- TESTDISP ----------------------------------------------------
   // printf("ex UT3D_cv_ell %d\n",*numpt);
   // for(i1=0;i1<*numpt; ++i1) {
-    // GR_Disp_pt (&cv[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&cv[i1], SYM_STAR_S, 2);
     // GR_tDyn_txiA (&cv[i1], i1, 0); }
 
 
@@ -2533,7 +2569,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // intersect 2 planes
   UT3D_ptvc_int2pln (&ptl,&vcl, &pln->po,&pln->vz, &el->pc,&el->vz);
-    // GR_tDyn_vc (&vcl, &ptl, 9, 0);
+    // GR_tDyn_vc__ (&vcl, &ptl, 9, 0);
 
   UT3D_ln_ptvc (&ln, &ptl, &vcl);
 
@@ -3064,7 +3100,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_solvtriri_bc (&dx, &dyc, b, c);
     // printf(" dx=%f dyc=%f\n",dx,dyc);
     // UT3D_vc_pt3db (&vhx, pt1, dx, dyc, 0.);
-    // GR_tDyn_vc (&vhx, pt1, 8, 1);
+    // GR_tDyn_vc__ (&vhx, pt1, 8, 1);
 
   // change point on elli-circ-maj to point on elli
   UT3D_pt_el_ptx (&dye, dx, ea, eb);
@@ -3153,7 +3189,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_solvtriri_bc (&dy, &dxc,  b, c);
     // printf(" dxc=%f dy=%f\n",dxc,dy);
     // UT3D_vc_pt3db (&vhx, pt1, dxc, dy, 0.);
-    // GR_tDyn_vc (&vhx, pt1, 8, 1);
+    // GR_tDyn_vc__ (&vhx, pt1, 8, 1);
 
   // change point on elli-circ-min to point on elli
   UT3D_pt_el_pty (&dxe, dy, ea, eb);
@@ -3754,7 +3790,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT2D_vc_2pt (&vc1, &eli->pc, &eli->p1);
   UT2D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
-    // GR_tDyn_vc (&vc1, &el3->pc, 7, 1);
+    // GR_tDyn_vc__ (&vc1, &el3->pc, 7, 1);
 
   UT2D_vc_2pt (&vc1, &eli->pc, &eli->p2);
   UT2D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
@@ -3777,8 +3813,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // printf("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE \n");
   // DEB_dump_obj__ (Typ_CVELL, el3, "UT2D_elc_el3");
-  // GR_tDyn_vc (&el3->va, &el3->pc, 5, 1);
-  // GR_tDyn_vc (&el3->vb, &el3->pc, 5, 1);
+  // GR_tDyn_vc__ (&el3->va, &el3->pc, 5, 1);
+  // GR_tDyn_vc__ (&el3->vb, &el3->pc, 5, 1);
 
 
   // if(el3->dir > 0) el2c->dir = -1;    // 2016-10-30
@@ -3808,7 +3844,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p1);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc pc-p1:");
   UT3D_2par_vc_vcx_vcy (&el2c->p1.x, &el2c->p1.y, &vc1, &vcx, &vcy);
-    // GR_tDyn_vc (&vc1, &el3->pc, 7, 1);
+    // GR_tDyn_vc__ (&vc1, &el3->pc, 7, 1);
 
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p2);
   UT3D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
@@ -3836,7 +3872,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // Point2     pt21;
 
 
-  // printf("UT2D_2angr_el2c__\n");
+  // DEB_dump_obj__ (Typ_CVELL2C, el2c, "UT2D_2angr_el2c__-in");
 
 
   // get as, ao
@@ -3859,15 +3895,20 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   if(is360) {
       // printf(" ell=360; sr=%d\n",el2c.sr);
     if(el2c->srot == 0) {
-      ace = acs + RAD_360;  // 1=CCW, else CW.
+      // 0=CCW
+      ace = acs + RAD_360;
     } else {
+      // 1=CW
       ace = acs - RAD_360;
     }
 
   } else {
+    // trimmed-ellipse;
     // make ace following acs
     ace = UT2D_angr_set_2angr_sr (acs, ace, el2c->srot);
+      // printf(" f.set_2angr_sr acs=%lf ace=%lf\n",acs,ace);
   }
+
   // total angle
   aco = ace - acs;
 
@@ -3939,7 +3980,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   // DEB_dump_obj__ (Typ_CVELL, el1, "UT3D_par_pt__pt_el el:");
   // DEB_dump_obj__ (Typ_PT, ptx, "  ptx:");
   // printf("  mode=%d tol=%f UT_TOL_pt=%f\n",mode,tol,UT_TOL_pt);
-  // GR_Disp_pt (&el1->p1, SYM_TRI_S, ATT_COL_WHITE);
+  // GR_tDyn_symB__ (&el1->p1, SYM_TRI_S, ATT_COL_WHITE);
 
 
   //----------------------------------------------------------------
@@ -3992,7 +4033,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   // change angr da into par1 du (du = ao / piTwo)
   // par 0-1 from angle
-  UTP_param_p0p1px (du, as, ae, aa);
+  // UTP_par1_vMin_vMax_vx (du, as, ae, aa);
+  *du = UTP_par1_vMin_vMax_vx (as, ae, aa);
 
   // if aa outside as,ae return -2
   if(!i360) {
@@ -4028,7 +4070,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
     // printf("ex UT3D_par_pt__pt_el du=%lf\n",*du);
-    // if(pte) GR_Disp_pt (pte, SYM_STAR_S, 2);
+    // if(pte) GR_tDyn_symB__ (pte, SYM_STAR_S, 2);
     // if(pte) DEB_dump_obj__(Typ_PT, pte, "  pte:");
 
   return 0;
@@ -4136,7 +4178,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     printf(" aa=%lf as=%lf ao=%lf ae=%lf\n",aa,as,ao,ae);
 
   // par 0-1 from angle
-  UTP_param_p0p1px (du, as, ae, aa);
+  UTP_par1_vMin_vMax_vx (du, as, ae, aa);
 
 
   // if aa outside as,ae return -2
@@ -4165,7 +4207,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
     // translate -> 3D
     UT3D_pt_trapt2vc2len (pte, &el1->pc, &el1->va, pt20.x, &el1->vb, pt20.y);
-      GR_Disp_pt (pte, SYM_STAR_S, 2);
+      GR_tDyn_symB__ (pte, SYM_STAR_S, 2);
       DEB_dump_obj__(Typ_PT, pte, "  pte:");
   }
 

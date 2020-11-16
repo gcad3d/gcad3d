@@ -1216,8 +1216,8 @@ The integration parameters t1,t2 are non-negativ and unequal.
 The integrals are computed with Simpson's approximation formula.
 
 IN:
-  double t1    ... 1. paramter (>=0)
-  double t2    ... 2. paramter (>=0, !=t1)
+  double t1    ... 1. parameter (>=0)
+  double t2    ... 2. parameter (>=0, !=t1)
 OUT:
   double *fci  ... value of FCI(t1,t2)
   double *fsi  ... value of FSI(t1,t2)

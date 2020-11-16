@@ -426,7 +426,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
                      // (filnamOut sSiz symDir filter title)
-  irc = GUI_file_save__ (s1, sizeof(s1), dirLst, "*", wTit);
+  irc = GUI_file_save__ (s1, sizeof(s1), dirLst, "*", wTit, 0);
     // printf("ex-GUI_file_save__ irc=%d fNam=|%s| dNam=|%s|\n",irc,fNam,dNam);
   if(irc < 2) return -1;
   if(strlen(fNam) < 1) return 0;

@@ -203,12 +203,12 @@ double SRU_parsru_utLn2 ();
       if(objo == NULL) goto L_exit;
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, Ptyp_start, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, Ptyp_end, typ1, dat1);
+      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, 0, Ptyp_start, typ1, dat1);
+      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, 0, Ptyp_end, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, Ptyp_start, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, Ptyp_end, typ2, dat2);
+      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, 0, Ptyp_start, typ2, dat2);
+      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, 0, Ptyp_end, typ2, dat2);
       // modify p1-p2 with parameter dp
       UT3D_pt_evpar2pt (&((Line*)objo)->p1, dp, &p1, &p3);
       UT3D_pt_evpar2pt (&((Line*)objo)->p2, dp, &p2, &p4);
@@ -229,12 +229,12 @@ double SRU_parsru_utLn2 ();
       }
       // Startpunkt & Endpunkt von obj1
       // UTO_2pt_limstru (&p1, &p2, NULL, NULL, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, Ptyp_start, typ1, dat1);
-      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, Ptyp_end, typ1, dat1);
+      irc = UT3D_ptvcpar_std_obj (&p1, NULL, NULL, 0, Ptyp_start, typ1, dat1);
+      irc = UT3D_ptvcpar_std_obj (&p2, NULL, NULL, 0, Ptyp_end, typ1, dat1);
       // Startpunkt & Endpunkt von obj2
       // UTO_2pt_limstru (&p3, &p4, NULL, NULL, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, Ptyp_start, typ2, dat2);
-      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, Ptyp_end, typ2, dat2);
+      irc = UT3D_ptvcpar_std_obj (&p3, NULL, NULL, 0, Ptyp_start, typ2, dat2);
+      irc = UT3D_ptvcpar_std_obj (&p4, NULL, NULL, 0, Ptyp_end, typ2, dat2);
       // vz1-vz2 antiparallel ?
       if(UT3D_sid_2vc(&((Circ*)dat1)->vz, &((Circ*)dat2)->vz) < 0)
         MEM_swap__(&p3, &p4, sizeof(Point));
@@ -633,8 +633,8 @@ static Vector vca, vce;
     UT3D_vc_2pt (&vce, &pe, &px2);
       DEB_dump_obj__ (Typ_VC, &vca, " vca=");
       DEB_dump_obj__ (Typ_VC, &vce, " vce=");
-      // GR_tDyn_vc (&vca, &pa, 2, 1);
-      // GR_tDyn_vc (&vce, &pe, 2, 1);
+      // GR_tDyn_vc__ (&vca, &pa, 2, 1);
+      // GR_tDyn_vc__ (&vce, &pe, 2, 1);
     return irc;
   }
 
@@ -642,7 +642,7 @@ static Vector vca, vce;
 
   //---------------------------------------------------------
   DEB_dump_obj__ (Typ_PT, pt3, "......................\nUT3D_parsru_pt ");
-  GR_Disp_pt (pt3, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (pt3, SYM_STAR_S, 2);
 
 
 
@@ -758,8 +758,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
     UT3D_vc_2pt (&vce, &pe, &px2);
       // DEB_dump_obj__ (Typ_VC, &vca, " vca=");
       // DEB_dump_obj__ (Typ_VC, &vce, " vce=");
-      // GR_tDyn_vc (&vca, &pa, 2, 1);
-      // GR_tDyn_vc (&vce, &pe, 2, 1);
+      // GR_tDyn_vc__ (&vca, &pa, 2, 1);
+      // GR_tDyn_vc__ (&vce, &pe, 2, 1);
 */
 
     if(SRU_clos == 0) {         // normal - not closed
@@ -827,7 +827,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   //---------------------------------------------------------
   // printf("============================================= \n");
   // DEB_dump_obj__ (Typ_PT, pt3, "UT3D_parsru_pt:");
-  // GR_Disp_pt (pt3, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (pt3, SYM_TRI_S, 2);
 
   irc = 0;
 
@@ -1023,18 +1023,18 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   irc = SRU_pt_evparcrv (&ln2.p1, u2, 1);
   irc = SRU_pt_evparcrv (&ln1.p2, u1, 2);
   irc = SRU_pt_evparcrv (&ln2.p2, u2, 2);
-    // GR_Disp_pt (&ln1.p1, SYM_TRI_S, 1);
-    // GR_Disp_pt (&ln1.p2, SYM_TRI_S, 1);
-    // GR_Disp_pt (&ln2.p1, SYM_TRI_S, 2);
-    // GR_Disp_pt (&ln2.p2, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&ln1.p1, SYM_TRI_S, 1);
+    // GR_tDyn_symB__ (&ln1.p2, SYM_TRI_S, 1);
+    // GR_tDyn_symB__ (&ln2.p1, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&ln2.p2, SYM_TRI_S, 2);
 
   // aus den 4 Punkten 2 Verbindungslinien machen
   UT3D_vc_2pt (&vc1, &ln1.p1, &ln1.p2);
   UT3D_vc_2pt (&vc2, &ln2.p1, &ln2.p2);
     // DEB_dump_obj__ (Typ_VC, &vc1, " vc1=");
     // DEB_dump_obj__ (Typ_VC, &vc2, " vc2=");
-    // GR_tDyn_vc (&vc1, &ln1.p1, 1, 1);
-    // GR_tDyn_vc (&vc2, &ln2.p1, 1, 2);
+    // GR_tDyn_vc__ (&vc1, &ln1.p1, 1, 1);
+    // GR_tDyn_vc__ (&vc2, &ln2.p1, 1, 2);
 
 
   // haben nun 2 Verbindungslinien; ln1 u ln2
@@ -1043,8 +1043,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   // Abstaende dp1 und dp2 von den Punkte px1/px2;
   UT3D_pt_projptptvc (&px1, &dp1, NULL, pt3, &ln1.p1, &vc1);
   UT3D_pt_projptptvc (&px2, &dp2, NULL, pt3, &ln2.p1, &vc2);
-    // GR_Disp_pt (&px1, SYM_STAR_S, 1);
-    // GR_Disp_pt (&px2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&px1, SYM_STAR_S, 1);
+    // GR_tDyn_symB__ (&px2, SYM_STAR_S, 2);
 
 
 
@@ -1291,7 +1291,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   // printf("SRU_parsru_intObj =========================\n");
   // DEB_dump_obj__ (typ, objIn, "SRU_parsru_intObj - in");
-  // if(typ == Typ_PT) GR_Disp_pt (objIn, SYM_STAR_S, 2);
+  // if(typ == Typ_PT) GR_tDyn_symB__ (objIn, SYM_STAR_S, 2);
 
 
   iloop  = 0;  // Loopcounter; abbrechen nach 15 Versuchen.
@@ -1792,8 +1792,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   UT3D_pt_projpt2pt (px1, &dl1, pt3, &ln1->p1, &ln1->p2);   // ln1
   UT3D_pt_projpt2pt (px2, &dl2, pt3, &ln2->p1, &ln2->p2);   // ln1
-    // GR_Disp_pt (px1, SYM_STAR_S, 2);
-    // GR_Disp_pt (px2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (px1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (px2, SYM_STAR_S, 2);
 
   // den Parameter fuer ptx auf Strecke px1-px2 errechnen
   UT3D_vc_2pt (&vc1, px1, px2);
@@ -1823,15 +1823,15 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   UT3D_pt_int2ln (&pl1, px1, NULL, lni, ln1);
   UT3D_pt_int2ln (&pl2, px2, NULL, lni, ln2);
 
-    // GR_Disp_pt (px1, SYM_STAR_S, 2);
-    // GR_Disp_pt (px2, SYM_STAR_S, 2);
-    // GR_Disp_pt (&pl1, SYM_STAR_S, 3);
-    // GR_Disp_pt (&pl2, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (px1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (px2, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pl1, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (&pl2, SYM_STAR_S, 3);
 
 // HIER NICHT DEN MITTELPUNKT, sondern den naeheren Punkt waehlen ?????
   // Mittelpunkt auf der intersection-line
   UT3D_pt_mid2pt (ptx, &pl1, &pl2);
-    // GR_Disp_pt (ptx, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (ptx, SYM_STAR_S, 3);
 
   // den Parameter fuer plm auf Strecke px1-px2 errechnen
   UT3D_par_pt_2pt (&par1, ptx, px1, px2);

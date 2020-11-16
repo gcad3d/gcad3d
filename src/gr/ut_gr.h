@@ -1,7 +1,39 @@
-/*  ../gr/ut_gr.h
+/*
+ * Copyright (C) 2012 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+-----------------------------------------------------
+*//*!
+\file ../gr/ut_gr.h
+\brief includes for GR_*    ../gr/ut_gr.c
 
+Prerequisites:
+#include "../ut/ut_memTab.h"           // MemTab_..
+
+-----------------------------------------------------
+Modifications:
 2020-04-10 GR_OTYP_* zu. GR_TMP_* u. RF.
 2001-06-06 die GR_ funktionen zu.
+
+-----------------------------------------------------
+See INF_GR_RECORDS
+
+GR_temp_*       display temporary;
+                for using fixed temp-index set "DL_temp_ind = <fixed-index>;"
+                                             or "DL_temp_ind_set (<fixed-index>);"
+   att          for points see INF_COL_PT
+                for curves see INF_COL_CV
+                for surfaces tDyn|temp GR_TMP_HILI|GR_TMP_DIM|GR_TMP_DEF
+                             perm 0=defaultColor or struct ColRGB
 
 ==============================================================*/
 
@@ -21,7 +53,9 @@
 
 // GL-dispList-index of the temporary outputObject of WC_Work1
 // GL-dispList-index of the CAD-inputObjects are -1 to -7; see IE_GET_INP_DLI
+// Last temp. GL-dispList-index is (DL_base_font1 - 1)
 #define GR_TMP_I0        8        // primary temporary obj
+// #define GR_TMP_ID0       9        // primary temporary obj with direction-arrow
 #define GR_TMP_IDIR      9        // direction with arrow
 #define GR_TMP_IPOS     10        // vertexposition - small circle
 
@@ -45,6 +79,7 @@ int GR_set_txtG (int opers, GText *txG, long dbi, int att);
 
 
 void GR_temp_pt (Point *pt1, int att);
+//   att      ATT_PT_BLACK .. see INF_COL_PT
 #define GR_temp_pt(pt1,att)\
  GR_set_obj(OPERS_TEMP+OPERS_CLOSE,0L,Typ_PT,pt1,att,0);
 
@@ -86,11 +121,13 @@ void GR_perm_pln (long dbi, Plane *pl1, int att, int mode);
  GR_set_obj(OPERS_PERM+OPERS_CLOSE,dbi,Typ_PLN,pl1,att,mode);
 
 
-
-void GR_temp_pcv (Point *pta, int ptnr, int att);
-#define GR_temp_pcv(pta,ptnr,att)\
+// display polygon temp.
+void GR_temp_pcv__ (Point *pta, int ptnr, int att);
+#define GR_temp_pcv__(pta,ptnr,att)\
  GR_set_pcv(OPERS_TEMP+OPERS_CLOSE,pta,ptnr,att);
 
+// display polygon temp-dyn.
+//   att      see INF_COL_CV
 void GR_tDyn_pcv (Point *pta, int ptnr, int att);
 #define GR_tDyn_pcv(pta,ptnr,att)\
  GR_set_pcv(OPERS_TDYN+OPERS_CLOSE,pta,ptnr,att);
@@ -202,6 +239,25 @@ void GR_perm_mdr (ModelRef *mdr, long dbi);
 
 
 
+// display MemTab
+void GR_temp_mtb (MemTab *mtb, int att);
+#define GR_temp_mtb(mtb,att)\
+ GR_set_mtb(OPERS_TEMP+OPERS_CLOSE,mtb,att);
+
+void GR_tDyn_mtb (MemTab *mtb, int att);
+#define GR_tDyn_mtb(mtb,att)\
+ GR_set_mtb(OPERS_TDYN+OPERS_CLOSE,mtb,att);
+
+
+
+void GR_temp_osu (ObjGX *oxi, long dbi, int att);
+//  display binary surface
+//  dbi used for get surf-patches, else set to 0
+//  att     see INF_?
+#define GR_temp_osu(oxi,dbi,att)\
+ GR_set_osu(OPERS_TEMP+OPERS_CLOSE,oxi,dbi,att);
+
+
 void GR_temp_sur (long dbi, int att);
 #define GR_temp_sur(dbi,att)\
  GR_set_sur(OPERS_TEMP+OPERS_CLOSE,dbi,att);
@@ -219,7 +275,7 @@ void GR_perm_sur (long dbi, long att);
 
 //----------------------------------------------------------------
 int GR_temp_src (char *src, int att, int mode);
-int GR_temp_obj (int ind, long dbi,
+int GR_temp_nobj (int ind, long dbi,
                    int form, void *obj, int oNr, int att, int mode);
 int GR_temp_dbo (int ind,  int typ, long dbi, int att, int mode);
 int GR_temp_otb (long *dli, int att, ObjTab *otb1);
@@ -245,11 +301,11 @@ int GR_tDyn_el2c (CurvEll2C *el2c, int att);
 int GR_tDyn_pcv3p2 (Point2 *p1, Point2 *p2, Point2 *p3, int att);
 int GR_tDyn_bez (CurvBez *bez, int att, Memspc *workSeg);
 void GR_tDyn_psp3 (long *ind, long dbi, int attInd, ObjGX *cv1, double zval);
-int GR_tDyn_npt__2 (Point2 *pta, int ptnr, int att);
+int GR_tDyn_npt_2 (Point2 *pta, int ptnr, int att);
 int GR_tDyn_ln_2pt (Point *pt1, Point *pt2, int att);
 int GR_tDyn_npt__ (Point *pta, int ptnr, int att);
 int GR_tDyn_npti (int ptNr, Point *pTab, int typ, int ptAtt, int txAtt);
-int GR_tDyn_symB (Point *pt1, int typ, int att);
+int GR_tDyn_symB__ (Point *pt1, int typ, int att);
 int GR_tDyn_nsymB (int ptNr, Point *pTab, int typ, int att);
 
 int GR_tDyn_tx2A (Point2 *pt1, char *txtA, int att);
@@ -298,7 +354,7 @@ int AP_add_pt (long *dbi, int att, Point *pt1);
   int GR_Draw_spu (long *ind, int att, int pNr, Point *pTab);
 
   int GR_Disp_vc2 (Vector2 *vc1, Point2 *pt1, int att, int mode);
-  int GR_Disp_tria (Triangle *tria, int att);
+  int GR_Disp_tria (Triang *tria, int att);
 
   int GR_Disp_patch (int gTyp, int icol, int pNr, Point *pa);
   int GR_Disp_fan (Point *ps, Point *pa1, Point *pa2, int pNr, int att);
@@ -329,13 +385,6 @@ int AP_add_pt (long *dbi, int att, Point *pt1);
 /// \endcode
 #define GR_gxt_strLen(txt)\
  strlen(txt) - UTX_cnr_chr (txt, '[')
-
-/// display objectID in center of obj
-#define GR_OBJID_ON (AP_modact_ind < 0)&&(APT_dispNam)
-
-/// display direction-arrow at end of curve
-#define GR_DIR_ON (AP_modact_ind < 0)&&(APT_dispDir)
-
 
 void GR_pt3_pt2 (Point *p3, Point2 *p2);
 #define GR_pt3_pt2(p3,p2)\

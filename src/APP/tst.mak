@@ -13,8 +13,8 @@ SRC1 =\
  ../APP/tst_ut_GR.c\
  ../APP/tst_ut_GL.c\
  ../APP/tst_rbspl.c\
+ ../APP/tst_ut_geo.c\
 
-#../APP/tst_ut_geo.c\
 #../APP/tst_ut_DL.c\
 
 # ../APP/tst_edmpt.c == ../APP/xa_edmpt.c

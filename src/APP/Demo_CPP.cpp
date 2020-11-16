@@ -11,6 +11,7 @@
 
 extern "C" {
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_TX.h"          // TX_Print
 #include "../gr/ut_GL.h"          // GL_DrawPoly
 #include "../gr/ut_DL.h"          // DL_Redraw

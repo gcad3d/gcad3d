@@ -2242,8 +2242,8 @@ extern long      GLT_cta_SIZ;
 
   // point: no characteristic point selected; parameter necessary ...
   // get parameter from selected point; always 0-1 = vTyp=1 (see INF_struct_par)
-  irc = UT3D_par_pt__pt_prj_cv (&pars, NULL, 1, &pts, iTyp, iObj, UT_DISP_cv);
-  if(irc < 0) {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
+  irc = UT3D_par_pt__pt_prj_cv (&pars, NULL, 1, 0, &pts, iTyp, iObj, UT_DISP_cv);
+  if(irc < 0) goto L_err2; // ?? {TX_Error("ATO_ato_obj_pt E002"); goto L_err2;}
 
   // add parameter to atomicObjs
   ATO_ato_expr_add (ato, Typ_Val, pars, 0);

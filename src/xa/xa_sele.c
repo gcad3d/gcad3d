@@ -279,7 +279,7 @@ static int    bck_GR_NoConstrPln;
 
   int   iNr;
 
-  // printf("sele_src_cnvt_add typ=%d |%s|\n",typ,so);
+  // printf("sele_src_cnvt_add typ=%d |%s|\n\n",typ,so);
 
   iNr = sCva->iNr;
 
@@ -361,7 +361,7 @@ static int    bck_GR_NoConstrPln;
 
   // printf("--- sele_src_cnvt__ selTyp=%d dbi=%ld reqTyp=%d\n",selTyp,dbi,reqTyp);
   // DEB_dump_obj__ (Typ_PT, selPos, " selPos");
-  // GR_Disp_pt (selPos, SYM_STAR_S, ATT_COL_RED);
+  // GR_tDyn_symB__ (selPos, SYM_STAR_S, ATT_COL_RED);
 
 
   iNr = 0;
@@ -446,11 +446,6 @@ static int    bck_GR_NoConstrPln;
       // D(L)
       sprintf(sCva->cva[0].oid, "D(L%ld)", dbi);
       goto L_add_1;
-
-    //.......................................
-    } else if(reqTyp == Typ_CI) {
-      // cannot get circ from line
-      goto L_exit;
 
     //.......................................
     // LN selected: for Typ_XVal|Typ_YVal|Typ_ZVal add distance ..
@@ -562,26 +557,6 @@ static int    bck_GR_NoConstrPln;
     //.......................................
     } else return 0;
 */
-
-
-  //----------------------------------------------------------------
-  } else if(selTyp == Typ_CVBSP) {
-
-    //.......................................
-    if(reqTyp == Typ_CI) {
-      // cannot get circ from bspl
-      goto L_exit;
-    }
-
-
-  //----------------------------------------------------------------
-  } else if(selTyp == Typ_CVPOL) {
-
-    //.......................................
-    if(reqTyp == Typ_CI) {
-      // cannot get circ from polygon
-      goto L_exit;
-    }
 
 
   //----------------------------------------------------------------
@@ -835,6 +810,7 @@ static int    bck_GR_NoConstrPln;
 //           -2       no solution for xTyp-selTyp
 //           -9       unrecov. error
  
+  int   iSel;
 
   // printf("sele_src_cnvt_test xTyp=%d selTyp=%d dbi=%ld\n",xTyp,selTyp,dbi);
 
@@ -842,8 +818,18 @@ static int    bck_GR_NoConstrPln;
   if(xTyp==selTyp) return 0;
 
   // test if xTyp is activated in reqObjTab
+  iSel = sele_ck_typ (xTyp);
   if(!sele_ck_typ (xTyp)) return 0;
     // printf("sele_src_cnvt_test-ok %d\n",xTyp);
+
+
+  // skip objects that cannot give xTyp
+  if(xTyp == Typ_CI) {
+    if((selTyp == Typ_LN)    ||
+       (selTyp == Typ_CVELL) ||
+       (selTyp == Typ_CVPOL) ||
+       (selTyp == Typ_CVBSP))  return 0;
+  }
    
   // yes, xTyp is wanted. Add it into sca.
   return sele_src_cnvt_do (sCva, xTyp, selTyp, dbi, selPos);
@@ -1374,9 +1360,8 @@ static int    bck_GR_NoConstrPln;
 
   //----------------------------------------------------------------
   // test if selected is requested
-  // printf("sele_ck_typ %d\n",iTyp);
+  // printf("sele_ck_typ iTyp=%d isOn=%d\n",iTyp,BitTab_get(reqObjTab,iTyp));
   // BitTab_dump (reqObjTab, TYP_SIZ);
-    // printf("sele_ck_typ %d %d\n",BitTab_get(reqObjTab,iTyp),iTyp);
 
 
   // if GR_Sel_Filter==18 (parametric point) keep selection
@@ -2758,6 +2743,20 @@ static int    bck_GR_NoConstrPln;
                       0);
       break;
 
+
+    case Typ_go_lf2:      // L|C|curve, but no CCV (trimmed-curve)
+      sele_set_types (Typ_LN,
+                      Typ_CI,
+                      Typ_CV,
+                      Typ_CVBSP,
+                      Typ_CVRBSP,
+                      Typ_CVPOL,
+                      Typ_CVELL,
+                      Typ_CVCLOT,
+                      0);
+      break;
+
+
     case Typ_goGeo1:    // /LN/CI/CV/PLN/SUR/SOL/            NOT PT
       sele_set_types (Typ_LN, 
                       Typ_CI,
@@ -2945,6 +2944,12 @@ static int    bck_GR_NoConstrPln;
       sele_set_icon (&i2Dbutts, Typ_modPERP);
       break;
 
+
+    case Typ_go_JNT:            // Joint:
+      sele_set_types (Typ_PT,
+                      Typ_PLN,
+                      // Typ_GTXT,
+                      0);
 
 
     case Typ_EyePT:  // 

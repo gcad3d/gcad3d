@@ -184,7 +184,7 @@ static MemObj UI_DialogEntryWin;
 
 }
 
-
+/* REPLACED BY GUI_dlg_2b
 //================================================================
   int GUI_Dialog_2b (char *txt, char *tb1, char *tb2) {
 //================================================================
@@ -215,7 +215,7 @@ static MemObj UI_DialogEntryWin;
 
 }
  
-
+// REPLACED BY GUI_dlg_e2b
 //=============================================================================
   int GUI_Dialog_e2b (char *txt, char *entry, int eSiz, char *tb1, char *tb2) {
 //=============================================================================
@@ -249,8 +249,8 @@ static MemObj UI_DialogEntryWin;
   return GUI_DialogEntry (txt, entry, eSiz, buttons, 2);
 
 }
- 
 
+// REPLACED BY  GUI_dlg_e2b
 //=============================================================================
   int GUI_DialogEntry (char* label, char *entry, int eSiz,
                         char *buttons[], int border) {
@@ -388,7 +388,6 @@ static MemObj thisWin;
 }
 
 
-/*
 //=====================================================================
   void GUI_Dialog_cb_e2b (char *txt, char *entry, int eSiz,
                           char *tb1, char *tb2,
@@ -409,8 +408,6 @@ static MemObj thisWin;
 ///   GUI_DATA_EVENT =*(int*)data[0]=UI_FuncOK|UI_FuncCancel
 ///
 /// \endcode
-*/
-
 
 
 //=====================================================================
@@ -526,7 +523,7 @@ static MemObj thisWin;
 
 }
 
-/*
+
 //================================================================
   int GUI_MsgBox (char* text) {
 //================================================================

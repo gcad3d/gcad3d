@@ -50,6 +50,14 @@ static char *pnin = NULL, *pnout = NULL;       // pipenames
 
 
 
+//================================================================
+  int OS_CTL_exit () {
+//================================================================
+
+  return 0;
+
+}
+
 
 //================================================================
   int OS_CTL_read_init (char *fn) {
@@ -206,9 +214,6 @@ static FILE   *fpi = NULL;
 
   // always create new file
   fpo = fopen (pnout, "w");
-
-
-
   fwrite (sBufOut, sSiz, 1, fpo);
   fclose (fpo);
 

@@ -36,7 +36,7 @@ Modifications:
 List_functions_start:
 
 GLBT_Redraw        disp 2D-OpenGL-buttons, Vector/PlaneSelector (GL_Redraw)
-GLBT_view__        set GL - userCoords = screenCoords, topView.
+GLBT_view__        set GLBT_ori = pos. of GL2D-objects
 GLBT_view_set      set GL - transformations according view-plane
 GLBT_disp_vc       display VectorSelector
 GLBT_disp_Pln      display StdPlaneselector
@@ -202,25 +202,30 @@ static char  I2D_stat[I2D_TABSITZ];
 // Input:
 //   sx,sy         pickPos in screenCoords
 // Output:
-//   sTyp,sDbi     selected obj
+//   sTyp,sDbi     selected obj; 0=nothing
 //   stat          0=normal, 1=high-priority; overwrite underlying objs
 
 
-  int      i1, iLen, tPos, tWidth;
+  int      i1, iLen, tPos, tWidth, ori2;
   char     *bTx;
 
   // printf("GLBT_sel__ %d %d\n",sx,sy);
+  // printf(" GLBT_ori %f %f\n",GLBT_ori.x,GLBT_ori.y);
+
 
   *sTyp = 0;
+  ori2 = GLBT_POS_ORI * 2;
 
-  // if pickPos.y > selectorZone.y return
-  if(sy > (GLBT_ori.y + GLBT_POS_ORI)) goto L_exit;  // sel above Zone.y
-  if(sx < (GLBT_ori.x - GLBT_POS_ORI)) goto L_ck_bt;
+  if(sy > ori2) goto L_exit;
+  if(sx < ori2) goto L_ck_vc;
 
+  if(sy > GLTXA_sizBY + 2) goto L_exit;
+  goto L_ck_bt;
 
 
   //----------------------------------------------------------------
   // position is inside selectorZone; start GL-selection only for selectors.
+  L_ck_vc:
   GLBT_sel_sel (sTyp, sDbi, stat, sx, sy);
   goto L_exit;
 
@@ -229,16 +234,14 @@ static char  I2D_stat[I2D_TABSITZ];
   // position is inside buttonZone; test x-values of buttons
   L_ck_bt:
   if(I2D_iNr < 1) goto L_exit;
-  if(sy > GLTXA_sizBY) goto L_exit;  // sel above Zone.y
     // printf(" _sel__-buttons\n");
 
   // loop tru buttons
-  tPos = GL_Scr_Siz_X - (GLBT_POS_ORI * 2);
+  tPos = ori2;
   for(i1=0; i1<I2D_iNr; ++i1) {
     bTx = I2D_txtTab[i1];
     iLen = strlen(bTx);
-    tWidth = (iLen + 1) * GLTXA_sizBX;
-    tPos -= (tWidth + GLTXA_sizBX);
+    tWidth = (iLen + 2) * GLTXA_sizBX;
       // printf(" b%d pos=%d width=%d\n",i1,tPos,tWidth);
     if((sx > tPos)&&(sx < tPos + tWidth)) {
         // printf(" selected-button-%d\n",i1);
@@ -247,6 +250,7 @@ static char  I2D_stat[I2D_TABSITZ];
       *stat = 1; 
       goto L_exit;
     }
+    tPos += (tWidth + GLTXA_sizBX);
   }
 
 
@@ -609,7 +613,8 @@ static char  I2D_stat[I2D_TABSITZ];
 
   // get startPosition for buttons
   // get ptu = LR-windowCorner in userCoords
-  UT3D_pt_3db (&ptu, GL_Scr_Siz_X - (GLBT_POS_ORI * 2), 2, 0.);
+//   UT3D_pt_3db (&ptu, GL_Scr_Siz_X - (GLBT_POS_ORI * 2), 2, 0.);
+  UT3D_pt_3db (&ptu, GLBT_POS_ORI * 2, 2, 0.);
     // DEB_dump_obj__ (Typ_PT, &ptu, " ptu:");
 
   // set GL-rasterPos = ptu
@@ -622,16 +627,14 @@ static char  I2D_stat[I2D_TABSITZ];
   // disp buttons. Startpos is 
   for(i1=0; i1<btNr; ++i1) {
 
+    // save the current color & rasterPosition
+    GL2D_pos_set ();
+
     // get bTx = text
     bTx = I2D_txtTab[i1];
 
     // get tWidth = total width of tag in pixels
     tWidth = (strlen(bTx) + 1) * GLTXA_sizBX;
-
-    // move GL-rasterPosition to left - tagWidth + 1 char gap
-    GL2D_pos_move (-tWidth - GLTXA_sizBX, 0);
-    // save the current color & rasterPosition
-    GL2D_pos_set ();
 
     // disp button
     tw = tWidth; // * scl;
@@ -647,6 +650,9 @@ static char  I2D_stat[I2D_TABSITZ];
 
     // restore color & rasterPosition
     GL2D_pos_get ();
+
+    // move GL-rasterPosition to left - tagWidth + 1 char gap
+    GL2D_pos_move (tWidth + (GLTXA_sizBX * 2), 0);
   }
 
 
@@ -658,13 +664,14 @@ static char  I2D_stat[I2D_TABSITZ];
 //================================================================
   int GLBT_view__ () {
 //================================================================
+// GLBT_view__            set GLBT_ori = pos. of GL2D-objects
 // set userCoords = screenCoords, topView.
 // glOrtho - 2D
 
   float   fz;
   Point   eye;
 
-  // printf("GLBT_view__ \n");
+  // printf("GLBT_view__ GL_Scr_Siz_X=%f\n",GL_Scr_Siz_X);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity ();  // init PROJ-Mat.
@@ -672,9 +679,12 @@ static char  I2D_stat[I2D_TABSITZ];
     // glOrtho (-fx1, fx1, -fy1, fy1, -fz1, fz1);
   fz = GL_Scr_Siz_X * 10.f;
   glOrtho (0.f, (float)GL_Scr_Siz_X, 0.f, (float)GL_Scr_Siz_Y, -fz, fz);
+    // printf(" GLBT_view__\n");
 
-  // origin of vector-selector
-  UT3D_pt_3db (&GLBT_ori, GL_Scr_Siz_X - GLBT_POS_ORI, GLBT_POS_ORI, 0.);
+
+  // origin of vector-selector - start on low-left
+  UT3D_pt_3db (&GLBT_ori, GLBT_POS_ORI, GLBT_POS_ORI, 0.);
+    // DEB_dump_obj__ (Typ_PT, &GLBT_ori, "GLBT_view__-GLBT_ori");
 
 
     // TESTBLOCK

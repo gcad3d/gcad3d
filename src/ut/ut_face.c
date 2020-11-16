@@ -33,6 +33,7 @@ Modifications:
 List_functions_start:
 
 UFA_nfac_ipatch    get indexed-triangles from indexed-Opengl-patch
+UFA_nifac_strip    get nifac from 2 pointArrays (strip)
 
 UFA_add_fac__      add face to MemTab(Fac3)
 UFA_add_fac_st     add face,stat to MemTab(Fac3)
@@ -118,11 +119,10 @@ UFA_nfb_ck__       check all nfb-structs
 UFA_nfb_ck_f       check single nfb-struct
 UFA_nfb_ck_1       check single edge of nfb-struct
 
-UFA_view__         display indexed faces
-UFA_view_nifac     display indexed-Opengl-patch (type,indexTable,points)
+UFA_disp__         display indexed faces
 UFA_disp_fac2      display 2D-face from 2D-Fac3
 UFA_disp_fb1       display boundary of indexed-triangle
-UFA_Disp_nEdg2     display 2D-edges 
+UFA_disp_nEdg2     display 2D-edges 
 
 UFA_fac_ck_zero_2D check faces for zero-size (linear face)
 UFA_fac_dump_      dump faces
@@ -133,9 +133,11 @@ UFA_fnb_dump_f     dump faces and neighbours into file
 
 List_functions_end:
 =====================================================
+UFA_view_nifac     replaced by GR_tDyn_nifac
+
 - see also:
 UT2D_ck_pt_in_tria__
-../ut/ut_tria.c     Triangle-functions    (using struct Point)
+../ut/ut_tria.c     Triang-functions    (using struct Point)
 ../ut/ut_msh.c      MSH   Funktionen fuer Meshes (MemTab)
 
 \endcode *//*----------------------------------------
@@ -215,6 +217,173 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 //================================================================
  
 
+
+//========================================================================
+  int UFA_nifac_strip (MshFac *nfa,
+                       int ptNr, Point *p1Tab, Point *p2Tab, int oTyp) {
+//========================================================================
+// UFA_nifac_strip                    get nifac from 2 pointArrays
+// Input:
+//   oTyp     Typ_SUR
+//            Typ_SURPLN - planar - only first vector in ts1->va used;
+// see UFA_nfac_ipatch GL_set_strip2
+
+
+  int    i1, ie, indB, indT, indF, lfac, lpa3, lvc3;
+  long   l1;
+  Fac3   *fa;
+  Point  *pa;
+  Vec3f  *va, vc1;
+
+  printf("UFA_nifac_strip ptNr=%d\n",ptNr);
+
+
+  // nr of Fac3: (ptNr - 1) * 2
+  nfa->fNr = (ptNr - 1) * 2;
+  lfac = nfa->fNr * sizeof(Fac3);
+
+  // nr of points: 2 * ptNr;
+  nfa->ptNr = ptNr * 2;
+  lpa3 = nfa->ptNr * sizeof(Point);
+
+  // nr of nvecs: 1 or nfa->ptNr
+  if(oTyp == Typ_SURPLN) lvc3 = sizeof(Vec3f);
+  else                   lvc3 = nfa->ptNr * sizeof(Vec3f);
+
+  // l1 = total memspc
+  l1 = lfac + lpa3 + lvc3 + 256;
+    printf(" lfac=%d lpa3=%d lvc3=%d\n",lfac,lpa3,lvc3);
+
+  // get memspc
+  UME_malloc (&nfa->mSpc, l1, l1);
+
+  // set startpoints of memspc
+  nfa->fac = UME_reserve (&nfa->mSpc, lfac);
+  nfa->pa3 = UME_reserve (&nfa->mSpc, lpa3);
+  nfa->vc3 = UME_reserve (&nfa->mSpc, lvc3);
+  nfa->ipa = NULL;
+
+
+  //----------------------------------------------------------------
+  // set faces
+  // T  0--1--2--3        3--223--223--22
+  //    | /| /| /|        | //|| //|| //|
+  //    |/ |/ |/ |        |// ||// ||// |
+  // B  0--1--2--3        13--113--113--1
+
+  fa = nfa->fac;
+  indB = 0;
+  indT = ptNr;
+  indF = 0;
+
+  L_f_nxt:
+    fa[indF].i1 = indB;
+    fa[indF].i2 = indT + 1;
+    fa[indF].i3 = indT;
+
+
+    ++indF;
+    fa[indF].i1 = indB + 1;
+    fa[indF].i2 = indT + 1;
+    fa[indF].i3 = indB;
+
+    ++indB;
+    ++indT;
+    ++indF;
+    if(indB < (ptNr - 1)) goto L_f_nxt;
+
+
+  //----------------------------------------------------------------
+  // copy points
+  pa = nfa->pa3;
+  memcpy (&pa[0],    p1Tab, ptNr * sizeof(Point));
+  memcpy (&pa[ptNr], p2Tab, ptNr * sizeof(Point));
+
+
+  //----------------------------------------------------------------
+  // set normal-vectors
+  // B=bottom; start at index 0;  T=top; first index = ptNr
+  // first point: 
+  //   nVecB = B0 B1 T0
+  //   nVecT = T0 B0 T1
+  // last point: 
+  //   if only 2 points: nVecB = nVecB[0]; nVecT = nVecT[1];  else -
+  //   nVecB = B0 T0 B-1
+  //   nVecT = T0 T-1 B0
+  // all points between: make b1 and t1
+  //   nVecB = B-1 B1 T0
+  //   nVecT = T1 T-1 B0
+
+  // T  0--1--2--3
+  //    | /| /| /|
+  //    |/ |/ |/ |
+  // B  0--1--2--3
+
+  // loop tru all triangles
+  va = nfa->vc3;
+  indB = 0;
+  indT = ptNr;
+
+  // first point - nVecB = B0 B1 T0
+  UT3D_vc3f_perp_3pt (&vc1, &pa[indB], &pa[indB+1], &pa[indT]);
+  UT3D_vc3f_setLength (&va[indB], &vc1, 1.f);
+
+  // first point - nVecT = T0 B0 T1
+  UT3D_vc3f_perp_3pt (&vc1, &pa[indT], &pa[indB], &pa[indT+1]);
+  UT3D_vc3f_setLength (&va[indT], &vc1, 1.f);
+
+  if(ptNr == 2) {
+    va[indB+1] = va[indB];
+    va[indT+1] = va[indT];
+    goto L_exit;
+  }
+
+  indB = ptNr-1;
+  indT = ptNr+indB;
+
+  // last point - nVecB = B0 T0 B-1
+  UT3D_vc3f_perp_3pt (&vc1, &pa[indB], &pa[indT], &pa[indB-1]);
+  UT3D_vc3f_setLength (&va[indB], &vc1, 1.f);
+
+  // last point - nVecT = T0 T-1 B0
+  UT3D_vc3f_perp_3pt (&vc1, &pa[indT], &pa[indT-1], &pa[indB]);
+  UT3D_vc3f_setLength (&va[indT], &vc1, 1.f);
+
+
+  // all points between
+  indB = 1;
+  indT = ptNr + 1;
+  ie = ptNr-1;
+
+  L_v_nxt:
+    // nVecB = B-1 B1 T0
+    UT3D_vc3f_perp_3pt (&vc1, &pa[indB-1], &pa[indB+1], &pa[indT]);
+    UT3D_vc3f_setLength (&va[indB], &vc1, 1.f);
+
+    // nVecT = T1 T-1 B0
+    UT3D_vc3f_perp_3pt (&vc1, &pa[indT+1], &pa[indT-1], &pa[indB]);
+    UT3D_vc3f_setLength (&va[indT], &vc1, 1.f);
+
+    ++indB;
+    ++indT;
+    if(indB < ie) goto L_v_nxt;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // TESTBLOCK
+    // { Vector vc3; ie = ptNr * 2;
+    // for(i1=0;i1<ie;++i1) GR_tDyn_txiA (&pa[i1], i1, ATT_COL_RED);
+    // for(i1=0;i1<ie;++i1) GR_tDyn_symB__ (&pa[i1], SYM_STAR_S, ATT_COL_RED);
+    // for(i1=0;i1<ie;++i1) { UT3D_vc_vc3f (&vc3, &va[i1]);
+      // GR_tDyn_vc__(&vc3, &pa[i1], ATT_COL_BLUE, 0);}}
+    // UFA_disp__ (nfa->fac, 0, nfa->fNr, nfa->pa3, nfa->ptNr, "vbs", -1L);
+    // END TESTBLOCK
+
+
+  return 0;
+
+}
 
 
 //============================================================================
@@ -367,7 +536,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
   // DEB_dump_obj__ (Typ_PT, pt1, "UFA_if_find_ptmsh: ");
 
 
-  // check if point is in Triangle or on its boundary
+  // check if point is in Triang or on its boundary
   pp = (Point2*)pt1;
 
   // loop tru triangles;
@@ -3678,38 +3847,10 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 }
 
 
-//=====================================================================
-  int UFA_view_nifac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va,
-                      long dbi, int oTyp) {
-//=====================================================================
-// DO NOT USE; replaced by GR_Draw_i2fac
-
-// UFA_view_nifac     display indexed-Opengl-patch (type,indexTable,points)
-//   oTyp     Typ_SUR
-//            Typ_SURPLN - planar - only first vector in ts1->va used;
-
-
-  printf("UFA_view_nifac fNr=%d dbi=%ld oTyp=%d\n",fNr,dbi,oTyp);
-
-
-  GL_view_ini__ (dbi, oTyp, Typ_Att_dash_long);
-
-  GL_att_su1 (ATT_COL_YELLOW); // INF_COL_SYMB
-
-  GL_set_nifac (fNr, fa, ia, pa, va, oTyp);
-
-  if(dbi) GL_list_close ();           // glEndList
-
-  return 0;
-
-}
-
-
-//================================================================
-  int UFA_view__ (Fac3 *fa, int ifs, int fNr, Point *pa, int pNr,
-                  char *opts, long dbi) {
-//================================================================
-// UFA_view__   display indexed faces; 
+//=============================================================================
+  int UFA_disp__ (Fac3 *fa, int ifs, int fNr, Point *pa, int pNr, char *opts) {
+//=============================================================================
+// UFA_disp__   display indexed faces; 
 //   fa       table of faces; indices into pa
 //   ifs      index of first face to display
 //   fNr      nr of faces to display
@@ -3721,10 +3862,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //        f   disp faceNr in gravity-centerPoint
 //        P   disp all points as (SYM_STAR_S,ATT_COL_BLUE)
 //        n   disp all point-numbers
-//   dbi    0L   do not use DispList (write into open DispList)
-//         -1L   use dynamic DispList
-//         >=1   use/overwrite existing DispList
 //
+// see GR_tDyn_nifac
 // see MSH_test_disp_f1 UPAT_ipatch_disp_opts GR_Disp_triv
 
 
@@ -3734,44 +3873,34 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   Point    ptt[4], *pgca, pgc;
   Vector   vcn;
   Fac3     *fAct;
-  Triangle *ta;
-
+  Triang *ta;
+  MshFac   nifa;
+  Vec3f    vc3;
 
   ife = ifs + fNr;
 
-  printf("UFA_view__ ifs=%d fNr=%d dbi=%ld pNr=%d opts=|%s|\n",
-                     ifs, fNr, dbi, pNr, opts);
 
-
-
-
-  //----------------------------------------------------------------
-  if(dbi) {
-    if(dbi > 0) {
-      DL_SetInd (dbi);
-    }
-    dli = DL_StoreObj (Typ_GL_Sur, dbi, Typ_Att_dash_long);
-    GL_Draw_Ini (&dli, Typ_Att_dash_long);  // init cv/surf, glNewList < GL_fix_DL_ind
-  }
-
+  printf("UFA_disp__ ifs=%d fNr=%d pNr=%d opts=|%s|\n",ifs,fNr,pNr,opts);
 
 
   //----------------------------------------------------------------
-  // Must display surface before boundary.
+  DL_tDyn_init (0); // create DL-record, open GL-list
+
+
+  //----------------------------------------------------------------
+  // Must display faces before boundary.
   if(!strchr(opts, 's') ) goto L_bvi;
+
     // display shaded triangles
     GL_att_su1 (ATT_COL_GREEN);
-
-    iNr = fNr * 3;
-    ia = (int*) MEM_alloc_tmp ((int)(iNr * sizeof(int)));
-    i1 = -1;
-    for(ii=ifs; ii<ife; ++ii) {
-      if(fa[ii].st < 0) continue;   // skip deleted faces
-      ia[++i1] = fa[ii].i1;
-      ia[++i1] = fa[ii].i2;
-      ia[++i1] = fa[ii].i3;
-    }
-    GL_set_ipatch (GL_TRIANGLES, iNr, ia, pa);
+    UT3D_vc3f_vc (&vc3, &UT3D_VECTOR_Z);
+    nifa.oTyp  = Typ_SURPLN;
+    nifa.fNr   = fNr;
+    nifa.pa3   = pa;
+    nifa.ipa   = NULL;
+    nifa.fac   = &fa[ifs];
+    nifa.vc3   = &vc3;  //va;
+    GL_set_nifac_V2 (&nifa);
 
 
   //----------------------------------------------------------------
@@ -3782,7 +3911,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   iTx = UTX_find_chr(opts, 'f');
   // iTx = (iOff >= 0) ? 1 : 0; // (opts, 'i');
   iVT = iVc + iTx;
-    printf(" iBnd=%d iVc=%d iTx=%d\n",iBnd,iVc,iTx);
+    // printf(" iBnd=%d iVc=%d iTx=%d\n",iBnd,iVc,iTx);
 
 
 
@@ -3790,7 +3919,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   //----------------------------------------------------------------
   // display boundary as polygon
   if(iBnd) {
-      GL_att_cv (12); //Typ_Att_hili1);
+      GL_att_cv (Typ_Att_Symb);
     for(ii=ifs; ii<ife; ++ii) {
       if(fa[ii].st < 0) continue;   // skip deleted faces
       // set display-attributes for curves
@@ -3798,7 +3927,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       ptt[1] = pa[fa[ii].i2];
       ptt[2] = pa[fa[ii].i3];
       ptt[3] = pa[fa[ii].i1];
-      GL_set_cv (4, ptt);
+      GL_set_pcv (4, ptt, 1);
     }
   }
 
@@ -3823,7 +3952,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   
   // disp faceNr in gravity-centerPoint
   if(iTx) {
-    GL_att_cv (Typ_Att_blue);
+    GL_att_cv (5); //Typ_Att_blue);   GL_att_sym ??
     i1 = 0;
     for(ii=ifs; ii<ife; ++ii) {
       if(fa[ii].st < 0) continue;   // skip deleted faces
@@ -3844,7 +3973,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       // UT3D_vc_setLength (&vcn, &vcn, 1.);
         // DEB_dump_obj__ (Typ_VC, &vcn, " vcn: ");
       // GL_Disp_vSym (SYM_ARROW, &pgc, &vcn, 10., 0); //ATT_COL_HILI);
-      GL_Disp_vc (&vcn, &pgca[i1], ATT_COL_CYAN);
+      GL_set_vcn (&vcn, &pgca[i1], ATT_COL_CYAN);
       ++i1;
     }
   }
@@ -3856,8 +3985,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     //  p   disp points as (SYM_STAR_S,ATT_COL_BLUE)
     GL_att_sym (ATT_COL_BLUE);
     for(i1=0; i1<pNr; ++i1) {
-        // GL_Disp_symB (SYM_TRI_S, &pa[i1]);
-        GL_set_symB (SYM_TRI_S, &pa[i1]);
+      // GL_Disp_symB (SYM_TRI_S, &pa[i1]);
+      GL_set_symB (SYM_TRI_S, &pa[i1]);
     }
   }
 
@@ -3874,10 +4003,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
   //----------------------------------------------------------------
-  L_done:
-  if(dbi) {
-    GL_list_close ();     // glEndList
-  }
+  GL_list_close ();     // glEndList
 
   return 0;
 
@@ -3885,11 +4011,11 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
 //================================================================
-  int UFA_Disp_nEdg2 (int eNr, int *fa, int *ea,
+  int UFA_disp_nEdg2 (int eNr, int *fa, int *ea,
                      Fac3 *fTab, Point2 *p2a,
                      char *opts, int att, double zVal) {
 //================================================================
-// UFA_Disp_nEdg2                          display 2D-edges 
+// UFA_disp_nEdg2                          display 2D-edges 
 // Input:
 //   eNr      nr of edges
 //   fa,ea    edges to display
@@ -3904,7 +4030,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   Point2  pta[2];
 
 
-  printf("UFA_Disp_nEdg2 eNr=%d opts=|%s| att=%d zVal=%f\n",
+  printf("UFA_disp_nEdg2 eNr=%d opts=|%s| att=%d zVal=%f\n",
          eNr,opts,att,zVal);
 
    // boundary
@@ -3942,7 +4068,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
       // DEB_dump_obj__ (Typ_PT2, &pta[0], " ps");
       // DEB_dump_obj__ (Typ_PT2, &pta[1], " pe");
     // GL_Disp_cv2z (2, pta, zVal);
-    GL_set_cv2 (2, pta);
+    GL_set_p2cv (2, pta);
   }
 
 
@@ -3983,7 +4109,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 // UFA_disp_fb1          display boundary of indexed-triangle 
 // replacing MSH_test_disp_fb1
 // TODO: UFA_disp_fb1 -> UFA_disp_opts ?         see UPAT_ipatch_disp_opts
-// see GL_set_ipatch GL_set_nifac GL_set_cv 
+// see GL_set_ipatch GL_set_nifac_V1 GL_set_pcv 
 
   int     iCol=9;  //8=green
   Point   pta[3];

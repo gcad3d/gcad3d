@@ -3862,6 +3862,7 @@ static  int oCnt1, oCnt2;
 
   // kein Ausgabeobjekt, nix tun.
   ox1->typ  = Typ_Done;
+  // ox1->form = Typ_Typ;
 
   return 0;
 

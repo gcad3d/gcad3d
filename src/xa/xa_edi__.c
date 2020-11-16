@@ -501,7 +501,7 @@ static long cPos;
 
   // query insert selection
   sprintf(s1, " add / insert selected obj ? ");
-  irc = GUI_Dialog_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+  irc = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
     // printf(" GR_CB2__-irc=%d\n",irc);
 
   if(irc) return 0;  // 0 means first button pressed
@@ -931,10 +931,11 @@ static long cPos;
   long     lNr, pos0, pos1;
   char     *p1;
 
-  static char s1[40];
+  // static char s1[40];
+  static char s1[40] = "";
 
 
-  irc = GUI_Dialog_e2b ("text to find:", s1, 40, "next", "Cancel");
+  irc = GUI_dlg_e2b (s1, 40, "text to find:", "next", "Cancel");
   if(irc != 0) return -1;
   lns = strlen(s1);
   if(lns < 1) return -1;
@@ -971,7 +972,7 @@ static long cPos;
 
   s1[0] = '\0';
 
-  irc = GUI_Dialog_e2b ("lineNr to find:", s1, 40, "OK", "Cancel");
+  irc = GUI_dlg_e2b (s1, 40, "lineNr to find:", "OK", "Cancel");
   if(irc != 0) return -1;
 
   lNr = strtol (s1, &p1, 10);

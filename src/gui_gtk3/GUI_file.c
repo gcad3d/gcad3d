@@ -14,9 +14,10 @@
  *
  *
 -----------------------------------------------------
-Select file for open.
+Gtk-executable - Select file for open.
 Returns selected file via stdout.
-All testoutput to stdout must be precede with "##"
+All testoutput to stdout must be preceded with "##"
+See INF_GUI_exe
 -----------------------------------------------------
 TODO:
 

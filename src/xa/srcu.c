@@ -445,9 +445,11 @@ static double SRCU_val_cen;             // centervalue
   APED_oid_dbo__ (oid, typ, dbi);
   iLast = APED_search_defLn (&p1, &lNr, &ll, oid, -1L, 0);
   if(iLast < 0) return -1;
+
+    // TESTBLOCK
     // printf(" lNr=%ld ll=%d iLast=%d|",lNr,ll,iLast);
-    // UTX_dump_cnl(p1, 60);printf("|\n");
-    // printf(" lyz |%s|\n",p1);
+    // UTX_dump_cnl (p1, 60);printf("|\n"); printf(" lyz |%s|\n",p1);
+    // END TESTBLOCK
 
 
   SRCU_obj_pri.lPos = p1;

@@ -1,5 +1,5 @@
 # Create the gui-lib        make -f xa_gui__.mak
-#
+# Link all GUI_*.mak
 # used symbols: gcad_dir_bin VGUI
 
 

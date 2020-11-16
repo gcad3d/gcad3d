@@ -42,14 +42,11 @@ C20 = P20 VAL(25) DZ
 
 
 <hr>
-<A NAME="F1"></A>
-<h3>CIR Axis Point</h3>
-Circle from centerline and point on circle.
+<p><a name="F1"></a></p>
+  <h2>CIR Axis Point</h2>
+Circle from  <a href="CAD_Base_en.htm#L">centerline</a> and <a href="CAD_Base_en.htm#P">Point</a> on circle.
 
-   Axis-centerline     centerline of new circle.
-   Point on Circle
-
-# Center, tangential to line or circle
+# circle around horiz. line
 C23=L(P(0 0 0) DX) P(10 10 0)
 
 
@@ -124,8 +121,11 @@ C20 = L20 L21 L22
 <hr>
 <p><a name="F5"></a></p>
 <h3>ARC Cen Ang1 Ang2 Radius   [Direction of Rotation]</h3>
-Circular arc by center, start angle, end angle and radius.
-   Direction of Rotation: CW shows clockwise, the default is CCW (counter clockwise).
+Circular arc by center, start-angle, end-angle and radius.
+
+  start-angle    the angle from the centerpoint to the startpoint of the arc
+  end-angle     the angle from the centerpoint to the endpoint of the arc
+  Direction of Rotation: CW shows clockwise, the default is CCW (counter clockwise).
 
 # Central quadrant, R = 10, clockwise.
 C21 = ARC P20 ANG(0) ANG(90) 10 CW

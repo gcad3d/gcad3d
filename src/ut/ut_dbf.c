@@ -20,6 +20,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2020-10-12 DBF_add__ can delete existing records. RF.
 2011-05-26 Erstmalig erstellt. RF.
 
 -----------------------------------------------------
@@ -35,25 +36,25 @@ Modifications:
 List_functions_start:
 
 DBF_init             open DataBaseFile
-DBF_add__            add a new record
-// DBF_add_uniq      test if key already exists;
-DBF_find_key         find key; exact.
+DBF_exit             close DB
+DBF_add__            add new or replace existing record
+DBF_find__           find key; exact.
 DBF_find_nxt         find key; wildcard. Test if key starts with findKey
-DBF_find__           find key
 DBF_getNxtKey        get key next record
 DBF_getVal           get the value of the active record
-// DBF_mod           modify active record
 
 DBF_dump             dump whole DBF
 
 List_functions_end:
 =====================================================
+see INF_DBF
+see test_DBF.c
 
 \endcode *//*----------------------------------------
 
 
-Save and retrieve key-value-Records in file.
-No multiple keys.
+Save and retrieve key-value-Records in file (func DBF_add__())
+Existing keys become replaced (old record overwritten).
 Value can have size=0.
 Max keySize = SizkDBF = 1024
 
@@ -61,10 +62,16 @@ Max keySize = SizkDBF = 1024
 
 File structure:
 Record:
-| recordHeader | key | value |
+| recordHeader | key | value | mod4-padding-blanks |
+|<-- 8 chars-->|<------------ sizTot ------------->|
+              
 
-recordHeader (struct hdrDBF):
-| FT | RT | sizTot | sizKey |
+recordHeader struct hdrDBF - size = 8 chars
+| sizTot | sizKey | Filteyp | npb |
+
+size-value = sizTot - sizKey - npb
+npb =  nr of padding bytes
+
 
 
 \endcode *//*==============================================================
@@ -82,22 +89,27 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 #include <stdlib.h>    
 #include <string.h>    
 
+#include "../ut/ut_types.h"               // INT_8 - UINT_64
+#include "../ut/ut_uti.h"       // UTI_div4up
+#include "../xa/xa_msg.h"              // MSG_*
+
 
 #define SizkDBF 1024            // max. keySize !
 
 
-/// ft       Filteyp; always 'D'   test-data
-/// rt       Recordtyp; 0     active record,   yet unused
 /// sizTot   size of total record, including complete header (8 bytes).
 /// sizKey   size of key (is stored with padding blanks to a multiple of 4)
-  typedef struct {char ft; char rt; int sizTot; short sizKey;}    hdrDBF;
+///          size=0: record deleted
+/// ft       Filteyp; always 'D'
+/// npb      nr of padding bytes
+  typedef struct {int sizTot; short sizKey; char ft; char npb;}    hdrDBF;
 
 
   static FILE    *fDBF = NULL;
-  static int     DBF_stat;          // 0=write;1=readHeader;2=readValue.
-  static hdrDBF  hDBF;              // header of the active record
-  static int     iDBF = -1;         // recordNr of active record
+  static int     DBF_stat;          // 0=write;1=readHeader;2=readValue;-1=undef;
+  static int     iDBF = -1;         // recordNr of active record;-1=undef; 0=first
   static int     nDBF = 0;          // Nr of records
+  static hdrDBF  hDBF;              // header of the active record
   static char    kDBF[SizkDBF + 4];
 
 
@@ -108,8 +120,8 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 //================================================================
 /// DBF_init         open DataBaseFile
 
-
-  printf("DBF_init |%s|\n",fNam);
+  // printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF \n");
+  // printf("DBF_init |%s|\n",fNam);
 
 
   if ((fDBF = fopen (fNam, "w+b")) == NULL) {
@@ -126,69 +138,157 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 }
 
 
+//================================================================
+  int DBF_exit () {
+//================================================================
+// DBF_exit                 close DB
+
+  // printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF \n");
+  // printf("DBF_exit \n");
+
+
+  if(fDBF) fclose (fDBF);
+  fDBF = NULL;
+
+  return 0;
+
+}
+
+
 //======================================================================
   int DBF_add__ (char* key, int keySiz, char* val, int valSiz) {
 //======================================================================
 /// \code
-/// DBF_add__          add a new record
-/// keySiz      must not exceed SizkDBF
-/// RetCod:   -1 keySiz > SizkDBF
-///           -2 no DBF_init
+/// DBF_add__          add or replace record
+/// Input:
+///   keySiz    strlen(key); must not exceed SizkDBF
+/// Output:
+///   RetCod:   -1 keySiz > SizkDBF
+///             -2 no DBF_init
 /// \endcode
+    
 
-
-  int    keyPad, valPad;
-  char   sPadb[] = "    ";
+  int    ir, ii, nPad;
   char   sPad0[] = "\0\0\0\0";
 
 
+  // printf("------------------------------------------ \n");
+  // printf("DBF_add__ |%s| keySiz=%d valSiz=%d\n",key,keySiz,valSiz);
 
-
-  printf("DBF_add__ |%s| keySiz=%d valSiz=%d\n",key,keySiz,valSiz);
-
-
-
-  if(keySiz > SizkDBF) {
+      
+  if((keySiz > SizkDBF)||(keySiz < 1)) {
     printf("***** ERROR DBF_add__ keySiz max %d\n",SizkDBF);
     return -1;
   }
 
-
-  if(!fDBF) return -2;
-
-
-  // goto eof
-  if(DBF_stat != 0) {
-    fseek (fDBF, 0L, 2);
-    DBF_stat = 0;
+  if(!fDBF) {
+    printf("***** ERROR DBF_add__ no init\n");
+    return -2;
   }
 
 
+  // goto start
+  rewind (fDBF);
+  iDBF = -1;
+
+  //----------------------------------------------------------------
+  L_nxt_rec:
+  ++iDBF;
+    // printf(" ---- L_nxt_rec %d\n",iDBF);
+
+
+  // read header
+  ir = fread (&hDBF, sizeof(hDBF), 1, fDBF);
+  if(ir < 1) goto L_add_1;  // EOF
+  if(hDBF.ft != 'D') {
+    printf("***** DBF_add__ E001 in rec %d\n",iDBF);
+    return -1;
+  }
+    // printf(" iDBF=%d sizTot=%d sizKey=%d npb=%d\n",
+             // iDBF,hDBF.sizTot,hDBF.sizKey,hDBF.npb);
+
+  // test invalid record
+  if(hDBF.sizKey == 0) goto L_skip_rec; // skip invalid record
+
+  // test keySize
+  if(keySiz != hDBF.sizKey) goto L_skip_rec;
+    // skip record
+
+  // read key into kDBF
+  ir = fread (kDBF, hDBF.sizKey, 1, fDBF);
+  if(ir < 1) {
+    printf("***** DBF_add__ E002 in rec %d\n",iDBF);
+    return -1;
+  }
+
+  // compare keys
+  if(!strncmp (kDBF, key, keySiz)) {
+      // printf(" invalidate-rec %d\n",iDBF);
+    // key exists; set invalid
+    // set back to start of header
+    ii = -(sizeof(hdrDBF) + hDBF.sizKey);
+    ir = fseek (fDBF, ii, 1);
+    // invalidate key
+    hDBF.sizKey = 0;
+    if(ir) {
+      printf("***** DBF_add__ E003 in rec %d\n",iDBF);
+      return -1;
+    }
+    // wr header
+    fwrite (&hDBF, sizeof(hDBF), 1, fDBF);
+    // goto EOF
+    fseek (fDBF, 0L, 2);
+    DBF_stat = 0;
+    goto L_add_1;
+  }
+
+  // skip value and padding-bytes
+  ir = fseek (fDBF, hDBF.sizTot - hDBF.sizKey, 1);
+  if(ir) {
+    printf("***** DBF_add__ E004 in rec %d\n",iDBF);
+    return -1;
+  }
+  goto L_nxt_rec;
+
+
+  //----------------------------------------------------------------
+  L_skip_rec:
+    // skip record (key+value)
+    ir = fseek (fDBF, hDBF.sizTot, 1);
+    if(ir) {
+      printf("***** DBF_add__ E005 in rec %d\n",iDBF);
+      return -1;
+    }
+    goto L_nxt_rec;
+
+
+
+  //================================================================
+  L_add_1:
+  // add record
+
+
   // keySiz must be a multiple of 4
-  keyPad = UTI_div4diff (keySiz);
+  nPad = UTI_div4diff (keySiz + valSiz);
+    // printf("   _add__ keySiz=%d valSiz=%d nPad=%d\n",keySiz,valSiz,nPad);
 
-
-  // valSiz must be a multiple of 4
-  valPad = UTI_div4diff (valSiz);
-
-  // printf("DBF_add__ %d %d %d %d\n",keySiz,keyPad,valSiz,valPad);
-
-
-  hDBF.rt = 0;   // 0=ctive record
-
-  hDBF.sizTot = keySiz + keyPad + valSiz + valPad + 8;
+  hDBF.sizTot = keySiz + valSiz + nPad;
   hDBF.sizKey = keySiz;
-    // printf("     tot=%d key=%d\n",hDBF.sizTot,hDBF.sizKey);
+  hDBF.ft     = 'D';
+  hDBF.npb    = nPad;
+    // printf("  sizTot=%d nPad=%d\n",hDBF.sizTot,hDBF.npb);
 
+  // wr header
   fwrite (&hDBF, sizeof(hDBF), 1, fDBF);
 
+  // wr key
   fwrite (key, keySiz, 1, fDBF);
 
-  if(keyPad) fwrite (sPadb, keyPad, 1, fDBF);       // pad key
-
+  // wr val
   fwrite (val, valSiz, 1, fDBF);
 
-  if(valPad) fwrite (sPad0, valPad, 1, fDBF);      // pad val
+  // wr nPad
+  if(nPad) fwrite (sPad0, nPad, 1, fDBF);      // pad val
 
   ++nDBF;
 
@@ -197,11 +297,75 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 }
 
 
+/* Version add multiple
+//======================================================================
+  int DBF_add__ (char* key, int keySiz, char* val, int valSiz) {
+//======================================================================
+/// \code
+/// DBF_add__          add record
+/// Input:
+///   keySiz    strlen(key); must not exceed SizkDBF
+/// Output:
+///   RetCod:   -1 keySiz > SizkDBF
+///             -2 no DBF_init
+/// \endcode
+
+
+  int    nPad;
+  char   sPad0[] = "\0\0\0\0";
+
+
+  printf("DBF_add__ |%s| keySiz=%d valSiz=%d\n",key,keySiz,valSiz);
+
+
+  if(keySiz > SizkDBF) {
+    printf("***** ERROR DBF_add__ keySiz max %d\n",SizkDBF);
+    return -1;
+  }
+
+  if(!fDBF) return -2;
+
+  // goto eof
+  fseek (fDBF, 0L, 2);
+  DBF_stat = 0;
+
+  // keySiz must be a multiple of 4
+  nPad = UTI_div4diff (keySiz + valSiz);
+    printf("DBF_add__ %d %d %d\n",keySiz,valSiz,nPad);
+
+//   hDBF.rt = 0;   // 0=ctive record
+
+  hDBF.sizTot = keySiz + valSiz + nPad;
+  hDBF.sizKey = keySiz;
+  hDBF.ft     = 'D';
+  hDBF.npb    = nPad;
+    printf("   nPad=%d sizTot=%d\n", hDBF.npb, hDBF.sizTot);
+
+  // wr header
+  fwrite (&hDBF, sizeof(hDBF), 1, fDBF);
+
+  // wr key
+  fwrite (key, keySiz, 1, fDBF);
+
+  // wr val
+  fwrite (val, valSiz, 1, fDBF);
+
+  // wr nPad
+  if(nPad) fwrite (sPad0, nPad, 1, fDBF);      // pad val
+
+  ++nDBF;
+ 
+  return 0;
+
+}
+*/
+
 //================================================================
   int DBF_find__ (int *sizVal, char *key, int sizKey) {
 //================================================================
 /// \code
 /// DBF_find__         find key; is active record if found
+///   
 /// Output:
 ///   sizVal     size of value; padded with max 3 0-bytes (to a multiple of 4)
 /// RetCod: -1   key not found
@@ -214,20 +378,10 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   char  *p1;
 
 
-  printf("DBF_find__ |%s| %d\n",key,iDBF);
+  // printf("DBF_find__ |%s| %d\n",key,iDBF);
 
   iActRec = iDBF;
   iLoop = 0;
-
-/*
-  if(iDBF < 0) {
-    iActRec = 0;
-    rewind (fDBF);  // for MS necessary !!
-  } else {
-    iActRec = iDBF;
-  }
-  iLoop = 0;
-*/
 
 
   L_nxt_key:
@@ -248,11 +402,13 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
     if(il != sizKey) goto L_nxt_key;
     if(strcmp (p1, key)) goto L_nxt_key;
 
-    *sizVal = hDBF.sizTot - sizKey - 8;
+    *sizVal = hDBF.sizTot - hDBF.sizKey - hDBF.npb;
 
+
+  //----------------------------------------------------------------
   L_exit:
 
-    printf("ex DBF_find__ irc=%d sizVal=%d iDBF=%d\n",irc,*sizVal,iDBF);
+    // printf("ex DBF_find__ irc=%d sizVal=%d iDBF=%d\n",irc,*sizVal,iDBF);
 
   return irc;
 
@@ -317,7 +473,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
    *foundKey = p1;
    *sizFoundKey = il;
-   *sizVal = hDBF.sizTot - sizKey - 8;
+   *sizVal = hDBF.sizTot - hDBF.sizKey - hDBF.npb;
 
 
   //----------------------------------------------------------------
@@ -337,6 +493,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 /// \code
 /// read next key (and record-header)
 /// Output:
+///   iDBF    nr of found record; -1=none.
 ///   key     a pointer to key
 ///   sizKey  size of key in bytes
 ///   RetCod  recordnumber; first = 0
@@ -346,7 +503,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
   int    keySiz, ir;
   // int    irun;
-  long   lo;
+  long   lv;
 
 
   // printf("DBF_getNxtKey iDBF=%d stat=%d\n",iDBF,DBF_stat);
@@ -360,47 +517,50 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   }
 
 
-  if(DBF_stat < 1) {
+  if(DBF_stat < 0) {
+    // read-pos undef.
     rewind (fDBF);
+    DBF_stat = 0;   // 0 = active position is at start of header
     iDBF = -1;
   }
-  DBF_stat = 1;
 
 
 
   //----------------------------------------------------------------
   // skip value of active record ...
-  if(iDBF < 0) goto L_nxt;
-  if(!hDBF.sizTot) goto L_nxt;            // value already read   
-  keySiz = UTI_div4up (hDBF.sizKey);      // add padBytes
-  lo = hDBF.sizTot - keySiz - 8;
-  ir = fseek (fDBF, lo, 1);
-  if(ir) {
-    printf("***** DBF_getNxtKey E001 in rec %d\n",iDBF);
+  if(DBF_stat == 0) goto L_nxt;
+  // position is at start of value; skip value
+  lv = hDBF.sizTot - hDBF.sizKey;
+    // printf(" getNxtKey-skip %ld\n",lv);
+  if(lv) {
+    ir = fseek (fDBF, lv, 1);
+    if(ir) {
+      printf("***** DBF_getNxtKey E001 in rec %d\n",iDBF);
+    }
   }
 
 
 
   //----------------------------------------------------------------
-  // get nxt hdr
+  // position now is nxt hdr.
+  // read hdr #iDBF into hDBF
   L_nxt:
   ++iDBF;
   ir = fread (&hDBF, sizeof(hDBF), 1, fDBF);
   if(ir < 1) {   // normal EOF
     rewind (fDBF);
     iDBF = 0;
-    // ++irun;
-      // printf(" _getNxtKey rewind %d\n",irun);
 
+    // read again from start of file
     ir = fread (&hDBF, sizeof(hDBF), 1, fDBF);
     if(ir < 1) {
-      printf("***** DBF_getNxtKey E004\n");  // empty file
+      printf("***** DBF_getNxtKey E002\n");  // empty file
       return -1;
     }
   }
 
   if(hDBF.ft != 'D') {
-    printf("***** DBF_getNxtKey E002 in rec %d\n",iDBF);
+    printf("***** DBF_getNxtKey E003 in rec %d\n",iDBF);
     return -1;
   }
     // printf(" _getNxtKey typ=%d sizTot=%d sizKey=%d\n",
@@ -409,25 +569,35 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
 
   //----------------------------------------------------------------
-  // get key
-  keySiz = UTI_div4up (hDBF.sizKey);    // add pad-bytes
-  ir = fread (kDBF, keySiz, 1, fDBF);
+  // skip deleted record
+  if(!hDBF.sizKey) {
+    // skip key value padbytes
+    ir = fseek (fDBF, hDBF.sizTot, 1);
+    if(ir) {
+      printf("***** DBF_getNxtKey E004 in rec %d\n",iDBF);
+    }
+    goto L_nxt;
+  }
+
+
+  //----------------------------------------------------------------
+  // copy key into kDBF; positon now is value.
+  *sizKey = hDBF.sizKey;
+  *key    = kDBF;            // pointer to key
+  ir = fread (kDBF, *sizKey, 1, fDBF);
   if(ir < 1) {
-    printf("***** DBF_getNxtKey E003 in rec %d\n",iDBF);
+    printf("***** DBF_getNxtKey E005 in rec %d\n",iDBF);
     return -1;
   }
-  // remove pad-bytes
-  kDBF[hDBF.sizKey] = '\0';
-    // printf(" ir=%d keySiz=%d |%-16s|\n",ir,keySiz,kDBF);
+  // terminate
+  kDBF[*sizKey] = '\0';
 
+  DBF_stat = 1;    // // 1 = active position is at start of value
 
-
-
-  *sizKey = hDBF.sizKey;     // without padBytes
-  *key    = kDBF;            // pointer to key
-
-    // printf("ex DBF_getNxtKey iDBF=%d typ=%d siz=%d key=|%s|\n",iDBF,
-           // hDBF.rt,*sizKey,*key);
+    // TESTBLOCK
+    // printf("ex DBF_getNxtKey iDBF=%d sizKey=%d key=|%s|\n",iDBF,
+           // *sizKey,*key);
+    // END TESTBLOCK
 
   return iDBF;
 
@@ -438,7 +608,8 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   int DBF_getVal (void *val, int *sizVal) {
 //================================================================
 /// \code
-/// get the value of the active record
+/// DBF_getVal               get the value of the active record
+///   READ ONLY ONCE !
 /// Input:
 ///   sizVal   size of array val in bytes
 /// Output:
@@ -450,15 +621,16 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   int    keySiz, valSiz, ir;
 
 
+  // printf("DBF_getVal \n");
+
+
   if(DBF_stat != 1) {
     printf("***** DBF_getVal E003 - no value present\n");
     return -2;
   }
-  DBF_stat = 2;
 
-  keySiz = UTI_div4up (hDBF.sizKey);
-  valSiz = hDBF.sizTot - keySiz - 8;
-    // printf(" keySiz=%d valSiz=%d sizVal=%d\n",keySiz,valSiz,*sizVal);
+  valSiz = hDBF.sizTot - hDBF.sizKey - hDBF.npb;
+    // printf("  valSiz=%d sizVal=%d\n",valSiz,*sizVal);
 
 
   if(*sizVal < valSiz) {
@@ -466,20 +638,31 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
     return -1;
   }
 
-  ir = fread (val, valSiz, 1, fDBF);
-  if(ir < 1) {   // normal EOF
-    rewind (fDBF);
-    printf("***** DBF_getVal E002\n");  // empty file
-    return -1;
+  DBF_stat = 0;
+
+  if(valSiz) {
+    ir = fread (val, valSiz, 1, fDBF);
+    if(ir < 1) {
+      rewind (fDBF);
+      printf("***** DBF_getVal ERR-rv\n");
+      return -1;
+    }
+  } else {
+    ir = 0;
+    memcpy(val, &ir, 1);
   }
-
-
-  // ((char*)val)[valSiz] = '\0';          // remove padding
 
   *sizVal = valSiz;
 
-
-	hDBF.sizTot = 0;                      // value already read   
+  // skip the padding
+  if(hDBF.npb) {
+    ir = fseek (fDBF, hDBF.npb, 1);
+    if(ir) {
+      rewind (fDBF);
+      printf("***** DBF_getVal ERR-rp\n");
+      return -1;
+    }
+  }
 
     // printf("ex DBF_getVal siz=%d\n",*sizVal);
     // printf(" val=|%s|\n",(char*)val);
@@ -490,17 +673,6 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 }
 
 
-/*
-//================================================================
-  int DBF_mod () {
-//================================================================
-
-
-  return 0;
-
-}
-*/
-
 //================================================================
   int DBF_dump () {
 //================================================================
@@ -508,7 +680,7 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
 
   int    iNr, keySiz, ir;
-  long   lo;
+  long   lv;
 
 
   printf("DBF_dump --------------------------------\n");
@@ -523,37 +695,43 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
   // get nxt hdr
   L_nxt:
   ir = fread (&hDBF, sizeof(hDBF), 1, fDBF); 
-  if(ir < 1) {   // normal EOF
-    rewind (fDBF);
-    iDBF = -1;
-    DBF_stat = -1;
-    goto L_eof;
-  }
-
+  if(ir < 1) goto L_exit;    // normal EOF
 
   if(hDBF.ft != 'D') {
     printf("***** DBF_dump E001 in rec %d\n",iNr);
+    printf (" sizTot=%d sizKey=%d npb=%d\n",hDBF.sizTot,hDBF.sizKey,hDBF.npb);
     return -1;
   }
-  // printf (" typ=%d sizTot=%d sizKey=%d\n",hDBF.rt,hDBF.sizTot,hDBF.sizKey);
+
+  // skip deleted record
+  if(!hDBF.sizKey) {
+    printf("%d deleted -\n",iNr);
+    // skip record
+    lv = hDBF.sizTot;
+    goto L_skip;
+  }
 
 
   //----------------------------------------------------------------
   // read key
-  keySiz = UTI_div4up (hDBF.sizKey);
+  keySiz = hDBF.sizKey;
   ir = fread (&kDBF, keySiz, 1, fDBF); 
   if(ir < 1) {
     printf("***** DBF_dump E002 in rec %d\n",iNr);
     return -1;
   }
-  kDBF[hDBF.sizKey] = '\0';    // remove pad-bytes
+  kDBF[keySiz] = '\0';    // terminate
   printf("%d totSiz=%d keySiz=%d key=|%s|\n",iNr,hDBF.sizTot,keySiz,kDBF);
 
 
+  // skip value and padding bytes
+  lv = hDBF.sizTot - hDBF.sizKey;
+
+
   //----------------------------------------------------------------
-  // skip value
-  lo = hDBF.sizTot - keySiz - 8;
-  ir = fseek (fDBF, lo, 1); 
+  // skip lv bytes
+  L_skip:
+  ir = fseek (fDBF, lv, 1); 
   if(ir) {
     printf("***** DBF_dump E004 in rec %d\n",iNr);
   }
@@ -561,8 +739,10 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 
   ++iNr;
   goto L_nxt;
-  //----------------------------------------------------------------
 
+
+  //----------------------------------------------------------------
+  L_exit:
 
   L_eof:
   printf("DBF_dump end ----------------------------\n");
@@ -571,107 +751,4 @@ cc ut_dbf.c -DOFFLINE -lm&&./a.out
 }
 
 
-
-//========================================================
-//========================================================
-#ifdef OFFLINE
-
-
-int UTI_div4up (int ii) {
-  int id;
-  id = 4 - ii % 4;
-  if(id < 4) ii += id;
-  return ii;
-}
-
-
-int UTI_div4diff (int ii) {
-  int id;
-  ii %= 4;
-  if(ii) ii = 4 - ii;
-  return ii;
-}
-
-
-//============================
-  int main (int paranz, char *params[]) {
-//============================
-
-  int     i1, i2, ii, lv;
-  char    *p1, c1, s1[256], s2[256], *p2;
-
-  DBF_init ("export");
-
-  strcpy(s1, "key-012");
-  DBF_find__ (&lv, s1, strlen(s1));
-
-
-  strcpy(s1, "abc");
-  strcpy(s2, "");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-  strcpy(s1, "1");
-  strcpy(s2, "v2");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-  strcpy(s1, "ke2");
-  strcpy(s2, "val2");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-  strcpy(s1, "key-5");
-  strcpy(s2, "value2");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-  strcpy(s1, "key-002");
-  strcpy(s2, "value-012");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-
-  DBF_dump ();
-
-
-  strcpy(s1, "key-003");
-  strcpy(s2, "value-03");
-  DBF_add__ (s1, strlen(s1),  s2, strlen(s2));
-
-
-  DBF_dump ();
-
-
-  strcpy(s1, "key-002");
-  i1 = DBF_find__ (&lv, s1, strlen(s1));
-  i1 = 240; DBF_getVal ((void*)s1, &i1);
-
-
-  // find all records starting with "key"
-  ii = 0;
-  strcpy(s1, "key");
-  while (DBF_find_nxt (&p1, &i1, &i2, s1, strlen(s1), &ii) >= 0) {
-    i1 = 240; DBF_getVal ((void*)s2, &i1);
-  }
-
-
-  strcpy(s1, "key");
-  i1 = DBF_find__ (&lv, s1, strlen(s1));
-  i1 = 240; DBF_getVal ((void*)s1, &i1);
-
-
-
-  DBF_getNxtKey (&p1, &i1);
-  DBF_getNxtKey (&p1, &i1);
-  i1 = 240; DBF_getVal ((void*)s1, &i1);
-
-
-  DBF_getNxtKey (&p1, &i1);
-  i1 = 240; DBF_getVal ((void*)s1, &i1);
-
-  DBF_getNxtKey (&p1, &i1);
-  DBF_getNxtKey (&p1, &i1);
-  DBF_getNxtKey (&p1, &i1);
-
-
-  return 0;
-}
-
-#endif
 //====================== EOF ===========================

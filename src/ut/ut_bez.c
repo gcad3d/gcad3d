@@ -363,7 +363,7 @@ Returncodes:
     rc = UT3D_pt_int2pt2pt_lim (&xp1, NULL, NULL,
                             &ln->p1, &ln->p2, pp1, pp2, tol);
     if(rc < 0) return 0;
-      // GR_Disp_pt (&xp1, SYM_STAR_S, ATT_COL_RED);
+      // GR_tDyn_symB__ (&xp1, SYM_STAR_S, ATT_COL_RED);
 
 
     // check distance to last found point (schleifende Schnitte entfernen)
@@ -479,7 +479,7 @@ Returncodes:
     UT3D_vc_2pt (&vc1, &bcv->cptab[0], &bcv->cptab[bcv->ptNr - 1]);
     irc = UT3D_pt_intptvcpl_ (&pa[*pNr], pln, &bcv->cptab[0], &vc1);
     if(irc == 1) ++(*pNr);
-    // GR_Disp_pt (&pa[*pNr-1], SYM_TRI_S, 0);
+    // GR_tDyn_symB__ (&pa[*pNr-1], SYM_TRI_S, 0);
     // DEB_dump_obj__ (Typ_PT, &pa[*pNr-1], " intplbez P[%d]=",*pNr-1);
 
   }
@@ -498,7 +498,7 @@ Returncodes:
 // see bspl_pol_bsp
 
   // irc = UT3D_bez_eval_Pt (&pt1, bez, 0.5);
-  // GR_Disp_pt (&pt1, SYM_STAR_S, 0);
+  // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 0);
 
   int     ianz, irc, ptOut, ptStackNr;
   double  pVal, kvs, kve, us, ue, dist, uStack[20];
@@ -557,7 +557,7 @@ Returncodes:
 
   // den Punkt dazu holen (Zwischenpunkt)
   irc = UT3D_bez_eval_Pt (&pt1, bez, pVal);
-    // GR_Disp_pt (&pt1, SYM_TRI_S, 0);
+    // GR_tDyn_symB__ (&pt1, SYM_TRI_S, 0);
     // printf(" irc=%d pt1=%f %f %f\n",irc,pt1.x,pt1.y,pt1.z);
   if(irc < 0) return irc;
 

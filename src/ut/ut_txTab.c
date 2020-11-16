@@ -285,8 +285,8 @@ void TX_Error (char* txt, ...);
 
   if(tab->stat == 1) {
     if(tab->tab) {
-      free (tab->tab);
-      free (tab->ind);
+      if(tab->tab)free (tab->tab);
+      if(tab->ind)free (tab->ind);
       tab->tab = NULL;
       tab->ind = NULL;
     }
@@ -295,7 +295,6 @@ void TX_Error (char* txt, ...);
   return 0;
 
 }
-
 
 
 //================================================================
@@ -309,6 +308,7 @@ void TX_Error (char* txt, ...);
   *tab = realloc(*tab, newSiz);
 
   if(*tab == NULL) {
+    printf("***** UtxTab_reall_C EOM newSiz %d\n",newSiz);
     TX_Error ("******** out of memory - UtxTab_reall_C *********");
     return -1;
   }
@@ -412,7 +412,7 @@ void TX_Error (char* txt, ...);
 ///  >=0    index of string
 /// \endcode
 
-  int  i1, iNr, iLen, iPos, iEnd;
+  int  i1, iAct, iNr, iLen, iPos, iEnd;
 
 
   // printf("UtxTab_add  |%s|\n",newtxt);
@@ -420,57 +420,43 @@ void TX_Error (char* txt, ...);
   // UtxTab_dump (tab, "UtxTab_add-in");
 
 
-  if(!tab) {
-    TX_Error ("******** UtxTab_add - E001 ***");
-    return -1;
-  }
-
-  if(!tab->ind) {
-    TX_Error ("******** UtxTab_add - E002 ***");
-    return -1;
-  }
-
-  if(!newtxt) {
-    TX_Error ("******** UtxTab_add - E003 ***");
-    return -2;
-  }
+  if(!tab) goto L_err_ttb;
+  if(!tab->tab) goto L_err_tab;
+  if(!tab->ind) goto L_err_ind;
+  if(!newtxt) goto L_err_inp;
 
 
-  // genug platz im buffer ?
+  // check space in textBuffer tab->tab
   iLen = strlen(newtxt);
   iNr  = tab->iNr;           // index of last stored word;
   iPos = tab->ind[iNr];      // startPos of next word
   iEnd = iPos + iLen;
-    // printf("   iLen=%d iPos=%d iEnd=%d\n",iLen,iPos,iEnd);
-  if(iEnd >= tab->tabSiz) {
+    // printf("   iLen=%d iPos=%d iEnd=%d iNr=%d\n",iLen,iPos,iEnd,iNr);
+  if((iEnd + 1) >= tab->tabSiz) {
     if(tab->stat == 0) return -1;
     i1 = tab->tabSiz + TAB_C_SIZ;
-    if(UtxTab_reall_C (&(tab->tab), i1) < 0) return -1;
+    if(UtxTab_reall_C (&(tab->tab), i1) < 0) goto L_err_tab;
     tab->tabSiz = i1;
-    // TX_Error ("******** UtxTab_add - buffer overflow *********");
-    // return -1;
   }
 
 
   // add newtxt to textbuffer
-  // printf(" add %d %d %d\n",iLen,iNr,iPos);
   strncpy(&(tab->tab[iPos]), newtxt, iLen);
-  iPos += iLen;
+  // iPos += iLen;
   tab->tab[iEnd] = '\0';
-  ++iEnd;
 
-  i1 = iNr;   // active index
+
+  // check space in indexBuffer tab->ind
+  iAct = iNr;   // active index
   ++iNr;
   if(iNr >= tab->indSiz) {
-    if(tab->stat == 0) return -1;
+    if(tab->stat == 0) goto L_err_ind;
     i1 = tab->indSiz + TAB_I_SIZ;
-    if(UtxTab_reall_I (&(tab->ind), i1) < 0) return -1;
+    if(UtxTab_reall_I (&(tab->ind), i1) < 0) goto L_err_ind;
     tab->indSiz = i1;
-    // TX_Error ("******** UtxTab_add - index overflow *********");
-    // return -1;
   }
 
-  tab->ind[iNr] = iEnd;
+  tab->ind[iNr] = iEnd + 1;  // set startPos for next string
   tab->iNr = iNr;
 
 
@@ -479,7 +465,23 @@ void TX_Error (char* txt, ...);
     // END TESTBLOCK
 
 
-  return i1;
+  return iAct;
+
+  L_err_ttb:
+    TX_Error ("******** UtxTab_add - E000-ttb ***");
+    return -1;
+
+  L_err_tab:
+    TX_Error ("******** UtxTab_add - E001-tab ***");
+    return -1;
+
+  L_err_ind:
+    TX_Error ("******** UtxTab_add - E002-ind ***");
+    return -1;
+
+  L_err_inp:
+    TX_Error ("******** UtxTab_add - E003-inp ***");
+    return -2;
 
 }
 
@@ -501,43 +503,46 @@ void TX_Error (char* txt, ...);
 //================================================================
 /// \code
 /// init / clear all words; fixed space (void*); no reallocate.
-/// RetCod:
-///   -1      out of memory error
+/// Input:
+///   isize    nr of chars
+/// Output:
+///   RetCod   -
 /// \endcode
-  
 
-  int  i1, i2;
 
-  // printf("UtxTab_init_spc \n");
-  
-  
+  int  i1, chrNr, indNr;
+
+  // printf("UtxTab_init_spc %d\n",isize);
+
+
   // compute size of a record; 32 char for the string, 4 for the index = 36
-  if(tab->tab == NULL) { 
+  if(tab->tab == NULL) {
 
     tab->stat   = 0;     // no reallocate
-    
-    i1 = isize / 36;
-    i2 = i1 * 32;  // size tab (chars)
-    // i3 = i1 * 4;   // size ind (int)
-      // printf(" i1=%d i2=%d i3=%d\n",i1,i2,i3);
-    
-    // get spc for tab
-    tab->tab    = spc;
-    tab->tabSiz = i2;
 
-    // get spc for ind
-    tab->ind = (void*)(((char*)spc) + i2);
-    tab->indSiz = i1; 
+    // get 66% for chars
+    i1 = isize / 12;
+    chrNr = i1 * 8;
+    tab->tabSiz = chrNr;
 
+    indNr = (isize - chrNr) / sizeof(long); 
+    tab->indSiz = indNr;
+
+    tab->tab = spc;
+    tab->ind = (void*)(((char*)spc) + (indNr * sizeof(long)));
   }
+
 
   tab->iNr    = 0;
   tab->ind[0] = 0;
   tab->tab[0] = '\0';  // erstes Wort terminieren
 
+    // UtxTab_dump (tab, "ex-UtxTab_init_spc");
+
   return 0;
 
 }
+
 
 
 //================================================================
@@ -708,8 +713,6 @@ void TX_Error (char* txt, ...);
 }
 
 
-
-
 //================================================================
   int UtxTab_dump (TxtTab *tab, char *inf) {
 //================================================================
@@ -717,7 +720,10 @@ void TX_Error (char* txt, ...);
 
   int  i1, i2;
 
-  printf("UtxTab_dump iNr=%d %s\n",tab->iNr,inf);
+  printf("----------------- UtxTab_dump %s\n",inf);
+  printf("  indSiz=%ld tabSiz=%ld iNr=%d stat=%d\n",
+         tab->indSiz, tab->tabSiz, tab->iNr, tab->stat);
+
 
   for(i1=0; i1<tab->iNr; ++i1) {
     i2 = tab->ind[i1];
@@ -727,7 +733,6 @@ void TX_Error (char* txt, ...);
   return 0;
 
 }
-
 
 
 //====================== EOF ===========================

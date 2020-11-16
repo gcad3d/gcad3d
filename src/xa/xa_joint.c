@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+ - check if JNT_parent_hide works for Planes
 
 -----------------------------------------------------
 Modifications:
@@ -90,7 +90,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   // ObjGX   *jnt;
 
 
-  printf("JNT_parent_hide typ=%d dbi=%ld imod=%d\n",typ,dbi,imod);
+  // printf("JNT_parent_hide typ=%d dbi=%ld imod=%d\n",typ,dbi,imod);
 
 
   // get type & dbi of jointObj
@@ -109,7 +109,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 //================================================================
 // import joint from DBFile "<tmp>/joints"
 // Input:
-//   irmNr   RefModelNr
+//   irmNr   RefModelNr (M#)
 //   iJnt    jointNr
 // Output:
 //   spcObj  the first ObjGX in spcObj ist the resulting outputObj
@@ -122,7 +122,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   ObjGX   *jnt;
 
 
-  printf("JNT_imp__ rmNr=%ld ij=%d\n",irmNr,iJnt);
+  // printf("JNT_imp__ rmNr=%ld ij=%d\n",irmNr,iJnt);
   // DBF_dump ();
 
 
@@ -137,6 +137,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 
   // create key; eg "M123J20"
   sprintf(key, "M%dJ%d", *ibmNr, iJnt);
+    // printf(" imp__-key = |%s|\n",key);
 
 
   // find key
@@ -153,18 +154,15 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   // load value
   DBF_getVal (vp1, &lv);
 
-  // relocate
-  OGX_reloc__ (vp1, 0);
 
   // get primary object
   // jnt = UME_get_start (spcObj);
   jnt = vp1;
-    // DEB_dump_ox_0 (jnt, "JNT_imp__");
-    // DEB_dump_ox_s_ (jnt, "JNT_imp__");
 
 
   //----------------------------------------------------------------
 
+    // DEB_dump_ox_0 (jnt, "ex-JNT_imp__");
 
   return 0;
 
@@ -174,9 +172,10 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 //================================================================
   int JNT_exp__ (long indJnt, Memspc *spcObj) {
 //================================================================
-// export joints into DBFile "<tmp>/joints"
+// JNT_exp__         export joints into DBFile "<tmp>/joints"
 // Input:
-//   jnt  objects; data are in memspc201
+//   indJnt    dbi of joint
+//   spcObj    obj(-tree) to store
 
 
   int     sizKey, sizVal;
@@ -184,19 +183,15 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   ObjGX   *jnt;
  
 
-  jnt = UME_get_start (spcObj);
+
+  jnt = UME_get_start (spcObj);            // get first=primary obj
 
 
-  // printf("JNT_exp__ indJnt=%d\n",indJnt);
+  // printf("JNT_exp__ indJnt=%ld\n",indJnt);
   // DEB_dump_ox_0 (jnt, "JNT_exp__");
   // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
   // printf(" AP_modact_ind=%d\n",AP_modact_ind);
 
-
-
-  //----------------------------------------------------------------
-  // delocate
-  OGX_deloc__ (jnt, UME_get_used (spcObj));
 
 
   //----------------------------------------------------------------
@@ -212,9 +207,8 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   }
 
 
-
   //----------------------------------------------------------------
-  // create key; eg "M123J20"
+  // create key; eg "M123J20" (the objID)
   sprintf(key, "M%dJ%ld", AP_modact_ind, indJnt);
   sizKey = strlen(key);
 
@@ -266,7 +260,9 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   // get new text from user ...
   sText[0] = '\0';
   sprintf(s1, "enter new text for joint %d..", ij);
-  irc = GUI_DialogEntry (s1, sText, sizeof(sText), buttons, 2);
+
+  // irc = GUI_DialogEntry (s1, sText, sizeof(sText), buttons, 2);
+  irc = GUI_dlg_e2b (sText, sizeof(sText), s1, "Cancel", "OK");
     // printf(" DialogWait %d |%s| %d\n",irc, sText, sizText);
 
   // copy text -> sCode
@@ -316,8 +312,8 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   lsk = strlen(sk);
 
   while (DBF_find_nxt (&sfk, &lsfk, &lv, sk, lsk, &ii) >= 0) {
-    i1 = sizeof(s1); 
-    DBF_getVal ((void*)s1, &i1);           // get value -> s1    UNNUTZ !
+    // i1 = sizeof(s1); 
+    // DBF_getVal ((void*)s1, &i1);           // get value -> s1    UNNUTZ !
       // printf(" _find_nxt found ii=%d |%s| %d\n", ii, sfk, lsfk);
     // find 'J' in key; the following nr is the joint-nr
     p1 = strchr (sfk, 'J');
@@ -352,8 +348,11 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   if(ox1->typ == Typ_PT) {
     return Typ_PT;
 
-  } else if(ox1->typ == Typ_Note) {
-    return Typ_Note;
+  } else if(ox1->typ == Typ_PLN) {
+    return Typ_PLN;
+
+  // } else if(ox1->typ == Typ_Note) {
+    // return Typ_Note;
   }
 
 

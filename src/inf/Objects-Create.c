@@ -172,7 +172,7 @@ dbi = DB_StoreLine (123L, &ln1); // store as "L123"
 DB_QueryNxtFree DB_GetDynInd DB_isFree_PT // find free dbi
 DB_StorePoint, DB_store_obj
 Modify:
-DB_GetObjDat
+UTO__dbo
 
 
 ================================================================== \endcode */}
@@ -212,7 +212,7 @@ GR_Disp_.. create dynam.DB-record, DL-record, display obj.
 #include "../gr/ut_UI.h" // SYM_..
 Point p1={10,0,0};
 long dli;
-GR_Disp_pt (&pt1, SYM_STAR_S, 2); // creates temp.obj red circle
+GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2); // creates temp.obj red circle
 DL_Redraw (); // update display
 dli = GL_temp_iNxt (); // get DL-index of circle
 ..
@@ -220,7 +220,7 @@ GL_Delete (dli); // delete obj and all following
 GR_tDyn_obj tempDisp obj from typ+struct
 GR_tDyn_dbo tempDisp obj from typ+dbInd
 GR_Disp_ox temp. display of ObjGX-structs
-GR_Disp_pt,-vc,-vc2,-ln,-ac,-bsp,-pln
+GR_tDyn_symB__,-vc,-vc2,-ln,-ac,-bsp,-pln
 GR_tDyn_txiA disp integer-chars
 GR_tDyn_box__disp 3D-boundingBox from 2 points
 UI_disp_Pos temporary display position (red circle)
@@ -229,7 +229,7 @@ UI_disp_tra
 GL_DrawAngA draw angle with arrowhead
 GR_Disp_pln GL_DrawSymVX display plane / axisSystem
 UI_disp_pln_oid hilite plane from objID (disp RX RY RZ)
-UI_disp_joint UI_disp_activ display objName as text
+UI_disp_activ display objName as text
 Modify:
 DL_SetInd (dli); // modify, do not create new DL-Record with foll. DL_StoreObj
 DL_dlRec__dli get DL-record

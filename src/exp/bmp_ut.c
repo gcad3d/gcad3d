@@ -71,8 +71,13 @@ Type of Compression
 
 
 
-
+#include "../ut/ut_types.h"               // INT_8 - UINT_64
+#include "../ut/ut_uti.h"       // UTI_div4up
 #include "../ut/byteorder.h"
+
+
+
+
 
 typedef struct {
   unsigned short it; unsigned long is; unsigned short iu1, iu2;

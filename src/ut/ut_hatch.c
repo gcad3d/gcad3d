@@ -426,7 +426,7 @@ List_functions_end:
 /*
   // test Umdrehungssinn von pt2a; wenn nicht CCW umdrehen
   // scheint dzt unnutz; war SUStess_ck_srot_ in ut_tess.c
-  // use UT2D_srar_polc
+  // use UT2D_sr_npt
   irc = SUStess_ck_srot_ (ptNr, pt2a);
 
   // Umdrehen: 2D- und 3D-Punktetabelle umdrehen

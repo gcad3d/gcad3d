@@ -19,7 +19,7 @@ for Functions see ../ut/ut_memTab.c
 /// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
 ///         UINT_8_MAX = cannot realloc (fixed space)
 /// use     application-specific
-/// spcTyp  type of memory;                                   See INF_spcTyp
+/// spcTyp  type of memory;                                   See INF_MEM_TYP
 /// \endcode
 #define def_MemTab(vTyp1)\
   typedef struct {vTyp1 *data; unsigned int rMax, rNr, rSiz, tSiz;\
@@ -182,5 +182,9 @@ void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
 // MEMTAB_CLEAR        reset  (memTab->rNr = 0;)
 #define MEMTAB_CLEAR(mtb)\
   (mtb)->rNr = 0
+
+// MemTab_disp_tdyn
+#define MemTab_disp_tdyn GR_tDyn_mtb
+#define MemTab_disp_temp GR_temp_mtb
 
 // EOF

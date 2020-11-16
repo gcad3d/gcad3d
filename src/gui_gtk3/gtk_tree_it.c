@@ -82,23 +82,32 @@ List_functions_end:
 #include <string.h>
 
 
-// ../gtk/ut_gtk.c:
-extern int UI_fontsizX, UI_fontsizY;
-
 
 #include <gtk/gtk.h>
 
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_umem.h"                     // Memspc
+#include "../ut/AP_types.h"            // BRWSTAT_*
 
-#include "../gui/gui_types.h"      // UI_Func..
+#include "../xa/ap_stat.h"             // AP_STAT
+
+#include "../gui/gui_types.h"          // UI_Func..
 #include "../gui/gui_base.h"                  // GUI_obj_*
-
-
 #include "../gui_gtk3/gtk_tree_it.h"
 
 
+//----------------------------------------------------------------
 // extern vars:
+ 
+// ../xa/xa.c
+extern AP_STAT   AP_stat;
+
+
+// ../gtk/ut_gtk.c:
+extern int UI_fontsizX, UI_fontsizY;
+
+
+// ../gui_gtk3/gtk_image.c
 extern GdkPixbuf **IcoTab;
 
 
@@ -520,12 +529,15 @@ static Obj_gui2     *GUI_tree1_ActObj;
   // set GUI_tree1_tree, GUI_tree1_view, GUI_tree1_model and GUI_tree1_store
   if(GUI_tree1_decode(mo)) return -1;
 
+  AP_stat.brw_stat = BRWSTAT_init;
+
   gtk_tree_store_clear (GUI_tree1_store);    // clear whole tree
 
+  AP_stat.brw_stat = BRWSTAT_active;
+ 
   return 0;
 
 }
-
 
 
 //================================================================
@@ -936,6 +948,8 @@ static Obj_gui2     *GUI_tree1_ActObj;
   // printf("GUI_tree1_cbSel selMode=%d\n",INT_PTR(GUI_tree1_ActObj->data));
   // printf(" msbt=%d\n",GUI_tree1_msbt);
 
+  // clear-browser: ignore event
+  if(AP_stat.brw_stat == BRWSTAT_init) return TRUE;  // ignore event ..
 
   if(INT_PTR(GUI_tree1_ActObj->data)) return FALSE;  //0=normal;1=skip selection
 

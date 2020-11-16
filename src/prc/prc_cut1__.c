@@ -994,14 +994,13 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 //================================================================
 // line is empty: display commands-menu
 
-  char  **p1;
   char  *optLst0[]={"GO   (work)",
                     "TL   (toolchange)",
                     "RP   (rapid)",
                     "FROM (startpos)",
                     "INL  (insert line)",
                     "OK   (continue)",
-                    "\0"};
+                    NULL};
 
   printf("PRCE_m3Menu__ %d\n",mode);
 
@@ -1013,8 +1012,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   //----------------------------------------------------------------
   // line empty
-  p1 = optLst0;
-  GUI_popup__ (p1, NULL, 0, PRCE_selMen_cb, NULL);
+  GUI_popup__ (optLst0, NULL, 0, PRCE_selMen_cb, NULL);
   // UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
 
   return 0;
@@ -1127,7 +1125,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
     //----------------------------------------------------------------
     if(TL_dbTyp == Typ_PT) {          // line - nxt point - absolut
-      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
+      i1 = UTO__dbo (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       actPos = *((Point*)vp1);
       // set z = workPlane
@@ -1139,7 +1137,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
     //----------------------------------------------------------------
     if(TL_dbTyp == Typ_VC) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
+      i1 = UTO__dbo (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       UT3D_pt_traptvc (&actPos, &actPos, (Vector*)vp1);
       PRCE_Out__ ("G1 ");
@@ -1149,7 +1147,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
     //----------------------------------------------------------------
     if(TL_dbTyp == Typ_LN) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
+      i1 = UTO__dbo (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       pta = (void*)memspc101;
       ptNr = 2;
@@ -1161,7 +1159,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
     //----------------------------------------------------------------
     if(TL_dbTyp == Typ_CI) {          // line - nxt point - relative
-      i1 = DB_GetObjDat (&vp1, &rNr, TL_dbTyp, TL_dbi);
+      i1 = UTO__dbo (&vp1, &rNr, TL_dbTyp, TL_dbi);
       if(i1 <= 0) goto L_err_par;
       actCir = *((Circ*)vp1);
       // set z = workPlane

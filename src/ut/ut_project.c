@@ -96,7 +96,7 @@ static Vector prj_vc;      // projectionDirection
 /// INPUT:
 ///   typ     typ of projectionTarget; must be Typ_PLN
 ///   target  typ=Typ_PLN: (Plane*)
-///           typ=Typ_SURMSH: (int*)target[0]=dbIndSurMesh;
+///           typ=Typ_SURPMSH: (int*)target[0]=dbIndSurMesh;
 ///                                 target[1]=dbIndSurPtab.
 ///   vc1     projectionVector; if NULL: normal projection
 /// Output:
@@ -180,6 +180,7 @@ static Vector prj_vc;      // projectionDirection
 
 
   // printf("UPRJ_app_pt prj_typ=%d\n",prj_typ);
+  // printf(" _app_pt p2=%p\n",p2);
   // DEB_dump_obj__ (prj_typ, prj_tg, "target:");
   // DEB_dump_obj__ (Typ_VC, &prj_vc, "  prj_vc:");
 
@@ -287,8 +288,8 @@ static Vector prj_vc;      // projectionDirection
     ii = 0; // nr of output-points
     for(i1=0; i1<i2; ++i1) {
       // get space for curve
-      i3 = UTO_siz_stru (ccva[i1].typ);
-      cv1 = MEM_alloc_tmp (i3);
+      // i3 = UTO_siz_stru (ccva[i1].typ); - err with typ 20
+      cv1 = MEM_alloc_tmp (OBJ_SIZ_MAX);
       // make normal object of CCV[i1]; set prj_tg & prj_nr
       UTO_cv_cvtrm (&prj_typ, cv1, NULL, &ccva[i1]);
       prj_tg = cv1; 
@@ -317,7 +318,7 @@ static Vector prj_vc;      // projectionDirection
 
   //----------------------------------------------------------------
   L_SURMSH:
-  if(prj_typ != Typ_SURMSH) goto L_OGX;
+  if(prj_typ != Typ_SURPMSH) goto L_OGX;
   irc = MSH_pt_prjptmsh_ (p2, p1, ((int*)prj_tg)[0], ((int*)prj_tg)[1], UT_TOL_pt);
   if(irc < 0) return -1;
   return 1;
@@ -404,7 +405,7 @@ static Vector prj_vc;      // projectionDirection
   // DEB_dump_obj__ (Typ_VC, v1, "UPRJ_app_vc:");
   // DEB_dump_obj__ (Typ_VC, &prj_vc, "  prj_vc:");
   // DEB_dump_obj__ (Typ_PLN, prj_tg, "  Plane:");
-  // GR_tDyn_vc (v1, NULL, 8, 1);
+  // GR_tDyn_vc__ (v1, NULL, 8, 1);
 
 
   // intersect line-plane
@@ -417,7 +418,7 @@ static Vector prj_vc;      // projectionDirection
 
 
     // DEB_dump_obj__ (Typ_PT, &ptx, "  ptx:");
-    // GR_tDyn_vc (v2, NULL, 9, 1);
+    // GR_tDyn_vc__ (v2, NULL, 9, 1);
     // DEB_dump_obj__ (Typ_VC, v2, "ex UPRJ_app_vc:");
 
   return 0;
@@ -517,9 +518,9 @@ static Vector prj_vc;      // projectionDirection
   Point    ph, p1, p2, p3, p4, pa, pb;
   Vector   *plvz, vr;
 
-      // GR_tDyn_vc (&ei->va, &ei->pc, 7, 1);
-      // GR_tDyn_vc (&ei->vb, &ei->pc, 7, 1);
-      // GR_Disp_pt (&ei->pc, SYM_STAR_S, ATT_COL_RED);
+      // GR_tDyn_vc__ (&ei->va, &ei->pc, 7, 1);
+      // GR_tDyn_vc__ (&ei->vb, &ei->pc, 7, 1);
+      // GR_tDyn_symB__ (&ei->pc, SYM_STAR_S, ATT_COL_RED);
 
   // copy Elli; copy vz
   *eo = *ei;
@@ -527,7 +528,7 @@ static Vector prj_vc;      // projectionDirection
 
   // transf elli
   UPRJ_app_pt (&eo->pc, &ei->pc);
-    // GR_Disp_pt (&eo->pc, SYM_STAR_S, ATT_COL_BLACK);
+    // GR_tDyn_symB__ (&eo->pc, SYM_STAR_S, ATT_COL_BLACK);
 
   UPRJ_app_pt (&eo->p1, &ei->p1);
   if(UT3D_ck_el360(ei) == 0)
@@ -547,12 +548,12 @@ static Vector prj_vc;      // projectionDirection
   UT3D_pt_traptvc (&ph, &ei->pc, &ei->va);
   UPRJ_app_pt (&p1, &ph);
     // DEB_dump_obj__ (Typ_PT, &p1, "p1=");
-    // GR_Disp_pt (&p1, SYM_STAR_S, ATT_COL_RED);
+    // GR_tDyn_symB__ (&p1, SYM_STAR_S, ATT_COL_RED);
 
   UT3D_pt_traptvc (&ph, &ei->pc, &ei->vb);
   UPRJ_app_pt (&p2, &ph);
     // DEB_dump_obj__ (Typ_PT, &p2, "p2=");
-    // GR_Disp_pt (&p2, SYM_STAR_S, ATT_COL_RED);
+    // GR_tDyn_symB__ (&p2, SYM_STAR_S, ATT_COL_RED);
 
 
   // dist pc-p1 must be longer than pc-p2
@@ -575,22 +576,22 @@ static Vector prj_vc;      // projectionDirection
   // rotate p1 90-deg around plane-vz
 // TODO: eigene func f 90/180/270 deg !
   UT3D_pt_rotptptvcangr (&p3, &p1, &eo->pc, plvz, RAD_90);
-    // GR_Disp_pt (&p3, SYM_STAR_S, ATT_COL_GREEN);
+    // GR_tDyn_symB__ (&p3, SYM_STAR_S, ATT_COL_GREEN);
 
   // get p4= midpoint p3-p2
   UT3D_pt_mid2pt (&p4, &p3, &p2);
-    // GR_Disp_pt (&p4, SYM_STAR_S, ATT_COL_GREEN);
+    // GR_tDyn_symB__ (&p4, SYM_STAR_S, ATT_COL_GREEN);
 
   // d1 = distance p4 - pc
   d1 = UT3D_len_2pt (&p4, &eo->pc);
 
   // point pa = from p4 along vr length d1
   UT3D_pt_traptptlen (&pa, &p4, &p3, d1);
-    // GR_Disp_pt (&pa, SYM_STAR_S, ATT_COL_BLUE);
+    // GR_tDyn_symB__ (&pa, SYM_STAR_S, ATT_COL_BLUE);
 
   // point pb = from p4 along -vr length d1
   UT3D_pt_traptptlen (&pb, &p4, &p2, d1);
-    // GR_Disp_pt (&pb, SYM_STAR_S, ATT_COL_BLUE);
+    // GR_tDyn_symB__ (&pb, SYM_STAR_S, ATT_COL_BLUE);
 
   // major-axis-length da = distance p2-pa
   da = UT3D_len_2pt (&pa, &p2);
@@ -600,11 +601,11 @@ static Vector prj_vc;      // projectionDirection
 
   // major-axis va = pc -> pb length da
   UT3D_vc_2ptlen (&eo->va, &eo->pc, &pb, da);
-    // GR_tDyn_vc (&eo->va, &eo->pc, 5, 1);
+    // GR_tDyn_vc__ (&eo->va, &eo->pc, 5, 1);
 
   // minor-axis vb = pc -> pa length db
   UT3D_vc_2ptlen (&eo->vb, &eo->pc, &pa, db);
-    // GR_tDyn_vc (&eo->vb, &eo->pc, 5, 1);
+    // GR_tDyn_vc__ (&eo->vb, &eo->pc, 5, 1);
 
 
   L_exit:
@@ -653,7 +654,7 @@ static Vector prj_vc;      // projectionDirection
   // project points
   for(i1=0; i1<pNr; ++i1) {
     UPRJ_app_pt (&pa2[i1], &pa1[i1]);
-      // GR_Disp_pt (&pa2[i1], SYM_TRI_S, 2);
+      // GR_tDyn_symB__ (&pa2[i1], SYM_TRI_S, 2);
   }
 
 
@@ -722,7 +723,7 @@ static Vector prj_vc;      // projectionDirection
   // project points
   for(i1=0; i1<pNr; ++i1) {
     UPRJ_app_pt (&pa2[i1], &pa1[i1]);
-      // GR_Disp_pt (&pa2[i1], SYM_TRI_S, 2);
+      // GR_tDyn_symB__ (&pa2[i1], SYM_TRI_S, 2);
   }
 
   // Start- und Endpunkt bleiben bestehen ..

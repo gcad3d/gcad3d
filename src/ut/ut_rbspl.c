@@ -488,7 +488,7 @@ List_functions_end:
   // TEST:
   // for(i1=0; i1<pnr; ++i1) {
   // printf("p[%d]=%f,%f,%f p=%f\n",i1,pTab[i1].x,pTab[i1].y,pTab[i1].z,vTab[i1]);
-  // GR_Disp_pt (&pTab[i1], SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
   // }
 
 
@@ -528,10 +528,10 @@ List_functions_end:
 
   if((d2 < 0.)||(d2 > 1.)) {
     // use 1. segment (ii-1, ii)
-    dd = UTP_px_paramp0p1px (vTab[i1], vTab[ii], d1);
+    dd = UTP_vx_vMin_vMax_par1 (vTab[i1], vTab[ii], d1);
   } else {
     // use 2. segment (ii, ii+1)
-    dd = UTP_px_paramp0p1px (vTab[ii], vTab[i2], d2);
+    dd = UTP_vx_vMin_vMax_par1 (vTab[ii], vTab[i2], d2);
   }  
     // printf(" dd=%f\n",dd);
 
@@ -541,7 +541,7 @@ List_functions_end:
   ptOut[*nxp] = pt1;
   if(vaOut) vaOut[*nxp] = dd;
   ++(*nxp);
-    // GR_Disp_pt (ptOut, SYM_STAR_S, 1);
+    // GR_tDyn_symB__ (ptOut, SYM_STAR_S, 1);
 
 
 
@@ -1023,9 +1023,9 @@ List_functions_end:
   // DEB_dump_obj__ (Typ_PT, &spi->cpTab[0], "p0: ");
   // DEB_dump_obj__ (Typ_PT, &spi->cpTab[1], "p1: ");
   // DEB_dump_obj__ (Typ_PT, &spi->cpTab[2], "p2: ");
-    // GR_Disp_pt (&spi->cpTab[0], SYM_STAR_S, 2);
-    // GR_Disp_pt (&spi->cpTab[1], SYM_STAR_S, 2);
-    // GR_Disp_pt (&spi->cpTab[2], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&spi->cpTab[0], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&spi->cpTab[1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&spi->cpTab[2], SYM_STAR_S, 2);
   // disp points
   // UT3D_rbspl_tst_cc (spi);
 
@@ -1044,7 +1044,7 @@ List_functions_end:
 
   // pM = Mittelpunkt p0-p2
   UT3D_pt_mid2pt (&pM, &spi->cpTab[0], &spi->cpTab[2]);
-    // GR_Disp_pt (&pM, SYM_SQU_B, 2);
+    // GR_tDyn_symB__ (&pM, SYM_SQU_B, 2);
 
 
   // create normalvec from pM to Cen
@@ -1070,7 +1070,7 @@ List_functions_end:
   // c = Radius ab pM in Richtung p1-->pM
   // UT3D_pt_traptptlen (&cpo->pc, &pM, &spi->cpTab[1], -x);
   UT3D_pt_traptvclen (&cpo->pc, &pM, &vmc, -x);
-    // GR_Disp_pt (&cpo->pc, SYM_SQU_B, 2);
+    // GR_tDyn_symB__ (&cpo->pc, SYM_SQU_B, 2);
 
 
   // create arc from p0-p2
@@ -1125,7 +1125,7 @@ List_functions_end:
 
   for(i3=2; i3<bsp->ptNr; ++i3) {
       // DEB_dump_obj__(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
-      // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&bsp->cpTab[i3], SYM_STAR_S, 2);
     d1 = d2;
     vc1 = vc2;
     UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
@@ -1824,6 +1824,7 @@ Returncodes:
 //            2   point is on curve; get only parameter and or vector
 //   vTyp     0  get knotvalues for splines,polygon; else values 0-1
 //            1  get parametervalues from 0 -1 also for splines. See INF_stru
+//            TODO: see below.
 //   tol      mode=0: max. allowed distance from curve;
 //            mode=1: max. allowed distance from endpoints
 // Output:
@@ -1835,7 +1836,8 @@ Returncodes:
 //            -2  ptx on curve, but NOT on trimmed curve
 //            -3  error
 //
-// see also 
+// TODO: parameter of point may be wrong if (v0 > v1).
+// if(v0 > v1) then reverse points and weights; see UT3D_cbsp_rev UT3D_pt_projptbspl
 
 
   int      irc;
@@ -1909,7 +1911,7 @@ Returncodes:
   // normalize vec
   UT3D_vc_setLength (vco, vco, 1.);
     // printf("kv1 = %f vco = %f %f %f\n",kv1,vco->dx,vco->dy,vco->dz);
-    // GR_tDyn_vc (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
+    // GR_tDyn_vc__ (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
 
 
 
@@ -2006,10 +2008,10 @@ Returncodes:
 
   if((d2 < 0.)||(d2 > 1.)) {
     // use 1. segment (ii-1, ii)
-    *kv = UTP_px_paramp0p1px (va[i1], va[ii], d1);
+    *kv = UTP_vx_vMin_vMax_par1 (va[i1], va[ii], d1);
   } else {
     // use 2. segment (ii, ii+1)
-    *kv = UTP_px_paramp0p1px (va[ii], va[i2], d2);
+    *kv = UTP_vx_vMin_vMax_par1 (va[ii], va[i2], d2);
   }
 
 
@@ -2092,7 +2094,7 @@ Returncodes:
   UT3D_vc_setLength (vco, vco, 1.);
 
     // printf("kv1 = %f vco = %f %f %f\n",kv1,vco->dx,vco->dy,vco->dz);
-    // GR_tDyn_vc (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
+    // GR_tDyn_vc__ (vco, &pt1, ATT_COL_HILI, 0);  // 0=normiert
 
 
   //----------------------------------------------------------------
@@ -2260,7 +2262,7 @@ Returncodes:
 
   // disp points
   pa = rbspl->cpTab;
-  // for(i1=0; i1<rbspl->ptNr; ++i1) GR_tDyn_symB (&pa[i1], SYM_STAR_S, 1);
+  // for(i1=0; i1<rbspl->ptNr; ++i1) GR_tDyn_symB__ (&pa[i1], SYM_STAR_S, 1);
   GR_tDyn_nsymB (rbspl->ptNr, pa, SYM_STAR_S, ATT_COL_RED);
 
 
@@ -2328,7 +2330,7 @@ Returncodes:
       if (rc < 0) return -1;
       printf("u= %f   pt= %f %f %f\n",u,pt.x,pt.y,pt.z);
       // cre_obj (Typ_PT, Typ_PT, 1, (void*)&pt);
-      GR_tDyn_symB (&pt, SYM_STAR_S, 1);
+      GR_tDyn_symB__ (&pt, SYM_STAR_S, 1);
 
 			// curve tangent
       rc = UT3D_vc_evparCrvRBSpl (&tg, rbspl, &g, &fd, &gd, u);
@@ -2339,7 +2341,7 @@ Returncodes:
 		  // ln.p2.y = pt.y + tg.dy;
 		  // ln.p2.z = pt.z + tg.dz;
 			// cre_obj (Typ_LN, Typ_LN, 1, (void*)&ln);
-      GR_tDyn_vc (&tg, &pt, 9, 0);  // 0=normiert
+      GR_tDyn_vc__ (&tg, &pt, 9, 0);  // 0=normiert
     }
   }
 

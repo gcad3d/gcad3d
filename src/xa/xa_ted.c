@@ -74,6 +74,7 @@ UI_GR_Sel_Filt_set 15  load texture
 #include <string.h>
 
 #include "../ut/ut_geo.h"              // Point ...
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
 
@@ -608,7 +609,7 @@ extern int       KeyStatCtrl;
       d2 = tr->ssy;
       // GR_temp_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
       UT3D_pta_parlg_pt_2vc (pa, &po, &tr->vx, d1, &tr->vy, d2);
-      GR_temp_pcv (pa, 5, Typ_Att_hili1);
+      GR_temp_pcv__ (pa, 5, Typ_Att_hili1);
 
   
      // l1 = Tex_actDli_get();

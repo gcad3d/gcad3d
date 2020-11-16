@@ -179,7 +179,7 @@ FunctionEnd
 
 ;================================================================
 Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie $(^Name) und alle seinen Komponenten deinstallieren?$\n$\rThis will uninstall $(^Name) from your system" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie $(^Name) und alle seine Komponenten deinstallieren?$\n$\rThis will uninstall $(^Name) from your system" IDYES +2
   Abort
 FunctionEnd
 

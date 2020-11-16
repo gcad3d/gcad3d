@@ -108,9 +108,10 @@ gcad_src.mak
 
 
 #include "../ut/ut_geo.h"              // Point ...
+#include "../ut/ut_memTab.h"           // MemTab_..
+
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 #include "../xa/xa_msg.h"              // MSG_*
-
 
 
 //========================================================================
@@ -601,7 +602,7 @@ gcad_src.mak
         GR_tDyn_tx2A (&pt2, s1, Typ_Att_def);
 
       } else if(oTab->fmtb == Typ_GEOB_3D) {
-        irc = UT3D_ptvcpar_std_obj (&pt3, NULL, NULL, Ptyp_mid,
+        irc = UT3D_ptvcpar_std_obj (&pt3, NULL, NULL, 0, Ptyp_mid,
                                      oTab->oTyp[i1], oTab->oDat[i1]);
         // GR_tDyn_txtA (&pt3, s1, Typ_Att_def);
         GR_tDyn_txtA (&pt3, s1, ATT_COL_BLACK);

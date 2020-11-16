@@ -37,6 +37,7 @@ List_functions_start:
 
 UI_win_main           Das gesamte Window-Layout
 UI_open_last          display file <tmpDir>MdlLst.txt as subMenu
+UI_file_open__        get new filename (and directory) from user
 
 UI_block__            activate / disactivate functions, input, cursor
 UI_block_get          query if functions, input, cursor is blocked
@@ -93,6 +94,7 @@ UI_open_add      UNUSED
 UI_open_symCB
 UI_openCB
 UI_disp_modsiz         display modelsize in gtk-label
+UI_lb_2D_upd           update label "2D" | "3D"
 
 UI_get_InpMode         get UI_InpMode
 
@@ -129,6 +131,8 @@ UI_WinDxfImp           DXF-Import Panel ..
 UI_colSel              see UI_WinDefTx TSU_exp_wrlCol
 UI_WinLtypMod          Linetypes
 UI_WinToler            Toleranzen ...
+
+UI_brw__               switch browser/editor-window ON|OFF.
 
 UI_Ed_del              LEER
 UI_Ed_hili             Hintergrund Editfenster hilite ON / OFF
@@ -251,8 +255,9 @@ extern long    UTF_FilBuf0Siz;  // die allocierte Filesize
 // from ../ci/NC_Main.c
 extern int     APT_2d_to_3d_Ind;       // f. Refsys-Anzeige
 extern double  APT_ModSiz;
-extern int     APT_dispPT, APT_dispPL, APT_dispNam, APT_dispDir;
+extern int     APT_dispPT, APT_dispPL;
 extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
+extern int     APT_disp_att;          // 1=disp-ObjNames; 2=disp-direction;
 
 // aus ut_cvApp.c:
 // extern double cvApp_tol;           // Approximationstoleranz (Import IGES)
@@ -299,13 +304,13 @@ extern long   UI_Ed_fsiz;      // AptTextsize
 
 //============ Lokale Var: =======================================
   MemObj ckb_hide, ckb_view, ckb_man, ckb_cad, ckb_vwr, ckb_3D,
-         ckb_ptDisp, ckb_plDisp, ckb_such,
+         ckb_such,
          bt_top, bt_front, bt_side, bt_iso,    // view-buttons
          ckb_meas,
          UIw_Box_TB,  // box for the Toolbars; under Grafic, over textWindow.
          UI_box_ntb;  // Notebook-box (browser,editor);
 
-  static MemObj ckb_nam, ckb_dir, ckb_shd,
+  static MemObj ckb_nam, ckb_dir, ckb_shd, ckb_ptDisp, ckb_plDisp,
          ckb_bound, ckb_light, ckb_compl, ckb_Iact, ckb_Bar1, ckb_Bar2,
          ckb_backW, // background white
          ckb_Tut,   // ScreenCast ON/OFF
@@ -345,11 +350,7 @@ extern long   UI_Ed_fsiz;      // AptTextsize
   MemObj      winED;        // Editorfenster - fuer pack
   MemObj      winBrw;       // TreeBrowser
   int         win_panStat=1;   // 1=paned activ; 0=off
-  int         winBrStat=1;     // 1=Brw activ; 0=off
   int         win_edStat=0;    // 1=Editor activ; 0=off
-  // GIO_WinTree winBrw;       // TreeBrowser
-  // GtkWidget EdView;    // Editorfenster - Focus
-  // GtkWidget wText;     // Editorfenster - Edit
 
 
   MemObj      tbCad=GUI_OBJ_NEW;   // der CAD-Toolbar
@@ -902,8 +903,8 @@ char    UI_fnamFilt[80] = "\"*\"";   // filenamefilter (needs \" else expands
       break;
 
     case APF_WIN_B_E:  // Browser-window & Editor-window
-        // printf("****** brwStat=%d edStat=%d\n",winBrStat,win_edStat);
-      if(winBrStat > 0)
+        // printf("****** brwStat=%d edStat=%d\n",AP_stat.brw_stat,win_edStat);
+      if(AP_stat.brw_stat > BRWSTAT_OFF)
         GUI_set_enable (&winBrw, mode); // Browser-window
       if(win_edStat > 0)
         GUI_set_enable (&winED, mode); // Editor-window
@@ -999,26 +1000,108 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 }
 
 
+//================================================================
+  int UI_ed_OFF () {
+//================================================================
+
+  if(win_panStat == 0) return 0;
+
+  if(win_edStat) {
+
+    GUI_set_show (&win_edi, 0);           // disactivate editor
+    GUI_set_show (&winED, 0);
+    GUI_set_enable (&winED, 0);
+    win_edStat = 0;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_brw_OFF () {
+//================================================================
+ 
+  if(win_panStat == 0) return 0;
+
+  if(AP_stat.brw_stat > BRWSTAT_OFF) {
+
+    AP_stat.brw_stat = BRWSTAT_init;
+    GUI_set_enable (&winBrw, 0);          // disactivate browser
+    GUI_set_enable (&win_brw, 0);         // 1=ON, 0=OFF
+    GUI_set_show (&win_brw, 0);           // disactivate browser
+
+    AP_stat.brw_stat = BRWSTAT_OFF;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_ed_ON () {
+//================================================================
+
+
+  if(win_panStat == 0) return 0;
+
+  if(win_edStat == 0) {
+
+    GUI_set_show (&winED, 1);
+    GUI_set_enable (&winED, 1);
+    GUI_set_show (&win_edi, 1);           // activate editor
+    GUI_notebook_set (&UI_box_ntb, 1);
+    win_edStat = 1;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UI_brw_ON () {
+//================================================================
+
+  if(win_panStat == 0) return 0;
+
+  if(AP_stat.brw_stat == BRWSTAT_OFF) {
+
+    AP_stat.brw_stat = BRWSTAT_init;
+    GUI_set_enable (&winBrw, 1);
+    GUI_set_enable (&win_brw, 1);
+    GUI_set_show (&win_brw, 1);
+    GUI_notebook_set (&UI_box_ntb, 0);
+
+    Brw_Mdl_init ();     // create new
+    // Brw_Mdl_upd ();      // update browser
+    AP_stat.brw_stat = BRWSTAT_active;
+  }
+
+  return 0;
+
+}
+
 
 //================================================================
   int UI_brw__ (int mode) {
 //================================================================
-/// \code
-/// switch browser/editor-window ON|OFF.
-/// mode      UI_FuncGet - returns state (ON|OFF)
-/// mode     -1         - switch browser/editor-window off
-/// mode      0         - update window (acc. UI_InpMode, win_panStat)
-/// mode      1         - switch browser/editor-window on
-/// \endcode
+// UI_brw__             switch browser/editor-window ON|OFF.
+// Input:
+//   mode   -1         - switch browser/editor-window off
+//           1         - switch browser/editor-window on
+//           UI_FuncGet - returns state (ON|OFF)
 
 // win_panStat   1=paned (browser|editor) activ; 0=off
-// state: win_edStat, winBrStat; 1=activ; 0=hidden
+// state: win_edStat, AP_stat.brw_stat (BRWSTAT_*);
 
 // if EDITOR is active: always activate editor-window; return.
 // else hide EDITOR; activate Browser, if Browser is not diabled.
 
 
-  // printf("UI_brw__ mode=%d Brw=%d ED=%d\n",mode,winBrStat,win_edStat);
+  // printf("UI_brw__ mode=%d Brw=%d ED=%d\n",mode,AP_stat.brw_stat,win_edStat);
   // printf("  UI_InpMode=%d win_panStat=%d\n",UI_InpMode,win_panStat); 
 
 
@@ -1026,15 +1109,18 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   //-----------------------------------------------------------
   // switch browser-window off
   if(mode == -1) { 
-    // do not activated in MAN-mode
-    if(UI_InpMode == UI_MODE_MAN) {
-      printf(" skip - MAN is active ..\n");
-      goto L_exit;
-    }
+    // // do not activated in MAN-mode
+    // if(UI_InpMode == UI_MODE_MAN) {
+      // TX_Print("***** switch off Browser only in VWR or CAD ...");
+      // goto L_exit;
+    // }
+
+    if(UI_InpMode == UI_MODE_MAN) UI_ed_OFF ();
+    else                          UI_brw_OFF ();
+
     GUI_box_paned_siz (&win_paned, 0);  // remove paned-box
     win_panStat = 0;
-    winBrStat = 0;
-    win_edStat = 0;
+
     goto L_exit;
   }
 
@@ -1044,60 +1130,15 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   if(mode == 1) {
     GUI_box_paned_siz (&win_paned, 180);   // restore paned-box
     win_panStat = 1;
-    // Brw_Mdl_upd ();   // 2013-10-09
   }
 
+  if(UI_InpMode == UI_MODE_MAN) UI_ed_ON ();
+  else                          UI_brw_ON ();
 
 
   //-----------------------------------------------------------
-  // 0 = UPDATE
-  if(!win_panStat) return 0;
-
-  if(UI_InpMode == UI_MODE_MAN) {
-      // printf(" activate MAN\n");
-    // hide browser
-    if(winBrStat == 1) {            // browser = active
-
-      GUI_set_show (&winED, 1);
-      GUI_set_enable (&winED, 1);
-      GUI_set_show (&win_edi, 1);           // activate editor
-      GUI_notebook_set (&UI_box_ntb, 1);
-
-      GUI_set_enable (&winBrw, 0);
-      GUI_set_enable (&win_brw, 0);         // 1=ON, 0=OFF
-      GUI_set_show (&win_brw, 0);           // disactivate browser
-    // } else {
-    }
-    winBrStat = 0;
-    win_edStat = 1;
-    goto L_exit;
-  }
-
-
-  // VWR od CAD
-    // printf(" activate VWR/MAN\n");
-  // hide editor
-  if(win_edStat == 1) {        // editor = active   
-
-    GUI_set_enable (&winBrw, 1);
-    GUI_set_enable (&win_brw, 1);
-    GUI_set_show (&win_brw, 1);           // activate browser
-    GUI_notebook_set (&UI_box_ntb, 0);
-
-    GUI_set_show (&win_edi, 0);           // disactivate editor
-    GUI_set_show (&winED, 0);
-    GUI_set_enable (&winED, 0);
-
-    // } else {
-  }
-  win_edStat = 0;
-  winBrStat = 1;
-
-  Brw_Mdl_upd ();      // update browser 2013-10-11
-
-
   L_exit:
-  // printf("ex UI_brw__ Brw=%d ED=%d\n",winBrStat,win_edStat);
+  // printf("ex UI_brw__ Brw=%d ED=%d\n",AP_stat.brw_stat,win_edStat);
 
   return 0;
 
@@ -1173,9 +1214,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 
   // printf("UI_askEscape\n");
 
-  // GUI_edi_Focus (&winED);
-
-  // GUI_update__ ();    2020-01-09
+  GUI_update__ ();
 
   if(KeyStatEscape != 1) {
     KeyStatEscape = 1;         // reset
@@ -1502,7 +1541,7 @@ static char LstBuf[LstSiz][32];
   char   *p1;
 
 
-  printf("UI_Set_infoSel %d\n",mode);
+  // printf("UI_Set_infoSel %d\n",mode);
 
   p1 =  s0;
   if(mode ==  1) p1 =  s1;
@@ -2382,17 +2421,19 @@ static char LstBuf[LstSiz][32];
   Mod_fNam_set (cbuf, 0);
 
 
+  //----------------------------------------------------------------
   // check if File exists
   if(mode == 0) {
     if(OS_checkFilExist(cbuf,1) == 1) {
       // sprintf(mnam,"overwrite file %s ?\n\n (Path %s)",AP_mod_fnam,AP_mod_dir);
       MSG_get_1 (mnam, 256, "OVER_fil", "%s", cbuf);
       // GUI_DialogYN (mnam, UI_save_over_CB);
-      i1 = GUI_Dialog_2b (mnam, "OK", "Cancel");
+      i1 = GUI_dlg_2b (mnam, "OK", "Cancel");
       if(i1) return 0;
     }
   }
 
+  //----------------------------------------------------------------
   // new deletes AP_mod_fnam
   strcpy(mnam, AP_mod_fnam);
 
@@ -2633,7 +2674,7 @@ static char LstBuf[LstSiz][32];
     UT3D_pt_traptvc (&pt1, &ptStart, &vcInc);
       // printf(" oben[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     // APT_disp_SymB (SYM_STAR_S, 2, &pt1);
-    GR_tDyn_symB (&pt1, SYM_STAR_S, 2);
+    GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
   }
@@ -2645,7 +2686,7 @@ static char LstBuf[LstSiz][32];
     UT3D_pt_traptivc (&pt1, &ptStart, &vcInc);
       // printf(" unte[%d]=%f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
     // APT_disp_SymB (SYM_STAR_S, 2, &pt1);
-    GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_RED);
+    GR_tDyn_symB__ (&pt1, SYM_STAR_S, ATT_COL_RED);
     vcInc.dz += incrZ * d1;
     d1 += 0.2;
   }
@@ -3117,7 +3158,7 @@ static char LstBuf[LstSiz][32];
 //================================================================
 /// \code
 /// UI_disp_dbo           display temporary db-obj
-///   att       see GR_temp_obj
+///   att       see GR_temp_nobj
 /// \endcode
 
   // printf("UI_disp_dbo %d %ld\n",typ,dbi);
@@ -3207,7 +3248,7 @@ static char LstBuf[LstSiz][32];
   // get typical point for activity-object -> pt1
   OGX_SET_INDEX (&ox1, ac1->typ, ac1->ind);
   // irc = UTO_pt_ox (&pt1, &ox1);
-  irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, Ptyp_start, Typ_ObjGX, &ox1);
+  irc = UT3D_ptvcpar_std_obj (&pt1, NULL, NULL, 0, Ptyp_start, Typ_ObjGX, &ox1);
   if(irc < 0) {
     TX_Print ("UI_disp_activ E001 %d %d",ac1->typ,ac1->ind);
     return -1;
@@ -3326,8 +3367,8 @@ static char LstBuf[LstSiz][32];
   char      s1[128];
   void      *pObj;
 
-  // printf("UI_disp__ typ=%d dbi=%ld subTyp=%d\n",typ,dbi,subTyp);
 
+  // printf("UI_disp__ gli=%d typ=%d dbi=%ld subTyp=%d\n",gli,typ,dbi,subTyp);
 
   switch (typ) {
 
@@ -3351,12 +3392,13 @@ static char LstBuf[LstSiz][32];
       if(UTP_compdb0(d1, UT_TOL_pt)) {
         // 0=normalized
         i1 = 0;
-        i2 = Typ_Att_top2;
+        i2 = ATT_COL_T_BLACK;
       } else {
         // 1=exact-length
         i1 = 1;
-        i2 = Typ_Att_hili1;
+        i2 = ATT_COL_T_RED;
       }
+        // printf(" UI_disp__ i1=%d i2=%d\n",i1,i2);
       // GR_temp_vc (dli, (Vector*)pObj, NULL, i2,  i1);
       DL_temp_ind = gli;
       GR_temp_vc ((Vector*)pObj, NULL, i2, i1);
@@ -3410,7 +3452,7 @@ static char LstBuf[LstSiz][32];
 ///          if(typ==Typ_Txt)   char*   (eg "0 0 1")
 ///   pos    position of vector or NULL
 /// True length:   see also IE_cad_Inp_disp_vc GL_DrawVec GR_Disp_vc
-/// unified lengt: see GL_DrawSymV3 GR_tDyn_vc GL_Disp_vc GR_Disp_vc
+/// unified lengt: see GL_DrawSymV3 GR_tDyn_vc__ GL_set_vcn GR_Disp_vc
 /// \endcode
 
 
@@ -3421,7 +3463,7 @@ static char LstBuf[LstSiz][32];
   Vector vc1;
 
 
-  printf("UI_disp_vec1 ind=%d typ=%d\n",ind,typ);
+  // printf("UI_disp_vec1 ind=%d typ=%d\n",ind,typ);
   // if(pos) DEB_dump_obj__ (Typ_PT, &pt1, "  pos:");
   // else    printf("  pos=NULL\n");
 
@@ -3492,13 +3534,13 @@ static char LstBuf[LstSiz][32];
     // att 7 = sw; Laenge 1
     // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
     // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc (&vc1, &pt1, 7, 0);
+    // GR_tDyn_vc__ (&vc1, &pt1, 7, 0);
     // GL_DrawSymV3 (&dli, SYM_ARROW, 7, &pt1, &vc1, 10.);
     GL_DrawSymV3 (&dli, SYM_ARROW, att, &pt1, &vc1, 20.);
 
   } else {
     // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc (&vc1, &pt1, 2, 1);
+    // GR_tDyn_vc__ (&vc1, &pt1, 2, 1);
     GL_DrawVec (&dli, att, &pt1, &vc1);
   }
 */
@@ -4269,7 +4311,10 @@ static char LstBuf[LstSiz][32];
       //----------------------------------------------------------------
       // MAN -> VWR:
       if(opMod == UI_MODE_MAN) {
-        UI_brw__ (0);            // das Edit-Fenster deaktivieren
+
+        UI_ed_OFF ();
+        UI_brw_ON ();
+
         GR_dli_hili = -1L;       // reset hilite of last-created-obj
 
         // act. GO,STEP;   MAN:On; CAD,VWR:Off.
@@ -4346,7 +4391,7 @@ static char LstBuf[LstSiz][32];
   int     i1,  opMod;
 
 
-  // printf("UI_CAD_ON \n");
+  printf("UI_CAD_ON UI_InpMode=%d\n",UI_InpMode);
 
     opMod = UI_InpMode;    // old mode
 
@@ -4356,7 +4401,6 @@ static char LstBuf[LstSiz][32];
 
       // printf("CAD - activate\n");
       UI_InpMode = UI_MODE_CAD;
-         UI_brw__ (0);         // das Edit-Fenster deaktivieren
 
         MSG_pri_0 ("CAD_On");
 
@@ -4379,15 +4423,22 @@ static char LstBuf[LstSiz][32];
         IE_cad_init0 ();
         GUI_gl_block (&winMain, 0);
 
+
         //----------------------------------------------------------------
         // MAN -> CAD:
         if(opMod == UI_MODE_MAN) {
-          printf(" MAN -> CAD\n");
+            // printf(" MAN -> CAD\n");
+
+          UI_ed_OFF ();
+          UI_brw_ON ();
+
           GR_dli_hili = -1L;                     // reset hilite of last-created-obj
+
           // act. GO,STEP;   MAN:On; CAD,VWR:Off.
           GUI_set_enable (&but_go, FALSE);
           GUI_set_enable (&but_step, FALSE);
         }
+
 
         //----------------------------------------------------------------
         // VWR -> CAD: view all activities, joints.
@@ -4395,9 +4446,8 @@ static char LstBuf[LstSiz][32];
           printf(" VWR -> CAD\n");
 
           // disactiv. Interact.
-          // GUI_menu_checkbox_set (&ckb_Iact, FALSE);
           GUI_set_enable (&ckb_Iact, FALSE);
-
+          // disp points
           DL_hide_unvisTypes (0);
           DL_Redraw ();  // first time only necessary ..
         }
@@ -4462,8 +4512,9 @@ static char LstBuf[LstSiz][32];
       GUI_set_enable (&but_go, TRUE);
       GUI_set_enable (&but_step, TRUE);
 
-      // das Edit-Fenster reaktivieren
-      UI_brw__ (0);
+      //  Browser OFF, Editor ON
+      UI_brw_OFF ();
+      UI_ed_ON ();
 
       // start modus with datasource = editor, rework ..
       UI_src_edi ();             // mem -> edi
@@ -4481,16 +4532,21 @@ static char LstBuf[LstSiz][32];
 
       //----------------------------------------------------------------
       // CAD -> MAN:    nothing to do ..
+      // if(opMod == UI_MODE_CAD) {
+      // }
 
-/*
+
       //----------------------------------------------------------------
       // VWR -> MAN
       if(opMod == UI_MODE_VWR) {
-          // printf(" VWR -> MAN\n");
+        // printf(" VWR -> MAN\n");
+        GUI_set_enable (&ckb_Iact, FALSE);
+
+        // disp points
         DL_hide_unvisTypes (0);      // view joints,activities.
         DL_Redraw ();                // first time only necessary ..
       }
-*/
+
 
   L_exit:
     // printf("ex UI_MAN_ON\n");
@@ -5220,7 +5276,12 @@ See UI_but__ (txt);
     sprintf(cbuf3, " - temporary object - vectorSymbol");
 
   } else {
+    // get vp = obj from DB
     i1 = UTO_obj_dbo (&vp, &oNr, &oTyp, ind);   // typ wird auf ObjGX gesetzt !
+    if(i1 < 0) {
+      TX_Print("****** Error - obj %s does not exist ....", cbuf2);
+      return -1;
+    }
     if(oNr >= 0) goto L_disp;
     sprintf(cbuf3, " - temporary object");
   }
@@ -5400,10 +5461,12 @@ See UI_but__ (txt);
   imode = UI_InpMode;
 
 
-  //-------------------------------------------------
+  //================================================================
   if(!strcmp(cp1, "new")) {
 
+
     // save Model+Submodels into tempDir as "Model" native
+    AP_stat.mdl_stat = MDLSTAT_save_as;
     Mod_sav_i (0);
 
     // compare Model - Mod_in
@@ -5414,27 +5477,36 @@ See UI_but__ (txt);
       if(irc < 0) return 0;     // cancel
     } 
 
+    //----------------------------------------------------------------
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
-    AP_src_new(1);
+    AP_src_new (1);
 
-    // save Model+Submodels into tempDir as "Model" native
-    Mod_sav_i (0);
+    // save (new empty) Model+Submodels into tempDir as "Model" native
+    // Mod_sav_i (0);
+    Mod_sav_i (-1);
 
     // make a copy (copy Model -> Mod_in)
     Mod_sav_ck (0);
 
+    AP_stat.mdl_stat = MDLSTAT_loaded;
+
     ED_work_END (0);  // clear display
 
 
-  //-------------------------------------------------
+  //================================================================
   } else if(!strcmp(cp1, "open")) {
       printf(" UI_men__-open\n");
 
-    // // reset GUI  (back to VWR)
-    // UI_reset__ ();
 
-    // // save Model+Submodels into tempDir as "Model" native
-    // Mod_sav_i (0);
+    //----------------------------------------------------------------
+    // get new filename (and directory) from user
+    irc = UI_file_open__ (cbuf2, sizeof(cbuf2));
+    if(irc < 0) return 0;  // error or cancel
+
+
+    //----------------------------------------------------------------
+    // save active model if modified
+    AP_stat.mdl_stat = MDLSTAT_save_as;
 
     // compare Model - Mod_in
     i1 = Mod_sav_ck (1);
@@ -5444,36 +5516,14 @@ See UI_but__ (txt);
       if(i1 < 0) return 0;     // cancel
     }
 
-
-    // title "Model open"
-    strcpy(sTit, MSG_const__(MSG_open));
-    // strcpy(sTit, "open file ..");
-
-                        // fnam      dirnam     filter-out 
-    // get filename of cfg/dir.lst
-    MDLFN_symFilNam (s1);
-
-    // let user select (symbolic-directory,) modelfile
-    // get cbuf1=fnam cbuf2=dnam
-    strcpy(cbuf2, AP_mod_dir);
-
-//     irc = GUI_file_open__ (cbuf1,128, cbuf2,128, UI_fnamFilt,
-//                            s1, sTit, NULL);
-//       printf("ex-GUI_file_open__ %d|%s|%s|\n",irc,cbuf2,cbuf1);
-
-    // (dirIn/filnamOut sSiz symDir filter title)
-    irc = GUI_file_open__ (cbuf2, sizeof(cbuf2), s1, UI_fnamFilt, sTit);
-      printf("ex-GUI_file_open__ %d|%s|\n",irc,cbuf2);
-    if(irc < 0) return -1;
-    if(strlen(cbuf2) < 1) return 0;
-
     // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane. 
     AP_src_new (1);
     // UI_menCB (NULL, "new");   // NEW
 
-    // get cbuf2 = full-filename
-    // UTX_add_fnam_del (cbuf2);  // add following '/' to dnam
-    // strcat(cbuf2, cbuf1);
+    AP_stat.mdl_stat = MDLSTAT_empty;
+
+    //----------------------------------------------------------------
+    // start loading new model
 
     // get AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
     irc = AP_Mod_load_fn (cbuf2, 0);
@@ -5528,8 +5578,10 @@ See UI_but__ (txt);
   //----------------------------------------------------------------
   } else if(!strcmp(cp1, "save")) {
 
-    // save, 1=overwrite.
+    // save, 1=overwrite.  (Save_quick, Ctrl-s)
+    AP_stat.mdl_stat = MDLSTAT_save_quick;
     UI_save__ (1);
+    AP_stat.mdl_stat = MDLSTAT_loaded;
 
     // add filename to list "last-used"
     AP_Mod_lstAdd ();
@@ -5627,15 +5679,15 @@ See UI_but__ (txt);
 
 
   //-------------------------------------------------
-  } else if(!strcmp(cp1, "exp1nat")) {
-
+  } else if(!strcmp(cp1, "exp1nat")) {    // File / save as ".gcad";
 
     iCompr = GUI_menu_checkbox_get(&ckb_compr);  // 0=not checked; 1=checked
     if(iCompr == 0) strcpy(cbuf1, "gcad");
     else            strcpy(cbuf1, "gcaz");
 
-    AP_save__ (0, cbuf1);
-
+    AP_stat.mdl_stat = MDLSTAT_save_as;
+    AP_save__ (0, 0, cbuf1);
+    AP_stat.mdl_stat = MDLSTAT_loaded;
 
 
 /*
@@ -5654,23 +5706,23 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxf__")) {
     AP_stat.subtyp = 99;  // headerless
-    AP_save__ (0, "dxf");
+    AP_save__ (0, 0, "dxf");
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxfR10")) {
     AP_stat.subtyp = 0;
-    AP_save__ (0, "dxf");
+    AP_save__ (0, 0, "dxf");
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expDxf2000")) {
     AP_stat.subtyp = 3;
-    AP_save__ (0, "dxf");
+    AP_save__ (0, 0, "dxf");
 
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expStp")) {
-    AP_save__ (0, "stp");
+    AP_save__ (0, 0, "stp");
 
 
   //-------------------------------------------------
@@ -5686,7 +5738,7 @@ See UI_but__ (txt);
             memspc011,            // defaultModelname
             (void*)UI_saveCB);
 */
-    AP_save__ (0, "igs");
+    AP_save__ (0, 0, "igs");
 
 /*
   //-------------------------------------------------
@@ -5705,40 +5757,40 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Wrl1")) {
     AP_stat.subtyp = 0;  // VRML1
-    AP_save__ (0, "wrl");
+    AP_save__ (0, 0, "wrl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Wrl2")) {
     AP_stat.subtyp = 1;  // VRML2
-    AP_save__ (0, "wrl");
+    AP_save__ (0, 0, "wrl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "expSVG")) {
     // see also Export/print svg; different versions !!!
-    AP_save__ (0, "svg");
+    AP_save__ (0, 0, "svg");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Obj")) {
-    AP_save__ (0, "obj");
+    AP_save__ (0, 0, "obj");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Stl")) {
-    AP_save__ (0, "stl");
+    AP_save__ (0, 0, "stl");
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Tess")) {
-    AP_save__ (0, "tess");
+    AP_save__ (0, 0, "tess");
 
 
 /*
   //-------------------------------------------------
   } else if(!strcmp(cp1, "exp1Jpg")) {
-    AP_save__ (0, "jpg");
+    AP_save__ (0, 0, "jpg");
 
 
   //-------------------------------------------------
@@ -6031,20 +6083,47 @@ See UI_but__ (txt);
   //-------------------------------------------------
   } else if(!strcmp(cp1, "ckb_nam")) {
 
-    APT_dispNam = GUI_menu_checkbox_get (&ckb_nam); //1=checked; 0=not
+    i1 = GUI_menu_checkbox_get (&ckb_nam); //1=checked; 0=not
+    // bitPos 0 = objID
+    APT_disp_att = BIT_UPD (APT_disp_att, 0, i1);
+    DL_Redraw ();
+    TX_Print(MSG_const__(MSG_GrpSel));
+
     // imply END-Button (Redraw)
     // UI_AP (UI_FuncSet, UID_but_END, NULL);  // Stuerzt ab !! ??
-    ED_Reset ();
-    ED_work_END (0);
+    // ED_Reset ();
+    // ED_work_END (0);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "ckb_dir1")) {
 
-    APT_dispDir = GUI_menu_checkbox_get (&ckb_dir); // 1=checked; 0=not
-    ED_Reset (); // imply END-Button (Redraw)
-    ED_work_END (0);
+    i1 = GUI_menu_checkbox_get (&ckb_dir); // 1=checked; 0=not
+    // bitPos 1 = direction
+    APT_disp_att = BIT_UPD (APT_disp_att, 1, i1);
+    DL_Redraw ();
+    TX_Print(MSG_const__(MSG_GrpSel));
 
+    // ED_Reset (); // imply END-Button (Redraw)
+    // ED_work_END (0);
+
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "ckb_ptDisp")) {
+
+    APT_dispPT = GUI_menu_checkbox_get (&ckb_ptDisp); // 1=checked; 0=not
+    DL_hide_unvisTypes (0);   // 0=view, 1=hide.
+    DL_Redraw ();
+
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "ckb_plDisp")) {
+         
+    APT_dispPL = GUI_menu_checkbox_get (&ckb_plDisp); // 1=checked; 0=not
+    DL_hide_unvisTypes (0);   // 0=view, 1=hide.
+    DL_Redraw ();
+         
+  
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "Redraw")) {
@@ -6234,8 +6313,8 @@ See UI_but__ (txt);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "delActMdl")) {   // delete active modelfile
-    irc = GUI_Dialog_2b (" delete active modelfile ? ",
-                         MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    irc = GUI_dlg_2b (" delete active modelfile ? ",
+                      MSG_const__(MSG_ok), MSG_const__(MSG_no));
     if(!irc) AP_delActMdl ();
     return 0;
 
@@ -6565,8 +6644,9 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "defWinsiz")) {
     sscanf(AP_winSiz,"-%d,-%d",&i1,&i2);
     sprintf(s1, " %d %d ",i1,i2);
-    irc = GUI_Dialog_e2b ("Windowsize, Format: width height\n - restart to apply",
-                          s1, 80, "OK", "Cancel");
+    irc = GUI_dlg_e2b (s1, 80,
+                       "Windowsize, Format: width height\n - restart to apply",
+                       "OK", "Cancel");
     if(irc == 0) {
         printf(" defWinsiz |%s|\n",s1);
       sscanf(s1," %d %d", &i1, &i2); 
@@ -6841,7 +6921,7 @@ box1
 
   /* -------------------------------------------------- */
   idat = GUI_DATA_I1;
-    printf("UI_win_main %d\n",idat);
+    // printf("UI_win_main %d\n",idat);
 
 
   switch (idat) {
@@ -7160,13 +7240,14 @@ box1
       // GUI_Tip  ("Darstellung aller NC-Hilfsfunktionen (als Text) an "
                 // "den jeweiligen Positionen.");
 
-      ckb_ptDisp = GUI_menu_checkbox__ (&wtmp1, "PointDisplay OFF", 0,
-                                    UI_viewCB, (void*)"PT_OFF");
+      ckb_ptDisp = GUI_menu_checkbox__ (&wtmp1, "PointDisplay ON", 0,
+                                    UI_menCB, (void*)"ckb_ptDisp");
+                                    // UI_viewCB, (void*)"PT_OFF");
       MSG_Tip ("MMdsppt"); //
       // GUI_Tip  ("Darstellung Punkte EIN / AUS");
 
-      ckb_plDisp = GUI_menu_checkbox__ (&wtmp1, "PlanesDisplay OFF", 0,
-                                    UI_viewCB, (void*)"PL_OFF");
+      ckb_plDisp = GUI_menu_checkbox__ (&wtmp1, "PlanesDisplay ON", 0,
+                                    UI_menCB, (void*)"ckb_plDisp");
       MSG_Tip ("MMdsppl"); //
       // GUI_Tip  ("Darstellung Ebenen (R) EIN / AUS");
 
@@ -7938,7 +8019,7 @@ box1
 
       // TreeBrowser
       winBrw = GUI_tree1__ (&win_brw, Brw_CB_sel, "e,e");
-      winBrStat = OFF;
+      AP_stat.brw_stat = BRWSTAT_init;
 
       // Editor
       winED = GUI_edi__ (&win_edi, EDI_CB__, 0, "e,e");
@@ -8096,7 +8177,7 @@ box1
 
       // primary display browser, not editor
       win_edStat = 0;  // disactivate ..
-      winBrStat  = 1;
+      AP_stat.brw_stat  = BRWSTAT_init;
       // UI_brw__ (0);
 
 
@@ -8160,26 +8241,14 @@ box1
         strcpy (APP_act_nam, cbuf1);
       }
 
-      // test if model is modified;
-      // Mod_sav_i already done
-      i1 = Mod_sav_ck (1);
-      if(i1) {
-        irc = AP_save_ex (0);
-      }
-
-      // save Viewparameters (Scale, Center, ..)
-      // UI_view__ ("Save");
-
-      AP_exit__ (); // shutdown ..
+      // shutdown ..
+      AP_exit__ (0);
 
       // gtk_widget_destroy ((GtkWidget*)UI_MainWin);
       GUI_Win_kill (&winMain);
       winMain = GUI_OBJ_INVALID();
       exit(0);
-
-
   }
-
 
 
   // return TRUE;
@@ -8192,6 +8261,7 @@ box1
 //================================================================
   int UI_lb_2D_upd () {
 //================================================================
+// UI_lb_2D_upd                  update label "2D" | "3D"
 
   if(AP_IS_3D)
     GUI_label_htm_mod(&UI_lb_2D,"<b> 3D </b>");
@@ -8319,6 +8389,44 @@ box1
 
   // load selected model
   return AP_Mod_load_fn (s1, 0);
+
+}
+
+
+//================================================================
+  int UI_file_open__ (char *sOut, int siz_so) {
+//================================================================
+// UI_file_open__                   get new filename (and directory) from user
+//   retCode       -1   error or cancel
+
+  int     irc;
+  char    s1[256], sTit[80];
+
+
+  // title "Model open"
+  strcpy(sTit, MSG_const__(MSG_open));
+  // strcpy(sTit, "open file ..");
+
+  // get filename of cfg/dir.lst
+  MDLFN_symFilNam (s1);
+
+  // preset active directory
+  strcpy(sOut, AP_mod_dir);
+
+  // get filename for "open file" from user, waiting.
+  // call GUI_file/save
+  irc = AP_GUI__ (sOut, siz_so, "GUI_file", "open",
+                  sOut,
+                  s1,
+                  UI_fnamFilt,
+                  sTit,
+                  NULL);
+  if(irc < 0) return -1;
+  if(strlen(sOut) < 1) return -1;    // cancel
+
+    printf(" ex-UI_file_open__ |%s|\n",sOut);
+
+  return 0;
 
 }
 
@@ -10043,7 +10151,7 @@ box1
   int UI_def_browser () {
 //================================================================
 
-  GUI_Dialog_e2b ("Html-Browser:", OS_browser, 80, "OK", "Cancel");
+  GUI_dlg_e2b (OS_browser, 80, "Html-Browser:", "OK", "Cancel");
 
   return 0;
     
@@ -10054,7 +10162,7 @@ box1
   int UI_def_editor () {
 //================================================================
 
-  GUI_Dialog_e2b ("Texteditor:", AP_editor, 80, "OK", "Cancel");
+  GUI_dlg_e2b (AP_editor, 80, "Texteditor:", "OK", "Cancel");
 
   return 0;
     

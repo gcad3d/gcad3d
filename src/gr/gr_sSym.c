@@ -425,7 +425,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
     // get pta = CircCenter projected onto axis pta-vca
     UT3D_pt_projptptvc (&pta, &d1, NULL, &cii->pc, &pta, &vca);
-      // GR_Disp_pt (&pta, SYM_STAR_S, 4);
+      // GR_tDyn_symB__ (&pta, SYM_STAR_S, 4);
     // SEE ALSO TSU_srv_tor_03 !
 
     if(UT3D_ck_ci360((Circ*)cvCov) == 0) {
@@ -437,7 +437,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       cic.p2 = cic.p1;
         // DEB_dump_obj__(Typ_CI, &cic, " srv-cont2:");
         // GR_Disp_ac (&cic, 9);
-        // GR_Disp_pt (&cic.p1, SYM_STAR_S, 3);
+        // GR_tDyn_symB__ (&cic.p1, SYM_STAR_S, 3);
       dbi = DB_StoreCirc (-1L, &cic);
       ODB_set_odb (&odbi, Typ_CI, dbi);
       // oci.typ   = Typ_CI;

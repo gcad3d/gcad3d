@@ -76,6 +76,9 @@ extern long DB_MNM_SIZ;
 
 
 
+// #define UTO__dbo        UTO__dbo
+
+
 
 void   DB_Init          (int mode);
 
@@ -133,7 +136,7 @@ ModelRef* DB_get_ModRef    (long Ind);
 ModelBas* DB_get_ModBas    (int Ind);
 ModelNode* DB_get_ModNod   (int ind);
 
-int       DB_GetObjDat     (void **pDat, int *oNr, int dbTyp, long dbInd);
+int       UTO__dbo     (void **pDat, int *oNr, int dbTyp, long dbInd);
 int       DB_GetObj        (long, long*, int*);
 ObjGX     DB_GetObjGX      (int typ, long apt_ind);
 // int    DB_GetObjUX      (ObjUX *ox, int typ, long apt_ind);

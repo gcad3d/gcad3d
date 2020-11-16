@@ -148,7 +148,7 @@ obj = binary-obj ((int)typ, (void*)data)
 (structure; the type of the structure must be known)
 
 --------- get binaryObject from DB-Obj
-DB_GetObjDat     get dataStruct from DB-Obj Resolv Refs. Give pointer.
+UTO__dbo     get dataStruct from DB-Obj Resolv Refs. Give pointer.
 
 --------- get binaryObject from complexObj
 UTO_obj_getp     get dataStruct from ObjGX Resolv Refs. Give pointer.

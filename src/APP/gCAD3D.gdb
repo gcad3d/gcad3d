@@ -30,7 +30,6 @@ break TX_Error
 #sharedlibrary libxa_test.so
 #add-symbol-file libxa_test.so.1
 
-
 # zum run hier fuer debug die Startparameter zufuegen; else nur run
 #run comp Data/unknown.gcad tst
 #run comp STP_U/4bar.gcad tst
@@ -38,25 +37,34 @@ break TX_Error
 #run
 #c
 
-
 # Stop beim load einer DLL;
 # verursacht dzt einen Stop; somit kann man break fuer sharedLib eingeben.
 #catch load
 #catch load libxa_test.so.1
 #set stop-on-solib-events 1
 
-
-#break CTLG_mnam_modelnam
-#cond 3 Ind == 0
 #run Data_U/sample_dimen1.gcad
 #run comp Data/sample_DiagEl1.gcad
 #run mode_cad_3_0
-run Data/sample_Iges1.igs
-#run Data/unknown.gcad
-#run comp
+#run Data/sample_Iges2.igs
+#run comp Data_U/unknown.gcad
+#run comp Data_U/test_cv_rev1.gcad
+#run comp Data_U/sample_mod_nut1.gcad
+#run comp Data/test_all_curvtypes.gcad
+#run comp STP_U/Err1.gcad
+#run Data/unknown.gcad mode_cad_10_1
+#run Data/unknown.gcad mode_cad
+run
+
+#break GUI_popup__
+#break GL_set_ocv
+#break UTF_insert1
+#break GL_Init_col
+#break MSH2D_view_i2ptb2
+#cond 3 Ind == 0
+
 #watch GR_TAB_IND
 #watch ((Circ*)TSU_ox2.data)->vz.dy
-#break sele_set__
-break UTF_insert1
-c
+
+#c
 #

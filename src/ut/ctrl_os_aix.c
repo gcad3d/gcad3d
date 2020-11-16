@@ -36,6 +36,7 @@ OS_CTL_write__          send line to remote
 OS_CTL_read_init
 OS_CTL_read_reset
 OS_CTL_read__           get next line (terminated with '\n') from inputpipe
+OS_CTL_exit
 
 List_functions_end:
 =====================================================
@@ -79,10 +80,26 @@ static char *pnin = NULL, *pnout = NULL;  // pipenames
 static int   pinLun = -1;                // input-pipe; always open
 static int   poutLun = -1;               // output-pipe; always open
 
-static FILE  *finLun;                    // swapfile for large input
+static FILE  *finLun = NULL;             // swapfile for large input
 
 
 
+//================================================================
+  int OS_CTL_exit () {
+//================================================================
+ 
+  // close CTRLfin
+  if(finLun) fclose (finLun);
+
+  // close pnin 
+  if(pinLun != -1) close (pinLun);
+
+  // close pnout
+  if(poutLun != -1) close (poutLun);
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -143,7 +160,7 @@ static FILE  *finLun;                    // swapfile for large input
   UtxTab_add (&AP_TxTab1, fn);
   UtxTab_query (&pnin, &AP_TxTab1);
 
-  printf("OS_CTL_read_init |%s|\n",fn);
+  // printf("OS_CTL_read_init |%s|\n",fn);
 
 
   // create input-pipe

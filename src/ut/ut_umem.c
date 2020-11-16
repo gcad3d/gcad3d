@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+- all MemObj -funcs (eg UME_obj_get) into separate source
 
 -----------------------------------------------------
 Modifications:
@@ -34,6 +34,7 @@ void UME(){}
 #endif
 /*!
 \file  ../ut/ut_umem.c
+       ../ut/ut_umem.h   struct Memspc
 \brief variable-length-records in memory: reserve/connect/release .. UME_
 \code
 =====================================================
@@ -58,16 +59,17 @@ UME__copy             save data, reallocate if necessary
 UME_reserve           get memSpacePos from datasize; reserve space; NO realloc
 UME_adjust            set new memSpacePos; (reserve space; set .next) NO realloc
 UME_save              copy data > Memspc;  NO realloc
+UME_add_obj           add oNr objs into Memspc (serialize)
+UME_add_nRec           copy data from pos into memSpc, update pointer <pos>
 
 UME_del               remove space (toPos - fromPos)
-UME_set_free          correct free space (release n bytes)
+UME_set_unused          correct free space (release n bytes)
 
 UME_get_next          get actual memSpacePosition                          INLINE
 UME_get_start         get startPosition of Memspc (NULL = uninitialized)   INLINE
 UME_get_used          get used space                                       INLINE
 UME_ck_free           return free space
 UME_ck_tot            report total space
-UME_dump              print space total / used
 
 MEM_alloc_file        allocate temp.memspace for existing file              INLINE
 UME_write__           write memSpc into file
@@ -86,16 +88,22 @@ PTR_MEMOBJ
 MEMOBJ_PTR
 
 UME_connect           DO NOT USE (use UME_get_next)                        INLINE
-UME_add    DO NOT USE Occupy spc. NO realloc.
+UME_add     DO NOT USE Occupy spc. NO realloc (use UME_reserve)
+UME_cp_obj  DO NOT USE; replaced by UME_add_obj              
 
 UME_reall_add         reserve space, reallocate if necessary   
 UME_reall_save        save data, reallocate if necessary
+
+UME_dump              print space total / used
+UME_test1             test UME_add_obj
 
 List_functions_end:
 =====================================================
 - see also:
 INF_MEM__
 ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
+
+UME_add_oxt           replaced by UME_add_obj
 
 \endcode *//*----------------------------------------
 
@@ -143,7 +151,7 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   iTab = UME_reserve (&tmpSeg1, iNr * sizeof(int));  // reserve spc for iNr int's
   for(i1=0;i1<iNr;++i1) iTab[i1] = i1;    // write into tmpSeg1
   ...                                     // (increments tmpSeg1.next !)
-  UME_set_free (-1, &tmpSeg1);            // reset tmpSeg1
+  UME_set_unused (-1, &tmpSeg1);            // reset tmpSeg1
 
 
 \endcode *//*----------------------------------------
@@ -161,14 +169,11 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 #include <stdarg.h>                     // fuer Variad. Funktionen (...)
 
 
+#include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_cast.h"
-#include "../ut/ut_umem.h"              // Memspc
-#include "../ut/ut_mem.h"               // MEM_..
-#include "../ut/ut_types.h"             // MEMSPCTYP_..
 #include "../ut/ut_umb.h"               // UMB_
+#include "../ut/ut_ox_base.h"          // OGX_SET_..
 #include "../ut/ut_TX.h"                // TX_Error
-
-#include "../ut/AP_types.h"             // Typ_Memspc
 
 // static int (*UME_CB__)();    // Deklaration realloc-Callback
 
@@ -234,7 +239,7 @@ const Memspc UME_NUL = UME_NEW;
   fread (&l1, sizeof(long), 1, fp);
 
   // clear space
-  UME_set_free (-1, memSpc);
+  UME_set_unused (-1, memSpc);
 
   // reserve space
   ps = UME_reserve (memSpc, l1);
@@ -349,10 +354,17 @@ const Memspc UME_NUL = UME_NEW;
 //=======================================================================
   int UME_init (Memspc *memSpc, void* objDat, int osiz) {
 //=======================================================================
-/// \code
-/// UME_init              init with fixed or stack-space (no realloc, no free)
-/// \endcode
-// see also ../doc/gCAD3D_prog_de.txt section Memoryfunktionen
+// UME_init              init with fixed or stack-space (no realloc, no free)
+//
+// Examples:
+// Memspc m1Spc = _MEMSPC_NUL; int siz = 16000; char spc[4000];
+// // get stack-spaces - is lost at return of func. Cannot free, cannot realloc.
+// UME_init (&m1Spc, MEM_alloc_tmp (siz), siz);
+// UME_init (&m2Spc, spc1, sizeof(spc1));
+// 
+// see also INF_MEM__
+// TODO:
+//   make also UME_init_fe (fixed-expandable (MEMTYP_ALLOC_EXPND))
 
 
 
@@ -727,7 +739,7 @@ const Memspc UME_NUL = UME_NEW;
 
 
 //============================================================================
-  int UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz) {
+  void* UME__copy (Memspc *memSpc, long *spcOff, void* objDat, long osiz) {
 //============================================================================
 /// \code
 /// UME__copy           save data, reallocate if necessary
@@ -738,7 +750,7 @@ const Memspc UME_NUL = UME_NEW;
 ///   objDat   data to be saved in memSpc
 /// Output:
 ///   spcOff   displacement-offset; 0: no reallocate.
-///   RetCode  0=OK; -1=outOfMemory-Error.
+///   RetCode  position of copied data in memSpc; NULL=outOfMemory-Error.
 /// \endcode
 
 
@@ -748,12 +760,12 @@ const Memspc UME_NUL = UME_NEW;
 
 
   vpd = UME__getSpc (memSpc, spcOff, osiz);
-  if(!vpd) return -1;
+  if(!vpd) return NULL; // -1;
 
   // copy data
   memcpy (vpd, objDat, osiz);
 
-  return 0;
+  return vpd;
 
 }
 
@@ -822,6 +834,385 @@ const Memspc UME_NUL = UME_NEW;
 */
 
 
+//======================================================================
+  int UME_add_nRec (Memspc *memSpc, void **pos, int recNr, int sizRec) {
+//======================================================================
+// UME_add_nRec       copy data from pos into memSpc, update pointer <pos>
+// 
+// see UME_cpy_nRec UME__copy MEM_copy_oTab
+
+  long   osiz, spcOff;
+  void   *vpd;
+
+
+
+  printf("UME_add_nRec recNr=%d sizRec=%d\n",recNr,sizRec);
+    printf(" pos-1=%p\n",*pos);
+
+  osiz = recNr * sizRec;
+
+  vpd = UME__getSpc (memSpc, &spcOff, osiz);
+  if(!vpd) return -1;
+  if(spcOff) printf("***** UME_add_nRec-realloc \n");
+
+  // copy data
+  memcpy (vpd, *pos, osiz);
+
+  // update ptr
+  *pos = vpd;
+
+    printf(" pos-2=%p\n",*pos);
+
+  return 0;
+
+}
+
+
+/* replaced by UME_add_obj
+//==================================================================
+  int UME_add_oxt (Memspc *mSpc, void **pObj, ObjGX *oxa, int oNr) {
+//==================================================================
+// UME_add_oxt               add obj-tree into Memspc (serialize)
+
+// see also OXMT_add_oxt
+
+
+  int      irc, i1;
+  long     l1, osiz;
+  void     *pDat;
+  ObjGX    *oxo, *ox1;
+
+
+  printf("\n::::::::::::::::::::::::::::::::::::::::::::::: \n");
+  DEB_dump_obj__ (Typ_Memspc, mSpc, "UME_add_oxt-in\n");
+  DEB_dump_nobj__ (Typ_ObjGX, oNr, oxa, "UME_add_oxt-in\n");
+
+
+  // first copy all ObjGX-records
+  osiz = oNr * sizeof(ObjGX);
+  oxo = UME__getSpc (mSpc, &l1, osiz);
+  if(!oxo) {TX_Error("UME_add_oxt EOM"); return -1;}
+
+  // copy all ObjGX-records
+  memcpy (oxo, oxa, osiz);
+
+
+  // loop tru records, add data into oxtb->spc
+  for(i1=0; i1<oNr; ++i1) {
+    ox1 = &oxo[i1];
+      DEB_dump_obj__ (Typ_ObjGX, ox1, " add_oxt-ox1[%d]",i1);
+
+    // test if ObjGX-record has extern-data to store,
+    if(!ox1->data) continue;
+
+// TODO: if obj is ObjGX recurse
+    if(ox1->form == Typ_ObjGX) {TX_Error("UME_add_oxt TODO-1"); return -1;}
+
+    // copy the objects
+    pDat = UME_add_obj (mSpc, ox1->form, ox1->siz, ox1->data);
+    if(!pDat) return -1;
+
+    // update ObjGX-pointer
+    ox1->data = pDat;
+  }
+
+  *pObj = oxo;
+
+    DEB_dump_nobj__ (Typ_ObjGX, oNr, oxo, "ex-UME_add_oxt\n");
+    // DEB_dump_ox_s_ (oxo, "ex-UME_add_oxt");
+
+  return 0;
+
+}
+*/
+
+//============================================================================
+  int UME_add_obj (Memspc *memSpc, void **po, int form, int oNr, void *data) {
+//============================================================================
+// UME_add_obj         add oNr objs into Memspc (serialize)
+//   does resolv subObjs of ObjGX
+// Input:
+//   oNr   nr of child-record of struct <form> in data copy with subObjs
+// Output:
+//   memSpc  data is added here
+//   retCod  pointer to copied obj in spc; NULL=error;
+// see UME_cp_obj
+
+  int     irc, i1, xSiz, sNr;
+  void    *pStart, *p1;
+  ObjGX   *ox1;
+
+
+  printf("--------- UME_add_obj form=%d oNr=%d\n",form,oNr);
+  DEB_dump_nobj__ (form, oNr, data, "UME_add_obj-in");
+  if(form == Typ_ObjGX) DEB_dump_ox_s_ (data, "UME_add_obj-in");
+  pStart = data;
+
+
+  //----------------------------------------------------------------
+  switch (form) {
+
+  //----------------------------------------------------------------
+  case Typ_VC:
+    xSiz = sizeof(Vector);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_PT:
+    xSiz = sizeof(Point);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_LN:
+    xSiz = sizeof(Line);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_CI:
+    xSiz = sizeof(Circ);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_CVELL:
+    xSiz = sizeof(CurvElli);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_CVPOL:
+    if(oNr != 1) goto L_errNr;
+    if(UME_add_nRec (memSpc, &pStart, oNr, sizeof(CurvPoly)) < 0) goto L_err_ex;
+    //............................
+    // copy cpTab
+    oNr = ((CurvPoly*)pStart)->ptNr;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((CurvPoly*)pStart)->cpTab),
+                    oNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+    //............................
+    // copy lvTab
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((CurvPoly*)pStart)->lvTab),
+                    oNr,
+                    sizeof(double)) < 0) goto L_err_ex;
+    break;
+
+//   //-------------------------------------------------------
+//   case Typ_CVBSP:   see OGX_ox_copy_obj
+//     if(oNr != 1) goto L_errNr;
+//     xSiz = sizeof(Typ_CVBSP);
+//       if(OGX_reloc_adr ((void**)&((CurvBSpl*)po)->kvTab, rd)) goto L_err_adr;
+//       if(OGX_reloc_adr ((void**)&((CurvBSpl*)po)->cpTab, rd)) goto L_err_adr;
+// 
+// 
+//   //-------------------------------------------------------
+//   case Typ_SURBSP:   see OGX_ox_copy_obj
+//     if(oNr != 1) goto L_errNr;
+//     xSiz = sizeof(?);
+//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->cpTab, rd)) goto L_err_adr;
+//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->kvTabU, rd)) goto L_err_adr;
+//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->kvTabV, rd)) goto L_err_adr;
+
+
+  //-------------------------------------------------------
+  case Typ_GTXT:
+    if(oNr != 1) goto L_errNr;
+    if(UME_add_nRec (memSpc, &pStart, oNr, sizeof(GText)) < 0) goto L_err_ex;
+
+    //............................
+    // copy txt
+    // set position of data in primary-obj
+    ((GText*)pStart)->txt = UME_get_next (memSpc);
+    // copy
+    p1 = ((GText*)data)->txt;
+    sNr = UTI_div4up (strlen((char*)p1) + 1);
+    if(UME_add_nRec (memSpc, &p1, sNr, 1) < 0) goto L_err_ex;
+    break;
+
+  //-------------------------------------------------------
+  case Typ_ObjGX:
+    xSiz = sizeof(ObjGX);
+    // copy the primary objs
+    if(UME_add_nRec (memSpc, &pStart, oNr, xSiz) < 0) goto L_err_ex;
+
+    // copy all childs
+    //   address of childs is ox.data;
+    for(i1=0; i1<oNr; ++i1) {
+      ox1 = &((ObjGX*)pStart)[i1];
+        DEB_dump_obj__ (ox1->form, ox1->data, "add_obj-rec-%d",i1);
+      // ignore all primary ObjGX-Records where data ist not pointer
+      if(!ox1->data)                     continue;
+      if((ox1->form == Typ_Index) ||
+         (ox1->form == Typ_Int4)  ||
+         (ox1->form == Typ_Typ))         continue;
+      // recurse
+      irc = UME_add_obj (memSpc, &ox1->data, ox1->form, ox1->siz, ox1->data);
+      if(irc < 0) return irc;
+    }
+    break;
+
+  //----------------------------------------------------------------
+  default:
+    TX_Error("UME_add_obj E002 - unsupported struct %d\n",form);
+    goto L_err_ex;
+  }
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_cpy_noPtr:
+    // copy struct with no pointers
+    if(UME_add_nRec (memSpc, &pStart, oNr, xSiz) < 0) goto L_err_ex;
+
+
+
+  //================================================================
+  L_exit:
+    *po = pStart;
+
+    // TESTBLOCK
+    printf("ex-UME_add_obj\n");
+    DEB_dump_obj__ (form, pStart, "ex-UME_add_obj");
+      // // DEB_dump_ox_0 (objo, "ex OGX_ox_copy_obj");
+    // END TESTBLOCK
+
+    return 0;
+
+
+
+  //================================================================
+  L_errNr:
+    TX_Error("UTO__rdf_ox E002 - mult.objs not supp.\n");
+
+  L_err_ex:
+    return -1;
+
+
+
+}
+
+
+//======================================================================
+  int UME_cp_obj (Memspc *memSpc, int form, void *obj) {
+//======================================================================
+// DO NOT USE; replaced by UME_add_obj
+// UME_cp_obj                  copy data of struct of type <form>
+//   Copy all data of struct <obj> into memSpc and update the pointers of <obj>
+//   Eg form=CurvBSpl: copy cpTab and kvTab
+// Input
+//   form    type of struct <obj>
+//   obj     struct with pointers. Copy all date into memSpc and
+//           update the pointers.
+// see OGX_ox_copy_obj
+
+
+
+  DEB_dump_obj__ (form, obj, "\nUME_cp_obj-in");
+
+
+  //----------------------------------------------------------------
+  if(form == Typ_CVPOL) {     // DB_StoreCvPlg
+    printf(" lv-1=%p\n",((CurvPoly*)obj)->lvTab);
+
+
+    // copy lvTab --> objo
+    if(((CurvPoly*)obj)->lvTab) {
+
+      if(UME_add_nRec (memSpc,
+                      (void**)&((CurvPoly*)obj)->lvTab,
+                      ((CurvPoly*)obj)->ptNr,
+                      sizeof(double)) < 0) goto L_err_ex;
+    }
+    printf(" lv-2=%p\n",((CurvPoly*)obj)->lvTab);
+    // copy cpTab --> objo
+    if(UME_add_nRec (memSpc,
+                    (void**)&((CurvPoly*)obj)->cpTab,
+                    ((CurvPoly*)obj)->ptNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+
+    printf(" lv-3=%p\n",((CurvPoly*)obj)->lvTab);
+
+  //-------------------------------------------------------
+  } else if(form == Typ_CVBSP) {
+
+    // save knotvals
+    if(UME_add_nRec (memSpc,
+                    (void**)&((CurvBSpl*)obj)->kvTab,
+                    ((CurvBSpl*)obj)->ptNr + ((CurvBSpl*)obj)->deg + 1,
+                    sizeof(double)) < 0) goto L_err_ex;
+
+    // save controlpoints
+    if(UME_add_nRec (memSpc,
+                    (void**)&((CurvBSpl*)obj)->cpTab,
+                    ((CurvBSpl*)obj)->ptNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+
+
+  //-------------------------------------------------------
+  } else if(form == Typ_SURBSP) {
+
+    // save cpTab
+    if(UME_add_nRec (memSpc,
+                    (void**)&((SurBSpl*)obj)->cpTab,
+                    ((SurBSpl*)obj)->ptUNr * ((SurBSpl*)obj)->ptVNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+
+    // save kvTabU
+    if(UME_add_nRec (memSpc,
+                    (void**)&((SurBSpl*)obj)->kvTabU,
+                    ((SurBSpl*)obj)->ptUNr + ((SurBSpl*)obj)->degU + 1,
+                    sizeof(double)) < 0) goto L_err_ex;
+
+    // save kvTabV
+    if(UME_add_nRec (memSpc,
+                    (void**)&((SurBSpl*)obj)->kvTabV,
+                    ((SurBSpl*)obj)->ptVNr + ((SurBSpl*)obj)->degV + 1,
+                    sizeof(double)) < 0) goto L_err_ex;
+
+
+  //-------------------------------------------------------
+  } else if(form == Typ_GTXT) {
+      // printf(" Typ_GTXT |%s|\n",((GText*)obj)->txt);
+
+    // copy text (increase to a multiple of 4)
+    if(UME_add_nRec (memSpc,
+                    (void**)&((GText*)obj)->txt,
+                    UTI_div4up(strlen(((GText*)obj)->txt) + 1),
+                    1) < 0) goto L_err_ex;
+
+
+  //----------------------------------------------------------------
+/*
+  } else if(form == Typ_Model) {
+      printf(" Typ_Model |%s| iSiz=%d\n",((ModelRef*)pi)->mnam,iSiz);
+    // copy modelname
+    ((ModelRef*)obj)->mnam = *objo;
+    memcpy (*objo, ((ModelRef*)pi)->mnam, 4);
+    *oSiz -= 4;
+    *objo = (char*)*objo + 4; // *objo += 4;
+      DEB_dump_obj__ (Typ_Model, obj, "model");
+*/
+
+  //----------------------------------------------------------------
+  } else {
+    TX_Error("UME_cp_obj E002 - unsupported struct %d\n",form);
+    goto L_err_ex;
+  }
+
+
+  //================================================================
+  L_exit:
+      // DEB_dump_ox_0 (objo, "ex OGX_ox_copy_obj");
+      DEB_dump_obj__ (form, obj, "\nex-UME_cp_obj");
+    return 0;
+
+  //----------------------------------------------------------------
+  L_err_ex:
+    return -1;
+
+}
+
+
 //=======================================================================
   void* UME_save (Memspc *memSpc, void* objDat, int osiz) {
 //=======================================================================
@@ -884,13 +1275,13 @@ const Memspc UME_NUL = UME_NEW;
 
 
 //=======================================================================
-  int UME_set_free (int sizFree, Memspc *memSpc) {
+  int UME_set_unused (int sizFree, Memspc *memSpc) {
 //=======================================================================
 /// \code
-/// UME_set_free          correct free space (release n bytes)
+/// UME_set_unused          correct free space (release n bytes)
 /// 
 /// usage:
-/// UME_set_free (sSiz, wrkSpc);    // release sSiz bytes)
+/// UME_set_unused (sSiz, wrkSpc);    // release sSiz bytes)
 ///   sSiz       >0    cut off <sSiz> from end of data
 ///              -1    clear whole data
 /// \endcode
@@ -921,9 +1312,10 @@ const Memspc UME_NUL = UME_NEW;
 /// UME_dump              print space total / used
 
 
-  printf("%s Memspc- used=%ld total=%ld\n",txt,
+  printf("%s Memspc- used=%ld total=%ld spcTyp=%d\n",txt,
        (long)((char*)memSpc->next - (char*)memSpc->start),
-       (long)((char*)memSpc->end  - (char*)memSpc->start));
+       (long)((char*)memSpc->end  - (char*)memSpc->start),
+       memSpc->spcTyp);
 
   return 0;
 
@@ -1143,6 +1535,61 @@ const Memspc UME_NUL = UME_NEW;
 
   printf("UME_obj_dump  mbID=%d ioff=%d\n",
       mo->mbID, mo->ioff);
+
+}
+
+
+//================================================================
+  int UME_test1 () {
+//================================================================
+// UME_test1           test UME_add_obj
+
+#define TMPSIZ 4000
+
+  int      irc; 
+  Point    pp1[]={600., 0., 0., 650., 0., 0.,
+                  650.,20., 0., 600.,20., 0., 600., 0., 0.,};
+  CurvPoly plg1;
+  void     *p1, *p2, *p3, *p4;
+  ObjGX    ox1;
+  Memspc   mSpc = _MEMSPC_NUL, tmpSpc = _MEMSPC_NUL;
+
+
+  irc = UME_malloc (&mSpc, 16000, 16000);
+    UME_dump (&mSpc, "\nUME_test1-in");
+
+  UME_init (&tmpSpc, MEM_alloc_tmp(TMPSIZ), TMPSIZ);
+
+  // copy Points into ObjGX-record
+  irc = UME_add_obj (&mSpc, &p1, Typ_PT, 5, pp1);
+  if(irc < 0) return -1;
+    DEB_dump_nobj__ (Typ_PT, 5, p1, "f-add_obj-p1");
+
+  // copy DB-Link to P123 into ObjGX-record
+  OGX_SET_INDEX (&ox1, Typ_PT, 123L);
+  irc = UME_add_obj (&mSpc, &p2, Typ_ObjGX, 1, &ox1);
+  if(irc < 0) return -1;
+    DEB_dump_obj__ (Typ_ObjGX, p2, "UME_test1-p2");
+
+  // copy polygon
+  UT3D_plg_pta (&plg1, pp1, 5, &tmpSpc);
+  irc = UME_add_obj (&mSpc, &p3, Typ_CVPOL, 1, &plg1);
+  if(irc < 0) return -1;
+    DEB_dump_obj__ (Typ_ObjGX, p3, "UME_test1-p3");
+
+  // copy polygon
+  UT3D_plg_pta (&plg1, pp1, 5, &tmpSpc);
+  OGX_SET_OBJ (&ox1, Typ_CVPOL, Typ_CVPOL, 1, &plg1);
+  irc = UME_add_obj (&mSpc, &p4, Typ_ObjGX, 1, &ox1);
+  if(irc < 0) return -1;
+    DEB_dump_ox_s_ (p4, "UME_add_obj-p4");
+
+
+  //----------------------------------------------------------------
+  L_exit:
+  UME_free (&mSpc);
+
+  return 0;
 
 }
 

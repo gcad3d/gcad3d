@@ -777,7 +777,7 @@ L_outOfWorkSpace:
          "UT3D_parsbsp_pt uNr=%d vNr=%d du=%f dv=%f\n",
           uNr,vNr,dui,dvi);
 
-    GR_Disp_pt (pti, SYM_TRI_S, 1);
+    GR_tDyn_symB__ (pti, SYM_TRI_S, 1);
 
     printf(" kU von %f bis %f\n",uMin,uMax);
     printf(" kV von %f bis %f\n",vMin,vMax);
@@ -808,7 +808,7 @@ L_outOfWorkSpace:
 
   // disp nearest Point
   // printf(" nearest: iu1=%d iv1=%d\n",iu1,iv1);
-  // i3 = iv1*uNr+iu1; pc = pTab[i3]; GR_Disp_pt (&pc, SYM_STAR_S, 2);
+  // i3 = iv1*uNr+iu1; pc = pTab[i3]; GR_tDyn_symB__ (&pc, SYM_STAR_S, 2);
 
 
   // uc,vc sind die Werte des gefundenen Punktes iu1,iv1.
@@ -884,10 +884,10 @@ L_outOfWorkSpace:
 
   //------ Disp new rectangle
   // GR_tDyn_pcv (pa, 4, 2);
-  // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[0], " 0", 2);
-  // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[1], " 1", 2);
-  // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[2], " 2", 2);
-  // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[3], " 3", 2);
+  // GR_tDyn_symB__ (&pa[0], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[0], " 0", 2);
+  // GR_tDyn_symB__ (&pa[1], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[1], " 1", 2);
+  // GR_tDyn_symB__ (&pa[2], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[2], " 2", 2);
+  // GR_tDyn_symB__ (&pa[3], SYM_TRI_S, 2);  GR_tDyn_txtA(&pa[3], " 3", 2);
   // return -1;
   //------
 
@@ -997,7 +997,7 @@ L_outOfWorkSpace:
   vc -= dv ;
     // printf(" par.p[0] uc=%f vc=%f\n",uc,vc);
     // UT3D_pt_evparsbsp (&pc, sbs, uc, vc, wrkSpc);
-    // GR_Disp_pt (&pc, SYM_TRI_S, 4);
+    // GR_tDyn_symB__ (&pc, SYM_TRI_S, 4);
 
 
   // neuen Mittelpunkt uc,cv errechnen
@@ -1016,7 +1016,7 @@ L_outOfWorkSpace:
 
   // den neuen Punkt Testpunkt pc errechnen
   UT3D_pt_evparsbsp (&pc, sbs, uc, vc, wrkSpc);
-    // GR_Disp_pt (&pc, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pc, SYM_STAR_S, 2);
 
 
   // dc = Abst gesuchter Punkt pti - neuer Punkt pc
@@ -1053,25 +1053,25 @@ L_outOfWorkSpace:
   u0 = uc - du;
   v0 = vc - dv;
   UT3D_pt_evparsrbsp (&pa[0], sbs, u0, v0, wrkSpc);
-    // GR_Disp_pt (&pa[0], SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pa[0], SYM_TRI_S, 2);
     // GR_tDyn_txtA(&pa[0], "0", 2);
 
   u1 = uc + du;
   v1 = vc - dv;
   UT3D_pt_evparsrbsp (&pa[1], sbs, u1, v1, wrkSpc);
-    // GR_Disp_pt (&pa[1], SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pa[1], SYM_TRI_S, 2);
     // GR_tDyn_txtA(&pa[1], "1", 2);
 
   u2 = uc + du;
   v2 = vc + dv;
   UT3D_pt_evparsrbsp (&pa[2], sbs, u2, v2, wrkSpc);
-    // GR_Disp_pt (&pa[2], SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pa[2], SYM_TRI_S, 2);
     // GR_tDyn_txtA(&pa[2], "2", 2);
 
   u3 = uc - du;
   v3 = vc + dv;
   UT3D_pt_evparsrbsp (&pa[3], sbs, u3, v3, wrkSpc);
-    // GR_Disp_pt (&pa[3], SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&pa[3], SYM_TRI_S, 2);
     // GR_tDyn_txtA(&pa[3], "3", 2);
     // GR_tDyn_pcv (pa, 4, 3);
 

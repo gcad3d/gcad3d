@@ -42,7 +42,7 @@ First time build plugin with:
 Compile/Link/Reload is done while gCad3D is up and running !!
 
 
-make -f DemoPlugin_Create.mak
+. ../options.sh && make -f DemoPlugin_Create.mak
 
 */
 
@@ -77,6 +77,8 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // Fac3 MshFac
 
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 
@@ -155,6 +157,11 @@ char myMemspc[50000];
   // cre_tDyn_txt ();        // Temporary-Dynamic text
   // cre_tDyn_mdr ();        // Temporary-Dynamic modelRefs;
 
+
+  //----------------------------------------------------------------
+  // surfaces
+  cre_tDyn_sur_nifac1 ();    // indexed-faces
+  cre_tDyn_sur_nifac2 ();    // double-indexed-faces
 
 
 
@@ -236,7 +243,7 @@ char myMemspc[50000];
 
   // B-Spline-Curve, Degree 3  from points
   //           (cvBsp, &memSeg1, pTab, ptNr, deg);
-  bspl_bsp_ptn (&bsp1, &memSeg1, cvp,     5,   3); 
+  UT3D_cbsp_ptn (&bsp1, &memSeg1, cvp,     5,   3); 
   // disp
   GR_tDyn_ocv (Typ_CVBSP, &bsp1, 0, Typ_Att_blue);
 
@@ -406,7 +413,7 @@ char myMemspc[50000];
   // create contour
   UME_init (&memSeg1, myMemspc, sizeof(myMemspc));  // init memoryseg (tempspc)
   //           (cvBsp, &memSeg1, pTab, ptNr, deg);
-  bspl_bsp_ptn (&cv1,  &memSeg1, cvp,     5,   3);  // make BSP-curve from pTab
+  UT3D_cbsp_ptn (&cv1,  &memSeg1, cvp,     5,   3);  // make BSP-curve from pTab
   // OGX_SET_OBJ (&ocv, Typ_CVBSP, Typ_CVBSP, 1, &cv1);
   // id2 = DB_StoreCurv (DB_QueryNxtFree(Typ_CV, 1), &ocv, 0);
   // AP_obj_2_txt_query (&typ2, &id2);           // query index
@@ -442,6 +449,7 @@ char myMemspc[50000];
 // Surf = 1-n PlanarPatches
 //            Planar patch = 1-n contours (and vector)
 //                               Contour = ipoints (closed, tesselated)
+// see also BMSH_test_cre1
 
   long  il;
   ObjGX gCont[10], gPat[2], gSur;
@@ -923,7 +931,7 @@ char myMemspc[50000];
   pt1.x = 0.;
   pt1.y -= 2.;
   for(i1=0; i1<10; ++i1) {
-    GR_tDyn_symB (&pt1, SYM_STAR_S, ATT_COL_RED);
+    GR_tDyn_symB__ (&pt1, SYM_STAR_S, ATT_COL_RED);
     pt1.x += 2.;
   }
 
@@ -932,14 +940,14 @@ char myMemspc[50000];
   pt1.x = 0.;
   pt1.y -= 2.;
   // normalized vector
-  GR_tDyn_vc (&vc1, &pt1, ATT_COL_BLUE, 0);
-  GR_tDyn_vc (&UT3D_VECTOR_Y, &pt1, ATT_COL_BLUE, 0);
+  GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 0);
+  GR_tDyn_vc__ (&UT3D_VECTOR_Y, &pt1, ATT_COL_BLUE, 0);
   // vector true-length
   for(i1=0; i1<5; ++i1) {
     pt1.x += 2.;
-    GR_tDyn_vc (&vc1, &pt1, ATT_COL_BLUE, 1);
+    GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 1);
     UT3D_vc_multvc (&vc2, &UT3D_VECTOR_Y, pt1.x);
-    GR_tDyn_vc (&vc2, &pt1, ATT_COL_RED, 1);
+    GR_tDyn_vc__ (&vc2, &pt1, ATT_COL_RED, 1);
   }
 
 
@@ -1082,6 +1090,103 @@ char myMemspc[50000];
   return 0;
 
 }
+
+
+//================================================================
+  int cre_tDyn_sur_nifac1 () {
+//================================================================
+// indexed-faces
+
+  int    gTyp, ptNr, otyp, att;
+  Line   ln1, ln2;
+  Vector v1;
+  Circ   ci1;
+  Point  pt1, pt2;
+  ObjGX  os, oa[2];
+  MshFac nfa = _MSHFAC_NUL;
+  ColRGB col1 = _ColRGB_NUL;
+
+
+  printf("cre_tDyn_sur_nifac1 \n");
+
+  // create ln 1
+  UT3D_pt_3db (&ln1.p1, 300.,  100.,   0.);
+  UT3D_pt_3db (&ln1.p2, 350.,  100.,   0.);
+  OGX_SET_OBJ (&oa[0], Typ_LN, Typ_LN, 1, &ln1);
+
+  // create ln 2
+  // UT3D_pt_3db (&ln2.p1, 320.,  120.,   100.);
+  // UT3D_pt_3db (&ln2.p2, 350.,  100.,   100.);
+  // OGX_SET_OBJ (&oa[1], Typ_LN, Typ_LN, 1, &ln2);
+
+  // or create Circ from center, startpoint, axis, opening angle
+  UT3D_pt_3db (&pt1, 320.,  120.,   100.);
+  UT3D_pt_3db (&pt2, 350.,  100.,   100.);
+  AP_Get_ConstPl_vz (&v1);
+  UT3D_ci_ptptvcrd (&ci1, &pt1, &pt2, 25., &v1, 1, 0);
+    DEB_dump_obj__ (Typ_CI, &ci1, "ci1");
+  OGX_SET_OBJ (&oa[1], Typ_CI, Typ_CI, 1, &ci1);
+
+  // create ruled surf from 2 curves
+  OGX_SET_OBJ (&os, Typ_SURRU, Typ_ObjGX, 2, oa);
+    DEB_dump_ox_0 (&os, "SURRU ln+ln:");
+    DEB_dump_ox_s_ (&os, "SURRU ln+ln:");
+
+  // tesselate sru
+  GRTSU_nifac_sru (&nfa, &os);
+
+  // disp with default-color (att=0);
+  // GR_tDyn_nfac (&nfa, 0);
+  GR_tDyn_nifac (&nfa, 0);
+
+  // or set color yellow (1,1,0)
+  // UTcol__3i (&col1, 200,200,0);     // RGB 0-255
+  // GR_tDyn_nfac (&nfa, INT32I_COL(&col1));
+
+  UME_free (&nfa.mSpc);
+
+  return 0;
+
+}
+
+
+
+//================================================================
+  int cre_tDyn_sur_nifac2 () {
+//================================================================
+// double-indexed-faces
+
+//         4--- 3 ---- 2    points
+//           \  |   /  |
+//             \| /    |
+//              0 ---- 1
+
+  int     irc, fNr, oTyp, iAtt;
+  long    dbi;
+  Point   pa[] = {{0.,0.,0}, {10.,0.,0.}, {10., 10., 0.},
+                  {0.,10.,0}, {-10.,10.,0.}};
+  int     ia[] = { 0,1,2,      2,3,0,      3,4,0};      // index into pa
+  Fac3    fa[] = {{0,1,2, 0}, {3,4,5, 0}, {6,7,8, 0}};  // index into ia
+  Vec3f   va[] = {0.f, 0.f, 1.f};
+  MshFac  nifa;
+
+
+  printf("cre_tDyn_sur_nifac2 \n");
+
+  nifa.oTyp  = Typ_SURPLN;
+  nifa.fNr   = 3;
+  nifa.pa3   = pa;
+  nifa.ipa   = ia;
+  nifa.fac   = fa;
+  nifa.vc3   = va;
+
+  // disp with default-color (att=0);
+  GR_tDyn_nifac (&nifa, 0);
+
+  return 0;
+
+}
+
 
 
 //======================== EOF ======================

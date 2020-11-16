@@ -137,7 +137,7 @@ extern int errno;
     i1 = strlen(s1);
     ii += i1 + 1;
       // printf(" s1=|%s| i1=%d ii=%d\n",s1,i1,ii);
-    if(ii >= sSiz) {irc = -2; goto L_exit;}
+    if(ii >= sSiz) {irc = -2; pclose (fPip1); goto L_exit;}
     strcat(sOut, s1);
   }
 
@@ -158,7 +158,7 @@ extern int errno;
   }
 
   L_exit:
-    printd("ex-OS_sys1 %d |%s|\n",irc,sOut);
+    // printd("ex-OS_sys1 %d |%s|\n",irc,sOut);
   return irc;
 
 }

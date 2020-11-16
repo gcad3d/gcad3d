@@ -53,7 +53,7 @@ TSU_DrawSurTess      draw tesselated surf
 ------------- trimmed-perforated-surfaces
 TSU_DrawSurTP        trimmed-perforated-surface planar
 TSU_DrawSurTC        trimmed-perforated-surface complex
-TSU_DrawSurMsh       disp mesh from points
+TSU_DrawSurPMsh       disp mesh from points
 TSU_DrawHAT          hatched-surface
 
 TSU_DrawSurT_  old-version; to be replaced ..
@@ -648,7 +648,7 @@ static int oldMode = 0;
     if(irc < 0) goto L_fertig;
 
     // TEST:
-    // tess_dump_f_ (*spc1, "ex TSU_tessObj");
+    // BMSH_dump_bfMsh (*spc1, "ex TSU_tessObj");
 
 
 
@@ -719,11 +719,11 @@ static int oldMode = 0;
 
 //===========================================================================
   int TSU_ntria_bMsh__ (TypTsuSur *surTab, int *surNr, int surSiz,
-                      Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi) {
+                      Triang *triTab, int *triNr, int triSiz, ObjGX *oxi) {
 //===========================================================================
-// make Triangles from Mockup-struct (TSU-Record (GL_Sur's + GL_PP's))
+// make Triangs from Mockup-struct (TSU-Record (GL_Sur's + GL_PP's))
 // Input:
-//   oxi ist ein tesselated-dataBlock. See TSU_tess_sTab tess_dump_f_
+//   oxi ist ein tesselated-dataBlock. See TSU_tess_sTab BMSH_dump_bfMsh
 // Output:
 //   surTab[surNr]  UNUSED
 //   surNr          UNUSED
@@ -745,7 +745,7 @@ static int oldMode = 0;
   ObjGX   *actPP, *actCont;
 
 
-  // tess_dump_f_ (oxi, "TSU_ntria_bMsh__");
+  // BMSH_dump_bfMsh (oxi, "TSU_ntria_bMsh__");
   // printf(" surSiz=%d triSiz=%d\n",surSiz,triSiz);
   // DEB_dump_ox_s_ (oxi, "TSU_ntria_bMsh__");
   // DEB_dump_ox_s_ (&oxi[0], "TSU_ntria_bMsh__-0");
@@ -872,7 +872,7 @@ static int oldMode = 0;
 
 //=============================================================================
   int TSU_ntria_bMsh_sur (TypTsuSur *surTab, int *surNr, int surSiz,
-                        Triangle *triTab, int *triNr, int triSiz,
+                        Triang *triTab, int *triNr, int triSiz,
                         ObjGX *oxi, int *surTyp) {
 //=============================================================================
 // add points in oxi to surTab and triTab
@@ -911,10 +911,10 @@ static int oldMode = 0;
 
 
 //=============================================================================
-  int TSU_ntria_bMsh_p (Triangle *triTab, int *triNr, int triSiz, ObjGX *oxi,
+  int TSU_ntria_bMsh_p (Triang *triTab, int *triNr, int triSiz, ObjGX *oxi,
                         int *surTyp) {
 //=============================================================================
-// save ptTab in oxi as Triangles
+// save ptTab in oxi as Triangs
 // Input:
 //   oxi     ist ein tesselated Patch.
 //           oxi->aux is der GL-Typ;
@@ -952,9 +952,9 @@ static int oldMode = 0;
     // TESTBLOCK
     // for(i1=0; i1<ie; ++i1) {
       // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]",i1);
-      // GR_tDyn_symB (&pTab[i1], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pTab[i1], SYM_STAR_S, 2);
     // }
-    // GR_tDyn_symB (oxi->siz, pTab, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (oxi->siz, pTab, SYM_STAR_S, 2);
     // END TESTBLOCK
 
 
@@ -1289,8 +1289,8 @@ static int   patNr;     // nr of Patches
   if(mode != 2) goto L_fan;
   // add data
   printf("TSU_stor_rec strip %d\n",ptNr);
-  // GR_tDyn_symB (ptNr, pa1, SYM_TRI_S, 3);
-  // GR_tDyn_symB (ptNr, pa2, SYM_TRI_S, 3);
+  // GR_tDyn_symB__ (ptNr, pa1, SYM_TRI_S, 3);
+  // GR_tDyn_symB__ (ptNr, pa2, SYM_TRI_S, 3);
 
 
 
@@ -2230,9 +2230,9 @@ static int   patNr;     // nr of Patches
 
 
 //================================================================
-  int TSU_DrawSurMsh (ObjGX *oxi, int att, long dbi) {
+  int TSU_DrawSurPMsh (ObjGX *oxi, int att, long dbi) {
 //================================================================
- // TSU_DrawSurMsh       disp mesh from points
+ // TSU_DrawSurPMsh       disp mesh from points
 
 
   int       i1, i2, i3, ii, is, *iTab, pgNr, pNr, fNr, styl, iTex;
@@ -2250,7 +2250,7 @@ static int   patNr;     // nr of Patches
 
 
 
-  // printf("TSU_DrawSurMsh A%ld DL_perm_ind=%ld\n",dbi,DL_perm_ind);
+  // printf("TSU_DrawSurPMsh A%ld DL_perm_ind=%ld\n",dbi,DL_perm_ind);
     // DEB_dump_obj__ (Typ_ObjGX, oxi, "");
 
 
@@ -2274,7 +2274,7 @@ static int   patNr;     // nr of Patches
 
   // load PointFile  (write: lxml_read) pTab=malloc !
   i1 = MSH_bload_pTab (&pTab, AP_modact_nam, pgNr);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E001"); return -1;}
+  if(i1 < 0) {TX_Error("TSU_DrawSurPMsh E001"); return -1;}
 
 
   // check if bin.meshfile exists
@@ -2283,7 +2283,7 @@ static int   patNr;     // nr of Patches
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
-  TX_Error("TSU_DrawSurMsh I001"); return -1;
+  TX_Error("TSU_DrawSurPMsh I001"); return -1;
 
 /*
   // get space for boundary
@@ -2306,7 +2306,7 @@ static int   patNr;     // nr of Patches
   L_f_load:
   // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ind, dbi);
   i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, dbi);
-  if(i1 < 0) {TX_Error("TSU_DrawSurMsh E002"); return -1;}
+  if(i1 < 0) {TX_Error("TSU_DrawSurPMsh E002"); return -1;}
   flag1 = 1;
 
 
@@ -2392,7 +2392,7 @@ static int   patNr;     // nr of Patches
   }
 */
 
-    // printf(" <<<<<<<<<<<<<<<<<<<TSU_DrawSurMsh free pTab %p\n",pTab);
+    // printf(" <<<<<<<<<<<<<<<<<<<TSU_DrawSurPMsh free pTab %p\n",pTab);
 
   // MemTab_free (&eDat);
   // MemTab_free (&eTab);
@@ -2403,7 +2403,7 @@ static int   patNr;     // nr of Patches
 
 
   L_EOM:
-    printf("TSU_DrawSurMsh EOM\n");
+    printf("TSU_DrawSurPMsh EOM\n");
     return -1;
 }
 
@@ -3054,7 +3054,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     pp1 = cTab[i1].p2a;
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(box1, &pp1[i2]);
-      GR_Disp_pt (box1, SYM_STAR_S, 2);
+      GR_tDyn_symB__ (box1, SYM_STAR_S, 2);
       GR_tDyn_txiA (box1, i2, 0);
     }
   }
@@ -3103,7 +3103,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     pp1 = cTab[i1].p2a;
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       (*TSU_tr_3D_2D_pt)(box1, &pp1[i2]);
-      GR_Disp_pt (box1, SYM_STAR_S, 2);
+      GR_tDyn_symB__ (box1, SYM_STAR_S, 2);
       GR_tDyn_txiA (box1, i2, 0);
     }
   }
@@ -4045,14 +4045,14 @@ uOff abhaengig von Aussenkonturtyp:
     if(TSU_ox1.form == Typ_PT) {
      TSU_prx = *((Point*)TSU_ox1.data);
      TSU_vrx = UT3D_VECTOR_Z;
-     // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
+     // GR_tDyn_vc__ (&TSU_vrx, &TSU_prx, 1, 0);
 
     } else if(TSU_ox1.form == Typ_LN) {
      TSU_prx = ((Line*)TSU_ox1.data)->p1;
      UT3D_vc_ln (&TSU_vrx, (Line*)TSU_ox1.data);
      UT3D_vc_setLength (&TSU_vrx, &TSU_vrx, 1.);  // f UT3D_pt_rotptptvcangr
      // UT3D_vc_invert (&TSU_vrx, &TSU_vrx);
-     // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
+     // GR_tDyn_vc__ (&TSU_vrx, &TSU_prx, 1, 0);
 
     } else if(TSU_ox1.form == Typ_PLN) {
      // DEB_dump_obj__ (Typ_PLN, TSU_obj1.vp, "Axis");
@@ -4069,7 +4069,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TSU_prx");
     // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TSU_vrx");
-    // GR_tDyn_vc (&TSU_vrx, &TSU_prx, 1, 0);
+    // GR_tDyn_vc__ (&TSU_vrx, &TSU_prx, 1, 0);
 
 
     // den maximalen radius der CoverCurve suchen und daraus den vOff rechnen
@@ -4123,7 +4123,7 @@ uOff abhaengig von Aussenkonturtyp:
       // printf(" int %d %f\n",irc,d1);
 
       // if(d1 < UT_DISP_cv) TSU_pintNr = 1;
-        // GR_Disp_pt (&TSU_pint[0], SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (&TSU_pint[0], SYM_STAR_S, 2);
 
       if((irc < 0)  ||    // Cylind od Paraboloid
           ((irc == 0)&&(d1 > UT_DISP_cv))) {
@@ -4331,14 +4331,14 @@ uOff abhaengig von Aussenkonturtyp:
         // printf(" v0=%f v1=%f\n",srv1->v0,srv1->v1);
         // DEB_dump_obj__ (Typ_CI, &TSU_ac1, " KonturCirc RV1:");
       if(fabs(srv1->v0) > UT_TOL_min1) {
-        UT3D_pt_vc__par_ci (&pt1, NULL, &TSU_ac1, 1, srv1->v0);
-          // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+        UT3D_pt_vc__par_ci (&pt1, NULL, &TSU_ac1, srv1->v0);
+          // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
         i1 = 1;
       } else pt1 = TSU_ac1.p1;
 
       if(fabs(srv1->v1 - 1.) > UT_TOL_min1) {
-        UT3D_pt_vc__par_ci (&pt2, NULL, &TSU_ac1, 1, srv1->v1);
-          // GR_Disp_pt (&pt2, SYM_STAR_S, 3);
+        UT3D_pt_vc__par_ci (&pt2, NULL, &TSU_ac1, srv1->v1);
+          // GR_tDyn_symB__ (&pt2, SYM_STAR_S, 3);
         i1 = 1;
       } else pt2 = TSU_ac1.p2;
 
@@ -5104,7 +5104,7 @@ uOff abhaengig von Aussenkonturtyp:
       for(i2=0; i2<cTab[i1].iNr; ++i2) {
         if(i1 != 2) continue; // disp only cont2
         // (*TSU_tr_3D_2D_pt)(box1, &pTab[i2]);
-        // GR_Disp_pt (box1, SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (box1, SYM_STAR_S, 2);
         // GR_tDyn_txiA (box1, i2, 0);
       }
     }
@@ -5705,7 +5705,7 @@ geht nicht. Raus, 2005-11-01
     pTab = cTab[i1].p2a;
     for(i2=0; i2<cTab[i1].iNr; ++i2) {
       DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
-      // GR_Disp_pt (&pTab[i2], SYM_TRI_S, 2);
+      // GR_tDyn_symB__ (&pTab[i2], SYM_TRI_S, 2);
     }
   }
   exit(0);
@@ -5716,7 +5716,7 @@ geht nicht. Raus, 2005-11-01
   // for(i1=0; i1<TSU_pintNr; ++i1) {
     // irc = (*TSU_tr_2D_3D_pt)(&intTab[i1], &TSU_pint[i1]);
     // if(irc < 0) return irc;
-    // GR_Disp_pt (&intTab[i1], SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (&intTab[i1], SYM_TRI_S, 2);
   // }
 
 
@@ -5790,7 +5790,7 @@ geht nicht. Raus, 2005-11-01
     // GR_tDyn_pcv (pTab, cTab[i1].iNr, 2);
     // for(i2=0; i2<cTab[i1].iNr; ++i2) {
       // DEB_dump_obj__ (Typ_PT, &pTab[i2], "k%d [%d]",i1,i2);
-      // GR_Disp_pt (&pTab[i2], SYM_TRI_S, 0);
+      // GR_tDyn_symB__ (&pTab[i2], SYM_TRI_S, 0);
     // }
   }
 // exit(0);
@@ -5882,7 +5882,7 @@ static Point  ptOld;
 
 
   // DEB_dump_obj__ (Typ_PT2, &pt2o, "ex _2D_3D_con: ");
-  // GR_Disp_pt (pt2o, SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (pt2o, SYM_STAR_S, 2);
 
   return 0;
 
@@ -6208,12 +6208,12 @@ static Plane  RS_pl;
   // printf("================================================== \n");
   // DEB_dump_obj__(Typ_PT, pti, "TSU_tr_2D_3D_srv:");
   // printf("  TSU_pintAct=%d\n",TSU_pintAct);
-  // GR_Disp_pt (pti, SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (pti, SYM_STAR_S, 2);
 
 
   // ptc = proj 3D-PT -> Ax;
   UT3D_pt_projptptvc (&ptc, &rdc, NULL, pti, &TSU_prx, &TSU_vrx);
-  // GR_Disp_pt (&ptc, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (&ptc, SYM_TRI_S, 2);
   // DEB_dump_obj__(Typ_PT, &ptc, "ptc");
   
   // create Plane RS_pl in ptc normal to axis
@@ -6227,7 +6227,7 @@ static Plane  RS_pl;
 
     // ptx = Schnitt Plane mit Konturkurve
     UT3D_pt_intlnpl (&ptx, &RS_pl, (Line*)TSU_ox2.data);
-    // GR_Disp_pt (&ptx, SYM_STAR_S, 4);
+    // GR_tDyn_symB__ (&ptx, SYM_STAR_S, 4);
 
     // Schnittpunkt auf Konturkurve: Parameter suchen, -> Y
     // pt2->y = UT3D_parpt_lnbp (&ptx, (Line*)TSU_ox2.data, RS_bp);
@@ -6273,15 +6273,15 @@ Besseres Verfahren waere:
       TX_Error("TSU_tr_2D_3D_srv E002");
       return -1;
     }
-    // GR_Disp_pt (&pa[0], SYM_STAR_S, 4);
-    // GR_Disp_pt (&pa[1], SYM_STAR_S, 4);
+    // GR_tDyn_symB__ (&pa[0], SYM_STAR_S, 4);
+    // GR_tDyn_symB__ (&pa[1], SYM_STAR_S, 4);
 
     if(pNr < 1) { // Toleranzproblem; passiert bei den Polen.
       // printf("TSU_tr_2D_3D_srvn I001 \n");
       // if(irc == 2) {  goto L_c1; }
       if(pNr == 2) {  goto L_c1; }       // ?? 2010-12-12
         // // nochmal Abstand testen, ob in Tolerenz UT_DISP_cv
-        // GR_Disp_pt (pa, SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (pa, SYM_STAR_S, 2);
         // // Beruehrungspunkt Circ-Plane ist in pa[0]
         // d1 = UT3D_len_2pt (pa, ((Circ*)TSU_ox2.data)->pc);
         // d2 = fabs((Circ*)TSU_ox2.data)->rad;
@@ -6292,7 +6292,7 @@ Besseres Verfahren waere:
 
       TX_Error("TSU_tr_2D_3D_srv E004");
       // GR_Disp_pln (&RS_pl, 2);
-      // GR_Disp_pt (pti, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (pti, SYM_STAR_S, 2);
       // DEB_dump_obj__(Typ_PT, pti, " E004-pos:");
       // pa[0] = TSU_pint[1];
       // Punkt rausloeschen mit MEM_del_nrec ??
@@ -6328,7 +6328,7 @@ Besseres Verfahren waere:
 
 
     }
-      // GR_Disp_pt (&ptx, SYM_STAR_S, 4);
+      // GR_tDyn_symB__ (&ptx, SYM_STAR_S, 4);
       // return 0;
      
 
@@ -6336,7 +6336,7 @@ Besseres Verfahren waere:
     // Schnittpunkt auf Konturkurve: Parameter suchen, -> Y
     // pt2->y = UT3D_parpt_cipt (&ptx, (Circ*)TSU_ox2.data);
     irc = UT3D_par_pt__pt_prj_ci (&pt2->y, NULL, NULL,
-                                  (Circ*)TSU_ox2.data, &ptx, UT_TOL_cv);
+                                  (Circ*)TSU_ox2.data, &ptx, 1, UT_TOL_cv);
     if(irc < 0) {TX_Error("TSU_tr_2D_3D_srv Ci-E01"); return -1; }
       // printf(" pary=%f\n",pt2->y);
 
@@ -6466,7 +6466,7 @@ Besseres Verfahren waere:
 
 
   L_exit:
-  // GR_Disp_pt (pt2, SYM_STAR_S, 3);
+  // GR_tDyn_symB__ (pt2, SYM_STAR_S, 3);
   // printf(" ex 2D_3D_srv U=%f V=%f\n",pt2->x,pt2->y);
 
   return 0;
@@ -6553,7 +6553,7 @@ Besseres Verfahren waere:
 
     // Circ:      ((Circ*)TSU_ox2.data)
     case Typ_CI:
-      UT3D_pt_vc__par_ci (&pt1, NULL, (Circ*)TSU_ox2.data, 1, pt2->y);
+      UT3D_pt_vc__par_ci (&pt1, NULL, (Circ*)TSU_ox2.data, pt2->y);
       break;
 
 
@@ -6584,7 +6584,7 @@ Besseres Verfahren waere:
 
   // den Punkt pt1 um den Winkel X-Wert weiterdrehen
   UT3D_pt_rotptptvcangr (pt3, &pt1, &TSU_prx, &TSU_vrx, pt2->x);
-  // GR_Disp_pt (pt3, SYM_STAR_S, 3);
+  // GR_tDyn_symB__ (pt3, SYM_STAR_S, 3);
 
 
   return 0;
@@ -6674,7 +6674,7 @@ static double du,dv;
 
   // testdisplay PT
   // printf("ex TSU_tr_2D_3D_sbsp %f,%f\n",pt2->x,pt2->y);
-  // GR_Disp_pt (pt2, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (pt2, SYM_TRI_S, 2);
 
 
   return 0;
@@ -6744,7 +6744,7 @@ static double du,dv;
 
   // testdisplay PT
   // printf("ex TSU_tr_2D_3D_srbsp %f,%f\n",pt2->x,pt2->y);
-  // GR_Disp_pt (pt2, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (pt2, SYM_TRI_S, 2);
 
 
   return 0;
@@ -6865,7 +6865,7 @@ static double du,dv;
   // einen Normalvektor vc1 auf die Rasterbox errechnen
   TSU_box_vec (&vc1, tBox);
     // (*TSU_tr_3D_2D_pt)(&boxp1, tBox);   // nur f. TESTDISP
-    // GR_tDyn_vc (&vc1, &boxp1, 9, 0);
+    // GR_tDyn_vc__ (&vc1, &boxp1, 9, 0);
     // printf(" nVc = %lf %lf %lf\n",vc1.dx,vc1.dy,vc1.dz);
     // return 0;  // TEST ONLY !!
 
@@ -6963,8 +6963,8 @@ static double du,dv;
     // Box testen
     i2 = UT2D_ckBoxinBox1 ((Point2*)&boxp1,       (Point2*)&boxp2,
                            (Point2*)&cTab[i1].p1, (Point2*)&cTab[i1].p2);
-    if(i2 < 0){ cTab[i1].use = 'I';}  // I Inactive, not overlap
-    else      { cTab[i1].use = 'A'; ++crxNr;}
+    if(i2) { cTab[i1].use = 'A'; ++crxNr;}
+    else   { cTab[i1].use = 'I';}  // I Inactive, not overlap
   }
     // return 0;  // NUR TEST !!
 
@@ -7180,7 +7180,7 @@ static double du,dv;
   for(i1=0;i1<cNr;++i1) GR_Disp_spu (cTab[i1].iNr,cTab[i1].pa,5);
   // Test nVec:
   // UT3D_vc_perppta (vc1, cTab[0].iNr, cTab[0].pa);
-  // GL_Disp_vc (cTab[0].pa, vc1);
+  // GL_set_vcn (cTab[0].pa, vc1);
   return 0;
   //--------TestDisplay End
 */
@@ -7219,11 +7219,11 @@ static double du,dv;
   (*TSU_tr_3D_2D_pt)(&pa[1], &tBox[1]);
   (*TSU_tr_3D_2D_pt)(&pa[2], &tBox[2]);
   (*TSU_tr_3D_2D_pt)(&pa[3], &tBox[3]); pa[4] = pa[0];
-  // GL_set_cv (5, pa);
-  // GR_Disp_pt (&pa[0], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[0], "0", 1);
-  // GR_Disp_pt (&pa[1], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[1], "1", 1);
-  // GR_Disp_pt (&pa[2], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[2], "2", 1);
-  // GR_Disp_pt (&pa[3], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[3], "3", 1);
+  // GL_set_pcv (5, pa);
+  // GR_tDyn_symB__ (&pa[0], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[0], "0", 1);
+  // GR_tDyn_symB__ (&pa[1], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[1], "1", 1);
+  // GR_tDyn_symB__ (&pa[2], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[2], "2", 1);
+  // GR_tDyn_symB__ (&pa[3], SYM_TRI_S, 1); GR_tDyn_txtA (&pa[3], "3", 1);
   // GR_tDyn_pcv (pa, 5, 2);
   // TESTBLOCK
 
@@ -7305,14 +7305,14 @@ static double du,dv;
         // Mittelpunkt der Konturkurve um den X-Parameterwert drehen
         UT3D_pt_mid2pt (&p1, &tBox[0], &tBox[2]);
         (*TSU_tr_3D_2D_pt)(&pm, &p1);
-          // GR_Disp_pt (&pm, SYM_TRI_S, 1);
+          // GR_tDyn_symB__ (&pm, SYM_TRI_S, 1);
 
         UT3D_pt_rotptptvcangr (&p3, &((Circ*)TSU_ox2.data)->pc,
                                &TSU_prx, &TSU_vrx, p1.x);
-          // GR_Disp_pt (&p3, SYM_TRI_S, 1);
+          // GR_tDyn_symB__ (&p3, SYM_TRI_S, 1);
         // Vektor nach innen !
         UT3D_vc_2pt (pVec, &pm, &p3);
-          // GR_tDyn_vc (pVec, &p2, 2, 0);
+          // GR_tDyn_vc__ (pVec, &p2, 2, 0);
 
         goto L_vec_OK;
       }
@@ -7344,9 +7344,9 @@ static double du,dv;
   (*TSU_tr_3D_2D_pt)(&p0, &tBox[0]);
   (*TSU_tr_3D_2D_pt)(&p1, &tBox[1]);
   (*TSU_tr_3D_2D_pt)(&p2, &tBox[2]);
-    // GR_Disp_pt (&p0, SYM_TRI_S, 1); // GR_tDyn_txtA (&p2, "0", 1);
-    // GR_Disp_pt (&p1, SYM_TRI_S, 2); // GR_tDyn_txtA (&p1, "1", 1);
-    // GR_Disp_pt (&p2, SYM_TRI_S, 3); // GR_tDyn_txtA (&p2, "2", 1);
+    // GR_tDyn_symB__ (&p0, SYM_TRI_S, 1); // GR_tDyn_txtA (&p2, "0", 1);
+    // GR_tDyn_symB__ (&p1, SYM_TRI_S, 2); // GR_tDyn_txtA (&p1, "1", 1);
+    // GR_tDyn_symB__ (&p2, SYM_TRI_S, 3); // GR_tDyn_txtA (&p2, "2", 1);
 
 
 
@@ -7403,8 +7403,8 @@ static double du,dv;
 
   // TESTBLOCK
   // UT3D_vc_invert (pVec, pVec); // NUR TEST wenn Probleme ..
-  // GL_Disp_vc (&pm, pVec);
-  // GR_tDyn_vc (pVec, &pm, 9, 0);
+  // GL_set_vcn (&pm, pVec);
+  // GR_tDyn_vc__ (pVec, &pm, 9, 0);
     // UT3D_vc_invert (pVec, pVec);
     // DEB_dump_obj__ (Typ_VC, pVec, "ex TSU_box_vec");
     // if(UT3D_compvc0(pVec, 0.1) == 1) exit(0);
@@ -7448,8 +7448,8 @@ static double du,dv;
 
   // printf("TSU_fix_ax_crx %d %d\n",*ptNr,TSU_pintNr);
   // GR_tDyn_npt__ (*ptNr, pTab, SYM_TRI_S, 2);
-  // if(TSU_pintNr > 0) GR_Disp_pt (&TSU_pint[0], SYM_SQU_B, 1);
-  // if(TSU_pintNr > 1) GR_Disp_pt (&TSU_pint[1], SYM_SQU_B, 1);
+  // if(TSU_pintNr > 0) GR_tDyn_symB__ (&TSU_pint[0], SYM_SQU_B, 1);
+  // if(TSU_pintNr > 1) GR_tDyn_symB__ (&TSU_pint[1], SYM_SQU_B, 1);
 
 
   // for symbolic surfaces: do not insert pole-extraPoints
@@ -7754,7 +7754,7 @@ static double du,dv;
   //----- 3D-Punkte -> 2D-Punkte------------------------------
   // UT3D_pt_3db (&p31, -21.281300,26.952000,3.309900);
   UT3D_pt_3db (&p31, -19.767331,28.314988,3.477292);
-  GR_tDyn_symB (&p31, SYM_SQU_B, 1);
+  GR_tDyn_symB__ (&p31, SYM_SQU_B, 1);
 
 
   irc = TSU_tr_2D_3D_sbsp (&p21, &p31);
@@ -7762,13 +7762,13 @@ static double du,dv;
   return 0;
   p21.z=0.;
   p21.x=1.01575;
-  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p21, SYM_STAR_S, 2);
 
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   irc = TSU_tr_3D_2D_sbsp (&p31, &p21);
-  GR_tDyn_symB (&p31, SYM_SQU_B, 2);
+  GR_tDyn_symB__ (&p31, SYM_SQU_B, 2);
 
   DL_Redraw ();
   return 0;
@@ -7830,22 +7830,22 @@ static double du,dv;
   UT3D_pt_3db (&p31, 200., 100., 0.);
   UT3D_pt_3db (&p31, 100., 200., 0.);
   UT3D_parscon_pt (&p21.x, &p21.y, &p31, imat);  p21.z=0.;
-  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p21, SYM_STAR_S, 2);
 
   UT3D_pt_3db (&p31, 150., 100., 100.);
   UT3D_pt_3db (&p31, 100., 150., 100.);
   UT3D_parscon_pt (&p21.x, &p21.y, &p31, imat);  p21.z=0.;
-  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p21, SYM_STAR_S, 2);
 
   return 0;
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   UT3D_pt_evparscon (&p31, con, 0., RAD_90, mat);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
   UT3D_pt_evparscon (&p31, con, con->h, RAD_90, mat);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
 
 
@@ -7891,19 +7891,19 @@ static double du,dv;
   // UT3D_pt_3db (&p31, 200., 100., 100.);
   UT3D_pt_3db (&p31, 180., 100., 110.);
   UT3D_parstor_pt (&p21.x, &p21.y, &p31, tor, imat);  p21.z=0.;
-  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p21, SYM_STAR_S, 2);
 
 
 
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   UT3D_pt_evparstor (&p31, tor, p21.x, p21.y, mat);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
   // UT3D_pt_evparscon (&p31, con, 0., RAD_90, mat);
-  // GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
   // UT3D_pt_evparscon (&p31, con, con->h, RAD_90, mat);
-  // GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
 
   return 0;
@@ -7934,7 +7934,7 @@ static double du,dv;
     TSU_prx = ((Line*)TSU_ox1.data)->p1;
     UT3D_vc_ln (&TSU_vrx, (Line*)TSU_ox1.data);
     UT3D_vc_setLength (&TSU_vrx, &TSU_vrx, 1.);
-    GR_tDyn_vc (&TSU_vrx, &TSU_prx, 2, 0);
+    GR_tDyn_vc__ (&TSU_vrx, &TSU_prx, 2, 0);
     TSU_ox2 = DB_GetObjGX ((int)srv1->typCov, srv1->indCov);
 
     ....
@@ -7965,9 +7965,9 @@ static double du,dv;
 
   //----- 3D-Punkte -> 2D-Punkte------------------------------
   UT3D_pt_3db (&p31, 83.983,   75.000,   43.093);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
   TSU_tr_2D_3D_srv (&p21, &p31);
-  // GR_tDyn_symB (&p21, SYM_TRI_S, 2);
+  // GR_tDyn_symB__ (&p21, SYM_TRI_S, 2);
   // printf("=========================== \n");
   // return 0;
 
@@ -7975,7 +7975,7 @@ static double du,dv;
   //----- 2D-Punkte -> 3D-Punkte------------------------------
   // UT3D_pt_3db (&p21, 0., 0., 0.);
   TSU_tr_3D_2D_srv (&p31, &p21);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 2);
 
 
   return 0;
@@ -8024,11 +8024,11 @@ static double du,dv;
   // UT3D_pt_3db (&p31,  23.261,   20.718,  -16.095);
   UT3D_pt_3db (&p31,  -18.739,  -20.723,  -21.184);
 
-  GR_tDyn_symB (&p31, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p31, SYM_STAR_S, 2);
 
   // UT3D_pt_3db (&p31, 50.190,   19.922,   50.000); //.r1:1,1
   UT3D_parsru_pt (&p21.x, &p21.y, &p31);  p21.z=0.;
-  GR_tDyn_symB (&p21, SYM_STAR_S, 2);
+  GR_tDyn_symB__ (&p21, SYM_STAR_S, 2);
 
   // return 0;
   // 0.634,    0.069,    0.000
@@ -8038,11 +8038,11 @@ static double du,dv;
   // UT3D_pt_3db (&p21, 0., 0., 0.);
   // p21.x = 0.8; p21.y = 0.;
   UT3D_pt_evparsru (&p31, p21.x, p21.y);
-  GR_tDyn_symB (&p31, SYM_TRI_S, 0);
+  GR_tDyn_symB__ (&p31, SYM_TRI_S, 0);
 
   // p21.x = 0.8; p21.y = 1.;
   // UT3D_pt_evparsru (&p31, p21.x, p21.y);
-  // GR_tDyn_symB (&p31, SYM_TRI_S, 1);
+  // GR_tDyn_symB__ (&p31, SYM_TRI_S, 1);
 
 
   return 0;
@@ -8077,12 +8077,12 @@ static double du,dv;
 
   // CircCenter auf Achse projiz.
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &TSU_ac1.pc,&TSU_prx,&TSU_vrx);
-    // GR_tDyn_symB(&pt1, SYM_SQU_B, 2);
+    // GR_tDyn_symB__(&pt1, SYM_SQU_B, 2);
   UT3D_vc_2pt (&vc1, &TSU_ac1.pc, &pt1);
     // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
   UT3D_vc_perp2vc (&vc2, &vc1, &TSU_vrx);
-    // GR_tDyn_vc (&vc2, &TSU_ac1.p1, 2, 0);
-    // GR_tDyn_vc (&TSU_ac1.vz, &TSU_ac1.pc, 2, 0);
+    // GR_tDyn_vc__ (&vc2, &TSU_ac1.p1, 2, 0);
+    // GR_tDyn_vc__ (&TSU_ac1.vz, &TSU_ac1.pc, 2, 0);
 
   // sind vc2-CircVz eher parall od eher antiparall
   i1 = UT3D_sid_2vc (&vc2, &TSU_ac1.vz);
@@ -8125,8 +8125,8 @@ static double du,dv;
 
   // 3D-Box machen
   UT3D_box_pts (&pb1, &pb2, pNr, pTab);
-  // GR_tDyn_symB(&pb1, SYM_SQU_B, 2);
-  // GR_tDyn_symB(&pb2, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&pb1, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&pb2, SYM_SQU_B, 2);
 
 
   // Box aufs doppelte vergroessern
@@ -8143,14 +8143,14 @@ static double du,dv;
   UT3D_box_extend (&pb1, &pb2, &pt1);
   UT3D_pt_oppptptvc (&pt1, &pb2, &TSU_prx, &TSU_vrx);
   UT3D_box_extend (&pb1, &pb2, &pt1);
-  // GR_tDyn_symB(&pb1, SYM_SQU_B, 2);
-  // GR_tDyn_symB(&pb2, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&pb1, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&pb2, SYM_SQU_B, 2);
   // GR_tDyn_box__(&pb1, &pb2, 2);
 
   // KonturLine in dieser Box begrenzen
   UT3D_ln_intbox (&TSU_ln1, &pb1, &pb2);
-  // GR_tDyn_symB(&TSU_ln1.p1, SYM_SQU_B, 2);
-  // GR_tDyn_symB(&TSU_ln1.p2, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&TSU_ln1.p1, SYM_SQU_B, 2);
+  // GR_tDyn_symB__(&TSU_ln1.p2, SYM_SQU_B, 2);
   // GR_Disp_ln (&TSU_ln1, 2);
   // DEB_dump_obj__ (Typ_LN, &TSU_ln1, "TSU_ln1");
 
@@ -8176,14 +8176,14 @@ static double du,dv;
   L_nVec:
 
     UT3D_pt_mid2pt (&pt1, &TSU_ln1.p1,&TSU_ln1.p2); // Mittelpkt Konturlinie
-      // GR_tDyn_symB(&pt1, SYM_SQU_B, 2);
+      // GR_tDyn_symB__(&pt1, SYM_SQU_B, 2);
     UT3D_vc_2pt (&vc1, &TSU_ln1.p1,&TSU_ln1.p2);    // vec <- Konturlinie
 
     // Schnitt einer Normalebene auf Konturlinie mit Achse
     UT3D_pt_intperp2ln (&pt2, &pt1, &vc1, &TSU_prx, &TSU_vrx);
-      // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
+      // GR_tDyn_symB__(&pt2, SYM_SQU_B, 2);
     UT3D_vc_2pt (&TSU_vn, &pt1, &pt2);
-      // GR_tDyn_vc (&TSU_vn, &pt1, 2, 0);
+      // GR_tDyn_vc__ (&TSU_vn, &pt1, 2, 0);
 
 
 
@@ -9114,11 +9114,11 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMin;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
+    // GR_tDyn_symB__(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d1,NULL, &pt2,&TSU_prx,&TSU_vrx);
-    // GR_tDyn_symB(&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB__(&pt1, SYM_TRI_S, 2);
 
 
   // einen Punkt mit u=0, v=vMax -> 3D
@@ -9126,11 +9126,11 @@ static double gap2 = RAD_180 - RAD_10;
   pt1.y = vMax;
   pt1.z = 0.;
   TSU_tr_3D_2D_srv (&pt2, &pt1);
-    // GR_tDyn_symB(&pt2, SYM_SQU_B, 2);
+    // GR_tDyn_symB__(&pt2, SYM_SQU_B, 2);
 
   // den Punkt auf die Achse projizieren == Radius d1
   UT3D_pt_projptptvc(&pt1,&d2,NULL, &pt2,&TSU_prx,&TSU_vrx);
-    // GR_tDyn_symB(&pt1, SYM_TRI_S, 2);
+    // GR_tDyn_symB__(&pt1, SYM_TRI_S, 2);
 
   if(d2 > d1) d1 = d2;
 
@@ -9188,7 +9188,7 @@ static Point pta;
     actDir = TSU_dir;
     UT3D_pt_projptptvc(&pta, &d1, NULL,
                        &((Circ*)TSU_ox2.data)->pc, &TSU_prx,&TSU_vrx);
-      // GR_tDyn_symB(&pta, SYM_SQU_B, 2);
+      // GR_tDyn_symB__(&pta, SYM_SQU_B, 2);
   }
 
 
@@ -9326,10 +9326,10 @@ static Point pta;
   // den vz umdrehen, wenn kreis auf anderer Seite liegt !
   // den Mittelpunkt des Inputkreises; 2 x crossprod = Normalvektor.
   UT3D_pt_mid_ci (&ptm, cii);
-    // GR_tDyn_symB (&ptm, SYM_TRI_S, 4);
+    // GR_tDyn_symB__ (&ptm, SYM_TRI_S, 4);
   UT3D_vc_perpvc2pt (&cio->vz, &TSU_vrx, &cii->pc, &ptm);
   UT3D_vc_setLength (&cio->vz, &cio->vz, 1.);
-    // GR_tDyn_vc (&cio->vz, &cii->pc, 9, 0);
+    // GR_tDyn_vc__ (&cio->vz, &cii->pc, 9, 0);
 */
 
   // macht hier immer Halbkreis;
@@ -9623,7 +9623,7 @@ static Point pta;
   if(oxi->typ == Typ_Address) ++oxi; // (char*)oxi += sizeof(ObjGX);
     // printf(" next: %d %d\n",oxi->typ,oxi->form);
 
-    // tess_dump_f_ (oxi, "vor GL_DrawSur");
+    // BMSH_dump_bfMsh (oxi, "vor GL_DrawSur");
 
   L_next:
     if(oxi->typ  == Typ_Done)  goto L_fertig;

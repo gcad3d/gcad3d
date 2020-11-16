@@ -30,6 +30,7 @@ void UTX(){}
 #endif
 /*!
 \file  ../ut/ut_txt.c
+       ../ut/ut_txt.h
 \brief text manipulations 
 \code
 Needs:
@@ -76,6 +77,8 @@ UTX_add_fl_10          add double with 10 signif digits
 UTX_add_fl_15          add double with 15 signif digits
 UTX_add_slash          add closing "/" to string (for dirs)
 UTX_add_fnam_del       add closing "/" or "\\" to string (filename-delimiter)
+
+UTX_ENC_ApoD_TMP       enclose string with double-apostrophs in stackSpace
 
 UTX_chrNr              get nr of chars to end of line
 UTX_Clear              string = '\0'                                 INLINE
@@ -124,7 +127,7 @@ UTX_pos_delP           find next program-delimiter (',' or ')')
 UTX_pos_del_next       find next delimiter (blank after cPos)
 UTX_pos_del_prev       find previous delimiter (blank vor cPos)
 
-UTX_pos_skipLeadBlk    skip blanks (returns Position of first non-blank) INLINE
+UTX_pos_skipLeadBlk    skip blanks (returns Position of first non-blank)     INLINE
 UTX_pos_1n             REPLACED BY UTX_pos_skipLeadBlk
 UTX_pos_skipTermWord   terminate & skip next word in string
 UTX_pos_skipWord       skip Word (ret. Pos. of first char after word)
@@ -137,8 +140,9 @@ UTX_pos_skipDeli1      skip delimiter ' ' ',' '\n' '\r' '\t'
 UTX_pos_skip_num       skip number
 UTX_pos_skip_int       skip int-number
 UTX_pos_skip_line      skip line
-UTX_skip_1bl           skip this char and following blanks    INLINE
+UTX_skip_1bl           skip this char and following blanks                   INLINE
 
+UTX_IS_EMPTY           test if string is empty                               INLINE
 UTX_ck_caseChr         compare 2 characters - ignore case
 UTX_ck_casenChr        compare n chars of 2 strings - ignore case
 UTX_ck_caseStr         compare 2 strings - ignore case
@@ -151,7 +155,7 @@ UTX_ck_num_digNr       returns nr of consecutive digits of numeric string
 UTX_ck_uml_c           check for Umlaut (ÄÖÜäöüß); change to normal char
 UTX_ck_uml_s           change all umlaute of string
 UTX_cmp_word_wordtab   check if word wd1 is in list wdtab
-UTX_find_chr           find character in string (strchr)                 INLINE
+UTX_find_chr           find character in string (strchr)                     INLINE
 UTX_find_bwd_chr       find character in string going back
 UTX_find_Del1          // find next delimiter ' ' '=' ',' '\n' '\t' '{' ..
 UTX_find_word1         Wort in Zeile suchen
@@ -3090,13 +3094,19 @@ Das folgende ist NICHT aktiv:
 /// \endcode
 
   int   cNr;
-  long  aPos;
+  long  aPos, sl;
   char  c1;
 
 
   // printf("UTX_pos_del_prev |%s| %ld\n",cBuf,cPos);
 
   aPos = cPos-1;
+
+  sl = strlen(cBuf) - 1;
+  if(aPos > sl) {
+    TX_Print("***** UTX_pos_del_prev E1");
+    aPos = sl;
+  }
 
   // skip following blanks
   L_start:
@@ -3170,7 +3180,7 @@ Das folgende ist NICHT aktiv:
   char  c1;
 
 
-  printf("UTX_pos_del_next |%s| %ld\n",cBuf,cPos);
+  // printf("UTX_pos_del_next |%s| %ld\n",cBuf,cPos);
 
   end = strlen(cBuf) + 1;
 
@@ -3218,7 +3228,7 @@ Das folgende ist NICHT aktiv:
   // aPos ist derBeginn des Wortes vor cPos
   L_fertig:
 
-  printf("ex UTX_pos_del_prev %ld |%s|\n",aPos,&cBuf[aPos]);
+    // printf("ex UTX_pos_del_prev %ld |%s|\n",aPos,&cBuf[aPos]);
 
   return aPos;
 

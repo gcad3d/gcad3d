@@ -81,13 +81,13 @@ SRC1 =\
   ../ut/ut_surstd.c  ../ut/ut_sbsp.c    ../ut/ut_srbsp.c   ../ut/ut_objtab.c\
   ../ut/ut_bez.c     ../ut/ut_rbez.c    ../ut/ut_tria.c    ../ut/ut_quat.c\
   ../ut/ut_plg.c     ../ut/ut_cvtrm.c   ../ut/ut_elli.c    ../ut/ut_cvApp.c\
-  ../ut/ut_sdc.c     ../ut/tri_orient.c ../ut/ut_project.c\
+  ../ut/ut_sdc.c     ../ut/ut_project.c\
   ../ut/ut_tess.c    ../ut/ut_hatch.c   ../ut/ut_log.c\
   ../ut/ubs.c        ../ut/ubscrv.c     ../ut/ubssur.c     ../ut/sbsu1.c\
   ../ut/u3d.c        ../ut/ut_cvoff.c   ../ut/ut_msh.c     ../ut/ut_face.c\
   ../gr/tess_su.c    ../gr/ut_tess_su.c ../gr/tess_ut.c    ../gr/tess_vr_ut.c\
-  ../gr/ut_GLU.c     ../gr/glbt.c       ../ut/ut_cntf.c\
-  ../ut/ut_prcv__.c  ../ut/ut_prcv_db.c\
+  ../gr/ut_GLU.c     ../gr/glbt.c       ../gr/grtsu.c\
+  ../ut/ut_prcv__.c  ../ut/ut_prcv_db.c ../ut/ut_cntf.c\
   ../ut/ut_geo2d.c   ../ut/ut_geo3d.c   ../ut/ut_iTab.c    ../ut/ut_dbf.c\
   ../ut/ut_obj.c     ../ut/ut_txfil.c   ../ut/ut_txt.c     ../ut/ut_umb.c\
   ../ut/ut_math.c    ../ut/ut_umem.c    ../ut/ut_mem.c     ../ut/ut_box.c\

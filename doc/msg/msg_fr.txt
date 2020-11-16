@@ -31,8 +31,8 @@ MMdsps=sauver la vue active
 MMdspsr=restaurer stockées afficher et d'enregistrer la vue active
 MMdspr=restaurer stockées vue
 
-MMdspon=Affichage Objectnames et (travailler)-directions
-MMdspdir=display direction of curves
+MMdspon=display the names of all objects of group
+MMdspdir=display the direction of all curves of group
 MMdsppt=Affichage points (P) on / off (only in VWR)
 MMdsppl=Affichage avions (R) on / off (only in VWR)
 MMdspso=affichage Solides (Sphère / cône / Torus / Cube) ombragés ou wireframe
@@ -289,6 +289,7 @@ Typ_goRadius=pièce Radius; Sel PT / CIR
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
 Typ_go_lf1=sel. single curve
+Typ_go_lf2=sel. LN or Circ or Curve (untrimmed)
 Typ_Tra=pièce PgUp / Dwn (Transformation choisir)
 Typ_PTS=standard-point-Nr; Key PgUp/Dwn; 1=start, 2=end ..
 Typ_PTI=control-point-Nr; Key PgUp/Dwn; 1=start, ..

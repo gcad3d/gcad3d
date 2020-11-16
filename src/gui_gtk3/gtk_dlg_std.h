@@ -4,11 +4,9 @@
 
 int    GUI_DialogEntry  (char* label, char *entry, int eSiz,
                          char *buttons[], int border);
-int    GUI_Dialog_2b    (char *txt, char *tb1, char *tb2);
-int    GUI_Dialog_e2b   (char *txt, char *entry, int eSiz, char *tb1, char *tb2);
-
+// int    GUI_Dialog_2b    (char *txt, char *tb1, char *tb2);
+// int    GUI_Dialog_e2b   (char *txt, char *entry, int eSiz, char *tb1, char *tb2);
 // int    GUI_MsgBox      (char* text);
-
 // void   GUI_DialogYN    (char*, void*);
 // int    GUI_GetText     (char *text, char *label, int, void*);
 // int    GUI_GetTextCB   (void*, void*);

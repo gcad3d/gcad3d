@@ -133,7 +133,8 @@ enum ERR_codes {
   ERR_TEST,                 // 1  testExit                          -90
   ERR_obsolete,             // 0                                    -89
   ERR_unsupported,          // 0                                    -88
-  ERR_USER_ABORT            // 0                                    -87
+  ERR_USER_ABORT,           // 0                                    -87
+  ERR_STD      // first = standard-error (not specific to function)
 };
 
 // MSG_ERR_sev                   get severity (1|2|3) from errorcode (< 0)
@@ -166,7 +167,7 @@ enum {
   MSG_GrpHide,MSG_GrpDelA,MSG_GrpAdd1, MSG_GrpRem1,     MSG_GrpRemTyp,  // 25-
   MSG_GrpRemOTs,MSG_upd,  MSG_all,     MSG_no,          MSG_Error,      // 30-
   MSG_cpyMdl, MSG_getPar, MSG_getChd,  MSG_modNam,      MSG_cvEd,       // 35-
-  MSG_GrpInv, MSG_SIZE
+  MSG_GrpInv, MSG_GrpSel, MSG_no_for_all, MSG_ok_for_all, MSG_SIZE      // 40-
 };
 
 

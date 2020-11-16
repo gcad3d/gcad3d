@@ -66,7 +66,6 @@ APT_transl2       rel coords -> abs coords
 APT_rotate3       unused
 APT_alloc1        realloc NC_stat__
 
-
 //--- OBSOLETE - replace by GR_perm_* ----------------------------
 APT_Draw__        draw (load from DB, APT_DrawXX)
 APT_DrawPoint
@@ -84,9 +83,6 @@ APT_DrawSur
 APT_disp_ln     
 APT_disp_ac       OBSOLETE - ObjG2
 APT_disp_cv
-
-
-APT_disp_nam      display objName at objPosition
 
 //----------------------------------------------------------------
 APT_hiliObj
@@ -129,7 +125,7 @@ NC_set_actPos
 NC_getGrafAtt     ret GR_Att_act
 NC_setGrafAtt     set GR_Att_act
 NC_setModSiz      set APT_ModSiz
-NC_setRefsys      Change active Plane
+NC_setRefsys      set ConstrPlane  (Change active Plane)
 WC_setPosKreuz    disp cross
 WC_actPos_save
 WC_actPos_dump
@@ -139,6 +135,8 @@ WC_ask_actObj
 
 List_functions_end:
 =====================================================
+UNUSED:
+// APT_disp_nam      display objName at objPosition
 // PP_up_list
 
 \endcode *//*----------------------------------------
@@ -566,8 +564,8 @@ static int     APT_view_stat;      // 0=VIEW nicht gesetzt; 1=VIEW gesetzt.
 
        int     APT_subTyp;         // subTyp of created obj; 
        
-       int     APT_dispNam;        // display ObjNames; see GR_OBJID_ON
-       int     APT_dispDir;        // display ObjDirection; 1=yes, 0=not
+       int     APT_disp_att;       // 1=disp-ObjNames; 2=disp-direction; 
+
        int     APT_dispPT  = ON;   // display Points
        int     APT_dispPL  = ON;   // display Planes
        int     APT_dispSOL = ON;
@@ -896,7 +894,6 @@ enum Typ_TPCT {
   UT_TOL_cv  = UTP_db_rnd1sig (d1);
 
 
-  // d1 = APT_ModSiz / 50000.;     // Def.: 0.01
   d1 = APT_ModSiz / 10000.;     // Def.: 0.05
   UT_DISP_cv  = UTP_db_rnd1sig (d1);
   // UT_DISP_cv = 0.5;   // NUR TEST
@@ -1266,6 +1263,7 @@ enum Typ_TPCT {
 //====================================================================
   int NC_setRefsys (long RefInd) {
 //====================================================================
+// NC_setRefsys            set ConstrPlane
 // Change active Plane (Refsys)
 // RefInd 0 = Ruecksetzen !
 
@@ -1777,6 +1775,8 @@ enum Typ_TPCT {
 
 
   // printf("WWWWWWWWWWWWW WC_Work__ %d |%s| %d\n",lNr,cbuf,APT_stat_act);
+  // printf(" APT_obj_stat=%d\n",APT_obj_stat);
+  // if(lNr==15) AP_debug__ ("WC_Work__-1");
   // DB_dump_ModRef ();
   // DB_test__();
 
@@ -3163,6 +3163,11 @@ APT_stat_act:
   // check for point|curve|surface
   typTyp = UTO_ck_typTyp (basTyp);
 
+    // TESTBLOCK
+    // printf(" basTyp=%d typTyp=%d\n",basTyp,typTyp);
+    // if((basTyp==Typ_CI)&&(defInd == 21L)) AP_debug__ ("test_CI_1");
+    // END TESTBLOCK
+ 
 
   //----------------------------------------------------------------
   // fix attributes
@@ -3291,6 +3296,7 @@ APT_stat_act:
   //----------------------------------------------------------------
   L_draw:
   // printf("APT_work_def - work %d %d lev=%d\n",defTyp,defInd,level);
+  // if((basTyp==Typ_CI)&&(defInd == 21L)) AP_debug__ ("test_work_def_L3");
 
   // get DB-obj from DB;  create|overwrite DL-record; display obj.
   APT_Draw__ (iAtt, defTyp, defInd);
@@ -3392,7 +3398,7 @@ APT_stat_act:
 
 
   // get memspc until end-of-func (alloca|malloc)
-  MemTab_ini_temp (&mtso, Typ_ObjTXTSRC, itsMax);
+  MemTab_ini_temp (&mtso, Typ_ObjSRC, itsMax);
   tso = mtso.data;
   if(tso == NULL) {TX_Print("APT_ato_par_srcLn E2"); return -1;}
 
@@ -3616,8 +3622,9 @@ APT_stat_act:
 // APT_Draw__        draw (load from DB, APT_DrawXX)
 /// is using memspc201
 /// Input:
-///   iAtt         see GR_temp_obj (att) or INF_COL_PT / INF_COL_CV
+///   iAtt         see GR_temp_nobj (att) or INF_COL_PT / INF_COL_CV
 ///   typ,dbi      DB-obj  (typ, DB-index)
+///   retCod       >= 0 = OK; else Err.
 /// \endcode
 
   int       irc, i1, att;
@@ -3633,6 +3640,8 @@ APT_stat_act:
 
 
   // printf("APT_Draw__ typ=%d dbi=%ld iAtt=%d\n",typ,dbi,iAtt);
+  // printf(" APT_hidd=%d\n",APT_hidd);
+  // if(dbi == 15L) AP_debug__ ("APT_Draw__ I1"); 
   // DEB_dump_obj__ (Typ_Ltyp, &iAtt, " Ind_Att_ln:");
   // printf("  _Draw__-APT_obj_stat=%d\n",APT_obj_stat);
   // printf("  _Draw__-DL_perm_ind=%ld\n",DL_perm_ind);
@@ -3646,7 +3655,14 @@ APT_stat_act:
 
   if(APT_Stat_Draw == OFF) return 0;
 
-  if(APT_obj_stat) DL_temp_ind = GR_TMP_I0;
+  if(APT_obj_stat) {
+    DL_temp_ind = GR_TMP_I0;   // primary temporary obj
+  }
+
+  // skip hidden objs in subModels
+  if(APT_hidd == 1) {
+    if(AP_modact_ind >= 0) return 0;
+  }
 
 
   switch (typ) {
@@ -3658,7 +3674,7 @@ APT_stat_act:
           // DEB_dump_obj__ (Typ_PT, (Point*)po, " PT-po: ");
 
         if(APT_obj_stat) {  // 1=temp
-          GR_temp_pt ((Point*)po, ATT_PT_HILI);
+          GR_temp_pt ((Point*)po, ATT_PT_YELLOW);
         } else {            // 0=permanent
           // APT_DrawPoint (iAtt, dbi, (Point*)po);
           GR_perm_pt (dbi, (Point*)po, iAtt);
@@ -3707,7 +3723,7 @@ APT_stat_act:
         if(ox1->form == Typ_CVTRM) {
           if(APT_obj_stat) {  // 1=temp
             GR_set_ccv (OPERS_TEMP+OPERS_CLOSE,
-                        ox1->data, ox1->siz, dbi, Typ_Att_hili1);
+                        ox1->data, ox1->siz, dbi, Typ_Att_top2);
           } else {            // 0=permanent
             iAtt = Typ_Att_blue; //Typ_Att_hili; Typ_Att_dash_long;
             GR_set_ccv (OPERS_PERM+OPERS_CLOSE,
@@ -3715,7 +3731,7 @@ APT_stat_act:
           }
         } else {
           if(APT_obj_stat) {  // 1=temp
-            GR_temp_ocv (ox1->form, ox1->data, dbi, Typ_Att_hili1);
+            GR_temp_ocv (ox1->form, ox1->data, dbi, Typ_Att_top2);
           } else {            // 0=permanent
             GR_perm_ocv (ox1->form, ox1->data, dbi, iAtt);
           }
@@ -3796,7 +3812,7 @@ APT_stat_act:
 
     case Typ_SUR:
     case Typ_SURPTAB:
-    case Typ_SURMSH:
+    case Typ_SURPMSH:
       if(APT_obj_stat) { // 1=temp
           GR_temp_sur (dbi, GR_TMP_HILI);
       } else { // 0=perm
@@ -5610,7 +5626,7 @@ Ablauf Makro:
 
     // } else if(aus_typ[0] == Typ_CI) {
       // ind = aus_tab[0];
-      // i1 = DB_GetObjDat (&vp1, Typ_CI, ind);
+      // i1 = UTO__dbo (&vp1, Typ_CI, ind);
       // if(i1 < 0) goto Fehler1;
       // wcg_spc_malloc (100);
       // i1 = wcg_OutObj (Typ_CI, vp1, Typ_CI, vp1);
@@ -9148,18 +9164,19 @@ dzt unused
 
 
 }
-*/
 
+
+// UU relaced by GL_set_dir_2pt
 //================================================================
   int APT_disp_dir (Point *p1, Point *p2) {
 //================================================================
+// DOT USE; replaced with GR_dispDir
 /// \code
 /// APT_disp_dir         display obj-direction with arrow at p1
 /// see also GL_Draw_cvp_dir
 /// \endcode
 
 // TODO: do not display Arrow for hidden or parent-objects;
-// Problem: wird erst viel später auf hidden gesetzt !!!!
 // ABHILFE: 
 //  -) statt reRun loop tru DL and display direction only for not hidden obj's
 
@@ -9171,7 +9188,7 @@ dzt unused
 
 
   UT3D_vc_2pt (&vc1, p1, p2);
-     // GR_Disp_pt (&pTab[ipe], SYM_TRI_S, ATT_COL_RED);
+     // GR_tDyn_symB__ (&pTab[ipe], SYM_TRI_S, ATT_COL_RED);
 
 
   // if temp-mode: use dli = -9  else get new DL-record
@@ -9193,7 +9210,8 @@ dzt unused
 
 }
 
- 
+
+// UU GR_disp_att__
 //===========================================================================
   void APT_disp_nam (int typ, long ind, void* e1) {
 //===========================================================================
@@ -9311,7 +9329,7 @@ dzt unused
 }
 
 
-/*
+// UU
 //=============================================================================
   int PP_up_list (NC_up_rec **upAct, char* macnam, int workmode) {
 //=============================================================================
@@ -9907,7 +9925,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
   ObjAto ato1;
 
 
-  printf("APT_obj_expr %d |%s|\n",typ,cbuf);
+  // printf("APT_obj_expr %d |%s|\n",typ,cbuf);
 
 
   // get memSpc for atomicObjects  uses memspc54 memspc55 memspc53
@@ -9920,7 +9938,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
     TX_Error ("Error APT_obj_expr 1-%d",i1);
     return -1;
   }
-    ATO_dump__ (&ato1, " APT_obj_expr-1");
+    // ATO_dump__ (&ato1, " APT_obj_expr-1");
 
  
   // use Typ_Val  direct for typ=Typ_VAR
@@ -9937,7 +9955,7 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
 
 /*
   // get binObj of DB-obj
-  dbTyp = DB_GetObjDat (&op1, &i1, ato1.typ[0], (long)ato1.val[0]);
+  dbTyp = UTO__dbo (&op1, &i1, ato1.typ[0], (long)ato1.val[0]);
   if(dbTyp <= 0) {
     TX_Error ("Error APT_obj_expr 2-%d",dbTyp);
     return -1;

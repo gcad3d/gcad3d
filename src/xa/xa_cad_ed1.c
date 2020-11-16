@@ -36,9 +36,8 @@ IE_ed1__             create Window; simple CurveEditor
 IE_ed1_mod           GroupEditor ?
 IE_ed1_CMB           Mouseklick into GroupEditWindow
 IE_ed1_CB
-IE_ed1_rem           remove word out of IE_buf
 IE_ed1_cw            modify IE_buf add|change|delete word
-IE_ed1_stat          get status of CCV-Edit-window
+IE_ed1_stat          get status of GroupEditWindow
 
 List_functions_end:
 =====================================================
@@ -68,6 +67,7 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 
 
 #include "../ut/ut_geo.h"
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"
 
 #include "../xa/xa_sele.h"        // Typ_go*
@@ -81,7 +81,7 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 #define   TRUE 1
 #define   FALSE 0
 
-
+static int IE_EditMode = 0;    // 0=EditMode_add; 1=EditMode_insert
 
 
 
@@ -166,10 +166,6 @@ extern int       IE_modify;          // 0=Add 1=Modify 2=Insert
 // ex xa.c / ../xa/xa_mem.h
 extern char IE_buf[];
 
-// aus ../ci/NC_Main.c:
-extern int     APT_dispDir;
-
-
 
 #endif
 
@@ -218,10 +214,7 @@ extern int     APT_dispDir;
 //   dann wird IE_buf angezeigt.
 
 
-
-
-
-// static long oldPos;
+static long oldPos = 0L;
 
   int      i1;
   long     cPos, dPos;
@@ -232,35 +225,38 @@ extern int     APT_dispDir;
 
   if(!GUI_OBJ_IS_VALID(&IE_edWin1))  return -1;
 
-
   txt = GUI_DATA_S1;
-    // printf("IE_ed1_mod  /%s/\n",txt);
+
+
+  // printf("============== IE_ed1_mod |%s|\n",txt);
+  // printf("  IE_buf=|%s|\n",IE_buf);
+  // printf("  IE_bufSiz=%ld oldPos=%ld\n",IE_bufSiz,oldPos);
+
+
 
   // IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB1));   // raise win
-
 
   if(!strcmp(txt, "Exit")) {
     IE_cad_Inp_cancel ();
     return 0;
   }
 
-
-  // gesamten Text vom EditWindow -> IE_buf kopieren
+  // copy whole window-buffer -> IE_buf
   IE_bufSiz = IE_bufMax;
-  // i1 = GUI_Ed_Read (&IE_ed1_wText, IE_buf, &IE_bufMax);
   i1 = GUI_edi_Read (IE_buf, &IE_bufSiz, 0L, -1L, &IE_edWin1);
   if(i1 < 0) {TX_Print("IE_ed1_mod E001"); return 0;}
     // printf("IE_buf=|%s| Siz=%ld\n",IE_buf,IE_bufSiz);
 
 
   //----------------------------------------------------------------
-  if(!strcmp(txt, "OK")) {
+  if(!strcmp(txt, "END")) {
     // IE_cad_OK ();  // OK-Button druecken
     // write IE_buf -> active CAD-inputfield
     // IE_inp_set (IE_buf);
     // GUI_update__ ();
-    IE_inp_chg (-1);  // next inputfield
-    return 0;
+    // IE_inp_chg (-1);  // next inputfield
+    // return 0;
+    goto L_view;
   }
 
 
@@ -275,6 +271,7 @@ extern int     APT_dispDir;
   // PREV- ein Wort nach links
   if(!strcmp(txt, "PREV-")) {
     cPos = UTX_pos_del_prev (IE_buf, cPos);
+    IE_EditMode = EditMode_insert;
     goto L_view;
   }
 
@@ -282,6 +279,7 @@ extern int     APT_dispDir;
   // nach rechts ..
   if(!strcmp(txt, "PREV+")) {
     cPos = UTX_pos_del_next (IE_buf, cPos);
+    if(cPos >= IE_bufSiz) IE_EditMode = EditMode_add;
     goto L_view;
   }
 
@@ -295,19 +293,19 @@ extern int     APT_dispDir;
     // CW, CCW, DEL(Esc),  ..
     IE_ed1_cw (&cPos, txt);
 
-    // IE_buf ins GroupeditWindow zurueck
-    // GUI_Ed_Write (&IE_ed1_wText, IE_buf, &IE_bufSiz, IE_bufMax);
+    // copy IE_buf back into edit-window
     GUI_edi_Write (&IE_edWin1, IE_buf, &IE_bufSiz, IE_bufMax);
     goto L_view;
   }
 
 
 
-  //-----------------------------------------------------
+  //================================================================
   // Text rechts von CurPos selected setzen
   L_view:
   if(cPos > IE_bufSiz) cPos = IE_bufSiz;
-    // printf(" IE_bufSiz=%ld cPos=%ld\n",IE_bufSiz,cPos);
+    // printf("IE_ed1__-L_view: IE_bufSiz=%ld cPos=%ld IE_EditMode=%d\n",
+           // IE_bufSiz,cPos,IE_EditMode);
 
 /*
     // rest selected setzen: damit wird CurPos gesetzt !!!
@@ -325,38 +323,16 @@ extern int     APT_dispDir;
   if(!strncmp(txt, "PREV", 4)) {
     if(oldPos != cPos) {
 */
+      // cut off right of curPos
       IE_buf[cPos] = '\0';
+      // update size
       IE_bufSiz = strlen(IE_buf);
       // printf(" << IE_buf=|%s| Siz=%ld\n",IE_buf,IE_bufSiz);
-/*
-    }
-    oldPos = cPos;
-  }
-*/
-
-  // nun sind alle Modifikation in IE_buf erledigt;
-
- 
-  // if last word in IE_buf == "CW"  then disactivate "CW" and activate "CCW"
-  //   else activate "CW" and disactivate "CCW"
-  i1 = IE_bufSiz - 3;
-    // printf(" IE_buf-last |%s|\n",&IE_buf[i1]);
-  if(!strcmp (&IE_buf[i1], " CW")) {                  // 2014-04-10
-    IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB2));
-  } else {
-    IE_ed1__ (NULL, GUI_SETDAT_EL(TYP_EventPress,UI_FuncUCB1));
-  }
 
 
-
-  // testen
   if(IE_bufSiz > 2) {
-    // update CW|CCW
-    // if..
+    // test if input complete and display
     IE_cad_test__ ();
-
-  } else {
-    GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
   }
 
 
@@ -400,15 +376,18 @@ extern int     APT_dispDir;
   long     cPos;
 
 
-  // printf("IE_ed1_CB EV=%d\n",GUI_DATA_EVENT);
+  // printf("=================== IE_ed1_CB EV=%d\n",GUI_DATA_EVENT);
 
 
+  //----------------------------------------------------------------
   if(GUI_DATA_EVENT == TYP_EventEnter) {
-    // Mouseklick into GroupEditWindow
+    // obj into IE_buf added OR Mouseklick into GroupEditWindow
     IE_ed1_mod (NULL, GUI_SETDAT_ES(TYP_EventPress,"PREVIEW"));
     return 0;
   }
 
+
+  //----------------------------------------------------------------
   // TYP_EventRelease ..
   iKey = GUI_DATA_L1;
     // printf("IE_ed1_CB iKey=%d\n",iKey);
@@ -484,18 +463,23 @@ extern int     APT_dispDir;
 //=====================================================================
   int IE_ed1__ (MemObj *mo, void **data) {
 //=====================================================================
-// simple CurveEditor
-// benutzt - ebenso wie IE_ed2__ - IE_edWin1
+// simple editor for polygons
+// using IE_edWin1  (like IE_ed1__ IE_ed2__ IE_ccv__)
 
 static  MemObj   win0, bCW, bCCW;
-static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
-                                      // else points only; no CW,CCW, ..
+// static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
+//                                       // else points only; no CW,CCW, ..
+  int      irc, i1, mode;
+  long     cPos, c1Pos, l1;
+  char     *sTmp;
   MemObj   box0, box1;
-  int      i1, mode;
 
 
   i1 = GUI_DATA_L1;
-  // printf("IE_ed1__ %d\n",i1);
+
+  // printf("EEEEEEEEEEEEEEEEE IE_ed1__ %d\n",i1);
+  // printf("  IE_buf=|%s|\n",IE_buf);
+  // printf("  IE_bufSiz = %ld\n",IE_bufSiz);
 
 
   switch (i1) {
@@ -516,12 +500,9 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
 
       box0 = GUI_box_v (&win0, "");
 
-      winMode = IE_get_inp_TypAct();
-
       // GUI_Ed_Init (&IE_ed1_wText, IE_ed1_CB, 1);
       IE_edWin1 = GUI_edi__ (&box0, IE_ed1_CB, 1, "e,e");
      
-
 /*
       // connect KlickIntoEditor
       // bei press kommt die alte CurPos !!
@@ -533,37 +514,24 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
                           GTK_SIGNAL_FUNC(IE_ed1_CMB), NULL);
 */
 
-
-
       // H-Box f Buttons unten
       box1 = GUI_box_h (&box0, "a,a");
 
-      // Nur fuer Kontur (nicht nur f. Punkte):
-      // if(IE_inpTypR[IE_inpInd] == Typ_goPrim) {
-      if(winMode == Typ_goPrim) {
-        bCW=GUI_button__(&box1, "CW", IE_ed1_mod, (void*)"CW", "a,a");
-          MSG_Tip ("ED1CW");
-        bCCW=GUI_button__(&box1, "CCW", IE_ed1_mod, (void*)"CCW", "a,a");
-        GUI_set_enable (&bCCW, 0); //1=activ, 0=inaktiv
-          MSG_Tip ("ED1CCW");
-        GUI_button__(&box1, "MOD+", IE_ed1_mod, (void*)"MOD+", "a,a");
-          MSG_Tip ("ED1MOD+");
-        GUI_button__(&box1, "MOD-", IE_ed1_mod, (void*)"MOD-", "a,a");
-          MSG_Tip ("ED1MOD-");
-      }
-
       GUI_button__(&box1, " <<< ", IE_ed1_mod, (void*)"PREV-", "a,a");
         MSG_Tip ("ED1<<<");
+
       GUI_button__(&box1, " >>> ", IE_ed1_mod, (void*)"PREV+", "a,a");
         MSG_Tip ("ED1>>>");
+
       GUI_button__(&box1, "Delete", IE_ed1_mod, (void*)"DEL", "a,a");
         MSG_Tip ("MMundo");
+
       GUI_button__(&box1, "Exit", IE_ed1_mod, (void*)"Exit", "a,a");
       // GUI_button__(&box1, "Exit", IE_ed1__, &GUI_FuncKill, "a,a");
         MSG_Tip ("CADexit");
-      GUI_button__(&box1, "OK", IE_ed1_mod, (void*)"OK", "a,a");
-        MSG_Tip ("CADsave");
 
+      GUI_button__(&box1, "END", IE_ed1_mod, (void*)"END", "a,a");
+        MSG_Tip ("CADsave");
 
       GUI_Win_up (NULL, &win0, 0);
       GUI_Win_go (&win0);
@@ -581,6 +549,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
     //---------------------------------------------------------
     case UI_FuncGet:
       if(GUI_OBJ_IS_VALID(&IE_edWin1)) {
+          printf(" IE_ed1__-Get\n");
         IE_bufSiz = IE_bufMax;
         GUI_edi_Read (IE_buf, &IE_bufSiz, 0L, -1L, &IE_edWin1);
           // printf(" IE_buf now |%s|\n",IE_buf);
@@ -590,30 +559,39 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
 
     //---------------------------------------------------------
     case UI_FuncSet:
-      // write text in IE_buf into window 
-      // if(IE_ed1_win.stat != 0) {   // Win schon vorhanden ?
-        GUI_edi_Write (&IE_edWin1, IE_buf, &IE_bufSiz, IE_bufMax);
-          // printf(" IE_buf now |%s|\n",IE_buf);
-        // Cursor -> EOL
-        GUI_edi_setCpos (&IE_edWin1, -1L);
-      break;
-
-
-    //---------------------------------------------------------
-    case UI_FuncUCB1:  // activate "CW" and disactivate "CCW" 1=activ, 0=inaktiv
-      if(winMode == Typ_goPrim) {
-        GUI_set_enable (&bCW, 1);
-        GUI_set_enable (&bCCW, 0);
+      c1Pos = -1L;
+      if(IE_EditMode == EditMode_insert) {
+        // insert: add all expressions right of curPos of IE_edWin1-text
+        c1Pos = IE_bufSiz;  // set new curPos
+        cPos = GUI_edi_getCpos (&IE_edWin1);  // get curPos of IE_edWin1-text
+          // printf(" INSERT - IE_bufSiz=%ld cPos=%ld\n",IE_bufSiz,cPos);
+        // get tempspace for IE_edWin1-text
+        l1 = GUI_edi_getEof (&IE_edWin1) + 4;
+        sTmp = (char*) MEM_alloc_tmp (l1);
+        if(!sTmp) { TX_Error("IE_ed1__ EOM-1"); break; }
+        // get IE_edWin1-text
+        irc = GUI_edi_Read (sTmp, &l1, 0L, -1L, &IE_edWin1);
+        if(irc < 0) { TX_Print("IE_ed1_mod E001"); break; }
+          // printf(" sTmp=|%s|\n",sTmp);
+        // start with blank
+        if(cPos) {
+          if(sTmp[cPos] != ' ') --cPos;
+        } else {
+          strcat(IE_buf, " ");
+          ++IE_bufSiz;
+        }
+        if((IE_bufSiz + (l1 - cPos)) >= IE_bufMax)
+          { TX_Print("IE_ed1_mod EOM-2"); break; }
+        // add IE_buf + IE_edWin1-text right of curPos
+        strcat(IE_buf, &sTmp[cPos]);
+        IE_bufSiz = strlen(IE_buf);
       }
-      break;
 
-
-    //---------------------------------------------------------
-    case UI_FuncUCB2:  // disactivate "CW" and activate "CCW" 1=activ, 0=inaktiv
-      if(winMode == Typ_goPrim) {
-        GUI_set_enable (&bCW, 0);
-        GUI_set_enable (&bCCW, 1);
-      }
+      // write IE_buf into IE_edWin1
+      GUI_edi_Write (&IE_edWin1, IE_buf, &IE_bufSiz, IE_bufMax);
+        // printf(" IE_buf now |%s|\n",IE_buf);
+      // set Cursor
+      GUI_edi_setCpos (&IE_edWin1, c1Pos);
       break;
 
 
@@ -638,48 +616,6 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
   return 0;
 
 }
-
-
-
-//=====================================================================
-  int IE_ed1_rem (long *cPos, long txLen) {
-//=====================================================================
-// remove word out of IE_buf[IE_bufSiz]
-
-  // long l1;
-
-  // printf("IE_ed1_rem %ld %ld %ld\n",*cPos,txLen,IE_bufSiz);
-  // printf("  buf=|%s| rest=|%s|\n",IE_buf,&IE_buf[*cPos]);
-
-
-
-  // Remove cbuf from End of IE_buf
-  if((*cPos+txLen) < IE_bufSiz) goto L_cut;
-  // *cPos -= txLen;
-  if(*cPos > 0) --(*cPos);
-  IE_buf[*cPos] = '\0';
-  goto L_fertig;
-
-
-
-
-  //------------------------------------------------------
-  L_cut:
-  // cut cbuf out of IE_buf
-  UTX_cut1 (IE_buf, &IE_bufSiz, *cPos, txLen+1);
-
-
-
-
-  L_fertig:
-  IE_bufSiz = strlen(IE_buf);
-
-    // printf("ex IE_ed1_rem |%s|\n",IE_buf);
-
-  return 0;
-
-}
-
 
 
 //=====================================================================
@@ -744,7 +680,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
   //======== handle "DEL" ========================
   if(!strcmp(newTxt, "DEL")) {
     // das Wort links von cPos loeschen;
-    IE_ed1_rem (&dPos, txLen);
+    IE_buf_rem (&dPos, txLen);
     // und NIX mehr zufuegen
 // TODO: remove last curPos (
     GL_temp_del_1 (GR_TMP_IPOS);
@@ -762,7 +698,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
     if(!strcmp(cbuf, "CW")) return 0;
     // remove CCW
     if(!strcmp(cbuf, "CCW")) {
-      IE_ed1_rem (&dPos, txLen);
+      IE_buf_rem (&dPos, txLen);
       *cPos = dPos;
     }
     // newTxt unveraendert raus
@@ -777,7 +713,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
     if(!strcmp(cbuf, "CCW")) return 0;
     // remove CW
     if(!strcmp(cbuf, "CW")) {
-      IE_ed1_rem (&dPos, txLen);
+      IE_buf_rem (&dPos, txLen);
       *cPos = dPos;
     }
     // newTxt unveraendert raus
@@ -798,7 +734,7 @@ static  int      winMode;             // 0=Typ_goPrim; with CW,CCW,MOD+,MOD-
       // modNr auslesen
       i1 = atoi(&cbuf[4]);
       // remove
-      // IE_ed1_rem (&dPos, txLen);
+      // IE_buf_rem (&dPos, txLen);
       // *cPos = dPos;
 
     } else {          // noch kein MOD vorhanden

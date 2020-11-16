@@ -45,6 +45,7 @@ IABS                      INLINE
 IMOD                      int - division with remainder (modul0)         INLINE
 ISIGN                     get sign of int; +1 or -1                      INLINE
 ICHAR                     get integer from character-digit               INLINE
+IPOW                      power-func for int; eg  get bitVal for bitPos;
 
 I_BIN                     get int from binary                            INLINE
 UTI_I32_2I16              get int from 2 shorts                          INLINE
@@ -67,8 +68,8 @@ UTI_ni_sort               sort integerList
 UTI_ni_ind_sort           return sorted indexarray for integerarray
 UTI_ind_iTab_i            get index of int in iTab
 UTI_iNr_chrNr             give nr of ints for n characters (not including \0) INLINE
-UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)
-UTI_div4diff              get nr of missing bytes for modulo-4.
+UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)   INLINE
+UTI_div4diff              get nr of missing bytes for modulo-4 (multiple of 4)INLINE
 UTI_round_4up             round integer up to 4                               INLINE
 UTI_round_32up            round integer up to 32                              INLINE
 UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
@@ -79,7 +80,7 @@ UTI_2dig_int              split integer into 2 digits                         IN
 UTI_2int8_int16           get 2 characters from short-int                     INLINE
 UTI_int16_2int8           get short-int from 2 characters                     INLINE
 
-UTI_ni_ObjRange           get list of integers of ObjRanges
+UTI_ni_ObjRange           get list of integers of interger-ranges
 UTI_checksum__            get checksum for data
 
 --------- integers and doubles
@@ -131,8 +132,8 @@ UTP_comp2x2db             compare 2 * 2 doubles (with tolerance)
 
 UTP_sort_npar_npt         sort ascending parameters, points
 
-UTP_param_p0p1px          Parameterwert von Zahl (Parameterwerte fuer 0 u 1)
-UTP_px_paramp0p1px        Zahl aus p0, p1 und Parameterwert         INLINE
+UTP_par1_vMin_vMax_vx     get 0-1-parameter from vx in range vMin-vMax
+UTP_vx_vMin_vMax_par1     get value from a 0-1-parameter in range vMin-vMax
 
 UTP_db_rnd1sig            Zahl auf 1 signifikante Stelle runden
 UTP_db_rnd2sig            Zahl auf 2 signifikante Stellen runden
@@ -144,6 +145,7 @@ UTP_dbqsiz                get quadr. size (estim.)
 UTP_sincosTab_circ        sinus- und cosinuswerte fuer einen Vollkreis.
 
 --------- binary
+BIT_UPD                   set or clear bit                          INLINE
 BIT_SET                   einzelne Bits setzen in einem int         INLINE
 BIT_CLR                   einzelne Bits loeschen in einem int       INLINE
 BIT_GET                   einzelne Bits filtern in einem int        INLINE
@@ -190,16 +192,32 @@ UTA_  functions for pointers (addresses)
 
 
 
+//================================================================
+  int IPOW (int ii) {
+//================================================================
+// IPOW          power-func for int; eg  get bitVal for bitPos;
+//   eg 0 -> 1; 1 -> 2; 2 -> 4; 3 -> 8; ..
+
+  int iOut;
+
+  if(!ii) return 1;
+
+  iOut = 1;
+  do { iOut *= 2; --ii;} while (ii);
+
+  return iOut;
+
+}
 
 
 //================================================================
-  int UTI_ni_ObjRange (int *ia, ObjRange *ora, int orNr) {
+  int UTI_ni_ObjRange (int *ia, IgaTab *ora, int orNr) {
 //================================================================
-// UTI_ni_ObjRange                get list of integers of ObjRanges
+// UTI_ni_ObjRange                get list of integers of integer-ranges
 // Input:
-//   orNr  nr of ObjRange-records
+//   orNr  nr of IgaTab-records
 // Output:
-//   ia    list of ints of orNr ObjRange-records  (get size if ia=NULL)
+//   ia    list of ints of orNr IgaTab-records  (get size if ia=NULL)
 //   retCod  necessary size of ia (only if ia=NULL)
 // ia must have size >= size reported if (ia=NULL)
 
@@ -209,15 +227,15 @@ UTA_  functions for pointers (addresses)
 
   if(!ia) {
     // ia = NULL: reported size of ia
-    for(ir=0; ir<orNr; ++ir) if(ora[ir].oNr) io += ora[ir].oNr;
-      // printf("ex-ni_ObjRange siz=%d \n",io);
+    for(ir=0; ir<orNr; ++ir) if(ora[ir].iNr) io += ora[ir].iNr;
+      // printf("ex-ni_IgaTab siz=%d \n",io);
     return io;
   }
 
   for(ir=0; ir < orNr; ++ir) {
-    if(ora[0].oNr) {
-      i1 = ora[ir].ind;
-      i2 = i1 + ora[ir].oNr;
+    if(ora[0].iNr) {
+      i1 = ora[ir].ibeg;
+      i2 = i1 + ora[ir].iNr;
       for(ii=i1; ii<i2; ++ii) {
         ia[io] = ii;
         ++io;
@@ -226,7 +244,7 @@ UTA_  functions for pointers (addresses)
   }
 
     // TESTBLOCK
-    // printf("ex-ni_ObjRange ia %d\n",io);
+    // printf("ex-ni_IgaTab ia %d\n",io);
     // for(i1=0; i1<io; ++i1) printf(" ni[%d] = %d\n",i1,ia[i1]);
     // END TESTBLOCK
 
@@ -289,37 +307,32 @@ UTA_  functions for pointers (addresses)
 
 
 //======================================================================
-  int UTP_param_p0p1px (double *parx, double p0, double p1, double px) {
+  double UTP_par1_vMin_vMax_vx (double vMin, double vMax, double vx) {
 //======================================================================
-/// \code
-/// UTP_param_p0p1px        Parameterwert von Zahl (ex parameterwerte fuer 0 u 1)
-///  Input:   p0 - der Zahlenwert beim Parameterwert 0.
-///           p1 - der Zahlenwert beim Parameterwert 1.
-///           px - ein Zahlenwert, von dem der Parameterwert gesucht ist.
-///  Output:  parx    der Parameterwert von px.
-///           retCod   0 = OK;
-///                   -1 = Error (p0==p1)
-/// see also  UTP_px_paramp0p1px
-///Beispiel:
-///   p0=5.; p1=10.; px=7.5;  parx = 0.5
-///   p0=0.; p1=-1.; px=0.5;  parx = -0.5
-/// \endcode
+// UTP_par1_vMin_vMax_vx        get 0-1-parameter from vx in range vMin-vMax
+//   eg get parameter from knotvalue of b-spline;
+//
+// Input:
+//   vMin      extreme low value
+//   vMax      extreme high value
+//   px        get the parameter (0 - 1) from this value in the range vMin - vMax
+// Output:
+//   retCode   parameter between 0. to 1.
+//
+// Example:
+//   vMin=5.; vMax=10.; vx=7.5;  retVal=0.5
+//
+// see also UTP_vx_vMin_vMax_par1
 
-// #define UTP_param_p0p1px(p0,p1,px)((px-p0)/(p1-p0))
-// - zeroDivide !
 
   double   d1;
 
+  d1 = vMax - vMin;
 
-  d1 = p1 - p0;
+  // if(fabs(d1) < UT_TOL_min2) { *parx = 0.5; return -1;}
+  if(fabs(d1) < UT_TOL_min2) return (0.);
 
-  if(fabs(d1) < UT_TOL_min2) { *parx = 0.5; return -1;}
-
-  *parx = (px-p0) / d1;
-
-    // printf("param_p0p1px %f %f %f %f\n",*parx,p0,p1,px);
-
-  return 0;
+  return ((vx-vMin) / d1);
 
 }
 
@@ -606,6 +619,7 @@ UTA_  functions for pointers (addresses)
 }
 
 
+/* replaced by INLINE
 //================================================================
   int UTI_div4up (int ii) {
 //================================================================
@@ -628,14 +642,15 @@ UTA_  functions for pointers (addresses)
   return ii;
 
 }
+*/
 
-
+/* replaced by INLINE
 //================================================================
   int UTI_div4diff (int ii) {
 //================================================================
 /// \code
 /// UTI_div4diff        get nr of missing bytes for modulo-4.
-///  1|5 returns 3;    2|6 returns 2 .. 
+///  ii = 5 returns 3;    6 returns 2 .. 
 /// \endcode
 
 
@@ -651,7 +666,7 @@ UTA_  functions for pointers (addresses)
   return ii;
 
 }
-
+*/
 
 //================================================================
   int UTI_round_i2b (int ii) {

@@ -113,6 +113,10 @@ ctags -f ubssur.tag ubssur.c
 #include "../ut/ubs.h"
 #include "../ut/ubssur.h"
 
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_ox_base.h"          // OGX_SET_..
+#include "../gr/ut_gr.h"               // GR_tDyn_*
+
 
 #define NUM_IT     10000           // number of iterations
 
@@ -1027,33 +1031,37 @@ Returncodes:
  -3 = out of space
 */
 
-  int rc, dcU, dcV, dgU, dgV, i1, i2, s1;	
-  double *pvTU, *pvTV, aT[3]; 
-  void *memStart, *work1Start; 
+  int      rc, dcU, dcV, dgU, dgV, i1, i2, s1;	
+  double   *pvTU, *pvTV, aT[3]; 
+  void     *memStart, *work1Start; 
   CurvBSpl bspT1[TabS1], bspT2[TabS1], isocrv;
-  SurBSpl L1, L2, T, *surTi[3], surTo[3];
-  Point *XTab;
+  SurBSpl  L1, L2, T, *surTi[3], surTo[3];
+  Point    *XTab;
+  ObjGX    oxs;
 
 
-/*
-  printf("======================================================== \n");
-  printf("USBS_GordSurBspCrvNet uNr=%d vNr=%d degu=%d degv=%d\n",
-         cvNrU,cvNrV,degU,degV);
-  if (cvNrU == 2 && cvNrV == 2)
-    printf("1. COONS bspline patch\n\n");
-  else if ((cvNrU == 2 && cvNrV > 2) || (cvNrU > 2 && cvNrV == 2))
-    printf("2. BIRAIL bspline surface\n\n");
-  else 
-    printf("3. GORDON bspline surface\n\n");	  
-  for(i1=0; i1<cvNrU; ++i1) {
-    printf("U1[%d] pt=%d\n",i1,cvTU[i1]->ptNr);
-    DEB_dump_obj__ (Typ_CVBSP, cvTU[i1], "U1[%d]",i1);
-  }
-  for(i1=0; i1<cvNrV; ++i1) {
-    printf("U2[%d] pt=%d\n",i1,cvTV[i1]->ptNr);
-    DEB_dump_obj__ (Typ_CVBSP, cvTV[i1], "U2[%d]",i1);
-  }
-*/
+
+
+  // printf("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG \n");
+  // printf("USBS_GordSurBspCrvNet uNr=%d vNr=%d degu=%d degv=%d\n",
+         // cvNrU,cvNrV,degU,degV);
+  // DEB_dump_obj__ (Typ_Memspc, memSeg, "memSeg");
+  // DEB_dump_obj__ (Typ_Memspc, work1Seg, "work1Seg");
+  // DEB_dump_obj__ (Typ_Memspc, work2Seg, "work2Seg");
+  // if (cvNrU == 2 && cvNrV == 2)
+    // printf("1. COONS bspline patch\n\n");
+  // else if ((cvNrU == 2 && cvNrV > 2) || (cvNrU > 2 && cvNrV == 2))
+    // printf("2. BIRAIL bspline surface\n\n");
+  // else 
+    // printf("3. GORDON bspline surface\n\n");	  
+  // for(i1=0; i1<cvNrU; ++i1) {
+    // printf("U1[%d] pt=%d\n",i1,cvTU[i1]->ptNr);
+    // DEB_dump_obj__ (Typ_CVBSP, cvTU[i1], "U1[%d]",i1);
+  // }
+  // for(i1=0; i1<cvNrV; ++i1) {
+    // printf("U2[%d] pt=%d\n",i1,cvTV[i1]->ptNr);
+    // DEB_dump_obj__ (Typ_CVBSP, cvTV[i1], "U2[%d]",i1);
+  // }
 
 
 
@@ -1068,6 +1076,7 @@ Returncodes:
   work1Start = work1Seg->next;
 
 
+  //----------------------------------------------------------------
   // make U-curves compatible
   rc = UCBS_MkeCmpBspCrvs (bspT1, work1Seg, cvNrU, cvTU, 0, work2Seg);
   if (rc < 0) return -2;
@@ -1080,69 +1089,90 @@ Returncodes:
   if (rc < 0) return -2;
   dcV = bspT2[0].deg;
     // printf("dcV = degree of compatible V-curves = %d\n\n", dcV);
-/*
-    // TEST ONLY
-    for(i1=0; i1<cvNrU; ++i1) {
-      DEB_dump_obj__ (Typ_CVBSP, &bspT1[i1], "U1[%d]",i1);
-    }
-    for(i1=0; i1<cvNrV; ++i1) {
-      DEB_dump_obj__ (Typ_CVBSP, &bspT2[i1], "U2[%d]",i1);
-    }
-    // TEST ONLY
-*/
+
+    // TESTBLOCK
+    // printf(" ------------------------ f.UCBS_MkeCmpBspCrvs\n");
+    // for(i1=0; i1<cvNrU; ++i1) {
+      // DEB_dump_obj__ (Typ_CVBSP, &bspT1[i1], "U1[%d]",i1);
+      // // GR_temp_ocv (Typ_CVBSP, &bspT1[i1], 0L, Typ_Att_hili);
+    // }
+    // for(i1=0; i1<cvNrV; ++i1) {
+      // DEB_dump_obj__ (Typ_CVBSP, &bspT2[i1], "U2[%d]",i1);
+      // // GR_temp_ocv (Typ_CVBSP, &bspT2[i1], 0L, Typ_Att_hili);
+    // }
+    // return -1;
+    // END TESTBLOCK
 
 
-
+  //----------------------------------------------------------------
   // intersection points with U/V-parametervectors of compatible U/V-curves
   rc = UCBS_XPtsBspCrvNet (&XTab, &pvTU, &pvTV, memSeg, cvNrU, bspT1,
                            cvNrV, bspT2, work2Seg);
   if (rc < 0) return -2;
 
-/*
-    // TEST ONLY
-    // test curve-curve intersection points
-    for (i1=0; i1<cvNrU; ++i1) {
-      for (i2=0; i2<cvNrV; ++i2) {
-        DEB_dump_obj__ (Typ_PT, &XTab[i1*cvNrV+i2], "XTab U%d V%d:",i1,i2);
-        // cre_obj (Typ_PT, Typ_PT, 1, (void*)&(XTab[i1*cvNrV+i2]));
-        }	  
-    } 
-    // test U/V-parametervectors
-    printf("\npvTU: \n");
-    for (i2=0; i2<cvNrV; ++i2) printf("%f\n", pvTU[i2]);
-    printf("\n\n");
-    printf("\npvTV: \n");
-    for (i1=0; i1<cvNrU; ++i1) printf("%f\n", pvTV[i1]);
-    printf("\n\n");
-    // TEST ONLY
-*/
+
+    // TESTBLOCK
+    // printf(" ------------------------ f.UCBS_XPtsBspCrvNet\n");
+    // // test curve-curve intersection points
+    // for (i1=0; i1<cvNrU; ++i1) {
+      // for (i2=0; i2<cvNrV; ++i2) {
+        // DEB_dump_obj__ (Typ_PT, &XTab[i1*cvNrV+i2], "XTab U%d V%d:",i1,i2);
+        // // GR_temp_pt (&(XTab[i1*cvNrV+i2]), ATT_PT_YELLOW);
+      // }
+    // } 
+    // // test U/V-parametervectors
+    // printf("\npvTU: \n");
+    // for (i2=0; i2<cvNrV; ++i2) printf("%f\n", pvTU[i2]);
+    // printf("\n\n");
+    // printf("\npvTV: \n");
+    // for (i1=0; i1<cvNrU; ++i1) printf("%f\n", pvTV[i1]);
+    // printf("\n\n");
+    // return -1;
+    // END TESTBLOCK
 
 
+
+  //----------------------------------------------------------------
   // skinned surface L1 through V-curves
   rc = USBS_SkinSurBspCrvs (&L1, memSeg, cvNrV, bspT2, degU, 1, pvTU, 1,
 		            work2Seg);
   if (rc < 0) return -2;
+
+    // TESTBLOCK
     // printf("skinned surface L1 through V-curves:\n");
     // printf("L1: degU=%d degV=%d ptU=%d ptV=%d\n",degU,dcV,L1.ptUNr,L1.ptVNr);
     // DEB_dump_obj__ (Typ_SURBSP, &L1, "L1:");
-    //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &L1);
+    // OGX_SET_OBJ (&oxs, Typ_SURBSP, Typ_SURBSP, 1, &L1);
+    // GR_temp_osu (&oxs, 0L, GR_TMP_DEF);
+    // return -1;
+    // END TESTBLOCK
 
 
 
+  //----------------------------------------------------------------
   // skinned surface L2 through U-curves
   rc = USBS_SkinSurBspCrvs (&L2, memSeg, cvNrU, bspT1, degV, 0, pvTV, 1,
 		            work2Seg);
   if (rc < 0) return -2;
-    // printf("skinned surface L2 through U-curves:\n");
-    // printf("L2: degU=%d degV=%d ptU=%d ptV=%d\n",dcU,degV,L2.ptUNr,L2.ptVNr);
-    // DEB_dump_obj__ (Typ_SURBSP, &L2, "L2");
-    //cre_obj (Typ_SURBSP, Typ_SURBSP, 1, &L2);
-
-
 
   // release workspace 1
   work1Seg->next = work1Start;
 
+
+    // TESTBLOCK
+    // printf("skinned surface L2 through U-curves:\n");
+    // printf("L2: degU=%d degV=%d ptU=%d ptV=%d\n",dcU,degV,L2.ptUNr,L2.ptVNr);
+    // i2 = L2.ptVNr + L2.degV + 1;
+    // MEM_swap_nrec (L2.kvTabV, i2, sizeof(double));
+    // DEB_dump_obj__ (Typ_SURBSP, &L2, "L2");
+    // OGX_SET_OBJ (&oxs, Typ_SURBSP, Typ_SURBSP, 1, &L2);
+    // GR_temp_osu (&oxs, 0L, GR_TMP_DEF);
+    // return -1;
+    // END TESTBLOCK
+
+
+
+  //----------------------------------------------------------------
   // tensorproduct surface T interpolating the intersection points
   // of U/V-curves
   rc = USBS_IntpolBspSur (&T, memSeg, cvNrV, cvNrU, XTab, degU, degV,
@@ -1188,6 +1218,7 @@ Returncodes:
 
 
 
+  //----------------------------------------------------------------
   // Gordon surface <-- compatible L1,L2,T
   aT[0] = 1.0;
   aT[1] = 1.0;
@@ -1215,6 +1246,11 @@ Returncodes:
 
   // release workspace 1
   work1Seg->next = work1Start;
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_SURBSP, gsur, "ex-BspCrvNet");
+    // END TESTBLOCK
+ 
 
   return 0;
 
@@ -2706,9 +2742,9 @@ L_InputError:
 
 
 /*=======================================================================*/
-  int USBS_DirIndSdBspSur (double **kvTabS1, double **kvTabN1, long *ptNNr1,
+  int USBS_DirIndSdBspSur (double **kvTabS1, double **kvTabN1, int *ptNNr1,
                            Point **cpTab1, Memspc *memSeg1,
-                           double **kvTabS2, double **kvTabN2, long *ptNNr2,
+                           double **kvTabS2, double **kvTabN2, int *ptNNr2,
                            Point **cpTab2, Memspc *memSeg2,
                            int deg, double *kvTabS, double *kvTabN, int ptNrS,
                            int ptNrN, Point *cpTab, int m, double t, int uv) {
@@ -2733,13 +2769,13 @@ IN:
 OUT:
   double **kvTabS1  ... undivided knotvector of surface 1
   double **kvTabN1  ... divided knotvector of surface 1
-  long *ptNNr1      ... divided number of controlpoints of surface 1
+  int *ptNNr1       ... divided number of controlpoints of surface 1
   Point **cpTab1    ... controlpoints of surface 1
   Memspc *memSeg1   ... data space of knots and controlpoints of
                         surface 1 (and temporary work space)
   double **kvTabS2  ... undivided knotvector of surface 2
   double **kvTabN2  ... divided knotvector of surface 2
-  long *ptNNr2      ... divided number of controlpoints of surface 2
+  int *ptNNr2       ... divided number of controlpoints of surface 2
   Point **cpTab2    ... controlpoints of surface 2
   Memspc *memSeg2   ... data space of knots and controlpoints of
                         surface 2

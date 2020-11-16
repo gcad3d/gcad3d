@@ -94,22 +94,25 @@ GL_temp_del_all       delete all temp. objs
 GL_temp_iNxt          returns next free temp-obj-ind
 GL_temp_iLast         return last temp-obj-index.
 
--------------- draw into open open GL-List -----------------------------
+-------------- add into open open GL-List -----------------------------
 GL_set_npt            disp points
 GL_set_ln_2pt         line from 2 points
-GL_set_cv             disp polygon
-GL_set_icv            disp polygon from indexed points; open or closed.
+GL_set_vcn            normalized vector (SYM_ARROW)
+GL_set_pcv            disp polygon
+GL_set_ipcv           disp polygon from indexed points; open or closed.
 GL_set_ox_cv          Draw 1-n Polygons as GL_LINE_STRIP's
+GL_set_ocv            disp curve from bin.obj
 
 GL_set_pt2            disp 2D-point
 GL_set_ln2_2pt        disp 2D-line from 2 2D-points
-GL_set_cv2            display 2D-polygon with z-value
+GL_set_p2cv           display 2D-polygon with z-value
 GL_set_ci2            draw 2D-Circ starting at p1 around pc
 
 GL_set_symVX          disp plane / axisSystem [with x,y,z-characters]
 GL_set_SymV2          display oriented symbols in x-y-plane; eg SYM_ARROH
 GL_set_symV3          disp oriented vector-symbols
 GL_set_arrh           display arrowhead
+GL_set_dir_2pt        disp direction (arrow) from 2 points
 GL_set_ang            disp angle
 GL_set_Dimen          Hor, Vert Dimension
 GL_set_Dima           Angular Dimension
@@ -141,13 +144,15 @@ GL_txt_ar3            disp  arrowhead
 
        -------------- surfaces; see INF_GL_surfaces
 GL_set_ntri           display triangles from points
-GL_set_fan            TriangleFan planar or not
+GL_set_fan            TriangFan planar or not
 GL_set_strip1         stripe from 1 pTab
 GL_set_strip2         stripe from 2 pTabs
 GL_set_patch          display Opengl-patch (type & n-points)
 GL_set_ipatch         display indexed-Opengl-patch (type,indexTable,points)
-GL_set_nfac           display triangles from Fac3
-GL_set_nifac          display indexed-Opengl-patch (type,indexTable,points)
+GL_set_nfac_V1        display Opengl-patch (Fac3, without nVec)
+GL_set_nfac_V2        display Opengl-patch (Fac3, nVec; GL-vertexList)
+GL_set_nifac_V1       display indexed-Opengl-patch (Fac3, ..; GL-ClientState)
+GL_set_nifac_V2       display indexed-Opengl-patch (MshFac; GL-ClientState)
 GL_set_bMsh           Draw 1-n Planar Patches from ObjGX (binary mesh)
 GL_set_sur_tess       GL_Tex_set1 + GL_set_bMsh
 
@@ -170,7 +175,6 @@ GL_Disp_rbez          draw rational bezier curve
 GL_DrawCirSc                                            Ausgabe Circ ..
 GL_Disp_pln__         display plane/rectangle
 GL_Disp_arrh          display arrowhead
-GL_Disp_vc            add normalized vector (SYM_ARROW) into open displist
 GL_Disp_2D_box1       not-zooming 2D-box (box around tags)
 GL_Disp_2D_box2   unused      zoomed 2D-fields (DrawPixels)
 GL_Disp_sq1           Disp. quadrat. Flaeche 
@@ -746,7 +750,6 @@ extern double GR_tx_chh;              // Characterheight (incl Abstand)
 extern int    GR_tx_nkNr;             // Anzahl Nachkommastellen beim Text
 
 
-
 // ex ../gr/ut_gr.c
 extern int GR_actView;
 
@@ -757,14 +760,13 @@ extern long      GLT_pta_SIZ;
 
 
 // ex ../ci/NC_Main.c:
-extern int        APT_dispPL;
-
-
+extern int     APT_dispPL;
+extern int     APT_obj_stat;          // 0=permanent, 1=temporary (workmode)
+extern int     APT_disp_att;          // 1=disp-ObjNames; 2=disp-direction;
 
 
 // aus ../gr/tess_su.c:
 extern int TSU_mode;   // 0=normal darstellen; 1=speichern
-
 
 
 // aus ../ci/NC_Main.c:
@@ -774,8 +776,6 @@ extern double    APT_ModSiz;
 
 // ex ../xa/xa_ui_cad.c
 extern int       IE_modify;
-
-
 
 
 
@@ -790,7 +790,7 @@ extern int       IE_modify;
 
 
 
-// indexarray for GL_set_nifac
+// indexarray for GL_set_nifac_V1
 static MemTab(int) GL_MIFA = {NULL, 0, 0, sizeof(int), Typ_Int4, 10, 0, 0};
 
 
@@ -1177,9 +1177,9 @@ GLuint GL_fix_DL_ind  (long*);
   DEB_dump_obj__ (Typ_PT, &GL_actUsrPos, "ViewPos: ");
 
   // Sichtlinie (zeigt vom Mittelpkt zum Auge)
-  GR_tDyn_vc (GL_eyeX, &GL_actUsrPos, 9, 0);
-  GR_tDyn_vc (&vcy, &GL_actUsrPos, 8, 0);
-  GR_tDyn_vc (GL_eyeZ, &GL_actUsrPos, 7, 0);
+  GR_tDyn_vc__ (GL_eyeX, &GL_actUsrPos, 9, 0);
+  GR_tDyn_vc__ (&vcy, &GL_actUsrPos, 8, 0);
+  GR_tDyn_vc__ (GL_eyeZ, &GL_actUsrPos, 7, 0);
 
   return 0;
 
@@ -1286,16 +1286,23 @@ GLuint GL_fix_DL_ind  (long*);
 
 
 //================================================================
-  int GL_att_sur () {
+  int GL_att_sur (int att) {
 //================================================================
 // GL_att_sur             init surfaceAttribute
-// see also GL_DrawLn_Ini
+// see also GL_ColSet
 
 
   // printf("GL_att_sur \n");
 
   glDisable (GL_BLEND);
   glEnable (GL_LIGHTING);
+
+  if(att) glColor3ubv ((unsigned char*)&att); // first 3 chars are color
+  else    glColor3ubv ((unsigned char*)&GL_defCol);
+
+// glEnable (GL_DEPTH_TEST);
+// glDepthFunc (GL_LEQUAL);
+// GL_stat_blend = 0;
 
   return 0;
 
@@ -1321,15 +1328,21 @@ GLuint GL_fix_DL_ind  (long*);
 
 
 //================================================================
-  int GL_att_sym (int icol) {
+  int GL_att_sym (int iatt) {
 //================================================================
 // GL_att_sym            set symbol-attribute 
 //   icol         color of symbols            see INF_COL_SYMB
 
+  int    icol;
+
   // printf("GL_att_sym %d\n",icol);
+
+  icol = iatt & 15;
 
   glDisable (GL_LIGHTING);
   glColor3fv (GL_col_tab[icol]);
+
+  if(iatt > 15) glLineWidth (4.0);
 
   return 0;
 
@@ -2202,6 +2215,11 @@ static int errOld = 123;
 
 
   //----------------------------------------------------------------
+  // if display-attrib-settings changed: update
+  GR_temp_att__ (APT_disp_att);
+
+
+  //----------------------------------------------------------------
   // reset "Symbols-on-top"
   GL_stat_OnTop = 0;
   // glColor3fv  (GL_col_tab[0]);
@@ -2390,11 +2408,13 @@ static int errOld = 123;
 
 
   attAct = -1;
-  glColor3fv   (GL_col_tab[0]);     
+  // glColor3fv   (GL_col_tab[0]);     
   glLineWidth (1.0);        // for dimesions, Notes typ=4
 
+  
+  // set default-color
   // glColor3ubv ((unsigned char*)&GL_defCol);
-
+  GL_Init_col ();
 
 
   // printf(" DL_base_font1=%d DL_base__=%d\n",DL_base_font1,DL_base__);
@@ -8129,7 +8149,7 @@ wird im GL_set_bMsh gemacht - vom Color-Record bei den tesselated Records ..
 
     glCallList (DL_base_LnAtt + attInd);
 
-    GL_set_cv (ianz, pTab);
+    GL_set_pcv (ianz, pTab);
 
     glPushMatrix ();
 
@@ -8735,7 +8755,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //        b
 //
 // OUTPUT:
-//  TriangleStrip-GL:
+//  TriangStrip-GL:
 //   Output first 3 points = first triangle.
 //   Each following point makes a new triangle (with the last 2 points of
 //     the preceding triangle).
@@ -8932,7 +8952,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //========================================================================
   void GL_set_fan (Point *pt1, int ptNr, Point *pa1, int typ, int newS) {
 //========================================================================
-// Den TriangleFan von Punkt pt1 um pa1 anzeigen.
+// Den TriangFan von Punkt pt1 um pa1 anzeigen.
 // ptNr  = Anzahl Punkte in pa1; 
 // typ: 0 = planarer Fan (nur ein Normalvec)
 // typ: 1 = nicht planarer Fan (Normalvec f jedes Dreieck)
@@ -9069,36 +9089,131 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //==================================================================
-  void GL_set_nfac (Point *pTab, Fac3 *fTab, int fNr, ColRGB *col) {
+  void GL_set_nfac_V2 (MshFac *nfa) {
 //==================================================================
-// GL_set_nfac           display triangles from Fac3
+// GL_set_nfac_V2           display triangles from Fac3
+//   Version with input of normalVectors for every vertex to GL-vertexList;
 // Input:
-//   fNr      nr of faces in fTab
-//   col      .vsym: 0=ON=shade; 1=OFF=symbolic
+//   nfa      faces,points,vectors
 // 
-// see GL_set_nifac  (indexed Fac3 - faces)
-// TODO: texture; see TSU_DrawSurMsh (make function for both)
+// see GL_set_nifac_V1  (indexed Fac3 - faces)
+// TODO: texture; see TSU_DrawSurPMsh (make function for both)
+// see also GL_set_nfac_V1 (old version; one vector for one face)
 
- 
+
   int      ii, i1, i2, i3;
   char     glCol[4];
-  Vector   GL_norm;
+  Vec3f    *va;
+  Fac3     *fa;
+  Point    *pa;
 
-  // printf("GL_set_nfac %d\n",fNr);
+
+  printf("GL_set_nfac_V1 %d\n",nfa->fNr);
   // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
 
 
   // see GL_set_fan & GL_set_strip2
   if(TSU_mode != 0) {  // 0 = draw OpenGL
     // store for export
-    // GLT_stor_rec (6, NULL, NULL, Typ_SURMSH);
+    // GLT_stor_rec (6, NULL, NULL, Typ_SUR);
+    GLT_stor_rec (6, NULL, NULL, nfa->oTyp);
+    GLT_stor_rec (7, nfa->pa3, nfa->fac, nfa->fNr);
+    return;
+  }
+
+
+  fa = nfa->fac;
+  va = nfa->vc3;
+  pa = nfa->pa3;
+
+  // normal; display via OpenGL
+  glBegin (GL_TRIANGLES);
+
+  if(nfa->oTyp == Typ_SURPLN) {
+
+    glNormal3fv ((float*)&va[0]);
+
+    for(ii=0; ii<nfa->fNr; ++ii) {
+      i1 = fa[ii].i1;
+      i2 = fa[ii].i2;
+      i3 = fa[ii].i3;
+
+      glVertex3dv ((double*)&pa[i1]);
+      glVertex3dv ((double*)&pa[i2]);
+      glVertex3dv ((double*)&pa[i3]);
+    }
+
+
+  } else {
+
+    for(ii=0; ii<nfa->fNr; ++ii) {
+      i1 = fa[ii].i1;
+      i2 = fa[ii].i2;
+      i3 = fa[ii].i3;
+
+      glNormal3fv ((float*)&va[i1]);
+      glVertex3dv ((double*)&pa[i1]);
+
+      glNormal3fv ((float*)&va[i2]);
+      glVertex3dv ((double*)&pa[i2]);
+
+      glNormal3fv ((float*)&va[i3]);
+      glVertex3dv ((double*)&pa[i3]);
+    }
+  }
+
+  glEnd ();
+
+
+//   if(col->vsym == 1) {  // 1=OFF=symbolic - reset
+//     // glEnable (GL_LIGHTING);
+//     // glEnable (GL_COLOR_MATERIAL);
+//     // glEnable (GL_BLEND);
+//     // glEnable (GL_LINE_STIPPLE);
+//     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+//     // glPopAttrib ();
+//   }
+
+  return;
+
+}
+
+
+//=====================================================================
+  void GL_set_nfac_V1 (Point *pTab, Fac3 *fTab, int fNr) {
+//=====================================================================
+// GL_set_nfac_V1           display triangles from Fac3
+//   Version without input of normal-vectors 
+// Input:
+//   fTab,pTab     nr of faces in fTab
+//   col      .vsym: 0=ON=shade; 1=OFF=symbolic
+// 
+// see GL_set_nifac_V1  (indexed Fac3 - faces)
+// old version; without normal-vectors
+// TODO: texture; see TSU_DrawSurPMsh (make function for both)
+
+ 
+  int      ii, i1, i2, i3;
+  char     glCol[4];
+  Vector   GL_norm;
+
+
+  // printf("GL_set_nfac_V1 %d\n",fNr);
+  // DEB_dump_obj__ (Typ_Color, col, " col:");
+  // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
+
+
+  // see GL_set_fan & GL_set_strip2
+  if(TSU_mode != 0) {  // 0 = draw OpenGL
+    // store for export
+    // GLT_stor_rec (6, NULL, NULL, Typ_SURPMSH);
     GLT_stor_rec (6, NULL, NULL, Typ_SUR);
     GLT_stor_rec (7, pTab, fTab, fNr);
     return;
   }
 
 
-  glEnable (GL_LIGHTING);
+  // glColor3ubv ((unsigned char*)col); // first 3 chars are color
 
 
   // normal; display via OpenGL
@@ -9110,12 +9225,12 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       i2 = fTab[ii].i2;
       i3 = fTab[ii].i3;
 
-      if(col->vsym == 0) {
+      // if(col->vsym == 0) {
         // Richtung 1
         GRU_calc_normal(&GL_norm, &pTab[i1], &pTab[i2], &pTab[i3]);
         // GRU_calc_normal(&GL_norm, pt1, &pa1[i1+1], &pa1[i1]);
         glNormal3dv ((double*)&GL_norm);
-      }
+      // }
 
       glVertex3dv ((double*)&pTab[i1]);
       glVertex3dv ((double*)&pTab[i2]);
@@ -9126,14 +9241,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glEnd ();
 
 
-  if(col->vsym == 1) {  // 1=OFF=symbolic - reset
-    // glEnable (GL_LIGHTING);
-    // glEnable (GL_COLOR_MATERIAL);
-    // glEnable (GL_BLEND);
-    // glEnable (GL_LINE_STIPPLE);
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-    // glPopAttrib ();
-  }
+//   if(col->vsym == 1) {  // 1=OFF=symbolic - reset
+//     // glEnable (GL_LIGHTING);
+//     // glEnable (GL_COLOR_MATERIAL);
+//     // glEnable (GL_BLEND);
+//     // glEnable (GL_LINE_STIPPLE);
+//     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+//     // glPopAttrib ();
+//   }
 
 
 
@@ -9151,11 +9266,107 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 }
 
+//================================================================================
+  int GL_set_nifac_V2 (MshFac *nifa) {
+//================================================================================
+// GL_set_nifac_V2           display indexed-Opengl-patch (type,indexTable,points)
+//   add double-indexed faces into open GL-list using glDrawElements
+// Input:
+//   nifa.fNr      nr of faces in fa
+//       .fac      faces 
+//       .ipa      (fNr * 3) indices into pa; can be NULL
+//       .pa3      all points
+//       .vc3      normalvectors; one for each point
+//       .oTyp     Typ_SUR
+//                 Typ_SURPLN - planar - only first vector in ts1->va used;
+//
+// Double-indexed: Fac3 has 3 indices into ia;
+// see GL_set_ipatch (display indexed-Opengl-patch (type,indexTable,points))
+// see GL_set_nfac_V1
+
+
+  int    i1, ii, iNr, fNr, *ifa, *ia;
+  long   l1;
+  Vec3f    *va;
+  Fac3     *fa;
+  Point    *pa;
+
+
+  printf("GL_set_nifac_V2 %d\n",nifa->fNr);
+
+  fNr = nifa->fNr;
+  fa  = nifa->fac;
+  va  = nifa->vc3;
+  pa  = nifa->pa3;
+  ia  = nifa->ipa;
+
+
+  if(nifa->oTyp == Typ_SURPLN) {
+    glNormal3fv ((float*)va);
+  } else {
+    glEnableClientState (GL_NORMAL_ARRAY);
+    glNormalPointer (GL_FLOAT, 0, va);       // same number as vertices !
+  }
+
+
+  // activate and specify pointer to vertex array
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glVertexPointer (3, GL_DOUBLE, 0, pa);
+
+
+  // check spc for indexarray ifa
+  iNr = fNr * 3;
+  if(iNr > MEMTAB_RMAX(&GL_MIFA)) {
+    MEMTAB_RESET_IND(&GL_MIFA);
+    MemTab_add (&GL_MIFA, &l1, NULL, iNr, 2);
+  }
+
+  // fill indexarray ifa from Fac3+ipa  or Fac3-only
+  ii = 0;
+  ifa = MEMTAB_DAT (&GL_MIFA);
+
+  if(ia) {
+    // fix indexarray ifa for doubly indexed faces
+    for(i1=0; i1<fNr; ++i1) {
+      ifa[ii++] = ia[fa[i1].i1];
+      ifa[ii++] = ia[fa[i1].i2];
+      ifa[ii++] = ia[fa[i1].i3];
+        // printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-1],ifa[ii-2],ifa[ii-3]);
+    }
+
+  } else {
+    // fix indexarray ifa for indexed faces
+    for(i1=0; i1<fNr; ++i1) {
+      ifa[ii++] = fa[i1].i1;
+      ifa[ii++] = fa[i1].i2;
+      ifa[ii++] = fa[i1].i3;
+        // printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-1],ifa[ii-2],ifa[ii-3]);
+    }
+  }
+
+
+  // ifa -> OpenGL
+  glDrawElements (GL_TRIANGLES, iNr, GL_UNSIGNED_INT, ifa);
+
+
+  glDisableClientState (GL_INDEX_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+
+  // if(oTyp == Typ_PLN)
+  if(nifa->oTyp != Typ_SURPLN)
+    glDisableClientState (GL_NORMAL_ARRAY);
+
+
+
+  return 0;
+
+}
+
 
 //================================================================================
-  int GL_set_nifac (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va, int oTyp) {
+  int GL_set_nifac_V1 (int fNr, Fac3 *fa, int *ia, Point *pa, Vec3f *va, int oTyp) {
 //================================================================================
-// GL_set_nifac           display indexed-Opengl-patch (type,indexTable,points)
+// GL_set_nifac_V1           display indexed-Opengl-patch (type,indexTable,points)
 //   add double-indexed faces into open GL-list using glDrawElements
 // Input:
 //   fNr      nr of faces in fa
@@ -9168,14 +9379,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //
 // Double-indexed: Fac3 has 3 indices into ia;
 // see GL_set_ipatch (display indexed-Opengl-patch (type,indexTable,points))
-// see GL_set_nfac
+// see GL_set_nfac_V1
 
 
   int    i1, ii, iNr, *ifa;
   long   l1;
 
 
-  // printf("GL_set_nifac %d\n",fNr);
+  // printf("GL_set_nifac_V1 %d\n",fNr);
 
 
 
@@ -9373,8 +9584,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_set_bMsh (ObjGX *bMsh) {
 //================================================================
 // GL_set_bMsh               add surface (patches, colors, nvectors) into open GL 
-// Draw 1-n Planar Patches; each Patch with 1 vektor and 1-n closed Contours.
-// DispList must be open (see GL_DrawSur)
+//   Draw 1-n Planar Patches; each Patch with 1 vektor and 1-n closed Contours.
+//   DispList must be open (see GL_DrawSur)
+//   display grafic records; cannot handle address- and size-records
 // Input: 
 //   bMsh     binMsh (tesselated surf)
 //
@@ -9470,6 +9682,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 */
   
 
+  // skip size-record
+  if(bMsh->typ == Typ_Size) ++bMsh;
+
+
 
   // cannot hilite if defined her:
   // glDisable (GL_BLEND);
@@ -9508,7 +9724,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       if(iCol < 1) GL_ColSet (&GL_defCol);
       if(UT3D_vc_perppta(&vc1, cNr, pa) < 0) continue;
       glNormal3dv ((double*)&vc1);
-        // GL_Disp_vc (&vc1, pa, 11);
+        // GL_set_vcn (&vc1, pa, 11);
         // UT3D_vc_setLength (&vc1, &vc1, 1.);
         // DEB_dump_obj__ (Typ_VC, &vc1, "_DrawSur0: vc");
       GL_set_patch (actPP->aux, cNr, pa);
@@ -9542,6 +9758,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
         continue;
       } else if(actPP->typ == Typ_Typ) {
         // markiert den Beginn einer neuen Surf - dzt nur f Intersect used
+        continue;
+      } else if(actPP->typ == Typ_Size) {
         continue;
       }
 
@@ -9592,7 +9810,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
         // draw next contour in current patch
         // typ & form is Typ_PT; 
             // UT3D_vc_setLength (&vc1, &vc1, 1.);
-            // GL_Disp_vc (&vc1, actCont->data, 9);
+            // GL_set_vcn (&vc1, actCont->data, 9);
         if(iCol < 1) GL_ColSet (&GL_defCol);
         GL_set_patch (actCont->aux, actCont->siz, actCont->data);
         continue;
@@ -9779,8 +9997,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //      \ /
 //       4
 //
-// see GL_set_nifac (display indexed faces (Fac3))
-// see GL_set_nfac  (faces (Fac3), not indexed)
+// see GL_set_nifac_V1 (display indexed faces (Fac3))
+// see GL_set_nfac_V1  (faces (Fac3), not indexed)
 // see GL_set_patch
 // see also TSU_exp_stlFac TSU_exp_objFac TSU_exp_wrl1Fac TSU_exp_wrl2Fac
 //     TSU_exp_dxf1Fac
@@ -9962,10 +10180,70 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   for(i1=0; i1<oxi->siz; ++i1) {
     ox1 = &((ObjGX*)oxi->data)[i1];
     // ox1->form muss hier Typ_PT sein ..
-    GL_set_cv (ox1->siz, ox1->data);
+    GL_set_pcv (ox1->siz, ox1->data, 1);
   }
 
   return 0;
+
+}
+
+
+//================================================================
+  int GL_set_ocv (int form, void *obj, long dbi, int att) {
+//================================================================
+// GL_set_ocv            disp curve from bin.obj
+// Input:
+//   form,obj   bin.obj of curve to display
+//   dbi        DB-index (for use of PRCV) else 0
+//   att        see INF_COL_CV
+
+  int     irc, grMode, ptNr, rMax, mdli;
+  double  tol;
+  Point   *pta;
+  MemTab(Point) mtpa = _MEMTAB_NUL;
+
+
+  // get polygon pta = points for curve, display;
+
+  // set grMode; 0=polygon-frome-PRCV; 1=polygon-from-analytic-curve
+  if((dbi > 0)&&(APT_obj_stat == 0)) grMode = 0;
+  else                               grMode = 1;
+
+  // init mtpa and get max stackSpace
+  MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                    sizeof(Point), Typ_PT);
+  rMax = mtpa.rMax;
+
+  tol  = UT_DISP_cv;
+  mdli = AP_modact_ind;
+
+  // get polygon from curve
+  irc = UT3D_mtpt_obj (&mtpa, NULL, form, obj, 1, dbi, mdli, tol, grMode);
+  if(irc < 0) {TX_Error("GL_set_ocv E2"); goto L_exit;}
+
+  ptNr = mtpa.rNr;
+  pta  = mtpa.data;
+
+  // point only: Hilite.
+  if(ptNr < 2) {
+    GL_att_pt (ATT_PT_HILI);   // set color
+    GL_set_npt (pta, 1);
+    goto L_exit;
+  }
+
+  // display polygon
+  GL_att_cv (att);
+  GL_set_pcv (ptNr, pta, 1); // GL_LINE_STRIP
+
+  if(APT_obj_stat) GL_set_dir_2pt (&pta[ptNr - 1], &pta[ptNr - 2]);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+  if(mtpa.rMax > rMax) MemTab_free (&mtpa);
+
+  return irc;
 
 }
 
@@ -10017,7 +10295,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     ox1 = &((ObjGX*)oxi->data)[i1];
     // pta = ox1->data;
     // ox1->form muss hier Typ_PT sein ..
-    GL_set_cv (ox1->siz, ox1->data);
+    GL_set_pcv (ox1->siz, ox1->data, 1);
   }
 
   glEndList ();
@@ -10249,8 +10527,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Point  pt1;
 
   DEB_dump_obj__(Typ_VC, vc1, "GL_DrawCirSc a=%f vc=",ang1);
-  // GR_tDyn_vc (vc1, ptc, 2, 0);
-  // GR_Disp_pt (ptc, SYM_STAR_S, 2);
+  // GR_tDyn_vc__ (vc1, ptc, 2, 0);
+  // GR_tDyn_symB__ (ptc, SYM_STAR_S, 2);
 
   ianz = 1024; // max
 
@@ -10269,14 +10547,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     printf(" lenVec=%f %f %f\n",200./GL_Scale*GL_SclNorm,GL_Scale,GL_SclNorm);
 
   GLT_pta[1] = pt1;
-  // GR_Disp_pt (&GLT_pta[0], SYM_STAR_S, 2);
+  // GR_tDyn_symB__ (&GLT_pta[0], SYM_STAR_S, 2);
 
   ptNr = fabs(ang1) / (RAD_1 * 10.);
   d1 = ang1 / ptNr;
   d2 = d1;
   for(i1=0; i1<ptNr; ++i1) {
     UT3D_pt_rotptptvcangr (&GLT_pta[i1+2], &pt1, ptc, vc1, d2);
-    // GR_Disp_pt (&GLT_pta[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&GLT_pta[i1], SYM_STAR_S, 2);
     d2 += d1;
   }
 
@@ -10287,7 +10565,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   GR_tDyn_pcv (ind, att, ptNr, GLT_pta);
 
   GL_DrawLn_Ini (ind, att);
-  GL_set_cv (ptNr, GLT_pta); // GL_LINE_STRIP
+  GL_set_pcv (ptNr, GLT_pta, 1); // GL_LINE_STRIP
 
   // Pfeilspitze darstellen
   UT3D_vc_2pt (&vcn, &GLT_pta[ptNr-2], &GLT_pta[ptNr-3]);
@@ -10328,12 +10606,12 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // att 7 = sw; Laenge 1
     // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
     // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc (&vc1, &pt1, 7, 0);
+    // GR_tDyn_vc__ (&vc1, &pt1, 7, 0);
     GL_DrawSymV3 (ind, SYM_ARROW, 12, &pt1, vc1, 20.);
 
   } else {
     // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc (&vc1, &pt1, 2, 1);
+    // GR_tDyn_vc__ (&vc1, &pt1, 2, 1);
     GL_DrawVec (ind, att, &pt1, vc1);
   }
 
@@ -10419,9 +10697,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // DEB_dump_obj__ (Typ_PT, ptc, "  ptc ");
   // DEB_dump_obj__ (Typ_VC, vx, "  vcx ");
   // DEB_dump_obj__ (Typ_VC, vz, "  vcz ");
-  // GR_Disp_pt (ptc, SYM_STAR_S, 2);
-  // GR_tDyn_vc (vcx, ptc, 2, 0);
-  // GR_tDyn_vc (vcz, ptc, 5, 0);
+  // GR_tDyn_symB__ (ptc, SYM_STAR_S, 2);
+  // GR_tDyn_vc__ (vcx, ptc, 2, 0);
+  // GR_tDyn_vc__ (vcz, ptc, 5, 0);
 
   UT3D_vc_setLength (&vcx, vx, 1.);
   UT3D_vc_setLength (&vcz, vz, 1.);
@@ -10431,7 +10709,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   rd1 = 260 * GL2D_Scale;
   UT3D_pt_traptvclen (&pt1, ptc, &vcx, rd1);
     // DEB_dump_obj__ (Typ_PT, &pt1, "  pt1 ");
-    // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
   // compute nr of points for circSeg
@@ -10449,7 +10727,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   d2 = d1;
   for(i1=0; i1<ptNr; ++i1) {
     UT3D_pt_rotptptvcangr (&pta[i1+2], &pt1, ptc, &vcz, d2);
-    // GR_Disp_pt (&pta[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pta[i1], SYM_STAR_S, 2);
     d2 += d1;
   }
 
@@ -10463,7 +10741,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // display pta (startline, circSeg, endLine)
   GL_DrawLn_Ini (ind, att);
-  GL_set_cv (ptNr, pta); // GL_LINE_STRIP
+  GL_set_pcv (ptNr, pta, 1); // GL_LINE_STRIP
 
 
   // Pfeilspitze darstellen
@@ -10477,25 +10755,21 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_Disp_vc (Vector *vc1, Point *pt1, int att) {
+  int GL_set_vcn (Vector *vc1, Point *pt1, int att) {
 //================================================================
-// add normalized vector (SYM_ARROW) into open displist
+// GL_set_vcn             add normalized vector (SYM_ARROW) into open displist
+//   set color with GL_att_cv before
+// see also GR_tDyn_symV_o (SYM_ARROW,
+// see also GL_set_symV3 (SYM_ARROW,
 
-
-// see GL_DrawVec
-// Vector in wahrer Laenge: GR_Draw_vSym GL_DrawSymV3
-// normiert oder in wahrerLaenge: UI_disp_vec1
 
   double  ay, az, scl;
 
-
-
-  printf("GL_Disp_vc %d\n",att);
+  // printf("GL_set_vcn %d\n",att);
   // printf(" GL2D_Scale=%lf\n",GL2D_Scale);
   // printf(" GL_SclNorm=%lf\n",GL_SclNorm);
   // DEB_dump_obj__ (Typ_PT, pt1, "  pt1");
   // DEB_dump_obj__ (Typ_VC, vc1, "  vc1");
-
 
   scl = 10. * GL_SclNorm;
 
@@ -10506,10 +10780,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   ay = UT_DEGREES(ay);
     // printf("   az=%f ay=%f\n",az,ay);
 
-    glPushAttrib (GL_CURRENT_BIT);  // save colourSettings
-
-    glDisable (GL_LIGHTING);
-    glCallList (DL_base_LnAtt + att);
+//     glPushAttrib (GL_CURRENT_BIT);  // save colourSettings
+//     glDisable (GL_LIGHTING);
+//     glCallList (DL_base_LnAtt + att);
 
     glPushMatrix (); // must be done before glTranslated !
 
@@ -10522,9 +10795,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
     glPopMatrix ();
 
-
-    glEnable (GL_LIGHTING);
-    glPopAttrib ();
+//     glEnable (GL_LIGHTING);
+//     glPopAttrib ();
 
    return 0;
 
@@ -10635,7 +10907,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   int GL_set_ntri (int triNr, Point *pta) {
 //================================================================
 // GL_set_ntri         display triangles from points
-// see also GL_set_nfac (Fac3)
+// see also GL_set_nfac_V1 (Fac3)
 // see also GL_set_ipatch gTyp=4
 
   int   i1, i2;
@@ -11026,11 +11298,11 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   for(i1=1; i1<ptNr; ++i1) {
     UT3D_pt_rotptptvcangr (&pta[i1], &pt1, &ptc, &vcz, d2);
-    // GR_Disp_pt (&pta[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pta[i1], SYM_STAR_S, 2);
     d2 += d1;
   }
 
-  GL_set_cv (ptNr, pta);
+  GL_set_pcv (ptNr, pta, 1);
 
 }
 
@@ -11121,13 +11393,13 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 //================================================================
-  int GL_set_icv (int pnr, Point *pta, int *iba, int mode) {
+  int GL_set_ipcv (int pnr, Point *pta, int *iba, int mode) {
 //================================================================
-// GL_set_icv    disp polygon from indexTable; open or closed.
+// GL_set_ipcv    disp polygon from indexTable; open or closed.
 
   int i1;
 
-  // printf("GL_set_icv %d\n",pnr);
+  // printf("GL_set_ipcv %d\n",pnr);
 
   glBegin (GL_LINE_STRIP);
     for (i1 = 0; i1 < pnr; i1++) {
@@ -11263,6 +11535,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   void GL_DrawSymV3 (long *ind, int symTyp, int att,
                      Point *pt1, Vector *vc1, double scale){
 //=============================================================================
+// DO NOT USE - replaced by GL_set_symV3
 /// \code
 /// GL_DrawSymV3          draw oriented vector-symbols;
 /// Input:
@@ -11814,7 +12087,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   if(symTyp > 3) {           // Vector ..
     if(symTyp == 4) {        // vec normiert
-      GL_Disp_vc ((Vector*)pLdr, pTxt, atta);
+      GL_set_vcn ((Vector*)pLdr, pTxt, atta);
     } else if(symTyp == 5) { // vec in wahrer Laenge
       GL_Disp_vSym (SYM_VEC, pTxt, (Vector*)pLdr, 1., atta);
     } else {
@@ -12352,7 +12625,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // vcz = vcx -   pp3-pp1
   UT3D_vc_perpvc2pt (&vcz, &vcx, pp3, pp1);
-    // GR_tDyn_vc (&vcz, pp1, 9, 0);
+    // GR_tDyn_vc__ (&vcz, pp1, 9, 0);
 
   if(dim3->bp == 4) {   // verkehrt
     UT3D_vc_invert (&vcz, &vcz);
@@ -12389,8 +12662,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   //   (pp1-pa1 pp2-pa2 sind die MaszHilfslinien)
   // pp3 verschieben in Richtg vcx Dist +dl und -dl;
   UT3D_2pt_oppptvclen (&pa2, &pa1, pp3, &vcx, dl/2.);
-    // GR_Disp_pt (&pa1, SYM_TRI_S, 3);
-    // GR_Disp_pt (&pa2, SYM_TRI_S, 3);
+    // GR_tDyn_symB__ (&pa1, SYM_TRI_S, 3);
+    // GR_tDyn_symB__ (&pa2, SYM_TRI_S, 3);
 
 
   //----------------------------------------------------------------
@@ -12871,7 +13144,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // GL_Disp_cv2 (pNr, pa);
   // GL_Disp_cv2z (pNr, pa, 0.);
-  GL_set_cv2 (pNr, pa);
+  GL_set_p2cv (pNr, pa);
 
   return 0;
 
@@ -12940,7 +13213,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   }
 
 
-  GL_set_cv (pNr, pa);
+  GL_set_pcv (pNr, pa, 1);
 
 
   return 0;
@@ -14057,7 +14330,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //   ithick =  0 = reset nach hilite
 
 
-static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
+static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
 
   int      iCol;
   GLfloat  actThick;
@@ -14087,21 +14360,21 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
     // DL_base_PtAtt + 1; iatt=1;
     glNewList (dli, GL_COMPILE);
     glColor3fv  (GL_col_tab[ATT_COL_HILI]);
-    glPointSize (hiliThick);
+    glPointSize (stdThick);
     glEndList ();
 
     ++dli;
     // DL_base_PtAtt + 2; iatt=2;
     glNewList (dli, GL_COMPILE);
     glColor3fv  (GL_col_tab[ATT_COL_DIMMED]);
-    glPointSize (hiliThick);
+    glPointSize (stdThick);
     glEndList ();
 
     ++dli;
     // DL_base_PtAtt + 3; iatt=3;
     glNewList (dli, GL_COMPILE);
     glColor3fv  (GL_col_tab[ATT_COL_GREEN]);
-    glPointSize (hiliThick);
+    glPointSize (stdThick);
     glEndList ();
 
     ++dli;
@@ -14140,7 +14413,7 @@ static GLfloat  hiliThick = 6.f, stdThick = 5.f, iniThick = 5.f;
 
 
   //----------------------------------------------------------------
-  } else {
+  } else {    //  > 1
     if(UI_InpMode != UI_MODE_VWR) return;
     iCol = 0;
     actThick = ithick;
@@ -15916,8 +16189,10 @@ static float  xpos, ypos;
 
   // printf("GL_grid__ scl=%f WC_sur_ind=%d\n",scl,WC_sur_ind);
   // DEB_dump_obj__ (Typ_M4x3, &WC_sur_mat, "WC_sur_mat");
+  // DEB_dump_obj__ (Typ_PLN, gPln, "gPln");
   // DEB_dump_obj__ (Typ_M4x3, gMat, "gMat");
   // DEB_dump_obj__ (Typ_M4x3, gImat, "gImat");
+  // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, "WC_sur_act");
 
 
   // iNr = 12;                // nr of lines
@@ -16287,7 +16562,7 @@ static float  xpos, ypos;
 // Vektorymbole: SYM_ARROW, ..
 // Scale 0 = Standardlaenge.
 //
-// see GL_Disp_vc GL_DrawVec
+// see GL_set_vcn GL_DrawVec
 
 
   double  ay, az, scale;
@@ -16334,9 +16609,9 @@ static float  xpos, ypos;
 
 
 //================================================================
-  void GL_set_cv2 (int pnr, Point2 *pta) {
+  void GL_set_p2cv (int pnr, Point2 *pta) {
 //================================================================
-// GL_set_cv2          display 2D-polygon with z-value
+// GL_set_p2cv          display 2D-polygon with z-value
 
 
   int i1;
@@ -16371,19 +16646,28 @@ static float  xpos, ypos;
 
 
 //================================================================
-  void GL_set_cv (int pnr, Point *pta) {
+  void GL_set_pcv (int pnr, Point *pta, int clo) {
 //================================================================
 // Polygon in eine offene Displiste zufuegen
+//   clo      0=closed, 1=not-closed or unknown
 
   int i1;
 
-  // printf("=========== GL_set_cv %d\n",pnr);
+  // printf("=========== GL_set_pcv %d\n",pnr);
 
   glBegin (GL_LINE_STRIP);
     for (i1 = 0; i1 < pnr; i1++) {
         // printf(" vert %d = %f,%f,%f\n",i1,pta[i1].x,pta[i1].y,pta[i1].z);
       glVertex3dv ((double*)&pta[i1]);
+
     }
+    // check closed
+    if(!clo) {
+      // test if pta[0] == pta[pnr - 1]
+      if(!UT3D_comp2pt(&pta[0], &pta[pnr - 1], UT_TOL_pt))
+        glVertex3dv ((double*)&pta[0]);
+    }
+
   glEnd();
 
 }
@@ -16555,7 +16839,7 @@ static float  xpos, ypos;
   d2 = d1;
   for(i1=0; i1<ptNr; ++i1) {
     UT3D_pt_rotptptvcangr (&pta[i1+2], &pt1, ptc, &vcz, d2);
-    // GR_Disp_pt (&pta[i1], SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (&pta[i1], SYM_STAR_S, 2);
     d2 += d1;
   }
 
@@ -16567,7 +16851,7 @@ static float  xpos, ypos;
 
 
   //----------------------------------------------------------------
-    GL_set_cv (ptNr, pta); // GL_LINE_STRIP
+    GL_set_pcv (ptNr, pta, 1); // GL_LINE_STRIP
 
     GL_set_arrh (&pta[ptNr-2], &pta[ptNr-3]); // arrowhead
 
@@ -16705,9 +16989,19 @@ static float  xpos, ypos;
 }
 
 
+//================================================================
+  int GL_set_dir_2pt (Point *pt1, Point *pt2) {
+//================================================================
+// GL_set_dir_2pt        disp direction (arrow) from 2 points
 
+  Vector vc1;
 
+  UT3D_vc_2pt (&vc1, pt1, pt2);
+  GL_set_symV3 (SYM_ARRO3H, pt1, &vc1, 1.);
 
+  return 0;
+
+}
 
 
 //================================================================

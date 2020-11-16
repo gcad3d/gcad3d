@@ -26,7 +26,7 @@ Wenn in der struct zusaetzl Richtung (dir als 1 oder -1 waere)
 Modifications:
 2003-06-26 Tangente bei deg=2 korr. SK.
 2003-06-02 bspl_eval_Tg neu zu. RF.
-2003-06-02 bspl_bsp_ptn: memspc51 durch Memspc ersetzt. RF.
+2003-06-02 UT3D_cbsp_ptn: memspc51 durch Memspc ersetzt. RF.
 2002.05.06 Korrektur ptNr -> segNr. RF.
 
 -----------------------------------------------------
@@ -45,7 +45,7 @@ UT3D_bsp_ck_minSiz         check for minSiz / underSize
 UT3D_bsp_ck_maxDeg         returns max degree
 UT3D_bsp_ck_planar         check if spline is planar to given vector
 UT3D_cbsp_ck_trim          test is spline is trimmed
-UT3D_ncvbsp_orient         orient group of B-SplCurves (same directiorn)
+UT3D_ncvbsp_orient         orient group of B-SplCurves (same direction)
 UT3D_2ncvbsp_orient        orient 2 groups of BSplCurves for surface
 UT3D_4cvbsp_3cvbsp         make 4 curves from 3 curves for a CoonsPatchSurf.
 
@@ -59,7 +59,8 @@ UT3D_cbsp_ox               create BSP-Curv from ObjGX-obj
 UT3D_cbsp_1pt              create BSP-Curv from point
 UT3D_cbsp_2pt              create BSP-Curv from Line
 UT3D_cbsp_npt              create BSP-Curv from pointTable pTab
-bspl_bsp_ptn               bspl-curve from control-points
+UT3D_cbsp_rev              get reversed curve of bsp
+UT3D_cbsp_ptn               bspl-curve from control-points
 UT3D_cbsp_ci               create BSP-Curv from Circ
 UT3D_cbsp_ell              create BSP-Curv from Ellipse
 UT3D_cbsp_clt              create BSP-Curv from Clothoid
@@ -730,13 +731,13 @@ once again, with U/V changed.
   // get Startpt von 1. Curve of group-1
   UT3D_pt_evalparCv (&ps11, cv1tab[0], cv1tab[0]->v0);
     // DEB_dump_obj__ (Typ_PT, &ps11, "ps11");
-    // GR_Disp_pt (&ps11, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (&ps11, SYM_STAR_S, 3);
 
 
   // get Startpt of 1. Curve of group-2
   UT3D_pt_evalparCv (&ps21, cv2tab[0], cv2tab[0]->v0);
     // DEB_dump_obj__ (Typ_PT, &ps21, "ps21");
-    // GR_Disp_pt (&ps21, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (&ps21, SYM_STAR_S, 3);
 
   if(UT3D_comp2pt(&ps11,&ps21,UT_DISP_cv) == 1) {   // 1=ident
     return 0;
@@ -814,7 +815,7 @@ once again, with U/V changed.
   ii = cv1Nr / 2;
   pTab = cv1tab[ii]->cpTab;
   UT3D_vc_2pt (&vc1, &pTab[0], &pTab[1]);
-    // GR_tDyn_vc (&vc1, &pTab[0], 9, 0);
+    // GR_tDyn_vc__ (&vc1, &pTab[0], 9, 0);
     // DEB_dump_obj__ (Typ_VC, &vc1, "  curv=%d VC-p0-p1",ii);
 
 
@@ -826,7 +827,7 @@ once again, with U/V changed.
     pTab = cv1tab[i1]->cpTab;
     ii = cv1tab[i1]->ptNr - 1;
     UT3D_vc_2pt (&vc2, &pTab[0], &pTab[ii]);
-      // GR_tDyn_vc (&vc2, &pTab[0], 9, 0);
+      // GR_tDyn_vc__ (&vc2, &pTab[0], 9, 0);
       // DEB_dump_obj__ (Typ_VC, &vc2, "  curv=%d VC-p0-p1",i1);
     // skip points
     if(UT3D_compvcNull(&vc2)) continue;
@@ -1138,7 +1139,7 @@ once again, with U/V changed.
 // Input:
 //   smf      smoothFactor; -1=do-not-smooth; 0=tru-points; 1=tru-ctrlPoints ?
 //
-// see also bspl_bsp_ptn (pta = controlpoints)
+// see also UT3D_cbsp_ptn (pta = controlpoints)
 
   int    irc, i1, deg;
   double tol;
@@ -1355,6 +1356,49 @@ once again, with U/V changed.
 }
 
 
+//===================================================================
+  int UT3D_cbsp_rev (CurvBSpl **bs2, Memspc *memSeg, CurvBSpl *bs1) {
+//===================================================================
+// UT3D_cbsp_rev               get reversed curve of bsp
+// - does reverse the points
+//   retCode     0=OK; -1=EOM-error
+//
+// see also UCBS_RevBspCrv
+
+  long      l1;
+  Point     *pta;
+  CurvBSpl  *bso;
+
+
+  // DEB_dump_obj__ (Typ_CVBSP, bs1, "UT3D_cbsp_rev-in");
+
+  // copy the primary obj
+  bso = UME__copy (memSeg, &l1, bs1, sizeof(CurvBSpl));
+  if(bso == NULL) return -1;
+
+
+  // copy the points
+  pta = UME__copy (memSeg, &l1, bs1->cpTab, sizeof(Point) * bs1->ptNr);
+  if(pta == NULL) return -1;
+
+
+  // reverse all points
+  MEM_inv_rtab (bs1->ptNr, pta, sizeof(Point));
+
+  bso->cpTab = pta;
+
+  *bs2 = bso;
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CVBSP, *bs2, "ex-UT3D_cbsp_rev");
+    // END TESTBLOCK
+
+
+  return 0;
+
+}
+
+
 //=========================================================================
   int UT3D_cbsp_1pt (CurvBSpl *bsp, Memspc *memSeg, Point *p1) {
 //=========================================================================
@@ -1516,7 +1560,7 @@ once again, with U/V changed.
   // DEB_dump_obj__ (Typ_CVBSP, cvi, "UT3D_cbsp_parl_pln");
 
 
-  DB_GetObjDat ((void**)&cvi, &ii, Typ_CV, dbi);
+  UTO__dbo ((void**)&cvi, &ii, Typ_CV, dbi);
 
   // iClo = cvi->clo;
   iClo = UT3D_bsp_ck_closed_tr (cvi);
@@ -1640,8 +1684,8 @@ once again, with U/V changed.
 
   UT3D_vc_setLength (&v2, &v2, 1.);
   UT3D_vc_setLength (&v3, &v3, 1.);
-      // GR_tDyn_vc (&v2, &bsp1->cpTab[0], 11, 0);
-      // GR_tDyn_vc (&v3, &bsp1->cpTab[1], 11, 0);
+      // GR_tDyn_vc__ (&v2, &bsp1->cpTab[0], 11, 0);
+      // GR_tDyn_vc__ (&v3, &bsp1->cpTab[1], 11, 0);
 
 
   for(i1=3; i1<bsp1->ptNr; ++i1) {
@@ -1652,7 +1696,7 @@ once again, with U/V changed.
     v2 = v3;
     UT3D_vc_2pt (&v3, &bsp1->cpTab[i1-1], &bsp1->cpTab[i1]);
     UT3D_vc_setLength (&v3, &v3, 1.);
-      // GR_tDyn_vc (&v3, &bsp1->cpTab[i1-1], 12, 0);
+      // GR_tDyn_vc__ (&v3, &bsp1->cpTab[i1-1], 12, 0);
 
     // skip test wenn v1-v2 parallel
     if(UT3D_vc_ck_parl_vc(&v1, &v2, RAD_1) == 1) continue;
@@ -1660,8 +1704,8 @@ once again, with U/V changed.
     // die 2 Kreuzprodukte bilden
     UT3D_vc_perp2vc (&v4, &v1, &v2);
     UT3D_vc_perp2vc (&v5, &v2, &v3);
-      // GR_tDyn_vc (&v4, &bsp1->cpTab[i1-2], 11, 0);
-      // GR_tDyn_vc (&v5, &bsp1->cpTab[i1-1], 11, 0);
+      // GR_tDyn_vc__ (&v4, &bsp1->cpTab[i1-2], 11, 0);
+      // GR_tDyn_vc__ (&v5, &bsp1->cpTab[i1-1], 11, 0);
 
     // Winkelunterschied der beiden Vektoren;
     // bei mehr als 90 Grad Differenz: Wendepunkt.
@@ -1718,7 +1762,7 @@ once again, with U/V changed.
   // display points (Wendepunkte)
   // Point pt1; for(i1=0;i1<*dNr;++i1) {
   // UT3D_pt_evparCrvBSpl (&pt1, bsp1, dTab[i1]);
-  // GR_Disp_pt (&pt1, SYM_STAR_S, 2); }
+  // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2); }
   // printf("ex UT3D_bsp_infTg %d\n",*dNr);
 
 
@@ -2010,7 +2054,7 @@ once again, with U/V changed.
     cvo->cpTab[i2] = su1->cpTab[iInd];
     iInd += iInc;
     // printf(" p[%d] <= %d\n",i2,iInd);
-    // GR_Disp_pt (&cvo->cpTab[i2], SYM_STAR_S, 0);
+    // GR_tDyn_symB__ (&cvo->cpTab[i2], SYM_STAR_S, 0);
   }
 
   // make space for knotvalues
@@ -2053,7 +2097,7 @@ once again, with U/V changed.
     cvo->cpTab[i2] = su1->cpTab[iInd];
     iInd += iInc;
     // printf(" p[%d] <= %d\n",i2,iInd);
-    // GR_Disp_pt (&cvo->cpTab[i2], SYM_STAR_S, 0);
+    // GR_tDyn_symB__ (&cvo->cpTab[i2], SYM_STAR_S, 0);
   }
 
   // make space for knotvalues
@@ -2328,7 +2372,7 @@ Returncode:
       if(irc < 0) goto Fertig;
 
       // die neuen Schnittpunkte >  xptab zufuegen
-      if(*nxp + ptxNr >= xptSiz) {
+      if(*nxp + ptxNr > xptSiz) {
          TX_Error("UT3D_pt_int2bspl E002");
          irc = -2;
          goto Fertig;
@@ -2507,34 +2551,34 @@ Returncode:
 }
 
 
-/*=======================================================================*/
+//================================================================
   int UT3D_pt_projptbspl (int *nxp, Point *ptab, double *ttab,
-                           CurvBSpl *bspl, Point *pt) {
-/*=======================
-UT3D_pt_projptbspl    project point onto b-spline curve
+                          CurvBSpl *bspl, Point *pt) {
+//================================================================
+// UT3D_pt_projptbspl    project point onto b-spline curve
+// 
+// UT3D_pt_projptbspl    Author: Thomas Backmeister       4.6.2003
+// 
+// Project a point onto a b-spline curve.
+// Keine Loesung (nxp=0): es wird der naehere Kurvenendpunkt -> ptab[0] kopiert.
+// 
+// IN:
+//   int *nxp         ... size of ptab and ttab
+//   CurvBSpl *bspl   ... b-spline curve
+//   Point *pt        ... point
+//   Memspc *memSeg1  ... Memory fuer temporeaere Objekte; memSeg1 wird am Ende
+//                        unverandert retourniert.
+// OUT:
+//   int *nxp         ... number of projection points
+//   Point *ptab      ... array of projection points; first point is nearest.
+//   double *ttab     ... array of corresponding parameter values (knot-values)
+//                        of the projection points on the b-spline curve
+//                        none if ttab==NULL
+// Returncode:
+//   0 = OK
+//  -1 = out of mem (Memspc too small)
+//  -2 = out of mem (ptab too small)
 
-UT3D_pt_projptbspl    Author: Thomas Backmeister       4.6.2003
-
-Project a point onto a b-spline curve.
-Keine Loesung (nxp=0): es wird der naehere Kurvenendpunkt -> ptab[0] kopiert.
-
-IN:
-  int *nxp         ... size of ptab and ttab
-  CurvBSpl *bspl   ... b-spline curve
-  Point *pt        ... point
-  Memspc *memSeg1  ... Memory fuer temporeaere Objekte; memSeg1 wird am Ende
-                       unverandert retourniert.
-OUT:
-  int *nxp         ... number of projection points
-  Point *ptab      ... array of projection points; first point is nearest.
-  double *ttab     ... array of corresponding parameter values of
-                       projection points on b-spline curve
-                       none if ttab==NULL
-Returncode:
-  0 = OK
- -1 = out of mem (Memspc too small)
- -2 = out of mem (ptab too small)
-*/
 
   int      nbcv, i1, i3, i4, irc, ptxNr, xptSiz, bNr;
   ObjGX    bezTab;
@@ -2561,12 +2605,24 @@ Returncode:
   memSeg1 = &tmpSpc;
 
 
+
   // init
   xptSiz  = *nxp;
   *nxp    = 0;
   memPos0 = memSeg1->next;
 
 
+  //----------------------------------------------------------------
+  // if curve is bwd, reverse points                     RF 2020-09-21
+  if(bspl->dir) {
+    // reverse points
+    irc = UT3D_cbsp_rev (&bspl, memSeg1, bspl);
+    if(irc < 0) goto L_exit;  // EOM = -1
+      // DEB_dump_obj__ (Typ_CVBSP, bspl, "  _pt_projptbspl-bspl-reversed: ");
+  }
+
+
+  //----------------------------------------------------------------
   // test for minSiz
   i1 = UT3D_bsp_ck_minSiz (bspl);
   if(i1 > 0) {  // curve too small; use nearest point.
@@ -2689,16 +2745,15 @@ Returncode:
   }
 
 
-/*
+
     // TESTBLOCK:
-    printf("ex UT3D_pt_projptbspl %d\n",*nxp);
-    for(i1=0; i1<*nxp; ++i1) {
-      DEB_dump_obj__ (Typ_PT, &ptab[i1],"  %d %f",i1,ttab[i1]);
-      // GR_Disp_pt (&ptab[i1], SYM_STAR_S, 2);
-    }
-    printf("\n");
+    // printf("ex UT3D_pt_projptbspl %d\n",*nxp);
+    // for(i1=0; i1<*nxp; ++i1) {
+      // DEB_dump_obj__ (Typ_PT, &ptab[i1],"  %d par %f",i1,ttab[i1]);
+      // // GR_tDyn_symB__ (&ptab[i1], SYM_STAR_S, 2);
+    // } printf("\n");
     // END TESTBLOCK:
-*/
+
 
   //----------------------------------------------------------------
   L_exit:
@@ -2846,29 +2901,7 @@ Returncodes:
 
   // printf("UT3D_par1_parbsp kv=%lf\n",*kv);
 
-
-  u1 = cv1->v0;
-  u2 = cv1->v1;
-
-  if(cv1->dir) MEM_swap_2db (&u1, &u2);
-
-
-  uMin = cv1->kvTab[0];
-  uMax = cv1->kvTab[cv1->ptNr + cv1->deg];
-    // printf("    _par1_parbsp u1=%f u2=%f uMin=%f uMax=%f\n",u1,u2,uMin,uMax);
-
-  if(u2 < u1) {
-    // umax - u1 + u2 - umin
-    uTot = uMax - u1 + u2 - uMin;
-    if(*kv > u1) pv = (*kv - u1) / uTot;
-    else         pv = (uMax - u1 + *kv - uMin) / uTot;
-
-  } else {
-    uTot = u2 - u1;
-    pv = (*kv - u1) / uTot;
-  }
-
-  if(cv1->dir) pv = 1. - pv;   // removed 2017-02-15
+  pv = UTP_par1_vMin_vMax_vx (cv1->kvTab[0], cv1->kvTab[cv1->ptNr + cv1->deg], *kv);
 
     // printf("ex UT3D_par1_parbsp pv=%f kv=%f uTot=%f\n",pv,*kv,uTot);
 
@@ -2877,40 +2910,20 @@ Returncodes:
 }
 
 
-/* REPLACED with UT3D_par1_parbsp
-//================================================================
-  double UT3D_par1_parBSp (double *kv, CurvBSpl* cv1) {
-//================================================================
-// UT3D_par1_parBSp           Knotenwert in einen Parameterwert von 0-1 aendern
-
-  // double p1, d1, d2;
-
-  // printf("UT3D_par1_parBSp %f %f %f\n",*kv,cv1->v0,cv1->v1);
-
-    // d1 = cv1->v0;
-    // d2 = cv1->v1 - cv1->v0;
-    // p1 = (*kv - d1) / d2;
-
-  // printf("ex UT3D_par1_parBSp %f\n",p1);
-
-  return (*kv - cv1->v0) / (cv1->v1 - cv1->v0);
-
-}
-*/
-
 //================================================================
   double UT3D_parbsp_par1 (double pv, CurvBSpl* cv1) {
 //================================================================
-/// UT3D_parbsp_par1           get knotValue from parameter 0-1
+// UT3D_parbsp_par1           get knotValue from parameter 0-1
 // see UT3D_par1_parbsp
+// see UTP_vx_vMin_vMax_par1
 
   
-  double kv, u1, u2, uTot, uMin, uMax;
+  // double kv, u1, u2, uTot, uMin, uMax;
 
 
   // printf("UT3D_parbsp_par1 %f\n",pv);
 
-
+/*
   u1 = cv1->v0;
   u2 = cv1->v1;
 
@@ -2938,8 +2951,8 @@ Returncodes:
     if(kv > uMax) kv = kv - uMax + uMin;
 
     // printf("ex-UT3D_parbsp_par1 kv=%f pv=%f uTot=%f\n",kv,pv,uTot);
-
-  return (kv);
+*/
+  return UTP_vx_vMin_vMax_par1 (cv1->kvTab[0],cv1->kvTab[cv1->ptNr + cv1->deg],pv);
 
 }
 
@@ -3127,7 +3140,7 @@ Returncodes:
 
   for(i3=2; i3<bsp->ptNr; ++i3) {
       // DEB_dump_obj__(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
-      // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&bsp->cpTab[i3], SYM_STAR_S, 2);
     d1 = d2;
     vc1 = vc2;
     UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
@@ -3200,7 +3213,7 @@ Returncodes:
 
   for(i3=2; i3<bsp->ptNr; ++i3) {
       // DEB_dump_obj__(Typ_PT, &bsp->cpTab[i3], "P[%d][%d]=",i1,i2);
-      // GR_Disp_pt (&bsp->cpTab[i3], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&bsp->cpTab[i3], SYM_STAR_S, 2);
     vc1 = vc2;
     UT3D_vc_2pt (&vc2, &bsp->cpTab[i3-1], &bsp->cpTab[i3]);
     d1 = UT3D_angr_2vc__ (&vc1, &vc2);
@@ -3239,9 +3252,9 @@ Returncodes:
 */
 
 //============================================================================
-  int bspl_bsp_ptn (CurvBSpl *cvo,Memspc *memSeg1,Point *pTab,int pNr,int deg) {
+  int UT3D_cbsp_ptn (CurvBSpl *cvo,Memspc *memSeg1,Point *pTab,int pNr,int deg) {
 //============================================================================
-// bspl_bsp_ptn            bspl-curve from control-points
+// UT3D_cbsp_ptn            bspl-curve from control-points
 // verwendet memSeg1 f. kvTab.
 // RC  0   = OK
 //    -1   = memSeg1 zu klein
@@ -3253,7 +3266,7 @@ Returncodes:
   double   *kvTab;
 
 
-  // printf("bspl_bsp_ptn pNr=%d deg=%d\n",pNr,deg);
+  // printf("UT3D_cbsp_ptn pNr=%d deg=%d\n",pNr,deg);
 
 
 
@@ -3266,7 +3279,7 @@ Returncodes:
   // size von kvTab = ptNr + deg + 1;
   // platz in memSeg1 reservieren; wird in bspl_knotvec__ belegt.
   if(UME_add (memSeg1, sizeof(double) * (pNr+deg+1)) < 0) {
-    TX_Error("bspl_bsp_ptn E001");
+    TX_Error("UT3D_cbsp_ptn E001");
     return -1;
   }
 
@@ -3540,14 +3553,18 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   int bspl_pol_bsp (int *ptNr, Point *pTab,
                     CurvBSpl *cv1, int ptMax, double tol) {
 //========================================================================
-/// \code
-/// bspl_pol_bsp               make Polygon from B-Spline-Kurve
-/// Method: make point in half; test deviation; redo until deviation < tol.
-/// RetCode: 0 = OK
-///         -1 = overflow pTab  (E001)
-/// does not respect dir; use UT3D_pta_bsp
-/// see also bspl_cv_bsp (fixed pointNr)
-/// \endcode
+// bspl_pol_bsp               make Polygon from B-Spline-Kurve
+// Method: make point in half; test deviation; redo until deviation < tol.
+// does not respect dir; use UT3D_pta_bsp
+// Input:
+//   ptMax       size of pTab
+//   tol
+// Output:
+//   ptNr        nr of created points in pTab
+//   pTab        points
+//   RetCode:    0  = OK
+//               -1 = overflow pTab  (E001)
+// see also bspl_cv_bsp (fixed pointNr)
 
 // tol (typ. 0.003) kleinste Strecke zur Berechnung der Abweichung
 // Die Anzahl von Polygonsegment entspricht der Toleranz (NUR OUT !!)
@@ -3743,7 +3760,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   //---------- TEST display stack
   // for(i1=0;i1<ptStackNr;++i1) {
     // printf(" uStack[%d]=%f\n",i1,uStack[i1]);
-    // GR_Disp_pt (&ptStack[i1], SYM_STAR_S, 2);
+    // // GR_tDyn_symB__ (&ptStack[i1], SYM_STAR_S, 2);
   // }
   //---------- TEST display stack
 
@@ -3795,7 +3812,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   // die Abweichung feststellen
   dist = UT3D_nlen_3pt(&pts, &pt1, &pte);
     // printf(" dist=%f\n",dist);
-  // if(ptStackNr > 1) {dist = 0.001;} else {dist = 10.0;} // TEST
+    // if(ptStackNr > 1) {dist = 0.001;} else {dist = 10.0;} // TEST
 
 
   // if(dist > tol) {
@@ -3835,7 +3852,7 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   // Abweichung tolerierbar. pte raus.
     // DEB_dump_obj__ (Typ_PT, &pte, " out pt %d",ptOut);
   pTab[ptOut] = pte; // copy Point
-  // printf(" save pt as [%d]\n",ptOut);
+    // printf(" save pt as [%d]\n",ptOut);
   if(ptOut >= ptMax) goto L_err_ptab;
   ++ptOut;
   --ptStackNr;
@@ -3876,8 +3893,9 @@ Dann deg * Endwert (bei 6/3 also "3,3,3")
   // printf("ex bspl_pol_bsp ptNr=%d\n",ptOut);
   // for(i1=0;i1<ptOut;++i1) {
     // DEB_dump_obj__ (Typ_PT, &pTab[i1], "P[%d]=",i1);
-    // // APT_disp_SymB (SYM_TRI_S, 2, &pTab[i1]);
+    // // // APT_disp_SymB (SYM_TRI_S, 2, &pTab[i1]);
   // }
+  // printf("ex =================================================== \n");
   //------- Testausg------
 
 
@@ -4160,7 +4178,7 @@ Verfahren:
 
 
   L_done:
-    // GR_Disp_pt (pto, SYM_STAR_S, 9);
+    // GR_tDyn_symB__ (pto, SYM_STAR_S, 9);
 
   return 0;
 
@@ -4600,15 +4618,15 @@ GOBACK:
     u0 = *u2;
     p1 = p2;
   }
-    // GR_Disp_pt (p1, SYM_TRI_S, 2);
+    // GR_tDyn_symB__ (p1, SYM_TRI_S, 2);
 
   // Tangente holen
   UT3D_vc_evalparCv (&vct, bspl, u0);
-    // GR_tDyn_vc (&vct, p1, 9, 0);
+    // GR_tDyn_vc__ (&vct, p1, 9, 0);
 
   // project Point --> tangente
   UT3D_pt_projptptvc (po, &d1, NULL, p0, p1, &vct);
-    // GR_Disp_pt (po, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (po, SYM_STAR_S, 2);
 
   // Abstand CurvEndpkt - po messen (d1 = Abst p0 - po)
   bspl_eval_Pt (bspl->ptNr-1, bspl->deg, bspl->cpTab, bspl->kvTab, u0, &ptx);
@@ -4639,12 +4657,12 @@ GOBACK:
 
   // get Endpt CV
   bspl_eval_Pt (cv1->ptNr - 1, cv1->deg, cv1->cpTab, cv1->kvTab, uv, &pt0);
-    // GR_Disp_pt (&pt0, SYM_STAR_S, 3);
+    // GR_tDyn_symB__ (&pt0, SYM_STAR_S, 3);
   // get tangente
   UT3D_vc_evalparCv (&vct, cv1, uv);
   // extrapolated point
   UT3D_pt_traptvclen (pto, &pt0, &vct, dist);
-    // GR_Disp_pt (pto, SYM_STAR_S, 2);
+    // GR_tDyn_symB__ (pto, SYM_STAR_S, 2);
 
 
   return 0;
@@ -5034,7 +5052,7 @@ GOBACK:
   pt2 = UTRA_pt_rel2abs__ (&pt1);
   // set vco = ptb -> ptt
   UT3D_vc_2pt (vco, ptb, &pt2);
-    // GR_tDyn_vc (vco, ptb, 9, 1);
+    // GR_tDyn_vc__ (vco, ptb, 9, 1);
 
   return 0;
 

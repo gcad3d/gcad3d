@@ -92,6 +92,7 @@ Update: update TexRef-UserData; apply Texture.
 #include <stdlib.h>
 
 #include "../ut/ut_geo.h"         // TexRef
+#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_cast.h"             // INT_PTR
@@ -582,7 +583,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
       // texr.vx = UT3D_VECTOR_NUL;
       // texr.vy = UT3D_VECTOR_NUL;
 
-      // copy all userparamters -> act.TexRef
+      // copy all userparameters -> act.TexRef
       Tex_TexRef_UpdU (&texr);
       return 0;
 
@@ -620,7 +621,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 //       GR_temp_rect1 (&l1, &po, &tr->vx, d1, &tr->vy, d2, 9);
 //       gli_frame = GL_temp_iNxt ();
       UT3D_pta_parlg_pt_2vc (pa, &po, &tr->vx, d1, &tr->vy, d2);
-      GR_temp_pcv (pa, 5, Typ_Att_hili1);
+      GR_temp_pcv__ (pa, 5, Typ_Att_hili1);
 
       // l1 = Tex_actDli_get();
         // // printf(" actSur=%d actDli=%ld\n",i1,l1);

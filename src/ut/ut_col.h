@@ -6,9 +6,15 @@
 // *ColRGB from *int:
 #define COL_INT32(i32) ((ColRGB*)(i32))
 
+// *char from *int (&att):
+#define CHAR_ICOL(i32) ((unsigned char*)(i32))
+
 
 // *int from *ColRGB
-#define INT32_COL(col) ((INT_32*)(col))
+#define INT32P_COL(col) ((INT_32*)(col))
+
+// int from *ColRGB
+#define INT32I_COL(col) (*(INT_32*)(col))
 
 
 // COL_DL_ATT          get pointer -> Color out of DL_Att     INLINE

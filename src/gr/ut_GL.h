@@ -49,12 +49,12 @@ Korr:
 void GL_set_npt (Point *pta, int ptNr);
 void GL_set_pt2 (Point2 *pt21);
 void GL_set_ln_2pt (Point *p1, Point *p2);
-void GL_set_cv (int pnr, Point *pta);
+void GL_set_pcv (int pnr, Point *pta, int clo);
 void GL_set_symV3 (int symTyp, Point *pt1, Vector *vc1, double scale);
 void GL_set_symVX (Plane *pln1, int typ, double scale);
 void GL_set_ang (int att, Point *ptc, Vector *vx, Vector *vz, double ang1);
 void GL_set_arrh (Point *p1, Point *p2);
-void GL_set_cv2 (int pnr, Point2 *pta);
+void GL_set_p2cv (int pnr, Point2 *pta);
 void GL_set_ln2_2pt (Point2 *p1, Point2 *p2);
 void GL_set_ci2 (Point2 *pc, Point2 *p1, double ao);
 

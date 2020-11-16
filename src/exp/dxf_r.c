@@ -2283,6 +2283,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
       ++ii;
       dxf_out_lwpoly (ii, tab70[0]);
       (*el)->typ  = Typ_Done;
+      // (*el)->form = Typ_Typ;
       goto FERTIG;
 
 

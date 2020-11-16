@@ -159,6 +159,9 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 /// GUI_key_set1           change uncommon keys
 
 
+  // printf("GUI_key_set1 key=%d\n",ikey);
+
+
   // translate some keys ..
   switch (ikey) {
     case 65434: // ff9a -> 0xff55
@@ -168,7 +171,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
       ikey = GUI_KeyPageDown;
       break;
   }
-    // printf("GUI_gl_key key=%d ev=%d state=%d\n",ikey,typ,statMK);
+    // printf("ex-GUI_gl_key key=%d\n",ikey);
 
   return ikey;
 
@@ -666,7 +669,8 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   Obj_Win  *go;
 
 
-  // printf("GUI_Win_exit %d %d\n",mo.mbID,mo.ioff);
+  printf("GUI_Win_exit %d %d\n",mo.mbID,mo.ioff);
+
 
   // get gui-object from MemObj
   go = GUI_obj_pos (&mo);

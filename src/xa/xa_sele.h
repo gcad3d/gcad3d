@@ -31,6 +31,8 @@ TODO:
 #define Typ_go_LR       1013  ///< Line,Plane
 #define Typ_go_RA       1014  ///< plane|surface
 #define Typ_go_lf1      1015  ///< all curves, not contour
+#define Typ_go_lf2      1016  ///< all curves, not trimmed-curve
+#define Typ_go_JNT      1017  ///< Joint
 
 // selectionModifiers
 #define Typ_FncVAR1     1020  ///< next DB-var

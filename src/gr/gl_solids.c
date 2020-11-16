@@ -597,7 +597,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].y = sah[ih] * dh;
       pa1[ih].z = 0.;
       UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
-        // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (&pa1[ih], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[ih]);
     }
   glEnd ();
@@ -609,7 +609,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].y = sah[ih] * dh;
       pa1[ih].z = 0.;
       UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
-        // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (&pa1[ih], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[ih]);
     }
   glEnd ();
@@ -622,7 +622,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[iv].y = 0.;
       pa1[iv].z = sav[iv] * dv;
       UT3D_pt_tra_pt_m3 (&pa1[iv], ma, &pa1[iv]);
-        // GR_Disp_pt (&pa1[iv], SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (&pa1[iv], SYM_STAR_S, 2);
       glVertex3dv ((double*)&pa1[iv]);
     }
   glEnd ();
@@ -654,7 +654,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa1[ih].y = sah[ih] * (dh + cav[iv] * dv);
       pa1[ih].z = sav[iv] * dv;
       UT3D_pt_tra_pt_m3 (&pa1[ih], ma, &pa1[ih]);
-        // GR_Disp_pt (&pa1[ih], SYM_STAR_S, 2);
+        // GR_tDyn_symB__ (&pa1[ih], SYM_STAR_S, 2);
     }
     i1 += hNr;
     pa1 = &pTab[i1];

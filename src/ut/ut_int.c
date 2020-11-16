@@ -40,7 +40,7 @@ INT_intplcon                  intersect Plane Cone
 
 INT_intsursur                 Intersect Surface - Surface
 INT_int_tria_tria             intersect Surface - Surface --> n LineSegments
-INT_int_tria_pln              intersect Plane - nTriangles --> nLineSegments
+INT_int_tria_pln              intersect Plane - nTriangs --> nLineSegments
 INT_ln2pta__                  connect LineSegments  --> Polygon
 INT_pta2crv__                 change Polygon to Line Circ  Elli or BSpl-Curve
 
@@ -390,7 +390,7 @@ UTO_stru_int
   ObjGX     *spc1=NULL, *oTab, *oxp, oo1;
   Point     *pTab;
   Line      *lnTab;
-  Triangle  *triTab;
+  Triang  *triTab;
   TypTsuSur *surTab;
   Memspc    tSpc, oSpc, pSpc;
 
@@ -410,11 +410,11 @@ UTO_stru_int
 
 
   //----------------------------------------------------------------
-  // intersect all Triangles in spc1 mit Plane pl1
+  // intersect all Triangs in spc1 mit Plane pl1
 
   // space for triangles --> triTab  (12bytes/Tria)
-  triTab = (Triangle*)memspc501;
-  triSiz = sizeof(memspc501) / sizeof(Triangle);
+  triTab = (Triang*)memspc501;
+  triSiz = sizeof(memspc501) / sizeof(Triang);
     // printf(" triSiz=%d\n",triSiz);
 
 
@@ -453,7 +453,7 @@ UTO_stru_int
   lnNr  = 0;
 
 
-  // intersect Plane - Triangles --> n LineSegments
+  // intersect Plane - Triangs --> n LineSegments
   INT_int_tria_pln (lnTab, &lnNr, lnSiz, triTab, triNr, triSiz, pl1);
     // for(i1=0; i1<lnNr; ++i1) GR_Disp_ln (&lnTab[i1], 8);
     // return -1;
@@ -620,8 +620,8 @@ static  CurvElli          el1;
   Point    pt1, pt2, pt3;
 
 
-  // DEB_dump_obj__ (Typ_PLN, pli, "INT_intplcon:\n");
-  // DEB_dump_obj__ (Typ_CON, coi, "");
+  DEB_dump_obj__ (Typ_PLN, pli, "INT_intplcon:\n");
+  DEB_dump_obj__ (Typ_CON, coi, "");
 
 
   // Winkel ConeAchse - PlaneNormalachse
@@ -644,7 +644,7 @@ static  CurvElli          el1;
     // CirCen liegt auf ConeAchse in Hoehe d1
     UT3D_vc_multvc (&vc1, &coi->pl.vz, d1);   // vz hat Laenge 1 !
     UT3D_pt_traptvc (&pt1, &coi->pl.po, &vc1);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
     
     // Konusradius auf Hoehe d1 bestimmen ...
     k = (coi->r2 - coi->r1) / coi->h;  // Steigung
@@ -665,12 +665,12 @@ static  CurvElli          el1;
 
     // pt1 = intersect. Conusachse mit Plane pli = Center Ellipse.
     i1 = UT3D_pt_intptvcpln (&pt1, &coi->pl.po,&coi->pl.vz, &pli->po,&pli->vz);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
     // pt2 = den Origin der pli auf die ConeAchse projiz.
     // Strecke pli.po / pt2 entspricht ConeRadius (Elli-p1 ..)
     UT3D_pt_projptptvc (&pt2,&d1, NULL, &pli->po, &coi->pl.po,&coi->pl.vz);
-      // GR_Disp_pt (&pt2, SYM_STAR_S, 3);
+      // GR_tDyn_symB__ (&pt2, SYM_STAR_S, 3);
 
     d2 = coi->r1 / UT3D_len_2pt (&pli->po, &pt2);  // Faktor
       // printf(" d2=%f\n",d2);
@@ -679,7 +679,7 @@ static  CurvElli          el1;
     UT3D_vc_2pt (&vc1, &pt1, &pli->po);
     UT3D_vc_multvc (&vc1, &vc1, d2);
     UT3D_pt_traptvc (&pt3, &pt1, &vc1);
-      // GR_Disp_pt (&pt3, SYM_STAR_S, 4);
+      // GR_tDyn_symB__ (&pt3, SYM_STAR_S, 4);
 
     // minor axis:
     UT3D_vc_perp2vc (&vc2, &pli->vz, &vc1);
@@ -744,11 +744,11 @@ static  CurvElli          el1;
 
     // CirCen: vom TorCen Len=tor.r1-tor.r2 Richtg=
     UT3D_vc_perp2vc (&vc1, &tor->pl.vz, &pln->vz);
-      // GR_tDyn_vc (&vc1, &tor->pl.po, 9, 0);
+      // GR_tDyn_vc__ (&vc1, &tor->pl.po, 9, 0);
     // die 2. Loesung ist mit vc1-Invers
     d1 = tor->r1 - tor->r2;  // r1 = outermost !
     UT3D_pt_traptvclen (&pt1, &tor->pl.po, &vc1, d1);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
     // Circ from center, axis, x-vec and radius
     UT3D_ci_pt2vcr ((Circ*)oSpc, &pt1, &pln->vz, &pln->vx, tor->r2);
@@ -766,7 +766,7 @@ static  CurvElli          el1;
 
     // CirCen: intersect Plane - TorAxis. (prj. Pl.po --> Tor.vz)
     UT3D_pt_projptptvc (&pt1, &d1, NULL, &pln->po, &tor->pl.po,&tor->pl.vz);
-      // GR_Disp_pt (&pt1, SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
     // den Abst. CirCen - TorCen
@@ -814,9 +814,9 @@ static  CurvElli          el1;
 
 //============================================================================
   int INT_int_tria_pln (Line *lnTab, int *lnNr, int lnSiz,
-                        Triangle *triTab, int triNr, int triSiz, Plane *pln) {
+                        Triang *triTab, int triNr, int triSiz, Plane *pln) {
 //============================================================================
-/// intersect Plane - nTriangles --> nLineSegments
+/// intersect Plane - nTriangs --> nLineSegments
 
   int   i1, irc;
 
@@ -1280,8 +1280,8 @@ static  CurvElli          el1;
 
 //=====================================================================
   int INT_int_tria_tria (Line *lnTab, int *lnNr, int lnSiz,
-                         Triangle *tri1Tab, int tri1Nr, int tri1Siz,
-                         Triangle *tri2Tab, int tri2Nr, int tri2Siz) {
+                         Triang *tri1Tab, int tri1Nr, int tri1Siz,
+                         Triang *tri2Tab, int tri2Nr, int tri2Siz) {
 //=====================================================================
 /// intersect Surface - Surface --> n LineSegments (see also INT_int_tria_pln
 
@@ -1369,7 +1369,7 @@ static  CurvElli          el1;
         // if(irc < 0) printf(" ***** skip %d - %d\n",i1,i2);
       if(irc < 0) continue;
 
-      // test intersection
+      // get lines from intersection
       irc = UT3D_ln_intTriaTria (&lnTab[*lnNr], &tri1Tab[i1], &tri2Tab[i2]);
       if(irc < 0) continue;
 
@@ -1420,7 +1420,7 @@ static  CurvElli          el1;
   ObjGX     *spc1=NULL, *spc2=NULL, *oTab, *oxp1, *oxp2, oo1;
   Point     *pTab;
   Line      *lnTab;
-  Triangle  *tri1Tab, *tri2Tab;
+  Triang  *tri1Tab, *tri2Tab;
   TypTsuSur *sur1Tab, *sur2Tab;
   Memspc    tSpc, oSpc, pSpc;
 
@@ -1462,8 +1462,8 @@ static  CurvElli          el1;
   sur1Siz = sizeof(memspc101) / sizeof(TypTsuSur);
 
 
-  tri1Tab = (Triangle*)memspc501;
-  tri1Siz = sizeof(memspc501) / sizeof(Triangle);
+  tri1Tab = (Triang*)memspc501;
+  tri1Siz = sizeof(memspc501) / sizeof(Triang);
 
 
   // get triangles from spc1 --> triTab
@@ -1500,8 +1500,8 @@ static  CurvElli          el1;
   sur2Siz = sizeof(memspc52) / sizeof(TypTsuSur);
 
 
-  tri2Tab = (Triangle*)memspc201;
-  tri2Siz = sizeof(memspc201) / sizeof(Triangle);
+  tri2Tab = (Triang*)memspc201;
+  tri2Siz = sizeof(memspc201) / sizeof(Triang);
 
 
   // get triangles from spc1 --> triTab

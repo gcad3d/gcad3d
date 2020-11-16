@@ -56,8 +56,10 @@ List_functions - see ../xa/xa_mod.c
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 
-#include "../xa/xa_uid.h"             // UID_WinEdit
-#include "../xa/xa.h"                 // MDL_IS_MAIN
+#include "../xa/xa_uid.h"              // UID_WinEdit
+#include "../xa/xa.h"                  // MDL_IS_MAIN
+#include "../xa/xa_msg.h"              // MSG_cancel,
+
 
 #include "../gui/gui__.h"              // Gtk
 
@@ -73,7 +75,7 @@ List_functions - see ../xa/xa_mod.c
   // int Mod_m2s_CB (void *parent, void *data);
   void Mod_chg_CB (char *modNam);
   // int Mod_ren_CB (void *parent, void *data);
-  int Mod_del_CB (MemObj *mo, void **data);
+  // int Mod_del_CB (MemObj *mo, void **data);
 
 
 
@@ -91,7 +93,7 @@ List_functions - see ../xa/xa_mod.c
   L_name:
   // get new subModelname
   strcpy(s1, "submodel_1");
-  irc = GUI_Dialog_e2b ("name for new submodel:", s1, 250, "OK", "Cancel");
+  irc = GUI_dlg_e2b (s1, 250, "name for new submodel:", "OK", "Cancel");
   if(irc != 0) return -1;
 
 
@@ -113,10 +115,9 @@ List_functions - see ../xa/xa_mod.c
   if(OS_checkFilExist(newNam,1) == 1) {
     // sprintf(newNam,"  overwrite submodel %s ?  ",mNam);
     MSG_get_1 (newNam, 256, "OVER_mdl", "%s", smNam);
-    irc = GUI_Dialog_2b (newNam, "OK", "Cancel");
+    irc = GUI_dlg_2b (newNam, "OK", "Cancel");
     if(irc != 0) goto L_name;
   }
-
 
 
   return 0;
@@ -253,41 +254,17 @@ List_functions - see ../xa/xa_mod.c
 
 
   //--------------------------------------------------------------
-  // display List of Submodelnames
-  // GUI_List3 (6, "", NULL, NULL, NULL, NULL);   // clear Filtertext
+  // let user select from list of Submodelnames
   sprintf(fnam,"%sMod.lst",OS_get_tmp_dir());
-
-  // GUI_List1 ("select Model", fnam, Mod_chg_CB);
-
-//   i1 = GUI_list1_dlg_w (s1, 256,
-//                        NULL, " select Model", fnam,
-//                        "1", NULL, "60,40");
-
   i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select model\"", "\"x40,y40\"");
-
   if(i1 < 0) return -1;
 
+  // change subModel
   Mod_chg_CB (s1);
 
   return 0;
 
 }
-
-/*
-//====================================================================
-  int Mod_ren__ () {
-//====================================================================
-/// rename the active Submodel
-
-  printf("Mod_ren__\n");
-  if(strlen(AP_modact_nam) < 1) {
-    TX_Error("es ist kein Submodel aktiv ..");
-    return -1;
-  }
-  GUI_GetText(" new Submodelname: ",  AP_modact_nam, -200, Mod_ren_CB);
-  return 0;
-}
-*/
 
 
 ///=================================================================
@@ -297,7 +274,7 @@ List_functions - see ../xa/xa_mod.c
 /// the callback if OK selected.
 
   int   irc;
-  char  cbuf1[256], newNam[256], mNam[64];
+  char  s1[320], newNam[256], mNam[64];
 
 
   if(MDL_IS_MAIN) {
@@ -306,30 +283,36 @@ List_functions - see ../xa/xa_mod.c
   }
 
 
-  strcpy(cbuf1, AP_modact_nam);
-  irc = GUI_Dialog_e2b (" new Submodelname: ", cbuf1, 250, "OK", "Cancel");
-  if(irc != 0) return -1;
+  printf("Mod_ren_CB |%s|\n",AP_modact_nam);
 
-  printf("Mod_ren_CB |%s|\n",cbuf1);
 
-  if(strlen(cbuf1) < 1) return -1;
+  sprintf(s1, "rename Submodel %s to:", AP_modact_nam);
+  strcpy(newNam, AP_modact_nam);
+  irc = GUI_dlg_e2b (newNam, 250, s1, "OK", "Cancel");
+  if(irc != 0) return -1;             // error
+  if(strlen(newNam) < 1) return -1;   // cancel
 
 
   // make safeName from new subModelname
   // Mod_safeName (newNam, fnam);
-  UTX_safeName (cbuf1, 1); // change '. /\\'
+  UTX_safeName (newNam, 1); // change '. /\\'
 
   // check maxLen; max 62 chars
-  if(strlen(cbuf1) > 62) {
+  if(strlen(newNam) > 62) {
     TX_Print("max Laenge = 62 chars; gekuerzt !!");
-    cbuf1[62] = '\0';
+    newNam[62] = '\0';
   }
-  strcpy(mNam, cbuf1);
+  strcpy(mNam, newNam);
+    printf(" Mod_ren__-L1 |%s|\n",mNam);
 
-  // rename <tmp/Model_<AP_modact_nam>> -> tmp/Model_<data>>
-  sprintf(cbuf1,"%sModel_%s",OS_get_tmp_dir(),AP_modact_nam);
-  sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),mNam);
-  rename (cbuf1,newNam);
+
+  // rename <tmp/Model_<AP_modact_nam>> -> tmp/Model_<mNam>>
+  sprintf(s1, "%sModel_%s", OS_get_tmp_dir(), AP_modact_nam);
+  sprintf(newNam, "%sModel_%s", OS_get_tmp_dir(), mNam);
+  OS_file_rename (s1, newNam);
+
+  // update sm-List <tmpDir>/Mod.lst
+  Mod_mkList (1);
 
   // set name
   strcpy(AP_modact_nam, mNam);
@@ -342,6 +325,8 @@ List_functions - see ../xa/xa_mod.c
 
   // rename active subModel in browser
   Brw_sMdl_ren_CB (mNam);
+  // rename the active mdlNod to <mNam>
+  // GUI_tree1_row_set (&winBrw, &mdlNod, -1, mNam, 0);
 
   return 0;
 
@@ -351,26 +336,40 @@ List_functions - see ../xa/xa_mod.c
 //====================================================================
   int Mod_del__ () {
 //====================================================================
-// delete Submodel AP_modact_nam
+// Mod_del__           delete Submodel AP_modact_nam
 
-  char     cbuf[256];
+  int      i1;
+  char     s1[256];
 
 
   printf("Mod_del__\n");
 
   if(MDL_IS_MAIN) {
-    TX_Error("es ist kein Submodel aktiv ..");
+    TX_Error("no Submodel is active ..");
     return -1;
   }
 
-  sprintf(cbuf, "  delete Submodel %s  ",AP_modact_nam);
-  GUI_DialogYN (cbuf, Mod_del_CB);
+  // ask user - delete ? yes / no
+  sprintf(s1, "  delete Submodel %s  ",AP_modact_nam);
+  i1 = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    // printf(" PRG_Del__-L2 %d\n",i1);
+  if(i1 != 0) return -1;            // error or cancel
+
+
+  // del <tmp/Model_<AP_modact_nam>>
+  strcpy (s1, AP_modact_nam);
+
+  Mod_chg__ (1); // do not save active Submodel
+
+  Brw_Mdl_del_sm (s1);  // delete submodel in browser
+
+  Mod_del1__ (s1);
 
   return 0;
 
 }
 
-
+/*
 //=====================================================================
   int Mod_del_CB (MemObj *mo, void **data) {
 //=====================================================================
@@ -396,5 +395,6 @@ List_functions - see ../xa/xa_mod.c
   return 0;
 
 }
+*/
 
 // EOF

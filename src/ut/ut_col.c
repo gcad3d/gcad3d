@@ -41,7 +41,9 @@ UTcol_dump         dump ColRGB
 COL_DL_ATT         get pointer -> Color out of DL_Att     INLINE
 COL_ISTYL          set style, symbolic|shaded
 COL_INT32          *ColRGB from *int
-INT32_COL          *int from *ColRGB
+CHAR_ICOL          *char from *int (&att)
+INT32P_COL         *int from *ColRGB
+INT32I_COL         int  from *ColRGB
 
 List_functions_end:
 =====================================================

@@ -1,4 +1,4 @@
-// Triangles orientieren     2007-03-10   RF
+// Triangs orientieren     2007-03-10   RF
 /*
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -35,11 +35,6 @@ UT3D_tria_orient            alle 3Ecke orientieren (Normalvektoren ausrichten)
 UT3D_tria_ori_comm          check for Kanten direkt verbinden
 UT3D_tria_ori_parl          naechste Kante mit Spalt suchen
 UT3D_tria_ori_par_ck        check ob 2 Linien einen gemeinsamen Bereich haben
-UT3D_tria_box1
-TRI_edg_2i                  die kantennummer feststellen
-TRI_edg_3i                  die kantennummer feststellen
-TRI_Disp_tStat
-TRI_Disp_Bound
 
 List_functions_end:
 =====================================================
@@ -55,7 +50,7 @@ UT3D_tria_orient  ist zu langsam;
 
 weave (join surfaces)
 - die beiden Boundaries suchen (see UT3D_tria_ori_comm u. UT3D_tria_ori_parl)
-- in UT3D_tria_ori_comm sollte auch der Index des connected Triangle
+- in UT3D_tria_ori_comm sollte auch der Index des connected Triang
   gespeichert werden; dazu braucht man pro 3Eck 3 Int's !
 - ausgehend von den Boundaries die beiden dazu parallelen 3Ecks-Konturlinien
   suchen und verweben; erforderliche Mittelpunkte auf eine Konturlinie
@@ -113,13 +108,13 @@ tStat:
 
 
 //======================================================================
-  int UT3D_tria_orient (Triangle *ta, int triNr, Point *ptFar) {
+  int UT3D_tria_orient (Triang *ta, int triNr, Point *ptFar) {
 //======================================================================
 // alle 3Ecke orientieren (alle Normalvektoren nach innen ausrichten)
 // ACHTUNG: benutzt fast alle Speicher aus xa_mem.h !
 
 // Input:
-//   ta       TriangleArray,
+//   ta       TriangArray,
 //   triNr    Anzahl 3Ecke
 //   ptFar    ein Punkt weit aussen
 
@@ -136,7 +131,7 @@ tStat:
   double    d1, d2;
   char      *tStat;
   Vector    vc1, vc2;
-  Triangle  *tri0, *tri1;
+  Triang  *tri0, *tri1;
 
 
   // printf("OOOOOOOOOOOOOOOOOO UT3D_tria_orient OOOOOOOOOOOOOOOO \n");
@@ -229,7 +224,7 @@ tStat:
 
 
 //========================================================================
-  int UT3D_tria_ori_comm (Triangle *ta, char *tStat, int triNr, int iSta) {
+  int UT3D_tria_ori_comm (Triang *ta, char *tStat, int triNr, int iSta) {
 //========================================================================
 
 
@@ -239,7 +234,7 @@ tStat:
   double    d1, d2;
   Point     pt1, *pp1, *pp2, pb1, pb2;
   Vector    vc1, vc2;
-  Triangle  *tri0, *tri1;
+  Triang  *tri0, *tri1;
 
 
   // printf("================ UT3D_tria_ori_comm it=%d ================\n",iSta);
@@ -555,7 +550,7 @@ tStat:
 
 
 //========================================================================
-  int UT3D_tria_ori_parl (Triangle *ta, char *tStat, int triNr) {
+  int UT3D_tria_ori_parl (Triang *ta, char *tStat, int triNr) {
 //========================================================================
 // ein benachbartes Feld mit status 0 suchen ...
 // alle Felder mit Boundary haben bit mit val=8 gesetzt.
@@ -567,7 +562,7 @@ tStat:
   double    d1, d2, d3;
   Point     pt1, pt2;
   Point     *pp1, *pp2;
-  Triangle  *tri0, *tri1;
+  Triang  *tri0, *tri1;
 
 
 
@@ -672,7 +667,7 @@ tStat:
 
 //================================================================
   int UT3D_tria_ori_par_ck (int *ieNr, int *iDir,
-                            Point *pa, Point *pb, Triangle *tr) {
+                            Point *pa, Point *pb, Triang *tr) {
 //================================================================
 // check ob 2 Linien einen gemeinsamen Bereich haben
 //  (verwendet zum Orientieren eines 3EcksNetzes, UT3D_tria_orient)
@@ -845,188 +840,4 @@ tStat:
 }
  
 
-//================================================================
-  int UT3D_tria_box1 (int *boxTab, int boxSiz,
-                      Triangle *ta, int triNr, char *tStat,
-                      int iRes, int iSta) {
-//================================================================
-// alle dem tri0 benachbarten 3Ecke in eine Liste holen
-// nicht 3Ecke mit tStat > iRes
-//  iRes = 6   nur 3Ecke (fertig resolved)
-//  iRes = 0   nur alle nicht aufgeloesten ..
-
-
-  int      i1, i2, boxNr;
-  Point    pb1, pb2;
-  Triangle *tri1;
-
-
-  // printf("UT3D_tria_box1 %d %d\n",iRes,iSta);
-
-
-
-  // Eine Box um 3Eck it.
-  UT3D_box_tria (&pb1, &pb2, &ta[iSta], UT_DISP_cv);
-    // GR_tDyn_box__(&pb1, &pb2, 8);
-
-
-
-
-  //----------------------------------------------------------------
-  // loop tru all triangs; fill boxTab with trias close to tria0
-  boxNr = 0;
-  for(i1=0; i1<triNr; ++i1) {
-    if((tStat[i1] & 32) == 0) continue;      // 32 muss gesetzt sein ..
-    if((tStat[i1] & 7) > iRes) continue;     // 1 + 2 + 4
-
-    tri1 = &ta[i1];
-
-    // check if one of the points of i1 is inside box ...
-    i2 = UT3D_ck_ptInBox (&pb1, &pb2, tri1->pa[0]);   // 0=yes,1=no.
-    if(i2 == 0) goto LN_1;
-    i2 = UT3D_ck_ptInBox (&pb1, &pb2, tri1->pa[1]);   // 0=yes,1=no.
-    if(i2 == 0) goto LN_1;
-    i2 = UT3D_ck_ptInBox (&pb1, &pb2, tri1->pa[2]);   // 0=yes,1=no.
-    if(i2 == 0) goto LN_1;
-    continue;
-
-    // is in box; add to boxTab.
-    LN_1:
-    // printf(" LN_1 %d\n",i1);
-    boxTab[boxNr] = i1;
-    ++boxNr;
-    if(boxNr >= boxSiz) break;
-  }
-
-
-  // for(i1=0; i1<boxNr; ++i1) GR_Disp_tria (&ta[boxTab[i1]], 8);
-
-  // printf("ex UT3D_tria_box1 %d\n",boxNr);
-
-  return boxNr;
-
-}
-
-
-//================================================================
-  int TRI_edg_2i (int ip0, int ip1) {
-//================================================================
-// die kantennummer feststellen;
-// RetCod:
-//   1 = Kante 0-1  12 21
-//   2 = Kante 1-2  24 42
-//   4 = Kante 2-0  14 41
-
-
-  int    irc;
-
-  irc = 0;
-
-  if(ip0 > ip1) MEM_swap_int (&ip0, &ip1);
-  // printf(" nach swap %d %d\n",ip0,ip1);
-
-  if(ip0 == 1) {
-    if(ip1 == 2) irc = 1;
-    else irc = 4;
-  } else irc = 2;
-
-
-    // printf("ex TRI_edg_2i %d    %d %d\n",irc,ip0,ip1);
-
-  return irc;
-
-}
-
-
-//================================================================
-  int TRI_edg_3i (int ip0, int ip1, int ip2) {
-//================================================================
-// die kantennummer feststellen;
-// RetCod:
-//   1 = Kante 0-1
-//   2 = Kante 1-2
-//   4 = Kante 2-0
-
-
-  int    irc;
-
-
-
-  irc = 0;
-
-
-  if(ip0<1) goto LBC_12;
-  if(ip1<1) goto LBC_02;
-  if(ip2<1) goto LBC_01;
-
-
-  LBC_01:  // CCW
-    if((ip0<1)||(ip1<1)) goto L_exit;
-    irc = 1;
-    goto L_exit;
-
-  LBC_02:   // CW
-    if((ip0<1)||(ip2<1)) goto L_exit;
-    irc = 4;
-    goto L_exit;
-
-  LBC_12:  // CCW
-    if((ip1<1)||(ip2<1)) goto  L_exit;
-    irc = 2;
-    goto L_exit;
-
-
-
-  L_exit:
-
-    // printf("ex TRI_edg_3pt %d    %d %d %d\n",irc,ip0,ip1,ip2);
-
-  return irc;
-
-}
-
-
-//================================================================
-  int TRI_Disp_tStat (char *tStat, int triNr) {
-//================================================================
-
-  int     i1;
-
-
-  printf("TRI_Disp_tStat %d\n",triNr);
-
-  for(i1=0; i1<triNr; ++i1) printf(" %d=%d,",i1,tStat[i1]);
-  printf(" \n");
-
-  return 0;
-
-}
-
-
-//================================================================
-  int TRI_Disp_Bound (Triangle *ta, char *tStat, int triNr) {
-//================================================================
- 
-  int       i1, i2;
-  Triangle  *tri0;
-
-
-  printf("================ TRI_Disp_Bound ================\n");
-    for(i1=0; i1<triNr; ++i1) if(tStat[i1] > 7) printf(" %d=%d,",i1,tStat[i1]);
-    printf(" \n");
-    // die Kanten darstellen ..
-    for(i1=0; i1<triNr; ++i1) {  if(tStat[i1] < 8) continue;
-      // i1 = 40; // TEST-ONLY
-      i2 = tStat[i1]; tri0 = &ta[i1];
-      // kante 0-1
-      if((i2 & 1) == 0) GR_tDyn_ln_2pt (tri0->pa[0], tri0->pa[1], 11);
-      if((i2 & 2) == 0) GR_tDyn_ln_2pt (tri0->pa[1], tri0->pa[2], 11);
-      if((i2 & 4) == 0) GR_tDyn_ln_2pt (tri0->pa[2], tri0->pa[0], 11);
-    }
-
-  return 0;
-
-}
-
- 
 //================ EOF ===========================================

@@ -59,7 +59,6 @@ Brw_Mod_add         add subModelRow
 Brw_Mdl_createRow   create new (sub)ModelRow
 Brw_sMdl_ren_CB     rename the active mdlNod to <smNam>
 Brw_sMdl_ren__      rename the active mdlNod
-Brw_sMdl_del_CB
 Brw_sMdl_del__      delete model in browserWin
 Brw_Mod_is_main_active  test is mainModel is active
 
@@ -112,11 +111,12 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../xa/xa_ico.h"              // ICO_PT,
 #include "../xa/xa_mem.h"              // memspc55
 #include "../xa/xa_ed_mem.h"           // APED_..
+#include "../xa/xa_msg.h"              // MSG_cancel,
+
 
 // ex ../xa/xa_ui.c
 // extern GIO_WinTree winBrw;
 extern MemObj   winBrw;
-extern int      winBrStat;
 
 
 // local:
@@ -191,7 +191,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 }
 
 
-
+/*
 ///=====================================================================
   int Brw_sMdl_del_CB (MemObj *mo, void **data) {
 ///=====================================================================
@@ -216,6 +216,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   return 0;
 
 }
+*/
 
 
 //================================================================
@@ -223,8 +224,10 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 //================================================================
 /// delete model in browserWin
 
-  // int   ia;
-  char cbuf[320];
+  int    i1;
+  char   s1[320];
+
+  printf("Brw_sMdl_del__ \n");
 
 
   // if actNod is the active model: activate main 
@@ -233,8 +236,19 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
     return 0;
   }
 
-  sprintf(cbuf, "  delete Submodel %s  ",rowTxt);
-  GUI_DialogYN (cbuf, Brw_sMdl_del_CB);
+  sprintf(s1, "  delete Submodel %s  ",rowTxt);
+  // GUI_DialogYN (cbuf, Brw_sMdl_del_CB);
+  i1 = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    // printf(" PRG_Del__-L2 %d\n",i1);
+  if(i1 != 0) return -1;            // error or cancel
+
+  // delete subModel
+  Mod_del1__ (rowTxt);
+
+  // delete row actNod & its childs
+  Brw_close_typeRows (&actNod);
+  GUI_tree1_remove__ (&winBrw, &actNod);
+
 
   return 0;
 
@@ -244,16 +258,16 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 //================================================================
   int Brw_Mdl_init () {
 //================================================================
-/// create primary model & all subModels
+// Brw_Mdl_init         clear browser - create primary model & all subModels
 
   int           irc;
   TreeNode      it1;
 
 
-  // printf("Brw_Mdl_init %d\n",winBrStat);
+  printf("Brw_Mdl_init %d\n",AP_stat.brw_stat);
 
 
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
   GUI_tree1_clear (&winBrw); 
          
@@ -718,7 +732,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   int Brw_Clear () {
 //================================================================
 
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
   GUI_tree1_clear (&winBrw);
 
@@ -760,11 +774,12 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   //----------------------------------------------------------------
-  // printf("Brw_Mdl_upd %d %d\n",AP_stat.sysStat,winBrStat);
+  // printf("Brw_Mdl_upd %d %d\n",AP_stat.sysStat,AP_stat.brw_stat);
 
   if(AP_stat.sysStat < 2) return 0;
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
+  AP_stat.brw_stat = BRWSTAT_init;  // do not process callBacks (rowSelect ..)
 
   parNd = &mdlNod;
     // printf(" parNd=%p\n",parNd);
@@ -795,6 +810,8 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
  
   // // deselect new node
   // GUI_Tree_unselect_all (winBrw);
+
+  AP_stat.brw_stat = BRWSTAT_active;     // done
 
   return 0;
 
@@ -1028,7 +1045,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // printf("Brw_objRow_upd %d %ld\n",typ,ind);
 
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
   // update typeRow;
   irc = Brw_typeRow_upd (&bti, &itTr, typ, &mdlNod);
@@ -1527,7 +1544,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   // exit if no Brw
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
 
   typ = DL_dbTyp__dli (dli);
@@ -1687,7 +1704,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // printf("Brw_sMdl_act |%s|\n",mdlNam);
 
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
   // remove all objRows
   Brw_close_typeRows (&mdlNod);
@@ -1818,7 +1835,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
   // printf("Brw_obj_upd %d %ld %d\n",typ,dbi,mode);
 
-  if(winBrStat < 1) return 0;
+  if(AP_stat.brw_stat < BRWSTAT_init) return 0;
 
   if(mode == 1) mode = -1;
   if(mode == 0) mode = 1;

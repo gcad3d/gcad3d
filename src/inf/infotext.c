@@ -50,7 +50,7 @@ void INF(){                   /*! \code
                     development-dokumentation gcad3d
 -----------------------------------------------------------------------------------
 INF_CORE__          messagewindow import-export plugin app-script remote-control
-                    process-control
+                    process-control Group
 INF_GUI__           user-interaction, menus,     ckitgui ..
 INF_CMD__           command-interpreter (resolving gcad-format)
 INF_DB__            data-base for (binary) grafic objects
@@ -58,9 +58,6 @@ INF_DL__            DisplayList-functions                             ../gr/ut_D
 INF_GRAFIC__        display-module, Displist, OpenGL, GL2D
 INF_MAN__           MAN
 INF_CAD__           CAD
-INF_geom            INF_func_3D    INF_func_2D      INF_surfaces
-                    INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
-
 INF_DEV_GC__        workflow events select timer
 INF_APP__           create modify undo resolve attributes Userinteractions coords
 INF_OBJ_FORM__      binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
@@ -68,7 +65,9 @@ INF_OBJ_CONV__      ObjectFormatConversions
 INF_DEV_C__         C-software-developmant - MEM const tol C_types INF_debug
 INF_files__         list of all source-files ../inf/files.c
 
-Geom.modules:
+INF_geom            INF_func_3D    INF_func_2D      INF_surfaces   INEW_surf__
+                    INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
+
 INF_PRCV            polygonal_representation_of_curve              ../ut/ut_prcv__.c
 INF_CNTF            find and create contour (CCV = trimmed-curves) ../ut/ut_cntf.c
 INF_EDMPT           move points                                    ../xa/edmpt.c
@@ -80,8 +79,14 @@ INF_FMTB__          Gcad-Format-binary
 INF_DEV_tools__     development-tools
 INF_DOC_U           user-documentation
 INF_NamingConventions
-recipes-for-geometric-problems  ../../doc/geom/
 
+recipes-for-geometric-problems  ../../doc/geom/
+making a Video      ../../doc/html/Video_en.htm
+
+Other modules:
+INF_DBF             File-based DB; Save and retrieve key-value-Records
+INF_GUI_exe         GUI-executables (messageBox, select-file, entry-with-buttons)
+INF_catalog
 
 TODO:
 tst_gmvo.c          Move all obj's of group
@@ -166,6 +171,8 @@ INF_DB__            data-base for (binary) grafic objects
 Files:
 ../db/ut_DB.c        DB          store/retrieve binary-obj in DB
 
+Functions:
+UTO_obj_dbo       get DB-data-struct from typ, DB-index
 
 
 ================================================================== \endcode */}
@@ -173,9 +180,10 @@ void INF_GRAFIC__ (){        /*! \code
 INF_GRAFIC__        display-module, Displist and OpenGL-binding
 
 INF_GR_RECORDS      Source-record Database-record DisplayList-record
-                    permanent-obj
-                    temporary-dynamic-obj
-                    temporary-obj
+                    permanent-obj           GR_perm_*
+                    dynamic-obj             GR_perm_*   with negative DB-index
+                    temporary-dynamic-obj   GR_tDyn_*
+                    temporary-obj           GR_temp_*
                     
 INF_GR_attrib       attributes (color, linetype ..)
 
@@ -225,6 +233,7 @@ INF_workflow__              sequence functions  main-startup  CAD
 INF_workflow_events         main-events
 INF_workflow_select         select-process
 INF_workflow_display        display obj; GR - GL
+INF_model__                 load / save model ..
 INF_subModels
 INF_timer__
 
@@ -292,20 +301,21 @@ inputObjects  pt 2pt  ..
  rsys  struct Refsys = plane, Mat_4x3, inverted mat, backplane;  Typ_Refsys
 
  bbox  boundingBox
- tria  Triangle (3 points (pointers))
+ tria  Triang (3 points (pointers))
  rbox  rectangleBox; Viereck)
  edg   Edge (Kante)
  fac   Fac3, Typ_Fac3: Face; indexed-triangle; 3 int's (pointIndices)
  -"-   FacNf  Face with its NeigbourFaces
- msh   Typ_SURMSH, Mesh
+ pMsh  Typ_SURPMSH, point-mesh
+ bMsh  Typ_GL_Sur, binary-mesh           INF_FMTB_BinaryMesh
  patch Opengl-patch; type, points (GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN.. ))
  ipatch indexed-Opengl-patch; type, indexTable, points.
 
- ox   Complex-Object                     ObjGX
+ ox   Complex-Object                     ObjGX  OGX_..
  otb  struct ObjTab - table of binaray objects
  crv  linear object; LN,CI,EL,CV ..      typ+struct
  sur  planimetric obj; plane, surf       typ+struct
- obj,ost  object-structure; any object   typ+struct
+ obj  object-structure; any object       typ+struct   typ==form; eg Typ_PT
  dbo  DB-object; any obj                 typ+dbInd
  ccv  Concatenated-Curve (ObjGX)
  ato  atomic-object; any obj             austyp/austab (int/double)
@@ -385,7 +395,7 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
   trk     Translation kartesisch (x, y);
   trv     Translation Vectoriell (vector, length);
   trp     Translation polar (angle, length);
-  tri     Triangle, Dreiecksberechnung
+  tri     Triang, Dreiecksberechnung
   tng     Tangente, tangential
   std     Standard (characteristic-points,)
   swap
@@ -453,6 +463,7 @@ void INF_DEV_C__ (){        /*! \code
 INF_DEV_C__     MEM const tol C_types INF_debug
 
 INF_MEM__       get memSpc ..
+                MEM_ins_* MEM_del_* MEM_swap_*              ../ut/ut_mem.h
 INF_const__     constants
 INF_tol__       tolerances
 INF_C_types     [U]INT_[8|16|32]                            ../ut/ut_types.h
@@ -493,7 +504,7 @@ Old devDoc: ../../doc/gcad_doxygen/Programminginfos.dox
 void INF_OBJ_FORM__ (){        /*! \code
 binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
 
-INF_obj_types   every struct has a corresponding typ (interger)  ../ut/AP_types.h
+INF_obj_types   every struct has a corresponding typ (integer)  ../ut/AP_types.h
 
 INF_obj__       binary-obj, from typ + binary-struct
 INF_SRC__       source (asciiText with objectIDs and functions ..) _src_
@@ -515,8 +526,7 @@ INF_obj_names   objectName is eg "#height 2 floor"
 INF_OGX_CV_CCV  concatenated-curve (CCV)
 INF_OGX_DBO
 INF_OGX_SUR__
-INF_OGX_SUR_TPS
-INF_OGX_SUR_PLN
+INF_FMTB_SUTP
 
 
 Functions:
@@ -550,42 +560,43 @@ name     funcGrp      struct    form          descr                    files,fun
 pt     UT3D_        Point     Typ_PT        point                    INF_Typ_PT
 ln                  Line      Typ_LN
                     Circ      Typ_CI
-                    CurvPoly  Typ_CVPOL     polygon                  ../ut/ut_plg.c
+                    CurvPoly  Typ_CVPOL     polygon                  INF_Typ_CVPOL
                     CurvPol2  Typ_CVPOL2    polygon-2D               ../ut/ut_plg.c
                     CurvElli  Typ_CVELL     ellipse                  INF_Typ_CVELL
                     CurvBez   Typ_CVBEZ                              ut_bez.c
                     CurvBSpl  Typ_CVBSP                              INF_Typ_CVBSP
-                    CurvRBSpl Typ_CVRBSP
+                    CurvRBSpl Typ_CVRBSP                             INF_Typ_CVRBSP
                     CurvClot  Typ_CVCLOT    ClothoidCurve
        CVTRM_       CurvCCV   Typ_CVTRM     TrimmedCurve             INF_Typ_CVTRM
-       UT3D_pl_*    Plane     Typ_PLN
+....................................................................................
+stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_SUTP
+       UT3D_pl_*    Plane     Typ_PLN       Plane                    INF_Typ_PLN
+....................................................................................
                     Refsys    Typ_Refsys    (back)plane,tra.matrix   INF_Typ_Refsys
                     GText     Typ_GTXT
                     AText     Typ_ATXT, Typ_Tag
 ....................................................................................
        UTcol_       ColRGB    Typ_Color     color
-....................................................................................
+ox     OGX_         ObjGX     Typ_ObjGX     complex-object           INF_Typ_ObjGX
 obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
 otb    OTB_         ObjTab    - undef !     obj+xDat[]               INF_ObjTab
                     ObjBin    - undef !
-ox     OGX          ObjGX     Typ_ObjGX     complex-object           INF_ObjGX
 dbo    DB_          typ+dbi   int+long      DB-object (dataBase)
                     ObjDB     Typ_ObjDB
 ato    ATO_         ObjAto    Typ_ObjAto    atomic-object
-txo    APED_txo_    ObjTXTSRC Typ_ObjTXTSRC source-object
-                    ObjSRC    Typ_ObjSRC
-
+txo    APED_txo_    ObjSRC    Typ_ObjSRC    source-object
 jnt    JNT_         -         Typ_Joint                              INF_joints
 bbx    BBX2_        BBox2     Typ_BBox2     boundingBox-2D           INF_BBOX
 odl    DL_          DL_Att    - undef !     DisplayListRecord
-
                     int[]                   table of ints            ut_iTab.c
-
 sr                                          sense-of-rotation;       INF_sr
-
-
 ....................................................................................
-stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_SUTP
+mtb    MemTab_      MemTab                  fixed-length-records     INF_MemTab
+msp    UME_         Memspc                  Variable-Length-Records  INF_Memspc
+otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
+       BitTab_      UtxTab                  Textstrings              INF_UtxTab
+       UtxTab_      BitTab                  Bit-arrays               INF_BitTab
+....................................................................................
 
 
 
@@ -607,7 +618,7 @@ void INF_obj_dat (){        /*! \code
 INF_obj_dat     get binary data of binary-obj from typ + binary-struct
 
 Functions:
-DB_GetObjDat    get binary data of binary-obj from typ + binary-struct
+UTO__dbo    get binary data of binary-obj from typ + binary-struct
 UTO_objDat_dbS  get standardCurve from DB-curve S
 
 
@@ -762,12 +773,22 @@ Files:
 
 
 ================================================================== \endcode */}
+void INF_Typ_CVPOL (){        /*! \code
+
+Functions:
+UT3D_plg_pta
+
+
+Files:
+../ut/ut_plg.c
+
+================================================================== \endcode */}
 void INF_Typ_CVBSP (){        /*! \code
 
 Functions:
 APT_decode_cv APT_decode_bsp_ APT_decode_bsp1
 UT3D_bsp_ox
-bspl_bsp_ptn
+UT3D_cbsp_ptn
 UT3D_pta_bsp
 
 
@@ -775,6 +796,34 @@ Files:
 ../ut/ut_bspl.c	           B-Spline-Curve-Utilityfunctions 
 ../ut/ut_bsp_approx.c	     Approximation Polygon -> B-Spline 
 ../ut/cirMoeb.c	           Curves (bsplines, conic sections, etc.) 
+
+
+================================================================== \endcode */}
+void INF_Typ_CVRBSP (){        /*! \code
+
+Functions:
+APT_decode_rbsp
+
+
+Files:
+../ut/ut_rbspl.c           functions for Rat.B-Spline-Curves
+
+
+
+
+================================================================== \endcode */}
+void INF_Typ_PLN (){        /*! \code
+Plane
+see INF_ConstructionPlane
+
+Defaultplanes are:
+DB-indexes    obj_ID    normal-to
+DB_PLX_IND     DX         X-axis
+DB_PLY_IND     DY         Y-axis
+DB_PLZ_IND     DZ         Z-axis
+DB_PLIX_IND    DIX        negative-X-axis
+DB_PLIY_IND    DIY        negative-Y-axis
+DB_PLIY_IND    DIZ        negative-Z-axis
 
 
 ================================================================== \endcode */}
@@ -792,8 +841,58 @@ was: 1=CCW, -1=CW
 
 ================================================================== \endcode */}
 void INF_UTO__ (){        /*! \code
+- binary-obj - defined by typ+data
+  type eg = Typ_PT, data = struct Point
+  see also complex-obj; typ = Typ_ObjGX, struct = ObjGX; func OGX_*, INF_Typ_ObjGX
+
 ../ut/ut_obj.c
 obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
+
+
+//----------------------------------------------------------------
+serialize:   copy all objs and all data sequentially into a given memchunk
+relocate:    after reading obj-tree from file must relocate ..
+isolate:     change obj-links into structs; eg ObjGX "P1" into struct (Point)
+
+
+..............
+serialize:      use UME_add_obj
+UME_cpy_nRec     copy bin. records into Memspc. see UME_add_nRec
+UME_add_nRec      copy bin. records into Memspc. see UME_cpy_nRec
+
+..............
+UTO_copy_obj     copy ObjGX-tree    - used by TSU_store
+  UTO_copy_tab     copy ObjGX-object-data
+    UTO_copy_stru    nur copy n structs
+
+
+..............
+wrl_reloc__  tess_reloc_f_
+  UTO_reloc_obj   change ox-ptr data old -= new  (aber nicht ptrs in structs)
+
+..............
+OGX_tst_load_ox < OGX_tst__
+JNT_exp__
+  OGX_deloc__ > OGX_reloc_ox
+  OGX_reloc__      relocate all ptrs (must have been seralized-copied before)
+    OGX_reloc_ox     add or subtract all ptrs
+      OGX_reloc_adr    add or subtract ptr
+OGX_tst_load_ox
+  OGX_ox_copy__    copy (serialize) a ObjGX-Tree into a single memChunk.
+    OGX_ox_copy_obj
+      MEM_copy_oTab    copy records
+
+..............
+UTO_isol__   replaced by OGX_ox_copy__ UU
+  UTO_copy_0   copy ObjGX; replaced by OGX_ox_copy__
+    UTO_copy_tab     copy ObjGX-object-data
+  UTO_isol_l0  replaced by OGX_ox_copy__   change Links into structs
+    UTO_isol_ll1       change Links into structs; replaced by OGX_ox_copy__
+    UTO_isol_llt       change indexed-point -> struct-point
+
+..............
+OGX_ox_copy__ < OGX_tst_load_ox  UU
+  OGX_ox_copy_obj copy (serialize)
 
 
 
@@ -814,14 +913,14 @@ struct ObjTab has memspaces:
 
 
 ================================================================== \endcode */}
-void INF_ObjGX (){        /*! \code
+void INF_Typ_ObjGX (){        /*! \code
 ObjGX                 complex-object         definition
 OGX                   ../ut/ut_ox_base.c     functions
 
+INF_FMTB_ObjGX          description binary format
 INF_OGX_DBO
 INF_OGX_SUR__
-INF_OGX_SUR_TPS
-INF_OGX_SUR_PLN
+INF_FMTB_SUTP
 
 
 Functions:
@@ -901,8 +1000,17 @@ see ../../doc/gcad_doxygen/ObjectFormatConversions.dox complexObject
 
 
 ================================================================== \endcode */}
-void INF_OGX_SUR_TPS (){        /*! \code
+void INF_FMTB_SUTP (){        /*! \code
 complexObject - A surface-trimmed-perforated-supported
+
+sutp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)
+
+  - ObjGX typ=Typ_SUTP with support-surface and all boundaries (1 outer, n inner)
+
+  - Record[0] = link to support-surf; PLN|CON|SPH|TOR/SRU/SRV/SBS   INEW_surf_types
+  - Record[1] = link to outer boundary (DB-obj - typ,index)
+  - Record[2-] - links to inner boundaries
+
 
 struct ObjGX
          typ  = Typ_SUTP;
@@ -911,35 +1019,24 @@ struct ObjGX
          data = oxTab[] - supporting-surface, outer and inner-boundary
 
     oxTab[0] supporting-surface (DB-obj (INF_OGX_DBO))
-             typ=Typ_CON| ..; form=Typ_Index
-             typ=Typ_modUndef = planar-surface; compute plane from outer-boundary
+             typ=Typ_CON| ..; form=Typ_Index  (PLN/CON/TOR/SRU/SRV/SBS)
+             typ=Typ_PLN = planar-surface
+             typ=Typ_modUndef = planar-surface; OBSOLETE
     oxTab[1] outer-boundary (DB-obj (INF_OGX_DBO))
              typ=Typ_CI| ..; form=Typ_Index
              typ=Typ_modUndef = unlimited supporting_surface
    [oxTab[2-n] inner-boundaries(DB-objs (INF_OGX_DBO))]
 
-FSUB     T_FSUB  Typ_SUTP    APT_decode_s_pln
+
+FSUB     T_FSUB  Typ_SUTP    
 
 
-
-
-
-================================================================== \endcode */}
-void INF_OGX_SUR_PLN (){        /*! \code
-complexObject-surface-planar
-
-  ox.typ=Typ_SURSUP, .form=Typ_ObjGX, .siz=2+<Nr-innerBounds>, .data=oxTab
-    oxTab[0] ox.typ=Typ_modUndef; .form=Typ_modUndef
-             supporting_surface (PLN/CON/TOR/SRU/SRV/SBS)
-             planar- Typ_modUndef - compute plane from outer-boundary
-    oxTab[1] outer-boundary (none: unlimited supporting_surface)
-             unlimited supporting_surface: typ=Typ_modUndef
-    [oxTab[2-n] inner-boundaries
-  
 Functions:
-  APT_decode_sutp_pln   // ox from ato
+  APT_decode_tps__   new Version, not-yet-active  ox from ato
+  SUTP_decode_sSur
   DB_StoreSur         // save ox (surface) in DB)
 
+see also APT_decode_fsub APT_decode_spl
 see also INF_OGX_SUR__
 
 
@@ -959,19 +1056,20 @@ sourcefile-runtime: <cfgdir>/ltyp.rc     /mnt/serv1/Devel/gcad3d/gCAD3D/cfg/ltyp
 sourcefile-devel:   ../../gCAD3D/cfg/ltyp.rc -> examples.gz
 
 ind col typ thk
-  0 000  0  1    black  full                 Typ_Att_def        default
-  1 116  0  1    blue   full blue            Typ_Att_blue
-  2 000  2  1    black  dash                 Typ_Att_dash__
-  3 000  1  1    black  dash-dot             Typ_Att_dash_dot
-  4 755  0  1    gray   full                 Typ_Att_Fac
-  5 116  3  2    blue   dash-long  thick2    Typ_Att_dash_long
-  6 555  0  1    gray   full                 Typ_Att_Fac2      faces3
-  7 990  0  3    yellow full       thick3    Typ_Att_Symb
-  8 090  0  3    green  full       thick3    Typ_Att_hili
-  9 822  0  4    red    full       thick4    Typ_Att_hili1     hilite
- 10 447  0  1    gray   full                 Typ_Att_dim
- 11 000  0  4    black  full       thick4    Typ_Att_top1
- 12 900  2  2    red    dashed     thick2    Typ_Att_top2
+  0 000  0  1      // Normal               Typ_Att_def
+  1 116  0  2      // text blue            Typ_Att_blue
+  2 000  2  1      // dashed               Typ_Att_dash__
+  3 000  1  1      // dash-dot             Typ_Att_dash_dot
+  4 755  0  1      // faces1 thick1        Typ_Att_Fac
+  5 116  3  2      // faces2 thick1        Typ_Att_dash_long
+  6 555  0  1      // faces3 thick1        Typ_Att_Fac2
+  7 990  0  3      // yellow thick3        Typ_Att_Symb
+  8 090  0  3      // green  thick3        Typ_Att_hili
+  9 822  0  4      // hilite thick4        Typ_Att_hili1
+ 10 447  0  1      // dimmed thick4        Typ_Att_dim
+ 11 000  0  4      // black  thick4        Typ_Att_top1
+ 12 990  2  6      // yellow dash thick6   Typ_Att_top2
+
 #
 # Format: indexNr colour lineTyp lineThick // comment
 #
@@ -1021,21 +1119,6 @@ form: type of record of *data
   set: OGX_SET_COLOR; get: OGX_GET_COLOR
 
 See ../../doc/gcad_doxygen/Objects-Format.dox ComplexObject
-
-
-================================================================== \endcode */}
-void INF_struct_dir (){/*! \code
-B-spline:
-  dir  0=forward, curve along ascending parameters;
-       1=backward, reverse; curve along descending parameters.
-Circle:
-  dir  0 = same direction as parentcurve
-       1 = reverse direction as parentcurve
-
-  v0/ip0/p1 always gives the startpoint (even if dir=bwd)
-  v1/ip1/p2 always gives the endpoint (even if dir=bwd)
-
-See UTO_cv_ck_dir_clo INF_struct_par
 
 
 ================================================================== \endcode */}
@@ -1094,28 +1177,70 @@ Parameters in sourceobjects are always in range 0.0 - 1.0.
 
 
 ================================================================== \endcode */}
+void INF_struct_dir (){/*! \code
+
+
+direction: 0=forward, curve along ascending parameters;      (char dir)
+           1=backward, reverse; curve along descending parameters.
+See also INF_struct_closed
+See also INF_struct_par
+
+
+Circle and Ellipse:
+  default-direction is counter-clockwise (0 = fwd)
+  can be set to CW (clockwise, 1 = bwd).
+
+
+These objects can be reversed (CAD - Modify - REVert)
+  Circle, ellipse, polygon, bspline.
+  Result is a trimmed-curve (struct CurvCCV) with .rev = 1 (direction reverse).
+
+  Parameters for reversed curves also start with 0 and go up to 1.
+  The same point for a fwd-curve and its reversed curve has different parameters;
+    the startpoint on the fwd-curve has parameter 0;
+    this point is endpoint of the reversed-curve and has here parameter 1.
+
+
+B-spline:
+  dir  0=forward, curve along ascending parameters;
+       1=backward, reverse; curve along descending parameters.
+Circle:
+  dir  0 = same direction as parentcurve
+       1 = reverse direction as parentcurve
+
+  v0/ip0/p1 always gives the startpoint (even if dir=bwd)
+  v1/ip1/p2 always gives the endpoint (even if dir=bwd)
+
+See UTO_cv_ck_dir_clo INF_struct_par
+
+
+
+================================================================== \endcode */}
 void INF_struct_closed (){        /*! \code
 
-closed: state of the basic-curve; closed or not.
-  a basic curve always has trimmed=no
+closed; 0=yes, 1=not_closed; -1=undefined;      (char clo)
+trimmed; 0=yes, 1=not_trimmed, -1=undef;        (char trm)
+See also INF_struct_dir
+See also INF_struct_par
+
+closed: always the state of the basic-curve (also for trimmed-curves)
   closed=yes endpoint == startpoint
   - curve can be trimmed
-  - char clo: 0=closed, 1=not_closed, -1=undefined
   - see UTO_cv_ck_dir_clo
 
-trimmed: state of a copy of the basic-curve;
+trimmed: curve of a part of the basic-curve;
+  a basic curve always has trimmed=no
   trimmed=yes: this curve is a trimmed part of the basic-curve;
   the basic curve can be closed or not 
 
-cyclic: curve is passing endpoint=startpoint   
-  - curve can be trimmed
+cyclic: curve is not closed, curve is passing endpoint=startpoint   
+  - curve is trimmed, its basic curve is a closed curve.
   - closed curve from startpoint to endpoint is NOT cylic
   - see UTO_cv_ck_cyc
 
 trimmed: if curve is closed: curve passes whole cycle or not  (char trm)
   -  not-trimmed: curve from startpoint to endpoint
   -  not-trimmed: curve from midpoint to midpoint
-  -  char trm: 0=trimmed, 1=not_trimmed, -1=undef;
 
 
 Funcs:
@@ -1136,11 +1261,27 @@ bbx    BBX2_        BBox2     Typ_BBox2     boundingBox-2D           INF_BBOX
 
 ================================================================== \endcode */}
 void INF_MSG_new (){        /*! \code
-Messagefiles:
-  ../../doc/msg/msg_*.txt
+
+- constant messages: see INF_MSGconst_new
+
+Messages are displayed in the messagewindow below the grafic-window.
+Messages are selected by a keyword and have translations
+  in the messagefiles ../../doc/msg/msg_<lang>.txt
+
+
+Functions:
+  MSG_pri_0            // message without parameters
+  MSG_err_1            // message with 1 parameter
+
+
+Files:
+../xa/xa_msg.c
+../../doc/msg/msg_*.txt
+
+
 
 TODO
-UNUSEDi keyWords:
+UNUSED keyWords:
 MMsePcp
 MMsePso
 MMseLoO
@@ -1170,6 +1311,29 @@ kompare ../../doc/msg/msg_en.txt /usr/share/gcad3d/doc/msg/msg_en.txt
 
 
 ================================================================== \endcode */}
+void INF_MSGconst_new (){        /*! \code
+
+identified by integers (msgCode - enum in ../../src/xa/xa_msg.h)
+
+Functions:
+  MSG_const__(<msgCode>));
+
+
+FILES:
+  ../../doc/msg/msg_const_*.txt        msg-text
+  ../../src/xa/xa_msg.h                msgCode - enum MSG_*
+
+Example:
+  TX_Print(MSG_const__(MSG_GrpSel));
+  GUI_Tip        (MSG_const__(MSG_upd));
+
+Add new constants: 
+  add ID in xa_msg.h;
+  add msg in msg_const_de.txt (and all others, msg_const_en.txt ..)
+    cd ../../doc/msg/
+
+
+================================================================== \endcode */}
 void INF_const__ (){        /*! \code
 constants
 
@@ -1192,6 +1356,10 @@ tolerances
   UT_TOL_pt         identical Points-tolerence
   UT_TOL_cv         max analytical deviation for curves  
 
+Functions:
+WC_Init_Tol
+UI_WinToler
+
 
 
 ================================================================== \endcode */}
@@ -1199,37 +1367,29 @@ void INF_MEM__ (){        /*! \code
 
 INF_MEM_ORG_TYP   get organized memspc as -
 
-INF_MEM_SPC       get memspc - temporary | static | permanent
+INF_MEM_SPC     get memspc - temporary | static | permanent
 
 
-INF_MemTab      Fixed-Length-Records            MemTab   
-INF_Memspc      Variable-Length-Records         Memspc
-                Textstrings
-                BitArray
+INF_MemTab      Fixed-Length-Records                         MemTab   
+INF_Memspc      Variable-Length-Records                      Memspc
+INF_OgxTab      Fixed-Length + Variable-Length-Records       OgxTab
+INF_UtxTab      Textstrings                                  UtxTab
+INF_BitTab      BitArray                                     BitTab
 
 INF_ObjTab      Variable-Length-Records
                   + list of pointer and types
                   + Fixed-Length-Records
 
-INF_MEM_TYP       type of memspc; stack|malloc, protected,expandable
-
+INF_MEM_TYP     type of memspc; if can reallocate, must be freed ..
+                if stack|malloc, protected,expandable ..
 
 Functions:
-MEM_..            Swap-Invert-Delete copy compare write read ..    ../ut/ut_mem.c
+MEM_..          Swap-Invert-Delete copy compare write read ..    ../ut/ut_mem.c
 
 
 
 
 ../myUnused/gcad_doxygen/Tools-MemoryFunctions.dox
-
-
-================================================================== \endcode */}
-void INF_MEM_TYP (){        /*! \code
-
-see ../ut/ut_types.h MEMTYP_NONE MEMTYP_ALLOC__ ..
-
-- used in CurvPrcv, MemTab (../ut/ut_memTab.h)
-- used in Memspc (UME_.. ../ut/ut_umem.h)
 
 
 ================================================================== \endcode */}
@@ -1241,11 +1401,14 @@ void INF_MEM_SPC (){        /*! \code
 MEM_alloc_tmp     get temporary-memspc
   calls alloca; memspace exists until active function returns.
   max size should be SPC_MAX_STK = 32767 bytes
+  cannot be increased, must not free.
   Example:
   int   *iTab2;
   iTab2 = (int*) MEM_alloc_tmp (sizeof(int) * lnNr);
   if(!iTab2) goto L_EOM;
 
+
+- tempSpace (fixed size) > SPC_MAX_STK: ?
 
 
 ----------------------------------------------------------
@@ -1267,10 +1430,63 @@ void INF_MEM_ORG_TYP (){        /*! \code
 the memory-space types are defined in ../ut/ut_types.h as MEMTYP_*
 
 
-INF_MemTab           Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
-INF_Memspc     Variable-Length-Records      UME_          ../ut/ut_umem.c
-INF_MEM_ORG_TXT      Textstrings                  UtxTab_       ../ut/ut_txTab.c
-INF_MEM_ORG_BIT      Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
+INF_MemTab      Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
+INF_Memspc      Variable-Length-Records      UME_          ../ut/ut_umem.c
+INF_OgxTab      ObjGX + var-len-record       OXMT_
+INF_UtxTab      Textstrings                  UtxTab_       ../ut/ut_txTab.c
+INF_BitTab      Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
+
+
+================================================================== \endcode */}
+void INF_MEM_TYP (){        /*! \code
+
+type of memspc; if can reallocate, must be freed ..
+
+see MEMTYP_NONE - MEMTYP_STACK_EXPND                               ../ut/ut_types.h
+
+see MEM_CANNOT_FREE                                                ../ut/ut_mem.h
+
+
+---------------------------------------
+free:
+  MUST free:  MEMTYP_ALLOC__ 
+  else cannot free
+
+realloc:
+  CAN realloc:     MEMTYP_NONE
+                   MEMTYP_ALLOC__
+                   MEMTYP_ALLOC_PROT
+
+  CANNOT realloc:  MEMTYP_ALLOC_EXPND
+                   MEMTYP_STACK__
+                   MEMTYP_STACK_EXPND
+
+expand:  (malloc & copy)
+  CAN expand:      MEMTYP_ALLOC_EXPND
+                   MEMTYP_STACK_EXPND
+  
+
+
+================================================================== \endcode */}
+void INF_OgxTab (){        /*! \code
+
+otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
+
+OgxTab is a container of a MemTab .ogx plus a Memspc .spc -
+  MemTab is a list of Fixed-Length-Records                           see INF_MemTab
+  Memspc is a list of Variable-Length-Records                        see INF_Memspc
+
+
+Examples:
+  OgxTab otb1 = _OGXTAB_NUL;
+  OXMT_test_1 ()
+
+
+Files:
+../APP/ut_ogxt.c
+
+../ut/ut_ogxt.c
+../ut/ut_ogxt.h
 
 
 ================================================================== \endcode */}
@@ -1288,12 +1504,14 @@ MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
 
   // for known nr of records:
   MemTab(int) mtbi1 = _MEMTAB_NUL;
-  MemTab_ini_temp (&mtbi1, rNr);   // does malloc if > SPC_MAX_STK
+  MemTab_ini_temp (&mtbi1, Typ_Int4, rNr);   // does malloc if > SPC_MAX_STK
 
   // max nr of records 
   MemTab(Point) mtpa = _MEMTAB_NUL;
   MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
                   sizeof(Point), Typ_PT);
+  ..
+  MemTab_add (&mtpa, &l1, &pt1, 1, 0);
   ..
   MemTab_free ((MemTab*)&mtba);  // if realloc permanent-memspc (gt SPC_MAX_STK)
 
@@ -1331,6 +1549,12 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   UME_init (&tmpSeg, tmpspc, sizeof(tmpspc));
 
 
+# get stack-space
+  #define SIZ_TMP 2000
+  Memspc    memSeg1;
+  UME_init (&memSeg1, MEM_alloc_tmp(SIZ_TMP), SIZ_TMP);
+
+
 -----------------------------------------------------------------------
 # get static memspc:
   UME_init (&s_mSpc, memspc501, sizeof(memspc501));
@@ -1343,14 +1567,14 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
 
 ================================================================== \endcode */}
-void INF_MEM_ORG_TXT (){        /*! \code
+void INF_UtxTab (){        /*! \code
 
 TxtTab            Textstrings                  UtxTab_       ../ut/ut_txTab.c
 
 
 
 ================================================================== \endcode */}
-void INF_MEM_ORG_BIT (){        /*! \code
+void INF_BitTab (){        /*! \code
 
 BitTab            Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
@@ -1377,6 +1601,21 @@ main                      ../xa/xa_main.c
 ED_work_END
   ED_work_CurSet
     WC_Work__
+
+  GUI_Win_exit      // Exit mit X:
+    UI_win_main "UI_FuncExit"
+      AP_exit__
+      GUI_Win_kill
+      exit
+
+  AP_work__ ("crashEx", NULL);
+    AP_exit__
+    exit
+
+UI_men__ ("new")    //  File/New
+
+AP_src_new       // File/New, File/Open
+
 
 
 ------ CAD:
@@ -1464,11 +1703,12 @@ UI_GR_Select1         // get selectionMenu (sel.Obj + useful subObjs)
 
 -------------------------------------------------------------------------
 Functions doing select-process:
-  sele_set_add            add obj to selectionfilter reqObjTab; eg Typ_go_PD = P+D
-  sele_src_cnvt__                    test if component of obj is useful
+  sele_set_add       add obj to selectionfilter reqObjTab; eg Typ_go_PD = P+D
+  IE_inpCkTyp        connect selectType (eg Typ_go_JNT) with outType (eg Typ_Joint)
+  IE_txt2par1        get next parameter(s) from atomicObjects IF USEFUL
+  sele_src_cnvt__    test if component of obj is useful
   IE_cad_Inp2_Info
   IE_inpTxtOut
-  IE_txt2par1
 
 UNUSED:
   sele_decode     converts the selected obj into a requested obj
@@ -1532,6 +1772,7 @@ Functions:
   Mod_sav_ck (0);       make a copy of Model for ck-modified
 
 
+//----------------------------------------------------------------
 Files in <tempDir>:
   Mod.lst               List of all internal subModels + primary model "-main-"
   Model                 the complete model after prg.exit
@@ -1552,6 +1793,85 @@ Files in <tempDir>:
 
 
 
+
+
+
+================================================================== \endcode */}
+INF_model__ (){        /*! \code
+
+load / save model ..
+
+//----------------------------------------------------------------
+Startup:             // start without startModel = new
+UI_GL_draw__ 
+  Mod_sav_i (-1)       // create empty model into file <tmp>/Model
+  Mod_sav_ck (0)       // init; copy Model - Mod_in
+  AP_stat.mdl_stat = MDLSTAT_loaded
+
+//----------------------------------------------------------------
+Load_start:           // load startModel 
+AP_Mod_load_fn
+  AP_stat.mdl_stat = MDLSTAT_loading;
+  AP_Mod_load__
+  Mod_sav_i (0)        // save active model + subModels  into file <tmp>/Model
+    Mod_fget_names__
+      Mod_fget_names_1
+  Mod_sav_ck (0)       // init; copy Model - Mod_in
+  AP_stat.mdl_stat = MDLSTAT_loaded;
+
+//----------------------------------------------------------------
+Load_new:      // File/New if model already loaded
+UI_men__ |new|
+  AP_stat.mdl_stat = MDLSTAT_save_as;
+  Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
+  Mod_sav_ck (1);
+  AP_save_ex (1);
+  ..
+  AP_stat.mdl_stat = MDLSTAT_loaded;
+
+
+//----------------------------------------------------------------
+Load_open:     // File/Open_Model
+UI_men__ |open|
+  AP_stat.mdl_stat = MDLSTAT_save_as;
+  Mod_sav_ck (1);
+    Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
+    Mod_sav_cmp__  // compare Model - Mod_in
+  AP_save_ex (1);
+  GUI_file_open__
+  AP_Mod_load_fn   // get AP_mod_sym,AP_mod_dir,AP_mod_fnam,AP_mod_ftyp,AP_mod_iftyp
+  AP_mod_sym_get   // get symbol-name for new directory from user
+
+  AP_stat.mdl_stat = MDLSTAT_loaded;
+
+//----------------------------------------------------------------
+Save_exit:         // eXit gcad with "X"  
+AP_exit__ (0)      // 0=normal-exit;
+  Mod_sav_ck (1);  // compare Model - Mod_in
+    Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
+    Mod_sav_cmp__  // compare Model - Mod_in
+  AP_save_ex (0)   // is modified; save for exit
+    AP_save__(0, 1, "gcad") // sav-all, no check-overwrite;
+
+//----------------------------------------------------------------
+Save_quick:        // save with Ctrl-s 
+UI_men__ |save|
+  AP_stat.mdl_stat = MDLSTAT_save_quick;
+  UI_save__ (1);
+    Mod_sav__
+      Mod_sav_i
+        Mod_sav_ck
+  AP_stat.mdl_stat = MDLSTAT_loaded;
+
+//----------------------------------------------------------------
+Save_as:          // File / save as;
+UI_men__ |exp1nat|
+  AP_stat.mdl_stat = MDLSTAT_save_as;
+  AP_save__ 0 0 |gcad|   // sav-all, get fName, check overwrite,
+    GUI_file_save__      // get filename from user, ask for overwrite
+    AP_save_del_smuu     // ask for / delete unused subModels
+    UI_save__ (1);
+  AP_stat.mdl_stat = MDLSTAT_loaded;
 
 
 
@@ -1697,6 +2017,7 @@ Functions ConstrPlane:  -------------------------
 DL_setRefSys
   NC_setRefsys      Change active Plane (Refsys)
     GL_SetConstrPln
+    UI_lb_2D_upd           update label "2D" | "3D"
 DL_GetTrInd         get the refsys-nr (dbi of Plane) for DL-record <dli>
 
 GL_SetConstrPln     GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
@@ -1706,6 +2027,8 @@ AP_Set_ConstPl_Z    write Label name_of_Constr.Plane
 UI_suract_keyIn     mode=2: set & display WC_sur_Z
 AP_Get_ConstPl_Z    gives ConstPLn as text or Z-vec
 AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
+
+
 
 
 ../../doc/gcad_doxygen/Userinteractions.dox
@@ -1737,6 +2060,8 @@ _MSC_VER         // MS-Win; gcc & MS_VS; beim gcc von extern mit -D_MSC_VER
 _MFC_VER         // MS-Win; nur mit MS-Compiler (MFC-Version).
 _WIN32 & _WIN64  // MS-Win; nur mit MS-Compiler
 _LP64            // vom gcc auf 64-bit-OS.
+
+
 
 
 
@@ -1779,6 +2104,53 @@ SRCU_tmr_CB__
 
 GUI_timer__
 
+================================================================== \endcode */}
+void INF_DBF (){        /*! \code
+File-based DB; Save and retrieve key-value-Records
+Used with joints.
+
+Files:
+../ut/ut_dbf.c
+../APP/test_DBF.c          testprog
+
+For examining DB-file use wxHexEditor <tmp/>joints
+
+
+
+================================================================== \endcode */}
+void INF_catalog (){        /*! \code
+
+Symbol for directory with catalog-files is CATALOG
+  Default is ~/gCAD3D/ctlg/
+Here are the files <partTyp>.ctlg
+  and the necessary partfiles <catalogPart>.gcad
+Partfiles can also be in subDirectories of directory <CATALOG>
+
+
+//----------------------------------------------------------------
+Simple example for a catalog-part:  (also in ../../doc/html/Catalog_*.htm
+//----------------------------------------------------------------
+# Create following model test_ctlg1.gcad in directory <CATALOG>
+V20=VAL(10)
+CALL CTLG
+C20=P(0 0 0) V20
+A20=C20
+
+# create catalog-file test_ctlg1.gcap in directory <CATALOG> with -
+# CAD - Catalog/Create Catalog / test_ctlg1 OK
+
+# edit catalog-file test_ctlg1.gcap
+# CAD - Catalog/Modify Catalog / test_ctlg1
+
+# insert following lines:
+R_25;CATALOG/test_ctlg1;V20=25;
+R_100;CATALOG/test_ctlg1;V20=100;
+
+# use new catalog:
+# CAD - subModels "M CatalogPart" /  List /
+
+
+
 
 
 ================================================================== \endcode */}
@@ -1805,7 +2177,8 @@ void INF_debug (){        /*! \code
 
 
 -------------- Errormessages: ../xa/xa_msg.h ../xa/xa_msg.c
-MSG_ERR_*         errormessage (key, additional_text)      see INF_DEB_MSG_ERR
+MSG_ERR__         errormessage (key, additional_text)      see INF_DEB_MSG_ERR
+MSG_ERR_*
 
 
 -------------- dump objects:

@@ -67,7 +67,7 @@ void INF_Color_attributes (){        /*! code
 - for surfaces (A) and solids (B)
 - struct ColRGB type is Typ_Color
 - source ../ut/ut_col.c and ../ut/ut_col.h
-- ColRGB is used as INT32 for GL-functions (COL_INT32 / INT32_COL)
+- ColRGB is used as INT32 for GL-functions (COL_INT32 / INT32P_COL)
 
 
 ================================================================== \endcode */}
@@ -181,19 +181,25 @@ Functions:
 
 ================================================================== \endcode */}
 void INF_joints (){        /*! code
+TODO: myReadme.joints
 
+Sourcefiles:
 ../xa/xa_joint.c
 ../ut/ut_dbf.c            store/retrieve joint-objects with key;
-../../doc/html/CAD_Joint_de.htm
+../../doc/html/CAD_Joint_en.htm           user-doc.
 
 DB only DB_JNT_IND = nr of used joints / index of next free.
+Joints are stored in file <tmp>/joints, not in DB.
 
+
+//----------------------------------------------------------------
 Functions:
 APT_decode_Joint
-JNT_exp__
-JNT_imp__
-UI_disp_joint
+JNT_exp__             export joints into file "<tmp>/joints"
+JNT_imp__             import
+APT_IMP__
 
+DBF_init
 DBF_add__        store binary obj joint
 DBF_find__       find dataPosition from key
 DBF_getVal       get binary obj joint
@@ -201,12 +207,19 @@ DBF_getVal       get binary obj joint
   with the DB of the active model.
 
 
+Temp-file:
+<tmp>/joints       binary,     see with wxHexEditor
+
+
+
+
+//----------------------------------------------------------------
 Models:
-Data/test_joint_1.gcad
-INF_Data/sample_DiagEl1.gcad
+Data/test_joint_1.gcad   tst_jnt1.gcad my_jnt2.gcad
+Data/sample_DiagEl1.gcad
 
 
-
+//----------------------------------------------------------------
 TODO:
 - joint-object should be a struct: {(int)size-(ObjGX)obj-objData}
   all pointers must be inside the struct.

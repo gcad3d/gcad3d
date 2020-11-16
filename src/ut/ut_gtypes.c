@@ -123,7 +123,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
   static char *TypTxtTab90[]={
   "Note",   "TxtA",   "TxtG",   "Dimen",  "Dim3",      // 90-
-  "Tag",    "------", "------", "------", "------"};
+  "Tag",    "Joint",  "------", "------", "------"};
 
   static char *TypTxtTab100[]={
   "SymBmp", "SymVec", "SymRef", "SymRef2","------",    // 100-
@@ -135,7 +135,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
   static char *TypTxtTab120[]={
   "Part",   "Grp",    "ModBas", "Model",  "Mockup",    // 120-
-  "Dit",    "Joint",  "Proc"};
+  "Dit",    "------", "CtlgPart","GEOB_2D","GEOB_3D"};
 
   static char *TypTxtTab130[]={   /// geom. parameters
   "Val",    "X-coord","Y-coord","Z-coord","Angle",     // 130- TYP_IS_GEOMPAR
@@ -147,7 +147,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   "Typ",    "Subtyp", "cmdSub", "Address","Size",      // 150-
   "Index",  "Name",   "Color",  "LnTyp",  "Thick",
   "G_Att",  "Activ",  "Layer",  "AppObj", "AppDat",    // 160-
-  "Tool",   "------", "------", "------", "------"};
+  "dynSym", "PRCV",   "constPln","Proc",  "------"};
 
   static char *TypTxtTab170[]={   /// dataFormats
   "Data",   "Int1",   "Int2",   "Int4",   "Int8",      // 170-
@@ -156,10 +156,10 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   "Mat3x2", "Mat3x3", "Mat4x3", "Mat4x4", "-"};        // 185-
   static char *TypTxtTab190[]={   /// text
   "Text",   "String", "StrDel", "StrDel1","FncNam",    // 190-
-  "FilNam", "CtlgPart","NumString","ConstVal","ConstObj"};
+  "FilNam", "NumString","ConstVal","ConstOG","------"};
   static char *TypTxtTab200[]={   /// containers
-  "Memspc", "MemTab", "IndTab", "ObjRange","ObjSRC",   // 200-
-  "ObjGX",  "ObjTab", "ObjTXTS","ObjDB",  "ObjAto"};   // 205-
+  "Memspc", "MemTab", "IndTab", "IgaTab", "ObjSRC",    // 200-
+  "ObjGX",  "ObjTab", "ObjBin", "ObjDB",  "ObjAto"};   // 205-
   static char *TypTxtTab210[]={   /// transformations
   "Tra",    "TraTra", "TraRot", "TraMat", "------"};   // 210-
   static char *TypTxtTab220[]={   /// operators
@@ -188,7 +188,8 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   static char *TypTxtTab1000[]={   /// selectionGroups
   "goGeom", "goPrim", "goGeo1", "goGeo2", "goGeo3",    // 1000-
   "goGeo4", "goGeo5", "goSUSU", "goGeo6", "goGeo7",
-  "goGeo8", "goAxis", "goLR",   "go----", "go----"};   // 1010-
+  "goGeo8", "goAxis", "goLR",   "go----", "go----",    // 1010-
+  "go-lf1", "go-lf2", "go----", "go----", "go----"};
   static char *TypTxtTab1020[]={   /// selectionModifiers
   "FncVAR1","FncVAR2","FncVC1", "FncVC2", "FncNxt",    // 1020-
   "FncPrv", "FncDirX","FncOnO", "FncOnC", "Fnc---"};
@@ -235,13 +236,13 @@ double NcoValTab[] = {  // values for NcoTxtTab; see ATO_srcTxt
 char  *GcoTxtTab[] = {  // geom. constants see APED_dbi_src_std_vc_pl
 // 00             1              2              3              4
   "DX",          "DY",          "DZ",          "DIX",         "DIY",
-  "DIZ",         "RX",          "RY",          "RZ",       
-  ""};
+  "DIZ",         "RX",          "RY",          "RZ",          "RIX",
+  "RIY",         "RIZ",         ""};
 
 int    GcoDbiTab[] = {  // dbi-tab for GcoTxtTab
   DB_VCX_IND,    DB_VCY_IND,    DB_VCZ_IND,    DB_VCIX_IND,   DB_VCIY_IND,
-  DB_VCIZ_IND,   DB_PLX_IND,    DB_PLY_IND,    DB_PLZ_IND
-};
+  DB_VCIZ_IND,   DB_PLX_IND,    DB_PLY_IND,    DB_PLZ_IND,    DB_PLIX_IND,
+  DB_PLIY_IND,   DB_PLIZ_IND};
 
 
 char  *CopTxtTab[] = {  // controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq ..
@@ -410,10 +411,14 @@ char  *ObjCodTab[] = {
 
   // printf("APED_oid_dbo__ %d %ld\n",typ,ind);
 
-  if(!typ) AP_debug__ ("APED_oid_dbo__ E0");
+  // if(!typ) AP_debug__ ("APED_oid_dbo__ E0");
 
 
-  if(       (typ == Typ_PT)    ||
+  if(typ == Typ_VAR) {  // hat hoechste Select-Prioritaet in GL
+    sprintf(buf, "V%ld", ind);
+
+
+  } else if((typ == Typ_PT)    ||
             (typ == Typ_PT2)   ||
             (typ == Typ_TmpPT))      {
     sprintf(buf, "P%ld", ind);
@@ -458,7 +463,7 @@ char  *ObjCodTab[] = {
     sprintf(buf, "S%ld", ind);
 
 
-  } else if(typ < Typ_SUR) {
+  } else if(typ < Typ_SUR) {           // PLANE    R
 //   } else if(typ == Typ_PLN) {
     if((ind >= 0) || (ind < DB_PLIZ_IND)) {
       sprintf(buf, "R%ld", ind);
@@ -472,7 +477,7 @@ char  *ObjCodTab[] = {
     }
 
 
-  } else if(typ < Typ_SOL) {
+  } else if(typ < Typ_SOL) {       // SURFACES    A
 //   } else if((typ == Typ_SUR)      ||
 //             (typ == Typ_SURSUP)   ||
 //             (typ == Typ_SUTP)   ||
@@ -484,11 +489,11 @@ char  *ObjCodTab[] = {
 //             (typ == Typ_SURBSP)   ||
 //             (typ == Typ_SURRBSP)  ||
 //             (typ == Typ_SURPTAB)  ||
-//             (typ == Typ_SURMSH))    {
+//             (typ == Typ_SURPMSH))    {
     sprintf(buf, "A%ld", ind);
 
 
-  } else if(typ < Typ_Note)   {
+  } else if(typ < Typ_Note)   {  // SOLIDS   B
 //   } else if((typ == Typ_SOL)   ||
 //   } else if((typ == Typ_SOL)   ||
 //             (typ == Typ_CON)   ||
@@ -496,7 +501,8 @@ char  *ObjCodTab[] = {
     sprintf(buf, "B%ld", ind);
 
 
-  } else if(typ < Typ_SymB)   {
+
+  } else if(typ < Typ_Joint)   {    // NOTES N
 //   } else if((typ >= Typ_Note) && (typ < Typ_SymB)) {
 //             (typ == Typ_ATXT)  ||
 //             (typ == Typ_GTXT)  ||
@@ -505,6 +511,10 @@ char  *ObjCodTab[] = {
 //             (typ == Typ_SymV)  ||                           // 2011-08-07
 //             (typ == Typ_Tag))         {
     sprintf(buf, "N%ld", ind);
+
+
+  } else if(typ < Typ_SymB)   {    // JOINT   J
+    sprintf(buf, "J%ld", ind);
 
 
   } else if((typ >= Typ_SubModel) && (typ <= Typ_CtlgPart)) {
@@ -522,20 +532,12 @@ char  *ObjCodTab[] = {
     // UTX_add_fl_u2 (buf, pt1.x,pt1.y);
 
 
-  } else if(typ == Typ_VAR) {  // hat hoechste Select-Prioritaet in GL
-    sprintf(buf, "V%ld", ind);
-
-
   } else if(typ == Typ_Tra) {  // Transformation
     sprintf(buf, "T%ld", ind);
 
 
   } else if(typ == Typ_Activ) {  // Activity
     sprintf(buf, "I%ld", ind);
-
-
-  } else if(typ == Typ_Joint) {  // Joint
-    sprintf(buf, "J%ld", ind);
 
 
   } else if(typ == Typ_Group) {  // undefined  // 2011-06-01 was Typ_goGeom
@@ -987,7 +989,7 @@ char  *ObjCodTab[] = {
     case Typ_Dimen:
       return "Dimen";
 
-    case Typ_Data:
+    case Typ_Ptr:
       return "Data";
 
     case Typ_Int4:
@@ -1304,7 +1306,7 @@ char  *ObjCodTab[] = {
      (typ == Typ_SURRV)   ||
      (typ == Typ_SURBSP)  ||
      (typ == Typ_SURPTAB) ||
-     (typ == Typ_SURMSH)  ||
+     (typ == Typ_SURPMSH)  ||
      (typ == Typ_SURCIR))
     return Typ_SUR;                       // A
 
@@ -1582,6 +1584,62 @@ char  *ObjCodTab[] = {
 
 
 
+  }
+
+  return -1;
+
+}
+
+
+//================================================================
+  int UTO_ck_data (int form) {
+//================================================================
+// UTO_ck_data           check if obj has extern data (or pointer is data)
+// RetCod:    0=no-extern-data;  else yes, pointer is valid, not data.
+// see also UTO_ck_ptr
+
+  if((form == Typ_Typ)                           ||
+     (form == Typ_Index)                         ||
+     ((form >= Typ_Ptr) && (form < Typ_Float4))  ||
+     (form >= Typ_ope__))   return 0;   // 
+
+  return 1;
+
+}
+
+
+//================================================================
+  int UTO_ck_ptr (int typ) {
+//================================================================
+// UTO_ck_ptr              check if struct haspointer (is relocatable)
+// check if struct is relocatable without modifications
+// RetCod: 0=OK; relocatable without modifications (no pointers in struct).
+
+  switch (typ) {
+    // structs without pointers
+    case Typ_VC:
+    case Typ_PT:
+    case Typ_LN:
+    case Typ_CI:
+    case Typ_CVELL:  // CurvElli
+    case Typ_CVCLOT: // CurvClot:
+    case Typ_CVTRM:  // CurvCCV:
+    case Typ_PLN:
+    case Typ_SURRV:  // SurRev
+    case Typ_SUR:    // SurStd
+    case Typ_Color:  // ColRGB:
+    case Typ_TEXR:   // TexRef:
+    case Typ_Ditto:  // Ditto:
+    case Typ_SPH:    // Sphere:
+    case Typ_CON:    // Conus:
+    case Typ_TOR:    // Torus:
+    case Typ_SymRef: // SymRef:
+    case Typ_Model:  // ModelRef
+      return 0;
+
+    default:
+      // struct has pointers, eg. CurvPoly CurvBSpl CurvRBSpl CurvBez2 ..
+      break;
   }
 
   return -1;

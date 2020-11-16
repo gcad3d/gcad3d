@@ -54,7 +54,9 @@ echo "./do init_examples      # unpack examples.gz into $HOME"
 echo "./do delete             # delete all objects"
 echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
 echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
+echo "./do fnd_inf <text>     # find <text> in Info-files"
 echo "./do *.mak              # link a plugin (for the first time)"
+echo "./do debug_ed           # edit debug-file, start with debugger"
 echo "./do debug              # start with debugger"
 echo "./do trc                # start with mtrace"
 echo "---------------------------------------------------------------------"
@@ -288,12 +290,18 @@ if test "$1" = "guiexe"; then
     echo "****** ERROR GUI build GUI_exe *******"
     exit 1;
   fi
+  # recompile files used in GUI-exefiles and relocatable GUI-plugin
+  touch ../ut/os_uix.c
+  touch ../ut/deb_prt.c
   exit 0
 fi
 
 
 # compile active gui-lib and GUI_* executables
 if test "$1" = "gui"; then
+  # ../gui/gui_base.c used for core and gui-dll
+  touch ../gui/gui_base.c
+
   make -f gcad_gui_lnk.mak
   if [ $? -ne 0 ]; then
     echo "****** ERROR GUI build so *******"
@@ -312,6 +320,7 @@ if test "$1" = "gui"; then
     exit 1;
   fi
 
+  touch ../gui/gui_base.c
   exit $?
 fi
 
@@ -356,6 +365,13 @@ fi
 # find & touch all files with #include <incFilNam>". cscope must be installed.
 if test "$1" = "fnd_inc"; then
   ../APP/fnd_inc.sh $2
+  exit $?
+fi
+
+
+# find text in Info-files
+if test "$1" = "fnd_inf"; then
+  grep $2 ../inf/*
   exit $?
 fi
 
@@ -496,6 +512,17 @@ fi
 # analyze times in file gmon.out - AFTER run gcad
 if [ "$1" = "gmon" ] ; then
   gprof ${exeNam} > t1 && vi t1
+  exit 0
+
+
+
+#-----------------------------------------------------
+elif [ "$1" = "debug_ed" ] ; then
+  echo " edit-init-file: ./gCAD3D.gdb"
+   $cmdVi "./gCAD3D.gdb"
+  echo " start debug: gdb ./gCAD3D.gdb"
+  gdb ${exeNam} $* -x gCAD3D.gdb
+  #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0
 
 

@@ -83,6 +83,22 @@ int UTX_find_chr(char*,char);
   strncpy (pTo,pFrom,cNr); pTo[cNr]='\0';}
 
 
+// UTX_IS_EMPTY           test if string is empty
+// returns  1=string-is-empty (strlen=0);   0=string-is-NOT-empty
+int UTX_IS_EMPTY (char* sx);
+#define UTX_IS_EMPTY(sx) ((sx[0]) ? 0 : 1)
+
+
+// UTX_ENC_ApoD_TMP     enclose string with double-apostrophs in stackSpace
+//   ATT: stackSpace is lost at exiting the active function (alloca)
+void UTX_ENC_ApoD_TMP (char **so, char *si);
+#ifdef _MSC_VER
+#define UTX_ENC_ApoD_TMP(so,si)\
+   *so = (char*)_alloca (strlen(si) + 30); sprintf(*so, "\"%s\"", si);
+#else
+#define UTX_ENC_ApoD_TMP(so,si)\
+   *so = (char*)alloca (strlen(si) + 2); sprintf(*so, "\"%s\"", si);
+#endif
 
 // -------------------------------------------------------------------
 extern const char TX_NUL;

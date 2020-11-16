@@ -266,15 +266,15 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   cvtrm->dbi = dbi;
 
   // get parameters as 0-1
-  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, data);
-  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, data);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, 1, Ptyp_start, form, data);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, 1, Ptyp_end, form, data);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, data);
   cvtrm->dir = dir;
   cvtrm->clo = clo;
 
-    // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__obj");
+    DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__obj");
 
   return 0;
 
@@ -344,7 +344,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
   // get typ/dbi of parent of tcv
-  *pTyp = DB_GetObjDat (&obj, &oNr, *pTyp, *pDbi);
+  *pTyp = UTO__dbo (&obj, &oNr, *pTyp, *pDbi);
     // printf(" pTyp=%d\n",*pTyp);
 
   if(*pTyp == Typ_CVTRM) {
@@ -1563,7 +1563,7 @@ REPLACED by UTO_obj__ccv_segnr
   // printf(" isr=%d\n",isr);
   if(isr < 0)  UT3D_vc_invert (vco, vco);
 
-    // GR_tDyn_vc (vco, pto, 2, 0);
+    // GR_tDyn_vc__ (vco, pto, 2, 0);
   return irc;
 
 }
@@ -1670,8 +1670,10 @@ REPLACED by UTO_obj__ccv_segnr
   CurvCCV  cca[10];
 
 
-  // printf("CVTRM__basCv__ typ=%d dbi=%ld v0i=%lf v1i=%lf\n",
-          // cv1->typ,cv1->dbi,cv1->v0,cv1->v1);
+  // TESTBLOCK
+  // DEB_dump_obj__ (Typ_CVTRM, cv1, "CVTRM__basCv__-in");
+  // if((cv1->v0 < 0.)||(cv1->v1 > 1.)) TX_Error("CVTRM__basCv__EIN1");
+  // END TESTBLOCK
 
 
   // store all CCVS in cca, if basCurve is found: stop and keep in data.
@@ -1683,7 +1685,7 @@ REPLACED by UTO_obj__ccv_segnr
   L_res_nxt:
   typ = cca[iNr - 1].typ;
   dbi = cca[iNr - 1].dbi;
-  form = DB_GetObjDat (data, &oNr, typ, dbi);
+  form = UTO__dbo (data, &oNr, typ, dbi);
     // printf(" form1=%d oNr=%d\n",form,oNr);
     // DEB_dump_obj__ (form, *data, " _basCv-1");
 
@@ -1718,8 +1720,7 @@ REPLACED by UTO_obj__ccv_segnr
 
   //----------------------------------------------------------------
   L_exit:
-  // *cv2 = cca[iNr - 1];
-  *cv2 = cca[0];
+  *cv2 = cca[0];     // copy updated trimmed-curve with ref=basic-curve
 
   // keep points !
   cv2->ip0 = cv1->ip0;
@@ -1814,7 +1815,7 @@ REPLACED by UTO_obj__ccv_segnr
 
 
   // get baseCurve
-  form = DB_GetObjDat (&obj, &oNr, typ, dbi);
+  form = UTO__dbo (&obj, &oNr, typ, dbi);
 
   if(form == Typ_CVTRM) {
     *cvtrm = *(CurvCCV*)obj;
@@ -1829,8 +1830,8 @@ REPLACED by UTO_obj__ccv_segnr
 
 
   // get parameters as 0-1
-  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, Ptyp_start, form, obj);
-  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, Ptyp_end, form, obj);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v0, 1, Ptyp_start, form, obj);
+  UT3D_ptvcpar_std_obj (NULL, NULL, &cvtrm->v1, 1, Ptyp_end, form, obj);
 
   // get closed-flag and direction.
   UTO_cv_ck_dir_clo (&dir, &clo, form, obj);
@@ -1840,7 +1841,7 @@ REPLACED by UTO_obj__ccv_segnr
 
   L_exit:
 
-    // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
+    DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
 
   return 0;
 
@@ -1873,7 +1874,7 @@ REPLACED by UTO_obj__ccv_segnr
   if(iseg >= plgi->ptNr) return -1;
 
   if(!plgi) {
-    irc = DB_GetObjDat  ((void**)&plgi, &oNr, Typ_CV, dbi);
+    irc = UTO__dbo  ((void**)&plgi, &oNr, Typ_CV, dbi);
     if(irc < 0) return -2;
   }
     // DEB_dump_obj__ (Typ_CVPOL, plgi, " _plg_iseg-plgi");
@@ -1898,7 +1899,7 @@ REPLACED by UTO_obj__ccv_segnr
   int     irc, i1, form, oNr;
   CurvCCV *ccv1;
 
-  form = DB_GetObjDat ((void**)&ccv1, &oNr, chdTyp, chdDbi);
+  form = UTO__dbo ((void**)&ccv1, &oNr, chdTyp, chdDbi);
 
   if(form != Typ_CVTRM) return -1;
 

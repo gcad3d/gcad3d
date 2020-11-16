@@ -20,7 +20,6 @@ Definition of Datenstructs see ../ut/ut_geo.h.
 Es gibt typenspezifische Strukturen -
   (Point, Line, Circ, Vector, CurvPoly, CurvBSpl ..)
 
-Es gibt ein Containerobjekt: die struct ObjGX.
 
 INF_FMTB_Vector
 INF_FMTB_Point
@@ -46,7 +45,7 @@ INF_FMTB_CURVES
                                       Typ_CVPSP3, polynom_d3  polynom.Spline
   INF_FMTB_Curve_CCV                  trimmed-curve, Contour
 
-INF_FMTB_SURFACES ->
+INF_FMTB_SURFACES
 
 INF_FMTB_Bodies
   INF_FMTB_Body_Sphere
@@ -55,12 +54,12 @@ INF_FMTB_Bodies
   INF_FMTB_Body_PRISM
   INF_FMTB_Body_BREP
 
-INF_FMTB_ComplexObject
+INF_FMTB_ObjGX                        complex-object, container
 INF_FMTB_Models
-INF_FMTB_BinaryMesh
 INF_FMTB_Transformation
 
-
+INF_FMTB_tess                         format tesselated surface
+INF_FMTB_BinaryMesh
 
 
 
@@ -79,12 +78,13 @@ Unlimited-surfaces (support-surfaces):
 
 
 Trimmed-perforated-surfaces:
+  INF_FMTB_SUTP                       trimmed, perforated
   INF_FMTB_Surface_PLN                trimmed, perforated - planar
   INF_FMTB_Surface_TPS                trimmed, perforated, supported surface
 
 
 Tesselalated-surfaces:
-  INF_FMTB_Surface_MSH                mesh
+  INF_FMTB_Surface_PMSH                mesh
   INF_FMTB_Surface_GL_Sur             tesselated patches
   INF_FMTB_Surface_RCIR               tesselated fan
   INF_FMTB_Surface_RSTRIP             tesselated stripe
@@ -97,55 +97,38 @@ Other surfaces:
 
 
 ================================================================== \endcode */}
-void INF_FMTB_ComplexObject (){        /*! \code
+void INF_FMTB_ObjGX (){        /*! \code
 
-In der DB werden alle Kurven und Flaechen (S,A) als
-  ObjGX-Strukturen gespeichert (retourniert);
-  Punkte, Linien, Kreise, Vektoren .. werden direkt (mit ihrer
-  typenspezifischen Struktur) gespeichert und retourniert.
+see INF_Typ_ObjGX
+
+ObjGX = complex-object;
+- in DB all curves type 'S' (not Line, Circ) are stored as complex-object;
+- in DB all surfaces (type 'A'), all bodies (type 'B') are stored as complex-object;
+
+
+   typ   type of object in record(s) *dat
+   form  structure of record(s) *data
+   siz   number of records in *data; all of them have structure "form"
+   data  address of data or data itself;
+         if(form==Typ_Index) then data=(long)DB-Index
+         if(data == NULL) then datablock is also *ObjGX following this header-recor
+   dir   direction; 0=normal, 1=reverse.
 
 
 
-
-form = ObjGX
-typ = Typ_ObjGX
-
-Inhalte einer struct ObjGX:
-
-  typ    die Bedeutung der Daten im Feld <data>
-  form   die Struktur der Daten im Feld <data>
-         Typ_PT: data ist (Point*).
-         Typ_Index: data ist keine Adresse, sondern direkt die Zahl (long)
-         Typ_Int4: data ist keine Adresse, sondern direkt die Zahl (long)
-  siz    Anzahl der Datenrecords in data
-  data   die Daten als struct vom typ <form> Anzahl <siz>
-         z.B: siz=10; form=Typ_PT: data=(Point*)PointArray[10]
-         
- 
-Beispiele ObjGX:
-  typenspezifische DB-Speicherbereiche:
-    .typ=Typ_PT;    .form=Typ_Index; .siz=1;     .data=(int)DB-index_of_obj
-    .typ=Typ_LN;    .form=Typ_LN;    .siz=1;     .data=address_of_(Line*)
+Examples ObjGX:
     .typ=Typ_CVPLG; .form=Typ_CVPLG; .siz=1;     .data=(CurvPoly*)
     .typ=Typ_CVTRM; .form=Typ_CVTRM; .siz=3;     .data=(CurvCCV[3])
+    .typ=Typ_PT;    .form=Typ_Index; .siz=1;     .data=(int)DB-index_of_obj
+    .typ=Typ_LN;    .form=Typ_LN;    .siz=1;     .data=address_of_(Line*)
 
-  keine typenspezifischen DB-Speicherbereiche:
-    .typ=Typ_Typ;  .form=Typ_Int4;  .siz=1;            .data=(int)typ
-
-
-Laden mit DB-Typ und DB-Index:
-  statt:
-    ox.form  = Typ_Index;
-    ox.typ   = dbTyp;
-    ox->data = (void*)dbInd;
-  besser (inline):
-OGX_SET_INDEX (dbTyp, dbInd, ox);
+- Link to DB-curve:
+    .typ=Typ_CV;    .form=Typ_Index; .siz=1;            .data=(int)long
+    .typ=Typ_Typ;   .form=Typ_Int4;  .siz=1;            .data=(int)typ
 
 
-Functions see Get_ComplexObject
-
-
-Funktionen:
+Functions:
+  OGX_SET_INDEX (dbTyp, dbInd, ox);
   DB_store_ox
   DB_store_obj
   UTO_isol__         duplicate/isolate object (resolve Links)
@@ -816,7 +799,7 @@ Example decode ccv:
   typ = Typ_CV;
   dbi = 20L;
 
-  typ = DB_GetObjDat (&o1, &rNr, typ, dbi);
+  typ = UTO__dbo (&o1, &rNr, typ, dbi);
     printf(" typ=%d nr=%d\n",typ,rNr);
 
   o2 = o1;
@@ -874,7 +857,7 @@ Trimmed-Perforated-Surface with Supportsurface:
 
 Other:
   Typ_SURPTAB
-  Typ_SURMSH
+  Typ_SURPMSH
   Typ_SURHAT            INF_FMTB_Surface_HAT
 
 
@@ -1033,6 +1016,7 @@ SourceObj:
                            ObjGX[1]=extrusion-vector or point or second contour
 
 Functions:
+  GRTSU_nifac_sru           tesselate ruled-surface
   TSU_DrawSurT_
   UT3D_box_surRU
 
@@ -1221,16 +1205,16 @@ Examples:
 void INF_FMTB_Surface_PTAB (){        /*! \code
 
 
-
-
-
-Flaeche von PunkteTabelle (A=PTAB)           Func: APT_decode_msh_p
+Surface of group-of-points (A=PTAB)           Func: APT_decode_msh_p
  (ObjGX) typ  = Typ_SURPTAB
-         form = Typ_NULL
-         siz  = 0
-         data = NULL
+         form = Typ_Index
+         siz  = 1
+         data = index of group-of-points (index of record A#=PTAB)
+                data is in file <tmp>_A<dbi>.ptab
 
+Mesh for surface: see INF_FMTB_Surface_PMSH
 
+//----------------------------------------------------------------
 PointTable is included in Model-soure with ist surface-ID;
 Example:
 SECTION PTAB _A1
@@ -1253,60 +1237,87 @@ faces=5 edgelines=1
 edgeline=0 points=5 edgetyp=5
 5 2 1 0 6
 SECTIONEND
+..
 A1=PTAB
 A2=MSH A1
 
 
 
+//----------------------------------------------------------------
 Models:
 Data/GIS1/bk0.gcad
 
+//----------------------------------------------------------------
 Functions:
 APT_decode_msh_p
+MSH_aload_pTab        load points from sourcefile, write bin. file _A<dbi>.ptab
+MSH_bload_pTab        load points from bin. file _A<dbi>.ptab
 GR_disp_cv_pMesh
-TSU_DrawSurMsh
+TSU_DrawSurPMsh
 
 Vars:
 "PTAB" = 62 = T_PTAB
 
 
-Import makes:
-Writes <tmp>_A<bdi>.ptab (binary) and <tmp>_A<bdi>.msh (binary) and <tmp>Mod_in
+//----------------------------------------------------------------
+Files:
+<tmp>Mod_in             
+  containing source  eg "SECTION PTAB _A1" ..
+
+<tmp>_A<dbi>.ptab (binary) 
+  first int = pNr = nr of points
+  following points = <pNr> records of (Point)
 
 
 
 ================================================================== \endcode */}
-void INF_FMTB_Surface_MSH (){        /*! \code
-
-TODO:
-- no example defined, "MSH" used for connection-lines (already removed).
-.. should fill mesh-struct direct ..
+void INF_FMTB_Surface_PMSH (){        /*! \code
 
 
-Flaeche von Mesh                             Func: APT_decode_msh__
- (ObjGX) typ  = Typ_SURMSH
+Mesh for surface of group-of-points Mesh               Func: APT_decode_msh__
+ (ObjGX) typ  = Typ_SURPMSH
          form = Typ_Index;
          siz  = 1
-         data = (long) Index of suface of its PTAB
+         data = (long) Index of its PTAB
+
+
+group-of-points: see INF_FMTB_Surface_PTAB
 
 
 Example:
-- none ..
+- TODO ..
 
 Models:
-- none ..
+- TODO ..
 
 
 Functions:
 APT_decode_msh__
-GR_disp_cv_pMesh      outline
-TSU_DrawSurMsh        mesh
-GR_cv_pMesh_box
+GR_disp_cv_pMesh       outline
+TSU_DrawSurPMsh        read mesh (file .ptab and .msh) and display
+MSH_aload_fTab         read ascii-file SECTION MESH
+MSH_bload_fTab         read file .msh
+MSH_bsav_fTab          write file .msh
+Mod_sav_i              save Model with ptab and msh
+Mod_kill__             remove all <tmp>*.ptab and .msh
+BBX__pMsh_dbi
 
 Vars:
-Typ_SURPTAB       boundary
-Typ_SURMSH        mesh
+Typ_SURPTAB        boundary
+Typ_SURPMSH        mesh
 "MSH" = T_MSH 63
+
+
+//----------------------------------------------------------------
+Files: see INF_FMTB_Surface_PTAB
+
+<tmp>_A<dbi>.msh (binary)      see INF_FMTB_Surface_PTAB - PointTable (SECTION MESH)
+  (int)fNr = nr of faces
+  (Fac3)indexes_faces[fNr]
+  (int)eNr = nr of EdgeLines
+  (EdgeLine)EdgeLines[eNr]
+  (int)EdgeData[eNr]
+
 
 
 
@@ -1314,25 +1325,37 @@ Typ_SURMSH        mesh
 ================================================================== \endcode */}
 void INF_FMTB_Surface_GL_Sur (){        /*! \code
 
+GL_Sur = bMsh = binary tesselated mesh
+- first record must be primary record of surf = GL_Surface
 
-GL_Surface     (bestehend aus fertig tesselierten planaren Patches)
+
+
+
+//----------------------------------------------------------------
+Format:
+
+GL_Surface     (group of patches, colors)
   (ObjGX) typ  = Typ_GL_Sur;
           form = Typ_ObjGX;
-          siz  = nr of planar patches + Colors
+          siz  = nr of patches + Colors
           data = PlanarPatches
 
   (ObjGX) typ  = Typ_GL_PP;          (planar patch)
           form = Typ_ObjGX;
-          siz  = nr of contours (first obj is Z-vector)
+          siz  = nr of contours and normalVectors
           data = Normalvektor und Contours
+
+  (ObjGX) typ  = Typ_VC           (Normalvektor of following Contour)
+          form = Typ_VC
+          siz  = 1
+          data = vektor
 
   (ObjGX) typ  = Typ_PT;          (Contour)
           form = Typ_PT;
           siz  = nr of points
           aux  = GL-Typ; 4=GL_TRIANGLES 5=GL_TRIANGLE_STRIP 6=GL_TRIANGLE_FAN
                          16=GL_TRIANGLE_NPFAN
-          data = *Point[siz]      (geschlossenes Polygon)
-
+          data = *Point[siz]      (closed Polygon)
 
   (ObjGX) typ  = Typ_Typ;          (start of new surface)
           form = Typ_Int4;
@@ -1340,36 +1363,39 @@ GL_Surface     (bestehend aus fertig tesselierten planaren Patches)
           data = (long) SurfTyp; zB Typ_SURPLN ..
 
 
+Can have also color: typ=Typ_Color, form=Typ_Int4, data=ColRGB (see OGX_SET_COLOR)
+  color can have texture.
 
-Funktionen:
- GL_set_bMsh        Darstellung eines einzelnen Data-record.
- UTO_dump_f_        dump tesselated data
 
-// Beispiel: 210=Typ_GL_Sur; 211=Typ_GL_PP;
-//           143=Typ_ObjGX;  5=Typ_VC; 2=Typ_PT ..
+// Example: Sur=Typ_GL_Sur; Pat=Typ_GL_PP;
+//           ogx=Typ_ObjGX;  VC=Typ_VC; 2=Typ_PT ..
 //    typ-form-siz-dat
-//    210 143 2 a1
-// a1   211 143 3 a2
-//      211 143 4 a3
-// a2     5 5 1 a4
-//        2 2 5 a5
-//        2 2 5 a6
-// a3     5 5 1 a7
-//        2 2 5 a8
-//        2 2 5 a9
-//        2 2 5 a10
+//    Sur ogx 2 a1        // surf has 2 patches at a1
+// a1   Pat ogx 3 a2
+//      Pat ogx 4 a3      // second patch of a1 has 1 vector and 4 contours at a3
+// a2     VC VC 1 a4
+//        PT PT 5 a5
+//        PT PT 5 a6
+// a3     VC VC 1 a7
+//        PT PT 5 a8
+//        PT PT 5 a9
+//        PT PT 5 a10
 // a4 (struct VC)
 // a5 (struct PT * 5)
 // ....
 
-Version ohne Normalvektoren und Colour fuer Intersect:
-//    210 143 2 a1
-// a1   211 2 8 a2
-//      211 2 5 a3
-// a2 (strut PT * 8)
-// a3 (strut PT * 5)
+Version for Intersect (without normalVectors and Colours)
+//    Sur ogx 2 a1
+// a1   Pat 2 8 a2
+//      Pat 2 5 a3
+// a2 (struct PT * 8)    // contour for 1. patch
+// a3 (struct PT * 5)    // contour for 2. patch
 
 
+//----------------------------------------------------------------
+Funktions:
+ GL_set_bMsh        display
+ DEB_dump_ox_s_
 
 
 ---------------------------------------------------------------
@@ -1551,47 +1577,52 @@ ObjGX     ox1
 ================================================================== \endcode */}
 void INF_FMTB_BinaryMesh (){        /*! \code
 
-Imports of mockup-files (.wrl, .obj, .stl) are stored as .tess-files in {tmpdir}.
+file-format of binary-mesh (bMsh, INF_FMTB_Surface_GL_Sur)
 
-Files:
-../ut/ut_tess.c             func for tesselated surfaces   tess_*
-../gr/ut_tess_su.c          tesselate analytic surfaces    Tess_*
-../xa/tst_tess_1.c          create a .tess ? (tst_tess.mak)
-../xa/tst_surfaces.c        new version APT_decode_su_swp_cyl (tst.mak)
+Imports of mockup-files (.wrl, .obj, .stl) are stored as .tess-files in {tmpdir}.
 
 
 See also:
 INF_FMTB_Surface_GL_Sur
-INF_FMTB_Surface_RCIR
-INF_FMTB_Surface_RSTRIP
+INF_FMTB_tess
 
 
-------------
-BinaryMesh:
-------------
+//----------------------------------------------------------------
+FORMAT bfMsh (file-format):
+ 
 
-Topmost record: type ObjGX
-  keeps n surfaces (surface is a ObjGX-record where typ=Typ_GL_PP)
-  typ    Typ_GL_Sur
-  form   Typ_ObjGX (form of records in data)
-  data   array of surfs
-  siz    nr of surfs
+AdressRecord (first record of file)
+  add.typ    = Typ_Address
+  add.form   = Typ_Ptr
+  add.siz    = 1;
+  add.data   = address of first data-record (for relocation)
+               (size of data (all records); without add- and rfi-Record)
 
-Surface-record (type ObjGX):
-  can have planar-patches, normal-vectors, color, texture.
-   normal-vector: typ=Typ_VC, form=Typ_VC, data=Vector
-   color: typ=Typ_Color, form=Typ_Int4, data=ColRGB (see OGX_SET_COLOR)
+SizeDefinition-Record:
+  (size of complete surface-data, excluding SizeDefinition-Record)
+ObjGX  rsz
+  rsz.typ    = Typ_Size
+  rsz.form   = Typ_Int4
+  rsz.siz    = 1;
+  rsz.data   = (long)size of following Data-record in byte
 
-PlanarPatch:   (face)
-  typ    Typ_PT
-  form   Typ_PT (form of records in data)
-  data   array of points
-  siz    nr of points
-  aux    structure of data; eg GL_TRIANGLES|GL_TRIANGLE_FAN|..
+Data-records (bMsh-records, see INF_FMTB_Surface_GL_Sur)
+  ..
+
+TerminationRecord rfi (last record of file)
+ObjGX  rfi
+  rfi.typ    = Typ_Done
+  rfi.form   = Typ_ObjGX
+  rfi.siz    = 1;
+  rfi.data   = NULL
 
 
 
+//----------------------------------------------------------------
 Functions:
+  GLT_stor_rec         create bMsh (surface-patches, binary, in memory)
+    used for intersect-operations; bMsh can be resolved into triangles.
+
   obj_read__                          read WaveFront-OBj-File - write .tess
   wrl_readTess__                      import VRML-Version-1 as .tess
   TSU_imp_tess       load file > mem
@@ -1609,41 +1640,6 @@ Functions:
   OGX_reloc__          // relocate
   TSU_exp__ TSU_exp_Open TSU_exp_sur  // export bMesh
   TSU_tsu2tria__ TSU_tsu2tria_rec     // intersect INT_intplsur|INT_intsursur
-
-
-Derzeit nur fuer die Mockup-Models.
-Enthaelt abwechselnd SizeDefinition-Record, ObjGX-Struktur,  dann wieder
-  SizeDefinition-Record, ObjGX-Struktur.
-Am Ende steht statt dem naechsten SizeDefinition-Record ein Schlussrecord.
-Decodierfunktion UTO_dump_f_
-Wird ein BinaryModel in eine Datei geschrieben, so wird zusaetzlich als erster
- Record ein AdressRecord geschrieben.
-
-
-AdressRecord (nur in Datei):
-  add.typ    = Typ_Address
-  add.form   = Typ_Data
-  add.siz    = 1;
-  add.data   = address of first data-record (for relocation)
-               (nur size of data; ohne add- u rfi-Record)
-
-SizeDefinition-Record:
-ObjGX  rsz
-  rsz.typ    = Typ_Size
-  rsz.form   = Typ_Int4
-  rsz.siz    = 1;
-  rsz.data   = (long)size of following Data-record in byte
-
-Data-records:
-  ..
-
-TerminationRecord rfi:
-  used only for filed meshes
-ObjGX  rfi
-  rfi.typ    = Typ_Done
-  rfi.form   = Typ_ObjGX
-  rfi.siz    = 1;
-  rfi.data   = NULL
 
 
 
@@ -1673,6 +1669,67 @@ TraRot    rr1
 
 Functions:
   DB_GetTra          get Transformation ((ObjGX*)"T")
+
+
+
+
+
+================================================================== \endcode */}
+void INF_FMTB_tess (){        /*! \code
+format binary tesselated surface
+
+
+surface-display-functions produce tesselated-data;
+tesselated-data -
+- is binary
+- can be displayed by functions using OpenGL
+- can be stored in files (fn.tess)
+- can be loaded and displayed as mockup-model
+
+
+Binary-format: see INF_FMTB_Surface_GL_Sur
+File-format:   see INF_FMTB_BinaryMesh
+
+
+
+//----------------------------------------------------------------
+Files:
+../gr/tess_ut.c             export/import tesselated faces obj,stl,dxf ..
+../ut/ut_tess.c             func for tesselated surfaces   tess_*
+
+../gr/ut_tess_su.c          tesselate analytic surfaces    Tess_*
+../xa/tst_tess_1.c          create a .tess ? (tst_tess.mak)
+../xa/tst_surfaces.c        new version APT_decode_su_swp_cyl (tst.mak)
+
+
+
+
+//----------------------------------------------------------------
+Functions:
+- create tesselated-data-record
+TSU_tess_addf            add patches/faces to memSpace
+GLT_stor_rec             store surface-patches into GLT_ppa / GLT_pta
+
+
+- display tesselated-data-record
+
+
+
+
+- store model in tess-format (export as tess)
+  TSU_exp__  < UI_save__
+    TSU_exp_sur
+      tess_write_f_            write tesselated surf into file
+
+
+- load tess-file (import tess-file)
+  TSU_imp_tess
+
+
+- Example create tess-record: ?
+  ../xa/tst_tess_1.c          create a .tess ? (tst_tess.mak)
+
+  BMSH_dump_bfMsh
 
 
 ================================================================== \endcode */}

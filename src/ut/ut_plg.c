@@ -1653,7 +1653,7 @@ Returncodes:
     if(d1 > lSeg+UT_TOL_pt) continue;
 
       // printf(" found [%d] %f %f %f\n",i1,d1,lSeg,lTab[i1]);
-      // GR_Disp_pt (&pto[iOut], SYM_STAR_S, 2);
+      // GR_tDyn_symB__ (&pto[iOut], SYM_STAR_S, 2);
 
 
     // wenn vorheriger Point gleich ist - skippen
@@ -1930,7 +1930,7 @@ Returncode:
 
   // ii = cv1->ptNr - 1;
   kMax = cv1->lvTab[cv1->ptNr - 1];
-    // printf(" lenTot = %f\n",kMax);
+    // printf(" lenTot kMax=%f k0=%f k1=%f\n",kMax,k0,k1);
 
 
   if(k1 < k0) {

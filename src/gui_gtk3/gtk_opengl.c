@@ -140,7 +140,45 @@ static int       statMK=0;                        // state modifier-keys
   return 0;
 
 }
+
+
+//================================================================
+  static gboolean GLB_realize (GtkGLArea *area, GdkGLContext *context) {
+//================================================================
+// im Callback von "realize" des GL_widget
+
+  printf("GLB_realize \n");
+
+
+  gtk_gl_area_set_has_alpha (area, TRUE);
+  gtk_gl_area_set_has_depth_buffer (area, TRUE);
+  gtk_gl_area_set_auto_render (area, FALSE);
+
+  if (gtk_gl_area_get_error (GTK_GL_AREA(area)) != NULL) {
+    printf("Failed to initialiize buffers\n");
+    return FALSE;
+  }
+
+
+   glViewport(0, 0, (GLsizei)GL_Scr_Siz_X, (GLsizei)GL_Scr_Siz_Y);
+
+   // glMatrixMode(GL_PROJECTION);
+   // glLoadIdentity();
+   // gluOrtho2D(0.0, (GLdouble) GL_Scr_Siz_X, 0.0, (GLdouble) GL_Scr_Siz_Y);
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity ();  // init PROJ-Mat.
+  glOrtho (0.f, (float)GL_Scr_Siz_X,
+           0.f, (float)GL_Scr_Siz_Y,
+           (float)-100000, (float)100000);
+
+
+
+  return 0;
+
+}
 */
+
 
 //==========================================================================
   MemObj GUI_gl__ (MemObj *o_par, void *fDraw, char *opts) {
@@ -238,6 +276,10 @@ static int       statMK=0;                        // state modifier-keys
   g_signal_connect_after (glarea, "draw",
                     G_CALLBACK (GUI_gl_draw),
                     PTR_MEMOBJ(go->mem_obj));
+
+
+// // 2010-12-17
+// g_signal_connect (glarea, "realize",      G_CALLBACK(GLB_realize),       NULL);
 
 
 //   if((hsiz)||(vsiz)) GUI_siz_set (glarea, hsiz, vsiz);

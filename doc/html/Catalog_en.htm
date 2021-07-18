@@ -34,8 +34,13 @@
 Using standard-parts:
  In "CAD" main function mode, select the function "Submodels/M CatalogPart".
  Select a standard part or a standard parts catalog.
- Select position, selekt OK to save.
- The following line of code is generated : M # = CTLG
+ Select position, select OK to save.
+ The following line of code is generated: "M# = "<catalog>/<part>.ctlg" .."
+ Example:   M28="Profile/6x4_150.ctlg" P (0 0 0) DZ DIY
+      Profile.ctlg is the catalogfile,
+      6x4_150      is the partname in the catalogfile
+      Catalogfiles are in the symbolic directory "CATALOG".
+
 
 
 Catalog-parts are based on a model (filetyp .gcad) and
@@ -139,7 +144,7 @@ The file for all directories is - for installation unix-default:
 
 <HR><!-- ============================================================ -->
 <a name="Exa"></a>
-<b>Beispiel</b>
+<b>Example</b>
 
 //----------------------------------------------------------------
 Simple example for a catalog-part:

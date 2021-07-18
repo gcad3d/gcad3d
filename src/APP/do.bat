@@ -17,7 +17,7 @@ echo off
 @echo "do allDemos          // compile & link demos"
 @echo "do                   // start"
 @echo "do debug             // start with debugger"
-@echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst"
+::@echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst"
 :: @echo "do devbase-LOC       // development-files local"
 :: @echo "do devbase-NAS       // development-files on NAS"
 
@@ -116,6 +116,7 @@ if allDemos==%1 (
 if complete==%1 (
 nmake -f gcad3d.nmak delobj
 nmake -f gcad3d.nmak guiinit
+
 :: nmake -f ..\gui_gtk2_MS\libgui.nmak
 nmake -f gcad_gui__.nmak
 for /f %%A in ('dir/b GUI_*.nmak') do nmake -f %%A
@@ -126,20 +127,20 @@ goto L_exit
 )   
 
 
-REM echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
-REM "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
-if cfg-ux2ms==%1 (
-  if exist dirMS.lst (
-    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst dirUX.lst
-    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc xaUX.rc
-    copy/y dirMS.lst X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst
-    del dirMS.lst
-    copy/y xaMS.rc X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc
-  ) else (
-    echo "**** ERROR"
-  )
-  goto L_exit
-)   
+::REM echo "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
+::REM "do cfg-ux2ms         // change cfg\xa.rc and cfg\dir.lst
+::if cfg-ux2ms==%1 (
+::  if exist dirMS.lst (
+::    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst dirUX.lst
+::    copy/y X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc xaUX.rc
+::    copy/y dirMS.lst X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\dir.lst
+::    del dirMS.lst
+::    copy/y xaMS.rc X:\Devel\GITHUB\gcad3d\gCAD3D\cfg\xa.rc
+::  ) else (
+::    echo "**** ERROR"
+::  )
+::  goto L_exit
+::)   
 
 
 
@@ -156,17 +157,17 @@ set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
 
 echo "cfgDir=|%cfgDir%|"
 
-REM change configfiles to MS-Windows if last start was with Unix
-if exist UX.lock (
-  echo "set dir.lst & xa.rc -> MS"
-  set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
-  copy/y %cfgDir%xa.rc %cfgDir%xaUX.rc
-  copy/y %cfgDir%dir.lst %cfgDir%dirUX.lst
-  copy/y %cfgDir%xaMS.rc %cfgDir%xa.rc
-  copy/y %cfgDir%dirMS.lst %cfgDir%dir.lst
-  del UX.lock
-  echo MS > MS.lock
-)
+::REM change configfiles to MS-Windows if last start was with Unix
+::if exist UX.lock (
+::  echo "set dir.lst & xa.rc -> MS"
+::  set cfgDir=%gcad_dir_dev%gCAD3D\cfg\
+::  copy/y %cfgDir%xa.rc %cfgDir%xaUX.rc
+::  copy/y %cfgDir%dir.lst %cfgDir%dirUX.lst
+::  copy/y %cfgDir%xaMS.rc %cfgDir%xa.rc
+::  copy/y %cfgDir%dirMS.lst %cfgDir%dir.lst
+::  del UX.lock
+::  echo MS > MS.lock
+::)
 
 set gcad_exe=%gcad_dir_bin%gCAD3D.exe
 set gcad_dir_local=%APPDATA%

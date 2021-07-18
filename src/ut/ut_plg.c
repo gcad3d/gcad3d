@@ -723,23 +723,24 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
 }
 
 
-//================================================================
+//======================================================================
   int UT3D_pt_intlnplg (int *nxp, Point *xptab, double *vtab,
-                        Line *ln, CurvPoly *plg, double tol) {
-//================================================================
+                        Line *ln, int iUnl, CurvPoly *plg, double tol) {
+//======================================================================
 /// \code
 /// UT3D_pt_intlnplg       intersect line and polygon (both limited)
 /// 
 /// UT3D_pt_intlnplg       Author: Thomas Backmeister       2.7.2003
 /// 
 /// IN:
-///   int *nxp        ... maximal number of output points
-///   Line *ln        ... 3D-line
-///   CurvPoly *plg    ... points of polygon
+///   int *nxp        maximal number of output points
+///   Line *ln        3D-line
+///   lnLim           0=limited Line, 1=unlimited Line
+///   CurvPoly *plg   points of polygon
 /// OUT:
-///   int *nxp        ... number of intersection points
-///   Point *xptab    ... intersection points
-///   double *vtab    ... parameter of intersectionpoint (can be NULL)
+///   int *nxp        number of intersection points
+///   Point *xptab    intersection points
+///   double *vtab    parameter of intersectionpoint (can be NULL)
 /// Returncodes:
 ///   0 = OK
 ///  -1 = out of mem (xptab too small)
@@ -768,11 +769,9 @@ see also UT3D_pt_ck_on_pta UT3D_isConvx_ptTab UT3D_ipt2_npt UT3D_pt_mid_pta
       // DEB_dump_obj__ (Typ_LN, &lnp, " lnp[%d]",i1);
 
     // intersect lnp with line
-    // rc = UT3D_pt_int2ln (&ip1, &ip2, &dist, &lnp, ln);
-    // if (rc < 1) continue;
-    rc = UT3D_pt_int2pt2pt_lim (&ip1, NULL, NULL,
-                                &lnp.p1, &lnp.p2, &ln->p1, &ln->p2, tol);
-    if(rc < 0) continue;
+    rc = UT3D_pt_int_2pt_2pt (&ip1, UT_TOL_cv, &lnp.p1, &lnp.p2, 0,
+                                               &ln->p1, &ln->p2, iUnl);
+    if(rc) continue;
 
 
     // // check if X-point is inside polygon line segment
@@ -1056,7 +1055,7 @@ Returncodes:
       // intersect line with Bezier curve
       ptxNr = 0;
       rc = UT3D_pt_intlnbcv (&ptxNr, pTab1, UT_BEZDEG_MAX,
-                             &lnp, &btab[i2], memSeg1, UT_TOL_ln);
+                             &lnp, 0, &btab[i2], memSeg1, UT_TOL_ln);
       if (rc < 0) goto Fertig;
 
 
@@ -1201,7 +1200,7 @@ Returncodes:
       lnp2.p2 = plg2->cpTab[i2+1];
 
       // intersect both lines
-      rc = UT3D_pt_int2ln (&ip1, &ip2, &dist, &lnp1, &lnp2);
+      rc = UT3D_2pt_int2ln (&ip1, &ip2, &dist, &lnp1, &lnp2);
       if (rc < 1) continue;
 
       // check if X-point is inside both polygon line segments

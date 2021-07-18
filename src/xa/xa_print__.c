@@ -103,10 +103,11 @@ __declspec(dllexport) int PRI__ (void**);
 #include "../ut/ut_os.h"       // OS_get_tmp_dir
 
 #include "../gui/gui__.h"
+#include "../xa/mdl__.h"               // SIZMFNam
 
 
 // Externals aus ../xa/xa.c:
-extern char AP_mod_fnam[128];
+extern char AP_mod_fnam[SIZMFNam];
 extern char AP_printer[80];       // Printer
 
 

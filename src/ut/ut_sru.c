@@ -1639,14 +1639,14 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
 
   distold = UT_VAL_MAX;
 
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln0, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln0, objIn);
 
 
   //----------------------------------------------------------------
   // get nearestPoint on surfaceLine and on intersectionLine
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln1, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln1, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1661,7 +1661,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   // get nearestPoint on surfaceLine and on intersectionLine
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln25, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln25, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1675,7 +1675,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   //----------------------------------------------------------------
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln50, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln50, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1690,7 +1690,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   //----------------------------------------------------------------
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln75, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln75, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1704,7 +1704,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   //----------------------------------------------------------------
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln99, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln99, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1718,7 +1718,7 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   //----------------------------------------------------------------
   px1 = px2;
   pl1 = pl2;
-  UT3D_pt_int2ln (&px2, &pl2, NULL, &SRU_ln100, objIn);
+  UT3D_2pt_int2ln (&px2, &pl2, NULL, &SRU_ln100, objIn);
 
   // distance & parameter von point objIn auf Line px1-px2 errechnen
   UT3D_pt_mid2pt (&plm, &pl1, &pl2);
@@ -1820,8 +1820,8 @@ static Line   ln0, ln10, ln25, ln50, ln75, ln90, ln100;
   Line     lnx;
 
 
-  UT3D_pt_int2ln (&pl1, px1, NULL, lni, ln1);
-  UT3D_pt_int2ln (&pl2, px2, NULL, lni, ln2);
+  UT3D_2pt_int2ln (&pl1, px1, NULL, lni, ln1);
+  UT3D_2pt_int2ln (&pl2, px2, NULL, lni, ln2);
 
     // GR_tDyn_symB__ (px1, SYM_STAR_S, 2);
     // GR_tDyn_symB__ (px2, SYM_STAR_S, 2);

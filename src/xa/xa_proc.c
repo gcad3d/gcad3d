@@ -53,6 +53,8 @@ PRC_lst_processors
 PRC_Help
 PRC_set_CmdTab
 
+PRC_IS_ACTIVE            check if process is active
+
 RPC_Loa
 
 List_functions_end:
@@ -376,7 +378,7 @@ char **process_CmdTab;     // was NCCmdTab
   if(AP_stat.APP_stat == 0) {
     // core-active
     // save the active Submodel AP_modact_nam -> TempFile
-    Mod_sav_tmp ();
+    MDL_sav_tmp ();
     goto L_1;
   }
 
@@ -714,7 +716,7 @@ static char sproc[128];
 
 
   // delete process in browser
-  Brw_Prcs_del (&s1[8]);
+  Brw_del_oid (&s1[8]);
 
   return 0;
 
@@ -883,8 +885,8 @@ static char sproc[128];
   }
 
 
-  // get filename of cfg/dir.lst
-  MDLFN_symFilNam (s1);
+  // get filename of cfg_<os>/dir.lst
+  MDLFN_syFn_f_name (s1);
 
   // list directory <bindir>/remote
   sprintf(s2, "%sprg/", OS_get_loc_dir());

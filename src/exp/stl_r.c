@@ -588,7 +588,7 @@ int main () {
   ox3.typ  = Typ_GL_PP;
   ox3.form = Typ_PT;
   ox3.aux  = GL_TRIANGLE_FAN;
-  // ox3.aux  = GL_TRIANGLES;
+  ox3.dir  = 0;
   ox3.siz  = 3;
 
 

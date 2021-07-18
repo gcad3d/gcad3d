@@ -84,7 +84,7 @@ Update: update TexRef-UserData; apply Texture.
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -100,12 +100,13 @@ Update: update TexRef-UserData; apply Texture.
 #include "../gui/gui__.h"              // Gtk3
 
 #include "../gr/ut_gr.h"               // GR_tDyn_pcv
-#include "../xa/xa.h"             // AP_STAT
+#include "../xa/xa.h"                  // AP_STAT
+
 
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
-extern char      AP_mod_dir[128], AP_mod_sym[64]; // das Verzeichnis fuer OPEN
+extern char      AP_mod_dir[SIZMFTot], AP_mod_sym[SIZMFSym]; // das Verzeichnis fuer OPEN
 
 
 
@@ -231,29 +232,31 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 
 
 //================================================================
-  int UI_Tex_Load (char *fnam, char *dirNam) {
+  int UI_Tex_Load (stru_FN *mns1) {
 //================================================================
 // User has textureFile from FileList selected ..
 // Load Texture
+// see also TED_Tex_Load
 
   int       i1, irc;
+  char      symNam[320];
   TexRef    *tr;
 
+  if(AP_stat.texture == 0) return 0;
+
   // UI_Tex__ (NULL, (void*)UI_FuncUCB7);  // redisplay nach hide only ...
+//   if(fnam == NULL) return 0;
 
-  if(fnam == NULL) return 0;
-
-  printf("UI_Tex_Load |%s|%s|\n",fnam,dirNam);
-
-  AP_set_dir_open (dirNam);  // copy dir -> AP_mod_dir; load AP_mod_sym
+  MDLFN_dump_ofn  (mns1, "UI_Tex_Load");
 
   // get keepFlag from UI_Tex__
   // i1 = UI_Tex__ (NULL, (void*)UI_FuncUCB6);
   // i1 = 1;
 
-  // save & load Texture
-  irc = Tex_addBas__ (fnam, AP_mod_sym, 0);
-  if(irc < 0) return -1;
+  // load Texture
+  sprintf(symNam, "%s/%s.%s",mns1->symDir,mns1->fNam,mns1->fTyp);
+  i1 = Tex_addBas1 (symNam, 0);
+  if(i1 < 0) return -1;
 
   // display textureName
   // UI_Tex__ (NULL, (void*)UI_FuncUCB9);
@@ -312,6 +315,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
   if     (!GUI_obj_cmp(mo, &Tex_ent_sc))  ii = 0;
   else if(!GUI_obj_cmp(mo, &Tex_ent_off)) ii = 1;
   else if(!GUI_obj_cmp(mo, &Tex_ent_ang)) ii = 2;
+  else TX_Print("***** UI_Tex_CB1 E1");
     printf(" activate ii=%d\n",ii);
 
 
@@ -384,6 +388,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
   TexRef     texr, *tr;
   TexBas     *pTexBas;
   Point      po, pa[5];
+  stru_FN mns1;
 
 
   // ifunc = GUI_DATA_EVENT;
@@ -502,28 +507,12 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
 
 
     //---------------------------------------------------------
-    case UI_FuncUCB3:            // Load new Texture from File
-      // skip disactivation
-
-      // hide window_always_on_top;  restore with UCB7
-      //gtk_widget_hide (win0);  das geht bei MS ned !
-      // remove on-top
-      // GUI_WinDwn (win0);  // always on top
-
-      // select Texture-File
-/*
-      MDLFN_symFilNam (cbuf);   // get filename of dir.lst
-      // sprintf(cbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
-      GUI_List2 ("select Texturefile", // titletext
-              AP_mod_dir,             // Pfadname des activeDirectory
-              cbuf,                    // Liste der directories
-              (void*)UI_Tex_Load);      // CallBack der Liste
-*/
-      i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "\"*.jpg\"");
+    case UI_FuncUCB3:            // Load new Texture from File   1003
+      // get textureFile from user
+      i1 = MDLFN_ofn_user (&mns1, "select Texturefile", "*.jpg");
       if(i1 < 0) return -1;
-      UI_Tex_Load (cbuf1, cbuf2);
-
-
+      // load tetxure
+      UI_Tex_Load (&mns1);
       // weiter mit UI_FuncUCB7 ..
       return 0;
 

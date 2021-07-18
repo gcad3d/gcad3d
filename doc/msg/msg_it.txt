@@ -44,6 +44,7 @@ MMstLty=definire tipo di linea (Colore - Tipo di Linea - Spessore) per Linee / C
 MMstDir=definire la directory per il modello
 MMstBrw=definire il browser per gli aiuti e la documentazione
 MMstEdi=definire l'editor
+MMstSelDir=select file with symbolic directories
 
 MMmdMsi=imposta le dimensioni e le tolleranze del modello
 MMmdMdp=modifica la posizione di un sottomodello
@@ -338,7 +339,7 @@ PEDnopt=oggetto non hanno punti di mobili ..
 PEDnrpt=oggetto è {0} punti mobili ..
 PEDsav=salva le modifiche (tasto destro del mouse)
 PEDcanc=annulla le modifiche (tasto ESC)
-PEDlink=Link break a obj {0} ?
+PEDlink=Link break a obj {0}
 PEDmod1=assegna un piano al vettore o / sel. quadrato (punto giallo, Sym-#) / cancellazione / Inserisci / Exit (tasto destro del mouse)
 PEDmod2=assegna un piano al vettore o / sel. quadrato (punto giallo, Sym-#) / Uscita (tasto destro del mouse)
 PEDmod3=Salva (tasto destro del mouse) O Annulla (tasto ESC)
@@ -393,10 +394,11 @@ SN_TxtNot=cerca tutti gli oggetti che [NON] contengono il testo informativo
 SN_DepNot=cerca tutti gli oggetti che [NON] dipendono dall'oggetto "depends"
 
 ERRCAD0=*** ERRORE: deve essere attivata la funzione CAD ..
+ERRMDL0=*** ERROR: subModel must be active ..
 pluginErr0=rebuild not possible - compilatore o collegamento non trovato..
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}
-SAVusm=Salvare il sottomodello {0} inutilizzato?
+SAVusm=Salvare sottomodelli {0} inutilizzato
 Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=ultimo input in senso orario
@@ -406,4 +408,8 @@ ED1MOD-=seleziona la precedente variante di soluzione
 ED1<<<=indietro di un input (prima dell'inserimento)
 ED1>>>=avanti di un input (prima dell'inserimento)
 
-EOF
+E_CAD_use1=cannot use obj
+E_PRJ_1=no result from project
+E_INT_1=no result from intersection
+
+EOF=end of file

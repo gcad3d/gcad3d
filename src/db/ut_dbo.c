@@ -29,13 +29,14 @@ void DBO(){}
 #endif
 /*!
 \file  ../db/ut_dbo.c
-\brief database-object-functions (typ, DB-index)        DBO_ 
+\brief database-object-functions (typ, DB-index)        DBO_        see INF_DBO__
 \code
 =====================================================
 List_functions_start:
 
-DBO_dbo_src__          decode & create temp obj
-DBO_dbo_ato__          create temp obj from atomic-obj
+DBO__cmp_dbo           compare 2 DB-objects
+DBO_dbo_src__          decode & create temp obj    ATO_getSpc__ + ATO_ato_srcLn__
+// DBO_dbo_ato__          create temp obj from atomic-obj  see ATO_ato_atoTab__
 DBO_sel__              change selection into DB-object
 DBO_cvStd_cvTrm        change trimmed-curve into standard-curve
 DBO_dump__             dump DB-object -> debug-window
@@ -62,6 +63,29 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
 #include "../ut/ut_geo.h"              // Point ...
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../db/ut_DB.h"               // DB_get_CV
+
+
+
+
+
+//================================================================
+  int DBO__cmp_dbo (int typ1, long dbi1, int typ2, long dbi2) {
+//================================================================
+// DBO__cmp_dbo           compare 2 DB-objects
+// retCode     0=not ident,  1=ident DB-objects
+
+
+  // printf("DBO__cmp_dbo  %d %ld - %d %ld\n",typ1,dbi1,typ2,dbi2);
+
+  if(dbi1 != dbi2) return 0;
+
+  typ1 = AP_typDB_typ (typ1);
+  typ2 = AP_typDB_typ (typ2);
+  if(typ1 != typ2) return 0;
+  
+  return 1;
+
+}
 
 
 //================================================================
@@ -116,18 +140,18 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
 }
 
 
-//================================================================
-  int DBO_dbo_ato__ (long *ptInd, int *ausInd,
-                     int aus_anz, int aus_typ[],double aus_tab[]){
-//================================================================
-/// DBO_dbo_ato__          create temp obj from atomic-obj
-
-  printf("DBO_dbo_ato__ \n");
-
-
-  return 0;
-
-}
+// //================================================================
+//   int DBO_dbo_ato__ (long *ptInd, int *ausInd,
+//                      int aus_anz, int aus_typ[],double aus_tab[]){
+// //================================================================
+// /// DBO_dbo_ato__          create temp obj from atomic-obj
+// 
+//   printf("DBO_dbo_ato__ \n");
+// 
+// 
+//   return 0;
+// 
+// }
 
  
 //================================================================
@@ -178,7 +202,7 @@ APT_decode_pt2         create dynam DB-point from atomic-obj
   if(dli == -1) {
     *typ = Typ_TmpPT;
     *dbi = 0;
-    UI_GR_get_actPosA (&pt1);
+    GR_get_curPos_UC (&pt1);
       // DEB_dump_obj__ (Typ_PT, &pt1, "indicatedPos=");
     DB_StorePoint (0L, &pt1);   // save as point[0]
     return 0;

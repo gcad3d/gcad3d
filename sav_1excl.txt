@@ -4,6 +4,7 @@
 *.obj
 *.pdb
 *.exp
+*.wtag
 *.lib
 *.so
 *.o

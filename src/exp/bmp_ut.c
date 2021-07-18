@@ -36,7 +36,7 @@ List_functions_start:
 
 bmp_load    load bmp-file into memory
 bmp_info1   test if file is bmp-file
-bmp_save__  save pixmap as bmp-file
+bmp_save__  save pixmap (open GL-window) as bmp-file
 
 List_functions_end:
 =====================================================
@@ -379,6 +379,7 @@ struct BMPHeader
 //================================================================
   int bmp_save__ (char *fNam) {
 //================================================================
+// bmp_save__        create BMP-file of active OpenGL-window
 
   int    iw, ih, lSiz1, lSiz2, fSiz, i1, ii;
   void   *pm;

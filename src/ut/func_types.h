@@ -1,4 +1,6 @@
 /* ../ut/func_types.h
+
+#include "../ut/func_types.h"               // FUNC_ViewSide
 */
 
 

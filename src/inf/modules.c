@@ -21,8 +21,93 @@ Use it with "vi -t <code>"
 
 
 
+================================================================== */
+void INF_Brw__(){                   /*! \code
+obj-browser
+See INF_Brw_gtk
+
+Mousebuttons on obj in browser-window:
+
+Vector und all not-visible-objs:
+- M1 - preview from dbi and add to group
+- M3 - menu hide delete
+Visible-objs:
+- M1 - hilite / add to group
+- M3 - menu hide delete
+SubModels:
+- M1 - hilite all refMdls of this baseMdl
+- M3 - Menu activate (rename, remove)
+
+
+//----------------------------------------------------------------
+PROGRAMFLOW:
+
+
+--------------------PRIMARY_LOAD:
+Brw_init__
+  Brw_Mdl_init            // create all subModelNodes from Mod.lst
+    Brw_Mdl_createRow
+  Brw_Prcs_Init ();        // create all processes
+  Brw_Mdl_upd              // update and open obj-rows of primary-model
+
+
+--------------------LOAD_FROM_BRW:
+MDL_load_mNam__
+  Brw_Mdl_activ      // activate subModel in Browser
+    Brw_Mdl_upd        // update and open obj-rows of primary-model
+    Brw_Mdl_stat       // set icons of models according stat
+
+
+--------------------REMOVE_FROM_BRW:
+Brw_sMdl_del__
+  Brw_del_oid          // delete browser-row and its childs from obj-ID
+
+
+//----------------------------------------------------------------
+FUNCTIONS:
+if(BRW_STAT) ..   // check if Browser is active
+
+Brw_CB_sel         callback tree-obj-selection
+OMN_popup_Brw      create & display popup-menu
+OMN_CB_popup       callback select menu of browser
+
+
+
+//----------------------------------------------------------------
+FILES:
+../xa/xa_brw.c
+../xa/xa_brw.h      Brw_getTxt
+
 
 ================================================================== */
+void INF_Brw_gtk(){                   /*! \code
+obj-browser
+
+Obj-line has 4 columns:
+Co1 0 = icon
+Co1 1 = text
+Co1 2 = state: 1=act, 0=pass
+Co1 3 = iconNr
+
+Functions:
+GUI_tree1_analyz1
+
+GUI_tree1_iter_string        find row that starts with <txt>
+
+// gtk_tree_model_get_iter_from_string
+
+// get iter: gtk_tree_model_get_iter  
+
+// analyze column: gtk_tree_model_get ( In: iter, colNr);
+
+
+
+
+
+
+
+
+================================================================== \endcode */}
 void INF_PRCV(){                   /*! \code
 polygonal_representation_of_curve    ../ut/ut_prcv__.c
                                      ../ut/ut_prcv_db.c

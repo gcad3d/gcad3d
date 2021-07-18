@@ -3,9 +3,12 @@
 # use with:
 # set one of the <par> free;
 # ./GUI_dlg1.sh
-# TODO: test dlgbe with entry and 0 buttons ..
+# TODO: dlgbe with entry and 0 buttons ..
+# TODO: dlgbe without entry and 1 button ..
 
-
+# ../gui_gtk3/GUI_dlg1.c
+# ./GUI_dlg1.sh
+# cat  /tmp/debug.dat
 
 
 #########################################################
@@ -17,8 +20,11 @@
 # dlgbe = dialog with 1 - n buttons
 #par="dlgbe \" model exists; overwrite ? \" NO YES"
 
-par="dlgbe \"text info\" Cancel NO YES --ent \"\" 16"
-
+#par="dlgbe \" - infotext ..\" ok"                        TODO - NYI
+#par="dlgbe \" - infotext ..\" YES no"
+#par="dlgbe \"text info\" Cancel NO YES"
+# par="dlgbe \" --- enter name \" --ent \"\" 16"                  TODO - NYI
+#par="dlgbe \"text info\" Cancel NO YES --ent \"\" 16"
 #par="dlgbe \"text info\" Cancel NO YES --ent \"entPreset\" 300"
 
 

@@ -44,6 +44,7 @@ MMstLty=Definition Linientypen (Farbe-Linientyp-Linedicke) für Linien/Kreise/Ku
 MMstDir=Definition Modelverzeichnisse
 MMstBrw=Definition Browser for Hilfe / Dokumentation
 MMstEdi=Definition Editor
+MMstSelDir=Auswahl Datei mit Verzeichnispfaden
 
 MMmdMsi=Maximalgröße und Toleranzen des Modells setzen
 MMmdMdp=ändern subModel-Positionen
@@ -337,7 +338,7 @@ PEDnopt=Objekt hat keine verschiebbaren Punkte ..
 PEDnrpt=Objekt hat  {0}  verschiebbare Punkte
 PEDsav=Änderungen übernehmen (re.Maustaste)
 PEDcanc=Änderungen zurücksetzen (Esc-Taste)
-PEDlink=Verbindung zu Obj. {0}  löschen ?
+PEDlink=Verbindung zu Obj. {0}  löschen
 PEDmod1=Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Löschen / Einfügen / Fertig: re.Maustaste.
 PEDmod2=Ebene/Vektor sel. od. eing. / Punkt (gelbes Rechteck, Sym-#) sel. / Fertig (re.Maustaste)
 PEDmod3=speichern (re.Maustaste) od. Abbrechen (Esc-Taste)
@@ -391,11 +392,12 @@ SN_Rem=Aus aktueller Gruppe entfernen
 SN_TxtNot=alle Objekte suchen, die Infotext [NICHT] enthalten
 SN_DepNot=alle Objekte suchen, die [NICHT] von Objekt "depends" abhängig sind
 
-ERRCAD0=FEHLER: Funktion CAD muss aktiv sein ..
+ERRCAD0=*** FEHLER: Funktion CAD muss aktiv sein ..
+ERRMDL0=*** ERROR: subModel must be active ..
 pluginErr0=Neukompilierung nicht möglich - Compiler oder Linker nicht gefunden.
 pluginErr1=Fehler in Anwendungsprogramm  {0} ; Abbruch.
 FileOp=beim Öffnen von Datei  {0}
-SAVusm=nicht benutztes Submodel  {0}  speichern ?
+SAVusm=nicht benutzte Submodelle  {0}  speichern
 Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=Drehrichtung Uhrzeigersinn für letzte Eingabe
@@ -405,4 +407,8 @@ ED1MOD-=vorherige Lösungsvariante wählen
 ED1<<<=eine Eingabe zurücksetzen (vor dem Einfügen)
 ED1>>>=eine Eingabe weiter (nach dem Einfügen)
 
-EOF
+E_CAD_use1=Objekt kann nicht verwendet werden
+E_PRJ_1=kein Ergebnis der Projektion
+E_INT_1=kein Ergebnis von Funktion Verschneidung
+
+EOF=end of file

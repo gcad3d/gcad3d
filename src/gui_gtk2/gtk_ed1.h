@@ -11,7 +11,7 @@ int GUI_edi_setLnr (MemObj *mo, long lNr);
 int GUI_edi_scroll_s (MemObj *mo);
 void GUI_edi_Focus (MemObj *mo);
 int GUI_ed1_decode (MemObj *mo);
-int GUI_edi_sel_get (long *p1, long *p2, MemObj *mo);
+int GUI_edi_sel_get (char **txt, MemObj *mo);
 int GUI_edi_sel_ln (MemObj *mo, long lNr);
 int GUI_edi_sel_wrf (MemObj *mo, char *fnam);
 int GUI_edi_mod_ln (MemObj *mo, long lNr, char *newLn);

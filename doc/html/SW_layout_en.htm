@@ -106,14 +106,14 @@ Programfiles:
 Userfiles:
   $HOME/gCAD3D/tmp/                          temporary files
                dat/                          cad-models-directory
-               cfg/                          config-files
+               cfg_Linux/                    config-files
                prg/                          application-programs .gcap topDir
                ctlg/                         Catalog-files .gcad topDir
 
-If file $HOME/gCAD3D/cfg/gCAD3D.rc does not exist:
+If file $HOME/gCAD3D/cfg_Linux/gCAD3D.rc does not exist:
   /usr/share/gcad3d/examples.zip will be extracted,
   - this will overwrite all startup-userfiles with the original version,
-  - also the user-config-files  in $HOME/gCAD3D/cfg/ !
+  - also the user-config-files  in $HOME/gCAD3D/cfg_Linux/ !
 
 
 ___________________________________________________
@@ -137,14 +137,14 @@ Programfiles:
 Userfiles:
   $HOME/gCAD3D/tmp/                          temporary files
                dat/                          cad-models-directory
-               cfg/                          config-files
+               cfg_Linux/                    config-files
                prg/                          application-programs .gcap topDir
                ctlg/                         Catalog-files .gcad topDir
 
-If file $HOME/gCAD3D/cfg/gCAD3D.rc does not exist:
+If file $HOME/gCAD3D/cfg_Linux/gCAD3D.rc does not exist:
   /usr/share/gcad3d/examples.zip will be extracted,
   - this will overwrite all startup-userfiles with the original version,
-  - also the user-config-files  in $HOME/gCAD3D/cfg/ !
+  - also the user-config-files  in $HOME/gCAD3D/cfg_Linux/ !
 
 
 ____________________________________________________________________________
@@ -161,9 +161,12 @@ Programfiles:
 Userfiles:
   %APPDATA%\gCAD3D\tmp\                      temporary files
                    dat\                      cad-models-directory
-                   cfg\                      config-files
+                   cfg_MS\                   config-files
                    prg\                      application-programs .gcap topDir
                    ctlg\                     Catalog-files .gcad topDir
+
+If file %APPDATA%/gCAD3D/cfg_MS/gCAD3D.rc does not exist:
+  the defaultfiles will be copied into %APPDATA%/gCAD3D/cfg_MS/.
 
 ____________________________________________________________________________
 </PRE>

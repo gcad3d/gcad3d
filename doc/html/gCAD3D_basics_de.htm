@@ -1,13 +1,19 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
-<TITLE>gCAD3D_basics_de.htm</TITLE>
-<style>body{ font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>CAD_Model_de</TITLE>
+  <meta name="description" content="gCAD3D-subModels-Spezifikation">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="de-AT">
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
-
-
 
   <a href="gCAD3D_feat_de.htm">Features</a>
 
@@ -80,80 +86,49 @@ CAD  interaktives Erzeugen/ Modifizieren
 
 
 
-__________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="MMS"></a></p>
 <b>MultiModelsupport</b>
 __________________________________________________________________________
 
 
 Ein Modell kann aus beliebig vielen Modellen (subModels) bestehen.
-Ein subModel kann im Modell gespeichert sein (ein <a href="#MMS_int">internes subModel</a>)
-oder aus einer Datei importiert sein (<a href="#MMS_ext">externes subModel</a>).
+
+Funktion zum Erzeugen / Verwenden von Submodellen:
+<a href="CAD_Model_de.htm#F0">internes subModel</a>
+<a href="CAD_Model_de.htm#F1">externes subModel</a>
+<a href="CAD_Model_de.htm#F2">Normteil</a>
 
 
-
-<p><a name="MMS_int"></a></p>
-<b>Interne Submodels</b>
-
-Die Modelbezeichnung darf keinen Pfad (und kein Pfadtrennzeichen "/" oder "\") enthalten.
-Während der Bearbeitung werden Submodelle in <base>/tmp/Mode_{submodelname} zwischengespeichert.
-Alle internen Submodels werden im Modelfile abgespeichert.
+<b>Funktion zum aktivieren eines subModel:</b>
+ - nur in VWR und CAD:
+ - den Modelnamen im Browser-Window mit der rechten Maustaste selektieren
+   - "aktivieren" auswählen
 
 
-<i>Erzeugen von Submodels:</i>
-- subModels / move main --> new submodel
-    alle Objekte des aktiven Mainmodel in ein Submodel umkopieren.
-    
-- subModels / create new submodel
-    Ein neues Submodel anlegen und aktivieren.
-    
-- subModels / load submodel from file
-    Ein natives Model aus einer Datei in eine neues Submodel laden.
+<b>Funktion zum umbenennen eines subModel:</b>
+ - nur in CAD:
+ - es wird nur das momentan aktive Modell umbenannt
+ - den Modelnamen im Browser-Window mit der rechten Maustaste selektieren
+   - "umbenennen" auswählen
+ ACHTUNG: alle externen Models, in denen subModelle umbenannt werden, werden
+    in interne subModels umgewandelt.
 
 
-<i>Benutzen von internen Submodels im CAD-Modus:</i>
-  mit der Funktion 'M-int.Modell'
-
-Auswahl eines Submodels aus Liste (durch mittlere Maustaste)
-  oder durch Selektion eines bereits vorhandenen Submodels;
-  Position definieren.
-
-
-<i>Benutzen von internen Submodels im MAN-Modus:</i>
-  durch Key-In von zB:
-M20="subModel1" P(0 0 0) DZ DIY
+<b>Funktion zum entfernen eines subModel:</b>
+ - nur in CAD:
+ - es wird nur das momentan aktive Modell gelöscht
+ - den Modelnamen im Browser-Window mit der rechten Maustaste selektieren
+   - "Entfernen" auswählen
+ ACHTUNG: alle externen Models, aus denen das subModel entfernt wird, werden
+    in interne subModels umgewandelt.
 
 
 
 
-
-
-<p><a name="MMS_ext"></a></p>
-<b>Externe Submodels</b>
-
-Für diese Models muss es eine (externe) Modelldatei geben.
-Die Modellbezeichnung muss einen symbolischen Pfad enthalten.
-Die Modelldatei muss in einem Verzeichnis liegen, das über ein Symbol angesprochen werden kann.
-Siehe Symbolische Dateibezeichnungen.
-Externe Modelle dürfen dzt nur Mockup-Modelle (zB WRL), jedoch keine internen oder externen Submodelle beinhalten !
-Externe Submodels werden nicht intern zwischengespeichert.
-
-
-<i>Benutzen von externen Submodels im CAD-Modus:</i>
-  mit der Funktion 'M-ext.Modell'
-
-Auswahl eines Submodels aus Liste (mittlere Maustaste im Grafikfenster)
-  oder durch Selektion eines bereits vorhandenen Submodels;
-  Position definieren.
-
-
-<i>Benutzen von externen Submodels im MAN-Modus:</i>
-  durch Key-In von zB:
-M20="Data/Mod1.gcad" P(0 0 0) DZ DIY
-
-
-
-
+Siehe auch:
+<a href="CAD_Base_de.htm#symFnam">Symbolische Dateibezeichnungen</a>
+<a href="Catalog_de.htm">Normteilkataloge</a>
 
 
 __________________________________________________________________________
@@ -194,6 +169,8 @@ __________________________________________________________________________
 2012  Debian-packages
 2013  RemoteControl, Processes.
 2015  Lizenz geändert auf GPL-3.
+2020  New module PRCV
+2021  New module MDL MDLFN
 
 
 

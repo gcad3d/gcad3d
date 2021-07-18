@@ -30,33 +30,32 @@ void INF_cursorPosition (){        /*! code
 
 
 FUNCTIONS:
-GR_get_constPlnPos get curPos (GR_CurUk) in worldCoords
-GL_GetActSelPos get Coords of last selection - GL_actUsrPos & GL_actScrPos
-GL_GetCurPos get curPos in userCoords
-GL_GetViewPos get curPos in userCoords on GL_view_pln
-GL_GetConstrPos get curPos on GL_constr_pln
-UI_GR_get_actPosA get curPos in userCoords on constrPln as Point
+GR_curPos_WC get curPos (GR_curPos_WC) in worldCoords
+GL_get_curPos_last get Coords of last selection - GL_curPos_WC & GL_curPos_SC
+GL_get_curPos_WC get curPos in userCoords
+GL_get_curPos_CP__ get curPos in userCoords on GL_view_pln
+GL_get_curPos_CP_pt get curPos on WC_sur_act
+GR_get_curPos_UC get curPos in userCoords on constrPln as Point
 UI_GR_get_actPos_ return string-position of GR_actPos
-UI_GR_actPos write GR_actPos using UI_GR_get_actPosA
+UI_GR_actPos write GR_actPos using GR_get_curPos_UC
 AP_obj_add_curPos add cursor-position as "P(x y z)" to string
 UI_GR_Indicate INTERN
 GL_ck_sel_PT compare pt with last mouseposition
-GL_GetEyeLn get curPos (GL_actUsrPos) & vector to eye (GL_eyeX)
+GL_GetEyeLn get curPos (GL_curPos_WC) & vector to eye (GL_eyeX)
 GL_GetEyeX get vector to eye (GL_eyeX)
 GL_Get_Cen screencenter in userCoords
 GL_get_Scale
 UI_GR_SelVert get vertext nearest to cursor
-GR_set_constPlnPos set GR_CurUk = curPos on GL_constr_pln
-GL_set_viewPlnPos set GL_actScrPos & GL_actUsrPos (GL_GetViewPos)
+GR_set_curPos_CP set GR_curPos_WC = curPos on WC_sur_act
+GL_set_curPos_CP set GL_curPos_SC & GL_curPos_WC (GL_get_curPos_CP__)
 GL_SetViewPln set GL_view_pln
-GL_SetConstrPln set GL_constr_pln
 VARIABLES:
 GR_actPos string curPos in userCoords on constrPln as "P(x y z)"
-GR_CurUk curPos on GL_constr_pln (worldCoords)
-GL_actUsrPos Point curPos on GL_view_pln (GL_GetViewPos)
-GL_actScrPos Point curPos in screenkoords (GL_set_viewPlnPos)
+GR_curPos_WC curPos on WC_sur_act (worldCoords)
+GL_curPos_WC Point curPos on GL_view_pln (GL_get_curPos_CP__)
+GL_curPos_SC Point curPos in screenkoords (GL_set_curPos_CP)
 GL_view_pln Plane X-Y-parallel, RotationCenterplane (GL_SetViewPln)
-GL_constr_pln Plane (GL_SetConstrPln)
+WC_sur_act Plane
 GL_cen Point RotationCenterpoint, always in GL_view_pln
 GL_eyeX Vector from the screenCenter to the eye
 
@@ -70,21 +69,19 @@ see also xa.c
 Plane WC_sur_act; the ConstructionPlane; in xa.c
 int WC_sur_ind; DB-Index of the ActiveConstrPlane; 0=none.
 double WC_sur_Z; the active Z-Offset to the ConstructionPlane
-char WC_ConstPl_Z[16]; displayed name_of_Constr.Plane; is "DZ" or "R20"
+char WC_sur_txt[16]; displayed name_of_Constr.Plane; is "DZ" or "R20"
 Mat_4x3 WC_sur_mat; // TrMat of ActiveConstrPlane
 Mat_4x3 WC_sur_imat; // inverse TrMat of ActiveConstrPlane
 Functions ConstrPlane:
 DL_setRefSys
 NC_setRefsys
-GL_SetConstrPln
 DL_GetTrInd
 UTRA_pt_ucs2wcs point from constructionplane (relativ) to absolut (UCS -> WCS)
 UTRA_pt_wcs2ucs point from absolut to relativ (constructionplane) (WCS -> UCS)
 UI_sur_act_CB1 interactive setting of ConstructionPlane
-GL_SetConstrPln GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
 UI_Set_ConstPl_Z write Label name_of_Constr.Plane
 AP_Set_ConstPl_Z write Label name_of_Constr.Plane
-UI_suract_keyIn mode=2: set & display WC_sur_Z
+// UI_suract_keyIn mode=2: set & display WC_sur_Z
 AP_Get_ConstPl_Z gives ConstPLn as text or Z-vec
 AP_Get_ConstPl_vz give Z-vec of ConstructionPlane
 

@@ -18,7 +18,7 @@ siehe auch <a href="CAD_Base_de.htm#D_Copy">Vektor aus Kopierfunktion</a>
 Vektoren benutzen den Kennbuchstaben D ("Direction").
 
 
-<hr>
+<HR><!-- ============================================================ -->
 <a name="F0"></a>
 <h2>VEC cartes, polar</h2>
 Vektor erzeugen.
@@ -63,8 +63,9 @@ D5=D4 REV
 
 
 
+<HR><!-- ============================================================ -->
 <a name="F1"></a>
-<h2>VEC objects</h2>
+<h2>VEC from objects</h2>
 Parallel- oder Normalvektor zu existierenden Objekten.
 
 
@@ -79,58 +80,53 @@ Parallel- oder Normalvektor zu existierenden Objekten.
 <b>Parallelvektor:</b>
 
   Vektor als Tangente durch einen Punkt an eine Kurve:
-   Obj1              Linie oder Kurve oder Fläche 
+   Obj1              Linie oder Kurve oder Fläche
    [Point (on obj)]  Basispunkt des Vektors auf der Kurve/Fläche
-    
-  Vektor parallel zu Vektor oder Linie, Eckpunkt
-    Obj1              Richtung - Vektor oder Linie 
-    [Point (on obj)]  Startpunkt
-    [PT or VC]        Punkt (Eckpunkt)
-    PARL oder CX      PARL: Vektor entlang Obj1 von Startpunkt bis Eckpunkt
-                      CX:   Vektor normal zu Richtung
-                      keine Angabe: Normalvektor auf die Ebene aus Obj1 - Eckpunkt
+   [Length]
+   [REVers]
 
-  Vektor parallel zu 2 Punkten, Eckpunkt
-    Obj1              Startpunkt
-    [Point (on obj)]  Punkt auf Vektor / Linie
-    [PT or VC]        Punkt (Eckpunkt)
-    PARL oder CX      PARL: Vektor entlang Startpunkt - Point-on-OBj bis Eckpunkt
-                      CX:   Vektor normal zu Startpunkt - Point-on-OBj
-                      keine Angabe: Normalvektor auf die Ebene aus den 3 Punkten
+  Vektor zwischen 2 Punkten
+   Obj1              Startpunkt
+   [Point (on obj)]  Endpunkt
+   [Length]
+   [REVers]
 
-  Vektor auf Fläche parallel zur Isoparametrischen Richtung U oder
-    zur Isoparametrischen Richtung V
-    Obj1              Fläche oder Ebene
-    PARL oder CX      PARL: in Richtung der Isoparametrischen Kurve U
-                      CX:   in Richtung der Isoparametrischen Kurve V
-                      keine Angabe: Normalvektor auf die Fläche
+  Vektor auf Fläche parallel zur Isoparametrischen Richtung U oder V
+    - noch nicht für alle Flächentypen implementiert
+  Vector X-Achse oder Y-Achse für Kreis oder Ebene oder Ellipse
+   Obj1              Fläche Kreis Ebene oder Ellipse
+   [Length]
+   [REVers]
+   PARL oder CX      PARL: in Richtung der Isoparametrischen Kurve U
+                     CX:   in Richtung der Isoparametrischen Kurve V
+                     keine Angabe: Normalvektor auf die Fläche
 
 
 
 <b>Normalvektor:</b>
 
-  Normalvektor auf Kreis oder Ebene oder Ellipse
-    Obj1:     Kreis, Ebene oder Ellipse selektieren. 
-    
+  Normalvektor auf Kreis oder Ellipse oder Ebene oder Fläche
+   Obj1:             Kreis, Ebene Fläche oder Ellipse selektieren. 
+   [Length]
+   [REVers]
 
-  Normalvektor auf 2 lineare Segmente (Kreuzprodukt):
-    3 Punkte           (normal auf Ebene durch 3 Punkte)           oder
-    Linie, Punkt       (normal auf Ebene durch Punkt, Linie)       oder
-    Vektor, 2 Punkte   (Ebene aus 2 Punkten und Vektor)            oder
-    2 Linien           (normal auf Ebene durch 2 Linien)           oder
-    Das Ergebnis (der Normalvektor) ist das Kreuzprodukt von 2 Eingabevektoren. 
+  Normalvector auf Ebene von 2 linearen Objekten (Kreuzprodukt):
+   Obj1              Linie oder Vektor
+   [PT or VC]        Linie oder Vektor oder Vektor von Linie
+   [Length]
+   [REVers]
 
+  Normalvector auf Ebene von 3 Punkten (Kreuzprodukt):
+   Obj1              Punkt auf X-Achse
+   [Point (on obj)]  Nullpunkt (Startpunkt der X-Achse, Y-Achse)
+   [PT or VC]        Punkt nahe Y-Achse
+   [Length]
+   [REVers]
 
-  Normalvektor auf Fläche (derzeit nur B-SplineFläche)
-    Obj.1              eine Fläche selektieren, und
-    [Point (on Obj)]   einen Punkt auf dieser Fläche
-
-
-
-  
 
 
 Beispiele:
+
 # Normalvektor von Kreis C20
 D20=C20
 
@@ -143,16 +139,16 @@ D5=P1 P2 VAL(100)
 # Normalvektor auf Linie L20:
 D20=L20 DZ
 
-# X-Achs-Vektor der Ebene R20
+# Vektoren der Ebene R20
+D20=R20         # Z-axis-Vector of plane R20
+D20=R20 PARL    # X-axis-Vector of plane R20    or eg "D(R20 PARL)"
+D20=R20 CX      # Y-axis-Vector of plane R20
+
 D20=R20 PARL
 
-# Vektor entlang der X-Achse von P23 bis zum Eckpunkt P24
-D20=DX P23 P24 PARL
 
-# Vektor entlang P23 P25 bis zum Eckpunkt P24
-D20=P23 P25 P24 PARL
 
-<hr>
+<HR><!-- ============================================================ -->
 Die folgenden Befehle koennen derzeit nur manuell erzeugt werden:
 
 <h2>Vektor-Multiplikation / Divison</h2>

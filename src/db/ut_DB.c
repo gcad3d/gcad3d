@@ -16,9 +16,6 @@
  *
 -----------------------------------------------------
 TODO:
-- DB_save__ DB_load__ - change fNames "DB__<mdlNam>".dat -> <mdlNam>.mdat;
-  <mdlNam> must be safe-name; how get real-name from safe-name ?
-
 - DB_StoreXXX test if already defined ((!(DB_isFree_XXX)
   if yes: ERROR. Before set-free when going back in code (loop tru all
    DL-records beeing deleted).  ED_work_CurSet, ED_work_END, ..
@@ -26,11 +23,6 @@ TODO:
 - Relocate DB_CSEG vor ReAllocate (DB_allocCDAT)
   (see tess_reloc_obj tess_reloc_f_)
 
-- DB_VCX_IND sollte -1 -8 sein ! (dynam.Vektoren, vordefiniert.
-
-- Fuer Dittos sollte dynmaische Felder definiert werden; bei ResetDisplList
- koennten diese dittos dann geloescht werden. dzt muss das selbst gemacht
- werden (in WC_actPos_reset); geht dzt nur via lNr.
 
 -----------------------------------------------------
 Modifications:
@@ -96,7 +88,7 @@ DB_GetTool         get Tool ((BTool*),"?",tl_tab)
 DB_get_Activ
 
 DB_GetObjGX        get obj  (ObjGX)
-UTO__dbo       get data-struct from typ, DB-index
+UTO__dbo           get data-struct from typ, DB-index
 
 DB_store_ox       call DB_StoreXX with ObjGX
 DB_store_obj      call DB_StoreXX with structTyp,struct
@@ -129,32 +121,26 @@ DB_StoreJointNr    report last used jointNr
 DB_StoreDummy
 
 DB_StoreModel      store subModel-Reference (Ditto); mdr_tab
-DB_get_ModRef      get Ditto from Index
-DB_dump_ModRef
-DB_del_Mod__       delete Dittos und BasicModels
+DB_get_ModRef      get referenceModel from Index
+DB_dump_ModRef     dump refModels
+DB_get_mdr         returns referenceModels
+DB_del_ModRef      delete refModel and all following
+DB_del_MR__        delete refModel
+DB_del_Mod         delete all refModels and all basicModels
 
-DB_StoreModBas     store subModel; (Detail); mdb_dyn
-DB_get_iModBas_iModRef  get basic-ModelNr from the ReferenceModelNr
+DB_StoreModBas     store basicModel; mdb_dyn
+DB_get_mdb         returns basicModels
 DB_get_ModBas      get subModel from Index
+DB_get_iModBas_iModRef  get basic-ModelNr from the ReferenceModelNr
 DB_get_ModBasNr    get nr of defined subModels
-DB_get_ModNr       get ModelNr from Modelname
-DB_list_ModBas     Modelnames in korrekter Reihenfolge -> Datei
-DB_del_ModBas
-DB_ModBas_seqMax   get highest seqNr
+DB_del_ModBas      delete baseModel and all following
+DB_clear_ModBas    clear (reset) single basicModel
+DB_del_mdb_syFn    delete baseModel from symbolic-name
 DB_mdlNam_iBas     get the name of a basic-model from its basicModelNr
 DB_mdlNam_iRef     get Modelname from DB-index of the Modelreference
 DB_mdlTyp_iBas     get Modeltyp from its basicModelNr
 DB_mdlTyp_iRef     get Modeltyp from DB-index of the Modelreference
-DB_dump_ModNam
-DB_dump_ModBas
-
-DB_StoreModNod     Model-Node (basicModelIndex+parentbasicModelIndex+DB-index)
-DB_get_ModNod
-DB_ModNod_ckLoop_  check for call itsef
-DB_ModNod_ckLoop1
-DB_ModNod_ckLoaf_  not yet done ..
-DB_allocModNod
-DB_dump_ModNod
+DB_dump_ModBas     dump baseModels
 
 DB_Store_hdr_cv    Curve-Header speichern
 DB_Store_hdr_su    Surf.-Header speichern
@@ -170,7 +156,7 @@ DB_QueryActiv
 DB_GetConnObj
 DB_GetObjTyp2Pt
 
-DB_CkRef           check if Trfsys[Ind] is defined.
+DB_CkRef           check if Plane[Ind] is defined.
 DB_CheckInd        unused
 DB_Get_GR_Obj      read &transform obj ???
 DB_GetDynInd       get next dyn. Index
@@ -236,10 +222,19 @@ DB_allocSol
 
 List_functions_end:
 =====================================================
+UNUSED:
+DB_allocModNod
+DB_StoreModNod     Model-Node (basicModelIndex+parentbasicModelIndex+DB-index)
+DB_get_ModNod
+DB_dump_ModNod
+DB_ModBas_seqMax   get highest seqNr
+DB_list_ModBas     Modelnames in korrekter Reihenfolge -> Datei
+DB_ModNod_ckLoop_  check for call itsef
+DB_ModNod_ckLoop1
+
 
 \endcode *//*----------------------------------------
 see also UTO_obj_dbo
-
 
 
 
@@ -249,7 +244,11 @@ Man kann die Koord. Speichern (DB_StoreVar) und abholen (DB_GetPoint).
 Es gibt Speicher für die APT-Variablen (von Index 0 bis APT_VR_SIZ,
  einen Index auf das naechste freie Obj gibt es nicht !
 
-
+DB-obj is DB-typ (typ) and DB-index (dbi)
+  typ: eg Typ_PT - see INF_obj_types
+  dbi: index in DB for given typ;    index 0 is not valid;
+       permanent objects have positive index 
+       dynamic objects have negative index 
 
 -------------------------------
 In Version vor 2001-05-04 erforderliche Korrekturen:
@@ -306,13 +305,13 @@ DB_allocSol    B   so_tab    ObjGX     data
 ..........................   typ       ptr
 DB_allocModRef     mdr_tab   ModelRef  mnam  APT_MR_INC
 DB_allocModBas     mdb_dyn   ModelBas  mnam  DYN_MB_INC
-  mnam zeigt auf Modelname; ev in mdb_nam ?
+  // mnam zeigt auf Modelname; ev in mdb_nam ?
 
-DB_allocModNam     mdb_nam   char            DB_MNM_INC
-  Modelnames ?; wechseln die posi -
-  muessten beim Vater korrigiert werden !!!
-  also alle mnam von mdr_tab u mdb_dyn korrigieren ?
-  Es stimmen nun aber auch alle Kopien non mnam nicht mehr !
+// DB_allocModNam     mdb_nam   char            DB_MNM_INC
+//   Modelnames ?; wechseln die posi -
+//   muessten beim Vater korrigiert werden !!!
+//   also alle mnam von mdr_tab u mdb_dyn korrigieren ?
+//   Es stimmen nun aber auch alle Kopien non mnam nicht mehr !
 
 
 
@@ -344,7 +343,6 @@ DB_allocModNam     mdb_nam   char            DB_MNM_INC
 #include "../ut/ut_gtypes.h"             // AP_src_typ__
 
 
-
 // #include "../ut/ut_crv.h"
 
 #include "../gr/ut_gr.h"                 /* Typ_PT ...  */
@@ -354,8 +352,6 @@ DB_allocModNam     mdb_nam   char            DB_MNM_INC
 
 
 #include "../db/ut_DB.h"
-
-
 
 
 
@@ -380,6 +376,9 @@ extern Mat_4x3   WC_sur_imat;           ///< inverse TrMat of ActiveConstrPlane
 extern ObjAtt  *GA_ObjTab;        // die PermanentAttributeTable
 extern int     GA_recNr;          // die aktuelle Anzahl von Records
 
+// ex ../xa/xa_ed.c
+extern int       ED_lnr_act;
+
 // from ../gr/ut_gtx.c:
 extern double GR_tx_scale;
 
@@ -387,6 +386,9 @@ extern double GR_tx_scale;
 extern double APT_ModSiz;
 // extern double APT_ln_len;
 
+// ../ut/ut_txfil.c
+extern char       *UTF_FilBuf0;         // memspc
+extern long       UTF_FilBuf0Len;       // size of UTF_FilBuf0 (memspc)
 
 
 //============ Lokale Var: =======================================
@@ -409,16 +411,16 @@ typedef struct {int typ; void *data;}       DB_obj;
 #define APT_SO_INC       2000
 #define APT_AC_INC       50
 #define DB_CINC          2000000    ///< memsiz for DB_CDAT (curves .. 2000000
-#define DB_MNM_INC       5000       ///< memsiz for mdb_nam (DB_allocModNam)
+// #define DB_MNM_INC       5000       ///< memsiz for mdb_nam (DB_allocModNam)
 
 
-long APT_VR_SIZ, APT_VR_IND=0;      ///< APT_.._IND: der letzte belegte Index !
+long APT_VR_SIZ, APT_VR_IND=0;   ///< APT_.._IND: last occupied Index
 long APT_PT_SIZ, APT_PT_IND=0;
 long APT_VC_SIZ, APT_VC_IND=0;
 long APT_LN_SIZ, APT_LN_IND=0;
 long APT_CI_SIZ, APT_CI_IND=0;
 long APT_PL_SIZ, APT_PL_IND=0;
-long APT_MR_SIZ, APT_MR_IND=0;
+long APT_MR_SIZ, APT_MR_IND=-1;
 // long APT_TL_SIZ, APT_TL_IND=0;
 long APT_TR_SIZ, APT_TR_IND=0;
 long APT_CV_SIZ, APT_CV_IND=0;
@@ -452,7 +454,7 @@ static long DYN_CV_SIZ=0, DYN_CV_IND=0;
 static long DYN_SU_SIZ=0, DYN_SU_IND=0;
 static long DYN_TX_SIZ=0, DYN_TX_IND=0;
 static long DYN_MB_SIZ=0, DYN_MB_IND=0;
-static long               DB_MNM_IND=0;
+// static long               DB_MNM_IND=0;
 static int                DB_JNT_IND=0;
 
 
@@ -487,7 +489,7 @@ static ObjGX      *cv_dyn  = NULL;
 static ObjGX      *su_tab  = NULL;
 static ObjGX      *su_dyn  = NULL;
 
-static char       *mdb_nam = NULL;
+// static char       *mdb_nam = NULL;
 static Activity   *ac_tab  = NULL;
 static ObjGX      *tra_tab = NULL;
 static ObjGX      *so_tab  = NULL;
@@ -496,20 +498,22 @@ static Memspc     DB_CSEG;
 static char       *DB_CDAT = NULL;
 
 
-static ModelNode  *mNod = NULL;
-static int        MNOD_SIZ = 0, MNOD_IND = 0;
-#define MNOD_INC             100
-
-// double     DB_Empty   = 999999.9;
-// double     DB_Empty   = UT_VAL_MAX;
-
-double     DB_sel_tol = 2.5, DB_sel_tol_fakt = 2.5;
+// static ModelNode  *mNod = NULL;
+// static int        MNOD_SIZ = 0, MNOD_IND = 0;
+// #define MNOD_INC             100
 
 
-Point      DB_pt0;
-Vector     DB_vc0;
+static double     DB_sel_tol = 2.5;
+static double     DB_sel_tol_fakt = 2.5;
 
 
+static Point      DB_pt0;
+
+
+static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
+             -1L, -1,
+             0, -1};
+// {FLT_32_MAX, 0., 0.} is empty point.
 
 
 //================================================================
@@ -694,9 +698,9 @@ Vector     DB_vc0;
 //================================================================
    void DB_Init (int mode) {
 //================================================================
-/// mode=0: komplettes Init (alles)
-/// mode=1: alles ausser basicModels initialisieren
-/// mode=2: nur dyn-objects resetten
+/// mode=0: init all (new)
+/// mode=1: init DB and dyn-objects; not baseModels
+/// mode=2: init dyn-objects only
 
 
   long i1;
@@ -705,13 +709,25 @@ Vector     DB_vc0;
   // printf ("-----------------------DB_Init %d -----------\n",mode);
 
   if(mode == 0) {
-    DB_allocModNam (0);
-    DB_allocModBas (0);
+    DYN_MB_IND = 0;          // clear all baseModels
+    MDL_reset (0);            // reset loadmap and mdl_tab
+    goto L_DB;
   }
 
 
-  // reset Inhalt, nicht Size.
-  if(mode != 2) {
+  if(mode == 1) {
+    MDL_reset (1);            // reset loadmap and mdl_tab
+    goto L_DB;
+  }
+
+  if(mode == 2) goto L_dyn;
+
+
+
+  //----------------------------------------------------------------
+  // reset DB and dyn-objects
+  L_DB:
+
     DB_allocCDAT (0);
     DB_allocVAR  (0);
     DB_allocPoint (0);
@@ -719,7 +735,7 @@ Vector     DB_vc0;
     DB_allocLine (0); 
     DB_allocCirc (0);
     DB_allocRef (0);
-    DB_allocModRef (0);
+    DB_allocModRef (0);         // clear all refModels
     // DB_allocTool (0);
     DB_allocTra  (0);
     DB_allocCurve (0);
@@ -727,8 +743,11 @@ Vector     DB_vc0;
     DB_allocSur (0);
     DB_allocSol (0);
     DB_allocAct (0);
-  }
   
+
+  //----------------------------------------------------------------
+  // reset dyn-objects
+  L_dyn:
 
   DB_allocDynVAR (0);
   DB_allocDynPoint (0);
@@ -829,6 +848,8 @@ Vector     DB_vc0;
 
 
   // printf("------------------ DB_save__ |%s| ------------------------\n",mNam);
+  // printf(" _save__-GA_recNr=%d\n",GA_recNr);
+
 
 
   strcpy(s1, mNam);
@@ -855,12 +876,9 @@ Vector     DB_vc0;
   fwrite(&GR_tx_scale, sizeof(double), 1, fp1);
   fwrite(&AP_txNkNr, sizeof(int), 1, fp1);
   fwrite(&AP_defcol, sizeof(ColRGB), 1, fp1);
+  fwrite(&ED_lnr_act, sizeof(int), 1, fp1);
 
   fwrite(&DB_JNT_IND, sizeof(int), 1, fp1);    // 2017-04-15
-
-  // i1 = ED_get_lnr_act();
-    // printf(" DB_save__ lnr=%d\n",i1);
-  // fwrite(&i1, sizeof(int), 1, fp1);
 
   fwrite(&WC_sur_ind, sizeof(int), 1, fp1);
   fwrite(&WC_sur_act, sizeof(Plane), 1, fp1);
@@ -977,6 +995,11 @@ Vector     DB_vc0;
   if(GA_ObjTab > 0)
   fwrite(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
 
+  // save UTF_FilBuf0 (UTF_save__)
+  fwrite(&UTF_FilBuf0Len, sizeof(long),  1, fp1);
+  if(UTF_FilBuf0Len > 0)
+  fwrite(UTF_FilBuf0, UTF_FilBuf0Len, 1, fp1);
+
   // save AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (1, fp1);
 
@@ -984,7 +1007,9 @@ Vector     DB_vc0;
 
   fclose(fp1);
 
-  // printf("ex DB_save__ %f\n",AP_txdimsiz);
+
+  //----------------------------------------------------------------
+    // printf("ex DB_save__ %f\n",AP_txdimsiz);
 
   return 0;
 
@@ -994,7 +1019,9 @@ Vector     DB_vc0;
 //=======================================================================
   int DB_load__ (char *mNam) {
 //=======================================================================
-/// gesamte DB aus Datei einlesen
+// DB_load__                  load DB for model mNam
+// Input:
+//   mNam          modelname - safe
 
   int  i1;
   long fSiz, l1;
@@ -1008,7 +1035,8 @@ Vector     DB_vc0;
 
 
   sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),mNam);
-    // printf("----------------- DB_load__ |%s|\n",fnam);
+
+  // printf("----------------- DB_load__ |%s|\n",fnam);
 
 
   if((fp1=fopen(fnam,"rb")) == NULL) {
@@ -1026,6 +1054,7 @@ Vector     DB_vc0;
   fread(&GR_tx_scale, sizeof(double), 1, fp1);
   fread(&AP_txNkNr, sizeof(int), 1, fp1);
   fread(&AP_defcol, sizeof(ColRGB), 1, fp1);
+  fread(&ED_lnr_act, sizeof(int), 1, fp1);
 
   fread(&DB_JNT_IND, sizeof(int), 1, fp1);
 
@@ -1038,7 +1067,7 @@ Vector     DB_vc0;
   fread(&WC_sur_act, sizeof(Plane), 1, fp1);
   fread(&WC_sur_mat, sizeof(Mat_4x3), 1, fp1);
   fread(&WC_sur_imat, sizeof(Mat_4x3), 1, fp1);
-  GL_SetConstrPln (0);
+  // GL_SetConstrPln (0);
   
 
   fread(&i1, sizeof(int), 1, fp1);
@@ -1173,6 +1202,11 @@ Vector     DB_vc0;
   if(GA_ObjTab > 0)
   fread(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
 
+  // save UTF_FilBuf0 (UTF_save__)
+  fread(&UTF_FilBuf0Len, sizeof(long),  1, fp1);
+  if(UTF_FilBuf0Len > 0)
+  fread(UTF_FilBuf0, UTF_FilBuf0Len, 1, fp1);
+
   // read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (2, fp1);
 
@@ -1192,11 +1226,12 @@ Vector     DB_vc0;
   GR_InitGFPar (AP_txdimsiz);
 
 
-  // printf("ex DB_load__ %d %d %d %d %d %d\n",APT_VR_IND,APT_PT_IND,
-                   // APT_VC_IND,APT_LN_IND,APT_CI_IND,APT_PL_IND);
-  // printf("             %d %d %d %d %d %d\n",APT_MR_IND,APT_AC_IND,
-                   // APT_TL_IND,APT_TR_IND,APT_CV_IND,APT_TX_IND,
-                   // APT_SU_IND,APT_SO_IND);
+    // printf("ex-DB_load__ GA_recNr=%d\n",GA_recNr);
+    // printf("ex DB_load__ %d %d %d %d %d %d\n",APT_VR_IND,APT_PT_IND,
+                     // APT_VC_IND,APT_LN_IND,APT_CI_IND,APT_PL_IND);
+    // printf("             %d %d %d %d %d %d\n",APT_MR_IND,APT_AC_IND,
+                     // APT_TL_IND,APT_TR_IND,APT_CV_IND,APT_TX_IND,
+                     // APT_SU_IND,APT_SO_IND);
 
   return 0;
 
@@ -1630,6 +1665,13 @@ Vector     DB_vc0;
 
 
 
+      case Typ_Tra:
+        oxp = DB_GetTra (apt_ind);
+        if(oxp) ox1 = *oxp; // copy obj
+        break;
+
+
+
       case Typ_SOL:
         oxp = DB_GetSol (apt_ind);
         if(DB_isFree_Sol(oxp)) goto L_Error_9;
@@ -1639,10 +1681,8 @@ Vector     DB_vc0;
 
 
 
-
-
       default:
-        goto L_Error_1;
+        goto L_Error_9;
     }
 
 
@@ -1653,16 +1693,10 @@ Vector     DB_vc0;
 
 
 
-  L_Error_1:
-        TX_Print("**** DB_GetObjGX E1 Typ=%d Ind=%d",typ,apt_ind);
-        goto L_Error_9;
-
-  L_Error_3:
-        // TX_Print("DB_GetObjGX unsupported typ=%d",typ);
-
+  //----------------------------------------------------------------
   L_Error_9:
+        TX_Print("**** DB_GetObjGX E1 Typ=%d Ind=%d",typ,apt_ind);
         ox1.typ = Typ_Error;
-        TX_Print("**** ERR DB_GetObjGX E9\n");
         return ox1;
 
 
@@ -1708,13 +1742,20 @@ Vector     DB_vc0;
     return Typ_ObjGX;
   }
 
-
   // Surfaces: return adress of surface directly (ox1 is not static !)
   if(dbTyp == Typ_SOL)   {
     *pDat = DB_GetSol (dbInd);
     *oNr = 1;
     // if(((ObjGX*)*pDat)->typ == Typ_Error) return Typ_Error;
     if(DB_isFree_Sol((ObjGX*)*pDat)) return Typ_Error;
+    return Typ_ObjGX;
+  }
+
+
+  if(dbTyp == Typ_Tra)   {
+    *pDat = DB_GetTra (dbInd);
+    *oNr = 1;
+    if(*pDat == NULL) return Typ_Error;
     return Typ_ObjGX;
   }
 
@@ -2657,7 +2698,7 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   int DB_CkRef (long Ind) {
 //=======================================================================
 /// \code
-/// check if Trfsys[Ind] is defined.
+/// check if Plane[Ind] is defined.
 /// RC=0; jes is defined.
 /// RC=-1: no not defined.
 /// RC=-2: no Ind out of range
@@ -3384,9 +3425,10 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 //======================================================================
   int DB_StoreModel (long Ind, ObjGX *md1) {
 //======================================================================
-/// keine dynam. models
+// DB_StoreModel                          store refModel (Typ_Model)
+// no dynam. models
 
-  // printf("DB_StoreModel %ld %d %ld\n",Ind,md1->typ,md1->form);
+  // printf("DB_StoreModel %ld %d %d\n",Ind,md1->typ,md1->form);
   // DEB_dump_obj__ (Typ_Model, md1->data, " ModelRef: ");
 
 
@@ -3416,17 +3458,62 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 
 
 //================================================================
+  int DB_del_MR__ (long dbi) {
+//================================================================
+// DB_del_MR__                     delete refModel
+// Input:
+//   dbi      DB-index refModel to clear; -1 = clear all refModels
+
+
+  if(dbi < 0L) {
+    return DB_del_ModRef (0L);
+  }
+
+
+  DB_setFree_MR (dbi);
+
+  return 0;
+
+}
+
+ 
+//================================================================
+  int DB_del_ModRef (int iMdr) {
+//================================================================
+// DB_del_ModRef      delete refModel and all following
+// Input:
+// Output:
+//   retCode      0=OK, -1=err.
+// was ..
+
+
+  int   i1;
+
+  // printf("DB_del_ModRef %d - %ld\n",iMdr,APT_MR_IND);
+
+  for(i1=iMdr; i1<= APT_MR_IND; ++i1) DB_setFree_MR (i1);
+  APT_MR_IND = iMdr;
+
+  return 0;
+
+}
+
+
+//================================================================
 int DB_del_Mod__ () {
 //================================================================
-/// DB_del_Mod         delete Dittos und BasicModels
+// DB_del_Mod         delete all refModels and all basicModels
 
   long   i1;
 
-  printf(">>>>>>>>>>>>>>> DB_del_Mod__ %ld %ld \n",APT_MR_IND,APT_MR_IND);
+  // printf(">>>>>>>>>>>>>>> DB_del_Mod__ %ld %ld \n",APT_MR_IND,APT_MR_IND);
 
+  // delete all refModels
   for(i1=0; i1<= APT_MR_IND; ++i1) DB_setFree_MR (i1);
   APT_MR_IND = 0;
 
+
+  // delete all refModels
   DB_StoreModBas (0, NULL);  // kill (reset) BasicModels
 
   return 0;
@@ -3437,7 +3524,7 @@ int DB_del_Mod__ () {
 //=========================================================================
   int Mod_mdr__bmi_pln (ModelRef *mdr, int bmi, Plane *pl1, double scale) {
 //=========================================================================
-// Mod_mdr__bmi_pln    get modelRef from basicModelNr and refSys
+// Mod_mdr__bmi_pln    set modelRef from basicModelNr and refSys
 // Input:
 //   bmi     basicModelNr
 //   scale
@@ -3459,6 +3546,8 @@ int DB_del_Mod__ () {
   ModelRef* DB_get_ModRef (long Ind) {
 //======================================================================
 /// DB_get_ModRef      get Ditto from Index
+// Input:
+//   Ind       the DB-index of the submodel (eg 20 for subModel M20)
 
 
   // printf("DB_get_ModRef %ld from %ld\n",Ind,APT_MR_SIZ);
@@ -3803,7 +3892,7 @@ int DB_del_Mod__ () {
   }
 
   
-  DB_dump_ModBas ();
+  DB_dump_ModBas ("");
 
 
 
@@ -3812,40 +3901,40 @@ int DB_del_Mod__ () {
 }
 
 
-//================================================================
-  int DB_dump_ModNam () {
-//================================================================
-// mdb_nam keeps the names of active (sub)model and its subModels;
-// not of all models.
-
-  int   i1, i2, ii;
-
-  printf("--------------- DB_dump_ModNam DB_MNM_IND = %ld\n",DB_MNM_IND);
-
-  ii = 0;
-  i2 = 0;
-
-  L_nxt:
-    i1 = strlen(&mdb_nam[i2]);
-    printf("%5d |%s|\n",ii, &mdb_nam[i2]);
-    i2 += i1 + 1;
-    ++ii;
-    if(i2 < DB_MNM_IND) goto L_nxt;
-
-
-  return 0;
-
-}
+// //================================================================
+//   int DB_dump_ModNam () {
+// //================================================================
+// // mdb_nam keeps the names of active (sub)model and its subModels;
+// // not of all models.
+// 
+//   int   i1, i2, ii;
+// 
+//   printf("--------------- DB_dump_ModNam DB_MNM_IND = %ld\n",DB_MNM_IND);
+// 
+//   ii = 0;
+//   i2 = 0;
+// 
+//   L_nxt:
+//     i1 = strlen(&mdb_nam[i2]);
+//     printf("%5d |%s|\n",ii, &mdb_nam[i2]);
+//     i2 += i1 + 1;
+//     ++ii;
+//     if(i2 < DB_MNM_IND) goto L_nxt;
+// 
+// 
+//   return 0;
+// 
+// }
 
  
 //================================================================
-  int DB_dump_ModBas () {
+  int DB_dump_ModBas (char *txt) {
 //================================================================
 /// dump basic-models mdb_dyn
  
   int  i1;
 
-  printf(" %ld basic models:\n",DYN_MB_IND);
+  printf("%s - %ld basic models:\n",txt,DYN_MB_IND);
   for(i1=0; i1<DYN_MB_IND; ++i1) {
     DEB_dump_obj__ (Typ_SubModel, &mdb_dyn[i1], "  %d ",i1);
   }
@@ -3860,12 +3949,12 @@ int DB_del_Mod__ () {
 
 
 //================================================================
-  int DB_dump_ModRef () {
+  int DB_dump_ModRef (char *txt) {
 //================================================================
 
   int  i1;
 
-  printf("DB_dump_ModRef: reference models %ld:\n",APT_MR_IND);
+  printf("%s - %ld reference models\n",txt,APT_MR_IND);
   // for(i1=0; i1<APT_MR_IND; ++i1) {
   for(i1=0; i1<=APT_MR_IND; ++i1) {
     // if(mdr_tab[i1].po.x == UT_VAL_MAX) continue;
@@ -3888,7 +3977,7 @@ int DB_del_Mod__ () {
   // printf("DB_mdlNam_iBas %d DYN_MB_IND=%ld \n",bmNr,DYN_MB_IND);
 
   if(bmNr >= DYN_MB_IND) {
-    TX_Print("DB_mdlNam_iBas E001");
+    TX_Print("DB_mdlNam_iBas E1-%d",bmNr);
     return NULL;
 
   } else if(bmNr < 0) {
@@ -3976,7 +4065,7 @@ int DB_del_Mod__ () {
 }
 
 
-
+/* UU
 //================================================================
   int DB_ModBas_seqMax () {
 //================================================================
@@ -3996,14 +4085,14 @@ int DB_del_Mod__ () {
 }
 
 
+// UU
 //======================================================================
   int DB_list_ModBas () {
 //======================================================================
-/// \code
-/// in BasicModels gibts Reihenfolgenummer seqNr.
-/// Diese in korrekter Reihenfolge -> Datei <tmpdir>/Mod.lst ausgeben.
-/// irc: Anzahl Models; (<0: Error).
-/// \endcode
+// in BasicModels gibts Reihenfolgenummer seqNr.
+// Diese in korrekter Reihenfolge -> Datei <tmpdir>/Mod.lst ausgeben.
+// irc: Anzahl Models; (<0: Error).
+// used by AP_ExportIges__
 
   int      i1, i2;
   char     cbuf[256];
@@ -4025,7 +4114,7 @@ int DB_del_Mod__ () {
 
     for(i2=0; i2<DYN_MB_IND; ++i2) {
       if(mdb_dyn[i2].seqNr != i1) continue;
-      printf("  %d seq=%d %s\n",i2,mdb_dyn[i2].seqNr,mdb_dyn[i2].mnam);
+        printf("  %d seq=%d %s\n",i2,mdb_dyn[i2].seqNr,mdb_dyn[i2].mnam);
       fprintf(fp1, "%s\n",mdb_dyn[i2].mnam);
       goto L_next;
     }
@@ -4037,24 +4126,65 @@ int DB_del_Mod__ () {
   return i1;
 
 }
+*/
+
+
+//================================================================
+  int DB_del_mdb_syFn  (char *mbNam) {
+//================================================================
+// DB_del_mdb_syFn        delete baseModel             
+// Input:
+//   mbNam    symbolic-name
+
+  int      bmi, ii;
+
+  printf("DB_del_mdb_syFn  |%s|\n",mbNam);
+
+  // get index of baseModel mbNam
+  bmi = MDL_imb_mNam (mbNam, 0);
+  if(bmi < 0) {TX_Print("***** DB_del_mdb_syFn I001 %s",mbNam);return -1;}
+    
+
+  // copy last mdb over mdb to delete; --mdbNr
+  ii = DYN_MB_IND - 1;
+    printf(" del_mdb_syFn- bmi=%d ii=%d\n",bmi,ii);
+  if(bmi < ii) mdb_dyn[bmi] = mdb_dyn[ii];
+  DYN_MB_IND -= 1;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DB_clear_ModBas (long ind) {
+//================================================================
+// DB_clear_ModBas                 clear (reset) single basicModel
+ 
+  printf("DB_clear_ModBas %ld\n",ind);
+
+  mdb_dyn[ind] = _MODELBAS_NUL;
+
+  return 0;
+
+}
 
 
 //======================================================================
   int DB_del_ModBas (long ind) {
 //======================================================================
-/// \code
-/// DL-Record ind und alle folgenden werden geloescht.
-/// Das GL_Delete loescht auch BaseModels.
-/// \endcode
-
-//  wenn innerhalb dieses Bereiches ein Basisdetail liegt,
-//  muss es auch geloescht werden !!!!
+// DB_del_ModBas             delete baseModel and all following baseModels
+// Input:
+//   ind          >=0 delete baseModel and all following baseModels
+//                -1  clear all baseModels
 
   int     i1;
   long    dlBis;
   
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXX DB_del_ModBas %ld\n",ind);
+
+  if(ind < 0L) {DYN_MB_IND = 0; return 0;}
 
   for(i1=DYN_MB_IND-1; i1>=0; --i1) {
     // printf("  %d DLind=%d DLsiz=%d\n",i1,mdb_dyn[i1].DLind,mdb_dyn[i1].DLsiz);
@@ -4074,7 +4204,7 @@ int DB_del_Mod__ () {
 
 }
 
-
+/*
 //======================================================================
   int DB_allocModNod () {
 //======================================================================
@@ -4096,14 +4226,14 @@ int DB_del_Mod__ () {
 //======================================================================
   int DB_StoreModNod (int mod, int par, long ind) {
 //======================================================================
-/// \code
-/// mNod is a list of all submodels of the active-model. Permanent.
-/// Diese Liste ist so wie die basicModels permanent und hat je einen record
-/// fuer jedes Ditto; die refModels gibt es nur fuer das aktive submodel.
-/// mod    der basicModelIndex
-/// par    der parent - basicModelIndex
-/// ind    der ref.ModelIndex (= DB-index)
-/// \endcode
+// DB_StoreModNod              store basicModelNode (hierarchy)
+// mNod is a list of all submodels of the active-model. Permanent.
+// mNod keeps the sequence of loading basicModels - highest <par> first.
+// mNod goes down from the primaryModel (not mainModel)
+//   mod    der basicModelIndex
+//   par    the nodeIndex of the parent of the model. -1=topLevel.
+//   ind    the refModelIndex (= DB-index) in the baseModelfile
+// Get the modelfileName from mdb_dyn[mNod[<index>].mod]
 
 
   int recNr;
@@ -4148,20 +4278,22 @@ int DB_del_Mod__ () {
   int DB_dump_ModNod () {
 //================================================================
 
-  int   i1;
+  int       i1;
+  ModelBas  *mb1;
 
   printf(" DB_dump_ModNod %d Nodes\n",MNOD_IND);
 
   for(i1=0; i1<MNOD_IND; ++i1) {
-    printf(" %d mod=%d par=%d ind=%d\n",i1,
-             mNod[i1].mod,mNod[i1].par,mNod[i1].ind);
+    mb1 = &mdb_dyn[mNod[i1].mod];   // basicModel
+    printf(" %4d mod=%3d par=%2d ind=%3d  %s\n",i1,
+             mNod[i1].mod,mNod[i1].par,mNod[i1].ind,mb1->mnam);
   }
 
   return 0;
 
 }
 
-/*
+
 //================================================================
   int DB_ModNod_find (int imb) {
 //================================================================
@@ -4183,8 +4315,8 @@ int DB_del_Mod__ () {
   return -1;
 
 }
-*/
 
+// TODO: use in MDL ..
 //================================================================
   int DB_ModNod_ckLoop1 (int ibm, int errbm) {
 //================================================================
@@ -4260,46 +4392,26 @@ int DB_del_Mod__ () {
     return -1;
 
 }
- 
-
-//================================================================
-  int DB_ModNod_ckLoaf_ (int ii) {
-//================================================================
-/*
-
-loop tru all nodes; testbm=node[i1].mod;
-  loop rekursiv tru all nodes; wenn node[i2].par==testbm): rec i1 is notLeaf
-
-
 */
-  return 0;
-
-}
-
 
 //======================================================================
   int DB_StoreModBas (int mdlTyp, char *newNam) {
 //======================================================================
-/// \code
-/// check if SubModel exists. If not: create a new mdb_dyn-Record.
-/// Add libpath, Filename oder name of internal Model to ModNamTab.
-/// Add name also to mdb_dyn (if not yet present).
-///
-/// Input:
-///  newNam     modelName;   NULL=delete all basicModels and modelNames 
-///  mdlTyp    0: reset den Name-Buffer (init/delete)
-///           -2 = catalog-model
-///            1 = internal model
-///            2 = external model
-///            3 = MockupModel
-///            4 = Image-BMP
-/// Output:
-///  RC = ModelNumber; -1 = Error.
-/// \endcode
-
+// DB_StoreModBas          store new basicModel
+// check if SubModel exists. If not: create a new mdb_dyn-Record.
+// Add libpath, Filename oder name of internal Model to ModNamTab.
+// Add name also to mdb_dyn (if not yet present).
+//
+// Input:
+//  newNam     modelName; must be static (pointer stored in mdl_names)
+//             NULL=delete all basicModels and modelNames 
+//  mdlTyp     eg MBTYP_EXTERN
+// Output:
+//  RC = ModelNumber; -1 = Error.
+//
 // BasicModels are stored in mdb_dyn; modelType (mode), 
 //   first index in DL and nr of dl-records.
-// Modelnames are stored in mdb_nam
+// // Modelnames are stored in mdb_nam
 
 
 
@@ -4311,65 +4423,68 @@ loop tru all nodes; testbm=node[i1].mod;
          // mdlTyp,newNam,DYN_MB_IND);
 
 
-  // if(mdlTyp == 0) {     // INIT
+  //----------------------------------------------------------------
   if(newNam == NULL) {   // INIT
+    // delete all base- and refModels see DB_del_Mod__
     DYN_MB_IND = 0;        // basicModels
-    DB_MNM_IND = 0;        // modelNames
+//     DB_MNM_IND = 0;        // modelNames
     return 0;
   }
 
 
+  //----------------------------------------------------------------
   // existiert name schon: - return.
-  modNr = DB_get_ModNr (newNam);
+  modNr = MDL_imb_mNam (newNam, 0);
   if(modNr >= 0) goto L_fertig;
 
 
   // Model newNam existiert noch nicht; neu anlegen.
-
-
   if(DYN_MB_IND >= DYN_MB_SIZ) {
-    if(DB_allocModBas (DYN_MB_IND) < 0) return -1;
+    if(DB_allocModBas (DYN_MB_IND) < 0) {modNr= -1; goto L_fertig;}
   }
 
+
+  //----------------------------------------------------------------
+// TODO: use new nameBuffer MDLMP - mdNames; 
+// remove DB_MNM_IND mdb_nam DB_MNM_SIZ DB_allocModNam
+
+  // add newname into mdb_nam
   iLen = strlen(newNam);
 
-
-  if((DB_MNM_IND+iLen) >= DB_MNM_SIZ) {
-    if(DB_allocModNam (1) < 0) return -1;
-  }
-
+//   if((DB_MNM_IND+iLen) >= DB_MNM_SIZ) {
+//     if(DB_allocModNam (1) < 0) return -1;
+//   }
 
   // create a new mdb_dyn-Record.
   modNr = DYN_MB_IND;
   ++DYN_MB_IND;
 
-  // save startpos of newNam
-  mdb_dyn[modNr].mnam = &mdb_nam[DB_MNM_IND];
+
+//   // save startpos of newNam
+//   // mdb_dyn[modNr].mnam = &mdb_nam[DB_MNM_IND];
+//   cp1 = &mdb_nam[DB_MNM_IND];
+// 
+//   // add newNam to textbuffer
+//   // DB_cSav (strlen(newNam)+1, newNam);
+//   strncpy(&mdb_nam[DB_MNM_IND], newNam, iLen);
+//   DB_MNM_IND += iLen;
+//   mdb_nam[DB_MNM_IND] = '\0';
+//   ++DB_MNM_IND;
+// 
+//   newNam = cp1;
 
 
-  // add newNam to textbuffer
-  // DB_cSav (strlen(newNam)+1, newNam);
-  strncpy(&mdb_nam[DB_MNM_IND], newNam, iLen);
-  DB_MNM_IND += iLen;
-  mdb_nam[DB_MNM_IND] = '\0';
-  ++DB_MNM_IND;
-
-
-  // BasModel-record noch leer;
+  //----------------------------------------------------------------
+  // set BasModel-record
+  mdb_dyn[modNr]        = _MODELBAS_NUL;
   mdb_dyn[modNr].typ    = mdlTyp;
-  mdb_dyn[modNr].DBind  = -1L;
-  mdb_dyn[modNr].DLind  = -1L;
-  mdb_dyn[modNr].DLsiz  = -1;
-  mdb_dyn[modNr].seqNr  = 0;
-  mdb_dyn[modNr].po     = UT3D_PT_NUL;
-  mdb_dyn[modNr].pb1    = UT3D_PT_NUL;
-  // mdb_dyn[modNr].pb2    = UT3D_PT_NUL;
-  mdb_dyn[modNr].pb2.x  = UT_VAL_MAX;
+  mdb_dyn[modNr].mnam   = newNam;
 
 
   L_fertig:
 
-  // printf("ex DB_StoreModBas[%d].mnam=|%s|\n",modNr,mdb_dyn[modNr].mnam);
+    // if(modNr >= 0)DEB_dump_obj__(Typ_SubModel,&mdb_dyn[modNr],"ex-DB_StoreModBas");
+    // printf("ex-DB_StoreModBas modNr=%d\n",modNr);
 
   return modNr;
 
@@ -4393,6 +4508,38 @@ loop tru all nodes; testbm=node[i1].mod;
     // DEB_dump_obj__ (Typ_SubModel, &mdb_dyn[Ind], "mb:");
 
   return &mdb_dyn[Ind];
+
+}
+
+
+//================================================================
+  int DB_get_mdr (int *mdrNr, ModelRef **mdra) {
+//================================================================
+// DB_get_mdr             returns referenceModels
+// Output:
+//   mdrNr   last occupied ModelRef-index
+//   mdra    table of referenceModels
+
+  *mdrNr = APT_MR_IND;
+  *mdra = mdr_tab;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DB_get_mdb (int *mdbNr, ModelBas **mdba) {
+//================================================================
+// DB_get_mdb         returns basicModels
+// Output:
+//   mdbNr   nr of  basicModels
+//   mdba    table of basicModels
+
+  *mdbNr = DYN_MB_IND;
+  *mdba = mdb_dyn;
+
+  return 0;
 
 }
 
@@ -4425,11 +4572,12 @@ loop tru all nodes; testbm=node[i1].mod;
 }
 
 
+/* replaced by MDL_imb_mNam
 //====================================================================
-  int DB_get_ModNr (char *modNam) {
+  int DB_mbi_mRefID (char *modNam) {
 //====================================================================
 /// \code
-/// get basic-ModelNr from Modelname (of Refeference)
+/// get basic-ModelNr from ModelReferenceID (eg "M20")
 ///   Modelname eg "M20"
 /// RC >= 0: ModelNr; Model is already loaded.
 /// RC = -1: Model not yet loaded ..
@@ -4439,10 +4587,10 @@ loop tru all nodes; testbm=node[i1].mod;
   int   i1, typ;
   long  ind;
 
-  // AP_dump_statPg ("DB_get_ModNr: ");
+  // AP_dump_statPg ("DB_mbi_mRefID: ");
 
 
-  // printf("DB_get_ModNr |%s| %ld\n",modNam,DYN_MB_IND);
+  // printf("DB_mbi_mRefID |%s| %ld\n",modNam,DYN_MB_IND);
   // DB_dump_ModBas();
   
 
@@ -4454,7 +4602,7 @@ loop tru all nodes; testbm=node[i1].mod;
 
       // give back <mmodelRef>.modNr
       // printf(" typ=%d ind=%d\n",typ,ind);
-      // printf("ex DB_get_ModNr %d |%s|\n",mdr_tab[ind].modNr,modNam);
+      // printf("ex DB_mbi_mRefID %d |%s|\n",mdr_tab[ind].modNr,modNam);
     return mdr_tab[ind].modNr;
   }
 
@@ -4462,19 +4610,20 @@ loop tru all nodes; testbm=node[i1].mod;
 
   L_decode_1:
   for(i1=0; i1<DYN_MB_IND; ++i1) {
-    // printf(" test %d |%s|\n",i1,mdb_dyn[i1].mnam);
+      // printf(" test %d |%s|\n",i1,mdb_dyn[i1].mnam);
     if(mdb_dyn[i1].mnam == NULL) continue;      // kann NULL sein !
     if(strcmp(modNam, mdb_dyn[i1].mnam)) continue;
-      // printf("ex DB_get_ModNr %d |%s|\n",i1,modNam);
+      // printf("ex DB_mbi_mRefID %d |%s|\n",i1,modNam);
     return i1;
 
   }
 
-    // printf("ex DB_get_ModNr -1 |%s|\n",modNam);
+    printf("ex-DB_mbi_mRefID -1 |%s|\n",modNam);
+
   return -1;
 
 }
-
+*/
 
 //================================================================
 long DB_FindVector (Vector* vc1) {
@@ -4812,7 +4961,8 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   long   i1, newSiz;
 
 
-  if((Ind == 0)&&(mdr_tab != NULL)) {     // reInit
+  if((Ind == 0)&&(mdr_tab != NULL)) {
+    // reInit - clear all refMdls
     newSiz = APT_MR_SIZ;
     APT_MR_SIZ = 0;
     APT_MR_IND = 0;
@@ -4850,38 +5000,38 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 }
 
 
-//====================================================================
-  int DB_allocModNam (long Ind) {
-//====================================================================
-// realloc space fuer BasModelnames; wird nicht gesichert !
-
-  long   i1, newSiz;
-
-
-  // Reset mdb_nam
-  if((Ind == 0)&&(mdb_nam != NULL)) {
-    // printf("DB_allocModNam reset\n");
-    DB_MNM_IND = 0;
-    return 0;
-  }
-
-
-  newSiz = DB_MNM_SIZ + DB_MNM_INC;
-
-  // printf("::::DB_allocModNam %d\n",newSiz);
-
-  mdb_nam = (char*)realloc(mdb_nam, newSiz);
-
-  if(mdb_nam == NULL) {
-    TX_Error ("******** out of memory - DB_allocModNam *********");
-    return -1;
-  }
-  DB_MNM_SIZ = newSiz;
-
-
-  return 0;
-
-}
+// //====================================================================
+//   int DB_allocModNam (long Ind) {
+// //====================================================================
+// // realloc space fuer BasModelnames; wird nicht gesichert !
+// 
+//   long   i1, newSiz;
+// 
+// 
+//   // Reset mdb_nam
+//   if((Ind == 0)&&(mdb_nam != NULL)) {
+//     // printf("DB_allocModNam reset\n");
+//     DB_MNM_IND = 0;
+//     return 0;
+//   }
+// 
+// 
+//   newSiz = DB_MNM_SIZ + DB_MNM_INC;
+// 
+//   // printf("::::DB_allocModNam %d\n",newSiz);
+// 
+//   mdb_nam = (char*)realloc(mdb_nam, newSiz);
+// 
+//   if(mdb_nam == NULL) {
+//     TX_Error ("******** out of memory - DB_allocModNam *********");
+//     return -1;
+//   }
+//   DB_MNM_SIZ = newSiz;
+// 
+// 
+//   return 0;
+// 
+// }
 
 
 //====================================================================

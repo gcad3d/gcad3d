@@ -1,11 +1,20 @@
 <HTML>
 <HEAD>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
-<TITLE>CAD_input_de.htm</TITLE>
-<style>body{ font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE>CAD_Model_de</TITLE>
+  <meta name="description" content="gCAD3D-subModels-Spezifikation">
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H2 { color: #000000; font-family:"Helvetica"; font-size:24pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:20pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  hr { border:none; width:100%; height:8; background:#ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="de-AT">
+<BODY LANG="de-AT"
+      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
 <PRE>
+
 
 Dokumentation zu Eingabemöglichkeiten in die CAD-Eingabfelder. 
 
@@ -25,6 +34,7 @@ _______________
 
 - leer  (default) -
 - PERP            - normal (rechtwinkelig)
+
 
 
 ____________________________________________________________________________
@@ -115,7 +125,7 @@ Einheit ist Grad.
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_Vec_"></a></p>
 <h3>Vektor / Richtung</h3>
 Eingabe eines Vektors durch:
@@ -138,13 +148,39 @@ Eingabe eines Vektors durch:
   - Polar (Drehwinkel): zB "ANG(45)"
   - Polar (Drehwinkel, Kippwinkel): zB "ANG(45) ANG(30)"
     
-- Normalvektor eines Kreises oder einer Ebene
+
+  Eingabe eines Vektors über Winkel mit der Tastatur:
+    - Drehwinkel um die Z-Achse
+    ANG(120)          # X-Achse 120 Grad um Z-Achse gedreht
+
+    - Drehwinkel (um Z-achse) und Kippwinkel (um neue Y-Achse)
+    ANG(45) ANG(30)   # X-Achse 45 Grad um Z-Achse gedreht, 30 Grad gekippt
+
+
+- Vektor von Winkeleingabe:
+
+
+- Vektor zwischen 2 Punkten
+    P20 P21      
+
+- Vektor tangential an Kurve:
+    L20         # parallel zu Linie oder Polygonsegment
+    S20 0.5     # Kurve, Parameter von Punkt auf Kurve (von Auswahl Punkt auf Kurve)
+
+- Vektor auf Ebene oder Fläche parallel zur Isoparametrischen Richtung U oder V
+    R20 DRX     # X-axis von Ebene R20  (DRY, DRZ)
+
+
+
+- Normalvektor eines Kreises oder einer Ebene oder einer Fläche
 
 - Normalvektor auf 2 Objekte (Linie oder Punkt oder Vektor)
-    Beispiel: DX DY    ergibt DZ (Normalvektor)
-              L20 DZ   ergibt den Normalvektor in der Kontruktionsebene
+    DX DY    # ergibt DZ (Normalvektor)
+    L20 DZ   # ergibt den Normalvektor in der Konstruktionsebene
 
 - Normalvektor auf 3 Punkte
+    P20 P21 P22       # P20 = point on X-axis, P21 = origin; P22 = near Y-axis
+
 
 
 Als letzter Parameter kann bei Vektordefinitionen "REV" angegeben werden
@@ -155,14 +191,22 @@ Als vorletzter Parameter kann bei Vektordefinitionen
   Beispiel: "DX 2.5" oder "DX 2.5 REV"
 
 
-Die Ausgabe erfolgt als zB "D(ANG(45) ANG(30) 2.5)"
+
+-------------------------------------------------------
+Die Ausgabe wird eingebetted in die Typenbezeichnung "D(..)";
+  z.B. "0 0 1"  wird zu "D(0 0 1)"
+
+
+
+Beispiele:
+# X-Achse 45 Grad um Z-Achse gedreht, 30 Grad gekippt, Länge 2.5
+D(ANG(45) ANG(30) 2.5)
 
 
 
 
 
-
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_PT_"></a></p>
 <h3>Punkt</h3>
 Eingabe eines Punktes durch:
@@ -220,54 +264,72 @@ Die Ausgabe erfolgt als zB "C(P22 100)"
   
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <p><a name="_PLN_"></a></p>
 <h3>Ebene (Referenzsystem)</h3>
-Definition einer Ebene durch:
-
-
-Auswahl einer Standardebene:
-  - aus den rechts unten dargestellten Standardebenen (RZ oder RY oder RX)
-  - Eingabe mit der Tastatur (RZ oder RY oder RX)
+Definition einer Ebene  (position, orientation) durch:
 
 
 Definition der aktiven Konstruktionsebene mit verändertem Nullpunkt:
   - Auswahl eines neuen Nullpunktes
     (es werden alle Achsen der aktiven Konstruktionsebene übernommen)
+    Beispiel:
+    R(P(100 0 0))
+
+
+Auswahl einer Ebene, Abstand vom Nullpunkt auf Z-Achse:
+  - Standardebene:
+    - aus den rechts unten dargestellten Standardebenen (RZ oder RY oder RX)
+    - oder Eingabe mit der Tastatur (RZ oder RY oder RX)
+  - oder Auswahl definierter Ebene
+  - Eingabe Abstand vom Nullpunkt auf Z-Achse]
+    Beispiel:
+    R(R20 50)  # wie R20 - 50 einheiten auf Z-Achse über Nullpunkt von R20
+
 
 
 Definition einer definierten Ebene mit verändertem Nullpunkt:
   - Auswahl eines neuen Nullpunktes, Auswahl Ebene
     (es werden die Achsen dieser Ebene übernommen)
+    Beispiel:
+    R(R20 P22)
 
 
-Definition über Nullpunkt und X-Achse der neuen Ebene;
-  - Auswahl Nullpunkt, Auswahl X-Achse
-    (Achse kann durch Vektor oder Linie oder Punkt definiert werden; siehe unten)
-  - Auswahl Linie (Nullpunkt ist der Startpunkt der Linie)
+Definition über Nullpunkt und X-Achse:
+  - Auswahl Nullpunkt
+  - Auswahl Vektor für X-Achse oder Punkt auf X-Achse
+    Beispiel:
+    R(P22 D(L22))      # Nullpunkt P22, X-Achse from L22  
+    R(P22 D(ANG(45)))  # Nullpunkt P22, aktive-X-Achse 45 Grad um Z-Achse gedreht
+    # aktive-X-Achse 45 Grad um Z-Achse gedreht, 30 Grad um neue Y-Achse gekippt
+    R(P22 D(ANG(45) ANG(30)))
 
 
-Definition über Nullpunkt und X-Achse und Y-Achse der neuen Ebene:
-  - Auswahl Nullpunkt, Auswahl X-Achse, Auswahl Y-Achse
-  - Auswahl Linie, Auswahl Y-Achse
-    (Achse kann durch Vektor oder Linie oder Punkt definiert werden; siehe unten)
+
+Definition über Nullpunkt und X-Achse und Y-Achse:
+  - Auswahl Nullpunkt
+  - Auswahl Vektor für X-Achse oder Punkt auf X-Achse
+  - Auswahl Vektor für Y-Achse oder Punkt nahe der Y-Achse
+    Beispiel:
+    # R(<Nullpunkt> <X-Achs-Vektor> [<Y-Achs-Vektor>])
+    R(P22 DZ DX)  # active Z-axis is new X-axis, active X-axis is new Y-axis 
 
 
-Definition über Z-Achse (Normalvektor) und den Abstand vom absoluten Nullpunkt:
-  - Auswahl Vektor (neue Z-Achse), Eingabe des Abstands.
 
-
+.................................
 Definition über Nullpunkt und Z-Achse (Normalvektor):
-  - "PERP", Auswahl Nullpunkt, Auswahl Z-Achse
-    (Achse kann durch Vektor oder Linie oder Punkt definiert werden; siehe unten)
-    Example: 
+  - Eingabe "PERP"
+  - Auswahl Nullpunkt
+  - Auswahl Vektor für Z-Achse oder Punkt auf Z-Achse
+    Beispiel: 
+    # R(PERP <Nullpunkt> <Z-Achs-Vektor> [<X-Achs-Vektor>] <Abstand-Z-Achse>)
     R(PERP P(0 0 0) DY)
 
 
 Definition über Nullpunkt und Z-Achse (Normalvektor) und X-Achse:
   - "PERP", Auswahl Nullpunkt, Auswahl Z-Achse, Auswahl X-Achse
     (Achse kann durch Vektor oder Linie oder Punkt definiert werden; siehe unten)
-    Example:
+    Beispiel:
     R(PERP P(16 0) DIY D(DX,ANG(30))
 
 
@@ -278,24 +340,23 @@ Ebene von einem Keisbogen oder einer Ellipse:
  
 
 ---------------------------------------
-  Eingabe einer Achse über Winkel mit der Tastatur:
-    - Drehwinkel: zB "P20 45"  (Nullpunkt und Drehwinkel um die Z-Achse)
-    - Drehwinkel und Kippwinkel: "P20 90 45"
-      (Nullpunkt, Drehwinkel um die Z-Achse, Kippwinkel um die neue Y-Achse)
-      
-  Eingabe einer Achse als Vektor mit der Tastatur:
-    - Drehwinkel: zB "D(ANG(45))"
-    - Drehwinkel und Kippwinkel: zB "D(ANG(45) ANG(30))"
+Die Definition von Achsen erfordert die Eingabe von Vektoren (D..)
+- siehe <a href="CAD_input_de.htm#_Vec_">Definition Vektoren</A>
 
 
- 
-Die Ausgabe der Ebene erfolgt als zB "R(P22 90)"
- 
+Die Ausgabe von Vektoren wird eingebetted in die Typenbezeichnung "D(..)";
+  z.B. D(S20 0.5)       # tangentialer Vektor an Kurve bei Parameter 0.5
+
+
+Die Ausgabe der Ebene wird eingebetted in die Typenbezeichnung "R(..)";
+  z.B. "P22 90"  wird zu "R(P22 90)"
 
 
 
 
-____________________________________________________________________________
+
+
+<HR><!-- ============================================================ -->
 <p><a name="_goGeom_"></a></p>
 
 Auswahl aller geometrischen Objekte ist möglich.
@@ -411,9 +472,21 @@ Auswahl von Flächen oder Körper ist möglich.
 
 
 
+____________________________________________________________________________
+<p><a name="_ModBas_"></a></p>
+<h3>Definition "basic subModel"</h3>
+- ein internal subModel aus Liste auswählen ("LIST" selektieren)
+- oder vorhandes subModel selektieren
+- oder eingeben
+
+Siehe <a href="CAD_Model_de.htm#F0">Internal models</A>
+
+
+
 
 ____________________________________________________________________________
 <p><a name="_FilNam_"></a></p>
+<h3>Definition "external subModel"</h3>
 
 Auswahl eines Model-Filename durch
 
@@ -422,26 +495,25 @@ Auswahl eines Model-Filename durch
 
 - Selektion eines bereits vorhandenen Submodels
 
-
-
-
-
-
-
+Siehe <a href="CAD_Model_de.htm#F1">Externe Submodels</A>
 
 
 
 
 ____________________________________________________________________________
 <p><a name="_CtlgPart_"></a></p>
+<h3>Definition "CatalogPart"</h3>
 
 Auswahl eines Katalogteiles durch
 
 - Selektion aus der File-Liste
   (Liste durch Button "FILE" oder mittlere Maustaste)
+  - Katalogteil auswählen oder anderen Katalog auswählen ("change catalog")
 
 - Selektion eines bereits vorhandenen Katalogteiles
 
+Siehe <a href="CAD_Model_de.htm#F2">CatalogPart</A>
+Siehe <a href="Catalog_de.htm">Normteile</A>
 
 
 

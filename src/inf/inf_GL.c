@@ -76,7 +76,6 @@ void INF_GL2D__ (){        /*! \code
 INF_GL2D_buttons__    2D-OpenGL-buttons, Vector/PlaneSelector 
 
 
--------------------------------------------
 
 
 GL_Scr_Siz_X        Size of the grafic-window (=Viewport) in ScreenCoords
@@ -112,7 +111,6 @@ GL2D_Scale            scale for GL2D (always same size)
 
 Functions:
 GL_Draw_sym_ang       display symbolic angle (GL-2D)
-GL_DrawAngA           draw angle with arrowhead
 GL_DrawSymVTL         display vector-symbol with true length at 2D-ScreenCenter
 GL_DrawSymVX          display plane / axisSystem [with x,y,z-characters
 GR_img_get_obj        ??
@@ -131,8 +129,19 @@ GLBT_ori           GL2D-position of PlaneSelector
 
 
 Functions:
+sele_set_add       activate 2D-buttons
 GLBT_but_disp      display all defined 2D-buttons
 GLBT_sel__         analyze selection of 2D-button or obj of Vector/PlaneSelector
+
+
+-------------------------------------------
+Howto add a new 2D-button:
+- add case and a call to sele_set_icon into sele_set_add; eg:
+    case Typ_modUnlim:
+      sele_set_icon (&i2Dbutts, GR_reqTyp);
+
+- set text into GL2Dtxt1; eg add "UNL"
+  check if text can be supplied from AP_src_typMod()
 
 
 ================================================================== \endcode */}

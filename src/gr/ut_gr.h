@@ -58,6 +58,7 @@ GR_temp_*       display temporary;
 // #define GR_TMP_ID0       9        // primary temporary obj with direction-arrow
 #define GR_TMP_IDIR      9        // direction with arrow
 #define GR_TMP_IPOS     10        // vertexposition - small circle
+#define GR_TMP_IMEN     11        // preview activ option-menu-entry
 
 #define GR_TMP_DEF       1        // default; normal; use with DL_att_temp
 #define GR_TMP_HILI      2        // hilite;  use with DL_att_temp
@@ -68,7 +69,7 @@ int GR_set_obj (int opers, long dbi, int form, void *obj, int att, int mode);
 int GR_set_ocv (int opers, long dbi, int form, void *obj, int att);
 int GR_set_ccv (int opers, CurvCCV *cva, int cvNr, long dbi, int att);
 int GR_set_pcv (int opers, Point *pta, int ptNr, int att);
-int GR_set_symV_o (int opers, int typ, int att,
+int GR_set_symV3 (int opers, int typ, int att,
                      Point *p1, Vector *v1, double scale);
 int GR_set_dimen (int opers, Dimen *dim1, long dbi, int att);
 int GR_set_dim3 (int opers, Dim3 *dim1, long dbi, int att);
@@ -171,13 +172,13 @@ void GR_tDyn_txtA (Point *pt1, char *txtA, int att);
 
 
 
-void GR_temp_symV_o (int typ, int att, Point *p1, Vector *v1, double sc);
-#define GR_temp_symV_o(typ,att,p1,v1,sc)\
- GR_set_symV_o(OPERS_TEMP+OPERS_CLOSE,typ,att,p1,v1,sc);
+void GR_temp_symV3 (int typ, int att, Point *p1, Vector *v1, double sc);
+#define GR_temp_symV3(typ,att,p1,v1,sc)\
+ GR_set_symV3(OPERS_TEMP+OPERS_CLOSE,typ,att,p1,v1,sc);
 
-void GR_tDyn_symV_o (int typ, int att, Point *p1, Vector *v1, double sc);
-#define GR_tDyn_symV_o(typ,att,p1,v1,sc)\
- GR_set_symV_o(OPERS_TDYN+OPERS_CLOSE,typ,att,p1,v1,sc);
+void GR_tDyn_symV3 (int typ, int att, Point *p1, Vector *v1, double sc);
+#define GR_tDyn_symV3(typ,att,p1,v1,sc)\
+ GR_set_symV3(OPERS_TDYN+OPERS_CLOSE,typ,att,p1,v1,sc);
 
 
 
@@ -281,8 +282,6 @@ int GR_temp_dbo (int ind,  int typ, long dbi, int att, int mode);
 int GR_temp_otb (long *dli, int att, ObjTab *otb1);
 
 int GR_temp_symB (Point *pt1, int typ, int att);
-int GR_temp_symV3 (int symTyp, int att,
-                     Point *pt1, Vector *vc1, double scale);
 int GR_temp_vc (Vector *vc1, Point *pt1, int att, int mode);
 int GR_temp_ang (int att, Point *ptc, Vector *vx, Vector *vz, double ang1);
 int GR_temp_rect1 (Point *p1, Vector *vx, double dx, Vector *vy, double dy,

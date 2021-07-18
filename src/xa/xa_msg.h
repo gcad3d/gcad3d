@@ -137,6 +137,7 @@ enum ERR_codes {
   ERR_STD      // first = standard-error (not specific to function)
 };
 
+
 // MSG_ERR_sev                   get severity (1|2|3) from errorcode (< 0)
 // iSev = 0 = INF     continue
 // iSev = 1 = WNG     Error, continue
@@ -149,6 +150,11 @@ enum ERR_codes {
 
 // #define DEB_mcheck__() DEB_mcheck_out (__func__)
 
+// TODO:
+// -3 obj not yet complete
+// -2 obj error parameter
+// -1 obj decode error
+
 
 
 //================================================================
@@ -160,14 +166,15 @@ enum ERR_codes {
 // MSG_SIZE must be last.
 enum {
   MSG_ok,     MSG_cancel, MSG_save,    MSG_insert,      MSG_delete,     // 0-
-  MSG_modify, MSG_exit,   MSG_help,    MSG_length,      MSG_activate,   // 5-
-  MSG_move,   MSG_edit,   MSG_rename,  MSG_CreSubModel, MSG_show,       // 10-
-  MSG_hide,   MSG_shade,  MSG_inspect, MSG_movPoints,   MSG_undo,       // 15-
-  MSG_filter, MSG_texture,MSG_open,    MSG_GrpClear,    MSG_GrpMove,    // 20-
-  MSG_GrpHide,MSG_GrpDelA,MSG_GrpAdd1, MSG_GrpRem1,     MSG_GrpRemTyp,  // 25-
-  MSG_GrpRemOTs,MSG_upd,  MSG_all,     MSG_no,          MSG_Error,      // 30-
-  MSG_cpyMdl, MSG_getPar, MSG_getChd,  MSG_modNam,      MSG_cvEd,       // 35-
-  MSG_GrpInv, MSG_GrpSel, MSG_no_for_all, MSG_ok_for_all, MSG_SIZE      // 40-
+  MSG_remove, MSG_modify, MSG_exit,    MSG_help,        MSG_length,     // 5-
+  MSG_activate,MSG_move,  MSG_edit,    MSG_rename,      MSG_CreSubModel,// 10-
+  MSG_show,   MSG_hide,   MSG_shade,   MSG_inspect,     MSG_movPoints,  // 15-
+  MSG_undo,   MSG_filter, MSG_texture, MSG_open,        MSG_GrpClear,   // 20-
+  MSG_GrpMove,MSG_GrpHide,MSG_GrpDelA, MSG_GrpAdd1,     MSG_GrpRem1,    // 25-
+  MSG_GrpRemTyp,MSG_GrpRemOTs,MSG_upd, MSG_all,         MSG_no,         // 30-
+  MSG_Error,  MSG_cpyMdl, MSG_getPar,  MSG_getChd,      MSG_modNam,     // 35-
+  MSG_cvEd,   MSG_GrpInv, MSG_GrpSel,  MSG_no_for_all,  MSG_ok_for_all, // 40-
+  MSG_SIZE                                                              // 45-
 };
 
 

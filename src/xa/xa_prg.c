@@ -214,6 +214,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   char   s1[80], fnam[256];
 
 
+  if(IE_cad_exitFunc()) return -1;
+
+
   strcpy(s1, "APP_1");
   irc = GUI_dlg_e2b (s1, 80, "name for new program:", "OK", "Cancel");
   if(irc != 0) return -1;
@@ -318,6 +321,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   // printf("PRG_Del |%s|\n",AP_dir_prg);
 
+
+  if(IE_cad_exitFunc()) return -1;
 
   // create List of all programs ...
   sprintf(fnam,"%sProgram.lst",OS_get_tmp_dir());
@@ -666,7 +671,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   if(FormTab.data[PRG_iAct].rTyp != INPTYP) return 0;
 
 
-  // see also IE_cad_Inp1_Info
+  // see also IE_cad_msg_typ
   if(FormTab.data[PRG_iAct].vTyp == Typ_VAR) {
     TX_Print ("Key Value");
 
@@ -697,10 +702,10 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   char      cbuf[256], namBuf[32];
 
 
-  // printf("PRG_sel_CB typ=%d ind=%ld dli=%ld |%s|\n",typ,ind,dli,sbuf);
+  printf("PRG_sel_CB typ=%d ind=%ld dli=%ld |%s|\n",typ,ind,dli,sbuf);
 
   // skip if prog is running ..
-  if (PRG_stat > 1) return 0;
+  if (PRG_stat > 1) {irc = 0; goto L_exit;}
 
 
   // fix typReq = requested objectTyp; TypVAR|Typ_PT|Typ_VC
@@ -731,7 +736,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     sprintf(cbuf,"***** cannot use selection of %s for requested %s",
             namBuf, AP_src_typ__(typReq));
     TX_Print(cbuf);
-    return -1;
+    irc = -1;
+    goto L_exit;
   }
   goto L_done;
 
@@ -745,8 +751,13 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   L_done:
   PRG_sel_disp (cbuf, 1);
 
+  irc = 0;
 
-  return 0;
+
+  //----------------------------------------------------------------
+  L_exit:
+      printf(" ex-PRG_sel_CB %d\n",irc);
+    return irc;
 
 }
 
@@ -853,7 +864,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   Point     pt1;
 
 
-  // printf("PRG_sel_disp |%s| %d\n",cbuf,mode);
+  printf("PRG_sel_disp |%s| %d\n",cbuf,mode);
 
 
   // fix typReq = requested objectTyp; TypVAR|Typ_PT|Typ_VC
@@ -959,7 +970,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   int PRG_dec_defLn (char *cbuf) {
 //================================================================
 // cbuf is a definitionline; test for NEW
-// lines "V=NEW()" sofort auswerten, nicht via WC_Work__;
+// lines "V=NEW()" sofort auswerten, nicht via WC_Work1;
 // RetCod = 0: yes, p1 is a "NEW"-Line
 //         -1: No.
 
@@ -1213,12 +1224,13 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   int     irc, i1, bufSiz, plNr, iCod, iTyp;
   long    iInd;
-  char    *cbuf, *lp1, *lp2, *cp1;
+  char    *cbuf, *lp1, *lp2, *cp1, s1[400];
 
 
   // printf("================================= \n");
-  // printf("PRG_start stat=%d\n",PRG_stat);
+  printf("PRG_start stat=%d |%s|%s|\n",PRG_stat,AP_dir_prg,APP_act_nam);
 
+  if(IE_cad_exitFunc()) return -1;
 
 
   // lineBuffer fuer programLines
@@ -1269,9 +1281,19 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   //----------------------------------------------------------------
   // do primary start
-  // create filename & test if file exists
-  sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
-    // printf(" edit |%s|\n",cbuf);
+  // create filename
+  // get full-filename from AP_dir_prg
+  strcpy(s1, AP_dir_prg);
+  UTX_add_fnam_del (s1);          // add '/'
+  MDLFN_ffNam_fNam (cbuf, s1);
+  UTX_add_fnam_del (cbuf);
+  strcat(cbuf, APP_act_nam);
+  strcat(cbuf, ".gcap");
+  // sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
+    printf(" PRG_start-L1-|%s|\n",cbuf);
+
+
+  // check if prg exists
   if(OS_checkFilExist(cbuf,1) == 0) {
     // TX_Print("***** programfile %d does not exist *****",cbuf);
     MSG_pri_1 ("NOEX_fil", "%s", cbuf);
@@ -1463,7 +1485,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     iCod = APED_dec_defLn (&cp1, &iTyp, &iInd, cbuf);
     if(iCod == 0) {
       // 0=this is a definitionLine
-      // lines "V=NEW()" sofort auswerten, nicht via WC_Work__;
+      // lines "V=NEW()" sofort auswerten, nicht via WC_Work1;
       PRG_dec_defLn (cp1);
       // Yes: save LineNr, update Form.
       PRG_def_ini (iTyp, iInd, cp1, plNr);
@@ -1473,7 +1495,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     // execute line
       // printf("WWWWWWWWWWWW _work1 %d |%s|\n",lNr,cbuf);
     ED_enter ();  // display also temp.objects
-    i1 = WC_Work__ (lNr, cbuf);
+    i1 = WC_Work1 (lNr, cbuf);
 
     // check for error:
     if(AP_errStat_get() != 0) {
@@ -1578,7 +1600,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   strcpy(AP_dir_prg, dirNam);
 
 
-  // disp prgNam
+  // set APP_act_nam, disp prgNam
   strcpy(cbuf, fnam);
   UTX_ftyp_cut (cbuf);
   strcpy(APP_act_nam, cbuf);
@@ -1591,7 +1613,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   PRG_start ();
 
-    // printf("ex PRG_CB\n");
+    printf("ex PRG_CB |%s|%s|\n",AP_dir_prg,APP_act_nam);
 
   return 0;
 
@@ -1620,6 +1642,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     return -1;
   }
 
+  if(IE_cad_exitFunc()) return -1;
 
 /*
   sprintf(cbuf,"%sprgdir.lst",OS_get_tmp_dir());
@@ -1628,11 +1651,15 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
            cbuf,                 // Liste der directories
            (void*)PRG_CB);       // CallBack der Liste
 */
+  // appNam
+  cbuf1[0] = '\0';
+
+  // get cbuf2 = ffNam of AP_dir_prg
+  MDLFN_ffNam_fNam (cbuf2, AP_dir_prg);
+  // strcpy(cbuf2, AP_dir_prg);
 
   // Liste mit Dir-Auswahl
-  cbuf1[0] = '\0';
-  strcpy(cbuf2, AP_dir_prg);
-  i1 = AP_Mod_open (2, cbuf1, cbuf2, "select program", "\"*.gcap\"");
+  i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, "select program", "\"*.gcap\"");
   if(i1 < 0) return -1;
 
   return PRG_CB (cbuf1, cbuf2);
@@ -2229,8 +2256,10 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   // printf("PRG_Ed %d\n",APP_act_typ);
 
+  if(IE_cad_exitFunc()) return -1;
+
   if(APP_act_typ != 1) {
-    TX_Print("*** no application active ..");
+    TX_Print("*** no application is active ..");
     return -1;
   }
 

@@ -55,27 +55,31 @@ INF_GUI__           user-interaction, menus,     ckitgui ..
 INF_CMD__           command-interpreter (resolving gcad-format)
 INF_DB__            data-base for (binary) grafic objects
 INF_DL__            DisplayList-functions                             ../gr/ut_DL.c
-INF_GRAFIC__        display-module, Displist, OpenGL, GL2D
+INF_GRAFIC__        display-module, Displist, OpenGL, GL2D (2D-buttons)
 INF_MAN__           MAN
 INF_CAD__           CAD
-INF_DEV_GC__        workflow events select timer
+INF_Models__        import load save baseModel refModel                 MDLFN MDL
+
+INF_DEV_GC__        workflow events select timer load_save models
 INF_APP__           create modify undo resolve attributes Userinteractions coords
-INF_OBJ_FORM__      binary-obj-types obj, source-obj SRC, atomic-obj ato, DBO dlo
+INF_OBJ_FORM__      INF_obj_types, source-obj SRC, atomic-obj ato, DBO dlo ..
 INF_OBJ_CONV__      ObjectFormatConversions
 INF_DEV_C__         C-software-developmant - MEM const tol C_types INF_debug
-INF_files__         list of all source-files ../inf/files.c
 
 INF_geom            INF_func_3D    INF_func_2D      INF_surfaces   INEW_surf__
                     INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
 
+INF_Brw__           obj-browser
 INF_PRCV            polygonal_representation_of_curve              ../ut/ut_prcv__.c
 INF_CNTF            find and create contour (CCV = trimmed-curves) ../ut/ut_cntf.c
 INF_EDMPT           move points                                    ../xa/edmpt.c
 INF_Search          Search/Name
 
-INF_GCAD_format__   Gcad-Format-native Gcad-Format-binary
-INF_FMTB__          Gcad-Format-binary
+INF_GCAD_format__   Gcad-Format-native
+INF_FMTB__          Gcad-Format-binary tess-format
+INF_symDir          symbolic-directory modelfilename
 
+INF_files__         list of all source-files ../inf/files.c
 INF_DEV_tools__     development-tools
 INF_DOC_U           user-documentation
 INF_NamingConventions
@@ -86,10 +90,10 @@ making a Video      ../../doc/html/Video_en.htm
 Other modules:
 INF_DBF             File-based DB; Save and retrieve key-value-Records
 INF_GUI_exe         GUI-executables (messageBox, select-file, entry-with-buttons)
-INF_catalog
+INF_catalog         catalog-parts, CTLG
+INF_GIS1__
 
-TODO:
-tst_gmvo.c          Move all obj's of group
+INF_TODO__          TODO_* BUG_*
 
 
 
@@ -100,6 +104,8 @@ void INF_GCAD_format__ (){        /*! \code
 Gcad-Format-binary:
   INF_obj_types     list of binay objtypes
   INF_FMTB__        ../inf/Objects-Format.c           Gcad-Format-binary
+INF_import
+INF_DynamicDataArea  DYNAMIC_DATA-block
 
 
 
@@ -115,6 +121,42 @@ Gcad-Format-native:                              Source-format (text)
 
 
 
+//----------------------------------------------------------------
+- design-codes:  - native Format gcad - text-format
+    P#=<coordinates>
+    C#=<centerPoint> <outerPoint>   // circle
+    A#=C# ..     // surface = outer boundary (C#) [inner boundaries ..]
+    B#=A# A# ..  // Body = surfaces or boundary+thicknes ..
+
+  - mockup-native-format (Text):
+    A#=RCIR ..   // triangle
+    TODO: obsolete "SECTION MESH" and "SECTION PTAB" (indexed-surfaces)
+    - ev muss dazu auch PRCV ausgegeben werden (siehe "SECTION PTAB")
+    - Texturinfos (dzt attribute)
+    - see TODO_FMT_MOCK_NAT
+    - Import-mockup-formats (obj, stl, vr1, vr2):                INF_import
+
+      - create tess-format-binary
+      - oder create mockup-native-format then mockup-binary
+      TODO:  save mockup-formats in mockup-native-format
+      - or save always as mockup-native-format and load binary ?
+      TODO: "Import as model or mockup" dzt nur obj, für alle.
+      - würde entfallen wenn save always mockup-native-format
+
+
+- binary-format
+    DB           // P L C S A ..                                  INF_DB__
+    PRCV         // DB for Polygonal_representation_of_curve      INF_PRCV
+  TODO: surfDB     // DB for points and meshes inside surfaces
+    - descr. surface (outerBound, innerBounds, breakLines)
+    - see obsolete "SECTION MESH" and "SECTION PTAB"
+  TODO: bodyDB     // DB for net of a closed shell (connected curves, fwd and bwd)
+
+  - mockup-format binary: file with tesselated data; dzt .tess
+    - filetyp .tess; ev neues format .gcat
+    TODO: div. Formate für indexed-surfaces, color, transp., textur
+
+
 
 
 
@@ -127,7 +169,7 @@ Files:
 
 
 Functions:
-WC_Work__
+WC_Work1
   WC_Work1
     APT_work_def            work DefinitionLine
       APT_store_obj         decode APT-object, store object.
@@ -185,25 +227,34 @@ INF_GR_RECORDS      Source-record Database-record DisplayList-record
                     temporary-dynamic-obj   GR_tDyn_*
                     temporary-obj           GR_temp_*
                     
+INF_GR_preview      temp. display of symbolic-objects ((VC,Tra,VAR,Activ)
+
 INF_GR_attrib       attributes (color, linetype ..)
 
 INF_GR_group        list of selected objects
+INF_GR_RotCen       set rotation-center
+INF_rescale__       rescale active model ("Scale All")
+
 
 see also
 INF_workflow_events         main-events
 
 GR               create graphic objects;                           ../gr/ut_gr.c
-INF_GL__         OpenGL INF_GL_surfaces                            ../gr/ut_GL.c
+INF_GL__         OpenGL INF_GL_surfaces INF_GL2D__                 ../gr/ut_GL.c
 
 
 
 ================================================================== \endcode */}
 void INF_MAN__ (){        /*! \code
 
+see INF_workflow_MAN
+
 Functions:
 ED_GR_CB1__         callback from grafic-window (mouse-key press)
 ED_GR_CB2__         callback from grafic-window (selection)
 EDI_CB__            editor-callback of GUI_edi__ (mouse/key into editor)
+
+ED_unload__         copy editor -> memory
 
 
 
@@ -232,9 +283,14 @@ INF_DEV_GC__    workflow events select subModels
 INF_workflow__              sequence functions  main-startup  CAD
 INF_workflow_events         main-events
 INF_workflow_select         select-process
+INF_workflow_Hide_View
 INF_workflow_display        display obj; GR - GL
-INF_model__                 load / save model ..
-INF_subModels
+INF_workflow_MAN
+INF_workflow_CAD__
+INF_workflow_CAD_edit
+INF_workflow_models         load / save model ..
+
+INF_basModels__
 INF_timer__
 
 
@@ -276,7 +332,9 @@ inputObjects  pt 2pt  ..
  pln   Plane, Typ_PLN; Ebene.
  sph   Sphere, Typ_SPH, Kugel.
  mdr   ReferenceModel Ditto
+ imr   index ReferenceModel
  mdb   BasicModel
+ imb   index BasicModel
 
  cv crv  curve, linear object; LN,CI,EL,CV
  cvbez   CurvBez, Typ_CVBEZ, Bezier-curve.
@@ -299,6 +357,8 @@ inputObjects  pt 2pt  ..
  sus   SurStd, StandardSurface.
  Tes   tesselated surface (openGlSurface)
  rsys  struct Refsys = plane, Mat_4x3, inverted mat, backplane;  Typ_Refsys
+ constrPln   construction-plane
+ vtx   vertex
 
  bbox  boundingBox
  tria  Triang (3 points (pointers))
@@ -316,13 +376,17 @@ inputObjects  pt 2pt  ..
  crv  linear object; LN,CI,EL,CV ..      typ+struct
  sur  planimetric obj; plane, surf       typ+struct
  obj  object-structure; any object       typ+struct   typ==form; eg Typ_PT
- dbo  DB-object; any obj                 typ+dbInd
+ dbo  DB-object; any obj                 typ+dbInd                        INF_DBO__
  ccv  Concatenated-Curve (ObjGX)
  ato  atomic-object; any obj             austyp/austab (int/double)
  src  Source-object (text)
  oid  ObjectID                           string       (of DB-object eg "P20")
  osrc source-obj; eg "P20" or "P(L20 PTS(1))"
  onam object-name                        string (eg: onam="height" for oid=V20)
+ ffnam  full-filename (/path/filename.filetyp)
+ syFn   symbolic-filename, eg "Data/Niet1.gcad";  "Data" = syDir
+ syDir  symbolic-directory; list is ../../gCAD3D/cfg/dir.lst
+ oFn    filename-obj (stru_FN)
 
 Line = linesegment (2 points, both sides limited (lnLL)
 Ray  = 1 point and 1 vector; limited on one side (lnLU).
@@ -402,7 +466,10 @@ Ray  = 1 point and 1 vector; limited on one side (lnLU).
   reset
   resolv
   reserve
+  encode
   decode
+  hili    viewstate hilited
+  dim     viewstate dimmed
 
   Funktionen:
         Keine Funktionsangabe bei Umwandlungen
@@ -471,7 +538,7 @@ INF_C_types     [U]INT_[8|16|32]                            ../ut/ut_types.h
 INF_debug       errormessages     ../../doc/gcad_doxygen/Debugging.dox
 INF_MSG_new     create new message
 
-
+INF_TxtTab      Textstrings:     TxtTab   UtxTab_NEW UtxTab_add
 
 
 ================================================================== \endcode */}
@@ -486,7 +553,7 @@ INF_GR_attrib     attributes for geom.objects (linetyp, color ..) INF_COL_CV
 INF_INTER_USER    Userinteractions
 INF_COORD_CONV__  coordinates 3D -> 2D -> 3D;  see also INF_ConstructionPlane
 INF_ConstructionPlane   activated plane = 2D
-INF_subModels
+INF_basModels__
 
 
 
@@ -550,6 +617,7 @@ eg the type of struct Point is Typ_PT
    the type of struct int   is Typ_Int4
 
 see ../ut/AP_types.h
+see INF_groupTypes
 
 
 short
@@ -576,12 +644,12 @@ stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_S
                     GText     Typ_GTXT
                     AText     Typ_ATXT, Typ_Tag
 ....................................................................................
-       UTcol_       ColRGB    Typ_Color     color
+       UTcol_       ColRGB    Typ_Color     color                    INF_Typ_Color
 ox     OGX_         ObjGX     Typ_ObjGX     complex-object           INF_Typ_ObjGX
 obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
 otb    OTB_         ObjTab    - undef !     obj+xDat[]               INF_ObjTab
                     ObjBin    - undef !
-dbo    DB_          typ+dbi   int+long      DB-object (dataBase)
+dbo    DB_          typ+dbi   int+long      DB-object (dataBase)     INF_DBO__
                     ObjDB     Typ_ObjDB
 ato    ATO_         ObjAto    Typ_ObjAto    atomic-object
 txo    APED_txo_    ObjSRC    Typ_ObjSRC    source-object
@@ -597,7 +665,9 @@ otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
        BitTab_      UtxTab                  Textstrings              INF_UtxTab
        UtxTab_      BitTab                  Bit-arrays               INF_BitTab
 ....................................................................................
-
+mdb                 ModelBas  Typ_SubModel  basicModel               INF_basicModel
+mdr                 ModelRef  Typ_Model     modelReference           INF_modelRef
+....................................................................................
 
 
 
@@ -608,9 +678,70 @@ INF_struct_dir
 INF_struct_par
 INF_struct_closed
 
-TYP_IS_CV                check DB-typ
-AP_typDB_typ             get DB-typ from typ
-DEB_dump_obj__           dump binary obj
+
+Functions:
+
+TYP_IS_CV            check DB-typ
+AP_typDB_typ         get DB-typ from typ
+AP_typ_typChar       make typ from typChar  ("P" -> Typ_PT)
+AP_typ_FncNam        get type of function
+AP_typ_srcExpr       get type of expression
+AP_typTxt_typ        get typTxt from typ (eg "Typ_PT" from Typ_PT)
+
+AP_typ_ck_sym        check if typ is symbolic-typ / not basic typ (VC,Tra,VAR,Act)
+
+DEB_dump_obj__       dump binary obj (typ,obj)
+
+
+================================================================== \endcode */}
+void INF_groupTypes (){        /*! \code
+
+Typ_goGeom    all (D P L C S A B)
+
+Typ_goPrim    P|L|C|S(Ell,Bsp,Plg,CCV) NOT D|R|A|B
+                                       Konturobjs ruledSurf,
+                                       tang.Objs for a Circ;
+                                       obj's for a ruled surf;
+
+Typ_go_LCS    L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B
+                                       Konturobj RevSur; Konturobj RuledSur;
+
+Typ_go_lf1    L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B|contour
+              only single trimmed curve; for standard- and control-points of obj
+
+Typ_go_lf2    L|C|S(Ell,Bsp,Plg)       NOT P|D|A|B|CCV
+              no trimmed-curves:       for: CUT (result = trimmed-curve)
+
+Typ_goGeo1    Typ_go_LCS|R|Sur|Sol     alle curves,  NOT P|D;
+                                       parametr. point on obj;
+                                       intersection - 2objs
+
+Typ_goGeo2    C|Ell                    Centerpt Circ,Elli; Tang.|Z-Axis;         UU
+
+Typ_go_PD     PT|VC                    gives Point or Vector
+
+Typ_goGeo4    UNUSED   D|L|Pln            liefert ein ModelRefsys                UU
+
+Typ_goGeo5    C|Ell|Plg|Bsp|CCV         NOT D,P,L,A,B
+                                        closed Contour
+
+Typ_goGeo6    P|L|C                     NOT D|S|A|B
+              L(Plg),L(CCV),C(CCV)      Line(also from Plg,CCV),Circ.
+                                        "CIR Tang Tang ..
+
+Typ_goGeo7    Val|V|P|D                 NOT R|A|B
+              D(LN),D(Plg),D(CCV)       Direction from ang,vec or pt. RevSur.
+              Val|V  out as value (not VAL, not ANG)
+
+Typ_goGeo8    Val|V|P                   Distance, Parameter (f.RevSur)|Point
+              VAL(C)=Radius;            "CIR Cen Radius (Radius)
+
+Typ_go_RA     plane|surface             eg surface for offset-curve
+
+Typ_go_JNT    P|Typ_GTXT                Joint
+
+Typ_goGeoSUSU Sur|Sol                   Supporting Surface CON/TOR/SRU/SRV/SBS
+
 
 
 ================================================================== \endcode */}
@@ -674,8 +805,10 @@ AP_obj_2_txt        change obj to text and save it with UTF_add1_line
 
 ================================================================== \endcode */}
 void INF_DBO__ (){        /*! \code
+DBO = DB-object (typ,dbi(DB-index))
 
 APED_dbo_oid        get type and dbi from object-ID
+DBO__cmp_dbo        compare 2 DB-objects
 
 UTO_ck_dbsTyp       check object-typ (struct (V,D,P,L,C) or object (S,A,B)) 
 
@@ -1277,7 +1410,9 @@ Functions:
 Files:
 ../xa/xa_msg.c
 ../../doc/msg/msg_*.txt
-
+vi ../../doc/msg/msg_en.txt
+vi ../../doc/msg/msg_de.txt
+vi `ls ../../doc/msg/*|grep msg_...txt`
 
 
 TODO
@@ -1303,9 +1438,9 @@ Howto create new message:
   save the lang.files: ./lang_save.csh
   restore              ./lang_rest.csh
 
-see primary language-file:
-  vi ../../doc/msg/msg_en.txt
-  vi ../../doc/msg/msg_de.txt
+Examples:
+./lang_ins.csh "E_PRJ_1" "E_INT_1=no result from intersection"
+
 
 kompare ../../doc/msg/msg_en.txt /usr/share/gcad3d/doc/msg/msg_en.txt
 
@@ -1373,7 +1508,7 @@ INF_MEM_SPC     get memspc - temporary | static | permanent
 INF_MemTab      Fixed-Length-Records                         MemTab   
 INF_Memspc      Variable-Length-Records                      Memspc
 INF_OgxTab      Fixed-Length + Variable-Length-Records       OgxTab
-INF_UtxTab      Textstrings                                  UtxTab
+INF_TxtTab      Textstrings                                  UtxTab
 INF_BitTab      BitArray                                     BitTab
 
 INF_ObjTab      Variable-Length-Records
@@ -1433,7 +1568,7 @@ the memory-space types are defined in ../ut/ut_types.h as MEMTYP_*
 INF_MemTab      Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
 INF_Memspc      Variable-Length-Records      UME_          ../ut/ut_umem.c
 INF_OgxTab      ObjGX + var-len-record       OXMT_
-INF_UtxTab      Textstrings                  UtxTab_       ../ut/ut_txTab.c
+INF_TxtTab      Textstrings                  UtxTab_       ../ut/ut_txTab.c
 INF_BitTab      Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
 
@@ -1487,6 +1622,17 @@ Files:
 
 ../ut/ut_ogxt.c
 ../ut/ut_ogxt.h
+
+
+================================================================== \endcode */}
+void INF_UtxTab (){        /*! \code
+
+add, find, reallocate - strings terminated with '\0'.
+
+../ut/ut_txTab.c
+../ut/ut_txTab.h
+
+see INF_TxtTab
 
 
 ================================================================== \endcode */}
@@ -1567,18 +1713,39 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
 
 ================================================================== \endcode */}
-void INF_UtxTab (){        /*! \code
-
-TxtTab            Textstrings                  UtxTab_       ../ut/ut_txTab.c
-
-
-
-================================================================== \endcode */}
 void INF_BitTab (){        /*! \code
 
 BitTab            Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
 
+
+================================================================== \endcode */}
+void INF_basicModel (){        /*! \code
+
+mdb                 ModelBas  Typ_SubModel  basicModel               INF_basicModel
+
+
+Variables:
+DYN_MB_IND      nr of basic models
+
+Functions:
+../xa/xa_mod.c
+Mod_mNam_mdb      get ModbasName from basicModelNr
+
+
+================================================================== \endcode */}
+void INF_modelRef (){        /*! \code
+
+mdr                 ModelRef  Typ_Model     modelReference           INF_modelRef
+
+Variables:
+mdr_tab[APT_MR_IND]
+
+
+Functions:
+DB_StoreModel
+
+../xa/xa_mod.c
 
 
 
@@ -1593,14 +1760,22 @@ INF_workflow_models         load model in temp.dir at startup
 
 ------ main-startup:
 main                      ../xa/xa_main.c
+  AP_get_dir__    // set OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
+  // if cfg_<os>/gCAD3D.rc does not exist:
+  //   UX: extract examples.gz and rename dir. /cfg/ /cfg_Linux/ or /cfg_MS/
+  //   MS: copy config-files from \cfg\ -> \cfg_MS\.
+  //   write or load defaults (cfg/xa.rc)
+  //   dirLocal is base of tmp, dat, cfg_<os>, ctlg, prg
+    AP_defaults_write  create cfg_<os>/xa.rc
+    AP_defaults_dir    create file cfg_<os>/dir.lst = symDirs Data, CATALOG, APPLI
   UI_win_main             create main-window
     UI_GL_draw__            callback OpenGL-startup
       AP_init__                 startup (UI_GL_draw__
         AP_work__                 work startparameters
 
 ED_work_END
-  ED_work_CurSet
-    WC_Work__
+  ED_work_CurSet            work n lines of src-code
+    WC_Work1
 
   GUI_Win_exit      // Exit mit X:
     UI_win_main "UI_FuncExit"
@@ -1614,7 +1789,7 @@ ED_work_END
 
 UI_men__ ("new")    //  File/New
 
-AP_src_new       // File/New, File/Open
+AP_mdl_init       // File/New, File/Open
 
 
 
@@ -1702,16 +1877,42 @@ UI_GR_Select1         // get selectionMenu (sel.Obj + useful subObjs)
 
 
 -------------------------------------------------------------------------
-Functions doing select-process:
-  sele_set_add       add obj to selectionfilter reqObjTab; eg Typ_go_PD = P+D
-  IE_inpCkTyp        connect selectType (eg Typ_go_JNT) with outType (eg Typ_Joint)
-  IE_txt2par1        get next parameter(s) from atomicObjects IF USEFUL
-  sele_src_cnvt__    test if component of obj is useful
-  IE_cad_Inp2_Info
-  IE_inpTxtOut
+FUNCTIONS:
+sele_set_pos__         // set GR_selPos_CP and GR_selPos_vtx
+sele_get_pos_CP        // get GR_selPos_CP (on constrPln, WCS)
+sele_get_pos_vtx       // get GR_selPos_vtx (vertex, WCS)
+sele_get_pos_UC        // get UCS-coords of GR_selPos_CP (curPos on constrPln)
+
+sele_set_add       add obj to selectionfilter reqObjTab; eg Typ_go_PD = P+D
+IE_inpCkTyp        connect selectType (eg Typ_go_JNT) with outType (eg Typ_Joint)
+IE_txt2par1        get next parameter(s) from atomicObjects IF USEFUL
+sele_src_cnvt__    test if component of obj is useful
+IE_inpTxtOut
+
 
 UNUSED:
   sele_decode     converts the selected obj into a requested obj
+
+-------------------------------------------------------------------------
+VARIABLES:
+static Point  GR_selPos_vtx;     // last sel. vertex in WCS
+static Point  GR_selPos_CP;      // curPos last sel. on constPlane in WCS
+
+
+
+
+================================================================== \endcode */}
+INF_workflow_Hide_View (){        /*! \code
+
+// activate Hide (set in DL ((disp == 1)&&(hili == 1)))
+UI_CB_hide
+
+// activate View (set in DL ((disp == 0)&&(hili == 1)))
+UI_CB_view
+  Grp_Clear
+
+DL_disp_def (1);       // set hidden for following DL-obj
+DL_disp_def (0);       // reset hidden to normal
 
 
 
@@ -1726,13 +1927,14 @@ For all visible object a record in "DL" (DisplayList) exists.
 ../gr/ut_GL.c   OpenGL-functions
 
 
-See INF_GR_RECORDS
+INF_GR_RECORDS
+INF_GR_preview       temp. disp symbolic-obj (VC,Tra,VAR,Activ)
 
 
 Persistence of displayed objects:
-- permanet                  INF_Fixed-Database-record
-- permanent/dynamic         INF_Dynamic-Database-record
-- temporary                 INF_Temporary-DisplayList-record
+- permanet                  INF_Fixed_Database_record
+- permanent/dynamic         INF_Dynamic_Database_record
+- temporary                 INF_Temporary_DisplayList_record
 
 
 GR_perm_<obj>           create permanent obj
@@ -1755,220 +1957,133 @@ Workflow GL:
   GL_list_close close GL-record
   
 
+// disp revolved surface 
+APT_Draw__
+  GR_perm_sur
+    GR_set_sur
+      GR_set_sur
+        GR_set_osu
+          DL_perm_init|DL_tDyn_init|DL_temp_init
+            DL_set__                                 // create DL-record
+            GL_list_open
+          TSU_SUR__
+            TSU_DrawSurTRV
+              GR_set_strip_v
+                GL_set_strip_v
+          GL_list_close
+
+
 OBSOLETE - TODO:
 INT_intsursur INT_intplsur DXFW_3DFACE__  is using - only for intersection -
   TSU_tess_sTab TSU_tessObj APT_DrawSur GR_DrawSur TSU_DrawSurT_
 
 
 
-================================================================== \endcode */}
-INF_workflow_models (){        /*! \code
-
-load model in temp.dir at startup
-
-Functions:
-  Mod_sav_(-1)          copy empty model -> tmp/Model
-  Mod_sav_i (0);        save Model+Submodels into tempDir as "Model" nativ
-  Mod_sav_ck (0);       make a copy of Model for ck-modified
-
-
-//----------------------------------------------------------------
-Files in <tempDir>:
-  Mod.lst               List of all internal subModels + primary model "-main-"
-  Model                 the complete model after prg.exit
-  Model_                primary model, native
-  Model_<subModelname>  subModel, native, eg Model_L1
-  Mod_in                a copy of Model for check if modified
-
-  MdlLst.txt            list of models last used
-
-  Exp_<subModelname>    subModel im zuletzt exportierten Format
-  M#A#.msh              binary; Mesh-Faces & Edgelines.
-  M#A#.ptab             binary; Mesh-points.
-  <subModelname>.tess   externes Mockup-subModel (zB wrl, stl)
-
-  Catalog.lst     eine Liste aller existierenden CatalogFiles
-  Catalog.act     der Filename des momentan aktiven CatalogFile
-  CatParts.lst    die PartList des momentan aktiven CatalogFile
-
-
-
-
-
 
 ================================================================== \endcode */}
-INF_model__ (){        /*! \code
+INF_workflow_MAN (){        /*! \code
 
-load / save model ..
+// activate MAN
+UI_butCB |MAN|
+  UI_MAN_ON
+    UI_src_edi            // copy complete SRC from mem -> edi
 
-//----------------------------------------------------------------
-Startup:             // start without startModel = new
-UI_GL_draw__ 
-  Mod_sav_i (-1)       // create empty model into file <tmp>/Model
-  Mod_sav_ck (0)       // init; copy Model - Mod_in
-  AP_stat.mdl_stat = MDLSTAT_loaded
+// editor-callback - mouse/key into editor                   
+EDI_CB__
+  ED_unload__ ();        // test if modified - if yes: copy editor -> memory
 
-//----------------------------------------------------------------
-Load_start:           // load startModel 
-AP_Mod_load_fn
-  AP_stat.mdl_stat = MDLSTAT_loading;
-  AP_Mod_load__
-  Mod_sav_i (0)        // save active model + subModels  into file <tmp>/Model
-    Mod_fget_names__
-      Mod_fget_names_1
-  Mod_sav_ck (0)       // init; copy Model - Mod_in
-  AP_stat.mdl_stat = MDLSTAT_loaded;
+// callback mouseButton
+UI_GL_mouse__
+  ED_GR_CB1__            // analyze
+    UI_GR_selMen_init      // create menu accord. sel. obj
+  UI_EdKeyCR (2)         // process complete line
+    UI_AP (UI_FuncSet, UID_Edit_Line, term_buf);
+      GUI_edi_Insert         // insert text
 
-//----------------------------------------------------------------
-Load_new:      // File/New if model already loaded
-UI_men__ |new|
-  AP_stat.mdl_stat = MDLSTAT_save_as;
-  Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
-  Mod_sav_ck (1);
-  AP_save_ex (1);
-  ..
-  AP_stat.mdl_stat = MDLSTAT_loaded;
+// List-selection:
+GUI_popup_cb1
+  UI_popSel_CB__
+    UI_GR_Select_selLst        // entry in popup-list selected
+      // handle "Vertex" "ConstrPlane" Typ_Activ
+      UI_GR_Select2
 
+// add selection
+UI_GR_Select_work1
+  UI_GR_Select_work2
+    ED_GR_CB2__
+      ED_add_Text
+        UI_AP (UI_FuncSet, UID_Edit_Line, term_buf);
+          GUI_edi_Insert
 
-//----------------------------------------------------------------
-Load_open:     // File/Open_Model
-UI_men__ |open|
-  AP_stat.mdl_stat = MDLSTAT_save_as;
-  Mod_sav_ck (1);
-    Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
-    Mod_sav_cmp__  // compare Model - Mod_in
-  AP_save_ex (1);
-  GUI_file_open__
-  AP_Mod_load_fn   // get AP_mod_sym,AP_mod_dir,AP_mod_fnam,AP_mod_ftyp,AP_mod_iftyp
-  AP_mod_sym_get   // get symbol-name for new directory from user
-
-  AP_stat.mdl_stat = MDLSTAT_loaded;
-
-//----------------------------------------------------------------
-Save_exit:         // eXit gcad with "X"  
-AP_exit__ (0)      // 0=normal-exit;
-  Mod_sav_ck (1);  // compare Model - Mod_in
-    Mod_sav_i (0)  // save active model + subModels  into file <tmp>/Model
-    Mod_sav_cmp__  // compare Model - Mod_in
-  AP_save_ex (0)   // is modified; save for exit
-    AP_save__(0, 1, "gcad") // sav-all, no check-overwrite;
-
-//----------------------------------------------------------------
-Save_quick:        // save with Ctrl-s 
-UI_men__ |save|
-  AP_stat.mdl_stat = MDLSTAT_save_quick;
-  UI_save__ (1);
-    Mod_sav__
-      Mod_sav_i
-        Mod_sav_ck
-  AP_stat.mdl_stat = MDLSTAT_loaded;
-
-//----------------------------------------------------------------
-Save_as:          // File / save as;
-UI_men__ |exp1nat|
-  AP_stat.mdl_stat = MDLSTAT_save_as;
-  AP_save__ 0 0 |gcad|   // sav-all, get fName, check overwrite,
-    GUI_file_save__      // get filename from user, ask for overwrite
-    AP_save_del_smuu     // ask for / delete unused subModels
-    UI_save__ (1);
-  AP_stat.mdl_stat = MDLSTAT_loaded;
 
 
 
 ================================================================== \endcode */}
-INF_subModels (){        /*! \code
+INF_workflow_CAD__ (){        /*! \code
 
-see INF_ModelReferenceList
-see INF_BasicModelList
-
-
-mainModel          is the root-model using all subModels
-active-model       is the open subModel or mainModel being modified
-
-// While loading subModels AP_modact_ind is the index of the basicModel of the
-//   subModel being loaded.
-//  -1       primary Model is active (can also be a submodel);
-//  (>= 0)   subModel is active
-// After all subModels have been loaded AP_modact_ind = -1.
-// Diplaylist (DL_Att*) GR_ObjTab[].modInd gives the basicModel-index.
-
-
-MDL_IS_SUB
-// test if active model is a subModel being created or the active-model
-//   active-model can be a subModel; see MDL_IS_MAIN
-
-MDL_IS_MAIN
-// test if active model is the mainModel
+IE_cad_test__      // test if input complete, create sourcline, activate OK-butt
+  ED_work_CAD        // input is complete; preview or store & display
+    WC_Work1          // preview or store & display
+      WC_Work1           // preview or store & display
+        APT_work_def       // Work DefinitionLine
+          APT_ato_par_srcLn  // perm: get parents and atomic-objects
+          APT_store_obj      // create binary obj; store obj in DB
+          APT_parent_set     // perm: set isParent-bit and hide parent
+          PRCV_set_dbo__     // perm: create PRCV
+          GA_find__          // perm: find GA-rec
+          APT_Draw__         // preview or display obj
 
 
 
-
-Variables:
-char AP_modact_nam[128];   // name of the active submodel; def="" (main)
-int      AP_modact_ind           the index into subModelList
-  // get it with AP_get_modact_ind()
-  //  -1: primary-Model is active. The primaryModel can be subModel.
-  // >=0: subModel is being created.
-  mdb_dyn             List of basicModels           see INF_BasicModelList
-  mdr_tab             List of modelReferences       see INF_ModelReferenceList
-  DL_Att.modInd       -1=mainmodel, else basicModelNr (index mdb_dyn)
-  WC_modnam           Modelname
-  WC_modact_nam       name of the active submodel
-  DL_Att.modInd       -1=mainmodel, else basicModelNr (index mdb_dyn)
+================================================================== \endcode */}
+INF_workflow_CAD_edit (){        /*! \code
 
 
+IE_edit_dbo               // M3 - obj + "edit" selected
+  ED_set_lnr_act
+  IE_activate               // start edit ?
+    ED_work_CurSet            // work lines up to selected obj
+    IE_modif__
+      IE_decode_Ln              // get ato from src
+      IE_cad_init1              // activate CAD-subMenu
+      IE_cad_test__             // preview
+IE_cad_Inp_cancel         // user pressed CAD-Cancel-button
+  IE_cad_exitFunc
+IE_cad_OK                 // user pressed CAD-OK-button
 
-Functions:
-  AP_get_modact_ind                         get SM-index
-  APT_get_line_act                          get lineNr in mainModel
-  ED_get_lnr_SM                             get lineNr in subModel
-  DB_mdlNam_iBas(AP_modact_ind)             get the subModelname from  SM-index
-  dla = DL_GetAtt(DL Index);  // get DL-record
-  model_nr = dla.modInd;      // -1=active Model, 0-n=Submodel
-
-  ModelBas * mdr;
-  // the BasicModelRecord of a Submodels get
-  mdr = DB_get_ModBas (dla.modInd);
-  // mdr >mnam is now the Modelname of the Submodel.
-
-  Mod_ck_isMain       check if the active model is the mainmodel
-  DB_get_ModRef       get Ditto from Index
-  DB_get_ModBas       get the basicModel with index <Ind>
-
-
-Files in <tempDir>:
-- see INF_workflow_models
 
 
 
 ================================================================== \endcode */}
 INF_COORD_CONV__ (){        /*! \code
 coordinate-transformations;
+see INF_ConstructionPlane
 
-screenCoords     int, pixels, 2D.
-userCoords       double; relativ to the active constrPln
-worldCoords      double, absolut usercoords. DB keeps worldCoords.
-
-worldCoords -> userCoords
-worldCoords-3D -> worldCoords-2D            see also INF_ConstructionPlane
+FILES:
+../ut/ut_transform.c
 
 
-Functions:
+FUNCTIONS:
 
 //----------------------------------------------------------------
-// worldCoords -> userCoords
+// worldCoords -> userCoords:
+UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
+UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
+
 UT3D_pt_tra_wcs2ucs_pl   point-worldCoords -> userCoords from plane
 UT3D_pt_tra_ucs2wcs_pl   point-userCoords from plane -> worldCoords
 
 UTRA_pt_ucs2wcs     point from constructionplane (relativ) to absolut (UCS -> WCS)
 
-UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
-UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
 UTRA_pt_wcs2ucs     point from absolut to relativ (constructionplane) (WCS -> UCS)
 
 
 //----------------------------------------------------------------
-// worldCoords-3D -> worldCoords-2D
+// userCoords -> worldCoords:
+UTRA_UCS_WCS_VC
+UTRA_UCS_WCS_PT
+
+
 UT3D_rsys_pl              get refsys / backplane
 UTO2_obj_tra_obj3_rsys    3D->2D
   UT2D_ln_tra_ln3_rsys
@@ -1994,44 +2109,89 @@ UTRA_app__
 ================================================================== \endcode */}
 INF_ConstructionPlane (){        /*! \code
 
+screenCoords     int, pixels, 2D; 
+
+WCS world-coordinates: absolut; origin = 0,0,0;
+
+UCS user-coordinates:  coords in the current constrPlane;
+    coordinats along the axes of the current constrPlane;
+    relativ to the origin of the current constrPlane.
+
+The displayed cursorPosition (above grafic-window) is UCS.
+
+DB-coordinates of all objects (on ConstrPlane or not) are WCS (absolut).
+
 SRC-coordinates of objects on a ConstructionPlane are userCoords (relativ);
-DB-coordinates of objects on a ConstructionPlane are worldCoords (absolut);
-see INF_COORD_CONV__
+
+3D:
+  The default-ConstructionPlane is active; all coordinates are WCS (absolute):
+
+2D:
+  A user-defined plane is the active ConstructionPlane;
+  the cursorPosition (above grafic-window) is UCS;
+  the coordinates stored in model (SRC, can be seen in MAN) are UCS).
+
+Making constrPlane ON and OFF both create a DL-record Typ_constrPln
+
+see INF_COORD_CONV__  (transformations)
 
 
+//----------------------------------------------------------------
+VARIABLES:
+GL_mouse_x_act,GL_mouse_y_act   // mousepos in screenCoords
+Point GL_curPos_SC;  // curPos in screenCoords
+Point GL_curPos_WC;  // curPos in WCS on constrPlane
+Point GR_curPos_WC   // curPos in WCS on constructionPlane
+char  GR_actPos[60]     // "P(<x> <y> <z>)"  set by GR_get_curPos_UC
+
+int GR_actView      // FUNC_ViewIso FUNC_ViewFront FUNC_ViewSide
+Point GL_cen        // centerpoint of the Viewport always WCS                       
+Plane GL_eye_pln with
+Point GL_eyeY GL_eyeZ GL_eyeX (GL_eye_upd())
+
+Plane     WC_sur_act    // ActiveConstrPlane
 int       WC_sur_ind;    DB-Index of the ActiveConstrPlane;
-                         (WC_sur_ind > 0)  is 2D      (AP_IS_2D)
-                         (WC_sur_ind <= 0) is 3D      (AP_IS_3D)
-double    WC_sur_Z;      the active Z-Offset to the ConstructionPlane
-char WC_ConstPl_Z[16];   displayed name_of_Constr.Plane; is "DZ" or "R20"
-
-
-Plane     WC_sur_act;    the ConstructionPlane; in xa.c
+                         (WC_sur_ind == 0) is 3D      (CONSTRPLN_IS_OFF)
+                         (WC_sur_ind != 0) is 2D      (CONSTRPLN_IS_ON)
+char      WC_sur_txt[16];   displayed name_of_Constr.Plane; is "R0" or "R20" or "RX"
 Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
-Making constrPlane ON and OFF both create a DL-record Typ_constPln
 
 
-Functions ConstrPlane:  -------------------------
+//----------------------------------------------------------------
+FUNCTIONS:
+CONSTRPLN_IS_ON     // test if constrPln is active;    1=yes, 0=no
+CONSTRPLN_IS_OFF
+
+GL_DefineView       // change GR_actView - Front,Side,Axo ..; set GL_eyeX ..
+GL_Do_Pan__
+NC_setRefsys        // change WC_sur_act WC_sur_ind WC_sur_mat ..
+
+UI_CurPos_upd       // display cursor-position above grafic-window in UCS
+UI_GR_actPos        // write actPos -> GR_actPos as "P(...)"
+GR_set_curPos_CP    // set GR_curPos_WC = cursorPosition on constructionPlane ??
+GR_get_curPos_WC    // return GR_curPos_WC (WCS ??)
+GR_get_curPos_UC  // get UCS-coords from curPos (GR_curPos_WC)
+
+GL_get_curPos_SC    // get cursorPosition in screenkoords
+GL_get_curPos_WC    // get cursorPosition in WCS (not yet on constrPlane)
+GL_get_curPos_CP_pt // get inters.point WCS on constrPln of point along eyeVec
+GL_get_curPos_last  // get Coords of last selectionPoint (scrCoords and ??)
+GL_get_curPos_CP__  // get curPos in WCS on constrPlane along eyeLine
+GL_set_curPos_CP    // save screenCoords & userCoords of selectionPoint
+GL_vertex_curPos    // get vertex (WCS) from active curPos
+GL_vertex_SC        // get vertex (WCS) from screenCoords
+
+..............................
 DL_setRefSys
   NC_setRefsys      Change active Plane (Refsys)
-    GL_SetConstrPln
     UI_lb_2D_upd           update label "2D" | "3D"
 DL_GetTrInd         get the refsys-nr (dbi of Plane) for DL-record <dli>
 
-GL_SetConstrPln     GL_constr_pln=(WC_sur_act+WC_sur_Z); write Label Z-Offset
-UI_Set_ConstPl_Z    write Label name_of_Constr.Plane
 AP_Set_ConstPl_Z    write Label name_of_Constr.Plane
-
-UI_suract_keyIn     mode=2: set & display WC_sur_Z
-AP_Get_ConstPl_Z    gives ConstPLn as text or Z-vec
-AP_Get_ConstPl_vz   give Z-vec of ConstructionPlane
-
-
-
-
-../../doc/gcad_doxygen/Userinteractions.dox
+AP_Get_ConstPl_Z    get ConstPLn as text or Z-vec
+AP_Get_ConstPl_vz   get Z-vec of ConstructionPlane
 
 
 ================================================================== \endcode */}
@@ -2150,6 +2310,12 @@ R_100;CATALOG/test_ctlg1;V20=100;
 # CAD - subModels "M CatalogPart" /  List /
 
 
+//----------------------------------------------------------------
+Files in <tmpDir>:
+<catalogName>_<partName>.ctlg_dat     eg Schrauben_SKS_6x30.ctlg_dat
+DB__<catalogName>_<partName>.dat      eg DB__Schrauben_SKS_6x30.dat
+
+
 
 
 
@@ -2174,6 +2340,15 @@ cscope              /usr/bin/cscope, source-file admin program
 ================================================================== \endcode */}
 void INF_debug (){        /*! \code
  \code
+
+
+see below:
+DEB_dump_obj__            DEB_dump_ox_0 ..
+MSG_ERR__
+AP_debug__                stop in debugger; UI_wait_time UI_wait_Esc ERR_raise
+printd                    DEB_prt_init ..
+LOG_A__                   LOG_A_init LOG_A_exit ..
+
 
 
 -------------- Errormessages: ../xa/xa_msg.h ../xa/xa_msg.c
@@ -2222,6 +2397,27 @@ vi <tmpdir>/tmp/debug.dat
 
 
 DEB_std_file                   redirect stdout -> file or back
+
+
+--------------------------------------------
+Debug-file for applications:
+
+  LOG_A_init ("appNam");
+
+  // write into debugFile
+  LOG_A__ (MSG_ERR_typ_INF, "exp_export typ=%d dbi=%ld", 3, 20L);
+  LOG_A__ (MSG_ERR_typ_ERR, "exp_export typ=%d dbi=%ld", 3, 20L);
+
+
+  // close debugfile with nr of errorMessages
+  LOG_A_exit (2);
+
+  // display debugfile with editor
+  LOG_A_disp ();
+
+
+
+
 
 
 --------------------------------------------

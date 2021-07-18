@@ -49,7 +49,8 @@ List_functions_end:
 #include <stdlib.h>
 #include <string.h>
 
-#include "../ut/ut_TX.h"          // TX_Print
+#include "../xa/mdl__.h"               // SIZMF*
+#include "../ut/ut_TX.h"               // TX_Print
 
 
 
@@ -65,7 +66,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
 // ext aus xa.c:
-extern  char      AP_mod_fnam[128];  // der Modelname
+extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
 
 
 

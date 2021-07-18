@@ -159,12 +159,16 @@ static Vector prj_vc;      // projectionDirection
 ///   prj_typ extern; type of prj_tg
 ///   prj_tg  extern; where to project
 ///   p1      point to project onto prj_tg
+///   prj_limStat   0=limited, 1=unlimited
 /// Output
 ///   p2
 ///   retCod  1 = OK; -1=Error
 /// see UTRA_app_pt UT3D_pt_projptpl UT3D_pt_intptvcpl_ UT3D_ptDi_intptvcpln
 /// \endcode
 
+// TODO: Circ and ellipse: limited/unlimited does not work OK - see prj_limStat
+// TODO: Circ and ellipse: process solutionNr (Typ_modif)
+//       make new static var prj_solNr  - see prj_limStat
 // TODO: clot, ccv
 
 
@@ -224,6 +228,7 @@ static Vector prj_vc;      // projectionDirection
   if(prj_typ != Typ_CVPOL) goto L_CVELL;
     i1 = 16;   // maxPoints
     irc = UT3D_pt_projptplg (&i1, pa, da, prj_tg, p1);
+    if(irc) return -1;
       // printf(" irc=%d i1=%d\n",irc,i1);
       // for(i2=0; i2<i1; ++i2) 
       // DEB_dump_obj__ (Typ_PT, &pa[i2], " pa[%d] - da=%lf",i2,&da[i2]);
@@ -258,6 +263,7 @@ static Vector prj_vc;      // projectionDirection
     // UME_init (&memTmp, memspc101, sizeof(memspc101));
     i1 = 16;   // maxPoints
     irc = UT3D_pt_projptbspl (&i1, pa, da, prj_tg, p1);
+    if(i1 < 1) return -1;
     APT_set_modMax (i1);
     if(irc < 0) return -1;
     if(i1 < 1) return 0;

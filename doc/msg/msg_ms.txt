@@ -44,6 +44,7 @@ MMstLty=takrif jenisGarisan (Warna-JenGaris-TebGaris) untuk Garisan/Bulatan/Leku
 MMstDir=takrif direktoriModel
 MMstBrw=takrif Pelayar untuk bantuan / dokumentasi
 MMstEdi=takrif Penyunting
+MMstSelDir=select file with symbolic directories
 
 MMmdMsi=tetapkan saiz dan had terima model
 MMmdMdp=ubahsuai Kedudukan subModel
@@ -337,7 +338,7 @@ PEDnopt=Objek tidak mempunyai titk bolehalih ..
 PEDnrpt=Objek mempunyai {0} titik bolehalih ..
 PEDsav=simpan pengubahsuaian (ButTetikus.kan.)
 PEDcanc=batal pemberitahuan (kekunci-Esc)
-PEDlink=pecah pautan ke obj {0} ?
+PEDlink=pecah pautan ke obj {0}
 PEDmod1=beri satah atau vektor / pilih titik (petak kuning, Sym-#) / Padam / Sisip / Keluar: Buttetikus.kan.
 PEDmod2=beri satah atau vektor / pilih titik (petak kuning, Sym-#) / Keluar: Buttetikus.kan.
 PEDmod3=Simpan (Buttetikus.kan.) atau Batal (kekunci-Esc)
@@ -392,10 +393,11 @@ SN_TxtNot=gelintar semua objek [BUKAN] mengandungi teksmaklumat
 SN_DepNot=gelintar semua objek [BUKAN] bergantung dari objek "depends"
 
 ERRCAD0=*** RALAT: fungsi CAD mesti aktif ..
+ERRMDL0=*** ERROR: subModel must be active ..
 pluginErr0=bina semula adalah mustahil - pengkompil atau pemaut tidak ditemui.
 pluginErr1=Ralat dalam pemalam {0} ; dihenti paksa.
 FileOp=membuka fail {0}
-SAVusm=Simpan submodel {0} yang tidak digunakan ?
+SAVusm=Simpan submodel {0} yang tidak digunakan
 Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=input terakhir ikut jam
@@ -405,4 +407,8 @@ ED1MOD-=pilih varian-solusi terdahulu
 ED1<<<=satu input di belakang (sebelum menyisip)
 ED1>>>=satu input di hadapan (selepas menyisip)
 
-EOF
+E_CAD_use1=cannot use obj
+E_PRJ_1=no result from project
+E_INT_1=no result from intersection
+
+EOF=end of file

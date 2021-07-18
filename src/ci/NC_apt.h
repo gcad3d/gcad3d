@@ -36,7 +36,7 @@ enum Typ_Cmd1 {
    T_FW,        T_CX,        T_PTAB,      T_MSH,       T_CLOT,      // 60-64
    T_TNG,       T_IMP,       T_BSP1,      T_PARL,      T_BLEND,     // 65-69
    T_UNL,       T_UNL1,      T_UNL2,      T_DISP_PT,   T_DISP_PL,   // 70-74 
-   T_ANG};                                                          // 80-84 
+   T_ANG,       T_DRX,       T_DRY,       T_DRZ};                   // 75-79 
 
 
 char** APT_decode_txt    (char**);

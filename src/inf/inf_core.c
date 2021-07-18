@@ -15,7 +15,9 @@ INF_PRG__     script-control (core-plugin)                  ../xa/xa_prg.c
 INF_PRC__     process-control (core-plugin)                 ../xa/xa_proc.c
 INF_MSGWIN__  messagewindow (at bottom)
 INF_Grp__     Group                                         ../xa/xa_grp.c
+INF_Ico__     Icons                                         ../xa/xa_ico.c     Ico
 
+INF_symDir    symbolic-directory modelfilename
 
 ================================================================== \endcode */}
 void INF_PLU_COR__ (){        /*! \code
@@ -112,9 +114,30 @@ DLL_run2         build & connect & run & unload DLL.
 
 
 ================================================================== \endcode */}
-void INF_IMP_EXP__ (){        /*! \code
+void INF_IMP__ (){        /*! \code
 
-INF_IMP_EXP__ import-export-modules (core-plugins)          ../exp/xx.c
+INF_IMP_EXP__    import-modules (core-plugins)          ../exp/xx.c
+
+================================================================== \endcode */}
+void INF_EXP__ (){        /*! \code
+
+INF_IMP_EXP__    export-modules (core-plugins)          ../exp/xx.c
+
+TODO:
+                       IMPORT         EXPORT
+#define Mtyp_DXF        OK            OK  subModels ??
+#define Mtyp_Iges       OK            BUG export subModels !!!
+#define Mtyp_Step       OK            test_mod_1.gcad OK, ELE1/box1.gcad nicht
+#define Mtyp_3DS        OK            NYI
+#define Mtyp_LWO        OK            NYI
+#define Mtyp_XML        <<< TODO      NYI
+#define Mtyp_SVG        <<< no imp    tw
+
+#define Mtyp_TESS       OK            tw
+#define Mtyp_WRL        OK            tw - no subModels
+#define Mtyp_WRL2       <<<           tw (no PRISM)
+#define Mtyp_OBJ        OK            tw - no subModels
+#define Mtyp_STL        OK            tw - no subModels
 
 
 
@@ -195,6 +218,18 @@ DL_Att* GR_ObjTab[].grp_1 = groupBit in displList; 0=belongs to active Group, 1=
 ObjDB*  GrpTab[]   keeps typ, dbi, dli, stat
 
 
+Group-bit in dispList (GR_ObjTab[ind].grp) -
+- DL_grp1__() does:
+  - set group-bit GR_ObjTab[ind].grp in dispList and hilite obj 
+
+
+ObjDB*  GrpTab[] -
+- Grp_add__() does:
+  - add obj to GrpTab[] and display GrpNr in Label UID_ouf_grpNr
+  - do not set group-bit in dispList and not hilite obj
+
+
+
 Files:
 ../xa/xa_grp.c
 ../gr/ut_DL.c       DL_grp1_*
@@ -203,6 +238,50 @@ Files:
 Functions:
 Grp_*               ../xa/xa_grp.c
 Grp_get_ts    Modifying group sets TimeStamp, get it with Grp_get_ts.
+
+
+================================================================== \endcode */}
+void INF_Ico__ (){        /*! \code
+
+INF_Ico__     Icons  Ico
+
+
+OS_get_ico_dir returns os_ico_dir = <gcad_dir_bin>icons/
+/usr/share/gcad3d/icons/
+DevDir:   ../../icons/*.png
+
+../xa/xa_ico.c           // enum ICO_<nam>
+../xa/xa_ico.h
+
+Icons used in Browser:
+- create <icoNam>.png
+Ico_init                  // load icons 
+  GUI_Ico_init              // load a png-file
+
+
+
+================================================================== \endcode */}
+void INF_symDir (){        /*! \code
+
+A symbolic file name consists of "{symbolic-directory}/{filename}" 
+Example of symbolic file name: "Data/Niet1.dat" 
+
+All symbolic-directories are defined in file <cfgdir>/dir.lst
+  Format:
+symbol path
+Example:
+DXF_U   /mnt/serv2/devel/cadfiles/dxf/
+DXF_W  X:\Devel\cadfiles\dxf\
+
+Files:
+../../gCAD3D/cfg/dir.lst
+
+
+Functions:
+MDLFN_get_mnam           get resolved symbolic filename
+
+see:
+stru_FN    {char symDir[128], fDir[128], fNam[128], fTyp[40], iTyp;}
 
 
 

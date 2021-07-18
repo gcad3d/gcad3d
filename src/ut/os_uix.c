@@ -165,8 +165,50 @@ extern int errno;
 
 
 //================================================================
+  int OS_osVar_eval (char *fn, int fnSiz) {
+//================================================================
+// OS_osVar_eval        expand shell variables in string
+// retCode:  0=OK; -1=error, -2=string-too-log
+// On Windows, you can use ExpandEnvironmentStrings.
+// preReq: <wordexp.h>
+//
+// Example: in  "${DIR_DEV}cadfiles/gcad/" 
+//          out "/mnt/serv2/devel/cadfiles/gcad/"
+//
+// was OS_filnam_eval
+
+  int  irc = 0;
+  char **w;
+  wordexp_t p;
+
+  printf("OS_filnam_eval |%s|\n",fn);
+
+
+  // wordexp provides n results, use only first.
+  wordexp(fn, &p, 0);
+  if(p.we_wordc < 1) {irc = -1; goto L_exit;}
+
+  w = p.we_wordv;
+  // for (i = 0; i < p.we_wordc; i++)
+  // printf("%s\n", w[i]);
+  if(strlen(w[0]) >= fnSiz) {irc = -2; goto L_exit;}
+  strcpy (fn, w[0]);
+  wordfree(&p);
+  // exit(EXIT_SUCCESS);
+
+  L_exit:
+
+    printf(" ex-OS_filnam_eval |%s|\n",fn);
+
+  return 0;
+
+}
+
+
+//================================================================
   int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
 //================================================================
+// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
 // OS_filnam_eval        expand shell variables in filenames
 // retCode:  0=OK; -1 = no-filename; internal error ..
 // On Windows, you can use ExpandEnvironmentStrings.

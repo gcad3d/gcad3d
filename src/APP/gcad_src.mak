@@ -25,7 +25,6 @@ SRCG =\
   ../xa/xa_cad_ccv_ui.c\
   ../xa/xa_cad_ed1.c\
   ../xa/xa_sele.c\
-  ../xa/xa_mod_gui.c\
   ../xa/xa_brw.c\
   ../xa/xa_gmvo.c\
   ../xa/xa_ted.c\
@@ -52,6 +51,7 @@ SRCG =\
   ../xa/srcu.c\
   ../gui/gui_base.c\
 
+# ../xa/xa_mod_gui.c\
 # ../xa/xa_edmpt.c\
 # ../xa/xa_ui_nc.c\
 # ../xa/xa_smd.c
@@ -67,8 +67,8 @@ SRCB = \
 #
 SRC1 =\
   ../xa/xa.c\
-  ../xa/xa_msg.c\
-  ../xa/xa_obj_txt.c ../xa/xa_mod.c     ../xa/xa_edi__.c   ../xa/xa_ed.c\
+  ../xa/xa_msg.c     ../xa/mdl__.c\
+  ../xa/xa_obj_txt.c ../xa/xa_edi__.c   ../xa/xa_ed.c\
   ../xa/xa_ed_mem.c  ../xa/xa_src.c     ../xa/xa_ato.c     ../xa/xa_grp.c\
   ../xa/xa_ga.c      ../xa/xa_dll.c     ../xa/xa_app.c     ../xa/xa_appDat.c\
   ../xa/catalog.c    ../xa/ckint_fac.c  ../xa/cvoff2.c     ../xa/mdlfn.c\
@@ -95,6 +95,8 @@ SRC1 =\
   ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/ut_os__.c    ../ut/ut_BitTab.c\
   ../ut/deb_prt.c
 
+# ../xa/xa_mod_gui.c
+# ../xa/xa_mod.c      replaced by ../xa/mdl__.c
 # ../ut/ut_prcv_f.c - replaced by ../ut/ut_prcv_db.c = PRCV in memSpc
 # ../xa/tess2dg.c
 # ../ut/ut_prcv.c

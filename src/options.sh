@@ -56,8 +56,8 @@ mkdir -p ${gcad_dir_bin}plugins/
 mkdir -p ${gcad_dir_bin}plugins/cut1/
 
 
-echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
-echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
+#echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
+#echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
 
 # use it with ". ./options.sh"
 #

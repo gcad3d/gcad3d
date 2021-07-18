@@ -20,6 +20,8 @@ include gcad_src.mak
 # get VGUI 
 VGUI := $(shell cat ../gcad_gui_version)
 
+hTyp := $(shell echo "`uname -s`_`uname -m`")
+
 
 # get debug-settings DEB CPDEB LKDEB
 include deb.mak
@@ -37,9 +39,9 @@ OGLLIB = -lGLU -lGL
 
 
 # get SRCOS
-#include srcOS.mak
-SRCOS = ../ut/os_uix.c ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
-
+include srcOS.mak
+# only for srclst
+SRC_MS_OS = ../ut/os_w32.c ../ut/ut_os_w32.c ../ut/ctrl_os_w32.c
 
 # get OBJ* from SRC* and VPATH
 include src2obj.mak
@@ -73,6 +75,7 @@ LKFLG = $(LKDEF) $(LKDEB) -rdynamic
 default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 	@echo "====================== link ======================"
 	@echo "gcad_dir_bin=" $(gcad_dir_bin) 
+	@echo "OS = " $(OS)
 #	@echo "OBJ1=" $(OBJ1) "==================="
 #	@echo "SRC3=" $(SRC3) "==================="
 #	@echo "OBJG=" $(OBJG) "==================="
@@ -137,6 +140,7 @@ allDemos:
 	if [ $$? -ne 0 ]; then exit 1; fi \
 	done < makeFiles.lst
 	# link PP's for PRC_cut1
+	touch ../prc/cut1/G-Code.c
 	make -f ../prc/cut1/G-Code.mak
 	if [ $$? -ne 0 ]; then exit 1; fi \
 
@@ -199,6 +203,7 @@ srclst:
 	@echo $(SRCB) >> srcFiles
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
+	@echo $(SRC_MS_OS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
 	@echo ../APP/*.c ../APP/*.h ../inf/*.c >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles

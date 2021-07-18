@@ -44,7 +44,7 @@ int    WC_set_obj_stat   (int stat);
 void   APT_Init          ();
 void   APT_Reset         ();
 
-int    WC_Work__         (int, char*);
+int    WC_Work1         (int, char*);
 int    WC_Work1          (int, char*);
 int    APT_work_def      (char*, char**);
 // int    APT_work_NCCmd    (char*, char**);

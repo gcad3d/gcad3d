@@ -59,13 +59,15 @@ Ebene aus Z-Achse (Normalvektor),
                     (in Richtung Z-Achse / Normalvector) angeben.
 
 Beispiel:
-# Ebene normal auf die Z-Achse; mit Abstand.
+# Ebene normal auf die Z-Achse; mit Abstand in Richtung Z.
 R1=PERP DZ 100
+
 # Ebene normal auf die Z-Achse; durch Punkt.
 R2=PERP P(50 0 100) DZ
+
 # Ebene im Punkt p1; normal auf absolute X-Achse;
 #   neue X-Achse in Richtung absolute Z-Achse;
-#   Abstand 10 in Richtung neuer Z-Achse.
+#   Abstand 50 in Richtung neuer Z-Achse.
 P1=P(100 0 0)
 R3=PERP P1 DX DZ 50
 

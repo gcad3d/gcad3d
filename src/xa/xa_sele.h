@@ -15,37 +15,38 @@ TODO:
 
 
 // selectionGroups (cannot be used as chars):      TYP_IS_SELGRP()
-#define Typ_goGeom      1000  ///< all       (USED AS CHAR U)
-#define Typ_goPrim      1001  ///< PT/LN/CI/Spline; nicht Plg,CCV
-#define Typ_goGeo1      1002  ///< LN/CI/CV/PL/Sur/Sol (nicht PT,VC)
-#define Typ_goGeo2      1003  ///< CI/ELL (prj -> PLN)
-#define Typ_go_PD       1004  ///< PT|VC            
-#define Typ_goGeo4      1005  ///< UNUSED VC/LN/PLN
-#define Typ_goGeo5      1006  ///< CIR/ELL/CCV      (closed cont.)
-#define Typ_goGeoSUSU   1007  ///< Sur|Sol          (Supporting Surface)
-#define Typ_goGeo6      1008  ///< PT|LN|AC
-#define Typ_goGeo7      1009  ///< Val|V|PT|VC      (angle ..)
-#define Typ_goGeo8      1010  ///< Val|V|PT         (parameter ..)
-#define Typ_goAxis      1011  ///< RotAxis LN/PT+PT/PT+LN/PT+VC/PLN
-#define Typ_go_LCS      1012  ///< Line,Circ,Curv
-#define Typ_go_LR       1013  ///< Line,Plane
-#define Typ_go_RA       1014  ///< plane|surface
-#define Typ_go_lf1      1015  ///< all curves, not contour
-#define Typ_go_lf2      1016  ///< all curves, not trimmed-curve
-#define Typ_go_JNT      1017  ///< Joint
+// see INF_groupTypes
+#define Typ_goGeom      1000  // all
+#define Typ_goPrim      1001  //
+#define Typ_goGeo1      1002  //
+#define Typ_goGeo2      1003  //
+#define Typ_go_PD       1004  //
+#define Typ_goGeo4      1005  //
+#define Typ_goGeo5      1006  //
+#define Typ_goGeoSUSU   1007  //
+#define Typ_goGeo6      1008  //
+#define Typ_goGeo7      1009  //
+#define Typ_goGeo8      1010  //
+#define Typ_goAxis      1011  //
+#define Typ_go_LCS      1012  //
+#define Typ_go_LR       1013  //
+#define Typ_go_RA       1014  //
+#define Typ_go_lf1      1015  //
+#define Typ_go_lf2      1016  //
+#define Typ_go_JNT      1017  //
 
 // selectionModifiers
 #define Typ_FncVAR1     1020  ///< next DB-var
 #define Typ_FncVAR2     1021  ///< previous DB-var
 #define Typ_FncVC1      1022  ///< next DB-vector
 #define Typ_FncVC2      1023  ///< previous DB-vector
-#define Typ_FncNxt      1024  ///< next version/solution (Typ_modCoord)
-#define Typ_FncPrv      1025  ///< previous version/solution (Typ_modCoord)
-#define Typ_FncNxt      1024  ///< next version/solution (Typ_modCoord)
-#define Typ_FncPrv      1025  ///< previous version/solution (Typ_modCoord)
-#define Typ_FncDirX     1026  ///< parallel (U) or across (V)
-#define Typ_FncPtOnObj  1027  ///< parametric point on obj
-#define Typ_FncPtOnCP   1028  ///< position on constrPln
+#define Typ_FncTr1      1024  ///< next transformation
+#define Typ_FncTr2      1025  ///< previous transformation
+#define Typ_FncNxt      1026  ///< next version/solution (Typ_modCoord)
+#define Typ_FncPrv      1027  ///< previous version/solution (Typ_modCoord)
+#define Typ_FncDirX     1028  ///< parallel (U) or across (V)
+#define Typ_FncPtOnObj  1029  ///< parametric point on obj
+#define Typ_FncPtOnCP   1030  ///< position on constrPln
 
 // aux
 #define Typ_EOT         1050  ///< last typ

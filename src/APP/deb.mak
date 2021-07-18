@@ -2,13 +2,13 @@
 #       2=Distribute;  Debug-OFF
 # -pg does produce a gmon.out (add for CPDEB and LKDEB)
 # -ggdb or -g ?
-DEB = 1
+DEB = 2
 
 
 ifeq "$(DEB)" "1"
-  CPDEB = -DDEB -ggdb -fstack-check -O0
+  CPDEB = -DDEB -ggdb -pg -fstack-check -O0
 # -Wformat-overflow -Wnonnull
-  LKDEB = -ggdb
+  LKDEB = -ggdb -pg
 # -lmcheck does not work with gtk in overlay-lib
 endif
 

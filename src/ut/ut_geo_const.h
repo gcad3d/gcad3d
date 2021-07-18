@@ -49,8 +49,9 @@ touch ../ut/ut_geo2d.c && ./do c
 //                  typ,      spcTyp,            uu1
 
 // CurvBSpl
-#define _CVBSP_NUL {0, 0., 1., NULL, NULL,\
-                    (char)1, (char)0, (char)-1, (char)0}
+#define _CVBSP_NUL {0, 0., 1., NULL,  NULL,\
+                    (char)1, (char)0, (char)-1, (char)1}
+//               ptNr, v0, v1, kvTab,cpTab,
 //                      deg,     dir,      clo,     trm
 
 // CurvCCV
@@ -97,8 +98,8 @@ touch ../ut/ut_geo2d.c && ./do c
 
 // DL_Att
 #define _DL_ATT_NUL {0L, 0L,\
-                     0, 0,\
-                     0, 0,\
+                     (INT_32)0, (UINT_32)0,\
+                     (UINT_16)0, (UINT_16)0,\
                      0, 1, 1, 1,\
                      1, 0, 0, 0,\
                      0};

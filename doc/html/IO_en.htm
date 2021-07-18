@@ -57,9 +57,6 @@
 
 Load or import model.
 
-
-
-
 Select a filename to be loaded.
 
   If the directory is not yet registered,
@@ -85,7 +82,7 @@ Analytical description of curves, surfaces.
 
 <i>Filetype:</i>
 .stp        <a href="#ff_stp">STEP</a>
-.gs         <a href="#ff_igs">IGES</a>
+.igs        <a href="#ff_igs">IGES</a>
 .dxf        <a href="#ff_dxf">DXF</a> (AutoCAD)
 .svg        <a href="IO_svg_de.htm">SVG/<a>
 .gcad       gCAD3D-native
@@ -179,6 +176,7 @@ Save with a new model name - the output format must be selected.
 native           .gcad      analyt.
 DXF              <a href="#ff_dxf"  >.dxf</a>       analyt.
 Iges             <a href="#ff_igs"  >.igs</a>       analyt.
+STEP             <a href="#ff_stp"  >.stp</a>       analyt.
 VRML-1           <a href="#ff_wrl1" >.wrl</a>       Mockup
 VRML-2 (VRML-97) <a href="#ff_wrl2" >.wrl</a>       Mockup
 STL              <a href="#ff_stl"  >.stl</a>       Mockup
@@ -310,8 +308,9 @@ EXPORT:
 <b>Export VRML-2  (VRML-97)</b>
 
 - Can export assemblies (subModels)
-- Cannot re-export mockup submodels (WRL/OBJ/TESS)
+- Cannot re-export mockup submodels
 - Cannot yet export textures
+
 
 <HR><!-- ============================================================ -->
 <p><a name="ff_obj"></a></p>
@@ -341,6 +340,7 @@ Description of the file format is given in file gCAD3D_prog_de.txt.
 EXPORT:
  - Currently can only export single models (no subModels can be exported)
  - Cannot re-export Mockup-Submodels (WRL/OBJ/TESS)
+
 
 <HR><!-- ============================================================ -->
 <p><a name="ff_bmp"></a></p>

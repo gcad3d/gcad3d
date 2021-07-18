@@ -21,6 +21,9 @@ SRCGUI =\
  ../gui_gtk3/gtk_opengl.c\
  ../gui_gtk3/gtk_gl_x11.c
 
+
+#../gui_gtk3/gtk_glarea.c
+
 #../gui_gtk3/gtk_dlg_files.c\
 #../gui_gtk3/gtk_printer.c\
 

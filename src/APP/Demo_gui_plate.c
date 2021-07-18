@@ -72,16 +72,17 @@ __declspec(dllexport) int gCad_fini ();
 #include "../db/ut_DB.h"               // DB_GetObjGX
 #include "../ci/NC_Main.h"             // WC_ask_ModSiz
 
-#include "../xa/xa_mem.h"                    // gen.purp.memblocks
-#include "../xa/xa_ui.h"                     // UID_..
+#include "../xa/xa_mem.h"              // gen.purp.memblocks
+#include "../xa/mdl__.h"               // SIZMF*
+#include "../xa/xa_ui.h"               // UID_..
 #include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
 
 
 
 
 // ext aus xa.c:
-extern  char      AP_mod_fnam[128];    // der Modelname
-extern  char      AP_mod_dir[128];  // Verzeichnis f Open, ..
+extern  char      AP_mod_fnam[SIZMFNam];    // der Modelname
+extern  char      AP_mod_dir[SIZMFTot];  // Verzeichnis f Open, ..
 
 
 

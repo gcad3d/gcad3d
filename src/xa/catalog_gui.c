@@ -56,7 +56,7 @@ RefMod:
 
 BasMod:
   Typ = -2; Modelname ist <catalogName>_<partName>
-  Das zugehoerige Modelfile wird durch die Funktion CTLG_mnam_modelnam
+  Das zugehoerige Modelfile wird durch die Funktion CTLG_fnMdl_safPartNam
   geholt (in der 1. zeile des -write-File steht der ModelfileName).
 
 
@@ -90,7 +90,7 @@ user-select Part:
 ----------------------------------------------------------------------
 Wichtige Funktionen:
 
-WC_Work__
+WC_Work1
   CTLG_Part_Ref1
   Mod_load_allsm
     Mod_load_sm
@@ -110,7 +110,7 @@ APT_work_PrgCmd   :4217
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 

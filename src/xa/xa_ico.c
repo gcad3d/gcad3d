@@ -84,7 +84,8 @@ List_functions_end:
     "value.png",  "vector.png", "point.png",  "line.png",   "circle.png",  // 0-4
     "curve.png",  "plane.png",  "surface.png","body.png",   "image.png",   // 5-9
     "part.png",   "natMdl.png", "extMdl.png", "libPart.png","binDat.png",  // 10-
-    "link.png",   "process.png", NULL};                                    // 15-
+    "link.png",   "process.png","natMA.png",  "natMU.png",  "natM0.png",   // 15-
+    NULL};
 
   printf("Ico_init \n");
 
@@ -164,7 +165,7 @@ List_functions_end:
       break;
 
     case Typ_SubModel:
-      ii = ICO_natM; // 11;        // "natMdl.png"
+      ii = ICO_natML; // 11;       // "natMdl.png"
       break;
 
     case Typ_Mock:

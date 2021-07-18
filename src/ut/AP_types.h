@@ -23,33 +23,31 @@ Korr:
 void INF_OTYP (){}
 #endif
 //----------------------------------------------------------------
-/// \code
-///   01 -  19  DB-primitives (V.D,P,L,C)
-///   20 -  39  DB-curves (S)
-///   40 -  79  surfs (A)
-///   80 -  89  bodies (B)
-///   90 - 109  notes, images
-///  110 - 119  temp objs
-///  120 - 129  geom. attributes
-///  130 - 149  geom. parameters
-///  150 - 169  attributes
-///  170 - 189  dataFormats (Int, matrix, Polynom..)
-///  190 - 199  Text
-///  200 - 209  containers
-///  210 - 219  transformations
-///  220 - 229  operators
-///  230 - 249  modifiers
-///  250 - 259  events
-///  260 - 269  functions
-///  270 - 279  function parameters
-///  400 - 499  ../gui/gui_types.h      GUI-types TYP_Event* TYP_Device* TYP_GUI_*
-/// 1000 -1099  ../xa/xa_sele.h         selection-modfiers
-///
-/// Get infoText for types: AP_src_typ__ ();
-/// See also xa_sele.h
-/// FIX (UPDATE) ALSO TypTxtTab* in ../ut/ut_gtypes.c
-/// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
-/// \endcode
+//   01 -  19  DB-primitives (V.D,P,L,C)
+//   20 -  39  DB-curves (S)
+//   40 -  79  surfs (A)
+//   80 -  89  bodies (B)
+//   90 - 109  notes, images
+//  110 - 119  temp objs
+//  120 - 129  geom. attributes
+//  130 - 149  geom. parameters
+//  150 - 169  attributes
+//  170 - 189  dataFormats (Int, matrix, Polynom..)
+//  190 - 199  Text
+//  200 - 209  containers
+//  210 - 219  transformations
+//  220 - 229  operators
+//  230 - 249  modifiers
+//  250 - 259  events
+//  260 - 269  functions
+//  270 - 279  function parameters
+//  400 - 499  ../gui/gui_types.h      GUI-types TYP_Event* TYP_Device* TYP_GUI_*
+// 1000 -1099  ../xa/xa_sele.h         selection-modfiers
+//
+// Get infoText for types: AP_src_typ__ ();
+// See also xa_sele.h
+// FIX (UPDATE) ALSO TypTxtTab* in ../ut/ut_gtypes.c
+// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
 
 
 
@@ -187,6 +185,7 @@ void INF_OTYP (){}
 #define Typ_Model        123  ///< M  ModelReference of native-subModel ModelRef
 #define Typ_Mock         124  ///< M  ModelReference of mockup-subModel
 #define Typ_Ditto        125  ///< mockup-subModel (unvisible)
+#define Typ_ModelNode    126  ///< model-hierarchy                       UNUSED
 #define Typ_CtlgPart     127  ///  catalog-part
 
 #define Typ_GEOB_2D      128  ///< geometric obj binary format 2D
@@ -200,23 +199,21 @@ void INF_OTYP (){}
 #define Typ_YVal         132  ///< Y-value (Y())
 #define Typ_ZVal         133  ///< Z-value (Z())
 #define Typ_Angle        134  ///< Angle (in degree; ANG())
-#define Typ_Rad          135  ///< Radius
-#define Typ_Dist         136  ///< distance  UNUSED ..
+#define Typ_Rad          135  ///< Radius   UU ?
+#define Typ_PTS          136  // standard-point-Nr; (Ptyp_* eg Ptyp_start,Ptyp_end)
+#define Typ_PTI          137  // index controlpoint for eg polygon, bspl, ..
+#define Typ_SEG          138  // segment-Nr (of compound-objs, eg CCV)
+#define Typ_Par1         139  ///< Parameter 0-1; for knotvals use Typ_Val
 
-#define Typ_Par1         140  ///< Parameter 0-1; for knotvals use Typ_Val
-#define Typ_UVal         141
-#define Typ_VVal         142
-#define Typ_AngN         143
-#define Typ_AngP         144
-#define Typ_RadISO       145
-#define Typ_Conic        146
 
-#define Typ_PTS          147  // standard-point-Nr; (Ptyp_* eg Ptyp_start,Ptyp_end)
-#define Typ_PTI          148  // index controlpoint for eg polygon, bspl, ..
-#define Typ_SEG          149  // segment-Nr (of compound-objs, eg CCV)
-// #define Typ_Side         121  ///< hi, lo, le or ri
-// #define Typ_Side1        122  ///< in or out
-// #define Typ_DirS         123  ///< X / Y / Z / P
+#define Typ_Dist         140  // unused
+#define Typ_UVal         141  // unused
+#define Typ_VVal         142  // unused
+#define Typ_AngN         143  // unused
+#define Typ_UU1          144  // unused
+#define Typ_UU2          145  // unused
+#define Typ_UU3          146  // unused
+
 
 
 /// attributes
@@ -238,7 +235,7 @@ void INF_OTYP (){}
 #define Typ_apDat        164  ///< application-data Typ_APPOBJ; invisible;
 #define Typ_dynSym       165  /// dynamic obj without DB-obj
 #define Typ_PRCV         166  ///< polygonal representation curve
-#define Typ_constPln     167  ///< construction-plane (2D-plane)
+#define Typ_constrPln     167  ///< construction-plane (2D-plane)
 #define Typ_Process      168  ///  Process (NC ..)
 
 
@@ -321,7 +318,7 @@ void INF_OTYP (){}
 #define Typ_modCTRL      236
 #define Typ_modPERP      237  ///< perpendicular (right angled; default = parall)
 #define Typ_modPARL      238  ///< parallel (U-direction)
-#define Typ_modHIX       239
+#define Typ_modUnlim     239  ///< "UNL|UNL1|UNL2"
 #define Typ_modLOX       240
 #define Typ_modHIY       241
 #define Typ_modLOY       242
@@ -332,7 +329,7 @@ void INF_OTYP (){}
 #define Typ_modIN        247
 #define Typ_modOUT       248
 #define Typ_modAux       249  ///< Modifier; on|off; text=last infoWord
-#define Typ_modUnlim     250  ///< "UNL|UNL1|UNL2"
+#define Typ_modHIX       250  // X-vec of plane
 #define Typ_modUndef     259  ///< undefined
 
 
@@ -408,30 +405,35 @@ void INF_OTYP (){}
 
 
 // AP_iftyp_ftyp
-#define Mtyp_Gcad       0
+#define Mtyp_Gcad       0    // extern-native
 
-#define Mtyp_DXF        1
+#define Mtyp_DXF        1    // native-import; 1 - 9;
 #define Mtyp_Iges       2
 #define Mtyp_Step       3
+
 #define Mtyp_3DS        4
 #define Mtyp_LWO        5
 #define Mtyp_XML        6
-#define Mtyp_SVG        7
+#define Mtyp_SVG        7    // only export
 
-#define Mtyp_TESS      10    // gcad-tesselated-data
-#define Mtyp_WRL       11    ///< VRML1      10-19  tess-Formate
-#define Mtyp_WRL2      12    ///< VRML2
+#define Mtyp_TESS      10    // gcad-tesselated-data - 10 - 19
+#define Mtyp_WRL       11    // VRML1 
+#define Mtyp_WRL2      12    // VRML2
 #define Mtyp_OBJ       13
 #define Mtyp_STL       14
 
-#define Mtyp_BMP       20    ///< .bmp       20-29 PixelImages
-#define Mtyp_JPG       21    ///< .jpg
+#define Mtyp_BMP       20    // .bmp       20-29 PixelImages
+#define Mtyp_JPG       21    // .jpg
 
 
 // basicModeltypes
-#define MBTYP_EXTERN    0
+#define MBTYP_EXTERN    0      // extern-native
 #define MBTYP_INTERN   -1
-#define MBTYP_CATALOG  -2
+#define MBTYP_CATALOG  -2      // .ctlg
+#define MBTYP_APPLI    -3      // .gcap
+#define MBTYP_DUP      -4      // duplicate model
+#define MBTYP_UNDEF    -5
+#define MBTYP_ERROR    -6
 
 
 // 3D-mode or 2D-mode
@@ -467,6 +469,12 @@ void INF_OTYP (){}
 // typedef float TimeStamp;
 #endif
 
+
+#define OBJSTAT_undef     -1
+#define OBJSTAT_perm       0   // APT_obj_stat lifespan
+#define OBJSTAT_temp       1
+
+#define MDL_BMI_ACT       -1   // index baseModel of active primary model
 
 #define MDLSTAT_empty      0
 #define MDLSTAT_loading    1

@@ -54,7 +54,7 @@ tess_read_f           read tesselated surf (file-oriented)
 tess_write_f_         write tesselated surf into file
 tess_reloc_f_         relocate tesselated surf (read from file)
 
-tess_read_            read .tess-file from temp-dir
+tess_read__           read .tess-file from temp-dir
 tess_write__          write .tess-file into temp-dir
 
 tess_triaNr_bMsh             find nr of surfaces & (total) nr of triangles
@@ -156,16 +156,16 @@ int tess_analyz_CB (ObjGX*);
  
 
 //================================================================
-  int tess_read_ (Memspc *impSpc, char *mnam) {
+  int tess_read__ (Memspc *impSpc, char *mnam) {
 //================================================================
-// tess_read_                read .tess-file from temp-dir
+// tess_read__                read .tess-file from temp-dir
 // RetCod -1 = pretesselated file does not exist
 //         0 = ok; loaded into impSpc->next
 
   int  irc;
   char cBuf[256];
 
-  printf("tess_read_ |%s|\n",mnam);
+  printf("tess_read__ |%s|\n",mnam);
 
   // get filename fnam.tess & check if pretesselated file exists
   irc = tess_fnam (cBuf, mnam);  // -1=no, 1=yes.
@@ -187,12 +187,13 @@ int tess_analyz_CB (ObjGX*);
   FILE *fp=NULL;
 
 
-  printf("tess_write__ |%s|\n",fnam);
+  // printf("tess_write__ |%s|\n",fnam);
 
-  sprintf(cBuf, "%s%s.tess",OS_get_tmp_dir(),fnam);
-    // printf("    _write_ |%s|\n",cBuf);
+//   sprintf(cBuf, "%s%s.tess",OS_get_tmp_dir(),fnam);
+//     // printf("    _write_ |%s|\n",cBuf);
 
-  fp = fopen(cBuf,"wb");
+  fp = fopen(fnam,"wb");
+  if(!fp) {TX_Print("***** tess_write__ E1 %s",fnam); return -1;}
   tess_write_f_ (fp, oxi);
 
   fclose(fp);
@@ -1301,7 +1302,7 @@ use in GL_disp_cone
   ObjGX       *ox1;
 
 
-  printf("tess_box_get\n");
+  // printf("tess_box_get\n");
 
   // init box
   UT3D_box_ini0 (pb1, pb2);

@@ -358,7 +358,7 @@ List_functions_end:
   // DXFW_test ("2");
 
 
-  // Erstens: ist der neue Z-Vektor ident mit dem Haupt-Z-Vektor:
+  // ist der neue Z-Vektor ident mit dem Haupt-Z-Vektor:
   // (wenn sein X-Anteil und sein Y-Anteil kleiner als 1/64 sind)
   d1 = 1. / 64.;
   if((fabs(vz->dx) > d1)||(fabs(vz->dy) > d1)) goto Nicht_Z_Parallel;
@@ -367,27 +367,24 @@ List_functions_end:
 
 
   //----------------------------------------------------------------
-  // // YES, IS PARALLEL
+  // // YES, IS PARALLEL or antiparallel
     // printf(" _load_mat - Z-parallel %lf\n",d1);
   irc = 0;
   // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
-    // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
-
   UT3D_vc_perp2vc (&vy, vz, &vx);
-
+    // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
   goto Load_Matrix;
 
 
   //----------------------------------------------------------------
   // NOT PARALLEL
-  // NEIN: Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
   Nicht_Z_Parallel:
+  // cross the world Z axis with the given Z axis to arrive at the arbitrary X axis.
+  // Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
     // printf(" _load_mat - NOT Z-parallel %lf\n",d1);
-
   irc = 1;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Z, vz);
-
   UT3D_vc_perp2vc (&vy, vz, &vx);
 
 
@@ -405,7 +402,6 @@ List_functions_end:
     // DEB_dump_obj__ (Typ_VC, &vy, " vy:");
     // DEB_dump_obj__ (Typ_M4x3, m1, " irc=%d m1:",irc);
     // END TESTBLOCK
-
 
   return  irc;
 

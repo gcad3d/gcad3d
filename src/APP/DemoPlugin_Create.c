@@ -130,7 +130,7 @@ char myMemspc[50000];
 
 
   // clear model ("File/New")
-  UI_men__ ("new");
+  // UI_men__ ("new");
 
 
 
@@ -141,7 +141,7 @@ char myMemspc[50000];
 
 
   // permanent objects
-  cre_perm_src ();        // permanent objects from sourceCode
+  // cre_perm_src ();        // permanent objects from sourceCode
   // cre_perm_obj ();        // permanent objects from binary-obj
 
 
@@ -153,15 +153,15 @@ char myMemspc[50000];
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
   // cre_tDyn_obj ();        // Temporary-Dynamic binary-obj
-  // cre_tDyn_sym ();        // Temporary-Dynamic symbols
+  cre_tDyn_sym ();        // Temporary-Dynamic symbols
   // cre_tDyn_txt ();        // Temporary-Dynamic text
   // cre_tDyn_mdr ();        // Temporary-Dynamic modelRefs;
 
 
   //----------------------------------------------------------------
   // surfaces
-  cre_tDyn_sur_nifac1 ();    // indexed-faces
-  cre_tDyn_sur_nifac2 ();    // double-indexed-faces
+  // cre_tDyn_sur_nifac1 ();    // indexed-faces
+  // cre_tDyn_sur_nifac2 ();    // double-indexed-faces
 
 
 
@@ -864,7 +864,7 @@ char myMemspc[50000];
   // create modelRef
   bmi = 0;      // internal subModel <bmi> must exist !
   scale = 1.;
-  // get modelRef from basicModelNr and refSys
+  // set modelRef from basicModelNr and refSys
   Mod_mdr__bmi_pln (&mdr, bmi, &pl1, scale);
     DEB_dump_obj__ (Typ_Model, &mdr, "  temp_mdb-mdr: ");
 
@@ -910,9 +910,11 @@ char myMemspc[50000];
   static long    startInd=0;
 
   int     i1;
+  double  d1;
   Point   pt1 = { 0., -5., 0.};
+  Point2  pt_2;
   Vector  vc1 = { 2., 1., 3.}, vc2;
-
+  Vector2 vc_2;
 
   printf("cre_tDyn_sym \n");
 
@@ -940,43 +942,70 @@ char myMemspc[50000];
   pt1.x = 0.;
   pt1.y -= 2.;
   // normalized vector
-  GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 0);
+  GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 0);      
   GR_tDyn_vc__ (&UT3D_VECTOR_Y, &pt1, ATT_COL_BLUE, 0);
-  // vector true-length
+
+
+  // vectors 3D-true-length
   for(i1=0; i1<5; ++i1) {
     pt1.x += 2.;
-    GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 1);
-    UT3D_vc_multvc (&vc2, &UT3D_VECTOR_Y, pt1.x);
-    GR_tDyn_vc__ (&vc2, &pt1, ATT_COL_RED, 1);
+    GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 1);  // true length
+    UT3D_vc_multvc (&vc2, &UT3D_VECTOR_Y, i1+1); // pt1.x);
+    GR_tDyn_vc__ (&vc2, &pt1, ATT_COL_RED, 1);  // true length
   }
 
 
-  // vector-symbols in 2D-plane; scaled, rotated  
+  // symbols in 2D-plane; scaled, rotated  
   pt1.x = 0.;
   pt1.y -= 2.;
-  GR_tDyn_symV_r (SYM_ARROW, ATT_COL_BLACK, &pt1, NULL, 10.);
+//   GR_tDyn_symV2 (SYM_ARROW, ATT_COL_BLACK, &pt1, NULL, 12.);
+//     pt1.x += 2.;
+  GR_tDyn_symV2 (SYM_SQUARE, ATT_COL_RED, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_SQUARE, ATT_COL_RED, &pt1, NULL, 1.);
+  GR_tDyn_symV2 (SYM_PLANE, ATT_COL_GREEN, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_PLANE, ATT_COL_GREEN, &pt1, NULL, 1.);
+  GR_tDyn_symV2 (SYM_AXIS1, ATT_COL_BLUE, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_AXIS1, ATT_COL_BLUE, &pt1, NULL, 1.);
+  GR_tDyn_symV2 (SYM_AXIS, ATT_COL_YELLOW, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_AXIS, ATT_COL_YELLOW, &pt1, NULL, 1.);
+  GR_tDyn_symV2 (SYM_CROSS, ATT_COL_MAGENTA, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_CROSS, ATT_COL_MAGENTA, &pt1, NULL, 1.);
+  GR_tDyn_symV2 (SYM_CROSS1, ATT_COL_CYAN, &pt1, NULL, 1.);
     pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_CROSS1, ATT_COL_CYAN, &pt1, NULL, 1.);
-    pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_TRIANG, ATT_COL_WHITE, &pt1, NULL, 10.);
-    pt1.x += 2.;
-  GR_tDyn_symV_r (SYM_ARRO3H, ATT_COL_HILI, &pt1, &UT3D_VECTOR_Y, 1.);
-  GR_tDyn_symV_r (SYM_LENGTH, ATT_COL_DIMMED, &pt1, &UT3D_VECTOR_Y, 2.);
+  GR_tDyn_symV2 (SYM_TRIANG, ATT_COL_WHITE, &pt1, NULL, 10.);
 
-  // vector-symbols oriented - 3D (rotate + tilt)
+
+  // bitmap-symbols
+  pt1.x = 0.;
+  pt1.y -= 2.;
+  GR_tDyn_symB__ (&pt1, SYM_TRI_S, ATT_COL_BLACK);
     pt1.x += 2.;
-  GR_tDyn_symV_o (SYM_ARRO3H, ATT_COL_BLUE, &pt1, &vc1, 1.);
-  GR_tDyn_symV_o (SYM_LENGTH, ATT_COL_BLUE, &pt1, &vc1, 2.);
+  GR_tDyn_symB__ (&pt1, SYM_STAR_S, ATT_COL_RED);
+    pt1.x += 2.;
+  GR_tDyn_symB__ (&pt1, SYM_CIR_S, ATT_COL_GREEN);
+    pt1.x += 2.;
+  GR_tDyn_symB__ (&pt1, SYM_SQU_S, ATT_COL_BLUE);
+    pt1.x += 2.;
+  GR_tDyn_symB__ (&pt1, SYM_TRI_B, ATT_COL_YELLOW);
+    pt1.x += 2.;
+  GR_tDyn_symB__ (&pt1, SYM_SQU_B, ATT_COL_MAGENTA);
+
+
+
+  // 2D-vectors, normalized
+  pt_2.x = 0.;
+  pt_2.y = pt1.y - 2.;
+  for(d1=0.; d1<359.; d1 += 30.) {
+    UT2D_vc_angr (&vc_2, UT_RADIANS(d1));
+      printf(" vc_2 = %f %f len=%f\n",vc_2.dx,vc_2.dy,UT2D_len_vc(&vc_2));
+    GR_tDyn_vc2__ (&vc_2, &pt_2, ATT_COL_BLACK, 0);      // ATT_COL_T_GREEN
+  }
+
+
+  // 2D-vectors, true-length, linetype thick
+  vc_2.dx = 2;
+  vc_2.dy = 0;
+  GR_tDyn_vc2__ (&vc_2, &pt_2, ATT_COL_T_GREEN, 1);
 
 
   //----------------------------------------------------------------
@@ -1072,7 +1101,7 @@ char myMemspc[50000];
   dbi = DB_QueryNxtFree (Typ_Model, 20);
     printf(" dbiNxtM=%ld\n",dbi);
   // create source
-  sprintf (s1,"M%ld=CTLG \"Schrauben/SKS_6x30\" R(PERP P(10 10 0) DZ)",dbi);
+  sprintf (s1,"M%ld=\"Schrauben/SKS_6x30.ctlg\" R(PERP P(10 10 0) DZ)",dbi);
   // add source into buffer
   UTF_add1_line (s1);
 

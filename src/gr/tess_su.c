@@ -53,7 +53,7 @@ TSU_DrawSurTess      draw tesselated surf
 ------------- trimmed-perforated-surfaces
 TSU_DrawSurTP        trimmed-perforated-surface planar
 TSU_DrawSurTC        trimmed-perforated-surface complex
-TSU_DrawSurPMsh       disp mesh from points
+TSU_DrawSurPMsh      disp mesh from points
 TSU_DrawHAT          hatched-surface
 
 TSU_DrawSurT_  old-version; to be replaced ..
@@ -104,6 +104,7 @@ TSU_tr_3D_2D_srbsp
 TSU_Init
 TSU_free
 TSU_realloc__
+TSU_SUR__              tesselate surface from ogx
 
 TSU_srv_con_2cylCon test if contours are 2 circles or a closed surface
 TSU_srv_con_0       cone
@@ -146,7 +147,7 @@ Die ungelochten Surs werden durch eigene Funktionen dargestellt
   TSU_DrawSurTRV - Revolved
 
 Gelocht/getrimmt:
-  TSU_DrawSurTP  - Planar
+  TSU_DrawSurTP1  - Planar
   TSU_DrawSurTC  - Complex (Ruled/Revolved/B-Spline)
 
 
@@ -277,6 +278,7 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include "../db/ut_DB.h"                  // DB_GetGTxt
 #include "../ut/gr_types.h"                  // UI_Func... SYM_..
 #include "../ut/func_types.h"             // FUNC_DispRend
+#include "../gr/ut_gr.h"                  // GR_tDyn_pcv
 #include "../gr/tess_su.h"                // TypTsuSur
 #include "../xa/xa_mem.h"                 // memspc51..
 #include "../xa/xa.h"                     // AP_STAT
@@ -304,7 +306,6 @@ extern int     GL_actTex;
 
 // aus xa.c:
 extern AP_STAT   AP_stat;
-extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 
@@ -393,6 +394,129 @@ static TSU_struct1 *TSU_mSpc;
 
 
 
+
+//================================================================
+  int TSU_SUR__ (ObjGX *ox1, int att, long dbi) {
+//================================================================
+// TSU_SUR__              tesselate surface from ogx
+
+  int    irc, ssTyp;
+
+
+  // printf("TSU_SUR__ %ld %d\n",dbi,att);
+  // DEB_dump_ox__ (ox1, "TSU_SUR__-in");
+
+  if(!TYP_IS_SUR(ox1->typ)) return -1;
+
+
+  //----------------------------------------------------------------
+  // see APT_Draw__ - GR_set_osu
+  switch (ox1->typ) {
+    case Typ_SUR:      // trimmed-perforated surface     
+      // get type of support-surface
+      ssTyp = ((ObjGX*)ox1->data)[0].typ;
+        // printf(" VR2_exp_ox__-ssTyp = %d\n",ssTyp);
+
+
+    switch (ssTyp) {
+
+      case Typ_PLN: // planar - trimmed, perforated - new version
+      case Typ_Typ: // planar - trimmed, perforated
+        irc = TSU_DrawSurTP (ox1, att, dbi);
+        break;
+
+      case Typ_SUR:       // trimmed-perforated surface
+      case Typ_CON:
+      case Typ_TOR:
+      case Typ_SURRU:
+      case Typ_SURRV:
+      case Typ_SURBSP:
+      case Typ_SURRBSP:
+      case Typ_SOL:
+        // Tesselate / Display trimmed-perforated Complex-surface
+        irc = TSU_DrawSurTC (ox1, att, dbi);
+        break;
+      default:
+      // Typ und form=Typ_SUR: Planare Flaeche; ungetrimmt, ungelocht; UU?
+      // irc = TSU_DrawSurTS (oxi, att, dbi);
+        TX_Print("TSU_SUR__ TODO ssTyp=%d",ssTyp);
+        irc=-1;
+    }
+    break;
+
+
+    //----------------------------------------------------------------
+    // support-surfaces, notTrimed-notPerforated
+    //----------------------------------------------------------------
+    case Typ_SURRV:
+      // support-surface - RevolvedSurface;
+      irc = TSU_DrawSurTRV (ox1, att, dbi);
+      break;
+
+    case Typ_SURRU:
+      // Typ=Typ_SURRU: RuledSurface;
+      irc = TSU_DrawSurTRU (ox1, att, dbi);
+      break;
+
+    case Typ_SURBSP:
+      // support-surface - B-SplineSurface
+      irc = TSU_DrawSurBsp (ox1, att, dbi);
+      break;
+
+    case Typ_SURRBSP:
+      // support-surface - Rat.B-SplineSurface
+      irc = TSU_DrawSurRBsp (ox1, att, dbi);
+      break;
+
+    case Typ_SURSWP:
+      // support-surface - B-SplineSurface
+      irc = Tess_sur__ (ox1, att, dbi);
+      break;
+
+    //----------------------------------------------------------------
+    // tesselated-surfaces
+    //----------------------------------------------------------------
+    case Typ_SURCIR:
+      // circular faces 
+      irc = TSU_DrawRCIR (ox1, att, dbi);
+      break;
+
+    case Typ_SURSTRIP:
+      // stripe from faces
+      irc = TSU_DrawRSTRIP (ox1, att, dbi);
+      break;
+
+    //----------------------------------------------------------------
+    // other-surfaces
+    //----------------------------------------------------------------
+    case Typ_SURPMSH:
+      // surface from points
+      irc = TSU_DrawSurPMsh (ox1, att, dbi);
+      break;
+
+    case Typ_SURHAT:
+      // hatched-surface
+      irc = TSU_DrawHAT (ox1, att, dbi);
+      break;
+
+    case Typ_SURPTAB:
+      // boundary of surface from points
+      irc = GR_disp_cv_pMesh (dbi, att);
+      break;
+
+    //----------------------------------------------------------------
+    default:
+      TX_Print("TSU_SUR__ E-typ %d",ox1->typ);
+      irc = -1;
+  }
+
+
+
+  return irc;
+
+}
+
+
 //================================================================
   int TSU_free () {
 //================================================================
@@ -428,6 +552,7 @@ static TSU_struct1 *TSU_mSpc;
 //             YOU MUST free memSpc with mode=0|3 !
 //     4 start accumulation of tesselated vertices for Intersect; do not Draw.
 //             YOU MUST free memSpc with mode=0|3 !
+//     5 free memspace; 
 // Output:
 //   Retcod:  mode=0    returns the nr of tesselated triangles
 //            mode=1    returns the nr of surfaces to tesselate
@@ -445,6 +570,14 @@ static int oldMode = 0;
 
   // printf("IIIIIIIIIIIIIII TSU_Init %d %d\n",mode,TSU_mode);
 
+  if(mode == 5) {
+    // do NOT free memSpc in plugin - microsoft-crash !!)
+    if(*memSpc) free (*memSpc);
+    *memSpc = NULL;
+    return 0;
+
+  }
+   
 
   //----------------------------------------------------------------
   if((mode == 1)||(mode == 4)) {           // start store to mem
@@ -458,7 +591,7 @@ static int oldMode = 0;
 
       // get nr of surfs -> irc
       irc = DL_GetNrSur() + DL_GetNrSol();
-        printf(" %d surf to export ..\n",irc);
+        // printf(" %d surf to export ..\n",irc);
 
       if(irc < 1) {
         // TX_Print("*********** no surfaces to export ....");
@@ -2055,6 +2188,7 @@ static int   patNr;     // nr of Patches
   int       iTexBas, iTexRef;
 
 
+  // printf("====================================================== \n");
   // printf("TSU_DrawSurTRV %d %d\n",oxi->typ,oxi->form);
   // printf(" v0=%lf\n",((SurRev*)oxi->data)->v0);
   // printf(" v1=%lf\n",((SurRev*)oxi->data)->v1);
@@ -2086,10 +2220,9 @@ static int   patNr;     // nr of Patches
   // init
   irc = TSU_tr_init_ (oxi);
   if(irc < 0) return irc;
-
-  // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TRV: TSU_prx");
-  // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TRV: TSU_vrx");
-  // DEB_dump_ox_0 (&TSU_ox2, "TRV: Contour");
+    // DEB_dump_obj__ (Typ_PT, &TSU_prx, "TRV: TSU_prx");
+    // DEB_dump_obj__ (Typ_VC, &TSU_vrx, "TRV: TSU_vrx");
+    // DEB_dump_ox_0 (&TSU_ox2, "TRV: Contour");
 
   
 
@@ -2104,19 +2237,17 @@ static int   patNr;     // nr of Patches
   p3Max = sizeof(memspc53) / sizeof(Point);
 
 
-  // Polygon p1Tab[ptNr] aus Randkurve TSU_ox2 generieren ("Contour")
-  // p1Tab ist das StartPolygon (bei Angle = 0)
+  // get Polygon p1Tab[ptNr] from curve TSU_ox2 being rotated ("Contour")
+  // p1Tab is the polygon at angle = 0
   ptNr = p1Max;
   i1 = UT3D_npt_ox__ (&ptNr, p1Tab, &TSU_ox2, UT_DISP_cv * 2.);
-    // printf(" irc=%d ptNr=%d\n",i1,ptNr);
+    // printf(" DrawSurTRV-irc=%d ptNr=%d\n",i1,ptNr);
   if(i1 != 0) return 0; // skip Stuetzflaeche
 
 
-
-
     // TestDisp Contour
-    // GR_tDyn_npt__ (ptNr, p1Tab, SYM_TRI_S, 2);  return -1;
-    // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__ (Typ_PT,&p1Tab[i1]," p1Tab[%d]:",i1);
+    // GR_tDyn_npt__ (p1Tab, ptNr, 1);  // return -1;
+    // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&p1Tab[i1]," SurTRV-x2[%d]:",i1);
     // END TESTBLOCK
 
 
@@ -2155,7 +2286,7 @@ static int   patNr;     // nr of Patches
   }
 
 
-    // printf(" aSta=%f aInc=%f iNr=%d\n",aSta,aInc,iNr);
+    // printf(" DrawSurTRV-aSta=%f aInc=%f iNr=%d\n",aSta,aInc,iNr);
 
 
   //================================================================
@@ -2195,14 +2326,14 @@ static int   patNr;     // nr of Patches
 
 
   L_nxt:
-    // printf("  L2 iAct=%d aa=%f\n",iAct,aa);
+    // printf("------------------  DrawSurTRV-L2 iAct=%d aa=%f\n",iAct,aa);
   for(i1=0; i1<ptNr; ++i1) {
     UT3D_pt_rotptptvcangr(&p3Tab[i1], &p1Tab[i1], &TSU_prx, &TSU_vrx, aa);
   }
 
   // store or display stripes - als GL-STRIP ausgeben
-  // GL_set_strip2 (p2Tab, p3Tab, ptNr, 0);
-  GR_DrawStrip (p2Tab, p3Tab, ptNr, 0);
+  // GR_DrawStrip (p2Tab, p3Tab, ptNr, 0);
+  GR_set_strip_v (p2Tab, p3Tab, ptNr, 0);
 
   // Adressen vertauschen
   MEM_swap__ (&p2Tab, &p3Tab, sizeof(void*));
@@ -2223,7 +2354,7 @@ static int   patNr;     // nr of Patches
 */
 
   L_exit:
-
+    // printf("  ex-TSU_DrawSurTRV\n");
   return 0;
 
 }
@@ -2278,8 +2409,9 @@ static int   patNr;     // nr of Patches
 
 
   // check if bin.meshfile exists
-  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ind, dbi);
-  sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, dbi);
+  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ibm, dbi);
+//   sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, dbi);
+  sprintf(fNam, "%s_A%ld.msh", OS_get_tmp_dir(),dbi);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
@@ -2295,7 +2427,7 @@ static int   patNr;     // nr of Patches
   MSH_msh0__ (&ms1, iba, &ibNr, pTab, pNr);
   fTab = ms1.f->fTab;
   fNr = ms1.f->fNr;
-  MSH_bsav_fTab (fTab, fNr, AP_modact_ind, dbi);
+  MSH_bsav_fTab (fTab, fNr, AP_modact_ibm, dbi);
   flag1 = 0;
   goto L_draw;
 */
@@ -2304,8 +2436,9 @@ static int   patNr;     // nr of Patches
 
   // load MeshFile    fTab=malloc !
   L_f_load:
-  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ind, dbi);
-  i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, dbi);
+  // i1 = MSH_bload_fTab (&fTab, &eTab, &eDat, AP_modact_ibm, dbi);
+//   i1 = MSH_bload_fTab (&fTab, NULL, NULL, AP_modact_nam, dbi);
+  i1 = MSH_bload_fTabf (&fTab, NULL, NULL, fNam);
   if(i1 < 0) {TX_Error("TSU_DrawSurPMsh E002"); return -1;}
   flag1 = 1;
 
@@ -2474,7 +2607,7 @@ static int   patNr;     // nr of Patches
     }
     // copy points -> pTab
     L_fan_cp_U:
-      printf(" L_fan_cp_U:\n");
+      // printf(" L_fan_cp_U:\n");
     // copy points 1 3 5 7 9 .. -> pTab
     i2 = 1;
     for(i1=0; i1<sub1->ptVNr; ++i1) {
@@ -2643,7 +2776,7 @@ static int   patNr;     // nr of Patches
 //================================================================
   int TSU_DrawSurTP (ObjGX *oxi, int att, long dbi) {
 //================================================================
-// Tesselate / Display getrimmte/gelochte Planare Flaeche
+// Tesselate / Display getrimmte/gelochte Planare Flaeche - new version
 // typ  = Typ_SUR
 // form = Typ_ObjGX
 // siz  = Anzahl von ObjGX in data
@@ -2653,7 +2786,6 @@ static int   patNr;     // nr of Patches
 // ACHTUNG: bei planaren Flaechen keine Stuetzflaeche. Errechnen !
 
 // ACHTUNG: benutzt  memspc501, memspc201 !
-
 
   int       i1, i2, irc, cNr, cMax, ptNr;
   long      l1, l2;
@@ -2670,6 +2802,7 @@ static int   patNr;     // nr of Patches
           // oxi->typ,oxi->form);
   // printf(" TSU_mode=%d\n",TSU_mode);
   // printf(" oxi-data-posi=%p\n",oxi->data);
+  // DEB_dump_obj__ (Typ_ObjGX, oxi, "TSU_DrawSurTP\n");
 
 
   TSU_dli = AP_dli_act;
@@ -2720,8 +2853,12 @@ static int   patNr;     // nr of Patches
 
 
   // Z-Vektor errechnen
-  // TSU_tr_set_ ();
   irc = UT3D_pl_pta (&pl1, cTab[0].iNr, pTab); // anzahl Elemente 1. Aussenkontur
+  // oTab = oxi->data; // oxi->data enthaelt die Stuetzflaeche und Konturen
+  // OGX_GET_INDEX (&i1, &l1, &oTab[0]);
+  // DB_GetRef (&pl1, l1);
+    // DEB_dump_obj__ (Typ_PLN, &pl1, "DrawSurTP-pln");
+    
     // printf(" _pl_pta %d\n",irc);
   if(irc < 0) return irc;
   vc1 = pl1.vz;
@@ -2795,8 +2932,8 @@ static int   patNr;     // nr of Patches
       GLT_init__ ();
       goto L_draw;          // realloc
     }
-    // TX_Error("GLT_spp_pp E001 %d",i1);
-    printf("GLT_spp_pp E001 %d",i1);
+    // TX_Error("TSU_DrawSurTP E001 %d",i1);
+    printf("TSU_DrawSurTP E001 %d",i1);
     return i1;
 
 }
@@ -3011,7 +3148,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   // draw symbolic; done.
   if(TSU_sStyl > 0) {
-    GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
+    // GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
     return GR_sSym_spl (cTab, cNr, &oTab[0], att, dbi);
   }
 
@@ -3188,6 +3325,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
 // 2014-01-07
   for(i1=0; i1<cNr; ++i1) {
+    // get dir (CCW|CW) from points
     i2 = UT3D_sr_npt_bp (cTab[i1].iNr, cTab[i1].p2a, plMain);
     if(i2 > 0) cTab[i1].dir = '-';   // CW (-)
     else       cTab[i1].dir = '+';   // CCW (+)
@@ -3256,10 +3394,12 @@ memspc102  TSU_grid  Vergleichspunkteraster
   uMax = cTab[0].p2.x;
   vMax = cTab[0].p2.y;
 
+    // TESTBLOCK
     // printf("  uMin=%f uMax=%f uOff=%f\n",uMin,uMax,uOff);
     // printf("  vMin=%f vMax=%f vOff=%f\n",vMin,vMax,vOff);
     // printf(" TSU_typ_=%d TSU_form_=%d TSU_formTyp=%d\n",
             // TSU_typ_,TSU_form_,TSU_formTyp);
+    // END TESTBLOCK
         
 
 
@@ -4080,7 +4220,7 @@ uOff abhaengig von Aussenkonturtyp:
     TSU_form_ = TSU_ox2.form;
 
     L_SRV___:
-      // printf(" L_SRV___: TSU_form_=%d\n",TSU_form_);
+      // printf(" L_SRV___-TSU_form_=%d\n",TSU_form_);
 
 
 
@@ -4199,7 +4339,7 @@ uOff abhaengig von Aussenkonturtyp:
 
     //----------------------------------------------------------------
     // SRV contour = Circ = Kugel/Torus
-    } else if((TSU_form_ == Typ_CI)||(TSU_form_ == Typ_CI)) {
+    } else if(TSU_form_ == Typ_CI) {
 
       // wenn Oeffnungswinkel zu klein == 2 Punkte nur -->> Konus
       if(UT3D_ptNr_ci(((Circ*)TSU_ox2.data),UT_DISP_cv) < 3) {
@@ -4209,7 +4349,7 @@ uOff abhaengig von Aussenkonturtyp:
         TSU_ox2.form = Typ_LN;
         TSU_ox2.data = &TSU_ln1;
         TSU_form_ = Typ_LN;
-        // printf("  change AC -> LN\n");
+          printf("  tr_init_-change_AC_->_LN\n");
         goto L_SRV___;
       }
 
@@ -4975,8 +5115,10 @@ uOff abhaengig von Aussenkonturtyp:
 
   }
 
-
-    // printf("ex TSU_tr_init_ %d\n",irc);
+    // TESTBLOCK
+    // printf("TSU_typ_=%d \n",TSU_typ_);
+    // printf("ex-TSU_tr_init_ %d\n",irc);
+    // END TESTBLOCK
 
   return irc;
 

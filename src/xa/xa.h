@@ -3,34 +3,46 @@
 
 
 #include "../xa/ap_stat.h"                 // AP_STAT ap_stat - application-status
+#include "../xa/mdl__.h"                   // SIZMFNam  
 
 
+#define  WinSizMinX 800                   // minimum X-size of grafic window
+#define  WinSizMinY 240                   // minimum Y-size of grafic window
+#define  WinSizMin__ "-800,-240"
 
-/// \code
-/// applicationObjectNames - displayed in selectionList - used by plugins.
-/// see PLU_appNamTab_set
-/// \endcode
+
+// applicationObjectNames - displayed in selectionList - used by plugins.
+// see PLU_appNamTab_set
 typedef struct {char* oNam; int oTyp;}                         APP_OBJ_NAM;
 
 
 
 //================================================================
 // included and defined in ../xa/xa.c (with extern invalidated)
-extern char AP_mod_dir[128];      // abs.directory of active model, with '/' at end
-extern char AP_mod_fnam[128];     // active Modelname without filetyp
-extern char AP_mod_ftyp[32];      // filetyp of active model
-extern char AP_mod_sym[64];       // symbolic directory for OPEN (no '/' at end)
+extern char AP_mod_dir[SIZMFTot];  // abs.directory of active model, with '/' at end
+extern char AP_mod_fnam[SIZMFNam]; // active mainModelname without filetyp
+extern char AP_mod_ftyp[SIZMFTyp]; // filetyp of active mainModel
+extern char AP_mod_sym[SIZMFSym];  // symbolic directory for OPEN (no '/' at end)
   // AP_mod_iftyp: integer-filetyp of active model; eg Mtyp_DXF
-extern char AP_mod_iftyp;         // integer-filetyp - eg Mtyp_Gcad|Mtyp_DXF ..
-extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
-                                  //   not set in runmode.
+extern char AP_mod_iftyp;          // integer-filetyp - eg Mtyp_Gcad|Mtyp_DXF ..
+
+extern char AP_modact_nam[SIZMFNam]; // name of the active model (symbolic)
+                                   // empty if mainmodel is active;
+extern int  AP_modact_ibm;         // indicates if model is active or being created
+//  -1: the active-model is the primary-Model. The primaryModel can be subModel.
+// 0-n: a SubModel is being created (its the baseModelNr). See INF_basModels__
+extern int  AP_modact_inm;         // mdl_names-index of primary model; 0=mainModel
+extern int  AP_modact_tmp;         // 1=temp-model-exists; 0=not
+
+
 extern Point AP_box_pm1, AP_box_pm2;  // box around mainmodel
 
 // extern char AP_dir_save[128];     // directory for SAVE
 // extern char AP_sym_save[64];      // symbolic directory for SAVE
 
-extern char AP_dir_prg[128];      // directory for programs
+extern char AP_dir_prg[SIZMFTot]; // directory for programs
 extern char AP_sym_prg[64];       // symbolic directory for programs
+extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 extern char AP_errText[128];      // errortext for minor errors
 extern char AP_printer[80];       // Printer
@@ -46,11 +58,13 @@ extern char APP_act_proc[128];    // name of processor (dll)
 extern long APP_dli_start;        // first free dli (last dli of core-obj's)
 extern double AP_mod_defSiz;      // DefaultModelsize
 
-extern FILE *AP_deb_fp;           ///< debug-file-pointer
+extern FILE *AP_deb_fp;           // debug-file-pointer
 
 extern AP_STAT AP_stat;
 
 
+// ../xa/mdlmp.c
+extern int   AP_modact_inm;           // mdl_names-index of primary model
 
 
 
@@ -102,28 +116,83 @@ extern AP_STAT AP_stat;
 // #endif
 
 
+// // test if 2D is ON (if ConstructionPlane is active)
+// //   if yes: SRC-coordinates are relativ;
+// #define AP_IS_2D (WC_sur_ind != 0)
 
-// test if 2D is ON (if ConstructionPlane is active)
-//   if yes: SRC-coordinates are relativ;
-#define AP_IS_2D (WC_sur_ind > 0)
+// test if constrPln is active (if 2D is on);    1=yes, 0=no
+// DB_PLIZ_IND = -6
+// #define CONSTRPLN_IS_ON ((WC_sur_ind > 0)||(WC_sur_ind < -6))
+#define CONSTRPLN_IS_ON (WC_sur_ind)
 
-// test if 3D is ON (if no user-defined ConstructionPlane is active)
-#define AP_IS_3D (WC_sur_ind <= 0)
 
+// // test if 3D is ON (if no user-defined ConstructionPlane is active)
+// #define AP_IS_3D (WC_sur_ind == 0)
+
+// test if constrPln is active (if 2D is on);    1=yes, 0=no
+// DB_PLIZ_IND = -6
+// #define CONSTRPLN_IS_OFF ((WC_sur_ind >= -6)&&(WC_sur_ind <= 0))
+#define CONSTRPLN_IS_OFF (!WC_sur_ind)
+
+
+
+// MDL_IS_MAIN      check if the active model is the mainmodel
+// retCode      0   subModel is active
+//              1   the main-model is active
+#define MDL_IS_MAIN (!AP_modact_inm)
 
 
 // test if active model is a subModel being created or the active-model
 //   active-model can be a subModel; see MDL_IS_MAIN
-#define MDL_IS_SUB (AP_modact_ind >= 0)
+// retCode      0   the primary-model is active  (AP_modact_ibm = -1)
+//              1   a subModel is being created  (AP_modact_ibm >= 0)
+#define MDL_IS_SUB (AP_modact_ibm != MDL_BMI_ACT)
+
+// test if active model is the active-model or a subModel being created
+//   active-model can be a subModel; see MDL_IS_MAIN
+// retCode      0   a subModel is being created  (AP_modact_ibm >= 0)
+//              1   the primary-model is active  (AP_modact_ibm = -1)
+#define MDL_IS_PRIM (AP_modact_ibm == MDL_BMI_ACT)
 
 
-/// MDL_IS_MAIN      check if the active model is the mainmodel
-/// retCode      0   subModel is active
-///              1   the main-model is active
-// test if AP_modact_nam == ""  (mainmodel = ""; else subModelname)
-#define MDL_IS_MAIN ((AP_modact_nam[0] == 0) ? 1 : 0)
+
+// test if browser is active;  1=yes, 0=no
+#define BRW_STAT (AP_stat.brw_stat == BRWSTAT_active)
 
 
+
+//----------------------------------------------------------------
+// UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
+// input is absolute; if constrPlane is active, transfer input into UCS
+void UTRA_UCS_WCS_VC (Vector*, Vector*);
+#define UTRA_UCS_WCS_VC(vco, vci) {\
+  if(CONSTRPLN_IS_ON) UT3D_vc_tra_vc_m3 (vco, WC_sur_imat, vci);\
+  else if(vco != vci) *vco = *vci;}
+
+
+// UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
+// input is absolute; if constrPlane is active, transfer input into UCS
+void UTRA_UCS_WCS_PT (Point*, Point*);
+#define UTRA_UCS_WCS_PT(pto, pti) {\
+  if(CONSTRPLN_IS_ON) UT3D_pt_tra_pt_m3 (pto, WC_sur_imat, pti);\
+  else if(pto != pti) *pto = *pti;}
+
+
+//----------------------------------------------------------------
+// UTRA_WCS_UCS_VC                      transfer vector from UCS into WCS
+// input is absolute; if constrPlane is active, transfer input into WCS
+void UTRA_WCS_UCS_VC (Vector*, Vector*);
+#define UTRA_WCS_UCS_VC(vco, vci) {\
+  if(CONSTRPLN_IS_ON) UT3D_vc_tra_vc_m3 (vco, WC_sur_mat, vci);\
+  else if(vco != vci) *vco = *vci;}
+
+
+// UTRA_WCS_UCS_PT                      transfer point from UCS into WCS
+// input is absolute; if constrPlane is active, transfer input into WCS
+void UTRA_WCS_UCS_PT (Point*, Point*);
+#define UTRA_WCS_UCS_PT(pto, pti) {\
+  if(CONSTRPLN_IS_ON) UT3D_pt_tra_pt_m3 (pto, WC_sur_mat, pti);\
+  else if(pto != pti) *pto = *pti;}
 
 
 

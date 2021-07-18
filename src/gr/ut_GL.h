@@ -46,6 +46,8 @@ Korr:
 
 
 //----------------------------------------------------------------
+void GL_set_tria (Point *p1, Point *p2, Point *p3);
+void GL_set_quad (Point *pa, Point *pb);
 void GL_set_npt (Point *pta, int ptNr);
 void GL_set_pt2 (Point2 *pt21);
 void GL_set_ln_2pt (Point *p1, Point *p2);
@@ -53,7 +55,7 @@ void GL_set_pcv (int pnr, Point *pta, int clo);
 void GL_set_symV3 (int symTyp, Point *pt1, Vector *vc1, double scale);
 void GL_set_symVX (Plane *pln1, int typ, double scale);
 void GL_set_ang (int att, Point *ptc, Vector *vx, Vector *vz, double ang1);
-void GL_set_arrh (Point *p1, Point *p2);
+void GL_set_arrh2D (Point *p1, Point *p2);
 void GL_set_p2cv (int pnr, Point2 *pta);
 void GL_set_ln2_2pt (Point2 *p1, Point2 *p2);
 void GL_set_ci2 (Point2 *pc, Point2 *p1, double ao);
@@ -105,19 +107,16 @@ void   GL_Delete            (long);
 void   GL_GetGLMat0         ();
 void   GL_GetNormal0        ();
 void   GL_GetActPlane       ();
-Point  GL_GetViewPos        ();
-Point  GL_GetCurPos         ();
-Point  GL_GetConstrPos      (Point *pti);
+Point  GL_get_curPos_CP__        ();
+Point  GL_get_curPos_WC         ();
+Point  GL_get_curPos_CP_pt      (Point *pti);
 Point  GL_GetCen            ();
-Point  GL_GetViewPt         (Point *pti);
 Vector GL_GetEyeX           ();
 
 long   GL_Get_DLind         ();
 long   GL_GetActInd         ();
 
 double GL_get_Scale         ();
-double GL_query_ViewZ       ();
-
 
 void*  GL_Print1            (int *iw, int *ih);
 // int    GL_Select            (int, int*, long*, long*);
@@ -160,7 +159,6 @@ int    GL_set_strip1        (Point *ps, Point *pa1, Point *pa2, int ptAnz);
 int    GL_set_strip2        (Point *pa1, Point *pa2, int ptAnz, int newS);
 void   GL_set_fan           (Point *pt1,int ptAnz,Point *pa1,int side, int newS);
 
-void   GL_DrawSymV3         (long*, int, int att, Point*, Vector*, double);
 void   GL_DrawDitto2 (long *ind, Point *p1, double az, char mir, Ditto *di);
 
 

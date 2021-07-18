@@ -50,7 +50,7 @@ int MemTab_add (void *memTab, long *spcOff, void* objDat, int recNr, int mode);
 int MemTab_check (MemTab *memTab, long *spcOff, int recNr);
 // inline:
 int MemTab_free (void*);  // (MemTab*);
-int MEMTAB_IND (MemTab*);
+int MEMTAB_IND (MemTab*);            // get nr of used records
 int MEMTAB_RMAX (MemTab*);           // get max. nr of records
 int MEMTAB_RSIZ (MemTab*);
 void *MEMTAB__ (MemTab *memTab, int ind);

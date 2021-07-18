@@ -186,7 +186,7 @@ typedef_MemTab(Point);
 //===========================================================================
 // EXTERNALS:
 // from ../xa/xa.c:
-extern int       AP_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ibm;         // -1=primary Model is active;
                                         // else subModel is being created
 
 //===========================================================================
@@ -281,7 +281,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int PRCV_init__ () {
 //================================================================
 // PRCV_init__         init PRCV0
-// used by AP_src_new only
+// used by AP_mdl_init only
 
   // printf(" PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PRCV_init__\n");
 
@@ -546,10 +546,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_get_dbo_add_tc (CurvPrcv *prc1, CurvCCV *cvi) {
 //================================================================
-// add trimmed-curve cvi to prc1
-//
-// read basecurve of ccv1 into prc2;
-// find limited segment and add to prc1.
+// PRCV_get_dbo_add_tc       get curvesegment cvi of baseCurve into prc1
+// prc1 is empty; load baseCurve of cvi into prc1;
+// copy all points from cvi->v0 to cvi->v1 of baseCurve into prc1;
 
       
   int      irc, ips, ipe, ptNr, irev, siz_mspc2;
@@ -562,7 +561,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // printf("----------------PRCV_get_dbo_add_tc cccccccccccccc\n");
   // DEB_dump_obj__ (Typ_CVTRM, cvi, " PRCV_get_dbo_add_tc-cvi ");
   // DEB_dump_obj__ (Typ_PRCV, prc1, " PRCV_get_dbo_add_tc-prc1 ");
-  // PRCV_dump__ (2, prc1, " prc1");
+  // PRCV_dump__ (2, prc1, " dbo_add_tc-prc1");
 
 
   // if basic-curve of ccv1 is also trimmedCurve: modify in ccv1:
@@ -585,7 +584,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // get prc2 = PRCV for basecurve of ccv1
   prc2.typ    = AP_typDB_typ (ccv1.typ);
   prc2.dbi    = ccv1.dbi;
-  prc2.mdli   = AP_modact_ind;
+  prc2.mdli   = AP_modact_ibm;
 
     // load prc2 = basecurve
   irc = PRCV_DB_load (&prc2);
@@ -721,7 +720,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // if(cvi->dbi == 21L)
     // DEB_dump_obj__ (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
     // PRCV_dump__ (2, prc1, " prc1");
-    // printf("ex PRCV_get_dbo_add_tc    ccccccccccccccccccccccccccc\n");
+    // printf("ex PRCV_get_dbo_add_tc    ccccccccccccccccccccccccccc\n\n");
     // END TESTBLOCK
 
 
@@ -945,27 +944,24 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // get data for dbo
   form = UTO__dbo (&obj, &oNr, typ, dbi);
     // printf(" _set_dbo__-form=%d oNr=%d\n",form,oNr);
+    // DEB_dump_obj__ (form, obj,"set_dbo__-obj");
 
 
-
+/*
+2020-12-29 baseCuve must already be defined for trimmed-curves;
+// reCreate baseCuve destroys already defined segmentPoints
   if(form != Typ_CVTRM) goto L_normal;
-
-
   //----------------------------------------------------------------
   // update the basic-curves of trimmed-curves
   cvt = obj;
   // ls = UTO_siz_stru (Typ_CVTRM);
-
   for(ii=0; ii<oNr; ++ii) {
-
       // TESTBLOCK
-      // printf(" ----------------- PRCV_set_dbo__-nxt %d\n",ii);
-      // DEB_dump_obj__ (form, &cvt[ii], " obj[%d]",ii);
+      printf(" ----------------- PRCV_set_dbo__-nxt %d\n",ii);
+      DEB_dump_obj__ (form, &cvt[ii], " obj[%d]",ii);
       // END TESTBLOCK
-
     // no PRCV for lines
     if(cvt[ii].typ == Typ_LN) continue;
-
     // trimmed-curve: if its baseCurve does not yet have PRCV: create it.
     if(cvt[ii].stat == 0) {
       // recurse - create PRCV for baseCurve of this trimmed-curve
@@ -974,9 +970,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
       // PRCV for basCurve created ..
       cvt[ii].stat = 1;
     }
-
   }
-
+*/
 
   //----------------------------------------------------------------
   L_normal:
@@ -986,7 +981,8 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
 
     // TESTBLOCK
-    // printf("ex-PRCV_set_dbo__\n");
+    // PRCV_dump_dbo (2, 5,20L, "ex-PRCV_set_dbo__");
+    // printf("ex-PRCV_set_dbo__\n\n\n");
     // if((typ=Typ_CV)&&(dbi == 22L)) {fflush (stdout);exit(-1);}
     // END TESTBLOCK
 
@@ -1038,7 +1034,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   PRCV0_OCC ();         // occupy PRCV0
 
   // index of active model;
-  mdli = AP_modact_ind;
+  mdli = AP_modact_ibm;
 
 
   //----------------------------------------------------------------
@@ -1389,7 +1385,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
       // TESTBLOCK
       // activate PRCV_DB_dump at end of PRCV_DB_save
-      // PRCV_dump_dbo (2, Typ_CV, dbi);
+      // PRCV_dump_dbo (2, Typ_CV, dbi, "ex-PRCV_set_obj_dbi");
       // printf("exit-PRCV_set_obj_dbi =====================\n");
       // if((typ=Typ_CV)&&(dbi == 22L)) {fflush (stdout);exit(-1);}
       // END TESTBLOCK
@@ -1543,7 +1539,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   int    iis;
 
-  // printf("PRCV_add_pt vx=%f dbi=%ld \n",vx,dbi);
+  printf("PRCV_add_pt vx=%f dbi=%ld \n",vx,dbi);
   // DEB_dump_obj__ (Typ_PT, ptx, " PRCV_add_pt-in-ptx");
 
   // Point *npt; double *npar; long *nipt;
@@ -1952,7 +1948,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
  
 //================================================================
-  int PRCV_dump_dbo (int mode, int dbTyp, long dbi) {
+  int PRCV_dump_dbo (int mode, int dbTyp, long dbi, char *inf) {
 //================================================================
 // PRCV_dump_dbo         dump PRCV of DB-obj (curve)
 // no PRC-files for Line, CurvCCV
@@ -1966,7 +1962,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   CurvPrcv  prc;
 
 
-  // printf("PRCV_dump_dbo %d %d %ld\n",mode,dbTyp,dbi);
+  printf("PRCV_dump_dbo %d %d %ld ============= %s\n",mode,dbTyp,dbi,inf);
 
   // if((dbTyp == Typ_LN)      ||
      // (dbTyp == Typ_CVTRM)) goto L_e1;   hier nicht form !
@@ -1974,7 +1970,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   prc.typ    = dbTyp;
   prc.dbi    = dbi;
-  prc.mdli   = AP_modact_ind;
+  prc.mdli   = AP_modact_ibm;
   prc.siz    = 0;
   prc.spcTyp = MEMTYP_STACK__;  // no expand, no free
 
@@ -1982,7 +1978,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   irc = PRCV_DB_load (&prc);
   if(irc < 0) goto L_exit;
 
-    // PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
+    PRCV_dump__ (mode, &prc, "PRCV_dump_dbo");
 
 
   L_exit:
@@ -2256,7 +2252,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   PRCV_set_dbo__ (typ, dbi);
 
     // TESTBLOCK
-    PRCV_dump_dbo (2, typ, dbi);
+    PRCV_dump_dbo (2, typ, dbi, "");
     // END TESTBLOCK
 
   return 0;
@@ -2275,7 +2271,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   printf("PRCV_test_get typ=%d dbi=%ld\n",typ,dbi);
 
-  irc = PRCV_npt_dbo__ (&pta, &ptNr, typ, dbi, AP_modact_ind);
+  irc = PRCV_npt_dbo__ (&pta, &ptNr, typ, dbi, AP_modact_ibm);
   if(irc < 0) return -1;
     printf(" ex-PRCV_npt_dbo__-ptNr = %d\n",ptNr);
 

@@ -148,15 +148,20 @@ static char  *GUI_ed1_lcSet;
 /// if buffer is modied: save; this call resets the state.
 /// returns     1=modified; 0=unmodified.
 
+  GtkTextBuffer  *tb;
   int   imod;
 
-  // set GUI_ed1_view GUI_ed1_buff
-  if(mo) {   // for internal call: mo=NULL
-    if(GUI_ed1_decode(mo)) return -1;
-  }
+//   // set GUI_ed1_view GUI_ed1_buff
+//   if(mo) {   // for internal call: mo=NULL
+//     if(GUI_ed1_decode(mo)) return -1;
+//   }
 
-  imod = gtk_text_buffer_get_modified  (GUI_ed1_buff);
-  gtk_text_buffer_set_modified (GUI_ed1_buff, FALSE);
+  // GtkTextBuffer <- GtkTextView
+  tb = gtk_text_view_get_buffer (GTK_TEXT_VIEW (GUI_ed1_view));
+
+
+  imod = gtk_text_buffer_get_modified  (tb);
+  gtk_text_buffer_set_modified (tb, FALSE);
 
   return imod;
 
@@ -336,6 +341,7 @@ static char  *GUI_ed1_lcSet;
  return (FALSE);   // TRUE: do no defaultOperations
 }
 */
+
 
 //================================================================
   int GUI_ed1_cb1 (void *parent, void *event, MemObj mo) {
@@ -574,6 +580,8 @@ static char  *GUI_ed1_lcSet;
   GtkWidget     *wev, *wsw;
   GtkTextBuffer *web;
   Obj_gui1      *go;
+  // GdkEventAny  ev1;
+  // gint         ig1;
 
 
   // printf("GUI_edi__ |%s|\n",opts);
@@ -623,17 +631,6 @@ static char  *GUI_ed1_lcSet;
 
   //----------------------------------------------------------------
   if (funcnam) {
-    // PROBLEM: wsw does NOT provide key-press-event (only key-release-event)
-    gtk_widget_set_events (GTK_WIDGET(wsw),
-                           // GDK_BUTTON1_MOTION_MASK|
-                           // GDK_FOCUS_CHANGE_MASK|
-                           // GDK_ENTER_NOTIFY_MASK |
-                           GDK_SHIFT_MASK|
-                           GDK_CONTROL_MASK|
-                           GDK_KEY_PRESS_MASK|
-                           GDK_KEY_RELEASE_MASK|
-                           GDK_BUTTON_PRESS_MASK|
-                           GDK_BUTTON_RELEASE_MASK);
 
     // PROBLEM: wev key-press/release: reports the old cursor-position
     gtk_widget_set_events (GTK_WIDGET(wev),
@@ -641,11 +638,31 @@ static char  *GUI_ed1_lcSet;
                            GDK_KEY_RELEASE_MASK);
 
 
-    //----------------------------------------------------------------
-    // web does not provide key-press/release-event
-    // attach "enter-window" (for eg click into window).
-    // geht nicht: wsw|web|wev"enter-notify-event";
+    // wev: PROBLEM: key-press: reports the old cursor-position
+    g_signal_connect (G_OBJECT (wev),
+                        "key-press-event",
+                        G_CALLBACK (GUI_ed1_cb1),
+                        PTR_MEMOBJ(go->mem_obj));
 
+    // focus-in-event erforderlich f CAD-select-objects
+    g_signal_connect (G_OBJECT (wev),
+                        "key-release-event",
+                        G_CALLBACK (GUI_ed1_cb1),
+                        PTR_MEMOBJ(go->mem_obj));
+
+    // // report delete-action (Ctrl-X)
+    // g_signal_connect (G_OBJECT (wev), "cut-clipboard",
+                      // G_CALLBACK (GUI_ed1_cbDel),
+                      // PTR_MEMOBJ(go->mem_obj));
+
+    // // report delete-action (delete with backspace ..)
+    // g_signal_connect (G_OBJECT (wev), "delete-from-cursor",
+                      // G_CALLBACK (GUI_ed1_cbDel),
+                      // PTR_MEMOBJ(go->mem_obj));
+
+
+
+    //----------------------------------------------------------------
     // web-"mark-set" zu oft;
     g_signal_connect (G_OBJECT (web),  "mark-set",
                         G_CALLBACK (GUI_ed1_cb2),
@@ -658,20 +675,24 @@ static char  *GUI_ed1_lcSet;
                         PTR_MEMOBJ(go->mem_obj));
 
 
-    //----------------------------------------------------------------
-    // wev: PROBLEM: key-press: reports the old cursor-position
-    g_signal_connect (G_OBJECT (wev),
-                        "key-press-event",
-                        G_CALLBACK (GUI_ed1_cb1),
-                        PTR_MEMOBJ(go->mem_obj));
 
-    // focus-in-event erforderlich f CAD-select-objects
-    g_signal_connect (G_OBJECT (wev),
-                        "key-release-event",
-                        G_CALLBACK (GUI_ed1_cb1),
-                        PTR_MEMOBJ(go->mem_obj));
     //----------------------------------------------------------------
-    // wsw: PROBLEM: does NOT provide key-press-event (only key-release-event)
+    // PROBLEM: wsw does NOT provide key-press-event (only key-release-event)
+    gtk_widget_set_events (GTK_WIDGET(wsw),
+                           // GDK_BUTTON1_MOTION_MASK|
+                           // GDK_FOCUS_CHANGE_MASK|
+                           // GDK_ENTER_NOTIFY_MASK |
+                           GDK_SHIFT_MASK|
+                           GDK_CONTROL_MASK|
+                           GDK_KEY_PRESS_MASK|
+                           GDK_KEY_RELEASE_MASK|
+                           GDK_BUTTON_PRESS_MASK|
+                           GDK_BUTTON_RELEASE_MASK);
+
+    // web does not provide key-press/release-event
+    // attach "enter-window" (for eg click into window).
+    // geht nicht: wsw|web|wev"enter-notify-event";
+
 
   }
 
@@ -1475,9 +1496,9 @@ static char  *GUI_ed1_lcSet;
   // printf("GUI_edi_Focus\n");
   // set GUI_ed1_view GUI_ed1_buff
 
-  if(mo) {   // for internal call: mo=NULL
-    if(GUI_ed1_decode(mo)) return;
-  }
+//   if(mo) {   // for internal call: mo=NULL
+//     if(GUI_ed1_decode(mo)) return;
+//   }
 
   // gtk_widget_set_sensitive (wTx->win, TRUE);
 
@@ -1530,7 +1551,8 @@ static char  *GUI_ed1_lcSet;
 
 
 //================================================================
-  int GUI_edi_sel_get (long *p1, long *p2, MemObj *mo) {
+  // int GUI_edi_sel_get (long *p1, long *p2, MemObj *mo) {
+  int GUI_edi_sel_get (char **txt, MemObj *mo) {
 //================================================================
 /// \code
 /// GUI_edi_sel_get        get start/endpos of selected-text
@@ -1552,10 +1574,14 @@ static char  *GUI_ed1_lcSet;
   gtk_text_buffer_get_selection_bounds (GUI_ed1_buff, &it1, &it2);
 
   // get offsets
-  *p1 = (long)gtk_text_iter_get_offset (&it1);
-  *p2 = (long)gtk_text_iter_get_offset (&it2);
+  // *p1 = (long)gtk_text_iter_get_offset (&it1);
+  // *p2 = (long)gtk_text_iter_get_offset (&it2);
 
-  return 0;
+  *txt = gtk_text_iter_get_text (&it1, &it2);
+
+  i1 = strlen(*txt);
+
+  return i1;
 
 }
 

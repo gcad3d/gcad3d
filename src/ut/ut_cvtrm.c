@@ -326,11 +326,16 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
                          CurvCCV *tcv) {
 //================================================================
 // CVTRM_basCv_trmCv    get basic-curve of trimmed-curve (typ,dbi,obj)
-// retCod    0   OK
-//          -1   no DB-object exists (eg connection-line in contour)
+// Output:
+//   pDbi     can be 0 for Lines (trimmed lines are not stored in DB;
+//            IF pDbi of Line == 0 then basCv is static in CVTRM_basCv_trmCv !
+//   retCod    0   OK
+//            -1   no DB-object exists (eg connection-line in contour)
 
   int      oNr, cTyp;    // p=parent, c=child
   void     *obj;
+
+static Line ln1;
 
 
   // DEB_dump_obj__ (Typ_CVTRM, tcv, " CVTRM_basCv_trmCv");
@@ -339,6 +344,19 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
   L_nxt:
   *pTyp = tcv->typ;
   *pDbi = tcv->dbi;
+
+
+  // trimmed Line does not have db-Line / PRCV
+  if(*pTyp == Typ_LN) {
+    if(!*pDbi) {
+      ln1.p1 = DB_GetPoint (tcv->ip0);
+      ln1.p2 = DB_GetPoint (tcv->ip1);
+      ln1.typ = 0;
+      *basCv = &ln1;
+      goto L_exit;
+    }
+  }
+
 
   if(!*pDbi) return -1;
 
@@ -354,6 +372,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
   *basCv = obj;
 
+  L_exit:
     // printf(" ex _basCv_trmCv pTyp=%d pDbi=%ld\n",*pTyp,*pDbi);
     // DEB_dump_obj__ (*pTyp, *basCv, " ex _basCv_trmCv");
 
@@ -768,9 +787,9 @@ REPLACED by UTO_obj__ccv_segnr
     
 
   // get mouse-position in screen and user-coordinates
-  // actScrPos = GL_actScrPos = ?
-  // actUsrPos = GL_actUsrPos = ?
-  GL_GetActSelPos (&actUsrPos, &actScrPos);
+  // actScrPos = GL_curPos_SC = ?
+  // actUsrPos = GL_curPos_WC = ?
+  GL_get_curPos_last (&actUsrPos, &actScrPos);
     DEB_dump_obj__ (Typ_PT, &actUsrPos, " actUsrPos");
     DEB_dump_obj__ (Typ_PT, &actScrPos, " actScrPos");
 

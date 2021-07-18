@@ -42,14 +42,15 @@ Modifications:
 List_functions_start:
 
 APP_Help               simple help
-APP_Open               select file from list, callback.
 APP_Save               simple save
-APP_edit
+APP_edit               edit file
 APP_htm_fop            open a temp-file for a html-dumpFile
 APP_htm_print          write into open htm-file
 
 List_functions_end:
 =====================================================
+UU:
+// APP_Open               select file from list, callback.
 
 \endcode *//*----------------------------------------
 
@@ -57,7 +58,7 @@ List_functions_end:
 
 
 #ifdef _MSC_VER
-#include "MS_Def1.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 
@@ -88,7 +89,7 @@ List_functions_end:
 //===============================================================
 // Externe Variablen:
 // defined in ../xa/xa.c (with extern invalidated)
-extern char AP_mod_dir[128];     // directory for SAVE
+extern char AP_mod_dir[SIZMFTot];     // directory for SAVE
 
 
 // ../xa/xa_plu.c
@@ -267,12 +268,12 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 //================================================================
   int APP_edit (char *filnam, int mode) {
 //================================================================
-/// \code
-/// <edit> <filnam>
-/// mode = 0 - waits for end of process
-///        1 - do not wait for end of process
-/// see OS_edit_ ED_sysed__
-/// \endcode
+// APP_edit                 <edit> <filnam>
+// Input:
+//   mode   0 - waits for end of process
+//          1 - do not wait for end of process
+//  
+// see OS_edit_ ED_sysed__
 
   int   irc;
   long  l1;
@@ -287,9 +288,9 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   }
 
 #ifdef _MSC_VER
-  sprintf(cbuf, "%s \"%s\"",AP_editor,filnam);      // 2013-10-05
+  sprintf(cbuf, "%s \"%s\"",AP_editor,filnam);
 #else
-  sprintf(cbuf, "%s %s",AP_editor,filnam);      // 2013-10-05
+  sprintf(cbuf, "%s %s",AP_editor,filnam);
 #endif
 
   printf("APP_edit |%s|\n",cbuf);
@@ -298,6 +299,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   if(mode) {
     // do not wait
     OS_exec (cbuf);
+
   } else {
     // wait until completion.
     irc = OS_system (cbuf);
@@ -359,7 +361,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 }
 
-
+/*
 ///================================================================
   int APP_Open (char *wTit, char *filter, void *funcNam) {
 ///================================================================
@@ -374,25 +376,25 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   char  cbuf1[256], cbuf2[256];
   int  (*uFunc)();
 
-/*
-  MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
-  // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
-  GUI_List2 (wTit,              // titletext
-            AP_mod_dir,        // Pfadname des activeDirectory
-            cbuf1,              // Liste der directories
-            funcNam);           // CallBack der Liste
-*/
+//   MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
+//   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+// 
+//   GUI_List2 (wTit,              // titletext
+//             AP_mod_dir,        // Pfadname des activeDirectory
+//             cbuf1,              // Liste der directories
+//             funcNam);           // CallBack der Liste
+
 
   // Liste mit Dir-Auswahl
-  i1 = AP_Mod_open (0, cbuf1, cbuf2, wTit, filter);
+  i1 = AP_fnam_get_user_1 (0, cbuf1, cbuf2, wTit, filter);
   if(i1 < 0) return -1;
 
   uFunc = funcNam;
   return uFunc (cbuf1, cbuf2);
 
 }
-
+*/
 
 ///================================================================
   int APP_Save (char *wTit, char *defNam, void *funcNam) {
@@ -405,11 +407,11 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
   printf("APP_Save |%s|%s|\n",wTit,defNam);
 
-  MDLFN_symFilNam (dirLst);   // get filename of dir.lst
+  MDLFN_syFn_f_name (dirLst);   // get filename of dir.lst
   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
 
 /*
-    GUI_save__ (wTit,              // titletext
+    GMDL_exp__ (wTit,              // titletext
             AP_mod_dir,           // path
             cbuf1,                 // directoryList
             defNam,                // defaultModelname

@@ -240,7 +240,7 @@ geoTab    STP_I2      List of models;
 TESTMETHODE   DEBUG:
   activate DEB_prt_init (1) in STP_r__
     if compiled with -DDEB:
-    all testoutput of "printd" goes into file <tempDir>/debug.dat
+    all testoutput of "printd" goes into file /tmp/debug.dat
 
  f. Debug im ../.gdbinit     break OS_debug_dll_  u. run tst3
   make -f xa_stp_r.mak&&./go d
@@ -356,7 +356,7 @@ STYLED_ITEM SURFACE_STYLE_USAGE
 
 #ifdef _MSC_VER
 // die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int STP_r__ (char*);
+__declspec(dllexport) int STP_r__ (void*);
 // nachfolgende externals werden aus dem Main-Exe imported:
 #define extern __declspec(dllimport)
 #endif
@@ -613,7 +613,7 @@ void STP_r_skipTer0 (char *sBuf);
 
   newSiz = s_Siz + _tab_INC;
 
-  printf("::::STP_r_alloc_tab %d %d %d\n",s_Siz,newSiz,_tab_INC);
+  // printf("::::STP_r_alloc_tab %d %d %d\n",s_Siz,newSiz,_tab_INC);
 
   // while (Ind >= newSiz) newSiz += _tab_INC;
   // printf("  %d %d %d\n",Ind,APT_VR_SIZ,newSiz);
@@ -697,11 +697,17 @@ void STP_r_skipTer0 (char *sBuf);
 
 
 //================================================================
-  int STP_r__ (char *fnam) {
+  int STP_r__ (void *pa[2])  {
 //================================================================
-// mainentry. 
-// 1) Einlesen, intern speichern;
-// 2) abarbeiten ..
+// STP_r__                import step-file <fnam>
+//   write native gcad-code into <tmpDir>
+// Input:
+//   pa[0]    filename of step-file to import
+//   pa[1]    modelname for outputFile of mainModel; for primary model ""
+// Output:
+//   - export mainModel -> file <tmpDir>Model_<modelname>
+//   - export subModels -> files <tmpDir>Model_<smNam>
+// 
 
 
  
@@ -710,11 +716,15 @@ void STP_r_skipTer0 (char *sBuf);
   long    il1, il2;
   void    *vp;
   FILE    *fp1;
-  char    *mdlNam, s1[256], s2[256], *p1;
+  char    *fnam, *fmod, *mdlNam, s1[256], s2[256], *p1;
+
+
+  fnam = (char*)pa[0];
+  fmod = (char*)pa[1];
 
 
   printf("==================================\n");
-  printf("STP_r__ 2014-08-21 |%s|\n",fnam);
+  printf("STP_r__ 2021-02-19 |%s|%s|\n",fnam,fmod);
 
 
   // // prepare: remove all existing submodels ..
@@ -1237,14 +1247,14 @@ void STP_r_skipTer0 (char *sBuf);
     // rename mainModel -> Model_
     if(mdl.nam) {
       sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mdl.nam);
-      sprintf(s2,"%sModel_",OS_get_tmp_dir());
-        // printd(" rename %s -> %s\n",mdl.nam,s2);
+      sprintf(s2,"%sModel_%s",OS_get_tmp_dir(),fmod);
+        printd(" rename %s -> %s\n",mdl.nam,s2);
       OS_file_rename (s1, s2);
     }
 
-    // join all files tmp/Model_* into file tmp/Model
-    sprintf(s1,"%sMod.dat",OS_get_tmp_dir());
-    Mod_sav_i (1);
+//     // join all files tmp/Model_* into file tmp/Model
+//     sprintf(s1,"%sMod.dat",OS_get_tmp_dir());
+//     Mod_sav_i (1);
 // goto L_exit;
 // exit(0);
 
@@ -1259,8 +1269,8 @@ void STP_r_skipTer0 (char *sBuf);
 
     // rename model -> importFileNme
     sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mdl.nam);
-    sprintf(s2,"%sModel",OS_get_tmp_dir());
-      // printd(" rename %s -> %s\n",mdl.nam,s2);
+    sprintf(s2,"%sModel_%s",OS_get_tmp_dir(),fmod);
+      printd(" rename %s -> %s\n",mdl.nam,s2);
     OS_file_rename (s1, s2);
 
 
@@ -1283,7 +1293,7 @@ void STP_r_skipTer0 (char *sBuf);
   UME_free (&s_dat);
 
   // stop debugging (following prints -> console)
-  DEB_prt_init (0);
+  // DEB_prt_init (0);
 
 
 /*
@@ -1294,8 +1304,8 @@ void STP_r_skipTer0 (char *sBuf);
       // printf(" AP_mod_fnam=|%s|\n",AP_mod_fnam);
     sprintf(s1,"%sModel",OS_get_tmp_dir());
     Mod_load__ (0, s1, 1);
-    Mod_mkList (0);       // create ../tmp/Mod.lst
-    Brw_Mdl_init ();       // fill browserWin
+    Mod_flst_all (0);       // create ../tmp/Mod.lst
+    Brw_init__ ();       // fill browserWin
     Mod_chg_tit ();        // set AP_mod_fnam as new title on top
     ED_Reset ();           // ED_lnr_act resetten
     ED_work_END (0);
@@ -2106,7 +2116,7 @@ void STP_r_skipTer0 (char *sBuf);
     // write subModel into file
     // Buffer + Hidelist in die Datei schreiben (UTF_FilBuf1; see UTF_dump1__)
       // printd(" savSubBuf1 |%s| %d\n",mdl.nam, modSiz);
-    Mod_savSubBuf1 (mdl.nam, modSiz);
+    UTF_file_Buf1_att (mdl.nam, modSiz);
     // Mod_savSubBuf1 (mdlNam, 0);
 
   } else {
@@ -2306,10 +2316,13 @@ void STP_r_skipTer0 (char *sBuf);
   UTF_add1_line (gTxt);
 
   // Buffer + Hidelist in die Datei schreiben,
-  Mod_savSubBuf1 ("", modSiz);
+  UTF_file_Buf1_att ("", modSiz);
 
   // den Buffer zuruecksetzen.
   UTF_clear1 ();
+
+  // clear 
+  GA_clear ();   // delete all GA_ObjTab-records
 
   return 0;
 
@@ -6374,7 +6387,7 @@ static Point  p1, p2;
 
   if((s_tab[sInd].sTyp != SC_FACE_OUTER_BOUND) &&
      (s_tab[sInd].sTyp != SC_FACE_BOUND))         {
-    TX_Error("STP_r_creCont1 E001 %d",sInd);
+    TX_Error("STP_r_creCont1 E001 %d %d",sInd,s_tab[sInd].sTyp);
     return -1;
   }
 

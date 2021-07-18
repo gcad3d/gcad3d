@@ -1,4 +1,7 @@
-
+/*
+../ut/ut_txTab.h
+../ut/ut_txTab.c
+*/
 
 # define TAB_C_SIZ 12288
 # define TAB_I_SIZ 384
@@ -20,12 +23,17 @@ typedef struct {long tabSiz, indSiz; char *tab;
 
 #define _UTXTAB_NUL {0,0, NULL, 0,0, NULL}
 
-/// \code
-/// setup of a new StringList.
-/// creates: TxtTab xTab = {0,0, NULL, 0,0, NULL};
-/// \endcode
+// setup of a new StringList.
+// creates: TxtTab xTab = {0,0, NULL, 0,0, NULL};
 #define UtxTab_NEW(xTab)\
    TxtTab xTab = _UTXTAB_NUL
+
+
+// check if UtxTab is new or already has memspc; 1=new,empty; 0=has_memspc
+#define UtxTab_IS_NEW(xTab) (((xTab)->tabSiz) ? 0 : 1)
+
+
+
 
 //_____________________________________
 // PROTOTYPES:

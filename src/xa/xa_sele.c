@@ -55,13 +55,13 @@ sele_reset_type     reset a single bit
 sele_set__          set selectionFilter
 sele_set_add        add obj to selectionfilter; typeGroups can be used;
 sele_set_types      set selectionFilters
-sele_set_pos        save GR_selPos__ and GR_selPos_CP
 sele_setNoConstrPln disable selection of point on ConstrPln
 sele_setNoParents   add or do not add parents to selection-list
-sele_get_pos__      return GR_selPos__
-sele_get_pos_CP     return GR_selPos_CP
-sele_get_selPos     returns selected position as point on selected object
-sele_get_reqTyp     return GR_reqTyp
+
+sele_set_pos__      set GR_selPos_CP and GR_selPos_vtx
+sele_get_pos_CP     get GR_selPos_CP (on constrPln, WCS)
+sele_get_pos_vtx    get GR_selPos_vtx (vertex, WCS)
+sele_get_pos_UC     get UCS-coords of GR_selPos_CP (curPos on constrPln)
 
 UI_GR_set_selNam
 UI_GR_get_selNam    return typ, dbi & name of the selected obj
@@ -80,6 +80,8 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+UNUSED:
+sele_get_selPos     returns selected position as point on selected object
 
 - define all selectabele objects with sele_set_add
 - provide requested object from selected obj with sele_decode
@@ -168,13 +170,13 @@ see also UI_GR_Sel_Filt_set  // set GR_Sel_Filter to eg modSstyl ..
 
 
 GR_selPos__ (out via sele_get_pos__) ist mouseposition in userCoords
-GR_selPos_CP (from sele_get_pos_CP) ist mouseposition on constrPlane in userCoords
+GR_selPos_CP (from sele_get_pos_UC) ist mouseposition on constrPlane in userCoords
 
 
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 
@@ -194,10 +196,11 @@ GR_selPos_CP (from sele_get_pos_CP) ist mouseposition on constrPlane in userCoor
 
 #include "../ut/func_types.h"          // Typ_Att_hili1
 #include "../gr/ut_DL.h"               // DL_GetAtt
-#include "../gr/ut_GL.h"               // GL_GetConstrPos
+#include "../gr/ut_GL.h"               // GL_get_curPos_CP_pt
 
 #include "../db/ut_DB.h"               // DB_GetPoint
 
+#include "../xa/xa.h"                  // UTRA_UCS_WCS_PT
 #include "../xa/xa_sele.h"             // Typ_go*
 #include "../xa/xa_uid.h"              // UI_MODE_CAD
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
@@ -234,10 +237,11 @@ static int    GR_selTmpStat;     // 0=not saved, 1=point stored..
        int    GR_selTyp;         // modified selected object-typ
        long   GR_selDbi;         // dbi
        long   GR_selDli;         // dli
-       char   GR_selNam[128];    // objname of selected object
+       char   GR_selNam[256];    // objname of selected object
 
-static Point  GR_selPos__;         // mouseposition in userCoords of last selection
-static Point  GR_selPos_CP;        // mouseposition on constPlane in userCoords
+// static Point  GR_selPos__;       // curPos in userCoords of last selection
+static Point  GR_selPos_vtx;     // last sel. vertex in WCS
+static Point  GR_selPos_CP;      // curPos last sel. on constPlane in WCS
 
 static int    GR_reqTyp;         // requested typ
 static int    GR_NoConstrPln;    // disable selection of point on ConstrPln
@@ -249,22 +253,48 @@ static int    bck_GR_NoConstrPln;
 
 
 
-//================================================================
-  int sele_get_pos_CP (Point *ptSelCP) {
-//================================================================
-// sele_get_pos_CP     return GR_selPos_CP
-// get the cursor-position of last selection at the constrPlane
-// see UI_GR_get_actPosA
-// see sele_set_pos GR_set_constPlnPos GL_set_viewPlnPos
- 
-  // printf("sele_get_pos_CP \n");
+// //================================================================
+//   int sele_get_pos_WC () {
+// //================================================================
+// // sele_get_pos_WC      project selectpoint onto ConstrPlane along GL_eyeX
+// // no obj (Vertex) selected; set GR_selPos__ = GR_selPos_CP
+// 
+//   Point   pt1;
+// 
+// 
+//   // UTRA_UCS_WCS_PT (&pt1, &GR_selPos_CP);
+// 
+//   GR_selPos__ = GR_selPos_CP; // = pt1;
+// 
+//     // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "ex-sele_get_pos_WC");
+// 
+//   return 0;
+// 
+// }
 
+
+//================================================================
+  int sele_get_pos_UC (Point *ptSelCP) {
+//================================================================
+// sele_get_pos_UC     return selectionPoint in UCS
+// get the cursor-position of last selection at the constrPlane
+// see GR_get_curPos_UC
+// see sele_set_pos__ GR_set_curPos_CP GL_set_curPos_CP
+ 
+  Point    pt1;
+
+
+  // printf("sele_get_pos_UC \n");
   
   // input is absolute; if constrPlane is active, transfer input into UCS
-  UTRA_UCS_WCS_PT (ptSelCP, &GR_selPos_CP);
+  // UTRA_UCS_WCS_PT (ptSelCP, &GR_selPos__);
+  pt1 = GL_get_curPos_CP_pt (&GR_selPos_CP);
 
-    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "sele_get_pos_CP-GR_selPos_CP");
-    // DEB_dump_obj__ (Typ_PT, ptSelCP, "ex-sele_get_pos_CP-ptSelCP");
+  // transfer 
+  UTRA_UCS_WCS_PT (ptSelCP, &pt1);
+ 
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "sele_get_pos_UC-GR_selPos_CP");
+    // DEB_dump_obj__ (Typ_PT, ptSelCP, "ex-sele_get_pos_UC-ptSelCP");
 
   return 0;
 
@@ -330,7 +360,7 @@ static int    bck_GR_NoConstrPln;
 //   Typ_VC    Typ_CVPOL       D(S SEG)
 //   Typ_VC    Typ_CI          D(C par) & D(C)              tangent & axis
 //   Typ_VC    Typ_LN          D(L)
-//   Typ_VC    Typ_PLN         D(R)
+//   Typ_VC    Typ_PLN         DX(R) DY(R) DZ(R)
 //   Typ_VC    Typ_Model       D(M)
 //   Typ_VC    Typ_Dimen       D(N)
 //
@@ -343,6 +373,8 @@ static int    bck_GR_NoConstrPln;
 //   Typ_PT    Typ_Dimen       P(N PTS)                     3 points 2D
 //   Typ_PT    Typ_ATXT        P(N PTS)                     2 points
 //   Typ_PT    Typ_GTXT        P(N)                         1 point
+//
+//   Typ_PLN   Typ_LN ..       R(L) ..
 //
 //   Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
 //             Typ_PT|Typ_VC|Typ_LN
@@ -359,7 +391,8 @@ static int    bck_GR_NoConstrPln;
   // char    so[128], cto;
 
 
-  // printf("--- sele_src_cnvt__ selTyp=%d dbi=%ld reqTyp=%d\n",selTyp,dbi,reqTyp);
+  // printf("================================================== \n");
+  // printf(" sele_src_cnvt__ selTyp=%d dbi=%ld reqTyp=%d\n",selTyp,dbi,reqTyp);
   // DEB_dump_obj__ (Typ_PT, selPos, " selPos");
   // GR_tDyn_symB__ (selPos, SYM_STAR_S, ATT_COL_RED);
 
@@ -401,7 +434,7 @@ static int    bck_GR_NoConstrPln;
     if((reqTyp == Typ_PT)   ||
        (reqTyp == Typ_VC))      {
       // make "<xval yval zVal>"
-      sele_get_pos_CP (&pt1);
+      sele_get_pos_UC (&pt1);
       SRC_src_pt3_10 (sCva->cva[0].oid, &pt1);
       // sprintf(sca[0].oid, "P(%s)", so);
       goto L_add_1;
@@ -432,7 +465,8 @@ static int    bck_GR_NoConstrPln;
       sprintf(sCva->cva[0].oid, "X(P%ld)", dbi);
       sprintf(sCva->cva[1].oid, "Y(P%ld)", dbi);
       sprintf(sCva->cva[2].oid, "Z(P%ld)", dbi);
-      iNr = 3;
+      sprintf(sCva->cva[3].oid, "P%ld", dbi);     // not yet complete
+      iNr = 4;
       goto L_add__;
 
     //.......................................
@@ -451,11 +485,11 @@ static int    bck_GR_NoConstrPln;
     // LN selected: for Typ_XVal|Typ_YVal|Typ_ZVal add distance ..
     } else if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
     // add X(L) + Y(L) + (Z(L)
-      sprintf(sCva->cva[0].oid, "L%ld", dbi);
+      sprintf(sCva->cva[0].oid, "L%ld", dbi);          // length
       sprintf(sCva->cva[1].oid, "X(L%ld)",dbi);
       sprintf(sCva->cva[2].oid, "Y(L%ld)",dbi);
       sprintf(sCva->cva[3].oid, "Z(L%ld)",dbi);
-      iNr = 3;
+      iNr = 4;
       goto L_add__;
     }
 
@@ -463,25 +497,35 @@ static int    bck_GR_NoConstrPln;
   //----------------------------------------------------------------
   } else if(selTyp == Typ_CI) {
     //.......................................
-      // // D(L)
-      // sprintf(sca[0].oid, "D(C%ld)", dbi);
-      // goto L_add_1;
-
-    //.......................................
     // CI is selected: for TYP_IS_VAL add radius ..
     if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
     // add VAL(C)
       sprintf(sCva->cva[0].oid, "VAL(C%ld)",dbi);
       goto L_add_1;
+
+//     //.......................................
+//     } else if(reqTyp == Typ_PLN)   {
+//     // add VAL(C)
+//       sprintf(sCva->cva[0].oid, "C%ld",dbi);
+//       goto L_add_1;
     }
+
 
 
   //----------------------------------------------------------------
   // plane selected -
   } else if(selTyp == Typ_PLN) {
     //.......................................
+    if(reqTyp == Typ_VC) {
+      // D(L)
+      sprintf(sCva->cva[0].oid, "R%ld DRX", dbi);
+      sprintf(sCva->cva[1].oid, "R%ld DRY", dbi);
+      sprintf(sCva->cva[2].oid, "R%ld DRZ", dbi);
+      iNr = 3;
+      goto L_add__;
+
     //.......................................
-    if(BitTab_get(reqObjTab, Typ_PT)) {
+    } else if(BitTab_get(reqObjTab, Typ_PT)) {
       // P(R)
       sprintf(sCva->cva[0].oid, "P(R%ld)", dbi);
       goto L_add_1;
@@ -582,7 +626,7 @@ static int    bck_GR_NoConstrPln;
   } else if((selTyp == Typ_Model)||(selTyp == Typ_Mock)) {
     if((reqTyp == Typ_CtlgPart)||(reqTyp == TYP_FilNam))
     ii = sizeof(GR_selNam);
-    Mod_mNam_mdr (GR_selNam, &ii, &iTyp, GR_selDbi);
+    Mod_mNam_mdr__ (GR_selNam, &ii, &iTyp, GR_selDbi);
     // strcpy(GR_selNam, "symEl1/res1.gcad");
     // strcpy(GR_selNam, "Data/Niet1.gcad");
     if(iTyp == MBTYP_CATALOG)  {
@@ -602,6 +646,13 @@ static int    bck_GR_NoConstrPln;
 
 
 
+
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_SOL) {
+    printf("*** get parameteric point on solid is not yet implemented ***\n");
+    sele_get_pos_UC (&pt1);
+    SRC_src_pt3_10 (sCva->cva[0].oid, &pt1);
+    goto L_add_1;
   }
 
 
@@ -703,6 +754,19 @@ static int    bck_GR_NoConstrPln;
     // printf(" f-src_pt_dbo reqTyp=%d so=|%s|\n",reqTyp,so);
   // // add src-obj to sca
   // iNr = sele_src_cnvt_add (sca, tabSiz, iNr, reqTyp, so);
+  if(reqTyp == Typ_PLN) {
+    // eg R(S20 SEG(1) 0.8) cannot be resolved; get R(P(S20 SEG(1) 0.8))
+    irc = sele_src_cnvt_do (sCva, Typ_PT, selTyp, dbi, selPos);
+    if(irc < 0) return irc;   // -9 - no more space in sCva
+    irc = sele_src_cnvt_do (sCva, Typ_VC, selTyp, dbi, selPos);
+    if(irc < 0) return irc;   // -9 - no more space in sCva
+    irc = sele_src_cnvt_do (sCva, Typ_CI, selTyp, dbi, selPos);
+    if(irc == -2) irc = 0;  // eg circ from polygon
+    if(irc < 0) return irc;   // -9 - no more space in sCva
+    goto L_exit;
+  }
+
+
   irc = sele_src_cnvt_do (sCva, reqTyp, selTyp, dbi, selPos);
   if(irc < 0) return irc;   // -9 - no more space in sCva
   // if(iNr >= tabSiz) goto L_exit;
@@ -741,8 +805,10 @@ static int    bck_GR_NoConstrPln;
     // TESTBLOCK
     // printf(" ex-sele_src_cnvt__ irc=%d iNr=%d\n",irc,sCva->iNr);
     // if(sCva->iNr > 0) { for(i1=0; i1<sCva->iNr; ++i1) {
-      // printf(" sele_src_cnvt__-sca[%d] = %d |%s|\n",
+      // printf("  sele_src_cnvt__-sca[%d] = %d |%s|\n",
              // i1,sCva->cva[i1].typ,sCva->cva[i1].oid); }}
+    // printf(" ex-sele_src_cnvt__ irc=%d iNr=%d =======================\n",
+           // irc,sCva->iNr);
     // END TESTBLOCK
 
 
@@ -1063,7 +1129,7 @@ static int    bck_GR_NoConstrPln;
 // Input:
 //   ib      button-index to use, clearing all following buttons
 // Output:
-//   ib      ib += 1;
+//   ib      ib += 1 (index of 2D-button)
 //
 // see also APED_oid_dbo_all (get iTxt from iTyp)
 
@@ -1072,6 +1138,7 @@ static int    bck_GR_NoConstrPln;
 
 
   // printf("sele_set_icon %d %d\n",*ib, iTyp);
+
 
   // if not CAD: return
   if(UI_InpMode != UI_MODE_CAD) return -1;
@@ -1088,6 +1155,12 @@ static int    bck_GR_NoConstrPln;
   } else if(iTyp == Typ_VC) {
     sele_set_icon (ib, Typ_FncVC2);   // VC- previous
     sele_set_icon (ib, Typ_FncVC1);   // VC+ next
+    return 0;
+
+
+  } else if(iTyp == Typ_Tra) {
+    sele_set_icon (ib, Typ_FncTr2);   // TR- previous
+    sele_set_icon (ib, Typ_FncTr1);   // TR+ next
     return 0;
 
 
@@ -1209,67 +1282,67 @@ static int    bck_GR_NoConstrPln;
 }
 
 
-//================================================================
-  int sele_get_selPos (Point *pts) {
-//================================================================
-// UNUSED IN CORE !
-/// \code
-/// returns selected position as point. 
-/// selectionFilter must have been set to point (sele_set__ (Typ_PT) !)
-/// RetCod:
-///  -2       point not requested ..
-///  -1       cannot convert to point
-///   0       indicate; nothing selected ..
-///   1       point-object selected;
-///   2       curve- or surface-obj selected; selection-position computed
-/// \endcode
-
-  int       irc, typ, i1;
-  Point     pSel;
-
-
-
-  // printf("sele_get_selPos \n");
-  // printf("  GR_reqTyp=%d \n",GR_reqTyp);
-  // printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
-  // printf("  GR_selTyp=%d \n",GR_selTyp);
-  // printf("  GR_selDbi=%ld \n",GR_selDbi);
-  // printf("  GR_selNam=|%s|\n",GR_selNam);
-
-
-
-  // 2015-09-01
-  if(!strcmp(GR_selNam, "ConstrPlane") )  {
-    UI_GR_get_actPosA (&pSel);
-    sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
-
-  } else if(!strcmp(GR_selNam, "selPos") )  {
-    sele_get_pos__ (&pSel);
-    sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
-  }
-
-
-
-  if(GR_selBasTyp == Typ_PT) {
-    // point selected:
-    typ = Typ_PT;
-    // UTO_obj_dbo (pts, &i1, &typ, GR_selDbi);
-    *pts = DB_GetPoint (GR_selDbi);
-    irc = 1;
-
-  } else {
-
-    irc = APT_obj_expr (pts, Typ_PT, GR_selNam);
-    if(irc >= 0) irc = 2;
-    // TX_Print("**** selection of this objTyp not supported ..");
-    // return -1;
-  }
-
-    // DEB_dump_obj__ (Typ_PT, pts, "ex sele_get_selPos %d",irc);
-
-  return irc;
-
-}
+// //================================================================
+//   int sele_get_selPos (Point *pts) {
+// //================================================================
+// // UNUSED IN CORE !
+// /// \code
+// /// returns selected position as point. 
+// /// selectionFilter must have been set to point (sele_set__ (Typ_PT) !)
+// /// RetCod:
+// ///  -2       point not requested ..
+// ///  -1       cannot convert to point
+// ///   0       indicate; nothing selected ..
+// ///   1       point-object selected;
+// ///   2       curve- or surface-obj selected; selection-position computed
+// /// \endcode
+// 
+//   int       irc, typ, i1;
+//   Point     pSel;
+// 
+// 
+// 
+//   // printf("sele_get_selPos \n");
+//   // printf("  GR_reqTyp=%d \n",GR_reqTyp);
+//   // printf("  GR_selBasTyp=%d \n",GR_selBasTyp);
+//   // printf("  GR_selTyp=%d \n",GR_selTyp);
+//   // printf("  GR_selDbi=%ld \n",GR_selDbi);
+//   // printf("  GR_selNam=|%s|\n",GR_selNam);
+// 
+// 
+// 
+//   // 2015-09-01
+//   if(!strcmp(GR_selNam, "ConstrPlane") )  {
+//     GR_get_curPos_UC (&pSel);
+//     sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
+// 
+//   } else if(!strcmp(GR_selNam, "selPos") )  {
+//     sele_get_pos__ (&pSel);
+//     sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
+//   }
+// 
+// 
+// 
+//   if(GR_selBasTyp == Typ_PT) {
+//     // point selected:
+//     typ = Typ_PT;
+//     // UTO_obj_dbo (pts, &i1, &typ, GR_selDbi);
+//     *pts = DB_GetPoint (GR_selDbi);
+//     irc = 1;
+// 
+//   } else {
+// 
+//     irc = APT_obj_expr (pts, Typ_PT, GR_selNam);
+//     if(irc >= 0) irc = 2;
+//     // TX_Print("**** selection of this objTyp not supported ..");
+//     // return -1;
+//   }
+// 
+//     // DEB_dump_obj__ (Typ_PT, pts, "ex sele_get_selPos %d",irc);
+// 
+//   return irc;
+// 
+// }
 
 
 //================================================================
@@ -1292,7 +1365,7 @@ static int    bck_GR_NoConstrPln;
 
   if(!strcmp(GR_selNam, "ConstrPlane") )  {
     // UI_GR_get_actPos_ (&selNam);
-    UI_GR_get_actPosA (&pSel);
+    GR_get_curPos_UC (&pSel);
     sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
     *selNam = GR_selNam;
   }
@@ -1306,16 +1379,56 @@ static int    bck_GR_NoConstrPln;
 
 
 //================================================================
-  int sele_set_pos (Point *spt) {
+  int sele_set_pos__ (Point *cp_WC, Point *cp_vtx) {
 //================================================================
-// sele_set_pos                  set GR_selPos__ and GR_selPos_CP
+// sele_set_pos__                  set GR_selPos__ and GR_selPos_CP
 
-  GR_selPos__ = *spt;
 
-  GR_selPos_CP = GL_GetConstrPos (spt);
+  // point on constrPln in WCS
+  GR_selPos_CP = *cp_WC;
 
-    // DEB_dump_obj__ (Typ_PT, &GR_selPos__, "ex-sele_set_pos ");
+  // selected vertex in WC
+//   GR_selPos__ = *spt;
+  GR_selPos_vtx = *cp_vtx;
+
+//   // get GR_selPos_CP = intersectionpoint of pt1 along eyeVector on ConstrPlane
+//   GR_selPos_CP = GL_get_curPos_CP_pt (spt);
+
+    // DEB_dump_obj__ (Typ_PT, &GR_selPos__, "ex-sele_set_pos__ ");
     // DEB_dump_obj__ (Typ_PT, &GR_selPos_CP, "ex-sele_set_pos-CP");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int sele_get_pos_CP (Point *pto) {
+//================================================================
+// return last selected curPos on constrPln in WCS
+// position when mousebutton was pressed 
+// see   GR_selPos_vtx  seleced objPos, Vertex;
+
+// sele_get_pos_UC()  
+// GL_vertex_curPos GL_get_curPos_last GR_get_curPos_UC GR_selPos__
+
+  *pto = GR_selPos_CP;
+
+  return 0;
+
+}
+
+
+//================================================================
+  int sele_get_pos_vtx (Point *pto) {
+//================================================================
+// return last selected vertex in WCS
+// see sele_get_pos_CP
+
+// sele_get_pos_UC()  
+// GL_vertex_curPos GL_get_curPos_last GR_get_curPos_UC GR_selPos__
+
+  *pto = GR_selPos_vtx;
 
   return 0;
 
@@ -1328,23 +1441,6 @@ static int    bck_GR_NoConstrPln;
 // sele_get_reqTyp    return GR_reqTyp
 
   return GR_reqTyp;
-
-}
-
-
-//================================================================
-  int sele_get_pos__ (Point *pto) {
-//================================================================
-/// \code
-/// return mouseposition in userCoords
-/// position when mousebutton was pressed 
-/// \endcode
-
-// GL_MousePos GL_GetActSelPos UI_GR_get_actPosA sele_get_pos__ GR_selPos__
-
-  *pto = GR_selPos__;
-
-  return 0;
 
 }
 
@@ -1543,7 +1639,7 @@ static int    bck_GR_NoConstrPln;
 
   //----------------------------------------------------------------
   if(!strcmp(GR_selNam, "ConstrPlane") )  {
-    UI_GR_get_actPosA (&pt1);
+    GR_get_curPos_UC (&pt1);
     // write "P(<x> <y> <z>)"
     SRC_src_pt3_10 (GR_selNam, &pt1);
 
@@ -1575,7 +1671,7 @@ static int    bck_GR_NoConstrPln;
 
   //----------------------------------------------------------------
   if(GR_selTyp >= Typ_FncVAR1) {
-    IE_set_inpSrc (3);
+    IE_inp_set_txtSrc (3);
     if(GR_selTyp == Typ_FncVAR1) IE_cad_Inp1_nxtVal (1);
     if(GR_selTyp == Typ_FncVAR2) IE_cad_Inp1_nxtVal (-1);
     if(GR_selTyp == Typ_FncVC1)  IE_cad_Inp1_nxtVec (1);
@@ -2106,7 +2202,7 @@ static int    bck_GR_NoConstrPln;
   L_mdl_conv1:
     // get ModbasName from ModRefNr
     ii = sizeof(GR_selNam);
-    Mod_mNam_mdr (GR_selNam, &ii, &iTyp, GR_selDbi);
+    Mod_mNam_mdr__ (GR_selNam, &ii, &iTyp, GR_selDbi);
     // strcpy(GR_selNam, "symEl1/res1.gcad");
     // strcpy(GR_selNam, "Data/Niet1.gcad");
     if(iTyp == MBTYP_CATALOG)  {
@@ -2134,7 +2230,7 @@ static int    bck_GR_NoConstrPln;
 
       if(GR_selTyp == Typ_TmpPT) {
         GR_selNam[0]='\0';
-        UI_GR_get_actPosA  (&pt1);
+        GR_get_curPos_UC  (&pt1);
         AP_obj_add_pt_sp (GR_selNam, &pt1);
       }
       IE_cad_Inp_disp_pt (&pt1, IE_get_inpInd());
@@ -2223,7 +2319,7 @@ static int    bck_GR_NoConstrPln;
     // test if ConstrPlane was selected ...
     if(GR_selTyp == Typ_TmpPT) {
       // get current curPos in userCoords on constructionPlane 
-      UI_GR_get_actPosA  (&pt1);
+      GR_get_curPos_UC  (&pt1);
 
       // display position
       if((GR_reqTyp == Typ_PLN)||(GR_reqTyp == Typ_VC))
@@ -2233,7 +2329,7 @@ static int    bck_GR_NoConstrPln;
         // // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
       // // invert transformation if ConstrPln is set;
       // //   will be inverted in APT_decode_pt
-      // if(AP_IS_2D) {
+      // if(CONSTRPLN_IS_ON) {
         // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
       // }
 /
@@ -2285,7 +2381,7 @@ static int    bck_GR_NoConstrPln;
       typBas = AP_typDB_typ (GR_selTyp);
 
       if(typBas == Typ_TmpPT)  {
-        UI_GR_get_actPosA  (&pt1); // get current curPos
+        GR_get_curPos_UC  (&pt1); // get current curPos
         UTX_Clear (s1);
         AP_obj_add_pt_sp (s1, &pt1);
 
@@ -2358,7 +2454,7 @@ static int    bck_GR_NoConstrPln;
     if(GR_selTmpStat == 0) {
       if(GR_selTyp == Typ_TmpPT) {
         GR_selNam[0]='\0';
-        UI_GR_get_actPosA  (&pt1);
+        GR_get_curPos_UC  (&pt1);
         AP_obj_add_pt_sp (GR_selNam, &pt1);
       }
       IE_cad_Inp_disp_pt (&pt1, IE_get_inpInd());
@@ -2368,7 +2464,7 @@ static int    bck_GR_NoConstrPln;
     } else if(GR_selTmpStat == 1) {
       if(GR_selTyp == Typ_TmpPT) {
         GR_selNam[0]='\0';
-        UI_GR_get_actPosA  (&pt1);
+        GR_get_curPos_UC  (&pt1);
         AP_obj_add_pt_sp (GR_selNam, &pt1);
       }
       goto L_exit;
@@ -2383,7 +2479,7 @@ static int    bck_GR_NoConstrPln;
     if(GR_selTmpStat == 0) {
       if(GR_selTyp == Typ_TmpPT) {
         GR_selNam[0]='\0';
-        UI_GR_get_actPosA  (&pt1);
+        GR_get_curPos_UC  (&pt1);
         AP_obj_add_pt_sp (GR_selNam, &pt1);
       }
       IE_cad_Inp_disp_pt (&pt1, IE_get_inpInd());
@@ -2393,7 +2489,7 @@ static int    bck_GR_NoConstrPln;
     } else if(GR_selTmpStat == 1) {
       if(GR_selTyp == Typ_TmpPT) {
         GR_selNam[0]='\0'; 
-        UI_GR_get_actPosA  (&pt1);
+        GR_get_curPos_UC  (&pt1);
         AP_obj_add_pt_sp (GR_selNam, &pt1);
       } 
       goto L_exit;
@@ -2567,15 +2663,15 @@ static int    bck_GR_NoConstrPln;
 //================================================================
   int sele_set_add (int rTyp) {
 //================================================================
-/// \code
-/// sele_set_add        add obj to selectionfilter; eg Typ_go_PD = P+D
-/// eg Typ_go_LCS = LN/CI/CV
-/// GR_reqTyp is not set !
+// sele_set_add        add obj to selectionfilter; eg Typ_go_PD = P+D
+// eg Typ_go_LCS = LN/CI/CV
+// GR_reqTyp is not set !
 // - transformation into requested obj is done in func sele_decode
 //
 // selectionfilter = reqObjTab                  see INF_workflow_select
 // test selectionfilter: if(sele_ck_typ (typ)) - yes, is on
-/// \endcode
+//
+// see INF_GL2D_buttons__
  
   int     i1, i2, i2Dbutts = 0;
 
@@ -2684,13 +2780,11 @@ static int    bck_GR_NoConstrPln;
       sele_set_types (Typ_PLN, 
                       Typ_PT,
                       Typ_VC,
-                      Typ_LN, 
-                      Typ_CI,
                       Typ_Model,
                       0);
-/*
-                      Typ_Val,
-*/
+//                       Typ_LN, 
+//                       Typ_CI,
+//                       Typ_Val,
       sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       sele_set_icon (&i2Dbutts, Typ_modPERP);
       break;
@@ -2704,6 +2798,8 @@ static int    bck_GR_NoConstrPln;
       break;
 
 
+    //----------------------------------------------------------------
+    // groupTypes
     case Typ_goGeom:    // all types
     case Typ_Group:     // all types
       memset (reqObjTab, 0xff, sizeof(reqObjTab));
@@ -2897,6 +2993,8 @@ static int    bck_GR_NoConstrPln;
 
 
 
+    //----------------------------------------------------------------
+
     case TYP_FilNam:            // Filename
       sele_set_types (TYP_FilNam, Typ_Model, 0);
       sele_set_icon (&i2Dbutts, GR_reqTyp);
@@ -2910,38 +3008,15 @@ static int    bck_GR_NoConstrPln;
 
 
     case Typ_modREV:
-      sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, GR_reqTyp);
-      break;
-
-
+    case Typ_modUnlim:
+    case Typ_Tra:
     case Typ_modCTRL:
-      sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, Typ_modCTRL);
-      break;
-
-
     case Typ_modCX:
-      sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, Typ_modCX);
-      break;
-
-
     case Typ_modCWCCW:
-      sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, Typ_modCWCCW);
-      break;
-
-
     case Typ_mod1:
-      sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, Typ_mod1);  // NXT PRV
-      break;
-
-
     case Typ_modPERP:
       sele_set_types (GR_reqTyp, 0);
-      sele_set_icon (&i2Dbutts, Typ_modPERP);
+      sele_set_icon (&i2Dbutts, GR_reqTyp);
       break;
 
 
@@ -2950,6 +3025,7 @@ static int    bck_GR_NoConstrPln;
                       Typ_PLN,
                       // Typ_GTXT,
                       0);
+      break;
 
 
     case Typ_EyePT:  // 

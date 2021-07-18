@@ -131,7 +131,7 @@ static long last_obj;
 
   printf("dmm_mm %d %d\n",dx,dy);
 
-  // UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+  // GR_get_curPos_UC (&pt1);   // get GR_curPos_WC
   // printf(" pt1= %f %f %f\n",pt1.x,pt1.y,pt1.z);
 
   return 0;

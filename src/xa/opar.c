@@ -75,7 +75,7 @@ parents have:
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <string.h>                       /* strcmp ..   */
@@ -115,7 +115,7 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
 
 
   int            i1;
-  long           ll;
+  long           ll, dli;
   char           *lPos, *oSrc;
 
 
@@ -128,8 +128,11 @@ static MemTab(Parent) ParTab = _MEMTAB_NUL;    // see ../xa/xa_ga.h
     // sourceline not defined ..
     if(!oPar->lnr) {
       // lineNr not defined; get it ..
-      oPar->lnr = DL_dli__dbo (oPar->typ, oPar->dbi, -1L);
+      dli = DL_dli__dbo (oPar->typ, oPar->dbi, -1L);
+      DL_Get_lNr_dli (&oPar->lnr, dli);
     }
+      // printf(" get_src-oPar->lnr=%d\n",oPar->lnr);
+
 
     // get sourceline
     lPos = UTF_GetPosLnr (&ll, oPar->lnr);

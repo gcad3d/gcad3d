@@ -207,6 +207,55 @@ GR_temp_*          // display temporary-obj      (max 30)
 
 
 
+================================================================== \endcode */}
+void INF_GR_preview(){        /*! \code
+
+
+MAN:
+APT_work_def           // only MAN; disp single Db-Obj; dli unknown ?
+  UI_prev_dbo_sym        // display symbolic-obj (VC,Tra,VAR,Activ)
+ED_work_CurSet         // work n lines of src-code
+  UI_prev_dli            // only MAN - preview src-code of lst line
+
+CAD_IE: 
+IE_sel_CB_1            // select obj in grWin;
+  UI_prev_src            // only if obj-not-yet-complete
+IE_cad_Inp_disp__      // disp temp. symbols for CAD-inputField iind 
+  IE_cad_prev__          // preview DB-obj or source-obj as requested objTyp
+    SRC__add_dynTyp        // add requested-objTyp
+    UI_prev_dli | UI_prev_obj
+
+
+Browser_select:
+Brw_CB_sel
+  UI_prev_src          // preview source-obj
+
+
+Optmen_prev:
+UI_popSel_CB_prev      // CB from popup-listobj; has typ,dbi,dli,src
+  IE_cad_inp_prev__
+    UI_prev_dli | UI_prev_obj | UI_prev_src
+
+
+
+
+================================================================== \endcode */}
+void INF_GR_RotCen(){        /*! \code
+INF_GR_RotCen       set rotation-center
+
+
+INF_GR_RotCen       set rotation-center
+
+//----------------------------------------------------------------
+
+Vars:
+UI_vwz_is_on   // checkBox RotCen active | disabled
+
+Funcs:
+UI_vwz__       // create, remove rotCen-symbols
+UI_vwz_CB      // CB rotCen-checkbox-select
+UI_vwz_set     // set new screen-center (selection done)
+
 
 ================================================================== \endcode */}
 void INF_OPERS(){        /*! \code

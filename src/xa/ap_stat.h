@@ -21,8 +21,10 @@
 // start_rcmd 0=no; 1=start-remoteCommandFile
 // err_hide   0=normal-display errors;   1=hide-errors
 // iActStat   0=normal, 1=Interactivity_ON
+// zip        0=normal, do not compress native models;  1=compress
 // cadIniM    CAD - init - mainFunction
 // cadIniS    CAD - init - subFunction
+// mdl_load   0=loading-new-primary-model; 1=primary-model-is-active
 
 typedef struct {int errLn; short sysStat, errStat;
                 char      cadIniM, cadIniS, mdl_stat, brw_stat,
@@ -41,7 +43,9 @@ typedef struct {int errLn; short sysStat, errStat;
                           comp:1,
                           start_rcmd:1,
                           err_hide:1,
-                          uuBits:18; }                         AP_STAT;
+                          zip:1,           // 15
+                          mdl_load,
+                          uuBits:16; }                         AP_STAT;
 
 
 

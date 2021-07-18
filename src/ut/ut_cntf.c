@@ -378,9 +378,10 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(oNew.clo < -1) {
     // degenerated lfig;
       // printf(" degen:%d\n",oNew);
-    APED_oid_dbo_sm (oid, sizeof(oid), oNew.typ, oNew.dbi);
+//     APED_oid_dbo_sm (oid, sizeof(oid), oNew.typ, oNew.dbi);
+    MDL_mNam_imb (oid, 250, oNew.typ, oNew.dbi);
     // TX_Print("skip degenerated object %s %s",oid,AP_modact_nam);
-    TX_Print("**** skip degenerated object %s",oid);
+    TX_Print("**** skip degenerated object in %s",oid);
     // return oNew.clo;
     return 0;
   }
@@ -1046,7 +1047,7 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   OGX_SET_OBJ (&oxo, old.typ, old.typ, 1, old.obj);
   OGX_SET_OBJ (&oxn, oNew.typ, oNew.typ, 1, oNew.obj);
 
-  irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, 1, &oxo, &oxn, &wrkSeg);
+  irc = UTO_npt_int_2ox (&pNr, pa, va, TABSIZ, 1, 0, &oxo, &oxn, &wrkSeg);
     // printf(" ex npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
   if(irc < 0) goto L_exit;
   if(pNr <= 0) {

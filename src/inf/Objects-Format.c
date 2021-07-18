@@ -986,7 +986,7 @@ SourceObj:
                 [(ObjGX[2-n])=Lochkonturen]
 
 Functions:
-  TSU_DrawSurTP            getrimmte/gelochte Planare Flaeche
+  TSU_DrawSurTP1            getrimmte/gelochte Planare Flaeche
   TSU_DrawSurTS            ungetrimmte/ungelochte Planare Flaeche     UNUSED
 
 Examples:
@@ -1189,6 +1189,7 @@ SourceObj:
 
 
 Functions:
+  APT_decode_fsub
   TSU_DrawSurT_
   UT3D_box_surPln
 
@@ -1261,7 +1262,9 @@ Vars:
 
 //----------------------------------------------------------------
 Files:
-<tmp>Mod_in             
+<tmp>Mod_.tmp_in
+<tmp>Mod_.mod_in
+<tmp>Mod_.mod_out
   containing source  eg "SECTION PTAB _A1" ..
 
 <tmp>_A<dbi>.ptab (binary) 
@@ -1550,7 +1553,7 @@ Model-Reference
 
 ModelRef   mr1;
   mr1.mnam
-  mr1.modNr  = modelnumber of ModelBas-obj. (DB_get_ModNr())
+  mr1.modNr  = modelnumber of ModelBas-obj. (DB_mbi_mRefID())
   mr1.scl
   mr1.po     = position of ditto
   mr1.vx
@@ -1685,6 +1688,7 @@ tesselated-data -
 - can be displayed by functions using OpenGL
 - can be stored in files (fn.tess)
 - can be loaded and displayed as mockup-model
+- cannot use subModels
 
 
 Binary-format: see INF_FMTB_Surface_GL_Sur
@@ -1706,6 +1710,10 @@ Files:
 
 //----------------------------------------------------------------
 Functions:
+
+tst_exp_tess
+  TSU_exp__
+
 - create tesselated-data-record
 TSU_tess_addf            add patches/faces to memSpace
 GLT_stor_rec             store surface-patches into GLT_ppa / GLT_pta
@@ -1717,7 +1725,7 @@ GLT_stor_rec             store surface-patches into GLT_ppa / GLT_pta
 
 
 - store model in tess-format (export as tess)
-  TSU_exp__  < UI_save__
+  TSU_exp__  < MDL_exp__
     TSU_exp_sur
       tess_write_f_            write tesselated surf into file
 

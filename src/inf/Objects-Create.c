@@ -1,11 +1,11 @@
 /* ../inf/Objects-Create.c
 
-TODO: Update - see ../inf/GR_RECORDS.c
+TODO: Update - see ../inf/GR.c
 
 ================================================================== */
 void INF_GEOM_OBJ_CR(){                   /*! \code
 
-See also INF_GR_RECORDS    (grafic recordtypes)
+See also INF_GR    (grafic recordtypes)
 
 
 INF_Source-record
@@ -15,7 +15,7 @@ INF_Source-record
       record.
 
 
-INF_Fixed-Database-record
+INF_Fixed_Database_record
     * is a binary object in the DB, defined by type (eg Typ_LN and index (dbi))
     * necessary for later use of the obj (create point, use as startpoint of
       ..)
@@ -23,7 +23,7 @@ INF_Fixed-Database-record
     * Database-records are not visible and are not filed with the model.
 
 
-INF_Dynamic-Database-record
+INF_Dynamic_Database_record
     * is a binary object in the dynamic DB-space, defined by type (eg Typ_LN
       and a negative index) the negative index is automatically created
     * does NOT have a Source-record
@@ -36,7 +36,7 @@ INF_DisplayList-record
     * DisplayList-records are not filed with the model.
 
 
-INF_Temporary-DisplayList-record   (eg 
+INF_Temporary_DisplayList_record   (eg 
     * have type Typ_dynSym; 
     * cannot be hilited.
 
@@ -121,7 +121,7 @@ APED_src_chg // modify & add to undo-list
 // update DB & display
 APED_update__ (lNr);
 // see also UTF_chg_line // modify line in memory
-WC_Work__ (lNr, src); // process code
+WC_Work1 (lNr, src); // process code
 
 -----------------------------------------------------------
 AP_stru_2_txt // create sourceObj from complexObj
@@ -165,7 +165,7 @@ UI_menCB (NULL, "new");
 
 
 ================================================================== \endcode */}
-void INF_Fixed-Database-record (){        /*! code
+void INF_Fixed_Database_record (){        /*! code
 ===============================================================================
 Create:
 dbi = DB_StoreLine (123L, &ln1); // store as "L123"
@@ -176,7 +176,7 @@ UTO__dbo
 
 
 ================================================================== \endcode */}
-void INF_Dynamic-Database-record (){        /*! code
+void INF_Dynamic_Database_record (){        /*! code
 ===============================================================================
 DB_dump_stat ();
 Create:
@@ -223,10 +223,8 @@ GR_Disp_ox temp. display of ObjGX-structs
 GR_tDyn_symB__,-vc,-vc2,-ln,-ac,-bsp,-pln
 GR_tDyn_txiA disp integer-chars
 GR_tDyn_box__disp 3D-boundingBox from 2 points
-UI_disp_Pos temporary display position (red circle)
-UI_disp_vec1
-UI_disp_tra
-GL_DrawAngA draw angle with arrowhead
+UI_prev_pos temporary display position (red circle)
+UI_prev_vc
 GR_Disp_pln GL_DrawSymVX display plane / axisSystem
 UI_disp_pln_oid hilite plane from objID (disp RX RY RZ)
 UI_disp_activ display objName as text
@@ -239,7 +237,7 @@ GL_Delete (dli); // delete this dl-record and all following records
 
 
 ================================================================== \endcode */}
-void INF_Temporary-DisplayList-record (){        /*! code
+void INF_Temporary_DisplayList_record (){        /*! code
 ===============================================================================
 // Use next free dispListindex:
 dli = -1;

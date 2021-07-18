@@ -7,8 +7,8 @@
   void GUI_radiobutt_set (MemObj *mo);
   int GUI_radiobutt_press (void *parent, MemObj mo);
 
-  int GUI_popup__ (char *optLst[], char *tipLst[], int itip,
-                   void *funcnam, void *dataLst[]);
+  void* GUI_popup__ (char *optLst[], char *tipLst[], int itip,
+                     void *funcnam, void *dataLst[]);
 
   int GUI_popup_cb1 (void *parent, void *data);
   int GUI_popup_cb2 (void *parent, void *event, void *data);

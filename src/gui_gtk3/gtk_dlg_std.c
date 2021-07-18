@@ -35,7 +35,7 @@ void GUI_DIALOG(){}
 =====================================================
 List_functions_start:
 
-GUI_MsgBox1            display text, OK-Button, modal over window
+GUI_MsgBox             application GUI_dlg1
 
 GUI_DialogYN           dialogWindow w. OK-Button, Cancel-Button, callback-func
 // GUI_Dialog_cb_e2b      dialogWindow w. entry, 2 Buttons, callback-func

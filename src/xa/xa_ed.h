@@ -37,7 +37,7 @@
   int   ED_enter         ();
   int   ED_skip_start    ();
   int   ED_skip_end      ();
-  int   ED_update        ();
+  // int   ED_update        ();
   void  ED_set_delay     (int);
 
   int   ED_query_CmdMode ();
@@ -47,7 +47,7 @@
 
   int   ED_add_Def       (char *buf);
   int   ED_add_Line      (char *buf);
-  int   ED_add_Text      (int, long, char*);
+  int   ED_add_Text      (char*);
   int   ED_add_objSel    (int, long, char*);
   int   ED_add_objNam    (int, int*, long*, char*);
   int   ED_add_objInd    (int);

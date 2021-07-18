@@ -228,9 +228,6 @@ static Obj_gui2     *GUI_tree1_ActObj;
   // winBrw->tree = tree;
   
 
-  g_object_unref (G_OBJECT (store));
-
-
   //----------------------------------------------------------------
   // 1. column (icons); attibutes: "sensitive"
   renderer = gtk_cell_renderer_pixbuf_new();
@@ -306,14 +303,21 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
 
     // connect Mausbuttons
-      g_signal_connect (tree,
-                        "button_press_event",
-                        G_CALLBACK (GUI_tree1_cbMouse),
-                        PTR_MEMOBJ(go->mem_obj));
-      // es geht nicht:
-      // g_signal_connect (tree,
-                        // "button_release_event",
-                        // G_CALLBACK (mouseCB), NULL);
+    g_signal_connect (tree,
+                      "button_press_event",
+                      G_CALLBACK (GUI_tree1_cbMouse),
+                      PTR_MEMOBJ(go->mem_obj));
+    // es geht nicht:
+    // g_signal_connect (tree,
+                      // "button_release_event",
+                      // G_CALLBACK (mouseCB), NULL);
+
+//     gtk_widget_set_events (GTK_WIDGET(tree), GDK_KEY_PRESS_MASK);
+//     g_signal_connect (G_OBJECT(tree),
+//                       "key-press-event",
+//                       G_CALLBACK (GUI_tree1_cbKey),
+//                       PTR_MEMOBJ(go->mem_obj));
+
   }
 
 
@@ -336,6 +340,9 @@ static Obj_gui2     *GUI_tree1_ActObj;
   GUI_w_pack1 (pTyp, w_par, scrolled_win, opts);
 
 
+  g_object_unref (G_OBJECT (store));
+
+
   //----------------------------------------------------------------
   go->gio_typ  = TYP_GUI_Tree;
   go->widget   = tree;
@@ -347,6 +354,28 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
 }
 
+
+// //================================================================
+//   int GUI_tree1_cbKey (void *parent, void *event, MemObj mo) {
+// //================================================================
+// 
+//   int          ev_in;
+// 
+// 
+// 
+//   // go = GUI_obj_pos (&mo);
+//   // if(!go) return 0;
+//   // if(!go->uFunc) return 0;
+// 
+//   ev_in = ((GdkEvent*)event)->type;
+// 
+//   printf("GUI_tree1_cbKey ev=%d\n",ev_in);
+// 
+// 
+//   return (FALSE);    // TRUE: do no defaultOperations
+//                      // FALSE: continue with defaultOperations
+// }
+ 
 
 //=============================================================================
   int GUI_tree1_row_set (MemObj *mo, TreeNode *row,
@@ -368,7 +397,8 @@ static Obj_gui2     *GUI_tree1_ActObj;
   GtkTreeSelection *sel1;
 
 
-  // printf("GUI_tree1_row_set %d |%s| %d\n",ico,txt,mode);
+  // printf("GUI_tree1_row_set ico=%d |%s| mode=%d\n",ico,txt,mode);
+  // if(mode == -1) AP_debug__ ("GUI_tree1_row_set");
 
 
   // set GUI_tree1_tree, GUI_tree1_view, GUI_tree1_model and GUI_tree1_store
@@ -568,9 +598,6 @@ static Obj_gui2     *GUI_tree1_ActObj;
 
   if(GUI_tree1_decode(mo)) return -1;
 
-  il = strlen(txt);
-
-
   // TEST:
   // gtk_tree_model_get_iter_from_string (GUI_tree1_model, itPar, "0");
     // printf(" itPar=%p\n",itPar);
@@ -596,7 +623,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
     g_free (txt1);
       // printf("ex GUI_tree1_iter_string |%s|\n",cbuf);
 
-    if(!strncmp (cbuf, txt, il)) return 0;
+    if(!strcmp (cbuf, txt)) return 0;
 
   }
 
@@ -618,7 +645,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
   // set GUI_tree1_tree, GUI_tree1_view, GUI_tree1_model and GUI_tree1_store
   if(GUI_tree1_decode(mo)) return -1;
 
-  // get nr of childNodes
+  // get nr of childNodes - CRASHES with deleted nodes !
   ii = gtk_tree_model_iter_n_children (GUI_tree1_model, (GtkTreeIter*)it);
 
     // printf("ex GUI_tree1_childNr %d\n",ii);
@@ -670,7 +697,7 @@ static Obj_gui2     *GUI_tree1_ActObj;
                                         (GtkTreeIter*)it);
     if(irc == 0) return 0;
 
-    // get nr of childNodes
+    // get nr of childNodes  // makes CRASH if already deleted ?
     ii = gtk_tree_model_iter_n_children (GUI_tree1_model, &rowChd);
 
     // remove childs of child (recursion)
@@ -1122,5 +1149,59 @@ static GtkTreeIter  it1;
 
 }
 
+
+/*
+//====================================================================
+  int GUI_tree1_analyz_tn (char *sOut, TreeNode *tn) {
+//====================================================================
+// 0 = ?
+// 1 = text
+// 2 = state; 1=act, 0=pass
+// 3= iconNr
+
+  int          ii;
+  GtkTreeIter  iter;
+  gchar        *txt1;
+
+
+  // loop tru all childs of parNd
+  // get nr of childs of parNod
+  ii = gtk_tree_model_iter_n_children (model, parNd);
+
+  // loop tru childs
+  for(i1=0; i1<ii; ++i1) {
+
+    // get childnode
+    irc = gtk_tree_model_iter_nth_child (model, &chdNd, parNd, i1);
+      // printf(" irc=%d\n",irc);
+    if(irc == 0) continue;
+
+    // get value of iter of column 1
+    gtk_tree_model_get (model, &chdNd, 1, &txt1, -1);
+    strcpy(cbuf, txt1);
+    g_free (txt1);
+      // printf(" pass.typ|%c|\n",c1);
+
+  }
+
+
+
+
+  gtk_tree_model_get (GUI_tree1_model, &iter, 0, &txt1, -1);
+    printf(" _analyz_tn 0 |%s|\n",txt1);
+  g_free (txt1);
+
+
+  gtk_tree_model_get (GUI_tree1_model, &iter, 1, &txt1, -1);
+    printf(" _analyz_tn 0 |%s|\n",txt1);
+  strcpy(sOut, txt1);
+  g_free (txt1);
+
+      // printf(" _analyz1 col[%d]=|%s|\n",iCol,sOut);
+
+  return 0;
+
+}
+*/
 
 /* ------*--------- eof ------------------------- */

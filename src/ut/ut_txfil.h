@@ -9,6 +9,8 @@
   // int   UTF_wri_file   (char* fn, int mode);
   int   UTF_wri_file   (char* fn, int iniFunc(FILE*));
 
+  char* UTF_DYNDAT_find ();
+
   long  UTF_GetLen0    ();
   char* UTF_GetLinNr   (char* lbuf, long *llen, long lNr);
   char* UTF_GetPosLnr  (long *llen, long lNr);

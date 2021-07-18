@@ -34,24 +34,26 @@ void SRC(){}
 =====================================================
 List_functions_start:
 
+SRC_ck_objDefLn     test sourceLine if its definition-line for typChar
+
+SRC_get_typ         get typ from string, eg from "D(.." or "P21")
+SRC_get_oid         get obj-ID from string;
+
 SRC_src_pt3_10      "P(<x> <y> <z>)" from *Point; precision 10 digits
 SRC_src_ato         sourceObj (text) from atomicObjs
 SRC_src_dbo         create sourceCode of requested type from Database-object
 SRC_src_isol_ato1   convert DB-obj (typ, DB-index) into isolated sourceCode (text)
 
-AP_src_sel_fmt      create sourceText from Format
+SRC__add_dynTyp     add dynam. type to src; eg Typ_PLN+"P20" -> "R(P20)"
+
 SRC_src_pt_dbo      create obj (src) from point and DB-obj (curve, surface)
 AP_src_parPt_selSur create sourceCode for parameteric-point from surface
 
-SRC_parPt_ptDbo  create parametric_point (sourceCode) from point and Db-obj
-SRC_vc_ptDbo     create vector (sourceCode) from point and Database-object
-SRC_LnAc_ptDbo   create L() or C() from obj dbTyp,dbi at position pti
+SRC_parPt_ptDbo     create parametric_point (sourceCode) from point and Db-obj
+SRC_src_pt_dbo      create obj (sourceCode) from point and Database-object
+SRC_LnAc_ptDbo      create L() or C() from obj dbTyp,dbi at position pti
 
-SRC_fmt__        write sourceCode formatted for depending obj; eg "D(P1 P2)"
-SRC_fmt_tab      write sourceCode formatted for depending obj; eg "D(P1 P2)"
-SRC_fmt_sub      format sourceObj (text) for compound-DB-obj
-
-SRC_dump__       dump modelsource
+SRC_dump__          dump modelsource
 
 List_functions_end:
 =====================================================
@@ -68,7 +70,7 @@ AP_obj_add_dbo AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -97,6 +99,145 @@ AP_obj_add_dbo AP_obj_add_val AP_obj_add_vc AP_obj_add_pt
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
+
+
+//================================================================
+//================================================================
+
+
+
+//===================================================================
+  int SRC_ck_objDefLn (long *dbi, char **sSrc, char *sLn, char typ) {
+//===================================================================
+// SRC_ck_objDefLn       test sourceLine if its definition-line for typChar
+//   eg "M20="sm1" .."  is definition-line for typChar 'M'
+// Input:
+//   sLn     sourceLine   eg "M20="sm1" .."
+//   typ     typChar      eg 'M'
+// Output:
+//   retCode -1  sLn is not definition-line for <typ>
+//           0   ok; dbi and sSrc set.
+//   dbi     DB-index of object - 20L for "M20"
+//   sSrc    position of first char (!=' ') in sLn following '='
+//
+// see also AP_typ_typChar
+
+  char    *p1, *p2;
+
+  // get model-definitionLine
+  p1 = sLn;
+  while (*p1 == ' ') ++p1;
+
+  if(*p1 != typ) goto L_tdl_No;
+
+  *dbi = strtol (p1 + 1, &p2, 10);
+
+  if(*p2 == ' ') { while (*p2 == ' ') ++p2; }
+
+  if(*p2 != '=') goto L_tdl_No;
+
+  ++p2;
+
+  while (*p2 == ' ') ++p2;
+  *sSrc = p2;
+    // printf("ex-SRC_ck_objDefLn %ld |%s|\n",*dbi,p2);
+  return 0;
+
+
+  //----------------------------------------------------------------
+  L_tdl_No:
+      // printf("ex-SRC_ck_objDefLn -1\n");
+    return -1;
+
+}
+
+
+//================================================================
+  int SRC_get_typ (char *src) {
+//================================================================
+// SRC_get_typ         get typ from string, eg from "D(.." or "P21")
+// get requested type from first char
+// retCode    typ  0 = error
+
+  int      typ;
+  char     *pSrc;
+
+
+  pSrc = src;
+  UTX_pos_skipLeadBlk (pSrc);
+
+  // get typ from first char
+  typ = AP_typ_typChar (pSrc[0]);
+  if(!typ) goto L_err;
+
+  ++pSrc;
+  UTX_pos_skipLeadBlk (pSrc);
+  // following char should be numeric (for oid (eg "P21") or '(' for dynam.type
+  if(pSrc[0] == '(') goto L_exit;
+
+  // test for numeric (int)
+  if(UTX_ck_num_i(pSrc) < 1) goto L_err;
+
+
+  L_exit:
+    printf("ex-SRC_get_typ %d |%s|\n",typ,src);
+    return typ;
+
+  L_err:
+    typ = 0;
+    printf("***** SRC_get_typ E1 |%s|\n",src);
+    goto L_exit;
+
+}
+
+
+//================================================================
+  int SRC_get_oid (long *dbi, char **src) {
+//================================================================
+// SRC_ck_oid               get obj-ID from string;
+// Input:
+//   src       startposition of src-obj; 
+// Output:
+//   src       position of first non-numeric char; unmodified if no obj-ID detected
+//   dbi       DB-index
+//   returns   type of obj (eg Typ_PT); 0 = no obj-ID;
+//
+// Example: 
+// "A-12 1" returns Typ_SUR, dbi = -12, src-out = " 1"
+
+
+  int    typ, ii;
+  char   *p1, *p2;
+
+
+  printf("SRC_ck_oid |%s|\n",*src);
+
+  p1 = *src;
+
+  UTX_pos_skipLeadBlk (p1);
+
+  // get typ from first char
+  typ = AP_typ_typChar (p1[0]);
+  if(!typ) goto L_exit;
+
+  ++p1;
+
+//   // test if cp2 is numeric string
+//   ii = UTX_ck_num_digNr (&p2, p1);
+
+  *dbi = strtol (p1, &p2, 10);
+  if(p1 == p2) {
+    typ = 0;
+  } else {
+    *src = p2;
+  }
+
+
+  L_exit:
+    printf("ex-SRC_ck_oid typ=%d dbi=%ld |%s|\n",typ,*dbi,*src);
+  return typ;
+
+}
 
 
 //================================================================
@@ -133,6 +274,143 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     }
 
   return 0;
+
+}
+
+
+//========================================================================
+  int SRC__add_dynTyp (char *so, int soSiz, int typ, char *si, int mode) {
+//========================================================================
+// SRC__add_dynTyp                    get sourceObj (eg "P20" -> "R(P20)"
+// Input:
+//   soSiz       size of so in chars  UU
+//   typ         type to get - eg Typ_PLN for example
+//   si          obj-source - eg "P20" for example
+//   mode        1: display errors; 0: do not display errors
+// Output:
+//   so
+//   retCode     0: ok;  -1: typ not found
+// extraced from IE_inpTxtOut
+
+  int       irc = 0, i1, sLen;
+  char      *actBuf, s1[8];
+
+
+  // printf("SRC__add_dynTyp %d |%s|\n",typ,si);
+
+  sLen = strlen(si);
+  if(sLen < 1) return -1;
+
+  UTX_pos_skipLeadBlk (si);
+
+  for(i1=0; i1<sLen; ++i1) si[i1] = toupper (si[i1]);
+  actBuf = si;
+  i1 = IMIN(strlen(si),6);
+  strncpy (s1, si, i1);
+
+
+  // test if more than one work 
+  if(UTX_wordnr(si) > 1) s1[0] = '-'; // do not skip enclosing; eg for "D20 REV"
+
+  //----------------------------------------------------------------
+  if(typ == Typ_VC) {
+    // "C20" -> D(C20)"
+    if(s1[0] == 'D') goto L_cpy_txt;
+    // eg "DX 2.5" -> "D(DX 2.5)"
+    sprintf(so, "D(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Tra) {
+    // "20" -> "T20"
+    if(s1[0] == 'T') goto L_cpy_txt;
+    sprintf(so, "T(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_PT) {
+    // "20" -> "P20"
+    if(s1[0] == 'P') goto L_cpy_txt;
+    sprintf(so, "P(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_LN) {
+    if(s1[0] == 'L') goto L_cpy_txt;
+    sprintf(so, "L(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CI) {
+    if(s1[0] == 'C') goto L_cpy_txt;
+    sprintf(so, "C(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_PLN) {
+    // "P20" -> R(P20)"
+    if(s1[0] == 'R') goto L_cpy_txt;
+    sprintf(so, "R(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_XVal) {
+    // first 2 chars must be "X("
+    if(!strncmp(si, "X(", 2)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "X(%s)",si);
+
+  } else if(typ == Typ_YVal) {
+    // first 2 chars must be "Y("
+    if(!strncmp(si, "Y(", 2)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "Y(%s)",si);
+
+  } else if(typ == Typ_ZVal) {
+    // first 2 chars must be "Z("
+    if(!strncmp(si, "Z(", 2)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "Z(%s)",si);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Angle) {
+    if(!strncmp(si, "ANG(", 4)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "ANG(%s)",si);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Val)   {
+    if(!strncmp(si, "VAL(", 4)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "VAL(%s)",si);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_PTS)   {
+    if(!strncmp(si, "PTS(", 4)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "PTS(%s)",si);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_PTI)   {
+    if(!strncmp(si, "PTI(", 4)) goto L_cpy_txt;  // no modif.
+    sprintf(so, "PTI(%s)",si);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_EyePT) {
+    // IE_getEyePt (so);
+    // goto L_add_mod;
+    sprintf(so, "\"%s\"",si);
+
+  //----------------------------------------------------------------
+  } else {
+    irc = -1;
+    if(mode) {
+      printf("***************** SRC__add_dynTyp TODO: %d\n",typ);
+      TX_Print("***************** SRC__add_dynTyp TODO: %d",typ);
+      // see IE_inpTxtOut !
+      goto L_cpy_txt;
+    }
+  }
+
+
+  //----------------------------------------------------------------
+  L_exit:
+      // printf(" ex-SRC__add_dynTyp %d |%s|\n",irc,so);
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_cpy_txt:
+    strcpy(so, si);
+    goto L_exit;
 
 }
 
@@ -213,6 +491,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   void      *vp1;
 
 
+  // printf("....................................................... \n");
   // printf("SRC_src_ato siz=%d impTyp=%d\n",oSiz,impTyp);
   // ATO_dump__ (ato, "");
 
@@ -238,9 +517,12 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     if((aNr == 1) &&(atyp[0] == impTyp)) {
       impTyp = 0;
 
+    } else if(impTyp == Typ_PLN) {
+      impTyp = 0;
+
     } else {
-//       if((impTyp == Typ_XVal)||(impTyp == Typ_XVal)||(impTyp == Typ_ZVal))
-//         impTyp = Typ_PT;
+//    // if((impTyp == Typ_XVal)||(impTyp == Typ_XVal)||(impTyp == Typ_ZVal))
+//    //   impTyp = Typ_PT;
       // add eg "P("
       c1 = AP_typChar_typ (impTyp);
       if(c1 == '-') {TX_Error("SRC_src_ato E1-%d",*atyp); return -1;}
@@ -335,8 +617,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
  
   //----------------------------------------------------------------
   L_exit:
-    // printf("ex _src_ato |%s|\n",os);
-
+    printf("ex _src_ato |%s|.............................\n",os);
   return 0;
 
 }
@@ -736,7 +1017,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   //----------------------------------------------------------------
   } else if(dbTyp == Typ_SOL) {                // selected: SOL
-    irc = GL_MousePos (pti);
+    irc = GL_vertex_curPos (pti);
     if(irc == 0) {
       irc = 2;
       outBuf[0] = '\0';
@@ -949,7 +1230,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
     // invert transformation if ConstrPln is set;
     //   will be inverted in APT_decode_pt
-    if(AP_IS_2D) {
+    if(CONSTRPLN_IS_ON) {
       UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
     }
 
@@ -1590,8 +1871,8 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 ///   select-position <pti>
 /// Input:
 ///   oTyp            type of outputobj; Typ_PT|Typ_VC|Typ_LN|Typ_CI
-///                     Typ_goGeo1 - get L|C|S according to selected obj
-///   pti             point on obj; get last mousepoint if NULL.
+///                   Typ_goGeo1 - get L|C|S according to selected obj
+///   pti             point on obj; get last selPos if NULL.
 ///   iTyp,iDbi       object (Ln,Ac,Curv,Surf) 
 ///   sSiz            size of so (nr of chars)
 /// Output:
@@ -1637,12 +1918,14 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   Point     pts;
 
 
+  // printf("-------------------------------------------------------------- \n");
   // printf("SRC_src_pt_dbo siz=%d oTyp=%d iTyp=%d iDbi=%ld\n",sSiz,oTyp,iTyp,iDbi);
 
 
   // f pti == NULL: get last selected position
   if(!pti) {
-    sele_get_pos__ (&pts);
+    // sele_get_pos__ (&pts);
+    sele_get_pos_vtx (&pts);
     pti = &pts;
   }
     // DEB_dump_obj__(Typ_PT, pti, " SRC_src_pt_dbo-pti");
@@ -1664,6 +1947,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   //---------------------------------------------------------------
+  // get selected obj
   // get objData of DB-obj (iTyp,iDbi)
   irc = UTO_obj_dbo (&iObj, &iNr, &iTyp, iDbi);
     // printf(" src_pt_dbo-irc=%d iTyp=%d iNr=%d\n",irc,iTyp,iNr);
@@ -1674,7 +1958,6 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     // DEB_dump_obj__ (iTyp, iObj, " SRC_src_pt_dbo-iObj");
 
 
-  // get selected obj
   //----------------------------------------------------------------
   if(iTyp == Typ_SOL) {                // selected: SUR
     printf("*** get parameteric point on solid is not yet implemented ***\n");
@@ -1777,11 +2060,14 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   //----------------------------------------------------------------
   // for (oTyp==Typ_goGeo1) fix oTyp
   if(oTyp == Typ_goGeo1) {
+
     // get the selected subObj of a CCV
       // printf(" iTyp=%d\n",iTyp);
     if((iTyp == Typ_LN)||(iTyp == Typ_CVPOL)) {
       oTyp = Typ_CV; // Typ_LN;
-    // } else if(iTyp == Typ_CI) {
+
+    } else if(iTyp == Typ_CI) {
+      oTyp = Typ_CI;
     // } else return -2;
 
     } else {
@@ -1803,7 +2089,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   L_exit:
 
-    // printf("  ex-SRC_src_pt_dbo %d |%s|\n",oTyp,so);
+    // printf("  ex-SRC_src_pt_dbo %d |%s|---------------------------\n",oTyp,so);
 
   return oTyp;
 

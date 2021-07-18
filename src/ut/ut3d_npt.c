@@ -34,31 +34,32 @@ void UT3D_npt(){}
 =====================================================
 List_functions_start:
 
-UT3D_ptNr_obj              get nr of points for polygon from obj (cv)
+UT3D_ptNr_obj             get nr of points for polygon from obj (cv)
+UT3D_npt_sort             sort pointarray to nearest first
 UT3D_ck_npt_inLine        check if points are on lineSegment
 UT3D_ck_npt_inCirc        check if points are on circSegment
 
-UT3D_pta_ox_lim            polygon and segNr from complex-obj  (eg CCV)
-UT3D_npt_ox__              polygon from complex-obj  (eg CCV)
-UT3D_mtpt_dbo              polygon from DB-obj
-UT3D_mtpt_obj              Polygon from bin-obj (typ,struct)
-UT3D_mtpt_trmCv            polygon from trimmed-curve
+UT3D_pta_ox_lim           polygon and segNr from complex-obj  (eg CCV)
+UT3D_npt_ox__             polygon from complex-obj  (eg CCV)
+UT3D_mtpt_dbo             polygon from DB-obj
+UT3D_mtpt_obj             Polygon from bin-obj (typ,struct)
+UT3D_mtpt_trmCv           polygon from trimmed-curve
 // UT3D_npt_obj           DO NOT USE  Polygon from bin-obj (typ,struct)
 // UT3D_npt_trmCv         DO NOT USE  polygon from trimmed-curve
-UT3D_pta_plg               get points from polygon-curve; relimited
-UT3D_pta_bsp               Polygon from bSpline
-UT3D_pta_plg2              get points from 2D-polygon;
-UT3D_pta_otb               polygon from binary-object-table
-UT3D_npt_fac               closed polygon (4 points) from indexed-triangle (Fac3)
-UT3D_npt_tria              closed polygon (4 points) from Triang
-UT3D_pta_parlg_pt_2vc      parallelogram from 2 vectors + length-faktor
-UT3D_npt_parl_pln          polygon parallel polygon on plane, dist
-UT3D_npt_tra_npt2_rsys     transf. 2D-points => 3D-points
+UT3D_pta_plg              get points from polygon-curve; relimited
+UT3D_pta_bsp              Polygon from bSpline
+UT3D_pta_plg2             get points from 2D-polygon;
+UT3D_pta_otb              polygon from binary-object-table
+UT3D_npt_fac              closed polygon (4 points) from indexed-triangle (Fac3)
+UT3D_npt_tria             closed polygon (4 points) from Triang
+UT3D_pta_parlg_pt_2vc     parallelogram from 2 vectors + length-faktor
+UT3D_npt_parl_pln         polygon parallel polygon on plane, dist
+UT3D_npt_tra_npt2_rsys    transf. 2D-points => 3D-points
 
-UT3D_pta_sus               SurStd-Boundary -> Polygon umwandeln
+UT3D_pta_sus              SurStd-Boundary -> Polygon umwandeln
 
-UT3D_grd_pta               add gridbox-points to MemTab(Point)
-UT3D_grd_ptya              add gridbox-points with y-valTab to MemTab(Point)
+UT3D_grd_pta              add gridbox-points to MemTab(Point)
+UT3D_grd_ptya             add gridbox-points with y-valTab to MemTab(Point)
 
 List_functions_end:
 =====================================================
@@ -108,6 +109,39 @@ UT3D_npt_ci                circular polygon
 #include "../xa/xa_mem.h"              // memspc55
 #include "../xa/xa_msg.h"              // MSG_*
 
+
+
+//================================================================
+  int UT3D_npt_sort_near (Point *pa, int ptNr, Point *px) {
+//================================================================
+// UT3D_npt_sort             sort pointarray to nearest first
+
+  int    i1, ie, ii;
+
+
+  printf("UT3D_npt_sort %d\n",ptNr);
+  for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
+
+  ie = ptNr - 1;
+  for(i1=0; i1<ie; ++i1) {
+    ii = UT3D_ipt_cknear_npt (px, &pa[i1], ptNr - i1);
+    ii += i1;
+      printf(" sort_near i1=%d ii=%d\n",i1,ii);
+    if(ii != i1) {
+      // swap points ii -i1
+      MEM_swap__ (&pa[i1], &pa[ii], sizeof(Point));
+    }
+  }
+
+
+    // TESTBLOCK
+    printf("ex-UT3D_npt_sort \n");
+    for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
+    // END TESTBLOCK
+
+  return 0;
+
+}
 
 
 //=========================================================================
@@ -619,7 +653,7 @@ UT3D_npt_ci                circular polygon
 //==================================================================================
 // UT3D_mtpt_dbo                           polygon from DB-obj
 // Input:
-//   mdli          see AP_modact_ind
+//   mdli          see AP_modact_ibm
 // Output:
 //   mtpa          polygon from bin-obj
 //   mtsn          startIndexes of CCV-segments (only for CCVs); can be NULL;
@@ -668,7 +702,7 @@ UT3D_npt_ci                circular polygon
 //   typ          type of struct in data
 //   data         curve
 //   siz          nr of objects of type 'typ' in 'data'
-//   mdli         modelindex; eg AP_modact_ind;
+//   mdli         modelindex; eg AP_modact_ibm;
 //   mode         0=perm; use PRCV; 1=temp, do not use PRCV; 2=unknown
 // Output:
 //   mtpa         polygon from bin-obj

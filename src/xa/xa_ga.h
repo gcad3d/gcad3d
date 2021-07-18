@@ -27,4 +27,7 @@ typedef struct {long cInd, pInd; int typ;}                    Parent;
 
 
 
+int GA_get_dbo (ObjAtt **iAtt, int basTyp, long dbi);
+
+
 // EOF

@@ -17,6 +17,7 @@
 -----------------------------------------------------
 TODO:
   change placing the GL2D-objects; use glLoadIdentity instead backScaling.
+  GLBT_vcSelStat / GLBT_plnSelStat cannot use negative DBi's
     ..
 
 -----------------------------------------------------
@@ -30,7 +31,7 @@ Modifications:
 #endif
 /*!
 \file  ../xa/glbt.c
-\brief 2D - Buttons in OpenGL.
+\brief 2D - Buttons in OpenGL.           INF_GL2D__ INF_GL2D_buttons__
 \code
 =====================================================
 List_functions_start:
@@ -138,7 +139,6 @@ extern Point GL_cen;
 // extern Point GLBT_ori;
 extern double GL_angZ, GL_angX;
 extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
-extern double GL_fakt;
 extern double GL_Scale;
 extern double GL2D_Scale;
 // extern Vector *GL_eyeX;
@@ -279,6 +279,7 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
   // printf("GLBT_sel_sel ============================\n");
+  if((GLBT_vcSelStat < 0)&&(GLBT_plnSelStat < 0)) return 0;
 
 
   // switch to ProjectionMode
@@ -315,7 +316,7 @@ static char  I2D_stat[I2D_TABSITZ];
   // redraw all objs to be picked / selectors, buttons
 
   // set glOrtho - 2D, GLBT_ori
-  GLBT_view__ ();
+  GLBT_view__ (); // else cannot pick ?
   // fz = GL_Scr_Siz_X * 10.f;
   // glOrtho (0.f, (float)GL_Scr_Siz_X, 0.f, (float)GL_Scr_Siz_Y, -fz, fz);
   // UT3D_pt_3db (&GLBT_ori, GL_Scr_Siz_X - GLBT_POS_ORI, GLBT_POS_ORI, 0.);
@@ -393,6 +394,10 @@ static char  I2D_stat[I2D_TABSITZ];
 // Output:
 //   ib      ib += 1;
 // was sele_set_icon
+
+
+  // printf("GLBT_but_add typ=%d |%s|\n",iTyp,bTxt);
+
 
   I2D_iNr = *ib;
 
@@ -592,8 +597,8 @@ static char  I2D_stat[I2D_TABSITZ];
 
 
   // printf("GLBT_but_disp\n");
-  // printf("  GLTXA_sizBX=%d GLTXA_sizBY=%d GL2D_Scale=%f GL_fakt=%f\n",
-          // GLTXA_sizBX,GLTXA_sizBY,GL2D_Scale,GL_fakt);
+  // printf("  GLTXA_sizBX=%d GLTXA_sizBY=%d GL2D_Scale=%f GL_SclNorm=%f\n",
+          // GLTXA_sizBX,GLTXA_sizBY,GL2D_Scale,GL_SclNorm);
 
 
   fscl = 1. / GL2D_Scale;
@@ -778,8 +783,8 @@ static char  I2D_stat[I2D_TABSITZ];
   pt1 = GLBT_ori;
 
   // move the symbol along x and y
-  lux = -200. / (GL_Scale * GL_fakt);  // get usercoords
-  luy =   50. / (GL_Scale * GL_fakt);
+  lux = -200. / (GL_Scale * GL_SclNorm);  // get usercoords
+  luy =   50. / (GL_Scale * GL_SclNorm);
   UT3D_pt_trapt2vc2len (&pt1, &GLBT_ori, GL_eyeY, lux, GL_eyeZ, luy);
     DEB_dump_obj__ (Typ_PT,  &pt1, " pt1: ");
 
@@ -1067,6 +1072,17 @@ static char  I2D_stat[I2D_TABSITZ];
         // MSG_pri_0("VC0");
       }
     }
+
+    // check if transformation defined
+    if((I2D_typTab[i1] == Typ_FncTr1)  ||
+       (I2D_typTab[i1] == Typ_FncTr2))     {
+      i2 = DB_get_ObjNr (Typ_Tra);
+      if(i2 < 1) {
+        I2D_stat[i1] = 'X';   // no vars defined
+        // MSG_pri_0("VC0");
+      }
+    }
+
 
   }
 

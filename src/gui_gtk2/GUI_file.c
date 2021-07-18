@@ -68,6 +68,7 @@ static char *sGui = "gtk2";
 int  nArg;
 char **paArg;
 char fnOut[512];
+char title[512];
 char *sDir, *fnSymDir, *sFilter, *sTit;
 
 GtkWidget *wfl1;
@@ -431,9 +432,12 @@ static char* os_tmp_dir = "/tmp/";
 
   fnOut[0] = '\0';
 
+  // prepare title
+  sprintf(title, "%s %s",sTit,sDir);
+
 
   //----------------------------------------------------------------
-  wfl1 = gtk_file_chooser_dialog_new (sTit,
+  wfl1 = gtk_file_chooser_dialog_new (title,
                                       NULL,                // parent_window
                                       GTK_FILE_CHOOSER_ACTION_SAVE,
                                       ("SYM-DIR"),  2,
@@ -492,6 +496,7 @@ static char* os_tmp_dir = "/tmp/";
     // Save ..
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
+    if(!filename) goto L_wait;
     if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
     g_free (filename);
 
@@ -511,6 +516,9 @@ static char* os_tmp_dir = "/tmp/";
     }
 
     if(strlen(s1Dir) > 1) {
+      // update title
+      sprintf(title, "%s %s", sTit, s1Dir);
+      gtk_window_set_title (GTK_WINDOW (wfl1), title);
       // add filter or "*"
       // if(strcmp(sFilter, "NONE")) strcat (s1Dir, sFilter);
       strcat (s1Dir, "*");

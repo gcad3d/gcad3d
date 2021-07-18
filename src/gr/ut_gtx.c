@@ -480,22 +480,23 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   int GR_img_get_dbi (int *typ, Point *p1,
                      int *sx, int *sy, int *dx, int *dy, long dbi) {
 //====================================================================
-/// \code
-/// GR_img_get_dbi                      get typ,pos,size of Tag/Image 
-/// Input:
-///   dbi    DB-Index of "N"ote
-/// Output:
-///   typ      Tagtyp; 1=Image ..
-///   p1       lower-left-position in Usercoords
-///   sx, sy   size of 2D-Field in screencoords
-///   dx, dy   offset from p1 to lower left 2D-corner in screencoords
-///   retCod   0=ok, -1=Error
-///
-/// was DL_txtgetInfo
-/// \endcode
+// GR_img_get_dbi                      get typ,pos,size of Tag/Image 
+// Input:
+//   dbi    DB-Index of "N"ote
+// Output:
+//   typ      Tagtyp; 1=Image ..
+//   p1       lower-left-position in Usercoords
+//   sx, sy   size of 2D-Field in screencoords
+//   dx, dy   offset from p1 to lower left 2D-corner in screencoords
+//   retCod   0=ok, -1=Error
+//
+// was DL_txtgetInfo
 
 
   ObjGX     *ox1;
+
+
+  printf(" GR_img_get_dbi %ld\n",dbi);
 
 
   // get data

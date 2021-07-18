@@ -60,7 +60,7 @@ cl -c /I ..\include xa_sur_mod.c
 
 
 #ifdef _MSC_VER
-#include "MS_Def1.h"
+#include "../xa/MS_Def1.h"
 #else
 #include <dlfcn.h>           // Unix: dlopen
 #endif

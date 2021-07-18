@@ -32,18 +32,20 @@ Possible Inputs:
 - PERP            - normal (perpendicular)
 
 
+
+
 <HR><!-- ============================================================ -->
 <p><a name="_ModAux_"></a></p>
-<h3>Parameter for copy / replace obj</h3>
-- Text "REPL" - replace the original object
-- empty (default) - copy the object
+<h3>Parameter ON OFF</h3>
+- ON: Text "ON"
+- OFF: empty (default)
 
 
 <HR><!-- ============================================================ -->
 <p><a name="_ModRep_"></a></p>
-<h3>Parameter für Ein - Aus</h3>
-- Ein: Text "ON"
-- Aus: leeres Feld (Standard)
+<h3>Parameter for copy / replace obj</h3>
+- Text "REPL" - replace the original object
+- empty (default) - copy the object
 
 
 
@@ -143,11 +145,36 @@ Define a vector by:
   - Polar (Angle): eg "ANG(45)"
   - Polar (rotation-angle, tilt-angle): eg "ANG(45) ANG(30)"
     
+
+- Vector from angles - input from keyboard:
+    - rotation-angle around the active Z-axis
+    ANG(120)          # X-axis rotated around Z 120 deg
+
+    - rotation-angle (around active Z-axis) and tilt-angle around new Y-axis
+    ANG(45) ANG(30)   # X-axis rotated around Z 45 deg, tilt 30 deg
+
+
+- Vector between 2 points
+    P20 P21
+    
+- Vector tangential to curve:
+    L20         # parallel line or segment of polygon
+    S20 0.5     # curveID, parameter of point on curve (from select point at curve)
+
+- Vector on plane or surface parallel to Isoparametric direction U or V
+    R20 DRX     # X-axis of plane R20  (DRY, DRZ)
+
+
+
+- Normalvector of circle or plane or surface
+
 - Normalvector from 2 Objects (line or point or vector)
-    Examples:  DX DY    result is DZ (normalvector)
-               L20 DZ   result is the normalvector in the construction-plane
+    DX DY      # result is DZ (normalvector of 2 given vectors)
+    L20 DZ     # normalvector of line and vector
 
 - Normalvector from 3 points
+    P20 P21 P22       # P20 = point on X-axis, P21 = origin; P22 = near Y-axis
+ 
 
 
 The last parameter can be "REV"; this gives the complementary-angle
@@ -157,7 +184,9 @@ The last but one parameter can be the vectorlength.
   Example: "DX 2.5" or "DX 2.5 REV"
 
 
-The output is eg "D(ANG(45) ANG(30) 2.5)"
+Output is embedded into "D(..)"
+  eg "0 0 1"  changes to "D(0 0 1)"
+
 
 
 
@@ -223,45 +252,60 @@ The output is eg "C(P22 100)"
 <HR><!-- ============================================================ -->
 <p><a name="_PLN_"></a></p>
 <h3>Plane (Referencesystem)</h3>
-Define a plane by:
-
-Selection of a Standardplane:
-  - select from the planes shown in bottom-right corner (RZ or RY or RX)
-  - enter with the keyboard (RZ or RY or RX)
+Define a plane (position, orientation) by:
 
 
 Definition of the active Constructionplane with different origin:
   - select new origin
     (all axes of the active Constructionplane will be used)
+    Example:
+    R(P(100 0 0))
+
+
+Selection of a plane or existing plane, distance from origin on Z-axis:
+  - Standardplane:
+    - select from the planes shown in bottom-right corner (RZ or RY or RX)
+    - or enter with the keyboard (RZ or RY or RX)
+  - or select existing plane
+  - key distance from origin on Z-axis
+    Example:
+    R(R20 50)  # like R20 - 50 units along Z above origin of R20
+
 
 
 Definition of a existing plane with different origin:
   - select new origin, select plane
     (all axes of this plane will be used)
-
-
-Definition from origin and X-axis in the new plane:
-  - select origin, select X-axis
-    (axis can be defined by a Vector or a Line or a point, see below)
-  - origin X-axis Y-axis              (origin and two axes of the new plane)
-  - select line (origin is the Startpoint of the Line)
-
-Definition from origin and X-axis and Y-axis in the new plane:
-  - select origin, select X-axis, select Y-axis
-    (axis can be defined by a Vector or a Line or a point, see below)
-  - select line, select Y-axis
-    (axis can be defined by a Vector or a Line or a point, see below)
-
-
-
-Definition from Z-axis (Normalvector) and the distance from the absolute origin:
-  - select a vector for Z-axis, enter the distance with the keyboard
-
-
-Definition from origin and Z-axis (Normalvector):
-  - "PERP", select origin, select Z-axis
-    (axis can be defined by a Vector or a Line or a point, see below)
     Example:
+    R(R20 P22)
+
+
+Definition from origin and X-axis:
+  - select origin,
+  - select a vector for the X-axis or a point on the X-axis
+    Example:
+    R(P22 D(L22))      # origin P22, X-axis from L22
+    R(P22 D(ANG(45)))  # origin P22, active-X-axis rotated 45 deg. around Z-axis
+    # active-X-axis rotated 45 deg. around Z-axis, 30 deg. tilted around new Y-axis
+    R(P22 D(ANG(45) ANG(30)))
+
+
+Definition from origin and X-axis and Y-axis:
+  - select origin,
+  - select a vector for the X-axis or a point on the X-axis
+  - select a vector for the Y-axis or a point near the Y-axis
+    Example:
+    # R(<origin-point> <X-axis-vector> [<Y-axis-vector>])
+    R(P22 DZ DX)  # active Z-axis is new X-axis, active X-axis is new Y-axis
+
+
+.................................
+Definition from origin and Z-axis (Normalvector):
+  - key "PERP", select origin, select Z-axis
+  - select origin,
+  - select a vector for the Z-axis or a point on the Z-axis
+    Example:
+    # R(PERP <origin-point> <Z-axis-vector> [<X-axis-vector>] <offset-Z-axis>)
     R(PERP P(0 0 0) DIY)
 
 
@@ -279,17 +323,16 @@ Plane from a circular arc or a ellipse:
  
 
 ---------------------------------------
-  Definition of a axis by giving a angle with the keyboard:
-    - rotation-angle: eg "P20 45"  (origin and rotation-angle around the Z-axis)
-    - rotation-angle and tilt-angle: "P20 90 45"
-      (origin, rotation-angle around the Z-axis, tilt-angle around the new Y-axis)
+The definition of axes is done by providing vectors (D..) 
+- see <a href="CAD_input_en.htm#_Vec_">Definition of vectors</A>
+
       
-  Definition of a axis by giving a vector with the keyboard:
-    - rotation-angle: eg "D(ANG(45))"
-    - rotation-angle and tilt-angle: eg "D(ANG(45) ANG(30))"
- 
-The output is eg "R(P22 90)"
- 
+Output of vectors is embedded into "D(..)"
+   eg D(S20 0.5)       # tangential vector to curve at parameter 0.5
+
+
+Output of the plane is embedded into "R(..)"
+  eg "P22 90"  changes to "R(P22 90)"
 
 
 
@@ -409,10 +452,22 @@ Selection of surfaces or bodies is possible.
 
 
 
+<HR><!-- ============================================================ -->
+<p><a name="_ModBas_"></a></p>
+<h3>Definition "basic subModel"</h3>
+- select name of internal subModel from list (select "LIST")
+- or select subModel
+- or key modelname
+
+See <a href="CAD_Model_en.htm#F0">Internal models</A> 
+
+
+
 
 
 <HR><!-- ============================================================ -->
 <p><a name="_FilNam_"></a></p>
+<h3>Definition "external subModel"</h3>
 
 Selection of a Model-Filename by
 
@@ -421,27 +476,27 @@ Selection of a Model-Filename by
 
 - Selection of a already existing Submodels
 
-
-
-
-
-
-
+See <a href="CAD_Model_en.htm#F1">External models</A> 
+See <a href="CAD_Base_en.htm#symFnam">Symbolic filenames.</a>
 
 
 
 
 <HR><!-- ============================================================ -->
 <p><a name="_CtlgPart_"></a></p>
+<h3>Definition "CatalogPart"</h3>
 
 Selection of a catalogpart by
 
 - Selection from the File-List
-  (Liste from Button "FILE" or middle-mousebutton)
+  (List from Button "FILE" or middle-mousebutton)
+  - select part or change catalog ("change catalog")
 
 - Selection of a already existing catalogpart
 
 
+See <a href="CAD_Model_en.htm#F2">Catalog-parts</A> 
+See <a href="Catalog_de.htm">Catalogs</A>
 
 
 

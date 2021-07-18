@@ -133,7 +133,7 @@ Rational-Bezier-Curve must have POSITIVE weights !!
 
 
   // if line does not intersect bounding box -> return
-  if (!UT3D_box_ck_intLn (ln1, &pmin, &pmax, UT_TOL_pt)) return 0;
+  if (!UT3D_box_ck_intLnLim (ln1, &pmin, &pmax, UT_TOL_pt)) return 0;
 
 
   // --- Bezier curve is no (not yet) line ---
@@ -911,7 +911,7 @@ Returncodes:
     }
 
     // intersect lines
-    rc = UT3D_pt_int2ln (&xp1, &xp2, &dist, &l1, &l2);
+    rc = UT3D_2pt_int2ln (&xp1, &xp2, &dist, &l1, &l2);
     if (rc < 1) return 0;
 
     // check if X-point is inside both line segments
@@ -1839,7 +1839,7 @@ Returncodes:
   //----------------------------------------------------------------
   L_i1:
   iCv = 0;
-
+  d1 = 1.;         // else Uninitialized ???
 
   //----------------------------------------------------------------
   L_nxt_cv:

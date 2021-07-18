@@ -182,7 +182,7 @@ APT_obj_ato                create struct from atomicObjs
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -408,7 +408,7 @@ extern double NcoValTab[];
 // returns type & value
 
   int    irc;
-  long   dbi;
+  long   dbi, aDbi;
   char   o1[OBJ_SIZ_MAX];
   void   *vp1;
 
@@ -449,8 +449,8 @@ extern double NcoValTab[];
 
 
   //----------------------------------------------------------------
-  // get binaryObject o1 from ato
-  irc = APT_obj_ato ((void*)o1, *aTyp, ato);
+  // get a single binaryObject o1 from ato
+  irc = APT_obj_ato ((void*)o1, *aTyp, &aDbi, ato);
   if(irc < 0) {TX_Error("ATO_ato_atoTab__ E001"); return -1;}
   vp1 = o1;
   if(*aTyp == Typ_CV) {
@@ -458,7 +458,7 @@ extern double NcoValTab[];
     *aTyp = ((ObjGX*)o1)->form;
     vp1 = ((ObjGX*)o1)->data;
   }
-    // DEB_dump_obj__ (*aTyp, vp1, "  obj_ato-vp1:");
+    // DEB_dump_obj__ (*aTyp, vp1, "  obj_ato-vp1: aDbi=%ld",aDbi);
 
 
 
@@ -1376,6 +1376,7 @@ extern long      GLT_cta_SIZ;
   // kill all records for this expression
   ATO_clear_block (ato, iv, vNr);
 
+  //----------------------------------------------------------------
   // done
   L_done:
   
@@ -2092,7 +2093,7 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  // printf("ATO_ato_obj_pt iseg=%d oTyp=%d iTyp=%d\n",iseg,oTyp,iTyp);
+  printf("ATO_ato_obj_pt iseg=%d oTyp=%d iTyp=%d\n",iseg,oTyp,iTyp);
   // ATO_dump__ (ato, " _obj_pt-in");
   // DEB_dump_obj__ (iTyp, iObj, " ato_obj_pt-iObj-in");
   // DEB_dump_obj__ (Typ_PT, ptx, " ato_obj_pt-ptx-in");
@@ -2275,7 +2276,7 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
-    // ATO_dump__ (ato, "ex-ATO_ato_obj_pt");
+    ATO_dump__ (ato, "ex-ATO_ato_obj_pt");
   return 0;
 
 
@@ -2305,7 +2306,7 @@ extern long      GLT_cta_SIZ;
   ObjSRC   odb1 = _OSRC_NUL;
 
 
-  // ATO_dump__ (ato, "ATO_parents__");
+  // ATO_dump__ (ato, "ATO_parents__-in");
 
   for(i1=0; i1 < ato->nr; ++i1) {
     // skip all non-geometric-objects

@@ -15,7 +15,6 @@ int UI_GL_keys__  (MemObj *mo, void **data);
 
 void UI_GR_view_set_func ();
 void UI_vwz_set  (int mode);
-void UI_GR_view_set_Cen1   (double zVal);
 int  UI_ChangeCursor (int newCur);
 int  UI_ResetCursor ();
 int  UI_GR_Select1 (int mode, long *dlInd);
@@ -71,7 +70,7 @@ int CI_Mouse (int buttNr,int KeyStatShift,int KeyStatCtrl,int KeyStatAlt,
 int CI_Key   (char ltxt, int KeyStatShift,int KeyStatCtrl,int KeyStatAlt);
 int CI_FKey  (int key, int KeyStatShift,int KeyStatCtrl,int KeyStatAlt);
 
-// int UI_GR_setKeyFocus ();
+// int UI_GR_focus ();
 
 int UI_GR_get_actPos_ (char**);
 

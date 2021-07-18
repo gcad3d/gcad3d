@@ -3,6 +3,7 @@ MSG_cancel=Cancelar
 MSG_save=Salvar
 MSG_insert=Insertar
 MSG_delete=Borrar
+MSG_remove=Remove
 MSG_modify=Modificar
 MSG_exit=Salir
 MSG_help=Ayuda

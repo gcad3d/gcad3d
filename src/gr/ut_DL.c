@@ -16,7 +16,16 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+...................
+Display passive-objects following active-objects in gray;
+  - GL_Redraw: ignore subModels - records with (modInd >= 0);
+    - display all (DL-recods <= AP_lnr_act) active;
+    - display all (DL-recods > AP_lnr_act) inActive;
+
+...................
+Images in subModels cannot be selected at the moment (seeDL_txtSelect)
+
+
 
 -----------------------------------------------------
 Modifications:
@@ -55,7 +64,6 @@ DL_set__                store DL-record
 DL_SetInd               modify (do not create new DL-Record); set DL_perm_ind=dli;
 DL_SetObj               get or set disp-list-record.
 DL_StoreObj             Den naechsten freien DispList-Platz belegen
-DL_StoreAtt             store GR_Att in GR_AttTab
 DL_SetTmpObj            store DL-record (only for active vector)
 
 DL_AttLn_store          store line-attribute in table GR_AttTab
@@ -77,6 +85,7 @@ DL_get_col              get ColRGB* of DL-record (surf)
 DL_get_sStyl            get surfaceStyle (shaded|symbolic)
 DL_get_iatt             returns iatt of DL-record
 DL_set_iatt             modify iatt of DL-record
+DL_get_irs              get active ConstrPlane (.irc of last obj)
 DL_dbTyp__dli           get obj-typ from DL-ind
 DL_dli__oid             get DispListIndex and source-line-nr from obj-ID
 DL_oid__dli             get objName from DispListIndex
@@ -92,6 +101,7 @@ DL_lnr_incr             increment all (lineNrs > lNrX)
 
 DL_hili_on              set obj hilited
 DL_hili_off             reset hilited
+DL_OBJ_IS_HILITE        check if DL-obj is hilited
 // DL_disp_hili_last       (change) hilite last obj of DL
 // DL_disp_hili            hilite Obj of line lNr
 
@@ -172,13 +182,15 @@ DL_find_sel             find selected object in DL
   DL-displist
 //================================================================
 
-GR_ObjTab is the DL-displist.
+GR_ObjTab[GR_TAB_IND] is the DL-displist.
   each record keeps the objType (.typ) and its DB-index (.ind) ..
     Struct = see DL_Att  Size = GR_ATT_TAB_SIZ
   FOR EVERY DL-record a GL-record is necessary !
     the GL-index is set by GL_fix_DL_ind();
     create the GL-record with glNewList
     GL can redraw this record.
+
+dli is index of a displist-record;  -1L - dli is not valid
 
 Normal obj's have a DB-record and a DL-record;
   The GL-index of this objects is (GL-ind + DL_base__)
@@ -295,10 +307,8 @@ cc -c -g3 -Wall ut_DL.c
 /*=============== Externe Variablen: =======================================*/
 // ex ../xa/xa.h:
 extern AP_STAT    AP_stat;                    // sysStat,errStat..
-extern  int       AP_modact_ind;
 extern  int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Plane      WC_sur_act;     // die Konstruktionsebene
-extern double     WC_sur_Z;       // Konstruktionsebene in Z verschieben !
 extern double     AP_txsiz;       // Notes-Defaultsize
 extern double     AP_txdimsiz;    // Dimensions-Text-size
 extern int        AP_txNkNr;            // Nachkommastellen
@@ -496,7 +506,13 @@ static long   DL_hidden = -1L;
 //====================================================================
   int DL_txtSelect (int iNr, ObjDB **dlTab) {
 //====================================================================
-/// check if TextTag was selcted and add obj to tables
+// DL_txtSelect       check if image was selcted and add obj to tables
+// - 2D-text, tags, symbols can be found by opengl-select ..
+// - but images are not found; get here its position and extents
+//   and check if curPos is inside image.
+// TODO - BUG_Select-sm-image
+//   if image is in subModel, position and extents cannot be found
+//
 // Input:
 //   iNr        nr of records already in dlTab
 // Output:
@@ -509,27 +525,24 @@ static long   DL_hidden = -1L;
 
 
   // printf("DL_txtSelect %d\n",iNr);
-  // GL_sel_dump (iNr);
+  // GL_sel_dump (iNr);  // dump GR_selTab
+
 
 
   // active Mousepos in ScreenCoords is GL_mouse_x_act/GL_mouse_y_act
-  GL_GetCurPosSc (&mx, &my);
+  GL_get_curPos_SC (&mx, &my);
     // printf(" mousePos=%d %d\n",mx,my);
 
 
   // check if tag are in DL
   for(dli=0; dli<GR_TAB_IND; ++dli) {
-//     if(GR_ObjTab[dli].typ != Typ_Tag) continue;
+
+    // check for AText (2D-text, tag, bitmap, symbol ..)
     if(GR_ObjTab[dli].typ != Typ_ATXT) continue;
-/*
-    // test if belongs to subModel
-    if((signed short)GR_ObjTab[dli].modInd != AP_modact_ind) {
-        printf(" ************ belongs to subModel %d\n",
-               (signed short)GR_ObjTab[dli].modInd);
-      iNr = GL_sel_add_DL (dlTab, dli);
-      continue;
-    }
-*/
+    // if(GR_ObjTab[dli].typ != Typ_Tag) continue;
+
+      // DL_DumpObj__ (dli, "------------ txtSelect");
+
     // skip hidden obj
     // if((GR_ObjTab[dli].disp==1)&&(GR_ObjTab[dli].hili == 1)) continue;
     if(DL_IS_HIDDEN(GR_ObjTab[dli])) continue;    // skip hidden obj's
@@ -537,13 +550,23 @@ static long   DL_hidden = -1L;
     // if(GR_ObjTab[dli].pick != 0) continue;         // skip unpickable
 
 
-    // SizeInfo zu Tag/Image holen
+    // check if belongs to subModel
+    if(DL_OBJ_IS_ACTMDL(GR_ObjTab[dli])) {
+      // TODO - BUG: wee cannot find position and extents .. skip it ..
+        // printf(" ************ belongs to subModel %d\n",
+               // (signed short)GR_ObjTab[dli].modInd);
+      // iNr = GL_sel_add_DL (dlTab, dli);
+      goto L_9;
+    }
+
+
     // irc = DL_txtgetInfo (&typ, &p1, &sx, &sy, &dx, &dy, dli);
+    // SizeInfo zu Tag/Image holen
     irc = GR_img_get_dbi (&typ, &p1, &sx, &sy, &dx, &dy, GR_ObjTab[dli].ind);
     if(irc < 0) continue;  // zB SymbolTags; werden normal auch gefunden.
+
       // printf(" tag-dli=%ld p1=%f,%f,%f\n",dli,p1.x,p1.y,p1.z);
       // printf(" tag-sx=%d sy=%d dx=%d dy=%d\n",sx,sy,dx,dy);
-
 
     // change Textpoint --> Screencoords
     GL_Uk2Sk (&px, &py, &pz, p1.x, p1.y, p1.z);
@@ -569,9 +592,6 @@ static long   DL_hidden = -1L;
     if(my > ty2) continue;  // Maus oberhalb vom Label
 
 
-    // add selection
-      // printf(" add1 sel dli=%d\n",dli);
-
     // printf(" IIIIIIIIIIIIII found N%d IIIIIIIIII %d %d\n",
              // GR_ObjTab[dli].ind,dx,dy);
     // check if selction already defined; passiert bei Tags;
@@ -587,6 +607,10 @@ static long   DL_hidden = -1L;
       // printf(" double sel.typ=%d ind=%d\n",typTab[i1],indTab[i1]);
       // goto L_9;
     }
+
+
+    // add selection
+      // printf(" add1 sel dli=%d\n",dli);
 
       // printf("- DL_txtSelect add2 sel dli=%d\n",dli);
     // if(iNr < 0) iNr = 0;
@@ -859,7 +883,7 @@ static long   DL_hidden = -1L;
 
   fprintf(fpo, ":DYNAMIC_DATA\n");
 
-  // printf("ex DL_wri_dynDat0 \n");
+    // printf("ex DL_wri_dynDat0 \n");
 
   return 0;
 
@@ -871,7 +895,7 @@ static long   DL_hidden = -1L;
 //===============================================================
 /// \code
 /// write MODSIZ DEFTX DEFCOL VIEW CONST_PL  :DYNAMIC_DATA
-/// add :DYNAMIC_DATA  without HIDE
+/// add :DYNAMIC_DATA  without attributes GA
 /// Input mode: 0  write also MODBOX
 ///             1  skip MODBOX (group out)
 /// \endcode
@@ -931,7 +955,7 @@ static long   DL_hidden = -1L;
     AP_obj_add_vc (mem_cbuf1, &WC_sur_act.vx);
     AP_obj_add_vc (mem_cbuf1, &WC_sur_act.vy);
     AP_obj_add_vc (mem_cbuf1, &WC_sur_act.vz);
-    AP_obj_add_val (mem_cbuf1, WC_sur_Z);
+    AP_obj_add_val (mem_cbuf1, 0.);    // free; was WC_sur_Z);
     strcat(mem_cbuf1, " ");
     strcat(mem_cbuf1, AP_Get_ConstPl_Z(Typ_PLN));
       // DEB_dump_obj__ (Typ_PLN, &WC_sur_act, "WC_sur_act");
@@ -1080,7 +1104,7 @@ static long   DL_hidden = -1L;
   long  dli;
 
     
-  // printf("DL_hide_all %d %d\n",mode,AP_modact_ind);
+  // printf("DL_hide_all %d %d\n",mode,AP_modact_ibm);
 
 
   for(dli=0; dli<GR_TAB_IND; ++dli) {
@@ -1089,7 +1113,7 @@ static long   DL_hidden = -1L;
     if(GR_ObjTab[dli].unvis != 0) continue;
 
     // skip objects not in model <iMdl>:
-    if((INT_16)GR_ObjTab[dli].modInd != AP_modact_ind) continue;
+    if((INT_16)GR_ObjTab[dli].modInd != AP_modact_ibm) continue;
 
     if(mode) {
       // redisplay: disp=0; hili=1: visible.
@@ -1391,8 +1415,10 @@ static long   DL_hidden = -1L;
 
   //----------------------------------------------------------------
   L_exit:
-  if(mode != TYP_FuncExit) goto L_exit;
-  // set old to hidden - done by "RUN"
+  if(mode != TYP_FuncExit) goto L_return0;
+  //  set all dimmed -> hidden
+  // TX_Print ("********** TODO DL_hili_MAN - TYP_FuncExit");
+  printf ("********** TODO DL_hili_MAN - TYP_FuncExit\n");
 
 
   //----------------------------------------------------------------
@@ -1472,7 +1498,7 @@ static long   DL_hidden = -1L;
 
       // test for VC
       if(GR_ObjTab[dli].typ == Typ_VC) {
-        UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(GR_ObjTab[dli].ind),
+        UI_prev_vc (GR_TMP_I0, Typ_Index, PTR_LONG(GR_ObjTab[dli].ind),
                       NULL, ATT_COL_RED);  //Typ_Att_hili1);
 
       } else {
@@ -1522,6 +1548,10 @@ static long   DL_hidden = -1L;
   // printf("DL_hili_off %ld of %ld DL_hidden=%ld\n",ind,GR_TAB_IND,DL_hidden);
   // if(ind>=0)printf("hi=%d di=%d\n",GR_ObjTab[ind].hili,GR_ObjTab[ind].disp);
 
+  if(ind > GR_TAB_IND) {
+    printf("***** DL_hili_off E1\n");
+    return -1;
+  }
 
 
   //----------------------------------------------------------------
@@ -1729,11 +1759,11 @@ static long   DL_hidden = -1L;
   int DL_grp1__ (long ind, char *cbuf1, int mode, int iUpd) {
 //===============================================================
 /// \code
-/// add / remove (change) Groupbit 1 of DL-Record ind
+/// add / remove (change) Groupbit 1 of DL-Record inda nd add to GrpTab
 /// Input:
 ///   ind       DispListIndex of obj
 ///   cbuf1     Infotext; NULL for silent
-///   mode      0=switch; 1=add to group; -1=remove from group; 2=add all
+///   mode      0=switch; 1=add to group; -1=remove from group; 2=add all objs
 ///   iUpd      0=update display; 1=do not update display (yet)
 //
 //  mode=1: do not check if hidden or in subModel
@@ -1745,7 +1775,7 @@ static long   DL_hidden = -1L;
   unsigned short modnr;
 
 
-  // printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
+  printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
 
   if(ind < 0) return -1;
 
@@ -1779,7 +1809,7 @@ static long   DL_hidden = -1L;
     Grp_Clear (0);
     // if(cbuf1)
     TX_Print ("add all visible objs to group");
-    modnr = AP_modact_ind;
+    modnr = AP_modact_ibm;
     for(l1=0; l1<GR_TAB_IND; ++l1) {
       // skip hidden
       // if((GR_ObjTab[l1].disp==1)&&(GR_ObjTab[l1].hili == 1)) continue;
@@ -2300,7 +2330,7 @@ static long   DL_hidden = -1L;
 
   if(AP_stat.sysStat < 2) return 0;
 
-  // UI_GR_setKeyFocus ();       // set focus to glarea widget 2011-01-28
+  // UI_GR_focus ();       // set focus to glarea widget 2011-01-28
 // 
   // nimmt den focus von den CAD-Eingabefeldern weg ...
   // UI_block_glEvents (1);
@@ -2378,6 +2408,9 @@ static long   DL_hidden = -1L;
 
   long   dli, gli;
 
+
+  // printf("DL_tDyn_init \n");
+
   //----------------------------------------------------------------
   // get next free index  (DL_perm_ind must be -1)
   dli = -1L;
@@ -2389,7 +2422,7 @@ static long   DL_hidden = -1L;
   // start GL-list
   GL_list_open (gli);
 
-    // printf("ex-DL_tDyn_init %ld\n",gli);
+    // printf("ex-DL_tDyn_init dli=%ld gli=%ld\n",dli,gli);
 
   return gli;
 
@@ -2429,7 +2462,7 @@ static long   DL_hidden = -1L;
 //   mode    GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM;
 //           use for displaying models (GL_set_mdr - temp)
 
-  // printf("DL_att_temp gli=%ld mode=%d \n",gli,mode);
+  printf("DL_att_temp gli=%ld mode=%d \n",gli,mode);
 
   DL_tempLst[gli] = mode;
 
@@ -2517,6 +2550,8 @@ static long   DL_hidden = -1L;
 
   long   gli;
 
+  // printf("DL_dli_get\n");
+
 
   //----------------------------------------------------------------
   // overwrite existing dispListIndex (was set with DL_SetInd())
@@ -2557,7 +2592,7 @@ static long   DL_hidden = -1L;
 //================================================================
 // DL_set__                                   store DL-record
 // Input:
-//   GLOBAL: WC_sur_ind AP_modact_ind DL_disp_act GR_pick
+//   GLOBAL: WC_sur_ind AP_modact_ibm DL_disp_act GR_pick
 //
 // replacing DL_StoreObj()
 
@@ -2597,7 +2632,7 @@ static long   DL_hidden = -1L;
 
     dlRec.irs    = WC_sur_ind;
 
-    dlRec.modInd = AP_modact_ind;     // (signed short)
+    dlRec.modInd = AP_modact_ibm;     // (signed short)
     // dlrec.unvis  = 0;            // Default = visible
     // dlrec.sChd   = 0;            // Default = indep.
     // dlrec.sPar   = 0;            // Default = indep.
@@ -2693,7 +2728,7 @@ static long   DL_hidden = -1L;
 ///               <0   temp. Obj m ind. -GR_TAB_IND
 ///               >0   GR_ObjTab-index
 ///    AttInd     attribute (GR_ObjTab[].iatt)
-///               for Typ=Typ_apDat:  subType; eg Typ_constPln
+///               for Typ=Typ_apDat:  subType; eg Typ_constrPln
 ///  Global-input:
 //     DL_perm_ind -1 = create new DL-record else overwrite existing DL-record
 /// 
@@ -2807,7 +2842,7 @@ static long   DL_hidden = -1L;
 
     GR_ObjTab[dlInd].irs    = WC_sur_ind;
 
-    GR_ObjTab[dlInd].modInd = AP_modact_ind;     // (signed short)
+    GR_ObjTab[dlInd].modInd = AP_modact_ibm;     // (signed short)
     GR_ObjTab[dlInd].unvis  = 0;            // Default = visible
     GR_ObjTab[dlInd].sChd   = 0;            // Default = indep.
     GR_ObjTab[dlInd].sPar   = 0;            // Default = indep.
@@ -2848,6 +2883,7 @@ static long   DL_hidden = -1L;
 
   L_exit:
 
+    // DL_DumpObj__ (dlInd, "ex-DL_StoreObj");
     // printf("ex-DL_StoreObj %ld IND=%ld\n",dlInd,GR_TAB_IND);
     // if(dlInd > GR_TAB_SIZ) AP_debug__ ("DL_StoreObj-E9");
 
@@ -2934,8 +2970,8 @@ static long   DL_hidden = -1L;
 
 
   
-  printf("#### DL_DumpObjTab %ld AP_modact_ind=%d AP_modact_nam=|%s|\n",
-         GR_TAB_IND, AP_modact_ind, AP_modact_nam);
+  printf("#### DL_DumpObjTab %ld AP_modact_ibm=%d AP_modact_nam=|%s|\n",
+         GR_TAB_IND, AP_modact_ibm, AP_modact_nam);
 
   for(l1=0; l1<GR_TAB_IND; ++l1) DL_DumpObj__ (l1, NULL);
 
@@ -2995,7 +3031,7 @@ static long   DL_hidden = -1L;
 // ACHTUNG: kann keine Vecs & Vars finden !!!
 
 
-  return DL_find_smObj (typ, DBind, DLend, AP_modact_ind);
+  return DL_find_smObj (typ, DBind, DLend, AP_modact_ibm);
 
 }
 
@@ -3013,7 +3049,7 @@ static long   DL_hidden = -1L;
 ///   typ     objTyp (Typ_PT ..)
 ///   DBind   dataBaseIndex of obj to search
 ///   DLend   last DL-Index to check;  -1L = search in complete DL
-///   imod    AP_modact_ind 
+///   imod    AP_modact_ibm 
 /// retCode = DispListIndex
 ///      -1   Error; objID not found in DL
 /// \endcode
@@ -3028,7 +3064,7 @@ static long   DL_hidden = -1L;
 
   typ = AP_typDB_typ (typ);
 
-  // ACHTUNG: AP_modact_ind in ein I2 kopieren, da in der DL als I2 gespeichert;
+  // ACHTUNG: AP_modact_ibm in ein I2 kopieren, da in der DL als I2 gespeichert;
   // -1 == Main wird sonst nicht gefunden !!!
   modnr = imod;
 
@@ -3277,7 +3313,7 @@ static long   DL_hidden = -1L;
 
 
   // printf("DL_Get_dli_lNr %ld\n",*lNr);
-  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
+  // printf(" AP_modact_ibm=%d\n",AP_modact_ibm);
   // DL_DumpObjTab ();
 
   if(GR_TAB_IND < 1) { *dli = 0; return -1; }
@@ -3286,7 +3322,7 @@ static long   DL_hidden = -1L;
   for(l1 = GR_TAB_IND - 1; l1 >= 0; --l1) {
       // printf(" l1=%d\n",l1);
 
-    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ind) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ibm) continue;
     
     if(GR_ObjTab[l1].lNr > *lNr) continue;
     if(GR_ObjTab[l1].lNr != *lNr) irc = 1;
@@ -3414,6 +3450,18 @@ static long   DL_hidden = -1L;
 
 
 //================================================================
+   int DL_get_irs () {
+//================================================================
+// DL_get_irs              get active ConstrPlane (.irc of last obj)
+
+  DL_DumpObjTab ("DL_get_irs"); //           dump complete DL
+
+  return GR_ObjTab[GR_TAB_IND - 1].irs;
+
+}
+
+
+//================================================================
   unsigned int DL_get_iatt (long dli) {
 //================================================================
 /// returns iatt of DL-record
@@ -3502,59 +3550,6 @@ static long   DL_hidden = -1L;
   return i1;
 
 }
-
-
-/* replaced
-//============================================================
-  int DL_StoreAtt (long Ind, GR_Att* att1) {
-//============================================================
-// store att in GR_AttTab and activate it in DL
-
-
-  int    i1,i2,i3;
-
-
-  // printf("DL_StoreAtt %d = %d %d %d\n",Ind,att1->col,att1->ltyp,att1->lthick);
-
-
-  // ind must be less GR_ATT_TAB_SIZ
-  if((Ind < 0)||(Ind >= GR_ATT_TAB_SIZ)) {
-    TX_Error("- Zugriff auf Attribut %d ****",Ind);
-    return -1;
-  }
-
-
-  //  Alle dürfen nur zwischen 0 und 15 sein!
-  i1 = att1->col;
-  i2 = att1->ltyp;
-  i3 = att1->lthick;
-
-  if((i1<0)||(i1>15)) {
-    TX_Print(" Parameter Farbe nicht 0 bis 15");
-
-  } else   if((i2<0)||(i1>15)) {
-    TX_Print(" Parameter Linientyp nicht 0 bis 15");
-
-  } else   if((i3<0)||(i1>15)) {
-    TX_Print(" Parameter Liniendicke nicht 0 bis 15");
-  }
-
-
-  // store att in GR_AttTab and activate in DL
-  GR_AttTab[Ind]        = *att1;
-  GR_AttTab[Ind].used   = ON;
-
-
-  //  das Attr nun in der DL definieren
-  GL_InitNewAtt (0, Ind);
-
-
-  return 0;
-
-}
-*/
-
-
 
 
 //***********************************************************************
@@ -3877,29 +3872,55 @@ static long   DL_hidden = -1L;
 //====================================================================
   int DL_ReScale__ () {
 //====================================================================
-// DL_ReScale__                 rescale and redraw
+// DL_ReScale__                 rescale and redraw active model
 
 
-  Point  pb1, pb2;
+  Point    *bp1, *bp2;
+  ModelBas *mb1;
 
-  // printf("DL_ReScale__ \n");
+  printf("DL_ReScale__ AP_modact_ibm=%d\n",AP_modact_ibm);
 
 
-  // test if AP_box_pm1 valid (AP_stat.mdl_box_valid)
-  if(AP_mdlbox_invalid_ck()) {
-      printf(" mdl_box not valid ..\n");
-//     // get box of active model
-//     UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
-//     AP_mdlbox_invalid_reset ();  // set modelbox valid ..
-    // get boxpoints for active modelsize (APT_ModSiz)
-    BBX_def__ (&pb1, &pb2);
-    // rescale and redraw
-    DL_ReScale_box (&pb1, &pb2);
+
+
+  if(AP_modact_ibm < 0) {
+    // get box for main
+    bp1 = &AP_box_pm1;
+    bp2 = &AP_box_pm2;
 
   } else {
-    // rescale and redraw
-    DL_ReScale_box (&AP_box_pm1, &AP_box_pm2);
+    // get box for subModel
+    mb1 = DB_get_ModBas (AP_modact_ibm);
+    bp1 = &mb1->pb1;
+    bp2 = &mb1->pb2;
   }
+
+
+  // get boxPoints
+  UT3D_box_mdl__ (bp1, bp2, AP_modact_ibm, 0);
+
+
+  // view box 
+  DL_ReScale_box (bp1, bp2);
+
+
+
+
+//   // test if AP_box_pm1 valid (AP_stat.mdl_box_valid)
+//   if(AP_mdlbox_invalid_ck()) {
+//       printf(" mdl_box not valid ..\n");
+//     // get box of active model
+//     UT3D_box_mdl__ (&AP_box_pm1, &AP_box_pm2, -1, 0);
+//     // set modelbox valid ..
+//     AP_mdlbox_invalid_reset ();
+//     // get boxpoints for active modelsize (APT_ModSiz)
+//     BBX_def__ (&pb1, &pb2);
+//     // rescale and redraw
+//     DL_ReScale_box (&pb1, &pb2);
+//   } else {
+//     // rescale and redraw
+//     DL_ReScale_box (&AP_box_pm1, &AP_box_pm2);
+//   }
 
 
   return 0;
@@ -3910,18 +3931,16 @@ static long   DL_hidden = -1L;
 //================================================================
   int  DL_ReScale_box (Point *pb1, Point *pb2) {
 //================================================================
+// DL_ReScale_box               view box pb1,pb2
 // was DL_ReScale1
 
   double  sMin, dx, dy, dz, xSizU, scl;
   Point   pOri, pt1;
 
 
-  // printf("DL_ReScale_box \n");
-  // DEB_dump_obj__ (Typ_PT, pb1, "pb1");
-  // DEB_dump_obj__ (Typ_PT, pb2, "pb2");
-  // printf(" pb1 = %f %f %f\n",pb1->x,pb1->y,pb1->z);
-  // printf(" pb2 = %f %f %f\n",pb2->x,pb2->y,pb2->z);
-
+  printf("DL_ReScale_box \n");
+  DEB_dump_obj__ (Typ_PT, pb1, "pb1");
+  DEB_dump_obj__ (Typ_PT, pb2, "pb2");
     
     
   // get origin from box of tess-model; but only if very far outside ..
@@ -3931,8 +3950,8 @@ static long   DL_hidden = -1L;
     
   //----------------------------------------------------------------
   // if boxPoints empty then set box with modelsize around pb1
-  // if(UT3D_comp2pt(pb1,pb2,UT_TOL_min0)) {
-  if(DB_isFree_PT (pb2)) {
+  // if(DB_isFree_PT (pb2)) {
+  if(UT3D_comp2pt(pb1, pb2, UT_TOL_pt)) {    // UT_TOL_min0)) {
     pOri = *pb1;
     xSizU = APT_ModSiz / 2.;
     goto L_do;
@@ -3963,7 +3982,7 @@ static long   DL_hidden = -1L;
   else if(xSizU > 100000000.) xSizU =  100000000.;
 
 
-  scl = APT_ModSiz / xSizU * 1.0;     // 1.25: fix into win ..
+  scl = APT_ModSiz / xSizU * 1.5;     // 1.25: fix into win ..
 
 
   GL_Rescale (scl, &pOri);
@@ -4804,7 +4823,7 @@ static long   DL_hidden = -1L;
   // im Main einfach hide; im subModel delete notwendig !
   // printf("HHHHHHHHHHHHHHHHHHHHHHH _hideParent %d\n",dli_par);
 
-  if((INT_16)GR_ObjTab[dli_par].modInd == -1) {
+  if((INT_16)GR_ObjTab[dli_par].modInd == MDL_BMI_ACT) {
     // DL_hili_off (dli_par);    // hili  = OFF; disp  = ON;
     DL_hide__ (dli_par, 1);  // hide=OFF   hili = OFF; disp = OFF;
 
@@ -4839,10 +4858,9 @@ static long   DL_hidden = -1L;
 //================================================================
   int DL_disp_reset (int lNr) {
 //================================================================
-/// \code
-/// remove all display-objects following (including) APT-line-Nr <lNr>
-/// alle Ausgabeobjekte der APT-Zeilen ab (inclusive) lNr loeschen
-/// \endcode
+// remove all display-objects following (including) APT-line-Nr <lNr>
+// - clear refModels, baseModels; 
+// - disp parents of deleted objects
 
 #define oaSIZ 10
 
@@ -4854,7 +4872,7 @@ static long   DL_hidden = -1L;
 
 
   // printf("''''''''''' DL_disp_reset lNr=%d GR_TAB_IND=%ld\n",lNr,GR_TAB_IND);
-  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
+  // printf(" AP_modact_ibm=%d\n",AP_modact_ibm);
   // DL_DumpObjTab ("DL_disp_reset");
   // SRC_dump__ (1);
 
@@ -4873,7 +4891,7 @@ static long   DL_hidden = -1L;
 
     // skip all objects not belonging to the active model
     // if((signed short)GR_ObjTab[l1].modInd != -1) continue;  // skip submodels
-    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ind) continue;
+    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ibm) continue;
 
     if(GR_ObjTab[l1].lNr < lNr) continue;
     // if(GR_ObjTab[l1].lNr <= lNr) continue; // DO NOT DELETE LAST OBJ
@@ -4893,14 +4911,15 @@ static long   DL_hidden = -1L;
   L_del1:
     // printf(" disp_reset-dli=%ld\n",dli);
   // delete DL-record <dli> and all following.
-  // redisplay parent-objects of deleted child-objects
-  // find DL-recs with sPar==1;
-  //   iatt of this rec = DL-Ind of childRec (= following DL-Rec)
-  //   wenn childRec geloescht wird (im zu loeschenden DL-Bereich liegt),
-  //     muss man den alten reaktivieren.
-  //   reaktivieren parentRec:
-  //     iatt of parentRec = iatt of childRec;
-  //     sPar of parentRec==0.
+  // - clear refModels
+  // - redisplay parent-objects of deleted child-objects
+  //   find DL-recs with sPar==1;
+  //     iatt of this rec = DL-Ind of childRec (= following DL-Rec)
+  //     wenn childRec geloescht wird (im zu loeschenden DL-Bereich liegt),
+  //       muss man den alten reaktivieren.
+  //     reaktivieren parentRec:
+  //       iatt of parentRec = iatt of childRec;
+  //       sPar of parentRec==0.
 
   // get spc for parents 
   MemTab_ini_temp (&mtPar, Typ_ObjSRC, 128); 
@@ -4909,6 +4928,38 @@ static long   DL_hidden = -1L;
   // loop tru all rec's to delete, start at end
   for(l1=GR_TAB_IND-1; l1>=dli; --l1) {
 
+      // DL_DumpObj__ (l1, "-------------- disp_reset");
+
+    // baseModel --------------------------------------
+    if((INT_16)GR_ObjTab[l1].modInd != AP_modact_ibm) {
+      ii = (INT_16)GR_ObjTab[l1].modInd;
+      // clear baseModel
+      MDL_mdb_clear_1 (ii);
+      // skip following objs belonging to this baseModel
+      L_del_mb1:
+      if((INT_16)GR_ObjTab[l1-1].modInd == ii) {
+        --l1;
+        if(l1 < dli) break;
+        goto L_del_mb1;
+      }
+      continue;
+    }
+
+    // baseModel of mockup --------------------------------------
+    if(GR_ObjTab[l1].typ == Typ_Ditto) {
+      // clear baseModel 
+      MDL_mdb_clear_1 ((int)GR_ObjTab[l1].ind);
+      continue;
+    }
+
+    // refModel --------------------------------------
+    if(GR_ObjTab[l1].typ == Typ_Model) {
+      // clear refMdl
+      MDL_mdr_clear (GR_ObjTab[l1].ind);
+      continue;
+    }
+
+    // obj-with-parent --------------------------------------
     // skip objs without parent
     if(GR_ObjTab[l1].sChd != 1) continue;
 
@@ -4965,33 +5016,6 @@ static long   DL_hidden = -1L;
 
 
   //----------------------------------------------------
-  // delete refModels
-  for(l1=GR_TAB_IND-1; l1>=dli; --l1) {
-    if(GR_ObjTab[l1].typ != Typ_Model) continue;
-      // printf(" _disp_reset del RefMod %d\n",GR_ObjTab[l1].ind);
-    DB_Delete (GR_ObjTab[l1].typ, GR_ObjTab[l1].ind);  // delete ModRef
-  }
-
-
-
-
-  //----------------------------------------------------
-  // delete basModels
-  // WIRD VON GL_Delete ERLEDIGT; DAHER HIER WIEDER RAUS ..
-
-  // scheinbar bei allen DL-Records gleiche modnr; daher keine Loop
-  // erforderlich ?
-
-  // if((signed short)GR_ObjTab[dli].modInd == -1) goto L_done;
-  // // delete basicmodel
-  // l1 = GR_ObjTab[dli].modInd;
-  // printf(" _disp_reset del BasMod %d\n",l1);
-  // DB_del_ModBas (l1);
-
-
-
-
-  //----------------------------------------------------
   // und die DispList zuruecksetzen;
   // dli Record und alle folgenden werden geloescht!
   L_done:
@@ -5009,11 +5033,12 @@ static long   DL_hidden = -1L;
 //================================================================
 /// RefSys entprechend DL-Record setzen
 
+  int    irs;
 
-  // printf("DL_setRefSys %d\n",dli);
+  // printf("DL_setRefSys %ld\n",dli);
 
   if(dli < 1) {
-    if(AP_IS_3D) return 0;
+    if(CONSTRPLN_IS_OFF) return 0;
     NC_setRefsys (0L);
     return 0;
   }
@@ -5024,7 +5049,8 @@ static long   DL_hidden = -1L;
 
   if(GR_ObjTab[dli].irs == WC_sur_ind) return 0;
 
-  NC_setRefsys (GR_ObjTab[dli].irs);
+  irs = GR_ObjTab[dli].irs;
+  NC_setRefsys ((long)irs);
 
   return 0;
 

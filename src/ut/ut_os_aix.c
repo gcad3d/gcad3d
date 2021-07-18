@@ -41,8 +41,8 @@ List_functions_start:
 
 OS_Init_ (argv[0]);      save basedir
 
-OS_os_s                  returns "Linux" or "MS"
-OS_os_bits               returns 32 or 64
+OS_get_os_bits                  returns "Linux" or "MS"
+OS_get_bits               returns 32 or 64
 // OS_id                    Read System - ID (uname -m) (HW-ID!)
 
 OS_date                  Datum (als iyear, imon, iday) holen
@@ -85,7 +85,15 @@ OS_get_imgConv1          returns jpg2bmp-converter; eg /usr/bin/djpeg
 OS_get_imgConv2          returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
 OS_jpg_bmp               convert BMP -> JPG
 
+OS_get_bas_dir
+OS_get_tmp_dir
+OS_get_loc_dir
+OS_get_cfg_dir
+OS_get_ico_dir
+OS_get_bin_dir
+OS_get_doc_dir
 OS_get_dir_pwd           get current process-working-directory "PWD"
+
 OS_ck_DirAbs             check if string is absoluter or relativer Filname
 OS_dirAbs_fNam           get full (absolut) path from filename
 OS_dir_scan_             scan (list) directory (see UTX_dir_listf)
@@ -94,7 +102,8 @@ OS_dir_ck1               check ob rootDir beschreibbar ist
 
 OS_stdout__              direct console-output into file
 
-OS_filnam_eval           expand shell variables in filenames
+OS_osVar_eval            expand shell variables in string
+OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
 OS_file_copy             copy file
 OS_file_rename           rename File; keine Wildcards !
 OS_file_delete           delete File; keine Wildcards !
@@ -121,6 +130,8 @@ List_functions_end:
 see also:
 ../ut/os_uix.c       basic OS-functions
 ../ut/ut_os__.c      OS-independant functions
+
+UNUSED:
 
 \endcode *//*----------------------------------------
 
@@ -316,7 +327,7 @@ extern int errno;
   char    s1[256];
 
 
-  printf("%s\n",OS_os_s());  // 32/64-bit
+  printf("%s\n",OS_get_os_bits());  // 32/64-bit
 
 
   // Linux-Version: /proc/version or "uname -a"
@@ -1288,7 +1299,19 @@ extern int errno;
 
 
 //===========================================================
-  char* OS_os_s () {
+  char* OS_get_os__ () {
+//===========================================================
+// returns "Linux" or "MS" as  string
+
+  sprintf(txbuf, "Linux");
+
+  return txbuf;
+
+}
+
+
+//===========================================================
+  char* OS_get_os_bits () {
 //===========================================================
 // returns "Linux32" or "Linux64" as  string
 // used for "OS=<OS_os>" for dynamic linking
@@ -1302,7 +1325,7 @@ extern int errno;
 
 
 //================================================================
-  int OS_os_bits () {
+  int OS_get_bits () {
 //================================================================
 
   return PTRSIZ * 8;   // 32 || 64            2011-03-18
@@ -1705,7 +1728,8 @@ extern int errno;
 //================================================================
   char* OS_get_dir_pwd () {
 //================================================================
-/// OS_get_dir_pwd           get current process-working-directory "PWD"
+// OS_get_dir_pwd           get current process-working-directory "PWD"
+// - does not have closing '/'; use UTX_add_fnam_del
 
 
   return getenv ("PWD");
@@ -1856,7 +1880,7 @@ extern int errno;
   // printf("rc=%d siz=%d\n",rc,fileStatus.st_size);
 
   if(rc < 0) {  // File nicht vorh.
-    printf("ex OS_FilSiz -1 |%s|\n",filnam);
+    // printf("ex OS_FilSiz -1 |%s|\n",filnam);
     return -1;
   }
 
@@ -2053,56 +2077,67 @@ extern int errno;
 //==========================================================================
   int OS_dir_scan_ (char *cbuf, int *iNr) {
 //==========================================================================
-/// \code
-/// scan directory
-/// iNr = 0: init suche; zu scannender Pfad ist cbuf.
-/// iNr > 0: cbuf ist next found file; do not change iNr! (Filename ohne Path !)
-/// iNr < 0; kein weiteres File found; directory closed.
-/// \endcode
+// OS_dir_scan_                     scan directory
+// - not sorted; different for UX / MS !
+// start scanning with cbuf = path_to_scan and iNr = 0;
+// all following calls to OS_dir_scan_ return a filenname in cbuf
+//   until (iNr < 0). Do not modify iNr for all following calls.
+// Initial call with (iNr = 0) does not yet return a filenname.
+// End of files: iNr and retCode returns -1.
+//
+// opendir, closedir, readdir: include sys/types and dirent.h
+
 
   static DIR     *dir1;
-  static struct  dirent* fn1;
   static char    dirAct[256];
+  static int     dirStat = 0;
 
   int            i1, irc;
   char           *p1;
+  struct dirent  *fn1;
 
 
   // printf("OS_dir_scan_ |%s| %d\n",cbuf,*iNr);
   // if(*iNr > 100) exit(0);
 
 
-
-  // opendir, closedir, readdir (braucht sys/types und dirent.h)
-
+  //----------------------------------------------------------------
   if(*iNr == 0) {
+    // init - open
+    if(dirStat) closedir (dir1);
+
+    i1 = strlen(cbuf);
+    if(i1 >= sizeof(dirAct)) { printf("OS_dir_scan_ E strlen"); return -1; }
     strcpy(dirAct, cbuf);
-    if(dirAct[strlen(dirAct)-1] != '/') strcat(dirAct, "/");  // add "\\"
-    // if(dirAct[strlen(dirAct)-1] == '/') dirAct[strlen(dirAct)-1] = '\0';
-    // printf("init OS_dir_scan_ |%s| %d\n",dirAct,*iNr);
+    if(dirAct[i1-1] != '/') strcat(dirAct, "/");  // add "\\"
+      // printf("init OS_dir_scan_ |%s| %d\n",dirAct,*iNr);
 
     dir1 = opendir (dirAct);
+
     if(dir1 == NULL) {
-      printf("nix gfundn\n");
+      // printf("OS_dir_scan_ E opendir %s\n",dirAct);
       *iNr = -1;
       irc  = -1;
       goto L_exit;
     }
+    dirStat = 1;
     goto L_fertig;
   }
 
 
+  //----------------------------------------------------------------
   NextNam:
   fn1 = readdir (dir1);
   if(fn1 == NULL) {
     closedir (dir1);
     *iNr = -1;
     irc  = -1;
+    dirStat = 0;
     goto L_exit;
   }
-  p1 = fn1->d_name;
-  // printf(" next1 |%s|\n",p1);
 
+  p1 = fn1->d_name;
+    // printf(" next1 |%s| fType=%d\n",p1,fn1->d_type);
 
   // skip "." und ".."
   if(!strcmp (p1, ".")) goto NextNam;
@@ -2111,21 +2146,14 @@ extern int errno;
 
   strcpy(cbuf, dirAct);
   strcat(cbuf, p1);
-  // printf(" next2 |%s|\n",cbuf);
-
-
-  // mindestens lesbar ..
-  // i1 = access (cbuf, R_OK);  // W_OK od W_ACC
-  // // printf(" access=%d\n",i1);
-  // if(i1 != 0) goto NextNam;
-
+    // printf(" next2 |%s|\n",cbuf);
 
   L_fertig:
   *iNr += 1;
   irc  = 0;
 
   L_exit:
-  // printf("ex OS_dir_scan_ %d |%s| %d\n",irc,cbuf,*iNr);
+    // printf("ex OS_dir_scan_ %d |%s| %d\n",irc,cbuf,*iNr);
   return irc;
 
 }
@@ -2173,7 +2201,8 @@ extern int errno;
 //==========================================================================
   int OS_file_delGrp (char *fNam) {
 //==========================================================================
-/// OS_file_delGrp           Delete files/Wildcard; Single File "remove (fn);"
+// OS_file_delGrp           Delete files/Wildcard; Single File "remove (fn);"
+//   Example:    OS_file_delGrp ("/tmp/exp*.exp");
 
   char cbuf[512];
 
@@ -2192,11 +2221,14 @@ extern int errno;
 //==========================================================================
   int OS_file_copy (char *oldNam, char *newNam) {
 //==========================================================================
-/// OS_file_copy             copy file
+// OS_file_copy             copy file
+//   retCode      0=OK; else Error
 
   char cbuf[512];
 
-  sprintf(cbuf,"cp -f \"%s\" \"%s\"",oldNam,newNam);
+  // printf("OS_file_copy |%s|%s|\n",oldNam,newNam);
+
+  sprintf(cbuf,"/bin/cp -f \"%s\" \"%s\"",oldNam,newNam);
     // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
     // printf("OS_file_copy |%s|\n",cbuf);
 
@@ -2213,12 +2245,10 @@ extern int errno;
 /// rename File; NO Wildcards !
 // MS u Unix gleich.
 
-  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
-
+  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
 
   remove (fnNew);    // delete File (sonst get das rename ned ..)
                      // ACHTUNG: keine Wildcards mit remove !
-
   rename (fnOld, fnNew);
 
   return 0;
@@ -2235,6 +2265,7 @@ extern int errno;
 /// retCod: 0=OK; -1=Error.
 /// \endcode
 
+  // printf("OS_file_delete |%s|\n",fNam);
 
   return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
 
@@ -2435,7 +2466,7 @@ static int   (*up1)();
 
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak OS=");
-  strcat(cbuf, OS_os_s());
+  strcat(cbuf, OS_get_os_bits());
     printf("dll_build-3 |%s|\n",cbuf);
 
 
@@ -2514,7 +2545,7 @@ static int   (*up1)();
 
   int  irc = 0;
 
-  printf("OS_dll_close \n");
+  // printf("OS_dll_close \n");
 
   // unload if already loaded
   if(*dl1 != NULL) {
@@ -2874,7 +2905,7 @@ static char  dlNamAct[256];
 // RetCode: 0=files_not_different, -1=different_files.
 // MS-Win: FC
 
-  char   s1[280];
+  char   s1[512];
 
 
   sprintf (s1, "diff -q %s %s", fn1, fn2);

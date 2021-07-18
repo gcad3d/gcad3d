@@ -33,6 +33,7 @@ i1 = DL_GetPick((long)DispListIndex); // OFF = ja, ON = Nein.
 
 ================================================================== \endcode */}
 void INF_Linetyp_attributes (){        /*! code
+UP: INF_permanent_attributes
 
 
 - for lines (L) circles (C) and curves (S)
@@ -62,6 +63,7 @@ DL_InitAttTab ();
 
 ================================================================== \endcode */}
 void INF_Color_attributes (){        /*! code
+UP: INF_permanent_attributes
 
 
 - for surfaces (A) and solids (B)
@@ -72,6 +74,7 @@ void INF_Color_attributes (){        /*! code
 
 ================================================================== \endcode */}
 void INF_Texture_attributes (){        /*! code
+UP: INF_permanent_attributes
 
 
 - DisplayList GR_ObjTab - struct DL_Att.iatt keeps ColRGB for obj
@@ -92,6 +95,22 @@ GL_Tex_Ini
 See:
 INF_TextureReferenceList
 INF_BasicTexureList
+
+
+
+M3_surf_texture:
+TED_Tex_Load
+  Tex_addBas1
+    Tex_getBitmap
+
+
+Modify_SurfaceTexture:
+UI_Tex__  UI_FuncUCB3
+  UI_Tex_Load
+    Tex_addBas1
+      Tex_getBitmap
+      Tex_getBas1
+      GL_Tex_Load
 
 
 
@@ -140,12 +159,19 @@ static int    TexBasNr;           // next free index
 
 
 ================================================================== \endcode */}
-void INF_ModelReferenceList (){        /*! code
+void INF_refModels_DB (){        /*! code
+
+DB-list mdr_tab[APT_MR_IND] is the ModelReferenceList.
+The mdr_tab-index is the Model-dbi.
+
+Get the ModelRef for subModel M20 with: DB_get_ModRef (20L);
+
+
 
 // Typ_Model
 typedef struct {char *mnam; int modNr; double scl;
                 Point po; Vector vx, vz;}                           ModelRef;
-// modNr .. modelnumber of ModelBas-obj. (DB_get_ModNr())
+// modNr .. modelnumber of ModelBas-obj. (DB_mbi_mRefID())
 // po    .. position of ditto
 
 
@@ -155,7 +181,7 @@ long APT_MR_IND
 
 
 ================================================================== \endcode */}
-void INF_BasicModelList (){        /*! code
+void INF_basModels_DB (){        /*! code
 
 ../ut/ut_geo.h
 /// mnam  .. Modelname
@@ -177,6 +203,31 @@ static long DYN_MB_IND          the nr of basicModels
 Functions:
   DB_StoreModBas      store basicModel
   DB_get_ModBas       get the basicModel
+
+
+================================================================== \endcode */}
+void INF_Typ_Color (){        /*! code
+
+struct ColRGB  Typ_Color
+
+Colors for surfaces:
+- are stored in the PermanentAttributeList (ObjAtt)GA_ObjTab (../xa/xa_ga.c)
+  in (ObjAtt)GA_ObjTab[i].iatt
+
+Color is only active/valid if (ColRGB)col.color = 1.
+
+R-value (float) from ColRGB: (float)rVal = <col>.cr; rVal /= 255;
+
+
+
+Functions:
+COL_DL_ATT         get color out of struct DL_Att
+                   r-g-b- values from ColRGB
+
+
+Files:
+../ut/ut_col.h      COL_DL_ATT INT32P_COL ..
+../xa/xa.c          APcol_* COL_* UTcol_* 
 
 
 ================================================================== \endcode */}

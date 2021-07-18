@@ -2,9 +2,9 @@
 
 # ./lang_rest.csh
 
-echo "copy back languag-files <- ../mytmp/."
+echo "copy back languag-files <- ../myTmp/."
 
-foreach fn (`ls ../mytmp/* | grep msg_...txt`)
+foreach fn (`ls ../myTmp/* | grep msg_...txt`)
   echo $fn
   cp -f $fn ../../doc/msg/.
 end

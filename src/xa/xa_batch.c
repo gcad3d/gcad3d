@@ -282,21 +282,19 @@ int WINAPI WinMain (HINSTANCE hInstance,
   // void UI_upd_Refs () {}
   // void UI_ask_mode () {}
   void UI_askEscape () {}
-  void UI_suract_keyIn () {}
+//   void UI_suract_keyIn () {}
   // void UI_InpSM () {}      ist ein Int !!!!
   // void UI_WinSM () {}
   void UI_butCB () {}
   void UI_CursorWait () {}
-  void UI_disp_vec1 () {}
-  void UI_disp_tra () {}
+  void UI_prev_vc () {}
   int AP_User_reset () {return 0;}
   void* WIN_ED () {}
   // int UI_RelAbs_act () {}
 
 // xa_brw.c
   void Brw_Mod_add () {}
-  void Brw_sMdl_act () {}
-  void Brw_Mdl_init () {}
+  void Brw_init__ () {}
 
 // xa_undo.c
   void UNDO_chg_add () {}
@@ -311,7 +309,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   // void GUI_GetText_CB () {}
   // void GUI_List1 () {}
   // void GUI_List2 () {}
-  // void GUI_save__ () {}
+  // void GMDL_exp__ () {}
   void GUI_Tip () {}
 
   void GUI_Tx_rmLast () {}
@@ -322,7 +320,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GUI_Ed_RdLnAct () {}
   void GUI_Ed_getEof () {}
 
-// xa_ui_cad.c
+// xa_cad_ui.c
   void IE_get_modify () {}
   void IE_cad_init0 () {}
   void IE_activate () {}
@@ -345,7 +343,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
 
 // ../xa/xa_ui_gr.c
   int UI_GR_get_actPos_ () {}
-  int UI_GR_get_actPosA () {}
+  int GR_get_curPos_UC () {}
   int UI_GR_Sel_Filt_set () {}
 
 // xa_tex.c
@@ -423,7 +421,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void DL_Lay_typ_g1 () {}
   void DL_Lay_add () {}
   void DL_StoreObj () {}
-  void DL_StoreAtt () {}
   void DL_unvis_set () {}
   void DL_unvis__ () {}
   void DL_pick_set () {}
@@ -432,7 +429,6 @@ int WINAPI WinMain (HINSTANCE hInstance,
   // void DL_disp_hili () {}
   void DL_disp_reset () {}
   void DL_sav_dynDat  () {}
-  void DL_wri_dynDat  () {}
   void DL_wri_dynDat0 () {}
   void DL_wri_dynDat1 () {}
   void DL_load_dynDat () {}
@@ -470,14 +466,12 @@ int WINAPI WinMain (HINSTANCE hInstance,
   void GL_Clear () {}
   void GL_View_set () {}
   void GL_Surf_Ini () {}
-  void GL_SetConstrPln () {}
   void GL_fix_DL_base () {}
   void GL_InitModelSize () {}
   void GL_ColSet () {};
   int  GL_DefColSet () {return 0;}
   void GL_DefColGet () {}
   void DL_hili_on () {}
-  void GL_DrawSymV3 () {}
   // void GR_tDyn_pcv () {}
   // void GL_DrawSymVX () {}
   // void GL_DrawDim3 () {}

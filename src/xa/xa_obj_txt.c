@@ -48,6 +48,7 @@ AP_obj_add_ln       add Line as "L(Pa Pe)"
 AP_obj_add_ci_      add Circ as "C(P(ptStart) P(ptEnd) P(ptCen) D(vz))"
 AP_obj_add_ci1      add Circ as "C(P(100 100 0) 32 DZ)"
 AP_obj_add_ci2      old version; do not use.
+AP_obj_add_pln1     add plane " R(PERP <po> <vz> <vx>)"
 AP_obj_add_cvBsp_b  add "BSP,...."  with binary data block as ascii
 AP_obj_add_cvBsp_p  add "BSP,P(..) P(.."  with points
 AP_obj_add_func1    add [ANG|DIST|X|R|Y](<val>)
@@ -83,7 +84,7 @@ cc -c xa_obj_txt.c
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <stdio.h>
@@ -621,6 +622,23 @@ static long su_ind;
 
 }
  
+
+//========================================================================
+  int AP_obj_add_pln1 (char *sln, Point *po, Vector *vz, Vector *vx) {
+//========================================================================
+// AP_obj_add_pln1           add plane " R(PERP <po> <vz> <vx>)"
+
+  strcat(sln, " R(PERP ");
+  AP_obj_add_pt (sln, po);
+  AP_obj_add_vc (sln, vz);
+  AP_obj_add_vc (sln, vx);
+  strcat(sln, ")");
+
+    printf(" ex-AP_obj_add_pln1 |%s|\n",sln);
+
+  return 0;
+}
+
 
 //=================================================================
   int AP_obj_add_vc (char *ED_buf1, Vector *vc1) {
@@ -2605,6 +2623,7 @@ static long su_ind;
     if(!cp1) return -1;
 
     if(i1 == MBTYP_CATALOG) {
+TX_Error("TODO: AP_stru_2_txt - MBTYP_CATALOG |%s|",cp1);
       CTLG_PartID_mnam (cbuf, cp1);
       sprintf(ED_buf1,"M%ld=CTLG \"%s\"",ind,cbuf);
     } else {

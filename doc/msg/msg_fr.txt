@@ -44,6 +44,7 @@ MMstLty=définir types de ligne (Color-Lintyp-LineThick) pour les lignes / Circ 
 MMstDir=définir Modeldirectories
 MMstBrw=définir le navigateur de l'aide ou la documentation
 MMstEdi=définir Editor
+MMstSelDir=select file with symbolic directories
 
 MMmdMsi=set size and tolerances of model
 MMmdMdp=modifier la position d'un sous-modèle
@@ -338,7 +339,7 @@ PEDnopt=objet n'a pas de points mobiles ..
 PEDnrpt=Object a {0} de points mobiles ..
 PEDsav=enregistrer les modifications apportées (ri.Mousebutt.)
 PEDcanc=annuler les modifications (ESC-clés)
-PEDlink=lien pause pour obj {0} ?
+PEDlink=lien pause pour obj {0}
 PEDmod1=donner avion ou d'un vecteur / SEL. (point carré jaune, Sym-#) / Supprimer / Insérer / Exit (ri.Mousebutt.)
 PEDmod2=donner avion ou d'un vecteur / SEL. (point carré jaune, Sym-#) / Exit (ri.Mousebutt.)
 PEDmod3=Save (ri.Mousebutt.) Ou Annuler (ESC-clés)
@@ -393,10 +394,11 @@ SN_TxtNot=search all objects [NOT] containing infotext
 SN_DepNot=search all objects [NOT] depending from object "depends"
 
 ERRCAD0=*** ERROR: function CAD must be active ..
+ERRMDL0=*** ERROR: subModel must be active ..
 pluginErr0=rebuild not possible - compiler or linker not found.
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}
-SAVusm=Save unused submodel  {0}  ?
+SAVusm=Save unused submodels {0}
 Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=last input clockwise
@@ -406,4 +408,8 @@ ED1MOD-=select previous solution-variant
 ED1<<<=one input back (before inserting)
 ED1>>>=one input forward (after inserting)
 
-EOF
+E_CAD_use1=cannot use obj
+E_PRJ_1=no result from project
+E_INT_1=no result from intersection
+
+EOF=end of file

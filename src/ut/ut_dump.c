@@ -60,6 +60,8 @@ DEB_dump_ntxt           dump n object's
 DEB_dump_txt
 DEB_dump__              dump object
 
+DEB_dump_file           dump file
+
 List_functions_end:
 =====================================================
 see also
@@ -455,7 +457,7 @@ static FILE     *uo = NULL;
   void     *v1;
   int      irc, i1, i2, i3, ptNr, sTyp, *ia;
   long     dbi, il1;
-  char     oNam[32], s1[64], s2[64], cbuf[512], txt[240], *cps, *cp1;
+  char     oNam[32], s1[64], s2[64], cbuf[512], txt[320], *cps, *cp1;
   double   d1, *dp;
   Point    *p1, *ptAr;
   Point2   *p2, *pt2Ar;
@@ -584,6 +586,18 @@ static FILE     *uo = NULL;
     i3 = snprintf(cps,60,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
     if(i3 >= 60) strcpy (cps, "(Point) not set ..");
     UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_TmpPT) {
+    p1 = data;
+    sprintf(cps,"tPoint %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+    // i3 = sprintf(cps,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    i3 = snprintf(cps,60,"(Point) %9.3f,%9.3f,%9.3f",p1->x,p1->y,p1->z);
+    if(i3 >= 60) strcpy (cps, "(Point) not set ..");
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
+
 
 
   //----------------------------------------------------------------
@@ -1710,15 +1724,12 @@ static FILE     *uo = NULL;
   } else if(typ == Typ_SubModel) {                     // ModelBas
     mdb = data;
     sprintf(cps,"BasicModel %s",txt);
-    UT3D_dump_add (sTab, cbuf, ipar, ICO_natM);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_natML);
     sprintf(cps," (ModelBas).mnam=%s", mdb->mnam);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelBas).typ=%d seq=%d DBi=%4ld DLi=%4ld DLsiz=%d",
-            mdb->typ, mdb->seqNr, mdb->DBind, mdb->DLind, mdb->DLsiz);
+    sprintf(cps," (ModelBas).typ=%d DLi=%4ld DLsiz=%d",
+            mdb->typ, mdb->DLind, mdb->DLsiz);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (ModelBas).po= %12.3lf,%12.3lf,%12.3lf",
-            mdb->po.x, mdb->po.y, mdb->po.z);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_PT);
     if(UT3D_pt_isFree(&mdb->pb1)) strcpy (cps, " (ModelBas).pb1 not set ..");
     else sprintf(cps," (ModelBas).pb1=%12.3f,%12.3f,%12.3f",
             mdb->pb1.x, mdb->pb1.y, mdb->pb1.z);
@@ -2056,10 +2067,12 @@ static FILE     *uo = NULL;
 //================================================================
   int DEB_dump_ox__ (void *obj1, char *inf) {
 //================================================================
+// DEB_dump_ox__          dump single ObjGX
 
   int irc;
 
-  printf("DEB_dump_ox__ pos=%ld ---------------- %s\n",(long)obj1,inf);
+  // printf("DEB_dump_ox__ pos=%ld ---------------- %s\n",(long)obj1,inf);
+  printf("DEB_dump_ox__ ---------------- %s\n",inf);
 
   irc = DEB_dump_nobj_1 (obj1, Typ_ObjGX, 1, 0);
 
@@ -2076,7 +2089,7 @@ static FILE     *uo = NULL;
 // deloc   0=absolut address, 1=delocated (relative adress)
 
   int    i1, iSiz, sTyp, sForm;
-  char   *po;
+  char   *po, s1[40];
   void   *sPtr;
 
 static void*  relPos;
@@ -2098,6 +2111,8 @@ static void*  relPos;
     TX_Error("DEB_dump_ox__ E000 %d %d\n",typ,iNr);
     goto L_err_ex;
   }
+    // printf(" dump_nobj_1-iNr=%d iSiz=%d\n",iNr,iSiz);
+
 
 
   // save pointerPos
@@ -2112,15 +2127,15 @@ static void*  relPos;
     //----------------------------------------------------------------
     if(typ == Typ_ObjGX) {
 
-      printf(" ObjGX[%d]: typ=%d form=%d siz=%d data=%ld dir=%d\n",i1,
+      sTyp  = ((ObjGX*)po)->typ;               // get child-typ
+      sForm = ((ObjGX*)po)->form;              // get type of structure of child
+
+      printf(" ObjGX[%d]: typ=%d form=%d siz=%d dir=%d\n",i1,
               ((ObjGX*)po)->typ,
               ((ObjGX*)po)->form,
               ((ObjGX*)po)->siz,
-              (long)((ObjGX*)po)->data,
               ((ObjGX*)po)->dir);
 
-      sTyp  = ((ObjGX*)po)->typ;               // get child-typ
-      sForm = ((ObjGX*)po)->form;              // get type of structure of child
         // printf(" i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
 
       // ignore all primary ObjGX-Records with no child-data
@@ -2130,9 +2145,9 @@ static void*  relPos;
 
       sPtr  = ((ObjGX*)po)->data;
 
-      // set offset
-      if(((ObjGX*)po)->dir == 1)
-        sPtr = MEM_ptr_mov (sPtr, LONG_PTR(relPos));
+//       // set offset
+//       if(((ObjGX*)po)->dir == 1)
+//         sPtr = MEM_ptr_mov (sPtr, LONG_PTR(relPos));
 
       // RECURSE
       DEB_dump_nobj_1 (sPtr,
@@ -2141,7 +2156,8 @@ static void*  relPos;
                         ((ObjGX*)po)->dir);
 
     } else {
-      DEB_dump_obj_1 (obj1, typ, "");
+      sprintf(s1, "[%d]",i1);
+      DEB_dump_obj_1 (po, typ, s1);
 
     }
 
@@ -2166,10 +2182,12 @@ static void*  relPos;
 // deloc   0=absolut address, 1=delocated (relative adress)
 
   int    i1, iSiz, sTyp, sForm;
+  char   s1[256];
 
   //----------------------------------------------------------------
   if(typ == Typ_PT) {
-    printf("  %ld (Point) %9.3f,%9.3f,%9.3f\n", (long)obj,
+    // printf("  %ld (Point) %9.3f,%9.3f,%9.3f\n", (long)obj,
+    printf("  (Point) %9.3f,%9.3f,%9.3f\n", // (long)obj,
            ((Point*)obj)->x,
            ((Point*)obj)->y,
            ((Point*)obj)->z);
@@ -2177,19 +2195,21 @@ static void*  relPos;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_CVPOL) {
-    printf("  %ld (CurvPoly) ptNr=%d v0=%.3f v1=%.3f lvTab=%ld cpTab=%ld\n",
-           (long)obj,
+    // printf("  %ld (CurvPoly) ptNr=%d v0=%.3f v1=%.3f lvTab=%ld cpTab=%ld\n",
+    printf("  (CurvPoly) ptNr=%d v0=%.3f v1=%.3f\n",
+           // (long)obj,
            ((CurvPoly*)obj)->ptNr,
            ((CurvPoly*)obj)->v0,
-           ((CurvPoly*)obj)->v1,
-           (long)((CurvPoly*)obj)->lvTab,
-           (long)((CurvPoly*)obj)->cpTab);
+           ((CurvPoly*)obj)->v1);
+           // (long)((CurvPoly*)obj)->lvTab,
+           // (long)((CurvPoly*)obj)->cpTab);
 
 
   //----------------------------------------------------------------
   } else if(typ == Typ_GTXT) {
-    printf("  %ld (Graph.Text) %9.3f,%9.3f,%9.3f size=%.2f dir=%.2f\n",
-           (long)obj,
+    // printf("  %ld (Graph.Text) %9.3f,%9.3f,%9.3f size=%.2f dir=%.2f\n",
+    printf("  (Graph.Text) %9.3f,%9.3f,%9.3f size=%.2f dir=%.2f\n",
+           // (long)obj,
            ((GText*)obj)->pt.x,
            ((GText*)obj)->pt.y,
            ((GText*)obj)->pt.z,
@@ -2201,7 +2221,8 @@ static void*  relPos;
 
   //----------------------------------------------------------------
   } else {
-    DEB_dump_obj__ (typ, obj, "typ=%d", typ);
+    sprintf(s1, "%s typ=%d", txt, typ);
+    DEB_dump_obj__ (typ, obj, s1, typ);
   }
 
   return 0;
@@ -2520,6 +2541,12 @@ static int iLev;
       } else { // data = index
         // la = &(o2->data);  // OK, but warning ..
         l1 = LONG_PTR (o2->data);
+        if(!l1) {
+          // dbi=0 - error - undefined
+          sprintf(cbuf,"  %s ",AP_src_typ__(o2->typ));
+          printf("%s dbi = 0 (undefined)\n",cbuf);
+          continue;
+        }
         la = &l1;
       }
 
@@ -2588,7 +2615,7 @@ static int iLev;
 /// see DEB_dump_ox_0 - dump also all subObjects
 /// \endcode
 
-  int irc;
+  int irc = 0;
 
   // DEB_dump_ox_0 (oxi, "DEB_dump_ox_s_");
 
@@ -2733,6 +2760,12 @@ static char cOff[64];
       if(op1->siz < 2) {  // Index else (long*)-Tabelle
         dbi = LONG_PTR(op1->data);
           // printf(" res-index-typ=%d dbi=%ld\n",op1->typ,dbi);
+        if(!dbi) {
+          // dbi=0 - error - undefined
+          sprintf(cbuf,"  %s ",AP_src_typ__(oxi->typ));
+          printf("%s dbi = 0 (undefined)\n",cbuf);
+          continue;
+        }
         ox1 = DB_GetObjGX (op1->typ, dbi);
       } else {
 // TODO: use Typ_Int8
@@ -2863,4 +2896,45 @@ static char cOff[64];
 } 
   
   
+//================================================================
+  int DEB_dump_file (char *fn, char *inf) {
+//================================================================
+// DEB_dump_file           dump file
+
+
+  // char     s1[400];
+  long        fSiz, cPos1;
+  char        *fBuf;
+
+
+  // printf("DEB_dump_file |%s|%s|\n",fn,inf);
+
+
+  printf("------------- %s             DEB_dump_file\n",inf);
+
+
+//   sprintf(s1,"/bin/cat %s > /dev/tty",fn);
+//   OS_system (s1);
+
+
+  // get file -> fBuf
+  MEM_alloc_file (&fBuf, &fSiz, fn);          // alloc temp
+  UTX_str_file (fBuf, &fSiz, fn);
+  if(fSiz < 1) {
+    TX_Print("DEB_dump_file E001 |%s|",fn);
+    return -1;
+  }
+
+  printf("%s\n",fBuf);
+
+
+  printf("------------- \n");
+
+
+
+  return 0;
+
+}
+
+ 
 // EOF

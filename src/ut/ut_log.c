@@ -131,6 +131,8 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
  
 
+  printf("LOG_A_write |%s|\n",s1);
+
   if(!LOG_A_fp) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "w")) == NULL) {
       TX_Print("***** CANNOT OPEN LOG-FILE %s",LOG_A_fnam);
@@ -228,7 +230,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
 
   // OS_browse_htm (LOG_A_fnam);
-  APP_edit (LOG_A_fnam, 0);
+  APP_edit (LOG_A_fnam, 1);
 
   if(istat) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {

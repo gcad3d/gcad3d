@@ -46,6 +46,8 @@ Del_CB_del     delete one or all objs of List
 Del_obj__      delete obj
 Del_grp__      delete all objs in group
 Del_tab__      delete objects
+Del_sm__       delete subModelfiles
+Del_sm_del     delete subModelfiles and sm in browser
 
 Del_dump       dump delTab
 Del_free       free delTab   NOT YET IMPLEM.
@@ -78,10 +80,9 @@ OLD VERSION:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab..
 #include "../ut/ut_cast.h"             // INT_PTR
-
-#include "../gui/gui__.h"              // Gtk3
-
 #include "../ut/func_types.h"               // Typ_Att_hili
+#include "../ut/ut_txTab.h"              // TxtTab
+#include "../ut/ut_os.h"               // OS_ ..
 
 #include "../db/ut_DB.h"               // DB_
 
@@ -96,13 +97,16 @@ OLD VERSION:
 
 
 
+//================================================================
 // extern vars:
 
+// ../xa/xa_ui.c:
+extern int       UI_InpMode;
 
-// local vars:
-// static GIO_WinTree winDel;
-static void *winDel;
-// static MemTab(stru_Del) delTab = _MEMTAB_NUL;
+
+
+//================================================================
+// local - static vars:
 
 static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
@@ -592,8 +596,8 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
   MemTab(ObjSRC) oTab = _MEMTAB_NUL;
 
 
-  // printf("Del_tab__ %d\n",ii);
-  // for(i1=0;i1<ii;++i1)DEB_dump_obj__(Typ_Group,&gTab[i1]," gT[%d]\n",i1);
+  printf("Del_tab__ %d\n",ii);
+  for(i1=0;i1<ii;++i1)DEB_dump_obj__(Typ_Group,&gTab[i1]," gT[%d]\n",i1);
 
 
   UI_block__ (1, 1, 1);  // block UI
@@ -607,6 +611,8 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
   for(i1=0; i1<ii; ++i1) {
     typ = AP_typDB_typ (gTab[i1].typ);
     dbi = gTab[i1].dbInd;
+      printf(" Del_tab__-nxt %d typ=%d dbi=%ld\n",i1,typ,dbi);
+
 
     // get list of depending objects
     APED_find_dep__ (&dTab, typ, dbi);
@@ -653,8 +659,18 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
     }
     if(iDel > 0) goto L_nxt_i1;
 
-      // printf(" delete last 0\n");
-    Del_obj_add (&oTab, &(dTab.data[0]));  // add obj to delete-table
+    o2 = &(dTab.data[0]);
+      // TESTBLOCK
+      printf(" Del_tab__ typ=%d dbi=%ld lnr=%ld iPar=%d\n",
+             o2->typ,o2->dbi,o2->lnr,o2->iPar);
+      // END TESTBLOCK
+
+    // delete subModel: remove all unused files in tmpDir
+    // TODO: check if more references of this subModel exist ..
+    // if(o2->typ == Typ_Model) Del_sm__ (o2->dbi);
+ 
+    // add obj to delete-table
+    Del_obj_add (&oTab, o2);
 
   }
 
@@ -705,6 +721,111 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
 }
 
+
+/*
+//================================================================
+  int Del_sm__ (long dbi) {
+//================================================================
+// Del_sm__                     delete files of subModel 
+// TODO: check if more references of this subModel exist ..
+// TODO: use also in UNDO_ln_del
+// OMN_CB_popup
+//   Del_obj__
+//     Del_tab__
+//       Del_sm__ 
+//       UNDO_grp_del
+// 
+// UI_men__ |ObjDelete|
+//   UNDO_grp_undo
+//     UNDO_grp_del
+//       UNDO_ln_del
+
+
+
+  int      irc, i1;
+  char     *mnam;
+  ModelRef *mdr;
+  ModelBas *mdb;
+
+  UtxTab_NEW (mdlTab);                // stringtable
+  UtxTab_NEW (surPtab);               // stringtable
+  UtxTab_NEW (surMsh);                // stringtable
+
+
+
+  printf("Del_sm__ %ld\n",dbi);
+
+  // get referenceModel of M<dbi>
+  mdr = DB_get_ModRef (dbi);
+
+  // get basicModel
+  mdb = DB_get_ModBas (mdr->modNr);
+    printf(" Del_sm__-sm |%s|\n",mdb->mnam);
+
+  // get list of names of all subModels of subModel mdb->mnam
+  irc = Mod_fget_names__ (&mdlTab, &surPtab, &surMsh, mdb->mnam);
+  if(irc < 0) goto L_exit;
+
+
+  // add parent
+  UtxTab_add (&mdlTab, mdb->mnam);
+    UtxTab_dump (&mdlTab, "Del_obj_sm-mdlTab");
+
+  // remove now unused files in tmpDir  (Model_<> and DB_<>)
+  for(i1=0; i1<mdlTab.iNr; ++i1) {
+    Del_sm_del (UtxTab__(i1,&mdlTab));
+  }
+
+
+  // update browser
+  // if(UI_InpMode != UI_MODE_MAN) Brw_Mdl_upd ();
+
+
+
+  irc = 0;
+
+  L_exit:
+  UtxTab_free (&mdlTab);
+  UtxTab_free (&surPtab);
+  UtxTab_free (&surMsh);
+
+  return irc;
+
+}
+
+
+//================================================================
+  int Del_sm_del (char *smNam) {
+//================================================================
+// Del_sm_del       delete subModelfiles and sm in browser
+
+  int        ibm;
+  char       fns[256], fNam[512];
+
+  printf("Del_sm_del |%s|\n",smNam);
+
+
+  strcpy (fns, smNam);
+  UTX_safeName (fns, 2);
+
+
+  // del Model_<>
+  sprintf(fNam, "%sModel_%s", OS_get_tmp_dir(), fns);
+  OS_file_delete (fNam);
+
+
+  // del DB_<>
+  sprintf(fNam, "%sDB__%s.dat", OS_get_tmp_dir(), fns);
+  OS_file_delete (fNam);
+
+
+  // del sm in browser
+  Brw_Mdl_del_sm (fns);
+
+  return 0;
+
+}
+*/
 
 //================================================================
   int Del_dump () {

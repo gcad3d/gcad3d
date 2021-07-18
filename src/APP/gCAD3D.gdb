@@ -52,9 +52,16 @@ break TX_Error
 #run comp Data_U/sample_mod_nut1.gcad
 #run comp Data/test_all_curvtypes.gcad
 #run comp STP_U/Err1.gcad
-#run Data/unknown.gcad mode_cad_10_1
-#run Data/unknown.gcad mode_cad
-run
+#run Data/sample_area_bsp0.gcad
+#run Data_U/test_all_curvtypes.gcad
+#run comp Data/test_models_6.gcad
+#run Data_U/unknown.gcad
+#run Data_U/test_sur_cyl_5.gcad mode_cad_7_8
+#run Data_U/Renault1.gcad mode_cad_10_1
+#run ELE1/unknown.gcad mode_cad
+#run comp Data_U/test_mod_1.gcad mode_cad
+#run comp Data_U/t1.gcad mode_cad
+#run comp mode_cad
 
 #break GUI_popup__
 #break GL_set_ocv
@@ -62,9 +69,9 @@ run
 #break GL_Init_col
 #break MSH2D_view_i2ptb2
 #cond 3 Ind == 0
+#break UI_butCB
+#break DB_mdlNam_iBas
 
 #watch GR_TAB_IND
 #watch ((Circ*)TSU_ox2.data)->vz.dy
-
-#c
 #

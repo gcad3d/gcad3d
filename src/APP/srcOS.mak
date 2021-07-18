@@ -1,13 +1,11 @@
 # gCAD3D-sourcefiles
 
-ifeq "$(OS)" "Linux32"
-  SRCOS = ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
-# SRCOS = ../ut/ut_os_aix.c ../ut/ctrl_os_f.c
+ifeq "$(hTyp)" "Linux_x86_32"
+  SRCOS = ../ut/os_uix.c ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
 endif
 
-ifeq "$(OS)" "Linux64"
-  SRCOS = ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
-# SRCOS = ../ut/ut_os_aix.c ../lic/ut_lic_aix.c
+ifeq "$(hTyp)" "Linux_x86_64"
+  SRCOS = ../ut/os_uix.c ../ut/ut_os_aix.c ../ut/ctrl_os_aix.c
 endif
 
 # eof

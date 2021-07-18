@@ -47,6 +47,7 @@ MemObj GUI_tree1__ (MemObj *o_par, void *selCB, char *opts);
 
   int GUI_tree1_cbSel (void *selection, MemObj mo);
   int GUI_tree1_cbMouse (void *parent, void *ev, MemObj mo);
+  // int GUI_tree1_cbKey (void *parent, void *event, MemObj mo);
 
   int GUI_tree1_remove__ (MemObj *mo, TreeNode *it);
   int GUI_tree1_clear (MemObj *mo);

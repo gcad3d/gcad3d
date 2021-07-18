@@ -31,7 +31,7 @@ Modifications:
 void UtxTab(){}
 #endif
 /*!
-\file  ../ut/ut_txTab.c
+\file  ../ut/ut_txTab.c    ../ut/ut_txTab.h
 \brief list of strings (0-terminated); add, find, ..
 \code
 NEEDS:
@@ -40,12 +40,15 @@ NEEDS:
 List_functions_start:
 
 UtxTab_NEW         setup of a new StringList
+UtxTab_IS_NEW      check if UtxTab is new or already has memspc
+
 UtxTab_init__      init / clear all words; automatic alloc/realloc
 UtxTab_init_Memspc init / clear all words; fixed space in Memspc; no reallocate
 UtxTab_init_spc    init / clear all words; fixed space (void*); no reallocate
 UtxTab_add         add a new string
 UtxTab_add_uniq__  add string, check if it already exists
 UtxTab_add_file    make table of strings from file
+UtxTab_del         delete string
 UtxTab_rem         remove last string
 UtxTab_query       get text of last string; retCod = index of next free
 UtxTab_find        find string - ask nr
@@ -59,16 +62,21 @@ UtxTab_pos_free    returns next free position in memspace of TxtTab
 UtxTab_reall_C
 UtxTab_reall_I
 UtxTab_dump
+UtxTab_test
 
 List_functions_end:
 =====================================================
+see also:
+UTX_wrf_lst            write list (UtxTab) into file
 
-\endcode *//*----------------------------------------
+\endcode */
+ void INF_TxtTab(){} /*--------------------------------------
+../ut/ut_txTab.h
+../ut/ut_txTab.c
 
 
 Class for stacking Textstrings: add, find ..; reallocate automatic
 All strings are terminated with '\0'.
-
 
 
 Usage example - automatic reallocate (malloc):
@@ -499,6 +507,62 @@ void TX_Error (char* txt, ...);
 
 
 //================================================================
+  int UtxTab_del (int iDel, TxtTab *ttb) {
+//================================================================
+// UtxTab_del             delete string[iDel]
+// Input:
+// Output:
+//   retCode      0=OK, -1=err.
+
+
+  int     irc=0, i1, ii, iPos1, iPos2;
+  int     sSiz;      // total size of string to delete
+  int     mSiz;      // size to move
+  char    *sPos1;    // startPos of string to delete
+  char    *sPos2;    // startPos of string follwing sPos1
+
+  // printf("UtxTab_del %d\n",iDel);
+
+  if(iDel >= (ttb->iNr - 1)) {
+    if(iDel == (ttb->iNr - 1)) return UtxTab_rem (ttb);
+    goto L_err;
+  }
+  if(ttb->iNr <= 1) {
+    if(!iDel) return UtxTab_init__ (ttb);
+    goto L_err;
+  }
+
+  iPos1 = ttb->ind[iDel];
+  iPos2 = ttb->ind[iDel + 1];
+  sSiz = iPos2 - iPos1;
+  sPos1 = &ttb->tab[iPos1];
+  sPos2 = &ttb->tab[iPos2];
+  mSiz = ttb->ind[ttb->iNr] - iPos2;
+  ii = ttb->iNr - iDel;
+    // printf(" UtxTab_del-iPos1=%d iPos2=%d mSiz=%d sSiz=%d ii=%d\n",
+           // iPos1,iPos2,mSiz,sSiz,ii);
+
+  // move
+  memmove (sPos1, sPos2, mSiz);
+
+  // update ind
+  for(i1=iDel+1; i1<=ttb->iNr; ++i1)
+    ttb->ind[i1] = ttb->ind[i1 + 1] - sSiz;
+  ttb->iNr -= 1;
+
+
+  L_exit:
+    // printf("ex-UtxTab_del %d\n",irc);
+  return irc;
+
+  L_err:
+    irc = -1;
+    goto L_exit;
+
+}
+
+
+//================================================================
   int UtxTab_init_spc (TxtTab *tab, void *spc, int isize) {
 //================================================================
 /// \code
@@ -667,7 +731,8 @@ void TX_Error (char* txt, ...);
 //================================================================
   char* UtxTab__ (int iNr, TxtTab *tab) {
 //================================================================
-/// get text of record Nr iNr  (returns pointer !)
+// get text of record Nr iNr  (returns pointer !)
+// - return NULL on error
 
   if(iNr < 0) return NULL;
   if(iNr >= tab->iNr) return NULL;
@@ -720,7 +785,7 @@ void TX_Error (char* txt, ...);
 
   int  i1, i2;
 
-  printf("----------------- UtxTab_dump %s\n",inf);
+  printf("%s ----------------- UtxTab_dump\n",inf);
   printf("  indSiz=%ld tabSiz=%ld iNr=%d stat=%d\n",
          tab->indSiz, tab->tabSiz, tab->iNr, tab->stat);
 
@@ -730,6 +795,46 @@ void TX_Error (char* txt, ...);
     printf (" tab[%d] Pos=%d |%s|\n",i1,i2,&tab->tab[i2]);
   }
 
+  return 0;
+
+}
+
+
+//================================================================
+  int UtxTab_test () {
+//================================================================
+
+  int        i1, i2, ii;
+  char       s1[256], s2[16];
+  UtxTab_NEW (ttb);
+
+
+  printf(" UtxTab_test\n");
+
+  UtxTab_init__ (&ttb);            // init (malloc ..)
+
+  for(i1=0;i1<10;++i1) {
+    strcpy(s1, "word-");
+    sprintf(s2, "%d",i1);
+    for(i2=0; i2<i1; ++i2) strcat(s1, s2);
+    UtxTab_add (&ttb, s1);
+  }
+
+  UtxTab_dump (&ttb, "");
+
+  // ii = UtxTab_find ("word-4444", &ttb);
+  // ii = UtxTab_find ("word-", &ttb);
+  ii = UtxTab_find ("word-999999999", &ttb);
+    printf(" UtxTab_test-ii=%d\n",ii);
+
+  if(ii >= 0) UtxTab_del (ii, &ttb);
+
+  UtxTab_add (&ttb, "abc");
+  UtxTab_add (&ttb, ".. fertig");
+
+
+  UtxTab_dump (&ttb, "");
+  UtxTab_free (&ttb);              // free mem
   return 0;
 
 }

@@ -269,8 +269,8 @@ static ColRGB  newCol, actCol;
 static int     err0Nr;
 
 
-// soviel muss in outSpc immer frei sein
-#define outSpc_FRE 200000    // 2016-05-20 was 500000
+// - no reall for single model !
+#define outSpc_FRE 500000
 
 #define iTab_INC  50000
 
@@ -304,16 +304,14 @@ static maRec  *maTab;
   ObjGX   *oTab;
 
 
-  // printf("gCad_main ex DLL xa_WRL_R\n");
-  // return 0;  // TEST
-  // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
+  printf("gCad_main wrl_ut.c\n");
+
 
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT_PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
   fnam   = oTab[1].data;          // 2) Typ_Txt    filename
   outSpc = oTab[2].data;          // 3) Typ_Memspc outSpc
-
-  // printf("gCad_main/xa_WRL_R mode=%d fnam=|%s|\n",mode,fnam);
+    printf(" xa_wrl_r-mode=%d fnam=|%s|\n",mode,fnam);
 
 
 
@@ -1381,9 +1379,11 @@ static int levOld = -1;
 
 
   // die Punkte --> memPT
+  // get Points into (Point*)vTab[vTabNr]
   wrl1_r_dec_vTab ();
 
   // die Indices --> memInd
+  // get Indices into (int*)iTab[iTabNr]
   fNr = wrl1_r_dec_iTab ();
   if(fNr < 1) return fNr;
 

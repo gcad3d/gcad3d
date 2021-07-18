@@ -44,6 +44,7 @@ MMstLty=define Linetypes (Color-Lintyp-LineThick) for Lines/Circs/Curves
 MMstDir=define Modeldirectories
 MMstBrw=define Browser for help / documentation
 MMstEdi=define Editor
+MMstSelDir=select file with symbolic directories
 
 MMmdMsi=set size and tolerances of model
 MMmdMdp=modify the Position of a subModel
@@ -393,10 +394,11 @@ SN_TxtNot=search all objects [NOT] containing infotext
 SN_DepNot=search all objects [NOT] depending from object "depends"
 
 ERRCAD0=*** ERROR: function CAD must be active ..
+ERRMDL0=*** ERROR: subModel must be active ..
 pluginErr0=rebuild not possible - compiler or linker not found.
 pluginErr1=Error in plugin  {0} ; aborted.
 FileOp=opening file  {0}
-SAVusm=Save unused submodel  {0}  ?
+SAVusm=Save unused submodels {0}
 Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=last input clockwise
@@ -406,4 +408,8 @@ ED1MOD-=select previous solution-variant
 ED1<<<=one input back (before inserting)
 ED1>>>=one input forward (after inserting)
 
-EOF
+E_CAD_use1=cannot use obj
+E_PRJ_1=no result from project
+E_INT_1=no result from intersection
+
+EOF=end of file

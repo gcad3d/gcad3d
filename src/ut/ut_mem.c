@@ -248,15 +248,16 @@ MEM_alloc_tmp
 //======================================================================
   int MEM_get_file (char* txbuf, long *fSiz, char *fnam) {
 //======================================================================
-/// \code
-/// MEM_get_file              read file -> mem
-/// Input:
-///   fSiz       must have exact filesize; see OS_FilSiz.
-///   fnam       file to copy -> txbuf
-/// Output:
-///   txbuf      must have size *fSiz+1
-/// See UTX_str_file()
-/// \endcode
+// MEM_get_file              read file -> mem
+// Input:
+//   fSiz       must have exact filesize; see OS_FilSiz.
+//   fnam       file to copy -> txbuf
+// Output:
+//   txbuf      must have size *fSiz+1
+//
+// UTX_str_file()       // read single line
+// UTX_cp_Line          // read n lines; eof = if(!cNxt)
+
 
   FILE  *fpi;
 
@@ -521,28 +522,27 @@ MEM_alloc_tmp
                    void *insDat,   long insSiz,
                    void *delPos,   long delSiz) {
 //==========================================================================
-/// \code
-/// MEM_chg_rec          change a record in mem (change line)
-/// 
-/// Input:
-///   datStart     Startposition des Datenblock
-///   datSiz       Size Datenblock (zB ex strlen)
-///   insDat       data to insert (len = insSiz)
-///   insSiz       size of insDat
-///   delPos       Position of old record (delete) and new record (insert)
-///   delSiz       how much bytes to delete at Pos delPos
-/// Output:
-///   datSiz  wird korrigiert
-/// 
-/// 
-///  strcpy(cbuf, "1234567890");   l1 = strlen(cbuf);
-///  MEM_chg_rec (cbuf, &l1, "AAA", 3, &cbuf[4], 1); // 5 -> AAA
-/// 
-/// strcpy(cbuf, "1234567890");   l1 = strlen(cbuf);
-/// MEM_chg_rec (cbuf, &l1, "A", 1, &cbuf[4], 3);   // 567 -> A
-///
-/// see also MEM_chg_str
-/// \endcode
+// MEM_chg_rec          change a record in mem (change line)
+//   IF(datSiz - delSiz + insSiz) > size at datStart NOT TESTED !
+// 
+// Input:
+//   datStart     Startposition des Datenblock
+//   datSiz       Size Datenblock (zB ex strlen)
+//   insDat       data to insert (len = insSiz)
+//   insSiz       size of insDat
+//   delPos       Position of old record (delete) and new record (insert)
+//   delSiz       how much bytes to delete at Pos delPos
+// Output:
+//   datSiz  wird korrigiert
+// 
+//
+//  strcpy(cbuf, "1234567890");   l1 = strlen(cbuf);
+//  MEM_chg_rec (cbuf, &l1, "AAA", 3, &cbuf[4], 1); // 5 -> AAA
+// 
+// strcpy(cbuf, "1234567890");   l1 = strlen(cbuf);
+// MEM_chg_rec (cbuf, &l1, "A", 1, &cbuf[4], 3);   // 567 -> A
+//
+// see also MEM_chg_str
 
 
 
@@ -832,8 +832,8 @@ MEM_alloc_tmp
   }
 
     // TESTBLOCK
-    printf("ex-MEM_swap_nrec rNr=%d rSiz=%d\n",rNr,rSiz);
-    for(i1=0; i1<rNr; ++i1) printf(" %d %f \n",i1,((double*)na)[i1]);
+    // printf("ex-MEM_swap_nrec rNr=%d rSiz=%d\n",rNr,rSiz);
+    // for(i1=0; i1<rNr; ++i1) printf(" %d %f \n",i1,((double*)na)[i1]);
     // END TESTBLOCK
 
 

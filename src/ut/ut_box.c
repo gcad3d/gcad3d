@@ -54,6 +54,8 @@ UT2D_rect_inpt3           bbox for indexed point-array  <<<
 UT2D_rect_pts             bounding rectangle <-- 2D-points
 UT2D_rect_pta3            bounding rectangle <-- 3D-points
 
+UT2D_box_4pt_bp           get 4 points of bbox on backplane
+
 UT2D_box_addTol           add tolerance to box (enlarge box)
 BBX2__ext_ptLL            extend lower left point of 2D-box
 BBX2__ext_ptUR            extend upper right point of 2D-box
@@ -65,7 +67,8 @@ UT2D_box_dump
 UT3D_ckBoxinBox1          check if 2 boxes overlap
 UT3D_pt_ck_inBoxTol       check if point p is inside box p1-p2
 UT3D_ck_ptInBox           check if point px is inside box p1-p2
-UT3D_box_ck_intLn         check if line intersects with axis-parallel box
+UT3D_box_ck_intLnLim      check if limited line intersects bbox
+UT3D_box_ck_intLnUnl      check if unlim. line intersects bbox
 UT3D_box_ck_intpl         check intersect. Plane / Box (estimate!)
 UT3D_box_ck_empty         test if box is empty
 
@@ -80,9 +83,10 @@ UT3D_box_extend           Box mit point vergroessern
 see also UT3D_box_ox
 UT3D_box_addTol           add tolerance to box (enlarge box)
 
+UT3D_box_mdl__            get box for model
 UT3D_box_ln               box Line 
 UT3D_box_ci
-UT3D_box_mdr
+UT3D_box_mdr              UU
 UT3D_box_ox 
 UT3D_box_obja
 BBX__pMsh_dbi             BBox for surface from points from dbi
@@ -92,7 +96,6 @@ UT3D_box_Torus
 // UT3D_box_Prism
 UT3D_box_CurvClot
 UT3D_box_GText
-UT3D_box_mdl__   was  UT3D_box_model
 BBX_def__                 get default-modelbox (size=modelSize)
 
 UT3D_ptvc_intbox          intersect point/vector with box
@@ -155,6 +158,56 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
 
+//=====================================================================
+  int UT2D_box_4pt_bp (Point2 *p2a, Point *pmin, Point *pmax, int bp) {
+//=====================================================================
+// UT2D_box_4pt_bp            get 4 points of bbox on backplane
+
+  int     irc = 0;
+
+
+  //----------------------------------------------------------------
+  if(bp == BCKPLN_XY) {
+
+    p2a[0].x = pmin->x;
+    p2a[0].y = pmin->y;
+
+    p2a[1].x = pmax->x;
+    p2a[1].y = pmin->y;
+
+    p2a[2].x = pmax->x;
+    p2a[2].y = pmax->y;
+
+    p2a[3].x = pmin->x;
+    p2a[3].y = pmax->y;
+
+
+  //----------------------------------------------------------------
+  } else if(bp == BCKPLN_XZ) {
+
+    p2a[0].x = pmin->x;
+    p2a[0].y = pmin->z;
+
+    p2a[1].x = pmax->x;
+    p2a[1].y = pmin->z;
+
+    p2a[2].x = pmax->x;
+    p2a[2].y = pmax->z;
+
+    p2a[3].x = pmin->x;
+    p2a[3].y = pmax->z;
+
+
+  //----------------------------------------------------------------
+  } else {
+    TX_Error("UT2D_box_4pt_bp only bp XY and XZ");
+    irc = -1;
+  }
+
+
+  return irc;
+
+}
 
 
 //================================================================
@@ -1104,13 +1157,101 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 }
 
 
+//=============================================================================
+  int UT3D_box_ck_intLnUnl (Point *pls, Vector *vl, Point *pmin, Point *pmax) {
+//=============================================================================
+// UT3D_box_ck_intLnUnl            check if unlim. line intersects bbox
+//
+// IN:
+//   pmin,pmax   box
+//   pls,vl      unlim line
+// OUT:
+//   retCode     0 no intersection
+//               1 intersection
+//
+
+  int       irc, i1, ii1, ii2;
+  Point2    p2l, p2a[4];
+  Vector2   v2;
+
+
+  // DEB_dump_obj__ (Typ_PT, pls, "UT3D_box_ck_intLnUnl pls");
+  // DEB_dump_obj__ (Typ_VC, vl, "  vl");
+  // DEB_dump_obj__ (Typ_PT, pmin, "  pmin");
+  // DEB_dump_obj__ (Typ_PT, pmax, "  pmax");
+  // GR_tDyn_box__ (pmin, pmax, Typ_Att_Symb);
+  // GR_tDyn_vc__ (vl, pls, ATT_COL_T_BLACK, 0);
+
+
+  //----------------------------------------------------------------
+  // test backplane XY = BCKPLN_XY
+  // get p2-v2 line on BCKPLN_XY
+  UT2D_pt_tra_pt3_bp (&p2l, pls, BCKPLN_XY);
+  UT2D_vc_tra_vc3_bp (&v2, vl, BCKPLN_XY);
+
+  // get pa = points of bbox in BCKPLN_XY
+  UT2D_box_4pt_bp (p2a, pmin, pmax, BCKPLN_XY);
+
+  // check if pa-points on same side of line p2-v2
+  ii1 = UT2D_sid_ptvc__ (&p2a[0], &p2l, &v2);
+    // printf(" intLnUnl-XY ii1=%d\n",ii1);
+  if(!ii1) goto L_ck_Z;
+  for(i1=1; i1<4; ++i1) {
+    ii2 = UT2D_sid_ptvc__ (&p2a[i1], &p2l, &v2);
+      // printf(" intLnUnl-XY i1=%d ii2=%d\n",i1,ii2);
+    if(ii2 != ii1) goto L_ck_Z;
+  }
+
+  goto L_exit_no;
+
+
+  //----------------------------------------------------------------
+  // test backplane XZ = BCKPLN_XZ
+  L_ck_Z:
+  // get p2-v2 line on BCKPLN_XZ
+  UT2D_pt_tra_pt3_bp (&p2l, pls, BCKPLN_XZ);
+  UT2D_vc_tra_vc3_bp (&v2, vl, BCKPLN_XZ);
+
+  // get pa = points of bbox in BCKPLN_XZ
+  UT2D_box_4pt_bp (p2a, pmin, pmax, BCKPLN_XZ);
+
+  // check if pa-points on same side of line p2-v2
+  ii1 = UT2D_sid_ptvc__ (&p2a[0], &p2l, &v2);
+    // printf(" intLnUnl-XZ ii1=%d\n",ii1);
+  if(!ii1) goto L_exit_yes;
+  for(i1=1; i1<4; ++i1) {
+    ii2 = UT2D_sid_ptvc__ (&p2a[i1], &p2l, &v2);
+      // printf(" intLnUnl-XZ i1=%d ii2=%d\n",i1,ii2);
+    if(ii2 != ii1) goto L_exit_yes;
+  }
+
+  goto L_exit_no;
+
+
+  //----------------------------------------------------------------
+  L_exit_yes:
+    irc = 1;          // line intersects box
+    goto L_exit__;
+
+  //----------------------------------------------------------------
+  L_exit_no:
+    irc = 0;           // no intersection
+
+  //----------------------------------------------------------------
+  L_exit__:
+    // printf("ex-UT3D_box_ck_intLnUnl %d\n",irc);
+  return irc;
+
+}
+
+
 //======================================================================
-  int UT3D_box_ck_intLn (Line *ln, Point *pmin, Point *pmax, double tol) {
+  int UT3D_box_ck_intLnLim (Line *ln, Point *pmin, Point *pmax, double tol) {
 //======================================================================
-// UT3D_box_ck_intLn        Author: Thomas Backmeister       27.5.2003
+// UT3D_box_ck_intLnLim        Author: Thomas Backmeister       27.5.2003
 // 
 /// \code
-/// UT3D_box_ck_intLn        check line-X with axis-parallel box
+/// UT3D_box_ck_intLnLim        check line-X with axis-parallel box
 /// 
 /// Check if a line intersects an axis-parallel box.
 /// 
@@ -1132,7 +1273,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   Vector vl, vp1, vp2;
 
 
-  // printf("UT3D_box_ck_intLn: ============================== tol=%f\n",tol);
+  // printf("UT3D_box_ck_intLnLim: ============================== tol=%f\n",tol);
   // DEB_dump_obj__ (Typ_LN, ln, "ln:");
   // DEB_dump_obj__ (Typ_PT, pmin, "pmin:");
   // DEB_dump_obj__ (Typ_PT, pmax, "pmax:");
@@ -1190,7 +1331,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
     }
   }
 
-  // printf("ex UT3D_box_ck_intLn rc=%d (0=no intersect, 1=yes)\n",rc);
+  // printf("ex UT3D_box_ck_intLnLim rc=%d (0=no intersect, 1=yes)\n",rc);
 
 
   //================================================================
@@ -1940,10 +2081,12 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 //====================================================================
   int UT3D_box_mdl__ (Point *PB1, Point *PB2, int iMdl, int mode) {
 //====================================================================
-// get box for model <iMdl>.
+// UT3D_box_mdl__                    get box for model <iMdl>.
+// - loop tru dispList, update box for everey obj in dispList;
 // Input:
-//   iMdl     -1 is the active model. See AP_modact_ind
-//   mode      0=all-objs, 1=group-only
+//   iMdl      AP_modact_ibm;  -1=primary-model,
+//              else index baseModel of model being created.
+//   mode      0=all-objs, 1=group-only (only for primary-model)
 // Output:
 //   Retcod:   0 = OK;
 //            -1 = DispList empty (no obj to display)
@@ -1956,7 +2099,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
   // printf("================================================= \n");
-  // printf("UT3D_box_mdl__ %d\n",iMdl);
+  // printf("UT3D_box_mdl__ iMdl=%d mode=%d\n",iMdl,mode);
 
 
   // init box
@@ -2049,9 +2192,9 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
   //----------------------------------------------------------------
     // TESTBLOCK
-    // printf("::::::::::::::::::::::::: ex UT3D_box_mdl__: ::::::::::: \n");
     // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
     // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+    // printf("::::::::::::::::::::::::: ex UT3D_box_mdl__: ::::::::::: \n");
     // END TESTBLOCK
 
   *PB1 = pb1;
@@ -2078,6 +2221,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
   int         i1, ibm, iNr, sNr, frm1, typ0, typ1;
   void        *o1;
+  double      scl;
   Point       *pta, p1, p2, ps1, ps2;
   Point2      *p2a;
   Vector      vcy;
@@ -2358,7 +2502,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
     // get mb = basic-model (struct ModelBas)
     ibm = ((ModelRef*)obj)->modNr;
     mb = DB_get_ModBas (ibm);
-      // DEB_dump_obj__ (Typ_SubModel, mb, "_box_obja-mb");
+      // DEB_dump_obj__ (Typ_SubModel, mb, "_box_obja-mb-bm%d",ibm);
 
     // test if model is empty (UT3D_box_ini0); yes: exit.
     if(mb->pb1.x == UT_VAL_MAX) return 0;
@@ -2373,10 +2517,18 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       // UT3D_box_mdl__ (&p1, &p2, ibm); - in Mod_load_sm !
     } else {
      // box already already existing; use it
-     ps1 = mb->pb1;
-     ps2 = mb->pb2;
+     if(!UTP_comp2db (((ModelRef*)obj)->scl, 1., UT_TOL_min0)) {
+       // scale points
+       UT3D_pt_multpt (&ps1, &mb->pb1, ((ModelRef*)obj)->scl);
+       UT3D_pt_multpt (&ps2, &mb->pb2, ((ModelRef*)obj)->scl);
+
+     } else {
+       //scale = 1.
+       ps1 = mb->pb1;
+       ps2 = mb->pb2;
+     }
     }
-      // DEB_dump_obj__ (Typ_PT, &ps1, "_box_obja-ps1-0");
+      // DEB_dump_obj__ (Typ_PT, &ps1, "_box_obja-ps1-bm%d",ibm);
       // DEB_dump_obj__ (Typ_PT, &ps2, "_box_obja-ps2-0");
 
     // get y-axis for model-reference

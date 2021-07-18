@@ -252,7 +252,7 @@ Returncodes:
 
 
     // intersect lines
-    rc = UT3D_pt_int2ln (&xp1, &xp2, &dist, &l1, &l2);
+    rc = UT3D_2pt_int2ln (&xp1, &xp2, &dist, &l1, &l2);
     if (rc < 0) return 0;
 
 
@@ -279,45 +279,48 @@ Returncodes:
 }
 
 
-/*=======================================================================*/
+//================================================================
   int UT3D_pt_intlnbcv (int *nxp, Point *xptab, int ptxMax,
-                        Line *ln, CurvBez *bcv, Memspc *memSeg1, double tol) {
-/*====================
-UT3D_pt_intlnbcv      intersect line with Bezier curve
-
-UT3D_pt_intlnbcv      Author: Thomas Backmeister       26.5.2003
-
-Intersection of line with Bezier curve.
-The function works recursively!
-
-IN:
-  int ptxMax    ... max Anzahl von Ausgabepunkten
-  Line *ln      ... line
-  CurvBez *bcv  ... Bezier curve
-  double tol    ... tolerance for considering Bezier curve as line
-                    (as smaller tol as straighter the curve)
-  int *nxp      ... number of intersection points
-  Point *xptab  ... intersection points
-  Memspc *memSeg1 . fuer temporaere Elemente erforderlich
-OUT:
-  int *nxp      ... number of intersection points
-  Point *xptab  ... intersection points
-Returncodes:
-  0 = OK
-  1 = array for X-points too small
- -1 = out of mem (Memspc too small)
- -2 = out of mem (xptab too small)
-*/
+                        Line *ln, int iUnl, CurvBez *bcv,
+                        Memspc *memSeg1, double tol) {
+//================================================================
+// UT3D_pt_intlnbcv      intersect line with Bezier curve
+// 
+// UT3D_pt_intlnbcv      Author: Thomas Backmeister       26.5.2003
+// 
+// Intersection of line with Bezier curve.
+// The function works recursively!
+// 
+// IN:
+//   int ptxMax    ... max Anzahl von Ausgabepunkten
+//   Line *ln      ... line
+//   iUnl          ... 0=limited Line, 1=unlimited Line
+//   CurvBez *bcv  ... Bezier curve
+//   double tol    ... tolerance for considering Bezier curve as line
+//                     (as smaller tol as straighter the curve)
+//   int *nxp      ... number of intersection points
+//   Point *xptab  ... intersection points
+//   Memspc *memSeg1 . fuer temporaere Elemente erforderlich
+// OUT:
+//   int *nxp      ... number of intersection points
+//   Point *xptab  ... intersection points
+// Returncodes:
+//   0 = OK
+//   1 = array for X-points too small
+//  -1 = out of mem (Memspc too small)
+//  -2 = out of mem (xptab too small)
+//
 
   int     rc, i1;
   double  dist, tol_d;
   Point   pmin, pmax, xp1, *pp1, *pp2;
+  Vector  vcl;
   CurvBez bcv1, bcv2;
 
 
 
-  // printf("UT3D_pt_intlnbcv %d\n",*nxp);
-// 
+  // printf("UT3D_pt_intlnbcv ptxMax=%d iUnl=%d tol=%f\n",ptxMax,iUnl,tol);
+
 
   // make bounding box of Bezier curve
   UT3D_box_pts (&pmin, &pmax, bcv->ptNr, bcv->cptab);
@@ -325,8 +328,16 @@ Returncodes:
 
 
   // if line does not intersect bounding box -> return
-  // if (!UT3D_box_ck_intLn (ln, &pmin, &pmax, UT_TOL_min1)) return 0;
-  if (!UT3D_box_ck_intLn (ln, &pmin, &pmax, UT_TOL_pt)) return 0;
+  // if (!UT3D_box_ck_intLnLim (ln, &pmin, &pmax, UT_TOL_min1)) return 0;
+  if(iUnl) {
+    // intersect bounding box with unlimited line ln
+    UT3D_vc_ln (&vcl, ln);
+    if(!UT3D_box_ck_intLnUnl (&ln->p1, &vcl, &pmin, &pmax)) return 0;
+  } else {
+    // intersect bounding box with limited line ln
+    if(!UT3D_box_ck_intLnLim (ln,  &pmin, &pmax, UT_TOL_pt)) return 0;
+  }
+    // printf(" _intlnbcv-in\n");
 
 
   // --- Bezier curve is no (not yet) line ---
@@ -337,11 +348,8 @@ Returncodes:
     if(rc < 0) return rc;
 
     // repeat this function with bcv1 and bcv2 (recursion !)
-    if(UT3D_pt_intlnbcv(nxp,xptab,ptxMax,ln,&bcv1,memSeg1,tol) < 0) return rc;
-    if(UT3D_pt_intlnbcv(nxp,xptab,ptxMax,ln,&bcv2,memSeg1,tol) < 0) return rc;
-
-
-
+    if(UT3D_pt_intlnbcv(nxp,xptab,ptxMax,ln,iUnl,&bcv1,memSeg1,tol) < 0) return rc;
+    if(UT3D_pt_intlnbcv(nxp,xptab,ptxMax,ln,iUnl,&bcv2,memSeg1,tol) < 0) return rc;
 
 
   // --- Bezier curve is a (limited) line ---
@@ -360,9 +368,8 @@ Returncodes:
 
 
     // intersect limited lines
-    rc = UT3D_pt_int2pt2pt_lim (&xp1, NULL, NULL,
-                            &ln->p1, &ln->p2, pp1, pp2, tol);
-    if(rc < 0) return 0;
+    rc = UT3D_pt_int_2pt_2pt (&xp1, tol, &ln->p1, &ln->p2, iUnl, pp1, pp2, 0);
+    if(rc) return 0;
       // GR_tDyn_symB__ (&xp1, SYM_STAR_S, ATT_COL_RED);
 
 
@@ -396,7 +403,10 @@ Returncodes:
   }
 
 
-    // printf("ex _intlnbcv nxp=%d\n",*nxp);
+    // TESTBLOCK
+    // printf("ex-_intlnbcv nxp=%d\n",*nxp);
+    // for(i1=0;i1 < *nxp;++i1)DEB_dump_obj__(Typ_PT,&xptab[i1],"p[%d]",i1);
+    // END TESTBLOCK
 
 
   return 0;

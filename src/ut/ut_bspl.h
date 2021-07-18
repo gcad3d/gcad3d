@@ -5,7 +5,7 @@ int UT3D_cbsp_ci (CurvBSpl *bsp, Memspc *memSeg, Circ *ci1, Memspc *tmpSeg);
 int UT3D_cbsp_ell (CurvBSpl *bsp, Memspc *memSeg, CurvElli *el1, Memspc *tmpSeg);
 
   int UT3D_pt_intlnbspl (int *nxp, Point *xptab,
-                         Memspc *memSeg1, Line *ln, CurvBSpl *bspl);
+                         Memspc *memSeg1, Line *ln, int iUnl, CurvBSpl *bspl);
   int UT3D_pt_intplbspl (int *pNr, Point *pa,
                       Plane *pln, CurvBSpl *bspl, Memspc *memSeg1, double tol);
   int UT3D_pt_int2bspl (int *nxp, Point *xptab,

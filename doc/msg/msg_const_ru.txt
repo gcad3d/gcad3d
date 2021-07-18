@@ -3,6 +3,7 @@ MSG_cancel=отмена
 MSG_save=сохранить
 MSG_insert=вставить
 MSG_delete=удалить
+MSG_remove=Remove
 MSG_modify=изменить
 MSG_exit=выход
 MSG_help=справка

@@ -43,7 +43,8 @@ Korr:
   char*  OS_get_ico_dir   ();
   char*  OS_get_bin_dir   ();
   char*  OS_get_doc_dir   ();
-
+  char*  OS_get_user      ();
+  char*  OS_get_term      ();
   char*  OS_get_edi       ();
   int    OS_get_lang      (char *sLang);
   char*  OS_get_browse_htm   ();
@@ -51,9 +52,9 @@ Korr:
   char*  OS_get_imgConv1  ();
   char*  OS_get_vwr_ps    ();
   int    OS_get_GUI       ();
-  char*  OS_os_s          ();
-
   char*  OS_get_dir_pwd   ();
+  char*  OS_get_os__      ();
+  char*  OS_get_os_bits      ();
 
   int    OS_filnam_eval (char *fno, char *fni, int fnoSiz);
   int    OS_file_copy (char *fnOld, char *fnNew);
@@ -81,6 +82,12 @@ Korr:
 char OS_browser[80] = {"\0"};                         // HTML-browser
 #else
 extern char OS_browser[80];                           // HTML-browser
+#endif
+
+#ifdef _MSC_VER
+#define OS_FIND_STRR_DELI(pStr) UTX_find_strrchrn(pStr,"/\\")
+#else
+#define OS_FIND_STRR_DELI(pStr) strrchr(pStr,fnam_del)
 #endif
 
 

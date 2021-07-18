@@ -63,7 +63,7 @@ The joints of all models are in one file: <temp>/joints.
 
 #include "../ut/ut_geo.h"           // OFF, ON ..
 #include "../ut/ut_os.h"            // OS_get_bas_dir
-#include "xa.h"                     // AP_STAT
+#include "../xa/xa.h"               // AP_STAT
 
 
 
@@ -74,7 +74,6 @@ The joints of all models are in one file: <temp>/joints.
 extern AP_STAT   AP_stat;
 
 // aus xa.c:
-extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 
@@ -190,7 +189,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
   // printf("JNT_exp__ indJnt=%ld\n",indJnt);
   // DEB_dump_ox_0 (jnt, "JNT_exp__");
   // DEB_dump_ox_s_ (jnt, "APT_decode_Joint");
-  // printf(" AP_modact_ind=%d\n",AP_modact_ind);
+  // printf(" AP_modact_ibm=%d\n",AP_modact_ibm);
 
 
 
@@ -209,7 +208,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 
   //----------------------------------------------------------------
   // create key; eg "M123J20" (the objID)
-  sprintf(key, "M%dJ%ld", AP_modact_ind, indJnt);
+  sprintf(key, "M%dJ%ld", AP_modact_ibm, indJnt);
   sizKey = strlen(key);
 
   // size of data
@@ -300,7 +299,7 @@ extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = ma
 
 
   // get basicModelNr of refModel <imdr>
-  ii = Mod_mdbi_mdri (imdr);
+  ii = MDL_imb_imr (imdr);
   sprintf(sk, "M%dJ", ii);
     // printf(" ii=%d sk=|%s|\n",ii,sk);
 

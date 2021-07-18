@@ -513,7 +513,6 @@ int ds3_cb_savePoint (int ip, float *pt1) {
 int ds3_cb_saveFace (int vNr, int *vTab) {
 //============================================================
 
-  static int   arNr = 20;
 
   int   i1;
   char  auxBuf[32];

@@ -117,7 +117,7 @@ see also ../xa/xa_ed.c   ED_
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -698,16 +698,10 @@ extern char  MOpTxtStr[];
   if(lNr < 0) {
     lNr = ED_get_lnr_act();     // get ED_lnr_act
   }
-  
 
   // printf("APED_update__ lNr=%ld\n",lNr);
 
-
-  // L_update:
-  // update editor-window
-
   WC_set_obj_stat (0);  // 0=permanent
-
 
   AP_SRC_edi_mem ();         // copy mem -> Editor & ED_lnr_act=0
 
@@ -720,16 +714,6 @@ extern char  MOpTxtStr[];
   // set cursor
   // ED_setLnr (l1-1);
   ED_work_CurSet (999999);
-
-
-  // auf die aktuelle zeileNr setzen, update display ..
-  // // imply END-Button (Redraw)
-  // // UI_AP (UI_FuncSet, UID_but_END, NULL);
-  // ED_work_END (0);
-  // ED_setLnr (lNr-1);
-  // WC_set_obj_stat (0);  // 0=perm
-  // ED_enter();
-  // WC_set_obj_stat (1);  // 1=workmode
 
 
   return 0;
@@ -778,7 +762,7 @@ extern char  MOpTxtStr[];
 /// \code
 /// APED_dec_defLn             check if Line p1 is a Definitionline;
 ///   if yes: decode its objID, return positon of objCode
-/// lines "V=NEW()" sofort auswerten, nicht via WC_Work__;
+/// lines "V=NEW()" sofort auswerten, nicht via WC_Work1;
 /// Output:
 ///   p2          position of 1 char after '='
 ///   typ, ind    typ and DB-index of outputvar.
@@ -1222,7 +1206,7 @@ extern char  MOpTxtStr[];
   char     *cp1, oNam[32];
 
 
-  // printf("APED_find_dbo %d %ld\n",typ,dbi);
+  printf("APED_find_dbo %d %ld\n",typ,dbi);
 
 
   //----------------------------------------------------------------
@@ -1253,6 +1237,9 @@ extern char  MOpTxtStr[];
   // get sourecLineNr via DL-record (faster)
   L_DL:
 
+  // skip objs with no DL-record
+  if(typ == Typ_Activ) {*dli = -1L; goto L_exit;}
+
   // get dli from dbo
   *dli = DL_dli__dbo (typ, dbi, -1L);
   if(*dli < 0) {TX_Print("APED_find_dbo E2 %d %ld",typ,dbi); return -1;}
@@ -1266,7 +1253,7 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   L_exit:
 
-    // printf("ex APED_find_dbo dli=%ld lNr=%ld\n",*dli,*lNr);
+    printf("ex APED_find_dbo dli=%ld lNr=%ld\n",*dli,*lNr);
 
   return 0;
 

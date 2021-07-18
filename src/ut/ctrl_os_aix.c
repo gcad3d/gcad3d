@@ -216,13 +216,9 @@ static FILE  *finLun = NULL;             // swapfile for large input
 // get next line (terminated with '\n') from inputpipe.
 // Output:
 //   sSiz     size of data
-// RetCod: NULL = no input exists or input not yet complete.
-//         else pointer to data. Dataspace may be modified.
-//
-// get input from pipe, test if input is complete 
-// copy pipe-input pnin into file fnin;
-// RetCod: -1   input not yet complete;
-//          0   complete; file can be closed & processed
+//   RetCode  NULL = no input exists or input not yet complete.
+//            else pointer to data. Dataspace may be modified.
+
 
 #define SIZ_sBuf 256
   static char sBuf[SIZ_sBuf];

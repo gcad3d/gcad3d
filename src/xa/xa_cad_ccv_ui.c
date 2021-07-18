@@ -57,7 +57,7 @@ cc xa_cad_ed.c ../ut/ut_TX.o ../ut/ut_txt.o -DOFFLINE&&a.out
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -247,10 +247,6 @@ extern char IE_buf[];
   //----------------------------------------------------------------
   if(!strcmp(txt, "OK")) {
     IE_cad_OK ();  // OK-Button druecken
-    // write IE_buf -> active CAD-inputfield
-    // IE_inp_set (IE_buf);
-    // GUI_update__ ();
-    // IE_inp_chg (-1);  // next inputfield
     return 0;
   }
 

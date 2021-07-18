@@ -205,6 +205,10 @@ List_functions_end:
 	crv->ptNr = ptNr;
   crv->v0 = crv->kvTab[deg];
   crv->v1 = crv->kvTab[ptNr];
+  crv->dir  = 0;                    // 0=fwd
+  crv->clo  = -1;                   // -1=undef
+  crv->trm  = 1;                    // 1=not-trimmed
+
 
 	// --- provide WORKSPACE: --- ---
   // for parametervector

@@ -134,7 +134,6 @@ void*     DB_get_CV        (int *ityp, long Ind);
 Plane*    DB_get_PLN       (long Ind);
 ModelRef* DB_get_ModRef    (long Ind);
 ModelBas* DB_get_ModBas    (int Ind);
-ModelNode* DB_get_ModNod   (int ind);
 
 int       UTO__dbo     (void **pDat, int *oNr, int dbTyp, long dbInd);
 int       DB_GetObj        (long, long*, int*);

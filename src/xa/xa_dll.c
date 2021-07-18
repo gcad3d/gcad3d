@@ -57,7 +57,7 @@ OS_debug_dll_
 // fuer gl.h erforderl !!
 #include <dlfcn.h>           // Unix: dlopen
 #else
-#include "MS_Def1.h"         // f. HINSTANCE: windows.h !
+#include "../xa/MS_Def1.h"         // f. HINSTANCE: windows.h !
 #endif
 
 
@@ -98,59 +98,66 @@ OS_debug_dll_
 */
 
  
-///================================================================
+//================================================================
   int DLL_run1 (int mode, void *fdat) {
-///================================================================
-/// DLL_run1         connect | run gCad_main(), gCad_fini() | unload DLL.
-/// starts ALWAYS function gCad_main in the dll !
-/// TODO: use DLL_run2
-/// 
-/// mode 0 Load DLL;  connect dll-Function "gCad_main"
-///        ObjGX[0] = Typ_ObjGX
-///        ObjGX[1] = (int)mode = 1
-///        ObjGX[2] = (char*)filename of dll
-///        ObjGX[3] = (Typ_Memspc)Typ_Memspc
-/// mode 2 work;      start Function "gCad_main" with parameterblock fdat
-/// mode 3 unLoad / free    fdat=Memspc
+//================================================================
+// DLL_run1         connect | run gCad_main(), gCad_fini() | unload DLL.
+// starts ALWAYS function gCad_main in the dll !
+// TODO: use DLL_run2
+// 
+// Input:
+//   mode    0 Load DLL;  connect dll-Function "gCad_main"
+//   mode    2 work; start Function "gCad_main" with (ObjGX*)fdat
+//             ObjGX[0] = Typ_ObjGX
+//             ObjGX[1] = (int)mode = 1
+//             ObjGX[2] = (char*)filename of input (mockup-model)
+//             ObjGX[3] = (Typ_Memspc)Typ_Memspc (output)
+//   mode    3 unLoad / free    fdat=Memspc
+//   fdat    mode = 0: dll-name (xa_wrl_r xa_vr2_r xa_stl_r xa_obj_r)
+//           mode = 2: function
 
 
 
-  int    irc;
+  int    irc, mtyp;
   char   ftyp[32], cBuf[256];
 
   static void  *dll1 = NULL; // pointer to loaded dll
 
-  printf("DLL_run1 %d\n",mode);
+
+  // printf("DLL_run1 %d\n",mode);
+  // if(mode == 0) printf(" DLL_run1 0 |%s|\n",(char*)fdat);
 
 
 
   //----------------------------------------------------------------
-  // (mode == 0)         OPEN DLL, connect Function "gCad_main"
-  // Input: fdat is the filename of mockup-modelfile
   if(mode != 0) goto L_2;
+  // mode = 0         OPEN DLL, connect Function "gCad_main"
+  // Input: fdat is the filename of mockup-modelfile
 
   // extract filetype.
-  irc = UTX_ftyp_s (ftyp, (char*)fdat, 1);
-  if(irc < 0) {TX_Print("DLL_run1 FileType not found"); return -1;}
-
-  // change ftyp >lowercase
-  UTX_chg_2_lower (ftyp);
-
-
-  // fix DLL-FileName
-// #ifdef _MSC_VER
-  // sprintf(cBuf, "%s\\xa_%s_r.dll",OS_get_bin_dir(),ftyp);
-  sprintf(cBuf, "xa_%s_r",ftyp);
-// #else
-  // sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
-  // sprintf(cBuf, "xa_%s_r",ftyp);
-// #endif
-    // printf(" soNam=|%s|\n",cBuf);
+//   irc = UTX_ftyp_s (ftyp, (char*)fdat, 1);
+//   if(irc < 0) {
+//     TX_Print("***** DLL_run1 E1 |%s|FileType not found",ftyp); return -1;
+//   }
+// 
+//   // change ftyp >lowercase
+//   UTX_chg_2_lower (ftyp);
+// 
+// 
+//   // fix DLL-FileName
+// // #ifdef _MSC_VER
+//   // sprintf(cBuf, "%s\\xa_%s_r.dll",OS_get_bin_dir(),ftyp);
+//   sprintf(cBuf, "xa_%s_r",ftyp);
+// // #else
+//   // sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
+//   // sprintf(cBuf, "xa_%s_r",ftyp);
+// // #endif
+//     // printf(" soNam=|%s|\n",cBuf);
 
 
   // connect DLL..
   if(&dll1) {
-    irc = OS_dll__ (&dll1, FUNC_LOAD_only, (void*)cBuf);
+    irc = OS_dll__ (&dll1, FUNC_LOAD_only, fdat);
     if(irc < 0) return irc;
   }
 
@@ -158,13 +165,13 @@ OS_debug_dll_
   // connect function
   irc = OS_dll__ (&dll1, FUNC_CONNECT, (void*)"gCad_main");
   if(irc < 0) return irc;
-
   return 0;
 
 
   //----------------------------------------------------------------
   L_2:      // (mode == FUNC_EXEC)      EXECUTE
   if(mode != 2) goto L_3;
+  // mode = 2  - start connected Function with (ObjGX*)fdat
 
   // execute active function
   irc = OS_dll__ (&dll1, FUNC_EXEC, fdat);
@@ -176,11 +183,9 @@ OS_debug_dll_
 
   //----------------------------------------------------------------
   L_3:     // (mode == FUNC_UNLOAD)       UNLOAD
-  // unload DLL
+  // mode = 3  - unload DLL
   irc = OS_dll__ (&dll1, FUNC_UNLOAD, NULL);
   if(irc < 0) return irc;
-
-  // printf("ex DLL_run1\n");
 
   return 0;
 
@@ -446,7 +451,7 @@ OS_debug_dll_
   // strcat(cbuf, OS_os());
 
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
-  strcat(cbuf, OS_os_s());
+  strcat(cbuf, OS_get_os_bits());
 
 
 #else
@@ -469,7 +474,7 @@ OS_debug_dll_
 
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak OS=");
-  strcat(cbuf, OS_os_s());
+  strcat(cbuf, OS_get_os_bits());
     // printf(" .. cbuf1 2 |%s|\n",cbuf);
 
 #endif

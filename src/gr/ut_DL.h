@@ -1,5 +1,7 @@
 /*
-2001-05-04 DL_dbTyp__dli,DL_get_dbi,DL_GetTrInd zu.
+// ../gr/ut_DL.c
+
+extern DL_Att     *GR_ObjTab;                               // DB-DispList
 */
 
 
@@ -22,7 +24,14 @@
 //   returns 1 if(dla.modInd == -1) - active Model
 // int DL_OBJ_IS_ACTMDL (DL_Att);
 #define DL_OBJ_IS_ACTMDL(dla)\
- ((INT_16)dla.modInd != -1)
+ ((INT_16)dla.modInd != MDL_BMI_ACT)
+
+
+// DL_OBJ_IS_MDL                     test if obj belongs to model <mbi>
+//   dli=DL-index, mbi=basicModelIndex=<DLrecord>.modInd
+#define DL_OBJ_IS_MDL(dla,mbi)\
+ ((INT_16)dla.modInd != mbi)
+
 
 
 // DL_OBJ_IS_HIDDEN ((long)dli)     test if obj is hidden
@@ -57,6 +66,9 @@
  (((ColRGB*)&GR_ObjTab[dli].iatt)->vtra != 0)
 
 
+// DL_MDLI_DLI           get index baseModel from DL-index
+#define DL_MDLI_DLI(dli) ((INT_16)GR_ObjTab[dli].modInd)
+
 
 
 void DL_Init ();
@@ -77,7 +89,6 @@ long DL_get__        (DL_Att **dl);
 long DL_set__ (int typ, long dbi, long dli, int atti);
 
 void DL_DumpObjTab   (char *fInf);
-// int  DL_StoreAtt     (long Ind, GR_Att* att1);
 int  DL_Redraw       ();
 int  DL_ReScale__    ();
 // int  DL_save_DYNAMIC_AREA ();

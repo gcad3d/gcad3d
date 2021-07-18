@@ -36,7 +36,7 @@ static  double GL_vf1_LS= 8.0;  // Linespace
 
 
 
-static char *GL_vfont1[]={
+static char *GL_vfont1[128]={
                 /*------- char 32 blank --------*/
   "m 1.56 20.01 "
   ,             /*------- char ! --------*/

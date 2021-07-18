@@ -518,7 +518,7 @@ irc = -2 = Error; stop all.
 
   /* ------------------------------------------------------------------ */
   // printf("\n==============================================\n");
-  // printf("IGE_w_rec typ=%d tr=%d %d %d\n",objIn->typ,TrInd,apt_typ,apt_ind);
+  printf("IGE_w_rec typ=%d tr=%ld %d %ld\n",objIn->typ,TrInd,apt_typ,apt_ind);
 
 
   IG_TrInd = TrInd;
@@ -550,7 +550,7 @@ irc = -2 = Error; stop all.
   int    irc, oldTra;
 
 
-  // printf("IGE_w_obj typ=%d ind=%d\n",aptTyp,aptInd);
+  printf("IGE_w_obj typ=%d ind=%ld\n",aptTyp,aptInd);
 
 
   oldTra = IG_TrInd;
@@ -927,8 +927,6 @@ Retour: der Index.
   /* Zuerst EntityNr. */
   IGE_w_rP1 (fp_o2, 1, igtyp, 0.);
 
-
-
   /* --------------- Point -------------------------------------- */
   if (igtyp == IG_EntPT) {
     // add Point-Coords
@@ -936,8 +934,6 @@ Retour: der Index.
     IGE_w_rPP (fp_o2, (Point*)xu);
     /* add (3.) int - 0 */
     IGE_w_rP1 (fp_o2, 1, 0, 0.);
-
-
 
   /* --------------- Line -------------------------------------- */
   } else if (igtyp == IG_EntLN) {
@@ -947,8 +943,6 @@ Retour: der Index.
     // IGE_w_rPP (fp_o2, &ln1->p2);
     IGE_w_rPP (fp_o2, &((Line*)xu)->p1);
     IGE_w_rPP (fp_o2, &((Line*)xu)->p2);
-
-
  
   /* --------------- Arc -------------------------------------- */
   } else if (igtyp == IG_EntCI) {
@@ -956,7 +950,6 @@ Retour: der Index.
     UTO_objDat_ox (&ci1, &rNr, el);
     // DEB_dump_obj__ (Typ_CI, ci1, " exp:");
     pm = ci1->pc;
-
 
     // CW-Kreise umdrehen
     // nein; dir trMAt umdrehen !!
@@ -968,7 +961,6 @@ Retour: der Index.
       // pa = ci1->p2;
       // pe = ci1->p1;
     // }
-
 
     /* 100, mz, mx,my,  ax,ay, ex,ey, 0,0; */
     IGE_w_rP1 (fp_o2, 2, 0, pm.z);
@@ -983,19 +975,13 @@ Retour: der Index.
     IGE_w_rP1 (fp_o2, 2, 0, pe.y);
 
 
-
-
-
   //---------------- Plane --------------------------------
   } else if (igtyp == IG_EntPLN) {
     IGE_w_P_PLN (el, fp_o2);
 
-
-
   //---------------- Ellipse --------------------------------
   } else if (igtyp == IG_EntELL) {
     IGE_w_P_ELL (el, fp_o2);
-
 
   /* --------------- Polygon -------------------------------- */
   } else if (igtyp == IG_EntPOL) {
@@ -1005,74 +991,55 @@ Retour: der Index.
       IGE_w_P_POL (el, fp_o2);          // 3D-Polygon
     }
 
-
-
   /* --------------- Param.Spline -------------------------------- */
   } else if (igtyp == IG_EntPS) {
     IGE_w_P_PS (el, fp_o2);
-
 
   /* --------------- B-Spline -------------------------------- */
   } else if (igtyp == IG_EntBS) {
     IGE_w_P_BS (el, fp_o2);
 
-
   // --------------- Composite Curve -------------------------
   } else if (igtyp == IG_EntCCV) {
     IGE_w_P_CCV (el, fp_o2);
-
 
   // --------------- General Note ---------------------------- 
   } else if (igtyp == IG_EntTX) {
     IGE_w_P_TX (el, fp_o2);
 
-
   // --------------- RuledSurf ----------------------------
   } else if (igtyp == IG_EntSRU) {
     IGE_w_P_SRU (el, fp_o2);
-
 
   // --------------- RevSurf ----------------------------
   } else if (igtyp == IG_EntSRV) {
     IGE_w_P_SRV (el, fp_o2);
 
-
   // --------------- BSP-Surf ----------------------------
   } else if (igtyp == IG_EntSBS) {
     IGE_w_P_SBS (el, fp_o2);
-
 
   // --------------- Surf ----------------------------
   } else if (igtyp == IG_EntSUR) {
     IGE_w_P_144 (el, fp_o2);
 
-
   // --------------- SurfBoundary ----------------------------
   } else if (igtyp == IG_EntBND) {
     IGE_w_P_142 (el, fp_o2);
-
 
   // --------------- CylindSurf ----------------------------
   } else if (igtyp == IG_EntSRC) {
     IGE_w_P_SRC (el, fp_o2);
 
-
-
   // --------------- SubfigInst. ----------------------------
   } else if (igtyp == IG_EntMR) {
     IGE_w_P_MR (el, fp_o2);
-
-
 
   // --------------- SubfigDef. ----------------------------
   } else if (igtyp == IG_EntMD) {
     IGE_w_P_MD (el, fp_o2);
 
-
-
-
-
-
+  //----------------------------------------------------------------
   } else {
     TX_Error("IGE_w_rP - Typ %d nicht unterstuetzt",igtyp);
     return 1;
@@ -1409,7 +1376,7 @@ Retour: der Index.
   // offset for netx subModel
   IG_D_line_mod = IG_D_line_nr;
 
-  IG_modTab[IG_modNr].modNr = DB_get_ModNr (mdb->mnam);
+  IG_modTab[IG_modNr].modNr = MDL_imb_mNam (mdb->mnam, 0);
   IG_modTab[IG_modNr].lNr   = IG_D_line_nr - 1;
 
   if(IG_modNr < IG_modMax) {
@@ -1429,7 +1396,7 @@ Retour: der Index.
 //===================================================================
 // 408. (SubfigInst.)
 
-  int        i1, iNr;
+  int        i1, iNr = -1;
   double     d1;
   ModelRef   *mr1;
 
@@ -1437,12 +1404,14 @@ Retour: der Index.
   mr1 = el->data;
 
   printf("IGE_w_P_MR\n");
+  DEB_dump_obj__ (Typ_Model, mr1, "IGE_w_P_MR");
 
 
   // die D-LineNr des Submodel mr1->modNr suchen
   for(i1=0; i1<IG_modNr; ++i1) {
     if(IG_modTab[i1].modNr == mr1->modNr) { iNr = IG_modTab[i1].lNr; break;}
   }
+  if(iNr < 0) {TX_Print("***** IGE_w_P_MR E1"); return -1;}
 
   // Pointer zur SubfigDefinition
   IGE_w_rP1 (fp_o2, 1, iNr, 0.);

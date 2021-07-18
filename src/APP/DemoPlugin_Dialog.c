@@ -130,7 +130,7 @@ __declspec(dllexport) int gCad_fini ();
 
   // indicate position
   if(dl_ind < 0) {
-    pt1 = GL_GetViewPos ();      // get cursorposition
+    pt1 = GL_get_curPos_CP__ ();      // get cursorposition
 
 
   // select Point
@@ -251,7 +251,7 @@ __declspec(dllexport) int gCad_fini ();
   UNDO_app__ (1);
 
   // update browser-window
-  Brw_Mdl_upd ();
+  Brw_Mdl_upd (1);
 
   TX_Print ("DemoPlugin_Dialog closed.");
 

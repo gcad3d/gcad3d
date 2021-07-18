@@ -258,7 +258,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   // use GL_Draw_obj here; see GL_tst_pta ..
   
   // ACHTUNG: TSU_DrawSurTC:memspc55,memspc501,memspc101 used.
-  //          TSU_DrawSurTP:memspc501,memspc201 used.
+  //          TSU_DrawSurTP1:memspc501,memspc201 used.
   cvTab = (ObjGX*)memspc54;
   cvMax = sizeof(memspc54) / sizeof(ObjGX);
   if(cvMax < cNr) goto L_eom;

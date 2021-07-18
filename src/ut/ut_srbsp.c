@@ -1080,8 +1080,9 @@ L_outOfWorkSpace:
   // if(iloop < 2) goto L_next_try;  // Anzahl Versuche Defaul=100
 
   // keine Loesung nach n Versuchen ..
-  // printf("UT3D_parsbsp_pt I000 Pos %f,%f,%f\n",pti->x,pti->y,pti->z);
-  // TX_Error("UT3D_parsbsp_pt I000");
+  // printf("UT3D_parsrbsp_pt I000 Pos %f,%f,%f\n",pti->x,pti->y,pti->z);
+  printf("UT3D_parsrbsp_pt I000\n");
+  // TX_Error("UT3D_parsrbsp_pt I000");
   // exit(0);
 
 
@@ -1089,7 +1090,7 @@ L_outOfWorkSpace:
   L_FERTIG:
   *up = uc;
   *vp = vc;
-  // printf("ex UT3D_parsbsp_pt uc=%f vc=%f\n\n",*up,*vp);
+  // printf("ex UT3D_parsrbsp_pt uc=%f vc=%f\n\n",*up,*vp);
 
 
   return 0;

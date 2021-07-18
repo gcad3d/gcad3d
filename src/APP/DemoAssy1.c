@@ -91,7 +91,7 @@ __declspec(dllexport) int gCad_fini ();
 //=========================================================
 // init userfunction
 
-  char   cBuf1[256], cBuf2[256];
+  char   cBuf1[320];
 
   TX_Print("--->>>>>> gCad_main aus DemoAssy1 >>>>>>>---\n");
 
@@ -99,25 +99,18 @@ __declspec(dllexport) int gCad_fini ();
   // clear ("new")
   UI_men__ ( "new");
 
-
-  // get path for symbol "Data" (out of xa/dir.lst)
-  Mod_sym_get1 (cBuf1, "Data/", 0);
-    printf(" path=|%s|\n",cBuf1);
-
-
-
   // load 3 submodels from Directory "Data"
-  Mod_LoadSubmodel ("sample_mod_blech1.gcad", cBuf1);
-  Mod_LoadSubmodel ("sample_mod_screw1.gcad", cBuf1);
-  Mod_LoadSubmodel ("sample_mod_nut1.gcad", cBuf1);
+  MDL_load_mdl_f ("Data/sample_mod_blech1.gcad", cBuf1);
+  MDL_load_mdl_f ("Data/sample_mod_screw1.gcad", cBuf1);
+  MDL_load_mdl_f ("Data/sample_mod_nut1.gcad", cBuf1);
 
 
   // place submodels
   // init AuxBuf, add Lines -> Aux.Buffer
   UTF_clear1();
-  UTF_add1_line ("M20=\"sample_mod_blech1\" P(0 10 0)");
-  UTF_add1_line ("M21=\"sample_mod_screw1\" P(30 36.5 67)");
-  UTF_add1_line ("M22=\"sample_mod_nut1\" P(36 36.5 67)");
+  UTF_add1_line ("M20=\"Data/sample_mod_blech1.gcad\" R(P(0 10 0))");
+  UTF_add1_line ("M21=\"Data/sample_mod_screw1.gcad\" R(P(30 36.5 67))");
+  UTF_add1_line ("M22=\"Data/sample_mod_nut1.gcad\" R(P(36 36.5 67))");
 
 
   // Add Aux.Buffer -> MainBuffer

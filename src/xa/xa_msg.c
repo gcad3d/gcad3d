@@ -144,7 +144,7 @@ Functions:
   // message without parameters:
   MSG_pri_0("PEDmod1");                       // TX_Print message
   MSG_Tip ("MMclear");                        // add Tooltip to GTK-widget
-  GUI_Label_1(box0, MSG_get_0("MD_On"), 0);    // get message for label
+  (char*)msgPtr = MSG_get_0("MD_On");         // get message for label
 
   // message with 1 parameter:
   MSG_err_1 ("FileOp",fnam);                  // FileOpenError
@@ -161,6 +161,7 @@ Often used, short messages; identified by integers (../xa/xa_msg.h)
 
 Messagecodes:
   ../xa/xa_msg.h
+  eg MSG_const__(MSG_no) ...
 
 Messagefiles:
 {baseDir}/gCAD3D/xa/msg_const_{language}.txt
@@ -198,7 +199,7 @@ Hauptmenütexte bleiben englisch, aber länderspezifische Tooltips.
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 

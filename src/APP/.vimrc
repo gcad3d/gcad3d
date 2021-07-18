@@ -7,6 +7,7 @@
 " shift <S-F1> Ctrl <C-F1> Alt <M-F1>
 " MS: also /mnt/serv1/MSwin/bin/_vimrc
 " 2019-09-18 dispay htm, jpg added. RF.
+" echo "$HOME/.vimrc"
 
 
 "let opsys = system("uname -s")  geht ned Lifert ein closing oder so ..
@@ -54,20 +55,21 @@ set nocindent
 set t_Co=16
 set syntax=c
 syntax on
-:hi Normal term=NONE ctermfg=15 guifg=#88ff88
-:hi Comment term=NONE ctermfg=14 guifg=#40ff40
-:hi cComment term=NONE ctermfg=14 guifg=#8888ff
-:hi Constant term=NONE ctermfg=13 guifg=#88ff88
-:hi PreProc term=NONE ctermfg=11 guifg=#88ff88
-:hi Statement term=NONE gui=NONE ctermfg=11
-:hi cType term=NONE gui=NONE ctermfg=13 guifg=#8888ff
-:hi cStructure term=NONE ctermfg=13 guifg=#88ff88
+
+:hi Normal ctermfg=15 guifg=#88ff88
+:hi Comment ctermfg=2 guifg=#40ff40
+:hi cComment ctermfg=Green guifg=#8888ff
+:hi Constant ctermfg=13 guifg=#88ff88
+:hi PreProc ctermfg=11 guifg=#88ff88
+:hi Statement ctermfg=11
+:hi cType ctermfg=13 guifg=#8888ff
+:hi cStructure ctermfg=9 guifg=#88ff88
 " fuer :cw ganz wichtig
-:hi Search term=bold cterm=NONE ctermfg=10 ctermbg=0
+:hi Search ctermfg=10 ctermbg=0
 " default dunkelblau(4) = unleserlich
-:hi SpecialKey term=bold cterm=NONE ctermfg=6
-:hi NonText term=bold cterm=NONE ctermfg=6
-:hi Directory term=bold cterm=NONE ctermfg=6
+:hi SpecialKey ctermfg=6
+:hi NonText ctermfg=6
+:hi Directory ctermfg=6
 :hi Visual ctermfg=11 ctermbg=8
 
 " gvim:
@@ -134,9 +136,12 @@ endif
 " p print buffer from yy
 " Ctl-p = goto Definition of struct (retour m. Ctl o)
 map <C-P> :call To_proto()
-" Alt-p = Display Prototyp from Includefile
-map p [i
+"" Alt-p = Display Prototyp from Includefile
+"map p [i
 
+
+"" Alt-R readonly
+"nmap ?? :set readonly
 
 
 " q = quit

@@ -57,6 +57,13 @@ enum { APF_EndTab,    // 0 = end of list
 
 
 
+
+#define FILT04   4   // //"select or keyIn obj to dump .."
+
+
+
+
+
 //========= Prototypen: ============================
    int UI_butCB     (MemObj *mo, void **data);
    int UI_menCB     (MemObj *mo, void **data);
@@ -72,7 +79,7 @@ enum { APF_EndTab,    // 0 = end of list
   void UI_Ed_del    (int l_start, int l_end);
    int UI_Ed_hili   (int mode);
    int UI_EdKeyCR   ();
-   // int UI_disp_vec1 (int typ, void *data, Point *pos);
+   // int UI_prev_vc (int typ, void *data, Point *pos);
  
  
   int UI_open__    (char *fnam,char *dirNam);
@@ -95,7 +102,6 @@ enum { APF_EndTab,    // 0 = end of list
   // int UI_expIgeCB  (GtkWidget *parent, void *data);
   int UI_save_ ();
  
-  int UI_askExit   (MemObj *mo, void **data);
   int UI_askEscape ();
   int UI_file_sensi (int mode);
 

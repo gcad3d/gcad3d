@@ -20,6 +20,8 @@ All testoutput to stdout must be preceded with "##"
 See INF_GUI_exe
 -----------------------------------------------------
 TODO:
+- key new modelname, then Tab-key adds ".gcad" if already exists !! gtk-bug ?
+
 
 -----------------------------------------------------
 Modifications:
@@ -69,6 +71,7 @@ static char *sGui = "gtk3";
 int  nArg;
 char **paArg;
 char fnOut[512];
+char title[512];
 char *sDir, *fnSymDir, *sFilter, *sTit;
 
 GtkWidget *wfl1;
@@ -433,9 +436,12 @@ static char* os_tmp_dir = "/tmp/";
 
   fnOut[0] = '\0';
 
+  // prepare title
+  sprintf(title, "%s %s",sTit,sDir);
+
 
   //----------------------------------------------------------------
-  wfl1 = gtk_file_chooser_dialog_new (sTit,
+  wfl1 = gtk_file_chooser_dialog_new (title,
                                       NULL,                // parent_window
                                       GTK_FILE_CHOOSER_ACTION_SAVE,
                                       ("SYM-DIR"),  2,
@@ -494,7 +500,10 @@ static char* os_tmp_dir = "/tmp/";
     // Save ..
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
-    if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+    if(strlen(filename) < sizeof(fnOut)) {
+        printd("##  res1 out |%s|\n",filename);
+      strcpy(fnOut,filename);
+    }
     g_free (filename);
 
 
@@ -513,6 +522,9 @@ static char* os_tmp_dir = "/tmp/";
     }
 
     if(strlen(s1Dir) > 1) {
+      // update title
+      sprintf(title, "%s %s", sTit, s1Dir);
+      gtk_window_set_title (GTK_WINDOW (wfl1), title);
       // add filter or "*"
       // if(strcmp(sFilter, "NONE")) strcat (s1Dir, sFilter);
       strcat (s1Dir, "*");
@@ -543,7 +555,7 @@ static char* os_tmp_dir = "/tmp/";
 // file:///usr/share/gtk-doc/html/gtk3/GtkFileChooserDialog.html
 
   int       irc;
-  char      s1Dir[256], *filename, s2[256];
+  char      s1Dir[320], *filename, s2[320], *p1;
   GtkWidget *wb1, *we1, *wl1;
   gint res;
 
@@ -622,7 +634,11 @@ static char* os_tmp_dir = "/tmp/";
     // Open ..
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
-    if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+    if(!filename) goto L_wait;
+    if(strlen(filename) < sizeof(fnOut)) {
+        printd("## chooser-get |%s|\n",filename);
+      strcpy(fnOut,filename);
+    }
     g_free (filename);
 
 
@@ -670,10 +686,7 @@ static char* os_tmp_dir = "/tmp/";
   int main (int argc, char *argv[]) {
 //================================================================
 // Input:
-//   argv[i1]   start-directory for file-selection; -> sDir, sNam
-//   argv[i2]   filename of symbolic-directories    -> fnSymDir
-//   argv[i3]   filterText  (eg "*")                -> sFilter
-//   argv[i4]   window-title                        -> sTit
+//   argv[i1]   "open" | "save"
 // Output:
 //   stdout     full selected filename; empty for Cancel;
 

@@ -82,6 +82,7 @@ UT3D_el_projelpl          ellipse = project ELL -> PLN
 UT3D_el_projcipl          ellipse = project CIR -> PLN
 UT3D_el_elcoe             Ellipse <-- coeff-data (IGES)
 UT3D_el_elpt180           change elli -> 180 deg-elli; keep dir
+UT3D_el_elpt360           change elli -> 360 deg-elli; keep dir
 UT3D_el_el2pt             change start- and endpoint of elli
 UT3D_el_el_parl           parallel curve (distance)
 UT3D_elcoe_el             CoeffEllipse(IGES) <-- ellipse
@@ -452,11 +453,34 @@ cl -c ut_geo.c
   el1->p1 = *p1;
   UT3D_pt_opp2pt (&el1->p2, &el1->pc, &el1->p1);
 
+  el1->ango = RAD_180;
+
   DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_elpt180\n");
 
   return 0;
 
 }
+
+
+//======================================================================
+  int UT3D_el_elpt360 (CurvElli *el1, Point *p1) {
+//======================================================================
+// UT3D_el_elpt360           change elli -> 360 deg-elli; keep dir
+
+  // DEB_dump_obj__ (Typ_PT, p1, "UT3D_el_elpt360");
+
+  el1->p1 = *p1;
+  el1->p2 = *p1;
+
+  el1->ango = RAD_360;
+
+  DEB_dump_obj__ (Typ_CVELL, el1, "ex UT3D_el_elpt180\n");
+
+  return 0;
+
+}
+
+
 
 //======================================================================
   int UT3D_el_el2pt (CurvElli *el1, Point *p1, Point *p2) {

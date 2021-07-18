@@ -148,7 +148,6 @@ static long  vertex_cnt;
 static char  txbuf[512];
 
 
-
 // externe Funktionen:
 int lwo_cb_savePoint (int ip, float *pt1);
 int lwo_cb_saveFace  (int vNr, int *vTab);
@@ -318,6 +317,8 @@ int lwo_read (const char *lw_file) {
   long nbytes;
 
 
+  // printf(" lwo_read |%s|\n",lw_file);
+
   /* open file */
   f = fopen(lw_file, "rb");
   if (f == NULL) {
@@ -464,6 +465,7 @@ static long read_string(FILE *f, char *s) {
 
 //========================================================
 //========================================================
+/*
 #ifdef OFFLINE
 
 
@@ -505,7 +507,6 @@ static FILE *fpo;
 int lwo_cb_savePoint (int ip, float *pt1) {
 //============================================================
 
-  int ptNr;
 
   // printf("lwo_cb_savePoint %d %f,%f,%f\n",ip,pt1[0],pt1[1],pt1[2]);
 
@@ -522,13 +523,11 @@ int lwo_cb_savePoint (int ip, float *pt1) {
 int lwo_cb_saveFace (int vNr, int *vTab) {
 //============================================================
 
-  static int   arNr = 20;
-
   int   i1;
   char  auxBuf[32];
 
 
-  // printf("lwo_cb_saveFace %d  ",vNr);
+  printf("lwo_cb_saveFace A%d nNr=%d  ",arNr,vNr);
 
   sprintf(txbuf, "A%d=RCIR",arNr);
   ++arNr;
@@ -549,4 +548,5 @@ int lwo_cb_saveFace (int vNr, int *vTab) {
 
 
 #endif
+*/
 //======================= EOF ================================

@@ -404,14 +404,14 @@ typedef struct {Point *pa; Point *p2a; int iNr;
 
 /// 2D-line, Typ_LN2
 typedef struct {Point2 p1, p2; char typ;}                           Line2;
-///           0  both sides limited                               -
+///  typ      0  both sides limited                               -
 ///           1  1 side limited  (p1 is startpoint, p2 unlimited) UNL1
 ///           2  1 side limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           3  both sides unlimited                             UNL
 
 /// 3D-line, Typ_LN
 typedef struct {Point p1, p2; char typ, aux, stat, uu1;}            Line;
-///           0  both sides limited                               -
+///  typ      0  both sides limited                               -
 ///           1  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           2  1 side-limited  (p2 is startpoint, p1 unlimited) UNL2
 ///           3  both-sides-unlimited                             UNL
@@ -679,7 +679,7 @@ typedef struct {long dbi; int mdli, ptNr, siz;
 typedef struct {double v0, v1; long dbi, ip0, ip1; 
                 unsigned short is0, is1; 
                 short typ, us1; char dir, clo, trm, stat;}          CurvCCV;
-// size = 36
+// size = 56 (4 free)
 
 
 
@@ -829,6 +829,7 @@ typedef struct {Point2 pb1, pb2;}                                   BBox2;
 /// oNr     nr of obj's; index of last obj is (ind + nr - 1)
 /// \endcode
 typedef struct {Point pb1, pb2;}                                    BBox;   
+// size = 48
 
 
 
@@ -842,7 +843,7 @@ typedef struct {Point pb1, pb2;}                                    BBox;
 /// Grafic-Attribute for surface, solid (not line, curve - see Att_ln).
 /// \endcode
 typedef struct {unsigned cr:8, cg:8, cb:8,
-                  unused:3, vtra:2, vsym:1, vtex:1, color:1;}       ColRGB;
+                vtra:2,vsym:1,vtex:1,color:1, hili:1,dim:1,UU:1;}   ColRGB;
 // size = 4
 
 
@@ -924,36 +925,25 @@ typedef struct {char *mnam; long ind, siz;
 /// \brief basic model description; Typ_SubModel
 /// \code
 /// mnam  .. Modelname
-/// po    .. origin
 /// pb1,pb2  boxPoints
-/// DBind    DatabaseIndex
 /// DLind .. ind of first obj in DL
 /// DLsiz .. nr of objects in DL
 /// typ   .. MBTYP_[EXTERN|INTERN|CATALOG] for native-subModels
 ///          Mtyp_[WRL|WRL2|OBJ|STL|TESS]  for mockup-subModels
-/// seqNr    loading-sequence-nr
 /// \endcode
-typedef struct {char *mnam; Point po, pb1, pb2; long DBind, DLind;
-                int DLsiz; short typ, seqNr;}                       ModelBas;
+typedef struct {char *mnam; Point pb1, pb2;
+                long DLind; int DLsiz;
+                short typ, uu;}                       ModelBas;
 // 56
 
 
 /// \brief model reference; Typ_Model
 /// \code
-/// modNr .. modelnumber of ModelBas-obj. (DB_get_ModNr())
+/// modNr .. modelnumber of ModelBas-obj. (DB_mbi_mRefID())
 /// po    .. position of ditto
 /// \endcode
 typedef struct {int modNr; double scl;
                 Point po; Vector vx, vz;}                           ModelRef;
-
-
-/// \brief Typ_ModelNode
-/// \code
-/// mod    basicModelIndex
-/// par    parent - basicModelIndex
-/// ind    ref.ModelIndex (= DB-index)
-/// \endcode
-typedef struct {int mod, par, ind;}                                 ModelNode;
 
 
 /// \brief sphere; Typ_SPH
@@ -1082,7 +1072,7 @@ typedef struct {long ind;
 /// typ    DB-Typ
 /// ind    DB-Index, typ = DB-Typ
 /// irs    index RefSys  (can be int; 
-/// modInd ModelNr
+/// modInd index baseModel of owning model
 /// iatt   for typ=LN/AC/Curve: LineTypNr.
 ///        for typ=TAG/IMG: sx/sy
 ///        for typ=Surf/Model: ColRGB
@@ -1099,8 +1089,8 @@ typedef struct {long ind;
 /// sPar   0=independent; 1=Parent-state is active; obj is parent; has child(s)
 /// \endcode
 typedef struct {long ind, lNr;
-                UINT_32 irs, iatt;
-                UINT_16 modInd, typ;
+                INT_32 irs; UINT_32 iatt;
+                short modInd, typ;
                 unsigned disp:1,  hili:1,  pick:1,  dim:1,
                          grp_1:1, unvis:1, sChd:1,  sPar:1,
                          UU:24;}                                    DL_Att;
@@ -1671,7 +1661,6 @@ void   UT3D_pt_tra_pt_dx (Point*, Point*, double);
 void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
 void   UT3D_pt_traptvc (Point *, Point *, Vector *);
 void   UT3D_pt_traptvclen (Point *po,Point *pi,Vector *vc,double dist);
-void   UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist);
 void   UT3D_pt_tra_pt_pt_par (Point *pt3, Point *pt1, Point *pt2, double fakt);
 void   UT3D_pt_trapt2vc (Point *po,Point *pi,Vector *vc1, Vector *vc2);
 void   UT3D_pt_trapt2vc2len (Point *,Point *,Vector *,double,Vector *,double);
@@ -1687,7 +1676,7 @@ void   UT3D_pt_rotptptvcangr (Point *pto,
 int    UT3D_pt_rotptm3 (Point *p2, Point *p1, Mat_4x3 ma);
 int    UT3D_pt_rotciangr (Point *pto, double angr, Circ *ci1);
 int    UT3D_pt_projpt2pt (Point *pp,double *len,Point *pt,Point *p1,Point *p2);
-int    UT3D_pt_projptln (Point*, double*, double*, Point*, Line*);
+int    UT3D_pt_projptln (Point*, double*, double*, int, Point*, Line*);
 int    UT3D_pt_projptci (Point *ptn, Point *ptf, Point *pt1, Circ *ci1);
 int    UT3D_pt_projptptvc(Point *pp,double *len,double *par,
                           Point *pt,Point *pl,Vector *vl);
@@ -1711,7 +1700,7 @@ int    UT3D_pt_intptvczpln (Point *pti, Point *ptl,
                            Point *ptpl,  Vector *vcpl);
 int    UT3D_pt_intptvcsph (Point *pa, Point *pl, Vector *vl,
                           Point *ps, double rs);
-int    UT3D_pt_int2ln (Point*,Point*,double*,Line*,Line*);
+int    UT3D_2pt_int2ln (Point*,Point*,double*,Line*,Line*);
 int    UT3D_pt_intperp2ln (Point *po,Point *p1,Vector *v1,Point *p2,Vector *v2);
 int    UT3D_pt_intlnci__ (int *np, Point xp[], Line *ln, Circ *ci1);
 int    UT3D_pt_intlnci_p (int *np, Point xp[], Line *ln, Circ *ci1);
@@ -1941,7 +1930,7 @@ int UT3D_box_tria (Point *pb1, Point *pb2, Triang *tr, double tol);
 int UT3D_box_addTol (Point *pb1, Point *pb2, double tol);
 int UT3D_ck_ptInBox (Point *p1, Point *p2, Point *px);
 int UT3D_ckBoxinBox1 (Point *p1, Point *p2, Point *p3, Point *p4);
-int UT3D_box_ck_intLn (Line *ln, Point *pmin, Point *pmax, double tol);
+int UT3D_box_ck_intLnLim (Line *ln, Point *pmin, Point *pmax, double tol);
 int UT3D_box_ck_intpl (Plane *pln, Point *p1, Point *p2, double tol);
 int UT3D_rbox_loadxy (Point* pb1,double x1,double x2,double y1,double y2);
 int UT3D_ptvc_intbox (Point *pl, Vector *vl, Point *bp1, Point *bp2);
@@ -2713,6 +2702,14 @@ void   UT3D_vc_multvc (Vector*, Vector*, double);
  (vo)->dy = (vi)->dy * (d);\
  (vo)->dz = (vi)->dz * (d);}
 
+// UT3D_pt_tra_pt_vc_par          transl. point into dir vc; multiply vc
+//   po = pi + (vi * par)
+void   UT3D_pt_tra_pt_vc_par (Point *po, Point *pi, Vector *vi, double par);
+#define UT3D_pt_tra_pt_vc_par(po,pi,vi,par){\
+ (po)->x = (pi)->x + ((vi)->dx * (par));\
+ (po)->y = (pi)->y + ((vi)->dy * (par));\
+ (po)->z = (pi)->z + ((vi)->dz * (par));}
+
 /// UT3D_vc_merge2vc              merge 2 vectors   vo = (v1 + v2) / 2
 #define UT3D_vc_merge2vc(vo,v1,v2){\
  (vo)->dx = ((v1)->dx + (v2)->dx) / 2.;\
@@ -2831,45 +2828,6 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
   (odb)->stat  = 0;}
 
 
-
-
-//----------------------------------------------------------------
-// UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
-// input is absolute; if constrPlane is active, transfer input into UCS
-void UTRA_UCS_WCS_VC (Vector*, Vector*);
-#define UTRA_UCS_WCS_VC(vco, vci) {\
-  if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_imat, vci);\
-  else if(vco != vci) *vco = *vci;}
-
-
-// UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
-// input is absolute; if constrPlane is active, transfer input into UCS
-void UTRA_UCS_WCS_PT (Point*, Point*);
-#define UTRA_UCS_WCS_PT(pto, pti) {\
-  if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_imat, pti);\
-  else if(pto != pti) *pto = *pti;}
-
-
-//----------------------------------------------------------------
-// UTRA_WCS_UCS_VC                      transfer vector from UCS into WCS
-// input is absolute; if constrPlane is active, transfer input into WCS
-void UTRA_WCS_UCS_VC (Vector*, Vector*);
-#define UTRA_WCS_UCS_VC(vco, vci) {\
-  if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_mat, vci);\
-  else if(vco != vci) *vco = *vci;}
-
-
-// UTRA_WCS_UCS_PT                      transfer point from UCS into WCS
-// input is absolute; if constrPlane is active, transfer input into WCS
-void UTRA_WCS_UCS_PT (Point*, Point*);
-#define UTRA_WCS_UCS_PT(pto, pti) {\
-  if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_mat, pti);\
-  else if(pto != pti) *pto = *pti;}
-
-
-
-
-
 //----------------------------------------------------------------
 /// check if typ is a DB-object (); returns 0=no; 1=yes.
 #define TYP_IS_DBO(typ) ((typ>Typ_Error)&&(typ<Typ_Val))
@@ -2877,6 +2835,12 @@ void UTRA_WCS_UCS_PT (Point*, Point*);
 /// check if typ is a curve; returns 0=no; 1=yes.
 /// curve is > Typ_CV but < Typ_PLN; not LN,CI
 #define TYP_IS_CV(typ) ((typ>=Typ_CV)&&(typ<Typ_PLN))
+
+// check if typ is a surface; returns 0=no; 1=yes.
+#define TYP_IS_SUR(typ) ((typ>=Typ_SUR)&&(typ<Typ_SOL))
+
+// check if typ is a solid; returns 0=no; 1=yes.
+#define TYP_IS_SOL(typ) ((typ>=Typ_SOL)&&(typ<Typ_Note))
 
 /// check if typ is a math.operator (+-/*); returns 0=no; 1=yes.
 #define TYP_IS_OPM(typ) ((typ>=TYP_OpmPlus)&&(typ<Typ_FcmSQRT))
@@ -2908,7 +2872,8 @@ void UTRA_WCS_UCS_PT (Point*, Point*);
 
 
 // CVTRM_set           set pointer to trimmed-curve from index
-#define CVTRM_set(cvp0,iSeg) cvp0 + sizeof(CurvCCV) * iSeg
+void* CVTRM_set (void* ccvTab, int cvSegNr);
+#define CVTRM_set(ccvTab,cvSegNr) ccvTab + sizeof(CurvCCV) * cvSegNr
 
 //----------------------------------------------------------------
 /// check if typ is a selectionGroup; returns 0=no; 1=yes.

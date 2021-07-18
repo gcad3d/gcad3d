@@ -1,18 +1,17 @@
-#! /bin/csh
+#!/bin/csh
 
-# insert a line xy after line starting with $1
-# example:
-#./lang_ins.csh Project_obj__Prj_ "Parallel_obj_=xx (offset-curve or surface)"
-
-echo $1 $2
+# enable using '*' in parameters ..
+set noglob
 
 if (`echo $* | wc -w` != "0") goto START
-echo "insert line after line starting with $1"
+echo "insert line after line starting with <parameter-1>"
 echo "1.Par: keyword of line after which to insert"
 echo "following Parameters: line to insert"
+echo "See INF_MSG_new"
 goto ENDE
 
 START:
+echo "start.."
 set s1 = "$1"
 shift
 
@@ -26,6 +25,7 @@ echo $*
 # cp -f msg_de.txt actMsgFil.txt
 # set fn = msg_de.txt
 
+unset noglob
 
 foreach fn (`ls ../../doc/msg/* | grep msg_...txt`)
  echo change $fn

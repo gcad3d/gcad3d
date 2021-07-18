@@ -164,7 +164,6 @@ void INF_files__ () { }  /*
 ../xa/xa_aux.h               -
 ../xa/xa_brw.h               -
 ../xa/xa_cad_ed1.h           -
-../xa/xa_cad_ui.h            -
 ../xa/xa_ed.h                -
 ../xa/xa_ed_mem.h            -
 ../xa/xa_edi__.h             -
@@ -176,7 +175,7 @@ void INF_files__ () { }  /*
 ../xa/xa_sele.h              -
 ../xa/xa_tex.h               -
 ../xa/xa_ui.h                -
-../xa/xa_ui_cad.h            -
+../xa/xa_cad_ui.h            -
 ../xa/xa_ui_gr.h             -
 ../xa/xa_uid.h               -
 ../xa/xa_undo.h              -

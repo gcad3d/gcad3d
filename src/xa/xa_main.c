@@ -46,7 +46,7 @@ Batch-main ist in xa_batch.c.
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 
@@ -86,6 +86,8 @@ extern int       AP_argNr;
 extern char      **AP_argv;
 extern TxtTab    AP_TxTab1;
 
+// ../ci/NC_Main.c
+extern double  APT_ModSiz;
 
 
 
@@ -134,10 +136,11 @@ static int     lngNr;
 //================================================================
 
 
-  int    i1, i2, irc;
-  char   dirLocal[256], txbuf1[512], txbuf2[512], *p1;
-  double d1;
-  MemObj win0;
+  int     i1, i2, irc;
+  char    dirLocal[256], txbuf1[800], txbuf2[512], *p1;
+  double  d1;
+  MemObj  win0;
+  stru_FN ofn;
 
 
   printf("+++++++++++++ Start xa 2019-11-20 %d\n",paranz);
@@ -187,7 +190,8 @@ static int     lngNr;
   if(irc < 0) return -1;
 
 
-  // get application-directories: OS_get_doc_dir
+  // set application-directories:
+  // OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
   AP_get_dir__ ();
 
 
@@ -255,24 +259,36 @@ static int     lngNr;
 
 
   // test if gCAD3D/cfg/gCAD3D.rc exists; if not: unpack examples.gz
-  // sprintf(txbuf1, "%scfg/gCAD3D.rc",OS_get_bas_dir());
   sprintf(txbuf1, "%sgCAD3D.rc", OS_get_cfg_dir());
-    printf(" test configfile |%s|\n",txbuf1);
+    // printf(" test configfile |%s|\n",txbuf1);
   if(OS_checkFilExist (txbuf1, 1)) goto L_startup_defaults;
 
+  printf("****** configfile %s does not exist - init config-directory\n",txbuf1);
 
 
-  
-// LINUX ONLY:
-// restore all cfg-files;  MS: TODO ..
+// restore all cfg-files;
 #ifdef _MSC_VER
+  // create directory if not yet exists
+  sprintf(txbuf1, "mkdir %scfg_%s\\",os_loc_dir, OS_get_os__());
+    printf("%s\n",txbuf1);
+  OS_system (txbuf1);
+  // copy all files from \cfg\ to \cfg_MS\.  /i /y
+  sprintf(txbuf1, "xcopy/y %scfg\\*.* %scfg_%s\\", os_loc_dir,
+          os_loc_dir, OS_get_os__());
+    printf("%s\n",txbuf1);
+  OS_system (txbuf1);
+
 #else
-  // POSTINSTALL:  extract <os_bas_dir>examples.gz -> local 
+  // POSTINSTALL:  extract <os_bas_dir>examples.gz -> local /cfg/
   sprintf(txbuf2, "cd %s && tar -xzf /usr/share/gcad3d/examples.gz",
           dirLocal);  //, OS_get_bas_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
 
+  // rename dir. /cfg/ /cfg_Linux/ or /cfg_MS/
+  sprintf(txbuf1, "%scfg/", os_loc_dir);
+  sprintf(txbuf2, "%scfg_%s/", os_loc_dir, OS_get_os__());
+  OS_file_rename (txbuf1, txbuf2);
 
 /*
   // copy desktop-link -> ~/gCAD3D/gCAD3D.desktop
@@ -287,10 +303,6 @@ static int     lngNr;
 */
 
 #endif
-
-
-
-
 
 
 /*
@@ -372,7 +384,7 @@ static int     lngNr;
     // create Defaults
     strcpy(AP_mod_fnam, "unknown.gcad");
     sprintf(AP_mod_dir, "%sdat",dirLocal);
-    sprintf(AP_mod_dir, "%sdat",dirLocal);
+    // sprintf(AP_mod_dir, "%sdat",dirLocal);
     sprintf(AP_dir_prg, "%sprg",dirLocal);
 
     // get printer
@@ -393,11 +405,13 @@ static int     lngNr;
     p1 = OS_get_edi();
     UTX_cp_left (AP_editor, p1, 79);
 
-    strcpy(AP_winSiz, "-1080,-680   // size of application-window");
+    sprintf(AP_winSiz, "%s   // size of application-window", WinSizMin__);
     // strcpy(AP_winSiz, "-600,-400   // total-size; too small for W32
 
-    AP_defaults_write(); // defaults    -> ~/gCAD3D/cfg/xa.rc
-    AP_defaults_dir();   // defaultdirs -> ~/gCAD3D/cfg/dir.lst
+    APT_ModSiz = 500.;
+    strcpy(AP_symDir_fnam, "dir.lst");
+    AP_defaults_write(); // defaults    -> ~/gCAD3D/cfg_<os>/xa.rc
+    AP_defaults_dir();   // defaultdirs -> ~/gCAD3D/cfg_<os>/dir.lst
 
 
     // exit(0);  // TEST ONLY
@@ -442,7 +456,11 @@ kopieren geht nicht mehr -
 
   // read Defaults from <base>/cfg/xa.rc
   AP_defaults_read ();
-  Mod_sym_get2 (AP_mod_sym, AP_mod_dir, 0);
+  // find and set symbol of AP_mod_dir = last full directory open
+//   Mod_sym_get2 (AP_mod_sym, AP_mod_dir, 1);
+  MDLFN_oFn_fNam (&ofn, AP_mod_dir);   // get fileName-obj from  last dir
+  MDLFN_set__ (&ofn);                  // set symDir fDir
+
 
   // init MSG-system
   MSG_const_init (AP_lang);
@@ -470,6 +488,9 @@ kopieren geht nicht mehr -
   // create all icons
   Ico_init ();       
 
+  // init CAD - interactive-editor
+  IE_init__ ();
+
   // // alle Pfade aus Datei path.setup auslesen und speichern
   // Mod_init_path ();
 
@@ -479,6 +500,12 @@ kopieren geht nicht mehr -
   // Init und display Windows
   UI_win_main (&win0, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
   // starts Grafic-window GUI_gl__ UI_GL_draw__ ..
+
+
+  // only MS-Win (else no cursor in Gtk-2-MAN-editor)
+#ifdef _MSC_VER
+  UI_WinInfo2 (); // cannot be killed -
+#endif
 
 
   AP_UserSelection_reset ();
@@ -516,7 +543,7 @@ kopieren geht nicht mehr -
   // // init tolerances
   // WC_Init_Tol();
 
-  // // init View-Plane and ConstrPlane  AP_src_new
+  // // init View-Plane and ConstrPlane  AP_mdl_init
   // AP_Init_planes ();
 
   // APT-Texbuffer fuer ersten Start
@@ -549,7 +576,7 @@ kopieren geht nicht mehr -
   UI_src_mem (0);
 
   // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
-  // AP_src_new ();    // raus 2009-06-20  (kills all Model* for reLoad)
+  // AP_mdl_init ();    // raus 2009-06-20  (kills all Model* for reLoad)
 
 
   // enable selection of all types
@@ -650,8 +677,8 @@ kopieren geht nicht mehr -
 //================================================================
   int AP_get_dir__ () {
 //================================================================
-// get application-directories
-// OS_get_doc_dir
+// set application-directories
+// OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
 
   char    *p1, *p2, s1[512];
 
@@ -766,10 +793,11 @@ kopieren geht nicht mehr -
 
 
   //----------------------------------------------------------------
-  // os_cfg_dir         ("/home/fwork/gCAD3D/cfg/");
+  // os_cfg_dir         ("/home/fwork/gCAD3D/cfg_<os>/");
   strcpy(s1, os_loc_dir);
-  strcat(s1, "cfg");
-  UTX_add_fnam_del (s1);   // add closing "/"
+//   strcat(s1, "cfg");
+//   UTX_add_fnam_del (s1);   // add closing "/"
+  sprintf(s1, "%scfg_%s%c", os_loc_dir, OS_get_os__(),fnam_del);
 
   UtxTab_add (&AP_TxTab1, s1);
   UtxTab_query (&os_cfg_dir, &AP_TxTab1);

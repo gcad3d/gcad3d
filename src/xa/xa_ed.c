@@ -46,6 +46,7 @@ ED_work_file        CALL-File-Funktion. PrgMod_skip_until_file
 ED_cont_file        continue with file ..
 
 -------------- functions for memory and editor ED_* --------------
+ED_load__           mem -> editor
 ED_Read_Line        Read aus File|Mem
 ED_GetNxtLin        get next line
 ED_work_CurSet      new active lineNr; update 
@@ -54,8 +55,8 @@ ED_Reset            reset to srcLn 0; but no init.
 ED_Init             reset in srcLn 0
 
 -------------- functions for editor only EDE_* --------------
-ED_update           Filesize changed - update Mem (Edi -> Memory)
 ED_query_CmdMode    aktuelle Zeile into ED_buf1 einlesen, ihren Typ feststellen
+// ED_update           Filesize changed - update Mem (Edi -> Memory)
 // ED_ck_lnStart       test if cursor is at first position in line
 // ED_ck_lnEnd         test if cursor is at last position in line
 
@@ -89,8 +90,7 @@ ED_enter            set AP_mode__ =AP_mode_enter;
 ED_step             set AP_mode__ =AP_mode_step;
 ED_go               set AP_mode__ =AP_mode_go;
 ED_lnr_reset        set ED_lnr_von=0; ED_lnr_bis=max;
-ED_work_dyn         work block :DYNAMIC_DATA
-ED_skip_dyn         skip DYNAMIC_DATA-block
+ED_work_dyn         find, work, remove DYNAMIC_DATA-block
 ED_get_mac_fil      get APT_mac_fil
 
 ED_addRange         decode ObjRanges and add them to MemTab(IgaTab)
@@ -101,7 +101,7 @@ see also:
 ../xa/xa_ed_mem.c      APED_*
 ../xa/xa_src.c         SRC_
 AP_SRC_*         AP_SRC_mem_edi AP_SRC_edi_mem
-AP_src*          AP_src_typ__ AP_src_new AP_src_mod_ed AP_src_sel_fmt 
+AP_src*          AP_src_typ__ AP_mdl_init AP_src_mod_ed AP_src_sel_fmt 
 AP_lNr_*
 AP_APT_*         AP_APT_clean
 
@@ -119,6 +119,8 @@ ED_Init_All
 
 List_functions_end:
 =====================================================
+UNUSED:
+ED_skip_dyn         skip DYNAMIC_DATA-block
 
 \endcode *//*----------------------------------------
 
@@ -168,7 +170,7 @@ cl -c /I ..\include xa_ed.c
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -190,7 +192,7 @@ cl -c /I ..\include xa_ed.c
 #include "../gr/ut_DL.h"
 #include "../gr/ut_gr.h"       // GR_TMP_I0
 
-#include "../ci/NC_Main.h"     // WC_Work__
+#include "../ci/NC_Main.h"     // WC_Work1
 // #include "../ci/NC_up.h"       // NC_up_Init_
 
 #include "../db/ut_DB.h"
@@ -202,7 +204,7 @@ cl -c /I ..\include xa_ed.c
 #include "../xa/xa_ed.h"
 #include "../xa/xa_undo.h"
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
-#include "../xa/xa.h"                  // AP_modact_nam
+#include "../xa/xa.h"             // AP_modact_nam
 
 
 
@@ -221,15 +223,13 @@ extern char       AP_filnam[256];
 extern AP_STAT    AP_stat;               // sysStat,errStat..
 extern int        WC_stat_bound;
 extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
-extern int        AP_modact_ind;         // -1=primary Model is active;
 extern ColRGB     AP_defcol;
 // extern int        AP_indCol;
 extern int        WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern char      AP_ED_oNam[128];        // objectName of active Line
 
 
-// aus xa_ui.c:
-// extern GIO_WinEd winED;    // Editorfenster
+// ../xa/xa_ui.c
 extern void*     WIN_ED();    // EditorWindow
 extern MemObj    winED;
 extern int       UI_InpMode;
@@ -238,17 +238,21 @@ extern int       xa_fl_TxMem;
 // extern int       UI_InpSM;
 
 
-// aus ut_txfil.c:
+// ../ut/ut_txfil.c
 extern char       *UTF_FilBuf0;
 extern long       UTF_FilBuf0Siz;
 extern long       UTF_FilBuf0Len;  // die aktuelle Filesize
 
 
-// aus ../ci/NC_Main.c
+// ../ci/NC_Main.c
+extern int       AP_typ_act;         // last typ processed by APT_work_def;
 extern int       APT_stat_act;    // 0 = normal; 2 = search for jump-Label;
 extern int       APT_lNr;    // die momentane APT-LineNr
 extern int       UP_level;
 extern int       APT_dispPL;
+
+// ex ../gr/tess_su.c:
+extern int TSU_mode;   // 0=display normal; 1=store objects for export;
 
 
 //-------------------------------------------------------
@@ -303,6 +307,7 @@ long   UI_Ed_fsiz;      // Textsize
 }
  
 
+/* replaced with ED_update
 //================================================================
   int ED_update (long ipos) {
 //================================================================
@@ -322,7 +327,7 @@ long   UI_Ed_fsiz;      // Textsize
     // printf("ED_update ipos=%ld newFsiz=%ld fsiz=%ld\n",ipos,l1,UI_Ed_fsiz);
 
   // Filesize changed ? = INSERT !!!
-  // l1 = gtk_text_get_length ((GtkText*)widget);
+  l1 = gtk_text_get_length ((GtkText*)widget);
   if((l1 != UI_Ed_fsiz) ||
      (im)               ||
      (xa_fl_TxMem == 1))       {
@@ -339,7 +344,8 @@ long   UI_Ed_fsiz;      // Textsize
   return 0;
 
 }
- 
+*/
+
 
 //================================================================
   int ED_newPos () {
@@ -368,7 +374,8 @@ long   UI_Ed_fsiz;      // Textsize
 
 
   // Filesize changed - update Mem (Edi -> Memory)
-  ED_update (ipos);
+  // ED_update (ipos);
+  ED_unload__ ();
 
 
   // aktuelle Zeilennummer holen
@@ -535,7 +542,7 @@ long   UI_Ed_fsiz;      // Textsize
   lNr =  ED_Get_LineNr ();
 
   // die Zeile exekutieren
-  i1 = WC_Work__ (lNr, buf);
+  i1 = WC_Work1 (lNr, buf);
 
   // Das Positionskreuz plazieren
   WC_setPosKreuz();                  // macht ein GL_Redraw
@@ -577,7 +584,7 @@ long   UI_Ed_fsiz;      // Textsize
   // Datei in den Hauptbuffer (Mem) laden.
   UTF_clear_ ();
   irc = UTF_add_file (filnam);
-  if(irc < 0) return irc;
+  // if(irc < 0) return irc;
     // UI_menCB (NULL, "new");
 
 /*
@@ -689,7 +696,7 @@ long   UI_Ed_fsiz;      // Textsize
   lNr = ED_get_lnr_act();
 
   // ED_work_CAD (lNr, txt);
-  WC_Work__ (lNr, txt);
+  WC_Work1 (lNr, txt);
   ED_set_lnr_act (lNr + 1);       // set ED_lnr_act
 
   UNDO_grp_add (lNr, *grpNr);
@@ -751,7 +758,7 @@ long   UI_Ed_fsiz;      // Textsize
 
 
   // create/display obj
-  if(mode == 0) WC_Work__ (lNr, srcLn);
+  if(mode == 0) WC_Work1 (lNr, srcLn);
 
 
   // add Entry in Undo-List
@@ -881,13 +888,10 @@ long   UI_Ed_fsiz;      // Textsize
 
 
 //======================================================================
-  int ED_add_Text (int typ, long ind, char *buf) {
+  int ED_add_Text (char *buf) {
 //======================================================================
 // add text <buf> to active line in editor; cursorposition = insertposition.
 
-// soll entscheiden ob kompl. Zeile und nur zufuegen oder auch abarb.
-// soll ED_add_Line rufen (von Select und Indic gerufen werden)
-// soll Ersatz f. ED_add_objSel u ED_add_objTxt sein.
 
   int  ityp;
   long l1, l2;
@@ -903,31 +907,20 @@ long   UI_Ed_fsiz;      // Textsize
   // -1=LeereZeile, 0=Defline, 1=Direktcmd, 2=Indirektcmd
     // printf(" ityp ln = %d\n",ityp);
 
-
-
   // wenn die zeile komplett leer ist, nix tun ..
   if(ityp < 0) {
     TX_Print ("%s",buf);
-    goto Fertig;
+    goto L_exit;
   }
 
-
-  // cmdBuf[0] = '\0';
-
-
-  // // Wenn der Letzte Char der Zeile "=" oder "|" ist, kein "," zufuegen
-  // c1 = ED_buf1[ED_buf1Len-1];
-  // if(c1 == '=') goto AddNix;
-  // if(c1 == '|') goto AddNix;
+  // get tempspace
+  l1 = strlen(buf);
+  cmdBuf = (char*) MEM_alloc_tmp	((int)(l1 + 8));
+  cmdBuf[0] = '\0';
 
   // get char before cursor
   c1 = GUI_edi_RdChr (&winED, -1);
     // printf(" last char=|%c|\n",c1);
-
-
-  l1 = strlen(buf);
-  cmdBuf = (char*) MEM_alloc_tmp	((int)(l1 + 8));
-
 
   // add ' ' if last char is not '=' or '('
   if((c1 == '=')  ||
@@ -938,24 +931,17 @@ long   UI_Ed_fsiz;      // Textsize
     strcpy(cmdBuf, " ");
   }
 
-
-  AddNix:
+  // add text
   strcat(cmdBuf, buf);
+    // printf(" ED_add_Text-|%s|\n",cmdBuf);
 
+  // set 1=workmode (obj in statu nascendi)
+  WC_set_obj_stat (1);
 
-  WC_set_obj_stat (1);  // 1=workmode
+  // add at active curPos into editor
+  UI_AP (UI_FuncSet, UID_Edit_Line, (void*)cmdBuf);
 
-
-
-  // wenn DefLine (ityp=0) nur zufuegen.
-  // if(ityp == 0) {
-    // an der aktuellen curpos einfuegen
-    UI_AP (UI_FuncSet, UID_Edit_Line, (void*)cmdBuf);
-    goto Fertig;
-  // }
-
-
-  Fertig:
+  L_exit:
   return 0;
 }
 
@@ -1460,7 +1446,7 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
 
 
   // printf("EEEEEEEEEEEEEEEEE ED_Read_Line APT_mac_fil=%d\n",APT_mac_fil);
-  // printf("   ED_lnr_SM=%d AP_modact_ind=%d\n",ED_lnr_SM,AP_modact_ind);
+  // printf("   ED_lnr_SM=%d AP_modact_ibm=%d\n",ED_lnr_SM,AP_modact_ibm);
   // printf("   ED_lnr_act=%d APT_mac_fil=%d\n",ED_lnr_act,APT_mac_fil);
   // printf("  APT_stat_act=%d UP_level=%d\n",APT_stat_act,UP_level);
 
@@ -1512,7 +1498,8 @@ Kein ED_Reset (); weil ED_Init immer in Zeile 1 gerufen wird -> Loop !
         // starting new (internal) submodel
         // printf(" new (internal) submodel |%s|\n",buf);
         // save submodel > tmp/Model_<name>
-        i1 = Mod_file2model (buf, maclun);
+        i1 = MDL_load_file_cp_mdl (buf, maclun);
+//         i1 = Mod_file2model (buf, maclun);
         if(i1 < 0) { strcpy (buf, "EXIT"); return 2; }
         goto L_f_next;
       }
@@ -1689,6 +1676,7 @@ static int lnr1, lnr2;
 //================================================================
   int ED_work_dyn () {
 //================================================================
+// ED_work_dyn                       find, work, remove DYNAMIC_DATA-block
 // ganz am Beginn der bearbeitung dynBlock im memory suchen;
 // wenn einer vorhanden: abarbeiten, dann aus dem mem rausloeschen !!
 // dynBlock beginnt am Programmanfang und geht bis :DYNAMIC_DATA
@@ -1700,8 +1688,7 @@ static int lnr1, lnr2;
  // Und zuerst hinten lesen geht ned ..
 
 
-  int  irc, iStat;
-  long lNr;
+  int  irc, gaStat;
   char *cbuf, *c1buf, *cPos, *cp1;
 
 
@@ -1711,24 +1698,23 @@ static int lnr1, lnr2;
   APT_reset_view_stat ();
 
   
-  // Position & Zeilenummer der "DYNAMIC_AREA" suchen
-  lNr = 0L;
-  cPos = UTF_find_tx1 (&lNr, ":DYNAMIC_DATA");
-  // cPos = UTF_find_tx1 (&lNr, ":DYNAMIC_AREA");
-  if(cPos == NULL) return 0;    // keine daten ..
+  //----------------------------------------------------------------
+  // find DYNAMIC_DATA-block im memspc UTF_FilBuf0
+  cPos = UTF_DYNDAT_find ();   
+
+  if(cPos == NULL) return 0;    // model does not have DYNAMIC_DATA-block
 
 
+  //----------------------------------------------------------------
+  // work DYNAMIC_DATA-block
   // erster Start nach load from File ...
   GA_hide__ (-1, 0L, 0);   // clear existing HIDE-Table
-
-
-
 
   cbuf = NULL; // Startpos.
   // cbuf = cPos;
 
 
-  iStat = 0;
+  gaStat = 0;
 
   // get pos of nxt line
   for(;;) {
@@ -1747,7 +1733,7 @@ static int lnr1, lnr2;
       // printf(" dynDat |%s|\n",mem_cbuf1);
 
 
-    // printf("vor WC_Work__ |%s|\n",mem_cbuf1);
+    // printf("vor WC_Work1 |%s|\n",mem_cbuf1);
     if(!strcmp(mem_cbuf1,":DYNAMIC_DATA")) break;
 
 
@@ -1756,13 +1742,16 @@ static int lnr1, lnr2;
     // word GATAB bis ENDGATAB                  see also ED_Run
     if(!strcmp(mem_cbuf1,"GATAB")) {
       GA_load__ (NULL);
-      iStat = 1;
+      gaStat = 1;
       goto L_nxt_ln;
     }
 
-    if(iStat == 1) {
+
+    //----------------------------------------------------------------
+    if(gaStat) {
+      // process permanent_attribute from GATAB
       if(!strcmp(mem_cbuf1,"ENDGATAB")) {
-        iStat = 0;
+        gaStat = 0;
           // GA_dump__ (NULL);
         goto L_nxt_ln;
       }
@@ -1788,11 +1777,8 @@ static int lnr1, lnr2;
 
 
   //----------------------------------------------------------------
-  // delete gesamten DYNAMIC_DATA-Block
-  cPos += 14;
-    // printf("delete DYNAMIC_DATA off=%d\n",UTF_offset_(cPos));
-    // printf("cPos=|%s|=end_of-cPos\n",cPos);
-  UTF_del_start (cPos);
+  // remove DYNAMIC_DATA-block
+  UTF_DYNDAT_del (cPos);
 
 
   //----------------------------------------------------------------
@@ -1829,8 +1815,10 @@ static int lnr1, lnr2;
 //================================================================
   int ED_work_END (int mode) {
 //================================================================
-/// das "RUN"
-/// mode unused !
+// das "RUN"
+// Input:
+//   mode    0=clear also basic-models
+//           1=do not clear basic-models
 
 
   int    irc, lNr, bNr, wrkStat, mTyp;
@@ -1840,6 +1828,19 @@ static int lnr1, lnr2;
 
   // printf("EEEEEEEEEEEEEEEEEEE ED_work_END %d EEEEEEEEEEEEEEEEE\n",mode);
   // printf(" AP_modact_nam=|%s| APP_stat=%d\n",AP_modact_nam,AP_stat.APP_stat);
+  // MDL_dump__ ("ED_work_END");
+  // UTF_dump__ ("ED_work_END");
+
+
+
+  mode = 1;
+
+
+  if(AP_src == AP_SRC_MEM) {
+    // not MAN
+    MDL_lst_sm_upd ();   // update tmp/Mod_<mPrim>.lst
+  }
+
 
   // printf(" TSU_mode=%d\n",TSU_get_mode());
   // DB_dump_ModNod ();
@@ -1852,24 +1853,18 @@ static int lnr1, lnr2;
 
   ED_Reset ();           // ED_lnr_act = 0; 2004-02
 
-  // clear DB & DL, but not in addOn-progs
-  // delete all basic-models (mdb_dyn) all and model-names (mdb_nam)
-  if(AP_stat.APP_stat == 0) {    // 0=no plugin active
-    // clear DB & DL
-    AP_Init2 (0);
-    // primary model always has modnr=-1
-    AP_modact_ind = -1;
-  }
-
-  // PRC_init ("cut1");  // (re)init active process
+  // init (clear) DB and dyn-objects; not baseModels; clear DL.
+  // - but not if process is active ...
+  if(!PRC_IS_ACTIVE)
+    AP_Init2 (mode);
 
 /*
   // reset SubmodelLevel
   // Mod_load_bas (NULL,NULL);
 
 
-  // // Init Levelcounter in WC_Work__
-  // WC_Work__ (0, NULL);
+  // // Init Levelcounter in WC_Work1
+  // WC_Work1 (0, NULL);
 
   // init ModelNodes
   DB_StoreModNod (0,0,-1);
@@ -1917,27 +1912,34 @@ static int lnr1, lnr2;
 
 
   // ========= load subModels ==========================
+  // MDL_dump__ ("  _work_END-L1");
+  // DL_DumpObjTab ("  _work_END-L1");  // dump DL
+
+
+  AP_modact_ibm = MDL_BMI_ACT;
+
+
   // nur fuer export VRML muessen alle subModels zuerst geladen werden
   // der folgende Block ist nur im Run_for_Tesselation-Mode aktiv !
   // not for normal viewing mode
 
 
-  // scan gesamten APT-Buffer nach Modelnames. Not recursiv.
-  Mod_get_names ();
-
-  // get nr of basic models
-  bNr = DB_get_ModBasNr();
-    // printf(" _ModBasNr=%d\n",bNr);
-  if(bNr < 1) goto L_run1;   // OK, no subModels exists
-
-
-  if(!TSU_get_mode()) {
-    // 0=draw
-    // find and load all subModels in active model
-    irc = Mod_load_all__ ();
-    if(irc < 0) goto L_done;  // -1=subModel not found
-  }
-  // no models or model loaded ..
+//   // scan gesamten APT-Buffer nach Modelnames. Not recursiv.
+//   Mod_get_names ();
+// 
+//   // get nr of basic models
+//   bNr = DB_get_ModBasNr();
+//     // printf(" _ModBasNr=%d\n",bNr);
+//   if(bNr < 1) goto L_run1;   // OK, no subModels exists
+// 
+// 
+//   if(!TSU_get_mode()) {
+//     // 0=draw
+//     // find and load all subModels in active model
+//     irc = Mod_load_all__ ();
+//     if(irc < 0) goto L_done;  // -1=subModel not found
+//   }
+//   // no models or model loaded ..
 
 
   //----------------------------------------------------------------
@@ -2027,6 +2029,7 @@ static int lnr1, lnr2;
   // If VWR & CAD: unhilite all (last obj)
   if(AP_src != AP_SRC_EDI) {
     DL_hili_off (-1L);   // unhilite alle Objekte
+    MDL_used_set__ ();   // update model-rows in Brw
 
   } else {   // MAN
     // proceed/scroll to EOF; nicht im Inputmode.
@@ -2044,6 +2047,7 @@ static int lnr1, lnr2;
 
 
   // update unhilite, hide planes ..
+  // if(!TSU_mode)
   DL_Redraw ();
 
 
@@ -2108,8 +2112,10 @@ static int lnr1, lnr2;
     // printf("ED_newPos curp=%d\n",ipos);
 
 
-  // Filesize changed - update Mem (Edi -> Memory)
-  ED_update (ipos);
+  // // Filesize changed - update Mem (Edi -> Memory)
+  // ED_update (ipos);
+  // test if modified - if yes: copy editor -> memory
+  ED_unload__ ();
 
 
 
@@ -2131,7 +2137,7 @@ static int lnr1, lnr2;
 
   return ED_lnr_act;
 
-}   
+}
   
 
 //===========================================================================
@@ -2168,9 +2174,9 @@ static int lnr1, lnr2;
 
   dl1 = GL_GetActInd();
 
-  // printf("->WC_Work__ lNr=%d txt=|%s|\n",IE_ed_lNr, cbuf);
-  irc = WC_Work__ (lNr, cbuf);
-    // printf(" nach WC_Work__ irc=%d cbuf=|%s|\n",irc,cbuf);
+  // printf("->WC_Work1 lNr=%d txt=|%s|\n",IE_ed_lNr, cbuf);
+  irc = WC_Work1 (lNr, cbuf);
+    // printf(" nach WC_Work1 irc=%d cbuf=|%s|\n",irc,cbuf);
 
   dl2 = GL_GetActInd();
     // printf(" dl1=%ld dl2=%ld\n",dl1,dl2);
@@ -2220,6 +2226,7 @@ static int lnr1, lnr2;
   // // Update Refsys-display
   // UI_upd_Refs ();
 
+    // printf("ex-ED_work_CAD %d\n",irc);
 
   return irc;
 
@@ -2265,7 +2272,7 @@ static int lnr1, lnr2;
 
 
   if(ED_lnr_act < 1)
-    WC_Work__ (0, NULL);       // init level
+    WC_Work1 (0, NULL);       // init level
 
 
   // reset hilite of last obj
@@ -2373,11 +2380,15 @@ static int lnr1, lnr2;
   // printf(" _CurSet - APT_obj_stat=%d\n",WC_get_obj_stat());
 
   if(UI_InpMode == UI_MODE_MAN) {
-    // APT_hili_last (); // hilite last geom-obj created from WC_Work1
-    DL_hili_MAN (TYP_FuncMod);
+    // hilite last geom-obj created from WC_Work1 (only if symbolic-typ)
+    // DL_hili_MAN (TYP_FuncMod);
+    if(AP_typ_ck_sym(AP_typ_act) == 0) {
+      // last obj was basic-typ
+      l1 = GL_GetActInd();  // dli last obj
+      UI_prev_remove ();
+      UI_prev_dli (l1);
+    }
   }
-  // TX_Print("End [0 - %d]",ED_lnr_act);
-
 
 
   // RefSys testen / korrigieren
@@ -2390,7 +2401,7 @@ static int lnr1, lnr2;
     if(irc >= 0) {           // nur wenn lastObj = geometr.Obj 
       DL_setRefSys (dli);   // RefSys entprechend DL-Record setzen
     } else {
-      if(AP_IS_2D) NC_setRefsys (0L);
+      if(CONSTRPLN_IS_ON) NC_setRefsys (0L);
     }
   }
 
@@ -2409,74 +2420,12 @@ static int lnr1, lnr2;
 
   UI_CursorWait (1);    // reset cursor
 
-  DL_Redraw ();
+// MDL_dump__ ("work_CurSet-L9");
+// DL_DumpObjTab ("work_CurSet-L9");
+
+  if(!TSU_mode) DL_Redraw ();
 
     // printf("ex ED_work_CurSet ED_lnr_act=%d\n",ED_lnr_act);
-
-  return 0;
-
-}
-
-
-//================================================================
-  int ED_active__ (long dli, int typ, long dbi, int subTyp) {
-//================================================================
-// ED_active__                   display last DB-obj hilited
-//   reset object with ED_active__ (-1L, Typ_Error, 0L);
-// Input:
-//   typ,dbi      DB-obj
-//   dli          >=0     store (typ,dbi,dli) of geometric-object
-//                -1      store (typ,dbi) of not-geometric-object
-//                -2      display last stored obj
-
-  static long oDli, oDbi, oldDli;
-  static int  oTyp, oSub;
-
-  long        l1;
-
-
-  // printf("ED_active__ dli=%ld typ=%d dbi=%ld\n",dli,typ,dbi);
-
-  //----------------------------------------------------------------
-  if(dli > -2L) { 
-    // >=0  store (typ,dbi,dli) of geometric-object
-    // -1   store (typ,dbi) of not-displayable- or not-geometric-object
-    oDli = dli;
-    oDbi = dbi;
-    oTyp = typ;
-    oSub = subTyp;
-
-
-  //----------------------------------------------------------------
-  } else {
-    // dli=-2; display last stored obj
-      // printf(" active__-disp dli=%ld typ=%d dbi=%ld sub=%d\n",oDli,oTyp,oDbi,oSub);
-
-    //----------------------------------------------------------------
-    if(oDli >= 0L) {
-      if(oldDli < 0L) GL_temp_del_1 (GR_TMP_I0);        // clear GR_TMP_I0
-      // display geometric-object          (was DL_hili_on (-2L);)
-      DL_hili_on (oDli);
-    
-
-    //----------------------------------------------------------------
-    } else {
-      // oDli=-1; not-displayable- or not-geometric-object
-      // skip not-displayable-
-      if(oTyp == 0) {
-        GL_temp_del_1 (GR_TMP_I0);        // clear GR_TMP_I0
-
-      } else {
-        // display not-geometric-object
-        // l1 = GR_TMP_I0;
-        UI_disp__ (GR_TMP_I0, oTyp, oDbi, oSub);
-      }
-    }
-    oldDli = oDli;
-
-  //----------------------------------------------------------------
-  } // else printf("******* ED_active__ E1-%ld\n",dli);
-
 
   return 0;
 
@@ -2685,7 +2634,7 @@ static int  actLev=0;
 
   // Das neue Eingabefile oeffnen
   if ((maclun = fopen (fNam, "r")) == NULL) {
-    TX_Error (" open file %s\n",fNam);
+    TX_Error (" ED_file__ open file %s\n",fNam);
     return -1;
   }
 
@@ -2744,11 +2693,9 @@ static int  actLev=0;
   irc = ED_file__ (1, filnam);
   if(irc < 0) return irc;
 
-
   ED_skip_start ();  // bei work_file gibts keinen STEP-mode
 
-
-  // Fertig:
+    // printf(" ex-ED_work_file\n");
 
   return 0;
 }
@@ -3093,7 +3040,7 @@ static int  actLev=0;
   } else if(!strncmp(cbuf, ":ATTRIB:", 8)) {
     GA_decode__ (&cbuf[8]);
     // comment this line out; only in primaryModel.
-    if(AP_modact_ind < 0) {
+    if(AP_modact_ibm == MDL_BMI_ACT) {
       cpos = ED_Read_cPos ();
       *cpos = '_'; 
     }
@@ -3220,8 +3167,8 @@ static int  actLev=0;
     APED_onam_cut (cbuf, AP_ED_oNam);
 
     // work ..
-    rc = WC_Work__ (lNr, cbuf);
-      // printf(" nach WC_Work__ lNr=%d rc=%d\n",lNr,rc);
+    rc = WC_Work1 (lNr, cbuf);
+      // printf(" nach WC_Work1 lNr=%d rc=%d\n",lNr,rc);
     if(rc == -2) goto L_exit;  // ? nix tun ..
 
 
@@ -3240,7 +3187,7 @@ static int  actLev=0;
     if((rc != 0)||(istat != 0)) {
       // stop - error occured ..
         // printf(" rc=%d istat=%d\n",rc,istat);
-        // printf(" rc von WC_Work__=%d |%s|\n",rc,AP_mod_fnam);
+        // printf(" rc von WC_Work1=%d |%s|\n",rc,AP_mod_fnam);
         // printf(" ErrLn=%d |%s|\n",AP_stat.errLn,cbuf);
       if(APT_mac_fil == ON) {
         TX_Print("*** Error in Line %d - Submodel %s",lNr,AP_filnam);
@@ -3542,7 +3489,7 @@ static int  actLev=0;
 //================================================================
  
   printf("ED_test__ ============================= \n");
-  UTF_dump__ ();
+  UTF_dump__ ("");
   return 0;
 }
 

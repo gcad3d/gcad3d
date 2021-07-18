@@ -39,6 +39,7 @@ ED_GR_CB2__         callback from grafic-window (mouse-key press)
 ED_Esc_CB__         callback Esc-key
 ED_Del_CB__         callback Delete-key
 EDI_CB__            editor-callback of GUI_edi__ (mouse/key into editor)
+EDI_focus           set focus to edit-window
 
 ED_load__           mem -> editor
 ED_unload__         editor -> memory
@@ -48,6 +49,7 @@ EDI_set_oid_ui      set to oid of definitionLine from GUI
 EDI_set_lNr_UI      get lineNr from user and set to lineNr
 EDI_set_src_UI      get sourceText to find from user and set to this line
 
+EDI_sel_get         get selected text
 EDI_sel_lnr         select Line, set Curpos to Line
 ED_goto__           goto curPos in editor
 
@@ -79,7 +81,7 @@ AP_APT_*
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -140,6 +142,9 @@ extern int        AP_src;                // AP_SRC_MEM od AP_SRC_EDI
 // from ../ci/NC_Main.c
 extern int       APT_dispPL;
 extern int     APT_obj_stat;
+extern int     AP_def_typ;     // type of obj being defined (eg Typ_Model for M20")
+extern long    AP_def_ind;     // DB-index of obj being defined
+
 // replace ED_lnr_act mit AP_ED_lNr
 
 
@@ -208,6 +213,17 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 }
 
  
+//================================================================
+   int EDI_sel_get (char **txt) {
+//================================================================
+// EDI_sel_get         get selected text
+// returns text and nr of chars
+
+  return GUI_edi_sel_get (txt, &winED);
+
+}
+
+
 //================================================================
   int EDI_sel_lnr (long lNr) {
 //================================================================
@@ -477,11 +493,12 @@ static long cPos;
 
 
   int    irc, i1, i2;
-  char   s1[256];
+  char   s1[256], *psm;
 
 
   // printf("ED_GR_CB2__ typ=%d dbi=%ld buf=|%s|\n",typ,dbi,buf);
   // printf(" APT_obj_stat=%d\n",APT_obj_stat);  // 1=temp, 0=perm
+
 
 
   // cStat = ED_ck_lnStart();
@@ -507,8 +524,22 @@ static long cPos;
   if(irc) return 0;  // 0 means first button pressed
 
 
+  //----------------------------------------------------------------
   L_addSel:
-  ED_add_Text (typ, dbi, buf);  // add buf to editor-text
+
+  // test output subModel
+  if(AP_def_typ == Typ_Model) {
+    if(typ == Typ_Model) {
+      // get modelName of selected refMdl and add to line
+      psm = MDL_mNam_imr ((int)dbi);
+      sprintf(s1, "\"%s\"", psm);
+      ED_add_Text (s1);
+      goto L_exit;
+    }
+  }
+
+  // add buf to editor-text
+  ED_add_Text (buf);
   // preview temporary obj in buffer <buf>
   GR_temp_src (buf);
   DL_Redraw ();
@@ -522,7 +553,7 @@ static long cPos;
 
     } else {       // cursor is inside line
       
-      if(typ == Typ_TmpPT) UI_disp_Pos (Typ_PT, &GR_CurUk);
+      if(typ == Typ_TmpPT) UI_prev_pos (Typ_PT, &GR_curPos_WC);
     
       // add nur wenn akt. Line zB "L25=" ist ...
       // i1 = ED_query_CmdMode ();
@@ -538,6 +569,8 @@ static long cPos;
     }
 */
 
+  L_exit:
+    // printf(" ex-ED_GR_CB2__\n");
   return 0;
 }
 
@@ -558,12 +591,12 @@ static long cPos;
   char   s1[40];
 
 
-  printf("ED_GR_CB1__ %d\n",GR_Event_Act);
+  // printf("ED_GR_CB1__ %d\n",GR_Event_Act);
 
         // i1 = ED_query_CmdMode (); // analyze active line; -1=empty, 0=DefLn..
           // printf(" MAN; ev=%d i1=%d\n",GR_Event_Act,i1);
         GUI_edi_ck_cPos_ln (&winED, &i1, &i2);
-          printf(" CB1__-cPos=%d fPos=%d\n",i1,i2);
+          // printf(" CB1__-cPos=%d fPos=%d\n",i1,i2);
 
 
         if(GR_Event_Act == GUI_MouseL) {
@@ -640,8 +673,8 @@ static long cPos;
   if(GUI_DATA_EVENT == TYP_EventEnter) {    // 400
       // printf(" EDI_CB__-Enter-shiftOn=%d ctrlOn=%d\n",shiftOn,ctrlOn);
 
-    // get test cursorPosition in active line
-    i1 = GUI_edi_ck_cPos_ln (mo, &i1, &i2);
+    // // get test cursorPosition in active line
+    // i1 = GUI_edi_ck_cPos_ln (mo, &i1, &i2);
 
     // // ignore shift (block-selection active)
     // if(shiftOn) goto L_ignore;
@@ -653,7 +686,8 @@ static long cPos;
     if(l1 == ED_lnr_act) goto L_ignore;  // skip identical line
 
     // ED_newPos ED_update
-    ED_update (0L);  // editor -> memory if Filesize has changed ..
+    // ED_update (0L);  // editor -> memory if Filesize has changed ..
+    ED_unload__ (); // test if modified - if yes: copy editor -> memory
     // von der zuletzt bearbeiteten Zeile bis zu lNr anzeigen/abarbeiten
     ED_work_CurSet (l1);
     // GUI_edi_Focus (&winED);
@@ -774,7 +808,8 @@ static long cPos;
         // bei CR am end of file kommt kein TYP_EventEnter new-Line !!!!!
         // UI_EdKeyCR (); geht nicht - liefert zusätzliches CR !
 
-        ED_update (0L);
+        // ED_update (0L);
+        ED_unload__ (); // test if modified - if yes: copy editor -> memory
         l1 = GUI_edi_getLnr (mo);
         if(ED_lnr_act >= l1) ED_lnr_act = l1 - 1;
         // l1 = ED_lnr_act; --ED_lnr_act;
@@ -856,6 +891,20 @@ static long cPos;
 
   L_ignore:
     return 1;
+}
+
+
+//================================================================
+  int EDI_focus () {
+//================================================================
+// EDI_focus           set focus to edit-window
+
+  // printf("EDI_focus \n");
+
+  GUI_edi_Focus (&winED);
+
+  return 0;
+
 }
 
 
@@ -1093,7 +1142,7 @@ static long cPos;
 
 
   // printf("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU \n");
-  // printf("ED_unload__ \n");
+  // printf("ED_unload__ xa_fl_TxMem=%d\n",xa_fl_TxMem);
 
 
   // addOn-prog active ?
@@ -1110,8 +1159,17 @@ static long cPos;
   //----------------------------------------------------------------
   // mormal: copy editor -> memory
   // Editfenster(gesamten APT-Text) > Memory kopieren
+
+  // check if modified; 0=not
+  i1 = GUI_edi_getModif (NULL);
+    // printf(" edi_getModif=%d\n",i1);
+
+
   // printf("Text->Mem modif=%d\n",xa_fl_TxMem);
-  if(xa_fl_TxMem != 0) {      //Edittext - memory:  needUpdate
+  // if(xa_fl_TxMem != 0) {      //Edittext - memory:  needUpdate
+//TODO: xa_fl_TxMem UNUSED
+
+  if(i1) {      //Edittext - memory:  needUpdate
       // printf(" _unload__ - get ed -> mem\n");
 
     L_Get_WinEdit_1:

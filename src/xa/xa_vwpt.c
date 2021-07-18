@@ -58,7 +58,7 @@ List_functions_end:
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_os.h"               // OS_get_bas_dir
 
-#include "../xa/xa_uid.h"              // UID_ouf_vwz
+// #include "../xa/xa_uid.h"              // UID_ouf_vwz
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -256,7 +256,7 @@ extern MemObj  winMain;    // toolbarBox
 
     // restore view
     GL_View_set(view);
-    UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&view[5]); // in box raus
+//     UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&view[5]); // in box raus
     DL_Redraw ();
 
     return 0;

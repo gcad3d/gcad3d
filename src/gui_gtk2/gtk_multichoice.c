@@ -433,8 +433,8 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
 
 //===================================================================
-  int GUI_popup__ (char *optLst[], char *tipLst[], int itip,
-                   void *funcnam, void *dataLst[]) {
+  void* GUI_popup__ (char *optLst[], char *tipLst[], int itip,
+                     void *funcnam, void *dataLst[]) {
 //===================================================================
 /// \code
 /// create popup-window with multiple-choice-comboBox.
@@ -575,7 +575,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
   i1 = -1;   // init lNr; 2013-03-27
   GUI_popup_cb1 (menu, PTR_INT(i1));
 
-  return 0;
+  return ((void*)menu);
 
 }
 

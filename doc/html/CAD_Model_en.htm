@@ -21,29 +21,23 @@
 <h2>CAD-Functions for Models:</h2>
 
 <A HREF="CAD_Base_en.htm#M">CAD functions for Models</A>
-
-See models - Internal / External Models 
-See also codes for models
-
-see also <a href="gCAD3D_basics_en.htm#MMS_int">Internal Models</a> / <a href="gCAD3D_basics_en.htm#MMS_ext">External Models</a>
-see also <a href="CAD_Base_en.htm#M">Codes for Models</a>
-
+see also:
+<a href="gCAD3D_basics_en.htm#MMS">MultiModelSupport</a>
+<a href="CAD_Base_en.htm#M">Codes for Models</a>
 
 
 Models use keycode  M
 
 
+
 <HR><!-- ============================================================ -->
 <p><a name="F0"></a></p>
-<h2>M int.Model Submodel Pos [Vec/Refsys]</h2>
-Positioning an internal sub-model
-  (all exported objects of the submodel (its joints) will be imported.
-   Text of imported notes will be queried newly.)
+<h2>M internal Model</h2>
 
+<b>Using internal sub-models in Cad mode:</b>
 
-Submodel
-  - Select a sub-model from list (or use middle-mousebutton)
-  - or select an existing sub-model
+  Select sub-models from a list (using middle mouse button)
+  - or select an existing sub-model (<a href="CAD_input_en.htm#_ModBas_"></a>)
   
 Position,Orientation
   <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
@@ -56,18 +50,47 @@ Examples:
 M20="SM1" R(P(100 0) 45) VAL(2)
 
 
+- External sub-models are internally cached, but not stored with the model
+- the model name must not include a path (and no '/' or '\').
+- all exported objects of the submodel (its joints) will be imported
+   Text of imported notes will be queried newly.)
+
+
+
+<b>Using external sub-models in Manual mode:</b>
+
+  By keying in eg:
+  M28=”Data/Mod1.gcad” P (0 0 0) DZ DIY
+
+
+<b>Creation of internal sub-models:</b>
+
+- Menu subModels / move main - new submodel
+    copy (move) all objects of the active main model to a sub-model
+
+
+- Menu subModels / load sub-model from file
+    Load a model from a file into a new (external) sub-model.
+
+
+- Menu subModels / save active submodel to file
+    - save internal-submodel to file (makes external-model)
+
+
+
 
 <HR><!-- ============================================================ -->
 <p><a name="F1"></a></p>
-<h2>M ext.Model Filename Pos [Vec/Refsys]</h2>
+<h2>M external Model</h2>
+
+<b>Using external sub-models in Manual mode:</b>
+
 Positioning an external sub-model
 
 Submodel
-  - Select a sub-model from list (or use middle-mousebutton)
+  - Select a modelfile from list (or use middle-mousebutton)  <a href="CAD_input_de.htm#_FilNam_"></a>)
   - or select an existing sub-model
-
   Modelname: see <a href="CAD_Base_en.htm#symFnam">Symbolic filenames.</a>
-
 
 Position,Orientation
   <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
@@ -75,30 +98,50 @@ Position,Orientation
 [Scale]:   magnifying scale; default is 1
   
 
-Example of an external model:
- M20 = &quot;Data/Niet1.dat&quot; R(P(100 0) DIY) VAL(0.5)
+The filename can have a symbolic-pathname and also system-variables.
+External sub-models are internally cached, but not stored with the model.
 
-Example of a WRL triangle-mesh model:
- M21 = &quot;Data/clocktwr.wrl&quot; R(P(0 0 0) R20)
+Examples:
+M20="Data/Niet1.gcad" R(P(100 0) DIY) VAL(0.5)
+M21="Data/wsh14.stp" R(P(200 0))
+M22="Data/obj43.wrl" R(P(0 0 0) R20)     # Mockup-Model
 
 
 
-At the moment you can use the following file formats for external sub-models:
-   GCAD, WRL, STL, OBJ.  You cannot use DXF, IGS, STP yet.
-At the moment external sub-models cannot have internal or external sub-models.
+<b>Using external sub-models in Manual mode:</b>
+
+  By keying in eg:
+  M28=”Data/Mod1.gcad” P (0 0 0) DZ DIY
+
+
+
+<b>Creation of external sub-models:</b>
+
+- Menu subModels / load sub-model from file
+    Load a model from a file into a new (external) sub-model.
+
+
+- Menu subModels / save active submodel to file
+    - save internal-submodel to file (makes external-model)
+
+
+
+
  
  
  
 <HR><!-- ============================================================ -->
 <p><a name="F2"></a></p>
-<h2>M CatalogModel Pos [Vec/Refsys]</h2>
+<h2>M CatalogPart</h2>
+
+<b>Using CatalogParts in CAD mode:</b>
+
 Positioning an Catalog-Part
 
 
 CatalogPart
   - Select a catalogPart from list (or use middle-mousebutton)
-  - or select an existing catalogPart
-
+  - or select an existing catalogPart  (<a href="CAD_input_en.htm#_CtlgPart_"></a>)
   The catalogPartname consists of catalog name, part name; see <a href="Catalog_en.htm">Catalog</a>.
 
 
@@ -106,13 +149,29 @@ Position,Orientation
   <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
 
 [Scale]:   magnifying scale; default is 1
-  
+
 
 
 Example external Model:
-M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
+M22="Schrauben/SKS_10x30.ctlg" P20 VAL(1)
 
-See also <a href="Catalog_en.htm#Adm">Functions for using catalog-parts</a>.
+
+
+<b>Using CatalogParts in Manual mode:</b>
+
+  By keying in eg:
+  M28=”Profile/6x4_150.ctlg” P (0 0 0) DZ DIY
+
+
+
+
+<b>Creation of CatalogParts:</b>
+  See <a href="Catalog_en.htm">CatalogParts</a>.
+
+
+
+
+
 
 <HR><!-- ============================================================ -->
 </PRE>

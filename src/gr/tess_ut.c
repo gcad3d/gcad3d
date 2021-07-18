@@ -16,18 +16,19 @@
  *
 -----------------------------------------------------
 TODO:
- VRML2: 
-   Externe Modelcalls sollten ev via EXTERNPROTO gehen !  See below.
-
- Damit mehrere Dreiecke (oder Quads) gemeinsam texturiert werden (ohne
-  dass man fuer jedesDdreieck eigene texCoord -s angeben muss) -
-  muessen alle 3-Ecke im gleichen IndexedFaceSet sein !!!!!
-
- Grundsaetzlich wird das gesamte Dreieck texturiert (repetitiv !)
-  Verschieben, Skalieren und Drehen der Textur mit textureTransform.
-  See Textest2.wrl
-
-  ..
+ VRML1 removed;
+ VRML2 now with plugin VR2_exp__
+Remove unused:
+TSU_exp_wrl1Mat
+TSU_exp_wrl2Mat
+TSU_exp_wrl1Fac
+TSU_exp_wrl2Fac
+TSU_exp_wrlCol
+TSU_exp_wrl2Col
+TSU_exp_wrl2Tex
+TSU_exp_wrlTexFn
+TSU_exp_wrlProto
+TSU_exp_wrlInit
 
 -----------------------------------------------------
 Modifications:
@@ -55,9 +56,9 @@ TSU_exp_fac          wr faces
 TSU_exp_stlFac       wr faces stl
 TSU_exp_stl1Fac      wr face stl
 TSU_exp_objFac       wr face obj
-TSU_exp_wrl1Mat      wr mat VRML1
+// TSU_exp_wrl1Mat      wr mat VRML1
 TSU_exp_wrl2Mat      wr mat VRML2
-TSU_exp_wrl1Fac      wr faces for VRML1
+// TSU_exp_wrl1Fac      wr faces for VRML1
 TSU_exp_wrl2Fac      wr faces for VRML2
 TSU_exp_wrl2Col      wr color VRML2
 TSU_exp_wrlCol       wr appearance/color VRML
@@ -276,9 +277,9 @@ extern AP_STAT   AP_stat;
 
 
 //========= local Vars: ====================
+       int  TSU_ftyp;
 static FILE *TSU_fp=NULL;
 static char *TSU_fnam;
-static int  TSU_ftyp;
 static int  TSU_ptNr;
 static int  TSU_facNr;
 static int  TSU_errStat;          // Anzahl Errors ..
@@ -2045,7 +2046,7 @@ static FILE *fpo = NULL;
     p1 = Tex_get_fn (ii);
     if(p1 == NULL) return -1;
     // make filename absolut (expand symbol)
-    irc = Mod_get_path (memspc011, p1);
+    irc = MDLFN_ffNam_fNam (memspc011, p1);
     if(irc < 0) return -1;
       printf(" fn-abs |%s|\n",memspc011);
     // get outputdirectory
@@ -2936,14 +2937,14 @@ static char  mStat[1024];
   ObjGX  *vTab;
 
 
-  printf("||||||||||||||||||||| TSU_exp__ |||||||||||||||||||||||||||||\n");
-  printf(" |%s|%s|\n",mode,fnam);
+  // printf("||||||||||||||||||||| TSU_exp__ |||||||||||||||||||||||||||||\n");
+  // printf(" |%s|%s|\n",mode,fnam);
 
 
   TSU_errStat = 0;
   TSU_fnam = fnam;
   TSU_ftyp = AP_iftyp_ftyp (mode);
-    printf(" TSU_ftyp=%d\n",TSU_ftyp);
+    // printf(" TSU_ftyp=%d\n",TSU_ftyp);
 
 
   // VRML-1 or VRML-2 ?
@@ -2986,7 +2987,7 @@ static char  mStat[1024];
       fclose (TSU_fp);
       TSU_fp = NULL;
     }
-    return irc;
+    goto L_exit;
   }
 
 
@@ -3034,7 +3035,7 @@ static char  mStat[1024];
 
   // free memspace
   L_fertig:
-    printf(" TSU_errStat=%d irc=%d\n",TSU_errStat,irc);
+    // printf(" TSU_errStat=%d irc=%d\n",TSU_errStat,irc);
 
 
   // OBJ: exportiert subModels aber ohne positionieren;
@@ -3087,12 +3088,13 @@ static char  mStat[1024];
   }
 
 
-  // UI_wait_Esc ();   // TESTONLY; display 
 
 
-  printf("||||||||||||||||||||| ex TSU_exp__ |||||||||||||||||||||||||||||\n");
+  L_exit:
+    // TSU_ftyp = 0;
 
-  // exit(0); // TEST
+    // UI_wait_Esc ();   // TESTONLY; display 
+    // printf("||||||||||||||||||||| ex TSU_exp__ %d ||||||||||||||||||||||\n",irc);
 
   return irc;
 
@@ -3111,12 +3113,12 @@ static char  mStat[1024];
   FILE   *fpi=NULL;
 
 
-  printf("TSU_imp_tess |%s|\n",fnam);
+  // printf("TSU_imp_tess |%s|\n",fnam);
 
   // get filesize
   il = OS_FilSiz (fnam);
   if(il < 1) {TX_Print("TSU_imp_tess FileExist E001 %s",fnam); return -1;}
-  printf(" fSiz=%ld\n",il);
+    // printf(" fSiz=%ld\n",il);
 
 
   if((fpi=fopen(fnam,"rb")) == NULL) {

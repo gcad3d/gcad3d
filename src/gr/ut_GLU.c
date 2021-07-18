@@ -2335,11 +2335,11 @@ static int ptOff;
   } else { GLU_Err = -3; goto L_Err; }
 
   // create color = patch
-  // GLT_ppa[GLT_ppa_ind].typ  = Typ_Color;
-  // GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
-  // GLT_ppa[GLT_ppa_ind].siz  = 1;
-  // GLT_ppa[GLT_ppa_ind].data = (void*)(*((long*)&GL_actCol));
-  OGX_SET_COLOR(&GLT_cta[GLT_ppa_ind], &GL_actCol);
+  GLT_ppa[GLT_ppa_ind].typ  = Typ_Color;
+  GLT_ppa[GLT_ppa_ind].form = Typ_Int4;
+  GLT_ppa[GLT_ppa_ind].siz  = 1;
+  GLT_ppa[GLT_ppa_ind].data = (void*)(*((long*)&GL_actCol));
+  // OGX_SET_COLOR(&GLT_ppa[GLT_ppa_ind], &GL_actCol);
 
   return 0;
 

@@ -83,6 +83,7 @@ extern int errno;
   // printf("OS_checkFilExist |%s| %d\n", filnam, mode);
 
   i1 = GetFileAttributes (filnam);
+    // printf(" GetFileAttributes %d %s\n",i1,filnam);
   // returns -1=file not found; 16=file, 32=directory ?
     // printf("GetFileAttributes %d |%s|\n",i1+1,filnam);
   i1 += 1;
@@ -153,6 +154,34 @@ extern int errno;
   L_exit:
     // printf("ex-OS_sys1 %d |%s|\n",irc,sOut);
   return irc;
+
+}
+
+
+//================================================================
+  int OS_osVar_eval (char *fn, int fnSiz) {
+//================================================================
+// OS_osVar_eval        expand shell variables in string
+// retCode:  0=OK; -1=error, -2=string-too-log
+// On Windows, you can use ExpandEnvironmentStrings.
+// preReq: <wordexp.h>
+//
+// Example: in  "${DIR_DEV}cadfiles/gcad/" 
+//          out "/mnt/serv2/devel/cadfiles/gcad/"
+//
+// was OS_filnam_eval
+
+  int    ii;
+  char   *s1;
+
+  s1 = _alloca (fnSiz + 32);
+  strcpy(s1, fn);
+
+  ii = ExpandEnvironmentStrings (fn, s1, fnSiz);
+
+    printf(" ex-OS_filnam_eval %d |%s|%s|\n",ii,fn,s1);
+
+  return 0;
 
 }
 

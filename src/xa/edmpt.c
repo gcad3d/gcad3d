@@ -164,7 +164,7 @@ Build: . ../options.sh && make -f xa_edmpt.mak
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 
@@ -545,7 +545,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // END TESTBLOCK
 
   // if actObj is on 2D-plane, then transfer points into 3D
-  if(EDMDAT.irs > 0) EDMPT_ptab_3D_2D ();             // see AP_IS_2D
+  if(EDMDAT.irs > 0) EDMPT_ptab_3D_2D ();             // see CONSTRPLN_IS_ON
 
   // copy selection.txt -> <tmpDir>/selection1.txt
   EDMPT_src_save (0);
@@ -1147,7 +1147,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   // get actCurPos = eye-point
-  UI_GR_get_actPosA (&actCurPos);   // get GR_CurUk
+  GR_get_curPos_UC (&actCurPos);   // get GR_curPos_WC
   UTRA_pt_ucs2wcs (&actCurPos);
     // DEB_dump_obj__ (Typ_PT, &actCurPos, "  EDMPT_newPos__-inPos: ");
 
@@ -1190,6 +1190,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   return pto;
 
 }
+
 
 //================================================================
   int EDMPT_points (int mode, int ii) {
@@ -1340,7 +1341,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   L_mode6:         // mode=6    redraw curve and its child-objects with attribut ii
     if(mode != 6) goto L_mode7;
     
-    WC_set_obj_stat (1);    // all displays done by WC_Work__ temporary
+    WC_set_obj_stat (1);    // all displays done by WC_Work1 temporary
 
     DB_CSEG__ (0);          // save DB_CSEG-state
     
@@ -2332,7 +2333,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   sprintf(fnam,"%sselection.txt",OS_get_tmp_dir());
 
   l1 = 0;
-  irc = UTF_add_fil__ (cBuf, &l1, bufSiz, fnam);
+  irc = UTX_fget_add_MS (cBuf, &l1, bufSiz, fnam);
   if(irc < 0) return irc;
   UTX_CleanCR (cBuf);            // remove LF
   return irc;
@@ -2479,7 +2480,7 @@ static FILE      *EDMPT_fp_dep = NULL;
         // printf(" _src_mod-modified: %d dbi=%ld\n",iPt,dbi);
 
       // check if modified obj is 2D or 3D
-      if(EDMDAT.irs > 0) {   // see AP_IS_2D
+      if(EDMDAT.irs > 0) {   // see CONSTRPLN_IS_ON
         // transfer obj-coords from 3D back to 2D.
         UT3D_pt_tra_pt_m3 (&pt1, EDMDAT.mat2, &pt1);
           DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_src_mod-pt %d %d",i1,iPt);
@@ -3177,7 +3178,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // get mousepos -> pt1
   // APT_obj_expr (&pt1, typ, cp1);
-  UI_GR_get_actPosA (&pt1);
+  GR_get_curPos_UC (&pt1);
 
 
   // DEB_dump_obj__ (Typ_PT, &pt1, "EDMPT_ins_pt: pt1");

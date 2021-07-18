@@ -86,8 +86,10 @@ GR_set_txtG           grafic text (rotated, scaled)
 GR_set_vc             vector, temp/tDyn, length true or normalized
 GR_set_dimen          hor/vert/parall. dimension
 GR_set_dim3           3D-dimension
-GR_set_symV_o         vector-symbol, oriented (3D, rotate + tilt)
+GR_set_symV3          vector-symbol, oriented (3D, rotate + tilt)
 GR_set_mdr            disp subModel from modelreference
+
+GR_set_strip_v        disp strip vertical
 
 -------------- display permanent objects
 GR_perm_pt            perm.disp Point
@@ -143,8 +145,8 @@ GR_tDyn_symB2__       temp.dyn disp 2D-BITMAP-Symbol
 GR_tDyn_symB__        temp.dyn disp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
 GR_tDyn_nsymB         temp.dyn disp BITMAP-Symbols (SYM_TRI_S SYM_STAR_S ..)
 
-GR_tDyn_symV_r        disp vector-symbol, rotated (in XY-plane, 2D)
-GR_tDyn_symV_o        disp vector-symbol, oriented (3D, rotate + tilt)
+GR_tDyn_symV2        disp vector-symbol, rotated (in XY-plane, 2D)
+GR_tDyn_symV3         disp vector-symbol, oriented (3D, rotate + tilt)
 
 GR_tDyn_txtG          disp text at 3D-point grafic text (rotated, scaled)
 GR_tDyn_txtA          disp text at 3D-point
@@ -174,10 +176,10 @@ GR_temp_vc            tempDisp Vector; length true or normalized
 GR_temp_pcv__         tempDisp polygon
 GR_temp_ci            tempDisp circle
 GR_temp_ang           tempDisp angle
+GR_temp_traRot        tempDisp transformation-rotation
 GR_temp_pln           tempDisp plane
 GR_temp_symB          tempDisp BITMAP-Symbol (SYM_TRI_S SYM_STAR_S ..)
-GR_temp_symV3         tempDisp oriented vector-symbols
-GR_temp_symV_o        disp vector-symbol, oriented (3D, rotate + tilt)
+GR_temp_symV3         tempDisp oriented vector-symbols (3D, rotate + tilt)
 GR_temp_mdr           disp subModel from modelreference
 
 GR_temp_rect1         temp.disp rectangle from point, 2 vectors
@@ -262,11 +264,12 @@ GR_pt3_pt2               get 3D-point from 2D-point (with GL2D_Z);
 
 GR_Init1
 
-
 List_functions_end:
 =====================================================
 
 \endcode *//*----------------------------------------
+See ../xa/xa_ui_gr.c
+
 UNUSED
 // GR_Draw_oid_dir_npt      disp. ObjID, direction
 // GR_Disp_ipatch        display a set of triangles from indexed points
@@ -342,10 +345,10 @@ cc -c -g3 -Wall ut_gr.c
 
 //=============== extern glob. vars ======================
 // aus xa.c:
-extern int       AP_modact_ind;           // -1=primary Model is active;
 extern AP_STAT   AP_stat;                 // sysStat,errStat..
 extern ColRGB    AP_defcol;
-extern Plane      WC_sur_act;            // die aktive Plane
+extern int       WC_sur_ind;            // Index ActiveConstrPlane
+extern Plane     WC_sur_act;            // ActiveConstrPlane
 
 // aus ../ci/NC_Main.c:
 extern int     APT_3d_mode;
@@ -392,7 +395,6 @@ extern ColRGB  GL_actCol;
 extern int     GL_actTex;
 extern double  GL2D_Z;          // Z-value for 2D-drawing-functions
 extern double  GL_SclNorm;           // fix different modelsize
-extern double  GL_fakt;              // 
 extern double  GL_Scale;             // 
 
 
@@ -491,7 +493,9 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 //=====================================================================
 // GR_set_osu 	         disp surface from bin.surf.obj
 //   att    for perm: struct ColRGB
-//          for temp: GR_TMP_HILI|GR_TMP_DIM|GR_TMP_DEF;
+//          for temp: Typ_Att_hili1       if(ColRGB)att.hili is on;
+//                    Typ_Att_dim         if(ColRGB)att.dim is on;
+//                    Typ_Att_dash_long   default
 // was APT_DrawSur GR_DrawSur
 
   int       irc = 0, i1, ssTyp;
@@ -547,152 +551,33 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   //----------------------------------------------------------------
   // temp
   } else if(opers & OPERS_TEMP) {
-    DL_temp_init ();
-    // change att -> struct ColRGB
-//     att = *(INT32P_COL(&ColRGB_NUL));
-//     if(att == GR_TMP_HILI)
-//       ((ColRGB*)&att)->vsym = 1;        // set symbolic
-//     else
-//       printf("**** GR_set_sur TODO att 1\n"); // dimmed or default
-    DL_hili_on (AP_dli_act);          // set hilited
-    // GL_att_cv (Typ_Att_top2);         // INF_COL_CV
-    GL_att_sur (att);
+    DL_temp_init ();   //  get GL-index, GL_list_open
+    if(((ColRGB*)&att)->vsym) {
+      // symbolic - set curve-attribute; 
+      if(((ColRGB*)&att)->hili) GL_att_cv (Typ_Att_hili1);
+      // else if(((ColRGB*)&att)->dim) GL_att_cv (Typ_Att_dim);
+      else                      GL_att_cv (Typ_Att_dash_long);
+    } else {
+      // set color ..
+      GL_att_sur (att);
+    }
 
   }
 
 
-  //================================================================
-  switch (oxi->typ) {
+  // tesselate
+  irc = TSU_SUR__ (oxi, att, dbi);
 
-    //----------------------------------------------------------------
-    // trimmed-perforated-surfaces
-    //----------------------------------------------------------------
-    case Typ_SUR:
-      // get ssTyp = type of supportsurface
-      ssTyp = ((ObjGX*)oxi->data)[0].typ;
-        // printf(" _set_sur-Typ_SUR-ssTyp = %d\n",ssTyp); // Typ_SURPLN ?
+  goto L_exit;  // no message degenerate ?
 
-      switch (ssTyp) {
-        //----------------------------------------------------------------
-        case Typ_Typ: // planar - trimmed, perforated
-          irc = TSU_DrawSurTP (oxi, att, dbi);
-          break;
-
-        //----------------------------------------------------------------
-        case Typ_SUR:      // trimmed-perforated surface     
-        case Typ_CON:
-        case Typ_TOR:
-        case Typ_SURRU:
-        case Typ_SURRV:
-        case Typ_SURBSP:
-        case Typ_SURRBSP:
-        case Typ_SOL:
-          // Tesselate / Display trimmed-perforated Complex-surface
-          irc = TSU_DrawSurTC (oxi, att, dbi);
-          break;
-
-        //----------------------------------------------------------------
-        default:
-        // Typ und form=Typ_SUR: Planare Flaeche; ungetrimmt, ungelocht; UU?
-        // irc = TSU_DrawSurTS (oxi, att, dbi);
-          TX_Print("GR_set_sur TODO ssTyp=%d",ssTyp);
-          irc=-1;
-      }
-
-      break;
-
-
-    //----------------------------------------------------------------
-    // support-surfaces, notTrimed-notPerforated
-    //----------------------------------------------------------------
-    case Typ_SURRV:
-      // support-surface - RevolvedSurface;
-      irc = TSU_DrawSurTRV (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURRU:
-      // Typ=Typ_SURRU: RuledSurface;
-      irc = TSU_DrawSurTRU (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURBSP:
-      // support-surface - B-SplineSurface
-      irc = TSU_DrawSurBsp (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURRBSP:
-      // support-surface - Rat.B-SplineSurface
-      irc = TSU_DrawSurRBsp (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURSWP:
-      // support-surface - B-SplineSurface
-      irc = Tess_sur__ (oxi, att, dbi);
-      break;
-
-
-    //----------------------------------------------------------------
-    // tesselated-surfaces
-    //----------------------------------------------------------------
-    // case Typ_SURPMSH:
-//       // no example .. see INF_FMTB_Surface_PMSH
-//       irc = TSU_DrawSur... (oxi, att, dbi);
-//       break;
-
-    //----------------------------------------------------------------
-    case Typ_SURCIR:
-      // circular faces 
-      irc = TSU_DrawRCIR (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURSTRIP:
-      // stripe from faces
-      irc = TSU_DrawRSTRIP (oxi, att, dbi);
-      break;
-
-
-    //----------------------------------------------------------------
-    // other-surfaces
-    //----------------------------------------------------------------
-    case Typ_SURHAT:
-      // hatched-surface
-      irc = TSU_DrawHAT (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURPMSH:
-      // surface from points
-      irc = TSU_DrawSurPMsh (oxi, att, dbi);
-      break;
-
-    //----------------------------------------------------------------
-    case Typ_SURPTAB:
-      // boundary of surface from points
-      irc = GR_disp_cv_pMesh (dbi, att);
-      break;
-
-
-    //----------------------------------------------------------------
-    default:
-      TX_Print("GR_set_sur E1 %d",oxi->typ);
-      irc = -1;
+  if(irc < 0) {
+    sprintf(cBuf,"degenerate element A%ld",dbi);
+    if(MDL_IS_SUB) {
+      strcat(cBuf, " in Submodel ");
+      strcat(cBuf, DB_mdlNam_iBas(AP_modact_ibm));
     }
-    goto L_exit;
-
-
-    if(irc < 0) {
-      sprintf(cBuf,"degenerate element A%ld",dbi);
-      if(MDL_IS_SUB) {
-        strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ind));
-      }
-      TX_Print(cBuf);
-    }
+    TX_Print(cBuf);
+  }
 //     AP_dli_act = TSU_dli_get ();
  
 
@@ -821,11 +706,11 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
       GL_att_sym (att);   // set color
       if(mode) {
         // 1 = display exact size (length)
-        GR_set_symV_o (OPERS_NONE, SYM_VEC, att, NULL, (Vector*)obj, 
+        GR_set_symV3 (OPERS_NONE, SYM_VEC, att, NULL, (Vector*)obj, 
                        UT3D_len_vc((Vector*)obj));
       } else {
         // 0 = display normalized length
-        GR_set_symV_o (OPERS_NONE, SYM_ARROW, att, NULL, (Vector*)obj, 1.);
+        GR_set_symV3 (OPERS_NONE, SYM_ARROW, att, NULL, (Vector*)obj, 1.);
       }
       break;
 
@@ -835,7 +720,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
       pta[1] = ((Line*)obj)->p2;
       GL_att_cv (att);
       GL_set_pcv (2, pta, 1); // GL_LINE_STRIP
-      if(APT_obj_stat) GL_set_dir_2pt (&pta[1], &pta[0]);
+      if(APT_obj_stat) GL_set_arrh3D (&pta[1], &pta[0]);
       break;
 
     //================================================================
@@ -982,16 +867,25 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
 //====================================================================
-  void GR_Init1 () {
+  void GR_Init1 (int mode) {
 //====================================================================
 // is calle from ED_work_END
+//   mode    0=clear also basic-models
+//           1=do not clear basic-models
+
 
 
   // printf("GGGGGGGGGGGG GR_Init1\n");
 
-  GL_temp_del_all ();       // delete ALL objects in temp-area of DispList
-  GL_Init1 ();              // delete displist
-  AP_mdlbox_invalid_set();  // set AP_stat.mdl_box_valid = void
+  // delete ALL objects in temp-area of DispList
+  GL_temp_del_all ();
+
+
+  // delete displist
+  GL_Init1 ();
+
+
+  AP_mdlbox_invalid_set();   // set AP_stat.mdl_box_valid = void
 
   // OPAR_init ();
 
@@ -1732,7 +1626,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
 
-  // printf("GR_CreSol__ %ld %d\n",*ind,attInd);
+  // printf("GR_CreSol__ ind=%ld att=%d\n",*ind,attInd);
   // printf(" typ=%d form=%d\n",db1->typ,db1->form);
   // DEB_dump_ox_0 (db1, "GR_CreSol__");
   // DEB_dump_ox_s_ (db1, "GR_CreSol__");
@@ -2582,7 +2476,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 ///     TSU_DrawSurTRU                 -
 ///     TSU_DrawSurTRV                 -
 ///     TSU_DrawSurTS                  -
-///     TSU_DrawSurTP                  -
+///     TSU_DrawSurTP1                  -
 ///     TSU_DrawSurTC                  -
 ///   GR_CreFan                        -
 ///   GR_DrawStrip                     -
@@ -2801,7 +2695,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
       if(MDL_IS_SUB) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ind));
+        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ibm));
       }
       TX_Print(cBuf);
     }
@@ -2819,7 +2713,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
       sprintf(cBuf,"degenerate element A%ld",apt_ind);
       if(MDL_IS_SUB) {
         strcat(cBuf, " in Submodel ");
-        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ind));
+        strcat(cBuf, DB_mdlNam_iBas(AP_modact_ibm));
       }
       TX_Print(cBuf);
     }
@@ -3384,7 +3278,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   if(opers > OPERS_CLOSE) GL_att_cv (att);
   GL_set_pcv (ptNr, pta, 1); // GL_LINE_STRIP
 
-  if(APT_obj_stat) GL_set_dir_2pt (&pta[ptNr - 1], &pta[ptNr - 2]);
+  if(APT_obj_stat) GL_set_arrh3D (&pta[ptNr - 1], &pta[ptNr - 2]);
 
 
   //----------------------------------------------------------------
@@ -3511,7 +3405,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   // get (line-) segment out of polygon
   if(typ == Typ_CVPOL) {
-    if((segNr1 < 1)|(segNr1 >= ((CurvPoly*)obj)->ptNr)) return -1;
+    if((segNr1 < 1)||(segNr1 >= ((CurvPoly*)obj)->ptNr)) return -1;
     GR_DrawPoly (ind, att, 2, &((CurvPoly*)obj)->cpTab[segNr1 - 1]);
 
 
@@ -4898,7 +4792,7 @@ int GR_Delete (long ind)                               {return 0;}
 //===================================================================
 /// \code
 /// GR_tDyn_box__        disp 3D-boundingBox from 2 points
-/// att          see ~/gCAD3D/cfg/ltyp.rc
+/// att          see INF_COL_CV
 ///
 ///      s3---7---s2
 ///     /|        /|
@@ -5564,21 +5458,79 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 }
 
+//================================================================
+  int GR_set_strip_v (Point *pa, Point *pb, int ptAnz, int newS) {
+//================================================================
+// GR_set_strip_v        disp strip vertical
+// newS:  0 = do not start new surface
+// newS:  1 = start new surface
+//
+//
+//     pa      pb
+//      x-------x    [0]
+//      |     / |
+//      |   /   |
+//      | /     |
+//      x-------x    [1]
+//      |     / |
+//      |   /   |
+//      | /     |
+//      x-------x    [2]
+//
+//
+//
+
+  // printf("GR_set_strip_v ptAnz=%d TSU_mode=%d newS=%d\n",ptAnz,TSU_mode,newS);
+  // {int i1;for(i1=0;i1<ptAnz;++i1){
+    // printf("Strip[%d] %.2f,%.2f,%.2f - %.2f,%.2f,%.2f\n",
+      // i1,pa[i1].x,pa[i1].y,pa[i1].z,pb[i1].x,pb[i1].y,pb[i1].z);
+    // GR_set_obj(OPERS_TDYN,0L,Typ_PT,&pa[i1],1,0);
+  // }}
+  // DEB_dump_obj__ (Typ_Color, &GL_actCol, "  GL_actCol:");
+    
+  
+  if(TSU_mode != 0) {                 // 0=draw; 1=store
+    GLT_stor_rec (0, NULL, NULL, 0);  // init
+
+    if((GL_actCol.color != 0) || (GL_actCol.vtra != 0)) {
+      GLT_stor_rec (5, NULL, NULL, 0);
+
+    } else if (GL_actCol.vtex != 0) {
+      // activate active TexRefNr
+      GLT_stor_rec (8, NULL, NULL, GL_actTex);
+    }
+
+  }  else {
+    // if((GL_actCol.color != 0) || (GL_actCol.vtra != 0))
+    GL_ColSet (&GL_actCol);
+  }
+
+  // disp
+  GL_set_strip_v (pa, pb, ptAnz, newS);
+
+  if(TSU_mode != 0)
+    GLT_stor_rec (1, NULL, NULL, 0);  // save
+
+  return 0;
+
+}
+
 
 //================================================================
   int GR_DrawStrip (Point *pa1, Point *pa2, int ptAnz, int newS) {
 //================================================================
 // GR_DrawStrip           add GL-STRIPes into open dispList
-/// \code
-/// newS:  0 = do not start new surface
-/// newS:  1 = start new surface
-/// \endcode
+// REPLACE WITH GR_set_strip_v
+// newS:  0 = do not start new surface
+// newS:  1 = start new surface
 
 
-  // printf("GR_DrawStrip ptAnz=%d TSU_mode=%d\n",ptAnz,TSU_mode);
-  // {int i1;for(i1=0;i1<ptAnz;++i1)
-    // {printf("Strip[%d] %.2f,%.2f,%.2f - %.2f,%.2f,%.2f\n",
-      // i1,pa1[i1].x,pa1[i1].y,pa1[i1].z,pa2[i1].x,pa2[i1].y,pa2[i1].z);}}
+  // printf("GR_DrawStrip ptAnz=%d TSU_mode=%d newS=%d\n",ptAnz,TSU_mode,newS);
+  // {int i1;for(i1=0;i1<ptAnz;++i1){
+    // printf("Strip[%d] %.2f,%.2f,%.2f - %.2f,%.2f,%.2f\n",
+      // i1,pa1[i1].x,pa1[i1].y,pa1[i1].z,pa2[i1].x,pa2[i1].y,pa2[i1].z);
+    // GR_set_obj(OPERS_TDYN,0L,Typ_PT,&pa1[i1],1,0);
+  // }}
   // DEB_dump_obj__ (Typ_Color, &GL_actCol, "  GL_actCol:");
 
 
@@ -5598,6 +5550,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     GL_ColSet (&GL_actCol);
   }
 
+  // disp
   GL_set_strip2 (pa1, pa2, ptAnz, newS);
 
   if(TSU_mode != 0)
@@ -5734,7 +5687,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
     // bspl -> Polygon using PRCV
-    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ind);
+    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ibm);
     if(irc < 0) return -1;
 
 
@@ -5835,7 +5788,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   if((dbi > 0)&&(*dli > 0L)&&(APT_obj_stat == 0)) {
     // bspl -> Polygon using PRCV
-    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ind);
+    irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVBSP, dbi, AP_modact_ibm);
     if(irc < 0) return -1;
 
   } else {
@@ -6212,7 +6165,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     //================================================================
     case Typ_VC:
-      // normalized; see also UI_disp_vec1
+      // normalized; see also UI_prev_vc
       // pt1 = GL_GetCen ();
       // GL_DrawSymV3 (dli, SYM_ARROW, att, &pt1, (Vector*)obj, 10.);
       // GR_temp_vc (ind, obj, NULL, att, mode);
@@ -6840,10 +6793,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //============================================================================
-  int GR_tDyn_symV_r (int typ, int att, Point *p1, Vector *v1, double scale) {
+  int GR_tDyn_symV2 (int typ, int att, Point *p1, Vector *v1, double scale) {
 //============================================================================
-// GR_tDyn_symV_r        disp vector-symbol, rotated (in XY-plane, 2D)
-//   typ       symtyp; SYM_AXIS|SYM_SQUARE|SYM_CROSS ..   see GR_tDyn_symV_o
+// GR_tDyn_symV2        disp vector-symbol, rotated (in XY-plane, 2D)
+//   typ       symtyp; SYM_AXIS|SYM_SQUARE|SYM_CROSS ..   see GR_tDyn_symV3
 //   att       color of symbols            see INF_COL_SYMB
 //   v1        for rotation in XY-plane only; can be NULL
 
@@ -6881,10 +6834,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
 //============================================================================
-  int GR_set_symV_o (int opers, int typ, int att,
+  int GR_set_symV3 (int opers, int typ, int att,
                      Point *p1, Vector *v1, double scale) {
 //============================================================================
-// GR_tDyn_symV_o        disp vector-symbol, oriented (3D, rotate + tilt)
+// GR_set_symV3        disp vector-symbol, oriented (3D, rotate + tilt)
 //   all symbols except SYM_VEC and SYM_LENGTH scale back (have always same length)
 // Input:
 //   opers     object-persistence; temp|tDyn;   see INF_OPERS
@@ -6906,11 +6859,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //   v1        orientation
 
   double  ay, az;
-  Point   ptc;
+  // Point   ptc;
 
 
-  // printf("GR_set_symV_o opers=%dtyp=%d scale=%f\n",opers,typ,scale);
-  // printf("  GL_fakt=%f GL_SclNorm=%f GL_Scale=%f\n",GL_fakt,GL_SclNorm,GL_Scale);
+  // printf("GR_set_symV3 opers=%d typ=%d att=%d scale=%f\n",opers,typ,att,scale);
+  // printf("  GL_SclNorm=%f GL_Scale=%f\n",GL_SclNorm,GL_Scale);
 
 
   //----------------------------------------------------------------
@@ -6926,47 +6879,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   }
 
 
-
   //----------------------------------------------------------------
-  if(p1) ptc = *p1;
-  else   ptc = GL_GetCen();   // ScreenCenter in UserCoords
-    // DEB_dump_obj__ (Typ_PT, &ptc, " temp_vc-ptc");
-
-  //----------------------------------------------------------------
-  // get rot-angle, tilt-angle
-  UT3D_2angr_vc__ (&az, &ay, v1);
-
-  // rad -> deg
-  az = UT_DEGREES(az);
-  ay = UT_DEGREES(ay);
-  // printf("   az=%f ay=%f\n",az,ay);
-
-
-  scale *= GL_SclNorm;
-
-
-  switch (typ) {
-    case SYM_SQUARE:
-    case SYM_PLANE:
-      // display 3D-plane, vc1 is Normalvec !
-      ay -= 90.;
-        // printf("  korr. az=%f ay=%f\n",az,ay);
-      break;
-
-    case SYM_ARROW:
-      scale *= 10.;
-      break;
-
-    case SYM_VEC:
-      // true length, no scaleback
-      scale /= 10.;
-      break;
-  }
+  GL_set_symV3 (typ, p1, v1, scale);
 
 
   //----------------------------------------------------------------
-  GL_set_symV_o (typ, &ptc, az, ay, scale);
-
   if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
 
   return 0;
@@ -7016,9 +6933,10 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// see also GR_temp_pTab
 
 
-  if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB__:");
+  if(tmpDspMode) 
+  DEB_dump_obj__(Typ_PT, pt1, "GR_tDyn_symB__:");
 
-  // get gli
+  // get gli and open new GL-list
   DL_tDyn_init (att);
 
   GL_att_sym (att);   // set color
@@ -7026,6 +6944,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   GL_set_symB (typ, pt1);
 
   GL_list_close (); // close GL-record
+
+    // printf(" ex-GR_tDyn_symB__\n");
 
   return 0;
 
@@ -7065,55 +6985,18 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 }
 
 
-//===================================================================
-  int GR_temp_symV3 (int symTyp, int att,
-                     Point *pt1, Vector *vc1, double scale) {
-//===================================================================
-// GR_temp_symV3            Temp.display oriented vector-symbols
-// alias GR_temp_pt
-// Input:
-//   ind      fixed index: 1 - (DL_base_font1 - 1)
-//            0    get next free index
-//   symTyp:
-//     SYM_ARROW     draw line with arrowhead, length normalized
-//     SYM_SQUARE    draw rectangle normal to vc1
-//     SYM_PLANE     draw filled rectangle normal to vc1
-//     SYM_AXIS1     draw x,y,z.axis normal to vc1
-//     SYM_AXIS      draw x,y,z.axis with x,y-characters normal to vc1
-//     SYM_CROSS     draw cross (X) normal to vc1
-//     SYM_CROSS1    draw symbolic scissor normal to vc1
-//     SYM_TRIANG    draw triangle normal to vc1
-//     SYM_ARROH     draw 2D-arrowhead-only in the x-y-plane
-//     SYM_ARRO3H    draw 3D-arrowhead-only along vc1
-//     SYM_LENGTH    draw line with lenght from scale; not normalized.
-//   att:  colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
-//
-// see GL_DrawSymV3
-
-
-  if(tmpDspMode) DEB_dump_obj__(Typ_PT, pt1, "GR_temp_symB:");
-
-  // get gli
-  DL_temp_init ();
-
-  GL_att_sym (att);   // set color
-
-  GL_set_symV3 (symTyp, pt1, vc1, scale);
-
-  GL_list_close (); // close GL-record
-
-  return 0;
-
-}
-
-
 //================================================================
   int GR_set_mdr (int opers, ModelRef *mdr, long dbi, int att) {
 //================================================================
 // GR_set_mdr             disp subModel from modelreference
+// - import mockup-models (obj stl wrl)
+// - native models must already be loaded in dispList
+// Input:
 //   att                  GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM;
+// Output:
+//   retCode    0=OK, -1=Err
 
-  int        irc;
+  int        irc, mbi;
   long       gli;
   ModelBas   *mdb;
 
@@ -7122,10 +7005,12 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // DEB_dump_obj__ (Typ_Model, mdr, "GR_set_mdr");
 
   // get basicModel
-  mdb = DB_get_ModBas (mdr->modNr);
+  mbi = mdr->modNr;
+  mdb = DB_get_ModBas (mbi);
   if(!mdb) {
     TX_Print ("***** GR_set_mdr basMod %d not exists ...",mdr->modNr);
-    return -1;
+    irc = -1;
+    goto L_exit;
   }
     // DEB_dump_obj__ (Typ_SubModel, mdb, "  set_mdb-mdb: ");
 
@@ -7136,16 +7021,16 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   if((mdb->typ >= Mtyp_TESS)&&(mdb->typ < Mtyp_BMP)) {
     // is mockp-model
     // test if tess-file already loaded and stored in GL (as Typ_Ditto);
-    irc = GR_mdMock_imp (mdb, dbi);
-    if(irc < 0) return irc;
+    irc = GR_mdMock_imp (mdb, (long)mbi);
+    if(irc < 0) goto L_exit;
   }
 
 
   //----------------------------------------------------------------
   // perm
   if(opers & OPERS_PERM) {
-    DL_perm_init (Typ_Model, dbi, att);
-    DL_att_mdr (AP_dli_act, att);     // sel hili|dim
+    DL_perm_init (Typ_Model, (long)dbi, att); // ModelReference
+    DL_att_mdr (AP_dli_act, att);             // sel hili|dim
 
   // tdyn
   } else if(opers & OPERS_TDYN) {
@@ -7164,7 +7049,17 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
 
-  return 0;
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // MDL_dump__ ("ex-GR_set_mdr");
+    // DL_DumpObjTab ("ex-GR_set_mdr");
+    // printf(" ex-GR_set_mdr %d\n",irc);
+
+  return irc;
 
 }
 
@@ -7172,7 +7067,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //================================================================
  int GR_mdMock_imp (ModelBas *mdb, long dbi) {
 //================================================================
-// import VRML|OBJ|STL-file - save as tmp/Data_<moldel>.tess
+// import VRML|OBJ|STL-file - save as tmp/Data_<model>.tess
 //   retCode   0=OK
 // - import model -> tess-file <tmp>/Data_<moldel>.tess
 // - load tess-file into memory-space impSpc
@@ -7180,9 +7075,9 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //
 // was GR_DrawModel
 
-  int        irc, loadMode;
+  int        irc, loadMode, ift;
   long       dli;
-  char       ffnam[256], fsnam[256], mnam[128], ftyp[32], *p1;
+  char       ffnam[256], tessFn[256], safNm[128], ftyp[32], *p1, dllnam[40];
   ObjGX      oTab[4];
   Memspc     impSpc;
   Point      pb1, pb2;
@@ -7190,50 +7085,86 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   // printf("GR_mdMock_imp ------------ dbi=%ld\n",dbi);
+  // printf(" AP_stat.mdl_stat=%d\n",AP_stat.mdl_stat);
   // DEB_dump_obj__ (Typ_SubModel, mdb, "  -mdb");
 
 
   //================================================================
   // test if tess-file already loaded and stored in GL (as Typ_Ditto);
+  if(mdb->DLsiz > 0) goto L_exit;
+
   // "Redraw all" can have removed/overwritten the DL/GL-record; compare typ,dbi
-  irc = DL_ck_typ_dbi (mdb->DLind, Typ_Ditto, mdb->DBind); // 0=yes, 1=no
-  if(!irc) return 0;
+//   irc = DL_ck_typ_dbi (mdb->DLind, Typ_Ditto, mdb->DBind); // 0=yes, 1=no
+//     printf(" _mdMock_imp-DL_ck_typ_dbi-irc = %d\n",irc);
+//   if(!irc) goto L_exit;
 
 
 
   //================================================================
-  // test if file <tmp>/Data_<moldel>.tess exist
 
   // fix a safe modelname
-  strcpy (mnam, mdb->mnam);
-  // mnam ist internal ("abc") od external ("dir/fn")
-  UTX_ftyp_cut (mnam);            // remove fTyp
-  UTX_safeName (mnam, 1);         // change all '. ' to '_', not '/'
-  sprintf(fsnam, "%s%s.tess",OS_get_tmp_dir(),mnam);
-    // printf(" ck fsnam |%s|\n",fsnam);
-  irc = OS_checkFilExist (fsnam, 1);  //0=no, 1=yes.
-  if(irc) goto L_load_tess;   // OK, load file into impSpc &  DL/GL
+  strcpy (safNm, mdb->mnam);
+  // safNm ist internal ("abc") od external ("dir/fn")
+  // UTX_ftyp_cut (mnam);            // remove fTyp
+  UTX_safeName (safNm, 1);         // change all '. ' to '_', not '/'
+    // printf(" _mdMock_imp safNm=|%s|\n",safNm);
 
-  // get full filename
-  Mod_get_path (ffnam, mdb->mnam);
-    // printf(" mock_imp-ex-Mod_get_path ffnam=|%s|\n",ffnam);
+  // set tessFn = filename tess-file (tmp/Model_
+  sprintf(tessFn, "%sMod_%s.tess",OS_get_tmp_dir(),safNm);
+    // printf(" _mdMock_imp tessFn |%s|\n",tessFn);
+
+  // set ffnam = full filename of input (mockup-model)
+  MDLFN_ffNam_syFn (ffnam, mdb->mnam);
+    // printf(" _mdMock_imp-ffnam=|%s|\n",ffnam);
 
 
 
   //================================================================
-  // test if model to load is already type ".tess";
-  // if yes: copy -> <tmp> and load; no recode necessary.
-  p1 = strrchr(mdb->mnam, '.');
-  if(!p1) return -1;
-  if(!strcmp(p1, ".tess")) goto L_load_tess;
+  // set dllnam
+  switch(mdb->typ) {
+    case Mtyp_TESS:
+      goto L_load_tess;
 
+    case Mtyp_WRL:
+      // // get VR-Version of file: V1 or V2
+      ift = AP_ImportWRL_ckTyp (ffnam);
+        // printf(" _mdMock_imp-wrl-ift=%d\n",ift);
+      if(ift == Mtyp_WRL) {
+        strcpy(dllnam, "xa_wrl_r");
+      } else if(ift == Mtyp_WRL2) {
+        // strcpy(dllnam, "xa_vr2_r"); break;
+        TX_Error("***** VR-Version 2 not supported for this version");
+        irc = -1;
+        // on startup clear all
+        if(!AP_stat.mdl_load) {
+          AP_mdl_init (0);
+          MDL_load_new__ ();
+          goto L_exit;
+        }
+        // only in MAN already registered in mdl_tab; delete;
+        MDL_mdl_del (mdb->mnam);
+        goto L_exit;
+      }
+      break;
+
+    case Mtyp_OBJ:
+      strcpy(dllnam, "xa_obj_r");
+      break;
+
+    case Mtyp_STL:
+      strcpy(dllnam, "xa_stl_r");
+      break;
+
+    default:
+      TX_Print("***** GR_mdMock_imp E1 typ %d",mdb->typ); irc = -1; goto L_exit;
+  }
+    // printf(" _mdMock_imp-dllnam=|%s|\n",dllnam);
 
 
   //================================================================
   L_imp_tess:
   // get (import) tess-file (write file <tmp>/Data_<moldel>.tess)
   //   (and keep tess-file in impSpc)
-
     // Die Parametertabelle oTab fuer die DLL generieren.
     UTO_rec_set (&oTab[0], Typ_ObjGX,  Typ_ObjGX,  3, &oTab[1]);
     UTO_rec_set (&oTab[1], Typ_Int4,   Typ_Int4,   1, PTR_INT(1));  // mode
@@ -7241,12 +7172,23 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);
 
     // Load DLL; filename = xa_<fileType>_r.so
-    irc = DLL_run1 (0, ffnam);
+    irc = DLL_run1 (0, dllnam);
     if(irc < 0) return irc;
 
     // load Model --> impSpc
     irc = DLL_run1 (2, oTab);
-    if(irc < 0) return irc;
+    if(irc < 0) goto L_exit;
+
+
+    //----------------------------------------------------------------
+//     // VR2 (over)writes Model_<mnam>; 
+//     if(ift == Mtyp_WRL2) {
+//       goto L_exit;
+//     }
+   
+
+    //----------------------------------------------------------------
+    // wrl obj stl makes tesselated data in impSpc
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
@@ -7258,7 +7200,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     mdb->pb2 = pb2;
 
     // save tesselated data in xa/temp for next run
-    tess_write__ (mnam, impSpc.start);
+    tess_write__ (tessFn, impSpc.start);
 
   // load impSpc into to DL/GL
   goto L_load_DL;
@@ -7269,18 +7211,23 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   L_load_tess:
   // load tess-file into impSpc
 
-  // copy file ffnam -> fsnam
-  OS_file_copy (ffnam, fsnam);
+  // test if file <tmp>/Data_<model>.tess exist
+  irc = OS_checkFilExist (ffnam, 1);  //0=no, 1=yes.
+  if(!irc) {TX_Print("***** GR_mdMock_imp E2 %s",ffnam); irc = -1; goto L_exit;}
+
+  // copy file ffnam -> tessFn
+  OS_file_copy (ffnam, tessFn);
 
   // and import model as mockup into impSpc
-  irc = tess_read_ (&impSpc, mnam);   // 0=OK, exists ..
-  if(irc < 0) return -2;
+  irc = TSU_imp_tess (&impSpc, tessFn);
+//   irc = tess_read__ (&impSpc, tessFn);   // 0=OK, exists ..
+  if(irc < 0) {irc = -2; goto L_exit;}
 
 
 
   //================================================================
   L_load_DL:
-  // load tess-data impSpc into to DL/GL
+  // load tess-data from impSpc into to DL/GL
   // dli = DL_StoreObj (Typ_Ditto, 0L, 0);
   DL_perm_init (Typ_Ditto, dbi, 0);
   dli = AP_dli_act;
@@ -7295,15 +7242,20 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   UME_free (&impSpc);
 
   // update basic-model; now complete.
-  mdb->DBind = dbi;
+//   mdb->DBind = dbi;
   mdb->DLind = dli;
   mdb->DLsiz = 1;
   
+  irc = 0;
+
 
   //================================================================
   L_exit:
 
-  return 0;
+      // MDL_dump__ (" ex-GR_mdMock_imp");
+      // printf(" ex-GR_mdMock_imp %d\n",irc);
+
+    return irc;
 
 }
 
@@ -7319,8 +7271,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //             1  display real length of vector
 //
 // see also GR_temp_vc2
-
-// see also IE_cad_Inp_disp_vc UI_disp_vec1
+// see also IE_cad_inp_vcPos_i UI_prev_vc
 
   Point   pt2;
   Vector  vc2;
@@ -7328,12 +7279,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   UT3D_pt_pt2_z (&pt2, pt1, GL2D_Z);
   UT3D_vc_vc2 (&vc2, vc1);
-
-  if(mode) {
-    GR_tDyn_symV_o (SYM_VEC, att, &pt2, &vc2, UT3D_len_vc(&vc2));  // true
-  } else {
-    GR_tDyn_symV_o (SYM_ARROW, att, &pt2, &vc2, 1.); // norm.
-  }
+  GR_tDyn_vc__ (&vc2, &pt2, att, mode);
 
   return 0;
 
@@ -7352,12 +7298,17 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //
 // see also GR_temp_vc2
 
-// see also IE_cad_Inp_disp_vc UI_disp_vec1
+// see also IE_cad_inp_vcPos_i UI_prev_vc
 
   if(mode) {
-    GR_tDyn_symV_o (SYM_VEC, att, pt1, vc1, UT3D_len_vc(vc1));  // true
+    // disp true length
+    GR_tDyn_symV3 (SYM_LENGTH, att, pt1, vc1, UT3D_len_vc(vc1));
+    // GR_tDyn_symV3 (SYM_VEC, att, pt1, vc1, UT3D_len_vc(vc1));  // true
+   
   } else {
-    GR_tDyn_symV_o (SYM_ARROW, att, pt1, vc1, 1.); // norm.
+    // normalized
+    GR_tDyn_symV3 (SYM_ARROW, att, pt1, vc1, 12.);
+    // GR_tDyn_symV3 (SYM_ARROW, att, pt1, vc1, 1.); // norm.
   }
 
   return 0;
@@ -7380,13 +7331,18 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// see also GR_temp_vc2 GR_set_obj GR_tDyn_vc__
 /// \endcode
 
-// see also IE_cad_Inp_disp_vc UI_disp_vec1
+// see also IE_cad_inp_vcPos_i UI_prev_vc
 
+
+  printf("GR_temp_vc %d\n",mode);
+// TX_Print("**** GR_temp_vc temp OFF .."); return 0;
 
   if(mode) {
-    GR_temp_symV_o (SYM_VEC, att, pt1, vc1, UT3D_len_vc(vc1));  // true
+    // disp true length
+    GR_temp_symV3 (SYM_LENGTH, att, pt1, vc1, UT3D_len_vc(vc1));
   } else {
-    GR_temp_symV_o (SYM_ARROW, att, pt1, vc1, 1.); // norm.
+    // normalized
+    GR_temp_symV3 (SYM_ARROW, att, pt1, vc1, 12.);
   }
 
   return 0;
@@ -7394,12 +7350,59 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 }
 
 
+//================================================================
+  int GR_temp_traRot (TraRot *tra,  int att) {
+//================================================================
+
+  double    a1;
+  Point     pt1;
+  Vector    vx, vz;
+
+
+  printf("GR_temp_traRot %d\n",att);
+  DEB_dump_obj__ (Typ_TraRot, tra, "TraRot:");
+
+
+  DL_temp_init ();
+
+  // a1 = angle
+  // Typ_TraRot  ((TraRot*)tra->data)
+  a1 = tra->angr * -1.;        // umdrehen ! ?
+
+  // get pt2 = origin of matrix
+  UT3D_pt_m3 (&pt1, tra->ma);
+
+  // get axis
+  vz = tra->vz;
+  // UT3D_vc_setLength (&vc1, &vc1, 1.);
+    // DEB_dump_obj__ (Typ_VC, &vc1, "vc1");
+
+  // get vx from vz
+  UT3D_vc_perp1vc (&vx, &vz);
+
+
+  // draw
+  GL_att_cv (att);
+
+  GL_set_ang (att, &pt1, &vx, &vz, a1);
+
+  GL_list_close (); // close GL-record
+
+
+  return 0;
+
+}
+
+ 
 //====================================================================
   int GR_temp_ang (int att, Point *pt1, Vector *vx, Vector *vz, double ang1) {
 //====================================================================
 //   att       color,linetyp,thickness; see INF_COL_CV
 // Input:
 //   ang1     angle in rad; pos=CCW, neg=CW
+//   vx       vector from center to startpt of angle - at o deg
+//   vz       rotate vx around (center-vz) for endvector - at angle <ang1> deg
+// //   vx,vz    def of plane (have 90 deg) vx = 0 deg;
 
 
 // see GL_DrawAngA
@@ -8076,7 +8079,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // get polygon from DB-obj
     MEMTAB_CLEAR (&mtp);
-    irc = UT3D_mtpt_dbo (&mtp, NULL, bTyp, dbi, AP_modact_ind);
+    irc = UT3D_mtpt_dbo (&mtp, NULL, bTyp, dbi, AP_modact_ibm);
     if(irc < 0) {
       TX_Print("******* GR_temp_att_1 E-%d %ld",bTyp,dbi);
       continue;
@@ -8105,7 +8108,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
       //----------------------------------------------------------------
       } else {
         // display direction
-        GL_set_dir_2pt (&pta[ptNr - 1], &pta[ptNr - 2]);
+        GL_set_arrh3D (&pta[ptNr - 1], &pta[ptNr - 2]);
       }
 
   }

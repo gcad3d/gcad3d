@@ -58,7 +58,9 @@ __________________________________________________________________________
 With RemoteControl you can control the cad-program gCAD3D from programs.
 All programming languages can be used, even shell-scripts.
 For input and output 2 pipes (Linux; MS-Windows: Files) are used.
-Input/outputpipe are created in directory {tmpdir};
+Input/outputpipe are created in directory {tmpdir}.
+The temp-directory of gcad is indicated at strtup in the console-window -
+  (eg Unix " basdir = |/mnt/serv2/devel/gcad3d/|")
   for default-installation this is:
 Linux:
   the inputpipe is ${HOME}/gCAD3D/tmp/CTRLpin;
@@ -67,18 +69,27 @@ MS_Windows:
   Input from %APPDATA%\gCAD3D\tmp\CTRLpin
   Output to %APPDATA%\gCAD3D\tmp\CTRLpout
 
+A system-variable can be set - 
+  Unix "RCTL=/mnt/serv2/devel/gcad3d/CTRLpin"
+    Command scan be sent now to $RCTL
+  MS-Win: set RCTL="%APPDATA%\gCAD3D\tmp\CTRLpin"
+    Command scan be sent now to %RCTL%
+
 
 Input and output is done with textcodes, not binary.
 You can send commands from a terminalprogram (Linux: xterm oder gnome-terminal; MS-Windows: cmd)
   to gcad (example: clear active model):
 Linux:
   echo 'new' > ~/gCAD3D/tmp/CTRLpin
+  or
+  echo 'new' > $RCTL
 MS_Windows:
   echo new>"%APPDATA%\gCAD3D\tmp\CTRLpin"
-
+  or
+  echo new>%RCTL%
 
 Send a commandfile to remoteControl:
- - put the following 6 lines into  file t1.dat:
+ - put the following 4 lines into  file t1.cmd:
 new
 add(P1=P(100 0 0))
 add(C1=P1 50)
@@ -86,9 +97,13 @@ add(C1=P1 50)
 
 Send the file:
 Linux:
-  cat t1.dat > ~/gCAD3D/tmp/CTRLpin
+  cat t1.cmd > ~/gCAD3D/tmp/CTRLpin
+  or 
+  cat t1.cmd > $RCTL
 MS_Windows:
-  copy t1.dat "%APPDATA%\gCAD3D\tmp\CTRLpin"
+  copy t1.cmd "%APPDATA%\gCAD3D\tmp\CTRLpin"
+  or
+  copy t1.cmd %RCTL%
 
 
 Receiving output from gcad (eg display the output in a terminal-window):
@@ -237,13 +252,28 @@ LOADSM(submodel)     // load submodel (can only load native models (.gcad))
 # submodels need to be in a symbolic directory. See SETSYMDIR.
 # Example load submodels, use submodels:
 echo 'new' > ~/gCAD3D/tmp/CTRLpin
-echo 'loadsm("Data/sample_mod_blech1.gcad")' > ~/gCAD3D/tmp/CTRLpin
-echo 'loadsm("Data/sample_mod_screw1.gcad")' > ~/gCAD3D/tmp/CTRLpin
-echo 'loadsm("Data/sample_mod_nut1.gcad")' > ~/gCAD3D/tmp/CTRLpin
-echo 'add(M20="sample_mod_blech1" P(0 10 0))' > ~/gCAD3D/tmp/CTRLpin
-echo 'add(M21="sample_mod_screw1" P(30 36.5 67))' > ~/gCAD3D/tmp/CTRLpin
-echo 'add(M22="sample_mod_nut1" P(36 36.5 67))' > ~/gCAD3D/tmp/CTRLpin
+echo 'loadsm("Data/sample_mod_blech1.gcad")' > $RCTL
+echo 'loadsm("Data/sample_mod_screw1.gcad")' > $RCTL
+echo 'loadsm("Data/sample_mod_nut1.gcad")' > $RCTL
+echo 'add(M20="Data/sample_mod_blech1.gcad" P(0 10 0))' > $RCTL
+echo 'add(M21="Data/sample_mod_screw1.gcad" P(30 36.5 67))' > $RCTL
+echo 'add(M22="Data/sample_mod_nut1.gcad" P(36 36.5 67))' > $RCTL
 
+or copy into file test.cmd:
+new
+loadsm("Data/sample_mod_blech1.gcad")
+loadsm("Data/sample_mod_screw1.gcad")
+loadsm("Data/sample_mod_nut1.gcad")
+add(M20="Data/sample_mod_blech1.gcad" P(0 10 0))
+add(M21="Data/sample_mod_screw1.gcad" P(30 36.5 67))
+add(M22="Data/sample_mod_nut1.gcad" P(36 36.5 67))
+# eof
+
+and execute with -
+Unix:
+  cat test.cmd > $RCTL
+MS-Win:
+  copy test.cmd %RCTL%
 
 __________________________________________________________________________
 <p><a name="SAV"></a></p>
@@ -324,7 +354,7 @@ __________________________________________________________________________
 ATTL(linetypNr,objects)             // apply predefined linetype to object
 
 
-# linetypNr 0 - 12 are predefined in file ~/gCAD3D/cfg/ltyp.rc
+# linetypNr 0 - 12 are predefined in file ~/gCAD3D/cfg_{os}/ltyp.rc
 # See <a href="Settings_en.htm#Linetypes">Defaultsettings</a>
 
 # use linetypNr=8 for L21 and L22

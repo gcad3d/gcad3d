@@ -71,7 +71,7 @@ D22=D21 REV
 
 <HR><!-- ============================================================ -->
 <a name="F1"></a>
-<h2>VEC objects</h2>
+<h2>VEC from objects</h2>
 Vectors parallel or right-angled to existing objects.
 
    Obj1              Line or curve or surface
@@ -79,24 +79,55 @@ Vectors parallel or right-angled to existing objects.
    [PT or VC]        additional object (parallel / normal vector)
    [Length]          Definition of vector length
    [REVers]          Reverse Direction ("REV"; with Page Down key)
-   [parallel-across] parallel (tangential) or normal (rectangular (CX))
+   [parallel-across] parallel (tangential (PARL)) or normal (rectangular (CX))
 
 
-   Vectors -
-   - between 2 points, with given length, reverse
-   - from line or polygon-segment
+<b>Parallel vector:</b>
 
-   Normal vectors:
-   - to circle or plane or ellipse
-   - to 3 points          (Obj1 (2 points), Point)
-   - to line, point       (Obj1, Point)
-   - to 2 lines/vectors   (Obj1, -, PT or VC)
-   - to surface (until now only B-SplineSurface)
+  Vector tangential to curve
+   Obj1              Line or curve or surface
+   [Point (on obj)]  Basepoint of vector on curve / surface
+   [Length]
+   [REVers] 
 
-   Tangential vectors:
-   - tangential to curve - point on curve  (select curve and point on this curve)
-   - parallel to Isoparametric of point on surface (PARL = direction U; CX = V)
+  Vector between 2 points
+   Obj1              startpoint
+   [Point (on obj)]  endpoint
+   [Length]
+   [REVers] 
 
+  Vector on surface parallel to Isoparametric direction U or V
+   - not yet implemented for all surface-types
+  Vector X-axis or Y-axis for circle ellipse plane
+   Obj1              surface circle ellipse or plane
+   [Length]
+   [REVers] 
+   PARL oder CX      PARL: direction U (along)
+                     CX:   direction V (across)
+                     none: Normalvector to surface
+
+
+
+<b>Normal vector:</b>
+
+  Normalvector to circle ellipse plane surface
+   - not yet implemented for all surface-types
+   Obj1              circle ellipse plane surface
+   [Length]
+   [REVers] 
+
+  Normalvector to plane from 2 linear segments (crossproduct):
+   Obj1              line or vector
+   [PT or VC]        point or vector or vector from line
+   [Length]
+   [REVers] 
+
+  Normalvector to plane from 3 points (crossproduct):
+   Obj1              point on x-axis
+   [Point (on obj)]  origin (startpoint for X-axis, Y-axis)
+   [PT or VC]        point near Y-axis
+   [Length]
+   [REVers] 
 
 
 Examples:
@@ -113,8 +144,10 @@ D5=P1 P2 VAL(100)
 # Normal vector to line L20:
 D20=L20 DZ
 
-# X-axis-Vector of plane R20
-D20=R20 PARL
+# Vectors of existing Plane:
+D20=R20         # Z-axis-Vector of plane R20
+D20=R20 PARL    # X-axis-Vector of plane R20    or eg "D(R20 PARL)"
+D20=R20 CX      # Y-axis-Vector of plane R20   
 
 
 

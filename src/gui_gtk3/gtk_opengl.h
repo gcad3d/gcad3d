@@ -16,4 +16,6 @@ MemObj GUI_gl__ (MemObj *o_par, void *fDraw, char *opts);
   int GUI_gl_size     (int *x, int *y);
   int GUI_gl_idle1    (void* data);
 
+// static int GLB_realize (GtkGLArea *area, GdkGLContext *context);
+
 // EOF

@@ -207,19 +207,21 @@ Typ_M4x3:
 
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 
-#include "../xa/xa.h"                  // AP_IS_3D
+#include "../xa/xa.h"                  // CONSTRPLN_IS_OFF
 
 
 
 //===========================================================================
 // EXTERNALS:
 
-// aus xa.c:
+// ../xa/xa.c:
 extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
 extern Mat_4x3   WC_sur_mat;            // TrMat of ActiveConstrPlane
 extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
+// ../ci/NC_Main.c:
+extern int     APT_obj_stat;       // 0=permanent, 1=temporary (workmode)
 
 
 //===========================================================================
@@ -245,13 +247,13 @@ int UTRA_app_vc (Vector*, Vector*);
 
 
 //================================================================
-  int UTRA_dump__ () {
+  int UTRA_dump__ (char *inf) {
 //================================================================
 /// UTRA_dump__             dump translation-data
 
   int   i1;
 
-  printf("=========== UTRA_dump__  %d ===========\n",TRA_NR);
+  printf("=========== UTRA_dump__  %s %d ===========\n",inf,TRA_NR);
 
   for(i1=0; i1<TRA_NR; ++i1) {
     printf(" TRA_TYP[%d] = %d\n",i1,TRA_TYP[i1]);
@@ -277,13 +279,13 @@ int UTRA_app_vc (Vector*, Vector*);
 
 
   // printf("UTRA_app_ox \n");
-  // UTRA_dump__ ();  // disp translObj
+  UTRA_dump__ ("UTRA_app_ox");  // disp translObj
   // DEB_dump_ox_0 (ox1, "ox1");
 
 
   // is output a single data-record or a ox
   fTyp = UTO_ck_dbsTyp (ox1->form);  // 0=struct(D,P,L,C); 1=oGX(S,N,A,B);
-     // printf(" fTyp=%d\n",fTyp);
+     printf(" fTyp=%d\n",fTyp);
 
   if(!fTyp) {
     // std-struct; VPDLCRMI not SABNT
@@ -302,7 +304,9 @@ int UTRA_app_vc (Vector*, Vector*);
   } else {
     // struct; SABNT not VPDLCRMI
     // 1=already ObjGX
-    irc = UTRA_app__ (ox2, ox1->typ, ox1->form, ox1->siz, ox1->data, wrkSpc);
+    *ox2 = *ox1;  // copy ObjGX
+    // transform all childs
+    irc = UTRA_app__ (ox2->data, ox1->typ, ox1->form, ox1->siz, ox1->data, wrkSpc);
   }
 
 
@@ -318,12 +322,12 @@ int UTRA_app_vc (Vector*, Vector*);
 // transform from world to userCoordsystem (absolut to constructionPlane)
 // TODO !
 /
-    if(AP_IS_2D) {
+    if(CONSTRPLN_IS_ON) {
       UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
       UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
-if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
+if(CONSTRPLN_IS_ON) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+if(CONSTRPLN_IS_ON) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -343,12 +347,12 @@ WC_sur_mat WC_sur_imat
 // transform from userCoordsystem to world  (constructionPlane to absolut)
 // TODO !
 /
-    if(AP_IS_2D) {
+    if(CONSTRPLN_IS_ON) {
       UT3D_pt_tra_pt_m3 (&ln_out->p1, WC_sur_mat, &pta);
       UT3D_vc_tra_vc_m3 (&vc1, WC_sur_mat, &vc1);
-if(AP_IS_2D) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
+if(CONSTRPLN_IS_ON) UT3D_vc_tra_vc_m3 (&vc1, WC_sur_imat, &vc1);
 // der Punkt ist absolutKoordinaten; umrechnen in relative Koordinaten
-if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+if(CONSTRPLN_IS_ON) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
 WC_sur_ind WC_sur_act
 WC_sur_mat WC_sur_imat
 /
@@ -669,20 +673,19 @@ WC_sur_mat WC_sur_imat
 
 
 //============================================================================
-  int UTRA_app_dbo (long *dbi, int *typ, Memspc *wrkSpc) {
+  int UTRA_app_dbo (long *dbi, int *typ, int ipr, Memspc *wrkSpc) {
 //============================================================================
-/// \code
-/// UTRA_app_dbo    transform DB-object (typ,DB-ind) and store in DB
-/// Returns new (dynamic) index in dbi.
-/// Transform objects from inside a struct (eg SurRev axis or contour)
-/// Input:
-///   dbi   DB-index of obj to transform and to store
-///   typ   dbtyp
-///   wrkSpc   memspc for Typ_CVPOL and Typ_CVBSP; else can be NULL
-/// Output:
-///   dbi   DB-index of new stored obj (dyn.obj!)
-///   typ   exact type of curve or surf
-/// \endcode
+// UTRA_app_dbo    transform DB-object (typ,DB-ind) and store in DB
+// Returns new (dynamic) index in dbi.
+// Transform objects from inside a struct (eg SurRev axis or contour)
+// Input:
+//   dbi   DB-index of obj to transform and to store
+//   typ   dbtyp
+//   ipr      1=create PRCV, 0=not;
+//   wrkSpc   memspc for Typ_CVPOL and Typ_CVBSP; else can be NULL
+// Output:
+//   dbi   DB-index of new stored obj (dyn.obj!)
+//   typ   exact type of curve or surf
 
   int     irc, i1, oNr, oTyp, fTyp, sTyp, form;
   long    oSiz;
@@ -734,22 +737,31 @@ WC_sur_mat WC_sur_imat
   irc = DB_store_obj (&vp1, ox2.typ, ox2.form, opo, ox2.siz, dbi);
   if(irc < 0) return irc;
 
+  if(ipr) {
+    // create PRCV
+    irc = PRCV_set_obj_dbi (ox2.form, opo, 1, ox2.typ, *dbi);
+    if(irc < 0) return irc;
+  }
+
   // restore wrkSpc
   UME_set_next (mSpc, wrkSpc);
 
-    // printf("ddddddddddddd ex-UTRA_app_dbo irc=%d typ=%d dbi=%ld\n",irc,*typ,*dbi);
+    // printf("ddddddddddd ex-UTRA_app_dbo irc=%d typ=%d dbi=%ld\n",irc,*typ,*dbi);
 
   return 0;
 
 }
 
 
-//================================================================
-  int UTRA_app_CCV (CurvCCV *objo, CurvCCV *obji, Memspc *wrkSpc) {
-//================================================================
-/// UTRA_app_CCV          transform a single CCV
-/// objo     outputobj (a single CurvCCV)
-/// wrkSpc   for additional data, eg pTab for Polygon
+//==========================================================================
+  int UTRA_app_CCV (CurvCCV *objo, CurvCCV *obji, int ipr, Memspc *wrkSpc) {
+//==========================================================================
+// UTRA_app_CCV          transform a single CCV
+// Input:
+//   ipr      1=create PRCV, 0=not;
+//   wrkSpc   for additional data, eg pTab for Polygon
+// Output:
+//   objo     outputobj (a single CurvCCV; data can be in wrkSpc)
 
 
   int    irc, typ;
@@ -757,6 +769,7 @@ WC_sur_mat WC_sur_imat
   Point  pt1;
 
 
+  // printf("UTRA_app_CCV ipr=%d\n",ipr);
   // DEB_dump_obj__ (Typ_CVTRM, obji, "UTRA_app_CCV-obji:");
 
 
@@ -772,8 +785,8 @@ WC_sur_mat WC_sur_imat
     // lines do not have dbi (basic-curve)
     typ = obji->typ;
     // transform DB-obj & store in DB
-    irc = UTRA_app_dbo (&objo->dbi, &typ, wrkSpc);
-      // printf("ex UTRA_app_dbo irc=%d dbi=%ld typ=%d\n",irc,objo->dbi,typ);
+    irc = UTRA_app_dbo (&objo->dbi, &typ, ipr, wrkSpc);
+      // printf(" _app_CCV-UTRA_app_dbo irc=%d dbi=%ld typ=%d\n",irc,objo->dbi,typ);
       // DBO_dump__ (typ, objo->dbi);
     if(irc < 0) return -1;
   }
@@ -1155,7 +1168,8 @@ WC_sur_mat WC_sur_imat
         // printf(" copy CVCCV\n");
 
       L_CCV_nxt:
-      UTRA_app_CCV (objo, obji, wrkSpc);
+      // create PRCV if permanent
+      UTRA_app_CCV (objo, obji, ICHG01(APT_obj_stat), wrkSpc);
       if(iNr > 1) {
         --iNr;
         objo = (char*)objo + sizeof(CurvCCV);
@@ -1196,14 +1210,14 @@ WC_sur_mat WC_sur_imat
       // translate Axis typCen/indCen
       typ = ((SurRev*)obji)->typCen;
       dbi = ((SurRev*)obji)->indCen;
-      irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
+      irc = UTRA_app_dbo (&dbi, &typ, 1, wrkSpc);
       if(irc < 0) goto L_EOM;
       ((SurRev*)objo)->indCen = dbi;
 
       // translate Contour typCov/indCov
       typ = ((SurRev*)obji)->typCov;
       dbi = ((SurRev*)obji)->indCov;
-      irc = UTRA_app_dbo (&dbi, &typ, wrkSpc);
+      irc = UTRA_app_dbo (&dbi, &typ, 1, wrkSpc);
       if(irc < 0) goto L_EOM;
       ((SurRev*)objo)->indCov = dbi;
 
@@ -1355,7 +1369,7 @@ WC_sur_mat WC_sur_imat
           if((dbTyp == Typ_VC)    ||
              (dbTyp == Typ_VAR))        continue;
           // transform DB-object (typ,DB-ind) and store in DB
-          irc = UTRA_app_dbo (&dbi, &dbTyp, wrkSpc);
+          irc = UTRA_app_dbo (&dbi, &dbTyp, 0, wrkSpc);
           if(irc < 0) goto L_EOM;
           // store new dbi in objo
           OGX_SET_INDEX (&oxo[i1], dbTyp, dbi);
@@ -2082,7 +2096,7 @@ WC_sur_mat WC_sur_imat
 // see UTRA_pt_abs2rel__
 
 
-  if(AP_IS_3D) {
+  if(CONSTRPLN_IS_OFF) {
     memcpy (robj, aobj, UTO_siz_stru(typ));
     return 0;
   }
@@ -2293,7 +2307,7 @@ exit(0);
   // DEB_dump_obj__(typ, robj, "  robj:");
 
   
-  if(AP_IS_3D) {
+  if(CONSTRPLN_IS_OFF) {
     memcpy (aobj, robj, UTO_siz_stru(typ));
     return 0;
   }
@@ -2523,6 +2537,65 @@ exit(0);
     TX_Error("UTRA_tra_ci EOM");
     return -1;
 }
+
+
+
+// //----------------------------------------------------------------
+// // UTRA_UCS_WCS_VC                      transfer vector from WCS into UCS
+// // input is absolute; if constrPlane is active, transfer input into UCS
+// void UTRA_UCS_WCS_VC (Vector* vco, Vector* vci) {
+// // #define UTRA_UCS_WCS_VC(vco, vci) {
+// 
+//   DEB_dump_obj__ (Typ_VC, vci, "UTRA_UCS_WCS_VC ind=%d",WC_sur_ind);
+// 
+//   if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_imat, vci);
+//   else if(vco != vci) *vco = *vci;
+// 
+//   DEB_dump_obj__ (Typ_VC, vco, "ex-UTRA_UCS_WCS_VC");
+// 
+// }
+// 
+// // UTRA_UCS_WCS_PT                      transfer point from WCS into UCS
+// // input is absolute; if constrPlane is active, transfer input into UCS
+// void UTRA_UCS_WCS_PT (Point* pto, Point* pti) {
+// // #define UTRA_UCS_WCS_PT(pto, pti) {
+// 
+//   DEB_dump_obj__ (Typ_PT, pti, "UTRA_UCS_WCS_PT ind=%d",WC_sur_ind);
+// 
+//   if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_imat, pti);
+//   else if(pto != pti) *pto = *pti;
+// 
+//   DEB_dump_obj__ (Typ_PT, pto, "ex-UTRA_UCS_WCS_PT");
+// 
+// }
+// 
+// // UTRA_WCS_UCS_VC                      transfer vector from UCS into WCS
+// // input is absolute; if constrPlane is active, transfer input into WCS
+// void UTRA_WCS_UCS_VC (Vector* vco, Vector* vci) {
+// // #define UTRA_WCS_UCS_VC(vco, vci) {
+// 
+//   DEB_dump_obj__ (Typ_VC, vci, "UTRA_WCS_UCS_VC ind=%d",WC_sur_ind);
+// 
+//   if(WC_sur_ind) UT3D_vc_tra_vc_m3 (vco, WC_sur_mat, vci);
+//   else if(vco != vci) *vco = *vci;
+// 
+//   DEB_dump_obj__ (Typ_VC, vco, "ex-UTRA_WCS_UCS_VC");
+// 
+// }
+// 
+// // UTRA_WCS_UCS_PT                      transfer point from UCS into WCS
+// // input is absolute; if constrPlane is active, transfer input into WCS
+// void UTRA_WCS_UCS_PT (Point* pto, Point* pti) {
+// // #define UTRA_WCS_UCS_PT(pto, pti) {
+// 
+//   DEB_dump_obj__ (Typ_PT, pti, "UTRA_WCS_UCS_PT ind=%d",WC_sur_ind);
+// 
+//   if(WC_sur_ind) UT3D_pt_tra_pt_m3 (pto, WC_sur_mat, pti);
+//   else if(pto != pti) *pto = *pti;
+// 
+//   DEB_dump_obj__ (Typ_PT, pto, "ex-UTRA_WCS_UCS_PT");
+// 
+// }
 
 
 //====================== EOF =============================

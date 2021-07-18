@@ -1,10 +1,11 @@
 
-/// prereq: xa.h (AP_stat, APP_OBJ_NAM)
+// prereq: xa.h (AP_stat, APP_act_typ, APP_OBJ_NAM)
+//         extern APP_act_typ
 
 
 
-/// PRC_is_active      returns 0 if process is active else 1
-/// usage:  if(PRC_IS_ACTIVE) {   // process is active ..
+// PRC_is_active      returns 0 if process is active else 1
+// usage:  if(PRC_IS_ACTIVE) {   // process is active ..
 #define PRC_IS_ACTIVE (AP_stat.APP_stat)&&(APP_act_typ==2)
 
 

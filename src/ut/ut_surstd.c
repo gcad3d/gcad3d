@@ -113,8 +113,8 @@ List_functions_end:
 //
 // see also UTO_ck_surfTyp SUR_ck_typ
 
-  int     ssTyp, ssForm;
-  long    l1;
+  int     ssTyp, ssForm, oNr;
+  long    l1, dbi;
   ObjGX   *sso, *os;
 
 
@@ -136,22 +136,36 @@ List_functions_end:
 
 
   //----------------------------------------------------------------
-  if(ssTyp == Typ_SUR) {
+  if(ssForm == Typ_Index) {
+    OGX_GET_INDEX (&ssTyp, &dbi, sso);
+    printf(" sTyp=%d dbi=%ld\n",ssTyp,dbi);
 
-    if(ssForm == Typ_Index) {  // 100
-      l1 = LONG_PTR(sso->data);
-      // printf("  StuetzFl.A%d\n",i2);
-      sso = DB_GetSur (l1, 0);
-      goto L_1;
+    if(dbi) {
+      UTO__dbo (ssDat, &oNr, ssTyp, dbi);
+         DEB_dump_obj__(ssTyp, *ssDat, "suppSurf-L1");
+     } else ssDat = NULL;   // undefined, eg for planar surfeg for planar surf
+    // goto L_1;
 
-    } else {TX_Error("UTO_get_suppSurf E001"); return -1;}
+  } else {TX_Error("UTO_get_suppSurf E001"); return -1;}
 
-  }
+
+//   if(ssTyp == Typ_SUR) {
+// 
+//     if(ssForm == Typ_Index) {  // 100
+//       l1 = LONG_PTR(sso->data);
+//       // printf("  StuetzFl.A%d\n",i2);
+//       sso = DB_GetSur (l1, 0);
+//       goto L_1;
+// 
+//     } else {TX_Error("UTO_get_suppSurf E001"); return -1;}
+// 
+//   }
 
 
   //----------------------------------------------------------------
   switch (ssTyp) {
 
+    case Typ_PLN:
     case Typ_Typ:
       // if(ssForm == Typ_Typ)
       ssTyp = Typ_SURPLN;
@@ -546,6 +560,7 @@ List_functions_end:
         // printf(" Stuetz:typ=%d form=%d\n",oxp1->typ,oxp1->form);
       if(oxp1->typ == Typ_Typ) continue;
       if(oxp1->typ == Typ_SUR) continue;
+      if(oxp1->typ == Typ_PLN) continue;      // surpln - 2020-12-18
       if(oxp1->typ == Typ_SURBSP) continue;
       if(oxp1->typ == Typ_SURRBSP) continue;
       if(oxp1->typ == Typ_SURRU) continue;
@@ -679,7 +694,7 @@ List_functions_end:
 
 
 // TODO: use PRCV_npt_dbo__
-  // irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVTRM, dbi, AP_modact_ind);
+  // irc = PRCV_npt_dbo__ (&pTab, &ptNr, Typ_CVTRM, dbi, AP_modact_ibm);
     // if(irc < 0) return -1;
 
 

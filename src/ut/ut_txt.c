@@ -52,7 +52,7 @@ UTX_cp_word_term       copy word bis zum Terminator
 UTX_cp_word__          copy next word
 UTX_cp_word_nr1        copy word nr <wNr> out of string
 UTX_cp_word_t          copy next word, give terminator
-UTX_cp_expr            copy expression (without brackets)
+UTX_cp_expr            copy expression (text enclosed in brackets)
 UTX_cp_print           add maxLen printable characters from txi --> txo
 // APT_cp_ausd         kopiert einen Ausdruck (kompletter Klammerinhalt)
 UTX_CP__               copy n chars - terminate with '\0'                  INLINE
@@ -91,6 +91,7 @@ UTX_CleanSC            Change SpecialChars into '?' (alle „” -> ?)
 UTX_CleanAN            Change all chars not alpha or numeric into '_'
 UTX_CleanBracks        Remove first/last char (brackets, '"', ..)
 UTX_endDelChar         if last char of string == chr: remove it
+UTX_endDel_crlf        delete all cr,lf from end of string
 UTX_endDelWord         remove last word; delimiting char; keep or not.
 UTX_endAddChar         if last char of string != chr: add it
 UTX_del_right          delete last characters
@@ -98,7 +99,7 @@ UTX_del_chr            delete all characters <cx> out of string cbuf
 UTX_del_follBl         delete following blanks, return strLen
 UTX_del_foll0          Delete following 0s and following "."
 UTX_del_foll_chrn      delete last char if it is in list
-UTX_del_FilTx          delete all lines containing <dtxt>
+UTX_del_FilTx          delete all lines containing <dtxt> in file
 
 UTX_chg_chr1           in cBuf alle oldChr aendern in newChr
 UTX_chg_nr             change following int-number
@@ -197,14 +198,21 @@ UTX_fnam_rel2abs       make absolute filename from relative Filename and actDir
 UTX_fnam_abs2rel       make relative filename from absolutFilename and actDir
 UTX_fdir_cut           cut last subpath from path
 
+UTX_fget_add_MS        add file into memSpc (remove CR from MS-files)  
 UTX_fgets              Zeile aus Datei lesen und CRs LFs am Ende deleten
 UTX_fgetLine           Zeile Nr. <lNr> aus Datei <filNam> lesen
+UTX_fget_lnTxt         find line in file
+UTX_fmod_lnTxt         modify | delete line in file
 UTX_fsavLine           Zeile Nr. <lNr> into Datei <filNam> schreiben
 UTX_fjoin__            join 2 files
+UTX_fjoin_121          join file fn1 to separator, file fn2, remainder of fn1
 UTX_fRevL              File revert lines; eine Datei zeilenweise umdrehen;
 UTX_str_file           read file -> string; remove ending '\n'
+UTX_wrf_lst            write list (UtxTab) into file
 UTX_wrf_str            write string -> file
-UTX_f_lifo_add         add line as first line into file with maxLnr lines
+UTX_wrf_app_str        append string to file
+UTX_f_lifo_add         add line as first line and uniq into file with maxLnr lines
+UTX_f_add_uniq         add line uniq to file
 
 UTX_setup_get__        get parameters (typ, value) from setup-file
 UTX_setup_get          get parameters (typ, value) from setup-file (1.word only)
@@ -212,6 +220,7 @@ UTX_setup_set          add/replace parameter in file
 UTX_setup_modw         add/replace word of value in param-value-file
 UTX_setup_decs         decode setup-string; separates parameter, returns valPos.
 
+UTX_dir_list__         get list of files filtered in UtxTab
 UTX_dir_listf          Dateiliste in eine Datei ausgeben
 UTX_cat_file           Datei in (offene) Datei ausgeben
 UTX_ptab_f             Pointertabelle aus Datei erstellen
@@ -233,6 +242,8 @@ List_functions_end:
 - see also:
 UtxTab_*               Class for stacking Textstrings of variable length
 UTI_iNr_chrNr          give nr of ints for n characters
+APED
+SRC
 
 \endcode *//*----------------------------------------
 
@@ -252,12 +263,13 @@ UTI_iNr_chrNr          give nr of ints for n characters
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_txt.h"
-#include "../ut/ut_txTab.h"              // TxtTab
+#include "../ut/ut_txt.h"                 // fnam_del[_s]
+#include "../ut/ut_txTab.h"               // TxtTab
 #include "../ut/ut_os.h"
-#include "../xa/xa_msg.h"              // MSG_*
-#include "../ut/deb_prt.h"          // printd
+#include "../ut/deb_prt.h"                // printd
 
+#include "../xa/xa_msg.h"                 // MSG_*
+#include "../xa/xa_mem.h"                 // memspc*
 
 
 const char TX_NUL = '\0';
@@ -793,13 +805,11 @@ static char   TX_buf2[128];
 //================================================================
   int UTX_safeName (char *snam, int mode) {
 //================================================================
-/// \code
-/// UTX_safeName           make a safe modelname from a modelname
-/// mode:
-///   0:  change '. ' to '_', do not change '/' (fuer absolute Filenames)
-///   1:  change all '. ' and '/' to '_'
-///   2:  change all '/' to '_'
-/// \endcode
+// UTX_safeName           make a safe modelname from a modelname
+// mode:
+//   0:  change all '.' ' ' to '_';              do not change '/' '\'
+//   1,2 change all '.' ' ' '/' '\' to '_'
+//   3:  change all ' ' '/' '\' to '_'           do not change '.'
 
 
   int   iPos, iLen;
@@ -809,29 +819,37 @@ static char   TX_buf2[128];
   iLen = strlen(snam);
 
 
-  if(mode > 1) goto L_1_noAmoi;
+  if(mode > 2) goto L_3;
+  if(mode > 0) goto L_1;
+  
 
-  L_0_noAmoi:
+  //----------------------------------------------------------------
+  L_0:
     iPos = strcspn (snam, ". ");
     if(iPos < iLen) {
       snam[iPos] = '_';
-      goto L_0_noAmoi;
+      goto L_0;
     }
-
-  if(mode < 1) return 0;
+    return 0;
 
 
   //----------------------------------------------------------------
-  L_1_noAmoi:
+  L_1:
     iPos = strcspn (snam, ". /\\");
     if(iPos < iLen) {
       snam[iPos] = '_';
-      goto L_1_noAmoi;
+      goto L_1;
     }
+    return 0;
 
-  // printf("ex-UTX_safeName %d |%s|\n",mode,snam);
-
-  return 0;
+  //----------------------------------------------------------------
+  L_3:
+    iPos = strcspn (snam, " /\\");
+    if(iPos < iLen) {
+      snam[iPos] = '_';
+      goto L_3;
+    }
+    return 0;
 
 }
 
@@ -1231,59 +1249,63 @@ static char   TX_buf2[128];
 //================================================================
   int UTX_ftyp_s (char *ftyp, char *cbuf, int mode) {
 //================================================================
-/// \code
-/// UTX_ftyp_s             get filetyp from filename (change => upper)
-///  
-/// Input:
-///   ftyp      set only retCode if NULL
-///   mode      0  do not change ftyp-case
-///             1  change ftyp > upperLetters
-/// Output:
-///   ftyp      uppercase; if NULL on input: set only retCode
-///   retCode   0  Filetyp out in ftyp
-///             1  string does not hvae filetype
-/// 
-/// If string starts with '.' - eg ".0" then this is filename without filetyp.
-/// \endcode
+// UTX_ftyp_s             get filetyp from filename (change => upper)
+//  
+// Input:
+//   cbuf      copy ftyp of this fnam out (if ftyp != NULL)
+//   mode      0  do not change ftyp-case
+//             1  change ftyp > upperLetters
+// Output:
+//   ftyp      uppercase; if NULL on input: set only retCode; size max. 40
+//   retCode   0   Filetyp out in ftyp
+//             -1  string does not have filetype
+//             -2  error
+// 
+// If string starts with '.' - eg ".0" then this is filename without filetyp.
 
+  int    irc, sln;
   char   *p1;
-
 
   // printf("UTX_ftyp_s |%s|\n",cbuf);
 
+  sln = strlen(cbuf);
+
+  // find last '.'
   p1 = strrchr(cbuf, '.');  // find last .
-
-  if(p1 == NULL) goto L_err;
-
+  if(p1 == NULL) {
+    ftyp[0] ='\0';
+    if(sln < 2) {irc = -2; goto L_exit;}
+    irc = -1;
+    goto L_exit;
+  }
 
   // wenn filename mit . beginnt, gilt das als Filename und nicht als Filetyp !
-  if(p1 == cbuf) goto L_err;
-  if(*(p1-1) == fnam_del) goto L_err;   // z.B. "./.0"
-
+  if(p1 == cbuf) {irc = -1; goto L_exit;}           // eg ".s" or ./s"
+  if(*(p1-1) == fnam_del) {irc = -1; goto L_exit;}  // z.B. "./.0"
 
   if(ftyp) {
     ++p1;   // skip "."
-    if(mode == 1) UTX_cp_word_2_upper (ftyp, p1);
+    if((sln - (p1 - cbuf)) > 40) {irc = -2; goto L_exit;}
+    if(mode) UTX_cp_word_2_upper (ftyp, p1);
     else strcpy (ftyp, p1);
   }
 
-    // printf("ex UTX_ftyp_s 0 |%s|%s|\n",ftyp,cbuf);
+  irc = 0;
 
-  return 0;
 
   //----------------------------------------------------------------
-  L_err:
-    // printf("ex UTX_ftyp_s -1 |%s|\n",cbuf);
-  return -1;
-}
+  L_exit:
+    // printf("ex UTX_ftyp_s %d |%s|%s|\n",irc,ftyp,cbuf);
+  return irc;
 
+}
 
 
 //================================================================
   int UTX_fnam_s (char *fnam, char *cbuf) {
 //================================================================
 /// \code
-/// UTX_fnam_s        get fnam from string
+/// UTX_fnam_s        get fnam from string (remove directory, keep filetyp)
 /// alles nach dem letzten FilenamedelimiterChar fnam_del ist fileName;
 /// kein fnam_del: fnam = s
 /// IRC  0: OK, fnam out
@@ -1406,28 +1428,29 @@ static char   TX_buf2[128];
 /// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
 /// \endcode
 
-#define bSiz 4096
+#define bSiz 16384
 
-  int     i1;
-  long    l1;
+  int     i1, i2, rSiz, rTot;
+  long    fSiz;
   char    *fBuf;
   div_t   div1;
   FILE    *fpi;
 
 
-  // printf("UTX_cat_file |%s|\n",fnam);
+  printf("UTX_cat_file |%s|\n",fnam);
 
 
-  l1 = OS_FilSiz (fnam);
+  fSiz = OS_FilSiz (fnam);
 
 
-  div1 = div (l1, bSiz);
+  div1 = div (fSiz, bSiz);
     // printf(" _cat_file %d %d\n",div1.quot,div1.rem);
 
   // get spc
   fBuf = MEM_alloc_tmp (bSiz + 32);
 
   if((fpi = fopen(fnam, "rb")) == NULL) return -1;
+
 
   if(div1.quot > 0) {
     for(i1=0; i1<div1.quot; ++i1) {
@@ -1438,6 +1461,7 @@ static char   TX_buf2[128];
     }
   }
 
+  // write rest
   if(div1.rem > 0) {
     // read into fBuf
     fread(fBuf, 1, div1.rem, fpi);
@@ -1448,6 +1472,33 @@ static char   TX_buf2[128];
   fclose(fpi);
 
     // printf("ex UTX_cat_file\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTX_wrf_lst (char *fn, TxtTab *ttb) {
+//================================================================
+// UTX_wrf_lst            write list (UtxTab) into file
+
+  int          i1;
+  FILE         *fpo;
+
+
+  // printf("UTX_wrf_lst %s\n",fn);
+
+
+  if((fpo=fopen(fn,"w")) == NULL) {
+    TX_Print("***** UTX_wrf_lst E001 %s",fn);
+    return -1;
+  }
+
+  for(i1=0; i1<ttb->iNr; ++i1)
+    fprintf(fpo, "%s\n", UtxTab__(i1, ttb));
+
+  fclose(fpo);
 
   return 0;
 
@@ -1484,14 +1535,34 @@ static char   TX_buf2[128];
 }
 
 
+//================================================================
+  int UTX_wrf_app_str (char *fn, char *txt) {
+//================================================================
+// UTX_wrf_app_str        append string to file
+
+  FILE    *fpo;
+
+
+  if((fpo=fopen(fn,"ab")) == NULL) {
+    TX_Print("UTX_wrf_app_str E001 |%s|",fn);
+    return -1;
+  }
+
+  fprintf(fpo, "%s", txt);
+
+  fclose(fpo);
+
+  return 0;
+
+}
+
+
 //======================================================================
   int UTX_str_file (char* txbuf, long *fSiz, char *fnam) {
 //======================================================================
-/// \code
-/// UTX_str_file           read file -> string; remove ending '\n'
-/// fSiz must have exact filesize; see OS_FilSiz.
-/// See MEM_get_file()
-/// \endcode
+// UTX_str_file           read file -> string; remove ending '\n'
+// fSiz must have exact filesize; see OS_FilSiz.
+// See MEM_get_file()
 
   int   irc;
 
@@ -1511,6 +1582,63 @@ static char   TX_buf2[128];
 }
 
 
+//==================================================================================
+  int UTX_dir_list__ (TxtTab *fLst, char *dir, char* filts, char *filte, int mode) {
+//==================================================================================
+// UTX_dir_list__              get list of files filtered in UtxTab
+// Input:
+//   dir     directory to test; must have ending '/'
+//   filts   test if filename starts with this string
+//   filte   test if filename ends with this string
+//   mode    0=skip-directory-in-output; 1=keep-full-path
+// Output:
+//   fLst
+//   retCode nr of filenames found
+
+  int     irc, iNr, ip0, ldir, lfis, lfie;
+  char    fnam[320];
+
+
+  // printf("UTX_dir_list__ |%s|%s|%s| %d\n",dir,filts,filte,mode);
+
+  strcpy(fnam, dir);
+
+  ldir = strlen(fnam);
+  if(!mode) ip0 = ldir;
+  else      ip0 = 0;
+
+  lfis = strlen(filts);
+  lfie = strlen(filte);
+
+  iNr = 0;
+  OS_dir_scan_ (fnam, &iNr);
+  if(iNr > 0)  {
+    for (;;) {
+      OS_dir_scan_ (fnam, &iNr);
+      if(iNr < 0) break;
+
+      // test filts = start
+      if(lfis) {
+        if(strncmp(filts, &fnam[ldir], lfis)) continue;
+      }
+      // test filte = end
+      if(lfie) {
+        if(UTX_strcmp_right (&fnam[ldir], filte)) continue;
+      }
+
+      irc = UtxTab_add (fLst, &fnam[ip0]);
+      if(irc < 0) return -1;
+    }
+  }
+
+
+  //----------------------------------------------------------------
+    // UtxTab_dump (fLst, "ex-UTX_dir_list__");
+  return fLst->iNr;
+
+}
+
+
 //==========================================================================
   int UTX_dir_listf (char *outFilNam, char *fPath, char *fNam, char *fTyp) {
 //==========================================================================
@@ -1518,21 +1646,16 @@ static char   TX_buf2[128];
 /// Create list of files into file; filters: filename and/or filetyp.
 /// Input:
 ///   fPath     dir to search; can have closing "/"
-///   fNam      NULL or filename to search; do not use closing "*"
-///   fTyp      NULL or filetyp to search; do not use starting "*"
+///   fNam      NULL or beginning part of the filename to search; do not use "*"
+///   fTyp      NULL or filetyp to search; do not use "*"
 /// Output:
 ///   outFilNam list
 /// RetCode:    -1 = Error; else nr of files written.
 ///
-/// Example:  ls ./xa_*.c
-///   i1 = UTX_dir_listf ("lst.dat", ".", "xa_", ".c");
-///  
-
-/// eine Dateiliste in eine Datei ausgeben; nach Dateitypen gefiltert.
-/// ftyp ohne Stern; also zB ".dat".
-/// fPath mit oder ohne abschliessenden "/".
-/// RetCode: -1 = Error; else nr of files written.
-/// \endcode
+// Example:
+//   find all files with filenames starting with "xa_" and ending with ".c"
+//   i1 = UTX_dir_listf ("lst.dat", ".", "xa_", ".c");
+//   
 
 
   int   i1, ilenTyp, ilenNam, iNr, iOut;
@@ -1548,19 +1671,16 @@ static char   TX_buf2[128];
     return -1;
   }
 
-
   // try to open outfile
   if((fpo=fopen(outFilNam,"w")) == NULL) {
     TX_Print("UTX_dir_listf E002 %s",outFilNam);
     return -1;
   }
 
-
   // filter filename
   if(fNam) ilenNam = strlen(fNam);
   else ilenNam = 0;
     // printf(" ilenNam = %d\n",ilenNam);
-
 
   // filter filetyp
   if(fTyp) ilenTyp = strlen(fTyp);
@@ -1569,22 +1689,20 @@ static char   TX_buf2[128];
 
 
   iNr = 0;
+  iOut = 0;
   strcpy(cbuf, fPath);  // in: Path; Out: File !
   OS_dir_scan_ (cbuf, &iNr);   // Init
-  // printf(" nach OS_dir_scan_ %d\n",iNr);
-
-  iOut = 0;
+    // printf(" f-OS_dir_scan_-init %d |%s|\n",iNr,cbuf);
 
   if(iNr > 0)  {
 
     for (;;) {
 
       OS_dir_scan_ (cbuf, &iNr);
-      // printf(" n.scan %d |%s|\n",iNr,cbuf);
+        // printf(" n.scan %d |%s|\n",iNr,cbuf);
       if(iNr < 0) break;
 
-
-      // check filetyp; zB "*.dat"
+      // check ending part of the filename
       if(ilenTyp > 0) {
         i1 = strlen(cbuf);
         if(strncmp(&cbuf[i1-ilenTyp], fTyp, ilenTyp)) continue;
@@ -1593,27 +1711,23 @@ static char   TX_buf2[128];
       // skip directories
       if(OS_check_isDir(cbuf) == 0) continue;
 
-
       // strip directory - find last "/" (makes |t1| aus |/mnt/x/t1|)
       p1 = strrchr (cbuf, fnam_del);
       if(p1) ++p1;
       else p1 = cbuf;
+        // printf(" dir_listf-fNam-p1=|%s|\n",p1);
 
-
-      // check filename; zB "xa_*"
+      // check starting part of the filename
       if(ilenNam > 0) {
         i1 = strlen(cbuf);
         if(strncmp(p1, fNam, ilenNam)) continue;
       }
 
-
-      // printf(" fNam %d |%s|%s|\n",iNr,cbuf,p1);
+        // printf(" fNam-out=|%s|%s|\n",cbuf,p1);
       fprintf(fpo,"%s\n",p1);
       ++iOut;
-
     }
   }
-
 
   fclose(fpo);
 
@@ -2384,7 +2498,9 @@ static char   TX_buf2[128];
 //================================================================
   char* UTX_cp_word__ (char *txtOut, char *txtIn) {
 //================================================================
-/// UTX_cp_word__          copy next word
+// UTX_cp_word__          copy next word
+//   does not copy string ( "txt" - stops at first ")
+//   returns position of char following the terminator (!= blank);
 
   int  i1;
   char *p1, *p2;
@@ -2427,29 +2543,28 @@ static char   TX_buf2[128];
 //================================================================
   char UTX_cp_word_t (char *txtOut, char **cBuf) {
 //================================================================
-/// \code
-/// UTX_cp_word_t          copy next word, give terminator
-/// see UTX_cp_word__ UTX_find_Del1 UTX_pos_del
-/// 
-/// Outputs:
-///   Returns the delimiter found as single character
-///   cBuf:   word, Terminator & following blanks skipped
-///   txtOut: word (no leading/following blanks, no terminator) Max 252 chars.
-///           can be empty (*txtOut == '\0')
-/// 
-/// Delimiterzeichen sind:
-///  "'()*+,-/;<=>  und blank
-/// 
-/// Usage-example:
-///   char cBuf[256], tc;
-///   L_nxt:   tc = UTX_cp_word_t (cBuf, &tPos);
-///     if(cBuf[0] == '\0') return 0;  // outputstring empty
-///     ..
-///     if(tc != '\0') goto L_nxt;     // inputstring empty
-/// 
-/// Nachfolgend kann man das Wort abtrennen durch
-///   *cp2 = '\0';
-/// \endcode
+// UTX_cp_word_t          copy next word, give terminator
+// see UTX_cp_word__ UTX_find_Del1 UTX_pos_del
+//   does not copy string ( "txt" - stops at first ")
+// 
+// Outputs:
+//   Returns the delimiter found as single character
+//   cBuf:   word, Terminator & following blanks skipped
+//   txtOut: word (no leading/following blanks, no terminator) Max 252 chars.
+//           can be empty (*txtOut == '\0')
+// 
+// Delimiterzeichen sind:
+//  "'()*+,-/;<=>  und blank
+// 
+// Usage-example:
+//   char cBuf[256], tc;
+//   L_nxt:   tc = UTX_cp_word_t (cBuf, &tPos);
+//     if(cBuf[0] == '\0') return 0;  // outputstring empty
+//     ..
+//     if(tc != '\0') goto L_nxt;     // inputstring empty
+// 
+// Nachfolgend kann man das Wort abtrennen durch
+//   *cp2 = '\0';
 
 
   int  i1;
@@ -2886,6 +3001,30 @@ static char   TX_buf2[128];
 
 
 //================================================================
+  int UTX_endDel_crlf (char *s1, int *cNr) {
+//================================================================
+// UTX_endDel_crlf        delete all cr,lf from end of string
+// Input:
+//   s1      string
+//   cNr     strlen(s1)
+
+
+  char  *p1;
+
+  L_nxt:
+  p1 = &s1[*cNr - 1];
+
+  if((*p1 == '\r')||(*p1 == '\n')) {
+    *cNr -= 1;
+    goto L_nxt;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTX_endDelWord (char *s1, char deli, int mode) {
 //================================================================
 /// \code
@@ -2974,7 +3113,7 @@ static char   TX_buf2[128];
 /// Output:
 ///   txtIn:  leading blanks skipped
 ///   w_next: the pos of the deli
-///   RetCod: the delimiter as single character
+///   RetCod: the delimiter as single character; 0: no delimiter found
 /// 
 /// Delimiterzeichen sind:
 ///  " ""'()*+,-/;<=>"
@@ -3338,7 +3477,7 @@ Das folgende ist NICHT aktiv:
   if(cpos >= cbuf) goto L_next_char;
 
   L_exit:
-    printf(" UTX_del_follBl |%s|\n",cbuf);
+    // printf(" UTX_del_follBl |%s|\n",cbuf);
 
   return (cpos - cbuf + 1);
 
@@ -4063,24 +4202,22 @@ Das folgende ist NICHT aktiv:
 //================================================================
   int UTX_f_lifo_add (char *fNam, int maxLnr, char *newLn) {
 //================================================================
-/// \code
-/// UTX_f_lifo_add             add line as first line into file with maxLnr lines
-/// add line as first line into file;
-/// all lines must uniq;
-/// if file has more then maxNr Lines, delete surplus lines
-/// \endcode
+// UTX_f_lifo_add             add line as first line into file with maxLnr lines
+// add line as first line into file;
+// added line must be uniq;
+// if file has more then maxNr Lines, delete surplus lines
 
-#define LN_MAX_SIZ 128
+#define LN_MAX_SIZ 400
 
   int    i1, lln;
-  char   fnTmp[256], sln[LN_MAX_SIZ], *p1;
+  char   fnTmp[400], sln[LN_MAX_SIZ], *p1;
   FILE   *fpi, *fpo;
 
 
   // printf("UTX_f_lifo_add |%s|%s|\n",fNam,newLn);
 
   // create tempfilnam
-  sprintf(fnTmp,"%s.tmp",fNam);
+  sprintf(fnTmp,"%s_tmp",fNam);
 
   // write to tempfile
   if((fpo = fopen (fnTmp, "w")) == NULL) {
@@ -4121,6 +4258,65 @@ Das folgende ist NICHT aktiv:
 
 
 //================================================================
+  int UTX_f_add_uniq (char *fNam, char *newLn) {
+//================================================================
+// UTX_f_add_uniq             add line uniq to file
+// see also UTX_f_lifo_add
+
+#define LN_MAX_SIZ 400
+
+  int    lln;
+  char   fnTmp[400], sln[LN_MAX_SIZ], *p1;
+  FILE   *fpi, *fpo;
+
+
+  // printf("UTX_f_add_uniq |%s|%s|\n",fNam,newLn);
+
+  lln = strlen(newLn);
+
+  // create tempfilnam
+  sprintf(fnTmp,"%s_tmp",fNam);
+
+  // write to tempfile
+  if((fpo = fopen (fnTmp, "w")) == NULL) {
+    MSG_ERR__ (ERR_file_open, "'%s'", fnTmp);
+    return -1;
+  }
+  // add existing; read write
+  if((fpi = fopen (fNam, "r")) == NULL) goto L_exit1;
+
+  while (!feof (fpi)) {
+    // read
+    p1 = fgets (sln, LN_MAX_SIZ, fpi);
+    if(!p1) break;
+    // exit if not uniq
+    if(strncmp(sln, newLn, lln)) {
+      fprintf(fpo, "%s", sln);
+    } else {
+      fclose (fpi);
+      fclose (fpo);
+      goto L_exit9;
+    }
+  }
+
+  fprintf(fpo, "%s\n", newLn);
+
+  fclose (fpi);
+
+  L_exit1:
+  fclose (fpo);
+
+  // move fnTmp fNam
+  OS_file_rename (fnTmp, fNam); // old,new
+
+  L_exit9:
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTX_fjoin__ (char *fnamO, char *fnamI1, char *fnamI2) {
 //================================================================
 ///    UTX_fjoin__        join 2 files
@@ -4153,6 +4349,62 @@ Das folgende ist NICHT aktiv:
 
 }
 
+
+//===================================================================
+  int UTX_fjoin_121 (char *fno, char *fn1, char *fn2, char *sSep) {
+//===================================================================
+// UTX_fjoin_121      join file fn1 to separator, file fn2, remainder of fn1
+//   separator-string must be a complete line in file fn1
+//   separator-string is skipped
+
+  int    sls, lSiz;
+  long   l1;
+  char   *lBuf, *f2Buf;
+  FILE   *fpo, *fp1, *fp2, s1;
+  
+  // printf("UTX_fjoin_121 |%s|%s|%s|%s|\n",fno,fn1,fn2,sSep);
+
+  if((fpo=fopen(fno,"w")) == NULL) goto L_err1;
+  if((fp1=fopen(fn1,"r")) == NULL) goto L_err2;
+  if((fp2=fopen(fn2,"r")) == NULL) goto L_err3;
+  
+  sls = strlen(sSep);
+  lBuf = mem_cbuf1;
+  lSiz = mem_cbuf1_SIZ;
+
+  // copy fn1 up to string sSep - excluding sSep
+  while (!feof (fp1)) {
+    if(fgets(lBuf, lSiz, fp1) == NULL) goto L_err4;
+      // printf(" _fjoin_121-------|%s|\n",lBuf);
+    if(!strncmp(lBuf, sSep, sls)) break;
+    fputs(lBuf, fpo);
+  }
+
+  // copy fn2 complete
+  l1 = OS_FilSiz (fn2);
+  f2Buf = MEM_alloc_tmp ((int)(l1 + 128));
+  MEM_get_file (f2Buf, &l1, fn2);
+  fwrite (f2Buf, 1, l1, fpo);
+
+  // copy remainder of fn1
+  while (!feof (fp1)) {
+    if(fgets(lBuf, lSiz, fp1) == NULL) break;
+    fputs(lBuf, fpo);
+  }
+
+  fclose(fp2);
+  fclose(fp1);
+  fclose(fpo);
+
+  return 0;
+
+  L_err1:  TX_Print("***** UTX_fjoin_121 E1"); return -1;
+  L_err2:  TX_Print("***** UTX_fjoin_121 E2"); return -2;
+  L_err3:  TX_Print("***** UTX_fjoin_121 E3"); return -3;
+  L_err4:  TX_Print("***** UTX_fjoin_121 E4"); return -4;
+  
+}
+    
 
 //=======================================================================
   int UTX_fsavLine (char *cbuf, char *filNam, int lnMaxSiz, int lNr) {
@@ -4394,6 +4646,152 @@ L_exit:
 }
 
 
+//================================================================
+  int UTX_fget_lnTxt (char *key, char *fnam) {
+//================================================================
+//  UTX_fget_lnTxt          find line in file
+//    load whole file into memspc, test lines.
+//    If line == <key> then return line-nr.
+//  retCode      -1 = <key> not found, else line-nr; 0 = first.
+
+  int     lNr;
+  long    l1;
+  char    *mspc, *p1, *p2, *pe;
+
+
+  // printf("UTX_fget_lnTxt |%s|%s|\n",key,fnam);
+
+  l1 = OS_FilSiz(fnam);
+  mspc = MEM_alloc_tmp (l1);
+  // load file into mspc
+  UTX_str_file (mspc, &l1, fnam);
+    // printf(" fget_lnTxt |%s|\n",mspc);
+
+
+  p1 = mspc;
+  pe = &mspc[l1];
+  lNr = 0;
+
+  L_lnNxt:
+    p2 = strchr(p1, '\n');
+    if(p2) *p2 = '\0';
+      // printf(" fget_lnTxt-nxt |%s|\n",p1);
+
+    // compare
+    if(!strcmp(p1, key)) goto L_exit; // yes, found
+
+    if(p2) {
+      p1 = p2 + 1;
+      ++lNr;
+      goto L_lnNxt;
+    }
+
+  // not found
+  lNr = -1;
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex-UTX_fget_lnTxt %d |%s|%s|\n",lNr,key,fnam);
+  return lNr;
+
+}
+
+
+//===================================================================
+  int UTX_fmod_lnTxt (char *fn1, char *txt1, char *txt2, int lnSiz) {
+//===================================================================
+// UTX_fmod_lnTxt             modify | delete line in file
+//   change line txt1 into txt2 in file <fn1>
+//   if txt2 == NULL: delete line with text <txt1> in file <fn1>
+//   if fn1 is empty after modifcation: delete file !
+// Input:
+//   lnSiz       max size of line in file <fn>
+// Output:
+//   retCode      -1    err.
+//                >=0   nr of deleted lines
+
+  int     irc, ii, lLen;
+  char    *sLn, fn2[320];
+  FILE    *fp1, *fp2;
+
+  printf("UTX_fmod_lnTxt |%s|%s|%s| %d\n",fn1,txt1,txt2,lnSiz);
+
+  sLn = (char*) MEM_alloc_tmp (lnSiz);
+  if(!sLn) {TX_Print("***** UTX_fmod_lnTxt 000"); goto L_err;}
+
+  if((fp1=fopen(fn1,"r")) == NULL) {
+    TX_Print("***** UTX_fmod_lnTxt E001 %s",fn1);
+    goto L_err;
+  }
+
+  // open tempfile for write
+  sprintf(fn2,"%stempfile.txt",OS_get_tmp_dir());
+  if((fp2=fopen(fn2,"w")) == NULL) {
+    TX_Print("***** UTX_fmod_lnTxt E002 %s",fn2);
+    goto L_err;
+  }
+
+  lLen = strlen(txt1);
+  irc = 0;
+  ii = 0;
+
+  //----------------------------------------------------------------
+  while (!feof (fp1)) {
+    if(fgets (sLn, lnSiz, fp1) == NULL) break;
+      printf(" ........nxt ln |%s|\n",sLn);
+
+    if(strncmp(sLn, txt1, lLen)) goto L_write;
+    // line is ident, rest must be lf or crlf
+#ifdef _MSC_VER
+    // MS-Win
+    if(sLn[lLen] == '\r') goto L_found;
+#endif
+    // UIX
+    if(sLn[lLen] == '\n') goto L_found;
+
+    L_write:
+      // copy line
+      fprintf(fp2, "%s", sLn);
+      ++ii;
+      continue;
+
+    L_found:
+      if(txt2) {
+        // modify
+        fprintf(fp2, "%s\n", txt2);
+        ++ii;
+      }
+      ++irc;
+  }
+  //----------------------------------------------------------------
+
+  fclose(fp1);
+  fclose(fp2);
+
+    printf(" _fmod_lnTxt-ii=%d\n",ii);
+
+
+
+  // rename ..
+  if(ii) {
+    OS_file_rename (fn2, fn1);
+  } else {
+    // delete file
+    OS_file_delete (fn1);
+  }
+
+  //----------------------------------------------------------------
+  L_exit:
+    printf("ex-UTX_fmod_lnTxt %d\n",irc);
+  return irc;
+
+  L_err:
+    irc = -1;
+    goto L_exit;
+
+}
+
+
 //=======================================================================
   char *UTX_memFind (char *buf, char *str) {
 //=======================================================================
@@ -4539,6 +4937,81 @@ L_exit:
   char *p1 = strchr(s1,'\n');
    if(p1) return p1 - s1;
    else   return strlen (s1);
+
+}
+
+
+//=====================================================================
+  int UTX_fget_add_MS (char *cBuf, long *sizAct, long sizTot, char* fn) {
+//=====================================================================
+// UTX_fget_add_MS       add file into memSpc (remove CR from MS-files)
+//   does not realloc
+// Input:
+//   sizTot     total size of cBuf
+
+/// Datei fn an membuf cBuf hintanhaengen; size of cBuf is sizTot.
+/// cBuf muss gross genug sein !!
+// RetCod:
+//    0           OK
+//   -1           OpenError
+//   -2           overrun cBuf
+
+
+  int   irc = 0;
+  long  cLen, sizRest, lLn;
+  char  *cpos;
+  FILE  *flun;
+
+
+  // printf ("UTX_fget_add_MS |%s| siz=%d\n",fn,sizTot);
+
+
+  // Das Inputfile oeffnen
+  if ((flun = fopen (fn, "r")) == NULL) {
+    TX_Error ("UTX_fget_add_MS: FileOpenError  %s ****",fn);
+    irc = -1;
+    goto L_exit;
+  }
+
+  cLen = *sizAct; // strlen(cBuf);
+  cpos = &cBuf[cLen];
+  sizRest = sizTot - cLen;
+
+  // printf(" start:|%s| len=%d siz=%d\n",cpos,cLen,sizTot);
+
+
+  //---------------------------------------------
+  // Datei zeilenweise einlesen
+  while (fgets (cpos, sizRest, flun) != NULL) {
+
+    // printf(" add |%s|\n",cpos);
+
+    // change fileformat dos --> unix
+    // das Zeileende muss so aussehen:   \n  \0;
+    // das \0 wird dann wieder ueberschrieben !!!
+    lLn = UTX_CleanLF (cpos);
+
+    cpos = &cpos[lLn];
+    sizRest -= lLn;
+
+    if(sizRest < 72) {
+      TX_Error("UTX_fget_add_MS E001");
+      irc = -2;
+      break;
+    }
+  }
+
+
+  //---------------------------------------------
+  /* Fertig: */
+  fclose (flun);
+
+  *sizAct = sizTot - sizRest;
+  cBuf[*sizAct] = '\0';
+
+
+  L_exit:
+  return irc;
 
 }
 
@@ -6472,7 +6945,7 @@ Example (scan line):
   strncpy (cTo, cFrom, ll);
   cTo[ll] = '\0';
 
-  printf("UTX_cp_Line |%s| %d %d\n",cTo,maxLen,ll);
+    // printf("UTX_cp_Line |%s| %d %d\n",cTo,maxLen,ll);
 
   return ll;
 
@@ -6611,27 +7084,26 @@ Example (scan line):
 /// \endcode
 
 
-  int    i1;
+  int    irc, i1;
   char   cbuf[256], *p1;
   FILE  *fpi;
 
 
-  // printf("UTX_setup_get__ |%s|\n",ctyp);
+  // printf("UTX_setup_get__ |%s|%s|\n",ctyp,fnam);
 
 
   // datei neu oeffnen
   // printf("UTX_setup_get fopen|%s|\n",fnam);
   if((fpi=fopen(fnam,"r")) == NULL) {
     TX_Print("UTX_setup_get__ E001 %s",fnam);
-    goto L_errEx;
+    goto L_err1;
   }
 
   i1 = strlen(ctyp);
 
   L_read:
   for(;;) {
-    if(fgets(cbuf, 250, fpi) == NULL) goto L_eof;
-
+    if(fgets(cbuf, 250, fpi) == NULL) goto L_err2;
     if(*cbuf == '#') continue;
     if(cbuf[i1] != ' ') continue;
     if(strncmp(cbuf, ctyp, i1)) continue;
@@ -6645,19 +7117,21 @@ Example (scan line):
   strcpy(cval, p1);
   UTX_CleanCR (cval);
 
-    // printf("ex UTX_setup_get__ |%s|%s|\n",ctyp,cval);
-
   fclose (fpi);
-  return 0;
+  irc = 0;
 
 
-  L_eof:
+  L_exit:
+      // printf("ex UTX_setup_get__ %d |%s|%s|\n",irc,ctyp,cval);
+    return irc;
+
+
+  L_err2:
     fclose (fpi);
 
-  L_errEx:
-    // *cval = '\0';
-      // printf("ex UTX_setup_get EOF |%s|%s|\n",ctyp,cval);
-    return -1;
+  L_err1:
+    irc = -1;
+    goto L_exit;
 
 }
 

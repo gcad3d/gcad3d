@@ -10,17 +10,23 @@ DLLNAM = plugins/tst
 SRC1 =\
  ../APP/tst.c\
  ../APP/tst1.c\
- ../APP/tst_ut_GR.c\
- ../APP/tst_ut_GL.c\
- ../APP/tst_rbspl.c\
- ../APP/tst_ut_geo.c\
+ ../APP/tst_exp.c\
+
+
+# ../APP/tst_mdl__.c              // ../xa/mdl__.c
+# ../APP/tst_mdlmp.c              // ../xa/mdlmp.c
+#../APP/tst_ut_GR.c\
+#../APP/tst_ut_GL.c\
+#../APP/tst_rbspl.c\
+#../APP/tst_ut_geo.c\
+
+
 
 #../APP/tst_ut_DL.c\
 
 # ../APP/tst_edmpt.c == ../APP/xa_edmpt.c
 #../APP/tst_ut_objtab.c\
 #../ut/ut_prcv_db.c\
-#../APP/tst_exp.c\
 #../APP/tst_surfaces.c\
 #../APP/tst_new.c\
 #../APP/tst_msh2d.c\

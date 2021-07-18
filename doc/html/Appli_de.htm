@@ -1,10 +1,16 @@
 <HTML>
 <HEAD>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
-<TITLE>CAD_Appli_de.htm</TITLE>
-<style>body{ font: 10pt Verdana,sans-serif;}</style>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=UTF-8">
+  <TITLE>Appli_de.htm</TITLE>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
 </HEAD>
-<BODY LANG="de-AT">
+<BODY LANG="de-DE"
+  style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
 <PRE>
 
 
@@ -119,16 +125,18 @@ PRI"V20="V20"; V21="V21
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
 <P><A NAME='prg_app'> </A></P>
 <B>Programmierfunktionen für Applications</B>
 
 
 - in Applications sind alle Standard-Programmierfunktionen verwendbar;
 - Applications sind Scriptprogramme (Files, direkt ausführbar) -
+  - Dateityp ist ".gcap"
   siehe "Applications/Create"
 - Applications haben zusätzliche <A HREF='#app_prg'>Programmfunktionen</A>
 - Applications haben <A HREF='#app_gui'>Eingabefenster</A>
+- Applications <A HREF='#app_dir'>Dateiverzeichnis</A>
 
 
 <h2>Funktionen Menü Applications:</h2>
@@ -213,7 +221,17 @@ DLG ..
 
 
 
-____________________________________________________________________________
+<HR><!-- ============================================================ -->
+<P><A NAME='app_dir'> </A></P>
+<b>Directory-Applicationsprogramme:</b>
+
+Standardverzeichnis ist das symbolische Verzeichnis "APPLI" -
+  - siehe <a href="CAD_Base_de.htm#symFnam">Symbolic filenames.</a>
+
+
+
+
+<HR><!-- ============================================================ -->
 <P><A NAME='app_prg'> </A></P>
 <b>Programmcodes:</b>
 

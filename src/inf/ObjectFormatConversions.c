@@ -15,8 +15,8 @@ INF_sourceLines     editor functions
 INF_sourceObjects   text;expressions            eg "P12" "DZ" "L(P10 D(0 0 1))"
 INF_atomicObjects   ausTyp/ausTab-array;           (*int, *double)
 INF_binaryObjects   type & dedicated structure; eg ((int)Typ_PT, (Point)pt)
-INF_DB-Objects      type & DB-index;               (int, long)
-INF_DL-Objects      DL-index;                      (long)
+INF_DB_Objects      type & DB-index;               (int, long)
+INF_DL_Objects      DL-index;                      (long)
 INF_complexObject   struct ObjGX;                  (ObjGX)
 
 Files:
@@ -53,8 +53,8 @@ UTO_ck_curvLimTyp        check if CurveLimits are Points or parameters
 UTO_ck_curvForm          check if objTyp is ObjGX or other typ
 UTO_ck_surfTyp           returns surfSubTyp
 
-AP_ck_ftyp               returns fileTyp as int; 0=native, 1-9=Import, 10-19=Mockup
-AP_i2ftyp                returns fileTyp as text
+AP_src_typ__             get objTypTxt from typ
+MDL_typInf               infoText from modeltype
 
 
 ================================================================== \endcode */}
@@ -63,8 +63,8 @@ INF_sourceObjects   text;expressions            eg "P12" "DZ" "L(P10 D(0 0 1))"
 
 L(P10 D(0 0 1))    is a dynamic object  osrc
 
-
-
+AP_stru_2_txt
+AP_obj_add_vc
 
 
 ================================================================== \endcode */}
@@ -127,13 +127,13 @@ ATO_ato_txo__ get atomic-objects from source-objects
 ATO_ato_eval__ evaluate atomic-objects (compute); reduce records.
 ATO_ato_eval_geom evaluate geometrical functions
 APT_decode__ sourceObj -> atomicObj (ausTyp/ausTab-array)
+UTO_obj_cnvt_src    
 ATO_sort1
 ATO_getSpc__
 ATO_getSpc1
 ATO_srcTxt get atomicObj from Typ_Txt (after AP_typ_srcExpr)
 ATO_swap swap 2 records
-APT_decode_ausdr decode sourceObj -> atomicObj
-APT_decode_ausdr1 operators constantObjects constantValues
+
 SRC_ato_SIZ, SRC_ato_typ, SRC_ato_tab = global memspc
 
 
@@ -171,7 +171,7 @@ UTO_copy_stru copy struct (no resolve - not recursive)
 
 
 ================================================================== \endcode */}
-void INF_DB-Objects (){        /*! code
+void INF_DB_Objects (){        /*! code
 
 
 DB-Obj: _dbo_    objectType and dataBaseIndex
@@ -192,7 +192,7 @@ see also APT_decode_pt*
 
 
 ================================================================== \endcode */}
-void INF_DL-Objects (){        /*! code
+void INF_DL_Objects (){        /*! code
 
 
 DL_DumpObjTab

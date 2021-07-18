@@ -70,7 +70,7 @@ cl -c /I ..\include xa_aux.c
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <stdio.h>                        /* printf ..   */
@@ -103,7 +103,6 @@ cl -c /I ..\include xa_aux.c
 
 
 // aus xa.h:
-extern  int      AP_modact_ind;              // Nr of the active submodel; -1=main.
 
 
 
@@ -149,6 +148,10 @@ static long   imp_itab_siz;
 
 
 static double imp_scale;
+
+
+static int   arNr;
+
 
 
 //================================================================
@@ -620,6 +623,7 @@ void AP_ImportLwo(int mode, char *off, double scale, char* fnam) {
 
 
   // Init Objektindexe
+  DB_Init (1);
   AP_obj_2_txt (NULL, 0L, NULL, 0L);
 
 
@@ -634,6 +638,7 @@ void AP_ImportLwo(int mode, char *off, double scale, char* fnam) {
 
 
   // work; 2 callbacks:  lwo_cb_savePoint u. lwo_cb_saveFace
+  arNr = 20;    // init surface-startindex (A20)
   i1 = lwo_read (fnam);
   if (i1 < 0) {
     TX_Error("Can't read LWO-File |%s|\n", fnam);
@@ -697,13 +702,12 @@ int lwo_cb_savePoint (int ip, float *pt1) {
 int lwo_cb_saveFace (int vNr, int *vTab) {
 //============================================================
 
-  static int   arNr = 20;
 
   int   i1, ind;
   char  auxBuf[32];
 
 
-  // printf("lwo_cb_saveFace %d  ",vNr);
+  printf("lwo_cb_saveFace A%d nNr=%d  ",arNr,vNr);
 
   sprintf(mem_cbuf1, "A%d=RCIR",arNr);
   ++arNr;
@@ -743,6 +747,7 @@ void AP_Import3ds(int mode, char *off, double scale, char* fnam) {
 
 
   // Init Objektindexe
+  DB_Init (1);
   AP_obj_2_txt (NULL, 0L, &elAct, 0L);
 
 
@@ -757,6 +762,7 @@ void AP_Import3ds(int mode, char *off, double scale, char* fnam) {
 
 
   // work
+  arNr = 20;     // init surface-startindex (A20)
   i1 = ds3_read (fnam);
   if (i1 < 0) {
     TX_Error("Err reading 3DS-file %s\n", fnam);
@@ -1302,7 +1308,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
   int      i1, anz_obj=0, ipos, modNr;
   FILE     *fp1, *fp2, *fpi;
-  char     cbuf[256];
+  char     cbuf[256], safPrim[SIZMFTot], smNam[SIZMFTot], s1[320], *p1;
 
 
   printf("AP_ExportIges__ |%s|\n",fnam);
@@ -1321,6 +1327,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   if ((fp2 = fopen (cbuf, "w+")) == NULL) {
     // TX_Error ("beim Öffen der Ausgabehilfsdatei ****");
     TX_Error ("Open file %s",cbuf);
+    fclose(fp1);
     return;
   }
   printf("cbuf=|%s|\n",cbuf);
@@ -1335,17 +1342,25 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
   //==================================================================
 
-  // in BasicModels gibts Reihenfolgenummer seqNr.
-  // Diese in korrekter Reihenfolge -> Datei ../tmp/Mod.lst ausgeben.
-  DB_list_ModBas ();
+  // get list of submodels in loadersequence in file ../tmp/Mod.lst
+  i1 = MDL_ldm_f ();
+  if(i1 < 0) goto L_exit;    // err
+  if(i1 < 1) goto L_main;    // go if no subModels exist
 
+//   DB_list_ModBas ();
 
   // DL_disp_def (OFF); // ab nun nix mehr anzeigen
 
-  // save gesamte DB -> File
-  // DB_save__ ();
+  // get safe name of primary model
+  p1 = MDL_mNam_prim ();
+  strcpy(safPrim, p1);
+  UTX_safeName (safPrim, 1);
 
-  DL_Init ();     // kill / Init DL
+
+  // save primary model
+  DB_save__  (safPrim);
+
+//   DL_Init ();     // kill / Init DL
 
 
   // try to open inListe
@@ -1355,27 +1370,32 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     return;
   }
 
-
   sprintf(cbuf,"%sModel_",OS_get_tmp_dir());
   ipos = strlen(cbuf);
+
   while (!feof (fpi)) {
-    if (fgets (&cbuf[ipos], 256, fpi) == NULL) break;
-    UTX_CleanCR (cbuf);
-    printf("nxt model |%s|\n",cbuf);
+    if (fgets (smNam, SIZMFTot, fpi) == NULL) break;
+    UTX_CleanCR (smNam);
+    UTX_safeName (smNam, 1);
+      printf(" _ExportIges__-nxt model |%s|\n",smNam);
     // fprintf(fp1,"nxt model |%s|\n",cbuf);
 
+    // load subModel 
+    DB_load__ (smNam);
 
-    // loop tru submodels; work.
-    DB_Init (1);
-    // RUN (abarbeiten)
-    ED_Init ();
-    if(ED_work_file (cbuf) < 0) {TX_Error("AP_ExportIges__: E003"); goto L_err;}
-    ED_lnr_reset ();
-    WC_Work__ (0, NULL);   // Init Levelcounter in WC_Work__
-    ED_Run ();
+//     // loop tru submodels; work.
+//     DB_Init (1);
+//     // RUN (abarbeiten)
+//     WC_Work1 (0, NULL);   // Init Levelcounter in WC_Work1
+//     ED_Init ();
+//     ED_lnr_reset ();
+// 
+//     sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),smNam);
+//     if(ED_work_file (s1) < 0) {TX_Error("AP_ExportIges__: E003"); goto L_err;}
+//     ED_Run ();
 
     // work submodel
-    modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
+    modNr = MDL_imb_mNam(smNam, 1);  // get ModelNr from Modelname
     if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
     i1 = AP_ExportIges_Model (modNr, fp1, fp2);
     anz_obj += i1;
@@ -1384,24 +1404,32 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   fclose(fpi);
 
 
-  // mainmodel abarbeiten
-  // naechste Zeile: X HAENGT !!
+  // restore primary model
+  DB_load__ (safPrim);
+
+
+
+  //----------------------------------------------------------------
+  // work mainModel
+  L_main:
+    printf(" _ExportIges__-main..\n");
+
   // DL_disp_def (ON); // ab nun wieder alles anzeigen
 
   // sprintf(cbuf,"%stmp%cModel_",OS_get_bas_dir(),fnam_del);
   // printf("nxt model |%s|\n",cbuf);
   // fprintf(fp1,"nxt model main\n",cbuf);
 
-  DB_Init (1);
+//   DB_Init (1);
   // GR_Init1 (); // DispList loeschen
   // ED_Init ();
   // if(ED_work_file (cbuf) < 0) goto L_err3;
   // ED_lnr_reset ();
   // ED_Run ();
   
-  ED_Reset ();  // ED_lnr_act = 0; 2004-02
-
-  ED_work_END (0);
+//   ED_Reset ();  // ED_lnr_act = 0; 2004-02
+// 
+//   ED_work_END (0);
 
 
   // work mainmodel
@@ -1415,7 +1443,9 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   IGE_w_rT (fp1, fp2);
 
 
+  
   // Close u. Hilfsdatei löschen
+  L_exit:
   fclose(fp1);
   fclose(fp2);
   sprintf(cbuf,"%sIGES.tmp",OS_get_tmp_dir ());
@@ -1464,7 +1494,9 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 //=============================================================================
   int AP_ExportIges_Model (int modNr, FILE *fp1, FILE *fp2) { 
 //=============================================================================
-// IG_EX_workObj:
+// AP_ExportIges_Model               export all objs in DB
+// Input:
+//   modNr              -1=main;
 // -  single obj out
 
 
@@ -1593,7 +1625,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
 
   //-----------------------------------
-  // SubfigInst; 
+  // SubfigInst (model-reference)
   apt_typ = Typ_Model;
 
   for(apt_ind=0; apt_ind<APT_MR_SIZ; ++apt_ind) {

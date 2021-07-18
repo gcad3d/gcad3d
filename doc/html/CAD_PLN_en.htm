@@ -19,7 +19,6 @@
 Planes and axis systems use the shortcut letter R.
 
 Pre-defined planes are:
-Vordefinierte Ebenen sind:
 
 RZ   XY (Z=0)  Plane-X = Refsys-X
                Plane-Y = Refsys-Y
@@ -65,13 +64,15 @@ Plane from Z-Axis (normal vector),
 
 
 Examples:
-# Plane normal to the Z-axis, with distance.
+# Plane normal to the Z-axis, with distance in direction Z.
 R1=PERP DZ 100
+
 # Plane normal to the Z-axis, through point.
 R2=PERP P(0 0 100) DZ
+
 # Plane in point p1; normal to the absolute X-axis;
 #   new X-axis direction of absolute Z-axis;
-#   distance 10 into direction of new Z-axis.
+#   distance 50 into direction of new Z-axis.
 P1=P(100 0 0)
 R3=PERP P1 DX DZ 50
 

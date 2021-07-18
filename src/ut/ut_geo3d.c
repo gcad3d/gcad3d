@@ -140,6 +140,8 @@ UT3D_par_pt__pt_prj_plg   get parameter / point of nearest point on polygon
 UT3D_par_pt__pt_prj_cv    get parameter and point of point projected onto curve
 
 -------------- points --------------------------------------
+UT3D_npt_*                see ../ut/ut3d_npt.c
+
 UT3D_swap2pt              swap 2 points                               INLINE
 UT3D_comp2pt              compare 2 points with tol.                  INLINE
 UT3D_ck2D_equ_2pt         2D-compare of 2 3D-points with tolerance    INLINE
@@ -174,7 +176,7 @@ UT3D_pt_pt2               3D-Point = 2D-Point; z = 0.
 UT3D_pt_pt2_0             3D-Point = 2D-Point; z = 0.                  INLINE
 UT3D_pt_pt2_z             3D-Point = 2D-Point + z-coord                INLINE
 UT3D_pt_3db               Point = 3 doubles (x, y, z)
-UT3D_pt_vc                copy
+UT3D_pt_vc                copy                                         INLINE
 UT3D_pt_txt               Point from text
 UT3D_pt_tra_pt2_bp             3D-point from 2D-point & backplane
 UT3D_pt_addpt             Add two points:      po += p1                INLINE
@@ -198,9 +200,9 @@ UT3D_pt_tra_pt_dy         Point = Point + dy                  (INLINE)
 UT3D_pt_traptvc           Point = Point + Vector              (INLINE)
 UT3D_pt_traptivc          Point = Point - Vector              (INLINE)
 UT3D_pt_traptmultvc       point = point + (vector * factor)   (INLINE)
-UT3D_pt_tra_pt_pt_par    point = segment p1-p2 * fakt
+UT3D_pt_tra_pt_pt_par     point = segment p1-p2 * fakt
 UT3D_pt_traptvclen        transl. point into dir vc dist. lenv
-UT3D_pt_tra_pt_vc_par     transl. point into dir vc dist. lenv (vcLen=1)
+UT3D_pt_tra_pt_vc_par     transl. point into dir vc; multiply vc
 UT3D_pt_trapt2vc          transl. point into 2 directions
 UT3D_pt_tra_pt_2vc_par    transl. point into 2 directions (multiply vec)
 UT3D_pt_tra_pt_2vc_2par   transl. point into 2 directions
@@ -228,6 +230,8 @@ UT3D_pt_proj_pt_pt_vcn    project point pt onto line pl+vcl (len=1)
 UT3D_pt_projptci          point = project point to circ
 UT3D_pt_projptptnvc       project point pt to plane from Origin, Z-vec
 UT3D_pt_projptpl          point = project point to plane
+UT3D_pt_intlnln           intersectPoint of 2 lines limited or unlimited
+UT3D_pt_int_2pt_2pt       intersectPoint of 2 lines limited or unlimited
 UT3D_pt_int2pt2pt_lim     intersect 2 limited lines
 UT3D_pt_int2pt2vcn_lim    intersect 2 limited NORMAL lines
 UT3D_pt_intptvcplx        intersect point/vector with Y-Z-plane
@@ -237,14 +241,12 @@ UT3D_pt_intptvcxpln       intersect line(x-parallel) with plane (pt-vc)
 UT3D_pt_intptvcypln       intersect line(y-parallel) with plane (pt-vc)
 UT3D_pt_intptvczpln       intersect line(z-parallel) with plane (pt-vc)
 UT3D_2par_int2pt2vc       intersect 2 unlimitedLines; gives 2 parameters
-UT3D_pt1_int2pt2pt        intersect 2 unlimitedLines; point on pa-pb out
 UT3D_pt_int2pt2vc         intersect 2 rays
 UT3D_pt_intptvcln         intersect ray - lineSegment
-UT3D_pt_int2ln            intersect 2 unlimitedLines; get 2 points & dist
-UT3D_pt_intlnln           intersect 2 Lines both limited or unlimited
+UT3D_2pt_int2ln           intersect 2 unlimitedLines; get 2 points & dist
+UT3D_2pt_intlnln          intersect 2 Lines both limited or unlimited
 UT3D_pt_intptvcsph        intersect unlimited line / sphere
 UT3D_pt_intperp2ln        inters ln2 with perp.plane to ln1
-UT3D_ptCen_2Ln            give common centerPoint of 2 Lines (from 2 CircSegs)
 UT3D_pt_intlnci_l         intersect line - circle (limited|unlimited)
 UT3D_pt_intlnci__         intersect line - circle (both unlimited)
 UT3D_pt_intlnci_lp        intersection LN-CIR (limited|unlimited, same plane)
@@ -470,6 +472,7 @@ UT3D_obj_vctra DO NOT USE translate Obj
 -------------- plane ---------------------------------------
 UT3D_pl_XYZ               Defaultplane auf absolut 0,0,0
 UT3D_pl_bp                plane from backplane and offset
+UT3D_ipln_bp              get DB-index for backplane
 UT3D_pl_3pt               plane from 3 points (vx parallel XY-mainPlane)
 UT3D_pl_pta               plane from n-points
 UT3D_pl_ptvzpl            plane from z-axis and origin and base-plane
@@ -506,7 +509,7 @@ UT3D_bp_perp_vc           returns main-BackPlaneNr (0-2) normal to vec
 UT3D_bp_ln                backplane from line
 UT3D_bp_pta               backplane from n points
 UT3D_bp_pl__              get backplane+offset for plane
-UT3D_bpd_bp_pt            get disptance of point from backplane
+UT3D_bpd_bp_pt            get distance of point from backplane
 
 -------------- Refsys ------------------------------
 UT3D_rsys_pl              get backplane/transformation-matrix for plane
@@ -533,6 +536,8 @@ UT3D_m3_multm3            4x3-Matrix mit 4x3 Matrix multiplizieren
 UT3D_m3_tra_m3            ev ident mit UT3D_m3_multm3 ?
 UT3D_m3_rot_m3            rotate matrix
 UT3D_m3_m4v               copy a vertical-Mat_4x4  -->  Mat_4x3
+
+UT3D_m3_imr               get matrix of referenceModel
 
 UT3D_m4_init              Initialize a 4x4 - matrix
 UT3D_m4_init_ori          Initialize a 4x4 - matrix with translation
@@ -1270,345 +1275,246 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 }
 
 
-/* BUGGY
-//=====================================================================
-  int UT3D_pt_int2pt2pt_lim (Point *px, double *ux_ab, double *ux_cd,
-                             Point *pta, Point *ptb,
-                             Point *ptc, Point *ptd, double tol) {
-//=====================================================================
-/// \code
-/// UT3D_pt_int2pt2pt_lim            intersect 2 limited lines
-/// get intersectionpoint and parameters
-///
-/// IN:
-///   pta, ptb         line 1
-///   ptc, ptd         line 2
-/// OUT:
-///   Point *px        intersectionpoint
-///   double *ux_ab     parameter of px on line a-b  (none if NULL)
-///   double *ux_cd     parameter of px on line c-d  (none if NULL)
-/// Returncodes:
-///    -1 = no intersection inside the segments
-///     0 = OK; dist gives the minimum distance.
-///     1 = Line a-b parallel and covering c-d (px set to midpoint)
-///
-/// a-b = ln1    c-d = ln2   e = u_c_ab   f = u_d_ab
-///                       d
-///                      /.
-///                     / .
-///                 ln2/  .
-///                   /   .
-///                  /    .
-///                 /     .
-///       a-----e--x------f-------------b
-///             | /            ln1
-///             |/
-///             c
-///
-///
-/// \endcode
-
-// intersect 2 limited lines
-// see UT3D_pt_int2ln UT3D_pt_intlnln UT3D_pt1_int2pt2pt
+//======================================================================
+  int UT3D_pt_intlnln (Point *px, double tol,
+                       Line *ln1, int ln1Mode, Line *ln2, int ln2Mode) {
+//======================================================================
+// UT3D_pt_intlnln           intersectPoint of 2 lines limited or unlimited
+//
+// IN:
+//   Line *ln1        line 1
+//   ln1Mode          0=limited Line, else unlimited Line.
+//   Line *ln2        line 2
+//   ln2Mode          0=limited Line, else unlimited Line.
+//   *tol             max dist of lines
+// OUT:
+//   Point *px        intersectionpoint (only for rc=0)
+//   Returncodes:
+//    -6   collinear  d-c gap a-b
+//    -5   collinear  c-d gap a-b
+//    -4   collinear  a-b gap d-c
+//    -3   collinear  a-b gap c-d
+//    -2   parallel - dist > tol
+//    -1   no intersection (limited or not in same plane)
+//     0   normal intersection; 
+//     1   collinear connected a-b-c-d
+//     2   collinear connected a-b-d-c
+//     3   collinear connected c-d-a-b
+//     4   collinear connected d-c-a-b
+//     5   collinear overlapping a-c-b-d
+//     6   collinear overlapping a-d-b-c
+//     7   collinear overlapping c-a-d-b
+//     8   collinear overlapping d-a-c-b
+//     9   collinear a-b exceeds c-d on both sides; a-c-d-b
+//    10   collinear a-b exceeds c-d on both sides; a-d-c-b
+//    11   collinear c-d exceeds a-b on both sides; c-a-b-d
+//    12   collinear c-d exceeds a-b on both sides; d-a-b-c
+//
+// see UTP_2db_ck_in2db  UT2D_ck_2par_pt_in_2par_2pt
+// see UT3D_pt_int2pt2pt_lim
 
 
-   // double d1, d2;  int i1;
-   // Point p1 = {    0.0,      0.0,      0.0};
-   // Point p2 = { 1000.0,      0.0,      0.0};
-   // Point p3 = {   50.0,     10.0,      0.0};
-   // Point p4 = {   60.0,     20.0,      0.0};
-   // i1 = UT3D_pt_int2pt2pt_lim (&pi, &d1, &d2, &p1, &p2, &p3, &p4, UT_TOL_cv);
+  // printf("UT3D_pt_intlnln ln1Mode=%d ln2Mode=%d tol=%f\n",ln1Mode,ln2Mode,tol);
+
+  return UT3D_pt_int_2pt_2pt (px, tol, &ln1->p1, &ln1->p2, ln1Mode,
+                                       &ln2->p1, &ln2->p2, ln2Mode);
+
+}
 
 
+//======================================================================
+  int UT3D_pt_int_2pt_2pt (Point *px, double tol,
+                           Point *pta, Point *ptb, int ln1Mode,
+                           Point *ptc, Point *ptd, int ln2Mode) {
+//======================================================================
+// UT3D_pt_int_2pt_2pt           intersectPoint of 2 lines limited or unlimited
+//
+// IN:
+//   pta,ptb,         line 1 (a-b)
+//   ln1Mode          0=limited Line, else unlimited Line.
+//   ptc,ptd          line 2 (c-d)
+//   ln2Mode          0=limited Line, else unlimited Line.
+//   *tol             max dist of lines
+// OUT:
+//   Point *px        intersectionpoint (only for rc=0)
+//   Returncodes:
+//    -6   collinear  d-c gap a-b
+//    -5   collinear  c-d gap a-b
+//    -4   collinear  a-b gap d-c
+//    -3   collinear  a-b gap c-d
+//    -2   parallel - dist > tol
+//    -1   no intersection (limited or not in same plane)
+//     0   normal intersection; 
+//     1   collinear connected a-b-c-d
+//     2   collinear connected a-b-d-c
+//     3   collinear connected c-d-a-b
+//     4   collinear connected d-c-a-b
+//     5   collinear overlapping a-c-b-d
+//     6   collinear overlapping a-d-b-c
+//     7   collinear overlapping c-a-d-b
+//     8   collinear overlapping d-a-c-b
+//     9   collinear a-b exceeds c-d on both sides; a-c-d-b
+//    10   collinear a-b exceeds c-d on both sides; a-d-c-b
+//    11   collinear c-d exceeds a-b on both sides; c-a-b-d
+//    12   collinear c-d exceeds a-b on both sides; d-a-b-c
+//
+// see UTP_2db_ck_in2db  UT2D_ck_2par_pt_in_2par_2pt
+// see UT3D_pt_int2pt2pt_lim
 
-  int      irc=0, iover, icdrev=0;
-  double   par1, par2, lqab, lqcd, lqec, lqfd, qtol;
-  double   u_c_ab, u_d_ab, u_x_ab, u_x_cd, q1, q0, s_ab_cd, s_ac_cd;
-  Vector   vab, vcd, vac, vad, vae, vaf, vax, vcx, vec, vfd;
-  Point    pb1, pb2, *pp1, *pp2;
+
+  int     irc = 0, iover, irev;
+  double  u1, u2;
+  Point   px1, px2;
+  Vector  vab, vcd, vcx;
 
 
-  printf("UT3D_pt_int2pt2pt_lim %lf\n",tol);
+  // printf("UT3D_pt_int_ptvc_2pt ln1Mode=%d ln2Mode=%d tol=%f\n",
+         // ln1Mode,ln2Mode,tol);
+  // DEB_dump_obj__ (Typ_PT, pta, " pta =");
+  // DEB_dump_obj__ (Typ_PT, ptb, " ptb =");
+  // DEB_dump_obj__ (Typ_PT, ptc, " ptc =");
+  // DEB_dump_obj__ (Typ_PT, ptd, " ptd =");
 
-  qtol = tol * tol;
-
-  printf("UT3D_pt_int2pt2pt_lim tol=%f qtol=%lf\n",tol,qtol);
-  DEB_dump_obj__ (Typ_PT, pta, " pta =");
-  DEB_dump_obj__ (Typ_PT, ptb, " ptb =");
-  DEB_dump_obj__ (Typ_PT, ptc, " ptc =");
-  DEB_dump_obj__ (Typ_PT, ptd, " ptd =");
-
-
-  // vectors from lines
+  // get parameters of inters.point
   UT3D_vc_2pt (&vab, pta, ptb);
   UT3D_vc_2pt (&vcd, ptc, ptd);
-    // DEB_dump_obj__ (Typ_VC, &vab, " vab =");
-    // DEB_dump_obj__ (Typ_VC, &vcd, " vcd =");
-
-
-  // get the quadratic length of vab, vcd
-  lqab = UT3D_skp_2vc (&vab, &vab);  // q-length of vab (length*length)
-  lqcd = UT3D_skp_2vc (&vcd, &vcd);  // q-length of vcd
-  // Test for 0 ?
-    printf(" lqab=%lf lqcd=%lf\n",lqab,lqcd);
-
-
-  s_ab_cd = UT3D_skp_2vc (&vab, &vcd);   // Laenge e-f relativ zu Laenge a-b
-    printf(" s_ab_cd=%f\n",s_ab_cd);
-  if(fabs(s_ab_cd) < UT_TOL_min0)
-    return  UT3D_pt_int2pt2vcn_lim (px, ux_ab, ux_cd, pta, &vab, ptc, &vcd, tol);
 
 
 
-  // swap ln1-ln2 if ln2 longer ln1; then ln1 is longer than ln2.
-  if(lqcd > lqab) {
-      // printf(" swap ln1 - ln2\n");
-    MEM_swap_2vp (&pta, &ptc);
-    MEM_swap_2vp (&ptb, &ptd);
-    MEM_swap_2vp (&ux_ab, &ux_cd);
-    MEM_swap_2db (&lqab, &lqcd);
-    MEM_swap__ (&vab, &vcd, sizeof(Vector));
+  // irc = UT3D_pt_int2pt2vc (&px1, &px2, &u1, &ln1->p1, &vc1, &ln2->p1, &vc2);
+  irc = UT3D_2par_int2pt2vc (&u1, &u2, pta, &vab, ptc, &vcd, tol);
+
+    // TESTBLOCK
+    // printf(" _intlnln-irc=%d u1=%f u2=%f\n",irc,u1,u2);
+    // DEB_dump_obj__ (Typ_PT, &px1, " px1 =");
+    // DEB_dump_obj__ (Typ_PT, &px1, " px2 =");
+    // return irc;
+    // END TESTBLOCK
+
+  if(irc > 0) goto L_parl;  // collinear
+  if(irc < 0) { irc = -2; goto L_exit; }  // parallel - dist > tol
+
+
+  //----------------------------------------------------------------
+  // normal intersection; get px = inters.pt on a-b
+  UT3D_vc_multvc (&vcx, &vab, u1);
+  UT3D_pt_traptvc (&px1, pta, &vcx);
+    // DEB_dump_obj__ (Typ_PT, &px1, " px1");
+
+  // get px2 = inters.pt on c-d
+  UT3D_vc_multvc (&vcx, &vcd, u2);         // BUG: gleiche Linie !!
+  UT3D_pt_traptvc (&px2, ptc, &vcx);
+    // DEB_dump_obj__ (Typ_PT, &px2, " px2");
+
+  // test distance px1 - px2
+  if(!UT3D_comp2pt(&px1, &px2, tol)) {irc = -1; goto L_exit;}
+
+  UT3D_pt_mid2pt (px, &px1, &px2);
+
+
+  //----------------------------------------------------------------
+  if(ln1Mode) goto L_ck_ln2;
+  // ln1 is limited
+    // printf(" _intlnln-ckLim-ln1\n");
+  // test px outside ln1
+  if(u1 < 0.5) {
+    // test px==ln1.p1
+    if(UT3D_comp2pt(px, pta, tol)) goto L_ck_ln2;
+    if(u1 < 0.) goto L_err;
+
+  } else {
+    // test px==ln1.p2
+    if(UT3D_comp2pt(px, ptb, tol)) goto L_ck_ln2;
+    if(u1 > 1.) goto L_err;
   }
 
 
-  UT3D_vc_2pt (&vac, pta, ptc);
-  UT3D_vc_2pt (&vad, pta, ptd);
-    // DEB_dump_obj__ (Typ_VC, &vac, " vac =");
-    // DEB_dump_obj__ (Typ_VC, &vad, " vad =");
-
-
-  // get u_c_ab = parameter of c projected onto vab.
-  u_c_ab = UT3D_skp_2vc (&vab, &vac);
-  // get u_d_ab = parameter of d projected onto vab.
-  u_d_ab = UT3D_skp_2vc (&vab, &vad);
-    printf(" u_c_ab=%lf u_d_ab=%lf\n",u_c_ab,u_d_ab);
-
-
-
-  // make ptc-ptd parallel to pta-ptb (not antiparallel)
-  if(u_c_ab > u_d_ab) {
-    // antiparallel
-    MEM_swap_2db (&u_c_ab, &u_d_ab);
-    MEM_swap_2vp (&ptc, &ptd);
-    MEM_swap__ (&vac, &vad, sizeof(Vector));
-    UT3D_vc_invert (&vcd, &vcd);
-    icdrev = 1; // c-d reverted
-  }
-
-
-  // test if projection of vcd onto vab overlaps;
-  iover = UTP_2db_ck_in2db (0., lqab, u_c_ab, u_d_ab);
-    printf(" iover=%d\n",iover);
-
-
-  // outside -
-  if (iover == -2) {
-    // ln2 is left of ln1
-    if(!UT3D_comp2pt(ptd, pta, tol)) { irc = -1; goto L_exit; }
-    // x == d == a
-    *px = *pta;
-    if(ux_ab) *ux_ab = 0.;
-    if(ux_cd) *ux_cd = 1.;
-    goto L_exit;
-
-  } else if (iover == 2) {
-    // ln2 is right of ln1
-    if(!UT3D_comp2pt(ptb, ptc, tol)) { irc = -1; goto L_exit; }
-    // x == b == c
-    *px = *ptb;
-    if(ux_ab) *ux_ab = 1.;
-    if(ux_cd) *ux_cd = 0.;
-    goto L_exit;
-  }
-
-
-  // get vector a-e
-  UT3D_vc_multvc (&vae, &vab, u_c_ab / lqab);
-    DEB_dump_obj__ (Typ_VC, &vae, " vae =");
-    pb1 = *pta; UT3D_pt_add_vc__ (&pb1, &vae);
-    GR_tDyn_symB__ (&pb1, SYM_TRI_S, ATT_COL_RED);
-
-  // get vector e-c = Subtraktion (a-c - a-e)
-  UT3D_vc_sub2vc (&vec, &vac, &vae);
-    // DEB_dump_obj__ (Typ_VC, &vec, " vec =");
-
-  // lqec = quadrat.length e-c
-  lqec = UT3D_skp_2vc (&vec, &vec);
-    // printf(" lqec=%lf\n",lqec);
-
-
-
-  // get vector a-f
-  UT3D_vc_multvc (&vaf, &vab, u_d_ab / lqab);
-    DEB_dump_obj__ (Typ_VC, &vaf, " vaf =");
-    pb1 = *pta; UT3D_pt_add_vc__ (&pb1, &vaf);
-    GR_tDyn_symB__ (&pb1, SYM_TRI_S, ATT_COL_GREEN);
-
-  // get vector f-d = Subtraktion (a-d - a-f)
-  UT3D_vc_sub2vc (&vfd, &vad, &vaf);
-    // DEB_dump_obj__ (Typ_VC, &vfd, " vfd =");
-
-  // lqfd = quadrat.length f-d
-  lqfd = UT3D_skp_2vc (&vfd, &vfd);
-    // printf(" lqec=%lf lqfd=%lf\n",lqec,lqfd);
-
-
-  // test if lines are parallel, but have distance > tol
-  if(UTP_comp2db(lqec,lqfd,qtol)) {
-    // yes - parallel; test if normal-distance > tol
-    if(lqec > qtol) return -1;         // 2016-03-21
-  }
-
-
-  // test if c is on a-b AND d is on a-b
-  if((lqec < qtol)&&(lqfd < qtol)) {
-    // c-d covers a-b; find midpoint of overlapping range.
-      // printf(" ln1 covers ln2 !\n");
-    if(iover == -1) {
-      // ln2 is left of ln1 (c-a-d-b); set px = mid a-d
-      UT3D_pt_mid2pt (px, pta, ptd);
-    } else if(iover == 0) {
-      // ln2 inside ln1 (a-c-d-b); ln1 is longer.
-      UT3D_pt_mid2pt (px, ptc, ptd);
-      // if(ux_cd) *ux_cd = 0.5;
-    } else if(iover == 1) {
-      // ln2 is right of ln1 (a-c-b-d)
-      UT3D_pt_mid2pt (px, ptc, ptb);
-    }
-    irc = 1;
-    goto L_ux;
-  }
-
-
-  // test if ptc is on line pta-ptb
-  if(lqec < qtol) {
-    // ptc is on pta-ptb
-      // printf(" c is on a-b\n");
-    if (iover == -1) {
-      // ln2 is left of ln1 (c-a-d-b)
-      if(!UT3D_comp2pt(ptc, pta, tol)) { irc = -1; goto L_exit; }
-    }
-    *px = *ptc;
-    goto L_ux;
-  }
-
-
-  // test if ptd is on line pta-ptb
-  if(lqfd < qtol) {
-    // ptd is on pta-ptb
-      // printf(" d is on a-b\n");
-    if(iover == 1) {
-      // ln2 is right of ln1 (a-c-b-d)
-      if(!UT3D_comp2pt(ptb, ptd, tol)) { irc = -1; goto L_exit; }
-    }
-    *px = *ptd;
-    goto L_ux;
-  }
-
-
-  // intersect lines a-b  c-d
-  s_ac_cd = UT3D_skp_2vc (&vac, &vcd);
-    // printf(" s_ac_cd=%lf\n",s_ac_cd);
-
-  q0 = lqab * lqcd - s_ab_cd * s_ab_cd;
-
-  if(fabs(q0) < UT_TOL_min2) {
-    // internal error (should be handled before)
-    irc = -1;
-    printf("UT3D_pt_int2pt2pt_lim - internal error \n");
-    goto L_exit;
-  }
-
-  q1 = (u_c_ab * lqcd) - (s_ac_cd * s_ab_cd);
-
-  // u_x_ab = parameter of intersect-point on a-b
-  u_x_ab = q1 / q0;
-  if(ux_ab) *ux_ab = u_x_ab;
-    // printf(" u_x_ab=%lf q1=%lf q0=%lf\n",u_x_ab,q1,q0);
-
-  // u_x_cd = parameter of intersect-point on c-d
-  u_x_cd = ((s_ab_cd * u_x_ab) - s_ac_cd) / lqcd;
-  if(ux_cd) *ux_cd = u_x_cd;
-    // printf(" u_x_cd=%lf q1=%lf q0=%lf\n",u_x_cd,q1,q0);
-
-  // get vector a-x
-  UT3D_vc_multvc (&vax, &vab, u_x_ab);
-    // DEB_dump_obj__ (Typ_VC, &vax, " vax =");
-
-  // px from vax
-  UT3D_pt_traptvc (px, pta, &vax);
-
-
-  // test intersectpoint left | right of line a-b
-  if(u_x_ab < 0.) {
-    // intersectpoint is left of a
-    if(UT3D_comp2pt(px, pta, tol)) goto L_exit;
-    irc = -1;
-    goto L_exit;
-
-  } else if(u_x_ab > 1.) {
-    // intersectpoint is right of b
-    if(UT3D_comp2pt(px, ptb, tol)) goto L_exit;
-    irc = -1;
-    goto L_exit;
-  }
-
-
-  // test intersectpoint left | right of line c-d
-  if(u_x_cd < 0.) { 
-    // intersectpoint is left of c
+  //----------------------------------------------------------------
+  L_ck_ln2:
+  if(ln2Mode) goto L_exit;
+  // ln2 is limited
+    // printf(" _intlnln-ckLim-ln2\n");
+  // test px outside ln1
+  if(u2 < 0.5) {
+    // test px==ln2.p1
     if(UT3D_comp2pt(px, ptc, tol)) goto L_exit;
-    irc = -1;
-    goto L_exit;
-  
-  } else if(u_x_cd > 1.) {
-    // intersectpoint is right of d
+    if(u2 < 0.) goto L_err;
+
+  } else {
+    // test px==ln2.p2
     if(UT3D_comp2pt(px, ptd, tol)) goto L_exit;
-    irc = -1;
-    goto L_exit;
+    if(u2 > 1.) goto L_err;
   }
 
 
   //----------------------------------------------------------------
   L_exit:
-    if(icdrev) {
-      // c-d reverted
-      if(ux_cd) *ux_cd = 1. - *ux_cd;
-    }
 
-
-    printf("ex _int2pt2pt irc=%d\n",irc);
-    if(ux_ab) printf(" ux_ab=%lf\n",*ux_ab);
-    if(ux_cd) printf(" ux_cd=%lf\n",*ux_cd);
-    if(irc != -1) DEB_dump_obj__ (Typ_PT, px, " px =");
-    // exit(0);
+    // TESTBLOCK
+    // printf("ex-UT3D_pt_intlnln irc=%d  =============\n",irc);
+    // DEB_dump_obj__ (Typ_PT, px, " px =");
+    // END TESTBLOCK
 
   return irc;
 
 
   //----------------------------------------------------------------
-  L_ux:
-      printf(" L_ux: irc=%d\n",irc);
-
-    // get u_x_ab = qadr.length of vax from x
-    if(ux_ab) {
-      // u_x_ab = parameter of x projected onto vab.
-      UT3D_vc_2pt (&vax, pta, px);
-      u_x_ab = UT3D_skp_2vc (&vab, &vax);
-      *ux_ab = u_x_ab / lqab;
-    }
-    
-    // get u_x_cd = qadr.length of vax from x
-    if(ux_cd) {
-      // u_x_cd = parameter of x projected onto vcd.
-      UT3D_vc_2pt (&vcx, ptc, px);
-      u_x_cd = UT3D_skp_2vc (&vcd, &vcx);
-      *ux_cd = u_x_cd / lqcd;
-    }
+  L_err:      // no inters.pt
+    irc = -1;
     goto L_exit;
 
+
+
+  //================================================================
+  L_parl:
+    // printf(" L_parall\n");
+
+  // test overlapping
+  iover = UTP_2db_ck_in2db (0., 1., u1, u2);
+    // printf(" iover=%d %f %f\n", iover, u1, u2);
+
+  if(u1 > u2) irev = 1;  // cd opposite to ab
+  else        irev = 0;
+
+  if(iover == -3) {
+    if(!irev) if(UT3D_comp2pt(ptb, ptc, tol)) {irc= 1; goto L_exit;}
+    else      if(UT3D_comp2pt(ptb, ptd, tol)) {irc= 2; goto L_exit;}
+    if(!irev) { irc= -3; goto L_exit;}
+    else      { irc= -4; goto L_exit;}
+  }
+
+  if(iover == -4) {
+    if(!irev) if(UT3D_comp2pt(ptd, pta, tol)) {irc= 3; goto L_exit;}
+    else      if(UT3D_comp2pt(ptc, pta, tol)) {irc= 4; goto L_exit;}
+    if(!irev) { irc= -5; goto L_exit;}
+    else      { irc= -6; goto L_exit;}
+  }
+
+  if(iover == -1) {
+    if(!irev) { irc= 5; goto L_exit;}  // a-c-b-d
+    else      { irc= 6; goto L_exit;}  // a-d-b-c
+  }
+
+  if(iover == -2) {
+    if(!irev) { irc= 7; goto L_exit;}  // c-a-d-b
+    else      { irc= 8; goto L_exit;}  // d-a-c-b
+  }
+
+  if(iover == 1) {
+    if(!irev) { irc=  9; goto L_exit;}  // a-c-d-b
+    else      { irc= 10; goto L_exit;}  // a-d-c-b
+  }
+
+  if(iover == 2) {
+    if(!irev) { irc= 11; goto L_exit;}  // c-a-b-d
+    else      { irc= 12; goto L_exit;}  // d-a-b-c
+  }
+
+  printf("***** UT3D_pt_intlnln E1\n");
+  goto L_exit;
+
 }
-*/
+
 
 //=====================================================================
   int UT3D_pt_int2pt2vcn_lim (Point *px, double *ux_ab, double *ux_cd,
@@ -2018,36 +1924,39 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
                              Point *pta, Point *ptb,
                              Point *ptc, Point *ptd, double tol) {
 //=====================================================================
-/// \code
-/// UT3D_pt_int2pt2pt_lim            intersect 2 limited lines
-/// get intersectionpoint and parameters
-///
-/// IN:
-///   pta, ptb         line 1
-///   ptc, ptd         line 2
-/// OUT:
-///   Point *px        intersectionpoint
-///   double *ux_ab     parameter of px on line a-b  (none if NULL)
-///   double *ux_cd     parameter of px on line c-d  (none if NULL)
-/// Returncodes:
-///    -1 = no intersection inside the segments
-///     0 = OK; dist gives the minimum distance.
-///     1 = Line a-b parallel and covering c-d (px set to midpoint)
-///
-///                       d
-///                      /.
-///                     / .
-///                 ln2/  .
-///                   /   .
-///                  /    .
-///                 /     .
-///       a-----e--x------f-------------b
-///             | /            ln1
-///             |/
-///             c
-///
-///
-/// \endcode
+// UT3D_pt_int2pt2pt_lim            intersect 2 limited lines
+// get intersectionpoint and parameters
+//
+// IN:
+//   pta, ptb         line 1
+//   ptc, ptd         line 2
+// OUT:
+//   Point *px        intersectionpoint
+//   double *ux_ab     parameter of px on line a-b  (none if NULL)
+//   double *ux_cd     parameter of px on line c-d  (none if NULL)
+// Returncodes:
+//      1 = Line a-b parallel and covering c-d (px set to midpoint)
+//      0 = OK; dist gives the minimum distance.
+//     -1   px left of vab
+//     -2   px right of vab
+//     -3   px left of vcd
+//     -4   px right of vcd
+//     -5   parallel - dist > tol
+//     -6   parallel - dist < tol, not overlapping
+//
+//                       d
+//                      /.
+//                     / .
+//                 ln2/  .
+//                   /   .
+//                  /    .
+//                 /     .
+//       a-----e--x------f-------------b
+//             | /            ln1
+//             |/
+//             c
+//
+//
 
 
   int       irc, iover;
@@ -2096,8 +2005,11 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
 
   u_ab = q1 / q0;
-
   u_cd = ((s_ab_cd * (u_ab)) - s_ac_cd) / s_cd_cd;
+    // printf(" _int2pt2pt_-u_ab=%f u_cd=%f\n",u_ab,u_cd);
+
+  if(ux_ab) *ux_ab = u_ab;
+  if(ux_cd) *ux_cd = u_cd;
 
   UT3D_vc_multvc (&vax, &vab, u_ab);
   UT3D_pt_traptvc (&px1, pta, &vax);
@@ -2116,29 +2028,26 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
   // test px left of vab
   if(UT3D_comp2pt(px, pta, tol)) goto L_ab_ok;
-  if(u_ab < 0.) return -1;
+  if(u_ab < 0.) {irc = -1; goto L_exit; }    // return -1;
 
   // test px right of vab
   if(UT3D_comp2pt(px, ptb, tol)) goto L_ab_ok;
-  if(u_ab > 1.) return -2;
+  if(u_ab > 1.) {irc = -2; goto L_exit; }    // return -2;
 
 
   L_ab_ok:
 
   // test px left of vcd
   if(UT3D_comp2pt(px, ptc, tol)) goto L_cd_ok;
-  if(u_cd < 0.) return -3;
+  if(u_cd < 0.) {irc = -3; goto L_exit; }    // return -3;
 
   // test px right of vcd
   if(UT3D_comp2pt(px, ptd, tol)) goto L_cd_ok;
-  if(u_cd > 1.) return -4;
+  if(u_cd > 1.) {irc = -4; goto L_exit; }    // return -4;
 
 
   L_cd_ok:
   irc = 0;
-  if(ux_ab) *ux_ab = u_ab;
-  if(ux_cd) *ux_cd = u_cd;
-
 
 
     // TESTBLOCK
@@ -2151,11 +2060,13 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   //----------------------------------------------------------------
   L_exit:
 
-    // printf("ex _int2pt2pt irc=%d\n",irc);
+    // TESTBLOCK
+    // printf("ex-UT3D_pt_int2pt2pt_lim irc=%d\n",irc);
     // if(ux_ab) printf(" ux_ab=%lf\n",*ux_ab);
     // if(ux_cd) printf(" ux_cd=%lf\n",*ux_cd);
     // if(irc != -1) DEB_dump_obj__ (Typ_PT, px, " px =");
     // exit(0);
+    // END TESTBLOCK
 
   return irc;
 
@@ -2172,7 +2083,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   UT3D_vc_sub2vc (&vec, &vac, &vae);
   dec = UT3D_len_vc (&vec);
 
-  if(dec > tol) return -1;
+  if(dec > tol) {irc = -5; goto L_exit;} 
 
 
   // test overlappimg
@@ -2181,7 +2092,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   iover = UTP_2db_ck_in2db (0., s_ab_ab, s_ab_ac, s_ab_ad);
     // printf(" s_ab_ad=%f iover=%d\n", s_ab_ad, iover);
 
-  if(iover < -2) return -1;
+  if(iover < -2) {irc = -6; goto L_exit;}
 
   if(iover == -2)      UT3D_pt_mid2pt (px, pta, ptd);
   else if(iover == -1) UT3D_pt_mid2pt (px, ptc, ptb);
@@ -2203,34 +2114,37 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
                           Point *pa, Vector *vab,
                           Point *pc, Vector *vcd) {
 //================================================================
-/// \code
-/// UT3D_2par_int2pt2vc     intersect 2 unlimitedLines; gives 2 parameters
-/// Input:
-///   pa-vab   Line1 (pa-pb)
-///   pc-vcb   Line2 (pc-pd)
-/// Output:
-///   par1     Parameter of IntersectPt on pa-pb
-///   par2     Parameter of IntersectPt on pc-pd
-///   retCod   -1 = parallel
-///             0 = OK;
-///
-///                         d
-///                        /.
-///                       / .
-///                      /  .
-///                     /   .
-///                    c    .
-///                   ..    .
-///                  . .    .
-///                 .  .    .
-///          a-----+---e----f-----------------------b
-///               ip
-/// \endcode
+// UT3D_2par_int2pt2vc     intersect 2 unlimitedLines; gives 2 parameters
+// Input:
+//   pa-vab     Line1 (pa-pb)
+//   pc-vcb     Line2 (pc-pd)
+//   UT_TOL_pt  tolernace parallel
+// Output:
+//   par1       retCod = 0: Parameter of IntersectPt on pa-pb
+//              retCod = 1: par of pc on pa-pb, 
+//   par2       retCod = 0: Parameter of IntersectPt on pc-pd
+//              retCod = 1: par of pd on pa-pb, 
+//   retCod      1   parallel, distance < tol;
+//               0   OK - normal intersection
+//              -1   parallel but distance > tol; par* not set
+//
+//                         d
+//                        /.
+//                       / .
+//                      /  .
+//                     /   .
+//                    c    .
+//                   ..    .
+//                  . .    .
+//                 .  .    .
+//          a-----+---e----f-----------------------b
+//               ip
 
   int       irc;
-  double    s_ab_ab, s_ab_ac, s_ab_cd, s_ac_cd, s_cd_cd, q0, q1, q2;
-  Vector    vac;  //, vad;
-  Point     pm1, pm2;
+  double    s_ab_ab, s_ab_ac, s_ab_ad, s_ab_cd, s_ac_cd, s_cd_cd, q0, q1, q2;
+  // double    ca, c2, q3;
+  Vector    vac, vad, vae, vec;  //, vad;
+  Point     pd, pe, pf, pm1, pm2;
 
 
   // printf("UT3D_2par_int2pt2vc \n");
@@ -2240,43 +2154,82 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   // DEB_dump_obj__ (Typ_VC, vcd, " vcd =");
 
 
-/*
-  // check for lines parallel or antiparallel
-  if (UT3D_comp2vc_p (vab, vcd, UT_TOL_min1)) {
-    //printf("UT3D_pt_int2ln parallel error\n");
-    irc = -1;
-    // UT3D_pt_projptptvc (&ip2, dist, NULL, p1, p3, &v);
-    goto Done;
-  }
-*/
 
   UT3D_vc_2pt (&vac, pa, pc);           // vac = Vector a-c
     // DEB_dump_obj__ (Typ_VC, &vac, " vac =");
 
   s_ab_ab = UT3D_skp_2vc (vab, vab);  // skp mit sich selbst = Laenge^2
-  s_ab_ac = UT3D_skp_2vc (vab, &vac);  // gibt Wert fuer e relativ zu s_ab_ab
-  s_ab_cd = UT3D_skp_2vc (vab, vcd);   // Laenge von e-f relativ zu s_ab_ab
-  s_ac_cd = UT3D_skp_2vc (&vac, vcd);
-  s_cd_cd = UT3D_skp_2vc (vcd, vcd);
+  s_ab_ac = UT3D_skp_2vc (vab, &vac);
+
     // printf(" s_ab_ab=%f\n",s_ab_ab);
-    // printf(" s_ab_ac=%f\n",s_ab_ac);
     // printf(" s_ab_cd=%f\n",s_ab_cd);
-    // printf(" s_ac_cd=%f\n",s_ac_cd);
     // printf(" s_cd_cd=%f\n",s_cd_cd);
-
-  // q1 = param vom pi1 auf ab  (zw 0 und 1)
-  // q2 = param vom pi2 auf cd  (zw 0 und 1)
-  // q0 = (s_ab_ab * s_cd_cd) - (s_ab_cd * s_ab_cd);
-  // if(fabs(q0) < UT_TOL_min1) return 1;
-  // *par1 = ((s_ab_ac * s_cd_cd) - (s_ab_cd * s_ac_cd)) / q0;
-  // *par2 = ((s_ab_ac * s_ab_cd) - (s_ab_ab * s_ac_cd))  / q0;
+    // printf(" s_ab_ac=%f\n",s_ab_ac);
 
 
-  q0 = s_ab_ab * s_cd_cd - s_ab_cd * s_ab_cd;
+  //----------------------------------------------------------------
+  // get par1 = Parameter of c on ab
+  *par1 = s_ab_ac / s_ab_ab;
+    // printf(" *par1=%f\n",*par1);
 
-  if(fabs(q0) < UT_TOL_min2) {irc = -1; goto Done;}
-  // make comparable
-  // if((fabs(q0) * s_ab_ab / s_ab_cd) < UT_TOL_min1) {irc = -1; goto Done;}
+  // get point e = projection of c onto a-b
+  UT3D_pt_tra_pt_vc_par (&pe, pa, vab, *par1);
+    // DEB_dump_obj__ (Typ_PT, &pe,  " pe =");
+    // GR_temp_pt ((Point*)&pe, ATT_PT_GREEN);
+
+  // test (pe == pc); if not ident, goto normal intersection
+  if(!UT3D_comp2pt(&pe, pc, UT_TOL_pt)) goto L_inters;
+
+
+  // get par2 = Parameter of d on ab
+  UT3D_vc_add2vc (&vad, &vac, vcd);           // vad = vac + vcd
+  s_ab_ad = UT3D_skp_2vc (vab, &vad);
+  *par2 = s_ab_ad / s_ab_ab;
+    // printf(" *par2=%f\n",*par2);
+
+  // get point f = projection of c onto a-b
+  UT3D_pt_tra_pt_vc_par (&pf, pa, vab, *par2);
+    // DEB_dump_obj__ (Typ_PT, &pf,  " pf =");
+    // GR_temp_pt ((Point*)&pf, ATT_PT_YELLOW);
+
+  // test (pf == pb); if not ident, goto normal intersection
+  UT3D_pt_traptvc (&pd, pc, vcd);
+  if(!UT3D_comp2pt(&pf, &pd, UT_TOL_pt)) goto L_inters;
+
+  irc = 1;
+  goto Done;
+
+  //----------------------------------------------------------------
+  L_inters:
+  s_ab_cd = UT3D_skp_2vc (vab, vcd);  // Laenge von e-f relativ zu s_ab_ab
+  s_cd_cd = UT3D_skp_2vc (vcd, vcd);
+
+  q1 = s_ab_ab * s_cd_cd;
+  q2 = s_ab_cd * s_ab_cd;
+    // printf(" q1=%f q2=%f\n",q1,q2);
+
+  //----------------------------------------------------------------
+  // alte Variante:
+  q0 = q1 - q2;
+    // printf(" q0=%lf UT_TOL_min1=%lf\n",q0,UT_TOL_min2);
+
+  if(fabs(q0) < UT_TOL_min1) {
+    irc = -2;  // parallel - dist > tol
+    goto Done;
+  }
+
+//   //----------------------------------------------------------------
+//   // Zusatz Sauer:
+//   // get c2 = square of cos of parallel-angle
+//   ca = cos(0.01);
+//   c2 = ca * ca;             // c2 = 0.985
+//   q3 = q2 / q1;
+//   if(fabs(q3) > c2) { rc = -2; goto Done; }    // -2 = parallel
+
+  //----------------------------------------------------------------
+  // get parameters of intersectionpoint
+  s_ac_cd = UT3D_skp_2vc (&vac, vcd);
+    // printf(" s_ac_cd=%f\n",s_ac_cd);
 
   q1 = (s_ab_ac * s_cd_cd) - (s_ac_cd * s_ab_cd);
 
@@ -2286,31 +2239,15 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
   irc = 0;
 
-
-    // // TESTBLOCK:
-    // {Point ip1, ip2;
-      // ip1.x = pa->x + *par1 * vab->dx;
-      // ip1.y = pa->y + *par1 * vab->dy;
-      // ip1.z = pa->z + *par1 * vab->dz;
-      // DEB_dump_obj__ (Typ_PT, &ip1, " ip1 =");
- //  
-      // ip2.x = pc->x + *par2 * vcd->dx;
-      // ip2.y = pc->y + *par2 * vcd->dy;
-      // ip2.z = pc->z + *par2 * vcd->dz;
-      // DEB_dump_obj__ (Typ_PT, &ip2, " ip2 =");
-    // }
-    // // END TESTBLOCK:
-
-
+  //----------------------------------------------------------------
   Done:
-
     // printf("ex UT3D_2par_int2pt2vc irc=%d par1=%f par2=%f\n",irc,*par1,*par2);
-
   return irc;
 
 }
 
 
+/* UU
 //================================================================
   int UT3D_pt1_int2pt2pt (Point *ip,
                           Point *pa, Point *pb, Point *pc, Point *pd) {
@@ -2356,7 +2293,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   return irc;
 
 }
-
+*/
 
 //===========================================================================
   int UT3D_pt_int2pt2vc (Point *ip1, Point *ip2, double *dist,
@@ -2415,6 +2352,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   wv = w.dx * vcv->dx + w.dy * vcv->dy + w.dz * vcv->dz;
 
   q0 = (uu * vv) - (uv * uv);
+    // printf("           q0 = %f\n",q0);
   if(fabs(q0) < UT_TOL_min1) {             // - parallel !
     //printf("UT3D_pt_int2pt2vc parallel error\n");
     rc = 0;
@@ -2423,18 +2361,16 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   }
 
 
-
   q1 = ((vv * wu) - (uv * wv)) / q0;
-  // q1 = ((vv * wu) - (uv * wv)) / ((uu * vv) - (uv * uv));
-  // printf("           q1 = %f\n",q1);
+    // printf("           q1 = %f\n",q1);
 
   ip1->x = ptu->x + vcu->dx * q1;
   ip1->y = ptu->y + vcu->dy * q1;
   ip1->z = ptu->z + vcu->dz * q1;
 
 
-
   q2 = ((wu * uv) - (uu * wv))  / q0;
+    // printf("           q2 = %f\n",q2);
 
   ip2->x = ptv->x + vcv->dx * q2;
   ip2->y = ptv->y + vcv->dy * q2;
@@ -3646,8 +3582,8 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
 
   // ps = intersection-point ln1 -ln2
-  // irc = UT3D_pt_int2ln (&ps, &px1, &d1, ln1, ln2);
-  irc = UT3D_pt_intlnln (&ps, &px1, &d1, ln1, 1, ln2, 1);
+  // irc = UT3D_2pt_int2ln (&ps, &px1, &d1, ln1, ln2);
+  irc = UT3D_2pt_intlnln (&ps, &px1, &d1, ln1, 1, ln2, 1);
   if(irc < 0) return -1;
   if(d1 > UT_TOL_cv) return -2; //UT3D_pt_mid2pt (&ps, &ps, &px1);
     // DEB_dump_obj__ (Typ_PT, &ps, "ps");
@@ -7881,16 +7817,12 @@ liegt. ohne acos.
 
   return;
 }
-*/
 
 
 //=======================================================================
   void UT3D_pt_tra_pt_vc_par (Point *po,Point *pi,Vector *vc,double dist) {
 ///====.==================================================================
-/// \code
-/// UT3D_pt_tra_pt_vc_par          transl. point into dir vc dist.lenv (vcLen=1)
-/// Vector has Length 1.; Point = basePoint + (vec * len)
-/// \endcode
+/// UT3D_pt_tra_pt_vc_par          transl. point into dir vc; multiply vc
 
 
   po->x = pi->x + (vc->dx * dist);
@@ -7899,7 +7831,7 @@ liegt. ohne acos.
 
 
 }
-
+*/
 
 //=========================================================================
   void UT3D_pt_traptvclen (Point *po, Point *pi, Vector *vc, double lenv) {
@@ -8334,7 +8266,7 @@ liegt. ohne acos.
 
   double dx, dy, rdc;
   Point  ptc;
-  Vector vcx, vcy;
+  Vector vcx, vcy, vcz;
 
 
   // printf("UT3D_pt_rotptptvcangr %f\n",angr);
@@ -8347,40 +8279,37 @@ liegt. ohne acos.
   // GR_tDyn_vc__ (&ci1->vz, &ci1->pc, 2, 0);  // TestDisp Kreis-Z-Vec
   // angr = UT_RADIANS(-270.);  // nur TEST
 
+  UT3D_vc_setLength (&vcz, vca, 1.);
 
   dx = cos (angr);
   dy = sin (angr);
   // printf(" dx=%f dy=%f\n",dx,dy);
 
-
   // ptc = project pti auf pta/vca
-  UT3D_pt_projptptvc (&ptc, &rdc, NULL, pti, pta, vca);
+  UT3D_pt_projptptvc (&ptc, &rdc, NULL, pti, pta, &vcz);
 
   // vcx = vektor pc - p1.
   UT3D_vc_2pt (&vcx, &ptc, pti);
   // UT3D_vc_2pt (&vcx, pta, pti);
 
   // vcy = Normalvektor auf vcx/vcz errechnen (vcy = zeigt auf 90-Grad-Punkt).
-  UT3D_vc_perp2vc (&vcy, vca, &vcx);
+  UT3D_vc_perp2vc (&vcy, &vcz, &vcx);
   // DEB_dump_obj__ (Typ_VC, &vcx, "vcx=");
   // DEB_dump_obj__ (Typ_VC, &vcy, "vcy=");
-
-  // // vcx korrected
-  // UT3D_vc_perp2vc (&vcx, &vcy, vca);
 
   // nun vcx und vcy entspr dem Winkel veraendern = neuer Punkt
   UT3D_vc_multvc (&vcx, &vcx, dx);
   UT3D_vc_multvc (&vcy, &vcy, dy);
+  UT3D_pt_trapt2vc (pto, &ptc, &vcx, &vcy);
   // DEB_dump_obj__ (Typ_VC, &vcx, "vcx=");
   // DEB_dump_obj__ (Typ_VC, &vcy, "vcy=");
 
-  // UT3D_pt_trapt2vc (pto, pta, &vcx, &vcy);
-  UT3D_pt_trapt2vc (pto, &ptc, &vcx, &vcy);
-
-  // TestDisp pto
-  // GR_tDyn_symB__ (pto, SYM_STAR_S, 2);
+    // TestDisp pto
+    // GR_tDyn_symB__ (pto, SYM_STAR_S, 2);
 
   // return 0;
+
+    // DEB_dump_obj__ (Typ_PT, pto, " ex-UT3D_pt_rotptptvcangr");
 
 }
 
@@ -8455,10 +8384,12 @@ liegt. ohne acos.
 
 //======================================================================
   int UT3D_pt_projptln (Point *pp, double *ndist, double *par1,
-                        Point *pt, Line *ln) {
+                        int iUnl, Point *pt, Line *ln) {
 //======================================================================
 /// \code
 /// UT3D_pt_projptln                        point = project point to line
+/// Input:
+///   iUnl    0=limited, else unlimited
 /// Output:
 ///   ndist   normal distance pt - ln  or NULL 
 ///   par1    parameter for pp on ln or NULL
@@ -8474,8 +8405,9 @@ liegt. ohne acos.
    Vector   vl;
 
 
-  // DEB_dump_obj__ (Typ_LN, ln, "UT3D_pt_projptln");
-  // DEB_dump_obj__ (Typ_PT, pt, "              pt");
+  printf("UT3D_pt_projptln  iUnl=%d\n",iUnl);
+  // DEB_dump_obj__ (Typ_LN, ln, " projptln-ln");
+  // DEB_dump_obj__ (Typ_PT, pt, " projptln-pt");
 
 
   /* change line into vector vl */
@@ -8486,6 +8418,7 @@ liegt. ohne acos.
   if(irc < 0) goto L_exit;
     // printf(" nlen=%lf ppp=%lf\n",nlen,ppp);
 
+  if(iUnl) goto L_exit;
 
   // compare pp-ln.p1
   if(UT3D_comp2pt(pp, &ln->p1, UT_TOL_pt)) {irc = 2; goto L_exit;}
@@ -9204,7 +9137,7 @@ liegt. ohne acos.
 /// \endcode
 
 
-  UT3D_pt_projptln (pto, NULL, NULL, pti, ln1);
+  UT3D_pt_projptln (pto, NULL, NULL, 1, pti, ln1);
   UT3D_pt_opp2pt (pto, pto, pti);
 
   return 0;
@@ -9561,6 +9494,12 @@ liegt. ohne acos.
 
   double   dx, dy, dz;
 
+
+  // printf("UT3D_pt_evpar2pt %f\n",lpar);
+  // DEB_dump_obj__ (Typ_PT, p1, " p1");
+  // DEB_dump_obj__ (Typ_PT, p2, " p2");
+
+
   dx = p2->x - p1->x;
   dy = p2->y - p1->y;
   dz = p2->z - p1->z;
@@ -9808,7 +9747,7 @@ liegt. ohne acos.
   z = p1->z;
 
 
-  /* printf("UT3D_pt_tra_pt_m3    %f,%f,%f",x,y,z); */
+  // printf("UT3D_pt_tra_pt_m3    %f,%f,%f\n",x,y,z);
 
 
   p2->x = mata[0][0]*x + mata[0][1]*y + mata[0][2]*z + mata[0][3];
@@ -9816,7 +9755,7 @@ liegt. ohne acos.
   p2->z = mata[2][0]*x + mata[2][1]*y + mata[2][2]*z + mata[2][3];
 
 
-  /* printf("ex UT3D_pt_tra_pt_m3 %f,%f,%f",p2->x,p2->y,p2->z); */
+    // printf("ex UT3D_pt_tra_pt_m3 %f,%f,%f\n",p2->x,p2->y,p2->z);
 
 }
 
@@ -11444,7 +11383,7 @@ USBS_TgVecIsoBspSur
 /// Get VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vy, &vz);
 ///
 /// Get -VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vy, &vx);
-/// Get -VY from VZ, VX:    UT3D_vc_perp2vc (&vy, &vx, &vz);
+/// Get -VY from VX, VZ:    UT3D_vc_perp2vc (&vy, &vx, &vz);
 /// Get -VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vz, &vy);
 ///
 /// Rotation 90 deg CCW:
@@ -15546,6 +15485,25 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
 
 //================================================================
+  int UT3D_ipln_bp (int bp) {
+//================================================================
+// UT3D_ipln_bp              get DB-index for backplane
+// retCode:   0=error, else DB-index of plane
+//
+// BCKPLN    DB-ind
+// 2 (XY)    -3 (RZ)    global Z-vec is Z-vec of plane
+// 1 (XZ)    -2 (RY)    global Y-vec is Z-vec of plane
+// 0 (YZ)    -1 (RX)    global X-vec is Z-vec of plane
+
+static int ia[] = {-1, -2, -3};
+
+  if((bp < 0)||(bp > 2)) return 0;
+  return ia[bp];
+
+}
+
+
+//================================================================
   int UT3D_pl_bp (Plane *plo, int bpi, double bpd) {
 //================================================================
 /// \code
@@ -16067,9 +16025,9 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 }
 
 
-//====================================================================
+//==========================================================================
   void UT3D_pl_pto_vcx_vcz (Plane *pl1, Point *po, Vector *vx, Vector *vz) {
-//====================================================================
+//==========================================================================
 /// UT3D_pl_pto_vcx_vcz     plane from Origin, X-vec, Z-Vec.    X-vec is fixed.
 
   // DEB_dump_obj__ (Typ_PT, po, "UT3D_pl_pto_vcx_vcz po=");
@@ -16084,10 +16042,14 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
   // Create vy from vx and vz
   UT3D_vc_perp2vc (&pl1->vy, &pl1->vz, &pl1->vx);
+    // printf(" pl_pto_vcx_vcz-len-vy=%f\n",UT3D_len_vc(&pl1->vy));
+  UT3D_vc_setLength (&pl1->vy, &pl1->vy, 1.);
     // DEB_dump_obj__ (Typ_VC, &pl1->vy, "               vy=");
 
   // create new vz from vx, vy.
   UT3D_vc_perp2vc (&pl1->vz, &pl1->vx, &pl1->vy);
+    // printf(" pl_pto_vcx_vcz-len-vz=%f\n",UT3D_len_vc(&pl1->vz));
+  UT3D_vc_setLength (&pl1->vz, &pl1->vz, 1.);
     // DEB_dump_obj__ (Typ_VC, &pl1->vz, "               vz=");
 
 
@@ -16399,7 +16361,7 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
 
   // mirror originPoint
-  UT3D_pt_projptln (&pto, NULL, NULL, &plni->po, ln1);
+  UT3D_pt_projptln (&pto, NULL, NULL, 1, &plni->po, ln1);
   UT3D_pt_opp2pt (&pto, &pto, &plni->po);
     // DEB_dump_obj__ (Typ_PT, &pto, "  pto:");
 
@@ -17591,6 +17553,27 @@ Mat_4x4-vertical   (used by OpenGL !)
 }
 
 
+
+
+//================================================================
+  int UT3D_m3_imr (Mat_4x3 mat1, long irMdl) {
+//================================================================
+// UT3D_m3_imr          get matrix of referenceModel
+
+extern  ModelRef  *DB_get_ModRef (long);
+
+  ModelRef  *mr1;
+  
+  // get refMdl
+  mr1 = DB_get_ModRef (irMdl); 
+  
+  // get matrix of referenceModel 
+  UT3D_m3_load_povxvz (mat1, &mr1->po, &mr1->vx, &mr1->vz);
+  
+  return 0;
+  
+}
+  
 /*
 //======================================================================
   int UT3D_vc_multvc (Vector *vo, Vector *vi, double d) {
@@ -17663,6 +17646,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 }
 
 
+/* UU
 //================================================================
   int UT3D_ptCen_2Ln (Point *ptCen,
                       Point *pa, Point *pb, Point *pc, Point *pd) {
@@ -17709,7 +17693,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
 }
 
-/*
+
 //======================================================================
   int UT3D_pt_intlnci__ (int *np, Point xp[], Line *ln, Circ *ci) {
 //======================================================================
@@ -20350,11 +20334,11 @@ Mat_4x4-vertical   (used by OpenGL !)
 
 
 //============================================================================
-  int UT3D_pt_int2ln (Point *ip1, Point *ip2, double *dist,
+  int UT3D_2pt_int2ln (Point *ip1, Point *ip2, double *dist,
                       Line *ln1, Line *ln2) {
 //============================================================================
 /// \code
-/// UT3D_pt_int2ln            intersect 2 unlimitedLines; get 2 points & dist.
+/// UT3D_2pt_int2ln            intersect 2 unlimitedLines; get 2 points & dist.
 ///
 /// IN:
 ///   Line *ln1        line 1
@@ -20373,18 +20357,18 @@ Mat_4x4-vertical   (used by OpenGL !)
 /// intersect limited lines: UT3D_pt_int2pt2pt_lim
 /// \endcode
 
-  return UT3D_pt_intlnln (ip1, ip2, dist, ln1, 1, ln2, 1);
+  return UT3D_2pt_intlnln (ip1, ip2, dist, ln1, 1, ln2, 1);
 
 }
 
 
 //============================================================================
-  int UT3D_pt_intlnln (Point *ip1, Point *ip2, double *dist,
+  int UT3D_2pt_intlnln (Point *ip1, Point *ip2, double *dist,
                        Line *ln1, int ln1Mode,
                        Line *ln2, int ln2Mode) {
 //============================================================================
 /// \code
-/// UT3D_pt_int2ln            intersect 2 Lines both limited or unlimited
+/// UT3D_2pt_int2ln            intersect 2 Lines both limited or unlimited
 /// get 2 points & dist.
 ///
 /// IN:
@@ -20416,7 +20400,7 @@ Mat_4x4-vertical   (used by OpenGL !)
   tol = UT_TOL_cv; //cv|pt;
 
 
-  // printf("UT3D_pt_intlnln %d %d tol=%f\n",ln1Mode,ln2Mode,tol);
+  // printf("UT3D_2pt_intlnln %d %d tol=%f\n",ln1Mode,ln2Mode,tol);
   // DEB_dump_obj__ (Typ_LN, ln1, " ln1 =");
   // DEB_dump_obj__ (Typ_LN, ln2, " ln2 =");
 
@@ -20756,7 +20740,7 @@ Mat_4x4-vertical   (used by OpenGL !)
   int    bpi, isParl;
 
 
-  DEB_dump_obj__ (Typ_PLN, plni, "UT3D_bp_pl__");
+  // DEB_dump_obj__ (Typ_PLN, plni, "UT3D_bp_pl__");
 
   bpi = UT3D_bp_perp_vc (&isParl, &plni->vz);
 
@@ -20767,7 +20751,7 @@ Mat_4x4-vertical   (used by OpenGL !)
 
   *bpd = plni->p;
 
-    printf("ex-UT3D_bp_pl__  bpi = %d bpd = %f\n",bpi,*bpd);
+    // printf("ex-UT3D_bp_pl__  bpi = %d bpd = %f\n",bpi,*bpd);
 
   return bpi;
 

@@ -6,7 +6,7 @@
 echo "find ln " $1
 
 if (`echo $* | wc -w` != "0") goto START
-echo "find lines starting with $1"
+echo "find lines starting with <parameter-1>"
 goto ENDE
 
 

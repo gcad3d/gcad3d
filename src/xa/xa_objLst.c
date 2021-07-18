@@ -653,8 +653,9 @@ static MemTab(ObjSRC) parTab = _MEMTAB_NUL;
 
       // report to MAN:
       if(UI_InpMode == UI_MODE_MAN) {
-        ED_add_Text (mcl_typ, dbi, mcl_ID);
-        ED_update (0L);    // update Window ..
+        ED_add_Text (mcl_ID); // mcl_typ, dbi, 
+        // ED_update (0L);    // update Window ..
+        ED_unload__ ();   // test if modified - if yes: copy editor -> memory
         return 0;
       }
       TX_Print("copy objID to CAD or MAN; VWR: unused ..");
@@ -672,10 +673,7 @@ static MemTab(ObjSRC) parTab = _MEMTAB_NUL;
     //----------------------------------------------------------------
     case MSG_edit:        // "modify object"
       // CAD must be active
-      if(UI_InpMode != UI_MODE_CAD) {
-        MSG_pri_0("ERRCAD0");
-        return 0;
-      }
+      if(!UI_CAD_ck()) return 0;
       ED_set_lnr_act (mcl_rNr);
       IE_activate ();
       break;
@@ -784,7 +782,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
     // activeTyp=Typ_VC:      den Vector temporaer anzeigen
     L_typ_vc:
     if(mcl_typ != Typ_VC) goto L_typ_def;
-      UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(mcl_dbi), NULL, Typ_Att_hili1);
+      UI_prev_vc (GR_TMP_I0, Typ_Index, PTR_LONG(mcl_dbi), NULL, Typ_Att_hili1);
       goto L_pop9;
       // return 0;
 
@@ -1167,7 +1165,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
     // get text from entry  mcl_dep__ (child/parents)
     p1 = GUI_entry_get (&mcl_dep__);
     i1 = strlen(p1);
-    if(i1 > sizeof(mcl_dept)) i1 = sizeof(mcl_dept);
+    if(i1 >= sizeof(mcl_dept)) i1 = sizeof(mcl_dept) - 1;
     // strncpy(mcl_dept, p1, i1);
     UTX_cp_nchr_2_upper (mcl_dept, p1, i1);
     mcl_dept[i1] = '\0';

@@ -11,8 +11,14 @@ INF_DisplayList
 void INF_DynamicDataArea (){        /*! code
 ================================================================= 
 
+INF_permanent_attributes
+
 In every model the first block is the DynamicDataArea;
   it ends with the line ":DYNAMIC_DATA".
+
+The DYNAMIC_DATA-block in memspc is processed and removed
+  when processing model from start (ED_work_END - ED_Run)
+
 The DynamicDataArea can have the following commands:
 
 
@@ -26,6 +32,9 @@ GATAB
 ENDGATAB
 :DYNAMIC_DATA
 
+
+Commands:
+HIDE P20 L20 ...    // see GA_hideTab
 
 
 -------------------------------------------------------------------
@@ -43,7 +52,7 @@ GATAB starts the grafic-attributes-table;
 Grafic-Attributes-Records for surfaces:
 
 <ObjectID> [C<color> [H] [T#] [S#] [X"filename"<,parameters>]
- H  hidden
+ H  hidden    see INF_DisplayList
  C  R-G-B-Colors as 3 x 2 hex-chars; eg. green is C00ff00
  T  transparent; 0=not, 1=50% transparent, 2=full transparent
  S  symbolic; 0=not, 1=symbolic display 
@@ -60,12 +69,10 @@ Grafic-Attributes-Records for Lines, Curves:
    T  index Linetyp; 2=dash, 3=dashDot.
 
 # end of grafic-attributes-table
-ENDGATAB
-
 
 
 ======================================================================
-Example DynamicDataArea:
+Examples DynamicDataArea:
 
 MODSIZ 500 0.005 0.05
 MODBOX P(-583.3792117 -285.1265177 -6) P(9.262386051 240.5683093 50)
@@ -76,10 +83,14 @@ GATAB
 # Linetype; 2=dash, 3=dashDot.
 L20 T2
 L21 T3
+# curve 20 is hidden
+S20 H
 # color green, semiTransparent
 A20 C00ff00 T1
+# surf 21 is symbolic (not shaded)
+A21 S1
 # textures
-A21 X"Data/sample_Stein1.bmp",5,5,0,0,15
+#A21 X"Data/sample_Stein1.bmp",5,5,0,0,15
 A22 X"Data/sample_Ziegel1.bmp",5,5,0,0,0
 ENDGATAB
 :DYNAMIC_DATA
@@ -94,28 +105,27 @@ A21=S21
 A22=S22
 
 
+======================================================================
+Functions DYNAMIC_DATA-block:
+ED_work_dyn
+
 
 
 ================================================================= \endcode */}
 void INF_permanent_attributes (){        /*! code
 ================================================================= 
 
+INF_Linetyp_attributes
+INF_Color_attributes
+INF_Texture_attributes
+
+
 PermanentAttributes in the Modelfile (see INF_DynamicDataArea):
-# example: surface A20 has color e2dc27; surf. A21 is symbolic (not shaded)
-GATAB
-A20 Ce2dc27
-A21 S1
-ENDGATAB
 
-Primary load of GATAB into PermanentAttributList GA_ObjTab:
-ED_work_dyn    // after processing removes DYNAMIC_DATA-BLOCK from mainModel
-  GA_load__
-ED_Read_Line
-  // work DYNAMIC_DATA-BLOCK in subModels, skip this block in primary-model
+ObjAtt* GA_ObjTab ist the permanent-attributes-table (../xa/xa_ga.c).
 
+ObjAtt is a PermanentAttributRecord:
 
-//----------------------------------------------------------------
-// PermanentAttributRecord
 typedef struct {long ind;
                 unsigned long iatt;
                 unsigned lay:16, typ:8,
@@ -127,12 +137,8 @@ typedef struct {long ind;
 //        for typ=Surf/Model: ColRGB
 // disp   0=normal; 1=hidden
 // oNam   objectname; not yet impl.
-// size = 12
 
-
-../xa/xa_ga.c:
-ObjAtt  *GA_ObjTab=NULL;         // die PermanentAttributeTable
-int     GA_recNr=0;              // die aktuelle Anzahl von Records
+int     GA_recNr;       // nr of active records in GA_ObjTab
 
 
  
@@ -142,10 +148,16 @@ Die DispList wird bei RUN neu generiert, die GA_ObjTab ist permanent.
  Die GA_ObjTab ist eine Kopie, die erforderlich ist um den DL-Record
   wieder zu erzeugen.
 In der DispList gibt es keine Info ob ein zugehoeriger GA_ObjTab-Record
-  existiert.
+  existiert. TODO ?
 
 
-Nur fuer typ=Surf/Model:    GA_ObjTab[i].iatt   ist eine ColRGB;
+Only for typ=Curve:    GA_ObjTab[i].iatt is a curve-attribute - see INF_COL_CV
+   2 = dash short
+   3 = dash-dot
+   5 = dash long, thick 2
+  12 = yellow dash thick6
+
+Only for typ=Surf/Model:    GA_ObjTab[i].iatt is a ColRGB;
 
 // Typ_Color
 typedef struct {unsigned cr:8, cg:8, cb:8,
@@ -157,13 +169,22 @@ typedef struct {unsigned cr:8, cg:8, cb:8,
 // size = 4
 
 
-GA_ObjTab ist the permanent-attributes-table (../xa/xa_ga.c).
-
+//----------------------------------------------------------------
 Functions:
 Color:
 APcol_actColTra // set active col.
-GA_Col__ // modify/reset/set-new color
+GA_Col__        // modify/reset/set-new color
 
+
+Primary load of GATAB into PermanentAttributList GA_ObjTab:
+ED_work_dyn    // after processing removes DYNAMIC_DATA-BLOCK from mainModel
+  GA_load__
+ED_Read_Line
+  // work DYNAMIC_DATA-BLOCK in subModels, skip this block in primary-model
+
+DL_wri_dynDat0
+  DL_wri_dynDat1    // write MODSIZ MODBOX DEFTX DEFCOL CONST_PL; fpo=w
+  GA_fil_wri        // write out the PermanentAttributes
 
 
 
@@ -173,7 +194,7 @@ void INF_DisplayList (){        /*! code
 ================================================================= 
 
 see INF_DisplayList-record
-    INF_Temporary-DisplayList-record
+    INF_Temporary_DisplayList_record
 
 
 // typedef struct {long ind; int lNr; short refInd, attInd;

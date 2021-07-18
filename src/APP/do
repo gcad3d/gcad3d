@@ -10,9 +10,6 @@
 # get DIR_DEV DIR_BIN gcad_dir_dev gcad_dir_bin
 . ../options.sh
 
-echo "gcad_dir_dev: " ${gcad_dir_dev}
-echo "gcad_dir_bin: " ${gcad_dir_bin}
-
 
 cmdVi="${DIR_DEV}gcad3d/src/vi.sh"
 #cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
@@ -27,7 +24,7 @@ echo "./do debug_OFF          # debug OFF for following builds (production)"
 echo "./do complete           # compile, link all."
 echo "./do                    # start gcad3d in local-test-environment"
 echo "---------------------------------------------------------------------"
-echo "./do gui-gtk2           # set GUI gtk2; this is the default"
+echo "./do gui-gtk2           # set GUI gtk2"
 echo "./do gui-gtk3           # set GUI gtk3"
 echo "./do guiinit            # recompile all sources of active GUI-version"
 echo "./do gui                # rebuild xa_gui_gtk-*.so"
@@ -55,9 +52,11 @@ echo "./do delete             # delete all objects"
 echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
 echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
 echo "./do fnd_inf <text>     # find <text> in Info-files"
+echo "./do fnd_msg <text>     # find <text> in message-file msg_en"
 echo "./do *.mak              # link a plugin (for the first time)"
 echo "./do debug_ed           # edit debug-file, start with debugger"
-echo "./do debug              # start with debugger"
+echo "./do gdb <params>       # start with debugger gdb"
+echo "./do gprof              # start gprof"
 echo "./do trc                # start with mtrace"
 echo "---------------------------------------------------------------------"
 echo "./do ud                 # display userDoc"
@@ -72,7 +71,11 @@ echo "./do edm                # edit model"
 echo "./do inf                # update DevDoc infotext.c"
 echo "./do msg-files          # tools for language-files: ls lang*.csh"
 echo "./do tmpClean1          # rm <tmpDir> CTRL* Mod*"
+echo "./i                     # display dev-doc"
+echo "./i <text>              # find <text> in dev-doc"
 echo "---------------------------------------------------------------------"
+echo "gcad_dir_dev: " ${gcad_dir_dev}
+echo "gcad_dir_bin: " ${gcad_dir_bin}
 exit 0
 fi
 
@@ -376,6 +379,15 @@ if test "$1" = "fnd_inf"; then
 fi
 
 
+# find text in message-file msg_en
+if test "$1" = "fnd_msg"; then
+  shift
+  cmd='grep "`echo $*`" ../../doc/msg/msg_en.txt'
+  eval "$cmd"
+  exit 0
+fi
+
+
 if test "$1" = "ud"; then
   firefox ../../doc/html/index_de.htm 2>/dev/null &
   exit 0
@@ -481,19 +493,19 @@ if [ "$OSTYPE" = "Linux" ] ; then
   exeNam=${gcad_dir_bin}gCAD3D
 
 
-# change configfiles to unix if last start was with MS-Windows
-# if no file X.lock exists, no switching is done
-if [ -f MS.lock ]; then
-  echo "set dir.lst & xa.rc -> Unix"
-  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
-  echo "cfgDir=${cfgDir}"
-  /bin/cp -f ${cfgDir}dir.lst ${cfgDir}dirMS.lst
-  /bin/cp -f ${cfgDir}xa.rc ${cfgDir}xaMS.rc
-  /bin/cp -f ${cfgDir}dirUX.lst ${cfgDir}dir.lst
-  /bin/cp -f ${cfgDir}xaUX.rc ${cfgDir}xa.rc
-  /bin/rm -f MS.lock
-  touch UX.lock
-fi
+## change configfiles to unix if last start was with MS-Windows
+## if no file X.lock exists, no switching is done
+#if [ -f MS.lock ]; then
+#  echo "set dir.lst & xa.rc -> Unix"
+#  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
+#  echo "cfgDir=${cfgDir}"
+#  /bin/cp -f ${cfgDir}dir.lst ${cfgDir}dirMS.lst
+#  /bin/cp -f ${cfgDir}xa.rc ${cfgDir}xaMS.rc
+#  /bin/cp -f ${cfgDir}dirUX.lst ${cfgDir}dir.lst
+#  /bin/cp -f ${cfgDir}xaUX.rc ${cfgDir}xa.rc
+#  /bin/rm -f MS.lock
+#  touch UX.lock
+#fi
 
 
 # if gCAD3D/cfg/gCAD3D.rc does not exist unpack examples.gz
@@ -511,7 +523,7 @@ fi
 #-----------------------------------------------------
 # analyze times in file gmon.out - AFTER run gcad
 if [ "$1" = "gmon" ] ; then
-  gprof ${exeNam} > t1 && vi t1
+  gprof -z ${exeNam} > t1 && vi t1
   exit 0
 
 
@@ -528,10 +540,31 @@ elif [ "$1" = "debug_ed" ] ; then
 
 
 #-----------------------------------------------------
-# d = debug
-elif [ "$1" = "debug" ] ; then
+# gdb
+elif [ "$1" = "gdb" ] ; then
   echo " debug-init-file: ./gCAD3D.gdb"
-  gdb ${exeNam} $* -x gCAD3D.gdb
+  echo " exe = ${exeNam}"
+  shift
+  echo " parNr = $#"
+  # test if parameters exist; if yes: add "run <parameters>" to gdb-startup-file
+  /bin/cp gCAD3D.gdb tmp.gdb
+  if [ $# -gt 0 ]; then
+    echo " params |$*|"
+    echo "run $*" >> tmp.gdb
+  else
+    echo "run" >> tmp.gdb
+  fi
+  gdb ${exeNam} -x tmp.gdb
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+
+#-----------------------------------------------------
+# gprof; needs option -pg in symbols CPDEB and LKDEB in file deb.mak
+#   use after closing executable.
+elif [ "$1" = "gprof" ] ; then
+  echo " profile-t-file: ./gCAD3D.gdb"
+  gprof ${exeNam} > t1 && vi t1
   #nemiver ${gcad_dir_bin}/gCAD3D
   exit 0
 
@@ -569,11 +602,11 @@ exit 0
 
 
 #----------------------------------------------------
-elif [ "$OSTYPE" = "msys" ] ; then
-  cp -f dirw.lst dir.lst
-  #cp -f xa.rc_MS ../tmp\xa.rc
-  cd ..
-  gdb binMS32/gCAD3D.exe $*
+#elif [ "$OSTYPE" = "msys" ] ; then
+#  cp -f dirw.lst dir.lst
+#  #cp -f xa.rc_MS ../tmp\xa.rc
+#  cd ..
+#  gdb binMS32/gCAD3D.exe $*
 
 
 #-----------------------------------------------------

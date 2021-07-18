@@ -16,7 +16,10 @@
 
 FOR INFORMATION ONLY;
 DO NOT INCLUDE.
+#include "../ut/ut_geo.h"  includes this file.
+
 USE WITH:
+
 // includes from ../ut/ut_geo_const.h
 extern <typ> <name>;
 

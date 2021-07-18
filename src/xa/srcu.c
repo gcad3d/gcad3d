@@ -106,7 +106,7 @@ extern MemObj  UIw_Box_TB;    // toolbarBox
 // Externals aus ../ci/NC_Main.c:
 // extern double    APT_ModSiz;
 
-// ex ../xa/xa_ui_cad.c
+// ex ../xa/xa_cad_ui.c
 extern int       IE_modify;
 
 // ex ../ut/ut_gtypes.c

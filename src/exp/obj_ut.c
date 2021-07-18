@@ -168,8 +168,11 @@ __declspec(dllexport) int obj_read__ (char*);
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txTab.h"            // TxtTab
+#include "../ut/ut_os.h"                 // OS_get_tmp_dir
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
+#include "../xa/mdl__.h"               // SIZMFTot
+
 // MS-Win:
 // static char mem_cbuf1[512];
 // static int mem_cbuf1_SIZ = 512;
@@ -178,7 +181,7 @@ __declspec(dllexport) int obj_read__ (char*);
 
 //================================================================
 // ex ../xa/xa.c
-extern char    AP_mod_dir[128];     // directory for OPEN
+extern char    AP_mod_dir[SIZMFTot];     // directory for OPEN
 extern ColRGB  AP_defcol;
 
 
@@ -219,7 +222,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   ObjGX   *oTab;
 
 
-  // printf("gCad_main-xa_obj_r.dll\n");
+  printf("gCad_main-xa_obj_ut.c\n");
   // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
 
 
@@ -265,6 +268,8 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   printf("========================================\n");
   printf("obj_read__ |%s|\n",fnam);
+  TX_Print("obj_read__ |%s|",fnam);
+
 
 
   ooxp.typ  = Typ_PT;
@@ -332,7 +337,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
     if(!strncmp(cbuf1, "v ", 2)) {obj_r_v__(cbuf1); continue;}
     if(!strncmp(cbuf1, "f ", 2)) {obj_r_f__(cbuf1,ioffP); continue;}
     if(!strncmp(cbuf1, "usemtl ", 7)) {obj_r_usemtl__(cbuf1,ioffP); continue;}
-    if(!strncmp(cbuf1, "mtllib ", 7)) {obj_r_mtllib(cbuf1); continue;}
+    if(!strncmp(cbuf1, "mtllib ", 7)) {obj_r_mtllib(cbuf1,fnam); continue;}
 
     // unused:
     // printf(" uu: %s",cbuf1);
@@ -374,7 +379,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   int   irc, i1, vSiz, vNr, fNr, pNr, fNxt, impSiz;
   long  fSiz, l1, ia[4];
-  char  cbuf1[256];
+  char  cbuf1[256], fDir[256], *p1;
   void  *pp;
   ObjGX *ox1, *ox2, ox3, oxc;
   Point *vTab = NULL, *pTab;
@@ -389,9 +394,11 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
 
-  // printf("obj_readTess__\n");
+  // printf("obj_readTess__ |%s|\n",fnam);
 
 
+
+  //----------------------------------------------------------------
   // get filesize
   fSiz = OS_FilSiz (fnam);
   if(fSiz < 1) {TX_Print("wrl_readTess__ FileExist E001 %s",fnam); return -1;}
@@ -419,7 +426,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   //  1. run: get all vertices into vTab; get Recordnumber: count faces+Colors.
   while (!feof (fpi)) {
     if(fgets (cbuf1, 256, fpi) == NULL) break;
-    if(!strncmp(cbuf1, "mtllib ", 7)) {obj_r_mtllib(cbuf1); continue;}
+    if(!strncmp(cbuf1, "mtllib ", 7)) {obj_r_mtllib(cbuf1,fnam); continue;}
     if(!strncmp(cbuf1, "f ", 2)) {++fNr; continue;}  // get nr of faces
     if(!strncmp(cbuf1, "usemtl ", 7)) {++fNr; continue;} // add color-records
     if(strncmp(cbuf1, "v ", 2)) continue;
@@ -710,25 +717,40 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
 //================================================================
-  int obj_r_mtllib (char *cbuf) {
+  int obj_r_mtllib (char *mtlFn, char *fnam) {
 //================================================================
-/// obj_r_mtllib     read .tl-file; build material-table.
+// obj_r_mtllib     read .mtl-file; build material-table.
+// Input:
+//   mtlFn    codeline "mtllib <matlFilNam.mtl>
+//   fnam     filename modelfile
 
   int     i1;
   long    ld;
-  char    s1[256], *p1, *p2;
+  char    s1[320], *p1, *p2;
   double  d1, d2, d3;
   FILE    *fpi;
   ColRGB  col1;
 
 
-  cbuf += 7;
-  UTX_CleanCR (cbuf);
+  // printf("obj_r_mtllib-in |%s|%s|\n",mtlFn,fnam);
 
-  // printf("obj_r_mtllib |%s|\n",cbuf);
+  mtlFn += 6; // skip "mtllib"
+  UTX_pos_skipLeadBlk (mtlFn);
+  UTX_CleanCR (mtlFn);
 
-  sprintf(s1, "%s%s",AP_mod_dir,cbuf);
-    // printf(" s1=|%s|\n",s1);
+    // printf("obj_r_mtllib-1 |%s|%s|\n",mtlFn,fnam);
+
+  // sprintf(s1, "%s%s",AP_mod_dir,cbuf);
+  // strcpy(s1, fnam);
+
+  // UTX_chg_right (s1, "mtl");
+
+  // remove filename from objFile <fnam>; add <mtlFn>
+  strcpy(s1, fnam);
+  p1 = strrchr (s1, fnam_del);
+  if(p1) {++p1; *p1 = '\0';} // cut filename
+  strcat (s1, mtlFn);
+    // printf(" obj_r_mtllib-|%s|\n",s1);
 
   if((fpi=fopen(s1,"r")) == NULL) {
     TX_Print("**** CANNOT OPEN Materialfile %s",s1);

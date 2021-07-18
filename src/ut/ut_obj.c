@@ -61,6 +61,7 @@ UTO_parLim_get_cv       get limiting parameters for curve
 UTO_stru_inv            invert object (Typ, struct)
 						            trimmedCurve from DB-lFig (copy curve -> trimmedCurve)
 UTO_cv_cvtrm            standardCurve from trimmedCurve (CCV)
+UTO_cv_set_unl          make a unlimited copy of L|C|ELL
 
 
 --------- functions for surfaces: -------------------
@@ -3627,7 +3628,7 @@ static ObjGX  *odb;
 
 //==========================================================================
   int UTO_npt_int_2ox (int *pNr, Point *pa, double *va1, int aSiz, int vTyp,
-                       ObjGX *oxi1, ObjGX *oxi2, Memspc *wrkSpc) {
+                       int iUnl, ObjGX *oxi1, ObjGX *oxi2, Memspc *wrkSpc) {
 //==========================================================================
 /// \code
 /// intersect 2 limited objects (ox1 X ox2) where result = points
@@ -3636,6 +3637,7 @@ static ObjGX  *odb;
 ///   aSiz     size of pa, va
 ///   vTyp     0 get knotvalues for spline/polygon, else 0-1. See INF_struct_par.
 ///            1 get values from 0-1 for all types of curves. See INF_struct_par.
+///   iUnl     0=limited, else unlimited
 /// Output:
 ///   pNr   number of points in pa
 ///   pa    intersectionPoints (if pa != NULL)
@@ -3677,7 +3679,7 @@ static ObjGX  *odb;
 
 
   // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n");
-  // printf("UTO_npt_int_2ox pNr=%d aSiz=%d\n",*pNr,aSiz);
+  // printf("UTO_npt_int_2ox pNr=%d aSiz=%d iUnl=%d\n",*pNr,aSiz,iUnl);
     // printf(" ox1 %d %d\n",ox1->typ,ox1->form);
     // printf(" ox2 %d %d\n",ox2->typ,ox2->form);
   // DEB_dump_ox_0(ox1, " ox1");
@@ -3729,7 +3731,7 @@ static ObjGX  *odb;
         // DEB_dump_ox_0 (&oxCCV, " oxCCV-o1");
       // work (RECURSION!)
       irc = UTO_npt_int_2ox (&i2, &pa[*pNr], &va1[*pNr], aSiz - *pNr, vTyp,
-                             &oxCCV, ox2, wrkSpc);
+                             iUnl, &oxCCV, ox2, wrkSpc);
         // printf(" ex int_2ox-o1 irc=%d i2=%d\n",irc,i2);
       // ignore irc - check all segs
       if(irc >= 0) *pNr += i2;
@@ -3753,7 +3755,7 @@ static ObjGX  *odb;
         // DEB_dump_ox_0 (&oxCCV, " oxCCV-02");
       // work (RECURSION!)
       irc = UTO_npt_int_2ox (&i2, &pa[*pNr], &va1[*pNr], aSiz - *pNr, vTyp,
-                             &oxCCV, ox1, wrkSpc);
+                             iUnl, &oxCCV, ox1, wrkSpc);
         // printf(" ex int_2ox-o2 irc=%d i2=%d\n",irc,i2);
       // ignore irc - check all segs
       if(irc >= 0) *pNr += i2;
@@ -3816,7 +3818,7 @@ static ObjGX  *odb;
       switch (o2Form) {
 
         case Typ_LN:  // PT -> LN
-          UT3D_pt_projptln (pa, NULL, va2, (Point*)o1, (Line*)o2);
+          UT3D_pt_projptln (pa, NULL, va2, iUnl, (Point*)o1, (Line*)o2);
             // printf(" 1-va2[0]=%lf\n",va2[0]);
           nip = 1;
           // UT3D_pt_ln_lim_del (&nip,pa,va2, &((Line*)o1)->p1, &((Line*)o1)->p2);
@@ -3911,26 +3913,32 @@ static ObjGX  *odb;
 
         case Typ_LN: // LN x LN
             // printf(" LN x LN pNr=%d\n",*pNr);
-          // UT3D_pt_int2ln (&pa[0],&pa[1], NULL, (Line*)o1, (Line*)o2);
-          // intersect limited lines
-          // nip = UT3D_pt_intlnln (pa, &pt1, &d1, (Line*)o1, 0, (Line*)o2, 0);
-          irc = UT3D_pt_int2pt2pt_lim (pa, va1, NULL,
-                                 &((Line*)o1)->p1, &((Line*)o1)->p2,
-                                 &((Line*)o2)->p1, &((Line*)o2)->p2, UT_TOL_cv);
-          if(irc < 0) goto NoInt;
+          // UT3D_2pt_int2ln (&pa[0],&pa[1], NULL, (Line*)o1, (Line*)o2);
+          // intersect lines; both limited or unlimited
+          irc = UT3D_pt_intlnln (pa, UT_TOL_cv, (Line*)o1, iUnl, (Line*)o2, iUnl);
+          if(irc) goto NoInt;
           nip = 1;
           break;
 
         case Typ_CI:  // LN x CI
             // printf(" npt_int_2ox LN x CI\n");
           // UT3D_pt_intlnci__ (&nip, pa, (Line*)o1, (Circ*)o2);
-          nip = UT3D_pt_intlnci_l (pa, (Line*)o1, 0, (Circ*)o2, 0);
+          nip = UT3D_pt_intlnci_l (pa, (Line*)o1, iUnl, (Circ*)o2, iUnl);
+          if(nip > 1) {
+            UT3D_pt_mid2pt (&pt1, &((Line*)o1)->p1, &((Line*)o1)->p2);
+            UT3D_npt_sort_near (pa, nip, &pt1);
+          }
             // printf(" nip=%d\n",nip);
           break;  // compute va1 ..
 
         case Typ_CVELL:  // LN x CVELL
           UT3D_pt_intlnel__ (&nip, pa, (Line*)o1, (CurvElli*)o2);
           if(nip < 1) goto L_no_sol;
+          if(nip > 1) {
+            UT3D_pt_mid2pt (&pt1, &((Line*)o1)->p1, &((Line*)o1)->p2);
+            UT3D_npt_sort_near (pa, nip, &pt1);
+          }
+          if(iUnl) break;
           // test if points are on Elli o2
           UT3D_pt_ell_lim_del (&nip, pa, va1, (CurvElli*)o2);
           // test if points are on Line o1
@@ -3940,14 +3948,14 @@ static ObjGX  *odb;
         case Typ_CVPOL:  // LN x CVPOL
           nip = aSiz;
           // UT3D_pt_intlnplg (&nip, pa, va1, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
-          UT3D_pt_intlnplg (&nip, pa, NULL, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
+          UT3D_pt_intlnplg (&nip,pa,NULL,(Line*)o1,iUnl,(CurvPoly*)o2,UT_TOL_cv);
             // printf(" f.pt_intlnplg nip=%d\n",nip);
 
           break;  // compute va1 ..
 
         case Typ_CVBSP:  // LN x CVBSP
           nip = aSiz;
-          UT3D_pt_intlnbspl (&nip, pa, wrkSpc, (Line*)o1, (CurvBSpl*)o2);
+          UT3D_pt_intlnbspl (&nip, pa, wrkSpc, (Line*)o1, iUnl, (CurvBSpl*)o2);
           break;
 
         case Typ_CVRBSP:  // LN x CVRBSP
@@ -4180,7 +4188,7 @@ static ObjGX  *odb;
 
         case Typ_LN: // CVBSP x LN
           nip = aSiz;
-          UT3D_pt_intlnbspl (&nip, pa, wrkSpc, (Line*)o2, (CurvBSpl*)o1);
+          UT3D_pt_intlnbspl (&nip, pa, wrkSpc, (Line*)o2, 0, (CurvBSpl*)o1);
           break;
 
         case Typ_CI:  // CVBSP x CI
@@ -4579,14 +4587,14 @@ static ObjGX  *odb;
           break;
 
         case Typ_PT:  // PT -> LN
-          UT3D_pt_projptln (pa, NULL, va1, (Point*)o2, (Line*)o1);
+          UT3D_pt_projptln (pa, NULL, va1, 0, (Point*)o2, (Line*)o1);
           *pNr = 1;
             // DEB_dump_obj__ (Typ_PT, pa, "LN-PT:");
             // printf(" d1=%f\n",d1);
           break;
 
         case Typ_LN: // LN x LN
-          UT3D_pt_int2ln (&pa[0],&pa[1], NULL, (Line*)o1, (Line*)o2);
+          UT3D_2pt_int2ln (&pa[0],&pa[1], NULL, (Line*)o1, (Line*)o2);
           *pNr = 1;
           break;
 
@@ -4600,11 +4608,11 @@ static ObjGX  *odb;
           break;
 
         case Typ_CVPOL:  // LN x CVPOL
-          UT3D_pt_intlnplg (pNr, pa, va1, (Line*)o1, (CurvPoly*)o2, UT_TOL_cv);
+          UT3D_pt_intlnplg (pNr, pa, va1, (Line*)o1, 0, (CurvPoly*)o2, UT_TOL_cv);
           break;
 
         case Typ_CVBSP:  // LN x CVBSP
-          UT3D_pt_intlnbspl (pNr, pa, wrkSpc, (Line*)o1, (CurvBSpl*)o2);
+          UT3D_pt_intlnbspl (pNr, pa, wrkSpc, (Line*)o1, 0, (CurvBSpl*)o2);
           break;
 
         case Typ_CVCLOT:  // LN x Clot
@@ -4693,7 +4701,7 @@ static ObjGX  *odb;
           break;
 
         case Typ_LN: // CVPOL x LN
-          UT3D_pt_intlnplg (pNr, pa, va1, (Line*)o2, (CurvPoly*)o1, UT_TOL_cv);
+          UT3D_pt_intlnplg (pNr, pa, va1, (Line*)o2, 0, (CurvPoly*)o1, UT_TOL_cv);
           break;
 
         case Typ_CI:  // CVPOL x AC
@@ -4805,7 +4813,7 @@ static ObjGX  *odb;
           break;
 
         case Typ_LN: // CVBSP x LN
-          UT3D_pt_intlnbspl (pNr, pa, wrkSpc, (Line*)o2, (CurvBSpl*)o1);
+          UT3D_pt_intlnbspl (pNr, pa, wrkSpc, (Line*)o2, 0, (CurvBSpl*)o1);
           goto L_v_cBsp;   // get parameters on o1
 
         case Typ_CI:  // CVBSP x AC
@@ -7753,7 +7761,7 @@ static int traAct;
 
 
   // printf("================================================= \n");
-  // printf("UTO_CUT__ typ=%d dbi=%ld imod=%d\n",oi->typ,oi->dbInd,imod);
+  printf("UTO_CUT__ typ=%d dbi=%ld imod=%d\n",oi->typ,oi->dbInd,imod);
   // DEB_dump_obj__ (Typ_ObjDB, oi, "_CUT__-in oi");
   // printf(" _CUT__-1  %d %d\n",oc1->typ,oc1->form);
   // printf(" _CUT__-2  %d %d\n",oc2->typ,oc2->form);
@@ -7876,7 +7884,7 @@ static int traAct;
   // add intersection-points with cutter1 into pa/va
   // i1 = TABSIZ - pNr; // maxNr (size of pa & va)
   irc = UTO_npt_int_2ox (&i1, &pa[pNr], &va[pNr], TABSIZ - pNr, 1,
-                         &oxi, oc1, wrkSpc);
+                         0, &oxi, oc1, wrkSpc);
   if(irc < 0) goto GeomErr;
   pNr += i1;
   p1Nr += i1;
@@ -7962,7 +7970,7 @@ static int traAct;
     // i1 = TABSIZ - pNr; // maxNr (size of pa & va)
     // irc = UTO_stru_int (&i1,&pa[pNr],&va[pNr],o0Typ,obj0,o2Typ,obj2,wrkSpc);
     irc = UTO_npt_int_2ox (&i1, &pa[pNr], &va[pNr], TABSIZ - pNr, 1,
-                           &oxi, oc2, wrkSpc);
+                           0, &oxi, oc2, wrkSpc);
     if(irc < 0) goto GeomErr;
     pNr += i1;
     p2Nr += i1;
@@ -8987,6 +8995,50 @@ static int traAct;
 }
 
 
+//================================================================
+  int UTO_cv_set_unl (int typ, void **oo, void *oi, Memspc *mSpc) {
+//================================================================
+// UTO_cv_set_unl          make a unlimited copy of L|C|ELL
+
+
+  void   *opNew;
+
+  //----------------------------------------------------------------
+  if(typ == Typ_LN) {
+    if(((Line*)oi)->typ == 3) goto L_exit;
+    // copy obj into Memspc, get address
+    UME_add_obj (mSpc, &opNew, typ, 1, oi);
+    ((Line*)opNew)->typ = 3;
+   
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CI) {
+    if(!UT3D_ck_ci360(oi)) goto L_exit;
+    // copy obj into Memspc, get address
+    UME_add_obj (mSpc, &opNew, typ, 1, oi);
+    UT3D_ci_cipt360 ((Circ*)opNew, &((Circ*)opNew)->p1);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVELL) {
+    if(!UT3D_ck_el360(oi)) goto L_exit;
+    // copy obj into Memspc, get address
+    UME_add_obj (mSpc, &opNew, typ, 1, oi);
+    UT3D_el_elpt360 ((CurvElli*)opNew, &((CurvElli*)opNew)->p1);
+
+
+  //----------------------------------------------------------------
+  } else goto L_exit;
+
+  *oo = opNew;
+
+
+  L_exit:
+    DEB_dump_obj__ (typ, *oo, "ex-UTO_cv_set_unl");
+  return 0;
+
+}
+
+
 //====================================================================
   int UTO_cv_cvtrm (int *otyp, void *cvo, void *cvi, CurvCCV *cvtrm) {
 //====================================================================
@@ -9052,27 +9104,26 @@ static int traAct;
 
     //----------------------------------------------------------------
     case Typ_LN:        // Line
-      if(cvi) memcpy (cvo, cvi, sizeof(Line));
-      if(cvtrm->dir) UT3D_ln_inv ((Line*)cvo);  // revert line
-      if(cvtrm->ip0) {
-        // irc = UTO_obj_dbo ((void**)&pp1, &oNr, &pTyp, cvtrm->ip0);
-        // ((Line*)cvo)->p1 = *pp1;
-        ((Line*)cvo)->p1 = DB_GetPoint (cvtrm->ip0);
+      // trimmed line can have dbi=0 - use points
+      if(cvtrm->dbi) {
+        cvBas = DB_get_LN (cvtrm->dbi);
+            // DEB_dump_obj__ (Typ_LN, cvBas, " _cvtrm-LN-cvi");
+        memcpy (cvo, cvBas, sizeof(Line)); // copy typ ..
+      } else ((Line*)cvo)->typ = 0;  // memcpy (cvo, cvBas, sizeof(Line));
+      if((cvtrm->ip0)&&(cvtrm->ip1)) {
+        // points exist ..
+          ((Line*)cvo)->p1 = DB_GetPoint (cvtrm->ip0);
+          ((Line*)cvo)->p2 = DB_GetPoint (cvtrm->ip1);
       } else {
-        if(cvtrm->v0 != UT_VAL_MAX)
-          UT3D_pt_evpar2pt (&((Line*)cvo)->p1, cvtrm->v0,
-                            &((Line*)cvi)->p1, &((Line*)cvi)->p2);
-       
+        // no stored points - create points from parameters
+        // get line from DB
+        // get point from parameter
+        UT3D_pt_evpar2pt (&((Line*)cvo)->p1, cvtrm->v0,
+                            &((Line*)cvBas)->p1, &((Line*)cvBas)->p2);
+        UT3D_pt_evpar2pt (&((Line*)cvo)->p2, cvtrm->v1,
+                            &((Line*)cvBas)->p1, &((Line*)cvBas)->p2);
       }
-      if(cvtrm->ip1) {
-        // irc = UTO_obj_dbo ((void**)&pp1, &oNr, &pTyp, cvtrm->ip1);
-        // ((Line*)cvo)->p2 = *pp1;
-        ((Line*)cvo)->p2 = DB_GetPoint (cvtrm->ip1);
-      } else {
-        if(cvtrm->v1 != UT_VAL_MAX) 
-          UT3D_pt_evpar2pt (&((Line*)cvo)->p2, cvtrm->v1,
-                            &((Line*)cvi)->p1, &((Line*)cvi)->p2);
-      }
+        // DEB_dump_obj__ (Typ_LN, cvo, " _cvtrm-LN-cvo");
       break;
 
 

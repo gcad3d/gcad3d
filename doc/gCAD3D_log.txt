@@ -1,4 +1,26 @@
 ===========================================================================
+Version 2.46.20 / 2021-07-01
+
+- Model-assembly-functions rewritten; subModels can be nested.
+- Model-assembly accepts direct import of step, dxf, wrl, stl, 3ds, obj.
+- Bugfix Cancel 2D-plane-definition
+- Bugfix create-new-subModel
+- Bugfix display-support-surface-conic
+- DXF-export now can place 3D-oriented blocks (INSERT)
+- STEP-export supports now some surfaces. Bodies not yet exported.
+- default-directory for Applications (gcad-scripts .gcap) in symbolic directory "APPLI"
+- config-files now in directory /cfg_<opsys>/ (was /cfg/) -
+  - new: Standards/select directory-path-group (project-related-directory-groups)
+- Modification of code for catalog-parts:
+  - was eg |M20=CTLG "Profile/4x4_60"|
+  - is now |M20="Profile/4x4_60.ctlg"|
+    - remove "CTLG " before partname and add filetyp ".ctlg" to partname.
+
+Programlines (C)  531397
+Functions           4994
+
+
+===========================================================================
 Version 2.46.18 / 2020-11-05
 
 - CAD Ellipse - option CW (clockwise) added

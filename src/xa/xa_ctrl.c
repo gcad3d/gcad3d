@@ -109,7 +109,6 @@ The mainTimer calls CTRL_CB__ periodically;
 // EXTERNALS:
 // aus ../xa/xa.c:
 extern TxtTab    AP_TxTab1;
-extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main.
 
 
 // ../xa/xa_ui.c
@@ -243,11 +242,12 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 // executes commands.
 
  
-  int    irc, i1;
-  long   l1, dli;
-  double d1;
-  char   cmd[64], s1[64], s2[128], s3[256], 
-         *wPos1, *wPos2, *wPos3, *p1, cd;
+  int      irc, i1;
+  long     l1, dli;
+  double   d1;
+  stru_FN  ofn;
+  char     cmd[64], s1[64], s2[128], s3[256], 
+           *wPos1, *wPos2, *wPos3, *p1, cd;
   // char   *cmdTab[] = {
          // "PRINT", "VIEW", "SHOW",    "ATTL", "ATTS",
          // "DUMP",  "MODE", "ZOOMALL", NULL};
@@ -257,7 +257,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   // printf("CTRL_CB_do__  |%s|\n", parCmd);
 
 /*
-  // DO NOT USE mem_cbuf1; WC_Work__ is using it !
+  // DO NOT USE mem_cbuf1; WC_Work1 is using it !
   parCmd = IE_buf;      // size mem_cbuf1_SIZ!
 
 
@@ -347,7 +347,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   //----------------------------------------------------------------
   // new           see also UI_menCB "new"
   if(!strcmp(cmd, "NEW")) {
-    // AP_src_new(1);
+    // AP_mdl_init(1);
     UI_men__ ("new");
 
 
@@ -355,8 +355,9 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   // GETSYMDIR
   } else if(!strcmp(cmd, "GETSYMDIR")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    strcat (wPos1, "/");   // symdir must be terminated with '/'
-    Mod_sym_get1 (sBufOut, wPos1, 0);
+//     strcat (wPos1, "/");   // symdir must be terminated with '/'
+//     Mod_sym_get1 (sBufOut, wPos1, 0);
+    MDLFN_fDir_syFn (sBufOut,  wPos1);
 
 
   //----------------------------------------------------------------
@@ -368,15 +369,15 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     i1 = UTX_get_word (&wPos2, &wPos3, s2, &d1, &cd);
     if(i1 != 4) goto L_err_par;
       // printf(" _words |%s|%s|\n",s1,s2);
-    Mod_sym_add (s1, s2);
-    // check file /home/fwork/gCAD3D/cfg/dir.lst
+    MDLFN_syFn_f_add (s1, s2);
+    // check file /home/fwork/gCAD3D/cfg_<os>/dir.lst
 
 
   //----------------------------------------------------------------
   // DELSYMDIR
   } else if(!strcmp(cmd, "DELSYMDIR")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    Mod_sym_del (wPos1);
+    MDLFN_syFn_f_del (wPos1);
     goto L_done;
 
 
@@ -386,8 +387,6 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   // does NOT check model-is-modified
   } else if(!strcmp(cmd, "LOAD")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    // Mod_fNam_get (wPos1);
-    // AP_Mod_load__ (0);                   // load
     AP_Mod_load_fn (wPos1, 0);
   
 
@@ -397,8 +396,8 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   } else if(!strcmp(cmd, "LOADSM")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
                    //   symDir  absDir  filNam
-    i1 = Mod_sym_get__ (s1,     s2,     s3,      wPos1);
-    Mod_LoadSubmodel (s3, s2);                   // load
+    // i1 = Mod_sym_get__ (s1,     s2,     s3,      wPos1);
+    MDL_load_mdl_f (wPos1);
   
 
 
@@ -521,12 +520,16 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   } else if(!strcmp(cmd, "SAVE")) {
     if(wPos1) {
       wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-      Mod_fNam_get (wPos1);
     }
+    // Mod_fNam_get (wPos1);
+    irc = MDLFN_oFn_fNam (&ofn, wPos1);
+    if(irc < 0) {TX_Print("***** ERR SAVE - filname %s",wPos1); goto L_exit;}
       // printf(" _save: |%s|%s|%s|\n",AP_sym_save,AP_mod_dir,AP_mod_fnam);
-    UI_save__ (1);
-    // add filename to list "last-used"
-    AP_Mod_lstAdd ();
+    // export (save)
+    MDL_exp__ (&ofn, 0, 1);
+
+    // MDLFN_set__ (&ofn);   // get AP_mod_*
+    // AP_save__ (0, 2, 0, "gcad");
     goto L_done;
     
 

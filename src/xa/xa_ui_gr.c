@@ -35,6 +35,7 @@ UI_GL_move__         callBack mouse-movement
 UI_GL_mouse__        callback mouseButton press | release | scroll
 UI_GL_draw__         Redraw whole scene.
 UI_GR_ButtonM1Release
+UI_GR_focus          set focus to grafic-window
 
 UI_GL_keys__         callback keypress
 UI_key_mod_set       update modifier-keys (KeyStatShift, KeyStatAlt, KeyStatCtrl)
@@ -62,7 +63,9 @@ UI_ResetCursor
 
 UI_CurPos_upd        update label cursor-position
 UI_GR_get_actPos_    return the active cursorPosition as string "<x> <y> <z>"
-UI_GR_get_actPosA    get current curPos in userCoords on constructionPlane
+GR_get_curPos_WC     get curPos on constrPln in WCS
+GR_get_curPos_UC     get current curPos in userCoords on constructionPlane
+UTRA_UCS_WCS_PT  get UCS-coords from point with WCS-coords
 UI_GR_SelVert        get vertex nearest to cursor
 
 UI_popSel_CB__       CB of MouseOverPopup-Eintrag
@@ -74,7 +77,6 @@ UI_GR_Sel_Filt_set
 UI_GR_Destroy
 UI_GR_view_set_func  unused
 UI_vwz_set set new screen-center
-UI_GR_view_set_Cen1
 UI_GR_Indicate
 UI_GR_Select_work_vc selection (only for vector)
 UI_GR_Select_work1   selection
@@ -82,7 +84,6 @@ UI_GR_Select_work2   selection
 UI_GR_Select_selLst  entry in popup-list selected
 UI_GR_selMen_init    create popup-menu for mousebutton-middle
 UI_GR_selMen_cbSel   callback of popup-menu
-
 
 GR_set_dispTra       inhibit display-transformations; 0=yes, 1=no
 
@@ -101,7 +102,7 @@ UI_KeyFieldWri       unused
 
 UI_GR_dump_dlTab     dump dlTab
 UI_GR_dump_selTab    dump selTab
-
+UI_GR_Test1
 
 List_functions_end:
 =====================================================
@@ -109,7 +110,7 @@ UNUSED
 // UI_popSel_CB_prevOff    hilite obj ../ LEAVE Popup-ListObj; clear last previewed
 // UI_popSel_CB_prevOn  ENTER Popup-ListObj; preview object
 // UI_key_sel_fi
-// UI_GR_setKeyFocus    set focus to glarea widget
+// UI_GR_focus    set focus to glarea widget
 // UI_GR_view
 // UI_GR_Init
 // UI_GR_Redraw         Main RedrawFunction
@@ -130,7 +131,7 @@ cl -c /I ..\include xa_ui_gr.c
 */
 
 #ifdef _MSC_VER
-#include "MS_Def1.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 #include <math.h>
@@ -172,7 +173,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../xa/xa_ui.h"               // UID_ckb_search
 #include "../xa/xa_edi__.h"
 #include "../xa/xa_ui_gr.h"
-#include "../xa/xa_ui_cad.h"
+#include "../xa/xa_cad_ui.h"           // IE_FuncTyp IE_FUNC_IS_ACTIVE
 #include "../xa/xa_mem.h"              // memspc101
 #include "../xa/xa_sele.h"             // Typ_goGeom
 #include "../xa/xa_app.h"              // PRC_IS_ACTIVE
@@ -190,9 +191,10 @@ cl -c /I ..\include xa_ui_gr.c
 
 
 //============ Externe Var: =======================================
-// aus xa.c:
-extern AP_STAT   AP_stat;              // sysStat,errStat..
-extern int       AP_modact_ind;        // the Nr of the active submodel; -1 = main
+// ../xa/xa.c:
+extern int       WC_sur_ind;            // Index auf die ActiveConstrPlane
+extern Plane     WC_sur_act;            // die aktive Plane
+
 
 // extern void *UI_MainWin;
 extern MemObj    UI_curPos;
@@ -226,6 +228,9 @@ extern int       xa_fl_TxMem;
 
 // aus ../ci/NC_Main.c:
 extern int     APT_dispPT, APT_dispPL, APT_dispSOL;
+extern int     AP_def_typ;     // type of obj being defined (eg Typ_Model for M20")
+       extern  AP_def_ind;     // DB-index of obj being defined
+
 
 // ex ../gr/ut_gr.c
 extern int GR_actView;
@@ -243,7 +248,6 @@ extern char   GR_selNam[128];    // objname of selected object
 
 // ex ../gr/ut_GL.c
 extern int  GL_rub_stat;   // state of rubberbox; GL_RubberBox_drw__();
-
 
 
 //============ Lokale Var: =======================================
@@ -280,7 +284,7 @@ long   GR_dli_hili = -1L;     // the active (mouse-over) object of selection-lis
 
 //----------------------------------------------------------------
  
-static Point  GR_CurUk;        ///< curPos in worldCoords on constructionPlane
+static Point  GR_curPos_WC;        ///< curPos in worldCoords on constructionPlane
 
 static int    GR_do_dispTra = 0;  // do display-transformations; 0=yes, 1=no
 
@@ -311,8 +315,21 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
 
+//================================================================
+  int UI_GR_focus () {
+//================================================================
+// UI_GR_focus          set focus to grafic-window
 
+  // UI_Focus = 0;      // owner of focus - 0=GL, 1=Edit, 2=ViewZ-Entryfeld
 
+  // printf("FFFFFFFFFFFF UI_GR_focus \n");
+ 
+  GUI_obj_focus (&winGR);
+  GUI_update__ ();
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -331,13 +348,13 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 // CAN BE RECURSIVE !  (AP_init__)
 
 
-  int       i1, i2;
-  // char      s1[256];
-  // Obj_GLwin *UI_win_gl;
+  int       i1, i2, imods;
+  char      s1[320];
+
 
   // printf("UI_GL_draw__ event=%d %d %d\n",
          // GUI_DATA_EVENT, GUI_DATA_I1, GUI_DATA_I2);
-  // printf("  AP_stat.sysStat=%d\n",AP_stat.sysStat);
+  // printf("  AP_stat.sysStat=%d .mdl_stat=%d\n",AP_stat.sysStat,AP_stat.mdl_stat);
 
 
 
@@ -358,7 +375,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   L_Config:
   if(GUI_DATA_EVENT != TYP_EventConfig) goto L_init;       // 406
     // GDK_CONFIGURE = TYP_EventConfig = reSize OpenGL-window
-      // printf(" _EventConfig: size=%d %d\n",GUI_DATA_I1,GUI_DATA_I2);
+      // printf("UI_GL_draw__-_EventConfig: sysStat=%d size=%d %d\n",
+             // AP_stat.sysStat, GUI_DATA_I1, GUI_DATA_I2);
 
 
     if(AP_stat.sysStat < 2) {
@@ -395,6 +413,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
       sprintf(AP_winSiz,"-%d,-%d", i1, i2);
         // printf(" AP_winSiz = |%s|\n",AP_winSiz);
       // must do redraw ..
+      return 0;
     }
 
 
@@ -421,45 +440,66 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   //----------------------------------------------------------------
-  L_draw:
-  // GDK_EXPOSE = TYP_EventDraw = redraw-after-covered
-  if(AP_stat.sysStat < 2) return 0;
 
 
 
   //================================================================
-  // STARTUP:
+  // TYP_EventDraw | TYP_EventMap
+  L_draw:
+  // GDK_EXPOSE = TYP_EventDraw = redraw-after-covered
+  if(AP_stat.sysStat < 2) return 0;
+
+  //----------------------------------------------------------------
   if(AP_stat.sysStat < 3) {
     // sysStat is 2; OpenGL is up; do init model.
    
-    // kill all files in <tmpDir>
-    AP_src_new (0);
+    if(AP_stat.mdl_stat == MDLSTAT_empty) {
 
-    // UI_brw__ (0);     // init browser ??
+      // init all, kill all files in <tmpDir>
+      AP_mdl_init (0);
 
-    // work startup-parameters
-    AP_init__ ();
-
-    // if no model loaded yet:
-      // printf(" UTF_GetLen0=%ld\n",UTF_GetLen0());
-    if(UTF_EMPTY) {     // get length of modelcode (UTF_FilBuf0)
-      // modelspace has < 24 chars
-      // copy empty model -> tmp/Model
-      Mod_sav_i (-1);
-      // make copy of Model for ck-modified (copy Model -> Mod_in)
-      Mod_sav_ck (0);
-      AP_stat.mdl_stat = MDLSTAT_loaded;
+      // work startup-parameters
+      imods = AP_init__ ();
     }
 
     AP_tmr_init ();
+
     // NC_setRefsys (0L);  2020-10-28
     AP_stat.sysStat = 3;
 
-    // if mode == CAD then check for startFunction
-    if(AP_stat.cadIniM >= 0)
-      IE_cad_init__ (AP_stat.cadIniM, AP_stat.cadIniS);
+    //----------------------------------------------------------------
+    // load model 
+    if(!AP_mod_fnam[0]) {
+      // init with empty model
+      AP_Mod_load_fn ("", 2);
+    } else {
+      MDLFN_ffNam_AP (s1);
+      AP_Mod_load_fn (s1, 0);
+    }
 
-//     return 0;
+    // Title oben auf den Mainwinrahmen
+    UI_AP (UI_FuncSet, UID_Main_title, NULL);
+
+    //----------------------------------------------------------------
+    // set radiobuttons VWR|CAD|MAN
+    UI_main_set__ (imods);
+
+    // activate VWR|CAD|MAN (imods)
+    if(imods == UI_MODE_MAN) {
+      UI_but__ ("MAN");
+
+    } else if(imods == UI_MODE_CAD) {
+      // if mode == CAD then check for startFunction
+      if(AP_stat.cadIniM >= 0)
+      // activate CAD-menu and inputfields
+      IE_cad_init__ (AP_stat.cadIniM, AP_stat.cadIniS);
+      else UI_but__ ("CAD");
+
+    } else {
+      // UI_but__ ("VWR");
+      UI_VWR_ON ();  // do not if VWR=on; first of buttonChain = ON !
+    }
+
   }
 
 
@@ -741,14 +781,19 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   if((KeyStatCtrl == OFF)&&(KeyStatShift == OFF)) {    // nur ohne Shift/Ctrl-key
 
     // Punkt auf Flaeche geht dzt nur damit (no hilited surfaces) ...
-    GL_Redra__ (0);       // find selected point
-    GL_MousePos (&pt1);
-      // DEB_dump_obj__ (Typ_PT, &pt1, "GL_mouse__-f-GL_MousePos");
-    sele_set_pos (&pt1);
+    // GL_Redra__ (0);       // find selected point
 
-    // get userCoords on viewPlane & constructionPlane 2009-05-25
-    GR_set_constPlnPos();    // set point GR_CurUk on constructionPlane
-    GL_set_viewPlnPos ();    // set point GL_actUsrPos on viewPlane
+    // get selected vertex (WCS) from active curPos
+    GL_vertex_curPos (&pt1);
+      // DEB_dump_obj__ (Typ_PT, &pt1, "GL_mouse__-f-GL_vertex_curPos");
+
+    // get GR_curPos_WC = point on constrPln in WCS
+   //    and set GL_curPos_SC and GL_curPos_WC
+    GL_set_curPos_CP (&GR_curPos_WC);
+
+    // set GR_selPos_CP and GR_selPos_vtx
+    sele_set_pos__ (&GR_curPos_WC, &pt1);
+
   }
 
 
@@ -766,8 +811,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL); // reset scale
 
-    // GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
-    // UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+    // GR_set_curPos_CP ();  // compute GR_curPos_WC in worldCoords
+    // GR_get_curPos_UC (&pt1);   // get GR_curPos_WC
 
     goto Fertig;
 
@@ -873,6 +918,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
         // M3: new-line
         if(GR_Event_Act == GUI_MouseR) { UI_EdKeyCR (2); goto Fertig;}
+
+        // if "select obj to dump" is active: normal select ..
+        if(GR_Sel_Filter == FILT04) goto L_ck_sel;
 
         // analyze active line
         irc = ED_GR_CB1__ (GR_Event_Act);
@@ -1548,6 +1596,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // all other keys -> userFunc
   if(UI_UserKeyFunc != NULL) {
+      // printf(" UI_GL_keys__-> urFunc\n");
     (*UI_UserKeyFunc) (iKey);
     goto L_exit;
   }
@@ -1776,7 +1825,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   case 's':
   case 'S':
     // sichern ..
-    UI_men__ ("save");
+    UI_men__ ("qSav");
     // reset the Ctrl-key
     goto Reset_Ctrl;
 
@@ -1864,13 +1913,13 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     if(i1 == 'A') {GA_dump__ (NULL);        goto AllDone;} // Alt shift g
     if(i1 == 'D') {DL_DumpObjTab ("");      goto AllDone;} // Alt shift d
     if(i1 == 'G') {Grp_dump ();             goto AllDone;} // Alt shift g
-    if(i1 == 'M') {DB_dump_ModBas ();       goto AllDone;} // Alt shift m
+    if(i1 == 'M') {DB_dump_ModBas ("");     goto AllDone;} // Alt shift m
     // if(i1 == 'N') {WC_actPos_dump ();goto AllDone;} // Alt shift n
     if(i1 == 'O') {DB_dump_stat ();         goto AllDone;} // Alt shift O
-    if(i1 == 'R') {DB_dump_ModRef ();       goto AllDone;} // Alt shift r
-    if(i1 == 'S') {UTF_dump__ ();           goto AllDone;} // Alt shift S
+    if(i1 == 'R') {DB_dump_ModRef ("");     goto AllDone;} // Alt shift r
+    if(i1 == 'S') {UTF_dump__ ("");         goto AllDone;} // Alt shift S
     if(i1 == 'T') {Tex_dump__(NULL);        goto AllDone;} // Alt shift T
-    if(i1 == 'U') {UNDO_dump ("");          goto AllDone;} // Alt shift U   Undo-Tab
+    if(i1 == 'U') {UNDO_dump ("key sh-U");  goto AllDone;} // Alt shift U   Undo-Tab
     if(i1 == 'X') {AP_debug__ ("key X");    goto AllDone;} // Alt shift x
     // eine temporaer benutzte Testfunktion: Alt shift T
     // if(i1 == 'T') {PP_up_list(NULL,NULL,-2);goto AllDone;}
@@ -1889,13 +1938,13 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   int   i1;
 
 
-    if(UI_Focus == 2) {
-      UI_suract_keyIn (1);  // keyIn -> ViewZ
-
-    }  else if(UI_Focus == 3) {
-      UI_suract_keyIn (2);  // keyIn -> ViewZ
-
-    } else {
+//     if(UI_Focus == 2) {
+//       UI_suract_keyIn (1);  // keyIn -> ViewZ
+// 
+//     }  else if(UI_Focus == 3) {
+//       UI_suract_keyIn (2);  // keyIn -> ViewZ
+// 
+//     } else {
       // if(UI_InpSM == ON) {   // wenn Search ON: activate Modify.
         // // UI_WinSM (NULL, (void*)UI_FuncModify);
         // UI_WinSM (NULL, (void*)UI_FuncUCB5);
@@ -1921,7 +1970,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
           }
         }
       // }
-    }
+//     }
 
 
   Changed:
@@ -2045,6 +2094,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // printf("UI_unHili \n");
 
+  // remove previwe-obj
+  UI_prev_remove ();
+
   // remove tempObj
   GL_temp_del_1 (GR_TMP_I0);  // 2015-01-04
 
@@ -2123,16 +2175,18 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //----------------------------------------------------------------
   if(UI_InpMode == UI_MODE_VWR) {
+      // printf(" key_escape-doVWR\n");
     // VWR: unhilite selected obj's
     Grp_Clear (2);   
     // UI_unHili ();  // clear group, unhilite all objs
-    irc = UI_popSel_CB_prev (-1); // remove temporary-obj
-    // if(!irc) return 0;
-
+    // irc = UI_popSel_CB_prev (-1); // remove temporary-obj
+    irc = UI_prev_remove ();  // remove temporary-obj
+    if(irc) DL_Redraw ();
 
 
   //----------------------------------------------------------------
   } else if(UI_InpMode == UI_MODE_CAD) {
+      // printf(" key_escape-doCAD\n");
     // UI_undo_work (0, 0);  // change last entry
     // test if CAD-funtion ist active;
     if(IE_get_Func() < 0) {
@@ -2239,7 +2293,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //         GUI_Tx_rmLast ();
 //         APED_dbo_oid (&i1, &l1, xbuf);
 //         if(selFi == 4) {     // dump obj
-//           UI_dump_obj (i1, l1);
+//           UI_dump_dbo (i1, l1);
 //           UI_GR_Sel_Filt_reset ();      // reset dump
 //         } else {         // 5 = add to group
 //           l2 = DL_dli__dbo (i1, l1, -1L);
@@ -2427,11 +2481,11 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // Ausgabefeld Scale setzen (calls AP_Get_scale() - gets AP_scale);)
     UI_AP (UI_FuncSet, UID_ouf_scl, NULL);
 
-/* 2019-06-17 raus ..
-    // Ausgabefeld ViewZ setzen
-    d1 = GL_query_ViewZ();
-    UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&d1);
-*/
+// 2019-06-17 raus ..
+//     // Ausgabefeld ViewZ setzen
+//     d1 = GL_query_ViewZ();
+//     UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&d1);
+//
 
   APT_set_view_stat ();  // APT_view_stat = 1;
 
@@ -2607,7 +2661,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   /* Reset focus to glarea widget */
-  // UI_GR_setKeyFocus ();
+  // UI_GR_focus ();
 
 
     // printf("ex UI_viewCB\n");
@@ -2743,7 +2797,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   GTK_WIDGET_SET_FLAGS  (GL_widget, GTK_CAN_FOCUS);
-  // see UI_GR_setKeyFocus
+  // see UI_GR_focus
 
 
   // Events for widget must be set before X Window is created
@@ -2842,7 +2896,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // gtk_widget_show (frm1);
 
   // set focus to glarea widget (nur f. KeyEvents erforderl)
-  // UI_GR_setKeyFocus ();
+  // UI_GR_focus ();
 
 
   printf("ex UI_GR_WinInit\n");
@@ -3025,7 +3079,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // UI_AP (UI_FuncFocus, UID_WinEdit, NULL);  // GUI_Ed_Focus
   // else
     // geht nicht; sonst kein Focus auf die CAD-Entryfelder moeglich
-    // UI_GR_setKeyFocus();   // set Focus to OpenGL-window
+    // UI_GR_focus();   // set Focus to OpenGL-window
     
   // GUI_update__ ();
   g_signal_handlers_unblock_by_func (GTK_OBJECT(GL_widget),
@@ -3214,7 +3268,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   // DL_Redraw hilft hier nix; muss iregndwann spaeter erfolgen !!!
   // Danach UI_GR_Draw; auch noch zu frueh.
-  // GR_set_constPlnPos ();
+  // GR_set_curPos_CP ();
   // verdreht immer !!!
 
 
@@ -3243,7 +3297,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //================================================================
 /// \code
 /// callBack mouse-movement
-/// compute GR_CurUk = cursorPosition in userCoords on constructionPlane
+/// compute GR_curPos_WC = cursorPosition in userCoords on constructionPlane
 /// \endcode
 
 
@@ -3426,22 +3480,22 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
   L_fertig:
-  GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
+  GR_set_curPos_CP ();  // compute GR_curPos_WC in worldCoords
 
 
 
 
-  // die PosKoord. GR_CurUk in ein Ausgabefenster geschr. werden.
-  // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
+  // die PosKoord. GR_curPos_WC in ein Ausgabefenster geschr. werden.
+  // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_curPos_WC.x,GR_curPos_WC.y,GR_curPos_WC.z);
 /
-  // if((AP_IS_2D)&&(UI_RelAbs == 0)) {
-    // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &GR_CurUk);
+  // if((CONSTRPLN_IS_ON)&&(UI_RelAbs == 0)) {
+    // UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &GR_curPos_WC);
   // } else {
-    // pt1 = GR_CurUk;
+    // pt1 = GR_curPos_WC;
   // }
 /
 
-  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+  GR_get_curPos_UC (&pt1);   // get GR_curPos_WC
 
 
   sprintf(buf1, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
@@ -3484,6 +3538,11 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 // 10 = GDK_ENTER_NOTIFY
 // 11 = GDK_LEAVE_NOTIFY
 // 15 = GDK_UNMAP
+//
+// TODO: if eg temp-obj is hilited from CAD-inputfield; if popupMenu also hilites
+//       this obj then the hilite is removed after TYP_EventLeave.
+//       Prevent this: do not hilite if already hilited from CAD and
+//         do not remove hilite if not from popupMenu.
 
   int  iEv;
   int  isel = -1;
@@ -3503,7 +3562,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // Unix-GTK2:
   //   GDK_BUTTON_RELEASE  GDK_ENTER_NOTIFY GDK_UNMAP bei select 
   //   GDK_BUTTON_RELEASE  GDK_UNMAP                  bei cancel
-  //   Bei MS-Win kommt kein UNMAP !!!
+  // Unix-Gtk3: no TYP_EventPress
+  // MS-Win:    no TYP_EventUnmap
   // if(event->type == GDK_BUTTON_RELEASE) {
   if(iEv == TYP_EventPress) {
     // report release M1 = selection
@@ -3515,6 +3575,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   } else if(iEv == TYP_EventEnter) {
     // preview
     // UI_GR_Select1 (101, &isel);
+    UI_prev_fnc (1);
     UI_popSel_CB_prev (isel);
 
 
@@ -3524,14 +3585,16 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // UI_GR_Select1 (102, &isel);
     // LEAVE Popup-ListObj; clear last previewed
     // unhilite last displayed object
-    UI_popSel_CB_prev (-1);
+    UI_prev_remove ();
+    UI_prev_fnc (0);
+    DL_Redraw ();
 
-/*
+
   // } else if (event->type == GDK_UNMAP) {
   } else if(iEv == TYP_EventUnmap) {
     // cancel selection / end preview
     // UI_GR_Select1 (102, &isel);
-*/
+
   } 
 
 
@@ -3552,18 +3615,53 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //   namTab
 //   selPos 
 
-  static int  selLn_typ = 0;
-  static long selLn_ind;
+  // static int  selLn_typ = 0;
+  // static long selLn_ind;
 
   int     typ;
   long    dbi, dli, l1;
+  char    *p1;
   Point   selPos;
 
 
   // printf("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP \n");
   // printf("UI_popSel_CB_prev %d\n",isel);
   // printf("  selLn_typ=%d selLn_ind=%ld\n",selLn_typ,selLn_ind);
+  // printf(" UI_InpMode=%d\n",UI_InpMode);
 
+
+    // get selected position (vertex)
+    sele_get_pos_vtx (&selPos);
+
+//   if(UI_InpMode == UI_MODE_CAD) {
+    if(isel >= 0) {
+      typ = selTab[isel].typ;
+      dbi = selTab[isel].dbInd;
+      dli = selTab[isel].dlInd;
+      p1  = namTab[isel];
+    } else {
+      // remove display of active Popup-ListObj
+      typ = -1;
+    }
+
+
+    if(UI_InpMode == UI_MODE_VWR) {
+      // M1 - "Vertex"
+      if (typ == Typ_Vertex) return UI_disp_vert ();
+    }
+
+    // return UI_prev_src (typ, dbi, dli, p1, &selPos);
+    // preview obj selected from popup-list (selection / source)
+    return IE_cad_inp_prev__ (typ, dbi, dli, (long)GR_TMP_IMEN, p1, &selPos);
+
+//   }
+
+
+
+//----------------------------------------------------------------
+// UNUSED:
+//----------------------------------------------------------------
+/*
 
   if(isel < 0) {
     //===== clear active temporary-obj ==================================
@@ -3592,8 +3690,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   typ = selTab[isel].typ;
   dbi = selTab[isel].dbInd;
   dli = selTab[isel].dlInd;
-    // printf(" UI_popSel_CB_prev: typ=%d dbi=%ld dli=%ld |%s|\n",
-           // typ, dbi, dli, namTab[isel]);
+    printf(" UI_popSel_CB_prev: typ=%d dbi=%ld dli=%ld |%s|\n",
+           typ, dbi, dli, namTab[isel]);
 
 
 
@@ -3628,7 +3726,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     selLn_typ = GR_OTYP_TEMP;
     selLn_ind = GR_TMP_I0;
     sele_get_pos__ (&selPos);
-    UI_disp_vec1 (GR_TMP_I0, Typ_Index, PTR_LONG(selTab[isel].dbInd),
+    UI_prev_vc (GR_TMP_I0, Typ_Index, PTR_LONG(selTab[isel].dbInd),
                   &selPos, Typ_Att_hili1);
     goto L_exit;
   }
@@ -3670,7 +3768,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // printf(" ex-UI_popSel_CB_prevOn\n");
 
   return 0;
-
+*/
 }
 
 
@@ -3685,14 +3783,14 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 //   selPos 
 
 
-  Point   selPos;
+  int     selTyp;
+  Point   pt1, selPos;
 
 
-
-  // dump selTab
   // printf("UI_GR_Select_selLst isel=%d typ=%d dbi=%ld dli=%ld nam=|%s|\n",
     // isel,selTab[isel].typ,selTab[isel].dbInd,selTab[isel].dlInd,namTab[isel]);
-  // UI_GR_dump_selTab (selTab, namTab, selNr);
+  // UI_GR_dump_selTab (selTab, namTab, isel, "_Select_selLst");
+  // UI_GR_dump_dlTab (dlTab, GL_sel_sel (&dlTab), "Select1-1"); 
 
 
   if(isel < 0) return 0;
@@ -3701,7 +3799,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   //----------------------------------------------------------------
   // set GR_selTyp,GR_selDbi,GR_selNam
 
-
+  selTyp    = selTab[isel].typ;
   GR_selDli = selTab[isel].dlInd;
     // printf(" set GR_selDli %ld\n",GR_selDli);
 
@@ -3709,18 +3807,25 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
   //----------------------------------------------------------------
   // test if Vertex selected (namTab ist nicht static)
-  if(!strcmp(namTab[isel], "Vertex") )  {
-    selPos = DB_GetPoint (0L);
+  // if(!strcmp(namTab[isel], "Vertex") )  {
+  if(selTyp == Typ_Vertex) {   // "Vertex"
+    // get selPos = selected vertex in UCS
+    sele_get_pos_vtx (&pt1);
+    UTRA_UCS_WCS_PT (&selPos, &pt1);
     SRC_src_pt3_10 (GR_selNam, &selPos);
+    GR_selTyp = selTyp;
     goto L_100_w;
   }
 
 
   //----------------------------------------------------------------
   // test if ConstrPlane selected (namTab ist nicht static)
-  if(!strcmp(namTab[isel], "ConstrPlane") )  {
-    sele_get_pos_CP (&selPos);  // get position on constrPlane when selecting obj
+//   if(!strcmp(namTab[isel], "ConstrPlane") )  {
+  if(selTyp == Typ_TmpPT) {   // "ConstrPlane"
+    // get position on constrPlane when selecting obj as UCS
+    sele_get_pos_UC (&selPos);
     SRC_src_pt3_10 (GR_selNam, &selPos);
+    GR_selTyp = selTyp;
     goto L_100_w;
   }
 
@@ -3873,12 +3978,13 @@ static  Point  selPos;
   //----------------------------------------------------------------
   // if(mode >= 100) goto L_mode100;
 
-  // get mouseposition in userCoords
-  sele_get_pos__ (&selPos);
+  // get curPos (vertex) in WCS
+  sele_get_pos_vtx (&selPos);
     // DEB_dump_obj__ (Typ_PT, &selPos, "GR_Select1-selPos");
 
   reqTyp = sele_get_reqTyp ();
     // printf(" reqTyp=%d\n",reqTyp);
+
 
   // get nr and type of selected objects (not including images, tags)
   // dlTab = pointer -> GR_selTab
@@ -3889,6 +3995,10 @@ static  Point  selPos;
     // UI_GR_dump_dlTab (dlTab, iNr, "Select1-1"); // DUMP SELECTION_BUFFER dlTab
     // END TESTBLOCK
 
+
+  //----------------------------------------------------------------
+    // no obj selected - get position on ConstrPlane
+  // if(iNr == 0) sele_get_pos_WC (); // done in UI_GL_mouse__ sele_set_pos__
 
   //----------------------------------------------------------------
   // if a 2D-icon was selected: done ..
@@ -3911,12 +4021,16 @@ static  Point  selPos;
       if(i1 == Typ_FncVAR2) {IE_cad_Inp1_nxtVal (-1);    return 0;} 
 
       if(i1 == Typ_FncVC1)  {
-        IE_cad_Inp1_nxtVec(&l1, 1);
-        return IE_cad_Inp_disp__ (-1, 0); 
+        return IE_cad_Inp1_nxtVec(&l1, 1);
 
       } else if(i1 == Typ_FncVC2) {
-        IE_cad_Inp1_nxtVec(&l1,-1);
-        return IE_cad_Inp_disp__ (-1, 0);
+        return IE_cad_Inp1_nxtVec(&l1,-1);
+
+      } else if(i1 == Typ_FncTr1)  {
+        return IE_cad_Inp1_nxtTra(1);
+
+      } else if(i1 == Typ_FncTr2) {
+        return IE_cad_Inp1_nxtTra(-1);
       }
 
       if(i1 == Typ_FncPtOnObj) {UI_GR_Sel_Filt_set (18);   goto L_done;}
@@ -3944,6 +4058,14 @@ static  Point  selPos;
       APED_oid_dbo_all (namTab[0], i1, 0L, 0L);  // get text from typ and dbi
       goto L_done;
     }
+  }
+
+
+  //----------------------------------------------------------------
+  // exit if no selectable obj wanted:
+  if(TYP_IS_MOD(reqTyp)) {
+    TX_Print("***** %s",MSG_get_0("E_CAD_use1"));   // cannot use obj
+    return -1;
   }
 
 
@@ -4008,8 +4130,10 @@ static  Point  selPos;
     iNr = GL_sel_add_DB (&dlTab, -1L, Typ_TmpPT); // add Typ_TmpPT to GR_selTab
   }
     
+    // TESTBLOCK
     // DUMP SELECTION_BUFFER dlTab
     // UI_GR_dump_dlTab (dlTab, iNr, "Select1-5");
+    // END TESTBLOCK
 
 
   //----------------------------------------------------------------
@@ -4107,7 +4231,9 @@ static  Point  selPos;
 //         if(sele_ck_ConstrPln() == 0) continue; 
 //       }
 
+
       // test if only single curve can be handled - Typ_go_lf1
+      // do not add eg S20 if curve has more than 1 seg;
       if(reqTyp == Typ_go_lf1)    {              // lf1 = LN/CI/Curv
         // do not add composite-curve; get type of sel.obj
         if(typ == Typ_CVTRM) {
@@ -4115,14 +4241,7 @@ static  Point  selPos;
           pox1 = DB_GetCurv (dbi);
             // DEB_dump_obj__ (Typ_ObjGX, pox1, " L_Sel1_-go_lf1");
           // if(pox1->siz > 1) continue;   // skip contour - get only single curves
-          if(pox1->siz > 1) {
-            // find and add selected segment of CCV
-              // printf(" L_Sel1_-go_lf1 typ=%d dbi=%ld\n",typ,dbi);
-            i1 = SRC_src_pt_dbo (s1, 80, Typ_CV, &selPos, typ, dbi);
-            // add selected segment of CCV, continue;
-            if(i1 > 0) sele_src_cnvt_add (&sCva, Typ_CV, s1);
-            continue;
-          }
+          if(pox1->siz > 1) goto L_Sel1_1;
         }
       }
 
@@ -4150,7 +4269,7 @@ static  Point  selPos;
 
 
     //----------------------------------------------------------------
-    // L_Sel1_1:
+    L_Sel1_1:
     // if "View" or Hide" is active: do NOT resolve subCurves
       // printf(" hide/view=%d\n",UI_CK_HIDE_VIEW);
     if(UI_CK_HIDE_VIEW) continue;
@@ -4227,7 +4346,7 @@ static  Point  selPos;
 
       // get dli
       if(DL_typ_is_visTyp(typ)) {
-        l1 = DL_find_smObj (typ, dbi, -1L, AP_modact_ind);
+        l1 = DL_find_smObj (typ, dbi, -1L, AP_modact_ibm);
       } else {
         l1 = -1L;
       }
@@ -4280,7 +4399,7 @@ static  Point  selPos;
         selTab[selNr].dlInd = actPar->dli;  // was DL_find_smObj
         // find dli from typ, dbi
         // selTab[selNr].dlInd = 
-          // DL_find_smObj (parTab[i3].typ, parTab[i3].dbInd, -1L, AP_modact_ind);
+          // DL_find_smObj (parTab[i3].typ, parTab[i3].dbInd, -1L, AP_modact_ibm);
         selTab[selNr].stat  = 2;                   // 1=parent of subCurve-obj
         ++selNr;
       }
@@ -4360,23 +4479,26 @@ static  Point  selPos;
 
   // kein object gefunden
   if(selNr < 1 ) {
-    // APED_oid_dbo__ (namTab[0], dlTab[0].typ, dlTab[0].dbInd);
-      printf(" NO USEFUL OBJ !\n");
+    APED_oid_dbo__ (namTab[0], dlTab[0].typ, dlTab[0].dbInd);
+    IE_cad_msg_obj_ko (namTab[0], dlTab[0].typ);
     *dlInd = -1;
     DL_Redraw ();
     return -1;
   }
 
 
-  // genau ein object gefunden
+  //----------------------------------------------------------------
   L_done:
   if(selNr < 2 ) {
-    // only 1 object found.
-      // printf(" L_done-1-obj: %d %ld %ld |%s|\n",selTab[0].typ, selTab[0].dbInd,
-                   // selTab[0].dlInd, namTab[0]);
+    // we have one obj selected.
+      // printf(" Select1-L_done-1-obj: %d %ld %ld |%s|\n",
+             // selTab[0].typ,selTab[0].dbInd,selTab[0].dlInd,namTab[0]);
+
 
     if(!strcmp(namTab[0], "ConstrPlane") )  {
-      sele_get_pos_CP (&selPos);  // get position when selecting obj
+      // get position on constrPlane as UCS
+      sele_get_pos_UC (&selPos);  // get position when selecting obj
+      // string from bin.point
       SRC_src_pt3_10 (namTab[0], &selPos);
       // namTab[0][0] = '\0';
       // AP_obj_add_pt_sp (namTab[0], &selPos);
@@ -4448,7 +4570,7 @@ static  Point  selPos;
   //----------------------------------------------------------------
   // test if ConstrPlane selected (namTab ist nicht static)
   if(!strcmp(namTab[*dlInd], "ConstrPlane") )  {
-    sele_get_pos_CP (&selPos);  // get position when selecting obj
+    sele_get_pos_UC (&selPos);  // get position when selecting obj
     SRC_src_pt3_10 (GR_selNam, &selPos);
     goto L_100_w;
   }
@@ -4551,7 +4673,7 @@ static  Point  selPos;
   // preview vector
   if(selTab[*dlInd].typ == Typ_VC) {
       // printf(" preview vec %ld\n",selTab[*dlInd].dbInd);
-    UI_disp_vec1 (Typ_Index, PTR_LONG(selTab[*dlInd].dbInd), &selPos);
+    UI_prev_vc (Typ_Index, PTR_LONG(selTab[*dlInd].dbInd), &selPos);
     GR_dli_hili = GR_TMP_I0;
     return 0;
   }
@@ -4640,6 +4762,7 @@ static  Point  selPos;
 }
 
 
+/*
 //================================================================
   int UI_disp_oid (int ind, char *oid, int att) {
 //================================================================
@@ -4673,7 +4796,7 @@ static  Point  selPos;
   return 0;
 
 }
-
+*/
 
 //===========================================================================
    int UI_GR_dump_selTab (ObjDB *selTab, char namTab[][SELTABLEN], int iNr,
@@ -4848,7 +4971,7 @@ static  Point  selPos;
 //     typ = DL_dbTyp__dli (objInd);
 //     dbi = DL_get_dbi (objInd);
 //     // display  parent-obj
-//     UI_disp_dbo (typ, dbi, Typ_Att_top2);
+//     UI_prev_dbo_sym (typ, dbi, Typ_Att_top2);
 //     GR_dli_hili = GR_TMP_I0;
 // 
 //   } else {
@@ -4940,39 +5063,51 @@ static  Point  selPos;
   if(mode == -1) return GR_Sel_Filter;    // query only
 
 
+  //----------------------------------------------------------------
   // nochmal selektieren == Reset
-  if((mode == 0)              ||
-     (mode == GR_Sel_Filter))    {
-    if(GR_Sel_Filter == 4) TX_Print("------- end dump");
+  if((mode == 0) || (mode == GR_Sel_Filter))    {
+    if(GR_Sel_Filter == FILT04) {
+      // reactivate editor
+      if(UI_InpMode == UI_MODE_MAN) UI_func_stat_set__ (APF_WIN_B_E, 0);
+      TX_Print("------- end dump");
+    }
     GR_Sel_Filter = 0;
     // UI_Set_infoSel (0);
     return 0;
   }
 
-  if(mode == 1) {
+
+
+  //----------------------------------------------------------------
+  if(mode == 1) UI_Set_infoSel (mode);   // infolabel in upper toolbar
+
+  // else if(mode == 1) TX_Print("give position of cursor on constr.plane ..");
+  else if(mode == 2) MSG_pri_0("FILT02");
+
+  //"give position of cursor on selected obj ..");
+  else if(mode == 3) MSG_pri_0("FILT03");
+
+  //"select or keyIn obj to dump .."
+  else if(mode == FILT04) MSG_pri_0("FILT04");
+
+  //"add following selections/keyIn to group, end group with Tab-Key");
+  else if(mode == 5) MSG_pri_0("FILT05");
+
+  else if(mode == 6) MSG_pri_0("FILT06"); //"sel Line|Circ|Curve to modify ..
+  else if((mode >= 7)&&
+          (mode < 13)) MSG_pri_0("FILT07"); //"sel surf to modify
+  else if(mode == 13) MSG_pri_0("FILT13"); //"select surf to remove texture"
+  else if(mode == 14) MSG_pri_0("FILT14"); //"select surf to apply texture"
+  else if(mode == 15) MSG_pri_0("FILT15"); //"select surf to load texture"
+  else if(mode == 16) MSG_pri_0("FILT16"); //"modify position: select subModel"
+
+  else if(mode == 18) {                    //"give parametric-point
+    MSG_pri_0("FILT18");
     UI_Set_infoSel (mode);   // infolabel in upper toolbar
-    
 
-    // else if(mode == 1) TX_Print("give position of cursor on constr.plane ..");
-  } else if(mode == 2) MSG_pri_0("FILT02");
-    else if(mode == 3) MSG_pri_0("FILT03"); //"give position of cursor on selected obj ..");
-    else if(mode == 4) MSG_pri_0("FILT04"); //"select or keyIn obj to dump .."
-    else if(mode == 5) MSG_pri_0("FILT05"); //"add following selections/keyIn to group, end group with Tab-Key");
-    else if(mode == 6) MSG_pri_0("FILT06"); //"sel Line|Circ|Curve to modify ..
-    else if((mode >= 7)&&
-            (mode < 13)) MSG_pri_0("FILT07"); //"sel surf to modify
-    else if(mode == 13) MSG_pri_0("FILT13"); //"select surf to remove texture"
-    else if(mode == 14) MSG_pri_0("FILT14"); //"select surf to apply texture"
-    else if(mode == 15) MSG_pri_0("FILT15"); //"select surf to load texture"
-    else if(mode == 16) MSG_pri_0("FILT16"); //"modify position: select subModel"
-
-    else if(mode == 18) {                    //"give parametric-point
-      MSG_pri_0("FILT18");
-      UI_Set_infoSel (mode);   // infolabel in upper toolbar
-
-    } else if(mode == 19) {
-      MSG_pri_0("FILT19");
-      UI_Set_infoSel (mode);   // infolabel in upper toolbar
+  } else if(mode == 19) {
+    MSG_pri_0("FILT19");
+    UI_Set_infoSel (mode);   // infolabel in upper toolbar
 
   } else if(mode == 20) UI_CursorNo (0);
 
@@ -4994,20 +5129,13 @@ static  Point  selPos;
 
 
 //================================================================
-  int GR_set_constPlnPos () {
+  int GR_set_curPos_CP () {
 //================================================================
-/// \code
-/// GR_set_constPlnPos     set GR_CurUk = cursorPosition on constructionPlane
-/// \endcode
-
-  Point    pt1;
+// GR_set_curPos_CP     set GR_curPos_WC = cursorPosition on constructionPlane WCS
 
 
-  // get mousePos in userCoords
-  pt1 = GL_GetCurPos ();
-
-  // GR_CurUk = intersect pt1 along eyeVector with constructionPlane; userCoords
-  GR_CurUk = GL_GetConstrPos (&pt1);
+  // GR_curPos_WC = intersect curPos along eyeVector with constructionPlane; WCS
+  GR_curPos_WC = GL_get_curPos_CP__ ();
 
   return 0;
 
@@ -5015,22 +5143,18 @@ static  Point  selPos;
 
 
 //================================================================
-  int GR_get_constPlnPos (Point *po) {
+  int GR_get_curPos_WC (Point *po) {
 //================================================================
-/// \code
-/// GR_get_constPlnPos     ?
-/// \endcode
+// GR_get_curPos_WC           get curPos on constrPln in WCS
+// see GL_get_curPos_CP__
 
 
   // returns worldCoords !
-  *po = GR_CurUk;
+  *po = GR_curPos_WC;
 
   return 0;
 
 }
-
-
-
 
 
 /*
@@ -5064,10 +5188,10 @@ static  Point  selPos;
 
 // Cursor-Positions:
 // ScreenPos         GL_mouse_x_act      GL_Do_Idle()
-// ConstrPlanePos    GR_CurUk            GR_set_constPlnPos() GL_GetConstrPos()
-// viewPlanePos      GL_actScrPos        GL_set_viewPlnPos()
-//                   GL_actUsrPos        GL_GetViewPos()
-// SelObjPos         GR_selPos           GL_MousePos() GL_Mouse1Pos()
+// ConstrPlanePos    GR_curPos_WC            GR_set_curPos_CP() GL_get_curPos_CP_pt()
+// viewPlanePos      GL_curPos_SC        GL_set_curPos_CP()
+//                   GL_curPos_WC        GL_get_curPos_CP__()
+// SelObjPos         GR_selPos           GL_vertex_curPos() GL_Mouse1Pos()
 
 
   int    irc, x, y, mode, typ, i1, i2, dx,dy;
@@ -5112,13 +5236,13 @@ static  Point  selPos;
     // DL_hili_off (-1L);// reset hili: ohne dieser zeile doppelte Obj in popup ?
     // Punkt auf Flaeche geht dzt nur damit (no hilited surfaces) ...
     GL_Redra__ (0);       // find selected point
-    GL_MousePos (&pt1);
-    sele_set_pos (&pt1);
+    GL_vertex_curPos (&pt1);
+    sele_set_pos__ (&pt1);
 
 
     // get userCoords on viewPlane & constructionPlane 2009-05-25
-    GR_set_constPlnPos();    // set point GR_CurUk on constructionPlane
-    GL_set_viewPlnPos ();    // set point GL_actUsrPos on viewPlane
+    GR_set_curPos_CP();    // set point GR_curPos_WC on constructionPlane
+    GL_set_curPos_CP ();    // set point GL_curPos_WC on viewPlane
 
   }
 
@@ -5855,7 +5979,7 @@ static  Point  selPos;
 //==================================================================== 
   void UI_vwz_set    (int mode) {
 //==================================================================== 
-// UI_vwz_set                      set new screen-center
+// UI_vwz_set                      set new screen-center (selection done)
 // mode unused
 
   int     i1;
@@ -5867,7 +5991,7 @@ static  Point  selPos;
 
 
   printf("UI_vwz_set %d\n",mode);
-
+  printf("  GR_selDli=%ld\n",GR_selDli);
 
 
 /*
@@ -5881,27 +6005,32 @@ static  Point  selPos;
 */
 
 
-  UI_vwz__ (2, 0L);  // remove Bitmap-symbols (red stars)
-
-  i1 = GL_MousePos (&pt1);
+  // does not work without depthBuffer !
+  // get selected vertex   - NV KO; Radeon OK;
+  i1 = GL_vertex_curPos (&pt1);
   if(i1 < 0) {
-    TX_Print("no object selected ..");
+    TX_Print("***** no object selected ..");
     goto L_exit;
   }
+    DEB_dump_obj__(Typ_PT, &pt1, "UI_vwz_set-pt1-1");
 
 
 /*
-  // den dem Cursor naechsten vertex holen ...
+  // get vertex next to cursor
   i1 = GL_SelVert__ (&pt1);
-  if(i1 < 0) goto L_fertig;
-  if(i1 < 0) { DL_Redraw (); return;}  // sternderln weg ..
+  if(i1 < 0) {
+    TX_Print("***** no object selected ..");
+    goto L_exit;
+  }
+    DEB_dump_obj__(Typ_PT, &pt1, "UI_vwz_set-pt1-2");
 */
 
-  zVal = pt1.z;
-    // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
 
 
-  // den neuen Mittelpunkt setzen 
+  // remove Bitmap-symbols (red stars)
+  UI_vwz__ (2, 0L);  
+
+  // set new centerPt, redraw
   GL_Set_Cen (&pt1);
 
 
@@ -5909,8 +6038,10 @@ static  Point  selPos;
 
   L_fertig:
 
-  // ViewPlane setzen ..
-  UI_GR_view_set_Cen1 (zVal);
+//   // ViewPlane setzen ..
+//   zVal = pt1.z;
+//     // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
+//   UI_GR_view_set_Cen1 (zVal);
 
 
   UI_vwz_is_on = OFF;
@@ -5919,37 +6050,11 @@ static  Point  selPos;
 
   L_exit:
 
-  // Reset ViewZ- Checkbox
+  // Reset RotCen-Checkbox
   UI_AP (UI_FuncSet, UID_ckb_vwz, NULL);
 
 
 }
-
-
-
-//==================================================================== 
-  void UI_GR_view_set_Cen1   (double zVal) {
-//==================================================================== 
-// let zVal = distance absolute 0,0,0 to origin of constrPlane
-// TODO: let newOri = point 0,0,0 moved zVal units along constrPlane.VZ;
-//       let constrPlane.ori = newOri;
-
-  printf("UI_GR_view_set_Cen1 %f\n",zVal);
-  printf("TODO: let newOri = point 0,0,0 moved zVal units along constrPlane.VZ;\n");
-  printf("TODO: let constrPlane.ori = newOri;\n");
-
-
-  // das hebt die gelbe Plane, UND das Viewcenter !!!
-  // GL_Do_CenRot (zVal);
-
-  // TX_Print("Darstellungsebene geaendert");
-
-
-  // // die Ausgabe (Entry Curpos Z) korrigieren
-  // UI_AP (UI_FuncSet, UID_ouf_vwz, (void*)&zVal);
-
-}
-
 
 
 /*
@@ -6141,32 +6246,8 @@ short       i1;
 
   return 0;
 }
-*/
 
 
-
-/*
-//================================================================
-  int UI_GR_setKeyFocus () {
-//================================================================
-//  set focus to glarea widget (nur f. KeyEvents erforderl)
-//
-// Muss leider nach jeder Interaktion (bzw vor jedem buttonpress)
-//   gerufen werden.
-
-  // printf("UI_GR_setKeyFocus\n");
-
-
-  gtk_widget_grab_focus (GTK_WIDGET(GL_widget));
-
-  UI_Focus = 0;      // wer Focus hat; 0=GL, 1=Edit, 2=ViewZ-Entryfeld
-
-  return 0;
-
-}
-*/
-
-/*
 //================================================================
   void GLB_DrawInit () {
 //================================================================
@@ -6229,7 +6310,7 @@ static Point   pt1;
   GL_SelVert__ (&pt1); // den dem Cursor naechsten vertex holen
 
   // in UCS umrechnen ..
-  if(AP_IS_2D) {
+  if(CONSTRPLN_IS_ON) {
     UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
   }
 
@@ -6290,7 +6371,7 @@ static Point   pt1;
   int UI_CurPos_upd () {
 //================================================================
 /// UI_CurPos_upd        update label cursor-position
-// get GR_CurUk, display.
+// get GR_curPos_WC, display.
 
   Point    pt1;
   char     buf1[256];
@@ -6298,13 +6379,15 @@ static Point   pt1;
 
   if(AP_stat.sysStat < 3) return 0;
 
+  // printf("UI_CurPos_upd --------------\n");
+
+
   // get cursor-position on constructionPlane
   //  die Cursorpos auf der ConstrPlane in uk's errechnen und anzeigen
-  GR_set_constPlnPos ();  // compute GR_CurUk in worldCoords
-
+  GR_set_curPos_CP ();  // compute GR_curPos_WC in worldCoords
 
   // get current curPos in userCoords on constructionPlane
-  UI_GR_get_actPosA (&pt1);   // get GR_CurUk
+  GR_get_curPos_UC (&pt1);   // get GR_curPos_WC
   
 // CRASH MS-cl bei buf1[138] !!!
   snprintf(buf1, 256, "%+10.3f %+10.3f %+10.3f",pt1.x,pt1.y,pt1.z);
@@ -6318,38 +6401,49 @@ static Point   pt1;
 }
 
 
+// //================================================================
+//   int GR_get_curPos_UC_pt (Point *cp_UC, Point *cp_WC) {
+// //================================================================
+// // GR_get_curPos_UC_pt         get UCS-coords from point with WCS-coords
+// // get current curPos in userCoords on constructionPlane
+// // in absolute userCoords
+// // Input:   GR_curPos_WC in worldCoords
+// // Output:  curPosAbs in userCoords (relative to the active constrPlane)
+// // see also GL_get_curPos_CP__
+// 
+// 
+//   // printf("GR_get_curPos_UC_pt cp_WC=%f,%f,%f\n",cp_WC->x,cp_WC->y,cp_WC->z);
+// 
+// 
+//   if(CONSTRPLN_IS_ON) {
+//     // UCS from WCS
+//     UT3D_pt_tra_pt_m3 (cp_UC, WC_sur_imat, cp_WC);
+//   } else {
+//     *cp_UC = *cp_WC;
+//   }
+// 
+//     // printf(" ex GR_get_curPos_UC_pt %f %f %f\n",cp_UC->x,cp_UC->y,cp_UC->z);
+// 
+//   return 0;
+// 
+// }
+
+
 //================================================================
-  int UI_GR_get_actPosA (Point *curPosAbs) {
+  int GR_get_curPos_UC (Point *curPos_UC) {
 //================================================================
-/// \code
-/// get current curPos in userCoords on constructionPlane
-/// in absolute userCoords
-/// Input:   GR_CurUk in worldCoords
-/// Output:  curPosAbs in userCoords (relative to the active constrPlane)
-/// see also GL_GetViewPos
-/// \endcode
-
-// retour into worldCoords:
-// if(AP_IS_2D) UT3D_pt_tra_pt_m3 (&pt1, WC_sur_imat, &pt1);
+// GR_get_curPos_UC           get UCS-coords from curPos (GR_curPos_WC)
+// get current curPos in userCoords on constructionPlane
+// in absolute userCoords
+// Input:   GR_curPos_WC in worldCoords
+// Output:  curPosAbs in userCoords (relative to the active constrPlane)
+// see also GL_get_curPos_CP__
 
 
-  // printf("UI_GR_get_actPosA GR_CurUk=%f,%f,%f\n",
-          // GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
+  // printf("GR_get_curPos_UC GR_curPos_WC=%f,%f,%f\n",
+          // GR_curPos_WC.x,GR_curPos_WC.y,GR_curPos_WC.z);
   
-
-
-  // die PosKoord. GR_CurUk in ein Ausgabefenster geschr. werden.
-  // sprintf(buf1, "%+10.3f  %+10.3f %+8.1f",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
-  if((AP_IS_2D)&&(UI_RelAbs == 0)) {
-    UT3D_pt_tra_pt_m3 (curPosAbs, WC_sur_imat, &GR_CurUk);
-  } else {
-    *curPosAbs = GR_CurUk;
-  }
-
-
-  // printf(" ex UI_GR_get_actPosA %f %f %f\n",
-          // curPosAbs->x, curPosAbs->y, curPosAbs->z);
-
+  UTRA_UCS_WCS_PT (curPos_UC, &GR_curPos_WC);
   return 0;
 
 }
@@ -6393,7 +6487,7 @@ static Point   pt1;
   // printf("UI_GR_Indicate Scale = %f\n",d1);
 
   // get curPos
-  UI_GR_get_actPosA (&pt2);
+  GR_get_curPos_UC (&pt2);
 
 
   //  entspr. Scale Anzahl d. nachkommastellen bestimmen
@@ -6449,86 +6543,14 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
 
 
-  printf("UI_GR_Indicate at %f %f %f\n",GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
-  // printf(" \n");
+  printf("UI_GR_Indicate at GR_curPos_WC = %f %f %f\n",
+         GR_curPos_WC.x,GR_curPos_WC.y,GR_curPos_WC.z);
 
 
   // write actPos -> GR_actPos as "P(...)"
   UI_GR_actPos ();
 
   
-/*
-  // if no point wanted: return            2010-05-06
-  if(sele_ck_typ (Typ_PT) == 0) {
-    if(UI_UserSelFunc != NULL) UI_UserSelFunc (GR_Event_Act, -1L);
-    return 0;
-  }
-*/
-
-/*
-  /  wie steht der Scale ? 
-  d1 = GL_get_Scale ();
-  // printf("UI_GR_Indicate Scale = %f\n",d1);
-
-
-  // get curPos
-  UI_GR_get_actPosA (&pt2);
-/
-  UI_GR_get_actPosA 
-  pt1.x = GR_CurUk.x;
-  pt1.y = GR_CurUk.y;
-  pt1.z = GR_CurUk.z;
-
-  // retour ins absolute ..
-  if(AP_IS_2D) {
-    UT3D_pt_tra_pt_m3 (&pt2, WC_sur_imat, &pt1);
-      DEB_dump_obj__ (Typ_PT, &pt1, "pt-ind: ");
-  } else {
-    pt2 = pt1;
-  }
-/
-
-  // den Punkt als APT-Punkt P0 merken
-  // DB_StorePoint(0L, &pt2);
-  // GL_actUsrPos = pt2;
-
-
-  // den formatstring erzeugen
-  // Z-Wert zu wenn Z != 0
-  // if(UTP_comp_0(GR_CurUk.z) != 0) {
-    // sprintf(fmt,"P(%%.%df %%.%df)",nkAnz,nkAnz);
-    // sprintf(GR_actPos,fmt,GR_CurUk.x,GR_CurUk.y);
-  // } else {
-    // sprintf(fmt,"P(%%.%df %%.%df %%.%df)",nkAnz,nkAnz,nkAnz);
-    // sprintf(GR_actPos,fmt,GR_CurUk.x,GR_CurUk.y,GR_CurUk.z);
-  // }
-  // printf("Format: /%s/",fmt);
-
-
-  //  entspr. Scale Anzahl d. nachkommastellen bestimmen
-  nkAnz = 3;
-  // if(d1 < 100.) nkAnz = 2;
-  if(d1 < 10.)  nkAnz = 2;
-  if(d1 < 1.)   nkAnz = 1;
-  if(d1 < 0.1)  nkAnz = 0;
-
-
-  strcpy(GR_actPos,"P(");
-  UTX_add_fl_f  (GR_actPos, pt2.x, nkAnz);
-  UTX_del_foll0 (GR_actPos);
-  strcat (GR_actPos, " ");
-  UTX_add_fl_f  (GR_actPos, pt2.y, nkAnz);
-  UTX_del_foll0 (GR_actPos);
-  strcat (GR_actPos, " ");
-  UTX_add_fl_f  (GR_actPos, pt2.z, nkAnz);
-  UTX_del_foll0 (GR_actPos);
-  strcat (GR_actPos, ")");
-    // printf(" GR_actPos |%s|\n",GR_actPos);
-*/
-
-  
- 
-
   // UserFunction active ?? Hier nur indicate; ind dabei 0 !!
   if(UI_UserSelFunc != NULL) {
     UI_UserSelFunc (GR_Event_Act, -1L);
@@ -6543,7 +6565,6 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     }
 
 
-
     // do hide/view S/M, VWR/CAD/MAN
     UI_GR_Select_work2 (Typ_TmpPT, 0L, GR_actPos, 0L);
 
@@ -6553,15 +6574,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     if(UI_InpMode == UI_MODE_MAN) {
         // DEB_dump_obj__ (Typ_PT, &pt2, "MAN-pt2:");
 
-      if(AP_IS_2D) {
+      if(CONSTRPLN_IS_ON) {
         UT3D_pt_tra_pt_m3 (&pt2, WC_sur_mat, &pt2);
       }
 
-      // l1 = -2;
-      // GL_DrawSymB (&l1, 2, SYM_CIR_S, &pt2);
-      // l1 = -1;
-      // GLB_DrawInit ();
-      // GL_DrawSymB (&l1, Typ_Att_hili1, SYM_CIR_S, &pt2);  // Circ red
       DL_temp_ind = 1;
       GR_temp_symB (&pt2, SYM_CIR_S, Typ_Att_hili1);
       DL_Redraw ();
@@ -6588,8 +6604,9 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
 
 
-  // printf("UI_GR_Select_work1 %ld Filt=%d\n",objInd,GR_Sel_Filter);
-  // printf(" GR_selTyp=%d GR_selDbi=%ld\n",GR_selTyp,GR_selDbi);
+  // printf("UI_GR_Select_work1 objInd=%ld Filt=%d\n",objInd,GR_Sel_Filter);
+  // printf(" GR_selTyp=%d GR_selDbi=%ld GR_selNam=|%s|\n",
+         // GR_selTyp,GR_selDbi,GR_selNam);
   // if(UI_UserSelFunc) printf(" UI_UserSelFunc exists!\n");
 
 
@@ -6600,11 +6617,9 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // give parametric-point from cursorposition on selected object
 
         // printf(" Obj2PP %d %ld\n",GR_selTyp,GR_selDbi);
-      // GL_MousePos (&pSel);
-      // GL_GetActSelPos (&pSel, &pS2);
+      // get curPos (vertex) in WCS
+      sele_get_pos_vtx (&pSel);
         // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
-        // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
-      sele_get_pos__ (&pSel);
 
       // temp.display of position - nur im MAN-Mode
       if(UI_InpMode == UI_MODE_MAN) {
@@ -6640,8 +6655,9 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
   if(GR_Sel_Filter == 19) {
       // give line from obj (polygon/contour)
         // printf(" Obj2LN %d %ld\n",GR_selTyp,GR_selDbi);
-      // GL_MousePos (&pSel);
-      sele_get_pos__ (&pSel);
+      // GL_vertex_curPos (&pSel);
+      // get curPos (vertex) in WCS
+      sele_get_pos_vtx (&pSel);
         // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
         // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
 
@@ -6704,7 +6720,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
       // give Text for Point on geometr. Obj near Cursor
         // printf(" Obj2P %d %ld\n",GR_selTyp,GR_selDbi);
       // get coords of sel. Obj
-      GL_MousePos (&pSel);
+      GL_vertex_curPos (&pSel);
         // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
       // new objTyp
       GR_selTyp = Typ_TmpPT;
@@ -6723,7 +6739,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
     // } else if(GR_Sel_Filter == 18) {
       // // give parametric-point from cursorposition on selected object
         // // printf(" Obj2PP %d %ld\n",GR_selTyp,GR_selDbi);
-      // GL_MousePos (&pSel);
+      // GL_vertex_curPos (&pSel);
         // // DEB_dump_obj__ (Typ_PT, &pSel, "pSel:");
         // // sprintf(GR_selNam, "P(%f %f %f)", pSel.x, pSel.y, pSel.z);
       // // temp.display of position - nur im MAN-Mode
@@ -6761,10 +6777,10 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
 
     //----------------------------------------------------------------
-    } else if(GR_Sel_Filter == 4) {       // dump obj
+    } else if(GR_Sel_Filter == FILT04) {       // dump obj
       // i1 = GR_Sel_Filter;
       // GR_Sel_Filter = 0;           // reset
-      UI_dump_obj (GR_selTyp, GR_selDbi);
+      UI_dump_dbo (GR_selTyp, GR_selDbi);
       UI_GR_Sel_Filt_reset (); // reset selectionFilter
       return 0;
 
@@ -6953,7 +6969,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 ///   DispListInd   dli of selected obj
 ///
 /// get type of selected obj from global var GR_selTyp
-/// get cursorposition with UI_GR_get_actPosA (&Point)
+/// get cursorposition with GR_get_curPos_UC (&Point)
 /// get DispList from DispListInd with DL_GetAtt (DispListInd)
 /// reset with AP_User_reset or AP_UserSelection_reset
 /// \endcode
@@ -6979,7 +6995,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 ///
 /// reset with AP_UserMousemove_reset
 /// \endcode
-// see UI_GR_get_actPosA AP_Mousemove2dx
+// see GR_get_curPos_UC AP_Mousemove2dx
 
 
   // printf(" AP_UserSelection_get\n");
@@ -7054,9 +7070,9 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
   // hier kommen auch noch Typ_Activ; in UI_GR_Select_work1 nicht mehr !
   if(typ == Typ_Activ) {
-    if(GR_Sel_Filter == 4) {       // dump obj
-      GR_Sel_Filter = 0;           // reset
-      UI_dump_obj (typ, dbi);
+    if(GR_Sel_Filter == FILT04) {       // dump obj
+      GR_Sel_Filter = 0;                // reset
+      UI_dump_dbo (typ, dbi);
       goto Fertig;
     }
   }
@@ -7148,7 +7164,7 @@ schreibt ins CAD-Eingabefeld nur wenn diese leer ist !
 
     } else {       // cursor is inside line
 
-      if(typ == Typ_TmpPT) UI_disp_Pos (Typ_PT, &GR_CurUk);
+      if(typ == Typ_TmpPT) UI_prev_pos (Typ_PT, &GR_curPos_WC);
 
       // add nur wenn akt. Line zB "L25=" ist ...
       // i1 = ED_query_CmdMode ();
@@ -7375,6 +7391,7 @@ Jeden einzelnen Char !
                     "A (surface)",
                     "D (vector)",
                     "V (value)",
+                    "M (subModel)",
                     NULL};
 
   char  *optLst1[]={"OK       (Ctrl-r.Mb.)",
@@ -7476,6 +7493,8 @@ Jeden einzelnen Char !
       break;
     case 9:  // V
       iTyp = Typ_VAR;
+    case 10:  // M
+      iTyp = Typ_Model;
       break;
   }
 
@@ -7483,6 +7502,8 @@ Jeden einzelnen Char !
   APED_oid_dbo__(s1, iTyp, ind);
   strcat(s1,s2);
   UI_AP (UI_FuncSet, UID_Edit_Line, (void*)s1);
+  AP_def_typ = iTyp;
+  AP_def_ind = ind;
   goto L_exit;
 
 
@@ -7548,6 +7569,38 @@ Jeden einzelnen Char !
     return 0;
 
 }
+
+
+//=====================================================================
+  int UI_GR_Test1 () {
+//=====================================================================
+
+  int     iv;
+
+  printf("RRRRRRRRRRRRRRRRRRR    UI_GR_Test1 \n");
+
+
+  // get index of active-constrPln; 0=def-3D; Front=?; Side=?; else 2D.. ??
+  printf(" WC_sur_ind = %d\n",WC_sur_ind);
+
+
+  // WC_sur_act = active-constrPln
+  DEB_dump_obj__ (Typ_PLN, &WC_sur_act, "WC_sur_act");
+
+
+  // get viewTyp; 5=Front, 6=Side, ..
+  iv = AP_view_ck_std();
+  printf(" AP_view_ck_std=%d\n",iv);
+
+
+  //??
+  DEB_dump_obj__ (Typ_PT, &GR_curPos_WC, "GR_curPos_WC: ");
+
+  return 0;
+
+}
+
+
 
 
 /* ----------------------------- eof ----------------------------- */

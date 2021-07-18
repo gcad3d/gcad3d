@@ -111,7 +111,7 @@ UI_GR_Select_work1
 ===========================================================================*/
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <stdio.h>
@@ -646,7 +646,7 @@ static int otra_typ2[]={
 /*
   // display indicate-symbol
   if(typ == Typ_TmpPT) {
-    UI_GR_get_actPosA (&pt1);
+    GR_get_curPos_UC (&pt1);
     dl1 = -1;
     GL_DrawSymB (&dl1, Typ_Att_hili1, SYM_CIR_S, &pt1);  // Circ red
     DL_Redraw ();

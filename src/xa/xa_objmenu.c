@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+  - click into empty part of browser: activate menu MSG_CreSubModel (version=2)
 
 -----------------------------------------------------
 Modifications:
@@ -78,7 +78,7 @@ add new commands:
 #include "../xa/xa_msg.h"              // MSG_activate ..
 #include "../xa/xa.h"                  // AP_STAT
 #include "../xa/xa_ico.h"              // ICO_PT,
-
+#include "../xa/xa_cad_ui.h"           // IE_FUNC_IS_ACTIVE
 
 
 
@@ -96,7 +96,7 @@ static ObjDB actObj;
 static int  MenInd[100];  // indices into MenTxt[]
 static char *omnTab[100];
 
-
+static void *OMN_menu1;
 
 
 
@@ -104,21 +104,16 @@ static char *omnTab[100];
 
 
 //============ Extern Var: =====================
-// aus xa.c:
-extern AP_STAT   AP_stat;                    // sysStat,errStat..
-
+// ../xa/xa.c
 
 // ex ../xa/xa_ui.c:
 extern int       UI_InpMode;
 extern MemObj    winED;
 
-
-
 // ex ../xa/xa_ui.c
 extern char      UI_stat_view, UI_stat_hide;
 
-
-// ex ../xa/xa_ui_cad.c
+// ex ../xa/xa_cad_ui.c
 extern int       IE_modify;
 
 
@@ -268,7 +263,7 @@ extern int       IE_modify;
 // Input:
 //   version  0=normal;
 //            1/Typ_SubModel: change model;
-//            2/Typ_SubModel:create new SubModel;
+//            2/Typ_SubModel: create new SubModel;
 //            3=undo
 
 // static int iTest=0;
@@ -276,7 +271,7 @@ extern int       IE_modify;
   char        s1[32];
 
 
-  // printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld %d\n",typ,dbi,dli,version);
+  // printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld version=%d\n",typ,dbi,dli,version);
   // printf("  APP_stat=%d\n",AP_stat.APP_stat);
   // ++iTest; if(iTest == 2) AP_debug__ ("OMN_popup_Brw");
 
@@ -300,7 +295,13 @@ extern int       IE_modify;
 
 
   //----------------------------------------------------------------
+  // build menu ..
   switch (typ) {
+
+    //----------------------------------------------------------------
+    case 0:
+      // ??
+      goto L_exit;
 
 
     //----------------------------------------------------------------
@@ -325,16 +326,18 @@ extern int       IE_modify;
     case Typ_SubModel:   // ind=0=main; ind=1=subModel.
       // subModel main: menu Activate.
       // subModels (nicht main) menu Activate und Delete.
-      if(version == 2) {     // create new sm
-        MenInd[ii] = MSG_CreSubModel; ++ii; // create new sm
-        MenInd[ii] = MSG_help;        ++ii; // help
-      } else {
+//       if(version == 2) {     // create new sm - UNUSED
+//         MenInd[ii] = MSG_CreSubModel; ++ii; // create new sm
+//         MenInd[ii] = MSG_help;        ++ii; // help
+//       } else {
         MenInd[ii] = MSG_activate;    ++ii; // activate
-        if(dbi > 0) {
-          MenInd[ii] = MSG_rename;    ++ii; // ren
-          MenInd[ii] = MSG_delete;    ++ii; // del
+        if(UI_InpMode == UI_MODE_CAD) {
+          if(dbi > 0) {
+            MenInd[ii] = MSG_rename;    ++ii; // ren
+            MenInd[ii] = MSG_remove;    ++ii; // del
+          }
         }
-      }
+//       }
       break;
 
 
@@ -346,18 +349,21 @@ extern int       IE_modify;
       // get modeltype from ModelRefIndex - GEHT NED BEI PASSIVE MODELS !
       // only models with typ = MBTYP_INTERN can be activated
       // DB_mdlTyp_iRef (&i1, dbi);
-      i1 = Brw_getAux ();
-        // printf(" mbTyp=%d\n",i1);
-      // if((i1 == ICO_natM)||(i1 == ICO_refM)) {        2018-03-31
-      if(i1 == ICO_natM) {
-        MenInd[ii] = MSG_activate; ++ii; // activate
-      }
       if(version == 0) { 
-        MenInd[ii] = MSG_move;     ++ii; // move
+        // MenInd[ii] = MSG_move;     ++ii; // move         TODO 2021-02-10
         if(UI_InpMode != UI_MODE_VWR) {
           MenInd[ii] = MSG_edit;     ++ii; // ed
+          MenInd[ii] = MSG_remove;   ++ii; // del
         }
-        MenInd[ii] = MSG_delete;   ++ii; // del
+      }
+      // i1 = Brw_getAux ();
+        // printf(" mbTyp=%d\n",i1);
+      // if((i1 == ICO_natM)||(i1 == ICO_refM)) {        2018-03-31
+      // if(i1 == ICO_natML) {
+      // CAD only if no func is active
+      if((UI_InpMode == UI_MODE_VWR)  ||
+         ((UI_InpMode == UI_MODE_CAD)&&(!IE_FUNC_IS_ACTIVE))) {
+        MenInd[ii] = MSG_activate; ++ii; // activate  
       }
       goto L_Grp1;
       // break;
@@ -434,7 +440,9 @@ extern int       IE_modify;
         MenInd[ii] = MSG_texture; ++ii;
       }
 
-      goto L_Grp1;
+           
+      // goto L_Grp1;
+      goto L_men8;
 
 
     case Typ_APPOBJ:   // nur Gruppenfunktionen, sonst nix ..
@@ -447,6 +455,9 @@ extern int       IE_modify;
       ii = OMN_popup_Br_ed_del (ii);  // edit, delete
       break;
 
+
+    case Typ_Vertex:
+      return UI_disp_vert ();  // print active vertex-pos
 
     case Typ_SymB:
       // not supported (PED-symbol)
@@ -587,8 +598,11 @@ extern int       IE_modify;
 
   // create the menu
     // UTX_wTab_dump (omnTab);
-  GUI_popup__ (omnTab, NULL, 0, OMN_CB_popup, NULL);
+  OMN_menu1 = GUI_popup__ (omnTab, NULL, 0, OMN_CB_popup, NULL);
 
+
+  L_exit:
+    // printf("ex-OMN_popup_Brw\n");
   return 0;
 
 }
@@ -600,7 +614,6 @@ extern int       IE_modify;
 // line isel in popup-menu (ObjectMenu) selected.
 
   static int isel=-1;
-  char   *nam0 = "-main-";
   char   s1[128];
 
   int     irc, ii, i1, iEv;
@@ -666,7 +679,7 @@ extern int       IE_modify;
 // isel   selected rowNr or -1=Unmap;   -2=select; <-2=disactivate-row
 
   static int isel=-1;
-  char   *nam0 = "-main-";
+  char   *namMain = "";
   char   s1[128];
 
   int     irc, ii, i1, iEv;
@@ -685,11 +698,14 @@ extern int       IE_modify;
 
 
   // printf("OMN_CB_popup %d\n",event->type);
+
+  // unhilite last hilited bj (IE_cad_inp_prev__())
+  // if(iEv == TYP_EventUnmap) UI_prev_remove ();  // done by Ec-key ..
+
   // if(event->type == GDK_ENTER_NOTIFY) {isel = LONG_PTR(data); return 0;} // 10
   // if(event->type == GDK_LEAVE_NOTIFY) {isel = -1L; return 0;}        // 11
   // if(event->type != GDK_BUTTON_RELEASE) return 0;                   // 7
   if(iEv != TYP_EventPress) return 0; 
-
 
   if(isel < 0) {
     // remove selection from browser (release button outside menu)
@@ -793,19 +809,28 @@ extern int       IE_modify;
     //----------------------------------------------------------------
     case MSG_activate:        // Function = Activate (model)
       if(actObj.typ == Typ_SubModel) {
+          DEB_dump_obj__ (Typ_ObjDB, &actObj, " _CB_popup-mb:\n");
         // get modelname from ModelRefIndex;   0=main!
-        if(actObj.dbInd != 0) {    // ind = 1 = subModel
-          // DB_mdlNam_iRef (&cp1, actObj.dbInd);
+        if(actObj.dbInd != 0) {
+          // subModel
           cp1 = Brw_getTxt ();
-        } else {   // ind = 0 = main
+            // printf(" CB_popup-_getTxt |%s| typ=%d\n",cp1,actObj.typ);
+          if(!strcmp(cp1, AP_modact_nam)) {
+            TX_Print("***** already active ..");
+            return 0;
+          }
+        } else {
+        // 0 = main
+//           // DB_mdlNam_iRef (&cp1, actObj.dbInd);
           // test if already active ..
-          if(!Brw_Mod_is_main_active()) return 0;
-          cp1 = nam0;
+          if(MDL_IS_MAIN) {
+            TX_Print("***** already active ..");
+            return 0;
+          }
+          cp1 = namMain; // "-main-"
         }
-
           // printf(" activate |%s|\n",cp1);
-        Mod_sav_tmp ();             // save the active Submodel
-        Mod_chg_CB (cp1);           // activate Submodel in graficWindow & browser
+        MDL_load_mNam__ (cp1, 1);   // activate Submodel in graficWindow & browser
 
         break;
       }
@@ -823,14 +848,8 @@ extern int       IE_modify;
       // subModelID in row of referenceModels (not subModels) selected !
       irc = DB_mdlNam_iRef (&cp1, actObj.dbInd);
       if(irc < 0) return -1;
-        // printf(" mdlNam |%s|\n",cp1);
-      // if(!Brw_Mod_is_main_active()) return 0;
-        // printf(" activate |%s|\n",cp1);
-
-// TODO: BUG - closing of the Models-row restarts the popup-menu- hangs. 
-      // Mod_sav_tmp ();            // save the active Submodel
-      // Mod_chg_CB (cp1);          // activate Submodel in graficWindow & browser
-      TX_Print("**** select Submodel below ***");
+        // printf(" CB_popup-actvate-mdlNam |%s|\n",cp1);
+      MDL_load_mNam__ (cp1, 1);       // activate Submodel in graficWindow & browser
       break;
    
 
@@ -855,7 +874,7 @@ extern int       IE_modify;
         APED_oid_dbo__ (s1, actObj.typ, actObj.dbInd);
         TX_Print(" edit obj  %s   manually ..",s1);
         DL_Get_lNr_dli (&lNr, actObj.dlInd);
-          printf(" act lNr = %ld\n",lNr);
+          // printf(" act lNr = %ld\n",lNr);
         // work -> line lNr
         ED_work_CurSet (lNr);
         // // set cursor into corresponding sourceline in editor
@@ -903,23 +922,41 @@ extern int       IE_modify;
     //----------------------------------------------------------------
     case MSG_rename:        // Rename
       if(actObj.typ != Typ_SubModel) goto L_not_yet;
-      Brw_sMdl_ren__ ();     // Rename subModel
+      // remove popup now
+      GUI_Obj_kill (OMN_menu1);
+      // get modelname from ModelRefIndex;   0=main!
+      if(actObj.dbInd != 0) {
+        // subModel
+        cp1 = Brw_getTxt ();
+      } else {
+        // 0 = main
+        TX_Print("***** cannot rename main ..");
+        return 0;
+      }
+      Brw_sMdl_ren__ (cp1);     // Rename subModel
       break;
 
 
     //----------------------------------------------------------------
     case MSG_delete:        // Delete
+    case MSG_remove:        // Delete
+      // remove popup now
+      GUI_Obj_kill (OMN_menu1);
+      cp1 = Brw_getTxt ();
+        // printf(" CB_popup-_getTxt |%s| typ=%d\n",cp1,actObj.typ);
+
       if(actObj.typ == Typ_SubModel) {
-        Brw_sMdl_del__ ();     // delete subModel
+        // delete subModel and activate main
+        irc = Brw_sMdl_del__ (cp1);     
+        if(irc < 0) return -1;
         break;
       }
 
       if(actObj.typ == Typ_Process) {
-        cp1 = Brw_getTxt ();
         // TODO: check if active; yes: do not delete !
         sprintf(s1, "process_%s", cp1);
         PRC_del_file (s1);      // delete processfile
-        Brw_Prcs_del (cp1);     // delete process in browser
+        Brw_del_oid (cp1);      // delete process in browser
         break;
       }
 
@@ -930,7 +967,7 @@ extern int       IE_modify;
         return 0;
       }
 */
-      // init delete obj & depinding objs
+      // init delete obj & depending objs
       // ii = Del_init (actObj.typ, actObj.dbInd, actObj.dlInd); // old version
       Del_obj__ (actObj.typ, actObj.dbInd);
       break;
@@ -938,7 +975,8 @@ extern int       IE_modify;
 
     //----------------------------------------------------------------
     case MSG_CreSubModel:        // create subModel
-      Mod_cre__ ();
+      // Mod_cre__ ();
+TX_Error ("Mod_cre__-L1");
       break;
 
 
@@ -950,13 +988,17 @@ extern int       IE_modify;
 
     //----------------------------------------------------------------
     case MSG_hide:        // hide obj
-      GA_view__ (actObj.dlInd, 1, 0, 0L);     // hide obj
+      // get dli from dbo
+      actObj.dlInd = DL_find_smObj (actObj.typ, actObj.dbInd, -1L, AP_modact_ibm);
+      GA_view__ (actObj.dlInd, 1, actObj.typ, actObj.dbInd);     // hide obj
       break;
 
 
     //----------------------------------------------------------------
     case MSG_show:        // show obj
-      GA_view__ (actObj.dlInd, 0, 0, 0L);     // view obj
+      // get dli from dbo
+      actObj.dlInd = DL_find_smObj (actObj.typ, actObj.dbInd, -1L, AP_modact_ibm);
+      GA_view__ (actObj.dlInd, 0, actObj.typ, actObj.dbInd);     // view obj
       break;
 
 
@@ -970,7 +1012,7 @@ extern int       IE_modify;
         }
         irc = GA_sStyl__ (actObj.dlInd, i1, actObj.typ, actObj.dbInd);
       break;
-
+			
 
     //----------------------------------------------------------------
     case MSG_inspect:      // inspect
@@ -986,9 +1028,10 @@ extern int       IE_modify;
       APED_oid_dbo__ (&s1[1], actObj.typ, actObj.dbInd);
       s1[0] ='_';
       irc = APED_search_defLn (&cp1, &lNr, &i1, s1, -1L, 0);
+        // printf(" f-search_defLn irc=%d lNr=%ld s1=|%s|\n",irc,lNr,s1);
       if(irc < 0) return irc;
-      UNDO_grp_add (lNr, 0);         // add to undoTab
-      UNDO_grp_res ();               // undelete
+      irc = UNDO_grp_add (lNr, 0);         // add to undoTab
+      UNDO_grp_res (irc);                  // undelete
       break;
 
 

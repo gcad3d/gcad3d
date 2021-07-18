@@ -70,7 +70,7 @@ Korr:
 
 
 #define UID_ouf_scl     61
-#define UID_ouf_vwz     62
+// #define UID_ouf_vwz     62
 #define UID_ouf_lNr     63
 #define UID_ouf_grpNr   64
 

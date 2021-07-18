@@ -125,7 +125,8 @@ __declspec(dllexport) int gCad_fini ();
 
   if(dl_ind < 0) {
     // indicate position
-    sele_get_selPos (&pt1);
+    // sele_get_selPos (&pt1);
+    sele_get_pos_CP (&pt1);
     TX_Print(" indicate pos %f %f %f\n",pt1.x,pt1.y,pt1.z);
     return 0;
   }
@@ -141,7 +142,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
   // if object is not in active model: cannot get it from DB.
-  if(model_nr >= 0) {
+  if(model_nr != MDL_BMI_ACT) {
     TX_Print(" obj not in active model ...");
     return 0;
   }
@@ -232,7 +233,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
     // if object is not in active model: cannot get it from DB.
-    if(model_nr >= 0) {
+    if(model_nr != MDL_BMI_ACT) {
       mdr = DB_get_ModBas (model_nr);
       printf("Obj %3ld typ =%3d ind =%3ld mod=%s\n",l1,
         apt_typ,apt_ind,mdr->mnam);

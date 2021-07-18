@@ -556,7 +556,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   char    *mdat;
 
 
-  printf("MemTab_uniq_sav %d %d\n",memTab->rNr,memTab->rSiz);
+  // printf("MemTab_uniq_sav %d %d\n",memTab->rNr,memTab->rSiz);
 
 
   ie = memTab->rNr;      // nr of records

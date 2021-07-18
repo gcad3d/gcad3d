@@ -13,8 +13,8 @@
 // Mircosoft - MS32
 #define INT_8     INT8           // char 
 #define INT_16    signed short   // signed short INT16
-#define INT_32    INT32          // int  INT BOOL LONG32
-#define INT_64    INT64          // long long
+#define INT_32    int            // int  INT BOOL LONG32
+#define INT_64    long           // long long
 #define UINT_8    unsigned char  // unsigned char  BYTE UINT8
 #define UINT_16   unsigned short //UINT16         // unsigned short WORD
 // #define UINT_32   uint32_t       // unsigned int DWORD UINT ULONG32

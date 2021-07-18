@@ -32,7 +32,7 @@ ____________________________________________________________________________
 <p><a name="Settings"></a></p>
 <h2>Settings:</h2>
 
-Preferences for Print command and Browser are read from file {base}/cfg/xa.rc
+Preferences for Print command and Browser are read from file {base}/cfg_{os}/xa.rc
 
 Default paths (menu - Standards -> Directories):
    Directories accessed with File/Open are defined in the file {base}/xa/dir.lst
@@ -98,8 +98,8 @@ ____________________________________________________________________________
 <p><a name="Linetypes"></a></p>
 <h2>menu Standards -> Linetypes:</h2>
 
-The linetype table is defined in the file {base}/cfg/ltyp.rc
-  Default is ~/gCAD3D/cfg/ltyp.rc.
+The linetype table is defined in the file {base}/cfg_{os}/ltyp.rc
+  Default is ~/gCAD3D/cfg_{os}/ltyp.rc.
 
 It is modified by editing the above file with a text editor. Additional linetypes
 may be defined up to a maximum of 45.
@@ -157,7 +157,7 @@ All directories that will be accessed with File / Open Model,
  
 There must be a directory set for each symbolic name.
 Add / change directory-sets with Standards/Directories
-  (starts editing file {base}/gCAD3D/cfg/dir.lst).
+  (starts editing file {base}/gCAD3D/cfg_{os}/dir.lst).
   Note: Access rights for writing is required.
 
 See also <a href="CAD_Base_en.htm#symFnam">Symbolic modelfilenames</a>.
@@ -176,10 +176,10 @@ IGS F:\MODELS\gCAD3D\igs\
 CD0 D:\
 
 
-
-
 The symbolic directory '.' is replaced by the currently active directory
 (Eg. for textures to load from the same directory as the native model).
+
+
 
 ____________________________________________________________________________
 <p><a name="Start"></a></p>

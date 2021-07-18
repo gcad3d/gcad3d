@@ -56,7 +56,6 @@ UT3D_bsp_degrad            degrade bsp to line
 UT3D_bsp_infTg             Eine Tabelle der Wendepunkte liefern (nur Parameter)
 
 UT3D_cbsp_ox               create BSP-Curv from ObjGX-obj
-UT3D_cbsp_1pt              create BSP-Curv from point
 UT3D_cbsp_2pt              create BSP-Curv from Line
 UT3D_cbsp_npt              create BSP-Curv from pointTable pTab
 UT3D_cbsp_rev              get reversed curve of bsp
@@ -1246,7 +1245,6 @@ once again, with U/V changed.
   if(oTyp == Typ_PT) {
     if(oNr < 2) {
       irc = UT3D_cbsp_2pt (cbsp, objSeg, (Point*)oDat, (Point*)oDat);
-      // irc = UT3D_cbsp_1pt (cbsp, objSeg, (Point*)oDat);
     } else {
       // bspl from multiline
       irc = UT3D_cbsp_npt (cbsp, oNr, oDat, smf, objSeg, tmpSeg);
@@ -1400,37 +1398,6 @@ once again, with U/V changed.
 
 
 //=========================================================================
-  int UT3D_cbsp_1pt (CurvBSpl *bsp, Memspc *memSeg, Point *p1) {
-//=========================================================================
-// UT3D_cbsp_1pt              create BSP-Curv from point
-// deg = 1
-
-  int   irc;
-
-  // set v0,v1
-  bsp->ptNr = 1;
-  bsp->deg  = 1;
-  bsp->v0   = 0.;
-  bsp->v1   = 1.;
-
-  // create cpTab
-  bsp->cpTab = memSeg->next;
-  irc = UME_add (memSeg, sizeof(Point));
-  bsp->cpTab[0] = *p1;
-  if(irc < 0) return -1;
-    
-  // create kvTab
-  bsp->kvTab = NULL;
-
-    // DEB_dump_obj__ (Typ_CVBSP, bsp, "ex UT3D_cbsp_2pt:");
-    // GR_Disp_CvBSp (bsp, 9, memSeg);
-
-  return 0;
-
-}
-
-
-//=========================================================================
   int UT3D_cbsp_2pt (CurvBSpl *bsp, Memspc *memSeg, Point *p1, Point *p2) {
 //=========================================================================
 // create BSP-Curv from Line
@@ -1438,11 +1405,12 @@ once again, with U/V changed.
 
   int   irc;
 
-  // set v0,v1
+  
+  *bsp = UT3D_CVBSP_NUL;   // init
   bsp->ptNr = 2;
-  bsp->deg  = 1;
-  bsp->v0   = 0.;
-  bsp->v1   = 1.;
+  // bsp->deg  = 1;
+  // bsp->v0   = 0.;
+  // bsp->v1   = 1.;
 
   // create cpTab
   bsp->cpTab = memSeg->next;
@@ -1499,6 +1467,10 @@ once again, with U/V changed.
   // Polygon > B-Spline ...
   UCBS_BspCrvPts (bsp, memSeg, ptNr, pTab, 2, 0, tmpSeg);
 
+  // set closed
+  if(UT3D_ck_ci360(ci1)) bsp->clo = 1;
+  else                   bsp->clo = 0;   // closed
+
   // release workspace
   UME_adjust (tmpSeg, memPos);
 
@@ -1531,6 +1503,8 @@ once again, with U/V changed.
 
   // Polygon > B-Spline ...
   irc = UCBS_BspCrvPts (bsp, memSeg, ptNr, pTab, 2, 0, tmpSeg);
+
+  bsp->clo = 1;  // clot never closed
 
   // release workspace
   UME_adjust (tmpSeg, memPos);
@@ -1637,6 +1611,10 @@ once again, with U/V changed.
 
   // Polygon > B-Spline ...
   UCBS_BspCrvPts (bsp, memSeg, ptNr, pTab, 2, 0, tmpSeg);
+
+  // set closed
+  if(UT3D_ck_el360(el1)) bsp->clo = 1;
+  else                   bsp->clo = 0;   // closed
 
   // release workspace
   UME_adjust (tmpSeg, memPos);
@@ -2129,33 +2107,30 @@ once again, with U/V changed.
 }
 
 
-/*=======================================================================*/
-  int UT3D_pt_intlnbspl (int *nxp, Point *xptab,
-                         Memspc *memSeg1, Line *ln, CurvBSpl *bspl) {
-/*=====================
-UT3D_pt_intlnbspl    intersect line with b-spline curve
-
-liefert nix wenn ausserhalb ...
-ev Curve linear verlaengern ?
-
-
-UT3D_pt_intlnbspl    Author: Thomas Backmeister       26.5.2003
-
-Intersection of line with b-spline curve.
-
-IN:
-  int *nxp         ... max Nr of outputPoints
-  Line *ln         ... line
-  CurvBSpl *_bspl  ... b-spline curve
-  Memspc *memSeg1  ... space for temp. data
-OUT:
-  int *nxp         ... number of intersection points
-  Point *xptab     ... intersection points
-Returncode:
-  0 = OK
- -1 = out of mem (Memspc too small)
- -2 = out of mem (xptab too small)
-*/
+//================================================================
+  int UT3D_pt_intlnbspl (int *nxp, Point *xptab, Memspc *memSeg1,
+                         Line *ln, int iUnl, CurvBSpl *bspl) {
+//================================================================
+// UT3D_pt_intlnbspl    intersect line with b-spline curve
+// 
+// UT3D_pt_intlnbspl    Author: Thomas Backmeister       26.5.2003
+// 
+// Intersection of line with b-spline curve.
+// 
+// IN:
+//   int *nxp         ... max Nr of outputPoints
+//   Line *ln         ... line
+//   iUnl             ... 0=limited Line, 1=unlimited Line
+//   CurvBSpl *_bspl  ... b-spline curve
+//   Memspc *memSeg1  ... space for temp. data
+// OUT:
+//   int *nxp         ... number of intersection points
+//   Point *xptab     ... intersection points
+// Returncode:
+//   0 = OK
+//  -1 = out of mem (Memspc too small)
+//  -2 = out of mem (xptab too small)
+//
 
   int     nbcv, i1, i2, irc, ptxNr, xptSiz;
   ObjGX   bezTab;
@@ -2164,7 +2139,7 @@ Returncode:
   void    *memPos0, *memPos1;
 
 
-  // printf("UT3D_pt_intlnbspl: bbbbbbbbbbbbbbbbbbbbbbbb\n");
+  printf("UT3D_pt_intlnbspl: nxp=%d iUnl=%d\n",*nxp,iUnl);
 
 
   // init
@@ -2184,12 +2159,11 @@ Returncode:
   // loop durch die Curves
   for (i1=0; i1<bezTab.siz; ++i1) {
     // printf(" >>>>>>>>>>>>>>>>>> test bcvtab[%d]\n",i1);
-
       // GR_tDyn_bez (&bcvtab[i1], 7, memSeg1);
     
     ptxNr = 0;
     irc = UT3D_pt_intlnbcv (&ptxNr, pTab1, UT_BEZDEG_MAX,
-                            ln, &bcvtab[i1], memSeg1, UT_TOL_cv);
+                            ln, iUnl, &bcvtab[i1], memSeg1, UT_TOL_cv);
     if(irc < 0) goto Fertig;
 
     // die neuen Schnittpunkte >  xptab zufuegen

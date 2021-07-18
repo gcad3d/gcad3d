@@ -66,6 +66,9 @@ Grp_dump
 Grp_alloc
 Grp_realloc
 
+Grp1_add_sm_dl   add all objects of model <mdlNr> in DL to private group
+Grp1_add__       copy objs of grp into private group grp1
+
 List_functions_end:
 =====================================================
 // Grp_dlAdd        add all objs of group to DL-grp1
@@ -102,7 +105,7 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -136,11 +139,16 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 #include "../xa/xa_uid.h"              // UID_ouf_grpNr
 
 
+typedef_MemTab(int);
+
 
 
 //============ Extern Var: =====================
 // ex ../xa/xa_ui_gr.c
 extern long   GR_dli_hili;     // the active (mouse-over) object of selection-list
+
+// ../gr/ut_DL.c
+extern DL_Att     *GR_ObjTab;                               // DB-DispList
 
 
 
@@ -238,7 +246,7 @@ static TimeStamp GrpTS;
 
   //----------------------------------------------------------------
   // get smNam = new subModelname
-  irc = Mod_smNam_get (smNam);
+  irc = MDL_mNam_usr (smNam);
   if(irc < 0) return -1;
     printf(" smNam=|%s|\n",smNam);
 
@@ -246,6 +254,7 @@ static TimeStamp GrpTS;
 
   //----------------------------------------------------------------
   // - write group into file
+
   // prepare APTsource: MAN-Mode: copy Edi --> memory.
   AP_SRC_mem_edi ();
 
@@ -264,7 +273,8 @@ static TimeStamp GrpTS;
   //----------------------------------------------------------------
   // create subModel smNam from file tmpDir/selection1.gcad
   sprintf(s1, "%sselection1.gcad", OS_get_tmp_dir());
-  irc = Mod_SM_add_file (smNam, s1);
+//   irc = Mod_SM_add_file (smNam, s1);
+  irc = MDL_load_mdl_grp (smNam, s1);
   if(irc < 0) return -1;
 
 
@@ -296,7 +306,7 @@ static TimeStamp GrpTS;
   if(irc <= 0) {TX_Print("no obj selected ..."); return -1;}
 
   // export (native) alle objects of obj-list --> file
-  AP_save__ (1, 0, "gcad");
+  AP_save__ (1, 0, 1, "gcad");
 
   return 0;
 
@@ -380,15 +390,10 @@ static TimeStamp GrpTS;
     DL_grp1_set (GrpTab[i1].dlInd, OFF);
   }
 
-  // set group modified
-  OS_TimeStamp(&GrpTS);
+  // clear group, display nr-of-groupObjs
+  Grp_init ();
 
-  if(mode) {
-    DL_Redraw ();     // redraw
-    Grp_init ();     // clear group, display nr-of-groupObjs
-  } else {
-    GrpNr = 0;
-  }
+  if(mode) DL_Redraw ();     // redraw
 
   return 0;
 
@@ -534,8 +539,8 @@ static TimeStamp GrpTS;
   int    i1;
 
 
-  // printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d GrpNr=%d GrpMax=%d\n",
-                       // typ,dbi,dli,iUpd,GrpNr,GrpMax);
+  printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d GrpNr=%d GrpMax=%d\n",
+                       typ,dbi,dli,iUpd,GrpNr,GrpMax);
   // if(dli >= 0) printf(" _add__-grpBit = %d\n",DL_GetGrp(dli));
   // Grp_dump ();
   // printf("  GR_Sel_Filter=%d\n",UI_GR_Sel_Filt_set(-1));
@@ -544,6 +549,7 @@ static TimeStamp GrpTS;
   // search unknown dli
   if(dli == -2L) {
     dli = DL_dli__dbo (typ, dbi, -1L);
+    if(dli >= 0L) DL_hili_on (dli);
   }
 
   // test, if obj already defined ..
@@ -948,7 +954,6 @@ static TimeStamp GrpTS;
   // clear Buffer1.
   UTF_clear1 ();
 
-
   // add all defLines --> Buffer1.
   lNr = 1;
 
@@ -984,14 +989,12 @@ static TimeStamp GrpTS;
   // Save Buffer1 --> File "cBuf".
   // Hidelist: Filter with Group.
 
-
   // Das Outputfile oeffnen
   if ((fpo = fopen (cBuf, "w")) == NULL) {
     sprintf(mem_cbuf1, "beim Oeffen der Datei %s ****",cBuf);
     TX_Error (mem_cbuf1);
     return 0;
   }
-
 
   // write MODSIZ DEFTX DEFCOL VIEW CONST_PL; not MODBOX
   DL_wri_dynDat1 (fpo, 1);
@@ -1000,8 +1003,6 @@ static TimeStamp GrpTS;
   GA_fil_wri (fpo, 1, 0, 1);
 
   fprintf(fpo, ":DYNAMIC_DATA\n");
-
-
   fprintf(fpo, "# %s\n", OS_date1());
 
   // Buffer1 als eine Block rausschreiben ..
@@ -1050,5 +1051,75 @@ static TimeStamp GrpTS;
 
 }
 
+
+//================================================================
+  int Grp1_add_sm_dl (MemTab(int) *grp1, int iMdl) { 
+//================================================================
+// Grp1_add_sm_dl         add all objects of model <mdlNr> in DL to private group
+//   grp1 must be freed.
+// Input:
+//   iMdl        0=baseModel-0; -1=primary-model
+// Output:
+//   grp1        list of DL-indexes
+
+
+  int         irc, i1;
+  long        l1, dlNr;
+  DL_Att      *dla;
+
+
+  printf("Grp1_add_sm_dl %d\n",iMdl);
+
+
+  dlNr = DL_get__ (&dla);
+    printf(" add_sm_dl-dlNr=%ld\n",dlNr);
+
+
+  MemTab_ini__ (grp1, sizeof(int), Typ_Int4, dlNr);
+
+  // loop tru DL
+  for(i1=0; i1<dlNr; ++i1) {
+    if(iMdl != dla[i1].modInd) continue;  // filter model
+    if(DL_OBJ_IS_HIDDEN((long)i1)) continue;      // skip hidden objs
+    // add index to grp1
+    MemTab_add (grp1, &l1, &i1, 1, 0);
+  }
+
+    MemTab_dump (grp1, "ex-Grp1_add_sm_dl");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int Grp1_add__ (MemTab(int) *grp1) {
+//================================================================
+// Grp1_add__       copy objs of grp into private group grp1
+
+
+  int         irc, i1, ii;
+  long        l1, dlNr;
+
+
+  printf("Grp1_add__\n");
+
+
+  dlNr = GL_Get_DLind ();
+
+  MemTab_ini__ (grp1, sizeof(int), Typ_Int4, dlNr);
+
+
+  // loop tru group
+  for(i1=0; i1<GrpNr; ++i1) {
+    ii = GrpTab[i1].dlInd;
+    if(DL_OBJ_IS_HIDDEN((long)i1)) continue;      // skip hidden objs
+    MemTab_add (grp1, &l1, &ii, 1, 0);
+  }
+
+
+  return 0;
+
+}
 
 //================================================================

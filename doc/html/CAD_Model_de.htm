@@ -21,8 +21,9 @@
 <h2>CAD-Funktionen für Modelle:</h2>
 
 
-siehe auch <a href="gCAD3D_basics_de.htm#MMS_int">Interne Modelle</a> / <a href="gCAD3D_basics_de.htm#MMS_ext">Externe Modelle</a>
-siehe auch <a href="CAD_Base_de.htm#M">Codes für Modelle</a>
+siehe auch:
+<a href="gCAD3D_basics_de.htm#MMS">MultiModelSupport</a>
+<a href="CAD_Base_de.htm#M">Codes für Modelle</a>
 
 Modelle benutzen den Kennbuchstaben M
 
@@ -31,56 +32,109 @@ Modelle benutzen den Kennbuchstaben M
 <HR><!-- ============================================================ -->
 <p><a name="F0"></a></p>
 <h2>M internal Model</h2>
-Ein internes Submodel positionieren.
-  (Alle exportierten Objekte des Submodel werden automatisch importiert.
-   Der Text einer importierten Note wird neu abgfragt.)
+
+
+<b>Benutzen von internen Submodels im CAD-Modus:</b>
+  Ein internes Submodel positionieren.
 
 
 Submodel
   - Auswahl eines Submodels aus Liste (oder durch mittlere Maustaste)
-  - oder durch Selektion eines bereits vorhandenen Submodels
+  - oder Selektion eines bereits vorhandenen Submodels (<a href="CAD_input_de.htm#_ModBas_"></a>)
   
 Position,Orientation
   <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
 
 [Scale]: Vergrösserungsmaßstab; Default ist 1
 
-
-Beispiele:
+Beispiel:
 # Internes Submodell "SM1", 45 Grad um Z-Achse gedreht, Scale=2
 M20="SM1" R(P(100 0) 45) VAL(2)
+
+
+
+- Die Modelbezeichnung darf keinen Pfad (und kein Pfadtrennzeichen "/" oder "\") enthalten.
+- Alle internen Submodels werden im Modelfile abgespeichert.
+- Während der Bearbeitung werden Submodelle in {base}/tmp/Model_{submodelname} zwischengespeichert.
+- Alle exportierten Objekte des Submodel werden automatisch importiert.
+   Der Text einer importierten Note wird neu abgfragt.
+
+
+<b>Benutzen von internen Submodels im MAN-Modus:</b>
+  durch Key-In von zB:
+  M20="subModel1" P(0 0 0) DZ DIY
+
+
+
+<b>Erzeugen von internen Submodels:</b>
+
+- Menu subModels / move main - new submodel
+    alle Objekte des aktiven Mainmodel in ein Submodel umkopieren.
+
+
+- Menu subModels / create new submodel
+    Ein neues Submodel anlegen und aktivieren.
+
+
+- Menu subModels / load sub-model from file
+    - ein gespeichertes (externes) Model in ein internes subModel laden
+    - das interne model kann unabhängig vom gespeicherten Model modifiziert werden
+
+
+
+
+
 
 
 
 <HR><!-- ============================================================ -->
 <p><a name="F1"></a></p>
 <h2>M external Model</h2>
+
+<b>Benutzen von externen Submodels im CAD-Modus:</b>
+
 Ein externes Submodel positionieren.
   (Externe Submodels sind Modelfiles).
   
 Submodel
-  - Auswahl eines Submodels aus Liste (oder durch mittlere Maustaste)
+  - Auswahl eines Modeldatei aus Liste (oder durch mittlere Maustaste <a href="CAD_input_de.htm#_FilNam_"></a>)
   - oder durch Selektion eines bereits vorhandenen Submodels
-
   Modelname: siehe <a href="CAD_Base_de.htm#symFnam">Symbolische Dateibezeichnungen.</a>
 
-
-Position,Orientation
-  <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
+Position,Orientation: <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
 
 [Scale]: Vergrösserungsmaßstab; Default ist 1
 
 
+
+Die Dateinamen der Modelfiles können symbolische Pfade und System-Variablen enthalten.
+Externe Submodels werden intern zwischengespeichert,
+  im Modellfile aber nicht abgespeichert.
+
+
+
 Beispiel externes Model:
-M20="Data/Niet1.dat" R(P(100 0) DIY) VAL(0.5)
+M20="Data/Niet1.gcad" R(P(100 0) DIY) VAL(0.5)
+M21="Data/wsh14.stp" R(P(200 0))
+M22="Data/obj43.wrl" R(P(0 0 0) R20)     # Mockup-Model
 
-Beispiel Mockup-Model:
-M21="Data/clocktwr.wrl" R(P(0 0 0) R20)
 
 
-Externe Modelle können dzt nur GCAD-Code oder Mockup-Modelle
-  (zB WRL STL, OBJ) beinhalten.
-Externe Modelle können dzt keine internen oder externen Submodelle beinhalten.
+<b>Benutzen von externen Submodels im MAN-Modus:</b>
+  durch Key-In von zB:
+  M20="Data/Mod1.gcad" P(0 0 0) DZ DIY
+
+
+
+<b>Erzeugen von externen Submodels:</b>
+
+- Menu subModels / load submodel from file
+    Ein Model aus einer Datei in eine neues (externes) Submodel laden.
+
+- Menu subModels / save active submodel to file
+    - ein internes-submodel wird in Datei gespeichert (wird zu externem model)
+
+
 
 
 
@@ -88,14 +142,14 @@ Externe Modelle können dzt keine internen oder externen Submodelle beinhalten.
 <p><a name="F2"></a></p>
 <h2>M CatalogPart</h2>
   
-Einen Katalogteil positionieren.
+<b>Benutzen von Normteilen im CAD-Modus:</b>
+
+  Einen Katalogteil positionieren.
   
   
 CatalogPart
-  - Auswahl eines Katalogteil aus Liste (oder durch mittlere Maustaste)
-  - oder durch Selektion eines bereits vorhandenen Katalogteils.
-
-  Der CatalogPartname besteht aus Katalogname / Teilename; siehe <a href="Catalog_de.htm">Catalog</a>.
+  - Auswahl von Katalog und Normteil aus Liste (oder durch mittlere Maustaste)
+  - oder durch Selektion eines bereits vorhandenen Normteils (<a href="CAD_input_de.htm#_CtlgPart_"></a>)
 
 
 Position,Orientation
@@ -106,9 +160,19 @@ Position,Orientation
 
   
 Beispiel Katalogteil:
-M22=CTLG "Schrauben/SKS_10x30" P20 VAL(1)
+M22="Schrauben/SKS_10x30.ctlg" P20 VAL(1)
 
-Siehe auch <a href="Catalog_de.htm#Adm">Funktionen zum Verwalten von Normteilen</a>.
+
+
+<b>Benutzen von Normteilen im MAN-Modus:</b>
+  durch Key-In von zB:
+  M28="Profile/6x4_150.ctlg" P (0 0 0) DZ DIY
+
+
+
+<b>Erzeugen von Normteilen:</b>
+  Siehe <a href="Catalog_de.htm">Normteile</a>.
+
 
 
 <HR><!-- ============================================================ -->

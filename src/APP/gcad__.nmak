@@ -88,6 +88,7 @@ guiinit:
 	del/q ..\gui\*.obj
 	del/q ..\gtkglarea\*.obj
 	del/q ..\gui_gtk2_MS\*.obj
+	del/q ..\prc\cut1\*.obj
 	del/q $(OUTDIR)libgui_*.lib
 	del/q $(OUTDIR)GUI_*.exe
 	exit

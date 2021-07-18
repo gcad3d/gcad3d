@@ -4,6 +4,7 @@ MSG_save=Simpan
 MSG_insert=Sisip
 MSG_delete=Padam
 MSG_modify=Ubahsuai
+MSG_remove=Remove
 MSG_exit=Keluar
 MSG_help=Bantuan
 MSG_length=panjang

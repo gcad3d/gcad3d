@@ -25,6 +25,7 @@ EXTERNPROTO unfertig.
 
 -----------------------------------------------------
 Modifications:
+2021-06-26 inactive; RF.
 2010-01-21 first version. RF.
 
 -----------------------------------------------------
@@ -497,7 +498,7 @@ children Transform { translation -C children [...] }
 
 #ifdef _MSC_VER
 // die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int VR2_r__ (char*);
+__declspec(dllexport) int gCad_main (void*);
 // nachfolgende externals werden aus dem Main-Exe imported:
 #define extern __declspec(dllimport)
 #endif
@@ -505,6 +506,7 @@ __declspec(dllexport) int VR2_r__ (char*);
 // #include "../ut/ut_umem.h"             // UME_
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
@@ -611,6 +613,65 @@ static double  newRot[4], newpRot[4];  // rotation
 
 
 
+
+//================================================================
+  int gCad_main (void *fdat) {
+//================================================================
+// import VRML as tesselated; see also obj_read__
+// Input:
+// fdat besteht aus 3 objects;
+// 1) Typ_Int4   mode; 1=work, 3=free.
+// 2) Typ_Txt    filename
+// 3) Typ_Memspc outSpc
+
+
+  int     irc, mode;
+  char    *fnam;
+  ObjGX   *oTab;
+
+
+  printf("gCad_main vr2_r\n");
+
+
+  oTab   = ((ObjGX*)fdat)->data;
+  mode   = INT_PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
+  fnam   = oTab[1].data;          // 2) Typ_Txt    filename
+  // outSpc = oTab[2].data;          // 3) Typ_Memspc outSpc
+    printf(" vr2_r-mode=%d fnam=|%s|\n",mode,fnam);
+
+
+
+  //----------------------------------------------------------------
+  if(mode != 1) goto L_free;                 // WORK
+    // printf(" WRL-read-work\n");
+
+    irc = VR2_r__ (fnam);
+
+    // model is in memspc; write out;
+    MDL_sav_tmp ();
+
+    // irc = wrl_readTess__ (fnam);
+      // printf("ex wrl_readTess__ %d\n",irc);
+    return irc;
+
+
+
+  //----------------------------------------------------------------
+  L_free:                                    // FREE
+  if(mode != 3) return 0;
+    if(iTab) free (iTab);
+    iTab = NULL;
+    // if(outSpc->start) UME_free (outSpc);
+    // printf(" WRL-read-Exit/free\n");
+    return 0;
+
+}
+
+
+
+
+
+
 //================================================================
   int VR2_r__ (char *fnam) {
 //================================================================
@@ -634,7 +695,7 @@ static double  newRot[4], newpRot[4];  // rotation
     printf(" mdlNam = |%s|\n",mdlNam);
 
 
-  Mod_kill__ ();   // alle tmp/Model_* loeschen
+  MDL_clean_f ();   // alle tmp/Model_* loeschen
 
 
   // Textbuffer 1 loeschen

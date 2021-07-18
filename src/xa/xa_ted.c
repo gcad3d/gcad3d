@@ -63,7 +63,7 @@ UI_GR_Sel_Filt_set 15  load texture
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 
@@ -99,7 +99,7 @@ extern MemObj     UIw_Box_TB;    // toolbarBox
 
 // aus xa.c:
 extern AP_STAT    AP_stat;
-extern char       AP_mod_dir[128], AP_mod_sym[64];
+extern char       AP_mod_dir[SIZMFTot], AP_mod_sym[SIZMFSym];
 
 
 
@@ -126,7 +126,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   int TED_key_CB (int key);
   int TED_sel_CB (int src, long dl_ind);
   char* TED_name ();
-  int TED_Tex_Load (char *fnam, char *dirNam);
+  int TED_Tex_Load (stru_FN *mns1);
 
 
 
@@ -379,9 +379,10 @@ static TexRef actTr;             // active TexRef (for Restore)
 //=====================================================================
 /// handle textures
 
-  int  i1, form;
-  long l1;
-  char *cp1, cbuf1[256], cbuf2[256];
+  int        i1, form;
+  long       l1;
+  char       *cp1, cbuf1[256], cbuf2[256];
+  stru_FN mns1;
 
   // cp1 = (char*)data;
   cp1 = GUI_DATA_S1;
@@ -396,7 +397,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   //-------------------------------------------------
   } else if(!strcmp(cp1, "LdFile")) {    // load from file & apply
 /*
-     MDLFN_symFilNam (cbuf1);   // get filename of dir.lst
+     MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
      // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
      GUI_List2 ("select Texturefile", // titletext
               AP_mod_dir,             // Pfadname des activeDirectory
@@ -404,9 +405,11 @@ static TexRef actTr;             // active TexRef (for Restore)
               (void*)TED_Tex_Load);    // CallBack der Liste
 */
 
-    i1 = AP_Mod_open (1, cbuf1, cbuf2, "select Texturefile", "\"*.jpg\"");
+    // i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, "select Texturefile", "\"*.jpg\"");
+    i1 = MDLFN_ofn_user (&mns1,"select Texturefile", "*.jpg");
     if(i1 < 0) return -1;
-    TED_Tex_Load (cbuf1, cbuf2);
+    TED_Tex_Load (&mns1);
+    // TED_Tex_Load (cbuf1, cbuf2);
 
 
 
@@ -654,28 +657,28 @@ extern int       KeyStatCtrl;
 
 
 //================================================================
-  int TED_Tex_Load (char *fnam, char *dirNam) {
+  int TED_Tex_Load (stru_FN *mns1) {
 //================================================================
 // User has textureFile from FileList selected ..
 // Load Texture
 // RetCod: must be 0 (gtk)
+// see also UI_Tex_Load
 
   int       i1, irc;
+  char      symNam[320];
   TexRef    *tr;
 
   // UI_Tex__ (NULL, (void*)UI_FuncUCB7);  // redisplay nach hide only ...
+//   if(fnam == NULL) return 0;
 
-  if(fnam == NULL) return 0;
+
+  MDLFN_dump_ofn (mns1, "TED_Tex_Load");
 
 
-  printf("TED_Tex_Load |%s|%s|\n",fnam,dirNam);
-
-  AP_set_dir_open (dirNam);  // copy dir -> AP_mod_dir; load AP_mod_sym
-
-  // save & load Texture
-  irc = Tex_addBas__ (fnam, AP_mod_sym, 0);
-  if(irc < 0) return 0;       // MUST return with 0 (gtk-returncode !)
-
+  // load Texture
+  sprintf(symNam, "%s/%s.%s",mns1->symDir,mns1->fNam,mns1->fTyp);
+  i1 = Tex_addBas1 (symNam, 0);
+  if(i1 < 0) return -1;
 
   // display textureName
   TED_win__ (NULL, (void*)UI_FuncUCB2);
@@ -688,7 +691,6 @@ extern int       KeyStatCtrl;
 
   // nur MS:update
   Tex_act_upd ();
-
 
   return 0;
 

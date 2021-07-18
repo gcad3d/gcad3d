@@ -1,0 +1,12 @@
+# nmake -f xa_vr2_exp.nmak
+
+DLLNAM = xa_vr2_exp
+
+SRC1 =\
+ ../exp/vr2_exp.c
+
+CORE = J
+
+!include gcad__.nmak
+
+########################### EOF #######################

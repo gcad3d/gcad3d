@@ -72,6 +72,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+Build: . ../options.sh && make -f xa_dxf_r.mak
 
 
 ==============================================================================
@@ -499,7 +500,7 @@ VPORT
 // #ifdef GTK2
 // die folgenden Funktionen exportieren (werden vom Main gerufen):
 #ifdef _MSC_VER
-__declspec(dllexport) int DXF_r__ (char*);
+__declspec(dllexport) int DXF_r__ (void*);
 // nachfolgende externals werden aus dem Main-Exe imported:
 #define extern __declspec(dllimport)
 #endif
@@ -618,13 +619,19 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
 //===========================================================================
-  int DXF_r__ (char* fnam)  {
+  int DXF_r__ (void *pa[2])  {
 //===========================================================================
-/// load DXF-file -> memory
-/// All coordinates are translated !
-
+// DXF_r__                import dxf-file <fnam>
+//   write native gcad-code into <tmpDir>
+// Input:
+//   pa[0]    filename of dxf-file to import
+//   pa[1]    modelname for outputFile of mainModel; for primary model ""
+// Output:
+//   - export mainModel -> file <tmpDir>Model_<modelname>
+//   - export subModels -> files <tmpDir>Model_<smNam>
+// 
 // TrVec: vc1 (from $EXTMIN bis $EXTMAX)
-
+// 
 // Memory-Usage:
 // memspc51    ox1
 // memspc55    namTab
@@ -634,10 +641,11 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 // memspc501   objData
 // mem_cbuf1   act codeline
 
+
   int      i1, ism, irc, oSiz, iaErr[3], iaImp[8], iaAux[8], mr_ind;
   double   d1, d2, d3, min_dist, dTab[10];
 
-  char     *pf, cbuf[256], *spc_tra, *cp1;
+  char     *fnam, *fmod, *pf, cbuf[256], *spc_tra, *cp1;
   Point    pt1;
   Vector   vc1;
 
@@ -651,6 +659,16 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   ModelRef *mr;
 
 
+
+  fnam = (char*)pa[0];
+  fmod = (char*)pa[1];
+
+  
+  printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII \n");
+  printf("DXF_r__ |%s|%s|\n",fnam,fmod);
+
+
+  //-----------------------------------------------------
   for(i1=0; i1<3; ++i1) iaErr[i1] = 0;
   for(i1=0; i1<8; ++i1) iaImp[i1] = 0;
 
@@ -659,25 +677,12 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   mr_ind = DB_dbo_get_free (Typ_Model);
   if(mr_ind < 20) mr_ind = 20;
 
-  //-----------------------------------------------------
-
-  // printf("AP_ImportDxf %d |%s|%s|\n",mode,off,fnam);
-  // printf("======================= \n");
-  // printf("DXF_r__ |%s|\n",fnam);
-
-
-  Mod_kill__ ();   // alle tmp/Model_* loeschen
-
-
   // // TEST-DEBUG-ON
   // DEB_prt_init (1);
-
 
   // Init Objektindexe
   ox1 = (ObjGX*)memspc51;
   AP_obj_2_txt (NULL, 0L, NULL, 0L);
-
-
 
   // pt -> Refsys
   UT3D_pl_XYZ (&plOff);              // load DefaultRefsys
@@ -692,14 +697,6 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
     UT3D_m3_loadpl (trOff, &plOff);
   }
 
-
-
-  // check Lic
-  // Testversion: Kein Check on ReadDXF.
-  //if(ED_ckl() != 0) goto FERTIG;
-
-
-
   // Open for read
   if((fp=fopen(fnam,"r")) == NULL) {
     TX_Print("****** OPEN ERROR INPUT-FILE %s **********\n",fnam);
@@ -708,7 +705,6 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
     fp1=fopen(fnam,"r");
   }
 
-
   // Pfad weg.
   pf = strrchr(fnam, fnam_del);
   if(pf) {
@@ -716,7 +712,6 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   } else {
    pf=fnam;
   }
-  
 
   // Textbuffer 1 loeschen
   UTF_clear1();
@@ -857,14 +852,13 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
     // printf(" iaImp %d %d %d %d\n",iaImp[0],iaImp[1],iaImp[2],iaImp[3]);
 
 
-  // write code -> file
+  // write code -> file <tmpDir>Model_
   if(irc > -2) {
     // Textbuffer 1 in die Hauptdatei einfuegen
-    // UTF_insert1(-1);
+    // sprintf(cbuf, "%sModel_%s",OS_get_tmp_dir(),fmod);
 
-    sprintf(cbuf, "%s%cModel_",OS_get_tmp_dir(),fnam_del);
-    UTF_file_Buf1__ (cbuf);
-
+    // write file
+    UTF_file_Buf1__ (fmod);
   }
 
 
@@ -886,10 +880,13 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   pf = UtxTab__ (ism, &dxfr_blockTab);     // get string (subModelName)
     // printf(" nxt sm %d |%s|\n",ism,pf);
 
-  // reset DB
-  WC_Init_all (0);
-  GA_hide__ (-1, 0L, 0);               // reset HideList
-  AP_obj_2_txt (NULL, 0L, NULL, 0L);    // reset objIndices
+//   // reset DB
+//   WC_Init_all (0);
+//   GA_hide__ (-1, 0L, 0);               // reset HideList
+
+
+  // init objIndices
+  AP_obj_2_txt (NULL, 0L, NULL, 0L);
 
   // init dxf (find start of block <pf>)
   dxfr_block_find (fp, fp1, pf);
@@ -984,10 +981,10 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
   // report nr of imported objects
-  sprintf(cbuf,
-    "imported: %d points, %d lines, %d circles, %d curves, %d surfaces, %d notes, %d subModels",
-               iaImp[6],  iaImp[5], iaImp[4],   iaImp[0],  iaImp[1],   iaImp[3],  iaImp[7]);
-  TX_Print("%s",cbuf);
+  // sprintf(cbuf,
+    // "imported: %d points, %d lines, %d circles, %d curves, %d surfaces, %d notes, %d subModels",
+             // iaImp[6],iaImp[5],iaImp[4],iaImp[0],iaImp[1],iaImp[3],iaImp[7]);
+  // TX_Print("%s",cbuf);
 
   return 0;
 
@@ -1711,7 +1708,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
     for(i1=0; i1<dxf_paSiz; ++i1) dxf_pa[i1].z = 0.;
     dxf_da = (double*) memspc201;
     dxf_daSiz = sizeof(memspc201) / sizeof(double);
-      // printf(" dxf_paSiz=%d dxf_daSiz=%d\n",dxf_paSiz,dxf_daSiz);
+      // printf(" 1002-dxf_paSiz=%d dxf_daSiz=%d\n",dxf_paSiz,dxf_daSiz);
     ii = -1;
     ptNr = 1;    // unused ..
       // printf(" start LWPOLYLINE siz=%d ii=%d\n",dxf_paSiz,ii);
@@ -3277,6 +3274,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   ObjGX    ox2;
 
 
+  // DEB_dump_obj__ (Typ_ObjGX, ox1, "dxf_r_src_out-in");
   // printf("\n\ndxf_r_src_out typ=%d form=%d siz=%d\n",
           // ox1->typ,ox1->form,ox1->siz);
   // gdb_halt ();
@@ -3286,6 +3284,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // printf(" dxf_iTra=%d\n",dxf_iTra);
   // UTRA_dump__ ();  // disp translObj
   // }
+
 
 
   // Objekt translieren             // 2016-03-14

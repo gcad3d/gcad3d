@@ -27,7 +27,7 @@ extern char memspc501[500000];
 // zum scannen der Textzeilen
 extern char mem_cbuf1[mem_cbuf1_SIZ];
 
-// xa_ui_cad.c
+// xa_cad_ui.c
 extern char IE_buf[mem_cbuf1_SIZ];
 extern char IE_outTxt[mem_cbuf1_SIZ];
 

@@ -34,20 +34,29 @@ Modifications:
 #endif
 /*!
 \file  ../ut/ut_txfil.c
+       ../ut/ut_txfil.h
 \brief textfile in memory
 \code
 =====================================================
 List_functions_start:
 
-UTF_clear_          Memory loeschen
+UTF_clear_          clear membuf UTF_FilBuf0
 UTF_offset_         eine Charpos (ev ex UTF_GetLinNr) in Offset umrechnen
-UTF_add_line        eine Zeile hinten anfuegen
-UTF_add_nl          ein '\n' hintanfuegen, wenn nicht vorh.
-UTF_add_file        Buffer1 in den Hauptbuffer umkopieren.
-UTF_add_fil__       Datei hintanhaengen
-UTF_wri_file        Memory -> Datei rausschreiben
-UTF_wri_f__         Memory -> Datei rausschreiben
+UTF_add_line        add line to membuf UTF_FilBuf0
+UTF_add_nl          add '\n' to membuf UTF_FilBuf0 (if not exists)
+UTF_add_fil_0       clear membuf (UTF_FilBuf0) & load file into UTF_FilBuf0
+UTF_add_fil_init    load sourcefile into memory UTF_FilBuf0
+UTF_add_file        add file to membuf UTF_FilBuf0
+UTF_wri_file        write Memory -> file
+UTF_wri_f__         write Memory -> file
+UTF_wri_f_ck_2Dpln  test 3D-plane or 2D-plane activation or 3D-reset
+UTF_save__          write UTF_FilBuf0 -> tmp/Mod_.tmp, clear UTF_FilBuf0
+UTF_load__          read tmp/Mod_.tmp into UTF_FilBuf0
+
 UTF_file_Buf1__     Buffer1 in eine Datei rausschreiben
+
+UTF_DYNDAT_find       find DYNAMIC_DATA-block in memspc UTF_FilBuf0
+UTF_DYNDAT_del        remove DYNAMIC_DATA-block in memspc UTF_FilBuf0
 
 UTF_txt_chg         1-n chars aendern
 UTF_chg_line        modify line in mem
@@ -83,7 +92,9 @@ UTF_add1_file       Eine Datei into Buffer UTF_FilBuf1.
 UTF_add1_line       eine Zeile in UTF_FilBuf1 hintanfuegen
 UTF_add1_last_add   add txt to last line in UTF_FilBuf1  (add objName)
 UTF_add1_strLF      add a line, which is terminated with LF, to Buffer1
+UTF_file_Buf1_att   write buffer1 and attributes into file
 UTF_file_Buf1__     Buffer1 in eine Datei rausschreiben
+UTF_file_Buf1_w     Buffer1 in eine Datei rausschreiben
 UTF_get_Buf1        copy Buffer1 -> memspc
 
 UTF_del_line1       Eine Zeile im Memory loeschen
@@ -93,6 +104,7 @@ UTF_del_text        delete from cPos to cPos
 
 UTF_dump__          display memInhalt
 UTF_dump1__         display memInhalt of Buffer1
+UTF_test_scan       loop tru UTF_FilBuf0 (memSpc) - display
 
 List_functions_end:
 =====================================================
@@ -100,6 +112,7 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
+UTF_FilBuf0[UTF_FilBuf0Len] is the memspace for he active model (src).
 
   Fortsetzungszeilen werden von UTF_GetPosLnr UTF_GetLnrPos UTF_GetLinNr
     wahrscheinlich falsch behandelt !!
@@ -143,22 +156,26 @@ cc  ut_txfil.c -Wall ../gCAT/TX.o ../gCAT/ut_txt.o ../gCAT/ut_geo.o\
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>                    // isdigit
+
 
 
 #include "../ut/ut_txt.h"      // term_buf
 #include "../ut/ut_TX.h"       // TX_Print
 #include "../ut/ut_txfil.h"
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_os.h"                // OS_get_tmp_dir
 
 #include "../xa/xa_mem.h"               // mem_cbuf1
 #include "../xa/xa_msg.h"               // DEB_mcheck__
+#include "../xa/xa_uid.h"         //  UI_MODE_MAN
 
 
 #define UTF_BUF0_INC          2000000
 #define UTF_BUF1_INC          1000000
 
 
-char       *UTF_FilBuf0 = NULL;
+char       *UTF_FilBuf0 = NULL;  // memspc for the active modeldata (src)
 long       UTF_FilBuf0Siz  = 0;  // die allocierte DatenbereichSize
 long       UTF_FilBuf0Len  = 0;  // die belegte DatenbereichSize
 
@@ -171,6 +188,15 @@ long       UTF_FilBuf1Len = 0;               // die aktuelle Filesize
 
 
 // static char       UTF_buf1[256];
+
+
+//===========================================================================
+// EXTERNALS:
+
+// ex ../xa/xa_ui.c:
+extern int       UI_InpMode;
+
+
 
 
 
@@ -242,14 +268,66 @@ int UTF_ut_dispDat () {
 }
 
 
-int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
-
 #endif
 //################################################################
 //################################################################
 
 
 
+
+//================================================================
+  int UTF_save__ () {
+//================================================================
+// UTF_save__          write UTF_FilBuf0 -> tmp/Mod_.tmp, clear UTF_FilBuf0
+
+  char   fn[320];
+
+  sprintf(fn, "%sMod_.tmp_utf", OS_get_tmp_dir());
+  UTF_wri_file (fn, NULL);
+  UTF_clear_ ();
+
+  return 0;
+
+}
+
+//================================================================
+  int UTF_load__ () {
+//================================================================
+// UTF_load__          read tmp/Mod_.tmp into UTF_FilBuf0
+
+  char   fn[320];
+
+  sprintf(fn, "%sMod_.tmp_utf", OS_get_tmp_dir());
+  UTF_add_fil_0 (fn);
+
+  return 0;
+
+}
+
+
+//================================================================
+  char* UTF_DYNDAT_find () {
+//================================================================
+// UTF_DYNDAT_find       find DYNAMIC_DATA-block in memspc UTF_FilBuf0
+
+  long    lNr = 0;
+
+  return UTF_find_tx1 (&lNr, ":DYNAMIC_DATA");
+
+}
+
+
+//================================================================
+  int UTF_DYNDAT_del (char *cPos) {
+//================================================================
+// DYND_del        remove DYNAMIC_DATA-block in memspc UTF_FilBuf0
+
+    cPos = UTF_GetnextLnPos (cPos);
+    UTF_del_start (cPos);
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -377,6 +455,57 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
 
 //================================================================
+  int UTF_file_Buf1_att (char *modNam, int modSiz) {
+//================================================================
+// UTF_file_Buf1_att   write buffer1 and attributes into file
+// save Submodel in Buffer1 + active Hidelist --> File tmp/Model_<modNam>
+// used by Step-Import (schreibt mit UTF_add1_line --> UTF_FilBuf1)
+// see also Grp_exp ..
+
+
+  char     fNam[256], s1[160];
+  FILE     *fp1;
+
+
+  // printf("UTF_file_Buf1_att |%s| %d\n",modNam,modSiz);
+
+
+  sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),modNam);
+    // printf(" fNam=|%s|\n",fNam);
+
+  // write Line -> File
+  if((fp1=fopen(fNam,"wb")) == NULL) {
+    TX_Print("Mod_savSubBuf1 E001 |%s|",fNam);
+    return -1;
+  }
+
+  if(modSiz > 0) {
+    sprintf(s1, "MODSIZ %d\n",modSiz);
+    fputs(s1, fp1);
+  }
+
+  // write out the PermanentAttributes - HIDE, G#, SSTYLS ..
+  // do not check if att exists (error with STEP-Import)
+  GA_fil_wri (fp1, 0, 1, 0);
+    // printf(" nach GA_fil_wri\n");
+
+  fputs(":DYNAMIC_DATA\n", fp1);
+
+  UTF_file_Buf1_w (fp1);
+    // printf(" nach UTF_file_Buf1_att\n");
+
+  fclose(fp1);
+
+  // printf("ex UTF_file_Buf1_att |%s|\n",modNam);
+  // sprintf(s1,"cat %s",fNam);OS_system (s1);printf("eof %s\n",fNam);
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTF_file_Buf1__ (char *fnam) {
 //================================================================
 /// UTF_file_Buf1__       Buffer1 in eine Datei rausschreiben
@@ -387,7 +516,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
   // write Line -> File
   if((fp1=fopen(fnam,"wb")) == NULL) {
-    TX_Print("UTF_wrf_line E001 |%s|",fnam);
+    TX_Print("UTF_file_Buf1__ E001 |%s|",fnam);
     return -1;
   }
 
@@ -804,13 +933,13 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 
 
 //============================================================================
-  int UTF_dump__ () {
+  int UTF_dump__ (char *txt) {
 //============================================================================
 /// UTF_dump__          display memInhalt
 
 
-  printf("UTF_dump__ %ld %ld ==================================\n",
-         UTF_FilBuf0Len,UTF_FilBuf0Siz);
+  printf("UTF_dump__ %s Len=%ld Siz=%ld ==================================\n",
+         txt, UTF_FilBuf0Len, UTF_FilBuf0Siz);
   printf("%s\n",UTF_FilBuf0);
   printf("UTF_dump__ End ========================================\n");
   return 0;
@@ -836,35 +965,27 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //============================================================================
   int UTF_wri_file (char* fnam, int iniFunc(FILE*)) {
 //============================================================================
-/// \code
-/// write memory -> file fnam; call iniFunc first.
-///   iniFunc      eg DL_wri_dynDat0
-/// rc = 0 = Error;
-///      1 = OK.
-/// \endcode
+// UTF_wri_file      save the active model into file fnam
+// - write DYNAMIC_DATA-block from memory / GA_ObjTab > file - with func iniFu
+// - write sourve             from UTF_FilBuf0        > file
+// Input:
+//   iniFunc      eg DL_wri_dynDat0
+// rc = 0 = Error;
+//      1 = OK.
 
 
 
+  int     irc;
   FILE    *fpo=NULL;
-
 
   // printf ("UTF_wri_file: Filnam =|%s|\n",fnam);
 
-
-
-  // Das Outputfile oeffnen
-  // if ((fpo = fopen (fnam, "wb")) == NULL) {
+  // open outfile fnam
   if ((fpo = fopen (fnam, "w")) == NULL) {
-#ifdef _MSC_VER
-    OS_err1 (__FUNCTION__);
-#else
-    OS_err1 (__func__);
-#endif
-    sprintf(mem_cbuf1, "beim Oeffen der Datei %s ****",fnam);
-    TX_Error (mem_cbuf1);
-    return 0;
+    TX_Error ("UTF_wri_file E1 open %s",fnam);
+    irc = -1;
+    goto L_exit;
   }
-
 
   // // write dynamicData (HIDE, .. ) if mode>0) eg DL_wri_dynDat0
   // if(mode > 0) DL_wri_dynDat (fpo);
@@ -873,27 +994,183 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
     iniFunc(fpo);
   }
 
-
-/*
-  // als ein Block rausschreiben probieren ..
-  ilen = fwrite (UTF_FilBuf0, UTF_FilBuf0Len, 1, fpo);
-
-  if(ilen < 0) {
-    sprintf(mem_cbuf1, " Ausgabefehler Datei %s",fnam);
-    TX_Error (mem_cbuf1);
-    return 0;
-  }
-*/
-
-
   // write mem_cbuf1 -> open file; skip deleted lines ('_')
   UTF_wri_f__ (fpo);
 
   fclose (fpo);
+  irc = 0;
 
+  L_exit:
     // printf ("ex UTF_wri_file: Filnam =|%s|\n",fnam);
+  return irc;
 
-  return 1;
+}
+
+
+//================================================================
+  int UTF_wri_f_ck_2Dpln (char *sln) {
+//================================================================
+// UTF_wri_f_ck_2Dpln          test 3D-plane or 2D-plane activation or 3D-reset
+//   first char of sln must be 'R'
+//   retCode:  0=3D-plane (eg "R21=...")
+//             1=2D-plane activation (eg "R21" or RX")
+//             2=3D-reset ("R0")
+
+
+  int   irc;
+
+
+  // printf(" UTF_wri_f_ck_2Dpln |%40.40s|\n",sln);
+
+  ++sln;
+  if((*sln == 'Z')||(*sln == '0')) {
+    // no other code may start with "R0"
+    irc = 2;
+    goto L_exit;
+  }
+
+  // skip all numeric chars
+  while(isdigit(*sln)) ++sln;
+    // printf(" ck_2Dpln-L1 |%s|\n",sln);
+
+
+  // skip all blanks
+  while(*sln == ' ') ++sln; 
+    // printf(" ck_2Dpln-L2 |%s|\n",sln);
+
+  // test 3D-plane (eg "R21=...")
+  if(*sln == '=') {irc = 0; goto L_exit; }
+
+  irc = 1;   // 2D-plane activation (eg "R21" or RX")
+
+
+  L_exit:
+    // printf(" ex-UTF_wri_f_ck_2Dpln %d \n",irc);
+  return irc;
+
+}
+
+
+//================================================================
+  int UTF_wri_f_2Dpln (char *sln, long lNr) {
+//================================================================
+// UTF_wri_f_2Dpln          test empty 2D-plane
+//   retCode    nr of lines with empty 2D-plane (to be removed)
+
+
+  int    ii, i2;
+  long   ll2;
+  char   *cp2;
+  
+
+  // printf("----- UTF_wri_f_2Dpln |%s|\n",sln);
+
+  // test if its a 2D-plane-activation (eg "R21" or RX")
+  ii = UTF_wri_f_ck_2Dpln (sln);
+  if(ii == 0) goto L_exit;  // skip 3D-plane (eg "R21=...")
+
+  if(ii == 2) {
+// TODO: store if 2D-plane-is-active ...
+//     // 3D-reset ("R0") but no 2D-plane active
+//     TX_Print("***** UTF_wri_f_2Dpln E1");
+//     printf(" f_2Dpln-E1 |%s|\n",sln);
+
+    ii = 0;
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // ii=1 is 2D-plane-activation (eg "R21" or RX") - test next line
+  ii = 0;
+  L_nxtLn:
+    ++ii;
+    cp2 = UTF_GetPosLnr (&ll2, lNr + ii);
+    if(!cp2) { --ii; goto L_exit; }    // EOF.
+      // printf("     ::: nxt %ld ll=%ld |%40.40s|\n",lNr + ii,ll2,cp2);
+
+    // skip empty line
+    if(ll2 <= 0) goto L_nxtLn;
+
+    // test deleted lines
+    if(*cp2 == '_') {
+      i2 = UTF_wri_f_del (cp2, lNr + ii);
+      if(ii) {
+        // yes - skip i2 lines
+        ii += i2 - 1;
+        goto L_nxtLn;
+      }
+    }
+
+    // skip blanks
+    while(*cp2 == ' ') ++cp2;
+
+    // skip comment-line
+    if(*cp2 == '#') goto L_nxtLn;
+
+    // if line not RZ exit
+    if(*cp2 != 'R') {
+       // new line not starting with R; keep all lines
+       ii = 0;
+       goto L_exit;
+    }
+
+    // test this line starting with 'R' following 'R'-line
+    i2 = UTF_wri_f_ck_2Dpln (cp2);
+    if(i2 == 0) { ii = 0; goto L_exit; } // def. of 3D-plane; keep 2D-plane
+   
+    if(i2 == 1) {
+      // new 2D-plane defined without resetting active 2D-plane
+      TX_Print("***** UTF_wri_f_2Dpln E2");
+      // printf(" f_2Dpln-E2 |%s|\n",sln);
+      // remove all previous lines
+      --ii;
+    }
+
+
+    // i2=2: 2D-plane reset; remove all lines
+    ++ii;
+
+
+    //----------------------------------------------------------------
+    L_exit:
+
+      // printf("ex-UTF_wri_f_2Dpln %d\n\n",ii);
+
+    return ii;
+
+}
+
+
+//================================================================
+  int UTF_wri_f_del (char *sln, long lNr) {
+//================================================================
+// UTF_wri_f_del          test deleted lines
+//   first char of sln must be '_'
+//   retCode    nr of lines deleted (to be removed)
+
+  int    ii;
+  long   ll2;
+  char   *cp2;
+
+
+  // printf("  --- UTF_wri_f_del %ld |%40.40s|\n",lNr,sln);
+
+  ii = 0;
+
+  L_nxtLn:
+    ++ii;
+    // must skip also following '&'-lines
+    cp2 = UTF_GetPosLnr (&ll2, lNr + ii);
+    if(cp2 == NULL) return 0;
+    if(ll2 < 0) return ii;       // EOF.
+    // skip deleted line
+    if(*cp2 == '&') goto L_nxtLn;
+
+  //----------------------------------------------------------------
+    printf("ex-UTF_wri_f_del %d\n",ii);
+
+  return ii;
 
 }
 
@@ -901,52 +1178,51 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //================================================================
   int UTF_wri_f__ (FILE *flun) {
 //================================================================
-/// \code
-/// write memory -> open file; skip deleted lines ('_')
-/// rc = 0 = Error;
-///      1 = OK.
-/// \endcode
+// write memory -> open file;
+// - skip deleted lines ('_')
+// - remove unused / empty 2D-planes
+// rc = 0 = Error;
+//      1 = OK.
 
  
-
-  int     idel=0;
+  int     ii, i2;
+  int     idel = 0;       // 0=active line; 1=deleted line;
   long    llen, i1;
-  char    *cp1, *cp2;
+  char    *cp1;
   size_t  ilen;
 
 
-  // printf("UTF_wri_f__ \n");
+  // printf("UTF_wri_f__ =================================\n");
 
 
   // 2002-05-22: alle zeilen, beginnend mit "_", skippen.
   for(i1=1; i1<999999; ++i1) {
 
-    // naechste Zeile holen ..
+    // get next line
     cp1 = UTF_GetLinNr (mem_cbuf1, &llen, i1);
-    if(llen < 0) break;
+    if(llen < 0) break;  // EOF
+    UTX_CleanCR (mem_cbuf1);
+      // printf(" :::::::::: wri_f__ %ld |%s|\n",i1,mem_cbuf1);
 
-    // cp2 = UTX_pos_1n (mem_cbuf1); // skip leading blanks
-
-    if(*cp1 == '_') {
-      idel = 1;  // must skip also following '&'-lines
+    if(*mem_cbuf1 == '_') {
+      // test deleted lines
+      ii = UTF_wri_f_del (mem_cbuf1, i1);
+      if(ii) {
+        // yes - skip ii lines
+        i1 += ii - 1;
+        continue;
+      }
       continue;
 
-    } else if (*cp1 == '&') {
-      if(idel == 1) continue;
-    }
-    idel = 0;
-
-      // printf(" %d %d\n",mem_cbuf1[llen],mem_cbuf1[llen - 1]);
-
-    L_ck_c:
-      --llen;
-      if((mem_cbuf1[llen] == '\n') || (mem_cbuf1[llen] == '\n')) {
-        mem_cbuf1[llen] = '\0';
-        goto L_ck_c;
+    } else if(*mem_cbuf1 == 'R') {
+      // test if its a empty 2D-plane
+      ii = UTF_wri_f_2Dpln (mem_cbuf1, i1);
+      if(ii) {
+        // yes - skip ii lines
+        i1 += ii - 1;
+        continue;
       }
-
-    // UTX_CleanCR (mem_cbuf1);   // remove LF ..
-    // fprintf(flun, "%s\n",mem_cbuf1);
+    }
 
     fprintf(flun, "%s\n",mem_cbuf1);
   }
@@ -1063,19 +1339,19 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //===============================================================
   char* UTF_GetPosLnr (long *llen, long lNr) {
 //===============================================================
-/// \code
-/// von zeile # lNr die Startposition und die Zeilenlaenge der zeile liefern.
-/// ln_pos ist der erste char der line, llen ist die laenge ohne terminator;
-/// der Start der naechsten Zeile ist also ln_pos + llen + term_anz.
-/// Die erste Zeile ist lNr = 1.
-/// Output:
-///   llen      gives the position of the LF
-///   RetCode   NULL: EOF found.
-///
-/// Usage:
-///  p1 = UTF_GetPosLnr (&lLen, lNr);
-///  UTX_dump_cnl (p1, 60); printf("\n"); // print max 60 chars, but stop at \n
-/// \endcode
+// UTF_GetPosLnr        get startPos and lineLength of sourceline with nr = lNr
+// - end of line a '\n'
+// - startPos of next line is ln_pos + llen + term_anz.
+// Input:
+//   lNr       lineNr of sourceline to get; 1 is the first line
+// Output:
+//   llen      gives the position of the LF
+//   RetCode   NULL: EOF found, else starPos of line lNr
+//
+// Usage:
+//  p1 = UTF_GetPosLnr (&lLen, lNr);
+//  UTX_dump_cnl (p1, 60); printf("\n"); // print max 60 chars, but stop at \n
+// see UTF_test_scan
 
 
   // static long bufNr=-1;
@@ -1300,7 +1576,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //===========================================================================
   int UTF_add_nl () {
 //===========================================================================
-/// UTF_add_nl          ein '\n' hintanfuegen, wenn nicht vorh.
+// UTF_add_nl          add '\n' to membuf UTF_FilBuf0 (if not exists)
 
 
   if(UTF_FilBuf0[UTF_FilBuf0Len-1] != '\n') {
@@ -1402,68 +1678,77 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 }
 
 
-//=====================================================================
-  int UTF_add_fil__ (char *cBuf, long *sizAct, long sizTot, char* fn) {
-//=====================================================================
-/// \code
-/// Datei fn an membuf cBuf hintanhaengen; size of cBuf is sizTot.
-/// cBuf muss gross genug sein !!
-/// RetCod:
-///   -1           OpenError
-///    0           OK
-/// \endcode
+//================================================================
+  int UTF_add_fil_0 (char* fn) {
+//================================================================
+// UTF_add_fil_0            clear & load into UTF_FilBuf0
+
+  UTF_clear_ ();                    // Clear Mem
+  UTF_clear1 ();                    // Clear UTF_FilBuf1
+
+  return UTX_fget_add_MS (UTF_FilBuf0, &UTF_FilBuf0Len, UTF_FilBuf0Siz, fn);
+
+}
 
 
-  long  cLen, sizRest, lLn;
-  char  *cpos;
-  FILE  *flun;
+//================================================================
+  int UTF_add_fil_init (char* fn) {
+//================================================================
+// UTF_add_fil_init      load file into memory
+// - find, work, remove DYNAMIC_DATA-block
+// rc = -1 = Error;
+//       1 = OK.
+  
+  int   irc = 0;
+  long  fSiz, lNr;
+  char  *cPos;
+
+    
+  fSiz = OS_FilSiz (fn);
+
+  // printf ("UTF_add_fil_init |%s| fSiz=%ld\n",fn,fSiz);
 
 
-  // printf ("UTF_add_fil__ |%s| siz=%d\n",fn,sizTot);
-
-
-  // Das Inputfile oeffnen
-  if ((flun = fopen (fn, "r")) == NULL) {
-    TX_Error ("UTF_add_fil__: FileOpenError  %s ****",fn);
+  //----------------------------------------------------------------
+  // load model into UTF_FilBuf0
+ 
+  // get Filesize
+  if(fSiz < 0) {
+    TX_Error("UTF_add_fil_init - Error file |%s|",fn);
+    TX_Error("**** no main-model exists ...");
+    AP_src_init (fn);
+    goto L_exit;
+  }
+    
+  // get mem
+  if(UTF_alloc__ (fSiz + 256) < 0) {
+    TX_Error("UTF_add_fil_init - EOM");
     return -1;
   }
 
-  cLen = *sizAct; // strlen(cBuf);
-  cpos = &cBuf[cLen];
-  sizRest = sizTot - cLen;
-
-  // printf(" start:|%s| len=%d siz=%d\n",cpos,cLen,sizTot);
+  // load model into UTF_FilBuf0
+  UTF_add_fil_0 (fn);
 
 
-  //---------------------------------------------
-  // Datei zeilenweise einlesen
-  while (fgets (cpos, sizRest, flun) != NULL) {
+  //----------------------------------------------------------------
+  // find, work, remove DYNAMIC_DATA-block
+  ED_work_dyn ();
 
-    // printf(" add |%s|\n",cpos);
-
-    // change fileformat dos --> unix
-    // das Zeileende muss so aussehen:   \n  \0;
-    // das \0 wird dann wieder ueberschrieben !!!
-    lLn = UTX_CleanLF (cpos);
-
-    cpos = &cpos[lLn];
-    sizRest -= lLn;
-
-    if(sizRest < 72) {
-      TX_Error("UTF_add_fil__ E001");
-      break;
-    }
+  // load memspc into editor
+  if(UI_InpMode == UI_MODE_MAN) {
+    ED_load__ ();
   }
 
 
-  //---------------------------------------------
-  /* Fertig: */
-  fclose (flun);
+  irc = 0;
 
-  *sizAct = sizTot - sizRest;
-  cBuf[*sizAct] = '\0';
+  //----------------------------------------------------------------
+  L_exit:
 
-  return 0;
+    // UTF_dump__ (); // TEST
+    // printf("ex-UTF_add_fil_init %d\n",irc);
+
+  return irc;
 
 }
 
@@ -1471,11 +1756,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
 //================================================================
   int UTF_add_file (char* fn) {
 //================================================================
-/// \code
-/// Datei in den Hauptbuffer laden - hintanhaengen
-/// rc = -1 = Error;
-///       1 = OK.
-/// \endcode
+// UTF_add_file        add file to membuf UTF_FilBuf0
+// rc = -1 = Error;
+//       1 = OK.
 
   long  fSiz;
   // long  newSiz;
@@ -1487,7 +1770,9 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   fSiz = OS_FilSiz (fn);
   if(fSiz < 0) {
     TX_Error("UTF_add_file - Error file |%s|",fn);
-    return -1;
+    TX_Error("**** no main-model exists ...");
+    AP_src_init (fn);
+    // return -1;
   }
 
 
@@ -1498,7 +1783,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   }
 
 
-  UTF_add_fil__ (UTF_FilBuf0, &UTF_FilBuf0Len, UTF_FilBuf0Siz, fn);
+  UTX_fget_add_MS (UTF_FilBuf0, &UTF_FilBuf0Len, UTF_FilBuf0Siz, fn);
 
   // UTF_FilBuf0Len = strlen(UTF_FilBuf0);
 
@@ -1540,7 +1825,7 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   // request mem
   UTF_alloc1_ (fSiz + UTF_FilBuf1Len);
 
-  UTF_add_fil__ (UTF_FilBuf1, &UTF_FilBuf1Len, UTF_FilBuf1Siz, fn);
+  UTX_fget_add_MS (UTF_FilBuf1, &UTF_FilBuf1Len, UTF_FilBuf1Siz, fn);
 
   // UTF_FilBuf1Len = strlen(UTF_FilBuf1);
 
@@ -1848,8 +2133,8 @@ int DL_wri_dynDat (FILE *fpo) { fprintf(fpo, "DUMMYFUNKTION !!\n"); }
   long l1, newSiz;
 
 
-  // printf("UTF_insert1 cp=%ld Buf0Len=%ld Buf1Len=%ld siz=%ld\n",cpos,
-         // UTF_FilBuf0Len,UTF_FilBuf1Len,UTF_FilBuf0Siz);
+  printf("UTF_insert1 cp=%ld Buf0Len=%ld Buf1Len=%ld siz=%ld\n",cpos,
+         UTF_FilBuf0Len,UTF_FilBuf1Len,UTF_FilBuf0Siz);
   // printf(" Buf0=|%s|\n",UTF_FilBuf0);
   // printf(" Buf1=|%s|\n",UTF_FilBuf1);
 
@@ -2132,6 +2417,35 @@ Soll tx1 am Zeilenbeginn stehen:
 
   // printf("new siz %d %d\n",UTF_FilBuf0Len,isiz);
 
+  return 0;
+
+}
+
+
+//================================================================
+  int UTF_test_scan () {
+//================================================================
+// UTF_test_scan      loop tru UTF_FilBuf0 - display
+
+  long     ll, lNr;
+  char     *cp1;
+
+  printf("UTF_test_scan \n");
+
+  lNr = 0;
+
+  L_nxt:
+    ++lNr;
+    cp1 = UTF_GetPosLnr (&ll, lNr); // get startPos and lineLength
+    if(!cp1) goto L_exit;
+    printf("%04ld ", lNr);
+    UTX_dump_cnl (cp1, 100);        // print cp1 to next '\n'
+    printf("\n");
+    goto L_nxt;
+
+
+  L_exit:
+    printf("ex-UTF_test_scan \n");
   return 0;
 
 }

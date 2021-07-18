@@ -14,7 +14,7 @@ Functions: ../ut/ut_ox_base.c
   ObjGX* OGX_oxm_copy_obj (Memspc *mSpo,
                       void *obji, int typ, int iNr, int isolate);
   long OGX_is_dbo (ObjGX *oxi);
-
+  ObjGX OGX_oxDat_oxInd (long *dbi, ObjGX *oxi);
 
 
 //----------------------------------------------------------------

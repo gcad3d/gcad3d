@@ -16,11 +16,19 @@
  *
 -----------------------------------------------------
 TODO:
+-----------------------------------------------------
+- does not export bodies eg B20=PRISM S20 D(0 0 1); see ELE1/conn1.gcad
+
+-----------------------------------------------------
+- does not tilt subModels - test with Data_U/sample_models1.gcad
+
+-----------------------------------------------------
 Resolv DIMENSIONs into dummy-blocks "*D#"  (DXFW_DIM())
   ..
 
------------------------------------------------------
+=====================================================
 Modifications:
+2012-06-24 DXFW_INSERT rewritten. RF.
 2016-06-02 write mockup-models -> 3DFACE. RF.
 2015-10-21 completely rewritten. RF.
 2004-11-12 DIMENSION, LWPOLYLINE zu. RF.
@@ -433,6 +441,7 @@ int DXFW_test (char *txt1) {
 // DXFW__                     export as DXF
 //   if group is active: export group only; else export all objs.
 // Input:
+//   fnam    full name outfile
 
   int       i1, i2, *ip, mTyp, oNr, mode;
   long      l1;
@@ -542,10 +551,12 @@ int DXFW_test (char *txt1) {
     mbo = DB_get_ModBas (*ip);
     mTyp = mbo->typ;   // get modeltype (native or mockup)
     strcpy(s1, mbo->mnam);
-    // for mockup-models: remove filetyp from modelname
-    if(mTyp >= Mtyp_DXF) UTX_ftyp_cut (s1);
+
+//     // for mockup-models: remove filetyp from modelname
+//     if(mTyp >= Mtyp_DXF) UTX_ftyp_cut (s1);
+
     // change all '/' of mNam into '_' - else no correct filename possible
-    UTX_safeName (s1, 2);
+    UTX_safeName (s1, 1);
     p1 = s1;
       printf("\n++++++++++++++++++++++++++++\n nxt blk: %d %d |%s|\n",
              *ip,mTyp,p1);
@@ -1162,11 +1173,11 @@ usw.
   // Die neue X-Achse ist das Kreuzprodukt der World-Z-Achse mit der neuen Z-Achse
   //UT3D_vc_perp2vc (&vx, vz, &UT3D_VECTOR_Z);
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Z, vz);
-  //TX_Print("vx=%f,%f,%f",vx.dx,vx.dy,vx.dz);
+  UT3D_vc_setLength (&vx, &vx, 1.);
 
   // Die neue Y-Achse ist das Kreuzprodukt der neuen Z-Achse mit der neuen X-Achse
   UT3D_vc_perp2vc (&vy, vz, &vx);
-  //TX_Print("vy=%f,%f,%f",vy.dx,vy.dy,vy.dz);
+  UT3D_vc_setLength (&vy, &vy, 1.);
 
 
   Load_Matrix:
@@ -1700,31 +1711,32 @@ usw.
 
 
 //================================================================
-  int  DXFW_INSERT (ObjGX *ox1, FILE *fpo) {
+  int  DXFW_INSERT (ObjGX *ox1, long dbi, FILE *fpo) {
 //================================================================
 // write INSERT-record;
 // add blockName to list of subModels
 // 
 //   INSERT   10,20,30=Origin; 2=BlockNam; 41=X-Scale; 42=Y-Scale; 43=Z-Scale.
 //            50=RotAng; 70/71=column/row-count; 44/45=column/row-spacing.
+//            210,220,230=axis-new-refSys (see arbitrary.axis.system);
 //            Blocks are in "SECTION BLOCKS"; starting with "BLOCK",
 //            EndOfBlock = ENDBLK
 //            66=AttribsFollowFlag(1=Yes; Atribs end with SEQEND).
 //            blocks  (mit ASHADE und AVE_RENDER, ... glass.dxf) dzt skippen.
 
-  int           irc, mTyp, mbi;
+  int           irc, mTyp, mbi, iarb;
   long          l1;
   char          s1[256];
-  double        d1;
+  double        d1, ar, q1[4];
   Point         p1;
-  Vector        *vz1, *vz2, vxn, vzn;
+  Vector        *vz1, *vx2, *vz2, vxa;
+  Plane         pl1;
   Mat_4x3       m1, mi1;
   ModelRef      *mr;
   ModelBas      *mbo;
 
 
-  printf(" DXFW_INSERT: ------------------------\n");
-
+  // printf(" DXFW_INSERT: ------------------------\n");
 
   mr = ox1->data;
   mbi = mr->modNr;
@@ -1732,16 +1744,9 @@ usw.
     // DEB_dump_obj__ (Typ_Model, mr, "mr:");
     // DEB_dump_obj__ (Typ_SubModel, mbo, "  mbo:");
 
-  vz1 = &(WC_sur_act.vz);
-  vz2 = &(mr->vz);   // vz of subModel
-    // DEB_dump_obj__ (Typ_VC, vz1, "  vz:");
-    // DEB_dump_obj__ (Typ_VC, vz2, "  vz-sm:");
-    // DEB_dump_obj__ (Typ_VC, &mr->vx, "  vx-sm:");
-
   // get modeltype (native or mockup)
   mTyp = mbo->typ;
     // printf(" mTyp=%d\n",mTyp);
-
 
   // blockName from modelname
   strcpy(s1, mbo->mnam);
@@ -1752,7 +1757,6 @@ usw.
   // UtxTab_add_uniq__ (&dxfw_smTab, s1);
   MemTab_uniq_sav (&dxfw_smTab, &l1, &mbi);
 
-
   // subModelName; for mockup-models: remove filetype for INSERT
   if(mTyp >= Mtyp_DXF) {
     strcpy(s1, mbo->mnam);
@@ -1761,21 +1765,78 @@ usw.
   }
 
 
-  // change OCS(ECS) -> WCS
-  irc = dxfw_load_mat (m1, vz2);
-    // DEB_dump_obj__ (Typ_VC, vz2, " vz2:");
-    // DEB_dump_obj__ (Typ_M4x3, m1, "m1:");
-  if(irc) {
-    // new Z not parallel to old Z
+  //----------------------------------------------------------------
+  // fix origin, orientation
+
+  vz1 = &(WC_sur_act.vz);   // vz-world
+  vz2 = &(mr->vz);          // vz of subModel
+  vx2 = &(mr->vx);          // vx of subModel
+    // DEB_dump_obj__ (Typ_VC, vz1, "  vz1 - world");
+    // DEB_dump_obj__ (Typ_VC, vz2, "  vz2 - Z-sm:");
+    // DEB_dump_obj__ (Typ_VC, &mr->vx, "  vx-sm:");
+
+  // test if vz == 0,0,1 (L_parl) or 0,0,-1 (antiParl) or arbit(rary)
+  d1 = 1. / 64.;
+  if((UTP_comp2db (vz1->dx, vz2->dx, d1)) &&
+     (UTP_comp2db (vz1->dy, vz2->dy, d1)))    {
+    if(UTP_comp2db (vz1->dz, vz2->dz, d1)) goto L_parl;
+    goto L_Z_antiParl;
+  }
+  goto L_Z_arbit;
+
+
+  L_parl:
+    // parallel; new Z-axis == world-Z-axis
+    // get p1=origin and ar=angle
+    p1 = mr->po;
+
+    // get the angle between the vx-vectors; CCW, 0-2pi.
+    ar = UT3D_angr_3vcn_CCW (vz1, &WC_sur_act.vx, &mr->vx);
+    iarb = 0;
+    goto L_out;
+
+
+  L_Z_antiParl:
+    // new Z-axis = antiparallel to world-Z-axis
+    // rotation 180 around X-axis: invert X-axis, rotate 180 deg
+    UT3D_vc_invert (&vxa, &mr->vx);
+    UT3D_pl_pto_vcz_vcx (&pl1, (Point*)&UT3D_PT_NUL, &mr->vz, &vxa);
+    UT3D_m3_loadpl (m1, &pl1);
+    UT3D_m3_invm3 (mi1, m1);
+    // translate the origin into the new axisSystem
+    UT3D_pt_tra_pt_m3 (&p1, mi1, &mr->po);
+    ar = RAD_180;
+    iarb = 1;
+    goto L_out;
+
+
+  L_Z_arbit:
+    // new Z-axis = arbitrary axis
+    // get p1=origin and ar=angle to rotate new Z-axis vz2
+    dxfw_load_mat (m1, vz2);
+    // have now a plane with vz = Z-axis of subModel (block);
+    // - but vx of this plane is axact in the world-plane XY;
+    UT3D_m3_get (&vxa, 0, m1);
+
+    // get the angle ar between the vx-vectors; CCW, 0-2pi.
+    ar = UT3D_angr_3vcn_CCW (vz2, &vxa, vx2);
+
     // inverse matrix
     UT3D_m3_invm3 (mi1, m1);
     // translate the origin into the new axisSystem
     UT3D_pt_tra_pt_m3 (&p1, mi1, &mr->po);
+    iarb = 2;
+    // goto L_out;
 
-  } else {
-    p1 = mr->po;
-  }
 
+
+
+  //----------------------------------------------------------------
+  L_out:
+    // printf(" DXFW_INSERT-dbi=%ld iarb=%d ar=%f\n",dbi,iarb,ar);
+
+
+  fprintf(fpo,"999\n***** M%ld *****\n",dbi);
 
   fprintf(fpo,"0\nINSERT\n");
 
@@ -1783,10 +1844,8 @@ usw.
   // subModelName; for mockup-models: remove filetype
   fprintf(fpo,"2\n%s\n",s1);
 
-
   // origin
   DXFW_point3 (0, &p1, fpo);
-
 
   // scales
   if(!UTP_comp2db(mr->scl, 1.0, UT_TOL_Ang1)) {
@@ -1795,30 +1854,13 @@ usw.
     fprintf(fpo,"43\n%f\n",mr->scl);
   }
 
+  if(!UTP_compdb0(ar, RAD_01)) {
+    // 50/rotAng
+    fprintf(fpo,"50\n%f\n", UT_DEGREES(ar));
+  }
 
-  // test if vz == 0,0,1. Yes: no z-axis-output. No: write Z-axis+angle.
-  // if (UT3D_vc_ck_parl_vc (vz1, vz2, RAD_1)) {
-  // printf(" dxf-vz is parl ..\n");
-  // d1 = UT3D_angr_3vcn_CCW (vz1, &WC_sur_act.vx, &mr->vx);
-
-
-  if(!irc) {
-    // ONLY FOR Z-parallel
-    // get the vectors of new refSys
-    UT3D_m3_get (&vxn, 0, m1);
-    UT3D_m3_get (&vzn, 2, m1);
-
-    // get the angle between the vx-vectors; CCW, 0-2pi.
-    d1 = UT3D_angr_3vcn_CCW (&vzn, &WC_sur_act.vx, &vxn);
-      // printf(" angr=%f\n",d1);
-    if(!UTP_compdb0(d1, RAD_1)) {
-      // 50/rotAng
-      fprintf(fpo,"50\n%f\n", UT_DEGREES(d1));
-    }
-
-
-  } else {
-    // ONLY FOR NOT Z-parallel
+  if(iarb) {
+    // iax=0: arbitray axis (new Z-axis != world-Z-axis)
     // add new Z-axis as 210,220,230
     fprintf(fpo,"210\n%f\n",vz2->dx);
     fprintf(fpo,"220\n%f\n",vz2->dy);
@@ -1979,7 +2021,7 @@ usw.
     case Typ_Model:
     case Typ_Mock:
       // add to list of subModels
-      return  DXFW_INSERT (ox1, fpo1);
+      return  DXFW_INSERT (ox1, dbi, fpo1);
 
     //=========================================================
     default:
@@ -2067,7 +2109,8 @@ usw.
   printf("DXFW_Mdl_tess |%s|\n",mdlNam);
 
   // fix filename for tess-model
-  sprintf(fNam, "%s%s.tess",OS_get_tmp_dir(),mdlNam);
+  MDL_fnModTess_mNam (fNam, mdlNam);
+  // sprintf(fNam, "%s%s.tess",OS_get_tmp_dir(),mdlNam);
     printf(" fTess=|%s|\n",fNam);
 
   // load tess-model from file
@@ -2287,11 +2330,10 @@ usw.
 //==========================================================================
   int DXFW_cat_file (FILE *fpo, char *fnam) {
 //==========================================================================
-/// \code
-/// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
-/// UTX_cat_file           add file into open fileunit
-/// add file 
-/// \endcode
+// MICROSOFT-BUG: you may not write into a file opened in dll with core-function
+// UTX_cat_file           add file into open fileunit
+// add file 
+// see UTX_cat_file
 
 
 
@@ -2299,7 +2341,7 @@ usw.
   char    *fBuf;
 
 
-  printf("DXFW_cat_file/UTX_cat_file |%s|\n",fnam);
+  printf("DXFW_cat_file |%s|\n",fnam);
 
 
   l1 = OS_FilSiz (fnam);
@@ -2364,11 +2406,11 @@ usw.
 //     ED_Init ();
 //     if(ED_work_file(cbuf) < 0){TX_Error("AP_ExportIges__: E003");goto L_err;}
 //     ED_lnr_reset ();
-//     WC_Work__ (0, NULL);   // Init Levelcounter in WC_Work__
+//     WC_Work1 (0, NULL);   // Init Levelcounter in WC_Work1
 //     ED_Run ();
 // 
 //     // work submodel
-//     modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
+//     modNr = DB_mbi_mRefID(&cbuf[ipos]);  // get ModelNr from Modelname
 //     if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
 //     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Mdl_gcad !
 //     anz_obj += i1;
@@ -2473,11 +2515,11 @@ usw.
 //     ED_Init ();
 //     if(ED_work_file (cbuf) < 0) {TX_Error("AP_ExportIges__: E003"); goto L_err;}
 //     ED_lnr_reset ();
-//     WC_Work__ (0, NULL);   // Init Levelcounter in WC_Work__
+//     WC_Work1 (0, NULL);   // Init Levelcounter in WC_Work1
 //     ED_Run ();
 // 
 //     // work submodel
-//     modNr = DB_get_ModNr(&cbuf[ipos]);  // get ModelNr from Modelname
+//     modNr = DB_mbi_mRefID(&cbuf[ipos]);  // get ModelNr from Modelname
 //     if(modNr < 0) {TX_Error("AP_ExportIges__: E004"); goto L_err;}
 //     i1 = AP_ExportIges_Model (modNr, fp1, fp2);  NEW: DXFW_Mdl_gcad !
 //     anz_obj += i1;

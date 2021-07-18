@@ -38,20 +38,24 @@ APED_oid_dbo_all    make name from typ and DB-index  (all types)
 APED_oid_vc         get oid for Vector; (DX or DIX or D#)
 APED_dbi_src_std_vc_pl get dbi for std-vector or -planes from GcoTxtTab-index
 
+AP_typ__ck_ato__    check if ato has components of requested type
+AP_typ__ck_ato_b    check if ato has components of requested basicType
+AP_typLst_grpTyp    get a list of basicTypes for a selectionGroupType
+UTO_ck_dbsTyp       check object-typ (struct or object)
+UTO_ck_typTyp       check if typ=curve (Typ_lFig) or surface (Typ_SUR)
+UTO_ck_symTyp       check if typ is symbolic (no grafic repres.)
+UTO_ck_curvForm     check if objTyp is ObjGX or other typ
+
 AP_typ_srcExpr      decode expression
 AP_typ_FncNam       get type of function
 
 AP_typ_typChar      make typ from typChar  ("P" -> Typ_PT)
 AP_typChar_typ      make typChar from typ  (Typ_PT -> 'P')
-AP_typDB_typ     Typ_CVBSP -> Typ_CV   oder Typ_SURRU -> Typ_SUR
+AP_typDB_typ        Typ_CVBSP -> Typ_CV   oder Typ_SURRU -> Typ_SUR
 AP_cmp_typ          check for identical types
 
 AP_src_typ__        make text from (int)typ; Typ_PT --> "PT" ..
 DB_Typ_Char         give typ(int) from text "PT" --> Typ_PT;
-
-UTO_ck_dbsTyp       check object-typ (struct or object)
-UTO_ck_typTyp       check if typ=curve (Typ_lFig) or surface (Typ_SUR)
-UTO_ck_curvForm     check if objTyp is ObjGX or other typ
 
 List_functions_end:
 =====================================================
@@ -85,7 +89,6 @@ List_functions_end:
 
 //============ Extern Var: =====================
 // ex ../xa/xa.c
-extern int       AP_modact_ind;         // -1=primary Model is active;
 
 
 
@@ -204,8 +207,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
   static char  *Fc1TxtTab[] = {  // geom functions
 // 00             1              2              3              4
   "VAL",         "ANG",         "RAD",         "MOD",         "NEW",         
-  "PTS",         "PTI",         "SEG",
-  ""};
+  "PTS",         "PTI",         "SEG",         ""};
 
 // the corresponding types for Fc1TxtTab
   static int Fc1TypTab[]={
@@ -214,7 +216,7 @@ extern int       AP_modact_ind;         // -1=primary Model is active;
 
 
 //----------------------------------------------------------------
-  static char  *FcmTxtTab[] = {
+  static char  *FcmTxtTab[] = {    // math functions
 // 00             1              2              3              4
   "SQRT",        "SIN",         "COS",         "TAN",         "ASIN",
   "ACOS",        "ATAN",        "ABS",         "FIX",         "RND",
@@ -229,8 +231,7 @@ char  *NcoTxtTab[] = {  // num. constants
 
 double NcoValTab[] = {  // values for NcoTxtTab; see ATO_srcTxt
   RAD_180,       RAD_1,        RAD_90,        RAD_180,       RAD_360,
-  SR_2,          SR_3
-};
+  SR_2,          SR_3};
 
 
 char  *GcoTxtTab[] = {  // geom. constants see APED_dbi_src_std_vc_pl
@@ -285,7 +286,7 @@ char  *ObjCodTab[] = {
 // 70
   "UNL",         "UNL1",        "UNL2",        "DISP_PT",      "DISP_PL",
 // 80
-  "ANG",         ""};
+  "ANG",         "DRX",         "DRY",         "DRZ",          ""};
 
 // last word must be "" !
 
@@ -298,11 +299,16 @@ char  *ObjCodTab[] = {
 
 //----------------------------------------------------------------
 // text for 2D-buttons ..
-  static char *GL2Dtxt1[]={" CW","REV"," CX","CTRL","PERP","PARL"};
-                        // 1020   1         2      3      4      5 
-  static char *GL2Dtxt2[]={" V+"," V-",    "VC+", "VC-", "NXT", "PRV",
-                        //  6     7         8
+                 // Typ_modCWCCW
+  static char *GL2Dtxt1[]={" CW","REV"," CX","CTRL","PERP","PARL","UNL"};
+
+
+                        // 1020   1     2     3     4     5     6      7
+  static char *GL2Dtxt2[]={" V+"," V-","VC+","VC-","TR+","TR-","NXT", "PRV",
+                        //  8     9         10
                            "?",  "PTonObj","PTonCP"};
+
+
   static char *GL2Dtxt3[]={"LIST"};
 
 
@@ -572,6 +578,8 @@ char  *ObjCodTab[] = {
 
 }
 
+
+/*
 //================================================================
   int APED_oid_dbo_sm (char *oid, int sSiz, int dbTyp, long dbi) {
 //================================================================
@@ -585,7 +593,7 @@ char  *ObjCodTab[] = {
     strcat (oid, " in ");
     ii = strlen (oid);
     sSiz -= ii;
-    Mod_mNam_mdb (&oid[ii], sSiz, &i1, AP_modact_ind);
+    Mod_mNam_mdb (&oid[ii], sSiz, &i1, AP_modact_ibm);
   }
 
     // printf("ex APED_oid_dbo_sm |%s|\n",oid);
@@ -594,6 +602,7 @@ char  *ObjCodTab[] = {
   return 0;
 
 }
+*/
 
  
 //====================================================================
@@ -839,13 +848,18 @@ char  *ObjCodTab[] = {
   char *p1;
 
 
+  // printf("AP_src_typMod %d\n",typ);
+
+
   if(typ >= Typ_FncVAR1) {
     if(typ < Typ_EOT) return p1 = GL2Dtxt2[typ - Typ_FncVAR1];
     return NULL;
   }
 
+  // get text for types Typ_modREV - incl. Typ_modPARL
+  // if(typ >= Typ_modREV) {
   if(typ >= Typ_modCWCCW) {
-    if(typ < Typ_modHIX) return p1 = GL2Dtxt1[typ - Typ_modCWCCW];
+    if(typ <= Typ_modUnlim) return p1 = GL2Dtxt1[typ - Typ_modCWCCW];
     return NULL;
   }
 
@@ -856,6 +870,7 @@ char  *ObjCodTab[] = {
 
   return NULL;
 }
+
 
 /* replaced by AP_src_typ__
 //=============================================================
@@ -1126,6 +1141,30 @@ char  *ObjCodTab[] = {
 
 }
 
+
+//================================================================
+  int AP_typ_ck_sym (int typ) {
+//================================================================
+// AP_typ_ck_sym      check if typ is symbolic-typ / not basic typ (VC,Tra,VAR,Act
+// returns  1 = yes,its a symbolic-typ (VC,Tra,VAR,Act),
+//          0 = not
+
+  switch(typ) {
+
+    case Typ_VAR:
+    case Typ_VC:
+    case Typ_Joint:
+    case Typ_Activ:
+    case Typ_Tra:
+      break;
+
+    default:
+      return 0;
+  }
+
+  return 1;
+
+}
 
 
 //====================================================================
@@ -1547,6 +1586,109 @@ char  *ObjCodTab[] = {
 
 }
 
+
+//================================================================
+  char* AP_typTxt_typ (int typ) {
+//================================================================
+// AP_typTxt_typ            get typTxt from typ (eg "Typ_PT" from Typ_PT)
+
+  int    i1, i2;
+
+  typedef  struct {int typ; char *txt;} IE_info_rec;
+
+  static   IE_info_rec IE_info_tab[] = {
+  Typ_Val,      "Typ_Val",
+  Typ_PT,       "Typ_PT",
+  Typ_LN,       "Typ_LN",
+  Typ_CI,       "Typ_CI",
+  Typ_VC,       "Typ_VC",
+  Typ_CV,       "Typ_CV",
+  Typ_CVTRM,    "Typ_CVTRM",
+  Typ_CVPOL,    "Typ_CVPOL",
+  Typ_CVBSP,    "Typ_CVBSP",
+  Typ_CVRBSP,   "Typ_CVRBSP",
+  Typ_CVELL,    "Typ_CVELL,",
+  Typ_XVal,     "Typ_XVal",
+  Typ_YVal,     "Typ_YVal",
+  Typ_ZVal,     "Typ_ZVal",
+  Typ_Angle,    "Typ_Angle",
+  Typ_PLN,      "Typ_PLN",
+  Typ_SOL,      "Typ_SOL",
+  Typ_Tra,      "Typ_Tra",
+  Typ_modAux,   "Typ_mod1",                    // Bild-Tasten/ (Version ändern)
+  Typ_Txt,      "Typ_Txt",
+
+  Typ_TmpPT,    "Typ_Txt",
+  Typ_Vertex,   "Typ_Vertex",
+
+  Typ_SubModel, "Typ_SubModel",
+  Typ_Model,    "Typ_Model",
+  Typ_CtlgPart, "Typ_CtlgPart",
+
+  // Typ_Str_Dir1, "Typ_Str_Dir1",              // nur CAD
+  // Typ_Val_symTyp, "Typ_Val_symTyp",          // nur CAD
+  Typ_Joint,    "Typ_Joint",
+  // Typ_apDat,    "Typ_apDat",
+  Typ_Group,    "Typ_Group",
+
+  Typ_PTS,      "Typ_PTS",
+  Typ_PTI,      "Typ_PTI",
+  Typ_SEG,      "Typ_SEG",
+
+  Typ_String,   "Typ_String",
+  TYP_FilNam,   "TYP_FilNam",
+
+  Typ_modRepl,  "Typ_modRepl",
+  Typ_mod1,     "Typ_mod1",
+  Typ_mod2,     "Typ_mod2",
+  Typ_modCWCCW, "Typ_modCWCCW",
+  Typ_modREV,   "Typ_modREV",
+  Typ_modCX,    "Typ_modCX",
+  Typ_modCTRL,  "Typ_modCTRL",
+  Typ_modPERP,  "Typ_modPERP",
+  Typ_modPARL,  "Typ_modPARL",
+  Typ_modUnlim, "Typ_modUnlim",
+
+  Typ_goPrim,   "Typ_goPrim",
+  Typ_go_LCS,   "Typ_lFig",
+  Typ_goGeom,   "Typ_goGeom",
+  Typ_goGeo1,   "Typ_goGeo1",
+  Typ_goGeo2,   "Typ_goGeo2",
+  Typ_go_PD,    "Typ_go_PD",
+  // Typ_goGeo4,   "Typ_goGeo4",
+  Typ_goGeo5,   "Typ_goGeo5",
+  Typ_goGeo7,   "Typ_goGeo7",
+  Typ_goGeo8,   "Typ_goGeo8",
+  Typ_goAxis,   "Typ_goAxis",
+  Typ_goGeoSUSU,"Typ_goGeoSUSU",
+  Typ_go_RA,    "Typ_go_RA",
+  Typ_go_lf1,   "Typ_go_lf1",
+  Typ_go_lf2,   "Typ_go_lf2",
+
+  -1,           ""};               // end
+
+
+
+  for(i1=0; i1<1000; ++i1) {
+    i2 = IE_info_tab[i1].typ;
+    if(i2 < 0) goto L_err;  // -1 = end of tab
+    if(i2 == typ) goto L_exit;
+  }
+  goto L_err;
+
+
+  L_exit:
+      // printf("ex-AP_typTxt_typ |%s|\n",IE_info_tab[i1].txt);
+    return IE_info_tab[i1].txt;
+
+
+  L_err:
+    TX_Print("******* AP_typTxt_typ typ %d undefined",typ);
+    return NULL;
+
+}
+
+
 //====================================================================
   int AP_cmp_typ (int typ1, int typ2) {
 //====================================================================
@@ -1611,7 +1753,7 @@ char  *ObjCodTab[] = {
 //================================================================
   int UTO_ck_ptr (int typ) {
 //================================================================
-// UTO_ck_ptr              check if struct haspointer (is relocatable)
+// UTO_ck_ptr              check if struct has pointer (is relocatable)
 // check if struct is relocatable without modifications
 // RetCod: 0=OK; relocatable without modifications (no pointers in struct).
 
@@ -1643,6 +1785,31 @@ char  *ObjCodTab[] = {
   }
 
   return -1;
+
+}
+
+
+//================================================================
+  int UTO_ck_symTyp (int typ) {
+//================================================================
+// UTO_ck_symTyp               check if typ is symbolic (no grafic repres.)
+// retCod     1 = yes (typ is VAR|VC|Tra|Actic|Joint)
+//            0 = normal visible obj (PT|Curv|Surf ..)
+
+
+  switch (typ) {
+    case Typ_VAR:
+    case Typ_VC:
+    case Typ_Tra:
+    case Typ_Activ:
+    case Typ_Joint:
+      return 1;
+
+    default:
+      break;
+  }
+
+  return 0;
 
 }
 
@@ -1774,6 +1941,210 @@ char  *ObjCodTab[] = {
   }
 
 }
+
+
+//================================================================
+  int* AP_typLst_grpTyp (int rTyp) {
+//================================================================
+// AP_typLst_grpTyp     get a list of basicTypes for a selectionGroupType
+// selection-groupTypes: ../xa/xa_sele.h see INF_groupTypes
+
+  // Typ_goPrim      P|L|C|S(Ell,Bsp,Plg,CCV) NOT D|R|A|B
+  static int lPr[] = {Typ_PT, Typ_LN, Typ_CI, Typ_CV, 0};
+
+  // Typ_goGeo1      Typ_go_LCS|Pln|Sur|Sol   all curves,  NOT P|D;
+  static int lG1[] = {Typ_LN, Typ_CI, Typ_CV, Typ_PLN, Typ_SUR, Typ_SOL, 0};
+
+  // Typ_go_PD       PT|VC
+  static int lPD[] = {Typ_PT, Typ_CV, 0};
+
+  // Typ_goGeo5      C|Ell|Plg|Bsp|CCV         NOT D,P,L,A,B
+  static int lG5[] = {Typ_CI, Typ_CV, 0};
+
+  // Typ_goGeoSUSU   Supporting Surface PLN,SUR,CON/TOR/SRU/SRV/SBS
+  static int lGS[] = {Typ_PLN, Typ_SUR, Typ_SURCON, Typ_SURTOR, Typ_SURRU,
+                      Typ_SURRV, Typ_SURSWP, Typ_SURBSP, Typ_SURRBSP, 0};
+
+  // Typ_goGeo6      P|L|C                     NOT D|S|A|B
+  static int lG6[] = {Typ_PT, Typ_LN, Typ_CI, 0};
+
+  // Typ_goGeo7      Val|V|P|D                 NOT R|A|B
+  static int lG7[] = {Typ_PT, Typ_VC, Typ_Val, 0};
+
+  // Typ_goGeo8      Val|V|PT  (radius,offset,dist,param)
+  static int lG8[] = {Typ_VAR, Typ_PT, Typ_LN, Typ_CI,
+                      Typ_Val, Typ_XVal, Typ_YVal, Typ_ZVal, 0}; 
+
+  // Typ_go_LCS      L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B
+  static int lLS[] = {Typ_LN, Typ_CI, Typ_CV, 0};
+
+  // Typ_go_RA       plane|surface
+  static int lRA[] = {Typ_PLN, Typ_SUR, 0};
+
+  // Typ_go_lf1      L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B|contour
+  static int lf1[] = {Typ_LN, Typ_CI, Typ_CV, 0};
+
+  // Typ_go_lf2      L|C|S(Ell,Bsp,Plg)       NOT P|D|A|B|CCV
+  static int lf2[] = {Typ_LN, Typ_CI, Typ_CV, 0};
+
+  // Typ_go_JNT      P|GText
+  static int lJT[] = {Typ_PT, Typ_GTXT, 0};
+
+  // empty,unused,error
+  static int l_E[] = {0};
+
+  //                  0          1         2        3        4
+  //                  5          6         7        8        9
+  static int *pa[] = {l_E,       lPr,      lG1,     l_E,     lPD,     // 0-4
+                      l_E,       lG5,      lGS,     lG6,     lG7,     // 5-9
+                      lG8,       l_E,      lLS,     l_E,     lRA,     // 10-14
+                      lf1,       lf2,      lJT,     l_E,     l_E};    // 15-19
+
+                      // l_E,       l_E,      l_E,     l_E,     l_E,     // 20-24
+                      // l_E,       l_E,      l_E,     l_E,     l_E};    // 25-29
+
+  int     i1, *ia;
+
+
+  // printf("AP_typLst_grpTyp %d\n",rTyp);
+
+  i1 = rTyp - 1000;
+  if(i1 > 19) goto L_err;
+
+  ia = pa[i1];
+
+  if(ia == l_E) goto L_err;
+
+    // TESTBLOCK
+    // for(i1=0;i1<100;++i1) {
+      // if(!ia[i1])break; printf(" Lst_grpTyp[%d]=%d\n",i1,ia[i1]);}
+    // printf("ex-AP_typLst_grpTyp \n");
+    // END TESTBLOCK
+
+
+  L_exit:
+    // printf("ex-AP_typLst_grpTyp in-%d\n",rTyp);
+  return ia;
+  
+
+  L_err:
+  printf("***************** AP_typLst_grpTyp TODO: %d\n",rTyp);
+  TX_Print("***************** AP_typLst_grpTyp TODO: %d",rTyp);
+  ia = NULL;
+  goto L_exit;
+
+}
+ 
+
+//================================================================
+  int AP_typ__ck_ato__ (ObjAto *ato, int typ) {
+//================================================================
+// AP_typ__ck_ato__      check if ato has components of requested type
+// Input:
+//   typ        type to check; basicTyp or groupTyp
+// Output:
+//   retCod     outTyp, basicTyp
+// was IE_inpCkTyp
+
+
+  int   irc=0, i1, *typLst;
+
+
+
+  // printf("AP_typ__ck_ato__ typ=%d\n",typ);
+  // ATO_dump__ (ato, "  ck_ato__-ato");
+
+  // skip empty ato
+  if(ato->nr < 1) goto L_ok;
+
+  if(typ >= Typ_goGeom) goto L_groupTyp;
+
+  // check basicTyp
+  irc = AP_typ__ck_ato_b (ato, typ);
+  if(irc > 0) goto L_ok;
+  goto L_err;
+
+
+  //================================================================
+  L_groupTyp:
+
+  // selectionModifiers (Typ > Typ_FncVAR1) not yet implemented ..
+  if(typ >= 1020) goto L_ok;
+
+  // get list of types for Typ_go_PD
+  if(typ == Typ_goGeom) { typ = ato->typ[0]; goto L_ok; }   // all objs
+
+  // get list of ..
+  typLst = AP_typLst_grpTyp (typ);
+  if(!typLst) goto L_err;
+
+
+  // loop tru typLst
+  i1 = 0;
+  while (typLst[i1]) {
+    typ = AP_typ__ck_ato_b (ato, typLst[i1]);
+    if(typ > 0) goto L_ok;
+    ++i1;
+  }
+
+  L_err:
+  typ = -1;
+
+
+  //================================================================
+  L_ok:
+
+    // printf("ex-AP_typ__ck_ato__ %d\n",typ);
+  return typ;
+
+}
+
+
+//================================================================
+  int AP_typ__ck_ato_b (ObjAto *ato, int typ) {
+//================================================================
+// AP_typ__ck_ato_b      check if ato has components of requested basicType
+// Input:
+//   typ        type to check; basicTyp
+// Output:
+//   retCod     outTyp; -1=not useful components
+// was IE_inpCkTyp  see IE_inpTxtOut
+
+
+  int   i1, *typLst;
+
+  // printf("AP_typ__ck_ato_b typ=%d\n",typ);
+  // ATO_dump__ (ato, "AP_typ__ck_ato_b");
+
+  // skip modifiers TODO
+  if(TYP_IS_MOD(typ))     goto L_ok;
+  // skip modelID's  TODO
+  if((typ == TYP_FilNam)    ||
+     (typ == Typ_SubModel)  ||
+     (typ == Typ_CtlgPart))    goto L_ok;
+
+
+  // test single obj in ato
+  if(ato->nr == 1) {
+    if(ato->typ[0] == typ) goto L_ok;
+  }
+
+
+  // loop tru components of ato, test
+
+
+
+  L_err:
+  typ = -1;
+
+
+  //================================================================
+  L_ok:
+    // printf("ex-AP_typ__ck_ato_b %d\n",typ);
+  return typ;
+
+}
+ 
 
 /*
 //================================================================

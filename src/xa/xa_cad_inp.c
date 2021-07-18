@@ -31,6 +31,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
+IE_inp_src_txt     get sourceObj (eg "P20" -> "R(P20)"
 IE_inpTxtOut       create outputText from inputFieldText
 IE_inpCkAdd        add or replace or skip input.  
 IE_inpCkTyp        returns basicobjTyp from inputFieldText.
@@ -50,7 +51,7 @@ List_functions_end:
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -66,15 +67,17 @@ List_functions_end:
 #include "../xa/xa_sele.h"        // Typ_go*
 
 #include "../xa/xa_cad_ui.h"      // INPRECANZ inpAuxDat ..
+#include "../xa/mdl__.h"          // MDL_mNam_imr
 
 
 
 
-
+extern int  IE_inpInd;        // index active inputField
 extern int  IE_inpTypAct;     // requested type for the active inputField
 extern int  IE_inpSrc;        // type of Input; 2=normal, 3=PgUp/Dwn
 extern int  IE_inpTypR[INPRECANZ];         // inputTypes (requested type)
 extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
+
 
 
 
@@ -401,16 +404,17 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   L_err_vc3vals:
     TX_Error("define Vector by 3 values; eg \"0 0 1\" or angle by \"ANG(degree)\" ..");
+      // printf(" ex-inpTxtOut-2\n");
     return -2;
 
 
 }
 
 
-//================================================================
+//====================================================================
   int IE_inpCkAdd (int *iAct, int *iNxt,  int *iDisp,
-                   int typSel, char *actTxt, char *newTxt) {
-//================================================================
+                   int typSel, long dbi, char *actTxt, char *newTxt) {
+//====================================================================
 // add or replace or skip input.
 // newTxt is the selected obj; actTxt is the existing inputFieldText.
 // IE_inpTypAct = requested inputTyp; eg Typ_goGeo7
@@ -428,12 +432,15 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 //
 // see also IE_inp_chg (-3); // do NOT proceed to next inputfield
 
-  int    actLen;
+  int    i1, actLen;
+  char   *p1, *px;
 
 
-  // printf("IE_inpCkAdd typSel=%d |%s|%s|\n",typSel,actTxt,newTxt);
+  // printf("IE_inpCkAdd typSel=%d dbi=%ld |%s|%s|\n",typSel,dbi,actTxt,newTxt);
   // printf("  IE_inpTypAct=%d\n",IE_inpTypAct);
-  // printf("  IE_inpSrc=%d\n",IE_inpSrc);
+  // printf("  IE_inpInd=%d\n",IE_inpInd);  // index inputField
+
+  // printf("  IE_inpSrc=%d\n",IE_inpSrc); //1=graf.Sel; 2=keyIn; 3=PgUp/Dwn
 
 
   actLen = strlen(actTxt);  // length of old text
@@ -446,6 +453,22 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
 
+  //================================================================
+  // selection of model
+  if(typSel == Typ_Model) {
+    // if subModel is active
+    if(IE_FuncTyp == IE_Func_Models) {
+      // replace oid with the modelname
+      // get modelname of selected refMdl <dbi>
+      p1 = MDL_mNam_imr (dbi);
+      if(!p1) {TX_Print("***** IE_inpCkAdd E1"); goto L_rem;}
+      strcpy(newTxt, p1);
+      goto L_rep;
+    }
+  }
+
+
+  //================================================================
   // IE_inpTypAct = requested type of input ..
   //----------------------------------------------------------------
   if(IE_inpTypAct == Typ_Val) {
@@ -489,11 +512,25 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
       *iAct = 0;   // 0=replace;
       *iNxt = 0;   // 0=keep,test
       *iDisp = 0;   // 0=display
-      return 0;
+      goto L_exit;
     }
 
     // only 1 point: not complete
     if((typSel == Typ_PT)||(typSel == Typ_TmpPT)) {
+      // check for "DD#"
+      if(IE_inpAuxDat[IE_inpInd].auxInf[0]) {
+        px = IE_inpAuxDat[IE_inpInd].auxInf;
+        if(!strncmp(px, "DD", 2)) {
+          // get vector from 2 points
+          actLen = IE_cad_inp_vc_pt_DD (newTxt, ICHAR(px[2]));
+          if(actLen > 2) {
+            *iAct = 0;    // 0=repl, 1=add
+            *iNxt = -1;   // 0=keep,test   -1=gotoNextField
+            *iDisp = 0;   // 0=display
+            goto L_exit;
+          }
+        }
+      }
       if(actLen < 2) goto L_err_not_complete; // keep field, do not test.
     }
 
@@ -507,10 +544,9 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
     *iAct = 1;    // 1=add
-    *iNxt = -1;   //0;    // 0=keep,test   -1=gotoNextField
+    *iNxt = -1;   // 0=keep,test   -1=gotoNextField
     *iDisp = 0;   // 0=display
-
-    return 0;
+    goto L_exit;
 
 
 
@@ -561,13 +597,14 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
       if((typSel == Typ_TmpPT)   ||
          (typSel == Typ_PT))         {
         // display, but not yet complete;
-        *iAct = 1;   // 1=add
-        *iNxt = 0;   // 0=keep,test
+        *iAct = 1;    // 1=add
+        *iNxt = 0;    // 0=keep,test
         *iDisp = 0;   // 0=display
-        return 0;
+        goto L_exit;
       }
     }
     goto L_add;
+
 
 
 
@@ -631,16 +668,23 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   }
 
 
-
-
   // 0=replace; 1=add; 2=remove; -1=skip
-  L_rep:   *iAct = 0;  return 0;
+  L_rep:   *iAct = 0;  goto L_exit;
   L_add:   *iAct = 1;  return 1;
   L_rem:   *iAct = 2;  return 2;
   L_in1:   *iAct = 3;  return 3;
   L_skip:  *iAct = -1; return -1;
 
 
+
+  //----------------------------------------------------------------
+  L_exit:
+      // printf(" ex-IE_inpCkAdd iAct=%d iNxt=%d iDisp=%d\n",*iAct,*iNxt,*iDisp);
+    return 0;
+
+
+  //----------------------------------------------------------------
+ 
   L_err_notFirstM:
     TX_Print("**** modifier cannot be first parameter ..");
     goto L_skip;
@@ -679,6 +723,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 // Output:
 //   retCod     outTyp, basicobjTyp
 
+// TODO: replace with AP_typLst_grpTyp
 // see also IE_txt2par1
 
 
@@ -694,7 +739,7 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
 
 
-  // printf("IE_inpCkTyp ii=%d |%s| req=%d\n",iind,actBuf,typ);
+  // printf("IE_inpCkTyp iind=%d |%s| req=%d\n",iind,actBuf,typ);
   // ATO_dump__ (ato, " inpCkTyp-in");
 
 
@@ -735,7 +780,8 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
   //----------------------------------------------------------------
   // only single outputObj:
   if(ato->nr == 1) {
-
+    if(typ == ato->typ[0]) goto L_found;
+    if(typ == Typ_PLN) goto L_found;  // too complex ..
     if((ato->typ[0] == Typ_VAR) ||
        (ato->typ[0] == Typ_Val))   {
       if((typ == Typ_Val)     ||
@@ -916,6 +962,8 @@ extern inpAuxDat IE_inpAuxDat[INPRECANZ];       // data for inputFields
 
   return actTyp;
 
+
+  //----------------------------------------------------------------
   L_typ:               // out: req.typ
    actTyp = typ;
    goto L_found;
@@ -954,6 +1002,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
      RetCod:    1=OK, -1=no useful object for typRec
 
 */
+// see AP_typLst_grpTyp
 
 
   int     i1, typ, indNxt1, indNxt2, typNxt1, typNxt2;
@@ -963,8 +1012,8 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
 
-  // printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \n");
-  // printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
+  printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \n");
+  printf("IE_txt2par1  aus_anz=%d ind=%d typRec=%d\n",aus_anz,*ind,typRec);
   // printf(" nxt typ=%d\n",aus_typ[*ind]);
   // for(i1=*ind; i1<aus_anz; ++i1) {
     // printf("  %d aus_typ=%d txtTab=%s\n",i1,aus_typ[i1], txtTab[i1]);
@@ -1245,7 +1294,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
 
 
   Fertig:
-    // printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
+    printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
   return 1;
 
 

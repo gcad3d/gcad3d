@@ -76,66 +76,43 @@ It cannot yet
 
 
 
-<HR>
+<HR><!-- ============================================================ -->
 <H3><A NAME="MMS"></A>Multi-model support</H3>
-A model can consist of multiple models
-(sub-models). A sub-model can be stored within a model (an internal
-sub-model) or be imported from external data (an external sub-model)</P>
-<H4>Internal models</H4>
-The model name must
-not include a path (and no '/' or '\'). During the processing of
-sub-models the sub-model name is cached in /tmp/Mode_ . All internal
-sub-models are saved inside the model file</P>
+A model can consist of multiple models (sub-models) - 
 
-Creation of sub-models
+Functions for creation / use of subModels:
+<a href="CAD_Model_en.htm#F0">internal subModel</a>
+<a href="CAD_Model_en.htm#F1">external subModel</a>
+<a href="CAD_Model_en.htm#F2">CatalogPart</a>
 
-  sub-models/move main → new sub-model
-  Copies all objects of the active main model to a sub-model
-  sub-models/create new sub-model
-  Construct and activate a new sub-model
-  sub-models/load sub-model from file
-  Load a native model from data into a new sub-model<DD STYLE="margin-bottom: 0.5cm">
-  
-Using internal sub-models in Cad mode:</P>
 
-  with the function 'M-int.Modell'
-  Select sub-models from a list (using MM middle mouse button) or by
-  selecting a prepared sub-model; Define the model instance position.
-  
+<b>Function to activate subModel:</b>
+ - only in VWR or CAD:
+ - select modelname in browser-window with right mousebutton;
+   - select "activate"
 
-Using internal sub-models in Manual mode:</P>
 
-  by keying in as<DD STYLE="margin-bottom: 0.5cm">
-  M20=”subModell” P(0 0 0) DZ DIY
-<H4>
-External sub-models</H4>
+<b>Function to rename subModel:</b>
+ - only in CAD:
+ - only the active subModel can be renamed
+ - select modelname in browser-window with right mousebutton;
+   - select "rename"
+  NOTE: all external models, where subModel will be renamed, become changed
+     into internal subModels.
 
-  For these models an
-  external model file must be given. The model name must be a symbolic
-  path. The model file must be in a directory that can be referenced
-  by a symbol; See symbolic file names.
-  External models can only = mock-up models (ie Wrl), but cannot
-  include internal or external sub-models.
-  External sub-models are internally cached.
 
-Use of external sub-models in Cad mode
-
-  Use function 'M-ext.Modell'
-  Selecting sub-models from a list (middle mouse button in the
-  graphics window) or by selecting existing sub-models;
-  Define the instance position
-
-  
-
-Use of external models in Man mode:
-
-  By keying In as
-  M28=”Data/Mod1.gcad” P (0 0 0) DZ DIY
+<b>Function to remove subModel:</b>
+ - only in CAD:
+ - only the active subModel can be removed
+ - select modelname in browser-window with right mousebutton;
+   - select "remove"
+  NOTE: all external models, where subModel will be removed, become changed
+     into internal subModels.
 
 
 
 
-<HR>
+<HR><!-- ============================================================ -->
 <H3><A NAME="DF"></A>Functions for documentation</H3>
 
   - Display of 2D drawings, 3D models and images in the same display space.
@@ -170,6 +147,8 @@ Use of external models in Man mode:
 2012  Debian-packages
 2013  RemoteControl, Processes.
 2015  License changed to GPL-3.
+2020  New module PRCV
+2021  New module MDL MDLFN
 
 
 

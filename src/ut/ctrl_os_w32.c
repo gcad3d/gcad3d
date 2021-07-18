@@ -67,7 +67,7 @@ static char *pnin = NULL, *pnout = NULL;       // pipenames
   char        fnin[256];
 
 
-  printf("OS_CTL_read_init |%s|\n",fn);
+  // printf("OS_CTL_read_init |%s|\n",fn);
 
   UtxTab_add (&AP_TxTab1, fn);
   UtxTab_query (&pnin, &AP_TxTab1);
@@ -76,7 +76,7 @@ static char *pnin = NULL, *pnout = NULL;       // pipenames
 
   // set name of workingfile
   sprintf(fnSwap, "%sCTRLfin",OS_get_tmp_dir());
-    printf(" CTRL_CB__ fnSwap=|%s|\n",fnSwap);
+    // printf(" CTRL_CB__ fnSwap=|%s|\n",fnSwap);
 
 
   return 0;
@@ -93,7 +93,7 @@ static char *pnin = NULL, *pnout = NULL;       // pipenames
   char   s1[32];
 
 
-  printf("OS_CTL_read_reset \n");
+  // printf("OS_CTL_read_reset \n");
 
   // if(pinLun == - 1) return -1;
 
@@ -128,15 +128,15 @@ static FILE   *fpi = NULL;
   // test if file exists
   L_start:
 
-#ifdef _MSC_VER
+// #ifdef _MSC_VER
 // MS:
     i1 = GetFileAttributes (pnin); // -1=file not found; 16=file, 32=directory
     if(i1 < 0) return NULL;
-#else
-// Linux:
-    i1 = access (pnin, R_OK);  // 0=file_exists
-    if(i1) return NULL;
-#endif
+// #else
+// // Linux:
+//     i1 = access (pnin, R_OK);  // 0=file_exists
+//     if(i1) return NULL;
+// #endif
 
       // printf(" OS_CTL_read__ L1\n");
 
@@ -186,7 +186,7 @@ static FILE   *fpi = NULL;
 //================================================================
 // init 
 
-  printf("OS_CTL_write_init |%s|\n",fn);
+  // printf("OS_CTL_write_init |%s|\n",fn);
 
 
   UtxTab_add (&AP_TxTab1, fn);
@@ -207,7 +207,7 @@ static FILE   *fpi = NULL;
 
   FILE *fpo;
 
-  printf("OS_CTL_write__ |%s| %d\n",sBufOut, sSiz);
+  // printf("OS_CTL_write__ |%s| %d\n",sBufOut, sSiz);
 
   // // append
   // fpo = fopen (pnout, "a");

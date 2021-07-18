@@ -430,7 +430,7 @@ List_functions_end:
   FILE *fp2;
 
 
-  // printf("MSH_bsav_pTabf |%s|\n",fNam);
+  printf("MSH_bsav_pTabf |%s|\n",fNam);
 
 
   if((fp2=fopen(fNam,"wb")) == NULL) {
@@ -687,7 +687,8 @@ List_functions_end:
   // sprintf(fNam, "%sM%dA%d.ptab",OS_get_tmp_dir(),mdlNr,surNr);
   // /temp/_A1.ptab
   // /temp/smNam_A1.ptab
-  sprintf(fNam, "%s%s_A%d.ptab",OS_get_tmp_dir(),mdlNam,surNr);
+//   sprintf(fNam, "%s%s_A%d.ptab",OS_get_tmp_dir(),mdlNam,surNr);
+  sprintf(fNam, "%s_A%d.ptab",OS_get_tmp_dir(),surNr);
     // printf(" fNam pt |%s|\n",fNam);
 
   return MSH_bload_pTabf (pTab, fNam);
@@ -707,7 +708,7 @@ List_functions_end:
   long  lSiz, l1;
   FILE  *fp1;
 
-  // printf("MSH_bload_pTabf |%s| rMax=%d rNr=%d\n",fNam,pTab->rMax,pTab->rNr);
+  printf("MSH_bload_pTabf |%s| rMax=%d rNr=%d\n",fNam,pTab->rMax,pTab->rNr);
 
   if((fp1=fopen(fNam,"rb")) == NULL) {
     // TX_Print("MSH_bload_pTabf E001\n",fNam);

@@ -439,7 +439,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
 
 //===================================================================
-  int GUI_popup__ (char *optLst[], char *tipLst[], int itip,
+  void* GUI_popup__ (char *optLst[], char *tipLst[], int itip,
                    void *funcnam, void *dataLst[]) {
 //===================================================================
 /// \code
@@ -579,7 +579,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
   gtk_widget_show (menu);
 
 
-  return 0;
+  return ((void*)menu);
 
 }
 

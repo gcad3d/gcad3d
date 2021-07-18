@@ -391,7 +391,19 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //===========================================================
-  char* OS_os_s () {
+  char* OS_get_os__ () {
+//===========================================================
+// returns "Linux" or "MS" as  string
+
+  sprintf(txbuf, "MS");
+
+  return txbuf;
+
+}
+
+
+//===========================================================
+  char* OS_get_os_bits () {
 //===========================================================
 // returns "MS32" or "MS64" as  string
 // used for "OS=<OS_os>" for dynamic linking
@@ -405,7 +417,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
-  int OS_os_bits () {
+  int OS_get_bits () {
 //================================================================
 
   return PTRSIZ * 8;   // 32 || 64            2011-03-18
@@ -1440,6 +1452,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   int OS_dir_scan_ (char *cbuf, int *iNr) {
 //==========================================================================
 // search files - return next fileName
+// - not sorted; different for UX / MS !
 // iNr = 0: init suche; zu scannender Pfad ist cbuf.
 // iNr > 0: cbuf ist next found file; do not change iNr! (Filename ohne Path !)
 // iNr < 0; kein weiteres File found; directory closed.
@@ -1449,7 +1462,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   static WIN32_FIND_DATA findData;
   static char  dir1[256];
 
-  int          i1;
+  int          irc, i1;
   char         *p1;
   
 
@@ -1458,44 +1471,46 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   // if(*iNr > 100) exit(0);
 
 
-  // init
+  //----------------------------------------------------------------
   if(*iNr == 0) {
+    // init - open
     if(h1 != NULL) FindClose (h1);
 
     strcpy(dir1, cbuf);
-    strcat(dir1, fnam_del_s);  // add "\\"
+    i1 = strlen(cbuf);
+    if(cbuf[i1 - 1] != '\\') strcat(dir1, "\\");  // add "\\"
     strcat(dir1, "*");
-
 
     h1 = FindFirstFile (dir1, &findData); // erster Filename
 
     if (!h1 || h1 == (HANDLE) -1) {
-        printf("nix gfundn\n");
+        // printf("nix gfundn\n");
       *iNr = -1;
       FindClose (h1);
       h1 = NULL;
-      return -1;
+      irc  = -1;
+      goto L_exit;
     }
 
     // den "*" wieder weg !
     dir1[strlen(dir1)-1] = '\0';
-
     goto L_fertig;
 
   }
 
 
-
+  //----------------------------------------------------------------
   // get next Filename
   L_dir_weiter:
 
   i1 = FindNextFile (h1, &findData);
 
   if(i1 == 0) {
-    *iNr = -1;
     FindClose (h1);
     h1 = NULL;
-    return -1;
+    *iNr = -1;
+    irc  = -1;
+    goto L_exit;
   }
 
 
@@ -1512,12 +1527,13 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   strcat(cbuf, p1);
 
 
-
   L_fertig:
-  *iNr += 1;
+    *iNr += 1;
+    irc  = 0;
 
-    // printf("ex OS_dir_scan_ |%s| %d\n",cbuf,*iNr);
 
+  L_exit:
+    // printf("ex OS_dir_scan_ %d |%s| %d\n",irc,cbuf,*iNr);
   return 0;
 
 }
@@ -1731,7 +1747,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
-  strcat(cbuf, OS_os_s());
+  strcat(cbuf, OS_get_os_bits());
     printf("dll_build-3 |%s|\n",cbuf);
 
 

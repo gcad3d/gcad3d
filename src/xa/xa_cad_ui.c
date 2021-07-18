@@ -1,4 +1,4 @@
-// xa_ui_cad.c                   Toolbar CAD
+// xa_cad_ui.c                   Toolbar CAD
 /*
  *
  * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -16,6 +16,11 @@
  *
 -----------------------------------------------------
 TODO:
+
+add option to remove eg Typ_VC from selection-list
+  eg add info into IE_inpAuxDat[].auxInf),
+  eg for "TRAnsform obj" field 1 - do not accept vectors (no buttons)
+
 
 BUG modify eg S42=BSP1 "L22 L23" or S42=BSP1 "L22 L23 VAL(1.5)"
   cannot decode line; problem is IE_txt2parG cannot return nr-of-groupObjs.
@@ -47,8 +52,10 @@ Modifications:
 =====================================================
 List_functions_start:
 
+IE_FUNC_IS_ACTIVE    test if CAD-function is active
+
 UI_cad               create CAD-Window (Bar)
-IE_sel_CB_1          Selektion eines Objekts gemeldet (core reports selection)
+IE_sel_CB_1          core reports selection
 IE_gr_key_CB         keypress in grafic-window
 IE_cad_OK            OK-Butt. pressed (store)
 
@@ -64,11 +71,11 @@ IE_edit_dbo          edit obj (from typ/dbi)
 IE_activate          Zeile auslesen, analysieren, eintragen
 IE_txt2parG          test for groupobjects
 IE_txt2par1          Decode Werte (Text -> Parameter)
-IE_decode_Ln         Zerlegen der Inputzeile
+IE_decode_Ln         decode sourceline
 IE_modif__           modify codeline
 
+IE_init__            primary init
 IE_cad_init0         neue AptIndexe holen
-IE_cad_exit0
 IE_cad_exitFunc      exit the active cadFunction
 IE_cad_p_CB IE_cad_l_CB IE_cad_c_CB IE_cad_r_CB IE_cad_d_CB    Cad-Func. sel
 
@@ -88,16 +95,18 @@ IE_cad_InpIn_CB      Key in in ein Inputfeld
 IE_inp_CB__          callback of inputField
 IE_cad_InpIn__       activate new inputField
 IE_inp_chg           change inputField
-IE_inp_set           write into active CAD-inputfield
 IE_cad_ClearInp1     clear one inputField
 IE_cad_ResetInputs   clear all inputFields & goto inputField 0
 IE_cad_ClearInputs   clear all inputFields
 UNUSED IE_cad_ClearAct      clear display corresponding to active inputField
 IE_get_inp__         read text of inputField
+IE_cad_src_inp       get sourceObj (eg "P20" -> "R(P20)"
 IE_get_inp_t         get type & text of inputField
 IE_get_inp_typ       get type & text of inputField
 IE_get_inp_TypAct    get IE_inpTypAct = IE_inpTypR[IE_inpInd];
-IE_set_inp           write text -> inputField
+IE_inp_set_txt       write text -> inputField
+IE_inp_set_err       disp red boundary aroud inputfield with error / reset normal
+IE_inp_clean         Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"'
 IE_inp_mod__         modify active inputField
 IE_inp_selection_clear    check / clear a active selection in inputfield
 IE_inp_ck_empty      check if all inputfelds empty
@@ -108,14 +117,21 @@ IE_cad_InpIn_left    goto end of upper cad-inputField
 IE_cad_Inp_edit_field das aktuelle Inputfeld mit editor
 IE_get_inp_dli       get dli for active inputField
 IE_GET_INP_DLI       get dli for inputField                              INLINE
+IE_cad_inp_dli       get dispListIndex for active inputfield
+IE_cad_inp_rTyp      get requested objtype for active inputfield
+IE_cad_inp_vc_pt_DD  get vector from 2 points (inpAuxDat[].auxInf == DD#)
 
-IE_get_tempPos       returns position for a temporary object
+IE_cad_inp_prev__    preview obj from selection / source
 IE_cad_Inp_disp__    display temp. symbols for inpField iind (zB Vec)
-IE_cad_Inp_disp_pt   display point for actual inputfield
-IE_cad_Inp_disp_vc
+IE_cad_prev__        preview DB-obj or source-obj as requested objType
+// IE_cad_Inp_disp_pt   display point for actual inputfield
+IE_cad_inp_vcPos__   get position for vector from IE_inpAuxDat of active inputfield
+IE_cad_inp_vcPos_i   get vector-position from cad-inputfields
 IE_cad_Inp_disp_val  display value in messageWin
+IE_cad_Inp_disp_vc_len  print "length is <val>"
 IE_cad_Inp_disp_ang  display angle
-IE_cad_Inp_disp_pln
+// IE_cad_Inp_disp_pln
+IE_get_tempPos       returns position for a temporary object
 
 -------------------- infoField-functions ---------------------------
 IE_cad_ClearMenInf   clear MenuInfos (right of inputboxes)
@@ -129,7 +145,8 @@ IE_nxtInd            den neuen ObjIndex holen
 IE_set_txtHdr        display name of new outpt-obj in field IE_entHdr
 IE_parDef            check for Parameter-defaults to save
 
-IE_cad_Inp1_Info     write infoText into Messagewindow
+IE_cad_msg_obj_ko    message cannot use obj
+IE_cad_msg_typ     write infoText into Messagewindow
 IE_cad_Inp1_nxtTra   provide next|previous -
 IE_cad_Inp1_nxtVal   provide next|previous value (from VAR eg V20);
 IE_cad_Inp1_nxtVec   provide next|previous vector (eg D20)
@@ -155,7 +172,7 @@ IE_buf_del           delete last word from IE_buf; update IE_bufSiz
 IE_buf_rem           remove word out of IE_buf
 
 IE_auxFun1           get pointers to functionDescriptions (.ftxt)
-IE_cad_get_func
+IE_cad_get_func      get IE_FuncTyp and IE_FuncSubTyp
 IE_cad_RotS
 IE_cad_Side
 IE_cad_Side1
@@ -171,6 +188,7 @@ List_functions_end:
 
 OBSOLETE:
 IE_cad_test_typ      get header for CUT INT PRJ ISO REV replaced by IE_cad_upd_hdr
+IE_cad_exit0         repl. by IE_cad_exitFunc
 
 
 -------------------------------------------------------
@@ -260,7 +278,11 @@ in IE_cad_init1: den Header fuer das neue Obj generieren und irgendwo darstellen
 
 ------------------------------------------
 Check if CAD is active:
-  if(UI_InpMode != UI_MODE_CAD) ..
+  if(UI_InpMode == UI_MODE_CAD) ..
+
+Check if cad-function is active:
+  if(IE_FUNC_IS_ACTIVE) ..
+
 Die aktive Menuegruppe ist IE_FuncTyp (0=point .... 12=CUT/TRA/PRJ..)
   und auch menGrpInd
 Die aktive MenueUntergruppe ist IE_FuncSubTyp (in Gruppe 12: 0=CUT, 1=TRA..)
@@ -375,7 +397,7 @@ IE_rec_stru.info  consists of 3 parts, delimited by '|':
       subTypText and infos in IE_inpAuxDat[];
       IE_inpTypR[IE_inpInd] is the (primary-) inputType;
       using funcs:
-        IE_cad_Inp_disp_vc()
+        IE_cad_inp_vcPos_i()
         IE_cad_Inp_disp_ang()  
 
 Functions:
@@ -395,8 +417,8 @@ inputGroupTyp - Types of input (from first char of .info):
 
 ====================================================================
 Compile:
-cc -c `gtk-config --cflags` xa_ui_cad.c
-cl -c /I ..\include xa_ui_cad.c
+cc -c `gtk-config --cflags` xa_cad_ui.c
+cl -c /I ..\include xa_cad_ui.c
 
 
 
@@ -407,7 +429,7 @@ cl -c /I ..\include xa_ui_cad.c
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -438,7 +460,7 @@ cl -c /I ..\include xa_ui_cad.c
 
 #include "../db/ut_DB.h"          // DB_QueryNxtFree
 
-#include "../ci/NC_Main.h"        // WC_Work__
+#include "../ci/NC_Main.h"        // WC_Work1
 #include "../ci/NC_apt.h"         // T_CCW,       T_CW,     ..
 
 
@@ -446,15 +468,15 @@ cl -c /I ..\include xa_ui_cad.c
 #include "../xa/xa_edi__.h"       // ED_Get_LineNr ED_enter
 #include "../xa/xa_ui.h"
 #include "../xa/xa_ui_gr.h"       // GLB_DrawInit GLB_DrawExit
-#include "../xa/xa_ui_cad.h"
-#include "../xa/xa_cad_ed1.h"
 #include "../xa/xa_undo.h"
 #include "../xa/xa_mem.h"         // memspc51, mem_cbuf1 mem_cbuf1_SIZ
                                   // IE_buf IE_outTxt
 #include "../xa/xa_sele.h"        // Typ_go*
 #include "../xa/xa_msg.h"         // MSG_const__
+#include "../xa/xa_cad_ed1.h"
+#define extern
 #include "../xa/xa_cad_ui.h"      // INPRECANZ inpAuxDat ..
-
+#undef extern
 
 #define   TRUE 1
 #define   FALSE 0
@@ -466,16 +488,16 @@ cl -c /I ..\include xa_ui_cad.c
 // EXTERNALS:
 // aus ../xa/xa.c:
 extern AP_STAT   AP_stat;               // sysStat,errStat..
-extern char      AP_mod_dir[128];      // das Verzeichnis fuer OPEN
+extern char      AP_mod_dir[SIZMFTot];      // das Verzeichnis fuer OPEN
 extern char      AP_lang[4];            // en od de
 extern char      AP_ED_oNam[128];        // objectName of active Line
 extern Plane     WC_sur_act;            // die Konstruktionsebene
+extern int       AP_modact_tmp;
 
 // aus ../xa/xa_ui.c:
 extern int       UI_InpMode;
 // extern int       UI_InpSM;
 extern int       KeyStatCtrl;
-extern MemObj    winGR;
 
 // ex ../gr/ut_DL.c
 extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next free
@@ -490,7 +512,7 @@ extern long   GR_selDli;         //
 extern int       ED_lnr_act;
 extern char      *ED_cpos; 
 
-
+// ../ci/NC_Main.c
 
 
 //--------------------------------------------------------------------
@@ -539,10 +561,6 @@ static int       IE_EdFnc=0;
   // 2 = TextEditor   IE_ed2__
 
 
-
-/// active MenueGroup;  0=PT, 1=LN .. ANALYZ=14 ..
-static int       IE_FuncTyp = 0;
-
 /// active MenueSubGroup; depends of MenueGroup.
 static int       IE_FuncSubTyp = 0;   //
 
@@ -558,14 +576,16 @@ static int          IE_cad_typ = -1;   // active outputTyp; eg Typ_PT or Typ_LN
 
 
        int  IE_inpTypAct;     // requested type for the active inputField
-static int  IE_inpInd;        // 0-5, zeigt auf das EntryFeld, das den Focus hat
+       int  IE_inpInd;        // 0-(IE_inpAnz-1) index active inputField
+static int  IE_inpErr;        // -1=no_error; >=0=index inputField with error
 static int  IE_inpAnz;        // Anzahl erforderl. Objekte
-       int  IE_inpSrc;        // type of Input; 2=normal, 3=PgUp/Dwn
+       int  IE_inpSrc;        // type of Input; 1=graf.Sel; 2=keyIn; 3=PgUp/Dwn
 
 // static char IE_inpStat[INPRECANZ];   // Status Input; '0'=Leer, '1'=complete.
 static int  IE_inpStat = 0;   // status of the active inputField;
             // 0=active inputfield has been changed, not yet initialized
             // 1=inputfield is initialized after change.
+            // 2=value set and displayed
 
 
 // Eingabezeile; muss leider size=mem_cbuf1_SIZ haben !
@@ -577,8 +597,6 @@ long   IE_bufMax=IE_BUFSIZ;
 
 // Ausgabezeile; muss Size mem_cbuf1_SIZ haben;
 // static char IE_outTxt[mem_cbuf1_SIZ];  // nun ex xa_mem.h
-
-#define IE_MEN_NR 15       // total nr of menuGroups
 
 static int IE_stat__;  // Status Menu,inputFields;
   // 0=active, normal operation
@@ -661,50 +679,12 @@ Typ_PLN       R                           Plane, RefSys;
               R([PERP] P P|D|L)
               R(L|C)
 
-........................................ groups:
-Typ_goGeom    all but modifiers  (D P L C S A B)
 
-Typ_goPrim    P|L|C|S(Ell,Bsp,Plg,CCV) NOT D|A|B
-                                       Konturobjs ruledSurf,
-                                       tang.Objs for a Circ;
-                                       obj's for a ruled surf;
+........................................
+selection-groupTypes:
+../xa/xa_sele.h      Typ_goGeom   - Typ_go_JNT             see INF_groupTypes
 
-Typ_go_LCS    L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B
-                                       Konturobj RevSur; Konturobj RuledSur;
 
-Typ_go_lf1    L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B|contour
-              only single trimmed curve; for: standard-points-of-curve
-
-Typ_go_lf2    L|C|S(Ell,Bsp,Plg)       NOT P|D|A|B|CCV
-              no trimmed-curves:       for: CUT (result = trimmed-curve)
-
-Typ_goGeo1    Typ_go_LCS|Pln|Sur|Sol   alle curves,  NOT P|D;
-
-Typ_goGeo2    C|Ell                    Centerpt Circ,Elli; Tang.|Z-Axis;
-
-Typ_go_PD     PT|VC                    gives Point or Vector
-
-Typ_goGeo4    UNUSED   D|L|Pln            liefert ein ModelRefsys
-
-Typ_goGeo5    C|Ell|Plg|Bsp|CCV         NOT D,P,L,A,B
-                                        closed Contour
-
-Typ_goGeo6    P|L|C                     NOT D|S|A|B
-              L(Plg),L(CCV),C(CCV)      Line(also from Plg,CCV),Circ.
-                                        "CIR Tang Tang ..
-
-Typ_goGeo7    Val|V|P|D                 Direction from ang,vec or pt. RevSur.
-              D(LN),D(Plg),D(CCV)
-              Val|V  out as value (nicht VAL, nicht ANG)
-
-Typ_goGeo8    Val|V|P                   Distance, Parameter (f.RevSur)|Point
-              VAL(C)=Radius;            "CIR Cen Radius (Radius)
-
-Typ_go_RA     plane|surface             eg surface for offset-curve
-
-Typ_go_JNT    P|Typ_GTXT                Joint
-
-Typ_goGeoSUSU Sur|Sol                   Supporting Surface CON/TOR/SRU/SRV/SBS
 
 ........................................ modifiers:
 Typ_mod1      1-n                       versionNumber; 2D-buttons: "NXT¦PRV"
@@ -756,10 +736,11 @@ Add-on parameters in IE_rec_stru.info:
  auxInf-codes:
    M16  set APT_modMax1 = 6
    Ax#  display angle; see IE_cad_Inp_disp_ang
-   DD#  display vector; see IE_cad_Inp_disp_vc
+   DD#  display vector; see IE_cad_inp_vcPos_i
         character 3 of auxInf gives the fieldIndex of the positionPoint
  Examples:
-   "xxx|0|M16"   preload 0 and set APT_modMax1 = 6
+   "xxx|0|M16"   - preload 0 and set APT_modMax1 = 6
+   Typ_VC "vec||DD0"  - create vector from a obj in inputfield 0 and this obj
 
   Load IE_wCad_preLoad and IE_inpAuxDat in IE_cad_init1
   Process IE_wCad_preLoad and IE_inpAuxDat in IE_cad_InpIn__
@@ -795,19 +776,19 @@ static IE_rec_stru IE_cad_p[]={
     0, Typ_ZVal,    "[offset Z-coord]",
   //"P-polar",
     1, Typ_PT,      "BasePoint",
-    1, Typ_Angle,   "Angle-Rot.||AP0",
+    1, Typ_Angle,   "Angle-Rot.||AP0-",
     1, Typ_Angle,   "[Angle-Tilt]||AN0",
     1, Typ_Val,     "Dist.",
   //"PT rotate-Z"
     2, Typ_PT,      "CenterPoint",
     2, Typ_go_PD,   "Point/Vector",
-    2, Typ_Angle,   "Angle-Rot.||AA013",
+    2, Typ_Angle,   "Angle-Rot.||AP01",
     2, Typ_Angle,   "[Angle-Tilt]||AN0",
     2, Typ_Val,     "[Dist.]",
   //"PT rotate-axis"
     3, Typ_PT,      "Point to rotate",
     3, Typ_LN,      "Rot-Axis",
-    3, Typ_Angle,   "Angle",
+    3, Typ_Angle,   "Angle||AA0-1",
   //"PT translate"
     4, Typ_PT,      "Point",
     4, Typ_VC,      "Direction-VEC||DD0",
@@ -868,7 +849,7 @@ static IE_rec_stru IE_cad_l[]={
    2, Typ_PT,      "Point (on Line/Curve)",
    2, Typ_VC,      "Direction (Vec,Crv)||DD0",
    2, Typ_Val,     "[Length]",
-   2, Typ_Angle,   "[Angle-Rot.]||AP0",
+   2, Typ_Angle,   "[Angle-Rot.]||AP01",
    2, Typ_Angle,   "[Angle-Tilt]||AN0",
    2, Typ_modUnlim,"[unlimited]",
   // {"LN LN Dist.          (parall)",    ""},                  // 5
@@ -963,14 +944,14 @@ static IE_rec_stru IE_cad_c[]={
    // 3, Typ_PT,       "3.point",
   // "ARC Cen Ang1 Ang2 Radius",    "ARC",
    5, Typ_PT,       "Centerpoint",
-   5, Typ_Angle,    "Angle-Start||AP0",
-   5, Typ_Angle,    "Angle-End||AP0",
+   5, Typ_Angle,    "Angle-Start||AP0-",
+   5, Typ_Angle,    "Angle-End||AP0-",
    5, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
    5, Typ_modCWCCW, "[CW/CCW]",
   // "ARC Cen PT Angle Z-Axis",            "ARC",
-   6, Typ_PT,       "Centerpoint",
+   6, Typ_PT,       "Point on Axis",
    6, Typ_PT,       "StartPoint",
-   6, Typ_Angle,    "Angle||AA013",
+   6, Typ_Angle,    "Angle",
    6, Typ_VC,       "[Z-Axis-Vector]||DD0",
   // "ARC PT PT Radius [Z-Axis] [Version]",     "ARC",
    7, Typ_PT,       "Startpoint",
@@ -983,7 +964,7 @@ static IE_rec_stru IE_cad_c[]={
    8, Typ_PT,       "Startpoint",
    8, Typ_VC,       "StartDirection||DD0",
    8, Typ_goGeo8,   "Radius",
-   8, Typ_Angle,    "[Angle]||AA--4",
+   8, Typ_Angle,    "[Angle]",
    8, Typ_VC,       "[Z-Axis-Vector]",
    8, Typ_modCWCCW, "[CW/CCW]",
   // "ARC PT PT Cen [Z-Axis]",     "ARC",
@@ -1024,13 +1005,13 @@ static IE_rec_txt cad_lst_r[]={
 static IE_rec_stru IE_cad_r[]={
   // "PLN [PT] Z-Axis [X-Axis]",        "PERP",
    0, Typ_PT,      "[Origin]",
-   0, Typ_VC,      "Z-Axis||DD0",
+   0, Typ_VC,      "Z-Axis",
    0, Typ_VC,      "[X-Axis]||DD0",
    0, Typ_goGeo8,  "[offset-Z-axis]",
   // "PLN [PT] X-Axis [Y-Axis]",        ""
    1, Typ_PT,      "[Origin]",
-   1, Typ_VC,      "X-Axis||DD0",
-   1, Typ_VC,      "[Y-Axis]||DD0",
+   1, Typ_VC,      "X-Axis",
+   1, Typ_VC,      "[Y-Axis]",
    1, Typ_goGeo8,  "[offset-Z-axis]",
   // "PLN PT Plane Offset Angle",      "RSYS"
    2, Typ_PT,      "[Origin]",
@@ -1072,7 +1053,7 @@ static IE_rec_txt cad_lst_d[]={
 static IE_rec_stru IE_cad_d[]={
   // "VEC cartes",                         "",         // 0
     0, Typ_VC,      "BaseVector (Line/dx,dy,dz)",
-    0, Typ_Angle,   "[Angle-Rot.]||AP0",
+    0, Typ_Angle,   "[Angle-Rot.]||AP00",
     0, Typ_Angle,   "[Angle-Tilt]||AN0",
     0, Typ_Val,     "[Length]",
     0, Typ_modREV,  "[REVers]",
@@ -1103,7 +1084,7 @@ static IE_rec_stru IE_cad_d[]={
   // "VEC from objects",                   "",         // 3
    1, Typ_goGeom,  "Obj.1",
    1, Typ_PT,      "[Point (on obj)]",
-   1, Typ_go_PD,   "[PT or VC]",
+   1, Typ_go_PD,   "[PT or VC]||DD1",
    1, Typ_Val,     "[Length]",
    1, Typ_modREV,  "[REVers]",
    1, Typ_FncDirX, "[parallel-across]",
@@ -1199,11 +1180,11 @@ static IE_rec_txt cad_lst_s[]={
 
 
 static IE_rec_stru IE_cad_s[]={
-  // "S Ellipse Center, AchsendPoint", "ELL",
+  // "S Ellipse Center,AxisEndPoint,Point"
    0, Typ_PT,       "Center",
    0, Typ_PT,       "EndPoint MajorAxis",
    0, Typ_PT,       "Point on Ell.",
-  // "S Ellipse Center, Hauptachsen, EndPoint", "ELL",
+  // "S Ellipse Center Axes [EndPoints]"
    1, Typ_PT,       "Center",
    1, Typ_VC,       "MajorAxis (VEC)||DD0",
    1, Typ_VC,       "MinorAxis (VEC)||DD0",
@@ -1214,7 +1195,7 @@ static IE_rec_stru IE_cad_s[]={
 //    2, Typ_PT,      "(Points)",
 //    2, Typ_VC,      "[Vector/Line]",
 //    2, Typ_Val,     "[Distance]",
-//   // "S Polygon  <- Point...",          "POL",   // 4
+  // "S Polygon < Points..."
    2, Typ_PT,       "<Points...>",
   // "S Polygon  <- Rectangle",          "CCV",
    3, Typ_PT,       "CornerPoint",
@@ -1232,8 +1213,8 @@ static IE_rec_stru IE_cad_s[]={
    5, Typ_Val,      "[smoothFactor]",
   // "S Clotoid",                               "CLOT",  // 9
    6, Typ_PT,       "StartPoint",
-   6, Typ_Angle,    "StartVector||DD0",
-   6, Typ_Angle,    "Angle (Diff. Start-End)||AA--5",
+   6, Typ_VC,       "StartVector||DD0",
+   6, Typ_Angle,    "Angle (Diff. Start-End)",
    6, Typ_Val,      "StartRadius",
    6, Typ_Val,      "EndRadius",
    6, Typ_VC,       "[Z-Axis-Vector]||DD0",
@@ -1304,7 +1285,7 @@ static IE_rec_stru IE_cad_a[]={
    2, Typ_goGeo8,   "[vert-v1 (dist/PT)]|0",
    2, Typ_goGeo8,   "[vert-v1 (dist/PT)]|1",
   // "A Revolved S. (Axis Contour)",   "SRV",
-   3, Typ_LN,       "Axis (LN..PLN)",
+   3, Typ_PLN,      "Axis (LN..PLN)",
    3, Typ_go_LCS,     "Contour (LN/CI/BSP)",
    3, Typ_goGeo7,   "[hor-u1 (angle/PT/VC)]|0",
    3, Typ_goGeo7,   "[hor-u2 (angle/PT/VC)]|360",
@@ -1425,7 +1406,7 @@ static IE_rec_stru IE_cad_n[]={
    0, Typ_PT,      "DimPoint 1",
    0, Typ_PT,      "DimPoint 2",
    0, Typ_PT,      "TextPosition",
-   0, Typ_Angle,   "[Angle dimLine]||DD2",
+   0, Typ_Angle,   "[Angle dimLine]||DD2",   // Angle from 2 points NYI
    0, Typ_Txt,     "[Arrows 0-4 0-4]|12",
    0, Typ_Txt,     "[Guides 0-1 0-1]",
    0, Typ_String,  "[Add.Text]",
@@ -1499,14 +1480,13 @@ static IE_rec_stru IE_cad_n[]={
 
 
 //=========== Models ==================
-// menGrpInd = 10
-#define IE_Func_Models 10
+// menGrpInd = 10 IE_Func_Models
 
 
 static IE_rec_txt cad_lst_m[]={
   "M internal Model",         "",
   "M external Model",         "",
-  "M CatalogPart",            "CTLG",
+  "M CatalogPart",            "",   //"CTLG", 2021-04-24
   "",""};
   // "M MockupModel Filename Pos ",             "MOCK",
 
@@ -1536,8 +1516,7 @@ static IE_rec_stru IE_cad_m[]={
 
 
 //=========== Transformationen  ==================
-// menGrpInd = 11
-#define IE_Func_Transform 11
+// menGrpInd = 11    IE_Func_Transform
 
 
 static IE_rec_txt cad_lst_t[]={
@@ -1548,7 +1527,7 @@ static IE_rec_txt cad_lst_t[]={
 
 static IE_rec_stru IE_cad_t[]={
   // "TRafo transl",  "",
-   0, Typ_VC,      "VC    (Direct.)",
+   0, Typ_VC,      "VC (Direct.)",
    0, Typ_Val,     "[Length]",
   // "TRafo rot",     "ROT",
    1, Typ_LN,      "Axis-Rot. (Line)",
@@ -1561,9 +1540,8 @@ static IE_rec_stru IE_cad_t[]={
 
 
 //=========== Modify ==================
-// menGrpInd = 12
+// menGrpInd = 12     IE_Func_Modify
 // see IE_fTbab_Modify
-#define IE_Func_Modify 12
 
 static IE_rec_txt cad_lst__[]={
   "CUT (trim) obj",         "CUT",    // 0
@@ -1590,10 +1568,9 @@ static IE_rec_stru IE_cad__[]={
    0, Typ_mod1,      "[solutionNr]",
    0, Typ_modREV,    "[REVers]",
   // "INT (intersect) obj",  "INT",
-   // 1, Typ_Group,   "Cv/Pln/Sur/Sol (obj1)",
-   // 1, Typ_Group,   "Cv/Pln/Sur/Sol (obj2)",
    1, Typ_goGeo1,    "Cv/Pln/Sur/Sol (obj1)",
    1, Typ_goGeo1,    "Cv/Pln/Sur/Sol (obj2)",
+   1, Typ_modUnlim,  "[unlimited]",
    1, Typ_mod1,      "[solutionNr]",
    1, Typ_modAux,    "[Spline/Polygon] POL",
   // "TRAnslate obj (VC)",  "TRA",
@@ -1613,6 +1590,7 @@ static IE_rec_stru IE_cad__[]={
   // "Project obj (Prj)",      "PRJ",    // 6
    6, Typ_goPrim,    "P/L/C/S. (obj to project)",
    6, Typ_goGeo1,    "Curv/Surf (where to project)",
+   6, Typ_modUnlim,  "[unlimited]",
    6, Typ_VC,        "[Direction-VEC none=normal]",
    6, Typ_mod1,      "[SolutionNr]",
    6, Typ_modRepl,   "[replace REPL] duplicate",
@@ -1638,8 +1616,7 @@ static IE_rec_stru IE_cad__[]={
 
 
 //=========== INTERACT  ==================
-// menGrpInd = 13
-#define IE_Func_Interact 13
+// menGrpInd = 13    IE_Func_Interact
 
 
 static IE_rec_txt cad_lst_i_[]={
@@ -1700,7 +1677,7 @@ static IE_rec_stru IE_cad_z[]={
 
 
 //=========== ActiveCADEnv  ==================
-#define IE_Func_CADEnv 14
+// IE_Func_CADEnv 14
 
 static IE_rec_txt cad_lst_Ace[]={
   "ActiveConstrPlane", "",
@@ -1766,10 +1743,27 @@ static int IE_first, IE_last;
 //================================================================
 // set IE_stat_OK    0=OK-locked; 1=OK-active
 
+  int     ii;
  
+
+  // printf("IE_cad_set_OK %d\n",iStat);
+  // if(iStat) AP_debug__("IE_cad_set_OK");
+
+
   IE_stat_OK = iStat;    // 0=OK-locked; 1=OK-active
 
-  GUI_set_enable (&IE_but_OK, IE_stat_OK);  //1=activ,0=inaktiv.
+  GUI_set_enable (&IE_but_OK, IE_stat_OK);  // 1=activ,0=inaktiv.
+
+  if(iStat) {
+    // set OK=active, reset errStat IE_inpErr (reset red inputField border)
+    IE_inp_set_err (-1);
+
+  } else {
+    // OK-button NOT active;
+    // remove display of CI
+    GL_temp_del_1 (GR_TMP_I0);
+  }
+
 
   return 0;
 
@@ -1973,9 +1967,9 @@ static int IE_first, IE_last;
 }
 
 
-//=====================================================================
+//============================================================================
   int IE_decode_Ln (int *typTab, char txtTab[][256], int tabSiz, char *lnIn) {
-//=====================================================================
+//============================================================================
 // Zerlegen der Inputzeile lnIn und subTyp IE_ftyp_act setzen.
 // Es werden Anzahl, Typ und Wert(als String!) ausgegeben.
 // Input:
@@ -2001,17 +1995,16 @@ static int IE_first, IE_last;
 
 
   // printf("IE_decode_Ln |%s| %d\n",lnIn,tabSiz);
+  // printf(" menGrpInd=%d\n",menGrpInd);
+
 
   w_act = lnIn;
   objNr = 0;
-
-
 
   // das erste wort des Ausdruckes -> cBuf
   w_nxt = APT_cp_ausd (cBuf, w_act, 256);
   UTX_cp_word_2_upper(cBuf, cBuf);
     // printf("  objNr=%d cBuf=|%s|\n",objNr,cBuf);
-
 
 
   //=====================================================
@@ -2055,16 +2048,33 @@ static int IE_first, IE_last;
     if(p1[i1] != '\"') goto L_test_function;
     p1[i1] = '\0';
     ++p1;
-    // printf(" ist string |%s|\n",p1);
+      // printf(" decode_Ln-string |%s|\n",p1);
     // TYP_FilNam must have directory ('/') and afterwards filetyp ('.')
     p2 = strchr(p1, '/');
+    p3 = strchr(p2, '.');
     if(p2) {
-      p3 = strchr(p2, '.');
       if(p3) {
-        ityp = TYP_FilNam;
+        // string has '/' and '.'
+        // if typ == ".ctlg" then Typ_CtlgPart, else TYP_FilNam
+        if((menGrpInd == IE_Func_Models)&&(!strcmp(p3, ".ctlg"))) {
+          ityp = Typ_CtlgPart;
+          goto L_weiter;
+        }
+      }
+      // '/' with or without '.'
+      ityp = TYP_FilNam;  // IE_Func_Models: "M extern"
+      goto L_weiter;
+    }
+    // no '/'
+    if(!p3) {
+      // no '/' no '.'
+      // - if menGrpInd=IE_Func_Models then Typ_SubModel (M intern) else Typ_String
+      if(menGrpInd == IE_Func_Models) {
+        ityp = Typ_SubModel;
         goto L_weiter;
       }
     }
+    // '/' but no '.' - Typ_String
     ityp = Typ_String;
     goto L_weiter;
 
@@ -2256,7 +2266,10 @@ static int IE_first, IE_last;
 //=====================================================================
   int IE_edit_dbo (long dli, int typ, long dbi) {
 //=====================================================================
-/// IE_edit_dbo          edit obj (from typ/dbi)
+/// IE_edit_dbo          edit obj (from typ/dbi or dli)
+// Input:
+//   dli       dispListIndex; -2L = unknown
+//   typ,dbi   DB-obj
 
 // dli = DL_dli__dbo (typ, dbi, -1L);
 
@@ -2266,11 +2279,11 @@ static int IE_first, IE_last;
   char     *cp1, oNam[32];
 
 
-  // printf("IE_edit_dbo %ld %d %ld\n",dli, typ, dbi);
+  printf("IE_edit_dbo %ld %d %ld\n",dli, typ, dbi);
 
 
-  if(UI_InpMode != UI_MODE_CAD)
-    {TX_Print("ERROR: CAD must be active  .."); return -1;}
+  // CAD must be active
+  if(!UI_CAD_ck()) return -1;
 
   // if(UI_InpSM == ON)
     // {TX_Print("ERROR: Modify/Delete already active .."); return -1;}
@@ -2279,30 +2292,31 @@ static int IE_first, IE_last;
 
   //----------------------------------------------------------------
   // VAR & VC: get sourecLineNr in memory
-  if((typ != Typ_VAR)&&(typ != Typ_VC)) goto L_DL;
+  // if((typ != Typ_VAR)&&(typ != Typ_VC)) goto L_DL;
+  if(UTO_ck_symTyp(typ)) {
 
-  APED_oid_dbo__ (oNam, typ, dbi);
-    // printf("IE_edit_dbo %d %d oNam=|%s|\n",typ,dbi,oNam);
+    APED_oid_dbo__ (oNam, typ, dbi);
+      // printf("IE_edit_dbo %d %d oNam=|%s|\n",typ,dbi,oNam);
 
-  // search definition-line 
-  irc = APED_search_defLn (&cp1, &lNr, &lLen, oNam, -1, 0);
-    // printf(" irc=%d lNr=%d |%s|\n",irc,lNr,oNam);
-  if(irc < 0) {TX_Print("IE_edit_dbo E003"); return -1;}
-
-  goto L_exit;
-
+    // search definition-line 
+    irc = APED_search_defLn (&cp1, &lNr, &lLen, oNam, -1, 0);
+      // printf(" irc=%d lNr=%d |%s|\n",irc,lNr,oNam);
+    if(irc < 0) {TX_Print("IE_edit_dbo E003"); return -1;}
+  
+    goto L_exit;
+  }
 
 
   //----------------------------------------------------------------
   // get sourecLineNr via DL-record
   L_DL:
+
+  if(dli< 0) dli = DL_find_smObj (typ, dbi, -1L, AP_modact_ibm);
+
+
   // irc = APED_search_defLn (&cp1, &lNr, &lLen, oNam, -1, 0);
   irc = DL_Get_lNr_dli (&lNr, dli);
   if(irc < 0) {TX_Print("IE_edit_dbo E001"); return -1;}
-
-
-  irc = DL_Get_lNr_dli (&lNr, dli);
-  if(irc < 0) {TX_Print("IE_edit_dbo E002"); return -1;}
 
 
   //----------------------------------------------------------------
@@ -2391,7 +2405,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // nach ED_work_CurSet reset erforderl.
   // InputMode; bei CCVS Viewmode (letztes Obj anders behandeln)
   WC_set_obj_stat (1);  // 1=workmode
-  ED_enter();
+  ED_enter();           // set AP_mode__ = AP_mode_enter;
 
 
 
@@ -2431,9 +2445,6 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // alle Inputfelder loeschen
   IE_cad_ClearInputs (INPRECANZ);
 
-
-  // feld 1 aktivieren
-  IE_inp_chg (0);
 
   return 0;
   // goto Fertig;
@@ -2478,8 +2489,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   //---------------------------------------------------------
   // MODIFY. Inputs: IE_buf=line_to_modify; AP_ED_oNam=primary_obj
   L_modify:
-    // printf("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm \n");
-    // printf("IE_modif__ Modify |%s|%s|\n", IE_buf, AP_ED_oNam);
+    printf("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm \n");
+    printf("IE_modif__ Modify |%s|%s|\n", IE_buf, AP_ED_oNam);
 
 
   if(IE_modify == 0) MSG_pri_0 ("CADinit");
@@ -2715,7 +2726,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
       // OK, menSubGrpInd found
 
 
-  // test all inputFiledTypes; index is entInd.
+  // test all inputFieldTypes; index is entInd.
   L_NxtSubRec:
     typChar = IE_cad_act[i1].info[0];  // first char of info = groupTyp
       // printf("------L_NxtSubRec i1=%d typChar=%c\n",i1,typChar);
@@ -2842,9 +2853,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // CAD-Func found; activate Edit (DefaultEdit or GroupEditor)
   L_GrpFound:
     // printf(" L_GrpFound: IE_cad_typ=%d\n",IE_cad_typ);
-
-    // printf(" found grp=%d subgrp=%d entInd=%d\n",menGrpInd,menSubGrpInd,
-           // entInd);
+    // printf(" found grp=%d subgrp=%d entInd=%d\n",menGrpInd,menSubGrpInd,entInd);
     // printf("  ftxt=|%s|\n",IE_lst_act[menSubGrpInd].ftxt);
 
 
@@ -2892,7 +2901,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     // '<' = group
     if(typChar == '<') continue;
     // copy into inputfield i1
-    IE_set_inp (i1, entBuf[i1]);
+    IE_inp_set_txt (i1, entBuf[i1]);
   }
 
 
@@ -2921,6 +2930,10 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   // // disp LineNr
   // l1 = ED_get_lnr_act ();
   // UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
+
+  // preview
+  IE_cad_test__ ();
+
 
     // printf(" ex IE_activate 0\n");
 
@@ -2954,7 +2967,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   // make char <- typ
   s1[0] = AP_typChar_typ (typ);
-    printf(" s1=|%s| typ=%d src=|%s| IE_decode_ftyp\n",s1,typ,srctxt);
+    // printf(" s1=|%s| typ=%d src=|%s| IE_decode_ftyp\n",s1,typ,srctxt);
 
   if(!strncmp(srctxt, s1, 2)) return 1;
 
@@ -2970,6 +2983,65 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 // 0=Add 1=Modify 2=Insert
 
    return IE_modify;
+
+}
+
+
+//================================================================
+   int IE_inp_clean (char **src, int iind) {
+//================================================================
+// IE_inp_clean         Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"'
+// - Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"'
+// Input:
+//   iind     index inputField (IE_wCad_obj)
+// Output:
+//   src      char* of inputField
+//   retCode  -1=Error, else requested type of inputField iind (eg Typ_PT)
+
+
+
+  int     irc, rTyp, ls;
+  char    *p1, *ps, s1[256];
+
+
+  // printf("IE_inp_clean %d\n",iind);
+
+  rTyp = IE_inpTypR[iind];
+
+  ps = GUI_entry_get (&IE_wCad_obj[iind]);
+
+
+  //----------------------------------------------------------------
+  // if text is enclosed in '"' remove leading and following '"'
+  if(rTyp == Typ_SubModel) goto L_ck_quot;   // internal-Submodel
+  if(rTyp == TYP_FilNam)   goto L_ck_quot;   // external-Submodel
+  if(rTyp == Typ_CtlgPart) goto L_ck_quot;   // catalogpart
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_ck_quot:
+    // remove a leading and a following '"'
+    ls = strlen(ps);
+    if(ls > 255) {TX_Print("***** IE_inp_clean E001"); goto L_exit;}
+    p1 = &ps[strlen(ps) - 1];
+    if((ps[0] == '"')&&(ps[ls - 1] == '"')) {
+      strcpy (s1, &ps[1]);
+      s1[ls - 2] = '\0';
+      GUI_entry_set (&IE_wCad_obj[iind], s1);
+      ps = GUI_entry_get (&IE_wCad_obj[iind]);
+    }
+
+    // check filetyp and if file exists
+    irc = MDL_file_ck__ (rTyp, ps);
+    if(irc < 0) rTyp = -1;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    *src = ps;
+    return rTyp;
 
 }
 
@@ -3016,26 +3088,27 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   L_exit:
 
   // replace inputField
-  IE_set_inp (IE_inpInd, sNew);
+  IE_inp_set_txt (IE_inpInd, sNew);
 
   return 0;
 
 }
 
 
-
-
 //================================================================
-  int IE_inp_set (char *cBuf) {
+  int IE_inp_set_txt (int ind, char *cBuf) {
 //================================================================
-// IE_inp_set             write into active CAD-inputfield
+// IE_inp_set_txt                     write text -> inputField
 // write cBuf -> inputField[ind]
 
 
-  // printf("SSSSSSSSSSSSSS IE_inp_set %d |%s|\n",ind,cBuf);
+  // printf("SSSSSSSSSSSSSS IE_inp_set_txt %d |%s|\n",ind,cBuf);
+  // if(ind == 1) AP_debug__ ("");
 
-  if(IE_inpInd >= 0)
-  GUI_entry_set (&IE_wCad_obj[IE_inpInd], cBuf);
+
+  if(ind >= 0) {
+    GUI_entry_set (&IE_wCad_obj[ind], cBuf);
+  }
 
   // GUI_update__ ();  // ?
 
@@ -3044,25 +3117,67 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 }
 
 
+//================================================================
+  int IE_inp_set_err (int iEnt) {
+//================================================================
+// IE_inp_set_err       disp red boundary aroud inputfield with error / reset normal
+// Input:
+//   iEnt       >= 0 - index inputfield with error;
+//              -1     reset error, set  errorfield to normal.
+// Output:
+//   IE_inpErr  index inputfield with error, static
+
+
+  // printf("IE_inp_set_err iEnt=%d IE_inpErr=%d\n",iEnt,IE_inpErr);
+
+  if(iEnt >= 0) {
+    // set ERROR = ON
+    if(IE_inpErr >= 0) {
+      // already error on - reset this field
+      if(iEnt != IE_inpErr) IE_inp_set_styl (IE_inpErr, GUI_STYL_normal);
+      else return 0;
+    }
+    // set ERROR
+    IE_inpErr = iEnt;
+    IE_inp_set_styl (IE_inpErr, GUI_STYL_activ);
+
+
+  } else {
+    // set ERROR = OFF
+    if(IE_inpErr >= 0) {
+      IE_inp_set_styl (IE_inpErr, GUI_STYL_normal);
+      IE_inpErr = iEnt;
+    }
+  }
+
+  return 0;
+
+}
 
 
 //================================================================
-  int IE_set_inp (int ind, char *cBuf) {
+  int IE_inp_set_styl (int ind, int mode) {
 //================================================================
-// IE_set_inp                     write text -> inputField
-// write cBuf -> inputField[ind]
+// IE_inp_set_styl                     write text -> inputField
+//   mode    GUI_STYL_activ  (1) sets inputfield to state error
+//           GUI_STYL_normal (0) resets
 
 
-  // printf("SSSSSSSSSSSSSS IE_set_inp %d |%s|\n",ind,cBuf);
+  // printf("SSSSSSSSSSSSSS IE_inp_set_styl ind=%d mode=%d\n",ind,mode);
+  // if(ind == 1) AP_debug__ ("");
 
-  if(ind >= 0)
-  GUI_entry_set (&IE_wCad_obj[ind], cBuf);
+
+  if(ind >= 0) {
+    GUI_entry_styl (&IE_wCad_obj[ind], mode);
+    // IE_inpAuxDat[ind].stat = 1;
+  }
 
   // GUI_update__ ();  // ?
 
   return 0;
 
 }
+
 
 
 //================================================================
@@ -3324,37 +3439,24 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   if(fnam == NULL) return 0;
 
-  printf("IE_cad_selM2_CB |%s|%s|\n",dirNam,fnam);
+  // printf("IE_cad_selM2_CB |%s|%s|\n",dirNam,fnam);
 
 
   actTyp = IE_inpTypR[IE_inpInd];
-    printf(" selM2_CB-actTyp=%d\n",actTyp);
-
+    // printf(" selM2_CB-actTyp=%d\n",actTyp);
 
 
   //---------------------------------------------------
   if(actTyp == TYP_FilNam) {  // 238
-
-    
-//     strcpy(AP_mod_dir, dirNam);
-//     // get symbol from path
-//     if(Mod_sym_get2 (cbuf, dirNam) < 0) return 0;
-//     // add text to Inputfield
-//     // strcat(cbuf, fnam_del_s);
-//     strcat(cbuf, "/");  // auch bei Windows "/"
-//     strcat(cbuf, fnam);
-
     strcpy(cbuf,dirNam);
     UTX_add_slash (cbuf);
     strcat(cbuf,fnam);
 
 
-
   //---------------------------------------------------------------
   } else if(actTyp == Typ_CtlgPart) {  // 239
     // dirNam = catalogName, fnam == partName
-    sprintf(cbuf, "%s/%s",dirNam,fnam);
-
+    sprintf(cbuf, "%s/%s.ctlg",dirNam,fnam);
 
 
   //---------------------------------------------------------------
@@ -3365,12 +3467,10 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
   // IE_sel_CB_1 (TYP_FilNam, 0, "xxx");
   // gtk_entry_set_text ((GtkEntry*) (IE_wCad_obj[IE_inpInd]), cbuf);
-  IE_set_inp (IE_inpInd, cbuf);
-
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   // proceed to next Inputfield
   IE_inp_chg (-1);
-
 
   // // testen
   // IE_cad_test__ ();
@@ -3399,7 +3499,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   static char  **ftab;
 
 
-  printf("IE_cad_selM2 IE_inpTypAct=%d\n",IE_inpTypAct);
+  // printf("IE_cad_selM2 IE_inpTypAct=%d\n",IE_inpTypAct);
   // printf("  FeldNr=%d FeldTyp=%d\n",IE_inpInd,IE_inpTypR[IE_inpInd]);
 
 
@@ -3412,11 +3512,11 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   if(IE_inpTypAct == TYP_FilNam) {  // 238
 
     strcpy(cbuf1, MSG_const__(MSG_open));  // "Model open"
-    // i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "*.gcad");
+    // i1 = AP_fnam_get_user_1 (1, fNam, dNam, cbuf1, "*.gcad");
     // 2015-07-06 filetyp removed (N=IMG needs jpg,bmp..)
     fNam[0] = '\0';
     strcpy(dNam, AP_mod_dir);
-    i1 = AP_Mod_open (1, fNam, dNam, cbuf1, "\"*.*\"");
+    i1 = AP_fnam_get_user_1 (1, fNam, dNam, cbuf1, "\"*.*\"");
     UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
     if(i1 < 0) return -1;
     IE_cad_selM2_CB (fNam, dNam);
@@ -3435,13 +3535,14 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   //---------------------------------------------------------------
   } else if(IE_inpTypAct == Typ_SubModel) {  // 97
 
-    // Mod_mkList (1); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
+    MDL_file_lst__ (0); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
+
+    // let user select from list of Submodelnames
     sprintf(cbuf1,"%sMod.lst",OS_get_tmp_dir());
-    i1 = GUI_list1_dlg_w (fNam, 256,
-                         NULL, "select Submodel", cbuf1,
-                         "1", NULL, "60,40");
-    UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
+    i1 = GUI_listf1__ (fNam,sizeof(fNam),cbuf1,"\"select model\"","\"x40,y40\"");
     if(i1 < 0) return -1;
+
+    // selected smNam into intputfield ..
     IE_cad_selM2_CB (fNam, NULL);
 
 
@@ -3507,10 +3608,11 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
 
-  int       irc, i1, i2, i3, typReq, fLen, actRec, recFull;
+  int       irc, i1, i2, i3, typReq, fLen, actRec, recFull,
+            iAct, iNxt, iDisp;
             // subtypSel, ccvtypSel, actRec,
             // iSeg, iSubSeg, sSel, iaSeg[3], iaNr;
-  long      cPos, dli;
+  long      cPos, dli, dlPrev;
   double    lpar, d1;
   char      *p1, *p2, tmpBuf[256], auxBuf[32], outFmt[8], typChar;
   Point     pt1;
@@ -3521,6 +3623,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   // printf("SSSSSSSSSS IE_sel_CB_1 typSel=%d ind=%ld |%s|\n",typSel,ind,buf);
+  // printf(" IE_delete=%d\n",IE_delete);
+
 
 
   // exit if no function active ...
@@ -3534,21 +3638,16 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   IE_selInd = ind;
 
 
-  // ist delete active ??
-  if(IE_delete == 0) goto L_cad_work;
-
-
   //===============================================================
-  // delete inputObj
-  strcpy(IE_outTxt, buf);
-  strcat(IE_outTxt, "=");
+  // ist delete active ??
+  if(IE_delete) {
+    // delete inputObj
+    strcpy(IE_outTxt, buf);
+    strcat(IE_outTxt, "=");
 
-  IE_cad_OK ();
-
-
-  return 0;
-
-
+    IE_cad_OK ();
+    return 0;
+  }
 
 
   //===============================================================
@@ -3583,7 +3682,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     // temporary display position (with little red circle)
     // for indicate, point; not curve ..
     if((typSel == Typ_TmpPT)||(typSel == Typ_PT))
-      UI_disp_Pos (Typ_Txt, buf);
+      UI_prev_pos (Typ_Txt, buf);
    
     // only one normal-group in a command; the normal-group-text is stored
     // in IE_buf.
@@ -3606,7 +3705,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   //----------------------------------------------------------------
   // test (  Union  (Group with U())
   if(IE_grp_typ == '(') {
-    // IE_set_inp (IE_inpInd, buf); // display obj in inputField
+    // IE_inp_set_txt (IE_inpInd, buf); // display obj in inputField
     // strcat(IE_buf, buf);
       // printf(" union-group\n");
     // test if obj is already in grp
@@ -3624,52 +3723,46 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   }
 
 
-
   //----------------------------------------------------------------
   // normal object.
   // old unused functions:
   //   IE_inpTest - test if input complete  see also IE_decode_Ln
 
-  // reset hilite of selected obj   // 2014-04-17
-  DL_hili_off (GR_selDli);
-
+//   // reset hilite of selected obj   // 2014-04-17
+//   DL_hili_off (GR_selDli);
 
   // get fieldText
   p1 = IE_get_inp__ (IE_inpInd);
     // printf(" IE_inpInd=%d fieldText=|%s|\n",IE_inpInd,p1);
 
-
   UTX_pos_skipLeadBlk (buf); // skip leading blanks (" CX")
 
-
-  // add or replace or remove or ignore input.
-  irc = IE_inpCkAdd (&i1, &i2, &i3, typSel, p1, buf);
-    // printf(" f-IE_inpCkAdd i1=%d i2=%d i3=%d irc=%d\n",i1,i2,i3,irc);
-    // printf(" ex _inpCk = %d %d %d\n",i1,i2,i3);
-    // i1: 0=replace; 1=add; 2=remove; 3=insert as 1.word
-    // i2: -1=gotoNextField; 0=keep,test; 1=keep,do not test
-    // i3: 0=display; 1=do not reDisplay;
+  // check if to add or replace or remove or ignore input.
+  IE_inpCkAdd (&iAct, &iNxt, &iDisp, typSel, ind, p1, buf);
+    // printf(" f-IE_inpCkAdd iAct=%d iNxt=%d iDisp=%d\n",iAct,iNxt,iDisp);
+    // iAct:   0=replace; 1=add; 2=remove; 3=insert as 1.word
+    // iNxt:  -1=gotoNextField; 0=keep,test; 1=keep,do not test (not-yet-complete)
+    // iDisp:  0=display; 1=do not reDisplay;
 
 
-
-  // i1: 0=replace; 1=add; 2=remove; -1=skip
-  if(i1 == 0) {  // 0=replace
+  // iAct: 0=replace; 1=add; 2=remove; -1=skip
+  if(iAct == 0) {  // 0=replace
     // replace complete field by input.
     // write IE_outTxt into inputField [actRec]
-    IE_set_inp (IE_inpInd, buf);
+    IE_inp_set_txt (IE_inpInd, buf);
 
 
-  } else if(i1 == 1) {  // 1=add
+  } else if(iAct == 1) {  // 1=add
     // add " <input>"
     if(strlen(p1) > 0) {
       sprintf(IE_outTxt, "%s %s",p1,buf);
-      IE_set_inp (IE_inpInd, IE_outTxt);
+      IE_inp_set_txt (IE_inpInd, IE_outTxt);
     } else {                    
-      IE_set_inp (IE_inpInd, buf);
+      IE_inp_set_txt (IE_inpInd, buf);
     }
 
 
-  } else if(i1 == 2) {  // 2=remove
+  } else if(iAct == 2) {  // 2=remove
     // <input> already exists, remove <input> from field
     // copy <p1> -> IE_outTxt
     strcpy (IE_outTxt, p1);
@@ -3679,19 +3772,19 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     if(UTX_cut_word (IE_outTxt, buf) < 0) goto L_done;
     // remove following blanks
     UTX_del_follBl (IE_outTxt);
-    IE_set_inp (IE_inpInd, IE_outTxt);
+    IE_inp_set_txt (IE_inpInd, IE_outTxt);
 
 
-  } else if(i1 == 3) {  // 3=insert as 1.word
+  } else if(iAct == 3) {  // 3=insert as 1.word
     if(strlen(p1) > 0) {
       sprintf(IE_outTxt, "%s %s",buf,p1);
-      IE_set_inp (IE_inpInd, IE_outTxt);
+      IE_inp_set_txt (IE_inpInd, IE_outTxt);
     } else {                    
-      IE_set_inp (IE_inpInd, buf);
+      IE_inp_set_txt (IE_inpInd, buf);
     }
 
 
-  } else if(i1 == -1) {  // -1=skip, ignore
+  } else if(iAct == -1) {  // -1=skip, ignore
     goto L_done;
 
   }
@@ -3699,10 +3792,12 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   //----------------------------------------------------------------
   // update display for vectors (cannot select direct)
-  if(i3 == 0) {
+  if(iDisp == 0) {
     // display temporary
     GLBT_set_stat (IE_inpInd); // update 2D-icons
-    IE_cad_Inp_disp__ (IE_inpInd, 0);
+    // IE_cad_Inp_disp__ (IE_inpInd);
+   // sele_get_pos__ (&pt1);
+   // IE_cad_Inp_sele__ (IE_selTyp, IE_selInd, GR_selDli, buf, &pt1);
 
   } else {
     DL_Redraw ();
@@ -3710,22 +3805,24 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   //----------------------------------------------------------------
-  // i2: 1=keep active field, do not test (not complete);
-  if(i2 == 1) {
-    // set cursor to end of inputField <IE_inpInd>
-    GUI_entry_pos_set (-1, &IE_wCad_obj[IE_inpInd]);
-    return 0;
+  // activate next inputField
+  if(iNxt < 0) {
+    IE_inp_chg (-1);  // activate next inputfield
+    goto L_exit;
+  }
+
+  // try to preview obj from text
+  // set cursor to end of inputField <IE_inpInd>
+  GUI_entry_pos_set (-1, &IE_wCad_obj[IE_inpInd]);
+  // preview obj not yet complete (eg single point for vector)
+  dlPrev = IE_GET_INP_DLI (IE_inpInd);
+  irc = UI_prev_src (IE_inpTypR[IE_inpInd], buf, dlPrev, &pt1);
+
+  // iNxt: 1=keep active field, do not test (not yet complete);
+  if(iNxt == 1) goto L_exit;
 
 
   //----------------------------------------------------------------
-  // activate next inputField
-  } else if(i2 < 0) {
-    IE_inp_chg (-1);  // activate next inputfield
-    return 0;
-  }
-
-
-
   goto L_done;
 
 /*
@@ -3826,7 +3923,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // normal objects:
   // write IE_outTxt into inputField [actRec]
   // gtk_entry_set_text ((GtkEntry*) (IE_wCad_obj[actRec]), IE_outTxt);
-  IE_set_inp (actRec, IE_outTxt);
+  IE_inp_set_txt (actRec, IE_outTxt);
 
 
   // // save input in IE_inpTxtG
@@ -3859,6 +3956,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   if(IE_ui_func) {
     IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncOK));
   }
+
+  //----------------------------------------------------------------
+  L_exit:
 
   return 0;
 
@@ -3904,15 +4004,21 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 // see also IE_cad_Inp_undo
 
 
-  // printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
+  printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
 
   // exit if CAD not yet initialized
-  if(UI_InpMode != UI_MODE_CAD) return 0;
+  if(UI_InpMode != UI_MODE_CAD) {
+    TX_Print ("***** CAD must be active ..");
+    return -1;
+  }
 
 
   //----------------------------------------------------------------
   if(IE_modify != 0) goto L_mod__;
     // CREATE-MODE (Add)
+
+    // remove temp. submodel
+    if(IE_FuncTyp == IE_Func_Models) MDL_prev_del ();
 
     // clear error
     // AP_errStat_set (0);
@@ -3954,15 +4060,18 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   //----------------------------------------------------------------
   L_exit:
+    printf("ex-IE_cad_exitFunc\n");
+
   return 0;
 
 }
 
 
+/* UU see IE_cad_exitFunc
 //=====================================================================
   int IE_cad_exit0 () {
 //=====================================================================
-
+// IE_cad_exit0              close modify- mode, groupWindow, 
 
   // printf("IE_cad_exit0\n");
 
@@ -3992,7 +4101,18 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   return 0;
 
 }
+*/
 
+//================================================================
+  int IE_init__ () {
+//================================================================
+// IE_init__        primary init
+
+  IE_FuncTyp = -1;
+
+  return 0;
+
+}
 
 
 //=====================================================================
@@ -4004,8 +4124,10 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   long  lNr;
 
 
-  // printf("00000000000000000000000000000000000000000000 \n");
+  printf("00000000000000000000000000000000000000000000 \n");
   printf("IE_cad_init0\n");
+  UTF_dump1__ ();
+
 
   // aktueller ObjTyp=IE_cad_typ,  akt. ObjInd=IE_objInd
   // printf("IE_cad_init0 typ=%d Ind=%ld\n",IE_cad_typ, IE_objInd);
@@ -4027,6 +4149,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
     // modify zeile im mem mit dem SystemEditor.
     i2 = AP_src_mod_ed (lNr);
+    if(i2) return -1;
 
     // reRun
     ED_work_CurSet (0); // TEST
@@ -4197,6 +4320,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   int IE_cad_init__ (int iMain, int iSub) {
 //================================================================
 // IE_cad_init__        activate mainMenu + Submenu
+//   only primary startup with predefined CAD-function
 
   void **data;
 
@@ -4315,7 +4439,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
       *typ = Typ_Model;
       *men = IE_cad_m;
       *lst = cad_lst_m;
-      Mod_mkList (1); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
+      // Mod_flst_all (1); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
       break;
     case IE_Func_Transform:
       *typ = Typ_Tra;
@@ -4355,7 +4479,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 //=====================================================================
   int IE_cad_init2 (int ind) {
 //=====================================================================
-// set Indicator ob PT od LN aktiv
+// set Indicator if PT od LN or CI or .. active 
 // called beim init und von IE_activate
 // sets IE_cad_typ, IE_cad_act
 // Input:
@@ -4367,6 +4491,13 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // printf("222222222222222222222222222222222222222222222222222\n");
   // printf("IE_cad_init2 %d %d %d\n",ind,IE_cad_typ,IE_FuncTyp);
   // printf("     typ=%d\n",IE_cad_typ);
+
+
+  // if model is active: remove temporary models
+  if((IE_FuncTyp == IE_Func_Models) && (AP_modact_tmp)) {
+    MDL_prev_stat_del ();
+  }
+
 
   // disactivate inputFields
   IE_inp_CB__ (NULL, NULL);
@@ -4485,7 +4616,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   int IE_cad_ClearInp1 (int ii, int iRedraw) {
 //================================================================
 // IE_cad_ClearInp1     clear one inputField
-// iRedraw      0=redraw;     1=do not redraw
+// Input:
+//   ii           index inputfield
+//   iRedraw      0=redraw;     1=do not redraw
 
   long   dli;
 
@@ -4497,19 +4630,21 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   if(ii >= INPRECANZ) return 0;
 
 
+  // remove error - clear IE_inpErr
+  if(IE_inpErr == ii) IE_inp_set_err (-1);
+
   // clear inputField ii
   // IE_inpTxtG[ii][0] = '\0';
-  IE_set_inp (ii, "");
+  IE_inp_set_txt (ii, "");
 
-
-  // delete temp obj (-IE_inpInd - 2)
-  // temp -2 = field 0; temp -3 = field 2.
-  dli = IE_GET_INP_DLI (ii);
-  GL_temp_del_1 (dli);
+  // remove preview obj (-IE_inpInd - 2)
+  IE_cad_prev_off (ii);
 
 
   // init IE_inpAuxDat
+  UT3D_pt_setFree (&IE_inpAuxDat[ii].pos); // set .x=UT_VAL_MAX
   UT3D_vc_setFree (&IE_inpAuxDat[ii].vx);
+  IE_inpAuxDat[ii].dlTyp = -1;
 
 
   if(!iRedraw) DL_Redraw ();
@@ -4584,6 +4719,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // printf("CCCCCCCCCCCCCC IE_cad_ClearInputs %d\n",iNr);
   // printf("  IE_ed1_win.stat=%d\n",IE_ed1_win.stat);
 
+  if(IE_inpErr >= 0) IE_inp_set_err (-1);
 
   // clear all Inputs (IE_wCad_obj)
   // alle Inputfelder loeschen
@@ -4647,7 +4783,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   static int nObjOld=INPRECANZ, nObjR;
 
-  int  i1, i2;
+  int  irc, i1, i2;
   char *p1, *p2, cbuf[256];
 
 
@@ -4660,18 +4796,16 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
          // IE_FuncTyp,ind,IE_modify);
   // printf(" IE_cad_typ=%d\n",IE_cad_typ);
 
-
   IE_stat__ = 2;    // 2=createPhase; create Menu & empty inputFields.
 
+  IE_inpErr = -1;
+
   IE_FuncSubTyp = ind;
-
-
 
   // fix IE_cad_typ for joints
   if((IE_FuncTyp == 13) && (IE_FuncSubTyp >= 1)) {        // joint export
     IE_cad_typ = Typ_Joint;
   }
-
 
   // printf(" 1.Rec %d %d %s\n",
         // IE_cad_act[0].ind,IE_cad_act[0].typ,IE_cad_act[0].info);
@@ -4680,32 +4814,24 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // printf(" 3.Rec %d %d %s\n",
         // IE_cad_act[2].ind,IE_cad_act[2].typ,IE_cad_act[2].info);
 
-
-
   // wenn GenerateNewLine: den neuen ObjIndex holen.
   if(IE_modify != 1) IE_nxtInd ();
 
-
   Grp_Clear (1); // clear group
-
 
   // clear active function
   IE_cad_InpIn__ (-2);
 
-
   // zuerst Inputfelder loeschen
   IE_cad_ClearInputs (IE_inpAnz);
 
-
   // ein Reset des GruppenWindow erzwingen
   // IE_inp_CB__ (NULL, NULL);
-
 
   // reset hilited
   GL_temp_del_all ();     // alle temp. obj loeschen
   DL_hili_on (-1L);      // loeschen der Hili-Tabelle
   DL_Redraw ();
-
 
   // InputMode; bei CCVS Viewmode (letztes Obj anders behandeln)
   ED_enter();
@@ -4715,11 +4841,9 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   i1=0;
 
-
-
   // find first Index in IE_cad_act
   // printf(" ------ find IE_first\n");
-  if(IE_cad_act == NULL) return -1;
+  if(IE_cad_act == NULL) {irc = -1; goto L_exit;}
   while(IE_cad_act[i1].ind >= 0) {
     // printf(" i1=%d act.ind=%d\n",i1,IE_cad_act[i1].ind);
     if(IE_cad_act[i1].ind == ind) {
@@ -4728,7 +4852,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     }
     ++i1;
   }
-  return -1;
+  irc = -1;
+  goto L_exit;
 
 
   // find first-/last Index in IE_cad_act
@@ -4748,13 +4873,16 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // }
 
 
-
-
-
   //------------------------------------------------------
   // print info into Menulines and -
   // get preloadText out of .info into IE_wCad_preLoad
   // get auXInf (after second '|') into IE_inpAuxDat.auxInf
+  i2 = 0;
+  for(i1=IE_first; i1<=IE_last; ++i1) {
+    IE_wCad_preLoad[i2][0] = '\0';
+    IE_inpAuxDat[i2].auxInf[0] = '\0';
+    ++i2;
+  }
   nObjR=0;   // index inputField
   for(i1=IE_first; i1<=IE_last; ++i1) {
       // printf(" inp:iCad=%d ind=%d inf=|%s|\n",i1,nObjR,IE_cad_act[i1].info);
@@ -4794,12 +4922,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
         strcpy(IE_wCad_preLoad[nObjR], p1);
       }
         // printf(" cad_init1-IE_wCad_preLoad |%s|\n",IE_wCad_preLoad[nObjR]);
-
-    } else {
-      IE_wCad_preLoad[nObjR][0] = '\0';
-      IE_inpAuxDat[nObjR].auxInf[0] = '\0';
     }
-
 
     // write whole .info = displayText
     GUI_label_mod (&IE_wCad_info[nObjR], cbuf);
@@ -4828,7 +4951,6 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   }
   nObjOld=nObjR;
 
-
 /*
   // Funktionsinfo -> Messageline rausschreiben
   // ACHTUNG: Laenge begrenzen !
@@ -4837,17 +4959,15 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 */
 
 
-
   //------------------------------------------------------
   // copy requested types -> IE_inpTypR / IE_inpAnz
   IE_inpAnz = IE_last - IE_first + 1;
   i2 = 0;
   for(i1=IE_first; i1<=IE_last; ++i1) {
     IE_inpTypR[i2] = IE_cad_act[i1].typ;
+      // printf(" cad_init1-IE_inpTypR[%d]=%d\n",i2,IE_inpTypR[i2]);
     ++i2;
   }
-
-
 
   // OK-Butt. deaktivieren
   IE_cad_set_OK (0);
@@ -4856,20 +4976,15 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   // IE_ed_lNr feststellen
   // IE_ed_lNr = ED_Get_LineNr ();
 
-
-
   // Reset Panels
   // IE_inp_CB__ (NULL, NULL);
-
 
   // // activate first inputField (else inputFields not active !)
   // IE_inp_chg (0);   // 2011-11-23 removed for IE_activate
 
-
   // active FuncWord -> IE_FncNr (IE_FncNr 0=CUT, 2=TRA ..)
   p1 = IE_lst_act[IE_FuncSubTyp].ftyp;
   IE_FncNr = UTX_cmp_word_wordtab (IE_fTbab_Modify, p1);
-
 
 /*
   if(IE_FncNr != 1) {         // 0=CUT; 1=INT
@@ -4882,18 +4997,22 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   }
 */
 
-
   IE_stat__ = 0;     // 0=active, normal operation.
 
   // activate 1. inputField      2011-11-23
   IE_inp_chg (0);
 
+  irc = 0;
 
+
+  //----------------------------------------------------------------
+  L_exit:
+  
     // TESTBLOCK
-    // printf("ex IE_cad_init1 IE_cad_typ=%d\n",IE_cad_typ);
+    // printf("ex-IE_cad_init1 irc=%d IE_cad_typ=%d\n",irc,IE_cad_typ);
     // END TESTBLOCK
 
-  return 0;
+  return irc;
 
 }
 
@@ -4908,12 +5027,14 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 // >=0  index
 
 
-  int    indOld;
 static int _do_not = 0;
 
+  int    irc, indOld;
 
 
-  // printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF   IE_inp_chg %d\n",iNxt);
+  indOld = IE_inpInd;
+
+  // printf("FFFFFFFFFFFFFFFFFFFFFFF IE_inp_chg iNxt=%d indOld=%d\n",iNxt,indOld);
   // printf(" IE_inp_chg IE_inpAnz=%d IE_inpInd=%d\n",IE_inpAnz,IE_inpInd);
 
 
@@ -4922,24 +5043,16 @@ static int _do_not = 0;
     return 0;
   }
 
-
   if(_do_not) {
     _do_not = 0;
     return 0;
   }
 
 
-
-
-  indOld = IE_inpInd;
-
-
   // -1   next
   if(iNxt == -1) {
     // if(IE_inpInd >= INPRECANZ) {
     iNxt = IE_inpInd + 1;
-
-
 
 
   // -2   previous (zB Cursor up)
@@ -4951,10 +5064,7 @@ static int _do_not = 0;
   } else if (iNxt < -2) {
     // ERROR
     return -1;
-
-
   }
-
 
 
   if(iNxt < 0) iNxt = 0;
@@ -4962,9 +5072,10 @@ static int _do_not = 0;
 
   // last entry: only test ..
   if(iNxt >= IE_inpAnz) {
-    IE_cad_Inp_disp__ (IE_inpInd, 0);      // display temp. symbol
+    irc = IE_cad_Inp_disp__ (IE_inpInd);      // display temp. symbol
+    if(irc < 0) goto L_err;
     IE_cad_test__ ();
-    return 0;
+    goto L_exit;
   }
 
 
@@ -4979,7 +5090,8 @@ static int _do_not = 0;
     // printf(" next inputfieldInd = %d\n",iNxt);
 
   // activate inputField iNxt
-  IE_cad_InpIn__ (iNxt);   // statt GUI_obj_focus 2012-09-17
+  irc = IE_cad_InpIn__ (iNxt);   // statt GUI_obj_focus 2012-09-17
+  if(irc < 0) goto L_err;
 
 
 /* 2012-09-13
@@ -4993,19 +5105,28 @@ static int _do_not = 0;
 #endif
 */
 
-  // error: reactivate previous field
-  if(AP_errStat_get()) {
-      // printf(" ======== reactivate field %d\n",indOld);
-    sele_set__ (IE_inpTypR[indOld]);    // reset GR_selTmpStat
-    // GUI_obj_focus (&IE_wCad_obj[indOld]);
-    if(IE_inpInd >= 0) IE_info_col_set (0, IE_inpInd);  // reset 
-    IE_inpInd = indOld;
-    if(IE_inpInd >= 0) IE_info_col_set (1, IE_inpInd);  // set info red
-    DL_Redraw ();
+  // ck error, 0=OK
+  if(!AP_errStat_get()) goto L_exit;
+
+
+  //----------------------------------------------------------------
+  // error - reactivate previous field
+  L_err:
+    // printf(" ======== reactivate field %d\n",indOld);
+  sele_set__ (IE_inpTypR[indOld]);    // reset GR_selTmpStat
+  // GUI_obj_focus (&IE_wCad_obj[indOld]);
+  if(IE_inpInd >= 0) IE_info_col_set (0, IE_inpInd);  // reset 
+  IE_inpInd = indOld;
+  if(IE_inpInd >= 0) {
+    IE_info_col_set (1, IE_inpInd);  // set info red
+    // set active inputField error
+    // IE_inp_set_styl (IE_inpInd, GUI_STYL_activ);
   }
 
-  // printf("ex IE_inp_chg %d\n",mode);
 
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex-IE_inp_chg %d %d\n",indOld,iNxt);
   return 0;
 
 }
@@ -5017,7 +5138,7 @@ static int _do_not = 0;
 /// \code
 /// IE_cad_test__        test if input complete, create sourcline, activate OK-butt
 /// RetCode:     0  OK
-///             -1  input not yet complete
+///             -3  input not yet complete
 ///             -2  error execute-sourcline
 /// \endcode
 
@@ -5025,7 +5146,7 @@ static int _do_not = 0;
   static Vector    vc1;  // keep last vcs
 
   int       aus_typ[10];
-  int       irc, i1, i2, i3, i4, ii, iskip, ilen, lNr, sTyp, iActRec;
+  int       irc, i1, i2, i3, i4, ii, iskip, ilen, lNr, sTyp, iActRec, iMdl;
   long      l1, l2, dbi;
   char      typChar, tmpBuf[256], actBuf[256], *cp1, *p1;
   char      aus_tab[10][256];
@@ -5128,8 +5249,23 @@ static int _do_not = 0;
     // printf("  Fix Header. mod=%d func=%d typ=%d ind=%ld\n",IE_modify,IE_FuncTyp,
            // IE_cad_typ,IE_objInd);
 
-  // no objHdr necessary for activate|reset ConstrPlane
-  if(IE_FuncTyp == IE_Func_CADEnv) goto L_start;         // ActiveCADEnv
+
+  // test activate|reset ConstrPlane
+  if(IE_FuncTyp == IE_Func_CADEnv) {
+    if(WC_get_obj_stat()) {
+      // IE_FuncSubTyp = 0: temp - 2D - ConstrPlane: only preview
+      // IE_FuncSubTyp = 1: temp - reset to 3D - ConstrPlane: only preview
+      irc = IE_cad_Inp_disp_grid (IE_FuncSubTyp);
+      if(irc < 0) return -1;
+      IE_cad_set_OK (1);    // set OK-button on
+      DL_Redraw ();
+      return 0;
+    } else {
+      // state perm
+      // no objHdr necessary for activate|reset ConstrPlane
+      goto L_start;         // ActiveCADEnv
+    }
+  }
 
 
   // no objHdr necessary for Analyze
@@ -5179,8 +5315,8 @@ static int _do_not = 0;
 
     // das zuletzt temporaer erzeugte objekt loeschen
     // GL_last_del ();
-    GL_temp_del_1 (GR_TMP_I0);      // delete temporary outputObject of WC_Work1
-    GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
+    // GL_temp_del_1 (GR_TMP_I0);      // delete temporary outputObject of WC_Work1
+    // GL_temp_del_1 (GR_TMP_IDIR);  // delete temporary direction-arrow
     DL_Redraw ();
     return -1;
 
@@ -5210,10 +5346,6 @@ static int _do_not = 0;
     return 0;
   }
 
-
-
-  // normale CAD-Func.; OK-Button freigeben
-  if(IE_stat_OK != 1) IE_cad_set_OK (1);  // 0=OK-locked; 1=OK-active
 
 
 
@@ -5336,7 +5468,7 @@ static int _do_not = 0;
 
     // actBuf = copy input
     strcpy(actBuf, p1);
-      // printf(" nxt[%d]=|%s|\n",i1,actBuf);
+      // printf(" cad_test__-out-nxt[%d]=|%s|\n",i1,actBuf);
 
 
     // // check for Parameter-defaults to save
@@ -5359,14 +5491,30 @@ static int _do_not = 0;
     // <tmpBuf> = create text from input <actBuf>
     // get p1 = point to tmpBuf or actBuf
     irc = IE_inpTxtOut (&p1, tmpBuf, actBuf, i1, iskip);
-      // printf(" f-npTxtOut-irc = %d |%s|\n",irc,p1);
+      // printf(" cad_test__-out-irc = %d |%s|%s|\n",irc,p1,IE_outTxt);
     if(irc < 0) return irc;
 
+    // add ' ' if necessary
     i2 = strlen (IE_outTxt);
-    --i2;
-    if(IE_outTxt[i2] != '=') strcat (&IE_outTxt[i2], " ");
-    strcat (&IE_outTxt[i2], p1);
-      // printf(" outTxt-4 now |%s|%s|\n",IE_outTxt,p1);
+    // --i2;
+    if(i2 > 0) {
+      if(IE_outTxt[i2 - 1] != '=') {
+        strcat (&IE_outTxt[i2], " ");
+        ++i2;
+      }
+    }
+
+
+    // add parameter
+    i3 = i2 + strlen (p1);
+    if(i3 > mem_cbuf1_SIZ) {
+      TX_Error("IE_cad_test__ buffer-overrun"); 
+    } else {
+      strcpy (&IE_outTxt[i2], p1);
+      IE_outTxt[i3] = '\0';
+    }
+
+      // printf(" cad_test__-out-now |%s|%s|\n",IE_outTxt,p1);
 
 
     continue;  // next inpField ..
@@ -5380,9 +5528,10 @@ static int _do_not = 0;
   // remove "," am Ende (kann vorkommen, wenn letzter parameter optional)
   cp1 = &IE_outTxt[strlen(IE_outTxt)-2];
   if(!strncmp(cp1,", ",2)) *cp1 = '\0';
-    // printf("  _cad_test1 IE_outTxt=|%s|\n",IE_outTxt);
-  // Ausg.zeile exekutieren; fuer temporaer (Tab) oder permanent (OK)
-  // printf("IE_cad_test__: Ausg.zeile exekutieren\n");
+
+    // TESTBLOCK
+    // printf("  IE_cad_test__: IE_outTxt=|%s|\n",IE_outTxt);
+    // END TESTBLOCK
 
 
 /*
@@ -5395,9 +5544,9 @@ static int _do_not = 0;
 
   // wenn die Codezeile ein Model beschreibt, dann Codezeile in eine Datei sichen
   // (durch das Mod_load_sm usw wird IE_outTxt beleidigt !))
-  i1 = 0;
+  iMdl = 0;
   if(IE_outTxt[0] == 'M') {
-    i1 = 1;
+    iMdl = 1;
     sprintf(tmpBuf,"%sIE_inpTxtG.txt",OS_get_tmp_dir());
     if(UTX_wrf_str(tmpBuf, IE_outTxt) < 0) return -1;
   }
@@ -5406,6 +5555,7 @@ static int _do_not = 0;
 
   //-----------------------------------------------------------------
   // execute
+
     // printf(" L execute\n");
   if(IE_save != 0) {      // 0=preview, 1=save perm.
     WC_set_obj_stat (0);    // set perm
@@ -5421,17 +5571,29 @@ static int _do_not = 0;
   }
 
 
-  // work (preview or display and store; call WC_Work__ WC_Work1)
+  // work (preview or display and store; call WC_Work1 WC_Work1)
   irc = ED_work_CAD (ED_get_lnr_act (), IE_outTxt);
     // printf(" after ED_work_CAD %d\n",irc);
   if(irc < 0) {
      // Error: lock OK-Button
     IE_cad_set_OK (0);     // 0=OK-locked; 1=OK-active
-    DL_Redraw ();          // makes error visible ..
-    if(irc == -3) return irc;    // -3 = obj not yet complete
-    return -2;
+    if(irc == -3) goto L_cad_exit;    // -3 = obj not yet complete; no error ..
+    if(IE_inpErr < 0) {
+      // set err to upper field
+      i1 = IE_inpInd - 1;
+      if(i1 < 0) i1 = 0;
+      if (i1 >= IE_inpAnz) i1 = IE_inpAnz -1;
+      // set or reset error for inputfield
+      IE_inp_set_err (i1);
+    }
+    irc = -2;
+    L_cad_exit:
+      DL_Redraw ();          // make preview visible ..
+      goto L_exit;
   }
 
+  // if temp - set OK-Button on
+  if(!IE_save) IE_cad_set_OK (1);  // 0=OK-locked; 1=OK-active
 
 
   // update browserWindow
@@ -5448,8 +5610,9 @@ static int _do_not = 0;
 
 
   // IE_outTxt nach ED_work_CAD:
-  if(i1 == 1) {   // only if obj=Model: get src from file
-    if(UTX_fgetLine(IE_outTxt, mem_cbuf1_SIZ, tmpBuf, 1) < 0) return -1;
+  if(iMdl == 1) {   // only if obj=Model: get src from file
+    if(UTX_fgetLine(IE_outTxt, mem_cbuf1_SIZ, tmpBuf, 1) < 0)
+      { irc = -1; goto L_exit; }
     UTX_CleanCR(IE_outTxt);   // remove LF ..
   }
 
@@ -5457,9 +5620,13 @@ static int _do_not = 0;
 
 
 
+  // reset ConstrPlane: exit func
+  if(IE_FuncTyp == IE_Func_CADEnv) IE_cad_Inp_undo ();
+
 
   DL_Redraw ();
 
+  irc = 0;
 
 /*
   // fix Typ and Index for 1 == INT
@@ -5483,10 +5650,9 @@ static int _do_not = 0;
   }
 */
 
-    // printf(" ex IE_cad_test__\n");
-
-
-  return 0;
+  L_exit:
+    // printf(" ex IE_cad_test__ %d\n",irc);
+  return irc;
 
 
 }
@@ -5772,7 +5938,7 @@ static int _do_not = 0;
 //================================================================
   int IE_cad_CB_Ok (MemObj *mo, void **data) {
 //================================================================
-// user pressed CAD-Cancel-button
+// user pressed CAD-OK-button
 
   return IE_cad_OK ();
 
@@ -6136,7 +6302,7 @@ static int _do_not = 0;
 
 
 
-  WC_set_obj_stat (1); // alle Displays mit WC_Work__ ab nun nur temporaer ..
+  WC_set_obj_stat (1); // alle Displays mit WC_Work1 ab nun nur temporaer ..
 
 
   return 0;
@@ -6179,7 +6345,7 @@ static int _do_not = 0;
   } else {
     // delete:
     lNr = ED_Get_LineNr ();
-    WC_Work__ (lNr, IE_outTxt);
+    WC_Work1 (lNr, IE_outTxt);
   }
 
 
@@ -6241,7 +6407,7 @@ static int _do_not = 0;
   IE_stat_OK = 0;
   gtk_widget_set_sensitive(IE_but_OK,(gint)IE_stat_OK);//1=activ,0=inaktiv.
 
-  WC_set_obj_stat (1); // alle Displays mit WC_Work__ nur temporaer ..
+  WC_set_obj_stat (1); // alle Displays mit WC_Work1 nur temporaer ..
 
 
 
@@ -6289,6 +6455,7 @@ static int _do_not = 0;
 // IE_get_inp_dli       get dli for active inputField
 // returns 0 if no CAD-inputfield is active
 // else -2 to -7
+// see IE_GET_INP_DLI (iind)
 
   // printf("IE_get_inp_dli IE_inpInd=%d\n",IE_inpInd);
   // printf("  APP_stat=%d UI_InpMode=%d\n",AP_stat.APP_stat,UI_InpMode);
@@ -6381,7 +6548,7 @@ static int _do_not = 0;
 //=====================================================================
   int IE_cad_InpIn_CB (int ind, int key) {
 //=====================================================================
-// Key in in ein Inputfeld
+// IE_cad_InpIn_CB                   user activated CR or tab
 // ind unused
 
 
@@ -6547,8 +6714,35 @@ static int _do_not = 0;
 }
 */
 
+
+//================================================================
+  int IE_cad_msg_obj_ko (char *sObj, int typ) {
+//================================================================
+// IE_cad_msg_obj_ko    message cannot use obj
+
+  char  *s2, *s3, s0='\0';
+
+
+  printf("IE_cad_msg_obj_ko |%s| %d\n",sObj,typ);
+
+  // get typTxt from typ 
+  s3 = &s0;
+  if(typ > 0) {
+    s2 = AP_typTxt_typ (typ);
+    if(s2) s3 = MSG_get_0 (s2);
+    else   printf("***** IE_cad_msg_obj_ko AP_typTxt_typ error typ %d",typ);
+  }
+
+  //cannot use obj
+  TX_Print("***** %s %s - %s",MSG_get_0("E_CAD_use1"),sObj,s3);
+
+  return 0;
+
+}
+
+
 //=====================================================================
-  int IE_cad_Inp1_Info (int iind) {
+  int IE_cad_msg_typ (int iind) {
 //=====================================================================
 
 /*
@@ -6605,9 +6799,9 @@ static IE_info_rec IE_info_tab[] = {
 
 
   int   typ;
+  char  *s1;
 
-
-  // printf("IE_cad_Inp1_Info feld %d Typ=%d\n",IE_inpInd,IE_inpTypR[IE_inpInd]);
+  // printf("IE_cad_msg_typ feld %d Typ=%d\n",IE_inpInd,IE_inpTypR[IE_inpInd]);
 
 
   if(iind < 0) {
@@ -6615,122 +6809,21 @@ static IE_info_rec IE_info_tab[] = {
   } else {
     typ = IE_inpTypR[iind];
   }
-
-
   if(typ == 0) return 0;
 
-  IE_cad_Inp2_Info (typ);
-/*
-  for(i1=0; i1<1000; ++i1) {
-    i2 = IE_info_tab[i1].typ;
-    if(i2 < 0) {
-      TX_Print("IE_cad_Inp1_Info typ %d unbekannt",typ);
-      return 0;
-    }
+  // get typTxt from typ (eg "Typ_PT" from Typ_PT)
+  s1 = AP_typTxt_typ (typ);
+  if(!s1) goto L_err;
 
-    if(i2 == typ) {
-      TX_Print(IE_info_tab[i1].txt);
-      break;
-    }
-  }
-*/
+  // display message 
+  MSG_pri_0 (s1);
 
   return 0;
 
-}
 
-
-//================================================================
-  int IE_cad_Inp2_Info (int typ) {
-//================================================================
-// see INF_MSG_new
-// modify, delete, add keywords/message: see INF_MSG_new
-// >TODO: use func typ -> typ_txt
- 
-  int      i1, i2;
-  typedef  struct {int typ; char *txt;} IE_info_rec;
-  static   IE_info_rec IE_info_tab[] = {
-  Typ_Val,      "Typ_Val",
-  Typ_PT,       "Typ_PT",
-  Typ_LN,       "Typ_LN",
-  Typ_CI,       "Typ_CI",
-  Typ_VC,       "Typ_VC",
-  Typ_CV,       "Typ_CV",
-  Typ_CVTRM,    "Typ_CVTRM",
-  Typ_CVPOL,    "Typ_CVPOL",
-  Typ_XVal,     "Typ_XVal",
-  Typ_YVal,     "Typ_YVal",
-  Typ_ZVal,     "Typ_ZVal",
-  Typ_Angle,    "Typ_Angle",
-  Typ_PLN,      "Typ_PLN",
-  Typ_SOL,      "Typ_SOL",
-  Typ_Tra,      "Typ_Tra",
-  Typ_modRepl,  "Typ_modRepl",
-  Typ_mod1,     "Typ_mod1",
-  Typ_mod2,     "Typ_mod2",
-  Typ_modCWCCW, "Typ_modCWCCW",
-  Typ_modREV,   "Typ_modREV",
-  Typ_modCX,    "Typ_modCX",
-  Typ_modCTRL,  "Typ_modCTRL",
-  Typ_modPERP,  "Typ_modPERP",
-  Typ_modPARL,  "Typ_modPARL",
-  Typ_modUnlim, "Typ_modUnlim",
-  Typ_modAux,   "Typ_mod1",                    // Bild-Tasten/ (Version ändern)
-  Typ_Txt,      "Typ_Txt",
-  Typ_String,   "Typ_String",
-  TYP_FilNam,   "TYP_FilNam",
-  Typ_CtlgPart, "Typ_CtlgPart",
-  Typ_Model,    "Typ_Model",
-  Typ_SubModel, "Typ_SubModel",
-  // Typ_Str_Dir1, "Typ_Str_Dir1",              // nur CAD
-  // Typ_Val_symTyp, "Typ_Val_symTyp",          // nur CAD
-  Typ_Joint,    "Typ_Joint",
-  // Typ_apDat,    "Typ_apDat",
-  Typ_Group,    "Typ_Group",
-
-  Typ_PTS,      "Typ_PTS",
-  Typ_PTI,      "Typ_PTI",
-  Typ_SEG,      "Typ_SEG",
-
-  Typ_goPrim,   "Typ_goPrim",
-  Typ_go_LCS,   "Typ_lFig",
-  Typ_goGeom,   "Typ_goGeom",
-  Typ_goGeo1,   "Typ_goGeo1",
-  Typ_goGeo2,   "Typ_goGeo2",
-  Typ_go_PD,    "Typ_go_PD",
-  // Typ_goGeo4,   "Typ_goGeo4",
-  Typ_goGeo5,   "Typ_goGeo5",
-  Typ_goGeo7,   "Typ_goGeo7",
-  Typ_goGeo8,   "Typ_goGeo8",
-  Typ_goAxis,   "Typ_goAxis",
-  Typ_goGeoSUSU,"Typ_goGeoSUSU",
-  Typ_go_RA,    "Typ_go_RA",
-  Typ_go_lf1,   "Typ_go_lf1",
-  Typ_go_lf2,   "Typ_go_lf2",
-
-  -1,           ""};               // end
-
-
-  // printf("IE_cad_Inp2_Info %d\n",typ);
-
-
-  for(i1=0; i1<1000; ++i1) {
-    i2 = IE_info_tab[i1].typ;
-    if(i2 < 0) {  // -1 = end of tab
-      TX_Print("IE_cad_Inp1_Info typ %d unbekannt",typ);
-      return 0;
-    }
-
-    if(i2 == typ) {
-      // TX_Print (IE_info_tab[i1].txt);
-        // printf(" cad_Inp2_Info |%s|\n",IE_info_tab[i1].txt);
-      MSG_pri_0 (IE_info_tab[i1].txt);
-      break;
-    }
-  }
-
-
-  return 0;
+  L_err:
+    TX_Print("******* IE_cad_msg_typ typ %d undefined",typ);
+    return -1;
 
 }
 
@@ -6747,7 +6840,7 @@ static IE_info_rec IE_info_tab[] = {
   char  *p1, *p2, cbuf[32];
 
 
-  // printf("<<<<<<<<<<<<<<\nIE_cad_Inp1_nxtTra %d %d\n",mode,IE_inpInd);
+  printf("<<<<<<<<<<<<<<\nIE_cad_Inp1_nxtTra mode=%d ii=%d\n",mode,IE_inpInd);
 
   // index auslesen
   p1 = IE_get_inp__(IE_inpInd);
@@ -6773,7 +6866,12 @@ static IE_info_rec IE_info_tab[] = {
 
 
   sprintf(cbuf, "T%ld", dbi);
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);   // write text -> inputField
+
+  IE_selTyp = Typ_Tra;
+  IE_selInd = dbi;
+  GR_selDli = -1;
+  IE_cad_Inp_disp__ (IE_inpInd);      // display temp. symbol
 
   IE_cad_test__ ();
 
@@ -6798,7 +6896,7 @@ static IE_info_rec IE_info_tab[] = {
   char  cbuf[32];
 
 
-  // printf("IE_cad_Inp1_nxtVec %d\n",mode);
+  printf("IE_cad_Inp1_nxtVec %d\n",mode);
 
 
   *dbi = AP_get_nxtVec (mode);      // get next DB-index
@@ -6821,7 +6919,13 @@ static IE_info_rec IE_info_tab[] = {
 
   // for PgUp/Dwn
   sprintf(cbuf, "D%ld",*dbi);
-  GUI_entry_set (&IE_wCad_obj[IE_inpInd], cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);  // write into inputField
+
+  IE_selTyp = Typ_VC;
+  IE_selInd = *dbi;
+  GR_selDli = -1;
+  IE_cad_Inp_disp__ (IE_inpInd);      // display temp. symbol
+
   IE_cad_test__ ();
 
 
@@ -6829,7 +6933,7 @@ static IE_info_rec IE_info_tab[] = {
 /*
 // for GL2D-icon:
   // clear active inputfield
-  IE_set_inp (IE_inpInd, "");
+  IE_inp_set_txt (IE_inpInd, "");
 
   // do NOT proceed to next inputfield
   IE_inp_chg (-3);
@@ -6864,7 +6968,7 @@ static IE_info_rec IE_info_tab[] = {
   i1 += mode;
   if(i1 < 1) i1 = 1;
 
-  IE_set_inp (IE_inpInd, s2);
+  IE_inp_set_txt (IE_inpInd, s2);
 
   IE_cad_test__ ();
 
@@ -6917,7 +7021,7 @@ static IE_info_rec IE_info_tab[] = {
 
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
   L_work:
-  IE_set_inp (IE_inpInd, s1);
+  IE_inp_set_txt (IE_inpInd, s1);
 
   IE_cad_test__ ();
 
@@ -6948,7 +7052,7 @@ static IE_info_rec IE_info_tab[] = {
 
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
   L_work:
-  IE_set_inp (IE_inpInd, ta[ii]);
+  IE_inp_set_txt (IE_inpInd, ta[ii]);
   IE_cad_test__ ();
 
   return 0;
@@ -6991,7 +7095,7 @@ static IE_info_rec IE_info_tab[] = {
 
   sprintf(cbuf, "%d",i1);
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7022,7 +7126,7 @@ static IE_info_rec IE_info_tab[] = {
 
 
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7031,6 +7135,7 @@ static IE_info_rec IE_info_tab[] = {
 }
 
 
+/* UU
 //================================================================
   int IE_cad_Inp1_PLN (int mode) {
 //================================================================
@@ -7039,23 +7144,22 @@ static IE_info_rec IE_info_tab[] = {
   // IE_popup_planes__ ();   // 2013-04-03
 // removed 2013-04-03 - comes after CurDwn in Typ_PLN after clicked into it
 
-/*
-  char   cbuf[64];
 
-  // aktuelle ConstrPln holen ...
-  strcpy(cbuf, AP_Get_ConstPl_Z(0));
-
-  gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
-
-  IE_cad_test__ ();
-*/
+//   char   cbuf[64];
+// 
+//   // aktuelle ConstrPln holen ...
+//   strcpy(cbuf, AP_Get_ConstPl_Z(0));
+// 
+//   gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
+// 
+//   IE_cad_test__ ();
 
   return 0;
 
 }
 
 
-/*
+//
 //=====================================================================
   int IE_cad_Inp1_nxtCW (int mode) {
 //=====================================================================
@@ -7167,7 +7271,7 @@ static IE_info_rec IE_info_tab[] = {
   L_fertig:
     printf(" d1=%lf cbuf=|%s|\n",d1,cbuf);
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   // test ..
   IE_cad_test__ ();
@@ -7243,7 +7347,7 @@ static IE_info_rec IE_info_tab[] = {
 
   L_fertig:
   // gtk_entry_set_text ((GtkEntry*)(IE_wCad_obj[IE_inpInd]), cbuf);
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7283,7 +7387,7 @@ static IE_info_rec IE_info_tab[] = {
     strcpy(cbuf, "");
   }
 
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7354,7 +7458,7 @@ static IE_info_rec IE_info_tab[] = {
   sprintf(cbuf, "%d",i1);
     // printf(" _modCoord=|%s| %d\n",cbuf,i1);
 
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7421,7 +7525,7 @@ static IE_info_rec IE_info_tab[] = {
   sprintf(cbuf, "%d",i1);
     // printf(" _modCoord=|%s| %d\n",cbuf,i1);
 
-  IE_set_inp (IE_inpInd, cbuf);
+  IE_inp_set_txt (IE_inpInd, cbuf);
 
   IE_cad_test__ ();
 
@@ -7604,7 +7708,7 @@ static IE_info_rec IE_info_tab[] = {
 
   // // Feld IE_inpInd wird verlassen;
   // // display temp. symbols for old inpField:
-  // i1 = IE_cad_Inp_disp__ (IE_inpInd, -1);
+  // i1 = IE_cad_Inp_disp__ (IE_inpInd);
   // if(i1 < 0) goto L_exit;
 
 
@@ -7637,7 +7741,7 @@ static IE_info_rec IE_info_tab[] = {
 */
 
 //================================================================
-  int IE_set_inpSrc (int src) {
+  int IE_inp_set_txtSrc (int src) {
 //================================================================
 
   IE_inpSrc = 3;  // pgUp || 2d-icon-select; do not proceed to next inpField
@@ -7775,6 +7879,7 @@ static IE_info_rec IE_info_tab[] = {
       case GUI_KeyTab:
         // test if this is the last field                    // 2013-03-16
         // if((IE_inpInd+1) >= IE_inpAnz) {    // removed 2013-04-29
+           IE_cad_Inp_disp__ (IE_inpInd);      // update active cad-inputfield
            IE_cad_test__ ();   // test input
            // GUI_obj_focus (&IE_wCad_obj[IE_inpInd]); makes last entry selected
            // GUI_obj_focus (&winGR);  makes 1 entry selected .. ?
@@ -7844,13 +7949,13 @@ static IE_info_rec IE_info_tab[] = {
       L_01:
       IE_inpSrc = 3;    // 3=PgUp/Dwn
       typ = IE_inpTypR[IE_inpInd];
-        // printf(" L_01:-PgUp/Dwn %d typ=%d feld=%d\n",i1,typ,IE_inpInd);
+        // printf(" inp_CB__-L_01:-PgUp/Dwn %d typ=%d feld=%d\n",i1,typ,IE_inpInd);
 
       if      (typ == Typ_Angle)      IE_cad_Inp1_nxtAng (i1);
-      else if (typ == Typ_PLN)        IE_cad_Inp1_PLN    (i1);
+//       else if (typ == Typ_PLN)        IE_cad_Inp1_PLN    (i1);
       else if (typ == Typ_PT)         IE_cad_Inp1_nxtpNr (i1,Typ_PT);
       else if((typ == Typ_VC)     ||
-              (typ == Typ_go_PD))    IE_cad_Inp1_nxtVec (&dbi, i1);
+              (typ == Typ_go_PD))     IE_cad_Inp1_nxtVec (&dbi, i1);
       else if (typ == Typ_Tra)        IE_cad_Inp1_nxtTra (i1);
       else if (typ == Typ_Txt)        IE_cad_Inp1_nxtTxt (1, i1);
       else if((typ == Typ_XVal)    ||
@@ -7874,7 +7979,7 @@ static IE_info_rec IE_info_tab[] = {
       else if (typ == TYP_FilNam)     IE_cad_selM2 (-1);
 
 
-      IE_cad_Inp_disp__ (IE_inpInd, 0);    // display (update) symbols
+      IE_cad_Inp_disp__ (IE_inpInd);    // display (update) symbols
       return 0;
     }
 
@@ -7919,28 +8024,28 @@ static IE_info_rec IE_info_tab[] = {
 }
 
 
-//================================================================
-  int IE_get_tempPos (Point *pt1) {
-//================================================================
-// IE_get_tempPos       returns position for a temporary object
-
-
-  if(IE_inpInd > 0) goto L_sel;
-
-  *pt1 = GL_GetCen();     // get ScreenCenter
-  goto L_exit;
-
-
-  L_sel:
-  sele_get_pos__ (pt1);     // get last selection-point
-
-
-  L_exit:
-  // DEB_dump_obj__ (Typ_PT, pt1, "ex IE_get_tempPos:");
-
-  return 0;
-
-}
+// //================================================================
+//   int IE_get_tempPos (Point *pt1) {
+// //================================================================
+// // IE_get_tempPos       returns position for a temporary object
+// 
+// 
+//   if(IE_inpInd > 0) goto L_sel;
+// 
+//   *pt1 = GL_GetCen();     // get ScreenCenter
+//   goto L_exit;
+// 
+// 
+//   L_sel:
+//   sele_get_pos__ (pt1);     // get last selection-point
+// 
+// 
+//   L_exit:
+//   // DEB_dump_obj__ (Typ_PT, pt1, "ex IE_get_tempPos:");
+// 
+//   return 0;
+// 
+// }
 
 
 //================================================================
@@ -8069,7 +8174,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   int         typ_old = -1, ind_old = -1;
   int         irc, i1, i2;
-  char        *pi, grp_typ_old;
+  char        *pi, *px, grp_typ_old;
 
 
 
@@ -8077,7 +8182,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // printf("  IE_inpAnz=%d\n",IE_inpAnz);
 
 
-  if(IE_cad_act == NULL) return -1;
+  if(IE_cad_act == NULL) goto L_err1;
 
 
   if(ind == -2) {      // Reset
@@ -8093,10 +8198,11 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     IE_inpTypAct = -1;
     IE_grp_typ   = '-';
     // delete preview
-    GL_last_del ();     // delete last obj of DL, if its DB-index is 0
-    GL_temp_del_all ();  // delete temp-circles
+    GL_last_del ();          // delete last obj of DL, if its DB-index is 0
+    GL_temp_del_all ();      // delete temp-circles
+    IE_info_col_set (0, 0);  // clear red '-' at input-field 0
     DL_Redraw ();
-    goto L_exit;
+    goto L_OK;
   }
 
 
@@ -8106,7 +8212,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // stay in active field ..
     GLBT_set_stat (IE_inpInd);
     DL_Redraw ();      // update 2D-icons
-    goto L_exit;
+    goto L_OK;
   }
 
 /*
@@ -8124,7 +8230,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // IE_inp_chg (IE_inpAnz); // aufs erste leere Feld 2011-01-28 raus
     // return TRUE;  // ACHTUNG: tut was; Default-Handler !!!
     ind_old = ind;
-    goto L_exit;
+    goto L_OK;
   }
 
 
@@ -8150,9 +8256,9 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   //-----------------------------------------
   // disactivate active inpField ind_old:
   //-----------------------------------------
-    // printf(" disactiv. ind_old=%d grp_typ_old=|%c| typ_old=%d\n",
+    // printf(" InpIn__DisActivate-ind_old=%d grp_typ_old=|%c| typ_old=%d\n",
                        // ind_old,grp_typ_old,typ_old);
-  if(ind_old < 0) goto L_neu__;
+  if(ind_old < 0) goto L_NXT;
 
   // modify color of inputfield-info-label.
   IE_info_col_set (0, ind_old);   // reset old info
@@ -8179,49 +8285,57 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   } else {
+
     // only MODIFY: display/update temp. symbols for old inpField
-    irc = IE_cad_Inp_disp__ (ind_old, -1);
+    irc = IE_cad_Inp_disp__ (ind_old);
       // printf(" f-irc-cad_Inp_disp__ %d\n",irc);
-    if(irc < 0) return -1;
+    if(irc < 0) goto L_err1;  
   }
 
 
 
   // eval fields; if complete: display obj
   L_old_test:
+  i1 = IE_inpErr;
   irc = IE_cad_test__ ();
     // printf(" f-cad_test irc=%d\n",irc);
-  if(irc == -2) {   // -3=obj not complete
-    // reactivate this field
-    return -1;
+  if(irc == -3) { irc = 0; goto L_exit; }
+  if(IE_inpErr != i1) {
+    // first orrcurance of error - proceed to next inputfield; else not
+    if(irc == -2) goto L_err1;    // -3=obj not complete; reactivate old field
   }
+
 
 
   //-----------------------------------------
   // activate new inpField IE_inpInd:
   //-----------------------------------------
-  L_neu__:
-    // printf("  L_neu__: next IE_inpInd %d\n",IE_inpInd);
+  L_NXT:
+    // printf(" InpIn__Activate-IE_inpInd %d\n",IE_inpInd);
+
+  // clear previous selction
+  IE_selTyp = 0;
+  IE_selInd = 0L;
+  GR_selDli = -1L;
 
   // modify color of inputfield-info-label.
   IE_info_col_set (1, IE_inpInd);  // set new info=red
 
-
   // Infotexte fuers neue inpField unten ausgeben
-  IE_cad_Inp1_Info (-1);
-
+  IE_cad_msg_typ (-1);
 
   // Defaults ausgeben (vorbelegen predefine preSet)
+
   // define new selectionFilter.
   sele_set__ (IE_inpTypAct);
-
 
   // get fieldText -> pi
   pi = IE_get_inp__(IE_inpInd);
   i1 = strlen(pi);
-    // printf(" Inputfeld %d len=%d |%s|\n",IE_inpInd,i1,pi);
+    // printf(" InpIn__-%d len=%d |%s|\n",IE_inpInd,i1,pi);
 
 
+  //----------------------------------------------------------------
   // check for group-window
   if(GROUP_IS_ACTIVE) {
       // printf(" Grp: IE_inpTypAct=%d\n",IE_inpTypAct);
@@ -8249,17 +8363,18 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // activate Group-Edit-Window
     IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
     // write "(Group)" -> inpField
-    IE_set_inp (IE_inpInd, "<Group>");
+    IE_inp_set_txt (IE_inpInd, "<Group>");
+    irc = 0;
     goto L_exit;
   }
 
 
-
+  //----------------------------------------------------------------
   // Ist das neue Feld leer ?
   // leer: vorbelegen
-  if(i1 > 0) goto L_0;
+  if(i1 > 0) goto L_OK;
   // wenn soeben ein FeldLoeschen (IE_cad_Inp_undo) war: nix vorbelegen ..
-  // if(??) goto L_0;
+  // if(??) goto L_OK;
 
 
   //-----------------------------------------
@@ -8270,7 +8385,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // // Start GroupEditor
     // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
     // // write "(Group)" -> inpField
-    // IE_set_inp (IE_inpInd, "<Group>");
+    // IE_inp_set_txt (IE_inpInd, "<Group>");
     // goto L_exit;
   // }
 
@@ -8278,7 +8393,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   if(IE_grp_typ == '(') { // init union-group
       // printf(" init union-group for empty inpField %d\n",IE_inpInd);
     Grp_Start ();
-    IE_set_inp (IE_inpInd, "(Group)"); // write "(Group)" -> inpField
+    IE_inp_set_txt (IE_inpInd, "(Group)"); // write "(Group)" -> inpField
     goto L_exit;
   }
 */
@@ -8286,7 +8401,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // preset normal field
     // printf(" preload %d |%s|\n",IE_inpInd,IE_wCad_preLoad[IE_inpInd]);
   if(strlen(IE_wCad_preLoad[IE_inpInd]) > 0) {
-    IE_set_inp (IE_inpInd, IE_wCad_preLoad[IE_inpInd]);
+    IE_inp_set_txt (IE_inpInd, IE_wCad_preLoad[IE_inpInd]);
 
     // test preload
     irc = IE_cad_test__ ();
@@ -8294,32 +8409,34 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // process auxInf
   if(IE_inpAuxDat[IE_inpInd].auxInf[0]) {
-    pi = IE_inpAuxDat[IE_inpInd].auxInf;
+    px = IE_inpAuxDat[IE_inpInd].auxInf;
       // printf(" _InpIn__-auxInf |%s|\n",IE_inpAuxDat[IE_inpInd].auxInf);
+
     // check for "M1" - APT_modMax1
-    if(!strncmp(pi, "M1", 2)) {
-      APT_set_modMax (atoi(&pi[2]));
+    if(!strncmp(px, "M1", 2)) {
+      APT_set_modMax (atoi(&px[2]));
         // printf(" _InpIn__-APT_modMax1 = %d\n",APT_get_modMax1());
+
     } else printf("**** IE_cad_InpIn__-auxInf unused |%s|\n",pi);
 
   }
 
 
 
-  goto L_exit;
+  // goto L_exit;
 
 
 
   //-----------------------------------------
   // activate not-empty inpField IE_inpInd:
   //-----------------------------------------
-  L_0:
-
+  L_OK:
+    irc = 0;
   // if(IE_grp_typ == '<') {    // init normal-group
     // // Start GroupEditor
     // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
     // // write "(Group)" -> inpField
-    // IE_set_inp (IE_inpInd, "<Group>");
+    // IE_inp_set_txt (IE_inpInd, "<Group>");
     // goto L_exit;
   // }
 
@@ -8332,18 +8449,72 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     Grp_Start ();
     APED_dec_txt (pi); // add all objs to group
     Grp_dlAdd (ON);    // hilite all objs of grp
-    IE_set_inp (IE_inpInd, "(Group)"); // write "(Group)" -> inpField
+    IE_inp_set_txt (IE_inpInd, "(Group)"); // write "(Group)" -> inpField
     goto L_exit;
 
   }
 */
+  
 
   L_exit:
-    // printf("ex-IE_cad_InpIn__ IE_inpInd=%d old=%d\n",IE_inpInd,ind_old);
-  return 0;
+    // printf("ex-IE_cad_InpIn__ irc=%d IE_inpInd=%d ind_old=%d\n",
+           // irc,IE_inpInd,ind_old);
+  return irc;
+
+
+  L_err1:
+    // error, reactivate old field
+    irc = -1;
+    goto L_exit;
 
 }
 
+
+//================================================================
+  int IE_cad_inp_vc_pt_DD (char* i2Src, int ii1) {
+//================================================================
+// IE_cad_inp_vc_pt_DD          get vector from 2 points
+// Input:
+//   i2Src    src-input in inputfield 2
+//   ii1      index inputfield 1
+// Output
+//   i2Src    src-vector from P<inputfield-ii1> - P<i2Src>
+//
+// was IE_cad_inp_vcPos__
+ 
+  int       typ2;
+  char      *pi1, *pi2;
+  Point     pt1, pt2;
+  Vector    vc1;
+  ObjAto    ato1;
+  char      objo[OBJ_SIZ_MAX], s1[256];
+
+
+  // printf("IE_cad_inp_vc_pt_DD %d |%s|\n",ii1,i2Src);
+
+  // get point from ii1
+    // DEB_dump_obj__ (Typ_PT, &IE_inpAuxDat[ii1].pos, "_inp_vc_pt_DD-ii1");
+
+
+  // decode input field 2 - i2Src
+  ATO_getSpc__ (&ato1); // // get memSpc for ato1 (memspc53, 54, 55)
+  typ2 = UTO_obj_cnvt_src (objo, Typ_PT, i2Src);
+  if(typ2 != Typ_PT) return -1;
+    // DEB_dump_obj__ (Typ_PT, objo, "_inp_vc_pt_DD-ii2");
+
+
+  // create vector 
+  UT3D_vc_2pt (&vc1, &IE_inpAuxDat[ii1].pos, (Point*)objo);
+
+  // create vector as src - overwrite
+  i2Src[0] = '\0';
+  AP_obj_add_vc (i2Src, &vc1);
+
+    // printf(" ex-IE_cad_inp_vc_pt_DD |%s|\n",i2Src);
+
+  return strlen(i2Src);
+
+}
 
 
 //================================================================
@@ -8363,7 +8534,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // printf("IE_undo \n");
 
   // CAD must be active
-  if(UI_InpMode != UI_MODE_CAD) return -1;
+  if(!UI_CAD_ck()) return -1;
 
   // group-window IE_ed1__ active ?
   // if(IE_ed1_win.stat == 0) return -1;
@@ -8427,6 +8598,14 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   // printf("IE_cad_Inp_undo IE_inpInd=%d IE_grp_typ=|%c|\n",IE_inpInd,IE_grp_typ);
+
+
+  if(IE_FuncTyp == IE_Func_CADEnv) {   // cancel ConstrPlane
+      // printf(" undo ConstrPlane\n");
+    GL_grid_tmp_set (NULL);
+    goto L_exit;
+  }
+
 
   // is input active
   if(IE_inpInd < 0) return 0;
@@ -8493,13 +8672,14 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   L_exit:
   // exit active cadFunction ..
   IE_cad_exitFunc ();
-  GUI_obj_focus (&winGR);   // 2020-06-15
+  UI_GR_focus ();
 
   return 0;
 
 }
 
 
+/*
 //================================================================
   int IE_cad_Inp_disp_pt (Point *pt1, int iind) {
 //================================================================
@@ -8516,12 +8696,48 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   return 0;
 
 }
- 
+*/
+
 
 //================================================================
-  int IE_cad_Inp_disp_vc (Vector *vc1, int iind) {
+  int IE_cad_inp_vcPos_i (Point *pos, int iind) {
 //================================================================
-// IE_cad_Inp_disp_vc      display vector for actual inputfield
+// IE_cad_inp_vcPos_i      get vector-position from cad-inputfields
+// Input:
+//   iind    fieldNr
+// auxInf Vectors:
+//   1.char     'D'      Vector
+//     2.char   'D'      Vector
+//       3.char '#'      index of inputField of position; '-'=none.
+//
+// see also IE_cad_Inp_disp_ang UI_prev_vc GR_Disp_vc
+
+
+  char      *auxInf;
+  inpAuxDat *auxDat;
+
+
+  printf("IE_cad_inp_vcPos_i %d\n",iind);
+
+  if(iind < 0) return 0;
+  auxDat = &IE_inpAuxDat[iind];
+  auxInf = auxDat->auxInf;
+
+  // get pos = centerpoint from iind=auxInf-char-3; no pos: screenCenter.
+  IE_get_inpAuxPt (pos, auxInf, 2);
+
+    DEB_dump_obj__ (Typ_PT, pos, "ex-IE_cad_inp_vcPos_i");
+
+  return 0;
+
+}
+
+
+/*
+//================================================================
+  int IE_cad_inp_vcPos_i (Vector *vc1, int iind) {
+//================================================================
+// IE_cad_inp_vcPos_i      display vector for actual inputfield
 // Input:
 //   iind    fieldNr
 // auxInf Vectors:
@@ -8529,57 +8745,46 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //     2.char   'D'      Vectors
 //       3.char '#'      index of inputField of position; '-'=none.
 
-
-// see also UI_disp_vec1 GR_Disp_vc
-
+// see also UI_prev_vc GR_Disp_vc
 
   double    vl;
   char      *auxInf;
   Point     pt1;
   inpAuxDat *auxDat;
 
-
   auxDat = &IE_inpAuxDat[iind];
   auxInf = auxDat->auxInf;
 
-    // DEB_dump_obj__ (Typ_VC, vc1, "IE_cad_Inp_disp_vc: |%s|",auxInf);
-
+    DEB_dump_obj__ (Typ_VC, vc1, "IE_cad_inp_vcPos_i: |%s|",auxInf);
 
   // save vector in IE_inpAuxDat[iind].vx
   IE_inpAuxDat[iind].vx = *vc1;
-
 
   // get tempPos 
   // IE_get_tempPos (&pt1);
   IE_get_inpAuxPos (&pt1, auxDat->auxInf, iind);
 
-
-
   // vl = UT3D_len_vc (vc1);
     // printf("  vl=%f\n",vl);
-
 
   // display always same length (cannot see short vectors)
 //   GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
   GR_temp_symV3 (SYM_ARROW, ATT_COL_RED, &pt1, vc1, 20.);
-
-
-/*
-  if(UTP_comp2db(vl, 1., 0.1)) {    // check if vl has length 1
-    // att 7 = sw; Laenge 1
-    // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
-    // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc__ (&vc1, &pt1, 7, 0);
-    // GL_DrawSymV3 (&dli, SYM_ARROW, 7, &pt1, &vc1, 10.);
-    GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
-
-  } else {
-    // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
-    // GR_tDyn_vc__ (&vc1, &pt1, 2, 1);
-    GL_DrawVec (dli, 13, &pt1, vc1);
-  }
-*/
-
+//
+//   if(UTP_comp2db(vl, 1., 0.1)) {    // check if vl has length 1
+//     // att 7 = sw; Laenge 1
+//     // APT_disp_SymV3 (SYM_ARROW, 7, &pt1, &vc1, 10.);
+//     // APT_disp_Vec (7, (long)vi, &pt1, &vc1);
+//     // GR_tDyn_vc__ (&vc1, &pt1, 7, 0);
+//     // GL_DrawSymV3 (&dli, SYM_ARROW, 7, &pt1, &vc1, 10.);
+//     GL_DrawSymV3 (dli, SYM_ARROW, 12, &pt1, vc1, 20.);
+// 
+//   } else {
+//     // APT_disp_Vec (2, (long)vi, &pt1, &vc1);
+//     // GR_tDyn_vc__ (&vc1, &pt1, 2, 1);
+//     GL_DrawVec (dli, 13, &pt1, vc1);
+//   }
+//
   // display vec as text (overwrite)
   // remove "Save: OK or right mousebtton or Enter-key .."
   if(IE_stat_OK) UI_winTX_rmLast ();
@@ -8588,7 +8793,6 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
            vc1->dx,vc1->dy,vc1->dz);
 
   DL_Redraw ();
-
 
   return 0;
 
@@ -8601,32 +8805,32 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 // temp preview of Plane
 
 
-  // printf("IE_cad_Inp_disp_pln %d\n",iind);
-  // DEB_dump_obj__ (Typ_PLN, pln1, "  pln1:");
+  printf("IE_cad_Inp_disp_pln %d\n",iind);
+  DEB_dump_obj__ (Typ_PLN, pln1, "  pln1:");
 
 //   GL_DrawSymVX (&dli, 9, pln1, 5, 1.);   // 1=pln, 5=pln + axis
   GR_temp_pln (pln1, Typ_Att_hili1, 5);
 
-
   return 0;
 
 }
-
+*/
 
 //================================================================
-  int IE_cad_Inp_disp_ang (double *ang1, int  iind) {
+  int IE_cad_Inp_disp_ang (double *ang1, int iind) {
 //================================================================
 // IE_cad_Inp_disp_ang              disp angle
 // auxInf Angles:
-//   1.char     'A'      Angles  (AP,AN..)
-//     2.char   'P'      parallel to construction-plane
-//       3.char '#'      index of inputField of position; '-'=none.
-//     2.char   'A'      arbitrary-angle
-//       3.char '#'      index of inputField of position; '-'=none.
-//       4.char '#'      index of inputField of X-vector; '-'=Default.
-//       5.char '#'      index of inputField of Z-vector; '-'=Default.
-//     2.char   'N'      tilt-angle / normal to construction-plane
-//       3.char '#'      index of inputField of position; '-'=none.
+//   1.char     'A'  Angles  (AP,AN..)
+//     2.char   'P'  parallel to construction-plane
+//       3.char '#'  index of inputField of position; '-'=none.
+//       4.char '#'  index of inputField of X-point or vector; def=ConstrPln-vx
+//     2.char   'A'  arbitrary-angle
+//       3.char '#'  index of inputField of position; '-'=none.
+//       4.char '#'  index of inputField of X-vector; '-'=Default.
+//       5.char '#'  index of inputField of Z-vector; '-'=Default.
+//     2.char   'N'  tilt-angle / normal to construction-plane
+//       3.char '#'  index of inputField of position; '-'=none.
 //
 // example auxInf:
 // "AP0"   angle in construction-plane, position from field 0.
@@ -8635,73 +8839,123 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //         before "AN" MUST be a "AP" or "AA"-Record !
 
   int       i1;
-  double    a1, aRot;
+  double    a1, d1, aRot;
   char      *auxInf;
-  Point     pt1;
+  Point     *pos, pt1, pt2, pt3;
   Vector    vx, vz, vRot;
   inpAuxDat *auxDat;
 
 
+  if(iind < 0) return 0;
+  
   auxDat = &IE_inpAuxDat[iind];
   auxInf = auxDat->auxInf;
 
-    printf("IE_cad_Inp_disp_ang ang1=%lf auxInf=|%s|\n",*ang1,auxInf);
+
+  printf("IE_cad_Inp_disp_ang ang1=%lf ind=%d auxInf=|%s|\n",*ang1,iind,auxInf);
+  if(auxInf[0] != 'A') return 0;
 
 
   a1 = UT_RADIANS(*ang1);
 
 
-
-
-
   //================================================================
   if(!strncmp(auxInf, "AN", 2)) { // "AN" tilt-angle (normal to constr.plane)
   //================================================================
-    // get position
-    IE_get_inpAuxPos (&pt1, auxInf, iind);
+    // get pos = centerpoint from iind=auxInf-char-3 
+    IE_get_inpAuxPt (&pt1, auxInf, 2);
+    pos = &pt1;
 
     vx = WC_sur_act.vx;
-    UT3D_vc_invert (&vz, &WC_sur_act.vy);    // -Y
-    // get angle of previous inputfield
-    // aRot = UT_RADIANS(90.) * -1.;
+    vz = WC_sur_act.vz;
+    aRot = 0.;
+
+    // get rot-angle from previous inputfield AP
     i1 = iind - 1;
-    if(i1 >= 0) aRot = IE_inpAuxDat[i1].d1;
+    if(i1 >= 0) {
+      // pos = &IE_inpAuxDat[i1].pos;
+      aRot = UT_RADIANS(IE_inpAuxDat[i1].d1);
+      vx = IE_inpAuxDat[i1].vx;
+    }
+      printf(" _disp_ang-aRot=%f\n",aRot);
+
     aRot *= -1.;
-      // printf(" i1=%d aRot=%lf\n",i1,aRot);
-
-    // rotate vectors
-    vRot = WC_sur_act.vz;
-    UT3D_vc_rotvcangr (&vx, aRot, &vx, &vRot);
-    UT3D_vc_rotvcangr (&vz, aRot, &vz, &vRot);
-
-
+    UT3D_vc_rotvcangr (&vx, aRot, &vx, &vz);
+    UT3D_vc_perp2vc (&vz, &vx, &vz); // Get VY as rot-axis for angle a1
 
 
   //================================================================
   } else if(!strncmp(auxInf, "AA", 2)) {       // arbitrary-angle
   //================================================================
-    // get position
-    IE_get_inpAuxPos (&pt1, auxInf, iind);
-    // get x-vector
-    IE_get_inpAuxVec (&vx, auxInf, 3, iind, &pt1);
-    // get z-vector
-    IE_get_inpAuxVec (&vz, auxInf, 4, iind, &pt1);
+    // get pt3-point from iind=auxInf-char-2 (point to rotate)
+    IE_get_inpAuxPt (&pt3, auxInf, 2);
+      DEB_dump_obj__ (Typ_PT, &pt3, "_disp_ang-AA-pos");
 
+    // get pt2 = rot-point from iind=auxInf-char-4 (startPt of line)
+    IE_get_inpAuxPt (&pt2, auxInf, 4);
+      DEB_dump_obj__ (Typ_PT, &pt2, "_disp_ang-AA-pt2");
 
+    // get vz = rot-vector from iind=auxInf-char-4
+    IE_get_inpAuxVz (&vz, auxInf, 4);
+      DEB_dump_obj__ (Typ_VC, &vz, "_disp_ang-AA-vz");
+
+    // project pt3 onto pt2,vz giving vx (pos-pt3 is vx)
+    UT3D_vc_setLength (&vz, &vz, 1.);
+    pos =  &pt1;
+    UT3D_pt_proj_pt_pt_vcn (pos, &d1, &pt3, &pt2, &vz);
+      DEB_dump_obj__ (Typ_PT, &pt3, "_disp_ang-AA-pt3");
+    UT3D_vc_2pt (&vx, pos, &pt3);
+      DEB_dump_obj__ (Typ_VC, &vx, "_disp_ang-AA-vx1");
+    UT3D_vc_div_d (&vx, &vx, d1);
+      DEB_dump_obj__ (Typ_VC, &vx, "_disp_ang-AA-vx2");
 
 
   //================================================================
   } else {         // "AP"  Rotation-angle (around Z-axis, parallel to constrPln)
   //================================================================
-    // get position
-    IE_get_inpAuxPos (&pt1, auxInf, iind);
+    // get pos = centerpoint from iind=auxInf-char-3 
+    IE_get_inpAuxPt (&pt1, auxInf, 2);
+    pos = &pt1;
+      DEB_dump_obj__ (Typ_PT, pos, "_disp_ang-pos");
 
-    vx = WC_sur_act.vx;
+    // get typ of auxInf-char-4
+    IE_get_inpAuxTyp (&i1, auxInf, 3);
+    if(i1 == Typ_PT) {
+      // typ auxInf-char-4 is point: get pt2 = pos of auxInf-char-4,
+      IE_get_inpAuxPt (&pt2, auxInf, 3);
+      // get vx = pos-pt2;
+      UT3D_vc_2pt (&vx, pos, &pt2);
+    } else if(i1 == Typ_VC) {
+      // typ auxInf-char-4 is vector: get vx = vz of auxInf-char-4,
+      IE_get_inpAuxVz (&vx, auxInf, 3);
+    } else {
+      // no pt, vc
+      vx = WC_sur_act.vx;
+    }
+
+    // TODO: project vz onto ConstrPlane
+    UT3D_vc_setLength (&vz, &vz, 1.);
+
+    // store angle for AN
+    IE_inpAuxDat[iind].d1 = *ang1;
+    IE_inpAuxDat[iind].vx = vx;
+
     vz = WC_sur_act.vz;
   }
 
-//   GL_DrawAngA (dli, 12, &pt1, &vx, &vz, &a1);
-  GR_temp_ang (Typ_Att_top2, &pt1, &vx, &vz, a1);
+
+  //----------------------------------------------------------------
+    // TESTBLOCK
+    DEB_dump_obj__ (Typ_VC, &vx, "_disp_ang-vx2");
+    DEB_dump_obj__ (Typ_VC, &vz, "_disp_ang-vz2");
+    // END TESTBLOCK
+
+
+  // set temp-displist-index
+  DL_temp_ind = IE_GET_INP_DLI (iind);
+
+  //   GL_DrawAngA (dli, 12, &pt1, &vx, &vz, &a1);
+  GR_temp_ang (Typ_Att_top2, pos, &vx, &vz, a1);
 
 
   return 0;
@@ -8709,6 +8963,91 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 }
  
 
+//================================================================
+  int IE_get_inpAuxTyp (int *typ, char *auxInf, int ipos) {
+//================================================================
+// IE_get_inpAuxTyp          get typ of auxInf-char
+
+  int     ii;
+
+  if(strlen(auxInf) < ipos) goto L_def;
+  // get inputFieldNr -> ii
+  ii = ICHAR(auxInf[ipos]);
+  if((ii < 0)||(ii > 9)) goto L_def;
+
+  // *typ = IE_inpTypR[ii];
+  *typ = IE_inpAuxDat[ii].typ;
+
+    printf("ex-IE_get_inpAuxTyp typ=%d ii=%d |%s|\n",*typ,ii,auxInf);
+
+
+  return 0;
+
+  L_def:
+    // get default 
+    // TX_Print("***** IE_get_inpAuxTyp E1-%s",auxInf);
+    *typ = 0;
+    return 1;
+
+}
+
+
+//================================================================
+  int IE_get_inpAuxPt (Point *pto, char* auxInf, int ipos) {
+//================================================================
+// get point from auxInf-char-ipos
+
+  int     ii;
+
+  if(strlen(auxInf) < ipos) goto L_def;
+  // get inputFieldNr -> ii
+  ii = ICHAR(auxInf[ipos]);
+  if((ii < 0)||(ii > 9)) goto L_def;
+
+  if(IE_inpAuxDat[ii].pos.x == UT_VAL_MAX) {
+    *pto = GL_GetCen();     // get ScreenCenter
+  } else {
+    *pto = IE_inpAuxDat[ii].pos;
+  }
+
+    DEB_dump_obj__ (Typ_PT, pto, "ex-IE_get_inpAuxPt |%s| ipos=%d ii=%d",
+                    auxInf,ipos,ii);
+  return 0;
+
+  L_def:
+    // get default 
+    // *pto = WC_sur_act.po;
+    *pto = GL_GetCen();     // get ScreenCenter
+    return 1;
+
+}
+
+
+//================================================================
+  int IE_get_inpAuxVz (Vector *vco, char* auxInf, int ipos) {
+//================================================================
+// get vector vz from auxInf-char-ipos
+
+  int     ii;
+
+  if(strlen(auxInf) < ipos) goto L_def;
+  // get inputFieldNr -> ii
+  ii = ICHAR(auxInf[ipos]);
+  if((ii < 0)||(ii > 9)) goto L_def;
+
+  *vco = IE_inpAuxDat[ii].vz;
+
+  return 0;
+
+  L_def:
+    // get default 
+    *vco = WC_sur_act.vz;
+    return 1;
+
+}
+
+
+/*
 //======================================================================
   int IE_get_inpAuxVec (Vector *vco, char* auxInf, int ipos, int iind,
                         Point  *ptOri) {
@@ -8781,7 +9120,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   int    ii;
 
-  // printf("IE_get_inpAuxPos |%s| %d\n",auxInf,iind);
+  printf("IE_get_inpAuxPos |%s| %d\n",auxInf,iind);
 
 
   if(!auxInf) goto L_SC;
@@ -8796,7 +9135,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   if(ii >= iind) goto L_SC;
   *pt1 = IE_inpAuxDat[ii].pos;
 
-    // DEB_dump_obj__ (Typ_PT, pt1, "ex IE_get_inpAuxPos");
+    DEB_dump_obj__ (Typ_PT, pt1, "ex IE_get_inpAuxPos ii=%d",ii);
 
   return 0;
 
@@ -8812,13 +9151,27 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // return -1;
 
 }
-
+*/
 
 //================================================================
   int IE_get_inpInd () {
 //================================================================
  
   return IE_inpInd;
+
+}
+
+
+//================================================================
+  int IE_cad_Inp_disp_vc_len (double dl) {
+//================================================================
+// IE_cad_Inp_disp_vc_len  print "length is <val>"
+
+  if(IE_inpStat == 2) UI_winTX_rmLast ();
+  TX_Print (" length is %f",dl);
+  IE_inpStat = 2;
+
+  return 0;
 
 }
 
@@ -8836,19 +9189,20 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // printf("IE_cad_Inp_disp_val |%s|\n",sSrc);
 
-  // get memSpc for ato1 (memspc53, 54, 55)
-  ATO_getSpc__ (&ato1);
-
-  // get atomicObjects from sourceLine p1; full evaluated.
-  irc = ATO_ato_srcLn__ (&ato1, sSrc);
-  if(irc < 0) {printf(" IE_cad_Inp_disp_val I1\n"); return 0;}
-    // ATO_dump__ (&ato1, "_Inp_disp_val-1");
-    // printf(" ato.typ[0] = %d ato.val[0] = %lf\n",ato1.typ[0],ato1.val[0]);
-
-  if(TYP_IS_VAL(ato1.typ[0])) {
+//   // get memSpc for ato1 (memspc53, 54, 55)
+//   ATO_getSpc__ (&ato1);
+// 
+//   // get atomicObjects from sourceLine p1; full evaluated.
+//   irc = ATO_ato_srcLn__ (&ato1, sSrc);
+//   if(irc < 0) {printf(" IE_cad_Inp_disp_val I1\n"); return 0;}
+//     // ATO_dump__ (&ato1, "_Inp_disp_val-1");
+//     // printf(" ato.typ[0] = %d ato.val[0] = %lf\n",ato1.typ[0],ato1.val[0]);
+// 
+//   if(TYP_IS_VAL(ato1.typ[0])) {
     if(IE_inpStat == 2) UI_winTX_rmLast ();
-    TX_Print ("  value: %lf ..",ato1.val[0]);
-  }
+//     TX_Print ("  value: %lf ..",ato1.val[0]);
+    TX_Print ("  value: %s",sSrc);
+//   }
 
   IE_inpStat = 2;
 
@@ -8858,16 +9212,637 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 }   
     
 
+//================================================================
+  int IE_cad_Inp_disp_grid (int mode) {
+//================================================================
+// IE_cad_Inp_disp_grid         temp - ConstrPlane: only preview
+// Input:
+//   mode    0=activate 2D-plane;  1=reset to 3D-R0
+
+  int       irc;
+  char      *p1, oTyp;
+  double    d1;
+  ObjAto    ato1;
+  Plane     pl1;
+
+
+  printf("IE_cad_Inp_disp_grid %d\n",mode);
+  if(mode) {
+    pl1 = PLANE_NUL;
+    GL_grid_tmp_set (&pl1);
+    return 0;
+  }
+
+
+  p1 = IE_get_inp__(0);
+  printf("IE_cad_Inp_disp_grid |%s|\n",p1);
+
+  // get memSpc for ato1 (memspc53, 54, 55)
+  ATO_getSpc__ (&ato1);
+
+  // get atomicObjects from sourceLine p1; full evaluated.
+  irc = ATO_ato_srcLn__ (&ato1, p1);
+  if(irc < 0) return -1;
+
+  oTyp = Typ_PLN;
+  irc = ATO_ato_atoTab__ (&oTyp, &d1, &ato1);
+  if(irc < 0) return -1;
+    printf(" _disp_grid %d %f\n",oTyp,d1);
+
+  DB_GetRef (&pl1, (long)d1);
+
+  // disp temp grid
+  GL_grid_tmp_set (&pl1);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int IE_cad_inp_dli () {
+//================================================================
+// IE_cad_inp_dli             get dispListIndex for active inputfield
+ 
+  return IE_GET_INP_DLI (IE_inpInd);
+
+}
+
+
+//================================================================
+  int IE_cad_inp_rTyp () {
+// IE_cad_inp_rTyp      get requested objtype for active inputfield
+
+  return IE_inpTypR[IE_inpInd];
+
+}
+//================================================================
+  int IE_cad_inp_iEnt () {
+// IE_cad_inp_iEnt      get index of active cad-EntryField
+
+  return IE_inpInd;
+
+} 
+  
+
+//================================================================
+  int IE_cad_inp_vcPos__ (Point **pos) {
+//================================================================
+// IE_cad_inp_vcPos__   get position for vector from IE_inpAuxDat of active inputfield
+// see 
+
+
+  printf("IE_cad_inp_vcPos__ IE_inpInd=%d\n",IE_inpInd);
+
+
+  // get vector-position from cad-inputfield
+  IE_cad_inp_vcPos_i (*pos, IE_inpInd);
+
+  // // no pos:
+  // *pos = NULL;
+
+    DEB_dump_obj__ (Typ_PT, *pos, "ex-IE_cad_inp_vcPos__");
+
+  return 0;
+
+}
+
+
+
+//======================================================================
+  int IE_cad_prev_off (int iind) {
+//======================================================================
+// IE_cad_prev_off                 remove display for cad-inputfield iind
+// Input:
+//   iind                        index active cad-inputfield
+//   IE_inpAuxDat[iind]dlTyp     0  preview-obj is temp.obj 
+//                               1  preview-obj is perm.obj 
+// see UI_prev_obj
+
+  int    istat = 0;       // 0=DB-obj, 1=temp-obj
+  long       dli;
+  inpAuxDat  *inpAct;
+
+
+  // printf("IE_cad_prev_off %d\n",iind);
+
+  inpAct = &IE_inpAuxDat[iind];
+    // printf(" _prev_off-dli=%ld dlTyp=%d\n",inpAct->dli,inpAct->dlTyp);
+ 
+  if(inpAct->dlTyp < 0) return 0; // empty
+
+  // remove image of obj
+  if(inpAct->dlTyp) DL_hili_off (inpAct->dli);     // perm.obj
+  else              GL_temp_del_1 (inpAct->dli);   // temp-obj
+
+  inpAct->dlTyp = -1;
+
+  return 0;
+
+}
+
+
+//======================================================================
+  int IE_cad_prev__ (int typ, long dbi, long dli, char *src, int iind) {
+//======================================================================
+// IE_cad_prev__                   preview DB-obj or source-obj as requested objType
+//   add requested objType to objSource from CAD-inputfield, eval SRC, display.
+// Input:
+//   dbi     dbi of obj selected from user;
+//   dli     dli of obj selected from user; -1 for eg vec, tra ..
+//   src     sourceObj of obj to display
+//   iind    index of cad-inputfield with sourceObj of obj to display
+// Output:
+//   retCod  0=OK, -1=error
+//
+// extracted from IE_cad_Inp_disp__
+// see also UI_prev_src (preview DB-obj or obj from source-object)
+
+  int       irc, i1, rTyp, oTyp, is_DL_obj;
+  double    d1;
+  long      dlPrev, oDbi;
+  char      sSrc[50000], oSpc[50000];
+  void      *obj = oSpc;
+  Point     pos;
+  ObjAto    ato1;
+  ObjGX     ox1; // = OGX_NUL;
+
+
+  // printf("IE_cad_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
+  // printf(" _cad_prev__ UI_InpMode=%d IE_FuncTyp=%d\n",UI_InpMode,IE_FuncTyp);
+
+
+
+  //----------------------------------------------------------------
+  // get typ and dispListIndex dlPrev
+  if(iind >= 0) {
+    // get temp-displist-index
+    dlPrev = IE_GET_INP_DLI (iind);
+
+    // get requested obj
+    rTyp = IE_inpTypR[iind];
+
+  } else {
+    // no inputfield open ..
+// TODO: MDLMP_prev_mnam (src);
+    return -1;
+  }
+    // printf(" _cad_prev__-dlPrev=%ld rTyp=%d\n",dlPrev,rTyp);
+
+
+  //----------------------------------------------------------------
+  if(rTyp == Typ_SubModel) {
+    // preview submodel
+    return 0;  // skip Submodel
+  }
+
+
+  //----------------------------------------------------------------
+  // ignore objects not displayable
+  if(rTyp == Typ_Txt)      return 0;  // skip text
+  if(rTyp == Typ_String)   return 0;  // skip string ("xx")
+  if(rTyp == TYP_FilNam)   return 0;
+  if(rTyp == Typ_CtlgPart) return 0;
+  if(rTyp == Typ_PTS) return 0;
+  if(rTyp == Typ_PTI) return 0;
+  // skip attributes formats, text, containers
+  if((rTyp >= Typ_Typ)&&(rTyp < Typ_Tra)) return 0;
+  // skip operators, modifiers
+  if((rTyp >= Typ_ope__)&&(rTyp < Typ_goGeom)) return 0;
+
+
+  //----------------------------------------------------------------
+  // skip GROUP                         // 2013-03-16
+  if(!strcmp(src, "<GROUP>")) return 0;
+//   
+//   // skip Typ_EyePT
+//   if(rTyp == Typ_EyePT) return IE_getEyePt ();
+// Vertex      Typ_Vertex
+// ConstrPlane Typ_TmpPT
+
+
+  //----------------------------------------------------------------
+  // skip bad combinations 
+  if(rTyp == Typ_PLN) {
+    // first obj may not be vec
+    if(typ == Typ_VC) {
+      TX_Print("*** vector cannot be first obj of plane ..");
+      // remove active preview-obj
+      return UI_prev_remove();
+    }
+  }
+
+
+  //================================================================
+  // display expression ...
+
+//   // save state of dyn-points
+//   // DB_dyn__ (0, Typ_PT, 0L);
+//   dynPti = DB_dyn__ (0, Typ_PT, 0L);       // save state of dyn-points
+
+
+  //----------------------------------------------------------------
+  // get sourceObj (eg "P20" -> "R(P20)"                   2020-12-30
+  if(rTyp >= Typ_goGeom) {
+    strcpy(sSrc, src);
+
+  } else {
+    irc = SRC__add_dynTyp (sSrc, sizeof(sSrc), rTyp, src, 1);
+    if(irc < 0) goto L_err_dyn;
+  }
+    // printf(" _Inp_disp__-sSrc|%s|\n",sSrc);
+
+
+  //----------------------------------------------------------------
+  // get memSpc for ato1 (memspc53, 54, 55)
+  ATO_getSpc__ (&ato1);
+
+
+  // get atomicObjects from sourceLine p1; full evaluated.
+  irc = ATO_ato_srcLn__ (&ato1, sSrc);
+  if(irc < 0) goto L_err_dyn;
+    // ATO_dump__ (&ato1, "_Inp_disp__-ato1");
+
+
+  // test if obj is useful (eg in = point, requested = groupcode Typ_go_PD)
+  // get rTyp from basicType or groupType (eg Typ_go_PD)
+  oTyp = AP_typ__ck_ato__ (&ato1, rTyp);
+  // oTyp = IE_inpCkTyp (iind, p1, &ato1);
+    // printf(" _Inp_disp__-oTyp=%d iind=%d\n",oTyp,iind);
+  if(oTyp <= 0) {
+    // msg obj not useful -
+    IE_cad_msg_obj_ko (sSrc, 0);
+    // error-boundary for inputfield iind
+    IE_inp_set_err (iind);
+    goto L_err_dyn;
+
+  } else {
+    // input is OK; if inputfield not valid: reset error
+    IE_inp_set_err (-1);
+  }
+
+
+  //----------------------------------------------------------------
+  // test if one DB-obj or expression; yes: disp.
+  if((ato1.nr == 1)&&(typ > 0)&&(dbi >= 0L)) {
+    // its a single DB-obj
+    // not vec or tra: check also dli
+    if((typ == Typ_VC)||(typ == Typ_Tra)) {
+      oTyp = UTO__dbo (&obj, &i1, typ, dbi);   // get bin-obj from DB
+      is_DL_obj = 0;  // no, preview temp. bin-obj oTyp,obj
+      goto L_disp__;
+    }
+    if(dli >= 0L) {
+      is_DL_obj = 1;  // yes, preview perm. existing DL-obj dli
+      oTyp = typ;
+      dlPrev = dli;
+      goto L_disp__;
+    }
+  }
+ 
+
+  //----------------------------------------------------------------
+  // create struct from atomicObjs    // why not ATO_ato_atoTab__ ??
+  L_cre1:
+  irc = APT_obj_ato (obj, oTyp, &oDbi, &ato1);
+  if(irc < 0) goto L_err_dyn;
+  if(ato1.nr != 1) {TX_Print("***** IE_cad_prev__ err ato 1"); goto L_err_dyn;}
+
+
+  // test if ident with incoming obj
+  if(DBO__cmp_dbo(oTyp,oDbi, typ,dbi)) {
+   // obj unmodified; display the existing DL-obj
+   is_DL_obj = 1;  // yes, preview existing DL-obj oTyp,oDbi
+   dlPrev = dli;
+   // goto L_disp_b;
+  } else {
+   is_DL_obj = 0;  // no, preview bin-obj oTyp,obj
+  }
+
+    // TESTBLOCK
+    // printf("_Inp_disp__-L5 oTyp=%d oDbi=%ld\n",oTyp,oDbi);
+    // END TESTBLOCK
+
+
+
+  //================================================================
+  // have oTyp,obj = single obj from cad-inputfield; display preview ..
+  // store data in IE_inpAuxDat
+  L_disp__:
+
+  IE_inpAuxDat[iind].typ = oTyp;
+  IE_inpAuxDat[iind].dlTyp = is_DL_obj;         // 0=DB-obj, 1=temp-obj
+  IE_inpAuxDat[iind].dli = dlPrev;
+
+
+
+  //----------------------------------------------------------------
+  // display only-cad-types - Typ_Angle ..
+  //----------------------------------------------------------------
+
+
+  if(oTyp == Typ_PT) {
+    if(is_DL_obj == 0) {
+      IE_inpAuxDat[iind].pos = *(Point*)obj;
+    } else {
+      IE_inpAuxDat[iind].pos = DB_GetPoint (dbi);
+    }
+      // DEB_dump_obj__ (Typ_PT, obj, "cad_prev_disp__-pos[%d]",iind);
+
+  } else if(oTyp == Typ_VC) {
+    // store vector in vz
+    IE_inpAuxDat[iind].vz = *(Vector*)obj;
+    // get pos = position from cad-inputfields
+    IE_cad_inp_vcPos_i (&pos, iind);
+
+  } else if(oTyp == Typ_LN) {
+    // store startPt in pos
+    IE_inpAuxDat[iind].pos = ((Line*)obj)->p1;
+    // store vector in vz
+    UT3D_vc_ln (&IE_inpAuxDat[iind].vz, (Line*)obj);
+
+  } else if(oTyp == Typ_Angle) {
+    irc = IE_cad_Inp_disp_ang ((double*)obj, iind);
+    DL_Redraw ();
+    goto L_done;
+
+  }
+
+
+  //----------------------------------------------------------------
+  // disp basicTypes
+  L_disp_b:
+  if(is_DL_obj)  UI_prev_dli (dli);                     // disp existing DL-obj
+  else           UI_prev_obj (oTyp, dlPrev, obj, &pos); // disp temp. bin-obj
+
+
+  //----------------------------------------------------------------
+  L_done:
+//   // check for depending input-fields - update display    TODO ..
+//   IE_inp_ck_dep (iind);
+
+
+//   // DB_dyn__ (1, Typ_PT, 0L);    // reset to previous saved
+//   DB_dyn__ (2, Typ_PT, dynPti);   // reset state of dyn-points
+
+
+  L_exit:
+    // printf(" ex-IE_cad_prev__\n");
+
+  return 0;
+
+
+  //----------------------------------------------------------------
+//   L_del:
+//     // remove image of Popup-ListObj
+//     if(itemp) GL_temp_del_1 (itemp);
+//     itemp = 0;
+//     goto L_done;
+ 
+
+  //----------------------------------------------------------------
+  L_err_dyn:
+//     DB_dyn__ (2, Typ_PT, dynPti);   // reset to previous saved
+    return -1;
+
+
+}
+
+
+// //===================================================================
+//   int IE_cad_prev_disp__ (int typ, void *obj, int iind, Point *pos) {
+// //===================================================================
+// // IE_cad_prev_disp__            disp CAD-obj's angle, transf.; store IE_inpAuxDat
+// //
+// //  retCode:    0  continue, disp obj with UI_prev_obj
+// //              1  obj displayed; skip display with UI_prev_obj
+// 
+// 
+//   int       irc = 0;
+// 
+//   printf("IE_cad_prev_disp__ %d %d\n",typ,iind);
+// 
+// 
+//   if(typ == Typ_PT) {
+//       DEB_dump_obj__ (Typ_PT, obj, "cad_prev_disp__-pt");
+//     IE_inpAuxDat[iind].pos = *(Point*)obj;
+// 
+// 
+//   } else if(typ == Typ_Angle) {
+//     irc = IE_cad_Inp_disp_ang (obj, iind, pos);
+//     irc = 1;
+//   }
+// 
+// 
+//   return irc;
+// 
+// }
+// 
+// 
+// //============================================================================
+//   int IE_cad_Inp_sele__ (int typ, long dbi, long dli, char *src, Point *pos) {
+// //============================================================================
+// // IE_cad_Inp_sele__
+// 
+// // update 2D-icons
+// 
+//   printf("IE_cad_Inp_sele__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
+//   printf("******* IE_cad_Inp_sele__ ? disp vector ? \n");
+// 
+//   return 0;
+// 
+// }
+
+
+//============================================================================
+  int IE_cad_inp_prev__ (int typ, long dbi, long dli, long dlPrev,
+                         char *src, Point *pos) {
+//============================================================================
+// IE_cad_inp_prev__    temp. preview obj from selection / source
+
+
+  int       irc, oTyp;
+  long      oDbi;
+  char      *pSrc, obj[OBJ_SIZ_MAX];
+
+
+  // printf("IE_cad_inp_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
+  // DEB_dump_obj__ (Typ_PT, pos, "  inp_prev__-pos");
+
+
+  //----------------------------------------------------------------
+  if(!strcmp(src, "Vertex")) {
+    oTyp = Typ_TmpPT;
+    memcpy(obj, pos, sizeof(Point));
+    goto L_disp_obj;
+  }
+
+  //----------------------------------------------------------------
+  if(!strcmp(src, "ConstrPlane")) {
+    oTyp = Typ_TmpPT;
+    sele_get_pos_UC (obj);  // get curPos at ConstrPlane
+    goto L_disp_obj;
+  }
+
+
+  //----------------------------------------------------------------
+  // skip objs with no display
+  if(typ == Typ_Txt)      goto L_skip;  // skip text
+  if(typ == Typ_String)   goto L_skip;  // skip string ("xx")
+  if(typ == TYP_FilNam)   goto L_skip;
+  // if(typ == Typ_SubModel) goto L_skip;  // skip Submodel
+  // if(typ == Typ_CtlgPart) goto L_skip;
+
+
+  //----------------------------------------------------------------
+  // test if src = single DB-obj or complex-src-obj
+  pSrc = src;
+  oTyp = SRC_get_oid (&oDbi, &pSrc);  // typ and dbi from src
+  if(oTyp) {
+    // its a dbo ..
+    UTX_pos_skipLeadBlk (pSrc);
+    if(strlen(pSrc) < 1) {
+      // its a single dbo
+      // test if src-obj is ident with selected obj
+      // - if yes: single dbo-obj selected; preview from its dli
+      if(DBO__cmp_dbo(oTyp,oDbi, typ,dbi)) goto L_disp_dli;
+    }
+  }
+
+  //----------------------------------------------------------------
+  // its complex-src-obj; must decode from source
+  // get requested type from first char
+  oTyp = SRC_get_typ (src);
+  if(!oTyp) {
+    printf("***** IE_cad_inp_prev__ E1 |%s|\n",src);
+    irc = -1;
+    goto L_exit;
+  }
+
+
+  //================================================================
+  L_disp_src:
+    irc = UI_prev_src (oTyp, src, dlPrev, pos);
+    goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_disp_dli:
+    irc = UI_prev_dli (dli);
+    goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_disp_obj:
+    // temp.disp bin.obj
+    irc = UI_prev_obj (oTyp, dlPrev, obj, pos);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex-IE_cad_inp_prev__ %d //////////////////////////\n",irc);
+  return irc;
+
+  //----------------------------------------------------------------
+  L_skip:
+    // printf("ex-IE_cad_inp_prev__-skip obj %d\n",typ);
+    return 0;
+
+}
+
+
+//================================================================
+ 
+
 //=====================================================================
-  int IE_cad_Inp_disp__ (int iind, int mode) {
+  int IE_cad_Inp_disp__ (int iind) {
+//=====================================================================
+// IE_cad_Inp_disp__    display temp. symbols for inpField iind (zB Vec)
+// Input:
+//   iind     index inputFiled (IE_wCad_obj)
+// Output:
+//   retCode  -1=Error, else requested type of inputFiled iind (eg Typ_PT)
+
+  int     irc, i1, rTyp;
+  Point   selPos;
+  char    s1[4000], *src;
+
+
+  // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
+  // printf("IE_cad_Inp_disp__ iind=%d\n",iind);
+  // AP_debug__("IE_cad_Inp_disp__");
+
+  if(iind < 0) return 0;
+
+  // Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"'
+  rTyp = IE_inp_clean (&src, iind);
+  if(rTyp < 0) goto L_err;
+    // printf(" rTyp = %d src=|%s|\n",rTyp,src);
+
+
+  if(!strlen(src)) {
+    // clear disp
+    i1 = IE_GET_INP_DLI (iind);
+    GL_temp_del_1 (i1);
+    irc = 0;
+    goto L_exit;
+  }
+
+
+  //----------------------------------------------------------------
+  // skip objs with no display
+  if(rTyp == Typ_Txt)      goto L_prev;  // text
+  if(rTyp == Typ_String)   goto L_prev;  // string ("xx")
+  if(rTyp == Typ_SubModel) goto L_exit;   // internal-Submodel
+  if(rTyp == TYP_FilNam)   goto L_exit;   // external-Submodel
+  if(rTyp == Typ_CtlgPart) goto L_exit;   // catalogpart
+
+  strcpy (s1, src);
+
+  // skip lead. blanks;  NOT FOR Strings !
+  src = UTX_pos_1n (s1);
+  // change to uppercase
+  i1 = UTX_chg_2_upper (src);
+    // printf(" _2_upper %d |%s|\n",i1,src);
+  if(i1) {
+    // update inputfield
+    GUI_entry_set (&IE_wCad_obj[iind], src);
+    GUI_update__();
+  }
+  // goto L_prev;
+
+
+  //----------------------------------------------------------------
+  // preview
+  L_prev:
+    irc = IE_cad_prev__ (IE_selTyp, IE_selInd, GR_selDli, src, iind);
+    if(irc < 0) goto L_err;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf("ex-IE_cad_Inp_disp__ %d\n",irc);
+  return irc;
+
+
+ L_err:
+   IE_inp_set_err (iind);  // set error
+   irc = -1;
+   goto L_exit;
+
+}
+
+
+/*
+//=====================================================================
+  int IE_cad_Inp_disp__ (int iind) {
 //=====================================================================
 // display temp. symbol for inputField iind
+// mode UNUSED
 
 // Input:
 //   iind    fieldNri (0-n);  -1=IE_inpInd; 
-//   mode   -1 = leave field
-//           0 = update field
-//           1 = enter field
 // Output:
 //   retCod  0=OK;
 //          -1=input-not-valid 
@@ -8885,7 +9860,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   long      dbi=0L, dli, dynPti;
   double    d1;
   char      aus_tab[10][256], subTyp1;  // 10 strings a 256 chars
-  char      *p1, os1[OBJ_SIZ_MAX];
+  char      *p1, os1[OBJ_SIZ_MAX], sSrc[50000];
   void      *op1;
   Point     pt1, *ppt=NULL;
   Vector    vc1;
@@ -8894,9 +9869,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // Memspc    tSpc1;
 
 
-
-  // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
-  // printf("IE_cad_Inp_disp__ iind=%d mode=%d\n",iind,mode);
+  printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
+  printf("IE_cad_Inp_disp__ iind=%d\n",iind);
 
 
   if(iind < 0) {
@@ -8950,7 +9924,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   }
 
 
-    // printf(" _Inp_disp__ iind=%d rTyp=%d |%s|\n",iind,rTyp,p1);
+    printf(" _Inp_disp__ iind=%d rTyp=%d |%s|\n",iind,rTyp,p1);
 
 
 
@@ -8969,6 +9943,14 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   //----------------------------------------------------------------
+  // get sourceObj (eg "P20" -> "R(P20)"                   2020-12-30
+  sSrc[0] = '\0';
+// TODO: replace with IE_inp_src_txt (ev into SRC__add_dynTyp)
+  irc = IE_inpTxtOut (&p1, &sSrc, p1, iind, ON);
+    // printf(" _Inp_disp__-L2 %d |%s|%s|\n",irc,p1,sSrc);
+
+
+  //----------------------------------------------------------------
   // get memSpc for ato1 (memspc53, 54, 55)
   ATO_getSpc__ (&ato1);
 
@@ -8981,12 +9963,12 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get atomicObjects from sourceLine p1; full evaluated.
   irc = ATO_ato_srcLn__ (&ato1, p1);
   if(irc < 0) goto L_err_dyn;
-    // ATO_dump__ (&ato1, "_Inp_disp__-1");
+    // ATO_dump__ (&ato1, "_Inp_disp__-ato1");
 
 
   // get outTyp; eg Typ_VC from requestedTyp - eg Typ_goGeo7
   oTyp = IE_inpCkTyp (iind, p1, &ato1);
-    // printf(" _inpCkTyp oTyp=%d\n",oTyp);
+    // printf(" _Inp_disp__--_inpCkTyp oTyp=%d\n",oTyp);
 
 
   //----------------------------------------------------------------
@@ -9021,7 +10003,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   //================================================================
   // get requested typ oTyp from given typ ato1.typ[0]
-// TODO make ATO-func giving requested typ from given bjects ..
+// TODO make ATO-func giving requested typ from given objects ..
 
   //----------------------------------------------------------------
   // if(oTyp=Typ_PT and ato1=Typ_Val(eg from "0 0 -5")): change ato1 to Typ_PT
@@ -9130,7 +10112,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // ox1 = UTO_ox_dbo (form, dbi);
     OGX_SET_OBJ (&ox1, dbTyp, form, 1, op1);
     UT3D_ptvc_ox (&pt1, &vc1, &ox1);
-    IE_cad_Inp_disp_vc (&vc1, iind);
+    IE_cad_inp_vcPos_i (&vc1, iind);
     goto L_done;
 
 
@@ -9140,7 +10122,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // IE_inpAuxDat[iind].d1 = UT_RADIANS(*(double*)op1);
     irc = APT_obj_ato ((double*)op1, oTyp, &ato1);
     if(irc < 0) return -1;
-    IE_cad_Inp_disp_ang ((double*)op1, iind);
+    sele_get_pos__ (&pt1);
+    IE_cad_Inp_disp_ang ((double*)op1, iind, &pt1);
     goto L_done;
 
 
@@ -9149,7 +10132,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
     if(((ObjGX*)op1)->form == Typ_VC) {
       // display vector
-      IE_cad_Inp_disp_vc ((Vector*)(((ObjGX*)op1)->data), iind);
+      IE_cad_inp_vcPos_i ((Vector*)(((ObjGX*)op1)->data), iind);
 
     } else if(((ObjGX*)op1)->form == Typ_TraRot) {
       // display TraRot
@@ -9172,79 +10155,79 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     goto L_draw_cv;
 
 
-/*
-  //----------------------------------------------------------------
-  } else if((typ == Typ_goPrim)  ||
-            (typ == Typ_goGeo4)  ||
-            (typ == Typ_goGeo7)  ||
-            (typ == Typ_goGeo8))   {
-
-    irc = IE_decode_Ln (aus_typ, (void*)aus_tab, 10, p1);
-    if(irc < 0) goto L_err;
-
-    typ = aus_typ[0];
-      printf(" typ[0]=%d\n",typ);
-    irc = APT_obj_expr ((void*)o1, typ, p1);  // "D24 REV"
-    if(irc < 0) goto L_err;
-
-    if(typ == Typ_VC) {
-      UT3D_vc_setLength ((Vector*)o1, (Vector*)o1, 1.);
-      goto L_draw_vc;
-
-    } else if(typ == Typ_Val) {   // Typ_Angle
-      d1 = UT_RADIANS(*((double*)o1));
-      UT3D_vc_angr ((Vector*)o1, d1);
-      goto L_draw_vc;
-
-    } else if(typ == Typ_LN) {
-      goto L_draw_ln;
-
-    } else if(typ == Typ_CI) {
-      // save selectionPoint
-      sele_get_pos__ (&pt1);
-      IE_inpAuxDat[iind].pos = pt1;
-      goto L_draw_ac;
-
-    } else if(typ == Typ_CV) {
-      goto L_draw_cv;
-
-    } else return 0;
-
-  //----------------------------------------------------------------
-  } else if(typ == Typ_goAxis)  {
-    // sollte als Vektor auf fixem Punkt angezeigt werden;
-    // C() od L() od nix (zB "P20 [L()]"; als Line resolven)
-
-    // irc = IE_decode_Ln (aus_typ, (void*)aus_tab, 10, p1);
-    // if(irc < 0) goto L_err;
-    // typ = aus_typ[0];
-
-    typ = AP_typ_typChar (p1[0]);
-    if(typ == Typ_PT) {
-      // kann sein PT+PT|PT+LN|PT+VC; wenn nur der Punkt: nix tun ..
-      if(UTX_wordnr(p1) < 2) return 0;
-      typ = Typ_LN;
-    }
-
-    // irc = APT_obj_expr ((void*)o1, typ, aus_tab[0]);
-    irc = APT_obj_expr ((void*)o1, typ, p1);
-    if(irc < 0) goto L_err;
-
-    if(typ == Typ_LN) {
-      pt1 = ((Line*)o1)->p1;
-      UT3D_vc_2pt (&vc1, &((Line*)o1)->p1, &((Line*)o1)->p2);
-    } else if(typ == Typ_CI) {
-      pt1 = ((Circ*)o1)->pc;
-      vc1 = ((Circ*)o1)->vz;
-    } else if(typ == Typ_PLN) {
-      pt1 = ((Plane*)o1)->po;
-      vc1 = ((Plane*)o1)->vz;
-    } else return 0;
-
-    GL_DrawVc1 (&dli, 12, &pt1, &vc1);
-
-    goto L_done;
-*/
+//
+//   //----------------------------------------------------------------
+//   } else if((typ == Typ_goPrim)  ||
+//             (typ == Typ_goGeo4)  ||
+//             (typ == Typ_goGeo7)  ||
+//             (typ == Typ_goGeo8))   {
+// 
+//     irc = IE_decode_Ln (aus_typ, (void*)aus_tab, 10, p1);
+//     if(irc < 0) goto L_err;
+// 
+//     typ = aus_typ[0];
+//       printf(" typ[0]=%d\n",typ);
+//     irc = APT_obj_expr ((void*)o1, typ, p1);  // "D24 REV"
+//     if(irc < 0) goto L_err;
+// 
+//     if(typ == Typ_VC) {
+//       UT3D_vc_setLength ((Vector*)o1, (Vector*)o1, 1.);
+//       goto L_draw_vc;
+// 
+//     } else if(typ == Typ_Val) {   // Typ_Angle
+//       d1 = UT_RADIANS(*((double*)o1));
+//       UT3D_vc_angr ((Vector*)o1, d1);
+//       goto L_draw_vc;
+// 
+//     } else if(typ == Typ_LN) {
+//       goto L_draw_ln;
+// 
+//     } else if(typ == Typ_CI) {
+//       // save selectionPoint
+//       sele_get_pos__ (&pt1);
+//       IE_inpAuxDat[iind].pos = pt1;
+//       goto L_draw_ac;
+// 
+//     } else if(typ == Typ_CV) {
+//       goto L_draw_cv;
+// 
+//     } else return 0;
+// 
+//   //----------------------------------------------------------------
+//   } else if(typ == Typ_goAxis)  {
+//     // sollte als Vektor auf fixem Punkt angezeigt werden;
+//     // C() od L() od nix (zB "P20 [L()]"; als Line resolven)
+// 
+//     // irc = IE_decode_Ln (aus_typ, (void*)aus_tab, 10, p1);
+//     // if(irc < 0) goto L_err;
+//     // typ = aus_typ[0];
+// 
+//     typ = AP_typ_typChar (p1[0]);
+//     if(typ == Typ_PT) {
+//       // kann sein PT+PT|PT+LN|PT+VC; wenn nur der Punkt: nix tun ..
+//       if(UTX_wordnr(p1) < 2) return 0;
+//       typ = Typ_LN;
+//     }
+// 
+//     // irc = APT_obj_expr ((void*)o1, typ, aus_tab[0]);
+//     irc = APT_obj_expr ((void*)o1, typ, p1);
+//     if(irc < 0) goto L_err;
+// 
+//     if(typ == Typ_LN) {
+//       pt1 = ((Line*)o1)->p1;
+//       UT3D_vc_2pt (&vc1, &((Line*)o1)->p1, &((Line*)o1)->p2);
+//     } else if(typ == Typ_CI) {
+//       pt1 = ((Circ*)o1)->pc;
+//       vc1 = ((Circ*)o1)->vz;
+//     } else if(typ == Typ_PLN) {
+//       pt1 = ((Plane*)o1)->po;
+//       vc1 = ((Plane*)o1)->vz;
+//     } else return 0;
+// 
+//     GL_DrawVc1 (&dli, 12, &pt1, &vc1);
+// 
+//     goto L_done;
+//
 
 
 
@@ -9288,7 +10271,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     goto L_done;
 
   L_draw_vc:
-    IE_cad_Inp_disp_vc ((Vector*)op1, iind);
+    IE_cad_inp_vcPos_i ((Vector*)op1, iind);
 
 
   //----------------------------------------------------------------
@@ -9317,7 +10300,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   L_err:
     // Objekt unvollstaendig; Reset Error.
     // AP_errStat_set (0);
-    IE_cad_Inp1_Info(iind);
+    IE_cad_msg_typ(iind);
     // TX_Print(" ****** obj not complete *******");
     return -1;
 
@@ -9329,6 +10312,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     return -1;
 
 }
+*/
 
 
 //================================================================
@@ -9363,7 +10347,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     for(i2=0; i2<i3; ++i2) {
       ii = ICHAR(auxInf[i2 + 2]);
       if(ii != iind) continue;
-      IE_cad_Inp_disp__ (i1, 0);
+      IE_cad_Inp_disp__ (i1);
     }
 
   }
@@ -9501,24 +10485,39 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //================================================================
   int IE_inp_ck_del () {
 //================================================================
-/// IE_inp_ck_del        dialog canel unstored input
+/// IE_inp_ck_del        dialog cancel unstored input
 // check inputsfields if empty; if not return
 // test also OK-button
 // retCod: 0  delete input
 //         1  no, keep old input
 
 
+  int   irc;
   char  s1[128];
+
 
   // check OK-button-status; inaktiv: return 0
   if(!IE_stat_OK) return 0;
 
-  // check inputsfields if empty; if yes return 0
-  // if(IE_inp_ck_empty()) return 0;
+  // set grafic-window inactive
+  // GUI_set_enable (&winGR, 0); // does not work ..
+  GL_Print_Redraw ();
 
   strcpy(s1, "   input not stored, delete input ?  ");
 
-  return GUI_dlg_2b (s1, "YES", "NO");
+  irc = GUI_dlg_2b (s1, "YES", "NO");
+
+  if(irc == 0) {
+    // delete input - restore old situation
+      printf(" IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
+    if(IE_FuncTyp == IE_Func_CADEnv) {
+      GL_grid_tmp_set (NULL); // disactivate temp. grid
+      // NC_setRefsys ((long)DL_get_irs()); // reset ConstrPlane
+    }
+  }
+
+
+  return irc;
 
 }
 
@@ -9938,11 +10937,11 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
     // // display bei save
     // if(mode > 0) {   // save
-      // if(strlen(cbuf) > 1) UI_disp_vec1 (Typ_Txt, cbuf);
+      // if(strlen(cbuf) > 1) UI_prev_vc (Typ_Txt, cbuf);
       // // if(strlen(cbuf) > 1) {
         // // printf(" dispVC |%s|\n",cbuf);
         // // APT_obj_expr (&vc1, Typ_VC, cbuf);
-        // // UI_disp_vec1 (Typ_VC, &vc1);
+        // // UI_prev_vc (Typ_VC, &vc1);
       // // }
     // }
 
@@ -9972,7 +10971,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
       if(!strcmp(inf, "Abs.Refsys")) {
         strcpy(cbuf, "R0");
         return 1;
-        // IE_set_inp (0, "R0");    // preset entry0
+        // IE_inp_set_txt (0, "R0");    // preset entry0
         // IE_inp_chg (1);        // gleich ins naechste Inputfeld ...
         // irc = 0;
       }
@@ -10361,14 +11360,25 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // printf(" UI_fontsizX=%d, UI_fontsizY=%d\n",UI_fontsizX,UI_fontsizY);
   // sprintf(opts, "20,%d", -i2);
 */
-  sprintf(opts, "fea");   // frameless extend; gtk3
+
+
+  // PROBLEM: gtk does not expand box boxCad2; so set fixed size ..
+  // gtk_widget_set_hexpand nur Gtk3 ..
+  GUI_get_version(opts, &i1, &i2);
+  if(i1 > 2) {
+    sprintf(opts, "fea");   // frameless extend; gtk3
+  } else {
+    sprintf(opts, "f24e,e");   // frameless extend; gtk2
+  }
 
     // printf(" start-boxCad2\n");
 
   for(i1=0; i1<INPRECANZ; ++i1) {
     // due to different height of entry/label Gtk3 needs a hbox
     wtmp1 = GUI_box_h (&boxCad2, "ea");
+      // printf(" set-IE_wCad_obj[%d]\n",i1);
     IE_wCad_obj[i1] = GUI_entry__ (&wtmp1,NULL,"",IE_inp_CB__,NULL,opts);
+      // GUI_set_expand (IE_wCad_obj[i1]);
     IE_wCad_info[i1] = GUI_label__ (&wtmp1, "-", "l15");
     GUI_sep__ (&boxCad2, 0, 0);   // vert. line under entry
   }
@@ -10517,12 +11527,12 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // GUI_Tip  ("aktives Obj. speichern / save active record / right mouseb.");
 
   // disact.
-  GUI_set_enable (&IE_but_OK, FALSE);   // disactivate "OK"
-  GUI_set_enable (&IE_help_F, FALSE);   // disactivate "Help Func"
-  GUI_set_enable (&IE_help_I, FALSE);   // disactivate "Help Input"
+  GUI_set_enable (&IE_but_OK, FALSE);     // disactivate "OK"
+  GUI_set_enable (&IE_help_F, FALSE);     // disactivate "Help Func"
+  GUI_set_enable (&IE_help_I, FALSE);     // disactivate "Help Input"
   GUI_set_enable (&IE_but_Canc, FALSE);   // disactivate "Cancel"
-  GUI_set_enable (&IE_but_Clear, FALSE);   // disactivate "Clear"
-
+  GUI_set_enable (&IE_but_Clear, FALSE);  // disactivate "Clear"
+  GUI_set_enable (&boxCad2, FALSE);       // disactivate inputfields IE_wCad_obj
 
   // IE_bar__ = tbc;
 
@@ -10797,7 +11807,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get cursor-position on constrPln
   p3 = IE_get_inp__ (2);
   if(strlen(p3) < 2) {
-    UI_GR_get_actPosA (&pt3);
+    GR_get_curPos_UC (&pt3);
   } else {
     APT_obj_expr (&pt3, Typ_PT, p3);
   }
@@ -10823,7 +11833,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // write into entry
   // gtk_entry_set_text ((GtkEntry*) (IE_wCad_obj[i1+1]), tmpBuf);
-  IE_set_inp (3, tmpBuf);
+  IE_inp_set_txt (3, tmpBuf);
   // ep[i1+1] = IE_get_inp__ (i1+1);
     // printf(" korr.plnTyp=|%s|\n",ep[i1+1]);
 
@@ -10831,7 +11841,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // fix textPoint
   tmpBuf[0] = '\0';
   AP_obj_add_nval (tmpBuf, 3, (double*)&pt3, NULL);
-  IE_set_inp (2, tmpBuf);
+  IE_inp_set_txt (2, tmpBuf);
 
 
   return 0;
@@ -11095,7 +12105,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   } else if((typ1 == Typ_PT)&&(typ2 == Typ_LN)) {
     pa[0] = *((Point*)o1);
     // proj PT -> LN
-    UT3D_pt_projptln (&pa[1], &d1, NULL, &pa[0], (Line*)o2);
+    UT3D_pt_projptln (&pa[1], &d1, NULL, 1, &pa[0], (Line*)o2);
     TX_Print("Dist = %f / %s - %s",d1,p1,p2);
 
 

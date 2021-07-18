@@ -102,11 +102,14 @@ extern int       UI_fontsizX, UI_fontsizY;
   static GtkCssProvider *provider = NULL;
 
   GtkStyleContext *context;
+  PangoAttribute  *at;
 
 
   int         pTyp, i1;
   Obj_Unknown *go;
 
+
+  // printf("GUI_entry_styl %d\n",imod);
 
 
   GUI_obj_typ (&pTyp, (void**)&go, o_par);
@@ -122,7 +125,7 @@ extern int       UI_fontsizX, UI_fontsizY;
   if(!provider) {
     provider = gtk_css_provider_new ();
     gtk_css_provider_load_from_data (GTK_CSS_PROVIDER (provider),
-      "* {border-color: #CC0000}",
+      "* {color: #CC0000; font-weight: bold; border: 3px solid #CC0000;}",
       -1, NULL);
   }
 

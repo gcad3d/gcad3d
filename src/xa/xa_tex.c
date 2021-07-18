@@ -106,7 +106,7 @@ UI_GR_Select_work1
    APT_DrawSur
     GR_DrawSur
      TSU_DrawSurT_
-      TSU_DrawSurTP
+      TSU_DrawSurTP1
        GL_DrawSur
         GRU_tex_pos1
         GL_Tex_Ini
@@ -171,7 +171,7 @@ see also ../xa/xa_ga.c
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <string.h>                       /* strcmp ..   */
@@ -576,13 +576,22 @@ static TexBas *actTexBas;
 
   // get real filename from symbolic filename -> fNam
   // irc = Mod_get_path (fNam, symNam);
-  irc = Mod_fNam_sym (fNam, symNam);
+  irc = MDLFN_ffNam_fNam (fNam, symNam);
+//   irc = Mod_fNam_sym (fNam, symNam);
   if(irc < 0) return -1;
     // printf(" ex-fNam_sym- |%s|%s|\n",fNam,symNam);
 
 
   // check if sourcefiles exists
   if(OS_checkFilExist(fNam, 1) == 0) return -1;
+
+  // check if file <fNam> exists ..
+  if(OS_FilSiz(fNam) < 8) {              // 2016-03-21
+    TX_Print("**** ERROR file \"%s\"",fNam);
+//     Mod_sym_get__ (&cbuf[0], &cbuf[100], &cbuf[300], symNam);
+//     TX_Print("**** ERROR; no file \"%s\" in directory \"%s\" - symbolic \"%s\"",
+    return -1;
+  }
 
 
   // get filetyp of symNam
@@ -606,14 +615,6 @@ static TexBas *actTexBas;
     return -2;
   }
 
-
-  // check if file <fNam> exists ..
-  if(OS_FilSiz(fNam) < 8) {              // 2016-03-21
-    Mod_sym_get__ (&cbuf[0], &cbuf[100], &cbuf[300], symNam);
-    TX_Print("**** ERROR; no file \"%s\" in directory \"%s\" - symbolic \"%s\"",
-                             &cbuf[300], &cbuf[100], &cbuf[0]);
-    return -1;
-  }
 
 
   // djpeg -bmp fnIn.jpg > fnOut.bmp
@@ -704,7 +705,7 @@ static TexBas *actTexBas;
   TexBasSiz += TexBasINC;
 
 
-  printf("::TexBas_realloc %d %d\n",TexBasNr,TexBasSiz);
+  // printf("::TexBas_realloc %d %d\n",TexBasNr,TexBasSiz);
 
   TexBasTab = (TexBas*)realloc(TexBasTab, (2+TexBasSiz)*sizeof(TexBas));
   if(TexBasTab == NULL) {
@@ -781,6 +782,9 @@ GL_LoadTex
 
 
   if(AP_stat.texture == 0) return 0;
+
+
+  printf("Tex_addBas__ |%s|%s| keep=%d\n",fnam,dirNam,keepFlag);
 
 
   // create the symbolic name (in die GATAB soll der symbolicName !)

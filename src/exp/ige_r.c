@@ -137,7 +137,7 @@ IGE_r_work_2
  IGE_rw_xxx
   Noch nicht fertig aufgeloeste Entities nun aufloesen.
   An impTab[ind].data liegen die Ursprungsdaten (meist PointerTabelle)
-  Die Outputdaten nach IG_cBuf (dzt memspc50 = 50kb) 
+  Die Outputdaten static machen
 
 
 Nach dem Abspeichern als APT-Code und in der DB wird ein Pointer
@@ -633,7 +633,7 @@ Inhaltsverz: S14
 // ACHTUNG: geht nur fuer DLL's !
 // #ifdef _MSC_DLL
 #ifdef _MSC_VER
-__declspec(dllexport) int IGE_r__ (char*);
+__declspec(dllexport) int IGE_r__ (void*);
 // nachfolgende externals werden aus dem Main-Exe imported:
 #define extern __declspec(dllimport)
 #endif
@@ -708,14 +708,18 @@ static long   impTabSiz=0, impNr=0, impInd;
 static Memspc impSpc;
 // soviel muss immer frei sein in impSpc
 #define impSpc_INC  50000
+#define impMDLNR    10000
 
 
 static int    IG_dNr;        // active D-LineNr  (= ##P in P-Lines)
 static int    IG_trNr;                // transformationsindex
 static Mat_4x3 IG_trMat;
 
-static char *IG_cBuf;                 // Outputbuffer
-static char *IG_modNam;
+static char *IG_mainNam;        // mainmodelname
+static char IG_modNam[256];     // active (sub)modelname
+
+static int IG_mdli;             // index of subModel (refModels)
+
 
 
 // Submodeldefinition
@@ -789,13 +793,15 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
 // static int    imp_file = 0;  // 0=Ausgabe ins mem, 1=Ausgabe ins File.
 
 
-  int   i1, i2, irc, typ;
-  long  *indTab, ind;
-  char  cbuf[256];
+  int         i1, i2, irc, typ;
+  long        *indTab, ind;
+  char        cbuf[512];
+  ModelRef    *mr1;
+  ImpSubmodel *sm1;
 
 
-  // printf("AP_ImportIg_CB typ=%d siz=%d impInd=%d\n",ox1->typ,ox1->siz,impInd);
-  // printf(" IG_modNam=|%s|\n",IG_modNam);
+  // printf("AP_ImportIg_CB typ=%d siz=%d impInd=%ld\n",ox1->typ,ox1->siz,impInd);
+  // printf(" IG_modNam=|%s| impStat=%d\n",IG_modNam,impStat);
   // if(impInd==2224) DEB_dump_ox_0 (ox1, "iI=2224");
 
 
@@ -816,42 +822,33 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
   //-----------------------------------------------------------
   // Typ_SubModel = Start new Model; data = Submodelname
   } else if(ox1->typ == Typ_SubModel) {
+      // printf("Start-new-Model |%s|\n",(char*)ox1->data);
 
-    // printf("Start new Model |%s|\n",(char*)ox1->data);
+    IG_mdli = 20; // reset startIndex models
 
     // ein Submodel ist aktiv: den Buffer in die Datei schreiben,
       if(strlen(IG_modNam) > 0) {  // Main hat leeren Name
         UTF_add1_line ("# import end\n");
         sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),IG_modNam);
+        // write buffer-1 into file cbuf
         UTF_file_Buf1__ (cbuf);
       }
 
     // den Buffer zuruecksetzen.
     UTF_clear1 ();
 
-    // Mainmodel hat Modelname "" !
+    // start new (sub)model; main has empty modelname
     if(strlen(ox1->data) > 0) {
       strcpy(IG_modNam, (char*)ox1->data);  // merken fuer "write to file"
-      // printf("Submodel |%s|\n",IG_modNam);
+         // printf("start-Submodel |%s|\n",IG_modNam);
 
       sprintf(cbuf,"# Import Submodel %s",IG_modNam);
       UTF_add1_line (cbuf);  // noch ins Main !
 
-      // sprintf(cbuf,"%stmp%cModel_%s",OS_get_bas_dir(),fnam_del,ox1->data);
-      // if((imp_lun=fopen(cbuf,"w")) == NULL) {
-        // TX_Print("Mod_chg__ E001 %s",cbuf);
-        // return -1;
-      // }
-      // fprintf(imp_lun, "# %s\n",OS_date1());
-      // imp_file = 1;     // Ausgabe ins File
-
-      // den Namen in die ModelnameTable speichern
-      // get ModelNr from Modelname - BasModelNr merken
-      impTab[impInd].ind = DB_StoreModBas (1, IG_modNam); // 1=internalModel
-
     } else {
-
+        // printf("start-mainmodel \n");
       // sprintf(cbuf,"# IGES-Import %s",fnam);
+      // strcpy(IG_modNam, IG_mainNam);
       sprintf(cbuf,"# IGES-Import");
       UTF_add1_line (cbuf);
 
@@ -865,24 +862,49 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
 
 
 
-
   //-----------------------------------------------------------
   } else {
+
+    if(ox1->typ == Typ_Model) {
+      // write out call subModel from Typ_Model = ModelReference
+      // eg "M#="<mdlNam>" <rfesys>"
+      mr1 = (ModelRef*)ox1->data;
+      i1 = mr1->modNr;
+      sm1 = (ImpSubmodel*)impTab[i1].data;
+      if(!sm1->iTab) {
+        // model not found ..
+        TX_Error("AP_ImportIg_CB E1 model M%d not found",IG_mdli);
+        return -1;
+      }
+        // printf("  modelRef-1 |%s|\n",sm1->mnam);
+        // DEB_dump_obj__ (ox1->form, ox1->data, "mr" );
+      sprintf(cbuf, "M%d=\"%s\"", IG_mdli,sm1->mnam);
+      // add refSys from pos, vz vx
+      AP_obj_add_pln1 (cbuf, &mr1->po, &mr1->vz, &mr1->vx);
+        // printf(" modelRef-2 |%s|\n",cbuf);
+      ++IG_mdli;
+      UTF_add1_line (cbuf);  // write
+      goto L_exit;
+    }
+
+
 
     // Objekt in Text umwandeln
     // irc = AP_obj_2_apt (mem_cbuf1, mem_cbuf1_SIZ, &elT, NULL);
     irc = AP_obj_2_txt (mem_cbuf1, mem_cbuf1_SIZ, ox1, -1L);
     if(irc < 0) return irc;
+      // printf(" -nxt-|%s|\n",mem_cbuf1);
+      // printf(" impInd=%ld\n",impInd);
 
-    // printf(" impInd=%d\n",impInd);
 
-    // typ und APT-index of generated object eintragen !
-    // AP_obj_2_txt_query (&impTab[impInd].typ, &impTab[impInd].ind);
-    AP_obj_2_txt_query (&typ, &ind);
-    impTab[impInd].typ = typ;
-    impTab[impInd].ind = ind;
-    // printf("  out %d: typ=%d ind=%d\n",impInd,
-           // impTab[impInd].typ,impTab[impInd].ind);
+    L_cont9:
+      // typ und APT-index of generated object eintragen !
+      // AP_obj_2_txt_query (&impTab[impInd].typ, &impTab[impInd].ind);
+      AP_obj_2_txt_query (&typ, &ind);
+      impTab[impInd].typ = typ;
+      impTab[impInd].ind = ind;
+        // printf("  out %d: typ=%d ind=%ld\n",impInd,
+               // impTab[impInd].typ,impTab[impInd].ind);
 
     // TEST    Find d-LineNr of gCad-Typ/Ind
     // if((typ == Typ_SUR)&&(ind == 4)) exit(0);
@@ -923,56 +945,64 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   }
 */
 
+  L_exit:
     // Next_Obj:;
     // ++impNr;
     // if(impNr >= impTabSiz) break;
 
+      // printf("ex-AP_ImportIg_CB\n");
 
-  return 0;
+    return 0;
 
 }
 
 
 //===========================================================================
-  // int AP_ImportIg1 (char *off, int mode3d, char* fnam)  {
-  int IGE_r__ (char* fnam)  {
+  int IGE_r__ (void* pBlk[2])  {
 //===========================================================================
 // mode3d: ON  = 0 = Ja,   als 2D-Mode behandeln;
 // mode3d: OFF = 1 = Nein, als 3D-Mode behandeln;
-// fnam = kompletter Igesfilename
+// Input:
+//   pBlk[0]    fnam = full Igesfilename
+//   pBlk[1]    fnam = full outfilename
 
 // Subfigures werden -> datei imp_lun ausgegeben, die mainfig -> memory.
 
   int     irc;
   long    dSiz, pSiz, l1;
-  double  d1;
+  char    *fnam;
+  double  mSiz;
   FILE    *fp1 = NULL;
 
-  // printf("\n\n===============================================\n");
-  // printf("IGE_r__ |%s|\n",fnam);
+
+  fnam       = (char*)pBlk[0];
+  IG_mainNam = (char*)pBlk[1];
+  IG_modNam[0] = '\0';
+
+  // printf("\n\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
+  printf("IGE_r__  |%s|\n",fnam);
+  // printf("  IG_mainNam |%s|\n",IG_mainNam);
+
 
 
   impStat = 0;
+  IG_mdli = 20;
 
   // Init Objektindexe
   AP_obj_2_txt (NULL, 0L, NULL, 0L); // reset Startindizes
 
+  // UtxTab_init__ (&IG_mNames);
 
-  IG_cBuf   = memspc50;   // use 5012 Byte ?
-
-  // IG_modNam = &memspc012;
-  IG_modNam = memspc012;
-  IG_modNam[0] = '\0';
+  // IG_cBuf   = memspc50;   // use 5012 Byte ?
 
     // IGE_test (0);
-/*
+
   // Zwischenspeicher UTF_FilBuf1 loeschen
   UTF_clear1 ();
 
 
-  sprintf(mem_cbuf1,"# IGES-Import %s",fnam);
-  UTF_add1_line (mem_cbuf1);
-*/
+  // sprintf(mem_cbuf1,"# IGES-Import %s",fnam);
+  // UTF_add1_line (mem_cbuf1);
 
 
   // Open for read
@@ -983,14 +1013,14 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
 
   // Read G-Zeile; get ModelSize
-  irc = IGE_r_G__ (&d1, fp1);
+  irc = IGE_r_G__ (&mSiz, fp1);
     // IGE_test (1);
 
 
   // change ModelSize
   if(irc >= 0) {
-    d1 = UTP_db_rnd5 (d1);
-    NC_setModSiz (d1);
+    mSiz = UTP_db_rnd5 (mSiz);
+    NC_setModSiz (mSiz);
   }
     // IGE_test (2);
 
@@ -1004,7 +1034,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   // alloc space for impTab (D-zeilen)
   // impTab = (ImpObj*)memspc101;
   // impTabSiz = sizeof(memspc101) / sizeof(ImpObj);
-  if(IGE_r_allocD (dSiz) < 0) return -1;
+  if(IGE_r_allocD (dSiz) < 0) goto L_err1;
 
 
 
@@ -1083,33 +1113,41 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   // TX_Print("****  Einlesen fertig");
   fclose(fp1);
-  // fclose(fp2);
-  // fclose(fp3);
+
+  // write attributes and code in buffer-1 into file IG_mainNam
+  MDL_load_import_attr (IG_mainNam, mSiz);
+
+    // TESTBLOCK
+    // UTF_dump__ ();
+    // printf(" ex-IGE_r__\n");
+    // END TESTBLOCK
+ 
+
+  irc = 0;
 
 
-
-
-  // UTF_FilBuf1 an die Hauptdatei (UTF_FilBuf0, nur memory!) anfuegen
-  UTF_insert1 (-1L);
-    // printf(" igi06\n");
-
-  // // Mem -> Editor
-  // UI_AP (UI_FuncSet, UID_WinEdit, NULL);
-
-
+  //----------------------------------------------------------------
   L_exit:
-  // printf(" free impTab\n");
-  if(impTab) free (impTab);
-  impTab = NULL;
+    // printf(" free impTab\n");
+    if(impTab) free (impTab);
+    impTab = NULL;
 
-  // printf(" free impSpc\n");
-  UME_free (&impSpc);
+    // printf(" free impSpc\n");
+    UME_free (&impSpc);
 
-  // Exitmessage
-  IGE_r_work_2 (-2);
-    // printf(" igi07\n");
+    // UtxTab_free (&IG_mNames);
+    // Exitmessage
+    IGE_r_work_2 (-2);
+      // printf(" igi07\n");
 
-  return 0;
+    return irc;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+    irc = -1;
+    goto L_exit;
+
 
 }
 
@@ -1208,13 +1246,10 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   // printf("111111111111111111 IGE_r_work_1 |%s|\n",memspc55);
 
-
   // Start new Model - Callback
   // ox1 = UTO_stru_2_obj (Typ_SubModel, Typ_SubModel, memspc55);
   OGX_SET_OBJ (&ox1, Typ_SubModel, Typ_SubModel, 1, memspc55);
   AP_ImportIg_CB (&ox1);
-
-
 
 
   //--------------------------------------
@@ -1225,9 +1260,8 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
     if(impInd >= impNr) goto L_fertig;
 
     if(impTab[impInd].activ != 1) goto L_next;  // find next member
-
-    // printf("\n... nxt impInd=%d fTyp=%d fInd=%d\n",impInd,
-             // impTab[impInd].fTyp,impTab[impInd].fInd);
+      // printf("\n... nxt impInd=%ld fTyp=%d fInd=%d\n",impInd,
+               // impTab[impInd].fTyp,impTab[impInd].fInd);
 
     // obj ausgeben
     IGE_r_work_2 (impInd);
@@ -1242,8 +1276,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   //----------------------------------------------------
   L_fertig:
-  // printf("111111111111111 ex IGE_r_work_1 |%s|\n",memspc55);
-
+    // printf("111111111111111 ex IGE_r_work_1 |%s|\n",memspc55);
   return 0;
 
 }
@@ -1284,7 +1317,7 @@ static  int oCnt1, oCnt2;
 
 
 
-  // printf(">>>>>> IGE_r_work_2 impInd=%d dNr=%d fTyp=%d\n",ind,dNr,IG_typ_act);
+  printf(">>>>>> IGE_r_work_2 impInd=%d dNr=%d fTyp=%d\n",ind,dNr,IG_typ_act);
 
 
 
@@ -2091,7 +2124,7 @@ static  int oCnt1, oCnt2;
 
 
   // add obj aus ox1 -> memspc
-    // printf("  sav dat ind=%d typ=%d siz=%d\n",impInd,ox1.typ,ox1.siz);
+    printf("  sav dat impInd=%ld typ=%d siz=%d\n",impInd,ox1.typ,ox1.siz);
   impTab[impInd].typ  = ox1.typ;
   impTab[impInd].form = ox1.form;
   impTab[impInd].siz  = ox1.siz;
@@ -2386,9 +2419,9 @@ static  int oCnt1, oCnt2;
     // hier liegt wort # i1 an ..
     // printf(" g-word %d %d |%20.20s|\n",i1,iPos,&cbuf[iPos]);
     if(i1 == 18) {
-      d1 = atof (&cbuf[iPos]);  // Resolution
+      d1 = atof (&cbuf[iPos]);  // Resolution   = word # 18
     } else if(i1 == 19) {
-      d2 = atof (&cbuf[iPos]);  // Max.Coord.Value
+      d2 = atof (&cbuf[iPos]);  // Max.Coord.Value  = word # 19
     }
     // skip this word
     IGE_r_skip_wd (&iPos, cbuf);
@@ -2888,9 +2921,10 @@ static  int oCnt1, oCnt2;
   int IGE_rw_190 (ObjGX *ox1) {
 //=====================================================================
 
+static Plane      pl1;
+
   int        iori, dori, ivz, dvz, ivx, dvx;
   double     *dTab;
-  Plane      *pl1;
 
 
   // 1.word = P-Index_of_Origin
@@ -2939,24 +2973,24 @@ static  int oCnt1, oCnt2;
   }
 
 
-  pl1 = (void*)IG_cBuf;
+  // pl1 = (void*)IG_cBuf;
 
 
   if(dvx >= 0) {
     // create Plane from origin, Z-vec and X-vec.
-    UT3D_pl_pto_vcx_vcz (pl1, impTab[iori].data, impTab[ivx].data, impTab[ivz].data);
+    UT3D_pl_pto_vcx_vcz (&pl1, impTab[iori].data, impTab[ivx].data,impTab[ivz].data);
 
 
   } else {
     // create Plane from origin and Z-vec
-    UT3D_pl_ptvc (pl1, impTab[iori].data, impTab[ivz].data);
+    UT3D_pl_ptvc (&pl1, impTab[iori].data, impTab[ivz].data);
 
   }
     // DEB_dump_obj__ (Typ_PLN, pl1, "_rw_190\n");
 
 
   // *ox1 = UTO_stru_2_obj (Typ_PLN, Typ_PLN, pl1);
-  OGX_SET_OBJ (ox1, Typ_PLN, Typ_PLN, 1, pl1);
+  OGX_SET_OBJ (ox1, Typ_PLN, Typ_PLN, 1, &pl1);
 
   return 0;
 
@@ -4177,7 +4211,7 @@ static  int oCnt1, oCnt2;
 //                           (es folgt noch Parent (Surf(144))
 
 
-
+  static char   IG_cBuf[512];
   static Conus  sRev;
   static Torus  sTor;
 
@@ -5020,19 +5054,23 @@ static ImpSubmodel sm1;
   iNr = ra[2];
 
   // printf("IGE_r_308 |%s| objNr=%d\n",memspc55,iNr);
+  // printf("  r_308-impInd=%ld\n",impInd);
+
 
 
   // Detailname speichern
   sm1.mnam = (char*)UME_save (&impSpc, memspc55, strlen(memspc55)+1);
   if(sm1.mnam == NULL) {TX_Error("IGE_r_308 E001"); return -1;}
-    // printf(" mnam = |%s|\n",sm1.mnam);
+  // make name safe
+  UTX_safeName(sm1.mnam, 1);
+    // printf(" r_308-mnam = |%s|\n",sm1.mnam);
 
 
   // ObjID's speichern
   iTab = (long*)memspc55;
   for(i1=0; i1<iNr; ++i1) {
     iTab[i1] = ra[i1 + 3];
-    // printf("  o[%d]=%d\n",i1,iTab[i1]);
+      // printf("  r_308-o[%d]=%ld\n",i1,iTab[i1]);
   }
 
   sm1.siz  = iNr;
@@ -5045,6 +5083,11 @@ static ImpSubmodel sm1;
   ox1->siz      = sizeof(ImpSubmodel);
   ox1->data     = &sm1;
 
+
+//   // store impInd-index in IG_sm_ind
+//   if(IG_smNr >= impMDLNR) {TX_Error("IGE_r_308 EOM1"); return -1;}
+//   IG_sm_ind[IG_smNr] = impInd;
+//   ++IG_smNr;
 
 
   return 0;
@@ -5070,7 +5113,7 @@ static ImpSubmodel *im1;
 
   im1  = impTab[ind].data;
   iTab = im1->iTab;
-  // printf("   nam=|%s| siz=%d\n",im1->mnam,im1->siz);
+    // printf("  308-nam=|%s| siz=%d\n",im1->mnam,im1->siz);
 
   // copy name -> memspc55
   strcpy(memspc55, im1->mnam);
@@ -5080,7 +5123,7 @@ static ImpSubmodel *im1;
     i3 = IGE_r_dNr2ind (iTab[i1]);
     impTab[i3].activ  = 1;
     impTab[i3].stat23 = 0;  // sonst wirds wieder geskippt! 2004-07-27
-    // printf(" activate impTab[%d]=%d %d\n",i3,iTab[i1],i1);
+      // printf(" 308-activate impTab[%d]=%ld %d\n",i3,iTab[i1],i1);
   }
 
   return 0;
@@ -5098,6 +5141,7 @@ static ImpSubmodel *im1;
 
 
   static ModelRef   mr1;
+  ImpSubmodel       *sm1;
 
   int      i1, ind;
   Point    pt1;
@@ -5118,10 +5162,18 @@ static ImpSubmodel *im1;
   // ra[0] = D-LnNr of 308 (SubFigDef)
   // index ofimpTab:
   i1 = ra[0];
-  ind = IGE_r_dNr2ind (i1);
+  ind = IGE_r_dNr2ind (i1);              // get impTab-index 
+//     printf(" r_408-ind=%d\n",ind);       // D-LnNr of 308 (SubFigDef)
+//   sm1 = impTab[ind].data;
+//     printf(" r_408-nam |%s|\n",sm1->mnam);
+// 
+//   // get index=index of use subModels ..
+//   for(i1=0; i1<IG_smNr; ++i1) {
+//     if(IG_sm_ind[i1] == ind) goto L_mbi;
+//   }
+//   {TX_Error("IGE_r_408 E1"); return -1;}
+//   L_mbi:
   mr1.modNr = ind;  // nur index des 308-record !!
-  // printf(" Dit:Bas: %f ind=%d\n",ra[0],ind); // D-LnNr of 308 (SubFigDef)
-
 
 
   // den Name des BasModel erst spaeter

@@ -110,13 +110,13 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
 
   if(!styl0) {
-    styl0 = gtk_rc_style_new ();
+    styl0 = gtk_rc_style_new ();   // normal
     styl0->color_flags[GTK_STATE_NORMAL]      = GTK_RC_BASE;
     gdk_color_parse ("gray90", &styl0->base[0]);
 
-    styl1 = gtk_rc_style_new ();
+    styl1 = gtk_rc_style_new ();   // active
     styl1->color_flags[GTK_STATE_NORMAL]      = GTK_RC_BASE;
-    gdk_color_parse ("white", &styl1->base[0]); // from X11 rgb.txt file
+    gdk_color_parse ("red", &styl1->base[0]); // from X11 rgb.txt file
   }
 
 

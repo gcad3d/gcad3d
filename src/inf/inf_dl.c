@@ -29,7 +29,7 @@ startIndex        used for -
 
 
 INF_DisplayList-record
-INF_Temporary-DisplayList-record
+INF_Temporary_DisplayList_record
 
 
 INF_DL__         DisplayList-functions                             ../gr/ut_DL.c

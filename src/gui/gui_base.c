@@ -85,10 +85,13 @@ List_functions_start:
 GUI_MsgBox               display message with close-button, does not wait
 GUI_file_open__          get filenam from user for open, waiting.
 GUI_file_save__          get filenam from user for save, waiting.
+GUI_file_over            ask for overwrite yes|no[|cancel]
+GUI_file_smuu            ask for save unused models
+GUI_dlg_bt23             dialogWindow, text, 2 or 3 Buttons, waiting.
 GUI_dlg_2b               dialogWindow, text, 2 Buttons, waiting.
 GUI_dlg_e2b              dialogWindow, entry, text, 2 Buttons, waiting.
+GUI_dlg_dlgbe1__         dialog with n buttons and optional entry
 GUI_listf1__             get user-selection of file
-
 
 GUI_obj_init             get a new memBlockId <UI_umbId>
 GUI_obj_save             save UI_tmpSpc -> memoryblock <UI_umbId>
@@ -279,7 +282,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   char     sEnam[256], s1[512];
 
 
-  printf("GUI_listf1__ |%s|%s|%s|\n",fNam,sTit,opts);
+  // printf("GUI_listf1__ |%s|%s|%s|\n",fNam,sTit,opts);
 
   // get user-selection of list
   irc = AP_GUI__ (sOut, sSiz, "GUI_dlg1", "list1",
@@ -326,6 +329,62 @@ char*   GUI_Win_tit     (void *gtkWin);
 }
 
 
+//===================================================================
+  int GUI_dlg_bt23 (char *sInf, char *sBt1, char *sBt2, char *sBt3) {
+//===================================================================
+// GUI_dlg_bt23             dialogWindow, text, 2 or 3 Buttons, waiting.
+// Input:
+//   sInf          infotext
+//   sBt1          text for button-1
+//   sBt2          text for button-2
+//   sBt3          text for button-3 - can be NULL
+// Output:
+//   retcode       -1=cancel, 0=button-1, 1=button-2, 2=button-3;
+// see also GUI_dlg_e2b GUI_dlg_2b GUI_dlg_dlgbe1__
+
+
+  int     irc,  ii;
+  char    *s1, *b1, *b2, *b3, sOut[16];
+
+
+  ii = strlen(sInf);
+  s1 = (char*) MEM_alloc_tmp (ii + 8);
+  sprintf(s1, "\"%s\"", sInf);
+
+
+  ii = strlen(sBt1);
+  b1 = (char*) MEM_alloc_tmp (ii + 8);
+  sprintf(b1, "\"%s\"", sBt1);
+
+
+  ii = strlen(sBt2);
+  b2 = (char*) MEM_alloc_tmp (ii + 8);
+  sprintf(b2, "\"%s\"", sBt2);
+
+
+  if(!sBt3) {
+    irc = AP_GUI__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, NULL);
+    goto L_done;
+  }
+
+
+  ii = strlen(sBt3);
+  b3 = (char*) MEM_alloc_tmp (ii + 8);
+  sprintf(b3, "\"%s\"", sBt3);
+  irc = AP_GUI__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, b3, NULL);
+
+
+  L_done:
+      // printf(" _dlg_bt23-irc1=%d\n",irc);
+    if(UTX_IS_EMPTY(sOut)) irc = -1;
+    else irc = atoi(sOut);
+      // printf(" ex-GUI_dlg_bt23 %d |%s|\n",irc,sOut);
+
+    return irc;
+
+}
+
+
 //================================================================
   int GUI_dlg_2b (char *txt, char *tb1, char *tb2) {
 //================================================================
@@ -342,7 +401,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   char   *pa[3], so[8];
 
 
-  printf("GUI_dlg_2b |%s|%s|%s|\n",txt,tb1,tb2);
+  // printf("GUI_dlg_2b |%s|%s|%s|\n",txt,tb1,tb2);
 
 
   // enclose all strings into double-apostrophs
@@ -387,7 +446,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   int    irc;
   char   *pa[3], so[8], sl[24], *pe;
 
-  printf("GUI_dlg_e2b |%s|%s| %d |%s|%s|\n",txt,entry,eSiz,tb1,tb2);
+  // printf("GUI_dlg_e2b |%s|%s| %d |%s|%s|\n",txt,entry,eSiz,tb1,tb2);
 
 
   // enclose all strings into double-apostrophs
@@ -423,6 +482,136 @@ char*   GUI_Win_tit     (void *gtkWin);
 }
 
 
+
+
+//================================================================
+  int GUI_file_over (char *fn, int mode) {
+//================================================================
+// GUI_file_over            ask for overwrite yes|no[|cancel]
+// Input:
+//   mode         buttons: 0=yes|no;    1=yes|no|cancel
+// Output:
+//   retCode      0=OK, overwrite or file does not exist
+//                1=no, do not overwrite, but file exists
+//               -1=cancel (abort)
+//
+// was AP_save_ex
+
+
+  int     irc;
+  char    s1[320], s2[320];
+
+
+  // printf("GUI_file_over |%s| %d\n",fn,mode);
+  // printf(" _file_over-no = |%s|\n",MSG_const__(MSG_no));
+
+
+  // check if file fn exists - no: return 0.
+  if(!OS_checkFilExist(fn,1)) return 0;
+
+
+  sprintf(s1, "\"  Model %s already exists; save (overwrite) ? \"",fn);
+
+
+  L_start:
+  //----------------------------------------------------------------
+  if(mode == 0) {
+    // ask for overwrite yes|no
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+                    MSG_const__(MSG_ok),      // "YES");
+                    MSG_const__(MSG_no),
+                    NULL);
+    if(UTX_IS_EMPTY(s2)) goto L_start;    
+
+
+  //----------------------------------------------------------------
+  } else {
+    // ask for overwrite yes|no|cancel
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+                    MSG_const__(MSG_ok),      // "YES");
+                    MSG_const__(MSG_cancel),
+                    MSG_const__(MSG_no),
+                    NULL);
+    if(UTX_IS_EMPTY(s2)) {irc = -1; goto L_exit;}
+  }
+
+
+  //----------------------------------------------------------------
+    printf(" _file_over - %d\n",irc);
+
+  irc = s2[0] - '0';
+
+
+  L_exit:
+    // printf("ex-GUI_file_over %d\n",irc);
+    return irc;
+
+}
+
+
+
+//================================================================
+  int GUI_file_smuu (int mode) {
+//================================================================
+// GUI_file_smuu            ask for save unused models
+// Input:
+//   sBase        list of unused models
+//   mode         2 yes|no|cancel
+//                3 yes|no
+// Output:
+//   retCode      0 ok    save all unused-subModels
+//                1 no    do not save unused-subModels
+//                2 cancel
+//               -1 Error
+// was ..
+
+
+  int     irc;
+  char    s2[320], *pa[4];
+
+  // printf("GUI_file_smuu |%s| %d\n",sBase,mode);
+  // printf("GUI_file_smuu %d\n",mode);
+
+  // ask user "save unused submodels - .."
+  // MSG_get_1 (s2, sizeof(s2), "SAVusm", "\n%s", sBase);
+  MSG_get_1 (s2, sizeof(s2), "SAVusm", "");
+    printf("  _file_smuu-s2=|%s|\n",s2);
+
+
+  // enclose button-text between ""
+  UTX_ENC_ApoD_TMP (&pa[0], MSG_const__(MSG_ok));
+  UTX_ENC_ApoD_TMP (&pa[1], MSG_const__(MSG_no));
+  UTX_ENC_ApoD_TMP (&pa[2], MSG_const__(MSG_cancel));
+  UTX_ENC_ApoD_TMP (&pa[3], s2);
+    // printf("  _file_smuu__-pa3=|%s|\n",pa[3]);
+
+  // get sel from user
+  if(mode == 2) {
+    // 2 yes|no|cancel
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
+                    pa[0], pa[1], pa[2], NULL);
+    if(UTX_IS_EMPTY(s2)) {irc = 2; goto L_exit;}   // cancel
+
+
+  } else {
+    // 3 yes|no
+    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
+                    pa[0], pa[1], NULL);
+    if(UTX_IS_EMPTY(s2)) {irc = 0; goto L_exit;}   // cancel
+  }
+
+    // printf("  _file_smuu__ irc=%d s2=|%s|\n",irc,s2);
+
+  irc = s2[0] - '0';
+
+  L_exit:
+    // printf("ex-GUI_file_smuu %d\n",irc);
+  return irc;
+
+}
+
+
+
 //============================================================================
   int GUI_file_save__ (char *filNam, int fSiz,
                        char *dirLst, char *fTyp, char *sTit, int iOver) {
@@ -456,7 +645,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   char     s2[200], sEnam[256], sFilt[80];
 
 
-  printf("GUI_file_save__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,fTyp,sTit);
+  // printf("GUI_file_save__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,fTyp,sTit);
 
   sprintf(sFilt, "\"*.%s\"", fTyp);
 
@@ -468,12 +657,13 @@ char*   GUI_Win_tit     (void *gtkWin);
                   sTit,
                   NULL);
   if(irc < 0) return -1;
-    // printf(" f-AP_GUI__ |%s|\n",filNam);
 
              
   // cancel ?
   irc = strlen(filNam);
   if(irc < 2) return -1;
+
+    // printf(" f-AP_GUI__ |%s|\n",filNam);
 
   if(iOver) return irc;
 

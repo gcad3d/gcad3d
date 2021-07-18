@@ -46,6 +46,7 @@ GUI_Win_go             windowSetup finished; display it ..
 GUI_Win_up             window always on top
 GUI_WinTit             set titletext
 GUI_Win_kill           destroy window
+GUI_Obj_kill           kill widget (eg GUI_popup__)
 GUI_Win_exist          returns nr of windows with windowTitle <winTit>;
 GUI_main_quit          close application
 
@@ -405,6 +406,23 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 
 
 //================================================================
+  int GUI_Obj_kill (void* widget) {
+//================================================================
+// GUI_Obj_kill                kill widget (eg GUI_popup__)
+
+  // gtk_window_close (GTK_WINDOW(go->widget));
+
+  gtk_widget_destroy (widget);
+  // gtk_widget_hide (widget);
+
+  GUI_update__ (); 
+
+  return 0;
+
+}
+
+ 
+//================================================================
   void GUI_Win_kill (MemObj *mo) {
 //================================================================
 /// GUI_Win_kill           destroy window from its MemObj
@@ -669,7 +687,7 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   Obj_Win  *go;
 
 
-  printf("GUI_Win_exit %d %d\n",mo.mbID,mo.ioff);
+  // printf("GUI_Win_exit %d %d\n",mo.mbID,mo.ioff);
 
 
   // get gui-object from MemObj
@@ -1948,6 +1966,13 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
   if(mode == 2) return gtk_widget_is_sensitive (go->widget);
 
   gtk_widget_set_sensitive (go->widget, mode);
+
+  // gtk_text_view_new does not get gray if disactivated - mak it opaque
+  // test if window is gtk_text_view
+  if(GTK_IS_TEXT_VIEW(go->widget)) {
+    if(mode) gtk_widget_set_opacity (go->widget, 1.);
+    else     gtk_widget_set_opacity (go->widget, 0.5);
+  }
 
   return 0;
 

@@ -52,6 +52,7 @@ OGX_DAT                 get data-block of ObjGX
 
 OGX_ox_ato1             complexObj from 1 atomicObj (ausTyp/ausTab)
 OGX_ox_copy_ox          complexObj-group from a group of objs.
+OGX_oxDat_oxInd         complexObj with data from complexObj with DB-index
 
 OGX_oxm_copy_ox         copy iNr complexObjects into Memspc (serialize)
 OGX_oxm_copy_obj        copy (serialize) obj into a Memspc
@@ -142,6 +143,35 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
 // typedef_MemTab(ObjRange);
 
 
+//================================================================
+  ObjGX OGX_oxDat_oxInd (long *dbi, ObjGX *oxi) {
+//================================================================
+// OGX_oxDat_oxInd            complexObj with data from complexObj with DB-index 
+// - resolv Typ_Index
+
+  int    typ, form, oNr;
+  void   *data;
+  ObjGX  ox1;
+
+
+  if(oxi->form != Typ_Index) return *oxi;
+
+  // DEB_dump_ox__ (oxi, "OGX_oxDat_oxInd-in");
+
+
+  OGX_GET_INDEX (&typ, dbi, oxi);
+    // printf(" oxDat_oxInd typ=%d dbi%ld\n",typ,dbi);
+
+  form = UTO__dbo (&data, &oNr, typ, *dbi);
+    // printf(" oxDat_oxInd form=%d oNr=%d\n",typ,oNr);
+
+  OGX_SET_OBJ (&ox1, form, form, oNr, data);
+
+    // DEB_dump_ox__ (&ox1, "ex-OGX_oxDat_oxInd");
+
+  return ox1;
+
+}
 
 
 //================================================================
@@ -834,7 +864,10 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   void   *sDat;
 
 
-  // printf("OGX_siz_obj typ=%d iNr=%d, isol=%d\n",typ,iNr,isolate);
+  printf("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
+  printf("OGX_siz_obj typ=%d iNr=%d, isol=%d\n",typ,iNr,isolate);
+  // if(typ == Typ_ObjGX) DEB_dump_ox_s_ (obj1, "OGX_siz_obj");   else
+  // DEB_dump_obj__ (typ, obj1, "OGX_siz_obj");
 
 
   iSiz = UTO_siz_stru (typ);
@@ -862,13 +895,15 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   // it is a struct with pointers; 
   // loop tru primary ObjGX-Record(s)
   for(i1=0; i1<iNr; ++i1) {
+      DEB_dump_obj__ (typ, po, "_siz_obj [%d] ------------",i1);
 
     //----------------------------------------------------------------
     if(typ == Typ_ObjGX) {
 
       sTyp  = ((ObjGX*)po)->typ;               // get child-typ
       sForm = ((ObjGX*)po)->form;              // get type of structure of child
-        // printf(" i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
+        printf(" _siz_obj-OGX i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
+
 
       // ignore all primary ObjGX-Records with no child-data
       if(sTyp  == Typ_Typ)   goto L_GX_nxt;    // no data
@@ -883,11 +918,12 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
         if(sForm == Typ_Error) goto L_err_ex;
           // printf(" resDB: typ=%d\n",sForm);
         // add size of DB-obj
-        return OGX_siz_obj (oSiz,
+        irc = OGX_siz_obj (oSiz,
                             sDat,               // DB-obj-data
                             sForm,
                             1,                   // nr of subObjects
                             isolate);
+        goto L_fertig;
       }
 
       // RECURSE a ObjGX-record
@@ -896,17 +932,19 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
                          sForm,
                          ((ObjGX*)po)->siz,   // nr of subObjects
                          isolate);
-      if(irc < 0) return irc;
+      if(irc < 0) goto L_fertig;
 
 
     //----------------------------------------------------------------
     } else if(typ == Typ_CVPOL) {     // DB_StoreCvPlg
+        printf(" _siz_obj- i1=%d Typ_CVPOL",i1);
       *oSiz += sizeof(double) * ((CurvPoly*)po)->ptNr;  // lvTab
       *oSiz += sizeof(Point) * ((CurvPoly*)po)->ptNr;   // cpTab
 
 
     //-------------------------------------------------------
     } else if(typ == Typ_CVBSP) {     // DB_StoreCvBsp DB_StoreCvRBsp
+        // printf(" _siz_obj- i1=%d Typ_CVBSP",i1);
       *oSiz += sizeof(double) * (((CurvBSpl*)po)->ptNr +
                                  ((CurvBSpl*)po)->deg + 1);  // kvTab
       *oSiz += sizeof(Point) * ((CurvBSpl*)po)->ptNr;        // cpTab
@@ -914,6 +952,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
 
     //-------------------------------------------------------
     } else if(typ == Typ_SURBSP) {     // DB_StoreSurBsp
+        // printf(" _siz_obj- i1=%d Typ_SURBSP",i1);
       *oSiz += sizeof(double) * (((SurBSpl*)po)->ptUNr +
                                  ((SurBSpl*)po)->degU + 1);  // kvTab
       *oSiz += sizeof(double) * (((SurBSpl*)po)->ptVNr +
@@ -924,6 +963,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
 
     //-------------------------------------------------------
     } else if(typ == Typ_GTXT) {       // DB_StoreGTxt
+        // printf(" _siz_obj- i1=%d Typ_GTXT",i1);
       *oSiz += UTI_div4up (strlen(((GText*)po)->txt) + 1);   // txt
 
 
@@ -939,16 +979,19 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
     po += iSiz;
   }
 
+  irc = 0;
+
+
   //================================================================
   L_fertig:
-  // DEB_dump_ox_0 (objo, "ex OGX_reloc_ox");
-  return 0;
+    printf(" ex-OGX_siz_obj %d\n",irc);
 
-  // L_err_adr:
-    // TX_Error("OGX_siz_obj E001 - outside memoryblock %d\n",typ);
+  return irc;
 
+  //----------------------------------------------------------------
   L_err_ex:
-    return -1;
+    irc = -1;
+    goto L_fertig;
 
 }
 

@@ -146,7 +146,7 @@ UNDO-Tests:
 */
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <math.h>
@@ -517,10 +517,11 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   int   iRec;
 
 
-  // printf("UNDO_grp_undo\n");
+  printf("UNDO_grp_undo\n");
+  UNDO_dump ("UNDO_grp_undo");
 
 
-  // do CAD-undo;
+  // undo only in CAD and with empty fields
   if(IE_undo() >= 0) {
     // UNDO_set_bt (0);  // disactivate btUndo btRedo
     return 0;
@@ -571,7 +572,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   int   iRec;
 
 
-  // printf("UNDO_grp_redo\n");
+  printf("UNDO_grp_redo\n");
+  UNDO_dump ("UNDO_grp_redo");
 
 
   // do CAD-undo;
@@ -650,8 +652,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  // printf("======================= UNDO_grp_del %d\n",ii);
-  // UNDO_dump ();
+  printf("======================= UNDO_grp_del %d\n",ii);
+  UNDO_dump ("UNDO_grp_del");
 
   if(ii < 0) return -1;
 
@@ -701,7 +703,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
     // printf(" iNr=%d\n",iNr);
   TX_Print ("- remove %d objects ..",iNr);
 
-  APED_update__ (lnMin);         // update display
+  APED_update__ (lnMin);         // update display starting at line nr <lnMin>
 
   return 0;
 
@@ -722,8 +724,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  // printf("==================== UNDO_grp_res %d\n",ii);
-  // UNDO_dump ();
+  printf("==================== UNDO_grp_res %d\n",ii);
+  UNDO_dump ("UNDO_grp_res");
 
 
   // skip this in Applications
@@ -845,7 +847,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  // printf("UNDO_ln_del %ld\n",lNr);
+  printf("UNDO_ln_del %ld\n",lNr);
   // UTF_dump__ ();
 
 
@@ -1096,7 +1098,7 @@ static long   dli, dbl;
 
   L_E001:
     printf("UNDO_app__ E001\n");
-    UNDO_dump ("");
+    UNDO_dump ("ex-UNDO_app__-E001");
     return -1;
 }
 

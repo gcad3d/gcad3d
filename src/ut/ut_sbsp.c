@@ -1486,7 +1486,8 @@ L_outOfWorkSpace:
 
   if(iloop < 16) goto L_next_try;  // Anzahl Versuche Defaul=100
   // keine Loesung nach n Versuchen ..
-  printf("UT3D_parsbsp_pt I000 Pos %f,%f,%f\n",pti->x,pti->y,pti->z);
+  // printf("UT3D_parsbsp_pt I000 Pos %f,%f,%f\n",pti->x,pti->y,pti->z);
+  printf("UT3D_parsbsp_pt I000\n");
   // TX_Error("UT3D_parsbsp_pt I000");
   // exit(0);
 

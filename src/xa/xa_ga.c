@@ -41,6 +41,7 @@ GA_find__            find GA-rec if already exist
 GA_getRec            get ga-record
 GA_get_dbo           get GraficAttribute for DB-obj
 GA_delRec            delete ga-record
+GA_clear             clear all ga-records
 
 GA_hide__            hide mainfunctions ..
 GA_hide_fil__        save / restore  - with open File (binary file)
@@ -64,7 +65,7 @@ GA_getTexRefInd      INLINE
 GA_Tra__             modify transparenz
 
 GA_fil_wri           write out the PermanentAttributes (as sourceText)
-GA_load__            decode GATAB-Line ?
+GA_load__            process permanent_attribute from GATAB
 GA_decode__          decode a runtime-attribute
 
 GA_dump__
@@ -133,7 +134,7 @@ Funktions:     ../xa/xa_ga.c  (this file)
 
 
 #ifdef _MSC_VER
-#include "MS_Def0.h"
+#include "../xa/MS_Def0.h"
 #endif
 
 #include <string.h>                       /* strcmp ..   */
@@ -151,7 +152,7 @@ Funktions:     ../xa/xa_ga.c  (this file)
 
 #include "../db/ut_DB.h"                   // DB_VCX_IND
 
-#include "../gr/ut_DL.h"                   // DL_get_col
+#include "../gr/ut_DL.h"               // DL_IS_HIDDEN
 
 #include "../xa/xa_mem.h"                  // memspc51, mem_cbuf1
 #include "../xa/xa_ga.h"                   // GA_hasTexture
@@ -175,8 +176,8 @@ extern TexRef *TexRefTab;
 extern char      UI_stat_view, UI_stat_hide;
 
 
-// aus xa.c:
-// extern int      AP_modact_ind;        // Nr of the active submodel;
+// ../xa/xa.c
+// extern int      AP_modact_ibm;        // Nr of the active submodel;
 extern AP_STAT    AP_stat;
 extern ColRGB     AP_actcol;
 extern ColRGB     AP_defcol;
@@ -193,8 +194,7 @@ static int   GA_stat=0;          // 0=unmodified; 1=GA_ObjTab changed.
 static long  GA_SIZ = 0;         // size of GA_ObjTab
 #define GA_INC_SIZ  10000
 
-static ObjAtt GA_DefRec;
-
+static ObjAtt GA_DefRec = {0L, 0, 0};
 
 
 
@@ -236,20 +236,6 @@ static ObjAtt GA_DefRec;
     TX_Error("GA_realloc EOM");
     return -2;
   }
-
-
-
-  if(iniFlag == 1) {                    // init
-    // init GA_DefRec
-    GA_DefRec.ind     = 0;
-    GA_DefRec.typ     = 0;
-    GA_DefRec.iatt    = 0;
-    GA_DefRec.lay     = 0;
-    GA_DefRec.disp    = 0;
-    // GA_DefRec.vtra    = 0;
-    // GA_DefRec.vsym    = 0;
-  }
-
 
   // printf("ex GA_realloc %d %d\n",newSiz,GA_SIZ);
 
@@ -360,8 +346,8 @@ static ObjAtt GA_DefRec;
   ObjGX  ox1;
 
 
-  // printf("GA_fil_wri grp=%d nr=%d\n",iGrp,GA_recNr);
-  // printf("  AP_modact_ind=%d\n",AP_modact_ind);
+  // printf("GA_fil_wri iGrp=%d ckExist=%d GA_recNr=%d\n",iGrp,ckExist,GA_recNr);
+  // printf("  AP_modact_ibm=%d\n",AP_modact_ibm);
   // printf("  AP_modact_nam=|%s|d\n",AP_modact_nam);
 
 
@@ -394,12 +380,18 @@ static ObjAtt GA_DefRec;
       // printf("  GA_fil_wri nxt %d |%s|\n",gaNr,mem_cbuf1);
 
 
-    // check if object still exists ..
     //----------------------------------------------------------------
+    // check if object still exists ..
     // geht bei STP_r_creMod_Run (Step-Import) ned !
     if(ckExist) {
-      ox1 = DB_GetObjGX (typ, GA_ObjTab[gaNr].ind);
-      if(ox1.typ == Typ_Error) continue;  // skip GA-Record; object is deleted ..
+      irc = DB_QueryDef (typ, GA_ObjTab[gaNr].ind);
+      if(irc < 0) {
+        APED_oid_dbo__ (cbuf, typ, GA_ObjTab[gaNr].ind);
+        TX_Print("***** Obj %s from GATAB does not exist ... *****",cbuf);
+        continue; 
+      }
+      // ox1 = DB_GetObjGX (typ, GA_ObjTab[gaNr].ind);
+      // if(ox1.typ == Typ_Error) continue;  // skip GA-Record; object is deleted ..
     }
 
     // ACHTUNG: funktioniert dzt nur mit MainModel !
@@ -503,13 +495,12 @@ static ObjAtt GA_DefRec;
     L_write:
     if(i2 > 0) fprintf(fpo, "%s\n", mem_cbuf1);
 
-
   }
 
 
   fprintf(fpo, "ENDGATAB\n");
 
-  // printf("ex GA_fil_wri nxt\n");
+    // printf("ex-GA_fil_wri nxt\n");
 
   return 0;
 
@@ -642,16 +633,21 @@ static ObjAtt GA_DefRec;
 ///================================================================
 /// eine neuen GA-Record anlegen und desen Nr retournieren ..
 
+static ObjAtt ObjAtt_NUL = {0L, 0, 0};
+
   long gaNr;
+
+
 
   if(GA_recNr >= GA_SIZ) {
     gaNr = GA_realloc (GA_recNr);
     if(gaNr < 0) return gaNr;
   }
   gaNr = GA_recNr;
+  GA_ObjTab[gaNr] = GA_DefRec;
   ++GA_recNr;
 
-    // printf("ex GA_addRec %ld\n",gaNr);
+    // printf("ex-GA_addRec %ld\n",gaNr);
 
   return gaNr;
 
@@ -720,6 +716,7 @@ static ObjAtt GA_DefRec;
 //===============================================================
   int GA_load__ (char *cbuf) {
 //===============================================================
+// GA_load__                    process permanent_attribute from GATAB
 ///  parameter ist die GATAB-Line; mem_cbuf1
 ///  wenn parameter == NULL, dann delete GA-Tab.
 
@@ -731,7 +728,6 @@ static ObjAtt GA_DefRec;
   TexBas     *tbAct;
   TexRef     *trAct;
   TexRef     txr;
-
 
 
   if(cbuf == NULL) {
@@ -746,12 +742,9 @@ static ObjAtt GA_DefRec;
   // set end of line
   cpe = &cbuf[strlen(cbuf)];
 
-
   // see GA_newRec
   gaNr = GA_addRec ();
-
-  // write defaults;
-  GA_ObjTab[gaNr] = GA_DefRec;
+  if(gaNr < 0) {TX_Error("GA_load__ EOM"); return -1;}
 
   // decode Typ/Index
   GA_ObjTab[gaNr].typ = AP_typ_typChar (cbuf[0]);
@@ -761,7 +754,6 @@ static ObjAtt GA_DefRec;
       // GA_ObjTab[gaNr].typ,GA_ObjTab[gaNr].ind,cp1);
 
 
-
   //----------------------------------------------------------------
   // first parameter: 'H'
   if(*cp1 == 'H') {
@@ -769,7 +761,6 @@ static ObjAtt GA_DefRec;
     // write new disp
     GA_ObjTab[gaNr].disp = 1;  // 0=normal; 1=hidden
   }
-
 
 
   //----------------------------------------------------------------
@@ -1007,10 +998,10 @@ static ObjAtt GA_DefRec;
 ///================================================================
 /// GA_view__            hide / view obj
 /// Input:
-///   mode   0=view;Redraw,  1=hide;Redraw
-///          2=view;noRedraw 3=hide;noRedraw
-///   dli    dispListIndex given: typ,dbi unused.
-///            if dli not given: dispList is not updated !
+///   mode     0=view;Redraw,     1=hide;Redraw
+///            2=view;noRedraw    3=hide;noRedraw
+///   dli      dispListIndex given: typ,dbi unused.
+///            if(dli < 0): dispList is not updated !
 ///   typ,dbi  dataBaseTyp und -index given: dli unused (set it to -1L)
 ///
 /// Example:
@@ -1085,7 +1076,7 @@ static ObjAtt GA_DefRec;
 /// typ  = APT-Typ
 /// dli  = mode==0: DB-index; mode==3: DL-Index
 /// mode =-1: clear hidden-Elements-Tabelle
-/// mode = 1: update (hidden Elements aus Tabelle wieder hiden)
+/// mode = 1: L_hide - update (hide Element in DL)
 /// mode = 5: set reverseMode (display all hidden objects;
 /// mode = 6: set reverseMode off
 /// mode = 7: Display Info Hidden about Objects
@@ -1107,9 +1098,6 @@ static ObjAtt GA_DefRec;
     GA_recNr = 0;    // clear List
     return 0;
   }
-
-
-
 
 /*
   //==========================================================
@@ -1341,34 +1329,25 @@ static ObjAtt GA_DefRec;
 
 
 //================================================================
-  int GA_get_dbo (int *iAtt, int typ, long dbi) {
+  int GA_get_dbo (ObjAtt **iAtt, int basTyp, long dbi) {
 //================================================================
-/// \code
-/// get GraficAttribute for DB-obj
-/// Output:
-///  retCod    1  no GA-Record exists
-///            0  OK, iAtt = GraficAttribute
-/// \endcode
+// GA_get_dbo       get GraficAttribute for DB-obj
+// Input:
+//   basTyp    basic-type of dbi (AP_typDB_typ(typ))
+//   dbi
+// Output:
+//  iAtt      pointer to the GA-rec
+//  retCod    1  no GA-Record exists
+//            0  OK, iAtt = GraficAttribute
 
-  int      basTyp;
   long     gaNr;
-  ObjAtt   *ga1;
-
-
-  basTyp = AP_typDB_typ (typ);
 
   // find GA-rec if already exist
   gaNr = GA_find__ (basTyp, dbi);
-  if(gaNr < 0) {
-    *iAtt = Typ_Att_hili1;    // curves
-    return 1;                 // skip, no GA-Record exists
-  }
+  if(gaNr < 0) return 1;                 // skip, no GA-Record exists
 
-
-  GA_getRec (&ga1, gaNr);
-  // if(typTyp == Typ_go_LCS) {
-    *iAtt = ga1->iatt;
-
+  // get GA-rec
+  GA_getRec (iAtt, gaNr);
 
   return 0;
 
@@ -1420,6 +1399,20 @@ static ObjAtt GA_DefRec;
     --GA_recNr;
     goto L_rem_nxt;
   }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GA_clear () {
+//================================================================
+// GA_clear             clear all ga-records
+
+  // printf("AAAAAAAAAAAAAAAAAAAAAAAAAA GA_clear \n");
+
+  GA_recNr = 0;
 
   return 0;
 
@@ -1520,7 +1513,8 @@ static ObjAtt GA_DefRec;
   // write defaults;
   GA_ObjTab[i1] = GA_DefRec;
 
-  // printf("ex GA_newRec %d\n",i1);
+    // printf("ex GA_newRec %ld\n",i1);
+
   return i1;
 
 }
@@ -1561,7 +1555,7 @@ static ObjAtt GA_DefRec;
 
   GA_stat = 1;  // stat_changed = yes
 
-  // printf("ex GA_creRec %d\n",gaNr);
+    // printf("ex-GA_creRec %ld\n",gaNr);
   return gaNr;
 
 }
@@ -2109,8 +2103,12 @@ static ObjAtt GA_DefRec;
 
 
 
-  // find or create GA-record > PermanentAttributeTable GA_ObjTab
+  //----------------------------------------------------------------
   L_1:
+  // reset hidden
+  DL_disp_def (0);  // set following DL-record visible
+
+  // find or create GA-record > PermanentAttributeTable GA_ObjTab
   gaNr = GA_creRec (typ, dbi);
   if(gaNr < 0) return -1;
     // printf(" gaNr=%d\n",gaNr);

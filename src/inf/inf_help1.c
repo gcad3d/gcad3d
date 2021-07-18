@@ -391,6 +391,7 @@ int TX_Error(char* txt, ...) {
     printf("*** Fehler: ");
     vprintf(txt, va);
     printf("\n");
+    va_end(va);
   return 0;
 
 }

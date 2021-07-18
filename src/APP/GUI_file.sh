@@ -3,6 +3,10 @@
 # use with:      ./GUI_file.sh
 #
 # ../gui_gtk3/GUI_file.c
+# ../gui_gtk2/GUI_file.c
+# ../gui_gtk2_MS/GUI_file.c
+# ./GUI_file.sh
+# cat  /tmp/debug.dat
 #
 #----------------------------------------------------------------------
 # Parameters for open-function:  (get filename for later file-read)

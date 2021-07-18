@@ -160,7 +160,7 @@ extern double    APT_ModSiz;
 // ex ../xa/xa.c
 // extern int     SRC_ato_anz, SRC_ato_SIZ, *SRC_ato_typ;
 extern double    *SRC_ato_tab;
-extern int       AP_modact_ind;         // -1=primary Model is active;
+extern int       AP_modact_ibm;         // -1=primary Model is active;
                                         // else subModel is being created
 
 // aus ../gr/ut_DL.c
@@ -767,7 +767,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   // get pa3 = circular polygon         see GR_DrawCirc
   if(TL_dbi > 0) {
     // get polygon from file
-    irc = PRCV_npt_dbo__ (&pa3, &ptNr, Typ_CI, TL_dbi, AP_modact_ind);
+    irc = PRCV_npt_dbo__ (&pa3, &ptNr, Typ_CI, TL_dbi, AP_modact_ibm);
     if(irc < 0) return -1;
 
   } else {

@@ -135,10 +135,11 @@ copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.
 copy %datDirIn%\prg\DemoRC*              %outDirD%\prg\.
 
 REM copy -> cfg
-copy %datDirIn%\cfg\ltyp.rc              %outDirD%\cfg\.
-copy %datDirIn%\cfg\gCAD3D.rc            %outDirD%\cfg\.
-copy %datDirIn%\cfg\psv.setup            %outDirD%\cfg\.
-copy %datDirIn%\cfg\Default.ctlg         %outDirD%\cfg\.
+copy %datDirIn%\cfg_orig\ltyp.rc              %outDirD%\cfg\.
+copy %datDirIn%\cfg_orig\gCAD3D.rc            %outDirD%\cfg\.
+copy %datDirIn%\cfg_orig\psv.setup            %outDirD%\cfg\.
+copy %datDirIn%\cfg_orig\Default.ctlg         %outDirD%\cfg\.
+copy %datDirIn%\cfg_orig\dir_project_xx.lst   %outDirD%\cfg\.
 
 ::copy %datDirIn%\ctlg\*                   %outDirD%\ctlg\.
 xcopy /s /Y %datDirIn%\ctlg                %outDirD%\ctlg
